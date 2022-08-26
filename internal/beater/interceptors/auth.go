@@ -30,40 +30,41 @@ import (
 	"github.com/elastic/apm-server/internal/beater/headers"
 )
 
-// Authenticator provides an interface for authenticating a client.
-type Authenticator interface {
-	Authenticate(ctx context.Context, kind, token string) (auth.AuthenticationDetails, auth.Authorizer, error)
+// UnaryAuthenticator is an interface that gRPC services may implement to
+// override the authentication mechanism. If this is not implemented, then
+// the default method of extracting auth details from "Authorization"
+// metadata will be used.
+type UnaryAuthenticator interface {
+	// AuthenticateUnaryCall is called for each method call with the
+	// request context, request parameters, method name, and an
+	// auth.Authenticator which should be called to return the final
+	// auth.AuthenticationDetails and auth.Authorizer.
+	AuthenticateUnaryCall(
+		ctx context.Context,
+		req interface{},
+		fullMethod string,
+		auth *auth.Authenticator,
+	) (auth.AuthenticationDetails, auth.Authorizer, error)
 }
-
-// MethodAuthenticator is a function type for authenticating a gRPC method call.
-// This is used to authenticate gRPC method calls by extracting authentication tokens
-// from incoming context metadata or from the request payload.
-type MethodAuthenticator func(ctx context.Context, req interface{}) (auth.AuthenticationDetails, auth.Authorizer, error)
 
 // Auth returns a grpc.UnaryServerInterceptor that ensures method calls are
 // authenticated before passing on to the next handler.
 //
-// Authentication is performed using a MethodAuthenticator from the combined
-// map parameters, keyed on the full gRPC method name (info.FullMethod).
-// If there is no handler defined for the method, authentication fails.
-func Auth(methodHandlers ...map[string]MethodAuthenticator) grpc.UnaryServerInterceptor {
-	combinedMethodHandlers := make(map[string]MethodAuthenticator)
-	for _, methodHandlers := range methodHandlers {
-		for method, handler := range methodHandlers {
-			combinedMethodHandlers[method] = handler
-		}
-	}
+// Authentication is performed using the service's AuthenticateUnaryCall
+// method, if implemented, and AuthorizationMetadataAuthenticator otherwise.
+func Auth(authenticator *auth.Authenticator) grpc.UnaryServerInterceptor {
+	var defaultAuthenticator UnaryAuthenticator = AuthorizationMetadataAuthenticator{}
 	return func(
 		ctx context.Context,
 		req interface{},
 		info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler,
 	) (interface{}, error) {
-		authenticator, ok := combinedMethodHandlers[info.FullMethod]
+		unaryAuthenticator, ok := info.Server.(UnaryAuthenticator)
 		if !ok {
-			return nil, status.Errorf(codes.Unauthenticated, "no auth method defined for %q", info.FullMethod)
+			unaryAuthenticator = defaultAuthenticator
 		}
-		details, authz, err := authenticator(ctx, req)
+		details, authz, err := unaryAuthenticator.AuthenticateUnaryCall(ctx, req, info.FullMethod, authenticator)
 		if err != nil {
 			if errors.Is(err, auth.ErrAuthFailed) {
 				return nil, status.Error(codes.Unauthenticated, err.Error())
@@ -81,20 +82,25 @@ func Auth(methodHandlers ...map[string]MethodAuthenticator) grpc.UnaryServerInte
 	}
 }
 
-// MetadataMethodAuthenticator returns a MethodAuthenticator that extracts
-// authentication parameters from the "authorization" metadata in ctx,
-// calling authenticator.Authenticate.
-func MetadataMethodAuthenticator(authenticator Authenticator) MethodAuthenticator {
-	return func(ctx context.Context, req interface{}) (auth.AuthenticationDetails, auth.Authorizer, error) {
-		var authHeader string
-		if md, ok := metadata.FromIncomingContext(ctx); ok {
-			if values := md.Get(headers.Authorization); len(values) > 0 {
-				authHeader = values[0]
-			}
+// AuthorizationMetadataAuthenticator is a UnaryAuthenticator which extracts
+// auth details from the incoming "authorization" metadata, and passes it to
+// the supplied Authenticator.
+type AuthorizationMetadataAuthenticator struct{}
+
+func (a AuthorizationMetadataAuthenticator) AuthenticateUnaryCall(
+	ctx context.Context,
+	req interface{},
+	fullMethod string,
+	authenticator *auth.Authenticator,
+) (auth.AuthenticationDetails, auth.Authorizer, error) {
+	var authHeader string
+	if md, ok := metadata.FromIncomingContext(ctx); ok {
+		if values := md.Get(headers.Authorization); len(values) > 0 {
+			authHeader = values[0]
 		}
-		kind, token := auth.ParseAuthorizationHeader(authHeader)
-		return authenticator.Authenticate(ctx, kind, token)
 	}
+	kind, token := auth.ParseAuthorizationHeader(authHeader)
+	return authenticator.Authenticate(ctx, kind, token)
 }
 
 type authenticationDetailsKey struct{}
