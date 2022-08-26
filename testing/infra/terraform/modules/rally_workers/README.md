@@ -55,7 +55,7 @@ This modules sets up [rally daemons](https://esrally.readthedocs.io/en/stable/ra
 
 | Name | Description |
 |------|-------------|
-| <a name="output_rally_coordinator_ip"></a> [rally\_coordinator\_ip](#output\_rally\_coordinator\_ip) | Private key to login to rally nodes |
+| <a name="output_rally_coordinator_ip"></a> [rally\_coordinator\_ip](#output\_rally\_coordinator\_ip) | Public IP address of rally coordinator node |
+| <a name="output_rally_ssh_private_key"></a> [rally\_ssh\_private\_key](#output\_rally\_ssh\_private\_key) | Private key to login to rally nodes |
 | <a name="output_rally_summary"></a> [rally\_summary](#output\_rally\_summary) | Summary of rally run |
-| <a name="output_ssh_private_key"></a> [ssh\_private\_key](#output\_ssh\_private\_key) | Private key to login to rally nodes |
 <!-- END_TF_DOCS -->
