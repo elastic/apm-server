@@ -21,8 +21,9 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/elastic/apm-server/internal/beater/request"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/elastic/apm-server/internal/beater/request"
 )
 
 func TestAsyncMiddleware(t *testing.T) {
