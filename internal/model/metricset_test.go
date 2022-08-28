@@ -35,13 +35,16 @@ func TestMetricset(t *testing.T) {
 	}{
 		{
 			Metricset: &Metricset{},
-			Output:    mapstr.M{},
-			Msg:       "Payload with empty metric.",
+			Output: mapstr.M{
+				"_metric_descriptions": mapstr.M{},
+			},
+			Msg: "Payload with empty metric.",
 		},
 		{
 			Metricset: &Metricset{Name: "raj"},
 			Output: mapstr.M{
-				"metricset.name": "raj",
+				"metricset.name":       "raj",
+				"_metric_descriptions": mapstr.M{},
 			},
 			Msg: "Payload with metricset name.",
 		},
@@ -53,8 +56,9 @@ func TestMetricset(t *testing.T) {
 				},
 			},
 			Output: mapstr.M{
-				"a.counter":  612.0,
-				"some.gauge": 9.16,
+				"a.counter":            612.0,
+				"some.gauge":           9.16,
+				"_metric_descriptions": mapstr.M{},
 			},
 			Msg: "Payload with valid metric.",
 		},
@@ -64,8 +68,9 @@ func TestMetricset(t *testing.T) {
 				DocCount:             6,
 			},
 			Output: mapstr.M{
-				"timeseries": mapstr.M{"instance": "foo"},
-				"_doc_count": int64(6),
+				"_metric_descriptions": mapstr.M{},
+				"timeseries":           mapstr.M{"instance": "foo"},
+				"_doc_count":           int64(6),
 			},
 			Msg: "Timeseries instance and _doc_count",
 		},
@@ -151,8 +156,9 @@ func TestTransformMetricsetTransaction(t *testing.T) {
 	}
 	beatEvent := event.BeatEvent()
 	assert.Equal(t, mapstr.M{
-		"processor":      mapstr.M{"name": "metric", "event": "metric"},
-		"metricset.name": "transaction",
+		"processor":            mapstr.M{"name": "metric", "event": "metric"},
+		"_metric_descriptions": mapstr.M{},
+		"metricset.name":       "transaction",
 		"transaction": mapstr.M{
 			"name":   "transaction_name",
 			"type":   "transaction_type",
@@ -187,8 +193,9 @@ func TestTransformMetricsetSpan(t *testing.T) {
 	}
 	beatEvent := event.BeatEvent()
 	assert.Equal(t, mapstr.M{
-		"processor":      mapstr.M{"name": "metric", "event": "metric"},
-		"metricset.name": "span",
+		"processor":            mapstr.M{"name": "metric", "event": "metric"},
+		"metricset.name":       "span",
+		"_metric_descriptions": mapstr.M{},
 		"span": mapstr.M{
 			"type":    "span_type",
 			"subtype": "span_subtype",

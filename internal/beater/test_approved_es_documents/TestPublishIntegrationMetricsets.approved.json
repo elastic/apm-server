@@ -2,6 +2,7 @@
     "events": [
         {
             "@timestamp": "2017-05-30T18:53:42.281Z",
+            "_metric_descriptions": {},
             "agent": {
                 "name": "elastic-node",
                 "version": "3.14.0"
@@ -69,6 +70,7 @@
         },
         {
             "@timestamp": "2017-05-30T18:53:41.364Z",
+            "_metric_descriptions": {},
             "agent": {
                 "name": "elastic-node",
                 "version": "3.14.0"
@@ -122,6 +124,7 @@
         },
         {
             "@timestamp": "2017-05-30T18:53:41.366Z",
+            "_metric_descriptions": {},
             "agent": {
                 "name": "elastic-node",
                 "version": "3.14.0"
@@ -176,6 +179,7 @@
         },
         {
             "@timestamp": "2017-05-30T18:53:41.367Z",
+            "_metric_descriptions": {},
             "agent": {
                 "name": "elastic-node",
                 "version": "3.14.0"
@@ -306,14 +310,11 @@
         },
         {
             "@timestamp": "2017-05-30T18:53:41.369Z",
+            "_metric_descriptions": {},
             "agent": {
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
-            "faas.billed_duration": 183,
-            "faas.coldstart_duration": 422.9700012207031,
-            "faas.duration": 182.42999267578125,
-            "faas.timeout": 5000,
             "data_stream.dataset": "apm.internal",
             "data_stream.namespace": "default",
             "data_stream.type": "metrics",
@@ -325,6 +326,10 @@
                 "execution": "6f7f0961f83442118a7af6fe80b88d56",
                 "id": "arn:aws:lambda:us-east-2:123456789012:function:custom-runtime"
             },
+            "faas.billed_duration": 183,
+            "faas.coldstart_duration": 422.9700012207031,
+            "faas.duration": 182.42999267578125,
+            "faas.timeout": 5000,
             "host": {
                 "ip": [
                     "127.0.0.1"
