@@ -169,7 +169,7 @@ func (me *Metricset) setFields(fields *mapStr) {
 		md.maybeSetString("unit", sample.Unit)
 		metricDescriptions.maybeSetMapStr(name, mapstr.M(md))
 	}
-	fields.maybeSetMapStr("_metric_descriptions", mapstr.M(metricDescriptions))
+	fields.set("_metric_descriptions", mapstr.M(metricDescriptions))
 }
 
 func (s *MetricsetSample) set(name string, fields *mapStr) {
