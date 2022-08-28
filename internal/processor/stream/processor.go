@@ -249,13 +249,8 @@ func (p *Processor) HandleStream(
 
 	for {
 		var batch model.Batch
-		var releaseBatch func()
-		if b, ok := p.batchPool.Get().(*model.Batch); ok {
-			releaseBatch = func() { p.batchPool.Put(b) }
-			batch = (*b)[:0]
-		} else {
-			releaseBatch = func() { p.batchPool.Put(&batch) }
-		}
+		b, _ := p.batchPool.Get().(*model.Batch)
+		batch = (*b)[:0]
 
 		n, readErr := p.readBatch(ctx, baseEvent, batchSize, &batch, sr, result)
 		if n > 0 {
@@ -265,12 +260,12 @@ func (p *Processor) HandleStream(
 			// a sync.Pool for creating batches, and having the publisher (terminal processor)
 			// release batches back into the pool.
 			if err := processor.ProcessBatch(ctx, &batch); err != nil {
-				releaseBatch()
+				p.batchPool.Put(&batch)
 				return err
 			}
 			result.AddAccepted(len(batch))
 		}
-		releaseBatch()
+		p.batchPool.Put(&batch)
 
 		if readErr == io.EOF {
 			break
