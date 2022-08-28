@@ -254,11 +254,6 @@ func (p *Processor) HandleStream(
 
 		n, readErr := p.readBatch(ctx, baseEvent, batchSize, &batch, sr, result)
 		if n > 0 {
-			// NOTE(axw) ProcessBatch takes ownership of batch, which means we cannot reuse
-			// the slice memory. We should investigate alternative interfaces between the
-			// processor and publisher which would enable better memory reuse, e.g. by using
-			// a sync.Pool for creating batches, and having the publisher (terminal processor)
-			// release batches back into the pool.
 			if err := processor.ProcessBatch(ctx, &batch); err != nil {
 				p.batchPool.Put(&batch)
 				return err
