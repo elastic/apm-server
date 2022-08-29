@@ -70,10 +70,7 @@
         {
             "@timestamp": "2017-05-30T18:53:41.364Z",
             "_metric_descriptions": {
-                "go.memstats.heap.sys.bytes": {
-                    "type": "",
-                    "unit": ""
-                }
+                "go.memstats.heap.sys.bytes": {}
             },
             "agent": {
                 "name": "elastic-node",
@@ -129,14 +126,8 @@
         {
             "@timestamp": "2017-05-30T18:53:41.366Z",
             "_metric_descriptions": {
-                "system.process.cgroup.memory.mem.limit.bytes": {
-                    "type": "",
-                    "unit": ""
-                },
-                "system.process.cgroup.memory.mem.usage.bytes": {
-                    "type": "",
-                    "unit": ""
-                }
+                "system.process.cgroup.memory.mem.limit.bytes": {},
+                "system.process.cgroup.memory.mem.usage.bytes": {}
             },
             "agent": {
                 "name": "elastic-node",
@@ -193,38 +184,14 @@
         {
             "@timestamp": "2017-05-30T18:53:41.367Z",
             "_metric_descriptions": {
-                "system.process.cgroup.cpu.cfs.period.us": {
-                    "type": "",
-                    "unit": ""
-                },
-                "system.process.cgroup.cpu.cfs.quota.us": {
-                    "type": "",
-                    "unit": ""
-                },
-                "system.process.cgroup.cpu.id": {
-                    "type": "",
-                    "unit": ""
-                },
-                "system.process.cgroup.cpu.stats.periods": {
-                    "type": "",
-                    "unit": ""
-                },
-                "system.process.cgroup.cpu.stats.throttled.ns": {
-                    "type": "",
-                    "unit": ""
-                },
-                "system.process.cgroup.cpu.stats.throttled.periods": {
-                    "type": "",
-                    "unit": ""
-                },
-                "system.process.cgroup.cpuacct.id": {
-                    "type": "",
-                    "unit": ""
-                },
-                "system.process.cgroup.cpuacct.total.ns": {
-                    "type": "",
-                    "unit": ""
-                }
+                "system.process.cgroup.cpu.cfs.period.us": {},
+                "system.process.cgroup.cpu.cfs.quota.us": {},
+                "system.process.cgroup.cpu.id": {},
+                "system.process.cgroup.cpu.stats.periods": {},
+                "system.process.cgroup.cpu.stats.throttled.ns": {},
+                "system.process.cgroup.cpu.stats.throttled.periods": {},
+                "system.process.cgroup.cpuacct.id": {},
+                "system.process.cgroup.cpuacct.total.ns": {}
             },
             "agent": {
                 "name": "elastic-node",
@@ -357,30 +324,12 @@
         {
             "@timestamp": "2017-05-30T18:53:41.369Z",
             "_metric_descriptions": {
-                "faas.billed_duration": {
-                    "type": "",
-                    "unit": ""
-                },
-                "faas.coldstart_duration": {
-                    "type": "",
-                    "unit": ""
-                },
-                "faas.duration": {
-                    "type": "",
-                    "unit": ""
-                },
-                "faas.timeout": {
-                    "type": "",
-                    "unit": ""
-                },
-                "system.memory.actual.free": {
-                    "type": "",
-                    "unit": ""
-                },
-                "system.memory.total": {
-                    "type": "",
-                    "unit": ""
-                }
+                "faas.billed_duration": {},
+                "faas.coldstart_duration": {},
+                "faas.duration": {},
+                "faas.timeout": {},
+                "system.memory.actual.free": {},
+                "system.memory.total": {}
             },
             "agent": {
                 "name": "elastic-node",

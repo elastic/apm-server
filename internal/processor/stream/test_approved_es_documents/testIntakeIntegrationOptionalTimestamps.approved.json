@@ -151,10 +151,7 @@
         {
             "@timestamp": "2018-01-01T11:00:00.000Z",
             "_metric_descriptions": {
-                "my-metric": {
-                    "type": "",
-                    "unit": ""
-                }
+                "my-metric": {}
             },
             "agent": {
                 "name": "elastic-node",

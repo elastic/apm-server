@@ -56,14 +56,8 @@ func TestMetricset(t *testing.T) {
 				"a.counter":  612.0,
 				"some.gauge": 9.16,
 				"_metric_descriptions": mapstr.M{
-					"a.counter": mapstr.M{
-						"type": "",
-						"unit": "",
-					},
-					"some.gauge": mapstr.M{
-						"type": "",
-						"unit": "",
-					},
+					"a.counter": mapstr.M(nil),
+					"some.gauge": mapstr.M(nil),
 				},
 			},
 			Msg: "Payload with valid metric.",
@@ -125,14 +119,11 @@ func TestMetricset(t *testing.T) {
 					},
 					"request_summary": mapstr.M{
 						"type": "summary",
-						"unit": "",
 					},
 					"just_type": mapstr.M{
 						"type": "counter",
-						"unit": "",
 					},
 					"just_unit": mapstr.M{
-						"type": "",
 						"unit": "percent",
 					},
 				},
