@@ -34,7 +34,12 @@
         },
         {
             "@timestamp": "2017-05-30T18:53:42.281Z",
-            "_metric_descriptions": {},
+            "_metric_descriptions": {
+                "go.memstats.heap.sys.bytes": {
+                    "type": "",
+                    "unit": ""
+                }
+            },
             "agent": {
                 "name": "elastic-node",
                 "version": "3.14.0"

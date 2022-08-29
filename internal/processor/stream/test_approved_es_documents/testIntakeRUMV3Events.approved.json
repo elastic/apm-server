@@ -147,7 +147,6 @@
         },
         {
             "@timestamp": "2018-08-01T10:00:00.000Z",
-            "_metric_descriptions": {},
             "agent": {
                 "name": "js-base",
                 "version": "4.8.1"
@@ -209,7 +208,6 @@
         },
         {
             "@timestamp": "2018-08-01T10:00:00.000Z",
-            "_metric_descriptions": {},
             "agent": {
                 "name": "js-base",
                 "version": "4.8.1"

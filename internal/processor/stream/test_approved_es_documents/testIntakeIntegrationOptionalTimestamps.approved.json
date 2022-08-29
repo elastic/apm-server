@@ -150,7 +150,12 @@
         },
         {
             "@timestamp": "2018-01-01T11:00:00.000Z",
-            "_metric_descriptions": {},
+            "_metric_descriptions": {
+                "my-metric": {
+                    "type": "",
+                    "unit": ""
+                }
+            },
             "agent": {
                 "name": "elastic-node",
                 "version": "3.14.0"

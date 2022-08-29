@@ -160,16 +160,16 @@ func (me *Metricset) setFields(fields *mapStr) {
 	}
 	fields.maybeSetString("metricset.name", me.Name)
 
-	metricDescriptions := make(mapStr, len(me.Samples))
+	var metricDescriptions mapStr
 	for name, sample := range me.Samples {
 		sample.set(name, fields)
 
 		var md mapStr
-		md.maybeSetString("type", string(sample.Type))
-		md.maybeSetString("unit", sample.Unit)
-		metricDescriptions.maybeSetMapStr(name, mapstr.M(md))
+		md.set("type", string(sample.Type))
+		md.set("unit", sample.Unit)
+		metricDescriptions.set(name, mapstr.M(md))
 	}
-	fields.set("_metric_descriptions", mapstr.M(metricDescriptions))
+	fields.maybeSetMapStr("_metric_descriptions", mapstr.M(metricDescriptions))
 }
 
 func (s *MetricsetSample) set(name string, fields *mapStr) {
