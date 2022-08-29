@@ -220,9 +220,9 @@ func (p *Processor) HandleStream(
 	ctx context.Context,
 	async bool,
 	baseEvent model.APMEvent,
-	reader io.ReadCloser,
+	reader io.Reader,
 	batchSize int,
-	processor model.BatchProcessor,
+	proc model.BatchProcessor,
 	result *Result,
 ) error {
 	// Limits the number of concurrent batch decodes.
@@ -235,62 +235,40 @@ func (p *Processor) HandleStream(
 	if err := p.acquireLock(ctx, async); err != nil {
 		return err
 	}
-
 	sr := p.getStreamReader(reader)
-	releaseResources := func() {
-		sr.release()
-		// Close the reader after the batch have been processed.
-		reader.Close()
-		p.releaseLock()
-	}
 
-	// By default, streams are handled synchronously, however, clients can
-	// set the request to be processed asynchronously, in which case, a
-	// the processing will happen in the background within an new goroutine,
-	// and since error cannot be sent back to the client, they are logged.
-	if !async {
-		defer releaseResources()
-		return p.handleStream(ctx, baseEvent, sr, batchSize, processor, result)
-	}
-	go func() {
-		defer releaseResources()
-		// TODO(marclop) what kind of timeout should we assume?
-		ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
-		defer cancel()
-		err := p.handleStream(ctx,
-			baseEvent, sr, batchSize, processor, result,
-		)
-		if p.logger == nil {
-			return
-		}
-		if err != nil {
-			p.logger.Errorf("failed handling async request: %v", err)
-		}
-		// TODO(marclop): how should we report result.Errors?
-		for _, err := range result.Errors {
-			p.logger.Error(err)
-		}
-	}()
-	return nil
-}
-
-func (p *Processor) handleStream(
-	ctx context.Context,
-	baseEvent model.APMEvent,
-	sr *streamReader,
-	batchSize int,
-	processor model.BatchProcessor,
-	result *Result,
-) error {
 	// first item is the metadata object
 	if err := p.readMetadata(sr, &baseEvent); err != nil {
 		// no point in continuing if we couldn't read the metadata
+		sr.release()
+		p.releaseLock()
 		return err
 	}
+
+	defer func() {
+		sr.release()
+		if !async { // Release lock for sync processing.
+			p.releaseLock()
+		}
+	}()
 
 	sp, ctx := apm.StartSpan(ctx, "Stream", "Reporter")
 	defer sp.End()
 
+	// Create a new processor var to avoid replacing the passed reference.
+	var processor model.BatchProcessor
+	if async {
+		// Allow 5 async batches to be processing per stream. The lambda
+		// extension doesn't (yet) stream to the server.
+		// If a single batch with more than the batchSize is sent (10),
+		// then the request can process 50 events asynchronously.
+		batchChan := make(chan *model.Batch, 5)
+		go p.asyncProcessor(ctx, proc, batchChan, result)
+		processor = chanProcessor{batchChan: batchChan}
+		defer close(batchChan)
+	} else {
+		processor = proc
+	}
 	for {
 		var batch model.Batch
 		n, err := p.readBatch(ctx, baseEvent, batchSize, &batch, sr, result)
@@ -310,6 +288,23 @@ func (p *Processor) handleStream(
 				return nil
 			}
 			return err
+		}
+	}
+}
+
+func (p *Processor) asyncProcessor(
+	ctx context.Context,
+	processor model.BatchProcessor,
+	batchChan chan *model.Batch,
+	result *Result,
+) {
+	defer p.releaseLock()
+	// TODO(marclop) what kind of timeout should we assume?
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+	for batch := range batchChan {
+		if err := processor.ProcessBatch(ctx, batch); err != nil && p.logger != nil {
+			p.logger.Errorf("failed handling async request: %v", err)
 		}
 	}
 }
@@ -393,4 +388,19 @@ func copyEvent(e model.APMEvent) model.APMEvent {
 		out.NumericLabels = out.NumericLabels.Clone()
 	}
 	return out
+}
+
+// chanProcessor sends the received batches to the configured channel. If the
+// send isn't immediate, the processor returns `publish.ErrFull` error.
+type chanProcessor struct {
+	batchChan chan *model.Batch
+}
+
+func (p chanProcessor) ProcessBatch(ctx context.Context, batch *model.Batch) error {
+	select {
+	case p.batchChan <- batch:
+	default:
+		return publish.ErrFull
+	}
+	return nil
 }

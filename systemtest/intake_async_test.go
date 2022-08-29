@@ -28,9 +28,11 @@ func TestIntakeAsync(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
 	srv := apmservertest.NewServerTB(t)
 
-	systemtest.SendBackendEventsAsyncPayload(t, srv, `../testdata/intake-v2/errors_transaction_id.ndjson`)
-	result := systemtest.Elasticsearch.ExpectDocs(t, "logs-apm.error-*", nil)
-	systemtest.ApproveEvents(
-		t, t.Name(), result.Hits.Hits,
-	)
+	systemtest.SendBackendEventsAsyncPayload(t, srv, `../testdata/intake-v2/errors.ndjson`)
+	// Ensure the 5 errors are ingested.
+	systemtest.Elasticsearch.ExpectMinDocs(t, 5, "logs-apm.error-*", nil)
+
+	// Send a request with more events than the channel has capacity for and
+	// expect a 503 error.
+	systemtest.SendBackendEventsAsyncPayloadError(t, srv, `../testdata/intake-v2/heavy.ndjson`)
 }

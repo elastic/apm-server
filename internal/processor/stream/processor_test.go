@@ -21,7 +21,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"io"
 	"net/netip"
 	"os"
 	"path/filepath"
@@ -52,7 +51,7 @@ func TestHandlerReadStreamError(t *testing.T) {
 
 	payload, err := os.ReadFile("../../../testdata/intake-v2/transactions.ndjson")
 	require.NoError(t, err)
-	timeoutReader := io.NopCloser(iotest.TimeoutReader(bytes.NewReader(payload)))
+	timeoutReader := iotest.TimeoutReader(bytes.NewReader(payload))
 
 	sp := BackendProcessor(Config{
 		MaxEventSize: 100 * 1024,
@@ -90,7 +89,7 @@ func TestHandlerReportingStreamError(t *testing.T) {
 		var actualResult Result
 		err := sp.HandleStream(
 			context.Background(), false, model.APMEvent{},
-			io.NopCloser(bytes.NewReader(payload)), 10, processor, &actualResult,
+			bytes.NewReader(payload), 10, processor, &actualResult,
 		)
 		assert.Equal(t, test.err, err)
 		assert.Zero(t, actualResult)
@@ -204,7 +203,7 @@ func TestIntegrationESOutput(t *testing.T) {
 				Semaphore:    make(chan struct{}, 1),
 			})
 			var actualResult Result
-			err = p.HandleStream(context.Background(), false, baseEvent, io.NopCloser(bytes.NewReader(payload)), 10, batchProcessor, &actualResult)
+			err = p.HandleStream(context.Background(), false, baseEvent, bytes.NewReader(payload), 10, batchProcessor, &actualResult)
 			if test.err != nil {
 				assert.Equal(t, test.err, err)
 			} else {
@@ -244,7 +243,7 @@ func TestIntegrationRum(t *testing.T) {
 				Semaphore:    make(chan struct{}, 1),
 			})
 			var actualResult Result
-			err = p.HandleStream(context.Background(), false, baseEvent, io.NopCloser(bytes.NewReader(payload)), 10, batchProcessor, &actualResult)
+			err = p.HandleStream(context.Background(), false, baseEvent, bytes.NewReader(payload), 10, batchProcessor, &actualResult)
 			require.NoError(t, err)
 			assert.Equal(t, Result{Accepted: accepted}, actualResult)
 		})
@@ -280,7 +279,7 @@ func TestRUMV3(t *testing.T) {
 				Semaphore:    make(chan struct{}, 1),
 			})
 			var actualResult Result
-			err = p.HandleStream(context.Background(), false, baseEvent, io.NopCloser(bytes.NewReader(payload)), 10, batchProcessor, &actualResult)
+			err = p.HandleStream(context.Background(), false, baseEvent, bytes.NewReader(payload), 10, batchProcessor, &actualResult)
 			require.NoError(t, err)
 			assert.Equal(t, Result{Accepted: accepted}, actualResult)
 		})
@@ -307,7 +306,7 @@ func TestLabelLeak(t *testing.T) {
 		Semaphore:    make(chan struct{}, 1),
 	})
 	var actualResult Result
-	err := p.HandleStream(context.Background(), false, baseEvent, io.NopCloser(strings.NewReader(payload)), 10, batchProcessor, &actualResult)
+	err := p.HandleStream(context.Background(), false, baseEvent, strings.NewReader(payload), 10, batchProcessor, &actualResult)
 	require.NoError(t, err)
 
 	txs := *processed
@@ -366,7 +365,7 @@ func TestConcurrentAsync(t *testing.T) {
 			go func() {
 				defer wg.Done()
 				var result Result
-				err := p.HandleStream(ctx, tc.async, base, io.NopCloser(strings.NewReader(tc.payload)), 10, bp, &result)
+				err := p.HandleStream(ctx, tc.async, base, strings.NewReader(tc.payload), 10, bp, &result)
 				if err != nil {
 					result.LimitedAdd(err)
 				}
@@ -418,7 +417,7 @@ func TestConcurrentAsync(t *testing.T) {
 		assert.Equal(t, 5, res.Accepted)
 		assert.Equal(t, 0, len(res.Errors))
 	})
-	t.Run("semaphore_empty_incorrect_content", func(t *testing.T) {
+	t.Run("semaphore_empty_incorrect_metadata", func(t *testing.T) {
 		res := test(testCase{
 			sem:      5,
 			requests: 5,
@@ -426,11 +425,7 @@ func TestConcurrentAsync(t *testing.T) {
 			payload:  `{"metadata": {"siervice":{}}}`,
 		})
 		assert.Equal(t, 0, res.Accepted)
-		logs := logp.ObserverLogs().TakeAll()
-		assert.Equal(t, 5, len(logs))
-		for _, entry := range logs {
-			assert.Contains(t, entry.Message, "validation error")
-		}
+		assert.Len(t, res.Errors, 5)
 
 		incorrectEvent := `{"metadata": {"service": {"name": "testsvc", "environment": "staging", "version": null, "agent": {"name": "python", "version": "6.9.1"}, "language": {"name": "python", "version": "3.10.4"}, "runtime": {"name": "CPython", "version": "3.10.4"}, "framework": {"name": "flask", "version": "2.1.1"}}, "process": {"pid": 2112739, "ppid": 2112738, "argv": ["/home/stuart/workspace/sdh/581/venv/lib/python3.10/site-packages/flask/__main__.py", "run"], "title": null}, "system": {"hostname": "slaptop", "architecture": "x86_64", "platform": "linux"}, "labels": {"ci_commit": "unknown", "numeric": 1}}}
 {"some_incorrect_event": {}}`
@@ -441,8 +436,9 @@ func TestConcurrentAsync(t *testing.T) {
 			payload:  incorrectEvent,
 		})
 		assert.Equal(t, 0, res.Accepted)
-		logs = logp.ObserverLogs().TakeAll()
-		assert.Equal(t, 2, len(logs))
+		logs := logp.ObserverLogs().TakeAll()
+		assert.Len(t, res.Errors, 2)
+		assert.Len(t, logs, 2)
 		for _, entry := range logs {
 			assert.Equal(t, "some_incorrect_event: did not recognize object type", entry.Message)
 		}

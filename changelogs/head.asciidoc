@@ -19,7 +19,7 @@ https://github.com/elastic/apm-server/compare/8.5\...main[View commits]
 ==== Intake API Changes
 - Add a new `async` boolean query parameter (`intake/v2/events?async=<true|false>`).
   When set to `true`, the batch will be processed asynchronously if the APM Server can
-  service the incoming request immediately, otherwise a "500 queue is full" error will
+  service the incoming request immediately, otherwise a "503 queue is full" error will
   be returned {pull}8979[8979]
 
 [float]

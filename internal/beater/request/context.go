@@ -83,14 +83,6 @@ type Context struct {
 	// An alternate solution would be to implement context.WriteHeaders()
 	ResponseWriter http.ResponseWriter
 
-	// Async can be set by clients to request non-blocking event processing,
-	// returning immediately with an error `publish.ErrFull` when it can't be
-	// serviced.
-	// Async processing has weaker guarantees since any errors on processing
-	// cannot be communicated back to the client. Instead, errors are logged
-	// in the APM Server.
-	Async bool
-
 	writeAttempts int
 }
 
