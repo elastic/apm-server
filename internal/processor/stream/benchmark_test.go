@@ -34,7 +34,7 @@ func BenchmarkBackendProcessor(b *testing.B) {
 		MaxEventSize: 300 * 1024, // 300 kb
 		Semaphore:    make(chan struct{}, 200),
 	})
-	files, _ := filepath.Glob(filepath.FromSlash("../../testdata/intake-v2/*.ndjson"))
+	files, _ := filepath.Glob(filepath.FromSlash("../../../testdata/intake-v2/*.ndjson"))
 	benchmarkStreamProcessor(b, processor, files)
 }
 
@@ -43,35 +43,30 @@ func BenchmarkRUMV3Processor(b *testing.B) {
 		MaxEventSize: 300 * 1024, // 300 kb
 		Semaphore:    make(chan struct{}, 200),
 	})
-	files, _ := filepath.Glob(filepath.FromSlash("../../testdata/intake-v3/rum_*.ndjson"))
+	files, _ := filepath.Glob(filepath.FromSlash("../../../testdata/intake-v3/rum_*.ndjson"))
 	benchmarkStreamProcessor(b, processor, files)
 }
 
 func benchmarkStreamProcessor(b *testing.B, processor *Processor, files []string) {
 	const batchSize = 10
 	batchProcessor := nopBatchProcessor{}
-	benchmark := func(b *testing.B, filename string) {
-		data, err := os.ReadFile(filename)
+
+	for _, f := range files {
+		data, err := os.ReadFile(f)
 		if err != nil {
 			b.Error(err)
 		}
 		r := bytes.NewReader(data)
-		b.ReportAllocs()
-		b.SetBytes(int64(len(data)))
-		b.ResetTimer()
-		for i := 0; i < b.N; i++ {
-			b.StopTimer()
-			r.Reset(data)
-			b.StartTimer()
 
-			var result Result
-			processor.HandleStream(context.Background(), model.APMEvent{}, r, batchSize, batchProcessor, &result)
-		}
-	}
-
-	for _, f := range files {
 		b.Run(filepath.Base(f), func(b *testing.B) {
-			benchmark(b, f)
+			b.ReportAllocs()
+			b.SetBytes(int64(len(data)))
+			for i := 0; i < b.N; i++ {
+				r.Seek(0, io.SeekStart)
+
+				var result Result
+				processor.HandleStream(context.Background(), model.APMEvent{}, r, batchSize, batchProcessor, &result)
+			}
 		})
 	}
 }

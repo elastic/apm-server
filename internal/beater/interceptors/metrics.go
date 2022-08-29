@@ -29,32 +29,51 @@ import (
 	"github.com/elastic/elastic-agent-libs/monitoring"
 )
 
+var methodUnaryRequestMetrics = make(map[string]map[request.ResultID]*monitoring.Int)
+
+// RegisterMethodUnaryRequestMetrics registers a UnaryRequestMetrics for the
+// given full method name. This can be used when the gRPC service implementation
+// is not exensible, such as in the case of the OTLP services.
+//
+// This function must only be called from package init functions; it is not safe
+// for concurrent access.
+func RegisterMethodUnaryRequestMetrics(fullMethod string, m map[request.ResultID]*monitoring.Int) {
+	methodUnaryRequestMetrics[fullMethod] = m
+}
+
+// UnaryRequestMetrics is an interface that gRPC services may implement
+// to provide a metrics registry for the Metrics interceptor.
+type UnaryRequestMetrics interface {
+	RequestMetrics(fullMethod string) map[request.ResultID]*monitoring.Int
+}
+
 // Metrics returns a grpc.UnaryServerInterceptor that increments metrics
-// for gRPC method calls. The full gRPC method name will be used to look
-// up a monitoring map in any of the given maps; the last one wins.
-func Metrics(
-	logger *logp.Logger,
-	methodMetrics ...map[string]map[request.ResultID]*monitoring.Int,
-) grpc.UnaryServerInterceptor {
-
-	allMethodMetrics := make(map[string]map[request.ResultID]*monitoring.Int)
-	for _, methodMetrics := range methodMetrics {
-		for method, metrics := range methodMetrics {
-			allMethodMetrics[method] = metrics
-		}
-	}
-
+// for gRPC method calls.
+//
+// If a gRPC service implements UnaryRequestMetrics, its RequestMetrics
+// method will be called to obtain the metrics map for incrementing. If the
+// service does not implement UnaryRequestMetrics, but
+// RegisterMethodUnaryRequestMetrics has been called for the invoked method,
+// then the registered UnaryRequestMetrics will be used instead. Finally,
+// if neither of these are available, a warning will be logged and no metrics
+// will be gathered.
+func Metrics(logger *logp.Logger) grpc.UnaryServerInterceptor {
 	return func(
 		ctx context.Context,
 		req interface{},
 		info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler,
 	) (interface{}, error) {
-		m, ok := allMethodMetrics[info.FullMethod]
-		if !ok {
+		var m map[request.ResultID]*monitoring.Int
+		if requestMetrics, ok := info.Server.(UnaryRequestMetrics); ok {
+			m = requestMetrics.RequestMetrics(info.FullMethod)
+		} else {
+			m = methodUnaryRequestMetrics[info.FullMethod]
+		}
+		if m == nil {
 			logger.With(
 				"grpc.request.method", info.FullMethod,
-			).Error("metrics registry missing")
+			).Warn("metrics registry missing")
 			return handler(ctx, req)
 		}
 

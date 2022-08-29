@@ -47,14 +47,15 @@ func TestMetrics(t *testing.T) {
 	methodName := "test_method_name"
 	logger := logp.NewLogger("interceptor.metrics.test")
 
-	testMap := map[string]map[request.ResultID]*monitoring.Int{
-		methodName: monitoringMap,
-	}
-	i := Metrics(logger, testMap)
+	interceptor := Metrics(logger)
 
 	ctx := context.Background()
 	info := &grpc.UnaryServerInfo{
 		FullMethod: methodName,
+		Server: requestMetricsFunc(func(fullMethod string) map[request.ResultID]*monitoring.Int {
+			assert.Equal(t, methodName, fullMethod)
+			return monitoringMap
+		}),
 	}
 
 	for _, tc := range []struct {
@@ -137,7 +138,7 @@ func TestMetrics(t *testing.T) {
 			},
 		},
 	} {
-		i(ctx, nil, info, tc.f)
+		interceptor(ctx, nil, info, tc.f)
 		assertMonitoring(t, tc.monitoringInt, monitoringMap)
 		monitoringtest.ClearRegistry(monitoringMap)
 	}
@@ -151,4 +152,10 @@ func assertMonitoring(t *testing.T, expected map[request.ResultID]int64, actual 
 			assert.Zerof(t, actual[k].Get(), "%s mismatch", k)
 		}
 	}
+}
+
+type requestMetricsFunc func(fullMethod string) map[request.ResultID]*monitoring.Int
+
+func (f requestMetricsFunc) RequestMetrics(fullMethod string) map[request.ResultID]*monitoring.Int {
+	return f(fullMethod)
 }

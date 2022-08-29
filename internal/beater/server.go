@@ -201,10 +201,7 @@ func newGRPCServer(
 	ratelimitStore *ratelimit.Store,
 ) (*grpc.Server, error) {
 	apmInterceptor := apmgrpc.NewUnaryServerInterceptor(apmgrpc.WithRecovery(), apmgrpc.WithTracer(tracer))
-	authInterceptor := interceptors.Auth(
-		otlp.MethodAuthenticators(authenticator),
-		jaeger.MethodAuthenticators(authenticator),
-	)
+	authInterceptor := interceptors.Auth(authenticator)
 
 	// Note that we intentionally do not use a grpc.Creds ServerOption
 	// even if TLS is enabled, as TLS is handled by the net/http server.
@@ -214,7 +211,7 @@ func newGRPCServer(
 			apmInterceptor,
 			interceptors.ClientMetadata(),
 			interceptors.Logging(logger),
-			interceptors.Metrics(logger, otlp.GRPCRegistryMonitoringMaps, jaeger.RegistryMonitoringMaps),
+			interceptors.Metrics(logger),
 			interceptors.Timeout(),
 			authInterceptor,
 			interceptors.AnonymousRateLimit(ratelimitStore),
@@ -230,9 +227,7 @@ func newGRPCServer(
 	}
 
 	jaeger.RegisterGRPCServices(srv, logger, batchProcessor, agentcfgFetcher)
-	if err := otlp.RegisterGRPCServices(srv, batchProcessor); err != nil {
-		return nil, err
-	}
+	otlp.RegisterGRPCServices(srv, batchProcessor)
 	return srv, nil
 }
 
