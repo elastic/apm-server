@@ -21,7 +21,6 @@ import (
 	"go.opentelemetry.io/otel/metric"
 	apitrace "go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
-	"google.golang.org/grpc"
 
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
@@ -59,25 +58,22 @@ type HTTPHandlers struct {
 
 // GRPC Receivers
 
-// RegisterGRPCTraceReceiver registers the trace receiver with a gRPC server.
-func RegisterGRPCTraceReceiver(ctx context.Context, consumer consumer.Traces, serverGRPC *grpc.Server) error {
-	receiver := trace.New(config.NewComponentID("otlp"), consumer, settings)
-	ptraceotlp.RegisterServer(serverGRPC, receiver)
-	return nil
+// TracesService returns a ptraceotlp.Server for registering with a gRPC server,
+// which will send trace data to the consumer.
+func TracesService(consumer consumer.Traces) ptraceotlp.Server {
+	return trace.New(config.NewComponentID("otlp"), consumer, settings)
 }
 
-// RegisterGRPCMetricsReceiver registers the metrics receiver with a gRPC server.
-func RegisterGRPCMetricsReceiver(ctx context.Context, consumer consumer.Metrics, serverGRPC *grpc.Server) error {
-	receiver := metrics.New(config.NewComponentID("otlp"), consumer, settings)
-	pmetricotlp.RegisterServer(serverGRPC, receiver)
-	return nil
+// MetricsService returns a pmetricotlp.Server for registering with a gRPC server,
+// which will send metrics data to the consumer.
+func MetricsService(consumer consumer.Metrics) pmetricotlp.Server {
+	return metrics.New(config.NewComponentID("otlp"), consumer, settings)
 }
 
-// RegisterGRPCLogsReceiver registers the logs receiver with a gRPC server.
-func RegisterGRPCLogsReceiver(ctx context.Context, consumer consumer.Logs, serverGRPC *grpc.Server) error {
-	receiver := logs.New(config.NewComponentID("otlp"), consumer, settings)
-	plogotlp.RegisterServer(serverGRPC, receiver)
-	return nil
+// LogsService returns a plogotlp.Server for registering with a gRPC server,
+// which will send logs data to the consumer.
+func LogsService(consumer consumer.Logs) plogotlp.Server {
+	return logs.New(config.NewComponentID("otlp"), consumer, settings)
 }
 
 // HTTP Receivers
