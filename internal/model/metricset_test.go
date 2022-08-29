@@ -56,7 +56,7 @@ func TestMetricset(t *testing.T) {
 				"a.counter":  612.0,
 				"some.gauge": 9.16,
 				"_metric_descriptions": mapstr.M{
-					"a.counter": mapstr.M(nil),
+					"a.counter":  mapstr.M(nil),
 					"some.gauge": mapstr.M(nil),
 				},
 			},
