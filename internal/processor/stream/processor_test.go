@@ -38,7 +38,6 @@ import (
 	"github.com/elastic/apm-server/internal/model"
 	"github.com/elastic/apm-server/internal/model/modelindexer/modelindexertest"
 	"github.com/elastic/apm-server/internal/publish"
-	"github.com/elastic/elastic-agent-libs/logp"
 )
 
 func TestHandlerReadStreamError(t *testing.T) {
@@ -347,7 +346,6 @@ func TestConcurrentAsync(t *testing.T) {
 		async, fullSem bool
 	}
 
-	require.NoError(t, logp.DevelopmentSetup(logp.ToObserverOutput()))
 	test := func(tc testCase) (pResult Result) {
 		var wg sync.WaitGroup
 		var mu sync.Mutex
@@ -436,12 +434,7 @@ func TestConcurrentAsync(t *testing.T) {
 			payload:  incorrectEvent,
 		})
 		assert.Equal(t, 0, res.Accepted)
-		logs := logp.ObserverLogs().TakeAll()
 		assert.Len(t, res.Errors, 2)
-		assert.Len(t, logs, 2)
-		for _, entry := range logs {
-			assert.Equal(t, "some_incorrect_event: did not recognize object type", entry.Message)
-		}
 	})
 }
 
