@@ -9,7 +9,6 @@ processors:
       name: process_ppid
   - pipeline:
       name: client_geoip
-  - script:
-      if: ctx._metric_descriptions != null
-      source: |
-        ctx.remove("_metric_descriptions");
+  - remove:
+      field: _metric_descriptions
+      ignore_missing: true
