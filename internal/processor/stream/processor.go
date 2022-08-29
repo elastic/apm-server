@@ -249,8 +249,8 @@ func (p *Processor) HandleStream(
 
 	for {
 		var batch model.Batch
-		if b, ok := p.batchPool.Get().(model.Batch); ok {
-			batch = b[:0]
+		if b, ok := p.batchPool.Get().(*model.Batch); ok {
+			batch = (*b)[:0]
 		}
 
 		n, readErr := p.readBatch(ctx, baseEvent, batchSize, &batch, sr, result)
@@ -261,7 +261,7 @@ func (p *Processor) HandleStream(
 			}
 			result.AddAccepted(len(batch))
 		}
-		p.batchPool.Put(batch)
+		p.batchPool.Put(&batch)
 
 		if readErr == io.EOF {
 			break
