@@ -99,7 +99,6 @@ func metadataExceptions(keys ...string) func(key string) bool {
 		// event-specific fields
 		"Error",
 		"Metricset",
-		"ProfileSample",
 		"Span",
 		"Transaction",
 	}

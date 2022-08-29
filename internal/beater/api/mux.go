@@ -27,14 +27,12 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 
-	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/monitoring"
 
 	"github.com/elastic/apm-server/internal/agentcfg"
 	"github.com/elastic/apm-server/internal/beater/api/config/agent"
 	"github.com/elastic/apm-server/internal/beater/api/intake"
-	"github.com/elastic/apm-server/internal/beater/api/profile"
 	"github.com/elastic/apm-server/internal/beater/api/root"
 	"github.com/elastic/apm-server/internal/beater/auth"
 	"github.com/elastic/apm-server/internal/beater/config"
@@ -47,6 +45,7 @@ import (
 	"github.com/elastic/apm-server/internal/model/modelprocessor"
 	"github.com/elastic/apm-server/internal/processor/stream"
 	"github.com/elastic/apm-server/internal/sourcemap"
+	"github.com/elastic/apm-server/internal/version"
 )
 
 const (
@@ -59,8 +58,6 @@ const (
 	AgentConfigPath = "/config/v1/agents"
 	// IntakePath defines the path to ingest monitored events
 	IntakePath = "/intake/v2/events"
-	// ProfilePath defines the path to ingest profiles
-	ProfilePath = "/intake/v2/profile"
 
 	// RUM routes
 
@@ -82,7 +79,6 @@ const (
 // NewMux creates a new gorilla/mux router, with routes registered for handling the
 // APM Server API.
 func NewMux(
-	beatInfo beat.Info,
 	beaterConfig *config.Config,
 	batchProcessor model.BatchProcessor,
 	authenticator *auth.Authenticator,
@@ -98,7 +94,6 @@ func NewMux(
 	router.NotFoundHandler = pool.HTTPHandler(notFoundHandler)
 
 	builder := routeBuilder{
-		info:             beatInfo,
 		cfg:              beaterConfig,
 		authenticator:    authenticator,
 		batchProcessor:   batchProcessor,
@@ -125,8 +120,6 @@ func NewMux(
 		{IntakeRUMPath, builder.rumIntakeHandler(stream.RUMV2Processor)},
 		{IntakeRUMV3Path, builder.rumIntakeHandler(stream.RUMV3Processor)},
 		{IntakePath, builder.backendIntakeHandler},
-		// The profile endpoint is in Beta
-		{ProfilePath, builder.profileHandler},
 		{OTLPTracesIntakePath, builder.otlpHandler(otlpHandlers.TraceHandler, otlp.HTTPTracesMonitoringMap)},
 		{OTLPMetricsIntakePath, builder.otlpHandler(otlpHandlers.MetricsHandler, otlp.HTTPMetricsMonitoringMap)},
 		{OTLPLogsIntakePath, builder.otlpHandler(otlpHandlers.LogsHandler, otlp.HTTPLogsMonitoringMap)},
@@ -163,7 +156,6 @@ func NewMux(
 }
 
 type routeBuilder struct {
-	info             beat.Info
 	cfg              *config.Config
 	authenticator    *auth.Authenticator
 	batchProcessor   model.BatchProcessor
@@ -173,13 +165,12 @@ type routeBuilder struct {
 	intakeSemaphore  chan struct{}
 }
 
-func (r *routeBuilder) profileHandler() (request.Handler, error) {
-	h := profile.Handler(backendRequestMetadataFunc(r.cfg), r.batchProcessor)
-	return middleware.Wrap(h, backendMiddleware(r.cfg, r.authenticator, r.ratelimitStore, profile.MonitoringMap)...)
-}
-
 func (r *routeBuilder) backendIntakeHandler() (request.Handler, error) {
-	h := intake.Handler(stream.BackendProcessor(r.cfg, r.intakeSemaphore), backendRequestMetadataFunc(r.cfg), r.batchProcessor)
+	intakeProcessor := stream.BackendProcessor(stream.Config{
+		MaxEventSize: r.cfg.MaxEventSize,
+		Semaphore:    r.intakeSemaphore,
+	})
+	h := intake.Handler(intakeProcessor, backendRequestMetadataFunc(r.cfg), r.batchProcessor)
 	return middleware.Wrap(h, backendMiddleware(r.cfg, r.authenticator, r.ratelimitStore, intake.MonitoringMap)...)
 }
 
@@ -192,7 +183,7 @@ func (r *routeBuilder) otlpHandler(handler http.HandlerFunc, monitoringMap map[r
 	}
 }
 
-func (r *routeBuilder) rumIntakeHandler(newProcessor func(*config.Config, chan struct{}) *stream.Processor) func() (request.Handler, error) {
+func (r *routeBuilder) rumIntakeHandler(newProcessor func(stream.Config) *stream.Processor) func() (request.Handler, error) {
 	return func() (request.Handler, error) {
 		var batchProcessors modelprocessor.Chained
 		// The order of these processors is important. Source mapping must happen before identifying library frames, or
@@ -221,7 +212,11 @@ func (r *routeBuilder) rumIntakeHandler(newProcessor func(*config.Config, chan s
 			batchProcessors = append(batchProcessors, modelprocessor.SetCulprit{})
 		}
 		batchProcessors = append(batchProcessors, r.batchProcessor) // r.batchProcessor always goes last
-		h := intake.Handler(newProcessor(r.cfg, r.intakeSemaphore), rumRequestMetadataFunc(r.cfg), batchProcessors)
+		intakeProcessor := newProcessor(stream.Config{
+			MaxEventSize: r.cfg.MaxEventSize,
+			Semaphore:    r.intakeSemaphore,
+		})
+		h := intake.Handler(intakeProcessor, rumRequestMetadataFunc(r.cfg), batchProcessors)
 		return middleware.Wrap(h, rumMiddleware(r.cfg, r.authenticator, r.ratelimitStore, intake.MonitoringMap)...)
 	}
 }
@@ -229,7 +224,7 @@ func (r *routeBuilder) rumIntakeHandler(newProcessor func(*config.Config, chan s
 func (r *routeBuilder) rootHandler(publishReady func() bool) func() (request.Handler, error) {
 	return func() (request.Handler, error) {
 		h := root.Handler(root.HandlerConfig{
-			Version:      r.info.Version,
+			Version:      version.Version,
 			PublishReady: publishReady,
 		})
 		return middleware.Wrap(h, rootMiddleware(r.cfg, r.authenticator)...)

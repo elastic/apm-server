@@ -279,19 +279,24 @@ $(PYTHON_BIN)/activate:
 RALLY_EXTRA_FLAGS?=
 RALLY_CLIENT_OPTIONS?=basic_auth_user:'admin',basic_auth_password:'changeme'
 RALLY_FLAGS?=--pipeline=benchmark-only --client-options="$(RALLY_CLIENT_OPTIONS)" $(RALLY_EXTRA_FLAGS)
+RALLY_BULK_SIZE?=5000
+RALLY_GENCORPORA_REPLAY_COUNT?=1
 
 .PHONY: rally
-rally: $(PYTHON_BIN)/esrally rally/corpora/.generated
-	@$(PYTHON_BIN)/esrally race --track-path=rally --kill-running-processes $(RALLY_FLAGS)
+rally: $(PYTHON_BIN)/esrally rally/corpora
+	@$(PYTHON_BIN)/esrally race \
+		--track-path=rally \
+		--track-params=expected_cluster_health:yellow,bulk_size:$(RALLY_BULK_SIZE) \
+		--kill-running-processes \
+		$(RALLY_FLAGS)
 
 $(PYTHON_BIN)/esrally: $(PYTHON_BIN)
 	@$(PYTHON_BIN)/pip install -U esrally
 
-rally/corpora: rally/corpora/.generated
-rally/corpora/.generated: rally/gencorpora/main.go rally/gencorpora/api.go rally/gencorpora/go.mod
+.PHONY: rally/corpora
+rally/corpora:
 	@rm -fr rally/corpora && mkdir rally/corpora
-	@cd rally/gencorpora && $(GO) run .
-	@touch $@
+	@cd systemtest/cmd/gencorpora && $(GO) run . -write-dir $(CURRENT_DIR)/rally/corpora/ -replay-count $(RALLY_GENCORPORA_REPLAY_COUNT)
 
 ##############################################################################
 # Smoke tests -- Basic smoke tests for APM Server.

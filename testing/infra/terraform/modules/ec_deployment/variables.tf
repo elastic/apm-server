@@ -70,6 +70,12 @@ variable "elasticsearch_zone_count" {
   description = "Optional Elasticsearch zone count"
 }
 
+variable "elasticsearch_autoscale" {
+  default     = false
+  type        = bool
+  description = "Optional autoscale the Elasticsearch deployment"
+}
+
 # Docker image overrides
 
 variable "docker_image_tag_override" {
@@ -104,4 +110,10 @@ variable "apm_server_pprof" {
   default     = true
   description = "Whether or not to enable APM Server's pprof endpoint. Defaults to true"
   type        = bool
+}
+
+variable "apm_index_shards" {
+  default     = 0
+  description = "The number of shards to set for APM Indices"
+  type        = number
 }

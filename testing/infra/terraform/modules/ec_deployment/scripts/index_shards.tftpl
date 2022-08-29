@@ -1,0 +1,24 @@
+#!/bin/bash
+
+set -eo
+
+component_templates=("logs-apm.app@custom" "logs-apm.error@custom" "metrics-apm.app@custom" "metrics-apm.internal@custom" "traces-apm.rum@custom" "traces-apm@custom")
+
+for tpl in $${component_templates[@]}; do
+  curl -s -H 'Content-Type: application/json' --fail -XPUT -u ${elasticsearch_username}:${elasticsearch_password} "${elasticsearch_url}/_component_template/$${tpl}" -d '{
+  "template": {
+    "settings": {
+      "index": {
+        "number_of_shards": "${shards}"
+      }
+    }
+  },
+  "_meta": {
+    "package": {
+      "name": "apm"
+    },
+    "managed_by": "fleet",
+    "managed": true
+  }
+}'
+done

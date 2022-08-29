@@ -23,13 +23,13 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/gofrs/uuid"
 	"go.elastic.co/apm/module/apmgorilla/v2"
 	"go.elastic.co/apm/module/apmgrpc/v2"
 	"go.elastic.co/apm/v2"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 
-	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/version"
 	"github.com/elastic/elastic-agent-libs/logp"
 
@@ -42,6 +42,7 @@ import (
 	"github.com/elastic/apm-server/internal/beater/otlp"
 	"github.com/elastic/apm-server/internal/beater/ratelimit"
 	"github.com/elastic/apm-server/internal/elasticsearch"
+	"github.com/elastic/apm-server/internal/kibana"
 	"github.com/elastic/apm-server/internal/model"
 	"github.com/elastic/apm-server/internal/model/modelprocessor"
 	"github.com/elastic/apm-server/internal/sourcemap"
@@ -53,8 +54,8 @@ type RunServerFunc func(context.Context, ServerParams) error
 
 // ServerParams holds parameters for running the APM Server.
 type ServerParams struct {
-	// Info holds metadata about the server, such as its UUID.
-	Info beat.Info
+	// UUID holds a unique ID for the server.
+	UUID uuid.UUID
 
 	// Config is the configuration used for running the APM Server.
 	Config *config.Config
@@ -90,6 +91,11 @@ type ServerParams struct {
 	// accept events and enqueue them for later publication.
 	PublishReady <-chan struct{}
 
+	// KibanaClient holds a Kibana client if the server has Kibana
+	// configuration. If the server has no Kibana configuration, this
+	// field will be nil.
+	KibanaClient kibana.Client
+
 	// NewElasticsearchClient returns an elasticsearch.Client for cfg.
 	//
 	// This must be used whenever an elasticsearch client might be used
@@ -120,7 +126,8 @@ type server struct {
 }
 
 func newServer(args ServerParams, listener net.Listener) (server, error) {
-	agentcfgFetchReporter := agentcfg.NewReporter(agentcfg.NewFetcher(args.Config), args.BatchProcessor, 30*time.Second)
+	agentcfgFetcher := newAgentConfigFetcher(args.Config, args.KibanaClient)
+	agentcfgFetchReporter := agentcfg.NewReporter(agentcfgFetcher, args.BatchProcessor, 30*time.Second)
 
 	ratelimitStore, err := ratelimit.NewStore(
 		args.Config.AgentAuth.Anonymous.RateLimit.IPLimit,
@@ -153,7 +160,7 @@ func newServer(args ServerParams, listener net.Listener) (server, error) {
 
 	// Create an HTTP server for serving Elastic APM agent requests.
 	router, err := api.NewMux(
-		args.Info, args.Config, batchProcessor,
+		args.Config, batchProcessor,
 		authenticator, agentcfgFetchReporter, ratelimitStore,
 		args.SourcemapFetcher, args.Managed, publishReady,
 	)
@@ -161,7 +168,7 @@ func newServer(args ServerParams, listener net.Listener) (server, error) {
 		return server{}, err
 	}
 	apmgorilla.Instrument(router, apmgorilla.WithRequestIgnorer(doNotTrace), apmgorilla.WithTracer(args.Tracer))
-	httpServer, err := newHTTPServer(args.Logger, args.Info, args.Config, router, listener)
+	httpServer, err := newHTTPServer(args.Logger, args.Config, router, listener)
 	if err != nil {
 		return server{}, err
 	}
@@ -194,10 +201,7 @@ func newGRPCServer(
 	ratelimitStore *ratelimit.Store,
 ) (*grpc.Server, error) {
 	apmInterceptor := apmgrpc.NewUnaryServerInterceptor(apmgrpc.WithRecovery(), apmgrpc.WithTracer(tracer))
-	authInterceptor := interceptors.Auth(
-		otlp.MethodAuthenticators(authenticator),
-		jaeger.MethodAuthenticators(authenticator),
-	)
+	authInterceptor := interceptors.Auth(authenticator)
 
 	// Note that we intentionally do not use a grpc.Creds ServerOption
 	// even if TLS is enabled, as TLS is handled by the net/http server.
@@ -207,7 +211,7 @@ func newGRPCServer(
 			apmInterceptor,
 			interceptors.ClientMetadata(),
 			interceptors.Logging(logger),
-			interceptors.Metrics(logger, otlp.GRPCRegistryMonitoringMaps, jaeger.RegistryMonitoringMaps),
+			interceptors.Metrics(logger),
 			interceptors.Timeout(),
 			authInterceptor,
 			interceptors.AnonymousRateLimit(ratelimitStore),
@@ -223,9 +227,7 @@ func newGRPCServer(
 	}
 
 	jaeger.RegisterGRPCServices(srv, logger, batchProcessor, agentcfgFetcher)
-	if err := otlp.RegisterGRPCServices(srv, batchProcessor); err != nil {
-		return nil, err
-	}
+	otlp.RegisterGRPCServices(srv, batchProcessor)
 	return srv, nil
 }
 
@@ -249,4 +251,22 @@ func (s server) run(ctx context.Context) error {
 		return err
 	}
 	return nil
+}
+
+func newAgentConfigFetcher(cfg *config.Config, kibanaClient kibana.Client) agentcfg.Fetcher {
+	if cfg.AgentConfigs != nil || kibanaClient == nil {
+		// Direct agent configuration is present, disable communication with kibana.
+		agentConfigurations := make([]agentcfg.AgentConfig, len(cfg.AgentConfigs))
+		for i, in := range cfg.AgentConfigs {
+			agentConfigurations[i] = agentcfg.AgentConfig{
+				ServiceName:        in.Service.Name,
+				ServiceEnvironment: in.Service.Environment,
+				AgentName:          in.AgentName,
+				Etag:               in.Etag,
+				Config:             in.Config,
+			}
+		}
+		return agentcfg.NewDirectFetcher(agentConfigurations)
+	}
+	return agentcfg.NewKibanaFetcher(kibanaClient, cfg.KibanaAgentConfig.Cache.Expiration)
 }

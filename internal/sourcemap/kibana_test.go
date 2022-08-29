@@ -31,7 +31,6 @@ import (
 
 	libkibana "github.com/elastic/elastic-agent-libs/kibana"
 
-	"github.com/elastic/apm-server/internal/beater/config"
 	"github.com/elastic/apm-server/internal/kibana"
 )
 
@@ -151,10 +150,8 @@ func newTestKibanaFetcher(t testing.TB, h http.HandlerFunc) Fetcher {
 	t.Cleanup(srv.Close)
 
 	// Wait for client to connect.
-	kibanaClient := kibana.NewConnectingClient(&config.KibanaConfig{
-		ClientConfig: libkibana.ClientConfig{
-			Host: srv.Listener.Addr().String(),
-		},
+	kibanaClient := kibana.NewConnectingClient(libkibana.ClientConfig{
+		Host: srv.Listener.Addr().String(),
 	})
 	select {
 	case <-connected:

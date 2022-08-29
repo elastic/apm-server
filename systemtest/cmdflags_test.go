@@ -34,7 +34,7 @@ func TestAPMServerEnvironment(t *testing.T) {
 		t.Run(env, func(t *testing.T) {
 			t.Parallel()
 			// NewServer adds a cleanup to close the server.
-			apmservertest.NewServer(t, "-environment", env)
+			apmservertest.NewServerTB(t, "-environment", env)
 		})
 	}
 }

@@ -45,6 +45,7 @@ used to configure the module, please refer to the [EC Provider docs](https://reg
 | <a name="input_deployment_template"></a> [deployment\_template](#input\_deployment\_template) | Optional deployment template. Defaults to the CPU optimized template for GCP | `string` | `"gcp-compute-optimized-v2"` | no |
 | <a name="input_docker_image"></a> [docker\_image](#input\_docker\_image) | Optional docker image overrides. The full map needs to be specified | `map(string)` | <pre>{<br>  "apm": "docker.elastic.co/cloud-release/elastic-agent-cloud",<br>  "elasticsearch": "docker.elastic.co/cloud-release/elasticsearch-cloud-ess",<br>  "kibana": "docker.elastic.co/cloud-release/kibana-cloud"<br>}</pre> | no |
 | <a name="input_docker_image_tag_override"></a> [docker\_image\_tag\_override](#input\_docker\_image\_tag\_override) | Optional docker image tag overrides, The full map needs to be specified | `map(string)` | <pre>{<br>  "apm": "",<br>  "elasticsearch": "",<br>  "kibana": ""<br>}</pre> | no |
+| <a name="input_elasticsearch_autoscale"></a> [elasticsearch\_autoscale](#input\_elasticsearch\_autoscale) | Optional autoscale the Elasticsearch deployment | `bool` | `false` | no |
 | <a name="input_elasticsearch_size"></a> [elasticsearch\_size](#input\_elasticsearch\_size) | Optional Elasticsearch instance size | `string` | `"8g"` | no |
 | <a name="input_elasticsearch_zone_count"></a> [elasticsearch\_zone\_count](#input\_elasticsearch\_zone\_count) | Optional Elasticsearch zone count | `number` | `2` | no |
 | <a name="input_integrations_server"></a> [integrations\_server](#input\_integrations\_server) | Optionally use the integrations server block instead of the apm block | `bool` | `false` | no |
@@ -57,6 +58,7 @@ used to configure the module, please refer to the [EC Provider docs](https://reg
 
 | Name | Description |
 |------|-------------|
+| <a name="output_admin_console_url"></a> [admin\_console\_url](#output\_admin\_console\_url) | n/a |
 | <a name="output_apm_secret_token"></a> [apm\_secret\_token](#output\_apm\_secret\_token) | The APM Secret token |
 | <a name="output_apm_url"></a> [apm\_url](#output\_apm\_url) | The secure APM URL |
 | <a name="output_elasticsearch_password"></a> [elasticsearch\_password](#output\_elasticsearch\_password) | The Elasticsearch password |

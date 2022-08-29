@@ -38,7 +38,7 @@ import (
 
 func TestRUMXForwardedFor(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
-	srv := apmservertest.NewUnstartedServer(t)
+	srv := apmservertest.NewUnstartedServerTB(t)
 	srv.Config.RUM = &apmservertest.RUMConfig{Enabled: true}
 	err := srv.Start()
 	require.NoError(t, err)
@@ -81,7 +81,7 @@ func TestRUMXForwardedFor(t *testing.T) {
 }
 
 func TestRUMAllowServiceNames(t *testing.T) {
-	srv := apmservertest.NewUnstartedServer(t)
+	srv := apmservertest.NewUnstartedServerTB(t)
 	srv.Config.AgentAuth.SecretToken = "abc123"
 	srv.Config.RUM = &apmservertest.RUMConfig{
 		Enabled: true,
@@ -112,7 +112,7 @@ func TestRUMAllowServiceNames(t *testing.T) {
 }
 
 func TestRUMRateLimit(t *testing.T) {
-	srv := apmservertest.NewUnstartedServer(t)
+	srv := apmservertest.NewUnstartedServerTB(t)
 	srv.Config.AgentAuth.SecretToken = "abc123" // enable auth & rate limiting
 	srv.Config.RUM = &apmservertest.RUMConfig{Enabled: true}
 	srv.Config.AgentAuth.Anonymous = &apmservertest.AnonymousAuthConfig{
@@ -172,7 +172,7 @@ func TestRUMRateLimit(t *testing.T) {
 
 func TestRUMCORS(t *testing.T) {
 	// Check that CORS configuration is effective. More specific behaviour is unit tested.
-	srv := apmservertest.NewUnstartedServer(t)
+	srv := apmservertest.NewUnstartedServerTB(t)
 	srv.Config.RUM = &apmservertest.RUMConfig{
 		Enabled:      true,
 		AllowOrigins: []string{"blue"},
