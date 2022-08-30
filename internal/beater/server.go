@@ -25,7 +25,6 @@ import (
 
 	"github.com/gofrs/uuid"
 	"go.elastic.co/apm/module/apmgorilla/v2"
-	"go.elastic.co/apm/module/apmgrpc/v2"
 	"go.elastic.co/apm/v2"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
@@ -37,7 +36,6 @@ import (
 	"github.com/elastic/apm-server/internal/beater/api"
 	"github.com/elastic/apm-server/internal/beater/auth"
 	"github.com/elastic/apm-server/internal/beater/config"
-	"github.com/elastic/apm-server/internal/beater/interceptors"
 	"github.com/elastic/apm-server/internal/beater/jaeger"
 	"github.com/elastic/apm-server/internal/beater/otlp"
 	"github.com/elastic/apm-server/internal/beater/ratelimit"
@@ -47,6 +45,10 @@ import (
 	"github.com/elastic/apm-server/internal/model/modelprocessor"
 	"github.com/elastic/apm-server/internal/sourcemap"
 )
+
+// WrapServerFunc is a function for injecting behaviour into ServerParams
+// and RunServerFunc. See CreatorParams.WrapServer.
+type WrapServerFunc func(ServerParams, RunServerFunc) (ServerParams, RunServerFunc, error)
 
 // RunServerFunc is a function which runs the APM Server until a
 // fatal error occurs, or the context is cancelled.
@@ -72,6 +74,15 @@ type ServerParams struct {
 	// Tracer is an apm.Tracer that the APM Server may use
 	// for self-instrumentation.
 	Tracer *apm.Tracer
+
+	// Authenticator holds an authenticator that can be used for
+	// authenticating clients, and obtaining authentication details
+	// and an auth.Authorizer for authorizing the client for future
+	// actions on resources.
+	Authenticator *auth.Authenticator
+
+	// RateLimitStore holds an IP-based rate-limiter LRU cache.
+	RateLimitStore *ratelimit.Store
 
 	// SourcemapFetcher holds a sourcemap.Fetcher, or nil if source
 	// mapping is disabled.
@@ -103,6 +114,14 @@ type ServerParams struct {
 	// client's transport such that requests will be blocked until data
 	// streams have been initialised.
 	NewElasticsearchClient func(cfg *elasticsearch.Config) (elasticsearch.Client, error)
+
+	// GRPCServer holds a *grpc.Server to which services will be registered
+	// for receiving data, configuration requests, etc.
+	//
+	// The gRPC server is configured with various interceptors, including
+	// authentication/authorization, logging, metrics, and tracing.
+	// See package internal/beater/interceptors for details.
+	GRPCServer *grpc.Server
 }
 
 // newBaseRunServer returns the base RunServerFunc.
@@ -129,26 +148,6 @@ func newServer(args ServerParams, listener net.Listener) (server, error) {
 	agentcfgFetcher := newAgentConfigFetcher(args.Config, args.KibanaClient)
 	agentcfgFetchReporter := agentcfg.NewReporter(agentcfgFetcher, args.BatchProcessor, 30*time.Second)
 
-	ratelimitStore, err := ratelimit.NewStore(
-		args.Config.AgentAuth.Anonymous.RateLimit.IPLimit,
-		args.Config.AgentAuth.Anonymous.RateLimit.EventLimit,
-		3, // burst multiplier
-	)
-	if err != nil {
-		return server{}, err
-	}
-	authenticator, err := auth.NewAuthenticator(args.Config.AgentAuth)
-	if err != nil {
-		return server{}, err
-	}
-
-	// Add a model processor that rate limits, and checks authorization for the agent and service for each event.
-	batchProcessor := modelprocessor.Chained{
-		model.ProcessBatchFunc(rateLimitBatchProcessor),
-		model.ProcessBatchFunc(authorizeEventIngestProcessor),
-		args.BatchProcessor,
-	}
-
 	publishReady := func() bool {
 		select {
 		case <-args.PublishReady:
@@ -160,8 +159,8 @@ func newServer(args ServerParams, listener net.Listener) (server, error) {
 
 	// Create an HTTP server for serving Elastic APM agent requests.
 	router, err := api.NewMux(
-		args.Config, batchProcessor,
-		authenticator, agentcfgFetchReporter, ratelimitStore,
+		args.Config, args.BatchProcessor,
+		args.Authenticator, agentcfgFetchReporter, args.RateLimitStore,
 		args.SourcemapFetcher, args.Managed, publishReady,
 	)
 	if err != nil {
@@ -173,62 +172,24 @@ func newServer(args ServerParams, listener net.Listener) (server, error) {
 		return server{}, err
 	}
 
-	// Create a gRPC server for OTLP and Jaeger.
-	grpcServer, err := newGRPCServer(
-		args.Logger, args.Config, args.Tracer,
-		authenticator, batchProcessor, agentcfgFetchReporter, ratelimitStore,
-	)
-	if err != nil {
-		return server{}, err
+	otlpBatchProcessor := args.BatchProcessor
+	if args.Config.AugmentEnabled {
+		// Add a model processor that sets `client.ip` for events from end-user devices.
+		otlpBatchProcessor = modelprocessor.Chained{
+			model.ProcessBatchFunc(otlp.SetClientMetadata),
+			otlpBatchProcessor,
+		}
 	}
+	otlp.RegisterGRPCServices(args.GRPCServer, otlpBatchProcessor)
+	jaeger.RegisterGRPCServices(args.GRPCServer, args.Logger, args.BatchProcessor, agentcfgFetchReporter)
 
 	return server{
 		logger:                args.Logger,
 		cfg:                   args.Config,
 		httpServer:            httpServer,
-		grpcServer:            grpcServer,
+		grpcServer:            args.GRPCServer,
 		agentcfgFetchReporter: agentcfgFetchReporter,
 	}, nil
-}
-
-func newGRPCServer(
-	logger *logp.Logger,
-	cfg *config.Config,
-	tracer *apm.Tracer,
-	authenticator *auth.Authenticator,
-	batchProcessor model.BatchProcessor,
-	agentcfgFetcher agentcfg.Fetcher,
-	ratelimitStore *ratelimit.Store,
-) (*grpc.Server, error) {
-	apmInterceptor := apmgrpc.NewUnaryServerInterceptor(apmgrpc.WithRecovery(), apmgrpc.WithTracer(tracer))
-	authInterceptor := interceptors.Auth(authenticator)
-
-	// Note that we intentionally do not use a grpc.Creds ServerOption
-	// even if TLS is enabled, as TLS is handled by the net/http server.
-	logger = logger.Named("grpc")
-	srv := grpc.NewServer(
-		grpc.ChainUnaryInterceptor(
-			apmInterceptor,
-			interceptors.ClientMetadata(),
-			interceptors.Logging(logger),
-			interceptors.Metrics(logger),
-			interceptors.Timeout(),
-			authInterceptor,
-			interceptors.AnonymousRateLimit(ratelimitStore),
-		),
-	)
-
-	if cfg.AugmentEnabled {
-		// Add a model processor that sets `client.ip` for events from end-user devices.
-		batchProcessor = modelprocessor.Chained{
-			model.ProcessBatchFunc(otlp.SetClientMetadata),
-			batchProcessor,
-		}
-	}
-
-	jaeger.RegisterGRPCServices(srv, logger, batchProcessor, agentcfgFetcher)
-	otlp.RegisterGRPCServices(srv, batchProcessor)
-	return srv, nil
 }
 
 func (s server) run(ctx context.Context) error {

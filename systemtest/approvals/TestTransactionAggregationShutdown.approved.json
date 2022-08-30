@@ -51,7 +51,7 @@
                 }
             },
             "timeseries": {
-                "instance": "systemtest:name:c1872fbd92d36ba2"
+                "instance": "systemtest:name:942a34484a40cac3"
             },
             "transaction": {
                 "duration.histogram": {
