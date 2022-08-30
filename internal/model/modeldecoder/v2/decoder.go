@@ -312,9 +312,7 @@ func mapToCloudModel(from contextCloud, cloud *model.Cloud) {
 func mapToClientModel(from contextRequest, source *model.Source, client *model.Client) {
 	// http.Request.Headers and http.Request.Socket are only set for backend events.
 	if !source.IP.IsValid() {
-		ip, port := netutil.ParseIPPort(
-			netutil.MaybeSplitHostPort(from.Socket.RemoteAddress.Val),
-		)
+		ip, port := netutil.SplitAddrPort(from.Socket.RemoteAddress.Val)
 		source.IP, source.Port = ip, int(port)
 	}
 	if !client.IP.IsValid() {
