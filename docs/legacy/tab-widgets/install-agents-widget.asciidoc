@@ -65,6 +65,13 @@
         tabindex="-1">
       RUM
     </button>
+    <button role="tab"
+        aria-selected="false"
+        aria-controls="otel-tab-install"
+        id="otel-install"
+        tabindex="-1">
+      OpenTelemetry
+    </button>
   </div>
   <div tabindex="0"
        role="tabpanel"
@@ -161,6 +168,20 @@ include::install-agents.asciidoc[tag=ruby]
 ++++
 
 include::install-agents.asciidoc[tag=rum]
+
+++++
+  </div>
+  <div tabindex="0"
+      role="tabpanel"
+      id="otel-tab-install"
+      aria-labelledby="otel-install"
+      hidden="">
+++++
+
+include::../../open-telemetry.asciidoc[tag=otel-get-started]
+
+Additional boostrap code may be required.
+See the {apm-guide-ref}/open-telemetry.html[Elastic OpenTelemetry guide] for more information, configuration options, and limitations of this feature.
 
 ++++
   </div>
