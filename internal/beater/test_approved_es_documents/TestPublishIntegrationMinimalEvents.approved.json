@@ -281,6 +281,9 @@
         },
         {
             "@timestamp": "2017-05-30T18:53:42.281Z",
+            "_metric_descriptions": {
+                "a": {}
+            },
             "a": 3.2,
             "agent": {
                 "name": "elastic-node",

@@ -9,3 +9,6 @@ processors:
       name: process_ppid
   - pipeline:
       name: client_geoip
+  - remove:
+      field: _metric_descriptions
+      ignore_missing: true

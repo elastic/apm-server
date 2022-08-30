@@ -23,6 +23,8 @@ processors:
             dynamic_templates[name] = "histogram";
           } else if (metric_type == "summary") {
             dynamic_templates[name] = "summary";
+          } else {
+            dynamic_templates[name] = "double";
           }
         }
         ctx._dynamic_templates = dynamic_templates;
