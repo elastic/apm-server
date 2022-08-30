@@ -74,13 +74,13 @@ pipeline {
             withGoEnv() {
               dir("testing/benchmark") {
                 stashV2(name: 'benchmark_tfstate', bucket: "${JOB_GCS_BUCKET_STASH}", credentialsId: "${JOB_GCS_CREDENTIALS}")
-                withTestClusterEnv { 
-                  sh(label: 'Tear down benchmark environment', script: 'make destroy')
-                }
                 archiveArtifacts(allowEmptyArchive: true,
                   artifacts: "${env.BENCHMARK_RESULT}",
                   defaultExcludes: false
                 )
+                withTestClusterEnv {
+                  sh(label: 'Tear down benchmark environment', script: 'make destroy')
+                }
               }
             }
           }
