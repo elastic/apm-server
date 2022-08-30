@@ -337,6 +337,7 @@ func (a *Aggregator) updateTransactionMetrics(key transactionAggregationKey, has
 }
 
 func (a *Aggregator) makeTransactionAggregationKey(event model.APMEvent, interval time.Duration) transactionAggregationKey {
+<<<<<<< HEAD
 	return transactionAggregationKey{
 		// Group metrics by time interval.
 		timestamp: event.Timestamp.Truncate(interval),
@@ -378,6 +379,52 @@ func (a *Aggregator) makeTransactionAggregationKey(event model.APMEvent, interva
 		faasTriggerType: event.FAAS.TriggerType,
 		faasName:        event.FAAS.Name,
 		faasVersion:     event.FAAS.Version,
+=======
+	key := transactionAggregationKey{
+		comparable: comparable{
+			// Group metrics by time interval.
+			timestamp: event.Timestamp.Truncate(interval),
+
+			traceRoot:         event.Parent.ID == "",
+			transactionName:   event.Transaction.Name,
+			transactionResult: event.Transaction.Result,
+			transactionType:   event.Transaction.Type,
+			eventOutcome:      event.Event.Outcome,
+
+			agentName:             event.Agent.Name,
+			serviceEnvironment:    event.Service.Environment,
+			serviceName:           event.Service.Name,
+			serviceVersion:        event.Service.Version,
+			serviceNodeName:       event.Service.Node.Name,
+			serviceRuntimeName:    event.Service.Runtime.Name,
+			serviceRuntimeVersion: event.Service.Runtime.Version,
+
+			serviceLanguageName:    event.Service.Language.Name,
+			serviceLanguageVersion: event.Service.Language.Version,
+
+			hostHostname:      event.Host.Hostname,
+			hostName:          event.Host.Name,
+			hostOSPlatform:    event.Host.OS.Platform,
+			containerID:       event.Container.ID,
+			kubernetesPodName: event.Kubernetes.PodName,
+
+			cloudProvider:         event.Cloud.Provider,
+			cloudRegion:           event.Cloud.Region,
+			cloudAvailabilityZone: event.Cloud.AvailabilityZone,
+			cloudServiceName:      event.Cloud.ServiceName,
+			cloudAccountID:        event.Cloud.AccountID,
+			cloudAccountName:      event.Cloud.AccountName,
+			cloudProjectID:        event.Cloud.ProjectID,
+			cloudProjectName:      event.Cloud.ProjectName,
+			cloudMachineType:      event.Cloud.MachineType,
+
+			faasColdstart:   event.FAAS.Coldstart,
+			faasID:          event.FAAS.ID,
+			faasTriggerType: event.FAAS.TriggerType,
+			faasName:        event.FAAS.Name,
+			faasVersion:     event.FAAS.Version,
+		},
+>>>>>>> de2f79c5 (beater: expose gRPC server in ServerParams (#8983))
 	}
 }
 
@@ -424,7 +471,8 @@ func makeMetricset(
 			ProjectName:      key.cloudProjectName,
 		},
 		Host: model.Host{
-			Hostname: key.hostname,
+			Hostname: key.hostHostname,
+			Name:     key.hostName,
 			OS: model.OS{
 				Platform: key.hostOSPlatform,
 			},
@@ -509,7 +557,8 @@ type transactionAggregationKey struct {
 	transactionType        string
 	eventOutcome           string
 	faasTriggerType        string
-	hostname               string
+	hostHostname           string
+	hostName               string
 	containerID            string
 	traceRoot              bool
 }
@@ -527,7 +576,8 @@ func (k *transactionAggregationKey) hash() uint64 {
 	}
 	h.WriteString(k.agentName)
 	h.WriteString(k.containerID)
-	h.WriteString(k.hostname)
+	h.WriteString(k.hostHostname)
+	h.WriteString(k.hostName)
 	h.WriteString(k.hostOSPlatform)
 	h.WriteString(k.kubernetesPodName)
 	h.WriteString(k.cloudProvider)

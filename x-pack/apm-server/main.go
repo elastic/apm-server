@@ -20,6 +20,7 @@ import (
 
 	"github.com/elastic/apm-server/internal/beater"
 	"github.com/elastic/apm-server/internal/model"
+	"github.com/elastic/apm-server/internal/model/modelprocessor"
 	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/spanmetrics"
 	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/txmetrics"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling"
@@ -187,12 +188,6 @@ func runServerWithProcessors(ctx context.Context, runServer beater.RunServerFunc
 		return runServer(ctx, args)
 	}
 
-	batchProcessors := make([]model.BatchProcessor, len(processors))
-	for i, p := range processors {
-		batchProcessors[i] = p
-	}
-	runServer = beater.WrapRunServerWithProcessors(runServer, batchProcessors...)
-
 	g, ctx := errgroup.WithContext(ctx)
 	serverStopped := make(chan struct{})
 	for _, p := range processors {
@@ -225,14 +220,24 @@ func runServerWithProcessors(ctx context.Context, runServer beater.RunServerFunc
 	return g.Wait()
 }
 
-func wrapRunServer(runServer beater.RunServerFunc) beater.RunServerFunc {
-	return func(ctx context.Context, args beater.ServerParams) error {
-		processors, err := newProcessors(args)
-		if err != nil {
-			return err
-		}
+func wrapServer(args beater.ServerParams, runServer beater.RunServerFunc) (beater.ServerParams, beater.RunServerFunc, error) {
+	processors, err := newProcessors(args)
+	if err != nil {
+		return beater.ServerParams{}, nil, err
+	}
+
+	// Add the processors to the chain.
+	processorChain := make(modelprocessor.Chained, len(processors)+1)
+	for i, p := range processors {
+		processorChain[i] = p
+	}
+	processorChain[len(processors)] = args.BatchProcessor
+	args.BatchProcessor = processorChain
+
+	wrappedRunServer := func(ctx context.Context, args beater.ServerParams) error {
 		return runServerWithProcessors(ctx, runServer, args, processors...)
 	}
+	return args, wrappedRunServer, nil
 }
 
 // closeBadger is called at process exit time to close the badger.DB opened
@@ -265,7 +270,7 @@ func cleanup() (result error) {
 func Main() error {
 	rootCmd := newXPackRootCommand(
 		beater.NewCreator(beater.CreatorParams{
-			WrapRunServer: wrapRunServer,
+			WrapServer: wrapServer,
 		}),
 	)
 	result := rootCmd.Execute()
