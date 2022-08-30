@@ -15,3 +15,10 @@ APM integration policy editor.
 
 `fleetctl -u <kibana_url> set-policy-var <ID> tail_sampling_storage_limit=30MB`
 
+## Updating arbitrary config
+
+This command can be used to set arbitrary configuration understood by APM Server,
+where that configuration has no corresponding integration package var.
+
+`fleetctl -u <kibana_url> set-policy-config <ID> apm-server.max_concurrent_decoders=300`
+

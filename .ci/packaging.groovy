@@ -414,7 +414,7 @@ def signUnpublishedArtifactsWithElastic(builtPackagesPath, glob) {
     }
   }
 
-  if (!unpublished.isEmpty()) {
+  if (unpublished.isEmpty()) {
     return unpublished
   }
 
