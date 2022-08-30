@@ -123,6 +123,85 @@ func TestContext_Reset(t *testing.T) {
 	}
 }
 
+func BenchmarkContextReset(b *testing.B) {
+	testCases := map[string]struct {
+		header     http.Header
+		remoteAddr string
+	}{
+		"Remote Addr ipv4": {
+			remoteAddr: "10.1.2.3:4321",
+		},
+		"Remote Addr ipv6": {
+			remoteAddr: "2001:0db8:85a3:0000:0000:8a2e:0370:7334",
+		},
+		"X-Forwarded-For ipv4": {
+			header: http.Header{
+				"X-Forwarded-For": []string{"192.168.0.1"},
+			},
+			remoteAddr: "10.1.2.3",
+		},
+		"X-Forwarded-For ipv6": {
+			header: http.Header{
+				"X-Forwarded-For": []string{"2001:0db8:85a3:0000:0000:8a2e:0370:7334"},
+			},
+			remoteAddr: "10.1.2.3",
+		},
+		"Forwarded ipv4": {
+			header: http.Header{
+				"Forwarded": []string{"for=192.0.2.60;proto=http;by=203.0.113.43"},
+			},
+			remoteAddr: "10.1.2.3",
+		},
+		"Forwarded ipv6": {
+			header: http.Header{
+				"Forwarded": []string{"For=\"[2001:db8:cafe::17]:4711\""},
+			},
+			remoteAddr: "10.1.2.3",
+		},
+		"X-Real-IP ipv4": {
+			header: http.Header{
+				"X-Real-Ip": []string{"192.168.0.1"},
+			},
+			remoteAddr: "10.1.2.3",
+		},
+		"X-Real-IP ipv6": {
+			header: http.Header{
+				"X-Real-Ip": []string{"2001:0db8:85a3:0000:0000:8a2e:0370:7334"},
+			},
+			remoteAddr: "10.1.2.3",
+		},
+	}
+
+	for k, v := range testCases {
+		w := httptest.NewRecorder()
+		w.WriteHeader(http.StatusOK)
+
+		r := httptest.NewRequest(http.MethodGet, "/", nil)
+		r.RemoteAddr = v.remoteAddr
+		r.Header = v.header
+
+		l := logp.NewLogger("")
+		err := errors.New("foo")
+
+		b.Run(k, func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				c := Context{
+					Request:        r,
+					ResponseWriter: w,
+					Logger:         l,
+					Result: Result{
+						StatusCode: http.StatusOK,
+						Err:        err,
+						Stacktrace: "bar",
+					},
+				}
+
+				c.Reset(w, r)
+			}
+		})
+	}
+}
+
 func TestContext_Header(t *testing.T) {
 	w := httptest.NewRecorder()
 	w.Header().Set(headers.Etag, "abcd")
