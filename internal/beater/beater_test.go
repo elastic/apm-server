@@ -200,8 +200,9 @@ func newTestBeater(
 
 	createBeater := NewCreator(CreatorParams{
 		Logger: logger,
-		WrapRunServer: func(runServer RunServerFunc) RunServerFunc {
-			var processor model.ProcessBatchFunc = func(ctx context.Context, batch *model.Batch) error {
+		WrapServer: func(args ServerParams, runServer RunServerFunc) (ServerParams, RunServerFunc, error) {
+			origBatchProcessor := args.BatchProcessor
+			args.BatchProcessor = model.ProcessBatchFunc(func(ctx context.Context, batch *model.Batch) error {
 				for i := range *batch {
 					event := &(*batch)[i]
 					if event.Processor != model.TransactionProcessor {
@@ -214,9 +215,9 @@ func newTestBeater(
 					}
 					event.Labels.Set("wrapped_reporter", "true")
 				}
-				return nil
-			}
-			return WrapRunServerWithProcessors(runServer, processor)
+				return origBatchProcessor.ProcessBatch(ctx, batch)
+			})
+			return args, runServer, nil
 		},
 	})
 
