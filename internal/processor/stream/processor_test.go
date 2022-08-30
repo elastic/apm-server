@@ -336,14 +336,16 @@ func makeApproveEventsBatchProcessor(t *testing.T, name string, count *int) mode
 }
 
 func TestConcurrentAsync(t *testing.T) {
-	correctData := `{"metadata": {"service": {"name": "testsvc", "environment": "staging", "version": null, "agent": {"name": "python", "version": "6.9.1"}, "language": {"name": "python", "version": "3.10.4"}, "runtime": {"name": "CPython", "version": "3.10.4"}, "framework": {"name": "flask", "version": "2.1.1"}}, "process": {"pid": 2112739, "ppid": 2112738, "argv": ["/home/stuart/workspace/sdh/581/venv/lib/python3.10/site-packages/flask/__main__.py", "run"], "title": null}, "system": {"hostname": "slaptop", "architecture": "x86_64", "platform": "linux"}, "labels": {"ci_commit": "unknown", "numeric": 1}}}
-{"transaction": {"id": "88dee29a6571b948", "trace_id": "ba7f5d18ac4c7f39d1ff070c79b2bea5", "name": "GET /withlabels", "type": "request", "duration": 1.6199999999999999, "result": "HTTP 2xx", "timestamp": 1652185276804681, "outcome": "success", "sampled": true, "span_count": {"started": 0, "dropped": 0}, "sample_rate": 1.0, "context": {"request": {"env": {"REMOTE_ADDR": "127.0.0.1", "SERVER_NAME": "127.0.0.1", "SERVER_PORT": "5000"}, "method": "GET", "socket": {"remote_address": "127.0.0.1"}, "cookies": {}, "headers": {"host": "localhost:5000", "user-agent": "curl/7.81.0", "accept": "*/*", "app-os": "Android", "content-type": "application/json; charset=utf-8", "content-length": "29"}, "url": {"full": "http://localhost:5000/withlabels?second_with_labels", "protocol": "http:", "hostname": "localhost", "pathname": "/withlabels", "port": "5000", "search": "?second_with_labels"}}, "response": {"status_code": 200, "headers": {"Content-Type": "application/json", "Content-Length": "14"}}, "tags": {"appOs": "Android", "email_set": "hello@hello.com", "time_set": 1652185276}}}}`
+	smallBatch := []byte(`{"metadata": {"service": {"name": "testsvc", "environment": "staging", "version": null, "agent": {"name": "python", "version": "6.9.1"}, "language": {"name": "python", "version": "3.10.4"}, "runtime": {"name": "CPython", "version": "3.10.4"}, "framework": {"name": "flask", "version": "2.1.1"}}, "process": {"pid": 2112739, "ppid": 2112738, "argv": ["/home/stuart/workspace/sdh/581/venv/lib/python3.10/site-packages/flask/__main__.py", "run"], "title": null}, "system": {"hostname": "slaptop", "architecture": "x86_64", "platform": "linux"}, "labels": {"ci_commit": "unknown", "numeric": 1}}}
+{"transaction": {"id": "88dee29a6571b948", "trace_id": "ba7f5d18ac4c7f39d1ff070c79b2bea5", "name": "GET /withlabels", "type": "request", "duration": 1.6199999999999999, "result": "HTTP 2xx", "timestamp": 1652185276804681, "outcome": "success", "sampled": true, "span_count": {"started": 0, "dropped": 0}, "sample_rate": 1.0, "context": {"request": {"env": {"REMOTE_ADDR": "127.0.0.1", "SERVER_NAME": "127.0.0.1", "SERVER_PORT": "5000"}, "method": "GET", "socket": {"remote_address": "127.0.0.1"}, "cookies": {}, "headers": {"host": "localhost:5000", "user-agent": "curl/7.81.0", "accept": "*/*", "app-os": "Android", "content-type": "application/json; charset=utf-8", "content-length": "29"}, "url": {"full": "http://localhost:5000/withlabels?second_with_labels", "protocol": "http:", "hostname": "localhost", "pathname": "/withlabels", "port": "5000", "search": "?second_with_labels"}}, "response": {"status_code": 200, "headers": {"Content-Type": "application/json", "Content-Length": "14"}}, "tags": {"appOs": "Android", "email_set": "hello@hello.com", "time_set": 1652185276}}}}`)
+	bigBatch, err := os.ReadFile(filepath.Join("..", "..", "..", "testdata", "intake-v2", "heavy.ndjson"))
+	assert.NoError(t, err)
 
 	base := model.APMEvent{Host: model.Host{IP: []netip.Addr{netip.MustParseAddr("192.0.0.1")}}}
 	type testCase struct {
-		payload        string
-		sem, requests  int
-		async, fullSem bool
+		payload       []byte
+		sem, requests int
+		fullSem       bool
 	}
 
 	test := func(tc testCase) (pResult Result) {
@@ -363,7 +365,7 @@ func TestConcurrentAsync(t *testing.T) {
 			go func() {
 				defer wg.Done()
 				var result Result
-				err := p.HandleStream(ctx, tc.async, base, strings.NewReader(tc.payload), 10, bp, &result)
+				err := p.HandleStream(ctx, true, base, bytes.NewReader(tc.payload), 10, bp, &result)
 				if err != nil {
 					result.LimitedAdd(err)
 				}
@@ -396,8 +398,7 @@ func TestConcurrentAsync(t *testing.T) {
 			sem:      2,
 			requests: 3,
 			fullSem:  true,
-			async:    true,
-			payload:  correctData,
+			payload:  smallBatch,
 		})
 		assert.Equal(t, 0, res.Accepted)
 		assert.Equal(t, 3, len(res.Errors))
@@ -405,32 +406,48 @@ func TestConcurrentAsync(t *testing.T) {
 			assert.ErrorIs(t, err, publish.ErrFull)
 		}
 	})
+	t.Run("semaphore_undersized", func(t *testing.T) {
+		res := test(testCase{
+			sem:      2,
+			requests: 100,
+			payload:  bigBatch,
+		})
+		// When the semaphore is full, `publish.ErrFull` is returned.
+		assert.Greater(t, len(res.Errors), 0)
+		for _, err := range res.Errors {
+			assert.EqualError(t, err, publish.ErrFull.Error())
+		}
+	})
 	t.Run("semaphore_empty", func(t *testing.T) {
 		res := test(testCase{
 			sem:      5,
 			requests: 5,
-			async:    true,
-			payload:  correctData,
+			payload:  smallBatch,
 		})
 		assert.Equal(t, 5, res.Accepted)
 		assert.Equal(t, 0, len(res.Errors))
+
+		res = test(testCase{
+			sem:      5,
+			requests: 5,
+			payload:  bigBatch,
+		})
+		assert.Greater(t, res.Accepted, 5)
 	})
 	t.Run("semaphore_empty_incorrect_metadata", func(t *testing.T) {
 		res := test(testCase{
 			sem:      5,
 			requests: 5,
-			async:    true,
-			payload:  `{"metadata": {"siervice":{}}}`,
+			payload:  []byte(`{"metadata": {"siervice":{}}}`),
 		})
 		assert.Equal(t, 0, res.Accepted)
 		assert.Len(t, res.Errors, 5)
 
-		incorrectEvent := `{"metadata": {"service": {"name": "testsvc", "environment": "staging", "version": null, "agent": {"name": "python", "version": "6.9.1"}, "language": {"name": "python", "version": "3.10.4"}, "runtime": {"name": "CPython", "version": "3.10.4"}, "framework": {"name": "flask", "version": "2.1.1"}}, "process": {"pid": 2112739, "ppid": 2112738, "argv": ["/home/stuart/workspace/sdh/581/venv/lib/python3.10/site-packages/flask/__main__.py", "run"], "title": null}, "system": {"hostname": "slaptop", "architecture": "x86_64", "platform": "linux"}, "labels": {"ci_commit": "unknown", "numeric": 1}}}
-{"some_incorrect_event": {}}`
+		incorrectEvent := []byte(`{"metadata": {"service": {"name": "testsvc", "environment": "staging", "version": null, "agent": {"name": "python", "version": "6.9.1"}, "language": {"name": "python", "version": "3.10.4"}, "runtime": {"name": "CPython", "version": "3.10.4"}, "framework": {"name": "flask", "version": "2.1.1"}}, "process": {"pid": 2112739, "ppid": 2112738, "argv": ["/home/stuart/workspace/sdh/581/venv/lib/python3.10/site-packages/flask/__main__.py", "run"], "title": null}, "system": {"hostname": "slaptop", "architecture": "x86_64", "platform": "linux"}, "labels": {"ci_commit": "unknown", "numeric": 1}}}
+{"some_incorrect_event": {}}`)
 		res = test(testCase{
 			sem:      5,
 			requests: 2,
-			async:    true,
 			payload:  incorrectEvent,
 		})
 		assert.Equal(t, 0, res.Accepted)

@@ -32,10 +32,10 @@ func ContextWithAuthorizer(parent context.Context, auth Authorizer) context.Cont
 	return context.WithValue(parent, authorizationKey{}, auth)
 }
 
-// AuthorizationFromContext returns the Authorizer stored in ctx, if any, and a boolean
+// authorizerFromContext returns the Authorizer stored in ctx, if any, and a boolean
 // indicating whether there one was found. The boolean is false if and only if the
 // Authorizer is nil.
-func AuthorizationFromContext(ctx context.Context) (Authorizer, bool) {
+func authorizerFromContext(ctx context.Context) (Authorizer, bool) {
 	auth, ok := ctx.Value(authorizationKey{}).(Authorizer)
 	return auth, ok
 }
@@ -43,7 +43,7 @@ func AuthorizationFromContext(ctx context.Context) (Authorizer, bool) {
 // Authorize is a shortcut for obtaining an Authorizer from ctx and calling its Authorize
 // method. Authorize returns ErrNoAuthorizer if ctx does not contain an Authorizer.
 func Authorize(ctx context.Context, action Action, resource Resource) error {
-	auth, ok := AuthorizationFromContext(ctx)
+	auth, ok := authorizerFromContext(ctx)
 	if !ok {
 		return ErrNoAuthorizer
 	}

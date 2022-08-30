@@ -27,6 +27,7 @@ import (
 	"strings"
 
 	"github.com/elastic/elastic-agent-libs/monitoring"
+	"go.elastic.co/apm/v2"
 
 	"github.com/elastic/apm-server/internal/beater/auth"
 	"github.com/elastic/apm-server/internal/beater/headers"
@@ -83,7 +84,8 @@ func Handler(handler StreamHandler, requestMetadataFunc RequestMetadataFunc, bat
 		// returning immediately with an error `publish.ErrFull` when it can't be
 		// serviced.
 		// Async processing has weaker guarantees for the client since any
-		// errors while processing the batch be communicated back to the client.
+		// errors while processing the batch cannot be communicated back to the
+		// client.
 		// Instead, errors are logged by the APM Server.
 		async := asyncRequest(c.Request)
 
@@ -92,11 +94,7 @@ func Handler(handler StreamHandler, requestMetadataFunc RequestMetadataFunc, bat
 		// after the server handles the request.
 		ctx := c.Request.Context()
 		if async {
-			if authorizer, ok := auth.AuthorizationFromContext(ctx); ok {
-				ctx = auth.ContextWithAuthorizer(
-					context.Background(), authorizer,
-				)
-			}
+			ctx = apm.DetachedContext(ctx)
 		}
 
 		reader, err := decoder.CompressedRequestReader(c.Request)

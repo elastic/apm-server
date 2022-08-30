@@ -22,7 +22,6 @@ import (
 	"context"
 	"io"
 	"sync"
-	"time"
 
 	"go.elastic.co/apm/v2"
 
@@ -222,16 +221,17 @@ func (p *Processor) HandleStream(
 	baseEvent model.APMEvent,
 	reader io.Reader,
 	batchSize int,
-	proc model.BatchProcessor,
+	processor model.BatchProcessor,
 	result *Result,
 ) error {
 	// Limits the number of concurrent batch decodes.
 	// Defaults to 200 (N), only allowing N requests to read and cache Y events
 	// (determined by batchSize) from the batch.
 	// The ceiling may also reduce the contention on the modelindexer.activeMu.
-	// Clients can set a async to true which makes the processor handle the
+	// Clients can set a async to true which makes the processor process the
 	// events in the background. Returns with an error `publish.ErrFull` if the
-	// semaphore is full.
+	// semaphore is full. When asynchronous processing is requested, the batches
+	// are decoded synchronously, but the batch is processed asynchronously.
 	if err := p.acquireLock(ctx, async); err != nil {
 		return err
 	}
@@ -255,56 +255,49 @@ func (p *Processor) HandleStream(
 	sp, ctx := apm.StartSpan(ctx, "Stream", "Reporter")
 	defer sp.End()
 
-	// Create a new processor var to avoid replacing the passed reference.
-	var processor model.BatchProcessor
-	if async {
-		// Allow 5 async batches to be processing per stream. The lambda
-		// extension doesn't (yet) stream to the server.
-		// If a single batch with more than the batchSize is sent (10),
-		// then the request can process 50 events asynchronously.
-		batchChan := make(chan *model.Batch, 5)
-		go p.asyncProcessor(ctx, proc, batchChan, result)
-		processor = chanProcessor{batchChan: batchChan}
-		defer close(batchChan)
-	} else {
-		processor = proc
-	}
+	var acquireLock bool
 	for {
+		// Async requests will re-acquire the lock after the first batch is
+		// scheduled to be processed. If the semaphore is full, then we return
+		// with `publish.ErrFull`.
+		if async {
+			if acquireLock {
+				if err := p.acquireLock(ctx, async); err != nil {
+					return err
+				}
+			} else {
+				acquireLock = true
+			}
+		}
 		var batch model.Batch
+		var n int
 		n, err := p.readBatch(ctx, baseEvent, batchSize, &batch, sr, result)
 		if n > 0 {
-			// NOTE(axw) ProcessBatch takes ownership of batch, which means we cannot reuse
-			// the slice memory. We should investigate alternative interfaces between the
-			// processor and publisher which would enable better memory reuse, e.g. by using
-			// a sync.Pool for creating batches, and having the publisher (terminal processor)
-			// release batches back into the pool.
-			if err := processor.ProcessBatch(ctx, &batch); err != nil {
-				return err
+			if async {
+				go func() {
+					// The semaphore is released once the batch is processed.
+					defer p.releaseLock()
+					if err := processor.ProcessBatch(ctx, &batch); err != nil && p.logger != nil {
+						p.logger.Errorf("failed handling async request: %v", err)
+					}
+				}()
+			} else {
+				// NOTE(axw) ProcessBatch takes ownership of batch, which means we cannot reuse
+				// the slice memory. We should investigate alternative interfaces between the
+				// processor and publisher which would enable better memory reuse, e.g. by using
+				// a sync.Pool for creating batches, and having the publisher (terminal processor)
+				// release batches back into the pool.
+				if err := processor.ProcessBatch(ctx, &batch); err != nil {
+					return err
+				}
+				result.AddAccepted(len(batch))
 			}
-			result.AddAccepted(len(batch))
 		}
 		if err != nil {
 			if errors.Is(err, io.EOF) {
 				return nil
 			}
 			return err
-		}
-	}
-}
-
-func (p *Processor) asyncProcessor(
-	ctx context.Context,
-	processor model.BatchProcessor,
-	batchChan chan *model.Batch,
-	result *Result,
-) {
-	defer p.releaseLock()
-	// TODO(marclop) what kind of timeout should we assume?
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
-	defer cancel()
-	for batch := range batchChan {
-		if err := processor.ProcessBatch(ctx, batch); err != nil && p.logger != nil {
-			p.logger.Errorf("failed handling async request: %v", err)
 		}
 	}
 }
@@ -388,19 +381,4 @@ func copyEvent(e model.APMEvent) model.APMEvent {
 		out.NumericLabels = out.NumericLabels.Clone()
 	}
 	return out
-}
-
-// chanProcessor sends the received batches to the configured channel. If the
-// send isn't immediate, the processor returns `publish.ErrFull` error.
-type chanProcessor struct {
-	batchChan chan *model.Batch
-}
-
-func (p chanProcessor) ProcessBatch(ctx context.Context, batch *model.Batch) error {
-	select {
-	case p.batchChan <- batch:
-	default:
-		return publish.ErrFull
-	}
-	return nil
 }
