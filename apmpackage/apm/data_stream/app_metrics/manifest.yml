@@ -23,6 +23,9 @@ elasticsearch:
                 - sum
                 - value_count
               default_metric: value_count
+        - double:
+            mapping:
+              type: double
         - numeric_labels:
             path_match: numeric_labels.*
             mapping:

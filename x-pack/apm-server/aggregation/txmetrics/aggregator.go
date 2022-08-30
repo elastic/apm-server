@@ -361,7 +361,8 @@ func (a *Aggregator) makeTransactionAggregationKey(event model.APMEvent, interva
 			serviceLanguageName:    event.Service.Language.Name,
 			serviceLanguageVersion: event.Service.Language.Version,
 
-			hostname:          event.Host.Hostname,
+			hostHostname:      event.Host.Hostname,
+			hostName:          event.Host.Name,
 			hostOSPlatform:    event.Host.OS.Platform,
 			containerID:       event.Container.ID,
 			kubernetesPodName: event.Kubernetes.PodName,
@@ -459,7 +460,8 @@ func makeMetricset(
 			ProjectName:      key.cloudProjectName,
 		},
 		Host: model.Host{
-			Hostname: key.hostname,
+			Hostname: key.hostHostname,
+			Name:     key.hostName,
 			OS: model.OS{
 				Platform: key.hostOSPlatform,
 			},
@@ -547,7 +549,8 @@ type comparable struct {
 	transactionType        string
 	eventOutcome           string
 	faasTriggerType        string
-	hostname               string
+	hostHostname           string
+	hostName               string
 	containerID            string
 	traceRoot              bool
 }
@@ -576,7 +579,8 @@ func (k *transactionAggregationKey) hash() uint64 {
 	writeLabels(&h, k)
 	h.WriteString(k.agentName)
 	h.WriteString(k.containerID)
-	h.WriteString(k.hostname)
+	h.WriteString(k.hostHostname)
+	h.WriteString(k.hostName)
 	h.WriteString(k.hostOSPlatform)
 	h.WriteString(k.kubernetesPodName)
 	h.WriteString(k.cloudProvider)

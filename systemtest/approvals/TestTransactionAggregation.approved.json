@@ -44,6 +44,8 @@
                 "trigger.type": "http"
             },
             "host": {
+                "hostname": "node-name",
+                "name": "node-name",
                 "os": {
                     "platform": "darwin"
                 }
@@ -88,7 +90,7 @@
                 "version": "5.1.3"
             },
             "timeseries": {
-                "instance": "1234_service-12a3:faas:a63cd8ef954a5ed7"
+                "instance": "1234_service-12a3:faas:2a7054ba528b6bef"
             },
             "transaction": {
                 "duration.histogram": {
@@ -156,7 +158,7 @@
                 }
             },
             "timeseries": {
-                "instance": "systemtest:abc:dfc3744f1e810e09"
+                "instance": "systemtest:abc:954c62c5a2b8d0dd"
             },
             "transaction": {
                 "duration.histogram": {
@@ -223,7 +225,7 @@
                 }
             },
             "timeseries": {
-                "instance": "systemtest:def:d38209d39a15f662"
+                "instance": "systemtest:def:3f14f7166cf7659e"
             },
             "transaction": {
                 "duration.histogram": {
