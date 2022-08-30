@@ -1,14 +1,19 @@
 [[agent-server-compatibility]]
 === {apm-agent} compatibility
 
-The chart below outlines the compatibility between different versions of the APM agents and the APM integration/server.
+The chart below outlines the compatibility between different versions of Elastic APM agents and extensions with the APM integration.
 
 [options="header"]
 |====
-|Language |{apm-agent} version |APM integration/server version
+|Language |{apm-agent} version |APM integration version
+// APM AWS Lambda extension
+.1+|**APM AWS Lambda extension**
+|`1.x` |≥ `8.2`
+
 // Go
-.1+|**Go agent**
+.2+|**Go agent**
 |`1.x` |≥ `6.5`
+|`2.x` |≥ `6.5`
 
 // iOS
 .1+|**iOS agent**

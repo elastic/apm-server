@@ -311,15 +311,13 @@ func mapToCloudModel(from contextCloud, cloud *model.Cloud) {
 
 func mapToClientModel(from contextRequest, source *model.Source, client *model.Client) {
 	// http.Request.Headers and http.Request.Socket are only set for backend events.
-	if source.IP == nil {
-		ip, port := netutil.ParseIPPort(
-			netutil.MaybeSplitHostPort(from.Socket.RemoteAddress.Val),
-		)
+	if !source.IP.IsValid() {
+		ip, port := netutil.SplitAddrPort(from.Socket.RemoteAddress.Val)
 		source.IP, source.Port = ip, int(port)
 	}
-	if client.IP == nil {
+	if !client.IP.IsValid() {
 		client.IP = source.IP
-		if ip, port := netutil.ClientAddrFromHeaders(from.Headers.Val); ip != nil {
+		if ip, port := netutil.ClientAddrFromHeaders(from.Headers.Val); ip.IsValid() {
 			source.NAT = &model.NAT{IP: source.IP}
 			client.IP, client.Port = ip, int(port)
 			source.IP, source.Port = client.IP, client.Port
@@ -508,7 +506,7 @@ func mapToMetadataModel(from *metadata, out *model.APMEvent) {
 
 	// Labels
 	if len(from.Labels) > 0 {
-		modeldecoderutil.LabelsFrom(from.Labels, out)
+		modeldecoderutil.GlobalLabelsFrom(from.Labels, out)
 	}
 
 	// Process

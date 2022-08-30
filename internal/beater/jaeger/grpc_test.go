@@ -253,7 +253,7 @@ func newServer(t *testing.T, batchProcessor model.BatchProcessor, agentcfgFetche
 		SecretToken: "abc123",
 	})
 	require.NoError(t, err)
-	srv := grpc.NewServer(grpc.UnaryInterceptor(interceptors.Auth(MethodAuthenticators(authenticator))))
+	srv := grpc.NewServer(grpc.UnaryInterceptor(interceptors.Auth(authenticator)))
 
 	logger := logp.NewLogger("jaeger.test")
 	RegisterGRPCServices(srv, logger, batchProcessor, agentcfgFetcher)

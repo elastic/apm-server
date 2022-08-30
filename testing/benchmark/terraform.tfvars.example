@@ -57,3 +57,7 @@ user_name = "USER"
 # Override the path where the compiled apmbench binary is going to be uploaded.
 # Defaults to `../../systemtest/cmd/apmbench`.
 # apmbench_bin_path = "."
+
+# Override the default shard settings for APM indices. Defaults to 0, which doesn't
+# change the default shard settings.
+# apm_shards = 12

@@ -18,7 +18,7 @@
 package model
 
 import (
-	"net"
+	"net/netip"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -29,13 +29,13 @@ import (
 func TestClientFields(t *testing.T) {
 	for name, tc := range map[string]struct {
 		domain string
-		ip     net.IP
+		ip     netip.Addr
 		port   int
 		out    mapstr.M
 	}{
 		"Empty":  {out: nil},
-		"IPv4":   {ip: net.ParseIP("192.0.0.1"), out: mapstr.M{"ip": "192.0.0.1"}},
-		"IPv6":   {ip: net.ParseIP("2001:db8::68"), out: mapstr.M{"ip": "2001:db8::68"}},
+		"IPv4":   {ip: netip.MustParseAddr("192.0.0.1"), out: mapstr.M{"ip": "192.0.0.1"}},
+		"IPv6":   {ip: netip.MustParseAddr("2001:db8::68"), out: mapstr.M{"ip": "2001:db8::68"}},
 		"Port":   {port: 123, out: mapstr.M{"port": 123}},
 		"Domain": {domain: "testing.invalid", out: mapstr.M{"domain": "testing.invalid"}},
 	} {

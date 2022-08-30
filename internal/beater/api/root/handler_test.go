@@ -20,6 +20,7 @@ package root
 import (
 	"fmt"
 	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -27,12 +28,12 @@ import (
 	"github.com/elastic/beats/v7/libbeat/version"
 
 	"github.com/elastic/apm-server/internal/beater/auth"
-	"github.com/elastic/apm-server/internal/beater/beatertest"
+	"github.com/elastic/apm-server/internal/beater/request"
 )
 
 func TestRootHandler(t *testing.T) {
 	t.Run("ok", func(t *testing.T) {
-		c, w := beatertest.ContextWithResponseRecorder(http.MethodGet, "/")
+		c, w := rootTestContext()
 		Handler(HandlerConfig{Version: "1.2.3"})(c)
 
 		assert.Equal(t, http.StatusOK, w.Code)
@@ -40,7 +41,7 @@ func TestRootHandler(t *testing.T) {
 	})
 
 	t.Run("unauthenticated", func(t *testing.T) {
-		c, w := beatertest.ContextWithResponseRecorder(http.MethodGet, "/")
+		c, w := rootTestContext()
 		c.Authentication.Method = auth.MethodAnonymous
 		Handler(HandlerConfig{Version: "1.2.3"})(c)
 
@@ -49,7 +50,7 @@ func TestRootHandler(t *testing.T) {
 	})
 
 	t.Run("authenticated", func(t *testing.T) {
-		c, w := beatertest.ContextWithResponseRecorder(http.MethodGet, "/")
+		c, w := rootTestContext()
 		c.Authentication.Method = auth.MethodNone
 		Handler(HandlerConfig{Version: "1.2.3"})(c)
 
@@ -60,7 +61,7 @@ func TestRootHandler(t *testing.T) {
 	})
 
 	t.Run("publish_ready", func(t *testing.T) {
-		c, w := beatertest.ContextWithResponseRecorder(http.MethodGet, "/")
+		c, w := rootTestContext()
 		c.Authentication.Method = auth.MethodNone
 
 		Handler(HandlerConfig{
@@ -74,4 +75,11 @@ func TestRootHandler(t *testing.T) {
 			version.Commit(),
 		), w.Body.String())
 	})
+}
+
+func rootTestContext() (*request.Context, *httptest.ResponseRecorder) {
+	w := httptest.NewRecorder()
+	c := request.NewContext()
+	c.Reset(w, httptest.NewRequest(http.MethodGet, "/", nil))
+	return c, w
 }

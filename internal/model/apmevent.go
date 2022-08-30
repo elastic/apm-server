@@ -77,11 +77,10 @@ type APMEvent struct {
 	// See https://www.elastic.co/guide/en/ecs/current/ecs-base.html#field-message
 	Message string
 
-	Transaction   *Transaction
-	Span          *Span
-	Metricset     *Metricset
-	Error         *Error
-	ProfileSample *ProfileSample
+	Transaction *Transaction
+	Span        *Span
+	Metricset   *Metricset
+	Error       *Error
 }
 
 // BeatEvent converts e to a beat.Event.
@@ -103,9 +102,6 @@ func (e *APMEvent) BeatEvent() beat.Event {
 	}
 	if e.Error != nil {
 		fields.maybeSetMapStr("error", e.Error.fields())
-	}
-	if e.ProfileSample != nil {
-		fields.maybeSetMapStr("profile", e.ProfileSample.fields())
 	}
 
 	// Set high resolution timestamp.
@@ -152,4 +148,17 @@ func (e *APMEvent) BeatEvent() beat.Event {
 	fields.maybeSetMapStr("faas", e.FAAS.fields())
 	fields.maybeSetMapStr("log", e.Log.fields())
 	return event
+}
+
+// MarkGlobalLabels marks the current labels as "Global". This is only done
+// after the agent defined labels have been decoded.
+func (e *APMEvent) MarkGlobalLabels() {
+	for key, v := range e.NumericLabels {
+		v.Global = true
+		e.NumericLabels[key] = v
+	}
+	for key, v := range e.Labels {
+		v.Global = true
+		e.Labels[key] = v
+	}
 }

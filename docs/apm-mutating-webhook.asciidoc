@@ -1,0 +1,4 @@
+// Pulls the APM mutating webhook docs from here:
+// https://github.com/elastic/apm-mutating-webhook/blob/main/docs/apm-mutating-webhook.asciidoc
+
+include::{apm-webhook-repo-dir}/apm-mutating-webhook.asciidoc[]

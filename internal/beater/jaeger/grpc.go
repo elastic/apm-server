@@ -29,6 +29,8 @@ import (
 	jaegertranslator "github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger"
 	"go.opentelemetry.io/collector/consumer"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/monitoring"
@@ -36,7 +38,6 @@ import (
 	"github.com/elastic/apm-server/internal/agentcfg"
 	"github.com/elastic/apm-server/internal/beater/auth"
 	"github.com/elastic/apm-server/internal/beater/config"
-	"github.com/elastic/apm-server/internal/beater/interceptors"
 	"github.com/elastic/apm-server/internal/beater/request"
 	"github.com/elastic/apm-server/internal/model"
 	"github.com/elastic/apm-server/internal/processor/otel"
@@ -51,19 +52,9 @@ var (
 			request.IDResponseErrorsUnauthorized,
 		),
 	)
-
-	// RegistryMonitoringMaps provides mappings from the fully qualified gRPC
-	// method name to its respective monitoring map.
-	RegistryMonitoringMaps = map[string]map[request.ResultID]*monitoring.Int{
-		postSpansFullMethod:           gRPCCollectorMonitoringMap,
-		getSamplingStrategyFullMethod: gRPCSamplingMonitoringMap,
-	}
 )
 
 const (
-	postSpansFullMethod           = "/jaeger.api_v2.CollectorService/PostSpans"
-	getSamplingStrategyFullMethod = "/jaeger.api_v2.SamplingManager/GetSamplingStrategy"
-
 	// elasticAuthTag is the name of the agent tag that will be used for auth.
 	// The tag value should be "Bearer <secret token" or "ApiKey <api key>".
 	elasticAuthTag = "elastic-apm-auth"
@@ -81,17 +72,42 @@ func RegisterGRPCServices(
 	api_v2.RegisterSamplingManagerServer(srv, &grpcSampler{logger, fetcher})
 }
 
-// MethodAuthenticators returns a map of all supported Jaeger/gRPC methods to authorization handlers.
-func MethodAuthenticators(authenticator *auth.Authenticator) map[string]interceptors.MethodAuthenticator {
-	return map[string]interceptors.MethodAuthenticator{
-		postSpansFullMethod:           postSpansMethodAuthenticator(authenticator),
-		getSamplingStrategyFullMethod: getSamplingStrategyMethodAuthenticator(authenticator),
-	}
-}
-
 // grpcCollector implements Jaeger api_v2 protocol for receiving tracing data
 type grpcCollector struct {
 	consumer consumer.Traces
+}
+
+// AuthenticateUnaryCall authenticates CollectorService calls.
+func (c *grpcCollector) AuthenticateUnaryCall(
+	ctx context.Context,
+	req interface{},
+	fullMethodName string,
+	authenticator *auth.Authenticator,
+) (auth.AuthenticationDetails, auth.Authorizer, error) {
+	postSpansRequest, ok := req.(*api_v2.PostSpansRequest)
+	if !ok {
+		return auth.AuthenticationDetails{}, nil, status.Errorf(
+			codes.Unauthenticated, "unhandled method %q", fullMethodName,
+		)
+	}
+	batch := &postSpansRequest.Batch
+	var kind, token string
+	for i, kv := range batch.Process.GetTags() {
+		if kv.Key != elasticAuthTag {
+			continue
+		}
+		// Remove the auth tag.
+		batch.Process.Tags = append(batch.Process.Tags[:i], batch.Process.Tags[i+1:]...)
+		kind, token = auth.ParseAuthorizationHeader(kv.VStr)
+		break
+	}
+	return authenticator.Authenticate(ctx, kind, token)
+}
+
+// MonitoringMap returns the request metrics registry for this service,
+// to support interceptors.Metrics.
+func (c *grpcCollector) RequestMetrics(fullMethodName string) map[request.ResultID]*monitoring.Int {
+	return gRPCCollectorMonitoringMap
 }
 
 // PostSpans implements the api_v2/collector.proto. It converts spans received via Jaeger Proto batch to open-telemetry
@@ -211,41 +227,43 @@ func checkValidationError(err *agentcfg.ValidationError) error {
 	}
 }
 
-func postSpansMethodAuthenticator(authenticator *auth.Authenticator) interceptors.MethodAuthenticator {
-	return func(ctx context.Context, req interface{}) (auth.AuthenticationDetails, auth.Authorizer, error) {
-		postSpansRequest := req.(*api_v2.PostSpansRequest)
-		batch := &postSpansRequest.Batch
-		var kind, token string
-		for i, kv := range batch.Process.GetTags() {
-			if kv.Key != elasticAuthTag {
-				continue
-			}
-			// Remove the auth tag.
-			batch.Process.Tags = append(batch.Process.Tags[:i], batch.Process.Tags[i+1:]...)
-			kind, token = auth.ParseAuthorizationHeader(kv.VStr)
-			break
-		}
-		return authenticator.Authenticate(ctx, kind, token)
-	}
-}
+var anonymousAuthenticator *auth.Authenticator
 
-func getSamplingStrategyMethodAuthenticator(authenticator *auth.Authenticator) interceptors.MethodAuthenticator {
-	// Sampling strategy queries are always unauthenticated. We still consult
-	// the authenticator in case auth isn't required, in which case we should
-	// not rate limit the request.
-	anonymousAuthenticator, err := auth.NewAuthenticator(config.AgentAuth{
+func init() {
+	// TODO(axw) introduce a function in the auth package for returning
+	// anonymous details/authorizer, obviating the need for a separate
+	// anonymous Authenticator.
+	var err error
+	anonymousAuthenticator, err = auth.NewAuthenticator(config.AgentAuth{
 		Anonymous: config.AnonymousAgentAuth{Enabled: true},
 	})
 	if err != nil {
 		panic(err)
 	}
-	return func(ctx context.Context, req interface{}) (auth.AuthenticationDetails, auth.Authorizer, error) {
-		details, authz, err := authenticator.Authenticate(ctx, "", "")
-		if !errors.Is(err, auth.ErrAuthFailed) {
-			return details, authz, err
-		}
-		return anonymousAuthenticator.Authenticate(ctx, "", "")
+}
+
+// AuthenticateUnaryCall authenticates SamplingManager calls.
+//
+// Sampling strategy queries are always unauthenticated. We still consult
+// the authenticator in case auth isn't required, in which case we should
+// not rate limit the request.
+func (s *grpcSampler) AuthenticateUnaryCall(
+	ctx context.Context,
+	req interface{},
+	fullMethodName string,
+	authenticator *auth.Authenticator,
+) (auth.AuthenticationDetails, auth.Authorizer, error) {
+	details, authz, err := authenticator.Authenticate(ctx, "", "")
+	if !errors.Is(err, auth.ErrAuthFailed) {
+		return details, authz, err
 	}
+	return anonymousAuthenticator.Authenticate(ctx, "", "")
+}
+
+// MonitoringMap returns the request metrics registry for this service,
+// to support interceptors.Metrics.
+func (s *grpcSampler) RequestMetrics(fullMethodName string) map[request.ResultID]*monitoring.Int {
+	return gRPCSamplingMonitoringMap
 }
 
 type monitoringMap map[request.ResultID]*monitoring.Int

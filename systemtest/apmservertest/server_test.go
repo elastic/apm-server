@@ -18,6 +18,7 @@
 package apmservertest_test
 
 import (
+	"bytes"
 	"net/url"
 	"os"
 	"testing"
@@ -36,22 +37,36 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
-func TestAPMServer(t *testing.T) {
-	srv := apmservertest.NewServer(t)
+func TestNewServerTB(t *testing.T) {
+	srv := apmservertest.NewServerTB(t)
 	require.NotNil(t, srv)
 	err := srv.Close()
 	assert.NoError(t, err)
 }
 
-func TestUnstartedAPMServer(t *testing.T) {
-	srv := apmservertest.NewUnstartedServer(t)
-	err := srv.Close()
+func TestNewUnstartedServerTB(t *testing.T) {
+	srv := apmservertest.NewUnstartedServerTB(t)
+	err := srv.Wait()
 	require.Error(t, err)
 	assert.EqualError(t, err, "apm-server not started")
 }
 
-func TestAPMServerStartTLS(t *testing.T) {
-	srv := apmservertest.NewUnstartedServer(t)
+func TestNewUnstartedServerLog(t *testing.T) {
+	srv := apmservertest.NewUnstartedServer()
+	defer srv.Close()
+
+	var buf bytes.Buffer
+	srv.Log = &buf
+	err := srv.Start()
+	assert.NoError(t, err)
+	err = srv.Close()
+	assert.NoError(t, err)
+
+	assert.NotZero(t, buf.Len())
+}
+
+func TestServerStartTLS(t *testing.T) {
+	srv := apmservertest.NewUnstartedServerTB(t)
 	require.NotNil(t, srv)
 	err := srv.StartTLS()
 	assert.NoError(t, err)
@@ -72,7 +87,7 @@ func TestAPMServerStartTLS(t *testing.T) {
 }
 
 func TestExpvar(t *testing.T) {
-	srv := apmservertest.NewServer(t)
+	srv := apmservertest.NewServerTB(t)
 	expvar := srv.GetExpvar()
 	require.NotNil(t, expvar)
 	assert.NotZero(t, expvar.Cmdline)

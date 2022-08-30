@@ -220,59 +220,11 @@ type RateLimitConfig struct {
 
 // InstrumentationConfig holds APM Server instrumentation configuration.
 type InstrumentationConfig struct {
-	Enabled   bool             `json:"enabled"`
-	Profiling *ProfilingConfig `json:"profiling,omitempty"`
+	Enabled bool `json:"enabled"`
 
 	Hosts       []string `json:"hosts,omitempty"`
 	APIKey      string   `json:"api_key,omitempty"`
 	SecretToken string   `json:"secret_token,omitempty"`
-}
-
-// ProfilingConfig holds APM Server profiling configuration.
-type ProfilingConfig struct {
-	CPU  *CPUProfilingConfig  `json:"cpu,omitempty"`
-	Heap *HeapProfilingConfig `json:"heap,omitempty"`
-}
-
-// CPUProfilingConfig holds APM Server profiling configuration.
-type CPUProfilingConfig struct {
-	Enabled  bool          `json:"enabled"`
-	Interval time.Duration `json:"interval,omitempty"`
-	Duration time.Duration `json:"duration,omitempty"`
-}
-
-func (c *CPUProfilingConfig) MarshalJSON() ([]byte, error) {
-	// time.Duration is encoded as int64.
-	// Convert time.Durations to durations, to encode as duration strings.
-	type config struct {
-		Enabled  bool   `json:"enabled"`
-		Interval string `json:"interval,omitempty"`
-		Duration string `json:"duration,omitempty"`
-	}
-	return json.Marshal(config{
-		Enabled:  c.Enabled,
-		Interval: durationString(c.Interval),
-		Duration: durationString(c.Duration),
-	})
-}
-
-// HeapProfilingConfig holds APM Server profiling configuration.
-type HeapProfilingConfig struct {
-	Enabled  bool          `json:"enabled"`
-	Interval time.Duration `json:"interval,omitempty"`
-}
-
-func (c *HeapProfilingConfig) MarshalJSON() ([]byte, error) {
-	// time.Duration is encoded as int64.
-	// Convert time.Durations to durations, to encode as duration strings.
-	type config struct {
-		Enabled  bool   `json:"enabled"`
-		Interval string `json:"interval,omitempty"`
-	}
-	return json.Marshal(config{
-		Enabled:  c.Enabled,
-		Interval: durationString(c.Interval),
-	})
 }
 
 // OutputConfig holds APM Server libbeat output configuration.

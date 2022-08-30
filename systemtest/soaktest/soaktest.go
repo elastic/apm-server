@@ -24,10 +24,11 @@ import (
 	"golang.org/x/time/rate"
 
 	"github.com/elastic/apm-server/systemtest/loadgen"
+	loadgencfg "github.com/elastic/apm-server/systemtest/loadgen/config"
 )
 
 func RunBlocking(ctx context.Context) error {
-	limiter := loadgen.GetNewLimiter(loadgen.Config.MaxEPM)
+	limiter := loadgen.GetNewLimiter(loadgencfg.Config.MaxEPM)
 	g, gCtx := errgroup.WithContext(ctx)
 
 	for i := 0; i < soakConfig.AgentsReplicas; i++ {
@@ -45,8 +46,8 @@ func RunBlocking(ctx context.Context) error {
 func runAgent(ctx context.Context, expr string, limiter *rate.Limiter) error {
 	handler, err := loadgen.NewEventHandler(
 		expr,
-		loadgen.Config.ServerURL.String(),
-		loadgen.Config.SecretToken,
+		loadgencfg.Config.ServerURL.String(),
+		loadgencfg.Config.SecretToken,
 		limiter,
 	)
 	if err != nil {

@@ -19,8 +19,8 @@ package request
 
 import (
 	"encoding/json"
-	"net"
 	"net/http"
+	"net/netip"
 	"strings"
 	"time"
 
@@ -54,7 +54,7 @@ type Context struct {
 
 	// SourceIP holds the IP address of the originating client, if known,
 	// as recorded in Forwarded, X-Forwarded-For, etc.
-	SourceIP net.IP
+	SourceIP netip.Addr
 
 	// SourcePort holds the port of the originating client, as recorded in
 	// the Forwarded header. This will be zero unless the port is recorded
@@ -65,7 +65,7 @@ type Context struct {
 	// as recorded in Forwarded, X-Forwarded-For, etc.
 	//
 	// For TCP-based requests this will have the same value as SourceIP.
-	ClientIP net.IP
+	ClientIP netip.Addr
 
 	// ClientPort holds the port of the originating client, as recorded in
 	// the Forwarded header. This will be zero unless the port is recorded
@@ -74,7 +74,7 @@ type Context struct {
 
 	// SourceNATIP holds the IP address of the (source) network peer, or
 	// zero if unknown.
-	SourceNATIP net.IP
+	SourceNATIP netip.Addr
 
 	// UserAgent holds the User-Agent request header value.
 	UserAgent string
@@ -113,10 +113,10 @@ func (c *Context) Reset(w http.ResponseWriter, r *http.Request) {
 	c.Result.Reset()
 
 	if r != nil {
-		ip, port := netutil.ParseIPPort(netutil.MaybeSplitHostPort(r.RemoteAddr))
+		ip, port := netutil.SplitAddrPort(r.RemoteAddr)
 		c.SourceIP, c.ClientIP = ip, ip
 		c.SourcePort, c.ClientPort = int(port), int(port)
-		if ip, port := netutil.ClientAddrFromHeaders(r.Header); ip != nil {
+		if ip, port := netutil.ClientAddrFromHeaders(r.Header); ip.IsValid() {
 			c.SourceNATIP = c.ClientIP
 			c.SourceIP, c.ClientIP = ip, ip
 			c.SourcePort, c.ClientPort = int(port), int(port)

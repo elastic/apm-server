@@ -18,8 +18,8 @@
 package netutil
 
 import (
-	"net"
 	"net/http"
+	"net/netip"
 	"strconv"
 	"strings"
 )
@@ -32,41 +32,42 @@ import (
 // If the client is able to control the headers, they can control the result of this
 // function. The result should therefore not necessarily be trusted to be correct;
 // that depends on the presence and configuration of proxies in front of apm-server.
-func ClientAddrFromHeaders(header http.Header) (ip net.IP, port uint16) {
+func ClientAddrFromHeaders(header http.Header) (ip netip.Addr, port uint16) {
 	for _, parse := range parseHeadersInOrder {
-		if ip, port := parse(header); ip != nil {
+		if ip, port := parse(header); ip.IsValid() {
 			return ip, port
 		}
 	}
-	return nil, 0
+	return netip.Addr{}, 0
 }
 
-var parseHeadersInOrder = []func(http.Header) (net.IP, uint16){
+var parseHeadersInOrder = []func(http.Header) (netip.Addr, uint16){
 	parseForwardedHeader,
 	parseXRealIP,
 	parseXForwardedFor,
 }
 
-func parseForwardedHeader(header http.Header) (net.IP, uint16) {
+func parseForwardedHeader(header http.Header) (netip.Addr, uint16) {
 	forwarded := parseForwarded(getHeader(header, "Forwarded", "forwarded"))
 	if forwarded.For == "" {
-		return nil, 0
+		return netip.Addr{}, 0
 	}
-	return ParseIPPort(MaybeSplitHostPort(forwarded.For))
+
+	return SplitAddrPort(forwarded.For)
 }
 
-func parseXRealIP(header http.Header) (net.IP, uint16) {
-	return ParseIPPort(MaybeSplitHostPort(getHeader(header, "X-Real-Ip", "x-real-ip")))
+func parseXRealIP(header http.Header) (netip.Addr, uint16) {
+	return SplitAddrPort(getHeader(header, "X-Real-Ip", "x-real-ip"))
 }
 
-func parseXForwardedFor(header http.Header) (net.IP, uint16) {
+func parseXForwardedFor(header http.Header) (netip.Addr, uint16) {
 	if xff := getHeader(header, "X-Forwarded-For", "x-forwarded-for"); xff != "" {
 		if sep := strings.IndexRune(xff, ','); sep > 0 {
 			xff = xff[:sep]
 		}
-		return ParseIPPort(MaybeSplitHostPort(strings.TrimSpace(xff)))
+		return SplitAddrPort(strings.TrimSpace(xff))
 	}
-	return nil, 0
+	return netip.Addr{}, 0
 }
 
 func getHeader(header http.Header, key, keyLower string) string {
@@ -122,50 +123,43 @@ func parseForwarded(f string) forwardedHeader {
 				continue
 			}
 		}
-		switch strings.ToLower(key) {
-		case "for":
+		switch {
+		case strings.EqualFold(key, "for"):
 			result.For = value
-		case "host":
+		case strings.EqualFold(key, "host"):
 			result.Host = value
-		case "proto":
+		case strings.EqualFold(key, "proto"):
 			result.Proto = value
 		}
 	}
 	return result
 }
 
-// ParseIPPort parses h as an IP and, if successful and p is non-empty, p as a port.
-// If h cannot be parsed as an IP or p is non-empty and cannot be parsed as a port,
-// ParseIPPort will return (nil, 0). If p is empty, 0 will be returned for the port.
-func ParseIPPort(h, p string) (net.IP, uint16) {
-	ip := net.ParseIP(h)
-	if ip == nil {
-		return nil, 0
+// SplitAddrPort splits a network address of the form "host",
+// "host:port", "[host]:port" or "[host]:port" into a netip.Addr
+// and port.
+//
+// If input has no port, 0 will be returned for the port.
+// If input cannot be parsed or it is empty, (invalidip, 0) will
+// be returned.
+func SplitAddrPort(in string) (netip.Addr, uint16) {
+	if in == "" {
+		return netip.Addr{}, 0
 	}
-	if p == "" {
-		return ip, 0
-	}
-	port, err := strconv.ParseUint(p, 10, 16)
-	if err != nil {
-		return nil, 0
-	}
-	return ip, uint16(port)
-}
 
-// MaybeSplitHostPort returns the result of net.SplitHostPort if it
-// would return without an error, otherwise it returns (in, ""). This
-// can be used when splitting a string which may be either a host, or
-// host:port pair.
-func MaybeSplitHostPort(in string) (host, port string) {
-	if strings.LastIndexByte(in, ':') == -1 {
-		// In the common (relative to other "errors") case that
-		// there is no colon, we can avoid allocations by not
-		// calling SplitHostPort.
-		return in, ""
+	// [host]:port or host:port
+	if in[0] == '[' || (strings.Contains(in, ".") && strings.Contains(in, ":")) {
+		if addr, err := netip.ParseAddrPort(in); err == nil {
+			return addr.Addr(), addr.Port()
+		}
+
+		return netip.Addr{}, 0
 	}
-	host, port, err := net.SplitHostPort(in)
-	if err != nil {
-		return in, ""
+
+	// host
+	if addr, err := netip.ParseAddr(in); err == nil {
+		return addr, 0
 	}
-	return host, port
+
+	return netip.Addr{}, 0
 }

@@ -297,7 +297,7 @@ func mapToExceptionModel(from errorException, out *model.Exception) {
 func mapToMetadataModel(m *metadata, out *model.APMEvent) {
 	// Labels
 	if len(m.Labels) > 0 {
-		modeldecoderutil.LabelsFrom(m.Labels, out)
+		modeldecoderutil.GlobalLabelsFrom(m.Labels, out)
 	}
 
 	// Service

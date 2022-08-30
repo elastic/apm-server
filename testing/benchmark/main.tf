@@ -44,8 +44,10 @@ module "ec_deployment" {
   deployment_template    = var.deployment_template
   deployment_name_prefix = local.name_prefix
 
+  integrations_server   = true
   apm_server_size       = var.apm_server_size
   apm_server_zone_count = var.apm_server_zone_count
+  apm_index_shards      = var.apm_shards
 
   elasticsearch_size       = var.elasticsearch_size
   elasticsearch_zone_count = var.elasticsearch_zone_count

@@ -55,7 +55,7 @@ func TestIntakeBackendHandler_AuthorizationMiddleware(t *testing.T) {
 }
 
 func TestIntakeBackendHandler_PanicMiddleware(t *testing.T) {
-	testPanicMiddleware(t, "/intake/v2/events", approvalPathIntakeBackend(t.Name()))
+	testPanicMiddleware(t, "/intake/v2/events")
 }
 
 func TestIntakeBackendHandler_MonitoringMiddleware(t *testing.T) {

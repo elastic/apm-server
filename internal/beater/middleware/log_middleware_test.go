@@ -33,7 +33,6 @@ import (
 	"github.com/elastic/elastic-agent-libs/logp/configure"
 	"github.com/elastic/elastic-agent-libs/mapstr"
 
-	"github.com/elastic/apm-server/internal/beater/beatertest"
 	"github.com/elastic/apm-server/internal/beater/headers"
 	"github.com/elastic/apm-server/internal/beater/request"
 	"github.com/elastic/apm-server/internal/logs"
@@ -53,7 +52,7 @@ func TestLogMiddleware(t *testing.T) {
 			name:    "Accepted",
 			message: "request accepted",
 			level:   zapcore.InfoLevel,
-			handler: beatertest.Handler202,
+			handler: Handler202,
 			code:    http.StatusAccepted,
 			ecsKeys: []string{"url.original"},
 		},
@@ -61,7 +60,7 @@ func TestLogMiddleware(t *testing.T) {
 			name:    "Traced",
 			message: "request accepted",
 			level:   zapcore.InfoLevel,
-			handler: beatertest.Handler202,
+			handler: Handler202,
 			code:    http.StatusAccepted,
 			ecsKeys: []string{"url.original", "trace.id", "transaction.id"},
 			traced:  true,
@@ -70,7 +69,7 @@ func TestLogMiddleware(t *testing.T) {
 			name:    "Error",
 			message: "forbidden request",
 			level:   zapcore.ErrorLevel,
-			handler: beatertest.Handler403,
+			handler: Handler403,
 			code:    http.StatusForbidden,
 			ecsKeys: []string{"url.original", "error.message"},
 		},
@@ -78,7 +77,7 @@ func TestLogMiddleware(t *testing.T) {
 			name:    "Panic",
 			message: "internal error",
 			level:   zapcore.ErrorLevel,
-			handler: Apply(RecoverPanicMiddleware(), beatertest.HandlerPanic),
+			handler: Apply(RecoverPanicMiddleware(), HandlerPanic),
 			code:    http.StatusInternalServerError,
 			ecsKeys: []string{"url.original", "error.message", "error.stack_trace"},
 		},
@@ -103,7 +102,7 @@ func TestLogMiddleware(t *testing.T) {
 			require.NoError(t, logp.DevelopmentSetup(logp.ToObserverOutput()))
 
 			// prepare and record request
-			c, rec := beatertest.DefaultContextWithResponseRecorder()
+			c, rec := DefaultContextWithResponseRecorder()
 			c.Request.Header.Set(headers.UserAgent, tc.name)
 			if tc.traced {
 				tx := apmtest.DiscardTracer.StartTransaction("name", "type")

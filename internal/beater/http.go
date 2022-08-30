@@ -31,7 +31,6 @@ import (
 
 	"github.com/elastic/apm-server/internal/beater/api"
 	"github.com/elastic/apm-server/internal/beater/config"
-	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/transport/tlscommon"
 	"github.com/elastic/gmux"
@@ -47,7 +46,6 @@ type httpServer struct {
 
 func newHTTPServer(
 	logger *logp.Logger,
-	info beat.Info,
 	cfg *config.Config,
 	handler http.Handler,
 	listener net.Listener,

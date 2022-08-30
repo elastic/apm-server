@@ -191,7 +191,7 @@ update-beats: update-beats-module update
 
 .PHONY: update-beats-module
 update-beats-module:
-	$(GO) get -d -u $(BEATS_MODULE)@$(BEATS_VERSION) && $(GO) mod tidy -compat=1.17
+	$(GO) get -d -u $(BEATS_MODULE)@$(BEATS_VERSION) && $(GO) mod tidy
 	cp -f $$($(GO) list -m -f {{.Dir}} $(BEATS_MODULE))/.go-version .go-version
 	find . -maxdepth 3 -name Dockerfile -exec sed -i'.bck' -E -e "s#(FROM golang):[0-9]+\.[0-9]+\.[0-9]+#\1:$$(cat .go-version)#g" {} \;
 	sed -i'.bck' -E -e "s#(:go-version): [0-9]+\.[0-9]+\.[0-9]+#\1: $$(cat .go-version)#g" docs/version.asciidoc
@@ -279,19 +279,24 @@ $(PYTHON_BIN)/activate:
 RALLY_EXTRA_FLAGS?=
 RALLY_CLIENT_OPTIONS?=basic_auth_user:'admin',basic_auth_password:'changeme'
 RALLY_FLAGS?=--pipeline=benchmark-only --client-options="$(RALLY_CLIENT_OPTIONS)" $(RALLY_EXTRA_FLAGS)
+RALLY_BULK_SIZE?=5000
+RALLY_GENCORPORA_REPLAY_COUNT?=1
 
 .PHONY: rally
-rally: $(PYTHON_BIN)/esrally rally/corpora/.generated
-	@$(PYTHON_BIN)/esrally race --track-path=rally --kill-running-processes $(RALLY_FLAGS)
+rally: $(PYTHON_BIN)/esrally rally/corpora
+	@$(PYTHON_BIN)/esrally race \
+		--track-path=rally \
+		--track-params=expected_cluster_health:yellow,bulk_size:$(RALLY_BULK_SIZE) \
+		--kill-running-processes \
+		$(RALLY_FLAGS)
 
 $(PYTHON_BIN)/esrally: $(PYTHON_BIN)
 	@$(PYTHON_BIN)/pip install -U esrally
 
-rally/corpora: rally/corpora/.generated
-rally/corpora/.generated: rally/gencorpora/main.go rally/gencorpora/api.go rally/gencorpora/go.mod
+.PHONY: rally/corpora
+rally/corpora:
 	@rm -fr rally/corpora && mkdir rally/corpora
-	@cd rally/gencorpora && $(GO) run .
-	@touch $@
+	@cd systemtest/cmd/gencorpora && $(GO) run . -write-dir $(CURRENT_DIR)/rally/corpora/ -replay-count $(RALLY_GENCORPORA_REPLAY_COUNT)
 
 ##############################################################################
 # Smoke tests -- Basic smoke tests for APM Server.

@@ -15,9 +15,25 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package beatertest
+package main
 
-import "fmt"
+import (
+	"context"
+	"flag"
+	"log"
+	"os"
+	"os/signal"
+	"syscall"
 
-// ResultErrWrap wraps given input into the expected result error string
-func ResultErrWrap(s string) string { return fmt.Sprintf("{\"error\":\"%+v\"}\n", s) }
+	"github.com/elastic/apm-server/systemtest/gencorpora"
+)
+
+func main() {
+	flag.Parse()
+
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer cancel()
+	if err := gencorpora.Run(ctx); err != nil {
+		log.Fatal(err)
+	}
+}

@@ -89,9 +89,10 @@ func TestIntakeHandler(t *testing.T) {
 		"TooLarge": {
 			path: "errors.ndjson",
 			processor: func() *stream.Processor {
-				p := stream.BackendProcessor(config.DefaultConfig(), make(chan struct{}, 1))
-				p.MaxEventSize = 10
-				return p
+				return stream.BackendProcessor(stream.Config{
+					MaxEventSize: 10,
+					Semaphore:    make(chan struct{}, 1),
+				})
 			}(),
 			code: http.StatusBadRequest, id: request.IDResponseErrorsRequestTooLarge},
 		"Closing": {
@@ -189,7 +190,10 @@ type testcaseIntakeHandler struct {
 func (tc *testcaseIntakeHandler) setup(t *testing.T) {
 	if tc.processor == nil {
 		cfg := config.DefaultConfig()
-		tc.processor = stream.BackendProcessor(cfg, make(chan struct{}, cfg.MaxConcurrentDecoders))
+		tc.processor = stream.BackendProcessor(stream.Config{
+			MaxEventSize: cfg.MaxEventSize,
+			Semaphore:    make(chan struct{}, cfg.MaxConcurrentDecoders),
+		})
 	}
 	if tc.batchProcessor == nil {
 		tc.batchProcessor = modelprocessor.Nop{}

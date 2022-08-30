@@ -40,7 +40,7 @@ import (
 
 func TestApprovedMetrics(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
-	srv := apmservertest.NewServer(t)
+	srv := apmservertest.NewServerTB(t)
 	eventsPayload, err := os.ReadFile("../testdata/intake-v2/metricsets.ndjson")
 	require.NoError(t, err)
 
@@ -85,7 +85,7 @@ func TestApprovedMetrics(t *testing.T) {
 
 func TestBreakdownMetrics(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
-	srv := apmservertest.NewServer(t)
+	srv := apmservertest.NewServerTB(t)
 
 	tracer := srv.Tracer()
 	tx := tracer.StartTransaction("tx_name", "tx_type")
@@ -124,7 +124,7 @@ func TestBreakdownMetrics(t *testing.T) {
 
 func TestApplicationMetrics(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
-	srv := apmservertest.NewServer(t)
+	srv := apmservertest.NewServerTB(t)
 
 	tracer := srv.Tracer()
 	tracer.RegisterMetricsGatherer(apm.GatherMetricsFunc(func(ctx context.Context, metrics *apm.Metrics) error {
@@ -170,7 +170,7 @@ func TestApplicationMetrics(t *testing.T) {
 			"full_name": "a.b.c",
 			"mapping": map[string]interface{}{
 				"c": map[string]interface{}{
-					"type": "long",
+					"type": "double",
 				},
 			},
 		},
@@ -178,7 +178,7 @@ func TestApplicationMetrics(t *testing.T) {
 			"full_name": "x.y.z",
 			"mapping": map[string]interface{}{
 				"z": map[string]interface{}{
-					"type": "float",
+					"type": "double",
 				},
 			},
 		},
@@ -221,6 +221,7 @@ type metricsetDoc struct {
 	Trasaction    metricsetTransaction `json:"transaction"`
 	Span          metricsetSpan        `json:"span"`
 	MetricsetName string               `json:"metricset.name"`
+	Labels        map[string]string    `json:"labels"`
 }
 
 func unmarshalMetricsetDocs(t testing.TB, hits []estest.SearchHit) []metricsetDoc {
