@@ -26,62 +26,59 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/elastic/apm-server/internal/beater/config"
 	"github.com/elastic/apm-server/internal/model"
 )
 
 func BenchmarkBackendProcessor(b *testing.B) {
-	cfg := config.DefaultConfig()
-	processor := BackendProcessor(cfg, make(chan struct{}, cfg.MaxConcurrentDecoders))
-	files, _ := filepath.Glob(filepath.FromSlash("../../testdata/intake-v2/*.ndjson"))
+	processor := BackendProcessor(Config{
+		MaxEventSize: 300 * 1024, // 300 kb
+		Semaphore:    make(chan struct{}, 200),
+	})
+	files, _ := filepath.Glob(filepath.FromSlash("../../../testdata/intake-v2/*.ndjson"))
 	benchmarkStreamProcessor(b, processor, files)
 }
 
 func BenchmarkRUMV3Processor(b *testing.B) {
-	cfg := config.DefaultConfig()
-	processor := RUMV3Processor(cfg, make(chan struct{}, cfg.MaxConcurrentDecoders))
-	files, _ := filepath.Glob(filepath.FromSlash("../../testdata/intake-v3/rum_*.ndjson"))
+	processor := BackendProcessor(Config{
+		MaxEventSize: 300 * 1024, // 300 kb
+		Semaphore:    make(chan struct{}, 200),
+	})
+	files, _ := filepath.Glob(filepath.FromSlash("../../../testdata/intake-v3/rum_*.ndjson"))
 	benchmarkStreamProcessor(b, processor, files)
 }
 
 func benchmarkStreamProcessor(b *testing.B, processor *Processor, files []string) {
 	const batchSize = 10
 	batchProcessor := nopBatchProcessor{}
-	benchmark := func(b *testing.B, filename string) {
-		data, err := os.ReadFile(filename)
+
+	for _, f := range files {
+		data, err := os.ReadFile(f)
 		if err != nil {
 			b.Error(err)
 		}
 		r := bytes.NewReader(data)
-		b.ReportAllocs()
-		b.SetBytes(int64(len(data)))
-		b.ResetTimer()
-		for i := 0; i < b.N; i++ {
-			b.StopTimer()
-			r.Reset(data)
-			b.StartTimer()
 
-			var result Result
-			processor.HandleStream(context.Background(), model.APMEvent{}, r, batchSize, batchProcessor, &result)
-		}
-	}
-
-	for _, f := range files {
 		b.Run(filepath.Base(f), func(b *testing.B) {
-			benchmark(b, f)
+			b.ReportAllocs()
+			b.SetBytes(int64(len(data)))
+			for i := 0; i < b.N; i++ {
+				r.Seek(0, io.SeekStart)
+
+				var result Result
+				processor.HandleStream(context.Background(), model.APMEvent{}, r, batchSize, batchProcessor, &result)
+			}
 		})
 	}
 }
 
 func BenchmarkBackendProcessorParallel(b *testing.B) {
-	for _, max := range []uint{0, 2, 4, 8} { // 0 is for default size.
+	for _, max := range []uint{2, 4, 8, 200} {
 		b.Run(fmt.Sprint(b.Name(), max), func(b *testing.B) {
-			cfg := config.DefaultConfig()
-			if max > 0 {
-				cfg.MaxConcurrentDecoders = max
-			}
-			processor := BackendProcessor(cfg, make(chan struct{}, cfg.MaxConcurrentDecoders))
-			files, _ := filepath.Glob(filepath.FromSlash("../../testdata/intake-v2/*.ndjson"))
+			processor := BackendProcessor(Config{
+				MaxEventSize: 300 * 1024, // 300 kb
+				Semaphore:    make(chan struct{}, max),
+			})
+			files, _ := filepath.Glob(filepath.FromSlash("../../../testdata/intake-v2/*.ndjson"))
 			benchmarkStreamProcessorParallel(b, processor, files)
 		})
 	}

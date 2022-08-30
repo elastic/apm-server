@@ -24,6 +24,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -34,7 +35,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/apm-server/internal/beater/config"
 	"github.com/elastic/apm-server/internal/elasticsearch"
 )
 
@@ -184,24 +184,18 @@ func TestFetchContext(t *testing.T) {
 		<-r.Context().Done()
 	}))
 	defer ts.Close()
+	tsURL, _ := url.Parse(ts.URL)
 
-	fleetCfg := &config.Fleet{
-		Hosts:        []string{ts.URL},
-		Protocol:     "https",
-		AccessAPIKey: apikey,
-		TLS:          nil,
-	}
-	cfgs := []config.SourceMapMetadata{
-		{
-			ServiceName:    name,
-			ServiceVersion: version,
-			BundleFilepath: path,
-			SourceMapURL:   "",
-		},
-	}
-	b, err := NewFleetFetcher(c, fleetCfg, cfgs)
+	fleetServerURLs := []*url.URL{tsURL}
+	fleetFetcher, err := NewFleetFetcher(c, apikey, fleetServerURLs, []FleetArtifactReference{{
+		ServiceName:        name,
+		ServiceVersion:     version,
+		BundleFilepath:     path,
+		FleetServerURLPath: "",
+	}})
 	assert.NoError(t, err)
-	store, err := NewCachingFetcher(b, time.Minute)
+
+	store, err := NewCachingFetcher(fleetFetcher, time.Minute)
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -263,23 +257,17 @@ func TestConcurrentFetch(t *testing.T) {
 			wr.Write([]byte(res))
 		}))
 		defer ts.Close()
+		tsURL, _ := url.Parse(ts.URL)
 
-		fleetCfg := &config.Fleet{
-			Hosts:        []string{ts.URL},
-			Protocol:     "https",
-			AccessAPIKey: apikey,
-			TLS:          nil,
-		}
-		cfgs := []config.SourceMapMetadata{
-			{
-				ServiceName:    name,
-				ServiceVersion: version,
-				BundleFilepath: path,
-				SourceMapURL:   "",
-			},
-		}
-		fleetFetcher, err := NewFleetFetcher(c, fleetCfg, cfgs)
+		fleetServerURLs := []*url.URL{tsURL}
+		fleetFetcher, err := NewFleetFetcher(c, apikey, fleetServerURLs, []FleetArtifactReference{{
+			ServiceName:        name,
+			ServiceVersion:     version,
+			BundleFilepath:     path,
+			FleetServerURLPath: "",
+		}})
 		assert.NoError(t, err)
+
 		fetcher, err := NewCachingFetcher(fleetFetcher, time.Minute)
 		assert.NoError(t, err)
 

@@ -38,7 +38,7 @@ import (
 
 func TestIngestPipeline(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
-	srv := apmservertest.NewServer(t)
+	srv := apmservertest.NewServerTB(t)
 
 	tracer := srv.Tracer()
 	httpRequest := &http.Request{

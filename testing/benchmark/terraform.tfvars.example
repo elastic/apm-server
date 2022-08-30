@@ -58,12 +58,6 @@ user_name = "USER"
 # Defaults to `../../systemtest/cmd/apmbench`.
 # apmbench_bin_path = "."
 
-# Override the default shard settings for APM indices:
-# apm_shards = {
-#   "logs-apm.app@custom": 10
-#   "logs-apm.error@custom": 10
-#   "metrics-apm.app@custom": 10
-#   "metrics-apm.internal@custom": 10
-#   "traces-apm.rum@custom": 10
-#   "traces-apm@custom": 10
-# }
+# Override the default shard settings for APM indices. Defaults to 0, which doesn't
+# change the default shard settings.
+# apm_shards = 12

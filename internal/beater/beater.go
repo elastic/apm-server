@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"runtime"
 	"strings"
@@ -32,12 +33,15 @@ import (
 	"github.com/dustin/go-humanize"
 	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
+	"go.elastic.co/apm/module/apmgrpc/v2"
 	"go.elastic.co/apm/module/apmhttp/v2"
 	"go.elastic.co/apm/v2"
 	"go.uber.org/automaxprocs/maxprocs"
 	"golang.org/x/sync/errgroup"
+	"google.golang.org/grpc"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
+	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/common/reload"
 	"github.com/elastic/beats/v7/libbeat/esleg/eslegclient"
 	"github.com/elastic/beats/v7/libbeat/licenser"
@@ -50,8 +54,11 @@ import (
 	"github.com/elastic/elastic-agent-libs/transport/tlscommon"
 	"github.com/elastic/go-ucfg"
 
+	"github.com/elastic/apm-server/internal/beater/auth"
 	"github.com/elastic/apm-server/internal/beater/config"
+	"github.com/elastic/apm-server/internal/beater/interceptors"
 	javaattacher "github.com/elastic/apm-server/internal/beater/java_attacher"
+	"github.com/elastic/apm-server/internal/beater/ratelimit"
 	"github.com/elastic/apm-server/internal/elasticsearch"
 	"github.com/elastic/apm-server/internal/kibana"
 	"github.com/elastic/apm-server/internal/logs"
@@ -69,11 +76,21 @@ type CreatorParams struct {
 	// If Logger is nil, logp.NewLogger will be used to create a new one.
 	Logger *logp.Logger
 
-	// WrapRunServer is used to wrap the RunServerFunc used to run the APM Server.
+	// WrapServer is optional, and if provided, will be called to wrap
+	// the ServerParams and RunServerFunc used to run the APM Server.
 	//
-	// WrapRunServer is optional. If provided, it must return a function that calls
-	// its input, possibly modifying the parameters on the way in.
-	WrapRunServer func(RunServerFunc) RunServerFunc
+	// The WrapServer function may modify ServerParams, for example by
+	// wrapping the BatchProcessor with additional processors. Similarly,
+	// WrapServer may wrap the RunServerFunc to run additional goroutines
+	// along with the server.
+	//
+	// WrapServer may keep a reference to the provided ServerParams's
+	// BatchProcessor for asynchronous event publication, such as for
+	// aggregated metrics. All other events (i.e. those decoded from
+	// agent payloads) should be sent to the BatchProcessor in the
+	// ServerParams provided to RunServerFunc; this BatchProcessor will
+	// have rate-limiting, authorization, and data preprocessing applied.
+	WrapServer WrapServerFunc
 }
 
 // NewCreator returns a new beat.Creator which creates beaters
@@ -90,7 +107,7 @@ func NewCreator(args CreatorParams) beat.Creator {
 			rawConfig:                 ucfg,
 			stopped:                   false,
 			logger:                    logger,
-			wrapRunServer:             args.WrapRunServer,
+			wrapServer:                args.WrapServer,
 			waitPublished:             publish.NewWaitPublishedAcker(),
 			outputConfigReloader:      newChanReloader(),
 			libbeatMonitoringRegistry: monitoring.Default.GetRegistry("libbeat"),
@@ -131,7 +148,7 @@ type beater struct {
 	rawConfig                 *agentconfig.C
 	config                    *config.Config
 	logger                    *logp.Logger
-	wrapRunServer             func(RunServerFunc) RunServerFunc
+	wrapServer                WrapServerFunc
 	waitPublished             *publish.WaitPublishedAcker
 	outputConfigReloader      *chanReloader
 	libbeatMonitoringRegistry *monitoring.Registry
@@ -185,7 +202,7 @@ func (bt *beater) run(ctx context.Context, cancelContext context.CancelFunc, b *
 		runServerContext: ctx,
 		args: sharedServerRunnerParams{
 			Beat:                      b,
-			WrapRunServer:             bt.wrapRunServer,
+			WrapServer:                bt.wrapServer,
 			Logger:                    bt.logger,
 			Tracer:                    tracer,
 			TracerServer:              tracerServer,
@@ -235,7 +252,10 @@ func (bt *beater) run(ctx context.Context, cancelContext context.CancelFunc, b *
 		if b.Config != nil {
 			reloader.outputConfig = b.Config.Output
 		}
-		if err := reloader.reload(); err != nil {
+		reloader.mu.Lock()
+		err := reloader.reload()
+		reloader.mu.Unlock()
+		if err != nil {
 			return err
 		}
 	}
@@ -289,6 +309,7 @@ func (r *reloader) Reload(configs []*reload.ConfigWithMeta) error {
 	}
 
 	r.mu.Lock()
+	defer r.mu.Unlock()
 	r.rawConfig = integrationConfig.APMServer
 	// Merge in datastream namespace passed in from apm integration
 	if integrationConfig.DataStream != nil && integrationConfig.DataStream.Namespace != "" {
@@ -300,7 +321,6 @@ func (r *reloader) Reload(configs []*reload.ConfigWithMeta) error {
 		}
 	}
 	r.fleetConfig = &integrationConfig.Fleet
-	r.mu.Unlock()
 	return r.reload()
 }
 
@@ -312,14 +332,16 @@ func (r *reloader) reloadOutput(config *reload.ConfigWithMeta) error {
 		}
 	}
 	r.mu.Lock()
+	defer r.mu.Unlock()
 	r.outputConfig = outputConfig
-	r.mu.Unlock()
 	return r.reload()
 }
 
+// reload creates a new serverRunner, launches it in a new goroutine, waits
+// for it to have successfully started and returns after waiting for the previous
+// serverRunner (if any) to exit. Calls to reload must be sycnhronized explicitly
+// by acquiring reloader#mu by callers.
 func (r *reloader) reload() error {
-	r.mu.Lock()
-	defer r.mu.Unlock()
 	if r.rawConfig == nil {
 		// APM Server config not loaded yet.
 		return nil
@@ -345,6 +367,17 @@ func (r *reloader) reload() error {
 			r.args.Logger.Error(err)
 		}
 	}()
+
+	// Wait for the new runner to start; this avoids the race condition in updating
+	// the monitoring#Deafult global registry inside the runner due to two reloads,
+	// one for the inputs and the other for the elasticsearch output
+	select {
+	case <-runner.done:
+		return errors.New("runner exited unexpectedly")
+	case <-runner.started:
+		// runner has started
+	}
+
 	// If the old runner exists, cancel it
 	if r.runner != nil {
 		r.runner.cancelRunServerContext()
@@ -364,6 +397,7 @@ type serverRunner struct {
 	// immediately when the Stop method is invoked.
 	runServerContext       context.Context
 	cancelRunServerContext context.CancelFunc
+	started                chan struct{}
 	done                   chan struct{}
 
 	pipeline                  beat.PipelineConnector
@@ -377,7 +411,7 @@ type serverRunner struct {
 	logger                    *logp.Logger
 	tracer                    *apm.Tracer
 	tracerServer              *tracerServer
-	wrapRunServer             func(RunServerFunc) RunServerFunc
+	wrapServer                WrapServerFunc
 	libbeatMonitoringRegistry *monitoring.Registry
 }
 
@@ -391,7 +425,7 @@ type serverRunnerParams struct {
 
 type sharedServerRunnerParams struct {
 	Beat                      *beat.Beat
-	WrapRunServer             func(RunServerFunc) RunServerFunc
+	WrapServer                WrapServerFunc
 	Logger                    *logp.Logger
 	Tracer                    *apm.Tracer
 	TracerServer              *tracerServer
@@ -416,6 +450,7 @@ func newServerRunner(ctx context.Context, args serverRunnerParams) (*serverRunne
 		runServerContext:       runServerContext,
 		cancelRunServerContext: cancel,
 		done:                   make(chan struct{}),
+		started:                make(chan struct{}),
 
 		config:                    cfg,
 		rawConfig:                 args.RawConfig,
@@ -428,7 +463,7 @@ func newServerRunner(ctx context.Context, args serverRunnerParams) (*serverRunne
 		logger:                    args.Logger,
 		tracer:                    args.Tracer,
 		tracerServer:              args.TracerServer,
-		wrapRunServer:             args.WrapRunServer,
+		wrapServer:                args.WrapServer,
 		libbeatMonitoringRegistry: args.LibbeatMonitoringRegistry,
 	}, nil
 }
@@ -441,7 +476,7 @@ func (s *serverRunner) run(listener net.Listener) error {
 
 	var kibanaClient kibana.Client
 	if s.config.Kibana.Enabled {
-		kibanaClient = kibana.NewConnectingClient(&s.config.Kibana)
+		kibanaClient = kibana.NewConnectingClient(s.config.Kibana.ClientConfig)
 	}
 
 	cfg := ucfg.Config(*s.rawConfig)
@@ -543,19 +578,49 @@ func (s *serverRunner) run(listener net.Listener) error {
 	if s.tracerServer != nil {
 		runServer = runServerWithTracerServer(runServer, s.tracerServer, s.tracer)
 	}
-	if s.wrapRunServer != nil {
-		// Wrap runServer function, enabling injection of
-		// behaviour into the processing/reporting pipeline.
-		runServer = s.wrapRunServer(runServer)
-	}
-	runServer = s.wrapRunServerWithPreprocessors(runServer)
 
-	batchProcessor := make(modelprocessor.Chained, 0, 3)
+	authenticator, err := auth.NewAuthenticator(s.config.AgentAuth)
+	if err != nil {
+		return err
+	}
+
+	ratelimitStore, err := ratelimit.NewStore(
+		s.config.AgentAuth.Anonymous.RateLimit.IPLimit,
+		s.config.AgentAuth.Anonymous.RateLimit.EventLimit,
+		3, // burst mulitiplier
+	)
+	if err != nil {
+		return err
+	}
+
+	// Note that we intentionally do not use a grpc.Creds ServerOption
+	// even if TLS is enabled, as TLS is handled by the net/http server.
+	gRPCLogger := s.logger.Named("grpc")
+	grpcServer := grpc.NewServer(grpc.ChainUnaryInterceptor(
+		apmgrpc.NewUnaryServerInterceptor(apmgrpc.WithRecovery(), apmgrpc.WithTracer(s.tracer)),
+		interceptors.ClientMetadata(),
+		interceptors.Logging(gRPCLogger),
+		interceptors.Metrics(gRPCLogger),
+		interceptors.Timeout(),
+		interceptors.Auth(authenticator),
+		interceptors.AnonymousRateLimit(ratelimitStore),
+	))
+
+	// Create the BatchProcessor chain that is used to process all events,
+	// including the metrics aggregated by APM Server.
 	finalBatchProcessor, closeFinalBatchProcessor, err := s.newFinalBatchProcessor(newElasticsearchClient)
 	if err != nil {
 		return err
 	}
-	batchProcessor = append(batchProcessor,
+	batchProcessor := modelprocessor.Chained{
+		// Ensure all events have observer.*, ecs.*, and data_stream.* fields added,
+		// and are counted in metrics. This is done in the final processors to ensure
+		// aggregated metrics are also processed.
+		newObserverBatchProcessor(s.beat.Info),
+		model.ProcessBatchFunc(ecsVersionBatchProcessor),
+		&modelprocessor.SetDataStream{Namespace: s.namespace},
+		modelprocessor.NewEventCounter(monitoring.Default.GetRegistry("apm-server")),
+
 		// The server always drops non-RUM unsampled transactions. We store RUM unsampled
 		// transactions as they are needed by the User Experience app, which performs
 		// aggregations over dimensions that are not available in transaction metrics.
@@ -565,22 +630,65 @@ func (s *serverRunner) run(listener net.Listener) error {
 		modelprocessor.NewDropUnsampled(false /* don't drop RUM unsampled transactions*/),
 		modelprocessor.DroppedSpansStatsDiscarder{},
 		finalBatchProcessor,
-	)
+	}
+
+	serverParams := ServerParams{
+		UUID:                   s.beat.Info.ID,
+		Config:                 s.config,
+		Managed:                s.beat.Manager != nil && s.beat.Manager.Enabled(),
+		Namespace:              s.namespace,
+		Logger:                 s.logger,
+		Tracer:                 s.tracer,
+		Authenticator:          authenticator,
+		RateLimitStore:         ratelimitStore,
+		BatchProcessor:         batchProcessor,
+		SourcemapFetcher:       sourcemapFetcher,
+		PublishReady:           publishReady,
+		KibanaClient:           kibanaClient,
+		NewElasticsearchClient: newElasticsearchClient,
+		GRPCServer:             grpcServer,
+	}
+	if s.wrapServer != nil {
+		// Wrap the serverParams and runServer function, enabling
+		// injection of behaviour into the processing chain.
+		serverParams, runServer, err = s.wrapServer(serverParams, runServer)
+		if err != nil {
+			return err
+		}
+	}
+
+	// Add pre-processing batch processors to the beginning of the chain,
+	// applying only to the events that are decoded from agent/client payloads.
+	preBatchProcessors := modelprocessor.Chained{
+		// Add a model processor that rate limits, and checks authorization for the
+		// agent and service for each event. These must come at the beginning of the
+		// processor chain.
+		model.ProcessBatchFunc(rateLimitBatchProcessor),
+		model.ProcessBatchFunc(authorizeEventIngestProcessor),
+
+		// Pre-process events before they are sent to the final processors for
+		// aggregation, sampling, and indexing.
+		modelprocessor.SetHostHostname{},
+		modelprocessor.SetServiceNodeName{},
+		modelprocessor.SetMetricsetName{},
+		modelprocessor.SetGroupingKey{},
+		modelprocessor.SetErrorMessage{},
+		modelprocessor.SetUnknownSpanType{},
+	}
+	if s.config.DefaultServiceEnvironment != "" {
+		preBatchProcessors = append(preBatchProcessors, &modelprocessor.SetDefaultServiceEnvironment{
+			DefaultServiceEnvironment: s.config.DefaultServiceEnvironment,
+		})
+	}
+	serverParams.BatchProcessor = append(preBatchProcessors, serverParams.BatchProcessor)
 
 	g.Go(func() error {
-		return runServer(ctx, ServerParams{
-			Info:                   s.beat.Info,
-			Config:                 s.config,
-			Managed:                s.beat.Manager != nil && s.beat.Manager.Enabled(),
-			Namespace:              s.namespace,
-			Logger:                 s.logger,
-			Tracer:                 s.tracer,
-			BatchProcessor:         batchProcessor,
-			SourcemapFetcher:       sourcemapFetcher,
-			PublishReady:           publishReady,
-			NewElasticsearchClient: newElasticsearchClient,
-		})
+		return runServer(ctx, serverParams)
 	})
+
+	// Signal that the runner has started
+	close(s.started)
+
 	result := g.Wait()
 	if err := closeFinalBatchProcessor(s.backgroundContext); err != nil {
 		result = multierror.Append(result, err)
@@ -664,19 +772,12 @@ func (s *serverRunner) waitReady(ctx context.Context, kibanaClient kibana.Client
 	return waitReady(ctx, s.config.WaitReadyInterval, s.tracer, s.logger, check)
 }
 
-// This mutex must be held when updating the libbeat monitoring registry,
-// as there may be multiple servers running concurrently.
-var monitoringRegistryMu sync.Mutex
-
 // newFinalBatchProcessor returns the final model.BatchProcessor that publishes events,
 // and a cleanup function which should be called on server shutdown. If the output is
 // "elasticsearch", then we use modelindexer; otherwise we use the libbeat publisher.
 func (s *serverRunner) newFinalBatchProcessor(
 	newElasticsearchClient func(cfg *elasticsearch.Config) (elasticsearch.Client, error),
 ) (model.BatchProcessor, func(context.Context) error, error) {
-	monitoringRegistryMu.Lock()
-	defer monitoringRegistryMu.Unlock()
-
 	if s.elasticsearchOutputConfig == nil {
 		// When the publisher stops cleanly it will close its pipeline client,
 		// calling the acker's Close method. We need to call Open for each new
@@ -782,27 +883,6 @@ func (s *serverRunner) newFinalBatchProcessor(
 	return indexer, indexer.Close, nil
 }
 
-func (s *serverRunner) wrapRunServerWithPreprocessors(runServer RunServerFunc) RunServerFunc {
-	processors := []model.BatchProcessor{
-		modelprocessor.SetHostHostname{},
-		modelprocessor.SetServiceNodeName{},
-		modelprocessor.SetMetricsetName{},
-		modelprocessor.SetGroupingKey{},
-		modelprocessor.SetErrorMessage{},
-		newObserverBatchProcessor(s.beat.Info),
-		model.ProcessBatchFunc(ecsVersionBatchProcessor),
-		modelprocessor.NewEventCounter(monitoring.Default.GetRegistry("apm-server")),
-		&modelprocessor.SetDataStream{Namespace: s.namespace},
-		modelprocessor.SetUnknownSpanType{},
-	}
-	if s.config.DefaultServiceEnvironment != "" {
-		processors = append(processors, &modelprocessor.SetDefaultServiceEnvironment{
-			DefaultServiceEnvironment: s.config.DefaultServiceEnvironment,
-		})
-	}
-	return WrapRunServerWithProcessors(runServer, processors...)
-}
-
 func hasElasticsearchOutput(b *beat.Beat) bool {
 	return b.Config != nil && b.Config.Output.Name() == "elasticsearch"
 }
@@ -882,7 +962,35 @@ func newSourcemapFetcher(
 			TLSClientConfig: tlsConfig.ToConfig(),
 		})
 
-		return sourcemap.NewFleetFetcher(&client, fleetCfg, cfg.Metadata)
+		fleetServerURLs := make([]*url.URL, len(fleetCfg.Hosts))
+		for i, host := range fleetCfg.Hosts {
+			urlString, err := common.MakeURL(fleetCfg.Protocol, "", host, 8220)
+			if err != nil {
+				return nil, err
+			}
+			u, err := url.Parse(urlString)
+			if err != nil {
+				return nil, err
+			}
+			fleetServerURLs[i] = u
+		}
+
+		artifactRefs := make([]sourcemap.FleetArtifactReference, len(cfg.Metadata))
+		for i, meta := range cfg.Metadata {
+			artifactRefs[i] = sourcemap.FleetArtifactReference{
+				ServiceName:        meta.ServiceName,
+				ServiceVersion:     meta.ServiceVersion,
+				BundleFilepath:     meta.BundleFilepath,
+				FleetServerURLPath: meta.SourceMapURL,
+			}
+		}
+
+		return sourcemap.NewFleetFetcher(
+			&client,
+			fleetCfg.AccessAPIKey,
+			fleetServerURLs,
+			artifactRefs,
+		)
 	}
 
 	// For standalone, we query both Kibana and Elasticsearch for backwards compatibility.
@@ -898,20 +1006,6 @@ func newSourcemapFetcher(
 	esFetcher := sourcemap.NewElasticsearchFetcher(esClient, index)
 	chained = append(chained, esFetcher)
 	return chained, nil
-}
-
-// WrapRunServerWithProcessors wraps runServer such that it wraps args.Reporter
-// with a function that event batches are first passed through the given processors
-// in order.
-func WrapRunServerWithProcessors(runServer RunServerFunc, processors ...model.BatchProcessor) RunServerFunc {
-	if len(processors) == 0 {
-		return runServer
-	}
-	return func(ctx context.Context, args ServerParams) error {
-		processors := append(processors, args.BatchProcessor)
-		args.BatchProcessor = modelprocessor.Chained(processors)
-		return runServer(ctx, args)
-	}
 }
 
 // chanReloader implements libbeat/common/reload.Reloadable, converting

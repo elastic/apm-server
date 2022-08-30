@@ -27,7 +27,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/elastic/apm-server/internal/beater/beatertest"
+	"github.com/elastic/apm-server/internal/beater/monitoringtest"
 	"github.com/elastic/apm-server/internal/beater/request"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/monitoring"
@@ -47,14 +47,15 @@ func TestMetrics(t *testing.T) {
 	methodName := "test_method_name"
 	logger := logp.NewLogger("interceptor.metrics.test")
 
-	testMap := map[string]map[request.ResultID]*monitoring.Int{
-		methodName: monitoringMap,
-	}
-	i := Metrics(logger, testMap)
+	interceptor := Metrics(logger)
 
 	ctx := context.Background()
 	info := &grpc.UnaryServerInfo{
 		FullMethod: methodName,
+		Server: requestMetricsFunc(func(fullMethod string) map[request.ResultID]*monitoring.Int {
+			assert.Equal(t, methodName, fullMethod)
+			return monitoringMap
+		}),
 	}
 
 	for _, tc := range []struct {
@@ -137,9 +138,9 @@ func TestMetrics(t *testing.T) {
 			},
 		},
 	} {
-		i(ctx, nil, info, tc.f)
+		interceptor(ctx, nil, info, tc.f)
 		assertMonitoring(t, tc.monitoringInt, monitoringMap)
-		beatertest.ClearRegistry(monitoringMap)
+		monitoringtest.ClearRegistry(monitoringMap)
 	}
 }
 
@@ -151,4 +152,10 @@ func assertMonitoring(t *testing.T, expected map[request.ResultID]int64, actual 
 			assert.Zerof(t, actual[k].Get(), "%s mismatch", k)
 		}
 	}
+}
+
+type requestMetricsFunc func(fullMethod string) map[request.ResultID]*monitoring.Int
+
+func (f requestMetricsFunc) RequestMetrics(fullMethod string) map[request.ResultID]*monitoring.Int {
+	return f(fullMethod)
 }

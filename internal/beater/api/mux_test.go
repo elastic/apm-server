@@ -18,7 +18,9 @@
 package api
 
 import (
+	"bytes"
 	"context"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"net/netip"
@@ -29,15 +31,13 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/apm-server/internal/agentcfg"
-	"github.com/elastic/apm-server/internal/approvaltest"
 	"github.com/elastic/apm-server/internal/beater/auth"
-	"github.com/elastic/apm-server/internal/beater/beatertest"
 	"github.com/elastic/apm-server/internal/beater/config"
+	"github.com/elastic/apm-server/internal/beater/monitoringtest"
 	"github.com/elastic/apm-server/internal/beater/ratelimit"
 	"github.com/elastic/apm-server/internal/beater/request"
 	"github.com/elastic/apm-server/internal/model"
 	"github.com/elastic/apm-server/internal/sourcemap"
-	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/elastic-agent-libs/monitoring"
 )
 
@@ -121,25 +121,25 @@ func requestToMuxer(cfg *config.Config, r *http.Request) (*httptest.ResponseReco
 	return w, nil
 }
 
-func testPanicMiddleware(t *testing.T, urlPath string, approvalPath string) {
+func testPanicMiddleware(t *testing.T, urlPath string) {
 	h := newTestMux(t, config.DefaultConfig())
 	req := httptest.NewRequest(http.MethodGet, urlPath, nil)
 
-	var rec beatertest.WriterPanicOnce
+	var rec WriterPanicOnce
 	h.ServeHTTP(&rec, req)
 
 	assert.Equal(t, http.StatusInternalServerError, rec.StatusCode)
-	approvaltest.ApproveJSON(t, approvalPath, rec.Body.Bytes())
+	assert.JSONEq(t, `{"error":"panic handling request"}`, rec.Body.String())
 }
 
 func testMonitoringMiddleware(t *testing.T, urlPath string, monitoringMap map[request.ResultID]*monitoring.Int, expected map[request.ResultID]int) {
-	beatertest.ClearRegistry(monitoringMap)
+	monitoringtest.ClearRegistry(monitoringMap)
 
 	h := newTestMux(t, config.DefaultConfig())
 	req := httptest.NewRequest(http.MethodGet, urlPath, nil)
 	h.ServeHTTP(httptest.NewRecorder(), req)
 
-	equal, result := beatertest.CompareMonitoringInt(expected, monitoringMap)
+	equal, result := monitoringtest.CompareMonitoringInt(expected, monitoringMap)
 	assert.True(t, equal, result)
 }
 
@@ -159,14 +159,48 @@ func (m muxBuilder) build(cfg *config.Config) (http.Handler, error) {
 	ratelimitStore, _ := ratelimit.NewStore(1000, 1000, 1000)
 	authenticator, _ := auth.NewAuthenticator(cfg.AgentAuth)
 	return NewMux(
-		beat.Info{Version: "1.2.3"},
 		cfg,
 		nopBatchProcessor,
 		authenticator,
-		agentcfg.NewFetcher(cfg),
+		agentcfg.NewDirectFetcher(nil),
 		ratelimitStore,
 		m.SourcemapFetcher,
 		m.Managed,
 		func() bool { return true },
 	)
+}
+
+// WriterPanicOnce implements the http.ResponseWriter interface
+// It panics once when any method is called.
+type WriterPanicOnce struct {
+	StatusCode int
+	Body       bytes.Buffer
+	panicked   bool
+}
+
+// Header panics if it is the first call to the struct, otherwise returns empty Header
+func (w *WriterPanicOnce) Header() http.Header {
+	if !w.panicked {
+		w.panicked = true
+		panic(errors.New("panic on Header"))
+	}
+	return http.Header{}
+}
+
+// Write panics if it is the first call to the struct, otherwise it writes the given bytes to the body
+func (w *WriterPanicOnce) Write(b []byte) (int, error) {
+	if !w.panicked {
+		w.panicked = true
+		panic(errors.New("panic on Write"))
+	}
+	return w.Body.Write(b)
+}
+
+// WriteHeader panics if it is the first call to the struct, otherwise it writes the given status code
+func (w *WriterPanicOnce) WriteHeader(statusCode int) {
+	if !w.panicked {
+		w.panicked = true
+		panic(errors.New("panic on WriteHeader"))
+	}
+	w.StatusCode = statusCode
 }

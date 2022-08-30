@@ -27,7 +27,6 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/elastic/apm-server/internal/beater/config"
 	"github.com/elastic/apm-server/internal/decoder"
 	"github.com/elastic/apm-server/internal/model"
 	"github.com/elastic/apm-server/internal/model/modeldecoder"
@@ -62,27 +61,37 @@ type Processor struct {
 	MaxEventSize     int
 }
 
-func BackendProcessor(cfg *config.Config, sem chan struct{}) *Processor {
+// Config holds configuration for Processor constructors.
+type Config struct {
+	// MaxEventSize holds the maximum event size, in bytes.
+	MaxEventSize int
+
+	// Semaphore holds a channel to which Processor.HandleStream
+	// will send an item before proceeding, to limit concurrency.
+	Semaphore chan struct{}
+}
+
+func BackendProcessor(cfg Config) *Processor {
 	return &Processor{
 		MaxEventSize:   cfg.MaxEventSize,
 		decodeMetadata: v2.DecodeNestedMetadata,
-		sem:            sem,
+		sem:            cfg.Semaphore,
 	}
 }
 
-func RUMV2Processor(cfg *config.Config, sem chan struct{}) *Processor {
+func RUMV2Processor(cfg Config) *Processor {
 	return &Processor{
 		MaxEventSize:   cfg.MaxEventSize,
 		decodeMetadata: v2.DecodeNestedMetadata,
-		sem:            sem,
+		sem:            cfg.Semaphore,
 	}
 }
 
-func RUMV3Processor(cfg *config.Config, sem chan struct{}) *Processor {
+func RUMV3Processor(cfg Config) *Processor {
 	return &Processor{
 		MaxEventSize:   cfg.MaxEventSize,
 		decodeMetadata: rumv3.DecodeNestedMetadata,
-		sem:            sem,
+		sem:            cfg.Semaphore,
 	}
 }
 

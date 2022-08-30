@@ -19,24 +19,60 @@ package gencorpora
 
 import (
 	"flag"
+	"fmt"
+	"path/filepath"
+
+	"go.uber.org/zap/zapcore"
 )
 
-var gencorporaConfig struct {
-	WritePath    string
-	LoggingLevel string
+const (
+	defaultDir        = "./"
+	defaultFilePrefix = "es_corpora"
+)
+
+var gencorporaConfig = struct {
+	CorporaPath  string
+	MetadataPath string
+	LoggingLevel zapcore.Level
+	ReplayCount  int
+}{
+	CorporaPath:  filepath.Join(defaultDir, getCorporaPath(defaultFilePrefix)),
+	MetadataPath: filepath.Join(defaultDir, getMetaPath(defaultFilePrefix)),
+	LoggingLevel: zapcore.WarnLevel,
 }
 
 func init() {
-	flag.StringVar(
-		&gencorporaConfig.WritePath,
-		"write-path",
-		"",
-		"Write path for writing the generated ES corpora, uses stdout if empty",
+	filePrefix := flag.String(
+		"file-prefix",
+		defaultFilePrefix,
+		"Prefix for the generated corpora document and metadata file",
 	)
-	flag.StringVar(
+	flag.Func(
+		"write-dir",
+		"Directory for writing the generated ES corpora and metadata, uses current dir if empty",
+		func(writeDir string) error {
+			gencorporaConfig.CorporaPath = filepath.Join(writeDir, getCorporaPath(*filePrefix))
+			gencorporaConfig.MetadataPath = filepath.Join(writeDir, getMetaPath(*filePrefix))
+			return nil
+		},
+	)
+	flag.IntVar(
+		&gencorporaConfig.ReplayCount,
+		"replay-count",
+		1,
+		"Number of times the events are replayed",
+	)
+	flag.Var(
 		&gencorporaConfig.LoggingLevel,
 		"logging-level",
-		"warning",
-		"Logging level for the APM-Server",
+		"Logging level for APM Server",
 	)
+}
+
+func getCorporaPath(prefix string) string {
+	return fmt.Sprintf("%s_docs.ndjson", prefix)
+}
+
+func getMetaPath(prefix string) string {
+	return fmt.Sprintf("%s_meta.json", prefix)
 }

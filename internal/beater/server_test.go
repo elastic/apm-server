@@ -570,11 +570,11 @@ func TestServerOutputConfigReload(t *testing.T) {
 	runServerCalls := make(chan ServerParams, 1)
 	createBeater := NewCreator(CreatorParams{
 		Logger: logp.NewLogger(""),
-		WrapRunServer: func(runServer RunServerFunc) RunServerFunc {
-			return func(ctx context.Context, args ServerParams) error {
+		WrapServer: func(args ServerParams, runServer RunServerFunc) (ServerParams, RunServerFunc, error) {
+			return args, func(ctx context.Context, args ServerParams) error {
 				runServerCalls <- args
 				return runServer(ctx, args)
-			}
+			}, nil
 		},
 	})
 	beater, err := createBeater(apmBeat, cfg)

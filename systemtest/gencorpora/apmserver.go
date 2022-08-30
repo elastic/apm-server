@@ -18,15 +18,11 @@
 package gencorpora
 
 import (
-	"bufio"
 	"context"
-	"encoding/json"
-	"errors"
-	"fmt"
-	"log"
-	"net/http"
 	"sync"
-	"time"
+
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 
 	"github.com/elastic/apm-server/systemtest/apmservertest"
 )
@@ -38,127 +34,44 @@ type APMServer struct {
 	mu      sync.Mutex
 }
 
-// NewAPMServer returns an APMServer CMD with the required args
-func NewAPMServer(ctx context.Context, esHost, apmHost string) *APMServer {
-	args := []string{
-		"--strict.perms=false",
-		"-E", fmt.Sprintf("logging.level=%s", gencorporaConfig.LoggingLevel),
-		"-E", "logging.to_stderr=true",
-		"-E", "apm-server.data_streams.wait_for_integration=false",
-		"-E", fmt.Sprintf("apm-server.host=%s", apmHost),
-		"-E", fmt.Sprintf("output.elasticsearch.hosts=['%s']", esHost),
-	}
-
-	return &APMServer{
-		apmHost: apmHost,
-		cmd:     apmservertest.ServerCommand(ctx, "run", args...),
-	}
+// NewAPMServer returns an apmservertest.Server that sends data to esHost
+// using the Elasticsearch output.
+func NewAPMServer(ctx context.Context, esHost string) *apmservertest.Server {
+	srv := apmservertest.NewUnstartedServer()
+	waitForIntegration := false
+	srv.Config.WaitForIntegration = &waitForIntegration
+	srv.Config.Output.Elasticsearch.Hosts = []string{esHost}
+	srv.Config.Kibana = nil
+	return srv
 }
 
-// StreamLogs streams logs from the APMServer process configured to log
-// all logging output to stderr.
+// StreamAPMServerLogs streams logs from the apmservertest.Server process to stderr.
 //
-// Logs are written to the standard logger. The resources acquired will
-// be closed on calling Stop for the APMServer or when the provided context
-// is done. StreamLogs must be called before Start is called and only one
-// active streaming is allowed.
-func (s *APMServer) StreamLogs(ctx context.Context) error {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	reader, err := s.cmd.StderrPipe()
+// The method must be called after the server is started, and only one active
+// StreamAPMServerLogs call is allowed per server.
+func StreamAPMServerLogs(ctx context.Context, srv *apmservertest.Server) error {
+	logger, err := zap.NewDevelopment(zap.IncreaseLevel(gencorporaConfig.LoggingLevel))
 	if err != nil {
 		return err
 	}
-
-	ctx, cancel := context.WithCancel(ctx)
-	logsCh := make(chan string)
-	go func() {
-		defer cancel()
-
-		scanner := bufio.NewScanner(reader)
-		for scanner.Scan() {
-			logsCh <- scanner.Text()
-		}
-	}()
-	go func() {
-		for {
-			select {
-			case <-ctx.Done():
-				return
-			case logLine := <-logsCh:
-				log.Println(logLine)
-			}
-		}
-	}()
-
-	return nil
-}
-
-// Start starts the APMServer command using `run` subcommand
-func (s *APMServer) Start() error {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	return s.cmd.Start()
-}
-
-// WaitForPublishReady waits for APM-Server to be in publish ready state
-// or for context to be canceled
-func (s *APMServer) WaitForPublishReady(ctx context.Context) error {
-	ticker := time.NewTicker(10 * time.Millisecond)
-	defer ticker.Stop()
-
+	iter := srv.Logs.Iterator()
+	defer iter.Close()
+	var entry apmservertest.LogEntry
 	for {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
-		case <-ticker.C:
-			ready, _ := s.isPublishReady()
-			if ready {
-				return nil
+		case entry = <-iter.C():
+		}
+		if ce := logger.Check(entry.Level, entry.Message); ce != nil {
+			fields := make([]zapcore.Field, 0, len(entry.Fields))
+			for k, v := range entry.Fields {
+				fields = append(fields, zap.Any(k, v))
 			}
+			ce.Time = entry.Timestamp
+			ce.LoggerName = entry.Logger
+			ce.Caller = zapcore.NewEntryCaller(0, entry.File, entry.Line, entry.File != "")
+			ce.Write(fields...)
 		}
 	}
-}
-
-// Stop sends interrupt signal to the APMServer process, if interrupt
-// fails then a kill signal is sent. On successful interrupt Stop waits
-// for the process to exit after cleanup.
-func (s *APMServer) Stop() error {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	if s.cmd.Process == nil {
-		return errors.New("no APM-Server running")
-	}
-
-	if err := s.cmd.InterruptProcess(); err != nil {
-		return s.cmd.Process.Kill()
-	}
-
-	return s.cmd.Wait()
-}
-
-type apmResp struct {
-	BuildDate    string `json:"build_date"`
-	BuildSHA     string `json:"build_sha"`
-	PublishReady bool   `json:"publish_ready"`
-	Version      string `json:"version"`
-}
-
-func (s *APMServer) isPublishReady() (bool, error) {
-	resp, err := http.Get(fmt.Sprintf("http://%s/", s.apmHost))
-	if err != nil {
-		return false, err
-	}
-
-	defer resp.Body.Close()
-
-	var apmResp apmResp
-	if err := json.NewDecoder(resp.Body).Decode(&apmResp); err != nil {
-		return false, err
-	}
-
-	return apmResp.PublishReady, nil
 }
