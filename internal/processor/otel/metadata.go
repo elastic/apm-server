@@ -128,6 +128,16 @@ func translateResourceMetadata(resource pcommon.Resource, out *model.APMEvent) {
 		case semconv.AttributeOSVersion:
 			out.Host.OS.Version = truncate(v.StringVal())
 
+		// device.*
+		case semconv.AttributeDeviceID:
+			out.Device.ID = truncate(v.StringVal())
+		case semconv.AttributeDeviceModelIdentifier:
+			out.Device.Model.Identifier = truncate(v.StringVal())
+		case semconv.AttributeDeviceModelName:
+			out.Device.Model.Name = truncate(v.StringVal())
+		case "device.manufacturer":
+			out.Device.Manufacturer = truncate(v.StringVal())
+
 		// Legacy OpenCensus attributes.
 		case "opencensus.exporterversion":
 			exporterVersion = v.StringVal()
