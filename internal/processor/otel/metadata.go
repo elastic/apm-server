@@ -169,6 +169,11 @@ func translateResourceMetadata(resource pcommon.Resource, out *model.APMEvent) {
 		out.Host.OS.Type = "ios"
 	}
 
+	if out.Service.Runtime.Name == nil && (out.Host.OS.Name == "Android" || out.Host.OS.Name == "iOS") {
+		out.Service.Runtime.Name = out.Host.OS.Name
+		out.Service.Runtime.Version = out.Host.OS.Version
+	}
+
 	if strings.HasPrefix(exporterVersion, "Jaeger") {
 		// version is of format `Jaeger-<agentlanguage>-<version>`, e.g. `Jaeger-Go-2.20.0`
 		const nVersionParts = 3

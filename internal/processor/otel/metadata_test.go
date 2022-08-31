@@ -211,7 +211,14 @@ func TestResourceConventions(t *testing.T) {
 			},
 			expected: model.APMEvent{
 				Agent:   defaultAgent,
-				Service: defaultService,
+				Service: model.Service{
+					Name:     "unknown",
+					Language: model.Language{Name: "unknown"},
+					Runtime: model.Runtime{
+						Name:    "iOS",
+						Version: "15.6",
+					},
+				},
 				Host: model.Host{
 					OS: model.OS{
 						Name:     "iOS",
@@ -232,7 +239,14 @@ func TestResourceConventions(t *testing.T) {
 			},
 			expected: model.APMEvent{
 				Agent:   defaultAgent,
-				Service: defaultService,
+				Service: model.Service{
+					Name:     "unknown",
+					Language: model.Language{Name: "unknown"},
+					Runtime: model.Runtime{
+						Name:    "Android",
+						Version: "13",
+					},
+				},
 				Host: model.Host{
 					OS: model.OS{
 						Name:     "Android",
