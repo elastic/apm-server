@@ -210,7 +210,7 @@ func TestResourceConventions(t *testing.T) {
 				"os.description": "iOS 15.6",
 			},
 			expected: model.APMEvent{
-				Agent:   defaultAgent,
+				Agent: defaultAgent,
 				Service: model.Service{
 					Name:     "unknown",
 					Language: model.Language{Name: "unknown"},
@@ -238,7 +238,7 @@ func TestResourceConventions(t *testing.T) {
 				"os.description": "Android 13",
 			},
 			expected: model.APMEvent{
-				Agent:   defaultAgent,
+				Agent: defaultAgent,
 				Service: model.Service{
 					Name:     "unknown",
 					Language: model.Language{Name: "unknown"},
