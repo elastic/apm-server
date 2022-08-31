@@ -34,7 +34,7 @@ var (
 	kibanaURL string
 )
 
-func parseVars(s ...string) (map[string]string, error) {
+func parseKV(s ...string) (map[string]string, error) {
 	out := make(map[string]string)
 	for _, s := range s {
 		i := strings.IndexRune(s, '=')
@@ -47,68 +47,124 @@ func parseVars(s ...string) (map[string]string, error) {
 	return out, nil
 }
 
-func command() *cobra.Command {
-	listPackagePoliciesCommand := &cobra.Command{
-		Use:   "list-policies",
-		Short: "List Fleet integration package policies",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			client := fleettest.NewClient(kibanaURL)
-			policies, err := client.ListPackagePolicies()
-			if err != nil {
-				return fmt.Errorf("failed to fetch package policies: %w", err)
-			}
-			return yaml.NewEncoder(cmd.OutOrStdout()).Encode(policies)
-		},
-	}
+var listPackagePoliciesCommand = &cobra.Command{
+	Use:   "list-policies",
+	Short: "List Fleet integration package policies",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		client := fleettest.NewClient(kibanaURL)
+		policies, err := client.ListPackagePolicies()
+		if err != nil {
+			return fmt.Errorf("failed to fetch package policies: %w", err)
+		}
+		return yaml.NewEncoder(cmd.OutOrStdout()).Encode(policies)
+	},
+}
 
-	updatePackagePolicyCommand := &cobra.Command{
-		Use:   "set-policy-var <policy-id> <k=v [k=v...]>",
-		Short: "Set config vars for a Fleet integration package policy",
-		Args:  cobra.MinimumNArgs(2),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			setVars, err := parseVars(args[1:]...)
-			if err != nil {
-				return err
-			}
+var setPolicyVarCommand = &cobra.Command{
+	Use:   "set-policy-var <policy-id> <k=v [k=v...]>",
+	Short: "Set config vars for a Fleet integration package policy",
+	Args:  cobra.MinimumNArgs(2),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		setVars, err := parseKV(args[1:]...)
+		if err != nil {
+			return err
+		}
 
-			client := fleettest.NewClient(kibanaURL)
-			policy, err := client.PackagePolicy(args[0])
-			if err != nil {
-				return fmt.Errorf("failed to fetch package policy: %w", err)
-			}
-			if len(policy.Inputs) != 1 {
-				return fmt.Errorf("expected 1 input, got %d", len(policy.Inputs))
-			}
+		client := fleettest.NewClient(kibanaURL)
+		policy, err := client.PackagePolicy(args[0])
+		if err != nil {
+			return fmt.Errorf("failed to fetch package policy: %w", err)
+		}
+		if len(policy.Inputs) != 1 {
+			return fmt.Errorf("expected 1 input, got %d", len(policy.Inputs))
+		}
 
-			for k, v := range setVars {
-				varObj, ok := policy.Inputs[0].Vars[k].(map[string]interface{})
+		for k, v := range setVars {
+			varObj, ok := policy.Inputs[0].Vars[k].(map[string]interface{})
+			if !ok {
+				return fmt.Errorf("var %q not found in package policy", k)
+			}
+			value := varObj["value"]
+			ptrZero := reflect.New(reflect.TypeOf(value))
+			if err := yaml.Unmarshal([]byte(v), ptrZero.Interface()); err != nil {
+				return fmt.Errorf("failed to unmarshal var %q: %w", k, err)
+			}
+			varObj["value"] = ptrZero.Elem().Interface()
+		}
+
+		if err := client.UpdatePackagePolicy(policy); err != nil {
+			return fmt.Errorf("failed to update policy: %w", err)
+		}
+		return nil
+	},
+}
+
+var setPolicyConfigCommand = &cobra.Command{
+	Use:   "set-policy-config <policy-id> <k=v [k=v...]>",
+	Short: "Set arbitrary config for a Fleet integration package policy",
+	Args:  cobra.MinimumNArgs(2),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		config, err := parseKV(args[1:]...)
+		if err != nil {
+			return err
+		}
+
+		client := fleettest.NewClient(kibanaURL)
+		policy, err := client.PackagePolicy(args[0])
+		if err != nil {
+			return fmt.Errorf("failed to fetch package policy: %w", err)
+		}
+		if len(policy.Inputs) != 1 {
+			return fmt.Errorf("expected 1 input, got %d", len(policy.Inputs))
+		}
+
+		merge := func(k string, v interface{}, to map[string]interface{}) {
+			for {
+				before, after, found := strings.Cut(k, ".")
+				if !found {
+					to[before] = v
+					return
+				}
+				m, ok := to[before].(map[string]interface{})
 				if !ok {
-					return fmt.Errorf("var %q not found in package policy", k)
+					m = make(map[string]interface{})
+					to[before] = m
 				}
-				value := varObj["value"]
-				ptrZero := reflect.New(reflect.TypeOf(value))
-				if err := yaml.Unmarshal([]byte(v), ptrZero.Interface()); err != nil {
-					return fmt.Errorf("failed to unmarshal var %q: %w", k, err)
-				}
-				varObj["value"] = ptrZero.Elem().Interface()
+				k = after
+				to = m
 			}
+		}
 
-			if err := client.UpdatePackagePolicy(policy); err != nil {
-				return fmt.Errorf("failed to update policy: %w", err)
+		existing := policy.Inputs[0].Config
+		for k, v := range config {
+			var value interface{}
+			if err := yaml.Unmarshal([]byte(v), &value); err != nil {
+				return fmt.Errorf("failed to unmarshal var %q: %w", k, err)
 			}
-			return nil
-		},
-	}
+			// Each top-level key's value is nested under "value".
+			if before, after, ok := strings.Cut(k, "."); ok {
+				k = strings.Join([]string{before, "value", after}, ".")
+			} else {
+				k = before + ".value"
+			}
+			merge(k, value, existing)
+		}
 
-	rootCommand := &cobra.Command{Use: "fleetctl"}
-	rootCommand.AddCommand(listPackagePoliciesCommand)
-	rootCommand.AddCommand(updatePackagePolicyCommand)
-	rootCommand.PersistentFlags().StringVarP(&kibanaURL, "kibana", "u", "http://localhost:5601", "URL of the Kibana server")
-	return rootCommand
+		if err := client.UpdatePackagePolicy(policy); err != nil {
+			return fmt.Errorf("failed to update policy: %w", err)
+		}
+		return nil
+	},
 }
 
 func main() {
-	if err := command().Execute(); err != nil {
+	rootCommand := &cobra.Command{Use: "fleetctl"}
+	rootCommand.AddCommand(listPackagePoliciesCommand)
+	rootCommand.AddCommand(setPolicyVarCommand)
+	rootCommand.AddCommand(setPolicyConfigCommand)
+	rootCommand.PersistentFlags().StringVarP(&kibanaURL, "kibana", "u", "http://localhost:5601", "URL of the Kibana server")
+
+	if err := rootCommand.Execute(); err != nil {
 		log.Fatal(err)
 	}
 }
