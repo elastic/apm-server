@@ -204,6 +204,12 @@
 - name: timeseries.instance
   type: keyword
   description: Time series instance ID
+- name: transaction.failure_count
+  type: long
+  description: "Count of transactions with 'event.outcome: failure'"
+- name: transaction.success_count
+  type: long
+  description: "Count of transactions with 'event.outcome: success'"
 - name: transaction
   type: group
   fields:
