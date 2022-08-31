@@ -241,7 +241,8 @@ func mapToFAASModel(from faas, faas *model.FAAS) {
 			faas.ID = from.ID.Val
 		}
 		if from.Coldstart.IsSet() {
-			faas.Coldstart = &from.Coldstart.Val
+			valCopy := from.Coldstart
+			faas.Coldstart = &valCopy.Val
 		}
 		if from.Execution.IsSet() {
 			faas.Execution = from.Execution.Val
