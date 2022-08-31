@@ -169,7 +169,7 @@ func translateResourceMetadata(resource pcommon.Resource, out *model.APMEvent) {
 		out.Host.OS.Type = "ios"
 	}
 
-	if out.Service.Runtime.Name == nil && (out.Host.OS.Name == "Android" || out.Host.OS.Name == "iOS") {
+	if out.Service.Runtime.Name == "" && (out.Host.OS.Name == "Android" || out.Host.OS.Name == "iOS") {
 		out.Service.Runtime.Name = out.Host.OS.Name
 		out.Service.Runtime.Version = out.Host.OS.Version
 	}
