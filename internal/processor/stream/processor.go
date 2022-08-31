@@ -59,6 +59,7 @@ type decodeMetadataFunc func(decoder.Decoder, *model.APMEvent) error
 // the concurrency limit is shared between all the intake endpoints.
 type Processor struct {
 	streamReaderPool sync.Pool
+	batchPool        sync.Pool
 	decodeMetadata   decodeMetadataFunc
 	sem              chan struct{}
 	logger           *logp.Logger
@@ -270,34 +271,35 @@ func (p *Processor) HandleStream(
 			}
 		}
 		var batch model.Batch
-		var n int
-		n, err := p.readBatch(ctx, baseEvent, batchSize, &batch, sr, result)
+		if b, ok := p.batchPool.Get().(*model.Batch); ok {
+			batch = (*b)[:0]
+		}
+		n, readErr := p.readBatch(ctx, baseEvent, batchSize, &batch, sr, result)
 		if n > 0 {
 			if async {
 				go func() {
 					// The semaphore is released once the batch is processed.
 					defer p.releaseLock()
-					if err := processor.ProcessBatch(ctx, &batch); err != nil && p.logger != nil {
+					err := processor.ProcessBatch(ctx, &batch)
+					p.batchPool.Put(&batch)
+					if err != nil && p.logger != nil {
 						p.logger.Errorf("failed handling async request: %v", err)
 					}
 				}()
 			} else {
-				// NOTE(axw) ProcessBatch takes ownership of batch, which means we cannot reuse
-				// the slice memory. We should investigate alternative interfaces between the
-				// processor and publisher which would enable better memory reuse, e.g. by using
-				// a sync.Pool for creating batches, and having the publisher (terminal processor)
-				// release batches back into the pool.
-				if err := processor.ProcessBatch(ctx, &batch); err != nil {
+				err := processor.ProcessBatch(ctx, &batch)
+				p.batchPool.Put(&batch)
+				if err != nil {
 					return err
 				}
-				result.AddAccepted(len(batch))
+				result.AddAccepted(n)
 			}
 		}
-		if err != nil {
-			if errors.Is(err, io.EOF) {
+		if readErr != nil {
+			if errors.Is(readErr, io.EOF) {
 				return nil
 			}
-			return err
+			return readErr
 		}
 	}
 }

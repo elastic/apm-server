@@ -114,7 +114,7 @@ func (c *Context) Reset(w http.ResponseWriter, r *http.Request) {
 	c.Result.Reset()
 
 	if r != nil {
-		ip, port := netutil.ParseIPPort(netutil.MaybeSplitHostPort(r.RemoteAddr))
+		ip, port := netutil.SplitAddrPort(r.RemoteAddr)
 		c.SourceIP, c.ClientIP = ip, ip
 		c.SourcePort, c.ClientPort = int(port), int(port)
 		if ip, port := netutil.ClientAddrFromHeaders(r.Header); ip.IsValid() {
