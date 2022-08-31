@@ -228,3 +228,33 @@ func TestTransactionAggregationLabels(t *testing.T) {
 		},
 	}}, docs)
 }
+
+func TestServiceMetricsAggregation(t *testing.T) {
+	systemtest.CleanupElasticsearch(t)
+	srv := apmservertest.NewUnstartedServerTB(t)
+	enabled := true
+	srv.Config.Aggregation = &apmservertest.AggregationConfig{
+		Service: &apmservertest.ServiceAggregationConfig{
+			Enabled:  &enabled,
+			Interval: time.Second,
+		},
+	}
+	err := srv.Start()
+	require.NoError(t, err)
+
+	timestamp, _ := time.Parse(time.RFC3339Nano, "2006-01-02T15:04:05.999999999Z") // should be truncated to 1s
+	tracer := srv.Tracer()
+	for _, txType := range []string{"type1", "type2"} {
+		for _, txName := range []string{"name1", "name2"} { // shouldn't affect aggregation
+			tx := tracer.StartTransactionOptions(txName, txType, apm.TransactionOptions{Start: timestamp})
+			tx.Duration = time.Second
+			tx.End()
+		}
+	}
+	tracer.Flush(nil)
+
+	result := systemtest.Elasticsearch.ExpectMinDocs(t, 2, "metrics-apm.internal-*",
+		estest.TermQuery{Field: "metricset.name", Value: "service"},
+	)
+	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits)
+}
