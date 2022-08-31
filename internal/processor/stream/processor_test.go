@@ -432,7 +432,10 @@ func TestConcurrentAsync(t *testing.T) {
 			requests: 5,
 			payload:  bigBatch,
 		})
-		assert.Greater(t, res.Accepted, 5)
+		assert.GreaterOrEqual(t, res.Accepted, 5)
+		// all the request will return with an error since only 50 events of
+		// each (5 requests * batch size) will be processed.
+		assert.Equal(t, 5, len(res.Errors))
 	})
 	t.Run("semaphore_empty_incorrect_metadata", func(t *testing.T) {
 		res := test(testCase{

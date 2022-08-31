@@ -233,75 +233,107 @@ func (p *Processor) HandleStream(
 	// events in the background. Returns with an error `publish.ErrFull` if the
 	// semaphore is full. When asynchronous processing is requested, the batches
 	// are decoded synchronously, but the batch is processed asynchronously.
-	if err := p.acquireLock(ctx, async); err != nil {
+	if err := p.semAcquire(ctx, async); err != nil {
 		return err
 	}
 	sr := p.getStreamReader(reader)
 
+	// Release the stream reader after all the batches have been read. Synchronous
+	// requests also release the semaphore since batch processing is blocking.
+	defer func() {
+		sr.release()
+		if !async {
+			p.semRelease()
+		}
+	}()
+
 	// first item is the metadata object
 	if err := p.readMetadata(sr, &baseEvent); err != nil {
 		// no point in continuing if we couldn't read the metadata
-		sr.release()
-		p.releaseLock()
 		return err
 	}
-
-	defer func() {
-		sr.release()
-		if !async { // Release lock for sync processing.
-			p.releaseLock()
-		}
-	}()
 
 	sp, ctx := apm.StartSpan(ctx, "Stream", "Reporter")
 	defer sp.End()
 
-	var acquireLock bool
+	first := true
 	for {
-		// Async requests will re-acquire the lock after the first batch is
-		// scheduled to be processed. If the semaphore is full, then we return
-		// with `publish.ErrFull`.
-		if async {
-			if acquireLock {
-				if err := p.acquireLock(ctx, async); err != nil {
-					return err
-				}
-			} else {
-				acquireLock = true
-			}
-		}
-		var batch model.Batch
-		if b, ok := p.batchPool.Get().(*model.Batch); ok {
-			batch = (*b)[:0]
-		}
-		n, readErr := p.readBatch(ctx, baseEvent, batchSize, &batch, sr, result)
-		if n > 0 {
-			if async {
-				go func() {
-					// The semaphore is released once the batch is processed.
-					defer p.releaseLock()
-					err := processor.ProcessBatch(ctx, &batch)
-					p.batchPool.Put(&batch)
-					if err != nil && p.logger != nil {
-						p.logger.Errorf("failed handling async request: %v", err)
-					}
-				}()
-			} else {
-				err := processor.ProcessBatch(ctx, &batch)
-				p.batchPool.Put(&batch)
-				if err != nil {
-					return err
-				}
-				result.AddAccepted(n)
-			}
-		}
-		if readErr != nil {
-			if errors.Is(readErr, io.EOF) {
+		err := p.handleStream(ctx, async, baseEvent, batchSize, sr, processor, result, first)
+		if err != nil {
+			if errors.Is(err, io.EOF) {
 				return nil
 			}
-			return readErr
+			return err
+		}
+		if first {
+			first = false
 		}
 	}
+}
+
+func (p *Processor) handleStream(
+	ctx context.Context,
+	async bool,
+	baseEvent model.APMEvent,
+	batchSize int,
+	sr *streamReader,
+	processor model.BatchProcessor,
+	result *Result,
+	first bool,
+) (readErr error) {
+	// Async requests will re-aquire the semaphore if it has more events than
+	// `batchSize`. In that event, the semaphore will be acquired again. If
+	// the semaphore is full, `publish.ErrFull` is returned.
+	// The first iteration will not acquire the semaphore since it's already
+	// acquired in the caller function.
+	var n int
+	if async {
+		if !first {
+			if err := p.semAcquire(ctx, async); err != nil {
+				return err
+			}
+		}
+		defer func() {
+			// If no events have been read on an asynchronous request, release
+			// the semaphore since the processing goroutine isn't scheduled.
+			if n == 0 {
+				p.semRelease()
+			}
+		}()
+	}
+	var batch model.Batch
+	if b, ok := p.batchPool.Get().(*model.Batch); ok {
+		batch = (*b)[:0]
+	}
+	n, readErr = p.readBatch(ctx, baseEvent, batchSize, &batch, sr, result)
+	if n == 0 {
+		// No events to process, return the batch to the pool.
+		p.batchPool.Put(&batch)
+		return readErr
+	}
+	// Async requests are processed in the background and once the batch has
+	// been processed, the semaphore is released.
+	if async {
+		go func() {
+			defer p.semRelease()
+			err := p.processBatch(ctx, processor, &batch)
+			if err != nil && p.logger != nil {
+				p.logger.Errorf("failed handling async request: %v", err)
+			}
+		}()
+	} else {
+		if err := p.processBatch(ctx, processor, &batch); err != nil {
+			return err
+		}
+		result.AddAccepted(n)
+	}
+	return readErr
+}
+
+// processBatch processes the batch and returns it to the pool after it's been processed.
+func (p *Processor) processBatch(ctx context.Context, processor model.BatchProcessor, batch *model.Batch) error {
+	defer p.batchPool.Put(batch)
+	return processor.ProcessBatch(ctx, batch)
 }
 
 // getStreamReader returns a streamReader that reads ND-JSON lines from r.
@@ -316,7 +348,7 @@ func (p *Processor) getStreamReader(r io.Reader) *streamReader {
 	}
 }
 
-func (p *Processor) acquireLock(ctx context.Context, async bool) error {
+func (p *Processor) semAcquire(ctx context.Context, async bool) error {
 	select {
 	case p.sem <- struct{}{}:
 	default:
@@ -332,7 +364,7 @@ func (p *Processor) acquireLock(ctx context.Context, async bool) error {
 	return nil
 }
 
-func (p *Processor) releaseLock() { <-p.sem }
+func (p *Processor) semRelease() { <-p.sem }
 
 // streamReader wraps NDJSONStreamReader, converting errors to stream errors.
 type streamReader struct {
