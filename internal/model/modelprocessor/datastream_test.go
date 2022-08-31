@@ -91,8 +91,8 @@ func TestSetDataStream(t *testing.T) {
 			Processor: model.MetricsetProcessor,
 			Service:   model.Service{Name: "service-name"},
 			Metricset: &model.Metricset{
-				Samples: map[string]model.MetricsetSample{
-					"system.memory.total": {}, // known agent metric
+				Samples: []model.MetricsetSample{
+					{Name: "system.memory.total"}, // known agent metric
 				},
 			},
 		},
@@ -103,9 +103,9 @@ func TestSetDataStream(t *testing.T) {
 			Processor: model.MetricsetProcessor,
 			Service:   model.Service{Name: "service-name"},
 			Metricset: &model.Metricset{
-				Samples: map[string]model.MetricsetSample{
-					"system.memory.total": {}, // known agent metric
-					"custom_metric":       {}, // custom metric
+				Samples: []model.MetricsetSample{
+					{Name: "system.memory.total"}, // known agent metric
+					{Name: "custom_metric"},       // custom metric
 				},
 			},
 		},
@@ -123,8 +123,8 @@ func TestSetDataStream(t *testing.T) {
 			Processor: model.MetricsetProcessor,
 			Metricset: &model.Metricset{
 				Name: "agent_config",
-				Samples: map[string]model.MetricsetSample{
-					"agent_config_applied": {Value: 1},
+				Samples: []model.MetricsetSample{
+					{Name: "agent_config_applied", Value: 1},
 				},
 			},
 		},
@@ -147,9 +147,9 @@ func TestSetDataStreamInternalMetricsetTypeUnit(t *testing.T) {
 		Processor: model.MetricsetProcessor,
 		Service:   model.Service{Name: "service-name"},
 		Metricset: &model.Metricset{
-			Samples: map[string]model.MetricsetSample{
-				"system.memory.total":        {Type: model.MetricTypeGauge, Unit: "byte"},
-				"system.process.memory.size": {Type: model.MetricTypeGauge, Unit: "byte"},
+			Samples: []model.MetricsetSample{
+				{Name: "system.memory.total", Type: model.MetricTypeGauge, Unit: "byte"},
+				{Name: "system.process.memory.size", Type: model.MetricTypeGauge, Unit: "byte"},
 			},
 		},
 	}}
