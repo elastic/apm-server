@@ -73,7 +73,13 @@ variable "elasticsearch_zone_count" {
 variable "elasticsearch_autoscale" {
   default     = false
   type        = bool
-  description = "Optional autoscale the Elasticsearch deployment"
+  description = "Optional autoscale the Elasticsearch cluster"
+}
+
+variable "elasticsearch_dedicated_masters" {
+  default     = false
+  type        = bool
+  description = "Optionally use dedicated masters for the Elasticsearch cluster"
 }
 
 # Docker image overrides

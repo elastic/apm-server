@@ -27,6 +27,11 @@ user_name = "USER"
 # The number of AZs the Elasticsearch cluster should have.
 # elasticsearch_zone_count = 1
 
+# When the number of Elasticsearch instances exceeds a threshold, the cloud API
+# will return with an error requiring Elasticsearch dedicated masters to be used.
+# When that's the case, set the variable below to true.
+# elasticsearch_dedicated_masters = true
+
 # Override the docker image tag the ESS resources will use. Useful to
 # target a specific build, rather than a snapshot or released version.
 # If you'd like to only override a single tag, set the other values to
