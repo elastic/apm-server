@@ -25,7 +25,7 @@ type Device struct {
 	// ID holds the unique identifier of a device.
 	ID string
 
-	// Architecture holds the host machine architecture.
+	// Model holds information about the device model.
 	Model DeviceModel
 
 	// Manufacturer the vendor name of the device manufacturer.
