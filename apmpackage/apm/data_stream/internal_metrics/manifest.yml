@@ -8,6 +8,19 @@ elasticsearch:
       # Internal metrics should have all fields strictly mapped;
       # we are in full control of the field names.
       dynamic: strict
+      # We map transaction.duration.summary here because aggregate_metric_double
+      # is not currently supported by package-spec.
+      #
+      # See https://github.com/elastic/package-spec/issues/363
+      properties:
+        transaction:
+          properties:
+            duration:
+              properties:
+                summary:
+                  type: aggregate_metric_double
+                  metrics: [sum, value_count]
+                  default_metric: sum
     settings:
       index:
         sort.field: "@timestamp"
