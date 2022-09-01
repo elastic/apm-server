@@ -26,13 +26,13 @@ type Device struct {
 	ID string
 
 	// Architecture holds the host machine architecture.
-	Model Model
+	Model DeviceModel
 
 	// Manufacturer the vendor name of the device manufacturer.
 	Manufacturer string
 }
 
-type Model struct {
+type DeviceModel struct {
 	// Name holds the human readable marketing name of the device model.
 	Name string
 

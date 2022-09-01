@@ -177,7 +177,7 @@ func TestResourceConventions(t *testing.T) {
 				Service: defaultService,
 				Device: model.Device{
 					ID: "device_id",
-					Model: model.Model{
+					Model: model.DeviceModel{
 						Identifier: "device_model_identifier",
 						Name:       "device_model_name",
 					},

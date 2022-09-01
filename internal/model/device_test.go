@@ -37,7 +37,7 @@ func TestDeviceFields(t *testing.T) {
 		{
 			Device: Device{
 				ID: "E733F41E-DF47-4BB4-AAF0-FD784FD95653",
-				Model: Model{
+				Model: DeviceModel{
 					Name:       "Samsung Galaxy S6",
 					Identifier: "SM-G920F",
 				},
