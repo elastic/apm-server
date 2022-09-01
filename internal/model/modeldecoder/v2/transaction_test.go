@@ -275,6 +275,11 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 				"DurationHistogram",
 				"DurationHistogram.Counts",
 				"DurationHistogram.Values",
+				"DurationSummary",
+				"DurationSummary.Count",
+				"DurationSummary.Sum",
+				"FailureCount",
+				"SuccessCount",
 				"Root":
 				return true
 			}

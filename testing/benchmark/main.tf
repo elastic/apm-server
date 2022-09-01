@@ -51,6 +51,7 @@ module "ec_deployment" {
 
   elasticsearch_size       = var.elasticsearch_size
   elasticsearch_zone_count = var.elasticsearch_zone_count
+  elasticsearch_dedicated_masters = var.elasticsearch_dedicated_masters
 
   docker_image              = var.docker_image_override
   docker_image_tag_override = var.docker_image_tag_override
