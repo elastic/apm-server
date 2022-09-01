@@ -70,7 +70,9 @@ type MetricsetSample struct {
 	// If Type is unspecified or invalid, it will be ignored.
 	Type MetricType
 
-	// Name holds the name of the metric type.
+	// Name holds the metric name.
+	//
+	// Name is required.
 	Name string
 
 	// Unit holds an optional unit:
