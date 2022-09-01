@@ -41,9 +41,6 @@ type DeviceModel struct {
 }
 
 func (d *Device) fields() mapstr.M {
-	if d == nil {
-		return nil
-	}
 	var fields mapStr
 	fields.maybeSetString("id", d.ID)
 
