@@ -186,9 +186,9 @@ func TestDecodeMapToMetricsetModel(t *testing.T) {
 				},
 			},
 		}
-		assert.Equal(t, otherSamples, out2.Metricset.Samples)
+		assert.ElementsMatch(t, otherSamples, out2.Metricset.Samples)
 		modeldecodertest.AssertStructValues(t, out1.Metricset, exceptions, defaultVal)
-		assert.Equal(t, defaultSamples, out1.Metricset.Samples)
+		assert.ElementsMatch(t, defaultSamples, out1.Metricset.Samples)
 	})
 }
 
