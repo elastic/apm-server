@@ -1,7 +1,7 @@
 <!-- BEGIN_TF_DOCS -->
 ## Rally worker module
 
-This modules sets up [rally daemons](https://esrally.readthedocs.io/en/stable/rally_daemon.html) which allows for distributed load generation. Such setups can generate high throughput loads and are preferred for testing large ES clusters. The module also runs `rally` with the configured arguments eact time `terraform apply` is executed.
+This modules sets up [rally daemons](https://esrally.readthedocs.io/en/stable/rally_daemon.html) which allows for distributed load generation. Such setups can generate high throughput loads and are preferred for testing large ES clusters. The module also runs `rally` with the configured arguments each time `terraform apply` is executed.
 
 ## Requirements
 
@@ -32,6 +32,7 @@ This modules sets up [rally daemons](https://esrally.readthedocs.io/en/stable/ra
 | [null_resource.run_rally](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
 | [tls_private_key.rally](https://registry.terraform.io/providers/hashicorp/tls/latest/docs/resources/private_key) | resource |
 | [google_compute_image.rally](https://registry.terraform.io/providers/hashicorp/google/latest/docs/data-sources/compute_image) | data source |
+| [google_compute_zones.available](https://registry.terraform.io/providers/hashicorp/google/latest/docs/data-sources/compute_zones) | data source |
 | [remote_file.rally_summary](https://registry.terraform.io/providers/tenstad/remote/latest/docs/data-sources/file) | data source |
 | [tls_public_key.rally](https://registry.terraform.io/providers/hashicorp/tls/latest/docs/data-sources/public_key) | data source |
 
@@ -44,7 +45,6 @@ This modules sets up [rally daemons](https://esrally.readthedocs.io/en/stable/ra
 | <a name="input_elasticsearch_username"></a> [elasticsearch\_username](#input\_elasticsearch\_username) | Elasticsearch username to use for benchmark with rally | `string` | n/a | yes |
 | <a name="input_gcp_project"></a> [gcp\_project](#input\_gcp\_project) | GCP Project name | `string` | `"elastic-apm"` | no |
 | <a name="input_gcp_region"></a> [gcp\_region](#input\_gcp\_region) | GCP region | `string` | `"us-west2"` | no |
-| <a name="input_gcp_zone"></a> [gcp\_zone](#input\_gcp\_zone) | GCP zone | `string` | `"us-west2-b"` | no |
 | <a name="input_rally_bulk_size"></a> [rally\_bulk\_size](#input\_rally\_bulk\_size) | Bulk size to use for rally track | `number` | `5000` | no |
 | <a name="input_rally_cluster_status"></a> [rally\_cluster\_status](#input\_rally\_cluster\_status) | Expected cluster status for rally | `string` | `"green"` | no |
 | <a name="input_rally_dir"></a> [rally\_dir](#input\_rally\_dir) | Directory path with rally corpora and track file | `string` | n/a | yes |

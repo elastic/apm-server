@@ -1,13 +1,13 @@
 provider "google" {
   project = var.gcp_project
   region  = var.gcp_region
-  zone    = var.gcp_zone
 }
 
 locals {
   ssh_user_name             = "rally"
   python_bin_path           = "~/.local/bin"
   remote_rally_summary_file = "rally-report.md"
+  remote_ssh_connection_timeout = "500s"
   esrally_install_cmd = [
     "sudo apt-get update",
     "sudo apt-get install -yq build-essential python3-pip git bzip2 pigz",
@@ -16,13 +16,20 @@ locals {
   ]
 }
 
+data "tls_public_key" "rally" {
+  private_key_openssh = tls_private_key.rally.private_key_openssh
+}
+
+data "google_compute_image" "rally" {
+  project = "ubuntu-os-cloud"
+  family  = "ubuntu-minimal-2004-lts"
+}
+
+data "google_compute_zones" "available" {}
+
 resource "tls_private_key" "rally" {
   algorithm = "RSA"
   rsa_bits  = "4096"
-}
-
-data "tls_public_key" "rally" {
-  private_key_openssh = tls_private_key.rally.private_key_openssh
 }
 
 resource "google_compute_network" "rally" {
@@ -40,15 +47,10 @@ resource "google_compute_firewall" "rally" {
   source_ranges = ["0.0.0.0/0"]
 }
 
-data "google_compute_image" "rally" {
-  project = "ubuntu-os-cloud"
-  family  = "ubuntu-minimal-2004-lts"
-}
-
 resource "google_compute_instance" "rally_coordinator" {
   name         = "${var.resource_prefix}-rally-coordinator"
   machine_type = "e2-micro"
-  zone         = var.gcp_zone
+  zone         = data.google_compute_zones.available.names[0]
 
   boot_disk {
     initialize_params {
@@ -78,7 +80,7 @@ resource "google_compute_instance" "rally_coordinator" {
     type        = "ssh"
     host        = self.network_interface[0].access_config[0].nat_ip
     user        = local.ssh_user_name
-    timeout     = "500s"
+    timeout     = local.remote_ssh_connection_timeout 
     private_key = tls_private_key.rally.private_key_openssh
   }
 
@@ -96,7 +98,7 @@ resource "google_compute_instance" "rally_workers" {
   count        = var.rally_worker_count
   name         = "${var.resource_prefix}-rally-worker-${count.index}"
   machine_type = "e2-micro"
-  zone         = var.gcp_zone
+  zone         = data.google_compute_zones.available.names[0]
 
   boot_disk {
     initialize_params {
@@ -126,7 +128,7 @@ resource "google_compute_instance" "rally_workers" {
     type        = "ssh"
     host        = self.network_interface[0].access_config[0].nat_ip
     user        = local.ssh_user_name
-    timeout     = "500s"
+    timeout     = local.remote_ssh_connection_timeout 
     private_key = tls_private_key.rally.private_key_openssh
   }
 
@@ -153,7 +155,7 @@ resource "null_resource" "run_rally" {
     type        = "ssh"
     host        = google_compute_instance.rally_coordinator.network_interface[0].access_config[0].nat_ip
     user        = local.ssh_user_name
-    timeout     = "500s"
+    timeout     = local.remote_ssh_connection_timeout 
     private_key = tls_private_key.rally.private_key_openssh
   }
 

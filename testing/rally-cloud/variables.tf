@@ -59,12 +59,6 @@ variable "gcp_region" {
   default     = "us-west2"
 }
 
-variable "gcp_zone" {
-  type        = string
-  description = "GCP zone"
-  default     = "us-west2-b"
-}
-
 variable "rally_workers_resource_prefix" {
   type        = string
   description = "Prefix to add to created resource for rally workers"

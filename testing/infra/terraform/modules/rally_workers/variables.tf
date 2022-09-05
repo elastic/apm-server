@@ -15,12 +15,6 @@ variable "gcp_region" {
   default     = "us-west2"
 }
 
-variable "gcp_zone" {
-  type        = string
-  description = "GCP zone"
-  default     = "us-west2-b"
-}
-
 variable "elasticsearch_url" {
   type        = string
   description = "Elasticsearch URL to benchmark with rally"
