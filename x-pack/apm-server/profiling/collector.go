@@ -42,19 +42,24 @@ type ElasticCollector struct {
 	// See https://github.com/grpc/grpc-go/issues/3669 for why this struct is embedded.
 	UnimplementedCollectionAgentServer
 
-	logger  *logp.Logger
-	indexer elasticsearch.BulkIndexer
-	indexes [MaxEventsIndexes]string
+	logger         *logp.Logger
+	indexer        elasticsearch.BulkIndexer
+	metricsIndexer elasticsearch.BulkIndexer
+	indexes        [MaxEventsIndexes]string
 }
 
-// NewCollector returns a new ElasticCollector uses indexer for storing data in Elasticsearch.
+// NewCollector returns a new ElasticCollector uses indexer for storing stack trace data in
+// Elasticsearch, and metricsIndexer for storing host agent metrics. Separate indexers are
+// used to allow for host agent metrics to be sent to a separate monitoring cluster.
 func NewCollector(
 	indexer elasticsearch.BulkIndexer,
+	metricsIndexer elasticsearch.BulkIndexer,
 	logger *logp.Logger,
 ) *ElasticCollector {
 	c := &ElasticCollector{
-		logger:  logger,
-		indexer: indexer,
+		logger:         logger,
+		indexer:        indexer,
+		metricsIndexer: metricsIndexer,
 	}
 
 	// Precalculate index names to minimise per-TraceEvent overhead.
@@ -596,11 +601,13 @@ func (e *ElasticCollector) AddMetrics(ctx context.Context, in *Metrics) (*empty.
 
 	for _, metric := range tsmetrics {
 		if len(metric.IDs) != len(metric.Values) {
-			//log.Errorf("Ignoring inconsistent metrics (ids: %d != values: %d)",
-			//	len(metric.IDs), len(metric.Values))
+			e.logger.Errorf(
+				"Ignoring inconsistent metrics (ids: %d != values: %d)",
+				len(metric.IDs), len(metric.Values),
+			)
 			continue
 		}
-		err := e.indexer.Add(ctx, elasticsearch.BulkIndexerItem{
+		err := e.metricsIndexer.Add(ctx, elasticsearch.BulkIndexerItem{
 			Index:  MetricsIndex,
 			Action: "create",
 			Body:   makeBody(metric),

@@ -23,15 +23,23 @@ import (
 	"github.com/elastic/apm-server/internal/elasticsearch"
 	"github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/go-ucfg"
 )
 
 // ProfilingConfig holds configuration related to profiling.
 type ProfilingConfig struct {
 	Enabled bool `config:"enabled"`
 
+	// ESConfig holds Elasticsearch configuration for writing
+	// profiling stacktrace events and metadata documents.
 	ESConfig *elasticsearch.Config
 
-	es *config.C
+	// MetricsESConfig holds Elasticsearch configuration for
+	// writing profiling host agent metric documents.
+	MetricsESConfig *elasticsearch.Config
+
+	es        *config.C
+	metricsES *config.C
 }
 
 func (c *ProfilingConfig) Unpack(in *config.C) error {
@@ -43,12 +51,28 @@ func (c *ProfilingConfig) Unpack(in *config.C) error {
 	cfg.Enabled = in.Enabled()
 	*c = ProfilingConfig(cfg)
 
-	if in.HasField("elasticsearch") {
-		es, err := in.Child("elasticsearch", -1)
-		if err != nil {
+	es, err := in.Child("elasticsearch", -1)
+	if err == nil {
+		c.es = es
+	} else {
+		var ucfgError ucfg.Error
+		if !errors.As(err, &ucfgError) || ucfgError.Reason() != ucfg.ErrMissing {
 			return err
 		}
-		c.es = es
+	}
+
+	es, err = in.Child("metrics.elasticsearch", -1)
+	if err == nil {
+		c.metricsES = es
+	} else {
+		var ucfgError ucfg.Error
+		if !errors.As(err, &ucfgError) || ucfgError.Reason() != ucfg.ErrMissing {
+			return err
+		} else {
+			// `apm-server.profiling.metrics.elasticsearch` was not specified,
+			// so use `apm-server.profiling.elasticsearch`.
+			c.metricsES = c.es
+		}
 	}
 
 	return errors.Wrap(c.Validate(), "invalid config")
@@ -70,7 +94,10 @@ func (c *ProfilingConfig) setup(log *logp.Logger, outputESCfg *config.C) error {
 	// still use the same Elasticsearch output host, etc.
 	if outputESCfg != nil {
 		if err := outputESCfg.Unpack(&c.ESConfig); err != nil {
-			return errors.Wrap(err, "error unpacking output.elasticsearch config for profiling collection")
+			return errors.Wrap(err, "error unpacking output.elasticsearch config for profiling event collection")
+		}
+		if err := outputESCfg.Unpack(&c.MetricsESConfig); err != nil {
+			return errors.Wrap(err, "error unpacking output.elasticsearch config for profiling host agent metrics collection")
 		}
 	}
 	if c.es != nil {
@@ -78,12 +105,18 @@ func (c *ProfilingConfig) setup(log *logp.Logger, outputESCfg *config.C) error {
 			return errors.Wrap(err, "error unpacking apm-server.profiling.elasticsearch config for profiling collection")
 		}
 	}
+	if c.metricsES != nil {
+		if err := c.metricsES.Unpack(&c.MetricsESConfig); err != nil {
+			return errors.Wrap(err, "error unpacking apm-server.profiling.metrics.elasticsearch config for profiling host agent metrics collection")
+		}
+	}
 	return nil
 }
 
 func defaultProfilingConfig() ProfilingConfig {
 	return ProfilingConfig{
-		Enabled:  false,
-		ESConfig: elasticsearch.DefaultConfig(),
+		Enabled:         false,
+		ESConfig:        elasticsearch.DefaultConfig(),
+		MetricsESConfig: elasticsearch.DefaultConfig(),
 	}
 }

@@ -239,24 +239,50 @@ func runServerWithProcessors(ctx context.Context, runServer beater.RunServerFunc
 	return g.Wait()
 }
 
-func newProfilingCollector(args beater.ServerParams) (*profiling.ElasticCollector, elasticsearch.BulkIndexer, error) {
+func newProfilingCollector(args beater.ServerParams) (*profiling.ElasticCollector, func(context.Context) error, error) {
+	// Elasticsearch should default to 100 MB for the http.max_content_length configuration,
+	// so we flush the buffer when at 16 MiB or every 4 seconds.
+	// This should reduce the lock contention between multiple workers trying to write or flush
+	// the bulk indexer buffer.
+	bulkIndexerConfig := elasticsearch.BulkIndexerConfig{
+		FlushBytes:    1 << 24,
+		FlushInterval: 4 * time.Second,
+	}
+
 	client, err := args.NewElasticsearchClient(args.Config.Profiling.ESConfig)
 	if err != nil {
 		return nil, nil, err
 	}
-	indexer, err := client.NewBulkIndexer(elasticsearch.BulkIndexerConfig{
-		// Elasticsearch should default to 100 MB for the http.max_content_length configuration,
-		// so we flush the buffer when at 16 MiB or every 4 seconds.
-		// This should reduce the lock contention between multiple workers trying to write or flush
-		// the bulk indexer buffer.
-		FlushBytes:    1 << 24,
-		FlushInterval: 4 * time.Second,
-	})
+	indexer, err := client.NewBulkIndexer(bulkIndexerConfig)
 	if err != nil {
 		return nil, nil, err
 	}
-	profilingCollector := profiling.NewCollector(indexer, args.Logger.Named("profiling"))
-	return profilingCollector, indexer, nil
+
+	metricsClient, err := args.NewElasticsearchClient(args.Config.Profiling.MetricsESConfig)
+	if err != nil {
+		return nil, nil, err
+	}
+	metricsIndexer, err := metricsClient.NewBulkIndexer(bulkIndexerConfig)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	profilingCollector := profiling.NewCollector(
+		indexer,
+		metricsIndexer,
+		args.Logger.Named("profiling"),
+	)
+	cleanup := func(ctx context.Context) error {
+		var errors error
+		if indexer.Close(ctx); err != nil {
+			errors = multierror.Append(errors, err)
+		}
+		if metricsIndexer.Close(ctx); err != nil {
+			errors = multierror.Append(errors, err)
+		}
+		return errors
+	}
+	return profilingCollector, cleanup, nil
 }
 
 func wrapServer(args beater.ServerParams, runServer beater.RunServerFunc) (beater.ServerParams, beater.RunServerFunc, error) {
@@ -275,7 +301,7 @@ func wrapServer(args beater.ServerParams, runServer beater.RunServerFunc) (beate
 
 	wrappedRunServer := func(ctx context.Context, args beater.ServerParams) error {
 		if args.Config.Profiling.Enabled {
-			profilingCollector, indexer, err := newProfilingCollector(args)
+			profilingCollector, cleanup, err := newProfilingCollector(args)
 			if err != nil {
 				// Profiling support is in technical preview,
 				// so we'll treat errors as non-fatal for now.
@@ -283,7 +309,7 @@ func wrapServer(args beater.ServerParams, runServer beater.RunServerFunc) (beate
 					"failed to create profiling collector, continuing without profiling support",
 				)
 			} else {
-				defer indexer.Close(ctx)
+				defer cleanup(ctx)
 				profiling.RegisterCollectionAgentServer(args.GRPCServer, profilingCollector)
 				args.Logger.Info("registered profiling collection (technical preview)")
 			}
