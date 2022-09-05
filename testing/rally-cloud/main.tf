@@ -31,9 +31,6 @@ module "ec_deployment" {
 
   apm_server_size       = 0
   apm_server_zone_count = 0
-  apm_server_expvar     = false
-  apm_server_pprof      = false
-  integrations_server   = false
 
   elasticsearch_size       = var.elasticsearch_size
   elasticsearch_zone_count = var.elasticsearch_zone_count
@@ -42,7 +39,7 @@ module "ec_deployment" {
   docker_image_tag_override = {
     "elasticsearch" : coalesce(var.docker_image_tag_override["elasticsearch"], local.docker_image_tag),
     "kibana" : coalesce(var.docker_image_tag_override["kibana"], local.docker_image_tag),
-    "apm" : coalesce(var.docker_image_tag_override["apm"], local.docker_image_tag)
+    "apm": "",
   }
 }
 
