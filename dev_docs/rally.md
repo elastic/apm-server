@@ -17,7 +17,7 @@ profiles. This is almost what we want.
 Like Elasticsearch, the Elastic APM product evolves over time.
 In practice, that means:
 
-- documents produce by APM Server change shape
+- documents produced by APM Server change shape
 - processing moves from APM Server to ingest node (and vice versa)
 - queries made by APM UI change
 
@@ -35,7 +35,7 @@ the current index templates and ingest pipelines are defined.
 We then run the corpora through Rally as usual, with `make rally`.
 
 Rally benchmarks can also be run on Elastic Cloud with a locally
-built APM-Server and APM integration package. This is achieved by
+built APMaServer and APM integration package. This is achieved by
 pushing the locally built images to an internal docker registry.
 Follow [this guide](../testing/rally-cloud/README.md) for more details.
 

@@ -1,7 +1,3 @@
-GENCORPORA_PATH ?= ../../systemtest/cmd/gencorpora
-GENCORPORA_GOOS ?= linux
-GENCORPORA_GOARCH ?= amd64
-
 USER_NAME?=${USER}
 ROOT_DIR=$(shell git rev-parse --show-toplevel)
 
