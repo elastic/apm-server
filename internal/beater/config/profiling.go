@@ -75,7 +75,7 @@ func (c *ProfilingConfig) setup(log *logp.Logger, outputESCfg *config.C) error {
 	}
 	if c.es != nil {
 		if err := c.es.Unpack(&c.ESConfig); err != nil {
-			return errors.Wrap(err, "error unpacking elasticsearch config for profiling collection")
+			return errors.Wrap(err, "error unpacking apm-server.profiling.elasticsearch config for profiling collection")
 		}
 	}
 	return nil
