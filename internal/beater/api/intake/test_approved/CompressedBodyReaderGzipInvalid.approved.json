@@ -2,7 +2,7 @@
     "accepted": 0,
     "errors": [
         {
-            "message": "gzip: invalid header"
+            "message": "data decoding error: gzip: invalid header"
         }
     ]
 }
