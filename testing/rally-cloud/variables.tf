@@ -28,21 +28,15 @@ variable "elasticsearch_zone_count" {
   default     = 1
 }
 
-variable "docker_image_tag_override" {
-  type = map(string)
-  default = {
-    "elasticsearch" : "",
-    "kibana" : "",
-  }
-  description = "Optional docker image tag override"
+variable "install_custom_apm_integration_pkg" {
+  type        = bool
+  description = "Whether or not to install a custom APM integration package"
+  default     = true
 }
 
-variable "docker_image_override" {
-  type = map(string)
-  default = {
-    "elasticsearch" : "docker.elastic.co/cloud-release/elasticsearch-cloud-ess",
-    "kibana" : "docker.elastic.co/cloud-release/kibana-cloud",
-  }
+variable "custom_apm_integration_pkg_path" {
+  type        = string
+  description = "Path to the zipped custom APM integration package"
 }
 
 variable "gcp_project" {
@@ -84,15 +78,4 @@ variable "rally_worker_count" {
   type        = string
   description = "Number of rally worker nodes"
   default     = 2
-}
-
-variable "install_custom_apm_integration_pkg" {
-  type        = bool
-  description = "Whether or not to install a custom APM integration package"
-  default     = true
-}
-
-variable "custom_apm_integration_pkg_path" {
-  type        = string
-  description = "Path to the zipped custom APM integration package"
 }
