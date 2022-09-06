@@ -4,13 +4,13 @@ provider "google" {
 }
 
 locals {
-  ssh_user_name             = "rally"
-  python_bin_path           = "~/.local/bin"
-  remote_rally_summary_file = "rally-report.md"
+  ssh_user_name                 = "rally"
+  python_bin_path               = "~/.local/bin"
+  remote_rally_summary_file     = "rally-report.md"
   remote_ssh_connection_timeout = "500s"
   esrally_install_cmd = [
     "sudo apt-get update",
-    "sudo apt-get install -yq build-essential python3-pip git bzip2 pigz",
+    "sudo apt-get install -yq build-essential python3-pip",
     "python3 -m pip install --quiet --no-warn-script-location --user --upgrade pip",
     "python3 -m pip install --quiet --no-warn-script-location --user esrally",
   ]
@@ -80,7 +80,7 @@ resource "google_compute_instance" "rally_coordinator" {
     type        = "ssh"
     host        = self.network_interface[0].access_config[0].nat_ip
     user        = local.ssh_user_name
-    timeout     = local.remote_ssh_connection_timeout 
+    timeout     = local.remote_ssh_connection_timeout
     private_key = tls_private_key.rally.private_key_openssh
   }
 
@@ -128,7 +128,7 @@ resource "google_compute_instance" "rally_workers" {
     type        = "ssh"
     host        = self.network_interface[0].access_config[0].nat_ip
     user        = local.ssh_user_name
-    timeout     = local.remote_ssh_connection_timeout 
+    timeout     = local.remote_ssh_connection_timeout
     private_key = tls_private_key.rally.private_key_openssh
   }
 
@@ -155,7 +155,7 @@ resource "null_resource" "run_rally" {
     type        = "ssh"
     host        = google_compute_instance.rally_coordinator.network_interface[0].access_config[0].nat_ip
     user        = local.ssh_user_name
-    timeout     = local.remote_ssh_connection_timeout 
+    timeout     = local.remote_ssh_connection_timeout
     private_key = tls_private_key.rally.private_key_openssh
   }
 

@@ -85,3 +85,14 @@ variable "rally_worker_count" {
   description = "Number of rally worker nodes"
   default     = 2
 }
+
+variable "install_custom_apm_integration_pkg" {
+  type        = bool
+  description = "Whether or not to install a custom APM integration package"
+  default     = true
+}
+
+variable "custom_apm_integration_pkg_path" {
+  type        = string
+  description = "Path to the zipped custom APM integration package"
+}

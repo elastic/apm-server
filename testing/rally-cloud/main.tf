@@ -14,17 +14,11 @@ terraform {
 
 provider "ec" {}
 
-locals {
-  docker_image_tag = regex("docker.elastic.co/.*:(.*)", file("${path.module}/../../docker-compose.yml"))[0]
-  match            = regex("(?:(.*)(?:-.*)-(?:SNAPSHOT))|(.*)", local.docker_image_tag)
-  stack_version    = local.match[0] != null ? format("%s-SNAPSHOT", local.match[0]) : local.match[1]
-}
-
 module "ec_deployment" {
   source = "../infra/terraform/modules/ec_deployment"
 
   region        = var.ess_region
-  stack_version = local.stack_version
+  stack_version = var.stack_version
 
   deployment_template    = var.deployment_template
   deployment_name_prefix = "rally-cloud-testing"
@@ -35,12 +29,8 @@ module "ec_deployment" {
   elasticsearch_size       = var.elasticsearch_size
   elasticsearch_zone_count = var.elasticsearch_zone_count
 
-  docker_image = var.docker_image_override
-  docker_image_tag_override = {
-    "elasticsearch" : coalesce(var.docker_image_tag_override["elasticsearch"], local.docker_image_tag),
-    "kibana" : coalesce(var.docker_image_tag_override["kibana"], local.docker_image_tag),
-    "apm": "",
-  }
+  install_custom_apm_integration_pkg = var.install_custom_apm_integration_pkg
+  custom_apm_integration_pkg_path    = var.custom_apm_integration_pkg_path
 }
 
 module "rally_workers" {

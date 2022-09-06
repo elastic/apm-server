@@ -1,13 +1,8 @@
-USER_NAME?=${USER}
+USER_NAME?=$(USER)
 ROOT_DIR=$(shell git rev-parse --show-toplevel)
-
+APM_SERVER_VERSION=$(shell $(MAKE) -C $(ROOT_DIR) get-version)
+APM_INTEGRATION_PKG_PATH=$(ROOT_DIR)/build/packages/apm-$(APM_SERVER_VERSION).zip
 RALLY_GENCORPORA_REPLAY_COUNT?=10
-
-include $(ROOT_DIR)/go.mk
-
-# TODO: @lahsivjar Currently requires images to be built by running
-# `make` on `/testing/cloud/. Explore on merging this with `testing/cloud/`
-# in a way that rally_workers module can be selected as optional module.
 
 .PHONY: init
 init:
@@ -16,17 +11,24 @@ init:
 .PHONY: plan
 plan:
 	@terraform plan \
-		-var 'rally_workers_resource_prefix=$(USER_NAME)'
+		-var 'rally_workers_resource_prefix=$(USER_NAME)' \
+		-var 'install_custom_apm_integration_pkg=true' \
+		-var 'custom_apm_integration_pkg_path=$(APM_INTEGRATION_PKG_PATH)'
 
 .PHONY: apply
 apply: rally/corpora
+	$(MAKE) -C $(ROOT_DIR) build-package
 	@terraform apply -auto-approve \
-		-var 'rally_workers_resource_prefix=$(USER_NAME)'
+		-var 'rally_workers_resource_prefix=$(USER_NAME)' \
+		-var 'install_custom_apm_integration_pkg=true' \
+		-var 'custom_apm_integration_pkg_path=$(APM_INTEGRATION_PKG_PATH)'
 
 .PHONY: destroy
 destroy:
 	@terraform destroy -auto-approve \
-		-var 'rally_workers_resource_prefix=$(USER_NAME)'
+		-var 'rally_workers_resource_prefix=$(USER_NAME)' \
+		-var 'install_custom_apm_integration_pkg=true' \
+		-var 'custom_apm_integration_pkg_path=$(APM_INTEGRATION_PKG_PATH)'
 
 # Generate corpora to be used in cloud testing using rally-cloud tf script
 .PHONY: rally/corpora
