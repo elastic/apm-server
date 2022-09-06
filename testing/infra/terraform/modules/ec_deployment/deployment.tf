@@ -24,6 +24,14 @@ resource "ec_deployment" "deployment" {
       size       = var.elasticsearch_size
       zone_count = var.elasticsearch_zone_count
     }
+    dynamic "topology" {
+      for_each = var.elasticsearch_dedicated_masters ? [3] : []
+      content {
+        id         = "master"
+        size       = "1g"
+        zone_count = topology.value # Dedicated masters always need to be set in all zones
+      }
+    }
     dynamic "config" {
       for_each = var.docker_image_tag_override["elasticsearch"] != "" ? [var.docker_image["elasticsearch"]] : []
       content {

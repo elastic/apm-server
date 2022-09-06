@@ -105,3 +105,51 @@ func benchmarkStreamProcessorParallel(b *testing.B, processor *Processor, files 
 		})
 	}
 }
+
+func BenchmarkReadBatch(b *testing.B) {
+	const batchSize = 10
+	processor := BackendProcessor(Config{
+		MaxEventSize: 300 * 1024, // 300 kb
+		Semaphore:    make(chan struct{}, 200),
+	})
+
+	files, _ := filepath.Glob(filepath.FromSlash("../../../testdata/intake-v2/*.ndjson"))
+	for _, f := range files {
+		data, err := os.ReadFile(f)
+		if err != nil {
+			b.Fatal(err)
+		}
+
+		r := bytes.NewReader(data)
+
+		// We cannot rely on the sync.Pool for consistent
+		// behaviour so we get the stream reader once and
+		// reset it on every loop.
+		sr := processor.getStreamReader(r)
+
+		// Allocate a slice big enough to fit all
+		// the events so that we can avoid the
+		// overhead of resizing while reading.
+		batch := make(model.Batch, 0, 17)
+
+		b.Run(filepath.Base(f), func(b *testing.B) {
+			b.ReportAllocs()
+			b.SetBytes(int64(len(data)))
+
+			for i := 0; i < b.N; i++ {
+				baseEvent := model.APMEvent{}
+				processor.readMetadata(sr, &baseEvent)
+
+				var readErr error
+				for readErr != io.EOF {
+					// Reuse the slice
+					batch = batch[:0]
+					_, readErr = processor.readBatch(context.Background(), baseEvent, batchSize, &batch, sr, &Result{})
+				}
+
+				r.Seek(0, io.SeekStart)
+				sr.Reset(r)
+			}
+		})
+	}
+}

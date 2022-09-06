@@ -56,6 +56,7 @@ type decodeMetadataFunc func(decoder.Decoder, *model.APMEvent) error
 // the concurrency limit is shared between all the intake endpoints.
 type Processor struct {
 	streamReaderPool sync.Pool
+	batchPool        sync.Pool
 	decodeMetadata   decodeMetadataFunc
 	sem              chan struct{}
 	MaxEventSize     int
@@ -248,18 +249,20 @@ func (p *Processor) HandleStream(
 
 	for {
 		var batch model.Batch
+		if b, ok := p.batchPool.Get().(*model.Batch); ok {
+			batch = (*b)[:0]
+		}
+
 		n, readErr := p.readBatch(ctx, baseEvent, batchSize, &batch, sr, result)
 		if n > 0 {
-			// NOTE(axw) ProcessBatch takes ownership of batch, which means we cannot reuse
-			// the slice memory. We should investigate alternative interfaces between the
-			// processor and publisher which would enable better memory reuse, e.g. by using
-			// a sync.Pool for creating batches, and having the publisher (terminal processor)
-			// release batches back into the pool.
 			if err := processor.ProcessBatch(ctx, &batch); err != nil {
+				p.batchPool.Put(&batch)
 				return err
 			}
 			result.AddAccepted(len(batch))
 		}
+		p.batchPool.Put(&batch)
+
 		if readErr == io.EOF {
 			break
 		} else if readErr != nil {
