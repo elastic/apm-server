@@ -10,6 +10,7 @@ import (
 	"google.golang.org/grpc/metadata"
 
 	"github.com/elastic/apm-server/internal/beater/auth"
+	"github.com/elastic/apm-server/internal/beater/headers"
 )
 
 // AuthenticateUnaryCall implements the interceptors.UnaryAuthenticator
@@ -23,5 +24,5 @@ func (*ElasticCollector) AuthenticateUnaryCall(
 ) (auth.AuthenticationDetails, auth.Authorizer, error) {
 	md, _ := metadata.FromIncomingContext(ctx)
 	secretToken := GetFirstOrEmpty(md, MetadataKeySecretToken)
-	return authenticator.Authenticate(ctx, "Bearer", secretToken)
+	return authenticator.Authenticate(ctx, headers.Bearer, secretToken)
 }
