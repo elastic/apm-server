@@ -21,14 +21,17 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/url"
+	"strconv"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/tidwall/gjson"
 
 	"github.com/elastic/apm-server/systemtest"
 	"github.com/elastic/apm-server/systemtest/apmservertest"
+	"github.com/elastic/apm-server/systemtest/estest"
 )
 
 func TestAgentConfig(t *testing.T) {
@@ -68,13 +71,11 @@ func TestAgentConfig(t *testing.T) {
 	}
 
 	// No agent config matching service name/environment initially.
-	etags := make(map[string]string)
 	for _, url := range serverURLs {
 		settings, resp := expectChange(url, "")
 		assert.Empty(t, settings)
 		etag := resp.Header.Get("Etag")
 		assert.Equal(t, `"-"`, etag)
-		etags[url] = etag
 		_, resp = queryAgentConfig(t, url, serviceName, serviceEnvironment, etag)
 		assert.Equal(t, http.StatusNotModified, resp.StatusCode)
 	}
@@ -82,25 +83,49 @@ func TestAgentConfig(t *testing.T) {
 	// Create an agent config entry matching the service name, and any environment.
 	configured := map[string]string{"transaction_sample_rate": "0.1", "sanitize_field_names": "foo,bar,baz"}
 	systemtest.CreateAgentConfig(t, "systemtest_service", "", "", configured)
-	for _, url := range serverURLs {
-		settings, resp := expectChange(url, etags[url])
+	var etag1 string
+	for i, url := range serverURLs {
+		settings, resp := expectChange(url, "-")
 		assert.Equal(t, configured, settings)
 		etag := resp.Header.Get("Etag")
 		assert.NotEqual(t, `"-"`, etag)
-		etags[url] = etag
 		_, resp = queryAgentConfig(t, url, serviceName, serviceEnvironment, etag)
 		assert.Equal(t, http.StatusNotModified, resp.StatusCode)
+		if i == 0 {
+			etag1 = etag
+		} else {
+			assert.Equal(t, etag1, etag)
+		}
 	}
 
 	// Create a more specific agent config entry with both service name and environment
 	// matching the query. This should now take precedence.
 	configured2 := map[string]string{"transaction_sample_rate": "0.2"}
 	systemtest.CreateAgentConfig(t, "systemtest_service", "testing", "", configured2)
-	for _, url := range serverURLs {
-		settings, resp := expectChange(url, etags[url])
+	var etag2 string
+	for i, url := range serverURLs {
+		settings, resp := expectChange(url, etag1)
 		assert.Equal(t, configured2, settings)
-		assert.NotEqual(t, etags[url], resp.Header.Get("Etag"))
+		etag := resp.Header.Get("Etag")
+		assert.NotEqual(t, etag1, etag)
+		if i == 0 {
+			etag2 = etag
+		} else {
+			assert.Equal(t, etag2, etag)
+		}
 	}
+
+	// Wait for an "agent_config" metricset to be reported, which should contain the
+	// etag of the configuration as a label. We should only receive one metricset, as
+	// we only produce these documents when the etag matches.
+	result := systemtest.Elasticsearch.ExpectDocs(t, "metrics-apm.internal-*", estest.TermQuery{
+		Field: "metricset.name",
+		Value: "agent_config",
+	}, estest.WithTimeout(time.Minute))
+	require.Len(t, result.Hits.Hits, 1)
+	etag := gjson.GetBytes(result.Hits.Hits[0].RawSource, "labels.etag")
+	assert.Equal(t, etag1, strconv.Quote(etag.String()))
+	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits, "@timestamp", "labels.etag")
 }
 
 func queryAgentConfig(t testing.TB, serverURL, serviceName, serviceEnvironment, etag string) (map[string]string, *http.Response) {

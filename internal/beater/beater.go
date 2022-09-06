@@ -54,6 +54,7 @@ import (
 	"github.com/elastic/elastic-agent-libs/transport/tlscommon"
 	"github.com/elastic/go-ucfg"
 
+	"github.com/elastic/apm-server/internal/agentcfg"
 	"github.com/elastic/apm-server/internal/beater/auth"
 	"github.com/elastic/apm-server/internal/beater/config"
 	"github.com/elastic/apm-server/internal/beater/interceptors"
@@ -632,6 +633,14 @@ func (s *serverRunner) run(listener net.Listener) error {
 		finalBatchProcessor,
 	}
 
+	agentConfigReporter := agentcfg.NewReporter(
+		newAgentConfigFetcher(s.config, kibanaClient),
+		batchProcessor, 30*time.Second,
+	)
+	g.Go(func() error {
+		return agentConfigReporter.Run(ctx)
+	})
+
 	serverParams := ServerParams{
 		UUID:                   s.beat.Info.ID,
 		Config:                 s.config,
@@ -642,6 +651,7 @@ func (s *serverRunner) run(listener net.Listener) error {
 		Authenticator:          authenticator,
 		RateLimitStore:         ratelimitStore,
 		BatchProcessor:         batchProcessor,
+		AgentConfig:            agentConfigReporter,
 		SourcemapFetcher:       sourcemapFetcher,
 		PublishReady:           publishReady,
 		KibanaClient:           kibanaClient,
