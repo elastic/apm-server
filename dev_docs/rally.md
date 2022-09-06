@@ -35,7 +35,7 @@ the current index templates and ingest pipelines are defined.
 We then run the corpora through Rally as usual, with `make rally`.
 
 Rally benchmarks can also be run on Elastic Cloud with a locally
-built APMaServer and APM integration package. This is achieved by
+built APM Server and APM integration package. This is achieved by
 pushing the locally built images to an internal docker registry.
 Follow [this guide](../testing/rally-cloud/README.md) for more details.
 
