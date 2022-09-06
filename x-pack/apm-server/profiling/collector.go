@@ -74,8 +74,7 @@ func (e *ElasticCollector) AddCountsForTraces(ctx context.Context,
 	req *AddCountsForTracesRequest) (*emptypb.Empty, error) {
 	traceEvents, err := mapToStackTraceEvents(ctx, req)
 	if err != nil {
-		//log.With(log.Labels{"grpc_method": "AddCountsForTraces"}).
-		//	Errorf("Error mapping host-agent traces to Elastic stacktraces: %v", err)
+		e.logger.With(logp.Error(err)).Error("Error mapping host-agent traces to Elastic stacktraces")
 		return nil, errCustomer
 	}
 
@@ -114,8 +113,7 @@ func (e *ElasticCollector) AddCountsForTraces(ctx context.Context,
 			traceEvents[i].Count = count
 
 			if err = e.indexStacktrace(ctx, &traceEvents[i], index); err != nil {
-				//log.With(log.Labels{"grpc_method": "AddCountsForTraces"}).
-				//	Errorf("Elasticsearch indexing error: %v", err)
+				e.logger.With(logp.Error(err)).Error("Elasticsearch indexing error")
 				return nil, errCustomer
 			}
 		}
@@ -244,14 +242,15 @@ func (e *ElasticCollector) AddExecutableMetadata(ctx context.Context,
 
 	// Sanity check. Should never happen unless the HA is broken.
 	if numHiFileIDs != numLoFileIDs {
-		//log.With(log.Labels{"grpc_method": "AddExecutableMetadata"}).
-		//	Errorf("mismatch in number of file IDAs (%d) file IDBs (%d)",
-		//		numHiFileIDs, numLoFileIDs)
+		e.logger.Errorf(
+			"mismatch in number of file IDAs (%d) file IDBs (%d)",
+			numHiFileIDs, numLoFileIDs,
+		)
 		return nil, errCustomer
 	}
 
 	if numHiFileIDs == 0 {
-		//log.Debug("AddExecutableMetadata request with no entries")
+		e.logger.Debug("AddExecutableMetadata request with no entries")
 		return &empty.Empty{}, nil
 	}
 
@@ -290,8 +289,7 @@ func (e *ElasticCollector) AddExecutableMetadata(ctx context.Context,
 			},
 		})
 		if err != nil {
-			//log.With(log.Labels{"grpc_method": "AddExecutableMetadata"}).
-			//	Errorf("Elasticsearch indexing error: %v", err)
+			e.logger.With(logp.Error(err)).Error("Elasticsearch indexing error")
 			return nil, errCustomer
 		}
 	}
@@ -352,8 +350,7 @@ func (e *ElasticCollector) SetFramesForTraces(ctx context.Context,
 		})
 
 		if err != nil {
-			//log.With(log.Labels{"grpc_method": "SetFramesForTraces"}).
-			//	Errorf("Elasticsearch indexing error: %v", err)
+			e.logger.With(logp.Error(err)).Error("Elasticsearch indexing error")
 			return nil, errCustomer
 		}
 	}
@@ -370,14 +367,15 @@ func (e *ElasticCollector) AddFrameMetadata(ctx context.Context, in *AddFrameMet
 
 	// Sanity check. Should never happen unless the HA is broken.
 	if numHiFileIDs != numLoFileIDs {
-		//log.With(log.Labels{"grpc_method": "AddFrameMetadata"}).
-		//	Errorf("mismatch in number of hiFileIDs (%d) loFileIDs (%d)",
-		//		numHiFileIDs, numLoFileIDs)
+		e.logger.Errorf(
+			"mismatch in number of hiFileIDs (%d) loFileIDs (%d)",
+			numHiFileIDs, numLoFileIDs,
+		)
 		return nil, errCustomer
 	}
 
 	if numHiFileIDs == 0 {
-		//log.Debug("AddFrameMetadata request with no entries")
+		e.logger.Debug("AddFrameMetadata request with no entries")
 		return &empty.Empty{}, nil
 	}
 
@@ -392,8 +390,10 @@ func (e *ElasticCollector) AddFrameMetadata(ctx context.Context, in *AddFrameMet
 		fileID := NewFileID(hiFileIDs[i], loFileIDs[i])
 
 		if fileID.IsZero() {
-			//log.Warnf("Attempting to report metadata for invalid FileID 0." +
-			//	" This is likely a mistake and will be discarded.")
+			e.logger.Warn("" +
+				"Attempting to report metadata for invalid FileID 0." +
+				" This is likely a mistake and will be discarded.",
+			)
 			continue
 		}
 
@@ -428,8 +428,7 @@ func (e *ElasticCollector) AddFrameMetadata(ctx context.Context, in *AddFrameMet
 			},
 		})
 		if err != nil {
-			//log.With(log.Labels{"grpc_method": "AddFrameMetadata"}).
-			//	Errorf("Elasticsearch indexing error: %v", err)
+			e.logger.With(logp.Error(err)).Error("Elasticsearch indexing error")
 			return nil, errCustomer
 		}
 	}
@@ -446,14 +445,15 @@ func (e *ElasticCollector) AddFallbackSymbols(ctx context.Context,
 
 	// Sanity check. Should never happen unless the HA is broken.
 	if numHiFileIDs != numLoFileIDs {
-		//log.With(log.Labels{"grpc_method": "AddFallbackSymbols"}).
-		//	Errorf("mismatch in number of hiFileIDs (%d) loFileIDs (%d)",
-		//		numHiFileIDs, numLoFileIDs)
+		e.logger.Errorf(
+			"mismatch in number of hiFileIDs (%d) loFileIDs (%d)",
+			numHiFileIDs, numLoFileIDs,
+		)
 		return nil, errCustomer
 	}
 
 	if numHiFileIDs == 0 {
-		//log.Debug("AddFallbackSymbols request with no entries")
+		e.logger.Debug("AddFallbackSymbols request with no entries")
 		return &empty.Empty{}, nil
 	}
 
@@ -464,8 +464,10 @@ func (e *ElasticCollector) AddFallbackSymbols(ctx context.Context,
 		fileID := NewFileID(hiFileIDs[i], loFileIDs[i])
 
 		if fileID.IsZero() {
-			//log.Warnf("Attempting to report metadata for invalid FileID 0." +
-			//	" This is likely a mistake and will be discarded.")
+			e.logger.Warn("" +
+				"Attempting to report metadata for invalid FileID 0." +
+				" This is likely a mistake and will be discarded.",
+			)
 			continue
 		}
 
@@ -500,8 +502,7 @@ func (e *ElasticCollector) AddFallbackSymbols(ctx context.Context,
 			},
 		})
 		if err != nil {
-			//log.With(log.Labels{"grpc_method": "AddFallbackSymbols"}).
-			//	Errorf("Elasticsearch indexing error: %v", err)
+			e.logger.With(logp.Error(err)).Error("Elasticsearch indexing error")
 			return nil, errCustomer
 		}
 	}
