@@ -79,6 +79,14 @@ func TestProfiling(t *testing.T) {
 					"elasticsearch": map[string]interface{}{
 						"api_key": apiKey.ID + ":" + apiKey.APIKey,
 					},
+					// A separate elasticsearch configuration is required
+					// for host agent metrics. In practice this would likely
+					// be a different cluster, with a different API Key,
+					// but we're not going to those lengths for a system test.
+					"metrics.elasticsearch": map[string]interface{}{
+						"hosts":   []string{"elasticsearch:9200"},
+						"api_key": apiKey.ID + ":" + apiKey.APIKey,
+					},
 				},
 			},
 		},
@@ -152,4 +160,14 @@ func TestProfiling(t *testing.T) {
 	// when the index hasn't yet been created.
 	result = systemtest.Elasticsearch.ExpectDocs(t, "profiling-events-all*", nil)
 	systemtest.ApproveEvents(t, t.Name()+"/events", result.Hits.Hits)
+
+	_, err = client.AddMetrics(ctx, &profiling.Metrics{
+		TsMetrics: []*profiling.TsMetric{
+			{Timestamp: 111, IDs: []uint32{0 /* should be omitted */, 1, 2}, Values: []int64{3, 4, 5}},
+			{Timestamp: 222, IDs: []uint32{6, 7, 8}, Values: []int64{0 /* should be omitted */, 9, 10}},
+		},
+	})
+	require.NoError(t, err)
+	result = systemtest.Elasticsearch.ExpectMinDocs(t, 2, "profiling-metrics*", nil)
+	systemtest.ApproveEvents(t, t.Name()+"/metrics", result.Hits.Hits)
 }

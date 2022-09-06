@@ -68,10 +68,6 @@ func (c *ProfilingConfig) Unpack(in *config.C) error {
 		var ucfgError ucfg.Error
 		if !errors.As(err, &ucfgError) || ucfgError.Reason() != ucfg.ErrMissing {
 			return err
-		} else {
-			// `apm-server.profiling.metrics.elasticsearch` was not specified,
-			// so use `apm-server.profiling.elasticsearch`.
-			c.metricsES = c.es
 		}
 	}
 
@@ -79,6 +75,12 @@ func (c *ProfilingConfig) Unpack(in *config.C) error {
 }
 
 func (c *ProfilingConfig) Validate() error {
+	if !c.Enabled {
+		return nil
+	}
+	if c.metricsES == nil {
+		return errors.New("missing required field 'apm-server.profiling.metrics.elasticsearch'")
+	}
 	return nil
 }
 
@@ -96,9 +98,9 @@ func (c *ProfilingConfig) setup(log *logp.Logger, outputESCfg *config.C) error {
 		if err := outputESCfg.Unpack(&c.ESConfig); err != nil {
 			return errors.Wrap(err, "error unpacking output.elasticsearch config for profiling event collection")
 		}
-		if err := outputESCfg.Unpack(&c.MetricsESConfig); err != nil {
-			return errors.Wrap(err, "error unpacking output.elasticsearch config for profiling host agent metrics collection")
-		}
+		// NOTE(axw) we intentionally do not unpack `output.elasticsearch`
+		// into `apm-server.profiling.metrics.elasticsearch`, as host agent
+		// metrics are expected to go to a separate cluster.
 	}
 	if c.es != nil {
 		if err := c.es.Unpack(&c.ESConfig); err != nil {

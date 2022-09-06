@@ -614,10 +614,13 @@ func TestAgentConfigs(t *testing.T) {
 
 func TestNewConfig_ESConfig(t *testing.T) {
 	ucfg, err := config.NewConfigFrom(`{
-		"rum.enabled":true,
-		"auth.api_key.enabled":true,
-		"sampling.tail.policies":[{"sample_rate": 0.5}],
-		"profiling.enabled":true,
+		"rum.enabled": true,
+		"auth.api_key.enabled": true,
+		"sampling.tail.policies": [{"sample_rate": 0.5}],
+		"profiling": {
+		  "enabled": true,
+		  "metrics.elasticsearch": {},
+		},
 	}`)
 	require.NoError(t, err)
 
@@ -639,7 +642,7 @@ func TestNewConfig_ESConfig(t *testing.T) {
 	assert.Equal(t, []string{"192.0.0.168:9200"}, []string(cfg.AgentAuth.APIKey.ESConfig.Hosts))
 	assert.Equal(t, []string{"192.0.0.168:9200"}, []string(cfg.Sampling.Tail.ESConfig.Hosts))
 	assert.Equal(t, []string{"192.0.0.168:9200"}, []string(cfg.Profiling.ESConfig.Hosts))
-	assert.Equal(t, []string{"192.0.0.168:9200"}, []string(cfg.Profiling.MetricsESConfig.Hosts))
+	assert.NotEqual(t, []string{"192.0.0.168:9200"}, []string(cfg.Profiling.MetricsESConfig.Hosts))
 }
 
 func newBool(v bool) *bool {
