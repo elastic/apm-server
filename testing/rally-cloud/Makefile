@@ -4,6 +4,8 @@ APM_SERVER_VERSION=$(shell $(MAKE) -C $(ROOT_DIR) get-version)
 APM_INTEGRATION_PKG_PATH=$(ROOT_DIR)/build/packages/apm-$(APM_SERVER_VERSION).zip
 RALLY_GENCORPORA_REPLAY_COUNT?=10
 
+include $(ROOT_DIR)/go.mk
+
 .PHONY: init
 init:
 	@terraform init
