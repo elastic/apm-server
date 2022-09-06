@@ -1,8 +1,14 @@
-# APM Server-Testing
+# APM Server Testing
+
+## Building APM Server
+
+APM Server can be built using `make apm-server`, which will build the apm-server binary for the host system.
+
+`make apm-server` will build using the same flags as used in distributed artifacts, which includes stripping
+debug symbols. If you wish to run APM Server under a debugger such as [`delve`](https://github.com/go-delve/delve),
+you should build APM Server directly: `go build -o apm-server ./x-pack/apm-server`.
 
 ## Automated Testing
-
-The tests are built on top of the [Beats Test Framework](https://github.com/elastic/beats/blob/main/docs/devguide/testing.asciidoc), where you can find a detailed description on how to run the test suite.
 
 ### Quick Overview
 
@@ -13,10 +19,9 @@ To run the system tests locally, you can run `go test` inside the systemtest dir
 
 ## Snapshot-Testing
 
-Some tests make use of the concept of _snapshot_ or _approvals testing_. If running tests leads to changed snapshots, you can use the `approvals` tool to update the snapshots.
-Following workflow is intended:
+Some tests make use of the concept of _snapshot_ or _approvals testing_. If running tests leads to changed snapshots,
+you can run the `approvals` tool to update the snapshots. The following workflow is intended:
 
-* Run `make update` to create the `approvals` binary that supports reviewing changes.
 * Run `make test`, which will create a `*.received.json` file for every newly created or changed snapshot.
 * Run `make check-approvals` to review and interactively accept the changes.
 
@@ -28,39 +33,33 @@ To run simple benchmark tests, run:
 make bench
 ```
 
-A good way to present your results is by using `benchcmp`.
+A good way to present your results is by using `benchstat`.
 With your changes in the current working tree, do:
 
 ```
-$ go get -u golang.org/x/tools/cmd/benchcmp
+$ go install golang.org/x/tools/cmd/benchstat@latest
 $ make bench > new.txt
 $ git checkout main
 $ make bench > old.txt
-$ benchcmp old.txt new.txt
+$ benchstat old.txt new.txt
 ```
 
 ## Macro Benchmarking
 
-The macro benchmarking focuses on measuring the APM Server's performance (throughput) and how changes in the
+Macro benchmarking focuses on measuring the APM Server's performance (throughput) and how changes in the
 codebase impact that performance.
 
-Our legacy benchmarking leverages [Hey APM](https://github.com/elastic/hey-apm) to run daily benchmarks that
-aim to measure the overal APM Server's throughput covering a variety of cases, all of which are generated with
-the APM Go agent at the same time the benchmark is executed, limitting the complexity and variety of data that
-is generated for the benchmark scenarios. The results of these benchmarks are then indexed into Elasticsearch
-weekly reports that compare the current results against the last week, month and 3 months are reported in Slack.
-
-The new benchmarking framework using [`apmbench`](systemtest/cmd/apmbench) uses pre-recorded APM Agent events
-for the benchmarks. This allows us to generate richer event which can be used to assess the Server's throughput.
-The [APM Integration testing](https://github.com/elastic/apm-integration-testing) is used to generate the events,
-and [`intake-receiver`](cmd/intake-receiver/README.md) will capture the events that are sent to the intake API.
-`apmbench` will also generate additional metrics compared to Hey APM, allowing for better understanding of where
-any potential bottlenecks may be, and how APM Server consumes the available resources.
+Our benchmarking tool, [`apmbench`](systemtest/cmd/apmbench), uses pre-recorded APM Agent events for the benchmarks.
+This allows us to generate rich events which can be used to assess the Server's throughput under varying loads.
+The [APM Integration testing](https://github.com/elastic/apm-integration-testing) framework was used to generate
+the events, and [`intake-receiver`](cmd/intake-receiver/README.md) will capture the events that are sent to the
+intake API. `apmbench` will records various metrics for understanding where any potential bottlenecks may be, and
+how APM Server consumes the available resources.
 
 _TODO(marclop): convert the dot diagrams from dot to mermaid so they can be read in Markdown documents_
 
-The applications that are used to generate the stored traces, may not always use the `apm-integration-testing`,
-instead, we may want to write specific applications that generate a specific type of events, rather than re-use
+The applications that are used to generate the stored traces may not always use the `apm-integration-testing`.
+Instead, we may want to write specific applications that generate a specific type of events, rather than re-use
 the existing [opbeans applications](https://github.com/elastic?q=opbeans&type=all).
 
 ### Re-generate captured events
