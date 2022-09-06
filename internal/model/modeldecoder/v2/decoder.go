@@ -844,13 +844,10 @@ func mapToSpanModel(from *span, event *model.APMEvent) {
 	// map span specific data
 	if !from.Action.IsSet() && !from.Subtype.IsSet() {
 		sep := "."
-		typ := strings.Split(from.Type.Val, sep)
-		out.Type = typ[0]
-		if len(typ) > 1 {
-			out.Subtype = typ[1]
-			if len(typ) > 2 {
-				out.Action = strings.Join(typ[2:], sep)
-			}
+		before, after, ok := strings.Cut(from.Type.Val, sep)
+		out.Type = before
+		if ok {
+			out.Subtype, out.Action, _ = strings.Cut(after, sep)
 		}
 	} else {
 		if from.Action.IsSet() {
