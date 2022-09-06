@@ -139,7 +139,7 @@ resource "local_file" "shard_settings" {
 }
 
 resource "local_file" "custom_apm_integration_pkg" {
-  count = var.install_custom_apm_integration_pkg ? 1 : 0
+  count = var.custom_apm_integration_pkg_path != "" ? 1 : 0
   content = templatefile("${path.module}/scripts/custom-apm-integration-pkg.tftpl", {
     kibana_url       = ec_deployment.deployment.kibana.0.https_endpoint,
     elastic_password = ec_deployment.deployment.elasticsearch_password,
@@ -187,7 +187,7 @@ resource "null_resource" "shard_settings" {
 }
 
 resource "null_resource" "custom_apm_integration_pkg" {
-  count = var.install_custom_apm_integration_pkg ? 1 : 0
+  count = var.custom_apm_integration_pkg_path != "" ? 1 : 0
   triggers = {
     deployment_id = ec_deployment.deployment.id
     pkg_update    = filesha256(var.custom_apm_integration_pkg_path)

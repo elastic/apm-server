@@ -126,14 +126,8 @@ variable "apm_index_shards" {
 
 # Install custom APM integration package
 
-variable "install_custom_apm_integration_pkg" {
-  type = bool
-  description = "Whether or not to install a custom APM integration package"
-  default = false
-}
-
 variable "custom_apm_integration_pkg_path" {
   type = string
-  description = "Path to the zipped custom APM integration package"
+  description = "Path to the zipped custom APM integration package, if empty custom apm integration pkg is not installed"
   default = ""
 }

@@ -28,15 +28,9 @@ variable "elasticsearch_zone_count" {
   default     = 1
 }
 
-variable "install_custom_apm_integration_pkg" {
-  type        = bool
-  description = "Whether or not to install a custom APM integration package"
-  default     = true
-}
-
 variable "custom_apm_integration_pkg_path" {
   type        = string
-  description = "Path to the zipped custom APM integration package"
+  description = "Path to the zipped custom APM integration package, if empty custom apm integration pkg is not installed"
 }
 
 variable "gcp_project" {

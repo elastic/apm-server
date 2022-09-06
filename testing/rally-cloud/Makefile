@@ -12,7 +12,6 @@ init:
 plan:
 	@terraform plan \
 		-var 'rally_workers_resource_prefix=$(USER_NAME)' \
-		-var 'install_custom_apm_integration_pkg=true' \
 		-var 'custom_apm_integration_pkg_path=$(APM_INTEGRATION_PKG_PATH)'
 
 .PHONY: apply
@@ -20,14 +19,12 @@ apply: rally/corpora
 	$(MAKE) -C $(ROOT_DIR) build-package
 	@terraform apply -auto-approve \
 		-var 'rally_workers_resource_prefix=$(USER_NAME)' \
-		-var 'install_custom_apm_integration_pkg=true' \
 		-var 'custom_apm_integration_pkg_path=$(APM_INTEGRATION_PKG_PATH)'
 
 .PHONY: destroy
 destroy:
 	@terraform destroy -auto-approve \
 		-var 'rally_workers_resource_prefix=$(USER_NAME)' \
-		-var 'install_custom_apm_integration_pkg=true' \
 		-var 'custom_apm_integration_pkg_path=$(APM_INTEGRATION_PKG_PATH)'
 
 # Generate corpora to be used in cloud testing using rally-cloud tf script

@@ -29,7 +29,6 @@ module "ec_deployment" {
   elasticsearch_size       = var.elasticsearch_size
   elasticsearch_zone_count = var.elasticsearch_zone_count
 
-  install_custom_apm_integration_pkg = var.install_custom_apm_integration_pkg
   custom_apm_integration_pkg_path    = var.custom_apm_integration_pkg_path
 }
 
