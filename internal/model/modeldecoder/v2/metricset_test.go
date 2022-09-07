@@ -146,7 +146,7 @@ func TestDecodeMapToMetricsetModel(t *testing.T) {
 				},
 			},
 		}
-		assert.Equal(t, defaultSamples, out1.Metricset.Samples)
+		assert.ElementsMatch(t, defaultSamples, out1.Metricset.Samples)
 
 		// leave Timestamp unmodified if eventTime is zero
 		out1.Timestamp = now
