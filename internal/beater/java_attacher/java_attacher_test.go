@@ -18,11 +18,8 @@
 package javaattacher
 
 import (
-	"context"
 	"os"
-	"path/filepath"
 	"regexp"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -37,37 +34,6 @@ func TestNoAttacherCreatedWithoutDiscoveryRules(t *testing.T) {
 	}
 	_, err := New(cfg)
 	require.Error(t, err)
-}
-
-func TestBuild(t *testing.T) {
-	cfg := createTestConfig()
-	f, err := os.Create(javaAttacher)
-	require.NoError(t, err)
-	//goland:noinspection GoUnhandledErrorResult
-	defer os.Remove(f.Name())
-
-	attacher, err := New(cfg)
-	require.NoError(t, err)
-
-	jvm := &jvmDetails{
-		pid:     12345,
-		command: filepath.FromSlash("/home/someuser/java_home/bin/java"),
-	}
-	cmd := attacher.attachJVMCommand(context.Background(), jvm)
-	want := filepath.FromSlash("/home/someuser/java_home/bin/java -jar ./java-attacher.jar") +
-		" --log-level debug --include-pid 12345 --download-agent-version 1.27.0 --config server_url=http://myhost:8200"
-
-	cmdArgs := strings.Join(cmd.Args, " ")
-	assert.Equal(t, want, cmdArgs)
-
-	cfg.Config["service_name"] = "my-cool-service"
-	attacher, err = New(cfg)
-	require.NoError(t, err)
-
-	cmd = attacher.attachJVMCommand(context.Background(), jvm)
-	cmdArgs = strings.Join(cmd.Args, " ")
-	assert.Contains(t, cmdArgs, "--config server_url=http://myhost:8200")
-	assert.Contains(t, cmdArgs, "--config service_name=my-cool-service")
 }
 
 func createTestConfig() config.JavaAttacherConfig {
@@ -99,12 +65,12 @@ func TestDiscoveryRulesAllowlist(t *testing.T) {
 		Enabled:        true,
 		DiscoveryRules: args,
 	}
-	f, err := os.Create(javaAttacher)
+	f, err := os.Create(bundledJavaAttacher)
 	require.NoError(t, err)
-	//goland:noinspection GoUnhandledErrorResult
 	defer os.Remove(f.Name())
 	javaAttacher, err := New(cfg)
 	require.NoError(t, err)
+	defer javaAttacher.cleanResources()
 	discoveryRules := javaAttacher.discoveryRules
 	require.Len(t, discoveryRules, allowlistLength)
 }
@@ -125,12 +91,12 @@ func TestConfig(t *testing.T) {
 		},
 		DownloadAgentVersion: "1.25.0",
 	}
-	f, err := os.Create(javaAttacher)
+	f, err := os.Create(bundledJavaAttacher)
 	require.NoError(t, err)
-	//goland:noinspection GoUnhandledErrorResult
 	defer os.Remove(f.Name())
 	javaAttacher, err := New(cfg)
 	require.NoError(t, err)
+	defer javaAttacher.cleanResources()
 	require.True(t, javaAttacher.enabled)
 	require.Equal(t, "http://localhost:8200", javaAttacher.agentConfigs["server_url"])
 	require.Equal(t, "1.25.0", javaAttacher.downloadAgentVersion)
@@ -180,4 +146,10 @@ func TestConfig(t *testing.T) {
 	require.True(t, match.include())
 	javaAttacher.discoveryRules[4] = &userDiscoveryRule{}
 	require.Nil(t, javaAttacher.findFirstMatch(&jvmDetails))
+}
+
+func TestJavaCommandNormalization(t *testing.T) {
+	javaBin := "java_home/bin/"
+	assert.Equal(t, javaBin+javaExe, normalizeJavaCommand(javaBin+javaExe))
+	assert.Equal(t, javaBin+javaExe, normalizeJavaCommand(javaBin+javawExe))
 }

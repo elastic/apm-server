@@ -25,3 +25,13 @@ func (j *JavaAttacher) setRunAsUser(_ *jvmDetails, _ *exec.Cmd) error {
 	// See https://github.com/golang/go/issues/21105 for possible Windows alternative
 	return nil
 }
+
+// getAttacherJar finds an attacher jar based on the given uid.
+// In Windows that would always be the bundled attacher jar.
+func (j *JavaAttacher) getAttacherJar(uid string) string {
+	return bundledJavaAttacher
+}
+
+func (j *JavaAttacher) cleanResources() {
+	// nothing to do in Windows
+}
