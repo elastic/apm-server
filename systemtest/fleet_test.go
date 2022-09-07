@@ -144,10 +144,10 @@ func TestFleetIntegrationAnonymousAuth(t *testing.T) {
 }
 
 func TestFleetPackageNonMultiple(t *testing.T) {
-	agentPolicy, _ := systemtest.CreateAgentPolicy(t, "apm_systemtest", "default", nil)
+	agentPolicy, _ := systemtest.CreateAgentPolicy(t, "apm_systemtest", "default", nil, nil)
 
 	// Attempting to add the "apm" integration to the agent policy twice should fail.
-	packagePolicy := systemtest.NewPackagePolicy(agentPolicy, nil)
+	packagePolicy := systemtest.NewPackagePolicy(agentPolicy, nil, nil)
 	packagePolicy.Name = "apm-2"
 	err := systemtest.Fleet.CreatePackagePolicy(packagePolicy)
 	require.Error(t, err)
@@ -157,8 +157,12 @@ func TestFleetPackageNonMultiple(t *testing.T) {
 // newAPMIntegration creates a new agent policy and assigns the APM integration
 // with the provided config vars.
 func newAPMIntegration(t testing.TB, vars map[string]interface{}) apmIntegration {
+	return newAPMIntegrationConfig(t, vars, nil)
+}
+
+func newAPMIntegrationConfig(t testing.TB, vars, config map[string]interface{}) apmIntegration {
 	policyName := fmt.Sprintf("apm_systemtest_%d", atomic.AddInt64(&apmIntegrationCounter, 1))
-	_, enrollmentAPIKey := systemtest.CreateAgentPolicy(t, policyName, "default", vars)
+	_, enrollmentAPIKey := systemtest.CreateAgentPolicy(t, policyName, "default", vars, config)
 
 	// Enroll an elastic-agent to run the APM integration.
 	var output bytes.Buffer
