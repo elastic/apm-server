@@ -382,6 +382,9 @@ func (j *JavaAttacher) attachJVM(ctx context.Context, jvm *jvmDetails) error {
 func (j *JavaAttacher) attachJVMCommand(ctx context.Context, jvm *jvmDetails) *exec.Cmd {
 	attacherJar := j.getAttacherJar(jvm.uid)
 	if attacherJar == "" {
+		// If the attacher jar is empty, this means there was an error while
+		// attempting to copy the jar to a temporary directory. In this case
+		// we should return nil, which will cause attachJVM to skip the process.
 		return nil
 	}
 	args := []string{
