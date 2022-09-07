@@ -1,0 +1,15 @@
+{
+    "events": [
+        {
+            "@timestamp": 123,
+            "Stacktrace.count": 3,
+            "Stacktrace.id": "AAAAAAAAAAEAAAAAAAAAAg",
+            "container.name": "container",
+            "ecs.version": "1.12.0",
+            "host.id": 11256099,
+            "orchestrator.resource.name": "pod",
+            "process.thread.name": "comm",
+            "service.name": 123
+        }
+    ]
+}

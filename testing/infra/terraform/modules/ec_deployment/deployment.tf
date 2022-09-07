@@ -24,6 +24,14 @@ resource "ec_deployment" "deployment" {
       size       = var.elasticsearch_size
       zone_count = var.elasticsearch_zone_count
     }
+    dynamic "topology" {
+      for_each = var.elasticsearch_dedicated_masters ? [3] : []
+      content {
+        id         = "master"
+        size       = "1g"
+        zone_count = topology.value # Dedicated masters always need to be set in all zones
+      }
+    }
     dynamic "config" {
       for_each = var.docker_image_tag_override["elasticsearch"] != "" ? [var.docker_image["elasticsearch"]] : []
       content {
@@ -130,6 +138,16 @@ resource "local_file" "shard_settings" {
   filename = "${path.module}/scripts/index_shards.sh"
 }
 
+resource "local_file" "custom_apm_integration_pkg" {
+  count = var.custom_apm_integration_pkg_path != "" ? 1 : 0
+  content = templatefile("${path.module}/scripts/custom-apm-integration-pkg.tftpl", {
+    kibana_url       = ec_deployment.deployment.kibana.0.https_endpoint,
+    elastic_password = ec_deployment.deployment.elasticsearch_password,
+    custom_apm_integration_pkg_path = var.custom_apm_integration_pkg_path,
+  })
+  filename = "${path.module}/scripts/custom-apm-integration-pkg.sh"
+}
+
 resource "null_resource" "enable_expvar" {
   triggers = {
     shell_hash          = local_file.enable_expvar.id
@@ -163,6 +181,19 @@ resource "null_resource" "shard_settings" {
   }
   provisioner "local-exec" {
     command     = "scripts/index_shards.sh"
+    interpreter = ["/bin/bash", "-c"]
+    working_dir = path.module
+  }
+}
+
+resource "null_resource" "custom_apm_integration_pkg" {
+  count = var.custom_apm_integration_pkg_path != "" ? 1 : 0
+  triggers = {
+    deployment_id = ec_deployment.deployment.id
+    pkg_update    = filesha256(var.custom_apm_integration_pkg_path)
+  }
+  provisioner "local-exec" {
+    command     = "scripts/custom-apm-integration-pkg.sh"
     interpreter = ["/bin/bash", "-c"]
     working_dir = path.module
   }

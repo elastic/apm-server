@@ -18,10 +18,12 @@
 package config
 
 import (
+	"go/token"
 	"path/filepath"
 	"testing"
 	"time"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -159,8 +161,13 @@ func TestUnpackConfig(t *testing.T) {
 					"service_destinations": map[string]interface{}{
 						"max_groups": 456,
 					},
+					"service": map[string]interface{}{
+						"max_groups": 457,
+					},
 				},
-				"default_service_environment": "overridden",
+				"default_service_environment":             "overridden",
+				"profiling.enabled":                       true,
+				"profiling.metrics.elasticsearch.api_key": "metrics_api_key",
 			},
 			outCfg: &Config{
 				Host:                  "localhost:3000",
@@ -250,6 +257,10 @@ func TestUnpackConfig(t *testing.T) {
 						Interval:  time.Minute,
 						MaxGroups: 456,
 					},
+					Service: ServiceAggregationConfig{
+						Interval:  time.Minute,
+						MaxGroups: 457,
+					},
 				},
 				Sampling: SamplingConfig{
 					Tail: TailSamplingConfig{
@@ -269,6 +280,14 @@ func TestUnpackConfig(t *testing.T) {
 					WaitForIntegration: true,
 				},
 				WaitReadyInterval: 5 * time.Second,
+				Profiling: ProfilingConfig{
+					Enabled:  true,
+					ESConfig: elasticsearch.DefaultConfig(),
+					MetricsESConfig: elasticsearchConfigWithAPIKey(
+						elasticsearch.DefaultConfig(),
+						"metrics_api_key",
+					),
+				},
 			},
 		},
 		"merge config with default": {
@@ -401,6 +420,10 @@ func TestUnpackConfig(t *testing.T) {
 						Interval:  time.Minute,
 						MaxGroups: 10000,
 					},
+					Service: ServiceAggregationConfig{
+						Interval:  time.Minute,
+						MaxGroups: 10000,
+					},
 				},
 				Sampling: SamplingConfig{
 					Tail: TailSamplingConfig{
@@ -420,6 +443,11 @@ func TestUnpackConfig(t *testing.T) {
 					WaitForIntegration: false,
 				},
 				WaitReadyInterval: 5 * time.Second,
+				Profiling: ProfilingConfig{
+					Enabled:         false,
+					ESConfig:        elasticsearch.DefaultConfig(),
+					MetricsESConfig: elasticsearch.DefaultConfig(),
+				},
 			},
 		},
 		"kibana trailing slash": {
@@ -467,7 +495,10 @@ func TestUnpackConfig(t *testing.T) {
 			require.NoError(t, err)
 			require.NotNil(t, cfg)
 
-			assert.Equal(t, test.outCfg, cfg)
+			// Config should match exactly, with the exception of unexported fields.
+			if diff := cmp.Diff(test.outCfg, cfg, ignoreUnexported()); diff != "" {
+				t.Error(diff)
+			}
 		})
 	}
 }
@@ -583,9 +614,13 @@ func TestAgentConfigs(t *testing.T) {
 
 func TestNewConfig_ESConfig(t *testing.T) {
 	ucfg, err := config.NewConfigFrom(`{
-		"rum.enabled":true,
-		"auth.api_key.enabled":true,
-		"sampling.tail.policies":[{"sample_rate": 0.5}],
+		"rum.enabled": true,
+		"auth.api_key.enabled": true,
+		"sampling.tail.policies": [{"sample_rate": 0.5}],
+		"profiling": {
+		  "enabled": true,
+		  "metrics.elasticsearch": {},
+		},
 	}`)
 	require.NoError(t, err)
 
@@ -595,6 +630,8 @@ func TestNewConfig_ESConfig(t *testing.T) {
 	assert.Equal(t, elasticsearch.DefaultConfig(), cfg.RumConfig.SourceMapping.ESConfig)
 	assert.Equal(t, elasticsearch.DefaultConfig(), cfg.AgentAuth.APIKey.ESConfig)
 	assert.Equal(t, elasticsearch.DefaultConfig(), cfg.Sampling.Tail.ESConfig)
+	assert.Equal(t, elasticsearch.DefaultConfig(), cfg.Profiling.ESConfig)
+	assert.Equal(t, elasticsearch.DefaultConfig(), cfg.Profiling.MetricsESConfig)
 
 	// with es config
 	outputESCfg := config.MustNewConfigFrom(`{"hosts":["192.0.0.168:9200"]}`)
@@ -602,12 +639,28 @@ func TestNewConfig_ESConfig(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, cfg.RumConfig.SourceMapping.ESConfig)
 	assert.Equal(t, []string{"192.0.0.168:9200"}, []string(cfg.RumConfig.SourceMapping.ESConfig.Hosts))
-	assert.NotNil(t, cfg.AgentAuth.APIKey.ESConfig)
 	assert.Equal(t, []string{"192.0.0.168:9200"}, []string(cfg.AgentAuth.APIKey.ESConfig.Hosts))
-	assert.NotNil(t, cfg.Sampling.Tail.ESConfig)
 	assert.Equal(t, []string{"192.0.0.168:9200"}, []string(cfg.Sampling.Tail.ESConfig.Hosts))
+	assert.Equal(t, []string{"192.0.0.168:9200"}, []string(cfg.Profiling.ESConfig.Hosts))
+	assert.NotEqual(t, []string{"192.0.0.168:9200"}, []string(cfg.Profiling.MetricsESConfig.Hosts))
 }
 
 func newBool(v bool) *bool {
 	return &v
+}
+
+func elasticsearchConfigWithAPIKey(in *elasticsearch.Config, apiKey string) *elasticsearch.Config {
+	out := *in
+	out.APIKey = apiKey
+	return &out
+}
+
+func ignoreUnexported() cmp.Option {
+	return cmp.FilterPath(func(p cmp.Path) bool {
+		field, ok := p.Index(-1).(cmp.StructField)
+		if !ok {
+			return false
+		}
+		return !token.IsExported(field.Name())
+	}, cmp.Ignore())
 }

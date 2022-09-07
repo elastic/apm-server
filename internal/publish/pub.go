@@ -138,7 +138,9 @@ func (p *Publisher) Stop(ctx context.Context) error {
 // ProcessBatch transforms batch to beat.Events, and sends them to the libbeat
 // publishing pipeline.
 func (p *Publisher) ProcessBatch(ctx context.Context, batch *model.Batch) error {
-	return p.Send(ctx, PendingReq{Transformable: batch})
+	b := make(model.Batch, len(*batch))
+	copy(b, *batch)
+	return p.Send(ctx, PendingReq{Transformable: &b})
 }
 
 // Send tries to forward pendingReq to the publishers worker. If the queue is full,

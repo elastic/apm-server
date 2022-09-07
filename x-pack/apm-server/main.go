@@ -8,6 +8,7 @@ import (
 	"context"
 	"os"
 	"sync"
+	"time"
 
 	"github.com/dgraph-io/badger/v2"
 	"github.com/hashicorp/go-multierror"
@@ -19,9 +20,13 @@ import (
 	"github.com/elastic/elastic-agent-libs/paths"
 
 	"github.com/elastic/apm-server/internal/beater"
+	"github.com/elastic/apm-server/internal/elasticsearch"
 	"github.com/elastic/apm-server/internal/model"
+	"github.com/elastic/apm-server/internal/model/modelprocessor"
+	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/servicemetrics"
 	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/spanmetrics"
 	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/txmetrics"
+	"github.com/elastic/apm-server/x-pack/apm-server/profiling"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage"
 )
@@ -86,6 +91,21 @@ func newProcessors(args beater.ServerParams) ([]namedProcessor, error) {
 		return nil, errors.Wrapf(err, "error creating %s", spanName)
 	}
 	processors = append(processors, namedProcessor{name: spanName, processor: spanAggregator})
+
+	if args.Config.Aggregation.Service.Enabled {
+		const serviceName = "service metrics aggregation"
+		args.Logger.Infof("creating %s with config: %+v", serviceName, args.Config.Aggregation.Service)
+		serviceAggregator, err := servicemetrics.NewAggregator(servicemetrics.AggregatorConfig{
+			BatchProcessor: args.BatchProcessor,
+			Interval:       args.Config.Aggregation.Service.Interval,
+			MaxGroups:      args.Config.Aggregation.Service.MaxGroups,
+		})
+		if err != nil {
+			return nil, errors.Wrapf(err, "error creating %s", spanName)
+		}
+		processors = append(processors, namedProcessor{name: spanName, processor: serviceAggregator})
+	}
+
 	if args.Config.Sampling.Tail.Enabled {
 		const name = "tail sampler"
 		sampler, err := newTailSamplingProcessor(args)
@@ -187,12 +207,6 @@ func runServerWithProcessors(ctx context.Context, runServer beater.RunServerFunc
 		return runServer(ctx, args)
 	}
 
-	batchProcessors := make([]model.BatchProcessor, len(processors))
-	for i, p := range processors {
-		batchProcessors[i] = p
-	}
-	runServer = beater.WrapRunServerWithProcessors(runServer, batchProcessors...)
-
 	g, ctx := errgroup.WithContext(ctx)
 	serverStopped := make(chan struct{})
 	for _, p := range processors {
@@ -225,14 +239,84 @@ func runServerWithProcessors(ctx context.Context, runServer beater.RunServerFunc
 	return g.Wait()
 }
 
-func wrapRunServer(runServer beater.RunServerFunc) beater.RunServerFunc {
-	return func(ctx context.Context, args beater.ServerParams) error {
-		processors, err := newProcessors(args)
-		if err != nil {
-			return err
+func newProfilingCollector(args beater.ServerParams) (*profiling.ElasticCollector, func(context.Context) error, error) {
+	// Elasticsearch should default to 100 MB for the http.max_content_length configuration,
+	// so we flush the buffer when at 16 MiB or every 4 seconds.
+	// This should reduce the lock contention between multiple workers trying to write or flush
+	// the bulk indexer buffer.
+	bulkIndexerConfig := elasticsearch.BulkIndexerConfig{
+		FlushBytes:    1 << 24,
+		FlushInterval: 4 * time.Second,
+	}
+
+	client, err := args.NewElasticsearchClient(args.Config.Profiling.ESConfig)
+	if err != nil {
+		return nil, nil, err
+	}
+	indexer, err := client.NewBulkIndexer(bulkIndexerConfig)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	metricsClient, err := args.NewElasticsearchClient(args.Config.Profiling.MetricsESConfig)
+	if err != nil {
+		return nil, nil, err
+	}
+	metricsIndexer, err := metricsClient.NewBulkIndexer(bulkIndexerConfig)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	profilingCollector := profiling.NewCollector(
+		indexer,
+		metricsIndexer,
+		args.Logger.Named("profiling"),
+	)
+	cleanup := func(ctx context.Context) error {
+		var errors error
+		if indexer.Close(ctx); err != nil {
+			errors = multierror.Append(errors, err)
+		}
+		if metricsIndexer.Close(ctx); err != nil {
+			errors = multierror.Append(errors, err)
+		}
+		return errors
+	}
+	return profilingCollector, cleanup, nil
+}
+
+func wrapServer(args beater.ServerParams, runServer beater.RunServerFunc) (beater.ServerParams, beater.RunServerFunc, error) {
+	processors, err := newProcessors(args)
+	if err != nil {
+		return beater.ServerParams{}, nil, err
+	}
+
+	// Add the processors to the chain.
+	processorChain := make(modelprocessor.Chained, len(processors)+1)
+	for i, p := range processors {
+		processorChain[i] = p
+	}
+	processorChain[len(processors)] = args.BatchProcessor
+	args.BatchProcessor = processorChain
+
+	wrappedRunServer := func(ctx context.Context, args beater.ServerParams) error {
+		if args.Config.Profiling.Enabled {
+			profilingCollector, cleanup, err := newProfilingCollector(args)
+			if err != nil {
+				// Profiling support is in technical preview,
+				// so we'll treat errors as non-fatal for now.
+				args.Logger.With(logp.Error(err)).Error(
+					"failed to create profiling collector, continuing without profiling support",
+				)
+			} else {
+				defer cleanup(ctx)
+				profiling.RegisterCollectionAgentServer(args.GRPCServer, profilingCollector)
+				args.Logger.Info("registered profiling collection (technical preview)")
+			}
 		}
 		return runServerWithProcessors(ctx, runServer, args, processors...)
 	}
+	return args, wrappedRunServer, nil
 }
 
 // closeBadger is called at process exit time to close the badger.DB opened
@@ -265,7 +349,7 @@ func cleanup() (result error) {
 func Main() error {
 	rootCmd := newXPackRootCommand(
 		beater.NewCreator(beater.CreatorParams{
-			WrapRunServer: wrapRunServer,
+			WrapServer: wrapServer,
 		}),
 	)
 	result := rootCmd.Execute()

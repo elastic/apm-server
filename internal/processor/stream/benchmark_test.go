@@ -50,28 +50,23 @@ func BenchmarkRUMV3Processor(b *testing.B) {
 func benchmarkStreamProcessor(b *testing.B, processor *Processor, files []string) {
 	const batchSize = 10
 	batchProcessor := nopBatchProcessor{}
-	benchmark := func(b *testing.B, filename string) {
-		data, err := os.ReadFile(filename)
+
+	for _, f := range files {
+		data, err := os.ReadFile(f)
 		if err != nil {
 			b.Error(err)
 		}
 		r := bytes.NewReader(data)
-		b.ReportAllocs()
-		b.SetBytes(int64(len(data)))
-		b.ResetTimer()
-		for i := 0; i < b.N; i++ {
-			b.StopTimer()
-			r.Reset(data)
-			b.StartTimer()
 
-			var result Result
-			processor.HandleStream(context.Background(), model.APMEvent{}, r, batchSize, batchProcessor, &result)
-		}
-	}
-
-	for _, f := range files {
 		b.Run(filepath.Base(f), func(b *testing.B) {
-			benchmark(b, f)
+			b.ReportAllocs()
+			b.SetBytes(int64(len(data)))
+			for i := 0; i < b.N; i++ {
+				r.Seek(0, io.SeekStart)
+
+				var result Result
+				processor.HandleStream(context.Background(), model.APMEvent{}, r, batchSize, batchProcessor, &result)
+			}
 		})
 	}
 }
@@ -107,6 +102,54 @@ func benchmarkStreamProcessorParallel(b *testing.B, processor *Processor, files 
 					r.Seek(0, io.SeekStart)
 				}
 			})
+		})
+	}
+}
+
+func BenchmarkReadBatch(b *testing.B) {
+	const batchSize = 10
+	processor := BackendProcessor(Config{
+		MaxEventSize: 300 * 1024, // 300 kb
+		Semaphore:    make(chan struct{}, 200),
+	})
+
+	files, _ := filepath.Glob(filepath.FromSlash("../../../testdata/intake-v2/*.ndjson"))
+	for _, f := range files {
+		data, err := os.ReadFile(f)
+		if err != nil {
+			b.Fatal(err)
+		}
+
+		r := bytes.NewReader(data)
+
+		// We cannot rely on the sync.Pool for consistent
+		// behaviour so we get the stream reader once and
+		// reset it on every loop.
+		sr := processor.getStreamReader(r)
+
+		// Allocate a slice big enough to fit all
+		// the events so that we can avoid the
+		// overhead of resizing while reading.
+		batch := make(model.Batch, 0, 17)
+
+		b.Run(filepath.Base(f), func(b *testing.B) {
+			b.ReportAllocs()
+			b.SetBytes(int64(len(data)))
+
+			for i := 0; i < b.N; i++ {
+				baseEvent := model.APMEvent{}
+				processor.readMetadata(sr, &baseEvent)
+
+				var readErr error
+				for readErr != io.EOF {
+					// Reuse the slice
+					batch = batch[:0]
+					_, readErr = processor.readBatch(context.Background(), baseEvent, batchSize, &batch, sr, &Result{})
+				}
+
+				r.Seek(0, io.SeekStart)
+				sr.Reset(r)
+			}
 		})
 	}
 }
