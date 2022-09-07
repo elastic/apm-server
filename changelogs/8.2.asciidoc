@@ -12,7 +12,7 @@ https://github.com/elastic/apm-server/compare/8.1\...8.2[View commits]
 [[release-notes-8.2.3]]
 === APM version 8.2.3
 
-https://github.com/elastic/apm-server/compare/8.2.2\...8.2.3[View commits]
+https://github.com/elastic/apm-server/compare/v8.2.2\...v8.2.3[View commits]
 
 [float]
 ==== Bug fixes
@@ -22,7 +22,7 @@ https://github.com/elastic/apm-server/compare/8.2.2\...8.2.3[View commits]
 [[release-notes-8.2.2]]
 === APM version 8.2.2
 
-https://github.com/elastic/apm-server/compare/8.2.1\...8.2.2[View commits]
+https://github.com/elastic/apm-server/compare/v8.2.1\...v8.2.2[View commits]
 
 No significant changes.
 
@@ -30,7 +30,7 @@ No significant changes.
 [[release-notes-8.2.1]]
 === APM version 8.2.1
 
-https://github.com/elastic/apm-server/compare/8.2.0\...8.2.1[View commits]
+https://github.com/elastic/apm-server/compare/v8.2.0\...v8.2.1[View commits]
 
 [float]
 ==== Bug fixes
@@ -40,7 +40,7 @@ https://github.com/elastic/apm-server/compare/8.2.0\...8.2.1[View commits]
 [[release-notes-8.2.0]]
 === APM version 8.2.0
 
-https://github.com/elastic/apm-server/compare/8.1.3\...8.2.0[View commits]
+https://github.com/elastic/apm-server/compare/v8.1.3\...v8.2.0[View commits]
 
 [float]
 ==== Breaking Changes
