@@ -121,7 +121,7 @@ func Main() error {
 	if err != nil {
 		return err
 	}
-	packagePolicy := systemtest.NewPackagePolicy(agentPolicy, vars)
+	packagePolicy := systemtest.NewPackagePolicy(agentPolicy, vars, nil)
 	if err := systemtest.Fleet.CreatePackagePolicy(packagePolicy); err != nil {
 		return err
 	}

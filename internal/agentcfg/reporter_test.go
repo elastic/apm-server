@@ -51,9 +51,14 @@ func TestReportFetch(t *testing.T) {
 	query3 := Query{
 		Etag: "old-etag",
 	}
+	query4 := Query{
+		Etag:    "-",
+		Service: Service{Name: "non_matching"},
+	}
 	r.Fetch(ctx, query1)
 	r.Fetch(ctx, query2)
 	r.Fetch(ctx, query3)
+	r.Fetch(ctx, query4)
 	<-receivedc
 	<-receivedc
 	<-receivedc
@@ -98,6 +103,9 @@ func TestReportFetch(t *testing.T) {
 type fauxFetcher struct{}
 
 func (f fauxFetcher) Fetch(_ context.Context, q Query) (Result, error) {
+	if q.Service.Name == "non_matching" {
+		return Result{Source: Source{Etag: EtagSentinel}}, nil
+	}
 	if q.Etag == "old-etag" {
 		return Result{
 			Source: Source{

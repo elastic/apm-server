@@ -31,10 +31,11 @@ const (
 )
 
 var gencorporaConfig = struct {
-	CorporaPath  string
-	MetadataPath string
-	LoggingLevel zapcore.Level
-	ReplayCount  int
+	CorporaPath               string
+	MetadataPath              string
+	LoggingLevel              zapcore.Level
+	ReplayCount               int
+	OverrideMetaSourceRootDir string
 }{
 	CorporaPath:  filepath.Join(defaultDir, getCorporaPath(defaultFilePrefix)),
 	MetadataPath: filepath.Join(defaultDir, getMetaPath(defaultFilePrefix)),
@@ -66,6 +67,12 @@ func init() {
 		&gencorporaConfig.LoggingLevel,
 		"logging-level",
 		"Logging level for APM Server",
+	)
+	flag.StringVar(
+		&gencorporaConfig.OverrideMetaSourceRootDir,
+		"override-meta-source-rootdir",
+		"",
+		"Override the root dir used in the source field in generated metadata with the provided string",
 	)
 }
 
