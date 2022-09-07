@@ -123,3 +123,11 @@ variable "apm_index_shards" {
   description = "The number of shards to set for APM Indices"
   type        = number
 }
+
+# Install custom APM integration package
+
+variable "custom_apm_integration_pkg_path" {
+  type = string
+  description = "Path to the zipped custom APM integration package, if empty custom apm integration pkg is not installed"
+  default = ""
+}

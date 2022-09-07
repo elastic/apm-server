@@ -1,8 +1,3 @@
-output "elasticsearch_url" {
-  value       = ec_deployment.deployment.elasticsearch.0.https_endpoint
-  description = "The secure Elasticsearch URL"
-}
-
 output "kibana_url" {
   value       = ec_deployment.deployment.kibana.0.https_endpoint
   description = "The secure Kibana URL"
@@ -17,6 +12,15 @@ output "apm_secret_token" {
   value       = var.integrations_server ? data.external.secret_token.0.result.value : ec_deployment.deployment.apm_secret_token
   sensitive   = true
   description = "The APM Secret token"
+}
+
+output "elasticsearch_url" {
+  value       = ec_deployment.deployment.elasticsearch.0.https_endpoint
+  description = "The secure Elasticsearch URL"
+  depends_on = [
+    null_resource.shard_settings,
+    null_resource.custom_apm_integration_pkg,
+  ]
 }
 
 output "elasticsearch_username" {

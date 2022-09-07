@@ -29,6 +29,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v8/esutil"
@@ -126,6 +127,17 @@ func (s *CatBulkServer) metaWriter() error {
 		IncludedsActionAndMetadata: true,
 	}
 
+	// Overriding meta source root dir allows for creating corpora
+	// and metadata with a custom root dir. This option will mostly
+	// be useful for creating corpora to be used on remote setups.
+	if gencorporaConfig.OverrideMetaSourceRootDir != "" {
+		filename := filepath.Base(gencorporaConfig.CorporaPath)
+		metadata.SourceFile = filepath.Join(
+			gencorporaConfig.OverrideMetaSourceRootDir,
+			filename,
+		)
+	}
+
 	// update metadata as request is received by the server
 	for stat := range s.metaUpdateChan {
 		metadata.DocumentCount += stat.count
@@ -167,6 +179,7 @@ func handleReq(metaUpdateChan chan docsStat, writer io.Writer) http.HandlerFunc 
 					w.WriteHeader(http.StatusBadRequest)
 					return
 				}
+				defer reader.Close()
 			}
 
 			mockResp := esutil.BulkIndexerResponse{}

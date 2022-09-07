@@ -6,7 +6,7 @@ working tree), by pushing images to an internal Docker repository. The images wi
 off the SNAPSHOT images referenced in docker-compose.yml.
 
 Running `make` in this directory will build and push the images. You can then use Terraform
-to create the deployment with `EC_API_KEY=your_api_key terraform apply -auto-approve`.
+to create the deployment with `EC_API_KEY=your_api_key make apply`.
 
 The custom images are tagged with the current user (i.e. `$USER`) and a timestamp. The
 timestamp is included to force a new Docker image to be used, which enables pushing new
