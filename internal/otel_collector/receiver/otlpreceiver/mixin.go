@@ -16,6 +16,7 @@ package otlpreceiver
 
 import (
 	"context"
+	"mime/multipart"
 	"net/http"
 
 	"go.opentelemetry.io/otel/metric"
@@ -33,6 +34,8 @@ import (
 	"go.opentelemetry.io/collector/receiver/otlpreceiver/internal/metrics"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver/internal/trace"
 )
+
+type CtxMetaKey struct{}
 
 // TODO(axw) pass this into the Register*Receiver functions, so we can pass in a logger,
 // the apm-server version, etc.
@@ -97,4 +100,53 @@ func LogsHTTPHandler(ctx context.Context, consumer consumer.Logs) (http.HandlerF
 	return func(w http.ResponseWriter, r *http.Request) {
 		handleLogs(w, r, receiver, pbEncoder)
 	}, nil
+}
+
+type OTLPBodyExtractor func(*multipart.Reader) ([]byte, interface{}, error)
+
+func LogsWithMetadataHTTPHandler(
+	ctx context.Context,
+	consumer consumer.Logs,
+	bodyExtractor OTLPBodyExtractor,
+) (http.HandlerFunc, error) {
+	receiver := logs.New(config.NewComponentID("otlp"), consumer, settings)
+	return func(w http.ResponseWriter, r *http.Request) {
+		handleLogsMultipart(w, r, receiver, pbEncoder, bodyExtractor)
+	}, nil
+}
+
+func handleLogsMultipart(
+	resp http.ResponseWriter,
+	req *http.Request,
+	logsReceiver *logs.Receiver,
+	encoder encoder,
+	bodyExtractor OTLPBodyExtractor,
+) {
+	mreader, err := req.MultipartReader()
+	if err != nil {
+		writeError(resp, encoder, err, http.StatusBadRequest)
+		return
+	}
+	body, meta, err := bodyExtractor(mreader)
+	if err != nil {
+		writeError(resp, encoder, err, http.StatusBadRequest)
+		return
+	}
+	otlpReq, err := encoder.unmarshalLogsRequest(body)
+	if err != nil {
+		writeError(resp, encoder, err, http.StatusBadRequest)
+		return
+	}
+	metaCtx := context.WithValue(req.Context(), CtxMetaKey{}, meta)
+	otlpResp, err := logsReceiver.Export(metaCtx, otlpReq)
+	if err != nil {
+		writeError(resp, encoder, err, http.StatusInternalServerError)
+		return
+	}
+	msg, err := encoder.marshalLogsResponse(otlpResp)
+	if err != nil {
+		writeError(resp, encoder, err, http.StatusInternalServerError)
+		return
+	}
+	writeResponse(resp, encoder.contentType(), http.StatusOK, msg)
 }

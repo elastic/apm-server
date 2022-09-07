@@ -44,6 +44,7 @@ import (
 	apmserverlogs "github.com/elastic/apm-server/internal/logs"
 	"github.com/elastic/apm-server/internal/model"
 	"github.com/elastic/elastic-agent-libs/logp"
+	"go.opentelemetry.io/collector/receiver/otlpreceiver"
 )
 
 var jsonLogsMarshaler = plog.NewJSONMarshaler()
@@ -62,15 +63,18 @@ func (c *Consumer) ConsumeLogs(ctx context.Context, logs plog.Logs) error {
 	resourceLogs := logs.ResourceLogs()
 	batch := make(model.Batch, 0, resourceLogs.Len())
 	for i := 0; i < resourceLogs.Len(); i++ {
-		c.convertResourceLogs(resourceLogs.At(i), receiveTimestamp, &batch)
+		baseEvent, ok := ctx.Value(otlpreceiver.CtxMetaKey{}).(model.APMEvent)
+		if !ok {
+			baseEvent = model.APMEvent{Processor: model.LogProcessor}
+		}
+		c.convertResourceLogs(resourceLogs.At(i), receiveTimestamp, baseEvent, &batch)
 	}
 	return c.Processor.ProcessBatch(ctx, &batch)
 }
 
-func (c *Consumer) convertResourceLogs(resourceLogs plog.ResourceLogs, receiveTimestamp time.Time, out *model.Batch) {
+func (c *Consumer) convertResourceLogs(resourceLogs plog.ResourceLogs, receiveTimestamp time.Time, baseEvent model.APMEvent, out *model.Batch) {
 	var timeDelta time.Duration
 	resource := resourceLogs.Resource()
-	baseEvent := model.APMEvent{Processor: model.LogProcessor}
 	translateResourceMetadata(resource, &baseEvent)
 
 	if exportTimestamp, ok := exportTimestamp(resource); ok {

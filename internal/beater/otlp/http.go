@@ -19,12 +19,19 @@ package otlp
 
 import (
 	"context"
+	"io"
+	"io/ioutil"
+	"mime"
+	"mime/multipart"
+	"net/http"
 
 	"github.com/pkg/errors"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
 
 	"github.com/elastic/apm-server/internal/beater/request"
+	"github.com/elastic/apm-server/internal/decoder"
 	"github.com/elastic/apm-server/internal/model"
+	v2 "github.com/elastic/apm-server/internal/model/modeldecoder/v2"
 	"github.com/elastic/apm-server/internal/processor/otel"
 	"github.com/elastic/elastic-agent-libs/monitoring"
 )
@@ -59,13 +66,58 @@ func NewHTTPHandlers(processor model.BatchProcessor) (*otlpreceiver.HTTPHandlers
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create OTLP metrics receiver")
 	}
-	logsHandler, err := otlpreceiver.LogsHTTPHandler(context.Background(), consumer)
+	defaultLogsHandler, err := otlpreceiver.LogsHTTPHandler(context.Background(), consumer)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create OTLP logs receiver")
+	}
+	withMetaLogsHandler, err := otlpreceiver.LogsWithMetadataHTTPHandler(context.Background(), consumer, extractMetaAndOTLPBody)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create OTLP with metadata logs receiver")
 	}
 	return &otlpreceiver.HTTPHandlers{
 		TraceHandler:   tracesHandler,
 		MetricsHandler: metricsHandler,
-		LogsHandler:    logsHandler,
+		LogsHandler: func(w http.ResponseWriter, r *http.Request) {
+			mType, _, err := mime.ParseMediaType(r.Header.Get("Content-Type"))
+			if err != nil && mType == "multipart/form-data" {
+				withMetaLogsHandler(w, r)
+				return
+			}
+			defaultLogsHandler(w, r)
+		},
 	}, nil
+}
+
+func extractMetaAndOTLPBody(mreader *multipart.Reader) ([]byte, interface{}, error) {
+	var body []byte
+	baseEvent := model.APMEvent{Processor: model.LogProcessor}
+
+	for {
+		part, err := mreader.NextPart()
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return nil, baseEvent, err
+		}
+
+		switch part.FormName() {
+		case "metadata":
+			r := &decoder.LimitedReader{R: part, N: 10 * 1024}
+			dec := decoder.NewJSONDecoder(r)
+
+			if err := v2.DecodeMetadata(dec, &baseEvent); err != nil {
+				if r.N < 0 {
+					return nil, baseEvent, errors.Wrap(err, "metadata too large")
+				}
+				return nil, baseEvent, errors.Wrap(err, "invalid metadata")
+			}
+		case "otlp":
+			body, err = ioutil.ReadAll(part)
+			if err != nil {
+				return nil, baseEvent, err
+			}
+		}
+	}
+	return body, baseEvent, nil
 }

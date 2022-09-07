@@ -42,6 +42,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/plog"
+	"go.opentelemetry.io/collector/receiver/otlpreceiver"
 	semconv "go.opentelemetry.io/collector/semconv/v1.5.0"
 
 	"github.com/elastic/apm-server/internal/model"
@@ -154,6 +155,92 @@ func TestConsumerConsumeLogsLabels(t *testing.T) {
 	assert.Equal(t, model.NumericLabels{"key2": {Value: 2}}, processed[1].NumericLabels)
 	assert.Equal(t, model.Labels{"key0": {Global: true, Value: "zero"}, "key3": {Value: "three"}}, processed[2].Labels)
 	assert.Equal(t, model.NumericLabels{"key4": {Value: 4}}, processed[2].NumericLabels)
+}
+
+func TestConsumerConsumeLogsWithMetadata(t *testing.T) {
+	t.Run("empty", func(t *testing.T) {
+		var processor model.ProcessBatchFunc = func(_ context.Context, batch *model.Batch) error {
+			assert.Empty(t, batch)
+			return nil
+		}
+
+		consumer := otel.Consumer{Processor: processor}
+		logs := plog.NewLogs()
+		metadata := model.APMEvent{
+			Processor: model.LogProcessor,
+			Cloud: model.Cloud{
+				Origin: &model.CloudOrigin{
+					Provider: "aws",
+				},
+			},
+		}
+		ctx := context.WithValue(context.Background(), otlpreceiver.CtxMetaKey{}, metadata)
+		assert.NoError(t, consumer.ConsumeLogs(ctx, logs))
+	})
+
+	commonEvent := model.APMEvent{
+		Processor: model.LogProcessor,
+		Agent: model.Agent{
+			Name:    "otlp/go",
+			Version: "unknown",
+		},
+		Cloud: model.Cloud{
+			Origin: &model.CloudOrigin{
+				Provider: "aws",
+			},
+		},
+		Service: model.Service{
+			Name:     "unknown",
+			Language: model.Language{Name: "go"},
+		},
+		Event: model.Event{
+			Severity: int64(plog.SeverityNumberINFO),
+		},
+		Log:           model.Log{Level: "Info"},
+		Span:          &model.Span{ID: "0200000000000000"},
+		Trace:         model.Trace{ID: "01000000000000000000000000000000"},
+		Labels:        model.Labels{},
+		NumericLabels: model.NumericLabels{},
+	}
+	test := func(name string, body interface{}, expectedMessage string) {
+		t.Run(name, func(t *testing.T) {
+			logs := plog.NewLogs()
+			resourceLogs := logs.ResourceLogs().AppendEmpty()
+			logs.ResourceLogs().At(0).Resource().Attributes().InsertString(semconv.AttributeTelemetrySDKLanguage, "go")
+			scopeLogs := resourceLogs.ScopeLogs().AppendEmpty()
+			newLogRecord(body).CopyTo(scopeLogs.LogRecords().AppendEmpty())
+
+			var processed model.Batch
+			var processor model.ProcessBatchFunc = func(_ context.Context, batch *model.Batch) error {
+				if processed != nil {
+					panic("already processes batch")
+				}
+				processed = *batch
+				assert.NotNil(t, processed[0].Timestamp)
+				processed[0].Timestamp = time.Time{}
+				return nil
+			}
+			consumer := otel.Consumer{Processor: processor}
+			metadata := model.APMEvent{
+				Processor: model.LogProcessor,
+				Cloud: model.Cloud{
+					Origin: &model.CloudOrigin{
+						Provider: "aws",
+					},
+				},
+			}
+			ctx := context.WithValue(context.Background(), otlpreceiver.CtxMetaKey{}, metadata)
+			assert.NoError(t, consumer.ConsumeLogs(ctx, logs))
+
+			expected := commonEvent
+			expected.Message = expectedMessage
+			assert.Equal(t, model.Batch{expected}, processed)
+		})
+	}
+	test("string_body", "a random log message", "a random log message")
+	test("int_body", 1234, "1234")
+	test("float_body", 1234.1234, "1234.1234")
+	test("bool_body", true, "true")
 }
 
 func newLogRecord(body interface{}) plog.LogRecord {
