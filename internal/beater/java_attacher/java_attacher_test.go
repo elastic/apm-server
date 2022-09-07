@@ -67,7 +67,6 @@ func TestDiscoveryRulesAllowlist(t *testing.T) {
 	}
 	f, err := os.Create(bundledJavaAttacher)
 	require.NoError(t, err)
-	//goland:noinspection GoUnhandledErrorResult
 	defer os.Remove(f.Name())
 	javaAttacher, err := New(cfg)
 	require.NoError(t, err)
@@ -94,7 +93,6 @@ func TestConfig(t *testing.T) {
 	}
 	f, err := os.Create(bundledJavaAttacher)
 	require.NoError(t, err)
-	//goland:noinspection GoUnhandledErrorResult
 	defer os.Remove(f.Name())
 	javaAttacher, err := New(cfg)
 	require.NoError(t, err)

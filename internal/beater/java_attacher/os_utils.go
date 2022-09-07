@@ -66,7 +66,7 @@ func (j *JavaAttacher) getAttacherJar(uid string) string {
 	}
 	attacherJar, err := j.createAttacherTempDir(uid)
 	if err != nil {
-		j.logger.Errorf("failed to create tmp dir for user %d, using the bundled attacher jar: %v", uid, err)
+		j.logger.Errorf("failed to create tmp dir for user %d, JVMs of this user will be skipped from now on: %v", uid, err)
 	}
 	j.uidToAttacherJar[uid] = attacherJar
 	return attacherJar
@@ -81,9 +81,9 @@ func (j *JavaAttacher) getAttacherJar(uid string) string {
 //
 // NOTE: this method is not thread-safe, so it should not be invoked concurrently by multiple goroutines
 func (j *JavaAttacher) createAttacherTempDir(uidS string) (string, error) {
-	uid, _, err := parseUserIds(uidS, "0")
+	uid, err := strconv.Atoi(uidS)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("invalid UID %q: %w", uidS, err)
 	}
 	bundledAttacherFile, err := os.Open(bundledJavaAttacher)
 	if err != nil {
@@ -102,7 +102,6 @@ func (j *JavaAttacher) createAttacherTempDir(uidS string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("failed to create tmp attacher jar: %w", err)
 	}
-	//goland:noinspection GoUnhandledErrorResult
 	defer tmpAttacherJarFile.Close()
 	nBytes, err := io.Copy(tmpAttacherJarFile, bundledAttacherFile)
 	if err != nil {

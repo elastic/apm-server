@@ -34,7 +34,6 @@ func TestBuildCommandWithBundledJar(t *testing.T) {
 	cfg := createTestConfig()
 	f, err := os.Create(bundledJavaAttacher)
 	require.NoError(t, err)
-	//goland:noinspection GoUnhandledErrorResult
 	defer os.Remove(f.Name())
 
 	attacher, err := New(cfg)
