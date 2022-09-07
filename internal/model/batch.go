@@ -30,6 +30,11 @@ type BatchProcessor interface {
 	//
 	// Processing may involve anything, e.g. modifying, adding, removing,
 	// aggregating, or publishing events.
+	//
+	// The caller should not assume the batch to be valid after the
+	// method has returned.
+	// If the batch needs to be processed asynchronously or kept around,
+	// the processor must create a copy of the slice.
 	ProcessBatch(context.Context, *Batch) error
 }
 

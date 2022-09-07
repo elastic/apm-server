@@ -1,0 +1,12 @@
+#!/bin/bash
+
+KIBANA_ENDPOINT=${kibana_url}/api/fleet/epm/packages
+KIBANA_AUTH=elastic:${elastic_password}
+
+curl -s \
+    -X POST \
+    -u $${KIBANA_AUTH} \
+    -H "Content-Type: application/zip" \
+    -H "kbn-xsrf:1" \
+    --data-binary @${custom_apm_integration_pkg_path} \
+    $${KIBANA_ENDPOINT}

@@ -150,7 +150,7 @@ func InitFleetPackage() error {
 //
 // This should typically be used by tests instead of directly calling the
 // fleettest.Client.CreateAgentPolicy method.
-func CreateAgentPolicy(t testing.TB, name, namespace string, vars map[string]interface{}) (*fleettest.AgentPolicy, *fleettest.EnrollmentAPIKey) {
+func CreateAgentPolicy(t testing.TB, name, namespace string, vars, config map[string]interface{}) (*fleettest.AgentPolicy, *fleettest.EnrollmentAPIKey) {
 	agentPolicy, key, err := Fleet.CreateAgentPolicy(name, namespace, agentPolicyDescription)
 	require.NoError(t, err)
 	t.Cleanup(func() {
@@ -158,7 +158,7 @@ func CreateAgentPolicy(t testing.TB, name, namespace string, vars map[string]int
 		require.NoError(t, err)
 	})
 
-	packagePolicy := NewPackagePolicy(agentPolicy, vars)
+	packagePolicy := NewPackagePolicy(agentPolicy, vars, config)
 	err = Fleet.CreatePackagePolicy(packagePolicy)
 	require.NoError(t, err)
 
@@ -199,7 +199,7 @@ func DestroyAgentPolicy(id ...string) error {
 // NewPackagePolicy returns a new fleettest.PackagePolicy with config vars, but does not create it.
 //
 // The returned package policy is suitable for passing to Fleet.CreatePackagePolicy.
-func NewPackagePolicy(agentPolicy *fleettest.AgentPolicy, varValues map[string]interface{}) *fleettest.PackagePolicy {
+func NewPackagePolicy(agentPolicy *fleettest.AgentPolicy, varValues, extraConfig map[string]interface{}) *fleettest.PackagePolicy {
 	// Package policy names must be globally unique. We generate unique agent
 	// policy names, so just append the package name to that.
 	packagePolicyName := agentPolicy.Name + "-apm"
@@ -233,6 +233,7 @@ func NewPackagePolicy(agentPolicy *fleettest.AgentPolicy, varValues map[string]i
 			Enabled: true,
 			Streams: []interface{}{},
 			Vars:    vars,
+			Config:  extraConfig,
 		})
 	}
 	return packagePolicy

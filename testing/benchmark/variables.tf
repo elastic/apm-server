@@ -49,6 +49,12 @@ variable "elasticsearch_zone_count" {
   description = "Optional Elasticsearch zone count"
 }
 
+variable "elasticsearch_dedicated_masters" {
+  default     = false
+  type        = bool
+  description = "Optional Elasticsearch dedicated masters"
+}
+
 variable "docker_image_tag_override" {
   default = {
     "elasticsearch" : "",
