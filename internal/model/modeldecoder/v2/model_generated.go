@@ -2502,9 +2502,6 @@ func (val *log) validate() error {
 	if val.LoggerName.IsSet() && utf8.RuneCountInString(val.LoggerName.Val) > 1024 {
 		return fmt.Errorf("'logger_name': validation rule 'maxLength(1024)' violated")
 	}
-	if !val.Message.IsSet() {
-		return fmt.Errorf("'message' required")
-	}
 	if err := val.FAAS.validate(); err != nil {
 		return errors.Wrapf(err, "faas")
 	}

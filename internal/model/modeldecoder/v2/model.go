@@ -970,11 +970,11 @@ type log struct {
 	Level nullable.String `json:"level" validate:"maxLength=1024"`
 	// LoggerName holds the name of the used logger instance.
 	LoggerName nullable.String `json:"logger_name" validate:"maxLength=1024"`
-	// Message of the logged error. In case a parameterized message is captured,
-	// Message should contain the same information, but with any placeholders
+	// Message logged as part of the log. In case a parameterized message is
+	// captured, Message should contain the same information, but with any placeholders
 	// being replaced.
-	Message nullable.String `json:"message" validate:"required"`
-	// Severity represents the numreic severity of the logs as advertised by the
+	Message nullable.String `json:"message"`
+	// Severity represents the numeric severity of the logs as advertised by the
 	// source. Meaning behind severity is upto the implementer.
 	Severity nullable.Int `json:"severity"`
 	// FAAS holds fields related to Function as a Service events.

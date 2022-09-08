@@ -799,11 +799,14 @@
       "maxLength": 1024
     },
     "message": {
-      "description": "Message of the logged error. In case a parameterized message is captured, Message should contain the same information, but with any placeholders being replaced.",
-      "type": "string"
+      "description": "Message logged as part of the log. In case a parameterized message is captured, Message should contain the same information, but with any placeholders being replaced.",
+      "type": [
+        "null",
+        "string"
+      ]
     },
     "severity": {
-      "description": "Severity represents the numreic severity of the logs as advertised by the source. Meaning behind severity is upto the implementer.",
+      "description": "Severity represents the numeric severity of the logs as advertised by the source. Meaning behind severity is upto the implementer.",
       "type": [
         "null",
         "integer"
@@ -832,8 +835,5 @@
       ],
       "maxLength": 1024
     }
-  },
-  "required": [
-    "message"
-  ]
+  }
 }
