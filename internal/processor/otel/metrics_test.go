@@ -37,9 +37,12 @@ package otel_test
 import (
 	"context"
 	"math"
+	"net/netip"
 	"testing"
 	"time"
 
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/pdata/pcommon"
@@ -138,7 +141,7 @@ func TestConsumeMetrics(t *testing.T) {
 
 	service := model.Service{Name: "unknown", Language: model.Language{Name: "unknown"}}
 	agent := model.Agent{Name: "otlp", Version: "unknown"}
-	assert.ElementsMatch(t, []model.APMEvent{{
+	expected := []model.APMEvent{{
 		Agent:     agent,
 		Service:   service,
 		Timestamp: timestamp0,
@@ -210,7 +213,9 @@ func TestConsumeMetrics(t *testing.T) {
 				{Name: "sum_metric", Value: 10, Type: "counter"},
 			},
 		},
-	}}, events)
+	}}
+
+	eventsMatch(t, expected, events)
 }
 
 func TestConsumeMetricsNaN(t *testing.T) {
@@ -316,7 +321,7 @@ func TestConsumeMetricsHostCPU(t *testing.T) {
 	events, _ := transformMetrics(t, metrics)
 	service := model.Service{Name: "unknown", Language: model.Language{Name: "unknown"}}
 	agent := model.Agent{Name: "otlp", Version: "unknown"}
-	assert.ElementsMatch(t, []model.APMEvent{{
+	expected := []model.APMEvent{{
 		Agent:     agent,
 		Service:   service,
 		Labels:    model.Labels{"state": {Value: "idle"}, "cpu": {Value: "0"}},
@@ -509,7 +514,9 @@ func TestConsumeMetricsHostCPU(t *testing.T) {
 				},
 			},
 		},
-	}}, events)
+	}}
+
+	eventsMatch(t, expected, events)
 }
 
 func TestConsumeMetricsHostMemory(t *testing.T) {
@@ -542,7 +549,7 @@ func TestConsumeMetricsHostMemory(t *testing.T) {
 	events, _ := transformMetrics(t, metrics)
 	service := model.Service{Name: "unknown", Language: model.Language{Name: "unknown"}}
 	agent := model.Agent{Name: "otlp", Version: "unknown"}
-	assert.ElementsMatch(t, []model.APMEvent{{
+	expected := []model.APMEvent{{
 		Agent:     agent,
 		Service:   service,
 		Labels:    model.Labels{"state": {Value: "free"}},
@@ -589,7 +596,9 @@ func TestConsumeMetricsHostMemory(t *testing.T) {
 				},
 			},
 		},
-	}}, events)
+	}}
+
+	eventsMatch(t, expected, events)
 }
 
 func TestConsumeMetrics_JVM(t *testing.T) {
@@ -644,7 +653,7 @@ func TestConsumeMetrics_JVM(t *testing.T) {
 	events, _ := transformMetrics(t, metrics)
 	service := model.Service{Name: "unknown", Language: model.Language{Name: "unknown"}}
 	agent := model.Agent{Name: "otlp", Version: "unknown"}
-	assert.ElementsMatch(t, []model.APMEvent{{
+	expected := []model.APMEvent{{
 		Agent:     agent,
 		Service:   service,
 		Labels:    model.Labels{"gc": {Value: "G1 Young Generation"}},
@@ -768,7 +777,9 @@ func TestConsumeMetrics_JVM(t *testing.T) {
 				},
 			},
 		},
-	}}, events)
+	}}
+
+	eventsMatch(t, expected, events)
 }
 
 func TestConsumeMetricsExportTimestamp(t *testing.T) {
@@ -834,4 +845,34 @@ func transformMetrics(t *testing.T, metrics pmetric.Metrics) ([]model.APMEvent, 
 	require.NoError(t, err)
 	require.Len(t, batches, 1)
 	return *batches[0], consumer.Stats()
+}
+
+func eventsMatch(t *testing.T, expected []model.APMEvent, actual []model.APMEvent) {
+	t.Helper()
+
+	if diff := cmp.Diff(expected, actual,
+		cmpopts.SortSlices(func(x model.APMEvent, y model.APMEvent) bool {
+			if !x.Timestamp.Equal(y.Timestamp) {
+				return x.Timestamp.Before(y.Timestamp)
+			}
+
+			if len(x.Labels) != len(y.Labels) {
+				return len(x.Labels) < len(y.Labels)
+			}
+
+			if x.Metricset.Samples[0].Name != y.Metricset.Samples[0].Name {
+				return x.Metricset.Samples[0].Name < y.Metricset.Samples[0].Name
+			}
+
+			return x.Metricset.Samples[0].Value < y.Metricset.Samples[0].Value
+		}),
+		cmpopts.SortSlices(func(x model.MetricsetSample, y model.MetricsetSample) bool {
+			return x.Name < y.Name
+		}),
+		cmp.Comparer(func(x netip.Addr, y netip.Addr) bool {
+			return x == y
+		}),
+	); diff != "" {
+		t.Fatal(diff)
+	}
 }
