@@ -38,4 +38,5 @@ const (
 	SpanMetrics        = "spanmetrics"
 	Transform          = "transform"
 	Sampling           = "sampling"
+	Processor          = "processor"
 )
