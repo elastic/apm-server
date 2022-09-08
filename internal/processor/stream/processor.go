@@ -90,6 +90,7 @@ func RUMV2Processor(cfg Config) *Processor {
 		MaxEventSize:   cfg.MaxEventSize,
 		decodeMetadata: v2.DecodeNestedMetadata,
 		sem:            cfg.Semaphore,
+		logger:         logp.NewLogger(logs.Processor),
 	}
 }
 
@@ -98,6 +99,7 @@ func RUMV3Processor(cfg Config) *Processor {
 		MaxEventSize:   cfg.MaxEventSize,
 		decodeMetadata: rumv3.DecodeNestedMetadata,
 		sem:            cfg.Semaphore,
+		logger:         logp.NewLogger(logs.Processor),
 	}
 }
 
@@ -238,11 +240,12 @@ func (p *Processor) HandleStream(
 	}
 	sr := p.getStreamReader(reader)
 
-	// Release the stream reader after all the batches have been read. Synchronous
-	// requests also release the semaphore since batch processing is blocking.
+	// Release the semaphore on early exit; this will be set to false
+	// for asynchronous requests once we may no longer exit early.
+	shouldReleaseSemaphore := true
 	defer func() {
 		sr.release()
-		if !async {
+		if shouldReleaseSemaphore {
 			p.semRelease()
 		}
 	}()
@@ -256,6 +259,10 @@ func (p *Processor) HandleStream(
 	sp, ctx := apm.StartSpan(ctx, "Stream", "Reporter")
 	defer sp.End()
 
+	if async {
+		// The semaphore is released by handleStream
+		shouldReleaseSemaphore = false
+	}
 	first := true
 	for {
 		err := p.handleStream(ctx, async, baseEvent, batchSize, sr, processor, result, first)
@@ -316,8 +323,7 @@ func (p *Processor) handleStream(
 	if async {
 		go func() {
 			defer p.semRelease()
-			err := p.processBatch(ctx, processor, &batch)
-			if err != nil && p.logger != nil {
+			if err := p.processBatch(ctx, processor, &batch); err != nil {
 				p.logger.Errorf("failed handling async request: %v", err)
 			}
 		}()

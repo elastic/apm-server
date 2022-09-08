@@ -26,8 +26,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/elastic/elastic-agent-libs/monitoring"
 	"go.elastic.co/apm/v2"
+
+	"github.com/elastic/elastic-agent-libs/monitoring"
 
 	"github.com/elastic/apm-server/internal/beater/auth"
 	"github.com/elastic/apm-server/internal/beater/headers"
@@ -89,9 +90,11 @@ func Handler(handler StreamHandler, requestMetadataFunc RequestMetadataFunc, bat
 		// Instead, errors are logged by the APM Server.
 		async := asyncRequest(c.Request)
 
-		// When asynchronous processing is requested, the context authorizer is
-		// copied into a new context, since the current context is cancelled
-		// after the server handles the request.
+		// Create a new detached context when asynchronous processing is set,
+		// decoupling the context from its deadline, which will finish when
+		// the request is handled. The batch will probably be processed after
+		// the request has finished, and it would cause an error if the context
+		// is done.
 		ctx := c.Request.Context()
 		if async {
 			ctx = apm.DetachedContext(ctx)

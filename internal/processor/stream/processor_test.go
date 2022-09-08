@@ -371,7 +371,7 @@ func TestConcurrentAsync(t *testing.T) {
 				}
 				if !tc.fullSem {
 					select {
-					case <-bp.event:
+					case <-bp.batch:
 					case <-ctx.Done():
 					}
 				}
@@ -382,7 +382,7 @@ func TestConcurrentAsync(t *testing.T) {
 				mu.Unlock()
 			}()
 		}
-		batchProcessor := &accountProcessor{event: make(chan *model.Batch, tc.requests)}
+		batchProcessor := &accountProcessor{batch: make(chan *model.Batch, tc.requests)}
 		ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
 		defer cancel()
 		for i := 0; i < tc.requests; i++ {
@@ -465,7 +465,7 @@ func (nopBatchProcessor) ProcessBatch(context.Context, *model.Batch) error {
 }
 
 type accountProcessor struct {
-	event     chan *model.Batch
+	batch     chan *model.Batch
 	processed uint64
 }
 
@@ -475,9 +475,9 @@ func (p *accountProcessor) ProcessBatch(ctx context.Context, b *model.Batch) err
 		return ctx.Err()
 	default:
 	}
-	if p.event != nil {
+	if p.batch != nil {
 		select {
-		case p.event <- b:
+		case p.batch <- b:
 		case <-ctx.Done():
 			return ctx.Err()
 		}

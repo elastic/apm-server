@@ -18,6 +18,7 @@
 package stream
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"fmt"
@@ -27,6 +28,7 @@ import (
 	"testing"
 
 	"github.com/elastic/apm-server/internal/model"
+	"github.com/stretchr/testify/require"
 )
 
 func BenchmarkBackendProcessor(b *testing.B) {
@@ -102,6 +104,59 @@ func benchmarkStreamProcessorParallel(b *testing.B, processor *Processor, files 
 					r.Seek(0, io.SeekStart)
 				}
 			})
+		})
+	}
+}
+
+func BenchmarkBackendProcessorAsync(b *testing.B) {
+	processor := BackendProcessor(Config{
+		MaxEventSize: 300 * 1024, // 300 kb
+		Semaphore:    make(chan struct{}, 200),
+	})
+	files, _ := filepath.Glob(filepath.FromSlash("../../../testdata/intake-v2/heavy.ndjson"))
+	benchmarkStreamProcessorAsync(b, processor, files)
+}
+
+func benchmarkStreamProcessorAsync(b *testing.B, processor *Processor, files []string) {
+	const batchSize = 10
+
+	for _, f := range files {
+		data, err := os.ReadFile(f)
+		require.NoError(b, err)
+		r := bytes.NewReader(data)
+
+		events := -1 // Exclude metadata
+		scanner := bufio.NewScanner(r)
+		for scanner.Scan() {
+			events++
+		}
+		require.NoError(b, scanner.Err())
+
+		batches := events / batchSize
+		if events >= 10 && events%batchSize > 0 {
+			batches++
+		}
+		if batches == 0 {
+			batches++
+		}
+
+		r.Seek(0, io.SeekStart)
+		// allow the channel to immediately process all the batches
+		batchProcessor := &accountProcessor{batch: make(chan *model.Batch, batches)}
+
+		b.Run(filepath.Base(f), func(b *testing.B) {
+			b.ReportAllocs()
+			b.SetBytes(int64(len(data)))
+			for i := 0; i < b.N; i++ {
+				r.Seek(0, io.SeekStart)
+
+				var result Result
+				processor.HandleStream(context.Background(), true, model.APMEvent{}, r, batchSize, batchProcessor, &result)
+				// drain the batches
+				for i := 0; i < batches; i++ {
+					<-batchProcessor.batch
+				}
+			}
 		})
 	}
 }

@@ -82,8 +82,7 @@ type Context struct {
 	// ResponseWriter is exported to enable passing Context to OTLP handlers
 	// An alternate solution would be to implement context.WriteHeaders()
 	ResponseWriter http.ResponseWriter
-
-	writeAttempts int
+	writeAttempts  int
 }
 
 // NewContext creates an empty Context struct
