@@ -2448,3 +2448,65 @@ func (val *longtaskMetrics) validate() error {
 	}
 	return nil
 }
+
+func (val *logRoot) IsSet() bool {
+	return val.Log.IsSet()
+}
+
+func (val *logRoot) Reset() {
+	val.Log.Reset()
+}
+
+func (val *logRoot) validate() error {
+	if err := val.Log.validate(); err != nil {
+		return errors.Wrapf(err, "log")
+	}
+	if !val.Log.IsSet() {
+		return fmt.Errorf("'log' required")
+	}
+	return nil
+}
+
+func (val *log) IsSet() bool {
+	return val.Context.IsSet() || val.Timestamp.IsSet() || val.TraceID.IsSet() || val.SpanID.IsSet() || val.Level.IsSet() || val.LoggerName.IsSet() || val.Message.IsSet() || val.Severity.IsSet() || val.FAAS.IsSet()
+}
+
+func (val *log) Reset() {
+	val.Context.Reset()
+	val.Timestamp.Reset()
+	val.TraceID.Reset()
+	val.SpanID.Reset()
+	val.Level.Reset()
+	val.LoggerName.Reset()
+	val.Message.Reset()
+	val.Severity.Reset()
+	val.FAAS.Reset()
+}
+
+func (val *log) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	if err := val.Context.validate(); err != nil {
+		return errors.Wrapf(err, "context")
+	}
+	if val.TraceID.IsSet() && utf8.RuneCountInString(val.TraceID.Val) > 1024 {
+		return fmt.Errorf("'trace_id': validation rule 'maxLength(1024)' violated")
+	}
+	if val.SpanID.IsSet() && utf8.RuneCountInString(val.SpanID.Val) > 1024 {
+		return fmt.Errorf("'span_id': validation rule 'maxLength(1024)' violated")
+	}
+	if val.Level.IsSet() && utf8.RuneCountInString(val.Level.Val) > 1024 {
+		return fmt.Errorf("'level': validation rule 'maxLength(1024)' violated")
+	}
+	if val.LoggerName.IsSet() && utf8.RuneCountInString(val.LoggerName.Val) > 1024 {
+		return fmt.Errorf("'logger_name': validation rule 'maxLength(1024)' violated")
+	}
+	if !val.Message.IsSet() {
+		return fmt.Errorf("'message' required")
+	}
+	if err := val.FAAS.validate(); err != nil {
+		return errors.Wrapf(err, "faas")
+	}
+	return nil
+}

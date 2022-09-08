@@ -59,6 +59,11 @@ type transactionRoot struct {
 	Transaction transaction `json:"transaction" validate:"required"`
 }
 
+// logRoot requires a log event to be present
+type logRoot struct {
+	Log log `json:"log" validate:"required"`
+}
+
 // other structs
 
 type context struct {
@@ -949,6 +954,31 @@ type transaction struct {
 	UserExperience transactionUserExperience `json:"experience"`
 	// Links holds links to other spans, potentially in other traces.
 	Links []spanLink `json:"links"`
+}
+
+type log struct {
+	// Context holds arbitrary contextual information for the event.
+	Context context `json:"context"`
+	// Timestamp holds the recorded time of the event, UTC based and formatted
+	// as microseconds since Unix epoch
+	Timestamp nullable.TimeMicrosUnix `json:"timestamp"`
+	// TraceID holds the hex encoded 128 random bits ID of the correlated trace.
+	TraceID nullable.String `json:"trace_id" validate:"maxLength=1024"`
+	// SpanID holds the ID of the linked span.
+	SpanID nullable.String `json:"span_id" validate:"maxLength=1024"`
+	// Level represents the severity of the recorded log.
+	Level nullable.String `json:"level" validate:"maxLength=1024"`
+	// LoggerName holds the name of the used logger instance.
+	LoggerName nullable.String `json:"logger_name" validate:"maxLength=1024"`
+	// Message of the logged error. In case a parameterized message is captured,
+	// Message should contain the same information, but with any placeholders
+	// being replaced.
+	Message nullable.String `json:"message" validate:"required"`
+	// Severity represents the numreic severity of the logs as advertised by the
+	// source. Meaning behind severity is upto the implementer.
+	Severity nullable.Int `json:"severity"`
+	// FAAS holds fields related to Function as a Service events.
+	FAAS faas `json:"faas"`
 }
 
 type otel struct {

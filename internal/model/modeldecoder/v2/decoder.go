@@ -67,6 +67,11 @@ var (
 			return &transactionRoot{}
 		},
 	}
+	logRootPool = sync.Pool{
+		New: func() interface{} {
+			return &logRoot{}
+		},
+	}
 )
 
 var (
@@ -119,6 +124,15 @@ func fetchTransactionRoot() *transactionRoot {
 func releaseTransactionRoot(root *transactionRoot) {
 	root.Reset()
 	transactionRootPool.Put(root)
+}
+
+func fetchLogRoot() *logRoot {
+	return logRootPool.Get().(*logRoot)
+}
+
+func releaseLogRoot(root *logRoot) {
+	root.Reset()
+	logRootPool.Put(root)
 }
 
 // DecodeMetadata decodes metadata from d, updating out.
@@ -209,6 +223,25 @@ func DecodeNestedTransaction(d decoder.Decoder, input *modeldecoder.Input, batch
 	}
 	event := input.Base
 	mapToTransactionModel(&root.Transaction, &event)
+	*batch = append(*batch, event)
+	return err
+}
+
+// DecodeNestedLog decodes a log event from d, appending it to batch.
+//
+// DecodeNestedLog should be used when the stream in the decoder contains the `log` key
+func DecodeNestedLog(d decoder.Decoder, input *modeldecoder.Input, batch *model.Batch) error {
+	root := fetchLogRoot()
+	defer releaseLogRoot(root)
+	var err error
+	if err = d.Decode(root); err != nil && err != io.EOF {
+		return modeldecoder.NewDecoderErrFromJSONIter(err)
+	}
+	if err := root.validate(); err != nil {
+		return modeldecoder.NewValidationErr(err)
+	}
+	event := input.Base
+	mapToLogModel(&root.Log, &event)
 	*batch = append(*batch, event)
 	return err
 }
@@ -1279,6 +1312,62 @@ func mapToTransactionModel(from *transaction, event *model.APMEvent) {
 			event.Span = &model.Span{}
 		}
 		mapSpanLinks(from.Links, &event.Span.Links)
+	}
+}
+
+func mapToLogModel(from *log, event *model.APMEvent) {
+	event.Processor = model.LogProcessor
+
+	mapToServiceModel(from.Context.Service, &event.Service)
+	mapToAgentModel(from.Context.Service.Agent, &event.Agent)
+	overwriteUserInMetadataModel(from.Context.User, event)
+	mapToUserAgentModel(from.Context.Request.Headers, &event.UserAgent)
+	mapToClientModel(from.Context.Request, &event.Source, &event.Client)
+	mapToFAASModel(from.FAAS, &event.FAAS)
+	mapToCloudModel(from.Context.Cloud, &event.Cloud)
+
+	if from.Context.IsSet() {
+		if len(from.Context.Tags) > 0 {
+			modeldecoderutil.MergeLabels(from.Context.Tags, event)
+		}
+		if from.Context.Request.IsSet() {
+			event.HTTP.Request = &model.HTTPRequest{}
+			mapToRequestModel(from.Context.Request, event.HTTP.Request)
+			if from.Context.Request.HTTPVersion.IsSet() {
+				event.HTTP.Version = from.Context.Request.HTTPVersion.Val
+			}
+		}
+		if from.Context.Request.URL.IsSet() {
+			mapToRequestURLModel(from.Context.Request.URL, &event.URL)
+		}
+		if from.Context.Response.IsSet() {
+			event.HTTP.Response = &model.HTTPResponse{}
+			mapToResponseModel(from.Context.Response, event.HTTP.Response)
+		}
+	}
+	if !from.Timestamp.Val.IsZero() {
+		event.Timestamp = from.Timestamp.Val
+	}
+	if from.Level.IsSet() {
+		event.Log.Level = from.Level.Val
+	}
+	if from.LoggerName.IsSet() {
+		event.Log.LoggerName = from.LoggerName.Val
+	}
+	if from.Message.IsSet() {
+		event.Message = from.Message.Val
+	}
+	if from.Severity.IsSet() {
+		event.Event.Severity = int64(from.Severity.Val)
+	}
+	if from.TraceID.IsSet() {
+		event.Trace.ID = from.TraceID.Val
+	}
+	if from.SpanID.IsSet() {
+		if event.Span == nil {
+			event.Span = &model.Span{}
+		}
+		event.Span.ID = from.SpanID.Val
 	}
 }
 

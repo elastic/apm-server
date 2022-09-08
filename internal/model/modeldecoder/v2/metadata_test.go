@@ -122,6 +122,7 @@ func isUnmappedMetadataField(key string) bool {
 		"Event.Action",
 		"Log",
 		"Log.Level",
+		"Log.LoggerName",
 		"Service.Origin",
 		"Service.Origin.ID",
 		"Service.Origin.Name",

@@ -17,30 +17,37 @@
 
 package model
 
-import "github.com/elastic/elastic-agent-libs/mapstr"
+import (
+	"testing"
 
-const (
-	AppLogsDataset = "apm.app"
+	"github.com/stretchr/testify/assert"
+
+	"github.com/elastic/elastic-agent-libs/mapstr"
 )
 
-var (
-	// LogProcessor is the Processor value that should be assigned to log events.
-	LogProcessor = Processor{Name: "log", Event: "log"}
-)
+func TestLogTransform(t *testing.T) {
+	tests := []struct {
+		Log    Log
+		Output mapstr.M
+	}{
+		{
+			Log:    Log{},
+			Output: nil,
+		},
+		{
+			Log: Log{
+				Level:      "warn",
+				LoggerName: "test.logger",
+			},
+			Output: mapstr.M{
+				"level":  "warn",
+				"logger": "test.logger",
+			},
+		},
+	}
 
-// Log holds information about a log, as defined by ECS.
-//
-// https://www.elastic.co/guide/en/ecs/current/ecs-log.html
-type Log struct {
-	// Level holds the log level of the log event.
-	Level string
-	// LoggerName holds the name of the logger for the log event.
-	LoggerName string
-}
-
-func (e Log) fields() mapstr.M {
-	var fields mapStr
-	fields.maybeSetString("level", e.Level)
-	fields.maybeSetString("logger", e.LoggerName)
-	return mapstr.M(fields)
+	for _, test := range tests {
+		output := test.Log.fields()
+		assert.Equal(t, test.Output, output)
+	}
 }
