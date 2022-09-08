@@ -29,10 +29,15 @@ jobs:
         id: label_team
         with:
           query: |
-            mutation label_team($projectid:ID!,$itemid:ID!,$fieldid:ID!,$value:String!) {
-              updateProjectNextItemField(input: { projectId:$projectid itemId:$itemid fieldId:$fieldid value:$value }) {
-                projectNextItem {
+            mutation label_team($projectid:ID!,$itemid:ID!,$fieldid:ID!,$value:ProjectV2FieldValue!) {
+              updateProjectV2ItemFieldValue(input: { projectId:$projectid itemId:$itemid fieldId:$fieldid value:$value }) {
+                projectV2Item {
                   id
+                  content {
+                    ... on Issue {
+                      number
+                    }
+                  }
                 }
               }
             }
