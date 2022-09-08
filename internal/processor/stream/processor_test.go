@@ -25,6 +25,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
+	"sync/atomic"
 	"testing"
 	"testing/iotest"
 	"time"
@@ -56,7 +58,7 @@ func TestHandlerReadStreamError(t *testing.T) {
 	})
 
 	var actualResult Result
-	err = sp.HandleStream(context.Background(), model.APMEvent{}, timeoutReader, 10, processor, &actualResult)
+	err = sp.HandleStream(context.Background(), false, model.APMEvent{}, timeoutReader, 10, processor, &actualResult)
 	assert.EqualError(t, err, "timeout")
 	assert.Equal(t, Result{Accepted: accepted}, actualResult)
 }
@@ -85,7 +87,7 @@ func TestHandlerReportingStreamError(t *testing.T) {
 
 		var actualResult Result
 		err := sp.HandleStream(
-			context.Background(), model.APMEvent{},
+			context.Background(), false, model.APMEvent{},
 			bytes.NewReader(payload), 10, processor, &actualResult,
 		)
 		assert.Equal(t, test.err, err)
@@ -200,7 +202,7 @@ func TestIntegrationESOutput(t *testing.T) {
 				Semaphore:    make(chan struct{}, 1),
 			})
 			var actualResult Result
-			err = p.HandleStream(context.Background(), baseEvent, bytes.NewReader(payload), 10, batchProcessor, &actualResult)
+			err = p.HandleStream(context.Background(), false, baseEvent, bytes.NewReader(payload), 10, batchProcessor, &actualResult)
 			if test.err != nil {
 				assert.Equal(t, test.err, err)
 			} else {
@@ -240,7 +242,7 @@ func TestIntegrationRum(t *testing.T) {
 				Semaphore:    make(chan struct{}, 1),
 			})
 			var actualResult Result
-			err = p.HandleStream(context.Background(), baseEvent, bytes.NewReader(payload), 10, batchProcessor, &actualResult)
+			err = p.HandleStream(context.Background(), false, baseEvent, bytes.NewReader(payload), 10, batchProcessor, &actualResult)
 			require.NoError(t, err)
 			assert.Equal(t, Result{Accepted: accepted}, actualResult)
 		})
@@ -276,7 +278,7 @@ func TestRUMV3(t *testing.T) {
 				Semaphore:    make(chan struct{}, 1),
 			})
 			var actualResult Result
-			err = p.HandleStream(context.Background(), baseEvent, bytes.NewReader(payload), 10, batchProcessor, &actualResult)
+			err = p.HandleStream(context.Background(), false, baseEvent, bytes.NewReader(payload), 10, batchProcessor, &actualResult)
 			require.NoError(t, err)
 			assert.Equal(t, Result{Accepted: accepted}, actualResult)
 		})
@@ -303,7 +305,7 @@ func TestLabelLeak(t *testing.T) {
 		Semaphore:    make(chan struct{}, 1),
 	})
 	var actualResult Result
-	err := p.HandleStream(context.Background(), baseEvent, strings.NewReader(payload), 10, batchProcessor, &actualResult)
+	err := p.HandleStream(context.Background(), false, baseEvent, strings.NewReader(payload), 10, batchProcessor, &actualResult)
 	require.NoError(t, err)
 
 	txs := *processed
@@ -333,8 +335,153 @@ func makeApproveEventsBatchProcessor(t *testing.T, name string, count *int) mode
 	})
 }
 
+func TestConcurrentAsync(t *testing.T) {
+	smallBatch := []byte(`{"metadata": {"service": {"name": "testsvc", "environment": "staging", "version": null, "agent": {"name": "python", "version": "6.9.1"}, "language": {"name": "python", "version": "3.10.4"}, "runtime": {"name": "CPython", "version": "3.10.4"}, "framework": {"name": "flask", "version": "2.1.1"}}, "process": {"pid": 2112739, "ppid": 2112738, "argv": ["/home/stuart/workspace/sdh/581/venv/lib/python3.10/site-packages/flask/__main__.py", "run"], "title": null}, "system": {"hostname": "slaptop", "architecture": "x86_64", "platform": "linux"}, "labels": {"ci_commit": "unknown", "numeric": 1}}}
+{"transaction": {"id": "88dee29a6571b948", "trace_id": "ba7f5d18ac4c7f39d1ff070c79b2bea5", "name": "GET /withlabels", "type": "request", "duration": 1.6199999999999999, "result": "HTTP 2xx", "timestamp": 1652185276804681, "outcome": "success", "sampled": true, "span_count": {"started": 0, "dropped": 0}, "sample_rate": 1.0, "context": {"request": {"env": {"REMOTE_ADDR": "127.0.0.1", "SERVER_NAME": "127.0.0.1", "SERVER_PORT": "5000"}, "method": "GET", "socket": {"remote_address": "127.0.0.1"}, "cookies": {}, "headers": {"host": "localhost:5000", "user-agent": "curl/7.81.0", "accept": "*/*", "app-os": "Android", "content-type": "application/json; charset=utf-8", "content-length": "29"}, "url": {"full": "http://localhost:5000/withlabels?second_with_labels", "protocol": "http:", "hostname": "localhost", "pathname": "/withlabels", "port": "5000", "search": "?second_with_labels"}}, "response": {"status_code": 200, "headers": {"Content-Type": "application/json", "Content-Length": "14"}}, "tags": {"appOs": "Android", "email_set": "hello@hello.com", "time_set": 1652185276}}}}`)
+	bigBatch, err := os.ReadFile(filepath.Join("..", "..", "..", "testdata", "intake-v2", "heavy.ndjson"))
+	assert.NoError(t, err)
+
+	base := model.APMEvent{Host: model.Host{IP: []netip.Addr{netip.MustParseAddr("192.0.0.1")}}}
+	type testCase struct {
+		payload       []byte
+		sem, requests int
+		fullSem       bool
+	}
+
+	test := func(tc testCase) (pResult Result) {
+		var wg sync.WaitGroup
+		var mu sync.Mutex
+		p := BackendProcessor(Config{
+			MaxEventSize: 100 * 1024,
+			Semaphore:    make(chan struct{}, tc.sem),
+		})
+		if tc.fullSem {
+			for i := 0; i < tc.sem; i++ {
+				p.sem <- struct{}{}
+			}
+		}
+		handleStream := func(ctx context.Context, bp *accountProcessor) {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				var result Result
+				err := p.HandleStream(ctx, true, base, bytes.NewReader(tc.payload), 10, bp, &result)
+				if err != nil {
+					result.LimitedAdd(err)
+				}
+				if !tc.fullSem {
+					select {
+					case <-bp.batch:
+					case <-ctx.Done():
+					}
+				}
+				mu.Lock()
+				if len(result.Errors) > 0 {
+					pResult.Errors = append(pResult.Errors, result.Errors...)
+				}
+				mu.Unlock()
+			}()
+		}
+		batchProcessor := &accountProcessor{batch: make(chan *model.Batch, tc.requests)}
+		ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
+		defer cancel()
+		for i := 0; i < tc.requests; i++ {
+			handleStream(ctx, batchProcessor)
+		}
+		wg.Wait()
+		pResult.Accepted += int(batchProcessor.processed)
+		return
+	}
+
+	t.Run("semaphore_full", func(t *testing.T) {
+		res := test(testCase{
+			sem:      2,
+			requests: 3,
+			fullSem:  true,
+			payload:  smallBatch,
+		})
+		assert.Equal(t, 0, res.Accepted)
+		assert.Equal(t, 3, len(res.Errors))
+		for _, err := range res.Errors {
+			assert.ErrorIs(t, err, publish.ErrFull)
+		}
+	})
+	t.Run("semaphore_undersized", func(t *testing.T) {
+		res := test(testCase{
+			sem:      2,
+			requests: 100,
+			payload:  bigBatch,
+		})
+		// When the semaphore is full, `publish.ErrFull` is returned.
+		assert.Greater(t, len(res.Errors), 0)
+		for _, err := range res.Errors {
+			assert.EqualError(t, err, publish.ErrFull.Error())
+		}
+	})
+	t.Run("semaphore_empty", func(t *testing.T) {
+		res := test(testCase{
+			sem:      5,
+			requests: 5,
+			payload:  smallBatch,
+		})
+		assert.Equal(t, 5, res.Accepted)
+		assert.Equal(t, 0, len(res.Errors))
+
+		res = test(testCase{
+			sem:      5,
+			requests: 5,
+			payload:  bigBatch,
+		})
+		assert.GreaterOrEqual(t, res.Accepted, 5)
+		// all the request will return with an error since only 50 events of
+		// each (5 requests * batch size) will be processed.
+		assert.Equal(t, 5, len(res.Errors))
+	})
+	t.Run("semaphore_empty_incorrect_metadata", func(t *testing.T) {
+		res := test(testCase{
+			sem:      5,
+			requests: 5,
+			payload:  []byte(`{"metadata": {"siervice":{}}}`),
+		})
+		assert.Equal(t, 0, res.Accepted)
+		assert.Len(t, res.Errors, 5)
+
+		incorrectEvent := []byte(`{"metadata": {"service": {"name": "testsvc", "environment": "staging", "version": null, "agent": {"name": "python", "version": "6.9.1"}, "language": {"name": "python", "version": "3.10.4"}, "runtime": {"name": "CPython", "version": "3.10.4"}, "framework": {"name": "flask", "version": "2.1.1"}}, "process": {"pid": 2112739, "ppid": 2112738, "argv": ["/home/stuart/workspace/sdh/581/venv/lib/python3.10/site-packages/flask/__main__.py", "run"], "title": null}, "system": {"hostname": "slaptop", "architecture": "x86_64", "platform": "linux"}, "labels": {"ci_commit": "unknown", "numeric": 1}}}
+{"some_incorrect_event": {}}`)
+		res = test(testCase{
+			sem:      5,
+			requests: 2,
+			payload:  incorrectEvent,
+		})
+		assert.Equal(t, 0, res.Accepted)
+		assert.Len(t, res.Errors, 2)
+	})
+}
+
 type nopBatchProcessor struct{}
 
 func (nopBatchProcessor) ProcessBatch(context.Context, *model.Batch) error {
+	return nil
+}
+
+type accountProcessor struct {
+	batch     chan *model.Batch
+	processed uint64
+}
+
+func (p *accountProcessor) ProcessBatch(ctx context.Context, b *model.Batch) error {
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	default:
+	}
+	if p.batch != nil {
+		select {
+		case p.batch <- b:
+		case <-ctx.Done():
+			return ctx.Err()
+		}
+	}
+	atomic.AddUint64(&p.processed, 1)
 	return nil
 }
