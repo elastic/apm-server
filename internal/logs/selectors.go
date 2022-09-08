@@ -34,6 +34,7 @@ const (
 	Sourcemap          = "sourcemap"
 	Stacktrace         = "stacktrace"
 	TransactionMetrics = "txmetrics"
+	ServiceMetrics     = "servicemetrics"
 	SpanMetrics        = "spanmetrics"
 	Transform          = "transform"
 	Sampling           = "sampling"

@@ -73,7 +73,13 @@ variable "elasticsearch_zone_count" {
 variable "elasticsearch_autoscale" {
   default     = false
   type        = bool
-  description = "Optional autoscale the Elasticsearch deployment"
+  description = "Optional autoscale the Elasticsearch cluster"
+}
+
+variable "elasticsearch_dedicated_masters" {
+  default     = false
+  type        = bool
+  description = "Optionally use dedicated masters for the Elasticsearch cluster"
 }
 
 # Docker image overrides
@@ -116,4 +122,12 @@ variable "apm_index_shards" {
   default     = 0
   description = "The number of shards to set for APM Indices"
   type        = number
+}
+
+# Install custom APM integration package
+
+variable "custom_apm_integration_pkg_path" {
+  type = string
+  description = "Path to the zipped custom APM integration package, if empty custom apm integration pkg is not installed"
+  default = ""
 }

@@ -1,3 +1,4 @@
 scripts/enable_expvar.sh
 scripts/secret_token.sh
 scripts/index_shards.sh
+scripts/custom-apm-integration-pkg.sh

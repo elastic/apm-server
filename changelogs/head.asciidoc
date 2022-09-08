@@ -14,6 +14,7 @@ https://github.com/elastic/apm-server/compare/8.5\...main[View commits]
 [float]
 ==== Bug fixes
 - Set `message` instead of `labels.event` for Jaeger span events {pull}8765[8765]
+- Reach full support (still technical preview) for Java agent auto attachment on Linux by allowing attachment to a JVM of any user {pull}8803[8803]
 
 [float]
 ==== Intake API Changes
@@ -28,3 +29,4 @@ https://github.com/elastic/apm-server/compare/8.5\...main[View commits]
 - OTLP support updated to opentelemetry-collector v0.56.0 {pull}8765[8765]
 - Map additional fields from mobile agents {pull}8784[8784]
 - Include global labels to the transaction metric dimensions {pull}8839[8839]
+- Add an experimental integration of the Profiling collection agent gRPC service {pull}9005[9005]
