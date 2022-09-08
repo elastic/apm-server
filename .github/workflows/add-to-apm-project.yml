@@ -29,8 +29,8 @@ jobs:
         id: label_team
         with:
           query: |
-            mutation label_team($projectid:ID!,$itemid:ID!,$fieldid:ID!,$value:ProjectV2FieldValue!) {
-              updateProjectV2ItemFieldValue(input: { projectId:$projectid itemId:$itemid fieldId:$fieldid value:$value }) {
+            mutation label_team($projectid:ID!,$itemid:ID!,$fieldid:ID!,$value:String!) {
+              updateProjectV2ItemFieldValue(input: { projectId:$projectid itemId:$itemid fieldId:$fieldid value:{singleSelectOptionId: $value} }) {
                 projectV2Item {
                   id
                   content {
@@ -42,7 +42,7 @@ jobs:
               }
             }
           projectid: ${{ env.PROJECT_ID }}
-          itemid: ${{ fromJSON(steps.add_to_project.outputs.data).addProjectV2ItemById.projectV2Item.id }}
+          itemid: ${{ fromJSON(steps.add_to_project.outputs.data).addProjectV2ItemById.item.id }}
           fieldid: "PVTSSF_lADOAGc3Zs0VSs2scg"
           value: "6c538d8a"
         env:
