@@ -25,7 +25,6 @@ import (
 	"os"
 	"os/exec"
 	"os/user"
-	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -40,8 +39,10 @@ import (
 	"github.com/elastic/apm-server/internal/beater/config"
 )
 
-// javaAttacher is bundled by the server
-var javaAttacher = filepath.FromSlash("./java-attacher.jar")
+const javawExe = "javaw.exe"
+const javaExe = "java.exe"
+
+const bundledJavaAttacher = "java-attacher.jar"
 
 type jvmDetails struct {
 	user        string
@@ -62,11 +63,14 @@ type JavaAttacher struct {
 	agentConfigs         map[string]string
 	downloadAgentVersion string
 	jvmCache             map[int]*jvmDetails
+	uidToAttacherJar     map[string]string
+	tmpDirs              []string
+	tmpAttacherLock      sync.Mutex
 }
 
 func New(cfg config.JavaAttacherConfig) (*JavaAttacher, error) {
 	logger := logp.NewLogger("java-attacher")
-	if _, err := os.Stat(javaAttacher); err != nil {
+	if _, err := os.Stat(bundledJavaAttacher); err != nil {
 		return nil, err
 	}
 	if !cfg.Enabled {
@@ -83,6 +87,7 @@ func New(cfg config.JavaAttacherConfig) (*JavaAttacher, error) {
 		downloadAgentVersion: cfg.DownloadAgentVersion,
 		rawDiscoveryRules:    cfg.DiscoveryRules,
 		jvmCache:             make(map[int]*jvmDetails),
+		uidToAttacherJar:     make(map[string]string),
 	}
 	for _, flag := range cfg.DiscoveryRules {
 		for name, value := range flag {
@@ -145,7 +150,7 @@ func (j *JavaAttacher) Run(ctx context.Context) error {
 		return fmt.Errorf("java attacher is disabled")
 	}
 
-	// Non-Windows: run discovery and attachment until context is closed.
+	defer j.cleanResources()
 	ticker := time.NewTicker(time.Second)
 	defer ticker.Stop()
 	for {
@@ -160,14 +165,14 @@ func (j *JavaAttacher) Run(ctx context.Context) error {
 			j.logger.Errorf("error during JVMs discovery: %v", err)
 			continue
 		}
-		if err := j.foreachJVM(ctx, jvms, j.attachJVM, true, 30*time.Second); err != nil {
+		if err := j.foreachJVM(ctx, jvms, j.attachJVM, false, 2*time.Minute); err != nil {
 			// Error is non-fatal; try again next time.
 			j.logger.Errorf("JVM attachment failed: %s", err)
 		}
 	}
 }
 
-// this function blocks until discovery has ended, an error occurred or the context had been cancelled
+// discoverJVMsForAttachment blocks until discovery ends, an error is received or the context is done.
 func (j *JavaAttacher) discoverJVMsForAttachment(ctx context.Context) (map[int]*jvmDetails, error) {
 	jvms, err := j.discoverAllRunningJavaProcesses()
 	if err != nil {
@@ -253,12 +258,20 @@ func (j *JavaAttacher) discoverAllRunningJavaProcesses() (map[int]*jvmDetails, e
 			gid:         gid,
 			pid:         pid,
 			startTime:   info.StartTime,
-			command:     info.Exe,
+			command:     normalizeJavaCommand(info.Exe),
 			version:     "unknown", // filled in later
 			cmdLineArgs: strings.Join(info.Args, " "),
 		}
 	}
 	return jvms, nil
+}
+
+func normalizeJavaCommand(command string) string {
+	if strings.HasSuffix(command, javawExe) {
+		command = strings.TrimSuffix(command, javawExe)
+		command = command + javaExe
+	}
+	return command
 }
 
 // foreachJVM calls f for each JVM in jvms concurrently,
@@ -308,8 +321,8 @@ func (j *JavaAttacher) foreachJVM(
 
 func (j *JavaAttacher) filterCached(jvms map[int]*jvmDetails) {
 	for pid, jvm := range jvms {
-		cachedjvmDetails, found := j.jvmCache[pid]
-		if !found || !cachedjvmDetails.startTime.Equal(jvm.startTime) {
+		cachedJvmDetails, found := j.jvmCache[pid]
+		if !found || !cachedJvmDetails.startTime.Equal(jvm.startTime) {
 			// this is a JVM not yet encountered - add to cache
 			j.jvmCache[pid] = jvm
 		} else {
@@ -354,15 +367,28 @@ func (j *JavaAttacher) verifyJVMExecutable(ctx context.Context, jvm *jvmDetails)
 // once the agent is attached or the context is closed; it may be blocking for long and should be called with a timeout context.
 func (j *JavaAttacher) attachJVM(ctx context.Context, jvm *jvmDetails) error {
 	cmd := j.attachJVMCommand(ctx, jvm)
+	if cmd == nil {
+		return nil
+	}
 	if err := j.setRunAsUser(jvm, cmd); err != nil {
 		j.logger.Warnf("Failed to attach as user %q: %v. Trying to attach as current user,", jvm.user, err)
 	}
 	return runAttacherCommand(ctx, cmd, j.logger)
 }
 
+// attachJVMCommand constructs an attacher command for the provided jvmDetails.
+// NOTE: this method may have side effects, including the creation of a tmp directory with a copy of the attacher jar (non-Windows),
+// as well as a corresponding status change to this JavaAttacher, where the created tmp dir and jar paths are cached.
 func (j *JavaAttacher) attachJVMCommand(ctx context.Context, jvm *jvmDetails) *exec.Cmd {
+	attacherJar := j.getAttacherJar(jvm.uid)
+	if attacherJar == "" {
+		// If the attacher jar is empty, this means there was an error while
+		// attempting to copy the jar to a temporary directory. In this case
+		// we should return nil, which will cause attachJVM to skip the process.
+		return nil
+	}
 	args := []string{
-		"-jar", javaAttacher,
+		"-jar", attacherJar,
 		"--log-level", "debug",
 		"--include-pid", strconv.Itoa(jvm.pid),
 	}
