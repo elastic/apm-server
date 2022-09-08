@@ -27,8 +27,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/elastic/apm-server/internal/model"
 	"github.com/stretchr/testify/require"
+
+	"github.com/elastic/apm-server/internal/model"
 )
 
 func BenchmarkBackendProcessor(b *testing.B) {
