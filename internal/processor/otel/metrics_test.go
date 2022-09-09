@@ -860,11 +860,27 @@ func eventsMatch(t *testing.T, expected []model.APMEvent, actual []model.APMEven
 				return len(x.Labels) < len(y.Labels)
 			}
 
+			if len(x.Metricset.Samples) != len(y.Metricset.Samples) {
+				return len(x.Metricset.Samples) < len(y.Metricset.Samples)
+			}
+
 			if x.Metricset.Samples[0].Name != y.Metricset.Samples[0].Name {
 				return x.Metricset.Samples[0].Name < y.Metricset.Samples[0].Name
 			}
 
-			return x.Metricset.Samples[0].Value < y.Metricset.Samples[0].Value
+			if x.Metricset.Samples[0].Value != y.Metricset.Samples[0].Value {
+				return x.Metricset.Samples[0].Value < y.Metricset.Samples[0].Value
+			}
+
+			// Special handling for TestConsumeMetricsHostCPU
+			xlv, xOk := x.Labels["cpu"]
+			ylv, yOk := y.Labels["cpu"]
+			if xOk && yOk && xlv.Value != ylv.Value {
+				return xlv.Value < ylv.Value
+			}
+
+			t.Logf("failed to compare APM events: possible flaky test due to inconsistent order")
+			return false
 		}),
 		cmpopts.SortSlices(func(x model.MetricsetSample, y model.MetricsetSample) bool {
 			return x.Name < y.Name
