@@ -306,6 +306,7 @@ release-manager-release: release
 .PHONY: release
 release: export PATH:=$(dir $(BIN_MAGE)):$(PATH)
 release: $(MAGE) build/dependencies.csv
+	$(GO) mod download all
 	$(MAGE) package
 	@$(MAGE) ironbank
 
