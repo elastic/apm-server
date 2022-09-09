@@ -327,11 +327,11 @@ For t_cl_generator.cc
 
 --------------------------------------------------------------------------------
 Dependency : github.com/cespare/xxhash/v2
-Version: v2.1.1
+Version: v2.1.2
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/cespare/xxhash/v2@v2.1.1/LICENSE.txt:
+Contents of probable licence file $GOMODCACHE/github.com/cespare/xxhash/v2@v2.1.2/LICENSE.txt:
 
 Copyright (c) 2016 Caleb Spare
 
@@ -576,11 +576,11 @@ SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/beats/v7
-Version: v7.17.7-0.20220907092021-8ea55e496e77
+Version: v7.17.7-0.20220908175011-fc19f5def37f
 Licence type (autodetected): Elastic
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.17.7-0.20220907092021-8ea55e496e77/LICENSE.txt:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.17.7-0.20220908175011-fc19f5def37f/LICENSE.txt:
 
 Source code in this repository is variously licensed under the Apache License
 Version 2.0, an Apache compatible license, or the Elastic License. Outside of
@@ -1797,11 +1797,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/google/pprof
-Version: v0.0.0-20210609004039-a478d1d731e9
+Version: v0.0.0-20210720184732-4bb14d4b1be1
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/google/pprof@v0.0.0-20210609004039-a478d1d731e9/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/google/pprof@v0.0.0-20210720184732-4bb14d4b1be1/LICENSE:
 
 
                                  Apache License
@@ -2955,11 +2955,11 @@ Contents of probable licence file $GOMODCACHE/github.com/jaegertracing/jaeger@v1
 
 --------------------------------------------------------------------------------
 Dependency : github.com/json-iterator/go
-Version: v1.1.11
+Version: v1.1.12
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/json-iterator/go@v1.1.11/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/json-iterator/go@v1.1.12/LICENSE:
 
 MIT License
 
@@ -3008,11 +3008,11 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/modern-go/reflect2
-Version: v1.0.1
+Version: v1.0.2
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/modern-go/reflect2@v1.0.1/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/modern-go/reflect2@v1.0.2/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -3523,11 +3523,11 @@ SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/spf13/cobra
-Version: v1.2.1
+Version: v1.3.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/spf13/cobra@v1.2.1/LICENSE.txt:
+Contents of probable licence file $GOMODCACHE/github.com/spf13/cobra@v1.3.0/LICENSE.txt:
 
                                 Apache License
                            Version 2.0, January 2004
@@ -12703,11 +12703,11 @@ Exhibit B - “Incompatible With Secondary Licenses” Notice
 
 --------------------------------------------------------------------------------
 Dependency : github.com/hashicorp/go-cleanhttp
-Version: v0.5.1
+Version: v0.5.2
 Licence type (autodetected): MPL-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/hashicorp/go-cleanhttp@v0.5.1/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/hashicorp/go-cleanhttp@v0.5.2/LICENSE:
 
 Mozilla Public License, version 2.0
 
@@ -15001,11 +15001,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 --------------------------------------------------------------------------------
 Dependency : github.com/miekg/dns
-Version: v1.1.25
+Version: v1.1.41
 Licence type (autodetected): BSD
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/miekg/dns@v1.1.25/COPYRIGHT:
+Contents of probable licence file $GOMODCACHE/github.com/miekg/dns@v1.1.41/COPYRIGHT:
 
 Copyright 2009 The Go Authors. All rights reserved. Use of this source code
 is governed by a BSD-style license that can be found in the LICENSE file.
@@ -15113,11 +15113,11 @@ THE SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/mitchellh/mapstructure
-Version: v1.4.1
+Version: v1.4.3
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/mitchellh/mapstructure@v1.4.1/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/mitchellh/mapstructure@v1.4.3/LICENSE:
 
 The MIT License (MIT)
 
@@ -19910,11 +19910,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/oauth2
-Version: v0.0.0-20211005180243-6b3c2da341f1
+Version: v0.0.0-20211104180415-d3ed0bb246c8
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/oauth2@v0.0.0-20211005180243-6b3c2da341f1/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/oauth2@v0.0.0-20211104180415-d3ed0bb246c8/LICENSE:
 
 Copyright (c) 2009 The Go Authors. All rights reserved.
 
@@ -19947,11 +19947,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/sys
-Version: v0.0.0-20220907062415-87db552b00fd
+Version: v0.0.0-20220908164124-27713097b956
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/sys@v0.0.0-20220907062415-87db552b00fd/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/sys@v0.0.0-20220908164124-27713097b956/LICENSE:
 
 Copyright (c) 2009 The Go Authors. All rights reserved.
 
@@ -20058,11 +20058,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : google.golang.org/genproto
-Version: v0.0.0-20220902135211-223410557253
+Version: v0.0.0-20220908141613-51c1cc9bc6d0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/google.golang.org/genproto@v0.0.0-20220902135211-223410557253/LICENSE:
+Contents of probable licence file $GOMODCACHE/google.golang.org/genproto@v0.0.0-20220908141613-51c1cc9bc6d0/LICENSE:
 
 
                                  Apache License
