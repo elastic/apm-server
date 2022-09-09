@@ -120,6 +120,9 @@ func TestIntegrationESOutput(t *testing.T) {
 		name: "Events",
 		path: "events.ndjson",
 	}, {
+		name: "Logs",
+		path: "logs.ndjson",
+	}, {
 		name: "MinimalService",
 		path: "minimal-service.ndjson",
 	}, {

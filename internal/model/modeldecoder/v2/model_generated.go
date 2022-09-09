@@ -2448,3 +2448,41 @@ func (val *longtaskMetrics) validate() error {
 	}
 	return nil
 }
+
+func (val *logRoot) IsSet() bool {
+	return val.Log.IsSet()
+}
+
+func (val *logRoot) Reset() {
+	val.Log.Reset()
+}
+
+func (val *logRoot) validate() error {
+	if err := val.Log.validate(); err != nil {
+		return errors.Wrapf(err, "log")
+	}
+	if !val.Log.IsSet() {
+		return fmt.Errorf("'log' required")
+	}
+	return nil
+}
+
+func (val *log) IsSet() bool {
+	return val.Timestamp.IsSet() || val.Message.IsSet() || val.FAAS.IsSet()
+}
+
+func (val *log) Reset() {
+	val.Timestamp.Reset()
+	val.Message.Reset()
+	val.FAAS.Reset()
+}
+
+func (val *log) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	if err := val.FAAS.validate(); err != nil {
+		return errors.Wrapf(err, "faas")
+	}
+	return nil
+}

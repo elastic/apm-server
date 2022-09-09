@@ -52,8 +52,8 @@ func generateV2() {
 	if err != nil {
 		panic(err)
 	}
-	generateCode(p, pkg, parsed, []string{"metadataRoot", "errorRoot", "metricsetRoot", "spanRoot", "transactionRoot"})
-	generateJSONSchema(p, pkg, parsed, []string{"metadata", "errorEvent", "metricset", "span", "transaction"})
+	generateCode(p, pkg, parsed, []string{"metadataRoot", "errorRoot", "metricsetRoot", "spanRoot", "transactionRoot", "logRoot"})
+	generateJSONSchema(p, pkg, parsed, []string{"metadata", "errorEvent", "metricset", "span", "transaction", "log"})
 }
 
 func generateV3RUM() {
