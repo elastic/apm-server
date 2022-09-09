@@ -67,6 +67,11 @@ var (
 			return &transactionRoot{}
 		},
 	}
+	logRootPool = sync.Pool{
+		New: func() interface{} {
+			return &logRoot{}
+		},
+	}
 )
 
 var (
@@ -119,6 +124,15 @@ func fetchTransactionRoot() *transactionRoot {
 func releaseTransactionRoot(root *transactionRoot) {
 	root.Reset()
 	transactionRootPool.Put(root)
+}
+
+func fetchLogRoot() *logRoot {
+	return logRootPool.Get().(*logRoot)
+}
+
+func releaseLogRoot(root *logRoot) {
+	root.Reset()
+	logRootPool.Put(root)
 }
 
 // DecodeMetadata decodes metadata from d, updating out.
@@ -209,6 +223,25 @@ func DecodeNestedTransaction(d decoder.Decoder, input *modeldecoder.Input, batch
 	}
 	event := input.Base
 	mapToTransactionModel(&root.Transaction, &event)
+	*batch = append(*batch, event)
+	return err
+}
+
+// DecodeNestedLog decodes a log event from d, appending it to batch.
+//
+// DecodeNestedLog should be used when the stream in the decoder contains the `log` key
+func DecodeNestedLog(d decoder.Decoder, input *modeldecoder.Input, batch *model.Batch) error {
+	root := fetchLogRoot()
+	defer releaseLogRoot(root)
+	var err error
+	if err = d.Decode(root); err != nil && err != io.EOF {
+		return modeldecoder.NewDecoderErrFromJSONIter(err)
+	}
+	if err := root.validate(); err != nil {
+		return modeldecoder.NewValidationErr(err)
+	}
+	event := input.Base
+	mapToLogModel(&root.Log, &event)
 	*batch = append(*batch, event)
 	return err
 }
@@ -1280,6 +1313,18 @@ func mapToTransactionModel(from *transaction, event *model.APMEvent) {
 			event.Span = &model.Span{}
 		}
 		mapSpanLinks(from.Links, &event.Span.Links)
+	}
+}
+
+func mapToLogModel(from *log, event *model.APMEvent) {
+	event.Processor = model.LogProcessor
+
+	mapToFAASModel(from.FAAS, &event.FAAS)
+	if !from.Timestamp.Val.IsZero() {
+		event.Timestamp = from.Timestamp.Val
+	}
+	if from.Message.IsSet() {
+		event.Message = from.Message.Val
 	}
 }
 

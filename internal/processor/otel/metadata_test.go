@@ -165,6 +165,26 @@ func TestResourceConventions(t *testing.T) {
 				},
 			},
 		},
+		"device": {
+			attrs: map[string]interface{}{
+				"device.id":               "device_id",
+				"device.model.identifier": "device_model_identifier",
+				"device.model.name":       "device_model_name",
+				"device.manufacturer":     "device_manufacturer",
+			},
+			expected: model.APMEvent{
+				Agent:   defaultAgent,
+				Service: defaultService,
+				Device: model.Device{
+					ID: "device_id",
+					Model: model.DeviceModel{
+						Identifier: "device_model_identifier",
+						Name:       "device_model_name",
+					},
+					Manufacturer: "device_manufacturer",
+				},
+			},
+		},
 		"process": {
 			attrs: map[string]interface{}{
 				"process.pid":             123,

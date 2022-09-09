@@ -39,6 +39,7 @@ import (
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/sdk/metric/aggregator/histogram"
 	controller "go.opentelemetry.io/otel/sdk/metric/controller/basic"
@@ -312,6 +313,26 @@ func TestOTLPClientIP(t *testing.T) {
 	assert.True(t, gjson.GetBytes(result.Hits.Hits[0].RawSource, "client.ip").Exists())
 }
 
+func TestOTLPHTTP(t *testing.T) {
+	srv := apmservertest.NewServerTB(t)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	t.Run("uncompressed", func(t *testing.T) {
+		systemtest.CleanupElasticsearch(t)
+		exporter := newOTLPHTTPTraceExporter(t, srv)
+		sendOTLPTrace(ctx, newOTLPTracerProvider(exporter))
+		systemtest.Elasticsearch.ExpectDocs(t, "traces-apm*", nil)
+	})
+
+	t.Run("gzip_compressed", func(t *testing.T) {
+		systemtest.CleanupElasticsearch(t)
+		exporter := newOTLPHTTPTraceExporter(t, srv, otlptracehttp.WithCompression(otlptracehttp.GzipCompression))
+		sendOTLPTrace(ctx, newOTLPTracerProvider(exporter))
+		systemtest.Elasticsearch.ExpectDocs(t, "traces-apm*", nil)
+	})
+}
+
 func TestOTLPAnonymous(t *testing.T) {
 	srv := apmservertest.NewUnstartedServerTB(t)
 	srv.Config.AgentAuth.SecretToken = "abc123" // enable auth & rate limiting
@@ -443,6 +464,16 @@ func TestOTLPRateLimit(t *testing.T) {
 func newOTLPTraceExporter(t testing.TB, srv *apmservertest.Server, options ...otlptracegrpc.Option) *otlptrace.Exporter {
 	options = append(options, otlptracegrpc.WithEndpoint(serverAddr(srv)), otlptracegrpc.WithInsecure())
 	exporter, err := otlptracegrpc.New(context.Background(), options...)
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		exporter.Shutdown(context.Background())
+	})
+	return exporter
+}
+
+func newOTLPHTTPTraceExporter(t testing.TB, srv *apmservertest.Server, options ...otlptracehttp.Option) *otlptrace.Exporter {
+	options = append(options, otlptracehttp.WithEndpoint(serverAddr(srv)), otlptracehttp.WithInsecure())
+	exporter, err := otlptracehttp.New(context.Background(), options...)
 	require.NoError(t, err)
 	t.Cleanup(func() {
 		exporter.Shutdown(context.Background())
