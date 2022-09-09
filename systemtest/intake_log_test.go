@@ -28,7 +28,7 @@ import (
 func TestIntakeLog(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
 	srv := apmservertest.NewServerTB(t)
-	systemtest.SendBackendEventsPayload(t, srv, `../testdata/intake-v2/logs.ndjson`)
+	systemtest.SendBackendEventsPayload(t, srv.URL, `../testdata/intake-v2/logs.ndjson`)
 
 	t.Run("without_timestamp", func(t *testing.T) {
 		result := systemtest.Elasticsearch.ExpectMinDocs(t, 1, "logs-apm.app-*", estest.BoolQuery{
