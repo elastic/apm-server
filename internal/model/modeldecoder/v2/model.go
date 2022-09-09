@@ -59,6 +59,11 @@ type transactionRoot struct {
 	Transaction transaction `json:"transaction" validate:"required"`
 }
 
+// logRoot requires a log event to be present
+type logRoot struct {
+	Log log `json:"log" validate:"required"`
+}
+
 // other structs
 
 type context struct {
@@ -949,6 +954,18 @@ type transaction struct {
 	UserExperience transactionUserExperience `json:"experience"`
 	// Links holds links to other spans, potentially in other traces.
 	Links []spanLink `json:"links"`
+}
+
+type log struct {
+	// Timestamp holds the recorded time of the event, UTC based and formatted
+	// as microseconds since Unix epoch
+	Timestamp nullable.TimeMicrosUnix `json:"@timestamp"`
+	// Message logged as part of the log. In case a parameterized message is
+	// captured, Message should contain the same information, but with any placeholders
+	// being replaced.
+	Message nullable.String `json:"message"`
+	// FAAS holds fields related to Function as a Service events.
+	FAAS faas `json:"faas"`
 }
 
 type otel struct {

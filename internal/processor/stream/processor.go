@@ -46,6 +46,7 @@ const (
 	metricsetEventType        = "metricset"
 	spanEventType             = "span"
 	transactionEventType      = "transaction"
+	logEventType              = "log"
 	rumv3ErrorEventType       = "e"
 	rumv3TransactionEventType = "x"
 )
@@ -190,6 +191,8 @@ func (p *Processor) readBatch(
 			err = v2.DecodeNestedSpan(reader, &input, batch)
 		case transactionEventType:
 			err = v2.DecodeNestedTransaction(reader, &input, batch)
+		case logEventType:
+			err = v2.DecodeNestedLog(reader, &input, batch)
 		case rumv3ErrorEventType:
 			err = rumv3.DecodeNestedError(reader, &input, batch)
 		case rumv3TransactionEventType:
