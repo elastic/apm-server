@@ -7,7 +7,7 @@
                 "version": "0.0.0"
             },
             "client": {
-                "ip": "127.0.0.1"
+                "ip": "dynamic"
             },
             "data_stream.dataset": "apm.error",
             "data_stream.namespace": "default",
@@ -280,7 +280,7 @@
                 "version": "1.0.1"
             },
             "source": {
-                "ip": "127.0.0.1",
+                "ip": "dynamic",
                 "port": "dynamic"
             },
             "timestamp": {

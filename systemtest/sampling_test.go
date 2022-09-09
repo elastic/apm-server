@@ -59,12 +59,12 @@ func TestDropUnsampled(t *testing.T) {
 	tracer.Flush(nil)
 
 	// Unsampled backend transaction (should be dropped)
-	systemtest.SendBackendEventsLiteral(t, srv, `
+	systemtest.SendBackendEventsLiteral(t, srv.URL, `
 {"metadata":{"service":{"name":"allowed","version":"1.0.0","agent":{"name":"backend","version":"0.0.0"}}}}
 {"transaction":{"sampled":false,"trace_id":"xyz","id":"yz","type":"TestDropUnsampled","duration":0,"span_count":{"started":1},"context":{"service":{"name":"allowed"}}}}`[1:])
 
 	// Unsampled RUM transaction (should be stored)
-	systemtest.SendRUMEventsLiteral(t, srv, `
+	systemtest.SendRUMEventsLiteral(t, srv.URL, `
 {"metadata":{"service":{"name":"allowed","version":"1.0.0","agent":{"name":"rum-js","version":"0.0.0"}}}}
 {"transaction":{"sampled":false,"trace_id":"x","id":"y","type":"TestDropUnsampled","duration":0,"span_count":{"started":1},"context":{"service":{"name":"allowed"}}}}`[1:])
 

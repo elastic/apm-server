@@ -75,6 +75,11 @@ func TestFleetFetch(t *testing.T) {
 	consumer, err := f.Fetch(context.Background(), name, version, path)
 	assert.NoError(t, err)
 	assert.NotNil(t, consumer)
+
+	// Check that only the URL *path* is used
+	consumer, err = f.Fetch(context.Background(), name, version, "http://testing.invalid"+path)
+	assert.NoError(t, err)
+	assert.NotNil(t, consumer)
 }
 
 func TestFailedAndSuccessfulFleetHostsFetch(t *testing.T) {
