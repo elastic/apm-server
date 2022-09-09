@@ -203,9 +203,6 @@ func SetStructValues(in interface{}, values *Values, opts ...SetStructValuesOpti
 				}
 			}
 		case reflect.Ptr:
-			if f.IsNil() {
-				fieldVal = reflect.Zero(f.Type())
-			}
 			return
 		default:
 			fieldVal = reflect.Value{}
