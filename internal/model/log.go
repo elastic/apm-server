@@ -34,13 +34,10 @@ var (
 type Log struct {
 	// Level holds the log level of the log event.
 	Level string
-	// LoggerName holds the name of the logger for the log event.
-	LoggerName string
 }
 
 func (e Log) fields() mapstr.M {
 	var fields mapStr
 	fields.maybeSetString("level", e.Level)
-	fields.maybeSetString("logger", e.LoggerName)
 	return mapstr.M(fields)
 }

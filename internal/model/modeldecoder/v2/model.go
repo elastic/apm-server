@@ -957,26 +957,13 @@ type transaction struct {
 }
 
 type log struct {
-	// Context holds arbitrary contextual information for the event.
-	Context context `json:"context"`
 	// Timestamp holds the recorded time of the event, UTC based and formatted
 	// as microseconds since Unix epoch
-	Timestamp nullable.TimeMicrosUnix `json:"timestamp"`
-	// TraceID holds the hex encoded 128 random bits ID of the correlated trace.
-	TraceID nullable.String `json:"trace_id" validate:"maxLength=1024"`
-	// SpanID holds the ID of the linked span.
-	SpanID nullable.String `json:"span_id" validate:"maxLength=1024"`
-	// Level represents the severity of the recorded log.
-	Level nullable.String `json:"level" validate:"maxLength=1024"`
-	// LoggerName holds the name of the used logger instance.
-	LoggerName nullable.String `json:"logger_name" validate:"maxLength=1024"`
+	Timestamp nullable.TimeMicrosUnix `json:"@timestamp"`
 	// Message logged as part of the log. In case a parameterized message is
 	// captured, Message should contain the same information, but with any placeholders
 	// being replaced.
 	Message nullable.String `json:"message"`
-	// Severity represents the numeric severity of the logs as advertised by the
-	// source. Meaning behind severity is upto the implementer.
-	Severity nullable.Int `json:"severity"`
 	// FAAS holds fields related to Function as a Service events.
 	FAAS faas `json:"faas"`
 }

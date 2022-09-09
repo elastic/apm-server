@@ -36,12 +36,10 @@ func TestLogTransform(t *testing.T) {
 		},
 		{
 			Log: Log{
-				Level:      "warn",
-				LoggerName: "test.logger",
+				Level: "warn",
 			},
 			Output: mapstr.M{
-				"level":  "warn",
-				"logger": "test.logger",
+				"level": "warn",
 			},
 		},
 	}
