@@ -102,6 +102,39 @@
           type: keyword
           description: |
             Version of the runtime used.
+- name: faas
+  type: group
+  description: |
+    Function as a service fields.
+  fields:
+    - name: id
+      type: keyword
+      description: |
+        A unique identifier of the invoked serverless function.
+    - name: coldstart
+      type: boolean
+      description: |
+        Boolean indicating whether the function invocation was a coldstart or not.
+    - name: execution
+      type: keyword
+      description: |
+        Request ID of the function invocation.
+    - name: trigger.request_id
+      type: keyword
+      description: |
+        The ID of the origin trigger request.
+    - name: trigger.type
+      type: keyword
+      description: |
+        The trigger type.
+    - name: name
+      type: keyword
+      description: |
+        The lambda function name.
+    - name: version
+      type: keyword
+      description: |
+        The lambda function version.
 - name: numeric_labels
   type: object
   dynamic: true
