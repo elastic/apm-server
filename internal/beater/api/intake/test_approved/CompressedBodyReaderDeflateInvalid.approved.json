@@ -2,7 +2,7 @@
     "accepted": 0,
     "errors": [
         {
-            "message": "zlib: invalid header"
+            "message": "data decoding error: zlib: invalid header"
         }
     ]
 }

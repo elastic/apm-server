@@ -19,12 +19,16 @@ package request
 
 import (
 	"bytes"
+	"compress/gzip"
+	"compress/zlib"
+	"io"
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
 	"net/netip"
 	"os"
 	"reflect"
+	"strings"
 	"testing"
 	"time"
 
@@ -91,7 +95,7 @@ func TestContext_Reset(t *testing.T) {
 	cType := reflect.TypeOf(c)
 	cVal := reflect.ValueOf(c)
 	for i := 0; i < cVal.NumField(); i++ {
-		switch cType.Field(i).Name {
+		switch name := cType.Field(i).Name; name {
 		case "Request":
 			assert.Equal(t, r2, cVal.Field(i).Interface())
 		case "Authentication":
@@ -117,6 +121,12 @@ func TestContext_Reset(t *testing.T) {
 		case "Timestamp":
 			timestamp := cVal.Field(i).Interface().(time.Time)
 			assert.False(t, timestamp.Before(before))
+		case "compressedRequestReadCloser":
+			assert.Zero(t, c.compressedRequestReadCloser)
+		case "zlibReader":
+			assert.Nil(t, c.zlibReader)
+		case "gzipReader":
+			assert.Nil(t, c.gzipReader)
 		default:
 			assert.Empty(t, cVal.Field(i).Interface(), cType.Field(i).Name)
 		}
@@ -200,6 +210,90 @@ func BenchmarkContextReset(b *testing.B) {
 			}
 		})
 	}
+}
+
+func TestContextResetContentEncoding(t *testing.T) {
+	test := func(
+		name string,
+		contentEncoding string,
+		body io.Reader,
+		expectedBody string,
+		expectedContentEncoding string,
+	) {
+		t.Run(name, func(t *testing.T) {
+			w := httptest.NewRecorder()
+			w.WriteHeader(http.StatusOK)
+
+			r := httptest.NewRequest(http.MethodGet, "/", body)
+			if contentEncoding != "" {
+				r.Header.Set("Content-Encoding", contentEncoding)
+			}
+			originalContentLength := r.ContentLength
+
+			c := Context{
+				Request:        r,
+				ResponseWriter: w,
+				Result:         Result{StatusCode: http.StatusOK},
+			}
+
+			c.Reset(w, r)
+			assert.Equal(t, originalContentLength, c.OriginalContentLength)
+			assert.Equal(t, expectedContentEncoding, c.ContentEncoding)
+			assertReaderContents(t, expectedBody, c.Request.Body)
+		})
+	}
+
+	gzipCompressed := gzipCompressString("contents")
+	deflateCompressed := zlibCompressString("contents")
+
+	test("empty", "", nil, "", "")
+	test("uncompressed", "", strings.NewReader("contents"), "contents", "")
+	test("gzip", "gzip", bytes.NewReader(gzipCompressed), "contents", "gzip")
+	test("gzip_sniff", "", bytes.NewReader(gzipCompressed), "contents", "gzip")
+	test("deflate", "deflate", bytes.NewReader(deflateCompressed), "contents", "deflate")
+	test("deflate_sniff", "", bytes.NewReader(deflateCompressed), "contents", "deflate")
+}
+
+func BenchmarkContextResetContentEncoding(b *testing.B) {
+	benchmark := func(name string, contentEncoding string, body io.ReadSeeker) {
+		w := httptest.NewRecorder()
+		w.WriteHeader(http.StatusOK)
+
+		r := httptest.NewRequest(http.MethodGet, "/", body)
+		if contentEncoding != "" {
+			r.Header.Set("Content-Encoding", contentEncoding)
+		}
+
+		c := Context{
+			Request:        r,
+			ResponseWriter: w,
+			Result:         Result{StatusCode: http.StatusOK},
+		}
+
+		b.Run(name, func(b *testing.B) {
+			var readCloser io.ReadCloser
+			if body != nil {
+				readCloser = io.NopCloser(body)
+			}
+			for i := 0; i < b.N; i++ {
+				if body != nil {
+					body.Seek(0, io.SeekStart)
+				}
+				r.Body = readCloser
+				c.Reset(w, r)
+			}
+		})
+	}
+
+	gzipCompressed := gzipCompressString("contents")
+	deflateCompressed := zlibCompressString("contents")
+
+	benchmark("empty", "", nil)
+	benchmark("uncompressed", "", strings.NewReader("contents"))
+	benchmark("gzip", "gzip", bytes.NewReader(gzipCompressed))
+	benchmark("gzip_sniff", "", bytes.NewReader(gzipCompressed))
+	benchmark("deflate", "deflate", bytes.NewReader(deflateCompressed))
+	benchmark("deflate_sniff", "", bytes.NewReader(deflateCompressed))
 }
 
 func TestContext_Header(t *testing.T) {
@@ -342,4 +436,40 @@ func mockContextAccept(accept string) (*Context, *httptest.ResponseRecorder) {
 	c.Reset(w, r)
 	return c, w
 
+}
+
+func assertReaderContents(t *testing.T, expected string, r io.Reader) {
+	t.Helper()
+	contents, err := io.ReadAll(r)
+	require.NoError(t, err)
+	assert.Equal(t, expected, string(contents))
+}
+
+func zlibCompressString(s string) []byte {
+	var buf bytes.Buffer
+	w, err := zlib.NewWriterLevel(&buf, zlib.BestSpeed)
+	if err != nil {
+		panic(err)
+	}
+	compressString(s, w)
+	return buf.Bytes()
+}
+
+func gzipCompressString(s string) []byte {
+	var buf bytes.Buffer
+	w, err := gzip.NewWriterLevel(&buf, gzip.BestSpeed)
+	if err != nil {
+		panic(err)
+	}
+	compressString(s, w)
+	return buf.Bytes()
+}
+
+func compressString(s string, w io.WriteCloser) {
+	if _, err := w.Write([]byte(s)); err != nil {
+		panic(err)
+	}
+	if err := w.Close(); err != nil {
+		panic(err)
+	}
 }
