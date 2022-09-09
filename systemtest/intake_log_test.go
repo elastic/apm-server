@@ -30,6 +30,16 @@ func TestIntakeLog(t *testing.T) {
 	srv := apmservertest.NewServerTB(t)
 	systemtest.SendBackendEventsPayload(t, srv, `../testdata/intake-v2/logs.ndjson`)
 
+	t.Run("without_timestamp", func(t *testing.T) {
+		result := systemtest.Elasticsearch.ExpectMinDocs(t, 1, "logs-apm.app-*", estest.BoolQuery{
+			Filter: []interface{}{
+				estest.TermQuery{Field: "processor.event", Value: "log"},
+				estest.MatchPhraseQuery{Field: "message", Value: "test log message without timestamp"},
+			},
+		})
+		systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits, "@timestamp")
+	})
+
 	t.Run("with_timestamp", func(t *testing.T) {
 		result := systemtest.Elasticsearch.ExpectMinDocs(t, 1, "logs-apm.app-*", estest.BoolQuery{
 			Filter: []interface{}{
@@ -40,13 +50,13 @@ func TestIntakeLog(t *testing.T) {
 		systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits)
 	})
 
-	t.Run("without_timestamp", func(t *testing.T) {
+	t.Run("with_faas", func(t *testing.T) {
 		result := systemtest.Elasticsearch.ExpectMinDocs(t, 1, "logs-apm.app-*", estest.BoolQuery{
 			Filter: []interface{}{
 				estest.TermQuery{Field: "processor.event", Value: "log"},
-				estest.MatchPhraseQuery{Field: "message", Value: "test log message without timestamp"},
+				estest.MatchPhraseQuery{Field: "message", Value: "test log message with faas"},
 			},
 		})
-		systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits, "@timestamp")
+		systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits)
 	})
 }
