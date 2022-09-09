@@ -873,9 +873,10 @@ func eventsMatch(t *testing.T, expected []model.APMEvent, actual []model.APMEven
 			}
 
 			// Special handling for TestConsumeMetricsHostCPU
-			xlv, xOk := x.Labels["cpu"]
-			ylv, yOk := y.Labels["cpu"]
-			if xOk && yOk && xlv.Value != ylv.Value {
+			if xlv, ylv := x.Labels["cpu"], y.Labels["cpu"]; xlv.Value != ylv.Value {
+				return xlv.Value < ylv.Value
+			}
+			if xlv, ylv := x.Labels["state"], y.Labels["state"]; xlv.Value != ylv.Value {
 				return xlv.Value < ylv.Value
 			}
 
