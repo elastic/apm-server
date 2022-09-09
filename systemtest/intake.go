@@ -43,22 +43,42 @@ func SendBackendEventsPayload(t *testing.T, srv *apmservertest.Server, payloadFi
 	sendEventsPayload(t, srv, "/intake/v2/events", f)
 }
 
+func SendBackendEventsAsyncPayload(t *testing.T, srv *apmservertest.Server, payloadFile string) {
+	f := openFile(t, payloadFile)
+	sendEventsPayload(t, srv, "/intake/v2/events?async=true", f)
+}
+
+func SendBackendEventsAsyncPayloadError(t *testing.T, srv *apmservertest.Server, payloadFile string) {
+	f := openFile(t, payloadFile)
+
+	resp := doRequest(t, srv, "/intake/v2/events?async=true", f)
+	defer resp.Body.Close()
+
+	respBody, err := io.ReadAll(resp.Body)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusServiceUnavailable, resp.StatusCode, string(respBody))
+}
+
 func SendBackendEventsLiteral(t *testing.T, srv *apmservertest.Server, raw string) {
 	sendEventsPayload(t, srv, "/intake/v2/events", strings.NewReader(raw))
 }
 
 func sendEventsPayload(t *testing.T, srv *apmservertest.Server, urlPath string, f io.Reader) {
 	t.Helper()
-
-	req, _ := http.NewRequest("POST", srv.URL+urlPath, f)
-	req.Header.Add("Content-Type", "application/x-ndjson")
-	resp, err := http.DefaultClient.Do(req)
-	require.NoError(t, err)
+	resp := doRequest(t, srv, urlPath, f)
 	defer resp.Body.Close()
 
 	respBody, err := io.ReadAll(resp.Body)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusAccepted, resp.StatusCode, string(respBody))
+}
+
+func doRequest(t *testing.T, srv *apmservertest.Server, urlPath string, f io.Reader) *http.Response {
+	req, _ := http.NewRequest("POST", srv.URL+urlPath, f)
+	req.Header.Add("Content-Type", "application/x-ndjson")
+	resp, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+	return resp
 }
 
 func openFile(t *testing.T, p string) *os.File {
