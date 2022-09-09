@@ -18,7 +18,10 @@
 package request
 
 import (
+	"compress/gzip"
+	"compress/zlib"
 	"encoding/json"
+	"io"
 	"net/http"
 	"net/netip"
 	"strings"
@@ -41,8 +44,19 @@ var (
 	mimeTypesJSON = []string{mimeTypeAny, mimeTypeApplicationJSON}
 )
 
+type zlibReadCloseResetter interface {
+	io.ReadCloser
+	zlib.Resetter
+}
+
 // Context abstracts request and response information for http requests
 type Context struct {
+	// compressedRequestReadCloser will be initialised for requests
+	// with a non-zero ContentLength and empty Content-Encoding.
+	compressedRequestReadCloser compressedRequestReadCloser
+	gzipReader                  *gzip.Reader
+	zlibReader                  zlibReadCloseResetter
+
 	Request        *http.Request
 	Logger         *logp.Logger
 	Authentication auth.AuthenticationDetails
@@ -79,6 +93,19 @@ type Context struct {
 	// UserAgent holds the User-Agent request header value.
 	UserAgent string
 
+	// ContentEncoding holds the originally specified Content-Encoding header
+	// value, or detected content encoding, prior to decoding.
+	//
+	// The request body will be automatically decoded using the supplied
+	// Content-Encoding header, if any, or by sniffing the request body's
+	// encoding (for gzip and deflate) otherwise. If there are any errors
+	// during decoding, Context.Result.Err will be set.
+	ContentEncoding string
+
+	// OriginalContentLength holds the original Request.ContentLength value,
+	// prior to decoding.
+	OriginalContentLength int64
+
 	// ResponseWriter is exported to enable passing Context to OTLP handlers
 	// An alternate solution would be to implement context.WriteHeaders()
 	ResponseWriter http.ResponseWriter
@@ -97,32 +124,60 @@ func NewContext() *Context {
 // the request, and information such as the user agent and source IP will be
 // extracted for handlers.
 func (c *Context) Reset(w http.ResponseWriter, r *http.Request) {
-	if c.Request != nil && c.Request.MultipartForm != nil {
-		err := c.Request.MultipartForm.RemoveAll()
-		if err != nil && c.Logger != nil {
-			c.Logger.Errorw("failed to remove temporary form files", "error", err)
+	if c.Request != nil {
+		if c.Request.MultipartForm != nil {
+			err := c.Request.MultipartForm.RemoveAll()
+			if err != nil && c.Logger != nil {
+				c.Logger.Errorw("failed to remove temporary form files", "error", err)
+			}
+		}
+
+		// Close the request body, which may have been replaced
+		// by decodeRequestBody. net/http holds onto the original
+		// body, so it won't close the decompressor.
+		if c.Request.Body != nil {
+			c.Request.Body.Close()
 		}
 	}
 
 	*c = Context{
-		Request:        r,
 		Logger:         nil,
 		Authentication: auth.AuthenticationDetails{},
 		ResponseWriter: w,
+
+		// Reuse gzip and zlib reader buffers.
+		gzipReader: c.gzipReader,
+		zlibReader: c.zlibReader,
 	}
 	c.Result.Reset()
 
 	if r != nil {
-		ip, port := netutil.SplitAddrPort(r.RemoteAddr)
+		c.setRequest(r)
+	}
+}
+
+func (c *Context) setRequest(r *http.Request) {
+	c.Timestamp = time.Now()
+	c.Request = r
+	c.UserAgent = strings.Join(r.Header["User-Agent"], ", ")
+
+	ip, port := netutil.SplitAddrPort(r.RemoteAddr)
+	c.SourceIP, c.ClientIP = ip, ip
+	c.SourcePort, c.ClientPort = int(port), int(port)
+	if ip, port := netutil.ClientAddrFromHeaders(r.Header); ip.IsValid() {
+		c.SourceNATIP = c.ClientIP
 		c.SourceIP, c.ClientIP = ip, ip
 		c.SourcePort, c.ClientPort = int(port), int(port)
-		if ip, port := netutil.ClientAddrFromHeaders(r.Header); ip.IsValid() {
-			c.SourceNATIP = c.ClientIP
-			c.SourceIP, c.ClientIP = ip, ip
-			c.SourcePort, c.ClientPort = int(port), int(port)
+	}
+
+	c.OriginalContentLength = r.ContentLength
+	c.ContentEncoding = r.Header.Get("Content-Encoding")
+
+	if err := c.decodeRequestBody(); err != nil {
+		if c.Logger != nil {
+			c.Logger.Errorw("failed to decode request body", "error", err)
 		}
-		c.UserAgent = strings.Join(r.Header["User-Agent"], ", ")
-		c.Timestamp = time.Now()
+		c.Result.SetWithError(IDResponseErrorsDecode, err)
 	}
 }
 
@@ -204,4 +259,95 @@ func (c *Context) errOnWrite(err error) {
 		c.Logger = logp.NewLogger(logs.Response)
 	}
 	c.Logger.Errorw("write response", "error", err)
+}
+
+func (c *Context) decodeRequestBody() error {
+	if c.OriginalContentLength == 0 {
+		return nil
+	}
+
+	var reader io.ReadCloser
+	var err error
+	switch c.ContentEncoding {
+	case "deflate":
+		reader, err = c.resetZlib(c.Request.Body)
+	case "gzip":
+		reader, err = c.resetGzip(c.Request.Body)
+	default:
+		// Sniff encoding from payload by looking at the first two bytes.
+		// This produces much less garbage than opportunistically calling
+		// gzip.NewReader, zlib.NewReader, etc.
+		//
+		// Portions of code based on compress/zlib and compress/gzip.
+		const (
+			zlibDeflate = 8
+			gzipID1     = 0x1f
+			gzipID2     = 0x8b
+		)
+		rc := &c.compressedRequestReadCloser
+		rc.ReadCloser = c.Request.Body
+		if _, err := c.Request.Body.Read(rc.magic[:]); err != nil {
+			if err == io.EOF {
+				// Leave the original request body in place,
+				// which should continue returning io.EOF.
+				return nil
+			}
+			return err
+		}
+		if rc.magic[0] == gzipID1 && rc.magic[1] == gzipID2 {
+			c.ContentEncoding = "gzip"
+			reader, err = c.resetGzip(rc)
+		} else if rc.magic[0]&0x0f == zlibDeflate {
+			c.ContentEncoding = "deflate"
+			reader, err = c.resetZlib(rc)
+		} else {
+			reader = rc
+		}
+	}
+	if err != nil {
+		return err
+	}
+
+	c.Request.ContentLength = -1
+	c.Request.Body = reader
+	return nil
+}
+
+func (c *Context) resetZlib(r io.Reader) (io.ReadCloser, error) {
+	if c.zlibReader == nil {
+		zr, err := zlib.NewReader(r)
+		if err != nil {
+			return nil, err
+		}
+		c.zlibReader = zr.(zlibReadCloseResetter)
+	} else if err := c.zlibReader.Reset(r, nil); err != nil {
+		return nil, err
+	}
+	return c.zlibReader, nil
+}
+
+func (c *Context) resetGzip(r io.Reader) (io.ReadCloser, error) {
+	var err error
+	if c.gzipReader == nil {
+		c.gzipReader, err = gzip.NewReader(r)
+	} else {
+		err = c.gzipReader.Reset(r)
+	}
+	return c.gzipReader, err
+}
+
+type compressedRequestReadCloser struct {
+	io.ReadCloser
+	magic     [2]byte
+	magicRead int
+}
+
+func (r *compressedRequestReadCloser) Read(p []byte) (int, error) {
+	var nmagic int
+	if r.magicRead < 2 {
+		nmagic = copy(p[:], r.magic[r.magicRead:])
+		r.magicRead += nmagic
+	}
+	n, err := r.ReadCloser.Read(p[nmagic:])
+	return n + nmagic, err
 }

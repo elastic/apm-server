@@ -15,6 +15,7 @@ https://github.com/elastic/apm-server/compare/8.5\...main[View commits]
 ==== Bug fixes
 - Set `message` instead of `labels.event` for Jaeger span events {pull}8765[8765]
 - Reach full support (still technical preview) for Java agent auto attachment on Linux by allowing attachment to a JVM of any user {pull}8803[8803]
+- The OTLP/HTTP handlers now support gzip and deflate compression {pull}9067[9067]
 
 [float]
 ==== Intake API Changes
