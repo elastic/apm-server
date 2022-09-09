@@ -82,6 +82,17 @@ func (q TermsQuery) MarshalJSON() ([]byte, error) {
 	return encodeQueryJSON("terms", args)
 }
 
+type MatchPhraseQuery struct {
+	Field string
+	Value interface{}
+}
+
+func (q MatchPhraseQuery) MarshalJSON() ([]byte, error) {
+	return encodeQueryJSON("match_phrase", map[string]interface{}{
+		q.Field: q.Value,
+	})
+}
+
 func encodeQueryJSON(k string, v interface{}) ([]byte, error) {
 	m := map[string]interface{}{k: v}
 	return json.Marshal(m)
