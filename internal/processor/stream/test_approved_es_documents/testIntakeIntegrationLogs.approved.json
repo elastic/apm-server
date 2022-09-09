@@ -188,7 +188,7 @@
                 "ab_testing": "true",
                 "group": "experimental"
             },
-            "message": "test log message with timestamp and faas",
+            "message": "test log message with faas",
             "numeric_labels": {
                 "segment": 5
             },
