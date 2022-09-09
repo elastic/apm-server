@@ -37,12 +37,10 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/elastic/go-elasticsearch/v7 v7.17.1 // indirect
 	github.com/elastic/go-ucfg v0.8.6 // indirect
-	github.com/elastic/gojsonschema v1.2.1 // indirect
-	github.com/elastic/package-spec v1.18.0 // indirect
+	github.com/elastic/package-spec v1.2.0 // indirect
 	github.com/emicklei/go-restful/v3 v3.9.0 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/evanphx/json-patch v5.6.0+incompatible // indirect
-	github.com/evanphx/json-patch/v5 v5.6.0 // indirect
 	github.com/exponent-io/jsonpath v0.0.0-20210407135951-1de76d718b3f // indirect
 	github.com/fatih/color v1.13.0 // indirect
 	github.com/go-errors/errors v1.4.2 // indirect
@@ -124,6 +122,7 @@ require (
 	github.com/xanzy/ssh-agent v0.3.2 // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
+	github.com/xeipuuv/gojsonschema v1.2.0 // indirect
 	github.com/xlab/treeprint v1.1.0 // indirect
 	go.mongodb.org/mongo-driver v1.10.2 // indirect
 	go.opencensus.io v0.23.0 // indirect
