@@ -38,7 +38,8 @@ func TestFleetFetch(t *testing.T) {
 		apikey        = "supersecret"
 		name          = "webapp"
 		version       = "1.0.0"
-		path          = "/my/path/to/bundle.js.map"
+		path1         = "/my/path/to/bundle1.js.map"
+		path2         = "/my/path/to/bundle2.js.map"
 		c             = http.DefaultClient
 		sourceMapPath = "/api/fleet/artifact"
 	)
@@ -67,19 +68,27 @@ func TestFleetFetch(t *testing.T) {
 	f, err := NewFleetFetcher(c, apikey, fleetServerURLs, []FleetArtifactReference{{
 		ServiceName:        name,
 		ServiceVersion:     version,
-		BundleFilepath:     path,
+		BundleFilepath:     path1,
+		FleetServerURLPath: sourceMapPath,
+	}, {
+		ServiceName:        name,
+		ServiceVersion:     version,
+		BundleFilepath:     "http://not_testing.invalid" + path2,
 		FleetServerURLPath: sourceMapPath,
 	}})
 	assert.NoError(t, err)
 
-	consumer, err := f.Fetch(context.Background(), name, version, path)
-	assert.NoError(t, err)
-	assert.NotNil(t, consumer)
+	for _, path := range []string{path1, path2} {
+		consumer, err := f.Fetch(context.Background(), name, version, path)
+		assert.NoError(t, err)
+		assert.NotNil(t, consumer)
 
-	// Check that only the URL *path* is used
-	consumer, err = f.Fetch(context.Background(), name, version, "http://testing.invalid"+path)
-	assert.NoError(t, err)
-	assert.NotNil(t, consumer)
+		// Check that only the URL *path* is used, and matches entries in the
+		// fetcher stored with either absolute or relative URLs.
+		consumer, err = f.Fetch(context.Background(), name, version, "http://testing.invalid"+path)
+		assert.NoError(t, err)
+		assert.NotNil(t, consumer)
+	}
 }
 
 func TestFailedAndSuccessfulFleetHostsFetch(t *testing.T) {

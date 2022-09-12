@@ -58,6 +58,8 @@ type FleetArtifactReference struct {
 	ServiceVersion string
 
 	// BundleFilepath holds the bundle file path to which the source map relates.
+	//
+	// If BundleFilepath is an absolute URL, only the URL path is matched on.
 	BundleFilepath string
 
 	// FleetServerURLPath holds the URL path for fetching the source map,
@@ -78,7 +80,7 @@ func NewFleetFetcher(
 
 	sourceMapURLPaths := make(map[key]string)
 	for _, ref := range refs {
-		k := key{ref.ServiceName, ref.ServiceVersion, ref.BundleFilepath}
+		k := key{ref.ServiceName, ref.ServiceVersion, maybeParseURLPath(ref.BundleFilepath)}
 		sourceMapURLPaths[k] = ref.FleetServerURLPath
 	}
 
