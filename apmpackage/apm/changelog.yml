@@ -3,9 +3,18 @@
 # change type can be one of: enhancement, bugfix, breaking-change
 - version: "8.4.2"
   changes:
+<<<<<<< HEAD
     - description: Placeholder
       type: bugfix
       link: https://github.com/elastic/apm-server/pull/1234
+=======
+    - description: Added faas fields for app logs datastream
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/9068
+    - description: Added observer/ppid translation to data stream migration pipeline
+      type: bugfix
+      link: https://github.com/elastic/apm-server/pull/9095
+>>>>>>> fbeb582b (Fix data stream migration ingest pipeline (#9095))
 - version: "8.4.0"
   changes:
     - description: Added support for dynamically mapping summary metrics

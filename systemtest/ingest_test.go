@@ -18,11 +18,14 @@
 package systemtest_test
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 	"testing"
 
@@ -172,4 +175,37 @@ func TestIngestPipelineEventDuration(t *testing.T) {
 			assert.False(t, spanDurationUS.Exists())
 		}
 	}
+}
+
+func TestIngestPipelineDataStreamMigration(t *testing.T) {
+	systemtest.CleanupElasticsearch(t)
+
+	var testdata struct {
+		Hits struct {
+			Hits []struct {
+				Source json.RawMessage `json:"_source"`
+			} `json:"hits`
+		} `json:"hits`
+	}
+
+	data, err := os.ReadFile("../testdata/ingest/7_17_docs.json")
+	require.NoError(t, err)
+	err = json.Unmarshal(data, &testdata)
+	require.NoError(t, err)
+
+	// Index documents using the data stream migration ingest pipeline.
+	pipeline := fmt.Sprintf("traces-apm-%s-apm_data_stream_migration", systemtest.IntegrationPackage.Version)
+	for _, doc := range testdata.Hits.Hits {
+		_, err := systemtest.Elasticsearch.Do(context.Background(), esapi.IndexRequest{
+			Index:    "traces-apm-foo", // should not be created; ingest pipeline should take over
+			Pipeline: pipeline,
+			Body:     bytes.NewReader(doc.Source),
+		}, nil)
+		require.NoError(t, err)
+	}
+
+	result := systemtest.Elasticsearch.ExpectMinDocs(t,
+		len(testdata.Hits.Hits), "traces-apm*,logs-apm*,metrics-apm*", nil,
+	)
+	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits)
 }
