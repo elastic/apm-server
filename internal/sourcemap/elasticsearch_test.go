@@ -156,6 +156,8 @@ func newUnavailableElasticsearchClient(t testing.TB) elasticsearch.Client {
 	cfg := elasticsearch.DefaultConfig()
 	cfg.Hosts = []string{"testing.invalid"}
 	cfg.MaxRetries = 1
+	cfg.Backoff.Init = time.Nanosecond
+	cfg.Backoff.Max = time.Nanosecond
 	client, err := elasticsearch.NewClientParams(elasticsearch.ClientParams{Config: cfg, Transport: transport})
 	require.NoError(t, err)
 	return client
