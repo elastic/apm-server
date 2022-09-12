@@ -82,6 +82,7 @@ func metadataExceptions(keys ...string) func(key string) bool {
 		"Service.Node",
 		"Service.Agent.EphemeralID",
 		"Host",
+		"Device",
 		"Event",
 		"Service.Origin",
 		"Service.Target",

@@ -235,8 +235,8 @@ func (b *apmMetricsBuilder) emit(ms metricsets) {
 	// Direct translation of system.memory.usage (state = free)
 	if b.freeMemoryBytes.value > 0 {
 		ms.upsertOne(
-			b.freeMemoryBytes.timestamp, "system.memory.actual.free", pcommon.NewMap(),
-			model.MetricsetSample{Value: b.freeMemoryBytes.value},
+			b.freeMemoryBytes.timestamp, pcommon.NewMap(),
+			model.MetricsetSample{Name: "system.memory.actual.free", Value: b.freeMemoryBytes.value},
 		)
 	}
 	// system.memory.total
@@ -244,16 +244,16 @@ func (b *apmMetricsBuilder) emit(ms metricsets) {
 	totalMemoryBytes := b.freeMemoryBytes.value + b.usedMemoryBytes.value
 	if totalMemoryBytes > 0 {
 		ms.upsertOne(
-			b.freeMemoryBytes.timestamp, "system.memory.total", pcommon.NewMap(),
-			model.MetricsetSample{Value: totalMemoryBytes},
+			b.freeMemoryBytes.timestamp, pcommon.NewMap(),
+			model.MetricsetSample{Name: "system.memory.total", Value: totalMemoryBytes},
 		)
 	}
 	// system.cpu.total.norm.pct
 	// Averaging of non-idle CPU utilization over all CPU cores
 	if b.nonIdleCPUUtilizationSum.value > 0 && b.cpuCount > 0 {
 		ms.upsertOne(
-			b.nonIdleCPUUtilizationSum.timestamp, "system.cpu.total.norm.pct", pcommon.NewMap(),
-			model.MetricsetSample{Value: b.nonIdleCPUUtilizationSum.value / float64(b.cpuCount)},
+			b.nonIdleCPUUtilizationSum.timestamp, pcommon.NewMap(),
+			model.MetricsetSample{Name: "system.cpu.total.norm.pct", Value: b.nonIdleCPUUtilizationSum.value / float64(b.cpuCount)},
 		)
 	}
 	// jvm.gc.time
@@ -262,8 +262,8 @@ func (b *apmMetricsBuilder) emit(ms metricsets) {
 		elasticapmAttributes := pcommon.NewMap()
 		elasticapmAttributes.Insert("name", pcommon.NewValueString(k))
 		ms.upsertOne(
-			v.timestamp, "jvm.gc.time", elasticapmAttributes,
-			model.MetricsetSample{Value: v.value},
+			v.timestamp, elasticapmAttributes,
+			model.MetricsetSample{Name: "jvm.gc.time", Value: v.value},
 		)
 	}
 	// jvm.gc.count
@@ -272,8 +272,8 @@ func (b *apmMetricsBuilder) emit(ms metricsets) {
 		elasticapmAttributes := pcommon.NewMap()
 		elasticapmAttributes.Insert("name", pcommon.NewValueString(k))
 		ms.upsertOne(
-			v.timestamp, "jvm.gc.count", elasticapmAttributes,
-			model.MetricsetSample{Value: v.value},
+			v.timestamp, elasticapmAttributes,
+			model.MetricsetSample{Name: "jvm.gc.count", Value: v.value},
 		)
 	}
 	// jvm.memory.<area>.<type>
@@ -288,8 +288,8 @@ func (b *apmMetricsBuilder) emit(ms metricsets) {
 			elasticapmMetricName = fmt.Sprintf("jvm.memory.%s.%s", k.area, k.jvmType)
 		}
 		ms.upsertOne(
-			v.timestamp, elasticapmMetricName, elasticapmAttributes,
-			model.MetricsetSample{Value: v.value},
+			v.timestamp, elasticapmAttributes,
+			model.MetricsetSample{Name: elasticapmMetricName, Value: v.value},
 		)
 	}
 }
@@ -315,7 +315,11 @@ func (c *Consumer) convertScopeMetrics(
 		event := baseEvent
 		event.Processor = model.MetricsetProcessor
 		event.Timestamp = key.timestamp.Add(timeDelta)
-		event.Metricset = &model.Metricset{Samples: ms.samples}
+		metrs := make([]model.MetricsetSample, 0, len(ms.samples))
+		for _, s := range ms.samples {
+			metrs = append(metrs, s)
+		}
+		event.Metricset = &model.Metricset{Samples: metrs}
 		if ms.attributes.Len() > 0 {
 			initEventLabels(&event)
 			ms.attributes.Range(func(k string, v pcommon.Value) bool {
@@ -345,7 +349,8 @@ func (c *Consumer) addMetric(metric pmetric.Metric, ms metricsets) bool {
 		for i := 0; i < dps.Len(); i++ {
 			dp := dps.At(i)
 			if sample, ok := numberSample(dp, model.MetricTypeGauge); ok {
-				ms.upsert(dp.Timestamp().AsTime(), metric.Name(), dp.Attributes(), sample)
+				sample.Name = metric.Name()
+				ms.upsert(dp.Timestamp().AsTime(), dp.Attributes(), sample)
 			} else {
 				anyDropped = true
 			}
@@ -356,7 +361,8 @@ func (c *Consumer) addMetric(metric pmetric.Metric, ms metricsets) bool {
 		for i := 0; i < dps.Len(); i++ {
 			dp := dps.At(i)
 			if sample, ok := numberSample(dp, model.MetricTypeCounter); ok {
-				ms.upsert(dp.Timestamp().AsTime(), metric.Name(), dp.Attributes(), sample)
+				sample.Name = metric.Name()
+				ms.upsert(dp.Timestamp().AsTime(), dp.Attributes(), sample)
 			} else {
 				anyDropped = true
 			}
@@ -367,7 +373,8 @@ func (c *Consumer) addMetric(metric pmetric.Metric, ms metricsets) bool {
 		for i := 0; i < dps.Len(); i++ {
 			dp := dps.At(i)
 			if sample, ok := histogramSample(dp.BucketCounts(), dp.ExplicitBounds()); ok {
-				ms.upsert(dp.Timestamp().AsTime(), metric.Name(), dp.Attributes(), sample)
+				sample.Name = metric.Name()
+				ms.upsert(dp.Timestamp().AsTime(), dp.Attributes(), sample)
 			} else {
 				anyDropped = true
 			}
@@ -377,7 +384,8 @@ func (c *Consumer) addMetric(metric pmetric.Metric, ms metricsets) bool {
 		for i := 0; i < dps.Len(); i++ {
 			dp := dps.At(i)
 			sample := summarySample(dp)
-			ms.upsert(dp.Timestamp().AsTime(), metric.Name(), dp.Attributes(), sample)
+			sample.Name = metric.Name()
+			ms.upsert(dp.Timestamp().AsTime(), dp.Attributes(), sample)
 		}
 	default:
 		// Unsupported metric: report that it has been dropped.
@@ -495,13 +503,13 @@ type metricset struct {
 // upsert searches for an existing metricset with the given timestamp and labels,
 // and appends the sample to it. If there is no such existing metricset, a new one
 // is created.
-func (ms metricsets) upsert(timestamp time.Time, name string, attributes pcommon.Map, sample model.MetricsetSample) {
+func (ms metricsets) upsert(timestamp time.Time, attributes pcommon.Map, sample model.MetricsetSample) {
 	// We always record metrics as they are given. We also copy some
 	// well-known OpenTelemetry metrics to their Elastic APM equivalents.
-	ms.upsertOne(timestamp, name, attributes, sample)
+	ms.upsertOne(timestamp, attributes, sample)
 }
 
-func (ms metricsets) upsertOne(timestamp time.Time, name string, attributes pcommon.Map, sample model.MetricsetSample) {
+func (ms metricsets) upsertOne(timestamp time.Time, attributes pcommon.Map, sample model.MetricsetSample) {
 	var signatureBuilder strings.Builder
 	attributes.Range(func(k string, v pcommon.Value) bool {
 		signatureBuilder.WriteString(k)
@@ -518,5 +526,5 @@ func (ms metricsets) upsertOne(timestamp time.Time, name string, attributes pcom
 		}
 		ms[key] = m
 	}
-	m.samples[name] = sample
+	m.samples[sample.Name] = sample
 }

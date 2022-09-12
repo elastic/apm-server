@@ -661,7 +661,7 @@ func mapToMetricsetModel(from *metricset, event *model.APMEvent) bool {
 	}
 
 	if len(from.Samples) > 0 {
-		samples := make(map[string]model.MetricsetSample, len(from.Samples))
+		samples := make([]model.MetricsetSample, 0, len(from.Samples))
 		for name, sample := range from.Samples {
 			var counts []int64
 			var values []float64
@@ -673,15 +673,16 @@ func mapToMetricsetModel(from *metricset, event *model.APMEvent) bool {
 				counts = make([]int64, n)
 				copy(counts, sample.Counts)
 			}
-			samples[name] = model.MetricsetSample{
+			samples = append(samples, model.MetricsetSample{
 				Type:  model.MetricType(sample.Type.Val),
+				Name:  name,
 				Unit:  sample.Unit.Val,
 				Value: sample.Value.Val,
 				Histogram: model.Histogram{
 					Values: values,
 					Counts: counts,
 				},
-			}
+			})
 		}
 		event.Metricset.Samples = samples
 	}

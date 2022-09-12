@@ -90,8 +90,8 @@ func (r Reporter) Run(ctx context.Context) error {
 				Labels:    model.Labels{"etag": {Value: etag}},
 				Metricset: &model.Metricset{
 					Name: "agent_config",
-					Samples: map[string]model.MetricsetSample{
-						"agent_config_applied": {Value: 1},
+					Samples: []model.MetricsetSample{
+						{Name: "agent_config_applied", Value: 1},
 					},
 				},
 			})

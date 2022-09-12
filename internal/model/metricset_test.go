@@ -47,9 +47,9 @@ func TestMetricset(t *testing.T) {
 		},
 		{
 			Metricset: &Metricset{
-				Samples: map[string]MetricsetSample{
-					"a.counter":  {Value: 612},
-					"some.gauge": {Value: 9.16},
+				Samples: []MetricsetSample{
+					{Name: "a.counter", Value: 612},
+					{Name: "some.gauge", Value: 9.16},
 				},
 			},
 			Output: mapstr.M{
@@ -75,8 +75,9 @@ func TestMetricset(t *testing.T) {
 		},
 		{
 			Metricset: &Metricset{
-				Samples: map[string]MetricsetSample{
-					"latency_histogram": {
+				Samples: []MetricsetSample{
+					{
+						Name: "latency_histogram",
 						Type: "histogram",
 						Unit: "s",
 						Histogram: Histogram{
@@ -84,18 +85,21 @@ func TestMetricset(t *testing.T) {
 							Values: []float64{1.1, 2.2, 3.3},
 						},
 					},
-					"request_summary": {
+					{
+						Name: "request_summary",
 						Type: "summary",
 						SummaryMetric: SummaryMetric{
 							Count: 10,
 							Sum:   123.456,
 						},
 					},
-					"just_type": {
+					{
+						Name:  "just_type",
 						Type:  "counter",
 						Value: 123,
 					},
-					"just_unit": {
+					{
+						Name:  "just_unit",
 						Unit:  "percent",
 						Value: 0.99,
 					},

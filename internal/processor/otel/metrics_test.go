@@ -37,9 +37,12 @@ package otel_test
 import (
 	"context"
 	"math"
+	"net/netip"
 	"testing"
 	"time"
 
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/pdata/pcommon"
@@ -138,23 +141,25 @@ func TestConsumeMetrics(t *testing.T) {
 
 	service := model.Service{Name: "unknown", Language: model.Language{Name: "unknown"}}
 	agent := model.Agent{Name: "otlp", Version: "unknown"}
-	assert.ElementsMatch(t, []model.APMEvent{{
+	expected := []model.APMEvent{{
 		Agent:     agent,
 		Service:   service,
 		Timestamp: timestamp0,
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
-			Samples: map[string]model.MetricsetSample{
-				"gauge_metric": {Value: 1, Type: "gauge"},
-				"sum_metric":   {Value: 7, Type: "counter"},
-				"histogram_metric": {
+			Samples: []model.MetricsetSample{
+				{Name: "gauge_metric", Value: 1, Type: "gauge"},
+				{Name: "sum_metric", Value: 7, Type: "counter"},
+				{
+					Name: "histogram_metric",
 					Type: "histogram",
 					Histogram: model.Histogram{
 						Counts: []int64{1, 1, 2, 3},
 						Values: []float64{-1, 0.5, 2.75, 3.5},
 					},
 				},
-				"summary_metric": {
+				{
+					Name: "summary_metric",
 					Type: "summary",
 					SummaryMetric: model.SummaryMetric{
 						Count: 10,
@@ -169,8 +174,8 @@ func TestConsumeMetrics(t *testing.T) {
 		Timestamp: timestamp1,
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
-			Samples: map[string]model.MetricsetSample{
-				"gauge_metric": {Value: 4, Type: "gauge"},
+			Samples: []model.MetricsetSample{
+				{Name: "gauge_metric", Value: 4, Type: "gauge"},
 			},
 		},
 	}, {
@@ -180,9 +185,9 @@ func TestConsumeMetrics(t *testing.T) {
 		Timestamp: timestamp1,
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
-			Samples: map[string]model.MetricsetSample{
-				"gauge_metric": {Value: 2.3, Type: "gauge"},
-				"sum_metric":   {Value: 8.9, Type: "counter"},
+			Samples: []model.MetricsetSample{
+				{Name: "gauge_metric", Value: 2.3, Type: "gauge"},
+				{Name: "sum_metric", Value: 8.9, Type: "counter"},
 			},
 		},
 	}, {
@@ -192,9 +197,9 @@ func TestConsumeMetrics(t *testing.T) {
 		Timestamp: timestamp1,
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
-			Samples: map[string]model.MetricsetSample{
-				"gauge_metric": {Value: 5.6, Type: "gauge"},
-				"sum_metric":   {Value: 11.12, Type: "counter"},
+			Samples: []model.MetricsetSample{
+				{Name: "gauge_metric", Value: 5.6, Type: "gauge"},
+				{Name: "sum_metric", Value: 11.12, Type: "counter"},
 			},
 		},
 	}, {
@@ -204,11 +209,13 @@ func TestConsumeMetrics(t *testing.T) {
 		Timestamp: timestamp1,
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
-			Samples: map[string]model.MetricsetSample{
-				"sum_metric": {Value: 10, Type: "counter"},
+			Samples: []model.MetricsetSample{
+				{Name: "sum_metric", Value: 10, Type: "counter"},
 			},
 		},
-	}}, events)
+	}}
+
+	eventsMatch(t, expected, events)
 }
 
 func TestConsumeMetricsNaN(t *testing.T) {
@@ -314,15 +321,16 @@ func TestConsumeMetricsHostCPU(t *testing.T) {
 	events, _ := transformMetrics(t, metrics)
 	service := model.Service{Name: "unknown", Language: model.Language{Name: "unknown"}}
 	agent := model.Agent{Name: "otlp", Version: "unknown"}
-	assert.ElementsMatch(t, []model.APMEvent{{
+	expected := []model.APMEvent{{
 		Agent:     agent,
 		Service:   service,
 		Labels:    model.Labels{"state": {Value: "idle"}, "cpu": {Value: "0"}},
 		Timestamp: timestamp,
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
-			Samples: map[string]model.MetricsetSample{
-				"system.cpu.utilization": {
+			Samples: []model.MetricsetSample{
+				{
+					Name:  "system.cpu.utilization",
 					Type:  "gauge",
 					Value: 0.8,
 				},
@@ -335,8 +343,9 @@ func TestConsumeMetricsHostCPU(t *testing.T) {
 		Timestamp: timestamp,
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
-			Samples: map[string]model.MetricsetSample{
-				"system.cpu.utilization": {
+			Samples: []model.MetricsetSample{
+				{
+					Name:  "system.cpu.utilization",
 					Type:  "gauge",
 					Value: 0.1,
 				},
@@ -349,8 +358,9 @@ func TestConsumeMetricsHostCPU(t *testing.T) {
 		Timestamp: timestamp,
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
-			Samples: map[string]model.MetricsetSample{
-				"system.cpu.utilization": {
+			Samples: []model.MetricsetSample{
+				{
+					Name:  "system.cpu.utilization",
 					Type:  "gauge",
 					Value: 0.1,
 				},
@@ -363,8 +373,9 @@ func TestConsumeMetricsHostCPU(t *testing.T) {
 		Timestamp: timestamp,
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
-			Samples: map[string]model.MetricsetSample{
-				"system.cpu.utilization": {
+			Samples: []model.MetricsetSample{
+				{
+					Name:  "system.cpu.utilization",
 					Type:  "gauge",
 					Value: 0.45,
 				},
@@ -377,8 +388,9 @@ func TestConsumeMetricsHostCPU(t *testing.T) {
 		Timestamp: timestamp,
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
-			Samples: map[string]model.MetricsetSample{
-				"system.cpu.utilization": {
+			Samples: []model.MetricsetSample{
+				{
+					Name:  "system.cpu.utilization",
 					Type:  "gauge",
 					Value: 0.05,
 				},
@@ -391,8 +403,9 @@ func TestConsumeMetricsHostCPU(t *testing.T) {
 		Timestamp: timestamp,
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
-			Samples: map[string]model.MetricsetSample{
-				"system.cpu.utilization": {
+			Samples: []model.MetricsetSample{
+				{
+					Name:  "system.cpu.utilization",
 					Type:  "gauge",
 					Value: 0.5,
 				},
@@ -405,8 +418,9 @@ func TestConsumeMetricsHostCPU(t *testing.T) {
 		Timestamp: timestamp,
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
-			Samples: map[string]model.MetricsetSample{
-				"system.cpu.utilization": {
+			Samples: []model.MetricsetSample{
+				{
+					Name:  "system.cpu.utilization",
 					Type:  "gauge",
 					Value: 0.59,
 				},
@@ -419,8 +433,9 @@ func TestConsumeMetricsHostCPU(t *testing.T) {
 		Timestamp: timestamp,
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
-			Samples: map[string]model.MetricsetSample{
-				"system.cpu.utilization": {
+			Samples: []model.MetricsetSample{
+				{
+					Name:  "system.cpu.utilization",
 					Type:  "gauge",
 					Value: 0.01,
 				},
@@ -433,8 +448,9 @@ func TestConsumeMetricsHostCPU(t *testing.T) {
 		Timestamp: timestamp,
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
-			Samples: map[string]model.MetricsetSample{
-				"system.cpu.utilization": {
+			Samples: []model.MetricsetSample{
+				{
+					Name:  "system.cpu.utilization",
 					Type:  "gauge",
 					Value: 0.4,
 				},
@@ -447,8 +463,9 @@ func TestConsumeMetricsHostCPU(t *testing.T) {
 		Timestamp: timestamp,
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
-			Samples: map[string]model.MetricsetSample{
-				"system.cpu.utilization": {
+			Samples: []model.MetricsetSample{
+				{
+					Name:  "system.cpu.utilization",
 					Type:  "gauge",
 					Value: 0.6,
 				},
@@ -461,8 +478,9 @@ func TestConsumeMetricsHostCPU(t *testing.T) {
 		Timestamp: timestamp,
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
-			Samples: map[string]model.MetricsetSample{
-				"system.cpu.utilization": {
+			Samples: []model.MetricsetSample{
+				{
+					Name:  "system.cpu.utilization",
 					Type:  "gauge",
 					Value: 0.3,
 				},
@@ -475,8 +493,9 @@ func TestConsumeMetricsHostCPU(t *testing.T) {
 		Timestamp: timestamp,
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
-			Samples: map[string]model.MetricsetSample{
-				"system.cpu.utilization": {
+			Samples: []model.MetricsetSample{
+				{
+					Name:  "system.cpu.utilization",
 					Type:  "gauge",
 					Value: 0.1,
 				},
@@ -488,13 +507,16 @@ func TestConsumeMetricsHostCPU(t *testing.T) {
 		Timestamp: timestamp,
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
-			Samples: map[string]model.MetricsetSample{
-				"system.cpu.total.norm.pct": {
+			Samples: []model.MetricsetSample{
+				{
+					Name:  "system.cpu.total.norm.pct",
 					Value: 0.39000000000000007,
 				},
 			},
 		},
-	}}, events)
+	}}
+
+	eventsMatch(t, expected, events)
 }
 
 func TestConsumeMetricsHostMemory(t *testing.T) {
@@ -527,15 +549,16 @@ func TestConsumeMetricsHostMemory(t *testing.T) {
 	events, _ := transformMetrics(t, metrics)
 	service := model.Service{Name: "unknown", Language: model.Language{Name: "unknown"}}
 	agent := model.Agent{Name: "otlp", Version: "unknown"}
-	assert.ElementsMatch(t, []model.APMEvent{{
+	expected := []model.APMEvent{{
 		Agent:     agent,
 		Service:   service,
 		Labels:    model.Labels{"state": {Value: "free"}},
 		Timestamp: timestamp,
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
-			Samples: map[string]model.MetricsetSample{
-				"system.memory.usage": {
+			Samples: []model.MetricsetSample{
+				{
+					Name:  "system.memory.usage",
 					Type:  "counter",
 					Value: 4773351424,
 				},
@@ -548,8 +571,9 @@ func TestConsumeMetricsHostMemory(t *testing.T) {
 		Timestamp: timestamp,
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
-			Samples: map[string]model.MetricsetSample{
-				"system.memory.usage": {
+			Samples: []model.MetricsetSample{
+				{
+					Name:  "system.memory.usage",
 					Type:  "counter",
 					Value: 3563778048,
 				},
@@ -561,16 +585,20 @@ func TestConsumeMetricsHostMemory(t *testing.T) {
 		Timestamp: timestamp,
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
-			Samples: map[string]model.MetricsetSample{
-				"system.memory.actual.free": {
+			Samples: []model.MetricsetSample{
+				{
+					Name:  "system.memory.actual.free",
 					Value: 4773351424,
 				},
-				"system.memory.total": {
+				{
+					Name:  "system.memory.total",
 					Value: 8337129472,
 				},
 			},
 		},
-	}}, events)
+	}}
+
+	eventsMatch(t, expected, events)
 }
 
 func TestConsumeMetrics_JVM(t *testing.T) {
@@ -625,19 +653,21 @@ func TestConsumeMetrics_JVM(t *testing.T) {
 	events, _ := transformMetrics(t, metrics)
 	service := model.Service{Name: "unknown", Language: model.Language{Name: "unknown"}}
 	agent := model.Agent{Name: "otlp", Version: "unknown"}
-	assert.ElementsMatch(t, []model.APMEvent{{
+	expected := []model.APMEvent{{
 		Agent:     agent,
 		Service:   service,
 		Labels:    model.Labels{"gc": {Value: "G1 Young Generation"}},
 		Timestamp: timestamp,
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
-			Samples: map[string]model.MetricsetSample{
-				"runtime.jvm.gc.time": {
+			Samples: []model.MetricsetSample{
+				{
+					Name:  "runtime.jvm.gc.time",
 					Type:  "counter",
 					Value: 9,
 				},
-				"runtime.jvm.gc.count": {
+				{
+					Name:  "runtime.jvm.gc.count",
 					Type:  "counter",
 					Value: 2,
 				},
@@ -650,11 +680,13 @@ func TestConsumeMetrics_JVM(t *testing.T) {
 		Timestamp: timestamp,
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
-			Samples: map[string]model.MetricsetSample{
-				"jvm.gc.time": {
+			Samples: []model.MetricsetSample{
+				{
+					Name:  "jvm.gc.time",
 					Value: 9,
 				},
-				"jvm.gc.count": {
+				{
+					Name:  "jvm.gc.count",
 					Value: 2,
 				},
 			},
@@ -666,8 +698,9 @@ func TestConsumeMetrics_JVM(t *testing.T) {
 		Timestamp: timestamp,
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
-			Samples: map[string]model.MetricsetSample{
-				"runtime.jvm.memory.area": {
+			Samples: []model.MetricsetSample{
+				{
+					Name:  "runtime.jvm.memory.area",
 					Type:  "gauge",
 					Value: 42,
 				},
@@ -679,8 +712,9 @@ func TestConsumeMetrics_JVM(t *testing.T) {
 		Timestamp: timestamp,
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
-			Samples: map[string]model.MetricsetSample{
-				"jvm.memory.heap.used": {
+			Samples: []model.MetricsetSample{
+				{
+					Name:  "jvm.memory.heap.used",
 					Value: 42,
 				},
 			},
@@ -692,8 +726,9 @@ func TestConsumeMetrics_JVM(t *testing.T) {
 		Timestamp: timestamp,
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
-			Samples: map[string]model.MetricsetSample{
-				"runtime.jvm.memory.area": {
+			Samples: []model.MetricsetSample{
+				{
+					Name:  "runtime.jvm.memory.area",
 					Type:  "gauge",
 					Value: 24,
 				},
@@ -706,8 +741,9 @@ func TestConsumeMetrics_JVM(t *testing.T) {
 		Timestamp: timestamp,
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
-			Samples: map[string]model.MetricsetSample{
-				"jvm.memory.heap.pool.used": {
+			Samples: []model.MetricsetSample{
+				{
+					Name:  "jvm.memory.heap.pool.used",
 					Value: 24,
 				},
 			},
@@ -719,8 +755,9 @@ func TestConsumeMetrics_JVM(t *testing.T) {
 		Timestamp: timestamp,
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
-			Samples: map[string]model.MetricsetSample{
-				"process.runtime.jvm.memory.limit": {
+			Samples: []model.MetricsetSample{
+				{
+					Name:  "process.runtime.jvm.memory.limit",
 					Type:  "gauge",
 					Value: 20000,
 				},
@@ -733,13 +770,16 @@ func TestConsumeMetrics_JVM(t *testing.T) {
 		Timestamp: timestamp,
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
-			Samples: map[string]model.MetricsetSample{
-				"jvm.memory.heap.pool.max": {
+			Samples: []model.MetricsetSample{
+				{
+					Name:  "jvm.memory.heap.pool.max",
 					Value: 20000,
 				},
 			},
 		},
-	}}, events)
+	}}
+
+	eventsMatch(t, expected, events)
 }
 
 func TestConsumeMetricsExportTimestamp(t *testing.T) {
@@ -805,4 +845,51 @@ func transformMetrics(t *testing.T, metrics pmetric.Metrics) ([]model.APMEvent, 
 	require.NoError(t, err)
 	require.Len(t, batches, 1)
 	return *batches[0], consumer.Stats()
+}
+
+func eventsMatch(t *testing.T, expected []model.APMEvent, actual []model.APMEvent) {
+	t.Helper()
+
+	if diff := cmp.Diff(expected, actual,
+		cmpopts.SortSlices(func(x model.APMEvent, y model.APMEvent) bool {
+			if !x.Timestamp.Equal(y.Timestamp) {
+				return x.Timestamp.Before(y.Timestamp)
+			}
+
+			if len(x.Labels) != len(y.Labels) {
+				return len(x.Labels) < len(y.Labels)
+			}
+
+			if len(x.Metricset.Samples) != len(y.Metricset.Samples) {
+				return len(x.Metricset.Samples) < len(y.Metricset.Samples)
+			}
+
+			if x.Metricset.Samples[0].Name != y.Metricset.Samples[0].Name {
+				return x.Metricset.Samples[0].Name < y.Metricset.Samples[0].Name
+			}
+
+			if x.Metricset.Samples[0].Value != y.Metricset.Samples[0].Value {
+				return x.Metricset.Samples[0].Value < y.Metricset.Samples[0].Value
+			}
+
+			// Special handling for TestConsumeMetricsHostCPU
+			if xlv, ylv := x.Labels["cpu"], y.Labels["cpu"]; xlv.Value != ylv.Value {
+				return xlv.Value < ylv.Value
+			}
+			if xlv, ylv := x.Labels["state"], y.Labels["state"]; xlv.Value != ylv.Value {
+				return xlv.Value < ylv.Value
+			}
+
+			t.Logf("failed to compare APM events: possible flaky test due to inconsistent order")
+			return false
+		}),
+		cmpopts.SortSlices(func(x model.MetricsetSample, y model.MetricsetSample) bool {
+			return x.Name < y.Name
+		}),
+		cmp.Comparer(func(x netip.Addr, y netip.Addr) bool {
+			return x == y
+		}),
+	); diff != "" {
+		t.Fatal(diff)
+	}
 }

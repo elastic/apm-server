@@ -39,6 +39,7 @@ type APMEvent struct {
 	Kubernetes  Kubernetes
 	Service     Service
 	Process     Process
+	Device      Device
 	Host        Host
 	User        User
 	UserAgent   UserAgent
@@ -124,6 +125,7 @@ func (e *APMEvent) BeatEvent() beat.Event {
 	fields.maybeSetMapStr("agent", e.Agent.fields())
 	fields.maybeSetMapStr("observer", e.Observer.Fields())
 	fields.maybeSetMapStr("host", e.Host.fields())
+	fields.maybeSetMapStr("device", e.Device.fields())
 	fields.maybeSetMapStr("process", e.Process.fields())
 	fields.maybeSetMapStr("user", e.User.fields())
 	fields.maybeSetMapStr("client", e.Client.fields())

@@ -82,8 +82,8 @@ func TestReportFetch(t *testing.T) {
 			Labels:    model.Labels{"etag": {Value: "abc123"}},
 			Metricset: &model.Metricset{
 				Name: "agent_config",
-				Samples: map[string]model.MetricsetSample{
-					"agent_config_applied": {Value: 1},
+				Samples: []model.MetricsetSample{
+					{Name: "agent_config_applied", Value: 1},
 				},
 			},
 		},
@@ -92,8 +92,8 @@ func TestReportFetch(t *testing.T) {
 			Labels:    model.Labels{"etag": {Value: "def456"}},
 			Metricset: &model.Metricset{
 				Name: "agent_config",
-				Samples: map[string]model.MetricsetSample{
-					"agent_config_applied": {Value: 1},
+				Samples: []model.MetricsetSample{
+					{Name: "agent_config_applied", Value: 1},
 				},
 			},
 		},

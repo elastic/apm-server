@@ -55,6 +55,14 @@
 - external: ecs
   name: destination.port
 - external: ecs
+  name: device.id
+- external: ecs
+  name: device.model.name
+- external: ecs
+  name: device.model.identifier
+- external: ecs
+  name: device.manufacturer
+- external: ecs
   name: ecs.version
 - external: ecs
   name: event.outcome
@@ -71,7 +79,15 @@
 - external: ecs
   name: host.name
 - external: ecs
+  name: host.os.name
+- external: ecs
+  name: host.os.version
+- external: ecs
   name: host.os.platform
+- external: ecs
+  name: host.os.full
+- external: ecs
+  name: host.os.type
 - external: ecs
   name: http.request.method
 - external: ecs
