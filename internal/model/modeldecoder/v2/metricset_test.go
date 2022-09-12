@@ -53,7 +53,7 @@ func TestDecodeNestedMetricset(t *testing.T) {
 		require.NoError(t, DecodeNestedMetricset(dec, &input, &batch))
 		require.Len(t, batch, 1)
 		require.NotNil(t, batch[0].Metricset)
-		assert.Equal(t, map[string]model.MetricsetSample{"a.b": {Value: 2048}}, batch[0].Metricset.Samples)
+		assert.Equal(t, []model.MetricsetSample{{Name: "a.b", Value: 2048}}, batch[0].Metricset.Samples)
 		defaultVal.Update(time.Unix(1599996822, 281000000).UTC())
 		modeldecodertest.AssertStructValues(t, &batch[0], isMetadataException, defaultVal)
 
@@ -114,8 +114,9 @@ func TestDecodeMapToMetricsetModel(t *testing.T) {
 		mapToMetricsetModel(&input, &out1)
 		input.Reset()
 		modeldecodertest.AssertStructValues(t, out1.Metricset, exceptions, defaultVal)
-		defaultSamples := map[string]model.MetricsetSample{
-			defaultVal.Str + "0": {
+		defaultSamples := []model.MetricsetSample{
+			{
+				Name:  defaultVal.Str + "0",
 				Type:  model.MetricType(defaultVal.Str),
 				Unit:  defaultVal.Str,
 				Value: defaultVal.Float,
@@ -124,7 +125,8 @@ func TestDecodeMapToMetricsetModel(t *testing.T) {
 					Values: repeatFloat64(defaultVal.Float, defaultVal.N),
 				},
 			},
-			defaultVal.Str + "1": {
+			{
+				Name:  defaultVal.Str + "1",
 				Type:  model.MetricType(defaultVal.Str),
 				Unit:  defaultVal.Str,
 				Value: defaultVal.Float,
@@ -133,7 +135,8 @@ func TestDecodeMapToMetricsetModel(t *testing.T) {
 					Values: repeatFloat64(defaultVal.Float, defaultVal.N),
 				},
 			},
-			defaultVal.Str + "2": {
+			{
+				Name:  defaultVal.Str + "2",
 				Type:  model.MetricType(defaultVal.Str),
 				Unit:  defaultVal.Str,
 				Value: defaultVal.Float,
@@ -143,7 +146,7 @@ func TestDecodeMapToMetricsetModel(t *testing.T) {
 				},
 			},
 		}
-		assert.Equal(t, defaultSamples, out1.Metricset.Samples)
+		assert.ElementsMatch(t, defaultSamples, out1.Metricset.Samples)
 
 		// leave Timestamp unmodified if eventTime is zero
 		out1.Timestamp = now
@@ -161,8 +164,9 @@ func TestDecodeMapToMetricsetModel(t *testing.T) {
 		input.Transaction.Reset()
 		mapToMetricsetModel(&input, &out2)
 		modeldecodertest.AssertStructValues(t, out2.Metricset, exceptions, otherVal)
-		otherSamples := map[string]model.MetricsetSample{
-			otherVal.Str + "0": {
+		otherSamples := []model.MetricsetSample{
+			{
+				Name:  otherVal.Str + "0",
 				Type:  model.MetricType(otherVal.Str),
 				Unit:  otherVal.Str,
 				Value: otherVal.Float,
@@ -171,7 +175,8 @@ func TestDecodeMapToMetricsetModel(t *testing.T) {
 					Values: repeatFloat64(otherVal.Float, otherVal.N),
 				},
 			},
-			otherVal.Str + "1": {
+			{
+				Name:  otherVal.Str + "1",
 				Type:  model.MetricType(otherVal.Str),
 				Unit:  otherVal.Str,
 				Value: otherVal.Float,
@@ -181,9 +186,9 @@ func TestDecodeMapToMetricsetModel(t *testing.T) {
 				},
 			},
 		}
-		assert.Equal(t, otherSamples, out2.Metricset.Samples)
+		assert.ElementsMatch(t, otherSamples, out2.Metricset.Samples)
 		modeldecodertest.AssertStructValues(t, out1.Metricset, exceptions, defaultVal)
-		assert.Equal(t, defaultSamples, out1.Metricset.Samples)
+		assert.ElementsMatch(t, defaultSamples, out1.Metricset.Samples)
 	})
 }
 

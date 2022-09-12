@@ -47,7 +47,7 @@ const (
 // Metricset describes a set of metrics and associated metadata.
 type Metricset struct {
 	// Samples holds the metrics in the set.
-	Samples map[string]MetricsetSample
+	Samples []MetricsetSample
 
 	// TimeseriesInstanceID holds an optional identifier for the timeseries
 	// instance, such as a hash of the labels used for aggregating the
@@ -69,6 +69,11 @@ type MetricsetSample struct {
 	//
 	// If Type is unspecified or invalid, it will be ignored.
 	Type MetricType
+
+	// Name holds the metric name.
+	//
+	// Name is required.
+	Name string
 
 	// Unit holds an optional unit:
 	//
@@ -161,13 +166,13 @@ func (me *Metricset) setFields(fields *mapStr) {
 	fields.maybeSetString("metricset.name", me.Name)
 
 	var metricDescriptions mapStr
-	for name, sample := range me.Samples {
-		sample.set(name, fields)
+	for _, sample := range me.Samples {
+		sample.set(sample.Name, fields)
 
 		var md mapStr
 		md.maybeSetString("type", string(sample.Type))
 		md.maybeSetString("unit", sample.Unit)
-		metricDescriptions.set(name, mapstr.M(md))
+		metricDescriptions.set(sample.Name, mapstr.M(md))
 	}
 	fields.maybeSetMapStr("_metric_descriptions", mapstr.M(metricDescriptions))
 }

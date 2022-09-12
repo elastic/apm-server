@@ -40,8 +40,8 @@ func SetInternalMetrics(event *model.APMEvent) bool {
 	}
 	var haveMetrics bool
 	if event.Span != nil {
-		for k, v := range event.Metricset.Samples {
-			switch k {
+		for _, v := range event.Metricset.Samples {
+			switch v.Name {
 			case "span.self_time.count":
 				event.Span.SelfTime.Count = int(v.Value)
 				haveMetrics = true

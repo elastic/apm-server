@@ -89,8 +89,8 @@ func metricsetDataset(event *model.APMEvent) string {
 		// metrics that we don't already know about; otherwise they will end
 		// up creating service-specific data streams.
 		internal := true
-		for name := range event.Metricset.Samples {
-			if !isInternalMetricName(name) {
+		for _, s := range event.Metricset.Samples {
+			if !isInternalMetricName(s.Name) {
 				internal = false
 				break
 			}
@@ -98,13 +98,13 @@ func metricsetDataset(event *model.APMEvent) string {
 		if internal {
 			// The internal metrics data stream does not use dynamic
 			// mapping, so we must drop type and unit if specified.
-			for name, sample := range event.Metricset.Samples {
+			for i, sample := range event.Metricset.Samples {
 				if sample.Type == "" && sample.Unit == "" {
 					continue
 				}
 				sample.Type = ""
 				sample.Unit = ""
-				event.Metricset.Samples[name] = sample
+				event.Metricset.Samples[i] = sample
 			}
 			return model.InternalMetricsDataset
 		}
