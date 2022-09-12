@@ -6,6 +6,7 @@ package eventstorage_test
 
 import (
 	"encoding/json"
+	"fmt"
 	"testing"
 	"time"
 
@@ -253,6 +254,43 @@ func TestIsTraceSampled(t *testing.T) {
 
 	_, err = reader.IsTraceSampled("unknown_trace_id")
 	assert.Equal(t, err, eventstorage.ErrNotFound)
+}
+
+func TestStorageLimit(t *testing.T) {
+	tempdir := t.TempDir()
+	opts := func() badger.Options {
+		opts := badgerOptions()
+		opts = opts.WithInMemory(false)
+		opts = opts.WithDir(tempdir).WithValueDir(tempdir)
+		return opts
+	}
+
+	// Open and close the database to create a non-empty value log file,
+	// which will cause writes below to fail due to the storage limit being
+	// exceeded. We would otherwise have to rely on Badger's one minute
+	// timer to refresh the size.
+	db := newBadgerDB(t, opts)
+	db.Close()
+	db = newBadgerDB(t, opts)
+	lsm, vlog := db.Size()
+
+	store := eventstorage.New(db, eventstorage.JSONCodec{})
+	readWriter := store.NewReadWriter()
+	defer readWriter.Close()
+
+	traceID := uuid.Must(uuid.NewV4()).String()
+	transactionID := uuid.Must(uuid.NewV4()).String()
+	transaction := model.APMEvent{Transaction: &model.Transaction{ID: transactionID}}
+	err := readWriter.WriteTraceEvent(traceID, transactionID, &transaction, eventstorage.WriterOpts{
+		TTL:                 time.Minute,
+		StorageLimitInBytes: 1, // ignored in the write, because there's no implicit flush
+	})
+	assert.NoError(t, err)
+	err = readWriter.Flush(1)
+	assert.EqualError(t, err, fmt.Sprintf(
+		"failed to flush pending writes: configured storage limit reached (current: %d, limit: 1)", lsm+vlog,
+	))
+	assert.ErrorIs(t, err, eventstorage.ErrLimitReached)
 }
 
 func badgerOptions() badger.Options {
