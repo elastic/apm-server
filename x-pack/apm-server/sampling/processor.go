@@ -387,7 +387,13 @@ func (p *Processor) Run() error {
 				return ctx.Err()
 			case <-ticker.C:
 				const discardRatio = 0.5
-				if err := p.config.DB.RunValueLogGC(discardRatio); err != nil && err != badger.ErrNoRewrite {
+				var err error
+				for err == nil {
+					// Keep garbage collecting until there are no more rewrites,
+					// or garbage collection fails.
+					err = p.config.DB.RunValueLogGC(discardRatio)
+				}
+				if err != nil && err != badger.ErrNoRewrite {
 					return err
 				}
 			}
