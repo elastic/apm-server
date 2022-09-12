@@ -7,7 +7,6 @@ package eventstorage
 import (
 	"errors"
 	"fmt"
-	"syscall"
 	"time"
 
 	"github.com/dgraph-io/badger/v2"
@@ -30,7 +29,7 @@ var (
 
 	// ErrLimitReached is returned by the ReadWriter.Flush method when
 	// the configured StorageLimiter.Limit is true.
-	ErrLimitReached = fmt.Errorf("configured storage limit reached: %w", syscall.ENOSPC)
+	ErrLimitReached = errors.New("configured storage limit reached")
 )
 
 // Storage provides storage for sampled transactions and spans,
@@ -71,9 +70,9 @@ func (s *Storage) NewReadWriter() *ReadWriter {
 	}
 }
 
-func (s *Storage) limitReached(limit int64) bool {
+func (s *Storage) limitReached(limit int64) (int64, bool) {
 	if limit == 0 {
-		return false
+		return 0, false
 	}
 	// The badger database has an async size reconciliation, with a 1 minute
 	// ticker that keeps the lsm and vlog sizes updated in an in-memory map.
@@ -81,7 +80,7 @@ func (s *Storage) limitReached(limit int64) bool {
 	// lookup is cheap.
 	lsm, vlog := s.db.Size()
 	current := lsm + vlog
-	return current >= limit
+	return current, current >= limit
 }
 
 // WriterOpts provides configuration options for writes to storage
@@ -116,18 +115,22 @@ func (rw *ReadWriter) Close() {
 	rw.txn.Discard()
 }
 
-const flushErrFmt = "flush pending writes: %w"
-
 // Flush waits for preceding writes to be committed to storage.
 //
 // Flush must be called to ensure writes are committed to storage.
 // If Flush is not called before the writer is closed, then writes
 // may be lost.
-// Flush returns ErrLimitReached when the StorageLimiter reports that
-// the size of LSM and Vlog files exceeds the configured threshold.
+//
+// Flush returns ErrLimitReached, or an error that wraps it, when
+// the StorageLimiter reports that the combined size of LSM and Vlog
+// files exceeds the configured threshold.
 func (rw *ReadWriter) Flush(limit int64) error {
-	if rw.s.limitReached(limit) {
-		return fmt.Errorf(flushErrFmt, ErrLimitReached)
+	const flushErrFmt = "failed to flush pending writes: %w"
+	if current, limitReached := rw.s.limitReached(limit); limitReached {
+		return fmt.Errorf(
+			flushErrFmt+" (current: %d, limit: %d)",
+			ErrLimitReached, current, limit,
+		)
 	}
 	err := rw.txn.Commit()
 	rw.txn = rw.s.db.NewTransaction(true)
