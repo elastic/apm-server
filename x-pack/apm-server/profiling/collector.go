@@ -19,18 +19,25 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
 
-	"github.com/elastic/apm-server/internal/elasticsearch"
 	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/elastic-agent-libs/monitoring"
+
+	"github.com/elastic/apm-server/internal/elasticsearch"
 )
 
 var (
 	// metrics
-	//indexedDocs = metrics.NewLabelCounter("elastic_collector",
-	//	"indexed_document_count",
-	//	"grpc_method")
-	//indexedErrDocs = metrics.NewLabelCounter("elastic_collector",
-	//	"indexed_document_failed_count",
-	//	"grpc_method", "reason")
+	indexerDocs               = monitoring.Default.NewRegistry("apm-server.profiling.indexer.document")
+	counterEventsTotal        = monitoring.NewInt(indexerDocs, "events.total.count")
+	counterEventsFailure      = monitoring.NewInt(indexerDocs, "events.failure.count")
+	counterStacktracesTotal   = monitoring.NewInt(indexerDocs, "stacktraces.total.count")
+	counterStacktracesFailure = monitoring.NewInt(indexerDocs, "stacktraces.failure.count")
+	counterStackframesTotal   = monitoring.NewInt(indexerDocs, "stackframes.total.count")
+	counterStackframesFailure = monitoring.NewInt(indexerDocs, "stackframes.failure.count")
+	counterExecutablesTotal   = monitoring.NewInt(indexerDocs, "executables.total.count")
+	counterExecutablesFailure = monitoring.NewInt(indexerDocs, "executables.failure.count")
+
+	counterFatalErr = monitoring.NewInt(nil, "apm-server.profiling.unrecoverable_error.count")
 
 	// gRPC error returned to the clients
 	errCustomer = status.Error(codes.Internal, "failed to process request")
@@ -77,11 +84,12 @@ func (e *ElasticCollector) AddCountsForTraces(ctx context.Context,
 		e.logger.With(logp.Error(err)).Error("Error mapping host-agent traces to Elastic stacktraces")
 		return nil, errCustomer
 	}
+	counterEventsTotal.Add(int64(len(traceEvents)))
 
 	// Store every event as-is into the full events index.
 	e.logger.Infof("adding %d trace events", len(traceEvents))
 	for i := range traceEvents {
-		if err = e.indexStacktrace(ctx, &traceEvents[i], AllEventsIndex); err != nil {
+		if err := e.indexStacktrace(ctx, &traceEvents[i], AllEventsIndex); err != nil {
 			return nil, errCustomer
 		}
 	}
@@ -112,7 +120,7 @@ func (e *ElasticCollector) AddCountsForTraces(ctx context.Context,
 			// Store the event with its new downsampled count in the downsampled index.
 			traceEvents[i].Count = count
 
-			if err = e.indexStacktrace(ctx, &traceEvents[i], index); err != nil {
+			if err := e.indexStacktrace(ctx, &traceEvents[i], index); err != nil {
 				e.logger.With(logp.Error(err)).Error("Elasticsearch indexing error")
 				return nil, errCustomer
 			}
@@ -123,7 +131,7 @@ func (e *ElasticCollector) AddCountsForTraces(ctx context.Context,
 }
 
 func (e *ElasticCollector) indexStacktrace(ctx context.Context, traceEvent *StackTraceEvent,
-	indexName string) error {
+	indexName string) (err error) {
 	var encodedTraceEvent bytes.Buffer
 	_ = json.NewEncoder(&encodedTraceEvent).Encode(*traceEvent)
 
@@ -137,11 +145,12 @@ func (e *ElasticCollector) indexStacktrace(ctx context.Context, traceEvent *Stac
 			resp elasticsearch.BulkIndexerResponseItem,
 			err error,
 		) {
+			counterEventsFailure.Inc()
 			e.logger.With(
 				logp.Error(err),
 				logp.String("index", indexName),
 				logp.String("error_type", resp.Error.Type),
-			).Error("failed to index stacktrace event")
+			).Errorf("failed to index stacktrace event: %s", resp.Error.Reason)
 		},
 	})
 }
@@ -246,6 +255,7 @@ func (e *ElasticCollector) AddExecutableMetadata(ctx context.Context,
 			"mismatch in number of file IDAs (%d) file IDBs (%d)",
 			numHiFileIDs, numLoFileIDs,
 		)
+		counterFatalErr.Inc()
 		return nil, errCustomer
 	}
 
@@ -253,6 +263,7 @@ func (e *ElasticCollector) AddExecutableMetadata(ctx context.Context,
 		e.logger.Debug("AddExecutableMetadata request with no entries")
 		return &empty.Empty{}, nil
 	}
+	counterExecutablesTotal.Add(int64(numHiFileIDs))
 
 	filenames := in.GetFilenames()
 	buildIDs := in.GetBuildIDs()
@@ -282,10 +293,11 @@ func (e *ElasticCollector) AddExecutableMetadata(ctx context.Context,
 				resp elasticsearch.BulkIndexerResponseItem,
 				err error,
 			) {
+				counterExecutablesFailure.Inc()
 				e.logger.With(
 					logp.Error(err),
 					logp.String("error_type", resp.Error.Type),
-				).Error("failed to index executable metadata")
+				).Errorf("failed to index executable metadata: %s", resp.Error.Reason)
 			},
 		})
 		if err != nil {
@@ -314,8 +326,10 @@ func (e *ElasticCollector) SetFramesForTraces(ctx context.Context,
 
 	traces, err := CollectTracesAndFrames(req)
 	if err != nil {
+		counterFatalErr.Inc()
 		return nil, err
 	}
+	counterStacktracesTotal.Add(int64(len(traces)))
 
 	for _, trace := range traces {
 		// We use the base64-encoded trace hash as the document ID. This seems to be an
@@ -342,10 +356,11 @@ func (e *ElasticCollector) SetFramesForTraces(ctx context.Context,
 				resp elasticsearch.BulkIndexerResponseItem,
 				err error,
 			) {
+				counterStacktracesFailure.Inc()
 				e.logger.With(
 					logp.Error(err),
 					logp.String("error_type", resp.Error.Type),
-				).Error("failed to index stacktrace metadata")
+				).Errorf("failed to index stacktrace metadata: %s", resp.Error.Reason)
 			},
 		})
 
@@ -362,23 +377,8 @@ func (e *ElasticCollector) AddFrameMetadata(ctx context.Context, in *AddFrameMet
 	*empty.Empty, error) {
 	hiFileIDs := in.GetHiFileIDs()
 	loFileIDs := in.GetLoFileIDs()
-	numHiFileIDs := len(hiFileIDs)
-	numLoFileIDs := len(loFileIDs)
-
-	// Sanity check. Should never happen unless the HA is broken.
-	if numHiFileIDs != numLoFileIDs {
-		e.logger.Errorf(
-			"mismatch in number of hiFileIDs (%d) loFileIDs (%d)",
-			numHiFileIDs, numLoFileIDs,
-		)
-		return nil, errCustomer
-	}
-
-	if numHiFileIDs == 0 {
-		e.logger.Debug("AddFrameMetadata request with no entries")
-		return &empty.Empty{}, nil
-	}
-
+	hiSourceIDs := in.GetHiSourceIDs()
+	loSourceIDs := in.GetLoSourceIDs()
 	addressOrLines := in.GetAddressOrLines()
 	lineNumbers := in.GetLineNumbers()
 	functionNames := in.GetFunctionNames()
@@ -386,12 +386,33 @@ func (e *ElasticCollector) AddFrameMetadata(ctx context.Context, in *AddFrameMet
 	types := in.GetTypes()
 	filenames := in.GetFilenames()
 
-	for i := 0; i < numHiFileIDs; i++ {
+	arraySize := len(hiFileIDs)
+	if arraySize == 0 {
+		e.logger.Debug("AddFrameMetadata request with no entries")
+		return &empty.Empty{}, nil
+	}
+
+	// Sanity check. Should never happen unless the HA is broken or client is malicious.
+	if arraySize != len(loFileIDs) ||
+		arraySize != len(hiSourceIDs) ||
+		arraySize != len(loSourceIDs) ||
+		arraySize != len(addressOrLines) ||
+		arraySize != len(lineNumbers) ||
+		arraySize != len(functionNames) ||
+		arraySize != len(functionOffsets) ||
+		arraySize != len(types) ||
+		arraySize != len(filenames) {
+		counterFatalErr.Inc()
+		e.logger.Errorf("mismatch in array sizes (%d)", arraySize)
+		return nil, errCustomer
+	}
+	counterStackframesTotal.Add(int64(arraySize))
+
+	for i := 0; i < arraySize; i++ {
 		fileID := NewFileID(hiFileIDs[i], loFileIDs[i])
 
 		if fileID.IsZero() {
-			e.logger.Warn("" +
-				"Attempting to report metadata for invalid FileID 0." +
+			e.logger.Warn("Attempting to report metadata for invalid FileID 0." +
 				" This is likely a mistake and will be discarded.",
 			)
 			continue
@@ -421,10 +442,11 @@ func (e *ElasticCollector) AddFrameMetadata(ctx context.Context, in *AddFrameMet
 				resp elasticsearch.BulkIndexerResponseItem,
 				err error,
 			) {
+				counterStackframesFailure.Inc()
 				e.logger.With(
 					logp.Error(err),
 					logp.String("error_type", resp.Error.Type),
-				).Error("failed to index stackframe metadata")
+				).Errorf("failed to index stackframe metadata: %s", resp.Error.Reason)
 			},
 		})
 		if err != nil {
@@ -449,6 +471,7 @@ func (e *ElasticCollector) AddFallbackSymbols(ctx context.Context,
 			"mismatch in number of hiFileIDs (%d) loFileIDs (%d)",
 			numHiFileIDs, numLoFileIDs,
 		)
+		counterFatalErr.Inc()
 		return nil, errCustomer
 	}
 
@@ -456,6 +479,7 @@ func (e *ElasticCollector) AddFallbackSymbols(ctx context.Context,
 		e.logger.Debug("AddFallbackSymbols request with no entries")
 		return &empty.Empty{}, nil
 	}
+	counterStackframesTotal.Add(int64(numHiFileIDs))
 
 	symbols := in.GetSymbols()
 	addressOrLines := in.GetAddressOrLines()
@@ -474,7 +498,6 @@ func (e *ElasticCollector) AddFallbackSymbols(ctx context.Context,
 		frameMetadata := StackFrame{
 			FunctionName: symbols[i],
 			SourceType:   SourceTypeC,
-			// FunctionOffset: int32(addressOrLines[i]),
 		}
 
 		docID := EncodeFrameID(fileID, addressOrLines[i])
@@ -495,10 +518,11 @@ func (e *ElasticCollector) AddFallbackSymbols(ctx context.Context,
 				resp elasticsearch.BulkIndexerResponseItem,
 				err error,
 			) {
+				counterStackframesFailure.Inc()
 				e.logger.With(
 					logp.Error(err),
 					logp.String("error_type", resp.Error.Type),
-				).Error("failed to index stackframe metadata")
+				).Error("failed to index stackframe metadata: %s", resp.Error.Reason)
 			},
 		})
 		if err != nil {
