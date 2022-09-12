@@ -36,6 +36,7 @@ package otel_test
 
 import (
 	"context"
+	"fmt"
 	"math"
 	"net/netip"
 	"testing"
@@ -849,47 +850,25 @@ func transformMetrics(t *testing.T, metrics pmetric.Metrics) ([]model.APMEvent, 
 
 func eventsMatch(t *testing.T, expected []model.APMEvent, actual []model.APMEvent) {
 	t.Helper()
-
-	if diff := cmp.Diff(expected, actual,
-		cmpopts.SortSlices(func(x model.APMEvent, y model.APMEvent) bool {
-			if !x.Timestamp.Equal(y.Timestamp) {
-				return x.Timestamp.Before(y.Timestamp)
-			}
-
-			if len(x.Labels) != len(y.Labels) {
-				return len(x.Labels) < len(y.Labels)
-			}
-
-			if len(x.Metricset.Samples) != len(y.Metricset.Samples) {
-				return len(x.Metricset.Samples) < len(y.Metricset.Samples)
-			}
-
-			if x.Metricset.Samples[0].Name != y.Metricset.Samples[0].Name {
-				return x.Metricset.Samples[0].Name < y.Metricset.Samples[0].Name
-			}
-
-			if x.Metricset.Samples[0].Value != y.Metricset.Samples[0].Value {
-				return x.Metricset.Samples[0].Value < y.Metricset.Samples[0].Value
-			}
-
-			// Special handling for TestConsumeMetricsHostCPU
-			if xlv, ylv := x.Labels["cpu"], y.Labels["cpu"]; xlv.Value != ylv.Value {
-				return xlv.Value < ylv.Value
-			}
-			if xlv, ylv := x.Labels["state"], y.Labels["state"]; xlv.Value != ylv.Value {
-				return xlv.Value < ylv.Value
-			}
-
-			t.Logf("failed to compare APM events: possible flaky test due to inconsistent order")
-			return false
+	diff := cmp.Diff(
+		expected, actual,
+		// Ignore order of events and their metrics. Some other slices
+		// have a defined order (e.g. histogram counts/values), so we
+		// don't ignore the order of all slices.
+		//
+		// Comparing string representations is a bit of a hack; ideally
+		// we would use like https://github.com/google/go-cmp/issues/67
+		cmpopts.SortSlices(func(x, y model.APMEvent) bool {
+			return fmt.Sprint(x) < fmt.Sprint(y)
 		}),
-		cmpopts.SortSlices(func(x model.MetricsetSample, y model.MetricsetSample) bool {
-			return x.Name < y.Name
+		cmpopts.SortSlices(func(x, y model.MetricsetSample) bool {
+			return fmt.Sprint(x) < fmt.Sprint(y)
 		}),
 		cmp.Comparer(func(x netip.Addr, y netip.Addr) bool {
 			return x == y
 		}),
-	); diff != "" {
+	)
+	if diff != "" {
 		t.Fatal(diff)
 	}
 }
