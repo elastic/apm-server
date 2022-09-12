@@ -9,11 +9,14 @@ pipeline {
     AWS_ACCOUNT_SECRET = 'secret/observability-team/ci/elastic-observability-aws-account-auth'
     EC_KEY_SECRET = 'secret/observability-team/ci/elastic-cloud/observability-pro'
     BENCHMARK_ES_SECRET = 'secret/apm-team/ci/benchmark-cloud'
+    BENCHMARK_KIBANA_SECRET = 'secret/observability-team/ci/apm-benchmark-kibana'
+    PNG_REPORT_FILE = 'out.png'
     TERRAFORM_VERSION = '1.1.9'
 
     CREATED_DATE = "${new Date().getTime()}"
     JOB_GCS_BUCKET_STASH = 'apm-ci-temp'
     JOB_GCS_CREDENTIALS = 'apm-ci-gcs-plugin'
+    SLACK_CHANNEL = "#apm-server"
   }
 
   options {
@@ -51,7 +54,6 @@ pipeline {
         TF_VAR_ENVIRONMENT= 'ci'
         TF_VAR_BRANCH = "${env.BRANCH_NAME.toLowerCase().replaceAll('[^a-z0-9-]', '-')}"
         TF_VAR_REPO = "${REPO}"
-
         GOBENCH_TAGS = "branch=${BRANCH_NAME},commit=${GIT_BASE_COMMIT},pr=${CHANGE_ID},target_branch=${CHANGE_TARGET}"
       }
       steps {
@@ -67,6 +69,7 @@ pipeline {
               }
             }
           }
+          downloadPNGReport()
         }
       }
       post {
@@ -86,6 +89,14 @@ pipeline {
             }
           }
         }
+        success {
+          dir("${BASE_DIR}") {            
+            sendSlackReportSuccessMessage()
+          }
+        }
+        failure {
+          notifyBuildResult(slackNotify: true, slackComment: true)
+        }  
       }
     }
   }
@@ -108,5 +119,53 @@ def withESBenchmarkEnv(Closure body) {
             'url': 'GOBENCH_HOST', 
             'password': 'GOBENCH_PASSWORD'] ) {
     body()
+  }
+}
+
+def downloadPNGReport() {
+  withSecretVault(
+      secret: "${BENCHMARK_KIBANA_SECRET}", 
+      data: ['user': 'KIBANA_USER', 
+            'password': 'KIBANA_PASSWORD', 
+            'kibana_url': 'KIBANA_ENDPOINT'] ) {
+    sh(label: 'Run unit tests', script: '.ci/scripts/download-png-from-kibana.sh $KIBANA_ENDPOINT $KIBANA_USER $KIBANA_PASSWORD $PNG_REPORT_FILE')
+    archiveArtifacts(
+      allowEmptyArchive: false,
+      artifacts: "${env.PNG_REPORT_FILE}",
+      defaultExcludes: false
+    )
+  }
+}
+
+def sendSlackReportSuccessMessage() {
+  withSecretVault(
+      secret: "${BENCHMARK_KIBANA_SECRET}", 
+      data: ['kibana_dashboard_url': 'KIBANA_DASHBOARD_URL'] ) {
+    slackMessageBlocks = [
+      [
+        "type": "section",
+        "text": [
+          "type": "mrkdwn",
+          "text": "Nightly benchmarks succesfully executed\n\n <${env.BUILD_URL}|Jenkins Build ${env.BUILD_DISPLAY_NAME}>"
+        ]
+      ],
+      [
+        "type": "divider"
+      ],
+      [
+        "type": "image",
+        "image_url": "${env.BUILD_URL}artifact/${env.PNG_REPORT_FILE}",
+        "alt_text": "image is not downloaded"
+      ],
+      [
+        "type": "section",
+        "text": [
+          "type": "mrkdwn",
+          "text": "<${env.KIBANA_DASHBOARD_URL}|Kibana Dashboard>"
+        ]        
+      ]
+    ]
+
+    slackSend(channel: "${env.SLACK_CHANNEL}", blocks: slackMessageBlocks)  
   }
 }
