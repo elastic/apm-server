@@ -32,13 +32,13 @@ func TestIntakeAsync(t *testing.T) {
 		// for the successful case (no concurrency and unsuccessful case).
 		srv := apmservertest.NewServerTB(t, "max_concurrent_decoders=1")
 
-		systemtest.SendBackendEventsAsyncPayload(t, srv, `../testdata/intake-v2/errors.ndjson`)
+		systemtest.SendBackendEventsAsyncPayload(t, srv.URL, `../testdata/intake-v2/errors.ndjson`)
 		// Ensure the 5 errors are ingested.
 		systemtest.Elasticsearch.ExpectMinDocs(t, 5, "logs-apm.error-*", nil)
 
 		// Send a request with a lot of events (~1920) and expect it to be processed
 		// without any errors.
-		systemtest.SendBackendEventsAsyncPayload(t, srv, `../testdata/intake-v2/heavy.ndjson`)
+		systemtest.SendBackendEventsAsyncPayload(t, srv.URL, `../testdata/intake-v2/heavy.ndjson`)
 
 		// Create 4 requests to be run concurrently and ensure that they return with
 		// a 503
@@ -47,7 +47,7 @@ func TestIntakeAsync(t *testing.T) {
 			wg.Add(1)
 			go func() {
 				defer wg.Done()
-				systemtest.SendBackendEventsAsyncPayloadError(t, srv, `../testdata/intake-v2/heavy.ndjson`)
+				systemtest.SendBackendEventsAsyncPayloadError(t, srv.URL, `../testdata/intake-v2/heavy.ndjson`)
 			}()
 		}
 		wg.Wait()
@@ -56,13 +56,13 @@ func TestIntakeAsync(t *testing.T) {
 		systemtest.CleanupElasticsearch(t)
 		srv := apmservertest.NewServerTB(t)
 
-		systemtest.SendBackendEventsAsyncPayload(t, srv, `../testdata/intake-v2/errors.ndjson`)
+		systemtest.SendBackendEventsAsyncPayload(t, srv.URL, `../testdata/intake-v2/errors.ndjson`)
 		// Ensure the 5 errors are ingested.
 		systemtest.Elasticsearch.ExpectMinDocs(t, 5, "logs-apm.error-*", nil)
 
 		// Send a request with a lot of events (~1920) and expect it to be processed
 		// without any errors.
-		systemtest.SendBackendEventsAsyncPayload(t, srv, `../testdata/intake-v2/heavy.ndjson`)
+		systemtest.SendBackendEventsAsyncPayload(t, srv.URL, `../testdata/intake-v2/heavy.ndjson`)
 
 		// Create 9 requests to be run concurrently and ensure that they succeed.
 		var wg sync.WaitGroup
@@ -72,7 +72,7 @@ func TestIntakeAsync(t *testing.T) {
 				defer wg.Done()
 				// ratelimit.ndjson contains 20 events, which means that with
 				// the default batch size of 10 it'll acquire the lock twice.
-				systemtest.SendBackendEventsAsyncPayload(t, srv, `../testdata/intake-v2/ratelimit.ndjson`)
+				systemtest.SendBackendEventsAsyncPayload(t, srv.URL, `../testdata/intake-v2/ratelimit.ndjson`)
 			}()
 		}
 		wg.Wait()

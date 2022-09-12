@@ -30,28 +30,49 @@ import (
 )
 
 func TestRUMErrorSourcemapping(t *testing.T) {
-	systemtest.CleanupElasticsearch(t)
-	srv := apmservertest.NewUnstartedServerTB(t)
-	srv.Config.RUM = &apmservertest.RUMConfig{Enabled: true}
-	err := srv.Start()
-	require.NoError(t, err)
+	test := func(t *testing.T, bundleFilepath string) {
+		sourcemap, err := os.ReadFile("../testdata/sourcemap/bundle.js.map")
+		require.NoError(t, err)
+		systemtest.CreateSourceMap(t, string(sourcemap), "apm-agent-js", "1.0.1", bundleFilepath)
 
-	sourcemap, err := os.ReadFile("../testdata/sourcemap/bundle.js.map")
-	require.NoError(t, err)
-	systemtest.CreateSourceMap(t, string(sourcemap), "apm-agent-js", "1.0.1",
-		"http://localhost:8000/test/e2e/../e2e/general-usecase/bundle.js.map",
-	)
+		// Create the integration after uploading the sourcemap, so that it is added
+		// to the integration policy from the start. Otherwise we would have to wait
+		// for the policy to be reloaded.
+		apmIntegration := newAPMIntegration(t, map[string]interface{}{"enable_rum": true})
 
-	systemtest.SendRUMEventsPayload(t, srv, "../testdata/intake-v2/errors_rum.ndjson")
-	result := systemtest.Elasticsearch.ExpectDocs(t, "logs-apm.error-*", nil)
+		test := func(t *testing.T, serverURL string) {
+			systemtest.CleanupElasticsearch(t)
+			systemtest.SendRUMEventsPayload(t, serverURL, "../testdata/intake-v2/errors_rum.ndjson")
+			result := systemtest.Elasticsearch.ExpectDocs(t, "logs-apm.error-*", nil)
+			systemtest.ApproveEvents(
+				t, t.Name(), result.Hits.Hits,
+				// RUM timestamps are set by the server based on the time the payload is received.
+				"@timestamp", "timestamp.us",
+				// RUM events have the source IP and port recorded, which are dynamic in the tests
+				"client.ip", "source.ip", "source.port",
+			)
+		}
 
-	systemtest.ApproveEvents(
-		t, t.Name(), result.Hits.Hits,
-		// RUM timestamps are set by the server based on the time the payload is received.
-		"@timestamp", "timestamp.us",
-		// RUM events have the source port recorded, and in the tests it will be dynamic
-		"source.port",
-	)
+		t.Run("standalone", func(t *testing.T) {
+			srv := apmservertest.NewUnstartedServerTB(t)
+			srv.Config.RUM = &apmservertest.RUMConfig{Enabled: true}
+			err := srv.Start()
+			require.NoError(t, err)
+			test(t, srv.URL)
+		})
+
+		t.Run("integration", func(t *testing.T) {
+			test(t, apmIntegration.URL)
+		})
+	}
+
+	t.Run("absolute_bundle_filepath", func(t *testing.T) {
+		test(t, "http://localhost:8000/test/e2e/../e2e/general-usecase/bundle.js.map")
+	})
+
+	t.Run("relative_bundle_filepath", func(t *testing.T) {
+		test(t, "/test/e2e/general-usecase/bundle.js.map")
+	})
 }
 
 func TestRUMSpanSourcemapping(t *testing.T) {
@@ -66,7 +87,7 @@ func TestRUMSpanSourcemapping(t *testing.T) {
 	systemtest.CreateSourceMap(t, string(sourcemap), "apm-agent-js", "1.0.0",
 		"http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
 	)
-	systemtest.SendRUMEventsPayload(t, srv, "../testdata/intake-v2/transactions_spans_rum_2.ndjson")
+	systemtest.SendRUMEventsPayload(t, srv.URL, "../testdata/intake-v2/transactions_spans_rum_2.ndjson")
 	result := systemtest.Elasticsearch.ExpectDocs(t, "traces-apm*", estest.TermQuery{
 		Field: "processor.event",
 		Value: "span",
@@ -95,7 +116,7 @@ func TestNoMatchingSourcemap(t *testing.T) {
 		"http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
 	)
 
-	systemtest.SendRUMEventsPayload(t, srv, "../testdata/intake-v2/transactions_spans_rum_2.ndjson")
+	systemtest.SendRUMEventsPayload(t, srv.URL, "../testdata/intake-v2/transactions_spans_rum_2.ndjson")
 	result := systemtest.Elasticsearch.ExpectDocs(t, "traces-apm*", estest.TermQuery{
 		Field: "processor.event",
 		Value: "span",
@@ -124,14 +145,14 @@ func TestSourcemapCaching(t *testing.T) {
 	)
 
 	// Index an error, applying source mapping and caching the source map in the process.
-	systemtest.SendRUMEventsPayload(t, srv, "../testdata/intake-v2/errors_rum.ndjson")
+	systemtest.SendRUMEventsPayload(t, srv.URL, "../testdata/intake-v2/errors_rum.ndjson")
 	result := systemtest.Elasticsearch.ExpectDocs(t, "logs-apm.error-*", nil)
 	assertSourcemapUpdated(t, result, true)
 
 	// Delete the source map and error, and try again.
 	systemtest.DeleteSourceMap(t, sourcemapID)
 	systemtest.CleanupElasticsearch(t)
-	systemtest.SendRUMEventsPayload(t, srv, "../testdata/intake-v2/errors_rum.ndjson")
+	systemtest.SendRUMEventsPayload(t, srv.URL, "../testdata/intake-v2/errors_rum.ndjson")
 	result = systemtest.Elasticsearch.ExpectMinDocs(t, 1, "logs-apm.error-*", nil)
 	assertSourcemapUpdated(t, result, true)
 }
