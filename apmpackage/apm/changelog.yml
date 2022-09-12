@@ -6,6 +6,9 @@
     - description: Added faas fields for app logs datastream
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/9068
+    - description: Added observer/ppid translation to data stream migration pipeline
+      type: bugfix
+      link: https://github.com/elastic/apm-server/pull/9095
 - version: "8.4.0"
   changes:
     - description: Added support for dynamically mapping summary metrics

@@ -1,0 +1,715 @@
+{
+  "took" : 4,
+  "timed_out" : false,
+  "_shards" : {
+    "total" : 6,
+    "successful" : 6,
+    "skipped" : 0,
+    "failed" : 0
+  },
+  "hits" : {
+    "total" : {
+      "value" : 8,
+      "relation" : "eq"
+    },
+    "max_score" : 1.0,
+    "hits" : [
+      {
+        "_index" : "apm-7.17.6-error-000001",
+        "_type" : "_doc",
+        "_id" : "gsjUL4MBCDAhpAy9F1xN",
+        "_score" : 1.0,
+        "_source" : {
+          "container" : {
+            "id" : "spawn-6cd7c2e1-43d5-4c89-8480-e178b3bc70d1"
+          },
+          "parent" : {
+            "id" : "7bd04bc3063f9930"
+          },
+          "agent" : {
+            "name" : "go",
+            "version" : "2.0.0"
+          },
+          "process" : {
+            "args" : [
+              "/tmp/go-build1405913256/b001/exe/main"
+            ],
+            "pid" : 4009922,
+            "title" : "main",
+            "ppid" : 4009763
+          },
+          "error" : {
+            "exception" : [
+              {
+                "stacktrace" : [
+                  {
+                    "exclude_from_grouping" : false,
+                    "filename" : "main.go",
+                    "abs_path" : "/home/andrew/projects/apmload/main.go",
+                    "line" : {
+                      "number" : 53
+                    },
+                    "module" : "main",
+                    "function" : "once"
+                  },
+                  {
+                    "exclude_from_grouping" : false,
+                    "filename" : "main.go",
+                    "abs_path" : "/home/andrew/projects/apmload/main.go",
+                    "line" : {
+                      "number" : 29
+                    },
+                    "module" : "main",
+                    "function" : "main"
+                  },
+                  {
+                    "library_frame" : true,
+                    "exclude_from_grouping" : false,
+                    "filename" : "proc.go",
+                    "abs_path" : "/home/andrew/go/toolchain/1.18.1/src/runtime/proc.go",
+                    "line" : {
+                      "number" : 250
+                    },
+                    "module" : "runtime",
+                    "function" : "main"
+                  },
+                  {
+                    "library_frame" : true,
+                    "exclude_from_grouping" : false,
+                    "filename" : "asm_amd64.s",
+                    "abs_path" : "/home/andrew/go/toolchain/1.18.1/src/runtime/asm_amd64.s",
+                    "line" : {
+                      "number" : 1571
+                    },
+                    "module" : "runtime",
+                    "function" : "goexit"
+                  }
+                ],
+                "handled" : false,
+                "module" : "errors",
+                "message" : "boom",
+                "type" : "errorString"
+              }
+            ],
+            "culprit" : "once",
+            "id" : "b2da5288b2c3d7e79c42a636ca2fd99f",
+            "grouping_key" : "d9bb6552d94deb040e83062f8fe1e449",
+            "grouping_name" : "boom"
+          },
+          "message" : "boom",
+          "processor" : {
+            "name" : "error",
+            "event" : "error"
+          },
+          "observer" : {
+            "hostname" : "099a24952382",
+            "name" : "instance-0000000000",
+            "id" : "58b4b21d-a848-4b4d-8db6-0e565f3aa3ff",
+            "type" : "apm-server",
+            "ephemeral_id" : "abb42875-d720-47bf-8696-3e650e938e3e",
+            "version" : "7.17.6",
+            "version_major" : 7
+          },
+          "trace" : {
+            "id" : "5cfc595035477ea235a632fc3e2bb6b1"
+          },
+          "@timestamp" : "2022-09-12T03:52:50.939Z",
+          "ecs" : {
+            "version" : "1.12.0"
+          },
+          "service" : {
+            "node" : {
+              "name" : "spawn-6cd7c2e1-43d5-4c89-8480-e178b3bc70d1"
+            },
+            "name" : "main",
+            "runtime" : {
+              "name" : "gc",
+              "version" : "go1.18.1"
+            },
+            "language" : {
+              "name" : "go",
+              "version" : "go1.18.1"
+            }
+          },
+          "host" : {
+            "hostname" : "corduroy",
+            "os" : {
+              "platform" : "linux"
+            },
+            "ip" : "110.174.44.88",
+            "name" : "corduroy",
+            "architecture" : "amd64"
+          },
+          "event" : {
+            "ingested" : "2022-09-12T03:52:52.294756733Z"
+          },
+          "transaction" : {
+            "id" : "5cfc595035477ea2",
+            "type" : "type",
+            "sampled" : true
+          },
+          "timestamp" : {
+            "us" : 1662954770939878
+          }
+        }
+      },
+      {
+        "_index" : "apm-7.17.6-metric-000001",
+        "_type" : "_doc",
+        "_id" : "hcjUL4MBCDAhpAy9F1xN",
+        "_score" : 1.0,
+        "_source" : {
+          "container" : {
+            "id" : "spawn-6cd7c2e1-43d5-4c89-8480-e178b3bc70d1"
+          },
+          "agent" : {
+            "name" : "go",
+            "version" : "2.0.0"
+          },
+          "process" : {
+            "args" : [
+              "/tmp/go-build1405913256/b001/exe/main"
+            ],
+            "pid" : 4009922,
+            "title" : "main",
+            "ppid" : 4009763
+          },
+          "processor" : {
+            "name" : "metric",
+            "event" : "metric"
+          },
+          "metricset.name" : "span_breakdown",
+          "observer" : {
+            "hostname" : "099a24952382",
+            "name" : "instance-0000000000",
+            "id" : "58b4b21d-a848-4b4d-8db6-0e565f3aa3ff",
+            "type" : "apm-server",
+            "ephemeral_id" : "abb42875-d720-47bf-8696-3e650e938e3e",
+            "version" : "7.17.6",
+            "version_major" : 7
+          },
+          "@timestamp" : "2022-09-12T03:52:51.178Z",
+          "ecs" : {
+            "version" : "1.12.0"
+          },
+          "service" : {
+            "node" : {
+              "name" : "spawn-6cd7c2e1-43d5-4c89-8480-e178b3bc70d1"
+            },
+            "name" : "main",
+            "runtime" : {
+              "name" : "gc",
+              "version" : "go1.18.1"
+            },
+            "language" : {
+              "name" : "go",
+              "version" : "go1.18.1"
+            }
+          },
+          "host" : {
+            "hostname" : "corduroy",
+            "os" : {
+              "platform" : "linux"
+            },
+            "ip" : "110.174.44.88",
+            "name" : "corduroy",
+            "architecture" : "amd64"
+          },
+          "event" : {
+            "ingested" : "2022-09-12T03:52:52.299745497Z"
+          },
+          "transaction" : {
+            "name" : "name",
+            "type" : "type"
+          },
+          "span" : {
+            "self_time" : {
+              "sum.us" : 15,
+              "count" : 1
+            },
+            "type" : "app"
+          }
+        }
+      },
+      {
+        "_index" : "apm-7.17.6-metric-000001",
+        "_type" : "_doc",
+        "_id" : "hsjUL4MBCDAhpAy9F1xN",
+        "_score" : 1.0,
+        "_source" : {
+          "container" : {
+            "id" : "spawn-6cd7c2e1-43d5-4c89-8480-e178b3bc70d1"
+          },
+          "agent" : {
+            "name" : "go",
+            "version" : "2.0.0"
+          },
+          "process" : {
+            "args" : [
+              "/tmp/go-build1405913256/b001/exe/main"
+            ],
+            "pid" : 4009922,
+            "title" : "main",
+            "ppid" : 4009763
+          },
+          "processor" : {
+            "name" : "metric",
+            "event" : "metric"
+          },
+          "metricset.name" : "span_breakdown",
+          "observer" : {
+            "hostname" : "099a24952382",
+            "name" : "instance-0000000000",
+            "id" : "58b4b21d-a848-4b4d-8db6-0e565f3aa3ff",
+            "ephemeral_id" : "abb42875-d720-47bf-8696-3e650e938e3e",
+            "type" : "apm-server",
+            "version" : "7.17.6",
+            "version_major" : 7
+          },
+          "@timestamp" : "2022-09-12T03:52:51.178Z",
+          "ecs" : {
+            "version" : "1.12.0"
+          },
+          "service" : {
+            "node" : {
+              "name" : "spawn-6cd7c2e1-43d5-4c89-8480-e178b3bc70d1"
+            },
+            "name" : "main",
+            "runtime" : {
+              "name" : "gc",
+              "version" : "go1.18.1"
+            },
+            "language" : {
+              "name" : "go",
+              "version" : "go1.18.1"
+            }
+          },
+          "host" : {
+            "hostname" : "corduroy",
+            "os" : {
+              "platform" : "linux"
+            },
+            "ip" : "110.174.44.88",
+            "name" : "corduroy",
+            "architecture" : "amd64"
+          },
+          "event" : {
+            "ingested" : "2022-09-12T03:52:52.300013006Z"
+          },
+          "transaction" : {
+            "name" : "name",
+            "type" : "type"
+          },
+          "span" : {
+            "self_time" : {
+              "sum.us" : 10220,
+              "count" : 1
+            },
+            "type" : "type"
+          }
+        }
+      },
+      {
+        "_index" : "apm-7.17.6-metric-000001",
+        "_type" : "_doc",
+        "_id" : "h8jUL4MBCDAhpAy9F1xN",
+        "_score" : 1.0,
+        "_source" : {
+          "container" : {
+            "id" : "spawn-6cd7c2e1-43d5-4c89-8480-e178b3bc70d1"
+          },
+          "system.process.cpu.total.norm.pct" : 0.002506265664160401,
+          "golang.heap.system.total" : 2.026804E7,
+          "agent" : {
+            "name" : "go",
+            "version" : "2.0.0"
+          },
+          "golang.heap.system.obtained" : 1.1862016E7,
+          "golang.heap.allocations.idle" : 5701632.0,
+          "golang.heap.allocations.mallocs" : 44520,
+          "golang.heap.allocations.active" : 6160384.0,
+          "system.cpu.total.norm.pct" : 0.022556390977443663,
+          "golang.heap.gc.total_pause.ns" : 178493,
+          "golang.heap.gc.cpu_fraction" : 3.1759519816489074E-4,
+          "observer" : {
+            "hostname" : "099a24952382",
+            "name" : "instance-0000000000",
+            "id" : "58b4b21d-a848-4b4d-8db6-0e565f3aa3ff",
+            "ephemeral_id" : "abb42875-d720-47bf-8696-3e650e938e3e",
+            "type" : "apm-server",
+            "version" : "7.17.6",
+            "version_major" : 7
+          },
+          "golang.heap.system.stack" : 720896,
+          "system.process.memory.size" : 1.485594624E9,
+          "golang.heap.allocations.total" : 8834120.0,
+          "ecs" : {
+            "version" : "1.12.0"
+          },
+          "system.memory.actual.free" : 3.3981652992E10,
+          "host" : {
+            "hostname" : "corduroy",
+            "os" : {
+              "platform" : "linux"
+            },
+            "ip" : "110.174.44.88",
+            "name" : "corduroy",
+            "architecture" : "amd64"
+          },
+          "system.memory.total" : 4.6108971008E10,
+          "event" : {
+            "ingested" : "2022-09-12T03:52:52.300698998Z"
+          },
+          "process" : {
+            "args" : [
+              "/tmp/go-build1405913256/b001/exe/main"
+            ],
+            "pid" : 4009922,
+            "title" : "main",
+            "ppid" : 4009763
+          },
+          "golang.heap.allocations.allocated" : 4579688.0,
+          "golang.heap.allocations.frees" : 39979,
+          "golang.heap.allocations.objects" : 4541,
+          "processor" : {
+            "name" : "metric",
+            "event" : "metric"
+          },
+          "golang.heap.system.released" : 3989504.0,
+          "golang.heap.gc.next_gc_limit" : 8842488.0,
+          "metricset.name" : "app",
+          "system.process.memory.rss.bytes" : 1.5187968E7,
+          "golang.goroutines" : 11,
+          "@timestamp" : "2022-09-12T03:52:51.178Z",
+          "service" : {
+            "node" : {
+              "name" : "spawn-6cd7c2e1-43d5-4c89-8480-e178b3bc70d1"
+            },
+            "name" : "main",
+            "runtime" : {
+              "name" : "gc",
+              "version" : "go1.18.1"
+            },
+            "language" : {
+              "name" : "go",
+              "version" : "go1.18.1"
+            }
+          },
+          "golang.heap.gc.total_count" : 3
+        }
+      },
+      {
+        "_index" : "apm-7.17.6-metric-000001",
+        "_type" : "_doc",
+        "_id" : "ucLUL4MBKu43d8ZXjODi",
+        "_score" : 1.0,
+        "_source" : {
+          "agent" : {
+            "name" : "go"
+          },
+          "processor" : {
+            "name" : "metric",
+            "event" : "metric"
+          },
+          "metricset.name" : "service_destination",
+          "observer" : {
+            "hostname" : "099a24952382",
+            "name" : "instance-0000000000",
+            "id" : "58b4b21d-a848-4b4d-8db6-0e565f3aa3ff",
+            "ephemeral_id" : "abb42875-d720-47bf-8696-3e650e938e3e",
+            "type" : "apm-server",
+            "version" : "7.17.6",
+            "version_major" : 7
+          },
+          "@timestamp" : "2022-09-12T03:52:00.000Z",
+          "ecs" : {
+            "version" : "1.12.0"
+          },
+          "service" : {
+            "name" : "main"
+          },
+          "event" : {
+            "ingested" : "2022-09-12T03:53:22.400872462Z",
+            "outcome" : "failure"
+          },
+          "span" : {
+            "destination" : {
+              "service" : {
+                "resource" : "dest_resource",
+                "response_time" : {
+                  "sum.us" : 10220,
+                  "count" : 1
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "_index" : "apm-7.17.6-metric-000001",
+        "_type" : "_doc",
+        "_id" : "usLUL4MBKu43d8ZXjODi",
+        "_score" : 1.0,
+        "_source" : {
+          "container" : {
+            "id" : "spawn-6cd7c2e1-43d5-4c89-8480-e178b3bc70d1"
+          },
+          "agent" : {
+            "name" : "go"
+          },
+          "_doc_count" : 1,
+          "processor" : {
+            "name" : "metric",
+            "event" : "metric"
+          },
+          "metricset.name" : "transaction",
+          "observer" : {
+            "hostname" : "099a24952382",
+            "name" : "instance-0000000000",
+            "id" : "58b4b21d-a848-4b4d-8db6-0e565f3aa3ff",
+            "ephemeral_id" : "abb42875-d720-47bf-8696-3e650e938e3e",
+            "type" : "apm-server",
+            "version" : "7.17.6",
+            "version_major" : 7
+          },
+          "@timestamp" : "2022-09-12T03:52:00.000Z",
+          "timeseries" : {
+            "instance" : "main:name:5b6121c8e3ec693e"
+          },
+          "ecs" : {
+            "version" : "1.12.0"
+          },
+          "service" : {
+            "node" : {
+              "name" : "spawn-6cd7c2e1-43d5-4c89-8480-e178b3bc70d1"
+            },
+            "name" : "main"
+          },
+          "host" : {
+            "hostname" : "corduroy",
+            "name" : "corduroy"
+          },
+          "event" : {
+            "ingested" : "2022-09-12T03:53:22.401580166Z",
+            "outcome" : "failure"
+          },
+          "transaction" : {
+            "root" : true,
+            "name" : "name",
+            "type" : "type",
+            "duration.histogram" : {
+              "counts" : [
+                1
+              ],
+              "values" : [
+                10239
+              ]
+            }
+          }
+        }
+      },
+      {
+        "_index" : "apm-7.17.6-span-000001",
+        "_type" : "_doc",
+        "_id" : "g8jUL4MBCDAhpAy9F1xN",
+        "_score" : 1.0,
+        "_source" : {
+          "parent" : {
+            "id" : "5cfc595035477ea2"
+          },
+          "agent" : {
+            "name" : "go",
+            "version" : "2.0.0"
+          },
+          "processor" : {
+            "name" : "transaction",
+            "event" : "span"
+          },
+          "observer" : {
+            "hostname" : "099a24952382",
+            "name" : "instance-0000000000",
+            "id" : "58b4b21d-a848-4b4d-8db6-0e565f3aa3ff",
+            "type" : "apm-server",
+            "ephemeral_id" : "abb42875-d720-47bf-8696-3e650e938e3e",
+            "version" : "7.17.6",
+            "version_major" : 7
+          },
+          "trace" : {
+            "id" : "5cfc595035477ea235a632fc3e2bb6b1"
+          },
+          "@timestamp" : "2022-09-12T03:52:50.929Z",
+          "ecs" : {
+            "version" : "1.12.0"
+          },
+          "service" : {
+            "name" : "main"
+          },
+          "event" : {
+            "outcome" : "failure"
+          },
+          "transaction" : {
+            "id" : "5cfc595035477ea2"
+          },
+          "span" : {
+            "duration" : {
+              "us" : 10220
+            },
+            "stacktrace" : [
+              {
+                "library_frame" : true,
+                "exclude_from_grouping" : false,
+                "filename" : "span.go",
+                "abs_path" : "/home/andrew/go/pkg/mod/go.elastic.co/apm/v2@v2.0.0/span.go",
+                "line" : {
+                  "number" : 368
+                },
+                "module" : "go.elastic.co/apm/v2",
+                "function" : "(*Span).End"
+              },
+              {
+                "exclude_from_grouping" : false,
+                "filename" : "main.go",
+                "abs_path" : "/home/andrew/projects/apmload/main.go",
+                "line" : {
+                  "number" : 56
+                },
+                "function" : "once",
+                "module" : "main"
+              },
+              {
+                "exclude_from_grouping" : false,
+                "filename" : "main.go",
+                "abs_path" : "/home/andrew/projects/apmload/main.go",
+                "line" : {
+                  "number" : 29
+                },
+                "module" : "main",
+                "function" : "main"
+              },
+              {
+                "library_frame" : true,
+                "exclude_from_grouping" : false,
+                "filename" : "proc.go",
+                "abs_path" : "/home/andrew/go/toolchain/1.18.1/src/runtime/proc.go",
+                "line" : {
+                  "number" : 250
+                },
+                "module" : "runtime",
+                "function" : "main"
+              },
+              {
+                "library_frame" : true,
+                "exclude_from_grouping" : false,
+                "abs_path" : "/home/andrew/go/toolchain/1.18.1/src/runtime/asm_amd64.s",
+                "filename" : "asm_amd64.s",
+                "line" : {
+                  "number" : 1571
+                },
+                "module" : "runtime",
+                "function" : "goexit"
+              }
+            ],
+            "destination" : {
+              "service" : {
+                "resource" : "dest_resource",
+                "type" : "type"
+              }
+            },
+            "name" : "name",
+            "id" : "7bd04bc3063f9930",
+            "type" : "type"
+          },
+          "timestamp" : {
+            "us" : 1662954770929706
+          }
+        }
+      },
+      {
+        "_index" : "apm-7.17.6-transaction-000001",
+        "_type" : "_doc",
+        "_id" : "hMjUL4MBCDAhpAy9F1xN",
+        "_score" : 1.0,
+        "_source" : {
+          "container" : {
+            "id" : "spawn-6cd7c2e1-43d5-4c89-8480-e178b3bc70d1"
+          },
+          "process" : {
+            "args" : [
+              "/tmp/go-build1405913256/b001/exe/main"
+            ],
+            "pid" : 4009922,
+            "title" : "main",
+            "ppid" : 4009763
+          },
+          "agent" : {
+            "name" : "go",
+            "version" : "2.0.0"
+          },
+          "processor" : {
+            "name" : "transaction",
+            "event" : "transaction"
+          },
+          "observer" : {
+            "hostname" : "099a24952382",
+            "name" : "instance-0000000000",
+            "id" : "58b4b21d-a848-4b4d-8db6-0e565f3aa3ff",
+            "ephemeral_id" : "abb42875-d720-47bf-8696-3e650e938e3e",
+            "type" : "apm-server",
+            "version" : "7.17.6",
+            "version_major" : 7
+          },
+          "trace" : {
+            "id" : "5cfc595035477ea235a632fc3e2bb6b1"
+          },
+          "@timestamp" : "2022-09-12T03:52:50.929Z",
+          "ecs" : {
+            "version" : "1.12.0"
+          },
+          "service" : {
+            "node" : {
+              "name" : "spawn-6cd7c2e1-43d5-4c89-8480-e178b3bc70d1"
+            },
+            "name" : "main",
+            "runtime" : {
+              "name" : "gc",
+              "version" : "go1.18.1"
+            },
+            "language" : {
+              "name" : "go",
+              "version" : "go1.18.1"
+            }
+          },
+          "host" : {
+            "hostname" : "corduroy",
+            "os" : {
+              "platform" : "linux"
+            },
+            "ip" : "110.174.44.88",
+            "name" : "corduroy",
+            "architecture" : "amd64"
+          },
+          "event" : {
+            "ingested" : "2022-09-12T03:52:52.299392525Z",
+            "outcome" : "failure"
+          },
+          "transaction" : {
+            "duration" : {
+              "us" : 10236
+            },
+            "name" : "name",
+            "id" : "5cfc595035477ea2",
+            "span_count" : {
+              "dropped" : 0,
+              "started" : 1
+            },
+            "type" : "type",
+            "sampled" : true
+          },
+          "timestamp" : {
+            "us" : 1662954770929705
+          }
+        }
+      }
+    ]
+  }
+}
