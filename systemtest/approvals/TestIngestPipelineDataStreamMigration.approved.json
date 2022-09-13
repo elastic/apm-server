@@ -104,10 +104,8 @@
                 "args": [
                     "/tmp/go-build1405913256/b001/exe/main"
                 ],
-                "parent": {
-                    "pid": 4009763
-                },
                 "pid": 4009922,
+                "ppid": 4009763,
                 "title": "main"
             },
             "processor": {
@@ -199,10 +197,8 @@
                 "args": [
                     "/tmp/go-build1405913256/b001/exe/main"
                 ],
-                "parent": {
-                    "pid": 4009763
-                },
                 "pid": 4009922,
+                "ppid": 4009763,
                 "title": "main"
             },
             "processor": {
@@ -273,10 +269,8 @@
                 "args": [
                     "/tmp/go-build1405913256/b001/exe/main"
                 ],
-                "parent": {
-                    "pid": 4009763
-                },
                 "pid": 4009922,
+                "ppid": 4009763,
                 "title": "main"
             },
             "processor": {
@@ -352,10 +346,8 @@
                 "args": [
                     "/tmp/go-build1405913256/b001/exe/main"
                 ],
-                "parent": {
-                    "pid": 4009763
-                },
                 "pid": 4009922,
+                "ppid": 4009763,
                 "title": "main"
             },
             "processor": {
@@ -655,10 +647,8 @@
                 "args": [
                     "/tmp/go-build1405913256/b001/exe/main"
                 ],
-                "parent": {
-                    "pid": 4009763
-                },
                 "pid": 4009922,
+                "ppid": 4009763,
                 "title": "main"
             },
             "processor": {
