@@ -3,9 +3,9 @@
 # change type can be one of: enhancement, bugfix, breaking-change
 - version: "8.4.2"
   changes:
-    - description: Placeholder
+    - description: Added observer translation to data stream migration pipeline
       type: bugfix
-      link: https://github.com/elastic/apm-server/pull/1234
+      link: https://github.com/elastic/apm-server/pull/9095
 - version: "8.4.0"
   changes:
     - description: Added support for dynamically mapping summary metrics

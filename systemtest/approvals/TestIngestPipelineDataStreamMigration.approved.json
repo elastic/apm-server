@@ -1,0 +1,693 @@
+{
+    "events": [
+        {
+            "@timestamp": "2022-09-12T03:52:50.939Z",
+            "agent": {
+                "name": "go",
+                "version": "2.0.0"
+            },
+            "container": {
+                "id": "spawn-6cd7c2e1-43d5-4c89-8480-e178b3bc70d1"
+            },
+            "data_stream": {
+                "dataset": "apm.error",
+                "namespace": "migrated",
+                "type": "logs"
+            },
+            "ecs": {
+                "version": "dynamic"
+            },
+            "error": {
+                "culprit": "once",
+                "exception": [
+                    {
+                        "handled": false,
+                        "message": "boom",
+                        "module": "errors",
+                        "stacktrace": [
+                            {
+                                "abs_path": "/home/andrew/projects/apmload/main.go",
+                                "exclude_from_grouping": false,
+                                "filename": "main.go",
+                                "function": "once",
+                                "line": {
+                                    "number": 53
+                                },
+                                "module": "main"
+                            },
+                            {
+                                "abs_path": "/home/andrew/projects/apmload/main.go",
+                                "exclude_from_grouping": false,
+                                "filename": "main.go",
+                                "function": "main",
+                                "line": {
+                                    "number": 29
+                                },
+                                "module": "main"
+                            },
+                            {
+                                "abs_path": "/home/andrew/go/toolchain/1.18.1/src/runtime/proc.go",
+                                "exclude_from_grouping": false,
+                                "filename": "proc.go",
+                                "function": "main",
+                                "library_frame": true,
+                                "line": {
+                                    "number": 250
+                                },
+                                "module": "runtime"
+                            },
+                            {
+                                "abs_path": "/home/andrew/go/toolchain/1.18.1/src/runtime/asm_amd64.s",
+                                "exclude_from_grouping": false,
+                                "filename": "asm_amd64.s",
+                                "function": "goexit",
+                                "library_frame": true,
+                                "line": {
+                                    "number": 1571
+                                },
+                                "module": "runtime"
+                            }
+                        ],
+                        "type": "errorString"
+                    }
+                ],
+                "grouping_key": "d9bb6552d94deb040e83062f8fe1e449",
+                "grouping_name": "boom",
+                "id": "b2da5288b2c3d7e79c42a636ca2fd99f"
+            },
+            "event": {
+                "agent_id_status": "missing",
+                "ingested": "dynamic"
+            },
+            "host": {
+                "architecture": "amd64",
+                "hostname": "corduroy",
+                "ip": "110.174.44.88",
+                "name": "corduroy",
+                "os": {
+                    "platform": "linux"
+                }
+            },
+            "message": "boom",
+            "observer": {
+                "ephemeral_id": "dynamic",
+                "hostname": "dynamic",
+                "id": "dynamic",
+                "name": "instance-0000000000",
+                "type": "apm-server",
+                "version": "dynamic"
+            },
+            "parent": {
+                "id": "7bd04bc3063f9930"
+            },
+            "process": {
+                "args": [
+                    "/tmp/go-build1405913256/b001/exe/main"
+                ],
+                "pid": 4009922,
+                "ppid": 4009763,
+                "title": "main"
+            },
+            "processor": {
+                "event": "error",
+                "name": "error"
+            },
+            "service": {
+                "language": {
+                    "name": "go",
+                    "version": "go1.18.1"
+                },
+                "name": "main",
+                "node": {
+                    "name": "spawn-6cd7c2e1-43d5-4c89-8480-e178b3bc70d1"
+                },
+                "runtime": {
+                    "name": "gc",
+                    "version": "go1.18.1"
+                }
+            },
+            "timestamp": {
+                "us": 1662954770939878
+            },
+            "trace": {
+                "id": "5cfc595035477ea235a632fc3e2bb6b1"
+            },
+            "transaction": {
+                "id": "5cfc595035477ea2",
+                "sampled": true,
+                "type": "type"
+            }
+        },
+        {
+            "@timestamp": "2022-09-12T03:52:51.178Z",
+            "agent": {
+                "name": "go",
+                "version": "2.0.0"
+            },
+            "container": {
+                "id": "spawn-6cd7c2e1-43d5-4c89-8480-e178b3bc70d1"
+            },
+            "data_stream": {
+                "dataset": "apm.app.main",
+                "namespace": "migrated",
+                "type": "metrics"
+            },
+            "ecs": {
+                "version": "dynamic"
+            },
+            "event": {
+                "agent_id_status": "missing",
+                "ingested": "dynamic"
+            },
+            "golang.goroutines": 11,
+            "golang.heap.allocations.active": 6160384,
+            "golang.heap.allocations.allocated": 4579688,
+            "golang.heap.allocations.frees": 39979,
+            "golang.heap.allocations.idle": 5701632,
+            "golang.heap.allocations.mallocs": 44520,
+            "golang.heap.allocations.objects": 4541,
+            "golang.heap.allocations.total": 8834120,
+            "golang.heap.gc.cpu_fraction": 0.00031759519816489074,
+            "golang.heap.gc.next_gc_limit": 8842488,
+            "golang.heap.gc.total_count": 3,
+            "golang.heap.gc.total_pause.ns": 178493,
+            "golang.heap.system.obtained": 11862016,
+            "golang.heap.system.released": 3989504,
+            "golang.heap.system.stack": 720896,
+            "golang.heap.system.total": 20268040,
+            "host": {
+                "architecture": "amd64",
+                "hostname": "corduroy",
+                "ip": "110.174.44.88",
+                "name": "corduroy",
+                "os": {
+                    "platform": "linux"
+                }
+            },
+            "metricset.name": "app",
+            "observer": {
+                "ephemeral_id": "dynamic",
+                "hostname": "dynamic",
+                "id": "dynamic",
+                "name": "instance-0000000000",
+                "type": "apm-server",
+                "version": "dynamic"
+            },
+            "process": {
+                "args": [
+                    "/tmp/go-build1405913256/b001/exe/main"
+                ],
+                "pid": 4009922,
+                "ppid": 4009763,
+                "title": "main"
+            },
+            "processor": {
+                "event": "metric",
+                "name": "metric"
+            },
+            "service": {
+                "language": {
+                    "name": "go",
+                    "version": "go1.18.1"
+                },
+                "name": "main",
+                "node": {
+                    "name": "spawn-6cd7c2e1-43d5-4c89-8480-e178b3bc70d1"
+                },
+                "runtime": {
+                    "name": "gc",
+                    "version": "go1.18.1"
+                }
+            },
+            "system.cpu.total.norm.pct": 0.022556390977443663,
+            "system.memory.actual.free": 33981652992,
+            "system.memory.total": 46108971008,
+            "system.process.cpu.total.norm.pct": 0.002506265664160401,
+            "system.process.memory.rss.bytes": 15187968,
+            "system.process.memory.size": 1485594624
+        },
+        {
+            "@timestamp": "2022-09-12T03:52:51.178Z",
+            "agent": {
+                "name": "go",
+                "version": "2.0.0"
+            },
+            "container": {
+                "id": "spawn-6cd7c2e1-43d5-4c89-8480-e178b3bc70d1"
+            },
+            "data_stream": {
+                "dataset": "apm.internal",
+                "namespace": "migrated",
+                "type": "metrics"
+            },
+            "ecs": {
+                "version": "dynamic"
+            },
+            "event": {
+                "agent_id_status": "missing",
+                "ingested": "dynamic"
+            },
+            "host": {
+                "architecture": "amd64",
+                "hostname": "corduroy",
+                "ip": "110.174.44.88",
+                "name": "corduroy",
+                "os": {
+                    "platform": "linux"
+                }
+            },
+            "metricset.name": "span_breakdown",
+            "observer": {
+                "ephemeral_id": "dynamic",
+                "hostname": "dynamic",
+                "id": "dynamic",
+                "name": "instance-0000000000",
+                "type": "apm-server",
+                "version": "dynamic"
+            },
+            "process": {
+                "args": [
+                    "/tmp/go-build1405913256/b001/exe/main"
+                ],
+                "pid": 4009922,
+                "ppid": 4009763,
+                "title": "main"
+            },
+            "processor": {
+                "event": "metric",
+                "name": "metric"
+            },
+            "service": {
+                "language": {
+                    "name": "go",
+                    "version": "go1.18.1"
+                },
+                "name": "main",
+                "node": {
+                    "name": "spawn-6cd7c2e1-43d5-4c89-8480-e178b3bc70d1"
+                },
+                "runtime": {
+                    "name": "gc",
+                    "version": "go1.18.1"
+                }
+            },
+            "span": {
+                "self_time": {
+                    "count": 1,
+                    "sum.us": 15
+                },
+                "type": "app"
+            },
+            "transaction": {
+                "name": "name",
+                "type": "type"
+            }
+        },
+        {
+            "@timestamp": "2022-09-12T03:52:51.178Z",
+            "agent": {
+                "name": "go",
+                "version": "2.0.0"
+            },
+            "container": {
+                "id": "spawn-6cd7c2e1-43d5-4c89-8480-e178b3bc70d1"
+            },
+            "data_stream": {
+                "dataset": "apm.internal",
+                "namespace": "migrated",
+                "type": "metrics"
+            },
+            "ecs": {
+                "version": "dynamic"
+            },
+            "event": {
+                "agent_id_status": "missing",
+                "ingested": "dynamic"
+            },
+            "host": {
+                "architecture": "amd64",
+                "hostname": "corduroy",
+                "ip": "110.174.44.88",
+                "name": "corduroy",
+                "os": {
+                    "platform": "linux"
+                }
+            },
+            "metricset.name": "span_breakdown",
+            "observer": {
+                "ephemeral_id": "dynamic",
+                "hostname": "dynamic",
+                "id": "dynamic",
+                "name": "instance-0000000000",
+                "type": "apm-server",
+                "version": "dynamic"
+            },
+            "process": {
+                "args": [
+                    "/tmp/go-build1405913256/b001/exe/main"
+                ],
+                "pid": 4009922,
+                "ppid": 4009763,
+                "title": "main"
+            },
+            "processor": {
+                "event": "metric",
+                "name": "metric"
+            },
+            "service": {
+                "language": {
+                    "name": "go",
+                    "version": "go1.18.1"
+                },
+                "name": "main",
+                "node": {
+                    "name": "spawn-6cd7c2e1-43d5-4c89-8480-e178b3bc70d1"
+                },
+                "runtime": {
+                    "name": "gc",
+                    "version": "go1.18.1"
+                }
+            },
+            "span": {
+                "self_time": {
+                    "count": 1,
+                    "sum.us": 10220
+                },
+                "type": "type"
+            },
+            "transaction": {
+                "name": "name",
+                "type": "type"
+            }
+        },
+        {
+            "@timestamp": "2022-09-12T03:52:00.000Z",
+            "agent": {
+                "name": "go"
+            },
+            "data_stream": {
+                "dataset": "apm.internal",
+                "namespace": "migrated",
+                "type": "metrics"
+            },
+            "ecs": {
+                "version": "dynamic"
+            },
+            "event": {
+                "agent_id_status": "missing",
+                "ingested": "dynamic",
+                "outcome": "failure"
+            },
+            "metricset.name": "service_destination",
+            "observer": {
+                "ephemeral_id": "dynamic",
+                "hostname": "dynamic",
+                "id": "dynamic",
+                "name": "instance-0000000000",
+                "type": "apm-server",
+                "version": "dynamic"
+            },
+            "processor": {
+                "event": "metric",
+                "name": "metric"
+            },
+            "service": {
+                "name": "main"
+            },
+            "span": {
+                "destination": {
+                    "service": {
+                        "resource": "dest_resource",
+                        "response_time": {
+                            "count": 1,
+                            "sum.us": 10220
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "@timestamp": "2022-09-12T03:52:00.000Z",
+            "_doc_count": 1,
+            "agent": {
+                "name": "go"
+            },
+            "container": {
+                "id": "spawn-6cd7c2e1-43d5-4c89-8480-e178b3bc70d1"
+            },
+            "data_stream": {
+                "dataset": "apm.internal",
+                "namespace": "migrated",
+                "type": "metrics"
+            },
+            "ecs": {
+                "version": "dynamic"
+            },
+            "event": {
+                "agent_id_status": "missing",
+                "ingested": "dynamic",
+                "outcome": "failure"
+            },
+            "host": {
+                "hostname": "corduroy",
+                "name": "corduroy"
+            },
+            "metricset.name": "transaction",
+            "observer": {
+                "ephemeral_id": "dynamic",
+                "hostname": "dynamic",
+                "id": "dynamic",
+                "name": "instance-0000000000",
+                "type": "apm-server",
+                "version": "dynamic"
+            },
+            "processor": {
+                "event": "metric",
+                "name": "metric"
+            },
+            "service": {
+                "name": "main",
+                "node": {
+                    "name": "spawn-6cd7c2e1-43d5-4c89-8480-e178b3bc70d1"
+                }
+            },
+            "timeseries": {
+                "instance": "main:name:5b6121c8e3ec693e"
+            },
+            "transaction": {
+                "duration.histogram": {
+                    "counts": [
+                        1
+                    ],
+                    "values": [
+                        10239
+                    ]
+                },
+                "name": "name",
+                "root": true,
+                "type": "type"
+            }
+        },
+        {
+            "@timestamp": "2022-09-12T03:52:50.929Z",
+            "agent": {
+                "name": "go",
+                "version": "2.0.0"
+            },
+            "data_stream": {
+                "dataset": "apm",
+                "namespace": "migrated",
+                "type": "traces"
+            },
+            "ecs": {
+                "version": "dynamic"
+            },
+            "event": {
+                "agent_id_status": "missing",
+                "ingested": "dynamic",
+                "outcome": "failure"
+            },
+            "observer": {
+                "ephemeral_id": "dynamic",
+                "hostname": "dynamic",
+                "id": "dynamic",
+                "name": "instance-0000000000",
+                "type": "apm-server",
+                "version": "dynamic"
+            },
+            "parent": {
+                "id": "5cfc595035477ea2"
+            },
+            "processor": {
+                "event": "span",
+                "name": "transaction"
+            },
+            "service": {
+                "name": "main"
+            },
+            "span": {
+                "destination": {
+                    "service": {
+                        "resource": "dest_resource",
+                        "type": "type"
+                    }
+                },
+                "duration": {
+                    "us": 10220
+                },
+                "id": "7bd04bc3063f9930",
+                "name": "name",
+                "stacktrace": [
+                    {
+                        "abs_path": "/home/andrew/go/pkg/mod/go.elastic.co/apm/v2@v2.0.0/span.go",
+                        "exclude_from_grouping": false,
+                        "filename": "span.go",
+                        "function": "(*Span).End",
+                        "library_frame": true,
+                        "line": {
+                            "number": 368
+                        },
+                        "module": "go.elastic.co/apm/v2"
+                    },
+                    {
+                        "abs_path": "/home/andrew/projects/apmload/main.go",
+                        "exclude_from_grouping": false,
+                        "filename": "main.go",
+                        "function": "once",
+                        "line": {
+                            "number": 56
+                        },
+                        "module": "main"
+                    },
+                    {
+                        "abs_path": "/home/andrew/projects/apmload/main.go",
+                        "exclude_from_grouping": false,
+                        "filename": "main.go",
+                        "function": "main",
+                        "line": {
+                            "number": 29
+                        },
+                        "module": "main"
+                    },
+                    {
+                        "abs_path": "/home/andrew/go/toolchain/1.18.1/src/runtime/proc.go",
+                        "exclude_from_grouping": false,
+                        "filename": "proc.go",
+                        "function": "main",
+                        "library_frame": true,
+                        "line": {
+                            "number": 250
+                        },
+                        "module": "runtime"
+                    },
+                    {
+                        "abs_path": "/home/andrew/go/toolchain/1.18.1/src/runtime/asm_amd64.s",
+                        "exclude_from_grouping": false,
+                        "filename": "asm_amd64.s",
+                        "function": "goexit",
+                        "library_frame": true,
+                        "line": {
+                            "number": 1571
+                        },
+                        "module": "runtime"
+                    }
+                ],
+                "type": "type"
+            },
+            "timestamp": {
+                "us": 1662954770929706
+            },
+            "trace": {
+                "id": "5cfc595035477ea235a632fc3e2bb6b1"
+            },
+            "transaction": {
+                "id": "5cfc595035477ea2"
+            }
+        },
+        {
+            "@timestamp": "2022-09-12T03:52:50.929Z",
+            "agent": {
+                "name": "go",
+                "version": "2.0.0"
+            },
+            "container": {
+                "id": "spawn-6cd7c2e1-43d5-4c89-8480-e178b3bc70d1"
+            },
+            "data_stream": {
+                "dataset": "apm",
+                "namespace": "migrated",
+                "type": "traces"
+            },
+            "ecs": {
+                "version": "dynamic"
+            },
+            "event": {
+                "agent_id_status": "missing",
+                "ingested": "dynamic",
+                "outcome": "failure"
+            },
+            "host": {
+                "architecture": "amd64",
+                "hostname": "corduroy",
+                "ip": "110.174.44.88",
+                "name": "corduroy",
+                "os": {
+                    "platform": "linux"
+                }
+            },
+            "observer": {
+                "ephemeral_id": "dynamic",
+                "hostname": "dynamic",
+                "id": "dynamic",
+                "name": "instance-0000000000",
+                "type": "apm-server",
+                "version": "dynamic"
+            },
+            "process": {
+                "args": [
+                    "/tmp/go-build1405913256/b001/exe/main"
+                ],
+                "pid": 4009922,
+                "ppid": 4009763,
+                "title": "main"
+            },
+            "processor": {
+                "event": "transaction",
+                "name": "transaction"
+            },
+            "service": {
+                "language": {
+                    "name": "go",
+                    "version": "go1.18.1"
+                },
+                "name": "main",
+                "node": {
+                    "name": "spawn-6cd7c2e1-43d5-4c89-8480-e178b3bc70d1"
+                },
+                "runtime": {
+                    "name": "gc",
+                    "version": "go1.18.1"
+                }
+            },
+            "timestamp": {
+                "us": 1662954770929705
+            },
+            "trace": {
+                "id": "5cfc595035477ea235a632fc3e2bb6b1"
+            },
+            "transaction": {
+                "duration": {
+                    "us": 10236
+                },
+                "id": "5cfc595035477ea2",
+                "name": "name",
+                "sampled": true,
+                "span_count": {
+                    "dropped": 0,
+                    "started": 1
+                },
+                "type": "type"
+            }
+        }
+    ]
+}

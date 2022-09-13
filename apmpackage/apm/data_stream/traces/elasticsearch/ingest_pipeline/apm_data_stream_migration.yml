@@ -4,6 +4,8 @@ description: |
   This pipeline is not used directly by apmserver; it is installed
   for manually migrating legacy indices to data streams.
 processors:
+  - pipeline:
+      name: observer_version
   - script:
       if: ctx.processor?.event == 'span' || ctx.processor?.event == 'transaction'
       source: |
