@@ -71,7 +71,14 @@ var apmEventSortFields = []string{
 	"error.id",
 	"timeseries.instance",
 	"span.destination.service.resource",
+<<<<<<< HEAD
 	"@timestamp", // last resort, order is generally guaranteed
+=======
+	"transaction.type",
+	"span.type",
+	"service.name",
+	"@timestamp", // last resort before _id; order is generally guaranteed
+>>>>>>> 0d66920f (systemtest: Add `span.type` as sortable field (#9113))
 }
 
 type apmEventSearchHits []estest.SearchHit
