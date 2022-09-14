@@ -8,13 +8,13 @@ variable "user_name" {
 ## Deployment configuration
 
 variable "ess_region" {
-  default     = "gcp-europe-west1"
-  description = "Optional ESS region where the deployment will be created. Defaults to gcp-europe-west1"
+  default     = "gcp-us-west2"
+  description = "Optional ESS region where the deployment will be created. Defaults to gcp-us-west2"
   type        = string
 }
 
 variable "deployment_template" {
-  default     = "gcp-cpu-optimized"
+  default     = "gcp-compute-optimized-v2"
   description = "Optional deployment template. Defaults to the CPU optimized template for GCP"
   type        = string
 }
@@ -83,8 +83,8 @@ variable "apm_shards" {
 ## Worker configuraiton
 
 variable "worker_region" {
-  default     = "eu-west-3"
-  description = "Optional ESS region where the deployment will be created. Defaults to eu-west-3 (AWS)"
+  default     = "us-west-2"
+  description = "Optional ESS region where the deployment will be created. Defaults to us-west-2 (AWS)"
   type        = string
 }
 
