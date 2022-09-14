@@ -48,6 +48,7 @@ services:
       interval: 20s
       retries: 10
       test: curl -s http://localhost:9200/_cluster/health | grep -vq '"status":"red"'
+      # Need to be ported to SSL (not jsut the health check but also Kibana and APM)
 
   kibana:
     image: docker.elastic.co/kibana/kibana:{VERSION}
