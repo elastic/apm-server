@@ -540,29 +540,26 @@ func (e *ElasticCollector) AddFallbackSymbols(ctx context.Context,
 	in *AddFallbackSymbolsRequest) (*empty.Empty, error) {
 	hiFileIDs := in.GetHiFileIDs()
 	loFileIDs := in.GetLoFileIDs()
-	numHiFileIDs := len(hiFileIDs)
-	numLoFileIDs := len(loFileIDs)
-
-	// Sanity check. Should never happen unless the HA is broken.
-	if numHiFileIDs != numLoFileIDs {
-		e.logger.Errorf(
-			"mismatch in number of hiFileIDs (%d) loFileIDs (%d)",
-			numHiFileIDs, numLoFileIDs,
-		)
-		counterFatalErr.Inc()
-		return nil, errCustomer
-	}
-
-	if numHiFileIDs == 0 {
-		e.logger.Debug("AddFallbackSymbols request with no entries")
-		return &empty.Empty{}, nil
-	}
-	counterStackframesTotal.Add(int64(numHiFileIDs))
-
 	symbols := in.GetSymbols()
 	addressOrLines := in.GetAddressOrLines()
 
-	for i := 0; i < numHiFileIDs; i++ {
+	arraySize := len(hiFileIDs)
+	if arraySize == 0 {
+		e.logger.Debug("AddFallbackSymbols request with no entries")
+		return &empty.Empty{}, nil
+	}
+
+	// Sanity check. Should never happen unless the HA is broken or client is malicious.
+	if arraySize != len(loFileIDs) ||
+		arraySize != len(addressOrLines) ||
+		arraySize != len(symbols) {
+		e.logger.Errorf("mismatch in array sizes (%d)", arraySize)
+		counterFatalErr.Inc()
+		return nil, errCustomer
+	}
+	counterStackframesTotal.Add(int64(arraySize))
+
+	for i := 0; i < arraySize; i++ {
 		fileID := NewFileID(hiFileIDs[i], loFileIDs[i])
 
 		if fileID.IsZero() {
