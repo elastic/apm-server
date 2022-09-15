@@ -42,7 +42,7 @@ func (e *ElasticCollector) AuthenticateUnaryCall(
 
 	if _, err := strconv.Atoi(projectID); err != nil {
 		e.logger.Errorf("possible malicious client request, "+
-			"converting project ID from string to uint failed %v", err)
+			"converting project ID from string (%s) to uint failed: %v", projectID, err)
 		return auth.AuthenticationDetails{}, nil, auth.ErrAuthFailed
 	}
 
