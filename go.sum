@@ -328,8 +328,8 @@ github.com/eapache/go-xerial-snappy v0.0.0-20180814174437-776d5712da21/go.mod h1
 github.com/eapache/queue v1.1.0 h1:YOEu7KNc61ntiQlcEeUIoDTJ2o8mQznoNvUhiigpIqc=
 github.com/eapache/queue v1.1.0/go.mod h1:6eCeP0CKFpHLu8blIFXhExK/dRa7WDZfr6jVFPTqq+I=
 github.com/eclipse/paho.mqtt.golang v1.2.1-0.20200121105743-0d940dd29fd2 h1:DW6WrARxK5J+o8uAKCiACi5wy9EK1UzrsCpGBPsKHAA=
-github.com/elastic/beats/v7 v7.17.7-0.20220913234106-e4c3db295268 h1:PEkbI/uP9qKoeYLZGKLPWsjQLcZ+mgIkWTzxMOuTiz8=
-github.com/elastic/beats/v7 v7.17.7-0.20220913234106-e4c3db295268/go.mod h1:l/glaQFDETnocUEQVlKmODhzNXSYYxzeraO4BTXGkms=
+github.com/elastic/beats/v7 v7.17.7-0.20220914194131-5385fd2387f0 h1:amQ/FJsZro7z5rhHyYmWsnBcc2Ed4sehGnpoAqA1ngI=
+github.com/elastic/beats/v7 v7.17.7-0.20220914194131-5385fd2387f0/go.mod h1:l/glaQFDETnocUEQVlKmODhzNXSYYxzeraO4BTXGkms=
 github.com/elastic/ecs v1.12.0 h1:u6WZ2AWtxv5vHvTQ4EuVZdWZ51mKHQ2UIltRePcta5U=
 github.com/elastic/ecs v1.12.0/go.mod h1:pgiLbQsijLOJvFR8OTILLu0Ni/R/foUNg0L+T6mU9b4=
 github.com/elastic/elastic-agent-client/v7 v7.0.0-20220909150647-c29f5dc424c2 h1:qTOhzbQaoDd6/VoFNcWUy5G9MU9pR62lNve0E/1FAt8=
@@ -1852,8 +1852,8 @@ google.golang.org/genproto v0.0.0-20211129164237-f09f9a12af12/go.mod h1:5CzLGKJ6
 google.golang.org/genproto v0.0.0-20211203200212-54befc351ae9/go.mod h1:5CzLGKJ67TSI2B9POpiiyGha0AjJvZIUgRMt1dSmuhc=
 google.golang.org/genproto v0.0.0-20211206160659-862468c7d6e0/go.mod h1:5CzLGKJ67TSI2B9POpiiyGha0AjJvZIUgRMt1dSmuhc=
 google.golang.org/genproto v0.0.0-20211208223120-3a66f561d7aa/go.mod h1:5CzLGKJ67TSI2B9POpiiyGha0AjJvZIUgRMt1dSmuhc=
-google.golang.org/genproto v0.0.0-20220913154956-18f8339a66a5 h1:ou3VRVAif8UJqz3l1r4Isoz7rrUWHWDHBonShMNYoQs=
-google.golang.org/genproto v0.0.0-20220913154956-18f8339a66a5/go.mod h1:0Nb8Qy+Sk5eDzHnzlStwW3itdNaWoZA5XeSG+R3JHSo=
+google.golang.org/genproto v0.0.0-20220914210030-581e60b4ef85 h1:lkYqfLZL9+9C+SltHOTeOHL6uueWYYkGp5NoeOZQsis=
+google.golang.org/genproto v0.0.0-20220914210030-581e60b4ef85/go.mod h1:0Nb8Qy+Sk5eDzHnzlStwW3itdNaWoZA5XeSG+R3JHSo=
 google.golang.org/grpc v1.8.0/go.mod h1:yo6s7OP7yaDglbqo1J04qKzAhqBH6lvTonzMVmEdcZw=
 google.golang.org/grpc v1.14.0/go.mod h1:yo6s7OP7yaDglbqo1J04qKzAhqBH6lvTonzMVmEdcZw=
 google.golang.org/grpc v1.17.0/go.mod h1:6QZJwpn2B+Zp71q/5VxRsJ6NXXVCE5NRUHRo+f3cWCs=
