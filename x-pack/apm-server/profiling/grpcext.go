@@ -12,9 +12,16 @@ import (
 )
 
 const (
-	MetadataKeyProjectID   = "projectID"
-	MetadataKeySecretToken = "secretToken"
-	MetadataKeyHostID      = "hostID"
+	MetadataKeyProjectID     = "projectID"
+	MetadataKeySecretToken   = "secretToken"
+	MetadataKeyVersion       = "version"
+	MetadataKeyRevision      = "revision"
+	MetadataKeyIPAddress     = "ipAddress"
+	MetadataKeyHostname      = "hostname"
+	MetadataKeyKernelVersion = "kernelVersion"
+	MetadataKeyHostID        = "hostID"
+	// Tags will be auto base64 encoded/decoded
+	MetadataKeyTags = "tags-bin"
 )
 
 func GetFirstOrEmpty(md metadata.MD, key string) string {
@@ -41,4 +48,39 @@ func GetHostID(ctx context.Context) uint64 {
 	hostIDs := GetFirstOrEmpty(md, MetadataKeyHostID)
 	hostID, _ := strconv.ParseUint(hostIDs, 16, 64)
 	return hostID
+}
+
+func GetSecretToken(ctx context.Context) string {
+	md, _ := metadata.FromIncomingContext(ctx)
+	return GetFirstOrEmpty(md, MetadataKeySecretToken)
+}
+
+func GetVersion(ctx context.Context) string {
+	md, _ := metadata.FromIncomingContext(ctx)
+	return GetFirstOrEmpty(md, MetadataKeyVersion)
+}
+
+func GetRevision(ctx context.Context) string {
+	md, _ := metadata.FromIncomingContext(ctx)
+	return GetFirstOrEmpty(md, MetadataKeyRevision)
+}
+
+func GetIPAddress(ctx context.Context) string {
+	md, _ := metadata.FromIncomingContext(ctx)
+	return GetFirstOrEmpty(md, MetadataKeyIPAddress)
+}
+
+func GetHostname(ctx context.Context) string {
+	md, _ := metadata.FromIncomingContext(ctx)
+	return GetFirstOrEmpty(md, MetadataKeyHostname)
+}
+
+func GetKernelVersion(ctx context.Context) string {
+	md, _ := metadata.FromIncomingContext(ctx)
+	return GetFirstOrEmpty(md, MetadataKeyKernelVersion)
+}
+
+func GetTags(ctx context.Context) string {
+	md, _ := metadata.FromIncomingContext(ctx)
+	return GetFirstOrEmpty(md, MetadataKeyTags)
 }

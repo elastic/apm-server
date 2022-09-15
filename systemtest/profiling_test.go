@@ -27,9 +27,10 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 
+	"github.com/elastic/go-elasticsearch/v8/esapi"
+
 	"github.com/elastic/apm-server/systemtest"
 	"github.com/elastic/apm-server/systemtest/internal/profiling"
-	"github.com/elastic/go-elasticsearch/v8/esapi"
 )
 
 func TestProfiling(t *testing.T) {
@@ -71,26 +72,31 @@ func TestProfiling(t *testing.T) {
 }`)}, &apiKey)
 	require.NoError(t, err)
 
-	apmIntegration := newAPMIntegrationConfig(t, nil, map[string]interface{}{
-		"apm-server": map[string]interface{}{
-			"value": map[string]interface{}{
-				"profiling": map[string]interface{}{
-					"enabled": true,
-					"elasticsearch": map[string]interface{}{
-						"api_key": apiKey.ID + ":" + apiKey.APIKey,
-					},
-					// A separate elasticsearch configuration is required
-					// for host agent metrics. In practice this would likely
-					// be a different cluster, with a different API Key,
-					// but we're not going to those lengths for a system test.
-					"metrics.elasticsearch": map[string]interface{}{
-						"hosts":   []string{"elasticsearch:9200"},
-						"api_key": apiKey.ID + ":" + apiKey.APIKey,
+	const secretToken = "test_token"
+
+	apmIntegration := newAPMIntegrationConfig(t,
+		map[string]interface{}{
+			"secret_token": secretToken,
+		}, map[string]interface{}{
+			"apm-server": map[string]interface{}{
+				"value": map[string]interface{}{
+					"profiling": map[string]interface{}{
+						"enabled": true,
+						"elasticsearch": map[string]interface{}{
+							"api_key": apiKey.ID + ":" + apiKey.APIKey,
+						},
+						// A separate elasticsearch configuration is required
+						// for host agent metrics. In practice this would likely
+						// be a different cluster, with a different API Key,
+						// but we're not going to those lengths for a system test.
+						"metrics.elasticsearch": map[string]interface{}{
+							"hosts":   []string{"elasticsearch:9200"},
+							"api_key": apiKey.ID + ":" + apiKey.APIKey,
+						},
 					},
 				},
 			},
-		},
-	})
+		})
 
 	apmServerURL, _ := url.Parse(apmIntegration.URL)
 	conn, err := grpc.Dial(apmServerURL.Host, grpc.WithInsecure())
@@ -99,8 +105,13 @@ func TestProfiling(t *testing.T) {
 	client := profiling.NewCollectionAgentClient(conn)
 
 	var expectedMetadataDocs int
+	// proper authenticated context
+	ctx := metadata.AppendToOutgoingContext(context.Background(),
+		"secretToken", secretToken,
+		"projectID", "123",
+		"hostID", "abc123")
 
-	_, err = client.AddExecutableMetadata(context.Background(), &profiling.AddExecutableMetadataRequest{
+	_, err = client.AddExecutableMetadata(ctx, &profiling.AddExecutableMetadataRequest{
 		HiFileIDs: []uint64{1, 2},
 		LoFileIDs: []uint64{2, 1},
 		Filenames: []string{"a.apl", "b.bas"},
@@ -109,7 +120,7 @@ func TestProfiling(t *testing.T) {
 	require.NoError(t, err)
 	expectedMetadataDocs += 2
 
-	_, err = client.SetFramesForTraces(context.Background(), &profiling.SetFramesForTracesRequest{
+	_, err = client.SetFramesForTraces(ctx, &profiling.SetFramesForTracesRequest{
 		HiTraceHashes:     []uint64{1, 2},
 		LoTraceHashes:     []uint64{3, 4},
 		FrameCounts:       []uint32{1, 2},
@@ -125,7 +136,7 @@ func TestProfiling(t *testing.T) {
 	require.NoError(t, err)
 	expectedMetadataDocs += 2
 
-	_, err = client.AddFrameMetadata(context.Background(), &profiling.AddFrameMetadataRequest{
+	_, err = client.AddFrameMetadata(ctx, &profiling.AddFrameMetadataRequest{
 		HiFileIDs:       []uint64{1, 2},
 		LoFileIDs:       []uint64{3, 4},
 		AddressOrLines:  []uint64{5, 6},
@@ -143,7 +154,6 @@ func TestProfiling(t *testing.T) {
 	result := systemtest.Elasticsearch.ExpectMinDocs(t, expectedMetadataDocs, "profiling-*", nil)
 	systemtest.ApproveEvents(t, t.Name()+"/metadata", result.Hits.Hits, "@timestamp")
 
-	ctx := metadata.AppendToOutgoingContext(context.Background(), "projectID", "123", "hostID", "abc123")
 	_, err = client.AddCountsForTraces(ctx, &profiling.AddCountsForTracesRequest{
 		Timestamp:         123,
 		HiTraceHashes:     []uint64{1},

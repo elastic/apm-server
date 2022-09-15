@@ -13,6 +13,7 @@ import (
 	"log"
 	"math/rand"
 	"strconv"
+	"strings"
 
 	"github.com/golang/protobuf/ptypes/empty"
 	"google.golang.org/grpc/codes"
@@ -169,6 +170,16 @@ type StackTraceEvent struct {
 	ContainerName string `json:"container.name,omitempty"`
 	ThreadName    string `json:"process.thread.name"`
 	Count         uint16 `json:"Stacktrace.count"`
+
+	// Host metadata
+	Tags []string `json:"tags,omitempty"`
+	// HostIP is the list of network cards IPs, mapped to an Elasticsearch "ip" data type field
+	HostIP []string `json:"host.ip,omitempty"`
+	// HostIPString is the list of network cards IPs, mapped to an Elasticsearch "keyword" data type
+	HostIPString string `json:"host.ipstring,omitempty"`
+	HostName     string `json:"host.name,omitempty"`
+	OSKernel     string `json:"os.kernel,omitempty"`
+	AgentVersion string `json:"agent.version,omitempty"`
 }
 
 // StackTrace represents a stacktrace serializable into the stacktraces index.
@@ -211,11 +222,31 @@ func (e ecsVersion) MarshalJSON() ([]byte, error) {
 // mapToStackTraceEvents maps Prodfiler stacktraces to Elastic documents.
 func mapToStackTraceEvents(ctx context.Context,
 	req *AddCountsForTracesRequest) ([]StackTraceEvent, error) {
-	ts, projectID, hostID := req.GetTimestamp(), GetProjectID(ctx), GetHostID(ctx)
 	traces, err := CollectTracesAndCounts(req)
 	if err != nil {
 		return nil, err
 	}
+
+	ts := req.GetTimestamp()
+	projectID := GetProjectID(ctx)
+	hostID := GetHostID(ctx)
+	kernelVersion := GetKernelVersion(ctx)
+	hostName := GetHostname(ctx)
+	agentVersion := GetRevision(ctx)
+
+	tags := strings.Split(GetTags(ctx), ";")
+	if len(tags) == 1 && tags[0] == "" {
+		// prevent storing 'tags'
+		tags = nil
+	}
+
+	ipAddress := GetIPAddress(ctx)
+	ipAddresses := []string{ipAddress}
+	if ipAddress == "" {
+		// prevent storing 'host.ip'
+		ipAddresses = nil
+	}
+
 	traceEvents := make([]StackTraceEvent, 0, len(traces))
 	for i := range traces {
 		traceEvents = append(traceEvents,
@@ -228,6 +259,12 @@ func mapToStackTraceEvents(ctx context.Context,
 				ContainerName: traces[i].ContainerName,
 				ThreadName:    traces[i].Comm,
 				Count:         traces[i].Count,
+				Tags:          tags,
+				HostIP:        ipAddresses,
+				HostIPString:  ipAddress,
+				HostName:      hostName,
+				OSKernel:      kernelVersion,
+				AgentVersion:  agentVersion,
 			})
 	}
 
