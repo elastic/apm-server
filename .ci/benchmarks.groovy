@@ -45,6 +45,7 @@ pipeline {
         TF_VAR_private_key = "./id_rsa_terraform"
         TF_VAR_public_key = "./id_rsa_terraform.pub"
         BENCHMARK_RESULT = "benchmark-result.txt"
+        TFVARS_SOURCE = "system-profiles/8GBx1zone.tfvars" // Default to use an 8gb profile
         // cloud tags
         TF_VAR_BUILD_ID = "${env.BUILD_ID}"
         TF_VAR_ENVIRONMENT= 'ci'
@@ -61,7 +62,7 @@ pipeline {
                 sh(label: 'Build apmbench', script: 'make apmbench $SSH_KEY terraform.tfvars')
                 sh(label: 'Spin up benchmark environment', script: '$(make docker-override-committed-version) && make init apply')
                 withESBenchmarkEnv {
-                  sh(label: 'Run benchmarks', script: 'make run-benchmark index-benchmark-results')
+                  sh(label: 'Run benchmarks', script: 'make run-benchmark-autotuned index-benchmark-results')
                 }
               }
             }
