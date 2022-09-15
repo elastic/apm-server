@@ -3,8 +3,19 @@
 
 https://github.com/elastic/apm-server/compare/8.3\...8.4[View commits]
 
+* <<release-notes-8.4.2>>
 * <<release-notes-8.4.1>>
 * <<release-notes-8.4.0>>
+
+[float]
+[[release-notes-8.4.2]]
+=== APM version 8.4.2
+
+https://github.com/elastic/apm-server/compare/v8.4.1\...v8.4.2[View commits]
+
+[float]
+==== Bug fixes
+- The data stream migration ingest pipeline now handles `observer.version_major` and `process.ppid` translation {pull}9095[9095]
 
 [float]
 [[release-notes-8.4.1]]
