@@ -9,6 +9,9 @@ include packaging.mk
 # scripts may set GOTESTFLAGS=-json to format test output for processing.
 GOTESTFLAGS?=-v
 
+# Prevent unintended modifications of go.[mod|sum]
+GOMODFLAG?=-mod=readonly
+
 PYTHON_ENV?=.
 PYTHON_VENV_DIR:=$(PYTHON_ENV)/build/ve/$(shell $(GO) env GOOS)
 PYTHON_BIN:=$(PYTHON_VENV_DIR)/bin
@@ -48,7 +51,7 @@ LDFLAGS := \
 .PHONY: $(APM_SERVER_BINARIES)
 $(APM_SERVER_BINARIES):
 	env CGO_ENABLED=0 GOOS=$(GOOS) GOARCH=$(GOARCH) \
-	$(GO) build -o $@ -trimpath $(GOFLAGS) -ldflags "$(LDFLAGS)" ./x-pack/apm-server
+	$(GO) build -o $@ -trimpath $(GOFLAGS) $(GOMODFLAG) -ldflags "$(LDFLAGS)" ./x-pack/apm-server
 
 build/apm-server-linux-%: GOOS=linux
 build/apm-server-darwin-%: GOOS=darwin
@@ -76,15 +79,15 @@ apm-server: build/apm-server-$(shell $(GO) env GOOS)-$(shell $(GO) env GOARCH)
 
 .PHONY: apm-server-oss
 apm-server-oss:
-	@$(GO) build -o $@ ./cmd/apm-server
+	@$(GO) build $(GOMODFLAG) -o $@ ./cmd/apm-server
 
 .PHONY: test
 test:
-	@$(GO) test $(GOTESTFLAGS) ./...
+	@$(GO) test $(GOMODFLAG) $(GOTESTFLAGS) ./...
 
 .PHONY: system-test
 system-test:
-	@(cd systemtest; $(GO) test $(GOTESTFLAGS) -timeout=20m ./...)
+	@(cd systemtest; $(GO) test $(GOMODFLAG) $(GOTESTFLAGS) -timeout=20m ./...)
 
 .PHONY:
 clean:
