@@ -6,6 +6,16 @@ source /usr/local/bin/bash_standard_lib.sh
 # shellcheck disable=SC1091
 source ./script/common.bash
 
+# This script runs within the Jenkins context, but for some reason
+# WORKSPACE is not available, this should bypass the requirement set
+# when in ./script/common.bash
+if [ -z "${WORKSPACE}" ] ; then
+	echo "WARN: WORKSPACE env variable is empty, hence creating a temporary dir"
+	WORKSPACE=$(mktemp -d)
+	export WORKSPACE
+	echo "INFO: WORKSPACE=${WORKSPACE}"
+fi
+
 jenkins_setup
 
 # Fetch Docker images used for packaging.
