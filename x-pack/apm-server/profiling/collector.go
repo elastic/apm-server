@@ -14,8 +14,10 @@ import (
 	"math/rand"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/golang/protobuf/ptypes/empty"
+	"github.com/hashicorp/golang-lru/simplelru"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -44,6 +46,13 @@ var (
 	errCustomer = status.Error(codes.Internal, "failed to process request")
 )
 
+const (
+	actionIndex  = "index"
+	actionCreate = "create"
+
+	sourceFileCacheSize = 128 * 1024
+)
+
 // ElasticCollector is an implementation of the gRPC server handling the data
 // sent by Host-Agent.
 type ElasticCollector struct {
@@ -54,6 +63,9 @@ type ElasticCollector struct {
 	indexer        elasticsearch.BulkIndexer
 	metricsIndexer elasticsearch.BulkIndexer
 	indexes        [MaxEventsIndexes]string
+
+	sourceFilesLock sync.Mutex
+	sourceFiles     *simplelru.LRU
 }
 
 // NewCollector returns a new ElasticCollector uses indexer for storing stack trace data in
@@ -64,10 +76,16 @@ func NewCollector(
 	metricsIndexer elasticsearch.BulkIndexer,
 	logger *logp.Logger,
 ) *ElasticCollector {
+	sourceFiles, err := simplelru.NewLRU(sourceFileCacheSize, nil)
+	if err != nil {
+		log.Fatalf("Failed to create source file LRU: %v", err)
+	}
+
 	c := &ElasticCollector{
 		logger:         logger,
 		indexer:        indexer,
 		metricsIndexer: metricsIndexer,
+		sourceFiles:    sourceFiles,
 	}
 
 	// Precalculate index names to minimise per-TraceEvent overhead.
@@ -138,7 +156,7 @@ func (e *ElasticCollector) indexStacktrace(ctx context.Context, traceEvent *Stac
 
 	return e.indexer.Add(ctx, elasticsearch.BulkIndexerItem{
 		Index:  indexName,
-		Action: "create",
+		Action: actionCreate,
 		Body:   bytes.NewReader(encodedTraceEvent.Bytes()),
 		OnFailure: func(
 			_ context.Context,
@@ -321,7 +339,7 @@ func (e *ElasticCollector) AddExecutableMetadata(ctx context.Context,
 
 		err := e.indexer.Add(ctx, elasticsearch.BulkIndexerItem{
 			Index:      ExecutablesIndex,
-			Action:     "index",
+			Action:     actionIndex,
 			DocumentID: docID,
 			Body:       bytes.NewReader(buf.Bytes()),
 			OnFailure: func(
@@ -384,7 +402,7 @@ func (e *ElasticCollector) SetFramesForTraces(ctx context.Context,
 
 		err = e.indexer.Add(ctx, elasticsearch.BulkIndexerItem{
 			Index:      StackTraceIndex,
-			Action:     "index",
+			Action:     actionIndex,
 			DocumentID: docID,
 			Body:       bytes.NewReader(body.Bytes()),
 			OnFailure: func(
@@ -455,11 +473,23 @@ func (e *ElasticCollector) AddFrameMetadata(ctx context.Context, in *AddFrameMet
 			continue
 		}
 
+		sourceFileID := NewFileID(hiSourceIDs[i], loSourceIDs[i])
+		filename := filenames[i]
+		e.sourceFilesLock.Lock()
+		if filename == "" {
+			if v, ok := e.sourceFiles.Get(sourceFileID); ok {
+				filename = v.(string)
+			}
+		} else {
+			e.sourceFiles.Add(sourceFileID, filename)
+		}
+		e.sourceFilesLock.Unlock()
+
 		frameMetadata := StackFrame{
 			LineNumber:     int32(lineNumbers[i]),
 			FunctionName:   functionNames[i],
 			FunctionOffset: int32(functionOffsets[i]),
-			FileName:       filenames[i],
+			FileName:       filename,
 			SourceType:     int16(types[i]),
 		}
 
@@ -468,17 +498,28 @@ func (e *ElasticCollector) AddFrameMetadata(ctx context.Context, in *AddFrameMet
 		var buf bytes.Buffer
 		_ = json.NewEncoder(&buf).Encode(frameMetadata)
 
+		// If the filename is empty, we don't want to replace an existing record, because
+		// it may contain a filename already. That's why we use "create" in this case.
+		action := actionIndex
+		if frameMetadata.FileName == "" {
+			action = actionCreate
+		}
+
 		err := e.indexer.Add(ctx, elasticsearch.BulkIndexerItem{
 			Index:      StackFrameIndex,
-			Action:     "index",
+			Action:     action,
 			DocumentID: docID,
 			Body:       bytes.NewReader(buf.Bytes()),
 			OnFailure: func(
 				_ context.Context,
-				_ elasticsearch.BulkIndexerItem,
+				item elasticsearch.BulkIndexerItem,
 				resp elasticsearch.BulkIndexerResponseItem,
 				err error,
 			) {
+				if item.Action == actionCreate {
+					// Error is expected here, as we tried to "create" an existing document
+					return
+				}
 				counterStackframesFailure.Inc()
 				e.logger.With(
 					logp.Error(err),
@@ -499,29 +540,26 @@ func (e *ElasticCollector) AddFallbackSymbols(ctx context.Context,
 	in *AddFallbackSymbolsRequest) (*empty.Empty, error) {
 	hiFileIDs := in.GetHiFileIDs()
 	loFileIDs := in.GetLoFileIDs()
-	numHiFileIDs := len(hiFileIDs)
-	numLoFileIDs := len(loFileIDs)
-
-	// Sanity check. Should never happen unless the HA is broken.
-	if numHiFileIDs != numLoFileIDs {
-		e.logger.Errorf(
-			"mismatch in number of hiFileIDs (%d) loFileIDs (%d)",
-			numHiFileIDs, numLoFileIDs,
-		)
-		counterFatalErr.Inc()
-		return nil, errCustomer
-	}
-
-	if numHiFileIDs == 0 {
-		e.logger.Debug("AddFallbackSymbols request with no entries")
-		return &empty.Empty{}, nil
-	}
-	counterStackframesTotal.Add(int64(numHiFileIDs))
-
 	symbols := in.GetSymbols()
 	addressOrLines := in.GetAddressOrLines()
 
-	for i := 0; i < numHiFileIDs; i++ {
+	arraySize := len(hiFileIDs)
+	if arraySize == 0 {
+		e.logger.Debug("AddFallbackSymbols request with no entries")
+		return &empty.Empty{}, nil
+	}
+
+	// Sanity check. Should never happen unless the HA is broken or client is malicious.
+	if arraySize != len(loFileIDs) ||
+		arraySize != len(addressOrLines) ||
+		arraySize != len(symbols) {
+		e.logger.Errorf("mismatch in array sizes (%d)", arraySize)
+		counterFatalErr.Inc()
+		return nil, errCustomer
+	}
+	counterStackframesTotal.Add(int64(arraySize))
+
+	for i := 0; i < arraySize; i++ {
 		fileID := NewFileID(hiFileIDs[i], loFileIDs[i])
 
 		if fileID.IsZero() {
@@ -546,7 +584,7 @@ func (e *ElasticCollector) AddFallbackSymbols(ctx context.Context,
 			Index: StackFrameIndex,
 			// Use 'create' instead of 'index' to not overwrite an existing document,
 			// possibly containing a fully symbolized frame.
-			Action:     "create",
+			Action:     actionCreate,
 			DocumentID: docID,
 			Body:       bytes.NewReader(buf.Bytes()),
 			OnFailure: func(
@@ -671,7 +709,7 @@ func (e *ElasticCollector) AddMetrics(ctx context.Context, in *Metrics) (*empty.
 		}
 		err := e.metricsIndexer.Add(ctx, elasticsearch.BulkIndexerItem{
 			Index:  MetricsIndex,
-			Action: "create",
+			Action: actionCreate,
 			Body:   makeBody(metric),
 			OnFailure: func(
 				_ context.Context,
