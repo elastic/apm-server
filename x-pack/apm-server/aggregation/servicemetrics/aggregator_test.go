@@ -111,7 +111,7 @@ func TestAggregatorRun(t *testing.T) {
 	metricsets := batchMetricsets(t, batch)
 	expected := []model.APMEvent{{
 		Processor: model.MetricsetProcessor,
-		Metricset: &model.Metricset{Name: "service"},
+		Metricset: &model.Metricset{Name: "service", DocCount: 6},
 		Service:   model.Service{Name: "backend"},
 		Agent:     model.Agent{Name: "java"},
 		Transaction: &model.Transaction{
@@ -125,7 +125,7 @@ func TestAggregatorRun(t *testing.T) {
 		},
 	}, {
 		Processor: model.MetricsetProcessor,
-		Metricset: &model.Metricset{Name: "service"},
+		Metricset: &model.Metricset{Name: "service", DocCount: 1},
 		Service:   model.Service{Name: "backend"},
 		Agent:     model.Agent{Name: "go"},
 		Transaction: &model.Transaction{
@@ -137,7 +137,7 @@ func TestAggregatorRun(t *testing.T) {
 		},
 	}, {
 		Processor: model.MetricsetProcessor,
-		Metricset: &model.Metricset{Name: "service"},
+		Metricset: &model.Metricset{Name: "service", DocCount: 1},
 		Service:   model.Service{Name: "backend"},
 		Agent:     model.Agent{Name: "go"},
 		Transaction: &model.Transaction{
@@ -149,7 +149,7 @@ func TestAggregatorRun(t *testing.T) {
 		},
 	}, {
 		Processor: model.MetricsetProcessor,
-		Metricset: &model.Metricset{Name: "service"},
+		Metricset: &model.Metricset{Name: "service", DocCount: 1},
 		Service:   model.Service{Name: "frontend"},
 		Agent:     model.Agent{Name: "rum-js"},
 		Transaction: &model.Transaction{
@@ -161,7 +161,7 @@ func TestAggregatorRun(t *testing.T) {
 		},
 	}, {
 		Processor: model.MetricsetProcessor,
-		Metricset: &model.Metricset{Name: "service"},
+		Metricset: &model.Metricset{Name: "service", DocCount: 1},
 		Service:   model.Service{Name: "frontend", Environment: "staging"},
 		Agent:     model.Agent{Name: "rum-js"},
 		Transaction: &model.Transaction{
@@ -281,7 +281,7 @@ func TestAggregatorMaxGroups(t *testing.T) {
 				},
 				SuccessCount: 1,
 			},
-			Metricset: &model.Metricset{Name: "service"},
+			Metricset: &model.Metricset{Name: "service", DocCount: 1},
 		}, m)
 	}
 }

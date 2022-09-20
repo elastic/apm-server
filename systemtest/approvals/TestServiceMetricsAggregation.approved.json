@@ -2,6 +2,7 @@
     "events": [
         {
             "@timestamp": "2006-01-02T15:04:05.000Z",
+            "_doc_count": 2,
             "agent": {
                 "name": "go"
             },
@@ -41,6 +42,7 @@
         },
         {
             "@timestamp": "2006-01-02T15:04:05.000Z",
+            "_doc_count": 2,
             "agent": {
                 "name": "go"
             },

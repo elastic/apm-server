@@ -286,6 +286,7 @@ func makeServiceMetrics(event *model.APMEvent) serviceMetrics {
 }
 
 func makeMetricset(key aggregationKey, metrics serviceMetrics) model.APMEvent {
+	metricCount := int64(math.Round(metrics.transactionCount))
 	return model.APMEvent{
 		Timestamp: key.timestamp,
 		Service: model.Service{
@@ -297,14 +298,15 @@ func makeMetricset(key aggregationKey, metrics serviceMetrics) model.APMEvent {
 		},
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
-			Name: metricsetName,
+			DocCount: metricCount,
+			Name:     metricsetName,
 		},
 		Transaction: &model.Transaction{
 			Type:         key.transactionType,
 			FailureCount: int(math.Round(metrics.failureCount)),
 			SuccessCount: int(math.Round(metrics.successCount)),
 			DurationSummary: model.SummaryMetric{
-				Count: int64(math.Round(metrics.transactionCount)),
+				Count: metricCount,
 				Sum:   float64(time.Duration(math.Round(metrics.transactionDuration)).Microseconds()),
 			},
 		},
