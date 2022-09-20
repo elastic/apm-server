@@ -3,6 +3,9 @@
 # change type can be one of: enhancement, bugfix, breaking-change
 - version: "generated"
   changes:
+    - description: Add package settings to enable the experimental collection of service metrics
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/9145
     - description: Added faas fields for app logs datastream
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/9068
