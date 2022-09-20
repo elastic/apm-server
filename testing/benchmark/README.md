@@ -101,3 +101,9 @@ do that in `terraform.tfvars.example`.
 
 `make cleanup-elasticsearch` will delete all the APM data streams. This may be useful in case you'd like to re-run
 the benchmarks without destroying the deployment.
+
+### Slack reporting
+Reporting data is taken from the [app_bench_diff_shifts_slack](/app/dashboards#/view/a5bc8390-2f8e-11ed-a369-052d8245fa04?_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:now-30d,to:now)))
+It's possible to add or modify any metric.
+
+Naming convention for mertics: `[metic_name]_(1w|2w|3w)`. The slack message contains an image and metric details (when CSV reporting is back in Kibana)
