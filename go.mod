@@ -38,11 +38,11 @@ require (
 	github.com/tidwall/gjson v1.9.3
 	github.com/tidwall/sjson v1.1.1
 	github.com/xeipuuv/gojsonschema v1.2.0
-	go.elastic.co/apm/module/apmelasticsearch/v2 v2.0.0
-	go.elastic.co/apm/module/apmgorilla/v2 v2.0.0
-	go.elastic.co/apm/module/apmgrpc/v2 v2.0.0
+	go.elastic.co/apm/module/apmelasticsearch/v2 v2.1.0
+	go.elastic.co/apm/module/apmgorilla/v2 v2.1.0
+	go.elastic.co/apm/module/apmgrpc/v2 v2.1.0
 	go.elastic.co/apm/module/apmhttp/v2 v2.1.0
-	go.elastic.co/apm/module/apmzap/v2 v2.0.0
+	go.elastic.co/apm/module/apmzap/v2 v2.1.0
 	go.elastic.co/apm/v2 v2.1.0
 	go.elastic.co/fastjson v1.1.0
 	go.opentelemetry.io/collector v0.56.0
