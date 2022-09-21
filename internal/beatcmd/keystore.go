@@ -27,7 +27,7 @@ import (
 	"syscall"
 
 	"github.com/spf13/cobra"
-	tml "golang.org/x/crypto/ssh/terminal"
+	"golang.org/x/term"
 
 	"github.com/elastic/beats/v7/libbeat/common/cli"
 	"github.com/elastic/beats/v7/libbeat/common/terminal"
@@ -114,15 +114,15 @@ func createKeystore(force bool) error {
 
 	writableKeystore, err := keystore.AsWritableKeystore(store)
 	if err != nil {
-		return fmt.Errorf("error creating the keystore: %s", err)
+		return fmt.Errorf("error creating the keystore: %w", err)
 	}
 
-	if store.IsPersisted() == true && force == false {
-		response := terminal.PromptYesNo("A keystore already exists, Overwrite?", false)
-		if response == true {
+	if store.IsPersisted() && !force {
+		overwrite := terminal.PromptYesNo("A keystore already exists, Overwrite?", false)
+		if overwrite {
 			err := writableKeystore.Create(true)
 			if err != nil {
-				return fmt.Errorf("error creating the keystore: %s", err)
+				return fmt.Errorf("error creating the keystore: %w", err)
 			}
 		} else {
 			fmt.Println("Exiting without creating keystore.")
@@ -131,7 +131,7 @@ func createKeystore(force bool) error {
 	} else {
 		err := writableKeystore.Create(true)
 		if err != nil {
-			return fmt.Errorf("Error creating the keystore: %s", err)
+			return fmt.Errorf("error creating the keystore: %w", err)
 		}
 	}
 	fmt.Printf("Created apm-server keystore\n")
@@ -154,34 +154,37 @@ func addKey(store keystore.Keystore, keys []string, force, stdin bool) error {
 
 	writableKeystore, err := keystore.AsWritableKeystore(store)
 	if err != nil {
-		return fmt.Errorf("error creating the keystore: %s", err)
+		return fmt.Errorf("error creating the keystore: %w", err)
 	}
 
-	if store.IsPersisted() == false {
-		if force == false {
-			answer := terminal.PromptYesNo("The keystore does not exist. Do you want to create it?", false)
-			if answer == false {
+	if !store.IsPersisted() {
+		if !force {
+			create := terminal.PromptYesNo("The keystore does not exist. Do you want to create it?", false)
+			if !create {
 				return errors.New("exiting without creating keystore")
 			}
 		}
 		err := writableKeystore.Create(true)
 		if err != nil {
-			return fmt.Errorf("could not create keystore, error: %s", err)
+			return fmt.Errorf("could not create keystore, error: %w", err)
 		}
 		fmt.Println("Created keystore")
 	}
 
 	key := strings.TrimSpace(keys[0])
-	value, err := store.Retrieve(key)
-	if value != nil && force == false {
-		if stdin == true {
-			return fmt.Errorf("the settings %s already exist in the keystore use `--force` to replace it", key)
+	if _, err := store.Retrieve(key); err == nil {
+		if !force {
+			if stdin {
+				return fmt.Errorf("the settings %s already exist in the keystore use `--force` to replace it", key)
+			}
+			overwrite := terminal.PromptYesNo(fmt.Sprintf("Setting %s already exists, Overwrite?", key), false)
+			if !overwrite {
+				fmt.Println("Exiting without modifying keystore.")
+				return nil
+			}
 		}
-		answer := terminal.PromptYesNo(fmt.Sprintf("Setting %s already exists, Overwrite?", key), false)
-		if answer == false {
-			fmt.Println("Exiting without modifying keystore.")
-			return nil
-		}
+	} else if !errors.Is(err, keystore.ErrKeyDoesntExists) {
+		return err
 	}
 
 	var keyValue []byte
@@ -193,17 +196,17 @@ func addKey(store keystore.Keystore, keys []string, force, stdin bool) error {
 		}
 	} else {
 		fmt.Printf("Enter value for %s: ", key)
-		keyValue, err = tml.ReadPassword(int(syscall.Stdin))
+		keyValue, err = term.ReadPassword(int(syscall.Stdin))
 		fmt.Println()
 		if err != nil {
-			return fmt.Errorf("could not read value from the input, error: %s", err)
+			return fmt.Errorf("could not read value from the input, error: %w", err)
 		}
 	}
 	if err = writableKeystore.Store(key, keyValue); err != nil {
-		return fmt.Errorf("could not add the key in the keystore, error: %s", err)
+		return fmt.Errorf("could not add the key in the keystore, error: %w", err)
 	}
 	if err = writableKeystore.Save(); err != nil {
-		return fmt.Errorf("fail to save the keystore: %s", err)
+		return fmt.Errorf("fail to save the keystore: %w", err)
 	} else {
 		fmt.Println("Successfully updated the keystore")
 	}
@@ -217,10 +220,10 @@ func removeKey(store keystore.Keystore, keys []string) error {
 
 	writableKeystore, err := keystore.AsWritableKeystore(store)
 	if err != nil {
-		return fmt.Errorf("error deleting the keystore: %s", err)
+		return fmt.Errorf("error deleting the keystore: %w", err)
 	}
 
-	if store.IsPersisted() == false {
+	if !store.IsPersisted() {
 		return errors.New("the keystore doesn't exist. Use the 'create' command to create one")
 	}
 
@@ -234,7 +237,7 @@ func removeKey(store keystore.Keystore, keys []string) error {
 		writableKeystore.Delete(key)
 		err = writableKeystore.Save()
 		if err != nil {
-			return fmt.Errorf("could not update the keystore with the changes, key: %s, error: %v", key, err)
+			return fmt.Errorf("could not update the keystore with the changes, key: %s, error: %w", key, err)
 		}
 		fmt.Printf("successfully removed key: %s\n", key)
 	}
@@ -244,11 +247,11 @@ func removeKey(store keystore.Keystore, keys []string) error {
 func list(store keystore.Keystore) error {
 	listingKeystore, err := keystore.AsListingKeystore(store)
 	if err != nil {
-		return fmt.Errorf("error listing the keystore: %s", err)
+		return fmt.Errorf("error listing the keystore: %w", err)
 	}
 	keys, err := listingKeystore.List()
 	if err != nil {
-		return fmt.Errorf("could not read values from the keystore, error: %s", err)
+		return fmt.Errorf("could not read values from the keystore, error: %w", err)
 	}
 	for _, key := range keys {
 		fmt.Println(key)
