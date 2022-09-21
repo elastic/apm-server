@@ -16,6 +16,7 @@ https://github.com/elastic/apm-server/compare/v8.4.1\...v8.4.2[View commits]
 [float]
 ==== Bug fixes
 - The data stream migration ingest pipeline now handles `observer.version_major` and `process.ppid` translation {pull}9095[9095]
+- Fix Logs in APM Traces {pull}139694[https://github.com/elastic/kibana/pull/139694]
 
 [float]
 [[release-notes-8.4.1]]
