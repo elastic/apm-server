@@ -1,9 +1,5 @@
-- version: 8.5.0
-  changes:
-    - description: Placeholder
-      type: enhancement
-      link: https://github.com/elastic/apm-server/pull/123
-- version: "generated"
+
+- version: "8.5.0"
   changes:
     - description: Add package settings to enable the experimental collection of service metrics
       type: enhancement
