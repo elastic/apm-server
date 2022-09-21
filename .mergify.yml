@@ -212,3 +212,17 @@ pull_request_rules:
       comment:
         message: |
           This pull request has not been merged yet. Could you please review and merge it @{{ assignee | join(', @') }}? 🙏
+  - name: backport patches to 8.5 branch
+    conditions:
+      - merged
+      - base=main
+      - label=backport-8.5
+    actions:
+      backport:
+        assignees:
+          - "{{ author }}"
+        branches:
+          - "8.5"
+        labels:
+          - "backport"
+        title: "[{{ destination_branch }}] {{ title }} (backport #{{ number }})"
