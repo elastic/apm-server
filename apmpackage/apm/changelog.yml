@@ -1,5 +1,4 @@
-
-- version: "8.5.0"
+- version: generated
   changes:
     - description: Add package settings to enable the experimental collection of service metrics
       type: enhancement
