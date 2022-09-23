@@ -1,3 +1,6 @@
+# newer versions go on top
+#
+# change type can be one of: enhancement, bugfix, breaking-change
 - version: "generated"
   changes:
     - description: Placeholder
