@@ -5,21 +5,17 @@
 package main
 
 import (
-	"github.com/elastic/beats/v7/libbeat/beat"
-	libbeatcmd "github.com/elastic/beats/v7/libbeat/cmd"
-	_ "github.com/elastic/beats/v7/x-pack/libbeat/management" // Fleet
+	"github.com/spf13/cobra"
 
 	"github.com/elastic/apm-server/internal/beatcmd"
+	"github.com/elastic/beats/v7/libbeat/beat"
+	_ "github.com/elastic/beats/v7/x-pack/libbeat/management" // Fleet
 )
 
 // newXPackRootCommand returns the Elastic licensed "apm-server" root command.
-func newXPackRootCommand(newBeat beat.Creator) *libbeatcmd.BeatsRootCmd {
-	settings := beatcmd.DefaultSettings()
-	settings.ElasticLicensed = true
-	rootCmd := beatcmd.NewRootCommand(newBeat, settings)
-	if enrollCmd, _, err := rootCmd.Find([]string{"enroll"}); err == nil {
-		// error is ok => enroll has already been removed
-		rootCmd.RemoveCommand(enrollCmd)
-	}
-	return rootCmd
+func newXPackRootCommand(newBeat beat.Creator) *cobra.Command {
+	return beatcmd.NewRootCommand(beatcmd.BeatParams{
+		Create:          newBeat,
+		ElasticLicensed: true,
+	})
 }

@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package idxmgmt
+package beatcmd
 
 import (
 	"github.com/pkg/errors"
@@ -32,10 +32,10 @@ import (
 	"github.com/elastic/apm-server/internal/logs"
 )
 
-// NewSupporter creates a new idxmgmt.Supporter which directs all events
+// newSupporter creates a new idxmgmt.Supporter which directs all events
 // to data streams. The given root config will be checked for deprecated/removed
 // configuration, and if any are present warnings will be logged.
-func NewSupporter(log *logp.Logger, info beat.Info, configRoot *config.C) (idxmgmt.Supporter, error) {
+func newSupporter(log *logp.Logger, info beat.Info, configRoot *config.C) idxmgmt.Supporter {
 	if log == nil {
 		log = logp.NewLogger(logs.IndexManagement)
 	} else {
@@ -44,7 +44,7 @@ func NewSupporter(log *logp.Logger, info beat.Info, configRoot *config.C) (idxmg
 	if configRoot != nil {
 		logWarnings(log, configRoot)
 	}
-	return dataStreamsSupporter{}, nil
+	return dataStreamsSupporter{}
 }
 
 func logWarnings(log *logp.Logger, cfg *config.C) {
