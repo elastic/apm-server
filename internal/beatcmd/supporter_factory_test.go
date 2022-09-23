@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package idxmgmt
+package beatcmd
 
 import (
 	"testing"
@@ -37,9 +37,7 @@ import (
 )
 
 func TestNewSupporter(t *testing.T) {
-	supporter, err := NewSupporter(nil, beat.Info{}, config.MustNewConfigFrom(map[string]interface{}{}))
-	require.NoError(t, err)
-	require.NotNil(t, supporter)
+	supporter := newSupporter(nil, beat.Info{}, config.MustNewConfigFrom(map[string]interface{}{}))
 
 	// The data streams supporter does not set up templates or ILM. These
 	// are expected to be set up externally, typically by Fleet.
@@ -53,7 +51,7 @@ func TestNewSupporter(t *testing.T) {
 	ok, warnings := manager.VerifySetup(idxmgmt.LoadModeEnabled, idxmgmt.LoadModeEnabled)
 	assert.True(t, ok)
 	assert.Zero(t, warnings)
-	err = manager.Setup(idxmgmt.LoadModeEnabled, idxmgmt.LoadModeEnabled)
+	err := manager.Setup(idxmgmt.LoadModeEnabled, idxmgmt.LoadModeEnabled)
 	assert.EqualError(t, err, "index setup must be performed externally when using data streams, by installing the 'apm' integration package")
 
 	selector, err := supporter.BuildSelector(nil)
@@ -84,7 +82,7 @@ func TestNewSupporterWarnings(t *testing.T) {
 		"setup.template.pattern":                      "custom",
 	}
 
-	NewSupporter(logger, beat.Info{}, config.MustNewConfigFrom(attrs))
+	newSupporter(logger, beat.Info{}, config.MustNewConfigFrom(attrs))
 
 	var warnings []string
 	for _, record := range observed.All() {

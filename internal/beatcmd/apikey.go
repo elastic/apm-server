@@ -31,8 +31,6 @@ import (
 	"github.com/dustin/go-humanize"
 	"github.com/spf13/cobra"
 
-	"github.com/elastic/beats/v7/libbeat/cfgfile"
-	"github.com/elastic/beats/v7/libbeat/cmd/instance"
 	agentconfig "github.com/elastic/elastic-agent-libs/config"
 
 	"github.com/elastic/apm-server/internal/beater/config"
@@ -42,7 +40,7 @@ import (
 	es "github.com/elastic/apm-server/internal/elasticsearch"
 )
 
-func genApikeyCmd(settings instance.Settings) *cobra.Command {
+func genApikeyCmd() *cobra.Command {
 
 	short := "Manage API Keys for communication between APM agents and server"
 	apikeyCmd := cobra.Command{
@@ -56,15 +54,15 @@ Check the Elastic Security API documentation for details.`,
 	}
 
 	apikeyCmd.AddCommand(
-		createApikeyCmd(settings),
-		invalidateApikeyCmd(settings),
-		getApikeysCmd(settings),
-		verifyApikeyCmd(settings),
+		createApikeyCmd(),
+		invalidateApikeyCmd(),
+		getApikeysCmd(),
+		verifyApikeyCmd(),
 	)
 	return &apikeyCmd
 }
 
-func createApikeyCmd(settings instance.Settings) *cobra.Command {
+func createApikeyCmd() *cobra.Command {
 	var keyName, expiration string
 	var ingest, sourcemap, agentConfig, json bool
 	short := "Create an API Key with the specified privilege(s)"
@@ -73,7 +71,7 @@ func createApikeyCmd(settings instance.Settings) *cobra.Command {
 		Short: short,
 		Long: short + `.
 If no privilege(s) are specified, the API Key will be valid for all.`,
-		Run: makeAPIKeyRun(settings, &json, func(client es.Client, config *config.Config, args []string) error {
+		Run: makeAPIKeyRun(&json, func(client es.Client, config *config.Config, args []string) error {
 			privileges := booleansToPrivileges(ingest, sourcemap, agentConfig)
 			if len(privileges) == 0 {
 				// No privileges specified, grant all.
@@ -100,7 +98,7 @@ If no privilege(s) are specified, the API Key will be valid for all.`,
 	return create
 }
 
-func invalidateApikeyCmd(settings instance.Settings) *cobra.Command {
+func invalidateApikeyCmd() *cobra.Command {
 	var id, name string
 	var json bool
 	short := "Invalidate API Key(s) by Id or Name"
@@ -110,7 +108,7 @@ func invalidateApikeyCmd(settings instance.Settings) *cobra.Command {
 		Long: short + `.
 If both "id" and "name" are supplied, only "id" will be used.
 If neither of them are, an error will be returned.`,
-		Run: makeAPIKeyRun(settings, &json, func(client es.Client, config *config.Config, args []string) error {
+		Run: makeAPIKeyRun(&json, func(client es.Client, config *config.Config, args []string) error {
 			if id == "" && name == "" {
 				// TODO(axw) this should trigger usage
 				return errors.New(`either "id" or "name" are required`)
@@ -127,7 +125,7 @@ If neither of them are, an error will be returned.`,
 	return invalidate
 }
 
-func getApikeysCmd(settings instance.Settings) *cobra.Command {
+func getApikeysCmd() *cobra.Command {
 	var id, name string
 	var validOnly, json bool
 	short := "Query API Key(s) by Id or Name"
@@ -137,7 +135,7 @@ func getApikeysCmd(settings instance.Settings) *cobra.Command {
 		Long: short + `.
 If both "id" and "name" are supplied, only "id" will be used.
 If neither of them are, an error will be returned.`,
-		Run: makeAPIKeyRun(settings, &json, func(client es.Client, config *config.Config, args []string) error {
+		Run: makeAPIKeyRun(&json, func(client es.Client, config *config.Config, args []string) error {
 			if id == "" && name == "" {
 				// TODO(axw) this should trigger usage
 				return errors.New(`either "id" or "name" are required`)
@@ -156,7 +154,7 @@ If neither of them are, an error will be returned.`,
 	return info
 }
 
-func verifyApikeyCmd(settings instance.Settings) *cobra.Command {
+func verifyApikeyCmd() *cobra.Command {
 	var credentials string
 	var ingest, sourcemap, agentConfig, json bool
 	short := `Check if a "credentials" string has the given privilege(s)`
@@ -166,7 +164,7 @@ If no privilege(s) are specified, the credentials will be queried for all.`
 		Use:   "verify",
 		Short: short,
 		Long:  long,
-		Run: makeAPIKeyRun(settings, &json, func(client es.Client, config *config.Config, args []string) error {
+		Run: makeAPIKeyRun(&json, func(client es.Client, config *config.Config, args []string) error {
 			privileges := booleansToPrivileges(ingest, sourcemap, agentConfig)
 			if len(privileges) == 0 {
 				privileges = auth.AllPrivilegeActions()
@@ -195,9 +193,9 @@ type apikeyRunFunc func(client es.Client, config *config.Config, args []string) 
 
 type cobraRunFunc func(cmd *cobra.Command, args []string)
 
-func makeAPIKeyRun(settings instance.Settings, json *bool, f apikeyRunFunc) cobraRunFunc {
+func makeAPIKeyRun(json *bool, f apikeyRunFunc) cobraRunFunc {
 	return func(cmd *cobra.Command, args []string) {
-		client, config, err := bootstrap(settings)
+		client, config, err := bootstrap()
 		if err != nil {
 			printErr(err, *json)
 			os.Exit(1)
@@ -210,41 +208,25 @@ func makeAPIKeyRun(settings instance.Settings, json *bool, f apikeyRunFunc) cobr
 }
 
 // apm-server.api_key.enabled is implicitly true
-func bootstrap(settings instance.Settings) (es.Client, *config.Config, error) {
-	settings.ConfigOverrides = append(settings.ConfigOverrides, cfgfile.ConditionalOverride{
-		Check: func(_ *agentconfig.C) bool {
-			return true
-		},
-		Config: agentconfig.MustNewConfigFrom(map[string]interface{}{
-			"apm-server": map[string]interface{}{
-				"auth": map[string]interface{}{
-					"api_key": map[string]interface{}{
-						"enabled": true,
-					},
-				},
-			},
+func bootstrap() (es.Client, *config.Config, error) {
+	cfg, _, _, err := LoadConfig(WithMergeConfig(
+		agentconfig.MustNewConfigFrom(map[string]interface{}{
+			"apm-server.auth.api_key.enabled": true,
 		}),
-	})
-
-	beat, err := instance.NewInitializedBeat(settings)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	cfg, err := beat.BeatConfig()
+	))
 	if err != nil {
 		return nil, nil, err
 	}
 
 	var esOutputCfg *agentconfig.C
-	if beat.Config.Output.Name() == "elasticsearch" {
-		esOutputCfg = beat.Config.Output.Config()
+	if cfg.Output.Name() == "elasticsearch" {
+		esOutputCfg = cfg.Output.Config()
 	}
-	beaterConfig, err := config.NewConfig(cfg, esOutputCfg)
+
+	beaterConfig, err := config.NewConfig(cfg.APMServer, esOutputCfg)
 	if err != nil {
 		return nil, nil, err
 	}
-
 	client, err := es.NewClient(beaterConfig.AgentAuth.APIKey.ESConfig)
 	if err != nil {
 		return nil, nil, err
