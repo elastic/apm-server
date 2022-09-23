@@ -32,7 +32,7 @@ import (
 func SetClientMetadata(ctx context.Context, batch *model.Batch) error {
 	for i := range *batch {
 		event := &(*batch)[i]
-		if event.Agent.Name != "iOS/swift" {
+		if event.Agent.Name != "iOS/swift" && event.Agent.Name != "android/java" {
 			// This is not an event from an agent we would consider to be
 			// running on an end-user device.
 			//
