@@ -67,6 +67,24 @@ func TestSetClientMetadata(t *testing.T) {
 			Agent: model.Agent{Name: "iOS/swift"},
 		},
 	}, {
+		ctx: context.Background(),
+		in: model.APMEvent{
+			Agent:  model.Agent{Name: "android/java"},
+			Client: model.Client{IP: netip1234},
+		},
+		expected: model.APMEvent{
+			Agent:  model.Agent{Name: "android/java"},
+			Client: model.Client{IP: netip1234},
+		},
+	}, {
+		ctx: context.Background(),
+		in: model.APMEvent{
+			Agent: model.Agent{Name: "android/java"},
+		},
+		expected: model.APMEvent{
+			Agent: model.Agent{Name: "android/java"},
+		},
+	}, {
 		ctx: interceptors.ContextWithClientMetadata(context.Background(), interceptors.ClientMetadataValues{
 			SourceAddr: &net.TCPAddr{IP: ip1234, Port: 4321},
 			ClientIP:   ip5678,
@@ -90,6 +108,37 @@ func TestSetClientMetadata(t *testing.T) {
 		},
 		expected: model.APMEvent{
 			Agent:  model.Agent{Name: "iOS/swift"},
+			Client: model.Client{IP: ip5678},
+			Source: model.Source{
+				IP:   netip1234,
+				Port: 4321,
+				NAT:  &model.NAT{IP: ip10},
+			},
+		},
+	}, {
+		ctx: interceptors.ContextWithClientMetadata(context.Background(), interceptors.ClientMetadataValues{
+			SourceAddr: &net.TCPAddr{IP: ip1234, Port: 4321},
+			ClientIP:   ip5678,
+		}),
+		in: model.APMEvent{
+			Agent: model.Agent{Name: "android/java"},
+		},
+		expected: model.APMEvent{
+			Agent:  model.Agent{Name: "android/java"},
+			Client: model.Client{IP: ip5678},
+			Source: model.Source{IP: netip1234, Port: 4321},
+		},
+	}, {
+		ctx: interceptors.ContextWithClientMetadata(context.Background(), interceptors.ClientMetadataValues{
+			SourceAddr:  &net.TCPAddr{IP: ip1234, Port: 4321},
+			SourceNATIP: ip10,
+			ClientIP:    ip5678,
+		}),
+		in: model.APMEvent{
+			Agent: model.Agent{Name: "android/java"},
+		},
+		expected: model.APMEvent{
+			Agent:  model.Agent{Name: "android/java"},
 			Client: model.Client{IP: ip5678},
 			Source: model.Source{
 				IP:   netip1234,
