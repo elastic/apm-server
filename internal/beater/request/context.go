@@ -93,19 +93,6 @@ type Context struct {
 	// UserAgent holds the User-Agent request header value.
 	UserAgent string
 
-	// ContentEncoding holds the originally specified Content-Encoding header
-	// value, or detected content encoding, prior to decoding.
-	//
-	// The request body will be automatically decoded using the supplied
-	// Content-Encoding header, if any, or by sniffing the request body's
-	// encoding (for gzip and deflate) otherwise. If there are any errors
-	// during decoding, Context.Result.Err will be set.
-	ContentEncoding string
-
-	// OriginalContentLength holds the original Request.ContentLength value,
-	// prior to decoding.
-	OriginalContentLength int64
-
 	// ResponseWriter is exported to enable passing Context to OTLP handlers
 	// An alternate solution would be to implement context.WriteHeaders()
 	ResponseWriter http.ResponseWriter
@@ -169,9 +156,6 @@ func (c *Context) setRequest(r *http.Request) {
 		c.SourceIP, c.ClientIP = ip, ip
 		c.SourcePort, c.ClientPort = int(port), int(port)
 	}
-
-	c.OriginalContentLength = r.ContentLength
-	c.ContentEncoding = r.Header.Get("Content-Encoding")
 
 	if err := c.decodeRequestBody(); err != nil {
 		if c.Logger != nil {
@@ -262,13 +246,13 @@ func (c *Context) errOnWrite(err error) {
 }
 
 func (c *Context) decodeRequestBody() error {
-	if c.OriginalContentLength == 0 {
+	if c.Request.ContentLength == 0 {
 		return nil
 	}
 
 	var reader io.ReadCloser
 	var err error
-	switch c.ContentEncoding {
+	switch c.Request.Header.Get("Content-Encoding") {
 	case "deflate":
 		reader, err = c.resetZlib(c.Request.Body)
 	case "gzip":
@@ -295,10 +279,8 @@ func (c *Context) decodeRequestBody() error {
 			return err
 		}
 		if rc.magic[0] == gzipID1 && rc.magic[1] == gzipID2 {
-			c.ContentEncoding = "gzip"
 			reader, err = c.resetGzip(rc)
 		} else if rc.magic[0]&0x0f == zlibDeflate {
-			c.ContentEncoding = "deflate"
 			reader, err = c.resetZlib(rc)
 		} else {
 			reader = rc
