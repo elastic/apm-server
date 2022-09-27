@@ -63,7 +63,7 @@ JAVA_ATTACHER_SIG:=$(JAVA_ATTACHER_JAR).asc
 JAVA_ATTACHER_BASE_URL:=https://repo1.maven.org/maven2/co/elastic/apm/apm-agent-attach-cli
 JAVA_ATTACHER_URL:=$(JAVA_ATTACHER_BASE_URL)/$(JAVA_ATTACHER_VERSION)/$(JAVA_ATTACHER_JAR)
 JAVA_ATTACHER_SIG_URL:=$(JAVA_ATTACHER_BASE_URL)/$(JAVA_ATTACHER_VERSION)/$(JAVA_ATTACHER_SIG)
-APM_AGENT_JAVA_PUB_KEY:=apm-agent-java-public-key.asc
+APM_AGENT_JAVA_PUB_KEY:=packaging/apm-agent-java-public-key.asc
 
 build/.imported-java-agent-pubkey:
 	@gpg --import $(APM_AGENT_JAVA_PUB_KEY)

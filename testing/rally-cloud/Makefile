@@ -32,8 +32,8 @@ destroy:
 # Generate corpora to be used in cloud testing using rally-cloud tf script
 .PHONY: rally/corpora
 rally/corpora:
-	@rm -fr $(ROOT_DIR)/rally/corpora && mkdir $(ROOT_DIR)/rally/corpora
+	@rm -fr $(ROOT_DIR)/testing/rally/corpora && mkdir $(ROOT_DIR)/testing/rally/corpora
 	@cd ../../systemtest/cmd/gencorpora && $(GO) run . \
-		-write-dir $(ROOT_DIR)/rally/corpora/ \
+		-write-dir $(ROOT_DIR)/testing/rally/corpora/ \
 		-replay-count $(RALLY_GENCORPORA_REPLAY_COUNT) \
 		-override-meta-source-rootdir /home/rally/rally/corpora
