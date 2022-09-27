@@ -53,7 +53,7 @@ variable "rally_workers_resource_prefix" {
 variable "rally_dir" {
   type        = string
   description = "Path to the directory containing track and corpora files"
-  default     = "../../rally"
+  default     = "../../testing/rally"
 }
 
 variable "rally_bulk_size" {
