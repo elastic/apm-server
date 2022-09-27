@@ -21,11 +21,11 @@ func RunLengthEncodeReverse[T comparable](
 		return
 	}
 
-	l := 0
+	l := 1
 	cur := values[len(values)-1]
 
 	write := func() {
-		_, _ = writer.Write([]byte{byte(l + 1)})
+		_, _ = writer.Write([]byte{byte(l)})
 		_, _ = writer.Write(toBytes(cur))
 	}
 
@@ -38,7 +38,7 @@ func RunLengthEncodeReverse[T comparable](
 		}
 
 		write()
-		l = 0
+		l = 1
 		cur = next
 	}
 
