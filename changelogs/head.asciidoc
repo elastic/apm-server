@@ -5,6 +5,7 @@ https://github.com/elastic/apm-server/compare/8.5\...main[View commits]
 
 [float]
 ==== Breaking Changes
+- `ecs.version` is no longer added to document `_source`; it is added as a `constant_keyword` field {pull}9208[9208]
 
 [float]
 ==== Deprecations

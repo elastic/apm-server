@@ -22,7 +22,6 @@ import (
 	"time"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
-	"github.com/elastic/ecs/code/go/ecs"
 
 	"github.com/elastic/apm-server/internal/beater/auth"
 	"github.com/elastic/apm-server/internal/beater/ratelimit"
@@ -57,16 +56,6 @@ func rateLimitBatchProcessor(ctx context.Context, batch *model.Batch) error {
 		if err := limiter.WaitN(ctx, len(*batch)); err != nil {
 			return ratelimit.ErrRateLimitExceeded
 		}
-	}
-	return nil
-}
-
-// ecsVersionBatchProcessor is a model.BatchProcessor that sets the ECSVersion
-// field of each event to the ECS library version.
-func ecsVersionBatchProcessor(ctx context.Context, b *model.Batch) error {
-	for i := range *b {
-		event := &(*b)[i]
-		event.ECSVersion = ecs.Version
 	}
 	return nil
 }

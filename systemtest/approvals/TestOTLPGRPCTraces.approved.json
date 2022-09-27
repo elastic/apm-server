@@ -9,9 +9,6 @@
             "data_stream.dataset": "apm.error",
             "data_stream.namespace": "default",
             "data_stream.type": "logs",
-            "ecs": {
-                "version": "dynamic"
-            },
             "error": {
                 "exception": [
                     {
@@ -92,9 +89,6 @@
             "data_stream.dataset": "apm.app",
             "data_stream.namespace": "default",
             "data_stream.type": "logs",
-            "ecs": {
-                "version": "dynamic"
-            },
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic"
@@ -152,9 +146,6 @@
             "data_stream.dataset": "apm",
             "data_stream.namespace": "default",
             "data_stream.type": "traces",
-            "ecs": {
-                "version": "dynamic"
-            },
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",

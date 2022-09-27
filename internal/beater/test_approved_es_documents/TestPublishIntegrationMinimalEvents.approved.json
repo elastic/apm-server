@@ -9,9 +9,6 @@
             "data_stream.dataset": "apm.error",
             "data_stream.namespace": "default",
             "data_stream.type": "logs",
-            "ecs": {
-                "version": "1.12.0"
-            },
             "error": {
                 "grouping_key": "0b9cba09845a097a271c6beb4c6207f3",
                 "id": "abcdef0123456789",
@@ -51,9 +48,6 @@
             "data_stream.dataset": "apm.error",
             "data_stream.namespace": "default",
             "data_stream.type": "logs",
-            "ecs": {
-                "version": "1.12.0"
-            },
             "error": {
                 "exception": [
                     {
@@ -95,9 +89,6 @@
             "data_stream.dataset": "apm.error",
             "data_stream.namespace": "default",
             "data_stream.type": "logs",
-            "ecs": {
-                "version": "1.12.0"
-            },
             "error": {
                 "exception": [
                     {
@@ -138,9 +129,6 @@
             "data_stream.dataset": "apm",
             "data_stream.namespace": "default",
             "data_stream.type": "traces",
-            "ecs": {
-                "version": "1.12.0"
-            },
             "event": {
                 "duration": 3564298,
                 "outcome": "unknown"
@@ -187,9 +175,6 @@
             "data_stream.dataset": "apm",
             "data_stream.namespace": "default",
             "data_stream.type": "traces",
-            "ecs": {
-                "version": "1.12.0"
-            },
             "event": {
                 "duration": 3564298,
                 "outcome": "unknown"
@@ -236,9 +221,6 @@
             "data_stream.dataset": "apm",
             "data_stream.namespace": "default",
             "data_stream.type": "traces",
-            "ecs": {
-                "version": "1.12.0"
-            },
             "event": {
                 "duration": 32592981,
                 "outcome": "unknown"
@@ -292,9 +274,6 @@
             "data_stream.dataset": "apm.app.1234_service_12a3",
             "data_stream.namespace": "default",
             "data_stream.type": "metrics",
-            "ecs": {
-                "version": "1.12.0"
-            },
             "host": {
                 "ip": [
                     "127.0.0.1"

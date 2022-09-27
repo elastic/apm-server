@@ -618,7 +618,6 @@ func (s *serverRunner) run(listener net.Listener) error {
 		// and are counted in metrics. This is done in the final processors to ensure
 		// aggregated metrics are also processed.
 		newObserverBatchProcessor(s.beat.Info),
-		model.ProcessBatchFunc(ecsVersionBatchProcessor),
 		&modelprocessor.SetDataStream{Namespace: s.namespace},
 		modelprocessor.NewEventCounter(monitoring.Default.GetRegistry("apm-server")),
 

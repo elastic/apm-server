@@ -1,4 +1,3 @@
 dependencies:
   ecs:
-    # TODO(axw) make sure this is kept in sync with the ECS version used in libbeat.
-    reference: git@main
+    reference: generated

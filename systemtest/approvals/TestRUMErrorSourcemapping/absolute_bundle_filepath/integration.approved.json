@@ -12,9 +12,6 @@
             "data_stream.dataset": "apm.error",
             "data_stream.namespace": "default",
             "data_stream.type": "logs",
-            "ecs": {
-                "version": "dynamic"
-            },
             "error": {
                 "culprit": "webpack:///webpack/bootstrap 6002740481c9666b0d38 in \u003canonymous\u003e",
                 "exception": [
