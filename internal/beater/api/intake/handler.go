@@ -48,16 +48,6 @@ var (
 	MonitoringMap = request.DefaultMonitoringMapForRegistry(registry)
 	registry      = monitoring.Default.NewRegistry("apm-server.server")
 
-	decoderMetrics                = monitoring.Default.NewRegistry("apm-server.decoder")
-	missingContentLengthCounter   = monitoring.NewInt(decoderMetrics, "missing-content-length.count")
-	deflateLengthAccumulator      = monitoring.NewInt(decoderMetrics, "deflate.content-length")
-	deflateCounter                = monitoring.NewInt(decoderMetrics, "deflate.count")
-	gzipLengthAccumulator         = monitoring.NewInt(decoderMetrics, "gzip.content-length")
-	gzipCounter                   = monitoring.NewInt(decoderMetrics, "gzip.count")
-	uncompressedLengthAccumulator = monitoring.NewInt(decoderMetrics, "uncompressed.content-length")
-	uncompressedCounter           = monitoring.NewInt(decoderMetrics, "uncompressed.count")
-	readerCounter                 = monitoring.NewInt(decoderMetrics, "reader.count")
-
 	errMethodNotAllowed   = errors.New("only POST requests are supported")
 	errServerShuttingDown = errors.New("server is shutting down")
 	errInvalidContentType = errors.New("invalid content type")
@@ -108,25 +98,6 @@ func Handler(handler StreamHandler, requestMetadataFunc RequestMetadataFunc, bat
 		if async {
 			ctx = apm.DetachedContext(ctx)
 		}
-
-		// TODO check if these metrics are used anywhere, and remove them if not.
-		knownContentLength := c.OriginalContentLength >= 0
-		if !knownContentLength {
-			missingContentLengthCounter.Inc()
-		} else {
-			switch c.ContentEncoding {
-			case "deflate":
-				deflateLengthAccumulator.Add(c.OriginalContentLength)
-				deflateCounter.Inc()
-			case "gzip":
-				gzipLengthAccumulator.Add(c.OriginalContentLength)
-				gzipCounter.Inc()
-			default:
-				uncompressedLengthAccumulator.Add(c.OriginalContentLength)
-				uncompressedCounter.Inc()
-			}
-		}
-		readerCounter.Inc()
 
 		// If there was an error decoding the body, then it Result.Err
 		// will already be set. Reformat the error response.
