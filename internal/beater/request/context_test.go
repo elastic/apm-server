@@ -228,7 +228,6 @@ func TestContextResetContentEncoding(t *testing.T) {
 			if contentEncoding != "" {
 				r.Header.Set("Content-Encoding", contentEncoding)
 			}
-			originalContentLength := r.ContentLength
 
 			c := Context{
 				Request:        r,
@@ -237,8 +236,6 @@ func TestContextResetContentEncoding(t *testing.T) {
 			}
 
 			c.Reset(w, r)
-			assert.Equal(t, originalContentLength, c.OriginalContentLength)
-			assert.Equal(t, expectedContentEncoding, c.ContentEncoding)
 			assertReaderContents(t, expectedBody, c.Request.Body)
 		})
 	}
