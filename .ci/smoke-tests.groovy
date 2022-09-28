@@ -12,6 +12,9 @@ pipeline {
     CREATED_DATE = "${new Date().getTime()}"
     SLACK_CHANNEL = "#apm-server"
     SMOKETEST_VERSIONS = "${params.SMOKETEST_VERSIONS}"
+    // If installing go with gvm with .ci/scripts/install-go.sh then prepare the env context
+    PATH = "${env.PATH}:${env.WORKSPACE}/bin"
+    HOME = "${env.WORKSPACE}"
   }
   options {
     timeout(time: 3, unit: 'HOURS')
@@ -100,6 +103,7 @@ def withTestClusterEnv(Closure body) {
   withAWSEnv(secret: "${AWS_ACCOUNT_SECRET}", version: "2.7.6") {
     withTerraformEnv(version: "${TERRAFORM_VERSION}", forceInstallation: true) {
       withSecretVault(secret: "${EC_KEY_SECRET}", data: ['apiKey': 'EC_API_KEY'] ) {
+        sh(label: 'Install go if required', script: '.ci/scripts/install-go.sh')
         body()
       }
     }
