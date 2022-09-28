@@ -11,8 +11,8 @@ VERSION=7.17
 ARTIFACTS_API=https://artifacts-api.elastic.co/v1
 
 # Check if the version is available.
-if ! curl --fail ${ARTIFACTS_API}/versions/${VERSION} ; then
-    echo "-> Warning there are no new artifacts to be downloaded in artifacts-api.elastic.co ..."
+if ! curl -s --fail ${ARTIFACTS_API}/versions/${VERSION} ; then
+    echo "-> Skipping there are no new artifacts to be downloaded in artifacts-api.elastic.co ..."
     exit 0
 fi
 

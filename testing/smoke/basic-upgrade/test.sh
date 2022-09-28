@@ -22,8 +22,8 @@ if [[ ${MAJOR_VERSION} -eq 7 ]]; then
     ASSERT_EVENTS_FUNC=legacy_assertions
 
     # Check if the version is available.
-    if ! curl --fail ${ARTIFACTS_API}/versions/${MAJOR_VERSION}.${MINOR_VERSION} ; then
-        echo "-> Warning there are no new artifacts to be downloaded in artifacts-api.elastic.co ..."
+    if ! curl -s --fail ${ARTIFACTS_API}/versions/${MAJOR_VERSION}.${MINOR_VERSION} ; then
+        echo "-> Skipping there are no new artifacts to be downloaded in artifacts-api.elastic.co ..."
         exit 0
     fi
 
