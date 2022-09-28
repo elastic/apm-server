@@ -32,7 +32,6 @@ pipeline {
         deleteDir()
         gitCheckout(basedir: "${BASE_DIR}", shallow: false)
         setEnvVar('GO_VERSION', readFile(file: "${BASE_DIR}/.go-version").trim())
-        stash(allowEmpty: true, name: 'source', useDefaultExcludes: false)
       }
     }
     stage('Smoke Tests') {
@@ -71,13 +70,15 @@ pipeline {
 def runSmokeTests() {
   def smokeTestJobs = [:]
   dir ("${BASE_DIR}") {
-    def smokeTests = sh(returnStdout: true, script: 'make smoketest/discover').trim().split('\r?\n')
-    log(level: 'INFO', text: "make smoketest/discover: '${smokeTests}'")
-    for (smokeTest in smokeTests) {
-      // get the title for the stage based on the basename of the smoke test full path to be run
-      def title = sh(script: "basename ${smokeTest}", returnStdout:true).trim()
-      env.SMOKETEST_VERSIONS.trim().split(',').each { version ->
-        smokeTestJobs["${version}-${title}"] = runSmokeTestWithVersion(smokeTest: smokeTest, version: version, title: title)
+    withTestClusterEnv {
+      def smokeTests = sh(returnStdout: true, script: 'make smoketest/discover').trim().split('\r?\n')
+      log(level: 'INFO', text: "make smoketest/discover: '${smokeTests}'")
+      for (smokeTest in smokeTests) {
+        // get the title for the stage based on the basename of the smoke test full path to be run
+        def title = sh(script: "basename ${smokeTest}", returnStdout:true).trim()
+        env.SMOKETEST_VERSIONS.trim().split(',').each { version ->
+          smokeTestJobs["${version}-${title}"] = runSmokeTestWithVersion(smokeTest: smokeTest, version: version, title: title)
+        }
       }
     }
   }
@@ -89,15 +90,7 @@ def runSmokeTestWithVersion(Map args = [:]) {
   def title = args.get('title', testDir)
   def version = args.version
   return {
-    withNode(labels: 'linux && immutable', forceWorker: true) {
-      deleteDir()
-      unstash 'source'
-      dir("${BASE_DIR}") {
-        withTestClusterEnv {
-          sh(label: "Run smoke tests ${testDir} for ${version}", script: "make smoketest/run-version TEST_DIR=${testDir} SMOKETEST_VERSION=${version}")
-        }
-      }
-    }
+    sh(label: "Run smoke tests ${testDir} for ${version}", script: "make smoketest/run-version TEST_DIR=${testDir} SMOKETEST_VERSION=${version}")
   }
 }
 
