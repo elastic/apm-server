@@ -6,6 +6,8 @@ package main
 
 import (
 	"context"
+	"encoding/json"
+	"net/http"
 	"os"
 	"sync"
 	"time"
@@ -240,6 +242,16 @@ func runServerWithProcessors(ctx context.Context, runServer beater.RunServerFunc
 }
 
 func newProfilingCollector(args beater.ServerParams) (*profiling.ElasticCollector, func(context.Context) error, error) {
+	logger := args.Logger.Named("profiling")
+
+	client, err := args.NewElasticsearchClient(args.Config.Profiling.ESConfig)
+	if err != nil {
+		return nil, nil, err
+	}
+	clusterName, err := queryElasticsearchClusterName(client, logger)
+	if err != nil {
+		return nil, nil, err
+	}
 	// Elasticsearch should default to 100 MB for the http.max_content_length configuration,
 	// so we flush the buffer when at 16 MiB or every 4 seconds.
 	// This should reduce the lock contention between multiple workers trying to write or flush
@@ -247,11 +259,6 @@ func newProfilingCollector(args beater.ServerParams) (*profiling.ElasticCollecto
 	bulkIndexerConfig := elasticsearch.BulkIndexerConfig{
 		FlushBytes:    1 << 24,
 		FlushInterval: 4 * time.Second,
-	}
-
-	client, err := args.NewElasticsearchClient(args.Config.Profiling.ESConfig)
-	if err != nil {
-		return nil, nil, err
 	}
 	indexer, err := client.NewBulkIndexer(bulkIndexerConfig)
 	if err != nil {
@@ -270,7 +277,8 @@ func newProfilingCollector(args beater.ServerParams) (*profiling.ElasticCollecto
 	profilingCollector := profiling.NewCollector(
 		indexer,
 		metricsIndexer,
-		args.Logger.Named("profiling"),
+		clusterName,
+		logger,
 	)
 	cleanup := func(ctx context.Context) error {
 		var errors error
@@ -283,6 +291,33 @@ func newProfilingCollector(args beater.ServerParams) (*profiling.ElasticCollecto
 		return errors
 	}
 	return profilingCollector, cleanup, nil
+}
+
+// Fetch the Cluster name from Elasticsearch: Profiling adds it as a field in
+// the host-agent metrics documents for debugging purposes.
+// In Cloud deployments, the Cluster name is set equal to the Cluster ID.
+func queryElasticsearchClusterName(client elasticsearch.Client, logger *logp.Logger) (string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "/", nil)
+	if err != nil {
+		return "", err
+	}
+	resp, err := client.Perform(req)
+	if err != nil {
+		logger.Warnf("failed to fetch cluster name from Elasticsearch: %v", err)
+		return "", nil
+	}
+	type response struct {
+		ClusterName string `json:"cluster_name"`
+	}
+	var r response
+	if err := json.NewDecoder(resp.Body).Decode(&r); err != nil {
+		logger.Warnf("failed to parse Elasticsearch JSON response: %v", err)
+	}
+	_ = resp.Body.Close()
+
+	return r.ClusterName, nil
 }
 
 func wrapServer(args beater.ServerParams, runServer beater.RunServerFunc) (beater.ServerParams, beater.RunServerFunc, error) {

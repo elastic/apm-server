@@ -71,11 +71,8 @@ type ElasticCollector struct {
 // NewCollector returns a new ElasticCollector uses indexer for storing stack trace data in
 // Elasticsearch, and metricsIndexer for storing host agent metrics. Separate indexers are
 // used to allow for host agent metrics to be sent to a separate monitoring cluster.
-func NewCollector(
-	indexer elasticsearch.BulkIndexer,
-	metricsIndexer elasticsearch.BulkIndexer,
-	logger *logp.Logger,
-) *ElasticCollector {
+func NewCollector(indexer elasticsearch.BulkIndexer, metricsIndexer elasticsearch.BulkIndexer,
+	esClusterName string, logger *logp.Logger, ) *ElasticCollector {
 	sourceFiles, err := simplelru.NewLRU(sourceFileCacheSize, nil)
 	if err != nil {
 		log.Fatalf("Failed to create source file LRU: %v", err)
