@@ -66,13 +66,15 @@ type ElasticCollector struct {
 
 	sourceFilesLock sync.Mutex
 	sourceFiles     *simplelru.LRU
+
+	clusterID string
 }
 
 // NewCollector returns a new ElasticCollector uses indexer for storing stack trace data in
 // Elasticsearch, and metricsIndexer for storing host agent metrics. Separate indexers are
 // used to allow for host agent metrics to be sent to a separate monitoring cluster.
 func NewCollector(indexer elasticsearch.BulkIndexer, metricsIndexer elasticsearch.BulkIndexer,
-	esClusterName string, logger *logp.Logger, ) *ElasticCollector {
+	esClusterID string, logger *logp.Logger) *ElasticCollector {
 	sourceFiles, err := simplelru.NewLRU(sourceFileCacheSize, nil)
 	if err != nil {
 		log.Fatalf("Failed to create source file LRU: %v", err)
@@ -83,6 +85,7 @@ func NewCollector(indexer elasticsearch.BulkIndexer, metricsIndexer elasticsearc
 		indexer:        indexer,
 		metricsIndexer: metricsIndexer,
 		sourceFiles:    sourceFiles,
+		clusterID:      esClusterID,
 	}
 
 	// Precalculate index names to minimise per-TraceEvent overhead.
@@ -665,9 +668,11 @@ func (e *ElasticCollector) AddMetrics(ctx context.Context, in *Metrics) (*empty.
 
 		body.WriteString(fmt.Sprintf(
 			"{\"project.id\":%d,\"host.id\":%d,\"@timestamp\":%d,"+
-				"\"ecs.version\":\"%s\"",
+				"\"ecs.version\":%q",
 			ProjectID, HostID, metric.Timestamp, ecsVersionString))
-
+		if e.clusterID != "" {
+			body.WriteString(fmt.Sprintf(",\"Elasticsearch.cluster.id\":%q", e.clusterID))
+		}
 		for i, metricID := range metric.IDs {
 			if int(metricID) >= len(metricTypes) {
 				// Protect against panic on HA / collector version mismatch.
