@@ -11,8 +11,8 @@ pipeline {
     TERRAFORM_VERSION = '1.2.3'
     CREATED_DATE = "${new Date().getTime()}"
     SLACK_CHANNEL = "#apm-server"
+    SMOKETEST_VERSIONS = "${params.SMOKETEST_VERSIONS}"
   }
-
   options {
     timeout(time: 3, unit: 'HOURS')
     buildDiscarder(logRotator(numToKeepStr: '100', artifactNumToKeepStr: '30', daysToKeepStr: '30'))
