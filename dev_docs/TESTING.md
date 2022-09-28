@@ -151,7 +151,7 @@ the [APM CI dashboard](https://ela.st/apm-server-smoke-tests).
 
 ### Debugging Failures
 
-If the smoke tests are failing on the CI environment and active investigation is needded, it may be useful to
+If the smoke tests are failing on the CI environment and active investigation is needed, it may be useful to
 run the tests with the `SKIP_DESTROY` variable set to any value (`true` or `1` work too), which will prevent the
 ESS deployment from being destroyed to allow some debugging to be done.
 
