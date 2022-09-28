@@ -1,13 +1,15 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 set -eo pipefail
 
+VERSION="${1}"
 if [[ "${1}" != "7.17" ]]; then
-    echo "-> Skipping smoke test [${1} is not supported]..."
+    echo "-> Skipping smoke test ['${VERSION}' is not supported]..."
     exit 0
+else
+    echo "-> Running smoke test [${VERSION}]"
 fi
 
-VERSION=7.17
 LATEST_VERSION=$(curl -s --fail https://artifacts-api.elastic.co/v1/versions/${VERSION} | jq -r '.version.builds[0].version')
 
 echo "-> Running ${LATEST_VERSION} standalone to ${LATEST_VERSION} managed upgrade"

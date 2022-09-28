@@ -2,12 +2,13 @@
 
 set -eo pipefail
 
+VERSION="${1}"
 if [[ "${1}" != "7.17" ]]; then
-    echo "-> Skipping smoke test [${1} is not supported]..."
+    echo "-> Skipping smoke test ['${VERSION}' is not supported]..."
     exit 0
+else
+    echo "-> Running smoke test ['${VERSION}']"
 fi
-
-VERSION=7.17
 
 # Load all versions except SNAPSHOTS
 VERSIONS=$(curl -s --fail https://artifacts-api.elastic.co/v1/versions | jq -r -c '[.versions[] | select(. | endswith("-SNAPSHOT") | not)] | sort')
