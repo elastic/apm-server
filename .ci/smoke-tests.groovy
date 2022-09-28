@@ -31,9 +31,9 @@ pipeline {
       steps {
         deleteDir()
         gitCheckout(basedir: "${BASE_DIR}", shallow: false)
+        setEnvVar('GO_VERSION', readFile(file: ".go-version").trim())
       }
     }
-
     stage('Smoke Tests') {
       options { skipDefaultCheckout() }
       environment {
@@ -49,7 +49,7 @@ pipeline {
       steps {
         dir ("${BASE_DIR}") {
           withTestClusterEnv {
-            withGoEnv(version: readFile(file: ".go-version").trim()) {
+            withGoEnv() {
               script {
                 def smokeTests = sh(returnStdout: true, script: 'make smoketest/discover').trim().split('\r?\n')
                 def smokeTestJobs = [:]
@@ -66,7 +66,7 @@ pipeline {
         always {
           dir("${BASE_DIR}") {
             withTestClusterEnv {
-              withGoEnv(version: readFile(file: ".go-version").trim()) {
+              withGoEnv() {
                 sh(label: 'Teardown smoke tests infra', script: 'make smoketest/all/cleanup')
               }
             }
@@ -90,7 +90,7 @@ def runSmokeTest(String testDir) {
   }
 }
 
-def withTestClusterEnv(Closure body) {  
+def withTestClusterEnv(Closure body) {
   withAWSEnv(secret: "${AWS_ACCOUNT_SECRET}", version: "2.7.6") {
     withTerraformEnv(version: "${TERRAFORM_VERSION}", forceInstallation: true) {
       withSecretVault(secret: "${EC_KEY_SECRET}", data: ['apiKey': 'EC_API_KEY'] ) {
