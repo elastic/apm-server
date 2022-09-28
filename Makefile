@@ -314,7 +314,7 @@ smoketest/discover:
 
 .PHONY: smoketest/run-version
 smoketest/run-version:
-	@ echo "-> Running $(TEST_DIR) smoke tests for version $${version}..."
+	@ echo "-> Running $(TEST_DIR) smoke tests for version $${SMOKETEST_VERSION}..."
 	@ cd $(TEST_DIR) && ./test.sh "$(SMOKETEST_VERSION)"
 
 .PHONY: smoketest/run
