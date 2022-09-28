@@ -6,6 +6,7 @@ https://github.com/elastic/apm-server/compare/8.5\...main[View commits]
 [float]
 ==== Breaking Changes
 - `apm-server.decoder.*` stack monitoring metrics are no longer recorded {pull}9210[9210]
+- `ecs.version` is no longer added to document `_source`; it is added as a `constant_keyword` field {pull}9208[9208]
 
 [float]
 ==== Deprecations

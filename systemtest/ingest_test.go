@@ -209,3 +209,20 @@ func TestIngestPipelineDataStreamMigration(t *testing.T) {
 	)
 	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits)
 }
+
+func TestECSVersion(t *testing.T) {
+	systemtest.CleanupElasticsearch(t)
+	srv := apmservertest.NewServerTB(t)
+
+	tracer := srv.Tracer()
+	tx := tracer.StartTransaction("name", "type")
+	tx.End()
+	tracer.Flush(nil)
+
+	// ecs.version is defined as a constant_keyword field,
+	// and is not present in _source. The value is defined
+	// by the version of ECS we use to build the integration
+	// package.
+	result := systemtest.Elasticsearch.ExpectDocs(t, "traces-apm*", nil)
+	assert.Equal(t, []interface{}{"8.6.0-dev"}, result.Hits.Hits[0].Fields["ecs.version"])
+}

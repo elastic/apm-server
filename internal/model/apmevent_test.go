@@ -52,7 +52,6 @@ func TestAPMEventFields(t *testing.T) {
 		output mapstr.M
 	}{{
 		input: APMEvent{
-			ECSVersion: "1.0.0",
 			Agent: Agent{
 				Name:    agentName,
 				Version: agentVersion,
@@ -128,7 +127,6 @@ func TestAPMEventFields(t *testing.T) {
 		},
 		output: mapstr.M{
 			// common fields
-			"ecs":       mapstr.M{"version": "1.0.0"},
 			"agent":     mapstr.M{"version": "1.0.0", "name": "elastic-node"},
 			"observer":  mapstr.M{"type": "apm-server"},
 			"container": mapstr.M{"id": containerID},

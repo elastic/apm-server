@@ -31,11 +31,13 @@ import (
 )
 
 var (
-	outputDir  = flag.String("o", "", "directory into which the package will be rendered (required)")
-	pkgVersion = flag.String("version", "", "integration package version (required)")
+	outputDir    = flag.String("o", "", "directory into which the package will be rendered (required)")
+	pkgVersion   = flag.String("version", "", "integration package version (required)")
+	ecsReference = flag.String("ecsref", "", "ECS reference (optional -- defaults to git@v<ecs>)")
+	ecsVersion   = flag.String("ecs", "", "ECS version (required)")
 )
 
-func generatePackage(pkgfs fs.FS, version *version.V) error {
+func generatePackage(pkgfs fs.FS, version, ecsVersion *version.V, ecsReference string) error {
 	// Walk files, performing some APM-specific validations and transformations as we go.
 	//
 	// We assume the target destination does not yet exist.
@@ -53,16 +55,16 @@ func generatePackage(pkgfs fs.FS, version *version.V) error {
 			// Ignore hidden or non-regular files.
 			return nil
 		}
-		return renderFile(pkgfs, path, outputPath, version)
+		return renderFile(pkgfs, path, outputPath, version, ecsVersion, ecsReference)
 	})
 }
 
-func renderFile(pkgfs fs.FS, path, outputPath string, version *version.V) error {
+func renderFile(pkgfs fs.FS, path, outputPath string, version, ecsVersion *version.V, ecsReference string) error {
 	content, err := fs.ReadFile(pkgfs, path)
 	if err != nil {
 		return err
 	}
-	content, err = transformFile(path, content, version)
+	content, err = transformFile(path, content, version, ecsVersion, ecsReference)
 	if err != nil {
 		return fmt.Errorf("error transforming %q: %w", path, err)
 	}
@@ -85,11 +87,15 @@ func renderFile(pkgfs fs.FS, path, outputPath string, version *version.V) error 
 
 func main() {
 	flag.Parse()
-	if *outputDir == "" || *pkgVersion == "" {
+	if *outputDir == "" || *pkgVersion == "" || *ecsVersion == "" {
 		flag.Usage()
 		os.Exit(2)
 	}
-	version := version.MustNew(*pkgVersion)
+	if *ecsReference == "" {
+		*ecsReference = fmt.Sprintf("git@v%s", *ecsVersion)
+	}
+	pkgVersion := version.MustNew(*pkgVersion)
+	ecsVersion := version.MustNew(*ecsVersion)
 
 	// Locate the apmpackage/apm directory.
 	_, file, _, ok := runtime.Caller(0)
@@ -100,8 +106,8 @@ func main() {
 
 	// Generate a completely rendered _source_ package, which can then be fed to
 	// `elastic-agent build` to build the final package for inclusion in package-storage.
-	log.Printf("generating integration package v%s in %q", version, *outputDir)
-	if err := generatePackage(os.DirFS(pkgdir), version); err != nil {
+	log.Printf("generating integration package v%s in %q", pkgVersion.String(), *outputDir)
+	if err := generatePackage(os.DirFS(pkgdir), pkgVersion, ecsVersion, *ecsReference); err != nil {
 		log.Fatal(err)
 	}
 }
