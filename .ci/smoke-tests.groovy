@@ -55,9 +55,7 @@ pipeline {
         always {
           dir("${BASE_DIR}") {
             withTestClusterEnv {
-              withGoEnv() {
-                sh(label: 'Teardown smoke tests infra', script: 'make smoketest/all/cleanup')
-              }
+              sh(label: 'Teardown smoke tests infra', script: 'make smoketest/all/cleanup')
             }
           }
         }
@@ -106,7 +104,9 @@ def withTestClusterEnv(Closure body) {
   withAWSEnv(secret: "${AWS_ACCOUNT_SECRET}", version: "2.7.6") {
     withTerraformEnv(version: "${TERRAFORM_VERSION}", forceInstallation: true) {
       withSecretVault(secret: "${EC_KEY_SECRET}", data: ['apiKey': 'EC_API_KEY'] ) {
-        body()
+        withGoEnv() {
+          body()
+        }
       }
     }
   }
