@@ -52,9 +52,12 @@ pipeline {
             withGoEnv() {
               script {
                 def smokeTests = sh(returnStdout: true, script: 'make smoketest/discover').trim().split('\r?\n')
+                log(level: 'INFO', text: "make smoketest/discover: '${smokeTests}'")
                 def smokeTestJobs = [:]
                 for (smokeTest in smokeTests) {
-                  smokeTestJobs["Run smoke tests in ${smokeTest}"] = runSmokeTest(smokeTest)
+                  // get the title for the stage based on the basename of the smoke test full path to be run
+                  def title = sh(script: "basename ${smokeTest}", returnStdout:true).trim()
+                  smokeTestJobs["${title}"] = runSmokeTest(title: title, smokeTest: smokeTest)
                 }
                 parallel smokeTestJobs
               }
@@ -82,11 +85,11 @@ pipeline {
   }
 }
 
-def runSmokeTest(String testDir) {
+def runSmokeTest(Map args = [:]) {
+  def testDir = args.smokeTest
+  def title = args.get('title', testDir)
   return {
-    stage("Run smoke tests in ${testDir}") {
-      sh(label: 'Run smoke tests', script: "make smoketest/run TEST_DIR=${testDir}")
-    }
+    sh(label: "Run smoke tests ${testDir}", script: "make smoketest/run TEST_DIR=${testDir}")
   }
 }
 
