@@ -12,7 +12,6 @@ pipeline {
     CREATED_DATE = "${new Date().getTime()}"
     SLACK_CHANNEL = "#apm-server"
     SMOKETEST_VERSIONS = "${params.SMOKETEST_VERSIONS}"
-    HOME = "${env.WORKSPACE}"
   }
   options {
     timeout(time: 3, unit: 'HOURS')
