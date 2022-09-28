@@ -312,11 +312,15 @@ SMOKETEST_DIRS = $$(find $(CURRENT_DIR)/testing/smoke -mindepth 1 -maxdepth 1 -t
 smoketest/discover:
 	@echo "$(SMOKETEST_DIRS)"
 
+.PHONY: smoketest/run-version
+smoketest/run-version:
+	@ echo "-> Running $(TEST_DIR) smoke tests for version $${version}..."
+	@ cd $(TEST_DIR) && ./test.sh "$(SMOKETEST_VERSION)"
+
 .PHONY: smoketest/run
 smoketest/run:
 	@ for version in $(shell echo $(SMOKETEST_VERSIONS) | tr ',' ' '); do \
-		echo "-> Running $(TEST_DIR) smoke tests for version $${version}..."; \
-		cd $(TEST_DIR) && ./test.sh "$${version}"; \
+		$(MAKE) smoketest/run-version SMOKETEST_VERSION=$${version}; \
 	done
 
 .PHONY: smoketest/cleanup

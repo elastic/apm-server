@@ -76,23 +76,25 @@ def runSmokeTests() {
     for (smokeTest in smokeTests) {
       // get the title for the stage based on the basename of the smoke test full path to be run
       def title = sh(script: "basename ${smokeTest}", returnStdout:true).trim()
-      smokeTestJobs["${title}"] = runSmokeTest(title: title, smokeTest: smokeTest)
+      env.SMOKETEST_VERSIONS.trim().split(',').each { version ->
+        smokeTestJobs["${version}-${title}"] = runSmokeTestWithVersion(smokeTest: smokeTest, version: version, title: title)
+      }
     }
   }
   parallel smokeTestJobs
 }
 
-def runSmokeTest(Map args = [:]) {
+def runSmokeTestWithVersion(Map args = [:]) {
   def testDir = args.smokeTest
   def title = args.get('title', testDir)
+  def version = args.version
   return {
     withNode(labels: 'linux && immutable', forceWorker: true) {
-      log(level: 'INFO', text: "SMOKETEST_VERSIONS='${SMOKETEST_VERSIONS}'")
       deleteDir()
       unstash 'source'
       dir("${BASE_DIR}") {
         withTestClusterEnv {
-          sh(label: "Run smoke tests ${testDir}", script: "make smoketest/run TEST_DIR=${testDir}")
+          sh(label: "Run smoke tests ${testDir} for ${version}", script: "make smoketest/run-version TEST_DIR=${testDir} SMOKETEST_VERSION=${version}")
         }
       }
     }
