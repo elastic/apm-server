@@ -10,6 +10,12 @@ else
     echo "-> Running smoke test [${VERSION}]"
 fi
 
+# Check if the version is available.
+if ! curl --fail https://artifacts-api.elastic.co/v1/versions/${VERSION} ; then
+	echo "-> Error there are no artifacts to be downloaded in artifacts-api.elastic.co ..."
+    exit 1
+fi
+
 LATEST_VERSION=$(curl -s --fail https://artifacts-api.elastic.co/v1/versions/${VERSION} | jq -r '.version.builds[0].version')
 
 echo "-> Running ${LATEST_VERSION} standalone to ${LATEST_VERSION} managed upgrade"
