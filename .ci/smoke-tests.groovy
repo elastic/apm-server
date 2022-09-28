@@ -51,23 +51,7 @@ pipeline {
         TF_VAR_REPO = "${REPO}"
       }
       steps {
-        dir ("${BASE_DIR}") {
-          withTestClusterEnv {
-            withGoEnv() {
-              script {
-                def smokeTests = sh(returnStdout: true, script: 'make smoketest/discover').trim().split('\r?\n')
-                log(level: 'INFO', text: "make smoketest/discover: '${smokeTests}'")
-                def smokeTestJobs = [:]
-                for (smokeTest in smokeTests) {
-                  // get the title for the stage based on the basename of the smoke test full path to be run
-                  def title = sh(script: "basename ${smokeTest}", returnStdout:true).trim()
-                  smokeTestJobs["${title}"] = runSmokeTest(title: title, smokeTest: smokeTest)
-                }
-                parallel smokeTestJobs
-              }
-            }
-          }
-        }
+        runSmokeTests()
       }
       post {
         always {
@@ -87,6 +71,20 @@ pipeline {
       notifyBuildResult(slackComment: true)
     }
   }
+}
+
+def runSmokeTests() {
+  def smokeTestJobs = [:]
+  dir ("${BASE_DIR}") {
+    def smokeTests = sh(returnStdout: true, script: 'make smoketest/discover').trim().split('\r?\n')
+    log(level: 'INFO', text: "make smoketest/discover: '${smokeTests}'")
+    for (smokeTest in smokeTests) {
+      // get the title for the stage based on the basename of the smoke test full path to be run
+      def title = sh(script: "basename ${smokeTest}", returnStdout:true).trim()
+      smokeTestJobs["${title}"] = runSmokeTest(title: title, smokeTest: smokeTest)
+    }
+  }
+  parallel smokeTestJobs
 }
 
 def runSmokeTest(Map args = [:]) {
