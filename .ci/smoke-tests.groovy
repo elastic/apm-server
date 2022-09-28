@@ -31,7 +31,7 @@ pipeline {
       steps {
         deleteDir()
         gitCheckout(basedir: "${BASE_DIR}", shallow: false)
-        setEnvVar('GO_VERSION', readFile(file: ".go-version").trim())
+        setEnvVar('GO_VERSION', readFile(file: "${BASE_DIR}/.go-version").trim())
       }
     }
     stage('Smoke Tests') {
