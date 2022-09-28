@@ -2,8 +2,8 @@
 
 set -eo pipefail
 
-if [[ ${1} != 7.17 ]]; then
-    echo "-> Skipping smoke test..."
+if [[ "${1}" != "7.17" ]]; then
+    echo "-> Skipping smoke test [${1} is not supported]..."
     exit 0
 fi
 
