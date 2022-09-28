@@ -399,7 +399,8 @@ func TestConcurrentAsync(t *testing.T) {
 				p.semAcquire(context.Background(), false)
 			}
 		}
-		pResult.Accepted += int(batchProcessor.processed)
+		processed := atomic.LoadUint64(&batchProcessor.processed)
+		pResult.Accepted += int(processed)
 		return
 	}
 
