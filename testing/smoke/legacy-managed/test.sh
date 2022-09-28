@@ -9,9 +9,10 @@ if [[ "${1}" != "7.17" ]]; then
 else
     echo "-> Running smoke test [${VERSION}]"
 fi
+
 ARTIFACTS_API=https://artifacts-api.elastic.co/v1
 # Check if the version is available.
-if ! curl --fail $ARTIFACTS_API/versions/${VERSION} ; then
+if ! curl -s --fail $ARTIFACTS_API/versions/${VERSION} ; then
     echo "-> Skipping there are no artifacts to be downloaded in artifacts-api.elastic.co ..."
     exit 0
 fi

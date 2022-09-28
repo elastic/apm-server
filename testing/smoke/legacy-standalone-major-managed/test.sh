@@ -15,7 +15,7 @@ ARTIFACTS_API=https://artifacts-api.elastic.co/v1
 VERSIONS=$(curl -s --fail $ARTIFACTS_API/versions | jq -r -c '[.versions[] | select(. | endswith("-SNAPSHOT") | not)] | sort')
 NEXT_MAJOR_LATEST=$(echo ${VERSIONS} | jq -r '[.[] | select(. | startswith("8"))] | last')
 # Check if the version is available.
-if ! curl --fail $ARTIFACTS_API/versions/${VERSION} ; then
+if ! curl -s --fail $ARTIFACTS_API/versions/${VERSION} ; then
     echo "-> Skipping there are no artifacts to be downloaded in artifacts-api.elastic.co ..."
     exit 0
 fi
