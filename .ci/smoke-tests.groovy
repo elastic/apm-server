@@ -2,7 +2,7 @@
 @Library('apm@current') _
 
 pipeline {
-  agent { label 'linux && immutable' }
+  agent { label 'k8s' }
   environment {
     REPO = 'apm-server'
     BASE_DIR = "src/github.com/elastic/${env.REPO}"
@@ -89,8 +89,10 @@ def runSmokeTest(Map args = [:]) {
   def testDir = args.smokeTest
   def title = args.get('title', testDir)
   return {
-    log(level: 'INFO', text: "SMOKETEST_VERSIONS='${SMOKETEST_VERSIONS}'")
-    sh(label: "Run smoke tests ${testDir}", script: "make smoketest/run TEST_DIR=${testDir}")
+    withNode(labels: 'k8s', forceWorker: true) {
+      log(level: 'INFO', text: "SMOKETEST_VERSIONS='${SMOKETEST_VERSIONS}'")
+      sh(label: "Run smoke tests ${testDir}", script: "make smoketest/run TEST_DIR=${testDir}")
+    }
   }
 }
 
