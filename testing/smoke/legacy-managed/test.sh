@@ -9,14 +9,14 @@ if [[ "${1}" != "7.17" ]]; then
 else
     echo "-> Running smoke test [${VERSION}]"
 fi
-
+ARTIFACTS_API=https://artifacts-api.elastic.co/v1
 # Check if the version is available.
-if ! curl --fail https://artifacts-api.elastic.co/v1/versions/${VERSION} ; then
-	echo "-> Error there are no artifacts to be downloaded in artifacts-api.elastic.co ..."
-    exit 1
+if ! curl --fail $ARTIFACTS_API/versions/${VERSION} ; then
+    echo "-> Skipping there are no artifacts to be downloaded in artifacts-api.elastic.co ..."
+    exit 0
 fi
 
-LATEST_VERSION=$(curl -s --fail https://artifacts-api.elastic.co/v1/versions/${VERSION} | jq -r '.version.builds[0].version')
+LATEST_VERSION=$(curl -s --fail $ARTIFACTS_API/versions/${VERSION} | jq -r '.version.builds[0].version')
 
 echo "-> Running ${LATEST_VERSION} standalone to ${LATEST_VERSION} managed upgrade"
 
