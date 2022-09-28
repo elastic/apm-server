@@ -2,7 +2,6 @@
     "events": [
         {
             "@timestamp": "2021-09-15T20:11:06.000Z",
-            "_doc_count": 1,
             "agent": {
                 "name": "elastic-node"
             },
@@ -28,9 +27,14 @@
             "container": {
                 "id": "container-id"
             },
-            "data_stream.dataset": "apm.internal",
-            "data_stream.namespace": "default",
-            "data_stream.type": "metrics",
+            "data_stream": {
+                "dataset": "apm.internal",
+                "namespace": "default",
+                "type": "metrics"
+            },
+            "ecs": {
+                "version": "8.6.0-dev"
+            },
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
@@ -38,7 +42,9 @@
             },
             "faas": {
                 "coldstart": false,
-                "trigger.type": "http"
+                "trigger": {
+                    "type": "http"
+                }
             },
             "host": {
                 "hostname": "node-name",
@@ -55,7 +61,9 @@
             "labels": {
                 "tag1": "one"
             },
-            "metricset.name": "transaction",
+            "metricset": {
+                "name": "transaction"
+            },
             "numeric_labels": {
                 "tag2": 2
             },
@@ -90,13 +98,15 @@
                 "instance": "1234_service-12a3:faas:2a7054ba528b6bef"
             },
             "transaction": {
-                "duration.histogram": {
-                    "counts": [
-                        1
-                    ],
-                    "values": [
-                        38911
-                    ]
+                "duration": {
+                    "histogram": {
+                        "counts": [
+                            1
+                        ],
+                        "values": [
+                            38911
+                        ]
+                    }
                 },
                 "name": "faas",
                 "result": "success",
@@ -106,13 +116,17 @@
         },
         {
             "@timestamp": "2006-01-02T15:04:05.000Z",
-            "_doc_count": 5,
             "agent": {
                 "name": "go"
             },
-            "data_stream.dataset": "apm.internal",
-            "data_stream.namespace": "default",
-            "data_stream.type": "metrics",
+            "data_stream": {
+                "dataset": "apm.internal",
+                "namespace": "default",
+                "type": "metrics"
+            },
+            "ecs": {
+                "version": "8.6.0-dev"
+            },
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
@@ -125,7 +139,9 @@
                     "platform": "minix"
                 }
             },
-            "metricset.name": "transaction",
+            "metricset": {
+                "name": "transaction"
+            },
             "observer": {
                 "ephemeral_id": "dynamic",
                 "hostname": "dynamic",
@@ -155,13 +171,15 @@
                 "instance": "systemtest:abc:954c62c5a2b8d0dd"
             },
             "transaction": {
-                "duration.histogram": {
-                    "counts": [
-                        5
-                    ],
-                    "values": [
-                        1003519
-                    ]
+                "duration": {
+                    "histogram": {
+                        "counts": [
+                            5
+                        ],
+                        "values": [
+                            1003519
+                        ]
+                    }
                 },
                 "name": "abc",
                 "root": true,
@@ -170,13 +188,17 @@
         },
         {
             "@timestamp": "2006-01-02T15:04:05.000Z",
-            "_doc_count": 10,
             "agent": {
                 "name": "go"
             },
-            "data_stream.dataset": "apm.internal",
-            "data_stream.namespace": "default",
-            "data_stream.type": "metrics",
+            "data_stream": {
+                "dataset": "apm.internal",
+                "namespace": "default",
+                "type": "metrics"
+            },
+            "ecs": {
+                "version": "8.6.0-dev"
+            },
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
@@ -189,7 +211,9 @@
                     "platform": "minix"
                 }
             },
-            "metricset.name": "transaction",
+            "metricset": {
+                "name": "transaction"
+            },
             "observer": {
                 "ephemeral_id": "dynamic",
                 "hostname": "dynamic",
@@ -219,13 +243,15 @@
                 "instance": "systemtest:def:3f14f7166cf7659e"
             },
             "transaction": {
-                "duration.histogram": {
-                    "counts": [
-                        10
-                    ],
-                    "values": [
-                        1003519
-                    ]
+                "duration": {
+                    "histogram": {
+                        "counts": [
+                            10
+                        ],
+                        "values": [
+                            1003519
+                        ]
+                    }
                 },
                 "name": "def",
                 "root": true,

@@ -19,3 +19,4 @@ https://github.com/elastic/apm-server/compare/8.5\...main[View commits]
 
 [float]
 ==== Added
+- Metrics data streams now use synthetic source {pull}9215[9215]

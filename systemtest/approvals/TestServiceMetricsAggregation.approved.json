@@ -2,18 +2,24 @@
     "events": [
         {
             "@timestamp": "2006-01-02T15:04:05.000Z",
-            "_doc_count": 2,
             "agent": {
                 "name": "go"
             },
-            "data_stream.dataset": "apm.internal",
-            "data_stream.namespace": "default",
-            "data_stream.type": "metrics",
+            "data_stream": {
+                "dataset": "apm.internal",
+                "namespace": "default",
+                "type": "metrics"
+            },
+            "ecs": {
+                "version": "8.6.0-dev"
+            },
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic"
             },
-            "metricset.name": "service",
+            "metricset": {
+                "name": "service"
+            },
             "observer": {
                 "ephemeral_id": "dynamic",
                 "hostname": "dynamic",
@@ -29,9 +35,11 @@
                 "name": "systemtest"
             },
             "transaction": {
-                "duration.summary": {
-                    "sum": 2000000,
-                    "value_count": 2
+                "duration": {
+                    "summary": {
+                        "sum": 2000000,
+                        "value_count": 2
+                    }
                 },
                 "success_count": 2,
                 "type": "type1"
@@ -39,18 +47,24 @@
         },
         {
             "@timestamp": "2006-01-02T15:04:05.000Z",
-            "_doc_count": 2,
             "agent": {
                 "name": "go"
             },
-            "data_stream.dataset": "apm.internal",
-            "data_stream.namespace": "default",
-            "data_stream.type": "metrics",
+            "data_stream": {
+                "dataset": "apm.internal",
+                "namespace": "default",
+                "type": "metrics"
+            },
+            "ecs": {
+                "version": "8.6.0-dev"
+            },
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic"
             },
-            "metricset.name": "service",
+            "metricset": {
+                "name": "service"
+            },
             "observer": {
                 "ephemeral_id": "dynamic",
                 "hostname": "dynamic",
@@ -66,9 +80,11 @@
                 "name": "systemtest"
             },
             "transaction": {
-                "duration.summary": {
-                    "sum": 2000000,
-                    "value_count": 2
+                "duration": {
+                    "summary": {
+                        "sum": 2000000,
+                        "value_count": 2
+                    }
                 },
                 "success_count": 2,
                 "type": "type2"
