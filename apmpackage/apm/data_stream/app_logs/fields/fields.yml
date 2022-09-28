@@ -1,140 +1,97 @@
-- name: http
-  type: group
-  fields:
-    - name: request
-      type: group
-      fields:
-        - name: headers
-          type: object
-          description: |
-            The canonical headers of the monitored HTTP request.
-    - name: response
-      type: group
-      fields:
-        - name: finished
-          type: boolean
-          description: |
-            Used by the Node agent to indicate when in the response life cycle an error has occurred.
-        - name: headers
-          type: object
-          description: |
-            The canonical headers of the monitored HTTP response.
-- name: kubernetes
-  title: Kubernetes
-  type: group
+- name: http.request.headers
+  type: object
   description: |
-    Kubernetes metadata reported by agents
-  fields:
-    - name: namespace
-      type: keyword
-      description: |
-        Kubernetes namespace
-    - name: node
-      type: group
-      fields:
-        - name: name
-          type: keyword
-          description: |
-            Kubernetes node name
-    - name: pod
-      type: group
-      fields:
-        - name: name
-          type: keyword
-          description: |
-            Kubernetes pod name
-        - name: uid
-          type: keyword
-          description: |
-            Kubernetes Pod UID
-- name: observer
-  type: group
-  fields:
-    - name: ephemeral_id
-      type: keyword
-      description: |
-        Ephemeral identifier of the APM Server.
-    - name: id
-      type: keyword
-      description: |
-        Unique identifier of the APM Server.
+    The canonical headers of the monitored HTTP request.
+- name: http.response.finished
+  type: boolean
+  description: |
+    Used by the Node agent to indicate when in the response life cycle an error has occurred.
+- name: http.response.headers
+  type: object
+  description: |
+    The canonical headers of the monitored HTTP response.
+- name: kubernetes.namespace
+  type: keyword
+  description: |
+    Kubernetes namespace
+- name: kubernetes.node.name
+  type: keyword
+  description: |
+    Kubernetes node name
+- name: kubernetes.pod.name
+  type: keyword
+  description: |
+    Kubernetes pod name
+- name: kubernetes.pod.uid
+  type: keyword
+  description: |
+    Kubernetes Pod UID
+- name: observer.ephemeral_id
+  type: keyword
+  description: |
+    Ephemeral identifier of the APM Server.
+- name: observer.id
+  type: keyword
+  description: |
+    Unique identifier of the APM Server.
 - name: processor.event
   type: constant_keyword
   description: Processor event.
 - name: processor.name
   type: constant_keyword
   description: Processor name.
-- name: service
-  type: group
+- name: service.framework.name
+  type: keyword
   description: |
-    Service fields.
-  fields:
-    - name: framework
-      type: group
-      fields:
-        - name: name
-          type: keyword
-          description: |
-            Name of the framework used.
-        - name: version
-          type: keyword
-          description: |
-            Version of the framework used.
-    - name: language
-      type: group
-      fields:
-        - name: name
-          type: keyword
-          description: |
-            Name of the programming language used.
-        - name: version
-          type: keyword
-          description: |
-            Version of the programming language used.
-    - name: runtime
-      type: group
-      fields:
-        - name: name
-          type: keyword
-          description: |
-            Name of the runtime used.
-        - name: version
-          type: keyword
-          description: |
-            Version of the runtime used.
-- name: faas
-  type: group
+    Name of the framework used.
+- name: service.framework.version
+  type: keyword
   description: |
-    Function as a service fields.
-  fields:
-    - name: id
-      type: keyword
-      description: |
-        A unique identifier of the invoked serverless function.
-    - name: coldstart
-      type: boolean
-      description: |
-        Boolean indicating whether the function invocation was a coldstart or not.
-    - name: execution
-      type: keyword
-      description: |
-        Request ID of the function invocation.
-    - name: trigger.request_id
-      type: keyword
-      description: |
-        The ID of the origin trigger request.
-    - name: trigger.type
-      type: keyword
-      description: |
-        The trigger type.
-    - name: name
-      type: keyword
-      description: |
-        The lambda function name.
-    - name: version
-      type: keyword
-      description: |
-        The lambda function version.
+    Version of the framework used.
+- name: service.language.name
+  type: keyword
+  description: |
+    Name of the programming language used.
+- name: service.language.version
+  type: keyword
+  description: |
+    Version of the programming language used.
+- name: service.runtime.name
+  type: keyword
+  description: |
+    Name of the runtime used.
+- name: service.runtime.version
+  type: keyword
+  description: |
+    Version of the runtime used.
+- name: faas.id
+  type: keyword
+  description: |
+    A unique identifier of the invoked serverless function.
+- name: faas.coldstart
+  type: boolean
+  description: |
+    Boolean indicating whether the function invocation was a coldstart or not.
+- name: faas.execution
+  type: keyword
+  description: |
+    Request ID of the function invocation.
+- name: faas.trigger.request_id
+  type: keyword
+  description: |
+    The ID of the origin trigger request.
+- name: faas.trigger.type
+  type: keyword
+  description: |
+    The trigger type.
+- name: faas.name
+  type: keyword
+  description: |
+    The lambda function name.
+- name: faas.version
+  type: keyword
+  description: |
+    The lambda function version.
 - name: numeric_labels
   type: object
   dynamic: true

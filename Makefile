@@ -286,9 +286,9 @@ RALLY_BULK_SIZE?=5000
 RALLY_GENCORPORA_REPLAY_COUNT?=1
 
 .PHONY: rally
-rally: $(PYTHON_BIN)/esrally rally/corpora
+rally: $(PYTHON_BIN)/esrally testing/rally/corpora
 	@$(PYTHON_BIN)/esrally race \
-		--track-path=rally \
+		--track-path=testing/rally \
 		--track-params=expected_cluster_health:yellow,bulk_size:$(RALLY_BULK_SIZE) \
 		--kill-running-processes \
 		$(RALLY_FLAGS)
@@ -296,10 +296,10 @@ rally: $(PYTHON_BIN)/esrally rally/corpora
 $(PYTHON_BIN)/esrally: $(PYTHON_BIN)
 	@$(PYTHON_BIN)/pip install -U esrally
 
-.PHONY: rally/corpora
-rally/corpora:
-	@rm -fr rally/corpora && mkdir rally/corpora
-	@cd systemtest/cmd/gencorpora && $(GO) run . -write-dir $(CURRENT_DIR)/rally/corpora/ -replay-count $(RALLY_GENCORPORA_REPLAY_COUNT)
+.PHONY: testing/rally/corpora
+testing/rally/corpora:
+	@rm -fr testing/rally/corpora && mkdir testing/rally/corpora
+	@cd systemtest/cmd/gencorpora && $(GO) run . -write-dir $(CURRENT_DIR)/testing/rally/corpora/ -replay-count $(RALLY_GENCORPORA_REPLAY_COUNT)
 
 ##############################################################################
 # Smoke tests -- Basic smoke tests for APM Server.

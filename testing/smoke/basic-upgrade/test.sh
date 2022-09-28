@@ -40,7 +40,9 @@ fi
 
 echo "-> Running basic upgrade smoke test for version ${VERSION}"
 
-trap "terraform_destroy" EXIT
+if [[ -z ${SKIP_DESTROY} ]]; then
+    trap "terraform_destroy" EXIT
+fi
 
 terraform_apply ${PREV_LATEST_VERSION} ${INTEGRATIONS_SERVER}
 healthcheck 1

@@ -66,7 +66,7 @@ When running APM Server directly, it is only necessary to install the integratio
 
 ### Testing
 
-For Testing check out the [testing guide](TESTING.md)
+For Testing check out the [testing guide](dev_docs/TESTING.md)
 
 ### Cleanup
 
@@ -83,7 +83,7 @@ or contributing to APM Server.
 
 ### Releases
 
-See [releases](RELEASES.md) for an APM Server release checklist.
+See [releases](dev_docs/RELEASES.md) for an APM Server release checklist.
 
 ## Updating dependencies
 
