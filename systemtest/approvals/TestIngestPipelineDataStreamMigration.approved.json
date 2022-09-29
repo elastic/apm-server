@@ -151,26 +151,41 @@
                 "namespace": "migrated",
                 "type": "metrics"
             },
+            "ecs": {
+                "version": "dynamic"
+            },
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic"
             },
-            "golang.goroutines": 11,
-            "golang.heap.allocations.active": 6160384,
-            "golang.heap.allocations.allocated": 4579688,
-            "golang.heap.allocations.frees": 39979,
-            "golang.heap.allocations.idle": 5701632,
-            "golang.heap.allocations.mallocs": 44520,
-            "golang.heap.allocations.objects": 4541,
-            "golang.heap.allocations.total": 8834120,
-            "golang.heap.gc.cpu_fraction": 0.00031759519816489074,
-            "golang.heap.gc.next_gc_limit": 8842488,
-            "golang.heap.gc.total_count": 3,
-            "golang.heap.gc.total_pause.ns": 178493,
-            "golang.heap.system.obtained": 11862016,
-            "golang.heap.system.released": 3989504,
-            "golang.heap.system.stack": 720896,
-            "golang.heap.system.total": 20268040,
+            "golang": {
+                "goroutines": 11,
+                "heap": {
+                    "allocations": {
+                        "active": 6160384,
+                        "allocated": 4579688,
+                        "frees": 39979,
+                        "idle": 5701632,
+                        "mallocs": 44520,
+                        "objects": 4541,
+                        "total": 8834120
+                    },
+                    "gc": {
+                        "cpu_fraction": 0.0003175952,
+                        "next_gc_limit": 8842488,
+                        "total_count": 3,
+                        "total_pause": {
+                            "ns": 178493
+                        }
+                    },
+                    "system": {
+                        "obtained": 11862016,
+                        "released": 3989504,
+                        "stack": 720896,
+                        "total": 20268040
+                    }
+                }
+            },
             "host": {
                 "architecture": "amd64",
                 "hostname": "corduroy",
@@ -180,7 +195,9 @@
                     "platform": "linux"
                 }
             },
-            "metricset.name": "app",
+            "metricset": {
+                "name": "app"
+            },
             "observer": {
                 "ephemeral_id": "dynamic",
                 "hostname": "dynamic",
@@ -190,9 +207,7 @@
                 "version": "dynamic"
             },
             "process": {
-                "args": [
-                    "/tmp/go-build1405913256/b001/exe/main"
-                ],
+                "args": "/tmp/go-build1405913256/b001/exe/main",
                 "parent": {
                     "pid": 4009763
                 },
@@ -217,12 +232,36 @@
                     "version": "go1.18.1"
                 }
             },
-            "system.cpu.total.norm.pct": 0.022556390977443663,
-            "system.memory.actual.free": 33981652992,
-            "system.memory.total": 46108971008,
-            "system.process.cpu.total.norm.pct": 0.002506265664160401,
-            "system.process.memory.rss.bytes": 15187968,
-            "system.process.memory.size": 1485594624
+            "system": {
+                "cpu": {
+                    "total": {
+                        "norm": {
+                            "pct": 0.02255639
+                        }
+                    }
+                },
+                "memory": {
+                    "actual": {
+                        "free": 33981653000
+                    },
+                    "total": 46108971000
+                },
+                "process": {
+                    "cpu": {
+                        "total": {
+                            "norm": {
+                                "pct": 0.0025062656
+                            }
+                        }
+                    },
+                    "memory": {
+                        "rss": {
+                            "bytes": 15187968
+                        },
+                        "size": 1485594620
+                    }
+                }
+            }
         },
         {
             "@timestamp": "2022-09-12T03:52:51.178Z",
@@ -238,6 +277,9 @@
                 "namespace": "migrated",
                 "type": "metrics"
             },
+            "ecs": {
+                "version": "dynamic"
+            },
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic"
@@ -251,7 +293,9 @@
                     "platform": "linux"
                 }
             },
-            "metricset.name": "span_breakdown",
+            "metricset": {
+                "name": "span_breakdown"
+            },
             "observer": {
                 "ephemeral_id": "dynamic",
                 "hostname": "dynamic",
@@ -261,9 +305,7 @@
                 "version": "dynamic"
             },
             "process": {
-                "args": [
-                    "/tmp/go-build1405913256/b001/exe/main"
-                ],
+                "args": "/tmp/go-build1405913256/b001/exe/main",
                 "parent": {
                     "pid": 4009763
                 },
@@ -291,7 +333,9 @@
             "span": {
                 "self_time": {
                     "count": 1,
-                    "sum.us": 15
+                    "sum": {
+                        "us": 15
+                    }
                 },
                 "type": "app"
             },
@@ -314,6 +358,9 @@
                 "namespace": "migrated",
                 "type": "metrics"
             },
+            "ecs": {
+                "version": "dynamic"
+            },
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic"
@@ -327,7 +374,9 @@
                     "platform": "linux"
                 }
             },
-            "metricset.name": "span_breakdown",
+            "metricset": {
+                "name": "span_breakdown"
+            },
             "observer": {
                 "ephemeral_id": "dynamic",
                 "hostname": "dynamic",
@@ -337,9 +386,7 @@
                 "version": "dynamic"
             },
             "process": {
-                "args": [
-                    "/tmp/go-build1405913256/b001/exe/main"
-                ],
+                "args": "/tmp/go-build1405913256/b001/exe/main",
                 "parent": {
                     "pid": 4009763
                 },
@@ -367,7 +414,9 @@
             "span": {
                 "self_time": {
                     "count": 1,
-                    "sum.us": 10220
+                    "sum": {
+                        "us": 10220
+                    }
                 },
                 "type": "type"
             },
@@ -386,12 +435,17 @@
                 "namespace": "migrated",
                 "type": "metrics"
             },
+            "ecs": {
+                "version": "dynamic"
+            },
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
                 "outcome": "failure"
             },
-            "metricset.name": "service_destination",
+            "metricset": {
+                "name": "service_destination"
+            },
             "observer": {
                 "ephemeral_id": "dynamic",
                 "hostname": "dynamic",
@@ -413,7 +467,9 @@
                         "resource": "dest_resource",
                         "response_time": {
                             "count": 1,
-                            "sum.us": 10220
+                            "sum": {
+                                "us": 10220
+                            }
                         }
                     }
                 }
@@ -421,7 +477,6 @@
         },
         {
             "@timestamp": "2022-09-12T03:52:00.000Z",
-            "_doc_count": 1,
             "agent": {
                 "name": "go"
             },
@@ -433,6 +488,9 @@
                 "namespace": "migrated",
                 "type": "metrics"
             },
+            "ecs": {
+                "version": "dynamic"
+            },
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
@@ -442,7 +500,9 @@
                 "hostname": "corduroy",
                 "name": "corduroy"
             },
-            "metricset.name": "transaction",
+            "metricset": {
+                "name": "transaction"
+            },
             "observer": {
                 "ephemeral_id": "dynamic",
                 "hostname": "dynamic",
@@ -465,13 +525,15 @@
                 "instance": "main:name:5b6121c8e3ec693e"
             },
             "transaction": {
-                "duration.histogram": {
-                    "counts": [
-                        1
-                    ],
-                    "values": [
-                        10239
-                    ]
+                "duration": {
+                    "histogram": {
+                        "counts": [
+                            1
+                        ],
+                        "values": [
+                            10239
+                        ]
+                    }
                 },
                 "name": "name",
                 "root": true,
