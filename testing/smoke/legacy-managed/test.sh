@@ -7,14 +7,18 @@ if [[ ${1} != 7.17 ]]; then
     exit 0
 fi
 
+. $(git rev-parse --show-toplevel)/testing/smoke/lib.sh
+
 VERSION=7.17
-LATEST_VERSION=$(curl -s --fail https://artifacts-api.elastic.co/v1/versions/${VERSION} | jq -r '.version.builds[0].version')
+get_versions
+get_latest_patch ${VERSION}
+LATEST_VERSION=${VERSION}.${LATEST_PATCH}
 
 echo "-> Running ${LATEST_VERSION} standalone to ${LATEST_VERSION} managed upgrade"
 
-. $(git rev-parse --show-toplevel)/testing/smoke/lib.sh
-
-trap "terraform_destroy" EXIT
+if [[ -z ${SKIP_DESTROY} ]]; then
+    trap "terraform_destroy" EXIT
+fi
 
 terraform_apply ${LATEST_VERSION}
 healthcheck 1

@@ -7,18 +7,19 @@ if [[ ${1} != 7.17 ]]; then
     exit 0
 fi
 
-VERSION=7.17
+. $(git rev-parse --show-toplevel)/testing/smoke/lib.sh
 
-# Load all versions except SNAPSHOTS
-VERSIONS=$(curl -s --fail https://artifacts-api.elastic.co/v1/versions | jq -r -c '[.versions[] | select(. | endswith("-SNAPSHOT") | not)] | sort')
+VERSION=7.17
+get_versions
+get_latest_patch ${VERSION}
+LATEST_VERSION=${VERSION}.${LATEST_PATCH}
 NEXT_MAJOR_LATEST=$(echo ${VERSIONS} | jq -r '[.[] | select(. | startswith("8"))] | last')
-LATEST_VERSION=$(curl -s --fail https://artifacts-api.elastic.co/v1/versions/${VERSION} | jq -r '.version.builds[0].version')
 
 echo "-> Running ${LATEST_VERSION} standalone to ${NEXT_MAJOR_LATEST} to ${NEXT_MAJOR_LATEST} managed"
 
-. $(git rev-parse --show-toplevel)/testing/smoke/lib.sh
-
-trap "terraform_destroy" EXIT
+if [[ -z ${SKIP_DESTROY} ]]; then
+    trap "terraform_destroy" EXIT
+fi
 
 terraform_apply ${LATEST_VERSION}
 healthcheck 1
@@ -33,5 +34,6 @@ data_stream_assertions ${NEXT_MAJOR_LATEST}
 upgrade_managed ${NEXT_MAJOR_LATEST}
 healthcheck 1
 send_events
-# Assert there are 2 instances of the same event, since we ingested data twice.
+# Assert there are 2 instances of the same event, since we ingested data twice
+# using the same APM Server version.
 data_stream_assertions ${NEXT_MAJOR_LATEST} 2
