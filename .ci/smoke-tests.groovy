@@ -32,6 +32,7 @@ pipeline {
         deleteDir()
         gitCheckout(basedir: "${BASE_DIR}", shallow: false)
         setEnvVar('GO_VERSION', readFile(file: "${BASE_DIR}/.go-version").trim())
+        stash(allowEmpty: true, name: 'source', useDefaultExcludes: false)
       }
     }
     stage('Smoke Tests') {
@@ -88,7 +89,15 @@ def runSmokeTestWithVersion(Map args = [:]) {
   def title = args.get('title', testDir)
   def version = args.version
   return {
-    sh(label: "Run smoke tests ${testDir} for ${version}", script: "make smoketest/run-version TEST_DIR=${testDir} SMOKETEST_VERSION=${version}")
+    withNode(labels: 'linux && immutable', forceWorker: true) {
+      deleteDir()
+      unstash 'source'
+      dir("${BASE_DIR}") {
+        withTestClusterEnv {
+          sh(label: "Run smoke tests ${testDir} for ${version}", script: "make smoketest/run-version TEST_DIR=${testDir} SMOKETEST_VERSION=${version}")
+        }
+      }
+    }
   }
 }
 
