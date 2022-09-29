@@ -151,10 +151,7 @@ func TestApplicationMetrics(t *testing.T) {
 	for _, fieldName := range expectedFields {
 		var found bool
 		for _, hit := range result.Hits.Hits {
-			// Metrics are written with dotted field names rather than
-			// as hierarchical objects, so escape dots in the gjson path.
-			path := strings.Replace(fieldName, ".", "\\.", -1)
-			if gjson.GetBytes(hit.RawSource, path).Exists() {
+			if gjson.GetBytes(hit.RawSource, fieldName).Exists() {
 				found = true
 				break
 			}
@@ -237,5 +234,6 @@ func unmarshalMetricsetDoc(t testing.TB, hit *estest.SearchHit) metricsetDoc {
 	if err := hit.UnmarshalSource(&doc); err != nil {
 		t.Fatal(err)
 	}
+	doc.MetricsetName = gjson.GetBytes(hit.RawSource, "metricset").Get("name").String()
 	return doc
 }

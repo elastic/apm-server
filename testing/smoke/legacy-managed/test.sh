@@ -6,24 +6,20 @@ VERSION="${1}"
 if [[ "${1}" != "7.17" ]]; then
     echo "-> Skipping smoke test ['${VERSION}' is not supported]..."
     exit 0
-else
-    echo "-> Running smoke test [${VERSION}]"
 fi
-
-ARTIFACTS_API=https://artifacts-api.elastic.co/v1
-# Check if the version is available.
-if ! curl -s --fail $ARTIFACTS_API/versions/${VERSION} ; then
-    echo "-> Skipping there are no artifacts to be downloaded in artifacts-api.elastic.co ..."
-    exit 0
-fi
-
-LATEST_VERSION=$(curl -s --fail $ARTIFACTS_API/versions/${VERSION} | jq -r '.version.builds[0].version')
-
-echo "-> Running ${LATEST_VERSION} standalone to ${LATEST_VERSION} managed upgrade"
 
 . $(git rev-parse --show-toplevel)/testing/smoke/lib.sh
 
-trap "terraform_destroy" EXIT
+VERSION=7.17
+get_versions
+get_latest_patch ${VERSION}
+LATEST_VERSION=${VERSION}.${LATEST_PATCH}
+
+echo "-> Running ${LATEST_VERSION} standalone to ${LATEST_VERSION} managed upgrade"
+
+if [[ -z ${SKIP_DESTROY} ]]; then
+    trap "terraform_destroy" EXIT
+fi
 
 terraform_apply ${LATEST_VERSION}
 healthcheck 1

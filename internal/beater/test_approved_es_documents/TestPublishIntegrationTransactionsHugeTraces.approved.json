@@ -38,9 +38,6 @@
             "data_stream.dataset": "apm",
             "data_stream.namespace": "default",
             "data_stream.type": "traces",
-            "ecs": {
-                "version": "1.12.0"
-            },
             "event": {
                 "duration": 32592981,
                 "outcome": "success"

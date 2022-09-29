@@ -16,9 +16,6 @@
             "data_stream.dataset": "apm.error",
             "data_stream.namespace": "default",
             "data_stream.type": "logs",
-            "ecs": {
-                "version": "1.12.0"
-            },
             "error": {
                 "culprit": "opbeans.controllers.DTInterceptor.preHandle(DTInterceptor.java:73)",
                 "custom": {
@@ -308,9 +305,6 @@
             "data_stream.dataset": "apm",
             "data_stream.namespace": "default",
             "data_stream.type": "traces",
-            "ecs": {
-                "version": "1.12.0"
-            },
             "event": {
                 "duration": 3781912,
                 "outcome": "success"
@@ -472,9 +466,6 @@
             "data_stream.dataset": "apm",
             "data_stream.namespace": "default",
             "data_stream.type": "traces",
-            "ecs": {
-                "version": "1.12.0"
-            },
             "event": {
                 "duration": 32592981,
                 "outcome": "success"
@@ -666,9 +657,6 @@
             "data_stream.dataset": "apm.internal",
             "data_stream.namespace": "default",
             "data_stream.type": "metrics",
-            "ecs": {
-                "version": "1.12.0"
-            },
             "host": {
                 "architecture": "amd64",
                 "hostname": "node-name",

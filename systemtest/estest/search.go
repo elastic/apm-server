@@ -77,6 +77,7 @@ func (es *Client) ExpectMinDocs(t testing.TB, min int, index string, query inter
 func (es *Client) Search(index string) *SearchRequest {
 	req := &SearchRequest{es: es}
 	req.Index = strings.Split(index, ",")
+	req.Body = strings.NewReader(`{"fields": ["*"]}`)
 	return req
 }
 
@@ -87,9 +88,11 @@ type SearchRequest struct {
 
 func (r *SearchRequest) WithQuery(q interface{}) *SearchRequest {
 	var body struct {
-		Query interface{} `json:"query"`
+		Query  interface{} `json:"query"`
+		Fields []string    `json:"fields"`
 	}
 	body.Query = q
+	body.Fields = []string{"*"}
 	r.Body = esutil.NewJSONReader(&body)
 	return r
 }
@@ -152,16 +155,18 @@ type SearchHit struct {
 	Index     string
 	ID        string
 	Score     float64
+	Fields    map[string][]interface{}
 	Source    map[string]interface{}
 	RawSource json.RawMessage
 }
 
 func (h *SearchHit) UnmarshalJSON(data []byte) error {
 	var searchHit struct {
-		Index  string          `json:"_index"`
-		ID     string          `json:"_id"`
-		Score  float64         `json:"_score"`
-		Source json.RawMessage `json:"_source"`
+		Index  string                   `json:"_index"`
+		ID     string                   `json:"_id"`
+		Score  float64                  `json:"_score"`
+		Source json.RawMessage          `json:"_source"`
+		Fields map[string][]interface{} `json:"fields"`
 	}
 	if err := json.Unmarshal(data, &searchHit); err != nil {
 		return err
@@ -170,6 +175,7 @@ func (h *SearchHit) UnmarshalJSON(data []byte) error {
 	h.ID = searchHit.ID
 	h.Score = searchHit.Score
 	h.RawSource = searchHit.Source
+	h.Fields = searchHit.Fields
 	h.Source = make(map[string]interface{})
 	return json.Unmarshal(h.RawSource, &h.Source)
 }

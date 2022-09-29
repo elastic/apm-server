@@ -5,9 +5,8 @@ set -eo pipefail
 # Load common lib
 . $(git rev-parse --show-toplevel)/testing/smoke/lib.sh
 
-ARTIFACTS_API=https://artifacts-api.elastic.co/v1
-# Load the latest versions except SNAPSHOTS
-VERSIONS=$(curl -s --fail $ARTIFACTS_API/versions | jq -r -c '[.versions[] | select(. | endswith("-SNAPSHOT") | not)] | sort')
+# Get all the versions from the current region.
+get_versions
 
 VERSION=${1}
 if [[ -z ${VERSION} ]] || [[ "${VERSION}" == "latest" ]]; then
@@ -19,20 +18,20 @@ MINOR_VERSION=$(echo ${VERSION} | cut -d '.' -f2 )
 
 if [[ ${MAJOR_VERSION} -eq 7 ]]; then
     ASSERT_EVENTS_FUNC=legacy_assertions
-    # Check if the version is available.
-    if ! curl -s --fail $ARTIFACTS_API/versions/${MAJOR_VERSION}.${MINOR_VERSION} ; then
-        echo "-> Skipping there are no artifacts to be downloaded in artifacts-api.elastic.co ..."
-        exit 0
-    fi
-    LATEST_VERSION=$(curl -s --fail $ARTIFACTS_API/versions/${MAJOR_VERSION}.${MINOR_VERSION} | jq -r '.version.builds[0].version')
-    PREV_LATEST_VERSION=$(echo ${MAJOR_VERSION}.${MINOR_VERSION}.$(( $(echo ${LATEST_VERSION} | cut -d '.' -f3) -1 )))
+    INTEGRATIONS_SERVER=false
+    get_latest_patch "${MAJOR_VERSION}.${MINOR_VERSION}"
+    LATEST_VERSION=${MAJOR_VERSION}.${MINOR_VERSION}.${LATEST_PATCH}
+    PREV_LATEST_VERSION=$(echo ${MAJOR_VERSION}.${MINOR_VERSION}.$(( ${LATEST_PATCH} -1 )))
 elif [[ ${MAJOR_VERSION} -eq 8 ]]; then
     ASSERT_EVENTS_FUNC=data_stream_assertions
-    LATEST_VERSION=$(echo ${VERSIONS} | jq -r "[.[] | select(. | contains(\"${VERSION}\"))] | last")
-    # $ARTIFACTS_API/versions only provides the last two
-    # major versions and minor versions. For that reason, we use a regex.
-    PREV_LATEST_VERSION=$(echo "${MAJOR_VERSION}.$(( ${MINOR_VERSION} -1 )).[0-9]?([0-9])\$")
     INTEGRATIONS_SERVER=true
+
+    get_latest_patch "${MAJOR_VERSION}.${MINOR_VERSION}"
+    LATEST_VERSION=${MAJOR_VERSION}.${MINOR_VERSION}.${LATEST_PATCH}
+
+    PREV_MINOR=$(( ${MINOR_VERSION} -1 ))
+    get_latest_patch "${MAJOR_VERSION}.${PREV_MINOR}"
+    PREV_LATEST_VERSION=${MAJOR_VERSION}.${PREV_MINOR}.${LATEST_PATCH}
 else
     echo "version ${VERSION} not supported"
     exit 5
