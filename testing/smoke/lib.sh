@@ -3,12 +3,33 @@
 export TF_IN_AUTOMATION=1
 export TF_CLI_ARGS=-no-color
 
+get_versions() {
+    if [[ -z ${EC_API_KEY} ]]; then
+        echo "-> ESS API Key not set, please set the EC_API_KEY environment variable."
+        return 1
+    fi
+    # initialize terraform, so we can obtain the configured region.
+    terraform_init
+
+    local REGION=$(echo var.region | terraform console | tr -d '"')
+    local EC_VERSION_ENDPOINT="https://cloud.elastic.co/api/v1/regions/${REGION}/stack/versions?show_deleted=false&show_unusable=false"
+    VERSIONS=$(curl -s --fail -H "Authorization: ApiKey ${EC_API_KEY}" ${EC_VERSION_ENDPOINT} | jq -r -c '[.stacks[].version | select(. | contains("-") | not)] | sort')
+}
+
+get_latest_patch() {
+    LATEST_PATCH=$(echo ${VERSIONS} | jq -r -c "[.[] | select(. |startswith(\"${1}\"))] | last" | cut -d '.' -f3)
+}
+
+terraform_init() {
+    if [[ ! -f main.tf ]]; then cp ../main.tf .; fi
+    if [[ ! -f .terraform.lock.hcl ]]; then terraform init >> tf.log; fi
+}
+
 terraform_apply() {
     echo "-> Creating / Upgrading deployment to version ${1}"
     echo stack_version=\"${1}\" > terraform.tfvars
-    if [[ ! -z ${2} ]] && [[ ${2} ]]; then echo integrations_server=true >> terraform.tfvars; fi
-    if [[ ! -f main.tf ]]; then cp ../main.tf .; fi
-    if [[ ! -f .terraform.lock.hcl ]]; then terraform init >> tf.log; fi
+    if [[ ! -z ${2} ]]; then echo integrations_server=${2} >> terraform.tfvars; fi
+    terraform_init
     terraform apply -auto-approve >> tf.log
 
     if [[ ${EXPORTED_AUTH} ]]; then
