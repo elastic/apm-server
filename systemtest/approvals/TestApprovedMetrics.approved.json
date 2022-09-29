@@ -12,7 +12,7 @@
                 "type": "metrics"
             },
             "ecs": {
-                "version": "8.6.0-dev"
+                "version": "dynamic"
             },
             "event": {
                 "agent_id_status": "missing",
@@ -80,7 +80,7 @@
                 "type": "metrics"
             },
             "ecs": {
-                "version": "8.6.0-dev"
+                "version": "dynamic"
             },
             "event": {
                 "agent_id_status": "missing",
@@ -155,7 +155,7 @@
                 "type": "metrics"
             },
             "ecs": {
-                "version": "8.6.0-dev"
+                "version": "dynamic"
             },
             "event": {
                 "agent_id_status": "missing",
@@ -244,7 +244,7 @@
                 "type": "metrics"
             },
             "ecs": {
-                "version": "8.6.0-dev"
+                "version": "dynamic"
             },
             "event": {
                 "agent_id_status": "missing",
@@ -315,7 +315,7 @@
                 "type": "metrics"
             },
             "ecs": {
-                "version": "8.6.0-dev"
+                "version": "dynamic"
             },
             "event": {
                 "agent_id_status": "missing",
@@ -391,7 +391,7 @@
                 "type": "metrics"
             },
             "ecs": {
-                "version": "8.6.0-dev"
+                "version": "dynamic"
             },
             "event": {
                 "agent_id_status": "missing",
