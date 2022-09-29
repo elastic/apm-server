@@ -15,7 +15,7 @@ used to configure the module, please refer to the [EC Provider docs](https://reg
 
 | Name | Version |
 |------|---------|
-| <a name="provider_ec"></a> [ec](#provider\_ec) | >=0.4.1 |
+| <a name="provider_ec"></a> [ec](#provider\_ec) | 0.4.0 |
 | <a name="provider_external"></a> [external](#provider\_external) | n/a |
 | <a name="provider_local"></a> [local](#provider\_local) | n/a |
 | <a name="provider_null"></a> [null](#provider\_null) | n/a |
@@ -42,8 +42,8 @@ used to configure the module, please refer to the [EC Provider docs](https://reg
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | <a name="input_apm_index_shards"></a> [apm\_index\_shards](#input\_apm\_index\_shards) | The number of shards to set for APM Indices | `number` | `0` | no |
-| <a name="input_apm_server_expvar"></a> [apm\_server\_expvar](#input\_apm\_server\_expvar) | Whether or not to enable APM Server's expvar endpoint. Defaults to true | `bool` | `true` | no |
-| <a name="input_apm_server_pprof"></a> [apm\_server\_pprof](#input\_apm\_server\_pprof) | Whether or not to enable APM Server's pprof endpoint. Defaults to true | `bool` | `true` | no |
+| <a name="input_apm_server_expvar"></a> [apm\_server\_expvar](#input\_apm\_server\_expvar) | Whether or not to enable APM Server's expvar endpoint. Defaults to false | `bool` | `false` | no |
+| <a name="input_apm_server_pprof"></a> [apm\_server\_pprof](#input\_apm\_server\_pprof) | Whether or not to enable APM Server's pprof endpoint. Defaults to false | `bool` | `false` | no |
 | <a name="input_apm_server_size"></a> [apm\_server\_size](#input\_apm\_server\_size) | Optional apm server instance size | `string` | `"1g"` | no |
 | <a name="input_apm_server_zone_count"></a> [apm\_server\_zone\_count](#input\_apm\_server\_zone\_count) | Optional apm server zone count | `number` | `1` | no |
 | <a name="input_custom_apm_integration_pkg_path"></a> [custom\_apm\_integration\_pkg\_path](#input\_custom\_apm\_integration\_pkg\_path) | Path to the zipped custom APM integration package, if empty custom apm integration pkg is not installed | `string` | `""` | no |
@@ -55,7 +55,7 @@ used to configure the module, please refer to the [EC Provider docs](https://reg
 | <a name="input_elasticsearch_dedicated_masters"></a> [elasticsearch\_dedicated\_masters](#input\_elasticsearch\_dedicated\_masters) | Optionally use dedicated masters for the Elasticsearch cluster | `bool` | `false` | no |
 | <a name="input_elasticsearch_size"></a> [elasticsearch\_size](#input\_elasticsearch\_size) | Optional Elasticsearch instance size | `string` | `"8g"` | no |
 | <a name="input_elasticsearch_zone_count"></a> [elasticsearch\_zone\_count](#input\_elasticsearch\_zone\_count) | Optional Elasticsearch zone count | `number` | `2` | no |
-| <a name="input_integrations_server"></a> [integrations\_server](#input\_integrations\_server) | Optionally use the integrations server block instead of the apm block | `bool` | `false` | no |
+| <a name="input_integrations_server"></a> [integrations\_server](#input\_integrations\_server) | Optionally disable the integrations server block and use the apm block (7.x only) | `bool` | `true` | no |
 | <a name="input_monitor_deployment"></a> [monitor\_deployment](#input\_monitor\_deployment) | Optionally monitor the deployment in a separate deployment | `bool` | `false` | no |
 | <a name="input_region"></a> [region](#input\_region) | Optional ESS or ECE region. Defaults to GCP US West 2 (Los Angeles) | `string` | `"gcp-us-west2"` | no |
 | <a name="input_stack_version"></a> [stack\_version](#input\_stack\_version) | Optional stack version | `string` | `"latest"` | no |
