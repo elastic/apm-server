@@ -5,11 +5,10 @@ set -eo pipefail
 # Load common lib
 . $(git rev-parse --show-toplevel)/testing/smoke/lib.sh
 
-VERSION=${1}
-export TF_WORKSPACE=${VERSION}
-
 # Get all the versions from the current region.
 get_versions
+
+VERSION=${1}
 if [[ -z ${VERSION} ]] || [[ "${VERSION}" == "latest" ]]; then
     VERSION=$(echo ${VERSIONS} | jq -r 'last')
     echo "-> unspecified version, using $(echo ${VERSION} | cut -d '.' -f1-2)"
