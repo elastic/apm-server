@@ -12,6 +12,14 @@ GOTESTFLAGS?=-v
 # Prevent unintended modifications of go.[mod|sum]
 GOMODFLAG?=-mod=readonly
 
+# Define the github.com/elastic/ecs ref used for the integration package for
+# resolving ECS fields. The top-level "value" file in the repo will be used
+# for populating the `ecs.version` field added to documents.
+#
+# TODO(axw) when the device.* fields we're using have been added to a release,
+# we should pin to a release tag here.
+ECS_REF?=266cf6aa62e46bff1965342a61191ce5ffe1b0d7
+
 PYTHON_ENV?=.
 PYTHON_VENV_DIR:=$(PYTHON_ENV)/build/ve/$(shell $(GO) env GOOS)
 PYTHON_BIN:=$(PYTHON_VENV_DIR)/bin
@@ -149,6 +157,11 @@ get-version:
 # Integration package generation.
 ##############################################################################
 
+ECS_REF_FILE:=build/ecs/$(ECS_REF).txt
+$(ECS_REF_FILE):
+	@mkdir -p $(@D)
+	@curl --fail --silent -o $@ https://raw.githubusercontent.com/elastic/ecs/$(ECS_REF)/version
+
 build-package: build/packages/apm-$(APM_SERVER_VERSION).zip
 build-package-snapshot: build/packages/apm-$(APM_SERVER_VERSION)-preview-$(GITCOMMITTIMESTAMPUNIX).zip
 build/packages/apm-$(APM_SERVER_VERSION).zip: build/apmpackage
@@ -159,9 +172,9 @@ build/packages/apm-%.zip: $(ELASTICPACKAGE)
 .PHONY: build/apmpackage build/apmpackage-snapshot
 build/apmpackage: PACKAGE_VERSION=$(APM_SERVER_VERSION)
 build/apmpackage-snapshot: PACKAGE_VERSION=$(APM_SERVER_VERSION)-preview-$(GITCOMMITTIMESTAMPUNIX)
-build/apmpackage build/apmpackage-snapshot:
+build/apmpackage build/apmpackage-snapshot: $(ECS_REF_FILE)
 	@mkdir -p $(@D) && rm -fr $@
-	@$(GO) run ./apmpackage/cmd/genpackage -o $@ -version=$(PACKAGE_VERSION)
+	@$(GO) run ./apmpackage/cmd/genpackage -o $@ -version=$(PACKAGE_VERSION) -ecs=$$(cat $(ECS_REF_FILE)) -ecsref=git@$(ECS_REF)
 
 ##############################################################################
 # Documentation.

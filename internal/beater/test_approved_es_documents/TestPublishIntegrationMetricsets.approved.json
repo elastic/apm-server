@@ -9,9 +9,6 @@
             "data_stream.dataset": "apm.internal",
             "data_stream.namespace": "default",
             "data_stream.type": "metrics",
-            "ecs": {
-                "version": "1.12.0"
-            },
             "host": {
                 "ip": [
                     "127.0.0.1"
@@ -79,9 +76,6 @@
             "data_stream.dataset": "apm.app.1234_service_12a3",
             "data_stream.namespace": "default",
             "data_stream.type": "metrics",
-            "ecs": {
-                "version": "1.12.0"
-            },
             "go.memstats.heap.sys.bytes": 6520832,
             "host": {
                 "ip": [
@@ -136,9 +130,6 @@
             "data_stream.dataset": "apm.internal",
             "data_stream.namespace": "default",
             "data_stream.type": "metrics",
-            "ecs": {
-                "version": "1.12.0"
-            },
             "host": {
                 "ip": [
                     "127.0.0.1"
@@ -200,9 +191,6 @@
             "data_stream.dataset": "apm.app.1234_service_12a3",
             "data_stream.namespace": "default",
             "data_stream.type": "metrics",
-            "ecs": {
-                "version": "1.12.0"
-            },
             "host": {
                 "ip": [
                     "127.0.0.1"
@@ -266,9 +254,6 @@
             "data_stream.dataset": "apm.app.1234_service_12a3",
             "data_stream.namespace": "default",
             "data_stream.type": "metrics",
-            "ecs": {
-                "version": "1.12.0"
-            },
             "host": {
                 "ip": [
                     "127.0.0.1"
@@ -338,9 +323,6 @@
             "data_stream.dataset": "apm.internal",
             "data_stream.namespace": "default",
             "data_stream.type": "metrics",
-            "ecs": {
-                "version": "1.12.0"
-            },
             "faas": {
                 "coldstart": true,
                 "execution": "6f7f0961f83442118a7af6fe80b88d56",

@@ -12,7 +12,7 @@ provider "ec" {}
 
 module "ec_deployment" {
   source = "../../infra/terraform/modules/ec_deployment"
-  region = "gcp-us-west2"
+  region = var.region
 
   deployment_template    = "gcp-compute-optimized-v2"
   deployment_name_prefix = "smoke-upgrade"
@@ -37,6 +37,12 @@ variable "integrations_server" {
   default     = false
   description = "Optionally use the integrations_server resource"
   type        = bool
+}
+
+variable "region" {
+  default     = "gcp-us-west2"
+  description = "Optional ESS region where to run the smoke tests"
+  type        = string
 }
 
 output "apm_secret_token" {

@@ -39,9 +39,6 @@
             "data_stream.dataset": "apm.error",
             "data_stream.namespace": "default",
             "data_stream.type": "logs",
-            "ecs": {
-                "version": "1.12.0"
-            },
             "error": {
                 "culprit": "my.module.function_name",
                 "custom": {
@@ -392,9 +389,6 @@
             "data_stream.dataset": "apm.error",
             "data_stream.namespace": "default",
             "data_stream.type": "logs",
-            "ecs": {
-                "version": "1.12.0"
-            },
             "error": {
                 "grouping_key": "dc8dd667f7036ec5f0bae87bf2188243",
                 "id": "xFoaabb123FFFFFF",
@@ -517,9 +511,6 @@
             "data_stream.dataset": "apm.error",
             "data_stream.namespace": "default",
             "data_stream.type": "logs",
-            "ecs": {
-                "version": "1.12.0"
-            },
             "error": {
                 "exception": [
                     {
@@ -638,9 +629,6 @@
             "data_stream.dataset": "apm.error",
             "data_stream.namespace": "default",
             "data_stream.type": "logs",
-            "ecs": {
-                "version": "1.12.0"
-            },
             "error": {
                 "exception": [
                     {
@@ -764,9 +752,6 @@
             "data_stream.dataset": "apm.error",
             "data_stream.namespace": "default",
             "data_stream.type": "logs",
-            "ecs": {
-                "version": "1.12.0"
-            },
             "error": {
                 "grouping_key": "d6b3f958dfea98dc9ed2b57d5f0c48bb",
                 "id": "abcdef0123456789",

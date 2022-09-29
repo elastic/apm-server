@@ -3,9 +3,11 @@
         {
             "@timestamp": "dynamic",
             "agent_config_applied": 1,
-            "data_stream.dataset": "apm.internal",
-            "data_stream.namespace": "default",
-            "data_stream.type": "metrics",
+            "data_stream": {
+                "dataset": "apm.internal",
+                "namespace": "default",
+                "type": "metrics"
+            },
             "ecs": {
                 "version": "dynamic"
             },
@@ -16,7 +18,9 @@
             "labels": {
                 "etag": "dynamic"
             },
-            "metricset.name": "agent_config",
+            "metricset": {
+                "name": "agent_config"
+            },
             "observer": {
                 "ephemeral_id": "dynamic",
                 "hostname": "dynamic",
