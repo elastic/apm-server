@@ -31,9 +31,6 @@
             "data_stream.dataset": "apm.internal",
             "data_stream.namespace": "default",
             "data_stream.type": "metrics",
-            "ecs": {
-                "version": "dynamic"
-            },
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
@@ -116,9 +113,6 @@
             "data_stream.dataset": "apm.internal",
             "data_stream.namespace": "default",
             "data_stream.type": "metrics",
-            "ecs": {
-                "version": "dynamic"
-            },
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
@@ -183,9 +177,6 @@
             "data_stream.dataset": "apm.internal",
             "data_stream.namespace": "default",
             "data_stream.type": "metrics",
-            "ecs": {
-                "version": "dynamic"
-            },
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",

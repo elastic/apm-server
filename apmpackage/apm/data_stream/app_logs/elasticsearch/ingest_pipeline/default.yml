@@ -5,3 +5,5 @@ processors:
       name: process_ppid
   - pipeline:
       name: observer_version
+  - pipeline:
+      name: ecs_version

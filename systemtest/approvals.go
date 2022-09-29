@@ -45,7 +45,6 @@ func ApproveEvents(t testing.TB, name string, hits []estest.SearchHit, dynamic .
 	// Ignore their values in comparisons, but compare
 	// existence: either the field exists in both, or neither.
 	dynamic = append([]string{
-		"ecs.version",
 		"event.ingested",
 		"observer.ephemeral_id",
 		"observer.hostname",

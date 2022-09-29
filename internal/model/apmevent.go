@@ -31,7 +31,6 @@ type APMEvent struct {
 	// DataStream optionally holds data stream identifiers.
 	DataStream DataStream
 
-	ECSVersion  string
 	Event       Event
 	Agent       Agent
 	Observer    Observer
@@ -118,9 +117,6 @@ func (e *APMEvent) BeatEvent() beat.Event {
 	// Set top-level field sets.
 	event.Timestamp = e.Timestamp
 	e.DataStream.setFields(fields)
-	if e.ECSVersion != "" {
-		fields.set("ecs", mapstr.M{"version": e.ECSVersion})
-	}
 	fields.maybeSetMapStr("service", e.Service.Fields())
 	fields.maybeSetMapStr("agent", e.Agent.fields())
 	fields.maybeSetMapStr("observer", e.Observer.Fields())

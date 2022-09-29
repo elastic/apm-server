@@ -146,8 +146,14 @@ be configured to use an ECE installation) with some light bash scripting which i
 and upgrades, but ensures there aren't any major problems with APM Server accepting and indexing events where
 it should.
 
-The smoke tests can be found under [`testing/smoke`](./testing/smoke) and the latest CI runs can be found in
+The smoke tests can be found under [`testing/smoke`](./../testing/smoke) and the latest CI runs can be found in
 the [APM CI dashboard](https://ela.st/apm-server-smoke-tests).
+
+### Debugging Failures
+
+If the smoke tests are failing on the CI environment and active investigation is needed, it may be useful to
+run the tests with the `SKIP_DESTROY` variable set to any value (`true` or `1` work too), which will prevent the
+ESS deployment from being destroyed to allow some debugging to be done.
 
 ## Manual testing
 
@@ -231,4 +237,4 @@ $  go run main.go -arch amd64
 ### Running an Elastic Cloud deployment with a locally built APM Server and APM integration package
 
 It is possible for Elastic employees to create an Elastic Cloud deployment with a locally built
-APM Server binary and APM integration package. See [`testing/cloud`](./testing/cloud) for instructions.
+APM Server binary and APM integration package. See [`testing/cloud`](./../testing/cloud) for instructions.

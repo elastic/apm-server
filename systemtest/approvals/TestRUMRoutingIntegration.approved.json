@@ -14,9 +14,6 @@
                 "address": "localhost",
                 "port": 8003
             },
-            "ecs": {
-                "version": "dynamic"
-            },
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
@@ -104,9 +101,6 @@
                 "address": "localhost",
                 "port": 8000
             },
-            "ecs": {
-                "version": "dynamic"
-            },
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
@@ -190,9 +184,6 @@
             "data_stream.dataset": "apm.rum",
             "data_stream.namespace": "default",
             "data_stream.type": "traces",
-            "ecs": {
-                "version": "dynamic"
-            },
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
@@ -259,9 +250,6 @@
             "destination": {
                 "address": "localhost",
                 "port": 8003
-            },
-            "ecs": {
-                "version": "dynamic"
             },
             "event": {
                 "agent_id_status": "missing",
@@ -347,9 +335,6 @@
             "data_stream.dataset": "apm.rum",
             "data_stream.namespace": "default",
             "data_stream.type": "traces",
-            "ecs": {
-                "version": "dynamic"
-            },
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
@@ -414,9 +399,6 @@
             "data_stream.dataset": "apm.rum",
             "data_stream.namespace": "default",
             "data_stream.type": "traces",
-            "ecs": {
-                "version": "dynamic"
-            },
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
@@ -510,9 +492,6 @@
                 "address": "localhost",
                 "port": 8000
             },
-            "ecs": {
-                "version": "dynamic"
-            },
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
@@ -594,9 +573,6 @@
             "data_stream.dataset": "apm.rum",
             "data_stream.namespace": "default",
             "data_stream.type": "traces",
-            "ecs": {
-                "version": "dynamic"
-            },
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
@@ -661,9 +637,6 @@
             "data_stream.dataset": "apm.rum",
             "data_stream.namespace": "default",
             "data_stream.type": "traces",
-            "ecs": {
-                "version": "dynamic"
-            },
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
