@@ -43,8 +43,11 @@ import (
 	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/common/reload"
 	"github.com/elastic/beats/v7/libbeat/esleg/eslegclient"
+	"github.com/elastic/beats/v7/libbeat/instrumentation"
 	"github.com/elastic/beats/v7/libbeat/licenser"
+	"github.com/elastic/beats/v7/libbeat/outputs"
 	esoutput "github.com/elastic/beats/v7/libbeat/outputs/elasticsearch"
+	"github.com/elastic/beats/v7/libbeat/publisher/pipeline"
 	"github.com/elastic/beats/v7/libbeat/publisher/pipetool"
 	agentconfig "github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
@@ -60,6 +63,7 @@ import (
 	javaattacher "github.com/elastic/apm-server/internal/beater/java_attacher"
 	"github.com/elastic/apm-server/internal/beater/ratelimit"
 	"github.com/elastic/apm-server/internal/elasticsearch"
+	"github.com/elastic/apm-server/internal/idxmgmt"
 	"github.com/elastic/apm-server/internal/kibana"
 	"github.com/elastic/apm-server/internal/logs"
 	"github.com/elastic/apm-server/internal/model"
@@ -96,29 +100,28 @@ type CreatorParams struct {
 // NewCreator returns a new beat.Creator which creates beaters
 // using the provided CreatorParams.
 func NewCreator(args CreatorParams) beat.Creator {
-	return func(b *beat.Beat, ucfg *agentconfig.C) (beat.Beater, error) {
+	return func(b *beat.Beat, apmServerConfig *agentconfig.C) (beat.Beater, error) {
 		logger := args.Logger
 		if logger != nil {
 			logger = logger.Named(logs.Beater)
 		} else {
 			logger = logp.NewLogger(logs.Beater)
 		}
+
 		bt := &beater{
-			rawConfig:                 ucfg,
-			stopped:                   false,
-			logger:                    logger,
-			wrapServer:                args.WrapServer,
-			waitPublished:             publish.NewWaitPublishedAcker(),
-			outputConfigReloader:      newChanReloader(),
-			libbeatMonitoringRegistry: monitoring.Default.GetRegistry("libbeat"),
+			apmServerConfig: apmServerConfig,
+			rootConfig:      (*agentconfig.C)(((*ucfg.Config)(apmServerConfig)).Parent()),
+			stopped:         false,
+			logger:          logger,
+			wrapServer:      args.WrapServer,
 		}
 
 		var elasticsearchOutputConfig *agentconfig.C
-		if hasElasticsearchOutput(b) {
+		if b.Config != nil && b.Config.Output.Name() == "elasticsearch" {
 			elasticsearchOutputConfig = b.Config.Output.Config()
 		}
 		var err error
-		bt.config, err = config.NewConfig(bt.rawConfig, elasticsearchOutputConfig)
+		bt.config, err = config.NewConfig(bt.apmServerConfig, elasticsearchOutputConfig)
 		if err != nil {
 			return nil, err
 		}
@@ -132,26 +135,16 @@ func NewCreator(args CreatorParams) beat.Creator {
 			}
 		}
 
-		if b.Manager != nil && b.Manager.Enabled() {
-			// Subscribe to output changes for reconfiguring apm-server's Elasticsearch
-			// clients, which use the Elasticsearch output config by default. We install
-			// this during beat creation to ensure output config reloads are not missed;
-			// reloads will be blocked until the chanReloader is served by beater.run.
-			b.OutputConfigReloader = bt.outputConfigReloader
-		}
-
 		return bt, nil
 	}
 }
 
 type beater struct {
-	rawConfig                 *agentconfig.C
-	config                    *config.Config
-	logger                    *logp.Logger
-	wrapServer                WrapServerFunc
-	waitPublished             *publish.WaitPublishedAcker
-	outputConfigReloader      *chanReloader
-	libbeatMonitoringRegistry *monitoring.Registry
+	apmServerConfig *agentconfig.C
+	rootConfig      *agentconfig.C
+	config          *config.Config
+	logger          *logp.Logger
+	wrapServer      WrapServerFunc
 
 	mutex      sync.Mutex // guards stopServer and stopped
 	stopServer func()
@@ -163,24 +156,10 @@ type beater struct {
 func (bt *beater) Run(b *beat.Beat) error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	if err := bt.run(ctx, cancel, b); err != nil {
-		return err
-	}
-	return bt.waitPublished.Wait(ctx)
+	return bt.run(ctx, cancel, b)
 }
 
 func (bt *beater) run(ctx context.Context, cancelContext context.CancelFunc, b *beat.Beat) error {
-	tracer, tracerServer, err := initTracing(b, bt.config, bt.logger)
-	if err != nil {
-		return err
-	}
-	if tracerServer != nil {
-		defer tracerServer.Close()
-	}
-	if tracer != nil {
-		defer tracer.Close()
-	}
-
 	// add deprecation warning if running on a 32-bit system
 	if runtime.GOARCH == "386" {
 		bt.logger.Warn("deprecation notice: support for 32-bit system target architecture will be removed in an upcoming version")
@@ -189,13 +168,9 @@ func (bt *beater) run(ctx context.Context, cancelContext context.CancelFunc, b *
 	reloader := reloader{
 		runServerContext: ctx,
 		args: sharedServerRunnerParams{
-			Beat:                      b,
-			WrapServer:                bt.wrapServer,
-			Logger:                    bt.logger,
-			Tracer:                    tracer,
-			TracerServer:              tracerServer,
-			Acker:                     bt.waitPublished,
-			LibbeatMonitoringRegistry: bt.libbeatMonitoringRegistry,
+			Beat:       b,
+			WrapServer: bt.wrapServer,
+			Logger:     bt.logger,
 		},
 	}
 
@@ -213,19 +188,10 @@ func (bt *beater) run(ctx context.Context, cancelContext context.CancelFunc, b *
 		return nil
 	}
 
-	g, ctx := errgroup.WithContext(context.Background())
-	g.Go(func() error {
-		<-stopped
-		return nil
-	})
 	if b.Manager != nil && b.Manager.Enabled() {
 		// Managed by Agent: register input and output reloaders to reconfigure the server.
 		reload.Register.MustRegisterList("inputs", &reloader)
-		g.Go(func() error {
-			return bt.outputConfigReloader.serve(
-				ctx, reload.ReloadableFunc(reloader.reloadOutput),
-			)
-		})
+		reload.Register.MustRegister("output", reload.ReloadableFunc(reloader.reloadOutput))
 
 		// Start the manager after all the hooks are initialized
 		// and defined this ensure reloading consistency..
@@ -236,7 +202,8 @@ func (bt *beater) run(ctx context.Context, cancelContext context.CancelFunc, b *
 
 	} else {
 		// Management disabled, use statically defined config.
-		reloader.rawConfig = bt.rawConfig
+		reloader.apmServerConfig = bt.apmServerConfig
+		reloader.rootConfig = bt.rootConfig
 		if b.Config != nil {
 			reloader.outputConfig = b.Config.Output
 		}
@@ -247,7 +214,8 @@ func (bt *beater) run(ctx context.Context, cancelContext context.CancelFunc, b *
 			return err
 		}
 	}
-	return g.Wait()
+	<-stopped
+	return nil
 }
 
 // setStopServerFunc sets a function to call when the server is stopped.
@@ -267,11 +235,12 @@ type reloader struct {
 	runServerContext context.Context
 	args             sharedServerRunnerParams
 
-	mu           sync.Mutex
-	rawConfig    *agentconfig.C
-	outputConfig agentconfig.Namespace
-	fleetConfig  *config.Fleet
-	runner       *serverRunner
+	mu              sync.Mutex
+	rootConfig      *agentconfig.C
+	apmServerConfig *agentconfig.C
+	outputConfig    agentconfig.Namespace
+	fleetConfig     *config.Fleet
+	runner          *serverRunner
 }
 
 func (r *reloader) stop() {
@@ -298,17 +267,21 @@ func (r *reloader) Reload(configs []*reload.ConfigWithMeta) error {
 
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	r.rawConfig = integrationConfig.APMServer
+	r.rootConfig = cfg.Config
+	r.apmServerConfig = integrationConfig.APMServer
+
 	// Merge in datastream namespace passed in from apm integration
 	if integrationConfig.DataStream != nil && integrationConfig.DataStream.Namespace != "" {
 		c := agentconfig.MustNewConfigFrom(map[string]interface{}{
 			"data_streams.namespace": integrationConfig.DataStream.Namespace,
 		})
-		if r.rawConfig, err = agentconfig.MergeConfigs(r.rawConfig, c); err != nil {
+		r.apmServerConfig, err = agentconfig.MergeConfigs(r.apmServerConfig, c)
+		if err != nil {
 			return err
 		}
 	}
 	r.fleetConfig = &integrationConfig.Fleet
+
 	return r.reload()
 }
 
@@ -330,14 +303,15 @@ func (r *reloader) reloadOutput(config *reload.ConfigWithMeta) error {
 // serverRunner (if any) to exit. Calls to reload must be sycnhronized explicitly
 // by acquiring reloader#mu by callers.
 func (r *reloader) reload() error {
-	if r.rawConfig == nil {
+	if r.apmServerConfig == nil || !r.outputConfig.IsSet() {
 		// APM Server config not loaded yet.
 		return nil
 	}
 
 	runner, err := newServerRunner(r.runServerContext, serverRunnerParams{
 		sharedServerRunnerParams: r.args,
-		RawConfig:                r.rawConfig,
+		RootConfig:               r.rootConfig,
+		APMServerConfig:          r.apmServerConfig,
 		FleetConfig:              r.fleetConfig,
 		OutputConfig:             r.outputConfig,
 	})
@@ -388,36 +362,31 @@ type serverRunner struct {
 	started                chan struct{}
 	done                   chan struct{}
 
-	pipeline                  beat.PipelineConnector
-	acker                     *publish.WaitPublishedAcker
 	namespace                 string
 	config                    *config.Config
-	rawConfig                 *agentconfig.C
+	rootConfig                *agentconfig.C
+	apmServerConfig           *agentconfig.C
+	outputConfig              agentconfig.Namespace
 	elasticsearchOutputConfig *agentconfig.C
 	fleetConfig               *config.Fleet
 	beat                      *beat.Beat
 	logger                    *logp.Logger
-	tracer                    *apm.Tracer
-	tracerServer              *tracerServer
 	wrapServer                WrapServerFunc
-	libbeatMonitoringRegistry *monitoring.Registry
 }
 
 type serverRunnerParams struct {
 	sharedServerRunnerParams
 
-	RawConfig    *agentconfig.C
-	FleetConfig  *config.Fleet
-	OutputConfig agentconfig.Namespace
+	RootConfig      *agentconfig.C
+	APMServerConfig *agentconfig.C
+	FleetConfig     *config.Fleet
+	OutputConfig    agentconfig.Namespace
 }
 
 type sharedServerRunnerParams struct {
 	Beat                      *beat.Beat
 	WrapServer                WrapServerFunc
 	Logger                    *logp.Logger
-	Tracer                    *apm.Tracer
-	TracerServer              *tracerServer
-	Acker                     *publish.WaitPublishedAcker
 	LibbeatMonitoringRegistry *monitoring.Registry
 }
 
@@ -427,7 +396,7 @@ func newServerRunner(ctx context.Context, args serverRunnerParams) (*serverRunne
 		esOutputConfig = args.OutputConfig.Config()
 	}
 
-	cfg, err := config.NewConfig(args.RawConfig, esOutputConfig)
+	cfg, err := config.NewConfig(args.APMServerConfig, esOutputConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -441,18 +410,15 @@ func newServerRunner(ctx context.Context, args serverRunnerParams) (*serverRunne
 		started:                make(chan struct{}),
 
 		config:                    cfg,
-		rawConfig:                 args.RawConfig,
+		rootConfig:                args.RootConfig,
+		apmServerConfig:           args.APMServerConfig,
+		outputConfig:              args.OutputConfig,
 		elasticsearchOutputConfig: esOutputConfig,
 		fleetConfig:               args.FleetConfig,
-		acker:                     args.Acker,
-		pipeline:                  args.Beat.Publisher,
 		namespace:                 cfg.DataStreams.Namespace,
 		beat:                      args.Beat,
 		logger:                    args.Logger,
-		tracer:                    args.Tracer,
-		tracerServer:              args.TracerServer,
 		wrapServer:                args.WrapServer,
-		libbeatMonitoringRegistry: args.LibbeatMonitoringRegistry,
 	}, nil
 }
 
@@ -467,14 +433,16 @@ func (s *serverRunner) run(listener net.Listener) error {
 		kibanaClient = kibana.NewConnectingClient(s.config.Kibana.ClientConfig)
 	}
 
-	cfg := ucfg.Config(*s.rawConfig)
-	parentCfg := cfg.Parent()
 	// Check for an environment variable set when running in a cloud environment
 	eac := os.Getenv("ELASTIC_AGENT_CLOUD")
 	if eac != "" && s.config.Kibana.Enabled {
 		// Don't block server startup sending the config.
 		go func() {
-			if err := kibana.SendConfig(s.runServerContext, kibanaClient, parentCfg); err != nil {
+			if err := kibana.SendConfig(
+				s.runServerContext,
+				kibanaClient,
+				(*ucfg.Config)(s.rootConfig),
+			); err != nil {
 				s.logger.Infof("failed to upload config to kibana: %v", err)
 			}
 		}()
@@ -498,6 +466,17 @@ func (s *serverRunner) run(listener net.Listener) error {
 		}
 	}
 
+	instrumentation, err := instrumentation.New(s.rootConfig, s.beat.Info.Beat, s.beat.Info.Version)
+	if err != nil {
+		return err
+	}
+	tracer := instrumentation.Tracer()
+	tracerServerListener := instrumentation.Listener()
+	if tracerServerListener != nil {
+		defer tracerServerListener.Close()
+	}
+	defer tracer.Close()
+
 	g, ctx := errgroup.WithContext(s.runServerContext)
 
 	// Ensure the libbeat output and go-elasticsearch clients do not index
@@ -505,7 +484,7 @@ func (s *serverRunner) run(listener net.Listener) error {
 	publishReady := make(chan struct{})
 	drain := make(chan struct{})
 	g.Go(func() error {
-		if err := s.waitReady(ctx, kibanaClient); err != nil {
+		if err := s.waitReady(ctx, kibanaClient, tracer); err != nil {
 			// One or more preconditions failed; drop events.
 			close(drain)
 			return errors.Wrap(err, "error waiting for server to be ready")
@@ -560,13 +539,6 @@ func (s *serverRunner) run(listener net.Listener) error {
 		sourcemapFetcher = cachingFetcher
 	}
 
-	// Create the runServer function. We start with newBaseRunServer, and then
-	// wrap depending on the configuration in order to inject behaviour.
-	runServer := newBaseRunServer(listener)
-	if s.tracerServer != nil {
-		runServer = runServerWithTracerServer(runServer, s.tracerServer, s.tracer)
-	}
-
 	authenticator, err := auth.NewAuthenticator(s.config.AgentAuth)
 	if err != nil {
 		return err
@@ -585,7 +557,7 @@ func (s *serverRunner) run(listener net.Listener) error {
 	// even if TLS is enabled, as TLS is handled by the net/http server.
 	gRPCLogger := s.logger.Named("grpc")
 	grpcServer := grpc.NewServer(grpc.ChainUnaryInterceptor(
-		apmgrpc.NewUnaryServerInterceptor(apmgrpc.WithRecovery(), apmgrpc.WithTracer(s.tracer)),
+		apmgrpc.NewUnaryServerInterceptor(apmgrpc.WithRecovery(), apmgrpc.WithTracer(tracer)),
 		interceptors.ClientMetadata(),
 		interceptors.Logging(gRPCLogger),
 		interceptors.Metrics(gRPCLogger),
@@ -596,7 +568,10 @@ func (s *serverRunner) run(listener net.Listener) error {
 
 	// Create the BatchProcessor chain that is used to process all events,
 	// including the metrics aggregated by APM Server.
-	finalBatchProcessor, closeFinalBatchProcessor, err := s.newFinalBatchProcessor(newElasticsearchClient)
+	finalBatchProcessor, closeFinalBatchProcessor, err := s.newFinalBatchProcessor(
+		tracer,
+		newElasticsearchClient,
+	)
 	if err != nil {
 		return err
 	}
@@ -627,13 +602,15 @@ func (s *serverRunner) run(listener net.Listener) error {
 		return agentConfigReporter.Run(ctx)
 	})
 
+	// Create the runServer function. We start with newBaseRunServer, and then
+	// wrap depending on the configuration in order to inject behaviour.
 	serverParams := ServerParams{
 		UUID:                   s.beat.Info.ID,
 		Config:                 s.config,
 		Managed:                s.beat.Manager != nil && s.beat.Manager.Enabled(),
 		Namespace:              s.namespace,
 		Logger:                 s.logger,
-		Tracer:                 s.tracer,
+		Tracer:                 tracer,
 		Authenticator:          authenticator,
 		RateLimitStore:         ratelimitStore,
 		BatchProcessor:         batchProcessor,
@@ -644,6 +621,7 @@ func (s *serverRunner) run(listener net.Listener) error {
 		NewElasticsearchClient: newElasticsearchClient,
 		GRPCServer:             grpcServer,
 	}
+	runServer := newBaseRunServer(listener)
 	if s.wrapServer != nil {
 		// Wrap the serverParams and runServer function, enabling
 		// injection of behaviour into the processing chain.
@@ -678,9 +656,26 @@ func (s *serverRunner) run(listener net.Listener) error {
 	}
 	serverParams.BatchProcessor = append(preBatchProcessors, serverParams.BatchProcessor)
 
+	// Start the main server and the optional server for self-instrumentation.
 	g.Go(func() error {
 		return runServer(ctx, serverParams)
 	})
+	if tracerServerListener != nil {
+		tracerServer, err := newTracerServer(tracerServerListener, s.logger, serverParams.BatchProcessor)
+		if err != nil {
+			return fmt.Errorf("failed to create self-instrumentation server: %w", err)
+		}
+		g.Go(func() error {
+			if err := tracerServer.Serve(tracerServerListener); err != http.ErrServerClosed {
+				return err
+			}
+			return nil
+		})
+		go func() {
+			<-ctx.Done()
+			tracerServer.Shutdown(s.backgroundContext)
+		}()
+	}
 
 	// Signal that the runner has started
 	close(s.started)
@@ -693,7 +688,11 @@ func (s *serverRunner) run(listener net.Listener) error {
 }
 
 // waitReady waits until the server is ready to index events.
-func (s *serverRunner) waitReady(ctx context.Context, kibanaClient kibana.Client) error {
+func (s *serverRunner) waitReady(
+	ctx context.Context,
+	kibanaClient kibana.Client,
+	tracer *apm.Tracer,
+) error {
 	var preconditions []func(context.Context) error
 	var esOutputClient elasticsearch.Client
 	if s.elasticsearchOutputConfig != nil {
@@ -765,36 +764,31 @@ func (s *serverRunner) waitReady(ctx context.Context, kibanaClient kibana.Client
 		}
 		return nil
 	}
-	return waitReady(ctx, s.config.WaitReadyInterval, s.tracer, s.logger, check)
+	return waitReady(ctx, s.config.WaitReadyInterval, tracer, s.logger, check)
 }
 
 // newFinalBatchProcessor returns the final model.BatchProcessor that publishes events,
 // and a cleanup function which should be called on server shutdown. If the output is
 // "elasticsearch", then we use modelindexer; otherwise we use the libbeat publisher.
 func (s *serverRunner) newFinalBatchProcessor(
+	tracer *apm.Tracer,
 	newElasticsearchClient func(cfg *elasticsearch.Config) (elasticsearch.Client, error),
 ) (model.BatchProcessor, func(context.Context) error, error) {
+
+	monitoring.Default.Remove("libbeat")
+	libbeatMonitoringRegistry := monitoring.Default.NewRegistry("libbeat")
 	if s.elasticsearchOutputConfig == nil {
-		// When the publisher stops cleanly it will close its pipeline client,
-		// calling the acker's Close method. We need to call Open for each new
-		// publisher to ensure we wait for all clients and enqueued events to
-		// be closed at shutdown time.
-		s.acker.Open()
-		pipeline := pipetool.WithACKer(s.pipeline, s.acker)
-		publisher, err := publish.NewPublisher(pipeline, s.tracer)
-		if err != nil {
-			return nil, nil, err
-		}
-		// We only want to restore the previous libbeat registry if the output
-		// has a name, otherwise, keep the libbeat registry as is. This is to
-		// account for cases where the output config may be sent empty by the
-		// Elastic Agent.
-		if s.beat.Config != nil && s.beat.Config.Output.Name() != "" {
-			monitoring.Default.Remove("libbeat")
-			monitoring.Default.Add("libbeat", s.libbeatMonitoringRegistry, monitoring.Full)
-		}
-		return publisher, publisher.Stop, nil
+		return s.newLibbeatFinalBatchProcessor(tracer, libbeatMonitoringRegistry)
 	}
+
+	stateRegistry := monitoring.GetNamespace("state").GetRegistry()
+	outputRegistry := stateRegistry.GetRegistry("output")
+	if outputRegistry != nil {
+		outputRegistry.Clear()
+	} else {
+		outputRegistry = stateRegistry.NewRegistry("output")
+	}
+	monitoring.NewString(outputRegistry, "name").Set("elasticsearch")
 
 	var esConfig struct {
 		*elasticsearch.Config `config:",inline"`
@@ -824,7 +818,7 @@ func (s *serverRunner) newFinalBatchProcessor(
 		CompressionLevel: esConfig.CompressionLevel,
 		FlushBytes:       flushBytes,
 		FlushInterval:    esConfig.FlushInterval,
-		Tracer:           s.tracer,
+		Tracer:           tracer,
 		MaxRequests:      esConfig.MaxRequests,
 	})
 	if err != nil {
@@ -834,16 +828,15 @@ func (s *serverRunner) newFinalBatchProcessor(
 	// Install our own libbeat-compatible metrics callback which uses the modelindexer stats.
 	// All the metrics below are required to be reported to be able to display all relevant
 	// fields in the Stack Monitoring UI.
-	monitoring.Default.Remove("libbeat")
-	monitoring.NewFunc(monitoring.Default, "libbeat.output.write", func(_ monitoring.Mode, v monitoring.Visitor) {
+	monitoring.NewFunc(libbeatMonitoringRegistry, "output.write", func(_ monitoring.Mode, v monitoring.Visitor) {
 		v.OnRegistryStart()
 		defer v.OnRegistryFinished()
 		v.OnKey("bytes")
 		v.OnInt(indexer.Stats().BytesTotal)
 	})
-	outputType := monitoring.NewString(monitoring.Default.GetRegistry("libbeat.output"), "type")
+	outputType := monitoring.NewString(libbeatMonitoringRegistry.GetRegistry("output"), "type")
 	outputType.Set("elasticsearch")
-	monitoring.NewFunc(monitoring.Default, "libbeat.output.events", func(_ monitoring.Mode, v monitoring.Visitor) {
+	monitoring.NewFunc(libbeatMonitoringRegistry, "output.events", func(_ monitoring.Mode, v monitoring.Visitor) {
 		v.OnRegistryStart()
 		defer v.OnRegistryFinished()
 		stats := indexer.Stats()
@@ -860,7 +853,7 @@ func (s *serverRunner) newFinalBatchProcessor(
 		v.OnKey("total")
 		v.OnInt(stats.Added)
 	})
-	monitoring.NewFunc(monitoring.Default, "libbeat.pipeline.events", func(_ monitoring.Mode, v monitoring.Visitor) {
+	monitoring.NewFunc(libbeatMonitoringRegistry, "pipeline.events", func(_ monitoring.Mode, v monitoring.Visitor) {
 		v.OnRegistryStart()
 		defer v.OnRegistryFinished()
 		v.OnKey("total")
@@ -879,23 +872,46 @@ func (s *serverRunner) newFinalBatchProcessor(
 	return indexer, indexer.Close, nil
 }
 
-func hasElasticsearchOutput(b *beat.Beat) bool {
-	return b.Config != nil && b.Config.Output.Name() == "elasticsearch"
-}
+func (s *serverRunner) newLibbeatFinalBatchProcessor(
+	tracer *apm.Tracer,
+	libbeatMonitoringRegistry *monitoring.Registry,
+) (model.BatchProcessor, func(context.Context) error, error) {
+	// When the publisher stops cleanly it will close its pipeline client,
+	// calling the acker's Close method and unblock Wait.
+	acker := publish.NewWaitPublishedAcker()
+	acker.Open()
 
-func initTracing(b *beat.Beat, cfg *config.Config, logger *logp.Logger) (*apm.Tracer, *tracerServer, error) {
-	tracer := b.Instrumentation.Tracer()
-	listener := b.Instrumentation.Listener()
-
-	var tracerServer *tracerServer
-	if listener != nil {
-		var err error
-		tracerServer, err = newTracerServer(listener, logger)
-		if err != nil {
-			return nil, nil, err
-		}
+	monitors := pipeline.Monitors{
+		Metrics:   libbeatMonitoringRegistry,
+		Telemetry: monitoring.GetNamespace("state").GetRegistry(),
+		Logger:    logp.L().Named("publisher"),
+		Tracer:    tracer,
 	}
-	return tracer, tracerServer, nil
+	outputFactory := func(stats outputs.Observer) (string, outputs.Group, error) {
+		if !s.outputConfig.IsSet() {
+			return "", outputs.Group{}, nil
+		}
+		indexSupporter := idxmgmt.NewSupporter(nil, s.beat.Info, s.apmServerConfig)
+		outputName := s.outputConfig.Name()
+		output, err := outputs.Load(indexSupporter, s.beat.Info, stats, outputName, s.outputConfig.Config())
+		return outputName, output, err
+	}
+	pipeline, err := pipeline.Load(s.beat.Info, monitors, pipeline.Config{}, nopProcessingSupporter{}, outputFactory)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to create libbeat output pipeline: %w", err)
+	}
+	pipelineConnector := pipetool.WithACKer(pipeline, acker)
+	publisher, err := publish.NewPublisher(pipelineConnector, tracer)
+	if err != nil {
+		return nil, nil, err
+	}
+	stop := func(ctx context.Context) error {
+		if err := publisher.Stop(ctx); err != nil {
+			return err
+		}
+		return acker.Wait(ctx)
+	}
+	return publisher, stop, nil
 }
 
 // Stop stops the beater gracefully.
@@ -909,24 +925,8 @@ func (bt *beater) Stop() {
 		"stopping apm-server... waiting maximum of %v seconds for queues to drain",
 		bt.config.ShutdownTimeout.Seconds(),
 	)
-	bt.outputConfigReloader.cancel()
 	bt.stopServer()
 	bt.stopped = true
-}
-
-// runServerWithTracerServer wraps runServer such that it also runs
-// tracerServer, stopping it and the tracer when the server shuts down.
-func runServerWithTracerServer(runServer RunServerFunc, tracerServer *tracerServer, tracer *apm.Tracer) RunServerFunc {
-	return func(ctx context.Context, args ServerParams) error {
-		g, ctx := errgroup.WithContext(ctx)
-		g.Go(func() error {
-			return tracerServer.serve(ctx, args.BatchProcessor)
-		})
-		g.Go(func() error {
-			return runServer(ctx, args)
-		})
-		return g.Wait()
-	}
 }
 
 func newSourcemapFetcher(
@@ -1004,65 +1004,6 @@ func newSourcemapFetcher(
 	return chained, nil
 }
 
-// chanReloader implements libbeat/common/reload.Reloadable, converting
-// Reload calls into requests send to a channel consumed by serve.
-type chanReloader struct {
-	ctx    context.Context
-	cancel context.CancelFunc
-	ch     chan reloadRequest
-}
-
-func newChanReloader() *chanReloader {
-	ctx, cancel := context.WithCancel(context.Background())
-	ch := make(chan reloadRequest)
-	return &chanReloader{ctx, cancel, ch}
-}
-
-type reloadRequest struct {
-	cfg    *reload.ConfigWithMeta
-	result chan<- error
-}
-
-// Reload sends a reload request to r.ch, which is consumed by another
-// goroutine running r.serve. Reload blocks until serve has handled the
-// reload request, or until the reloader's context has been cancelled.
-func (r *chanReloader) Reload(cfg *reload.ConfigWithMeta) error {
-	result := make(chan error, 1)
-	select {
-	case <-r.ctx.Done():
-		return r.ctx.Err()
-	case r.ch <- reloadRequest{cfg: cfg, result: result}:
-	}
-	select {
-	case <-r.ctx.Done():
-		return r.ctx.Err()
-	case err := <-result:
-		return err
-	}
-}
-
-// serve handles reload requests enqueued by Reload, returning when either
-// ctx or r.ctx are cancelled.
-func (r *chanReloader) serve(ctx context.Context, reloader reload.Reloadable) error {
-	for {
-		select {
-		case <-r.ctx.Done():
-			return r.ctx.Err()
-		case <-ctx.Done():
-			return ctx.Err()
-		case req := <-r.ch:
-			err := reloader.Reload(req.cfg)
-			select {
-			case <-r.ctx.Done():
-				return r.ctx.Err()
-			case <-ctx.Done():
-				return ctx.Err()
-			case req.result <- err:
-			}
-		}
-	}
-}
-
 // TODO: This is copying behavior from libbeat:
 // https://github.com/elastic/beats/blob/b9ced47dba8bb55faa3b2b834fd6529d3c4d0919/libbeat/cmd/instance/beat.go#L927-L950
 // Remove this when cluster_uuid no longer needs to be queried from ES.
@@ -1116,4 +1057,14 @@ func queryClusterUUID(ctx context.Context, esClient elasticsearch.Client) error 
 
 	s.Set(response.ClusterUUID)
 	return nil
+}
+
+type nopProcessingSupporter struct{}
+
+func (nopProcessingSupporter) Close() error {
+	return nil
+}
+
+func (nopProcessingSupporter) Create(cfg beat.ProcessingConfig, _ bool) (beat.Processor, error) {
+	return cfg.Processor, nil
 }
