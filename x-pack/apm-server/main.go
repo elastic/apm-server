@@ -308,10 +308,9 @@ func queryElasticsearchClusterName(client elasticsearch.Client, logger *logp.Log
 		logger.Warnf("failed to fetch cluster name from Elasticsearch: %v", err)
 		return "", nil
 	}
-	type response struct {
+	var r struct {
 		ClusterName string `json:"cluster_name"`
 	}
-	var r response
 	if err := json.NewDecoder(resp.Body).Decode(&r); err != nil {
 		logger.Warnf("failed to parse Elasticsearch JSON response: %v", err)
 	}
