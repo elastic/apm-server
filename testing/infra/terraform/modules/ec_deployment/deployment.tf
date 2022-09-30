@@ -141,8 +141,8 @@ resource "local_file" "shard_settings" {
 resource "local_file" "custom_apm_integration_pkg" {
   count = var.custom_apm_integration_pkg_path != "" ? 1 : 0
   content = templatefile("${path.module}/scripts/custom-apm-integration-pkg.tftpl", {
-    kibana_url       = ec_deployment.deployment.kibana.0.https_endpoint,
-    elastic_password = ec_deployment.deployment.elasticsearch_password,
+    kibana_url                      = ec_deployment.deployment.kibana.0.https_endpoint,
+    elastic_password                = ec_deployment.deployment.elasticsearch_password,
     custom_apm_integration_pkg_path = var.custom_apm_integration_pkg_path,
   })
   filename = "${path.module}/scripts/custom-apm-integration-pkg.sh"

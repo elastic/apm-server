@@ -34,8 +34,8 @@ variable "stack_version" {
 }
 
 variable "integrations_server" {
-  default     = false
-  description = "Optionally use the integrations_server resource"
+  default     = true
+  description = "Optionally disable the integrations server block and use the apm block (7.x only)"
   type        = bool
 }
 

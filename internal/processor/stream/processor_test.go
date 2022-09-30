@@ -392,7 +392,15 @@ func TestConcurrentAsync(t *testing.T) {
 			handleStream(ctx, batchProcessor)
 		}
 		wg.Wait()
-		pResult.Accepted += int(batchProcessor.processed)
+		if !tc.fullSem {
+			// Try to acquire the lock to make sure all the requests have been handled
+			// and the locks have been released.
+			for i := 0; i < tc.sem; i++ {
+				p.semAcquire(context.Background(), false)
+			}
+		}
+		processed := atomic.LoadUint64(&batchProcessor.processed)
+		pResult.Accepted += int(processed)
 		return
 	}
 
