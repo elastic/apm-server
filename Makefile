@@ -221,7 +221,7 @@ update-beats-docs:
 # Linting, style-checking, license header checks, etc.
 ##############################################################################
 
-# NOTE(axw) ST1000 is disabled for the moment as many packages do not have 
+# NOTE(axw) ST1000 is disabled for the moment as many packages do not have
 # comments. It would be a good idea to add them later, and remove this exception,
 # so we're a bit more intentional about the meaning of packages and how code is
 # organised.
@@ -325,11 +325,15 @@ SMOKETEST_DIRS = $$(find $(CURRENT_DIR)/testing/smoke -mindepth 1 -maxdepth 1 -t
 smoketest/discover:
 	@echo "$(SMOKETEST_DIRS)"
 
+.PHONY: smoketest/run-version
+smoketest/run-version:
+	@ echo "-> Running $(TEST_DIR) smoke tests for version $${SMOKETEST_VERSION}..."
+	@ cd $(TEST_DIR) && ./test.sh "$(SMOKETEST_VERSION)"
+
 .PHONY: smoketest/run
 smoketest/run:
 	@ for version in $(shell echo $(SMOKETEST_VERSIONS) | tr ',' ' '); do \
-		echo "-> Running $(TEST_DIR) smoke tests for version $${version}..."; \
-		cd $(TEST_DIR) && ./test.sh $${version}; \
+		$(MAKE) smoketest/run-version SMOKETEST_VERSION=$${version}; \
 	done
 
 .PHONY: smoketest/cleanup
