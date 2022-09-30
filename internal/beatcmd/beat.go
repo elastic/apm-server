@@ -382,6 +382,14 @@ func (b *Beat) Run(ctx context.Context) error {
 		}
 	}
 
+	logger := logp.NewLogger("")
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		adjustMaxProcs(ctx, 30*time.Second, diffInfof(logger), logger.Errorf)
+	}()
+	defer func() { <-done }()
+
 	beater, err := b.createBeater(b.create)
 	if err != nil {
 		return err
