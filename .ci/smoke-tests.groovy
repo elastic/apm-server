@@ -11,8 +11,8 @@ pipeline {
     TERRAFORM_VERSION = '1.2.3'
     CREATED_DATE = "${new Date().getTime()}"
     SLACK_CHANNEL = "#apm-server"
+    SMOKETEST_VERSIONS = "${params.SMOKETEST_VERSIONS}"
   }
-
   options {
     timeout(time: 3, unit: 'HOURS')
     buildDiscarder(logRotator(numToKeepStr: '100', artifactNumToKeepStr: '30', daysToKeepStr: '30'))
@@ -31,9 +31,10 @@ pipeline {
       steps {
         deleteDir()
         gitCheckout(basedir: "${BASE_DIR}", shallow: false)
+        setEnvVar('GO_VERSION', readFile(file: "${BASE_DIR}/.go-version").trim())
+        stash(allowEmpty: true, name: 'source', useDefaultExcludes: false)
       }
     }
-
     stage('Smoke Tests') {
       options { skipDefaultCheckout() }
       environment {
@@ -49,15 +50,18 @@ pipeline {
       steps {
         dir ("${BASE_DIR}") {
           withTestClusterEnv {
-            withGoEnv(version: readFile(file: ".go-version").trim()) {
-              script {
-                def smokeTests = sh(returnStdout: true, script: 'make smoketest/discover').trim().split('\r?\n')
-                def smokeTestJobs = [:]
-                for (smokeTest in smokeTests) {
-                  smokeTestJobs["Run smoke tests in ${smokeTest}"] = runSmokeTest(smokeTest)
+            script {
+              def smokeTests = sh(returnStdout: true, script: 'make smoketest/discover').trim().split('\r?\n')
+              log(level: 'INFO', text: "make smoketest/discover: '${smokeTests}'")
+              def smokeTestJobs = [:]
+              for (smokeTest in smokeTests) {
+                // get the title for the stage based on the basename of the smoke test full path to be run
+                def title = sh(script: "basename ${smokeTest}", returnStdout:true).trim()
+                env.SMOKETEST_VERSIONS.trim().split(',').each { version ->
+                  smokeTestJobs["${version}-${title}"] = runSmokeTestWithVersion(smokeTest: smokeTest, version: version, title: title)
                 }
-                parallel smokeTestJobs
               }
+              parallel smokeTestJobs
             }
           }
         }
@@ -66,9 +70,7 @@ pipeline {
         always {
           dir("${BASE_DIR}") {
             withTestClusterEnv {
-              withGoEnv(version: readFile(file: ".go-version").trim()) {
-                sh(label: 'Teardown smoke tests infra', script: 'make smoketest/all/cleanup')
-              }
+              sh(label: 'Teardown smoke tests infra', script: 'make smoketest/all/cleanup')
             }
           }
         }
@@ -82,19 +84,30 @@ pipeline {
   }
 }
 
-def runSmokeTest(String testDir) {
+def runSmokeTestWithVersion(Map args = [:]) {
+  def testDir = args.smokeTest
+  def title = args.get('title', testDir)
+  def version = args.version
   return {
-    stage("Run smoke tests in ${testDir}") {
-      sh(label: 'Run smoke tests', script: "make smoketest/run TEST_DIR=${testDir}")
+    withNode(labels: 'linux && immutable', forceWorker: true) {
+      deleteDir()
+      unstash 'source'
+      dir("${BASE_DIR}") {
+        withTestClusterEnv {
+          sh(label: "Run smoke tests ${testDir} for ${version}", script: "make smoketest/run-version TEST_DIR=${testDir} SMOKETEST_VERSION=${version}")
+        }
+      }
     }
   }
 }
 
-def withTestClusterEnv(Closure body) {  
+def withTestClusterEnv(Closure body) {
   withAWSEnv(secret: "${AWS_ACCOUNT_SECRET}", version: "2.7.6") {
     withTerraformEnv(version: "${TERRAFORM_VERSION}", forceInstallation: true) {
       withSecretVault(secret: "${EC_KEY_SECRET}", data: ['apiKey': 'EC_API_KEY'] ) {
-        body()
+        withGoEnv() {
+          body()
+        }
       }
     }
   }

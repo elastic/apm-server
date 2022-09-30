@@ -22,14 +22,13 @@ get_latest_patch() {
 
 terraform_init() {
     if [[ ! -f main.tf ]]; then cp ../main.tf .; fi
-    if [[ ! -f .terraform.lock.hcl ]]; then terraform init >> tf.log; fi
+    terraform init >> tf.log
 }
 
 terraform_apply() {
     echo "-> Creating / Upgrading deployment to version ${1}"
     echo stack_version=\"${1}\" > terraform.tfvars
     if [[ ! -z ${2} ]]; then echo integrations_server=${2} >> terraform.tfvars; fi
-    terraform_init
     terraform apply -auto-approve >> tf.log
 
     if [[ ${EXPORTED_AUTH} ]]; then
