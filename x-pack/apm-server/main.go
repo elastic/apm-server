@@ -21,6 +21,7 @@ import (
 	"github.com/elastic/elastic-agent-libs/monitoring"
 	"github.com/elastic/elastic-agent-libs/paths"
 
+	"github.com/elastic/apm-server/internal/beatcmd"
 	"github.com/elastic/apm-server/internal/beater"
 	"github.com/elastic/apm-server/internal/elasticsearch"
 	"github.com/elastic/apm-server/internal/model"
@@ -382,9 +383,14 @@ func cleanup() (result error) {
 
 func Main() error {
 	rootCmd := newXPackRootCommand(
-		beater.NewCreator(beater.CreatorParams{
-			WrapServer: wrapServer,
-		}),
+		func(args beatcmd.RunnerParams) (beatcmd.Runner, error) {
+			return beater.NewRunner(beater.RunnerParams{
+				Config:     args.Config,
+				Info:       args.Info,
+				Logger:     args.Logger,
+				WrapServer: wrapServer,
+			})
+		},
 	)
 	result := rootCmd.Execute()
 	if err := cleanup(); err != nil {
