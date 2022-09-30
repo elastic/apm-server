@@ -478,12 +478,6 @@ https://github.com/elastic/apm-server/blob/main/dev_docs/otel.md#muxing-grpc-and
 * Inability to see host metrics in Elastic Metrics Infrastructure view when using the OpenTelemetry Collector host metrics receiver https://github.com/elastic/apm-server/issues/5310[#5310]
 
 [float]
-[[open-telemetry-logs-limitations]]
-===== OpenTelemetry logs
-
-* OpenTelemetry logs are supported with **beta support** from 8.0 https://github.com/elastic/apm-server/pull/6768[#6768].
-
-[float]
 [[open-telemetry-otlp-limitations]]
 ===== OpenTelemetry Line Protocol (OTLP)
 
