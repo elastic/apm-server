@@ -13,7 +13,7 @@ get_versions() {
 
     local REGION=$(echo var.region | terraform console | tr -d '"')
     local EC_VERSION_ENDPOINT="https://cloud.elastic.co/api/v1/regions/${REGION}/stack/versions?show_deleted=false&show_unusable=false"
-    VERSIONS=$(curl -s --fail -H "Authorization: ApiKey ${EC_API_KEY}" ${EC_VERSION_ENDPOINT} | jq -r -c '[.stacks[].version | select(. | contains("-") | not)] | sort')
+    VERSIONS=$(curl -s --fail-with-body -H "Authorization: ApiKey ${EC_API_KEY}" ${EC_VERSION_ENDPOINT} | jq -r -c '[.stacks[].version | select(. | contains("-") | not)] | sort')
 }
 
 get_latest_patch() {
@@ -97,7 +97,7 @@ send_events() {
 
     echo "-> Sending events to APM Server..."
     # Return non zero if curl fails
-    curl --fail --data-binary @${INTAKE_DATA} -H "${APM_AUTH_HEADER}" -H "${INTAKE_HEADER}" ${APM_SERVER_INTAKE}
+    curl --fail-with-body --data-binary @${INTAKE_DATA} -H "${APM_AUTH_HEADER}" -H "${INTAKE_HEADER}" ${APM_SERVER_INTAKE}
 
     # TODO(marclop). It would be best to query Elasticsearch until at least X documents have been ingested.
     sleep 10
@@ -126,7 +126,7 @@ data_stream_assert_events() {
 }
 
 healthcheck() {
-    local PUBLISH_READY=$(curl -s --fail -H "${APM_AUTH_HEADER}" ${APM_SERVER_URL} | jq '.publish_ready')
+    local PUBLISH_READY=$(curl -s --fail-with-body -H "${APM_AUTH_HEADER}" ${APM_SERVER_URL} | jq '.publish_ready')
     if [[ ! ${PUBLISH_READY} ]]; then
         local MAX_RETRIES=10
         if [[ ${1} -gt 0 ]] && [[ ${1} -lt ${MAX_RETRIES} ]]; then
@@ -146,16 +146,16 @@ healthcheck() {
 upgrade_managed() {
     local CURR_VERSION=${1}
     local AUTH=${ELASTICSEARCH_USER}:${ELASTICSEARCH_PASS}
-    local URL_MIGRATE=${KIBANA_URL}/internal/apm/fleet/cloud_apm_package_policy
+    local MIGRATE_URL=${KIBANA_URL}/internal/apm/fleet/cloud_apm_package_policy
 
     echo "-> Upgrading APM Server ${CURR_VERSION} to managed mode..."
-    local RESULT=$(curl -s --fail -H 'kbn-xsrf: true' -u "${AUTH}" -XPOST ${URL_MIGRATE})
+    local RESULT=$(curl -s --fail-with-body -H 'kbn-xsrf: true' -u "${AUTH}" -XPOST ${MIGRATE_URL})
     local ENABLED=$(echo ${RESULT} | jq '.cloudApmPackagePolicy.enabled')
-
-    if [[ ! ${ENABLED} ]]; then
-        echo "-> Failed migrating and enabling the APM Integration"
-        exit 6
-    fi  
+    if [[ "${ENABLED}" != "true" ]]; then
+        echo "-> Failed migrating and enabling the APM Integration:"
+        echo "${RESULT}"
+        return 6
+    fi
 
     # Allow the new server to start serving requets. Waiting for an arbitrary 70 seconds
     # period is not ideal, but there aren't any other APIs we can query.
@@ -316,5 +316,5 @@ data_stream_assert_templates_ilm() {
 elasticsearch_curl() {
     local URL=${1}
     local AUTH=${ELASTICSEARCH_USER}:${ELASTICSEARCH_PASS}
-    curl --fail -s -H 'Content-Type: application/json' -u ${AUTH} -XGET "${ELASTICSEARCH_URL}${URL}"
+    curl --fail-with-body -s -H 'Content-Type: application/json' -u ${AUTH} -XGET "${ELASTICSEARCH_URL}${URL}"
 }
