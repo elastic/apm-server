@@ -5,8 +5,8 @@ preview::[]
 
 The APM attacher for Kubernetes simplifies the instrumentation and configuration of your application pods.
 
-The attacher includes a {apm-attacher-ref}/x.html[webhook receiver] that modifies pods so they are automatically
-instrumented by an Elastic APM agent, and a {apm-attacher-ref}/x.html[Helm chart] that manages its lifecycle within
+The attacher includes a {apm-attacher-ref}/apm-webhook.html[webhook receiver] that modifies pods so they are automatically
+instrumented by an Elastic APM agent, and a {apm-attacher-ref}/apm-helm-chart.html[Helm chart] that manages its lifecycle within
 Kubernetes.
 
 Ready to get started? See {apm-attacher-ref}/apm-get-started-webhook.html[Instrument and configure pods] to get started.
