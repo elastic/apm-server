@@ -1,4 +1,14 @@
-// Pulls the AWS Lambda extension docs from here:
-// https://github.com/elastic/apm-aws-lambda/blob/main/docs/aws-lambda-extension.asciidoc
+[[monitoring-aws-lambda]]
+= Monitoring AWS Lambda Functions
 
-include::{apm-aws-repo-dir}/monitoring-aws-lambda.asciidoc[]
+Elastic APM lets you monitor your AWS Lambda functions.
+The natural integration of <<apm-distributed-tracing,distributed tracing>> into your AWS Lambda functions provides insights into the functions' execution and runtime behavior as well as their relationships and dependencies to other services.
+
+To get started with the setup of Elastic APM for your Lambda functions, checkout the language-specific guides:
+
+* {apm-node-ref}/lambda.html[Quick Start with APM on AWS Lambda - Node.js]
+* {apm-py-ref}/lambda-support.html[Quick Start with APM on AWS Lambda - Python]
+* {apm-java-ref}/aws-lambda.html[Quick Start with APM on AWS Lambda - Java]
+
+Or, see the {apm-lambda-ref}/aws-lambda-arch.html[architecture guide] to learn more about how the extension works,
+performance impacts, and more.
