@@ -6,10 +6,14 @@ package servicemetrics
 
 import (
 	"context"
+	"encoding/binary"
+	"io"
 	"math"
+	"sort"
 	"sync"
 	"time"
 
+	"github.com/cespare/xxhash/v2"
 	"github.com/pkg/errors"
 
 	"github.com/elastic/elastic-agent-libs/logp"
@@ -166,8 +170,10 @@ func (a *Aggregator) publish(ctx context.Context) error {
 
 	batch := make(model.Batch, 0, size)
 	for key, metrics := range a.inactive.m {
-		metricset := makeMetricset(key, metrics)
-		batch = append(batch, metricset)
+		for _, mme := range metrics {
+			metricset := makeMetricset(mme.aggregationKey, mme.serviceMetrics)
+			batch = append(batch, metricset)
+		}
 		delete(a.inactive.m, key)
 	}
 	a.config.Logger.Debugf("publishing %d metricsets", len(batch))
@@ -204,45 +210,107 @@ func (a *Aggregator) processTransaction(event *model.APMEvent) model.APMEvent {
 type metricsBuffer struct {
 	maxSize int
 
-	mu sync.RWMutex
-	m  map[aggregationKey]serviceMetrics
+	mu      sync.RWMutex
+	entries int
+	m       map[uint64][]*metricsMapEntry
+	space   []metricsMapEntry
 }
 
 func newMetricsBuffer(maxSize int) *metricsBuffer {
 	return &metricsBuffer{
 		maxSize: maxSize,
-		m:       make(map[aggregationKey]serviceMetrics),
+		m:       make(map[uint64][]*metricsMapEntry),
+		space:   make([]metricsMapEntry, maxSize),
 	}
 }
 
+type metricsMapEntry struct {
+	serviceMetrics
+	aggregationKey
+}
+
 func (mb *metricsBuffer) storeOrUpdate(key aggregationKey, metrics serviceMetrics, logger *logp.Logger) bool {
+	// hash does not use the serviceMetrics so it is safe to call concurrently.
+	hash := key.hash()
+
+	// Full lock because serviceMetrics cannot be updated atomically.
 	mb.mu.Lock()
 	defer mb.mu.Unlock()
-	old, ok := mb.m[key]
-	if !ok {
-		n := len(mb.m)
-		half := mb.maxSize / 2
-		if !ok {
-			switch n {
-			case mb.maxSize:
-				return false
-			case half - 1:
-				logger.Warn("service metrics groups reached 50% capacity")
-			case mb.maxSize - 1:
-				logger.Warn("service metrics groups reached 100% capacity")
+
+	entries, ok := mb.m[hash]
+	if ok {
+		for offset, old := range entries {
+			if old.aggregationKey.equal(key) {
+				entries[offset].serviceMetrics = serviceMetrics{
+					transactionDuration: old.transactionDuration + metrics.transactionDuration,
+					transactionCount:    old.transactionCount + metrics.transactionCount,
+					failureCount:        old.failureCount + metrics.failureCount,
+					successCount:        old.successCount + metrics.successCount,
+				}
+				return true
 			}
 		}
+	} else if mb.entries >= len(mb.space) {
+		return false
 	}
-	mb.m[key] = serviceMetrics{
-		transactionDuration: old.transactionDuration + metrics.transactionDuration,
-		transactionCount:    old.transactionCount + metrics.transactionCount,
-		failureCount:        old.failureCount + metrics.failureCount,
-		successCount:        old.successCount + metrics.successCount,
+
+	half := mb.maxSize / 2
+	if !ok {
+		switch mb.entries {
+		case mb.maxSize:
+			return false
+		case half - 1:
+			logger.Warn("service metrics groups reached 50% capacity")
+		case mb.maxSize - 1:
+			logger.Warn("service metrics groups reached 100% capacity")
+		}
 	}
+
+	entry := &mb.space[mb.entries]
+	entry.aggregationKey = key
+
+	entry.serviceMetrics = serviceMetrics{
+		transactionDuration: metrics.transactionDuration,
+		transactionCount:    metrics.transactionCount,
+		failureCount:        metrics.failureCount,
+		successCount:        metrics.successCount,
+	}
+
+	mb.m[hash] = append(entries, entry)
+	mb.entries++
 	return true
 }
 
 type aggregationKey struct {
+	labelKeys        []string
+	labels           model.Labels
+	numericLabelKeys []string
+	numericLabels    model.NumericLabels
+
+	comparable
+}
+
+func (k *aggregationKey) hash() uint64 {
+	var h xxhash.Digest
+	var buf [8]byte
+	binary.LittleEndian.PutUint64(buf[:], uint64(k.timestamp.UnixNano()))
+	h.Write(buf[:])
+
+	writeLabels(&h, k)
+	h.WriteString(k.agentName)
+	h.WriteString(k.serviceEnvironment)
+	h.WriteString(k.serviceName)
+	h.WriteString(k.transactionType)
+	return h.Sum64()
+}
+
+func (k *aggregationKey) equal(key aggregationKey) bool {
+	return k.comparable == key.comparable &&
+		equalLabels(k.labels, key.labels) &&
+		equalNumericLabels(k.numericLabels, key.numericLabels)
+}
+
+type comparable struct {
 	timestamp time.Time
 
 	agentName          string
@@ -252,15 +320,49 @@ type aggregationKey struct {
 }
 
 func makeAggregationKey(event *model.APMEvent, interval time.Duration) aggregationKey {
-	return aggregationKey{
-		// Group metrics by time interval.
-		timestamp: event.Timestamp.Truncate(interval),
+	key := aggregationKey{
+		comparable: comparable{
+			// Group metrics by time interval.
+			timestamp: event.Timestamp.Truncate(interval),
 
-		agentName:          event.Agent.Name,
-		serviceName:        event.Service.Name,
-		serviceEnvironment: event.Service.Environment,
-		transactionType:    event.Transaction.Type,
+			agentName:          event.Agent.Name,
+			serviceName:        event.Service.Name,
+			serviceEnvironment: event.Service.Environment,
+			transactionType:    event.Transaction.Type,
+		},
 	}
+
+	for k, v := range event.Labels {
+		if !v.Global {
+			continue
+		}
+		if key.labels == nil {
+			key.labels = make(model.Labels)
+		}
+		if len(v.Values) > 0 {
+			key.labels.SetSlice(k, v.Values)
+		} else {
+			key.labels.Set(k, v.Value)
+		}
+		key.labelKeys = append(key.labelKeys, k)
+	}
+	for k, v := range event.NumericLabels {
+		if !v.Global {
+			continue
+		}
+		if key.numericLabels == nil {
+			key.numericLabels = make(model.NumericLabels)
+		}
+		if len(v.Values) > 0 {
+			key.numericLabels.SetSlice(k, v.Values)
+		} else {
+			key.numericLabels.Set(k, v.Value)
+		}
+		key.numericLabelKeys = append(key.numericLabelKeys, k)
+	}
+	sort.Strings(key.labelKeys)
+	sort.Strings(key.numericLabelKeys)
+	return key
 }
 
 type serviceMetrics struct {
@@ -296,7 +398,9 @@ func makeMetricset(key aggregationKey, metrics serviceMetrics) model.APMEvent {
 		Agent: model.Agent{
 			Name: key.agentName,
 		},
-		Processor: model.MetricsetProcessor,
+		Labels:        key.labels,
+		NumericLabels: key.numericLabels,
+		Processor:     model.MetricsetProcessor,
 		Metricset: &model.Metricset{
 			DocCount: metricCount,
 			Name:     metricsetName,
@@ -311,4 +415,87 @@ func makeMetricset(key aggregationKey, metrics serviceMetrics) model.APMEvent {
 			},
 		},
 	}
+}
+
+func writeLabels(w io.Writer, aggKey *aggregationKey) {
+	for _, key := range aggKey.labelKeys {
+		label := aggKey.labels[key]
+		io.WriteString(w, key)
+		if label.Value != "" {
+			io.WriteString(w, label.Value)
+			continue
+		}
+		for _, v := range label.Values {
+			io.WriteString(w, v)
+		}
+	}
+	for _, key := range aggKey.numericLabelKeys {
+		label := aggKey.numericLabels[key]
+		io.WriteString(w, key)
+		if label.Value != 0 {
+			var b [8]byte
+			binary.LittleEndian.PutUint64(b[:], math.Float64bits(label.Value))
+			w.Write(b[:])
+			continue
+		}
+		for _, v := range label.Values {
+			var b [8]byte
+			binary.LittleEndian.PutUint64(b[:], math.Float64bits(v))
+			w.Write(b[:])
+		}
+	}
+}
+
+// equalLabels returns true if the labels are equal. The Global property is
+// ignored since only global labels are compared.
+func equalLabels(l, labels model.Labels) bool {
+	if len(l) != len(labels) {
+		return false
+	}
+	for key, localV := range l {
+		v, ok := labels[key]
+		if !ok {
+			return false
+		}
+		// If the slice value is set, ignore the Value field.
+		if len(v.Values) == 0 && v.Value != localV.Value {
+			return false
+		}
+		if len(v.Values) != len(localV.Values) {
+			return false
+		}
+		for i, value := range v.Values {
+			if localV.Values[i] != value {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+// equalNumericLabels returns true if the labels are equal. The Global property
+// is ignored since only global labels are compared.
+func equalNumericLabels(l, labels model.NumericLabels) bool {
+	if len(l) != len(labels) {
+		return false
+	}
+	for key, localV := range l {
+		v, ok := labels[key]
+		if !ok {
+			return false
+		}
+		// If the slice value is set, ignore the Value field.
+		if len(v.Values) == 0 && v.Value != localV.Value {
+			return false
+		}
+		if len(v.Values) != len(localV.Values) {
+			return false
+		}
+		for i, value := range v.Values {
+			if localV.Values[i] != value {
+				return false
+			}
+		}
+	}
+	return true
 }
