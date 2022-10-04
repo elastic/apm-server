@@ -49,6 +49,8 @@ func Benchmark1000Transactions(b *testing.B, l *rate.Limiter) {
 }
 
 func BenchmarkOTLPTraces(b *testing.B, l *rate.Limiter) {
+	b.Skipf("Disabled until we've addressed https://github.com/elastic/apm-server/issues/9242")
+
 	b.RunParallel(func(pb *testing.PB) {
 		exporter := benchtest.NewOTLPExporter(b)
 		tracerProvider := sdktrace.NewTracerProvider(
