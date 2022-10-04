@@ -22,9 +22,11 @@ import (
 	"net/url"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
 
 	"github.com/elastic/go-elasticsearch/v8/esapi"
@@ -99,7 +101,12 @@ func TestProfiling(t *testing.T) {
 		})
 
 	apmServerURL, _ := url.Parse(apmIntegration.URL)
-	conn, err := grpc.Dial(apmServerURL.Host, grpc.WithInsecure())
+
+	dialCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	conn, err := grpc.DialContext(dialCtx, apmServerURL.Host,
+		grpc.WithBlock(),
+		grpc.WithTransportCredentials(insecure.NewCredentials()))
 	require.NoError(t, err)
 	defer conn.Close()
 	client := profiling.NewCollectionAgentClient(conn)
