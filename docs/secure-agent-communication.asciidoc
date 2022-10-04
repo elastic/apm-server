@@ -169,10 +169,6 @@ Enter a name for your API key and select at least one privilege.
 For example, to create an API key that can be used to ingest APM events
 and read agent central configuration, select `config_agent:read` and `event:write`.
 
-IMPORTANT: The `sourcemap:write` privilege is outdated and will be removed in a future release.
-To learn more about the privileges required to upload a source map,
-see the {kibana-ref}/rum-sourcemap-api.html[RUM source map API].
-
 // lint ignore apm-agent
 Click **Create APM Agent key** and copy the Base64 encoded API key.
 You will need this for the next step, and you will not be able to view it again.
