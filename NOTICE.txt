@@ -5104,11 +5104,11 @@ THE SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/net
-Version: v0.0.0-20221002022538-bcab6841153b
+Version: v0.0.0-20221004154528-8021a29435af
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/net@v0.0.0-20221002022538-bcab6841153b/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/net@v0.0.0-20221004154528-8021a29435af/LICENSE:
 
 Copyright (c) 2009 The Go Authors. All rights reserved.
 
@@ -19873,11 +19873,11 @@ THE SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/crypto
-Version: v0.0.0-20220926161630-eccd6366d1be
+Version: v0.0.0-20221005025214-4161e89ecf1b
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/crypto@v0.0.0-20220926161630-eccd6366d1be/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/crypto@v0.0.0-20221005025214-4161e89ecf1b/LICENSE:
 
 Copyright (c) 2009 The Go Authors. All rights reserved.
 
