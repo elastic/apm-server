@@ -13,7 +13,7 @@
 * <<log-correlation>>
 * <<cross-cluster-search>>
 * <<span-compression>>
-* <<aws-lambda-extension>>
+* <<monitoring-aws-lambda>>
 
 include::./apm-data-security.asciidoc[]
 
