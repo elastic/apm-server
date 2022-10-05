@@ -262,3 +262,18 @@ This section has moved. See <<api-key-legacy>>.
 
 This section has moved. See <<secret-token-legacy>>.
 endif::[]
+
+[role="exclude",id="aws-lambda-arch"]
+=== APM Architecture for AWS Lambda
+
+This section has moved. See {apm-lambda-ref}/aws-lambda-arch.html[APM Architecture for AWS Lambda].
+
+[role="exclude",id="aws-lambda-config-options"]
+=== Configuration options
+
+This section has moved. See {apm-lambda-ref}/aws-lambda-config-options.html[Configuration options].
+
+[role="exclude",id="aws-lambda-secrets-manager"]
+=== Using AWS Secrets Manager to manage APM authentication keys
+
+This section has moved. See {apm-lambda-ref}/aws-lambda-secrets-manager.html[Using AWS Secrets Manager to manage APM authentication keys].
