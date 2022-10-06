@@ -13,6 +13,7 @@ https://github.com/elastic/apm-server/compare/8.5\...main[View commits]
 
 [float]
 ==== Bug fixes
+- OpenTelemetry GRPC Spans from the Javascript API/SDK/Instrumentations are now correctly transformed into transactions with type=`request`
 
 [float]
 ==== Intake API Changes
