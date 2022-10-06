@@ -15,6 +15,12 @@ variable "gcp_region" {
   default     = "us-west2"
 }
 
+variable "machine_type" {
+  type        = string
+  description = "Machine type for rally nodes"
+  default     = "e2-small"
+}
+
 variable "elasticsearch_url" {
   type        = string
   description = "Elasticsearch URL to benchmark with rally"

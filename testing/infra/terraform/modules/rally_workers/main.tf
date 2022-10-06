@@ -74,7 +74,7 @@ resource "google_compute_instance" "rally_nodes" {
   # 1 rally node is for coordinator and others for distributing load generators
   count        = 1 + var.rally_worker_count
   name         = "${var.resource_prefix}-rally-nodes-${count.index}"
-  machine_type = "e2-micro"
+  machine_type = "${var.machine_type}"
   zone         = data.google_compute_zones.available.names[0]
 
   boot_disk {

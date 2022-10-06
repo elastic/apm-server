@@ -35,11 +35,11 @@ module "ec_deployment" {
 module "rally_workers" {
   source = "../infra/terraform/modules/rally_workers"
 
-  gcp_project = var.gcp_project
-  gcp_region  = var.gcp_region
+  gcp_project     = var.gcp_project
+  gcp_region      = var.gcp_region
+  machine_type    = var.rally_machine_type
 
-  resource_prefix = var.rally_workers_resource_prefix
-
+  resource_prefix      = var.rally_workers_resource_prefix
   rally_dir            = var.rally_dir
   rally_worker_count   = var.rally_worker_count
   rally_cluster_status = var.rally_cluster_status

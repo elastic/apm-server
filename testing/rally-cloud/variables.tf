@@ -45,6 +45,12 @@ variable "gcp_region" {
   default     = "us-west2"
 }
 
+variable "rally_machine_type" {
+  type        = string
+  description = "Machine type for rally nodes"
+  default     = "e2-small"
+}
+
 variable "rally_workers_resource_prefix" {
   type        = string
   description = "Prefix to add to created resource for rally workers"
