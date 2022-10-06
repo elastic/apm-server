@@ -540,7 +540,6 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 		}
 
 		k := replaceDots(kDots)
-
 		switch v.Type() {
 		case pcommon.ValueTypeSlice:
 			setLabel(k, event, ifaceAttributeValueSlice(v.SliceVal()))
