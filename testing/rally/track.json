@@ -33,7 +33,8 @@
       "operation": {
         "operation-type": "bulk",
         "bulk-size": {{bulk_size}}
-      }
+      },
+      "clients": {{bulk_clients}}
     },
     {
       "operation": {
