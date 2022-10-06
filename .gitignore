@@ -49,3 +49,4 @@ testing/benchmark/benchmark-result.txt
 testing/smoke/**/tf.log
 testing/smoke/**/main.tf
 !testing/smoke/main.tf
+testing/rally-cloud/build
