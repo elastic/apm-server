@@ -22,7 +22,7 @@ destroy all infrastructure using `EC_API_KEY=<ec_api_key> make destroy`
 
 For benchmarks with small corpora sizes, the defaults configuration should be
 good. However, for bigger benchmarks rally nodes or machine type might need to
-be scaled. Checking the metrics for the rally-nodes on GCP is a good point to
+be scaled. Checking the metrics for the rally-nodes on GCP is a good place to
 start. If the utilization of the nodes is too high then we can tweak two
 parameters:
 
