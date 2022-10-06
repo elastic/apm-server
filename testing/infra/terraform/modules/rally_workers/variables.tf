@@ -58,3 +58,9 @@ variable "rally_bulk_size" {
   description = "Bulk size to use for rally track"
   default     = 5000
 }
+
+variable "rally_bulk_clients" {
+  type        = number
+  description = "Number of clients to use for rally bulk requests"
+  default     = 10
+}
