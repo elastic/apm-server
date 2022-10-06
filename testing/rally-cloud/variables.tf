@@ -79,3 +79,9 @@ variable "rally_worker_count" {
   description = "Number of rally worker nodes"
   default     = 2
 }
+
+variable "rally_bulk_clients" {
+  type        = number
+  description = "Number of clients to use for rally bulk requests"
+  default     = 10
+}

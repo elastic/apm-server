@@ -245,7 +245,7 @@ ${local.remote_python_bin_path}/esrally race \
   --load-driver-hosts=${join(",", google_compute_instance.rally_nodes[*].network_interface[0].network_ip)} \
   --client-options=use_ssl:true,basic_auth_user:${var.elasticsearch_username},basic_auth_password:${var.elasticsearch_password} \
   --track-path=${local.remote_working_dir}/rally \
-  --track-params=expected_cluster_health:${var.rally_cluster_status},bulk_size:${var.rally_bulk_size} \
+  --track-params=expected_cluster_health:${var.rally_cluster_status},bulk_size:${var.rally_bulk_size},bulk_clients:${var.rally_bulk_clients} \
   --kill-running-process \
   --pipeline=benchmark-only \
   --report-file=${local.remote_working_dir}/${local.remote_rally_summary_file}

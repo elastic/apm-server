@@ -44,6 +44,7 @@ module "rally_workers" {
   rally_worker_count   = var.rally_worker_count
   rally_cluster_status = var.rally_cluster_status
   rally_bulk_size      = var.rally_bulk_size
+  rally_bulk_clients   = var.rally_bulk_clients
 
   elasticsearch_url      = module.ec_deployment.elasticsearch_url
   elasticsearch_username = module.ec_deployment.elasticsearch_username
