@@ -32,7 +32,7 @@ const (
 	integrationName = "apm"
 )
 
-func transformFile(path string, content []byte, version *version.V) ([]byte, error) {
+func transformFile(path string, content []byte, version, ecsVersion *version.V, ecsReference string) ([]byte, error) {
 	if path == "manifest.yml" {
 		return transformPackageManifest(content, version)
 	}
@@ -45,7 +45,23 @@ func transformFile(path string, content []byte, version *version.V) ([]byte, err
 	if path == "changelog.yml" {
 		return transformChangelog(content, version)
 	}
+	if path == "_dev/build/build.yml" {
+		return transformBuildDependencies(content, ecsReference)
+	}
 	return content, nil
+}
+
+func transformBuildDependencies(content []byte, ecsReference string) ([]byte, error) {
+	var doc yaml.Node
+	if err := yaml.Unmarshal(content, &doc); err != nil {
+		return nil, err
+	}
+
+	// Set the ECS version.
+	node := yamlMapLookup(doc.Content[0], "dependencies", "ecs", "reference")
+	node.Value = ecsReference
+
+	return marshalYAML(&doc)
 }
 
 func transformPackageManifest(content []byte, version *version.V) ([]byte, error) {
@@ -172,17 +188,25 @@ func isDataStreamManifest(path string) bool {
 	return filepath.Base(dir) == "data_stream"
 }
 
-func yamlMapLookup(n *yaml.Node, key string) *yaml.Node {
+func yamlMapLookup(n *yaml.Node, key ...string) *yaml.Node {
 	if n.Kind != yaml.MappingNode {
 		panic(fmt.Sprintf("expected node kind %v, got %v", yaml.MappingNode, n.Kind))
 	}
-	for i := 0; i < len(n.Content); i += 2 {
-		k := n.Content[i]
-		if k.Kind == yaml.ScalarNode && k.Value == key {
-			return n.Content[i+1]
+	for _, key := range key {
+		var found bool
+		for i := 0; i < len(n.Content); i += 2 {
+			k := n.Content[i]
+			if k.Kind == yaml.ScalarNode && k.Value == key {
+				n = n.Content[i+1]
+				found = true
+				break
+			}
+		}
+		if !found {
+			return nil
 		}
 	}
-	return nil
+	return n
 }
 
 func marshalYAML(doc *yaml.Node) ([]byte, error) {
