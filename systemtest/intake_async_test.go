@@ -56,7 +56,7 @@ func TestIntakeAsync(t *testing.T) {
 		systemtest.CleanupElasticsearch(t)
 		srv := apmservertest.NewServerTB(t)
 
-		systemtest.SendBackendEventsPayload(t, srv.URL, `../testdata/intake-v2/errors.ndjson`)
+		systemtest.SendBackendEventsAsyncPayload(t, srv.URL, `../testdata/intake-v2/errors.ndjson`)
 		// Ensure the 5 errors are ingested.
 		systemtest.Elasticsearch.ExpectMinDocs(t, 5, "logs-apm.error-*", nil)
 
