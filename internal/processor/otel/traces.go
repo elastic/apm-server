@@ -285,7 +285,6 @@ func TranslateTransaction(
 		}
 
 		k := replaceDots(kDots)
-
 		switch v.Type() {
 		case pcommon.ValueTypeSlice:
 			setLabel(k, event, ifaceAttributeValue(v))
