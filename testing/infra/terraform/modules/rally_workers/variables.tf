@@ -30,6 +30,12 @@ variable "elasticsearch_password" {
   description = "Elasticsearch password to use for benchmark with rally"
 }
 
+variable "rally_subnet_cidr" {
+  type        = string
+  description = "CIDR block for subnet containing rally instances"
+  default     = "10.128.0.0/20"
+}
+
 variable "rally_worker_count" {
   type        = number
   description = "Number of rally worker nodes"
