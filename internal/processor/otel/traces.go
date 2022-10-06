@@ -285,6 +285,7 @@ func TranslateTransaction(
 		}
 
 		k := replaceDots(kDots)
+
 		switch v.Type() {
 		case pcommon.ValueTypeSlice:
 			setLabel(k, event, ifaceAttributeValue(v))
@@ -304,6 +305,8 @@ func TranslateTransaction(
 				netHostPort = int(v.IntVal())
 			case "rpc.grpc.status_code":
 				event.Transaction.Result = codes.Code(v.IntVal()).String()
+			case "grcp.kind":
+				event.Transaction.Type = "request"
 			default:
 				setLabel(k, event, ifaceAttributeValue(v))
 			}
@@ -385,6 +388,8 @@ func TranslateTransaction(
 			// attributes, and rely on the operation name like we do with
 			// Elastic APM agents.
 			case semconv.AttributeRPCSystem:
+				event.Transaction.Type = "request"
+			case semconv.AttributeRPCGRPCStatusCode:
 				event.Transaction.Type = "request"
 			case semconv.AttributeRPCService:
 			case semconv.AttributeRPCMethod:
@@ -535,6 +540,7 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 		}
 
 		k := replaceDots(kDots)
+
 		switch v.Type() {
 		case pcommon.ValueTypeSlice:
 			setLabel(k, event, ifaceAttributeValueSlice(v.SliceVal()))
@@ -566,6 +572,8 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 
 			switch kDots {
 			// http.*
+			case "rpc.grpc.status_code":
+				event.Transaction.Type = "request"
 			case semconv.AttributeHTTPHost:
 				httpHost = stringval
 				foundSpanType = httpSpan
