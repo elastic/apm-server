@@ -15,7 +15,7 @@ used to configure the module, please refer to the [EC Provider docs](https://reg
 
 | Name | Version |
 |------|---------|
-| <a name="provider_ec"></a> [ec](#provider\_ec) | 0.4.0 |
+| <a name="provider_ec"></a> [ec](#provider\_ec) | >=0.4.1 |
 | <a name="provider_external"></a> [external](#provider\_external) | n/a |
 | <a name="provider_local"></a> [local](#provider\_local) | n/a |
 | <a name="provider_null"></a> [null](#provider\_null) | n/a |
