@@ -51,6 +51,7 @@ This modules sets up [rally daemons](https://esrally.readthedocs.io/en/stable/ra
 | <a name="input_elasticsearch_username"></a> [elasticsearch\_username](#input\_elasticsearch\_username) | Elasticsearch username to use for benchmark with rally | `string` | n/a | yes |
 | <a name="input_gcp_project"></a> [gcp\_project](#input\_gcp\_project) | GCP Project name | `string` | `"elastic-apm"` | no |
 | <a name="input_gcp_region"></a> [gcp\_region](#input\_gcp\_region) | GCP region | `string` | `"us-west2"` | no |
+| <a name="input_machine_type"></a> [machine\_type](#input\_machine\_type) | Machine type for rally nodes | `string` | `"e2-small"` | no |
 | <a name="input_rally_bulk_size"></a> [rally\_bulk\_size](#input\_rally\_bulk\_size) | Bulk size to use for rally track | `number` | `5000` | no |
 | <a name="input_rally_cluster_status"></a> [rally\_cluster\_status](#input\_rally\_cluster\_status) | Expected cluster status for rally | `string` | `"green"` | no |
 | <a name="input_rally_dir"></a> [rally\_dir](#input\_rally\_dir) | Directory path with rally corpora and track file | `string` | n/a | yes |

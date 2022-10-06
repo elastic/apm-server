@@ -14,6 +14,17 @@ the first time
 4. Run `EC_API_KEY=<ec_api_key> make apply` to create the required infra and run
 rally.
 
-The rally benchmark will execute everytime `make apply` is called however, the infrastucture
-will be created only once. After testing is done make sure to destroy all
-infrastructure using `EC_API_KEY=<ec_api_key> make destroy`
+The rally benchmark will execute everytime `make apply` is called however, the
+infrastucture will be created only once. After testing is done make sure to
+destroy all infrastructure using `EC_API_KEY=<ec_api_key> make destroy`
+
+## How to choose the correct rally setup for your benchmarks?
+
+For benchmarks with small corpora sizes, the defaults configuration should be
+good. However, for bigger benchmarks rally nodes or machine type might need to
+be scaled. Checking the metrics for the rally-nodes on GCP is a good point to
+start. If the utilization of the nodes is too high then we can tweak two
+parameters:
+
+1. Increase the number of clients and workers so that rally can divide the work.
+2. Vertically scale up machine used for rally nodes by changing machine type.
