@@ -7,9 +7,7 @@ package servicemetrics
 import (
 	"context"
 	"encoding/binary"
-	"io"
 	"math"
-	"sort"
 	"sync"
 	"time"
 
@@ -20,6 +18,7 @@ import (
 
 	"github.com/elastic/apm-server/internal/logs"
 	"github.com/elastic/apm-server/internal/model"
+	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/labels"
 )
 
 const (
@@ -282,11 +281,7 @@ func (mb *metricsBuffer) storeOrUpdate(key aggregationKey, metrics serviceMetric
 }
 
 type aggregationKey struct {
-	labelKeys        []string
-	labels           model.Labels
-	numericLabelKeys []string
-	numericLabels    model.NumericLabels
-
+	labels.AggregatedGlobalLabels
 	comparable
 }
 
@@ -296,7 +291,7 @@ func (k *aggregationKey) hash() uint64 {
 	binary.LittleEndian.PutUint64(buf[:], uint64(k.timestamp.UnixNano()))
 	h.Write(buf[:])
 
-	writeLabels(&h, k)
+	k.AggregatedGlobalLabels.Write(&h)
 	h.WriteString(k.agentName)
 	h.WriteString(k.serviceEnvironment)
 	h.WriteString(k.serviceName)
@@ -305,9 +300,7 @@ func (k *aggregationKey) hash() uint64 {
 }
 
 func (k *aggregationKey) equal(key aggregationKey) bool {
-	return k.comparable == key.comparable &&
-		equalLabels(k.labels, key.labels) &&
-		equalNumericLabels(k.numericLabels, key.numericLabels)
+	return k.comparable == key.comparable && k.AggregatedGlobalLabels.Equals(&key.AggregatedGlobalLabels)
 }
 
 type comparable struct {
@@ -332,36 +325,8 @@ func makeAggregationKey(event *model.APMEvent, interval time.Duration) aggregati
 		},
 	}
 
-	for k, v := range event.Labels {
-		if !v.Global {
-			continue
-		}
-		if key.labels == nil {
-			key.labels = make(model.Labels)
-		}
-		if len(v.Values) > 0 {
-			key.labels.SetSlice(k, v.Values)
-		} else {
-			key.labels.Set(k, v.Value)
-		}
-		key.labelKeys = append(key.labelKeys, k)
-	}
-	for k, v := range event.NumericLabels {
-		if !v.Global {
-			continue
-		}
-		if key.numericLabels == nil {
-			key.numericLabels = make(model.NumericLabels)
-		}
-		if len(v.Values) > 0 {
-			key.numericLabels.SetSlice(k, v.Values)
-		} else {
-			key.numericLabels.Set(k, v.Value)
-		}
-		key.numericLabelKeys = append(key.numericLabelKeys, k)
-	}
-	sort.Strings(key.labelKeys)
-	sort.Strings(key.numericLabelKeys)
+	key.AggregatedGlobalLabels.Read(event)
+
 	return key
 }
 
@@ -398,8 +363,8 @@ func makeMetricset(key aggregationKey, metrics serviceMetrics) model.APMEvent {
 		Agent: model.Agent{
 			Name: key.agentName,
 		},
-		Labels:        key.labels,
-		NumericLabels: key.numericLabels,
+		Labels:        key.Labels,
+		NumericLabels: key.NumericLabels,
 		Processor:     model.MetricsetProcessor,
 		Metricset: &model.Metricset{
 			DocCount: metricCount,
@@ -415,87 +380,4 @@ func makeMetricset(key aggregationKey, metrics serviceMetrics) model.APMEvent {
 			},
 		},
 	}
-}
-
-func writeLabels(w io.Writer, aggKey *aggregationKey) {
-	for _, key := range aggKey.labelKeys {
-		label := aggKey.labels[key]
-		io.WriteString(w, key)
-		if label.Value != "" {
-			io.WriteString(w, label.Value)
-			continue
-		}
-		for _, v := range label.Values {
-			io.WriteString(w, v)
-		}
-	}
-	for _, key := range aggKey.numericLabelKeys {
-		label := aggKey.numericLabels[key]
-		io.WriteString(w, key)
-		if label.Value != 0 {
-			var b [8]byte
-			binary.LittleEndian.PutUint64(b[:], math.Float64bits(label.Value))
-			w.Write(b[:])
-			continue
-		}
-		for _, v := range label.Values {
-			var b [8]byte
-			binary.LittleEndian.PutUint64(b[:], math.Float64bits(v))
-			w.Write(b[:])
-		}
-	}
-}
-
-// equalLabels returns true if the labels are equal. The Global property is
-// ignored since only global labels are compared.
-func equalLabels(l, labels model.Labels) bool {
-	if len(l) != len(labels) {
-		return false
-	}
-	for key, localV := range l {
-		v, ok := labels[key]
-		if !ok {
-			return false
-		}
-		// If the slice value is set, ignore the Value field.
-		if len(v.Values) == 0 && v.Value != localV.Value {
-			return false
-		}
-		if len(v.Values) != len(localV.Values) {
-			return false
-		}
-		for i, value := range v.Values {
-			if localV.Values[i] != value {
-				return false
-			}
-		}
-	}
-	return true
-}
-
-// equalNumericLabels returns true if the labels are equal. The Global property
-// is ignored since only global labels are compared.
-func equalNumericLabels(l, labels model.NumericLabels) bool {
-	if len(l) != len(labels) {
-		return false
-	}
-	for key, localV := range l {
-		v, ok := labels[key]
-		if !ok {
-			return false
-		}
-		// If the slice value is set, ignore the Value field.
-		if len(v.Values) == 0 && v.Value != localV.Value {
-			return false
-		}
-		if len(v.Values) != len(localV.Values) {
-			return false
-		}
-		for i, value := range v.Values {
-			if localV.Values[i] != value {
-				return false
-			}
-		}
-	}
-	return true
 }
