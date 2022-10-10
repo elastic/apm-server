@@ -15,6 +15,12 @@ variable "gcp_region" {
   default     = "us-west2"
 }
 
+variable "machine_type" {
+  type        = string
+  description = "Machine type for rally nodes"
+  default     = "e2-small"
+}
+
 variable "elasticsearch_url" {
   type        = string
   description = "Elasticsearch URL to benchmark with rally"
@@ -28,6 +34,12 @@ variable "elasticsearch_username" {
 variable "elasticsearch_password" {
   type        = string
   description = "Elasticsearch password to use for benchmark with rally"
+}
+
+variable "rally_subnet_cidr" {
+  type        = string
+  description = "CIDR block for subnet containing rally instances"
+  default     = "10.128.0.0/20"
 }
 
 variable "rally_worker_count" {
@@ -51,4 +63,10 @@ variable "rally_bulk_size" {
   type        = number
   description = "Bulk size to use for rally track"
   default     = 5000
+}
+
+variable "rally_bulk_clients" {
+  type        = number
+  description = "Number of clients to use for rally bulk requests"
+  default     = 10
 }
