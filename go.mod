@@ -11,10 +11,10 @@ require (
 	github.com/dgryski/go-farm v0.0.0-20200201041132-a6ae2369ad13 // indirect
 	github.com/dlclark/regexp2 v1.7.0 // indirect
 	github.com/dop251/goja v0.0.0-20221003171542-5ea1285e6c91 // indirect
-	github.com/dop251/goja_nodejs v0.0.0-20220905124449-678b33ca5009 // indirect
+	github.com/dop251/goja_nodejs v0.0.0-20221009164102-3aa5028e57f6 // indirect
 	github.com/dustin/go-humanize v1.0.0
 	github.com/elastic/apm-server/approvaltest v0.0.0-00010101000000-000000000000
-	github.com/elastic/beats/v7 v7.17.7-0.20221006210501-b779973c86ee
+	github.com/elastic/beats/v7 v7.17.7-0.20221007064317-235b05b9f9a9
 	github.com/elastic/ecs v1.12.0
 	github.com/elastic/elastic-agent-client/v7 v7.0.0-20220915231534-3e014f7c0e83 // indirect
 	github.com/elastic/gmux v0.2.0
