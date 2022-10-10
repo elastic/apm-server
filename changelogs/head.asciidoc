@@ -1,0 +1,24 @@
+[[release-notes-head]]
+== APM version HEAD
+
+https://github.com/elastic/apm-server/compare/8.5\...main[View commits]
+
+[float]
+==== Breaking Changes
+- `apm-server.decoder.*` stack monitoring metrics are no longer recorded {pull}9210[9210]
+- `ecs.version` is no longer added to document `_source`; it is added as a `constant_keyword` field {pull}9208[9208]
+
+[float]
+==== Deprecations
+
+[float]
+==== Bug fixes
+Set error.id for OpenTelemetry exception span events {pull}9372[9372]
+
+[float]
+==== Intake API Changes
+
+[float]
+==== Added
+- Metrics data streams now use synthetic source {pull}9215[9215]
+- Service metrics now support global labels {pull}9248[9248]

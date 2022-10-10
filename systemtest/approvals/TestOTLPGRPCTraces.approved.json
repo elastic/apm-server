@@ -22,6 +22,7 @@
                 ],
                 "grouping_key": "14f4d08792a45fce53a46c93851e36e1",
                 "grouping_name": "kablamo",
+                "id": "dynamic",
                 "stack_trace": "not an actual real stack trace"
             },
             "event": {
