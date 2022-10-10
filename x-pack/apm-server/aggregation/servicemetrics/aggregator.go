@@ -300,7 +300,7 @@ func (k *aggregationKey) hash() uint64 {
 }
 
 func (k *aggregationKey) equal(key aggregationKey) bool {
-	return k.comparable == key.comparable && 
+	return k.comparable == key.comparable &&
 		k.AggregatedGlobalLabels.Equals(&key.AggregatedGlobalLabels)
 }
 
