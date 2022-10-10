@@ -304,8 +304,6 @@ func TranslateTransaction(
 				netHostPort = int(v.IntVal())
 			case "rpc.grpc.status_code":
 				event.Transaction.Result = codes.Code(v.IntVal()).String()
-			case "grcp.kind":
-				event.Transaction.Type = "request"
 			default:
 				setLabel(k, event, ifaceAttributeValue(v))
 			}
