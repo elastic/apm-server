@@ -75,8 +75,8 @@ func TestModelIndexer(t *testing.T) {
 	require.NoError(t, err)
 	defer indexer.Close(context.Background())
 
-	const N = 100
-	for i := 0; i < N; i++ {
+	N := int64(25 * runtime.GOMAXPROCS(0))
+	for i := 0; i < int(N); i++ {
 		batch := model.Batch{model.APMEvent{Timestamp: time.Now(), DataStream: model.DataStream{
 			Type:      "logs",
 			Dataset:   "apm_server",
@@ -86,7 +86,7 @@ func TestModelIndexer(t *testing.T) {
 		require.NoError(t, err)
 	}
 	// Indexer has not been flushed, there is one active bulk indexer.
-	assert.Equal(t, modelindexer.Stats{Added: N, Active: N, AvailableBulkRequests: 9}, indexer.Stats())
+	assert.Equal(t, modelindexer.Stats{Added: N, Active: N, AvailableBulkRequests: 24, ActiveBulkRequests: 1}, indexer.Stats())
 
 	// Closing the indexer flushes enqueued events.
 	err = indexer.Close(context.Background())
@@ -99,7 +99,7 @@ func TestModelIndexer(t *testing.T) {
 		Failed:                2,
 		Indexed:               N - 2,
 		TooManyRequests:       1,
-		AvailableBulkRequests: 10,
+		AvailableBulkRequests: 25,
 		BytesTotal:            bytesTotal,
 	}, stats)
 	assert.Equal(t, "observability", productOriginHeader)
@@ -117,8 +117,8 @@ func TestModelIndexerAvailableBulkIndexers(t *testing.T) {
 	require.NoError(t, err)
 	defer indexer.Close(context.Background())
 
-	const N = 10
-	for i := 0; i < N; i++ {
+	N := int64(25 + 25*runtime.GOMAXPROCS(0))
+	for i := 0; i < int(N); i++ {
 		batch := model.Batch{model.APMEvent{Timestamp: time.Now(), DataStream: model.DataStream{
 			Type:      "logs",
 			Dataset:   "apm_server",
@@ -130,7 +130,7 @@ func TestModelIndexerAvailableBulkIndexers(t *testing.T) {
 	stats := indexer.Stats()
 	// FlushBytes is set arbitrarily low, forcing a flush on each new
 	// event. There should be no available bulk indexers.
-	assert.Equal(t, modelindexer.Stats{Added: N, Active: N, AvailableBulkRequests: 0}, stats)
+	assert.Equal(t, modelindexer.Stats{Added: N, Active: N, AvailableBulkRequests: 0, ActiveBulkRequests: 1}, stats)
 
 	close(unblockRequests)
 	err = indexer.Close(context.Background())
@@ -141,7 +141,7 @@ func TestModelIndexerAvailableBulkIndexers(t *testing.T) {
 		Added:                 N,
 		BulkRequests:          N,
 		Indexed:               N,
-		AvailableBulkRequests: 10,
+		AvailableBulkRequests: 25,
 	}, stats)
 }
 
@@ -221,7 +221,7 @@ func TestModelIndexerCompressionLevel(t *testing.T) {
 		Failed:                0,
 		Indexed:               1,
 		TooManyRequests:       0,
-		AvailableBulkRequests: 10,
+		AvailableBulkRequests: 25,
 		BytesTotal:            bytesTotal,
 	}, stats)
 }
@@ -330,7 +330,7 @@ func TestModelIndexerServerError(t *testing.T) {
 		Active:                0,
 		BulkRequests:          1,
 		Failed:                1,
-		AvailableBulkRequests: 10,
+		AvailableBulkRequests: 25,
 		BytesTotal:            bytesTotal,
 	}, stats)
 }
@@ -365,7 +365,7 @@ func TestModelIndexerServerErrorTooManyRequests(t *testing.T) {
 		BulkRequests:          1,
 		Failed:                1,
 		TooManyRequests:       1,
-		AvailableBulkRequests: 10,
+		AvailableBulkRequests: 25,
 		BytesTotal:            bytesTotal,
 	}, stats)
 }
@@ -583,20 +583,28 @@ func testModelIndexerTracing(t *testing.T, statusCode int, expectedOutcome strin
 
 func BenchmarkModelIndexer(b *testing.B) {
 	b.Run("NoCompression", func(b *testing.B) {
-		benchmarkModelIndexer(b, gzip.NoCompression)
+		benchmarkModelIndexer(b, modelindexer.Config{
+			CompressionLevel: gzip.NoCompression,
+		})
 	})
 	b.Run("BestSpeed", func(b *testing.B) {
-		benchmarkModelIndexer(b, gzip.BestSpeed)
+		benchmarkModelIndexer(b, modelindexer.Config{
+			CompressionLevel: gzip.BestSpeed,
+		})
 	})
 	b.Run("DefaultCompression", func(b *testing.B) {
-		benchmarkModelIndexer(b, gzip.DefaultCompression)
+		benchmarkModelIndexer(b, modelindexer.Config{
+			CompressionLevel: gzip.DefaultCompression,
+		})
 	})
 	b.Run("BestCompression", func(b *testing.B) {
-		benchmarkModelIndexer(b, gzip.BestCompression)
+		benchmarkModelIndexer(b, modelindexer.Config{
+			CompressionLevel: gzip.BestCompression,
+		})
 	})
 }
 
-func benchmarkModelIndexer(b *testing.B, compressionLevel int) {
+func benchmarkModelIndexer(b *testing.B, cfg modelindexer.Config) {
 	var indexed int64
 	client := modelindexertest.NewMockElasticsearchClient(b, func(w http.ResponseWriter, r *http.Request) {
 		body := r.Body
@@ -633,11 +641,8 @@ func benchmarkModelIndexer(b *testing.B, compressionLevel int) {
 		w.Write(jsonw.Bytes())
 		atomic.AddInt64(&indexed, n)
 	})
-
-	indexer, err := modelindexer.New(client, modelindexer.Config{
-		CompressionLevel: compressionLevel,
-		FlushInterval:    time.Second,
-	})
+	cfg.FlushInterval = time.Second
+	indexer, err := modelindexer.New(client, cfg)
 	require.NoError(b, err)
 	defer indexer.Close(context.Background())
 
@@ -656,7 +661,6 @@ func benchmarkModelIndexer(b *testing.B, compressionLevel int) {
 			}
 		}
 	})
-
 	// Closing the indexer flushes enqueued events.
 	if err := indexer.Close(context.Background()); err != nil {
 		b.Fatal(err)
