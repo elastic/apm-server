@@ -1355,10 +1355,6 @@ func TestGRPCTransactionFromNodejsSDK(t *testing.T) {
 	})
 
 	test(t, map[string]interface{}{
-		"grcp.kind": 1,
-	})
-
-	test(t, map[string]interface{}{
 		"rpc.grpc.status_code": codes.Unavailable,
 		"grcp.kind":            1,
 	})
