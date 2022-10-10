@@ -121,7 +121,7 @@ func TestOTLPGRPCTraces(t *testing.T) {
 		},
 		MinimumShouldMatch: 1,
 	})
-	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits)
+	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits, "error.id")
 }
 
 func TestOTLPGRPCTraceSpanLinks(t *testing.T) {
