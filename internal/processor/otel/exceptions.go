@@ -41,8 +41,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/elastic/apm-server/internal/model"
 	"github.com/gofrs/uuid"
+
+	"github.com/elastic/apm-server/internal/model"
 )
 
 var (
