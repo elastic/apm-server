@@ -579,7 +579,8 @@ func (k *transactionAggregationKey) hash() uint64 {
 }
 
 func (k *transactionAggregationKey) equal(key transactionAggregationKey) bool {
-	return k.comparable == key.comparable && k.AggregatedGlobalLabels.Equals(&key.AggregatedGlobalLabels)
+	return k.comparable == key.comparable &&
+		k.AggregatedGlobalLabels.Equals(&key.AggregatedGlobalLabels)
 }
 
 type transactionMetrics struct {
