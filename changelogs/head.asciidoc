@@ -13,6 +13,7 @@ https://github.com/elastic/apm-server/compare/8.5\...main[View commits]
 
 [float]
 ==== Bug fixes
+Set error.id for OpenTelemetry exception span events {pull}9372[9372]
 
 [float]
 ==== Intake API Changes
