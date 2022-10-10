@@ -405,60 +405,59 @@ func (i *Indexer) flush(ctx context.Context, bulkIndexer *bulkIndexer) error {
 func (i *Indexer) runActiveIndexer() {
 	i.g.Go(func() error {
 		atomic.AddInt64(&i.activeBulkRequests, 1)
-		var mu sync.Mutex
-		// `active` and `timer` must be accessed with `mu` locked.
-		var active *bulkIndexer
 		var timer *time.Timer
 		flush := make(chan *bulkIndexer)
+		active := make(chan *bulkIndexer, 1)
 		defer func() {
 			atomic.AddInt64(&i.activeBulkRequests, -1)
 			close(flush)
+			close(active)
 		}()
 		for item := range i.bulkItems {
-			mu.Lock()
-			if active == nil {
-				active = <-i.available
+			var indexer *bulkIndexer
+			select {
+			case indexer = <-active:
+			default:
+				indexer = <-i.available
 				atomic.AddInt64(&i.availableBulkRequests, -1)
 				if timer == nil {
 					timer = time.AfterFunc(i.config.FlushInterval, func() {
-						mu.Lock()
-						defer mu.Unlock()
-						flush <- active
-						active = nil
+						flush <- <-active
 					})
 				} else {
 					timer.Reset(i.config.FlushInterval)
 				}
 				i.g.Go(func() error {
-					if indexer := <-flush; indexer != nil {
-						return i.flushIndexer(context.Background(), indexer)
+					if idx := <-flush; idx != nil {
+						return i.flushIndexer(context.Background(), idx)
 					}
 					return nil
 				})
 			}
-			if err := active.Add(item); err != nil {
+			if err := indexer.Add(item); err != nil {
 				i.logger.Errorf("failed adding event to bulk indexer: %v", err)
 			}
 			// Flush the active bulk indexer when it's at or exceeds the
 			// configured FlushBytes threshold.
-			if active.Len() >= i.config.FlushBytes {
+			if indexer.Len() >= i.config.FlushBytes {
 				// Stop the timer and only request a flush if the stop
 				// operation succeeded, otherwise the active indexer has
 				// already been flushed by the idle timer.
 				if timer.Stop() {
-					flush <- active
-					active = nil
+					flush <- indexer
 				}
+			} else {
+				active <- indexer
 			}
-			mu.Unlock()
 		}
 		// Flush the active indexer when it hasn't yet been flushed.
-		mu.Lock()
-		if active != nil && timer.Stop() {
-			flush <- active
-			active = nil
+		select {
+		case indexer := <-active:
+			if timer.Stop() {
+				flush <- indexer
+			}
+		default:
 		}
-		mu.Unlock()
 		return nil
 	})
 }
