@@ -258,3 +258,44 @@ func TestServiceMetricsAggregation(t *testing.T) {
 	)
 	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits)
 }
+
+func TestServiceMetricsAggregationLabels(t *testing.T) {
+	t.Setenv("ELASTIC_APM_GLOBAL_LABELS", "department_name=apm,organization=observability,company=elastic")
+	systemtest.CleanupElasticsearch(t)
+	srv := apmservertest.NewUnstartedServerTB(t)
+	enabled := true
+	srv.Config.Aggregation = &apmservertest.AggregationConfig{
+		Service: &apmservertest.ServiceAggregationConfig{
+			Enabled:  &enabled,
+			Interval: time.Second,
+		},
+	}
+	err := srv.Start()
+	require.NoError(t, err)
+
+	tracer := srv.Tracer()
+	tx := tracer.StartTransaction("name", "type")
+	// The label that's set below won't be set in the metricset labels since
+	// the labels will be set on the event and not in the metadata object.
+	tx.Context.SetLabel("mylabel", "myvalue")
+	tx.Duration = time.Second
+	tx.End()
+	tracer.Flush(nil)
+
+	result := systemtest.Elasticsearch.ExpectDocs(t, "metrics-apm.internal-*", estest.BoolQuery{
+		Filter: []interface{}{
+			estest.TermQuery{Field: "metricset.name", Value: "service"},
+		},
+	})
+
+	docs := unmarshalMetricsetDocs(t, result.Hits.Hits)
+	assert.ElementsMatch(t, []metricsetDoc{{
+		Trasaction:    metricsetTransaction{Type: "type"},
+		MetricsetName: "service",
+		Labels: map[string]string{
+			"department_name": "apm",
+			"organization":    "observability",
+			"company":         "elastic",
+		},
+	}}, docs)
+}

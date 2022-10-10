@@ -6,16 +6,19 @@ package servicemetrics
 
 import (
 	"context"
+	"encoding/binary"
 	"math"
 	"sync"
 	"time"
 
+	"github.com/cespare/xxhash/v2"
 	"github.com/pkg/errors"
 
 	"github.com/elastic/elastic-agent-libs/logp"
 
 	"github.com/elastic/apm-server/internal/logs"
 	"github.com/elastic/apm-server/internal/model"
+	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/labels"
 )
 
 const (
@@ -166,8 +169,10 @@ func (a *Aggregator) publish(ctx context.Context) error {
 
 	batch := make(model.Batch, 0, size)
 	for key, metrics := range a.inactive.m {
-		metricset := makeMetricset(key, metrics)
-		batch = append(batch, metricset)
+		for _, mme := range metrics {
+			metricset := makeMetricset(mme.aggregationKey, mme.serviceMetrics)
+			batch = append(batch, metricset)
+		}
 		delete(a.inactive.m, key)
 	}
 	a.config.Logger.Debugf("publishing %d metricsets", len(batch))
@@ -204,45 +209,102 @@ func (a *Aggregator) processTransaction(event *model.APMEvent) model.APMEvent {
 type metricsBuffer struct {
 	maxSize int
 
-	mu sync.RWMutex
-	m  map[aggregationKey]serviceMetrics
+	mu      sync.RWMutex
+	entries int
+	m       map[uint64][]*metricsMapEntry
+	space   []metricsMapEntry
 }
 
 func newMetricsBuffer(maxSize int) *metricsBuffer {
 	return &metricsBuffer{
 		maxSize: maxSize,
-		m:       make(map[aggregationKey]serviceMetrics),
+		m:       make(map[uint64][]*metricsMapEntry),
+		space:   make([]metricsMapEntry, maxSize),
 	}
 }
 
+type metricsMapEntry struct {
+	serviceMetrics
+	aggregationKey
+}
+
 func (mb *metricsBuffer) storeOrUpdate(key aggregationKey, metrics serviceMetrics, logger *logp.Logger) bool {
+	// hash does not use the serviceMetrics so it is safe to call concurrently.
+	hash := key.hash()
+
+	// Full lock because serviceMetrics cannot be updated atomically.
 	mb.mu.Lock()
 	defer mb.mu.Unlock()
-	old, ok := mb.m[key]
-	if !ok {
-		n := len(mb.m)
-		half := mb.maxSize / 2
-		if !ok {
-			switch n {
-			case mb.maxSize:
-				return false
-			case half - 1:
-				logger.Warn("service metrics groups reached 50% capacity")
-			case mb.maxSize - 1:
-				logger.Warn("service metrics groups reached 100% capacity")
+
+	entries, ok := mb.m[hash]
+	if ok {
+		for offset, old := range entries {
+			if old.aggregationKey.equal(key) {
+				entries[offset].serviceMetrics = serviceMetrics{
+					transactionDuration: old.transactionDuration + metrics.transactionDuration,
+					transactionCount:    old.transactionCount + metrics.transactionCount,
+					failureCount:        old.failureCount + metrics.failureCount,
+					successCount:        old.successCount + metrics.successCount,
+				}
+				return true
 			}
 		}
+	} else if mb.entries >= len(mb.space) {
+		return false
 	}
-	mb.m[key] = serviceMetrics{
-		transactionDuration: old.transactionDuration + metrics.transactionDuration,
-		transactionCount:    old.transactionCount + metrics.transactionCount,
-		failureCount:        old.failureCount + metrics.failureCount,
-		successCount:        old.successCount + metrics.successCount,
+
+	half := mb.maxSize / 2
+	if !ok {
+		switch mb.entries {
+		case mb.maxSize:
+			return false
+		case half - 1:
+			logger.Warn("service metrics groups reached 50% capacity")
+		case mb.maxSize - 1:
+			logger.Warn("service metrics groups reached 100% capacity")
+		}
 	}
+
+	entry := &mb.space[mb.entries]
+	entry.aggregationKey = key
+
+	entry.serviceMetrics = serviceMetrics{
+		transactionDuration: metrics.transactionDuration,
+		transactionCount:    metrics.transactionCount,
+		failureCount:        metrics.failureCount,
+		successCount:        metrics.successCount,
+	}
+
+	mb.m[hash] = append(entries, entry)
+	mb.entries++
 	return true
 }
 
 type aggregationKey struct {
+	labels.AggregatedGlobalLabels
+	comparable
+}
+
+func (k *aggregationKey) hash() uint64 {
+	var h xxhash.Digest
+	var buf [8]byte
+	binary.LittleEndian.PutUint64(buf[:], uint64(k.timestamp.UnixNano()))
+	h.Write(buf[:])
+
+	k.AggregatedGlobalLabels.Write(&h)
+	h.WriteString(k.agentName)
+	h.WriteString(k.serviceEnvironment)
+	h.WriteString(k.serviceName)
+	h.WriteString(k.transactionType)
+	return h.Sum64()
+}
+
+func (k *aggregationKey) equal(key aggregationKey) bool {
+	return k.comparable == key.comparable &&
+		k.AggregatedGlobalLabels.Equals(&key.AggregatedGlobalLabels)
+}
+
+type comparable struct {
 	timestamp time.Time
 
 	agentName          string
@@ -252,15 +314,21 @@ type aggregationKey struct {
 }
 
 func makeAggregationKey(event *model.APMEvent, interval time.Duration) aggregationKey {
-	return aggregationKey{
-		// Group metrics by time interval.
-		timestamp: event.Timestamp.Truncate(interval),
+	key := aggregationKey{
+		comparable: comparable{
+			// Group metrics by time interval.
+			timestamp: event.Timestamp.Truncate(interval),
 
-		agentName:          event.Agent.Name,
-		serviceName:        event.Service.Name,
-		serviceEnvironment: event.Service.Environment,
-		transactionType:    event.Transaction.Type,
+			agentName:          event.Agent.Name,
+			serviceName:        event.Service.Name,
+			serviceEnvironment: event.Service.Environment,
+			transactionType:    event.Transaction.Type,
+		},
 	}
+
+	key.AggregatedGlobalLabels.Read(event)
+
+	return key
 }
 
 type serviceMetrics struct {
@@ -296,7 +364,9 @@ func makeMetricset(key aggregationKey, metrics serviceMetrics) model.APMEvent {
 		Agent: model.Agent{
 			Name: key.agentName,
 		},
-		Processor: model.MetricsetProcessor,
+		Labels:        key.Labels,
+		NumericLabels: key.NumericLabels,
+		Processor:     model.MetricsetProcessor,
 		Metricset: &model.Metricset{
 			DocCount: metricCount,
 			Name:     metricsetName,
