@@ -273,7 +273,8 @@ func (a *Aggregator) AggregateTransaction(event model.APMEvent) model.APMEvent {
 	a.tooManyGroupsLogger.Warn(`
 Transaction group limit reached, falling back to sending individual metric documents.
 This is typically caused by ineffective transaction grouping, e.g. by creating many
-unique transaction names.`[1:],
+unique transaction names.
+If you are using an unsupported framework you can enable 'use_path_as_transaction_name'.`[1:],
 	)
 	atomic.AddInt64(&a.metrics.overflowed, 1)
 	counts := []int64{int64(math.Round(count))}
