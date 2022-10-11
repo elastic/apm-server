@@ -1,0 +1,15 @@
+#!/bin/bash
+
+set -eo
+
+ingest_pipelines=("logs-apm.app@custom" "logs-apm.error@custom" "metrics-apm.app@custom" "metrics-apm.internal@custom" "traces-apm.rum@custom" "traces-apm@custom")
+
+for tpl in $${ingest_pipelines[@]}; do
+  curl -s --fail-with-body -H 'Content-Type: application/json' -XPUT -u ${elasticsearch_username}:${elasticsearch_password} "${elasticsearch_url}/_ingest/pipeline/$${tpl}" -d '{
+  "processors": [
+    {
+      "drop": {}
+    }
+  ]
+}'
+done
