@@ -80,6 +80,12 @@ variable "apm_shards" {
   description = "The number of shards to use for apm indices. Defaults to 0, doesn't modify the default values"
 }
 
+variable "drop_pipeline" {
+  default     = false
+  description = "Whether or not to install an Elasticsearch ingest pipeline to drop all incoming APM documents. Defaults to false"
+  type        = bool
+}
+
 ## Worker configuraiton
 
 variable "worker_region" {
