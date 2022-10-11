@@ -45,6 +45,12 @@ variable "gcp_region" {
   default     = "us-west2"
 }
 
+variable "rally_machine_type" {
+  type        = string
+  description = "Machine type for rally nodes"
+  default     = "e2-small"
+}
+
 variable "rally_workers_resource_prefix" {
   type        = string
   description = "Prefix to add to created resource for rally workers"
@@ -72,4 +78,10 @@ variable "rally_worker_count" {
   type        = string
   description = "Number of rally worker nodes"
   default     = 2
+}
+
+variable "rally_bulk_clients" {
+  type        = number
+  description = "Number of clients to use for rally bulk requests"
+  default     = 10
 }
