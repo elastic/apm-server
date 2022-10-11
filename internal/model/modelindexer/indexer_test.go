@@ -572,6 +572,7 @@ func TestModelIndexerCloseBusyIndexer(t *testing.T) {
 			Namespace: "testing",
 		}}}
 		err = indexer.ProcessBatch(context.Background(), &batch)
+		assert.NoError(t, err)
 	}
 
 	assert.NoError(t, indexer.Close(context.Background()))
