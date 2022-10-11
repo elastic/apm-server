@@ -75,8 +75,8 @@ func TestModelIndexer(t *testing.T) {
 	require.NoError(t, err)
 	defer indexer.Close(context.Background())
 
-	N := int64(25 * runtime.GOMAXPROCS(0))
-	for i := 0; i < int(N); i++ {
+	const N = 100
+	for i := 0; i < N; i++ {
 		batch := model.Batch{model.APMEvent{Timestamp: time.Now(), DataStream: model.DataStream{
 			Type:      "logs",
 			Dataset:   "apm_server",
@@ -117,8 +117,8 @@ func TestModelIndexerAvailableBulkIndexers(t *testing.T) {
 	require.NoError(t, err)
 	defer indexer.Close(context.Background())
 
-	N := int64(25 + 25*runtime.GOMAXPROCS(0))
-	for i := 0; i < int(N); i++ {
+	const N = 1000
+	for i := 0; i < N; i++ {
 		batch := model.Batch{model.APMEvent{Timestamp: time.Now(), DataStream: model.DataStream{
 			Type:      "logs",
 			Dataset:   "apm_server",
