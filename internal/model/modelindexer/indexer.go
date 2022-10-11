@@ -416,7 +416,7 @@ func (i *Indexer) runActiveIndexer() {
 			case event, ok := <-i.bulkItems:
 				if !ok {
 					closed = true
-					break
+					break // Flush a last time below, if there's an active indexer
 				}
 				if active == nil {
 					active = <-i.available
@@ -426,8 +426,8 @@ func (i *Indexer) runActiveIndexer() {
 				if err := active.Add(event); err != nil {
 					i.logger.Errorf("failed adding event to bulk indexer: %v", err)
 				}
-				// Flush the active bulk indexer when it's at or exceeds the
-				// configured FlushBytes threshold.
+				// Flush the active indexer when it's at or exceeds the configured
+				// FlushBytes threshold.
 				if active.Len() >= i.config.FlushBytes {
 					if !flushTimer.Stop() {
 						<-flushTimer.C

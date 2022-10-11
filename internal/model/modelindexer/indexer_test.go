@@ -75,7 +75,8 @@ func TestModelIndexer(t *testing.T) {
 	require.NoError(t, err)
 	defer indexer.Close(context.Background())
 
-	const N = 100
+	available := indexer.Stats().AvailableBulkRequests
+	const N = 10
 	for i := 0; i < N; i++ {
 		batch := model.Batch{model.APMEvent{Timestamp: time.Now(), DataStream: model.DataStream{
 			Type:      "logs",
@@ -84,6 +85,22 @@ func TestModelIndexer(t *testing.T) {
 		}}}
 		err := indexer.ProcessBatch(context.Background(), &batch)
 		require.NoError(t, err)
+	}
+
+	timeout := time.After(2 * time.Second)
+loop:
+	for {
+		select {
+		case <-time.After(10 * time.Millisecond):
+			// Because the internal channel is buffered to increase performance,
+			// the available indexer may not take events right away, loop until
+			// the available bulk requests has been lowered.
+			if indexer.Stats().AvailableBulkRequests < available {
+				break loop
+			}
+		case <-timeout:
+			t.Fatalf("timed out waiting for the active bulk indexer to pull from the available queue")
+		}
 	}
 	// Indexer has not been flushed, there is one active bulk indexer.
 	assert.Equal(t, modelindexer.Stats{Added: N, Active: N, AvailableBulkRequests: 24, ActiveBulkRequests: 1}, indexer.Stats())
@@ -107,7 +124,9 @@ func TestModelIndexer(t *testing.T) {
 
 func TestModelIndexerAvailableBulkIndexers(t *testing.T) {
 	unblockRequests := make(chan struct{})
+	receivedFlush := make(chan struct{})
 	client := modelindexertest.NewMockElasticsearchClient(t, func(w http.ResponseWriter, r *http.Request) {
+		receivedFlush <- struct{}{}
 		// Wait until signaled to service requests
 		<-unblockRequests
 		_, result := modelindexertest.DecodeBulkRequest(r)
@@ -117,7 +136,7 @@ func TestModelIndexerAvailableBulkIndexers(t *testing.T) {
 	require.NoError(t, err)
 	defer indexer.Close(context.Background())
 
-	const N = 1000
+	const N = 25
 	for i := 0; i < N; i++ {
 		batch := model.Batch{model.APMEvent{Timestamp: time.Now(), DataStream: model.DataStream{
 			Type:      "logs",
@@ -126,6 +145,15 @@ func TestModelIndexerAvailableBulkIndexers(t *testing.T) {
 		}}}
 		err := indexer.ProcessBatch(context.Background(), &batch)
 		require.NoError(t, err)
+	}
+	timeout := time.NewTimer(2 * time.Second)
+	defer timeout.Stop()
+	for i := 0; i < N; i++ {
+		select {
+		case <-receivedFlush:
+		case <-timeout.C:
+			t.Fatalf("timed out waiting for %d, received %d", N, i)
+		}
 	}
 	stats := indexer.Stats()
 	// FlushBytes is set arbitrarily low, forcing a flush on each new
@@ -521,6 +549,40 @@ func TestModelIndexerUnknownResponseFields(t *testing.T) {
 
 	err = indexer.Close(context.Background())
 	assert.NoError(t, err)
+}
+
+func TestModelIndexerCloseBusyIndexer(t *testing.T) {
+	// This test ensures that all the channel items are consumed and indexed
+	// when the indexer is closed.
+	var bytesTotal int64
+	client := modelindexertest.NewMockElasticsearchClient(t, func(w http.ResponseWriter, r *http.Request) {
+		bytesTotal += r.ContentLength
+		_, result := modelindexertest.DecodeBulkRequest(r)
+		json.NewEncoder(w).Encode(result)
+	})
+	indexer, err := modelindexer.New(client, modelindexer.Config{})
+	require.NoError(t, err)
+	t.Cleanup(func() { indexer.Close(context.Background()) })
+
+	const N = 10000
+	for i := 0; i < N; i++ {
+		batch := model.Batch{model.APMEvent{Timestamp: time.Now(), DataStream: model.DataStream{
+			Type:      "logs",
+			Dataset:   "apm_server",
+			Namespace: "testing",
+		}}}
+		err = indexer.ProcessBatch(context.Background(), &batch)
+	}
+
+	assert.NoError(t, indexer.Close(context.Background()))
+
+	assert.Equal(t, modelindexer.Stats{
+		Added:                 N,
+		Indexed:               N,
+		BulkRequests:          1,
+		BytesTotal:            bytesTotal,
+		AvailableBulkRequests: 25,
+		ActiveBulkRequests:    0}, indexer.Stats())
 }
 
 func TestModelIndexerTracing(t *testing.T) {
