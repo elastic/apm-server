@@ -208,3 +208,26 @@ data "external" "secret_token" {
   program     = ["/bin/bash", "-c", "scripts/secret_token.sh"]
   working_dir = path.module
 }
+
+resource "null_resource" "drop_pipeline" {
+  count = var.drop_pipeline ? 1 : 0
+  triggers = {
+    deployment_id = ec_deployment.deployment.id
+    shell_hash    = local_file.drop_pipeline.0.id
+  }
+  provisioner "local-exec" {
+    command     = "scripts/drop_pipeline.sh"
+    interpreter = ["/bin/bash", "-c"]
+    working_dir = path.module
+  }
+}
+
+resource "local_file" "drop_pipeline" {
+  count = var.drop_pipeline ? 1 : 0
+  content = templatefile("${path.module}/scripts/drop_pipeline.tftpl", {
+    elasticsearch_url      = ec_deployment.deployment.elasticsearch.0.https_endpoint,
+    elasticsearch_password = ec_deployment.deployment.elasticsearch_password,
+    elasticsearch_username = ec_deployment.deployment.elasticsearch_username,
+  })
+  filename = "${path.module}/scripts/drop_pipeline.sh"
+}
