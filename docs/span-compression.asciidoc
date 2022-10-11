@@ -70,9 +70,9 @@ Support for span compression is available in these agents:
 | **Java agent**
 | {apm-java-ref-v}/config-huge-traces.html#config-span-compression-same-kind-max-duration[`span_compression_same_kind_max_duration`]
 | {apm-java-ref-v}/config-huge-traces.html#config-span-compression-exact-match-max-duration[`span_compression_exact_match_max_duration`]
-// | **.NET agent**
-// | {apm-dotnet-ref-v}/config-span-compression-same-kind-max-duration.html[`SpanCompressionSameKindMaxDuration`]
-// | {apm-dotnet-ref-v}/config-span-compression-exact-match-max-duration.html[`SpanCompressionExactMatchMaxDuration`]
+| **.NET agent**
+| {apm-dotnet-ref-v}/config-span-compression-same-kind-max-duration.html[`SpanCompressionSameKindMaxDuration`]
+| {apm-dotnet-ref-v}/config-span-compression-exact-match-max-duration.html[`SpanCompressionExactMatchMaxDuration`]
 | **Node.js agent**
 | {apm-node-ref-v}/configuration.html#span-compression-same-kind-max-duration[`spanCompressionSameKindMaxDuration`]
 | {apm-node-ref-v}/configuration.html#span-compression-exact-match-max-duration[`spanCompressionExactMatchMaxDuration`]
