@@ -568,8 +568,6 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 
 			switch kDots {
 			// http.*
-			case semconv.AttributeRPCGRPCStatusCode:
-				event.Transaction.Type = "request"
 			case semconv.AttributeHTTPHost:
 				httpHost = stringval
 				foundSpanType = httpSpan
@@ -653,6 +651,8 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 			case semconv.AttributeRPCService:
 				rpcService = stringval
 				foundSpanType = rpcSpan
+			case semconv.AttributeRPCGRPCStatusCode:
+				event.Transaction.Type = "request"
 			case semconv.AttributeRPCMethod:
 
 			// miscellaneous
