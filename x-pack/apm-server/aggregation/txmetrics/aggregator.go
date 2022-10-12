@@ -273,7 +273,7 @@ func (a *Aggregator) AggregateTransaction(event model.APMEvent) model.APMEvent {
 Transaction group limit reached, falling back to sending individual metric documents.
 This is typically caused by ineffective transaction grouping, e.g. by creating many
 unique transaction names.
-If you are using an agent with 'use_path_as_transaction_name' enabled, it may cause to
+If you are using an agent with 'use_path_as_transaction_name' enabled, it may cause
 high cardinality. If your agent supports the 'transaction_name_groups' option, setting
 that configuration option appropriately, may lead to better results.`[1:],
 	)
