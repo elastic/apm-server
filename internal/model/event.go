@@ -38,14 +38,20 @@ type Event struct {
 	// Severity holds the numeric severity of the event for log events.
 	Severity int64
 
-	// Severity holds the action captured by the event for log events.
+	// Action holds the action captured by the event for log events.
 	Action string
+
+	// Dataset holds the the dataset which produces the events. If an event
+	// source publishes more than one type of log or events (e.g. access log,
+	// error log), the dataset is used to specify which one the event comes from
+	Dataset string
 }
 
 func (e *Event) fields() mapstr.M {
 	var fields mapStr
 	fields.maybeSetString("outcome", e.Outcome)
 	fields.maybeSetString("action", e.Action)
+	fields.maybeSetString("dataset", e.Dataset)
 	if e.Severity > 0 {
 		fields.set("severity", e.Severity)
 	}

@@ -28,6 +28,7 @@ type Process struct {
 	Argv        []string
 	CommandLine string
 	Executable  string
+	Thread      *ProcessThread
 }
 
 func (p *Process) fields() mapstr.M {
@@ -44,5 +45,23 @@ func (p *Process) fields() mapstr.M {
 	proc.maybeSetString("title", p.Title)
 	proc.maybeSetString("command_line", p.CommandLine)
 	proc.maybeSetString("executable", p.Executable)
+	if p.Thread != nil {
+		proc.maybeSetMapStr("thread", p.Thread.fields())
+	}
 	return mapstr.M(proc)
+}
+
+// ProcessThread represents the thread information.
+type ProcessThread struct {
+	ID   int
+	Name string
+}
+
+func (t *ProcessThread) fields() mapstr.M {
+	var fields mapStr
+	if t.ID != 0 {
+		fields.set("id", t.ID)
+	}
+	fields.maybeSetString("name", t.Name)
+	return mapstr.M(fields)
 }

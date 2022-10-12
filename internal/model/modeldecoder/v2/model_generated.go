@@ -2468,21 +2468,86 @@ func (val *logRoot) validate() error {
 }
 
 func (val *log) IsSet() bool {
-	return val.Timestamp.IsSet() || val.Message.IsSet() || val.FAAS.IsSet()
+	return val.Timestamp.IsSet() || val.TraceID.IsSet() || val.TransactionID.IsSet() || val.Message.IsSet() || val.Level.IsSet() || val.Logger.IsSet() || val.OriginFileName.IsSet() || val.OriginFileLine.IsSet() || val.OriginFunction.IsSet() || val.ErrorType.IsSet() || val.ErrorMessage.IsSet() || val.ErrorStacktrace.IsSet() || val.FAAS.IsSet() || val.ServiceName.IsSet() || val.ServiceVersion.IsSet() || val.ServiceEnvironment.IsSet() || val.ServiceNodeName.IsSet() || val.ProcessThreadName.IsSet() || val.Dataset.IsSet() || (len(val.Labels) > 0)
 }
 
 func (val *log) Reset() {
 	val.Timestamp.Reset()
+	val.TraceID.Reset()
+	val.TransactionID.Reset()
 	val.Message.Reset()
+	val.Level.Reset()
+	val.Logger.Reset()
+	val.OriginFileName.Reset()
+	val.OriginFileLine.Reset()
+	val.OriginFunction.Reset()
+	val.ErrorType.Reset()
+	val.ErrorMessage.Reset()
+	val.ErrorStacktrace.Reset()
 	val.FAAS.Reset()
+	val.ServiceName.Reset()
+	val.ServiceVersion.Reset()
+	val.ServiceEnvironment.Reset()
+	val.ServiceNodeName.Reset()
+	val.ProcessThreadName.Reset()
+	val.Dataset.Reset()
+	for k := range val.Labels {
+		delete(val.Labels, k)
+	}
 }
 
 func (val *log) validate() error {
 	if !val.IsSet() {
 		return nil
 	}
+	if val.TraceID.IsSet() && utf8.RuneCountInString(val.TraceID.Val) > 1024 {
+		return fmt.Errorf("'trace.id': validation rule 'maxLength(1024)' violated")
+	}
+	if val.TransactionID.IsSet() && utf8.RuneCountInString(val.TransactionID.Val) > 1024 {
+		return fmt.Errorf("'transaction.id': validation rule 'maxLength(1024)' violated")
+	}
+	if val.Level.IsSet() && utf8.RuneCountInString(val.Level.Val) > 1024 {
+		return fmt.Errorf("'log.level': validation rule 'maxLength(1024)' violated")
+	}
+	if val.Logger.IsSet() && utf8.RuneCountInString(val.Logger.Val) > 1024 {
+		return fmt.Errorf("'log.logger': validation rule 'maxLength(1024)' violated")
+	}
+	if val.OriginFileName.IsSet() && utf8.RuneCountInString(val.OriginFileName.Val) > 1024 {
+		return fmt.Errorf("'log.origin.file.name': validation rule 'maxLength(1024)' violated")
+	}
 	if err := val.FAAS.validate(); err != nil {
 		return errors.Wrapf(err, "faas")
+	}
+	if val.ServiceName.IsSet() && utf8.RuneCountInString(val.ServiceName.Val) > 1024 {
+		return fmt.Errorf("'service.name': validation rule 'maxLength(1024)' violated")
+	}
+	if val.ServiceVersion.IsSet() && utf8.RuneCountInString(val.ServiceVersion.Val) > 1024 {
+		return fmt.Errorf("'service.version': validation rule 'maxLength(1024)' violated")
+	}
+	if val.ServiceEnvironment.IsSet() && utf8.RuneCountInString(val.ServiceEnvironment.Val) > 1024 {
+		return fmt.Errorf("'service.environment': validation rule 'maxLength(1024)' violated")
+	}
+	if val.ServiceNodeName.IsSet() && utf8.RuneCountInString(val.ServiceNodeName.Val) > 1024 {
+		return fmt.Errorf("'service.node.name': validation rule 'maxLength(1024)' violated")
+	}
+	if val.ProcessThreadName.IsSet() && utf8.RuneCountInString(val.ProcessThreadName.Val) > 1024 {
+		return fmt.Errorf("'process.thread.name': validation rule 'maxLength(1024)' violated")
+	}
+	if val.Dataset.IsSet() && utf8.RuneCountInString(val.Dataset.Val) > 1024 {
+		return fmt.Errorf("'dataset': validation rule 'maxLength(1024)' violated")
+	}
+	for k, v := range val.Labels {
+		switch t := v.(type) {
+		case nil:
+		case string:
+			if utf8.RuneCountInString(t) > 1024 {
+				return fmt.Errorf("'labels': validation rule 'maxLengthVals(1024)' violated")
+			}
+		case bool:
+		case json.Number:
+		default:
+			return fmt.Errorf("'labels': validation rule 'inputTypesVals(string;bool;number)' violated for key %s", k)
+		}
 	}
 	return nil
 }

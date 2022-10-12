@@ -51,6 +51,10 @@ func TestProcessTransform(t *testing.T) {
 				Argv:        argv,
 				CommandLine: commandLine,
 				Executable:  executablePath,
+				Thread: &ProcessThread{
+					ID:   1,
+					Name: "testThread",
+				},
 			},
 			Output: mapstr.M{
 				"pid": 123,
@@ -61,6 +65,10 @@ func TestProcessTransform(t *testing.T) {
 				"args":         argv,
 				"command_line": commandLine,
 				"executable":   executablePath,
+				"thread": mapstr.M{
+					"id":   1,
+					"name": "testThread",
+				},
 			},
 		},
 	}

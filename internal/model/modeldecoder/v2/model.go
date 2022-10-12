@@ -960,12 +960,54 @@ type log struct {
 	// Timestamp holds the recorded time of the event, UTC based and formatted
 	// as microseconds since Unix epoch
 	Timestamp nullable.TimeMicrosUnix `json:"@timestamp"`
+	// TraceID holds the hex encoded 128 random bits ID of the correlated trace.
+	TraceID nullable.String `json:"trace.id" validate:"maxLength=1024"`
+	// TransactionID holds the hex encoded 64 random bits ID of the correlated
+	// transaction.
+	TransactionID nullable.String `json:"transaction.id" validate:"maxLength=1024"`
 	// Message logged as part of the log. In case a parameterized message is
 	// captured, Message should contain the same information, but with any placeholders
 	// being replaced.
 	Message nullable.String `json:"message"`
+	// Level represents the severity of the recorded log.
+	Level nullable.String `json:"log.level" validate:"maxLength=1024"`
+	// Logger represents the name of the used logger instance.
+	Logger nullable.String `json:"log.logger" validate:"maxLength=1024"`
+	// OriginFileName represents the filename containing the sourcecode where the log
+	// originated.
+	OriginFileName nullable.String `json:"log.origin.file.name" validate:"maxLength=1024"`
+	// OriginFileLine represents the line number in the file containing the sourcecode
+	// where the log originated.
+	OriginFileLine nullable.Int `json:"log.origin.file.line"`
+	// OriginFunction represents the function name where the log originated.
+	OriginFunction nullable.String `json:"log.origin.function"`
+	// ErrorType represents the type of the error if the log line represents an error.
+	ErrorType nullable.String `json:"error.type"`
+	// ErrorMessage represents the message contained in the error if the log line
+	// represents an error.
+	ErrorMessage nullable.String `json:"error.message"`
+	// ErrorStacktrace represents the plain text stacktrace of the error the log line
+	// represents.
+	ErrorStacktrace nullable.String `json:"error.stack_trace"`
 	// FAAS holds fields related to Function as a Service events.
 	FAAS faas `json:"faas"`
+	// ServiceName represents name of the service which originated the log line.
+	ServiceName nullable.String `json:"service.name" validate:"maxLength=1024"`
+	// ServiceVersion represents the version of the service which originated the log
+	// line.
+	ServiceVersion nullable.String `json:"service.version" validate:"maxLength=1024"`
+	// ServiceEnvironment represents the environment the service which originated the
+	// log line is running in.
+	ServiceEnvironment nullable.String `json:"service.environment" validate:"maxLength=1024"`
+	// ServiceNodeName represents a unique node name per host for the service which
+	// originated the log line.
+	ServiceNodeName nullable.String `json:"service.node.name" validate:"maxLength=1024"`
+	// ProcessThreadName represents the name of the thread.
+	ProcessThreadName nullable.String `json:"process.thread.name" validate:"maxLength=1024"`
+	// Dataset identifies the source which originated the log line.
+	Dataset nullable.String `json:"dataset" validate:"maxLength=1024"`
+	// Labels are a flat mapping of user-defined key-value pairs.
+	Labels mapstr.M `json:"labels" validate:"inputTypesVals=string;bool;number,maxLengthVals=1024"`
 }
 
 type otel struct {

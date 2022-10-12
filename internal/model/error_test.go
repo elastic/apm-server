@@ -213,6 +213,16 @@ func TestErrorFields(t *testing.T) {
 				},
 			},
 		},
+		"withLogMessageAndType": {
+			Error: Error{
+				LogMessage: "error log message",
+				Type:       "IllegalArgumentException",
+			},
+			Output: mapstr.M{
+				"message": "error log message",
+				"type":    "IllegalArgumentException",
+			},
+		},
 	}
 
 	for name, tc := range tests {

@@ -142,6 +142,9 @@ func TestDecodeMapToErrorModel(t *testing.T) {
 				// ExcludeFromGrouping is set when processing the event
 				"Exception.Stacktrace.ExcludeFromGrouping",
 				"Log.Stacktrace.ExcludeFromGrouping",
+				// LogMessage and Type are only set for ECS compatible log event type
+				"LogMessage",
+				"Type",
 			} {
 				if strings.HasPrefix(key, s) {
 					return true
