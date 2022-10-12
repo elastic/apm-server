@@ -1353,11 +1353,6 @@ func TestGRPCTransactionFromNodejsSDK(t *testing.T) {
 	test(t, map[string]interface{}{
 		"rpc.grpc.status_code": codes.Unavailable,
 	})
-
-	test(t, map[string]interface{}{
-		"rpc.grpc.status_code": codes.Unavailable,
-		"grcp.kind":            1,
-	})
 }
 
 func testJaegerLogs() []jaegermodel.Log {
