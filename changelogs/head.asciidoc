@@ -17,6 +17,7 @@ Set error.id for OpenTelemetry exception span events {pull}9372[9372]
 
 [float]
 ==== Intake API Changes
+- experimental:[] Extend logs v2 intake API to support ECS logging fields {pull}9349[9349]
 
 [float]
 ==== Added
