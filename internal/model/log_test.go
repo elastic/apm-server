@@ -48,8 +48,8 @@ func TestLogTransform(t *testing.T) {
 			Log: Log{
 				Level:  "warn",
 				Logger: "bootstrap",
-				Origin: &LogOrigin{
-					LogFile: &LogOriginFile{
+				Origin: LogOrigin{
+					LogFile: LogOriginFile{
 						Name: "testFile",
 						Line: 12,
 					},

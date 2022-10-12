@@ -51,7 +51,7 @@ func TestProcessTransform(t *testing.T) {
 				Argv:        argv,
 				CommandLine: commandLine,
 				Executable:  executablePath,
-				Thread: &ProcessThread{
+				Thread: ProcessThread{
 					ID:   1,
 					Name: "testThread",
 				},

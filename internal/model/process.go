@@ -28,7 +28,7 @@ type Process struct {
 	Argv        []string
 	CommandLine string
 	Executable  string
-	Thread      *ProcessThread
+	Thread      ProcessThread
 }
 
 func (p *Process) fields() mapstr.M {
@@ -45,9 +45,7 @@ func (p *Process) fields() mapstr.M {
 	proc.maybeSetString("title", p.Title)
 	proc.maybeSetString("command_line", p.CommandLine)
 	proc.maybeSetString("executable", p.Executable)
-	if p.Thread != nil {
-		proc.maybeSetMapStr("thread", p.Thread.fields())
-	}
+	proc.maybeSetMapStr("thread", p.Thread.fields())
 	return mapstr.M(proc)
 }
 

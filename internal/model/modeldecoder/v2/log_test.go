@@ -99,7 +99,7 @@ func TestDecodeNestedLog(t *testing.T) {
 			assert.Equal(t, "testThread", batch[0].Process.Thread.Name)
 			assert.Equal(t, "accesslog", batch[0].Event.Dataset)
 			assert.Equal(t, "illegal-argument", batch[0].Error.Type)
-			assert.Equal(t, "illegal argument received", batch[0].Error.LogMessage)
+			assert.Equal(t, "illegal argument received", batch[0].Error.Message)
 			assert.Equal(t, "stack_trace_as_string", batch[0].Error.StackTrace)
 			assert.Equal(t, model.Labels{"k": model.LabelValue{Value: "v"}}, batch[0].Labels)
 		})

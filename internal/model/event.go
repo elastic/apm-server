@@ -43,7 +43,7 @@ type Event struct {
 
 	// Dataset holds the the dataset which produces the events. If an event
 	// source publishes more than one type of log or events (e.g. access log,
-	// error log), the dataset is used to specify which one the event comes from
+	// error log), the dataset is used to specify which one the event comes from.
 	Dataset string
 }
 
