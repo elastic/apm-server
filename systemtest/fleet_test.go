@@ -107,7 +107,8 @@ func TestFleetIntegrationMonitoring(t *testing.T) {
 	assert.Equal(t, map[string]interface{}{
 		"elasticsearch": map[string]interface{}{
 			"bulk_requests": map[string]interface{}{
-				"available": float64(10),
+				"active":    float64(1),
+				"available": float64(25),
 				"completed": 1.0,
 			},
 		},
