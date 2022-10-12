@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package beatcmd
+package idxmgmt
 
 import (
 	"testing"
@@ -37,7 +37,7 @@ import (
 )
 
 func TestNewSupporter(t *testing.T) {
-	supporter := newSupporter(nil, beat.Info{}, config.MustNewConfigFrom(map[string]interface{}{}))
+	supporter := NewSupporter(nil, beat.Info{}, config.MustNewConfigFrom(map[string]interface{}{}))
 
 	// The data streams supporter does not set up templates or ILM. These
 	// are expected to be set up externally, typically by Fleet.
@@ -82,7 +82,7 @@ func TestNewSupporterWarnings(t *testing.T) {
 		"setup.template.pattern":                      "custom",
 	}
 
-	newSupporter(logger, beat.Info{}, config.MustNewConfigFrom(attrs))
+	NewSupporter(logger, beat.Info{}, config.MustNewConfigFrom(attrs))
 
 	var warnings []string
 	for _, record := range observed.All() {

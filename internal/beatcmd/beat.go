@@ -37,14 +37,11 @@ import (
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common/reload"
 	"github.com/elastic/beats/v7/libbeat/esleg/eslegclient"
-	"github.com/elastic/beats/v7/libbeat/instrumentation"
 	"github.com/elastic/beats/v7/libbeat/licenser"
 	"github.com/elastic/beats/v7/libbeat/management"
 	"github.com/elastic/beats/v7/libbeat/monitoring/report"
 	"github.com/elastic/beats/v7/libbeat/monitoring/report/log"
-	"github.com/elastic/beats/v7/libbeat/outputs"
 	"github.com/elastic/beats/v7/libbeat/outputs/elasticsearch"
-	"github.com/elastic/beats/v7/libbeat/publisher/pipeline"
 	"github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/file"
 	"github.com/elastic/elastic-agent-libs/logp"
@@ -65,10 +62,6 @@ import (
 
 const (
 	defaultMonitoringUsername = "apm_system"
-)
-
-var (
-	libbeatMetricsRegistry = monitoring.Default.GetRegistry("libbeat")
 )
 
 // Beat provides the runnable and configurable instance of a beat.
@@ -130,22 +123,13 @@ func NewBeat(args BeatParams) (*Beat, error) {
 	return b, nil
 }
 
-// init initializes logging, tracing ("instrumentation"), monitoring, config
-// management, and GOMAXPROCS.
+// init initializes logging, config management, GOMAXPROCS, and GC percent.
 func (b *Beat) init() error {
 	if err := configure.Logging(b.Info.Beat, b.Config.Logging); err != nil {
 		return fmt.Errorf("error initializing logging: %w", err)
 	}
 	// log paths values to help with troubleshooting
 	logp.Info(paths.Paths.String())
-
-	// instrumentation.New expects a config object with "instrumentation"
-	// as a child, so create a new config with instrumentation added.
-	instrumentation, err := instrumentation.New(b.rawConfig, b.Info.Beat, b.Info.Version)
-	if err != nil {
-		return err
-	}
-	b.Instrumentation = instrumentation
 
 	// Load the unique ID and "first start" info from meta.json.
 	metaPath := paths.Resolve(paths.Data, "meta.json")
@@ -155,10 +139,11 @@ func (b *Beat) init() error {
 	logp.Info("Beat ID: %v", b.Info.ID)
 
 	// Initialize central config manager.
-	b.Manager, err = management.Factory(b.Config.Management)(b.Config.Management, reload.Register, b.Beat.Info.ID)
+	manager, err := management.Factory(b.Config.Management)(b.Config.Management, reload.Register, b.Beat.Info.ID)
 	if err != nil {
 		return err
 	}
+	b.Manager = manager
 
 	if maxProcs := b.Config.MaxProcs; maxProcs > 0 {
 		logp.Info("Set max procs limit: %v", maxProcs)
@@ -283,22 +268,6 @@ func (b *Beat) createBeater(beatCreator beat.Creator) (beat.Beater, error) {
 		logp.Info("output is configured through central management")
 	}
 
-	monitors := pipeline.Monitors{
-		Metrics:   libbeatMetricsRegistry,
-		Telemetry: monitoring.GetNamespace("state").GetRegistry(),
-		Logger:    logp.L().Named("publisher"),
-		Tracer:    b.Instrumentation.Tracer(),
-	}
-	outputFactory := b.makeOutputFactory(b.Config.Output)
-	publisher, err := pipeline.Load(b.Info, monitors, pipeline.Config{}, nopProcessingSupporter{}, outputFactory)
-	if err != nil {
-		return nil, fmt.Errorf("error initializing publisher: %w", err)
-	}
-	b.Publisher = publisher
-
-	// TODO(axw) pass registry into BeatParams, for testing purposes.
-	reload.Register.MustRegister("output", b.makeOutputReloader(publisher.OutputReloader()))
-
 	return beatCreator(&b.Beat, b.Config.APMServer)
 }
 
@@ -382,6 +351,14 @@ func (b *Beat) Run(ctx context.Context) error {
 		}
 	}
 
+	logger := logp.NewLogger("")
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		adjustMaxProcs(ctx, 30*time.Second, diffInfof(logger), logger.Errorf)
+	}()
+	defer func() { <-done }()
+
 	beater, err := b.createBeater(b.create)
 	if err != nil {
 		return err
@@ -389,7 +366,6 @@ func (b *Beat) Run(ctx context.Context) error {
 
 	go func() {
 		<-ctx.Done()
-		b.Instrumentation.Tracer().Close()
 		beater.Stop()
 	}()
 	svc.HandleSignals(cancel, cancel)
@@ -478,34 +454,6 @@ func (b *Beat) registerElasticsearchVersionCheck() (func(), error) {
 		return nil, err
 	}
 	return func() { elasticsearch.DeregisterGlobalCallback(uuid) }, nil
-}
-
-func (b *Beat) makeOutputReloader(outReloader pipeline.OutputReloader) reload.Reloadable {
-	return reload.ReloadableFunc(func(config *reload.ConfigWithMeta) error {
-		if b.OutputConfigReloader != nil {
-			if err := b.OutputConfigReloader.Reload(config); err != nil {
-				return err
-			}
-		}
-		return outReloader.Reload(config, b.createOutput)
-	})
-}
-
-func (b *Beat) makeOutputFactory(
-	cfg config.Namespace,
-) func(outputs.Observer) (string, outputs.Group, error) {
-	return func(outStats outputs.Observer) (string, outputs.Group, error) {
-		out, err := b.createOutput(outStats, cfg)
-		return cfg.Name(), out, err
-	}
-}
-
-func (b *Beat) createOutput(stats outputs.Observer, cfg config.Namespace) (outputs.Group, error) {
-	if !cfg.IsSet() {
-		return outputs.Group{}, nil
-	}
-	indexSupporter := newSupporter(nil, b.Info, b.rawConfig)
-	return outputs.Load(indexSupporter, b.Info, stats, cfg.Name(), cfg.Config())
 }
 
 func (b *Beat) registerClusterUUIDFetching() (func(), error) {
@@ -649,14 +597,4 @@ func logSystemInfo(info beat.Info) {
 			log.Infow("Process info", "process", process)
 		}
 	}
-}
-
-type nopProcessingSupporter struct{}
-
-func (nopProcessingSupporter) Close() error {
-	return nil
-}
-
-func (nopProcessingSupporter) Create(cfg beat.ProcessingConfig, _ bool) (beat.Processor, error) {
-	return cfg.Processor, nil
 }

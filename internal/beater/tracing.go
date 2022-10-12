@@ -18,7 +18,6 @@
 package beater
 
 import (
-	"context"
 	"net"
 	"net/http"
 
@@ -31,29 +30,7 @@ import (
 	"github.com/elastic/apm-server/internal/model"
 )
 
-type tracerServer struct {
-	server   *http.Server
-	logger   *logp.Logger
-	requests <-chan tracerServerRequest
-}
-
-func newTracerServer(listener net.Listener, logger *logp.Logger) (*tracerServer, error) {
-	requests := make(chan tracerServerRequest)
-	processBatch := model.ProcessBatchFunc(func(ctx context.Context, batch *model.Batch) error {
-		result := make(chan error, 1)
-		request := tracerServerRequest{ctx: ctx, batch: batch, res: result}
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		case requests <- request:
-		}
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		case err := <-result:
-			return err
-		}
-	})
+func newTracerServer(listener net.Listener, logger *logp.Logger, batchProcessor model.BatchProcessor) (*http.Server, error) {
 	cfg := config.DefaultConfig()
 	ratelimitStore, err := ratelimit.NewStore(1, 1, 1) // unused, arbitrary params
 	if err != nil {
@@ -65,7 +42,7 @@ func newTracerServer(listener net.Listener, logger *logp.Logger) (*tracerServer,
 	}
 	mux, err := api.NewMux(
 		cfg,
-		processBatch,
+		batchProcessor,
 		authenticator,
 		newAgentConfigFetcher(cfg, nil /* kibana client */),
 		ratelimitStore,
@@ -76,46 +53,11 @@ func newTracerServer(listener net.Listener, logger *logp.Logger) (*tracerServer,
 	if err != nil {
 		return nil, err
 	}
-	server := &http.Server{
+	return &http.Server{
 		Handler:        mux,
 		IdleTimeout:    cfg.IdleTimeout,
 		ReadTimeout:    cfg.ReadTimeout,
 		WriteTimeout:   cfg.WriteTimeout,
 		MaxHeaderBytes: cfg.MaxHeaderSize,
-	}
-	go func() {
-		if err := server.Serve(listener); err != http.ErrServerClosed {
-			logger.Error(err.Error())
-		}
-	}()
-	return &tracerServer{
-		server:   server,
-		logger:   logger,
-		requests: requests,
 	}, nil
-}
-
-// Close closes the tracerServer's listener.
-func (s *tracerServer) Close() error {
-	return s.server.Shutdown(context.Background())
-}
-
-// serve serves batch processing requests for the tracer server.
-//
-// This may be called multiple times in series, but not concurrently.
-func (s *tracerServer) serve(ctx context.Context, batchProcessor model.BatchProcessor) error {
-	for {
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		case req := <-s.requests:
-			req.res <- batchProcessor.ProcessBatch(req.ctx, req.batch)
-		}
-	}
-}
-
-type tracerServerRequest struct {
-	ctx   context.Context
-	batch *model.Batch
-	res   chan<- error
 }
