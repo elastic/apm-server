@@ -15,7 +15,7 @@ used to configure the module, please refer to the [EC Provider docs](https://reg
 
 | Name | Version |
 |------|---------|
-| <a name="provider_ec"></a> [ec](#provider\_ec) | >=0.4.1 |
+| <a name="provider_ec"></a> [ec](#provider\_ec) | 0.4.0 |
 | <a name="provider_external"></a> [external](#provider\_external) | n/a |
 | <a name="provider_local"></a> [local](#provider\_local) | n/a |
 | <a name="provider_null"></a> [null](#provider\_null) | n/a |
@@ -27,10 +27,12 @@ used to configure the module, please refer to the [EC Provider docs](https://reg
 | [ec_deployment.deployment](https://registry.terraform.io/providers/elastic/ec/latest/docs/resources/deployment) | resource |
 | [ec_deployment.deployment_monitor](https://registry.terraform.io/providers/elastic/ec/latest/docs/resources/deployment) | resource |
 | [local_file.custom_apm_integration_pkg](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
+| [local_file.drop_pipeline](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
 | [local_file.enable_expvar](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
 | [local_file.secret_token](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
 | [local_file.shard_settings](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
 | [null_resource.custom_apm_integration_pkg](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
+| [null_resource.drop_pipeline](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
 | [null_resource.enable_expvar](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
 | [null_resource.secret_token](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
 | [null_resource.shard_settings](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
@@ -51,6 +53,7 @@ used to configure the module, please refer to the [EC Provider docs](https://reg
 | <a name="input_deployment_template"></a> [deployment\_template](#input\_deployment\_template) | Optional deployment template. Defaults to the CPU optimized template for GCP | `string` | `"gcp-compute-optimized-v2"` | no |
 | <a name="input_docker_image"></a> [docker\_image](#input\_docker\_image) | Optional docker image overrides. The full map needs to be specified | `map(string)` | <pre>{<br>  "apm": "docker.elastic.co/cloud-release/elastic-agent-cloud",<br>  "elasticsearch": "docker.elastic.co/cloud-release/elasticsearch-cloud-ess",<br>  "kibana": "docker.elastic.co/cloud-release/kibana-cloud"<br>}</pre> | no |
 | <a name="input_docker_image_tag_override"></a> [docker\_image\_tag\_override](#input\_docker\_image\_tag\_override) | Optional docker image tag overrides, The full map needs to be specified | `map(string)` | <pre>{<br>  "apm": "",<br>  "elasticsearch": "",<br>  "kibana": ""<br>}</pre> | no |
+| <a name="input_drop_pipeline"></a> [drop\_pipeline](#input\_drop\_pipeline) | Whether or not to install an Elasticsearch ingest pipeline to drop all incoming APM documents. Defaults to false | `bool` | `false` | no |
 | <a name="input_elasticsearch_autoscale"></a> [elasticsearch\_autoscale](#input\_elasticsearch\_autoscale) | Optional autoscale the Elasticsearch cluster | `bool` | `false` | no |
 | <a name="input_elasticsearch_dedicated_masters"></a> [elasticsearch\_dedicated\_masters](#input\_elasticsearch\_dedicated\_masters) | Optionally use dedicated masters for the Elasticsearch cluster | `bool` | `false` | no |
 | <a name="input_elasticsearch_size"></a> [elasticsearch\_size](#input\_elasticsearch\_size) | Optional Elasticsearch instance size | `string` | `"8g"` | no |

@@ -46,28 +46,20 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 
-	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common/reload"
 	"github.com/elastic/beats/v7/libbeat/management"
-	"github.com/elastic/beats/v7/libbeat/outputs"
-	pubs "github.com/elastic/beats/v7/libbeat/publisher"
-	"github.com/elastic/beats/v7/libbeat/publisher/pipeline"
-	"github.com/elastic/beats/v7/libbeat/publisher/processing"
-	"github.com/elastic/beats/v7/libbeat/publisher/queue"
-	"github.com/elastic/beats/v7/libbeat/publisher/queue/memqueue"
+	_ "github.com/elastic/beats/v7/libbeat/outputs/console"
+	_ "github.com/elastic/beats/v7/libbeat/publisher/queue/memqueue"
 	agentconfig "github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/monitoring"
 
 	"github.com/elastic/apm-server/internal/beater/api"
 	"github.com/elastic/apm-server/internal/beater/config"
-	"github.com/elastic/apm-server/internal/elasticsearch"
 )
 
-type m map[string]interface{}
-
 func TestServerOk(t *testing.T) {
-	apm, err := setupServer(t, nil, nil, nil)
+	apm, err := setupServer(t, nil, nil)
 	require.NoError(t, err)
 	defer apm.Stop()
 
@@ -80,7 +72,7 @@ func TestServerOk(t *testing.T) {
 }
 
 func TestServerRoot(t *testing.T) {
-	apm, err := setupServer(t, nil, nil, nil)
+	apm, err := setupServer(t, nil, nil)
 	require.NoError(t, err)
 	defer apm.Stop()
 
@@ -133,9 +125,8 @@ func TestServerRoot(t *testing.T) {
 func TestServerRootWithToken(t *testing.T) {
 	token := "verysecret"
 	badToken := "Verysecret"
-	ucfg, err := agentconfig.NewConfigFrom(m{"auth.secret_token": token})
-	assert.NoError(t, err)
-	apm, err := setupServer(t, ucfg, nil, nil)
+	ucfg := agentconfig.MustNewConfigFrom(map[string]interface{}{"apm-server.auth.secret_token": token})
+	apm, err := setupServer(t, ucfg, nil)
 	require.NoError(t, err)
 	defer apm.Stop()
 
@@ -174,11 +165,8 @@ func TestServerTcpNoPort(t *testing.T) {
 			t.Error(err)
 		}
 	}
-	ucfg, err := agentconfig.NewConfigFrom(map[string]interface{}{
-		"host": "localhost",
-	})
-	assert.NoError(t, err)
-	btr, err := setupServer(t, ucfg, nil, nil)
+	ucfg := agentconfig.MustNewConfigFrom(map[string]interface{}{"apm-server.host": "localhost"})
+	btr, err := setupServer(t, ucfg, nil)
 	require.NoError(t, err)
 	defer btr.Stop()
 
@@ -203,9 +191,8 @@ func TestServerOkUnix(t *testing.T) {
 	}
 
 	addr := tmpTestUnix(t)
-	ucfg, err := agentconfig.NewConfigFrom(map[string]interface{}{"host": "unix:" + addr})
-	assert.NoError(t, err)
-	btr, err := setupServer(t, ucfg, nil, nil)
+	ucfg := agentconfig.MustNewConfigFrom(map[string]interface{}{"apm-server.host": "unix:" + addr})
+	btr, err := setupServer(t, ucfg, nil)
 	require.NoError(t, err)
 	defer btr.Stop()
 
@@ -217,7 +204,7 @@ func TestServerOkUnix(t *testing.T) {
 }
 
 func TestServerHealth(t *testing.T) {
-	apm, err := setupServer(t, nil, nil, nil)
+	apm, err := setupServer(t, nil, nil)
 	require.NoError(t, err)
 	defer apm.Stop()
 
@@ -230,9 +217,13 @@ func TestServerHealth(t *testing.T) {
 }
 
 func TestServerRumSwitch(t *testing.T) {
-	ucfg, err := agentconfig.NewConfigFrom(m{"rum": m{"enabled": true, "allow_origins": []string{"*"}}})
-	assert.NoError(t, err)
-	apm, err := setupServer(t, ucfg, nil, nil)
+	ucfg := agentconfig.MustNewConfigFrom(map[string]interface{}{
+		"apm-server.rum": map[string]interface{}{
+			"enabled":       true,
+			"allow_origins": []string{"*"},
+		},
+	})
+	apm, err := setupServer(t, ucfg, nil)
 	require.NoError(t, err)
 	defer apm.Stop()
 
@@ -242,20 +233,6 @@ func TestServerRumSwitch(t *testing.T) {
 	if assert.NoError(t, err) {
 		assert.NotEqual(t, http.StatusForbidden, rsp.StatusCode, body(t, rsp))
 	}
-}
-
-func TestServerSourcemapBadConfig(t *testing.T) {
-	// TODO(axw) fix this, it shouldn't be possible
-	// to create config with an empty hosts list.
-	t.Skip("test is broken, config is no longer invalid")
-
-	ucfg, err := agentconfig.NewConfigFrom(
-		m{"rum": m{"enabled": true, "source_mapping": m{"elasticsearch": m{"hosts": []string{}}}}},
-	)
-	require.NoError(t, err)
-	s, err := setupServer(t, ucfg, nil, nil)
-	require.Nil(t, s)
-	require.Error(t, err)
 }
 
 func TestServerCORS(t *testing.T) {
@@ -298,9 +275,13 @@ func TestServerCORS(t *testing.T) {
 
 	for idx, test := range tests {
 		t.Run(fmt.Sprint(idx), func(t *testing.T) {
-			ucfg, err := agentconfig.NewConfigFrom(m{"rum": m{"enabled": true, "allow_origins": test.allowedOrigins}})
-			assert.NoError(t, err)
-			apm, err := setupServer(t, ucfg, nil, nil)
+			ucfg := agentconfig.MustNewConfigFrom(map[string]interface{}{
+				"apm-server.rum": map[string]interface{}{
+					"enabled":       true,
+					"allow_origins": test.allowedOrigins,
+				},
+			})
+			apm, err := setupServer(t, ucfg, nil)
 			require.NoError(t, err)
 			defer apm.Stop()
 
@@ -319,7 +300,7 @@ func TestServerCORS(t *testing.T) {
 }
 
 func TestServerNoContentType(t *testing.T) {
-	apm, err := setupServer(t, nil, nil, nil)
+	apm, err := setupServer(t, nil, nil)
 	require.NoError(t, err)
 	defer apm.Stop()
 
@@ -330,76 +311,8 @@ func TestServerNoContentType(t *testing.T) {
 	assert.Equal(t, http.StatusAccepted, rsp.StatusCode)
 }
 
-func TestServerSourcemapElasticsearch(t *testing.T) {
-	for name, tc := range map[string]struct {
-		expected     elasticsearch.Hosts
-		config       m
-		outputConfig m
-	}{
-		"nil": {
-			expected: nil,
-			config:   m{},
-		},
-		"esConfigured": {
-			expected: elasticsearch.Hosts{"localhost:5200"},
-			config: m{
-				"rum": m{
-					"enabled":                            "true",
-					"source_mapping.elasticsearch.hosts": []string{"localhost:5200"},
-				},
-			},
-		},
-		"esFromOutput": {
-			expected: elasticsearch.Hosts{"localhost:5201"},
-			config: m{
-				"rum": m{
-					"enabled": "true",
-				},
-			},
-			outputConfig: m{
-				"elasticsearch": m{
-					"enabled": true,
-					"hosts":   []string{"localhost:5201"},
-				},
-			},
-		},
-		"esOutputDisabled": {
-			expected: nil,
-			config: m{
-				"rum": m{
-					"enabled": "true",
-				},
-			},
-			outputConfig: m{
-				"elasticsearch": m{
-					"enabled": false,
-					"hosts":   []string{"localhost:5202"},
-				},
-			},
-		},
-	} {
-		t.Run(name, func(t *testing.T) {
-			ucfg, err := agentconfig.NewConfigFrom(tc.config)
-			require.NoError(t, err)
-
-			var beatConfig beat.BeatConfig
-			ocfg, err := agentconfig.NewConfigFrom(tc.outputConfig)
-			require.NoError(t, err)
-			require.NoError(t, beatConfig.Output.Unpack(ocfg))
-
-			apm, err := setupServer(t, ucfg, &beatConfig, nil)
-			require.NoError(t, err)
-			defer apm.Stop()
-
-			if tc.expected != nil {
-				assert.Equal(t, tc.expected, apm.config.RumConfig.SourceMapping.ESConfig.Hosts)
-			}
-		})
-	}
-}
-
 func TestServerJaegerGRPC(t *testing.T) {
-	server, err := setupServer(t, nil, nil, nil)
+	server, err := setupServer(t, nil, nil)
 	require.NoError(t, err)
 	defer server.Stop()
 
@@ -416,9 +329,10 @@ func TestServerJaegerGRPC(t *testing.T) {
 }
 
 func TestServerOTLPGRPC(t *testing.T) {
-	ucfg, err := agentconfig.NewConfigFrom(m{"auth.secret_token": "abc123"})
-	assert.NoError(t, err)
-	server, err := setupServer(t, ucfg, nil, nil)
+	ucfg := agentconfig.MustNewConfigFrom(map[string]interface{}{
+		"apm-server.auth.secret_token": "abc123",
+	})
+	server, err := setupServer(t, ucfg, nil)
 	require.NoError(t, err)
 	defer server.Stop()
 
@@ -465,50 +379,42 @@ func TestServerConfigReload(t *testing.T) {
 	cfg := agentconfig.MustNewConfigFrom(map[string]interface{}{
 		// Set an invalid host to illustrate that the static config
 		// is not used for defining the listening address.
-		"host": "testing.invalid:123",
+		"apm-server.host": "testing.invalid:123",
 	})
-	apmBeat, cfg := newBeat(t, cfg, nil, nil)
+	apmBeat, cfg := newBeat(t, cfg, nil)
 	apmBeat.Manager = &mockManager{enabled: true}
-	beater, err := newTestBeater(t, apmBeat, cfg, nil)
+	beater, err := newTestBeater(t, apmBeat, cfg)
 	require.NoError(t, err)
-	require.NotNil(t, apmBeat.OutputConfigReloader)
 	beater.start()
-
-	// Now that the beater is running, send config changes. The reloader
-	// is not registered until after the beater starts running, so we
-	// must loop until it is set.
-	var reloadable reload.ReloadableList
-	for {
-		// The Reloader is not registered until after the beat has started running.
-		reloadable = reload.Register.GetReloadableList("inputs")
-		if reloadable != nil {
-			break
-		}
-		time.Sleep(10 * time.Millisecond)
-	}
+	reloadInputs, reloadOutput := waitReloaders()
 
 	// The config must contain an "apm-server" section, and will be rejected otherwise.
-	err = reloadable.Reload([]*reload.ConfigWithMeta{{Config: agentconfig.NewConfig()}})
+	err = reloadInputs.Reload([]*reload.ConfigWithMeta{{Config: agentconfig.NewConfig()}})
 	assert.EqualError(t, err, "'apm-server' not found in integration config")
+
+	// Load initial output config, otherwise the server will not do anything with the config.
+	err = reloadOutput.Reload(&reload.ConfigWithMeta{
+		Config: agentconfig.MustNewConfigFrom(map[string]interface{}{
+			"elasticsearch.hosts": []string{"http://testing.invalid"},
+		}),
+	})
+	assert.NoError(t, err)
 
 	// Creating the socket listener is performed synchronously in the Reload method
 	// to ensure zero downtime when reloading an already running server. Illustrate
 	// that the socket listener is created synhconously in Reload by attempting to
 	// reload with an invalid host.
-	err = reloadable.Reload([]*reload.ConfigWithMeta{{Config: agentconfig.MustNewConfigFrom(map[string]interface{}{
-		"apm-server": map[string]interface{}{
-			"host": "testing.invalid:123",
-		},
+	err = reloadInputs.Reload([]*reload.ConfigWithMeta{{Config: agentconfig.MustNewConfigFrom(map[string]interface{}{
+		"apm-server.host": "testing.invalid:123",
 	})}})
 	require.Error(t, err)
 	assert.Regexp(t, "listen tcp: lookup testing.invalid.*", err.Error())
 
-	inputConfig := agentconfig.MustNewConfigFrom(map[string]interface{}{
-		"apm-server": map[string]interface{}{
-			"host": "localhost:0",
-		},
-	})
-	err = reloadable.Reload([]*reload.ConfigWithMeta{{Config: inputConfig}})
+	err = reloadInputs.Reload([]*reload.ConfigWithMeta{{
+		Config: agentconfig.MustNewConfigFrom(map[string]interface{}{
+			"apm-server.host": "localhost:0",
+		}),
+	}})
 	require.NoError(t, err)
 
 	healthcheck := func(addr string) string {
@@ -526,8 +432,12 @@ func TestServerConfigReload(t *testing.T) {
 	assert.NotEmpty(t, healthcheck(addr1)) // non-empty as there's no auth required
 
 	// Reload config, causing the HTTP server to be restarted.
-	require.NoError(t, inputConfig.SetString("apm-server.auth.secret_token", -1, "secret"))
-	err = reloadable.Reload([]*reload.ConfigWithMeta{{Config: inputConfig}})
+	err = reloadInputs.Reload([]*reload.ConfigWithMeta{{
+		Config: agentconfig.MustNewConfigFrom(map[string]interface{}{
+			"apm-server.host":              "localhost:0",
+			"apm-server.auth.secret_token": "secret",
+		}),
+	}})
 	require.NoError(t, err)
 
 	addr2, err := beater.waitListenAddr(1 * time.Second)
@@ -539,7 +449,11 @@ func TestServerConfigReload(t *testing.T) {
 	assert.Error(t, err)
 
 	// Reload output config, should also cause HTTP server to be restarted.
-	err = apmBeat.OutputConfigReloader.Reload(&reload.ConfigWithMeta{Config: agentconfig.NewConfig()})
+	err = reloadOutput.Reload(&reload.ConfigWithMeta{
+		Config: agentconfig.MustNewConfigFrom(map[string]interface{}{
+			"elasticsearch.hosts": []string{"http://testing.invalid"},
+		}),
+	})
 	assert.NoError(t, err)
 
 	addr3, err := beater.waitListenAddr(1 * time.Second)
@@ -564,7 +478,7 @@ func TestServerOutputConfigReload(t *testing.T) {
 	}()
 	reload.Register = reload.NewRegistry()
 
-	apmBeat, cfg := newBeat(t, nil, nil, nil)
+	apmBeat, cfg := newBeat(t, nil, nil)
 	apmBeat.Manager = &mockManager{enabled: true}
 
 	runServerCalls := make(chan ServerParams, 1)
@@ -581,21 +495,15 @@ func TestServerOutputConfigReload(t *testing.T) {
 	require.NoError(t, err)
 	t.Cleanup(beater.Stop)
 	go beater.Run(apmBeat)
+	reloadInputs, reloadOutput := waitReloaders()
 
-	// Now that the beater is running, send config changes. The reloader
-	// is not registered until after the beater starts running, so we
-	// must loop until it is set.
-	var reloadable reload.ReloadableList
-	for {
-		// The Reloader is not registered until after the beat has started running.
-		reloadable = reload.Register.GetReloadableList("inputs")
-		if reloadable != nil {
-			break
-		}
-		time.Sleep(10 * time.Millisecond)
-	}
+	reloadOutput.Reload(&reload.ConfigWithMeta{
+		Config: agentconfig.MustNewConfigFrom(map[string]interface{}{
+			"elasticsearch.enabled": true,
+		}),
+	})
 
-	inputConfig := agentconfig.MustNewConfigFrom(map[string]interface{}{
+	reloadInputs.Reload([]*reload.ConfigWithMeta{{Config: agentconfig.MustNewConfigFrom(map[string]interface{}{
 		"data_stream.namespace": "custom",
 		"apm-server": map[string]interface{}{
 			"host": "localhost:0",
@@ -606,16 +514,14 @@ func TestServerOutputConfigReload(t *testing.T) {
 				}},
 			},
 		},
-	})
-	err = reloadable.Reload([]*reload.ConfigWithMeta{{Config: inputConfig}})
-	require.NoError(t, err)
+	})}})
 
 	runServerArgs := <-runServerCalls
 	assert.Equal(t, "", runServerArgs.Config.Sampling.Tail.ESConfig.Username)
 	assert.Equal(t, "custom", runServerArgs.Namespace)
 
 	// Reloaded output config should be passed into apm-server config.
-	err = apmBeat.OutputConfigReloader.Reload(&reload.ConfigWithMeta{
+	reloadOutput.Reload(&reload.ConfigWithMeta{
 		Config: agentconfig.MustNewConfigFrom(map[string]interface{}{
 			"elasticsearch.username": "updated",
 		}),
@@ -651,18 +557,23 @@ func TestServerWaitForIntegrationKibana(t *testing.T) {
 	defer srv.Close()
 
 	cfg := agentconfig.MustNewConfigFrom(map[string]interface{}{
-		"wait_ready_interval": "100ms",
-		"kibana.enabled":      true,
-		"kibana.host":         srv.URL,
+		"apm-server": map[string]interface{}{
+			"wait_ready_interval": "100ms",
+			"kibana.enabled":      true,
+			"kibana.host":         srv.URL,
+		},
+		// Configure the console output, to disable the Elasticsearch
+		// integration package installation check.
+		"output.console.enabled": true,
 	})
 
 	// newBeat sets `data_streams.wait_for_integration: false`,
 	// remove it so we test the default behaviour.
-	apmBeat, cfg := newBeat(t, cfg, nil, nil)
+	apmBeat, cfg := newBeat(t, cfg, nil)
 	removed, err := cfg.Remove("data_streams.wait_for_integration", -1)
 	require.NoError(t, err)
 	require.True(t, removed)
-	beater, err := setupBeater(t, apmBeat, cfg, nil)
+	beater, err := setupBeater(t, apmBeat, cfg)
 	require.NoError(t, err)
 
 	timeout := time.After(10 * time.Second)
@@ -717,24 +628,22 @@ func TestServerWaitForIntegrationElasticsearch(t *testing.T) {
 	srv := httptest.NewServer(mux)
 	defer srv.Close()
 
-	cfg := agentconfig.MustNewConfigFrom(map[string]interface{}{"wait_ready_interval": "100ms"})
-	var beatConfig beat.BeatConfig
-	err := beatConfig.Output.Unpack(agentconfig.MustNewConfigFrom(map[string]interface{}{
-		"elasticsearch": map[string]interface{}{
+	cfg := agentconfig.MustNewConfigFrom(map[string]interface{}{
+		"apm-server.wait_ready_interval": "100ms",
+		"output.elasticsearch": map[string]interface{}{
 			"hosts":       []string{srv.URL},
 			"backoff":     map[string]interface{}{"init": "10ms", "max": "10ms"},
 			"max_retries": 1000,
 		},
-	}))
-	require.NoError(t, err)
+	})
 
 	// newBeat sets `data_streams.wait_for_integration: false`,
 	// remove it so we test the default behaviour.
-	apmBeat, cfg := newBeat(t, cfg, &beatConfig, nil)
+	apmBeat, cfg := newBeat(t, cfg, nil)
 	removed, err := cfg.Remove("data_streams.wait_for_integration", -1)
 	require.NoError(t, err)
 	require.True(t, removed)
-	beater, err := setupBeater(t, apmBeat, cfg, &beatConfig)
+	beater, err := setupBeater(t, apmBeat, cfg)
 	require.NoError(t, err)
 
 	// Send some events to the server. They should be accepted and enqueued.
@@ -809,22 +718,18 @@ func TestServerFailedPreconditionDoesNotIndex(t *testing.T) {
 	srv := httptest.NewServer(mux)
 	defer srv.Close()
 
-	cfg := agentconfig.MustNewConfigFrom(map[string]interface{}{"wait_ready_interval": "100ms"})
-	var beatConfig beat.BeatConfig
-	err := beatConfig.Output.Unpack(agentconfig.MustNewConfigFrom(map[string]interface{}{
-		"elasticsearch": map[string]interface{}{
-			"hosts": []string{srv.URL},
-		},
-	}))
-	require.NoError(t, err)
+	cfg := agentconfig.MustNewConfigFrom(map[string]interface{}{
+		"apm-server.wait_ready_interval": "100ms",
+		"output.elasticsearch.hosts":     []string{srv.URL},
+	})
 
 	// newBeat sets `data_streams.wait_for_integration: false`,
 	// remove it so we test the default behaviour.
-	apmBeat, cfg := newBeat(t, cfg, &beatConfig, nil)
+	apmBeat, cfg := newBeat(t, cfg, nil)
 	removed, err := cfg.Remove("data_streams.wait_for_integration", -1)
 	require.NoError(t, err)
 	require.True(t, removed)
-	beater, err := setupBeater(t, apmBeat, cfg, &beatConfig)
+	beater, err := setupBeater(t, apmBeat, cfg)
 	require.NoError(t, err)
 
 	// Send some events to the server. They should be accepted and enqueued.
@@ -888,40 +793,24 @@ func TestServerElasticsearchOutput(t *testing.T) {
 	monitoring.Default.Remove("libbeat.whatever")
 	monitoring.NewInt(monitoring.Default, "libbeat.whatever")
 
-	apmBeat, cfg := newBeat(t, nil, nil, nil)
+	apmBeat, cfg := newBeat(t, nil, nil)
 	apmBeat.Manager = &mockManager{enabled: true}
-	beater, err := newTestBeater(t, apmBeat, cfg, nil)
+	beater, err := newTestBeater(t, apmBeat, cfg)
 	require.NoError(t, err)
 	beater.start()
+	reloadInputs, reloadOutput := waitReloaders()
 
-	// Reload output config to show that apm-server will switch to the
-	// output dynamically.
-	err = apmBeat.OutputConfigReloader.Reload(&reload.ConfigWithMeta{
-		Config: agentconfig.MustNewConfigFrom(map[string]interface{}{
-			"elasticsearch": map[string]interface{}{
-				"hosts":       []string{srv.URL},
-				"flush_bytes": "1kb", // test data is >1kb
-				"backoff":     map[string]interface{}{"init": "1ms", "max": "1ms"},
-				"max_retries": 0,
-			},
-		}),
-	})
-	assert.NoError(t, err)
+	err = reloadOutput.Reload(&reload.ConfigWithMeta{Config: agentconfig.MustNewConfigFrom(map[string]interface{}{
+		"elasticsearch": map[string]interface{}{
+			"hosts":       []string{srv.URL},
+			"flush_bytes": "1kb", // test data is >1kb
+			"backoff":     map[string]interface{}{"init": "1ms", "max": "1ms"},
+			"max_retries": 0,
+		},
+	})})
+	require.NoError(t, err)
 
-	// Now that the beater is running, send config changes. The reloader
-	// is not registered until after the beater starts running, so we
-	// must loop until it is set.
-	var reloadable reload.ReloadableList
-	for {
-		// The Reloader is not registered until after the beat has started running.
-		reloadable = reload.Register.GetReloadableList("inputs")
-		if reloadable != nil {
-			break
-		}
-		time.Sleep(10 * time.Millisecond)
-	}
-
-	err = reloadable.Reload([]*reload.ConfigWithMeta{{Config: agentconfig.MustNewConfigFrom(map[string]interface{}{
+	err = reloadInputs.Reload([]*reload.ConfigWithMeta{{Config: agentconfig.MustNewConfigFrom(map[string]interface{}{
 		"apm-server": map[string]interface{}{
 			"host": "localhost:0",
 		},
@@ -934,7 +823,7 @@ func TestServerElasticsearchOutput(t *testing.T) {
 	req := makeTransactionRequest(t, "http://"+listenAddr)
 	req.Header.Add("Content-Type", "application/x-ndjson")
 	resp, err := http.DefaultClient.Do(req)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, http.StatusAccepted, resp.StatusCode)
 	resp.Body.Close()
 
@@ -975,7 +864,8 @@ func TestServerElasticsearchOutput(t *testing.T) {
 	assert.Equal(t, map[string]interface{}{
 		"elasticsearch": map[string]interface{}{
 			"bulk_requests": map[string]interface{}{
-				"available": int64(9),
+				"active":    int64(1),
+				"available": int64(24),
 				"completed": int64(0),
 			},
 		},
@@ -983,9 +873,8 @@ func TestServerElasticsearchOutput(t *testing.T) {
 }
 
 func TestServerPProf(t *testing.T) {
-	ucfg, err := agentconfig.NewConfigFrom(m{"pprof.enabled": true})
-	assert.NoError(t, err)
-	server, err := setupServer(t, ucfg, nil, nil)
+	ucfg := agentconfig.MustNewConfigFrom(map[string]interface{}{"apm-server.pprof.enabled": true})
+	server, err := setupServer(t, ucfg, nil)
 	require.NoError(t, err)
 	defer server.Stop()
 
@@ -1001,88 +890,16 @@ func TestServerPProf(t *testing.T) {
 	}
 }
 
-func TestServerGoMaxProcsLogMessage(t *testing.T) {
-	// Assert that the gomaxprocs library is called and use the
-	// log message that is printed as
-	for _, n := range []int{1, 2, 4} {
-		t.Run(fmt.Sprintf("%d_GOMAXPROCS", n), func(t *testing.T) {
-			t.Setenv("GOMAXPROCS", fmt.Sprint(n))
-
-			beat, cfg := newBeat(t, nil, nil, nil)
-			apm, err := newTestBeater(t, beat, cfg, nil)
-			require.NoError(t, err)
-			apm.start()
-			defer apm.Stop()
-
-			timeout := time.NewTimer(time.Second)
-			defer timeout.Stop()
-			for {
-				select {
-				case <-timeout.C:
-					t.Error("timed out waiting for log message, total logs observed:", apm.logs.Len())
-					for _, log := range apm.logs.All() {
-						t.Log(log.LoggerName, log.Message)
-					}
-					return
-				case <-time.After(time.Millisecond):
-					logs := apm.logs.FilterMessageSnippet(fmt.Sprintf(
-						`maxprocs: Honoring GOMAXPROCS="%d" as set in environment`, n,
-					))
-					if logs.Len() > 0 {
-						assert.Len(t, logs.All(), 1, "coundn't find gomaxprocs message logs")
-						return
-					}
-				}
-			}
-		})
+func waitReloaders() (reloadInputs reload.ReloadableList, reloadOutput reload.Reloadable) {
+	for {
+		// The reloaders are not registered until after the beat has started running.
+		reloadInputs = reload.Register.GetReloadableList("inputs")
+		reloadOutput = reload.Register.GetReloadable("output")
+		if reloadInputs != nil && reloadOutput != nil {
+			return reloadInputs, reloadOutput
+		}
+		time.Sleep(10 * time.Millisecond)
 	}
-}
-
-type dummyOutputClient struct {
-}
-
-func (d *dummyOutputClient) Publish(_ context.Context, batch pubs.Batch) error {
-	batch.ACK()
-	return nil
-}
-func (d *dummyOutputClient) Close() error   { return nil }
-func (d *dummyOutputClient) String() string { return "" }
-
-func dummyPipeline(cfg *agentconfig.C, info beat.Info, clients ...outputs.Client) *pipeline.Pipeline {
-	if len(clients) == 0 {
-		clients = []outputs.Client{&dummyOutputClient{}}
-	}
-	if cfg == nil {
-		cfg = agentconfig.NewConfig()
-	}
-	processors, err := processing.MakeDefaultSupport(false)(info, logp.NewLogger("testbeat"), cfg)
-	if err != nil {
-		panic(err)
-	}
-	p, err := pipeline.New(
-		info,
-		pipeline.Monitors{},
-		func(lis queue.ACKListener) (queue.Queue, error) {
-			return memqueue.NewQueue(nil, memqueue.Settings{
-				ACKListener: lis,
-				Events:      20,
-			}), nil
-		},
-		outputs.Group{
-			Clients:   clients,
-			BatchSize: 5,
-			Retry:     0, // no retry. on error drop events
-		},
-		pipeline.Settings{
-			WaitClose:     0,
-			WaitCloseMode: pipeline.NoWaitOnClose,
-			Processors:    processors,
-		},
-	)
-	if err != nil {
-		panic(err)
-	}
-	return p
 }
 
 var testData = func() []byte {
