@@ -22,10 +22,12 @@ import (
 
 	"github.com/spf13/cobra"
 
-	beaterconfig "github.com/elastic/apm-server/internal/beater/config"
 	"github.com/elastic/beats/v7/libbeat/outputs"
 	"github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/testing"
+
+	beaterconfig "github.com/elastic/apm-server/internal/beater/config"
+	"github.com/elastic/apm-server/internal/idxmgmt"
 )
 
 func genTestCmd(beatParams BeatParams) *cobra.Command {
@@ -70,7 +72,7 @@ func newTestOutputCommand(beatParams BeatParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			indexSupporter := newSupporter(nil, beat.Info, beat.rawConfig)
+			indexSupporter := idxmgmt.NewSupporter(nil, beat.Info, beat.rawConfig)
 			output, err := outputs.Load(
 				indexSupporter, beat.Info, nil, beat.Config.Output.Name(), beat.Config.Output.Config(),
 			)
