@@ -21,6 +21,8 @@ import (
 	"context"
 	"flag"
 	"log"
+	"os"
+	"strings"
 	"testing"
 
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
@@ -49,6 +51,12 @@ func Benchmark1000Transactions(b *testing.B, l *rate.Limiter) {
 }
 
 func BenchmarkOTLPTraces(b *testing.B, l *rate.Limiter) {
+	switch strings.ToLower(os.Getenv("RUN_OTLPTRACES")) {
+	case "1", "true":
+	default:
+		b.Skip("Disabled until we've addressed https://github.com/elastic/apm-server/issues/9242, export RUN_OTLPTRACES=1 to run")
+	}
+
 	b.RunParallel(func(pb *testing.PB) {
 		exporter := benchtest.NewOTLPExporter(b)
 		tracerProvider := sdktrace.NewTracerProvider(

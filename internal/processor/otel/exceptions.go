@@ -41,6 +41,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/gofrs/uuid"
+
 	"github.com/elastic/apm-server/internal/model"
 )
 
@@ -64,6 +66,9 @@ func convertOpenTelemetryExceptionSpanEvent(
 			Type:    exceptionType,
 			Handled: &exceptionHandled,
 		},
+	}
+	if id, err := uuid.NewV4(); err == nil {
+		exceptionError.ID = id.String()
 	}
 	if exceptionStacktrace != "" {
 		if err := setExceptionStacktrace(exceptionStacktrace, language, exceptionError.Exception); err != nil {

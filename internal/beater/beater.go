@@ -866,6 +866,8 @@ func (s *serverRunner) newFinalBatchProcessor(
 		stats := indexer.Stats()
 		v.OnKey("available")
 		v.OnInt(stats.AvailableBulkRequests)
+		v.OnKey("active")
+		v.OnInt(stats.ActiveBulkRequests)
 		v.OnKey("completed")
 		v.OnInt(stats.BulkRequests)
 	})

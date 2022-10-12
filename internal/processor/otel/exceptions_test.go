@@ -35,9 +35,12 @@
 package otel_test
 
 import (
+	"net/netip"
 	"testing"
 	"time"
 
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/pdata/pcommon"
@@ -108,7 +111,7 @@ Caused by: LowLevelException
 
 	service, agent := languageOnlyMetadata("java")
 	transactionEvent, errorEvents := transformTransactionSpanEvents(t, "java", exceptionEvent1, exceptionEvent2)
-	assert.Equal(t, []model.APMEvent{{
+	out := cmp.Diff([]model.APMEvent{{
 		Service:       service,
 		Agent:         agent,
 		Timestamp:     timestamp,
@@ -252,7 +255,8 @@ Caused by: LowLevelException
 				}},
 			},
 		},
-	}}, errorEvents)
+	}}, errorEvents, cmpopts.IgnoreFields(model.APMEvent{}, "Error.ID"), cmpopts.IgnoreTypes(netip.Addr{}))
+	require.Empty(t, out)
 }
 
 func TestEncodeSpanEventsJavaExceptionsUnparsedStacktrace(t *testing.T) {
@@ -317,7 +321,7 @@ func TestEncodeSpanEventsNonJavaExceptions(t *testing.T) {
 	require.Len(t, errorEvents, 1)
 
 	service, agent := languageOnlyMetadata("COBOL")
-	assert.Equal(t, model.APMEvent{
+	out := cmp.Diff(model.APMEvent{
 		Service:       service,
 		Agent:         agent,
 		Timestamp:     timestamp,
@@ -339,7 +343,8 @@ func TestEncodeSpanEventsNonJavaExceptions(t *testing.T) {
 			},
 			StackTrace: "the_stacktrace",
 		},
-	}, errorEvents[0])
+	}, errorEvents[0], cmpopts.IgnoreFields(model.APMEvent{}, "Error.ID"), cmpopts.IgnoreTypes(netip.Addr{}))
+	require.Empty(t, out)
 }
 
 func languageOnlyMetadata(language string) (model.Service, model.Agent) {
