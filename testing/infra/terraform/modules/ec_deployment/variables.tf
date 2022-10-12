@@ -127,7 +127,15 @@ variable "apm_index_shards" {
 # Install custom APM integration package
 
 variable "custom_apm_integration_pkg_path" {
-  type = string
+  type        = string
   description = "Path to the zipped custom APM integration package, if empty custom apm integration pkg is not installed"
-  default = ""
+  default     = ""
+}
+
+# Install a custom pipeline to drop all the incoming APM documents. It can be
+# useful to benchmark the theoretical APM Server output.
+variable "drop_pipeline" {
+  default     = false
+  description = "Whether or not to install an Elasticsearch ingest pipeline to drop all incoming APM documents. Defaults to false"
+  type        = bool
 }

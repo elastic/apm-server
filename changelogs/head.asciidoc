@@ -13,6 +13,7 @@ https://github.com/elastic/apm-server/compare/8.5\...main[View commits]
 
 [float]
 ==== Bug fixes
+Set error.id for OpenTelemetry exception span events {pull}9372[9372]
 
 [float]
 ==== Intake API Changes
@@ -20,3 +21,5 @@ https://github.com/elastic/apm-server/compare/8.5\...main[View commits]
 [float]
 ==== Added
 - Metrics data streams now use synthetic source {pull}9215[9215]
+- Service metrics now support global labels {pull}9248[9248]
+- Improve Elasticsearch output performance, particularly when compression is enabled (default) {pull}9318[9318]
