@@ -150,7 +150,7 @@ func New(client elasticsearch.Client, cfg Config) (*Indexer, error) {
 		available:             available,
 		closed:                make(chan struct{}),
 		// NOTE(marclop) This channel size is arbitrary.
-		bulkItems: make(chan elasticsearch.BulkIndexerItem, 1000),
+		bulkItems: make(chan elasticsearch.BulkIndexerItem, 100),
 	}
 	indexer.g.Go(func() error {
 		indexer.runActiveIndexer()
