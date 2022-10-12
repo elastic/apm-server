@@ -135,7 +135,7 @@ func TestPublishIntegration(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			// fresh APM Server for each run
 			docsChan := make(chan []byte)
-			apm, err := setupServer(t, nil, nil, docsChan)
+			apm, err := setupServer(t, nil, docsChan)
 			require.NoError(t, err)
 			defer apm.Stop()
 

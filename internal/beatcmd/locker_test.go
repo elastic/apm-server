@@ -33,18 +33,7 @@ import (
 )
 
 func TestLocker(t *testing.T) {
-	initCfgfile(t, `output.console.enabled: true`)
-
-	nopBeater := &nopBeater{
-		running: make(chan struct{}),
-		done:    make(chan struct{}),
-	}
-	beat1, err := NewBeat(BeatParams{
-		Create: func(*beat.Beat, *config.C) (beat.Beater, error) {
-			return nopBeater, nil
-		},
-	})
-	require.NoError(t, err)
+	beat1, nopBeater := newNopBeat(t, `output.console.enabled: true`)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -55,6 +44,8 @@ func TestLocker(t *testing.T) {
 	// the lock should be held.
 	<-nopBeater.running
 
+	// Create another Beat using the same configuration and data directory;
+	// its Run method should fail to acquire the lock while beat1 is running.
 	beat2, err := NewBeat(BeatParams{
 		Create: func(*beat.Beat, *config.C) (beat.Beater, error) {
 			panic("should not be called")
@@ -66,19 +57,4 @@ func TestLocker(t *testing.T) {
 
 	cancel()
 	assert.NoError(t, g.Wait())
-}
-
-type nopBeater struct {
-	running chan struct{}
-	done    chan struct{}
-}
-
-func (b *nopBeater) Run(*beat.Beat) error {
-	close(b.running)
-	<-b.done
-	return nil
-}
-
-func (b *nopBeater) Stop() {
-	close(b.done)
 }
