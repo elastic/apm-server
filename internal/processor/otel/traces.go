@@ -568,7 +568,7 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 
 			switch kDots {
 			// http.*
-			case "rpc.grpc.status_code":
+			case semconv.AttributeRPCGRPCStatusCode:
 				event.Transaction.Type = "request"
 			case semconv.AttributeHTTPHost:
 				httpHost = stringval
