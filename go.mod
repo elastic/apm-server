@@ -14,7 +14,7 @@ require (
 	github.com/dop251/goja_nodejs v0.0.0-20221009164102-3aa5028e57f6 // indirect
 	github.com/dustin/go-humanize v1.0.0
 	github.com/elastic/apm-server/approvaltest v0.0.0-00010101000000-000000000000
-	github.com/elastic/beats/v7 v7.17.7-0.20221011064624-7e252d9f6c9a
+	github.com/elastic/beats/v7 v7.17.7-0.20221012063855-38d52f015cf3
 	github.com/elastic/ecs v1.12.0
 	github.com/elastic/elastic-agent-client/v7 v7.0.0-20220915231534-3e014f7c0e83 // indirect
 	github.com/elastic/gmux v0.2.0
@@ -62,9 +62,9 @@ require (
 	go.uber.org/atomic v1.10.0
 	go.uber.org/multierr v1.8.0 // indirect
 	go.uber.org/zap v1.23.0
-	golang.org/x/crypto v0.0.0-20221010152910-d6f0a8c073c2 // indirect
+	golang.org/x/crypto v0.0.0-20221012134737-56aed061732a // indirect
 	golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4 // indirect
-	golang.org/x/net v0.0.0-20221004154528-8021a29435af
+	golang.org/x/net v0.0.0-20221012135044-0b7e1fb9d458
 	golang.org/x/sync v0.0.0-20220722155255-886fb9371eb4
 	golang.org/x/sys v0.0.0-20221010170243-090e33056c14 // indirect
 	golang.org/x/time v0.0.0-20210723032227-1f47c861a9ac
