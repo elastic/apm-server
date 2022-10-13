@@ -124,10 +124,10 @@ curl -X POST "http://localhost:5601/api/apm/sourcemaps" \
 -H 'Content-Type: multipart/form-data' \
 -H 'kbn-xsrf: true' \
 -H 'Authorization: ApiKey ${YOUR_API_KEY}' \ <2>
--F 'service_name="foo"' \
--F 'service_version="$SERVICEVERSION"' \
--F 'bundle_filepath="/test/e2e/general-usecase/bundle.js.map"' \
--F 'sourcemap="@./dist/app.min.js.map"'
+-F 'service_name=foo' \
+-F 'service_version=$SERVICEVERSION' \
+-F 'bundle_filepath=/test/e2e/general-usecase/bundle.js.map' \
+-F 'sourcemap=@./dist/app.min.js.map'
 ----
 <1> This example uses the version from `package.json`
 <2> The API key used here needs to have appropriate {kibana-ref}/rum-sourcemap-api.html[privileges]
