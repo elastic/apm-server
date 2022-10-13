@@ -83,6 +83,8 @@ type Config struct {
 	// that can be decoded at one time. This effectively limits the amount of
 	// memory consumed by the processors decodeing the incoming intake events.
 	// This setting is beta and subject to breaking changes and removal.
+	// If left or set to the default value, it will automatically tuned to
+	// provide a reasonable performance based on the memory memory limit.
 	MaxConcurrentDecoders uint `config:"max_concurrent_decoders"`
 }
 
@@ -159,6 +161,6 @@ func DefaultConfig() *Config {
 		AgentAuth:             defaultAgentAuth(),
 		JavaAttacherConfig:    defaultJavaAttacherConfig(),
 		WaitReadyInterval:     5 * time.Second,
-		MaxConcurrentDecoders: 200,
+		MaxConcurrentDecoders: 48,
 	}
 }

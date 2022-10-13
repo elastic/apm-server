@@ -114,6 +114,12 @@ type Config struct {
 	// If FlushInterval is zero, the default of 30 seconds will be used.
 	FlushInterval time.Duration
 
+	// EventBufferSize sets the number of events that can be buffered before
+	// they are stored in the active indexer buffer.
+	//
+	// If EventBufferSize is zero, the default 100 will be used.
+	EventBufferSize int
+
 	// Tracer holds an optional apm.Tracer to use for tracing bulk requests
 	// to Elasticsearch. Each bulk request is traced as a transaction.
 	//
@@ -139,6 +145,9 @@ func New(client elasticsearch.Client, cfg Config) (*Indexer, error) {
 	if cfg.FlushInterval <= 0 {
 		cfg.FlushInterval = 30 * time.Second
 	}
+	if cfg.EventBufferSize <= 0 {
+		cfg.EventBufferSize = 64
+	}
 	available := make(chan *bulkIndexer, cfg.MaxRequests)
 	for i := 0; i < cfg.MaxRequests; i++ {
 		available <- newBulkIndexer(client, cfg.CompressionLevel)
@@ -150,7 +159,7 @@ func New(client elasticsearch.Client, cfg Config) (*Indexer, error) {
 		available:             available,
 		closed:                make(chan struct{}),
 		// NOTE(marclop) This channel size is arbitrary.
-		bulkItems: make(chan elasticsearch.BulkIndexerItem, 100),
+		bulkItems: make(chan elasticsearch.BulkIndexerItem, cfg.EventBufferSize),
 	}
 	indexer.g.Go(func() error {
 		indexer.runActiveIndexer()

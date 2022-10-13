@@ -54,6 +54,8 @@ import (
 	"github.com/elastic/elastic-agent-libs/monitoring"
 	"github.com/elastic/elastic-agent-libs/transport"
 	"github.com/elastic/elastic-agent-libs/transport/tlscommon"
+	"github.com/elastic/elastic-agent-system-metrics/metric/system/cgroup"
+	"github.com/elastic/elastic-agent-system-metrics/metric/system/resolve"
 	"github.com/elastic/go-ucfg"
 
 	"github.com/elastic/apm-server/internal/agentcfg"
@@ -425,6 +427,31 @@ func newServerRunner(ctx context.Context, args serverRunnerParams) (*serverRunne
 func (s *serverRunner) run(listener net.Listener) error {
 	defer close(s.done)
 
+	// Obtain the memory limit for the APM Server process. Certain config
+	// values will be sized according to the maximum memory set for the server.
+	var memLimit float64
+	if cgroupReader := newCgroupReader(); cgroupReader != nil {
+		if limit, err := cgroupMemoryLimit(cgroupReader); err != nil {
+			s.logger.Warn(err)
+		} else {
+			memLimit = float64(limit) / 1024 / 1024 / 1024
+		}
+	}
+	if memLimit == 0 {
+		s.logger.Info("no cgroups detected, falling back to total system memory")
+		if limit, err := systemMemoryLimit(); err != nil {
+			s.logger.Warn(err)
+		} else {
+			memLimit = float64(limit) / 1024 / 1024 / 1024
+		}
+	}
+	s.config.MaxConcurrentDecoders = maxConcurrentDecoders(
+		memLimit, s.config.MaxConcurrentDecoders,
+	)
+	s.logger.Infof("MaxConcurrentDecoders set to %d based on %0.1fgb of memory",
+		s.config.MaxConcurrentDecoders, memLimit,
+	)
+
 	// Send config to telemetry.
 	recordAPMServerConfig(s.config)
 
@@ -569,8 +596,7 @@ func (s *serverRunner) run(listener net.Listener) error {
 	// Create the BatchProcessor chain that is used to process all events,
 	// including the metrics aggregated by APM Server.
 	finalBatchProcessor, closeFinalBatchProcessor, err := s.newFinalBatchProcessor(
-		tracer,
-		newElasticsearchClient,
+		tracer, newElasticsearchClient, memLimit,
 	)
 	if err != nil {
 		return err
@@ -687,6 +713,39 @@ func (s *serverRunner) run(listener net.Listener) error {
 	return result
 }
 
+func newCgroupReader() *cgroup.Reader {
+	cgroupOpts := cgroup.ReaderOptions{
+		RootfsMountpoint:  resolve.NewTestResolver(""),
+		IgnoreRootCgroups: true,
+	}
+	// https://github.com/elastic/beats/blob/ae50f3a6d740be84e2306582ec134ae42c6027b7/metricbeat/module/system/process/process.go#L88-L94
+	override, isset := os.LookupEnv("LIBBEAT_MONITORING_CGROUPS_HIERARCHY_OVERRIDE")
+	if isset {
+		cgroupOpts.CgroupsHierarchyOverride = override
+	}
+	reader, _ := cgroup.NewReaderOptions(cgroupOpts)
+	return reader
+}
+
+var defaultDecoders = config.DefaultConfig().MaxConcurrentDecoders
+
+func maxConcurrentDecoders(memLimit float64, decoders uint) uint {
+	// If the decoders have already been set to a value different than the
+	// default configuration, return that value.
+	if decoders != defaultDecoders {
+		return decoders
+	}
+	if memLimit > 1 {
+		// Limit the number of concurrent decodes to 4096
+		max := uint(128 * memLimit)
+		if max > 4096 {
+			return 4096
+		}
+		return max
+	}
+	return defaultDecoders
+}
+
 // waitReady waits until the server is ready to index events.
 func (s *serverRunner) waitReady(
 	ctx context.Context,
@@ -773,6 +832,7 @@ func (s *serverRunner) waitReady(
 func (s *serverRunner) newFinalBatchProcessor(
 	tracer *apm.Tracer,
 	newElasticsearchClient func(cfg *elasticsearch.Config) (elasticsearch.Client, error),
+	memLimit float64,
 ) (model.BatchProcessor, func(context.Context) error, error) {
 
 	monitoring.Default.Remove("libbeat")
@@ -814,13 +874,20 @@ func (s *serverRunner) newFinalBatchProcessor(
 	if err != nil {
 		return nil, nil, err
 	}
-	indexer, err := modelindexer.New(client, modelindexer.Config{
+	opts := modelindexer.Config{
 		CompressionLevel: esConfig.CompressionLevel,
 		FlushBytes:       flushBytes,
 		FlushInterval:    esConfig.FlushInterval,
 		Tracer:           tracer,
 		MaxRequests:      esConfig.MaxRequests,
-	})
+	}
+	if internalBuffer := eventBufferSize(memLimit); internalBuffer > 0 {
+		s.logger.Infof("modelindexer.EventBufferSize set to %d based on %0.1fgb of memory",
+			internalBuffer, memLimit,
+		)
+		opts.EventBufferSize = internalBuffer
+	}
+	indexer, err := modelindexer.New(client, opts)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -872,6 +939,17 @@ func (s *serverRunner) newFinalBatchProcessor(
 		v.OnInt(stats.BulkRequests)
 	})
 	return indexer, indexer.Close, nil
+}
+
+func eventBufferSize(memLimit float64) int {
+	if memLimit > 1 {
+		size := int(256 * memLimit)
+		if size > 15360 {
+			size = 15360
+		}
+		return size
+	}
+	return 0 // Set to zero to use the modelindexer default.
 }
 
 func (s *serverRunner) newLibbeatFinalBatchProcessor(
