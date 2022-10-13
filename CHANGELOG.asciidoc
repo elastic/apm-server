@@ -1,3 +1,5 @@
+include::./changelogs/head.asciidoc[]
+include::./changelogs/8.5.asciidoc[]
 include::./changelogs/8.4.asciidoc[]
 include::./changelogs/8.3.asciidoc[]
 include::./changelogs/8.2.asciidoc[]
