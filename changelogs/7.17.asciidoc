@@ -3,6 +3,7 @@
 
 https://github.com/elastic/apm-server/compare/7.16\...7.17[View commits]
 
+* <<release-notes-7.17.7>>
 * <<release-notes-7.17.6>>
 * <<release-notes-7.17.5>>
 * <<release-notes-7.17.4>>
@@ -10,6 +11,26 @@ https://github.com/elastic/apm-server/compare/7.16\...7.17[View commits]
 * <<release-notes-7.17.2>>
 * <<release-notes-7.17.1>>
 * <<release-notes-7.17.0>>
+
+[float]
+[[release-notes-7.17.7]]
+=== APM version 7.17.7
+
+https://github.com/elastic/apm-server/compare/v7.17.6\...v7.17.7[View commits]
+
+[float]
+==== Breaking changes
+
+This APM release updates Go to version 1.18.5.
+The https://tip.golang.org/doc/go1.18#sha1[Go release notes] for this version note the following change to TLS:
+
+****
+**Rejecting SHA-1 certificates**
+
+`crypto/x509`` will now reject certificates signed with the SHA-1 hash function. This doesn't apply to self-signed root certificates. Practical attacks against SHA-1 https://shattered.io/[have been demonstrated since 2017] and publicly trusted Certificate Authorities have not issued SHA-1 certificates since 2015.
+
+This can be temporarily reverted by setting the `GODEBUG=x509sha1=1` environment variable. This option will be removed in a future release.
+****
 
 [float]
 [[release-notes-7.17.6]]
