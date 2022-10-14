@@ -17,26 +17,160 @@
       ],
       "maxLength": 1024
     },
-    "error.message": {
-      "description": "ErrorMessage represents the message contained in the error if the log line represents an error.",
+    "ecslogerrorfields": {
       "type": [
         "null",
-        "string"
-      ]
+        "object"
+      ],
+      "properties": {
+        "error": {
+          "type": [
+            "null",
+            "object"
+          ]
+        },
+        "error.message": {
+          "description": "ErrorMessage represents the message contained in the error if the log line represents an error.",
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "error.stack_trace": {
+          "description": "ErrorStacktrace represents the plain text stacktrace of the error the log line represents.",
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "error.type": {
+          "description": "ErrorType represents the type of the error if the log line represents an error.",
+          "type": [
+            "null",
+            "string"
+          ]
+        }
+      }
     },
-    "error.stack_trace": {
-      "description": "ErrorStacktrace represents the plain text stacktrace of the error the log line represents.",
+    "ecsloglogfields": {
       "type": [
         "null",
-        "string"
-      ]
+        "object"
+      ],
+      "properties": {
+        "log": {
+          "type": [
+            "null",
+            "object"
+          ]
+        },
+        "log.level": {
+          "description": "Level represents the severity of the recorded log.",
+          "type": [
+            "null",
+            "string"
+          ],
+          "maxLength": 1024
+        },
+        "log.logger": {
+          "description": "Logger represents the name of the used logger instance.",
+          "type": [
+            "null",
+            "string"
+          ],
+          "maxLength": 1024
+        },
+        "log.origin.file.line": {
+          "description": "OriginFileLine represents the line number in the file containing the sourcecode where the log originated.",
+          "type": [
+            "null",
+            "integer"
+          ]
+        },
+        "log.origin.file.name": {
+          "description": "OriginFileName represents the filename containing the sourcecode where the log originated.",
+          "type": [
+            "null",
+            "string"
+          ],
+          "maxLength": 1024
+        },
+        "log.origin.function": {
+          "description": "OriginFunction represents the function name where the log originated.",
+          "type": [
+            "null",
+            "string"
+          ]
+        }
+      }
     },
-    "error.type": {
-      "description": "ErrorType represents the type of the error if the log line represents an error.",
+    "ecslogprocessfields": {
       "type": [
         "null",
-        "string"
-      ]
+        "object"
+      ],
+      "properties": {
+        "process": {
+          "type": [
+            "null",
+            "object"
+          ]
+        },
+        "process.thread.name": {
+          "description": "ProcessThreadName represents the name of the thread.",
+          "type": [
+            "null",
+            "string"
+          ],
+          "maxLength": 1024
+        }
+      }
+    },
+    "ecslogservicefields": {
+      "type": [
+        "null",
+        "object"
+      ],
+      "properties": {
+        "service": {
+          "type": [
+            "null",
+            "object"
+          ]
+        },
+        "service.environment": {
+          "description": "ServiceEnvironment represents the environment the service which originated the log line is running in.",
+          "type": [
+            "null",
+            "string"
+          ],
+          "maxLength": 1024
+        },
+        "service.name": {
+          "description": "ServiceName represents name of the service which originated the log line.",
+          "type": [
+            "null",
+            "string"
+          ],
+          "maxLength": 1024
+        },
+        "service.node.name": {
+          "description": "ServiceNodeName represents a unique node name per host for the service which originated the log line.",
+          "type": [
+            "null",
+            "string"
+          ],
+          "maxLength": 1024
+        },
+        "service.version": {
+          "description": "ServiceVersion represents the version of the service which originated the log line.",
+          "type": [
+            "null",
+            "string"
+          ],
+          "maxLength": 1024
+        }
+      }
     },
     "faas": {
       "description": "FAAS holds fields related to Function as a Service events.",
@@ -121,44 +255,6 @@
         "maxLength": 1024
       }
     },
-    "log.level": {
-      "description": "Level represents the severity of the recorded log.",
-      "type": [
-        "null",
-        "string"
-      ],
-      "maxLength": 1024
-    },
-    "log.logger": {
-      "description": "Logger represents the name of the used logger instance.",
-      "type": [
-        "null",
-        "string"
-      ],
-      "maxLength": 1024
-    },
-    "log.origin.file.line": {
-      "description": "OriginFileLine represents the line number in the file containing the sourcecode where the log originated.",
-      "type": [
-        "null",
-        "integer"
-      ]
-    },
-    "log.origin.file.name": {
-      "description": "OriginFileName represents the filename containing the sourcecode where the log originated.",
-      "type": [
-        "null",
-        "string"
-      ],
-      "maxLength": 1024
-    },
-    "log.origin.function": {
-      "description": "OriginFunction represents the function name where the log originated.",
-      "type": [
-        "null",
-        "string"
-      ]
-    },
     "message": {
       "description": "Message logged as part of the log. In case a parameterized message is captured, Message should contain the same information, but with any placeholders being replaced.",
       "type": [
@@ -166,40 +262,8 @@
         "string"
       ]
     },
-    "process.thread.name": {
-      "description": "ProcessThreadName represents the name of the thread.",
-      "type": [
-        "null",
-        "string"
-      ],
-      "maxLength": 1024
-    },
-    "service.environment": {
-      "description": "ServiceEnvironment represents the environment the service which originated the log line is running in.",
-      "type": [
-        "null",
-        "string"
-      ],
-      "maxLength": 1024
-    },
-    "service.name": {
-      "description": "ServiceName represents name of the service which originated the log line.",
-      "type": [
-        "null",
-        "string"
-      ],
-      "maxLength": 1024
-    },
-    "service.node.name": {
-      "description": "ServiceNodeName represents a unique node name per host for the service which originated the log line.",
-      "type": [
-        "null",
-        "string"
-      ],
-      "maxLength": 1024
-    },
-    "service.version": {
-      "description": "ServiceVersion represents the version of the service which originated the log line.",
+    "span.id": {
+      "description": "SpanID holds the ID ID of the correlated span.",
       "type": [
         "null",
         "string"
@@ -207,7 +271,7 @@
       "maxLength": 1024
     },
     "trace.id": {
-      "description": "TraceID holds the hex encoded 128 random bits ID of the correlated trace.",
+      "description": "TraceID holds the ID of the correlated trace.",
       "type": [
         "null",
         "string"
@@ -215,7 +279,7 @@
       "maxLength": 1024
     },
     "transaction.id": {
-      "description": "TransactionID holds the hex encoded 64 random bits ID of the correlated transaction.",
+      "description": "TransactionID holds the ID of the correlated transaction.",
       "type": [
         "null",
         "string"

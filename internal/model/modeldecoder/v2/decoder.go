@@ -237,6 +237,10 @@ func DecodeNestedLog(d decoder.Decoder, input *modeldecoder.Input, batch *model.
 	if err = d.Decode(root); err != nil && err != io.EOF {
 		return modeldecoder.NewDecoderErrFromJSONIter(err)
 	}
+	// Flatten any nested source to set the values for the flat fields
+	if err := root.processNestedSource(); err != nil {
+		return err
+	}
 	if err := root.validate(); err != nil {
 		return modeldecoder.NewValidationErr(err)
 	}
