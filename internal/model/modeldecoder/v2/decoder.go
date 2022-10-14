@@ -1335,6 +1335,11 @@ func mapToLogModel(from *log, event *model.APMEvent) {
 			ID: from.TransactionID.Val,
 		}
 	}
+	if from.SpanID.IsSet() {
+		event.Span = &model.Span{
+			ID: from.SpanID.Val,
+		}
+	}
 	if from.Message.IsSet() {
 		event.Message = from.Message.Val
 	}
