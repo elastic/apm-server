@@ -50,7 +50,7 @@ func generateParseFlatFieldCode(w io.Writer, flat structField, nested structFiel
 			if tmpVal, ok := tmpVal["%s"]`, nestedKeyParts[i])
 	}
 	fmt.Fprintf(w, `.(%s); ok {`, flatFieldType)
-	extraCode, finalVar := valueConverterCodeGenerator(flatFieldType, "tmpVal")
+	extraCode, finalVar := generateValueConverterCode(flatFieldType, "tmpVal")
 	fmt.Fprintf(w, `
 		%sval.%s.Set(%s)
 	`, extraCode, flat.Name(), finalVar)
@@ -81,12 +81,12 @@ func getFlatFieldType(f structField) (string, error) {
 	}
 }
 
-// valueConverterCodeGenerator takes the field type of the final
+// generateValueConverterCode takes the field type of the final
 // parsed value in the map and returns extra code required to
 // convert the value for the flat field. It also returns a new
 // variable string as the second argument if the processing requires
 // to use a new variable.
-func valueConverterCodeGenerator(typ, origVar string) (string, string) {
+func generateValueConverterCode(typ, origVar string) (string, string) {
 	switch typ {
 	case "json.Number":
 		return fmt.Sprintf(`
