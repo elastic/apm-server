@@ -46,9 +46,6 @@ import (
 	"github.com/elastic/apm-server/internal/model"
 	"github.com/elastic/apm-server/internal/model/modelindexer/modelindexertest"
 	"github.com/elastic/beats/v7/libbeat/beat"
-	"github.com/elastic/beats/v7/libbeat/idxmgmt"
-	"github.com/elastic/beats/v7/libbeat/instrumentation"
-	"github.com/elastic/beats/v7/libbeat/outputs"
 	agentconfig "github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/monitoring"
@@ -65,15 +62,15 @@ type testBeater struct {
 	client     *http.Client
 }
 
-func setupServer(t *testing.T, cfg *agentconfig.C, beatConfig *beat.BeatConfig, docsOut chan<- []byte) (*testBeater, error) {
+func setupServer(t *testing.T, cfg *agentconfig.C, docsOut chan<- []byte) (*testBeater, error) {
 	if testing.Short() {
 		t.Skip("skipping server test")
 	}
-	apmBeat, cfg := newBeat(t, cfg, beatConfig, docsOut)
-	return setupBeater(t, apmBeat, cfg, beatConfig)
+	apmBeat, cfg := newBeat(t, cfg, docsOut)
+	return setupBeater(t, apmBeat, cfg)
 }
 
-func newBeat(t *testing.T, cfg *agentconfig.C, beatConfig *beat.BeatConfig, docsOut chan<- []byte) (*beat.Beat, *agentconfig.C) {
+func newBeat(t *testing.T, cfg *agentconfig.C, docsOut chan<- []byte) (*beat.Beat, *agentconfig.C) {
 	info := beat.Info{
 		Beat:        "test-apm-server",
 		IndexPrefix: "test-apm-server",
@@ -82,27 +79,50 @@ func newBeat(t *testing.T, cfg *agentconfig.C, beatConfig *beat.BeatConfig, docs
 	}
 
 	combinedConfig := agentconfig.MustNewConfigFrom(map[string]interface{}{
-		"host": "localhost:0",
+		"apm-server": map[string]interface{}{
+			"host": "localhost:0",
 
-		// Disable waiting for integration to be installed by default,
-		// to simplify tests. This feature is tested independently.
-		"data_streams.wait_for_integration": false,
+			// Disable waiting for integration to be installed by default,
+			// to simplify tests. This feature is tested independently.
+			"data_streams.wait_for_integration": false,
+		},
 	})
 	if cfg != nil {
 		require.NoError(t, cfg.Unpack(combinedConfig))
 	}
 
-	var pub beat.Pipeline
+	// If docsOut is non-nil, we configure the Elasticsearch output.
+	//
+	// If no output is configured and docsOut is nil, then we use the
+	// Elasticsearch output and consume and drop the documents.
+	var unpacked struct {
+		APMServer *agentconfig.C        `config:"apm-server"`
+		Output    agentconfig.Namespace `config:"output"`
+	}
+	err := combinedConfig.Unpack(&unpacked)
+	require.NoError(t, err)
+	if !unpacked.Output.IsSet() && docsOut == nil {
+		docs := make(chan []byte)
+		docsOut = docs
+		stop := make(chan struct{})
+		t.Cleanup(func() { close(stop) })
+		go func() {
+			for {
+				select {
+				case <-stop:
+					return
+				case <-docs:
+				}
+			}
+		}()
+	}
+
 	if docsOut != nil {
 		// Clear the state monitoring registry to avoid panicking due
 		// to double registration.
 		stateRegistry := monitoring.GetNamespace("state").GetRegistry()
 		stateRegistry.Clear()
 		defer stateRegistry.Clear()
-
-		// beatConfig must be nil if an event channel is supplied.
-		require.Nil(t, beatConfig)
-		beatConfig = &beat.BeatConfig{}
 
 		mux := http.NewServeMux()
 		mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -128,8 +148,8 @@ func newBeat(t *testing.T, cfg *agentconfig.C, beatConfig *beat.BeatConfig, docs
 		srv := httptest.NewServer(mux)
 		t.Cleanup(srv.Close)
 
-		err := beatConfig.Output.Unpack(agentconfig.MustNewConfigFrom(map[string]interface{}{
-			"elasticsearch": map[string]interface{}{
+		err := combinedConfig.Merge(agentconfig.MustNewConfigFrom(map[string]interface{}{
+			"output.elasticsearch": map[string]interface{}{
 				"enabled":      true,
 				"hosts":        []string{srv.URL},
 				"flush_bytes":  "1", // no delay
@@ -137,37 +157,24 @@ func newBeat(t *testing.T, cfg *agentconfig.C, beatConfig *beat.BeatConfig, docs
 			},
 		}))
 		require.NoError(t, err)
+
+		// Update unpacked.Output
+		err = combinedConfig.Unpack(&unpacked)
+		require.NoError(t, err)
 	}
 
-	if beatConfig != nil && beatConfig.Output.Name() == "elasticsearch" {
-		// capture events using the configured elasticsearch output
-		supporter, err := idxmgmt.DefaultSupport(logp.NewLogger("beater_test"), info, nil)
-		require.NoError(t, err)
-		outputGroup, err := outputs.Load(supporter, info, nil, "elasticsearch", beatConfig.Output.Config())
-		require.NoError(t, err)
-		pub = dummyPipeline(cfg, info, outputGroup.Clients...)
-	} else {
-		// don't capture events
-		pub = dummyPipeline(cfg, info)
-	}
-
-	instrumentation, err := instrumentation.New(combinedConfig, info.Beat, info.Version)
-	require.NoError(t, err)
 	return &beat.Beat{
-		Publisher:       pub,
-		Info:            info,
-		Config:          beatConfig,
-		Instrumentation: instrumentation,
-	}, combinedConfig
+		Info:   info,
+		Config: &beat.BeatConfig{Output: unpacked.Output},
+	}, unpacked.APMServer
 }
 
 func setupBeater(
 	t *testing.T,
 	apmBeat *beat.Beat,
 	ucfg *agentconfig.C,
-	beatConfig *beat.BeatConfig,
 ) (*testBeater, error) {
-	tb, err := newTestBeater(t, apmBeat, ucfg, beatConfig)
+	tb, err := newTestBeater(t, apmBeat, ucfg)
 	if err != nil {
 		return nil, err
 	}
@@ -190,7 +197,6 @@ func newTestBeater(
 	t *testing.T,
 	apmBeat *beat.Beat,
 	ucfg *agentconfig.C,
-	beatConfig *beat.BeatConfig,
 ) (*testBeater, error) {
 
 	core, observedLogs := observer.New(zapcore.DebugLevel)
@@ -418,63 +424,6 @@ func TestQueryClusterUUIDRegistriesDoNotExist(t *testing.T) {
 
 	fs := monitoring.CollectFlatSnapshot(elasticsearchRegistry, monitoring.Full, false)
 	assert.Equal(t, clusterUUID, fs.Strings["cluster_uuid"])
-}
-
-func TestAdjustMaxProcsTickerRefresh(t *testing.T) {
-	// This test asserts that the GOMAXPROCS is called multiple times
-	// respecting the time.Duration that is passed in the function.
-	for _, maxP := range []int{2, 4, 8} {
-		t.Run(fmt.Sprintf("%d_GOMAXPROCS", maxP), func(t *testing.T) {
-			observedLogs := testAdjustMaxProcs(t, maxP, false)
-			assert.GreaterOrEqual(t, observedLogs.Len(), 10)
-		})
-	}
-}
-
-func TestAdjustMaxProcsTickerRefreshDiffLogger(t *testing.T) {
-	// This test asserts that the log messages aren't logged more than once.
-	for _, maxP := range []int{2, 4, 8} {
-		t.Run(fmt.Sprintf("%d_GOMAXPROCS", maxP), func(t *testing.T) {
-			observedLogs := testAdjustMaxProcs(t, maxP, true)
-			// Assert that only 1 message has been logged.
-			assert.Equal(t, observedLogs.Len(), 1)
-		})
-	}
-}
-
-func testAdjustMaxProcs(t *testing.T, maxP int, diffCore bool) *observer.ObservedLogs {
-	t.Setenv("GOMAXPROCS", fmt.Sprint(maxP))
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
-
-	core, observedLogs := observer.New(zapcore.DebugLevel)
-	logger := logp.NewLogger("", zap.WrapCore(func(in zapcore.Core) zapcore.Core {
-		return zapcore.NewTee(in, core)
-	}))
-
-	// Adjust maxprocs every 1ms.
-	refreshDuration := time.Millisecond
-	logFunc := logger.Infof
-	if diffCore {
-		logFunc = diffInfof(logger)
-	}
-
-	go adjustMaxProcs(ctx, refreshDuration, logFunc, logger.Errorf)
-
-	filterMsg := fmt.Sprintf(`maxprocs: Honoring GOMAXPROCS="%d"`, maxP)
-	for {
-		select {
-		// Wait for 50ms so adjustmaxprocs has had time to run a few times.
-		case <-time.After(50 * refreshDuration):
-			logs := observedLogs.FilterMessageSnippet(filterMsg)
-			if logs.Len() >= 1 {
-				return logs
-			}
-		case <-ctx.Done():
-			t.Error(ctx.Err())
-			return nil
-		}
-	}
 }
 
 type mockClusterUUIDClient struct {
