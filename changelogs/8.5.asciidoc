@@ -27,6 +27,7 @@ https://github.com/elastic/apm-server/compare/v8.4.2\...v8.5.0[View commits]
 - Dynamically map all simple numerical metrics as `double`, to avoid mapping conflicts {pull}8868[8868]
 - Fix data stream migration ingest pipeline, upgrading old `observer.*` and `process.ppid` fields {pull}9095[9095]
 - Fix ordering of processors to ensure `host.hostname` is set consistently in aggregated metrics {pull}8983[8983]
+- Set error.id for OpenTelemetry exception span events {pull}9372[9372]
 
 [float]
 ==== Intake API Changes
