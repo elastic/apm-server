@@ -283,7 +283,7 @@
                     "function": "testFunc"
                 }
             },
-            "message": "test log message with faas and ecs fields",
+            "message": "test log message with ecs fields",
             "numeric_labels": {
                 "float": 1.1,
                 "int": 1,
@@ -389,7 +389,7 @@
                     "function": "testFunc"
                 }
             },
-            "message": "test log message with faas and ecs fields in nested format",
+            "message": "test log message with nested ecs fields",
             "numeric_labels": {
                 "float": 1.1,
                 "int": 1,
@@ -495,7 +495,7 @@
                     "function": "testFunc"
                 }
             },
-            "message": "test log message with faas and ecs fields in nested format should override flat format",
+            "message": "test log message with override of flat ecs fields by nested ecs fields",
             "numeric_labels": {
                 "float": 1.1,
                 "int": 1,
