@@ -41,7 +41,7 @@ type Log struct {
 
 // LogOrigin holds information about the origin of the log.
 type LogOrigin struct {
-	LogFile      LogOriginFile
+	File         LogOriginFile
 	FunctionName string
 }
 
@@ -56,9 +56,9 @@ func (e Log) fields() mapstr.M {
 	fields.maybeSetString("level", e.Level)
 	fields.maybeSetString("logger", e.Logger)
 	origin.maybeSetString("function", e.Origin.FunctionName)
-	file.maybeSetString("name", e.Origin.LogFile.Name)
-	if e.Origin.LogFile.Line > 0 {
-		file.set("line", e.Origin.LogFile.Line)
+	file.maybeSetString("name", e.Origin.File.Name)
+	if e.Origin.File.Line > 0 {
+		file.set("line", e.Origin.File.Line)
 	}
 	origin.maybeSetMapStr("file", mapstr.M(file))
 	fields.maybeSetMapStr("origin", mapstr.M(origin))

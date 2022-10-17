@@ -49,7 +49,7 @@ func TestLogTransform(t *testing.T) {
 				Level:  "warn",
 				Logger: "bootstrap",
 				Origin: LogOrigin{
-					LogFile: LogOriginFile{
+					File: LogOriginFile{
 						Name: "testFile",
 						Line: 12,
 					},

@@ -1353,10 +1353,10 @@ func mapToLogModel(from *log, event *model.APMEvent) {
 		event.Log.Origin.FunctionName = from.OriginFunction.Val
 	}
 	if from.OriginFileLine.IsSet() {
-		event.Log.Origin.LogFile.Line = from.OriginFileLine.Val
+		event.Log.Origin.File.Line = from.OriginFileLine.Val
 	}
 	if from.OriginFileName.IsSet() {
-		event.Log.Origin.LogFile.Name = from.OriginFileName.Val
+		event.Log.Origin.File.Name = from.OriginFileName.Val
 	}
 	if from.ErrorType.IsSet() ||
 		from.ErrorMessage.IsSet() ||
