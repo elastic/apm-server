@@ -27,8 +27,6 @@ import (
 	"github.com/elastic/elastic-agent-libs/logp"
 )
 
-type logf func(string, ...interface{})
-
 // adjustMaxProcs uses `maxprocs` to change the GOMAXPROCS respecting any
 // CFS quotas, if set.
 //
@@ -41,10 +39,11 @@ type logf func(string, ...interface{})
 // pausing the the running OS threads for the throttled period.
 // Since the quotas may be updated without restarting the process, the
 // GOMAXPROCS are adjusted every 30s.
-func adjustMaxProcs(ctx context.Context, d time.Duration, infof, errorf logf) error {
+func adjustMaxProcs(ctx context.Context, d time.Duration, logger *logp.Logger) error {
+	infof := diffInfof(logger)
 	setMaxProcs := func() {
 		if _, err := maxprocs.Set(maxprocs.Logger(infof)); err != nil {
-			errorf("failed to set GOMAXPROCS: %v", err)
+			logger.Errorf("failed to set GOMAXPROCS: %v", err)
 		}
 	}
 	// set the gomaxprocs immediately.
@@ -61,7 +60,7 @@ func adjustMaxProcs(ctx context.Context, d time.Duration, infof, errorf logf) er
 	}
 }
 
-func diffInfof(logger *logp.Logger) logf {
+func diffInfof(logger *logp.Logger) func(string, ...interface{}) {
 	var last string
 	return func(format string, args ...interface{}) {
 		msg := fmt.Sprintf(format, args...)
