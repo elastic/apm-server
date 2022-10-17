@@ -81,12 +81,12 @@ type Indexer struct {
 	config    Config
 	logger    *logp.Logger
 	available chan *bulkIndexer
+	bulkItems chan elasticsearch.BulkIndexerItem
 	g         errgroup.Group
 
-	mu        sync.RWMutex
-	closing   bool
-	closed    chan struct{}
-	bulkItems chan elasticsearch.BulkIndexerItem
+	mu      sync.Mutex
+	closing chan struct{}
+	closed  chan struct{}
 }
 
 // Config holds configuration for Indexer.
@@ -148,6 +148,7 @@ func New(client elasticsearch.Client, cfg Config) (*Indexer, error) {
 		config:                cfg,
 		logger:                logger,
 		available:             available,
+		closing:               make(chan struct{}),
 		closed:                make(chan struct{}),
 		// NOTE(marclop) This channel size is arbitrary.
 		bulkItems: make(chan elasticsearch.BulkIndexerItem, 100),
@@ -167,9 +168,10 @@ func New(client elasticsearch.Client, cfg Config) (*Indexer, error) {
 func (i *Indexer) Close(ctx context.Context) error {
 	i.mu.Lock()
 	defer i.mu.Unlock()
-	if !i.closing {
-		i.closing = true
-		close(i.bulkItems)
+	select {
+	case <-i.closing:
+	default:
+		close(i.closing)
 		// Close i.closed when ctx is cancelled,
 		// unblocking any ongoing flush attempts.
 		done := make(chan struct{})
@@ -203,13 +205,8 @@ func (i *Indexer) Stats() Stats {
 // ProcessBatch creates a document for each event in batch, and adds them to the
 // Elasticsearch bulk indexer.
 //
-// If the indexer has been closed, ProcessBatch returns ErrClosed.
+// If Close is called, then ProcessBatch will return ErrClosed.
 func (i *Indexer) ProcessBatch(ctx context.Context, batch *model.Batch) error {
-	i.mu.RLock()
-	defer i.mu.RUnlock()
-	if i.closing {
-		return ErrClosed
-	}
 	for _, event := range *batch {
 		if err := i.processEvent(ctx, &event); err != nil {
 			return err
@@ -232,17 +229,20 @@ func (i *Indexer) processEvent(ctx context.Context, event *model.APMEvent) error
 	r.indexBuilder.WriteByte('-')
 	r.indexBuilder.WriteString(event.DataStream.Namespace)
 
-	select {
 	// Send the BulkIndexerItem to the internal channel, allowing individual
 	// events to be processed by an active bulk indexer in a dedicated goroutine,
 	// which in turn speeds up event processing.
-	case i.bulkItems <- elasticsearch.BulkIndexerItem{
+	item := elasticsearch.BulkIndexerItem{
 		Index:  r.indexBuilder.String(),
 		Action: "create",
 		Body:   r,
-	}:
+	}
+	select {
 	case <-ctx.Done():
 		return ctx.Err()
+	case <-i.closing:
+		return ErrClosed
+	case i.bulkItems <- item:
 	}
 	atomic.AddInt64(&i.eventsAdded, 1)
 	atomic.AddInt64(&i.eventsActive, 1)
@@ -407,33 +407,44 @@ func (i *Indexer) runActiveIndexer() {
 	if !flushTimer.Stop() {
 		<-flushTimer.C
 	}
+	handleBulkItem := func(event elasticsearch.BulkIndexerItem) (flush bool) {
+		if active == nil {
+			active = <-i.available
+			atomic.AddInt64(&i.availableBulkRequests, -1)
+			flushTimer.Reset(i.config.FlushInterval)
+		}
+		if err := active.Add(event); err != nil {
+			i.logger.Errorf("failed adding event to bulk indexer: %v", err)
+		}
+		return false
+	}
 	for !closed {
 		select {
 		case <-flushTimer.C:
 		default:
 			select {
-			case <-flushTimer.C:
-			case event, ok := <-i.bulkItems:
-				if !ok {
-					closed = true
-					break // Flush a last time below, if there's an active indexer
-				}
-				if active == nil {
-					active = <-i.available
-					atomic.AddInt64(&i.availableBulkRequests, -1)
-					flushTimer.Reset(i.config.FlushInterval)
-				}
-				if err := active.Add(event); err != nil {
-					i.logger.Errorf("failed adding event to bulk indexer: %v", err)
-				}
-				// Flush the active indexer when it's at or exceeds the configured
-				// FlushBytes threshold.
-				if active.Len() >= i.config.FlushBytes {
-					if !flushTimer.Stop() {
-						<-flushTimer.C
+			case <-i.closing:
+				// Consume whatever bulk items have been buffered,
+				// and then flush a last time below.
+				for len(i.bulkItems) > 0 {
+					select {
+					case event := <-i.bulkItems:
+						handleBulkItem(event)
+					default:
+						// Another goroutine took the item.
 					}
-				} else {
+				}
+				closed = true
+			case <-flushTimer.C:
+			case event := <-i.bulkItems:
+				handleBulkItem(event)
+				if active.Len() < i.config.FlushBytes {
 					continue
+				}
+				// The active indexer is at or exceeds the configured FlushBytes
+				// threshold, so flush it.
+				if !flushTimer.Stop() {
+					<-flushTimer.C
 				}
 			}
 		}

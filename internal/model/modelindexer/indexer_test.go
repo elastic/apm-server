@@ -37,6 +37,7 @@ import (
 	"go.elastic.co/fastjson"
 
 	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/elastic-agent-libs/mapstr"
 	"github.com/elastic/go-elasticsearch/v8/esutil"
 
 	"github.com/elastic/apm-server/internal/elasticsearch"
@@ -495,6 +496,106 @@ func TestModelIndexerCloseFlushContext(t *testing.T) {
 	case <-time.After(10 * time.Second):
 		t.Fatal("timed out waiting for flush to unblock")
 	}
+}
+
+func TestModelIndexerCloseInterruptProcessBatch(t *testing.T) {
+	srvctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	client := modelindexertest.NewMockElasticsearchClient(t, func(w http.ResponseWriter, r *http.Request) {
+		select {
+		case <-srvctx.Done():
+		case <-r.Context().Done():
+		}
+	})
+	indexer, err := modelindexer.New(client, modelindexer.Config{
+		// Set FlushBytes to 1 so a single event causes a flush.
+		FlushBytes: 1,
+	})
+	require.NoError(t, err)
+	defer indexer.Close(context.Background())
+
+	// Fill up all the bulk requests and the buffered channel.
+	for n := indexer.Stats().AvailableBulkRequests + 100; n >= 0; n-- {
+		batch := model.Batch{model.APMEvent{Timestamp: time.Now(), DataStream: model.DataStream{
+			Type:      "logs",
+			Dataset:   "apm_server",
+			Namespace: "testing",
+		}}}
+		err := indexer.ProcessBatch(context.Background(), &batch)
+		require.NoError(t, err)
+	}
+
+	// Call ProcessBatch again; this should block, as all bulk requests are
+	// blocked and the buffered channel is full.
+	encoded := make(chan struct{})
+	processed := make(chan error, 1)
+	processContext, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	go func() {
+		batch := model.Batch{{
+			Timestamp: time.Now(),
+			DataStream: model.DataStream{
+				Type:      "traces",
+				Dataset:   "apm_server",
+				Namespace: "testing",
+			},
+			Transaction: &model.Transaction{
+				Custom: mapstr.M{
+					"custom": marshalJSONFunc(func() ([]byte, error) {
+						close(encoded)
+						return []byte(`"encoded"`), nil
+					}),
+				},
+			},
+		}}
+		processed <- indexer.ProcessBatch(processContext, &batch)
+	}()
+
+	// ProcessBatch should should encode the event, but then block.
+	select {
+	case <-encoded:
+	case <-time.After(10 * time.Second):
+		t.Fatal("timed out waiting for event to be encoded by ProcessBatch")
+	}
+	select {
+	case err := <-processed:
+		t.Fatal("ProcessBatch returned unexpectedly", err)
+	case <-time.After(50 * time.Millisecond):
+	}
+
+	// Close should block waiting for the enqueued events to be flushed, but
+	// must honour the given context and not block forever.
+	closed := make(chan error, 1)
+	closeContext, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	go func() {
+		closed <- indexer.Close(closeContext)
+	}()
+	select {
+	case err := <-closed:
+		t.Fatal("ProcessBatch returned unexpectedly", err)
+	case <-time.After(50 * time.Millisecond):
+	}
+
+	cancel()
+	select {
+	case err := <-closed:
+		assert.ErrorIs(t, err, context.Canceled)
+	case <-time.After(10 * time.Second):
+		t.Fatal("timed out waiting for Close to return")
+	}
+	select {
+	case err := <-processed:
+		assert.ErrorIs(t, err, modelindexer.ErrClosed)
+	case <-time.After(10 * time.Second):
+		t.Fatal("timed out waiting for ProcessBatch to return")
+	}
+}
+
+type marshalJSONFunc func() ([]byte, error)
+
+func (f marshalJSONFunc) MarshalJSON() ([]byte, error) {
+	return f()
 }
 
 func TestModelIndexerFlushGoroutineStopped(t *testing.T) {
