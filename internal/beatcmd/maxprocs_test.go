@@ -27,35 +27,15 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zaptest/observer"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/elastic-agent-libs/logp"
 )
 
-func TestAdjustMaxProcsTickerRefresh(t *testing.T) {
-	// This test asserts that the GOMAXPROCS is called multiple times
-	// respecting the time.Duration that is passed in the function.
-	for _, maxP := range []int{2, 4, 8} {
-		t.Run(fmt.Sprintf("%d_GOMAXPROCS", maxP), func(t *testing.T) {
-			observedLogs := testAdjustMaxProcs(t, maxP, false)
-			assert.GreaterOrEqual(t, observedLogs.Len(), 10)
-		})
-	}
-}
-
-func TestAdjustMaxProcsTickerRefreshDiffLogger(t *testing.T) {
-	// This test asserts that the log messages aren't logged more than once.
-	for _, maxP := range []int{2, 4, 8} {
-		t.Run(fmt.Sprintf("%d_GOMAXPROCS", maxP), func(t *testing.T) {
-			observedLogs := testAdjustMaxProcs(t, maxP, true)
-			// Assert that only 1 message has been logged.
-			assert.Equal(t, observedLogs.Len(), 1)
-		})
-	}
-}
-
-func testAdjustMaxProcs(t *testing.T, maxP int, diffCore bool) *observer.ObservedLogs {
-	t.Setenv("GOMAXPROCS", fmt.Sprint(maxP))
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+func TestAdjustMaxProcs(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	g, ctx := errgroup.WithContext(ctx)
+	defer g.Wait()
 	defer cancel()
 
 	core, observedLogs := observer.New(zapcore.DebugLevel)
@@ -63,27 +43,37 @@ func testAdjustMaxProcs(t *testing.T, maxP int, diffCore bool) *observer.Observe
 		return zapcore.NewTee(in, core)
 	}))
 
-	// Adjust maxprocs every 1ms.
-	refreshDuration := time.Millisecond
-	logFunc := logger.Infof
-	if diffCore {
-		logFunc = diffInfof(logger)
-	}
-
-	go adjustMaxProcs(ctx, refreshDuration, logFunc, logger.Errorf)
-
-	filterMsg := fmt.Sprintf(`maxprocs: Honoring GOMAXPROCS="%d"`, maxP)
-	for {
-		select {
-		// Wait for 50ms so adjustmaxprocs has had time to run a few times.
-		case <-time.After(50 * refreshDuration):
+	expectAdjustment := func(n int) {
+		// Wait for GOMAXPROCS to be updated, and ensure only a single log message is logged.
+		filterMsg := fmt.Sprintf(`maxprocs: Honoring GOMAXPROCS="%d"`, n)
+		deadline := time.Now().Add(10 * time.Second)
+		for {
+			if time.Now().After(deadline) {
+				t.Error("timed out waiting for GOMAXPROCS to be set")
+				return
+			}
 			logs := observedLogs.FilterMessageSnippet(filterMsg)
 			if logs.Len() >= 1 {
-				return logs
+				assert.Len(t, observedLogs.TakeAll(), 1)
+				break
 			}
-		case <-ctx.Done():
-			t.Error(ctx.Err())
-			return nil
 		}
+
+		// Duplicate logs should be suppressed.
+		time.Sleep(50 * time.Millisecond)
+		logs := observedLogs.FilterMessageSnippet(filterMsg)
+		assert.Zero(t, logs.Len(), logs)
 	}
+
+	// Adjust maxprocs every 1ms. We set GOMAXPROCS up front
+	// to handle the initial adjustment which runs before the
+	// loop kicks in.
+	t.Setenv("GOMAXPROCS", "3") // Set before calling
+	refreshDuration := time.Millisecond
+	g.Go(func() error {
+		return adjustMaxProcs(ctx, refreshDuration, logger)
+	})
+	expectAdjustment(3)
+	t.Setenv("GOMAXPROCS", "7")
+	expectAdjustment(7)
 }

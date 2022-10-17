@@ -26,7 +26,13 @@ import (
 
 func main() {
 	rootCmd := beatcmd.NewRootCommand(beatcmd.BeatParams{
-		Create: beater.NewCreator(beater.CreatorParams{}),
+		NewRunner: func(args beatcmd.RunnerParams) (beatcmd.Runner, error) {
+			return beater.NewRunner(beater.RunnerParams{
+				Config: args.Config,
+				Info:   args.Info,
+				Logger: args.Logger,
+			})
+		},
 	})
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)

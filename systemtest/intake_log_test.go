@@ -30,33 +30,59 @@ func TestIntakeLog(t *testing.T) {
 	srv := apmservertest.NewServerTB(t)
 	systemtest.SendBackendEventsPayload(t, srv.URL, `../testdata/intake-v2/logs.ndjson`)
 
-	t.Run("without_timestamp", func(t *testing.T) {
-		result := systemtest.Elasticsearch.ExpectMinDocs(t, 1, "logs-apm.app-*", estest.BoolQuery{
-			Filter: []interface{}{
-				estest.TermQuery{Field: "processor.event", Value: "log"},
-				estest.MatchPhraseQuery{Field: "message", Value: "test log message without timestamp"},
-			},
-		})
-		systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits, "@timestamp")
-	})
+	tests := []struct {
+		Name            string
+		Message         string
+		ExpectedMinDocs int
+		DynamicFields   []string
+	}{
+		{
+			Name:            "without_timestamp",
+			Message:         "test log message without timestamp",
+			ExpectedMinDocs: 1,
+			DynamicFields:   []string{"@timestamp"},
+		},
+		{
+			Name:            "with_timestamp",
+			Message:         "test log message with timestamp",
+			ExpectedMinDocs: 1,
+		},
+		{
+			Name:            "with_timestamp_as_str",
+			Message:         "test log message with string timestamp",
+			ExpectedMinDocs: 1,
+		},
+		{
+			Name:            "with_faas",
+			Message:         "test log message with faas",
+			ExpectedMinDocs: 1,
+		},
+		{
+			Name:            "with_flat_ecs_fields",
+			Message:         "test log message with ecs fields",
+			ExpectedMinDocs: 1,
+		},
+		{
+			Name:            "with_nested_ecs_fields",
+			Message:         "test log message with nested ecs fields",
+			ExpectedMinDocs: 1,
+		},
+		{
+			Name:            "with_nested_ecs_fields_overrides_flat_fields",
+			Message:         "test log message with override of flat ecs fields by nested ecs fields",
+			ExpectedMinDocs: 1,
+		},
+	}
 
-	t.Run("with_timestamp", func(t *testing.T) {
-		result := systemtest.Elasticsearch.ExpectMinDocs(t, 1, "logs-apm.app-*", estest.BoolQuery{
-			Filter: []interface{}{
-				estest.TermQuery{Field: "processor.event", Value: "log"},
-				estest.MatchPhraseQuery{Field: "message", Value: "test log message with timestamp"},
-			},
+	for _, test := range tests {
+		t.Run(test.Name, func(t *testing.T) {
+			result := systemtest.Elasticsearch.ExpectMinDocs(t, test.ExpectedMinDocs, "logs-apm.app-*", estest.BoolQuery{
+				Filter: []interface{}{
+					estest.TermQuery{Field: "processor.event", Value: "log"},
+					estest.MatchPhraseQuery{Field: "message", Value: test.Message},
+				},
+			})
+			systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits, test.DynamicFields...)
 		})
-		systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits)
-	})
-
-	t.Run("with_faas", func(t *testing.T) {
-		result := systemtest.Elasticsearch.ExpectMinDocs(t, 1, "logs-apm.app-*", estest.BoolQuery{
-			Filter: []interface{}{
-				estest.TermQuery{Field: "processor.event", Value: "log"},
-				estest.MatchPhraseQuery{Field: "message", Value: "test log message with faas"},
-			},
-		})
-		systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits)
-	})
+	}
 }
