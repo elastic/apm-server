@@ -18,6 +18,7 @@
 package nullable
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -77,12 +78,23 @@ func init() {
 		switch iter.WhatIsNext() {
 		case jsoniter.NilValue:
 			iter.ReadNil()
-		default:
+		case jsoniter.NumberValue:
 			us := iter.ReadInt64()
 			s := us / 1000000
 			ns := (us - (s * 1000000)) * 1000
 			(*((*TimeMicrosUnix)(ptr))).Val = time.Unix(s, ns).UTC()
 			(*((*TimeMicrosUnix)(ptr))).isSet = true
+		case jsoniter.StringValue:
+			tstr := iter.ReadString()
+			t, err := time.Parse("2006-01-02T15:04:05.999-0700", tstr)
+			if err != nil {
+				iter.Error = errors.New("invalid input format for timestamp received")
+				return
+			}
+			(*((*TimeMicrosUnix)(ptr))).Val = t.UTC()
+			(*((*TimeMicrosUnix)(ptr))).isSet = true
+		default:
+			iter.Error = errors.New("invalid input type for timestamp received")
 		}
 	})
 	jsoniter.RegisterTypeDecoderFunc("nullable.HTTPHeader", func(ptr unsafe.Pointer, iter *jsoniter.Iterator) {
@@ -92,7 +104,8 @@ func init() {
 		default:
 			m, ok := iter.Read().(map[string]interface{})
 			if !ok {
-				iter.Error = fmt.Errorf("invalid input for HTTPHeader: %v", m)
+				iter.Error = errors.New("invalid input type for HTTPHeader")
+				return
 			}
 			h := http.Header{}
 			for key, val := range m {
@@ -107,10 +120,12 @@ func init() {
 							h.Add(key, entry)
 						default:
 							iter.Error = fmt.Errorf("invalid input for HTTPHeader: %v", v)
+							return
 						}
 					}
 				default:
 					iter.Error = fmt.Errorf("invalid input for HTTPHeader: %v", v)
+					return
 				}
 			}
 			(*((*HTTPHeader)(ptr))).Val = h
