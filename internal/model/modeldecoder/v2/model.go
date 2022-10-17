@@ -960,12 +960,89 @@ type log struct {
 	// Timestamp holds the recorded time of the event, UTC based and formatted
 	// as microseconds since Unix epoch
 	Timestamp nullable.TimeMicrosUnix `json:"@timestamp"`
+	// TraceID holds the ID of the correlated trace.
+	TraceID nullable.String `json:"trace.id" validate:"maxLength=1024"`
+	// TransactionID holds the ID of the correlated transaction.
+	TransactionID nullable.String `json:"transaction.id" validate:"maxLength=1024"`
+	// SpanID holds the ID ID of the correlated span.
+	SpanID nullable.String `json:"span.id" validate:"maxLength=1024"`
 	// Message logged as part of the log. In case a parameterized message is
 	// captured, Message should contain the same information, but with any placeholders
 	// being replaced.
 	Message nullable.String `json:"message"`
 	// FAAS holds fields related to Function as a Service events.
 	FAAS faas `json:"faas"`
+	// Dataset identifies the source which originated the log line.
+	Dataset nullable.String `json:"dataset" validate:"maxLength=1024"`
+	// Labels are a flat mapping of user-defined key-value pairs.
+	Labels mapstr.M `json:"labels" validate:"inputTypesVals=string;bool;number,maxLengthVals=1024"`
+
+	// Below embedded fields are added to enable supporting both nested and flat JSON.
+	// This is achieved by generating code using static analysis of these structs.
+	// The logic parses JSON tag of each struct field to produce a code which, at runtime,
+	// checks the nested map to retrieve the required value for each field.
+
+	EcsLogServiceFields
+	EcsLogLogFields
+	EcsLogErrorFields
+	EcsLogProcessFields
+}
+
+// EcsLogProcessFields holds process.* fields for supporting ECS logging format and enables
+// parsing them in flat as well as nested notation.
+type EcsLogProcessFields struct {
+	NestedStruct map[string]interface{} `json:"process" nested:"true"`
+	// ProcessThreadName represents the name of the thread.
+	ProcessThreadName nullable.String `json:"process.thread.name" validate:"maxLength=1024"`
+}
+
+// EcsLogErrorFields holds error.* fields for supporting ECS logging format and enables
+// parsing them in flat as well as nested notation.
+type EcsLogErrorFields struct {
+	NestedStruct map[string]interface{} `json:"error" nested:"true"`
+	// ErrorType represents the type of the error if the log line represents an error.
+	ErrorType nullable.String `json:"error.type"`
+	// ErrorMessage represents the message contained in the error if the log line
+	// represents an error.
+	ErrorMessage nullable.String `json:"error.message"`
+	// ErrorStacktrace represents the plain text stacktrace of the error the log line
+	// represents.
+	ErrorStacktrace nullable.String `json:"error.stack_trace"`
+}
+
+// EcsLogLogFields holds log.* fields for supporting ECS logging format and enables
+// parsing them in flat as well as nested notation.
+type EcsLogLogFields struct {
+	NestedStruct map[string]interface{} `json:"log" nested:"true"`
+	// Level represents the severity of the recorded log.
+	Level nullable.String `json:"log.level" validate:"maxLength=1024"`
+	// Logger represents the name of the used logger instance.
+	Logger nullable.String `json:"log.logger" validate:"maxLength=1024"`
+	// OriginFileName represents the filename containing the sourcecode where the log
+	// originated.
+	OriginFileName nullable.String `json:"log.origin.file.name" validate:"maxLength=1024"`
+	// OriginFileLine represents the line number in the file containing the sourcecode
+	// where the log originated.
+	OriginFileLine nullable.Int `json:"log.origin.file.line"`
+	// OriginFunction represents the function name where the log originated.
+	OriginFunction nullable.String `json:"log.origin.function"`
+}
+
+// EcsLogServiceFields holds service.* fields for supporting ECS logging format and
+// enables parsing them in flat as well as nested notation.
+type EcsLogServiceFields struct {
+	NestedStruct map[string]interface{} `json:"service" nested:"true"`
+	// ServiceName represents name of the service which originated the log line.
+	ServiceName nullable.String `json:"service.name" validate:"maxLength=1024"`
+	// ServiceVersion represents the version of the service which originated the log
+	// line.
+	ServiceVersion nullable.String `json:"service.version" validate:"maxLength=1024"`
+	// ServiceEnvironment represents the environment the service which originated the
+	// log line is running in.
+	ServiceEnvironment nullable.String `json:"service.environment" validate:"maxLength=1024"`
+	// ServiceNodeName represents a unique node name per host for the service which
+	// originated the log line.
+	ServiceNodeName nullable.String `json:"service.node.name" validate:"maxLength=1024"`
 }
 
 type otel struct {
