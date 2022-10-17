@@ -48,6 +48,11 @@ func TestIntakeLog(t *testing.T) {
 			ExpectedMinDocs: 1,
 		},
 		{
+			Name:            "with_timestamp_as_str",
+			Message:         "test log message with string timestamp",
+			ExpectedMinDocs: 1,
+		},
+		{
 			Name:            "with_faas",
 			Message:         "test log message with faas",
 			ExpectedMinDocs: 1,
