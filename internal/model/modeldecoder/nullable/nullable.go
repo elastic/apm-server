@@ -27,10 +27,6 @@ import (
 	jsoniter "github.com/json-iterator/go"
 )
 
-const (
-	dateTimeWithZ = "2006-01-02T15:04:05.999-0700"
-)
-
 func init() {
 	jsoniter.RegisterTypeDecoderFunc("nullable.String", func(ptr unsafe.Pointer, iter *jsoniter.Iterator) {
 		switch iter.WhatIsNext() {
@@ -90,7 +86,7 @@ func init() {
 			(*((*TimeMicrosUnix)(ptr))).isSet = true
 		case jsoniter.StringValue:
 			tstr := iter.ReadString()
-			t, err := time.Parse(dateTimeWithZ, tstr)
+			t, err := time.Parse("2006-01-02T15:04:05.999-0700", tstr)
 			if err != nil {
 				iter.Error = errors.New("invalid input format for timestamp received")
 				return
