@@ -165,7 +165,7 @@ policy_templates:
             default: "3GB"
           - name: service_metrics_enabled
             type: bool
-            default: false
+            default: true
         template_path: template.yml.hbs
 owner:
   github: elastic/apm-server
