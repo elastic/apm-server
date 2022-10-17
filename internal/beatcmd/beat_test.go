@@ -20,19 +20,24 @@ package beatcmd
 import (
 	"context"
 	"fmt"
+	"os"
 	"strconv"
 	"testing"
 	"time"
 
+	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/elastic/beats/v7/libbeat/beat"
+	"github.com/elastic/apm-server/internal/version"
 	"github.com/elastic/beats/v7/libbeat/common/reload"
+	"github.com/elastic/beats/v7/libbeat/feature"
+	"github.com/elastic/beats/v7/libbeat/management"
 	"github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/monitoring"
+	"github.com/elastic/elastic-agent-libs/paths"
 )
 
 // TestRunMaxProcs ensures Beat.Run calls the GOMAXPROCS adjustment code by looking for log messages.
@@ -40,18 +45,13 @@ func TestRunMaxProcs(t *testing.T) {
 	for _, n := range []int{1, 2, 4} {
 		t.Run(fmt.Sprintf("%d_GOMAXPROCS", n), func(t *testing.T) {
 			t.Setenv("GOMAXPROCS", strconv.Itoa(n))
-			beat, _ := newNopBeat(t, "output.console.enabled: true")
+			beat := newNopBeat(t, "output.console.enabled: true")
 
 			// Capture logs for testing.
 			logp.DevelopmentSetup(logp.ToObserverOutput())
 			logs := logp.ObserverLogs()
 
-			ctx, cancel := context.WithCancel(context.Background())
-			defer cancel()
-			g, ctx := errgroup.WithContext(ctx)
-			defer g.Wait()
-			g.Go(func() error { return beat.Run(ctx) })
-
+			stop := runBeat(t, beat)
 			timeout := time.NewTimer(10 * time.Second)
 			defer timeout.Stop()
 			for {
@@ -73,23 +73,155 @@ func TestRunMaxProcs(t *testing.T) {
 				}
 			}
 
-			cancel()
-			assert.NoError(t, g.Wait())
+			assert.NoError(t, stop())
 		})
 	}
 }
 
-func newNopBeat(t testing.TB, configYAML string) (*Beat, *nopBeater) {
+func TestRunnerParams(t *testing.T) {
+	calls := make(chan RunnerParams, 1)
+	b := newBeat(t, "output.console.enabled: true", func(args RunnerParams) (Runner, error) {
+		calls <- args
+		return newNopRunner(args), nil
+	})
+	stop := runBeat(t, b)
+	args := expectRunnerParams(t, calls)
+	assert.NoError(t, stop())
+
+	assert.Equal(t, "apm-server", args.Info.Beat)
+	assert.Equal(t, version.Version, args.Info.Version)
+	assert.True(t, args.Info.ElasticLicensed)
+	assert.NotZero(t, args.Info.ID)
+	assert.NotZero(t, args.Info.EphemeralID)
+	assert.NotZero(t, args.Info.FirstStart)
+	assert.NotZero(t, args.Info.StartTime)
+	hostname, _ := os.Hostname()
+	assert.Equal(t, hostname, args.Info.Hostname)
+
+	assert.NotNil(t, args.Logger)
+
+	var m map[string]interface{}
+	require.NotNil(t, args.Config)
+	err := args.Config.Unpack(&m)
+	require.NoError(t, err)
+	assert.Equal(t, map[string]interface{}{
+		"output": map[string]interface{}{
+			"console": map[string]interface{}{
+				"enabled": true,
+			},
+		},
+		"path": map[string]interface{}{
+			"config": paths.Paths.Config,
+			"logs":   paths.Paths.Logs,
+			"data":   paths.Paths.Data,
+			"home":   paths.Paths.Home,
+		},
+	}, m)
+}
+
+func TestUnmanagedOutputRequired(t *testing.T) {
+	b := newBeat(t, "", func(args RunnerParams) (Runner, error) {
+		panic("unreachable")
+	})
+	err := b.Run(context.Background())
+	assert.EqualError(t, err, "no output defined, please define one under the output section")
+}
+
+func TestRunManager(t *testing.T) {
+	oldRegistry := reload.Register
+	defer func() { reload.Register = oldRegistry }()
+	reload.Register = reload.NewRegistry()
+
+	// Register our own mock management implementation.
+	manager := newMockManager()
+	featureRegistry := feature.GlobalRegistry()
+	managementFeature := feature.New(
+		management.Namespace, "testing", management.PluginFunc(func(cfg *config.C) management.FactoryFunc {
+			return func(cfg *config.C, registry *reload.Registry, uuid uuid.UUID) (management.Manager, error) {
+				return manager, nil
+			}
+		}),
+		feature.MakeDetails("testing", "", feature.Experimental),
+	)
+	featureRegistry.Register(managementFeature)
+	defer featureRegistry.Unregister(management.Namespace, "testing")
+
+	calls := make(chan RunnerParams, 1)
+	b := newBeat(t, "management.enabled: true", func(args RunnerParams) (Runner, error) {
+		calls <- args
+		return newNopRunner(args), nil
+	})
+
+	var g errgroup.Group
+	g.Go(func() error { return b.Run(context.Background()) })
+	expectNoRunnerParams(t, calls)
+
+	// Mimic Elastic Agent management by waiting for the manager to be started,
+	// then reloading configuration, and performing a remote shutdown by calling
+	// the stop callback registered with the manager.
+	expectEvent(t, manager.started, "manager should have been started")
+	expectNoEvent(t, manager.stopped, "manager should not have been stopped")
+
+	err := reload.Register.GetReloadableList("inputs").Reload([]*reload.ConfigWithMeta{{
+		Config: config.MustNewConfigFrom(`{"apm-server.host": "localhost:1234"}`),
+	}})
+	assert.NoError(t, err)
+	err = reload.Register.GetReloadable("output").Reload(&reload.ConfigWithMeta{
+		Config: config.MustNewConfigFrom(`{"console.enabled": true}`),
+	})
+	assert.NoError(t, err)
+
+	args := expectRunnerParams(t, calls)
+	var m map[string]interface{}
+	err = args.Config.Unpack(&m)
+	assert.NoError(t, err)
+	assert.Equal(t, map[string]interface{}{
+		"apm-server": map[string]interface{}{
+			"host": "localhost:1234",
+		},
+		"output": map[string]interface{}{
+			"console": map[string]interface{}{
+				"enabled": true,
+			},
+		},
+	}, m)
+
+	require.NotNil(t, manager.stopCallback)
+	manager.stopCallback()
+	assert.NoError(t, g.Wait())
+	expectEvent(t, manager.stopped, "manager should have been stopped")
+}
+
+func runBeat(t testing.TB, beat *Beat) (stop func() error) {
+	ctx, cancel := context.WithCancel(context.Background())
+	g, ctx := errgroup.WithContext(ctx)
+	t.Cleanup(func() { assert.NoError(t, g.Wait()) })
+	t.Cleanup(cancel)
+	g.Go(func() error { return beat.Run(ctx) })
+	return func() error {
+		cancel()
+		return g.Wait()
+	}
+}
+
+func newNopBeat(t testing.TB, configYAML string) *Beat {
+	return newBeat(t, configYAML, func(RunnerParams) (Runner, error) {
+		return runnerFunc(func(ctx context.Context) error {
+			<-ctx.Done()
+			return ctx.Err()
+		}), nil
+	})
+}
+
+func newBeat(t testing.TB, configYAML string, newRunner NewRunnerFunc) *Beat {
 	resetGlobals()
 	initCfgfile(t, configYAML)
-	nopBeater := newNopBeater()
 	beat, err := NewBeat(BeatParams{
-		Create: func(b *beat.Beat, cfg *config.C) (beat.Beater, error) {
-			return nopBeater, nil
-		},
+		NewRunner:       newRunner,
+		ElasticLicensed: true,
 	})
 	require.NoError(t, err)
-	return beat, nopBeater
+	return beat
 }
 
 func resetGlobals() {
@@ -107,24 +239,65 @@ func resetGlobals() {
 	reload.Register = reload.NewRegistry()
 }
 
-type nopBeater struct {
-	running chan struct{}
-	done    chan struct{}
+type runnerFunc func(ctx context.Context) error
+
+func (f runnerFunc) Run(ctx context.Context) error {
+	return f(ctx)
 }
 
-func newNopBeater() *nopBeater {
-	return &nopBeater{
-		running: make(chan struct{}),
-		done:    make(chan struct{}),
+func newNopRunner(RunnerParams) Runner {
+	return runnerFunc(func(ctx context.Context) error {
+		return nil
+	})
+}
+
+func expectRunnerParams(t testing.TB, ch <-chan RunnerParams) RunnerParams {
+	select {
+	case args := <-ch:
+		return args
+	case <-time.After(10 * time.Second):
+		t.Fatal("timed out waiting for NewRunnerFunc call")
+	}
+	panic("unreachable")
+}
+
+func expectNoRunnerParams(t testing.TB, ch <-chan RunnerParams) {
+	select {
+	case <-ch:
+		t.Fatal("unexpected NewRunnerFunc call")
+	case <-time.After(50 * time.Millisecond):
 	}
 }
 
-func (b *nopBeater) Run(*beat.Beat) error {
-	close(b.running)
-	<-b.done
+type mockManager struct {
+	management.Manager // embed nil value to panic on unimplemented methods
+	enabled            bool
+	started            chan struct{}
+	stopped            chan struct{}
+	stopCallback       func()
+}
+
+func newMockManager() *mockManager {
+	return &mockManager{
+		enabled: true,
+		started: make(chan struct{}),
+		stopped: make(chan struct{}),
+	}
+}
+
+func (m *mockManager) Enabled() bool {
+	return m.enabled
+}
+
+func (m *mockManager) Start() error {
+	close(m.started)
 	return nil
 }
 
-func (b *nopBeater) Stop() {
-	close(b.done)
+func (m *mockManager) Stop() {
+	close(m.stopped)
+}
+
+func (m *mockManager) SetStopCallback(f func()) {
+	m.stopCallback = f
 }

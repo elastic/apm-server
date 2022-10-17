@@ -237,6 +237,10 @@ func DecodeNestedLog(d decoder.Decoder, input *modeldecoder.Input, batch *model.
 	if err = d.Decode(root); err != nil && err != io.EOF {
 		return modeldecoder.NewDecoderErrFromJSONIter(err)
 	}
+	// Flatten any nested source to set the values for the flat fields
+	if err := root.processNestedSource(); err != nil {
+		return err
+	}
 	if err := root.validate(); err != nil {
 		return modeldecoder.NewValidationErr(err)
 	}
@@ -1323,8 +1327,66 @@ func mapToLogModel(from *log, event *model.APMEvent) {
 	if !from.Timestamp.Val.IsZero() {
 		event.Timestamp = from.Timestamp.Val
 	}
+	if from.TraceID.IsSet() {
+		event.Trace.ID = from.TraceID.Val
+	}
+	if from.TransactionID.IsSet() {
+		event.Transaction = &model.Transaction{
+			ID: from.TransactionID.Val,
+		}
+	}
+	if from.SpanID.IsSet() {
+		event.Span = &model.Span{
+			ID: from.SpanID.Val,
+		}
+	}
 	if from.Message.IsSet() {
 		event.Message = from.Message.Val
+	}
+	if from.Level.IsSet() {
+		event.Log.Level = from.Level.Val
+	}
+	if from.Logger.IsSet() {
+		event.Log.Logger = from.Logger.Val
+	}
+	if from.OriginFunction.IsSet() {
+		event.Log.Origin.FunctionName = from.OriginFunction.Val
+	}
+	if from.OriginFileLine.IsSet() {
+		event.Log.Origin.File.Line = from.OriginFileLine.Val
+	}
+	if from.OriginFileName.IsSet() {
+		event.Log.Origin.File.Name = from.OriginFileName.Val
+	}
+	if from.ErrorType.IsSet() ||
+		from.ErrorMessage.IsSet() ||
+		from.ErrorStacktrace.IsSet() {
+		event.Error = &model.Error{
+			Message:    from.ErrorMessage.Val,
+			Type:       from.ErrorType.Val,
+			StackTrace: from.ErrorStacktrace.Val,
+		}
+	}
+	if from.ServiceName.IsSet() {
+		event.Service.Name = from.ServiceName.Val
+	}
+	if from.ServiceVersion.IsSet() {
+		event.Service.Version = from.ServiceVersion.Val
+	}
+	if from.ServiceEnvironment.IsSet() {
+		event.Service.Environment = from.ServiceEnvironment.Val
+	}
+	if from.ServiceNodeName.IsSet() {
+		event.Service.Node.Name = from.ServiceNodeName.Val
+	}
+	if from.ProcessThreadName.IsSet() {
+		event.Process.Thread.Name = from.ProcessThreadName.Val
+	}
+	if from.Dataset.IsSet() {
+		event.Event.Dataset = from.Dataset.Val
+	}
+	if len(from.Labels) > 0 {
+		modeldecoderutil.MergeLabels(from.Labels, event)
 	}
 }
 
