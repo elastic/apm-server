@@ -337,7 +337,7 @@ func (b *Beat) Run(ctx context.Context) error {
 	}
 
 	g.Go(func() error {
-		return adjustMaxProcs(ctx, 30*time.Second, diffInfof(logger), logger.Errorf)
+		return adjustMaxProcs(ctx, 30*time.Second, logger)
 	})
 
 	logSystemInfo(b.Info)
