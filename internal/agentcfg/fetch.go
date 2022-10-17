@@ -21,7 +21,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -30,30 +29,21 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/elastic/elastic-agent-libs/logp"
-	"github.com/elastic/elastic-agent-libs/version"
 
 	"github.com/elastic/apm-server/internal/kibana"
 )
 
 // Error Messages used to signal fetching errors
 const (
-	ErrMsgKibanaDisabled             = "disabled Kibana configuration"
-	ErrMsgKibanaVersionNotCompatible = "not a compatible Kibana version"
-	ErrMsgNoKibanaConnection         = "unable to retrieve connection to Kibana"
-	ErrMsgReadKibanaResponse         = "unable to read Kibana response body"
-	ErrMsgSendToKibanaFailed         = "sending request to kibana failed"
-	ErrUnauthorized                  = "Unauthorized"
-	TransactionSamplingRateKey       = "transaction_sample_rate"
+	ErrMsgReadKibanaResponse = "unable to read Kibana response body"
+	ErrMsgSendToKibanaFailed = "sending request to kibana failed"
+	ErrUnauthorized          = "Unauthorized"
 )
 
-var (
-	errMsgKibanaDisabled     = errors.New(ErrMsgKibanaDisabled)
-	errMsgNoKibanaConnection = errors.New(ErrMsgNoKibanaConnection)
-)
-
-// KibanaMinVersion specifies the minimal required version of Kibana
-// that supports agent configuration management
-var KibanaMinVersion = version.MustNew("7.5.0")
+// TransactionSamplingRateKey is the agent configuration key for the
+// sampling rate. This is used by the Jaeger handler to adapt our agent
+// configuration to the Jaeger remote sampler protocol.
+const TransactionSamplingRateKey = "transaction_sample_rate"
 
 const endpoint = "/api/apm/settings/agent-configuration/search"
 
@@ -67,11 +57,16 @@ type Fetcher interface {
 type KibanaFetcher struct {
 	*cache
 	logger *logp.Logger
-	client kibana.Client
+	client *kibana.Client
 }
 
 // NewKibanaFetcher returns a KibanaFetcher instance.
-func NewKibanaFetcher(client kibana.Client, cacheExpiration time.Duration) *KibanaFetcher {
+//
+// NewKibanaFetcher will panic if passed a nil client.
+func NewKibanaFetcher(client *kibana.Client, cacheExpiration time.Duration) *KibanaFetcher {
+	if client == nil {
+		panic("client is required")
+	}
 	logger := logp.NewLogger("agentcfg")
 	return &KibanaFetcher{
 		client: client,
@@ -80,59 +75,8 @@ func NewKibanaFetcher(client kibana.Client, cacheExpiration time.Duration) *Kiba
 	}
 }
 
-// ValidationError encapsulates a validation error from the KibanaFetcher.
-// ValidationError implements the error interface.
-type ValidationError struct {
-	keyword, body string
-	err           error
-}
-
-// Keyword returns the keyword for the ValidationError.
-func (v *ValidationError) Keyword() string { return v.keyword }
-
-// Body returns the body for the ValidationError.
-func (v *ValidationError) Body() string { return v.body }
-
-// Error implements the error interface.
-func (v *ValidationError) Error() string { return v.err.Error() }
-
-// Validate validates the currently configured KibanaFetcher.
-func (f *KibanaFetcher) validate(ctx context.Context) *ValidationError {
-	if f.client == nil {
-		return &ValidationError{
-			keyword: ErrMsgKibanaDisabled,
-			body:    ErrMsgKibanaDisabled,
-			err:     errMsgKibanaDisabled,
-		}
-	}
-	if supported, err := f.client.SupportsVersion(ctx, KibanaMinVersion, true); !supported {
-		if err != nil {
-			return &ValidationError{
-				keyword: ErrMsgNoKibanaConnection,
-				body:    ErrMsgNoKibanaConnection,
-				err:     errMsgNoKibanaConnection,
-			}
-		}
-
-		version, _ := f.client.GetVersion(ctx)
-		errMsg := fmt.Sprintf(
-			"%s: min version %+v, configured version %+v",
-			ErrMsgKibanaVersionNotCompatible, KibanaMinVersion, version.String(),
-		)
-		return &ValidationError{
-			keyword: ErrMsgKibanaVersionNotCompatible,
-			body:    errMsg,
-			err:     errors.New(errMsg),
-		}
-	}
-	return nil
-}
-
 // Fetch retrieves agent configuration, fetched from Kibana or a local temporary cache.
 func (f *KibanaFetcher) Fetch(ctx context.Context, query Query) (Result, error) {
-	if err := f.validate(ctx); err != nil {
-		return zeroResult(), err
-	}
 	req := func() (Result, error) {
 		var buf bytes.Buffer
 		if err := json.NewEncoder(&buf).Encode(query); err != nil {

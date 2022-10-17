@@ -39,7 +39,7 @@ import (
 // and/or Elasticsearch, returning nil if and only if it is installed.
 func checkIntegrationInstalled(
 	ctx context.Context,
-	kibanaClient kibana.Client,
+	kibanaClient *kibana.Client,
 	esClient elasticsearch.Client,
 	logger *logp.Logger,
 ) (err error) {
@@ -83,7 +83,7 @@ func checkIntegrationInstalled(
 
 // checkIntegrationInstalledKibana checks if the APM integration package
 // is installed by querying Kibana.
-func checkIntegrationInstalledKibana(ctx context.Context, kibanaClient kibana.Client, logger *logp.Logger) (bool, error) {
+func checkIntegrationInstalledKibana(ctx context.Context, kibanaClient *kibana.Client, logger *logp.Logger) (bool, error) {
 	resp, err := kibanaClient.Send(ctx, "GET", "/api/fleet/epm/packages/apm", nil, nil, nil)
 	if err != nil {
 		return false, err

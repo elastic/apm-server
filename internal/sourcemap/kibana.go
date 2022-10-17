@@ -35,7 +35,7 @@ import (
 const sourcemapArtifactType = "sourcemap"
 
 type kibanaFetcher struct {
-	client kibana.Client
+	client *kibana.Client
 	logger *logp.Logger
 }
 
@@ -50,7 +50,7 @@ type kibanaSourceMapArtifact struct {
 }
 
 // NewKibanaFetcher returns a Fetcher that fetches source maps stored by Kibana.
-func NewKibanaFetcher(c kibana.Client) Fetcher {
+func NewKibanaFetcher(c *kibana.Client) Fetcher {
 	logger := logp.NewLogger(logs.Sourcemap)
 	return &kibanaFetcher{c, logger}
 }

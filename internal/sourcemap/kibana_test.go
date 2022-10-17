@@ -24,7 +24,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -136,27 +135,14 @@ func TestKibanaFetcherServerError(t *testing.T) {
 }
 
 func newTestKibanaFetcher(t testing.TB, h http.HandlerFunc) Fetcher {
-	connected := make(chan struct{}, 1)
 	mux := http.NewServeMux()
-	mux.HandleFunc("/api/status", func(w http.ResponseWriter, r *http.Request) {
-		select {
-		case connected <- struct{}{}:
-		default:
-		}
-		fmt.Fprintf(w, `{"version":{"number":"8.0.0"}}`)
-	})
 	mux.HandleFunc("/api/apm/sourcemaps", h)
 	srv := httptest.NewServer(mux)
 	t.Cleanup(srv.Close)
 
-	// Wait for client to connect.
-	kibanaClient := kibana.NewConnectingClient(libkibana.ClientConfig{
+	kibanaClient, err := kibana.NewClient(libkibana.ClientConfig{
 		Host: srv.Listener.Addr().String(),
 	})
-	select {
-	case <-connected:
-	case <-time.After(10 * time.Second):
-		t.Fatal("timed out waiting for kibana client to connect")
-	}
+	require.NoError(t, err)
 	return NewKibanaFetcher(kibanaClient)
 }

@@ -21,8 +21,6 @@ import (
 	"bytes"
 	"fmt"
 	"runtime"
-	"runtime/debug"
-	"time"
 
 	"github.com/spf13/cobra"
 
@@ -30,35 +28,14 @@ import (
 	"github.com/elastic/beats/v7/libbeat/common/cli"
 )
 
-var (
-	vcsRevision string
-	vcsTime     time.Time
-	vcsModified bool
-)
-
-func init() {
-	if info, ok := debug.ReadBuildInfo(); ok {
-		for _, setting := range info.Settings {
-			switch setting.Key {
-			case "vcs.time":
-				vcsTime, _ = time.Parse(time.RFC3339, setting.Value)
-			case "vcs.modified":
-				vcsModified = setting.Value == "true"
-			case "vcs.revision":
-				vcsRevision = setting.Value
-			}
-		}
-	}
-}
-
 var versionCommand = &cobra.Command{
 	Use:   "version",
 	Short: "Show current version info",
 	Run: cli.RunWith(func(cmd *cobra.Command, args []string) error {
 		// TODO(axw) stop passing the commit & timestamp into go build
 		var buf bytes.Buffer
-		fmt.Fprintf(&buf, "%s %s", vcsRevision, vcsTime)
-		if vcsModified {
+		fmt.Fprintf(&buf, "%s %s", version.CommitHash(), version.CommitTime())
+		if version.VCSModified() {
 			buf.WriteString(" (modified)")
 		}
 
