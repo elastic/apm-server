@@ -36,10 +36,36 @@ func TestLogTransform(t *testing.T) {
 		},
 		{
 			Log: Log{
-				Level: "warn",
+				Level:  "warn",
+				Logger: "bootstrap",
 			},
 			Output: mapstr.M{
-				"level": "warn",
+				"level":  "warn",
+				"logger": "bootstrap",
+			},
+		},
+		{
+			Log: Log{
+				Level:  "warn",
+				Logger: "bootstrap",
+				Origin: LogOrigin{
+					File: LogOriginFile{
+						Name: "testFile",
+						Line: 12,
+					},
+					FunctionName: "testFunc",
+				},
+			},
+			Output: mapstr.M{
+				"level":  "warn",
+				"logger": "bootstrap",
+				"origin": mapstr.M{
+					"function": "testFunc",
+					"file": mapstr.M{
+						"name": "testFile",
+						"line": 12,
+					},
+				},
 			},
 		},
 	}
