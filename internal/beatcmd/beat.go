@@ -32,6 +32,7 @@ import (
 
 	"github.com/gofrs/uuid"
 	"go.uber.org/zap"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/beats/v7/libbeat/api"
 	"github.com/elastic/beats/v7/libbeat/beat"
@@ -50,7 +51,7 @@ import (
 	"github.com/elastic/elastic-agent-libs/monitoring"
 	"github.com/elastic/elastic-agent-libs/monitoring/report/buffer"
 	"github.com/elastic/elastic-agent-libs/paths"
-	svc "github.com/elastic/elastic-agent-libs/service"
+	"github.com/elastic/elastic-agent-libs/service"
 	libversion "github.com/elastic/elastic-agent-libs/version"
 	"github.com/elastic/elastic-agent-system-metrics/metric/system/host"
 	metricreport "github.com/elastic/elastic-agent-system-metrics/report"
@@ -71,13 +72,17 @@ type Beat struct {
 	Config *Config
 
 	rawConfig *config.C
-	create    beat.Creator
+	newRunner NewRunnerFunc
 }
 
 // BeatParams holds parameters for NewBeat.
 type BeatParams struct {
-	// Create holds a beat.Creator for creating an instance of beat.Beater.
-	Create beat.Creator
+	// NewRunner holds a NewRunnerFunc for creating a Runner.
+	//
+	// If (Fleet) management is enabled, NewRunner may be called multiple
+	// times, whenever configuration is reloaded. Otherwise, NewRunner will
+	// be called once with the initial, static, configuration.
+	NewRunner NewRunnerFunc
 
 	// ElasticLicensed indicates whether this build of APM Server
 	// is licensed with the Elastic License v2.
@@ -113,7 +118,7 @@ func NewBeat(args BeatParams) (*Beat, error) {
 			BeatConfig: cfg.APMServer,
 		},
 		Config:    cfg,
-		create:    args.Create,
+		newRunner: args.NewRunner,
 		rawConfig: rawConfig,
 	}
 
@@ -240,37 +245,6 @@ func openRegular(filename string) (*os.File, error) {
 	return f, nil
 }
 
-// create and return the beater, this method also initializes all needed items,
-// including template registering, publisher, xpack monitoring
-func (b *Beat) createBeater(beatCreator beat.Creator) (beat.Beater, error) {
-	logSystemInfo(b.Info)
-
-	cleanup, err := b.registerElasticsearchVersionCheck()
-	if err != nil {
-		return nil, err
-	}
-	defer cleanup()
-
-	cleanup, err = b.registerClusterUUIDFetching()
-	if err != nil {
-		return nil, err
-	}
-	defer cleanup()
-
-	if err := metricreport.SetupMetrics(logp.NewLogger("metrics"), b.Info.Beat, b.Info.Version); err != nil {
-		return nil, err
-	}
-
-	if !b.Config.Output.IsSet() || !b.Config.Output.Config().Enabled() {
-		if !b.Manager.Enabled() {
-			return nil, errors.New("no outputs are defined, please define one under the output section")
-		}
-		logp.Info("output is configured through central management")
-	}
-
-	return beatCreator(&b.Beat, b.Config.APMServer)
-}
-
 func (b *Beat) Run(ctx context.Context) error {
 	defer logp.Sync()
 	defer func() {
@@ -283,14 +257,25 @@ func (b *Beat) Run(ctx context.Context) error {
 	}()
 	defer logp.Info("%s stopped.", b.Info.Beat)
 
+	logger := logp.NewLogger("")
+	if runtime.GOARCH == "386" {
+		logger.Warn("" +
+			"deprecation notice: support for 32-bit system target " +
+			"architecture will be removed in an upcoming version",
+		)
+	}
+
 	ctx, cancel := context.WithCancel(ctx)
+	service.HandleSignals(cancel, cancel)
+	g, ctx := errgroup.WithContext(ctx)
+	defer g.Wait() // ensure all goroutines exit before Run returns
 	defer cancel()
 
 	// Windows: Mark service as stopped.
 	// After this is run, a Beat service is considered by the OS to be stopped
 	// and another instance of the process can be started.
 	// This must be the first deferred cleanup task (last to execute).
-	defer svc.NotifyTermination()
+	defer service.NotifyTermination()
 
 	// Try to acquire exclusive lock on data path to prevent another beat instance
 	// sharing same data path.
@@ -300,8 +285,8 @@ func (b *Beat) Run(ctx context.Context) error {
 	}
 	defer locker.unlock()
 
-	svc.BeforeRun()
-	defer svc.Cleanup()
+	service.BeforeRun()
+	defer service.Cleanup()
 
 	b.registerMetrics()
 
@@ -351,28 +336,59 @@ func (b *Beat) Run(ctx context.Context) error {
 		}
 	}
 
-	logger := logp.NewLogger("")
-	done := make(chan struct{})
-	go func() {
-		defer close(done)
-		adjustMaxProcs(ctx, 30*time.Second, diffInfof(logger), logger.Errorf)
-	}()
-	defer func() { <-done }()
+	g.Go(func() error {
+		return adjustMaxProcs(ctx, 30*time.Second, diffInfof(logger), logger.Errorf)
+	})
 
-	beater, err := b.createBeater(b.create)
+	logSystemInfo(b.Info)
+
+	cleanup, err := b.registerElasticsearchVersionCheck()
 	if err != nil {
 		return err
 	}
+	defer cleanup()
 
-	go func() {
-		<-ctx.Done()
-		beater.Stop()
-	}()
-	svc.HandleSignals(cancel, cancel)
+	cleanup, err = b.registerClusterUUIDFetching()
+	if err != nil {
+		return err
+	}
+	defer cleanup()
 
+	if err := metricreport.SetupMetrics(logp.NewLogger("metrics"), b.Info.Beat, b.Info.Version); err != nil {
+		return err
+	}
+
+	if b.Manager.Enabled() {
+		reloader, err := NewReloader(b.Info, b.newRunner)
+		if err != nil {
+			return err
+		}
+		g.Go(func() error { return reloader.Run(ctx) })
+
+		b.Manager.SetStopCallback(cancel)
+		if err := b.Manager.Start(); err != nil {
+			return fmt.Errorf("failed to start manager: %w", err)
+		}
+		defer b.Manager.Stop()
+	} else {
+		if !b.Config.Output.IsSet() {
+			return errors.New("no output defined, please define one under the output section")
+		}
+		runner, err := b.newRunner(RunnerParams{
+			Config: b.rawConfig,
+			Info:   b.Info,
+			Logger: logp.NewLogger(""),
+		})
+		if err != nil {
+			return err
+		}
+		g.Go(func() error { return runner.Run(ctx) })
+	}
 	logp.Info("%s started.", b.Info.Beat)
-	b.Manager.SetStopCallback(cancel)
-	return beater.Run(&b.Beat)
+	if err := g.Wait(); err != nil && !errors.Is(err, context.Canceled) {
+		return err
+	}
+	return nil
 }
 
 // registerMetrics registers metrics with the internal monitoring API. This data

@@ -46,7 +46,19 @@ import (
 )
 
 // WrapServerFunc is a function for injecting behaviour into ServerParams
-// and RunServerFunc. See CreatorParams.WrapServer.
+// and RunServerFunc.
+//
+// WrapServerFunc may modify ServerParams, for example by wrapping the
+// BatchProcessor with additional processors. Similarly, WrapServerFunc
+// may wrap the RunServerFunc to run additional goroutines along with the
+// server.
+//
+// WrapServerFunc may keep a reference to the provided ServerParams's
+// BatchProcessor for asynchronous event publication, such as for
+// aggregated metrics. All other events (i.e. those decoded from
+// agent payloads) should be sent to the BatchProcessor in the
+// ServerParams provided to RunServerFunc; this BatchProcessor will
+// have rate-limiting, authorization, and data preprocessing applied.
 type WrapServerFunc func(ServerParams, RunServerFunc) (ServerParams, RunServerFunc, error)
 
 // RunServerFunc is a function which runs the APM Server until a

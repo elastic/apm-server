@@ -61,8 +61,7 @@
                 }
             },
             "labels": {
-                "tag1": "one",
-                "wrapped_reporter": "true"
+                "tag1": "one"
             },
             "numeric_labels": {
                 "tag2": 2
@@ -70,7 +69,7 @@
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
-                "type": "test-apm-server",
+                "type": "apm-server",
                 "version": "1.2.3"
             },
             "parent": {
@@ -254,8 +253,7 @@
             "labels": {
                 "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8",
                 "tag1": "one",
-                "tag4": "false",
-                "wrapped_reporter": "true"
+                "tag4": "false"
             },
             "numeric_labels": {
                 "tag2": 12,
@@ -264,7 +262,7 @@
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
-                "type": "test-apm-server",
+                "type": "apm-server",
                 "version": "1.2.3"
             },
             "process": {
@@ -418,8 +416,7 @@
                 }
             },
             "labels": {
-                "tag1": "one",
-                "wrapped_reporter": "true"
+                "tag1": "one"
             },
             "numeric_labels": {
                 "tag2": 2
@@ -427,7 +424,7 @@
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
-                "type": "test-apm-server",
+                "type": "apm-server",
                 "version": "1.2.3"
             },
             "process": {
@@ -567,8 +564,7 @@
                 }
             },
             "labels": {
-                "tag1": "one",
-                "wrapped_reporter": "true"
+                "tag1": "one"
             },
             "numeric_labels": {
                 "tag2": 2
@@ -576,7 +572,7 @@
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
-                "type": "test-apm-server",
+                "type": "apm-server",
                 "version": "1.2.3"
             },
             "parent": {
@@ -736,8 +732,7 @@
                 }
             },
             "labels": {
-                "tag1": "one",
-                "wrapped_reporter": "true"
+                "tag1": "one"
             },
             "numeric_labels": {
                 "tag2": 2
@@ -745,7 +740,7 @@
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
-                "type": "test-apm-server",
+                "type": "apm-server",
                 "version": "1.2.3"
             },
             "process": {
