@@ -189,8 +189,8 @@ func (s *Runner) Run(ctx context.Context) error {
 		kibanaClient = kibana.NewConnectingClient(s.config.Kibana.ClientConfig)
 	}
 
-	// ELASTIC_AGENT_CLOUD is set when runningi n Elastic Cloud.
-	isElasticCloud := os.Getenv("ELASTIC_AGENT_CLOUD") != ""
+	// ELASTIC_AGENT_CLOUD is set when running in Elastic Cloud.
+	inElasticCloud := os.Getenv("ELASTIC_AGENT_CLOUD") != ""
 	if isElasticCloud && s.config.Kibana.Enabled {
 		go func() {
 			if err := kibana.SendConfig(ctx, kibanaClient, (*ucfg.Config)(s.rawConfig)); err != nil {

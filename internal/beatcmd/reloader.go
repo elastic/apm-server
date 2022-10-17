@@ -78,7 +78,7 @@ func NewReloader(info beat.Info, newRunner NewRunnerFunc) (*Reloader, error) {
 type Reloader struct {
 	info      beat.Info
 	logger    *logp.Logger
-	newRunner func(RunnerParams) (Runner, error)
+	newRunner NewRunnerFunc
 
 	runner     Runner
 	stopRunner func() error
