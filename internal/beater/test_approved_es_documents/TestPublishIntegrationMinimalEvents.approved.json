@@ -25,7 +25,7 @@
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
-                "type": "test-apm-server",
+                "type": "apm-server",
                 "version": "1.2.3"
             },
             "processor": {
@@ -66,7 +66,7 @@
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
-                "type": "test-apm-server",
+                "type": "apm-server",
                 "version": "1.2.3"
             },
             "processor": {
@@ -106,7 +106,7 @@
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
-                "type": "test-apm-server",
+                "type": "apm-server",
                 "version": "1.2.3"
             },
             "processor": {
@@ -141,7 +141,7 @@
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
-                "type": "test-apm-server",
+                "type": "apm-server",
                 "version": "1.2.3"
             },
             "parent": {
@@ -187,7 +187,7 @@
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
-                "type": "test-apm-server",
+                "type": "apm-server",
                 "version": "1.2.3"
             },
             "parent": {
@@ -230,13 +230,10 @@
                     "127.0.0.1"
                 ]
             },
-            "labels": {
-                "wrapped_reporter": "true"
-            },
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
-                "type": "test-apm-server",
+                "type": "apm-server",
                 "version": "1.2.3"
             },
             "processor": {
@@ -283,7 +280,7 @@
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
-                "type": "test-apm-server",
+                "type": "apm-server",
                 "version": "1.2.3"
             },
             "processor": {

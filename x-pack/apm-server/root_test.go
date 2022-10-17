@@ -7,26 +7,26 @@ package main
 import (
 	"testing"
 
-	"github.com/elastic/apm-server/internal/beater"
+	"github.com/stretchr/testify/assert"
+
+	"github.com/elastic/apm-server/internal/beatcmd"
 )
 
 func TestSubCommands(t *testing.T) {
-	validCommands := map[string]struct{}{
-		"apikey":     {},
-		"completion": {},
-		"export":     {},
-		"keystore":   {},
-		"run":        {},
-		"setup":      {},
-		"test":       {},
-		"version":    {},
+	rootCmd := newXPackRootCommand(func(beatcmd.RunnerParams) (beatcmd.Runner, error) {
+		panic("unexpected call")
+	})
+	var commands []string
+	for _, cmd := range rootCmd.Commands() {
+		commands = append(commands, cmd.Name())
 	}
 
-	rootCmd := newXPackRootCommand(beater.NewCreator(beater.CreatorParams{}))
-	for _, cmd := range rootCmd.Commands() {
-		name := cmd.Name()
-		if _, ok := validCommands[name]; !ok {
-			t.Errorf("unexpected command: %s", name)
-		}
-	}
+	assert.ElementsMatch(t, []string{
+		"apikey",
+		"export",
+		"keystore",
+		"run",
+		"test",
+		"version",
+	}, commands)
 }
