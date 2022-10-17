@@ -157,6 +157,7 @@ func NewRunner(args RunnerParams) (*Runner, error) {
 // Run runs the server, blocking until ctx is cancelled.
 func (s *Runner) Run(ctx context.Context) error {
 	defer s.listener.Close()
+	g, ctx := errgroup.WithContext(ctx)
 
 	// backgroundContext is a context to use in operations that should
 	// block until shutdown, and will be cancelled after the shutdown
@@ -226,8 +227,6 @@ func (s *Runner) Run(ctx context.Context) error {
 		defer tracerServerListener.Close()
 	}
 	defer tracer.Close()
-
-	g, ctx := errgroup.WithContext(ctx)
 
 	// Ensure the libbeat output and go-elasticsearch clients do not index
 	// any events to Elasticsearch before the integration is ready.
