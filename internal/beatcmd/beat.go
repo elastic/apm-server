@@ -268,7 +268,7 @@ func (b *Beat) Run(ctx context.Context) error {
 	ctx, cancel := context.WithCancel(ctx)
 	service.HandleSignals(cancel, cancel)
 	g, ctx := errgroup.WithContext(ctx)
-	defer g.Wait()
+	defer g.Wait() // ensure all goroutines exit before Run returns
 	defer cancel()
 
 	// Windows: Mark service as stopped.
