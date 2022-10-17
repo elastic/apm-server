@@ -652,7 +652,8 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 				rpcService = stringval
 				foundSpanType = rpcSpan
 			case semconv.AttributeRPCGRPCStatusCode:
-				event.Transaction.Type = "request"
+				rpcSystem = "grpc"
+				foundSpanType = rpcSpan
 			case semconv.AttributeRPCMethod:
 
 			// miscellaneous
