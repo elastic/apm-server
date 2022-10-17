@@ -42,7 +42,7 @@ import (
 	loadgencfg "github.com/elastic/apm-server/systemtest/loadgen/config"
 )
 
-const waitInactiveTimeout = 30 * time.Second
+const waitInactiveTimeout = 60 * time.Second
 
 // BenchmarkFunc is the benchmark function type accepted by Run.
 type BenchmarkFunc func(*testing.B, *rate.Limiter)
