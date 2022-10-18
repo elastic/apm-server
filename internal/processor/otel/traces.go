@@ -386,6 +386,8 @@ func TranslateTransaction(
 			// Elastic APM agents.
 			case semconv.AttributeRPCSystem:
 				event.Transaction.Type = "request"
+			case semconv.AttributeRPCGRPCStatusCode:
+				event.Transaction.Type = "request"
 			case semconv.AttributeRPCService:
 			case semconv.AttributeRPCMethod:
 
@@ -648,6 +650,9 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 				foundSpanType = rpcSpan
 			case semconv.AttributeRPCService:
 				rpcService = stringval
+				foundSpanType = rpcSpan
+			case semconv.AttributeRPCGRPCStatusCode:
+				rpcSystem = "grpc"
 				foundSpanType = rpcSpan
 			case semconv.AttributeRPCMethod:
 
