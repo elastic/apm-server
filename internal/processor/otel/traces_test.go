@@ -1341,6 +1341,29 @@ func TestServiceTarget(t *testing.T) {
 	})
 }
 
+func TestGRPCTransactionFromNodejsSDK(t *testing.T) {
+	t.Run("transaction transformation", func(t *testing.T) {
+		test := func(t *testing.T, input map[string]interface{}) {
+			t.Helper()
+			event := transformTransactionWithAttributes(t, input, func(s ptrace.Span) {
+				s.SetKind(ptrace.SpanKindServer)
+			})
+			assert.Equal(t, "request", event.Transaction.Type)
+		}
+		test(t, map[string]interface{}{
+			"rpc.grpc.status_code": codes.Unavailable,
+		})
+	})
+
+	t.Run("span transformation", func(t *testing.T) {
+		event := transformSpanWithAttributes(t, map[string]interface{}{
+			"rpc.grpc.status_code": codes.Unavailable,
+		})
+		assert.Equal(t, "external", event.Span.Type)
+		assert.Equal(t, "grpc", event.Span.Subtype)
+	})
+}
+
 func testJaegerLogs() []jaegermodel.Log {
 	return []jaegermodel.Log{{
 		// errors that can be converted to elastic errors
