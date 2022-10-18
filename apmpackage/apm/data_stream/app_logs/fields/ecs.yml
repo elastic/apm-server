@@ -12,16 +12,21 @@
   name: client.port
 - external: ecs
   name: client.geo.city_name
+  index: false
 - external: ecs
   name: client.geo.continent_name
+  index: false
 - external: ecs
   name: client.geo.country_iso_code
+  index: false
 - external: ecs
   name: client.geo.country_name
+  index: false
 - external: ecs
   name: client.geo.location
 - external: ecs
   name: client.geo.region_iso_code
+  index: false
 - external: ecs
   name: client.geo.region_name
 - external: ecs
@@ -173,6 +178,7 @@
   name: user_agent.name
 - external: ecs
   name: user_agent.original
+  index: false
 - external: ecs
   name: user_agent.os.family
 - external: ecs
