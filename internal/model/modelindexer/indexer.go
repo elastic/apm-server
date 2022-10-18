@@ -78,15 +78,16 @@ type Indexer struct {
 	availableBulkRequests int64
 	activeBulkRequests    int64
 
-	config    Config
-	logger    *logp.Logger
-	available chan *bulkIndexer
-	bulkItems chan elasticsearch.BulkIndexerItem
-	g         errgroup.Group
+	config                Config
+	logger                *logp.Logger
+	available             chan *bulkIndexer
+	bulkItems             chan elasticsearch.BulkIndexerItem
+	errgroup              *errgroup.Group
+	errgroupContext       context.Context
+	cancelErrgroupContext context.CancelFunc
 
-	mu      sync.Mutex
-	closing chan struct{}
-	closed  chan struct{}
+	mu     sync.Mutex
+	closed chan struct{}
 }
 
 // Config holds configuration for Indexer.
@@ -148,12 +149,17 @@ func New(client elasticsearch.Client, cfg Config) (*Indexer, error) {
 		config:                cfg,
 		logger:                logger,
 		available:             available,
-		closing:               make(chan struct{}),
 		closed:                make(chan struct{}),
 		// NOTE(marclop) This channel size is arbitrary.
 		bulkItems: make(chan elasticsearch.BulkIndexerItem, 100),
 	}
-	indexer.g.Go(func() error {
+
+	// We use errgroup.WithContext to unblock flushes when Close returns.
+	errgroupContext, cancelErrgroupContext := context.WithCancel(context.Background())
+	indexer.errgroup, indexer.errgroupContext = errgroup.WithContext(errgroupContext)
+	indexer.cancelErrgroupContext = cancelErrgroupContext
+
+	indexer.errgroup.Go(func() error {
 		indexer.runActiveIndexer()
 		return nil
 	})
@@ -169,22 +175,19 @@ func (i *Indexer) Close(ctx context.Context) error {
 	i.mu.Lock()
 	defer i.mu.Unlock()
 	select {
-	case <-i.closing:
+	case <-i.closed:
 	default:
-		close(i.closing)
-		// Close i.closed when ctx is cancelled,
-		// unblocking any ongoing flush attempts.
-		done := make(chan struct{})
-		defer close(done)
+		close(i.closed)
+
+		// Cancel ongoing flushes when ctx is cancelled.
+		ctx, cancel := context.WithCancel(ctx)
+		defer cancel()
 		go func() {
-			defer close(i.closed)
-			select {
-			case <-done:
-			case <-ctx.Done():
-			}
+			defer i.cancelErrgroupContext()
+			<-ctx.Done()
 		}()
 	}
-	return i.g.Wait()
+	return i.errgroup.Wait()
 }
 
 // Stats returns the bulk indexing stats.
@@ -240,7 +243,7 @@ func (i *Indexer) processEvent(ctx context.Context, event *model.APMEvent) error
 	select {
 	case <-ctx.Done():
 		return ctx.Err()
-	case <-i.closing:
+	case <-i.closed:
 		return ErrClosed
 	case i.bulkItems <- item:
 	}
@@ -294,26 +297,6 @@ func encodeMap(v map[string]interface{}, out *fastjson.Writer) error {
 	}
 	out.RawByte('}')
 	return nil
-}
-
-func (i *Indexer) flushIndexer(ctx context.Context, bulkIndexer *bulkIndexer) error {
-	// Create a child context which is cancelled when the context passed to i.Close is cancelled.
-	flushed := make(chan struct{})
-	defer close(flushed)
-	ctx, cancel := context.WithCancel(ctx)
-	go func() {
-		defer cancel()
-		select {
-		case <-i.closed:
-		case <-flushed:
-		}
-	}()
-
-	err := i.flush(ctx, bulkIndexer)
-	bulkIndexer.Reset()
-	i.available <- bulkIndexer
-	atomic.AddInt64(&i.availableBulkRequests, 1)
-	return err
 }
 
 func (i *Indexer) flush(ctx context.Context, bulkIndexer *bulkIndexer) error {
@@ -423,7 +406,7 @@ func (i *Indexer) runActiveIndexer() {
 		case <-flushTimer.C:
 		default:
 			select {
-			case <-i.closing:
+			case <-i.closed:
 				// Consume whatever bulk items have been buffered,
 				// and then flush a last time below.
 				for len(i.bulkItems) > 0 {
@@ -451,8 +434,12 @@ func (i *Indexer) runActiveIndexer() {
 		if active != nil {
 			indexer := active
 			active = nil
-			i.g.Go(func() error {
-				return i.flushIndexer(context.Background(), indexer)
+			i.errgroup.Go(func() error {
+				err := i.flush(i.errgroupContext, indexer)
+				indexer.Reset()
+				i.available <- indexer
+				atomic.AddInt64(&i.availableBulkRequests, 1)
+				return err
 			})
 		}
 	}
