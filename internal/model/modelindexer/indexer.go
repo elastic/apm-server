@@ -455,10 +455,16 @@ func (i *Indexer) runActiveIndexer() {
 		<-idleTimer.C
 	}
 	countTimedFlush := func() {
+		if i.config.Scaling.Disabled {
+			return
+		}
 		timedFlush++
 		fullFlush = 0
 	}
 	countFullFlush := func() {
+		if i.config.Scaling.Disabled {
+			return
+		}
 		fullFlush++
 		timedFlush = 0
 	}
