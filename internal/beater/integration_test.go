@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package beater
+package beater_test
 
 import (
 	"bytes"
@@ -34,6 +34,7 @@ import (
 
 	"github.com/elastic/apm-server/internal/approvaltest"
 	"github.com/elastic/apm-server/internal/beater/api"
+	"github.com/elastic/apm-server/internal/beater/beatertest"
 )
 
 const timestampFormat = "2006-01-02T15:04:05.000Z07:00"
@@ -66,11 +67,11 @@ func adjustMissingTimestamp(doc []byte) []byte {
 // testPublishIntake exercises the publishing pipeline, from apm-server intake to beat publishing.
 // It posts a payload to a running APM server via the intake API and gathers the resulting documents that would
 // normally be published to Elasticsearch.
-func testPublishIntake(t *testing.T, apm *testBeater, docs <-chan []byte, payload io.Reader) [][]byte {
-	req, err := http.NewRequest(http.MethodPost, apm.baseURL+api.IntakePath, payload)
+func testPublishIntake(t *testing.T, srv *beatertest.Server, docs <-chan []byte, payload io.Reader) [][]byte {
+	req, err := http.NewRequest(http.MethodPost, srv.URL+api.IntakePath, payload)
 	require.NoError(t, err)
 	req.Header.Add("Content-Type", "application/x-ndjson")
-	return testPublish(t, apm.client, req, docs)
+	return testPublish(t, srv.Client, req, docs)
 }
 
 // testPublish exercises the publishing pipeline, from apm-server intake to beat publishing.
@@ -134,14 +135,12 @@ func TestPublishIntegration(t *testing.T) {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			// fresh APM Server for each run
-			docsChan := make(chan []byte)
-			apm, err := setupServer(t, nil, nil, docsChan)
-			require.NoError(t, err)
-			defer apm.Stop()
+			escfg, docsChan := beatertest.ElasticsearchOutputConfig(t)
+			srv := beatertest.NewServer(t, beatertest.WithConfig(escfg))
 
 			b, err := os.ReadFile(filepath.Join("../../testdata/intake-v2", tc.payload))
 			require.NoError(t, err)
-			docs := testPublishIntake(t, apm, docsChan, bytes.NewReader(b))
+			docs := testPublishIntake(t, srv, docsChan, bytes.NewReader(b))
 			approvaltest.ApproveEventDocs(t, "test_approved_es_documents/TestPublishIntegration"+tc.name, docs)
 		})
 	}

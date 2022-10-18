@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package beater
+package beater_test
 
 import (
 	"fmt"
@@ -23,9 +23,9 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"github.com/tidwall/gjson"
 
+	"github.com/elastic/apm-server/internal/beater/beatertest"
 	agentconfig "github.com/elastic/elastic-agent-libs/config"
 )
 
@@ -34,18 +34,29 @@ func TestServerTracingEnabled(t *testing.T) {
 
 	for _, enabled := range []bool{false, true} {
 		t.Run(fmt.Sprint(enabled), func(t *testing.T) {
-			cfg := agentconfig.MustNewConfigFrom(m{
-				"host":                    "localhost:0",
-				"instrumentation.enabled": enabled,
-			})
+			escfg, docs := beatertest.ElasticsearchOutputConfig(t)
+			srv := beatertest.NewServer(t, beatertest.WithConfig(escfg,
+				agentconfig.MustNewConfigFrom(map[string]interface{}{
+					"instrumentation.enabled": enabled,
 
-			docs := make(chan []byte, 10)
-			beater, err := setupServer(t, cfg, nil, docs)
-			require.NoError(t, err)
+					// The output instrumentation may send transactions for
+					// bulk operations, e.g. there will be "flush" transactions
+					// send by modelindexer for _bulk requests. When the server
+					// sends traces to itself, it will enter a state where it
+					// continues to regularly send traces to itself from the
+					// traced output.
+					//
+					// TODO(axw) we should consider having a separate processor
+					// pipeline (including output) with no tracing. For now, we
+					// set a short shutdown timeout so that if an trace events
+					// are not consumed, they will not block shutdown.
+					"apm-server.shutdown_timeout": "1ns",
+				}),
+			))
 
 			// Make an HTTP request to the server, which should be traced
 			// if instrumentation is enabled.
-			resp, err := beater.client.Get(beater.baseURL + "/foo")
+			resp, err := srv.Client.Get(srv.URL + "/foo")
 			assert.NoError(t, err)
 			resp.Body.Close()
 

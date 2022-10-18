@@ -90,8 +90,7 @@
             },
             "labels": {
                 "bool_error": "false",
-                "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8",
-                "wrapped_reporter": "true"
+                "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8"
             },
             "numeric_labels": {
                 "number_code": 2
@@ -99,7 +98,7 @@
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
-                "type": "test-apm-server",
+                "type": "apm-server",
                 "version": "1.2.3"
             },
             "process": {
@@ -241,7 +240,7 @@
             "observer": {
                 "ephemeral_id": "00000000-0000-0000-0000-000000000000",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
-                "type": "test-apm-server",
+                "type": "apm-server",
                 "version": "1.2.3"
             },
             "parent": {

@@ -42,6 +42,14 @@ type Error struct {
 	// This may be set when a stack trace cannot be parsed.
 	StackTrace string
 
+	// Message holds an error message.
+	//
+	// Message is the ECS field equivalent of the APM field `error.log.message`.
+	Message string
+
+	// Type holds the type of the error.
+	Type string
+
 	Exception *Exception
 	Log       *ErrorLog
 }
@@ -72,6 +80,8 @@ func (e *Error) fields() mapstr.M {
 		exceptionFields := e.Exception.appendFields(nil, 0)
 		errorFields.set("exception", exceptionFields)
 	}
+	errorFields.maybeSetString("message", e.Message)
+	errorFields.maybeSetString("type", e.Type)
 	errorFields.maybeSetMapStr("log", e.logFields())
 	errorFields.maybeSetString("culprit", e.Culprit)
 	errorFields.maybeSetMapStr("custom", customFields(e.Custom))
