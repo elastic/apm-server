@@ -177,31 +177,6 @@ func TestIngestPipelineEventDuration(t *testing.T) {
 	}
 }
 
-func TestIngestTimestampus(t *testing.T) {
-	systemtest.CleanupElasticsearch(t)
-	srv := apmservertest.NewServerTB(t)
-
-	tracer := srv.Tracer()
-	tx := tracer.StartTransaction("name", "type")
-	tx.End()
-	tracer.Flush(nil)
-
-	systemtest.Elasticsearch.ExpectMinDocs(t, 1, "traces-apm*", nil)
-
-	mappings := getFieldMappings(t, []string{"traces-apm-default"}, []string{"timestamp.us"})
-	assert.Equal(t, map[string]interface{}{
-		"timestamp.us": map[string]interface{}{
-			"full_name": "timestamp.us",
-			"mapping": map[string]interface{}{
-				"us": map[string]interface{}{
-					"index": false,
-					"type":  "long",
-				},
-			},
-		},
-	}, mappings)
-}
-
 func TestIngestPipelineDataStreamMigration(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
 
