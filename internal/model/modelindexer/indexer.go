@@ -82,7 +82,7 @@ type Indexer struct {
 	logger                *logp.Logger
 	available             chan *bulkIndexer
 	bulkItems             chan elasticsearch.BulkIndexerItem
-	errgroup              *errgroup.Group
+	errgroup              errgroup.Group
 	errgroupContext       context.Context
 	cancelErrgroupContext context.CancelFunc
 
@@ -154,10 +154,12 @@ func New(client elasticsearch.Client, cfg Config) (*Indexer, error) {
 		bulkItems: make(chan elasticsearch.BulkIndexerItem, 100),
 	}
 
-	// We use errgroup.WithContext to unblock flushes when Close returns.
-	errgroupContext, cancelErrgroupContext := context.WithCancel(context.Background())
-	indexer.errgroup, indexer.errgroupContext = errgroup.WithContext(errgroupContext)
-	indexer.cancelErrgroupContext = cancelErrgroupContext
+	// We create a cancellable context for the errgroup.Group for unblocking
+	// flushes when Close returns. We intentionally do not use errgroup.WithContext,
+	// because one flush failure should not cause the context to be cancelled.
+	indexer.errgroupContext, indexer.cancelErrgroupContext = context.WithCancel(
+		context.Background(),
+	)
 
 	indexer.errgroup.Go(func() error {
 		indexer.runActiveIndexer()
