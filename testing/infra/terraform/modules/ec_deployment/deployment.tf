@@ -79,14 +79,11 @@ resource "ec_deployment" "deployment" {
     }
   }
 
-  dynamic "observability" {
-    for_each = ec_deployment.deployment_monitor.*
-    content {
-      deployment_id = observability.value.id
-      logs          = true
-      metrics       = true
-      ref_id        = "main-elasticsearch"
-    }
+  observability {
+    deployment_id = var.monitor_deployment ? ec_deployment.deployment_monitor.0.id : "self"
+    logs          = true
+    metrics       = true
+    ref_id        = "main-elasticsearch"
   }
 }
 

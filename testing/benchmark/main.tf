@@ -3,7 +3,7 @@ terraform {
   required_providers {
     ec = {
       source  = "elastic/ec"
-      version = ">=0.4.0"
+      version = ">=0.5.0"
     }
     aws = {
       source  = "hashicorp/aws"
