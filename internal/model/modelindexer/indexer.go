@@ -23,7 +23,9 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math"
 	"net/http"
+	"runtime"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -77,6 +79,9 @@ type Indexer struct {
 	bytesTotal            int64
 	availableBulkRequests int64
 	activeBulkRequests    int64
+	lastScaleAction       int64
+	upscales              int64
+	downscales            int64
 
 	config                Config
 	logger                *logp.Logger
@@ -92,6 +97,12 @@ type Indexer struct {
 
 // Config holds configuration for Indexer.
 type Config struct {
+	// Tracer holds an optional apm.Tracer to use for tracing bulk requests
+	// to Elasticsearch. Each bulk request is traced as a transaction.
+	//
+	// If Tracer is nil, requests will not be traced.
+	Tracer *apm.Tracer
+
 	// CompressionLevel holds the gzip compression level, from 0 (gzip.NoCompression)
 	// to 9 (gzip.BestCompression). Higher values provide greater compression, at a
 	// greater cost of CPU. The special value -1 (gzip.DefaultCompression) selects the
@@ -101,13 +112,13 @@ type Config struct {
 	// MaxRequests holds the maximum number of bulk index requests to execute concurrently.
 	// The maximum memory usage of Indexer is thus approximately MaxRequests*FlushBytes.
 	//
-	// If MaxRequests is less than or equal to zero, the default of 25 will be used.
+	// If MaxRequests is less than or equal to zero, the default of 50 will be used.
 	MaxRequests int
 
 	// FlushBytes holds the flush threshold in bytes. If Compression is enabled,
 	// The number of events that can be buffered will be greater.
 	//
-	// If FlushBytes is zero, the default of 2MB will be used.
+	// If FlushBytes is zero, the default of 1MB will be used.
 	FlushBytes int
 
 	// FlushInterval holds the flush threshold as a duration.
@@ -115,11 +126,38 @@ type Config struct {
 	// If FlushInterval is zero, the default of 30 seconds will be used.
 	FlushInterval time.Duration
 
-	// Tracer holds an optional apm.Tracer to use for tracing bulk requests
-	// to Elasticsearch. Each bulk request is traced as a transaction.
+	// Scaling configuration for the modelindexer.
 	//
-	// If Tracer is nil, requests will not be traced.
-	Tracer *apm.Tracer
+	// If unset, scaling is enabled by default.
+	Scaling ScalingConfig
+}
+
+// ScalingConfig holds the modelindexer scaling configuration.
+type ScalingConfig struct {
+	// Disabled toggles active indexer scaling on.
+	//
+	// It is enabled by default.
+	Disabled bool
+
+	// DownScale holds the scale down config.
+	DownScale ScaleActionConfig
+
+	// ScaleUpThreshold holds the scale up config.
+	UpScale ScaleActionConfig
+
+	// IdleInterval defines how long an active indexer performs an inactivity
+	// check based on the DownScale settings.
+	IdleInterval time.Duration
+}
+
+// ScaleActionConfig holds the configuration for a scaling action
+type ScaleActionConfig struct {
+	// Threshold is the number on which the scaling action will be triggered.
+	Threshold uint
+
+	// CoolDown is the amount of time needed to elapse between scaling actions
+	// to trigger it.
+	CoolDown time.Duration
 }
 
 // New returns a new Indexer that indexes events directly into data streams.
@@ -132,13 +170,30 @@ func New(client elasticsearch.Client, cfg Config) (*Indexer, error) {
 		)
 	}
 	if cfg.MaxRequests <= 0 {
-		cfg.MaxRequests = 25
+		cfg.MaxRequests = 50
 	}
 	if cfg.FlushBytes <= 0 {
-		cfg.FlushBytes = 2 * 1024 * 1024
+		cfg.FlushBytes = 1 * 1024 * 1024
 	}
 	if cfg.FlushInterval <= 0 {
 		cfg.FlushInterval = 30 * time.Second
+	}
+	if !cfg.Scaling.Disabled {
+		if cfg.Scaling.DownScale.Threshold == 0 {
+			cfg.Scaling.DownScale.Threshold = 30
+		}
+		if cfg.Scaling.DownScale.CoolDown <= 0 {
+			cfg.Scaling.DownScale.CoolDown = 30 * time.Second
+		}
+		if cfg.Scaling.UpScale.Threshold == 0 {
+			cfg.Scaling.UpScale.Threshold = 60
+		}
+		if cfg.Scaling.UpScale.CoolDown <= 0 {
+			cfg.Scaling.UpScale.CoolDown = time.Minute
+		}
+		if cfg.Scaling.IdleInterval <= 0 {
+			cfg.Scaling.IdleInterval = 30 * time.Second
+		}
 	}
 	available := make(chan *bulkIndexer, cfg.MaxRequests)
 	for i := 0; i < cfg.MaxRequests; i++ {
@@ -162,6 +217,7 @@ func New(client elasticsearch.Client, cfg Config) (*Indexer, error) {
 	)
 
 	indexer.errgroup.Go(func() error {
+		atomic.AddInt64(&indexer.activeBulkRequests, 1)
 		indexer.runActiveIndexer()
 		return nil
 	})
@@ -204,6 +260,8 @@ func (i *Indexer) Stats() Stats {
 		BytesTotal:            atomic.LoadInt64(&i.bytesTotal),
 		AvailableBulkRequests: atomic.LoadInt64(&i.availableBulkRequests),
 		ActiveBulkRequests:    atomic.LoadInt64(&i.activeBulkRequests),
+		UpScales:              atomic.LoadInt64(&i.upscales),
+		DownScales:            atomic.LoadInt64(&i.downscales),
 	}
 }
 
@@ -384,15 +442,27 @@ func (i *Indexer) flush(ctx context.Context, bulkIndexer *bulkIndexer) error {
 // outgoing Elasticsearch bulk requests are flushed due to the idle timer,
 // rather than due to being full.
 func (i *Indexer) runActiveIndexer() {
-	atomic.AddInt64(&i.activeBulkRequests, 1)
-	defer atomic.AddInt64(&i.activeBulkRequests, -1)
 	var closed bool
 	var active *bulkIndexer
+	var timedFlush uint
+	var fullFlush uint
 	flushTimer := time.NewTimer(i.config.FlushInterval)
+	idleTimer := time.NewTimer(i.config.Scaling.IdleInterval)
 	if !flushTimer.Stop() {
 		<-flushTimer.C
 	}
-	handleBulkItem := func(event elasticsearch.BulkIndexerItem) (flush bool) {
+	if !idleTimer.Stop() {
+		<-idleTimer.C
+	}
+	countTimedFlush := func() {
+		timedFlush++
+		fullFlush = 0
+	}
+	countFullFlush := func() {
+		fullFlush++
+		timedFlush = 0
+	}
+	handleBulkItem := func(event elasticsearch.BulkIndexerItem) {
 		if active == nil {
 			active = <-i.available
 			atomic.AddInt64(&i.availableBulkRequests, -1)
@@ -401,12 +471,23 @@ func (i *Indexer) runActiveIndexer() {
 		if err := active.Add(event); err != nil {
 			i.logger.Errorf("failed adding event to bulk indexer: %v", err)
 		}
-		return false
 	}
 	for !closed {
 		select {
 		case <-flushTimer.C:
+			countTimedFlush()
+		case <-idleTimer.C:
+			countTimedFlush()
 		default:
+			// When the queue utilization is below 5%, reset the idleTimer. When
+			// traffic to the APM Server is interrupted or stopped, it allows excess
+			// active indexers that have been idle for a the IdleInterval to be
+			// scaled down.
+			activeIndexers := atomic.LoadInt64(&i.activeBulkRequests)
+			lowChanCapacity := float64(len(i.bulkItems))/float64(cap(i.bulkItems)) <= 0.05
+			if lowChanCapacity && activeIndexers > 1 {
+				idleTimer.Reset(i.config.Scaling.IdleInterval)
+			}
 			select {
 			case <-i.closed:
 				// Consume whatever bulk items have been buffered,
@@ -421,15 +502,22 @@ func (i *Indexer) runActiveIndexer() {
 				}
 				closed = true
 			case <-flushTimer.C:
+				countTimedFlush()
+			case <-idleTimer.C:
+				countTimedFlush()
 			case event := <-i.bulkItems:
 				handleBulkItem(event)
 				if active.Len() < i.config.FlushBytes {
 					continue
 				}
+				countFullFlush()
 				// The active indexer is at or exceeds the configured FlushBytes
 				// threshold, so flush it.
 				if !flushTimer.Stop() {
 					<-flushTimer.C
+				}
+				if lowChanCapacity && activeIndexers > 1 && !idleTimer.Stop() {
+					<-idleTimer.C
 				}
 			}
 		}
@@ -444,7 +532,111 @@ func (i *Indexer) runActiveIndexer() {
 				return err
 			})
 		}
+		if i.config.Scaling.Disabled {
+			continue
+		}
+		now := time.Now()
+		if i.maybeScaleDown(now, &timedFlush) {
+			atomic.StoreInt64(&i.lastScaleAction, now.Unix())
+			atomic.AddInt64(&i.downscales, 1)
+			i.logger.Infof("active indexer exiting due to scaledown: %d",
+				atomic.LoadInt64(&i.activeBulkRequests),
+			)
+			// Return early and avoid decrementing the counter since that's
+			// already happened within `i.maybeScaleDown`.
+			return
+		}
+		if i.maybeScaleUp(now, &fullFlush) {
+			atomic.StoreInt64(&i.lastScaleAction, now.Unix())
+			atomic.AddInt64(&i.upscales, 1)
+			i.errgroup.Go(func() error {
+				// No need to increment the activeBulkRequests here since the
+				// `i.maybeScaleUp` call uses `atomic.CompareAndSwap` calls to
+				// increment / synchronize between multiple active indexers.
+				i.runActiveIndexer()
+				return nil
+			})
+		}
 	}
+	atomic.AddInt64(&i.activeBulkRequests, -1) // Decrement the counter on exit.
+}
+
+// maybeScaleDown returns true if the caller (assumed to be active indexer) needs
+// to be scaled down. It automatically decrements the indexer `activeBulkRequests`
+// variable when true.
+func (i *Indexer) maybeScaleDown(now time.Time, timedFlush *uint) bool {
+	activeIndexers := atomic.LoadInt64(&i.activeBulkRequests)
+	// Only downscale when there is more than 1 active indexer.
+	if activeIndexers == 1 {
+		return false
+	}
+	scaleDown := func() bool {
+		// Avoid having more than 1 concurrent downscale, by using a compare
+		// and swap operation.
+		return atomic.CompareAndSwapInt64(
+			&i.activeBulkRequests, activeIndexers, activeIndexers-1,
+		)
+	}
+	// If the CPU quota changes and there is more than 1 indexer, downscale an
+	// active indexer. This downscaling action isn't subject to the downscaling
+	// cooldown, since doing so would result in using much more CPU for longer.
+	if activeIndexers > activeLimit() {
+		i.logger.Infof("active indexers > active limit, scaling down: %d",
+			atomic.LoadInt64(&i.activeBulkRequests),
+		)
+		return scaleDown()
+	}
+	if *timedFlush < i.config.Scaling.DownScale.Threshold {
+		return false
+	}
+	// Reset timedFlush after it has exceeded the threshold
+	// it avoids unnecessary precociousness to scale down.
+	*timedFlush = 0
+	lastScaleT := time.Unix(atomic.LoadInt64(&i.lastScaleAction), 0)
+	if !lastScaleT.Add(i.config.Scaling.DownScale.CoolDown).Before(now) {
+		return false
+	}
+	i.logger.Infof("timed flush threshold exceeded, active: %d",
+		atomic.LoadInt64(&i.activeBulkRequests),
+	)
+	return scaleDown()
+}
+
+// maybeScaleUp returns true if the caller (assumed to be active indexer) needs
+// to scale up and create another active indexer goroutine. It automatically
+// increments the indexer `activeBulkRequests` variable when true.
+func (i *Indexer) maybeScaleUp(now time.Time, fullFlush *uint) bool {
+	activeIndexers := atomic.LoadInt64(&i.activeBulkRequests)
+	if activeIndexers >= activeLimit() {
+		return false
+	}
+	if *fullFlush < i.config.Scaling.UpScale.Threshold {
+		return false
+	}
+	// Reset fullFlush after it has exceeded the threshold
+	// it avoids unnecessary precociousness to scale up.
+	*fullFlush = 0
+	lastScaleT := time.Unix(atomic.LoadInt64(&i.lastScaleAction), 0)
+	if !lastScaleT.Add(i.config.Scaling.UpScale.CoolDown).Before(now) {
+		return false
+	}
+	// Avoid having more than 1 concurrent upscale, by using a compare
+	// and swap operation.
+	return atomic.CompareAndSwapInt64(
+		&i.activeBulkRequests, activeIndexers, activeIndexers+1,
+	)
+}
+
+// activeLimit returns the value of GOMAXPROCS / 4. Which should limit the
+// maximum number of active indexers to 20% of GOMAXPROCS.
+// NOTE: There is also a sweet spot between Config.MaxRequests and the number
+// of available indexers, where having N number of available bulk requests per
+// active bulk indexer is required for optimal performance.
+func activeLimit() int64 {
+	if limit := float64(runtime.GOMAXPROCS(0)) / float64(4); limit > 1 {
+		return int64(math.RoundToEven(limit))
+	}
+	return 1
 }
 
 var pool sync.Pool
@@ -515,4 +707,10 @@ type Stats struct {
 	// ActiveBulkRequests represents the number of active bulk indexers that are
 	// concurrently processing batches.
 	ActiveBulkRequests int64
+
+	// Upscales represents the number of times new active indexers were created.
+	UpScales int64
+
+	// Downscales represents the number of times an active indexer was downscaled.
+	DownScales int64
 }

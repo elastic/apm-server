@@ -616,9 +616,11 @@ func TestServerElasticsearchOutput(t *testing.T) {
 	assert.Equal(t, map[string]interface{}{
 		"elasticsearch": map[string]interface{}{
 			"bulk_requests": map[string]interface{}{
-				"active":    int64(1),
-				"available": int64(24),
-				"completed": int64(0),
+				"active":     int64(1),
+				"available":  int64(49),
+				"completed":  int64(0),
+				"downscales": int64(0),
+				"upscales":   int64(0),
 			},
 		},
 	}, snapshot)
