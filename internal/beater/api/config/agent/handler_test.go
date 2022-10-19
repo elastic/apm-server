@@ -208,8 +208,10 @@ func TestAgentConfigHandlerAnonymousAccess(t *testing.T) {
 }
 
 func TestAgentConfigHandlerAuthorizedForService(t *testing.T) {
-	// TODO
-	f := agentcfg.NewKibanaFetcher(&kibana.Client{}, time.Nanosecond)
+	var called bool
+	f := newKibanaFetcher(t, func(w http.ResponseWriter, r *http.Request) {
+		called = true
+	})
 	h := NewHandler(f, time.Nanosecond, "", nil)
 
 	r := httptest.NewRequest(http.MethodGet, target(map[string]string{"service.name": "opbeans"}), nil)
@@ -226,6 +228,7 @@ func TestAgentConfigHandlerAuthorizedForService(t *testing.T) {
 
 	assert.Equal(t, http.StatusForbidden, w.Code, w.Body.String())
 	assert.Equal(t, auth.Resource{ServiceName: "opbeans"}, queriedResource)
+	assert.False(t, called)
 }
 
 func TestConfigAgentHandler_DirectConfiguration(t *testing.T) {
