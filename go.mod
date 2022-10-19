@@ -8,7 +8,7 @@ require (
 	github.com/dgraph-io/badger/v2 v2.2007.3-0.20201012072640-f5a7e0a1c83b
 	github.com/dustin/go-humanize v1.0.0
 	github.com/elastic/apm-server/internal/approvaltest v0.0.0-00010101000000-000000000000
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20221017064202-c52327270793
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20221018064058-28bf747b25cb
 	github.com/elastic/ecs v1.12.0
 	github.com/elastic/elastic-agent-libs v0.2.13
 	github.com/elastic/gmux v0.2.0
@@ -48,7 +48,7 @@ require (
 	go.opentelemetry.io/collector/model v0.44.0
 	go.uber.org/automaxprocs v1.5.1
 	go.uber.org/zap v1.23.0
-	golang.org/x/net v0.0.0-20221017152216-f25eb7ecb193
+	golang.org/x/net v0.0.0-20221019024206-cb67ada4b0ad
 	golang.org/x/sync v0.0.0-20220722155255-886fb9371eb4
 	golang.org/x/time v0.0.0-20210723032227-1f47c861a9ac
 	golang.org/x/tools v0.1.12
@@ -177,7 +177,7 @@ require (
 	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect
 	golang.org/x/text v0.4.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
-	google.golang.org/genproto v0.0.0-20221014213838-99cd37c6964a // indirect
+	google.golang.org/genproto v0.0.0-20221018160656-63c7b68cfc55 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/jcmturner/aescts.v1 v1.0.1 // indirect
