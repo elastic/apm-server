@@ -24,22 +24,25 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/elastic/elastic-agent-system-metrics/metric/system/cgroup"
-	"github.com/elastic/gosigar"
+	"github.com/elastic/elastic-agent-system-metrics/metric/system/resolve"
 )
 
-// systemMemoryLimit returns 75% of the total system memory in GigaBytes.
-func systemMemoryLimit() (uint64, error) {
-	var mem gosigar.Mem
-	if err := mem.Get(); err != nil {
-		return 0, fmt.Errorf("failed reading total system memory: %w", err)
+func newCgroupReader() *cgroup.Reader {
+	cgroupOpts := cgroup.ReaderOptions{
+		RootfsMountpoint:  resolve.NewTestResolver(""),
+		IgnoreRootCgroups: true,
 	}
-	// If no cgroup limit is set, only return 75% of the total memory.
-	// to have a margin of safety for other processes.
-	return uint64(float64(mem.Total) * 0.75), nil
+	// https://github.com/elastic/beats/blob/ae50f3a6d740be84e2306582ec134ae42c6027b7/metricbeat/module/system/process/process.go#L88-L94
+	override, isset := os.LookupEnv("LIBBEAT_MONITORING_CGROUPS_HIERARCHY_OVERRIDE")
+	if isset {
+		cgroupOpts.CgroupsHierarchyOverride = override
+	}
+	reader, _ := cgroup.NewReaderOptions(cgroupOpts)
+	return reader
 }
 
-// Returns the cgroup maximum memory if running within a cgroup, otherwise,
-// it returns an error.
+// Returns the cgroup maximum memory if running within a cgroup in GigaBytes,
+// otherwise, it returns 0 and an error.
 func cgroupMemoryLimit(rdr *cgroup.Reader) (uint64, error) {
 	pid := os.Getpid()
 	vers, err := rdr.CgroupsVersion(pid)

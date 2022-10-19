@@ -28,9 +28,9 @@ import (
 func TestIntakeAsync(t *testing.T) {
 	t.Run("semaphore_size_1", func(t *testing.T) {
 		systemtest.CleanupElasticsearch(t)
-		// limit the maximum concurrent decoders to 1. This will allow to test
+		// limit the maximum concurrent decoders to 5. This will allow to test
 		// for the successful case (no concurrency and unsuccessful case).
-		srv := apmservertest.NewServerTB(t, "max_concurrent_decoders=1")
+		srv := apmservertest.NewServerTB(t, "-E", "apm-server.max_concurrent_decoders=1")
 
 		systemtest.SendBackendEventsAsyncPayload(t, srv.URL, `../testdata/intake-v2/errors.ndjson`)
 		// Ensure the 5 errors are ingested.
@@ -38,7 +38,7 @@ func TestIntakeAsync(t *testing.T) {
 
 		// Send a request with a lot of events (~1920) and expect it to be processed
 		// without any errors.
-		systemtest.SendBackendEventsAsyncPayload(t, srv.URL, `../testdata/intake-v2/heavy.ndjson`)
+		systemtest.SendBackendEventsAsyncPayloadError(t, srv.URL, `../testdata/intake-v2/heavy.ndjson`)
 
 		// Create 4 requests to be run concurrently and ensure that they return with
 		// a 503

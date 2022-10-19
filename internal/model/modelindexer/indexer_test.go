@@ -507,15 +507,17 @@ func TestModelIndexerCloseInterruptProcessBatch(t *testing.T) {
 		case <-r.Context().Done():
 		}
 	})
+	eventBufferSize := 100
 	indexer, err := modelindexer.New(client, modelindexer.Config{
 		// Set FlushBytes to 1 so a single event causes a flush.
-		FlushBytes: 1,
+		FlushBytes:      1,
+		EventBufferSize: eventBufferSize,
 	})
 	require.NoError(t, err)
 	defer indexer.Close(context.Background())
 
 	// Fill up all the bulk requests and the buffered channel.
-	for n := indexer.Stats().AvailableBulkRequests + 100; n >= 0; n-- {
+	for n := indexer.Stats().AvailableBulkRequests + int64(eventBufferSize); n >= 0; n-- {
 		batch := model.Batch{model.APMEvent{Timestamp: time.Now(), DataStream: model.DataStream{
 			Type:      "logs",
 			Dataset:   "apm_server",

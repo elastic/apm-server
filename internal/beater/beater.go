@@ -52,8 +52,6 @@ import (
 	"github.com/elastic/elastic-agent-libs/monitoring"
 	"github.com/elastic/elastic-agent-libs/transport"
 	"github.com/elastic/elastic-agent-libs/transport/tlscommon"
-	"github.com/elastic/elastic-agent-system-metrics/metric/system/cgroup"
-	"github.com/elastic/elastic-agent-system-metrics/metric/system/resolve"
 	"github.com/elastic/go-ucfg"
 
 	"github.com/elastic/apm-server/internal/agentcfg"
@@ -194,7 +192,7 @@ func (s *Runner) Run(ctx context.Context) error {
 			memLimit = float64(limit) / 1024 / 1024 / 1024
 		}
 	}
-	if memLimit == 0 {
+	if memLimit <= 0 {
 		s.logger.Info("no cgroups detected, falling back to total system memory")
 		if limit, err := systemMemoryLimit(); err != nil {
 			s.logger.Warn(err)
@@ -202,12 +200,14 @@ func (s *Runner) Run(ctx context.Context) error {
 			memLimit = float64(limit) / 1024 / 1024 / 1024
 		}
 	}
-	s.config.MaxConcurrentDecoders = maxConcurrentDecoders(
-		memLimit, s.config.MaxConcurrentDecoders,
-	)
-	s.logger.Infof("MaxConcurrentDecoders set to %d based on %0.1fgb of memory",
-		s.config.MaxConcurrentDecoders, memLimit,
-	)
+	if memLimit > 0 {
+		s.config.MaxConcurrentDecoders = maxConcurrentDecoders(
+			memLimit, s.config.MaxConcurrentDecoders,
+		)
+		s.logger.Infof("MaxConcurrentDecoders set to %d based on %0.1fgb of memory",
+			s.config.MaxConcurrentDecoders, memLimit,
+		)
+	}
 
 	// Send config to telemetry.
 	recordAPMServerConfig(s.config)
@@ -461,20 +461,6 @@ func (s *Runner) Run(ctx context.Context) error {
 	return result
 }
 
-func newCgroupReader() *cgroup.Reader {
-	cgroupOpts := cgroup.ReaderOptions{
-		RootfsMountpoint:  resolve.NewTestResolver(""),
-		IgnoreRootCgroups: true,
-	}
-	// https://github.com/elastic/beats/blob/ae50f3a6d740be84e2306582ec134ae42c6027b7/metricbeat/module/system/process/process.go#L88-L94
-	override, isset := os.LookupEnv("LIBBEAT_MONITORING_CGROUPS_HIERARCHY_OVERRIDE")
-	if isset {
-		cgroupOpts.CgroupsHierarchyOverride = override
-	}
-	reader, _ := cgroup.NewReaderOptions(cgroupOpts)
-	return reader
-}
-
 var defaultDecoders = config.DefaultConfig().MaxConcurrentDecoders
 
 func maxConcurrentDecoders(memLimit float64, decoders uint) uint {
@@ -691,9 +677,9 @@ func (s *Runner) newFinalBatchProcessor(
 
 func eventBufferSize(memLimit float64) int {
 	if memLimit > 1 {
-		size := int(256 * memLimit)
-		if size > 15360 {
-			size = 15360
+		size := int(512 * memLimit)
+		if size >= 30720 {
+			return 30720
 		}
 		return size
 	}
