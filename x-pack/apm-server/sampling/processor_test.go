@@ -33,7 +33,7 @@ func TestProcessUnsampled(t *testing.T) {
 	processor, err := sampling.NewProcessor(newTempdirConfig(t))
 	require.NoError(t, err)
 	go processor.Run()
-	defer processor.Stop(context.Background())
+	cleanupProcessor(t, processor)
 
 	in := model.Batch{{
 		Processor: model.TransactionProcessor,
@@ -86,7 +86,7 @@ func TestProcessAlreadyTailSampled(t *testing.T) {
 	processor, err := sampling.NewProcessor(config)
 	require.NoError(t, err)
 	go processor.Run()
-	defer processor.Stop(context.Background())
+	cleanupProcessor(t, processor)
 
 	transaction1 := model.APMEvent{
 		Processor: model.TransactionProcessor,
@@ -208,7 +208,7 @@ func TestProcessLocalTailSampling(t *testing.T) {
 	// decisions are made, such that we have a single tail-sampling decision
 	// to check.
 	go processor.Run()
-	defer processor.Stop(context.Background())
+	cleanupProcessor(t, processor)
 
 	// We have configured 50% tail-sampling, so we expect a single trace ID
 	// to be published. Sampling is non-deterministic (weighted random), so
@@ -279,7 +279,7 @@ func TestProcessLocalTailSamplingUnsampled(t *testing.T) {
 	processor, err := sampling.NewProcessor(config)
 	require.NoError(t, err)
 	go processor.Run()
-	defer processor.Stop(context.Background())
+	cleanupProcessor(t, processor)
 
 	// Process root transactions until one is rejected.
 	traceIDs := make([]string, 10000)
@@ -373,7 +373,7 @@ func TestProcessLocalTailSamplingPolicyOrder(t *testing.T) {
 	// decisions are made, such that we have a single tail-sampling decision
 	// to check.
 	go processor.Run()
-	defer processor.Stop(context.Background())
+	cleanupProcessor(t, processor)
 
 	// The first matching policy should win, and sample 50%.
 	for i := 0; i < numTransactions/2; i++ {
@@ -417,7 +417,7 @@ func TestProcessRemoteTailSampling(t *testing.T) {
 	processor, err := sampling.NewProcessor(config)
 	require.NoError(t, err)
 	go processor.Run()
-	defer processor.Stop(context.Background())
+	cleanupProcessor(t, processor)
 
 	traceID1 := "0102030405060708090a0b0c0d0e0f10"
 	traceID2 := "0102030405060708090a0b0c0d0e0f11"
@@ -502,7 +502,7 @@ func TestGroupsMonitoring(t *testing.T) {
 	processor, err := sampling.NewProcessor(config)
 	require.NoError(t, err)
 	go processor.Run()
-	defer processor.Stop(context.Background())
+	cleanupProcessor(t, processor)
 
 	for i := 0; i < config.MaxDynamicServices+2; i++ {
 		err := processor.ProcessBatch(context.Background(), &model.Batch{{
@@ -535,7 +535,7 @@ func TestStorageMonitoring(t *testing.T) {
 	processor, err := sampling.NewProcessor(config)
 	require.NoError(t, err)
 	go processor.Run()
-	defer processor.Stop(context.Background())
+	cleanupProcessor(t, processor)
 	for i := 0; i < 100; i++ {
 		traceID := uuid.Must(uuid.NewV4()).String()
 		batch := model.Batch{{
@@ -589,7 +589,7 @@ func TestStorageGC(t *testing.T) {
 		processor, err := sampling.NewProcessor(config)
 		require.NoError(t, err)
 		go processor.Run()
-		defer processor.Stop(context.Background())
+		cleanupProcessor(t, processor)
 		for i := 0; i < n; i++ {
 			traceID := uuid.Must(uuid.NewV4()).String()
 			batch := model.Batch{{
@@ -630,7 +630,7 @@ func TestStorageGC(t *testing.T) {
 	processor, err := sampling.NewProcessor(config)
 	require.NoError(t, err)
 	go processor.Run()
-	defer processor.Stop(context.Background())
+	cleanupProcessor(t, processor)
 
 	// Wait for the first value log file to be garbage collected.
 	deadline := time.Now().Add(10 * time.Second)
@@ -659,7 +659,7 @@ func TestStorageLimit(t *testing.T) {
 		processor, err := sampling.NewProcessor(c)
 		require.NoError(t, err)
 		go processor.Run()
-		defer processor.Stop(context.Background())
+		cleanupProcessor(t, processor)
 		var batch model.Batch
 		for i := 0; i < n; i++ {
 			traceID := uuid.Must(uuid.NewV4()).String()
@@ -722,7 +722,7 @@ func TestProcessRemoteTailSamplingPersistence(t *testing.T) {
 	processor, err := sampling.NewProcessor(config)
 	require.NoError(t, err)
 	go processor.Run()
-	defer processor.Stop(context.Background())
+	cleanupProcessor(t, processor)
 
 	// Wait for subscriber_position.json to be written to the storage directory.
 	subscriberPositionFile := filepath.Join(config.StorageDir, "subscriber_position.json")
@@ -904,4 +904,12 @@ func waitFileModified(tb testing.TB, filename string, after time.Time) ([]byte, 
 			tb.Fatalf("timed out waiting for %q to be modified", filename)
 		}
 	}
+}
+
+func cleanupProcessor(t *testing.T, processor *sampling.Processor) {
+	t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond)
+		defer cancel()
+		processor.Stop(ctx)
+	})
 }
