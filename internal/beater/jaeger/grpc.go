@@ -22,7 +22,6 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
-	"strings"
 
 	jaegermodel "github.com/jaegertracing/jaeger/model"
 	"github.com/jaegertracing/jaeger/proto-gen/api_v2"
@@ -154,15 +153,6 @@ func (s *grpcSampler) GetSamplingStrategy(
 
 	samplingRate, err := s.fetchSamplingRate(ctx, params.ServiceName)
 	if err != nil {
-		var verr *agentcfg.ValidationError
-		if errors.As(err, &verr) {
-			if err := checkValidationError(verr); err != nil {
-				// do not return full error details since this is part of an unprotected endpoint response
-				s.logger.With(logp.Error(err)).Error("Configured Kibana client does not support agent remote configuration")
-				return nil, errors.New("agent remote configuration not supported, check server logs for more details")
-			}
-		}
-
 		// do not return full error details since this is part of an unprotected endpoint response
 		s.logger.With(logp.Error(err)).Error("No valid sampling rate fetched from Kibana.")
 		return nil, errors.New("no sampling rate available, check server logs for more details")
@@ -204,27 +194,6 @@ func (s *grpcSampler) fetchSamplingRate(ctx context.Context, service string) (fl
 	}
 	gRPCSamplingMonitoringMap.inc(request.IDResponseErrorsNotFound)
 	return 0, fmt.Errorf("no sampling rate found for %v", service)
-}
-
-func checkValidationError(err *agentcfg.ValidationError) error {
-	body := err.Body()
-	switch {
-	case strings.HasPrefix(body, agentcfg.ErrMsgKibanaDisabled):
-		gRPCSamplingMonitoringMap.inc(request.IDResponseErrorsServiceUnavailable)
-		return errors.New("jaeger remote sampling endpoint is disabled, " +
-			"configure the `apm-server.kibana` section in apm-server.yml to enable it")
-	case strings.HasPrefix(body, agentcfg.ErrMsgNoKibanaConnection):
-		gRPCSamplingMonitoringMap.inc(request.IDResponseErrorsServiceUnavailable)
-		return fmt.Errorf("error checking kibana version: %w", err)
-	case strings.HasPrefix(body, agentcfg.ErrMsgKibanaVersionNotCompatible):
-		gRPCSamplingMonitoringMap.inc(request.IDResponseErrorsServiceUnavailable)
-		return fmt.Errorf(
-			"not supported by used Kibana version, min required Kibana version: %v",
-			agentcfg.KibanaMinVersion,
-		)
-	default:
-		return nil
-	}
 }
 
 var anonymousAuthenticator *auth.Authenticator
