@@ -703,7 +703,7 @@ func TestModelIndexerScaling(t *testing.T) {
 	}
 	sendEvents := func(t *testing.T, indexer *modelindexer.Indexer, events int) {
 		for i := 0; i < events; i++ {
-			// The compressed size for this event is  is roughly ~190KB with
+			// The compressed size for this event is  is roughly ~190B with
 			// default compression.
 			batch := model.Batch{model.APMEvent{Timestamp: time.Now(), DataStream: model.DataStream{
 				Type:      "logs",
@@ -714,13 +714,12 @@ func TestModelIndexerScaling(t *testing.T) {
 		}
 	}
 	waitForScaleUp := func(t *testing.T, indexer *modelindexer.Indexer, n int64) {
-		if n == 0 {
-			n = 2
-		}
 		timeout := time.NewTimer(5 * time.Second)
 		stats := indexer.Stats()
+		limit := int64(runtime.GOMAXPROCS(0) / 4)
 		for stats.ActiveBulkRequests < n {
 			stats = indexer.Stats()
+			require.LessOrEqual(t, stats.ActiveBulkRequests, limit)
 			select {
 			case <-time.After(10 * time.Millisecond):
 			case <-timeout.C:
@@ -729,17 +728,14 @@ func TestModelIndexerScaling(t *testing.T) {
 			}
 		}
 		stats = indexer.Stats()
-		assert.Greater(t, stats.UpScales, int64(0), "No upscales took place: %+v", stats)
-		assert.Less(t, stats.ActiveBulkRequests, int64(runtime.GOMAXPROCS(0)))
+		assert.Greater(t, stats.IndexersCreated, int64(0), "No upscales took place: %+v", stats)
 	}
 	waitForScaleDown := func(t *testing.T, indexer *modelindexer.Indexer, n int64) {
-		if n == 0 {
-			n = 1
-		}
 		timeout := time.NewTimer(5 * time.Second)
 		stats := indexer.Stats()
 		for stats.ActiveBulkRequests > n {
 			stats = indexer.Stats()
+			require.Greater(t, stats.ActiveBulkRequests, int64(0))
 			select {
 			case <-time.After(10 * time.Millisecond):
 			case <-timeout.C:
@@ -748,23 +744,23 @@ func TestModelIndexerScaling(t *testing.T) {
 			}
 		}
 		stats = indexer.Stats()
-		assert.Greater(t, stats.DownScales, int64(0), "No downscales took place: %+v", stats)
-		assert.Equal(t, stats.ActiveBulkRequests, int64(n), "ActiveBulkRequests lower than 1: %+v", stats)
+		assert.Greater(t, stats.IndexersDestroyed, int64(0), "No downscales took place: %+v", stats)
+		assert.Equal(t, stats.ActiveBulkRequests, int64(n), "%+v", stats)
 	}
 	t.Run("DownscaleIdle", func(t *testing.T) {
 		// Override the default GOMAXPROCS, ensuring the active indexers can scale up.
 		setGOMAXPROCS(t, 12)
 		indexer := newIndexer(t, modelindexer.Config{
 			FlushInterval: time.Millisecond,
-			FlushBytes:    1, // 1 KB
+			FlushBytes:    1,
 			Scaling: modelindexer.ScalingConfig{
-				UpScale: modelindexer.ScaleActionConfig{
+				ScaleUp: modelindexer.ScaleActionConfig{
 					Threshold: 1, CoolDown: 1,
 				},
-				DownScale: modelindexer.ScaleActionConfig{
-					Threshold: 10, CoolDown: time.Second,
+				ScaleDown: modelindexer.ScaleActionConfig{
+					Threshold: 2, CoolDown: time.Millisecond,
 				},
-				IdleInterval: 100 * time.Millisecond,
+				IdleInterval: 50 * time.Millisecond,
 			},
 		})
 		events := int64(20)
@@ -778,8 +774,8 @@ func TestModelIndexerScaling(t *testing.T) {
 			Added:                 events,
 			Indexed:               events,
 			BulkRequests:          events,
-			UpScales:              2,
-			DownScales:            2,
+			IndexersCreated:       2,
+			IndexersDestroyed:     2,
 			AvailableBulkRequests: 50,
 			ActiveBulkRequests:    1,
 		}, stats)
@@ -791,10 +787,10 @@ func TestModelIndexerScaling(t *testing.T) {
 			FlushInterval: time.Millisecond,
 			FlushBytes:    1,
 			Scaling: modelindexer.ScalingConfig{
-				UpScale: modelindexer.ScaleActionConfig{
+				ScaleUp: modelindexer.ScaleActionConfig{
 					Threshold: 5, CoolDown: 1,
 				},
-				DownScale: modelindexer.ScaleActionConfig{
+				ScaleDown: modelindexer.ScaleActionConfig{
 					Threshold: 100, CoolDown: time.Minute,
 				},
 				IdleInterval: 100 * time.Millisecond,
@@ -822,8 +818,8 @@ func TestModelIndexerScaling(t *testing.T) {
 			BulkRequests:          events,
 			AvailableBulkRequests: 50,
 			ActiveBulkRequests:    1,
-			UpScales:              2,
-			DownScales:            2,
+			IndexersCreated:       2,
+			IndexersDestroyed:     2,
 		}, stats)
 	})
 	t.Run("UpscaleCooldown", func(t *testing.T) {
@@ -833,11 +829,11 @@ func TestModelIndexerScaling(t *testing.T) {
 			FlushInterval: time.Millisecond,
 			FlushBytes:    1,
 			Scaling: modelindexer.ScalingConfig{
-				UpScale: modelindexer.ScaleActionConfig{
+				ScaleUp: modelindexer.ScaleActionConfig{
 					Threshold: 10,
 					CoolDown:  time.Minute,
 				},
-				DownScale: modelindexer.ScaleActionConfig{
+				ScaleDown: modelindexer.ScaleActionConfig{
 					Threshold: 10,
 					CoolDown:  time.Minute,
 				},
@@ -864,8 +860,8 @@ func TestModelIndexerScaling(t *testing.T) {
 			BulkRequests:          events,
 			AvailableBulkRequests: 50,
 			ActiveBulkRequests:    0,
-			UpScales:              1,
-			DownScales:            0,
+			IndexersCreated:       1,
+			IndexersDestroyed:     0,
 		}, stats)
 	})
 }
@@ -955,7 +951,7 @@ func BenchmarkModelIndexer(b *testing.B) {
 		benchmarkModelIndexer(b, modelindexer.Config{
 			CompressionLevel: gzip.NoCompression,
 			Scaling: modelindexer.ScalingConfig{
-				UpScale: modelindexer.ScaleActionConfig{
+				ScaleUp: modelindexer.ScaleActionConfig{
 					Threshold: 1, // Scale immediately
 					CoolDown:  1,
 				},
@@ -972,7 +968,7 @@ func BenchmarkModelIndexer(b *testing.B) {
 		benchmarkModelIndexer(b, modelindexer.Config{
 			CompressionLevel: gzip.BestSpeed,
 			Scaling: modelindexer.ScalingConfig{
-				UpScale: modelindexer.ScaleActionConfig{
+				ScaleUp: modelindexer.ScaleActionConfig{
 					Threshold: 1, // Scale immediately
 					CoolDown:  1,
 				},
@@ -989,7 +985,7 @@ func BenchmarkModelIndexer(b *testing.B) {
 		benchmarkModelIndexer(b, modelindexer.Config{
 			CompressionLevel: gzip.DefaultCompression,
 			Scaling: modelindexer.ScalingConfig{
-				UpScale: modelindexer.ScaleActionConfig{
+				ScaleUp: modelindexer.ScaleActionConfig{
 					Threshold: 1, // Scale immediately
 					CoolDown:  1,
 				},
@@ -1006,7 +1002,7 @@ func BenchmarkModelIndexer(b *testing.B) {
 		benchmarkModelIndexer(b, modelindexer.Config{
 			CompressionLevel: gzip.BestCompression,
 			Scaling: modelindexer.ScalingConfig{
-				UpScale: modelindexer.ScaleActionConfig{
+				ScaleUp: modelindexer.ScaleActionConfig{
 					Threshold: 1, // Scale immediately
 					CoolDown:  1,
 				},

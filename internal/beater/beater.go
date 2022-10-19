@@ -544,8 +544,8 @@ func (s *Runner) newFinalBatchProcessor(
 		FlushInterval         time.Duration `config:"flush_interval"`
 		MaxRequests           int           `config:"max_requests"`
 		Scaling               struct {
-			Disabled bool `config:"disabled"`
-		} `config:"scaling"`
+			Enabled *bool `config:"enabled"`
+		} `config:"autoscaling"`
 	}
 	esConfig.FlushInterval = time.Second
 	esConfig.Config = elasticsearch.DefaultConfig()
@@ -565,15 +565,17 @@ func (s *Runner) newFinalBatchProcessor(
 	if err != nil {
 		return nil, nil, err
 	}
+	var scalingCfg modelindexer.ScalingConfig
+	if enabled := esConfig.Scaling.Enabled; enabled != nil {
+		scalingCfg.Disabled = !*enabled
+	}
 	indexer, err := modelindexer.New(client, modelindexer.Config{
 		CompressionLevel: esConfig.CompressionLevel,
 		FlushBytes:       flushBytes,
 		FlushInterval:    esConfig.FlushInterval,
 		Tracer:           tracer,
 		MaxRequests:      esConfig.MaxRequests,
-		Scaling: modelindexer.ScalingConfig{
-			Disabled: esConfig.Scaling.Disabled,
-		},
+		Scaling:          scalingCfg,
 	})
 	if err != nil {
 		return nil, nil, err
@@ -624,10 +626,10 @@ func (s *Runner) newFinalBatchProcessor(
 		v.OnInt(stats.ActiveBulkRequests)
 		v.OnKey("completed")
 		v.OnInt(stats.BulkRequests)
-		v.OnKey("downscales")
-		v.OnInt(stats.DownScales)
-		v.OnKey("upscales")
-		v.OnInt(stats.UpScales)
+		v.OnKey("active_created")
+		v.OnInt(stats.IndexersDestroyed)
+		v.OnKey("active_destroyed")
+		v.OnInt(stats.IndexersCreated)
 	})
 	return indexer, indexer.Close, nil
 }

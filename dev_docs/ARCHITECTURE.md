@@ -19,8 +19,8 @@ a custom Elasticsearch output called `modelindexer`.  This custom output differs
 libbeat output in multiple ways, but its main difference is that it fills a local cache until it is full,
 and then, flushes the cache in the background and continues processing events.
 
-From  `8.0` until `8.5`, the _modelindexer_ processed the events syncrhonously and used mutexes for
-syncrhonized writes to the cache. This worked well, but didn't seem to scale well on bigger instances with
+From  `8.0` until `8.5`, the _modelindexer_ processed the events synchronously and used mutexes for
+synchronized writes to the cache. This worked well, but didn't seem to scale well on bigger instances with
 more CPUs.
 
 ```mermaid
