@@ -69,10 +69,11 @@
                 "tag1": "label1"
             },
             "observer": {
-                "ephemeral_id": "00000000-0000-0000-0000-000000000000",
+                "ephemeral_id": "24d4f9c3-cf2e-4b2e-9b0a-2d6a71e82aff",
+                "hostname": "dynamic",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "apm-server",
-                "version": "1.2.3"
+                "version": "dynamic"
             },
             "parent": {
                 "id": "abcdef0123456789"
@@ -199,10 +200,11 @@
                 "tag1": "label1"
             },
             "observer": {
-                "ephemeral_id": "00000000-0000-0000-0000-000000000000",
+                "ephemeral_id": "24d4f9c3-cf2e-4b2e-9b0a-2d6a71e82aff",
+                "hostname": "dynamic",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "apm-server",
-                "version": "1.2.3"
+                "version": "dynamic"
             },
             "parent": {
                 "id": "0000000011111111"
@@ -332,10 +334,11 @@
                 "tag3": 12.34
             },
             "observer": {
-                "ephemeral_id": "00000000-0000-0000-0000-000000000000",
+                "ephemeral_id": "24d4f9c3-cf2e-4b2e-9b0a-2d6a71e82aff",
+                "hostname": "dynamic",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "apm-server",
-                "version": "1.2.3"
+                "version": "dynamic"
             },
             "parent": {
                 "id": "abcdefabcdef7890"
@@ -461,10 +464,11 @@
                 "tag1": "label1"
             },
             "observer": {
-                "ephemeral_id": "00000000-0000-0000-0000-000000000000",
+                "ephemeral_id": "24d4f9c3-cf2e-4b2e-9b0a-2d6a71e82aff",
+                "hostname": "dynamic",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "apm-server",
-                "version": "1.2.3"
+                "version": "dynamic"
             },
             "parent": {
                 "id": "ababcdcdefefabde"
@@ -606,10 +610,11 @@
                 "tag1": "label1"
             },
             "observer": {
-                "ephemeral_id": "00000000-0000-0000-0000-000000000000",
+                "ephemeral_id": "24d4f9c3-cf2e-4b2e-9b0a-2d6a71e82aff",
+                "hostname": "dynamic",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "apm-server",
-                "version": "1.2.3"
+                "version": "dynamic"
             },
             "parent": {
                 "id": "abcdef0123456789"
@@ -823,10 +828,11 @@
                 "tag1": "label1"
             },
             "observer": {
-                "ephemeral_id": "00000000-0000-0000-0000-000000000000",
+                "ephemeral_id": "24d4f9c3-cf2e-4b2e-9b0a-2d6a71e82aff",
+                "hostname": "dynamic",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "apm-server",
-                "version": "1.2.3"
+                "version": "dynamic"
             },
             "parent": {
                 "id": "abcdef0123456789"
@@ -1040,10 +1046,11 @@
                 "tag1": "label1"
             },
             "observer": {
-                "ephemeral_id": "00000000-0000-0000-0000-000000000000",
+                "ephemeral_id": "24d4f9c3-cf2e-4b2e-9b0a-2d6a71e82aff",
+                "hostname": "dynamic",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "apm-server",
-                "version": "1.2.3"
+                "version": "dynamic"
             },
             "parent": {
                 "id": "abcdef0123456789"
@@ -1244,10 +1251,11 @@
                 "tag1": "label1"
             },
             "observer": {
-                "ephemeral_id": "00000000-0000-0000-0000-000000000000",
+                "ephemeral_id": "24d4f9c3-cf2e-4b2e-9b0a-2d6a71e82aff",
+                "hostname": "dynamic",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "apm-server",
-                "version": "1.2.3"
+                "version": "dynamic"
             },
             "parent": {
                 "id": "abcdef0123456789"
@@ -1389,10 +1397,11 @@
                 "tag1": "label1"
             },
             "observer": {
-                "ephemeral_id": "00000000-0000-0000-0000-000000000000",
+                "ephemeral_id": "24d4f9c3-cf2e-4b2e-9b0a-2d6a71e82aff",
+                "hostname": "dynamic",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "apm-server",
-                "version": "1.2.3"
+                "version": "dynamic"
             },
             "parent": {
                 "id": "abcdef0123456789"
@@ -1528,10 +1537,11 @@
                 "tag1": "label1"
             },
             "observer": {
-                "ephemeral_id": "00000000-0000-0000-0000-000000000000",
+                "ephemeral_id": "24d4f9c3-cf2e-4b2e-9b0a-2d6a71e82aff",
+                "hostname": "dynamic",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "apm-server",
-                "version": "1.2.3"
+                "version": "dynamic"
             },
             "parent": {
                 "id": "abcdef0123456789"

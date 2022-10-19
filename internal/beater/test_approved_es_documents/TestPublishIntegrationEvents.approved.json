@@ -218,10 +218,11 @@
                 "segment": 5
             },
             "observer": {
-                "ephemeral_id": "00000000-0000-0000-0000-000000000000",
+                "ephemeral_id": "24d4f9c3-cf2e-4b2e-9b0a-2d6a71e82aff",
+                "hostname": "dynamic",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "apm-server",
-                "version": "1.2.3"
+                "version": "dynamic"
             },
             "parent": {
                 "id": "9632587410abcdef"
@@ -354,10 +355,11 @@
                 "segment": 5
             },
             "observer": {
-                "ephemeral_id": "00000000-0000-0000-0000-000000000000",
+                "ephemeral_id": "24d4f9c3-cf2e-4b2e-9b0a-2d6a71e82aff",
+                "hostname": "dynamic",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "apm-server",
-                "version": "1.2.3"
+                "version": "dynamic"
             },
             "parent": {
                 "id": "abcdef0123456789"
@@ -551,10 +553,11 @@
                 "segment": 5
             },
             "observer": {
-                "ephemeral_id": "00000000-0000-0000-0000-000000000000",
+                "ephemeral_id": "24d4f9c3-cf2e-4b2e-9b0a-2d6a71e82aff",
+                "hostname": "dynamic",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "apm-server",
-                "version": "1.2.3"
+                "version": "dynamic"
             },
             "parent": {
                 "id": "abcdefabcdef01234567"
@@ -688,10 +691,11 @@
                 "segment": 5
             },
             "observer": {
-                "ephemeral_id": "00000000-0000-0000-0000-000000000000",
+                "ephemeral_id": "24d4f9c3-cf2e-4b2e-9b0a-2d6a71e82aff",
+                "hostname": "dynamic",
                 "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "apm-server",
-                "version": "1.2.3"
+                "version": "dynamic"
             },
             "process": {
                 "args": [

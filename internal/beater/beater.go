@@ -30,6 +30,7 @@ import (
 	"time"
 
 	"github.com/dustin/go-humanize"
+	"github.com/gofrs/uuid"
 	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 	"go.elastic.co/apm/module/apmgrpc/v2"
@@ -68,15 +69,17 @@ import (
 	"github.com/elastic/apm-server/internal/model/modelprocessor"
 	"github.com/elastic/apm-server/internal/publish"
 	"github.com/elastic/apm-server/internal/sourcemap"
+	"github.com/elastic/apm-server/internal/version"
 )
 
 // Runner initialises and runs and orchestrates the APM Server
 // HTTP and gRPC servers, event processing pipeline, and output.
 type Runner struct {
-	wrapServer WrapServerFunc
-	info       beat.Info
-	logger     *logp.Logger
-	rawConfig  *agentconfig.C
+	wrapServer        WrapServerFunc
+	serverID          uuid.UUID
+	serverEphemeralID uuid.UUID
+	logger            *logp.Logger
+	rawConfig         *agentconfig.C
 
 	config                    *config.Config
 	fleetConfig               *config.Fleet
@@ -92,9 +95,17 @@ type RunnerParams struct {
 	// and output.* attributes.
 	Config *agentconfig.C
 
-	// Info holds information about the APM Server ("beat", for historical
-	// reasons) process.
-	Info beat.Info
+	// ID holds the APM Server `observer.id` value, which persists across
+	// restarts of the process.
+	ID uuid.UUID
+
+	// EphemeralID holds the APM Server `observer.ephemeral_id` value,
+	// which is generated every time the process restarts.
+	//
+	// The value of EphemeralID does NOT change for each invocation of
+	// NewRunner, meaning that `observer.ephemeral_id` will not change
+	// simply because the configuration was updated.
+	EphemeralID uuid.UUID
 
 	// Logger holds a logger to use for logging throughout the APM Server.
 	Logger *logp.Logger
@@ -140,10 +151,11 @@ func NewRunner(args RunnerParams) (*Runner, error) {
 		return nil, err
 	}
 	return &Runner{
-		wrapServer: args.WrapServer,
-		info:       args.Info,
-		logger:     logger,
-		rawConfig:  args.Config,
+		wrapServer:        args.WrapServer,
+		serverID:          args.ID,
+		serverEphemeralID: args.EphemeralID,
+		logger:            logger,
+		rawConfig:         args.Config,
 
 		config:                    cfg,
 		fleetConfig:               unpackedConfig.Fleet,
@@ -221,7 +233,7 @@ func (s *Runner) Run(ctx context.Context) error {
 		}
 	}
 
-	instrumentation, err := instrumentation.New(s.rawConfig, s.info.Beat, s.info.Version)
+	instrumentation, err := instrumentation.New(s.rawConfig, "apm-server", version.Version)
 	if err != nil {
 		return err
 	}
@@ -277,7 +289,7 @@ func (s *Runner) Run(ctx context.Context) error {
 	var sourcemapFetcher sourcemap.Fetcher
 	if s.config.RumConfig.Enabled && s.config.RumConfig.SourceMapping.Enabled {
 		fetcher, err := newSourcemapFetcher(
-			s.info, s.config.RumConfig.SourceMapping, s.fleetConfig,
+			s.config.RumConfig.SourceMapping, s.fleetConfig,
 			kibanaClient, newElasticsearchClient,
 		)
 		if err != nil {
@@ -335,7 +347,7 @@ func (s *Runner) Run(ctx context.Context) error {
 		// Ensure all events have observer.*, ecs.*, and data_stream.* fields added,
 		// and are counted in metrics. This is done in the final processors to ensure
 		// aggregated metrics are also processed.
-		newObserverBatchProcessor(s.info),
+		newObserverBatchProcessor(s.serverID, s.serverEphemeralID),
 		&modelprocessor.SetDataStream{Namespace: s.config.DataStreams.Namespace},
 		modelprocessor.NewEventCounter(monitoring.Default.GetRegistry("apm-server")),
 
@@ -361,7 +373,7 @@ func (s *Runner) Run(ctx context.Context) error {
 	// Create the runServer function. We start with newBaseRunServer, and then
 	// wrap depending on the configuration in order to inject behaviour.
 	serverParams := ServerParams{
-		UUID:                   s.info.ID,
+		UUID:                   s.serverID,
 		Config:                 s.config,
 		Managed:                s.fleetConfig != nil,
 		Namespace:              s.config.DataStreams.Namespace,
@@ -635,6 +647,17 @@ func (s *Runner) newLibbeatFinalBatchProcessor(
 	acker := publish.NewWaitPublishedAcker()
 	acker.Open()
 
+	hostname, _ := os.Hostname()
+	beatInfo := beat.Info{
+		Beat:        "apm-server",
+		IndexPrefix: "apm-server",
+		Version:     version.Version,
+		Hostname:    hostname,
+		Name:        hostname,
+		ID:          s.serverID,
+		EphemeralID: s.serverEphemeralID,
+	}
+
 	stateRegistry := monitoring.GetNamespace("state").GetRegistry()
 	stateRegistry.Remove("queue")
 	monitors := pipeline.Monitors{
@@ -647,12 +670,12 @@ func (s *Runner) newLibbeatFinalBatchProcessor(
 		if !s.outputConfig.IsSet() {
 			return "", outputs.Group{}, nil
 		}
-		indexSupporter := idxmgmt.NewSupporter(nil, s.info, s.rawConfig)
+		indexSupporter := idxmgmt.NewSupporter(nil, s.rawConfig)
 		outputName := s.outputConfig.Name()
-		output, err := outputs.Load(indexSupporter, s.info, stats, outputName, s.outputConfig.Config())
+		output, err := outputs.Load(indexSupporter, beatInfo, stats, outputName, s.outputConfig.Config())
 		return outputName, output, err
 	}
-	pipeline, err := pipeline.Load(s.info, monitors, pipeline.Config{}, nopProcessingSupporter{}, outputFactory)
+	pipeline, err := pipeline.Load(beatInfo, monitors, pipeline.Config{}, nopProcessingSupporter{}, outputFactory)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create libbeat output pipeline: %w", err)
 	}
@@ -675,7 +698,6 @@ func (s *Runner) newLibbeatFinalBatchProcessor(
 }
 
 func newSourcemapFetcher(
-	beatInfo beat.Info,
 	cfg config.SourceMapping,
 	fleetCfg *config.Fleet,
 	kibanaClient *kibana.Client,
@@ -743,7 +765,7 @@ func newSourcemapFetcher(
 	if err != nil {
 		return nil, err
 	}
-	index := strings.ReplaceAll(cfg.IndexPattern, "%{[observer.version]}", beatInfo.Version)
+	index := strings.ReplaceAll(cfg.IndexPattern, "%{[observer.version]}", version.Version)
 	esFetcher := sourcemap.NewElasticsearchFetcher(esClient, index)
 	chained = append(chained, esFetcher)
 	return chained, nil

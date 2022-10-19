@@ -37,7 +37,7 @@ import (
 )
 
 func TestNewSupporter(t *testing.T) {
-	supporter := NewSupporter(nil, beat.Info{}, config.MustNewConfigFrom(map[string]interface{}{}))
+	supporter := NewSupporter(nil, config.MustNewConfigFrom(map[string]interface{}{}))
 
 	// The data streams supporter does not set up templates or ILM. These
 	// are expected to be set up externally, typically by Fleet.
@@ -82,7 +82,7 @@ func TestNewSupporterWarnings(t *testing.T) {
 		"setup.template.pattern":                      "custom",
 	}
 
-	NewSupporter(logger, beat.Info{}, config.MustNewConfigFrom(attrs))
+	NewSupporter(logger, config.MustNewConfigFrom(attrs))
 
 	var warnings []string
 	for _, record := range observed.All() {
