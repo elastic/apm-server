@@ -1,0 +1,122 @@
+{
+    "events": [
+        {
+            "@timestamp": "2022-09-08T05:47:29.000Z",
+            "agent": {
+                "ephemeral_id": "e71be9ac-93b0-44b9-a997-5638f6ccfc36",
+                "name": "java",
+                "version": "1.10.0"
+            },
+            "container": {
+                "id": "8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"
+            },
+            "data_stream.dataset": "apm.app",
+            "data_stream.namespace": "default",
+            "data_stream.type": "logs",
+            "event": {
+                "agent_id_status": "missing",
+                "dataset": "accesslog",
+                "ingested": "dynamic"
+            },
+            "faas": {
+                "coldstart": true,
+                "execution": "6f7f0961f83442118a7af6fe80b88d56",
+                "id": "arn:aws:lambda:us-east-2:123456789012:function:custom-runtime"
+            },
+            "host": {
+                "architecture": "amd64",
+                "hostname": "node-name",
+                "ip": [
+                    "127.0.0.1"
+                ],
+                "name": "host1",
+                "os": {
+                    "platform": "Linux"
+                }
+            },
+            "kubernetes": {
+                "namespace": "default",
+                "node": {
+                    "name": "node-name"
+                },
+                "pod": {
+                    "name": "instrumented-java-service",
+                    "uid": "b17f231da0ad128dc6c6c0b2e82f6f303d3893e3"
+                }
+            },
+            "labels": {
+                "ab_testing": "true",
+                "bool": "true",
+                "group": "experimental",
+                "str": "str"
+            },
+            "log": {
+                "level": "warn",
+                "logger": "testLogger",
+                "origin": {
+                    "file": {
+                        "line": 10,
+                        "name": "testFile"
+                    },
+                    "function": "testFunc"
+                }
+            },
+            "message": "test log message with ecs fields",
+            "numeric_labels": {
+                "float": 1.1,
+                "int": 1,
+                "segment": 5
+            },
+            "observer": {
+                "ephemeral_id": "dynamic",
+                "hostname": "dynamic",
+                "id": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic"
+            },
+            "process": {
+                "args": [
+                    "-v"
+                ],
+                "parent": {
+                    "pid": 1
+                },
+                "pid": 1234,
+                "thread": {
+                    "name": "testThread"
+                },
+                "title": "/usr/lib/jvm/java-10-openjdk-amd64/bin/java"
+            },
+            "processor": {
+                "event": "log",
+                "name": "log"
+            },
+            "service": {
+                "environment": "prod",
+                "framework": {
+                    "name": "spring",
+                    "version": "5.0.0"
+                },
+                "language": {
+                    "name": "Java",
+                    "version": "10.0.2"
+                },
+                "name": "testSvc",
+                "node": {
+                    "name": "8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"
+                },
+                "runtime": {
+                    "name": "Java",
+                    "version": "10.0.2"
+                },
+                "version": "v1.0.0"
+            },
+            "trace": {
+                "id": "trace-id"
+            },
+            "transaction": {
+                "id": "txn-id"
+            }
+        }
+    ]
+}

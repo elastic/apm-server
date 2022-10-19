@@ -26,35 +26,34 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/sync/errgroup"
-
-	"github.com/elastic/beats/v7/libbeat/beat"
-	"github.com/elastic/elastic-agent-libs/config"
 )
 
 func TestLocker(t *testing.T) {
-	beat1, nopBeater := newNopBeat(t, `output.console.enabled: true`)
+	running := make(chan struct{})
+	beat1 := newBeat(t, `output.console.enabled: true`, func(RunnerParams) (Runner, error) {
+		return runnerFunc(func(ctx context.Context) error {
+			close(running)
+			<-ctx.Done()
+			return nil
+		}), nil
+	})
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	var g errgroup.Group
-	g.Go(func() error { return beat1.Run(ctx) })
+	stopBeat1 := runBeat(t, beat1)
 
 	// Wait for the first beater to be running, at which point
 	// the lock should be held.
-	<-nopBeater.running
+	<-running
 
 	// Create another Beat using the same configuration and data directory;
 	// its Run method should fail to acquire the lock while beat1 is running.
 	beat2, err := NewBeat(BeatParams{
-		Create: func(*beat.Beat, *config.C) (beat.Beater, error) {
+		NewRunner: func(RunnerParams) (Runner, error) {
 			panic("should not be called")
 		},
 	})
 	require.NoError(t, err)
-	err = beat2.Run(ctx)
+	err = beat2.Run(context.Background())
 	require.ErrorIs(t, err, ErrAlreadyLocked)
 
-	cancel()
-	assert.NoError(t, g.Wait())
+	assert.NoError(t, stopBeat1())
 }

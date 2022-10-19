@@ -34,9 +34,13 @@ const (
 )
 
 // CodeGenerator creates following struct methods
-//   `IsSet() bool`
-//   `Reset()`
-//   `validate() error`
+//
+// `IsSet() bool`
+// `Reset()`
+// `validate() error`
+// `validate() error`
+// `processNestedSource() error`
+//
 // on all exported and anonymous structs that are referenced
 // by at least one of the root types
 type CodeGenerator struct {
@@ -124,6 +128,9 @@ func (g *CodeGenerator) generate(st structType, key string) error {
 		return err
 	}
 	if err := g.generateValidation(st, key); err != nil {
+		return err
+	}
+	if err := g.generateNestedSourceProcessor(st, key); err != nil {
 		return err
 	}
 	if key != "" {
@@ -247,6 +254,65 @@ val.%s.Reset()
 	fmt.Fprint(&g.buf, `
 }
 `[1:])
+	return nil
+}
+
+// generateNestedSourceProcessor generates code for processing fully nested map of fields
+// into flat fields as identified by their JSON tag. The nested source is identified by
+// the tag `nested="true"`. If a struct has the nested source tag then all the other struct
+// fields are eligible for override from the nested source if they have the correct JSON tag.
+func (g *CodeGenerator) generateNestedSourceProcessor(structTyp structType, key string) error {
+	fmt.Fprintf(&g.buf, `
+func (val *%s) processNestedSource() error {
+`, structTyp.name)
+	var foundNestedSource bool
+	var nestedSource structField
+	for i := 0; i < len(structTyp.fields); i++ {
+		f := structTyp.fields[i]
+		hasTag := f.tag.Get("nested") == "true"
+		if hasTag && f.Type().String() != "map[string]interface{}" {
+			return errors.New("invalid nested source specified, should always be map[string]interface{}")
+		}
+		if hasTag && foundNestedSource {
+			return errors.New("only one nested source per struct is allowed")
+		}
+		if hasTag && !foundNestedSource {
+			foundNestedSource = hasTag
+			nestedSource = f
+			// return if the map is empty
+			fmt.Fprintf(&g.buf, `
+				if len(val.%s) == 0 {
+					return nil
+				}
+			`[1:], nestedSource.Name())
+		}
+	}
+	for i := 0; i < len(structTyp.fields); i++ {
+		f := structTyp.fields[i]
+		if foundNestedSource {
+			if f.Name() == nestedSource.Name() {
+				continue
+			}
+			if err := generateParseFlatFieldCode(&g.buf, f, nestedSource); err != nil {
+				return err
+			}
+		}
+		switch f.Type().Underlying().(type) {
+		case *types.Struct:
+			if _, isCustom := g.customStruct(f.Type()); isCustom {
+				fmt.Fprintf(&g.buf, `
+					if err := val.%s.processNestedSource(); err != nil {
+						return errors.Wrapf(err, "%s")
+					}
+				`[1:], f.Name(), jsonName(f))
+			}
+
+		}
+	}
+	fmt.Fprint(&g.buf, `
+		return nil
+	}
+	`[1:])
 	return nil
 }
 

@@ -8,14 +8,13 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/elastic/apm-server/internal/beatcmd"
-	"github.com/elastic/beats/v7/libbeat/beat"
 	_ "github.com/elastic/beats/v7/x-pack/libbeat/management" // Fleet
 )
 
 // newXPackRootCommand returns the Elastic licensed "apm-server" root command.
-func newXPackRootCommand(newBeat beat.Creator) *cobra.Command {
+func newXPackRootCommand(newRunner beatcmd.NewRunnerFunc) *cobra.Command {
 	return beatcmd.NewRootCommand(beatcmd.BeatParams{
-		Create:          newBeat,
+		NewRunner:       newRunner,
 		ElasticLicensed: true,
 	})
 }
