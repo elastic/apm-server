@@ -29,11 +29,20 @@ import (
 	"github.com/elastic/elastic-agent-libs/monitoring"
 )
 
-func TestProcessUnsampled(t *testing.T) {
-	processor, err := sampling.NewProcessor(newTempdirConfig(t))
+func newProcessor(t testing.TB, cfg sampling.Config) *sampling.Processor {
+	processor, err := sampling.NewProcessor(cfg)
 	require.NoError(t, err)
+	t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond)
+		defer cancel()
+		processor.Stop(ctx)
+	})
+	return processor
+}
+
+func TestProcessUnsampled(t *testing.T) {
+	processor := newProcessor(t, newTempdirConfig(t))
 	go processor.Run()
-	cleanupProcessor(t, processor)
 
 	in := model.Batch{{
 		Processor: model.TransactionProcessor,
@@ -46,7 +55,7 @@ func TestProcessUnsampled(t *testing.T) {
 		},
 	}}
 	out := in[:]
-	err = processor.ProcessBatch(context.Background(), &out)
+	err := processor.ProcessBatch(context.Background(), &out)
 	require.NoError(t, err)
 
 	// Unsampled transaction should be reported immediately.
@@ -83,10 +92,8 @@ func TestProcessAlreadyTailSampled(t *testing.T) {
 	// writer shards that can list all the events committed so far.
 	require.NoError(t, config.Storage.Flush(0))
 
-	processor, err := sampling.NewProcessor(config)
-	require.NoError(t, err)
+	processor := newProcessor(t, config)
 	go processor.Run()
-	cleanupProcessor(t, processor)
 
 	transaction1 := model.APMEvent{
 		Processor: model.TransactionProcessor,
@@ -120,7 +127,7 @@ func TestProcessAlreadyTailSampled(t *testing.T) {
 	}
 
 	batch := model.Batch{transaction1, transaction2, span1, span2}
-	err = processor.ProcessBatch(context.Background(), &batch)
+	err := processor.ProcessBatch(context.Background(), &batch)
 	require.NoError(t, err)
 
 	// Tail sampling decision already made. The first transaction and span should be
@@ -160,8 +167,7 @@ func TestProcessLocalTailSampling(t *testing.T) {
 	published := make(chan string)
 	config.Elasticsearch = pubsubtest.Client(pubsubtest.PublisherChan(published), nil)
 
-	processor, err := sampling.NewProcessor(config)
-	require.NoError(t, err)
+	processor := newProcessor(t, config)
 
 	trace1 := model.Trace{ID: "0102030405060708090a0b0c0d0e0f10"}
 	trace2 := model.Trace{ID: "0102030405060708090a0b0c0d0e0f11"}
@@ -199,7 +205,7 @@ func TestProcessLocalTailSampling(t *testing.T) {
 	}}
 
 	in := append(trace1Events[:], trace2Events...)
-	err = processor.ProcessBatch(context.Background(), &in)
+	err := processor.ProcessBatch(context.Background(), &in)
 	require.NoError(t, err)
 	assert.Empty(t, in)
 
@@ -208,7 +214,6 @@ func TestProcessLocalTailSampling(t *testing.T) {
 	// decisions are made, such that we have a single tail-sampling decision
 	// to check.
 	go processor.Run()
-	cleanupProcessor(t, processor)
 
 	// We have configured 50% tail-sampling, so we expect a single trace ID
 	// to be published. Sampling is non-deterministic (weighted random), so
@@ -276,10 +281,8 @@ func TestProcessLocalTailSampling(t *testing.T) {
 func TestProcessLocalTailSamplingUnsampled(t *testing.T) {
 	config := newTempdirConfig(t)
 	config.FlushInterval = time.Minute
-	processor, err := sampling.NewProcessor(config)
-	require.NoError(t, err)
+	processor := newProcessor(t, config)
 	go processor.Run()
-	cleanupProcessor(t, processor)
 
 	// Process root transactions until one is rejected.
 	traceIDs := make([]string, 10000)
@@ -373,7 +376,6 @@ func TestProcessLocalTailSamplingPolicyOrder(t *testing.T) {
 	// decisions are made, such that we have a single tail-sampling decision
 	// to check.
 	go processor.Run()
-	cleanupProcessor(t, processor)
 
 	// The first matching policy should win, and sample 50%.
 	for i := 0; i < numTransactions/2; i++ {
@@ -414,10 +416,8 @@ func TestProcessRemoteTailSampling(t *testing.T) {
 		}
 	})
 
-	processor, err := sampling.NewProcessor(config)
-	require.NoError(t, err)
+	processor := newProcessor(t, config)
 	go processor.Run()
-	cleanupProcessor(t, processor)
 
 	traceID1 := "0102030405060708090a0b0c0d0e0f10"
 	traceID2 := "0102030405060708090a0b0c0d0e0f11"
@@ -431,7 +431,7 @@ func TestProcessRemoteTailSampling(t *testing.T) {
 	}}
 
 	in := trace1Events[:]
-	err = processor.ProcessBatch(context.Background(), &in)
+	err := processor.ProcessBatch(context.Background(), &in)
 	require.NoError(t, err)
 	assert.Empty(t, in)
 
@@ -499,10 +499,8 @@ func TestGroupsMonitoring(t *testing.T) {
 	config.FlushInterval = time.Minute
 	config.Policies[0].SampleRate = 0.99
 
-	processor, err := sampling.NewProcessor(config)
-	require.NoError(t, err)
+	processor := newProcessor(t, config)
 	go processor.Run()
-	cleanupProcessor(t, processor)
 
 	for i := 0; i < config.MaxDynamicServices+2; i++ {
 		err := processor.ProcessBatch(context.Background(), &model.Batch{{
@@ -532,10 +530,8 @@ func TestGroupsMonitoring(t *testing.T) {
 func TestStorageMonitoring(t *testing.T) {
 	config := newTempdirConfig(t)
 
-	processor, err := sampling.NewProcessor(config)
-	require.NoError(t, err)
+	processor := newProcessor(t, config)
 	go processor.Run()
-	cleanupProcessor(t, processor)
 	for i := 0; i < 100; i++ {
 		traceID := uuid.Must(uuid.NewV4()).String()
 		batch := model.Batch{{
@@ -556,8 +552,7 @@ func TestStorageMonitoring(t *testing.T) {
 	// and calculate the storage size. Otherwise we must wait for a minute
 	// (hard-coded in badger) for storage metrics to be updated.
 	processor.Stop(context.Background())
-	processor, err = sampling.NewProcessor(config)
-	require.NoError(t, err)
+	processor = newProcessor(t, config)
 
 	metrics := collectProcessorMetrics(processor)
 	assert.NotZero(t, metrics.Ints, "sampling.storage.lsm_size")
@@ -586,10 +581,8 @@ func TestStorageGC(t *testing.T) {
 
 	writeBatch := func(n int) {
 		config.StorageGCInterval = time.Minute // effectively disable
-		processor, err := sampling.NewProcessor(config)
-		require.NoError(t, err)
+		processor := newProcessor(t, config)
 		go processor.Run()
-		cleanupProcessor(t, processor)
 		for i := 0; i < n; i++ {
 			traceID := uuid.Must(uuid.NewV4()).String()
 			batch := model.Batch{{
@@ -627,10 +620,8 @@ func TestStorageGC(t *testing.T) {
 	}
 
 	config.StorageGCInterval = 10 * time.Millisecond
-	processor, err := sampling.NewProcessor(config)
-	require.NoError(t, err)
+	processor := newProcessor(t, config)
 	go processor.Run()
-	cleanupProcessor(t, processor)
 
 	// Wait for the first value log file to be garbage collected.
 	deadline := time.Now().Add(10 * time.Second)
@@ -656,10 +647,8 @@ func TestStorageLimit(t *testing.T) {
 	}
 
 	writeBatch := func(n int, c sampling.Config, assertBatch func(b model.Batch)) *sampling.Processor {
-		processor, err := sampling.NewProcessor(c)
-		require.NoError(t, err)
+		processor := newProcessor(t, c)
 		go processor.Run()
-		cleanupProcessor(t, processor)
 		var batch model.Batch
 		for i := 0; i < n; i++ {
 			traceID := uuid.Must(uuid.NewV4()).String()
@@ -670,7 +659,7 @@ func TestStorageLimit(t *testing.T) {
 				Span:      &model.Span{ID: traceID},
 			})
 		}
-		err = processor.ProcessBatch(context.Background(), &batch)
+		err := processor.ProcessBatch(context.Background(), &batch)
 		require.NoError(t, err)
 		assertBatch(batch)
 		return processor
@@ -719,10 +708,8 @@ func TestProcessRemoteTailSamplingPersistence(t *testing.T) {
 	subscriber := pubsubtest.SubscriberChan(subscriberChan)
 	config.Elasticsearch = pubsubtest.Client(nil, subscriber)
 
-	processor, err := sampling.NewProcessor(config)
-	require.NoError(t, err)
+	processor := newProcessor(t, config)
 	go processor.Run()
-	cleanupProcessor(t, processor)
 
 	// Wait for subscriber_position.json to be written to the storage directory.
 	subscriberPositionFile := filepath.Join(config.StorageDir, "subscriber_position.json")
@@ -904,12 +891,4 @@ func waitFileModified(tb testing.TB, filename string, after time.Time) ([]byte, 
 			tb.Fatalf("timed out waiting for %q to be modified", filename)
 		}
 	}
-}
-
-func cleanupProcessor(t *testing.T, processor *sampling.Processor) {
-	t.Cleanup(func() {
-		ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond)
-		defer cancel()
-		processor.Stop(ctx)
-	})
 }
