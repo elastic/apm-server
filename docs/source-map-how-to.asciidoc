@@ -126,7 +126,7 @@ curl -X POST "http://localhost:5601/api/apm/sourcemaps" \
 -H 'Authorization: ApiKey ${YOUR_API_KEY}' \ <2>
 -F 'service_name=foo' \
 -F 'service_version=$SERVICEVERSION' \
--F 'bundle_filepath=/test/e2e/general-usecase/bundle.js.map' \
+-F 'bundle_filepath=/test/e2e/general-usecase/app.min.js' \
 -F 'sourcemap=@./dist/app.min.js.map'
 ----
 <1> This example uses the version from `package.json`
