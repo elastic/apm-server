@@ -26,8 +26,6 @@ func TestNewProcessorConfigInvalid(t *testing.T) {
 		require.Nil(t, agg)
 		assert.EqualError(t, err, "invalid tail-sampling config: "+expectedError)
 	}
-	assertInvalidConfigError("BeatID unspecified")
-	config.BeatID = "beat"
 
 	assertInvalidConfigError("BatchProcessor unspecified")
 	config.BatchProcessor = struct{ model.BatchProcessor }{}
@@ -72,6 +70,9 @@ func TestNewProcessorConfigInvalid(t *testing.T) {
 		Dataset:   "sampled",
 		Namespace: "testing",
 	}
+
+	assertInvalidConfigError("invalid remote sampling config: UUID unspecified")
+	config.UUID = "server"
 
 	assertInvalidConfigError("invalid storage config: DB unspecified")
 	config.DB = &badger.DB{}

@@ -96,9 +96,7 @@
                 "number_code": 2
             },
             "observer": {
-                "ephemeral_id": "24d4f9c3-cf2e-4b2e-9b0a-2d6a71e82aff",
                 "hostname": "dynamic",
-                "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "apm-server",
                 "version": "dynamic"
             },
@@ -239,9 +237,7 @@
                 "span_tag": "something"
             },
             "observer": {
-                "ephemeral_id": "24d4f9c3-cf2e-4b2e-9b0a-2d6a71e82aff",
                 "hostname": "dynamic",
-                "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
                 "type": "apm-server",
                 "version": "dynamic"
             },

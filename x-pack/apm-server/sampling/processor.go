@@ -343,7 +343,7 @@ func (p *Processor) Run() error {
 	}
 	subscriberPositions := make(chan pubsub.SubscriberPosition)
 	pubsub, err := pubsub.New(pubsub.Config{
-		BeatID:     p.config.BeatID,
+		ServerID:   p.config.UUID,
 		Client:     p.config.Elasticsearch,
 		DataStream: pubsub.DataStreamConfig(p.config.SampledTracesDataStream),
 		Logger:     p.logger,

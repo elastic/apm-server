@@ -2,3 +2,5 @@
   name: event.ingested
 - external: ecs
   name: trace.id
+- external: ecs
+  name: agent.ephemeral_id

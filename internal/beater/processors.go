@@ -22,8 +22,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/gofrs/uuid"
-
 	"github.com/elastic/apm-server/internal/beater/auth"
 	"github.com/elastic/apm-server/internal/beater/ratelimit"
 	"github.com/elastic/apm-server/internal/model"
@@ -64,16 +62,12 @@ func rateLimitBatchProcessor(ctx context.Context, batch *model.Batch) error {
 
 // newObserverBatchProcessor returns a model.BatchProcessor that sets
 // observer fields from information about the apm-server process.
-func newObserverBatchProcessor(id, ephemeralID uuid.UUID) model.ProcessBatchFunc {
+func newObserverBatchProcessor() model.ProcessBatchFunc {
 	hostname, _ := os.Hostname()
-	idString := id.String()
-	ephemeralIDString := ephemeralID.String()
 	return func(ctx context.Context, b *model.Batch) error {
 		for i := range *b {
 			observer := &(*b)[i].Observer
-			observer.EphemeralID = ephemeralIDString
 			observer.Hostname = hostname
-			observer.ID = idString
 			observer.Type = "apm-server"
 			observer.Version = version.Version
 		}

@@ -30,7 +30,6 @@ import (
 	"time"
 
 	"github.com/dustin/go-humanize"
-	"github.com/gofrs/uuid"
 	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 	"go.elastic.co/apm/module/apmgrpc/v2"
@@ -75,11 +74,9 @@ import (
 // Runner initialises and runs and orchestrates the APM Server
 // HTTP and gRPC servers, event processing pipeline, and output.
 type Runner struct {
-	wrapServer        WrapServerFunc
-	serverID          uuid.UUID
-	serverEphemeralID uuid.UUID
-	logger            *logp.Logger
-	rawConfig         *agentconfig.C
+	wrapServer WrapServerFunc
+	logger     *logp.Logger
+	rawConfig  *agentconfig.C
 
 	config                    *config.Config
 	fleetConfig               *config.Fleet
@@ -94,18 +91,6 @@ type RunnerParams struct {
 	// Config holds the full, raw, configuration, including apm-server.*
 	// and output.* attributes.
 	Config *agentconfig.C
-
-	// ID holds the APM Server `observer.id` value, which persists across
-	// restarts of the process.
-	ID uuid.UUID
-
-	// EphemeralID holds the APM Server `observer.ephemeral_id` value,
-	// which is generated every time the process restarts.
-	//
-	// The value of EphemeralID does NOT change for each invocation of
-	// NewRunner, meaning that `observer.ephemeral_id` will not change
-	// simply because the configuration was updated.
-	EphemeralID uuid.UUID
 
 	// Logger holds a logger to use for logging throughout the APM Server.
 	Logger *logp.Logger
@@ -151,11 +136,9 @@ func NewRunner(args RunnerParams) (*Runner, error) {
 		return nil, err
 	}
 	return &Runner{
-		wrapServer:        args.WrapServer,
-		serverID:          args.ID,
-		serverEphemeralID: args.EphemeralID,
-		logger:            logger,
-		rawConfig:         args.Config,
+		wrapServer: args.WrapServer,
+		logger:     logger,
+		rawConfig:  args.Config,
 
 		config:                    cfg,
 		fleetConfig:               unpackedConfig.Fleet,
@@ -347,7 +330,7 @@ func (s *Runner) Run(ctx context.Context) error {
 		// Ensure all events have observer.*, ecs.*, and data_stream.* fields added,
 		// and are counted in metrics. This is done in the final processors to ensure
 		// aggregated metrics are also processed.
-		newObserverBatchProcessor(s.serverID, s.serverEphemeralID),
+		newObserverBatchProcessor(),
 		&modelprocessor.SetDataStream{Namespace: s.config.DataStreams.Namespace},
 		modelprocessor.NewEventCounter(monitoring.Default.GetRegistry("apm-server")),
 
@@ -373,7 +356,6 @@ func (s *Runner) Run(ctx context.Context) error {
 	// Create the runServer function. We start with newBaseRunServer, and then
 	// wrap depending on the configuration in order to inject behaviour.
 	serverParams := ServerParams{
-		UUID:                   s.serverID,
 		Config:                 s.config,
 		Managed:                s.fleetConfig != nil,
 		Namespace:              s.config.DataStreams.Namespace,
@@ -654,8 +636,6 @@ func (s *Runner) newLibbeatFinalBatchProcessor(
 		Version:     version.Version,
 		Hostname:    hostname,
 		Name:        hostname,
-		ID:          s.serverID,
-		EphemeralID: s.serverEphemeralID,
 	}
 
 	stateRegistry := monitoring.GetNamespace("state").GetRegistry()

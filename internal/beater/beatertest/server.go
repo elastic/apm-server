@@ -27,7 +27,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -37,14 +36,6 @@ import (
 	"github.com/elastic/apm-server/internal/beater"
 	agentconfig "github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
-)
-
-var (
-	// ServerID is a mock `observer.id` for the server.
-	ServerID = uuid.Must(uuid.FromString("fbba762a-14dd-412c-b7e9-b79f903eb492"))
-
-	// ServerEphemeralID is a mock `observer.ephemeral_id` for the server.
-	ServerEphemeralID = uuid.Must(uuid.FromString("24d4f9c3-cf2e-4b2e-9b0a-2d6a71e82aff"))
 )
 
 // Server runs the core APM Server that, by default, listens on a system-chosen port
@@ -110,11 +101,9 @@ func NewUnstartedServer(t testing.TB, opts ...option) *Server {
 	require.NoError(t, err)
 
 	runner, err := beater.NewRunner(beater.RunnerParams{
-		Config:      cfg,
-		ID:          ServerID,
-		EphemeralID: ServerEphemeralID,
-		Logger:      logger,
-		WrapServer:  options.wrapServer,
+		Config:     cfg,
+		Logger:     logger,
+		WrapServer: options.wrapServer,
 	})
 	require.NoError(t, err)
 

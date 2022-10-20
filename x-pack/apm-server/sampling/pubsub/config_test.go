@@ -59,7 +59,7 @@ func TestConfigInvalid(t *testing.T) {
 				Namespace: "namespace",
 			},
 		},
-		err: "BeatID unspecified",
+		err: "ServerID unspecified",
 	}, {
 		config: pubsub.Config{
 			Client: elasticsearchClient,
@@ -68,7 +68,7 @@ func TestConfigInvalid(t *testing.T) {
 				Dataset:   "dataset",
 				Namespace: "namespace",
 			},
-			BeatID: "beat_id",
+			ServerID: "server_id",
 		},
 		err: "SearchInterval unspecified or negative",
 	}, {
@@ -79,7 +79,7 @@ func TestConfigInvalid(t *testing.T) {
 				Dataset:   "dataset",
 				Namespace: "namespace",
 			},
-			BeatID:         "beat_id",
+			ServerID:       "server_id",
 			SearchInterval: time.Second,
 		},
 		err: "FlushInterval unspecified or negative",
