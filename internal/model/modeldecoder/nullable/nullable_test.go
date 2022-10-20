@@ -234,8 +234,12 @@ func TestTimeMicrosUnix(t *testing.T) {
 	}{
 		{name: "valid", input: `{"tms":1599996822281000}`, isSet: true,
 			val: "2020-09-13 11:33:42.281 +0000 UTC"},
-		{name: "valid-with-str-tms", input: `{"tms":"2022-10-17T14:15:30.111+0800"}`, isSet: true,
+		{name: "valid-with-str-tmz", input: `{"tms":"2022-10-17T14:15:30.111+0800"}`, isSet: true,
 			val: "2022-10-17 06:15:30.111 +0000 UTC"},
+		{name: "valid-with-str-tmz-utc", input: `{"tms":"2022-10-17T14:15:30.111Z"}`, isSet: true,
+			val: "2022-10-17 14:15:30.111 +0000 UTC"},
+		{name: "valid-with-str-tmz-without-milli", input: `{"tms":"2022-10-17T14:15:30Z"}`, isSet: true,
+			val: "2022-10-17 14:15:30 +0000 UTC"},
 		{name: "null", input: `{"tms":null}`, val: time.Time{}.String()},
 		{name: "invalid-type", input: `{"tms":""}`, fail: true, isSet: true},
 		{name: "invalid-type", input: `{"tms":123.56}`, fail: true, isSet: true},
