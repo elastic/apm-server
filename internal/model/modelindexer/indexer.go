@@ -78,10 +78,10 @@ type Indexer struct {
 	tooManyRequests       int64
 	bytesTotal            int64
 	availableBulkRequests int64
-	activeBulkRequests    int64
-	lastScaleAction       atomic.Value
 	activeCreated         int64
 	activeDestroyed       int64
+
+	scalingInfo atomic.Value
 
 	config                Config
 	logger                *logp.Logger
@@ -232,7 +232,6 @@ func New(client elasticsearch.Client, cfg Config) (*Indexer, error) {
 		// NOTE(marclop) This channel size is arbitrary.
 		bulkItems: make(chan elasticsearch.BulkIndexerItem, 100),
 	}
-	indexer.lastScaleAction.Store(time.Time{})
 
 	// We create a cancellable context for the errgroup.Group for unblocking
 	// flushes when Close returns. We intentionally do not use errgroup.WithContext,
@@ -240,8 +239,9 @@ func New(client elasticsearch.Client, cfg Config) (*Indexer, error) {
 	indexer.errgroupContext, indexer.cancelErrgroupContext = context.WithCancel(
 		context.Background(),
 	)
+	indexer.scalingInfo.Store(scalingInfo{activeIndexers: 1})
 	indexer.errgroup.Go(func() error {
-		indexer.runActiveIndexer(atomic.AddInt64(&indexer.activeBulkRequests, 1))
+		indexer.runActiveIndexer()
 		return nil
 	})
 	return indexer, nil
@@ -282,7 +282,7 @@ func (i *Indexer) Stats() Stats {
 		TooManyRequests:       atomic.LoadInt64(&i.tooManyRequests),
 		BytesTotal:            atomic.LoadInt64(&i.bytesTotal),
 		AvailableBulkRequests: atomic.LoadInt64(&i.availableBulkRequests),
-		ActiveBulkRequests:    atomic.LoadInt64(&i.activeBulkRequests),
+		ActiveBulkRequests:    i.scalingInformation().activeIndexers,
 		IndexersCreated:       atomic.LoadInt64(&i.activeCreated),
 		IndexersDestroyed:     atomic.LoadInt64(&i.activeDestroyed),
 	}
@@ -464,7 +464,7 @@ func (i *Indexer) flush(ctx context.Context, bulkIndexer *bulkIndexer) error {
 // will be pulled out of the queue, but also the more likely it is that the
 // outgoing Elasticsearch bulk requests are flushed due to the idle timer,
 // rather than due to being full.
-func (i *Indexer) runActiveIndexer(id int64) {
+func (i *Indexer) runActiveIndexer() {
 	var closed bool
 	var active *bulkIndexer
 	var timedFlush uint
@@ -493,7 +493,7 @@ func (i *Indexer) runActiveIndexer(id int64) {
 			// reset the flushTimer with IdleInterval so excess active indexers
 			// that remain idle can be scaled down.
 			if !i.config.Scaling.Disabled && active == nil {
-				if atomic.LoadInt64(&i.activeBulkRequests) > 1 &&
+				if i.scalingInformation().activeIndexers > 1 &&
 					float64(len(i.bulkItems))/float64(cap(i.bulkItems)) <= 0.05 {
 					flushTimer.Reset(i.config.Scaling.IdleInterval)
 				}
@@ -542,53 +542,57 @@ func (i *Indexer) runActiveIndexer(id int64) {
 		if i.config.Scaling.Disabled {
 			continue
 		}
-		now := time.Now().Add(time.Duration(id))
-		if i.maybeScaleDown(now, &timedFlush) {
+		now := time.Now()
+		info := i.scalingInformation()
+		if i.maybeScaleDown(now, info, &timedFlush) {
 			atomic.AddInt64(&i.activeDestroyed, 1)
-			i.logger.Infof("active indexer exiting due to scaledown: %d",
-				atomic.LoadInt64(&i.activeBulkRequests),
-			)
 			return
 		}
-		if i.maybeScaleUp(now, &fullFlush) {
-			id := atomic.AddInt64(&i.activeBulkRequests, 1)
+		if i.maybeScaleUp(now, info, &fullFlush) {
 			atomic.AddInt64(&i.activeCreated, 1)
 			i.errgroup.Go(func() error {
-				i.runActiveIndexer(id)
+				i.runActiveIndexer()
 				return nil
 			})
 		}
 	}
-	atomic.AddInt64(&i.activeBulkRequests, -1) // Decrement the counter on exit.
+	// Decrement the active bulk requests when Indexer is closed.
+	for {
+		info := i.scalingInformation()
+		if i.scalingInfo.CompareAndSwap(info, scalingInfo{
+			lastAction:     time.Now(),
+			activeIndexers: info.activeIndexers - 1,
+		}) {
+			return
+		}
+	}
 }
 
 // maybeScaleDown returns true if the caller (assumed to be active indexer) needs
-// to be scaled down. It automatically decrements the indexer `activeBulkRequests`
-// variable when true.
-func (i *Indexer) maybeScaleDown(now time.Time, timedFlush *uint) bool {
-	activeIndexers := atomic.LoadInt64(&i.activeBulkRequests)
+// to be scaled down. It automatically updates the scaling information with a
+// decremented `activeBulkRequests` and timestamp of the action when true.
+func (i *Indexer) maybeScaleDown(now time.Time, info scalingInfo, timedFlush *uint) bool {
 	// Only downscale when there is more than 1 active indexer.
-	if activeIndexers == 1 {
-		return false
-	}
-	last := i.lastScaleActionTime()
-	scaleDown := func() bool {
-		// Avoid having more than 1 concurrent downscale, by using a compare
-		// and swap operation.
-		if i.lastScaleAction.CompareAndSwap(last, now) {
-			atomic.AddInt64(&i.activeBulkRequests, -1)
-			return true
-		}
+	if info.activeIndexers == 1 {
 		return false
 	}
 	// If the CPU quota changes and there is more than 1 indexer, downscale an
 	// active indexer. This downscaling action isn't subject to the downscaling
 	// cooldown, since doing so would result in using much more CPU for longer.
-	if limit := activeLimit(); activeIndexers > limit {
-		i.logger.Infof("active indexers (%d) > active limit (%d), scaling down",
-			activeIndexers, limit,
-		)
-		return scaleDown()
+	// Loop until the CompareAndSwap operation succeeds (there may be more than)
+	// since a single active indexer trying to down scale itself, or the active
+	// indexer variable is in check.
+	limit := activeLimit()
+	for info.activeIndexers > limit {
+		// Avoid having more than 1 concurrent downscale, by using a compare
+		// and swap operation.
+		if i.scalingInfo.CompareAndSwap(info, info.ScaleDown(now)) {
+			i.logger.Infof("active indexers (%d) > active limit (%d), scaling down",
+				info.activeIndexers, limit,
+			)
+			return true
+		}
+		info = i.scalingInformation() // refresh scaling info if CAS failed.
 	}
 	if *timedFlush < i.config.Scaling.ScaleDown.Threshold {
 		return false
@@ -596,40 +600,46 @@ func (i *Indexer) maybeScaleDown(now time.Time, timedFlush *uint) bool {
 	// Reset timedFlush after it has exceeded the threshold
 	// it avoids unnecessary precociousness to scale down.
 	*timedFlush = 0
-	if !last.Add(i.config.Scaling.ScaleDown.CoolDown).Before(now) {
+	if info.withinCoolDown(i.config.Scaling.ScaleDown.CoolDown, now) {
 		return false
 	}
-	i.logger.Infof("timed flush threshold exceeded, active: %d",
-		atomic.LoadInt64(&i.activeBulkRequests),
-	)
-	return scaleDown()
+	if new := info.ScaleDown(now); i.scalingInfo.CompareAndSwap(info, new) {
+		i.logger.Infof("timed flush threshold exceeded, scaling down to: %d", new)
+		return true
+	}
+	return false
 }
 
 // maybeScaleUp returns true if the caller (assumed to be active indexer) needs
 // to scale up and create another active indexer goroutine. It automatically
-// increments the indexer `activeBulkRequests` variable when true.
-func (i *Indexer) maybeScaleUp(now time.Time, fullFlush *uint) bool {
+// updates the scaling information with an incremented `activeBulkRequests` and
+// timestamp of the action when true.
+func (i *Indexer) maybeScaleUp(now time.Time, info scalingInfo, fullFlush *uint) bool {
 	if *fullFlush < i.config.Scaling.ScaleUp.Threshold {
 		return false
 	}
-	activeIndexers := atomic.LoadInt64(&i.activeBulkRequests)
-	if activeIndexers >= activeLimit() {
+	if info.activeIndexers >= activeLimit() {
 		return false
 	}
 	// Reset fullFlush after it has exceeded the threshold
 	// it avoids unnecessary precociousness to scale up.
 	*fullFlush = 0
-	last := i.lastScaleActionTime()
-	if !last.Add(i.config.Scaling.ScaleUp.CoolDown).Before(now) {
+	if info.withinCoolDown(i.config.Scaling.ScaleUp.CoolDown, now) {
 		return false
 	}
 	// Avoid having more than 1 concurrent upscale, by using a compare
 	// and swap operation.
-	return i.lastScaleAction.CompareAndSwap(last, now)
+	if new := info.ScaleUp(now); i.scalingInfo.CompareAndSwap(info, new) {
+		i.logger.Infof("full flush threshold exceeded, scaling up to: %d",
+			new.activeIndexers,
+		)
+		return true
+	}
+	return false
 }
 
-func (i *Indexer) lastScaleActionTime() time.Time {
-	return i.lastScaleAction.Load().(time.Time)
+func (i *Indexer) scalingInformation() scalingInfo {
+	return i.scalingInfo.Load().(scalingInfo)
 }
 
 // activeLimit returns the value of GOMAXPROCS / 4. Which should limit the
@@ -674,6 +684,30 @@ func (r *pooledReader) Read(p []byte) (int, error) {
 
 func (r *pooledReader) Seek(offset int64, whence int) (int64, error) {
 	return r.reader.Seek(offset, whence)
+}
+
+// scalingInfo contains the number of active indexers and the timestamp of the
+// latest time a scale action was performed. This structure is used within the
+// Indexer to coordinate scale actions with a CompareAndSwap operation.
+type scalingInfo struct {
+	lastAction     time.Time
+	activeIndexers int64
+}
+
+func (s scalingInfo) ScaleDown(t time.Time) scalingInfo {
+	return scalingInfo{
+		lastAction: t, activeIndexers: s.activeIndexers - 1,
+	}
+}
+
+func (s scalingInfo) ScaleUp(t time.Time) scalingInfo {
+	return scalingInfo{
+		lastAction: t, activeIndexers: s.activeIndexers + 1,
+	}
+}
+
+func (s scalingInfo) withinCoolDown(cooldown time.Duration, now time.Time) bool {
+	return s.lastAction.Add(cooldown).After(now)
 }
 
 // Stats holds bulk indexing statistics.
