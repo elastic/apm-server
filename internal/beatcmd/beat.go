@@ -404,8 +404,8 @@ func (b *Beat) registerMetrics() {
 	monitoring.NewString(infoRegistry, "uuid").Set(b.Info.ID.String())
 	monitoring.NewString(infoRegistry, "ephemeral_id").Set(b.Info.EphemeralID.String())
 	monitoring.NewString(infoRegistry, "binary_arch").Set(runtime.GOARCH)
-	monitoring.NewString(infoRegistry, "build_commit").Set(vcsRevision)
-	monitoring.NewTimestamp(infoRegistry, "build_time").Set(vcsTime)
+	monitoring.NewString(infoRegistry, "build_commit").Set(version.CommitHash())
+	monitoring.NewTimestamp(infoRegistry, "build_time").Set(version.CommitTime())
 	monitoring.NewBool(infoRegistry, "elastic_licensed").Set(b.Info.ElasticLicensed)
 
 	// Add user metadata data asynchronously (on Windows the lookup can take up to 60s).
@@ -570,8 +570,8 @@ func logSystemInfo(info beat.Info) {
 
 	// Build
 	build := mapstr.M{
-		"commit":  vcsRevision,
-		"time":    vcsTime,
+		"commit":  version.CommitHash(),
+		"time":    version.CommitTime(),
 		"version": info.Version,
 	}
 	log.Infow("Build info", "build", build)

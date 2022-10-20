@@ -185,9 +185,13 @@ func (s *Runner) Run(ctx context.Context) error {
 	// Send config to telemetry.
 	recordAPMServerConfig(s.config)
 
-	var kibanaClient kibana.Client
+	var kibanaClient *kibana.Client
 	if s.config.Kibana.Enabled {
-		kibanaClient = kibana.NewConnectingClient(s.config.Kibana.ClientConfig)
+		var err error
+		kibanaClient, err = kibana.NewClient(s.config.Kibana.ClientConfig)
+		if err != nil {
+			return err
+		}
 	}
 
 	// ELASTIC_AGENT_CLOUD is set when running in Elastic Cloud.
@@ -438,7 +442,7 @@ func (s *Runner) Run(ctx context.Context) error {
 // waitReady waits until the server is ready to index events.
 func (s *Runner) waitReady(
 	ctx context.Context,
-	kibanaClient kibana.Client,
+	kibanaClient *kibana.Client,
 	tracer *apm.Tracer,
 ) error {
 	var preconditions []func(context.Context) error
@@ -686,7 +690,7 @@ func newSourcemapFetcher(
 	beatInfo beat.Info,
 	cfg config.SourceMapping,
 	fleetCfg *config.Fleet,
-	kibanaClient kibana.Client,
+	kibanaClient *kibana.Client,
 	newElasticsearchClient func(*elasticsearch.Config) (elasticsearch.Client, error),
 ) (sourcemap.Fetcher, error) {
 	// When running under Fleet we only fetch via Fleet Server.

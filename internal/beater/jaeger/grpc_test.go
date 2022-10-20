@@ -25,7 +25,6 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
-	"time"
 
 	"github.com/jaegertracing/jaeger/proto-gen/api_v2"
 	jaegertranslator "github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger"
@@ -39,14 +38,12 @@ import (
 	"google.golang.org/grpc/status"
 
 	"github.com/elastic/elastic-agent-libs/logp"
-	"github.com/elastic/elastic-agent-libs/version"
 
 	"github.com/elastic/apm-server/internal/agentcfg"
 	"github.com/elastic/apm-server/internal/approvaltest"
 	"github.com/elastic/apm-server/internal/beater/auth"
 	"github.com/elastic/apm-server/internal/beater/config"
 	"github.com/elastic/apm-server/internal/beater/interceptors"
-	"github.com/elastic/apm-server/internal/kibana/kibanatest"
 	"github.com/elastic/apm-server/internal/model"
 	"github.com/elastic/apm-server/internal/model/modelindexer/modelindexertest"
 )
@@ -192,17 +189,6 @@ func TestGRPCSampler_GetSamplingStrategy(t *testing.T) {
 			}, nil),
 			expectedErrMsg: "no sampling rate available",
 			expectedLogMsg: "No valid sampling rate fetched",
-		},
-		"unsupportedVersion": {
-			// Trigger the agentcfg.ValidationError code path by using agentcfg.KibanaFetcher
-			// with an invalid (too old) Kibana version.
-			params: &api_v2.SamplingStrategyParameters{ServiceName: authorizedServiceName},
-			fetcher: agentcfg.NewKibanaFetcher(
-				kibanatest.MockKibana(200, nil, *version.MustNew("7.4.0"), true),
-				time.Second,
-			),
-			expectedErrMsg: "agent remote configuration not supported",
-			expectedLogMsg: "Kibana client does not support",
 		},
 	} {
 		t.Run(name, func(t *testing.T) {

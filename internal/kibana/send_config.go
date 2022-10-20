@@ -21,11 +21,9 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/elastic/elastic-agent-libs/mapstr"
 	"github.com/elastic/go-ucfg"
@@ -36,42 +34,26 @@ const kibanaConfigUploadPath = "/api/apm/fleet/apm_server_schema"
 // SendConfig marshals and uploads the provided config to kibana using the
 // provided ConnectingClient. It retries until its context has been canceled or
 // the upload succeeds.
-func SendConfig(ctx context.Context, client Client, conf *ucfg.Config) error {
+func SendConfig(ctx context.Context, client *Client, conf *ucfg.Config) error {
 	// configuration options are already flattened (dotted)
 	// any credentials for ES and Kibana are removed
 	flat, err := flattenAndClean(conf)
 	if err != nil {
 		return err
 	}
-
 	b, err := json.Marshal(format(flat))
 	if err != nil {
 		return err
 	}
-	for {
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		default:
-		}
-		resp, err := client.Send(ctx, http.MethodPost, kibanaConfigUploadPath, nil, nil, bytes.NewReader(b))
-		if err != nil {
-			if errors.Is(err, errNotConnected) {
-				// Not connected to kibana, wait and try again.
-				time.Sleep(15 * time.Second)
-				continue
-			}
-
-			// Are there other kinds of recoverable errors?
-			return err
-		}
-		// TODO: What sort of response will we get?
-		if resp.StatusCode > http.StatusOK {
-			return fmt.Errorf("bad response %s", resp.Status)
-		}
-
-		return nil
+	resp, err := client.Send(ctx, http.MethodPost, kibanaConfigUploadPath, nil, nil, bytes.NewReader(b))
+	if err != nil {
+		return err
 	}
+	defer resp.Body.Close()
+	if resp.StatusCode > http.StatusOK {
+		return fmt.Errorf("bad response %s", resp.Status)
+	}
+	return nil
 }
 
 func format(m map[string]interface{}) map[string]interface{} {
