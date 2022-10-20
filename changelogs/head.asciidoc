@@ -26,3 +26,4 @@ Set error.id for OpenTelemetry exception span events {pull}9372[9372]
 - Service metrics now support global labels {pull}9248[9248]
 - OpenTelemetry GRPC Spans from the Javascript API/SDK/Instrumentations are now correctly transformed into transactions with type=`request`
 - Improve Elasticsearch output performance, particularly when compression is enabled (default) {pull}9318[9318]
+- Improve Elasticsearch output performance in instances with more than 6 cores {pull}9393[9393]
