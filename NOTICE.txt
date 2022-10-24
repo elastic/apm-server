@@ -1159,11 +1159,11 @@ THE SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/go-sysinfo
-Version: v1.8.1
+Version: v1.8.2-0.20221020073039-53d6396b5c22
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/go-sysinfo@v1.8.1/LICENSE.txt:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/go-sysinfo@v1.8.2-0.20221020073039-53d6396b5c22/LICENSE.txt:
 
 
                                  Apache License
