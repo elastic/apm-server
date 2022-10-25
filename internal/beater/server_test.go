@@ -617,7 +617,7 @@ func TestServerElasticsearchOutput(t *testing.T) {
 		"elasticsearch": map[string]interface{}{
 			"indexers": map[string]interface{}{
 				"active":             int64(1),
-				"available":          int64(1),
+				"available":          int64(49),
 				"requests_completed": int64(0),
 				"destroyed":          int64(0),
 				"created":            int64(0),

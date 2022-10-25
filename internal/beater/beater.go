@@ -627,7 +627,7 @@ func (s *Runner) newFinalBatchProcessor(
 		v.OnKey("active")
 		v.OnInt(stats.ActiveBulkRequests)
 		v.OnKey("available")
-		v.OnInt(stats.ActiveBulkRequests)
+		v.OnInt(stats.AvailableBulkRequests)
 		v.OnKey("created")
 		v.OnInt(stats.IndexersDestroyed)
 		v.OnKey("destroyed")
