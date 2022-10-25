@@ -24,10 +24,10 @@ variable "stack_version" {
   type        = string
 }
 
-variable "monitor_deployment" {
-  default     = false
-  type        = bool
-  description = "Optionally monitor the deployment in a separate deployment"
+variable "observability_deployment" {
+  default     = "none"
+  type        = string
+  description = "Optional deployment ID, for platform observability. Use 'self' to send data to the same deployment, 'dedicated' to create a dedicated observability deployment, or 'none' (the default) to disable observability. Any other value is assumed to be the ID of an existing, externally managed Elasticsearch deployment."
 }
 
 variable "tags" {

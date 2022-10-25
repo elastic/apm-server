@@ -31,6 +31,8 @@ module "ec_deployment" {
   elasticsearch_size       = var.elasticsearch_size
   elasticsearch_zone_count = var.elasticsearch_zone_count
 
+  observability_deployment = var.observability_deployment
+
   docker_image = var.docker_image_override
   docker_image_tag_override = {
     "elasticsearch" : coalesce(var.docker_image_tag_override["elasticsearch"], local.docker_image_tag),
