@@ -533,7 +533,7 @@
                     "decoded_body_size": 401,
                     "encoded_body_size": 356,
                     "status_code": 200,
-                    "transfer_size": 300.12
+                    "transfer_size": 30012
                 }
             },
             "kubernetes": {
@@ -737,7 +737,7 @@
                     "decoded_body_size": 401,
                     "encoded_body_size": 356,
                     "status_code": 200,
-                    "transfer_size": 300.12
+                    "transfer_size": 30012
                 }
             },
             "kubernetes": {
@@ -941,7 +941,7 @@
                     "decoded_body_size": 401,
                     "encoded_body_size": 356,
                     "status_code": 200,
-                    "transfer_size": 300.12
+                    "transfer_size": 30012
                 }
             },
             "kubernetes": {
