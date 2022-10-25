@@ -620,20 +620,20 @@ func (s *Runner) newFinalBatchProcessor(
 		v.OnInt(indexer.Stats().Added)
 	})
 	monitoring.Default.Remove("output")
-	monitoring.NewFunc(monitoring.Default, "output.elasticsearch.bulk_requests", func(_ monitoring.Mode, v monitoring.Visitor) {
+	monitoring.NewFunc(monitoring.Default, "output.elasticsearch.indexers", func(_ monitoring.Mode, v monitoring.Visitor) {
 		v.OnRegistryStart()
 		defer v.OnRegistryFinished()
 		stats := indexer.Stats()
-		v.OnKey("available")
-		v.OnInt(stats.AvailableBulkRequests)
 		v.OnKey("active")
 		v.OnInt(stats.ActiveBulkRequests)
-		v.OnKey("completed")
-		v.OnInt(stats.BulkRequests)
-		v.OnKey("active_created")
+		v.OnKey("available")
+		v.OnInt(stats.ActiveBulkRequests)
+		v.OnKey("created")
 		v.OnInt(stats.IndexersDestroyed)
-		v.OnKey("active_destroyed")
+		v.OnKey("destroyed")
 		v.OnInt(stats.IndexersCreated)
+		v.OnKey("requests_completed")
+		v.OnInt(stats.BulkRequests)
 	})
 	return indexer, indexer.Close, nil
 }
