@@ -27,6 +27,12 @@ import (
 	jsoniter "github.com/json-iterator/go"
 )
 
+var supportedTSFormats = []string{
+	time.RFC3339,
+	"2006-01-02T15:04:05Z0700",
+	"2006-01-02T15:04:05Z07",
+}
+
 func init() {
 	jsoniter.RegisterTypeDecoderFunc("nullable.String", func(ptr unsafe.Pointer, iter *jsoniter.Iterator) {
 		switch iter.WhatIsNext() {
@@ -86,15 +92,16 @@ func init() {
 			(*((*TimeMicrosUnix)(ptr))).isSet = true
 		case jsoniter.StringValue:
 			tstr := iter.ReadString()
-			t, err := time.Parse("2006-01-02T15:04:05Z0700", tstr)
-			if err != nil {
-				iter.Error = errors.New("invalid input format for timestamp received")
-				return
+			for _, f := range supportedTSFormats {
+				if t, err := time.Parse(f, tstr); err == nil {
+					(*((*TimeMicrosUnix)(ptr))).Val = t.UTC()
+					(*((*TimeMicrosUnix)(ptr))).isSet = true
+					return
+				}
 			}
-			(*((*TimeMicrosUnix)(ptr))).Val = t.UTC()
-			(*((*TimeMicrosUnix)(ptr))).isSet = true
+			iter.Error = errors.New("failed to parse the provided time string")
 		default:
-			iter.Error = errors.New("invalid input type for timestamp received")
+			iter.Error = errors.New("invalid input type for timestamp")
 		}
 	})
 	jsoniter.RegisterTypeDecoderFunc("nullable.HTTPHeader", func(ptr unsafe.Pointer, iter *jsoniter.Iterator) {
