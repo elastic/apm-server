@@ -14,7 +14,7 @@ to the output publisher pipeline.
 
 ## Modelindexer Architecture
 
-When APM Server uses a custom Elasticsearch output called `modelindexer`. It fills a local cache until it
+When APM Server uses a custom Elasticsearch output called `modelindexer`, it fills a local cache until it
 is full, and then, flushes the cache in the background and continues processing events.
 
 From  `8.0` until `8.5`, the _modelindexer_ processed the events synchronously and used mutexes for
