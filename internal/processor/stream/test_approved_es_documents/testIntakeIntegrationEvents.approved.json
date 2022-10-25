@@ -319,7 +319,7 @@
                         ]
                     },
                     "status_code": 302,
-                    "transfer_size": 300.12
+                    "transfer_size": 30012
                 }
             },
             "kubernetes": {
@@ -495,8 +495,8 @@
                     "method": "POST"
                 },
                 "response": {
-                    "decoded_body_size": 401.9,
-                    "encoded_body_size": 356.9,
+                    "decoded_body_size": 40190,
+                    "encoded_body_size": 35690,
                     "finished": true,
                     "headers": {
                         "Content-Type": [
