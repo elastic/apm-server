@@ -91,7 +91,6 @@ cloud.google.com/go/recommender v1.6.0 h1:C1tw+Qa/bgm6LoH1wuxYdoyinwKkW/jDJ0GpSJ
 cloud.google.com/go/redis v1.8.0 h1:gtPd4pG/Go5mrdGQ4MJXxPHtjxtoWUBkrWLXNV1L2TA=
 cloud.google.com/go/retail v1.9.0 h1:Q3W/JsQupZWaoFxUOugZd1Eq590R+Dk6dhacLK2h7+w=
 cloud.google.com/go/scheduler v1.5.0 h1:Fe1Upic/q4cwqXbInCzgAW35QSerj8JlNwATIxDdfOI=
-cloud.google.com/go/secretmanager v1.6.0 h1:5v0zegRMlytVnN7J+bg5Ipqah3I2RZ67ysy00mvA+lA=
 cloud.google.com/go/security v1.8.0 h1:linnRc3/gJYDfKbAtNixVQ52+66DpOx5MmCz0NNxal8=
 cloud.google.com/go/securitycenter v1.14.0 h1:hKIggnv2eCAPjsVnFcZbytMOsFOk6p4ut0iAUDoNsNA=
 cloud.google.com/go/servicedirectory v1.5.0 h1:QmCWml/qvNOYyiPP4G52srYcsHSLCXuvydJDVLTFSe8=
@@ -379,8 +378,8 @@ github.com/eapache/go-xerial-snappy v0.0.0-20180814174437-776d5712da21/go.mod h1
 github.com/eapache/queue v1.1.0 h1:YOEu7KNc61ntiQlcEeUIoDTJ2o8mQznoNvUhiigpIqc=
 github.com/eapache/queue v1.1.0/go.mod h1:6eCeP0CKFpHLu8blIFXhExK/dRa7WDZfr6jVFPTqq+I=
 github.com/eclipse/paho.mqtt.golang v1.2.1-0.20200121105743-0d940dd29fd2 h1:DW6WrARxK5J+o8uAKCiACi5wy9EK1UzrsCpGBPsKHAA=
-github.com/elastic/beats/v7 v7.17.7-0.20221021064055-1f55e96f7d3e h1:KSwgfNgwss8rEpJ1uVVgS0Ny90BxdzYSdQLhIkygbts=
-github.com/elastic/beats/v7 v7.17.7-0.20221021064055-1f55e96f7d3e/go.mod h1:0K8ff+bpgM76KRjP6LLqZYybimNXfTzHiZThyFcDi8s=
+github.com/elastic/beats/v7 v7.17.7-0.20221025004443-4bf962fc9882 h1:VRx5JUz0pfgGT9o7Uzat3+HA6w8OCdT0J5k5I73nCnU=
+github.com/elastic/beats/v7 v7.17.7-0.20221025004443-4bf962fc9882/go.mod h1:0K8ff+bpgM76KRjP6LLqZYybimNXfTzHiZThyFcDi8s=
 github.com/elastic/ecs v1.12.0 h1:u6WZ2AWtxv5vHvTQ4EuVZdWZ51mKHQ2UIltRePcta5U=
 github.com/elastic/ecs v1.12.0/go.mod h1:pgiLbQsijLOJvFR8OTILLu0Ni/R/foUNg0L+T6mU9b4=
 github.com/elastic/elastic-agent v0.0.0-20220831162706-5f1e54f40d3e h1:uGDp9HesS9m3T7YwgM0ATE/YP5FXcxxAAKHQDgP/GS0=
@@ -1909,8 +1908,8 @@ google.golang.org/genproto v0.0.0-20211129164237-f09f9a12af12/go.mod h1:5CzLGKJ6
 google.golang.org/genproto v0.0.0-20211203200212-54befc351ae9/go.mod h1:5CzLGKJ67TSI2B9POpiiyGha0AjJvZIUgRMt1dSmuhc=
 google.golang.org/genproto v0.0.0-20211206160659-862468c7d6e0/go.mod h1:5CzLGKJ67TSI2B9POpiiyGha0AjJvZIUgRMt1dSmuhc=
 google.golang.org/genproto v0.0.0-20211208223120-3a66f561d7aa/go.mod h1:5CzLGKJ67TSI2B9POpiiyGha0AjJvZIUgRMt1dSmuhc=
-google.golang.org/genproto v0.0.0-20221018160656-63c7b68cfc55 h1:U1u4KB2kx6KR/aJDjQ97hZ15wQs8ZPvDcGcRynBhkvg=
-google.golang.org/genproto v0.0.0-20221018160656-63c7b68cfc55/go.mod h1:45EK0dUbEZ2NHjCeAd2LXmyjAgGUGrpGROgjhC3ADck=
+google.golang.org/genproto v0.0.0-20221024183307-1bc688fe9f3e h1:S9GbmC1iCgvbLyAokVCwiO6tVIrU9Y7c5oMx1V/ki/Y=
+google.golang.org/genproto v0.0.0-20221024183307-1bc688fe9f3e/go.mod h1:9qHF0xnpdSfF6knlcsnpzUu5y+rpwgbvsyGAZPBMg4s=
 google.golang.org/grpc v1.8.0/go.mod h1:yo6s7OP7yaDglbqo1J04qKzAhqBH6lvTonzMVmEdcZw=
 google.golang.org/grpc v1.14.0/go.mod h1:yo6s7OP7yaDglbqo1J04qKzAhqBH6lvTonzMVmEdcZw=
 google.golang.org/grpc v1.17.0/go.mod h1:6QZJwpn2B+Zp71q/5VxRsJ6NXXVCE5NRUHRo+f3cWCs=
