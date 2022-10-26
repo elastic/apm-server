@@ -615,12 +615,14 @@ func TestServerElasticsearchOutput(t *testing.T) {
 	snapshot = monitoring.CollectStructSnapshot(monitoring.Default.GetRegistry("output"), monitoring.Full, false)
 	assert.Equal(t, map[string]interface{}{
 		"elasticsearch": map[string]interface{}{
+			"bulk_requests": map[string]interface{}{
+				"active":    int64(1),
+				"available": int64(49),
+				"completed": int64(0),
+			},
 			"indexers": map[string]interface{}{
-				"active":             int64(1),
-				"available":          int64(49),
-				"requests_completed": int64(0),
-				"destroyed":          int64(0),
-				"created":            int64(0),
+				"destroyed": int64(0),
+				"created":   int64(0),
 			},
 		},
 	}, snapshot)
