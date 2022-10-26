@@ -27,8 +27,10 @@ import (
 	jsoniter "github.com/json-iterator/go"
 )
 
+// supportedTSFormats lists variations of RFC3339 for supporting
+// different formats for the timezone offset.
 var supportedTSFormats = []string{
-	time.RFC3339,
+	"2006-01-02T15:04:05Z07:00", // RFC3339
 	"2006-01-02T15:04:05Z0700",
 	"2006-01-02T15:04:05Z07",
 }
