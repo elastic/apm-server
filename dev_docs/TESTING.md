@@ -160,6 +160,32 @@ ESS deployment from being destroyed to allow some debugging to be done.
 Often, we need to manually test the integration between different features, PR testing or pre-release testing.
 Our `docker-compose.yml` contains the basic components that make up the Elastic Stack for the APM Server.
 
+### Tilt / Kubernetes
+
+For local development and testing you can use [Tilt](https://tilt.dev) with a Kubernetes cluster.
+
+We provide Kustomize manifests in [`testing/infra/k8s`](../testing/infra/k8s) for setting up
+the Elastic Stack using [ECK](https://www.elastic.co/guide/en/cloud-on-k8s/current/index.html),
+including Fleet Server and an Elastic Agent for running the APM integration. Tilt will watch
+for source code changes and build and inject a customized elastic-agent Docker image; it will
+also watch for changes to the APM integration package source, and rebuild and upload the
+package to Kibana on changes.
+
+> :warning: The Tilt setup configures ECK with a trial license. By using the Tilt setup, you
+> must agree to the Elastic EULA which can be found at https://www.elastic.co/eula
+
+To use Tilt, first [install Tilt](https://docs.tilt.dev/install.html), and then create a
+Kubernetes cluster. On macOS you can use Docker Desktop. On Linux you should use
+[Kind](https://kind.sigs.k8s.io), optionally using [ctlptl](https://github.com/tilt-dev/ctlptl)
+for managing the cluster.
+
+Once Tilt is installed and you have a Kubernetes cluster running, simply run `tilt up` in the
+root of the repository. This will present you with the option of opening a web browser to watch
+changes and inspect the pod output.
+
+When you're done, you should run `tilt down` to clean up. This will remove all resources
+from the Kubernetes cluster created by Tilt.
+
 ### Testing Stack monitoring
 
 APM Server publishes a set of metrics that are consumed either by Metricbeat or sent by the APM Server to an
