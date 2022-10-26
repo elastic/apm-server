@@ -247,9 +247,9 @@ type contextRequestSocket struct {
 
 type contextResponse struct {
 	// DecodedBodySize holds the size of the decoded payload.
-	DecodedBodySize nullable.Float64 `json:"decoded_body_size"`
+	DecodedBodySize nullable.Int `json:"decoded_body_size"`
 	// EncodedBodySize holds the size of the encoded payload.
-	EncodedBodySize nullable.Float64 `json:"encoded_body_size"`
+	EncodedBodySize nullable.Int `json:"encoded_body_size"`
 	// Finished indicates whether the response was finished or not.
 	Finished nullable.Bool `json:"finished"`
 	// Headers holds the http headers sent in the http response.
@@ -259,7 +259,7 @@ type contextResponse struct {
 	// StatusCode sent in the http response.
 	StatusCode nullable.Int `json:"status_code"`
 	// TransferSize holds the total size of the payload.
-	TransferSize nullable.Float64 `json:"transfer_size"`
+	TransferSize nullable.Int `json:"transfer_size"`
 }
 
 type contextService struct {
@@ -843,15 +843,15 @@ type spanContextHTTP struct {
 
 type spanContextHTTPResponse struct {
 	// DecodedBodySize holds the size of the decoded payload.
-	DecodedBodySize nullable.Float64 `json:"decoded_body_size"`
+	DecodedBodySize nullable.Int `json:"decoded_body_size"`
 	// EncodedBodySize holds the size of the encoded payload.
-	EncodedBodySize nullable.Float64 `json:"encoded_body_size"`
+	EncodedBodySize nullable.Int `json:"encoded_body_size"`
 	// Headers holds the http headers sent in the http response.
 	Headers nullable.HTTPHeader `json:"headers"`
 	// StatusCode sent in the http response.
 	StatusCode nullable.Int `json:"status_code"`
 	// TransferSize holds the total size of the payload.
-	TransferSize nullable.Float64 `json:"transfer_size"`
+	TransferSize nullable.Int `json:"transfer_size"`
 }
 
 type stacktraceFrame struct {
