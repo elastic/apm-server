@@ -24,15 +24,12 @@ import (
 	"strings"
 	"time"
 
-	"go.elastic.co/apm/v2"
-
 	"github.com/pkg/errors"
 
 	"github.com/elastic/elastic-agent-libs/monitoring"
 
 	"github.com/elastic/apm-server/internal/agentcfg"
 	"github.com/elastic/apm-server/internal/beater/auth"
-	"github.com/elastic/apm-server/internal/beater/config"
 	"github.com/elastic/apm-server/internal/beater/headers"
 	"github.com/elastic/apm-server/internal/beater/request"
 )
@@ -62,14 +59,14 @@ type handler struct {
 
 func NewHandler(
 	f agentcfg.Fetcher,
-	config config.KibanaAgentConfig,
+	cacheMaxAge time.Duration,
 	defaultServiceEnvironment string,
 	allowAnonymousAgents []string,
 ) request.Handler {
 	if f == nil {
 		panic("fetcher must not be nil")
 	}
-	cacheControl := fmt.Sprintf("max-age=%v, must-revalidate", config.Cache.Expiration.Seconds())
+	cacheControl := fmt.Sprintf("max-age=%v, must-revalidate", cacheMaxAge.Seconds())
 	h := &handler{
 		f:                         f,
 		cacheControl:              cacheControl,
@@ -119,23 +116,7 @@ func (h *handler) Handle(c *request.Context) {
 
 	result, err := h.f.Fetch(c.Request.Context(), query)
 	if err != nil {
-		var verr *agentcfg.ValidationError
-		if errors.As(err, &verr) {
-			body := verr.Body()
-			if strings.HasPrefix(body, agentcfg.ErrMsgKibanaVersionNotCompatible) {
-				body = authErrMsg(c, body, agentcfg.ErrMsgKibanaVersionNotCompatible)
-			}
-			c.Result.Set(
-				request.IDResponseErrorsServiceUnavailable,
-				http.StatusServiceUnavailable,
-				verr.Keyword(),
-				body,
-				verr,
-			)
-		} else {
-			apm.CaptureError(c.Request.Context(), err).Send()
-			extractInternalError(c, err)
-		}
+		extractInternalError(c, err)
 		c.WriteResult()
 		return
 	}

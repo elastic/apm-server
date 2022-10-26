@@ -119,7 +119,7 @@ type ServerParams struct {
 	// KibanaClient holds a Kibana client if the server has Kibana
 	// configuration. If the server has no Kibana configuration, this
 	// field will be nil.
-	KibanaClient kibana.Client
+	KibanaClient *kibana.Client
 
 	// NewElasticsearchClient returns an elasticsearch.Client for cfg.
 	//
@@ -222,7 +222,7 @@ func (s server) run(ctx context.Context) error {
 	return nil
 }
 
-func newAgentConfigFetcher(cfg *config.Config, kibanaClient kibana.Client) agentcfg.Fetcher {
+func newAgentConfigFetcher(cfg *config.Config, kibanaClient *kibana.Client) agentcfg.Fetcher {
 	if cfg.AgentConfigs != nil || kibanaClient == nil {
 		// Direct agent configuration is present, disable communication with kibana.
 		agentConfigurations := make([]agentcfg.AgentConfig, len(cfg.AgentConfigs))

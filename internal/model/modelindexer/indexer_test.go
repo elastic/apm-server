@@ -19,6 +19,7 @@ package modelindexer_test
 
 import (
 	"bufio"
+	"bytes"
 	"compress/gzip"
 	"context"
 	"encoding/json"
@@ -35,6 +36,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.elastic.co/apm/v2/apmtest"
 	"go.elastic.co/fastjson"
+	"go.uber.org/zap/zaptest/observer"
 
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/mapstr"
@@ -104,7 +106,7 @@ loop:
 		}
 	}
 	// Indexer has not been flushed, there is one active bulk indexer.
-	assert.Equal(t, modelindexer.Stats{Added: N, Active: N, AvailableBulkRequests: 24, ActiveBulkRequests: 1}, indexer.Stats())
+	assert.Equal(t, modelindexer.Stats{Added: N, Active: N, AvailableBulkRequests: 49, IndexersActive: 1}, indexer.Stats())
 
 	// Closing the indexer flushes enqueued events.
 	err = indexer.Close(context.Background())
@@ -117,7 +119,7 @@ loop:
 		Failed:                2,
 		Indexed:               N - 2,
 		TooManyRequests:       1,
-		AvailableBulkRequests: 25,
+		AvailableBulkRequests: 50,
 		BytesTotal:            bytesTotal,
 	}, stats)
 	assert.Equal(t, "observability", productOriginHeader)
@@ -137,7 +139,7 @@ func TestModelIndexerAvailableBulkIndexers(t *testing.T) {
 	require.NoError(t, err)
 	defer indexer.Close(context.Background())
 
-	const N = 25
+	const N = 50
 	for i := 0; i < N; i++ {
 		batch := model.Batch{model.APMEvent{Timestamp: time.Now(), DataStream: model.DataStream{
 			Type:      "logs",
@@ -159,7 +161,7 @@ func TestModelIndexerAvailableBulkIndexers(t *testing.T) {
 	stats := indexer.Stats()
 	// FlushBytes is set arbitrarily low, forcing a flush on each new
 	// event. There should be no available bulk indexers.
-	assert.Equal(t, modelindexer.Stats{Added: N, Active: N, AvailableBulkRequests: 0, ActiveBulkRequests: 1}, stats)
+	assert.Equal(t, modelindexer.Stats{Added: N, Active: N, AvailableBulkRequests: 0, IndexersActive: 1}, stats)
 
 	close(unblockRequests)
 	err = indexer.Close(context.Background())
@@ -170,7 +172,7 @@ func TestModelIndexerAvailableBulkIndexers(t *testing.T) {
 		Added:                 N,
 		BulkRequests:          N,
 		Indexed:               N,
-		AvailableBulkRequests: 25,
+		AvailableBulkRequests: 50,
 	}, stats)
 }
 
@@ -250,7 +252,7 @@ func TestModelIndexerCompressionLevel(t *testing.T) {
 		Failed:                0,
 		Indexed:               1,
 		TooManyRequests:       0,
-		AvailableBulkRequests: 25,
+		AvailableBulkRequests: 50,
 		BytesTotal:            bytesTotal,
 	}, stats)
 }
@@ -359,7 +361,7 @@ func TestModelIndexerServerError(t *testing.T) {
 		Active:                0,
 		BulkRequests:          1,
 		Failed:                1,
-		AvailableBulkRequests: 25,
+		AvailableBulkRequests: 50,
 		BytesTotal:            bytesTotal,
 	}, stats)
 }
@@ -394,7 +396,7 @@ func TestModelIndexerServerErrorTooManyRequests(t *testing.T) {
 		BulkRequests:          1,
 		Failed:                1,
 		TooManyRequests:       1,
-		AvailableBulkRequests: 25,
+		AvailableBulkRequests: 50,
 		BytesTotal:            bytesTotal,
 	}, stats)
 }
@@ -667,7 +669,7 @@ func TestModelIndexerCloseBusyIndexer(t *testing.T) {
 	require.NoError(t, err)
 	t.Cleanup(func() { indexer.Close(context.Background()) })
 
-	const N = 10000
+	const N = 5000
 	for i := 0; i < N; i++ {
 		batch := model.Batch{model.APMEvent{Timestamp: time.Now(), DataStream: model.DataStream{
 			Type:      "logs",
@@ -685,8 +687,194 @@ func TestModelIndexerCloseBusyIndexer(t *testing.T) {
 		Indexed:               N,
 		BulkRequests:          1,
 		BytesTotal:            bytesTotal,
-		AvailableBulkRequests: 25,
-		ActiveBulkRequests:    0}, indexer.Stats())
+		AvailableBulkRequests: 50,
+		IndexersActive:        0}, indexer.Stats())
+}
+
+func TestModelIndexerScaling(t *testing.T) {
+	newIndexer := func(t *testing.T, cfg modelindexer.Config) *modelindexer.Indexer {
+		t.Helper()
+		client := modelindexertest.NewMockElasticsearchClient(t, func(w http.ResponseWriter, r *http.Request) {
+			_, result := modelindexertest.DecodeBulkRequest(r)
+			json.NewEncoder(w).Encode(result)
+		})
+		indexer, err := modelindexer.New(client, cfg)
+		require.NoError(t, err)
+		t.Cleanup(func() { indexer.Close(context.Background()) })
+		return indexer
+	}
+	sendEvents := func(t *testing.T, indexer *modelindexer.Indexer, events int) {
+		for i := 0; i < events; i++ {
+			// The compressed size for this event is  is roughly ~190B with
+			// default compression.
+			batch := model.Batch{model.APMEvent{Timestamp: time.Now(), DataStream: model.DataStream{
+				Type:      "logs",
+				Dataset:   "apm_server",
+				Namespace: "testing",
+			}}}
+			assert.NoError(t, indexer.ProcessBatch(context.Background(), &batch))
+		}
+	}
+	waitForScaleUp := func(t *testing.T, indexer *modelindexer.Indexer, n int64) {
+		timeout := time.NewTimer(5 * time.Second)
+		stats := indexer.Stats()
+		limit := int64(runtime.GOMAXPROCS(0) / 4)
+		for stats.IndexersActive < n {
+			stats = indexer.Stats()
+			require.LessOrEqual(t, stats.IndexersActive, limit)
+			select {
+			case <-time.After(10 * time.Millisecond):
+			case <-timeout.C:
+				stats = indexer.Stats()
+				require.GreaterOrEqual(t, stats.IndexersActive, n, "stats: %+v", stats)
+			}
+		}
+		stats = indexer.Stats()
+		assert.Greater(t, stats.IndexersCreated, int64(0), "No upscales took place: %+v", stats)
+	}
+	waitForScaleDown := func(t *testing.T, indexer *modelindexer.Indexer, n int64) {
+		timeout := time.NewTimer(5 * time.Second)
+		stats := indexer.Stats()
+		for stats.IndexersActive > n {
+			stats = indexer.Stats()
+			require.Greater(t, stats.IndexersActive, int64(0))
+			select {
+			case <-time.After(10 * time.Millisecond):
+			case <-timeout.C:
+				stats = indexer.Stats()
+				require.LessOrEqual(t, stats.IndexersActive, n, "stats: %+v", stats)
+			}
+		}
+		stats = indexer.Stats()
+		assert.Greater(t, stats.IndexersDestroyed, int64(0), "No downscales took place: %+v", stats)
+		assert.Equal(t, stats.IndexersActive, int64(n), "%+v", stats)
+	}
+	t.Run("DownscaleIdle", func(t *testing.T) {
+		// Override the default GOMAXPROCS, ensuring the active indexers can scale up.
+		setGOMAXPROCS(t, 12)
+		indexer := newIndexer(t, modelindexer.Config{
+			FlushInterval: time.Millisecond,
+			FlushBytes:    1,
+			Scaling: modelindexer.ScalingConfig{
+				ScaleUp: modelindexer.ScaleActionConfig{
+					Threshold: 1, CoolDown: 1,
+				},
+				ScaleDown: modelindexer.ScaleActionConfig{
+					Threshold: 2, CoolDown: time.Millisecond,
+				},
+				IdleInterval: 50 * time.Millisecond,
+			},
+		})
+		events := int64(20)
+		sendEvents(t, indexer, int(events))
+		waitForScaleUp(t, indexer, 3)
+		waitForScaleDown(t, indexer, 1)
+		stats := indexer.Stats()
+		stats.BytesTotal = 0
+		assert.Equal(t, modelindexer.Stats{
+			Active:                0,
+			Added:                 events,
+			Indexed:               events,
+			BulkRequests:          events,
+			IndexersCreated:       2,
+			IndexersDestroyed:     2,
+			AvailableBulkRequests: 50,
+			IndexersActive:        1,
+		}, stats)
+	})
+	t.Run("DownscaleActiveLimit", func(t *testing.T) {
+		// Override the default GOMAXPROCS, ensuring the active indexers can scale up.
+		setGOMAXPROCS(t, 12)
+		indexer := newIndexer(t, modelindexer.Config{
+			FlushInterval: time.Millisecond,
+			FlushBytes:    1,
+			Scaling: modelindexer.ScalingConfig{
+				ScaleUp: modelindexer.ScaleActionConfig{
+					Threshold: 5, CoolDown: 1,
+				},
+				ScaleDown: modelindexer.ScaleActionConfig{
+					Threshold: 100, CoolDown: time.Minute,
+				},
+				IdleInterval: 100 * time.Millisecond,
+			},
+		})
+		events := int64(14)
+		sendEvents(t, indexer, int(events))
+		waitForScaleUp(t, indexer, 3)
+		// Set the gomaxprocs to 4, which should result in an activeLimit of 1.
+		setGOMAXPROCS(t, 4)
+		// Wait for the indexers to scale down from 3 to 1. The downscale cool
+		// down of `1m` isn't respected, since the active limit is breached with
+		// the gomaxprocs change.
+		waitForScaleDown(t, indexer, 1)
+		// Wait for all the events to be indexed.
+		for indexer.Stats().Indexed < events {
+			<-time.After(time.Millisecond)
+		}
+		stats := indexer.Stats()
+		stats.BytesTotal = 0
+		assert.Equal(t, modelindexer.Stats{
+			Active:                0,
+			Added:                 events,
+			Indexed:               events,
+			BulkRequests:          events,
+			AvailableBulkRequests: 50,
+			IndexersActive:        1,
+			IndexersCreated:       2,
+			IndexersDestroyed:     2,
+		}, stats)
+	})
+	t.Run("UpscaleCooldown", func(t *testing.T) {
+		// Override the default GOMAXPROCS, ensuring the active indexers can scale up.
+		setGOMAXPROCS(t, 12)
+		indexer := newIndexer(t, modelindexer.Config{
+			FlushInterval: time.Millisecond,
+			FlushBytes:    1,
+			Scaling: modelindexer.ScalingConfig{
+				ScaleUp: modelindexer.ScaleActionConfig{
+					Threshold: 10,
+					CoolDown:  time.Minute,
+				},
+				ScaleDown: modelindexer.ScaleActionConfig{
+					Threshold: 10,
+					CoolDown:  time.Minute,
+				},
+				IdleInterval: 100 * time.Millisecond,
+			},
+		})
+		events := int64(50)
+		sendEvents(t, indexer, int(events))
+		waitForScaleUp(t, indexer, 2)
+		// Wait for all the events to be indexed.
+		for indexer.Stats().Indexed < events {
+			<-time.After(time.Millisecond)
+		}
+		assert.Equal(t, int64(2), indexer.Stats().IndexersActive)
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		assert.NoError(t, indexer.Close(ctx))
+		stats := indexer.Stats()
+		stats.BytesTotal = 0
+		assert.Equal(t, modelindexer.Stats{
+			Active:                0,
+			Added:                 events,
+			Indexed:               events,
+			BulkRequests:          events,
+			AvailableBulkRequests: 50,
+			IndexersActive:        0,
+			IndexersCreated:       1,
+			IndexersDestroyed:     0,
+		}, stats)
+	})
+}
+
+func setGOMAXPROCS(t *testing.T, new int) {
+	t.Helper()
+	old := runtime.GOMAXPROCS(0)
+	t.Cleanup(func() {
+		runtime.GOMAXPROCS(old)
+	})
+	runtime.GOMAXPROCS(new)
 }
 
 func TestModelIndexerTracing(t *testing.T) {
@@ -738,7 +926,14 @@ func testModelIndexerTracing(t *testing.T, statusCode int, expectedOutcome strin
 	assert.Equal(t, "db", payloads.Spans[0].Type)
 	assert.Equal(t, "elasticsearch", payloads.Spans[0].Subtype)
 
-	entries := logp.ObserverLogs().TakeAll()
+	entries := logp.ObserverLogs().Filter(func(le observer.LoggedEntry) bool {
+		// Filter for logs that contain transaction.id.
+		if cm := le.ContextMap(); len(cm) > 0 {
+			_, found := cm["transaction.id"]
+			return found
+		}
+		return false
+	}).TakeAll()
 	assert.NotEmpty(t, entries)
 	for _, entry := range entries {
 		fields := entry.ContextMap()
@@ -751,21 +946,69 @@ func BenchmarkModelIndexer(b *testing.B) {
 	b.Run("NoCompression", func(b *testing.B) {
 		benchmarkModelIndexer(b, modelindexer.Config{
 			CompressionLevel: gzip.NoCompression,
+			Scaling:          modelindexer.ScalingConfig{Disabled: true},
+		})
+	})
+	b.Run("NoCompressionScaling", func(b *testing.B) {
+		benchmarkModelIndexer(b, modelindexer.Config{
+			CompressionLevel: gzip.NoCompression,
+			Scaling: modelindexer.ScalingConfig{
+				ScaleUp: modelindexer.ScaleActionConfig{
+					Threshold: 1, // Scale immediately
+					CoolDown:  1,
+				},
+			},
 		})
 	})
 	b.Run("BestSpeed", func(b *testing.B) {
 		benchmarkModelIndexer(b, modelindexer.Config{
 			CompressionLevel: gzip.BestSpeed,
+			Scaling:          modelindexer.ScalingConfig{Disabled: true},
+		})
+	})
+	b.Run("BestSpeedScaling", func(b *testing.B) {
+		benchmarkModelIndexer(b, modelindexer.Config{
+			CompressionLevel: gzip.BestSpeed,
+			Scaling: modelindexer.ScalingConfig{
+				ScaleUp: modelindexer.ScaleActionConfig{
+					Threshold: 1, // Scale immediately
+					CoolDown:  1,
+				},
+			},
 		})
 	})
 	b.Run("DefaultCompression", func(b *testing.B) {
 		benchmarkModelIndexer(b, modelindexer.Config{
 			CompressionLevel: gzip.DefaultCompression,
+			Scaling:          modelindexer.ScalingConfig{Disabled: true},
+		})
+	})
+	b.Run("DefaultCompressionScaling", func(b *testing.B) {
+		benchmarkModelIndexer(b, modelindexer.Config{
+			CompressionLevel: gzip.DefaultCompression,
+			Scaling: modelindexer.ScalingConfig{
+				ScaleUp: modelindexer.ScaleActionConfig{
+					Threshold: 1, // Scale immediately
+					CoolDown:  1,
+				},
+			},
 		})
 	})
 	b.Run("BestCompression", func(b *testing.B) {
 		benchmarkModelIndexer(b, modelindexer.Config{
 			CompressionLevel: gzip.BestCompression,
+			Scaling:          modelindexer.ScalingConfig{Disabled: true},
+		})
+	})
+	b.Run("BestCompressionScaling", func(b *testing.B) {
+		benchmarkModelIndexer(b, modelindexer.Config{
+			CompressionLevel: gzip.BestCompression,
+			Scaling: modelindexer.ScalingConfig{
+				ScaleUp: modelindexer.ScaleActionConfig{
+					Threshold: 1, // Scale immediately
+					CoolDown:  1,
+				},
+			},
 		})
 	})
 }
@@ -812,6 +1055,20 @@ func benchmarkModelIndexer(b *testing.B, cfg modelindexer.Config) {
 	require.NoError(b, err)
 	defer indexer.Close(context.Background())
 
+	batch := model.Batch{
+		model.APMEvent{
+			Processor: model.TransactionProcessor,
+			Transaction: &model.Transaction{
+				ID: uuid.Must(uuid.NewV4()).String(),
+			},
+			Timestamp: time.Now(),
+		},
+	}
+	var buf bytes.Buffer
+	err = json.NewEncoder(&buf).Encode(batch)
+	require.NoError(b, err)
+	b.SetBytes(int64(buf.Len())) // Rough approximation of how many bytes are processed.
+	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
 		batch := model.Batch{
 			model.APMEvent{

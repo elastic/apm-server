@@ -1,0 +1,28 @@
+apiVersion: elasticsearch.k8s.elastic.co/v1
+kind: Elasticsearch
+metadata:
+  name: elasticsearch
+spec:
+  version: 8.6.0-40086bc7-SNAPSHOT
+  auth:
+    fileRealm:
+      - secretName: elasticsearch-admin
+  nodeSets:
+  - name: default
+    count: 1
+    config:
+      node.store.allow_mmap: false
+  http:
+    tls:
+      selfSignedCertificate:
+        disabled: true
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: elasticsearch-admin
+type: kubernetes.io/basic-auth
+stringData:
+  username: admin
+  password: changeme
+  roles: superuser
