@@ -106,7 +106,7 @@ loop:
 		}
 	}
 	// Indexer has not been flushed, there is one active bulk indexer.
-	assert.Equal(t, modelindexer.Stats{Added: N, Active: N, AvailableBulkRequests: 49, ActiveBulkRequests: 1}, indexer.Stats())
+	assert.Equal(t, modelindexer.Stats{Added: N, Active: N, AvailableBulkRequests: 49, IndexersActive: 1}, indexer.Stats())
 
 	// Closing the indexer flushes enqueued events.
 	err = indexer.Close(context.Background())
@@ -161,7 +161,7 @@ func TestModelIndexerAvailableBulkIndexers(t *testing.T) {
 	stats := indexer.Stats()
 	// FlushBytes is set arbitrarily low, forcing a flush on each new
 	// event. There should be no available bulk indexers.
-	assert.Equal(t, modelindexer.Stats{Added: N, Active: N, AvailableBulkRequests: 0, ActiveBulkRequests: 1}, stats)
+	assert.Equal(t, modelindexer.Stats{Added: N, Active: N, AvailableBulkRequests: 0, IndexersActive: 1}, stats)
 
 	close(unblockRequests)
 	err = indexer.Close(context.Background())
@@ -686,7 +686,7 @@ func TestModelIndexerCloseBusyIndexer(t *testing.T) {
 		BulkRequests:          1,
 		BytesTotal:            bytesTotal,
 		AvailableBulkRequests: 50,
-		ActiveBulkRequests:    0}, indexer.Stats())
+		IndexersActive:        0}, indexer.Stats())
 }
 
 func TestModelIndexerScaling(t *testing.T) {
@@ -717,14 +717,14 @@ func TestModelIndexerScaling(t *testing.T) {
 		timeout := time.NewTimer(5 * time.Second)
 		stats := indexer.Stats()
 		limit := int64(runtime.GOMAXPROCS(0) / 4)
-		for stats.ActiveBulkRequests < n {
+		for stats.IndexersActive < n {
 			stats = indexer.Stats()
-			require.LessOrEqual(t, stats.ActiveBulkRequests, limit)
+			require.LessOrEqual(t, stats.IndexersActive, limit)
 			select {
 			case <-time.After(10 * time.Millisecond):
 			case <-timeout.C:
 				stats = indexer.Stats()
-				require.GreaterOrEqual(t, stats.ActiveBulkRequests, n, "stats: %+v", stats)
+				require.GreaterOrEqual(t, stats.IndexersActive, n, "stats: %+v", stats)
 			}
 		}
 		stats = indexer.Stats()
@@ -733,19 +733,19 @@ func TestModelIndexerScaling(t *testing.T) {
 	waitForScaleDown := func(t *testing.T, indexer *modelindexer.Indexer, n int64) {
 		timeout := time.NewTimer(5 * time.Second)
 		stats := indexer.Stats()
-		for stats.ActiveBulkRequests > n {
+		for stats.IndexersActive > n {
 			stats = indexer.Stats()
-			require.Greater(t, stats.ActiveBulkRequests, int64(0))
+			require.Greater(t, stats.IndexersActive, int64(0))
 			select {
 			case <-time.After(10 * time.Millisecond):
 			case <-timeout.C:
 				stats = indexer.Stats()
-				require.LessOrEqual(t, stats.ActiveBulkRequests, n, "stats: %+v", stats)
+				require.LessOrEqual(t, stats.IndexersActive, n, "stats: %+v", stats)
 			}
 		}
 		stats = indexer.Stats()
 		assert.Greater(t, stats.IndexersDestroyed, int64(0), "No downscales took place: %+v", stats)
-		assert.Equal(t, stats.ActiveBulkRequests, int64(n), "%+v", stats)
+		assert.Equal(t, stats.IndexersActive, int64(n), "%+v", stats)
 	}
 	t.Run("DownscaleIdle", func(t *testing.T) {
 		// Override the default GOMAXPROCS, ensuring the active indexers can scale up.
@@ -777,7 +777,7 @@ func TestModelIndexerScaling(t *testing.T) {
 			IndexersCreated:       2,
 			IndexersDestroyed:     2,
 			AvailableBulkRequests: 50,
-			ActiveBulkRequests:    1,
+			IndexersActive:        1,
 		}, stats)
 	})
 	t.Run("DownscaleActiveLimit", func(t *testing.T) {
@@ -817,7 +817,7 @@ func TestModelIndexerScaling(t *testing.T) {
 			Indexed:               events,
 			BulkRequests:          events,
 			AvailableBulkRequests: 50,
-			ActiveBulkRequests:    1,
+			IndexersActive:        1,
 			IndexersCreated:       2,
 			IndexersDestroyed:     2,
 		}, stats)
@@ -847,7 +847,7 @@ func TestModelIndexerScaling(t *testing.T) {
 		for indexer.Stats().Indexed < events {
 			<-time.After(time.Millisecond)
 		}
-		assert.Equal(t, int64(2), indexer.Stats().ActiveBulkRequests)
+		assert.Equal(t, int64(2), indexer.Stats().IndexersActive)
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 		assert.NoError(t, indexer.Close(ctx))
@@ -859,7 +859,7 @@ func TestModelIndexerScaling(t *testing.T) {
 			Indexed:               events,
 			BulkRequests:          events,
 			AvailableBulkRequests: 50,
-			ActiveBulkRequests:    0,
+			IndexersActive:        0,
 			IndexersCreated:       1,
 			IndexersDestroyed:     0,
 		}, stats)

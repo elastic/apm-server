@@ -282,7 +282,7 @@ func (i *Indexer) Stats() Stats {
 		TooManyRequests:       atomic.LoadInt64(&i.tooManyRequests),
 		BytesTotal:            atomic.LoadInt64(&i.bytesTotal),
 		AvailableBulkRequests: atomic.LoadInt64(&i.availableBulkRequests),
-		ActiveBulkRequests:    i.scalingInformation().activeIndexers,
+		IndexersActive:        i.scalingInformation().activeIndexers,
 		IndexersCreated:       atomic.LoadInt64(&i.activeCreated),
 		IndexersDestroyed:     atomic.LoadInt64(&i.activeDestroyed),
 	}
@@ -743,9 +743,9 @@ type Stats struct {
 	// available for making bulk index requests.
 	AvailableBulkRequests int64
 
-	// ActiveBulkRequests represents the number of active bulk indexers that are
+	// IndexersActive represents the number of active bulk indexers that are
 	// concurrently processing batches.
-	ActiveBulkRequests int64
+	IndexersActive int64
 
 	// IndexersCreated represents the number of times new active indexers were
 	// created.
