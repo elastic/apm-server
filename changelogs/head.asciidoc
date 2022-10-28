@@ -12,6 +12,7 @@ https://github.com/elastic/apm-server/compare/8.5\...main[View commits]
 
 [float]
 ==== Deprecations
+- `apm-server apikey` commands have been deprecated. API Keys should be managed through Kibana or the Elasticsearch REST API {pull}9446[9446]
 
 [float]
 ==== Bug fixes
