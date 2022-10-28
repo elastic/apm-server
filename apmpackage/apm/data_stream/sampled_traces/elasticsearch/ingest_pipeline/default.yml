@@ -1,0 +1,7 @@
+---
+description: Pipeline for ingesting APM tail-sampled trace IDs.
+processors:
+  - rename:
+      field: observer.id
+      target_field: agent.ephemeral_id
+      ignore_missing: true

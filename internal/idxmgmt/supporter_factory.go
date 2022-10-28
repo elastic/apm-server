@@ -20,7 +20,6 @@ package idxmgmt
 import (
 	"github.com/pkg/errors"
 
-	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common/fmtstr"
 	"github.com/elastic/beats/v7/libbeat/idxmgmt"
 	"github.com/elastic/beats/v7/libbeat/outputs"
@@ -35,7 +34,7 @@ import (
 // NewSupporter creates a new idxmgmt.Supporter which directs all events
 // to data streams. The given root config will be checked for deprecated/removed
 // configuration, and if any are present warnings will be logged.
-func NewSupporter(log *logp.Logger, info beat.Info, configRoot *config.C) idxmgmt.Supporter {
+func NewSupporter(log *logp.Logger, configRoot *config.C) idxmgmt.Supporter {
 	if log == nil {
 		log = logp.NewLogger(logs.IndexManagement)
 	} else {

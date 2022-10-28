@@ -27,7 +27,7 @@ import (
 )
 
 const (
-	beatID = "beat_id"
+	serverID = "server_id"
 )
 
 var (
@@ -98,7 +98,7 @@ func TestPublishSampledTraceIDs(t *testing.T) {
 				doc := make(map[string]interface{})
 				assert.NoError(t, d.Decode(&doc))
 				assert.Contains(t, doc, "@timestamp")
-				assert.Equal(t, map[string]interface{}{"id": beatID}, doc["observer"])
+				assert.Equal(t, map[string]interface{}{"ephemeral_id": serverID}, doc["agent"])
 				assert.Equal(t, dataStream.Type, doc["data_stream.type"])
 				assert.Equal(t, dataStream.Dataset, doc["data_stream.dataset"])
 				assert.Equal(t, dataStream.Namespace, doc["data_stream.namespace"])
@@ -113,7 +113,7 @@ func TestPublishSampledTraceIDs(t *testing.T) {
 				delete(doc, "data_stream.type")
 				delete(doc, "data_stream.dataset")
 				delete(doc, "data_stream.namespace")
-				delete(doc, "observer")
+				delete(doc, "agent")
 				delete(doc, "trace")
 
 				assert.Empty(t, doc) // no other fields in doc
@@ -132,7 +132,7 @@ func TestSubscribeSampledTraceIDs(t *testing.T) {
 
 	assertSearchQueryFilterEqual := func(filter, body string) {
 		expect := fmt.Sprintf(
-			`{"query":{"bool":{"filter":%s,"must_not":{"term":{"observer.id":{"value":"beat_id"}}}}},"seq_no_primary_term":true,"size":1000,"sort":[{"_seq_no":"asc"}],"track_total_hits":false}`,
+			`{"query":{"bool":{"filter":%s,"must_not":{"term":{"agent.ephemeral_id":{"value":"server_id"}}}}},"seq_no_primary_term":true,"size":1000,"sort":[{"_seq_no":"asc"}],"track_total_hits":false}`,
 			filter,
 		)
 		assert.Equal(t, expect, body)
@@ -299,7 +299,7 @@ func newPubsub(t testing.TB, srv *httptest.Server, flushInterval, searchInterval
 	sub, err := pubsub.New(pubsub.Config{
 		Client:         client,
 		DataStream:     dataStream,
-		BeatID:         beatID,
+		ServerID:       serverID,
 		FlushInterval:  flushInterval,
 		SearchInterval: searchInterval,
 	})
@@ -453,15 +453,15 @@ type searchHit struct {
 
 func newSearchHit(seqNo int64, traceID string) searchHit {
 	var source traceIDDocument
-	source.Observer.ID = "another_beat_id"
+	source.Agent.EphemeralID = "another_server_id"
 	source.Trace.ID = traceID
 	return searchHit{SeqNo: seqNo, Source: source, Sort: []int64{seqNo}}
 }
 
 type traceIDDocument struct {
-	Observer struct {
-		ID string `json:"id"`
-	} `json:"observer"`
+	Agent struct {
+		EphemeralID string `json:"ephemeral_id"`
+	} `json:"agent"`
 
 	Trace struct {
 		ID string `json:"id"`

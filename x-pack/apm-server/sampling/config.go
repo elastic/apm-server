@@ -18,9 +18,6 @@ import (
 
 // Config holds configuration for Processor.
 type Config struct {
-	// BeatID holds the unique ID of this apm-server.
-	BeatID string
-
 	// BatchProcessor holds the model.BatchProcessor, for asynchronously processing
 	// tail-sampled trace events.
 	BatchProcessor model.BatchProcessor
@@ -74,6 +71,15 @@ type RemoteSamplingConfig struct {
 	// SampledTracesDataStream holds the identifiers for the Elasticsearch
 	// data stream for storing and searching sampled trace IDs.
 	SampledTracesDataStream DataStreamConfig
+
+	// UUID holds a unique ID to associate with sampled trace documents
+	// published by the processor.
+	//
+	// UUID will be stored as `agent.ephemeral_id`, and is used to avoid
+	// sampled trace documents being read by the same process that wrote
+	// them. This is purely an optimisation, as the processor must already
+	// cater for observing a sampled trace ID multiple times.
+	UUID string
 }
 
 // DataStreamConfig holds configuration to identify a data stream.
@@ -165,9 +171,6 @@ type PolicyCriteria struct {
 
 // Validate validates the configuration.
 func (config Config) Validate() error {
-	if config.BeatID == "" {
-		return errors.New("BeatID unspecified")
-	}
 	if config.BatchProcessor == nil {
 		return errors.New("BatchProcessor unspecified")
 	}
@@ -220,6 +223,9 @@ func (config RemoteSamplingConfig) validate() error {
 	}
 	if err := config.SampledTracesDataStream.validate(); err != nil {
 		return errors.New("SampledTracesDataStream unspecified or invalid")
+	}
+	if config.UUID == "" {
+		return errors.New("UUID unspecified")
 	}
 	return nil
 }

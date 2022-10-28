@@ -8,6 +8,7 @@ https://github.com/elastic/apm-server/compare/8.5\...main[View commits]
 - `apm-server.decoder.*` stack monitoring metrics are no longer recorded {pull}9210[9210]
 - `ecs.version` is no longer added to document `_source`; it is added as a `constant_keyword` field {pull}9208[9208]
 - `context.http.response.*_size` fields now enforce integer values {pull}9429[9429]
+- `observer.id` and `observer.ephemeral_id` are no longer added to APM documents {pull}9412[9412]
 
 [float]
 ==== Deprecations

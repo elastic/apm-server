@@ -43,9 +43,7 @@
         },
         "message": "Cannot read property 'baz' of undefined",
         "observer": {
-            "ephemeral_id": "f1838cde-80dd-4af5-b7ac-ffc2d3fccc9d",
             "hostname": "ix.lan",
-            "id": "5d4dc8fe-cb14-47ee-b720-d6bf49f87ef0",
             "type": "apm-server",
             "version": "8.0.0"
         },

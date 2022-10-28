@@ -68,9 +68,7 @@
                 "tag2": 2
             },
             "observer": {
-                "ephemeral_id": "dynamic",
                 "hostname": "dynamic",
-                "id": "dynamic",
                 "type": "apm-server",
                 "version": "dynamic"
             },
@@ -143,9 +141,7 @@
                 "name": "transaction"
             },
             "observer": {
-                "ephemeral_id": "dynamic",
                 "hostname": "dynamic",
-                "id": "dynamic",
                 "type": "apm-server",
                 "version": "dynamic"
             },
@@ -215,9 +211,7 @@
                 "name": "transaction"
             },
             "observer": {
-                "ephemeral_id": "dynamic",
                 "hostname": "dynamic",
-                "id": "dynamic",
                 "type": "apm-server",
                 "version": "dynamic"
             },

@@ -29,7 +29,6 @@ func main() {
 		NewRunner: func(args beatcmd.RunnerParams) (beatcmd.Runner, error) {
 			return beater.NewRunner(beater.RunnerParams{
 				Config: args.Config,
-				Info:   args.Info,
 				Logger: args.Logger,
 			})
 		},

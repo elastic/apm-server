@@ -289,10 +289,9 @@
             },
             "message": "My service could not talk to the database named foobar",
             "observer": {
-                "ephemeral_id": "00000000-0000-0000-0000-000000000000",
-                "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
+                "hostname": "dynamic",
                 "type": "apm-server",
-                "version": "1.2.3"
+                "version": "dynamic"
             },
             "process": {
                 "args": [
@@ -425,10 +424,9 @@
             },
             "message": "no user found",
             "observer": {
-                "ephemeral_id": "00000000-0000-0000-0000-000000000000",
-                "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
+                "hostname": "dynamic",
                 "type": "apm-server",
-                "version": "1.2.3"
+                "version": "dynamic"
             },
             "process": {
                 "args": [
@@ -543,10 +541,9 @@
             },
             "message": "Cannot read property 'baz' no defined",
             "observer": {
-                "ephemeral_id": "00000000-0000-0000-0000-000000000000",
-                "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
+                "hostname": "dynamic",
                 "type": "apm-server",
-                "version": "1.2.3"
+                "version": "dynamic"
             },
             "process": {
                 "args": [
@@ -660,10 +657,9 @@
                 }
             },
             "observer": {
-                "ephemeral_id": "00000000-0000-0000-0000-000000000000",
-                "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
+                "hostname": "dynamic",
                 "type": "apm-server",
-                "version": "1.2.3"
+                "version": "dynamic"
             },
             "parent": {
                 "id": "9632587410abcdef"
@@ -783,10 +779,9 @@
             },
             "message": "Cannot read property 'baz' of undefined",
             "observer": {
-                "ephemeral_id": "00000000-0000-0000-0000-000000000000",
-                "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
+                "hostname": "dynamic",
                 "type": "apm-server",
-                "version": "1.2.3"
+                "version": "dynamic"
             },
             "parent": {
                 "id": "9632587410abcdef"

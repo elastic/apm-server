@@ -53,14 +53,6 @@
   type: keyword
   description: |
     Network connection type, eg. "wifi", "cell"
-- name: observer.ephemeral_id
-  type: keyword
-  description: |
-    Ephemeral identifier of the APM Server.
-- name: observer.id
-  type: keyword
-  description: |
-    Unique identifier of the APM Server.
 - name: processor.event
   type: constant_keyword
   description: Processor event.
