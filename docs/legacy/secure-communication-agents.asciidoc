@@ -181,6 +181,8 @@ API keys can also be created and validated outside of {kib}:
 [float]
 ==== APM Server API key workflow
 
+deprecated::[8.6.0, Users should create API Keys through {kib} or the {es} REST API]
+
 APM Server provides a command line interface for creating, retrieving, invalidating, and verifying API keys.
 Keys created using this method can only be used for communication with APM Server.
 
