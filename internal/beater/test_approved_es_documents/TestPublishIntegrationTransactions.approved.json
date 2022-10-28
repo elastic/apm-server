@@ -225,8 +225,8 @@
                     "referrer": "http://localhost:8000/test/e2e/"
                 },
                 "response": {
-                    "decoded_body_size": 29.9,
-                    "encoded_body_size": 26.9,
+                    "decoded_body_size": 2990,
+                    "encoded_body_size": 2690,
                     "finished": true,
                     "headers": {
                         "Content-Type": [
@@ -235,7 +235,7 @@
                     },
                     "headers_sent": true,
                     "status_code": 200,
-                    "transfer_size": 25.8
+                    "transfer_size": 258
                 },
                 "version": "1.1"
             },

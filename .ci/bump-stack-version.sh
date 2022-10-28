@@ -25,7 +25,9 @@ else
 fi
 
 echo "Update stack with version ${VERSION}"
-${SED} -E -e "s#(image: docker\.elastic\.co/.*):[0-9]+\.[0-9]+\.[0-9]+(-[a-f0-9]{8})?#\1:${VERSION}#g" docker-compose.yml
+${SED} -E -e "s#(image: docker\.elastic\.co/.*):[0-9]+\.[0-9]+\.[0-9]+(-[a-f0-9]{8})?#\1:${VERSION}#g" \
+	docker-compose.yml testing/infra/k8s/overlays/local/kustomization.yaml
+${SED} -E -e "s#(version: )[0-9]+\.[0-9]+\.[0-9]+(-[a-f0-9]{8})?#\1${VERSION}#g" testing/infra/k8s/base/stack/*.yaml
 
 echo "Commit changes"
 if [ "$CREATE_BRANCH" = "true" ]; then
@@ -34,7 +36,7 @@ if [ "$CREATE_BRANCH" = "true" ]; then
 else
 	echo "Branch creation disabled."
 fi
-git add docker-compose.yml
+git add docker-compose.yml testing/infra/k8s
 git diff --staged --quiet || git commit -m "[Automation] Update elastic stack version to ${VERSION} for testing"
 git --no-pager log -1
 

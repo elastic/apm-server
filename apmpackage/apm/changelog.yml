@@ -9,6 +9,9 @@
     - description: Enable synthetic source for metrics data streams
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/9215
+    - description: Add mappings for RUM `http.response.*_size` fields
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/9429
     - description: Remove `observer.id` and `observer.ephemeral_id` fields
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/9412
