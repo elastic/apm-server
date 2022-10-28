@@ -20,7 +20,6 @@ package systemtest_test
 import (
 	"context"
 	"errors"
-	"strings"
 	"testing"
 	"time"
 
@@ -155,64 +154,6 @@ func TestTailSampling(t *testing.T) {
 	apmIntegration1.getBeatsMonitoringState(t, &state)
 	assert.True(t, state.APMServer.Sampling.Tail.Enabled)
 	assert.Equal(t, 1, state.APMServer.Sampling.Tail.Policies)
-}
-
-func TestTailSamplingUnlicensed(t *testing.T) {
-	// Start an ephemeral Elasticsearch container with a Basic license to
-	// test that tail-based sampling requires a platinum or trial license.
-	es, err := systemtest.NewUnstartedElasticsearchContainer()
-	require.NoError(t, err)
-	es.Env["xpack.license.self_generated.type"] = "basic"
-	require.NoError(t, es.Start())
-	defer es.Close()
-
-	// Data streams are required for tail-based sampling, but since we're using
-	// an ephemeral Elasticsearch container it's not straightforward to install
-	// the integration package. We won't be indexing anything, so just don't wait
-	// for the integration package to be installed in this test.
-	waitForIntegration := false
-	srv := apmservertest.NewUnstartedServerTB(t)
-	srv.Config.Output.Elasticsearch.Hosts = []string{es.Addr}
-	srv.Config.WaitForIntegration = &waitForIntegration
-	srv.Config.Sampling = &apmservertest.SamplingConfig{
-		Tail: &apmservertest.TailSamplingConfig{
-			Enabled:  true,
-			Interval: time.Second,
-			Policies: []apmservertest.TailSamplingPolicy{{SampleRate: 0.5}},
-		},
-	}
-	require.NoError(t, srv.Start())
-
-	// Send some transactions to trigger an indexing attempt.
-	tracer := srv.Tracer()
-	for i := 0; i < 100; i++ {
-		tx := tracer.StartTransaction("GET /", "parent")
-		tx.Duration = time.Second * time.Duration(i+1)
-		tx.End()
-	}
-	tracer.Flush(nil)
-
-	timeout := time.After(time.Minute)
-	logs := srv.Logs.Iterator()
-	var done bool
-	for !done {
-		select {
-		case entry := <-logs.C():
-			done = strings.Contains(entry.Message, "invalid license")
-		case <-timeout:
-			t.Fatal("timed out waiting for log message")
-		}
-	}
-
-	// Due to the failing license check, APM Server will refuse to index anything.
-	var result estest.SearchResult
-	_, err = es.Client.Search("traces-apm*").Do(context.Background(), &result)
-	assert.NoError(t, err)
-	assert.Empty(t, result.Hits.Hits)
-
-	// The server will wait for the enqueued events to be published before
-	// shutting down gracefully, so shutdown forcefully.
-	srv.Kill()
 }
 
 func refreshPeriodically(t *testing.T, interval time.Duration, index ...string) {
