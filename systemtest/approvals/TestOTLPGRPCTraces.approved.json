@@ -202,6 +202,7 @@
                 },
                 "id": "b3ee9be3b687a611",
                 "name": "operation_name",
+                "representative_count": 1,
                 "sampled": true,
                 "type": "unknown"
             }

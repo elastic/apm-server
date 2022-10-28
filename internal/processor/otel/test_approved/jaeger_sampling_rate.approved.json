@@ -27,6 +27,7 @@
                 "us": 1576500418000768
             },
             "transaction": {
+                "representative_count": 1.25,
                 "sampled": true,
                 "type": "unknown"
             }
@@ -58,6 +59,7 @@
                 "name": "unknown"
             },
             "span": {
+                "representative_count": 2.5,
                 "type": "unknown"
             },
             "timestamp": {
