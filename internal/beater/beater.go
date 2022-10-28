@@ -185,9 +185,13 @@ func (s *Runner) Run(ctx context.Context) error {
 	// Send config to telemetry.
 	recordAPMServerConfig(s.config)
 
-	var kibanaClient kibana.Client
+	var kibanaClient *kibana.Client
 	if s.config.Kibana.Enabled {
-		kibanaClient = kibana.NewConnectingClient(s.config.Kibana.ClientConfig)
+		var err error
+		kibanaClient, err = kibana.NewClient(s.config.Kibana.ClientConfig)
+		if err != nil {
+			return err
+		}
 	}
 
 	// ELASTIC_AGENT_CLOUD is set when running in Elastic Cloud.
@@ -438,7 +442,7 @@ func (s *Runner) Run(ctx context.Context) error {
 // waitReady waits until the server is ready to index events.
 func (s *Runner) waitReady(
 	ctx context.Context,
-	kibanaClient kibana.Client,
+	kibanaClient *kibana.Client,
 	tracer *apm.Tracer,
 ) error {
 	var preconditions []func(context.Context) error
@@ -543,6 +547,9 @@ func (s *Runner) newFinalBatchProcessor(
 		FlushBytes            string        `config:"flush_bytes"`
 		FlushInterval         time.Duration `config:"flush_interval"`
 		MaxRequests           int           `config:"max_requests"`
+		Scaling               struct {
+			Enabled *bool `config:"enabled"`
+		} `config:"autoscaling"`
 	}
 	esConfig.FlushInterval = time.Second
 	esConfig.Config = elasticsearch.DefaultConfig()
@@ -562,12 +569,17 @@ func (s *Runner) newFinalBatchProcessor(
 	if err != nil {
 		return nil, nil, err
 	}
+	var scalingCfg modelindexer.ScalingConfig
+	if enabled := esConfig.Scaling.Enabled; enabled != nil {
+		scalingCfg.Disabled = !*enabled
+	}
 	indexer, err := modelindexer.New(client, modelindexer.Config{
 		CompressionLevel: esConfig.CompressionLevel,
 		FlushBytes:       flushBytes,
 		FlushInterval:    esConfig.FlushInterval,
 		Tracer:           tracer,
 		MaxRequests:      esConfig.MaxRequests,
+		Scaling:          scalingCfg,
 	})
 	if err != nil {
 		return nil, nil, err
@@ -614,10 +626,19 @@ func (s *Runner) newFinalBatchProcessor(
 		stats := indexer.Stats()
 		v.OnKey("available")
 		v.OnInt(stats.AvailableBulkRequests)
-		v.OnKey("active")
-		v.OnInt(stats.ActiveBulkRequests)
 		v.OnKey("completed")
 		v.OnInt(stats.BulkRequests)
+	})
+	monitoring.NewFunc(monitoring.Default, "output.elasticsearch.indexers", func(_ monitoring.Mode, v monitoring.Visitor) {
+		v.OnRegistryStart()
+		defer v.OnRegistryFinished()
+		stats := indexer.Stats()
+		v.OnKey("active")
+		v.OnInt(stats.IndexersActive)
+		v.OnKey("created")
+		v.OnInt(stats.IndexersCreated)
+		v.OnKey("destroyed")
+		v.OnInt(stats.IndexersDestroyed)
 	})
 	return indexer, indexer.Close, nil
 }
@@ -674,7 +695,7 @@ func newSourcemapFetcher(
 	beatInfo beat.Info,
 	cfg config.SourceMapping,
 	fleetCfg *config.Fleet,
-	kibanaClient kibana.Client,
+	kibanaClient *kibana.Client,
 	newElasticsearchClient func(*elasticsearch.Config) (elasticsearch.Client, error),
 ) (sourcemap.Fetcher, error) {
 	// When running under Fleet we only fetch via Fleet Server.

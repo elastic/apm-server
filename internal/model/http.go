@@ -50,9 +50,9 @@ type HTTPResponse struct {
 	Headers         mapstr.M
 	Finished        *bool
 	HeadersSent     *bool
-	TransferSize    *float64
-	EncodedBodySize *float64
-	DecodedBodySize *float64
+	TransferSize    *int
+	EncodedBodySize *int
+	DecodedBodySize *int
 }
 
 func (h *HTTP) fields() mapstr.M {
@@ -90,8 +90,8 @@ func (h *HTTPResponse) fields() mapstr.M {
 	fields.maybeSetMapStr("headers", h.Headers)
 	fields.maybeSetBool("finished", h.Finished)
 	fields.maybeSetBool("headers_sent", h.HeadersSent)
-	fields.maybeSetFloat64ptr("transfer_size", h.TransferSize)
-	fields.maybeSetFloat64ptr("encoded_body_size", h.EncodedBodySize)
-	fields.maybeSetFloat64ptr("decoded_body_size", h.DecodedBodySize)
+	fields.maybeSetIntptr("transfer_size", h.TransferSize)
+	fields.maybeSetIntptr("encoded_body_size", h.EncodedBodySize)
+	fields.maybeSetIntptr("decoded_body_size", h.DecodedBodySize)
 	return mapstr.M(fields)
 }

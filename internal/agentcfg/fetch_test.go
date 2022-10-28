@@ -21,81 +21,87 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"net/http/httptest"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/elastic-agent-libs/version"
-
 	"github.com/elastic/apm-server/internal/kibana"
-	"github.com/elastic/apm-server/internal/kibana/kibanatest"
 )
-
-type m map[string]interface{}
 
 var (
 	testExpiration = time.Nanosecond
-	mockVersion    = *version.MustNew("7.5.0")
 )
 
-func TestFetcher_Fetch(t *testing.T) {
+func TestKibanaFetcher(t *testing.T) {
+	var statusCode int
+	var response map[string]interface{}
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(statusCode)
+		json.NewEncoder(w).Encode(response)
+	}))
+	defer srv.Close()
+	client, err := kibana.NewClient(kibana.ClientConfig{Host: srv.URL})
+	require.NoError(t, err)
 
 	t.Run("ExpectationFailed", func(t *testing.T) {
-		kb := kibanatest.MockKibana(http.StatusExpectationFailed, m{"error": "an error"}, mockVersion, true)
-		_, err := NewKibanaFetcher(kb, testExpiration).Fetch(context.Background(), query(t.Name()))
+		statusCode = http.StatusExpectationFailed
+		response = map[string]interface{}{"error": "an error"}
+
+		_, err := NewKibanaFetcher(client, testExpiration).Fetch(context.Background(), query(t.Name()))
 		require.Error(t, err)
 		assert.Equal(t, "{\"error\":\"an error\"}"+"\n", err.Error())
 	})
 
 	t.Run("NotFound", func(t *testing.T) {
-		kb := kibanatest.MockKibana(http.StatusNotFound, m{}, mockVersion, true)
-		result, err := NewKibanaFetcher(kb, testExpiration).Fetch(context.Background(), query(t.Name()))
+		statusCode = http.StatusNotFound
+		response = map[string]interface{}{}
+
+		result, err := NewKibanaFetcher(client, testExpiration).Fetch(context.Background(), query(t.Name()))
 		require.NoError(t, err)
 		assert.Equal(t, zeroResult(), result)
 	})
 
 	t.Run("Success", func(t *testing.T) {
-		kb := kibanatest.MockKibana(http.StatusOK, mockDoc(0.5), mockVersion, true)
-		b, err := json.Marshal(mockDoc(0.5))
+		statusCode = http.StatusOK
+		response = mockDoc(0.5)
+
+		b, err := json.Marshal(response)
 		expectedResult, err := newResult(b, err)
 		require.NoError(t, err)
-		result, err := NewKibanaFetcher(kb, testExpiration).Fetch(context.Background(), query(t.Name()))
+		result, err := NewKibanaFetcher(client, testExpiration).Fetch(context.Background(), query(t.Name()))
 		require.NoError(t, err)
 		assert.Equal(t, expectedResult, result)
 	})
 
 	t.Run("FetchFromCache", func(t *testing.T) {
 
-		fetch := func(f *KibanaFetcher, kibanaSamplingRate, expectedSamplingRate float64) {
-
-			client := func(samplingRate float64) kibana.Client {
-				return kibanatest.MockKibana(http.StatusOK, mockDoc(samplingRate), mockVersion, true)
-			}
-			f.client = client(kibanaSamplingRate)
+		fetcher := NewKibanaFetcher(client, time.Minute)
+		fetch := func(kibanaSamplingRate, expectedSamplingRate float64) {
+			statusCode = http.StatusOK
+			response = mockDoc(kibanaSamplingRate)
 
 			b, err := json.Marshal(mockDoc(expectedSamplingRate))
 			require.NoError(t, err)
 			expectedResult, err := newResult(b, err)
 			require.NoError(t, err)
 
-			result, err := f.Fetch(context.Background(), query(t.Name()))
+			result, err := fetcher.Fetch(context.Background(), query(t.Name()))
 			require.NoError(t, err)
 			assert.Equal(t, expectedResult, result)
 		}
 
-		fetcher := NewKibanaFetcher(nil, time.Minute)
-
 		// nothing cached yet
-		fetch(fetcher, 0.5, 0.5)
+		fetch(0.5, 0.5)
 
 		// next fetch runs against cache
-		fetch(fetcher, 0.8, 0.5)
+		fetch(0.8, 0.5)
 
 		// after key is expired, fetch from Kibana again
 		fetcher.cache.gocache.Delete(query(t.Name()).id())
-		fetch(fetcher, 0.7, 0.7)
+		fetch(0.7, 0.7)
 
 	})
 }
@@ -142,11 +148,11 @@ func query(name string) Query {
 	return Query{Service: Service{Name: name}, Etag: "123"}
 }
 
-func mockDoc(sampleRate float64) m {
-	return m{
+func mockDoc(sampleRate float64) map[string]interface{} {
+	return map[string]interface{}{
 		"_id": "1",
-		"_source": m{
-			"settings": m{
+		"_source": map[string]interface{}{
+			"settings": map[string]interface{}{
 				"sampling_rate": sampleRate,
 			},
 			"etag":       "123",

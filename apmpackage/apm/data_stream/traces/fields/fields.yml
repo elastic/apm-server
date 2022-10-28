@@ -58,6 +58,26 @@
   type: object
   description: |
     The canonical headers of the monitored HTTP response.
+- name: http.response.transfer_size
+  type: long
+  unit: byte
+  index: false
+  description: |
+    The size (in octets) of the fetched resource.
+    The size includes the response header fields plus the response payload body (as defined by RFC7230).
+- name: http.response.encoded_body_size
+  type: long
+  unit: byte
+  index: false
+  description: |
+    The size (in octets) received from the fetch (HTTP or cache), of the payload body, before removing any applied content-codings.
+- name: http.response.decoded_body_size
+  type: long
+  index: false
+  description: |
+    The size (in octets) received from the fetch (HTTP or cache) of the message body, after removing any applied content-codings.
+    If the resource is retrieved from an application cache or local resources,
+    it returns the size of the payload after removing any applied content-codings.
 - name: kubernetes.namespace
   type: keyword
   description: |

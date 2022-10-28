@@ -1,0 +1,7 @@
+resources:
+  - https://download.elastic.co/downloads/eck/2.4.0/crds.yaml
+  - https://download.elastic.co/downloads/eck/2.4.0/operator.yaml
+  - stack/elasticsearch.yaml
+  - stack/kibana.yaml
+  - stack/apm-server.yaml
+  - stack/fleet-server.yaml

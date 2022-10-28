@@ -118,14 +118,14 @@
               "description": "DecodedBodySize holds the size of the decoded payload.",
               "type": [
                 "null",
-                "number"
+                "integer"
               ]
             },
             "ebs": {
               "description": "EncodedBodySize holds the size of the encoded payload.",
               "type": [
                 "null",
-                "number"
+                "integer"
               ]
             },
             "he": {
@@ -159,7 +159,7 @@
               "description": "TransferSize holds the total size of the payload.",
               "type": [
                 "null",
-                "number"
+                "integer"
               ]
             }
           }
@@ -720,21 +720,21 @@
                         "description": "DecodedBodySize holds the size of the decoded payload.",
                         "type": [
                           "null",
-                          "number"
+                          "integer"
                         ]
                       },
                       "ebs": {
                         "description": "EncodedBodySize holds the size of the encoded payload.",
                         "type": [
                           "null",
-                          "number"
+                          "integer"
                         ]
                       },
                       "ts": {
                         "description": "TransferSize holds the total size of the payload.",
                         "type": [
                           "null",
-                          "number"
+                          "integer"
                         ]
                       }
                     }

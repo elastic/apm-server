@@ -254,7 +254,7 @@ func agentConfigHandler(
 	fleetManaged bool,
 ) (request.Handler, error) {
 	mw := middlewareFunc(cfg, authenticator, ratelimitStore, agent.MonitoringMap)
-	h := agent.NewHandler(f, cfg.KibanaAgentConfig, cfg.DefaultServiceEnvironment, cfg.AgentAuth.Anonymous.AllowAgent)
+	h := agent.NewHandler(f, cfg.KibanaAgentConfig.Cache.Expiration, cfg.DefaultServiceEnvironment, cfg.AgentAuth.Anonymous.AllowAgent)
 
 	if !cfg.Kibana.Enabled && !fleetManaged {
 		msg := "Agent remote configuration is disabled. " +
