@@ -36,7 +36,7 @@ if [ "$CREATE_BRANCH" = "true" ]; then
 else
 	echo "Branch creation disabled."
 fi
-git add docker-compose.yml
+git add docker-compose.yml testing/infra/k8s
 git diff --staged --quiet || git commit -m "[Automation] Update elastic stack version to ${VERSION} for testing"
 git --no-pager log -1
 
