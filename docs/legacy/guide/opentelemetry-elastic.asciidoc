@@ -108,7 +108,7 @@ exporters:
     endpoint: "${ELASTIC_APM_SERVER_ENDPOINT}" <5> <7>
     headers:
       # Elastic APM Server secret token
-      Authorization: "Bearer ${ELASTIC_APM_SERVER_TOKEN}" <6> <7>
+      Authorization: "Bearer ${ELASTIC_APM_SECRET_TOKEN}" <6> <7>
 
 service:
   pipelines:
@@ -129,7 +129,7 @@ the https://github.com/open-telemetry/opentelemetry-collector/tree/main/receiver
 <4> Elastic {observability} endpoint configuration. To learn more, see https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/otlpexporter[OpenTelemetry Collector > OTLP gRPC exporter].
 <5> Hostname and port of the APM Server endpoint. For example, `elastic-apm-server:8200`.
 <6> Credential for Elastic APM {apm-server-ref-v}/secret-token.html[secret token authorization] (`Authorization: "Bearer a_secret_token"`) or {apm-server-ref-v}/api-key.html[API key authorization] (`Authorization: "ApiKey an_api_key"`).
-<7> Environment-specific configuration parameters can be conveniently passed in as environment variables documented https://opentelemetry.io/docs/collector/configuration/#configuration-environment-variables[here] (e.g. `ELASTIC_APM_SERVER_ENDPOINT` and `ELASTIC_APM_SERVER_TOKEN`).
+<7> Environment-specific configuration parameters can be conveniently passed in as environment variables documented https://opentelemetry.io/docs/collector/configuration/#configuration-environment-variables[here] (e.g. `ELASTIC_APM_SERVER_ENDPOINT` and `ELASTIC_APM_SECRET_TOKEN`).
 <8> To send OpenTelemetry logs to {stack} version 8.0+, declare a `logs` pipeline.
 
 You're now ready to export traces and metrics from your services and applications.
