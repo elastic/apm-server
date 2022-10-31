@@ -68,9 +68,7 @@
                 "segment": 5
             },
             "observer": {
-                "ephemeral_id": "dynamic",
                 "hostname": "dynamic",
-                "id": "dynamic",
                 "type": "apm-server",
                 "version": "dynamic"
             },

@@ -87,9 +87,7 @@
             },
             "message": "boom",
             "observer": {
-                "ephemeral_id": "dynamic",
                 "hostname": "dynamic",
-                "id": "dynamic",
                 "name": "instance-0000000000",
                 "type": "apm-server",
                 "version": "dynamic"
@@ -199,9 +197,7 @@
                 "name": "app"
             },
             "observer": {
-                "ephemeral_id": "dynamic",
                 "hostname": "dynamic",
-                "id": "dynamic",
                 "name": "instance-0000000000",
                 "type": "apm-server",
                 "version": "dynamic"
@@ -244,7 +240,7 @@
                     "actual": {
                         "free": 33981653000
                     },
-                    "total": 46108971000
+                    "total": 46108970000
                 },
                 "process": {
                     "cpu": {
@@ -258,7 +254,7 @@
                         "rss": {
                             "bytes": 15187968
                         },
-                        "size": 1485594620
+                        "size": 1485594600
                     }
                 }
             }
@@ -297,9 +293,7 @@
                 "name": "span_breakdown"
             },
             "observer": {
-                "ephemeral_id": "dynamic",
                 "hostname": "dynamic",
-                "id": "dynamic",
                 "name": "instance-0000000000",
                 "type": "apm-server",
                 "version": "dynamic"
@@ -378,9 +372,7 @@
                 "name": "span_breakdown"
             },
             "observer": {
-                "ephemeral_id": "dynamic",
                 "hostname": "dynamic",
-                "id": "dynamic",
                 "name": "instance-0000000000",
                 "type": "apm-server",
                 "version": "dynamic"
@@ -447,9 +439,7 @@
                 "name": "service_destination"
             },
             "observer": {
-                "ephemeral_id": "dynamic",
                 "hostname": "dynamic",
-                "id": "dynamic",
                 "name": "instance-0000000000",
                 "type": "apm-server",
                 "version": "dynamic"
@@ -504,9 +494,7 @@
                 "name": "transaction"
             },
             "observer": {
-                "ephemeral_id": "dynamic",
                 "hostname": "dynamic",
-                "id": "dynamic",
                 "name": "instance-0000000000",
                 "type": "apm-server",
                 "version": "dynamic"
@@ -557,9 +545,7 @@
                 "outcome": "failure"
             },
             "observer": {
-                "ephemeral_id": "dynamic",
                 "hostname": "dynamic",
-                "id": "dynamic",
                 "name": "instance-0000000000",
                 "type": "apm-server",
                 "version": "dynamic"
@@ -682,9 +668,7 @@
                 }
             },
             "observer": {
-                "ephemeral_id": "dynamic",
                 "hostname": "dynamic",
-                "id": "dynamic",
                 "name": "instance-0000000000",
                 "type": "apm-server",
                 "version": "dynamic"

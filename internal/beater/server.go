@@ -22,7 +22,6 @@ import (
 	"net"
 	"net/http"
 
-	"github.com/gofrs/uuid"
 	"go.elastic.co/apm/module/apmgorilla/v2"
 	"go.elastic.co/apm/v2"
 	"golang.org/x/sync/errgroup"
@@ -67,9 +66,6 @@ type RunServerFunc func(context.Context, ServerParams) error
 
 // ServerParams holds parameters for running the APM Server.
 type ServerParams struct {
-	// UUID holds a unique ID for the server.
-	UUID uuid.UUID
-
 	// Config is the configuration used for running the APM Server.
 	Config *config.Config
 

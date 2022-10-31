@@ -66,7 +66,7 @@ func TestAPIKeyCreate(t *testing.T) {
 	defer systemtest.InvalidateAPIKeys(t)
 
 	cmd := apiKeyCommand("create", "--name", t.Name(), "--json")
-	out, err := cmd.CombinedOutput()
+	out, err := cmd.Output()
 	require.NoError(t, err)
 
 	attrs := decodeJSONMap(t, bytes.NewReader(out))
@@ -99,7 +99,7 @@ func TestAPIKeyCreateExpiration(t *testing.T) {
 	defer systemtest.InvalidateAPIKeys(t)
 
 	cmd := apiKeyCommand("create", "--name", t.Name(), "--json", "--expiration=1d")
-	out, err := cmd.CombinedOutput()
+	out, err := cmd.Output()
 	require.NoError(t, err)
 
 	attrs := decodeJSONMap(t, bytes.NewReader(out))
@@ -115,7 +115,7 @@ func TestAPIKeyCreateInvalidUser(t *testing.T) {
 		cfg.Output.Elasticsearch.Password = "changeme"
 
 		cmd := apiKeyCommandConfig(cfg, "create", "--name", t.Name(), "--json")
-		out, err := cmd.CombinedOutput()
+		out, err := cmd.Output()
 		require.Error(t, err)
 		attrs := decodeJSONMap(t, bytes.NewReader(out))
 		assert.Regexp(t, username+` is missing the following requested privilege\(s\): .*`, attrs["error"])
@@ -129,7 +129,7 @@ func TestAPIKeyInvalidateName(t *testing.T) {
 	var clients []*estest.Client
 	for i := 0; i < 2; i++ {
 		cmd := apiKeyCommand("create", "--name", t.Name(), "--json")
-		out, err := cmd.CombinedOutput()
+		out, err := cmd.Output()
 		require.NoError(t, err)
 
 		attrs := decodeJSONMap(t, bytes.NewReader(out))
@@ -139,7 +139,7 @@ func TestAPIKeyInvalidateName(t *testing.T) {
 	}
 
 	cmd := apiKeyCommand("invalidate", "--name", t.Name(), "--json")
-	out, err := cmd.CombinedOutput()
+	out, err := cmd.Output()
 	require.NoError(t, err)
 
 	result := decodeJSONMap(t, bytes.NewReader(out))
@@ -156,7 +156,7 @@ func TestAPIKeyInvalidateID(t *testing.T) {
 	defer systemtest.InvalidateAPIKeys(t)
 
 	cmd := apiKeyCommand("create", "--json")
-	out, err := cmd.CombinedOutput()
+	out, err := cmd.Output()
 	require.NoError(t, err)
 	attrs := decodeJSONMap(t, bytes.NewReader(out))
 
@@ -166,7 +166,7 @@ func TestAPIKeyInvalidateID(t *testing.T) {
 	// NOTE(axw) it is important to use "--id=<id>" rather than "--id" <id>,
 	// as API keys may begin with a hyphen and be interpreted as flags.
 	cmd = apiKeyCommand("invalidate", "--json", "--id="+attrs["id"].(string))
-	out, err = cmd.CombinedOutput()
+	out, err = cmd.Output()
 	require.NoError(t, err)
 	result := decodeJSONMap(t, bytes.NewReader(out))
 
@@ -180,13 +180,13 @@ func TestAPIKeyVerify(t *testing.T) {
 	defer systemtest.InvalidateAPIKeys(t)
 
 	cmd := apiKeyCommand("create", "--name", t.Name(), "--json", "--ingest", "--agent-config")
-	out, err := cmd.CombinedOutput()
+	out, err := cmd.Output()
 	require.NoError(t, err)
 	attrs := decodeJSONMap(t, bytes.NewReader(out))
 	credentials := attrs["credentials"].(string)
 
 	cmd = apiKeyCommand("verify", "--json", "--credentials="+credentials)
-	out, err = cmd.CombinedOutput()
+	out, err = cmd.Output()
 	require.NoError(t, err)
 	attrs = decodeJSONMap(t, bytes.NewReader(out))
 	assert.Equal(t, map[string]interface{}{
@@ -196,7 +196,7 @@ func TestAPIKeyVerify(t *testing.T) {
 	}, attrs)
 
 	cmd = apiKeyCommand("verify", "--json", "--credentials="+credentials, "--ingest")
-	out, err = cmd.CombinedOutput()
+	out, err = cmd.Output()
 	require.NoError(t, err)
 	attrs = decodeJSONMap(t, bytes.NewReader(out))
 	assert.Equal(t, map[string]interface{}{"event:write": true}, attrs)
@@ -209,7 +209,7 @@ func TestAPIKeyInfo(t *testing.T) {
 	var ids []string
 	for i := 0; i < 2; i++ {
 		cmd := apiKeyCommand("create", "--name", t.Name(), "--json", "--ingest", "--agent-config")
-		out, err := cmd.CombinedOutput()
+		out, err := cmd.Output()
 		require.NoError(t, err)
 		attrs := decodeJSONMap(t, bytes.NewReader(out))
 		ids = append(ids, attrs["id"].(string))
@@ -224,7 +224,7 @@ func TestAPIKeyInfo(t *testing.T) {
 	}
 
 	cmd := apiKeyCommand("info", "--json", "--id="+ids[0])
-	out, err := cmd.CombinedOutput()
+	out, err := cmd.Output()
 	require.NoError(t, err)
 	err = json.Unmarshal(out, &result)
 	require.NoError(t, err)
@@ -235,7 +235,7 @@ func TestAPIKeyInfo(t *testing.T) {
 
 	result.APIKeys = nil
 	cmd = apiKeyCommand("info", "--json", "--name="+t.Name())
-	out, err = cmd.CombinedOutput()
+	out, err = cmd.Output()
 	require.NoError(t, err)
 	err = json.Unmarshal(out, &result)
 	require.NoError(t, err)

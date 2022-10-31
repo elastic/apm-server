@@ -141,7 +141,11 @@ func TestPublishIntegration(t *testing.T) {
 			b, err := os.ReadFile(filepath.Join("../../testdata/intake-v2", tc.payload))
 			require.NoError(t, err)
 			docs := testPublishIntake(t, srv, docsChan, bytes.NewReader(b))
-			approvaltest.ApproveEventDocs(t, "test_approved_es_documents/TestPublishIntegration"+tc.name, docs)
+			approvaltest.ApproveEventDocs(
+				t, "test_approved_es_documents/TestPublishIntegration"+tc.name, docs,
+				"observer.hostname",
+				"observer.version",
+			)
 		})
 	}
 }

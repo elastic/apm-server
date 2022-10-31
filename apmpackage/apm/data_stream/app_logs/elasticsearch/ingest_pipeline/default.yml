@@ -6,4 +6,6 @@ processors:
   - pipeline:
       name: observer_version
   - pipeline:
+      name: observer_ids
+  - pipeline:
       name: ecs_version

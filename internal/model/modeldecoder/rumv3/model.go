@@ -99,15 +99,15 @@ type contextRequest struct {
 
 type contextResponse struct {
 	// DecodedBodySize holds the size of the decoded payload.
-	DecodedBodySize nullable.Float64 `json:"dbs"`
+	DecodedBodySize nullable.Int `json:"dbs"`
 	// EncodedBodySize holds the size of the encoded payload.
-	EncodedBodySize nullable.Float64 `json:"ebs"`
+	EncodedBodySize nullable.Int `json:"ebs"`
 	// Headers holds the http headers sent in the http response.
 	Headers nullable.HTTPHeader `json:"he"`
 	// StatusCode sent in the http response.
 	StatusCode nullable.Int `json:"sc"`
 	// TransferSize holds the total size of the payload.
-	TransferSize nullable.Float64 `json:"ts"`
+	TransferSize nullable.Int `json:"ts"`
 }
 
 type contextService struct {
@@ -432,11 +432,11 @@ type spanContextHTTP struct {
 
 type spanContextHTTPResponse struct {
 	// DecodedBodySize holds the size of the decoded payload.
-	DecodedBodySize nullable.Float64 `json:"dbs"`
+	DecodedBodySize nullable.Int `json:"dbs"`
 	// EncodedBodySize holds the size of the encoded payload.
-	EncodedBodySize nullable.Float64 `json:"ebs"`
+	EncodedBodySize nullable.Int `json:"ebs"`
 	// TransferSize holds the total size of the payload.
-	TransferSize nullable.Float64 `json:"ts"`
+	TransferSize nullable.Int `json:"ts"`
 }
 
 type spanContextService struct {

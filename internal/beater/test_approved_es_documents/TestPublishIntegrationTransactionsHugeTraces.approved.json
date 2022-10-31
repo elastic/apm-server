@@ -96,8 +96,8 @@
                     "referrer": "http://localhost:8000/test/e2e/"
                 },
                 "response": {
-                    "decoded_body_size": 29.9,
-                    "encoded_body_size": 26.9,
+                    "decoded_body_size": 2990,
+                    "encoded_body_size": 2690,
                     "finished": true,
                     "headers": {
                         "Content-Type": [
@@ -106,7 +106,7 @@
                     },
                     "headers_sent": true,
                     "status_code": 200,
-                    "transfer_size": 25.8
+                    "transfer_size": 258
                 },
                 "version": "1.1"
             },
@@ -130,10 +130,9 @@
                 "tag3": 12.45
             },
             "observer": {
-                "ephemeral_id": "00000000-0000-0000-0000-000000000000",
-                "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
+                "hostname": "dynamic",
                 "type": "apm-server",
-                "version": "1.2.3"
+                "version": "dynamic"
             },
             "process": {
                 "args": [

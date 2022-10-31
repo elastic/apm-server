@@ -68,13 +68,13 @@ import (
 	"github.com/elastic/apm-server/internal/model/modelprocessor"
 	"github.com/elastic/apm-server/internal/publish"
 	"github.com/elastic/apm-server/internal/sourcemap"
+	"github.com/elastic/apm-server/internal/version"
 )
 
 // Runner initialises and runs and orchestrates the APM Server
 // HTTP and gRPC servers, event processing pipeline, and output.
 type Runner struct {
 	wrapServer WrapServerFunc
-	info       beat.Info
 	logger     *logp.Logger
 	rawConfig  *agentconfig.C
 
@@ -91,10 +91,6 @@ type RunnerParams struct {
 	// Config holds the full, raw, configuration, including apm-server.*
 	// and output.* attributes.
 	Config *agentconfig.C
-
-	// Info holds information about the APM Server ("beat", for historical
-	// reasons) process.
-	Info beat.Info
 
 	// Logger holds a logger to use for logging throughout the APM Server.
 	Logger *logp.Logger
@@ -141,7 +137,6 @@ func NewRunner(args RunnerParams) (*Runner, error) {
 	}
 	return &Runner{
 		wrapServer: args.WrapServer,
-		info:       args.Info,
 		logger:     logger,
 		rawConfig:  args.Config,
 
@@ -221,7 +216,7 @@ func (s *Runner) Run(ctx context.Context) error {
 		}
 	}
 
-	instrumentation, err := instrumentation.New(s.rawConfig, s.info.Beat, s.info.Version)
+	instrumentation, err := instrumentation.New(s.rawConfig, "apm-server", version.Version)
 	if err != nil {
 		return err
 	}
@@ -277,7 +272,7 @@ func (s *Runner) Run(ctx context.Context) error {
 	var sourcemapFetcher sourcemap.Fetcher
 	if s.config.RumConfig.Enabled && s.config.RumConfig.SourceMapping.Enabled {
 		fetcher, err := newSourcemapFetcher(
-			s.info, s.config.RumConfig.SourceMapping, s.fleetConfig,
+			s.config.RumConfig.SourceMapping, s.fleetConfig,
 			kibanaClient, newElasticsearchClient,
 		)
 		if err != nil {
@@ -335,7 +330,7 @@ func (s *Runner) Run(ctx context.Context) error {
 		// Ensure all events have observer.*, ecs.*, and data_stream.* fields added,
 		// and are counted in metrics. This is done in the final processors to ensure
 		// aggregated metrics are also processed.
-		newObserverBatchProcessor(s.info),
+		newObserverBatchProcessor(),
 		&modelprocessor.SetDataStream{Namespace: s.config.DataStreams.Namespace},
 		modelprocessor.NewEventCounter(monitoring.Default.GetRegistry("apm-server")),
 
@@ -361,7 +356,6 @@ func (s *Runner) Run(ctx context.Context) error {
 	// Create the runServer function. We start with newBaseRunServer, and then
 	// wrap depending on the configuration in order to inject behaviour.
 	serverParams := ServerParams{
-		UUID:                   s.info.ID,
 		Config:                 s.config,
 		Managed:                s.fleetConfig != nil,
 		Namespace:              s.config.DataStreams.Namespace,
@@ -547,6 +541,9 @@ func (s *Runner) newFinalBatchProcessor(
 		FlushBytes            string        `config:"flush_bytes"`
 		FlushInterval         time.Duration `config:"flush_interval"`
 		MaxRequests           int           `config:"max_requests"`
+		Scaling               struct {
+			Enabled *bool `config:"enabled"`
+		} `config:"autoscaling"`
 	}
 	esConfig.FlushInterval = time.Second
 	esConfig.Config = elasticsearch.DefaultConfig()
@@ -566,12 +563,17 @@ func (s *Runner) newFinalBatchProcessor(
 	if err != nil {
 		return nil, nil, err
 	}
+	var scalingCfg modelindexer.ScalingConfig
+	if enabled := esConfig.Scaling.Enabled; enabled != nil {
+		scalingCfg.Disabled = !*enabled
+	}
 	indexer, err := modelindexer.New(client, modelindexer.Config{
 		CompressionLevel: esConfig.CompressionLevel,
 		FlushBytes:       flushBytes,
 		FlushInterval:    esConfig.FlushInterval,
 		Tracer:           tracer,
 		MaxRequests:      esConfig.MaxRequests,
+		Scaling:          scalingCfg,
 	})
 	if err != nil {
 		return nil, nil, err
@@ -618,10 +620,19 @@ func (s *Runner) newFinalBatchProcessor(
 		stats := indexer.Stats()
 		v.OnKey("available")
 		v.OnInt(stats.AvailableBulkRequests)
-		v.OnKey("active")
-		v.OnInt(stats.ActiveBulkRequests)
 		v.OnKey("completed")
 		v.OnInt(stats.BulkRequests)
+	})
+	monitoring.NewFunc(monitoring.Default, "output.elasticsearch.indexers", func(_ monitoring.Mode, v monitoring.Visitor) {
+		v.OnRegistryStart()
+		defer v.OnRegistryFinished()
+		stats := indexer.Stats()
+		v.OnKey("active")
+		v.OnInt(stats.IndexersActive)
+		v.OnKey("created")
+		v.OnInt(stats.IndexersCreated)
+		v.OnKey("destroyed")
+		v.OnInt(stats.IndexersDestroyed)
 	})
 	return indexer, indexer.Close, nil
 }
@@ -635,6 +646,15 @@ func (s *Runner) newLibbeatFinalBatchProcessor(
 	acker := publish.NewWaitPublishedAcker()
 	acker.Open()
 
+	hostname, _ := os.Hostname()
+	beatInfo := beat.Info{
+		Beat:        "apm-server",
+		IndexPrefix: "apm-server",
+		Version:     version.Version,
+		Hostname:    hostname,
+		Name:        hostname,
+	}
+
 	stateRegistry := monitoring.GetNamespace("state").GetRegistry()
 	stateRegistry.Remove("queue")
 	monitors := pipeline.Monitors{
@@ -647,12 +667,12 @@ func (s *Runner) newLibbeatFinalBatchProcessor(
 		if !s.outputConfig.IsSet() {
 			return "", outputs.Group{}, nil
 		}
-		indexSupporter := idxmgmt.NewSupporter(nil, s.info, s.rawConfig)
+		indexSupporter := idxmgmt.NewSupporter(nil, s.rawConfig)
 		outputName := s.outputConfig.Name()
-		output, err := outputs.Load(indexSupporter, s.info, stats, outputName, s.outputConfig.Config())
+		output, err := outputs.Load(indexSupporter, beatInfo, stats, outputName, s.outputConfig.Config())
 		return outputName, output, err
 	}
-	pipeline, err := pipeline.Load(s.info, monitors, pipeline.Config{}, nopProcessingSupporter{}, outputFactory)
+	pipeline, err := pipeline.Load(beatInfo, monitors, pipeline.Config{}, nopProcessingSupporter{}, outputFactory)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create libbeat output pipeline: %w", err)
 	}
@@ -675,7 +695,6 @@ func (s *Runner) newLibbeatFinalBatchProcessor(
 }
 
 func newSourcemapFetcher(
-	beatInfo beat.Info,
 	cfg config.SourceMapping,
 	fleetCfg *config.Fleet,
 	kibanaClient *kibana.Client,
@@ -743,7 +762,7 @@ func newSourcemapFetcher(
 	if err != nil {
 		return nil, err
 	}
-	index := strings.ReplaceAll(cfg.IndexPattern, "%{[observer.version]}", beatInfo.Version)
+	index := strings.ReplaceAll(cfg.IndexPattern, "%{[observer.version]}", version.Version)
 	esFetcher := sourcemap.NewElasticsearchFetcher(esClient, index)
 	chained = append(chained, esFetcher)
 	return chained, nil
