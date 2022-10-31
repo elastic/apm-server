@@ -459,11 +459,4 @@ Attributes can be added as a part of the OpenTelemetry instrumentation process o
 [[elastic-open-telemetry-logs-limitations]]
 ===== OpenTelemetry logs
 
-<<<<<<< HEAD
 * OpenTelemetry logs are not yet supported https://github.com/elastic/apm-server/issues/5491[#5491]
-=======
-The https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/elasticexporter#legacy-opentelemetry-collector-exporter-for-elastic[OpenTelemetry Collector exporter for Elastic]
-was deprecated in 7.13 and replaced by the native support of the OpenTelemetry Line Protocol in
-Elastic {observability} (OTLP). To learn more, see
-https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/elasticexporter#migration[migration].
->>>>>>> fc88c3ee (docs: fix environment variable name typo (#9445))
