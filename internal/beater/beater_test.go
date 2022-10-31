@@ -35,7 +35,7 @@ import (
 
 	"github.com/elastic/apm-server/internal/beater/config"
 	"github.com/elastic/apm-server/internal/elasticsearch"
-	"github.com/elastic/beats/v7/libbeat/beat"
+	"github.com/elastic/apm-server/internal/version"
 	"github.com/elastic/elastic-agent-libs/monitoring"
 )
 
@@ -55,7 +55,7 @@ func TestSourcemapIndexPattern(t *testing.T) {
 		}
 
 		fetcher, err := newSourcemapFetcher(
-			beat.Info{Version: "1.2.3"}, cfg.RumConfig.SourceMapping, nil,
+			cfg.RumConfig.SourceMapping, nil,
 			nil, elasticsearch.NewClient,
 		)
 		require.NoError(t, err)
@@ -67,8 +67,12 @@ func TestSourcemapIndexPattern(t *testing.T) {
 		path = strings.TrimSuffix(path, "/_search")
 		assert.Equal(t, expected, path)
 	}
-	t.Run("default-pattern", func(t *testing.T) { test(t, "", "apm-*-sourcemap*") })
-	t.Run("with-observer-version", func(t *testing.T) { test(t, "blah-%{[observer.version]}-blah", "blah-1.2.3-blah") })
+	t.Run("default-pattern", func(t *testing.T) {
+		test(t, "", "apm-*-sourcemap*")
+	})
+	t.Run("with-observer-version", func(t *testing.T) {
+		test(t, "blah-%{[observer.version]}-blah", fmt.Sprintf("blah-%s-blah", version.Version))
+	})
 }
 
 var validSourcemap, _ = os.ReadFile("../../testdata/sourcemap/bundle.js.map")
@@ -89,7 +93,7 @@ func TestStoreUsesRUMElasticsearchConfig(t *testing.T) {
 	cfg.RumConfig.SourceMapping.ESConfig.Hosts = []string{ts.URL}
 
 	fetcher, err := newSourcemapFetcher(
-		beat.Info{Version: "1.2.3"}, cfg.RumConfig.SourceMapping, nil,
+		cfg.RumConfig.SourceMapping, nil,
 		nil, elasticsearch.NewClient,
 	)
 	require.NoError(t, err)
@@ -128,7 +132,7 @@ func TestFleetStoreUsed(t *testing.T) {
 		TLS:          nil,
 	}
 
-	fetcher, err := newSourcemapFetcher(beat.Info{Version: "1.2.3"}, cfg.RumConfig.SourceMapping, fleetCfg, nil, nil)
+	fetcher, err := newSourcemapFetcher(cfg.RumConfig.SourceMapping, fleetCfg, nil, nil)
 	require.NoError(t, err)
 	_, err = fetcher.Fetch(context.Background(), "app", "1.0", "/bundle/path")
 	require.NoError(t, err)

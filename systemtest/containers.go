@@ -26,7 +26,6 @@ import (
 	"io"
 	"log"
 	"net"
-	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -44,9 +43,6 @@ import (
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
 	"golang.org/x/sync/errgroup"
-
-	"github.com/elastic/apm-server/systemtest/estest"
-	"github.com/elastic/go-elasticsearch/v8"
 )
 
 const (
@@ -122,59 +118,6 @@ func StartStackContainers() error {
 	return g.Wait()
 }
 
-// NewUnstartedElasticsearchContainer returns a new ElasticsearchContainer.
-func NewUnstartedElasticsearchContainer() (*ElasticsearchContainer, error) {
-	// Create a testcontainer.ContainerRequest based on the "elasticsearch service
-	// defined in docker-compose.
-
-	docker, err := client.NewClientWithOpts(client.FromEnv)
-	if err != nil {
-		return nil, err
-	}
-	defer docker.Close()
-
-	container, err := stackContainerInfo(context.Background(), docker, "elasticsearch")
-	if err != nil {
-		return nil, err
-	}
-	containerDetails, err := docker.ContainerInspect(context.Background(), container.ID)
-	if err != nil {
-		return nil, err
-	}
-
-	req := testcontainers.ContainerRequest{
-		Image:      container.Image,
-		AutoRemove: true,
-		SkipReaper: true, // we use our own reaping logic
-	}
-	req.WaitingFor = wait.ForHTTP("/").WithPort("9200/tcp")
-
-	initContainerReaperOnce.Do(initContainerReaper)
-	req.Labels = make(map[string]string)
-	for k, v := range containerReaper.Labels() {
-		req.Labels[k] = v
-	}
-
-	for port := range containerDetails.Config.ExposedPorts {
-		req.ExposedPorts = append(req.ExposedPorts, string(port))
-	}
-
-	env := make(map[string]string)
-	for _, kv := range containerDetails.Config.Env {
-		sep := strings.IndexRune(kv, '=')
-		k, v := kv[:sep], kv[sep+1:]
-		env[k] = v
-	}
-	for network := range containerDetails.NetworkSettings.Networks {
-		req.Networks = append(req.Networks, network)
-	}
-
-	// BUG(axw) ElasticsearchContainer currently does not support security.
-	env["xpack.security.enabled"] = "false"
-
-	return &ElasticsearchContainer{request: req, Env: env}, nil
-}
-
 func waitContainerHealthy(ctx context.Context, serviceName string) error {
 	docker, err := client.NewClientWithOpts(client.FromEnv)
 	if err != nil {
@@ -219,85 +162,6 @@ func stackContainerInfo(ctx context.Context, docker *client.Client, name string)
 		return nil, fmt.Errorf("expected 1 %s container, got %d", name, n)
 	}
 	return &containers[0], nil
-}
-
-// ElasticsearchContainer represents an ephemeral Elasticsearch container.
-//
-// This can be used when the docker-compose "elasticsearch" service is insufficient.
-type ElasticsearchContainer struct {
-	request   testcontainers.ContainerRequest
-	container testcontainers.Container
-
-	// Env holds the environment variables to pass to the container,
-	// and will be initialised with the values in the docker-compose
-	// "elasticsearch" service definition.
-	//
-	// BUG(axw) ElasticsearchContainer currently does not support security,
-	// and will set "xpack.security.enabled=false" by default.
-	Env map[string]string
-
-	// Addr holds the "host:port" address for Elasticsearch's REST API.
-	// This will be populated by Start.
-	Addr string
-
-	// Client holds a client for interacting with Elasticsearch's REST API.
-	// This will be populated by Start.
-	Client *estest.Client
-}
-
-// Start starts the container.
-//
-// The Addr and Client fields will be updated on successful return.
-//
-// The container will be removed when Close() is called, or otherwise by a
-// reaper process if the test process is aborted.
-func (c *ElasticsearchContainer) Start() error {
-	ctx, cancel := context.WithTimeout(context.Background(), startContainersTimeout)
-	defer cancel()
-
-	// Update request from user-definable fields.
-	c.request.Env = c.Env
-
-	container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
-		ContainerRequest: c.request,
-	})
-	if err != nil {
-		return err
-	}
-	c.container = container
-
-	if err := c.container.Start(ctx); err != nil {
-		return err
-	}
-	ip, err := container.Host(ctx)
-	if err != nil {
-		return err
-	}
-	port, err := container.MappedPort(ctx, "9200")
-	if err != nil {
-		return err
-	}
-	c.Addr = net.JoinHostPort(ip, port.Port())
-
-	esURL := url.URL{Scheme: "http", Host: c.Addr}
-	config := newElasticsearchConfig()
-	config.Addresses[0] = esURL.String()
-	client, err := elasticsearch.NewClient(config)
-	if err != nil {
-		return err
-	}
-	c.Client = &estest.Client{Client: client}
-
-	c.container = container
-	return nil
-}
-
-// Close terminates and removes the container.
-func (c *ElasticsearchContainer) Close() error {
-	if c.container == nil {
-		return nil
-	}
-	return c.container.Terminate(context.Background())
 }
 
 type ContainerConfig struct {

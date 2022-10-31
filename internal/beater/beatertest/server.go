@@ -27,7 +27,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -35,17 +34,8 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/apm-server/internal/beater"
-	"github.com/elastic/beats/v7/libbeat/beat"
 	agentconfig "github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
-)
-
-var (
-	BeatInfo = beat.Info{
-		Beat:    "apm-server",
-		Version: "1.2.3", // hard-coded to avoid changing approvals
-		ID:      uuid.Must(uuid.FromString("fbba762a-14dd-412c-b7e9-b79f903eb492")),
-	}
 )
 
 // Server runs the core APM Server that, by default, listens on a system-chosen port
@@ -112,7 +102,6 @@ func NewUnstartedServer(t testing.TB, opts ...option) *Server {
 
 	runner, err := beater.NewRunner(beater.RunnerParams{
 		Config:     cfg,
-		Info:       BeatInfo,
 		Logger:     logger,
 		WrapServer: options.wrapServer,
 	})

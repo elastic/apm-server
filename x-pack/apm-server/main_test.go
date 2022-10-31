@@ -14,14 +14,12 @@ import (
 	"net/http"
 	"testing"
 
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
-
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	"github.com/pkg/errors"
 	"go.elastic.co/apm/v2/apmtest"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/monitoring"

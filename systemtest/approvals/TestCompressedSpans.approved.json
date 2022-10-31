@@ -15,9 +15,7 @@
                 "outcome": "success"
             },
             "observer": {
-                "ephemeral_id": "dynamic",
                 "hostname": "dynamic",
-                "id": "dynamic",
                 "type": "apm-server",
                 "version": "dynamic"
             },
@@ -81,9 +79,7 @@
                 "outcome": "success"
             },
             "observer": {
-                "ephemeral_id": "dynamic",
                 "hostname": "dynamic",
-                "id": "dynamic",
                 "type": "apm-server",
                 "version": "dynamic"
             },

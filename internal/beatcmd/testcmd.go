@@ -72,7 +72,7 @@ func newTestOutputCommand(beatParams BeatParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			indexSupporter := idxmgmt.NewSupporter(nil, beat.Info, beat.rawConfig)
+			indexSupporter := idxmgmt.NewSupporter(nil, beat.rawConfig)
 			output, err := outputs.Load(
 				indexSupporter, beat.Info, nil, beat.Config.Output.Name(), beat.Config.Output.Config(),
 			)

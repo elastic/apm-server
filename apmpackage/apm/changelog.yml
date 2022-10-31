@@ -12,6 +12,9 @@
     - description: Add mappings for RUM `http.response.*_size` fields
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/9429
+    - description: Remove `observer.id` and `observer.ephemeral_id` fields
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/9412
 - version: "8.5.0"
   changes:
     - description: Add package settings to enable the experimental collection of service metrics
