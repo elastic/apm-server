@@ -8,7 +8,7 @@ require (
 	github.com/dgraph-io/badger/v2 v2.2007.3-0.20201012072640-f5a7e0a1c83b
 	github.com/dustin/go-humanize v1.0.0
 	github.com/elastic/apm-server/internal/approvaltest v0.0.0-00010101000000-000000000000
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20221027063354-f310cc45b4c2
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20221028064414-06989dffb601
 	github.com/elastic/ecs v1.12.0
 	github.com/elastic/elastic-agent-libs v0.2.14
 	github.com/elastic/gmux v0.2.0
@@ -80,7 +80,7 @@ require (
 	github.com/eapache/go-xerial-snappy v0.0.0-20180814174437-776d5712da21 // indirect
 	github.com/eapache/queue v1.1.0 // indirect
 	github.com/elastic/elastic-agent-autodiscover v0.3.0 // indirect
-	github.com/elastic/elastic-agent-client/v7 v7.0.0-20220915231534-3e014f7c0e83 // indirect
+	github.com/elastic/elastic-agent-client/v7 v7.0.0-20221028150015-05e494d37ccd // indirect
 	github.com/elastic/elastic-agent-shipper-client v0.2.0 // indirect
 	github.com/elastic/elastic-agent-system-metrics v0.4.4 // indirect
 	github.com/elastic/elastic-transport-go/v8 v8.1.0 // indirect
