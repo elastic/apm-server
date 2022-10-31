@@ -40,9 +40,12 @@ import (
 	es "github.com/elastic/apm-server/internal/elasticsearch"
 )
 
+const apikeyDeprecationNotice = `NOTE: "apm-server apikey" is deprecated, and will be removed in a future release.
+See https://www.elastic.co/guide/en/apm/guide/current/api-key.html for managing API Keys.`
+
 func genApikeyCmd() *cobra.Command {
 
-	short := "Manage API Keys for communication between APM agents and server"
+	short := "Manage API Keys for communication between APM agents and server (deprecated)"
 	apikeyCmd := cobra.Command{
 		Use:   "apikey",
 		Short: short,
@@ -50,7 +53,9 @@ func genApikeyCmd() *cobra.Command {
 Most operations require the "manage_api_key" cluster privilege. Ensure to configure "apm-server.api_key.*" or
 "output.elasticsearch.*" appropriately. APM Server will create security privileges for the "apm" application;
 you can freely query them. If you modify or delete apm privileges, APM Server might reject all requests.
-Check the Elastic Security API documentation for details.`,
+Check the Elastic Security API documentation for details.
+
+` + apikeyDeprecationNotice,
 	}
 
 	apikeyCmd.AddCommand(
@@ -195,13 +200,17 @@ type cobraRunFunc func(cmd *cobra.Command, args []string)
 
 func makeAPIKeyRun(json *bool, f apikeyRunFunc) cobraRunFunc {
 	return func(cmd *cobra.Command, args []string) {
+		var failed bool
 		client, config, err := bootstrap()
 		if err != nil {
+			failed = true
 			printErr(err, *json)
-			os.Exit(1)
+		} else if err := f(client, config, args); err != nil {
+			failed = true
+			printErr(err, *json)
 		}
-		if err := f(client, config, args); err != nil {
-			printErr(err, *json)
+		fmt.Fprintf(os.Stderr, "\n%s\n", apikeyDeprecationNotice)
+		if failed {
 			os.Exit(1)
 		}
 	}
@@ -492,7 +501,7 @@ func printErr(err error, asJSON bool) {
 				Error: err.Error(),
 			}, "", "\t")
 		}
-		fmt.Fprintln(os.Stderr, string(data))
+		fmt.Fprintln(os.Stdout, string(data))
 	} else {
 		fmt.Fprintln(os.Stderr, err.Error())
 	}

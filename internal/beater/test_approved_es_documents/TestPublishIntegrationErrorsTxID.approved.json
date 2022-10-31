@@ -218,10 +218,9 @@
                 "segment": 5
             },
             "observer": {
-                "ephemeral_id": "00000000-0000-0000-0000-000000000000",
-                "id": "fbba762a-14dd-412c-b7e9-b79f903eb492",
+                "hostname": "dynamic",
                 "type": "apm-server",
-                "version": "1.2.3"
+                "version": "dynamic"
             },
             "parent": {
                 "id": "9632587410abcdef"

@@ -139,6 +139,8 @@ ifdef::apm-server[]
 
 experimental::[]
 
+deprecated::[8.6.0, Users should create API Keys through {kib} or the {es} REST API. See <<api-key-legacy>>.]
+
 Communication between APM agents and APM Server now supports sending an
 <<api-key-legacy,API Key in the Authorization header>>.
 APM Server provides an `apikey` command that can create, verify, invalidate,

@@ -89,7 +89,7 @@ func (p *Pubsub) indexSampledTraceIDs(ctx context.Context, traceIDs <-chan strin
 			doc := model.APMEvent{
 				Timestamp:  time.Now(),
 				DataStream: model.DataStream(p.config.DataStream),
-				Observer:   model.Observer{ID: p.config.BeatID},
+				Agent:      model.Agent{EphemeralID: p.config.ServerID},
 				Trace:      model.Trace{ID: id},
 			}
 			if err := indexer.ProcessBatch(ctx, &model.Batch{doc}); err != nil {
@@ -260,8 +260,8 @@ func (p *Pubsub) searchIndexTraceIDs(ctx context.Context, out chan<- string, ind
 					// Filter out local observations.
 					"must_not": map[string]interface{}{
 						"term": map[string]interface{}{
-							"observer.id": map[string]interface{}{
-								"value": p.config.BeatID,
+							"agent.ephemeral_id": map[string]interface{}{
+								"value": p.config.ServerID,
 							},
 						},
 					},
@@ -322,13 +322,13 @@ func (p *Pubsub) doSearchRequest(ctx context.Context, index string, body io.Read
 }
 
 type traceIDDocument struct {
-	// Observer identifies the entity (typically an APM Server) that observed
-	// and indexed the/ trace ID document. This can be used to filter out local
-	// observations.
-	Observer struct {
-		// ID holds the unique ID of the observer.
-		ID string `json:"id"`
-	} `json:"observer"`
+	// Agent identifies the entity (typically an APM Server) that observed
+	// and indexed the sampled trace ID document. This can be used to filter
+	// out local observations.
+	Agent struct {
+		// EphemeralID holds the unique ID of the agent.
+		EphemeralID string `json:"ephemeral_id"`
+	} `json:"agent"`
 
 	// Trace identifies a trace.
 	Trace struct {

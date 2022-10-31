@@ -36,20 +36,16 @@ func TestObserverFields(t *testing.T) {
 		},
 		{
 			Observer: Observer{
-				EphemeralID: "observer_ephemeral_id",
-				Hostname:    "observer_hostname",
-				ID:          "observer_id",
-				Name:        "observer_name",
-				Type:        "observer_type",
-				Version:     "observer_version",
+				Hostname: "observer_hostname",
+				Name:     "observer_name",
+				Type:     "observer_type",
+				Version:  "observer_version",
 			},
 			Fields: mapstr.M{
-				"ephemeral_id": "observer_ephemeral_id",
-				"hostname":     "observer_hostname",
-				"id":           "observer_id",
-				"name":         "observer_name",
-				"type":         "observer_type",
-				"version":      "observer_version",
+				"hostname": "observer_hostname",
+				"name":     "observer_name",
+				"type":     "observer_type",
+				"version":  "observer_version",
 			},
 		},
 	}
