@@ -10,6 +10,13 @@ https://github.com/elastic/apm-server/compare/8.4\...8.5[View commits]
 https://github.com/elastic/apm-server/compare/v8.4.2\...v8.5.0[View commits]
 
 [float]
+=== Known issue
+Due to a recent change in the Red Hat scan verification process,
+this version of APM Server is not available in the Red Hat Ecosystem Catalog.
+This bug will be fixed in the next release.
+Please use the https://www.docker.elastic.co/r/apm[Elastic docker registry] to download the 8.5.0 APM Server image.
+
+[float]
 ==== Breaking Changes
 - `event.action` is no longer recorded for OTLP logs, due to breaking OTLP changes {pull}8765[8765]
 - Experimental support for ingesting profile data has been removed {pull}8911[8911]
