@@ -26,19 +26,15 @@ import (
 //
 // https://www.elastic.co/guide/en/ecs/current/ecs-observer.html
 type Observer struct {
-	EphemeralID string
-	Hostname    string
-	ID          string
-	Name        string
-	Type        string
-	Version     string
+	Hostname string
+	Name     string
+	Type     string
+	Version  string
 }
 
 func (o *Observer) Fields() mapstr.M {
 	var fields mapStr
-	fields.maybeSetString("ephemeral_id", o.EphemeralID)
 	fields.maybeSetString("hostname", o.Hostname)
-	fields.maybeSetString("id", o.ID)
 	fields.maybeSetString("name", o.Name)
 	fields.maybeSetString("type", o.Type)
 	fields.maybeSetString("version", o.Version)

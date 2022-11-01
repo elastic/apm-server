@@ -28,9 +28,9 @@ type Config struct {
 	// DataStream holds the data stream.
 	DataStream DataStreamConfig
 
-	// BeatID holds the APM Server's unique ID, used for filtering out
-	// local observations in the subscriber.
-	BeatID string
+	// ServerID holds the APM Server's unique ID, used for filtering out
+	// local observations in the subscriber. ServerID may be ephemeral.
+	ServerID string
 
 	// SearchInterval holds the time between searches initiated by the subscriber.
 	//
@@ -73,8 +73,8 @@ func (config Config) Validate() error {
 	if err := config.DataStream.Validate(); err != nil {
 		return errors.Wrap(err, "DataStream unspecified or invalid")
 	}
-	if config.BeatID == "" {
-		return errors.New("BeatID unspecified")
+	if config.ServerID == "" {
+		return errors.New("ServerID unspecified")
 	}
 	if config.SearchInterval <= 0 {
 		return errors.New("SearchInterval unspecified or negative")

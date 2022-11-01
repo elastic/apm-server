@@ -536,6 +536,79 @@ func TestServerFailedPreconditionDoesNotIndex(t *testing.T) {
 	}
 }
 
+func TestTailSamplingPlatinumLicense(t *testing.T) {
+	bulkCh := make(chan struct{}, 1)
+	licenseReq := make(chan struct{})
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("X-Elastic-Product", "Elasticsearch")
+		// We must send a valid JSON response for the libbeat
+		// elasticsearch client to send bulk requests.
+		fmt.Fprintln(w, `{"version":{"number":"1.2.3"}}`)
+	})
+	mux.HandleFunc("/_license", func(w http.ResponseWriter, r *http.Request) {
+		select {
+		case <-r.Context().Done():
+		case licenseReq <- struct{}{}:
+		}
+		w.Header().Set("X-Elastic-Product", "Elasticsearch")
+		fmt.Fprintln(w, `{"license":{"uid":"cbff45e7-c553-41f7-ae4f-9205eabd80xx","type":"basic","status":"active"}}`)
+	})
+	mux.HandleFunc("/_bulk", func(w http.ResponseWriter, r *http.Request) {
+		select {
+		case bulkCh <- struct{}{}:
+		default:
+		}
+	})
+	elasticsearchServer := httptest.NewServer(mux)
+	defer elasticsearchServer.Close()
+
+	srv := beatertest.NewServer(t, beatertest.WithConfig(agentconfig.MustNewConfigFrom(map[string]interface{}{
+		"apm-server": map[string]interface{}{
+			"wait_ready_interval": "100ms",
+			"sampling.tail": map[string]interface{}{
+				"enabled":  true,
+				"policies": []map[string]interface{}{{"sample_rate": 0.1}},
+			},
+		},
+		"output.elasticsearch.hosts": []string{elasticsearchServer.URL},
+	})))
+
+	// Send some events to the server. They should be accepted and enqueued.
+	req := makeTransactionRequest(t, srv.URL)
+	req.Header.Add("Content-Type", "application/x-ndjson")
+	resp, err := srv.Client.Do(req)
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusAccepted, resp.StatusCode)
+	resp.Body.Close()
+
+	// Wait for two license queries, after which the server should definitely
+	// have processed the first license response, and should have logged an
+	// error message about the license level being invalid.
+	for i := 0; i < 2; i++ {
+		<-licenseReq
+	}
+	logs := srv.Logs.FilterMessageSnippet("invalid license level Basic: tail-based sampling requires license level Platinum")
+	assert.NotZero(t, logs.Len())
+
+	// Healthcheck should report that the server is not publish-ready.
+	resp, err = srv.Client.Get(srv.URL + api.RootPath)
+	require.NoError(t, err)
+	out := decodeJSONMap(t, resp.Body)
+	resp.Body.Close()
+	assert.Equal(t, false, out["publish_ready"])
+
+	// Stop the server.
+	srv.Close()
+
+	// No documents should be indexed.
+	select {
+	case <-bulkCh:
+		t.Fatal("unexpected bulk request")
+	case <-time.After(50 * time.Millisecond):
+	}
+}
+
 func TestServerElasticsearchOutput(t *testing.T) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {

@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/dgraph-io/badger/v2"
+	"github.com/gofrs/uuid"
 	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 	"golang.org/x/sync/errgroup"
@@ -51,6 +52,10 @@ var (
 
 	storageMu sync.Mutex
 	storage   *eventstorage.ShardedReadWriter
+
+	// samplerUUID is a UUID used to identify sampled trace ID documents
+	// published by this process.
+	samplerUUID = uuid.Must(uuid.NewV4())
 )
 
 type namedProcessor struct {
@@ -150,7 +155,6 @@ func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, er
 	}
 
 	return sampling.NewProcessor(sampling.Config{
-		BeatID:         args.UUID.String(),
 		BatchProcessor: args.BatchProcessor,
 		LocalSamplingConfig: sampling.LocalSamplingConfig{
 			FlushInterval:         tailSamplingConfig.Interval,
@@ -166,6 +170,7 @@ func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, er
 				Dataset:   "apm.sampled",
 				Namespace: args.Namespace,
 			},
+			UUID: samplerUUID.String(),
 		},
 		StorageConfig: sampling.StorageConfig{
 			DB:                badgerDB,
@@ -386,7 +391,6 @@ func Main() error {
 		func(args beatcmd.RunnerParams) (beatcmd.Runner, error) {
 			return beater.NewRunner(beater.RunnerParams{
 				Config:     args.Config,
-				Info:       args.Info,
 				Logger:     args.Logger,
 				WrapServer: wrapServer,
 			})

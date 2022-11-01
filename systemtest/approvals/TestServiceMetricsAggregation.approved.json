@@ -21,9 +21,7 @@
                 "name": "service"
             },
             "observer": {
-                "ephemeral_id": "dynamic",
                 "hostname": "dynamic",
-                "id": "dynamic",
                 "type": "apm-server",
                 "version": "dynamic"
             },
@@ -66,9 +64,7 @@
                 "name": "service"
             },
             "observer": {
-                "ephemeral_id": "dynamic",
                 "hostname": "dynamic",
-                "id": "dynamic",
                 "type": "apm-server",
                 "version": "dynamic"
             },

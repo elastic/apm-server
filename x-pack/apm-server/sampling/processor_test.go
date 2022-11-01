@@ -789,7 +789,6 @@ func newTempdirConfig(tb testing.TB) sampling.Config {
 	tb.Cleanup(func() { storage.Close() })
 
 	return sampling.Config{
-		BeatID:         "local-apm-server",
 		BatchProcessor: model.ProcessBatchFunc(func(context.Context, *model.Batch) error { return nil }),
 		LocalSamplingConfig: sampling.LocalSamplingConfig{
 			FlushInterval:         time.Second,
@@ -806,6 +805,7 @@ func newTempdirConfig(tb testing.TB) sampling.Config {
 				Dataset:   "sampled",
 				Namespace: "testing",
 			},
+			UUID: "local-apm-server",
 		},
 		StorageConfig: sampling.StorageConfig{
 			DB:                badgerDB,
