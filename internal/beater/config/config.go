@@ -161,6 +161,6 @@ func DefaultConfig() *Config {
 		AgentAuth:             defaultAgentAuth(),
 		JavaAttacherConfig:    defaultJavaAttacherConfig(),
 		WaitReadyInterval:     5 * time.Second,
-		MaxConcurrentDecoders: 48,
+		MaxConcurrentDecoders: 128,
 	}
 }

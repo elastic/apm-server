@@ -106,7 +106,7 @@ loop:
 		}
 	}
 	// Indexer has not been flushed, there is one active bulk indexer.
-	assert.Equal(t, modelindexer.Stats{Added: N, Active: N, AvailableBulkRequests: 49, IndexersActive: 1}, indexer.Stats())
+	assert.Equal(t, modelindexer.Stats{Added: N, Active: N, AvailableBulkRequests: 9, IndexersActive: 1}, indexer.Stats())
 
 	// Closing the indexer flushes enqueued events.
 	err = indexer.Close(context.Background())
@@ -119,7 +119,7 @@ loop:
 		Failed:                2,
 		Indexed:               N - 2,
 		TooManyRequests:       1,
-		AvailableBulkRequests: 50,
+		AvailableBulkRequests: 10,
 		BytesTotal:            bytesTotal,
 	}, stats)
 	assert.Equal(t, "observability", productOriginHeader)
@@ -139,7 +139,7 @@ func TestModelIndexerAvailableBulkIndexers(t *testing.T) {
 	require.NoError(t, err)
 	defer indexer.Close(context.Background())
 
-	const N = 50
+	const N = 10
 	for i := 0; i < N; i++ {
 		batch := model.Batch{model.APMEvent{Timestamp: time.Now(), DataStream: model.DataStream{
 			Type:      "logs",
@@ -172,7 +172,7 @@ func TestModelIndexerAvailableBulkIndexers(t *testing.T) {
 		Added:                 N,
 		BulkRequests:          N,
 		Indexed:               N,
-		AvailableBulkRequests: 50,
+		AvailableBulkRequests: 10,
 	}, stats)
 }
 
@@ -252,7 +252,7 @@ func TestModelIndexerCompressionLevel(t *testing.T) {
 		Failed:                0,
 		Indexed:               1,
 		TooManyRequests:       0,
-		AvailableBulkRequests: 50,
+		AvailableBulkRequests: 10,
 		BytesTotal:            bytesTotal,
 	}, stats)
 }
@@ -361,7 +361,7 @@ func TestModelIndexerServerError(t *testing.T) {
 		Active:                0,
 		BulkRequests:          1,
 		Failed:                1,
-		AvailableBulkRequests: 50,
+		AvailableBulkRequests: 10,
 		BytesTotal:            bytesTotal,
 	}, stats)
 }
@@ -396,7 +396,7 @@ func TestModelIndexerServerErrorTooManyRequests(t *testing.T) {
 		BulkRequests:          1,
 		Failed:                1,
 		TooManyRequests:       1,
-		AvailableBulkRequests: 50,
+		AvailableBulkRequests: 10,
 		BytesTotal:            bytesTotal,
 	}, stats)
 }
@@ -687,7 +687,7 @@ func TestModelIndexerCloseBusyIndexer(t *testing.T) {
 		Indexed:               N,
 		BulkRequests:          1,
 		BytesTotal:            bytesTotal,
-		AvailableBulkRequests: 50,
+		AvailableBulkRequests: 10,
 		IndexersActive:        0}, indexer.Stats())
 }
 
@@ -778,7 +778,7 @@ func TestModelIndexerScaling(t *testing.T) {
 			BulkRequests:          events,
 			IndexersCreated:       2,
 			IndexersDestroyed:     2,
-			AvailableBulkRequests: 50,
+			AvailableBulkRequests: 10,
 			IndexersActive:        1,
 		}, stats)
 	})
@@ -818,7 +818,7 @@ func TestModelIndexerScaling(t *testing.T) {
 			Added:                 events,
 			Indexed:               events,
 			BulkRequests:          events,
-			AvailableBulkRequests: 50,
+			AvailableBulkRequests: 10,
 			IndexersActive:        1,
 			IndexersCreated:       2,
 			IndexersDestroyed:     2,
@@ -860,7 +860,7 @@ func TestModelIndexerScaling(t *testing.T) {
 			Added:                 events,
 			Indexed:               events,
 			BulkRequests:          events,
-			AvailableBulkRequests: 50,
+			AvailableBulkRequests: 10,
 			IndexersActive:        0,
 			IndexersCreated:       1,
 			IndexersDestroyed:     0,

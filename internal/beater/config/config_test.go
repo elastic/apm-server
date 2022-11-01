@@ -353,7 +353,7 @@ func TestUnpackConfig(t *testing.T) {
 				ReadTimeout:           30000000000,
 				WriteTimeout:          30000000000,
 				ShutdownTimeout:       30000000000,
-				MaxConcurrentDecoders: 48,
+				MaxConcurrentDecoders: 128,
 				AgentAuth: AgentAuth{
 					SecretToken: "1234random",
 					APIKey: APIKeyAgentAuth{

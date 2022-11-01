@@ -621,12 +621,7 @@ func (s *Runner) newFinalBatchProcessor(
 		MaxRequests:      esConfig.MaxRequests,
 		Scaling:          scalingCfg,
 	}
-	if internalBuffer := eventBufferSize(memLimit); internalBuffer > 0 {
-		s.logger.Infof("modelindexer.EventBufferSize set to %d based on %0.1fgb of memory",
-			internalBuffer, memLimit,
-		)
-		opts.EventBufferSize = internalBuffer
-	}
+	opts = modelIndexerConfig(opts, memLimit, s.logger)
 	indexer, err := modelindexer.New(client, opts)
 	if err != nil {
 		return nil, nil, err
@@ -690,15 +685,32 @@ func (s *Runner) newFinalBatchProcessor(
 	return indexer, indexer.Close, nil
 }
 
-func eventBufferSize(memLimit float64) int {
-	if memLimit > 1 {
-		size := int(512 * memLimit)
-		if size >= 30720 {
-			return 30720
-		}
-		return size
+func modelIndexerConfig(
+	opts modelindexer.Config, memLimit float64, logger *logp.Logger,
+) modelindexer.Config {
+	if memLimit < 1 {
+		return opts // use modelindexer defaults
 	}
-	return 0 // Set to zero to use the modelindexer default.
+	opts.EventBufferSize = int(512 * memLimit)
+	if opts.EventBufferSize >= 30720 {
+		opts.EventBufferSize = 30720
+	}
+	logger.Infof(
+		"modelindexer.EventBufferSize set to %d based on %0.1fgb of memory",
+		opts.EventBufferSize, memLimit,
+	)
+	if opts.MaxRequests > 0 {
+		return opts
+	}
+	maxRequests := int(float64(9) + memLimit*1.5)
+	if maxRequests > 60 {
+		maxRequests = 60
+	}
+	opts.MaxRequests = maxRequests
+	logger.Infof("modelindexer.MaxRequests set to %d based on %0.1fgb of memory",
+		opts.MaxRequests, memLimit,
+	)
+	return opts
 }
 
 func (s *Runner) newLibbeatFinalBatchProcessor(
