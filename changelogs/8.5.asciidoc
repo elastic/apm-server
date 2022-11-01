@@ -10,7 +10,7 @@ https://github.com/elastic/apm-server/compare/8.4\...8.5[View commits]
 https://github.com/elastic/apm-server/compare/v8.4.2\...v8.5.0[View commits]
 
 [float]
-=== Known issue
+==== Known issue
 Due to a recent change in the Red Hat scan verification process,
 this version of APM Server is not available in the Red Hat Ecosystem Catalog.
 This bug will be fixed in the next release.
