@@ -8,7 +8,7 @@ require (
 	github.com/dgraph-io/badger/v2 v2.2007.3-0.20201012072640-f5a7e0a1c83b
 	github.com/dustin/go-humanize v1.0.0
 	github.com/elastic/apm-server/internal/approvaltest v0.0.0-00010101000000-000000000000
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20221028064414-06989dffb601
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20221031070036-9ec1b4d7d131
 	github.com/elastic/ecs v1.12.0
 	github.com/elastic/elastic-agent-libs v0.2.14
 	github.com/elastic/gmux v0.2.0
@@ -17,7 +17,7 @@ require (
 	github.com/elastic/go-sysinfo v1.8.1
 	github.com/elastic/go-ucfg v0.8.6
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible
-	github.com/gofrs/uuid v4.3.0+incompatible
+	github.com/gofrs/uuid v4.3.1+incompatible
 	github.com/gogo/protobuf v1.3.2
 	github.com/google/pprof v0.0.0-20210720184732-4bb14d4b1be1
 	github.com/gorilla/mux v1.8.0
@@ -40,9 +40,9 @@ require (
 	go.elastic.co/apm/module/apmelasticsearch/v2 v2.0.0
 	go.elastic.co/apm/module/apmgorilla/v2 v2.0.0
 	go.elastic.co/apm/module/apmgrpc/v2 v2.0.0
-	go.elastic.co/apm/module/apmhttp/v2 v2.1.0
+	go.elastic.co/apm/module/apmhttp/v2 v2.2.0
 	go.elastic.co/apm/module/apmzap/v2 v2.0.0
-	go.elastic.co/apm/v2 v2.1.0
+	go.elastic.co/apm/v2 v2.2.0
 	go.elastic.co/fastjson v1.1.0
 	go.opentelemetry.io/collector v0.44.0
 	go.opentelemetry.io/collector/model v0.44.0
