@@ -44,7 +44,6 @@
     Version of the framework used.
 - name: service.language.name
   type: keyword
-  index: false
   description: |
     Name of the programming language used.
 - name: service.language.version
