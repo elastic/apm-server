@@ -4,6 +4,7 @@
   name: agent.name
 - external: ecs
   name: agent.version
+  index: false
 - external: ecs
   name: client.domain
 - external: ecs
@@ -12,16 +13,21 @@
   name: client.port
 - external: ecs
   name: client.geo.city_name
+  index: false
 - external: ecs
   name: client.geo.continent_name
+  index: false
 - external: ecs
   name: client.geo.country_iso_code
+  index: false
 - external: ecs
   name: client.geo.country_name
+  index: false
 - external: ecs
   name: client.geo.location
 - external: ecs
   name: client.geo.region_iso_code
+  index: false
 - external: ecs
   name: client.geo.region_name
 - external: ecs
@@ -30,6 +36,7 @@
   name: cloud.account.name
 - external: ecs
   name: cloud.availability_zone
+  index: false
 - external: ecs
   name: cloud.instance.id
 - external: ecs
@@ -42,6 +49,7 @@
   name: cloud.project.name
 - external: ecs
   name: cloud.provider
+  index: false
 - external: ecs
   name: cloud.region
 - external: ecs
@@ -80,6 +88,7 @@
   name: host.os.version
 - external: ecs
   name: host.os.platform
+  index: false
 - external: ecs
   name: host.os.full
 - external: ecs
@@ -135,6 +144,7 @@
   name: user_agent.name
 - external: ecs
   name: user_agent.original
+  index: false
 - external: ecs
   name: user_agent.os.family
 - external: ecs
@@ -143,6 +153,7 @@
   name: user_agent.os.kernel
 - external: ecs
   name: user_agent.os.name
+  index: false
 - external: ecs
   name: user_agent.os.platform
 - external: ecs
