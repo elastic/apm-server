@@ -2,49 +2,62 @@
   type: long
   metric_type: gauge
   unit: byte
+  index: false
 - name: jvm.memory.heap.committed
   type: long
   metric_type: gauge
   unit: byte
+  index: false
 - name: jvm.memory.heap.max
   type: long
   metric_type: gauge
   unit: byte
+  index: false
 - name: jvm.memory.heap.pool.used
   type: long
   metric_type: gauge
   unit: byte
+  index: false
 - name: jvm.memory.heap.pool.committed
   type: long
   metric_type: gauge
   unit: byte
+  index: false
 - name: jvm.memory.heap.pool.max
   type: long
   metric_type: gauge
   unit: byte
+  index: false
 - name: jvm.memory.non_heap.used
   type: long
   metric_type: gauge
   unit: byte
+  index: false
 - name: jvm.memory.non_heap.committed
   type: long
   metric_type: gauge
   unit: byte
+  index: false
 - name: jvm.memory.non_heap.max
   type: long
   metric_type: gauge
   unit: byte
+  index: false
 - name: jvm.thread.count
   type: long
   metric_type: gauge
+  index: false
 - name: jvm.gc.count
   type: long
   metric_type: gauge
+  index: false
 - name: jvm.gc.time
   type: long
   metric_type: gauge
   unit: ms
+  index: false
 - name: jvm.gc.alloc
   type: long
   metric_type: gauge
   unit: byte
+  index: false
