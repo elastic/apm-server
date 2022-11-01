@@ -68,8 +68,7 @@ ENV PATH=/usr/share/apm-server:$PATH
 ENV LIBBEAT_MONITORING_CGROUPS_HIERARCHY_OVERRIDE=/
 
 COPY --chmod=0755 packaging/docker/docker-entrypoint /usr/local/bin/docker-entrypoint
-COPY --chmod=0644 licenses/ELASTIC-LICENSE-2.0.txt /licenses
-COPY --chmod=0644 NOTICE.txt /licenses
+COPY --chmod=0644 licenses/ELASTIC-LICENSE-2.0.txt NOTICE.txt /licenses/
 
 WORKDIR /usr/share/apm-server
 COPY --chmod=0640 apm-server.yml ./apm-server.yml
