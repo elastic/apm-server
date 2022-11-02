@@ -30,8 +30,10 @@ elasticsearch:
         - double:
             mapping:
               type: double
+              index: false
         - numeric_labels:
             path_match: numeric_labels.*
             mapping:
               type: scaled_float
+              index: false
               scaling_factor: 1000000

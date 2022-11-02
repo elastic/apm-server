@@ -168,6 +168,7 @@ func TestApplicationMetrics(t *testing.T) {
 			"mapping": map[string]interface{}{
 				"c": map[string]interface{}{
 					"type": "double",
+					"index": false,
 				},
 			},
 		},
@@ -176,6 +177,7 @@ func TestApplicationMetrics(t *testing.T) {
 			"mapping": map[string]interface{}{
 				"z": map[string]interface{}{
 					"type": "double",
+					"index": false,
 				},
 			},
 		},
