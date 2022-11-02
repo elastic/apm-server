@@ -129,7 +129,7 @@ type Config struct {
 	// EventBufferSize sets the number of events that can be buffered before
 	// they are stored in the active indexer buffer.
 	//
-	// If EventBufferSize is zero, the default 100 will be used.
+	// If EventBufferSize is zero, the default 1024 will be used.
 	EventBufferSize int
 
 	// Tracer holds an optional apm.Tracer to use for tracing bulk requests
