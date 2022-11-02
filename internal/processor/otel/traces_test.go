@@ -78,13 +78,13 @@ func TestOutcome(t *testing.T) {
 
 		traces, spans := newTracesSpans()
 		otelSpan1 := spans.Spans().AppendEmpty()
-		otelSpan1.SetTraceID(pcommon.NewTraceID([16]byte{1}))
-		otelSpan1.SetSpanID(pcommon.NewSpanID([8]byte{2}))
+		otelSpan1.SetTraceID(pcommon.TraceID{1})
+		otelSpan1.SetSpanID(pcommon.SpanID{2})
 		otelSpan1.Status().SetCode(statusCode)
 		otelSpan2 := spans.Spans().AppendEmpty()
-		otelSpan2.SetTraceID(pcommon.NewTraceID([16]byte{1}))
-		otelSpan2.SetSpanID(pcommon.NewSpanID([8]byte{2}))
-		otelSpan2.SetParentSpanID(pcommon.NewSpanID([8]byte{3}))
+		otelSpan2.SetTraceID(pcommon.TraceID{1})
+		otelSpan2.SetSpanID(pcommon.SpanID{2})
+		otelSpan2.SetParentSpanID(pcommon.SpanID{3})
 		otelSpan2.Status().SetCode(statusCode)
 
 		batch := transformTraces(t, traces)
@@ -103,12 +103,12 @@ func TestOutcome(t *testing.T) {
 func TestRepresentativeCount(t *testing.T) {
 	traces, spans := newTracesSpans()
 	otelSpan1 := spans.Spans().AppendEmpty()
-	otelSpan1.SetTraceID(pcommon.NewTraceID([16]byte{1}))
-	otelSpan1.SetSpanID(pcommon.NewSpanID([8]byte{2}))
+	otelSpan1.SetTraceID(pcommon.TraceID{1})
+	otelSpan1.SetSpanID(pcommon.SpanID{2})
 	otelSpan2 := spans.Spans().AppendEmpty()
-	otelSpan2.SetTraceID(pcommon.NewTraceID([16]byte{1}))
-	otelSpan2.SetSpanID(pcommon.NewSpanID([8]byte{2}))
-	otelSpan2.SetParentSpanID(pcommon.NewSpanID([8]byte{3}))
+	otelSpan2.SetTraceID(pcommon.TraceID{1})
+	otelSpan2.SetSpanID(pcommon.SpanID{2})
+	otelSpan2.SetParentSpanID(pcommon.SpanID{3})
 
 	batch := transformTraces(t, traces)
 	require.Len(t, batch, 2)
@@ -465,8 +465,8 @@ func TestInstrumentationLibrary(t *testing.T) {
 	spans.Scope().SetName("library-name")
 	spans.Scope().SetVersion("1.2.3")
 	otelSpan := spans.Spans().AppendEmpty()
-	otelSpan.SetTraceID(pcommon.NewTraceID([16]byte{1}))
-	otelSpan.SetSpanID(pcommon.NewSpanID([8]byte{2}))
+	otelSpan.SetTraceID(pcommon.TraceID{1})
+	otelSpan.SetSpanID(pcommon.SpanID{2})
 	events := transformTraces(t, traces)
 	event := events[0]
 
@@ -525,7 +525,7 @@ func TestMessagingTransaction(t *testing.T) {
 		// Set parentID to imply this isn't the root, but
 		// kind==Consumer should still force the span to be translated
 		// as a transaction.
-		s.SetParentSpanID(pcommon.NewSpanID([8]byte{3}))
+		s.SetParentSpanID(pcommon.SpanID{3})
 	})
 	assert.Equal(t, "messaging", event.Transaction.Type)
 	assert.Empty(t, event.Labels)
@@ -711,7 +711,7 @@ func TestConsumeTracesExportTimestamp(t *testing.T) {
 
 	now := time.Now()
 	exportTimestamp := now.Add(-timeDelta)
-	traces.ResourceSpans().At(0).Resource().Attributes().InsertInt("telemetry.sdk.elastic_export_timestamp", exportTimestamp.UnixNano())
+	traces.ResourceSpans().At(0).Resource().Attributes().PutInt("telemetry.sdk.elastic_export_timestamp", exportTimestamp.UnixNano())
 
 	// Offsets are start times relative to the export timestamp.
 	transactionOffset := -2 * time.Second
@@ -725,24 +725,24 @@ func TestConsumeTracesExportTimestamp(t *testing.T) {
 	exportedExceptionTimestamp := exportTimestamp.Add(exceptionOffset)
 
 	otelSpan1 := otelSpans.Spans().AppendEmpty()
-	otelSpan1.SetTraceID(pcommon.NewTraceID([16]byte{1}))
-	otelSpan1.SetSpanID(pcommon.NewSpanID([8]byte{2}))
+	otelSpan1.SetTraceID(pcommon.TraceID{1})
+	otelSpan1.SetSpanID(pcommon.SpanID{2})
 	otelSpan1.SetStartTimestamp(pcommon.NewTimestampFromTime(exportedTransactionTimestamp))
 	otelSpan1.SetEndTimestamp(pcommon.NewTimestampFromTime(exportedTransactionTimestamp.Add(transactionDuration)))
 
 	otelSpan2 := otelSpans.Spans().AppendEmpty()
-	otelSpan2.SetTraceID(pcommon.NewTraceID([16]byte{1}))
-	otelSpan2.SetSpanID(pcommon.NewSpanID([8]byte{2}))
-	otelSpan2.SetParentSpanID(pcommon.NewSpanID([8]byte{3}))
+	otelSpan2.SetTraceID(pcommon.TraceID{1})
+	otelSpan2.SetSpanID(pcommon.SpanID{2})
+	otelSpan2.SetParentSpanID(pcommon.SpanID{3})
 	otelSpan2.SetStartTimestamp(pcommon.NewTimestampFromTime(exportedSpanTimestamp))
 	otelSpan2.SetEndTimestamp(pcommon.NewTimestampFromTime(exportedSpanTimestamp.Add(spanDuration)))
 
 	otelSpanEvent := otelSpan2.Events().AppendEmpty()
 	otelSpanEvent.SetTimestamp(pcommon.NewTimestampFromTime(exportedExceptionTimestamp))
 	otelSpanEvent.SetName("exception")
-	otelSpanEvent.Attributes().InsertString("exception.type", "the_type")
-	otelSpanEvent.Attributes().InsertString("exception.message", "the_message")
-	otelSpanEvent.Attributes().InsertString("exception.stacktrace", "the_stacktrace")
+	otelSpanEvent.Attributes().PutStr("exception.type", "the_type")
+	otelSpanEvent.Attributes().PutStr("exception.message", "the_message")
+	otelSpanEvent.Attributes().PutStr("exception.stacktrace", "the_stacktrace")
 
 	batch := transformTraces(t, traces)
 	require.Len(t, batch, 3)
@@ -763,8 +763,8 @@ func TestConsumeTracesExportTimestamp(t *testing.T) {
 }
 
 func TestSpanLinks(t *testing.T) {
-	linkedTraceID := pcommon.NewTraceID([16]byte{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15})
-	linkedSpanID := pcommon.NewSpanID([8]byte{7, 6, 5, 4, 3, 2, 1, 0})
+	linkedTraceID := pcommon.TraceID{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}
+	linkedSpanID := pcommon.SpanID{7, 6, 5, 4, 3, 2, 1, 0}
 	spanLink := ptrace.NewSpanLink()
 	spanLink.SetSpanID(linkedSpanID)
 	spanLink.SetTraceID(linkedTraceID)
@@ -1489,12 +1489,12 @@ func jaegerKeyValue(k string, v interface{}) jaegermodel.KeyValue {
 func transformTransactionWithAttributes(t *testing.T, attrs map[string]interface{}, configFns ...func(ptrace.Span)) model.APMEvent {
 	traces, spans := newTracesSpans()
 	otelSpan := spans.Spans().AppendEmpty()
-	otelSpan.SetTraceID(pcommon.NewTraceID([16]byte{1}))
-	otelSpan.SetSpanID(pcommon.NewSpanID([8]byte{2}))
+	otelSpan.SetTraceID(pcommon.TraceID{1})
+	otelSpan.SetSpanID(pcommon.SpanID{2})
 	for _, fn := range configFns {
 		fn(otelSpan)
 	}
-	pcommon.NewMapFromRaw(attrs).CopyTo(otelSpan.Attributes())
+	otelSpan.Attributes().FromRaw(attrs)
 	events := transformTraces(t, traces)
 	return events[0]
 }
@@ -1502,23 +1502,23 @@ func transformTransactionWithAttributes(t *testing.T, attrs map[string]interface
 func transformSpanWithAttributes(t *testing.T, attrs map[string]interface{}, configFns ...func(ptrace.Span)) model.APMEvent {
 	traces, spans := newTracesSpans()
 	otelSpan := spans.Spans().AppendEmpty()
-	otelSpan.SetTraceID(pcommon.NewTraceID([16]byte{1}))
-	otelSpan.SetSpanID(pcommon.NewSpanID([8]byte{2}))
-	otelSpan.SetParentSpanID(pcommon.NewSpanID([8]byte{3}))
+	otelSpan.SetTraceID(pcommon.TraceID{1})
+	otelSpan.SetSpanID(pcommon.SpanID{2})
+	otelSpan.SetParentSpanID(pcommon.SpanID{3})
 	for _, fn := range configFns {
 		fn(otelSpan)
 	}
-	pcommon.NewMapFromRaw(attrs).CopyTo(otelSpan.Attributes())
+	otelSpan.Attributes().FromRaw(attrs)
 	events := transformTraces(t, traces)
 	return events[0]
 }
 
 func transformTransactionSpanEvents(t *testing.T, language string, spanEvents ...ptrace.SpanEvent) (transaction model.APMEvent, events []model.APMEvent) {
 	traces, spans := newTracesSpans()
-	traces.ResourceSpans().At(0).Resource().Attributes().InsertString(semconv.AttributeTelemetrySDKLanguage, language)
+	traces.ResourceSpans().At(0).Resource().Attributes().PutStr(semconv.AttributeTelemetrySDKLanguage, language)
 	otelSpan := spans.Spans().AppendEmpty()
-	otelSpan.SetTraceID(pcommon.NewTraceID([16]byte{1}))
-	otelSpan.SetSpanID(pcommon.NewSpanID([8]byte{2}))
+	otelSpan.SetTraceID(pcommon.TraceID{1})
+	otelSpan.SetSpanID(pcommon.SpanID{2})
 	for _, spanEvent := range spanEvents {
 		spanEvent.CopyTo(otelSpan.Events().AppendEmpty())
 	}

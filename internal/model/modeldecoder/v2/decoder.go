@@ -1404,7 +1404,7 @@ func mapOTelAttributesTransaction(from otel, out *model.APMEvent) {
 	}
 	// TODO: Does this work? Is there a way we can infer the status code,
 	// potentially in the actual attributes map?
-	spanStatus := ptrace.NewSpanStatus()
+	spanStatus := ptrace.NewStatus()
 	spanStatus.SetCode(ptrace.StatusCodeUnset)
 	otel_processor.TranslateTransaction(m, spanStatus, scope, out)
 
@@ -1495,7 +1495,7 @@ func otelAttributeMap(o *otel) pcommon.Map {
 	m := pcommon.NewMap()
 	for k, v := range o.Attributes {
 		if attr, ok := otelAttributeValue(k, v); ok {
-			m.Insert(k, attr)
+			attr.CopyTo(m.PutEmpty(k))
 		}
 	}
 	return m
@@ -1507,7 +1507,7 @@ func otelAttributeValue(k string, v interface{}) (pcommon.Value, bool) {
 	// https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/common/common.md#attributes
 	switch v := v.(type) {
 	case string:
-		return pcommon.NewValueString(v), true
+		return pcommon.NewValueStr(v), true
 	case bool:
 		return pcommon.NewValueBool(v), true
 	case json.Number:
@@ -1524,10 +1524,10 @@ func otelAttributeValue(k string, v interface{}) (pcommon.Value, bool) {
 		}
 	case []interface{}:
 		array := pcommon.NewValueSlice()
-		array.SliceVal().EnsureCapacity(len(v))
+		array.Slice().EnsureCapacity(len(v))
 		for i := range v {
 			if elem, ok := otelAttributeValue(k, v[i]); ok {
-				elem.CopyTo(array.SliceVal().AppendEmpty())
+				elem.CopyTo(array.Slice().AppendEmpty())
 			}
 		}
 		return array, true
