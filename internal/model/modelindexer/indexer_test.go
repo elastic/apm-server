@@ -27,6 +27,7 @@ import (
 	"net/http"
 	"runtime"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -747,6 +748,16 @@ func TestModelIndexerScaling(t *testing.T) {
 		assert.Greater(t, stats.IndexersDestroyed, int64(0), "No downscales took place: %+v", stats)
 		assert.Equal(t, stats.IndexersActive, int64(n), "%+v", stats)
 	}
+	waitForBulkRequests := func(t *testing.T, indexer *modelindexer.Indexer, n int64) {
+		timeout := time.After(time.Second)
+		for indexer.Stats().BulkRequests < n {
+			select {
+			case <-time.After(time.Millisecond):
+			case <-timeout:
+				t.Fatalf("timed out while waiting for events to be indexed: %+v", indexer.Stats())
+			}
+		}
+	}
 	t.Run("DownscaleIdle", func(t *testing.T) {
 		// Override the default GOMAXPROCS, ensuring the active indexers can scale up.
 		setGOMAXPROCS(t, 12)
@@ -806,9 +817,8 @@ func TestModelIndexerScaling(t *testing.T) {
 		// the gomaxprocs change.
 		waitForScaleDown(t, indexer, 1)
 		// Wait for all the events to be indexed.
-		for indexer.Stats().Indexed < events {
-			<-time.After(time.Millisecond)
-		}
+		waitForBulkRequests(t, indexer, events)
+
 		stats := indexer.Stats()
 		stats.BytesTotal = 0
 		assert.Equal(t, modelindexer.Stats{
@@ -844,9 +854,8 @@ func TestModelIndexerScaling(t *testing.T) {
 		sendEvents(t, indexer, int(events))
 		waitForScaleUp(t, indexer, 2)
 		// Wait for all the events to be indexed.
-		for indexer.Stats().Indexed < events {
-			<-time.After(time.Millisecond)
-		}
+		waitForBulkRequests(t, indexer, events)
+
 		assert.Equal(t, int64(2), indexer.Stats().IndexersActive)
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
@@ -863,6 +872,72 @@ func TestModelIndexerScaling(t *testing.T) {
 			IndexersCreated:       1,
 			IndexersDestroyed:     0,
 		}, stats)
+	})
+	t.Run("Downscale429Rate", func(t *testing.T) {
+		// Override the default GOMAXPROCS, ensuring the active indexers can scale up.
+		setGOMAXPROCS(t, 12)
+		var mu sync.RWMutex
+		var tooMany bool // must be accessed with the mutex held.
+		client := modelindexertest.NewMockElasticsearchClient(t, func(w http.ResponseWriter, r *http.Request) {
+			_, result := modelindexertest.DecodeBulkRequest(r)
+			mu.RLock()
+			tooManyResp := tooMany
+			mu.RUnlock()
+			if tooManyResp {
+				result.HasErrors = true
+				for i := 0; i < len(result.Items); i++ {
+					item := result.Items[i]
+					resp := item["create"]
+					resp.Status = http.StatusTooManyRequests
+					item["create"] = resp
+				}
+			}
+			json.NewEncoder(w).Encode(result)
+		})
+		indexer, err := modelindexer.New(client, modelindexer.Config{
+			FlushInterval: time.Millisecond,
+			FlushBytes:    1,
+			Scaling: modelindexer.ScalingConfig{
+				ScaleUp: modelindexer.ScaleActionConfig{
+					Threshold: 5, CoolDown: 1,
+				},
+				ScaleDown: modelindexer.ScaleActionConfig{
+					Threshold: 100, CoolDown: 100 * time.Millisecond,
+				},
+				IdleInterval: 100 * time.Millisecond,
+			},
+		})
+		require.NoError(t, err)
+		t.Cleanup(func() { indexer.Close(context.Background()) })
+		events := int64(20)
+		sendEvents(t, indexer, int(events))
+		waitForScaleUp(t, indexer, 3)
+		waitForBulkRequests(t, indexer, events)
+
+		// Make the mocked elasticsaerch return 429 responses and wait for the
+		// active indexers to be scaled down to the minimum.
+		mu.Lock()
+		tooMany = true
+		mu.Unlock()
+		events += 5
+		sendEvents(t, indexer, 5)
+		waitForScaleDown(t, indexer, 1)
+		waitForBulkRequests(t, indexer, events)
+
+		// index 600 events and ensure that scale ups happen to the maximum after
+		// the threshold is exceeded.
+		mu.Lock()
+		tooMany = false
+		mu.Unlock()
+		events += 600
+		sendEvents(t, indexer, 600)
+		waitForScaleUp(t, indexer, 3)
+		waitForBulkRequests(t, indexer, events)
+
+		stats := indexer.Stats()
+		assert.Equal(t, int64(3), stats.IndexersActive)
+		assert.Equal(t, int64(4), stats.IndexersCreated)
+		assert.Equal(t, int64(2), stats.IndexersDestroyed)
 	})
 }
 

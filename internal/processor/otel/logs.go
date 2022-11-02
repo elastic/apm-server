@@ -46,7 +46,7 @@ import (
 	"github.com/elastic/elastic-agent-libs/logp"
 )
 
-var jsonLogsMarshaler = plog.NewJSONMarshaler()
+var jsonLogsMarshaler = &plog.JSONMarshaler{}
 
 func (c *Consumer) ConsumeLogs(ctx context.Context, logs plog.Logs) error {
 	receiveTimestamp := time.Now()
@@ -108,7 +108,7 @@ func (c *Consumer) convertLogRecord(
 	if body := record.Body(); body.Type() != pcommon.ValueTypeEmpty {
 		event.Message = body.AsString()
 		if body.Type() == pcommon.ValueTypeMap {
-			setLabels(body.MapVal(), &event)
+			setLabels(body.Map(), &event)
 		}
 	}
 	if traceID := record.TraceID(); !traceID.IsEmpty() {

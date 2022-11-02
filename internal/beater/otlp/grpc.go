@@ -69,11 +69,11 @@ func RegisterGRPCServices(grpcServer *grpc.Server, processor model.BatchProcesso
 	gRPCMonitoredConsumer.set(consumer)
 
 	tracesService := otlpreceiver.TracesService(consumer)
-	ptraceotlp.RegisterServer(grpcServer, tracesService)
+	ptraceotlp.RegisterGRPCServer(grpcServer, tracesService)
 
 	metricsService := otlpreceiver.MetricsService(consumer)
-	pmetricotlp.RegisterServer(grpcServer, metricsService)
+	pmetricotlp.RegisterGRPCServer(grpcServer, metricsService)
 
 	logsService := otlpreceiver.LogsService(consumer)
-	plogotlp.RegisterServer(grpcServer, logsService)
+	plogotlp.RegisterGRPCServer(grpcServer, logsService)
 }

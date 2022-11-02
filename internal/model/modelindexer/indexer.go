@@ -594,15 +594,27 @@ func (i *Indexer) maybeScaleDown(now time.Time, info scalingInfo, timedFlush *ui
 		}
 		info = i.scalingInformation() // refresh scaling info if CAS failed.
 	}
+	if info.withinCoolDown(i.config.Scaling.ScaleDown.CoolDown, now) {
+		return false
+	}
+	// If more than 1% of the requests result in 429, scale down the current
+	// active indexer.
+	if i.indexFailureRate() >= 0.01 {
+		if new := info.ScaleDown(now); i.scalingInfo.CompareAndSwap(info, new) {
+			i.logger.Infof(
+				"elasticsearch 429 response rate exceeded 1%%, scaling down to: %d",
+				new.activeIndexers,
+			)
+			return true
+		}
+		return false
+	}
 	if *timedFlush < i.config.Scaling.ScaleDown.Threshold {
 		return false
 	}
 	// Reset timedFlush after it has exceeded the threshold
 	// it avoids unnecessary precociousness to scale down.
 	*timedFlush = 0
-	if info.withinCoolDown(i.config.Scaling.ScaleDown.CoolDown, now) {
-		return false
-	}
 	if new := info.ScaleDown(now); i.scalingInfo.CompareAndSwap(info, new) {
 		i.logger.Infof("timed flush threshold exceeded, scaling down to: %d", new)
 		return true
@@ -624,6 +636,10 @@ func (i *Indexer) maybeScaleUp(now time.Time, info scalingInfo, fullFlush *uint)
 	// Reset fullFlush after it has exceeded the threshold
 	// it avoids unnecessary precociousness to scale up.
 	*fullFlush = 0
+	// If more than 1% of the requests result in 429, do not scale up.
+	if i.indexFailureRate() >= 0.01 {
+		return false
+	}
 	if info.withinCoolDown(i.config.Scaling.ScaleUp.CoolDown, now) {
 		return false
 	}
@@ -640,6 +656,12 @@ func (i *Indexer) maybeScaleUp(now time.Time, info scalingInfo, fullFlush *uint)
 
 func (i *Indexer) scalingInformation() scalingInfo {
 	return i.scalingInfo.Load().(scalingInfo)
+}
+
+// indexFailureRate returns the decimal percentage of 429 / total events.
+func (i *Indexer) indexFailureRate() float64 {
+	return float64(atomic.LoadInt64(&i.tooManyRequests)) /
+		float64(atomic.LoadInt64(&i.eventsAdded))
 }
 
 // activeLimit returns the value of GOMAXPROCS / 4. Which should limit the
@@ -695,15 +717,11 @@ type scalingInfo struct {
 }
 
 func (s scalingInfo) ScaleDown(t time.Time) scalingInfo {
-	return scalingInfo{
-		lastAction: t, activeIndexers: s.activeIndexers - 1,
-	}
+	return scalingInfo{lastAction: t, activeIndexers: s.activeIndexers - 1}
 }
 
 func (s scalingInfo) ScaleUp(t time.Time) scalingInfo {
-	return scalingInfo{
-		lastAction: t, activeIndexers: s.activeIndexers + 1,
-	}
+	return scalingInfo{lastAction: t, activeIndexers: s.activeIndexers + 1}
 }
 
 func (s scalingInfo) withinCoolDown(cooldown time.Duration, now time.Time) bool {
