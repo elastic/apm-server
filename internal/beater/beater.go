@@ -702,7 +702,10 @@ func modelIndexerConfig(
 	if opts.MaxRequests > 0 {
 		return opts
 	}
-	maxRequests := int(float64(10) + memLimit*2)
+	// This formula yields the following max requests for APM Server sized:
+	// 1	2 	4	8	15	30
+	// 10	13	16	22	32	55
+	maxRequests := int(float64(10) + memLimit*1.5)
 	if maxRequests > 60 {
 		maxRequests = 60
 	}
