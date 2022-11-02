@@ -72,7 +72,7 @@ func TestConsumerConsumeLogs(t *testing.T) {
 		},
 		Message: "a random log message",
 		Event: model.Event{
-			Severity: int64(plog.SeverityNumberINFO),
+			Severity: int64(plog.SeverityNumberInfo),
 		},
 		Log:           model.Log{Level: "Info"},
 		Span:          &model.Span{ID: "0200000000000000"},
@@ -84,7 +84,7 @@ func TestConsumerConsumeLogs(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			logs := plog.NewLogs()
 			resourceLogs := logs.ResourceLogs().AppendEmpty()
-			logs.ResourceLogs().At(0).Resource().Attributes().InsertString(semconv.AttributeTelemetrySDKLanguage, "go")
+			logs.ResourceLogs().At(0).Resource().Attributes().PutStr(semconv.AttributeTelemetrySDKLanguage, "go")
 			scopeLogs := resourceLogs.ScopeLogs().AppendEmpty()
 			newLogRecord(body).CopyTo(scopeLogs.LogRecords().AppendEmpty())
 
@@ -117,21 +117,21 @@ func TestConsumerConsumeLogsLabels(t *testing.T) {
 	logs := plog.NewLogs()
 	resourceLogs := logs.ResourceLogs().AppendEmpty()
 	resourceAttrs := logs.ResourceLogs().At(0).Resource().Attributes()
-	resourceAttrs.InsertString(semconv.AttributeTelemetrySDKLanguage, "go")
-	resourceAttrs.InsertString("key0", "zero")
+	resourceAttrs.PutStr(semconv.AttributeTelemetrySDKLanguage, "go")
+	resourceAttrs.PutStr("key0", "zero")
 	scopeLogs := resourceLogs.ScopeLogs().AppendEmpty()
 
 	record1 := newLogRecord("whatever")
-	record1.Attributes().InsertString("key1", "one")
+	record1.Attributes().PutStr("key1", "one")
 	record1.CopyTo(scopeLogs.LogRecords().AppendEmpty())
 
 	record2 := newLogRecord("andever")
-	record2.Attributes().InsertDouble("key2", 2)
+	record2.Attributes().PutDouble("key2", 2)
 	record2.CopyTo(scopeLogs.LogRecords().AppendEmpty())
 
 	record3 := newLogRecord("amen")
-	record3.Attributes().InsertString("key3", "three")
-	record3.Attributes().InsertInt("key4", 4)
+	record3.Attributes().PutStr("key3", "three")
+	record3.Attributes().PutInt("key4", 4)
 	record3.CopyTo(scopeLogs.LogRecords().AppendEmpty())
 
 	var processed model.Batch
@@ -158,21 +158,21 @@ func TestConsumerConsumeLogsLabels(t *testing.T) {
 
 func newLogRecord(body interface{}) plog.LogRecord {
 	otelLogRecord := plog.NewLogRecord()
-	otelLogRecord.SetTraceID(pcommon.NewTraceID([16]byte{1}))
-	otelLogRecord.SetSpanID(pcommon.NewSpanID([8]byte{2}))
-	otelLogRecord.SetSeverityNumber(plog.SeverityNumberINFO)
+	otelLogRecord.SetTraceID(pcommon.TraceID{1})
+	otelLogRecord.SetSpanID(pcommon.SpanID{2})
+	otelLogRecord.SetSeverityNumber(plog.SeverityNumberInfo)
 	otelLogRecord.SetSeverityText("Info")
 	otelLogRecord.SetTimestamp(pcommon.NewTimestampFromTime(time.Now()))
 
 	switch b := body.(type) {
 	case string:
-		otelLogRecord.Body().SetStringVal(b)
+		otelLogRecord.Body().SetStr(b)
 	case int:
-		otelLogRecord.Body().SetIntVal(int64(b))
+		otelLogRecord.Body().SetInt(int64(b))
 	case float64:
-		otelLogRecord.Body().SetDoubleVal(b)
+		otelLogRecord.Body().SetDouble(b)
 	case bool:
-		otelLogRecord.Body().SetBoolVal(b)
+		otelLogRecord.Body().SetBool(b)
 		// case map[string]string:
 		// TODO(marclop) figure out how to set the body since it cannot be set
 		// as a map.

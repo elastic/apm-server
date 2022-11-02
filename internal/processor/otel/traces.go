@@ -80,8 +80,8 @@ const (
 )
 
 var (
-	jsonTracesMarshaler  = ptrace.NewJSONMarshaler()
-	jsonMetricsMarshaler = pmetric.NewJSONMarshaler()
+	jsonTracesMarshaler  = &ptrace.JSONMarshaler{}
+	jsonMetricsMarshaler = &pmetric.JSONMarshaler{}
 )
 
 // Consumer transforms open-telemetry data to be compatible with elastic APM data
@@ -247,7 +247,7 @@ func (c *Consumer) convertSpan(
 // expected elasticsearch format.
 func TranslateTransaction(
 	attributes pcommon.Map,
-	spanStatus ptrace.SpanStatus,
+	spanStatus ptrace.Status,
 	library pcommon.InstrumentationScope,
 	event *model.APMEvent,
 ) {
@@ -296,20 +296,20 @@ func TranslateTransaction(
 			switch kDots {
 			case semconv.AttributeHTTPStatusCode:
 				foundSpanType = httpSpan
-				httpResponse.StatusCode = int(v.IntVal())
+				httpResponse.StatusCode = int(v.Int())
 				http.Response = &httpResponse
 			case semconv.AttributeNetPeerPort:
-				event.Source.Port = int(v.IntVal())
+				event.Source.Port = int(v.Int())
 			case semconv.AttributeNetHostPort:
-				netHostPort = int(v.IntVal())
+				netHostPort = int(v.Int())
 			case "rpc.grpc.status_code":
-				event.Transaction.Result = codes.Code(v.IntVal()).String()
+				event.Transaction.Result = codes.Code(v.Int()).String()
 			default:
 				setLabel(k, event, ifaceAttributeValue(v))
 			}
 		case pcommon.ValueTypeMap:
-		case pcommon.ValueTypeString:
-			stringval := truncate(v.StringVal())
+		case pcommon.ValueTypeStr:
+			stringval := truncate(v.Str())
 			switch kDots {
 			// http.*
 			case semconv.AttributeHTTPMethod:
@@ -539,32 +539,32 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 		k := replaceDots(kDots)
 		switch v.Type() {
 		case pcommon.ValueTypeSlice:
-			setLabel(k, event, ifaceAttributeValueSlice(v.SliceVal()))
+			setLabel(k, event, ifaceAttributeValueSlice(v.Slice()))
 		case pcommon.ValueTypeBool:
 			switch kDots {
 			case semconv.AttributeMessagingTempDestination:
-				messageTempDestination = v.BoolVal()
+				messageTempDestination = v.Bool()
 				fallthrough
 			default:
-				setLabel(k, event, strconv.FormatBool(v.BoolVal()))
+				setLabel(k, event, strconv.FormatBool(v.Bool()))
 			}
 		case pcommon.ValueTypeDouble:
-			setLabel(k, event, v.DoubleVal())
+			setLabel(k, event, v.Double())
 		case pcommon.ValueTypeInt:
 			switch kDots {
 			case "http.status_code":
-				httpResponse.StatusCode = int(v.IntVal())
+				httpResponse.StatusCode = int(v.Int())
 				http.Response = &httpResponse
 				foundSpanType = httpSpan
 			case semconv.AttributeNetPeerPort, "peer.port":
-				netPeerPort = int(v.IntVal())
+				netPeerPort = int(v.Int())
 			case "rpc.grpc.status_code":
 				// Ignored for spans.
 			default:
-				setLabel(k, event, v.IntVal())
+				setLabel(k, event, v.Int())
 			}
-		case pcommon.ValueTypeString:
-			stringval := truncate(v.StringVal())
+		case pcommon.ValueTypeStr:
+			stringval := truncate(v.Str())
 
 			switch kDots {
 			// http.*
@@ -593,7 +593,7 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 				fallthrough
 			case semconv.AttributeDBStatement:
 				// Statement should not be truncated, use original string value.
-				db.Statement = v.StringVal()
+				db.Statement = v.Str()
 				foundSpanType = dbSpan
 			case semconv.AttributeDBName, "db.instance":
 				db.Instance = stringval
@@ -848,9 +848,9 @@ func TranslateSpan(spanKind ptrace.SpanKind, attributes pcommon.Map, event *mode
 }
 
 func parseSamplerAttributes(samplerType, samplerParam pcommon.Value, event *model.APMEvent) {
-	switch samplerType := samplerType.StringVal(); samplerType {
+	switch samplerType := samplerType.Str(); samplerType {
 	case "probabilistic":
-		probability := samplerParam.DoubleVal()
+		probability := samplerParam.Double()
 		if probability > 0 && probability <= 1 {
 			if event.Span != nil {
 				event.Span.RepresentativeCount = 1 / probability
@@ -863,9 +863,9 @@ func parseSamplerAttributes(samplerType, samplerParam pcommon.Value, event *mode
 		event.Labels.Set("sampler_type", samplerType)
 		switch samplerParam.Type() {
 		case pcommon.ValueTypeBool:
-			event.Labels.Set("sampler_param", strconv.FormatBool(samplerParam.BoolVal()))
+			event.Labels.Set("sampler_param", strconv.FormatBool(samplerParam.Bool()))
 		case pcommon.ValueTypeDouble:
-			event.NumericLabels.Set("sampler_param", samplerParam.DoubleVal())
+			event.NumericLabels.Set("sampler_param", samplerParam.Double())
 		}
 	}
 }
@@ -896,13 +896,13 @@ func convertSpanEvent(
 		spanEvent.Attributes().Range(func(k string, v pcommon.Value) bool {
 			switch k {
 			case semconv.AttributeExceptionMessage:
-				exceptionMessage = v.StringVal()
+				exceptionMessage = v.Str()
 			case semconv.AttributeExceptionStacktrace:
-				exceptionStacktrace = v.StringVal()
+				exceptionStacktrace = v.Str()
 			case semconv.AttributeExceptionType:
-				exceptionType = v.StringVal()
+				exceptionType = v.Str()
 			case "exception.escaped":
-				exceptionEscaped = v.BoolVal()
+				exceptionEscaped = v.Bool()
 			default:
 				setLabel(replaceDots(k), &event, ifaceAttributeValue(v))
 			}
@@ -930,7 +930,7 @@ func convertSpanEvent(
 		spanEvent.Attributes().Range(func(k string, v pcommon.Value) bool {
 			k = replaceDots(k)
 			if isJaeger && k == "message" {
-				event.Message = truncate(v.StringVal())
+				event.Message = truncate(v.Str())
 				return true
 			}
 			setLabel(k, &event, ifaceAttributeValue(v))
@@ -956,10 +956,10 @@ func convertJaegerErrorSpanEvent(logger *logp.Logger, event ptrace.SpanEvent, ap
 	}
 
 	event.Attributes().Range(func(k string, v pcommon.Value) bool {
-		if v.Type() != pcommon.ValueTypeString {
+		if v.Type() != pcommon.ValueTypeStr {
 			return true
 		}
-		stringval := truncate(v.StringVal())
+		stringval := truncate(v.Str())
 		switch k {
 		case "error", "error.object":
 			exMessage = stringval
@@ -1038,7 +1038,7 @@ func replaceDots(s string) string {
 
 // spanStatusOutcome returns the outcome for transactions and spans based on
 // the given OTLP span status.
-func spanStatusOutcome(status ptrace.SpanStatus) string {
+func spanStatusOutcome(status ptrace.Status) string {
 	switch status.Code() {
 	case ptrace.StatusCodeOk:
 		return outcomeSuccess
@@ -1051,7 +1051,7 @@ func spanStatusOutcome(status ptrace.SpanStatus) string {
 // spanStatusResult returns the result for transactions based on the given
 // OTLP span status. If the span status is unknown, an empty result string
 // is returned.
-func spanStatusResult(status ptrace.SpanStatus) string {
+func spanStatusResult(status ptrace.Status) string {
 	switch status.Code() {
 	case ptrace.StatusCodeOk:
 		return "Success"
