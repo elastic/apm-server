@@ -56,7 +56,7 @@ func TestEncodeSpanEventsNonExceptions(t *testing.T) {
 
 	incompleteExceptionEvent := ptrace.NewSpanEvent()
 	incompleteExceptionEvent.SetName("exception")
-	incompleteExceptionEvent.Attributes().InsertString(
+	incompleteExceptionEvent.Attributes().PutStr(
 		// At least one of exception.message and exception.type is required.
 		semconv.AttributeExceptionStacktrace, "stacktrace",
 	)
@@ -73,10 +73,10 @@ func TestEncodeSpanEventsJavaExceptions(t *testing.T) {
 	exceptionEvent1 := ptrace.NewSpanEvent()
 	exceptionEvent1.SetTimestamp(pcommon.NewTimestampFromTime(timestamp))
 	exceptionEvent1.SetName("exception")
-	exceptionEvent1.Attributes().InsertString("exception.type", "java.net.ConnectException.OSError")
-	exceptionEvent1.Attributes().InsertString("exception.message", "Division by zero")
-	exceptionEvent1.Attributes().InsertBool("exception.escaped", true)
-	exceptionEvent1.Attributes().InsertString("exception.stacktrace", `
+	exceptionEvent1.Attributes().PutStr("exception.type", "java.net.ConnectException.OSError")
+	exceptionEvent1.Attributes().PutStr("exception.message", "Division by zero")
+	exceptionEvent1.Attributes().PutBool("exception.escaped", true)
+	exceptionEvent1.Attributes().PutStr("exception.stacktrace", `
 Exception in thread "main" java.lang.RuntimeException: Test exception
 	at com.example.GenerateTrace.methodB(GenerateTrace.java:13)
 	at com.example.GenerateTrace.methodA(GenerateTrace.java:9)
@@ -89,9 +89,9 @@ Exception in thread "main" java.lang.RuntimeException: Test exception
 	exceptionEvent2 := ptrace.NewSpanEvent()
 	exceptionEvent2.SetTimestamp(pcommon.NewTimestampFromTime(timestamp))
 	exceptionEvent2.SetName("exception")
-	exceptionEvent2.Attributes().InsertString("exception.type", "HighLevelException")
-	exceptionEvent2.Attributes().InsertString("exception.message", "MidLevelException: LowLevelException")
-	exceptionEvent2.Attributes().InsertString("exception.stacktrace", `
+	exceptionEvent2.Attributes().PutStr("exception.type", "HighLevelException")
+	exceptionEvent2.Attributes().PutStr("exception.message", "MidLevelException: LowLevelException")
+	exceptionEvent2.Attributes().PutStr("exception.stacktrace", `
 HighLevelException: MidLevelException: LowLevelException
 	at Junk.a(Junk.java:13)
 	at Junk.main(Junk.java:4)
@@ -291,8 +291,8 @@ Caused by: whatever
 	for _, stacktrace := range stacktraces {
 		event := ptrace.NewSpanEvent()
 		event.SetName("exception")
-		event.Attributes().InsertString("exception.type", "ExceptionType")
-		event.Attributes().InsertString("exception.stacktrace", stacktrace)
+		event.Attributes().PutStr("exception.type", "ExceptionType")
+		event.Attributes().PutStr("exception.stacktrace", stacktrace)
 		events = append(events, event)
 	}
 
@@ -311,9 +311,9 @@ func TestEncodeSpanEventsNonJavaExceptions(t *testing.T) {
 	exceptionEvent := ptrace.NewSpanEvent()
 	exceptionEvent.SetTimestamp(pcommon.NewTimestampFromTime(timestamp))
 	exceptionEvent.SetName("exception")
-	exceptionEvent.Attributes().InsertString("exception.type", "the_type")
-	exceptionEvent.Attributes().InsertString("exception.message", "the_message")
-	exceptionEvent.Attributes().InsertString("exception.stacktrace", "the_stacktrace")
+	exceptionEvent.Attributes().PutStr("exception.type", "the_type")
+	exceptionEvent.Attributes().PutStr("exception.message", "the_message")
+	exceptionEvent.Attributes().PutStr("exception.stacktrace", "the_stacktrace")
 
 	// For languages where we do not explicitly parse the stacktrace,
 	// the raw stacktrace is stored as error.stack_trace.

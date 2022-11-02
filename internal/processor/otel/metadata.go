@@ -44,103 +44,103 @@ func translateResourceMetadata(resource pcommon.Resource, out *model.APMEvent) {
 		switch k {
 		// service.*
 		case semconv.AttributeServiceName:
-			out.Service.Name = cleanServiceName(v.StringVal())
+			out.Service.Name = cleanServiceName(v.Str())
 		case semconv.AttributeServiceVersion:
-			out.Service.Version = truncate(v.StringVal())
+			out.Service.Version = truncate(v.Str())
 		case semconv.AttributeServiceInstanceID:
-			out.Service.Node.Name = truncate(v.StringVal())
+			out.Service.Node.Name = truncate(v.Str())
 
 		// deployment.*
 		case semconv.AttributeDeploymentEnvironment:
-			out.Service.Environment = truncate(v.StringVal())
+			out.Service.Environment = truncate(v.Str())
 
 		// telemetry.sdk.*
 		case semconv.AttributeTelemetrySDKName:
-			out.Agent.Name = truncate(v.StringVal())
+			out.Agent.Name = truncate(v.Str())
 		case semconv.AttributeTelemetrySDKVersion:
-			out.Agent.Version = truncate(v.StringVal())
+			out.Agent.Version = truncate(v.Str())
 		case semconv.AttributeTelemetrySDKLanguage:
-			out.Service.Language.Name = truncate(v.StringVal())
+			out.Service.Language.Name = truncate(v.Str())
 
 		// cloud.*
 		case semconv.AttributeCloudProvider:
-			out.Cloud.Provider = truncate(v.StringVal())
+			out.Cloud.Provider = truncate(v.Str())
 		case semconv.AttributeCloudAccountID:
-			out.Cloud.AccountID = truncate(v.StringVal())
+			out.Cloud.AccountID = truncate(v.Str())
 		case semconv.AttributeCloudRegion:
-			out.Cloud.Region = truncate(v.StringVal())
+			out.Cloud.Region = truncate(v.Str())
 		case semconv.AttributeCloudAvailabilityZone:
-			out.Cloud.AvailabilityZone = truncate(v.StringVal())
+			out.Cloud.AvailabilityZone = truncate(v.Str())
 		case semconv.AttributeCloudPlatform:
-			out.Cloud.ServiceName = truncate(v.StringVal())
+			out.Cloud.ServiceName = truncate(v.Str())
 
 		// container.*
 		case semconv.AttributeContainerName:
-			out.Container.Name = truncate(v.StringVal())
+			out.Container.Name = truncate(v.Str())
 		case semconv.AttributeContainerID:
-			out.Container.ID = truncate(v.StringVal())
+			out.Container.ID = truncate(v.Str())
 		case semconv.AttributeContainerImageName:
-			out.Container.ImageName = truncate(v.StringVal())
+			out.Container.ImageName = truncate(v.Str())
 		case semconv.AttributeContainerImageTag:
-			out.Container.ImageTag = truncate(v.StringVal())
+			out.Container.ImageTag = truncate(v.Str())
 		case "container.runtime":
-			out.Container.Runtime = truncate(v.StringVal())
+			out.Container.Runtime = truncate(v.Str())
 
 		// k8s.*
 		case semconv.AttributeK8SNamespaceName:
-			out.Kubernetes.Namespace = truncate(v.StringVal())
+			out.Kubernetes.Namespace = truncate(v.Str())
 		case semconv.AttributeK8SNodeName:
-			out.Kubernetes.NodeName = truncate(v.StringVal())
+			out.Kubernetes.NodeName = truncate(v.Str())
 		case semconv.AttributeK8SPodName:
-			out.Kubernetes.PodName = truncate(v.StringVal())
+			out.Kubernetes.PodName = truncate(v.Str())
 		case semconv.AttributeK8SPodUID:
-			out.Kubernetes.PodUID = truncate(v.StringVal())
+			out.Kubernetes.PodUID = truncate(v.Str())
 
 		// host.*
 		case semconv.AttributeHostName:
-			out.Host.Hostname = truncate(v.StringVal())
+			out.Host.Hostname = truncate(v.Str())
 		case semconv.AttributeHostID:
-			out.Host.ID = truncate(v.StringVal())
+			out.Host.ID = truncate(v.Str())
 		case semconv.AttributeHostType:
-			out.Host.Type = truncate(v.StringVal())
+			out.Host.Type = truncate(v.Str())
 		case "host.arch":
-			out.Host.Architecture = truncate(v.StringVal())
+			out.Host.Architecture = truncate(v.Str())
 
 		// process.*
 		case semconv.AttributeProcessPID:
-			out.Process.Pid = int(v.IntVal())
+			out.Process.Pid = int(v.Int())
 		case semconv.AttributeProcessCommandLine:
-			out.Process.CommandLine = truncate(v.StringVal())
+			out.Process.CommandLine = truncate(v.Str())
 		case semconv.AttributeProcessExecutablePath:
-			out.Process.Executable = truncate(v.StringVal())
+			out.Process.Executable = truncate(v.Str())
 		case "process.runtime.name":
-			out.Service.Runtime.Name = truncate(v.StringVal())
+			out.Service.Runtime.Name = truncate(v.Str())
 		case "process.runtime.version":
-			out.Service.Runtime.Version = truncate(v.StringVal())
+			out.Service.Runtime.Version = truncate(v.Str())
 
 		// os.*
 		case semconv.AttributeOSType:
-			out.Host.OS.Platform = strings.ToLower(truncate(v.StringVal()))
+			out.Host.OS.Platform = strings.ToLower(truncate(v.Str()))
 		case semconv.AttributeOSDescription:
-			out.Host.OS.Full = truncate(v.StringVal())
+			out.Host.OS.Full = truncate(v.Str())
 		case semconv.AttributeOSName:
-			out.Host.OS.Name = truncate(v.StringVal())
+			out.Host.OS.Name = truncate(v.Str())
 		case semconv.AttributeOSVersion:
-			out.Host.OS.Version = truncate(v.StringVal())
+			out.Host.OS.Version = truncate(v.Str())
 
 		// device.*
 		case semconv.AttributeDeviceID:
-			out.Device.ID = truncate(v.StringVal())
+			out.Device.ID = truncate(v.Str())
 		case semconv.AttributeDeviceModelIdentifier:
-			out.Device.Model.Identifier = truncate(v.StringVal())
+			out.Device.Model.Identifier = truncate(v.Str())
 		case semconv.AttributeDeviceModelName:
-			out.Device.Model.Name = truncate(v.StringVal())
+			out.Device.Model.Name = truncate(v.Str())
 		case "device.manufacturer":
-			out.Device.Manufacturer = truncate(v.StringVal())
+			out.Device.Manufacturer = truncate(v.Str())
 
 		// Legacy OpenCensus attributes.
 		case "opencensus.exporterversion":
-			exporterVersion = v.StringVal()
+			exporterVersion = v.Str()
 
 		// timestamp attribute to deal with time skew on mobile
 		// devices. APM server should drop this field.
@@ -232,16 +232,16 @@ func cleanServiceName(name string) string {
 
 func ifaceAttributeValue(v pcommon.Value) interface{} {
 	switch v.Type() {
-	case pcommon.ValueTypeString:
-		return truncate(v.StringVal())
+	case pcommon.ValueTypeStr:
+		return truncate(v.Str())
 	case pcommon.ValueTypeBool:
-		return strconv.FormatBool(v.BoolVal())
+		return strconv.FormatBool(v.Bool())
 	case pcommon.ValueTypeInt:
-		return float64(v.IntVal())
+		return float64(v.Int())
 	case pcommon.ValueTypeDouble:
-		return v.DoubleVal()
+		return v.Double()
 	case pcommon.ValueTypeSlice:
-		return ifaceAttributeValueSlice(v.SliceVal())
+		return ifaceAttributeValueSlice(v.Slice())
 	}
 	return nil
 }

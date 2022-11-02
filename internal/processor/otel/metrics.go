@@ -129,8 +129,8 @@ type jvmMemoryKey struct {
 // accumulate processes m, translating to and accumulating equivalent Elastic APM metrics in b.
 func (b *apmMetricsBuilder) accumulate(m pmetric.Metric) {
 
-	switch m.DataType() {
-	case pmetric.MetricDataTypeSum:
+	switch m.Type() {
+	case pmetric.MetricTypeSum:
 		dpsCounter := m.Sum().DataPoints()
 		for i := 0; i < dpsCounter.Len(); i++ {
 			dp := dpsCounter.At(i)
@@ -138,7 +138,7 @@ func (b *apmMetricsBuilder) accumulate(m pmetric.Metric) {
 				switch m.Name() {
 				case "system.memory.usage":
 					if memoryState, exists := dp.Attributes().Get("state"); exists {
-						switch memoryState.StringVal() {
+						switch memoryState.Str() {
 						case "used":
 							b.usedMemoryBytes = apmMetricValue{dp.Timestamp().AsTime(), sample.Value}
 						case "free":
@@ -147,16 +147,16 @@ func (b *apmMetricsBuilder) accumulate(m pmetric.Metric) {
 					}
 				case "runtime.jvm.gc.collection", "runtime.jvm.gc.time":
 					if gcName, exists := dp.Attributes().Get("gc"); exists {
-						b.jvmGCTime[gcName.StringVal()] = apmMetricValue{dp.Timestamp().AsTime(), sample.Value}
+						b.jvmGCTime[gcName.Str()] = apmMetricValue{dp.Timestamp().AsTime(), sample.Value}
 					}
 				case "runtime.jvm.gc.count":
 					if gcName, exists := dp.Attributes().Get("gc"); exists {
-						b.jvmGCCount[gcName.StringVal()] = apmMetricValue{dp.Timestamp().AsTime(), sample.Value}
+						b.jvmGCCount[gcName.Str()] = apmMetricValue{dp.Timestamp().AsTime(), sample.Value}
 					}
 				}
 			}
 		}
-	case pmetric.MetricDataTypeGauge:
+	case pmetric.MetricTypeGauge:
 		// Gauge metrics accumulation
 		dpsGauge := m.Gauge().DataPoints()
 		for i := 0; i < dpsGauge.Len(); i++ {
@@ -165,13 +165,13 @@ func (b *apmMetricsBuilder) accumulate(m pmetric.Metric) {
 				switch m.Name() {
 				case "system.cpu.utilization":
 					if cpuState, exists := dp.Attributes().Get("state"); exists {
-						if cpuState.StringVal() != "idle" {
+						if cpuState.Str() != "idle" {
 							b.nonIdleCPUUtilizationSum.value += sample.Value
 							b.nonIdleCPUUtilizationSum.timestamp = dp.Timestamp().AsTime()
 						}
 					}
 					if cpuIDStr, exists := dp.Attributes().Get("cpu"); exists {
-						cpuID, _ := strconv.Atoi(cpuIDStr.StringVal())
+						cpuID, _ := strconv.Atoi(cpuIDStr.Str())
 						if cpuID+1 > b.cpuCount {
 							b.cpuCount = cpuID + 1
 						}
@@ -260,7 +260,7 @@ func (b *apmMetricsBuilder) emit(ms metricsets) {
 	// Direct translation of runtime.jvm.gc.time or runtime.jvm.gc.collection
 	for k, v := range b.jvmGCTime {
 		elasticapmAttributes := pcommon.NewMap()
-		elasticapmAttributes.Insert("name", pcommon.NewValueString(k))
+		elasticapmAttributes.PutStr("name", k)
 		ms.upsertOne(
 			v.timestamp, elasticapmAttributes,
 			model.MetricsetSample{Name: "jvm.gc.time", Value: v.value},
@@ -270,7 +270,7 @@ func (b *apmMetricsBuilder) emit(ms metricsets) {
 	// Direct translation of runtime.jvm.gc.count
 	for k, v := range b.jvmGCCount {
 		elasticapmAttributes := pcommon.NewMap()
-		elasticapmAttributes.Insert("name", pcommon.NewValueString(k))
+		elasticapmAttributes.PutStr("name", k)
 		ms.upsertOne(
 			v.timestamp, elasticapmAttributes,
 			model.MetricsetSample{Name: "jvm.gc.count", Value: v.value},
@@ -282,7 +282,7 @@ func (b *apmMetricsBuilder) emit(ms metricsets) {
 		elasticapmAttributes := pcommon.NewMap()
 		var elasticapmMetricName string
 		if k.pool != "" {
-			elasticapmAttributes.Insert("name", pcommon.NewValueString(k.pool))
+			elasticapmAttributes.PutStr("name", k.pool)
 			elasticapmMetricName = fmt.Sprintf("jvm.memory.%s.pool.%s", k.area, k.jvmType)
 		} else {
 			elasticapmMetricName = fmt.Sprintf("jvm.memory.%s.%s", k.area, k.jvmType)
@@ -343,8 +343,8 @@ func (c *Consumer) convertScopeMetrics(
 func (c *Consumer) addMetric(metric pmetric.Metric, ms metricsets) bool {
 	// TODO(axw) support units
 	anyDropped := false
-	switch metric.DataType() {
-	case pmetric.MetricDataTypeGauge:
+	switch metric.Type() {
+	case pmetric.MetricTypeGauge:
 		dps := metric.Gauge().DataPoints()
 		for i := 0; i < dps.Len(); i++ {
 			dp := dps.At(i)
@@ -356,7 +356,7 @@ func (c *Consumer) addMetric(metric pmetric.Metric, ms metricsets) bool {
 			}
 		}
 		return !anyDropped
-	case pmetric.MetricDataTypeSum:
+	case pmetric.MetricTypeSum:
 		dps := metric.Sum().DataPoints()
 		for i := 0; i < dps.Len(); i++ {
 			dp := dps.At(i)
@@ -368,7 +368,7 @@ func (c *Consumer) addMetric(metric pmetric.Metric, ms metricsets) bool {
 			}
 		}
 		return !anyDropped
-	case pmetric.MetricDataTypeHistogram:
+	case pmetric.MetricTypeHistogram:
 		dps := metric.Histogram().DataPoints()
 		for i := 0; i < dps.Len(); i++ {
 			dp := dps.At(i)
@@ -379,7 +379,7 @@ func (c *Consumer) addMetric(metric pmetric.Metric, ms metricsets) bool {
 				anyDropped = true
 			}
 		}
-	case pmetric.MetricDataTypeSummary:
+	case pmetric.MetricTypeSummary:
 		dps := metric.Summary().DataPoints()
 		for i := 0; i < dps.Len(); i++ {
 			dp := dps.At(i)
@@ -398,9 +398,9 @@ func numberSample(dp pmetric.NumberDataPoint, metricType model.MetricType) (mode
 	var value float64
 	switch dp.ValueType() {
 	case pmetric.NumberDataPointValueTypeInt:
-		value = float64(dp.IntVal())
+		value = float64(dp.IntValue())
 	case pmetric.NumberDataPointValueTypeDouble:
-		value = dp.DoubleVal()
+		value = dp.DoubleValue()
 		if math.IsNaN(value) || math.IsInf(value, 0) {
 			return model.MetricsetSample{}, false
 		}
@@ -423,7 +423,7 @@ func summarySample(dp pmetric.SummaryDataPoint) model.MetricsetSample {
 	}
 }
 
-func histogramSample(bucketCounts pcommon.ImmutableUInt64Slice, explicitBounds pcommon.ImmutableFloat64Slice) (model.MetricsetSample, bool) {
+func histogramSample(bucketCounts pcommon.UInt64Slice, explicitBounds pcommon.Float64Slice) (model.MetricsetSample, bool) {
 	// (From opentelemetry-proto/opentelemetry/proto/metrics/v1/metrics.proto)
 	//
 	// This defines size(explicit_bounds) + 1 (= N) buckets. The boundaries for

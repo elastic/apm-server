@@ -51,7 +51,7 @@ func TestConsumeTracesGRPC(t *testing.T) {
 	}
 
 	conn := newGRPCServer(t, batchProcessor)
-	client := ptraceotlp.NewClient(conn)
+	client := ptraceotlp.NewGRPCClient(conn)
 
 	// Send a minimal trace to verify that everything is connected properly.
 	//
@@ -61,7 +61,7 @@ func TestConsumeTracesGRPC(t *testing.T) {
 	span := traces.ResourceSpans().AppendEmpty().ScopeSpans().AppendEmpty().Spans().AppendEmpty()
 	span.SetName("operation_name")
 
-	tracesRequest := ptraceotlp.NewRequestFromTraces(traces)
+	tracesRequest := ptraceotlp.NewExportRequestFromTraces(traces)
 	_, err := client.Export(context.Background(), tracesRequest)
 	assert.NoError(t, err)
 	require.Len(t, batches, 1)
@@ -97,7 +97,7 @@ func TestConsumeMetricsGRPC(t *testing.T) {
 	}
 
 	conn := newGRPCServer(t, batchProcessor)
-	client := pmetricotlp.NewClient(conn)
+	client := pmetricotlp.NewGRPCClient(conn)
 
 	// Send a minimal metric to verify that everything is connected properly.
 	//
@@ -106,10 +106,10 @@ func TestConsumeMetricsGRPC(t *testing.T) {
 	metrics := pmetric.NewMetrics()
 	metric := metrics.ResourceMetrics().AppendEmpty().ScopeMetrics().AppendEmpty().Metrics().AppendEmpty()
 	metric.SetName("metric_type")
-	metric.SetDataType(pmetric.MetricDataTypeSummary)
+	metric.SetEmptySummary()
 	metric.Summary().DataPoints().AppendEmpty()
 
-	metricsRequest := pmetricotlp.NewRequestFromMetrics(metrics)
+	metricsRequest := pmetricotlp.NewExportRequestFromMetrics(metrics)
 	_, err := client.Export(context.Background(), metricsRequest)
 	assert.NoError(t, err)
 
@@ -146,7 +146,7 @@ func TestConsumeLogsGRPC(t *testing.T) {
 	}
 
 	conn := newGRPCServer(t, batchProcessor)
-	client := plogotlp.NewClient(conn)
+	client := plogotlp.NewGRPCClient(conn)
 
 	// Send a minimal log record to verify that everything is connected properly.
 	//
@@ -155,7 +155,7 @@ func TestConsumeLogsGRPC(t *testing.T) {
 	logs := plog.NewLogs()
 	logs.ResourceLogs().AppendEmpty().ScopeLogs().AppendEmpty().LogRecords().AppendEmpty()
 
-	logsRequest := plogotlp.NewRequestFromLogs(logs)
+	logsRequest := plogotlp.NewExportRequestFromLogs(logs)
 	_, err := client.Export(context.Background(), logsRequest)
 	assert.NoError(t, err)
 	require.Len(t, batches, 1)
