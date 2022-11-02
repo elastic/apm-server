@@ -17,10 +17,6 @@ ALL_MODULES := $(shell find . -type f -name "go.mod" -exec dirname {} \; | sort 
 CMD?=
 TOOLS_MOD_DIR := ./internal/tools
 
-GOOS=$(shell $(GOCMD) env GOOS)
-GOARCH=$(shell $(GOCMD) env GOARCH)
-GH := $(shell which gh)
-
 # TODO: Find a way to configure this in the generated code, currently no effect.
 BUILD_INFO_IMPORT_PATH=go.opentelemetry.io/collector/internal/version
 VERSION=$(shell git describe --always --match "v[0-9]*" HEAD)
@@ -62,7 +58,7 @@ gomoddownload:
 
 .PHONY: gotest
 gotest:
-	@$(MAKE) for-all-target TARGET="test test-unstable"
+	@$(MAKE) for-all-target TARGET="test"
 
 .PHONY: gobenchmark
 gobenchmark:
@@ -79,7 +75,7 @@ goporto:
 
 .PHONY: golint
 golint:
-	@$(MAKE) for-all-target TARGET="lint lint-unstable"
+	@$(MAKE) for-all-target TARGET="lint"
 
 .PHONY: goimpi
 goimpi:
@@ -138,11 +134,13 @@ install-tools:
 	cd $(TOOLS_MOD_DIR) && $(GOCMD) install github.com/tcnksm/ghr
 	cd $(TOOLS_MOD_DIR) && $(GOCMD) install github.com/wadey/gocovmerge
 	cd $(TOOLS_MOD_DIR) && $(GOCMD) install go.opentelemetry.io/build-tools/checkdoc
+	cd $(TOOLS_MOD_DIR) && $(GOCMD) install go.opentelemetry.io/build-tools/chloggen
 	cd $(TOOLS_MOD_DIR) && $(GOCMD) install go.opentelemetry.io/build-tools/semconvgen
 	cd $(TOOLS_MOD_DIR) && $(GOCMD) install golang.org/x/exp/cmd/apidiff
 	cd $(TOOLS_MOD_DIR) && $(GOCMD) install golang.org/x/tools/cmd/goimports
 	cd $(TOOLS_MOD_DIR) && $(GOCMD) install github.com/jcchavezs/porto/cmd/porto
 	cd $(TOOLS_MOD_DIR) && $(GOCMD) install go.opentelemetry.io/build-tools/multimod
+	cd $(TOOLS_MOD_DIR) && $(GOCMD) install go.opentelemetry.io/build-tools/crosslink
 
 .PHONY: run
 run: otelcorecol
@@ -207,6 +205,11 @@ otelcorecol:
 genotelcorecol:
 	pushd cmd/builder/ && $(GOCMD) run ./ --skip-compilation --config ../otelcorecol/builder-config.yaml --output-path ../otelcorecol && popd
 
+.PHONY: ocb
+ocb:
+	$(MAKE) -C cmd/builder config
+	$(MAKE) -C cmd/builder ocb
+
 DEPENDABOT_PATH=".github/dependabot.yml"
 .PHONY: internal-gendependabot
 internal-gendependabot:
@@ -236,7 +239,7 @@ gendependabot: $(eval SHELL:=/bin/bash)
 OPENTELEMETRY_PROTO_SRC_DIR=pdata/internal/opentelemetry-proto
 
 # The SHA matching the current version of the proto to use
-OPENTELEMETRY_PROTO_VERSION=v0.18.0
+OPENTELEMETRY_PROTO_VERSION=v0.19.0
 
 # Find all .proto files.
 OPENTELEMETRY_PROTO_FILES := $(subst $(OPENTELEMETRY_PROTO_SRC_DIR)/,,$(wildcard $(OPENTELEMETRY_PROTO_SRC_DIR)/opentelemetry/proto/*/v1/*.proto $(OPENTELEMETRY_PROTO_SRC_DIR)/opentelemetry/proto/collector/*/v1/*.proto))
@@ -282,6 +285,15 @@ genproto_sub:
 	@echo Modify them in the intermediate directory.
 	$(foreach file,$(OPENTELEMETRY_PROTO_FILES),$(call exec-command,sed -f proto_patch.sed $(OPENTELEMETRY_PROTO_SRC_DIR)/$(file) > $(PROTO_INTERMEDIATE_DIR)/$(file)))
 
+	# HACK: Workaround for istio 1.15 / envoy 1.23.1 mistakenly emitting deprecated field.
+	# reserved 1000 -> repeated ScopeLogs deprecated_scope_logs = 1000;
+	sed 's/reserved 1000;/repeated ScopeLogs deprecated_scope_logs = 1000;/g' $(PROTO_INTERMEDIATE_DIR)/opentelemetry/proto/logs/v1/logs.proto 1<> $(PROTO_INTERMEDIATE_DIR)/opentelemetry/proto/logs/v1/logs.proto
+	# reserved 1000 -> repeated ScopeMetrics deprecated_scope_metrics = 1000;
+	sed 's/reserved 1000;/repeated ScopeMetrics deprecated_scope_metrics = 1000;/g' $(PROTO_INTERMEDIATE_DIR)/opentelemetry/proto/metrics/v1/metrics.proto 1<> $(PROTO_INTERMEDIATE_DIR)/opentelemetry/proto/metrics/v1/metrics.proto
+	# reserved 1000 -> repeated ScopeSpans deprecated_scope_spans = 1000;
+	sed 's/reserved 1000;/repeated ScopeSpans deprecated_scope_spans = 1000;/g' $(PROTO_INTERMEDIATE_DIR)/opentelemetry/proto/trace/v1/trace.proto 1<> $(PROTO_INTERMEDIATE_DIR)/opentelemetry/proto/trace/v1/trace.proto
+
+
 	@echo Generate Go code from .proto files in intermediate directory.
 	$(foreach file,$(OPENTELEMETRY_PROTO_FILES),$(call exec-command,$(PROTOC) $(PROTO_INCLUDES) --gogofaster_out=plugins=grpc:./ $(file)))
 
@@ -313,12 +325,28 @@ gensemconv:
 check-contrib:
 	@echo Setting contrib at $(CONTRIB_PATH) to use this core checkout
 	@$(MAKE) -C $(CONTRIB_PATH) for-all CMD="$(GOCMD) mod edit -replace go.opentelemetry.io/collector=$(CURDIR)"
+	@$(MAKE) -C $(CONTRIB_PATH) for-all CMD="$(GOCMD) mod edit -replace go.opentelemetry.io/collector/exporter/loggingexporter=$(CURDIR)/exporter/loggingexporter"
+	@$(MAKE) -C $(CONTRIB_PATH) for-all CMD="$(GOCMD) mod edit -replace go.opentelemetry.io/collector/exporter/otlpexporter=$(CURDIR)/exporter/otlpexporter"
+	@$(MAKE) -C $(CONTRIB_PATH) for-all CMD="$(GOCMD) mod edit -replace go.opentelemetry.io/collector/exporter/otlphttpexporter=$(CURDIR)/exporter/otlphttpexporter"
 	@$(MAKE) -C $(CONTRIB_PATH) for-all CMD="$(GOCMD) mod edit -replace go.opentelemetry.io/collector/pdata=$(CURDIR)/pdata"
 	@$(MAKE) -C $(CONTRIB_PATH) for-all CMD="$(GOCMD) mod edit -replace go.opentelemetry.io/collector/semconv=$(CURDIR)/semconv"
 	@$(MAKE) -C $(CONTRIB_PATH) -j2 gotidy
 	@$(MAKE) -C $(CONTRIB_PATH) test
-	@echo Restoring contrib to no longer use this core checkout
+	@if [ -z "$(SKIP_RESTORE_CONTRIB)" ]; then \
+		$(MAKE) restore-contrib; \
+	fi
+
+# Restores contrib to its original state after running check-contrib.
+.PHONY: restore-contrib
+restore-contrib:
+	@echo Restoring contrib at $(CONTRIB_PATH) to its original state
 	@$(MAKE) -C $(CONTRIB_PATH) for-all CMD="$(GOCMD) mod edit -dropreplace go.opentelemetry.io/collector"
+	@$(MAKE) -C $(CONTRIB_PATH) for-all CMD="$(GOCMD) mod edit -dropreplace go.opentelemetry.io/collector/exporter/loggingexporter"
+	@$(MAKE) -C $(CONTRIB_PATH) for-all CMD="$(GOCMD) mod edit -dropreplace go.opentelemetry.io/collector/exporter/otlpexporter"
+	@$(MAKE) -C $(CONTRIB_PATH) for-all CMD="$(GOCMD) mod edit -dropreplace go.opentelemetry.io/collector/exporter/otlphttpexporter"
+	@$(MAKE) -C $(CONTRIB_PATH) for-all CMD="$(GOCMD) mod edit -dropreplace go.opentelemetry.io/collector/pdata"
+	@$(MAKE) -C $(CONTRIB_PATH) for-all CMD="$(GOCMD) mod edit -dropreplace go.opentelemetry.io/collector/semconv"
+	@$(MAKE) -C $(CONTRIB_PATH) -j2 gotidy
 
 # List of directories where certificates are stored for unit tests.
 CERT_DIRS := localhost|""|config/configgrpc/testdata \
@@ -368,7 +396,8 @@ multimod-verify: install-tools
 
 .PHONY: multimod-prerelease
 multimod-prerelease: install-tools
-	multimod prerelease -v ./versions.yaml -m collector-core
+	multimod prerelease -s=true -b=false -v ./versions.yaml -m stable
+	multimod prerelease -s=true -b=false -v ./versions.yaml -m beta
 	$(MAKE) gotidy
 
 .PHONY: prepare-release
@@ -396,14 +425,14 @@ endif
 	sed -i.bak 's/$(PREVIOUS_VERSION)/$(RELEASE_CANDIDATE)/g' ./cmd/otelcorecol/builder-config.yaml
 	sed -i.bak 's/$(PREVIOUS_VERSION)/$(RELEASE_CANDIDATE)/g' examples/k8s/otel-config.yaml
 	find . -name "*.bak" -type f -delete
-	# regenerate files
-	$(MAKE) genotelcorecol
 	# commit changes before running multimod
 	git checkout -b opentelemetry-collector-bot/release-$(RELEASE_CANDIDATE)
 	git add .
 	git commit -m "prepare release $(RELEASE_CANDIDATE)"
 	$(MAKE) multimod-prerelease
-	# commit multimod changes
+	# regenerate files
+	$(MAKE) -C cmd/builder config
+	$(MAKE) genotelcorecol
 	git add .
 	git commit -m "add multimod changes" || (echo "no multimod changes to commit")
 	git push fork opentelemetry-collector-bot/release-$(RELEASE_CANDIDATE)
@@ -411,5 +440,42 @@ endif
 		echo "'gh' command not found, can't submit the PR on your behalf."; \
 		exit 1; \
 	fi
-	gh pr create --title "[chore] prepare release $(RELEASE_CANDIDATE)"
+	$(GH) pr create --title "[chore] prepare release $(RELEASE_CANDIDATE)"
 
+.PHONY: clean
+clean:
+	test -d bin && $(RM) bin/*
+
+.PHONY: checklinks
+checklinks:
+	command -v markdown-link-check >/dev/null 2>&1 || { echo >&2 "markdown-link-check not installed. Run 'npm install -g markdown-link-check'"; exit 1; }
+	find . -name \*.md -print0 | xargs -0 -n1 \
+		markdown-link-check -q -c ./.github/workflows/check_links_config.json || true
+
+# error message "failed to sync logger:  sync /dev/stderr: inappropriate ioctl for device"
+# is a known issue but does not affect function. 
+.PHONY: crosslink
+crosslink: 
+	@echo "Executing crosslink"
+	crosslink --root=$(shell pwd) --prune
+
+.PHONY: chlog-install
+chlog-install:
+	cd $(TOOLS_MOD_DIR) && $(GOCMD) install go.opentelemetry.io/build-tools/chloggen
+
+FILENAME?=$(shell git branch --show-current).yaml
+.PHONY: chlog-new
+chlog-new: chlog-install
+	chloggen new --filename $(FILENAME)
+
+.PHONY: chlog-validate
+chlog-validate: chlog-install
+	chloggen validate
+
+.PHONY: chlog-preview
+chlog-preview: chlog-install
+	chloggen update --dry
+
+.PHONY: chlog-update
+chlog-update: chlog-install
+	chloggen update --version $(VERSION)

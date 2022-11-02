@@ -31,6 +31,6 @@ func exportTimestamp(resource pcommon.Resource) (time.Time, bool) {
 	if !ok {
 		return time.Time{}, false
 	}
-	nsec := attr.IntVal()
+	nsec := attr.Int()
 	return time.Unix(0, nsec), nsec > 0
 }

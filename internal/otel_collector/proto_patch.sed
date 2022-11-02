@@ -26,27 +26,14 @@ s+repeated KeyValue \(.*\);+repeated KeyValue \1\
 
 s+AnyValue \(.*\);+AnyValue \1\
   [ (gogoproto.nullable) = false ];+g
-  
-# this line matches StringKeyValue that are deprecated
-s+repeated opentelemetry.proto.common.v1.StringKeyValue \(.*\)\];+repeated opentelemetry.proto.common.v1.StringKeyValue \1\, (gogoproto.nullable) = false ];+g
-
-# this line matches StringKeyValue that are not deprecated
-s+repeated opentelemetry.proto.common.v1.StringKeyValue \([^]]*\);+repeated opentelemetry.proto.common.v1.StringKeyValue \1\
-  [ (gogoproto.nullable) = false ];+g
 
 s+opentelemetry.proto.resource.v1.Resource resource = \(.*\);+opentelemetry.proto.resource.v1.Resource resource = \1\
-  [ (gogoproto.nullable) = false ];+g
-
-s+opentelemetry.proto.common.v1.InstrumentationLibrary instrumentation_library = \(.*\);+opentelemetry.proto.common.v1.InstrumentationLibrary instrumentation_library = \1\
   [ (gogoproto.nullable) = false ];+g
 
 s+opentelemetry.proto.common.v1.InstrumentationScope scope = \(.*\);+opentelemetry.proto.common.v1.InstrumentationScope scope = \1\
   [ (gogoproto.nullable) = false ];+g
 
 s+Status \(.*\);+Status \1\
-  [ (gogoproto.nullable) = false ];+g
-
-s+repeated IntExemplar exemplars = \(.*\);+repeated IntExemplar exemplars = \1\
   [ (gogoproto.nullable) = false ];+g
 
 s+repeated Exemplar exemplars = \(.*\);+repeated Exemplar exemplars = \1\
@@ -57,3 +44,6 @@ s+Buckets \(.*\)tive = \(.*\);+Buckets \1tive = \2\
 
 # optional fixed64 foo = 1 -> oneof foo_ { fixed64 foo = 1;}
 s+optional \(.*\) \(.*\) = \(.*\);+ oneof \2_ { \1 \2 = \3;}+g
+
+s+\(.*\)PartialSuccess partial_success = \(.*\);+\1PartialSuccess partial_success = \2\
+  [ (gogoproto.nullable) = false ];+g

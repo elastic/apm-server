@@ -1,0 +1,22 @@
+receivers:
+  nop:
+
+processors:
+  nop:
+
+exporters:
+  nop:
+
+service:
+  telemetry:
+    traces:
+      propagators:
+      - "unknown"
+      - "tracecontext"
+    metrics:
+      address: localhost:8888
+  pipelines:
+    traces:
+      receivers: [nop]
+      processors: [nop]
+      exporters: [nop]

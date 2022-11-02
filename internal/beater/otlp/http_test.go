@@ -61,7 +61,7 @@ func TestConsumeTracesHTTP(t *testing.T) {
 	span := traces.ResourceSpans().AppendEmpty().ScopeSpans().AppendEmpty().Spans().AppendEmpty()
 	span.SetName("operation_name")
 
-	tracesRequest := ptraceotlp.NewRequestFromTraces(traces)
+	tracesRequest := ptraceotlp.NewExportRequestFromTraces(traces)
 	request, err := tracesRequest.MarshalProto()
 	assert.NoError(t, err)
 	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("http://%s/v1/traces", addr), bytes.NewReader(request))
@@ -103,10 +103,10 @@ func TestConsumeMetricsHTTP(t *testing.T) {
 	metrics := pmetric.NewMetrics()
 	metric := metrics.ResourceMetrics().AppendEmpty().ScopeMetrics().AppendEmpty().Metrics().AppendEmpty()
 	metric.SetName("metric_type")
-	metric.SetDataType(pmetric.MetricDataTypeSummary)
+	metric.SetEmptySummary()
 	metric.Summary().DataPoints().AppendEmpty()
 
-	metricsRequest := pmetricotlp.NewRequestFromMetrics(metrics)
+	metricsRequest := pmetricotlp.NewExportRequestFromMetrics(metrics)
 	request, err := metricsRequest.MarshalProto()
 	assert.NoError(t, err)
 	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("http://%s/v1/metrics", addr), bytes.NewReader(request))
@@ -150,7 +150,7 @@ func TestConsumeLogsHTTP(t *testing.T) {
 	logs := plog.NewLogs()
 	logs.ResourceLogs().AppendEmpty().ScopeLogs().AppendEmpty().LogRecords().AppendEmpty()
 
-	logsRequest := plogotlp.NewRequestFromLogs(logs)
+	logsRequest := plogotlp.NewExportRequestFromLogs(logs)
 	request, err := logsRequest.MarshalProto()
 	assert.NoError(t, err)
 	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("http://%s/v1/logs", addr), bytes.NewReader(request))

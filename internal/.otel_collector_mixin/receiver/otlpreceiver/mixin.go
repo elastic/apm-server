@@ -60,19 +60,19 @@ type HTTPHandlers struct {
 
 // TracesService returns a ptraceotlp.Server for registering with a gRPC server,
 // which will send trace data to the consumer.
-func TracesService(consumer consumer.Traces) ptraceotlp.Server {
+func TracesService(consumer consumer.Traces) ptraceotlp.GRPCServer {
 	return trace.New(config.NewComponentID("otlp"), consumer, settings)
 }
 
 // MetricsService returns a pmetricotlp.Server for registering with a gRPC server,
 // which will send metrics data to the consumer.
-func MetricsService(consumer consumer.Metrics) pmetricotlp.Server {
+func MetricsService(consumer consumer.Metrics) pmetricotlp.GRPCServer {
 	return metrics.New(config.NewComponentID("otlp"), consumer, settings)
 }
 
 // LogsService returns a plogotlp.Server for registering with a gRPC server,
 // which will send logs data to the consumer.
-func LogsService(consumer consumer.Logs) plogotlp.Server {
+func LogsService(consumer consumer.Logs) plogotlp.GRPCServer {
 	return logs.New(config.NewComponentID("otlp"), consumer, settings)
 }
 

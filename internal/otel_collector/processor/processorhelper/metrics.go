@@ -36,14 +36,16 @@ type metricsProcessor struct {
 	consumer.Metrics
 }
 
-// NewMetricsProcessor creates a MetricsProcessor that ensure context propagation and the right tags are set.
-// TODO: Add observability metrics support
+// NewMetricsProcessor creates a component.MetricsProcessor that ensure context propagation and the right tags are set.
 func NewMetricsProcessor(
+	_ context.Context,
+	_ component.ProcessorCreateSettings,
 	cfg config.Processor,
 	nextConsumer consumer.Metrics,
 	metricsFunc ProcessMetricsFunc,
 	options ...Option,
 ) (component.MetricsProcessor, error) {
+	// TODO: Add observability metrics support
 	if metricsFunc == nil {
 		return nil, errors.New("nil metricsFunc")
 	}
