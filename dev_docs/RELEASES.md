@@ -19,7 +19,9 @@ For patch releases, only the version on the existing major and minor version bra
     * Minor version: 
       Create new changelog file from [changelogs/head.asciidoc](https://github.com/elastic/apm-server/blob/main/changelogs/head.asciidoc)
       If changes should not be backported, keep them in the _changelogs/head.asciidoc_ file.
-    * Patch version: Add new section to existing release notes. ([Sample PR](https://github.com/elastic/apm-server/pull/2064/files))
+      Don't forget to `include` and link to the new file. [(Sample PR)](https://github.com/elastic/apm-server/pull/7956/files)
+    * Patch version: Add a new section to existing release notes. ([Sample PR](https://github.com/elastic/apm-server/pull/8313/files))
+  * Add `@elastic/obs-docs` as a reviewer.
 
 ## Day after Feature Freeze
 * For minor releases, cut a new release branch from `main` and update them.
