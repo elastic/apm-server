@@ -287,10 +287,13 @@ func TestResourceLabels(t *testing.T) {
 
 func transformResourceMetadata(t *testing.T, resourceAttrs map[string]interface{}) model.APMEvent {
 	traces, spans := newTracesSpans()
-	pcommon.NewMapFromRaw(resourceAttrs).CopyTo(traces.ResourceSpans().At(0).Resource().Attributes())
+	//attrMap := pcommon.NewMap()
+	//attrMap.FromRaw(resourceAttrs)
+	//attrMap.CopyTo(traces.ResourceSpans().At(0).Resource().Attributes())
+	traces.ResourceSpans().At(0).Resource().Attributes().FromRaw(resourceAttrs)
 	otelSpan := spans.Spans().AppendEmpty()
-	otelSpan.SetTraceID(pcommon.NewTraceID([16]byte{1}))
-	otelSpan.SetSpanID(pcommon.NewSpanID([8]byte{2}))
+	otelSpan.SetTraceID(pcommon.TraceID{1})
+	otelSpan.SetSpanID(pcommon.SpanID{2})
 	events := transformTraces(t, traces)
 	events[0].Transaction = nil
 	events[0].Trace = model.Trace{}

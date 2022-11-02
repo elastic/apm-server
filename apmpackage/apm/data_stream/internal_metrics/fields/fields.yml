@@ -61,10 +61,12 @@
   description: Processor name.
 - name: service.framework.name
   type: keyword
+  index: false
   description: |
     Name of the framework used.
 - name: service.framework.version
   type: keyword
+  index: false
   description: |
     Version of the framework used.
 - name: service.language.name
@@ -73,6 +75,7 @@
     Name of the programming language used.
 - name: service.language.version
   type: keyword
+  index: false
   description: |
     Version of the programming language used.
 - name: service.runtime.name
@@ -81,6 +84,7 @@
     Name of the runtime used.
 - name: service.runtime.version
   type: keyword
+  index: false
   description: |
     Version of the runtime used.
 - name: service.target.name
