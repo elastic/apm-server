@@ -60,7 +60,14 @@ func TestFleetIntegration(t *testing.T) {
 
 func TestFleetIntegrationMonitoring(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
-	apmIntegration := newAPMIntegration(t, nil)
+	maxrequests := 50
+	apmIntegration := newAPMIntegration(t, map[string]interface{}{
+		"output": map[string]interface{}{
+			"elasticsearch": map[string]interface{}{
+				"max_requests": maxrequests,
+			},
+		},
+	})
 
 	const N = 15
 	for i := 0; i < N; i++ {
@@ -107,7 +114,7 @@ func TestFleetIntegrationMonitoring(t *testing.T) {
 	assert.Equal(t, map[string]interface{}{
 		"elasticsearch": map[string]interface{}{
 			"bulk_requests": map[string]interface{}{
-				"available": float64(50),
+				"available": float64(maxrequests),
 				"completed": 1.0,
 			},
 			"indexers": map[string]interface{}{

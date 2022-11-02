@@ -211,7 +211,7 @@ func New(client elasticsearch.Client, cfg Config) (*Indexer, error) {
 		cfg.FlushInterval = 30 * time.Second
 	}
 	if cfg.EventBufferSize <= 0 {
-		cfg.EventBufferSize = 64
+		cfg.EventBufferSize = 1024
 	}
 	if !cfg.Scaling.Disabled {
 		if cfg.Scaling.ScaleDown.Threshold == 0 {

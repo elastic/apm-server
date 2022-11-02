@@ -691,24 +691,24 @@ func modelIndexerConfig(
 	if memLimit < 1 {
 		return opts // use modelindexer defaults
 	}
-	opts.EventBufferSize = int(512 * memLimit)
-	if opts.EventBufferSize >= 30720 {
-		opts.EventBufferSize = 30720
+	const logMessage = "%s set to %d based on %0.1fgb of memory"
+	opts.EventBufferSize = int(2048 * memLimit)
+	if opts.EventBufferSize >= 61440 {
+		opts.EventBufferSize = 61440
 	}
-	logger.Infof(
-		"modelindexer.EventBufferSize set to %d based on %0.1fgb of memory",
-		opts.EventBufferSize, memLimit,
+	logger.Infof(logMessage,
+		"modelindexer.EventBufferSize", opts.EventBufferSize, memLimit,
 	)
 	if opts.MaxRequests > 0 {
 		return opts
 	}
-	maxRequests := int(float64(9) + memLimit*1.5)
+	maxRequests := int(float64(10) + memLimit*2)
 	if maxRequests > 60 {
 		maxRequests = 60
 	}
 	opts.MaxRequests = maxRequests
-	logger.Infof("modelindexer.MaxRequests set to %d based on %0.1fgb of memory",
-		opts.MaxRequests, memLimit,
+	logger.Infof(logMessage,
+		"modelindexer.MaxRequests", opts.MaxRequests, memLimit,
 	)
 	return opts
 }
