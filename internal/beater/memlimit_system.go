@@ -15,24 +15,21 @@
 // specific language governing permissions and limitations
 // under the License.
 
-//go:build !darwin
-// +build !darwin
-
 package beater
 
 import (
-	"fmt"
-
-	"github.com/elastic/gosigar"
+	"github.com/elastic/go-sysinfo"
 )
 
-// systemMemoryLimit returns 50% of the total system memory in GigaBytes.
+// systemMemoryLimit returns the total system memory.
 func systemMemoryLimit() (uint64, error) {
-	var mem gosigar.Mem
-	if err := mem.Get(); err != nil {
-		return 0, fmt.Errorf("failed reading total system memory: %w", err)
+	host, err := sysinfo.Host()
+	if err != nil {
+		return 0, err
 	}
-	// If no cgroup limit is set, only return 50% of the total memory.
-	// to have a margin of safety for other processes.
-	return uint64(float64(mem.Total) * 0.5), nil
+	mem, err := host.Memory()
+	if err != nil {
+		return 0, err
+	}
+	return mem.Total, nil
 }

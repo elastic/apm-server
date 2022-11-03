@@ -192,7 +192,9 @@ func (s *Runner) Run(ctx context.Context) error {
 		if limit, err := systemMemoryLimit(); err != nil {
 			s.logger.Warn(err)
 		} else {
-			memLimit = float64(limit) / 1024 / 1024 / 1024
+			// If no cgroup limit is set, only return 50% of the total memory.
+			// to have a margin of safety for other processes.
+			memLimit = float64(limit) / 1024 / 1024 / 1024 * 0.5
 		}
 	}
 	if memLimit > 0 {
@@ -692,7 +694,7 @@ func modelIndexerConfig(
 		return opts // use modelindexer defaults
 	}
 	const logMessage = "%s set to %d based on %0.1fgb of memory"
-	opts.EventBufferSize = int(2048 * memLimit)
+	opts.EventBufferSize = int(1024 * memLimit)
 	if opts.EventBufferSize >= 61440 {
 		opts.EventBufferSize = 61440
 	}
@@ -704,7 +706,7 @@ func modelIndexerConfig(
 	}
 	// This formula yields the following max requests for APM Server sized:
 	// 1	2 	4	8	15	30
-	// 10	13	16	22	32	55
+	// 11	13	16	22	32	55
 	maxRequests := int(float64(10) + memLimit*1.5)
 	if maxRequests > 60 {
 		maxRequests = 60
