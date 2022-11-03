@@ -440,8 +440,8 @@ github.com/elastic/beats/v7 v7.17.8-0.20221101205141-e03421a73ebd/go.mod h1:0K8f
 github.com/elastic/ecs v1.12.0 h1:u6WZ2AWtxv5vHvTQ4EuVZdWZ51mKHQ2UIltRePcta5U=
 github.com/elastic/ecs v1.12.0/go.mod h1:pgiLbQsijLOJvFR8OTILLu0Ni/R/foUNg0L+T6mU9b4=
 github.com/elastic/elastic-agent v0.0.0-20220831162706-5f1e54f40d3e h1:uGDp9HesS9m3T7YwgM0ATE/YP5FXcxxAAKHQDgP/GS0=
-github.com/elastic/elastic-agent-client/v7 v7.0.0-20221028150015-05e494d37ccd h1:IuAuac3vcucBrjAXKPQlTJ22H7mBUsSnNWxa7GZYFEg=
-github.com/elastic/elastic-agent-client/v7 v7.0.0-20221028150015-05e494d37ccd/go.mod h1:FEXUbFMfaV62S0CtJgD+FFHGY7+4o4fXkDicyONPSH8=
+github.com/elastic/elastic-agent-client/v7 v7.0.0-20221102171927-bc376a4e0f9f h1:hZv3vpGoAIvt/r6iPgKdfTCKgI8Eyk5Bb8HHP2FtzTY=
+github.com/elastic/elastic-agent-client/v7 v7.0.0-20221102171927-bc376a4e0f9f/go.mod h1:FEXUbFMfaV62S0CtJgD+FFHGY7+4o4fXkDicyONPSH8=
 github.com/elastic/elastic-agent-libs v0.2.11 h1:ZeYn35Kxt+IdtMPmE01TaDeaahCg/z7MkGPVWUo6Lp4=
 github.com/elastic/elastic-agent-system-metrics v0.4.4 h1:Br3S+TlBhijrLysOvbHscFhgQ00X/trDT5VEnOau0E0=
 github.com/elastic/fsevents v0.0.0-20181029231046-e1d381a4d270 h1:cWPqxlPtir4RoQVCpGSRXmLqjEHpJKbR60rxh1nQZY4=

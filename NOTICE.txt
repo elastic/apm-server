@@ -8554,11 +8554,11 @@ SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/elastic-agent-client/v7
-Version: v7.0.0-20221028150015-05e494d37ccd
+Version: v7.0.0-20221102171927-bc376a4e0f9f
 Licence type (autodetected): Elastic
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/elastic-agent-client/v7@v7.0.0-20221028150015-05e494d37ccd/LICENSE.txt:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/elastic-agent-client/v7@v7.0.0-20221102171927-bc376a4e0f9f/LICENSE.txt:
 
 ELASTIC LICENSE AGREEMENT
 
