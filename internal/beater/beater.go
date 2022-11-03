@@ -184,7 +184,8 @@ func (s *Runner) Run(ctx context.Context) error {
 		if limit, err := cgroupMemoryLimit(cgroupReader); err != nil {
 			s.logger.Warn(err)
 		} else {
-			memLimit = float64(limit) / 1024 / 1024 / 1024
+			// Limit the memory to 80% of the cgroup memory limit.
+			memLimit = float64(limit) / 1024 / 1024 / 1024 * 0.8
 		}
 	}
 	if memLimit <= 0 {
@@ -470,10 +471,10 @@ func maxConcurrentDecoders(memLimit float64, decoders uint) uint {
 		return decoders
 	}
 	if memLimit > 1 {
-		// Limit the number of concurrent decodes to 4096
+		// Limit the number of concurrent decodes to 2048
 		max := uint(128 * memLimit)
-		if max > 4096 {
-			return 4096
+		if max > 2048 {
+			return 2048
 		}
 		return max
 	}
@@ -706,7 +707,7 @@ func modelIndexerConfig(
 	}
 	// This formula yields the following max requests for APM Server sized:
 	// 1	2 	4	8	15	30
-	// 11	13	16	22	32	55
+	// 10	12	14	19	28	46
 	maxRequests := int(float64(10) + memLimit*1.5)
 	if maxRequests > 60 {
 		maxRequests = 60
