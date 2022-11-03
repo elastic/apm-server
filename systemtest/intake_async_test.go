@@ -36,8 +36,8 @@ func TestIntakeAsync(t *testing.T) {
 		// Ensure the 5 errors are ingested.
 		systemtest.Elasticsearch.ExpectMinDocs(t, 5, "logs-apm.error-*", nil)
 
-		// Send a request with a lot of events (~1920) and expect it to be processed
-		// without any errors.
+		// Send a request with a lot of events (~1920) and expect errors to be
+		// returned, since the semaphore size is 5 (5 concurrent batches).
 		systemtest.SendBackendEventsAsyncPayloadError(t, srv.URL, `../testdata/intake-v2/heavy.ndjson`)
 
 		// Create 4 requests to be run concurrently and ensure that they return with
