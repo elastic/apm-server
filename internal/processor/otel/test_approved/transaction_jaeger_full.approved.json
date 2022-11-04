@@ -51,6 +51,7 @@
             "transaction": {
                 "id": "0000000041414646",
                 "name": "HTTP GET",
+                "representative_count": 1,
                 "result": "HTTP 4xx",
                 "sampled": true,
                 "type": "http_request"

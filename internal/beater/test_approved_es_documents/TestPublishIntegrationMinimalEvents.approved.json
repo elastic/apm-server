@@ -245,6 +245,7 @@
             },
             "transaction": {
                 "id": "abcdef1478523690",
+                "representative_count": 1,
                 "sampled": true,
                 "span_count": {
                     "started": 0

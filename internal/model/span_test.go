@@ -59,7 +59,7 @@ func TestSpanTransform(t *testing.T) {
 				Kind:                "CLIENT",
 				Subtype:             subtype,
 				Action:              action,
-				RepresentativeCount: 5,
+				RepresentativeCount: 5.6,
 				Stacktrace:          Stacktrace{{AbsPath: path}},
 				DB: &DB{
 					Instance:     instance,
@@ -115,6 +115,7 @@ func TestSpanTransform(t *testing.T) {
 						"span":  mapstr.M{"id": "linked_span"},
 						"trace": mapstr.M{"id": "linked_trace"},
 					}},
+					"representative_count": 5.6,
 				},
 				"timestamp": mapstr.M{"us": int(timestampUs)},
 			},
