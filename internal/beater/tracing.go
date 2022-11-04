@@ -30,8 +30,7 @@ import (
 	"github.com/elastic/apm-server/internal/model"
 )
 
-func newTracerServer(listener net.Listener, logger *logp.Logger, batchProcessor model.BatchProcessor) (*http.Server, error) {
-	cfg := config.DefaultConfig()
+func newTracerServer(cfg *config.Config, listener net.Listener, logger *logp.Logger, batchProcessor model.BatchProcessor) (*http.Server, error) {
 	ratelimitStore, err := ratelimit.NewStore(1, 1, 1) // unused, arbitrary params
 	if err != nil {
 		return nil, err

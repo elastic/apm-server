@@ -190,6 +190,7 @@ type testcaseIntakeHandler struct {
 func (tc *testcaseIntakeHandler) setup(t *testing.T) {
 	if tc.processor == nil {
 		cfg := config.DefaultConfig()
+		cfg.MaxConcurrentDecoders = 10
 		tc.processor = stream.BackendProcessor(stream.Config{
 			MaxEventSize: cfg.MaxEventSize,
 			Semaphore:    make(chan struct{}, cfg.MaxConcurrentDecoders),

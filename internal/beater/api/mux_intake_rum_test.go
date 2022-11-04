@@ -128,6 +128,7 @@ func TestRumHandler_MonitoringMiddleware(t *testing.T) {
 
 func cfgEnabledRUM() *config.Config {
 	cfg := config.DefaultConfig()
+	cfg.MaxConcurrentDecoders = 10
 	cfg.RumConfig.Enabled = true
 	cfg.AgentAuth.Anonymous.Enabled = true
 	return cfg

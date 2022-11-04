@@ -83,6 +83,8 @@ type Config struct {
 	// that can be decoded at one time. This effectively limits the amount of
 	// memory consumed by the processors decodeing the incoming intake events.
 	// This setting is beta and subject to breaking changes and removal.
+	// If set to zero, it will automatically tuned to provide reasonable
+	// performance based on the memory memory limit.
 	MaxConcurrentDecoders uint `config:"max_concurrent_decoders"`
 }
 
@@ -148,17 +150,16 @@ func DefaultConfig() *Config {
 			Enabled: false,
 			URL:     "/debug/vars",
 		},
-		Pprof:                 PprofConfig{Enabled: false},
-		RumConfig:             defaultRum(),
-		Kibana:                defaultKibanaConfig(),
-		KibanaAgentConfig:     defaultKibanaAgentConfig(),
-		Aggregation:           defaultAggregationConfig(),
-		Sampling:              defaultSamplingConfig(),
-		Profiling:             defaultProfilingConfig(),
-		DataStreams:           defaultDataStreamsConfig(),
-		AgentAuth:             defaultAgentAuth(),
-		JavaAttacherConfig:    defaultJavaAttacherConfig(),
-		WaitReadyInterval:     5 * time.Second,
-		MaxConcurrentDecoders: 200,
+		Pprof:              PprofConfig{Enabled: false},
+		RumConfig:          defaultRum(),
+		Kibana:             defaultKibanaConfig(),
+		KibanaAgentConfig:  defaultKibanaAgentConfig(),
+		Aggregation:        defaultAggregationConfig(),
+		Sampling:           defaultSamplingConfig(),
+		Profiling:          defaultProfilingConfig(),
+		DataStreams:        defaultDataStreamsConfig(),
+		AgentAuth:          defaultAgentAuth(),
+		JavaAttacherConfig: defaultJavaAttacherConfig(),
+		WaitReadyInterval:  5 * time.Second,
 	}
 }

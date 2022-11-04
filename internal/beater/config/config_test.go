@@ -346,14 +346,13 @@ func TestUnpackConfig(t *testing.T) {
 				},
 			},
 			outCfg: &Config{
-				Host:                  "localhost:3000",
-				MaxHeaderSize:         1048576,
-				MaxEventSize:          307200,
-				IdleTimeout:           45000000000,
-				ReadTimeout:           30000000000,
-				WriteTimeout:          30000000000,
-				ShutdownTimeout:       30000000000,
-				MaxConcurrentDecoders: 200,
+				Host:            "localhost:3000",
+				MaxHeaderSize:   1048576,
+				MaxEventSize:    307200,
+				IdleTimeout:     45000000000,
+				ReadTimeout:     30000000000,
+				WriteTimeout:    30000000000,
+				ShutdownTimeout: 30000000000,
 				AgentAuth: AgentAuth{
 					SecretToken: "1234random",
 					APIKey: APIKeyAgentAuth{
