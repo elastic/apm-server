@@ -122,6 +122,7 @@
                     }
                 },
                 "name": "tx_name",
+                "representative_count": 1,
                 "result": "success",
                 "sampled": true,
                 "span_count": {
@@ -252,6 +253,7 @@
                 "id": "ddf109a4c4aa5f2b6e984548ca57774d",
                 "kind": "CLIENT",
                 "name": "span_name",
+                "representative_count": 1,
                 "subtype": "http",
                 "type": "external"
             },

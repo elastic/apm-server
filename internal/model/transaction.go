@@ -95,8 +95,7 @@ type Transaction struct {
 
 	// RepresentativeCount holds the approximate number of
 	// transactions that this transaction represents for aggregation.
-	//
-	// This may be used for scaling metrics; it is not indexed.
+	// This is used for scaling metrics.
 	RepresentativeCount float64
 
 	// Root indicates whether or not the transaction is the trace root.
@@ -145,6 +144,9 @@ func (e *Transaction) fields() mapstr.M {
 	}
 	if e.Root {
 		transaction.set("root", e.Root)
+	}
+	if e.RepresentativeCount > 0 {
+		transaction.set("representative_count", e.RepresentativeCount)
 	}
 	var dss []mapstr.M
 	for _, v := range e.DroppedSpansStats {

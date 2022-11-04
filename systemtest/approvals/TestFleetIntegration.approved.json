@@ -64,6 +64,7 @@
                 },
                 "id": "dynamic",
                 "name": "name",
+                "representative_count": 1,
                 "sampled": true,
                 "span_count": {
                     "dropped": 0,

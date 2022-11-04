@@ -167,6 +167,7 @@
                     }
                 },
                 "name": "GET /api/types",
+                "representative_count": 1,
                 "result": "success",
                 "sampled": true,
                 "span_count": {

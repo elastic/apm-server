@@ -15,6 +15,9 @@
     - description: Remove `observer.id` and `observer.ephemeral_id` fields
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/9412
+    - description: Add mappings for `transaction.representative_count` and `span.representative_count`
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/9458
 - version: "8.5.0"
   changes:
     - description: Add package settings to enable the experimental collection of service metrics

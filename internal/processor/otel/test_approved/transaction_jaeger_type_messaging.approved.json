@@ -34,6 +34,7 @@
                         "name": "queue-abc"
                     }
                 },
+                "representative_count": 1,
                 "sampled": true,
                 "type": "messaging"
             }

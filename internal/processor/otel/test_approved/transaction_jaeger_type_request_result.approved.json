@@ -34,6 +34,7 @@
                 "us": 1576500418000768
             },
             "transaction": {
+                "representative_count": 1,
                 "result": "HTTP 2xx",
                 "sampled": true,
                 "type": "request"

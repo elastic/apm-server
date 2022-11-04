@@ -44,6 +44,7 @@
                 },
                 "id": "0000000041414646",
                 "name": "HTTPS GET",
+                "representative_count": 1,
                 "subtype": "http",
                 "type": "external"
             },

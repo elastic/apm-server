@@ -29,6 +29,7 @@
                 "us": 1576500418000768
             },
             "transaction": {
+                "representative_count": 1,
                 "sampled": true,
                 "type": "unknown"
             }
