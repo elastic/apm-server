@@ -198,10 +198,11 @@ func (s *Runner) Run(ctx context.Context) error {
 			memLimit = float64(limit) / 1024 / 1024 / 1024 * 0.5
 		}
 	}
-	if memLimit > 0 {
-		s.config.MaxConcurrentDecoders = maxConcurrentDecoders(
-			memLimit, s.config.MaxConcurrentDecoders,
-		)
+	if memLimit <= 0 {
+		memLimit = 0.8 // Assume of 80% of 1GB if memory discovery fails.
+	}
+	if s.config.MaxConcurrentDecoders == 0 {
+		s.config.MaxConcurrentDecoders = maxConcurrentDecoders(memLimit)
 		s.logger.Infof("MaxConcurrentDecoders set to %d based on %0.1fgb of memory",
 			s.config.MaxConcurrentDecoders, memLimit,
 		)
@@ -439,7 +440,7 @@ func (s *Runner) Run(ctx context.Context) error {
 		return runServer(ctx, serverParams)
 	})
 	if tracerServerListener != nil {
-		tracerServer, err := newTracerServer(tracerServerListener, s.logger, serverParams.BatchProcessor)
+		tracerServer, err := newTracerServer(s.config, tracerServerListener, s.logger, serverParams.BatchProcessor)
 		if err != nil {
 			return fmt.Errorf("failed to create self-instrumentation server: %w", err)
 		}
@@ -462,23 +463,14 @@ func (s *Runner) Run(ctx context.Context) error {
 	return result
 }
 
-var defaultDecoders = config.DefaultConfig().MaxConcurrentDecoders
-
-func maxConcurrentDecoders(memLimit float64, decoders uint) uint {
-	// If the decoders have already been set to a value different than the
-	// default configuration, return that value.
-	if decoders != defaultDecoders {
-		return decoders
-	}
-	if memLimit > 1 {
-		// Limit the number of concurrent decodes to 2048
-		max := uint(128 * memLimit)
-		if max > 2048 {
-			return 2048
-		}
+func maxConcurrentDecoders(memLimitGB float64) uint {
+	// Allow 128 concurrent decoders for each 1GB memory, limited to at most 2048.
+	const max = 2048
+	decoders := uint(128 * memLimitGB)
+	if decoders > max {
 		return max
 	}
-	return defaultDecoders
+	return decoders
 }
 
 // waitReady waits until the server is ready to index events.
@@ -691,9 +683,6 @@ func (s *Runner) newFinalBatchProcessor(
 func modelIndexerConfig(
 	opts modelindexer.Config, memLimit float64, logger *logp.Logger,
 ) modelindexer.Config {
-	if memLimit < 1 {
-		return opts // use modelindexer defaults
-	}
 	const logMessage = "%s set to %d based on %0.1fgb of memory"
 	opts.EventBufferSize = int(1024 * memLimit)
 	if opts.EventBufferSize >= 61440 {
