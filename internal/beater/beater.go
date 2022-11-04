@@ -200,6 +200,10 @@ func (s *Runner) Run(ctx context.Context) error {
 	}
 	if memLimit <= 0 {
 		memLimit = 0.8 // Assume of 80% of 1GB if memory discovery fails.
+		s.logger.Infof(
+			"failed to discover memory limit, default to %0.1fgb of memory",
+			memLimit,
+		)
 	}
 	if s.config.MaxConcurrentDecoders == 0 {
 		s.config.MaxConcurrentDecoders = maxConcurrentDecoders(memLimit)
