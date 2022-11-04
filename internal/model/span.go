@@ -60,9 +60,7 @@ type Span struct {
 
 	// RepresentativeCount holds the approximate number of spans that
 	// this span represents for aggregation. This will only be set when
-	// the sampling rate is known.
-	//
-	// This may be used for scaling metrics; it is not indexed.
+	// the sampling rate is known, and is used for scaling metrics.
 	RepresentativeCount float64
 }
 
@@ -164,6 +162,9 @@ func (e *Span) fields() mapstr.M {
 			links[i] = link.fields()
 		}
 		span.set("links", links)
+	}
+	if e.RepresentativeCount > 0 {
+		span.set("representative_count", e.RepresentativeCount)
 	}
 	return mapstr.M(span)
 }

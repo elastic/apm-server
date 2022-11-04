@@ -117,6 +117,7 @@
             },
             "transaction": {
                 "id": "945254c567a5417e",
+                "representative_count": 1,
                 "sampled": true,
                 "span_count": {
                     "started": 43
@@ -321,6 +322,7 @@
                 },
                 "id": "4340a8e0df1906ecbfa9",
                 "name": "GET /api/types",
+                "representative_count": 1,
                 "result": "success",
                 "sampled": true,
                 "span_count": {
@@ -487,6 +489,7 @@
                         "navigationStart": -21
                     }
                 },
+                "representative_count": 1,
                 "sampled": true,
                 "span_count": {
                     "dropped": 55,
@@ -641,6 +644,7 @@
                     "routing_key": "user-created-transaction"
                 },
                 "name": "amqp receive",
+                "representative_count": 1,
                 "sampled": true,
                 "span_count": {
                     "started": 1
@@ -787,6 +791,7 @@
             "transaction": {
                 "id": "142e61450efb8574",
                 "name": "july-2021-delete-after-july-31",
+                "representative_count": 1,
                 "result": "success",
                 "sampled": true,
                 "span_count": {

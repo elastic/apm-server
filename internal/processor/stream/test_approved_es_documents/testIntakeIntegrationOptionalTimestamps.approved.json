@@ -61,6 +61,7 @@
             "transaction": {
                 "id": "1111222233334444",
                 "name": "tx1",
+                "representative_count": 1,
                 "sampled": true,
                 "span_count": {
                     "started": 14

@@ -261,6 +261,12 @@
   type: keyword
   description: |
     Keyword of specific relevance in the service's domain (eg: 'db.postgresql.query', 'template.erb', 'cache', etc).
+- name: span.representative_count
+  type: scaled_float
+  index: false
+  description: |
+    The approximate number of spans represented, based on the inverse sampling rate.
+    This will only be set when the sampling rate is known.
 - name: timestamp.us
   type: long
   description: |
@@ -322,6 +328,11 @@
   type: keyword
   description: |
     Keyword of specific relevance in the service's domain (eg. 'request', 'backgroundjob', etc)
+- name: transaction.representative_count
+  type: scaled_float
+  index: false
+  description: |
+    The approximate number of transactions represented, based on the inverse sampling rate.
 - name: numeric_labels
   type: object
   dynamic: true

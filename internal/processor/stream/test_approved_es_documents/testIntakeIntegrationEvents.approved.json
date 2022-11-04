@@ -587,6 +587,7 @@
                 },
                 "id": "4340a8e0df1906ecbfa9",
                 "name": "ResourceHttpRequestHandler",
+                "representative_count": 1,
                 "result": "HTTP2xx",
                 "sampled": true,
                 "span_count": {

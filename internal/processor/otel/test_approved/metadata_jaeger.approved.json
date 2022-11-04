@@ -38,6 +38,7 @@
             },
             "transaction": {
                 "id": "0000000041414646",
+                "representative_count": 1,
                 "sampled": true,
                 "type": "unknown"
             }
