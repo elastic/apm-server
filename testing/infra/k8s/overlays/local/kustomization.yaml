@@ -21,4 +21,4 @@ patches:
       # image_json_path for overriding the apm-server image (see above),
       # and we use the same CRD kind for both apm-server and fleet-server.
       # As soon as you specify image_json_path, it *must* match an image.
-      image: docker.elastic.co/beats/elastic-agent:8.6.0-3f5f98b7-SNAPSHOT
+      image: docker.elastic.co/beats/elastic-agent:8.6.0-f20b7179-SNAPSHOT
