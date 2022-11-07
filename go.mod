@@ -10,11 +10,11 @@ require (
 	github.com/dgraph-io/badger/v2 v2.2007.3-0.20201012072640-f5a7e0a1c83b
 	github.com/dgryski/go-farm v0.0.0-20200201041132-a6ae2369ad13 // indirect
 	github.com/dlclark/regexp2 v1.7.0 // indirect
-	github.com/dop251/goja v0.0.0-20221025165401-cb5011b539fe // indirect
+	github.com/dop251/goja v0.0.0-20221106173738-3b8a68ca89b4 // indirect
 	github.com/dop251/goja_nodejs v0.0.0-20221009164102-3aa5028e57f6 // indirect
 	github.com/dustin/go-humanize v1.0.0
 	github.com/elastic/apm-server/approvaltest v0.0.0-00010101000000-000000000000
-	github.com/elastic/beats/v7 v7.17.8-0.20221101205141-e03421a73ebd
+	github.com/elastic/beats/v7 v7.17.8-0.20221104063356-ab9b2b73ab2f
 	github.com/elastic/ecs v1.12.0
 	github.com/elastic/elastic-agent-client/v7 v7.0.0-20221102171927-bc376a4e0f9f // indirect
 	github.com/elastic/gmux v0.2.0
