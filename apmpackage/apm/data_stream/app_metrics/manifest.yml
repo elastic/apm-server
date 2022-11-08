@@ -30,6 +30,7 @@ elasticsearch:
         - double:
             mapping:
               type: double
+              index: false
         - numeric_labels:
             path_match: numeric_labels.*
             mapping:
