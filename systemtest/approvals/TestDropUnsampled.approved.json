@@ -64,6 +64,7 @@
                 },
                 "id": "dynamic",
                 "name": "sampled",
+                "representative_count": 1,
                 "sampled": true,
                 "span_count": {
                     "dropped": 0,
@@ -116,6 +117,7 @@
                     "us": 0
                 },
                 "id": "dynamic",
+                "representative_count": 1,
                 "span_count": {
                     "started": 1
                 },

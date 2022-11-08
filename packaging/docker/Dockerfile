@@ -76,7 +76,8 @@ COPY --chmod=0755 --from=builder /src/apm-server ./apm-server
 RUN sed -i 's/localhost:8200/0.0.0.0:8200/' apm-server.yml
 RUN sed -i 's/localhost:9200/elasticsearch:9200/' apm-server.yml
 RUN mkdir --mode=0775 data
+RUN echo 'apm-server:*:1000:0::/usr/share/apm-server:/bin/false' >> /etc/passwd
 
-USER 1000
+USER apm-server
 EXPOSE 8200
 ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/docker-entrypoint"]

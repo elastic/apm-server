@@ -42,6 +42,7 @@
                     }
                 },
                 "name": "Message receive",
+                "representative_count": 1,
                 "type": "messaging"
             },
             "timestamp": {

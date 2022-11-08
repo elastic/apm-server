@@ -112,7 +112,7 @@ type Config struct {
 	// MaxRequests holds the maximum number of bulk index requests to execute concurrently.
 	// The maximum memory usage of Indexer is thus approximately MaxRequests*FlushBytes.
 	//
-	// If MaxRequests is less than or equal to zero, the default of 50 will be used.
+	// If MaxRequests is less than or equal to zero, the default of 10 will be used.
 	MaxRequests int
 
 	// FlushBytes holds the flush threshold in bytes. If Compression is enabled,
@@ -126,6 +126,14 @@ type Config struct {
 	// If FlushInterval is zero, the default of 30 seconds will be used.
 	FlushInterval time.Duration
 
+	// EventBufferSize sets the number of events that can be buffered before
+	// they are stored in the active indexer buffer.
+	//
+	// If EventBufferSize is zero, the default 1024 will be used.
+	EventBufferSize int
+
+	// Tracer holds an optional apm.Tracer to use for tracing bulk requests
+	// to Elasticsearch. Each bulk request is traced as a transaction.
 	// Scaling configuration for the modelindexer.
 	//
 	// If unspecified, scaling is enabled by default.
@@ -194,13 +202,16 @@ func New(client elasticsearch.Client, cfg Config) (*Indexer, error) {
 		)
 	}
 	if cfg.MaxRequests <= 0 {
-		cfg.MaxRequests = 50
+		cfg.MaxRequests = 10
 	}
 	if cfg.FlushBytes <= 0 {
 		cfg.FlushBytes = 1 * 1024 * 1024
 	}
 	if cfg.FlushInterval <= 0 {
 		cfg.FlushInterval = 30 * time.Second
+	}
+	if cfg.EventBufferSize <= 0 {
+		cfg.EventBufferSize = 1024
 	}
 	if !cfg.Scaling.Disabled {
 		if cfg.Scaling.ScaleDown.Threshold == 0 {
@@ -230,7 +241,7 @@ func New(client elasticsearch.Client, cfg Config) (*Indexer, error) {
 		available:             available,
 		closed:                make(chan struct{}),
 		// NOTE(marclop) This channel size is arbitrary.
-		bulkItems: make(chan elasticsearch.BulkIndexerItem, 100),
+		bulkItems: make(chan elasticsearch.BulkIndexerItem, cfg.EventBufferSize),
 	}
 
 	// We create a cancellable context for the errgroup.Group for unblocking
@@ -594,15 +605,27 @@ func (i *Indexer) maybeScaleDown(now time.Time, info scalingInfo, timedFlush *ui
 		}
 		info = i.scalingInformation() // refresh scaling info if CAS failed.
 	}
+	if info.withinCoolDown(i.config.Scaling.ScaleDown.CoolDown, now) {
+		return false
+	}
+	// If more than 1% of the requests result in 429, scale down the current
+	// active indexer.
+	if i.indexFailureRate() >= 0.01 {
+		if new := info.ScaleDown(now); i.scalingInfo.CompareAndSwap(info, new) {
+			i.logger.Infof(
+				"elasticsearch 429 response rate exceeded 1%%, scaling down to: %d",
+				new.activeIndexers,
+			)
+			return true
+		}
+		return false
+	}
 	if *timedFlush < i.config.Scaling.ScaleDown.Threshold {
 		return false
 	}
 	// Reset timedFlush after it has exceeded the threshold
 	// it avoids unnecessary precociousness to scale down.
 	*timedFlush = 0
-	if info.withinCoolDown(i.config.Scaling.ScaleDown.CoolDown, now) {
-		return false
-	}
 	if new := info.ScaleDown(now); i.scalingInfo.CompareAndSwap(info, new) {
 		i.logger.Infof("timed flush threshold exceeded, scaling down to: %d", new)
 		return true
@@ -624,6 +647,10 @@ func (i *Indexer) maybeScaleUp(now time.Time, info scalingInfo, fullFlush *uint)
 	// Reset fullFlush after it has exceeded the threshold
 	// it avoids unnecessary precociousness to scale up.
 	*fullFlush = 0
+	// If more than 1% of the requests result in 429, do not scale up.
+	if i.indexFailureRate() >= 0.01 {
+		return false
+	}
 	if info.withinCoolDown(i.config.Scaling.ScaleUp.CoolDown, now) {
 		return false
 	}
@@ -640,6 +667,12 @@ func (i *Indexer) maybeScaleUp(now time.Time, info scalingInfo, fullFlush *uint)
 
 func (i *Indexer) scalingInformation() scalingInfo {
 	return i.scalingInfo.Load().(scalingInfo)
+}
+
+// indexFailureRate returns the decimal percentage of 429 / total events.
+func (i *Indexer) indexFailureRate() float64 {
+	return float64(atomic.LoadInt64(&i.tooManyRequests)) /
+		float64(atomic.LoadInt64(&i.eventsAdded))
 }
 
 // activeLimit returns the value of GOMAXPROCS / 4. Which should limit the
@@ -695,15 +728,11 @@ type scalingInfo struct {
 }
 
 func (s scalingInfo) ScaleDown(t time.Time) scalingInfo {
-	return scalingInfo{
-		lastAction: t, activeIndexers: s.activeIndexers - 1,
-	}
+	return scalingInfo{lastAction: t, activeIndexers: s.activeIndexers - 1}
 }
 
 func (s scalingInfo) ScaleUp(t time.Time) scalingInfo {
-	return scalingInfo{
-		lastAction: t, activeIndexers: s.activeIndexers + 1,
-	}
+	return scalingInfo{lastAction: t, activeIndexers: s.activeIndexers + 1}
 }
 
 func (s scalingInfo) withinCoolDown(cooldown time.Duration, now time.Time) bool {

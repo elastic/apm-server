@@ -62,6 +62,7 @@
                 },
                 "id": "dynamic",
                 "name": "huge-traces",
+                "representative_count": 1,
                 "sampled": true,
                 "span_count": {
                     "dropped": 54,

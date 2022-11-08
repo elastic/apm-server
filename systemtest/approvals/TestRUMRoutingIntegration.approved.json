@@ -743,6 +743,7 @@
                     }
                 },
                 "name": "general-usecase-initial-p-load",
+                "representative_count": 1,
                 "sampled": true,
                 "span_count": {
                     "dropped": 1,

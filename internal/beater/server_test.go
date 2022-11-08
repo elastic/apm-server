@@ -638,10 +638,11 @@ func TestServerElasticsearchOutput(t *testing.T) {
 
 	srv := beatertest.NewServer(t, beatertest.WithConfig(agentconfig.MustNewConfigFrom(map[string]interface{}{
 		"output.elasticsearch": map[string]interface{}{
-			"hosts":       []string{elasticsearchServer.URL},
-			"flush_bytes": "1kb", // test data is >1kb
-			"backoff":     map[string]interface{}{"init": "1ms", "max": "1ms"},
-			"max_retries": 0,
+			"hosts":        []string{elasticsearchServer.URL},
+			"flush_bytes":  "1kb", // test data is >1kb
+			"backoff":      map[string]interface{}{"init": "1ms", "max": "1ms"},
+			"max_retries":  0,
+			"max_requests": 10,
 		},
 	})))
 
@@ -689,7 +690,7 @@ func TestServerElasticsearchOutput(t *testing.T) {
 	assert.Equal(t, map[string]interface{}{
 		"elasticsearch": map[string]interface{}{
 			"bulk_requests": map[string]interface{}{
-				"available": int64(49),
+				"available": int64(9),
 				"completed": int64(0),
 			},
 			"indexers": map[string]interface{}{

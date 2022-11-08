@@ -177,6 +177,41 @@ func (s *Runner) Run(ctx context.Context) error {
 		}
 	}
 
+	// Obtain the memory limit for the APM Server process. Certain config
+	// values will be sized according to the maximum memory set for the server.
+	var memLimit float64
+	if cgroupReader := newCgroupReader(); cgroupReader != nil {
+		if limit, err := cgroupMemoryLimit(cgroupReader); err != nil {
+			s.logger.Warn(err)
+		} else {
+			// Limit the memory to 80% of the cgroup memory limit.
+			memLimit = float64(limit) / 1024 / 1024 / 1024 * 0.8
+		}
+	}
+	if memLimit <= 0 {
+		s.logger.Info("no cgroups detected, falling back to total system memory")
+		if limit, err := systemMemoryLimit(); err != nil {
+			s.logger.Warn(err)
+		} else {
+			// If no cgroup limit is set, only return 50% of the total memory.
+			// to have a margin of safety for other processes.
+			memLimit = float64(limit) / 1024 / 1024 / 1024 * 0.5
+		}
+	}
+	if memLimit <= 0 {
+		memLimit = 0.8 // Assume of 80% of 1GB if memory discovery fails.
+		s.logger.Infof(
+			"failed to discover memory limit, default to %0.1fgb of memory",
+			memLimit,
+		)
+	}
+	if s.config.MaxConcurrentDecoders == 0 {
+		s.config.MaxConcurrentDecoders = maxConcurrentDecoders(memLimit)
+		s.logger.Infof("MaxConcurrentDecoders set to %d based on %0.1fgb of memory",
+			s.config.MaxConcurrentDecoders, memLimit,
+		)
+	}
+
 	// Send config to telemetry.
 	recordAPMServerConfig(s.config)
 
@@ -320,8 +355,7 @@ func (s *Runner) Run(ctx context.Context) error {
 	// Create the BatchProcessor chain that is used to process all events,
 	// including the metrics aggregated by APM Server.
 	finalBatchProcessor, closeFinalBatchProcessor, err := s.newFinalBatchProcessor(
-		tracer,
-		newElasticsearchClient,
+		tracer, newElasticsearchClient, memLimit,
 	)
 	if err != nil {
 		return err
@@ -410,7 +444,7 @@ func (s *Runner) Run(ctx context.Context) error {
 		return runServer(ctx, serverParams)
 	})
 	if tracerServerListener != nil {
-		tracerServer, err := newTracerServer(tracerServerListener, s.logger, serverParams.BatchProcessor)
+		tracerServer, err := newTracerServer(s.config, tracerServerListener, s.logger, serverParams.BatchProcessor)
 		if err != nil {
 			return fmt.Errorf("failed to create self-instrumentation server: %w", err)
 		}
@@ -431,6 +465,16 @@ func (s *Runner) Run(ctx context.Context) error {
 		result = multierror.Append(result, err)
 	}
 	return result
+}
+
+func maxConcurrentDecoders(memLimitGB float64) uint {
+	// Allow 128 concurrent decoders for each 1GB memory, limited to at most 2048.
+	const max = 2048
+	decoders := uint(128 * memLimitGB)
+	if decoders > max {
+		return max
+	}
+	return decoders
 }
 
 // waitReady waits until the server is ready to index events.
@@ -519,6 +563,7 @@ func (s *Runner) waitReady(
 func (s *Runner) newFinalBatchProcessor(
 	tracer *apm.Tracer,
 	newElasticsearchClient func(cfg *elasticsearch.Config) (elasticsearch.Client, error),
+	memLimit float64,
 ) (model.BatchProcessor, func(context.Context) error, error) {
 
 	monitoring.Default.Remove("libbeat")
@@ -567,14 +612,16 @@ func (s *Runner) newFinalBatchProcessor(
 	if enabled := esConfig.Scaling.Enabled; enabled != nil {
 		scalingCfg.Disabled = !*enabled
 	}
-	indexer, err := modelindexer.New(client, modelindexer.Config{
+	opts := modelindexer.Config{
 		CompressionLevel: esConfig.CompressionLevel,
 		FlushBytes:       flushBytes,
 		FlushInterval:    esConfig.FlushInterval,
 		Tracer:           tracer,
 		MaxRequests:      esConfig.MaxRequests,
 		Scaling:          scalingCfg,
-	})
+	}
+	opts = modelIndexerConfig(opts, memLimit, s.logger)
+	indexer, err := modelindexer.New(client, opts)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -635,6 +682,34 @@ func (s *Runner) newFinalBatchProcessor(
 		v.OnInt(stats.IndexersDestroyed)
 	})
 	return indexer, indexer.Close, nil
+}
+
+func modelIndexerConfig(
+	opts modelindexer.Config, memLimit float64, logger *logp.Logger,
+) modelindexer.Config {
+	const logMessage = "%s set to %d based on %0.1fgb of memory"
+	opts.EventBufferSize = int(1024 * memLimit)
+	if opts.EventBufferSize >= 61440 {
+		opts.EventBufferSize = 61440
+	}
+	logger.Infof(logMessage,
+		"modelindexer.EventBufferSize", opts.EventBufferSize, memLimit,
+	)
+	if opts.MaxRequests > 0 {
+		return opts
+	}
+	// This formula yields the following max requests for APM Server sized:
+	// 1	2 	4	8	15	30
+	// 10	12	14	19	28	46
+	maxRequests := int(float64(10) + memLimit*1.5)
+	if maxRequests > 60 {
+		maxRequests = 60
+	}
+	opts.MaxRequests = maxRequests
+	logger.Infof(logMessage,
+		"modelindexer.MaxRequests", opts.MaxRequests, memLimit,
+	)
+	return opts
 }
 
 func (s *Runner) newLibbeatFinalBatchProcessor(

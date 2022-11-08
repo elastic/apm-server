@@ -104,10 +104,15 @@ func TestFleetIntegrationMonitoring(t *testing.T) {
 			},
 		},
 	}, metrics.Libbeat)
+	if es := metrics.Output["elasticsearch"].(map[string]interface{}); len(es) > 0 {
+		if br := es["bulk_requests"].(map[string]interface{}); len(br) > 0 {
+			assert.Greater(t, br["available"], float64(10))
+			delete(br, "available")
+		}
+	}
 	assert.Equal(t, map[string]interface{}{
 		"elasticsearch": map[string]interface{}{
 			"bulk_requests": map[string]interface{}{
-				"available": float64(50),
 				"completed": 1.0,
 			},
 			"indexers": map[string]interface{}{
