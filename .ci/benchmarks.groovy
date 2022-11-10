@@ -57,7 +57,7 @@ pipeline {
       steps {
         dir("${BASE_DIR}") {
           withGoEnv() {
-            dir(TESTING_BENCHMARK_DIR) {
+            dir("${TESTING_BENCHMARK_DIR}") {
               withTestClusterEnv() {
                 sh(label: 'Build apmbench', script: 'make apmbench $SSH_KEY terraform.tfvars')
                 sh(label: 'Spin up benchmark environment', script: '$(make docker-override-committed-version) && make init apply')
@@ -74,7 +74,7 @@ pipeline {
         always {
           dir("${BASE_DIR}") {
             withGoEnv() {
-              dir(TESTING_BENCHMARK_DIR) {
+              dir("${TESTING_BENCHMARK_DIR}") {
                 stashV2(name: 'benchmark_tfstate', bucket: "${JOB_GCS_BUCKET_STASH}", credentialsId: "${JOB_GCS_CREDENTIALS}")
                 archiveArtifacts(allowEmptyArchive: true,
                   artifacts: "${env.BENCHMARK_RESULT}",
