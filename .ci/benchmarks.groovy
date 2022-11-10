@@ -16,6 +16,7 @@ pipeline {
     JOB_GCS_BUCKET_STASH = 'apm-ci-temp'
     JOB_GCS_CREDENTIALS = 'apm-ci-gcs-plugin'
     SLACK_CHANNEL = "#apm-server"
+    TESTING_BENCHMARK_DIR = 'testing/benchmark'
   }
   options {
     timeout(time: 3, unit: 'HOURS')
@@ -55,7 +56,7 @@ pipeline {
       steps {
         dir("${BASE_DIR}") {
           withGoEnv() {
-            dir("testing/benchmark") {
+            dir(TESTING_BENCHMARK_DIR) {
               withTestClusterEnv() {
                 sh(label: 'Build apmbench', script: 'make apmbench $SSH_KEY terraform.tfvars')
                 sh(label: 'Spin up benchmark environment', script: '$(make docker-override-committed-version) && make init apply')
@@ -72,7 +73,7 @@ pipeline {
         always {
           dir("${BASE_DIR}") {
             withGoEnv() {
-              dir("testing/benchmark") {
+              dir(TESTING_BENCHMARK_DIR) {
                 stashV2(name: 'benchmark_tfstate', bucket: "${JOB_GCS_BUCKET_STASH}", credentialsId: "${JOB_GCS_CREDENTIALS}")
                 archiveArtifacts(allowEmptyArchive: true,
                   artifacts: "${env.BENCHMARK_RESULT}",
