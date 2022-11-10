@@ -12,13 +12,11 @@ pipeline {
     BENCHMARK_KIBANA_SECRET = 'secret/observability-team/ci/apm-benchmark-kibana'
     PNG_REPORT_FILE = 'out.png'
     TERRAFORM_VERSION = '1.1.9'
-
     CREATED_DATE = "${new Date().getTime()}"
     JOB_GCS_BUCKET_STASH = 'apm-ci-temp'
     JOB_GCS_CREDENTIALS = 'apm-ci-gcs-plugin'
     SLACK_CHANNEL = "#apm-server"
   }
-
   options {
     timeout(time: 3, unit: 'HOURS')
     buildDiscarder(logRotator(numToKeepStr: '100', artifactNumToKeepStr: '30', daysToKeepStr: '30'))
@@ -28,7 +26,6 @@ pipeline {
     durabilityHint('PERFORMANCE_OPTIMIZED')
     rateLimitBuilds(throttle: [count: 60, durationName: 'hour', userBoost: true])
   }
-
   stages {
     stage('Checkout') {
       options { skipDefaultCheckout() }
@@ -37,7 +34,6 @@ pipeline {
         gitCheckout(basedir: "${BASE_DIR}", shallow: false)
       }
     }
-
     stage('Benchmarks') {
       options {
         skipDefaultCheckout()
@@ -57,13 +53,13 @@ pipeline {
         GOBENCH_TAGS = "branch=${BRANCH_NAME},commit=${GIT_BASE_COMMIT},pr=${CHANGE_ID},target_branch=${CHANGE_TARGET}"
       }
       steps {
-        dir ("${BASE_DIR}") {
+        dir("${BASE_DIR}") {
           withGoEnv() {
             dir("testing/benchmark") {
-              withTestClusterEnv {
+              withTestClusterEnv() {
                 sh(label: 'Build apmbench', script: 'make apmbench $SSH_KEY terraform.tfvars')
                 sh(label: 'Spin up benchmark environment', script: '$(make docker-override-committed-version) && make init apply')
-                withESBenchmarkEnv {
+                withESBenchmarkEnv() {
                   sh(label: 'Run benchmarks', script: 'make run-benchmark-autotuned index-benchmark-results')
                 }
               }
@@ -82,7 +78,7 @@ pipeline {
                   artifacts: "${env.BENCHMARK_RESULT}",
                   defaultExcludes: false
                 )
-                withTestClusterEnv {
+                withTestClusterEnv() {
                   sh(label: 'Tear down benchmark environment', script: 'make destroy')
                 }
               }
@@ -90,19 +86,19 @@ pipeline {
           }
         }
         success {
-          dir("${BASE_DIR}") {            
+          dir("${BASE_DIR}") {
             sendSlackReportSuccessMessage()
           }
         }
         failure {
           notifyBuildResult(slackNotify: true, slackComment: true)
-        }  
+        }
       }
     }
   }
 }
 
-def withTestClusterEnv(Closure body) {  
+def withTestClusterEnv(Closure body) {
   withAWSEnv(secret: "${AWS_ACCOUNT_SECRET}", version: "2.7.6") {
     withTerraformEnv(version: "${TERRAFORM_VERSION}") {
       withSecretVault(secret: "${EC_KEY_SECRET}", data: ['apiKey': 'EC_API_KEY'] ) {
@@ -114,33 +110,32 @@ def withTestClusterEnv(Closure body) {
 
 def withESBenchmarkEnv(Closure body) {
   withSecretVault(
-      secret: "${BENCHMARK_ES_SECRET}", 
-      data: ['user': 'GOBENCH_USERNAME', 
-            'url': 'GOBENCH_HOST', 
-            'password': 'GOBENCH_PASSWORD'] ) {
+      secret: "${BENCHMARK_ES_SECRET}",
+      data: ['user': 'GOBENCH_USERNAME',
+             'url': 'GOBENCH_HOST',
+             'password': 'GOBENCH_PASSWORD'] ) {
     body()
   }
 }
 
 def downloadPNGReport() {
   withSecretVault(
-      secret: "${BENCHMARK_KIBANA_SECRET}", 
-      data: ['user': 'KIBANA_USER', 
-            'password': 'KIBANA_PASSWORD', 
-            'kibana_url': 'KIBANA_ENDPOINT'] ) {
-    sh(label: 'Run unit tests', script: '.ci/scripts/download-png-from-kibana.sh $KIBANA_ENDPOINT $KIBANA_USER $KIBANA_PASSWORD $PNG_REPORT_FILE')
-    archiveArtifacts(
-      allowEmptyArchive: false,
-      artifacts: "${env.PNG_REPORT_FILE}",
-      defaultExcludes: false
-    )
+      secret: "${BENCHMARK_KIBANA_SECRET}",
+      data: ['user': 'KIBANA_USER',
+             'password': 'KIBANA_PASSWORD',
+             'kibana_url': 'KIBANA_ENDPOINT']
+   ) {
+    sh(label: 'Run unit tests',
+       script: '.ci/scripts/download-png-from-kibana.sh $KIBANA_ENDPOINT $KIBANA_USER $KIBANA_PASSWORD $PNG_REPORT_FILE')
+    archiveArtifacts(allowEmptyArchive: false, artifacts: "${env.PNG_REPORT_FILE}")
   }
 }
 
 def sendSlackReportSuccessMessage() {
   withSecretVault(
-      secret: "${BENCHMARK_KIBANA_SECRET}", 
-      data: ['kibana_dashboard_url': 'KIBANA_DASHBOARD_URL'] ) {
+      secret: "${BENCHMARK_KIBANA_SECRET}",
+      data: ['kibana_dashboard_url': 'KIBANA_DASHBOARD_URL']
+  ) {
     slackMessageBlocks = [
       [
         "type": "section",
@@ -162,10 +157,10 @@ def sendSlackReportSuccessMessage() {
         "text": [
           "type": "mrkdwn",
           "text": "<${env.KIBANA_DASHBOARD_URL}|Kibana Dashboard>"
-        ]        
+        ]
       ]
     ]
 
-    slackSend(channel: "${env.SLACK_CHANNEL}", blocks: slackMessageBlocks)  
+    slackSend(channel: "${env.SLACK_CHANNEL}", blocks: slackMessageBlocks)
   }
 }
