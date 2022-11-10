@@ -51,6 +51,7 @@ pipeline {
         TF_VAR_ENVIRONMENT= 'ci'
         TF_VAR_BRANCH = "${env.BRANCH_NAME.toLowerCase().replaceAll('[^a-z0-9-]', '-')}"
         TF_VAR_REPO = "${REPO}"
+        TF_VAR_CREATED_DATE = "${env.CREATED_DATE}"
         GOBENCH_TAGS = "branch=${BRANCH_NAME},commit=${GIT_BASE_COMMIT},pr=${CHANGE_ID},target_branch=${CHANGE_TARGET}"
       }
       steps {
