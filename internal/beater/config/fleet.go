@@ -15,30 +15,16 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package config_test
+package config
 
 import (
-	"testing"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-
-	"github.com/elastic/apm-server/internal/beater/config"
-	agentconfig "github.com/elastic/elastic-agent-libs/config"
+	"github.com/elastic/elastic-agent-libs/transport/tlscommon"
 )
 
-func TestIntegrationConfigMissingAPMServer(t *testing.T) {
-	cfg, err := config.NewIntegrationConfig(agentconfig.NewConfig())
-	assert.Error(t, err)
-	assert.Nil(t, cfg)
-	assert.EqualError(t, err, "'apm-server' not found in integration config")
-}
-
-func TestIntegrationConfigValid(t *testing.T) {
-	cfg, err := config.NewIntegrationConfig(agentconfig.MustNewConfigFrom(map[string]interface{}{
-		"apm-server": map[string]interface{}{},
-	}))
-	require.NoError(t, err)
-	require.NotNil(t, cfg)
-	assert.NotNil(t, cfg.APMServer)
+// Fleet holds configuration required for communicating with fleet-server.
+type Fleet struct {
+	Hosts        []string          `config:"hosts"`
+	Protocol     string            `config:"protocol"`
+	AccessAPIKey string            `config:"access_api_key"`
+	TLS          *tlscommon.Config `config:"ssl"`
 }

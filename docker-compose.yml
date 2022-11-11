@@ -54,7 +54,7 @@ services:
     ports:
       - 8220:8220
     healthcheck:
-      test: ["CMD-SHELL", "curl -s -k https://localhost:8220/api/status | grep -q 'HEALTHY'"]
+      test: ["CMD-SHELL", "curl -s -k https://localhost:8220/api/status | grep -q 'healthy'"]
       retries: 300
       interval: 1s
     environment:

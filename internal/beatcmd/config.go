@@ -24,6 +24,7 @@ import (
 	"github.com/elastic/beats/v7/libbeat/cfgfile"
 	"github.com/elastic/beats/v7/libbeat/cloudid"
 	"github.com/elastic/beats/v7/libbeat/common"
+	"github.com/elastic/beats/v7/libbeat/pprof"
 	"github.com/elastic/elastic-agent-libs/config"
 	libkeystore "github.com/elastic/elastic-agent-libs/keystore"
 	"github.com/elastic/elastic-agent-libs/paths"
@@ -37,11 +38,11 @@ type Config struct {
 	MaxProcs  int `config:"max_procs"`
 	GCPercent int `config:"gc_percent"`
 
-	HTTP          *config.C `config:"http"`
-	HTTPPprof     *config.C `config:"http.pprof"`
-	BufferConfig  *config.C `config:"http.buffer"`
-	Logging       *config.C `config:"logging"`
-	MetricLogging *config.C `config:"logging.metrics"`
+	HTTP          *config.C     `config:"http"`
+	HTTPPprof     *pprof.Config `config:"http.pprof"`
+	BufferConfig  *config.C     `config:"http.buffer"`
+	Logging       *config.C     `config:"logging"`
+	MetricLogging *config.C     `config:"logging.metrics"`
 
 	Instrumentation *config.C `config:"instrumentation"`
 	Monitoring      *config.C `config:"monitoring"`
