@@ -2,7 +2,7 @@ ARG BASE_IMAGE=ubuntu:20.04
 
 # Build the apm-server binary. The golang image version is kept
 # up to date with .go-version by Makefile.
-FROM golang:1.18.5 as builder
+FROM golang:1.18.8 as builder
 WORKDIR /src
 COPY go.mod go.sum /src/
 COPY internal/approvaltest/go.mod /src/internal/approvaltest/go.mod
