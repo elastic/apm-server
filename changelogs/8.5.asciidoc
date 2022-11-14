@@ -3,11 +3,24 @@
 
 https://github.com/elastic/apm-server/compare/8.4\...8.5[View commits]
 
+* <<release-notes-8.5.1>>
+* <<release-notes-8.5.0>>
+
+[float]
+[[release-notes-8.5.1]]
+=== APM version 8.5.1
+
+https://github.com/elastic/apm-server/compare/v8.5.0\...v8.5.1[View commits]
+
+[float]
+==== Bug fixes
+- Set `error.id` for OpenTelemetry exception span events {pull}9327[9327]
+
 [float]
 [[release-notes-8.5.0]]
 === APM version 8.5.0
 
-https://github.com/elastic/apm-server/compare/v8.4.2\...v8.5.0[View commits]
+https://github.com/elastic/apm-server/compare/v8.4.3\...v8.5.0[View commits]
 
 [float]
 ==== Known issue
