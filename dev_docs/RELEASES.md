@@ -16,7 +16,7 @@ For patch releases, only the version on the existing major and minor version bra
 
   * Review existing [changelogs/head](https://github.com/elastic/apm-server/tree/main/changelogs/head.asciidoc) to ensure all relevant notes have been added.
   * Move changelog entries from _head_ to _release_version_:
-    * Minor version: 
+    * Minor version:
       Create new changelog file from [changelogs/head.asciidoc](https://github.com/elastic/apm-server/blob/main/changelogs/head.asciidoc)
       If changes should not be backported, keep them in the _changelogs/head.asciidoc_ file.
       Don't forget to `include` and link to the new file. [(Sample PR)](https://github.com/elastic/apm-server/pull/7956/files)
@@ -24,9 +24,9 @@ For patch releases, only the version on the existing major and minor version bra
   * Add `@elastic/obs-docs` as a reviewer.
 
 ## Day after Feature Freeze
-* For minor releases, cut a new release branch from `main` and update them.
 
-  * Release branch: 
+* For minor releases, cut a new release branch from `main` and update them.
+  * Release branch:
     Update versions and ensure that the `BEATS_VERSION` in the Makefile is updated,
     e.g. [#2803](https://github.com/elastic/apm-server/pull/2803/files).
     Trigger a new beats update, once the beats branch is also created.
@@ -36,45 +36,43 @@ For patch releases, only the version on the existing major and minor version bra
     Update [.mergify.yml](https://github.com/elastic/apm-server/blob/main/.mergify.yml) with a new backport rule for the next version,
     and update versions to next minor version, e.g. [#2804](https://github.com/elastic/apm-server/pull/2804).
 
-  The release manager will ping the teams, but you can already prepare this in advance on the day after Feature Freeze. 
+  The release manager will ping the teams, but you can already prepare this in advance on the day after Feature Freeze.
 
 * Update dependencies
 
-  * libbeat: 
-    Updates are automatically created for the release branch, multiple times per week. 
+  * libbeat:
+    Updates are automatically created for the release branch, multiple times per week.
     If there is a need for a manual update, you can run `make update-beats` on the release branch.
     This might be the case when waiting for an urgent bug fix from beats, or after branching out the release branch.
 
-    For patch releases, the updates are supposed to only contain bug fixes. Take a quick look at the libbeat changes 
-    and raise it with the APM Server team if any larger features or changes are introduced. 
+    For patch releases, the updates are supposed to only contain bug fixes. Take a quick look at the libbeat changes
+    and raise it with the APM Server team if any larger features or changes are introduced.
 
-  * [go-elasticsearch](https://github.com/elastic/go-elasticsearch): 
+  * [go-elasticsearch](https://github.com/elastic/go-elasticsearch):
     If no branch or tag is available, ping the go-elasticsearch team.
 
     `go get github.com/elastic/go-elasticsearch/v$major@$major.$minor`
 
 * Test plan
 
-  Create a github issue for testing the release branch, e.g. [8.4.0 test plan](https://github.com/elastic/apm-server/issues/8705).
-  It should contain 
-  * A link to all PRs in the APM Server repository that need to be tested manually. Use the `test-plan*` labels and the version labels 
+  Create a github issue for testing the release branch (follow the GitHub issue template for the test plan), It should contain:
+  * A link to all PRs in the APM Server repository that need to be tested manually. Use the `test-plan*` labels and the version labels
     to create an overview over the PRs that need testing. For example, [test plan link for 8.3.0](https://github.com/elastic/apm-server/issues?q=label%3Atest-plan+is%3Aclosed+label%3Av8.3.0).
-  * Add other test cases that require manual testing.  such as test scenarios on ESS, that are not covered by automated tests or 
-    OS compatibility smoke tests for supporting new operating systems.  
+  * Add other test cases that require manual testing, such as test scenarios on ESS, that are not covered by automated tests or
+    OS compatibility smoke tests for supporting new operating systems.
 
-
-## Between feature freeze and release 
+## Between feature freeze and release
 
 * Test the release branch
 
-  * Always use a build candidate (BC) when testing, to ensure we test with the distributed artifacts. The first BC is usually available the day after Feature Freeze. 
+  * Always use a build candidate (BC) when testing, to ensure we test with the distributed artifacts. The first BC is usually available the day after Feature Freeze.
   * Identify which changes require testing via the created test labels, e.g. for [8.3.0](https://github.com/elastic/apm-server/issues?q=label%3Atest-plan+is%3Aclosed+label%3Av8.3.0+-label%3Atest-plan-ok).
-  * Grab a PR that hasn't been verified and assign yourself to prevent other devs from re-testing the same change. 
+  * Grab a PR that hasn't been verified and assign yourself to prevent other devs from re-testing the same change.
   * Test the PR following the Author's how to test this section.
   * Post your testing scenarios on the PR as a comment (for tracking down details in case we run into regressions).
   * Add the `test-plan-ok` or the `test-plan-regression` label to the PR. In case of regression, either open a PR with a fix or open an issue with the details.
 
-* Collaborate with the docs team on any release highlights or breaking changes that should be included in the APM Server guide. 
+* Collaborate with the docs team on any release highlights or breaking changes that should be included in the APM Server guide.
 
 ## On release day
 
