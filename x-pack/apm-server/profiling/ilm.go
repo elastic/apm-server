@@ -1,3 +1,7 @@
+// Copyright Elasticsearch B.V. and/or licensed to Elasticsearch B.V. under one
+// or more contributor license agreements. Licensed under the Elastic License 2.0;
+// you may not use this file except in compliance with the Elastic License 2.0.
+
 /*
 Here we manage the ILM for indices holding non-timeseries data,
 such as stacktraces, stackframes and executables.
@@ -46,6 +50,7 @@ import (
 	"time"
 
 	"github.com/dustin/go-humanize"
+
 	"github.com/elastic/apm-server/internal/beater/config"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/monitoring"
