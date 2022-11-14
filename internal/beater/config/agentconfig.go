@@ -54,9 +54,10 @@ type AgentConfig struct {
 
 func (s *AgentConfig) setup() error {
 	if s.Config == nil {
-		return errInvalidAgentConfigMissingConfig
+		// Config may be passed to APM Server as `null` when no attributes
+		// are defined in an APM Agent central configuration entry.
+		s.Config = make(map[string]string)
 	}
-
 	if s.Etag == "" {
 		m, err := json.Marshal(s)
 		if err != nil {
