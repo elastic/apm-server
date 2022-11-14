@@ -18,6 +18,8 @@
 package config
 
 import (
+	"time"
+
 	"github.com/pkg/errors"
 
 	"github.com/elastic/apm-server/internal/elasticsearch"
@@ -38,8 +40,12 @@ type ProfilingConfig struct {
 	// writing profiling host agent metric documents.
 	MetricsESConfig *elasticsearch.Config
 
+	// ILMConfig
+	ILMConfig *ILMConfig `config:"keyvalue_retention"`
+
 	es        *config.C
 	metricsES *config.C
+	ilm       *config.C
 }
 
 func (c *ProfilingConfig) Unpack(in *config.C) error {
@@ -64,6 +70,15 @@ func (c *ProfilingConfig) Unpack(in *config.C) error {
 	es, err = in.Child("metrics.elasticsearch", -1)
 	if err == nil {
 		c.metricsES = es
+	} else {
+		var ucfgError ucfg.Error
+		if !errors.As(err, &ucfgError) || ucfgError.Reason() != ucfg.ErrMissing {
+			return err
+		}
+	}
+
+	if ilm, err := in.Child("keyvalue_retention", -1); err == nil {
+		c.ilm = ilm
 	} else {
 		var ucfgError ucfg.Error
 		if !errors.As(err, &ucfgError) || ucfgError.Reason() != ucfg.ErrMissing {
@@ -112,7 +127,18 @@ func (c *ProfilingConfig) setup(log *logp.Logger, outputESCfg *config.C) error {
 			return errors.Wrap(err, "error unpacking apm-server.profiling.metrics.elasticsearch config for profiling host agent metrics collection")
 		}
 	}
+	if c.ilm != nil {
+		if err := c.ilm.Unpack(&c.ILMConfig); err != nil {
+			return errors.Wrap(err, "error unpacking apm-server.profiling.keyvalue_retention config for profiling K/V data retention")
+		}
+	}
 	return nil
+}
+
+type ILMConfig struct {
+	Age         time.Duration `config:"age"`
+	SizeInBytes uint64        `config:"size_bytes"`
+	Interval    time.Duration `config:"execution_interval"`
 }
 
 func defaultProfilingConfig() ProfilingConfig {
@@ -120,5 +146,16 @@ func defaultProfilingConfig() ProfilingConfig {
 		Enabled:         false,
 		ESConfig:        elasticsearch.DefaultConfig(),
 		MetricsESConfig: elasticsearch.DefaultConfig(),
+		ILMConfig:       defaultProfilingILMConfig(),
+	}
+}
+
+func defaultProfilingILMConfig() *ILMConfig {
+	return &ILMConfig{
+		// 2 months
+		Age: 1440 * time.Hour,
+		// 100 GiB
+		SizeInBytes: 107374182400,
+		Interval:    12 * time.Hour,
 	}
 }
