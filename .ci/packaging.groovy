@@ -147,21 +147,11 @@ pipeline {
           steps {
             withGithubNotify(context: 'apmpackage') {
               runWithGo() {
-                sh(script: 'make build-package', label: 'legacy: make build-package')
-
-                // Deprecated: Package Storage v1 will be archived
-                sh(label: 'legacy: package-storage-snapshot', script: 'make -C .ci/scripts package-storage-snapshot')
-                withGitContext() {
-                  sh(label: 'legacy: create-package-storage-pull-request', script: 'make -C .ci/scripts create-package-storage-pull-request')
-                }
-
-                // Build a preview package which includes the Git commit timestamp,
-                // and upload it to to package storage v2. Note, we intentionally do
-                // not sign or upload the "release" package, as it does not include
-                // a timestamp, and will break storage v2's immutability requirement.
-                sh(label: 'v2: make build-package-snapshot', script: 'make build-package-snapshot')
+                // Build a preview package which includes the Git commit timestamp, and upload it to package storage.
+                // Note, we intentionally do not sign or upload the "release" package, as it does not include a timestamp,
+                // and will break package storage's immutability requirement.
+                sh(label: 'make build-package-snapshot', script: 'make build-package-snapshot')
                 packageStoragePublish('build/packages', 'apm-*-preview-*.zip')
-
                 archiveArtifacts(allowEmptyArchive: false, artifacts: 'build/packages/*.zip')
               }
             }
@@ -340,36 +330,6 @@ def runIfNoMainAndNoStaging(Closure body) {
     echo 'INFO: staging artifacts for the main branch are not required.'
   } else {
     body()
-  }
-}
-
-/**
-* Prepare the context to be able to create the branch, push the changes and create the pull request
-*
-* NOTE: This particular implementation requires to checkout with the step gitCheckout
-*/
-def withGitContext(Closure body) {
-  setupAPMGitEmail(global: true)
-  // get the the workspace for the package-storage repository
-  setEnvVar('PACKAGE_STORAGE_LOCATION', sh(label: 'get-package-storage-location', script: 'make --no-print-directory -C .ci/scripts get-package-storage-location', returnStdout: true)?.trim())
-  withCredentials([usernamePassword(credentialsId: '2a9602aa-ab9f-4e52-baf3-b71ca88469c7-UserAndToken',
-                                    passwordVariable: 'GITHUB_TOKEN', usernameVariable: 'GITHUB_USER')]) {
-    try {
-      echo("env.PACKAGE_STORAGE_LOCATION=${env.PACKAGE_STORAGE_LOCATION}")
-      // within the package-storage workspace then configure the credentials to be able to push the changes
-      dir(env.PACKAGE_STORAGE_LOCATION) {
-        sh(label: 'List files', script: 'ls -1')
-        sh(label: 'Setup git context', script: """git config remote.origin.url "https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com/${ORG_NAME}/package-storage.git" """)
-      }
-      // run the given body to prepare the changes and push the changes
-      withGhEnv(version: '2.4.0') {
-        body()
-      }
-    } finally {
-      dir(env.PACKAGE_STORAGE_LOCATION) {
-        sh(label: 'Rollback git context', script: """git config remote.origin.url "https://github.com/${ORG_NAME}/package-storage.git" """)
-      }
-    }
   }
 }
 
