@@ -46,6 +46,7 @@ pipeline {
         TF_VAR_public_key = "./id_rsa_terraform.pub"
         BENCHMARK_RESULT = "benchmark-result.txt"
         TFVARS_SOURCE = "system-profiles/8GBx1zone.tfvars" // Default to use an 8gb profile
+        USER = "benchci-${env.BUILD_ID}" // use build as prefix
         // cloud tags
         TF_VAR_BUILD_ID = "${env.BUILD_ID}"
         TF_VAR_ENVIRONMENT= 'ci'
