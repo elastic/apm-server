@@ -35,6 +35,7 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -45,11 +46,11 @@ import (
 	"time"
 
 	"github.com/dustin/go-humanize"
+	"github.com/elastic/apm-server/internal/beater/config"
 	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/elastic-agent-libs/monitoring"
 	es "github.com/elastic/go-elasticsearch/v8"
 	"github.com/elastic/go-elasticsearch/v8/esapi"
-
-	"github.com/elastic/elastic-agent-libs/monitoring"
 )
 
 var (
@@ -58,8 +59,62 @@ var (
 	rolloverSkippedCounter  = monitoring.NewInt(ilmRegistry, "custom_ilm.skipped_for_time_constraints.count")
 	rolloverFailuresCounter = monitoring.NewInt(ilmRegistry, "custom_ilm.failed.count")
 	rolloverUndeletedIndex  = monitoring.NewInt(ilmRegistry, "custom_ilm.undeleted_index.count")
+	keyValueIndices         = []string{StackTraceIndex, StackFrameIndex, ExecutablesIndex}
 )
 
+// ScheduleILMExecution creates goroutines to manage ILM with custom policy for key/value data:
+// ILM would normally be managed inside Elasticsearch, but the peculiar nature of our data
+// is still not part of an ES ILM logic yet (see ilm.go for more details).
+//
+// Each index has a separate goroutine managing it, the shutdown via context
+// and ILM policy is shared across all goroutines.
+func ScheduleILMExecution(ctx context.Context, logger *logp.Logger, cfg config.ProfilingConfig) {
+	const (
+		maxRetries = 4
+		jitter     = 0.2
+	)
+	// create an ES client that can fulfill the ILM operations
+	client, err := es.NewClient(es.Config{
+		Addresses: cfg.ESConfig.Hosts,
+		APIKey:    base64.StdEncoding.EncodeToString([]byte(cfg.ESConfig.APIKey)),
+		// disable retries as we have dedicated retry mechanism
+		DisableRetry: true,
+	})
+	if err != nil {
+		logger.Errorf("Can't create client to perform custom ILM strategy: %v", err)
+		return
+	}
+
+	policy := ilmPolicy{
+		cfg.ILMConfig.SizeInBytes,
+		cfg.ILMConfig.Age,
+	}
+	for _, idx := range keyValueIndices {
+		go func(index string) {
+			// Jitter and the atomicity of rollover/swap give enough guarantee that
+			// we avoid collisions between multiple instances of the collector.
+			// A more robust concurrency control is implemented in the rollover function.
+			randomizedTicker := time.NewTicker(AddJitter(cfg.ILMConfig.Interval, jitter))
+			runner := &optimisticAliasSwap{
+				client:       client,
+				currentAlias: index,
+				logger:       logger,
+			}
+			for {
+				// runILM is a blocking call, waiting for the ticker's tick or context expiration.
+				if err := runILM(ctx, randomizedTicker.C, maxRetries, runner, policy); err != nil {
+					if errors.Is(err, context.Canceled) {
+						return
+					}
+					logger.Warnf("Custom ILM strategy: %v", err)
+				}
+				randomizedTicker.Reset(AddJitter(cfg.ILMConfig.Interval, jitter))
+			}
+		}(idx)
+	}
+}
+
+// ILMRunner describes the behavior of a custom ILM strategy executor
 type ILMRunner interface {
 	configure() error
 	preFlight(policy ilmPolicy) error
@@ -209,20 +264,20 @@ func runILM(ctx context.Context, tick <-chan time.Time, maxRetry uint32,
 	case <-tick:
 		// Configuring the ILM runner will not be retried on error: the method should be idempotent
 		if err := ilm.configure(); err != nil {
-			return err
+			return fmt.Errorf("configure failed: %v", err)
 		}
 		// If preflight checks fail, we don't want to retry or continue this execution
 		if err := ilm.preFlight(policy); err != nil {
 			if errors.As(err, &errPreFlightFailed{}) {
 				return nil
 			}
-			return err
+			return fmt.Errorf("pre-flight failed: %v", err)
 		}
 		if err := ilm.execute(policy); err != nil {
 			var retryErr error
 			for i := uint32(0); i < maxRetry; i++ {
 				if retryErr = ilm.execute(policy); retryErr == nil {
-					return nil
+					return fmt.Errorf("execute failed: %v", err)
 				}
 			}
 			return retryErr
@@ -382,11 +437,10 @@ func checkESAPIError(statusCode int, resp *esapi.Response, err error) error {
 		return fmt.Errorf("ES API client error: %v", err)
 	}
 	if resp.StatusCode != statusCode {
-		var b bytes.Buffer
+		b, _ := io.ReadAll(resp.Body)
 		defer resp.Body.Close()
-		_, _ = io.Copy(&b, resp.Body)
-		return fmt.Errorf("ES API response yielded unexpected result [HTTP %d]: %s",
-			resp.StatusCode, b.String())
+		return fmt.Errorf("ES API response yielded unexpected result: want %d, got %d: %s",
+			statusCode, resp.StatusCode, string(b))
 	}
 	return nil
 }

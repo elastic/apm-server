@@ -280,6 +280,8 @@ func newProfilingCollector(args beater.ServerParams) (*profiling.ElasticCollecto
 		return nil, nil, err
 	}
 
+	profiling.ScheduleILMExecution(context.TODO(), logger.Named("ilm"), args.Config.Profiling)
+
 	profilingCollector := profiling.NewCollector(
 		indexer,
 		metricsIndexer,

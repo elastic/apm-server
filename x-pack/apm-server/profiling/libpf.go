@@ -11,6 +11,7 @@ import (
 	"hash/crc32"
 	"io"
 	"math"
+	"math/rand"
 	"os"
 	"strconv"
 	"time"
@@ -413,3 +414,12 @@ type Range struct {
 // HeartbeatIntervalSeconds defines the base interval in seconds in which HAs send alive heartbeats
 // to CA.
 const HeartbeatIntervalSeconds = 30
+
+// AddJitter adds +/- jitter (jitter is [0..1]) to baseDuration
+func AddJitter(baseDuration time.Duration, jitter float64) time.Duration {
+	if jitter < 0.0 || jitter > 1.0 {
+		return baseDuration
+	}
+	// nolint:gosec
+	return time.Duration((1 + jitter - 2*jitter*rand.Float64()) * float64(baseDuration))
+}
