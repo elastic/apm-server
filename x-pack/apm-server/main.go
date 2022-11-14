@@ -250,6 +250,9 @@ func runServerWithProcessors(ctx context.Context, runServer beater.RunServerFunc
 func newProfilingCollector(args beater.ServerParams) (*profiling.ElasticCollector, func(context.Context) error, error) {
 	logger := args.Logger.Named("profiling")
 
+	ctx, stopILM := context.WithCancel(context.Background())
+	profiling.ScheduleILMExecution(ctx, logger.Named("ilm"), args.Config.Profiling)
+
 	client, err := args.NewElasticsearchClient(args.Config.Profiling.ESConfig)
 	if err != nil {
 		return nil, nil, err
@@ -280,8 +283,6 @@ func newProfilingCollector(args beater.ServerParams) (*profiling.ElasticCollecto
 		return nil, nil, err
 	}
 
-	profiling.ScheduleILMExecution(context.TODO(), logger.Named("ilm"), args.Config.Profiling)
-
 	profilingCollector := profiling.NewCollector(
 		indexer,
 		metricsIndexer,
@@ -289,6 +290,7 @@ func newProfilingCollector(args beater.ServerParams) (*profiling.ElasticCollecto
 		logger,
 	)
 	cleanup := func(ctx context.Context) error {
+		stopILM()
 		var errors error
 		if indexer.Close(ctx); err != nil {
 			errors = multierror.Append(errors, err)
