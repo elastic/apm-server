@@ -583,34 +583,6 @@ func TestTLSSettings(t *testing.T) {
 	})
 }
 
-func TestAgentConfig(t *testing.T) {
-	t.Run("InvalidValueTooSmall", func(t *testing.T) {
-		cfg, err := NewConfig(config.MustNewConfigFrom(map[string]string{"agent.config.cache.expiration": "123ms"}), nil)
-		require.Error(t, err)
-		assert.Nil(t, cfg)
-	})
-
-	t.Run("InvalidUnit", func(t *testing.T) {
-		cfg, err := NewConfig(config.MustNewConfigFrom(map[string]string{"agent.config.cache.expiration": "1230ms"}), nil)
-		require.Error(t, err)
-		assert.Nil(t, cfg)
-	})
-
-	t.Run("Valid", func(t *testing.T) {
-		cfg, err := NewConfig(config.MustNewConfigFrom(map[string]string{"agent.config.cache.expiration": "123000ms"}), nil)
-		require.NoError(t, err)
-		assert.Equal(t, time.Second*123, cfg.KibanaAgentConfig.Cache.Expiration)
-	})
-}
-
-func TestAgentConfigs(t *testing.T) {
-	cfg, err := NewConfig(config.MustNewConfigFrom(`{"agent_config":[{"service.environment":"production","config":{"transaction_sample_rate":0.5}}]}`), nil)
-	require.NoError(t, err)
-	assert.NotNil(t, cfg)
-	assert.Len(t, cfg.AgentConfigs, 1)
-	assert.NotEmpty(t, cfg.AgentConfigs[0].Etag)
-}
-
 func TestNewConfig_ESConfig(t *testing.T) {
 	ucfg, err := config.NewConfigFrom(`{
 		"rum.enabled": true,
