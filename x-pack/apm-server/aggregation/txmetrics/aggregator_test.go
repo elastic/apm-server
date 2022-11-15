@@ -116,9 +116,8 @@ func TestProcessTransformablesOverflow(t *testing.T) {
 		assert.Equal(t, model.APMEvent{
 			Processor: model.MetricsetProcessor,
 			Metricset: &model.Metricset{
-				Name:                 "transaction",
-				TimeseriesInstanceID: ":baz:9bf2d21a00716e4a",
-				DocCount:             1,
+				Name:     "transaction",
+				DocCount: 1,
 			},
 			Transaction: &model.Transaction{
 				Name: "baz",
@@ -331,9 +330,8 @@ func TestAggregateRepresentativeCount(t *testing.T) {
 		assert.Equal(t, model.APMEvent{
 			Processor: model.MetricsetProcessor,
 			Metricset: &model.Metricset{
-				Name:                 "transaction",
-				TimeseriesInstanceID: ":foo:9f7a6aa5754581fe",
-				DocCount:             test.expectedCount,
+				Name:     "transaction",
+				DocCount: test.expectedCount,
 			},
 			Transaction: &model.Transaction{
 				Name: "foo",
@@ -563,9 +561,6 @@ func TestAggregationFields(t *testing.T) {
 
 	batch := expectBatch(t, batches)
 	metricsets := batchMetricsets(t, batch)
-	for _, event := range metricsets {
-		event.Metricset.TimeseriesInstanceID = ""
-	}
 	assert.ElementsMatch(t, expected, metricsets)
 }
 
