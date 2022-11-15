@@ -16,7 +16,6 @@ https://github.com/elastic/apm-server/compare/8.5\...main[View commits]
 
 [float]
 ==== Bug fixes
-- Add an `apm-server` user to /etc/passwd in the Docker images {pull}9496[9496]
 - Null APM agent configuration entries are now treated as empty, and will not cause the server to exit with an error {pull}9546[9546]
 
 [float]
