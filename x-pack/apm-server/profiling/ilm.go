@@ -185,11 +185,13 @@ func (o *optimisticAliasSwap) execute(policy ilmPolicy) error {
 	// the configuration from the template
 	newIdx := fmt.Sprintf("%s-%s", o.currentAlias,
 		time.Now().UTC().Format("2006.02.01-15.04.05"))
-	if resp, err := o.client.Indices.Create(newIdx); checkESAPIError(http.StatusOK,
+	resp, err := o.client.Indices.Create(newIdx)
+	if checkESAPIError(http.StatusOK,
 		resp, err) != nil {
 		rolloverFailuresCounter.Inc()
 		return fmt.Errorf("creating new index %s failed: %v", newIdx, err)
 	}
+	defer resp.Body.Close()
 
 	// Update the aliases to the new window in an atomic operation
 	buf := bytes.NewBufferString(fmt.Sprintf(`{
@@ -224,10 +226,12 @@ func (o *optimisticAliasSwap) execute(policy ilmPolicy) error {
 		newIdx, o.nextAlias,
 		o.currentIndex, o.currentAlias,
 		o.nextIndex, o.currentAlias))
-	if resp, err := o.client.Indices.UpdateAliases(buf); checkESAPIError(http.StatusOK,
+	resp, err = o.client.Indices.UpdateAliases(buf)
+	if checkESAPIError(http.StatusOK,
 		resp, err) != nil {
 		return fmt.Errorf("flipping aliases failed for target %s: %v", o.currentAlias, err)
 	}
+	defer resp.Body.Close()
 
 	// Finally, delete the index previously backing the "current" alias.
 	// We don't return an error here, simply log it, because we don't want to re-execute
@@ -323,6 +327,7 @@ func ilmIndexLockDocument(client *es.Client, targetAlias, phase string,
 	if checkESAPIError(http.StatusOK, r, err) != nil {
 		return fmt.Errorf("unable to write lock document for target %s: %v", targetAlias, err)
 	}
+	r.Body.Close()
 	return nil
 }
 
@@ -335,6 +340,7 @@ func ilmAcquireLock(client *es.Client, targetAlias string, minElapsed time.Durat
 		return false, fmt.Errorf("unable to query Get API for alias: %v", err)
 	}
 	defer resp.Body.Close()
+
 	var getResp GetAPIResponse
 	if err := json.NewDecoder(resp.Body).Decode(&getResp); err != nil {
 		return false, fmt.Errorf("decoding GetAPIResponse struct failed: %v", err)
@@ -374,6 +380,7 @@ func indexShouldBeRolledOver(logger *logp.Logger, client *es.Client, currentIdx 
 		client.Cat.Indices.WithIndex(currentIdx),
 		client.Cat.Indices.WithH("pri", "pri.store.size", "creation.date.string"),
 	)
+	defer indicesResp.Body.Close()
 	if checkESAPIError(http.StatusOK, indicesResp, err) != nil {
 		logger.With(logp.String("index", currentIdx)).
 			Errorf("Unable to query cat API: %v", err)
@@ -442,27 +449,27 @@ func checkESAPIError(statusCode int, resp *esapi.Response, err error) error {
 		return fmt.Errorf("ES API client error: %v", err)
 	}
 	if resp.StatusCode != statusCode {
-		b, _ := io.ReadAll(resp.Body)
-		defer resp.Body.Close()
 		return fmt.Errorf("ES API response yielded unexpected result: want %d, got %d: %s",
-			statusCode, resp.StatusCode, string(b))
+			statusCode, resp.StatusCode, resp.String())
 	}
 	return nil
 }
 
 func bootstrapILMLockDocument(client *es.Client, targetAlias string) error {
-	// Create the document the first time, when the index is empty
 	body := bytes.NewBufferString(fmt.Sprintf(`{
 	"@timestamp": %d,
 	"phase": "%s"
 }`, time.Now().UTC().Unix(), "pending"))
+	// Create the document the first time, when the index is empty
+	// Conflict: another replica has already created the first document
+	// for the same index
 	r, err := client.Index(ILMLockingIndex,
 		body, client.Index.WithDocumentID(targetAlias),
 		client.Index.WithRefresh("true"),
 		client.Index.WithOpType("create"),
 	)
-	// Conflict: another replica has already created the first document
-	// for the same index
+	defer r.Body.Close()
+
 	if checkESAPIError(http.StatusConflict, r, err) == nil {
 		return nil
 	}

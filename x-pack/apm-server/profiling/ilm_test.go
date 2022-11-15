@@ -356,13 +356,15 @@ func TestCheckErrorFromElasticsearchAPI(t *testing.T) {
 	for _, tc := range testCases {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
+			defer tc.resp.Body.Close()
 			err := checkESAPIError(tc.expectedStatusCode, tc.resp, tc.err)
 			if tc.wantErr {
 				if tc.resp.StatusCode != tc.expectedStatusCode && tc.err == nil {
 					assert.Contains(t, err.Error(), strconv.Itoa(tc.resp.StatusCode))
 				}
 				assert.NotNil(t, err)
-				assert.True(t, strings.HasSuffix(err.Error(), errText))
+				assert.True(t, strings.HasSuffix(err.Error(), errText),
+					"expected %s to be suffix of %s", errText, err.Error())
 				return
 			}
 			assert.Nil(t, err)
