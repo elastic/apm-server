@@ -42,9 +42,9 @@ jobs:
       matrix:
         os: [ 'ubuntu-latest', 'macos-latest' ]
         script: [ '.ci/scripts/unit-test.sh' ]
-      include:
-        - os: 'windows-latest'
-          script: '.ci\scripts\windows-test.ps1'
+        include:
+          - os: 'windows-latest'
+            script: '.ci\scripts\windows-test.ps1'
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
