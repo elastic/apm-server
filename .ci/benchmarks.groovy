@@ -79,13 +79,11 @@ pipeline {
           }
         }
         cleanup {
-          stage('Tear down'){
-            dir("${BASE_DIR}") {
-              withGoEnv() {
-                dir("${TESTING_BENCHMARK_DIR}") {
-                  withTestClusterEnv() {
-                    sh(label: 'Tear down benchmark environment', script: 'make destroy')
-                  }
+          dir("${BASE_DIR}") {
+            withGoEnv() {
+              dir("${TESTING_BENCHMARK_DIR}") {
+                withTestClusterEnv() {
+                  sh(label: 'Tear down benchmark environment', script: 'make destroy')
                 }
               }
             }
