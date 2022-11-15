@@ -49,11 +49,6 @@ type Metricset struct {
 	// Samples holds the metrics in the set.
 	Samples []MetricsetSample
 
-	// TimeseriesInstanceID holds an optional identifier for the timeseries
-	// instance, such as a hash of the labels used for aggregating the
-	// metrics.
-	TimeseriesInstanceID string
-
 	// Name holds an optional name for the metricset.
 	Name string
 
@@ -157,9 +152,6 @@ func (a *AggregatedDuration) fields() mapstr.M {
 }
 
 func (me *Metricset) setFields(fields *mapStr) {
-	if me.TimeseriesInstanceID != "" {
-		fields.set("timeseries", mapstr.M{"instance": me.TimeseriesInstanceID})
-	}
 	if me.DocCount > 0 {
 		fields.set("_doc_count", me.DocCount)
 	}
