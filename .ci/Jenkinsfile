@@ -26,15 +26,10 @@ pipeline {
     quietPeriod(10)
   }
   triggers {
-    issueCommentTrigger("(${obltGitHubComments()}|^run\\W+(?:the\\W+)?(package|arm|windows)\\W+tests|^/test|^^/package|^/test windows)")
+    issueCommentTrigger("(${obltGitHubComments()}|^run\\W+(?:the\\W+)?(package)\\W+tests|^/test|^^/package)")
   }
   parameters {
     booleanParam(name: 'Run_As_Main_Branch', defaultValue: false, description: 'Allow to run any steps on a PR, some steps normally only run on main branch.')
-    booleanParam(name: 'arm_ci', defaultValue: true, description: 'Enable ARM build')
-    booleanParam(name: 'linux_ci', defaultValue: true, description: 'Enable Linux build')
-    booleanParam(name: 'osx_ci', defaultValue: false, description: 'Enable OSX CI')
-    booleanParam(name: 'windows_ci', defaultValue: false, description: 'Enable Windows CI')
-    booleanParam(name: 'intake_ci', defaultValue: true, description: 'Enable test')
     booleanParam(name: 'test_ci', defaultValue: true, description: 'Enable test')
     booleanParam(name: 'test_sys_env_ci', defaultValue: true, description: 'Enable system and environment test')
     booleanParam(name: 'bench_ci', defaultValue: true, description: 'Enable benchmarks')
@@ -70,124 +65,10 @@ pipeline {
       }
     }
 
-    // Lint code, and verify repo is up-to-date with `make update`.
-    stage('Code linting') {
-      options { skipDefaultCheckout() }
-      environment {
-        PATH = "${env.PATH}:${env.WORKSPACE}/bin"
-        HOME = "${env.WORKSPACE}"
-      }
-      when {
-        beforeAgent true
-        allOf {
-          expression { return params.intake_ci }
-          expression { return env.ONLY_DOCS == "false" }
-        }
-      }
-      steps {
-        withGithubNotify(context: 'Code linting') {
-          deleteDir()
-          unstash 'source'
-          dir("${BASE_DIR}"){
-            withGoEnv(){
-              sh(label: 'Run intake', script: './.ci/scripts/intake.sh')
-            }
-          }
-        }
-      }
-    }
-
     // Run unit tests, system tests, benchmarks, and packaging in parallel.
     stage('Build and test') {
       failFast false
       parallel {
-        stage('Unit tests - windows/amd64') {
-          agent { label 'windows-2022-immutable' }
-          options {
-            skipDefaultCheckout()
-          }
-          when {
-            beforeAgent true
-            allOf {
-              anyOf {
-                expression { return params.windows_ci }
-                expression { return env.GITHUB_COMMENT?.contains('windows')}
-                expression { matchesPrLabel(label: 'ci:windows') }
-              }
-              expression { return env.ONLY_DOCS == "false" }
-            }
-          }
-          steps {
-            withGithubNotify(context: 'Unit tests - windows/amd64') {
-              deleteDir()
-              unstash 'source'
-              dir(BASE_DIR){
-                withGoEnv(){
-                  // Retry in case there are any errors to avoid temporary glitches
-                  retryWithSleep(retries: 2) {
-                    powershell(label: 'Run Window tests', script: '.\\.ci\\scripts\\windows-test.ps1')
-                  }
-                }
-              }
-            }
-          }
-        }
-        stage('Unit tests - darwin/amd64') {
-          agent { label 'orka && darwin && x86_64' }
-          options {
-            skipDefaultCheckout()
-            warnError('OSX execution failed')
-          }
-          when {
-            beforeAgent true
-            allOf {
-              expression { return params.osx_ci }
-              expression { return env.ONLY_DOCS == "false" }
-            }
-          }
-          steps {
-            withGithubNotify(context: 'Unit tests - darwin/amd64') {
-              deleteDir()
-              unstash 'source'
-              dir(BASE_DIR){
-                withGoEnv(){
-                  // Retry in case there are any errors to avoid temporary glitches
-                  retryWithSleep(retries: 2) {
-                    sh(label: 'Run unit tests', script: '.ci/scripts/unit-test.sh')
-                  }
-                }
-              }
-            }
-          }
-        }
-        stage('Unit tests - linux/arm64') {
-          agent { label 'arm' }
-          options {
-            skipDefaultCheckout()
-            warnError('ARM execution failed')
-          }
-          when {
-            beforeAgent true
-            allOf {
-              expression { return params.arm_ci }
-              expression { return env.ONLY_DOCS == "false" }
-            }
-          }
-          environment {
-            HOME = "${env.WORKSPACE}"
-          }
-          steps {
-            withGithubNotify(context: 'Unit tests - linux/arm64') {
-              deleteDir()
-              unstash 'source'
-              dir("${BASE_DIR}"){
-                withGoEnv(){
-                  sh(label: 'ARM Unit tests', script: './.ci/scripts/unit-test.sh')
-                }
-              }
-            }
-          }
-        }
         stage('Unit tests - linux/amd64') {
           agent { label 'linux && immutable' }
           options { skipDefaultCheckout() }
