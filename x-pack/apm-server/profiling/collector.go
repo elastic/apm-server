@@ -341,11 +341,10 @@ func (e *ElasticCollector) AddExecutableMetadata(ctx context.Context,
 		var buf bytes.Buffer
 		_ = json.NewEncoder(&buf).Encode(exeMetadata)
 
-		err := e.indexer.Add(ctx, elasticsearch.BulkIndexerItem{
+		err := multiplexCurrentNextIndicesWrite(ctx, e, &elasticsearch.BulkIndexerItem{
 			Index:      ExecutablesIndex,
 			Action:     actionIndex,
 			DocumentID: docID,
-			Body:       bytes.NewReader(buf.Bytes()),
 			OnFailure: func(
 				_ context.Context,
 				_ elasticsearch.BulkIndexerItem,
@@ -358,7 +357,7 @@ func (e *ElasticCollector) AddExecutableMetadata(ctx context.Context,
 					logp.String("error_type", resp.Error.Type),
 				).Errorf("failed to index executable metadata: %s", resp.Error.Reason)
 			},
-		})
+		}, buf.Bytes())
 		if err != nil {
 			e.logger.With(logp.Error(err)).Error("Elasticsearch indexing error")
 			return nil, errCustomer
@@ -404,11 +403,10 @@ func (e *ElasticCollector) SetFramesForTraces(ctx context.Context,
 		var body bytes.Buffer
 		_ = json.NewEncoder(&body).Encode(toIndex)
 
-		err = e.indexer.Add(ctx, elasticsearch.BulkIndexerItem{
+		err = multiplexCurrentNextIndicesWrite(ctx, e, &elasticsearch.BulkIndexerItem{
 			Index:      StackTraceIndex,
 			Action:     actionIndex,
 			DocumentID: docID,
-			Body:       bytes.NewReader(body.Bytes()),
 			OnFailure: func(
 				_ context.Context,
 				_ elasticsearch.BulkIndexerItem,
@@ -421,7 +419,7 @@ func (e *ElasticCollector) SetFramesForTraces(ctx context.Context,
 					logp.String("error_type", resp.Error.Type),
 				).Errorf("failed to index stacktrace metadata: %s", resp.Error.Reason)
 			},
-		})
+		}, body.Bytes())
 
 		if err != nil {
 			e.logger.With(logp.Error(err)).Error("Elasticsearch indexing error")
@@ -509,11 +507,10 @@ func (e *ElasticCollector) AddFrameMetadata(ctx context.Context, in *AddFrameMet
 			action = actionCreate
 		}
 
-		err := e.indexer.Add(ctx, elasticsearch.BulkIndexerItem{
+		err := multiplexCurrentNextIndicesWrite(ctx, e, &elasticsearch.BulkIndexerItem{
 			Index:      StackFrameIndex,
 			Action:     action,
 			DocumentID: docID,
-			Body:       bytes.NewReader(buf.Bytes()),
 			OnFailure: func(
 				_ context.Context,
 				item elasticsearch.BulkIndexerItem,
@@ -530,7 +527,7 @@ func (e *ElasticCollector) AddFrameMetadata(ctx context.Context, in *AddFrameMet
 					logp.String("error_type", resp.Error.Type),
 				).Errorf("failed to index stackframe metadata: %s", resp.Error.Reason)
 			},
-		})
+		}, buf.Bytes())
 		if err != nil {
 			e.logger.With(logp.Error(err)).Error("Elasticsearch indexing error")
 			return nil, errCustomer
@@ -584,13 +581,12 @@ func (e *ElasticCollector) AddFallbackSymbols(ctx context.Context,
 		var buf bytes.Buffer
 		_ = json.NewEncoder(&buf).Encode(frameMetadata)
 
-		err := e.indexer.Add(ctx, elasticsearch.BulkIndexerItem{
+		err := multiplexCurrentNextIndicesWrite(ctx, e, &elasticsearch.BulkIndexerItem{
 			Index: StackFrameIndex,
 			// Use 'create' instead of 'index' to not overwrite an existing document,
 			// possibly containing a fully symbolized frame.
 			Action:     actionCreate,
 			DocumentID: docID,
-			Body:       bytes.NewReader(buf.Bytes()),
 			OnFailure: func(
 				_ context.Context,
 				_ elasticsearch.BulkIndexerItem,
@@ -603,7 +599,7 @@ func (e *ElasticCollector) AddFallbackSymbols(ctx context.Context,
 					logp.String("error_type", resp.Error.Type),
 				).Error("failed to index stackframe metadata: %s", resp.Error.Reason)
 			},
-		})
+		}, buf.Bytes())
 		if err != nil {
 			e.logger.With(logp.Error(err)).Error("Elasticsearch indexing error")
 			return nil, errCustomer
@@ -735,4 +731,21 @@ func (e *ElasticCollector) AddMetrics(ctx context.Context, in *Metrics) (*empty.
 	}
 
 	return &empty.Empty{}, nil
+}
+
+// multiplexCurrentNextIndicesWrite ingests twice the same item for 2 separate indices
+// to achieve a sliding window ingestion mechanism.
+// These indices will be managed by the custom ILM strategy implemented in ilm.go.
+func multiplexCurrentNextIndicesWrite(ctx context.Context, e *ElasticCollector,
+	item *elasticsearch.BulkIndexerItem, body []byte) error {
+	copied := *item
+	copied.Index = nextIndex(item.Index)
+
+	item.Body = bytes.NewReader(body)
+	copied.Body = bytes.NewReader(body)
+
+	if err := e.indexer.Add(ctx, *item); err != nil {
+		return err
+	}
+	return e.indexer.Add(ctx, copied)
 }

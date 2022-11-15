@@ -286,7 +286,12 @@ func newProfilingCollector(args beater.ServerParams) (*profiling.ElasticCollecto
 		clusterName,
 		logger,
 	)
+
+	ctx, stopILM := context.WithCancel(context.Background())
+	profiling.ScheduleILMExecution(ctx, logger.Named("ilm"), args.Config.Profiling)
+
 	cleanup := func(ctx context.Context) error {
+		stopILM()
 		var errors error
 		if indexer.Close(ctx); err != nil {
 			errors = multierror.Append(errors, err)

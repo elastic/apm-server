@@ -19,3 +19,5 @@ xpack.fleet.agentPolicies:
         id: default-fleet-server
         package:
           name: fleet_server
+
+xpack.profiling.enabled: true
