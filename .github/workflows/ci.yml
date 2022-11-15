@@ -1,0 +1,73 @@
+name: ci
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - 7.1*
+      - 8.*
+    paths-ignore:
+      - '**.md'
+      - '**.asciidoc'
+  pull_request:
+    paths-ignore:
+      - '**.md'
+      - '**.asciidoc'
+
+# limit the access of the generated GITHUB_TOKEN
+permissions:
+  contents: read
+
+jobs:
+
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v3
+      - name: Fetch Go version from .go-version
+        run: echo "GO_VERSION=$(cat .go-version)" >> $GITHUB_ENV
+      - uses: actions/setup-go@v3
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+      - name: Run intake
+        run: .ci/scripts/intake.sh
+
+  test:
+    timeout-minutes: 10
+    needs: [ lint ]
+    strategy:
+      matrix:
+        os: [ 'ubuntu-latest', 'macos-latest' ]
+        script: [ '.ci/scripts/unit-test.sh' ]
+      include:
+        - os: 'windows-latest'
+          script: '.ci\scripts\windows-test.ps1'
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Fetch Go version from .go-version
+        run: echo "GO_VERSION=$(cat .go-version)" >> $GITHUB_ENV
+      - uses: actions/setup-go@v3
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+      - name: Unit test
+        run: ${{ matrix.script }}
+
+  system-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: [ test ]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with:
+          go-version: ${{ env.DEFAULT_GO_VERSION }}
+          check-latest: true
+          cache: true
+      - name: linux-test
+        run: .ci/scripts/linux-test.sh
+
