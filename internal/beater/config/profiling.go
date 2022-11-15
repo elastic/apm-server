@@ -41,7 +41,7 @@ type ProfilingConfig struct {
 	MetricsESConfig *elasticsearch.Config
 
 	// ILMConfig
-	ILMConfig *ILMConfig `config:"keyvalue_retention"`
+	ILMConfig *ProfilingILMConfig `config:"keyvalue_retention"`
 
 	es        *config.C
 	metricsES *config.C
@@ -135,7 +135,7 @@ func (c *ProfilingConfig) setup(log *logp.Logger, outputESCfg *config.C) error {
 	return nil
 }
 
-type ILMConfig struct {
+type ProfilingILMConfig struct {
 	Age         time.Duration `config:"age"`
 	SizeInBytes uint64        `config:"size_bytes"`
 	Interval    time.Duration `config:"execution_interval"`
@@ -150,8 +150,8 @@ func defaultProfilingConfig() ProfilingConfig {
 	}
 }
 
-func defaultProfilingILMConfig() *ILMConfig {
-	return &ILMConfig{
+func defaultProfilingILMConfig() *ProfilingILMConfig {
+	return &ProfilingILMConfig{
 		// 2 months
 		Age: 1440 * time.Hour,
 		// 100 GiB

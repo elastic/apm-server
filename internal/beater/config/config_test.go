@@ -290,7 +290,7 @@ func TestUnpackConfig(t *testing.T) {
 						elasticsearch.DefaultConfig(),
 						"metrics_api_key",
 					),
-					ILMConfig: &ILMConfig{
+					ILMConfig: &ProfilingILMConfig{
 						Age:         4 * time.Hour,
 						SizeInBytes: 12345678,
 						Interval:    time.Second,
