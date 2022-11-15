@@ -69,7 +69,6 @@ var apmEventSortFields = []string{
 	"transaction.id",
 	"span.id",
 	"error.id",
-	"timeseries.instance",
 	"span.destination.service.resource",
 	"transaction.type",
 	"span.type",

@@ -64,14 +64,12 @@ func TestMetricset(t *testing.T) {
 		},
 		{
 			Metricset: &Metricset{
-				TimeseriesInstanceID: "foo",
-				DocCount:             6,
+				DocCount: 6,
 			},
 			Output: mapstr.M{
-				"timeseries": mapstr.M{"instance": "foo"},
 				"_doc_count": int64(6),
 			},
-			Msg: "Timeseries instance and _doc_count",
+			Msg: "_doc_count",
 		},
 		{
 			Metricset: &Metricset{

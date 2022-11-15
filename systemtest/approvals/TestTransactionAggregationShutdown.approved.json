@@ -51,9 +51,6 @@
                     "version": "2.0"
                 }
             },
-            "timeseries": {
-                "instance": "systemtest:name:942a34484a40cac3"
-            },
             "transaction": {
                 "duration": {
                     "histogram": {
