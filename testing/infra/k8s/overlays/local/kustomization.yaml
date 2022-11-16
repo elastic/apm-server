@@ -4,6 +4,24 @@ resources:
 
 patches:
 - patch: |-
+    apiVersion: apps/v1
+    kind: StatefulSet
+    metadata:
+      name: elastic-operator
+      namespace: elastic-system
+    spec:
+      selector:
+        control-plane: elastic-operator
+      template:
+        spec:
+          containers:
+            - name: manager
+              resources:
+                limits:
+                  memory: "512Mi"
+                requests:
+                  memory: "256Mi"
+- patch: |-
     apiVersion: agent.k8s.elastic.co/v1alpha1
     kind: Agent
     metadata:
