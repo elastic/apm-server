@@ -129,9 +129,11 @@ def downloadPNGReport() {
              'password': 'KIBANA_PASSWORD',
              'kibana_url': 'KIBANA_ENDPOINT']
    ) {
+    // These steps should not fail the build if something goes wrong
     sh(label: 'Run unit tests',
-       script: '.ci/scripts/download-png-from-kibana.sh $KIBANA_ENDPOINT $KIBANA_USER $KIBANA_PASSWORD $PNG_REPORT_FILE')
-    archiveArtifacts(allowEmptyArchive: false, artifacts: "${env.PNG_REPORT_FILE}")
+       script: '.ci/scripts/download-png-from-kibana.sh $KIBANA_ENDPOINT $KIBANA_USER $KIBANA_PASSWORD $PNG_REPORT_FILE',
+       returnStatus: true)
+    archiveArtifacts(allowEmptyArchive: true, artifacts: "${env.PNG_REPORT_FILE}")
   }
 }
 
