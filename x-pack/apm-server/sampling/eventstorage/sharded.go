@@ -23,9 +23,10 @@ type ShardedReadWriter struct {
 
 func newShardedReadWriter(storage *Storage) *ShardedReadWriter {
 	s := &ShardedReadWriter{
-		// Create as many ReadWriters as there are CPUs,
-		// so we can ideally minimise lock contention.
-		readWriters: make([]lockedReadWriter, runtime.NumCPU()),
+		// Create as many ReadWriters as there are GOMAXPROCS, which considers
+		// cgroup quotas, so we can ideally minimise lock contention, and scale
+		// up accordingly with more CPU.
+		readWriters: make([]lockedReadWriter, runtime.GOMAXPROCS(0)),
 	}
 	for i := range s.readWriters {
 		s.readWriters[i].rw = storage.NewReadWriter()
