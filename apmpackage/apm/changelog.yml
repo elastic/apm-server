@@ -1,7 +1,9 @@
-# newer versions go on top
-#
-# change type can be one of: enhancement, bugfix, breaking-change
-- version: "generated"
+- version: generated
+  changes:
+    - description: Placeholder
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/123
+- version: "8.6.0"
   changes:
     - description: Change `ecs.version` to a `constant_keyword` field
       type: enhancement
