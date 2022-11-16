@@ -68,7 +68,9 @@ pipeline {
               }
             }
           }
-          downloadPNGReport()
+          // NOTE(marclop) The current PNG report isn't useful for a few reasons
+          // and is also making the build fail. Disabled until that is fixed.
+          // downloadPNGReport()
         }
       }
       post {
@@ -89,11 +91,13 @@ pipeline {
             }
           }
         }
-        success {
-          dir("${BASE_DIR}") {
-            sendSlackReportSuccessMessage()
-          }
-        }
+        // NOTE(marclop) The current PNG report isn't useful for a few reasons
+        // and is also making the build fail. Disabled until that is fixed.
+        // success {
+        //   dir("${BASE_DIR}") {
+        //     sendSlackReportSuccessMessage()
+        //   }
+        // }
         failure {
           notifyBuildResult(slackNotify: true, slackComment: true)
         }
