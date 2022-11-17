@@ -22,12 +22,7 @@ MINOR_VERSION=$(echo ${VERSION} | cut -d '.' -f2 )
 
 OBSERVER_VERSION=$(echo ${VERSION} | cut -d '-' -f1 )
 
-if [[ ${MAJOR_VERSION} -eq 7 ]]; then
-    ASSERT_EVENTS_FUNC=legacy_assertions
-    INTEGRATIONS_SERVER=false
-    get_latest_patch "${MAJOR_VERSION}.${MINOR_VERSION}"
-    LATEST_VERSION=${MAJOR_VERSION}.${MINOR_VERSION}.${LATEST_PATCH}
-elif [[ ${MAJOR_VERSION} -eq 8 ]]; then
+if [[ ${MAJOR_VERSION} -eq 8 ]]; then
     ASSERT_EVENTS_FUNC=data_stream_assertions
     INTEGRATIONS_SERVER=true
 
