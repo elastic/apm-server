@@ -24,7 +24,7 @@ PYTHON_ENV?=.
 PYTHON_VENV_DIR:=$(PYTHON_ENV)/build/ve/$(shell $(GO) env GOOS)
 PYTHON_BIN:=$(PYTHON_VENV_DIR)/bin
 PYTHON=$(PYTHON_BIN)/python
-CURRENT_DIR=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
+CURRENT_DIR=$(shell dirname $(shell readlink -f $(firstword $(MAKEFILE_LIST))))
 
 # Create a local config.mk file to override configuration.
 -include config.mk
