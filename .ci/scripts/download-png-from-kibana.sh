@@ -6,8 +6,37 @@ kibana_pwd=$3
 png_output_file=${4:-'out.png'}
 table_width_px=${5:-850}
 
-png_url_path=$(curl -XPOST --silent -L -u "$kibana_user:$kibana_pwd" -H 'kbn-xsrf: true' "$kibana_host/api/reporting/generate/pngV2?jobParams=%28layout%3A%28dimensions%3A%28height%3A0%2Cwidth%3A$table_width_px%29%2Cid%3Apreserve_layout%29%2ClocatorParams%3A%28id%3ADASHBOARD_APP_LOCATOR%2Cparams%3A%28dashboardId%3Aa5bc8390-2f8e-11ed-a369-052d8245fa04%2CpreserveSavedFilters%3A%21t%2CtimeRange%3A%28from%3Anow-30d%2Cto%3Anow%29%2CuseHash%3A%21f%2CviewMode%3Aview%29%2CobjectType%3Adashboard%2Ctitle%3Aapp_bench_diff_shifts_slack%29" \
-| jq -r '.path')
+JOB_PARAMS=$(echo "
+(
+  layout:(
+    dimensions:(
+      height:400,
+      width:${table_width_px}
+    ),id:preserve_layout
+  ),
+  locatorParams:(
+    id:DASHBOARD_APP_LOCATOR,
+    params:(
+      dashboardId:a5bc8390-2f8e-11ed-a369-052d8245fa04,
+      preserveSavedFilters:!t,
+      timeRange:(
+        from:now-30d,
+        to:now
+      ),
+      useHash:!f,
+      viewMode:view
+    ),
+    version:'8.3.2'
+  ),
+  objectType:dashboard,
+  title:app_bench_diff_shifts_slack,
+  version:'8.3.2'
+)
+" | tr -d "[:space:]")
+
+
+png_url_path=$(curl -XPOST -v -L -u "$kibana_user:$kibana_pwd" -H 'kbn-xsrf: true' --data-urlencode "jobParams=${JOB_PARAMS}" $kibana_host/api/reporting/generate/pngV2 | jq -r '.path')
+
 
 echo "PNG URL path: $png_url_path"
 
