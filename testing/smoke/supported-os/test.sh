@@ -56,5 +56,5 @@ do
     healthcheck 1
     send_events
     ${ASSERT_EVENTS_FUNC} ${OBSERVER_VERSION}
-    terraform_destroy
+    delete_all
 done

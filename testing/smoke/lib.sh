@@ -124,6 +124,15 @@ send_events() {
     sleep 10
 }
 
+delete_all() {
+    local AUTH=${ELASTICSEARCH_USER}:${ELASTICSEARCH_PASS}
+    local URL=${ELASTICSEARCH_URL}/_all
+
+    echo "-> Removing all data from ES..."
+
+    curl_fail -u ${AUTH} -XDELETE "${URL}"
+}
+
 legacy_assert_events() {
     local INDEX="apm-${1}"
     local VERSION=${1}
