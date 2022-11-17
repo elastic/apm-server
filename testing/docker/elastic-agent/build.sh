@@ -6,7 +6,7 @@
 
 set -eu
 
-REPO_ROOT=$(cd $(dirname $(realpath "$0"))/../../.. && pwd)
+REPO_ROOT=$(cd $(dirname "$0")/../../.. && pwd)
 
 DEFAULT_IMAGE_TAG=$(grep docker.elastic.co/kibana ${REPO_ROOT}/docker-compose.yml | cut -d: -f3)
 BASE_IMAGE="${BASE_IMAGE:-docker.elastic.co/beats/elastic-agent:$DEFAULT_IMAGE_TAG}"
