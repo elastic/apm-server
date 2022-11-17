@@ -20,7 +20,7 @@ patches:
                 limits:
                   memory: "512Mi"
                 requests:
-                  memory: "256Mi"
+                  memory: "150Mi"
 - patch: |-
     apiVersion: agent.k8s.elastic.co/v1alpha1
     kind: Agent
