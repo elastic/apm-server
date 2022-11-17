@@ -16,6 +16,11 @@ spec:
     spec:
       containers:
       - name: kibana
+        resources:
+          limits:
+            memory: "1Gi"
+          requests:
+            memory: "512Mi"
         readinessProbe:
           initialDelaySeconds: 10
           periodSeconds: 10
