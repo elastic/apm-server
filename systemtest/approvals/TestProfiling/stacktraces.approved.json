@@ -1,0 +1,14 @@
+{
+    "events": [
+        {
+            "Stacktrace.frame.ids": "AAAAAAAAAAkAAAAAAAAACwAAAAAAAAAP",
+            "Stacktrace.frame.types": "AQc",
+            "ecs.version": "1.12.0"
+        },
+        {
+            "Stacktrace.frame.ids": "AAAAAAAAAAsAAAAAAAAADQAAAAAAAAARAAAAAAAAAAoAAAAAAAAADAAAAAAAAAAQ",
+            "Stacktrace.frame.types": "AQkBCA",
+            "ecs.version": "1.12.0"
+        }
+    ]
+}
