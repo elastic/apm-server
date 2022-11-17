@@ -111,12 +111,16 @@ func TestProfiling(t *testing.T) {
 	defer conn.Close()
 	client := profiling.NewCollectionAgentClient(conn)
 
-	var expectedMetadataDocs int
 	// proper authenticated context
 	ctx := metadata.AppendToOutgoingContext(context.Background(),
 		"secretToken", secretToken,
 		"projectID", "123",
 		"hostID", "abc123")
+
+	// We always insert 2 elements in KV indices for each test RPC below.
+	// All RPCs use a columnar format, where arrays of fields are bundled
+	// by their index into Elasticsearch documents
+	const expectedKVDocs = 2
 
 	_, err = client.AddExecutableMetadata(ctx, &profiling.AddExecutableMetadataRequest{
 		HiFileIDs: []uint64{1, 2},
@@ -125,7 +129,6 @@ func TestProfiling(t *testing.T) {
 		BuildIDs:  []string{"build1", "build2"},
 	})
 	require.NoError(t, err)
-	expectedMetadataDocs += 2
 
 	_, err = client.SetFramesForTraces(ctx, &profiling.SetFramesForTracesRequest{
 		HiTraceHashes:     []uint64{1, 2},
@@ -141,7 +144,6 @@ func TestProfiling(t *testing.T) {
 		UniqueMetadata:    []string{"comm1", "comm2", "pod", "container"},
 	})
 	require.NoError(t, err)
-	expectedMetadataDocs += 2
 
 	_, err = client.AddFrameMetadata(ctx, &profiling.AddFrameMetadataRequest{
 		HiFileIDs:       []uint64{1, 2},
@@ -156,10 +158,6 @@ func TestProfiling(t *testing.T) {
 		Filenames:       []string{"ninete.en", "twen.ty"},
 	})
 	require.NoError(t, err)
-	expectedMetadataDocs += 2
-
-	result := systemtest.Elasticsearch.ExpectMinDocs(t, expectedMetadataDocs, "profiling-*", nil)
-	systemtest.ApproveEvents(t, t.Name()+"/metadata", result.Hits.Hits, "@timestamp")
 
 	_, err = client.AddCountsForTraces(ctx, &profiling.AddCountsForTracesRequest{
 		Timestamp:         123,
@@ -172,6 +170,17 @@ func TestProfiling(t *testing.T) {
 		UniqueMetadata:    []string{"comm", "pod", "container"},
 	})
 	require.NoError(t, err)
+
+	// Perform queries and assertions on KV indices, after waiting more than the default index refresh interval
+	<-time.After(4 * time.Second)
+	result := systemtest.Elasticsearch.ExpectMinDocs(t, expectedKVDocs, "profiling-executables", nil)
+	systemtest.ApproveEvents(t, t.Name()+"/executables", result.Hits.Hits, "@timestamp")
+
+	result = systemtest.Elasticsearch.ExpectMinDocs(t, expectedKVDocs, "profiling-stackframes", nil)
+	systemtest.ApproveEvents(t, t.Name()+"/stackframes", result.Hits.Hits)
+
+	result = systemtest.Elasticsearch.ExpectMinDocs(t, expectedKVDocs, "profiling-stacktraces", nil)
+	systemtest.ApproveEvents(t, t.Name()+"/stacktraces", result.Hits.Hits)
 
 	// We're using a wildcard below to prevent the search from failing
 	// when the index hasn't yet been created.

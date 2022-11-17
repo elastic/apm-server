@@ -1,0 +1,16 @@
+{
+    "events": [
+        {
+            "@timestamp": "dynamic",
+            "Executable.build.id": "build1",
+            "Executable.file.name": "a.apl",
+            "ecs.version": "1.12.0"
+        },
+        {
+            "@timestamp": "dynamic",
+            "Executable.build.id": "build2",
+            "Executable.file.name": "b.bas",
+            "ecs.version": "1.12.0"
+        }
+    ]
+}
