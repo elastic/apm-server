@@ -11,6 +11,7 @@ const (
 	StackFrameIndex   = "profiling-stackframes"
 	ExecutablesIndex  = "profiling-executables"
 	MetricsIndex      = "profiling-metrics"
+	ILMLockingIndex   = ".profiling-ilm-lock"
 )
 
 // ## Why do we need downsampling ?
@@ -62,17 +63,20 @@ const (
 //
 // The condition is
 // (100k * 86400 * 7 * 20) / 5^N in [20k, 100k-1]
-//                     ^-- max number of events per second
-//                 ^------ number of days
-//         ^-------------- seconds per day
-//  ^--------------------- number of cores
+//
+//	                   ^-- max number of events per second
+//	               ^------ number of days
+//	       ^-------------- seconds per day
+//	^--------------------- number of cores
 //
 // For N=11 the condition is satisfied with a value of 24772.
 // In numbers, the 5^11 downsampled index holds 48828125x fewer entries than the full events table.
 //
 // ## What is the cost of downsampling ?
 // The additional cost in terms of storage size is
-//   1/5^1 +1/5^2 + ... + 1/5^11 = 25%
+//
+//	1/5^1 +1/5^2 + ... + 1/5^11 = 25%
+//
 // The same goes for the additional CPU cost on the write path.
 //
 // The average benefit on the read/query path depends on the query. But it seems that in average

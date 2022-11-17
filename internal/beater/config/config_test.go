@@ -165,9 +165,12 @@ func TestUnpackConfig(t *testing.T) {
 						"max_groups": 457,
 					},
 				},
-				"default_service_environment":             "overridden",
-				"profiling.enabled":                       true,
-				"profiling.metrics.elasticsearch.api_key": "metrics_api_key",
+				"default_service_environment":                     "overridden",
+				"profiling.enabled":                               true,
+				"profiling.metrics.elasticsearch.api_key":         "metrics_api_key",
+				"profiling.keyvalue_retention.age":                "4h",
+				"profiling.keyvalue_retention.size_bytes":         12345678,
+				"profiling.keyvalue_retention.execution_interval": "1s",
 			},
 			outCfg: &Config{
 				Host:                  "localhost:3000",
@@ -287,6 +290,11 @@ func TestUnpackConfig(t *testing.T) {
 						elasticsearch.DefaultConfig(),
 						"metrics_api_key",
 					),
+					ILMConfig: &ProfilingILMConfig{
+						Age:         4 * time.Hour,
+						SizeInBytes: 12345678,
+						Interval:    time.Second,
+					},
 				},
 			},
 		},
@@ -346,14 +354,13 @@ func TestUnpackConfig(t *testing.T) {
 				},
 			},
 			outCfg: &Config{
-				Host:                  "localhost:3000",
-				MaxHeaderSize:         1048576,
-				MaxEventSize:          307200,
-				IdleTimeout:           45000000000,
-				ReadTimeout:           30000000000,
-				WriteTimeout:          30000000000,
-				ShutdownTimeout:       30000000000,
-				MaxConcurrentDecoders: 200,
+				Host:            "localhost:3000",
+				MaxHeaderSize:   1048576,
+				MaxEventSize:    307200,
+				IdleTimeout:     45000000000,
+				ReadTimeout:     30000000000,
+				WriteTimeout:    30000000000,
+				ShutdownTimeout: 30000000000,
 				AgentAuth: AgentAuth{
 					SecretToken: "1234random",
 					APIKey: APIKeyAgentAuth{
@@ -447,6 +454,7 @@ func TestUnpackConfig(t *testing.T) {
 					Enabled:         false,
 					ESConfig:        elasticsearch.DefaultConfig(),
 					MetricsESConfig: elasticsearch.DefaultConfig(),
+					ILMConfig:       defaultProfilingILMConfig(),
 				},
 			},
 		},
@@ -582,34 +590,6 @@ func TestTLSSettings(t *testing.T) {
 			})
 		}
 	})
-}
-
-func TestAgentConfig(t *testing.T) {
-	t.Run("InvalidValueTooSmall", func(t *testing.T) {
-		cfg, err := NewConfig(config.MustNewConfigFrom(map[string]string{"agent.config.cache.expiration": "123ms"}), nil)
-		require.Error(t, err)
-		assert.Nil(t, cfg)
-	})
-
-	t.Run("InvalidUnit", func(t *testing.T) {
-		cfg, err := NewConfig(config.MustNewConfigFrom(map[string]string{"agent.config.cache.expiration": "1230ms"}), nil)
-		require.Error(t, err)
-		assert.Nil(t, cfg)
-	})
-
-	t.Run("Valid", func(t *testing.T) {
-		cfg, err := NewConfig(config.MustNewConfigFrom(map[string]string{"agent.config.cache.expiration": "123000ms"}), nil)
-		require.NoError(t, err)
-		assert.Equal(t, time.Second*123, cfg.KibanaAgentConfig.Cache.Expiration)
-	})
-}
-
-func TestAgentConfigs(t *testing.T) {
-	cfg, err := NewConfig(config.MustNewConfigFrom(`{"agent_config":[{"service.environment":"production","config":{"transaction_sample_rate":0.5}}]}`), nil)
-	require.NoError(t, err)
-	assert.NotNil(t, cfg)
-	assert.Len(t, cfg.AgentConfigs, 1)
-	assert.NotEmpty(t, cfg.AgentConfigs[0].Etag)
 }
 
 func TestNewConfig_ESConfig(t *testing.T) {

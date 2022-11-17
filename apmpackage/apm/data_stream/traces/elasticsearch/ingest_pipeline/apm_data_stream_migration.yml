@@ -37,3 +37,6 @@ processors:
       if: ctx.data_stream != null
       field: _index
       value: "{{data_stream.type}}-{{data_stream.dataset}}-{{data_stream.namespace}}"
+  - remove:
+      field: timeseries # remove timeseries.instance
+      ignore_missing: true

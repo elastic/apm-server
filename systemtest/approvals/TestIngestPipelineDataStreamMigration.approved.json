@@ -260,6 +260,114 @@
             }
         },
         {
+            "@timestamp": "2022-09-12T03:52:00.000Z",
+            "agent": {
+                "name": "go"
+            },
+            "data_stream": {
+                "dataset": "apm.internal",
+                "namespace": "migrated",
+                "type": "metrics"
+            },
+            "ecs": {
+                "version": "dynamic"
+            },
+            "event": {
+                "agent_id_status": "missing",
+                "ingested": "dynamic",
+                "outcome": "failure"
+            },
+            "metricset": {
+                "name": "service_destination"
+            },
+            "observer": {
+                "hostname": "dynamic",
+                "name": "instance-0000000000",
+                "type": "apm-server",
+                "version": "dynamic"
+            },
+            "processor": {
+                "event": "metric",
+                "name": "metric"
+            },
+            "service": {
+                "name": "main"
+            },
+            "span": {
+                "destination": {
+                    "service": {
+                        "resource": "dest_resource",
+                        "response_time": {
+                            "count": 1,
+                            "sum": {
+                                "us": 10220
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "@timestamp": "2022-09-12T03:52:00.000Z",
+            "agent": {
+                "name": "go"
+            },
+            "container": {
+                "id": "spawn-6cd7c2e1-43d5-4c89-8480-e178b3bc70d1"
+            },
+            "data_stream": {
+                "dataset": "apm.internal",
+                "namespace": "migrated",
+                "type": "metrics"
+            },
+            "ecs": {
+                "version": "dynamic"
+            },
+            "event": {
+                "agent_id_status": "missing",
+                "ingested": "dynamic",
+                "outcome": "failure"
+            },
+            "host": {
+                "hostname": "corduroy",
+                "name": "corduroy"
+            },
+            "metricset": {
+                "name": "transaction"
+            },
+            "observer": {
+                "hostname": "dynamic",
+                "name": "instance-0000000000",
+                "type": "apm-server",
+                "version": "dynamic"
+            },
+            "processor": {
+                "event": "metric",
+                "name": "metric"
+            },
+            "service": {
+                "name": "main",
+                "node": {
+                    "name": "spawn-6cd7c2e1-43d5-4c89-8480-e178b3bc70d1"
+                }
+            },
+            "transaction": {
+                "duration": {
+                    "histogram": {
+                        "counts": [
+                            1
+                        ],
+                        "values": [
+                            10239
+                        ]
+                    }
+                },
+                "name": "name",
+                "root": true,
+                "type": "type"
+            }
+        },
+        {
             "@timestamp": "2022-09-12T03:52:51.178Z",
             "agent": {
                 "name": "go",
@@ -414,117 +522,6 @@
             },
             "transaction": {
                 "name": "name",
-                "type": "type"
-            }
-        },
-        {
-            "@timestamp": "2022-09-12T03:52:00.000Z",
-            "agent": {
-                "name": "go"
-            },
-            "data_stream": {
-                "dataset": "apm.internal",
-                "namespace": "migrated",
-                "type": "metrics"
-            },
-            "ecs": {
-                "version": "dynamic"
-            },
-            "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic",
-                "outcome": "failure"
-            },
-            "metricset": {
-                "name": "service_destination"
-            },
-            "observer": {
-                "hostname": "dynamic",
-                "name": "instance-0000000000",
-                "type": "apm-server",
-                "version": "dynamic"
-            },
-            "processor": {
-                "event": "metric",
-                "name": "metric"
-            },
-            "service": {
-                "name": "main"
-            },
-            "span": {
-                "destination": {
-                    "service": {
-                        "resource": "dest_resource",
-                        "response_time": {
-                            "count": 1,
-                            "sum": {
-                                "us": 10220
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        {
-            "@timestamp": "2022-09-12T03:52:00.000Z",
-            "agent": {
-                "name": "go"
-            },
-            "container": {
-                "id": "spawn-6cd7c2e1-43d5-4c89-8480-e178b3bc70d1"
-            },
-            "data_stream": {
-                "dataset": "apm.internal",
-                "namespace": "migrated",
-                "type": "metrics"
-            },
-            "ecs": {
-                "version": "dynamic"
-            },
-            "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic",
-                "outcome": "failure"
-            },
-            "host": {
-                "hostname": "corduroy",
-                "name": "corduroy"
-            },
-            "metricset": {
-                "name": "transaction"
-            },
-            "observer": {
-                "hostname": "dynamic",
-                "name": "instance-0000000000",
-                "type": "apm-server",
-                "version": "dynamic"
-            },
-            "processor": {
-                "event": "metric",
-                "name": "metric"
-            },
-            "service": {
-                "name": "main",
-                "node": {
-                    "name": "spawn-6cd7c2e1-43d5-4c89-8480-e178b3bc70d1"
-                }
-            },
-            "timeseries": {
-                "instance": "main:name:5b6121c8e3ec693e"
-            },
-            "transaction": {
-                "duration": {
-                    "histogram": {
-                        "counts": [
-                            1
-                        ],
-                        "values": [
-                            10239
-                        ]
-                    }
-                },
-                "name": "name",
-                "root": true,
                 "type": "type"
             }
         },

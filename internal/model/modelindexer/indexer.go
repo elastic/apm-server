@@ -112,7 +112,7 @@ type Config struct {
 	// MaxRequests holds the maximum number of bulk index requests to execute concurrently.
 	// The maximum memory usage of Indexer is thus approximately MaxRequests*FlushBytes.
 	//
-	// If MaxRequests is less than or equal to zero, the default of 50 will be used.
+	// If MaxRequests is less than or equal to zero, the default of 10 will be used.
 	MaxRequests int
 
 	// FlushBytes holds the flush threshold in bytes. If Compression is enabled,
@@ -126,6 +126,14 @@ type Config struct {
 	// If FlushInterval is zero, the default of 30 seconds will be used.
 	FlushInterval time.Duration
 
+	// EventBufferSize sets the number of events that can be buffered before
+	// they are stored in the active indexer buffer.
+	//
+	// If EventBufferSize is zero, the default 1024 will be used.
+	EventBufferSize int
+
+	// Tracer holds an optional apm.Tracer to use for tracing bulk requests
+	// to Elasticsearch. Each bulk request is traced as a transaction.
 	// Scaling configuration for the modelindexer.
 	//
 	// If unspecified, scaling is enabled by default.
@@ -194,13 +202,16 @@ func New(client elasticsearch.Client, cfg Config) (*Indexer, error) {
 		)
 	}
 	if cfg.MaxRequests <= 0 {
-		cfg.MaxRequests = 50
+		cfg.MaxRequests = 10
 	}
 	if cfg.FlushBytes <= 0 {
 		cfg.FlushBytes = 1 * 1024 * 1024
 	}
 	if cfg.FlushInterval <= 0 {
 		cfg.FlushInterval = 30 * time.Second
+	}
+	if cfg.EventBufferSize <= 0 {
+		cfg.EventBufferSize = 1024
 	}
 	if !cfg.Scaling.Disabled {
 		if cfg.Scaling.ScaleDown.Threshold == 0 {
@@ -230,7 +241,7 @@ func New(client elasticsearch.Client, cfg Config) (*Indexer, error) {
 		available:             available,
 		closed:                make(chan struct{}),
 		// NOTE(marclop) This channel size is arbitrary.
-		bulkItems: make(chan elasticsearch.BulkIndexerItem, 100),
+		bulkItems: make(chan elasticsearch.BulkIndexerItem, cfg.EventBufferSize),
 	}
 
 	// We create a cancellable context for the errgroup.Group for unblocking

@@ -7,9 +7,7 @@ package txmetrics
 import (
 	"context"
 	"encoding/binary"
-	"fmt"
 	"math"
-	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -222,7 +220,7 @@ func (a *Aggregator) publish(ctx context.Context) error {
 	for hash, entries := range a.inactive.m {
 		for _, entry := range entries {
 			totalCount, counts, values := entry.transactionMetrics.histogramBuckets()
-			batch = append(batch, makeMetricset(entry.transactionAggregationKey, hash, totalCount, counts, values))
+			batch = append(batch, makeMetricset(entry.transactionAggregationKey, totalCount, counts, values))
 		}
 		delete(a.inactive.m, hash)
 	}
@@ -280,7 +278,7 @@ that configuration option appropriately, may lead to better results.`[1:],
 	atomic.AddInt64(&a.metrics.overflowed, 1)
 	counts := []int64{int64(math.Round(count))}
 	values := []float64{float64(event.Event.Duration.Microseconds())}
-	return makeMetricset(key, hash, counts[0], counts, values)
+	return makeMetricset(key, counts[0], counts, values)
 }
 
 func (a *Aggregator) updateTransactionMetrics(key transactionAggregationKey, hash uint64, count float64, duration time.Duration) bool {
@@ -391,17 +389,7 @@ func (a *Aggregator) makeTransactionAggregationKey(event model.APMEvent, interva
 }
 
 // makeMetricset makes a metricset event from key, counts, and values, with timestamp ts.
-func makeMetricset(
-	key transactionAggregationKey, hash uint64, totalCount int64, counts []int64, values []float64,
-) model.APMEvent {
-	// Record a timeseries instance ID, which should be uniquely identify the aggregation key.
-	var timeseriesInstanceID strings.Builder
-	timeseriesInstanceID.WriteString(key.serviceName)
-	timeseriesInstanceID.WriteRune(':')
-	timeseriesInstanceID.WriteString(key.transactionName)
-	timeseriesInstanceID.WriteRune(':')
-	timeseriesInstanceID.WriteString(fmt.Sprintf("%x", hash))
-
+func makeMetricset(key transactionAggregationKey, totalCount int64, counts []int64, values []float64) model.APMEvent {
 	return model.APMEvent{
 		Timestamp:  key.timestamp,
 		Agent:      model.Agent{Name: key.agentName},
@@ -453,9 +441,8 @@ func makeMetricset(
 		NumericLabels: key.AggregatedGlobalLabels.NumericLabels,
 		Processor:     model.MetricsetProcessor,
 		Metricset: &model.Metricset{
-			Name:                 metricsetName,
-			DocCount:             totalCount,
-			TimeseriesInstanceID: timeseriesInstanceID.String(),
+			Name:     metricsetName,
+			DocCount: totalCount,
 		},
 		Transaction: &model.Transaction{
 			Name:   key.transactionName,

@@ -15,7 +15,21 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package main
+package beater
 
-// version matches the APM Server's version
-const version = "8.7.0"
+import (
+	"github.com/elastic/go-sysinfo"
+)
+
+// systemMemoryLimit returns the total system memory.
+func systemMemoryLimit() (uint64, error) {
+	host, err := sysinfo.Host()
+	if err != nil {
+		return 0, err
+	}
+	mem, err := host.Memory()
+	if err != nil {
+		return 0, err
+	}
+	return mem.Total, nil
+}
