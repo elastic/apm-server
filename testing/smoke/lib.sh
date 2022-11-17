@@ -52,7 +52,7 @@ terraform_apply() {
     echo "-> Creating / Upgrading deployment to version ${1}"
     if [[ ! -z ${1} ]]; then echo stack_version=\"${1}\" > terraform.tfvars; fi
     if [[ ! -z ${2} ]]; then echo integrations_server=${2} >> terraform.tfvars; fi
-    terraform apply -auto-approve | tee -a tf.log
+    terraform apply -auto-approve >> tf.log
 
     if [[ ${EXPORTED_AUTH} ]]; then
         return
@@ -72,7 +72,7 @@ terraform_destroy() {
     if [[ ${exit_code} -gt 0 ]]; then
         echo "-> Smoke tests FAILED!!"
         echo "-> Printing terraform logs:"
-	#cat tf.log
+        cat tf.log
     fi
     echo "-> Destroying the underlying infrastructure..." 
     terraform destroy -auto-approve >> tf.log
