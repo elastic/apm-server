@@ -14,5 +14,12 @@ spec:
     replicas: 1
     podTemplate:
       spec:
+        containers:
+        - name: agent
+          resources:
+            limits:
+              memory: "512Mi"
+            requests:
+              memory: "256Mi"
         securityContext:
           runAsUser: 0

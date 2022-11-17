@@ -13,7 +13,19 @@ spec:
     name: fleet-server
   deployment:
     replicas: 1
+    strategy:
+      # Can be changed to "Replace" for extremely memory limited environments.
+      type: "RollingUpdate"
     podTemplate:
       spec:
+        containers:
+        - name: agent
+          resources:
+            limits:
+              cpu: 1
+              memory: "2Gi"
+            requests:
+              cpu: 1
+              memory: "1Gi"
         securityContext:
           runAsUser: 0
