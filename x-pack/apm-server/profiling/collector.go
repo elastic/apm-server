@@ -15,6 +15,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/hashicorp/golang-lru/simplelru"
@@ -210,7 +211,6 @@ type StackTrace struct {
 	ECSVersion ecsVersion `json:"ecs.version"`
 	FrameIDs   string     `json:"Stacktrace.frame.ids"`
 	Types      string     `json:"Stacktrace.frame.types"`
-	LastSeen   uint32     `json:"@timestamp"`
 }
 
 // StackFrame represents a stacktrace serializable into the stackframes index.
@@ -303,7 +303,7 @@ func (e *ElasticCollector) AddExecutableMetadata(ctx context.Context,
 	hiFileIDs := in.GetHiFileIDs()
 	loFileIDs := in.GetLoFileIDs()
 
-	lastSeen := GetStartOfWeek()
+	lastSeen := GetStartOfWeekFromTime(time.Now())
 
 	numHiFileIDs := len(hiFileIDs)
 	numLoFileIDs := len(loFileIDs)
@@ -380,7 +380,6 @@ func (*ElasticCollector) ReportHostMetadata(context.Context,
 
 func (e *ElasticCollector) SetFramesForTraces(ctx context.Context,
 	req *SetFramesForTracesRequest) (*empty.Empty, error) {
-	lastSeen := GetStartOfWeek()
 
 	traces, err := CollectTracesAndFrames(req)
 	if err != nil {
@@ -397,7 +396,6 @@ func (e *ElasticCollector) SetFramesForTraces(ctx context.Context,
 		toIndex := StackTrace{
 			FrameIDs: EncodeFrameIDs(trace.Files, trace.Linenos),
 			Types:    EncodeFrameTypes(trace.FrameTypes),
-			LastSeen: lastSeen,
 		}
 
 		var body bytes.Buffer
@@ -597,7 +595,7 @@ func (e *ElasticCollector) AddFallbackSymbols(ctx context.Context,
 				e.logger.With(
 					logp.Error(err),
 					logp.String("error_type", resp.Error.Type),
-				).Error("failed to index stackframe metadata: %s", resp.Error.Reason)
+				).Errorf("failed to index stackframe metadata: %s", resp.Error.Reason)
 			},
 		}, buf.Bytes())
 		if err != nil {

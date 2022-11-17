@@ -63,6 +63,9 @@ func (p *Pubsub) PublishSampledTraceIDs(ctx context.Context, traceIDs <-chan str
 	indexer, err := modelindexer.New(p.config.Client, modelindexer.Config{
 		CompressionLevel: p.config.CompressionLevel,
 		FlushInterval:    p.config.FlushInterval,
+		EventBufferSize:  100, // Reduce memory footprint
+		// Disable autoscaling for the TBS sampled traces published documents.
+		Scaling: modelindexer.ScalingConfig{Disabled: true},
 	})
 	if err != nil {
 		return err
