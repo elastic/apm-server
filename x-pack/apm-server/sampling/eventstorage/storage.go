@@ -127,6 +127,10 @@ func (rw *ReadWriter) Close() {
 func (rw *ReadWriter) Flush(limit int64) error {
 	const flushErrFmt = "failed to flush pending writes: %w"
 	if current, limitReached := rw.s.limitReached(limit); limitReached {
+		// Discard the txn and re-create it if the soft limit has been reached.
+		rw.txn.Discard()
+		rw.txn = rw.s.db.NewTransaction(true)
+		rw.pendingWrites = 0
 		return fmt.Errorf(
 			flushErrFmt+" (current: %d, limit: %d)",
 			ErrLimitReached, current, limit,

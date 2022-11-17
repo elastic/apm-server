@@ -291,6 +291,11 @@ func TestStorageLimit(t *testing.T) {
 		"failed to flush pending writes: configured storage limit reached (current: %d, limit: 1)", lsm+vlog,
 	))
 	assert.ErrorIs(t, err, eventstorage.ErrLimitReached)
+
+	// Assert the stored write has been discarded.
+	var batch model.Batch
+	readWriter.ReadTraceEvents(traceID, &batch)
+	assert.Equal(t, 0, len(batch))
 }
 
 func badgerOptions() badger.Options {
