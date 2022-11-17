@@ -43,12 +43,15 @@ terraform_init() {
     terraform validate >> tf.log
 }
 
+append_tfvar() {
+    if [[ -f terraform.tfvars && ! -z ${3} && ${3} -gt 0 ]]; then rm terraform.tfvars; fi
+    echo ${1}=\"${2}\" >> terraform.tfvars
+}
+
 terraform_apply() {
     echo "-> Creating / Upgrading deployment to version ${1}"
-    echo stack_version=\"${1}\" > terraform.tfvars
+    if [[ ! -z ${1} ]]; then echo stack_version=\"${1}\" > terraform.tfvars; fi
     if [[ ! -z ${2} ]]; then echo integrations_server=${2} >> terraform.tfvars; fi
-    if [[ ! -z ${3} ]]; then echo aws_provisioner_key_name=\"${3}\" >> terraform.tfvars; fi
-    if [[ ! -z ${4} ]]; then echo aws_os=\"${4}\" >> terraform.tfvars; fi
     terraform apply -auto-approve | tee -a tf.log
 
     if [[ ${EXPORTED_AUTH} ]]; then

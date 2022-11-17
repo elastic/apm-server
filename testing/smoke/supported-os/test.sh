@@ -52,7 +52,9 @@ os_names=(
 
 for os in "${os_names[@]}"
 do
-    terraform_apply ${LATEST_VERSION} ${INTEGRATIONS_SERVER} ${KEY_NAME} $os
+    append_tfvar "aws_provisioner_key_name" ${KEY_NAME} 1
+    append_tfvar "aws_os" $os
+    terraform_apply
     healthcheck 1
     send_events
     ${ASSERT_EVENTS_FUNC} ${OBSERVER_VERSION}
