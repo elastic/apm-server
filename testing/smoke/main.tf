@@ -26,152 +26,6 @@ module "ec_deployment" {
   integrations_server = var.integrations_server
 }
 
-# aws specific locals
-locals {
-  image_owners = {
-    "ubuntu-bionic-18.04-amd64-server" = "099720109477" # canonical
-    "ubuntu-focal-20.04-amd64-server"  = "099720109477" # canonical
-    "ubuntu-jammy-22.04-amd64-server"  = "099720109477" # canonical
-    "debian-10-amd64"                  = "136693071363" # debian
-    "debian-11-amd64"                  = "136693071363" # debian
-    "amzn2-ami-kernel-5.10"            = "137112412989" # amazon
-    "RHEL-7"                           = "309956199498" # Red Hat
-    "RHEL-8"                           = "309956199498" # Red Hat
-  }
-  image_ssh_users = {
-    "ubuntu-bionic-18.04-amd64-server" = "ubuntu"
-    "ubuntu-focal-20.04-amd64-server"  = "ubuntu"
-    "ubuntu-jammy-22.04-amd64-server"  = "ubuntu"
-    "debian-10-amd64"                  = "admin"
-    "debian-11-amd64"                  = "admin"
-    "amzn2-ami-kernel-5.10"            = "ec2-user"
-    "RHEL-7"                           = "ec2-user"
-    "RHEL-8"                           = "ec2-user"
-  }
-  apm_port = "8200"
-}
-
-data "aws_ami" "os" {
-  count       = var.aws_os != "" ? 1 : 0
-  most_recent = true
-
-  filter {
-    name   = "name"
-    values = ["*${var.aws_os}*"]
-  }
-
-  filter {
-    name   = "architecture"
-    values = ["x86_64"]
-  }
-
-  filter {
-    name   = "root-device-type"
-    values = ["ebs"]
-  }
-
-  filter {
-    name   = "virtualization-type"
-    values = ["hvm"]
-  }
-
-  owners = [local.image_owners[var.aws_os]]
-}
-
-resource "aws_security_group" "main" {
-  egress = [
-    {
-      cidr_blocks      = ["0.0.0.0/0", ]
-      description      = ""
-      from_port        = 0
-      ipv6_cidr_blocks = []
-      prefix_list_ids  = []
-      protocol         = "-1"
-      security_groups  = []
-      self             = false
-      to_port          = 0
-    }
-  ]
-  ingress = [
-    {
-      cidr_blocks      = ["0.0.0.0/0", ]
-      description      = ""
-      from_port        = 22
-      ipv6_cidr_blocks = []
-      prefix_list_ids  = []
-      protocol         = "tcp"
-      security_groups  = []
-      self             = false
-      to_port          = 22
-    },
-    {
-      cidr_blocks      = ["0.0.0.0/0", ]
-      description      = ""
-      from_port        = local.apm_port
-      ipv6_cidr_blocks = []
-      prefix_list_ids  = []
-      protocol         = "tcp"
-      security_groups  = []
-      self             = false
-      to_port          = local.apm_port
-    }
-  ]
-}
-
-resource "aws_instance" "apm" {
-  count         = var.aws_os != "" ? 1 : 0
-  ami           = data.aws_ami.os.0.id
-  instance_type = "t3.micro"
-  key_name      = aws_key_pair.provisioner_key.0.key_name
-
-  connection {
-    type        = "ssh"
-    user        = local.image_ssh_users[var.aws_os]
-    host        = self.public_ip
-    private_key = file("${var.aws_provisioner_key_name}")
-  }
-
-  provisioner "remote-exec" {
-    inline = [
-      "curl ${data.external.getlatestapmserver.result.deb} -o apm-server.deb && curl ${data.external.getlatestapmserver.result.rpm} -o apm-server.rpm",
-      "sudo dpkg -i apm-server.deb || sudo yum -y install apm-server.rpm",
-      "sudo rm /etc/apm-server/apm-server.yml",
-      "echo \"apm-server:\n  host: \\\"0.0.0.0:${local.apm_port}\\\"\noutput:\n  elasticsearch:\n    hosts: [\\\"${module.ec_deployment.elasticsearch_url}\\\"]\n    username: \\\"${module.ec_deployment.elasticsearch_username}\\\"\n    password: \\\"${module.ec_deployment.elasticsearch_password}\\\"\" | sudo tee -a /etc/apm-server/apm-server.yml",
-      "sudo systemctl start apm-server",
-      "sleep 1",
-    ]
-  }
-
-  vpc_security_group_ids = [aws_security_group.main.id]
-}
-
-data "external" "getlatestapmserver" {
-  program = ["sh", "./latest_apm_server.sh"]
-}
-
-resource "random_password" "apm_secret_token" {
-  length  = 16
-  special = false
-}
-
-resource "aws_key_pair" "provisioner_key" {
-  count      = var.aws_os != "" ? 1 : 0
-  key_name   = var.aws_provisioner_key_name
-  public_key = file("${var.aws_provisioner_key_name}.pub")
-}
-
-variable "aws_os" {
-  default = ""
-  description = "Optional aws ec2 instance OS"
-  type    = string
-}
-
-variable "aws_provisioner_key_name" {
-  default = ""
-  description = "Optional ssh key name to create the aws key pair and remote provision the ec2 instance"
-  type    = string
-}
-
 variable "stack_version" {
   # By default match the latest available 7.17.x
   default     = "7.17.[0-9]?([0-9])$"
@@ -192,13 +46,13 @@ variable "region" {
 }
 
 output "apm_secret_token" {
-  value       = var.aws_os != "" ? random_password.apm_secret_token.result : module.ec_deployment.apm_secret_token
+  value       = module.ec_deployment.apm_secret_token
   description = "The APM Server secret token"
   sensitive   = true
 }
 
 output "apm_server_url" {
-  value       = var.aws_os != "" ? "${aws_instance.apm.0.public_ip}:${local.apm_port}" : module.ec_deployment.apm_url
+  value       = module.ec_deployment.apm_url
   description = "The APM Server URL"
 }
 

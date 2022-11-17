@@ -73,7 +73,8 @@ terraform_destroy() {
     fi
     echo "-> Destroying the underlying infrastructure..." 
     terraform destroy -auto-approve >> tf.log
-    rm -f terraform.tfvars tf.log main.tf
+    rm -f terraform.tfvars tf.log
+    if [[ -z ${1} || ${1} -gt 0 ]]; then rm -f main.tf; fi
     exit ${exit_code}
 }
 

@@ -36,7 +36,7 @@ fi
 echo "-> Running basic supported OS smoke test for version ${VERSION}"
 
 if [[ -z ${SKIP_DESTROY} ]]; then
-    trap "terraform_destroy" EXIT
+    trap "terraform_destroy 0" EXIT
 fi
 
 os_names=(
