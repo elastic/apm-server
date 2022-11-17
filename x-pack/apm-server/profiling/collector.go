@@ -597,7 +597,7 @@ func (e *ElasticCollector) AddFallbackSymbols(ctx context.Context,
 				e.logger.With(
 					logp.Error(err),
 					logp.String("error_type", resp.Error.Type),
-				).Error("failed to index stackframe metadata: %s", resp.Error.Reason)
+				).Errorf("failed to index stackframe metadata: %s", resp.Error.Reason)
 			},
 		}, buf.Bytes())
 		if err != nil {
