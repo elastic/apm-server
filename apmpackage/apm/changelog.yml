@@ -6,9 +6,6 @@
     - description: Change `ecs.version` to a `constant_keyword` field
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/9208
-    - description: Enable synthetic source for metrics data streams
-      type: enhancement
-      link: https://github.com/elastic/apm-server/pull/9215
     - description: Add mappings for RUM `http.response.*_size` fields
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/9429

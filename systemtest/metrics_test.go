@@ -29,7 +29,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tidwall/gjson"
 	"go.elastic.co/apm/v2"
 
 	"github.com/elastic/apm-server/systemtest"
@@ -151,7 +150,7 @@ func TestApplicationMetrics(t *testing.T) {
 	for _, fieldName := range expectedFields {
 		var found bool
 		for _, hit := range result.Hits.Hits {
-			if gjson.GetBytes(hit.RawSource, fieldName).Exists() {
+			if _, ok := hit.Fields[fieldName]; ok {
 				found = true
 				break
 			}
@@ -236,6 +235,6 @@ func unmarshalMetricsetDoc(t testing.TB, hit *estest.SearchHit) metricsetDoc {
 	if err := hit.UnmarshalSource(&doc); err != nil {
 		t.Fatal(err)
 	}
-	doc.MetricsetName = gjson.GetBytes(hit.RawSource, "metricset").Get("name").String()
+	doc.MetricsetName = hit.Fields["metricset.name"][0].(string)
 	return doc
 }
