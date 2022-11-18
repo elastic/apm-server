@@ -55,10 +55,8 @@ do
     append_tfvar "aws_provisioner_key_name" ${KEY_NAME} 1
     append_tfvar "aws_os" $os
     terraform_apply
-    #  it is possbile that APM Server is still running (and indexing events/metrics/etc.),
-    #  so we may end up with pollution between test cases. 
-    #  If we do it directly after terraform_apply, the previous test case's APM Server 
-    #  should have been stopped.
+    # The previous test case's APM Server should have been stopped by now,
+    # so there should be no new documents indexed. Delete all existing data.
     delete_all
     healthcheck 1
     send_events
