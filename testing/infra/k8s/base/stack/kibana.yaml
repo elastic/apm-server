@@ -34,6 +34,8 @@ spec:
             - name: Authorization
               value: Basic YWRtaW46Y2hhbmdlbWU= # admin:changeme
   config:
+    xpack.banners.placement: top
+    xpack.banners.textContent: Log in credentials are `admin/changeme` by default
     xpack.fleet.agents.elasticsearch.hosts: ["http://elasticsearch-es-http.default.svc:9200"]
     xpack.fleet.packages:
     - name: apm
