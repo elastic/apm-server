@@ -77,6 +77,7 @@ RUN sed -i 's/localhost:8200/0.0.0.0:8200/' apm-server.yml
 RUN sed -i 's/localhost:9200/elasticsearch:9200/' apm-server.yml
 RUN mkdir --mode=0775 data
 RUN echo 'apm-server:*:1000:0::/usr/share/apm-server:/bin/false' >> /etc/passwd
+RUN chown apm-server apm-server.yml data # ensure apm-server user can read/write
 
 USER apm-server
 EXPOSE 8200
