@@ -18,6 +18,11 @@ import (
 	"github.com/pkg/errors"
 	"golang.org/x/sync/errgroup"
 
+	"github.com/elastic/beats/v7/libbeat/common/reload"
+	"github.com/elastic/beats/v7/x-pack/libbeat/management"
+	"github.com/elastic/elastic-agent-client/v7/pkg/client"
+	"github.com/elastic/elastic-agent-client/v7/pkg/proto"
+	"github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/monitoring"
 	"github.com/elastic/elastic-agent-libs/paths"
@@ -57,6 +62,28 @@ var (
 	// published by this process.
 	samplerUUID = uuid.Must(uuid.NewV4())
 )
+
+func init() {
+	management.ConfigTransform.SetTransform(
+		func(unit *proto.UnitExpectedConfig, agentInfo *client.AgentInfo) ([]*reload.ConfigWithMeta, error) {
+			// NOTE(axw) we intentionally do not log the entire config here,
+			// as it may contain secrets (Elasticsearch API Key, secret token).
+			logger := logp.NewLogger("")
+			logger.With(
+				logp.String("agent.id", agentInfo.ID),
+				logp.String("agent.version", agentInfo.Version),
+				logp.String("unit.id", unit.Id),
+				logp.Uint64("unit.revision", unit.Revision),
+			).Info("received input from elastic-agent")
+
+			cfg, err := config.NewConfigFrom(unit.GetSource().AsMap())
+			if err != nil {
+				return nil, err
+			}
+			return []*reload.ConfigWithMeta{{Config: cfg}}, nil
+		},
+	)
+}
 
 type namedProcessor struct {
 	processor
