@@ -227,6 +227,12 @@ func NewUnstartedElasticAgentContainer(opts ContainerConfig) (*ElasticAgentConta
 		return nil, err
 	}
 
+	agentImageDetails, _, err := docker.ImageInspectWithRaw(context.Background(), agentImage)
+	if err != nil {
+		return nil, err
+	}
+	vcsRef := agentImageDetails.Config.Labels["org.label-schema.vcs-ref"]
+
 	containerCACertPath := "/etc/pki/tls/certs/fleet-ca.pem"
 	hostCACertPath := filepath.Join(systemtestDir, "../testing/docker/fleet-server/ca.pem")
 	req := testcontainers.ContainerRequest{
@@ -242,37 +248,16 @@ func NewUnstartedElasticAgentContainer(opts ContainerConfig) (*ElasticAgentConta
 		SkipReaper: true, // we use our own reaping logic
 	}
 	return &ElasticAgentContainer{
+		vcsRef:  vcsRef,
 		request: req,
 		exited:  make(chan struct{}),
 		Reap:    true,
 	}, nil
 }
 
-func inspectImage(ctx context.Context, docker *client.Client, ref, arch string) (types.ImageInspect, error) {
-	details, _, err := docker.ImageInspectWithRaw(ctx, ref)
-	if err != nil {
-		if !client.IsErrNotFound(err) {
-			return details, err
-		}
-		log.Printf("pulling docker image %s...", ref)
-		r, err := docker.ImagePull(ctx, ref, types.ImagePullOptions{
-			Platform: fmt.Sprintf("linux/%s", arch),
-		})
-		if err != nil {
-			return details, fmt.Errorf("failed pulling docker image %s: %v", ref, err)
-		}
-		defer r.Close()
-		if _, err := docker.ImageLoad(ctx, r, false); err != nil {
-			return details, err
-		}
-		details, _, err = docker.ImageInspectWithRaw(ctx, ref)
-		return details, err
-	}
-	return details, nil
-}
-
 // ElasticAgentContainer represents an ephemeral Elastic Agent container.
 type ElasticAgentContainer struct {
+	vcsRef    string
 	container testcontainers.Container
 	request   testcontainers.ContainerRequest
 	exited    chan struct{}
@@ -429,7 +414,8 @@ func (c *ElasticAgentContainer) Close() error {
 func (c *ElasticAgentContainer) APMServerLog() (io.ReadCloser, error) {
 	return c.container.CopyFileFromContainer(
 		context.Background(), fmt.Sprintf(
-			"/usr/share/elastic-agent/state/data/logs/default/apm-server-%s-1.ndjson",
+			"/usr/share/elastic-agent/data/elastic-agent-%s/components/logs/apm-server-%s.ndjson",
+			c.vcsRef[:6],
 			time.Now().UTC().Format("20060102"),
 		),
 	)

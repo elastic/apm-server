@@ -128,9 +128,9 @@ func TestUnmanagedOutputRequired(t *testing.T) {
 }
 
 func TestRunManager(t *testing.T) {
-	oldRegistry := reload.Register
-	defer func() { reload.Register = oldRegistry }()
-	reload.Register = reload.NewRegistry()
+	oldRegistry := reload.RegisterV2
+	defer func() { reload.RegisterV2 = oldRegistry }()
+	reload.RegisterV2 = reload.NewRegistry()
 
 	// Register our own mock management implementation.
 	manager := newMockManager()
@@ -162,11 +162,14 @@ func TestRunManager(t *testing.T) {
 	expectEvent(t, manager.started, "manager should have been started")
 	expectNoEvent(t, manager.stopped, "manager should not have been stopped")
 
-	err := reload.Register.GetReloadableList("inputs").Reload([]*reload.ConfigWithMeta{{
-		Config: config.MustNewConfigFrom(`{"apm-server.host": "localhost:1234"}`),
+	err := reload.RegisterV2.GetInputList().Reload([]*reload.ConfigWithMeta{{
+		Config: config.MustNewConfigFrom(`{
+			"revision": 1,
+			"apm-server.host": "localhost:1234"
+		}`),
 	}})
 	assert.NoError(t, err)
-	err = reload.Register.GetReloadable("output").Reload(&reload.ConfigWithMeta{
+	err = reload.RegisterV2.GetReloadableOutput().Reload(&reload.ConfigWithMeta{
 		Config: config.MustNewConfigFrom(`{"console.enabled": true}`),
 	})
 	assert.NoError(t, err)
@@ -176,6 +179,7 @@ func TestRunManager(t *testing.T) {
 	err = args.Config.Unpack(&m)
 	assert.NoError(t, err)
 	assert.Equal(t, map[string]interface{}{
+		"revision": uint64(1),
 		"apm-server": map[string]interface{}{
 			"host": "localhost:1234",
 		},
@@ -236,7 +240,7 @@ func resetGlobals() {
 	}
 
 	// Create a new reload registry, as the Beat.Run method will register with it.
-	reload.Register = reload.NewRegistry()
+	reload.RegisterV2 = reload.NewRegistry()
 }
 
 type runnerFunc func(ctx context.Context) error

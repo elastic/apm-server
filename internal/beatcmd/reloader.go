@@ -19,7 +19,9 @@ package beatcmd
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"reflect"
 	"sync"
 
 	"golang.org/x/sync/errgroup"
@@ -64,10 +66,10 @@ func NewReloader(info beat.Info, newRunner NewRunnerFunc) (*Reloader, error) {
 		newRunner: newRunner,
 		stopped:   make(chan struct{}),
 	}
-	if err := reload.Register.RegisterList("inputs", reloadableListFunc(r.reloadInputs)); err != nil {
+	if err := reload.RegisterV2.RegisterList(reload.InputRegName, reloadableListFunc(r.reloadInputs)); err != nil {
 		return nil, fmt.Errorf("failed to register inputs reloader: %w", err)
 	}
-	if err := reload.Register.Register("output", reload.ReloadableFunc(r.reloadOutput)); err != nil {
+	if err := reload.RegisterV2.Register(reload.OutputRegName, reload.ReloadableFunc(r.reloadOutput)); err != nil {
 		return nil, fmt.Errorf("failed to register output reloader: %w", err)
 	}
 	return r, nil
@@ -83,10 +85,11 @@ type Reloader struct {
 	runner     Runner
 	stopRunner func() error
 
-	mu           sync.Mutex
-	inputConfig  *config.C
-	outputConfig *config.C
-	stopped      chan struct{}
+	mu            sync.Mutex
+	inputRevision int64
+	inputConfig   *config.C
+	outputConfig  *config.C
+	stopped       chan struct{}
 }
 
 // Run runs the Reloader, blocking until ctx is cancelled or a fatal error occurs.
@@ -113,10 +116,29 @@ func (r *Reloader) reloadInputs(configs []*reload.ConfigWithMeta) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	cfg := configs[0].Config
+
+	// Input configuration is expected to have a monotonically
+	// increasing revision number.
+	//
+	// Suppress config input changes that are no newer than
+	// the most recently loaded configuration.
+	revision, err := cfg.Int("revision", -1)
+	if err != nil {
+		return fmt.Errorf("failed to extract input config revision: %w", err)
+	}
+	if r.inputConfig != nil && revision <= r.inputRevision {
+		r.logger.With(
+			logp.Int64("revision", revision),
+		).Debug("suppressing stale input config change")
+		return nil
+	}
+
 	if err := r.reload(cfg, r.outputConfig); err != nil {
 		return fmt.Errorf("failed to load input config: %w", err)
 	}
+	r.inputRevision = revision
 	r.inputConfig = cfg
+	r.logger.With(logp.Int64("revision", revision)).Info("loaded input config")
 	return nil
 }
 
@@ -126,10 +148,15 @@ func (r *Reloader) reloadInputs(configs []*reload.ConfigWithMeta) error {
 func (r *Reloader) reloadOutput(cfg *reload.ConfigWithMeta) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
+	if r.outputConfig != nil && configEqual(cfg.Config, r.outputConfig) {
+		r.logger.Debug("suppressing redundant output config change")
+		return nil
+	}
 	if err := r.reload(r.inputConfig, cfg.Config); err != nil {
 		return fmt.Errorf("failed to load output config: %w", err)
 	}
 	r.outputConfig = cfg.Config
+	r.logger.Info("loaded output config")
 	return nil
 }
 
@@ -182,7 +209,7 @@ func (r *Reloader) reload(inputConfig, outputConfig *config.C) error {
 
 	// Stop any existing runner.
 	if r.runner != nil {
-		if err := r.stopRunner(); err != nil {
+		if err := r.stopRunner(); err != nil && !errors.Is(err, context.Canceled) {
 			r.logger.With(logp.Error(err)).Error("on reload, old runner stopped with an error")
 		}
 	}
@@ -196,4 +223,13 @@ type reloadableListFunc func(config []*reload.ConfigWithMeta) error
 
 func (f reloadableListFunc) Reload(configs []*reload.ConfigWithMeta) error {
 	return f(configs)
+}
+
+// configEqual tells us whether the two config structures are equal, by
+// unpacking them into map[string]interface{} and using reflect.DeepEqual.
+func configEqual(a, b *config.C) bool {
+	var ma, mb map[string]interface{}
+	_ = a.Unpack(&ma)
+	_ = b.Unpack(&mb)
+	return reflect.DeepEqual(ma, mb)
 }
