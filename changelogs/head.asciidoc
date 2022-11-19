@@ -18,6 +18,7 @@ https://github.com/elastic/apm-server/compare/8.5\...main[View commits]
 [float]
 ==== Bug fixes
 - Null APM agent configuration entries are now treated as empty, and will not cause the server to exit with an error {pull}9546[9546]
+- Change ownership of apm-server.yml and data/ to apm-server user in Docker image {pull} 9604[9604]
 
 [float]
 ==== Intake API Changes
