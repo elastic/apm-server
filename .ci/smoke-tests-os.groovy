@@ -9,7 +9,7 @@ pipeline {
     AWS_ACCOUNT_SECRET = 'secret/observability-team/ci/elastic-observability-aws-account-auth'
     EC_KEY_SECRET = 'secret/observability-team/ci/elastic-cloud/observability-pro'
     TERRAFORM_VERSION = '1.2.3'
-    SLACK_CHANNEL = "#observablt-bots"
+    SLACK_CHANNEL = "#apm-server"
     // cloud tags
     TF_VAR_BUILD_ID = "${env.BUILD_ID}"
     TF_VAR_ENVIRONMENT= 'ci'
