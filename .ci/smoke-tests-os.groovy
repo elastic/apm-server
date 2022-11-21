@@ -33,15 +33,9 @@ pipeline {
     stage('Smoke Tests') {
       options { skipDefaultCheckout() }
       steps {
-        withAWSEnv(secret: "${AWS_ACCOUNT_SECRET}", version: "2.7.6") {
-          withTerraformEnv(version: "${TERRAFORM_VERSION}", forceInstallation: true) {
-            withSecretVault(secret: "${EC_KEY_SECRET}", data: ['apiKey': 'EC_API_KEY'] ) {
-              dir("${BASE_DIR}/testing/smoke/supported-os") {
-                withGoEnv() {
-                  sh(label: "Run smoke tests", script: 'bash -x ./test.sh')
-                }
-              }
-            }
+        dir("${BASE_DIR}/testing/smoke/supported-os") {
+          withTestClusterEnv() {
+            sh(label: "Run smoke tests", script: 'bash -x ./test.sh')
           }
         }
       }
@@ -50,6 +44,20 @@ pipeline {
   post {
     cleanup {
       notifyBuildResult(slackComment: true)
+    }
+  }
+}
+
+def withTestClusterEnv(Closure body) {
+  // Run withGoEnv earlier since the HOME is set on the fly
+  // otherwise it might fail with error configuring Terraform AWS Provider: failed to get shared config profile
+  withGoEnv() {
+    withAWSEnv(secret: "${AWS_ACCOUNT_SECRET}", version: "2.7.6") {
+      withTerraformEnv(version: "${TERRAFORM_VERSION}", forceInstallation: true) {
+        withSecretVault(secret: "${EC_KEY_SECRET}", data: ['apiKey': 'EC_API_KEY'] ) {
+          body()
+        }
+      }
     }
   }
 }
