@@ -35,7 +35,7 @@ pipeline {
       steps {
         dir("${BASE_DIR}/testing/smoke/supported-os") {
           withTestClusterEnv() {
-            sh(label: "Run smoke tests", script: 'bash -x ./test.sh')
+            sh(label: "Run smoke tests", script: './test.sh')
           }
         }
       }
