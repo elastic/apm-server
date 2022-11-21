@@ -162,3 +162,19 @@ func TestSetDataStreamInternalMetricsetTypeUnit(t *testing.T) {
 		assert.Zero(t, sample.Unit)
 	}
 }
+
+func TestSetDataStreamServiceName(t *testing.T) {
+	processor := modelprocessor.SetDataStream{Namespace: "custom"}
+	batch := model.Batch{{
+		Processor: model.MetricsetProcessor,
+		Service:   model.Service{Name: "UPPER-CASE"},
+	}, {
+		Processor: model.MetricsetProcessor,
+		Service:   model.Service{Name: "\\/*?\"<>| ,#:"},
+	}}
+
+	err := processor.ProcessBatch(context.Background(), &batch)
+	assert.NoError(t, err)
+	assert.Equal(t, "apm.app.upper_case", batch[0].DataStream.Dataset)
+	assert.Equal(t, "apm.app.____________", batch[1].DataStream.Dataset)
+}

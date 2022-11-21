@@ -21,11 +21,6 @@ import (
 	"github.com/elastic/elastic-agent-libs/mapstr"
 )
 
-const (
-	TracesDataset    = "apm"
-	RUMTracesDataset = "apm.rum"
-)
-
 var (
 	// TransactionProcessor is the Processor value that should be assigned to transaction events.
 	TransactionProcessor = Processor{Name: "transaction", Event: "transaction"}

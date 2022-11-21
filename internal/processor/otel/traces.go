@@ -54,7 +54,6 @@ import (
 
 	"github.com/elastic/elastic-agent-libs/logp"
 
-	"github.com/elastic/apm-server/internal/datastreams"
 	"github.com/elastic/apm-server/internal/logs"
 	"github.com/elastic/apm-server/internal/model"
 )
@@ -925,7 +924,6 @@ func convertSpanEvent(
 		setErrorContext(&event, parent)
 	} else {
 		event.Processor = model.LogProcessor
-		event.DataStream.Type = datastreams.LogsType
 		event.Message = spanEvent.Name()
 		spanEvent.Attributes().Range(func(k string, v pcommon.Value) bool {
 			k = replaceDots(k)

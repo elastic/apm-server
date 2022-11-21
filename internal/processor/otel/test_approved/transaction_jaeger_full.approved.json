@@ -417,7 +417,6 @@
                 "name": "Jaeger",
                 "version": "unknown"
             },
-            "data_stream.type": "logs",
             "host": {
                 "hostname": "host-abc"
             },
@@ -462,7 +461,6 @@
                 "name": "Jaeger",
                 "version": "unknown"
             },
-            "data_stream.type": "logs",
             "host": {
                 "hostname": "host-abc"
             },
@@ -507,7 +505,6 @@
                 "name": "Jaeger",
                 "version": "unknown"
             },
-            "data_stream.type": "logs",
             "host": {
                 "hostname": "host-abc"
             },

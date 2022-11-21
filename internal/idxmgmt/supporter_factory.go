@@ -20,14 +20,11 @@ package idxmgmt
 import (
 	"github.com/pkg/errors"
 
-	"github.com/elastic/beats/v7/libbeat/common/fmtstr"
 	"github.com/elastic/beats/v7/libbeat/idxmgmt"
 	"github.com/elastic/beats/v7/libbeat/outputs"
-	"github.com/elastic/beats/v7/libbeat/outputs/outil"
 	"github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
 
-	"github.com/elastic/apm-server/internal/datastreams"
 	"github.com/elastic/apm-server/internal/logs"
 )
 
@@ -72,18 +69,13 @@ func logWarnings(log *logp.Logger, cfg *config.C) {
 
 type dataStreamsSupporter struct{}
 
-// BuildSelector returns an outputs.IndexSelector which routes events through
-// to data streams based on well-defined data_stream.* fields in events.
+// BuildSelector always returns an error.
+//
+// BuildSupporter must be implemented by idxmgmt.Supporter, but is only used by the
+// libbeat Elasticsearch output. We do not use the libbeat Elasticsearch output, so
+// any calls to this method are unexpected.
 func (dataStreamsSupporter) BuildSelector(*config.C) (outputs.IndexSelector, error) {
-	fmtstr, err := fmtstr.CompileEvent(datastreams.IndexFormat)
-	if err != nil {
-		return nil, err
-	}
-	expr, err := outil.FmtSelectorExpr(fmtstr, "", outil.SelectorLowerCase)
-	if err != nil {
-		return nil, err
-	}
-	return outil.MakeSelector(expr), nil
+	return nil, errors.New("unexpected call to BuildSelector")
 }
 
 // Enabled always returns false, indicating that this idxmgmt.Supporter does

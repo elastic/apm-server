@@ -23,11 +23,6 @@ import (
 	"github.com/elastic/elastic-agent-libs/mapstr"
 )
 
-const (
-	AppMetricsDataset      = "apm.app"
-	InternalMetricsDataset = "apm.internal"
-)
-
 var (
 	// MetricsetProcessor is the Processor value that should be assigned to metricset events.
 	MetricsetProcessor = Processor{Name: "metric", Event: "metric"}

@@ -26,10 +26,6 @@ var (
 	ErrorProcessor = Processor{Name: "error", Event: "error"}
 )
 
-const (
-	ErrorsDataset = "apm.error"
-)
-
 type Error struct {
 	ID string
 
