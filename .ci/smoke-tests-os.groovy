@@ -8,6 +8,7 @@ pipeline {
     BASE_DIR = "src/github.com/elastic/${env.REPO}"
     AWS_ACCOUNT_SECRET = 'secret/observability-team/ci/elastic-observability-aws-account-auth'
     EC_KEY_SECRET = 'secret/observability-team/ci/elastic-cloud/observability-pro'
+    TERRAFORM_VERSION = '1.2.3'
     CREATED_DATE = "${new Date().getTime()}"
     SLACK_CHANNEL = "#apm-server"
     SMOKETEST_VERSIONS = "${params.SMOKETEST_VERSIONS}"
@@ -28,14 +29,21 @@ pipeline {
         deleteDir()
         gitCheckout(basedir: "${BASE_DIR}", shallow: false)
         setEnvVar('GO_VERSION', readFile(file: "${BASE_DIR}/.go-version").trim())
-        stash(allowEmpty: true, name: 'source', useDefaultExcludes: false)
       }
     }
     stage('Smoke Tests') {
       options { skipDefaultCheckout() }
       steps {
-        dir ("${BASE_DIR}") {
-          echo 'TBC'
+        withAWSEnv(secret: "${AWS_ACCOUNT_SECRET}", version: "2.7.6") {
+          withTerraformEnv(version: "${TERRAFORM_VERSION}", forceInstallation: true) {
+            withSecretVault(secret: "${EC_KEY_SECRET}", data: ['apiKey': 'EC_API_KEY'] ) {
+              dir("${BASE_DIR}") {
+                withGoEnv() {
+                  sh(label: "Run smoke tests", script: 'testing/smoke/supported-os/test.sh')
+                }
+              }
+            }
+          }
         }
       }
     }
