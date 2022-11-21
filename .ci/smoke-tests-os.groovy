@@ -36,9 +36,9 @@ pipeline {
         withAWSEnv(secret: "${AWS_ACCOUNT_SECRET}", version: "2.7.6") {
           withTerraformEnv(version: "${TERRAFORM_VERSION}", forceInstallation: true) {
             withSecretVault(secret: "${EC_KEY_SECRET}", data: ['apiKey': 'EC_API_KEY'] ) {
-              dir("${BASE_DIR}") {
+              dir("${BASE_DIR}/testing/smoke/supported-os") {
                 withGoEnv() {
-                  sh(label: "Run smoke tests", script: 'testing/smoke/supported-os/test.sh')
+                  sh(label: "Run smoke tests", script: 'test.sh')
                 }
               }
             }
