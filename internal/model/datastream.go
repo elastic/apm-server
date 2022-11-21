@@ -17,8 +17,6 @@
 
 package model
 
-import "github.com/elastic/apm-server/internal/datastreams"
-
 // DataStream identifies the data stream to which an event will be written.
 type DataStream struct {
 	// Type holds the data_stream.type identifier.
@@ -32,7 +30,7 @@ type DataStream struct {
 }
 
 func (d *DataStream) setFields(fields *mapStr) {
-	fields.maybeSetString(datastreams.TypeField, d.Type)
-	fields.maybeSetString(datastreams.DatasetField, d.Dataset)
-	fields.maybeSetString(datastreams.NamespaceField, d.Namespace)
+	fields.maybeSetString("data_stream.type", d.Type)
+	fields.maybeSetString("data_stream.dataset", d.Dataset)
+	fields.maybeSetString("data_stream.namespace", d.Namespace)
 }

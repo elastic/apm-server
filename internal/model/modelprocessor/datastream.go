@@ -19,13 +19,27 @@ package modelprocessor
 
 import (
 	"context"
-	"fmt"
+	"strings"
 
-	"github.com/elastic/apm-server/internal/datastreams"
 	"github.com/elastic/apm-server/internal/model"
 )
 
-// SetDataStream is a model.BatchProcessor that sets the data stream for events.
+const (
+	logsType       = "logs"
+	appLogsDataset = "apm.app"
+	errorsDataset  = "apm.error"
+
+	metricsType            = "metrics"
+	appMetricsDataset      = "apm.app"
+	internalMetricsDataset = "apm.internal"
+
+	tracesType       = "traces"
+	tracesDataset    = "apm"
+	rumTracesDataset = "apm.rum"
+)
+
+// SetDataStream is a model.BatchProcessor that routes events to the appropriate
+// data streams.
 type SetDataStream struct {
 	Namespace string
 }
@@ -44,21 +58,21 @@ func (s *SetDataStream) ProcessBatch(ctx context.Context, b *model.Batch) error 
 func (s *SetDataStream) setDataStream(event *model.APMEvent) {
 	switch event.Processor {
 	case model.SpanProcessor, model.TransactionProcessor:
-		event.DataStream.Type = datastreams.TracesType
-		event.DataStream.Dataset = model.TracesDataset
+		event.DataStream.Type = tracesType
+		event.DataStream.Dataset = tracesDataset
 		// In order to maintain different ILM policies, RUM traces are sent to
 		// a different datastream.
 		if isRUMAgentName(event.Agent.Name) {
-			event.DataStream.Dataset = model.RUMTracesDataset
+			event.DataStream.Dataset = rumTracesDataset
 		}
 	case model.ErrorProcessor:
-		event.DataStream.Type = datastreams.LogsType
-		event.DataStream.Dataset = model.ErrorsDataset
+		event.DataStream.Type = logsType
+		event.DataStream.Dataset = errorsDataset
 	case model.LogProcessor:
-		event.DataStream.Type = datastreams.LogsType
-		event.DataStream.Dataset = model.AppLogsDataset
+		event.DataStream.Type = logsType
+		event.DataStream.Dataset = appLogsDataset
 	case model.MetricsetProcessor:
-		event.DataStream.Type = datastreams.MetricsType
+		event.DataStream.Type = metricsType
 		event.DataStream.Dataset = metricsetDataset(event)
 	}
 }
@@ -77,7 +91,7 @@ func metricsetDataset(event *model.APMEvent) string {
 		// Metrics that include well-defined transaction/span fields
 		// (i.e. breakdown metrics, transaction and span metrics) will
 		// be stored separately from custom application metrics.
-		return model.InternalMetricsDataset
+		return internalMetricsDataset
 	}
 
 	if event.Metricset != nil {
@@ -106,14 +120,42 @@ func metricsetDataset(event *model.APMEvent) string {
 				sample.Unit = ""
 				event.Metricset.Samples[i] = sample
 			}
-			return model.InternalMetricsDataset
+			return internalMetricsDataset
 		}
 	}
 
 	// All other metrics are assumed to be application-specific metrics,
 	// and so will be stored in an application-specific data stream.
-	return fmt.Sprintf(
-		"%s.%s", model.AppMetricsDataset,
-		datastreams.NormalizeServiceName(event.Service.Name),
-	)
+	suffix := normalizeServiceName(event.Service.Name)
+	var dataset strings.Builder
+	dataset.Grow(len(appMetricsDataset) + 1 + len(suffix))
+	dataset.WriteString(appMetricsDataset)
+	dataset.WriteByte('.')
+	dataset.WriteString(suffix)
+	return dataset.String()
+}
+
+// normalizeServiceName translates serviceName into a string suitable
+// for inclusion in a data stream name.
+//
+// Concretely, this function will lowercase the string and replace any
+// reserved characters with "_".
+func normalizeServiceName(s string) string {
+	s = strings.ToLower(s)
+	s = strings.Map(replaceReservedRune, s)
+	return s
+}
+
+func replaceReservedRune(r rune) rune {
+	switch r {
+	case '\\', '/', '*', '?', '"', '<', '>', '|', ' ', ',', '#', ':':
+		// These characters are not permitted in data stream names
+		// by Elasticsearch.
+		return '_'
+	case '-':
+		// Hyphens are used to separate the data stream type, dataset,
+		// and namespace.
+		return '_'
+	}
+	return r
 }

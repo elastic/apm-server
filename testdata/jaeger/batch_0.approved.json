@@ -57,7 +57,6 @@
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
-            "data_stream.type": "logs",
             "host": {
                 "hostname": "host01",
                 "ip": [
@@ -90,7 +89,6 @@
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
-            "data_stream.type": "logs",
             "host": {
                 "hostname": "host01",
                 "ip": [
@@ -267,7 +265,6 @@
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
-            "data_stream.type": "logs",
             "host": {
                 "hostname": "host01",
                 "ip": [

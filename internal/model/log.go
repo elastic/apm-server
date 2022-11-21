@@ -19,10 +19,6 @@ package model
 
 import "github.com/elastic/elastic-agent-libs/mapstr"
 
-const (
-	AppLogsDataset = "apm.app"
-)
-
 var (
 	// LogProcessor is the Processor value that should be assigned to log events.
 	LogProcessor = Processor{Name: "log", Event: "log"}

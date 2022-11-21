@@ -27,13 +27,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/idxmgmt"
 	"github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
-	"github.com/elastic/elastic-agent-libs/mapstr"
-
-	"github.com/elastic/apm-server/internal/datastreams"
 )
 
 func TestNewSupporter(t *testing.T) {
@@ -55,16 +51,9 @@ func TestNewSupporter(t *testing.T) {
 	assert.EqualError(t, err, "index setup must be performed externally when using data streams, by installing the 'apm' integration package")
 
 	selector, err := supporter.BuildSelector(nil)
-	require.NoError(t, err)
-	index, err := selector.Select(&beat.Event{
-		Fields: mapstr.M{
-			datastreams.TypeField:      datastreams.TracesType,
-			datastreams.DatasetField:   "apm",
-			datastreams.NamespaceField: "production",
-		},
-	})
-	require.NoError(t, err)
-	assert.Equal(t, "traces-apm-production", index)
+	require.Error(t, err)
+	assert.EqualError(t, err, "unexpected call to BuildSelector")
+	assert.Nil(t, selector)
 }
 
 func TestNewSupporterWarnings(t *testing.T) {
