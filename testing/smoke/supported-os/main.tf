@@ -200,6 +200,29 @@ variable "worker_region" {
   type        = string
 }
 
+# CI variables
+variable "BRANCH" {
+  description = "Branch name or pull request for tagging purposes"
+  default     = "unknown"
+}
+
+variable "BUILD_ID" {
+  description = "Build ID in the CI for tagging purposes"
+  default     = "unknown"
+}
+
+variable "CREATED_DATE" {
+  description = "Creation date in epoch time for tagging purposes"
+  default     = "unknown"
+}
+
+variable "ENVIRONMENT" {
+  default = "unknown"
+}
+
+variable "REPO" {
+  default = "unknown"
+}
 output "apm_secret_token" {
   value       = random_password.apm_secret_token.result
   description = "The APM Server secret token"
