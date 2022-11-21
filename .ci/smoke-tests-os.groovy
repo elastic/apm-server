@@ -9,8 +9,13 @@ pipeline {
     AWS_ACCOUNT_SECRET = 'secret/observability-team/ci/elastic-observability-aws-account-auth'
     EC_KEY_SECRET = 'secret/observability-team/ci/elastic-cloud/observability-pro'
     TERRAFORM_VERSION = '1.2.3'
-    CREATED_DATE = "${new Date().getTime()}"
     SLACK_CHANNEL = "#observablt-bots"
+    // cloud tags
+    TF_VAR_BUILD_ID = "${env.BUILD_ID}"
+    TF_VAR_ENVIRONMENT= 'ci'
+    TF_VAR_BRANCH = "${env.BRANCH_NAME.toLowerCase().replaceAll('[^a-z0-9-]', '-')}"
+    TF_VAR_REPO = "${REPO}"
+    TF_VAR_CREATED_DATE = "${new Date().getTime()}"
   }
   options {
     timeout(time: 1, unit: 'HOURS')
