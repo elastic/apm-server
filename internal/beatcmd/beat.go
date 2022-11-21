@@ -43,6 +43,7 @@ import (
 	"github.com/elastic/beats/v7/libbeat/monitoring/report"
 	"github.com/elastic/beats/v7/libbeat/monitoring/report/log"
 	"github.com/elastic/beats/v7/libbeat/outputs/elasticsearch"
+	"github.com/elastic/beats/v7/libbeat/pprof"
 	"github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/file"
 	"github.com/elastic/elastic-agent-libs/logp"
@@ -144,7 +145,7 @@ func (b *Beat) init() error {
 	logp.Info("Beat ID: %v", b.Info.ID)
 
 	// Initialize central config manager.
-	manager, err := management.Factory(b.Config.Management)(b.Config.Management, reload.Register, b.Beat.Info.ID)
+	manager, err := management.Factory(b.Config.Management)(b.Config.Management, reload.RegisterV2, b.Beat.Info.ID)
 	if err != nil {
 		return err
 	}
@@ -300,8 +301,11 @@ func (b *Beat) Run(ctx context.Context) error {
 		}
 		apiServer.Start()
 		defer apiServer.Stop()
-		if b.Config.HTTPPprof.Enabled() {
-			apiServer.AttachPprof()
+		if b.Config.HTTPPprof.IsEnabled() {
+			pprof.SetRuntimeProfilingParameters(b.Config.HTTPPprof)
+			if err := pprof.HttpAttach(b.Config.HTTPPprof, apiServer); err != nil {
+				return fmt.Errorf("failed to attach http handlers for pprof: %w", err)
+			}
 		}
 	}
 

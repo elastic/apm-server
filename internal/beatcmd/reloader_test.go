@@ -33,9 +33,9 @@ import (
 )
 
 func TestReloader(t *testing.T) {
-	oldRegistry := reload.Register
-	defer func() { reload.Register = oldRegistry }()
-	reload.Register = reload.NewRegistry()
+	oldRegistry := reload.RegisterV2
+	defer func() { reload.RegisterV2 = oldRegistry }()
+	reload.RegisterV2 = reload.NewRegistry()
 
 	type runner struct {
 		running chan struct{}
@@ -86,19 +86,25 @@ func TestReloader(t *testing.T) {
 	// No reload until there's input and output configuration.
 	assertNoReload()
 
-	err = reload.Register.GetReloadableList("inputs").Reload([]*reload.ConfigWithMeta{{
+	err = reload.RegisterV2.GetInputList().Reload([]*reload.ConfigWithMeta{{
 		Config: config.MustNewConfigFrom(`{}`),
+	}})
+	assert.EqualError(t, err, "failed to extract input config revision: missing field accessing 'revision'")
+	assertNoReload()
+
+	err = reload.RegisterV2.GetInputList().Reload([]*reload.ConfigWithMeta{{
+		Config: config.MustNewConfigFrom(`{"revision": 1}`),
 	}})
 	assert.NoError(t, err)
 	assertNoReload()
 
-	err = reload.Register.GetReloadable("output").Reload(&reload.ConfigWithMeta{
+	err = reload.RegisterV2.GetReloadableOutput().Reload(&reload.ConfigWithMeta{
 		Config: config.MustNewConfigFrom(`{}`),
 	})
 	assert.NoError(t, err)
 	assertNoReload() // an output must be set
 
-	err = reload.Register.GetReloadable("output").Reload(&reload.ConfigWithMeta{
+	err = reload.RegisterV2.GetReloadableOutput().Reload(&reload.ConfigWithMeta{
 		Config: config.MustNewConfigFrom(`{"console.enabled": true}`),
 	})
 	assert.NoError(t, err)
@@ -108,15 +114,27 @@ func TestReloader(t *testing.T) {
 	expectEvent(t, r1.running, "runner should have been started")
 	expectNoEvent(t, r1.stopped, "runner should not have been stopped")
 
-	err = reload.Register.GetReloadableList("inputs").Reload([]*reload.ConfigWithMeta{{
-		Config: config.MustNewConfigFrom(`{"error": true}`),
+	err = reload.RegisterV2.GetInputList().Reload([]*reload.ConfigWithMeta{{
+		Config: config.MustNewConfigFrom(`{"revision": 1}`),
+	}})
+	assert.NoError(t, err)
+	assertNoReload() // reload suppressed, revision is the same
+
+	err = reload.RegisterV2.GetReloadableOutput().Reload(&reload.ConfigWithMeta{
+		Config: config.MustNewConfigFrom(`{"console.enabled": true}`),
+	})
+	assert.NoError(t, err)
+	assertNoReload() // reload suppressed, config is the same
+
+	err = reload.RegisterV2.GetInputList().Reload([]*reload.ConfigWithMeta{{
+		Config: config.MustNewConfigFrom(`{"revision": 2, "error": true}`),
 	}})
 	assert.EqualError(t, err, "failed to load input config: no runner for you")
 	assertNoReload() // error occurred during reload, nothing changes
 	expectNoEvent(t, r1.stopped, "runner should not have been stopped")
 
-	err = reload.Register.GetReloadableList("inputs").Reload([]*reload.ConfigWithMeta{{
-		Config: config.MustNewConfigFrom(`{}`),
+	err = reload.RegisterV2.GetInputList().Reload([]*reload.ConfigWithMeta{{
+		Config: config.MustNewConfigFrom(`{"revision": 3}`),
 	}})
 	assert.NoError(t, err)
 	r2 := assertReload()
@@ -129,9 +147,9 @@ func TestReloader(t *testing.T) {
 }
 
 func TestReloaderNewRunnerParams(t *testing.T) {
-	oldRegistry := reload.Register
-	defer func() { reload.Register = oldRegistry }()
-	reload.Register = reload.NewRegistry()
+	oldRegistry := reload.RegisterV2
+	defer func() { reload.RegisterV2 = oldRegistry }()
+	reload.RegisterV2 = reload.NewRegistry()
 
 	calls := make(chan RunnerParams, 1)
 	info := beat.Info{Beat: "not-apm-server", Version: "0.0.1"}
@@ -150,16 +168,16 @@ func TestReloaderNewRunnerParams(t *testing.T) {
 	defer func() { assert.NoError(t, g.Wait()) }()
 	defer cancel()
 
-	reload.Register.GetReloadableList("inputs").Reload([]*reload.ConfigWithMeta{{
-		Config: config.MustNewConfigFrom(`{"input": 123}`),
+	reload.RegisterV2.GetInputList().Reload([]*reload.ConfigWithMeta{{
+		Config: config.MustNewConfigFrom(`{"revision": 1, "input": 123}`),
 	}})
-	reload.Register.GetReloadable("output").Reload(&reload.ConfigWithMeta{
+	reload.RegisterV2.GetReloadableOutput().Reload(&reload.ConfigWithMeta{
 		Config: config.MustNewConfigFrom(`{"console.enabled": true}`),
 	})
 	args := <-calls
 	assert.NotNil(t, args.Logger)
 	assert.Equal(t, info, args.Info)
-	assert.Equal(t, config.MustNewConfigFrom(`{"input": 123, "output.console.enabled": true}`), args.Config)
+	assert.Equal(t, config.MustNewConfigFrom(`{"revision": 1, "input": 123, "output.console.enabled": true}`), args.Config)
 }
 
 func expectNoEvent(t testing.TB, ch <-chan struct{}, message string) {
