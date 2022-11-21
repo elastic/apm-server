@@ -1,5 +1,9 @@
 [![Build Status](https://apm-ci.elastic.co/buildStatus/icon?job=apm-server/apm-server-mbp/main)](https://apm-ci.elastic.co/job/apm-server/job/apm-server-mbp/view/change-requests/job/main/)
+<<<<<<< HEAD
 [![codecov.io](https://codecov.io/github/elastic/apm-server/coverage.svg?branch=main)](https://codecov.io/github/elastic/apm-server?branch=main)
+=======
+[![Smoke Tests on ESS](https://apm-ci.elastic.co/buildStatus/icon?job=apm-server/smoke-tests-ess-mbp/main&subject=smoke%20tests)](https://apm-ci.elastic.co/job/apm-server/job/smoke-tests-ess-mbp/job/main/)
+>>>>>>> 18f9a013 (jjbb: smoke-tests on ESS and for supported OS (#9623))
 
 # APM Server
 
