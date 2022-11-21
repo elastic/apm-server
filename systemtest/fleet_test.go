@@ -257,7 +257,7 @@ func (a *apmIntegration) getBeatsMonitoringStats(t testing.TB, out interface{}) 
 func (a *apmIntegration) getBeatsMonitoring(t testing.TB, type_ string, out interface{}) *beatsMonitoringDoc {
 	// We create all agent policies with metrics enabled, which causes apm-server
 	// to be started with the libbeat HTTP introspection server started.
-	const socket = "/usr/share/elastic-agent/state/data/tmp/default/apm-server/apm-server.sock"
+	const socket = "/usr/share/elastic-agent/state/data/tmp/apm-default.sock"
 
 	var path string
 	switch type_ {
@@ -267,7 +267,7 @@ func (a *apmIntegration) getBeatsMonitoring(t testing.TB, type_ string, out inte
 		path = "/stats"
 	}
 	stdout, stderr, err := a.Agent.Exec(context.Background(),
-		"curl", "--unix-socket", "/usr/share/elastic-agent/state/data/tmp/default/apm-server/apm-server.sock",
+		"curl", "--unix-socket", socket,
 		"http://localhost"+path,
 	)
 	require.NoError(t, err, string(stderr))

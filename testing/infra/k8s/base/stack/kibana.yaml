@@ -3,7 +3,7 @@ kind: Kibana
 metadata:
   name: kibana
 spec:
-  version: 8.6.0-c9d1a5e9-SNAPSHOT
+  version: 8.7.0-eb092238-SNAPSHOT
   count: 1
   elasticsearchRef:
     name: elasticsearch
@@ -34,6 +34,8 @@ spec:
             - name: Authorization
               value: Basic YWRtaW46Y2hhbmdlbWU= # admin:changeme
   config:
+    xpack.banners.placement: top
+    xpack.banners.textContent: Log in credentials are `admin/changeme` by default
     xpack.fleet.agents.elasticsearch.hosts: ["http://elasticsearch-es-http.default.svc:9200"]
     xpack.fleet.packages:
     - name: apm

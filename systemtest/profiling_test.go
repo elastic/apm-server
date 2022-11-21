@@ -171,19 +171,17 @@ func TestProfiling(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	// Perform queries and assertions on KV indices, after waiting more than the default index refresh interval
-	<-time.After(4 * time.Second)
-	result := systemtest.Elasticsearch.ExpectMinDocs(t, expectedKVDocs, "profiling-executables", nil)
+	// Perform queries and assertions on KV indices. We use wildcard searches below to prevent
+	// the searches from failing immediately when the indices haven't yet been created.
+	result := systemtest.Elasticsearch.ExpectMinDocs(t, expectedKVDocs, "profiling-executables-next*", nil)
 	systemtest.ApproveEvents(t, t.Name()+"/executables", result.Hits.Hits, "@timestamp")
 
-	result = systemtest.Elasticsearch.ExpectMinDocs(t, expectedKVDocs, "profiling-stackframes", nil)
+	result = systemtest.Elasticsearch.ExpectMinDocs(t, expectedKVDocs, "profiling-stackframes-next*", nil)
 	systemtest.ApproveEvents(t, t.Name()+"/stackframes", result.Hits.Hits)
 
-	result = systemtest.Elasticsearch.ExpectMinDocs(t, expectedKVDocs, "profiling-stacktraces", nil)
+	result = systemtest.Elasticsearch.ExpectMinDocs(t, expectedKVDocs, "profiling-stacktraces-next*", nil)
 	systemtest.ApproveEvents(t, t.Name()+"/stacktraces", result.Hits.Hits)
 
-	// We're using a wildcard below to prevent the search from failing
-	// when the index hasn't yet been created.
 	result = systemtest.Elasticsearch.ExpectDocs(t, "profiling-events-all*", nil)
 	systemtest.ApproveEvents(t, t.Name()+"/events", result.Hits.Hits)
 
