@@ -38,7 +38,7 @@ pipeline {
             withSecretVault(secret: "${EC_KEY_SECRET}", data: ['apiKey': 'EC_API_KEY'] ) {
               dir("${BASE_DIR}/testing/smoke/supported-os") {
                 withGoEnv() {
-                  sh(label: "Run smoke tests", script: './test.sh')
+                  sh(label: "Run smoke tests", script: 'sh -x ./test.sh')
                 }
               }
             }
