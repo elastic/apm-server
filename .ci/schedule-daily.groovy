@@ -54,6 +54,6 @@ def runWindowsBuilds(Map args = [:]) {
 def runSmokeTests(Map args = [:]) {
   def branches = getBranchesFromAliases(aliases: args.branches)
   branches.each { branch ->
-    build(job: "apm-server/smoke-tests-mbp/${branch}", wait: false, propagate: false)
+    build(job: "apm-server/smoke-tests-ess-mbp/${branch}", wait: false, propagate: false)
   }
 }
