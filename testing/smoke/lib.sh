@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 export TF_IN_AUTOMATION=1
 export TF_CLI_ARGS=-no-color

@@ -142,7 +142,7 @@ resource "aws_instance" "apm" {
 }
 
 data "external" "getlatestapmserver" {
-  program = ["sh", "./latest_apm_server.sh"]
+  program = ["bash", "./latest_apm_server.sh"]
 }
 
 resource "aws_key_pair" "provisioner_key" {
