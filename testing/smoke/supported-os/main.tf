@@ -58,6 +58,7 @@ locals {
 }
 
 provider "aws" {
+  region = var.worker_region
   default_tags {
     tags = local.ci_tags
   }
@@ -190,6 +191,12 @@ variable "stack_version" {
 variable "region" {
   default     = "gcp-us-west2"
   description = "Optional ESS region where to run the smoke tests"
+  type        = string
+}
+
+variable "worker_region" {
+  default     = "us-west-2"
+  description = "Optional AWS region where the workers will be created. Defaults to us-west-2 (AWS)"
   type        = string
 }
 
