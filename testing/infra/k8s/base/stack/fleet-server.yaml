@@ -3,7 +3,7 @@ kind: Agent
 metadata:
   name: fleet-server
 spec:
-  version: 8.6.0-afa9010f-SNAPSHOT
+  version: 8.6.0-e72cd235-SNAPSHOT
   mode: fleet
   fleetServerEnabled: true
   elasticsearchRefs:
