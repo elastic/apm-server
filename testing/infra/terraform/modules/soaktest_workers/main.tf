@@ -16,6 +16,11 @@ locals {
   ))
 }
 
+module "tags" {
+  source  = "../tags"
+  project = "soaktests"
+}
+
 resource "tls_private_key" "worker_login" {
   algorithm = "RSA"
   rsa_bits  = "4096"
@@ -67,10 +72,9 @@ resource "google_compute_instance" "worker" {
     access_config {}
   }
 
-  labels = {
-    team      = "apm-server"
+  labels = merge(module.tags.labels, {
     workspace = terraform.workspace
-  }
+  })
 
   metadata = {
     ssh-keys = "${local.ssh_user_name}:${data.tls_public_key.worker_login.public_key_openssh}"
