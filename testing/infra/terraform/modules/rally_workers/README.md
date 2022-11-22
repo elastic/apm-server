@@ -22,6 +22,12 @@ This modules sets up [rally daemons](https://esrally.readthedocs.io/en/stable/ra
 | <a name="provider_remote"></a> [remote](#provider\_remote) | >=0.1.0 |
 | <a name="provider_tls"></a> [tls](#provider\_tls) | >=4.0.1 |
 
+## Modules
+
+| Name | Source | Version |
+|------|--------|---------|
+| <a name="module_tags"></a> [tags](#module\_tags) | ../tags | n/a |
+
 ## Resources
 
 | Name | Type |

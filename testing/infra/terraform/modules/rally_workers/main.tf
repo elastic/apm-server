@@ -4,13 +4,18 @@ provider "google" {
 }
 
 locals {
-  ssh_user_name                 = "rally"
-  rally_corpora_zip_path        = "${path.root}/build/corpora.zip"
+  ssh_user_name          = "rally"
+  rally_corpora_zip_path = "${path.root}/build/corpora.zip"
 
   remote_python_bin_path        = "~/.local/bin"
   remote_working_dir            = "/home/rally"
   remote_rally_summary_file     = "rally-report.md"
   remote_ssh_connection_timeout = "500s"
+}
+
+module "tags" {
+  source  = "../tags"
+  project = "rallybenchmarks"
 }
 
 data "tls_public_key" "rally" {
@@ -74,7 +79,7 @@ resource "google_compute_instance" "rally_nodes" {
   # 1 rally node is for coordinator and others for distributing load generators
   count        = 1 + var.rally_worker_count
   name         = "${var.resource_prefix}-rally-nodes-${count.index}"
-  machine_type = "${var.machine_type}"
+  machine_type = var.machine_type
   zone         = data.google_compute_zones.available.names[0]
 
   boot_disk {
@@ -88,10 +93,7 @@ resource "google_compute_instance" "rally_nodes" {
     access_config {}
   }
 
-  labels = {
-    team    = "apm-server"
-    purpose = "local-rally-test"
-  }
+  labels = module.tags.labels
 
   metadata = {
     ssh-keys = "${local.ssh_user_name}:${data.tls_public_key.rally.public_key_openssh}"
@@ -140,9 +142,9 @@ ${local.remote_python_bin_path}/esrallyd start \
 }
 
 resource "null_resource" "esrallyd_workers" {
-  count        = var.rally_worker_count
+  count = var.rally_worker_count
   triggers = {
-    rally_nat_ip      = element(
+    rally_nat_ip = element(
       [for i, n in google_compute_instance.rally_nodes : n.network_interface[0].access_config[0].nat_ip if i > 0],
       count.index,
     )
@@ -177,17 +179,17 @@ ${local.remote_python_bin_path}/esrallyd start \
 
 data "archive_file" "corpora_zip" {
   type             = "zip"
-  source_dir       = "${var.rally_dir}"
+  source_dir       = var.rally_dir
   output_file_mode = "0666"
   output_path      = local.rally_corpora_zip_path
 }
 
 resource "null_resource" "distribute_corpora" {
   # Corpora to be distributed to all workers and the coordinator
-  count        = var.rally_worker_count + 1
+  count = var.rally_worker_count + 1
   triggers = {
-    corpora_update    = data.archive_file.corpora_zip.output_base64sha256
-    rally_nat_ip      = element(
+    corpora_update = data.archive_file.corpora_zip.output_base64sha256
+    rally_nat_ip = element(
       google_compute_instance.rally_nodes[*].network_interface[0].access_config[0].nat_ip,
       count.index,
     )

@@ -42,6 +42,16 @@ variable "elasticsearch_zone_count" {
   description = "Optional Elasticsearch zone count"
 }
 
+variable "observability_deployment" {
+  default     = "self"
+  type        = string
+  description = "Optional deployment ID, for platform observability. Use 'self' (the default) to send data to the same deployment, 'dedicated' to create a dedicated observability deployment, or 'none' to disable observability. Any other value is assumed to be the ID of an existing, externally managed Elasticsearch deployment."
+  validation {
+    condition     = can(regex("^self$|^dedicated$|^none$", var.observability_deployment)) || length(var.observability_deployment) == 32
+    error_message = "Invalid observability_deployment value. Must be one of 'self', 'dedicated', 'none', or '<deployment id>'."
+  }
+}
+
 variable "docker_image_tag_override" {
   default = {
     "elasticsearch" : "",

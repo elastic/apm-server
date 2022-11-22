@@ -3,7 +3,7 @@ terraform {
   required_providers {
     ec = {
       source  = "elastic/ec"
-      version = ">=0.4.0"
+      version = ">=0.5.0"
     }
     aws = {
       source  = "hashicorp/aws"
@@ -14,12 +14,17 @@ terraform {
 
 locals {
   ci_tags = {
-    environment  = var.ENVIRONMENT
-    repo         = var.REPO
+    environment  = coalesce(var.ENVIRONMENT, "dev")
+    repo         = coalesce(var.REPO, "apm-server")
     branch       = var.BRANCH
     build        = var.BUILD_ID
     created_date = var.CREATED_DATE
   }
+}
+
+module "tags" {
+  source  = "../infra/terraform/modules/tags"
+  project = "benchmarks"
 }
 
 provider "ec" {}
@@ -27,12 +32,12 @@ provider "ec" {}
 provider "aws" {
   region = var.worker_region
   default_tags {
-    tags = local.ci_tags
+    tags = merge(local.ci_tags, module.tags.tags)
   }
 }
 
 locals {
-  name_prefix = "${var.user_name}-bench"
+  name_prefix = "${coalesce(var.user_name, "unknown-user")}-bench"
 }
 
 module "ec_deployment" {
@@ -58,7 +63,7 @@ module "ec_deployment" {
   docker_image              = var.docker_image_override
   docker_image_tag_override = var.docker_image_tag_override
 
-  tags = local.ci_tags
+  tags = merge(local.ci_tags, module.tags.tags)
 }
 
 module "benchmark_worker" {

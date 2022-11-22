@@ -10,6 +10,12 @@ This module sets up worker with load generation binary for soaktest configured a
 | <a name="provider_google"></a> [google](#provider\_google) | n/a |
 | <a name="provider_tls"></a> [tls](#provider\_tls) | n/a |
 
+## Modules
+
+| Name | Source | Version |
+|------|--------|---------|
+| <a name="module_tags"></a> [tags](#module\_tags) | ../tags | n/a |
+
 ## Resources
 
 | Name | Type |

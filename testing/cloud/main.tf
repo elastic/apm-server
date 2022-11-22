@@ -3,7 +3,7 @@ terraform {
   required_providers {
     ec = {
       source  = "elastic/ec"
-      version = ">=0.4.0"
+      version = ">=0.5.0"
     }
   }
 }
@@ -30,6 +30,8 @@ module "ec_deployment" {
 
   elasticsearch_size       = var.elasticsearch_size
   elasticsearch_zone_count = var.elasticsearch_zone_count
+
+  observability_deployment = var.observability_deployment
 
   docker_image = var.docker_image_override
   docker_image_tag_override = {
