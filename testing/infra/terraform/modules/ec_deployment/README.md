@@ -9,23 +9,23 @@ used to configure the module, please refer to the [EC Provider docs](https://reg
 
 | Name | Version |
 |------|---------|
-| <a name="requirement_ec"></a> [ec](#requirement\_ec) | >=0.4.1 |
+| <a name="requirement_ec"></a> [ec](#requirement\_ec) | >=0.5.0 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
-| <a name="provider_ec"></a> [ec](#provider\_ec) | 0.4.0 |
-| <a name="provider_external"></a> [external](#provider\_external) | n/a |
-| <a name="provider_local"></a> [local](#provider\_local) | n/a |
-| <a name="provider_null"></a> [null](#provider\_null) | n/a |
+| <a name="provider_ec"></a> [ec](#provider\_ec) | 0.5.0 |
+| <a name="provider_external"></a> [external](#provider\_external) | 2.2.3 |
+| <a name="provider_local"></a> [local](#provider\_local) | 2.2.3 |
+| <a name="provider_null"></a> [null](#provider\_null) | 3.2.1 |
 
 ## Resources
 
 | Name | Type |
 |------|------|
+| [ec_deployment.dedicated_observability_deployment](https://registry.terraform.io/providers/elastic/ec/latest/docs/resources/deployment) | resource |
 | [ec_deployment.deployment](https://registry.terraform.io/providers/elastic/ec/latest/docs/resources/deployment) | resource |
-| [ec_deployment.deployment_monitor](https://registry.terraform.io/providers/elastic/ec/latest/docs/resources/deployment) | resource |
 | [local_file.custom_apm_integration_pkg](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
 | [local_file.drop_pipeline](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
 | [local_file.enable_expvar](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
@@ -59,7 +59,7 @@ used to configure the module, please refer to the [EC Provider docs](https://reg
 | <a name="input_elasticsearch_size"></a> [elasticsearch\_size](#input\_elasticsearch\_size) | Optional Elasticsearch instance size | `string` | `"8g"` | no |
 | <a name="input_elasticsearch_zone_count"></a> [elasticsearch\_zone\_count](#input\_elasticsearch\_zone\_count) | Optional Elasticsearch zone count | `number` | `2` | no |
 | <a name="input_integrations_server"></a> [integrations\_server](#input\_integrations\_server) | Optionally disable the integrations server block and use the apm block (7.x only) | `bool` | `true` | no |
-| <a name="input_monitor_deployment"></a> [monitor\_deployment](#input\_monitor\_deployment) | Optionally monitor the deployment in a separate deployment | `bool` | `false` | no |
+| <a name="input_observability_deployment"></a> [observability\_deployment](#input\_observability\_deployment) | Optional deployment ID, for platform observability. Use 'self' to send data to the same deployment, 'dedicated' to create a dedicated observability deployment, or 'none' (the default) to disable observability. Any other value is assumed to be the ID of an existing, externally managed Elasticsearch deployment. | `string` | `"none"` | no |
 | <a name="input_region"></a> [region](#input\_region) | Optional ESS or ECE region. Defaults to GCP US West 2 (Los Angeles) | `string` | `"gcp-us-west2"` | no |
 | <a name="input_stack_version"></a> [stack\_version](#input\_stack\_version) | Optional stack version | `string` | `"latest"` | no |
 | <a name="input_tags"></a> [tags](#input\_tags) | Optional set of tags to use for all deployments | `map(string)` | `{}` | no |

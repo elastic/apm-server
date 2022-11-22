@@ -3,6 +3,10 @@ locals {
   version             = var.stack_version
   deployment_template = var.deployment_template
   name_prefix         = var.deployment_name_prefix
+
+  disable_observability   = var.observability_deployment == "none"
+  self_observability      = var.observability_deployment == "self"
+  dedicated_observability = var.observability_deployment == "dedicated"
 }
 
 data "ec_stack" "deployment_version" {
@@ -39,6 +43,7 @@ resource "ec_deployment" "deployment" {
       }
     }
   }
+
   kibana {
     dynamic "config" {
       for_each = var.docker_image_tag_override["kibana"] != "" ? [var.docker_image["kibana"]] : []
@@ -47,6 +52,7 @@ resource "ec_deployment" "deployment" {
       }
     }
   }
+
   dynamic "apm" {
     for_each = var.integrations_server ? [] : [1]
     content {
@@ -80,18 +86,17 @@ resource "ec_deployment" "deployment" {
   }
 
   dynamic "observability" {
-    for_each = ec_deployment.deployment_monitor.*
+    for_each = local.disable_observability ? [] : [1]
     content {
-      deployment_id = observability.value.id
-      logs          = true
-      metrics       = true
-      ref_id        = "main-elasticsearch"
+      deployment_id = var.observability_deployment
     }
   }
 }
 
-resource "ec_deployment" "deployment_monitor" {
-  count = var.monitor_deployment ? 1 : 0
+#ref_id        = "main-elasticsearch"
+
+resource "ec_deployment" "dedicated_observability_deployment" {
+  count = local.dedicated_observability ? 1 : 0
 
   name                   = "monitor-${local.name_prefix}-${local.version}"
   version                = data.ec_stack.deployment_version.version
