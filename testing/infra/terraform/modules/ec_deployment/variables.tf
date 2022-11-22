@@ -28,6 +28,10 @@ variable "observability_deployment" {
   default     = "none"
   type        = string
   description = "Optional deployment ID, for platform observability. Use 'self' to send data to the same deployment, 'dedicated' to create a dedicated observability deployment, or 'none' (the default) to disable observability. Any other value is assumed to be the ID of an existing, externally managed Elasticsearch deployment."
+  validation {
+    condition     = can(regex("^self$|^dedicated$|^none$", var.observability_deployment)) || length(var.observability_deployment) == 32
+    error_message = "Invalid observability_deployment value. Must be one of 'self', 'dedicated', 'none', or '<deployment id>'."
+  }
 }
 
 variable "tags" {

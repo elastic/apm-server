@@ -4,7 +4,7 @@ locals {
   deployment_template = var.deployment_template
   name_prefix         = var.deployment_name_prefix
 
-  disable_observability   = var.observability_deployment == "" || var.observability_deployment == "none"
+  disable_observability   = var.observability_deployment == "none"
   self_observability      = var.observability_deployment == "self"
   dedicated_observability = var.observability_deployment == "dedicated"
 }
