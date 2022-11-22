@@ -19,6 +19,7 @@ https://github.com/elastic/apm-server/compare/v8.5.1\...v8.5.2[View commits]
 [float]
 ==== Bug fixes
 - Fix Tail Sampling OOM issues when storage limit is reached {pull}9583[9583]
+- Null APM agent configuration entries are now treated as empty, and will not cause the server to exit with an error {pull}9546[9546]
 
 [float]
 [[release-notes-8.5.1]]
