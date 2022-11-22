@@ -22,7 +22,7 @@ pipeline {
       steps {
         updateBeatsBuilds(branches: ['main', '8.<minor>', '8.<next-patch>', '7.<minor>'])
         runWindowsBuilds(branches: ['main', '8.<minor>', '8.<next-patch>', '7.<minor>'])
-        runSmokeTestsOs(branches: ['main', '8.<minor>', '8.<next-patch>', '7.<minor>'])
+        runSmokeTestsOs(branches: ['main', '8.<minor>', '8.<next-patch>'])
         runSmokeTestsEss(branches: ['main'])
       }
     }
