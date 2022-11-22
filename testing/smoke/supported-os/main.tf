@@ -23,7 +23,7 @@ module "ec_deployment" {
   elasticsearch_zone_count = 1
 
   stack_version       = var.stack_version
-  tags                = local.ci_tags
+  tags                = merge(local.ci_tags, local.tags)
 }
 
 locals {
@@ -49,18 +49,24 @@ locals {
   }
   apm_port = "8200"
   ci_tags = {
-    environment  = var.ENVIRONMENT
-    repo         = var.REPO
+    environment  = coalesce(var.ENVIRONMENT, "dev")
+    repo         = coalesce(var.REPO, "apm-server")
     branch       = var.BRANCH
     build        = var.BUILD_ID
     created_date = var.CREATED_DATE
   }
 }
 
+
+module "tags" {
+  source  = "../../infra/terraform/modules/tags"
+  project = "supported-os"
+}
+
 provider "aws" {
   region = var.worker_region
   default_tags {
-    tags = local.ci_tags
+    tags = merge(local.ci_tags, module.tags.tags)
   }
 }
 
