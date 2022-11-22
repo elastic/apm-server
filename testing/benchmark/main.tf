@@ -63,7 +63,7 @@ module "ec_deployment" {
   docker_image              = var.docker_image_override
   docker_image_tag_override = var.docker_image_tag_override
 
-  tags = merge(local.ci_tags, local.tags)
+  tags = merge(local.ci_tags, module.tags.tags)
 }
 
 module "benchmark_worker" {
