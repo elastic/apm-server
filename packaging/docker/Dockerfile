@@ -68,16 +68,18 @@ ENV PATH=/usr/share/apm-server:$PATH
 ENV LIBBEAT_MONITORING_CGROUPS_HIERARCHY_OVERRIDE=/
 
 COPY --chmod=0755 packaging/docker/docker-entrypoint /usr/local/bin/docker-entrypoint
-COPY --chmod=0644 licenses/ELASTIC-LICENSE-2.0.txt /licenses
-COPY --chmod=0644 NOTICE.txt /licenses
+COPY --chmod=0644 licenses/ELASTIC-LICENSE-2.0.txt NOTICE.txt /licenses/
 
+# NOTE(axw) apm-server.yml and data/ must be owned by apm-server
+# to allow the image to be run with a non-root user.
 WORKDIR /usr/share/apm-server
-COPY --chmod=0640 apm-server.yml ./apm-server.yml
+COPY --chmod=0640 --chown=1000:0 apm-server.yml ./apm-server.yml
 COPY --chmod=0755 --from=builder /src/apm-server ./apm-server
 RUN sed -i 's/localhost:8200/0.0.0.0:8200/' apm-server.yml
 RUN sed -i 's/localhost:9200/elasticsearch:9200/' apm-server.yml
-RUN mkdir --mode=0775 data
+RUN mkdir --mode=0775 data && chown 1000 data
+RUN echo 'apm-server:*:1000:0::/usr/share/apm-server:/bin/false' >> /etc/passwd
 
-USER 1000
+USER apm-server
 EXPOSE 8200
 ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/docker-entrypoint"]

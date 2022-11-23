@@ -3,11 +3,46 @@
 
 https://github.com/elastic/apm-server/compare/8.4\...8.5[View commits]
 
+* <<release-notes-8.5.2>>
+* <<release-notes-8.5.1>>
+* <<release-notes-8.5.0>>
+
+[float]
+[[release-notes-8.5.2]]
+=== APM version 8.5.2
+
+This release includes an important APM Server bug fix.
+Users running APM Server with Tail Sampling enabled in version >=8.3.0 and above should upgrade immediately.
+
+https://github.com/elastic/apm-server/compare/v8.5.1\...v8.5.2[View commits]
+
+[float]
+==== Bug fixes
+- Fix Tail Sampling OOM issues when storage limit is reached {pull}9583[9583]
+
+[float]
+[[release-notes-8.5.1]]
+=== APM version 8.5.1
+
+https://github.com/elastic/apm-server/compare/v8.5.0\...v8.5.1[View commits]
+
+[float]
+==== Bug fixes
+- Set `error.id` for OpenTelemetry exception span events {pull}9327[9327]
+- Add an `apm-server` user to /etc/passwd in the Docker images {pull}9496[9496]
+
 [float]
 [[release-notes-8.5.0]]
 === APM version 8.5.0
 
-https://github.com/elastic/apm-server/compare/v8.4.2\...v8.5.0[View commits]
+https://github.com/elastic/apm-server/compare/v8.4.3\...v8.5.0[View commits]
+
+[float]
+==== Known issue
+Due to a recent change in the Red Hat scan verification process,
+this version of APM Server is not available in the Red Hat Ecosystem Catalog.
+This bug will be fixed in the next release.
+Please use the https://www.docker.elastic.co/r/apm[Elastic docker registry] to download the 8.5.0 APM Server image.
 
 [float]
 ==== Breaking Changes

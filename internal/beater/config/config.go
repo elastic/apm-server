@@ -37,10 +37,6 @@ const (
 	msgInvalidConfigAgentCfg = "invalid value for `apm-server.agent.config.cache.expiration`, only accepting full seconds"
 )
 
-var (
-	errInvalidAgentConfigMissingConfig = errors.New("agent_config: no config set")
-)
-
 // Config holds configuration information nested under the key `apm-server`
 type Config struct {
 	// Host holds the hostname or address that the server should bind to
