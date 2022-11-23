@@ -935,6 +935,7 @@
             },
             "http": {
                 "request": {
+                    "id": "some-request-id",
                     "method": "GET"
                 },
                 "response": {
