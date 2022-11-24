@@ -831,6 +831,8 @@ type spanContextDestinationService struct {
 type spanContextHTTP struct {
 	// Method holds information about the method of the HTTP request.
 	Method nullable.String `json:"method" validate:"maxLength=1024"`
+	// Request describes the HTTP request information.
+	Request spanContextHTTPRequest `json:"request"`
 	// Response describes the HTTP response information in case the event was
 	// created as a result of an HTTP request.
 	Response spanContextHTTPResponse `json:"response"`
@@ -839,6 +841,11 @@ type spanContextHTTP struct {
 	StatusCode nullable.Int `json:"status_code"`
 	// URL is the raw url of the correlating HTTP request.
 	URL nullable.String `json:"url"`
+}
+
+type spanContextHTTPRequest struct {
+	// ID holds the unique identifier for the http request.
+	ID nullable.String `json:"id"`
 }
 
 type spanContextHTTPResponse struct {
