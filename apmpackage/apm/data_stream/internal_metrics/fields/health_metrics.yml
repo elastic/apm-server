@@ -36,6 +36,7 @@
 # Overhead Metrics
 - name: agent.background.cpu.total.pct
   type: scaled_float
+  scaling_factor: 100000
   description: |
     The total CPU usage caused by background tasks running in the agent. It ranges from 0 to 100%.
   metric_type: gauge
@@ -43,6 +44,7 @@
   index: false
 - name: agent.background.cpu.overhead.pct
   type: scaled_float
+  scaling_factor: 100000
   description: |
     The share of process CPU usage caused by background tasks running in the agent. It ranges from 0 to 100%.
   metric_type: gauge
