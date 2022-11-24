@@ -34,7 +34,7 @@ type SetGroupingKey struct{}
 // ProcessBatch sets the grouping key for errors.
 func (s SetGroupingKey) ProcessBatch(ctx context.Context, b *model.Batch) error {
 	for _, event := range *b {
-		if event.Error != nil {
+		if event.Processor == model.ErrorProcessor && event.Error != nil {
 			s.processError(ctx, event.Error)
 		}
 	}
