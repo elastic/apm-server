@@ -368,7 +368,6 @@ github.com/eclipse/paho.mqtt.golang v1.3.5 h1:sWtmgNxYM9P2sP+xEItMozsR3w0cqZFlqn
 github.com/elastic/bayeux v1.0.5 h1:UceFq01ipmT3S8DzFK+uVAkbCdiPR0Bqei8qIGmUeY0=
 github.com/elastic/beats/v7 v7.0.0-alpha2.0.20221123163411-a106ad28c7c8 h1:TTkDvwhMGG/GBVjShNyWIbs7EetCNP0aUTNDWJlPhlY=
 github.com/elastic/beats/v7 v7.0.0-alpha2.0.20221123163411-a106ad28c7c8/go.mod h1:RrgYpby/CowzcaeMhs2wAiyO6YGn3PBDni2ciBdO5hg=
-github.com/elastic/elastic-agent v0.0.0-20220831162706-5f1e54f40d3e h1:uGDp9HesS9m3T7YwgM0ATE/YP5FXcxxAAKHQDgP/GS0=
 github.com/elastic/elastic-agent-autodiscover v0.4.0 h1:R1JMLHQpH2KP3GXY8zmgV4dj39uoe1asyPPWGQbGgSk=
 github.com/elastic/elastic-agent-client/v7 v7.0.0-20221121201703-4b23a52d0ebe h1:fpM0Lw4JTA9XYbQMQhVrMzJ0GrwUaXHVSsrm5n/b23E=
 github.com/elastic/elastic-agent-client/v7 v7.0.0-20221121201703-4b23a52d0ebe/go.mod h1:FEXUbFMfaV62S0CtJgD+FFHGY7+4o4fXkDicyONPSH8=
