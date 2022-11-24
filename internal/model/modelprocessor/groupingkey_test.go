@@ -113,7 +113,10 @@ func TestSetGroupingKey(t *testing.T) {
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			batch := model.Batch{{Error: &test.input}}
+			batch := model.Batch{{
+				Processor: model.ErrorProcessor,
+				Error:     &test.input,
+			}}
 			processor := modelprocessor.SetGroupingKey{}
 			err := processor.ProcessBatch(context.Background(), &batch)
 			assert.NoError(t, err)
