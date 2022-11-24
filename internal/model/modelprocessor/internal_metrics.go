@@ -19,6 +19,24 @@ package modelprocessor
 
 func isInternalMetricName(name string) bool {
 	switch name {
+	case "agent.background.cpu.overhead.pct":
+		return true
+	case "agent.background.cpu.total.pct":
+		return true
+	case "agent.background.memory.allocation.bytes":
+		return true
+	case "agent.events.dropped":
+		return true
+	case "agent.events.queue.max_size.pct":
+		return true
+	case "agent.events.queue.min_size.pct":
+		return true
+	case "agent.events.requests.bytes":
+		return true
+	case "agent.events.requests.count":
+		return true
+	case "agent.events.total":
+		return true
 	case "clr.gc.count":
 		return true
 	case "clr.gc.gen0size":
