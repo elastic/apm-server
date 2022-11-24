@@ -20,6 +20,9 @@
     - description: Remove `timeseries.instance` field
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/9565
+    - description: Add `error.stack_trace`, `event.dataset`, `log.logger`, `log.origin.*`, `process.thread.name` fields to app_logs
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/9667
 - version: "8.5.0"
   changes:
     - description: Add package settings to enable the experimental collection of service metrics
