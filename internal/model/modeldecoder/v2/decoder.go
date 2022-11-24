@@ -1382,8 +1382,8 @@ func mapToLogModel(from *log, event *model.APMEvent) {
 	if from.ProcessThreadName.IsSet() {
 		event.Process.Thread.Name = from.ProcessThreadName.Val
 	}
-	if from.Dataset.IsSet() {
-		event.Event.Dataset = from.Dataset.Val
+	if from.EventDataset.IsSet() {
+		event.Event.Dataset = from.EventDataset.Val
 	}
 	if len(from.Labels) > 0 {
 		modeldecoderutil.MergeLabels(from.Labels, event)
