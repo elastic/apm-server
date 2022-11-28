@@ -23,7 +23,7 @@ module "ec_deployment" {
   elasticsearch_zone_count = 1
 
   stack_version       = var.stack_version
-  tags                = merge(local.ci_tags, local.tags)
+  tags                = merge(local.ci_tags, module.tags.tags)
 }
 
 locals {
