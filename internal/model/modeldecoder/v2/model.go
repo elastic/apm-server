@@ -831,6 +831,8 @@ type spanContextDestinationService struct {
 type spanContextHTTP struct {
 	// Method holds information about the method of the HTTP request.
 	Method nullable.String `json:"method" validate:"maxLength=1024"`
+	// Request describes the HTTP request information.
+	Request spanContextHTTPRequest `json:"request"`
 	// Response describes the HTTP response information in case the event was
 	// created as a result of an HTTP request.
 	Response spanContextHTTPResponse `json:"response"`
@@ -839,6 +841,11 @@ type spanContextHTTP struct {
 	StatusCode nullable.Int `json:"status_code"`
 	// URL is the raw url of the correlating HTTP request.
 	URL nullable.String `json:"url"`
+}
+
+type spanContextHTTPRequest struct {
+	// ID holds the unique identifier for the http request.
+	ID nullable.String `json:"id"`
 }
 
 type spanContextHTTPResponse struct {
@@ -972,8 +979,6 @@ type log struct {
 	Message nullable.String `json:"message"`
 	// FAAS holds fields related to Function as a Service events.
 	FAAS faas `json:"faas"`
-	// Dataset identifies the source which originated the log line.
-	Dataset nullable.String `json:"dataset" validate:"maxLength=1024"`
 	// Labels are a flat mapping of user-defined key-value pairs.
 	Labels mapstr.M `json:"labels" validate:"inputTypesVals=string;bool;number,maxLengthVals=1024"`
 
@@ -982,10 +987,19 @@ type log struct {
 	// The logic parses JSON tag of each struct field to produce a code which, at runtime,
 	// checks the nested map to retrieve the required value for each field.
 
+	EcsLogEventFields
 	EcsLogServiceFields
 	EcsLogLogFields
 	EcsLogErrorFields
 	EcsLogProcessFields
+}
+
+// EcsLogEventFields holds event.* fields for supporting ECS logging format and enables
+// parsing them in flat as well as nested notation.
+type EcsLogEventFields struct {
+	NestedStruct map[string]interface{} `json:"event" nested:"true"`
+	// ProcessThreadName represents the name of the thread.
+	EventDataset nullable.String `json:"event.dataset" validate:"maxLength=1024"`
 }
 
 // EcsLogProcessFields holds process.* fields for supporting ECS logging format and enables
