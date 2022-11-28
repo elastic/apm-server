@@ -181,6 +181,22 @@
               ],
               "maxLength": 1024
             },
+            "request": {
+              "description": "Request describes the HTTP request information.",
+              "type": [
+                "null",
+                "object"
+              ],
+              "properties": {
+                "id": {
+                  "description": "ID holds the unique identifier for the http request.",
+                  "type": [
+                    "null",
+                    "string"
+                  ]
+                }
+              }
+            },
             "response": {
               "description": "Response describes the HTTP response information in case the event was created as a result of an HTTP request.",
               "type": [

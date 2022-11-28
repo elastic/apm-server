@@ -17,7 +17,6 @@ https://github.com/elastic/apm-server/compare/8.5\...main[View commits]
 
 [float]
 ==== Bug fixes
-- Null APM agent configuration entries are now treated as empty, and will not cause the server to exit with an error {pull}9546[9546]
 - Change ownership of apm-server.yml and data/ to apm-server user in Docker image {pull} 9604[9604]
 
 [float]
@@ -25,6 +24,7 @@ https://github.com/elastic/apm-server/compare/8.5\...main[View commits]
 - experimental:[] Extend logs v2 intake API to support ECS logging fields {pull}9349[9349]
 - experimental:[] Add support for string timestamp format(`2006-01-02T15:04:05.999-0700`) {pull}9376[9376]
 - `context.http.response.*_size` fields have been changed from floating-point to integer types {pull}9429[9429]
+- Add `request.id` to `span.context.http` {pull}9673[9673]
 
 [float]
 ==== Added

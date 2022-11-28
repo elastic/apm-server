@@ -2450,11 +2450,12 @@ func (val *spanContextDestinationService) processNestedSource() error {
 }
 
 func (val *spanContextHTTP) IsSet() bool {
-	return val.Method.IsSet() || val.Response.IsSet() || val.StatusCode.IsSet() || val.URL.IsSet()
+	return val.Method.IsSet() || val.Request.IsSet() || val.Response.IsSet() || val.StatusCode.IsSet() || val.URL.IsSet()
 }
 
 func (val *spanContextHTTP) Reset() {
 	val.Method.Reset()
+	val.Request.Reset()
 	val.Response.Reset()
 	val.StatusCode.Reset()
 	val.URL.Reset()
@@ -2467,6 +2468,9 @@ func (val *spanContextHTTP) validate() error {
 	if val.Method.IsSet() && utf8.RuneCountInString(val.Method.Val) > 1024 {
 		return fmt.Errorf("'method': validation rule 'maxLength(1024)' violated")
 	}
+	if err := val.Request.validate(); err != nil {
+		return errors.Wrapf(err, "request")
+	}
 	if err := val.Response.validate(); err != nil {
 		return errors.Wrapf(err, "response")
 	}
@@ -2474,9 +2478,31 @@ func (val *spanContextHTTP) validate() error {
 }
 
 func (val *spanContextHTTP) processNestedSource() error {
+	if err := val.Request.processNestedSource(); err != nil {
+		return errors.Wrapf(err, "request")
+	}
 	if err := val.Response.processNestedSource(); err != nil {
 		return errors.Wrapf(err, "response")
 	}
+	return nil
+}
+
+func (val *spanContextHTTPRequest) IsSet() bool {
+	return val.ID.IsSet()
+}
+
+func (val *spanContextHTTPRequest) Reset() {
+	val.ID.Reset()
+}
+
+func (val *spanContextHTTPRequest) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	return nil
+}
+
+func (val *spanContextHTTPRequest) processNestedSource() error {
 	return nil
 }
 
@@ -3023,7 +3049,7 @@ func (val *logRoot) processNestedSource() error {
 }
 
 func (val *log) IsSet() bool {
-	return val.Timestamp.IsSet() || val.TraceID.IsSet() || val.TransactionID.IsSet() || val.SpanID.IsSet() || val.Message.IsSet() || val.FAAS.IsSet() || val.Dataset.IsSet() || (len(val.Labels) > 0) || val.EcsLogServiceFields.IsSet() || val.EcsLogLogFields.IsSet() || val.EcsLogErrorFields.IsSet() || val.EcsLogProcessFields.IsSet()
+	return val.Timestamp.IsSet() || val.TraceID.IsSet() || val.TransactionID.IsSet() || val.SpanID.IsSet() || val.Message.IsSet() || val.FAAS.IsSet() || (len(val.Labels) > 0) || val.EcsLogEventFields.IsSet() || val.EcsLogServiceFields.IsSet() || val.EcsLogLogFields.IsSet() || val.EcsLogErrorFields.IsSet() || val.EcsLogProcessFields.IsSet()
 }
 
 func (val *log) Reset() {
@@ -3033,10 +3059,10 @@ func (val *log) Reset() {
 	val.SpanID.Reset()
 	val.Message.Reset()
 	val.FAAS.Reset()
-	val.Dataset.Reset()
 	for k := range val.Labels {
 		delete(val.Labels, k)
 	}
+	val.EcsLogEventFields.Reset()
 	val.EcsLogServiceFields.Reset()
 	val.EcsLogLogFields.Reset()
 	val.EcsLogErrorFields.Reset()
@@ -3059,9 +3085,6 @@ func (val *log) validate() error {
 	if err := val.FAAS.validate(); err != nil {
 		return errors.Wrapf(err, "faas")
 	}
-	if val.Dataset.IsSet() && utf8.RuneCountInString(val.Dataset.Val) > 1024 {
-		return fmt.Errorf("'dataset': validation rule 'maxLength(1024)' violated")
-	}
 	for k, v := range val.Labels {
 		switch t := v.(type) {
 		case nil:
@@ -3074,6 +3097,9 @@ func (val *log) validate() error {
 		default:
 			return fmt.Errorf("'labels': validation rule 'inputTypesVals(string;bool;number)' violated for key %s", k)
 		}
+	}
+	if err := val.EcsLogEventFields.validate(); err != nil {
+		return errors.Wrapf(err, "ecslogeventfields")
 	}
 	if err := val.EcsLogServiceFields.validate(); err != nil {
 		return errors.Wrapf(err, "ecslogservicefields")
@@ -3094,6 +3120,9 @@ func (val *log) processNestedSource() error {
 	if err := val.FAAS.processNestedSource(); err != nil {
 		return errors.Wrapf(err, "faas")
 	}
+	if err := val.EcsLogEventFields.processNestedSource(); err != nil {
+		return errors.Wrapf(err, "ecslogeventfields")
+	}
 	if err := val.EcsLogServiceFields.processNestedSource(); err != nil {
 		return errors.Wrapf(err, "ecslogservicefields")
 	}
@@ -3105,6 +3134,37 @@ func (val *log) processNestedSource() error {
 	}
 	if err := val.EcsLogProcessFields.processNestedSource(); err != nil {
 		return errors.Wrapf(err, "ecslogprocessfields")
+	}
+	return nil
+}
+
+func (val *EcsLogEventFields) IsSet() bool {
+	return (len(val.NestedStruct) > 0) || val.EventDataset.IsSet()
+}
+
+func (val *EcsLogEventFields) Reset() {
+	for k := range val.NestedStruct {
+		delete(val.NestedStruct, k)
+	}
+	val.EventDataset.Reset()
+}
+
+func (val *EcsLogEventFields) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	if val.EventDataset.IsSet() && utf8.RuneCountInString(val.EventDataset.Val) > 1024 {
+		return fmt.Errorf("'event.dataset': validation rule 'maxLength(1024)' violated")
+	}
+	return nil
+}
+
+func (val *EcsLogEventFields) processNestedSource() error {
+	if len(val.NestedStruct) == 0 {
+		return nil
+	}
+	if tmpVal, ok := val.NestedStruct["dataset"].(string); ok {
+		val.EventDataset.Set(tmpVal)
 	}
 	return nil
 }

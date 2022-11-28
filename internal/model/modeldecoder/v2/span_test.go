@@ -251,6 +251,14 @@ func TestDecodeMapToSpanModel(t *testing.T) {
 		}
 	})
 
+	t.Run("http-request", func(t *testing.T) {
+		var input span
+		input.Context.HTTP.Request.ID.Set("some-request-id")
+		var out model.APMEvent
+		mapToSpanModel(&input, &out)
+		assert.Equal(t, "some-request-id", out.HTTP.Request.ID)
+	})
+
 	t.Run("http-headers", func(t *testing.T) {
 		var input span
 		input.Context.HTTP.Response.Headers.Set(http.Header{"a": []string{"b", "c"}})

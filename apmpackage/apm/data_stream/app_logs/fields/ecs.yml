@@ -73,6 +73,10 @@
 - external: ecs
   name: ecs.version
 - external: ecs
+  name: error.stack_trace
+- external: ecs
+  name: event.dataset
+- external: ecs
   name: event.outcome
 - external: ecs
   name: event.severity
@@ -111,6 +115,14 @@
 - external: ecs
   name: log.level
 - external: ecs
+  name: log.logger
+- external: ecs
+  name: log.origin.file.line
+- external: ecs
+  name: log.origin.file.name
+- external: ecs
+  name: log.origin.function
+- external: ecs
   name: message
 - external: ecs
   name: observer.hostname
@@ -126,6 +138,8 @@
   name: process.pid
 - external: ecs
   name: process.parent.pid
+- external: ecs
+  name: process.thread.name
 - external: ecs
   name: process.title
 - external: ecs
