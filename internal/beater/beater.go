@@ -226,12 +226,19 @@ func (s *Runner) Run(ctx context.Context) error {
 
 	// ELASTIC_AGENT_CLOUD is set when running in Elastic Cloud.
 	inElasticCloud := os.Getenv("ELASTIC_AGENT_CLOUD") != ""
-	if inElasticCloud && s.config.Kibana.Enabled {
-		go func() {
-			if err := kibana.SendConfig(ctx, kibanaClient, (*ucfg.Config)(s.rawConfig)); err != nil {
-				s.logger.Infof("failed to upload config to kibana: %v", err)
-			}
-		}()
+	if inElasticCloud {
+		if s.config.Kibana.Enabled {
+			go func() {
+				if err := kibana.SendConfig(ctx, kibanaClient, (*ucfg.Config)(s.rawConfig)); err != nil {
+					s.logger.Infof("failed to upload config to kibana: %v", err)
+				}
+			}()
+		}
+
+		// BUG(axw) fleet.hosts isn't being sent to APM Server in ESS, so assume co-location.
+		if len(s.fleetConfig.Hosts) == 0 {
+			s.fleetConfig.Hosts = []string{"https://localhost:8220"}
+		}
 	}
 
 	if s.config.JavaAttacherConfig.Enabled {
