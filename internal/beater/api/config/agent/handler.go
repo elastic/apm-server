@@ -184,6 +184,28 @@ func extractInternalError(c *request.Context, err error) {
 		body = authErrMsg(c, fullMsg, agentcfg.ErrUnauthorized)
 		keyword = agentcfg.ErrUnauthorized
 
+	case strings.Contains(msg, agentcfg.ErrAgentRemoteConfigurationDisabled):
+		body = "Agent remote configuration is disabled. Configure the `apm-server.kibana` section in apm-server.yml to enable it. If you are using a RUM agent, you also need to configure the `apm-server.rum` section. If you are not using remote configuration, you can safely ignore this error."
+		c.Result.Set(
+			request.IDResponseErrorsForbidden,
+			http.StatusForbidden,
+			keyword,
+			body,
+			err,
+		)
+		return
+
+	case strings.Contains(msg, agentcfg.ErrCacheNotReady):
+		body = "Agent remote configuration is not ready. Please retry later."
+		c.Result.Set(
+			request.IDResponseErrorsServiceUnavailable,
+			http.StatusServiceUnavailable,
+			keyword,
+			body,
+			err,
+		)
+		return
+
 	default:
 		body = authErrMsg(c, msg, msgServiceUnavailable)
 		keyword = msgServiceUnavailable

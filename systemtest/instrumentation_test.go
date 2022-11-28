@@ -27,7 +27,6 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/apm-server/systemtest"
@@ -89,9 +88,9 @@ func TestAPMServerInstrumentation(t *testing.T) {
 		if !ok {
 			continue
 		}
-		assert.Equal(t, transactionDoc.Trace.ID, traceID)
-		assert.Equal(t, transactionDoc.Transaction.ID, entry.Fields["transaction.id"])
-		return
+		if transactionDoc.Trace.ID == traceID && transactionDoc.Transaction.ID == entry.Fields["transaction.id"] {
+			return
+		}
 	}
 	t.Fatal("failed to identify log message with matching trace IDs")
 }
