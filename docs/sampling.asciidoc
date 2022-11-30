@@ -51,7 +51,7 @@ Head-based sampling is implemented in the APM agents and SDKs, and
 requires the sample rate to be propagated between services and the APM Server.
 This functionality is not currently supported by OpenTelemetry,
 which results in inaccurate APM throughput, latency, and error metrics.
-OpenTelemetry users should use tail-based sampling instead.
+OpenTelemetry users should consider using tail-based sampling instead.
 
 [float]
 [[tail-based-sampling]]
