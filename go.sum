@@ -204,7 +204,6 @@ github.com/andrewkroh/goja v0.0.0-20190128172624-dd2ac4456e20/go.mod h1:cI59GRkC
 github.com/andrewkroh/sys v0.0.0-20151128191922-287798fe3e43 h1:WFwa9pqou0Nb4DdfBOyaBTH0GqLE74Qwdf61E7ITHwQ=
 github.com/antihax/optional v1.0.0 h1:xK2lYat7ZLaVVcIuj82J8kIro4V6kDe0AUDFboUCwcg=
 github.com/antihax/optional v1.0.0/go.mod h1:uupD/76wgC+ih3iEmQUL+0Ugr19nfwCT1kdvxnR2qWY=
-github.com/antlr/antlr4 v0.0.0-20200820155224-be881fa6b91d h1:OE3kzLBpy7pOJEzE55j9sdgrSilUPzzj++FWvp1cmIs=
 github.com/antlr/antlr4/runtime/Go/antlr v0.0.0-20220418222510-f25a4f6275ed h1:ue9pVfIcP+QMEjfgo/Ez4ZjNZfonGgR6NgjMaJMu1Cg=
 github.com/antonmedv/expr v1.9.0 h1:j4HI3NHEdgDnN9p6oI6Ndr0G5QryMY0FNxT4ONrFDGU=
 github.com/apache/thrift v0.17.0 h1:cMd2aj52n+8VoAtvSvLn4kDC3aZ6IAkBuqWQ2IDu7wo=
@@ -369,13 +368,8 @@ github.com/elastic/bayeux v1.0.5 h1:UceFq01ipmT3S8DzFK+uVAkbCdiPR0Bqei8qIGmUeY0=
 github.com/elastic/beats/v7 v7.0.0-alpha2.0.20221118111442-cd547c688521 h1:idhizVI6hZw4Dal49600w3Hb8DodYqkQl6WDCvJyfd8=
 github.com/elastic/beats/v7 v7.0.0-alpha2.0.20221118111442-cd547c688521/go.mod h1:Lbq9NNCNS6ud3CAqXqC7Jlu+vVBbF2mblwUm+On+ZQE=
 github.com/elastic/elastic-agent-autodiscover v0.4.0 h1:R1JMLHQpH2KP3GXY8zmgV4dj39uoe1asyPPWGQbGgSk=
-<<<<<<< HEAD
-github.com/elastic/elastic-agent-client/v7 v7.0.0-20221102171927-bc376a4e0f9f h1:hZv3vpGoAIvt/r6iPgKdfTCKgI8Eyk5Bb8HHP2FtzTY=
-github.com/elastic/elastic-agent-client/v7 v7.0.0-20221102171927-bc376a4e0f9f/go.mod h1:FEXUbFMfaV62S0CtJgD+FFHGY7+4o4fXkDicyONPSH8=
-=======
 github.com/elastic/elastic-agent-client/v7 v7.0.2-0.20221129150247-15881a8e64ef h1:+3AWaimDL826eoU06qOFBtA3xmyuTr9YUMVWvnim4mU=
 github.com/elastic/elastic-agent-client/v7 v7.0.2-0.20221129150247-15881a8e64ef/go.mod h1:cHviLpA5fAwMbfBIHBVNl16qp90bO7pKHMAQaG+9raU=
->>>>>>> dab29cec (Updated elastic-agent-client to v7.0.2-0.20221129150247-15881a8e64ef (#9691))
 github.com/elastic/elastic-agent-libs v0.2.15 h1:hdAbrZZ2mCPcQLRCE3E8xw3mHKl8HFMt36w7jan/XGo=
 github.com/elastic/elastic-agent-libs v0.2.15/go.mod h1:0J9lzJh+BjttIiVjYDLncKYCEWUUHiiqnuI64y6C6ss=
 github.com/elastic/elastic-agent-shipper-client v0.4.0 h1:nsTJF9oo4RHLl+zxFUZqNHaE86C6Ba5aImfegcEf6Sk=
