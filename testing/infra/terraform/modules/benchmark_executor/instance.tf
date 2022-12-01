@@ -71,5 +71,9 @@ module "ec2_instance" {
     Name       = "${var.user_name}-worker"
     managed-by = "terraform"
     Owner      = var.user_name
+    division   = "engineering"
+    org        = "obs"
+    team       = "observability"
+    project    = "apm-server"
   }
 }
