@@ -7,7 +7,7 @@ require (
 	github.com/dgraph-io/badger/v2 v2.2007.3-0.20201012072640-f5a7e0a1c83b
 	github.com/dustin/go-humanize v1.0.0
 	github.com/elastic/apm-server/internal/approvaltest v0.0.0-00010101000000-000000000000
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20221129180433-141ad337a4d2
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20221201032257-0bf61693f3c3
 	github.com/elastic/elastic-agent-client/v7 v7.0.2-0.20221129150247-15881a8e64ef
 	github.com/elastic/elastic-agent-libs v0.2.15
 	github.com/elastic/elastic-agent-system-metrics v0.4.5-0.20220927192933-25a985b07d51
@@ -51,7 +51,7 @@ require (
 	go.opentelemetry.io/collector/pdata v0.63.1
 	go.opentelemetry.io/collector/semconv v0.63.1
 	go.uber.org/automaxprocs v1.5.1
-	go.uber.org/zap v1.23.0
+	go.uber.org/zap v1.24.0
 	golang.org/x/net v0.2.0
 	golang.org/x/sync v0.1.0
 	golang.org/x/term v0.2.0
@@ -152,7 +152,7 @@ require (
 	golang.org/x/mod v0.7.0 // indirect
 	golang.org/x/sys v0.2.0 // indirect
 	golang.org/x/text v0.4.0 // indirect
-	google.golang.org/genproto v0.0.0-20221118155620-16455021b5e6 // indirect
+	google.golang.org/genproto v0.0.0-20221130183247-a2ec334bae6f // indirect
 	gopkg.in/jcmturner/aescts.v1 v1.0.1 // indirect
 	gopkg.in/jcmturner/dnsutils.v1 v1.0.1 // indirect
 	gopkg.in/jcmturner/goidentity.v3 v3.0.0 // indirect
