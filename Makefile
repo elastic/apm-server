@@ -198,13 +198,8 @@ testing/infra/terraform/modules/%/README.md: .FORCE
 # Beats synchronisation.
 ##############################################################################
 
-<<<<<<< HEAD
 BEATS_VERSION?=8.6
-BEATS_MODULE:=$(shell $(GO) list -m -f {{.Path}} all | grep github.com/elastic/beats)
-=======
-BEATS_VERSION?=main
 BEATS_MODULE:=github.com/elastic/beats/v7
->>>>>>> 4d94aab9 (Makefile: hard-code beats module path (#9713))
 
 .PHONY: update-beats
 update-beats: update-beats-module update
