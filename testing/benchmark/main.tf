@@ -24,7 +24,7 @@ locals {
   mandatory_tags = {
     division  = "engineering"
     org       = "obs"
-    team      = "observability"
+    team      = "apm-server"
     project   = "apm-server"
   }
 }
