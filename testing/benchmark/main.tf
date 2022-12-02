@@ -20,6 +20,13 @@ locals {
     build        = var.BUILD_ID
     created_date = var.CREATED_DATE
   }
+
+  mandatory_tags = {
+    division  = "engineering"
+    org       = "obs"
+    team      = "apm-server"
+    project   = "benchmarks"
+  }
 }
 
 module "tags" {
@@ -63,7 +70,7 @@ module "ec_deployment" {
   docker_image              = var.docker_image_override
   docker_image_tag_override = var.docker_image_tag_override
 
-  tags = merge(local.ci_tags, module.tags.tags)
+  tags = merge(local.ci_tags, module.tags.tags, local.mandatory_tags)
 }
 
 module "benchmark_worker" {
