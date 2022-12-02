@@ -25,7 +25,7 @@ locals {
     division  = "engineering"
     org       = "obs"
     team      = "apm-server"
-    project   = "apm-server"
+    project   = "benchmarks"
   }
 }
 

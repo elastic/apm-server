@@ -73,7 +73,7 @@ module "ec2_instance" {
     Owner      = var.user_name
     division   = "engineering"
     org        = "obs"
-    team       = "observability"
-    project    = "apm-server"
+    team       = "apm-server"
+    project    = "benchmarks"
   }
 }
