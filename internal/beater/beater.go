@@ -320,13 +320,7 @@ func (s *Runner) Run(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
-		cachingFetcher, err := sourcemap.NewCachingFetcher(
-			fetcher, s.config.RumConfig.SourceMapping.Cache.Expiration,
-		)
-		if err != nil {
-			return err
-		}
-		sourcemapFetcher = cachingFetcher
+		sourcemapFetcher = fetcher
 	}
 
 	// Create the runServer function. We start with newBaseRunServer, and then
@@ -827,18 +821,33 @@ func newSourcemapFetcher(
 			}
 		}
 
-		return sourcemap.NewFleetFetcher(
+		ff, err := sourcemap.NewFleetFetcher(
 			&client,
 			fleetCfg.AccessAPIKey,
 			fleetServerURLs,
 			artifactRefs,
 		)
+		if err != nil {
+			return nil, err
+		}
+
+		cachingFetcher, err := sourcemap.NewCachingFetcher(ff, cfg.Cache.Expiration)
+		if err != nil {
+			return nil, err
+		}
+
+		return cachingFetcher, nil
 	}
 
 	// For standalone, we query both Kibana and Elasticsearch for backwards compatibility.
 	var chained sourcemap.ChainedFetcher
 	if kibanaClient != nil {
-		chained = append(chained, sourcemap.NewKibanaFetcher(kibanaClient))
+		cachingFetcher, err := sourcemap.NewCachingFetcher(sourcemap.NewKibanaFetcher(kibanaClient), cfg.Cache.Expiration)
+		if err != nil {
+			return nil, err
+		}
+
+		chained = append(chained, cachingFetcher)
 	}
 	esClient, err := newElasticsearchClient(cfg.ESConfig)
 	if err != nil {
@@ -846,7 +855,15 @@ func newSourcemapFetcher(
 	}
 	index := strings.ReplaceAll(cfg.IndexPattern, "%{[observer.version]}", version.Version)
 	esFetcher := sourcemap.NewElasticsearchFetcher(esClient, index)
-	chained = append(chained, esFetcher)
+	cachingFetcher, err := sourcemap.NewCachingFetcher(esFetcher, cfg.Cache.Expiration)
+	if err != nil {
+		return nil, err
+	}
+	metadataCachingFetcher := sourcemap.NewMetadataCachingFetcher(esClient, cachingFetcher, index)
+	metadataCachingFetcher.StartBackgroundSync()
+
+	chained = append(chained, metadataCachingFetcher)
+
 	return chained, nil
 }
 
