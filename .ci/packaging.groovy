@@ -398,14 +398,6 @@ def signUnpublishedArtifactsWithElastic(builtPackagesPath, glob) {
 }
 
 def uploadUnpublishedToPackageStorage(builtPackagesPath, packageZips) {
-  def dryRun = env.BRANCH_NAME != 'main'
-  if (dryRun) {
-    packageZips.each {
-      echo "Dry run: not publishing ${it}"
-    }
-    return
-  }
-
   dir(builtPackagesPath) {
     withGCPEnv(secret: env.PACKAGE_STORAGE_UPLOADER_GCP_SERVICE_ACCOUNT) {
       withCredentials([string(credentialsId: env.PACKAGE_STORAGE_UPLOADER_CREDENTIALS, variable: 'TOKEN')]) {
