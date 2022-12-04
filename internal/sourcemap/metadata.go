@@ -115,13 +115,10 @@ func (s *MetadataCachingFetcher) StartBackgroundSync() {
 		t := time.NewTicker(30 * time.Second)
 		defer t.Stop()
 
-		for {
-			select {
-			case <-t.C:
-				ctx, cleanup := context.WithTimeout(context.Background(), 10*time.Second)
-				s.sync(ctx)
-				cleanup()
-			}
+		for range t.C {
+			ctx, cleanup := context.WithTimeout(context.Background(), 10*time.Second)
+			s.sync(ctx)
+			cleanup()
 		}
 	}()
 }
