@@ -60,11 +60,7 @@ module "ec_deployment" {
   docker_image              = var.docker_image_override
   docker_image_tag_override = var.docker_image_tag_override
 
-<<<<<<< HEAD
-  tags = local.ci_tags
-=======
-  tags = merge(local.ci_tags, module.tags.tags, local.mandatory_tags)
->>>>>>> 4c5ca382 (Cloud labeling for benchmark instances (#9721))
+  tags = merge(local.ci_tags, local.mandatory_tags)
 }
 
 module "benchmark_worker" {
