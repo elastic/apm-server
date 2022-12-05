@@ -414,8 +414,7 @@ func (c *ElasticAgentContainer) Close() error {
 func (c *ElasticAgentContainer) APMServerLog() (io.ReadCloser, error) {
 	return c.container.CopyFileFromContainer(
 		context.Background(), fmt.Sprintf(
-			"/usr/share/elastic-agent/data/elastic-agent-%s/components/logs/apm-server-%s.ndjson",
-			c.vcsRef[:6],
+			"/usr/share/elastic-agent/state/data/logs/apm-default-%s-1.ndjson",
 			time.Now().UTC().Format("20060102"),
 		),
 	)

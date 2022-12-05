@@ -187,7 +187,9 @@ func newAPMIntegrationConfig(t testing.TB, vars, config map[string]interface{}) 
 			return
 		}
 		t.Logf("elastic-agent logs: %s", output.String())
-		if log, err := agent.APMServerLog(); err == nil {
+		if log, err := agent.APMServerLog(); err != nil {
+			t.Logf("error copying apm-server logs: %s", err)
+		} else {
 			t.Log("apm-server logs:")
 			io.Copy(os.Stdout, log)
 			log.Close()
