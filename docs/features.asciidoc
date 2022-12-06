@@ -10,7 +10,7 @@
 * <<apm-rum>>
 * <<sampling>>
 * <<open-telemetry>>
-* <<log-correlation>>
+* <<application-logs>>
 * <<cross-cluster-search>>
 * <<span-compression>>
 * <<monitoring-aws-lambda>>
