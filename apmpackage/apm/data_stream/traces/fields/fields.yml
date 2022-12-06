@@ -73,6 +73,7 @@
     The size (in octets) received from the fetch (HTTP or cache), of the payload body, before removing any applied content-codings.
 - name: http.response.decoded_body_size
   type: long
+  unit: byte
   index: false
   description: |
     The size (in octets) received from the fetch (HTTP or cache) of the message body, after removing any applied content-codings.
