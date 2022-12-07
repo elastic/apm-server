@@ -36,8 +36,10 @@ var (
 	counterEventsFailure        = monitoring.NewInt(indexerDocs, "events.failure.count")
 	counterStacktracesTotal     = monitoring.NewInt(indexerDocs, "stacktraces.total.count")
 	counterStacktracesDuplicate = monitoring.NewInt(indexerDocs, "stacktraces.duplicate.count")
+	counterStacktracesFailure   = monitoring.NewInt(indexerDocs, "stacktraces.failure.count")
 	counterStackframesTotal     = monitoring.NewInt(indexerDocs, "stackframes.total.count")
 	counterStackframesDuplicate = monitoring.NewInt(indexerDocs, "stackframes.duplicate.count")
+	counterStackframesFailure   = monitoring.NewInt(indexerDocs, "stackframes.failure.count")
 	counterExecutablesTotal     = monitoring.NewInt(indexerDocs, "executables.total.count")
 	counterExecutablesFailure   = monitoring.NewInt(indexerDocs, "executables.failure.count")
 
@@ -52,6 +54,8 @@ const (
 	actionCreate = "create"
 
 	sourceFileCacheSize = 128 * 1024
+	// ES error string indicating a duplicate document by _id
+	docIDAlreadyExists = "version_conflict_engine_exception"
 )
 
 // ElasticCollector is an implementation of the gRPC server handling the data
@@ -408,12 +412,16 @@ func (e *ElasticCollector) SetFramesForTraces(ctx context.Context,
 			OnFailure: func(
 				_ context.Context,
 				_ elasticsearch.BulkIndexerItem,
-				_ elasticsearch.BulkIndexerResponseItem,
+				resp elasticsearch.BulkIndexerResponseItem,
 				_ error,
 			) {
-				// Error is expected here, as we tried to "create" an existing document.
-				// We increment the metric to understand the origin-to-duplicate ratio.
-				counterStacktracesDuplicate.Inc()
+				if resp.Error.Type == docIDAlreadyExists {
+					// Error is expected here, as we tried to "create" an existing document.
+					// We increment the metric to understand the origin-to-duplicate ratio.
+					counterStacktracesDuplicate.Inc()
+					return
+				}
+				counterStacktracesFailure.Inc()
 			},
 		}, body.Bytes())
 
@@ -505,12 +513,16 @@ func (e *ElasticCollector) AddFrameMetadata(ctx context.Context, in *AddFrameMet
 			OnFailure: func(
 				_ context.Context,
 				_ elasticsearch.BulkIndexerItem,
-				_ elasticsearch.BulkIndexerResponseItem,
+				resp elasticsearch.BulkIndexerResponseItem,
 				_ error,
 			) {
-				// Error is expected here, as we tried to "create" an existing document.
-				// We increment the metric to understand the origin-to-duplicate ratio.
-				counterStackframesDuplicate.Inc()
+				if resp.Error.Type == docIDAlreadyExists {
+					// Error is expected here, as we tried to "create" an existing document.
+					// We increment the metric to understand the origin-to-duplicate ratio.
+					counterStackframesDuplicate.Inc()
+					return
+				}
+				counterStackframesFailure.Inc()
 			},
 		}, buf.Bytes())
 		if err != nil {
@@ -580,7 +592,13 @@ func (e *ElasticCollector) AddFallbackSymbols(ctx context.Context,
 				resp elasticsearch.BulkIndexerResponseItem,
 				err error,
 			) {
-				counterStackframesDuplicate.Inc()
+				if resp.Error.Type == docIDAlreadyExists {
+					// Error is expected here, as we tried to "create" an existing document.
+					// We increment the metric to understand the origin-to-duplicate ratio.
+					counterStackframesDuplicate.Inc()
+					return
+				}
+				counterStackframesFailure.Inc()
 			},
 		}, buf.Bytes())
 		if err != nil {
