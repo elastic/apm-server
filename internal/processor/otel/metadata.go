@@ -27,7 +27,7 @@ import (
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	semconv "go.opentelemetry.io/collector/semconv/v1.5.0"
 
-	"github.com/elastic/apm-server/internal/model"
+	"github.com/elastic/apm-data/model"
 )
 
 const (
@@ -222,8 +222,15 @@ func translateResourceMetadata(resource pcommon.Resource, out *model.APMEvent) {
 		out.Service.Language.Name = "unknown"
 	}
 
-	// Set the decoded labels as "glboal".
-	out.MarkGlobalLabels()
+	// Set the decoded labels as "global" -- defined at the service level.
+	for k, v := range out.Labels {
+		v.Global = true
+		out.Labels[k] = v
+	}
+	for k, v := range out.NumericLabels {
+		v.Global = true
+		out.NumericLabels[k] = v
+	}
 }
 
 func cleanServiceName(name string) string {

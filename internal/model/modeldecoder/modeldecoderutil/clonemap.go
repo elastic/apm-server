@@ -15,22 +15,14 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package model
+package modeldecoderutil
 
 import (
 	"github.com/elastic/elastic-agent-libs/mapstr"
 )
 
-// Child holds information about the children of a trace event.
-type Child struct {
-	// ID holds IDs of child events.
-	ID []string
-}
-
-func (c *Child) fields() mapstr.M {
-	var fields mapStr
-	if len(c.ID) > 0 {
-		fields.set("id", c.ID)
-	}
-	return mapstr.M(fields)
+// CloneMap returns a deep clone of m.
+func CloneMap(m map[string]any) map[string]any {
+	mm := mapstr.M(m)
+	return map[string]any(mm.Clone())
 }

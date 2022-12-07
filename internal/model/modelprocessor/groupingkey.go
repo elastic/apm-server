@@ -24,7 +24,7 @@ import (
 	"hash"
 	"io"
 
-	"github.com/elastic/apm-server/internal/model"
+	"github.com/elastic/apm-data/model"
 )
 
 // SetGroupingKey is a model.BatchProcessor that sets the grouping key for errors

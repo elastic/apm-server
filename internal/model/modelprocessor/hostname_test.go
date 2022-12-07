@@ -20,7 +20,7 @@ package modelprocessor_test
 import (
 	"testing"
 
-	"github.com/elastic/apm-server/internal/model"
+	"github.com/elastic/apm-data/model"
 	"github.com/elastic/apm-server/internal/model/modelprocessor"
 )
 

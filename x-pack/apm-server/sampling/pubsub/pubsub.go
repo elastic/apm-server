@@ -24,8 +24,8 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/esapi"
 	"github.com/elastic/go-elasticsearch/v8/esutil"
 
+	"github.com/elastic/apm-data/model"
 	"github.com/elastic/apm-server/internal/logs"
-	"github.com/elastic/apm-server/internal/model"
 )
 
 // ErrClosed may be returned by Pubsub methods after the Close method is called.

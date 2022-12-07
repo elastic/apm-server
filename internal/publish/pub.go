@@ -19,16 +19,18 @@ package publish
 
 import (
 	"context"
+	"encoding/json"
 	"runtime"
 	"sync"
 	"time"
 
 	"github.com/pkg/errors"
 	"go.elastic.co/apm/v2"
+	"go.elastic.co/fastjson"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
 
-	"github.com/elastic/apm-server/internal/model"
+	"github.com/elastic/apm-data/model"
 )
 
 type Reporter func(context.Context, PendingReq) error
@@ -140,7 +142,7 @@ func (p *Publisher) Stop(ctx context.Context) error {
 func (p *Publisher) ProcessBatch(ctx context.Context, batch *model.Batch) error {
 	b := make(model.Batch, len(*batch))
 	copy(b, *batch)
-	return p.Send(ctx, PendingReq{Transformable: &b})
+	return p.Send(ctx, PendingReq{Transformable: batchTransformer(b)})
 }
 
 // Send tries to forward pendingReq to the publishers worker. If the queue is full,
@@ -173,4 +175,34 @@ func (p *Publisher) run() {
 		events := req.Transformable.Transform(ctx)
 		p.client.PublishAll(events)
 	}
+}
+
+type batchTransformer model.Batch
+
+func (t batchTransformer) Transform(context.Context) []beat.Event {
+	out := make([]beat.Event, 0, len(t))
+	var w fastjson.Writer
+	for _, event := range t {
+		// Encode the event to JSON, then decode into a map.
+		// This is probably a bit horrifying, but enables us to
+		// remove the libbeat dependency from our data model.
+		//
+		// This code path exists only for lesser-used outputs
+		// that travel through libbeat. We mitigate the overhead
+		// of the extra encode/decode by reusing a memory buffer
+		// within a batch. This will also enable us to move away
+		// from the intermediate map representation for events,
+		// and encode directly to JSON, minimising garbage for
+		// the Elasticsearch output.
+		if err := event.MarshalFastJSON(&w); err != nil {
+			continue
+		}
+		beatEvent := beat.Event{Timestamp: event.Timestamp}
+		if err := json.Unmarshal(w.Bytes(), &beatEvent.Fields); err != nil {
+			continue
+		}
+		out = append(out, beatEvent)
+		w.Reset()
+	}
+	return out
 }
