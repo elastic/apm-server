@@ -234,11 +234,6 @@ func (s *Runner) Run(ctx context.Context) error {
 				}
 			}()
 		}
-
-		// BUG(axw) fleet.hosts isn't being sent to APM Server in ESS, so assume co-location.
-		if len(s.fleetConfig.Hosts) == 0 {
-			s.fleetConfig.Hosts = []string{"https://localhost:8220"}
-		}
 	}
 
 	if s.config.JavaAttacherConfig.Enabled {
