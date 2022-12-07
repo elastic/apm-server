@@ -22,8 +22,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/elastic/apm-server/internal/elasticsearch"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/pubsub"
+	"github.com/elastic/go-elasticsearch/v8"
 )
 
 const (
@@ -291,8 +291,8 @@ func newSubscriberPosition(t testing.TB, srv *httptest.Server, pos pubsub.Subscr
 }
 
 func newPubsub(t testing.TB, srv *httptest.Server, flushInterval, searchInterval time.Duration) *pubsub.Pubsub {
-	client, err := elasticsearch.NewClient(&elasticsearch.Config{
-		Hosts: []string{srv.Listener.Addr().String()},
+	client, err := elasticsearch.NewClient(elasticsearch.Config{
+		Addresses: []string{srv.URL},
 	})
 	require.NoError(t, err)
 

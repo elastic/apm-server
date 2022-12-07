@@ -26,10 +26,11 @@ import (
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/monitoring"
 	"github.com/elastic/elastic-agent-libs/paths"
+	"github.com/elastic/go-elasticsearch/v8"
+	"github.com/elastic/go-elasticsearch/v8/esutil"
 
 	"github.com/elastic/apm-server/internal/beatcmd"
 	"github.com/elastic/apm-server/internal/beater"
-	"github.com/elastic/apm-server/internal/elasticsearch"
 	"github.com/elastic/apm-server/internal/model"
 	"github.com/elastic/apm-server/internal/model/modelprocessor"
 	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/servicemetrics"
@@ -293,11 +294,15 @@ func newProfilingCollector(args beater.ServerParams) (*profiling.ElasticCollecto
 	// memory spikes to acceptable levels (go-elasticsearch can exhibit pathological behavior
 	// if thousands of items are added to its bulk indexer at once, since they are kept in memory
 	// for the entire duration of an ES request-response cycle).
-	bulkIndexerConfig := elasticsearch.BulkIndexerConfig{
-		FlushBytes:    1 << 22,
-		FlushInterval: 4 * time.Second,
-	}
-	indexer, err := client.NewBulkIndexer(bulkIndexerConfig)
+	const (
+		flushBytes    = 1 << 22
+		flushInterval = 4 * time.Second
+	)
+	indexer, err := esutil.NewBulkIndexer(esutil.BulkIndexerConfig{
+		Client:        client,
+		FlushBytes:    flushBytes,
+		FlushInterval: flushInterval,
+	})
 	if err != nil {
 		return nil, nil, err
 	}
@@ -306,7 +311,11 @@ func newProfilingCollector(args beater.ServerParams) (*profiling.ElasticCollecto
 	if err != nil {
 		return nil, nil, err
 	}
-	metricsIndexer, err := metricsClient.NewBulkIndexer(bulkIndexerConfig)
+	metricsIndexer, err := esutil.NewBulkIndexer(esutil.BulkIndexerConfig{
+		Client:        metricsClient,
+		FlushBytes:    flushBytes,
+		FlushInterval: flushInterval,
+	})
 	if err != nil {
 		return nil, nil, err
 	}
@@ -338,7 +347,7 @@ func newProfilingCollector(args beater.ServerParams) (*profiling.ElasticCollecto
 // Fetch the Cluster name from Elasticsearch: Profiling adds it as a field in
 // the host-agent metrics documents for debugging purposes.
 // In Cloud deployments, the Cluster name is set equal to the Cluster ID.
-func queryElasticsearchClusterName(client elasticsearch.Client, logger *logp.Logger) (string, error) {
+func queryElasticsearchClusterName(client *elasticsearch.Client, logger *logp.Logger) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "/", nil)

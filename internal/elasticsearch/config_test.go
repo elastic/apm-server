@@ -137,6 +137,7 @@ func TestBeatsConfigSynced(t *testing.T) {
 
 	// "hosts" is only expected in the local struct
 	delete(localStructFields, "hosts")
+	delete(localStructFields, "backoff") // we have our own version with its own type
 
 	// We expect the libbeat struct to be a superset of all other
 	// fields defined in the local struct, with identical tags and
@@ -145,7 +146,11 @@ func TestBeatsConfigSynced(t *testing.T) {
 	// TODO(simitt): take a closer look at ES ouput changes in libbeat
 	// introduced with https://github.com/elastic/beats/pull/25219
 	localStructExceptions := map[string]interface{}{
-		"ssl": nil, "timeout": nil, "proxy_disable": nil, "proxy_url": nil}
+		"ssl":           nil,
+		"timeout":       nil,
+		"proxy_disable": nil,
+		"proxy_url":     nil,
+	}
 	for name, localStructField := range localStructFields {
 		if _, ok := localStructExceptions[name]; ok {
 			continue
@@ -164,6 +169,7 @@ func TestBeatsConfigSynced(t *testing.T) {
 	}
 
 	knownUnhandled := []string{
+		"backoff", // we have our own version with its own type
 		"bulk_max_size",
 		"escape_html",
 		// TODO Kerberos auth (https://github.com/elastic/apm-server/issues/3794)

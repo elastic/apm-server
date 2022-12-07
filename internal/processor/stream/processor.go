@@ -230,14 +230,16 @@ func (p *Processor) HandleStream(
 	processor model.BatchProcessor,
 	result *Result,
 ) error {
-	// Limits the number of concurrent batch decodes.
-	// Defaults to 200 (N), only allowing N requests to read and cache Y events
-	// (determined by batchSize) from the batch.
-	// The ceiling may also reduce the contention on the modelindexer.activeMu.
-	// Clients can set a async to true which makes the processor process the
-	// events in the background. Returns with an error `publish.ErrFull` if the
-	// semaphore is full. When asynchronous processing is requested, the batches
-	// are decoded synchronously, but the batch is processed asynchronously.
+	// Limit the number of concurrent batch decodes.
+	//
+	// The semaphore defaults to 200 (N), only allowing N requests to read
+	// an cache Y events (determined by batchSize) from the batch.
+	//
+	// Clients can set async to true which makes the processor process the
+	// events in the background. Returns with an error `publish.ErrFull`
+	// if the semaphore is full. When asynchronous processing is requested,
+	// the batches are decoded synchronously, but the batch is processed
+	// asynchronously.
 	if err := p.semAcquire(ctx, async); err != nil {
 		return err
 	}

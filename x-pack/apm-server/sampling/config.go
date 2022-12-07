@@ -10,10 +10,10 @@ import (
 	"github.com/dgraph-io/badger/v2"
 	"github.com/pkg/errors"
 
-	"github.com/elastic/apm-server/internal/elasticsearch"
 	"github.com/elastic/apm-server/internal/model"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/pubsub"
+	"github.com/elastic/go-elasticsearch/v8"
 )
 
 // Config holds configuration for Processor.
@@ -66,7 +66,7 @@ type RemoteSamplingConfig struct {
 
 	// Elasticsearch holds the Elasticsearch client to use for publishing
 	// and subscribing to remote sampling decisions.
-	Elasticsearch elasticsearch.Client
+	Elasticsearch *elasticsearch.Client
 
 	// SampledTracesDataStream holds the identifiers for the Elasticsearch
 	// data stream for storing and searching sampled trace IDs.

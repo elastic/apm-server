@@ -25,8 +25,7 @@ import (
 
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/monitoring"
-
-	"github.com/elastic/apm-server/internal/elasticsearch"
+	"github.com/elastic/go-elasticsearch/v8/esutil"
 )
 
 var (
@@ -65,8 +64,8 @@ type ElasticCollector struct {
 	UnimplementedCollectionAgentServer
 
 	logger         *logp.Logger
-	indexer        elasticsearch.BulkIndexer
-	metricsIndexer elasticsearch.BulkIndexer
+	indexer        esutil.BulkIndexer
+	metricsIndexer esutil.BulkIndexer
 	indexes        [MaxEventsIndexes]string
 
 	sourceFilesLock sync.Mutex
@@ -79,8 +78,8 @@ type ElasticCollector struct {
 // Elasticsearch, and metricsIndexer for storing host agent metrics. Separate indexers are
 // used to allow for host agent metrics to be sent to a separate monitoring cluster.
 func NewCollector(
-	indexer elasticsearch.BulkIndexer,
-	metricsIndexer elasticsearch.BulkIndexer,
+	indexer esutil.BulkIndexer,
+	metricsIndexer esutil.BulkIndexer,
 	esClusterID string,
 	logger *logp.Logger,
 ) *ElasticCollector {
@@ -163,14 +162,14 @@ func (e *ElasticCollector) indexStacktrace(ctx context.Context, traceEvent *Stac
 	var encodedTraceEvent bytes.Buffer
 	_ = json.NewEncoder(&encodedTraceEvent).Encode(*traceEvent)
 
-	return e.indexer.Add(ctx, elasticsearch.BulkIndexerItem{
+	return e.indexer.Add(ctx, esutil.BulkIndexerItem{
 		Index:  indexName,
 		Action: actionCreate,
 		Body:   bytes.NewReader(encodedTraceEvent.Bytes()),
 		OnFailure: func(
 			_ context.Context,
-			_ elasticsearch.BulkIndexerItem,
-			resp elasticsearch.BulkIndexerResponseItem,
+			_ esutil.BulkIndexerItem,
+			resp esutil.BulkIndexerResponseItem,
 			err error,
 		) {
 			counterEventsFailure.Inc()
@@ -345,14 +344,14 @@ func (e *ElasticCollector) AddExecutableMetadata(ctx context.Context,
 		var buf bytes.Buffer
 		_ = json.NewEncoder(&buf).Encode(exeMetadata)
 
-		err := multiplexCurrentNextIndicesWrite(ctx, e, &elasticsearch.BulkIndexerItem{
+		err := multiplexCurrentNextIndicesWrite(ctx, e, &esutil.BulkIndexerItem{
 			Index:      ExecutablesIndex,
 			Action:     actionIndex,
 			DocumentID: docID,
 			OnFailure: func(
 				_ context.Context,
-				_ elasticsearch.BulkIndexerItem,
-				resp elasticsearch.BulkIndexerResponseItem,
+				_ esutil.BulkIndexerItem,
+				resp esutil.BulkIndexerResponseItem,
 				err error,
 			) {
 				counterExecutablesFailure.Inc()
@@ -405,14 +404,14 @@ func (e *ElasticCollector) SetFramesForTraces(ctx context.Context,
 		var body bytes.Buffer
 		_ = json.NewEncoder(&body).Encode(toIndex)
 
-		err = multiplexCurrentNextIndicesWrite(ctx, e, &elasticsearch.BulkIndexerItem{
+		err = multiplexCurrentNextIndicesWrite(ctx, e, &esutil.BulkIndexerItem{
 			Index:      StackTraceIndex,
 			Action:     actionCreate,
 			DocumentID: docID,
 			OnFailure: func(
 				_ context.Context,
-				_ elasticsearch.BulkIndexerItem,
-				resp elasticsearch.BulkIndexerResponseItem,
+				_ esutil.BulkIndexerItem,
+				resp esutil.BulkIndexerResponseItem,
 				_ error,
 			) {
 				if resp.Error.Type == docIDAlreadyExists {
@@ -506,14 +505,14 @@ func (e *ElasticCollector) AddFrameMetadata(ctx context.Context, in *AddFrameMet
 		var buf bytes.Buffer
 		_ = json.NewEncoder(&buf).Encode(frameMetadata)
 
-		err := multiplexCurrentNextIndicesWrite(ctx, e, &elasticsearch.BulkIndexerItem{
+		err := multiplexCurrentNextIndicesWrite(ctx, e, &esutil.BulkIndexerItem{
 			Index:      StackFrameIndex,
 			Action:     actionCreate,
 			DocumentID: docID,
 			OnFailure: func(
 				_ context.Context,
-				_ elasticsearch.BulkIndexerItem,
-				resp elasticsearch.BulkIndexerResponseItem,
+				_ esutil.BulkIndexerItem,
+				resp esutil.BulkIndexerResponseItem,
 				_ error,
 			) {
 				if resp.Error.Type == docIDAlreadyExists {
@@ -580,7 +579,7 @@ func (e *ElasticCollector) AddFallbackSymbols(ctx context.Context,
 		var buf bytes.Buffer
 		_ = json.NewEncoder(&buf).Encode(frameMetadata)
 
-		err := multiplexCurrentNextIndicesWrite(ctx, e, &elasticsearch.BulkIndexerItem{
+		err := multiplexCurrentNextIndicesWrite(ctx, e, &esutil.BulkIndexerItem{
 			Index: StackFrameIndex,
 			// Use 'create' instead of 'index' to not overwrite an existing document,
 			// possibly containing a fully symbolized frame.
@@ -588,8 +587,8 @@ func (e *ElasticCollector) AddFallbackSymbols(ctx context.Context,
 			DocumentID: docID,
 			OnFailure: func(
 				_ context.Context,
-				_ elasticsearch.BulkIndexerItem,
-				resp elasticsearch.BulkIndexerResponseItem,
+				_ esutil.BulkIndexerItem,
+				resp esutil.BulkIndexerResponseItem,
 				err error,
 			) {
 				if resp.Error.Type == docIDAlreadyExists {
@@ -712,14 +711,14 @@ func (e *ElasticCollector) AddMetrics(ctx context.Context, in *Metrics) (*empty.
 			)
 			continue
 		}
-		err := e.metricsIndexer.Add(ctx, elasticsearch.BulkIndexerItem{
+		err := e.metricsIndexer.Add(ctx, esutil.BulkIndexerItem{
 			Index:  MetricsIndex,
 			Action: actionCreate,
 			Body:   makeBody(metric),
 			OnFailure: func(
 				_ context.Context,
-				_ elasticsearch.BulkIndexerItem,
-				resp elasticsearch.BulkIndexerResponseItem,
+				_ esutil.BulkIndexerItem,
+				resp esutil.BulkIndexerResponseItem,
 				err error,
 			) {
 				e.logger.With(
@@ -741,7 +740,7 @@ func (e *ElasticCollector) AddMetrics(ctx context.Context, in *Metrics) (*empty.
 // to achieve a sliding window ingestion mechanism.
 // These indices will be managed by the custom ILM strategy implemented in ilm.go.
 func multiplexCurrentNextIndicesWrite(ctx context.Context, e *ElasticCollector,
-	item *elasticsearch.BulkIndexerItem, body []byte) error {
+	item *esutil.BulkIndexerItem, body []byte) error {
 	copied := *item
 	copied.Index = nextIndex(item.Index)
 

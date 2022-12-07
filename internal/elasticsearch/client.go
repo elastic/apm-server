@@ -30,7 +30,6 @@ import (
 	"github.com/elastic/apm-server/internal/version"
 	esv8 "github.com/elastic/go-elasticsearch/v8"
 	esapiv8 "github.com/elastic/go-elasticsearch/v8/esapi"
-	esutilv8 "github.com/elastic/go-elasticsearch/v8/esutil"
 )
 
 var retryableStatuses = []int{
@@ -42,37 +41,7 @@ var retryableStatuses = []int{
 
 var userAgent = fmt.Sprintf("Elastic-APM-Server/%s go-elasticsearch/%s", version.Version, esv8.Version)
 
-// Client is an interface designed to abstract away version differences between elasticsearch clients
-type Client interface {
-	// NewBulkIndexer returns a new BulkIndexer using this client for making the requests.
-	NewBulkIndexer(BulkIndexerConfig) (BulkIndexer, error)
-
-	// Perform satisfies esapi.Transport
-	Perform(*http.Request) (*http.Response, error)
-}
-
-type clientV8 struct {
-	*esv8.Client
-}
-
-func (c clientV8) NewBulkIndexer(config BulkIndexerConfig) (BulkIndexer, error) {
-	indexer, err := esutilv8.NewBulkIndexer(esutilv8.BulkIndexerConfig{
-		Client:        c.Client,
-		NumWorkers:    config.NumWorkers,
-		FlushBytes:    config.FlushBytes,
-		FlushInterval: config.FlushInterval,
-		OnError:       config.OnError,
-		OnFlushStart:  config.OnFlushStart,
-		OnFlushEnd:    config.OnFlushEnd,
-		Index:         config.Index,
-		Pipeline:      config.Pipeline,
-		Timeout:       config.Timeout,
-	})
-	if err != nil {
-		return nil, err
-	}
-	return v8BulkIndexer{indexer}, nil
-}
+type Client = esv8.Client
 
 // ClientParams holds parameters for NewClientParams.
 type ClientParams struct {
@@ -94,12 +63,12 @@ type ClientParams struct {
 
 // NewClient returns a stack version-aware Elasticsearch client,
 // equivalent to NewClientParams(ClientParams{Config: config}).
-func NewClient(config *Config) (Client, error) {
+func NewClient(config *Config) (*Client, error) {
 	return NewClientParams(ClientParams{Config: config})
 }
 
 // NewClientParams returns a stack version-aware Elasticsearch client.
-func NewClientParams(args ClientParams) (Client, error) {
+func NewClientParams(args ClientParams) (*Client, error) {
 	if args.Config == nil {
 		return nil, errConfigMissing
 	}
@@ -118,13 +87,14 @@ func NewClientParams(args ClientParams) (Client, error) {
 		return nil, err
 	}
 
-	headers := make(http.Header, len(args.Config.Headers)+1)
+	headers := make(http.Header, len(args.Config.Headers)+2)
 	if len(args.Config.Headers) > 0 {
 		for k, v := range args.Config.Headers {
 			headers.Set(k, v)
 		}
 	}
 
+	headers.Set("X-Elastic-Product-Origin", "observability")
 	if headers.Get("User-Agent") == "" {
 		headers.Set("User-Agent", userAgent)
 	}
@@ -134,42 +104,18 @@ func NewClientParams(args ClientParams) (Client, error) {
 		apikey = base64.StdEncoding.EncodeToString([]byte(args.Config.APIKey))
 	}
 
-	return newV8Client(
-		apikey, args.Config.Username, args.Config.Password,
-		addrs,
-		headers,
-		apmelasticsearch.WrapRoundTripper(transport),
-		args.Config.MaxRetries,
-		exponentialBackoff(args.Config.Backoff),
-		args.RetryOnError,
-	)
-}
-
-func newV8Client(
-	apikey, user, pwd string,
-	addresses []string,
-	headers http.Header,
-	transport http.RoundTripper,
-	maxRetries int,
-	fn backoffFunc,
-	retry func(*http.Request, error) bool,
-) (Client, error) {
-	c, err := esv8.NewClient(esv8.Config{
+	return esv8.NewClient(esv8.Config{
 		APIKey:        apikey,
-		Username:      user,
-		Password:      pwd,
-		Addresses:     addresses,
-		Transport:     transport,
+		Username:      args.Config.Username,
+		Password:      args.Config.Password,
+		Addresses:     addrs,
 		Header:        headers,
+		Transport:     apmelasticsearch.WrapRoundTripper(transport),
+		MaxRetries:    args.Config.MaxRetries,
+		RetryBackoff:  exponentialBackoff(args.Config.Backoff),
+		RetryOnError:  args.RetryOnError,
 		RetryOnStatus: retryableStatuses,
-		RetryBackoff:  fn,
-		MaxRetries:    maxRetries,
-		RetryOnError:  retry,
 	})
-	if err != nil {
-		return nil, err
-	}
-	return clientV8{c}, nil
 }
 
 func doRequest(ctx context.Context, transport esapiv8.Transport, req esapiv8.Request, out interface{}) error {

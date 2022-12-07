@@ -15,22 +15,35 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package elasticsearch
+package beater
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
+	"io"
 
 	"github.com/elastic/beats/v7/libbeat/licenser"
-	"github.com/elastic/go-elasticsearch/v8/esapi"
+
+	"github.com/elastic/go-elasticsearch/v8"
 )
 
-// GetLicense gets the Elasticsearch licensing information.
-func GetLicense(ctx context.Context, client Client) (licenser.License, error) {
+// getElasticsearchLicense gets the Elasticsearch licensing information.
+func getElasticsearchLicense(ctx context.Context, client *elasticsearch.Client) (licenser.License, error) {
+	resp, err := client.License.Get(client.License.Get.WithContext(ctx))
+	if err != nil {
+		return licenser.License{}, err
+	}
+	defer resp.Body.Close()
+	if resp.IsError() {
+		body, _ := io.ReadAll(resp.Body)
+		return licenser.License{}, fmt.Errorf("failed to get license (%s): %s", resp.Status(), body)
+	}
+
 	var result struct {
 		License licenser.License `json:"license"`
 	}
-	req := esapi.LicenseGetRequest{}
-	if err := doRequest(ctx, client, req, &result); err != nil {
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		return licenser.License{}, err
 	}
 	return result.License, nil

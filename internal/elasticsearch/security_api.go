@@ -26,7 +26,7 @@ import (
 )
 
 // CreateAPIKey requires manage_api_key cluster privilege
-func CreateAPIKey(ctx context.Context, client Client, apikeyReq CreateAPIKeyRequest) (CreateAPIKeyResponse, error) {
+func CreateAPIKey(ctx context.Context, client *Client, apikeyReq CreateAPIKeyRequest) (CreateAPIKeyResponse, error) {
 	var apikey CreateAPIKeyResponse
 	req := esapi.SecurityCreateAPIKeyRequest{Body: esutil.NewJSONReader(apikeyReq)}
 	err := doRequest(ctx, client, req, &apikey)
@@ -34,7 +34,7 @@ func CreateAPIKey(ctx context.Context, client Client, apikeyReq CreateAPIKeyRequ
 }
 
 // GetAPIKeys requires manage_api_key cluster privilege
-func GetAPIKeys(ctx context.Context, client Client, apikeyReq GetAPIKeyRequest) (GetAPIKeyResponse, error) {
+func GetAPIKeys(ctx context.Context, client *Client, apikeyReq GetAPIKeyRequest) (GetAPIKeyResponse, error) {
 	req := esapi.SecurityGetAPIKeyRequest{}
 	if apikeyReq.ID != nil {
 		req.ID = *apikeyReq.ID
@@ -47,14 +47,14 @@ func GetAPIKeys(ctx context.Context, client Client, apikeyReq GetAPIKeyRequest) 
 }
 
 // InvalidateAPIKey requires manage_api_key cluster privilege
-func InvalidateAPIKey(ctx context.Context, client Client, apikeyReq InvalidateAPIKeyRequest) (InvalidateAPIKeyResponse, error) {
+func InvalidateAPIKey(ctx context.Context, client *Client, apikeyReq InvalidateAPIKeyRequest) (InvalidateAPIKeyResponse, error) {
 	var confirmation InvalidateAPIKeyResponse
 	req := esapi.SecurityInvalidateAPIKeyRequest{Body: esutil.NewJSONReader(apikeyReq)}
 	err := doRequest(ctx, client, req, &confirmation)
 	return confirmation, err
 }
 
-func HasPrivileges(ctx context.Context, client Client, privileges HasPrivilegesRequest, credentials string) (HasPrivilegesResponse, error) {
+func HasPrivileges(ctx context.Context, client *Client, privileges HasPrivilegesRequest, credentials string) (HasPrivilegesResponse, error) {
 	var info HasPrivilegesResponse
 	req := esapi.SecurityHasPrivilegesRequest{Body: esutil.NewJSONReader(privileges)}
 	if credentials != "" {

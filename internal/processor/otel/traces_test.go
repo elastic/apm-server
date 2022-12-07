@@ -57,7 +57,6 @@ import (
 
 	"github.com/elastic/apm-server/internal/approvaltest"
 	"github.com/elastic/apm-server/internal/model"
-	"github.com/elastic/apm-server/internal/model/modelindexer/modelindexertest"
 	"github.com/elastic/apm-server/internal/processor/otel"
 )
 
@@ -1442,7 +1441,11 @@ func batchRecorderBatchProcessor(out *[]*model.Batch) model.BatchProcessor {
 func encodeBatch(t testing.TB, batches ...*model.Batch) [][]byte {
 	var docs [][]byte
 	for _, batch := range batches {
-		docs = modelindexertest.AppendEncodedBatch(t, docs, *batch)
+		for _, event := range *batch {
+			data, err := event.MarshalJSON()
+			require.NoError(t, err)
+			docs = append(docs, data)
+		}
 	}
 	return docs
 }

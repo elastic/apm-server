@@ -19,13 +19,19 @@ package beater
 
 import (
 	"context"
+	"io"
 	"os"
+	"strings"
+	"sync"
 	"time"
+
+	"go.elastic.co/fastjson"
 
 	"github.com/elastic/apm-server/internal/beater/auth"
 	"github.com/elastic/apm-server/internal/beater/ratelimit"
 	"github.com/elastic/apm-server/internal/model"
 	"github.com/elastic/apm-server/internal/version"
+	"github.com/elastic/go-docappender"
 )
 
 const (
@@ -73,4 +79,53 @@ func newObserverBatchProcessor() model.ProcessBatchFunc {
 		}
 		return nil
 	}
+}
+
+func newDocappenderBatchProcessor(a *docappender.Appender) model.ProcessBatchFunc {
+	var pool sync.Pool
+	pool.New = func() any {
+		return &pooledReader{pool: &pool}
+	}
+	return func(ctx context.Context, b *model.Batch) error {
+		for _, event := range *b {
+			r := pool.Get().(*pooledReader)
+			if err := event.MarshalFastJSON(&r.jsonw); err != nil {
+				r.reset()
+				return err
+			}
+			r.indexBuilder.WriteString(event.DataStream.Type)
+			r.indexBuilder.WriteByte('-')
+			r.indexBuilder.WriteString(event.DataStream.Dataset)
+			r.indexBuilder.WriteByte('-')
+			r.indexBuilder.WriteString(event.DataStream.Namespace)
+			index := r.indexBuilder.String()
+			if err := a.Add(ctx, index, r); err != nil {
+				r.reset()
+				return err
+			}
+		}
+		return nil
+	}
+}
+
+type pooledReader struct {
+	pool         *sync.Pool
+	jsonw        fastjson.Writer
+	indexBuilder strings.Builder
+}
+
+func (r *pooledReader) Read(p []byte) (int, error) {
+	panic("should've called WriterTo")
+}
+
+func (r *pooledReader) WriteTo(w io.Writer) (int64, error) {
+	n, err := w.Write(r.jsonw.Bytes())
+	r.reset()
+	return int64(n), err
+}
+
+func (r *pooledReader) reset() {
+	r.jsonw.Reset()
+	r.indexBuilder.Reset()
+	r.pool.Put(r)
 }
