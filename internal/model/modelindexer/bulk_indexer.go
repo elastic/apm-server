@@ -19,13 +19,14 @@ package modelindexer
 
 import (
 	"bytes"
-	"compress/gzip"
 	"context"
 	"fmt"
 	"io"
 	"net/http"
+	"sync"
 
 	jsoniter "github.com/json-iterator/go"
+	"github.com/klauspost/compress/gzip"
 	"github.com/pkg/errors"
 	"go.elastic.co/fastjson"
 
@@ -73,11 +74,9 @@ type bulkIndexer struct {
 func newBulkIndexer(client elasticsearch.Client, compressionLevel int) *bulkIndexer {
 	b := &bulkIndexer{client: client}
 	if compressionLevel != gzip.NoCompression {
-		b.gzipw, _ = gzip.NewWriterLevel(&b.buf, compressionLevel)
-		b.writer = b.gzipw
-	} else {
-		b.writer = &b.buf
+		b.gzipw, _ = gzip.NewWriterLevel(nil, compressionLevel)
 	}
+	b.writer = &b.buf
 	b.Reset()
 	return b
 }
@@ -87,7 +86,7 @@ func (b *bulkIndexer) Reset() {
 	b.itemsAdded, b.bytesFlushed = 0, 0
 	b.buf.Reset()
 	if b.gzipw != nil {
-		b.gzipw.Reset(&b.buf)
+		b.gzipw.Reset(nil)
 	}
 	b.respBuf.Reset()
 	b.resp = elasticsearch.BulkIndexerResponse{Items: b.resp.Items[:0]}
@@ -141,25 +140,39 @@ func (b *bulkIndexer) writeMeta(item elasticsearch.BulkIndexerItem) {
 	b.jsonw.Reset()
 }
 
+var bufPool sync.Pool = sync.Pool{New: func() interface{} { return &bytes.Buffer{} }}
+
 // Flush executes a bulk request if there are any items buffered, and clears out the buffer.
 func (b *bulkIndexer) Flush(ctx context.Context) (elasticsearch.BulkIndexerResponse, error) {
 	if b.itemsAdded == 0 {
 		return elasticsearch.BulkIndexerResponse{}, nil
 	}
+
+	bbuf := &b.buf
+
 	if b.gzipw != nil {
+		buf := bufPool.Get().(*bytes.Buffer)
+		buf.Reset()
+		defer bufPool.Put(buf)
+
+		b.gzipw.Reset(buf)
+		b.gzipw.Write(b.buf.Bytes())
+
 		if err := b.gzipw.Close(); err != nil {
 			return elasticsearch.BulkIndexerResponse{}, fmt.Errorf(
 				"failed closing the gzip writer: %w", err,
 			)
 		}
+
+		bbuf = buf
 	}
 
-	req := esapi.BulkRequest{Body: &b.buf, Header: esHeader}
+	req := esapi.BulkRequest{Body: bbuf, Header: esHeader}
 	if b.gzipw != nil {
 		req.Header = gzipHeader
 	}
 
-	bytesFlushed := b.buf.Len()
+	bytesFlushed := bbuf.Len()
 	res, err := req.Do(ctx, b.client)
 	if err != nil {
 		return elasticsearch.BulkIndexerResponse{}, err
