@@ -18,14 +18,21 @@
                 },
                 "ip": "220.244.41.16"
             },
-            "data_stream.dataset": "apm.internal",
-            "data_stream.namespace": "default",
-            "data_stream.type": "metrics",
+            "data_stream": {
+                "dataset": "apm.internal",
+                "namespace": "default",
+                "type": "metrics"
+            },
+            "ecs": {
+                "version": "dynamic"
+            },
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic"
             },
-            "metricset.name": "span_breakdown",
+            "metricset": {
+                "name": "span_breakdown"
+            },
             "observer": {
                 "hostname": "dynamic",
                 "type": "apm-server",
@@ -47,7 +54,9 @@
             "span": {
                 "self_time": {
                     "count": 1,
-                    "sum.us": 633
+                    "sum": {
+                        "us": 633
+                    }
                 },
                 "subtype": "http",
                 "type": "external"

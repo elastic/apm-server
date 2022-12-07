@@ -5,15 +5,22 @@
             "agent": {
                 "name": "go"
             },
-            "data_stream.dataset": "apm.internal",
-            "data_stream.namespace": "default",
-            "data_stream.type": "metrics",
+            "data_stream": {
+                "dataset": "apm.internal",
+                "namespace": "default",
+                "type": "metrics"
+            },
+            "ecs": {
+                "version": "dynamic"
+            },
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
                 "outcome": "success"
             },
-            "metricset.name": "service_destination",
+            "metricset": {
+                "name": "service_destination"
+            },
             "observer": {
                 "hostname": "dynamic",
                 "type": "apm-server",
@@ -32,7 +39,9 @@
                         "resource": "elasticsearch",
                         "response_time": {
                             "count": 4,
-                            "sum.us": 3600
+                            "sum": {
+                                "us": 3600
+                            }
                         }
                     }
                 }
@@ -43,15 +52,22 @@
             "agent": {
                 "name": "go"
             },
-            "data_stream.dataset": "apm.internal",
-            "data_stream.namespace": "default",
-            "data_stream.type": "metrics",
+            "data_stream": {
+                "dataset": "apm.internal",
+                "namespace": "default",
+                "type": "metrics"
+            },
+            "ecs": {
+                "version": "dynamic"
+            },
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
                 "outcome": "success"
             },
-            "metricset.name": "service_destination",
+            "metricset": {
+                "name": "service_destination"
+            },
             "observer": {
                 "hostname": "dynamic",
                 "type": "apm-server",
@@ -70,7 +86,9 @@
                         "resource": "redis",
                         "response_time": {
                             "count": 50,
-                            "sum.us": 5000
+                            "sum": {
+                                "us": 5000
+                            }
                         }
                     }
                 }

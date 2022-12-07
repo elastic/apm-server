@@ -5,15 +5,22 @@
             "agent": {
                 "name": "go"
             },
-            "data_stream.dataset": "apm.internal",
-            "data_stream.namespace": "default",
-            "data_stream.type": "metrics",
+            "data_stream": {
+                "dataset": "apm.internal",
+                "namespace": "default",
+                "type": "metrics"
+            },
+            "ecs": {
+                "version": "dynamic"
+            },
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
                 "outcome": "success"
             },
-            "metricset.name": "service_destination",
+            "metricset": {
+                "name": "service_destination"
+            },
             "observer": {
                 "hostname": "dynamic",
                 "type": "apm-server",
@@ -35,7 +42,9 @@
                         "resource": "resource",
                         "response_time": {
                             "count": 5,
-                            "sum.us": 5000000
+                            "sum": {
+                                "us": 5000000
+                            }
                         }
                     }
                 },

@@ -1,8 +1,8 @@
 - version: generated
   changes:
-    - description: Placeholder
+    - description: Enable synthetic source for metrics data streams
       type: enhancement
-      link: https://github.com/elastic/apm-server/pull/123
+      link: https://github.com/elastic/apm-server/pull/9756
 - version: "8.6.0"
   changes:
     - description: Change `ecs.version` to a `constant_keyword` field
