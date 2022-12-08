@@ -29,20 +29,21 @@ import (
 // To use a common pipeline, define a "pipeline" processor with the "name" property set to one of
 // the common pipelines. e.g.
 //
-//   processors:
-//     - ...
-//     - pipeline:
-//         name: observer_version
-//     - ...
+//	processors:
+//	  - ...
+//	  - pipeline:
+//	      name: observer_version
+//	  - ...
 func getCommonPipeline(name string, version *version.V) []map[string]interface{} {
 	commonPipelines := map[string][]map[string]interface{}{
-		"observer_version": getObserverVersionPipeline(version),
-		"observer_ids":     observerIDsPipeline,
-		"ecs_version":      ecsVersionPipeline,
-		"user_agent":       userAgentPipeline,
-		"process_ppid":     processPpidPipeline,
-		"client_geoip":     clientGeoIPPipeline,
-		"event_duration":   eventDurationPipeline,
+		"observer_version":      getObserverVersionPipeline(version),
+		"observer_ids":          observerIDsPipeline,
+		"ecs_version":           ecsVersionPipeline,
+		"user_agent":            userAgentPipeline,
+		"process_ppid":          processPpidPipeline,
+		"client_geoip":          clientGeoIPPipeline,
+		"event_duration":        eventDurationPipeline,
+		"event_outcome_numeric": eventOutcomeNumericPipeline,
 	}
 	return commonPipelines[name]
 }
@@ -165,5 +166,19 @@ ctx.get(ctx.processor.event).duration = ["us": (int)(durationNanos/1000)];
 		"field":          "event.duration",
 		"ignore_missing": true,
 		"ignore_failure": true,
+	},
+}}
+
+var eventOutcomeNumericPipeline = []map[string]interface{}{{
+	"set": map[string]interface{}{
+		"if":    "ctx.event?.outcome == 'success'",
+		"field": "event.outcome_numeric",
+		"value": 1,
+	},
+}, {
+	"set": map[string]interface{}{
+		"if":    "ctx.event?.outcome == 'failure'",
+		"field": "event.outcome_numeric",
+		"value": 0,
 	},
 }}

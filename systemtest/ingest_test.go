@@ -226,3 +226,63 @@ func TestECSVersion(t *testing.T) {
 	result := systemtest.Elasticsearch.ExpectDocs(t, "traces-apm*", nil)
 	assert.Equal(t, []interface{}{"8.6.0-dev"}, result.Hits.Hits[0].Fields["ecs.version"])
 }
+
+func TestIngestPipelineEventOutcomeNumeric(t *testing.T) {
+	type test struct {
+		source                   string
+		eventOutcomeNumericNull  bool
+		eventOutcomeNumericValue int
+	}
+
+	tests := []test{
+		{
+			source: `{"@timestamp": "2022-02-15", "observer": {"version": "8.2.0"}, 
+"processor": {"event": "transaction"}}`,
+			eventOutcomeNumericNull: true,
+		},
+		{
+			source: `{"@timestamp": "2022-02-15", "observer": {"version": "8.2.0"}, 
+"processor": {"event": "transaction"}, "event": {"outcome": "success"}}`,
+			eventOutcomeNumericValue: 1,
+		},
+		{
+			source: `{"@timestamp": "2022-02-15", "observer": {"version": "8.2.0"}, 
+"processor": {"event": "transaction"}, "event": {"outcome": "failure"}}`,
+			eventOutcomeNumericValue: 0,
+		},
+		{
+			source: `{"@timestamp": "2022-02-15", "observer": {"version": "8.2.0"}, 
+"processor": {"event": "transaction"}, "event": {"outcome": "unknown"}}`,
+			eventOutcomeNumericNull: true,
+		},
+	}
+
+	for _, test := range tests {
+		var indexResponse struct {
+			Index string `json:"_index"`
+			ID    string `json:"_id"`
+		}
+		_, err := systemtest.Elasticsearch.Do(context.Background(), esapi.IndexRequest{
+			Index:   "traces-apm-default",
+			Body:    strings.NewReader(test.source),
+			Refresh: "true",
+		}, &indexResponse)
+		require.NoError(t, err)
+
+		var doc struct {
+			Source json.RawMessage `json:"_source"`
+		}
+		_, err = systemtest.Elasticsearch.Do(context.Background(), esapi.GetRequest{
+			Index:      indexResponse.Index,
+			DocumentID: indexResponse.ID,
+		}, &doc)
+		require.NoError(t, err)
+
+		outcomeNumeric := gjson.GetBytes(doc.Source, "event.outcome_numeric")
+		if test.eventOutcomeNumericNull {
+			assert.Equal(t, nil, outcomeNumeric.Value())
+		} else {
+			assert.Equal(t, test.eventOutcomeNumericValue, int(outcomeNumeric.Value().(float64)))
+		}
+	}
+}
