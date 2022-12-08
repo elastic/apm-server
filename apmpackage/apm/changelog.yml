@@ -12,6 +12,9 @@
     - description: Add `agent.activation_method` field
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/9850
+    - description: Add `event.success_count` for transaction events and transaction metrics
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/1234
 - version: "8.6.0"
   changes:
     - description: Change `ecs.version` to a `constant_keyword` field

@@ -23,6 +23,11 @@
   type: keyword
   description: |
     The cloud service name is intended to distinguish services running on different platforms within a provider.
+- name: event.success_count
+  type: byte
+  index: false
+  description: |
+    Numeric value of event.outcome: 1 for 'success', 0 for 'failure', and null for 'unknown'.
 - name: faas.id
   type: keyword
   description: |
