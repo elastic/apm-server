@@ -3,9 +3,18 @@
 
 https://github.com/elastic/apm-server/compare/8.4\...8.5[View commits]
 
+* <<release-notes-8.5.3>>
 * <<release-notes-8.5.2>>
 * <<release-notes-8.5.1>>
 * <<release-notes-8.5.0>>
+
+[float]
+[[release-notes-8.5.3]]
+=== APM version 8.5.3
+
+[float]
+==== Bug fixes
+- OpenTelemetry GRPC Spans from the Javascript API/SDK/Instrumentations are now correctly transformed into transactions with type=`request` {pull}9308[9308]
 
 [float]
 [[release-notes-8.5.2]]
