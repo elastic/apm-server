@@ -226,12 +226,14 @@ func (s *Runner) Run(ctx context.Context) error {
 
 	// ELASTIC_AGENT_CLOUD is set when running in Elastic Cloud.
 	inElasticCloud := os.Getenv("ELASTIC_AGENT_CLOUD") != ""
-	if inElasticCloud && s.config.Kibana.Enabled {
-		go func() {
-			if err := kibana.SendConfig(ctx, kibanaClient, (*ucfg.Config)(s.rawConfig)); err != nil {
-				s.logger.Infof("failed to upload config to kibana: %v", err)
-			}
-		}()
+	if inElasticCloud {
+		if s.config.Kibana.Enabled {
+			go func() {
+				if err := kibana.SendConfig(ctx, kibanaClient, (*ucfg.Config)(s.rawConfig)); err != nil {
+					s.logger.Infof("failed to upload config to kibana: %v", err)
+				}
+			}()
+		}
 	}
 
 	if s.config.JavaAttacherConfig.Enabled {

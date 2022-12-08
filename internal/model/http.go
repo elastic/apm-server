@@ -30,6 +30,7 @@ type HTTP struct {
 
 // HTTPRequest holds information about an HTTP request.
 type HTTPRequest struct {
+	ID       string
 	Method   string
 	Referrer string
 	Body     interface{}
@@ -69,6 +70,7 @@ func (h *HTTP) fields() mapstr.M {
 
 func (h *HTTPRequest) fields() mapstr.M {
 	var fields mapStr
+	fields.maybeSetString("id", h.ID)
 	fields.maybeSetString("method", h.Method)
 	fields.maybeSetString("referrer", h.Referrer)
 	fields.maybeSetMapStr("headers", h.Headers)

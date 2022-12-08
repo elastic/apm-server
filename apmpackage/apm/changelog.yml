@@ -1,5 +1,8 @@
 - version: generated
   changes:
+    - description: Enable synthetic source for metrics data streams
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/9756
     - description: Added agent health metrics
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/9672
@@ -23,6 +26,9 @@
     - description: Add `error.stack_trace`, `event.dataset`, `log.logger`, `log.origin.*`, `process.thread.name` fields to app_logs
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/9667
+    - description: Add mapping for `http.request.id` for traces data streams
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/9673
 - version: "8.5.0"
   changes:
     - description: Add package settings to enable the experimental collection of service metrics

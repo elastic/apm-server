@@ -29,6 +29,11 @@ ${SED} -E -e "s#(image: docker\.elastic\.co/.*):[0-9]+\.[0-9]+\.[0-9]+(-[a-f0-9]
 	docker-compose.yml testing/infra/k8s/overlays/local/kustomization.yaml
 ${SED} -E -e "s#(version: )[0-9]+\.[0-9]+\.[0-9]+(-[a-f0-9]{8})?#\1${VERSION}#g" testing/infra/k8s/base/stack/*.yaml
 
+if [[ -n "${SKIP_COMMIT:-}" ]]; then
+	echo "Skipping git commit"
+	exit 0
+fi
+
 echo "Commit changes"
 if [ "$CREATE_BRANCH" = "true" ]; then
 	base=$(git rev-parse --abbrev-ref HEAD | sed 's#/#-#g')

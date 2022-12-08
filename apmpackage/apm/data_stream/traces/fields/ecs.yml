@@ -94,6 +94,8 @@
 - external: ecs
   name: host.os.type
 - external: ecs
+  name: http.request.id
+- external: ecs
   name: http.request.method
 - external: ecs
   name: http.request.referrer

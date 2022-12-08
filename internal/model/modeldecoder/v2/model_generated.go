@@ -2450,11 +2450,12 @@ func (val *spanContextDestinationService) processNestedSource() error {
 }
 
 func (val *spanContextHTTP) IsSet() bool {
-	return val.Method.IsSet() || val.Response.IsSet() || val.StatusCode.IsSet() || val.URL.IsSet()
+	return val.Method.IsSet() || val.Request.IsSet() || val.Response.IsSet() || val.StatusCode.IsSet() || val.URL.IsSet()
 }
 
 func (val *spanContextHTTP) Reset() {
 	val.Method.Reset()
+	val.Request.Reset()
 	val.Response.Reset()
 	val.StatusCode.Reset()
 	val.URL.Reset()
@@ -2467,6 +2468,9 @@ func (val *spanContextHTTP) validate() error {
 	if val.Method.IsSet() && utf8.RuneCountInString(val.Method.Val) > 1024 {
 		return fmt.Errorf("'method': validation rule 'maxLength(1024)' violated")
 	}
+	if err := val.Request.validate(); err != nil {
+		return errors.Wrapf(err, "request")
+	}
 	if err := val.Response.validate(); err != nil {
 		return errors.Wrapf(err, "response")
 	}
@@ -2474,9 +2478,31 @@ func (val *spanContextHTTP) validate() error {
 }
 
 func (val *spanContextHTTP) processNestedSource() error {
+	if err := val.Request.processNestedSource(); err != nil {
+		return errors.Wrapf(err, "request")
+	}
 	if err := val.Response.processNestedSource(); err != nil {
 		return errors.Wrapf(err, "response")
 	}
+	return nil
+}
+
+func (val *spanContextHTTPRequest) IsSet() bool {
+	return val.ID.IsSet()
+}
+
+func (val *spanContextHTTPRequest) Reset() {
+	val.ID.Reset()
+}
+
+func (val *spanContextHTTPRequest) validate() error {
+	if !val.IsSet() {
+		return nil
+	}
+	return nil
+}
+
+func (val *spanContextHTTPRequest) processNestedSource() error {
 	return nil
 }
 

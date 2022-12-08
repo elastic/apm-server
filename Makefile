@@ -199,7 +199,7 @@ testing/infra/terraform/modules/%/README.md: .FORCE
 ##############################################################################
 
 BEATS_VERSION?=main
-BEATS_MODULE:=$(shell $(GO) list -m -f {{.Path}} all | grep github.com/elastic/beats)
+BEATS_MODULE:=github.com/elastic/beats/v7
 
 .PHONY: update-beats
 update-beats: update-beats-module update

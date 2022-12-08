@@ -24,6 +24,7 @@ https://github.com/elastic/apm-server/compare/8.5\...main[View commits]
 - experimental:[] Extend logs v2 intake API to support ECS logging fields {pull}9349[9349]
 - experimental:[] Add support for string timestamp format(`2006-01-02T15:04:05.999-0700`) {pull}9376[9376]
 - `context.http.response.*_size` fields have been changed from floating-point to integer types {pull}9429[9429]
+- Add `request.id` to `span.context.http` {pull}9673[9673]
 
 [float]
 ==== Added
@@ -35,3 +36,4 @@ https://github.com/elastic/apm-server/compare/8.5\...main[View commits]
 - Tune internal server configuration based on available cgroup or machine RAM, improving resource utilization and performance {pull}9358[9358]
 - Disallow auto-scaling of active indexers when Elasticsarch 429 response rate exceeds 1% of total requests issued {pull}9463[9463]
 - We now record `transaction.representative_count` and `span.representative_count` -- the inverse sample rate {pull}9458[9458]
+- Metrics data streams now use synthetic source {pull}9756[9756]

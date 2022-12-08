@@ -964,6 +964,12 @@ func mapToSpanModel(from *span, event *model.APMEvent) {
 			event.HTTP.Request = &model.HTTPRequest{}
 			event.HTTP.Request.Method = from.Context.HTTP.Method.Val
 		}
+		if from.Context.HTTP.Request.ID.IsSet() {
+			if event.HTTP.Request == nil {
+				event.HTTP.Request = &model.HTTPRequest{}
+			}
+			event.HTTP.Request.ID = from.Context.HTTP.Request.ID.Val
+		}
 		if from.Context.HTTP.Response.IsSet() {
 			response := model.HTTPResponse{}
 			if from.Context.HTTP.Response.DecodedBodySize.IsSet() {
