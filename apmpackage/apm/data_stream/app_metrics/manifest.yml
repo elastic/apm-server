@@ -10,6 +10,10 @@ elasticsearch:
       # as their names are application-specific and not
       # known ahead of time.
       dynamic: true
+      # Individual measurements are typically uninteresting, so
+      # use synthetic source to reduce storage size.
+      _source:
+        mode: synthetic
       # Install dynamic templates for use in dynamically
       # mapping complex application metrics.
       dynamic_templates:
