@@ -12,7 +12,8 @@
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
-                "outcome": "success"
+                "outcome": "success",
+                "outcome_numeric": 1
             },
             "host": {
                 "architecture": "i386",
