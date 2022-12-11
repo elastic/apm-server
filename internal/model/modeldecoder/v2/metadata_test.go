@@ -127,6 +127,7 @@ func isUnmappedMetadataField(key string) bool {
 		"Event",
 		"Event.Duration",
 		"Event.Outcome",
+		"Event.OutcomeNumeric",
 		"Event.Dataset",
 		"Event.Severity",
 		"Event.Action",

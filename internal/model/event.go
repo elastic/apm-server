@@ -35,6 +35,9 @@ type Event struct {
 	// Outcome holds the event outcome: "success", "failure", or "unknown".
 	Outcome string
 
+	// OutcomeNumeric TODO
+	OutcomeNumeric *SummaryMetric
+
 	// Severity holds the numeric severity of the event for log events.
 	Severity int64
 
@@ -50,6 +53,9 @@ type Event struct {
 func (e *Event) fields() mapstr.M {
 	var fields mapStr
 	fields.maybeSetString("outcome", e.Outcome)
+	if e.OutcomeNumeric != nil {
+		fields.maybeSetMapStr("outcome_numeric", e.OutcomeNumeric.fields())
+	}
 	fields.maybeSetString("action", e.Action)
 	fields.maybeSetString("dataset", e.Dataset)
 	if e.Severity > 0 {

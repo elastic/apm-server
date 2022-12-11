@@ -380,5 +380,11 @@ func makeMetricset(key aggregationKey, metrics serviceMetrics) model.APMEvent {
 				Sum:   float64(time.Duration(math.Round(metrics.transactionDuration)).Microseconds()),
 			},
 		},
+		Event: model.Event{
+			OutcomeNumeric: &model.SummaryMetric{
+				Count: int64(math.Round(metrics.successCount + metrics.failureCount)),
+				Sum:   metrics.successCount,
+			},
+		},
 	}
 }

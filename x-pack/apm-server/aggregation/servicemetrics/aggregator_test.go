@@ -123,6 +123,12 @@ func TestAggregatorRun(t *testing.T) {
 			SuccessCount: 2,
 			FailureCount: 3,
 		},
+		Event: model.Event{
+			OutcomeNumeric: &model.SummaryMetric{
+				Count: 5,
+				Sum:   2,
+			},
+		},
 	}, {
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{Name: "service", DocCount: 1},
@@ -134,6 +140,9 @@ func TestAggregatorRun(t *testing.T) {
 				Count: 1,
 				Sum:   1000, // 1ms in micros
 			},
+		},
+		Event: model.Event{
+			OutcomeNumeric: &model.SummaryMetric{},
 		},
 	}, {
 		Processor: model.MetricsetProcessor,
@@ -147,6 +156,9 @@ func TestAggregatorRun(t *testing.T) {
 				Sum:   1000, // 1ms in micros
 			},
 		},
+		Event: model.Event{
+			OutcomeNumeric: &model.SummaryMetric{},
+		},
 	}, {
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{Name: "service", DocCount: 1},
@@ -159,6 +171,9 @@ func TestAggregatorRun(t *testing.T) {
 				Sum:   1000, // 1ms in micros
 			},
 		},
+		Event: model.Event{
+			OutcomeNumeric: &model.SummaryMetric{},
+		},
 	}, {
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{Name: "service", DocCount: 1},
@@ -170,6 +185,9 @@ func TestAggregatorRun(t *testing.T) {
 				Count: 1,
 				Sum:   1000, // 1ms in micros
 			},
+		},
+		Event: model.Event{
+			OutcomeNumeric: &model.SummaryMetric{},
 		},
 	}}
 
@@ -282,6 +300,12 @@ func TestAggregatorMaxGroups(t *testing.T) {
 				SuccessCount: 1,
 			},
 			Metricset: &model.Metricset{Name: "service", DocCount: 1},
+			Event: model.Event{
+				OutcomeNumeric: &model.SummaryMetric{
+					Count: 1,
+					Sum:   1,
+				},
+			},
 		}, m)
 	}
 }
