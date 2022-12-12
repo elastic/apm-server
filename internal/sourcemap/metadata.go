@@ -49,7 +49,7 @@ type Metadata struct {
 
 type MetadataCachingFetcher struct {
 	esClient elasticsearch.Client
-	set      map[Identifier]bool
+	set      map[Identifier]string
 	mu       sync.RWMutex
 	backend  Fetcher
 	logger   *logp.Logger
@@ -65,7 +65,7 @@ func NewMetadataCachingFetcher(
 	return &MetadataCachingFetcher{
 		esClient: c,
 		index:    index,
-		set:      make(map[Identifier]bool),
+		set:      make(map[Identifier]string),
 		backend:  backend,
 		logger:   logp.NewLogger(logs.Sourcemap),
 	}
@@ -73,9 +73,12 @@ func NewMetadataCachingFetcher(
 
 func (s *MetadataCachingFetcher) Fetch(ctx context.Context, name, version, path string) (*sourcemap.Consumer, error) {
 	if len(s.set) == 0 {
-		// First run, populate cache
+		// If cache is empty and we're trying to fetch a sourcemap
+		// make sure the initial cache population has ended.
 		s.once.Do(func() {
-			s.sync(ctx)
+			if err := s.sync(ctx); err != nil {
+				s.logger.Error("failed to fetch sourcemaps metadata: %v", err)
+			}
 		})
 	}
 
@@ -105,11 +108,23 @@ func (s *MetadataCachingFetcher) Update(ids []Identifier) {
 	}
 
 	for _, k := range ids {
-		s.set[k] = true
+		s.set[k] = ""
 	}
 }
 
 func (s *MetadataCachingFetcher) StartBackgroundSync() {
+	go func() {
+		// First run, populate cache
+		s.once.Do(func() {
+			ctx, cleanup := context.WithTimeout(context.Background(), 10*time.Second)
+			defer cleanup()
+
+			if err := s.sync(ctx); err != nil {
+				s.logger.Error("failed to fetch sourcemaps metadata: %v", err)
+			}
+		})
+	}()
+
 	go func() {
 		// TODO make this a config option ?
 		t := time.NewTicker(30 * time.Second)
@@ -117,7 +132,11 @@ func (s *MetadataCachingFetcher) StartBackgroundSync() {
 
 		for range t.C {
 			ctx, cleanup := context.WithTimeout(context.Background(), 10*time.Second)
-			s.sync(ctx)
+
+			if err := s.sync(ctx); err != nil {
+				s.logger.Error("failed to sync sourcemaps metadata: %v", err)
+			}
+
 			cleanup()
 		}
 	}()
@@ -151,9 +170,9 @@ func (s *MetadataCachingFetcher) sync(ctx context.Context) error {
 	var ids []Identifier
 	for _, v := range body.Hits.Hits {
 		id := Identifier{
-			name:    v.Source.Sourcemap.Service.Name,
-			version: v.Source.Sourcemap.Service.Version,
-			path:    v.Source.Sourcemap.BundleFilepath,
+			name:    v.Source.ServiceName,
+			version: v.Source.ServiceVersion,
+			path:    v.Source.BundleFilepath,
 		}
 
 		ids = append(ids, id)
@@ -180,7 +199,7 @@ func (s *MetadataCachingFetcher) runSearchQuery(ctx context.Context) (*esapi.Res
 
 func queryMetadata() map[string]interface{} {
 	return map[string]interface{}{
-		"_source": []string{"sourcemap.service.*", "sourcemap.bundle_filepath"},
+		"_source": []string{"service.*", "file.path", "content_sha256"},
 	}
 }
 

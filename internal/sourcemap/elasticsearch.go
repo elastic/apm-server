@@ -19,7 +19,9 @@ package sourcemap
 
 import (
 	"bytes"
+	"compress/zlib"
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -58,14 +60,11 @@ type esSourcemapResponse struct {
 		}
 		Hits []struct {
 			Source struct {
-				Sourcemap struct {
-					Service struct {
-						Name    string
-						Version string
-					}
-					BundleFilepath string `json:"bundle_filepath"`
-					Sourcemap      string
-				}
+				ServiceName    string `json:"service.name"`
+				ServiceVersion string `json:"service.version"`
+				BundleFilepath string `json:"file.path"`
+				Sourcemap      string `json:"content"`
+				ContentHash    string `json:"content_sha256"`
 			} `json:"_source"`
 		}
 	} `json:"hits"`
@@ -102,7 +101,24 @@ func (s *esFetcher) Fetch(ctx context.Context, name, version, path string) (*sou
 	if err != nil {
 		return nil, err
 	}
-	return parseSourceMap(body)
+
+	d, err := base64.StdEncoding.DecodeString(body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to base64 decode string: %w", err)
+	}
+
+	r, err := zlib.NewReader(bytes.NewReader(d))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create zlib reader: %w", err)
+	}
+	defer r.Close()
+
+	bbb, err := io.ReadAll(r)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read sourcemap content: %w", err)
+	}
+
+	return parseSourceMap(string(bbb))
 }
 
 func (s *esFetcher) runSearchQuery(ctx context.Context, name, version, path string) (*esapi.Response, error) {
@@ -119,10 +135,16 @@ func (s *esFetcher) runSearchQuery(ctx context.Context, name, version, path stri
 }
 
 func parse(body io.ReadCloser, name, version, path string, logger *logp.Logger) (string, error) {
-	var esSourcemapResponse esSourcemapResponse
-	if err := json.NewDecoder(body).Decode(&esSourcemapResponse); err != nil {
+	b, err := io.ReadAll(body)
+	if err != nil {
 		return "", err
 	}
+
+	var esSourcemapResponse esSourcemapResponse
+	if err := json.Unmarshal(b, &esSourcemapResponse); err != nil {
+		return "", err
+	}
+
 	hits := esSourcemapResponse.Hits.Total.Value
 	if hits == 0 || len(esSourcemapResponse.Hits.Hits) == 0 {
 		return "", nil
@@ -133,7 +155,7 @@ func parse(body io.ReadCloser, name, version, path string, logger *logp.Logger) 
 		logger.Warnf("%d sourcemaps found for service %s version %s and file %s, using the most recent one",
 			hits, name, version, path)
 	}
-	esSourcemap = esSourcemapResponse.Hits.Hits[0].Source.Sourcemap.Sourcemap
+	esSourcemap = esSourcemapResponse.Hits.Hits[0].Source.Sourcemap
 	// until https://github.com/golang/go/issues/19858 is resolved
 	if esSourcemap == "" {
 		return "", errSourcemapWrongFormat
@@ -142,25 +164,15 @@ func parse(body io.ReadCloser, name, version, path string, logger *logp.Logger) 
 }
 
 func query(name, version, path string) map[string]interface{} {
+	id := name + "-" + version + "-" + path
 	return searchFirst(
 		boolean(
 			must(
-				term("processor.name", "sourcemap"),
-				term("sourcemap.service.name", name),
-				term("sourcemap.service.version", version),
-				term("processor.name", "sourcemap"),
-				boolean(
-					should(
-						// prefer full URL match
-						boostedTerm("sourcemap.bundle_filepath", path, 2.0),
-						term("sourcemap.bundle_filepath", maybeParseURLPath(path)),
-					),
-				),
+				term("_id", id),
 			),
 		),
-		"sourcemap.sourcemap",
+		"content",
 		desc("_score"),
-		desc("@timestamp"),
 	)
 }
 
