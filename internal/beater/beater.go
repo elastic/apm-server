@@ -23,7 +23,6 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	"net/url"
 	"os"
 	"runtime"
 	"time"
@@ -32,13 +31,11 @@ import (
 	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 	"go.elastic.co/apm/module/apmgrpc/v2"
-	"go.elastic.co/apm/module/apmhttp/v2"
 	"go.elastic.co/apm/v2"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
-	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/esleg/eslegclient"
 	"github.com/elastic/beats/v7/libbeat/instrumentation"
 	"github.com/elastic/beats/v7/libbeat/licenser"
@@ -49,8 +46,6 @@ import (
 	agentconfig "github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/monitoring"
-	"github.com/elastic/elastic-agent-libs/transport"
-	"github.com/elastic/elastic-agent-libs/transport/tlscommon"
 	"github.com/elastic/go-ucfg"
 
 	"github.com/elastic/apm-server/internal/agentcfg"
@@ -777,79 +772,6 @@ func newSourcemapFetcher(
 	kibanaClient *kibana.Client,
 	newElasticsearchClient func(*elasticsearch.Config) (elasticsearch.Client, error),
 ) (sourcemap.Fetcher, error) {
-	// When running under Fleet we only fetch via Fleet Server.
-	if fleetCfg != nil {
-		var tlsConfig *tlscommon.TLSConfig
-		var err error
-		if fleetCfg.TLS.IsEnabled() {
-			if tlsConfig, err = tlscommon.LoadTLSConfig(fleetCfg.TLS); err != nil {
-				return nil, err
-			}
-		}
-
-		timeout := 30 * time.Second
-		dialer := transport.NetDialer(timeout)
-		tlsDialer := transport.TLSDialer(dialer, tlsConfig, timeout)
-
-		client := *http.DefaultClient
-		client.Transport = apmhttp.WrapRoundTripper(&http.Transport{
-			Proxy:           http.ProxyFromEnvironment,
-			Dial:            dialer.Dial,
-			DialTLS:         tlsDialer.Dial,
-			TLSClientConfig: tlsConfig.ToConfig(),
-		})
-
-		fleetServerURLs := make([]*url.URL, len(fleetCfg.Hosts))
-		for i, host := range fleetCfg.Hosts {
-			urlString, err := common.MakeURL(fleetCfg.Protocol, "", host, 8220)
-			if err != nil {
-				return nil, err
-			}
-			u, err := url.Parse(urlString)
-			if err != nil {
-				return nil, err
-			}
-			fleetServerURLs[i] = u
-		}
-
-		artifactRefs := make([]sourcemap.FleetArtifactReference, len(cfg.Metadata))
-		for i, meta := range cfg.Metadata {
-			artifactRefs[i] = sourcemap.FleetArtifactReference{
-				ServiceName:        meta.ServiceName,
-				ServiceVersion:     meta.ServiceVersion,
-				BundleFilepath:     meta.BundleFilepath,
-				FleetServerURLPath: meta.SourceMapURL,
-			}
-		}
-
-		ff, err := sourcemap.NewFleetFetcher(
-			&client,
-			fleetCfg.AccessAPIKey,
-			fleetServerURLs,
-			artifactRefs,
-		)
-		if err != nil {
-			return nil, err
-		}
-
-		cachingFetcher, err := sourcemap.NewCachingFetcher(ff, make(<-chan sourcemap.Identifier), 128)
-		if err != nil {
-			return nil, err
-		}
-
-		return cachingFetcher, nil
-	}
-
-	// For standalone, we query both Kibana and Elasticsearch for backwards compatibility.
-	var chained sourcemap.ChainedFetcher
-	if kibanaClient != nil {
-		cachingFetcher, err := sourcemap.NewCachingFetcher(sourcemap.NewKibanaFetcher(kibanaClient), make(<-chan sourcemap.Identifier), 128)
-		if err != nil {
-			return nil, err
-		}
-
-		chained = append(chained, cachingFetcher)
-	}
 	esClient, err := newElasticsearchClient(cfg.ESConfig)
 	if err != nil {
 		return nil, err
