@@ -138,7 +138,6 @@ apm-server.docker.yml: apm-server.yml
 go-generate:
 	@$(GO) run internal/model/modeldecoder/generator/cmd/main.go
 	@$(GO) run internal/model/modelprocessor/generate_internal_metrics.go
-	@bash script/vendor_otel.sh
 	@cd cmd/intake-receiver && APM_SERVER_VERSION=$(APM_SERVER_VERSION) $(GO) generate .
 
 .PHONY: add-headers
