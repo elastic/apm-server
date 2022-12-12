@@ -18,9 +18,6 @@
 package systemtest_test
 
 import (
-	"bytes"
-	"context"
-	"encoding/json"
 	"os"
 	"testing"
 
@@ -30,7 +27,6 @@ import (
 	"github.com/elastic/apm-server/systemtest"
 	"github.com/elastic/apm-server/systemtest/apmservertest"
 	"github.com/elastic/apm-server/systemtest/estest"
-	"github.com/elastic/go-elasticsearch/v8/esapi"
 )
 
 func TestRUMErrorSourcemapping(t *testing.T) {
@@ -136,8 +132,6 @@ func TestNoMatchingSourcemap(t *testing.T) {
 }
 
 func TestSourcemapElasticsearch(t *testing.T) {
-	t.Skip("DISABLED FOR NOW")
-
 	systemtest.CleanupElasticsearch(t)
 	srv := apmservertest.NewUnstartedServerTB(t)
 	srv.Config.RUM = &apmservertest.RUMConfig{Enabled: true}
@@ -146,59 +140,12 @@ func TestSourcemapElasticsearch(t *testing.T) {
 
 	sourcemap, err := os.ReadFile("../testdata/sourcemap/bundle.js.map")
 	require.NoError(t, err)
+	sourcemapID := systemtest.CreateSourceMap(t, string(sourcemap), "apm-agent-js", "1.0.1",
+		"http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
+	)
 
-	type Source struct {
-		Timestamp string `json:"@timestamp"`
-		Processor struct {
-			Name string `json:"name"`
-		} `json:"processor"`
-		Sourcemap struct {
-			Service struct {
-				Name    string `json:"name"`
-				Version string `json:"version"`
-			} `json:"service"`
-			BundleFilepath string `json:"bundle_filepath"`
-			Sourcemap      string `json:"sourcemap"`
-		} `json:"sourcemap"`
-	}
-
-	s := Source{
-		Timestamp: "1970-01-01T00:00:01.000Z",
-		Processor: struct {
-			Name string `json:"name"`
-		}{
-			Name: "sourcemap",
-		},
-		Sourcemap: struct {
-			Service struct {
-				Name    string `json:"name"`
-				Version string `json:"version"`
-			} `json:"service"`
-			BundleFilepath string `json:"bundle_filepath"`
-			Sourcemap      string `json:"sourcemap"`
-		}{
-			Service: struct {
-				Name    string `json:"name"`
-				Version string `json:"version"`
-			}{
-				Name:    "apm-agent-js",
-				Version: "1.0.1",
-			},
-			BundleFilepath: "http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
-			Sourcemap:      string(sourcemap),
-		},
-	}
-
-	b, err := json.Marshal(s)
-	require.NoError(t, err)
-
-	_, err = systemtest.Elasticsearch.Do(context.Background(), &esapi.IndexRequest{
-		Index: "apm-test-sourcemap",
-		Body:  bytes.NewReader(b),
-	}, nil)
-	require.NoError(t, err)
-
-	systemtest.Elasticsearch.ExpectMinDocs(t, 1, "apm-*-sourcemap", nil)
+	systemtest.Elasticsearch.ExpectMinDocs(t, 1, ".apm-source-map", nil)
+	require.NotEmpty(t, sourcemapID)
 
 	// Index an error, applying source mapping and caching the source map in the process.
 	systemtest.SendRUMEventsPayload(t, srv.URL, "../testdata/intake-v2/errors_rum.ndjson")
