@@ -108,11 +108,7 @@ func NewMux(
 		handlerFn func() (request.Handler, error)
 	}
 
-	otlpHandlers, err := otlp.NewHTTPHandlers(batchProcessor)
-	if err != nil {
-		return nil, err
-	}
-
+	otlpHandlers := otlp.NewHTTPHandlers(batchProcessor)
 	routeMap := []route{
 		{RootPath, builder.rootHandler(publishReady)},
 		{AgentConfigPath, builder.backendAgentConfigHandler(fetcher)},
@@ -120,9 +116,9 @@ func NewMux(
 		{IntakeRUMPath, builder.rumIntakeHandler(stream.RUMV2Processor)},
 		{IntakeRUMV3Path, builder.rumIntakeHandler(stream.RUMV3Processor)},
 		{IntakePath, builder.backendIntakeHandler},
-		{OTLPTracesIntakePath, builder.otlpHandler(otlpHandlers.TraceHandler, otlp.HTTPTracesMonitoringMap)},
-		{OTLPMetricsIntakePath, builder.otlpHandler(otlpHandlers.MetricsHandler, otlp.HTTPMetricsMonitoringMap)},
-		{OTLPLogsIntakePath, builder.otlpHandler(otlpHandlers.LogsHandler, otlp.HTTPLogsMonitoringMap)},
+		{OTLPTracesIntakePath, builder.otlpHandler(otlpHandlers.HandleTraces, otlp.HTTPTracesMonitoringMap)},
+		{OTLPMetricsIntakePath, builder.otlpHandler(otlpHandlers.HandleMetrics, otlp.HTTPMetricsMonitoringMap)},
+		{OTLPLogsIntakePath, builder.otlpHandler(otlpHandlers.HandleLogs, otlp.HTTPLogsMonitoringMap)},
 	}
 
 	for _, route := range routeMap {

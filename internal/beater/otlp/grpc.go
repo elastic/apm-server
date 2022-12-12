@@ -18,10 +18,11 @@
 package otlp
 
 import (
+	"context"
+
 	"go.opentelemetry.io/collector/pdata/plog/plogotlp"
 	"go.opentelemetry.io/collector/pdata/pmetric/pmetricotlp"
 	"go.opentelemetry.io/collector/pdata/ptrace/ptraceotlp"
-	"go.opentelemetry.io/collector/receiver/otlpreceiver"
 	"google.golang.org/grpc"
 
 	"github.com/elastic/elastic-agent-libs/monitoring"
@@ -68,12 +69,46 @@ func RegisterGRPCServices(grpcServer *grpc.Server, processor model.BatchProcesso
 	consumer := &otel.Consumer{Processor: processor}
 	gRPCMonitoredConsumer.set(consumer)
 
-	tracesService := otlpreceiver.TracesService(consumer)
-	ptraceotlp.RegisterGRPCServer(grpcServer, tracesService)
+	ptraceotlp.RegisterGRPCServer(grpcServer, tracesService{consumer})
+	pmetricotlp.RegisterGRPCServer(grpcServer, metricsService{consumer})
+	plogotlp.RegisterGRPCServer(grpcServer, logsService{consumer})
+}
 
-	metricsService := otlpreceiver.MetricsService(consumer)
-	pmetricotlp.RegisterGRPCServer(grpcServer, metricsService)
+type tracesService struct {
+	consumer *otel.Consumer
+}
 
-	logsService := otlpreceiver.LogsService(consumer)
-	plogotlp.RegisterGRPCServer(grpcServer, logsService)
+func (s tracesService) Export(ctx context.Context, req ptraceotlp.ExportRequest) (ptraceotlp.ExportResponse, error) {
+	td := req.Traces()
+	if td.SpanCount() == 0 {
+		return ptraceotlp.NewExportResponse(), nil
+	}
+	err := s.consumer.ConsumeTraces(ctx, td)
+	return ptraceotlp.NewExportResponse(), err
+}
+
+type metricsService struct {
+	consumer *otel.Consumer
+}
+
+func (s metricsService) Export(ctx context.Context, req pmetricotlp.ExportRequest) (pmetricotlp.ExportResponse, error) {
+	md := req.Metrics()
+	if md.DataPointCount() == 0 {
+		return pmetricotlp.NewExportResponse(), nil
+	}
+	err := s.consumer.ConsumeMetrics(ctx, md)
+	return pmetricotlp.NewExportResponse(), err
+}
+
+type logsService struct {
+	consumer *otel.Consumer
+}
+
+func (s logsService) Export(ctx context.Context, req plogotlp.ExportRequest) (plogotlp.ExportResponse, error) {
+	ld := req.Logs()
+	if ld.LogRecordCount() == 0 {
+		return plogotlp.NewExportResponse(), nil
+	}
+	err := s.consumer.ConsumeLogs(ctx, ld)
+	return plogotlp.NewExportResponse(), err
 }
