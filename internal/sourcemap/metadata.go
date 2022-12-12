@@ -48,26 +48,29 @@ type Metadata struct {
 }
 
 type MetadataCachingFetcher struct {
-	esClient elasticsearch.Client
-	set      map[Identifier]string
-	mu       sync.RWMutex
-	backend  Fetcher
-	logger   *logp.Logger
-	once     sync.Once
-	index    string
+	esClient         elasticsearch.Client
+	set              map[Identifier]string
+	mu               sync.RWMutex
+	backend          Fetcher
+	logger           *logp.Logger
+	once             sync.Once
+	index            string
+	invalidationChan chan<- Identifier
 }
 
 func NewMetadataCachingFetcher(
 	c elasticsearch.Client,
 	backend Fetcher,
 	index string,
+	invalidationChan chan<- Identifier,
 ) *MetadataCachingFetcher {
 	return &MetadataCachingFetcher{
-		esClient: c,
-		index:    index,
-		set:      make(map[Identifier]string),
-		backend:  backend,
-		logger:   logp.NewLogger(logs.Sourcemap),
+		esClient:         c,
+		index:            index,
+		set:              make(map[Identifier]string),
+		backend:          backend,
+		logger:           logp.NewLogger(logs.Sourcemap),
+		invalidationChan: invalidationChan,
 	}
 }
 
@@ -99,16 +102,34 @@ func (s *MetadataCachingFetcher) Fetch(ctx context.Context, name, version, path 
 	return nil, nil
 }
 
-func (s *MetadataCachingFetcher) Update(ids []Identifier) {
+func (s *MetadataCachingFetcher) Update(ms []Metadata) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
+	for _, m := range ms {
+		if contentHash, ok := s.set[m.id]; ok {
+			// seen
+			delete(s.set, m.id)
+
+			// content hash changed, invalidate the sourcemap cache
+			if contentHash != m.contentHash {
+				s.invalidationChan <- m.id
+			}
+		}
+	}
+
+	// Loop for any unseed sourcemap
 	for k := range s.set {
+		// the sourcemap no longer exists in ES.
+		// invalidate the sourcemap cache.
+		s.invalidationChan <- k
+
+		// remove from metadata cache
 		delete(s.set, k)
 	}
 
-	for _, k := range ids {
-		s.set[k] = ""
+	for _, m := range ms {
+		s.set[m.id] = m.contentHash
 	}
 }
 
@@ -167,19 +188,22 @@ func (s *MetadataCachingFetcher) sync(ctx context.Context) error {
 		return err
 	}
 
-	var ids []Identifier
+	var ms []Metadata
 	for _, v := range body.Hits.Hits {
-		id := Identifier{
-			name:    v.Source.ServiceName,
-			version: v.Source.ServiceVersion,
-			path:    v.Source.BundleFilepath,
+		m := Metadata{
+			id: Identifier{
+				name:    v.Source.ServiceName,
+				version: v.Source.ServiceVersion,
+				path:    v.Source.BundleFilepath,
+			},
+			contentHash: v.Source.ContentHash,
 		}
 
-		ids = append(ids, id)
+		ms = append(ms, m)
 	}
 
 	// Update cache
-	s.Update(ids)
+	s.Update(ms)
 	return nil
 }
 

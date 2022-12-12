@@ -21,11 +21,10 @@ import (
 	"context"
 	"math"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/go-sourcemap/sourcemap"
-	gocache "github.com/patrickmn/go-cache"
+	"github.com/hashicorp/golang-lru"
 	"github.com/pkg/errors"
 
 	"github.com/elastic/apm-server/internal/logs"
@@ -52,27 +51,33 @@ type Fetcher interface {
 
 // CachingFetcher wraps a Fetcher, caching source maps in memory and fetching from the wrapped Fetcher on cache misses.
 type CachingFetcher struct {
-	cache   *gocache.Cache
+	cache   *lru.Cache
 	backend Fetcher
 	logger  *logp.Logger
-
-	mu       sync.Mutex
-	inflight map[string]chan struct{}
 }
 
 // NewCachingFetcher returns a CachingFetcher that wraps backend, caching results for the configured cacheExpiration.
 func NewCachingFetcher(
 	backend Fetcher,
-	cacheExpiration time.Duration,
+	invalidationChan <-chan Identifier,
+	cacheSize int,
 ) (*CachingFetcher, error) {
-	if cacheExpiration < 0 {
-		return nil, errInit
+	c, err := lru.New(cacheSize)
+	if err != nil {
+		return nil, err
 	}
+
+	go func() {
+		for i := range invalidationChan {
+			key := cacheKey([]string{i.name, i.version, i.path})
+			c.Remove(key)
+		}
+	}()
+
 	return &CachingFetcher{
-		cache:    gocache.New(cacheExpiration, cleanupInterval(cacheExpiration)),
-		backend:  backend,
-		logger:   logp.NewLogger(logs.Sourcemap),
-		inflight: make(map[string]chan struct{}),
+		cache:   c,
+		backend: backend,
+		logger:  logp.NewLogger(logs.Sourcemap),
 	}, nil
 }
 
@@ -85,39 +90,6 @@ func (s *CachingFetcher) Fetch(ctx context.Context, name, version, path string) 
 		consumer, _ := val.(*sourcemap.Consumer)
 		return consumer, nil
 	}
-
-	// if the value hasn't been found, check to see if there's an inflight
-	// request to update the value.
-	s.mu.Lock()
-	wait, ok := s.inflight[key]
-	if ok {
-		// found an inflight request, wait for it to complete.
-		s.mu.Unlock()
-
-		select {
-		case <-wait:
-		case <-ctx.Done():
-			return nil, ctx.Err()
-		}
-		// Try to read the value again
-		return s.Fetch(ctx, name, version, path)
-	}
-
-	// no inflight request found, add a channel to the map and then
-	// make the fetch request.
-	wait = make(chan struct{})
-	s.inflight[key] = wait
-
-	s.mu.Unlock()
-
-	// Once the fetch request is complete, close and remove the channel
-	// from the syncronization map.
-	defer func() {
-		s.mu.Lock()
-		delete(s.inflight, key)
-		close(wait)
-		s.mu.Unlock()
-	}()
 
 	// fetch from the store and ensure caching for all non-temporary results
 	consumer, err := s.backend.Fetch(ctx, name, version, path)
@@ -132,11 +104,11 @@ func (s *CachingFetcher) Fetch(ctx context.Context, name, version, path string) 
 }
 
 func (s *CachingFetcher) add(key string, consumer *sourcemap.Consumer) {
-	s.cache.SetDefault(key, consumer)
+	s.cache.Add(key, consumer)
 	if !s.logger.IsDebug() {
 		return
 	}
-	s.logger.Debugf("Added id %v. Cache now has %v entries.", key, s.cache.ItemCount())
+	s.logger.Debugf("Added id %v. Cache now has %v entries.", key, s.cache.Len())
 }
 
 func cacheKey(s []string) string {
