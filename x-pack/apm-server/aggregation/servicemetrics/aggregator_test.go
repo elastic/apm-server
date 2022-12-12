@@ -120,7 +120,10 @@ func TestAggregatorRun(t *testing.T) {
 				Count: 6,
 				Sum:   6000, // 6ms in micros
 			},
-			SuccessCount: 2,
+			SuccessCount: model.SummaryMetric{
+				Count: 5,
+				Sum:   2,
+			},
 			FailureCount: 3,
 		},
 	}, {
@@ -279,7 +282,10 @@ func TestAggregatorMaxGroups(t *testing.T) {
 					Count: 1,
 					Sum:   100000,
 				},
-				SuccessCount: 1,
+				SuccessCount: model.SummaryMetric{
+					Count: 1,
+					Sum:   1,
+				},
 			},
 			Metricset: &model.Metricset{Name: "service", DocCount: 1},
 		}, m)

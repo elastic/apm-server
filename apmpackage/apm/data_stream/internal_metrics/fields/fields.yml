@@ -129,9 +129,6 @@
 - name: transaction.failure_count
   type: long
   description: "Count of transactions with 'event.outcome: failure'"
-- name: transaction.success_count
-  type: long
-  description: "Count of transactions with 'event.outcome: success'"
 - name: transaction.duration.histogram
   type: histogram
   description: |
