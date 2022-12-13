@@ -40,7 +40,10 @@
                         "value_count": 2
                     }
                 },
-                "success_count": 2,
+                "success_count": {
+                    "sum": 2,
+                    "value_count": 2
+                },
                 "type": "type1"
             }
         },
@@ -84,7 +87,10 @@
                         "value_count": 2
                     }
                 },
-                "success_count": 2,
+                "success_count": {
+                    "sum": 2,
+                    "value_count": 2
+                },
                 "type": "type2"
             }
         }
