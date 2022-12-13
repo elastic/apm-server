@@ -115,7 +115,7 @@ type pooledReader struct {
 }
 
 func (r *pooledReader) Read(p []byte) (int, error) {
-	panic("should've called WriterTo")
+	panic("should've called WriteTo")
 }
 
 func (r *pooledReader) WriteTo(w io.Writer) (int64, error) {
