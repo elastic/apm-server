@@ -3,7 +3,7 @@
     - description: Enable synthetic source for metrics data streams
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/9756
-    - description: Change transaction.success_count type to aggregate_metric_double
+    - description: Remove `transaction.failure_count` and change `transaction.success_count` type to aggregate_metric_double
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/9791
 - version: "8.6.0"

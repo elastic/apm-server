@@ -124,7 +124,6 @@ func TestAggregatorRun(t *testing.T) {
 				Count: 5,
 				Sum:   2,
 			},
-			FailureCount: 3,
 		},
 	}, {
 		Processor: model.MetricsetProcessor,

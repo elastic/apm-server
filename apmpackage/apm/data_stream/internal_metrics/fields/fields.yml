@@ -126,9 +126,6 @@
   type: keyword
   description: |
     Keyword of specific relevance in the service's domain (eg: 'db.postgresql.query', 'template.erb', 'cache', etc).
-- name: transaction.failure_count
-  type: long
-  description: "Count of transactions with 'event.outcome: failure'"
 - name: transaction.duration.histogram
   type: histogram
   description: |

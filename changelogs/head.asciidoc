@@ -10,7 +10,7 @@ https://github.com/elastic/apm-server/compare/8.5\...main[View commits]
 - `context.http.response.*_size` fields now enforce integer values {pull}9429[9429]
 - `observer.id` and `observer.ephemeral_id` are no longer added to APM documents {pull}9412[9412]
 - `timeseries.instance` has been removed from transaction metrics docs; it was never used {pull}9565[9565]
-- `transaction.success_count` type has changed to `aggregated_metric_double` {pull}9791[9791]
+- `transaction.failure_count` has been removed. `transaction.success_count` type has changed to `aggregated_metric_double` {pull}9791[9791]
 
 [float]
 ==== Deprecations
