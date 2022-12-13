@@ -36,17 +36,6 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/esapi"
 )
 
-type Identifier struct {
-	name    string
-	version string
-	path    string
-}
-
-type Metadata struct {
-	id          Identifier
-	contentHash string
-}
-
 type MetadataCachingFetcher struct {
 	esClient         elasticsearch.Client
 	set              map[Identifier]string
@@ -102,7 +91,7 @@ func (s *MetadataCachingFetcher) Fetch(ctx context.Context, name, version, path 
 	return nil, nil
 }
 
-func (s *MetadataCachingFetcher) Update(ms []Metadata) {
+func (s *MetadataCachingFetcher) update(ms []Metadata) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -203,7 +192,7 @@ func (s *MetadataCachingFetcher) sync(ctx context.Context) error {
 	}
 
 	// Update cache
-	s.Update(ms)
+	s.update(ms)
 	return nil
 }
 
@@ -222,9 +211,9 @@ func (s *MetadataCachingFetcher) runSearchQuery(ctx context.Context) (*esapi.Res
 }
 
 func queryMetadata() map[string]interface{} {
-	return map[string]interface{}{
-		"_source": []string{"service.*", "file.path", "content_sha256"},
-	}
+	return search(
+		sources([]string{"service.*", "file.path", "content_sha256"}),
+	)
 }
 
 func parseResponse(body io.ReadCloser, logger *logp.Logger) (esSourcemapResponse, error) {

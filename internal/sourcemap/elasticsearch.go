@@ -123,7 +123,7 @@ func (s *esFetcher) Fetch(ctx context.Context, name, version, path string) (*sou
 
 func (s *esFetcher) runSearchQuery(ctx context.Context, name, version, path string) (*esapi.Response, error) {
 	var buf bytes.Buffer
-	if err := json.NewEncoder(&buf).Encode(query(name, version, path)); err != nil {
+	if err := json.NewEncoder(&buf).Encode(requestBody(name, version, path)); err != nil {
 		return nil, err
 	}
 	req := esapi.SearchRequest{
@@ -163,59 +163,20 @@ func parse(body io.ReadCloser, name, version, path string, logger *logp.Logger) 
 	return esSourcemap, nil
 }
 
-func query(name, version, path string) map[string]interface{} {
+func requestBody(name, version, path string) map[string]interface{} {
 	id := name + "-" + version + "-" + path
-	return searchFirst(
-		boolean(
-			must(
-				term("_id", id),
+	return search(
+		size(1),
+		sort(desc("_score")),
+		source("content"),
+		query(
+			boolean(
+				must(
+					term("_id", id),
+				),
 			),
 		),
-		"content",
-		desc("_score"),
 	)
-}
-
-func wrap(k string, v map[string]interface{}) map[string]interface{} {
-	return map[string]interface{}{k: v}
-}
-
-func boolean(clause map[string]interface{}) map[string]interface{} {
-	return wrap("bool", clause)
-}
-
-func should(clauses ...map[string]interface{}) map[string]interface{} {
-	return map[string]interface{}{"should": clauses}
-}
-
-func must(clauses ...map[string]interface{}) map[string]interface{} {
-	return map[string]interface{}{"must": clauses}
-}
-
-func term(k, v string) map[string]interface{} {
-	return map[string]interface{}{"term": map[string]interface{}{k: v}}
-}
-
-func boostedTerm(k, v string, boost float32) map[string]interface{} {
-	return wrap("term",
-		wrap(k, map[string]interface{}{
-			"value": v,
-			"boost": boost,
-		}),
-	)
-}
-
-func desc(by string) map[string]interface{} {
-	return wrap(by, map[string]interface{}{"order": "desc"})
-}
-
-func searchFirst(query map[string]interface{}, source string, sort ...map[string]interface{}) map[string]interface{} {
-	return map[string]interface{}{
-		"query":   query,
-		"size":    1,
-		"sort":    sort,
-		"_source": source,
-	}
 }
 
 // maybeParseURLPath attempts to parse s as a URL, returning its path component

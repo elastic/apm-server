@@ -19,35 +19,20 @@ package sourcemap
 
 import (
 	"context"
-	"math"
+	"fmt"
 	"strings"
-	"time"
 
 	"github.com/go-sourcemap/sourcemap"
-	"github.com/hashicorp/golang-lru"
+	lru "github.com/hashicorp/golang-lru"
 	"github.com/pkg/errors"
 
 	"github.com/elastic/apm-server/internal/logs"
 	"github.com/elastic/elastic-agent-libs/logp"
 )
 
-const (
-	minCleanupIntervalSeconds float64 = 60
-)
-
 var (
 	errMsgFailure = "failure querying"
-	errInit       = errors.New("Cache cannot be initialized. Expiration and CleanupInterval need to be >= 0")
 )
-
-// Fetcher is an interface for fetching a source map with a given service name, service version,
-// and bundle filepath.
-type Fetcher interface {
-	// Fetch fetches a source map with a given service name, service version, and bundle filepath.
-	//
-	// If there is no such source map available, Fetch returns a nil Consumer.
-	Fetch(ctx context.Context, serviceName, serviceVersion, bundleFilepath string) (*sourcemap.Consumer, error)
-}
 
 // CachingFetcher wraps a Fetcher, caching source maps in memory and fetching from the wrapped Fetcher on cache misses.
 type CachingFetcher struct {
@@ -62,28 +47,39 @@ func NewCachingFetcher(
 	invalidationChan <-chan Identifier,
 	cacheSize int,
 ) (*CachingFetcher, error) {
-	c, err := lru.New(cacheSize)
+	logger := logp.NewLogger(logs.Sourcemap)
+
+	c, err := lru.NewWithEvict(cacheSize, func(key, value interface{}) {
+		if !logger.IsDebug() {
+			return
+		}
+		logger.Debugf("Removed id %v", key)
+	})
+
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create lru cache for caching fetcher: %w", err)
 	}
 
 	go func() {
 		for i := range invalidationChan {
-			key := cacheKey([]string{i.name, i.version, i.path})
-			c.Remove(key)
+			c.Remove(i)
 		}
 	}()
 
 	return &CachingFetcher{
 		cache:   c,
 		backend: backend,
-		logger:  logp.NewLogger(logs.Sourcemap),
+		logger:  logger,
 	}, nil
 }
 
 // Fetch fetches a source map from the cache or wrapped backend.
 func (s *CachingFetcher) Fetch(ctx context.Context, name, version, path string) (*sourcemap.Consumer, error) {
-	key := cacheKey([]string{name, version, path})
+	key := Identifier{
+		name:    name,
+		version: version,
+		path:    path,
+	}
 
 	// fetch from cache
 	if val, found := s.cache.Get(key); found {
@@ -103,20 +99,12 @@ func (s *CachingFetcher) Fetch(ctx context.Context, name, version, path string) 
 	return consumer, nil
 }
 
-func (s *CachingFetcher) add(key string, consumer *sourcemap.Consumer) {
+func (s *CachingFetcher) add(key Identifier, consumer *sourcemap.Consumer) {
 	s.cache.Add(key, consumer)
 	if !s.logger.IsDebug() {
 		return
 	}
 	s.logger.Debugf("Added id %v. Cache now has %v entries.", key, s.cache.Len())
-}
-
-func cacheKey(s []string) string {
-	return strings.Join(s, "_")
-}
-
-func cleanupInterval(ttl time.Duration) time.Duration {
-	return time.Duration(math.Max(ttl.Seconds(), minCleanupIntervalSeconds)) * time.Second
 }
 
 func parseSourceMap(data string) (*sourcemap.Consumer, error) {
