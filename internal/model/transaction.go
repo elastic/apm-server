@@ -60,23 +60,11 @@ type Transaction struct {
 	// is subject to removal.
 	DurationSummary SummaryMetric
 
-	// FailureCount holds an aggregated count of transactions with the
-	// outcome "failure". If FailureCount is zero, it will be omitted from
-	// the output event.
-	//
-	// NOTE(axw) this is used only for service metrics, which are in technical
-	// preview. Do not use this field without discussion, as the field mapping
-	// is subject to removal.
-	FailureCount int
-
-	// SuccessCount holds an aggregated count of transactions with the
-	// outcome "success". If SuccessCount is zero, it will be omitted from
-	// the output event.
-	//
-	// NOTE(axw) this is used only for service metrics, which are in technical
-	// preview. Do not use this field without discussion, as the field mapping
-	// is subject to removal.
-	SuccessCount int
+	// SuccessCount holds an aggregated count of transactions with different
+	// outcomes. A "failure" adds to the Count. A "success" adds to both the
+	// Count and the Sum. An "unknown" has no effect. If Count is zero, it
+	// will be omitted from the output event.
+	SuccessCount SummaryMetric
 
 	Marks          TransactionMarks
 	Message        *Message
@@ -112,11 +100,8 @@ func (e *Transaction) fields() mapstr.M {
 	if e.DurationSummary.Count != 0 {
 		transaction.maybeSetMapStr("duration.summary", e.DurationSummary.fields())
 	}
-	if e.FailureCount != 0 {
-		transaction.set("failure_count", e.FailureCount)
-	}
-	if e.SuccessCount != 0 {
-		transaction.set("success_count", e.SuccessCount)
+	if e.SuccessCount.Count != 0 {
+		transaction.maybeSetMapStr("success_count", e.SuccessCount.fields())
 	}
 	transaction.maybeSetString("name", e.Name)
 	transaction.maybeSetString("result", e.Result)

@@ -25,6 +25,10 @@ elasticsearch:
                   type: aggregate_metric_double
                   metrics: [sum, value_count]
                   default_metric: sum
+            success_count:
+              type: aggregate_metric_double
+              metrics: [sum, value_count]
+              default_metric: sum
     settings:
       index:
         sort.field: "@timestamp"
