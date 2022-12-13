@@ -390,6 +390,7 @@ func (j *JavaAttacher) attachJVMCommand(ctx context.Context, jvm *jvmDetails) *e
 	args := []string{
 		"-jar", attacherJar,
 		"--log-level", "debug",
+		"-C","activation_method=FLEET",
 		"--include-pid", strconv.Itoa(jvm.pid),
 	}
 	if j.downloadAgentVersion != "" {
