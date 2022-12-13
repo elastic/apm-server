@@ -63,7 +63,7 @@ func Test_esFetcher_fetchError(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			var client elasticsearch.Client
+			var client *elasticsearch.Client
 			if tc.clientError {
 				client = newUnavailableElasticsearchClient(t)
 			} else {
@@ -116,7 +116,7 @@ func Test_esFetcher_fetch(t *testing.T) {
 	}
 }
 
-func testESFetcher(client elasticsearch.Client) *esFetcher {
+func testESFetcher(client *elasticsearch.Client) *esFetcher {
 	return &esFetcher{client: client, index: "apm-sourcemap", logger: logp.NewLogger(logs.Sourcemap)}
 }
 
@@ -149,7 +149,7 @@ func sourcemapHit(sourcemap string) map[string]interface{} {
 
 // newUnavailableElasticsearchClient returns an elasticsearch.Client configured
 // to send requests to an invalid (unavailable) host.
-func newUnavailableElasticsearchClient(t testing.TB) elasticsearch.Client {
+func newUnavailableElasticsearchClient(t testing.TB) *elasticsearch.Client {
 	var transport roundTripperFunc = func(r *http.Request) (*http.Response, error) {
 		return nil, errors.New("client error")
 	}
@@ -166,7 +166,7 @@ func newUnavailableElasticsearchClient(t testing.TB) elasticsearch.Client {
 // newMockElasticsearchClient returns an elasticsearch.Clien configured to send
 // requests to an httptest.Server that responds to source map search requests
 // with the given status code and response body.
-func newMockElasticsearchClient(t testing.TB, statusCode int, responseBody io.Reader) elasticsearch.Client {
+func newMockElasticsearchClient(t testing.TB, statusCode int, responseBody io.Reader) *elasticsearch.Client {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Elastic-Product", "Elasticsearch")
 		w.WriteHeader(statusCode)

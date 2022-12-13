@@ -36,7 +36,6 @@ import (
 
 	"github.com/elastic/apm-server/internal/approvaltest"
 	"github.com/elastic/apm-server/internal/model"
-	"github.com/elastic/apm-server/internal/model/modelindexer/modelindexertest"
 	"github.com/elastic/apm-server/internal/publish"
 )
 
@@ -331,7 +330,12 @@ func TestLabelLeak(t *testing.T) {
 
 func makeApproveEventsBatchProcessor(t *testing.T, name string, count *int) model.BatchProcessor {
 	return model.ProcessBatchFunc(func(ctx context.Context, b *model.Batch) error {
-		docs := modelindexertest.AppendEncodedBatch(t, nil, *b)
+		var docs [][]byte
+		for _, event := range *b {
+			data, err := event.MarshalJSON()
+			require.NoError(t, err)
+			docs = append(docs, data)
+		}
 		*count += len(docs)
 		approvaltest.ApproveEventDocs(t, name, docs)
 		return nil

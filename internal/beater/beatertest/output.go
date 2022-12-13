@@ -25,8 +25,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/elastic/apm-server/internal/model/modelindexer/modelindexertest"
 	agentconfig "github.com/elastic/elastic-agent-libs/config"
+	"github.com/elastic/go-docappender/docappendertest"
 )
 
 // ElasticsearchOutputConfig returns "output.elasticsearch" configuration
@@ -41,8 +41,9 @@ func ElasticsearchOutputConfig(t testing.TB) (*agentconfig.C, <-chan []byte) {
 		// Elasticsearch cluster UUID query.
 		fmt.Fprintln(w, `{"version":{"number":"1.2.3"}}`)
 	})
-	modelindexertest.HandleBulk(mux, func(w http.ResponseWriter, r *http.Request) {
-		docs, response := modelindexertest.DecodeBulkRequest(r)
+	mux.HandleFunc("/_bulk", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("X-Elastic-Product", "Elasticsearch")
+		docs, response := docappendertest.DecodeBulkRequest(r)
 		defer json.NewEncoder(w).Encode(response)
 		for _, doc := range docs {
 			var buf bytes.Buffer

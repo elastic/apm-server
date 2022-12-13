@@ -11,15 +11,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/apm-server/internal/elasticsearch"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/pubsub"
+	"github.com/elastic/go-elasticsearch/v8"
 )
 
 func TestConfigInvalid(t *testing.T) {
-	var elasticsearchClient struct {
-		elasticsearch.Client
-	}
-
 	type test struct {
 		config pubsub.Config
 		err    string
@@ -30,12 +26,12 @@ func TestConfigInvalid(t *testing.T) {
 		err:    "Client unspecified",
 	}, {
 		config: pubsub.Config{
-			Client: elasticsearchClient,
+			Client: &elasticsearch.Client{},
 		},
 		err: "DataStream unspecified or invalid: Type unspecified",
 	}, {
 		config: pubsub.Config{
-			Client: elasticsearchClient,
+			Client: &elasticsearch.Client{},
 			DataStream: pubsub.DataStreamConfig{
 				Type: "type",
 			},
@@ -43,7 +39,7 @@ func TestConfigInvalid(t *testing.T) {
 		err: "DataStream unspecified or invalid: Dataset unspecified",
 	}, {
 		config: pubsub.Config{
-			Client: elasticsearchClient,
+			Client: &elasticsearch.Client{},
 			DataStream: pubsub.DataStreamConfig{
 				Type:    "type",
 				Dataset: "dataset",
@@ -52,7 +48,7 @@ func TestConfigInvalid(t *testing.T) {
 		err: "DataStream unspecified or invalid: Namespace unspecified",
 	}, {
 		config: pubsub.Config{
-			Client: elasticsearchClient,
+			Client: &elasticsearch.Client{},
 			DataStream: pubsub.DataStreamConfig{
 				Type:      "type",
 				Dataset:   "dataset",
@@ -62,7 +58,7 @@ func TestConfigInvalid(t *testing.T) {
 		err: "ServerID unspecified",
 	}, {
 		config: pubsub.Config{
-			Client: elasticsearchClient,
+			Client: &elasticsearch.Client{},
 			DataStream: pubsub.DataStreamConfig{
 				Type:      "type",
 				Dataset:   "dataset",
@@ -73,7 +69,7 @@ func TestConfigInvalid(t *testing.T) {
 		err: "SearchInterval unspecified or negative",
 	}, {
 		config: pubsub.Config{
-			Client: elasticsearchClient,
+			Client: &elasticsearch.Client{},
 			DataStream: pubsub.DataStreamConfig{
 				Type:      "type",
 				Dataset:   "dataset",

@@ -11,18 +11,19 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/elastic/elastic-agent-libs/logp"
-
-	"github.com/elastic/apm-server/internal/elasticsearch"
+	"github.com/elastic/go-elasticsearch/v8"
 )
 
 // Config holds configuration for Pubsub.
 type Config struct {
 	// Client holds an Elasticsearch client, for indexing and searching for
 	// trace ID observations.
-	Client elasticsearch.Client
+	Client *elasticsearch.Client
 
-	// CompressionLevel holds the gzip compression level to use when bulk indexing.
-	// See model/modelindexer.Config.CompressionLevel for details.
+	// CompressionLevel holds the gzip compression level to use when bulk indexing,
+	// from 0 (gzip.NoCompression) to 9 (gzip.BestCompression). Higher values provide
+	// greater compression, at a greater cost of CPU. The special value -1
+	// (gzip.DefaultCompression) selects the default compression level.
 	CompressionLevel int
 
 	// DataStream holds the data stream.

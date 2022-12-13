@@ -12,7 +12,8 @@ require (
 	github.com/elastic/elastic-agent-libs v0.2.15
 	github.com/elastic/elastic-agent-system-metrics v0.4.5-0.20220927192933-25a985b07d51
 	github.com/elastic/gmux v0.2.0
-	github.com/elastic/go-elasticsearch/v8 v8.4.0
+	github.com/elastic/go-docappender v0.1.0
+	github.com/elastic/go-elasticsearch/v8 v8.5.0
 	github.com/elastic/go-hdrhistogram v0.1.0
 	github.com/elastic/go-sysinfo v1.9.0
 	github.com/elastic/go-ucfg v0.8.6
@@ -40,11 +41,11 @@ require (
 	github.com/tidwall/gjson v1.9.3
 	github.com/tidwall/sjson v1.1.1
 	github.com/xeipuuv/gojsonschema v1.2.0
-	go.elastic.co/apm/module/apmelasticsearch/v2 v2.1.0
-	go.elastic.co/apm/module/apmgorilla/v2 v2.1.0
-	go.elastic.co/apm/module/apmgrpc/v2 v2.1.0
+	go.elastic.co/apm/module/apmelasticsearch/v2 v2.2.0
+	go.elastic.co/apm/module/apmgorilla/v2 v2.2.0
+	go.elastic.co/apm/module/apmgrpc/v2 v2.2.0
 	go.elastic.co/apm/module/apmhttp/v2 v2.2.0
-	go.elastic.co/apm/module/apmzap/v2 v2.1.0
+	go.elastic.co/apm/module/apmzap/v2 v2.2.0
 	go.elastic.co/apm/v2 v2.2.0
 	go.elastic.co/fastjson v1.1.0
 	go.opentelemetry.io/collector v0.63.1

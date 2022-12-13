@@ -19,8 +19,6 @@ package elasticsearch
 
 import (
 	"time"
-
-	"github.com/elastic/beats/v7/libbeat/outputs/elasticsearch"
 )
 
 type backoffFunc func(int) time.Duration
@@ -28,7 +26,7 @@ type backoffFunc func(int) time.Duration
 var (
 	// DefaultBackoffConfig is the default backoff configuration used for
 	// es clients.
-	DefaultBackoffConfig = elasticsearch.Backoff{
+	DefaultBackoffConfig = BackoffConfig{
 		Init: time.Second,
 		Max:  time.Minute,
 	}
@@ -38,7 +36,7 @@ var (
 	DefaultBackoff = exponentialBackoff(DefaultBackoffConfig)
 )
 
-func exponentialBackoff(b elasticsearch.Backoff) backoffFunc {
+func exponentialBackoff(b BackoffConfig) backoffFunc {
 	return func(attempts int) time.Duration {
 		// Attempts starts at 1, after there's already been a failure.
 		// https://github.com/elastic/go-elasticsearch/blob/de2391/estransport/estransport.go#L339
