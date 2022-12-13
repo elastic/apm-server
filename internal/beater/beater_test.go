@@ -19,15 +19,12 @@ package beater
 
 import (
 	"bytes"
-	"compress/zlib"
 	"context"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -35,45 +32,8 @@ import (
 
 	"github.com/elastic/apm-server/internal/beater/config"
 	"github.com/elastic/apm-server/internal/elasticsearch"
-	"github.com/elastic/apm-server/internal/version"
 	"github.com/elastic/elastic-agent-libs/monitoring"
 )
-
-func TestSourcemapIndexPattern(t *testing.T) {
-	test := func(t *testing.T, indexPattern, expected string) {
-		var requestPaths []string
-		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			requestPaths = append(requestPaths, r.URL.Path)
-		}))
-		defer srv.Close()
-
-		cfg := config.DefaultConfig()
-		cfg.RumConfig.Enabled = true
-		cfg.RumConfig.SourceMapping.ESConfig.Hosts = []string{srv.URL}
-		if indexPattern != "" {
-			cfg.RumConfig.SourceMapping.IndexPattern = indexPattern
-		}
-
-		fetcher, err := newSourcemapFetcher(
-			cfg.RumConfig.SourceMapping, nil,
-			nil, elasticsearch.NewClient,
-		)
-		require.NoError(t, err)
-		fetcher.Fetch(context.Background(), "name", "version", "path")
-		require.Len(t, requestPaths, 1)
-
-		path := requestPaths[0]
-		path = strings.TrimPrefix(path, "/")
-		path = strings.TrimSuffix(path, "/_search")
-		assert.Equal(t, expected, path)
-	}
-	t.Run("default-pattern", func(t *testing.T) {
-		test(t, "", "apm-*-sourcemap*")
-	})
-	t.Run("with-observer-version", func(t *testing.T) {
-		test(t, "blah-%{[observer.version]}-blah", fmt.Sprintf("blah-%s-blah", version.Version))
-	})
-}
 
 var validSourcemap, _ = os.ReadFile("../../testdata/sourcemap/bundle.js.map")
 
@@ -99,41 +59,6 @@ func TestStoreUsesRUMElasticsearchConfig(t *testing.T) {
 	require.NoError(t, err)
 	// Check that the provided rum elasticsearch config was used and
 	// Fetch() goes to the test server.
-	_, err = fetcher.Fetch(context.Background(), "app", "1.0", "/bundle/path")
-	require.NoError(t, err)
-
-	assert.True(t, called)
-}
-
-func TestFleetStoreUsed(t *testing.T) {
-	var called bool
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		called = true
-		wr := zlib.NewWriter(w)
-		defer wr.Close()
-		wr.Write([]byte(fmt.Sprintf(`{"sourceMap":%s}`, validSourcemap)))
-	}))
-	defer ts.Close()
-
-	cfg := config.DefaultConfig()
-	cfg.RumConfig.Enabled = true
-	cfg.RumConfig.SourceMapping.Enabled = true
-	cfg.RumConfig.SourceMapping.Metadata = []config.SourceMapMetadata{{
-		ServiceName:    "app",
-		ServiceVersion: "1.0",
-		BundleFilepath: "/bundle/path",
-		SourceMapURL:   "/my/path",
-	}}
-
-	fleetCfg := &config.Fleet{
-		Hosts:        []string{ts.URL[7:]},
-		Protocol:     "http",
-		AccessAPIKey: "my-key",
-		TLS:          nil,
-	}
-
-	fetcher, err := newSourcemapFetcher(cfg.RumConfig.SourceMapping, fleetCfg, nil, nil)
-	require.NoError(t, err)
 	_, err = fetcher.Fetch(context.Background(), "app", "1.0", "/bundle/path")
 	require.NoError(t, err)
 

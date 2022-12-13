@@ -18,20 +18,11 @@
 package sourcemap
 
 import (
-	"compress/zlib"
 	"context"
-	"errors"
-	"fmt"
 	"net/http"
-	"net/http/httptest"
-	"net/url"
-	"sync"
-	"sync/atomic"
 	"testing"
-	"time"
 
 	"github.com/go-sourcemap/sourcemap"
-	gocache "github.com/patrickmn/go-cache"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -49,17 +40,21 @@ var unsupportedVersionSourcemap = `{
 }`
 
 func Test_NewCachingFetcher(t *testing.T) {
-	_, err := NewCachingFetcher(nil, -1)
+	_, err := NewCachingFetcher(nil, nil, -1)
 	require.Error(t, err)
 
-	f, err := NewCachingFetcher(nil, 100)
+	f, err := NewCachingFetcher(nil, nil, 100)
 	require.NoError(t, err)
 	assert.NotNil(t, f.cache)
 }
 
 func TestStore_Fetch(t *testing.T) {
 	serviceName, serviceVersion, path := "foo", "1.0.1", "/tmp"
-	key := "foo_1.0.1_/tmp"
+	key := Identifier{
+		name:    "foo",
+		version: "1.0.1",
+		path:    "/tmp",
+	}
 
 	t.Run("cache", func(t *testing.T) {
 		t.Run("nil", func(t *testing.T) {
@@ -164,176 +159,9 @@ func TestStore_Fetch(t *testing.T) {
 	})
 }
 
-func TestFetchContext(t *testing.T) {
-	var (
-		apikey  = "supersecret"
-		name    = "webapp"
-		version = "1.0.0"
-		path    = "/my/path/to/bundle.js.map"
-		c       = http.DefaultClient
-	)
-
-	requestReceived := make(chan struct{})
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		select {
-		case requestReceived <- struct{}{}:
-		case <-r.Context().Done():
-			return
-		}
-		// block until the client cancels the request
-		<-r.Context().Done()
-	}))
-	defer ts.Close()
-	tsURL, _ := url.Parse(ts.URL)
-
-	fleetServerURLs := []*url.URL{tsURL}
-	fleetFetcher, err := NewFleetFetcher(c, apikey, fleetServerURLs, []FleetArtifactReference{{
-		ServiceName:        name,
-		ServiceVersion:     version,
-		BundleFilepath:     path,
-		FleetServerURLPath: "",
-	}})
-	assert.NoError(t, err)
-
-	store, err := NewCachingFetcher(fleetFetcher, time.Minute)
-	require.NoError(t, err)
-
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	fetchReturned := make(chan error, 1)
-	go func() {
-		defer close(fetchReturned)
-		_, err := store.Fetch(ctx, name, version, path)
-		fetchReturned <- err
-	}()
-	select {
-	case <-requestReceived:
-	case <-time.After(10 * time.Second):
-		t.Fatal("timed out waiting for server to receive request")
-	}
-
-	// Check that cancelling the context unblocks the request.
-	cancel()
-	select {
-	case err := <-fetchReturned:
-		assert.True(t, errors.Is(err, context.Canceled))
-	case <-time.After(10 * time.Second):
-		t.Fatal("timed out waiting for Fetch to return")
-	}
-}
-
-func TestConcurrentFetch(t *testing.T) {
-	for _, tc := range []struct {
-		calledWant, errWant, succsWant int64
-	}{
-		{calledWant: 1, errWant: 0, succsWant: 10},
-		{calledWant: 2, errWant: 1, succsWant: 9},
-		{calledWant: 4, errWant: 3, succsWant: 7},
-	} {
-		var (
-			called, errs, succs int64
-
-			apikey  = "supersecret"
-			name    = "webapp"
-			version = "1.0.0"
-			path    = "/my/path/to/bundle.js.map"
-			c       = http.DefaultClient
-			res     = fmt.Sprintf(`{"sourceMap":%s}`, validSourcemap)
-
-			errsLeft = tc.errWant
-		)
-
-		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			atomic.AddInt64(&called, 1)
-			// Simulate the wait for a network request.
-			time.Sleep(50 * time.Millisecond)
-			if errsLeft > 0 {
-				errsLeft--
-				http.Error(w, "err", http.StatusInternalServerError)
-				return
-			}
-			wr := zlib.NewWriter(w)
-			defer wr.Close()
-			wr.Write([]byte(res))
-		}))
-		defer ts.Close()
-		tsURL, _ := url.Parse(ts.URL)
-
-		fleetServerURLs := []*url.URL{tsURL}
-		fleetFetcher, err := NewFleetFetcher(c, apikey, fleetServerURLs, []FleetArtifactReference{{
-			ServiceName:        name,
-			ServiceVersion:     version,
-			BundleFilepath:     path,
-			FleetServerURLPath: "",
-		}})
-		assert.NoError(t, err)
-
-		fetcher, err := NewCachingFetcher(fleetFetcher, time.Minute)
-		assert.NoError(t, err)
-
-		var wg sync.WaitGroup
-		for i := 0; i < int(tc.succsWant+tc.errWant); i++ {
-			wg.Add(1)
-			go func() {
-				consumer, err := fetcher.Fetch(context.Background(), name, version, path)
-				if err != nil {
-					atomic.AddInt64(&errs, 1)
-				} else {
-					assert.NotNil(t, consumer)
-					atomic.AddInt64(&succs, 1)
-				}
-
-				wg.Done()
-			}()
-		}
-
-		wg.Wait()
-		assert.Equal(t, tc.errWant, errs)
-		assert.Equal(t, tc.calledWant, called)
-		assert.Equal(t, tc.succsWant, succs)
-	}
-}
-
-func TestExpiration(t *testing.T) {
-	store := testCachingFetcher(t, newUnavailableElasticsearchClient(t)) //if ES was queried it would return an error
-	store.cache = gocache.New(25*time.Millisecond, 100)
-	store.add("foo_1.0.1_/tmp", &sourcemap.Consumer{})
-	name, version, path := "foo", "1.0.1", "/tmp"
-
-	// sourcemap is cached
-	mapper, err := store.Fetch(context.Background(), name, version, path)
-	require.NoError(t, err)
-	assert.Equal(t, &sourcemap.Consumer{}, mapper)
-
-	time.Sleep(25 * time.Millisecond)
-	// cache is cleared, sourcemap is fetched from ES leading to an error
-	mapper, err = store.Fetch(context.Background(), name, version, path)
-	require.Error(t, err)
-	assert.Nil(t, mapper)
-}
-
-func TestCleanupInterval(t *testing.T) {
-	tests := []struct {
-		ttl      time.Duration
-		expected float64
-	}{
-		{expected: 1},
-		{ttl: 30 * time.Second, expected: 1},
-		{ttl: 30 * time.Second, expected: 1},
-		{ttl: 60 * time.Second, expected: 1},
-		{ttl: 61 * time.Second, expected: 61.0 / 60},
-		{ttl: 5 * time.Minute, expected: 5},
-	}
-	for idx, test := range tests {
-		out := cleanupInterval(test.ttl)
-		assert.Equal(t, test.expected, out.Minutes(),
-			fmt.Sprintf("(%v) expected %v minutes, received %v minutes", idx, test.expected, out.Minutes()))
-	}
-}
-
 func testCachingFetcher(t *testing.T, client elasticsearch.Client) *CachingFetcher {
 	esFetcher := NewElasticsearchFetcher(client, "apm-*sourcemap*")
-	cachingFetcher, err := NewCachingFetcher(esFetcher, time.Minute)
+	cachingFetcher, err := NewCachingFetcher(esFetcher, nil, 100)
 	require.NoError(t, err)
 	return cachingFetcher
 }

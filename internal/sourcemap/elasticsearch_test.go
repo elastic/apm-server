@@ -19,7 +19,9 @@ package sourcemap
 
 import (
 	"bytes"
+	"compress/zlib"
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -138,11 +140,18 @@ func sourcemapSearchResponseBody(hitsTotal int, hits []map[string]interface{}) i
 }
 
 func sourcemapHit(sourcemap string) map[string]interface{} {
+	b := &bytes.Buffer{}
+
+	z := zlib.NewWriter(b)
+	z.Write([]byte(sourcemap))
+	z.Close()
+
+	s := base64.StdEncoding.EncodeToString(b.Bytes())
+
+
 	return map[string]interface{}{
 		"_source": map[string]interface{}{
-			"sourcemap": map[string]interface{}{
-				"sourcemap": sourcemap,
-			},
+			"content": s,
 		},
 	}
 }
