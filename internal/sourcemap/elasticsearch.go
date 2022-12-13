@@ -102,6 +102,10 @@ func (s *esFetcher) Fetch(ctx context.Context, name, version, path string) (*sou
 		return nil, err
 	}
 
+	if body == "" {
+		return nil, nil
+	}
+
 	d, err := base64.StdEncoding.DecodeString(body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to base64 decode string: %w", err)
