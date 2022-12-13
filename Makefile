@@ -143,7 +143,7 @@ go-generate:
 .PHONY: add-headers
 add-headers: $(GOLICENSER)
 ifndef CHECK_HEADERS_DISABLED
-	@$(GOLICENSER) -exclude x-pack -exclude internal/otel_collector -exclude internal/.otel_collector_mixin
+	@$(GOLICENSER) -exclude x-pack
 	@$(GOLICENSER) -license Elasticv2 x-pack
 endif
 
@@ -233,7 +233,7 @@ staticcheck: $(STATICCHECK)
 .PHONY: check-headers
 check-headers: $(GOLICENSER)
 ifndef CHECK_HEADERS_DISABLED
-	@$(GOLICENSER) -d -exclude build -exclude x-pack -exclude internal/otel_collector -exclude internal/.otel_collector_mixin
+	@$(GOLICENSER) -d -exclude build -exclude x-pack
 	@$(GOLICENSER) -d -exclude build -license Elasticv2 x-pack
 endif
 

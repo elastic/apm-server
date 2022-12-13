@@ -7,7 +7,6 @@ WORKDIR /src
 COPY go.mod go.sum /src/
 COPY internal/approvaltest/go.mod /src/internal/approvaltest/go.mod
 COPY internal/glog/go.mod /src/internal/glog/go.mod
-COPY internal/otel_collector/go.mod /src/internal/otel_collector/go.mod
 RUN --mount=type=cache,target=/go/pkg/mod go mod download
 COPY Makefile *.mk /src
 COPY cmd /src/cmd
