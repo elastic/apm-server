@@ -23,6 +23,8 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+
+	"github.com/elastic/elastic-agent-libs/service"
 )
 
 func genRunCmd(params BeatParams) *cobra.Command {
@@ -34,7 +36,15 @@ func genRunCmd(params BeatParams) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			return beat.Run(context.Background())
+			// NOTE(axw) service.HandleSignals and service.NotifyTermination
+			// may only be called once for a process's lifetime, so we handle
+			// Windows service events here rather than in Run to enable testing
+			// of Run.
+			ctx, cancel := context.WithCancel(context.Background())
+			service.HandleSignals(cancel, cancel)
+			defer service.NotifyTermination()
+			defer cancel()
+			return beat.Run(ctx)
 		},
 	}
 

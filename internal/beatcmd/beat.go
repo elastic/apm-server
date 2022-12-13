@@ -47,7 +47,6 @@ import (
 	"github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/file"
 	"github.com/elastic/elastic-agent-libs/logp"
-	"github.com/elastic/elastic-agent-libs/logp/configure"
 	"github.com/elastic/elastic-agent-libs/mapstr"
 	"github.com/elastic/elastic-agent-libs/monitoring"
 	"github.com/elastic/elastic-agent-libs/monitoring/report/buffer"
@@ -131,9 +130,10 @@ func NewBeat(args BeatParams) (*Beat, error) {
 
 // init initializes logging, config management, GOMAXPROCS, and GC percent.
 func (b *Beat) init() error {
-	if err := configure.Logging(b.Info.Beat, b.Config.Logging); err != nil {
-		return fmt.Errorf("error initializing logging: %w", err)
+	if err := configureLogging(b.Config); err != nil {
+		return fmt.Errorf("failed to configure logging: %w", err)
 	}
+
 	// log paths values to help with troubleshooting
 	logp.Info(paths.Paths.String())
 
@@ -267,16 +267,9 @@ func (b *Beat) Run(ctx context.Context) error {
 	}
 
 	ctx, cancel := context.WithCancel(ctx)
-	service.HandleSignals(cancel, cancel)
 	g, ctx := errgroup.WithContext(ctx)
 	defer g.Wait() // ensure all goroutines exit before Run returns
 	defer cancel()
-
-	// Windows: Mark service as stopped.
-	// After this is run, a Beat service is considered by the OS to be stopped
-	// and another instance of the process can be started.
-	// This must be the first deferred cleanup task (last to execute).
-	defer service.NotifyTermination()
 
 	// Try to acquire exclusive lock on data path to prevent another beat instance
 	// sharing same data path.

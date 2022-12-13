@@ -26,6 +26,7 @@ import (
 
 	"github.com/elastic/beats/v7/libbeat/cfgfile"
 	"github.com/elastic/beats/v7/libbeat/cmd/platformcheck"
+	"github.com/elastic/elastic-agent-libs/logp"
 )
 
 // NewRootCommand returns the root command for apm-server.
@@ -57,8 +58,7 @@ func NewRootCommand(beatParams BeatParams) *cobra.Command {
 	// globalFlags is a list of flags globally registered by various libbeat
 	// packages, relevant to all commands - add them as persistent flags.
 	globalFlags := []string{
-		"E", "c", "d", "v", "e",
-		"environment",
+		"E", "c",
 		"path.config",
 		"path.data",
 		"path.logs",
@@ -69,6 +69,12 @@ func NewRootCommand(beatParams BeatParams) *cobra.Command {
 		rootCommand.PersistentFlags().AddGoFlag(flag.CommandLine.Lookup(flagName))
 	}
 
+	// Add logging-related flags to all commands, and add a pre-run that initialises logging.
+	rootCommand.PersistentFlags().BoolVarP(&logVerbose, "v", "v", false, "Log at INFO level")
+	rootCommand.PersistentFlags().BoolVarP(&logStderr, "e", "e", false, "Log to stderr and disable syslog/file output")
+	rootCommand.PersistentFlags().StringArrayVarP(&logDebugSelectors, "d", "d", nil, "Enable certain debug selectors")
+	rootCommand.PersistentFlags().Var(&logEnvironment, "environment", "Set the environment in which the process is running")
+
 	// Register subcommands.
 	rootCommand.AddCommand(runCommand)
 	rootCommand.AddCommand(exportCommand)
@@ -78,4 +84,25 @@ func NewRootCommand(beatParams BeatParams) *cobra.Command {
 	rootCommand.AddCommand(genApikeyCmd())
 
 	return rootCommand
+}
+
+type logpEnvironmentVar struct {
+	env logp.Environment
+}
+
+func (v *logpEnvironmentVar) Set(in string) error {
+	env := logp.ParseEnvironment(in)
+	if env == logp.InvalidEnvironment {
+		return fmt.Errorf("invalid logging environment: %q", in)
+	}
+	v.env = env
+	return nil
+}
+
+func (v *logpEnvironmentVar) Type() string {
+	return "string"
+}
+
+func (v *logpEnvironmentVar) String() string {
+	return v.env.String()
 }
