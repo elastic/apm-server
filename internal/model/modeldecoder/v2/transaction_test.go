@@ -280,6 +280,8 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 				"DurationSummary.Sum",
 				"FailureCount",
 				"SuccessCount",
+				"SuccessCount.Count",
+				"SuccessCount.Sum",
 				"Root":
 				return true
 			}

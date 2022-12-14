@@ -47,7 +47,7 @@ func TestBuildCommandWithBundledJar(t *testing.T) {
 	}
 	command := attacher.attachJVMCommand(context.Background(), jvm)
 	want := filepath.FromSlash("/home/someuser/java_home/bin/java -jar java-attacher.jar") +
-		" --log-level debug --include-pid 12345 --download-agent-version 1.27.0 --config server_url=http://myhost:8200"
+		" --log-level debug --config activation_method=FLEET --include-pid 12345 --download-agent-version 1.27.0 --config server_url=http://myhost:8200"
 
 	cmdArgs := strings.Join(command.Args, " ")
 	assert.Equal(t, want, cmdArgs)

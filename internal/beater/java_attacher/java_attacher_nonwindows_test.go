@@ -81,7 +81,7 @@ func TestBuildCommandWithTempJar(t *testing.T) {
 	assert.NotEqual(t, attacherJar, "")
 	require.NotEqual(t, bundledJavaAttacher, attacherJar)
 	want := filepath.FromSlash(fmt.Sprintf("/home/someuser/java_home/bin/java -jar %v", attacherJar)) +
-		" --log-level debug --include-pid 12345 --download-agent-version 1.27.0 --config server_url=http://myhost:8200"
+		" --log-level debug --config activation_method=FLEET --include-pid 12345 --download-agent-version 1.27.0 --config server_url=http://myhost:8200"
 
 	cmdArgs := strings.Join(command.Args, " ")
 	assert.Equal(t, want, cmdArgs)
@@ -95,6 +95,7 @@ func TestBuildCommandWithTempJar(t *testing.T) {
 	cmdArgs = strings.Join(command.Args, " ")
 	assert.Contains(t, cmdArgs, "--config server_url=http://myhost:8200")
 	assert.Contains(t, cmdArgs, "--config service_name=my-cool-service")
+	assert.Contains(t, cmdArgs, "--config activation_method=FLEET")
 }
 
 func TestTempDirCreation(t *testing.T) {
