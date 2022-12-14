@@ -1,7 +1,7 @@
 version: '3.9'
 services:
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.7.0-08cd8ac3-SNAPSHOT
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.7.0-04d5f080-SNAPSHOT
     ports:
       - 9200:9200
     healthcheck:
@@ -31,7 +31,7 @@ services:
       - "./testing/docker/elasticsearch/ingest-geoip:/usr/share/elasticsearch/config/ingest-geoip"
 
   kibana:
-    image: docker.elastic.co/kibana/kibana:8.7.0-08cd8ac3-SNAPSHOT
+    image: docker.elastic.co/kibana/kibana:8.7.0-04d5f080-SNAPSHOT
     ports:
       - 5601:5601
     healthcheck:
@@ -50,7 +50,7 @@ services:
       - "./testing/docker/kibana/kibana.yml:/usr/share/kibana/config/kibana.yml"
 
   fleet-server:
-    image: docker.elastic.co/beats/elastic-agent:8.7.0-08cd8ac3-SNAPSHOT
+    image: docker.elastic.co/beats/elastic-agent:8.7.0-04d5f080-SNAPSHOT
     ports:
       - 8220:8220
     healthcheck:
@@ -78,7 +78,7 @@ services:
       - "./testing/docker/fleet-server/key.pem:/etc/pki/tls/private/fleet-server-key.pem"
 
   metricbeat:
-    image: docker.elastic.co/beats/metricbeat:8.7.0-08cd8ac3-SNAPSHOT
+    image: docker.elastic.co/beats/metricbeat:8.7.0-04d5f080-SNAPSHOT
     environment:
       ELASTICSEARCH_HOSTS: '["http://elasticsearch:9200"]'
       ELASTICSEARCH_USERNAME: "${KIBANA_ES_USER:-admin}"
