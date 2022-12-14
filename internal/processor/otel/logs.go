@@ -41,8 +41,8 @@ import (
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/plog"
 
+	"github.com/elastic/apm-data/model"
 	apmserverlogs "github.com/elastic/apm-server/internal/logs"
-	"github.com/elastic/apm-server/internal/model"
 	"github.com/elastic/elastic-agent-libs/logp"
 )
 

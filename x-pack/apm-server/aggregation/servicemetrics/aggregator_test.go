@@ -19,7 +19,7 @@ import (
 
 	"github.com/elastic/elastic-agent-libs/logp"
 
-	"github.com/elastic/apm-server/internal/model"
+	"github.com/elastic/apm-data/model"
 )
 
 func TestNewAggregatorConfigInvalid(t *testing.T) {

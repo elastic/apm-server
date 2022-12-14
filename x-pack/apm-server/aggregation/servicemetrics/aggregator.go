@@ -16,8 +16,8 @@ import (
 
 	"github.com/elastic/elastic-agent-libs/logp"
 
+	"github.com/elastic/apm-data/model"
 	"github.com/elastic/apm-server/internal/logs"
-	"github.com/elastic/apm-server/internal/model"
 	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/labels"
 )
 

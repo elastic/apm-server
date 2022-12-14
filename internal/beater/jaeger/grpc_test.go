@@ -39,12 +39,12 @@ import (
 
 	"github.com/elastic/elastic-agent-libs/logp"
 
+	"github.com/elastic/apm-data/model"
 	"github.com/elastic/apm-server/internal/agentcfg"
 	"github.com/elastic/apm-server/internal/approvaltest"
 	"github.com/elastic/apm-server/internal/beater/auth"
 	"github.com/elastic/apm-server/internal/beater/config"
 	"github.com/elastic/apm-server/internal/beater/interceptors"
-	"github.com/elastic/apm-server/internal/model"
 )
 
 func TestPostSpans(t *testing.T) {

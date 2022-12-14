@@ -27,9 +27,9 @@ import (
 
 	"github.com/pkg/errors"
 
+	"github.com/elastic/apm-data/model"
 	"github.com/elastic/apm-server/internal/decoder"
 	"github.com/elastic/apm-server/internal/logs"
-	"github.com/elastic/apm-server/internal/model"
 	"github.com/elastic/apm-server/internal/model/modeldecoder"
 	"github.com/elastic/apm-server/internal/model/modeldecoder/rumv3"
 	v2 "github.com/elastic/apm-server/internal/model/modeldecoder/v2"

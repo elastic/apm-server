@@ -34,16 +34,15 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/elastic/apm-data/model"
 	"github.com/elastic/apm-server/internal/approvaltest"
-	"github.com/elastic/apm-server/internal/model"
 	"github.com/elastic/apm-server/internal/publish"
 )
 
 func TestHandlerReadStreamError(t *testing.T) {
 	var accepted int
 	processor := model.ProcessBatchFunc(func(ctx context.Context, batch *model.Batch) error {
-		events := batch.Transform(ctx)
-		accepted += len(events)
+		accepted += len(*batch)
 		return nil
 	})
 

@@ -17,8 +17,8 @@ import (
 	"github.com/pkg/errors"
 	"golang.org/x/sync/errgroup"
 
+	"github.com/elastic/apm-data/model"
 	"github.com/elastic/apm-server/internal/logs"
-	"github.com/elastic/apm-server/internal/model"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/pubsub"
 	"github.com/elastic/elastic-agent-libs/logp"

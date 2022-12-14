@@ -20,8 +20,6 @@ package v2
 import (
 	"encoding/json"
 
-	"github.com/elastic/elastic-agent-libs/mapstr"
-
 	"github.com/elastic/apm-server/internal/model/modeldecoder/nullable"
 )
 
@@ -73,7 +71,7 @@ type context struct {
 	// Custom can contain additional metadata to be stored with the event.
 	// The format is unspecified and can be deeply nested objects.
 	// The information will not be indexed or searchable in Elasticsearch.
-	Custom mapstr.M `json:"custom"`
+	Custom map[string]any `json:"custom"`
 	// Message holds details related to message receiving and publishing
 	// if the captured event integrates with a messaging system
 	Message contextMessage `json:"message"`
@@ -93,7 +91,7 @@ type context struct {
 	// Tags are a flat mapping of user-defined tags. On the agent side, tags
 	// are called labels. Allowed value types are string, boolean and number
 	// values. Tags are indexed and searchable.
-	Tags mapstr.M `json:"tags" validate:"inputTypesVals=string;bool;number,maxLengthVals=1024"`
+	Tags map[string]any `json:"tags" validate:"inputTypesVals=string;bool;number,maxLengthVals=1024"`
 	// User holds information about the correlated user for this event. If
 	// user data are provided here, all user related information from metadata
 	// is ignored, otherwise the metadata's user information will be stored
@@ -194,9 +192,9 @@ type contextRequest struct {
 	// request body.
 	Body nullable.Interface `json:"body" validate:"inputTypes=string;object"`
 	// Cookies used by the request, parsed as key-value objects.
-	Cookies mapstr.M `json:"cookies"`
+	Cookies map[string]any `json:"cookies"`
 	// Env holds environment variable information passed to the monitored service.
-	Env mapstr.M `json:"env"`
+	Env map[string]any `json:"env"`
 	// Headers includes any HTTP headers sent by the requester. Cookies will
 	// be taken by headers if supplied.
 	Headers nullable.HTTPHeader `json:"headers"`
@@ -377,7 +375,7 @@ type errorEvent struct {
 
 type errorException struct {
 	// Attributes of the exception.
-	Attributes mapstr.M `json:"attributes"`
+	Attributes map[string]any `json:"attributes"`
 	// Code that is set when the error happened, e.g. database error code.
 	Code nullable.Interface `json:"code" validate:"inputTypes=string;int,maxLength=1024"`
 	// Cause can hold a collection of error exceptions representing chained
@@ -434,7 +432,7 @@ type metadata struct {
 	Cloud metadataCloud `json:"cloud"`
 	// Labels are a flat mapping of user-defined tags. Allowed value types are
 	// string, boolean and number values. Labels are indexed and searchable.
-	Labels mapstr.M `json:"labels" validate:"inputTypesVals=string;bool;number,maxLengthVals=1024"`
+	Labels map[string]any `json:"labels" validate:"inputTypesVals=string;bool;number,maxLengthVals=1024"`
 	// Process metadata about the monitored service.
 	Process metadataProcess `json:"process"`
 	// Service metadata about the monitored service.
@@ -641,7 +639,7 @@ type metricset struct {
 	// Tags are a flat mapping of user-defined tags. On the agent side, tags
 	// are called labels. Allowed value types are string, boolean and number
 	// values. Tags are indexed and searchable.
-	Tags mapstr.M `json:"tags" validate:"inputTypesVals=string;bool;number,maxLengthVals=1024"`
+	Tags map[string]any `json:"tags" validate:"inputTypesVals=string;bool;number,maxLengthVals=1024"`
 	// Transaction holds selected information about the correlated transaction.
 	Transaction metricsetTransactionRef `json:"transaction"`
 	// Service holds selected information about the correlated service.
@@ -782,7 +780,7 @@ type spanContext struct {
 	// Tags are a flat mapping of user-defined tags. On the agent side, tags
 	// are called labels. Allowed value types are string, boolean and number
 	// values. Tags are indexed and searchable.
-	Tags mapstr.M `json:"tags" validate:"inputTypesVals=string;bool;number,maxLengthVals=1024"`
+	Tags map[string]any `json:"tags" validate:"inputTypesVals=string;bool;number,maxLengthVals=1024"`
 }
 
 type spanContextDatabase struct {
@@ -887,8 +885,8 @@ type stacktraceFrame struct {
 	// from the frame's file.
 	PreContext []string `json:"pre_context"`
 	// Vars is a flat mapping of local variables of the frame.
-	Vars mapstr.M `json:"vars"`
-	_    struct{} `validate:"requiredAnyOf=classname;filename"`
+	Vars map[string]any `json:"vars"`
+	_    struct{}       `validate:"requiredAnyOf=classname;filename"`
 }
 
 type spanComposite struct {
@@ -980,7 +978,7 @@ type log struct {
 	// FAAS holds fields related to Function as a Service events.
 	FAAS faas `json:"faas"`
 	// Labels are a flat mapping of user-defined key-value pairs.
-	Labels mapstr.M `json:"labels" validate:"inputTypesVals=string;bool;number,maxLengthVals=1024"`
+	Labels map[string]any `json:"labels" validate:"inputTypesVals=string;bool;number,maxLengthVals=1024"`
 
 	// Below embedded fields are added to enable supporting both nested and flat JSON.
 	// This is achieved by generating code using static analysis of these structs.

@@ -6,6 +6,7 @@ require (
 	github.com/cespare/xxhash/v2 v2.1.2
 	github.com/dgraph-io/badger/v2 v2.2007.3-0.20201012072640-f5a7e0a1c83b
 	github.com/dustin/go-humanize v1.0.0
+	github.com/elastic/apm-data v0.1.0
 	github.com/elastic/apm-server/internal/approvaltest v0.0.0-00010101000000-000000000000
 	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20221213195354-493b3a463433
 	github.com/elastic/elastic-agent-client/v7 v7.0.2
@@ -38,8 +39,8 @@ require (
 	github.com/spf13/cobra v1.6.1
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.8.1
-	github.com/tidwall/gjson v1.9.3
-	github.com/tidwall/sjson v1.1.1
+	github.com/tidwall/gjson v1.14.2
+	github.com/tidwall/sjson v1.2.5
 	github.com/xeipuuv/gojsonschema v1.2.0
 	go.elastic.co/apm/module/apmelasticsearch/v2 v2.2.0
 	go.elastic.co/apm/module/apmgorilla/v2 v2.2.0

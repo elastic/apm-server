@@ -11,7 +11,7 @@ import (
 	// json-iterator is faster for decoding.
 	jsoniter "github.com/json-iterator/go"
 
-	"github.com/elastic/apm-server/internal/model"
+	"github.com/elastic/apm-data/model"
 )
 
 // JSONCodec is an implementation of Codec, using JSON encoding.
