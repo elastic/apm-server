@@ -69,7 +69,7 @@ func NewRootCommand(beatParams BeatParams) *cobra.Command {
 		rootCommand.PersistentFlags().AddGoFlag(flag.CommandLine.Lookup(flagName))
 	}
 
-	// Add logging-related flags to all commands, and add a pre-run that initialises logging.
+	// Add logging-related flags to all commands.
 	rootCommand.PersistentFlags().BoolVarP(&logVerbose, "v", "v", false, "Log at INFO level")
 	rootCommand.PersistentFlags().BoolVarP(&logStderr, "e", "e", false, "Log to stderr and disable syslog/file output")
 	rootCommand.PersistentFlags().StringArrayVarP(&logDebugSelectors, "d", "d", nil, "Enable certain debug selectors")
