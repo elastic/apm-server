@@ -56,7 +56,7 @@ pipeline {
             }
             env.PACKAGING_UPDATED = isGitRegionMatch(patterns: ["^packaging.*"])
             // Skip all the stages except docs for PR's with asciidoc changes only
-            setEnvVar('ONLY_DOCS', isPR() ? isGitRegionMatch(patterns: [ '.*\\.asciidoc' ], comparator: 'regexp', shouldMatchAll: true) : false)
+            setEnvVar('ONLY_DOCS', isPR() ? isGitRegionMatch(patterns: [ '.*\\.asciidoc' ], shouldMatchAll: true) : false)
           }
         }
       }
