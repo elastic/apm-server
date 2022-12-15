@@ -3,6 +3,7 @@ type: metrics
 dataset: apm.internal
 ilm_policy: metrics-apm.internal_metrics-default_policy
 elasticsearch:
+  index_mode: "time_series"
   index_template:
     mappings:
       # Internal metrics should have all fields strictly mapped;
@@ -29,7 +30,3 @@ elasticsearch:
               type: aggregate_metric_double
               metrics: [sum, value_count]
               default_metric: sum
-    settings:
-      index:
-        sort.field: "@timestamp"
-        sort.order: desc

@@ -56,6 +56,7 @@
   name: cloud.service.name
 - external: ecs
   name: container.id
+  dimension: true
 - external: ecs
   name: destination.address
 - external: ecs
@@ -74,6 +75,7 @@
   name: host.ip
 - external: ecs
   name: host.name
+  dimension: true
 - external: ecs
   name: host.os.platform
   index: false
