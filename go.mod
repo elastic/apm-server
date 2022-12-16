@@ -165,7 +165,6 @@ replace (
 	github.com/golang/glog => ./internal/glog
 	github.com/opencontainers/image-spec => github.com/opencontainers/image-spec v1.0.2
 	github.com/tonistiigi/fifo => github.com/containerd/fifo v0.0.0-20190816180239-bda0ff6ed73c
-	github.com/elastic/apm-data => github.com/carsonip/apm-data v0.0.0-20221216100704-8016e4f622ec
 )
 
 // Exclude old modules (with security vulnerabilities) used only by tests of dependencies.
@@ -188,3 +187,5 @@ exclude (
 )
 
 exclude github.com/elastic/elastic-agent v0.0.0-20220831162706-5f1e54f40d3e
+
+replace github.com/elastic/apm-data => github.com/carsonip/apm-data v0.0.0-20221216132724-e496beda8751
