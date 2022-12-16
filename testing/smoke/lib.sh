@@ -371,7 +371,7 @@ elasticsearch_curl() {
 
 curl_fail() {
     if [ -z "${HAS_FAIL_WITH_BODY}" ]; then
-        curl -s --fail-with-body example.com 2>&1 >/dev/null
+        curl -s --fail-with-body example.com &>/dev/null
         HAS_FAIL_WITH_BODY=$?
     fi
 
