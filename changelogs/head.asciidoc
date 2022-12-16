@@ -18,7 +18,8 @@ https://github.com/elastic/apm-server/compare/8.5\...main[View commits]
 
 [float]
 ==== Bug fixes
-- Change ownership of apm-server.yml and data/ to apm-server user in Docker image {pull} 9604[9604]
+- Change ownership of apm-server.yml and data/ to apm-server user in Docker image {pull}9604[9604]
+- We no longer unconditionally block shutdown for 5 seconds when tail-based sampling is enabled {pull}9838[9838]
 
 [float]
 ==== Intake API Changes
