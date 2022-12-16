@@ -30,6 +30,7 @@ import (
 	"github.com/elastic/beats/v7/libbeat/version"
 	"github.com/elastic/elastic-agent-libs/logp"
 
+	"github.com/elastic/apm-data/model"
 	"github.com/elastic/apm-server/internal/agentcfg"
 	"github.com/elastic/apm-server/internal/beater/api"
 	"github.com/elastic/apm-server/internal/beater/auth"
@@ -39,7 +40,6 @@ import (
 	"github.com/elastic/apm-server/internal/beater/ratelimit"
 	"github.com/elastic/apm-server/internal/elasticsearch"
 	"github.com/elastic/apm-server/internal/kibana"
-	"github.com/elastic/apm-server/internal/model"
 	"github.com/elastic/apm-server/internal/model/modelprocessor"
 	"github.com/elastic/apm-server/internal/sourcemap"
 )
@@ -123,7 +123,7 @@ type ServerParams struct {
 	// for indexing. Under some configuration, the server will wrap the
 	// client's transport such that requests will be blocked until data
 	// streams have been initialised.
-	NewElasticsearchClient func(cfg *elasticsearch.Config) (elasticsearch.Client, error)
+	NewElasticsearchClient func(cfg *elasticsearch.Config) (*elasticsearch.Client, error)
 
 	// GRPCServer holds a *grpc.Server to which services will be registered
 	// for receiving data, configuration requests, etc.

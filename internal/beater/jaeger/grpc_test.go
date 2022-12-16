@@ -39,13 +39,12 @@ import (
 
 	"github.com/elastic/elastic-agent-libs/logp"
 
+	"github.com/elastic/apm-data/model"
 	"github.com/elastic/apm-server/internal/agentcfg"
 	"github.com/elastic/apm-server/internal/approvaltest"
 	"github.com/elastic/apm-server/internal/beater/auth"
 	"github.com/elastic/apm-server/internal/beater/config"
 	"github.com/elastic/apm-server/internal/beater/interceptors"
-	"github.com/elastic/apm-server/internal/model"
-	"github.com/elastic/apm-server/internal/model/modelindexer/modelindexertest"
 )
 
 func TestPostSpans(t *testing.T) {
@@ -118,7 +117,11 @@ func TestApprovals(t *testing.T) {
 			var docs [][]byte
 			var processor model.ProcessBatchFunc = func(ctx context.Context, batch *model.Batch) error {
 				batches++
-				docs = modelindexertest.AppendEncodedBatch(t, docs, *batch)
+				for _, event := range *batch {
+					data, err := event.MarshalJSON()
+					require.NoError(t, err)
+					docs = append(docs, data)
+				}
 				return nil
 			}
 			conn := newServer(t, processor, nil)

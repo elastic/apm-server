@@ -36,17 +36,11 @@ OpenTelemetry Go SDK to send some basic traces and metrics for manual testing pu
 
 ## Embedding OpenTelemetry Collector
 
-APM Server embeds a small amount of the OpenTelemetry Collector code to service OTLP/gRPC calls and decode events.
-None of the OpenTelemetry Collector exporters, processors, configuration, and so on, are used or supported.
+APM Server uses a small amount of the OpenTelemetry Collector code (`go.opentelemetry.io/collector/...`) to
+service OTLP/gRPC calls and decode events. None of the OpenTelemetry Collector exporters, processors,
+configuration, and so on, are used or supported.
 
 There is currently no policy for synchronising to the latest OpenTelemetry Collector version; this is done ad hoc.
-We vendor the opentelemetry-collector code under `internal/otel_collector` so that we can export some of its internals
-to APM Server.
-
-To update to the latest version, update modules `go.opentelemetry.io/collector/...` to the latest version, and
-then run `bash ./script/vendor_otel.sh`. From time to time it may be necessary to adjust the code under
-`internal/.otel_collector_mixin`, which is merged into the `internal/otel_collector` directory tree in order to
-export additional code.
 
 ## Authentication
 

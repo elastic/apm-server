@@ -21,25 +21,30 @@ import (
 	"encoding/json"
 	"strconv"
 
-	"github.com/elastic/elastic-agent-libs/mapstr"
-
-	"github.com/elastic/apm-server/internal/model"
+	"github.com/elastic/apm-data/model"
 )
 
 // GlobalLabelsFrom populates the Labels and NumericLabels from global labels
 // in the metadata object.
-func GlobalLabelsFrom(from mapstr.M, to *model.APMEvent) {
+func GlobalLabelsFrom(from map[string]any, to *model.APMEvent) {
 	to.NumericLabels = make(model.NumericLabels)
 	to.Labels = make(model.Labels)
 	MergeLabels(from, to)
-	to.MarkGlobalLabels()
+	for k, v := range to.Labels {
+		v.Global = true
+		to.Labels[k] = v
+	}
+	for k, v := range to.NumericLabels {
+		v.Global = true
+		to.NumericLabels[k] = v
+	}
 }
 
 // MergeLabels merges eventLabels into the APMEvent. This is used for
 // combining event-specific labels onto (metadata) global labels.
 //
 // If eventLabels is non-nil, it is first cloned.
-func MergeLabels(eventLabels mapstr.M, to *model.APMEvent) {
+func MergeLabels(eventLabels map[string]any, to *model.APMEvent) {
 	if to.NumericLabels == nil {
 		to.NumericLabels = make(model.NumericLabels)
 	}
@@ -69,9 +74,8 @@ func MergeLabels(eventLabels mapstr.M, to *model.APMEvent) {
 }
 
 // NormalizeLabelValues transforms the values in labels, replacing any
-// instance of json.Number with libbeat/common.Float, and returning
-// labels.
-func NormalizeLabelValues(labels mapstr.M) mapstr.M {
+// instance of json.Number with float64, and returning labels.
+func NormalizeLabelValues(labels map[string]any) map[string]any {
 	for k, v := range labels {
 		switch v := v.(type) {
 		case json.Number:

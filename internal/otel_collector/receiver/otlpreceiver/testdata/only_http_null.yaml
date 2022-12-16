@@ -1,3 +1,0 @@
-# The following entry initializes the default OTLP receiver with only http support by setting it explicitly to null.
-protocols:
-  http: null

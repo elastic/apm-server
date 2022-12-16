@@ -67,7 +67,7 @@ func AllPrivilegeActions() []es.PrivilegeAction {
 }
 
 type apikeyAuth struct {
-	esClient es.Client
+	esClient *es.Client
 	cache    *privilegesCache
 }
 
@@ -75,7 +75,7 @@ type apikeyAuthorizer struct {
 	permissions es.Permissions
 }
 
-func newApikeyAuth(client es.Client, cache *privilegesCache) *apikeyAuth {
+func newApikeyAuth(client *es.Client, cache *privilegesCache) *apikeyAuth {
 	return &apikeyAuth{client, cache}
 }
 

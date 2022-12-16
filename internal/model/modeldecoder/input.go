@@ -18,7 +18,7 @@
 package modeldecoder
 
 import (
-	"github.com/elastic/apm-server/internal/model"
+	"github.com/elastic/apm-data/model"
 )
 
 // Input holds the input required for decoding an event.

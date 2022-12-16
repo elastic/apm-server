@@ -19,9 +19,9 @@ import (
 	"github.com/stretchr/testify/require"
 	"golang.org/x/sync/errgroup"
 
+	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/elastic/go-elasticsearch/v8/esapi"
 
-	"github.com/elastic/apm-server/internal/elasticsearch"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/pubsub"
 )
 
@@ -82,7 +82,7 @@ func TestElasticsearchIntegration_PublishSampledTraceIDs(t *testing.T) {
 			Hits []struct {
 				Source struct {
 					Agent struct {
-						EphemeralID string
+						EphemeralID string `json:"ephemeral_id"`
 					}
 					Trace struct {
 						ID string
@@ -212,7 +212,7 @@ func TestElasticsearchIntegration_SubscribeSampledTraceIDs(t *testing.T) {
 	}
 }
 
-func recreateDataStream(tb testing.TB, client elasticsearch.Client, dataStream pubsub.DataStreamConfig) {
+func recreateDataStream(tb testing.TB, client *elasticsearch.Client, dataStream pubsub.DataStreamConfig) {
 	body := strings.NewReader(`{
   "settings": {
     "index.number_of_shards": 1
@@ -254,7 +254,7 @@ func recreateDataStream(tb testing.TB, client elasticsearch.Client, dataStream p
 	resp.Body.Close()
 }
 
-func newElasticsearchClient(tb testing.TB) elasticsearch.Client {
+func newElasticsearchClient(tb testing.TB) *elasticsearch.Client {
 	switch strings.ToLower(os.Getenv("INTEGRATION_TESTS")) {
 	case "1", "true":
 	default:
@@ -265,10 +265,10 @@ func newElasticsearchClient(tb testing.TB) elasticsearch.Client {
 		getenvDefault("ES_HOST", defaultElasticsearchHost),
 		getenvDefault("ES_PORT", defaultElasticsearchPort),
 	)
-	client, err := elasticsearch.NewClient(&elasticsearch.Config{
-		Hosts:    []string{esHost},
-		Username: getenvDefault("ES_USER", defaultElasticsearchUser),
-		Password: getenvDefault("ES_PASS", defaultElasticsearchPass),
+	client, err := elasticsearch.NewClient(elasticsearch.Config{
+		Addresses: []string{"http://" + esHost},
+		Username:  getenvDefault("ES_USER", defaultElasticsearchUser),
+		Password:  getenvDefault("ES_PASS", defaultElasticsearchPass),
 	})
 	require.NoError(tb, err)
 	return client

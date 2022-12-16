@@ -23,7 +23,7 @@ import (
 
 	"github.com/elastic/elastic-agent-libs/monitoring"
 
-	"github.com/elastic/apm-server/internal/model"
+	"github.com/elastic/apm-data/model"
 )
 
 // EventCounter is a model.BatchProcessor that counts the number of events processed,

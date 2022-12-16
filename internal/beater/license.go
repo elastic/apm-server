@@ -15,37 +15,36 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package modelprocessor
+package beater
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
+	"io"
 
-	"github.com/elastic/apm-data/model"
+	"github.com/elastic/beats/v7/libbeat/licenser"
+
+	"github.com/elastic/go-elasticsearch/v8"
 )
 
-// SetServiceNodeName is a transform.Processor that sets the service
-// node name value for events without one already set.
-//
-// SetServiceNodeName should be called after SetHostHostname, to
-// ensure Name is set.
-type SetServiceNodeName struct{}
+// getElasticsearchLicense gets the Elasticsearch licensing information.
+func getElasticsearchLicense(ctx context.Context, client *elasticsearch.Client) (licenser.License, error) {
+	resp, err := client.License.Get(client.License.Get.WithContext(ctx))
+	if err != nil {
+		return licenser.License{}, err
+	}
+	defer resp.Body.Close()
+	if resp.IsError() {
+		body, _ := io.ReadAll(resp.Body)
+		return licenser.License{}, fmt.Errorf("failed to get license (%s): %s", resp.Status(), body)
+	}
 
-// ProcessBatch sets a default service.node.name for events without one already set.
-func (SetServiceNodeName) ProcessBatch(ctx context.Context, b *model.Batch) error {
-	for i := range *b {
-		setServiceNodeName(&(*b)[i])
+	var result struct {
+		License licenser.License `json:"license"`
 	}
-	return nil
-}
-
-func setServiceNodeName(event *model.APMEvent) {
-	if event.Service.Node.Name != "" {
-		// Already set.
-		return
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return licenser.License{}, err
 	}
-	nodeName := event.Container.ID
-	if nodeName == "" {
-		nodeName = event.Host.Name
-	}
-	event.Service.Node.Name = nodeName
+	return result.License, nil
 }

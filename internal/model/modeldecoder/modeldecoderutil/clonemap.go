@@ -15,37 +15,14 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package modelprocessor
+package modeldecoderutil
 
 import (
-	"context"
-
-	"github.com/elastic/apm-data/model"
+	"github.com/elastic/elastic-agent-libs/mapstr"
 )
 
-// SetServiceNodeName is a transform.Processor that sets the service
-// node name value for events without one already set.
-//
-// SetServiceNodeName should be called after SetHostHostname, to
-// ensure Name is set.
-type SetServiceNodeName struct{}
-
-// ProcessBatch sets a default service.node.name for events without one already set.
-func (SetServiceNodeName) ProcessBatch(ctx context.Context, b *model.Batch) error {
-	for i := range *b {
-		setServiceNodeName(&(*b)[i])
-	}
-	return nil
-}
-
-func setServiceNodeName(event *model.APMEvent) {
-	if event.Service.Node.Name != "" {
-		// Already set.
-		return
-	}
-	nodeName := event.Container.ID
-	if nodeName == "" {
-		nodeName = event.Host.Name
-	}
-	event.Service.Node.Name = nodeName
+// CloneMap returns a deep clone of m.
+func CloneMap(m map[string]any) map[string]any {
+	mm := mapstr.M(m)
+	return map[string]any(mm.Clone())
 }

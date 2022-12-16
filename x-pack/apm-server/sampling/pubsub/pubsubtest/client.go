@@ -15,7 +15,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/elastic/apm-server/internal/elasticsearch"
+	"github.com/elastic/go-elasticsearch/v8"
+	"github.com/elastic/go-elasticsearch/v8/esutil"
 )
 
 // Publisher is an interface to pass to Client that responds to publish
@@ -79,9 +80,8 @@ func (f SubscriberFunc) Subscribe(ctx context.Context) (string, error) {
 // that responds to publish requests by calling pub (if non-nil) and subscribe
 // requests by calling sub (if non-nil). If either function is nil, then the
 // respective operation will be a no-op.
-func Client(pub Publisher, sub Subscriber) elasticsearch.Client {
-	client, err := elasticsearch.NewClientParams(elasticsearch.ClientParams{
-		Config:    elasticsearch.DefaultConfig(),
+func Client(pub Publisher, sub Subscriber) *elasticsearch.Client {
+	client, err := elasticsearch.NewClient(elasticsearch.Config{
 		Transport: &channelClientRoundTripper{pub: pub, sub: sub},
 	})
 	if err != nil {
@@ -195,7 +195,7 @@ func (rt *channelClientRoundTripper) roundTripSearch(r *http.Request, recorder *
 }
 
 func (rt *channelClientRoundTripper) roundTripBulk(r *http.Request, recorder *httptest.ResponseRecorder) error {
-	var results []map[string]elasticsearch.BulkIndexerResponseItem
+	var results []map[string]esutil.BulkIndexerResponseItem
 	dec := json.NewDecoder(r.Body)
 	for {
 		var m map[string]interface{}
@@ -217,8 +217,8 @@ func (rt *channelClientRoundTripper) roundTripBulk(r *http.Request, recorder *ht
 				return err
 			}
 		}
-		result := elasticsearch.BulkIndexerResponseItem{Status: 200}
-		results = append(results, map[string]elasticsearch.BulkIndexerResponseItem{action: result})
+		result := esutil.BulkIndexerResponseItem{Status: 200}
+		results = append(results, map[string]esutil.BulkIndexerResponseItem{action: result})
 	}
 	if err := json.NewEncoder(recorder).Encode(results); err != nil {
 		return err

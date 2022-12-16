@@ -15,37 +15,20 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package modelprocessor
+package beatcmd
 
 import (
-	"context"
-
-	"github.com/elastic/apm-data/model"
+	"github.com/elastic/elastic-agent-libs/logp"
 )
 
-// SetServiceNodeName is a transform.Processor that sets the service
-// node name value for events without one already set.
-//
-// SetServiceNodeName should be called after SetHostHostname, to
-// ensure Name is set.
-type SetServiceNodeName struct{}
-
-// ProcessBatch sets a default service.node.name for events without one already set.
-func (SetServiceNodeName) ProcessBatch(ctx context.Context, b *model.Batch) error {
-	for i := range *b {
-		setServiceNodeName(&(*b)[i])
-	}
-	return nil
-}
-
-func setServiceNodeName(event *model.APMEvent) {
-	if event.Service.Node.Name != "" {
-		// Already set.
-		return
-	}
-	nodeName := event.Container.ID
-	if nodeName == "" {
-		nodeName = event.Host.Name
-	}
-	event.Service.Node.Name = nodeName
+func init() {
+	// Configure tests to log at debug level, and to send
+	// logs to logp.ObserverLogs(). It is important to not
+	// log to files by default in tests, as logp will keep
+	// the files open and prevent temporary directories from
+	// being removed on Windows.
+	logOptions = append(logOptions,
+		logp.ToObserverOutput(),
+		logp.WithLevel(logp.DebugLevel),
+	)
 }

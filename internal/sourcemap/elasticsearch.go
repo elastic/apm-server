@@ -46,7 +46,7 @@ var (
 )
 
 type esFetcher struct {
-	client elasticsearch.Client
+	client *elasticsearch.Client
 	index  string
 	logger *logp.Logger
 }
@@ -67,7 +67,7 @@ type esSourcemapResponse struct {
 }
 
 // NewElasticsearchFetcher returns a Fetcher for fetching source maps stored in Elasticsearch.
-func NewElasticsearchFetcher(c elasticsearch.Client, index string) Fetcher {
+func NewElasticsearchFetcher(c *elasticsearch.Client, index string) Fetcher {
 	logger := logp.NewLogger(logs.Sourcemap)
 	return &esFetcher{c, index, logger}
 }
