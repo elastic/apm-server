@@ -238,4 +238,6 @@ exclude (
 	go.mongodb.org/mongo-driver v1.4.6
 )
 
+exclude github.com/elastic/elastic-agent v0.0.0-20220831162706-5f1e54f40d3e
+
 replace go.opentelemetry.io/collector => ./internal/otel_collector
