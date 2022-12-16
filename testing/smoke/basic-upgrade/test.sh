@@ -5,6 +5,9 @@ set -eo pipefail
 # Load common lib
 . $(git rev-parse --show-toplevel)/testing/smoke/lib.sh
 
+# TODO(axw) remove this -- added for debugging CI
+jq --version
+
 # Get all the versions from the current region.
 get_versions
 

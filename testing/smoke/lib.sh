@@ -15,6 +15,10 @@ get_versions() {
     local EC_VERSION_ENDPOINT="https://cloud.elastic.co/api/v1/regions/${REGION}/stack/versions?show_deleted=false&show_unusable=false"
     local RES=$(curl_fail -H "Authorization: ApiKey ${EC_API_KEY}" ${EC_VERSION_ENDPOINT})
     if [ "$?" -ne 0 ]; then echo "${RES}\n"; fi
+
+    # TODO(axw) remove this -- added for debugging CI
+    echo "versions: ${RES}"
+
     VERSIONS=$(echo "${RES}" | jq -r -c '[.stacks[].version | select(. | contains("-") | not)] | sort')
 }
 
