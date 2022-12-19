@@ -23,14 +23,15 @@ import (
 	"go.opentelemetry.io/collector/pdata/plog/plogotlp"
 	"go.opentelemetry.io/collector/pdata/pmetric/pmetricotlp"
 	"go.opentelemetry.io/collector/pdata/ptrace/ptraceotlp"
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
 
 	"github.com/elastic/elastic-agent-libs/monitoring"
 
+	"github.com/elastic/apm-data/input/otlp"
 	"github.com/elastic/apm-data/model"
 	"github.com/elastic/apm-server/internal/beater/interceptors"
 	"github.com/elastic/apm-server/internal/beater/request"
-	"github.com/elastic/apm-server/internal/processor/otel"
 )
 
 var (
@@ -62,11 +63,18 @@ func init() {
 }
 
 // RegisterGRPCServices registers OTLP consumer services with the given gRPC server.
-func RegisterGRPCServices(grpcServer *grpc.Server, processor model.BatchProcessor) {
+func RegisterGRPCServices(
+	grpcServer *grpc.Server,
+	logger *zap.Logger,
+	processor model.BatchProcessor,
+) {
 	// TODO(axw) stop assuming we have only one OTLP gRPC service running
 	// at any time, and instead aggregate metrics from consumers that are
 	// dynamically registered and unregistered.
-	consumer := &otel.Consumer{Processor: processor}
+	consumer := otlp.NewConsumer(otlp.ConsumerConfig{
+		Processor: processor,
+		Logger:    logger,
+	})
 	gRPCMonitoredConsumer.set(consumer)
 
 	ptraceotlp.RegisterGRPCServer(grpcServer, tracesService{consumer})
@@ -75,7 +83,7 @@ func RegisterGRPCServices(grpcServer *grpc.Server, processor model.BatchProcesso
 }
 
 type tracesService struct {
-	consumer *otel.Consumer
+	consumer *otlp.Consumer
 }
 
 func (s tracesService) Export(ctx context.Context, req ptraceotlp.ExportRequest) (ptraceotlp.ExportResponse, error) {
@@ -88,7 +96,7 @@ func (s tracesService) Export(ctx context.Context, req ptraceotlp.ExportRequest)
 }
 
 type metricsService struct {
-	consumer *otel.Consumer
+	consumer *otlp.Consumer
 }
 
 func (s metricsService) Export(ctx context.Context, req pmetricotlp.ExportRequest) (pmetricotlp.ExportResponse, error) {
@@ -101,7 +109,7 @@ func (s metricsService) Export(ctx context.Context, req pmetricotlp.ExportReques
 }
 
 type logsService struct {
-	consumer *otel.Consumer
+	consumer *otlp.Consumer
 }
 
 func (s logsService) Export(ctx context.Context, req plogotlp.ExportRequest) (plogotlp.ExportResponse, error) {

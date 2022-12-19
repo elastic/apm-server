@@ -339,6 +339,8 @@ github.com/eapache/queue v1.1.0/go.mod h1:6eCeP0CKFpHLu8blIFXhExK/dRa7WDZfr6jVFP
 github.com/eclipse/paho.mqtt.golang v1.3.5 h1:sWtmgNxYM9P2sP+xEItMozsR3w0cqZFlqnNN1bdl41Y=
 github.com/elastic/apm-data v0.1.0 h1:4E59mwxJBD8Gtapz0ot3dgjRajDYFZNwivdsuBfvB7U=
 github.com/elastic/apm-data v0.1.0/go.mod h1:fwTM1KXE94/Qaq9sgart6mqhN0Mzo1HlH2HnnKwF1pg=
+github.com/elastic/apm-data v0.1.1-0.20221216021257-7c5f8e39acf0 h1:E7tdBPZnNllAwISVRIC5q58nWvN1OG6wDM3ih2ReYr8=
+github.com/elastic/apm-data v0.1.1-0.20221216021257-7c5f8e39acf0/go.mod h1:JLtHUxhBa7oky85/69kMCfOjyzuzDq3fN3MxLy/ufvI=
 github.com/elastic/bayeux v1.0.5 h1:UceFq01ipmT3S8DzFK+uVAkbCdiPR0Bqei8qIGmUeY0=
 github.com/elastic/beats/v7 v7.0.0-alpha2.0.20221216184629-c379db03b121 h1:H9NICgUwLASgu+hVPni7COeUzTKudsY+bLamfKRhqfg=
 github.com/elastic/beats/v7 v7.0.0-alpha2.0.20221216184629-c379db03b121/go.mod h1:jFJpFboDKXcfjsa1LFtxLN7lH9vktdHwiBQDv0ruXYQ=
@@ -633,6 +635,7 @@ github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORN
 github.com/kr/pretty v0.2.1/go.mod h1:ipq/a2n7PKx3OHsz4KJII5eveXtPO4qwEXGdVfWzfnI=
 github.com/kr/pretty v0.3.0 h1:WgNl7dwNpEZ6jJ9k1snq4pZsg7DOEN8hP9Xw0Tsjwk0=
 github.com/kr/pretty v0.3.0/go.mod h1:640gp4NfQd8pI5XOwp5fnNeVWj67G7CFk/SaSQn7NBk=
+github.com/kr/pretty v0.3.1 h1:flRD4NNwYAUpkphVc1HcthR4KEIFJ65n8Mw5qdRn3LE=
 github.com/kr/pty v1.1.1 h1:VkoXIwSboBpnk99O/KFauAEILuNHv5DVFKZMBN/gUgw=
 github.com/kr/pty v1.1.1/go.mod h1:pFQYn66WHrOpPYNljwOMqo10TkYh1fy3cYio2l3bCsQ=
 github.com/kr/text v0.1.0/go.mod h1:4Jbv+DJW3UT/LiOwJeYQe1efqtUx/iVham/4vfdArNI=

@@ -2,7 +2,7 @@
     "accepted": 0,
     "errors": [
         {
-            "message": "validation error: 'metadata' required"
+            "message": "EOF while reading metadata"
         }
     ]
 }

@@ -24,6 +24,7 @@ import (
 
 	"go.elastic.co/apm/module/apmgorilla/v2"
 	"go.elastic.co/apm/v2"
+	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 
@@ -186,8 +187,9 @@ func newServer(args ServerParams, listener net.Listener) (server, error) {
 			otlpBatchProcessor,
 		}
 	}
-	otlp.RegisterGRPCServices(args.GRPCServer, otlpBatchProcessor)
-	jaeger.RegisterGRPCServices(args.GRPCServer, args.Logger, args.BatchProcessor, args.AgentConfig)
+	zapLogger := zap.New(args.Logger.Core(), zap.WithCaller(true))
+	otlp.RegisterGRPCServices(args.GRPCServer, zapLogger, otlpBatchProcessor)
+	jaeger.RegisterGRPCServices(args.GRPCServer, zapLogger, args.BatchProcessor, args.AgentConfig)
 
 	return server{
 		logger:     args.Logger,
