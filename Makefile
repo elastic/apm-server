@@ -197,8 +197,8 @@ testing/infra/terraform/modules/%/README.md: .FORCE
 # TODO in the future we should probably trigger the updates from apm-data,
 # and just keep the JSON Schema there.
 docs/spec: go.mod
-	$(GO) mod download github.com/elastic/apm-data
-	rm -fr docs/spec && cp -r $$($(GO) list -m -f {{.Dir}} github.com/elastic/apm-data)/input/elasticapm/docs/spec ./docs
+	@$(GO) mod download github.com/elastic/apm-data
+	rsync -v --delete --chmod=D755 --chmod=F644 -r $$($(GO) list -m -f {{.Dir}} github.com/elastic/apm-data)/input/elasticapm/docs/spec ./docs
 
 ##############################################################################
 # Beats synchronisation.
