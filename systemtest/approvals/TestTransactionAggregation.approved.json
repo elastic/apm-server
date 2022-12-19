@@ -7,7 +7,7 @@
                 "name": "go"
             },
             "data_stream": {
-                "dataset": "apm.internal",
+                "dataset": "apm.internal-interval.1s",
                 "namespace": "default",
                 "type": "metrics"
             },
@@ -16,6 +16,7 @@
             },
             "event": {
                 "agent_id_status": "missing",
+                "duration": 1000000000,
                 "ingested": "dynamic",
                 "outcome": "success"
             },
@@ -75,7 +76,7 @@
                 "name": "go"
             },
             "data_stream": {
-                "dataset": "apm.internal",
+                "dataset": "apm.internal-interval.1s",
                 "namespace": "default",
                 "type": "metrics"
             },
@@ -84,6 +85,7 @@
             },
             "event": {
                 "agent_id_status": "missing",
+                "duration": 1000000000,
                 "ingested": "dynamic",
                 "outcome": "success"
             },
@@ -165,7 +167,7 @@
                 "id": "container-id"
             },
             "data_stream": {
-                "dataset": "apm.internal",
+                "dataset": "apm.internal-interval.1s",
                 "namespace": "default",
                 "type": "metrics"
             },
@@ -174,6 +176,7 @@
             },
             "event": {
                 "agent_id_status": "missing",
+                "duration": 1000000000,
                 "ingested": "dynamic",
                 "outcome": "unknown"
             },

@@ -74,7 +74,8 @@ var apmEventSortFields = []string{
 	"transaction.type",
 	"span.type",
 	"service.name",
-	"@timestamp", // last resort before _id; order is generally guaranteed
+	"event.duration", // useful to sort different interval metric sets.
+	"@timestamp",     // last resort before _id; order is generally guaranteed
 }
 
 type apmEventSearchHits []estest.SearchHit

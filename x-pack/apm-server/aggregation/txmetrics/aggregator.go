@@ -55,7 +55,9 @@ type Aggregator struct {
 	tooManyGroupsLogger *logp.Logger
 
 	mu               sync.RWMutex
-	active, inactive *metrics
+	active, inactive map[time.Duration]*metrics
+
+	intervals []time.Duration // List of all intervals.
 }
 
 type aggregatorMetrics struct {
@@ -83,6 +85,12 @@ type AggregatorConfig struct {
 	// times if the aggregation groups fill up.
 	MetricsInterval time.Duration
 
+	// RollUpIntervals are additional MetricsInterval for the aggregator to
+	// compute and publish metrics for. Each additional interval is constrained
+	// to the same rules as MetricsInterval, and will result in additional
+	// memory to be allocated.
+	RollUpIntervals []time.Duration
+
 	// HDRHistogramSignificantFigures is the number of significant figures
 	// to maintain in the HDR Histograms. HDRHistogramSignificantFigures
 	// must be in the range [1,5].
@@ -100,6 +108,11 @@ func (config AggregatorConfig) Validate() error {
 	if config.MetricsInterval <= 0 {
 		return errors.New("MetricsInterval unspecified or negative")
 	}
+	for i, interval := range config.RollUpIntervals {
+		if interval <= 0 {
+			return errors.Errorf("RollUpIntervals[%d]: unspecified or negative", i)
+		}
+	}
 	if n := config.HDRHistogramSignificantFigures; n < 1 || n > 5 {
 		return errors.Errorf("HDRHistogramSignificantFigures (%d) outside range [1,5]", n)
 	}
@@ -114,15 +127,21 @@ func NewAggregator(config AggregatorConfig) (*Aggregator, error) {
 	if config.Logger == nil {
 		config.Logger = logp.NewLogger(logs.TransactionMetrics)
 	}
-	return &Aggregator{
+	aggregator := Aggregator{
 		stopping:            make(chan struct{}),
 		stopped:             make(chan struct{}),
 		config:              config,
 		metrics:             &aggregatorMetrics{},
 		tooManyGroupsLogger: config.Logger.WithOptions(logs.WithRateLimit(tooManyGroupsLoggerRateLimit)),
-		active:              newMetrics(config.MaxTransactionGroups),
-		inactive:            newMetrics(config.MaxTransactionGroups),
-	}, nil
+		intervals:           append([]time.Duration{config.MetricsInterval}, config.RollUpIntervals...),
+	}
+	aggregator.active = make(map[time.Duration]*metrics)
+	aggregator.inactive = make(map[time.Duration]*metrics)
+	for _, interval := range aggregator.intervals {
+		aggregator.active[interval] = newMetrics(config.MaxTransactionGroups)
+		aggregator.inactive[interval] = newMetrics(config.MaxTransactionGroups)
+	}
+	return &aggregator, nil
 }
 
 // Run runs the Aggregator, periodically publishing and clearing aggregated
@@ -141,16 +160,28 @@ func (a *Aggregator) Run() error {
 		}
 	}()
 	var stop bool
+	var ticks uint64
 	for !stop {
+		ticks++
 		select {
 		case <-a.stopping:
 			stop = true
 		case <-ticker.C:
 		}
-		if err := a.publish(context.Background()); err != nil {
-			a.config.Logger.With(logp.Error(err)).Warnf(
-				"publishing transaction metrics failed: %s", err,
-			)
+		// Publish the metricsets for all configured intervals.
+		for _, interval := range a.intervals {
+			// Publish $interval MetricSets when:
+			//  - ticks * MetricsInterval % $interval == 0.
+			//  - Aggregator is stopped.
+			if !stop && (ticks*uint64(a.config.MetricsInterval))%uint64(interval) != 0 {
+				continue
+			}
+			if err := a.publish(context.Background(), interval); err != nil {
+				a.config.Logger.With(logp.Error(err)).Warnf(
+					"publishing %s transaction metrics failed: %s",
+					interval.String(), err,
+				)
+			}
 		}
 	}
 	return nil
@@ -191,7 +222,7 @@ func (a *Aggregator) CollectMonitoring(_ monitoring.Mode, V monitoring.Visitor) 
 	a.mu.RLock()
 	defer a.mu.RUnlock()
 
-	m := a.active
+	m := a.active[a.config.MetricsInterval]
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
@@ -199,34 +230,35 @@ func (a *Aggregator) CollectMonitoring(_ monitoring.Mode, V monitoring.Visitor) 
 	monitoring.ReportInt(V, "overflowed", atomic.LoadInt64(&a.metrics.overflowed))
 }
 
-func (a *Aggregator) publish(ctx context.Context) error {
+func (a *Aggregator) publish(ctx context.Context, interval time.Duration) error {
 	// We hold a.mu only long enough to swap the metrics. This will
 	// be blocked by metrics updates, which is OK, as we prefer not
 	// to block metrics updaters. After the lock is released nothing
 	// will be accessing a.inactive.
 	a.mu.Lock()
-	a.active, a.inactive = a.inactive, a.active
+	current := a.active[interval]
+	a.active[interval], a.inactive[interval] = a.inactive[interval], current
 	a.mu.Unlock()
 
-	if a.inactive.entries == 0 {
+	if current.entries == 0 {
 		a.config.Logger.Debugf("no metrics to publish")
 		return nil
 	}
 
-	// TODO(axw) record either the aggregation interval in effect, or
-	// the specific time period (date_range) on the metrics documents.
-
-	batch := make(model.Batch, 0, a.inactive.entries)
-	for hash, entries := range a.inactive.m {
+	batch := make(model.Batch, 0, current.entries)
+	for hash, entries := range current.m {
 		for _, entry := range entries {
 			totalCount, counts, values := entry.transactionMetrics.histogramBuckets()
-			batch = append(batch, makeMetricset(entry.transactionAggregationKey, totalCount, counts, values))
+			event := makeMetricset(entry.transactionAggregationKey, totalCount, counts, values)
+			// Record the metricset interval as Event.Duration.
+			event.Event.Duration = interval
+			batch = append(batch, event)
 		}
-		delete(a.inactive.m, hash)
+		delete(current.m, hash)
 	}
-	a.inactive.entries = 0
+	current.entries = 0
 
-	a.config.Logger.Debugf("publishing %d metricsets", len(batch))
+	a.config.Logger.Debugf("%s interval: publishing %d metricsets", interval.String(), len(batch))
 	return a.config.BatchProcessor.ProcessBatch(ctx, &batch)
 }
 
@@ -241,39 +273,44 @@ func (a *Aggregator) ProcessBatch(ctx context.Context, b *model.Batch) error {
 		if event.Processor != model.TransactionProcessor {
 			continue
 		}
-		if metricsetEvent := a.AggregateTransaction(event); metricsetEvent.Metricset != nil {
-			*b = append(*b, metricsetEvent)
-		}
+		a.AggregateTransaction(event, b)
 	}
 	return nil
 }
 
 // AggregateTransaction aggregates transaction metrics.
 //
-// If the transaction cannot be aggregated due to the maximum number
-// of transaction groups being exceeded, then a metricset APMEvent will
-// be returned which should be published immediately, along with the
-// transaction. Otherwise, the returned event will be the zero value.
-func (a *Aggregator) AggregateTransaction(event model.APMEvent) model.APMEvent {
+// If the transaction cannot be aggregated due to the maximum number of
+// transaction groups being exceeded, then a metricset APMEvent will be
+// appended to the batch, which will be published immediately, along with the
+// transaction.
+func (a *Aggregator) AggregateTransaction(event model.APMEvent, batch *model.Batch) {
 	if event.Transaction.RepresentativeCount <= 0 {
-		return model.APMEvent{}
+		return
 	}
+	for _, interval := range a.intervals {
+		if overflowed := a.aggregateTransaction(event, interval); overflowed.Metricset != nil {
+			*batch = append(*batch, overflowed)
+		}
+	}
+}
 
-	key := a.makeTransactionAggregationKey(event, a.config.MetricsInterval)
+func (a *Aggregator) aggregateTransaction(event model.APMEvent, interval time.Duration) model.APMEvent {
+	key := a.makeTransactionAggregationKey(event, interval)
 	hash := key.hash()
 	count := transactionCount(event.Transaction)
-	if a.updateTransactionMetrics(key, hash, event.Transaction.RepresentativeCount, event.Event.Duration) {
+	if a.updateTransactionMetrics(key, hash, event.Transaction.RepresentativeCount, event.Event.Duration, interval) {
 		return model.APMEvent{}
 	}
 	// Too many aggregation keys: could not update metrics, so immediately
 	// publish a single-value metric document.
 	a.tooManyGroupsLogger.Warn(`
-Transaction group limit reached, falling back to sending individual metric documents.
+%s transaction group limit reached, falling back to sending individual metric documents.
 This is typically caused by ineffective transaction grouping, e.g. by creating many
 unique transaction names.
 If you are using an agent with 'use_path_as_transaction_name' enabled, it may cause
 high cardinality. If your agent supports the 'transaction_name_groups' option, setting
-that configuration option appropriately, may lead to better results.`[1:],
+that configuration option appropriately, may lead to better results.`[1:], interval.String(),
 	)
 	atomic.AddInt64(&a.metrics.overflowed, 1)
 	counts := []int64{int64(math.Round(count))}
@@ -281,7 +318,7 @@ that configuration option appropriately, may lead to better results.`[1:],
 	return makeMetricset(key, counts[0], counts, values)
 }
 
-func (a *Aggregator) updateTransactionMetrics(key transactionAggregationKey, hash uint64, count float64, duration time.Duration) bool {
+func (a *Aggregator) updateTransactionMetrics(key transactionAggregationKey, hash uint64, count float64, duration, interval time.Duration) bool {
 	if duration < minDuration {
 		duration = minDuration
 	} else if duration > maxDuration {
@@ -291,7 +328,7 @@ func (a *Aggregator) updateTransactionMetrics(key transactionAggregationKey, has
 	a.mu.RLock()
 	defer a.mu.RUnlock()
 
-	m := a.active
+	m := a.active[interval]
 	m.mu.RLock()
 	entries, ok := m.m[hash]
 	m.mu.RUnlock()

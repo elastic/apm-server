@@ -18,6 +18,8 @@
 package main
 
 import (
+	"bytes"
+	"errors"
 	"flag"
 	"fmt"
 	"io/fs"
@@ -47,7 +49,7 @@ func generatePackage(pkgfs fs.FS, version, ecsVersion *version.V, ecsReference s
 		}
 		outputPath := filepath.Join(*outputDir, path)
 		if d.IsDir() {
-			if err := os.Mkdir(outputPath, 0755); err != nil {
+			if err := os.Mkdir(outputPath, 0755); err != nil && !errors.Is(err, os.ErrExist) {
 				return err
 			}
 			return nil
@@ -64,6 +66,10 @@ func renderFile(pkgfs fs.FS, path, outputPath string, version, ecsVersion *versi
 	if err != nil {
 		return err
 	}
+	// Ignore files that have a `generated` prefix.
+	if bytes.HasPrefix(content, []byte("generated")) {
+		return nil
+	}
 	content, err = transformFile(path, content, version, ecsVersion, ecsReference)
 	if err != nil {
 		return fmt.Errorf("error transforming %q: %w", path, err)
@@ -71,15 +77,32 @@ func renderFile(pkgfs fs.FS, path, outputPath string, version, ecsVersion *versi
 	if err := os.WriteFile(outputPath, content, 0644); err != nil {
 		return err
 	}
+
+	type identicalDataStreams struct {
+		source, destination string
+	}
 	// The "traces" and "rum_traces" data streams should have identical fields.
-	//
-	// Copy all files in `data_stream/traces/fields` to `data_stream/rum_traces/fields`.
-	if filepath.ToSlash(filepath.Dir(path)) == "data_stream/traces/fields" {
-		tracesDir := filepath.Dir(filepath.Dir(outputPath))
-		rumTracesFieldsDir := filepath.Join(tracesDir, "..", "rum_traces", "fields")
-		copyOutputPath := filepath.Join(rumTracesFieldsDir, filepath.Base(outputPath))
-		if err := os.WriteFile(copyOutputPath, content, 0644); err != nil {
-			return err
+	// The "internal_metrics" and "internal_metrics_interval" data streams should have identical fields.
+	copyDataStreams := []identicalDataStreams{{
+		source:      "data_stream/traces/fields",
+		destination: filepath.Join("..", "rum_traces", "fields"),
+	}, {
+		source:      "data_stream/internal_metrics/fields",
+		destination: filepath.Join("..", "internal_metrics_interval", "fields"),
+	}}
+	for _, ds := range copyDataStreams {
+		if filepath.ToSlash(filepath.Dir(path)) == ds.source {
+			originDir := filepath.Dir(filepath.Dir(outputPath))
+			destinationDir := filepath.Join(originDir, ds.destination)
+			if _, err := os.Stat(destinationDir); errors.Is(err, os.ErrNotExist) {
+				if err := os.MkdirAll(destinationDir, 0755); err != nil {
+					return err
+				}
+			}
+			copyOutputPath := filepath.Join(destinationDir, filepath.Base(outputPath))
+			if err := os.WriteFile(copyOutputPath, content, 0644); err != nil {
+				return err
+			}
 		}
 	}
 	return nil

@@ -19,6 +19,7 @@ package modelprocessor
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/elastic/apm-data/model"
@@ -29,9 +30,10 @@ const (
 	appLogsDataset = "apm.app"
 	errorsDataset  = "apm.error"
 
-	metricsType            = "metrics"
-	appMetricsDataset      = "apm.app"
-	internalMetricsDataset = "apm.internal"
+	metricsType                    = "metrics"
+	appMetricsDataset              = "apm.app"
+	internalMetricsDataset         = "apm.internal"
+	internalIntervalMetricsDataset = "apm.internal-interval"
 
 	tracesType       = "traces"
 	tracesDataset    = "apm"
@@ -91,7 +93,21 @@ func metricsetDataset(event *model.APMEvent) string {
 		// Metrics that include well-defined transaction/span fields
 		// (i.e. breakdown metrics, transaction and span metrics) will
 		// be stored separately from custom application metrics.
-		return internalMetricsDataset
+		if event.Event.Duration <= 0 {
+			return internalMetricsDataset
+		}
+		var suffix string
+		if duration := event.Event.Duration.Minutes(); duration >= 1 {
+			suffix = fmt.Sprintf("%.0fm", duration)
+		} else {
+			suffix = fmt.Sprintf("%.0fs", event.Event.Duration.Seconds())
+		}
+		var dataset strings.Builder
+		dataset.Grow(len(internalIntervalMetricsDataset) + 1 + len(suffix))
+		dataset.WriteString(internalIntervalMetricsDataset)
+		dataset.WriteByte('.')
+		dataset.WriteString(suffix)
+		return dataset.String()
 	}
 
 	if event.Metricset != nil {

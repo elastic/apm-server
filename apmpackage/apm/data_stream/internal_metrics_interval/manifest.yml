@@ -1,8 +1,8 @@
 title: APM internal metrics
 type: metrics
-dataset: apm.internal
-dataset_is_prefix: false
-ilm_policy: metrics-apm.internal_metrics-default_policy
+dataset: apm.internal-interval
+dataset_is_prefix: true
+ilm_policy: metrics-apm.internal_metrics_interval-default_policy
 elasticsearch:
   index_template:
     mappings:

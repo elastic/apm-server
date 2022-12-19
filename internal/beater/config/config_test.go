@@ -155,6 +155,7 @@ func TestUnpackConfig(t *testing.T) {
 				"aggregation": map[string]interface{}{
 					"transactions": map[string]interface{}{
 						"interval":                         "1s",
+						"rollup_intervals":                 []string{"10s", "10m"},
 						"max_groups":                       123,
 						"hdrhistogram_significant_figures": 1,
 					},
@@ -253,6 +254,7 @@ func TestUnpackConfig(t *testing.T) {
 				Aggregation: AggregationConfig{
 					Transactions: TransactionAggregationConfig{
 						Interval:                       time.Second,
+						RollUpIntervals:                []time.Duration{10 * time.Second, 10 * time.Minute},
 						MaxTransactionGroups:           123,
 						HDRHistogramSignificantFigures: 1,
 					},
@@ -420,6 +422,7 @@ func TestUnpackConfig(t *testing.T) {
 				Aggregation: AggregationConfig{
 					Transactions: TransactionAggregationConfig{
 						Interval:                       time.Minute,
+						RollUpIntervals:                []time.Duration{10 * time.Minute, time.Hour},
 						MaxTransactionGroups:           10000,
 						HDRHistogramSignificantFigures: 2,
 					},

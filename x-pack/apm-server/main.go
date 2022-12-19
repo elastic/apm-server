@@ -107,6 +107,7 @@ func newProcessors(args beater.ServerParams) ([]namedProcessor, error) {
 		BatchProcessor:                 args.BatchProcessor,
 		MaxTransactionGroups:           args.Config.Aggregation.Transactions.MaxTransactionGroups,
 		MetricsInterval:                args.Config.Aggregation.Transactions.Interval,
+		RollUpIntervals:                args.Config.Aggregation.Transactions.RollUpIntervals,
 		HDRHistogramSignificantFigures: args.Config.Aggregation.Transactions.HDRHistogramSignificantFigures,
 	})
 	if err != nil {

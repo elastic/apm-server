@@ -78,7 +78,6 @@ func TestProcessTransformablesOverflow(t *testing.T) {
 		Logger:                         logger,
 	})
 	require.NoError(t, err)
-
 	// The first two transaction groups will not require immediate publication,
 	// as we have configured the txmetrics with a maximum of two buckets.
 	batch := make(model.Batch, 20)
@@ -142,22 +141,29 @@ func TestProcessTransformablesOverflow(t *testing.T) {
 		false, // expvar
 	))
 
-	overflowLogEntries := observed.FilterMessageSnippet("Transaction group limit reached")
+	overflowLogEntries := observed.FilterMessageSnippet("transaction group limit reached")
 	assert.Equal(t, 1, overflowLogEntries.Len()) // rate limited
 }
 
 func TestAggregatorRun(t *testing.T) {
-	batches := make(chan model.Batch, 1)
-	agg, err := txmetrics.NewAggregator(txmetrics.AggregatorConfig{
+	batches := make(chan model.Batch, 6)
+	config := txmetrics.AggregatorConfig{
 		BatchProcessor:                 makeChanBatchProcessor(batches),
 		MaxTransactionGroups:           2,
 		MetricsInterval:                10 * time.Millisecond,
+		RollUpIntervals:                []time.Duration{200 * time.Millisecond, time.Second},
 		HDRHistogramSignificantFigures: 1,
-	})
+	}
+	agg, err := txmetrics.NewAggregator(config)
 	require.NoError(t, err)
 
+	intervals := append([]time.Duration{config.MetricsInterval}, config.RollUpIntervals...)
+	now := time.Now()
 	for i := 0; i < 1000; i++ {
-		metricset := agg.AggregateTransaction(model.APMEvent{
+		overflow := make(model.Batch, 0, 1)
+		event := model.APMEvent{
+			Event:     model.Event{Duration: time.Second},
+			Timestamp: now,
 			Processor: model.TransactionProcessor,
 			Labels: model.Labels{
 				"department_name": model.LabelValue{Global: true, Value: "apm"},
@@ -172,45 +178,66 @@ func TestAggregatorRun(t *testing.T) {
 				Name:                "T-1000",
 				RepresentativeCount: 1,
 			},
-		})
-		require.Zero(t, metricset)
+		}
+		if i%2 == 0 {
+			event.Event = model.Event{Duration: 100 * time.Millisecond}
+		}
+		agg.AggregateTransaction(event, &overflow)
+		require.Len(t, overflow, 0)
 	}
 	for i := 0; i < 800; i++ {
-		metricset := agg.AggregateTransaction(model.APMEvent{
+		overflow := make(model.Batch, 0, 1)
+		event := model.APMEvent{
+			Event:     model.Event{Duration: time.Second},
+			Timestamp: now,
 			Processor: model.TransactionProcessor,
 			Transaction: &model.Transaction{
 				Name:                "T-800",
 				RepresentativeCount: 1,
 			},
-		})
-		require.Zero(t, metricset)
+		}
+		if i%2 == 0 {
+			event.Event = model.Event{Duration: 100 * time.Millisecond}
+		}
+		agg.AggregateTransaction(event, &overflow)
+		require.Len(t, overflow, 0)
 	}
 
 	go agg.Run()
 	defer agg.Stop(context.Background())
+	// Stop the aggregator to ensure all metrics are published.
+	assert.NoError(t, agg.Stop(context.Background()))
 
-	batch := expectBatch(t, batches)
-	metricsets := batchMetricsets(t, batch)
-	require.Len(t, metricsets, 2)
-	sort.Slice(metricsets, func(i, j int) bool {
-		return metricsets[i].Transaction.Name < metricsets[j].Transaction.Name
-	})
+	for i := 0; i < 3; i++ {
+		t.Log(i)
+		batch := expectBatch(t, batches)
+		metricsets := batchMetricsets(t, batch)
+		require.Len(t, metricsets, 2)
+		sort.Slice(metricsets, func(i, j int) bool {
+			return metricsets[i].Transaction.Name < metricsets[j].Transaction.Name
+		})
 
-	assert.Equal(t, "T-1000", metricsets[0].Transaction.Name)
-	assert.Equal(t, model.Labels{
-		"department_name": model.LabelValue{Value: "apm"},
-		"organization":    model.LabelValue{Value: "observability"},
-		"company":         model.LabelValue{Value: "elastic"},
-	}, metricsets[0].Labels)
-	assert.Equal(t, model.NumericLabels{
-		"user_id":     model.NumericLabelValue{Value: 100},
-		"cost_center": model.NumericLabelValue{Value: 10},
-	}, metricsets[0].NumericLabels)
-	assert.Equal(t, []int64{1000}, metricsets[0].Transaction.DurationHistogram.Counts)
-	assert.Equal(t, "T-800", metricsets[1].Transaction.Name)
-	assert.Empty(t, metricsets[1].Labels)
-	assert.Empty(t, metricsets[1].NumericLabels)
-	assert.Equal(t, []int64{800}, metricsets[1].Transaction.DurationHistogram.Counts)
+		assert.Equal(t, "T-1000", metricsets[0].Transaction.Name)
+		assert.Equal(t, model.Labels{
+			"department_name": model.LabelValue{Value: "apm"},
+			"organization":    model.LabelValue{Value: "observability"},
+			"company":         model.LabelValue{Value: "elastic"},
+		}, metricsets[0].Labels)
+		assert.Equal(t, model.NumericLabels{
+			"user_id":     model.NumericLabelValue{Value: 100},
+			"cost_center": model.NumericLabelValue{Value: 10},
+		}, metricsets[0].NumericLabels)
+		assert.Equal(t, []int64{500, 500}, metricsets[0].Transaction.DurationHistogram.Counts)
+		assert.Equal(t, "T-800", metricsets[1].Transaction.Name)
+		assert.Empty(t, metricsets[1].Labels)
+		assert.Empty(t, metricsets[1].NumericLabels)
+		assert.Equal(t, []int64{400, 400}, metricsets[1].Transaction.DurationHistogram.Counts)
+		for _, event := range metricsets {
+			assert.Equal(t, now.Truncate(intervals[i]), event.Timestamp)
+			t.Log(event.Event.Duration.String())
+			assert.Equal(t, intervals[i], event.Event.Duration)
+		}
+	}
 
 	select {
 	case <-batches:
@@ -248,14 +275,15 @@ func TestAggregatorRunPublishErrors(t *testing.T) {
 	defer agg.Stop(context.Background())
 
 	for i := 0; i < 2; i++ {
-		metricset := agg.AggregateTransaction(model.APMEvent{
+		overflow := make(model.Batch, 0, 1)
+		agg.AggregateTransaction(model.APMEvent{
 			Processor: model.TransactionProcessor,
 			Transaction: &model.Transaction{
 				Name:                "T-1000",
 				RepresentativeCount: 1,
 			},
-		})
-		require.Zero(t, metricset)
+		}, &overflow)
+		require.Len(t, overflow, 0)
 		expectBatch(t, batches)
 	}
 
@@ -286,22 +314,23 @@ func TestAggregateRepresentativeCount(t *testing.T) {
 	agg.AggregateTransaction(model.APMEvent{
 		Processor:   model.TransactionProcessor,
 		Transaction: &model.Transaction{Name: "fnord", RepresentativeCount: 1},
-	})
+	}, nil)
 	agg.AggregateTransaction(model.APMEvent{
 		Processor:   model.TransactionProcessor,
 		Transaction: &model.Transaction{Name: "fnord", RepresentativeCount: 1.5},
-	})
+	}, nil)
 
 	// For non-positive RepresentativeCounts, no metrics will be accumulated.
 	for _, representativeCount := range []float64{-1, 0} {
-		m := agg.AggregateTransaction(model.APMEvent{
+		overflow := make(model.Batch, 0, 1)
+		agg.AggregateTransaction(model.APMEvent{
 			Processor: model.TransactionProcessor,
 			Transaction: &model.Transaction{
 				Name:                "foo",
 				RepresentativeCount: representativeCount,
 			},
-		})
-		assert.Zero(t, m)
+		}, &overflow)
+		assert.Len(t, overflow, 0)
 	}
 
 	for _, test := range []struct {
@@ -317,15 +346,16 @@ func TestAggregateRepresentativeCount(t *testing.T) {
 		representativeCount: 1.50, // round half away from zero
 		expectedCount:       2,
 	}} {
-		m := agg.AggregateTransaction(model.APMEvent{
+		overflow := make(model.Batch, 0, 1)
+		agg.AggregateTransaction(model.APMEvent{
 			Processor: model.TransactionProcessor,
 			Transaction: &model.Transaction{
 				Name:                "foo",
 				RepresentativeCount: test.representativeCount,
 			},
-		})
-		require.NotNil(t, m.Metricset)
-
+		}, &overflow)
+		require.Len(t, overflow, 1)
+		m := overflow[0]
 		m.Timestamp = time.Time{}
 		assert.Equal(t, model.APMEvent{
 			Processor: model.MetricsetProcessor,
@@ -376,7 +406,7 @@ func TestAggregateTimestamp(t *testing.T) {
 			Timestamp:   ts,
 			Processor:   model.TransactionProcessor,
 			Transaction: &model.Transaction{Name: "name", RepresentativeCount: 1},
-		})
+		}, nil)
 	}
 
 	go agg.Run()
@@ -421,15 +451,16 @@ func testHDRHistogramSignificantFigures(t *testing.T, sigfigs int) {
 			101110 * time.Microsecond,
 			101111 * time.Microsecond,
 		} {
-			metricset := agg.AggregateTransaction(model.APMEvent{
+			overflow := make(model.Batch, 0, 1)
+			agg.AggregateTransaction(model.APMEvent{
 				Processor: model.TransactionProcessor,
 				Event:     model.Event{Duration: duration},
 				Transaction: &model.Transaction{
 					Name:                "T-1000",
 					RepresentativeCount: 1,
 				},
-			})
-			require.Zero(t, metricset)
+			}, &overflow)
+			require.Len(t, overflow, 0)
 		}
 
 		go agg.Run()
@@ -503,6 +534,7 @@ func TestAggregationFields(t *testing.T) {
 	var expected []model.APMEvent
 	addExpectedCount := func(expectedCount int64) {
 		expectedEvent := input
+		expectedEvent.Event = model.Event{Duration: 100 * time.Millisecond}
 		expectedEvent.Transaction = nil
 		expectedEvent.Event.Outcome = input.Event.Outcome
 		expectedEvent.Processor = model.MetricsetProcessor
@@ -525,15 +557,19 @@ func TestAggregationFields(t *testing.T) {
 	for _, field := range inputFields {
 		for _, value := range []string{"something", "anything"} {
 			*field = value
-			assert.Zero(t, agg.AggregateTransaction(input))
-			assert.Zero(t, agg.AggregateTransaction(input))
+			overflow := make(model.Batch, 0, 1)
+			agg.AggregateTransaction(input, &overflow)
+			agg.AggregateTransaction(input, &overflow)
+			assert.Len(t, overflow, 0)
 			addExpectedCount(2)
 		}
 	}
 	for _, field := range boolInputFields {
 		*field = true
-		assert.Zero(t, agg.AggregateTransaction(input))
-		assert.Zero(t, agg.AggregateTransaction(input))
+		overflow := make(model.Batch, 0, 1)
+		agg.AggregateTransaction(input, &overflow)
+		agg.AggregateTransaction(input, &overflow)
+		assert.Len(t, overflow, 0)
 		addExpectedCount(2)
 	}
 
@@ -544,8 +580,10 @@ func TestAggregationFields(t *testing.T) {
 		input.Kubernetes.PodName = ""
 		for _, value := range []string{"something", "anything"} {
 			input.Host.Hostname = value
-			assert.Zero(t, agg.AggregateTransaction(input))
-			assert.Zero(t, agg.AggregateTransaction(input))
+			overflow := make(model.Batch, 0, 1)
+			agg.AggregateTransaction(input, &overflow)
+			agg.AggregateTransaction(input, &overflow)
+			assert.Len(t, overflow, 0)
 			addExpectedCount(2)
 		}
 
@@ -553,8 +591,10 @@ func TestAggregationFields(t *testing.T) {
 		// non-root traces.
 		for _, value := range []string{"something", "anything"} {
 			input.Parent.ID = value
-			assert.Zero(t, agg.AggregateTransaction(input))
-			assert.Zero(t, agg.AggregateTransaction(input))
+			overflow := make(model.Batch, 0, 1)
+			agg.AggregateTransaction(input, &overflow)
+			agg.AggregateTransaction(input, &overflow)
+			assert.Len(t, overflow, 0)
 		}
 		addExpectedCount(4)
 	}
@@ -583,8 +623,9 @@ func BenchmarkAggregateTransaction(b *testing.B) {
 	}
 
 	b.RunParallel(func(pb *testing.PB) {
+		overflow := make(model.Batch, 0, 1)
 		for pb.Next() {
-			agg.AggregateTransaction(event)
+			agg.AggregateTransaction(event, &overflow)
 		}
 	})
 }
