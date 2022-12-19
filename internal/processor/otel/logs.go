@@ -40,6 +40,7 @@ import (
 
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/plog"
+	semconv "go.opentelemetry.io/collector/semconv/v1.5.0"
 
 	"github.com/elastic/apm-data/model"
 	apmserverlogs "github.com/elastic/apm-server/internal/logs"
@@ -95,6 +96,13 @@ func (c *Consumer) convertInstrumentationLibraryLogs(
 	}
 }
 
+func isError(record plog.LogRecord) bool {
+	_, typeOk := record.Attributes().Get(semconv.AttributeExceptionType)
+	_, messageOk := record.Attributes().Get(semconv.AttributeExceptionMessage)
+	eventName, eventNameOk := record.Attributes().Get("event.name")
+	return typeOk || messageOk || (eventNameOk && eventName.Str() == "crash")
+}
+
 func (c *Consumer) convertLogRecord(
 	record plog.LogRecord,
 	baseEvent model.APMEvent,
@@ -120,10 +128,54 @@ func (c *Consumer) convertLogRecord(
 		}
 		event.Span.ID = spanID.HexString()
 	}
-	if attrs := record.Attributes(); attrs.Len() > 0 {
+	attrs := record.Attributes()
+	if isError(record) {
+		event.Processor = model.ErrorProcessor
+		setErrorLabels(attrs, &event)
+		updateErrorType(attrs, &event)
+	} else {
 		setLabels(attrs, &event)
 	}
 	return event
+}
+
+func updateErrorType(m pcommon.Map, event *model.APMEvent) {
+	if event.Error == nil {
+		event.Error = &model.Error{}
+	}
+
+	event.Error.Type = "crash"
+}
+
+func setErrorLabels(m pcommon.Map, event *model.APMEvent) {
+	var exceptionEscaped bool
+	var exceptionMessage, exceptionStacktrace, exceptionType string
+	m.Range(func(k string, v pcommon.Value) bool {
+		switch k {
+		case semconv.AttributeExceptionMessage:
+			exceptionMessage = v.Str()
+		case semconv.AttributeExceptionStacktrace:
+			exceptionStacktrace = v.Str()
+		case semconv.AttributeExceptionType:
+			exceptionType = v.Str()
+		case semconv.AttributeExceptionEscaped:
+			exceptionEscaped = v.Bool()
+		default:
+			setLabel(replaceDots(k), event, ifaceAttributeValue(v))
+		}
+		return true
+	})
+
+	if exceptionMessage != "" || exceptionType != "" {
+		// Per OpenTelemetry semantic conventions:
+		//   `At least one of the following sets of attributes is required:
+		//   - exception.type
+		//   - exception.message`
+		event.Error = convertOpenTelemetryExceptionSpanEvent(
+			exceptionType, exceptionMessage, exceptionStacktrace,
+			exceptionEscaped, event.Service.Language.Name,
+		)
+	}
 }
 
 func setLabels(m pcommon.Map, event *model.APMEvent) {

@@ -36,9 +36,12 @@ package otel_test
 
 import (
 	"context"
+	"net/netip"
 	"testing"
 	"time"
 
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/stretchr/testify/assert"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/plog"
@@ -111,6 +114,162 @@ func TestConsumerConsumeLogs(t *testing.T) {
 	test("float_body", 1234.1234, "1234.1234")
 	test("bool_body", true, "true")
 	// TODO(marclop): How to test map body
+}
+
+func TestConsumerConsumeLogsException(t *testing.T) {
+	logs := plog.NewLogs()
+	resourceLogs := logs.ResourceLogs().AppendEmpty()
+	resourceAttrs := logs.ResourceLogs().At(0).Resource().Attributes()
+	resourceAttrs.PutStr(semconv.AttributeTelemetrySDKLanguage, "java")
+	resourceAttrs.PutStr("key0", "zero")
+	scopeLogs := resourceLogs.ScopeLogs().AppendEmpty()
+
+	record1 := newLogRecord("foo")
+	record1.Attributes().PutStr("key1", "one")
+	record1.CopyTo(scopeLogs.LogRecords().AppendEmpty())
+
+	record2 := newLogRecord("bar")
+	record2.Attributes().PutStr("exception.type", "HighLevelException")
+	record2.Attributes().PutStr("exception.message", "MidLevelException: LowLevelException")
+	record2.Attributes().PutStr("exception.stacktrace", `
+HighLevelException: MidLevelException: LowLevelException
+	at Junk.a(Junk.java:13)
+	at Junk.main(Junk.java:4)
+Caused by: MidLevelException: LowLevelException
+	at Junk.c(Junk.java:23)
+	at Junk.b(Junk.java:17)
+	at Junk.a(Junk.java:11)
+	... 1 more
+	Suppressed: java.lang.ArithmeticException: / by zero
+		at Junk.c(Junk.java:25)
+		... 3 more
+Caused by: LowLevelException
+	at Junk.e(Junk.java:37)
+	at Junk.d(Junk.java:34)
+	at Junk.c(Junk.java:21)
+	... 3 more`[1:])
+	record2.CopyTo(scopeLogs.LogRecords().AppendEmpty())
+
+	var processed model.Batch
+	var processor model.ProcessBatchFunc = func(_ context.Context, batch *model.Batch) error {
+		if processed != nil {
+			panic("already processes batch")
+		}
+		processed = *batch
+		assert.NotNil(t, processed[0].Timestamp)
+		processed[0].Timestamp = time.Time{}
+		return nil
+	}
+	consumer := otel.Consumer{Processor: processor}
+	assert.NoError(t, consumer.ConsumeLogs(context.Background(), logs))
+
+	assert.Len(t, processed, 2)
+	assert.Equal(t, model.Labels{"key0": {Global: true, Value: "zero"}, "key1": {Value: "one"}}, processed[0].Labels)
+	assert.Empty(t, processed[0].NumericLabels)
+	out := cmp.Diff(model.APMEvent{
+		Service: model.Service{
+			Name: "unknown",
+			Language: model.Language{
+				Name: "java",
+			},
+		},
+		Agent: model.Agent{
+			Name:    "otlp/java",
+			Version: "unknown",
+		},
+		Event: model.Event{
+			Severity: int64(plog.SeverityNumberInfo),
+		},
+		Labels:        model.Labels{"key0": {Global: true, Value: "zero"}},
+		NumericLabels: model.NumericLabels{},
+		Processor:     model.ErrorProcessor,
+		Message:       "bar",
+		Trace:         model.Trace{ID: "01000000000000000000000000000000"},
+		Span:          &model.Span{ID: "0200000000000000"},
+		Log: model.Log{
+			Level: "Info",
+		},
+		Error: &model.Error{
+			Type: "crash",
+			Exception: &model.Exception{
+				Type:    "HighLevelException",
+				Message: "MidLevelException: LowLevelException",
+				Handled: newBool(true),
+				Stacktrace: []*model.StacktraceFrame{{
+					Classname: "Junk",
+					Function:  "a",
+					Filename:  "Junk.java",
+					Lineno:    newInt(13),
+				}, {
+					Classname: "Junk",
+					Function:  "main",
+					Filename:  "Junk.java",
+					Lineno:    newInt(4),
+				}},
+				Cause: []model.Exception{{
+					Message: "MidLevelException: LowLevelException",
+					Handled: newBool(true),
+					Stacktrace: []*model.StacktraceFrame{{
+						Classname: "Junk",
+						Function:  "c",
+						Filename:  "Junk.java",
+						Lineno:    newInt(23),
+					}, {
+						Classname: "Junk",
+						Function:  "b",
+						Filename:  "Junk.java",
+						Lineno:    newInt(17),
+					}, {
+						Classname: "Junk",
+						Function:  "a",
+						Filename:  "Junk.java",
+						Lineno:    newInt(11),
+					}, {
+						Classname: "Junk",
+						Function:  "main",
+						Filename:  "Junk.java",
+						Lineno:    newInt(4),
+					}},
+					Cause: []model.Exception{{
+						Message: "LowLevelException",
+						Handled: newBool(true),
+						Stacktrace: []*model.StacktraceFrame{{
+							Classname: "Junk",
+							Function:  "e",
+							Filename:  "Junk.java",
+							Lineno:    newInt(37),
+						}, {
+							Classname: "Junk",
+							Function:  "d",
+							Filename:  "Junk.java",
+							Lineno:    newInt(34),
+						}, {
+							Classname: "Junk",
+							Function:  "c",
+							Filename:  "Junk.java",
+							Lineno:    newInt(21),
+						}, {
+							Classname: "Junk",
+							Function:  "b",
+							Filename:  "Junk.java",
+							Lineno:    newInt(17),
+						}, {
+							Classname: "Junk",
+							Function:  "a",
+							Filename:  "Junk.java",
+							Lineno:    newInt(11),
+						}, {
+							Classname: "Junk",
+							Function:  "main",
+							Filename:  "Junk.java",
+							Lineno:    newInt(4),
+						}},
+					}},
+				}},
+			},
+		},
+	}, processed[1], cmpopts.IgnoreFields(model.APMEvent{}, "Error.ID", "Timestamp"), cmpopts.IgnoreTypes(netip.Addr{}))
+	assert.Empty(t, out)
 }
 
 func TestConsumerConsumeLogsLabels(t *testing.T) {
