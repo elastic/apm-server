@@ -4,7 +4,7 @@ metadata:
   name: apm-server
   namespace: default
 spec:
-  version: 8.6.0-919399a0-SNAPSHOT
+  version: 8.6.0-d5c0a6be-SNAPSHOT
   mode: fleet
   policyID: eck-apm-server
   kibanaRef:
