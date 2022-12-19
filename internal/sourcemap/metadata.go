@@ -24,6 +24,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"sync"
 	"time"
 
@@ -88,7 +89,25 @@ func (s *MetadataCachingFetcher) Fetch(ctx context.Context, name, version, path 
 		return s.backend.Fetch(ctx, name, version, path)
 	}
 
+	// Try again
+	key.path = maybeParseURLPath(path)
+
+	if _, found := s.set[key]; found {
+		// Only fetch from ES if the sourcemap id exists
+		return s.backend.Fetch(ctx, name, version, path)
+	}
+
 	return nil, nil
+}
+
+// maybeParseURLPath attempts to parse s as a URL, returning its path component
+// if successful. If s cannot be parsed as a URL, s is returned.
+func maybeParseURLPath(s string) string {
+	url, err := url.Parse(s)
+	if err != nil {
+		return s
+	}
+	return url.Path
 }
 
 func (s *MetadataCachingFetcher) update(ms []Metadata) {

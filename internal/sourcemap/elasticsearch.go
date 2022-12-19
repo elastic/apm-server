@@ -26,7 +26,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"net/url"
 
 	"github.com/go-sourcemap/sourcemap"
 	"github.com/pkg/errors"
@@ -181,14 +180,4 @@ func requestBody(name, version, path string) map[string]interface{} {
 			),
 		),
 	)
-}
-
-// maybeParseURLPath attempts to parse s as a URL, returning its path component
-// if successful. If s cannot be parsed as a URL, s is returned.
-func maybeParseURLPath(s string) string {
-	url, err := url.Parse(s)
-	if err != nil {
-		return s
-	}
-	return url.Path
 }
