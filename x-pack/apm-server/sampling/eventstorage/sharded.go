@@ -11,7 +11,7 @@ import (
 	"github.com/cespare/xxhash/v2"
 	"github.com/hashicorp/go-multierror"
 
-	"github.com/elastic/apm-server/internal/model"
+	"github.com/elastic/apm-data/model"
 )
 
 // ShardedReadWriter provides sharded, locked, access to a Storage.

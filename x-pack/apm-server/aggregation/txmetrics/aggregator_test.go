@@ -18,7 +18,7 @@ import (
 	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zaptest/observer"
 
-	"github.com/elastic/apm-server/internal/model"
+	"github.com/elastic/apm-data/model"
 	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/txmetrics"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/monitoring"

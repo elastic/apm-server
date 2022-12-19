@@ -240,13 +240,11 @@ type ConsoleOutputConfig struct {
 
 // ElasticsearchOutputConfig holds APM Server libbeat Elasticsearch output configuration.
 type ElasticsearchOutputConfig struct {
-	Enabled  bool     `json:"enabled"`
-	Hosts    []string `json:"hosts,omitempty"`
-	Username string   `json:"username,omitempty"`
-	Password string   `json:"password,omitempty"`
-	APIKey   string   `json:"api_key,omitempty"`
-
-	// modelindexer settings
+	Enabled       bool          `json:"enabled"`
+	Hosts         []string      `json:"hosts,omitempty"`
+	Username      string        `json:"username,omitempty"`
+	Password      string        `json:"password,omitempty"`
+	APIKey        string        `json:"api_key,omitempty"`
 	FlushBytes    string        `json:"flush_bytes,omitempty"`
 	FlushInterval time.Duration `json:"flush_interval,omitempty"`
 }

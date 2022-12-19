@@ -10,6 +10,7 @@ https://github.com/elastic/apm-server/compare/8.5\...main[View commits]
 - `context.http.response.*_size` fields now enforce integer values {pull}9429[9429]
 - `observer.id` and `observer.ephemeral_id` are no longer added to APM documents {pull}9412[9412]
 - `timeseries.instance` has been removed from transaction metrics docs; it was never used {pull}9565[9565]
+- `transaction.failure_count` has been removed. `transaction.success_count` type has changed to `aggregated_metric_double` {pull}9791[9791]
 
 [float]
 ==== Deprecations
@@ -36,3 +37,4 @@ https://github.com/elastic/apm-server/compare/8.5\...main[View commits]
 - Tune internal server configuration based on available cgroup or machine RAM, improving resource utilization and performance {pull}9358[9358]
 - Disallow auto-scaling of active indexers when Elasticsarch 429 response rate exceeds 1% of total requests issued {pull}9463[9463]
 - We now record `transaction.representative_count` and `span.representative_count` -- the inverse sample rate {pull}9458[9458]
+- Metrics data streams now use synthetic source {pull}9756[9756]

@@ -1,8 +1,14 @@
 - version: generated
   changes:
-    - description: Placeholder
+    - description: Enable synthetic source for metrics data streams
       type: enhancement
-      link: https://github.com/elastic/apm-server/pull/123
+      link: https://github.com/elastic/apm-server/pull/9756
+    - description: Remove `transaction.failure_count` and change `transaction.success_count` type to aggregate_metric_double
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/9791
+    - description: Added agent health metrics
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/9672
 - version: "8.6.0"
   changes:
     - description: Change `ecs.version` to a `constant_keyword` field

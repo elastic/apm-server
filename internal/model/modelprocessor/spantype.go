@@ -20,7 +20,7 @@ package modelprocessor
 import (
 	"context"
 
-	"github.com/elastic/apm-server/internal/model"
+	"github.com/elastic/apm-data/model"
 )
 
 // SetUnknownSpanType is a model.BatchProcessor that sets span.type

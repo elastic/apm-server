@@ -21,8 +21,8 @@ import (
 	"context"
 	"net"
 
+	"github.com/elastic/apm-data/model"
 	"github.com/elastic/apm-server/internal/beater/interceptors"
-	"github.com/elastic/apm-server/internal/model"
 )
 
 // SetClientMetadata sets metadata relating to the gRPC client in end-user

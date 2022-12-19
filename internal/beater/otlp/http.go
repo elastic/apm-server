@@ -18,13 +18,19 @@
 package otlp
 
 import (
-	"context"
+	"fmt"
+	"io"
+	"net/http"
 
-	"github.com/pkg/errors"
-	"go.opentelemetry.io/collector/receiver/otlpreceiver"
+	"go.opentelemetry.io/collector/pdata/plog/plogotlp"
+	"go.opentelemetry.io/collector/pdata/pmetric/pmetricotlp"
+	"go.opentelemetry.io/collector/pdata/ptrace/ptraceotlp"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/proto"
 
+	"github.com/elastic/apm-data/model"
 	"github.com/elastic/apm-server/internal/beater/request"
-	"github.com/elastic/apm-server/internal/model"
 	"github.com/elastic/apm-server/internal/processor/otel"
 	"github.com/elastic/elastic-agent-libs/monitoring"
 )
@@ -44,28 +50,121 @@ func init() {
 	monitoring.NewFunc(httpMetricsRegistry, "consumer", httpMonitoredConsumer.collect, monitoring.Report)
 }
 
-func NewHTTPHandlers(processor model.BatchProcessor) (*otlpreceiver.HTTPHandlers, error) {
+func NewHTTPHandlers(processor model.BatchProcessor) HTTPHandlers {
 	// TODO(axw) stop assuming we have only one OTLP HTTP consumer running
 	// at any time, and instead aggregate metrics from consumers that are
 	// dynamically registered and unregistered.
 	consumer := &otel.Consumer{Processor: processor}
 	httpMonitoredConsumer.set(consumer)
+	return HTTPHandlers{consumer: consumer}
+}
 
-	tracesHandler, err := otlpreceiver.TracesHTTPHandler(context.Background(), consumer)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to create OTLP trace receiver")
+// HTTPHandlers encapsulates http.HandlerFuncs for handling traces, metrics, and logs.
+type HTTPHandlers struct {
+	consumer *otel.Consumer
+}
+
+// HandleTraces is an http.HandlerFunc that receives a protobuf-encoded traces export
+// request, and processes it with the handler's OTLP consumer.
+func (h HTTPHandlers) HandleTraces(w http.ResponseWriter, r *http.Request) {
+	req := ptraceotlp.NewExportRequest()
+	if err := h.readRequest(r, req); err != nil {
+		h.writeError(w, err, http.StatusBadRequest)
+		return
 	}
-	metricsHandler, err := otlpreceiver.MetricsHTTPHandler(context.Background(), consumer)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to create OTLP metrics receiver")
+	if err := h.consumer.ConsumeTraces(r.Context(), req.Traces()); err != nil {
+		h.writeError(w, err, http.StatusInternalServerError)
+		return
 	}
-	logsHandler, err := otlpreceiver.LogsHTTPHandler(context.Background(), consumer)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to create OTLP logs receiver")
+	if err := h.writeResponse(w, ptraceotlp.NewExportResponse()); err != nil {
+		h.writeError(w, err, http.StatusInternalServerError)
+		return
 	}
-	return &otlpreceiver.HTTPHandlers{
-		TraceHandler:   tracesHandler,
-		MetricsHandler: metricsHandler,
-		LogsHandler:    logsHandler,
-	}, nil
+}
+
+// HandleMetrics is an http.HandlerFunc that receives a protobuf-encoded metrics export
+// request, and processes it with the handler's OTLP consumer.
+func (h HTTPHandlers) HandleMetrics(w http.ResponseWriter, r *http.Request) {
+	req := pmetricotlp.NewExportRequest()
+	if err := h.readRequest(r, req); err != nil {
+		h.writeError(w, err, http.StatusBadRequest)
+		return
+	}
+	if err := h.consumer.ConsumeMetrics(r.Context(), req.Metrics()); err != nil {
+		h.writeError(w, err, http.StatusInternalServerError)
+		return
+	}
+	if err := h.writeResponse(w, pmetricotlp.NewExportResponse()); err != nil {
+		h.writeError(w, err, http.StatusInternalServerError)
+		return
+	}
+}
+
+// HandleLogs is an http.HandlerFunc that receives a protobuf-encoded logs export
+// request, and processes it with the handler's OTLP consumer.
+func (h HTTPHandlers) HandleLogs(w http.ResponseWriter, r *http.Request) {
+	req := plogotlp.NewExportRequest()
+	if err := h.readRequest(r, req); err != nil {
+		h.writeError(w, err, http.StatusBadRequest)
+		return
+	}
+	if err := h.consumer.ConsumeLogs(r.Context(), req.Logs()); err != nil {
+		h.writeError(w, err, http.StatusInternalServerError)
+		return
+	}
+	if err := h.writeResponse(w, plogotlp.NewExportResponse()); err != nil {
+		h.writeError(w, err, http.StatusInternalServerError)
+		return
+	}
+}
+
+type protoUnmarshaler interface {
+	UnmarshalProto([]byte) error
+}
+
+type protoMarshaler interface {
+	MarshalProto() ([]byte, error)
+}
+
+func (h HTTPHandlers) readRequest(req *http.Request, out protoUnmarshaler) error {
+	body, err := io.ReadAll(req.Body)
+	if err != nil {
+		return fmt.Errorf("failed to read request body: %w", err)
+	}
+	if err := out.UnmarshalProto(body); err != nil {
+		return fmt.Errorf("failed to unmarshal request body: %w", err)
+	}
+	return nil
+}
+
+func (h HTTPHandlers) writeResponse(w http.ResponseWriter, m protoMarshaler) error {
+	body, err := m.MarshalProto()
+	if err != nil {
+		return fmt.Errorf("failed to marshal response: %w", err)
+	}
+	w.Header().Set("Content-Type", "application/x-protobuf")
+	w.WriteHeader(http.StatusOK)
+	w.Write(body)
+	return nil
+}
+
+func (h HTTPHandlers) writeError(w http.ResponseWriter, err error, statusCode int) {
+	s, ok := status.FromError(err)
+	if !ok {
+		if statusCode == http.StatusBadRequest {
+			s = status.New(codes.InvalidArgument, err.Error())
+		} else {
+			s = status.New(codes.Unknown, err.Error())
+		}
+	}
+	msg, err := proto.Marshal(s.Proto())
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(`{"code": 13, "message": "failed to marshal error message"}`))
+		return
+	}
+	w.Header().Set("Content-Type", "application/x-protobuf")
+	w.WriteHeader(statusCode)
+	w.Write(msg)
 }

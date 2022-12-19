@@ -32,6 +32,7 @@ import (
 	"github.com/pkg/errors"
 	"go.elastic.co/apm/module/apmgrpc/v2"
 	"go.elastic.co/apm/v2"
+	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 
@@ -46,8 +47,12 @@ import (
 	agentconfig "github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/monitoring"
+	"github.com/elastic/elastic-agent-libs/transport"
+	"github.com/elastic/elastic-agent-libs/transport/tlscommon"
+	"github.com/elastic/go-docappender"
 	"github.com/elastic/go-ucfg"
 
+	"github.com/elastic/apm-data/model"
 	"github.com/elastic/apm-server/internal/agentcfg"
 	"github.com/elastic/apm-server/internal/beater/auth"
 	"github.com/elastic/apm-server/internal/beater/config"
@@ -57,8 +62,6 @@ import (
 	"github.com/elastic/apm-server/internal/elasticsearch"
 	"github.com/elastic/apm-server/internal/idxmgmt"
 	"github.com/elastic/apm-server/internal/kibana"
-	"github.com/elastic/apm-server/internal/model"
-	"github.com/elastic/apm-server/internal/model/modelindexer"
 	"github.com/elastic/apm-server/internal/model/modelprocessor"
 	"github.com/elastic/apm-server/internal/publish"
 	"github.com/elastic/apm-server/internal/sourcemap"
@@ -228,11 +231,6 @@ func (s *Runner) Run(ctx context.Context) error {
 				}
 			}()
 		}
-
-		// BUG(axw) fleet.hosts isn't being sent to APM Server in ESS, so assume co-location.
-		if len(s.fleetConfig.Hosts) == 0 {
-			s.fleetConfig.Hosts = []string{"https://localhost:8220"}
-		}
 	}
 
 	if s.config.JavaAttacherConfig.Enabled {
@@ -290,7 +288,7 @@ func (s *Runner) Run(ctx context.Context) error {
 		return err
 	}
 	defer esoutput.DeregisterConnectCallback(callbackUUID)
-	newElasticsearchClient := func(cfg *elasticsearch.Config) (elasticsearch.Client, error) {
+	newElasticsearchClient := func(cfg *elasticsearch.Config) (*elasticsearch.Client, error) {
 		httpTransport, err := elasticsearch.NewHTTPTransport(cfg)
 		if err != nil {
 			return nil, err
@@ -479,7 +477,7 @@ func (s *Runner) waitReady(
 	tracer *apm.Tracer,
 ) error {
 	var preconditions []func(context.Context) error
-	var esOutputClient elasticsearch.Client
+	var esOutputClient *elasticsearch.Client
 	if s.elasticsearchOutputConfig != nil {
 		esConfig := elasticsearch.DefaultConfig()
 		err := s.elasticsearchOutputConfig.Unpack(&esConfig)
@@ -505,7 +503,7 @@ func (s *Runner) waitReady(
 		}
 		if requiredLicenseLevel > licenser.Basic {
 			preconditions = append(preconditions, func(ctx context.Context) error {
-				license, err := elasticsearch.GetLicense(ctx, esOutputClient)
+				license, err := getElasticsearchLicense(ctx, esOutputClient)
 				if err != nil {
 					return errors.Wrap(err, "error getting Elasticsearch licensing information")
 				}
@@ -554,10 +552,10 @@ func (s *Runner) waitReady(
 
 // newFinalBatchProcessor returns the final model.BatchProcessor that publishes events,
 // and a cleanup function which should be called on server shutdown. If the output is
-// "elasticsearch", then we use modelindexer; otherwise we use the libbeat publisher.
+// "elasticsearch", then we use docappender; otherwise we use the libbeat publisher.
 func (s *Runner) newFinalBatchProcessor(
 	tracer *apm.Tracer,
-	newElasticsearchClient func(cfg *elasticsearch.Config) (elasticsearch.Client, error),
+	newElasticsearchClient func(cfg *elasticsearch.Config) (*elasticsearch.Client, error),
 	memLimit float64,
 ) (model.BatchProcessor, func(context.Context) error, error) {
 
@@ -603,39 +601,40 @@ func (s *Runner) newFinalBatchProcessor(
 	if err != nil {
 		return nil, nil, err
 	}
-	var scalingCfg modelindexer.ScalingConfig
+	var scalingCfg docappender.ScalingConfig
 	if enabled := esConfig.Scaling.Enabled; enabled != nil {
 		scalingCfg.Disabled = !*enabled
 	}
-	opts := modelindexer.Config{
+	opts := docappender.Config{
 		CompressionLevel: esConfig.CompressionLevel,
 		FlushBytes:       flushBytes,
 		FlushInterval:    esConfig.FlushInterval,
 		Tracer:           tracer,
 		MaxRequests:      esConfig.MaxRequests,
 		Scaling:          scalingCfg,
+		Logger:           zap.New(s.logger.Core(), zap.WithCaller(true)),
 	}
-	opts = modelIndexerConfig(opts, memLimit, s.logger)
-	indexer, err := modelindexer.New(client, opts)
+	opts = docappenderConfig(opts, memLimit, s.logger)
+	appender, err := docappender.New(client, opts)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	// Install our own libbeat-compatible metrics callback which uses the modelindexer stats.
+	// Install our own libbeat-compatible metrics callback which uses the docappender stats.
 	// All the metrics below are required to be reported to be able to display all relevant
 	// fields in the Stack Monitoring UI.
 	monitoring.NewFunc(libbeatMonitoringRegistry, "output.write", func(_ monitoring.Mode, v monitoring.Visitor) {
 		v.OnRegistryStart()
 		defer v.OnRegistryFinished()
 		v.OnKey("bytes")
-		v.OnInt(indexer.Stats().BytesTotal)
+		v.OnInt(appender.Stats().BytesTotal)
 	})
 	outputType := monitoring.NewString(libbeatMonitoringRegistry.GetRegistry("output"), "type")
 	outputType.Set("elasticsearch")
 	monitoring.NewFunc(libbeatMonitoringRegistry, "output.events", func(_ monitoring.Mode, v monitoring.Visitor) {
 		v.OnRegistryStart()
 		defer v.OnRegistryFinished()
-		stats := indexer.Stats()
+		stats := appender.Stats()
 		v.OnKey("acked")
 		v.OnInt(stats.Indexed)
 		v.OnKey("active")
@@ -653,13 +652,13 @@ func (s *Runner) newFinalBatchProcessor(
 		v.OnRegistryStart()
 		defer v.OnRegistryFinished()
 		v.OnKey("total")
-		v.OnInt(indexer.Stats().Added)
+		v.OnInt(appender.Stats().Added)
 	})
 	monitoring.Default.Remove("output")
 	monitoring.NewFunc(monitoring.Default, "output.elasticsearch.bulk_requests", func(_ monitoring.Mode, v monitoring.Visitor) {
 		v.OnRegistryStart()
 		defer v.OnRegistryFinished()
-		stats := indexer.Stats()
+		stats := appender.Stats()
 		v.OnKey("available")
 		v.OnInt(stats.AvailableBulkRequests)
 		v.OnKey("completed")
@@ -668,7 +667,7 @@ func (s *Runner) newFinalBatchProcessor(
 	monitoring.NewFunc(monitoring.Default, "output.elasticsearch.indexers", func(_ monitoring.Mode, v monitoring.Visitor) {
 		v.OnRegistryStart()
 		defer v.OnRegistryFinished()
-		stats := indexer.Stats()
+		stats := appender.Stats()
 		v.OnKey("active")
 		v.OnInt(stats.IndexersActive)
 		v.OnKey("created")
@@ -676,19 +675,19 @@ func (s *Runner) newFinalBatchProcessor(
 		v.OnKey("destroyed")
 		v.OnInt(stats.IndexersDestroyed)
 	})
-	return indexer, indexer.Close, nil
+	return newDocappenderBatchProcessor(appender), appender.Close, nil
 }
 
-func modelIndexerConfig(
-	opts modelindexer.Config, memLimit float64, logger *logp.Logger,
-) modelindexer.Config {
+func docappenderConfig(
+	opts docappender.Config, memLimit float64, logger *logp.Logger,
+) docappender.Config {
 	const logMessage = "%s set to %d based on %0.1fgb of memory"
-	opts.EventBufferSize = int(1024 * memLimit)
-	if opts.EventBufferSize >= 61440 {
-		opts.EventBufferSize = 61440
+	opts.DocumentBufferSize = int(1024 * memLimit)
+	if opts.DocumentBufferSize >= 61440 {
+		opts.DocumentBufferSize = 61440
 	}
 	logger.Infof(logMessage,
-		"modelindexer.EventBufferSize", opts.EventBufferSize, memLimit,
+		"docappender.DocumentBufferSize", opts.DocumentBufferSize, memLimit,
 	)
 	if opts.MaxRequests > 0 {
 		return opts
@@ -702,7 +701,7 @@ func modelIndexerConfig(
 	}
 	opts.MaxRequests = maxRequests
 	logger.Infof(logMessage,
-		"modelindexer.MaxRequests", opts.MaxRequests, memLimit,
+		"docappender.MaxRequests", opts.MaxRequests, memLimit,
 	)
 	return opts
 }
@@ -770,7 +769,7 @@ func newSourcemapFetcher(
 	cfg config.SourceMapping,
 	fleetCfg *config.Fleet,
 	kibanaClient *kibana.Client,
-	newElasticsearchClient func(*elasticsearch.Config) (elasticsearch.Client, error),
+	newElasticsearchClient func(*elasticsearch.Config) (*elasticsearch.Client, error),
 ) (sourcemap.Fetcher, error) {
 	esClient, err := newElasticsearchClient(cfg.ESConfig)
 	if err != nil {
@@ -794,7 +793,7 @@ func newSourcemapFetcher(
 // TODO: This is copying behavior from libbeat:
 // https://github.com/elastic/beats/blob/b9ced47dba8bb55faa3b2b834fd6529d3c4d0919/libbeat/cmd/instance/beat.go#L927-L950
 // Remove this when cluster_uuid no longer needs to be queried from ES.
-func queryClusterUUID(ctx context.Context, esClient elasticsearch.Client) error {
+func queryClusterUUID(ctx context.Context, esClient *elasticsearch.Client) error {
 	stateRegistry := monitoring.GetNamespace("state").GetRegistry()
 	outputES := "outputs.elasticsearch"
 	// Running under elastic-agent, the callback linked above is not

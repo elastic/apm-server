@@ -1,0 +1,47 @@
+name: ci
+
+on:
+  push:
+    branches:
+      - main
+      - 7.1*
+      - 8.*
+    paths-ignore:
+      - '**.md'
+      - '**.asciidoc'
+  pull_request:
+    paths-ignore:
+      - '**.md'
+      - '**.asciidoc'
+
+# limit the access of the generated GITHUB_TOKEN
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with:
+          go-version-file: go.mod
+          cache: true
+          cache-dependency-path: |
+            go.sum
+            tools/go.sum
+      - run: make check-full
+
+  test:
+    strategy:
+      matrix:
+        # TODO: add ubuntu-latest if/when we're ready to move off Jenkins.
+        os: ['macos-latest', 'windows-latest']
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with:
+          go-version-file: go.mod
+          cache: true
+      - run: go test -v ./...

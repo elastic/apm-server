@@ -49,7 +49,7 @@ import (
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 
-	"github.com/elastic/apm-server/internal/model"
+	"github.com/elastic/apm-data/model"
 	"github.com/elastic/apm-server/internal/processor/otel"
 	"github.com/elastic/elastic-agent-libs/logp"
 )

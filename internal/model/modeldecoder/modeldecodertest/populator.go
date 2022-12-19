@@ -30,7 +30,7 @@ import (
 
 	"github.com/elastic/elastic-agent-libs/mapstr"
 
-	"github.com/elastic/apm-server/internal/model"
+	"github.com/elastic/apm-data/model"
 	"github.com/elastic/apm-server/internal/model/modeldecoder/nullable"
 )
 

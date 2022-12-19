@@ -29,8 +29,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/elastic/apm-data/model"
 	"github.com/elastic/apm-server/internal/decoder"
-	"github.com/elastic/apm-server/internal/model"
 	"github.com/elastic/apm-server/internal/model/modeldecoder"
 	"github.com/elastic/apm-server/internal/model/modeldecoder/modeldecoderutil"
 	"github.com/elastic/apm-server/internal/model/modeldecoder/nullable"
@@ -409,7 +409,7 @@ func mapToErrorModel(from *errorEvent, event *model.APMEvent) {
 			}
 		}
 		if len(from.Context.Custom) > 0 {
-			out.Custom = modeldecoderutil.NormalizeLabelValues(from.Context.Custom.Clone())
+			out.Custom = modeldecoderutil.NormalizeLabelValues(modeldecoderutil.CloneMap(from.Context.Custom))
 		}
 	}
 	if from.Culprit.IsSet() {
@@ -475,7 +475,7 @@ func mapToExceptionModel(from errorException, out *model.Exception) {
 		return
 	}
 	if len(from.Attributes) > 0 {
-		out.Attributes = from.Attributes.Clone()
+		out.Attributes = modeldecoderutil.CloneMap(from.Attributes)
 	}
 	if from.Code.IsSet() {
 		out.Code = modeldecoderutil.ExceptionCodeString(from.Code.Val)
@@ -735,13 +735,13 @@ func mapToRequestModel(from contextRequest, out *model.HTTPRequest) {
 		out.Method = from.Method.Val
 	}
 	if len(from.Env) > 0 {
-		out.Env = from.Env.Clone()
+		out.Env = modeldecoderutil.CloneMap(from.Env)
 	}
 	if from.Body.IsSet() {
 		out.Body = modeldecoderutil.NormalizeHTTPRequestBody(from.Body.Val)
 	}
 	if len(from.Cookies) > 0 {
-		out.Cookies = from.Cookies.Clone()
+		out.Cookies = modeldecoderutil.CloneMap(from.Cookies)
 	}
 	if from.Headers.IsSet() {
 		out.Headers = modeldecoderutil.HTTPHeadersToMap(from.Headers.Val.Clone())
@@ -1137,7 +1137,7 @@ func mapToStracktraceModel(from []stacktraceFrame, out model.Stacktrace) {
 			copy(fr.PreContext, eventFrame.PreContext)
 		}
 		if len(eventFrame.Vars) > 0 {
-			fr.Vars = eventFrame.Vars.Clone()
+			fr.Vars = modeldecoderutil.CloneMap(eventFrame.Vars)
 		}
 		out[idx] = &fr
 	}
@@ -1162,7 +1162,7 @@ func mapToTransactionModel(from *transaction, event *model.APMEvent) {
 
 	if from.Context.IsSet() {
 		if len(from.Context.Custom) > 0 {
-			out.Custom = modeldecoderutil.NormalizeLabelValues(from.Context.Custom.Clone())
+			out.Custom = modeldecoderutil.NormalizeLabelValues(modeldecoderutil.CloneMap(from.Context.Custom))
 		}
 		if len(from.Context.Tags) > 0 {
 			modeldecoderutil.MergeLabels(from.Context.Tags, event)

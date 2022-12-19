@@ -20,7 +20,7 @@ package modeldecoderutil
 import (
 	"time"
 
-	"github.com/elastic/apm-server/internal/model"
+	"github.com/elastic/apm-data/model"
 )
 
 // SetInternalMetrics extracts well-known internal metrics from event.Metricset.Samples,

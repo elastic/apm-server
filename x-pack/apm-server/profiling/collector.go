@@ -25,21 +25,22 @@ import (
 
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/monitoring"
-
-	"github.com/elastic/apm-server/internal/elasticsearch"
+	"github.com/elastic/go-elasticsearch/v8/esutil"
 )
 
 var (
 	// metrics
-	indexerDocs               = monitoring.Default.NewRegistry("apm-server.profiling.indexer.document")
-	counterEventsTotal        = monitoring.NewInt(indexerDocs, "events.total.count")
-	counterEventsFailure      = monitoring.NewInt(indexerDocs, "events.failure.count")
-	counterStacktracesTotal   = monitoring.NewInt(indexerDocs, "stacktraces.total.count")
-	counterStacktracesFailure = monitoring.NewInt(indexerDocs, "stacktraces.failure.count")
-	counterStackframesTotal   = monitoring.NewInt(indexerDocs, "stackframes.total.count")
-	counterStackframesFailure = monitoring.NewInt(indexerDocs, "stackframes.failure.count")
-	counterExecutablesTotal   = monitoring.NewInt(indexerDocs, "executables.total.count")
-	counterExecutablesFailure = monitoring.NewInt(indexerDocs, "executables.failure.count")
+	indexerDocs                 = monitoring.Default.NewRegistry("apm-server.profiling.indexer.document")
+	counterEventsTotal          = monitoring.NewInt(indexerDocs, "events.total.count")
+	counterEventsFailure        = monitoring.NewInt(indexerDocs, "events.failure.count")
+	counterStacktracesTotal     = monitoring.NewInt(indexerDocs, "stacktraces.total.count")
+	counterStacktracesDuplicate = monitoring.NewInt(indexerDocs, "stacktraces.duplicate.count")
+	counterStacktracesFailure   = monitoring.NewInt(indexerDocs, "stacktraces.failure.count")
+	counterStackframesTotal     = monitoring.NewInt(indexerDocs, "stackframes.total.count")
+	counterStackframesDuplicate = monitoring.NewInt(indexerDocs, "stackframes.duplicate.count")
+	counterStackframesFailure   = monitoring.NewInt(indexerDocs, "stackframes.failure.count")
+	counterExecutablesTotal     = monitoring.NewInt(indexerDocs, "executables.total.count")
+	counterExecutablesFailure   = monitoring.NewInt(indexerDocs, "executables.failure.count")
 
 	counterFatalErr = monitoring.NewInt(nil, "apm-server.profiling.unrecoverable_error.count")
 
@@ -52,6 +53,8 @@ const (
 	actionCreate = "create"
 
 	sourceFileCacheSize = 128 * 1024
+	// ES error string indicating a duplicate document by _id
+	docIDAlreadyExists = "version_conflict_engine_exception"
 )
 
 // ElasticCollector is an implementation of the gRPC server handling the data
@@ -61,8 +64,8 @@ type ElasticCollector struct {
 	UnimplementedCollectionAgentServer
 
 	logger         *logp.Logger
-	indexer        elasticsearch.BulkIndexer
-	metricsIndexer elasticsearch.BulkIndexer
+	indexer        esutil.BulkIndexer
+	metricsIndexer esutil.BulkIndexer
 	indexes        [MaxEventsIndexes]string
 
 	sourceFilesLock sync.Mutex
@@ -75,8 +78,8 @@ type ElasticCollector struct {
 // Elasticsearch, and metricsIndexer for storing host agent metrics. Separate indexers are
 // used to allow for host agent metrics to be sent to a separate monitoring cluster.
 func NewCollector(
-	indexer elasticsearch.BulkIndexer,
-	metricsIndexer elasticsearch.BulkIndexer,
+	indexer esutil.BulkIndexer,
+	metricsIndexer esutil.BulkIndexer,
 	esClusterID string,
 	logger *logp.Logger,
 ) *ElasticCollector {
@@ -159,14 +162,14 @@ func (e *ElasticCollector) indexStacktrace(ctx context.Context, traceEvent *Stac
 	var encodedTraceEvent bytes.Buffer
 	_ = json.NewEncoder(&encodedTraceEvent).Encode(*traceEvent)
 
-	return e.indexer.Add(ctx, elasticsearch.BulkIndexerItem{
+	return e.indexer.Add(ctx, esutil.BulkIndexerItem{
 		Index:  indexName,
 		Action: actionCreate,
 		Body:   bytes.NewReader(encodedTraceEvent.Bytes()),
 		OnFailure: func(
 			_ context.Context,
-			_ elasticsearch.BulkIndexerItem,
-			resp elasticsearch.BulkIndexerResponseItem,
+			_ esutil.BulkIndexerItem,
+			resp esutil.BulkIndexerResponseItem,
 			err error,
 		) {
 			counterEventsFailure.Inc()
@@ -341,14 +344,14 @@ func (e *ElasticCollector) AddExecutableMetadata(ctx context.Context,
 		var buf bytes.Buffer
 		_ = json.NewEncoder(&buf).Encode(exeMetadata)
 
-		err := multiplexCurrentNextIndicesWrite(ctx, e, &elasticsearch.BulkIndexerItem{
+		err := multiplexCurrentNextIndicesWrite(ctx, e, &esutil.BulkIndexerItem{
 			Index:      ExecutablesIndex,
 			Action:     actionIndex,
 			DocumentID: docID,
 			OnFailure: func(
 				_ context.Context,
-				_ elasticsearch.BulkIndexerItem,
-				resp elasticsearch.BulkIndexerResponseItem,
+				_ esutil.BulkIndexerItem,
+				resp esutil.BulkIndexerResponseItem,
 				err error,
 			) {
 				counterExecutablesFailure.Inc()
@@ -401,26 +404,30 @@ func (e *ElasticCollector) SetFramesForTraces(ctx context.Context,
 		var body bytes.Buffer
 		_ = json.NewEncoder(&body).Encode(toIndex)
 
-		err = multiplexCurrentNextIndicesWrite(ctx, e, &elasticsearch.BulkIndexerItem{
+		err = multiplexCurrentNextIndicesWrite(ctx, e, &esutil.BulkIndexerItem{
 			Index:      StackTraceIndex,
-			Action:     actionIndex,
+			Action:     actionCreate,
 			DocumentID: docID,
 			OnFailure: func(
 				_ context.Context,
-				_ elasticsearch.BulkIndexerItem,
-				resp elasticsearch.BulkIndexerResponseItem,
-				err error,
+				_ esutil.BulkIndexerItem,
+				resp esutil.BulkIndexerResponseItem,
+				_ error,
 			) {
+				if resp.Error.Type == docIDAlreadyExists {
+					// Error is expected here, as we tried to "create" an existing document.
+					// We increment the metric to understand the origin-to-duplicate ratio.
+					counterStacktracesDuplicate.Inc()
+					return
+				}
 				counterStacktracesFailure.Inc()
-				e.logger.With(
-					logp.Error(err),
-					logp.String("error_type", resp.Error.Type),
-				).Errorf("failed to index stacktrace metadata: %s", resp.Error.Reason)
 			},
 		}, body.Bytes())
 
 		if err != nil {
-			e.logger.With(logp.Error(err)).Error("Elasticsearch indexing error")
+			e.logger.With(logp.Error(err),
+				logp.String("grpc_method", "SetFramesForTraces"),
+			).Error("Elasticsearch indexing error: %v", err)
 			return nil, errCustomer
 		}
 	}
@@ -498,36 +505,29 @@ func (e *ElasticCollector) AddFrameMetadata(ctx context.Context, in *AddFrameMet
 		var buf bytes.Buffer
 		_ = json.NewEncoder(&buf).Encode(frameMetadata)
 
-		// If the filename is empty, we don't want to replace an existing record, because
-		// it may contain a filename already. That's why we use "create" in this case.
-		action := actionIndex
-		if frameMetadata.FileName == "" {
-			action = actionCreate
-		}
-
-		err := multiplexCurrentNextIndicesWrite(ctx, e, &elasticsearch.BulkIndexerItem{
+		err := multiplexCurrentNextIndicesWrite(ctx, e, &esutil.BulkIndexerItem{
 			Index:      StackFrameIndex,
-			Action:     action,
+			Action:     actionCreate,
 			DocumentID: docID,
 			OnFailure: func(
 				_ context.Context,
-				item elasticsearch.BulkIndexerItem,
-				resp elasticsearch.BulkIndexerResponseItem,
-				err error,
+				_ esutil.BulkIndexerItem,
+				resp esutil.BulkIndexerResponseItem,
+				_ error,
 			) {
-				if item.Action == actionCreate {
-					// Error is expected here, as we tried to "create" an existing document
+				if resp.Error.Type == docIDAlreadyExists {
+					// Error is expected here, as we tried to "create" an existing document.
+					// We increment the metric to understand the origin-to-duplicate ratio.
+					counterStackframesDuplicate.Inc()
 					return
 				}
 				counterStackframesFailure.Inc()
-				e.logger.With(
-					logp.Error(err),
-					logp.String("error_type", resp.Error.Type),
-				).Errorf("failed to index stackframe metadata: %s", resp.Error.Reason)
 			},
 		}, buf.Bytes())
 		if err != nil {
-			e.logger.With(logp.Error(err)).Error("Elasticsearch indexing error")
+			e.logger.With(logp.Error(err),
+				logp.String("grpc_method", "AddFrameMetadata"),
+			).Error("Elasticsearch indexing error")
 			return nil, errCustomer
 		}
 	}
@@ -579,7 +579,7 @@ func (e *ElasticCollector) AddFallbackSymbols(ctx context.Context,
 		var buf bytes.Buffer
 		_ = json.NewEncoder(&buf).Encode(frameMetadata)
 
-		err := multiplexCurrentNextIndicesWrite(ctx, e, &elasticsearch.BulkIndexerItem{
+		err := multiplexCurrentNextIndicesWrite(ctx, e, &esutil.BulkIndexerItem{
 			Index: StackFrameIndex,
 			// Use 'create' instead of 'index' to not overwrite an existing document,
 			// possibly containing a fully symbolized frame.
@@ -587,19 +587,23 @@ func (e *ElasticCollector) AddFallbackSymbols(ctx context.Context,
 			DocumentID: docID,
 			OnFailure: func(
 				_ context.Context,
-				_ elasticsearch.BulkIndexerItem,
-				resp elasticsearch.BulkIndexerResponseItem,
+				_ esutil.BulkIndexerItem,
+				resp esutil.BulkIndexerResponseItem,
 				err error,
 			) {
+				if resp.Error.Type == docIDAlreadyExists {
+					// Error is expected here, as we tried to "create" an existing document.
+					// We increment the metric to understand the origin-to-duplicate ratio.
+					counterStackframesDuplicate.Inc()
+					return
+				}
 				counterStackframesFailure.Inc()
-				e.logger.With(
-					logp.Error(err),
-					logp.String("error_type", resp.Error.Type),
-				).Errorf("failed to index stackframe metadata: %s", resp.Error.Reason)
 			},
 		}, buf.Bytes())
 		if err != nil {
-			e.logger.With(logp.Error(err)).Error("Elasticsearch indexing error")
+			e.logger.With(logp.Error(err),
+				logp.String("grpc_method", "AddFallbackSymbols"),
+			).Error("Elasticsearch indexing error")
 			return nil, errCustomer
 		}
 	}
@@ -707,19 +711,20 @@ func (e *ElasticCollector) AddMetrics(ctx context.Context, in *Metrics) (*empty.
 			)
 			continue
 		}
-		err := e.metricsIndexer.Add(ctx, elasticsearch.BulkIndexerItem{
+		err := e.metricsIndexer.Add(ctx, esutil.BulkIndexerItem{
 			Index:  MetricsIndex,
 			Action: actionCreate,
 			Body:   makeBody(metric),
 			OnFailure: func(
 				_ context.Context,
-				_ elasticsearch.BulkIndexerItem,
-				resp elasticsearch.BulkIndexerResponseItem,
+				_ esutil.BulkIndexerItem,
+				resp esutil.BulkIndexerResponseItem,
 				err error,
 			) {
 				e.logger.With(
 					logp.Error(err),
 					logp.String("error_type", resp.Error.Type),
+					logp.String("grpc_method", "AddMetrics"),
 				).Error("failed to index host metrics")
 			},
 		})
@@ -735,7 +740,7 @@ func (e *ElasticCollector) AddMetrics(ctx context.Context, in *Metrics) (*empty.
 // to achieve a sliding window ingestion mechanism.
 // These indices will be managed by the custom ILM strategy implemented in ilm.go.
 func multiplexCurrentNextIndicesWrite(ctx context.Context, e *ElasticCollector,
-	item *elasticsearch.BulkIndexerItem, body []byte) error {
+	item *esutil.BulkIndexerItem, body []byte) error {
 	copied := *item
 	copied.Index = nextIndex(item.Index)
 

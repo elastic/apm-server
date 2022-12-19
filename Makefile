@@ -138,13 +138,12 @@ apm-server.docker.yml: apm-server.yml
 go-generate:
 	@$(GO) run internal/model/modeldecoder/generator/cmd/main.go
 	@$(GO) run internal/model/modelprocessor/generate_internal_metrics.go
-	@bash script/vendor_otel.sh
 	@cd cmd/intake-receiver && APM_SERVER_VERSION=$(APM_SERVER_VERSION) $(GO) generate .
 
 .PHONY: add-headers
 add-headers: $(GOLICENSER)
 ifndef CHECK_HEADERS_DISABLED
-	@$(GOLICENSER) -exclude x-pack -exclude internal/otel_collector -exclude internal/.otel_collector_mixin
+	@$(GOLICENSER) -exclude x-pack
 	@$(GOLICENSER) -license Elasticv2 x-pack
 endif
 
@@ -234,7 +233,7 @@ staticcheck: $(STATICCHECK)
 .PHONY: check-headers
 check-headers: $(GOLICENSER)
 ifndef CHECK_HEADERS_DISABLED
-	@$(GOLICENSER) -d -exclude build -exclude x-pack -exclude internal/otel_collector -exclude internal/.otel_collector_mixin
+	@$(GOLICENSER) -d -exclude build -exclude x-pack
 	@$(GOLICENSER) -d -exclude build -license Elasticv2 x-pack
 endif
 

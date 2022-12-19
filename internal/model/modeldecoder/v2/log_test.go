@@ -25,10 +25,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/elastic/apm-data/model"
 	"github.com/elastic/apm-server/internal/decoder"
-	"github.com/elastic/apm-server/internal/model"
 	"github.com/elastic/apm-server/internal/model/modeldecoder"
-	"github.com/elastic/elastic-agent-libs/mapstr"
 )
 
 func TestResetLogOnRelease(t *testing.T) {
@@ -215,7 +214,7 @@ func TestDecodeMapToLogModel(t *testing.T) {
 	t.Run("labels", func(t *testing.T) {
 		var input log
 		var out model.APMEvent
-		input.Labels = mapstr.M{
+		input.Labels = map[string]any{
 			"str":     "str",
 			"bool":    true,
 			"float":   1.1,

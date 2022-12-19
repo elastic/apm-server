@@ -47,7 +47,7 @@ import (
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	semconv "go.opentelemetry.io/collector/semconv/v1.5.0"
 
-	"github.com/elastic/apm-server/internal/model"
+	"github.com/elastic/apm-data/model"
 )
 
 func TestEncodeSpanEventsNonExceptions(t *testing.T) {

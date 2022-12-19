@@ -6,9 +6,14 @@
             "agent": {
                 "name": "go"
             },
-            "data_stream.dataset": "apm.internal",
-            "data_stream.namespace": "default",
-            "data_stream.type": "metrics",
+            "data_stream": {
+                "dataset": "apm.internal",
+                "namespace": "default",
+                "type": "metrics"
+            },
+            "ecs": {
+                "version": "dynamic"
+            },
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
@@ -21,7 +26,9 @@
                     "platform": "minix"
                 }
             },
-            "metricset.name": "transaction",
+            "metricset": {
+                "name": "transaction"
+            },
             "observer": {
                 "hostname": "dynamic",
                 "type": "apm-server",
@@ -46,13 +53,15 @@
                 }
             },
             "transaction": {
-                "duration.histogram": {
-                    "counts": [
-                        1
-                    ],
-                    "values": [
-                        1003519
-                    ]
+                "duration": {
+                    "histogram": {
+                        "counts": [
+                            1
+                        ],
+                        "values": [
+                            1003519
+                        ]
+                    }
                 },
                 "name": "name",
                 "root": true,

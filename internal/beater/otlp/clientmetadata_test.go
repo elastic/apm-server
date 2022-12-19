@@ -25,9 +25,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	"github.com/elastic/apm-data/model"
 	"github.com/elastic/apm-server/internal/beater/interceptors"
 	"github.com/elastic/apm-server/internal/beater/otlp"
-	"github.com/elastic/apm-server/internal/model"
 )
 
 func TestSetClientMetadata(t *testing.T) {

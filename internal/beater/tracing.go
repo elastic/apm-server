@@ -23,11 +23,11 @@ import (
 
 	"github.com/elastic/elastic-agent-libs/logp"
 
+	"github.com/elastic/apm-data/model"
 	"github.com/elastic/apm-server/internal/beater/api"
 	"github.com/elastic/apm-server/internal/beater/auth"
 	"github.com/elastic/apm-server/internal/beater/config"
 	"github.com/elastic/apm-server/internal/beater/ratelimit"
-	"github.com/elastic/apm-server/internal/model"
 )
 
 func newTracerServer(cfg *config.Config, listener net.Listener, logger *logp.Logger, batchProcessor model.BatchProcessor) (*http.Server, error) {

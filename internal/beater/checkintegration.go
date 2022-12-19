@@ -40,7 +40,7 @@ import (
 func checkIntegrationInstalled(
 	ctx context.Context,
 	kibanaClient *kibana.Client,
-	esClient elasticsearch.Client,
+	esClient *elasticsearch.Client,
 	logger *logp.Logger,
 ) (err error) {
 	defer func() {
@@ -106,7 +106,7 @@ func checkIntegrationInstalledKibana(ctx context.Context, kibanaClient *kibana.C
 	return result.Response.Status == "installed", nil
 }
 
-func checkIntegrationInstalledElasticsearch(ctx context.Context, esClient elasticsearch.Client, _ *logp.Logger) (bool, error) {
+func checkIntegrationInstalledElasticsearch(ctx context.Context, esClient *elasticsearch.Client, _ *logp.Logger) (bool, error) {
 	// TODO(axw) generate the list of expected index templates.
 	templates := []string{
 		"traces-apm",

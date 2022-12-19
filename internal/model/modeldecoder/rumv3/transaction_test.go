@@ -27,11 +27,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/elastic/apm-data/model"
 	"github.com/elastic/apm-server/internal/decoder"
-	"github.com/elastic/apm-server/internal/model"
 	"github.com/elastic/apm-server/internal/model/modeldecoder"
 	"github.com/elastic/apm-server/internal/model/modeldecoder/modeldecodertest"
-	"github.com/elastic/elastic-agent-libs/mapstr"
 )
 
 func TestResetTransactionOnRelease(t *testing.T) {
@@ -364,8 +363,8 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 		input.Context.Response.Headers.Set(http.Header{"f": []string{"g"}})
 		var out model.APMEvent
 		mapToTransactionModel(&input, &out)
-		assert.Equal(t, mapstr.M{"a": []string{"b"}, "c": []string{"d", "e"}}, out.HTTP.Request.Headers)
-		assert.Equal(t, mapstr.M{"f": []string{"g"}}, out.HTTP.Response.Headers)
+		assert.Equal(t, map[string]any{"a": []string{"b"}, "c": []string{"d", "e"}}, out.HTTP.Request.Headers)
+		assert.Equal(t, map[string]any{"f": []string{"g"}}, out.HTTP.Response.Headers)
 	})
 
 	t.Run("session", func(t *testing.T) {
@@ -386,7 +385,7 @@ func TestDecodeMapToTransactionModel(t *testing.T) {
 	})
 	t.Run("labels", func(t *testing.T) {
 		var input transaction
-		input.Context.Tags = mapstr.M{
+		input.Context.Tags = map[string]any{
 			"a": "b",
 			"c": float64(12315124131),
 			"d": 12315124131.12315124131,

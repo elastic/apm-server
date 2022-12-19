@@ -1,3 +1,0 @@
-# The following entry initializes the default OTLP receiver with only gRPC support.
-protocols:
-  grpc:

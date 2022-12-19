@@ -18,10 +18,8 @@
 package beater
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
-	"io"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -73,10 +71,10 @@ func TestQueryClusterUUIDRegistriesExist(t *testing.T) {
 	elasticsearchRegistry := stateRegistry.NewRegistry("outputs.elasticsearch")
 	monitoring.NewString(elasticsearchRegistry, "cluster_uuid")
 
-	ctx := context.Background()
-	clusterUUID := "abc123"
-	client := &mockClusterUUIDClient{ClusterUUID: clusterUUID}
-	err := queryClusterUUID(ctx, client)
+	const clusterUUID = "abc123"
+	client := newMockClusterUUIDClient(t, clusterUUID)
+
+	err := queryClusterUUID(context.Background(), client)
 	require.NoError(t, err)
 
 	fs := monitoring.CollectFlatSnapshot(elasticsearchRegistry, monitoring.Full, false)
@@ -88,10 +86,10 @@ func TestQueryClusterUUIDRegistriesDoNotExist(t *testing.T) {
 	stateRegistry.Clear()
 	defer stateRegistry.Clear()
 
-	ctx := context.Background()
-	clusterUUID := "abc123"
-	client := &mockClusterUUIDClient{ClusterUUID: clusterUUID}
-	err := queryClusterUUID(ctx, client)
+	const clusterUUID = "abc123"
+	client := newMockClusterUUIDClient(t, clusterUUID)
+
+	err := queryClusterUUID(context.Background(), client)
 	require.NoError(t, err)
 
 	elasticsearchRegistry := stateRegistry.GetRegistry("outputs.elasticsearch")
@@ -101,28 +99,16 @@ func TestQueryClusterUUIDRegistriesDoNotExist(t *testing.T) {
 	assert.Equal(t, clusterUUID, fs.Strings["cluster_uuid"])
 }
 
-type mockClusterUUIDClient struct {
-	ClusterUUID string `json:"cluster_uuid"`
+func newMockClusterUUIDClient(t testing.TB, clusterUUID string) *elasticsearch.Client {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("X-Elastic-Product", "Elasticsearch")
+		w.Write([]byte(fmt.Sprintf(`{"cluster_uuid":"%s"}`, clusterUUID)))
+	}))
+	t.Cleanup(srv.Close)
+
+	config := elasticsearch.DefaultConfig()
+	config.Hosts = []string{srv.URL}
+	client, err := elasticsearch.NewClient(config)
+	require.NoError(t, err)
+	return client
 }
-
-func (c *mockClusterUUIDClient) Perform(r *http.Request) (*http.Response, error) {
-	m, err := json.Marshal(c)
-	if err != nil {
-		return nil, err
-	}
-	resp := &http.Response{
-		StatusCode: 200,
-		Body:       &mockReadCloser{bytes.NewReader(m)},
-		Request:    r,
-	}
-	return resp, nil
-}
-
-func (c *mockClusterUUIDClient) NewBulkIndexer(_ elasticsearch.BulkIndexerConfig) (elasticsearch.BulkIndexer, error) {
-	return nil, nil
-}
-
-type mockReadCloser struct{ r io.Reader }
-
-func (r *mockReadCloser) Read(p []byte) (int, error) { return r.r.Read(p) }
-func (r *mockReadCloser) Close() error               { return nil }

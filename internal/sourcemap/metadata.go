@@ -37,7 +37,7 @@ import (
 )
 
 type MetadataCachingFetcher struct {
-	esClient         elasticsearch.Client
+	esClient         *elasticsearch.Client
 	set              map[Identifier]string
 	mu               sync.RWMutex
 	backend          Fetcher
@@ -48,7 +48,7 @@ type MetadataCachingFetcher struct {
 }
 
 func NewMetadataCachingFetcher(
-	c elasticsearch.Client,
+	c *elasticsearch.Client,
 	backend Fetcher,
 	index string,
 	invalidationChan chan<- Identifier,
