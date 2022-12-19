@@ -148,7 +148,6 @@ func sourcemapHit(sourcemap string) map[string]interface{} {
 
 	s := base64.StdEncoding.EncodeToString(b.Bytes())
 
-
 	return map[string]interface{}{
 		"_source": map[string]interface{}{
 			"content": s,
