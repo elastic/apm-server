@@ -29,11 +29,11 @@ import (
 // To use a common pipeline, define a "pipeline" processor with the "name" property set to one of
 // the common pipelines. e.g.
 //
-//   processors:
-//     - ...
-//     - pipeline:
-//         name: observer_version
-//     - ...
+//	processors:
+//	  - ...
+//	  - pipeline:
+//	      name: observer_version
+//	  - ...
 func getCommonPipeline(name string, version *version.V) []map[string]interface{} {
 	commonPipelines := map[string][]map[string]interface{}{
 		"observer_version": getObserverVersionPipeline(version),

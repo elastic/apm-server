@@ -11,7 +11,7 @@ _sdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 # Write a debug message to stderr.
 debug()
 {
-  if [ "$VERBOSE" == "true" ]; then
+  if [ "${VERBOSE:-}" == "true" ]; then
     echo "DEBUG: $1" >&2
   fi
 }

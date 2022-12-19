@@ -190,9 +190,9 @@ type option func(*options)
 // Configuration provided by WithConfig will be merged with the base
 // configuration:
 //
-//   apm-server:
-//     host: localhost:0
-//     data_streams.wait_for_integration: false
+//	apm-server:
+//	  host: localhost:0
+//	  data_streams.wait_for_integration: false
 func WithConfig(cfg ...*agentconfig.C) option {
 	return func(opts *options) {
 		opts.config = append(opts.config, cfg...)
