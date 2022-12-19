@@ -43,6 +43,10 @@ func TestMonitoring(t *testing.T) {
 	cfg := config.DefaultConfig()
 	cfg.Sampling.Tail.Enabled = true
 	cfg.Sampling.Tail.Policies = []config.TailSamplingPolicy{{SampleRate: 0.1}}
+	// MaxTransactionGroups and MaxGroups are configured based on memory limit.
+	// Overriding here to avoid validation errors.
+	cfg.Aggregation.Transactions.MaxTransactionGroups = 10000
+	cfg.Aggregation.Service.MaxGroups = 10000
 
 	// Wrap & run the server twice, to ensure metric registration does not panic.
 	runServerError := errors.New("runServer")

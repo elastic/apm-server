@@ -180,36 +180,47 @@ func (s *Runner) Run(ctx context.Context) error {
 
 	// Obtain the memory limit for the APM Server process. Certain config
 	// values will be sized according to the maximum memory set for the server.
-	var memLimit float64
+	var memLimitGB float64
 	if cgroupReader := newCgroupReader(); cgroupReader != nil {
 		if limit, err := cgroupMemoryLimit(cgroupReader); err != nil {
 			s.logger.Warn(err)
 		} else {
-			// Limit the memory to 80% of the cgroup memory limit.
-			memLimit = float64(limit) / 1024 / 1024 / 1024 * 0.8
+			memLimitGB = float64(limit) / 1024 / 1024 / 1024
 		}
 	}
-	if memLimit <= 0 {
+	if memLimitGB <= 0 {
 		s.logger.Info("no cgroups detected, falling back to total system memory")
 		if limit, err := systemMemoryLimit(); err != nil {
 			s.logger.Warn(err)
 		} else {
-			// If no cgroup limit is set, only return 50% of the total memory.
+			// If no cgroup limit is set, return a fraction of the total memory
 			// to have a margin of safety for other processes.
-			memLimit = float64(limit) / 1024 / 1024 / 1024 * 0.5
+			memLimitGB = float64(limit) / 1024 / 1024 / 1024 * 0.625
 		}
 	}
-	if memLimit <= 0 {
-		memLimit = 0.8 // Assume of 80% of 1GB if memory discovery fails.
+	if memLimitGB <= 0 {
+		memLimitGB = 1
 		s.logger.Infof(
 			"failed to discover memory limit, default to %0.1fgb of memory",
-			memLimit,
+			memLimitGB,
 		)
 	}
 	if s.config.MaxConcurrentDecoders == 0 {
-		s.config.MaxConcurrentDecoders = maxConcurrentDecoders(memLimit)
-		s.logger.Infof("MaxConcurrentDecoders set to %d based on %0.1fgb of memory",
-			s.config.MaxConcurrentDecoders, memLimit,
+		s.config.MaxConcurrentDecoders = maxConcurrentDecoders(memLimitGB)
+		s.logger.Infof("MaxConcurrentDecoders set to %d based on 80 percent of %0.1fgb of memory",
+			s.config.MaxConcurrentDecoders, memLimitGB,
+		)
+	}
+	if s.config.Aggregation.Transactions.MaxTransactionGroups <= 0 {
+		s.config.Aggregation.Transactions.MaxTransactionGroups = int(memLimitGB * 10000)
+		s.logger.Infof("MaxTransactionGroups set to %d based on %0.1fgb of memory",
+			s.config.Aggregation.Transactions.MaxTransactionGroups, memLimitGB,
+		)
+	}
+	if s.config.Aggregation.Service.MaxGroups <= 0 {
+		s.config.Aggregation.Service.MaxGroups = int(memLimitGB * 10000)
+		s.logger.Infof("MaxGroups for service aggregation set to %d based on %0.1fgb of memory",
+			s.config.Aggregation.Service.MaxGroups, memLimitGB,
 		)
 	}
 
@@ -358,7 +369,7 @@ func (s *Runner) Run(ctx context.Context) error {
 	// Create the BatchProcessor chain that is used to process all events,
 	// including the metrics aggregated by APM Server.
 	finalBatchProcessor, closeFinalBatchProcessor, err := s.newFinalBatchProcessor(
-		tracer, newElasticsearchClient, memLimit,
+		tracer, newElasticsearchClient, memLimitGB,
 	)
 	if err != nil {
 		return err
@@ -473,7 +484,7 @@ func (s *Runner) Run(ctx context.Context) error {
 func maxConcurrentDecoders(memLimitGB float64) uint {
 	// Allow 128 concurrent decoders for each 1GB memory, limited to at most 2048.
 	const max = 2048
-	decoders := uint(128 * memLimitGB)
+	decoders := uint(128 * memLimitGB * 0.8)
 	if decoders > max {
 		return max
 	}
@@ -692,7 +703,7 @@ func docappenderConfig(
 	opts docappender.Config, memLimit float64, logger *logp.Logger,
 ) docappender.Config {
 	const logMessage = "%s set to %d based on %0.1fgb of memory"
-	opts.DocumentBufferSize = int(1024 * memLimit)
+	opts.DocumentBufferSize = int(1024 * memLimit * 0.8)
 	if opts.DocumentBufferSize >= 61440 {
 		opts.DocumentBufferSize = 61440
 	}
