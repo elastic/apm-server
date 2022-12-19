@@ -83,6 +83,7 @@ func NewAggregator(config AggregatorConfig) (*Aggregator, error) {
 	if config.Logger == nil {
 		config.Logger = logp.NewLogger(logs.ServiceMetrics)
 	}
+	config.Logger.Infof("creating aggregator with %d txn groups limit", config.MaxGroups)
 	return &Aggregator{
 		stopping: make(chan struct{}),
 		stopped:  make(chan struct{}),
@@ -175,51 +176,58 @@ func (a *Aggregator) publish(ctx context.Context) error {
 		}
 		delete(a.inactive.m, key)
 	}
+	a.inactive.other = nil
 	a.config.Logger.Debugf("publishing %d metricsets", len(batch))
 	return a.config.BatchProcessor.ProcessBatch(ctx, &batch)
 }
 
-// ProcessBatch aggregates all service latency metrics
+// ProcessBatch aggregates all service latency metrics.
+//
+// To contain cardinality of the aggregated metrics the following
+// limits are considered:
+//
+//   - MaxGroups: Limits the total number of services that the
+//     service metrics aggregator produces. Once this limit is
+//     breached the metrics are aggregated in a dedicated bucket
+//     with `service.name` as `other`.
 func (a *Aggregator) ProcessBatch(ctx context.Context, b *model.Batch) error {
 	a.mu.RLock()
 	defer a.mu.RUnlock()
 	for _, event := range *b {
 		tx := event.Transaction
 		if event.Processor == model.TransactionProcessor && tx != nil {
-			if msEvent := a.processTransaction(&event); msEvent.Metricset != nil {
-				*b = append(*b, msEvent)
-			}
+			a.processTransaction(&event)
 		}
 	}
 	return nil
 }
 
-func (a *Aggregator) processTransaction(event *model.APMEvent) model.APMEvent {
+func (a *Aggregator) processTransaction(event *model.APMEvent) {
 	if event.Transaction == nil || event.Transaction.RepresentativeCount <= 0 {
-		return model.APMEvent{}
+		return
 	}
 	key := makeAggregationKey(event, a.config.Interval)
 	metrics := makeServiceMetrics(event)
-	if a.active.storeOrUpdate(key, metrics, a.config.Logger) {
-		return model.APMEvent{}
-	}
-	return makeMetricset(key, metrics)
+	a.active.storeOrUpdate(key, metrics, a.config.Logger)
 }
 
 type metricsBuffer struct {
 	maxSize int
 
-	mu      sync.RWMutex
-	entries int
-	m       map[uint64][]*metricsMapEntry
-	space   []metricsMapEntry
+	mu         sync.RWMutex
+	entries    int
+	svcEntries int
+	m          map[uint64][]*metricsMapEntry
+	space      []metricsMapEntry
+	// other tracks the overflow service bucket.
+	other *metricsMapEntry
 }
 
 func newMetricsBuffer(maxSize int) *metricsBuffer {
 	return &metricsBuffer{
 		maxSize: maxSize,
 		m:       make(map[uint64][]*metricsMapEntry),
-		space:   make([]metricsMapEntry, maxSize),
+		space:   make([]metricsMapEntry, maxSize+1),
 	}
 }
 
@@ -228,7 +236,7 @@ type metricsMapEntry struct {
 	aggregationKey
 }
 
-func (mb *metricsBuffer) storeOrUpdate(key aggregationKey, metrics serviceMetrics, logger *logp.Logger) bool {
+func (mb *metricsBuffer) storeOrUpdate(key aggregationKey, metrics serviceMetrics, logger *logp.Logger) {
 	// hash does not use the serviceMetrics so it is safe to call concurrently.
 	hash := key.hash()
 
@@ -236,48 +244,46 @@ func (mb *metricsBuffer) storeOrUpdate(key aggregationKey, metrics serviceMetric
 	mb.mu.Lock()
 	defer mb.mu.Unlock()
 
+	var entry *metricsMapEntry
 	entries, ok := mb.m[hash]
 	if ok {
 		for offset, old := range entries {
 			if old.aggregationKey.equal(key) {
-				entries[offset].serviceMetrics = serviceMetrics{
-					transactionDuration: old.transactionDuration + metrics.transactionDuration,
-					transactionCount:    old.transactionCount + metrics.transactionCount,
-					failureCount:        old.failureCount + metrics.failureCount,
-					successCount:        old.successCount + metrics.successCount,
-				}
-				return true
+				entry = entries[offset]
+				break
 			}
 		}
-	} else if mb.entries >= len(mb.space) {
-		return false
 	}
-
-	half := mb.maxSize / 2
-	if !ok {
-		switch mb.entries {
-		case mb.maxSize:
-			return false
-		case half - 1:
-			logger.Warn("service metrics groups reached 50% capacity")
-		case mb.maxSize - 1:
-			logger.Warn("service metrics groups reached 100% capacity")
+	if entry == nil && mb.entries >= mb.maxSize && mb.other != nil {
+		entry = mb.other
+	}
+	if entry != nil {
+		entry.serviceMetrics = serviceMetrics{
+			transactionDuration: entry.transactionDuration + metrics.transactionDuration,
+			transactionCount:    entry.transactionCount + metrics.transactionCount,
+			failureCount:        entry.failureCount + metrics.failureCount,
+			successCount:        entry.successCount + metrics.successCount,
 		}
+		return
 	}
-
-	entry := &mb.space[mb.entries]
+	if mb.entries >= mb.maxSize {
+		mb.other = &mb.space[len(mb.space)-1]
+		entry = mb.other
+		key = makeOverflowAggregationKey(key)
+		hash = key.hash()
+	} else {
+		entry = &mb.space[mb.entries]
+	}
 	entry.aggregationKey = key
-
 	entry.serviceMetrics = serviceMetrics{
 		transactionDuration: metrics.transactionDuration,
 		transactionCount:    metrics.transactionCount,
 		failureCount:        metrics.failureCount,
 		successCount:        metrics.successCount,
 	}
-
 	mb.m[hash] = append(entries, entry)
 	mb.entries++
-	return true
+	return
 }
 
 type aggregationKey struct {
@@ -325,10 +331,18 @@ func makeAggregationKey(event *model.APMEvent, interval time.Duration) aggregati
 			transactionType:    event.Transaction.Type,
 		},
 	}
-
 	key.AggregatedGlobalLabels.Read(event)
-
 	return key
+}
+
+func makeOverflowAggregationKey(oldKey aggregationKey) aggregationKey {
+	return aggregationKey{
+		comparable: comparable{
+			timestamp:   oldKey.timestamp,
+			serviceName: "other",
+		},
+		AggregatedGlobalLabels: oldKey.AggregatedGlobalLabels,
+	}
 }
 
 type serviceMetrics struct {

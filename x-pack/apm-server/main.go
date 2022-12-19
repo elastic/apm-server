@@ -7,6 +7,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"math"
 	"net/http"
 	"os"
 	"sync"
@@ -106,6 +107,8 @@ func newProcessors(args beater.ServerParams) ([]namedProcessor, error) {
 	agg, err := txmetrics.NewAggregator(txmetrics.AggregatorConfig{
 		BatchProcessor:                 args.BatchProcessor,
 		MaxTransactionGroups:           args.Config.Aggregation.Transactions.MaxTransactionGroups,
+		MaxTransactionGroupsPerService: int(math.Ceil(0.1 * float64(args.Config.Aggregation.Transactions.MaxTransactionGroups))),
+		MaxServices:                    args.Config.Aggregation.Transactions.MaxTransactionGroups, // same as max txn grps
 		MetricsInterval:                args.Config.Aggregation.Transactions.Interval,
 		HDRHistogramSignificantFigures: args.Config.Aggregation.Transactions.HDRHistogramSignificantFigures,
 	})
