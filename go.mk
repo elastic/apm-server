@@ -5,7 +5,7 @@ GITCOMMITTIMESTAMPUNIX ?= $(shell git log -1 --pretty=%ct)
 GITREFFILE ?= $(GITDIR)/$(shell git rev-parse --symbolic-full-name HEAD)
 GITROOT ?= $(shell git rev-parse --show-toplevel)
 
-# Ensure the Go version in .go_version is installed and used.
+# Ensure the Go version in .go-version is installed and used.
 GOROOT?=$(shell $(GITROOT)/script/run_with_go_ver go env GOROOT)
 GO:=$(GOROOT)/bin/go
 GOARCH:=$(shell $(GO) env GOARCH)

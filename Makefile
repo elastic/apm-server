@@ -151,6 +151,13 @@ endif
 get-version:
 	@echo $(APM_SERVER_VERSION)
 
+# update-go-version updates .go-version, documentation, and build files
+# to use the most recent patch version for the major.minor Go version
+# defined in go.mod.
+.PHONY: update-go-version
+update-go-version:
+	$(GITROOT)/script/update_go_version.sh
+
 ##############################################################################
 # Integration package generation.
 ##############################################################################
@@ -214,9 +221,6 @@ update-beats: update-beats-module update
 .PHONY: update-beats-module
 update-beats-module:
 	$(GO) get -d -u $(BEATS_MODULE)@$(BEATS_VERSION) && $(GO) mod tidy
-	cp -f $$($(GO) list -m -f {{.Dir}} $(BEATS_MODULE))/.go-version .go-version
-	find . -maxdepth 3 -name Dockerfile -exec sed -i'.bck' -E -e "s#(FROM golang):[0-9]+\.[0-9]+\.[0-9]+#\1:$$(cat .go-version)#g" {} \;
-	sed -i'.bck' -E -e "s#(:go-version): [0-9]+\.[0-9]+\.[0-9]+#\1: $$(cat .go-version)#g" docs/version.asciidoc
 
 .PHONY: update-beats-docs
 update-beats-docs:

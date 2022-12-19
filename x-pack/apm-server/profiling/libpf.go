@@ -398,11 +398,12 @@ func Int64ToTime(t int64) time.Time {
 
 // Void allows to use maps as sets without memory allocation for the values.
 // From the "Go Programming Language":
-//   The struct type with no fields is called the empty struct, written struct{}. It has size zero
-//   and carries no information but may be useful nonetheless. Some Go programmers
-//   use it instead of bool as the value type of a map that represents a set, to emphasize
-//   that only the keys are significant, but the space saving is marginal and the syntax more
-//   cumbersome, so we generally avoid it.
+//
+//	The struct type with no fields is called the empty struct, written struct{}. It has size zero
+//	and carries no information but may be useful nonetheless. Some Go programmers
+//	use it instead of bool as the value type of a map that represents a set, to emphasize
+//	that only the keys are significant, but the space saving is marginal and the syntax more
+//	cumbersome, so we generally avoid it.
 type Void struct{}
 
 // Range describes a range with Start and End values.
