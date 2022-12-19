@@ -20,8 +20,8 @@ package otlp
 import (
 	"sync"
 
+	"github.com/elastic/apm-data/input/otlp"
 	"github.com/elastic/apm-server/internal/beater/request"
-	"github.com/elastic/apm-server/internal/processor/otel"
 	"github.com/elastic/elastic-agent-libs/monitoring"
 )
 
@@ -35,10 +35,10 @@ var (
 
 type monitoredConsumer struct {
 	mu       sync.RWMutex
-	consumer *otel.Consumer
+	consumer *otlp.Consumer
 }
 
-func (m *monitoredConsumer) set(c *otel.Consumer) {
+func (m *monitoredConsumer) set(c *otlp.Consumer) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	m.consumer = c

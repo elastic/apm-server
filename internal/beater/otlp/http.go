@@ -25,13 +25,14 @@ import (
 	"go.opentelemetry.io/collector/pdata/plog/plogotlp"
 	"go.opentelemetry.io/collector/pdata/pmetric/pmetricotlp"
 	"go.opentelemetry.io/collector/pdata/ptrace/ptraceotlp"
+	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
 
+	"github.com/elastic/apm-data/input/otlp"
 	"github.com/elastic/apm-data/model"
 	"github.com/elastic/apm-server/internal/beater/request"
-	"github.com/elastic/apm-server/internal/processor/otel"
 	"github.com/elastic/elastic-agent-libs/monitoring"
 )
 
@@ -50,18 +51,21 @@ func init() {
 	monitoring.NewFunc(httpMetricsRegistry, "consumer", httpMonitoredConsumer.collect, monitoring.Report)
 }
 
-func NewHTTPHandlers(processor model.BatchProcessor) HTTPHandlers {
+func NewHTTPHandlers(logger *zap.Logger, processor model.BatchProcessor) HTTPHandlers {
 	// TODO(axw) stop assuming we have only one OTLP HTTP consumer running
 	// at any time, and instead aggregate metrics from consumers that are
 	// dynamically registered and unregistered.
-	consumer := &otel.Consumer{Processor: processor}
+	consumer := otlp.NewConsumer(otlp.ConsumerConfig{
+		Processor: processor,
+		Logger:    logger,
+	})
 	httpMonitoredConsumer.set(consumer)
 	return HTTPHandlers{consumer: consumer}
 }
 
 // HTTPHandlers encapsulates http.HandlerFuncs for handling traces, metrics, and logs.
 type HTTPHandlers struct {
-	consumer *otel.Consumer
+	consumer *otlp.Consumer
 }
 
 // HandleTraces is an http.HandlerFunc that receives a protobuf-encoded traces export

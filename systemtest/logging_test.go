@@ -143,7 +143,7 @@ func TestAPMServerRequestLoggingValid(t *testing.T) {
 
 	assert.NotContains(t, logEntries[0].Fields, "error")
 	assert.Regexp(t, "validation error: 'transaction' required", logEntries[1].Fields["error.message"])
-	assert.Equal(t, "event exceeded the permitted size.", logEntries[2].Fields["error.message"])
+	assert.Equal(t, "event exceeded the permitted size", logEntries[2].Fields["error.message"])
 }
 
 // validMetadataJSON returns valid JSON-encoded metadata,
