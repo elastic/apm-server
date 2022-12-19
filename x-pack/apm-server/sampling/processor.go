@@ -311,10 +311,10 @@ func (p *Processor) Stop(ctx context.Context) error {
 
 // Run runs the tail-sampling processor. This method is responsible for:
 //
-//  - periodically making, and then publishing, local sampling decisions
-//  - subscribing to remote sampling decisions
-//  - reacting to both local and remote sampling decisions by reading
-//    related events from local storage, and then reporting them
+//   - periodically making, and then publishing, local sampling decisions
+//   - subscribing to remote sampling decisions
+//   - reacting to both local and remote sampling decisions by reading
+//     related events from local storage, and then reporting them
 //
 // Run returns when a fatal error occurs or the Stop method is invoked.
 func (p *Processor) Run() error {
@@ -361,18 +361,27 @@ func (p *Processor) Run() error {
 	remoteSampledTraceIDs := make(chan string)
 	localSampledTraceIDs := make(chan string)
 	publishSampledTraceIDs := make(chan string)
-	g, ctx := errgroup.WithContext(context.Background())
+	gracefulContext, cancelGracefulContext := context.WithCancel(context.Background())
+	defer cancelGracefulContext()
+	var g errgroup.Group
 	g.Go(func() error {
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		case <-p.stopping:
+		// Write subscriber position to a file on disk, to support resuming
+		// on apm-server restart without reprocessing all indices. We trigger
+		// the graceful shutdown from this goroutine to ensure we do not
+		// write any subscriber positions after Stop is called, and risk
+		// having a new subscriber miss events.
+		for {
 			select {
-			case <-ctx.Done():
-				return ctx.Err()
-			case <-time.After(shutdownGracePeriod):
+			case <-p.stopping:
+				time.AfterFunc(shutdownGracePeriod, cancelGracefulContext)
+				return context.Canceled
+			case pos := <-subscriberPositions:
+				if err := writeSubscriberPosition(p.config.StorageDir, pos); err != nil {
+					p.rateLimitedLogger.With(logp.Error(err)).With(logp.Reflect("position", pos)).Warn(
+						"failed to write subscriber position: %s", err,
+					)
+				}
 			}
-			return context.Canceled
 		}
 	})
 	g.Go(func() error {
@@ -383,8 +392,8 @@ func (p *Processor) Run() error {
 		defer ticker.Stop()
 		for {
 			select {
-			case <-ctx.Done():
-				return ctx.Err()
+			case <-p.stopping:
+				return nil
 			case <-ticker.C:
 				const discardRatio = 0.5
 				var err error
@@ -400,16 +409,40 @@ func (p *Processor) Run() error {
 		}
 	})
 	g.Go(func() error {
+		// Subscribe to remotely sampled trace IDs. This is cancelled immediately when
+		// Stop is called. The next subscriber will pick up from the previous position.
+		defer close(remoteSampledTraceIDs)
 		defer close(subscriberPositions)
-		return pubsub.SubscribeSampledTraceIDs(ctx, initialSubscriberPosition, remoteSampledTraceIDs, subscriberPositions)
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+		go func() {
+			defer cancel()
+			select {
+			case <-p.stopping:
+			case <-p.stopped:
+			}
+
+		}()
+		return pubsub.SubscribeSampledTraceIDs(
+			ctx, initialSubscriberPosition, remoteSampledTraceIDs, subscriberPositions,
+		)
 	})
 	g.Go(func() error {
-		return pubsub.PublishSampledTraceIDs(ctx, publishSampledTraceIDs)
+		// Publish locally sampled trace IDs to Elasticsearch. This is cancelled when
+		// publishSampledTraceIDs is closed, after the final reservoir flush.
+		return pubsub.PublishSampledTraceIDs(gracefulContext, publishSampledTraceIDs)
 	})
 	g.Go(func() error {
 		ticker := time.NewTicker(p.config.FlushInterval)
 		defer ticker.Stop()
 		var traceIDs []string
+
+		// Close publishSampledTraceIDs and localSampledTraceIDs after returning,
+		// which implies that either all decisions have been published or the grace
+		// period has elapsed. This will unblock the PublishSampledTraceIDs call above,
+		// and the event indexing goroutine below.
+		defer close(publishSampledTraceIDs)
+		defer close(localSampledTraceIDs)
 
 		publishDecisions := func() error {
 			p.logger.Debug("finalizing local sampling reservoirs")
@@ -418,8 +451,8 @@ func (p *Processor) Run() error {
 				return nil
 			}
 			var g errgroup.Group
-			g.Go(func() error { return sendTraceIDs(ctx, publishSampledTraceIDs, traceIDs) })
-			g.Go(func() error { return sendTraceIDs(ctx, localSampledTraceIDs, traceIDs) })
+			g.Go(func() error { return sendTraceIDs(gracefulContext, publishSampledTraceIDs, traceIDs) })
+			g.Go(func() error { return sendTraceIDs(gracefulContext, localSampledTraceIDs, traceIDs) })
 			if err := g.Wait(); err != nil {
 				return err
 			}
@@ -429,8 +462,6 @@ func (p *Processor) Run() error {
 
 		for {
 			select {
-			case <-ctx.Done():
-				return ctx.Err()
 			case <-p.stopping:
 				return publishDecisions()
 			case <-ticker.C:
@@ -445,17 +476,34 @@ func (p *Processor) Run() error {
 		// Alternatively we can rely on backpressure from the reporter,
 		// removing the artificial one second timeout from publisher code
 		// and just waiting as long as it takes here.
+		remoteSampledTraceIDs := remoteSampledTraceIDs
+		localSampledTraceIDs := localSampledTraceIDs
 		for {
+			if remoteSampledTraceIDs == nil && localSampledTraceIDs == nil {
+				// The pubsub subscriber and reservoir finalizer have
+				// both stopped, so there's nothing else to do.
+				return nil
+			}
 			var remoteDecision bool
 			var traceID string
+			var ok bool
 			select {
-			case <-ctx.Done():
-				return ctx.Err()
-			case traceID = <-remoteSampledTraceIDs:
+			case <-gracefulContext.Done():
+				return gracefulContext.Err()
+			case traceID, ok = <-remoteSampledTraceIDs:
+				if !ok {
+					remoteSampledTraceIDs = nil
+					continue
+				}
 				p.logger.Debug("received remotely sampled trace ID")
 				remoteDecision = true
-			case traceID = <-localSampledTraceIDs:
+			case traceID, ok = <-localSampledTraceIDs:
+				if !ok {
+					localSampledTraceIDs = nil
+					continue
+				}
 			}
+
 			if err := p.eventStore.WriteTraceSampled(traceID, true); err != nil {
 				p.rateLimitedLogger.Warnf(
 					"received error writing sampled trace: %s", err,
@@ -491,24 +539,8 @@ func (p *Processor) Run() error {
 					}
 				}
 				atomic.AddInt64(&p.eventMetrics.sampled, int64(len(events)))
-				if err := p.config.BatchProcessor.ProcessBatch(ctx, &events); err != nil {
+				if err := p.config.BatchProcessor.ProcessBatch(gracefulContext, &events); err != nil {
 					p.logger.With(logp.Error(err)).Warn("failed to report events")
-				}
-			}
-		}
-	})
-	g.Go(func() error {
-		// Write subscriber position to a file on disk, to support resuming
-		// on apm-server restart without reprocessing all indices.
-		for {
-			select {
-			case <-ctx.Done():
-				return ctx.Err()
-			case pos := <-subscriberPositions:
-				if err := writeSubscriberPosition(p.config.StorageDir, pos); err != nil {
-					p.rateLimitedLogger.With(logp.Error(err)).With(logp.Reflect("position", pos)).Warn(
-						"failed to write subscriber position: %s", err,
-					)
 				}
 			}
 		}

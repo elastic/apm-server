@@ -60,7 +60,7 @@ func New(config Config) (*Pubsub, error) {
 
 // PublishSampledTraceIDs receives trace IDs from the traceIDs channel,
 // indexing them into Elasticsearch. PublishSampledTraceIDs returns when
-// ctx is canceled.
+// ctx is canceled, or traceIDs is closed.
 func (p *Pubsub) PublishSampledTraceIDs(ctx context.Context, traceIDs <-chan string) error {
 	appender, err := docappender.New(p.config.Client, docappender.Config{
 		CompressionLevel:   p.config.CompressionLevel,
@@ -92,7 +92,10 @@ func (p *Pubsub) indexSampledTraceIDs(ctx context.Context, traceIDs <-chan strin
 				return err
 			}
 			return nil
-		case id := <-traceIDs:
+		case id, ok := <-traceIDs:
+			if !ok {
+				return nil
+			}
 			doc := model.APMEvent{
 				Timestamp:  time.Now(),
 				DataStream: model.DataStream(p.config.DataStream),
