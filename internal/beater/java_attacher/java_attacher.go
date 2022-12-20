@@ -276,9 +276,9 @@ func normalizeJavaCommand(command string) string {
 
 // foreachJVM calls f for each JVM in jvms concurrently,
 // returning when one of the following is true:
-//   1. The function completes for each JVM
-//   2. The timeout is reached.
-//   3.	The context is cancelled.
+//  1. The function completes for each JVM
+//  2. The timeout is reached.
+//  3. The context is cancelled.
 //
 // If removeOnError is true and f returns an error, that
 // JVM will be removed from the map.

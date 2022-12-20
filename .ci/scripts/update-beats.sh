@@ -9,8 +9,7 @@ make update-beats
 COMMIT_MESSAGE="Update to elastic/beats@$(go list -m -f {{.Version}} github.com/elastic/beats/... | cut -d- -f3)"
 
 git checkout -b "update-beats-$(date "+%Y%m%d%H%M%S")"
-git add --ignore-errors go.mod go.sum NOTICE.txt \
-	.go-version docs/version.asciidoc
+git add --ignore-errors go.mod go.sum NOTICE.txt
 
 find . -maxdepth 2 -name Dockerfile -exec git add {} \;
 
