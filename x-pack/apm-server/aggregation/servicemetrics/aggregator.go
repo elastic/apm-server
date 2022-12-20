@@ -11,6 +11,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/axiomhq/hyperloglog"
 	"github.com/cespare/xxhash/v2"
 	"github.com/pkg/errors"
 
@@ -170,13 +171,24 @@ func (a *Aggregator) publish(ctx context.Context) error {
 
 	batch := make(model.Batch, 0, size)
 	for key, metrics := range a.inactive.m {
-		for _, mme := range metrics {
-			metricset := makeMetricset(mme.aggregationKey, mme.serviceMetrics)
-			batch = append(batch, metricset)
+		for _, entry := range metrics {
+			m := makeMetricset(entry.aggregationKey, entry.serviceMetrics)
+			batch = append(batch, m)
 		}
 		delete(a.inactive.m, key)
 	}
-	a.inactive.other = nil
+	if a.inactive.other != nil {
+		entry := a.inactive.other
+		m := makeMetricset(entry.aggregationKey, entry.serviceMetrics)
+		m.Metricset.Samples = append(m.Metricset.Samples, model.MetricsetSample{
+			Name:  "overflow_count",
+			Value: float64(a.inactive.otherCardinalityEstimator.Estimate()),
+		})
+		batch = append(batch, m)
+		a.inactive.other = nil
+		a.inactive.otherCardinalityEstimator = nil
+	}
+	a.inactive.entries = 0
 	a.config.Logger.Debugf("publishing %d metricsets", len(batch))
 	return a.config.BatchProcessor.ProcessBatch(ctx, &batch)
 }
@@ -214,20 +226,19 @@ func (a *Aggregator) processTransaction(event *model.APMEvent) {
 type metricsBuffer struct {
 	maxSize int
 
-	mu         sync.RWMutex
-	entries    int
-	svcEntries int
-	m          map[uint64][]*metricsMapEntry
-	space      []metricsMapEntry
-	// other tracks the overflow service bucket.
-	other *metricsMapEntry
+	mu                        sync.RWMutex
+	entries                   int
+	space                     []metricsMapEntry
+	m                         map[uint64][]*metricsMapEntry
+	other                     *metricsMapEntry
+	otherCardinalityEstimator *hyperloglog.Sketch
 }
 
 func newMetricsBuffer(maxSize int) *metricsBuffer {
 	return &metricsBuffer{
 		maxSize: maxSize,
-		m:       make(map[uint64][]*metricsMapEntry),
 		space:   make([]metricsMapEntry, maxSize+1),
+		m:       make(map[uint64][]*metricsMapEntry),
 	}
 }
 
@@ -256,6 +267,7 @@ func (mb *metricsBuffer) storeOrUpdate(key aggregationKey, metrics serviceMetric
 	}
 	if entry == nil && mb.entries >= mb.maxSize && mb.other != nil {
 		entry = mb.other
+		mb.otherCardinalityEstimator.Insert([]byte(key.serviceName))
 	}
 	if entry != nil {
 		entry.serviceMetrics = serviceMetrics{
@@ -268,11 +280,15 @@ func (mb *metricsBuffer) storeOrUpdate(key aggregationKey, metrics serviceMetric
 	}
 	if mb.entries >= mb.maxSize {
 		mb.other = &mb.space[len(mb.space)-1]
+		mb.otherCardinalityEstimator = hyperloglog.New14()
+		mb.otherCardinalityEstimator.Insert([]byte(key.serviceName))
 		entry = mb.other
 		key = makeOverflowAggregationKey(key)
 		hash = key.hash()
 	} else {
 		entry = &mb.space[mb.entries]
+		mb.m[hash] = append(entries, entry)
+		mb.entries++
 	}
 	entry.aggregationKey = key
 	entry.serviceMetrics = serviceMetrics{
@@ -281,8 +297,6 @@ func (mb *metricsBuffer) storeOrUpdate(key aggregationKey, metrics serviceMetric
 		failureCount:        metrics.failureCount,
 		successCount:        metrics.successCount,
 	}
-	mb.m[hash] = append(entries, entry)
-	mb.entries++
 	return
 }
 

@@ -66,10 +66,12 @@ require (
 	github.com/Shopify/sarama v1.32.0 // indirect
 	github.com/apache/thrift v0.17.0 // indirect
 	github.com/armon/go-radix v1.0.0 // indirect
+	github.com/axiomhq/hyperloglog v0.0.0-20220105174342-98591331716a // indirect
 	github.com/cespare/xxhash v1.1.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dgraph-io/ristretto v0.1.0 // indirect
 	github.com/dgryski/go-farm v0.0.0-20200201041132-a6ae2369ad13 // indirect
+	github.com/dgryski/go-metro v0.0.0-20180109044635-280f6062b5bc // indirect
 	github.com/dlclark/regexp2 v1.7.0 // indirect
 	github.com/dop251/goja v0.0.0-20221118162653-d4bf6fde1b86 // indirect
 	github.com/dop251/goja_nodejs v0.0.0-20221211191749-434192f0843e // indirect

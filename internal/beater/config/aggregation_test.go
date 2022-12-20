@@ -41,11 +41,6 @@ func TestAggregationConfigInvalid(t *testing.T) {
 		value:  "0",
 		expect: "Error processing configuration: requires duration >= 1 accessing 'aggregation.transactions.interval'",
 	}, {
-		name:   "non-positive max_groups",
-		key:    "aggregation.transactions.max_groups",
-		value:  float64(0),
-		expect: "Error processing configuration: requires value >= 1 accessing 'aggregation.transactions.max_groups'",
-	}, {
 		name:   "non-positive hdrhistogram_significant_figures",
 		key:    "aggregation.transactions.hdrhistogram_significant_figures",
 		value:  float64(0),

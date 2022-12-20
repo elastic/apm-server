@@ -12,6 +12,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/axiomhq/hyperloglog"
 	"github.com/cespare/xxhash/v2"
 	"github.com/pkg/errors"
 
@@ -256,7 +257,18 @@ func (a *Aggregator) publish(ctx context.Context) error {
 			delete(svcEntry.m, hash)
 		}
 		if svcEntry.other != nil {
+			entry := svcEntry.other
+			totalCount, counts, values := entry.transactionMetrics.histogramBuckets()
+			m := makeMetricset(entry.transactionAggregationKey, totalCount, counts, values)
+			m.Metricset.Samples = append(m.Metricset.Samples, model.MetricsetSample{
+				Name:  "overflow_count",
+				Value: float64(svcEntry.otherCardinalityEstimator.Estimate()),
+			})
+			batch = append(batch, m)
+
+			entry.histogram.Reset()
 			svcEntry.other = nil
+			svcEntry.otherCardinalityEstimator = nil
 			svcEntry.entries = 0
 		}
 		delete(a.inactive.m, svc)
@@ -360,8 +372,6 @@ func (a *Aggregator) updateTransactionMetrics(key transactionAggregationKey, has
 		if m.services >= a.config.MaxServices {
 			key.serviceName = "other"
 			svcEntry = &m.svcSpace[len(m.svcSpace)-1]
-			// Make sure that `other` service uses the `other` transaction group
-			svcEntry.entries = math.MaxInt
 		} else {
 			svcEntry = &m.svcSpace[m.services]
 		}
@@ -372,20 +382,32 @@ func (a *Aggregator) updateTransactionMetrics(key transactionAggregationKey, has
 		m.services++
 	}
 	var entry *metricsMapEntry
-	if m.entries >= a.config.MaxTransactionGroups || svcEntry.entries >= a.config.MaxTransactionGroupsPerService {
-		// In `other` service we account for only `other` transaction.
-		key.transactionName = "other"
-		key = a.makeOverflowAggregationKey(key)
-		hash = key.hash()
+	if m.entries >= a.config.MaxTransactionGroups ||
+		svcEntry.entries >= a.config.MaxTransactionGroupsPerService ||
+		key.serviceName == "other" {
+
 		if svcEntry.other != nil {
+			if svcEntry.otherCardinalityEstimator.Insert([]byte(key.transactionName)) {
+				atomic.AddInt64(&a.metrics.overflowed, 1)
+			}
 			svcEntry.other.recordDuration(duration, count)
 			m.mu.Unlock()
 			return
 		}
 		svcEntry.other = &m.space[m.entries]
+		svcEntry.otherCardinalityEstimator = hyperloglog.New14()
+		svcEntry.otherCardinalityEstimator.Insert([]byte(key.transactionName))
+		atomic.AddInt64(&a.metrics.overflowed, 1)
 		entry = svcEntry.other
+		// Override transaction name with `other`. For `other` service
+		// we will only account for `other` transaction bucket.
+		key.transactionName = "other"
+		key = a.makeOverflowAggregationKey(key)
+		hash = key.hash()
 	} else {
 		entry = &m.space[m.entries]
+		svcEntry.m[hash] = append(entries, entry)
+		svcEntry.entries++
 	}
 	entry.transactionAggregationKey = key
 	if entry.transactionMetrics.histogram == nil {
@@ -396,8 +418,6 @@ func (a *Aggregator) updateTransactionMetrics(key transactionAggregationKey, has
 		)
 	}
 	entry.recordDuration(duration, count)
-	svcEntry.m[hash] = append(entries, entry)
-	svcEntry.entries++
 	m.entries++
 	m.mu.Unlock()
 }
@@ -534,26 +554,26 @@ func makeMetricset(key transactionAggregationKey, totalCount int64, counts []int
 
 type metrics struct {
 	mu       sync.RWMutex
-	entries  int
+	entries  int // total number of tx groups getting aggregated
 	services int
-	m        map[string]*svcMetricsMapEntry
 	space    []metricsMapEntry
 	svcSpace []svcMetricsMapEntry
+	m        map[string]*svcMetricsMapEntry
 }
 
 func newMetrics(maxGroups, maxServices int) *metrics {
 	return &metrics{
-		m:        make(map[string]*svcMetricsMapEntry),
 		space:    make([]metricsMapEntry, maxGroups*2+1),
 		svcSpace: make([]svcMetricsMapEntry, maxServices+1),
+		m:        make(map[string]*svcMetricsMapEntry),
 	}
 }
 
 type svcMetricsMapEntry struct {
-	entries int
-	m       map[uint64][]*metricsMapEntry
-	// other tracks the overflow transaction bucket for each service bucket.
-	other *metricsMapEntry
+	entries                   int // total number of tx groups for this svc getting aggregated
+	m                         map[uint64][]*metricsMapEntry
+	other                     *metricsMapEntry
+	otherCardinalityEstimator *hyperloglog.Sketch
 }
 
 type metricsMapEntry struct {

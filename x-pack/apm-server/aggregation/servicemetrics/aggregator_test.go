@@ -265,7 +265,16 @@ func TestAggregatorOverflow(t *testing.T) {
 				Sum:   100,
 			},
 		},
-		Metricset: &model.Metricset{Name: "service", DocCount: 100},
+		Metricset: &model.Metricset{
+			Name:     "service",
+			DocCount: 100,
+			Samples: []model.MetricsetSample{
+				{
+					Name:  "overflow_count",
+					Value: float64(overflowCount),
+				},
+			},
+		},
 	}, *overflowEvent)
 }
 

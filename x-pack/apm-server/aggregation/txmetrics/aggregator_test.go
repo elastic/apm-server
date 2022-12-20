@@ -92,48 +92,45 @@ func TestTxnAggregatorProcessBatch(t *testing.T) {
 		uniqueTxnCount                   int
 		uniqueServices                   int
 		expectedActiveGroups             int64
-		expectedSvcsWithTxnLimitOverflow int
-		expectedOverflowToOtherSvc       bool
+		expectedPerSvcTxnLimitOverflow   int
+		expectedOtherSvcTxnLimitOverflow int
+		expectedTotalOverflow            int64
 	}{
 		{
 			name:                             "record_into_other_txn_if_txn_per_svcs_limit_breached",
 			uniqueTxnCount:                   20,
 			uniqueServices:                   2,
 			expectedActiveGroups:             6,
-			expectedSvcsWithTxnLimitOverflow: 2,
-			expectedOverflowToOtherSvc:       false,
+			expectedPerSvcTxnLimitOverflow:   8, // we will overflow all of the services equally
+			expectedOtherSvcTxnLimitOverflow: 0,
+			expectedTotalOverflow:            16,
 		},
 		{
 			name:                             "record_into_other_txn_if_txn_grps_limit_breached",
 			uniqueTxnCount:                   60,
 			uniqueServices:                   20,
 			expectedActiveGroups:             40,
-			expectedSvcsWithTxnLimitOverflow: 20,
-			expectedOverflowToOtherSvc:       false,
+			expectedPerSvcTxnLimitOverflow:   2, // we will overflow all of the services equally
+			expectedOtherSvcTxnLimitOverflow: 0,
+			expectedTotalOverflow:            40,
 		},
 		{
 			name:                             "record_into_other_txn_other_svc_if_txn_grps_and_svcs_limit_breached",
 			uniqueTxnCount:                   60,
 			uniqueServices:                   60,
 			expectedActiveGroups:             21,
-			expectedSvcsWithTxnLimitOverflow: 0,
-			expectedOverflowToOtherSvc:       true,
+			expectedPerSvcTxnLimitOverflow:   0, // we will overflow all of the services equally
+			expectedOtherSvcTxnLimitOverflow: 40,
+			expectedTotalOverflow:            40,
 		},
 		{
 			name:                             "all_overflow",
 			uniqueTxnCount:                   600,
 			uniqueServices:                   60,
 			expectedActiveGroups:             41,
-			expectedSvcsWithTxnLimitOverflow: 20,
-			expectedOverflowToOtherSvc:       true,
-		},
-		{
-			name:                             "record_txns_in_other_svc_if_svcs_limit_breached",
-			uniqueTxnCount:                   600,
-			uniqueServices:                   60,
-			expectedActiveGroups:             41,
-			expectedSvcsWithTxnLimitOverflow: 20,
-			expectedOverflowToOtherSvc:       true,
+			expectedPerSvcTxnLimitOverflow:   9, // we will overflow all of the services equally
+			expectedOtherSvcTxnLimitOverflow: 400,
+			expectedTotalOverflow:            580,
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -148,7 +145,7 @@ func TestTxnAggregatorProcessBatch(t *testing.T) {
 			})
 			require.NoError(t, err)
 
-			repCount := 5
+			repCount := 1
 			batch := make(model.Batch, tc.uniqueTxnCount*repCount)
 			for i := 0; i < len(batch); i++ {
 				batch[i] = model.APMEvent{
@@ -168,7 +165,7 @@ func TestTxnAggregatorProcessBatch(t *testing.T) {
 
 			expectedMonitoring := monitoring.MakeFlatSnapshot()
 			expectedMonitoring.Ints["txmetrics.active_groups"] = tc.expectedActiveGroups
-			expectedMonitoring.Ints["txmetrics.overflowed"] = 0 // no overflows, ever
+			expectedMonitoring.Ints["txmetrics.overflowed"] = tc.expectedTotalOverflow
 			registry := monitoring.NewRegistry()
 			monitoring.NewFunc(registry, "txmetrics", agg.CollectMonitoring)
 			assert.Equal(t, expectedMonitoring, monitoring.CollectFlatSnapshot(
@@ -179,21 +176,22 @@ func TestTxnAggregatorProcessBatch(t *testing.T) {
 
 			require.NoError(t, agg.Stop(context.Background()))
 			metricsets := batchMetricsets(t, expectBatch(t, batches))
-			var svcsWithOverflowInTxnLimitPerSvc int
-			var overflowToOtherSvcs bool
+			var foundPerSvcOverflow, foundOtherSvcOverflow bool
 			for _, m := range metricsets {
 				if m.Transaction.Name == "other" {
-					if m.Service.Name != "other" {
-						svcsWithOverflowInTxnLimitPerSvc++
+					require.Equal(t, "overflow_count", m.Metricset.Samples[0].Name)
+					if m.Service.Name == "other" {
+						foundOtherSvcOverflow = true
+						assert.Equal(t, tc.expectedOtherSvcTxnLimitOverflow, int(m.Metricset.Samples[0].Value))
 					} else {
-						overflowToOtherSvcs = true
+						foundPerSvcOverflow = true
+						assert.Equal(t, tc.expectedPerSvcTxnLimitOverflow, int(m.Metricset.Samples[0].Value))
 					}
 				}
 			}
-			assert.Equal(t, tc.expectedSvcsWithTxnLimitOverflow, svcsWithOverflowInTxnLimitPerSvc)
-			assert.Equal(t, tc.expectedOverflowToOtherSvc, overflowToOtherSvcs)
+			assert.Equal(t, tc.expectedPerSvcTxnLimitOverflow > 0, foundPerSvcOverflow)
+			assert.Equal(t, tc.expectedOtherSvcTxnLimitOverflow > 0, foundOtherSvcOverflow)
 		})
-
 	}
 }
 
