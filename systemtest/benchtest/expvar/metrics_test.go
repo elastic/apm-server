@@ -128,11 +128,11 @@ func TestWatchMetricNonBlocking(t *testing.T) {
 }
 
 // setupTestServer creates a test http server with following properties:
-// - max number of responses are controlled using channels
-// - max number of responses is configured using count which represents
-//   the number of samples that the collector witnesses
-// - if the responses are not consumed in 1 second the server returns error
-// - each metric creates a timeseries of natural numbers
+//   - max number of responses are controlled using channels
+//   - max number of responses is configured using count which represents
+//     the number of samples that the collector witnesses
+//   - if the responses are not consumed in 1 second the server returns error
+//   - each metric creates a timeseries of natural numbers
 //
 // TODO: @lahsivjar the logic of querying expvar multiple times leaks into
 // these test cases due to the logic in test server to keep the aggregation
