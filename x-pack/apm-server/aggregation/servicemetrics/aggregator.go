@@ -284,7 +284,6 @@ func (mb *metricsBuffer) storeOrUpdate(key aggregationKey, metrics serviceMetric
 		mb.otherCardinalityEstimator.Insert([]byte(key.serviceName))
 		entry = mb.other
 		key = makeOverflowAggregationKey(key)
-		hash = key.hash()
 	} else {
 		entry = &mb.space[mb.entries]
 		mb.m[hash] = append(entries, entry)
@@ -297,7 +296,6 @@ func (mb *metricsBuffer) storeOrUpdate(key aggregationKey, metrics serviceMetric
 		failureCount:        metrics.failureCount,
 		successCount:        metrics.successCount,
 	}
-	return
 }
 
 type aggregationKey struct {

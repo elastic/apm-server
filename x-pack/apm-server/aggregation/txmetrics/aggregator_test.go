@@ -321,7 +321,7 @@ func TestAggregatorRunPublishErrors(t *testing.T) {
 	}
 }
 
-func TestAggregateRepresentativeCount2(t *testing.T) {
+func TestAggregateRepresentativeCount(t *testing.T) {
 	for _, tc := range []struct {
 		name                 string
 		representativeCounts []float64

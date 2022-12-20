@@ -81,7 +81,6 @@ type AggregatorConfig struct {
 
 	// MaxTransactionGroupsPerService is the maximum number of distinct
 	// transaction group per service to store within an aggregation period.
-	// This config is derived from `maxTransactionGroups`.
 	//
 	// When the limit on per service transaction group is reached the new
 	// transactions will be aggregated in a dedicated transaction group
@@ -403,7 +402,6 @@ func (a *Aggregator) updateTransactionMetrics(key transactionAggregationKey, has
 		// we will only account for `other` transaction bucket.
 		key.transactionName = "other"
 		key = a.makeOverflowAggregationKey(key)
-		hash = key.hash()
 	} else {
 		entry = &m.space[m.entries]
 		svcEntry.m[hash] = append(entries, entry)
@@ -706,11 +704,4 @@ func (m *transactionMetrics) histogramBuckets() (totalCount int64, counts []int6
 		totalCount += count
 	}
 	return totalCount, counts, values
-}
-
-func transactionCount(tx *model.Transaction) float64 {
-	if tx.RepresentativeCount > 0 {
-		return tx.RepresentativeCount
-	}
-	return 1
 }
