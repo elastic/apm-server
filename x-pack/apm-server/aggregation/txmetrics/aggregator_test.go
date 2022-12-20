@@ -592,6 +592,8 @@ func BenchmarkAggregateTransaction(b *testing.B) {
 	agg, err := txmetrics.NewAggregator(txmetrics.AggregatorConfig{
 		BatchProcessor:                 makeErrBatchProcessor(nil),
 		MaxTransactionGroups:           1000,
+		MaxTransactionGroupsPerService: 100,
+		MaxServices:                    1000,
 		MetricsInterval:                time.Minute,
 		HDRHistogramSignificantFigures: 2,
 	})
