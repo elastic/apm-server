@@ -533,7 +533,6 @@ github.com/elastic/beats/v7 v7.0.0-alpha2.0.20221101064311-4f7ee2350fbf h1:BkKbb
 github.com/elastic/beats/v7 v7.0.0-alpha2.0.20221101064311-4f7ee2350fbf/go.mod h1:zMUTwEEsLsSGknOPWGg0pS21usYENkq3fFt3+1KZd2M=
 github.com/elastic/ecs v1.12.0 h1:u6WZ2AWtxv5vHvTQ4EuVZdWZ51mKHQ2UIltRePcta5U=
 github.com/elastic/ecs v1.12.0/go.mod h1:pgiLbQsijLOJvFR8OTILLu0Ni/R/foUNg0L+T6mU9b4=
-github.com/elastic/elastic-agent v0.0.0-20220831162706-5f1e54f40d3e h1:uGDp9HesS9m3T7YwgM0ATE/YP5FXcxxAAKHQDgP/GS0=
 github.com/elastic/elastic-agent-autodiscover v0.3.0 h1:kdpNnIDnVk7gvQxxR6PzZY7aM8LyMTRkwI/p+FNS17s=
 github.com/elastic/elastic-agent-autodiscover v0.3.0/go.mod h1:p3MSf9813JEnolCTD0GyVAr3+Eptg2zQ9aZVFjl4tJ4=
 github.com/elastic/elastic-agent-client/v7 v7.0.0-20221028150015-05e494d37ccd h1:IuAuac3vcucBrjAXKPQlTJ22H7mBUsSnNWxa7GZYFEg=

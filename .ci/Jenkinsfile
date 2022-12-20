@@ -13,7 +13,6 @@ pipeline {
     ES_LOG_LEVEL = "${params.ES_LOG_LEVEL}"
     DOCKER_SECRET = 'secret/apm-team/ci/docker-registry/prod'
     DOCKER_REGISTRY = 'docker.elastic.co'
-    ONLY_DOCS = "false"
   }
   options {
     timeout(time: 2, unit: 'HOURS')
@@ -70,9 +69,7 @@ pipeline {
             }
             env.BEATS_UPDATED = isGitRegionMatch(patterns: regexps)
             // Skip all the stages except docs for PR's with asciidoc changes only
-            whenTrue(isPR()) {
-              setEnvVar('ONLY_DOCS', isGitRegionMatch(patterns: [ '.*\\.asciidoc' ], comparator: 'regexp', shouldMatchAll: true))
-            }
+            setEnvVar('ONLY_DOCS', isPR() ? isGitRegionMatch(patterns: [ '.*\\.asciidoc' ], shouldMatchAll: true) : false)
           }
         }
       }
