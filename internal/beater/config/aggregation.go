@@ -41,7 +41,7 @@ type AggregationConfig struct {
 // TransactionAggregationConfig holds configuration related to transaction metrics aggregation.
 type TransactionAggregationConfig struct {
 	Interval                       time.Duration `config:"interval" validate:"min=1"`
-	MaxTransactionGroups           int           `config:"max_groups"`
+	MaxTransactionGroups           int           `config:"max_groups"` // if <= 0 then will be set based on memory limts
 	HDRHistogramSignificantFigures int           `config:"hdrhistogram_significant_figures" validate:"min=1, max=5"`
 }
 
@@ -55,7 +55,8 @@ type ServiceDestinationAggregationConfig struct {
 type ServiceAggregationConfig struct {
 	Enabled   bool          `config:"enabled"`
 	Interval  time.Duration `config:"interval" validate:"min=1"`
-	MaxGroups int           `config:"max_groups"`
+	MaxGroups int           `config:"max_groups"` // if <= 0 then will be set based on memory limts
+
 }
 
 func defaultAggregationConfig() AggregationConfig {

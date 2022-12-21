@@ -212,13 +212,13 @@ func (s *Runner) Run(ctx context.Context) error {
 		)
 	}
 	if s.config.Aggregation.Transactions.MaxTransactionGroups <= 0 {
-		s.config.Aggregation.Transactions.MaxTransactionGroups = int(memLimitGB * 10000)
+		s.config.Aggregation.Transactions.MaxTransactionGroups = maxGroupsForAggregation(memLimitGB)
 		s.logger.Infof("MaxTransactionGroups set to %d based on %0.1fgb of memory",
 			s.config.Aggregation.Transactions.MaxTransactionGroups, memLimitGB,
 		)
 	}
 	if s.config.Aggregation.Service.MaxGroups <= 0 {
-		s.config.Aggregation.Service.MaxGroups = int(memLimitGB * 10000)
+		s.config.Aggregation.Service.MaxGroups = maxGroupsForAggregation(memLimitGB)
 		s.logger.Infof("MaxGroups for service aggregation set to %d based on %0.1fgb of memory",
 			s.config.Aggregation.Service.MaxGroups, memLimitGB,
 		)
@@ -489,6 +489,14 @@ func maxConcurrentDecoders(memLimitGB float64) uint {
 		return max
 	}
 	return decoders
+}
+
+func maxGroupsForAggregation(memLimitGB float64) int {
+	const maxMemGB = 64
+	if memLimitGB > maxMemGB {
+		memLimitGB = maxMemGB
+	}
+	return int(memLimitGB * 10000)
 }
 
 // waitReady waits until the server is ready to index events.

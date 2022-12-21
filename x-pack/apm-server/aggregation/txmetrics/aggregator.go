@@ -137,12 +137,6 @@ func NewAggregator(config AggregatorConfig) (*Aggregator, error) {
 	if config.Logger == nil {
 		config.Logger = logp.NewLogger(logs.TransactionMetrics)
 	}
-	config.Logger.Infof(
-		"creating aggregator with %d txn groups limit, %d txn groups per service limit and %d services limit",
-		config.MaxTransactionGroups,
-		config.MaxTransactionGroupsPerService,
-		config.MaxServices,
-	)
 	return &Aggregator{
 		stopping:            make(chan struct{}),
 		stopped:             make(chan struct{}),
