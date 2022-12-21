@@ -186,7 +186,9 @@ func (s *Runner) Run(ctx context.Context) error {
 			s.logger.Warn(err)
 		} else {
 			// Limit the memory to 80% of the cgroup memory limit.
+			s.logger.Infof("deduced limit of %d from the cgroup reader", limit)
 			memLimit = float64(limit) / 1024 / 1024 / 1024 * 0.8
+			s.logger.Infof("deduced limit of %f GB (80 percent of total) from the cgroup reader", memLimit)
 		}
 	}
 	if memLimit <= 0 {

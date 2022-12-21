@@ -126,6 +126,8 @@ func TestAgentConfig(t *testing.T) {
 	etag := gjson.GetBytes(result.Hits.Hits[0].RawSource, "labels.etag")
 	assert.Equal(t, etag1, strconv.Quote(etag.String()))
 	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits, "@timestamp", "labels.etag")
+	// Forced failure
+	t.FailNow()
 }
 
 func queryAgentConfig(t testing.TB, serverURL, serviceName, serviceEnvironment, etag string) (map[string]string, *http.Response) {
