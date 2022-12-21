@@ -189,3 +189,6 @@ exclude (
 )
 
 exclude github.com/elastic/elastic-agent v0.0.0-20220831162706-5f1e54f40d3e
+
+// Workaround until https://github.com/axiomhq/hyperloglog/pull/33 PR is released
+exclude github.com/influxdata/influxdb v1.7.6
