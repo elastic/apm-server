@@ -303,17 +303,20 @@ type AggregationConfig struct {
 
 // TransactionAggregationConfig holds APM Server transaction metrics aggregation configuration.
 type TransactionAggregationConfig struct {
-	Interval time.Duration
+	Interval        time.Duration
+	RollUpIntervals []time.Duration
 }
 
 func (m *TransactionAggregationConfig) MarshalJSON() ([]byte, error) {
 	// time.Duration is encoded as int64.
 	// Convert time.Durations to durations, to encode as duration strings.
 	type config struct {
-		Interval string `json:"interval,omitempty"`
+		Interval        string   `json:"interval,omitempty"`
+		RollUpIntervals []string `json:"rollup_intervals,omitempty"`
 	}
 	return json.Marshal(config{
-		Interval: durationString(m.Interval),
+		Interval:        durationString(m.Interval),
+		RollUpIntervals: durationStringSlice(m.RollUpIntervals),
 	})
 }
 
@@ -361,6 +364,16 @@ func durationString(d time.Duration) string {
 		return ""
 	}
 	return d.String()
+}
+
+func durationStringSlice(durations []time.Duration) (result []string) {
+	if len(durations) == 0 {
+		return
+	}
+	for _, d := range durations {
+		result = append(result, d.String())
+	}
+	return
 }
 
 func configArgs(cfg Config, extra map[string]interface{}) ([]string, error) {

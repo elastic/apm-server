@@ -30,10 +30,9 @@ const (
 	appLogsDataset = "apm.app"
 	errorsDataset  = "apm.error"
 
-	metricsType                    = "metrics"
-	appMetricsDataset              = "apm.app"
-	internalMetricsDataset         = "apm.internal"
-	internalIntervalMetricsDataset = "apm.internal-interval"
+	metricsType            = "metrics"
+	appMetricsDataset      = "apm.app"
+	internalMetricsDataset = "apm.internal"
 
 	tracesType       = "traces"
 	tracesDataset    = "apm"
@@ -98,13 +97,13 @@ func metricsetDataset(event *model.APMEvent) string {
 		}
 		var suffix string
 		if duration := event.Event.Duration.Minutes(); duration >= 1 {
-			suffix = fmt.Sprintf("%.0fm", duration)
+			suffix = fmt.Sprintf("%s.%.0fm", event.Metricset.Name, duration)
 		} else {
-			suffix = fmt.Sprintf("%.0fs", event.Event.Duration.Seconds())
+			suffix = fmt.Sprintf("%s.%.0fs", event.Metricset.Name, event.Event.Duration.Seconds())
 		}
 		var dataset strings.Builder
-		dataset.Grow(len(internalIntervalMetricsDataset) + 1 + len(suffix))
-		dataset.WriteString(internalIntervalMetricsDataset)
+		dataset.Grow(len(internalMetricsDataset) + 1 + len(suffix) + len(event.Metricset.Name))
+		dataset.WriteString(internalMetricsDataset)
 		dataset.WriteByte('.')
 		dataset.WriteString(suffix)
 		return dataset.String()

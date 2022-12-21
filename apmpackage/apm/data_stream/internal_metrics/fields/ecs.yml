@@ -67,8 +67,6 @@
 - external: ecs
   name: event.outcome
 - external: ecs
-  name: event.duration
-- external: ecs
   name: host.architecture
 - external: ecs
   name: host.hostname

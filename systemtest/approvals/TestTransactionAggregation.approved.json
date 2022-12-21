@@ -7,7 +7,7 @@
                 "name": "go"
             },
             "data_stream": {
-                "dataset": "apm.internal-interval.1s",
+                "dataset": "apm.internal.transaction.1s",
                 "namespace": "default",
                 "type": "metrics"
             },
@@ -76,7 +76,7 @@
                 "name": "go"
             },
             "data_stream": {
-                "dataset": "apm.internal-interval.1s",
+                "dataset": "apm.internal.transaction.1s",
                 "namespace": "default",
                 "type": "metrics"
             },
@@ -167,7 +167,7 @@
                 "id": "container-id"
             },
             "data_stream": {
-                "dataset": "apm.internal-interval.1s",
+                "dataset": "apm.internal.transaction.1s",
                 "namespace": "default",
                 "type": "metrics"
             },

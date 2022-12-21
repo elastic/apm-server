@@ -112,6 +112,9 @@ func (config AggregatorConfig) Validate() error {
 		if interval <= 0 {
 			return errors.Errorf("RollUpIntervals[%d]: unspecified or negative", i)
 		}
+		if interval%config.MetricsInterval != 0 {
+			return errors.Errorf("RollUpIntervals[%d]: interval must be a multiple of MetricsInterval", i)
+		}
 	}
 	if n := config.HDRHistogramSignificantFigures; n < 1 || n > 5 {
 		return errors.Errorf("HDRHistogramSignificantFigures (%d) outside range [1,5]", n)
@@ -496,9 +499,9 @@ func makeMetricset(key transactionAggregationKey, totalCount int64, counts []int
 
 type metrics struct {
 	mu      sync.RWMutex
-	entries int
 	m       map[uint64][]*metricsMapEntry
 	space   []metricsMapEntry
+	entries int
 }
 
 func newMetrics(maxGroups int) *metrics {

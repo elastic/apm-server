@@ -82,13 +82,9 @@ func renderFile(pkgfs fs.FS, path, outputPath string, version, ecsVersion *versi
 		source, destination string
 	}
 	// The "traces" and "rum_traces" data streams should have identical fields.
-	// The "internal_metrics" and "internal_metrics_interval" data streams should have identical fields.
 	copyDataStreams := []identicalDataStreams{{
 		source:      "data_stream/traces/fields",
 		destination: filepath.Join("..", "rum_traces", "fields"),
-	}, {
-		source:      "data_stream/internal_metrics/fields",
-		destination: filepath.Join("..", "internal_metrics_interval", "fields"),
 	}}
 	for _, ds := range copyDataStreams {
 		if filepath.ToSlash(filepath.Dir(path)) == ds.source {
