@@ -102,7 +102,7 @@ func metricsetDataset(event *model.APMEvent) string {
 			suffix = fmt.Sprintf("%s.%.0fs", event.Metricset.Name, event.Event.Duration.Seconds())
 		}
 		var dataset strings.Builder
-		dataset.Grow(len(internalMetricsDataset) + 1 + len(suffix) + len(event.Metricset.Name))
+		dataset.Grow(len(internalMetricsDataset) + 1 + len(suffix))
 		dataset.WriteString(internalMetricsDataset)
 		dataset.WriteByte('.')
 		dataset.WriteString(suffix)
