@@ -73,7 +73,20 @@ func runBenchmark(f BenchmarkFunc) (testing.BenchmarkResult, bool, error) {
 
 		limiter := loadgen.GetNewLimiter(loadgencfg.Config.MaxEPM)
 		b.ResetTimer()
-		f(b, limiter)
+		signal := make(chan bool)
+		// f can panic or call runtime.Goexit, stopping the goroutine.
+		// When that happens the function won't return and ok=false will
+		// be returned, making the benchmark looks like failure.
+		go func() {
+			// Signal that we're done whether we return normally
+			// or by SkipNow/FailNow's runtime.Goexit.
+			defer func() {
+				signal <- true
+			}()
+
+			f(b, limiter)
+		}()
+		<-signal
 		if !b.Failed() {
 			watcher, err := collector.WatchMetric(expvar.ActiveEvents, 0)
 			if err != nil {
