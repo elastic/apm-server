@@ -86,12 +86,13 @@ func (p BatchProcessor) processException(ctx context.Context, service *model.Ser
 // otherwise use source map library for mapping and update
 // - filename: only if it was found
 // - function:
-//   * should be moved down one stack trace frame,
-//   * the function name of the first frame is set to <anonymous>
-//   * if one frame is not found in the source map, this frame is left out and
-//   the function name from the previous frame is used
-//   * if a mapping could be applied but no function name is found, the
-//   function name for the next frame is set to <unknown>
+//   - should be moved down one stack trace frame,
+//   - the function name of the first frame is set to <anonymous>
+//   - if one frame is not found in the source map, this frame is left out and
+//     the function name from the previous frame is used
+//   - if a mapping could be applied but no function name is found, the
+//     function name for the next frame is set to <unknown>
+//
 // - colno
 // - lineno
 // - abs_path is set to the cleaned abs_path

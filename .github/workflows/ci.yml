@@ -31,6 +31,9 @@ jobs:
             go.sum
             tools/go.sum
       - run: make check-full
+      - name: Ensure .go-version is up to date
+        run: make update-go-version
+        if: ${{ github.ref == 'main' }}
 
   test:
     strategy:
