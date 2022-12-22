@@ -234,6 +234,14 @@
           "description": "Agent holds information about the APM agent capturing the event.",
           "type": "object",
           "properties": {
+            "activation_method": {
+              "description": "ActivationMethod of the APM agent capturing information.",
+              "type": [
+                "null",
+                "string"
+              ],
+              "maxLength": 1024
+            },
             "ephemeral_id": {
               "description": "EphemeralID is a free format ID used for metrics correlation by agents",
               "type": [
