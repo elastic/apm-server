@@ -282,6 +282,9 @@ func (mb *metricsBuffer) storeOrUpdate(key aggregationKey, metrics serviceMetric
 		return
 	}
 	if mb.entries >= mb.maxSize {
+		logger.Warnf(`
+Service aggregation group limit of %d reached, new metric documents will be grouped
+under a dedicated bucket identified by service name 'other'.`[1:], mb.maxSize)
 		mb.other = &mb.space[len(mb.space)-1]
 		mb.otherCardinalityEstimator = hyperloglog.New14()
 		mb.otherCardinalityEstimator.InsertHash(hash)

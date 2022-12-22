@@ -38,10 +38,6 @@ const (
 	// publish metrics, we will scale down to 5 (5000 / histogramCountScale).
 	histogramCountScale = 1000
 
-	// tooManyGroupsLoggerRateLimit is the maximum frequency at which
-	// "too many groups" log messages are logged.
-	tooManyGroupsLoggerRateLimit = time.Minute
-
 	metricsetName = "transaction"
 
 	// overflowBucketName is an identifier to denote overflow buckets
@@ -54,9 +50,8 @@ type Aggregator struct {
 	stopping chan struct{}
 	stopped  chan struct{}
 
-	config              AggregatorConfig
-	metrics             *aggregatorMetrics // heap-allocated for 64-bit alignment
-	tooManyGroupsLogger *logp.Logger
+	config  AggregatorConfig
+	metrics *aggregatorMetrics // heap-allocated for 64-bit alignment
 
 	mu               sync.RWMutex
 	active, inactive *metrics
@@ -141,13 +136,12 @@ func NewAggregator(config AggregatorConfig) (*Aggregator, error) {
 		config.Logger = logp.NewLogger(logs.TransactionMetrics)
 	}
 	return &Aggregator{
-		stopping:            make(chan struct{}),
-		stopped:             make(chan struct{}),
-		config:              config,
-		metrics:             &aggregatorMetrics{},
-		tooManyGroupsLogger: config.Logger.WithOptions(logs.WithRateLimit(tooManyGroupsLoggerRateLimit)),
-		active:              newMetrics(config.MaxTransactionGroups, config.MaxServices),
-		inactive:            newMetrics(config.MaxTransactionGroups, config.MaxServices),
+		stopping: make(chan struct{}),
+		stopped:  make(chan struct{}),
+		config:   config,
+		metrics:  &aggregatorMetrics{},
+		active:   newMetrics(config.MaxTransactionGroups, config.MaxServices),
+		inactive: newMetrics(config.MaxTransactionGroups, config.MaxServices),
 	}, nil
 }
 
@@ -369,21 +363,21 @@ func (a *Aggregator) updateTransactionMetrics(key transactionAggregationKey, has
 		if m.services >= a.config.MaxServices {
 			svcOverflow = true
 			svcEntry = &m.svcSpace[len(m.svcSpace)-1]
+			m.services++
 			m.m[overflowBucketName] = svcEntry
 		} else {
 			svcEntry = &m.svcSpace[m.services]
+			m.services++
 			m.m[key.serviceName] = svcEntry
 		}
-		m.services++
 		if svcEntry.m == nil {
 			svcEntry.m = make(map[uint64][]*metricsMapEntry)
 		}
 	}
 	var entry *metricsMapEntry
-	if m.entries >= a.config.MaxTransactionGroups ||
-		svcEntry.entries >= a.config.MaxTransactionGroupsPerService ||
-		svcOverflow {
-
+	txnOverflow := m.entries >= a.config.MaxTransactionGroups
+	perSvcTxnOverflow := svcEntry.entries >= a.config.MaxTransactionGroupsPerService
+	if svcOverflow || txnOverflow || perSvcTxnOverflow {
 		if svcEntry.other != nil {
 			// axiomhq/hyerloglog uses metrohash but here we are using
 			// xxhash. Metrohash has better performance but since we are
@@ -393,7 +387,36 @@ func (a *Aggregator) updateTransactionMetrics(key transactionAggregationKey, has
 			svcEntry.other.recordDuration(duration, count)
 			return
 		}
+		if svcOverflow {
+			a.config.Logger.Warnf(`
+Service limit of %d reached, new metric documents will be grouped under a dedicated
+overflow bucket identified by service name 'other'.`[1:], a.config.MaxServices)
+		} else if perSvcTxnOverflow {
+			a.config.Logger.Warnf(`
+Transaction group limit of %d reached for service %s, new metric documents will be grouped
+under a dedicated bucket identified by transaction name 'other'. This is typically
+caused by ineffective transaction grouping, e.g. by creating many unique transaction
+names.
+If you are using an agent with 'use_path_as_transaction_name' enabled, it may cause
+high cardinality. If your agent supports the 'transaction_name_groups' option, setting
+that configuration option appropriately, may lead to better results.`[1:],
+				a.config.MaxTransactionGroupsPerService,
+				key.serviceName,
+			)
+		} else {
+			a.config.Logger.Warnf(`
+Overall transaction group limit of %d reached, new metric documents will be grouped
+under a dedicated bucket identified by transaction name 'other'. This is typically
+caused by ineffective transaction grouping, e.g. by creating many unique transaction
+names.
+If you are using an agent with 'use_path_as_transaction_name' enabled, it may cause
+high cardinality. If your agent supports the 'transaction_name_groups' option, setting
+that configuration option appropriately, may lead to better results.`[1:],
+				a.config.MaxTransactionGroups,
+			)
+		}
 		svcEntry.other = &m.space[m.entries]
+		m.entries++
 		svcEntry.otherCardinalityEstimator = hyperloglog.New14()
 		svcEntry.otherCardinalityEstimator.InsertHash(hash)
 		atomic.AddInt64(&a.metrics.overflowed, 1)
@@ -402,6 +425,7 @@ func (a *Aggregator) updateTransactionMetrics(key transactionAggregationKey, has
 		key = a.makeOverflowAggregationKey(key, svcOverflow)
 	} else {
 		entry = &m.space[m.entries]
+		m.entries++
 		svcEntry.m[hash] = append(entries, entry)
 		svcEntry.entries++
 	}
@@ -414,7 +438,6 @@ func (a *Aggregator) updateTransactionMetrics(key transactionAggregationKey, has
 		)
 	}
 	entry.recordDuration(duration, count)
-	m.entries++
 }
 
 func (a *Aggregator) makeOverflowAggregationKey(oldKey transactionAggregationKey, svcOverflow bool) transactionAggregationKey {
@@ -553,7 +576,7 @@ func makeMetricset(key transactionAggregationKey, totalCount int64, counts []int
 
 type metrics struct {
 	mu       sync.RWMutex
-	entries  int // total number of tx groups getting aggregated
+	entries  int // total number of tx groups getting aggregated including overflow
 	services int
 	space    []metricsMapEntry
 	svcSpace []svcMetricsMapEntry

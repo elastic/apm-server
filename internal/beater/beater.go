@@ -712,7 +712,7 @@ func docappenderConfig(
 	opts docappender.Config, memLimit float64, logger *logp.Logger,
 ) docappender.Config {
 	const logMessage = "%s set to %d based on %0.1fgb of memory"
-	// Use 80% of the total memory limit to calculate decoders
+	// Use 80% of the total memory limit to calculate buffer size
 	opts.DocumentBufferSize = int(1024 * memLimit * 0.8)
 	if opts.DocumentBufferSize >= 61440 {
 		opts.DocumentBufferSize = 61440
