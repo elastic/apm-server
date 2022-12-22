@@ -1,6 +1,8 @@
 ---
 description: Pipeline for ingesting APM internal metrics.
 processors:
+  - pipeline: # drop transaction metrics coming from older APM Server versions.
+      name: drop_tx_metrics
   - pipeline:
       name: observer_version
   - pipeline:

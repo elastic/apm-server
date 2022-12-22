@@ -73,7 +73,7 @@ func TestTransactionAggregation(t *testing.T) {
 	systemtest.SendBackendEventsLiteral(t, srv.URL, faasPayload)
 	tracer.Flush(nil)
 
-	result := systemtest.Elasticsearch.ExpectMinDocs(t, 3, "metrics-apm.internal.transaction*",
+	result := systemtest.Elasticsearch.ExpectMinDocs(t, 3, "metrics-apm.transaction*",
 		estest.ExistsQuery{Field: "transaction.duration.histogram"},
 	)
 	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits)
@@ -86,7 +86,7 @@ func TestTransactionAggregation(t *testing.T) {
 	// the appropriate per-bucket doc_count values.
 	result = estest.SearchResult{}
 	_, err = systemtest.Elasticsearch.Do(context.Background(), &esapi.SearchRequest{
-		Index: []string{"metrics-apm.internal.transaction*"},
+		Index: []string{"metrics-apm.transaction*"},
 		Body: strings.NewReader(`{
   "size": 0,
   "query": {"exists":{"field":"transaction.duration.histogram"}},
@@ -151,7 +151,7 @@ func TestTransactionAggregationShutdown(t *testing.T) {
 	// Stop server to ensure metrics are flushed on shutdown.
 	assert.NoError(t, srv.Close())
 
-	result := systemtest.Elasticsearch.ExpectMinDocs(t, 2, "metrics-apm.internal.transaction*",
+	result := systemtest.Elasticsearch.ExpectMinDocs(t, 2, "metrics-apm.transaction*",
 		estest.ExistsQuery{Field: "transaction.duration.histogram"},
 	)
 	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits)
@@ -211,7 +211,7 @@ func TestTransactionAggregationLabels(t *testing.T) {
 	tx.End()
 	tracer.Flush(nil)
 
-	result := systemtest.Elasticsearch.ExpectDocs(t, "metrics-apm.internal.transaction*", estest.BoolQuery{
+	result := systemtest.Elasticsearch.ExpectDocs(t, "metrics-apm.transaction*", estest.BoolQuery{
 		Filter: []interface{}{
 			estest.TermQuery{Field: "processor.event", Value: "metric"},
 			estest.TermQuery{Field: "metricset.name", Value: "transaction"},

@@ -1,6 +1,6 @@
 title: APM transaction metrics
 type: metrics
-dataset: apm.internal.transaction
+dataset: apm.transaction
 dataset_is_prefix: true
 ilm_policy: metrics-apm.internal_metrics_transaction-default_policy
 elasticsearch:

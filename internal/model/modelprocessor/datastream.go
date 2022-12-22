@@ -95,18 +95,10 @@ func metricsetDataset(event *model.APMEvent) string {
 		if event.Event.Duration <= 0 {
 			return internalMetricsDataset
 		}
-		var suffix string
 		if duration := event.Event.Duration.Minutes(); duration >= 1 {
-			suffix = fmt.Sprintf("%s.%.0fm", event.Metricset.Name, duration)
-		} else {
-			suffix = fmt.Sprintf("%s.%.0fs", event.Metricset.Name, event.Event.Duration.Seconds())
+			return fmt.Sprintf("apm.%s.%.0fm", event.Metricset.Name, duration)
 		}
-		var dataset strings.Builder
-		dataset.Grow(len(internalMetricsDataset) + 1 + len(suffix))
-		dataset.WriteString(internalMetricsDataset)
-		dataset.WriteByte('.')
-		dataset.WriteString(suffix)
-		return dataset.String()
+		return fmt.Sprintf("apm.%s.%.0fs", event.Metricset.Name, event.Event.Duration.Seconds())
 	}
 
 	if event.Metricset != nil {

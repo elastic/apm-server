@@ -7,7 +7,7 @@
                 "name": "go"
             },
             "data_stream": {
-                "dataset": "apm.internal.transaction.30m",
+                "dataset": "apm.transaction.30m",
                 "namespace": "default",
                 "type": "metrics"
             },
@@ -76,7 +76,7 @@
                 "name": "go"
             },
             "data_stream": {
-                "dataset": "apm.internal.transaction.60m",
+                "dataset": "apm.transaction.60m",
                 "namespace": "default",
                 "type": "metrics"
             },

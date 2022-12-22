@@ -127,7 +127,7 @@ func TestSetDataStream(t *testing.T) {
 			Metricset:   &model.Metricset{Name: "transaction"},
 			Transaction: &model.Transaction{Name: "foo"},
 		},
-		output: model.DataStream{Type: "metrics", Dataset: "apm.internal.transaction.1m", Namespace: "custom"},
+		output: model.DataStream{Type: "metrics", Dataset: "apm.transaction.1m", Namespace: "custom"},
 	}, {
 		input: model.APMEvent{
 			Event:       model.Event{Duration: time.Hour},
@@ -136,7 +136,7 @@ func TestSetDataStream(t *testing.T) {
 			Metricset:   &model.Metricset{Name: "transaction"},
 			Transaction: &model.Transaction{Name: "foo"},
 		},
-		output: model.DataStream{Type: "metrics", Dataset: "apm.internal.transaction.60m", Namespace: "custom"},
+		output: model.DataStream{Type: "metrics", Dataset: "apm.transaction.60m", Namespace: "custom"},
 	}, {
 		input: model.APMEvent{
 			Processor: model.MetricsetProcessor,

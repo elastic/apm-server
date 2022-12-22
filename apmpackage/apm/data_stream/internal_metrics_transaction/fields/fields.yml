@@ -1,3 +1,6 @@
+- name: event.duration
+  type: constant_keyword
+  description: Metricset aggregation interval.
 - name: faas.coldstart
   type: boolean
   description: |
@@ -6,14 +9,6 @@
   type: keyword
   description: |
     A unique identifier of the invoked serverless function.
-- name: faas.execution
-  type: keyword
-  description: |
-    Request ID of the function invocation.
-- name: faas.trigger.request_id
-  type: keyword
-  description: |
-    The ID of the origin trigger request.
 - name: faas.trigger.type
   type: keyword
   description: |
@@ -31,7 +26,7 @@
   description: |
     Kubernetes pod name
 - name: metricset.name
-  type: keyword
+  type: constant_keyword
   description: |
     Name of the set of metrics.
 - name: processor.event
