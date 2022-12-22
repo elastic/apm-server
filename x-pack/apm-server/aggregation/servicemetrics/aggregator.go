@@ -266,7 +266,10 @@ func (mb *metricsBuffer) storeOrUpdate(key aggregationKey, metrics serviceMetric
 	}
 	if entry == nil && mb.entries >= mb.maxSize && mb.other != nil {
 		entry = mb.other
-		mb.otherCardinalityEstimator.Insert([]byte(key.serviceName))
+		// axiomhq/hyerloglog uses metrohash but here we are using
+		// xxhash. Metrohash has better performance but since we are
+		// already calculating xxhash we can use it directly.
+		mb.otherCardinalityEstimator.InsertHash(hash)
 	}
 	if entry != nil {
 		entry.serviceMetrics = serviceMetrics{
@@ -280,7 +283,7 @@ func (mb *metricsBuffer) storeOrUpdate(key aggregationKey, metrics serviceMetric
 	if mb.entries >= mb.maxSize {
 		mb.other = &mb.space[len(mb.space)-1]
 		mb.otherCardinalityEstimator = hyperloglog.New14()
-		mb.otherCardinalityEstimator.Insert([]byte(key.serviceName))
+		mb.otherCardinalityEstimator.InsertHash(hash)
 		entry = mb.other
 		key = makeOverflowAggregationKey(key)
 	} else {

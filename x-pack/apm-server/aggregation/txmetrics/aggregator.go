@@ -348,6 +348,7 @@ func (a *Aggregator) updateTransactionMetrics(key transactionAggregationKey, has
 	}
 
 	entries = nil
+	var svcOverflow bool
 	m.mu.Lock()
 	svcEntry, svcOk = m.m[key.serviceName]
 	if svcOk {
@@ -363,7 +364,7 @@ func (a *Aggregator) updateTransactionMetrics(key transactionAggregationKey, has
 		}
 	} else {
 		if m.services >= a.config.MaxServices {
-			key.serviceName = "other"
+			svcOverflow = true
 			svcEntry = &m.svcSpace[len(m.svcSpace)-1]
 		} else {
 			svcEntry = &m.svcSpace[m.services]
@@ -377,10 +378,13 @@ func (a *Aggregator) updateTransactionMetrics(key transactionAggregationKey, has
 	var entry *metricsMapEntry
 	if m.entries >= a.config.MaxTransactionGroups ||
 		svcEntry.entries >= a.config.MaxTransactionGroupsPerService ||
-		key.serviceName == "other" {
+		svcOverflow {
 
 		if svcEntry.other != nil {
-			if svcEntry.otherCardinalityEstimator.Insert([]byte(key.transactionName)) {
+			// axiomhq/hyerloglog uses metrohash but here we are using
+			// xxhash. Metrohash has better performance but since we are
+			// already calculating xxhash we can use it directly.
+			if svcEntry.otherCardinalityEstimator.InsertHash(hash) {
 				atomic.AddInt64(&a.metrics.overflowed, 1)
 			}
 			svcEntry.other.recordDuration(duration, count)
@@ -389,13 +393,11 @@ func (a *Aggregator) updateTransactionMetrics(key transactionAggregationKey, has
 		}
 		svcEntry.other = &m.space[m.entries]
 		svcEntry.otherCardinalityEstimator = hyperloglog.New14()
-		svcEntry.otherCardinalityEstimator.Insert([]byte(key.transactionName))
+		svcEntry.otherCardinalityEstimator.InsertHash(hash)
 		atomic.AddInt64(&a.metrics.overflowed, 1)
 		entry = svcEntry.other
-		// Override transaction name with `other`. For `other` service
-		// we will only account for `other` transaction bucket.
-		key.transactionName = "other"
-		key = a.makeOverflowAggregationKey(key)
+		// For `other` service we only account for `other` transaction bucket.
+		key = a.makeOverflowAggregationKey(key, svcOverflow)
 	} else {
 		entry = &m.space[m.entries]
 		svcEntry.m[hash] = append(entries, entry)
@@ -414,12 +416,16 @@ func (a *Aggregator) updateTransactionMetrics(key transactionAggregationKey, has
 	m.mu.Unlock()
 }
 
-func (a *Aggregator) makeOverflowAggregationKey(oldKey transactionAggregationKey) transactionAggregationKey {
+func (a *Aggregator) makeOverflowAggregationKey(oldKey transactionAggregationKey, svcOverflow bool) transactionAggregationKey {
+	svcName := oldKey.serviceName
+	if svcOverflow {
+		svcName = "other"
+	}
 	return transactionAggregationKey{
 		comparable: comparable{
 			timestamp:       oldKey.timestamp,
-			transactionName: oldKey.transactionName,
-			serviceName:     oldKey.serviceName,
+			transactionName: "other",
+			serviceName:     svcName,
 		},
 		AggregatedGlobalLabels: oldKey.AggregatedGlobalLabels,
 	}
