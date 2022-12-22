@@ -16,14 +16,15 @@ To get started with APM, see our [Quick start guide](https://www.elastic.co/guid
 
 ### Requirements
 
-* [Golang](https://golang.org/dl/) 1.16.x
+* [Go][golang-download] 1.19.x
+
+[golang-download]: https://golang.org/dl/
 
 ### Install
 
 * Fork the repo with the GitHub interface and clone it:
 
 ```
-cd ${GOPATH}/src/github.com/elastic/
 git clone git@github.com:[USER]/apm-server.git
 ```
 
@@ -49,8 +50,6 @@ If you make code changes, you may also need to update the project by running the
 ```
 make update
 ```
-
-Note that this requires to have `python >= 3.7` and `venv` installed.
 
 ### Run
 
@@ -115,16 +114,13 @@ You can use `go get -u -m github.com/elastic/go-elasticsearch/v7@7.x` to update 
 
 ## Packaging
 
-The beats framework provides tools to cross-compile and package apm-server for different platforms.
-This requires [docker](https://www.docker.com/), [mage](magefile.org), and vendoring as described above.
 To build all apm-server packages from source, run:
 
 ```
-mage package
+make package
 ```
 
-This will fetch and create all images required for the build process.
-The whole process can take several minutes.
+This will fetch and create all images required for the build process. The whole process can take several minutes.
 When complete, packages can be found in `build/distributions/`.
 
 ### Building docker packages
@@ -134,13 +130,13 @@ To customize image configuration, see [the docs](https://www.elastic.co/guide/en
 To build docker images from source, run:
 
 ```
-PLATFORMS=linux/amd64 mage -v package
+make package-docker
 ```
 
-When complete, docker images can be found through the local docker daemon and at `build/distributions/apm-server-*-linux-amd64.docker.tar.gz`.
+When complete, Docker images can be found at `build/distributions/*.docker.tar.gz`,
+and the local Docker image IDs are written at `build/docker/*.txt`.
 
-When building images for testing pre-release versions, we recommend setting `SNAPSHOT=true` in the build environment, to
- clearly indicate the packages are not for a specific release.
+Building pre-release images can be done by running `make package-docker-snapshot` instead.
 
 ## Documentation
 

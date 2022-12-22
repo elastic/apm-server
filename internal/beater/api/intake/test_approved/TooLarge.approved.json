@@ -3,7 +3,7 @@
     "errors": [
         {
             "document": "{\"metadata",
-            "message": "event exceeded the permitted size."
+            "message": "event exceeded the permitted size"
         }
     ]
 }

@@ -29,6 +29,7 @@ import (
 )
 
 // events holds the current stored events.
+//
 //go:embed events/*.ndjson
 var events embed.FS
 
