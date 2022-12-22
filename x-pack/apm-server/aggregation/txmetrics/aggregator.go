@@ -353,13 +353,13 @@ func (a *Aggregator) updateTransactionMetrics(key transactionAggregationKey, has
 	entries = nil
 	var svcOverflow bool
 	m.mu.Lock()
+	defer m.mu.Unlock()
 	svcEntry, svcOk = m.m[key.serviceName]
 	if svcOk {
 		entries, ok := svcEntry.m[hash]
 		if ok {
 			for i := range entries[offset:] {
 				if entries[offset+i].transactionAggregationKey.equal(key) {
-					m.mu.Unlock()
 					entries[offset+i].recordDuration(duration, count)
 					return
 				}
@@ -391,7 +391,6 @@ func (a *Aggregator) updateTransactionMetrics(key transactionAggregationKey, has
 			svcEntry.otherCardinalityEstimator.InsertHash(hash)
 			atomic.AddInt64(&a.metrics.overflowed, 1)
 			svcEntry.other.recordDuration(duration, count)
-			m.mu.Unlock()
 			return
 		}
 		svcEntry.other = &m.space[m.entries]
@@ -416,7 +415,6 @@ func (a *Aggregator) updateTransactionMetrics(key transactionAggregationKey, has
 	}
 	entry.recordDuration(duration, count)
 	m.entries++
-	m.mu.Unlock()
 }
 
 func (a *Aggregator) makeOverflowAggregationKey(oldKey transactionAggregationKey, svcOverflow bool) transactionAggregationKey {
