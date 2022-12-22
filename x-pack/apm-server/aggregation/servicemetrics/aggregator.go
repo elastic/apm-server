@@ -291,18 +291,19 @@ func (mb *metricsBuffer) storeOrUpdate(key aggregationKey, metrics serviceMetric
 	entry := &mb.space[mb.entries]
 	entry.aggregationKey = key
 
+	entry.serviceMetrics = serviceMetrics{
+		transactionDuration: metrics.transactionDuration,
+		transactionCount:    metrics.transactionCount,
+		failureCount:        metrics.failureCount,
+		successCount:        metrics.successCount,
+	}
+
 	if entry.serviceMetrics.histogram == nil {
-		entry.serviceMetrics = serviceMetrics{
-			transactionDuration: metrics.transactionDuration,
-			transactionCount:    metrics.transactionCount,
-			failureCount:        metrics.failureCount,
-			successCount:        metrics.successCount,
-			histogram: hdrhistogram.New(
-				minDuration.Microseconds(),
-				maxDuration.Microseconds(),
-				mb.significantFigures,
-			),
-		}
+		entry.histogram = hdrhistogram.New(
+			minDuration.Microseconds(),
+			maxDuration.Microseconds(),
+			mb.significantFigures,
+		)
 	} else {
 		entry.serviceMetrics.histogram.Reset()
 	}
