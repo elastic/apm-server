@@ -43,7 +43,6 @@ func getCommonPipeline(name string, version *version.V) []map[string]interface{}
 		"process_ppid":     processPpidPipeline,
 		"client_geoip":     clientGeoIPPipeline,
 		"event_duration":   eventDurationPipeline,
-		"drop_tx_metrics":  dropTransactionMetrics,
 	}
 	return commonPipelines[name]
 }
@@ -166,12 +165,5 @@ ctx.get(ctx.processor.event).duration = ["us": (int)(durationNanos/1000)];
 		"field":          "event.duration",
 		"ignore_missing": true,
 		"ignore_failure": true,
-	},
-}}
-
-// Drops transaction metrics metrics.
-var dropTransactionMetrics = []map[string]interface{}{{
-	"drop": map[string]interface{}{
-		"if": `ctx?.metricset?.name == "transaction"`,
 	},
 }}

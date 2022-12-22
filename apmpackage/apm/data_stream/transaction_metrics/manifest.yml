@@ -2,11 +2,11 @@ title: APM transaction metrics
 type: metrics
 dataset: apm.transaction
 dataset_is_prefix: true
-ilm_policy: metrics-apm.internal_metrics_transaction-default_policy
+ilm_policy: metrics-apm.transaction_metrics-default_policy
 elasticsearch:
   index_template:
     mappings:
-      # Internal metrics should have all fields strictly mapped;
+      # Transaction metrics should have all fields strictly mapped;
       # we are in full control of the field names.
       dynamic: strict
       # Individual measurements are typically uninteresting, so
