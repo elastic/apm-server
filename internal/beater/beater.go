@@ -484,6 +484,7 @@ func (s *Runner) Run(ctx context.Context) error {
 func maxConcurrentDecoders(memLimitGB float64) uint {
 	// Allow 128 concurrent decoders for each 1GB memory, limited to at most 2048.
 	const max = 2048
+	// Use 80% of the total memory limit to calculate decoders
 	decoders := uint(128 * memLimitGB * 0.8)
 	if decoders > max {
 		return max
@@ -711,6 +712,7 @@ func docappenderConfig(
 	opts docappender.Config, memLimit float64, logger *logp.Logger,
 ) docappender.Config {
 	const logMessage = "%s set to %d based on %0.1fgb of memory"
+	// Use 80% of the total memory limit to calculate decoders
 	opts.DocumentBufferSize = int(1024 * memLimit * 0.8)
 	if opts.DocumentBufferSize >= 61440 {
 		opts.DocumentBufferSize = 61440

@@ -236,8 +236,9 @@ type metricsBuffer struct {
 func newMetricsBuffer(maxSize int) *metricsBuffer {
 	return &metricsBuffer{
 		maxSize: maxSize,
-		space:   make([]metricsMapEntry, maxSize+1),
-		m:       make(map[uint64][]*metricsMapEntry),
+		// keep one reserved entry for overflow bucket
+		space: make([]metricsMapEntry, maxSize+1),
+		m:     make(map[uint64][]*metricsMapEntry),
 	}
 }
 

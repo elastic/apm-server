@@ -93,7 +93,7 @@ func TestTxnAggregatorProcessBatch(t *testing.T) {
 		uniqueServices                   int
 		expectedActiveGroups             int64
 		expectedPerSvcTxnLimitOverflow   int
-		expectedOtherSvcTxnLimitOverflow int
+		expectedOtherSvcTxnLimitOverflow int // we will design tests to overflow all the services equally
 		expectedTotalOverflow            int64
 	}{
 		{
@@ -101,7 +101,7 @@ func TestTxnAggregatorProcessBatch(t *testing.T) {
 			uniqueTxnCount:                   20,
 			uniqueServices:                   2,
 			expectedActiveGroups:             6,
-			expectedPerSvcTxnLimitOverflow:   8, // we will overflow all of the services equally
+			expectedPerSvcTxnLimitOverflow:   8,
 			expectedOtherSvcTxnLimitOverflow: 0,
 			expectedTotalOverflow:            16,
 		},
@@ -110,7 +110,7 @@ func TestTxnAggregatorProcessBatch(t *testing.T) {
 			uniqueTxnCount:                   60,
 			uniqueServices:                   20,
 			expectedActiveGroups:             40,
-			expectedPerSvcTxnLimitOverflow:   2, // we will overflow all of the services equally
+			expectedPerSvcTxnLimitOverflow:   2,
 			expectedOtherSvcTxnLimitOverflow: 0,
 			expectedTotalOverflow:            40,
 		},
@@ -119,7 +119,7 @@ func TestTxnAggregatorProcessBatch(t *testing.T) {
 			uniqueTxnCount:                   60,
 			uniqueServices:                   60,
 			expectedActiveGroups:             21,
-			expectedPerSvcTxnLimitOverflow:   0, // we will overflow all of the services equally
+			expectedPerSvcTxnLimitOverflow:   0,
 			expectedOtherSvcTxnLimitOverflow: 40,
 			expectedTotalOverflow:            40,
 		},
@@ -128,7 +128,7 @@ func TestTxnAggregatorProcessBatch(t *testing.T) {
 			uniqueTxnCount:                   600,
 			uniqueServices:                   60,
 			expectedActiveGroups:             41,
-			expectedPerSvcTxnLimitOverflow:   9, // we will overflow all of the services equally
+			expectedPerSvcTxnLimitOverflow:   9,
 			expectedOtherSvcTxnLimitOverflow: 400,
 			expectedTotalOverflow:            580,
 		},
@@ -145,7 +145,7 @@ func TestTxnAggregatorProcessBatch(t *testing.T) {
 			})
 			require.NoError(t, err)
 
-			repCount := 1
+			repCount := 5
 			batch := make(model.Batch, tc.uniqueTxnCount*repCount)
 			for i := 0; i < len(batch); i++ {
 				batch[i] = model.APMEvent{
@@ -165,7 +165,7 @@ func TestTxnAggregatorProcessBatch(t *testing.T) {
 
 			expectedMonitoring := monitoring.MakeFlatSnapshot()
 			expectedMonitoring.Ints["txmetrics.active_groups"] = tc.expectedActiveGroups
-			expectedMonitoring.Ints["txmetrics.overflowed"] = tc.expectedTotalOverflow
+			expectedMonitoring.Ints["txmetrics.overflowed"] = tc.expectedTotalOverflow * int64(repCount)
 			registry := monitoring.NewRegistry()
 			monitoring.NewFunc(registry, "txmetrics", agg.CollectMonitoring)
 			assert.Equal(t, expectedMonitoring, monitoring.CollectFlatSnapshot(

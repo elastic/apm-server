@@ -43,6 +43,9 @@ const (
 	tooManyGroupsLoggerRateLimit = time.Minute
 
 	metricsetName = "transaction"
+
+	// overflowBucketName is an identifier to denote overflow buckets
+	overflowBucketName = "other"
 )
 
 // Aggregator aggregates transaction durations, periodically publishing histogram metrics.
@@ -366,14 +369,15 @@ func (a *Aggregator) updateTransactionMetrics(key transactionAggregationKey, has
 		if m.services >= a.config.MaxServices {
 			svcOverflow = true
 			svcEntry = &m.svcSpace[len(m.svcSpace)-1]
+			m.m[overflowBucketName] = svcEntry
 		} else {
 			svcEntry = &m.svcSpace[m.services]
+			m.m[key.serviceName] = svcEntry
 		}
+		m.services++
 		if svcEntry.m == nil {
 			svcEntry.m = make(map[uint64][]*metricsMapEntry)
 		}
-		m.m[key.serviceName] = svcEntry
-		m.services++
 	}
 	var entry *metricsMapEntry
 	if m.entries >= a.config.MaxTransactionGroups ||
@@ -384,9 +388,8 @@ func (a *Aggregator) updateTransactionMetrics(key transactionAggregationKey, has
 			// axiomhq/hyerloglog uses metrohash but here we are using
 			// xxhash. Metrohash has better performance but since we are
 			// already calculating xxhash we can use it directly.
-			if svcEntry.otherCardinalityEstimator.InsertHash(hash) {
-				atomic.AddInt64(&a.metrics.overflowed, 1)
-			}
+			svcEntry.otherCardinalityEstimator.InsertHash(hash)
+			atomic.AddInt64(&a.metrics.overflowed, 1)
 			svcEntry.other.recordDuration(duration, count)
 			m.mu.Unlock()
 			return
@@ -419,12 +422,12 @@ func (a *Aggregator) updateTransactionMetrics(key transactionAggregationKey, has
 func (a *Aggregator) makeOverflowAggregationKey(oldKey transactionAggregationKey, svcOverflow bool) transactionAggregationKey {
 	svcName := oldKey.serviceName
 	if svcOverflow {
-		svcName = "other"
+		svcName = overflowBucketName
 	}
 	return transactionAggregationKey{
 		comparable: comparable{
 			timestamp:       oldKey.timestamp,
-			transactionName: "other",
+			transactionName: overflowBucketName,
 			serviceName:     svcName,
 		},
 		AggregatedGlobalLabels: oldKey.AggregatedGlobalLabels,
@@ -561,7 +564,9 @@ type metrics struct {
 
 func newMetrics(maxGroups, maxServices int) *metrics {
 	return &metrics{
-		space:    make([]metricsMapEntry, maxGroups*2+1),
+		// keep reserved entries for overflow (1 per service and 1 for `other` service)
+		space: make([]metricsMapEntry, maxGroups*2+1),
+		// keep 1 reserved entry for `other` service
 		svcSpace: make([]svcMetricsMapEntry, maxServices+1),
 		m:        make(map[string]*svcMetricsMapEntry),
 	}
