@@ -132,7 +132,7 @@ update: go-generate add-headers build-package notice apm-server.docker.yml docs/
 	@go mod download all # make sure go.sum is complete
 
 apm-server.docker.yml: apm-server.yml
-	sed -e 's/localhost:8200/0.0.0.0:8200/' -e 's/localhost:9200/elasticsearch:9200/' $< > $@
+	sed -e 's/127.0.0.1:8200/0.0.0.0:8200/' -e 's/localhost:9200/elasticsearch:9200/' $< > $@
 
 .PHONY: go-generate
 go-generate:

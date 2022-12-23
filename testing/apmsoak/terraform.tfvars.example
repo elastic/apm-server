@@ -12,7 +12,7 @@ gcp_zone = "us-west2-b"
 # apmsoak_bin_path = "."
 
 # APM Server URL to send events to
-# apm_server_url = "http://localhost:8200"
+# apm_server_url = "http://127.0.0.1:8200"
 
 # APM Server URL to send events to
 # apm_secret_token = "<secret_token>"
