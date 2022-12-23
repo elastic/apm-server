@@ -211,11 +211,16 @@ type metricsetSpan struct {
 	Type string `json:"type"`
 }
 
+type metricsetEvent struct {
+	Duration string `json:"duration,omitempty"`
+}
+
 type metricsetSample struct {
 	Value float64 `json:"value"`
 }
 
 type metricsetDoc struct {
+	Event         metricsetEvent       `json:"event"`
 	Trasaction    metricsetTransaction `json:"transaction"`
 	Span          metricsetSpan        `json:"span"`
 	MetricsetName string               `json:"metricset.name"`

@@ -36,11 +36,6 @@ func TestAggregationConfigInvalid(t *testing.T) {
 	}
 
 	for _, test := range []test{{
-		name:   "non-positive interval",
-		key:    "aggregation.transactions.interval",
-		value:  "0",
-		expect: "Error processing configuration: requires duration >= 1 accessing 'aggregation.transactions.interval'",
-	}, {
 		name:   "non-positive max_groups",
 		key:    "aggregation.transactions.max_groups",
 		value:  float64(0),

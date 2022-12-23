@@ -253,8 +253,6 @@ func TestUnpackConfig(t *testing.T) {
 				KibanaAgentConfig: KibanaAgentConfig{Cache: Cache{Expiration: 2 * time.Minute}},
 				Aggregation: AggregationConfig{
 					Transactions: TransactionAggregationConfig{
-						Interval:                       time.Second,
-						RollUpIntervals:                []time.Duration{10 * time.Second, 10 * time.Minute},
 						MaxTransactionGroups:           123,
 						HDRHistogramSignificantFigures: 1,
 					},
@@ -421,8 +419,6 @@ func TestUnpackConfig(t *testing.T) {
 				KibanaAgentConfig: KibanaAgentConfig{Cache: Cache{Expiration: 30 * time.Second}},
 				Aggregation: AggregationConfig{
 					Transactions: TransactionAggregationConfig{
-						Interval:                       time.Minute,
-						RollUpIntervals:                []time.Duration{10 * time.Minute, time.Hour},
 						MaxTransactionGroups:           10000,
 						HDRHistogramSignificantFigures: 2,
 					},

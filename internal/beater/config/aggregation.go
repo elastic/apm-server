@@ -22,7 +22,6 @@ import (
 )
 
 const (
-	defaultTransactionAggregationInterval                       = time.Minute
 	defaultTransactionAggregationMaxGroups                      = 10000
 	defaultTransactionAggregationHDRHistogramSignificantFigures = 2
 
@@ -33,8 +32,6 @@ const (
 	defaultServiceAggregationMaxGroups = 10000
 )
 
-var defaultTransactionAggregationRollUpIntervals = []time.Duration{10 * defaultTransactionAggregationInterval, 60 * defaultServiceAggregationInterval}
-
 // AggregationConfig holds configuration related to various metrics aggregations.
 type AggregationConfig struct {
 	Transactions        TransactionAggregationConfig        `config:"transactions"`
@@ -44,10 +41,8 @@ type AggregationConfig struct {
 
 // TransactionAggregationConfig holds configuration related to transaction metrics aggregation.
 type TransactionAggregationConfig struct {
-	RollUpIntervals                []time.Duration `config:"rollup_intervals"`
-	Interval                       time.Duration   `config:"interval" validate:"min=1"`
-	MaxTransactionGroups           int             `config:"max_groups" validate:"min=1"`
-	HDRHistogramSignificantFigures int             `config:"hdrhistogram_significant_figures" validate:"min=1, max=5"`
+	MaxTransactionGroups           int `config:"max_groups" validate:"min=1"`
+	HDRHistogramSignificantFigures int `config:"hdrhistogram_significant_figures" validate:"min=1, max=5"`
 }
 
 // ServiceDestinationAggregationConfig holds configuration related to span metrics aggregation for service maps.
@@ -66,8 +61,6 @@ type ServiceAggregationConfig struct {
 func defaultAggregationConfig() AggregationConfig {
 	return AggregationConfig{
 		Transactions: TransactionAggregationConfig{
-			Interval:                       defaultTransactionAggregationInterval,
-			RollUpIntervals:                defaultTransactionAggregationRollUpIntervals,
 			MaxTransactionGroups:           defaultTransactionAggregationMaxGroups,
 			HDRHistogramSignificantFigures: defaultTransactionAggregationHDRHistogramSignificantFigures,
 		},

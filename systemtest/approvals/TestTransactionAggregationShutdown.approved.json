@@ -7,7 +7,7 @@
                 "name": "go"
             },
             "data_stream": {
-                "dataset": "apm.transaction.30m",
+                "dataset": "apm.transaction.60m",
                 "namespace": "default",
                 "type": "metrics"
             },
@@ -16,7 +16,76 @@
             },
             "event": {
                 "agent_id_status": "missing",
-                "duration": "1800000000000",
+                "duration": "3600000000000",
+                "ingested": "dynamic",
+                "outcome": "success"
+            },
+            "host": {
+                "hostname": "beowulf",
+                "name": "beowulf",
+                "os": {
+                    "platform": "minix"
+                }
+            },
+            "metricset": {
+                "name": "transaction"
+            },
+            "observer": {
+                "hostname": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic"
+            },
+            "processor": {
+                "event": "metric",
+                "name": "metric"
+            },
+            "service": {
+                "language": {
+                    "name": "go",
+                    "version": "2.0"
+                },
+                "name": "systemtest",
+                "node": {
+                    "name": "beowulf"
+                },
+                "runtime": {
+                    "name": "gc",
+                    "version": "2.0"
+                }
+            },
+            "transaction": {
+                "duration": {
+                    "histogram": {
+                        "counts": [
+                            1
+                        ],
+                        "values": [
+                            1003519
+                        ]
+                    }
+                },
+                "name": "name",
+                "root": true,
+                "type": "type"
+            }
+        },
+        {
+            "@timestamp": "2006-01-02T15:04:00.000Z",
+            "_doc_count": 1,
+            "agent": {
+                "name": "go"
+            },
+            "data_stream": {
+                "dataset": "apm.transaction.1m",
+                "namespace": "default",
+                "type": "metrics"
+            },
+            "ecs": {
+                "version": "dynamic"
+            },
+            "event": {
+                "agent_id_status": "missing",
+                "duration": "60000000000",
                 "ingested": "dynamic",
                 "outcome": "success"
             },
@@ -71,12 +140,12 @@
         },
         {
             "@timestamp": "2006-01-02T15:00:00.000Z",
-            "_doc_count": 2,
+            "_doc_count": 1,
             "agent": {
                 "name": "go"
             },
             "data_stream": {
-                "dataset": "apm.transaction.60m",
+                "dataset": "apm.transaction.10m",
                 "namespace": "default",
                 "type": "metrics"
             },
@@ -85,7 +154,7 @@
             },
             "event": {
                 "agent_id_status": "missing",
-                "duration": "3600000000000",
+                "duration": "600000000000",
                 "ingested": "dynamic",
                 "outcome": "success"
             },
@@ -126,7 +195,7 @@
                 "duration": {
                     "histogram": {
                         "counts": [
-                            2
+                            1
                         ],
                         "values": [
                             1003519
