@@ -477,10 +477,3 @@ func makeMetricset(key aggregationKey, metrics serviceMetrics, totalCount int64,
 		},
 	}
 }
-
-func transactionCount(tx *model.Transaction) float64 {
-	if tx.RepresentativeCount > 0 {
-		return tx.RepresentativeCount
-	}
-	return 1
-}
