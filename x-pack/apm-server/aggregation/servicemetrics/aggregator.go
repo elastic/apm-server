@@ -16,6 +16,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/go-hdrhistogram"
 
 	"github.com/elastic/apm-data/model"
 	"github.com/elastic/apm-server/internal/logs"
@@ -24,6 +25,11 @@ import (
 
 const (
 	metricsetName = "service"
+
+	minDuration time.Duration = 0
+	maxDuration time.Duration = time.Hour
+
+	histogramCountScale = 1000
 )
 
 // AggregatorConfig holds configuration for creating an Aggregator.
@@ -46,6 +52,11 @@ type AggregatorConfig struct {
 	//
 	// If Logger is nil, a new logger will be constructed.
 	Logger *logp.Logger
+
+	// HDRHistogramSignificantFigures is the number of significant figures
+	// to maintain in the HDR Histograms. HDRHistogramSignificantFigures
+	// must be in the range [1,5].
+	HDRHistogramSignificantFigures int
 }
 
 // Validate validates the aggregator config.
@@ -58,6 +69,9 @@ func (config AggregatorConfig) Validate() error {
 	}
 	if config.Interval <= 0 {
 		return errors.New("Interval unspecified or negative")
+	}
+	if n := config.HDRHistogramSignificantFigures; n < 1 || n > 5 {
+		return errors.Errorf("HDRHistogramSignificantFigures (%d) outside range [1,5]", n)
 	}
 	return nil
 }
@@ -88,8 +102,8 @@ func NewAggregator(config AggregatorConfig) (*Aggregator, error) {
 		stopping: make(chan struct{}),
 		stopped:  make(chan struct{}),
 		config:   config,
-		active:   newMetricsBuffer(config.MaxGroups),
-		inactive: newMetricsBuffer(config.MaxGroups),
+		active:   newMetricsBuffer(config.MaxGroups, config.HDRHistogramSignificantFigures),
+		inactive: newMetricsBuffer(config.MaxGroups, config.HDRHistogramSignificantFigures),
 	}, nil
 }
 
@@ -171,19 +185,23 @@ func (a *Aggregator) publish(ctx context.Context) error {
 	batch := make(model.Batch, 0, size)
 	for key, metrics := range a.inactive.m {
 		for _, entry := range metrics {
-			m := makeMetricset(entry.aggregationKey, entry.serviceMetrics)
+			totalCount, counts, values := entry.serviceMetrics.histogramBuckets()
+			m := makeMetricset(entry.aggregationKey, entry.serviceMetrics, totalCount, counts, values)
 			batch = append(batch, m)
+			entry.histogram.Reset()
 		}
 		delete(a.inactive.m, key)
 	}
 	if a.inactive.other != nil {
 		entry := a.inactive.other
-		m := makeMetricset(entry.aggregationKey, entry.serviceMetrics)
+		totalCount, counts, values := entry.serviceMetrics.histogramBuckets()
+		m := makeMetricset(entry.aggregationKey, entry.serviceMetrics, totalCount, counts, values)
 		m.Metricset.Samples = append(m.Metricset.Samples, model.MetricsetSample{
 			Name:  "overflow_count",
 			Value: float64(a.inactive.otherCardinalityEstimator.Estimate()),
 		})
 		batch = append(batch, m)
+		entry.histogram.Reset()
 		a.inactive.other = nil
 		a.inactive.otherCardinalityEstimator = nil
 	}
@@ -223,7 +241,8 @@ func (a *Aggregator) processTransaction(event *model.APMEvent) {
 }
 
 type metricsBuffer struct {
-	maxSize int
+	maxSize            int
+	significantFigures int
 
 	mu                        sync.RWMutex
 	entries                   int
@@ -233,9 +252,10 @@ type metricsBuffer struct {
 	otherCardinalityEstimator *hyperloglog.Sketch
 }
 
-func newMetricsBuffer(maxSize int) *metricsBuffer {
+func newMetricsBuffer(maxSize int, significantFigures int) *metricsBuffer {
 	return &metricsBuffer{
-		maxSize: maxSize,
+		maxSize:            maxSize,
+		significantFigures: significantFigures,
 		// keep one reserved entry for overflow bucket
 		space: make([]metricsMapEntry, maxSize+1),
 		m:     make(map[uint64][]*metricsMapEntry),
@@ -278,7 +298,9 @@ func (mb *metricsBuffer) storeOrUpdate(key aggregationKey, metrics serviceMetric
 			transactionCount:    entry.transactionCount + metrics.transactionCount,
 			failureCount:        entry.failureCount + metrics.failureCount,
 			successCount:        entry.successCount + metrics.successCount,
+			histogram:           entry.histogram,
 		}
+		entry.recordDuration(time.Duration(metrics.transactionDuration), metrics.transactionCount)
 		return
 	}
 	if mb.entries >= mb.maxSize {
@@ -302,6 +324,14 @@ under a dedicated bucket identified by service name 'other'.`[1:], mb.maxSize)
 		failureCount:        metrics.failureCount,
 		successCount:        metrics.successCount,
 	}
+	if entry.serviceMetrics.histogram == nil {
+		entry.serviceMetrics.histogram = hdrhistogram.New(
+			minDuration.Microseconds(),
+			maxDuration.Microseconds(),
+			mb.significantFigures,
+		)
+	}
+	entry.recordDuration(time.Duration(metrics.transactionDuration), metrics.transactionCount)
 }
 
 type aggregationKey struct {
@@ -368,6 +398,33 @@ type serviceMetrics struct {
 	transactionCount    float64
 	failureCount        float64
 	successCount        float64
+	histogram           *hdrhistogram.Histogram
+}
+
+func (m *serviceMetrics) recordDuration(d time.Duration, n float64) {
+	count := int64(math.Round(n * histogramCountScale))
+	m.histogram.RecordValuesAtomic(d.Microseconds(), count)
+}
+
+func (m *serviceMetrics) histogramBuckets() (totalCount int64, counts []int64, values []float64) {
+	// From https://www.elastic.co/guide/en/elasticsearch/reference/current/histogram.html:
+	//
+	// "For the High Dynamic Range (HDR) histogram mode, the values array represents
+	// fixed upper limits of each bucket interval, and the counts array represents
+	// the number of values that are attributed to each interval."
+	distribution := m.histogram.Distribution()
+	counts = make([]int64, 0, len(distribution))
+	values = make([]float64, 0, len(distribution))
+	for _, b := range distribution {
+		if b.Count <= 0 {
+			continue
+		}
+		count := int64(math.Round(float64(b.Count) / histogramCountScale))
+		counts = append(counts, count)
+		values = append(values, float64(b.To))
+		totalCount += count
+	}
+	return totalCount, counts, values
 }
 
 func makeServiceMetrics(event *model.APMEvent) serviceMetrics {
@@ -385,7 +442,7 @@ func makeServiceMetrics(event *model.APMEvent) serviceMetrics {
 	return metrics
 }
 
-func makeMetricset(key aggregationKey, metrics serviceMetrics) model.APMEvent {
+func makeMetricset(key aggregationKey, metrics serviceMetrics, totalCount int64, counts []int64, values []float64) model.APMEvent {
 	metricCount := int64(math.Round(metrics.transactionCount))
 	return model.APMEvent{
 		Timestamp: key.timestamp,
@@ -400,7 +457,7 @@ func makeMetricset(key aggregationKey, metrics serviceMetrics) model.APMEvent {
 		NumericLabels: key.NumericLabels,
 		Processor:     model.MetricsetProcessor,
 		Metricset: &model.Metricset{
-			DocCount: metricCount,
+			DocCount: totalCount,
 			Name:     metricsetName,
 		},
 		Transaction: &model.Transaction{
@@ -413,6 +470,17 @@ func makeMetricset(key aggregationKey, metrics serviceMetrics) model.APMEvent {
 				Count: metricCount,
 				Sum:   float64(time.Duration(math.Round(metrics.transactionDuration)).Microseconds()),
 			},
+			DurationHistogram: model.Histogram{
+				Counts: counts,
+				Values: values,
+			},
 		},
 	}
+}
+
+func transactionCount(tx *model.Transaction) float64 {
+	if tx.RepresentativeCount > 0 {
+		return tx.RepresentativeCount
+	}
+	return 1
 }

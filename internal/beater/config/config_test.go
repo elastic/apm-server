@@ -261,8 +261,9 @@ func TestUnpackConfig(t *testing.T) {
 						MaxGroups: 456,
 					},
 					Service: ServiceAggregationConfig{
-						Interval:  time.Minute,
-						MaxGroups: 457,
+						Interval:                       time.Minute,
+						MaxGroups:                      457,
+						HDRHistogramSignificantFigures: 5,
 					},
 				},
 				Sampling: SamplingConfig{
@@ -428,8 +429,9 @@ func TestUnpackConfig(t *testing.T) {
 						MaxGroups: 10000,
 					},
 					Service: ServiceAggregationConfig{
-						Interval:  time.Minute,
-						MaxGroups: 0, // Default value is set as per memory limit
+						Interval:                       time.Minute,
+						MaxGroups:                      0, // Default value is set as per memory limit
+						HDRHistogramSignificantFigures: 5,
 					},
 				},
 				Sampling: SamplingConfig{
