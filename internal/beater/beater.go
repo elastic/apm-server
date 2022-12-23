@@ -189,14 +189,18 @@ func (s *Runner) Run(ctx context.Context) error {
 			memLimit = float64(limit) / 1024 / 1024 / 1024 * 0.8
 		}
 	}
-	if memLimit <= 0 {
-		s.logger.Info("no cgroups detected, falling back to total system memory")
-		if limit, err := systemMemoryLimit(); err != nil {
-			s.logger.Warn(err)
-		} else {
+	if limit, err := systemMemoryLimit(); err != nil {
+		s.logger.Warn(err)
+	} else {
+		if memLimit <= 0 {
+			s.logger.Info("no cgroups detected, falling back to total system memory")
 			// If no cgroup limit is set, only return 50% of the total memory.
 			// to have a margin of safety for other processes.
 			memLimit = float64(limit) / 1024 / 1024 / 1024 * 0.5
+		}
+		if memLimit > float64(limit) {
+			s.logger.Info("cgroup memory limit exceed available memory, falling back to total system memory")
+			memLimit = float64(limit)
 		}
 	}
 	if memLimit <= 0 {
