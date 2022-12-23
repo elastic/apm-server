@@ -24,7 +24,7 @@ services:
     healthcheck:
       interval: 10s
       retries: 12
-      test: curl --write-out 'HTTP %{http_code}' --fail --silent --output /dev/null http://localhost:8200/
+      test: curl --write-out 'HTTP %{http_code}' --fail --silent --output /dev/null http://127.0.0.1:8200/
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:{VERSION}
