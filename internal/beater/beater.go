@@ -199,8 +199,8 @@ func (s *Runner) Run(ctx context.Context) error {
 			memLimit = float64(limit) / 1024 / 1024 / 1024 * 0.5
 		}
 		if memLimit > float64(limit) {
-			s.logger.Info("cgroup memory limit exceed available memory, falling back to total system memory")
-			memLimit = float64(limit)
+			s.logger.Info("cgroup memory limit exceed available memory, falling back to the total system memory")
+			memLimit = float64(limit) / 1024 / 1024 / 1024 * 0.5
 		}
 	}
 	if memLimit <= 0 {
