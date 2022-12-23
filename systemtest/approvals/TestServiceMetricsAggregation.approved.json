@@ -35,6 +35,14 @@
             },
             "transaction": {
                 "duration": {
+                    "histogram": {
+                        "counts": [
+                            2
+                        ],
+                        "values": [
+                            1000003
+                        ]
+                    },
                     "summary": {
                         "sum": 2000000,
                         "value_count": 2
@@ -82,6 +90,14 @@
             },
             "transaction": {
                 "duration": {
+                    "histogram": {
+                        "counts": [
+                            2
+                        ],
+                        "values": [
+                            1000003
+                        ]
+                    },
                     "summary": {
                         "sum": 2000000,
                         "value_count": 2

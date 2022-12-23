@@ -29,8 +29,9 @@ const (
 	defaultServiceDestinationAggregationInterval  = time.Minute
 	defaultServiceDestinationAggregationMaxGroups = 10000
 
-	defaultServiceAggregationInterval  = time.Minute
-	defaultServiceAggregationMaxGroups = 10000
+	defaultServiceAggregationInterval                       = time.Minute
+	defaultServiceAggregationMaxGroups                      = 10000
+	defaultServiceAggregationHDRHistogramSignificantFigures = 5
 )
 
 // AggregationConfig holds configuration related to various metrics aggregations.
@@ -55,9 +56,10 @@ type ServiceDestinationAggregationConfig struct {
 
 // ServiceAggregationConfig holds configuration related to service metrics aggregation.
 type ServiceAggregationConfig struct {
-	Enabled   bool          `config:"enabled"`
-	Interval  time.Duration `config:"interval" validate:"min=1"`
-	MaxGroups int           `config:"max_groups" validate:"min=1"`
+	Enabled                        bool          `config:"enabled"`
+	Interval                       time.Duration `config:"interval" validate:"min=1"`
+	MaxGroups                      int           `config:"max_groups" validate:"min=1"`
+	HDRHistogramSignificantFigures int           `config:"hdrhistogram_significant_figures" validate:"min=1, max=5"`
 }
 
 func defaultAggregationConfig() AggregationConfig {
@@ -75,9 +77,10 @@ func defaultAggregationConfig() AggregationConfig {
 			// NOTE(axw) service metrics are in technical preview,
 			// disabled by default. Once proven, they may be always
 			// enabled in a future release, without configuration.
-			Enabled:   false,
-			Interval:  defaultServiceAggregationInterval,
-			MaxGroups: defaultServiceAggregationMaxGroups,
+			Enabled:                        false,
+			Interval:                       defaultServiceAggregationInterval,
+			MaxGroups:                      defaultServiceAggregationMaxGroups,
+			HDRHistogramSignificantFigures: defaultServiceAggregationHDRHistogramSignificantFigures,
 		},
 	}
 }
