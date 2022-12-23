@@ -304,7 +304,7 @@ func (s *Runner) Run(ctx context.Context) error {
 	var sourcemapFetcher sourcemap.Fetcher
 	if s.config.RumConfig.Enabled && s.config.RumConfig.SourceMapping.Enabled {
 		esConfig := *s.config.RumConfig.SourceMapping.ESConfig
-		esConfig.APIKey= s.config.KibanaAgentConfig.Elasticsearch.ApiKey
+		esConfig.APIKey = s.config.KibanaAgentConfig.Elasticsearch.ApiKey
 
 		fetcher, err := newSourcemapFetcher(
 			s.config.RumConfig.SourceMapping, s.fleetConfig,
