@@ -28,6 +28,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"text/template"
 
 	"github.com/elastic/elastic-agent-libs/version"
 )
@@ -47,21 +48,33 @@ func generatePackage(pkgfs fs.FS, version, ecsVersion *version.V, ecsReference s
 		if err != nil {
 			return err
 		}
-		outputPath := filepath.Join(*outputDir, path)
-		if d.IsDir() {
-			if err := os.Mkdir(outputPath, 0755); err != nil && !errors.Is(err, os.ErrExist) {
+		for _, p := range maybeIntervalPath(path) {
+			outputPath := filepath.Join(*outputDir, p.Path)
+			if d.IsDir() {
+				if err := os.Mkdir(outputPath, 0755); err != nil && !errors.Is(err, os.ErrExist) {
+					return err
+				}
+				continue
+			} else if strings.HasPrefix(d.Name(), ".") || !d.Type().IsRegular() {
+				// Ignore hidden or non-regular files.
+				continue
+			}
+			if p.Interval != "" && strings.HasPrefix(d.Name(), "default_policy") && strings.HasSuffix(d.Name(), ".json") {
+				if !strings.Contains(path, p.Interval) {
+					// Skip policies that don't match the interval.
+					continue
+				}
+			}
+			err := renderFile(pkgfs, path, outputPath, version, ecsVersion, ecsReference, p.Interval)
+			if err != nil {
 				return err
 			}
-			return nil
-		} else if strings.HasPrefix(d.Name(), ".") || !d.Type().IsRegular() {
-			// Ignore hidden or non-regular files.
-			return nil
 		}
-		return renderFile(pkgfs, path, outputPath, version, ecsVersion, ecsReference)
+		return nil
 	})
 }
 
-func renderFile(pkgfs fs.FS, path, outputPath string, version, ecsVersion *version.V, ecsReference string) error {
+func renderFile(pkgfs fs.FS, path, outputPath string, version, ecsVersion *version.V, ecsReference, interval string) error {
 	content, err := fs.ReadFile(pkgfs, path)
 	if err != nil {
 		return err
@@ -70,7 +83,21 @@ func renderFile(pkgfs fs.FS, path, outputPath string, version, ecsVersion *versi
 	if bytes.HasPrefix(content, []byte("generated")) {
 		return nil
 	}
-	content, err = transformFile(path, content, version, ecsVersion, ecsReference)
+	if bytes.Contains(content, []byte(`{{ .Interval }}`)) {
+		if interval == "" {
+			return fmt.Errorf("%s: file contains interval template, but interval is empty", outputPath)
+		}
+		tpl, err := template.New(path).Parse(string(content))
+		if err != nil {
+			return err
+		}
+		var buf bytes.Buffer
+		if err := tpl.Execute(&buf, pathInterval{Interval: interval}); err != nil {
+			return err
+		}
+		content = buf.Bytes()
+	}
+	content, err = transformFile(path, content, version, ecsVersion, ecsReference, interval)
 	if err != nil {
 		return fmt.Errorf("error transforming %q: %w", path, err)
 	}
@@ -102,6 +129,26 @@ func renderFile(pkgfs fs.FS, path, outputPath string, version, ecsVersion *versi
 		}
 	}
 	return nil
+}
+
+type pathInterval struct {
+	Path     string
+	Interval string
+}
+
+func maybeIntervalPath(path string) []pathInterval {
+	if !strings.Contains(path, "_interval_") {
+		return []pathInterval{{Path: path}}
+	}
+	metricInterval := []string{"1m", "10m", "60m"}
+	paths := make([]pathInterval, 0, len(metricInterval))
+	for _, interval := range metricInterval {
+		paths = append(paths, pathInterval{
+			Path:     strings.Replace(path, "interval", interval, 1),
+			Interval: interval,
+		})
+	}
+	return paths
 }
 
 func main() {

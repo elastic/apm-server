@@ -1,8 +1,7 @@
-title: APM transaction metrics
+title: APM transaction metrics {{ .Interval }}
 type: metrics
-dataset: apm.transaction
-dataset_is_prefix: true
-ilm_policy: metrics-apm.transaction_metrics-default_policy
+dataset: apm.transaction.{{ .Interval }}
+ilm_policy: metrics-apm.transaction_interval_metrics-default_policy.{{ .Interval }}
 elasticsearch:
   index_template:
     mappings:
