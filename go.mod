@@ -14,7 +14,7 @@ require (
 	github.com/dop251/goja_nodejs v0.0.0-20221211191749-434192f0843e // indirect
 	github.com/dustin/go-humanize v1.0.0
 	github.com/elastic/apm-server/approvaltest v0.0.0-00010101000000-000000000000
-	github.com/elastic/beats/v7 v7.17.9-0.20221221154238-673233d6e1aa
+	github.com/elastic/beats/v7 v7.17.9-0.20221222064904-25b727cb96bf
 	github.com/elastic/ecs v1.12.0
 	github.com/elastic/elastic-agent-client/v7 v7.0.3 // indirect
 	github.com/elastic/gmux v0.2.0
@@ -44,7 +44,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger v0.34.0
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pkg/errors v0.9.1
-	github.com/prometheus/procfs v0.8.0 // indirect
+	github.com/prometheus/procfs v0.9.0 // indirect
 	github.com/ryanuber/go-glob v1.0.0
 	github.com/spf13/cobra v1.3.0
 	github.com/spf13/pflag v1.0.5
@@ -124,7 +124,7 @@ require (
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/gomodule/redigo v1.8.3 // indirect
 	github.com/google/flatbuffers v1.12.1 // indirect
-	github.com/google/go-cmp v0.5.8 // indirect
+	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/google/gofuzz v1.1.0 // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
 	github.com/googleapis/gnostic v0.4.1 // indirect
