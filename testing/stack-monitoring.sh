@@ -22,4 +22,4 @@ docker restart apm-server
 sed "s/CONTAINER_NAME/${CONTAINER_NAME}/" ${GITROOT}/testing/docker/metricbeat/apm-server.yml.tpl > ${GITROOT}/testing/docker/metricbeat/apm-server.yml
 docker-compose --profile monitoring up -d
 
-echo "export ELASTIC_APM_SERVER_URL=http://localhost:$(docker inspect ${CONTAINER_NAME} --format='{{range $p, $conf := .NetworkSettings.Ports}}{{(index $conf 0).HostPort}}{{end}}')"
+echo "export ELASTIC_APM_SERVER_URL=http://127.0.0.1:$(docker inspect ${CONTAINER_NAME} --format='{{range $p, $conf := .NetworkSettings.Ports}}{{(index $conf 0).HostPort}}{{end}}')"

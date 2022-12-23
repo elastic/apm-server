@@ -119,7 +119,7 @@ Usage of /var/folders/k9/z1yw8fsn0sjbl5yy7z2rsdpr0000gn/T/go-build4164012609/b00
   -secure
     	validate the remote server TLS certificates
   -server value
-    	apm-server URL (default http://localhost:8200)
+	apm-server URL (default http://127.0.0.1:8200)
 ```
 
 ### Launching apmsoak on GCP

@@ -26,7 +26,7 @@ Host
 
 Use `"unix:/path/to.sock"` to listen on a Unix domain socket.
 
-*Default:* `localhost:8200`
+*Default:* `127.0.0.1:8200`
 // end::host-setting[]
 
 // =============================================================================
