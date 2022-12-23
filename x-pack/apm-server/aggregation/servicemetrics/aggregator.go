@@ -197,7 +197,7 @@ func (a *Aggregator) publish(ctx context.Context) error {
 		totalCount, counts, values := entry.serviceMetrics.histogramBuckets()
 		m := makeMetricset(entry.aggregationKey, entry.serviceMetrics, totalCount, counts, values)
 		m.Metricset.Samples = append(m.Metricset.Samples, model.MetricsetSample{
-			Name:  "overflow_count",
+			Name:  "service.aggregation.overflow_count",
 			Value: float64(a.inactive.otherCardinalityEstimator.Estimate()),
 		})
 		batch = append(batch, m)
