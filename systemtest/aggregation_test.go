@@ -150,7 +150,14 @@ func TestTransactionAggregationShutdown(t *testing.T) {
 
 func TestServiceDestinationAggregation(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
-	srv := apmservertest.NewServerTB(t)
+	srv := apmservertest.NewUnstartedServerTB(t)
+	srv.Config.Aggregation = &apmservertest.AggregationConfig{
+		ServiceDestinations: &apmservertest.ServiceDestinationAggregationConfig{
+			Interval: time.Second,
+		},
+	}
+	err := srv.Start()
+	require.NoError(t, err)
 
 	// Send spans to the server to be aggregated.
 	tracer := srv.Tracer()
