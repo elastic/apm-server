@@ -53,6 +53,7 @@ func TestStoreUsesRUMElasticsearchConfig(t *testing.T) {
 	fetcher, err := newSourcemapFetcher(
 		cfg.RumConfig.SourceMapping, nil,
 		nil, elasticsearch.NewClient,
+		cfg.RumConfig.SourceMapping.ESConfig,
 	)
 	require.NoError(t, err)
 	// Check that the provided rum elasticsearch config was used and

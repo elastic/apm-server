@@ -198,9 +198,13 @@ apm-server:
 
   #---------------------------- APM Server - Agent Configuration ----------------------------
 
-  # When using APM agent configuration, information fetched from Kibana will be cached in memory for some time.
-  # Specify cache key expiration via this setting. Default is 30 seconds.
-  #agent.config.cache.expiration: 30s
+  #agent:
+    # When using APM agent configuration, information fetched from Kibana will be cached in memory for some time.
+    # Specify cache key expiration via this setting. Default is 30 seconds.
+    #config.cache.expiration: 30s
+
+    #elasticsearch:
+      #api_key: "id:api_key"
 
   #kibana:
     # Enabled must be true to enable APM Agent configuration, and for fetching source maps uploaded through Kibana.

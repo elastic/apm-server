@@ -27,12 +27,17 @@ import (
 
 // KibanaAgentConfig holds remote agent config information
 type KibanaAgentConfig struct {
-	Cache Cache `config:"cache"`
+	Cache         Cache         `config:"cache"`
+	Elasticsearch Elasticsearch `config:"elasticsearch"`
 }
 
 // Cache holds config information about cache expiration
 type Cache struct {
 	Expiration time.Duration `config:"expiration"`
+}
+
+type Elasticsearch struct {
+	ApiKey string `config:"api_key"`
 }
 
 // defaultKibanaAgentConfig holds the default KibanaAgentConfig
