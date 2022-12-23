@@ -6,7 +6,7 @@ require (
 	github.com/cespare/xxhash/v2 v2.1.2
 	github.com/dgraph-io/badger/v2 v2.2007.3-0.20201012072640-f5a7e0a1c83b
 	github.com/dustin/go-humanize v1.0.0
-	github.com/elastic/apm-data v0.1.1-0.20221222153010-3bc3fec616e1
+	github.com/elastic/apm-data v0.1.1-0.20221223103402-ad963d1b591d
 	github.com/elastic/apm-server/internal/approvaltest v0.0.0-00010101000000-000000000000
 	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20221222172013-15d9a8760574
 	github.com/elastic/elastic-agent-client/v7 v7.0.3
@@ -187,5 +187,3 @@ exclude (
 )
 
 exclude github.com/elastic/elastic-agent v0.0.0-20220831162706-5f1e54f40d3e
-
-replace github.com/elastic/apm-data => github.com/carsonip/apm-data v0.0.0-20221216132724-e496beda8751
