@@ -311,7 +311,7 @@ func TestAggregatorOverflow(t *testing.T) {
 			DocCount: 100,
 			Samples: []model.MetricsetSample{
 				{
-					Name:  "overflow_count",
+					Name:  "service.aggregation.overflow_count",
 					Value: float64(overflowCount),
 				},
 			},

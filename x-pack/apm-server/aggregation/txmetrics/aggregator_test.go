@@ -179,7 +179,7 @@ func TestTxnAggregatorProcessBatch(t *testing.T) {
 			var foundPerSvcOverflow, foundOtherSvcOverflow bool
 			for _, m := range metricsets {
 				if m.Transaction.Name == "other" {
-					require.Equal(t, "overflow_count", m.Metricset.Samples[0].Name)
+					require.Equal(t, "transaction.aggregation.overflow_count", m.Metricset.Samples[0].Name)
 					if m.Service.Name == "other" {
 						foundOtherSvcOverflow = true
 						assert.Equal(t, tc.expectedOtherSvcTxnLimitOverflow, int(m.Metricset.Samples[0].Value))
