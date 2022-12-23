@@ -59,7 +59,7 @@ import (
 var (
 	endpoint = flag.String(
 		"endpoint",
-		getenvDefault("OTEL_EXPORTER_OTLP_ENDPOINT", "http://localhost:8200"),
+		getenvDefault("OTEL_EXPORTER_OTLP_ENDPOINT", "http://127.0.0.1:8200"),
 		"target URL to which sendotlp will send spans and metrics ($OTEL_EXPORTER_OTLP_ENDPOINT)",
 	)
 
