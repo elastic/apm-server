@@ -133,7 +133,7 @@ func NewConfig(ucfg *config.C, outputESCfg *config.C) (*Config, error) {
 // DefaultConfig returns a config with default settings for `apm-server` config options.
 func DefaultConfig() *Config {
 	return &Config{
-		Host:            net.JoinHostPort("localhost", DefaultPort),
+		Host:            net.JoinHostPort("127.0.0.1", DefaultPort),
 		MaxHeaderSize:   1 * 1024 * 1024, // 1mb
 		MaxConnections:  0,               // unlimited
 		IdleTimeout:     45 * time.Second,

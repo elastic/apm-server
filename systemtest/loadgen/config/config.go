@@ -37,7 +37,7 @@ func init() {
 	// Server config
 	flag.Func(
 		"server",
-		"apm-server URL (default http://localhost:8200)",
+		"apm-server URL (default http://127.0.0.1:8200)",
 		func(server string) (err error) {
 			if server != "" {
 				Config.ServerURL, err = url.Parse(server)
@@ -79,7 +79,7 @@ func setFlagsFromEnv() {
 	// value[0] is environment key
 	// value[1] is default value
 	flagEnvMap := map[string][]string{
-		"server":       []string{"ELASTIC_APM_SERVER_URL", "http://localhost:8200"},
+		"server":       []string{"ELASTIC_APM_SERVER_URL", "http://127.0.0.1:8200"},
 		"secret-token": []string{"ELASTIC_APM_SECRET_TOKEN", ""},
 		"secure":       []string{"ELASTIC_APM_VERIFY_SERVER_CERT", "false"},
 	}
