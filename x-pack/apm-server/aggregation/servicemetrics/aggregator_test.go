@@ -324,10 +324,6 @@ func TestAggregatorMaxGroups(t *testing.T) {
 					Values: []float64{100000},
 					Counts: []int64{1},
 				},
-				SuccessCount: model.SummaryMetric{
-					Count: 1,
-					Sum:   1,
-				},
 			},
 			Event: model.Event{
 				SuccessCount: model.SummaryMetric{
