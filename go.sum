@@ -340,8 +340,8 @@ github.com/eclipse/paho.mqtt.golang v1.3.5 h1:sWtmgNxYM9P2sP+xEItMozsR3w0cqZFlqn
 github.com/elastic/apm-data v0.1.1-0.20221222153010-3bc3fec616e1 h1:zU3OZgaiwaI61pm1CBKhZusB/QtZfl8qooaGOighAC8=
 github.com/elastic/apm-data v0.1.1-0.20221222153010-3bc3fec616e1/go.mod h1:JLtHUxhBa7oky85/69kMCfOjyzuzDq3fN3MxLy/ufvI=
 github.com/elastic/bayeux v1.0.5 h1:UceFq01ipmT3S8DzFK+uVAkbCdiPR0Bqei8qIGmUeY0=
-github.com/elastic/beats/v7 v7.0.0-alpha2.0.20221223143326-7f90ae131758 h1:3O0BCj1um7Rte5AUPfPXhQ7Ke8dKIPg2WHjcyfY+CFQ=
-github.com/elastic/beats/v7 v7.0.0-alpha2.0.20221223143326-7f90ae131758/go.mod h1:s5oPyDkme1/0L4kHV8mL5ltUxSf18sfmd36utDn0SMc=
+github.com/elastic/beats/v7 v7.0.0-alpha2.0.20221226071613-2c21577e168c h1:ElKT35sFe9cM2t0lFMR29zajvi/GAwyzvzBImtFBfVM=
+github.com/elastic/beats/v7 v7.0.0-alpha2.0.20221226071613-2c21577e168c/go.mod h1:s5oPyDkme1/0L4kHV8mL5ltUxSf18sfmd36utDn0SMc=
 github.com/elastic/elastic-agent-autodiscover v0.5.0 h1:fiDJQKB148RsRISqqbGINtJ/ZPupeVjwn0fbPz9ZDOc=
 github.com/elastic/elastic-agent-client/v7 v7.0.3 h1:YqZPnO7Z9rlj25sFZEUaxGGK3mZR4v0uSOcfO8GRv7s=
 github.com/elastic/elastic-agent-client/v7 v7.0.3/go.mod h1:cHviLpA5fAwMbfBIHBVNl16qp90bO7pKHMAQaG+9raU=
