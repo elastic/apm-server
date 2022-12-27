@@ -211,20 +211,16 @@ type metricsetSpan struct {
 	Type string `json:"type"`
 }
 
-type metricsetEvent struct {
-	Duration string `json:"duration,omitempty"`
-}
-
 type metricsetSample struct {
 	Value float64 `json:"value"`
 }
 
 type metricsetDoc struct {
-	Event         metricsetEvent       `json:"event"`
-	Trasaction    metricsetTransaction `json:"transaction"`
-	Span          metricsetSpan        `json:"span"`
-	MetricsetName string               `json:"metricset.name"`
-	Labels        map[string]string    `json:"labels"`
+	Trasaction        metricsetTransaction `json:"transaction"`
+	Span              metricsetSpan        `json:"span"`
+	MetricsetName     string               `json:"metricset.name"`
+	MetricsetInterval string               `json:"metricset.interval"`
+	Labels            map[string]string    `json:"labels"`
 }
 
 func unmarshalMetricsetDocs(t testing.TB, hits []estest.SearchHit) []metricsetDoc {
@@ -241,5 +237,6 @@ func unmarshalMetricsetDoc(t testing.TB, hit *estest.SearchHit) metricsetDoc {
 		t.Fatal(err)
 	}
 	doc.MetricsetName = hit.Fields["metricset.name"][0].(string)
+	doc.MetricsetInterval = hit.Fields["metricset.interval"][0].(string)
 	return doc
 }

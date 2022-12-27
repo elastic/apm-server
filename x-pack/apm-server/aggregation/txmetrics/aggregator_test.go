@@ -234,8 +234,7 @@ func TestAggregatorRun(t *testing.T) {
 		assert.Equal(t, []int64{400, 400}, metricsets[1].Transaction.DurationHistogram.Counts)
 		for _, event := range metricsets {
 			assert.Equal(t, now.Truncate(intervals[i]), event.Timestamp)
-			t.Log(event.Event.Duration.String())
-			assert.Equal(t, intervals[i], event.Event.Duration)
+			assert.Equal(t, fmt.Sprintf("%.0fs", intervals[i].Seconds()), event.Metricset.Interval)
 		}
 	}
 
@@ -534,13 +533,13 @@ func TestAggregationFields(t *testing.T) {
 	var expected []model.APMEvent
 	addExpectedCount := func(expectedCount int64) {
 		expectedEvent := input
-		expectedEvent.Event = model.Event{Duration: 100 * time.Millisecond}
 		expectedEvent.Transaction = nil
 		expectedEvent.Event.Outcome = input.Event.Outcome
 		expectedEvent.Processor = model.MetricsetProcessor
 		expectedEvent.Metricset = &model.Metricset{
 			Name:     "transaction",
 			DocCount: expectedCount,
+			Interval: "0s",
 		}
 		expectedEvent.Transaction = &model.Transaction{
 			Name:   input.Transaction.Name,

@@ -21,6 +21,7 @@ import (
 
 	"github.com/elastic/apm-data/model"
 	"github.com/elastic/apm-server/internal/logs"
+	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/interval"
 	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/labels"
 )
 
@@ -233,14 +234,14 @@ func (a *Aggregator) CollectMonitoring(_ monitoring.Mode, V monitoring.Visitor) 
 	monitoring.ReportInt(V, "overflowed", atomic.LoadInt64(&a.metrics.overflowed))
 }
 
-func (a *Aggregator) publish(ctx context.Context, interval time.Duration) error {
+func (a *Aggregator) publish(ctx context.Context, period time.Duration) error {
 	// We hold a.mu only long enough to swap the metrics. This will
 	// be blocked by metrics updates, which is OK, as we prefer not
 	// to block metrics updaters. After the lock is released nothing
 	// will be accessing a.inactive.
 	a.mu.Lock()
-	current := a.active[interval]
-	a.active[interval], a.inactive[interval] = a.inactive[interval], current
+	current := a.active[period]
+	a.active[period], a.inactive[period] = a.inactive[period], current
 	a.mu.Unlock()
 
 	if current.entries == 0 {
@@ -248,20 +249,21 @@ func (a *Aggregator) publish(ctx context.Context, interval time.Duration) error 
 		return nil
 	}
 
+	intervalStr := interval.FormatDuration(period)
 	batch := make(model.Batch, 0, current.entries)
 	for hash, entries := range current.m {
 		for _, entry := range entries {
 			totalCount, counts, values := entry.transactionMetrics.histogramBuckets()
 			event := makeMetricset(entry.transactionAggregationKey, totalCount, counts, values)
-			// Record the metricset interval as Event.Duration.
-			event.Event.Duration = interval
+			// Record the metricset interval as metricset.interval.
+			event.Metricset.Interval = intervalStr
 			batch = append(batch, event)
 		}
 		delete(current.m, hash)
 	}
 	current.entries = 0
 
-	a.config.Logger.Debugf("%s interval: publishing %d metricsets", interval.String(), len(batch))
+	a.config.Logger.Debugf("%s interval: publishing %d metricsets", period, len(batch))
 	return a.config.BatchProcessor.ProcessBatch(ctx, &batch)
 }
 

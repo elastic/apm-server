@@ -20,7 +20,6 @@ package modelprocessor_test
 import (
 	"context"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 
@@ -121,19 +120,17 @@ func TestSetDataStream(t *testing.T) {
 		output: model.DataStream{Type: "metrics", Dataset: "apm.internal", Namespace: "custom"},
 	}, {
 		input: model.APMEvent{
-			Event:       model.Event{Duration: time.Minute},
 			Processor:   model.MetricsetProcessor,
 			Service:     model.Service{Name: "service-name"},
-			Metricset:   &model.Metricset{Name: "transaction"},
+			Metricset:   &model.Metricset{Name: "transaction", Interval: "1m"},
 			Transaction: &model.Transaction{Name: "foo"},
 		},
 		output: model.DataStream{Type: "metrics", Dataset: "apm.transaction.1m", Namespace: "custom"},
 	}, {
 		input: model.APMEvent{
-			Event:       model.Event{Duration: time.Hour},
 			Processor:   model.MetricsetProcessor,
 			Service:     model.Service{Name: "service-name"},
-			Metricset:   &model.Metricset{Name: "transaction"},
+			Metricset:   &model.Metricset{Name: "transaction", Interval: "60m"},
 			Transaction: &model.Transaction{Name: "foo"},
 		},
 		output: model.DataStream{Type: "metrics", Dataset: "apm.transaction.60m", Namespace: "custom"},

@@ -21,7 +21,6 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
-	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -210,11 +209,11 @@ func TestTransactionAggregationLabels(t *testing.T) {
 	})
 
 	var metricsets []metricsetDoc
-	for _, duration := range []time.Duration{time.Minute, 10 * time.Minute, time.Hour} {
+	for _, interval := range []string{"1m", "10m", "60m"} {
 		metricsets = append(metricsets, metricsetDoc{
-			Event:         metricsetEvent{Duration: strconv.Itoa(int(duration))},
-			Trasaction:    metricsetTransaction{Type: "type"},
-			MetricsetName: "transaction",
+			Trasaction:        metricsetTransaction{Type: "type"},
+			MetricsetName:     "transaction",
+			MetricsetInterval: interval,
 			Labels: map[string]string{
 				"department_name": "apm",
 				"organization":    "observability",

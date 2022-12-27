@@ -7,7 +7,7 @@
                 "name": "go"
             },
             "data_stream": {
-                "dataset": "apm.transaction.60m",
+                "dataset": "apm.transaction.10m",
                 "namespace": "default",
                 "type": "metrics"
             },
@@ -16,7 +16,6 @@
             },
             "event": {
                 "agent_id_status": "missing",
-                "duration": "3600000000000",
                 "ingested": "dynamic",
                 "outcome": "success"
             },
@@ -28,6 +27,7 @@
                 }
             },
             "metricset": {
+                "interval": "10m",
                 "name": "transaction"
             },
             "observer": {
@@ -85,7 +85,6 @@
             },
             "event": {
                 "agent_id_status": "missing",
-                "duration": "60000000000",
                 "ingested": "dynamic",
                 "outcome": "success"
             },
@@ -97,6 +96,7 @@
                 }
             },
             "metricset": {
+                "interval": "1m",
                 "name": "transaction"
             },
             "observer": {
@@ -145,7 +145,7 @@
                 "name": "go"
             },
             "data_stream": {
-                "dataset": "apm.transaction.10m",
+                "dataset": "apm.transaction.60m",
                 "namespace": "default",
                 "type": "metrics"
             },
@@ -154,7 +154,6 @@
             },
             "event": {
                 "agent_id_status": "missing",
-                "duration": "600000000000",
                 "ingested": "dynamic",
                 "outcome": "success"
             },
@@ -166,6 +165,7 @@
                 }
             },
             "metricset": {
+                "interval": "60m",
                 "name": "transaction"
             },
             "observer": {

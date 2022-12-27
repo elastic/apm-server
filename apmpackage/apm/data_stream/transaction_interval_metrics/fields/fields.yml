@@ -1,4 +1,4 @@
-- name: event.duration
+- name: metricset.interval
   type: constant_keyword
   description: Metricset aggregation interval.
 - name: faas.coldstart

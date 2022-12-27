@@ -92,13 +92,12 @@ func metricsetDataset(event *model.APMEvent) string {
 		// Metrics that include well-defined transaction/span fields
 		// (i.e. breakdown metrics, transaction and span metrics) will
 		// be stored separately from custom application metrics.
-		if event.Event.Duration <= 0 {
-			return internalMetricsDataset
+		// If events contain the `metricset.interval` field, the dataset will
+		// be formatted as: `apm.${metricset.name}.${metricset.interval}.
+		if ms := event.Metricset; ms.Interval != "" {
+			return fmt.Sprintf("apm.%s.%s", ms.Name, ms.Interval)
 		}
-		if duration := event.Event.Duration.Minutes(); duration >= 1 {
-			return fmt.Sprintf("apm.%s.%.0fm", event.Metricset.Name, duration)
-		}
-		return fmt.Sprintf("apm.%s.%.0fs", event.Metricset.Name, event.Event.Duration.Seconds())
+		return internalMetricsDataset
 	}
 
 	if event.Metricset != nil {

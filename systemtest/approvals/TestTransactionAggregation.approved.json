@@ -7,7 +7,7 @@
                 "name": "go"
             },
             "data_stream": {
-                "dataset": "apm.transaction.60m",
+                "dataset": "apm.transaction.10m",
                 "namespace": "default",
                 "type": "metrics"
             },
@@ -16,7 +16,6 @@
             },
             "event": {
                 "agent_id_status": "missing",
-                "duration": "3600000000000",
                 "ingested": "dynamic",
                 "outcome": "success"
             },
@@ -28,6 +27,7 @@
                 }
             },
             "metricset": {
+                "interval": "10m",
                 "name": "transaction"
             },
             "observer": {
@@ -85,7 +85,6 @@
             },
             "event": {
                 "agent_id_status": "missing",
-                "duration": "60000000000",
                 "ingested": "dynamic",
                 "outcome": "success"
             },
@@ -97,6 +96,7 @@
                 }
             },
             "metricset": {
+                "interval": "1m",
                 "name": "transaction"
             },
             "observer": {
@@ -145,7 +145,7 @@
                 "name": "go"
             },
             "data_stream": {
-                "dataset": "apm.transaction.10m",
+                "dataset": "apm.transaction.60m",
                 "namespace": "default",
                 "type": "metrics"
             },
@@ -154,7 +154,6 @@
             },
             "event": {
                 "agent_id_status": "missing",
-                "duration": "600000000000",
                 "ingested": "dynamic",
                 "outcome": "success"
             },
@@ -166,6 +165,7 @@
                 }
             },
             "metricset": {
+                "interval": "60m",
                 "name": "transaction"
             },
             "observer": {
@@ -214,7 +214,7 @@
                 "name": "go"
             },
             "data_stream": {
-                "dataset": "apm.transaction.60m",
+                "dataset": "apm.transaction.10m",
                 "namespace": "default",
                 "type": "metrics"
             },
@@ -223,7 +223,6 @@
             },
             "event": {
                 "agent_id_status": "missing",
-                "duration": "3600000000000",
                 "ingested": "dynamic",
                 "outcome": "success"
             },
@@ -235,6 +234,7 @@
                 }
             },
             "metricset": {
+                "interval": "10m",
                 "name": "transaction"
             },
             "observer": {
@@ -292,7 +292,6 @@
             },
             "event": {
                 "agent_id_status": "missing",
-                "duration": "60000000000",
                 "ingested": "dynamic",
                 "outcome": "success"
             },
@@ -304,6 +303,7 @@
                 }
             },
             "metricset": {
+                "interval": "1m",
                 "name": "transaction"
             },
             "observer": {
@@ -352,7 +352,7 @@
                 "name": "go"
             },
             "data_stream": {
-                "dataset": "apm.transaction.10m",
+                "dataset": "apm.transaction.60m",
                 "namespace": "default",
                 "type": "metrics"
             },
@@ -361,7 +361,6 @@
             },
             "event": {
                 "agent_id_status": "missing",
-                "duration": "600000000000",
                 "ingested": "dynamic",
                 "outcome": "success"
             },
@@ -373,6 +372,7 @@
                 }
             },
             "metricset": {
+                "interval": "60m",
                 "name": "transaction"
             },
             "observer": {
@@ -415,7 +415,7 @@
             }
         },
         {
-            "@timestamp": "2021-09-15T20:00:00.000Z",
+            "@timestamp": "2021-09-15T20:10:00.000Z",
             "_doc_count": 1,
             "agent": {
                 "name": "elastic-node"
@@ -443,7 +443,7 @@
                 "id": "container-id"
             },
             "data_stream": {
-                "dataset": "apm.transaction.60m",
+                "dataset": "apm.transaction.10m",
                 "namespace": "default",
                 "type": "metrics"
             },
@@ -452,7 +452,6 @@
             },
             "event": {
                 "agent_id_status": "missing",
-                "duration": "3600000000000",
                 "ingested": "dynamic",
                 "outcome": "unknown"
             },
@@ -478,6 +477,7 @@
                 "tag1": "one"
             },
             "metricset": {
+                "interval": "10m",
                 "name": "transaction"
             },
             "numeric_labels": {
@@ -563,7 +563,6 @@
             },
             "event": {
                 "agent_id_status": "missing",
-                "duration": "60000000000",
                 "ingested": "dynamic",
                 "outcome": "unknown"
             },
@@ -589,6 +588,7 @@
                 "tag1": "one"
             },
             "metricset": {
+                "interval": "1m",
                 "name": "transaction"
             },
             "numeric_labels": {
@@ -637,7 +637,7 @@
             }
         },
         {
-            "@timestamp": "2021-09-15T20:10:00.000Z",
+            "@timestamp": "2021-09-15T20:00:00.000Z",
             "_doc_count": 1,
             "agent": {
                 "name": "elastic-node"
@@ -665,7 +665,7 @@
                 "id": "container-id"
             },
             "data_stream": {
-                "dataset": "apm.transaction.10m",
+                "dataset": "apm.transaction.60m",
                 "namespace": "default",
                 "type": "metrics"
             },
@@ -674,7 +674,6 @@
             },
             "event": {
                 "agent_id_status": "missing",
-                "duration": "600000000000",
                 "ingested": "dynamic",
                 "outcome": "unknown"
             },
@@ -700,6 +699,7 @@
                 "tag1": "one"
             },
             "metricset": {
+                "interval": "60m",
                 "name": "transaction"
             },
             "numeric_labels": {
