@@ -12,6 +12,9 @@
     - description: Added agent health metrics
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/9672
+    - description: Add `agent.activation_method` field
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/9850
 - version: "8.6.0"
   changes:
     - description: Change `ecs.version` to a `constant_keyword` field

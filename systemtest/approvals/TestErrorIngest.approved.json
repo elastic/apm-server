@@ -3,6 +3,7 @@
         {
             "@timestamp": "2018-08-09T15:04:05.999Z",
             "agent": {
+                "activation_method": "some_activation_method",
                 "ephemeral_id": "abcdef123",
                 "name": "elastic-node",
                 "version": "3.14.0"

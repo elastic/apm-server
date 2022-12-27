@@ -6,11 +6,14 @@ package servicemetrics
 
 import (
 	"context"
+	"net/netip"
 	"sort"
 	"sync"
 	"testing"
 	"time"
 
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
@@ -55,9 +58,10 @@ func TestNewAggregatorConfigInvalid(t *testing.T) {
 func TestAggregatorRun(t *testing.T) {
 	batches := make(chan model.Batch, 1)
 	agg, err := NewAggregator(AggregatorConfig{
-		BatchProcessor: makeChanBatchProcessor(batches),
-		Interval:       1 * time.Millisecond,
-		MaxGroups:      1000,
+		BatchProcessor:                 makeChanBatchProcessor(batches),
+		Interval:                       1 * time.Millisecond,
+		MaxGroups:                      1000,
+		HDRHistogramSignificantFigures: 5,
 	})
 	require.NoError(t, err)
 
@@ -120,6 +124,10 @@ func TestAggregatorRun(t *testing.T) {
 				Count: 6,
 				Sum:   6000, // 6ms in micros
 			},
+			DurationHistogram: model.Histogram{
+				Values: []float64{1000, 2000, 3000},
+				Counts: []int64{1, 2, 3},
+			},
 			SuccessCount: model.SummaryMetric{
 				Count: 5,
 				Sum:   2,
@@ -136,6 +144,10 @@ func TestAggregatorRun(t *testing.T) {
 				Count: 1,
 				Sum:   1000, // 1ms in micros
 			},
+			DurationHistogram: model.Histogram{
+				Values: []float64{1000},
+				Counts: []int64{1},
+			},
 		},
 	}, {
 		Processor: model.MetricsetProcessor,
@@ -147,6 +159,10 @@ func TestAggregatorRun(t *testing.T) {
 			DurationSummary: model.SummaryMetric{
 				Count: 1,
 				Sum:   1000, // 1ms in micros
+			},
+			DurationHistogram: model.Histogram{
+				Values: []float64{1000},
+				Counts: []int64{1},
 			},
 		},
 	}, {
@@ -160,6 +176,10 @@ func TestAggregatorRun(t *testing.T) {
 				Count: 1,
 				Sum:   1000, // 1ms in micros
 			},
+			DurationHistogram: model.Histogram{
+				Values: []float64{1000},
+				Counts: []int64{1},
+			},
 		},
 	}, {
 		Processor: model.MetricsetProcessor,
@@ -172,11 +192,26 @@ func TestAggregatorRun(t *testing.T) {
 				Count: 1,
 				Sum:   1000, // 1ms in micros
 			},
+			DurationHistogram: model.Histogram{
+				Values: []float64{1000},
+				Counts: []int64{1},
+			},
 		},
 	}}
 
 	assert.Equal(t, len(expected), len(metricsets))
-	assert.ElementsMatch(t, expected, metricsets)
+	out := cmp.Diff(expected, metricsets, cmpopts.IgnoreTypes(netip.Addr{}), cmpopts.SortSlices(func(e1 model.APMEvent, e2 model.APMEvent) bool {
+		if e1.Transaction.Type != e2.Transaction.Type {
+			return e1.Transaction.Type < e2.Transaction.Type
+		}
+
+		if e1.Agent.Name != e2.Agent.Name {
+			return e1.Agent.Name < e2.Agent.Name
+		}
+
+		return e1.Service.Environment < e2.Service.Environment
+	}))
+	assert.Empty(t, out)
 
 	select {
 	case <-batches:
@@ -188,9 +223,10 @@ func TestAggregatorRun(t *testing.T) {
 func TestAggregateTimestamp(t *testing.T) {
 	batches := make(chan model.Batch, 1)
 	agg, err := NewAggregator(AggregatorConfig{
-		BatchProcessor: makeChanBatchProcessor(batches),
-		Interval:       30 * time.Second,
-		MaxGroups:      1000,
+		BatchProcessor:                 makeChanBatchProcessor(batches),
+		Interval:                       30 * time.Second,
+		MaxGroups:                      1000,
+		HDRHistogramSignificantFigures: 1,
 	})
 	require.NoError(t, err)
 
@@ -226,10 +262,11 @@ func TestAggregatorMaxGroups(t *testing.T) {
 
 	batches := make(chan model.Batch, 1)
 	agg, err := NewAggregator(AggregatorConfig{
-		BatchProcessor: makeChanBatchProcessor(batches),
-		Interval:       10 * time.Millisecond,
-		MaxGroups:      4,
-		Logger:         logger,
+		BatchProcessor:                 makeChanBatchProcessor(batches),
+		Interval:                       10 * time.Millisecond,
+		MaxGroups:                      4,
+		Logger:                         logger,
+		HDRHistogramSignificantFigures: 1,
 	})
 	require.NoError(t, err)
 
@@ -267,7 +304,7 @@ func TestAggregatorMaxGroups(t *testing.T) {
 	assert.Len(t, metricsets, 2)
 
 	for _, m := range metricsets {
-		assert.Equal(t, model.APMEvent{
+		out := cmp.Diff(model.APMEvent{
 			Agent: model.Agent{
 				Name: "agent",
 			},
@@ -281,13 +318,18 @@ func TestAggregatorMaxGroups(t *testing.T) {
 					Count: 1,
 					Sum:   100000,
 				},
+				DurationHistogram: model.Histogram{
+					Values: []float64{100000},
+					Counts: []int64{1},
+				},
 				SuccessCount: model.SummaryMetric{
 					Count: 1,
 					Sum:   1,
 				},
 			},
 			Metricset: &model.Metricset{Name: "service", DocCount: 1},
-		}, m)
+		}, m, cmpopts.IgnoreTypes(netip.Addr{}))
+		assert.Empty(t, out)
 	}
 }
 
