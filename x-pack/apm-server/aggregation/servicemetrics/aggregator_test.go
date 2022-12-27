@@ -124,6 +124,8 @@ func TestAggregatorRun(t *testing.T) {
 				Values: []float64{1000, 2000, 3000},
 				Counts: []int64{1, 2, 3},
 			},
+		},
+		Event: model.Event{
 			SuccessCount: model.SummaryMetric{
 				Count: 5,
 				Sum:   2,
@@ -297,13 +299,15 @@ func TestAggregatorOverflow(t *testing.T) {
 				Count: 100,
 				Sum:   10000000,
 			},
-			SuccessCount: model.SummaryMetric{
-				Count: 100,
-				Sum:   100,
-			},
 			DurationHistogram: model.Histogram{
 				Values: []float64{100000},
 				Counts: []int64{100},
+			},
+		},
+		Event: model.Event{
+			SuccessCount: model.SummaryMetric{
+				Count: 100,
+				Sum:   100,
 			},
 		},
 		Metricset: &model.Metricset{
