@@ -12,7 +12,6 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -27,6 +26,7 @@ import (
 	"github.com/elastic/elastic-agent-libs/monitoring"
 
 	"github.com/elastic/apm-server/internal/elasticsearch"
+	"github.com/elastic/apm-server/x-pack/apm-server/profiling/common"
 )
 
 var (
@@ -50,8 +50,8 @@ var (
 )
 
 const (
-	actionIndex  = "index"
 	actionCreate = "create"
+	actionUpdate = "update"
 
 	sourceFileCacheSize = 128 * 1024
 	// ES error string indicating a duplicate document by _id
@@ -187,10 +187,10 @@ func (e *ElasticCollector) indexStacktrace(ctx context.Context, traceEvent *Stac
 // The json field names need to be case-sensitively equal to the fields defined
 // in the schema mapping.
 type StackTraceEvent struct {
-	ECSVersion ecsVersion `json:"ecs.version"`
-	ProjectID  uint32     `json:"service.name"`
-	TimeStamp  uint32     `json:"@timestamp"`
-	HostID     uint64     `json:"host.id"`
+	common.EcsVersion
+	ProjectID uint32 `json:"service.name"`
+	TimeStamp uint32 `json:"@timestamp"`
+	HostID    uint64 `json:"host.id"`
 	// 128-bit hash in binary form
 	StackTraceID  string `json:"Stacktrace.id"`
 	PodName       string `json:"orchestrator.resource.name,omitempty"`
@@ -212,37 +212,20 @@ type StackTraceEvent struct {
 // StackTrace represents a stacktrace serializable into the stacktraces index.
 // DocID should be the base64-encoded Stacktrace ID.
 type StackTrace struct {
-	ECSVersion ecsVersion `json:"ecs.version"`
-	FrameIDs   string     `json:"Stacktrace.frame.ids"`
-	Types      string     `json:"Stacktrace.frame.types"`
+	common.EcsVersion
+	FrameIDs string `json:"Stacktrace.frame.ids"`
+	Types    string `json:"Stacktrace.frame.types"`
 }
 
 // StackFrame represents a stacktrace serializable into the stackframes index.
 // DocID should be the base64-encoded FileID+Address (24 bytes).
 type StackFrame struct {
-	ECSVersion     ecsVersion `json:"ecs.version"`
-	FileName       string     `json:"Stackframe.file.name,omitempty"`
-	FunctionName   string     `json:"Stackframe.function.name,omitempty"`
-	LineNumber     int32      `json:"Stackframe.line.number,omitempty"`
-	FunctionOffset int32      `json:"Stackframe.function.offset,omitempty"`
-	SourceType     int16      `json:"Stackframe.source.type,omitempty"`
-}
-
-// ExecutableMetadata represents executable metadata serializable into the executables index.
-// DocID should be the base64-encoded FileID.
-type ExecutableMetadata struct {
-	ECSVersion ecsVersion `json:"ecs.version"`
-	BuildID    string     `json:"Executable.build.id"`
-	FileName   string     `json:"Executable.file.name"`
-	LastSeen   uint32     `json:"@timestamp"`
-}
-
-const ecsVersionString = "1.12.0"
-
-type ecsVersion struct{}
-
-func (e ecsVersion) MarshalJSON() ([]byte, error) {
-	return []byte(strconv.Quote(ecsVersionString)), nil
+	common.EcsVersion
+	FileName       string `json:"Stackframe.file.name,omitempty"`
+	FunctionName   string `json:"Stackframe.function.name,omitempty"`
+	LineNumber     int32  `json:"Stackframe.line.number,omitempty"`
+	FunctionOffset int32  `json:"Stackframe.function.offset,omitempty"`
+	SourceType     int16  `json:"Stackframe.source.type,omitempty"`
 }
 
 // mapToStackTraceEvents maps Prodfiler stacktraces to Elastic documents.
@@ -302,15 +285,61 @@ func (*ElasticCollector) SaveHostInfo(context.Context, *HostInfo) (*emptypb.Empt
 	return &emptypb.Empty{}, nil
 }
 
+// Script written in Painless that will both create a new document (if DocID does not exist),
+// and update timestamp of an existing document. Named parameters are used to improve performance
+// re: script compilation (since the script does not change across executions, it can be compiled
+// once and cached).
+const exeMetadataUpsertScript = `
+if (ctx.op == 'create') {
+    ctx._source['@timestamp']            = params.timestamp;
+    ctx._source['Executable.build.id']   = params.buildid;
+    ctx._source['Executable.file.name']  = params.filename;
+    ctx._source['ecs.version']           = params.ecsversion;
+} else {
+    if (ctx._source['@timestamp'] == params.timestamp) {
+        ctx.op = 'noop'
+    } else {
+        ctx._source['@timestamp'] = params.timestamp
+    }
+}
+`
+
+type ExeMetadataScript struct {
+	Source string            `json:"source"`
+	Params ExeMetadataParams `json:"params"`
+}
+
+type ExeMetadataParams struct {
+	LastSeen   uint32 `json:"timestamp"`
+	BuildID    string `json:"buildid"`
+	FileName   string `json:"filename"`
+	EcsVersion string `json:"ecsversion"`
+}
+
+// ExeMetadata represents executable metadata serializable into the executables index.
+// DocID should be the base64-encoded FileID.
+type ExeMetadata struct {
+	// ScriptedUpsert needs to be 'true' for the script to execute regardless of the
+	// document existing or not.
+	ScriptedUpsert bool              `json:"scripted_upsert"`
+	Script         ExeMetadataScript `json:"script"`
+	// This needs to exist for document creation to succeed (if document does not exist),
+	// but can be empty as the script implements both document creation and updating.
+	Upsert struct{} `json:"upsert"`
+}
+
 func (e *ElasticCollector) AddExecutableMetadata(ctx context.Context,
 	in *AddExecutableMetadataRequest) (*empty.Empty, error) {
 	hiFileIDs := in.GetHiFileIDs()
 	loFileIDs := in.GetLoFileIDs()
 
-	lastSeen := GetStartOfWeekFromTime(time.Now())
-
 	numHiFileIDs := len(hiFileIDs)
 	numLoFileIDs := len(loFileIDs)
+
+	if numHiFileIDs == 0 {
+		e.logger.Debug("AddExecutableMetadata request with no entries")
+		return &empty.Empty{}, nil
+	}
 
 	// Sanity check. Should never happen unless the HA is broken.
 	if numHiFileIDs != numLoFileIDs {
@@ -322,14 +351,12 @@ func (e *ElasticCollector) AddExecutableMetadata(ctx context.Context,
 		return nil, errCustomer
 	}
 
-	if numHiFileIDs == 0 {
-		e.logger.Debug("AddExecutableMetadata request with no entries")
-		return &empty.Empty{}, nil
-	}
 	counterExecutablesTotal.Add(int64(numHiFileIDs))
 
 	filenames := in.GetFilenames()
 	buildIDs := in.GetBuildIDs()
+
+	lastSeen := GetStartOfWeekFromTime(time.Now())
 
 	for i := 0; i < numHiFileIDs; i++ {
 		fileID := NewFileID(hiFileIDs[i], loFileIDs[i])
@@ -337,17 +364,24 @@ func (e *ElasticCollector) AddExecutableMetadata(ctx context.Context,
 		// DocID is the base64-encoded FileID.
 		docID := EncodeFileID(fileID)
 
-		exeMetadata := ExecutableMetadata{
-			LastSeen: lastSeen,
-			BuildID:  buildIDs[i],
-			FileName: filenames[i],
+		exeMetadata := ExeMetadata{
+			ScriptedUpsert: true,
+			Script: ExeMetadataScript{
+				Source: exeMetadataUpsertScript,
+				Params: ExeMetadataParams{
+					LastSeen:   lastSeen,
+					BuildID:    buildIDs[i],
+					FileName:   filenames[i],
+					EcsVersion: common.EcsVersionString,
+				},
+			},
 		}
 		var buf bytes.Buffer
 		_ = json.NewEncoder(&buf).Encode(exeMetadata)
 
 		err := multiplexCurrentNextIndicesWrite(ctx, e, &elasticsearch.BulkIndexerItem{
 			Index:      ExecutablesIndex,
-			Action:     actionIndex,
+			Action:     actionUpdate,
 			DocumentID: docID,
 			OnFailure: func(
 				_ context.Context,
@@ -672,7 +706,7 @@ func (e *ElasticCollector) AddMetrics(ctx context.Context, in *Metrics) (*empty.
 		body.WriteString(fmt.Sprintf(
 			"{\"project.id\":%d,\"host.id\":%d,\"@timestamp\":%d,"+
 				"\"ecs.version\":%q",
-			ProjectID, HostID, metric.Timestamp, ecsVersionString))
+			ProjectID, HostID, metric.Timestamp, common.EcsVersionString))
 		if e.clusterID != "" {
 			body.WriteString(fmt.Sprintf(",\"Elasticsearch.cluster.id\":%q", e.clusterID))
 		}
