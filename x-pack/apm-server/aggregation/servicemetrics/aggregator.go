@@ -389,7 +389,6 @@ func makeOverflowAggregationKey(oldKey aggregationKey) aggregationKey {
 			timestamp:   oldKey.timestamp,
 			serviceName: "other",
 		},
-		AggregatedGlobalLabels: oldKey.AggregatedGlobalLabels,
 	}
 }
 

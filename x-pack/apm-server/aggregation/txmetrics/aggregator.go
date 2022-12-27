@@ -451,7 +451,6 @@ func (a *Aggregator) makeOverflowAggregationKey(oldKey transactionAggregationKey
 			transactionName: overflowBucketName,
 			serviceName:     svcName,
 		},
-		AggregatedGlobalLabels: oldKey.AggregatedGlobalLabels,
 	}
 }
 

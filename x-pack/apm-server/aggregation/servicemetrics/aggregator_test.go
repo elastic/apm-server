@@ -255,6 +255,7 @@ func TestAggregateTimestamp(t *testing.T) {
 func TestAggregatorOverflow(t *testing.T) {
 	maxGrps := 4
 	overflowCount := 100
+	txnDuration := 100 * time.Millisecond
 	batches := make(chan model.Batch, 1)
 	agg, err := NewAggregator(AggregatorConfig{
 		BatchProcessor:                 makeChanBatchProcessor(batches),
@@ -267,8 +268,7 @@ func TestAggregatorOverflow(t *testing.T) {
 	batch := make(model.Batch, maxGrps+overflowCount) // cause overflow
 	for i := 0; i < len(batch); i++ {
 		batch[i] = makeTransaction(
-			fmt.Sprintf("svc%d", i),
-			"agent", "tx_type", "success", 100*time.Millisecond, 1,
+			fmt.Sprintf("svc%d", i), "agent", "tx_type", "success", txnDuration, 1,
 		)
 	}
 	go func(t *testing.T) {
@@ -289,30 +289,30 @@ func TestAggregatorOverflow(t *testing.T) {
 			overflowEvent = &m
 		}
 	}
-	assert.Equal(t, model.APMEvent{
+	out := cmp.Diff(model.APMEvent{
 		Service: model.Service{
 			Name: "other",
 		},
 		Processor: model.MetricsetProcessor,
 		Transaction: &model.Transaction{
 			DurationSummary: model.SummaryMetric{
-				Count: 100,
-				Sum:   10000000,
+				Count: int64(overflowCount),
+				Sum:   float64(int64(overflowCount) * txnDuration.Microseconds()),
 			},
 			DurationHistogram: model.Histogram{
-				Values: []float64{100000},
-				Counts: []int64{100},
+				Values: []float64{float64(txnDuration.Microseconds())},
+				Counts: []int64{int64(overflowCount)},
 			},
 		},
 		Event: model.Event{
 			SuccessCount: model.SummaryMetric{
-				Count: 100,
-				Sum:   100,
+				Count: int64(overflowCount),
+				Sum:   float64(overflowCount),
 			},
 		},
 		Metricset: &model.Metricset{
 			Name:     "service",
-			DocCount: 100,
+			DocCount: int64(overflowCount),
 			Samples: []model.MetricsetSample{
 				{
 					Name:  "service.aggregation.overflow_count",
@@ -320,7 +320,8 @@ func TestAggregatorOverflow(t *testing.T) {
 				},
 			},
 		},
-	}, *overflowEvent)
+	}, *overflowEvent, cmpopts.IgnoreTypes(netip.Addr{}))
+	assert.Empty(t, out)
 }
 
 func makeTransaction(

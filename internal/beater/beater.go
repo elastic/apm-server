@@ -496,12 +496,16 @@ func maxConcurrentDecoders(memLimitGB float64) uint {
 	return decoders
 }
 
+// maxGroupsForAggregation calculates the maximum transaction groups or service
+// groups that a particular memory limit can have. The previous default value
+// of 10_000 is kept as a starting point for 1GB instances and scaled linearly
+// for bigger instances.
 func maxGroupsForAggregation(memLimitGB float64) int {
 	const maxMemGB = 64
 	if memLimitGB > maxMemGB {
 		memLimitGB = maxMemGB
 	}
-	return int(memLimitGB * 10000)
+	return int(memLimitGB * 10_000)
 }
 
 // waitReady waits until the server is ready to index events.
