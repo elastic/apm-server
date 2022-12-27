@@ -390,10 +390,7 @@ func (a *Aggregator) makeTransactionAggregationKey(event model.APMEvent, interva
 
 // makeMetricset makes a metricset event from key, counts, and values, with timestamp ts.
 func makeMetricset(key transactionAggregationKey, totalCount int64, counts []int64, values []float64) model.APMEvent {
-	eventSuccessCount := model.SummaryMetric{
-		Count: 0,
-		Sum:   0,
-	}
+	var eventSuccessCount model.SummaryMetric
 	switch key.eventOutcome {
 	case "success":
 		eventSuccessCount.Count = totalCount
