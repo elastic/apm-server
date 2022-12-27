@@ -16,7 +16,11 @@
             },
             "event": {
                 "agent_id_status": "missing",
-                "ingested": "dynamic"
+                "ingested": "dynamic",
+                "success_count": {
+                    "sum": 2,
+                    "value_count": 2
+                }
             },
             "metricset": {
                 "name": "service"
@@ -47,10 +51,6 @@
                         "sum": 2000000,
                         "value_count": 2
                     }
-                },
-                "success_count": {
-                    "sum": 2,
-                    "value_count": 2
                 },
                 "type": "type1"
             }
@@ -71,7 +71,11 @@
             },
             "event": {
                 "agent_id_status": "missing",
-                "ingested": "dynamic"
+                "ingested": "dynamic",
+                "success_count": {
+                    "sum": 2,
+                    "value_count": 2
+                }
             },
             "metricset": {
                 "name": "service"
@@ -102,10 +106,6 @@
                         "sum": 2000000,
                         "value_count": 2
                     }
-                },
-                "success_count": {
-                    "sum": 2,
-                    "value_count": 2
                 },
                 "type": "type2"
             }

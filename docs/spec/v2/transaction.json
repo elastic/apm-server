@@ -1122,10 +1122,10 @@
     }
   },
   "required": [
-    "duration",
-    "id",
-    "span_count",
     "trace_id",
-    "type"
+    "id",
+    "type",
+    "span_count",
+    "duration"
   ]
 }
