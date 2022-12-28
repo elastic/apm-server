@@ -191,14 +191,20 @@ func (s *Runner) Run(ctx context.Context) error {
 	if limit, err := systemMemoryLimit(); err != nil {
 		s.logger.Warn(err)
 	} else {
+		var fallback bool
 		if memLimitGB <= 0 {
 			s.logger.Info("no cgroups detected, falling back to total system memory")
-			// If no cgroup limit is set, return a fraction of the total memory
-			// to have a margin of safety for other processes.
-			memLimitGB = float64(limit) / 1024 / 1024 / 1024 * 0.625
+			fallback = true
 		}
 		if memLimitGB > float64(limit) {
 			s.logger.Info("cgroup memory limit exceed available memory, falling back to the total system memory")
+			fallback = true
+		}
+		if fallback {
+			// If no cgroup limit is set, return a fraction of the total memory
+			// to have a margin of safety for other processes. The fraction value
+			// of 0.625 is used to keep the 80% of the total system memory limit
+			// to be 50% of the total for calculating the number of decoders.
 			memLimitGB = float64(limit) / 1024 / 1024 / 1024 * 0.625
 		}
 	}
