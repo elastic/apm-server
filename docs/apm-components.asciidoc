@@ -17,13 +17,21 @@ Generally, there are two ways that these four components can work together:
 
 APM agents on edge machines send data to a centrally hosted APM integration:
 
-image::./images/apm-architecture.png[Architecture of Elastic APM]
+image::./images/apm-architecture.png[Architecture of Elastic APM with a central Elastic agent]
 
 Or, APM agents and the APM integration live on edge machines and enroll via a centrally hosted {agent}:
 
-image::./images/apm-architecture-two.png[Architecture of Elastic APM option two]
+image::./images/apm-architecture-two.png[Architecture of Elastic APM with an edge Elastic agent]
 
-Read on to learn more about each of these components!
+In addition, Elastic supports OpenTelemetry:
+
+image::./images/apm-otel-architecture.png[Architecture of Elastic APM with OpenTelemetry]
+
++++*+++ The OpenTelemetry Bridge is available in the Elastic Java, .NET, Node.js, and Python agents
+
++++**+++ the official https://opentelemetry.io/docs/instrumentation/[OpenTelemetry docs] for a full list of supported languages
+
+// Not sure which to choose? See the [blog post]
 
 [float]
 === APM Agents
