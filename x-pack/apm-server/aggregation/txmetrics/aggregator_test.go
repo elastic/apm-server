@@ -45,11 +45,28 @@ func TestNewAggregatorConfigInvalid(t *testing.T) {
 			BatchProcessor:       batchProcessor,
 			MaxTransactionGroups: 1,
 		},
+		err: "MaxTransactionGroupsPerService unspecified or negative",
+	}, {
+		config: txmetrics.AggregatorConfig{
+			BatchProcessor:                 batchProcessor,
+			MaxTransactionGroups:           1,
+			MaxTransactionGroupsPerService: 1,
+		},
+		err: "MaxServices unspecified or negative",
+	}, {
+		config: txmetrics.AggregatorConfig{
+			BatchProcessor:                 batchProcessor,
+			MaxTransactionGroups:           1,
+			MaxTransactionGroupsPerService: 1,
+			MaxServices:                    1,
+		},
 		err: "MetricsInterval unspecified or negative",
 	}, {
 		config: txmetrics.AggregatorConfig{
 			BatchProcessor:                 batchProcessor,
 			MaxTransactionGroups:           1,
+			MaxTransactionGroupsPerService: 1,
+			MaxServices:                    1,
 			MetricsInterval:                time.Nanosecond,
 			HDRHistogramSignificantFigures: 6,
 		},
@@ -62,88 +79,120 @@ func TestNewAggregatorConfigInvalid(t *testing.T) {
 	}
 }
 
-func TestProcessTransformablesOverflow(t *testing.T) {
-	batches := make(chan model.Batch, 1)
+func TestTxnAggregatorProcessBatch(t *testing.T) {
+	const maxSvcs = 20
+	const maxTxnGrps = 20
+	const maxTxnGrpsPerSvc = 2
+	for _, tc := range []struct {
+		// all unique txns are distributed in unique services sequentially
+		// for 7 transactions and 3 services; first three service will receive
+		// 2 txns and the last one will receive 1 txn.
+		// Note that practically uniqueTxnCount will always be >= uniqueServices.
+		name                             string
+		uniqueTxnCount                   int
+		uniqueServices                   int
+		expectedActiveGroups             int64
+		expectedPerSvcTxnLimitOverflow   int
+		expectedOtherSvcTxnLimitOverflow int // we will design tests to overflow all the services equally
+		expectedTotalOverflow            int64
+	}{
+		{
+			name:                             "record_into_other_txn_if_txn_per_svcs_limit_breached",
+			uniqueTxnCount:                   20,
+			uniqueServices:                   2,
+			expectedActiveGroups:             6,
+			expectedPerSvcTxnLimitOverflow:   8,
+			expectedOtherSvcTxnLimitOverflow: 0,
+			expectedTotalOverflow:            16,
+		},
+		{
+			name:                             "record_into_other_txn_if_txn_grps_limit_breached",
+			uniqueTxnCount:                   60,
+			uniqueServices:                   20,
+			expectedActiveGroups:             40,
+			expectedPerSvcTxnLimitOverflow:   2,
+			expectedOtherSvcTxnLimitOverflow: 0,
+			expectedTotalOverflow:            40,
+		},
+		{
+			name:                             "record_into_other_txn_other_svc_if_txn_grps_and_svcs_limit_breached",
+			uniqueTxnCount:                   60,
+			uniqueServices:                   60,
+			expectedActiveGroups:             21,
+			expectedPerSvcTxnLimitOverflow:   0,
+			expectedOtherSvcTxnLimitOverflow: 40,
+			expectedTotalOverflow:            40,
+		},
+		{
+			name:                             "all_overflow",
+			uniqueTxnCount:                   600,
+			uniqueServices:                   60,
+			expectedActiveGroups:             41,
+			expectedPerSvcTxnLimitOverflow:   9,
+			expectedOtherSvcTxnLimitOverflow: 400,
+			expectedTotalOverflow:            580,
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			batches := make(chan model.Batch, 1)
+			agg, err := txmetrics.NewAggregator(txmetrics.AggregatorConfig{
+				BatchProcessor:                 makeChanBatchProcessor(batches),
+				MaxServices:                    maxSvcs,
+				MaxTransactionGroups:           maxTxnGrps,
+				MaxTransactionGroupsPerService: maxTxnGrpsPerSvc,
+				MetricsInterval:                30 * time.Second,
+				HDRHistogramSignificantFigures: 1,
+			})
+			require.NoError(t, err)
 
-	core, observed := observer.New(zapcore.DebugLevel)
-	logger := logp.NewLogger("foo", zap.WrapCore(func(in zapcore.Core) zapcore.Core {
-		return zapcore.NewTee(in, core)
-	}))
+			repCount := 5
+			batch := make(model.Batch, tc.uniqueTxnCount*repCount)
+			for i := 0; i < len(batch); i++ {
+				batch[i] = model.APMEvent{
+					Processor: model.TransactionProcessor,
+					Transaction: &model.Transaction{
+						Name:                fmt.Sprintf("foo%d", i%tc.uniqueTxnCount),
+						RepresentativeCount: 1,
+					},
+					Service: model.Service{Name: fmt.Sprintf("svc%d", i%tc.uniqueServices)},
+				}
+			}
+			go func(t *testing.T) {
+				t.Helper()
+				require.NoError(t, agg.Run())
+			}(t)
+			require.NoError(t, agg.ProcessBatch(context.Background(), &batch))
 
-	agg, err := txmetrics.NewAggregator(txmetrics.AggregatorConfig{
-		BatchProcessor:                 makeChanBatchProcessor(batches),
-		MaxTransactionGroups:           2,
-		MetricsInterval:                time.Microsecond,
-		HDRHistogramSignificantFigures: 1,
-		Logger:                         logger,
-	})
-	require.NoError(t, err)
+			expectedMonitoring := monitoring.MakeFlatSnapshot()
+			expectedMonitoring.Ints["txmetrics.active_groups"] = tc.expectedActiveGroups
+			expectedMonitoring.Ints["txmetrics.overflowed"] = tc.expectedTotalOverflow * int64(repCount)
+			registry := monitoring.NewRegistry()
+			monitoring.NewFunc(registry, "txmetrics", agg.CollectMonitoring)
+			assert.Equal(t, expectedMonitoring, monitoring.CollectFlatSnapshot(
+				registry,
+				monitoring.Full,
+				false, // expvar
+			))
 
-	// The first two transaction groups will not require immediate publication,
-	// as we have configured the txmetrics with a maximum of two buckets.
-	batch := make(model.Batch, 20)
-	for i := 0; i < len(batch); i += 2 {
-		batch[i] = model.APMEvent{
-			Processor:   model.TransactionProcessor,
-			Transaction: &model.Transaction{Name: "foo", RepresentativeCount: 1},
-		}
-		batch[i+1] = model.APMEvent{
-			Processor:   model.TransactionProcessor,
-			Transaction: &model.Transaction{Name: "bar", RepresentativeCount: 1},
-		}
-	}
-	err = agg.ProcessBatch(context.Background(), &batch)
-	require.NoError(t, err)
-	assert.Empty(t, batchMetricsets(t, batch))
-
-	// The third transaction group will return a metricset for immediate publication.
-	for i := 0; i < 2; i++ {
-		batch = append(batch, model.APMEvent{
-			Processor: model.TransactionProcessor,
-			Event:     model.Event{Duration: time.Minute},
-			Transaction: &model.Transaction{
-				Name:                "baz",
-				RepresentativeCount: 1,
-			},
+			require.NoError(t, agg.Stop(context.Background()))
+			metricsets := batchMetricsets(t, expectBatch(t, batches))
+			var foundPerSvcOverflow, foundOtherSvcOverflow bool
+			for _, m := range metricsets {
+				if m.Transaction.Name == "other" {
+					require.Equal(t, "transaction.aggregation.overflow_count", m.Metricset.Samples[0].Name)
+					if m.Service.Name == "other" {
+						foundOtherSvcOverflow = true
+						assert.Equal(t, tc.expectedOtherSvcTxnLimitOverflow, int(m.Metricset.Samples[0].Value))
+					} else {
+						foundPerSvcOverflow = true
+						assert.Equal(t, tc.expectedPerSvcTxnLimitOverflow, int(m.Metricset.Samples[0].Value))
+					}
+				}
+			}
+			assert.Equal(t, tc.expectedPerSvcTxnLimitOverflow > 0, foundPerSvcOverflow)
+			assert.Equal(t, tc.expectedOtherSvcTxnLimitOverflow > 0, foundOtherSvcOverflow)
 		})
 	}
-	err = agg.ProcessBatch(context.Background(), &batch)
-	require.NoError(t, err)
-	metricsets := batchMetricsets(t, batch)
-	assert.Len(t, metricsets, 2)
-
-	for _, m := range metricsets {
-		assert.Equal(t, model.APMEvent{
-			Processor: model.MetricsetProcessor,
-			Metricset: &model.Metricset{
-				Name:     "transaction",
-				DocCount: 1,
-			},
-			Transaction: &model.Transaction{
-				Name: "baz",
-				Root: true,
-				DurationHistogram: model.Histogram{
-					Counts: []int64{1},
-					Values: []float64{float64(time.Minute / time.Microsecond)},
-				},
-			},
-		}, m)
-	}
-
-	expectedMonitoring := monitoring.MakeFlatSnapshot()
-	expectedMonitoring.Ints["txmetrics.active_groups"] = 2
-	expectedMonitoring.Ints["txmetrics.overflowed"] = 2 // third group is processed twice
-
-	registry := monitoring.NewRegistry()
-	monitoring.NewFunc(registry, "txmetrics", agg.CollectMonitoring)
-	assert.Equal(t, expectedMonitoring, monitoring.CollectFlatSnapshot(
-		registry,
-		monitoring.Full,
-		false, // expvar
-	))
-
-	overflowLogEntries := observed.FilterMessageSnippet("Transaction group limit reached")
-	assert.Equal(t, 1, overflowLogEntries.Len()) // rate limited
 }
 
 func TestAggregatorRun(t *testing.T) {
@@ -151,13 +200,15 @@ func TestAggregatorRun(t *testing.T) {
 	agg, err := txmetrics.NewAggregator(txmetrics.AggregatorConfig{
 		BatchProcessor:                 makeChanBatchProcessor(batches),
 		MaxTransactionGroups:           2,
+		MaxTransactionGroupsPerService: 2,
+		MaxServices:                    2,
 		MetricsInterval:                10 * time.Millisecond,
 		HDRHistogramSignificantFigures: 1,
 	})
 	require.NoError(t, err)
 
 	for i := 0; i < 1000; i++ {
-		metricset := agg.AggregateTransaction(model.APMEvent{
+		agg.AggregateTransaction(model.APMEvent{
 			Processor: model.TransactionProcessor,
 			Labels: model.Labels{
 				"department_name": model.LabelValue{Global: true, Value: "apm"},
@@ -173,17 +224,15 @@ func TestAggregatorRun(t *testing.T) {
 				RepresentativeCount: 1,
 			},
 		})
-		require.Zero(t, metricset)
 	}
 	for i := 0; i < 800; i++ {
-		metricset := agg.AggregateTransaction(model.APMEvent{
+		agg.AggregateTransaction(model.APMEvent{
 			Processor: model.TransactionProcessor,
 			Transaction: &model.Transaction{
 				Name:                "T-800",
 				RepresentativeCount: 1,
 			},
 		})
-		require.Zero(t, metricset)
 	}
 
 	go agg.Run()
@@ -238,6 +287,8 @@ func TestAggregatorRunPublishErrors(t *testing.T) {
 	agg, err := txmetrics.NewAggregator(txmetrics.AggregatorConfig{
 		BatchProcessor:                 batchProcessor,
 		MaxTransactionGroups:           2,
+		MaxTransactionGroupsPerService: 1,
+		MaxServices:                    2,
 		MetricsInterval:                10 * time.Millisecond,
 		HDRHistogramSignificantFigures: 1,
 		Logger:                         logger,
@@ -248,14 +299,13 @@ func TestAggregatorRunPublishErrors(t *testing.T) {
 	defer agg.Stop(context.Background())
 
 	for i := 0; i < 2; i++ {
-		metricset := agg.AggregateTransaction(model.APMEvent{
+		agg.AggregateTransaction(model.APMEvent{
 			Processor: model.TransactionProcessor,
 			Transaction: &model.Transaction{
 				Name:                "T-1000",
 				RepresentativeCount: 1,
 			},
 		})
-		require.Zero(t, metricset)
 		expectBatch(t, batches)
 	}
 
@@ -272,92 +322,61 @@ func TestAggregatorRunPublishErrors(t *testing.T) {
 }
 
 func TestAggregateRepresentativeCount(t *testing.T) {
-	batches := make(chan model.Batch, 1)
-	agg, err := txmetrics.NewAggregator(txmetrics.AggregatorConfig{
-		BatchProcessor:                 makeChanBatchProcessor(batches),
-		MaxTransactionGroups:           1,
-		MetricsInterval:                time.Microsecond,
-		HDRHistogramSignificantFigures: 1,
-	})
-	require.NoError(t, err)
+	for _, tc := range []struct {
+		name                 string
+		representativeCounts []float64
+		expectedCount        int64
+	}{
+		{
+			name:                 "int",
+			representativeCounts: []float64{2},
+			expectedCount:        2,
+		},
+		{
+			name:                 "float",
+			representativeCounts: []float64{1.50},
+			expectedCount:        2,
+		},
+		{
+			name:                 "mix",
+			representativeCounts: []float64{1, 1.5},
+			expectedCount:        3,
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			batches := make(chan model.Batch, 1)
+			agg, err := txmetrics.NewAggregator(txmetrics.AggregatorConfig{
+				BatchProcessor:                 makeChanBatchProcessor(batches),
+				MaxTransactionGroups:           1,
+				MaxTransactionGroupsPerService: 1,
+				MaxServices:                    1,
+				MetricsInterval:                time.Microsecond,
+				HDRHistogramSignificantFigures: 1,
+			})
+			require.NoError(t, err)
 
-	// Record a transaction group so subsequent calls yield immediate metricsets,
-	// and to demonstrate that fractional transaction counts are accumulated.
-	agg.AggregateTransaction(model.APMEvent{
-		Processor:   model.TransactionProcessor,
-		Transaction: &model.Transaction{Name: "fnord", RepresentativeCount: 1},
-	})
-	agg.AggregateTransaction(model.APMEvent{
-		Processor:   model.TransactionProcessor,
-		Transaction: &model.Transaction{Name: "fnord", RepresentativeCount: 1.5},
-	})
+			for _, rc := range tc.representativeCounts {
+				agg.AggregateTransaction(model.APMEvent{
+					Processor: model.TransactionProcessor,
+					Transaction: &model.Transaction{
+						Name:                "foo",
+						RepresentativeCount: rc,
+					},
+				})
+			}
 
-	// For non-positive RepresentativeCounts, no metrics will be accumulated.
-	for _, representativeCount := range []float64{-1, 0} {
-		m := agg.AggregateTransaction(model.APMEvent{
-			Processor: model.TransactionProcessor,
-			Transaction: &model.Transaction{
-				Name:                "foo",
-				RepresentativeCount: representativeCount,
-			},
+			go agg.Run()
+			require.NoError(t, agg.Stop(context.Background()))
+
+			batch := expectBatch(t, batches)
+			metricsets := batchMetricsets(t, batch)
+			require.Len(t, metricsets, 1)
+			require.Nil(t, metricsets[0].Metricset.Samples)
+			require.NotNil(t, metricsets[0].Transaction)
+			durationHistogram := metricsets[0].Transaction.DurationHistogram
+			assert.Equal(t, []int64{tc.expectedCount}, durationHistogram.Counts)
 		})
-		assert.Zero(t, m)
 	}
-
-	for _, test := range []struct {
-		representativeCount float64
-		expectedCount       int64
-	}{{
-		representativeCount: 1,
-		expectedCount:       1,
-	}, {
-		representativeCount: 2,
-		expectedCount:       2,
-	}, {
-		representativeCount: 1.50, // round half away from zero
-		expectedCount:       2,
-	}} {
-		m := agg.AggregateTransaction(model.APMEvent{
-			Processor: model.TransactionProcessor,
-			Transaction: &model.Transaction{
-				Name:                "foo",
-				RepresentativeCount: test.representativeCount,
-			},
-		})
-		require.NotNil(t, m.Metricset)
-
-		m.Timestamp = time.Time{}
-		assert.Equal(t, model.APMEvent{
-			Processor: model.MetricsetProcessor,
-			Metricset: &model.Metricset{
-				Name:     "transaction",
-				DocCount: test.expectedCount,
-			},
-			Transaction: &model.Transaction{
-				Name: "foo",
-				Root: true,
-				DurationHistogram: model.Histogram{
-					Counts: []int64{test.expectedCount},
-					Values: []float64{0},
-				},
-			},
-		}, m)
-	}
-
-	go agg.Run()
-	defer agg.Stop(context.Background())
-
-	// Check the fractional transaction counts for the "fnord" transaction
-	// group were accumulated with some degree of accuracy. i.e. we should
-	// receive round(1+1.5)=3; the fractional values should not have been
-	// truncated.
-	batch := expectBatch(t, batches)
-	metricsets := batchMetricsets(t, batch)
-	require.Len(t, metricsets, 1)
-	require.Nil(t, metricsets[0].Metricset.Samples)
-	require.NotNil(t, metricsets[0].Transaction)
-	durationHistogram := metricsets[0].Transaction.DurationHistogram
-	assert.Equal(t, []int64{3 /*round(1+1.5)*/}, durationHistogram.Counts)
 }
 
 func TestAggregateTimestamp(t *testing.T) {
@@ -365,6 +384,8 @@ func TestAggregateTimestamp(t *testing.T) {
 	agg, err := txmetrics.NewAggregator(txmetrics.AggregatorConfig{
 		BatchProcessor:                 makeChanBatchProcessor(batches),
 		MaxTransactionGroups:           2,
+		MaxTransactionGroupsPerService: 2,
+		MaxServices:                    2,
 		MetricsInterval:                30 * time.Second,
 		HDRHistogramSignificantFigures: 1,
 	})
@@ -407,6 +428,8 @@ func testHDRHistogramSignificantFigures(t *testing.T, sigfigs int) {
 		agg, err := txmetrics.NewAggregator(txmetrics.AggregatorConfig{
 			BatchProcessor:                 makeChanBatchProcessor(batches),
 			MaxTransactionGroups:           2,
+			MaxTransactionGroupsPerService: 1,
+			MaxServices:                    2,
 			MetricsInterval:                10 * time.Millisecond,
 			HDRHistogramSignificantFigures: sigfigs,
 		})
@@ -421,7 +444,7 @@ func testHDRHistogramSignificantFigures(t *testing.T, sigfigs int) {
 			101110 * time.Microsecond,
 			101111 * time.Microsecond,
 		} {
-			metricset := agg.AggregateTransaction(model.APMEvent{
+			agg.AggregateTransaction(model.APMEvent{
 				Processor: model.TransactionProcessor,
 				Event:     model.Event{Duration: duration},
 				Transaction: &model.Transaction{
@@ -429,7 +452,6 @@ func testHDRHistogramSignificantFigures(t *testing.T, sigfigs int) {
 					RepresentativeCount: 1,
 				},
 			})
-			require.Zero(t, metricset)
 		}
 
 		go agg.Run()
@@ -452,6 +474,8 @@ func TestAggregationFields(t *testing.T) {
 	agg, err := txmetrics.NewAggregator(txmetrics.AggregatorConfig{
 		BatchProcessor:                 makeChanBatchProcessor(batches),
 		MaxTransactionGroups:           1000,
+		MaxTransactionGroupsPerService: 100,
+		MaxServices:                    3,
 		MetricsInterval:                100 * time.Millisecond,
 		HDRHistogramSignificantFigures: 1,
 	})
@@ -525,15 +549,15 @@ func TestAggregationFields(t *testing.T) {
 	for _, field := range inputFields {
 		for _, value := range []string{"something", "anything"} {
 			*field = value
-			assert.Zero(t, agg.AggregateTransaction(input))
-			assert.Zero(t, agg.AggregateTransaction(input))
+			agg.AggregateTransaction(input)
+			agg.AggregateTransaction(input)
 			addExpectedCount(2)
 		}
 	}
 	for _, field := range boolInputFields {
 		*field = true
-		assert.Zero(t, agg.AggregateTransaction(input))
-		assert.Zero(t, agg.AggregateTransaction(input))
+		agg.AggregateTransaction(input)
+		agg.AggregateTransaction(input)
 		addExpectedCount(2)
 	}
 
@@ -544,8 +568,8 @@ func TestAggregationFields(t *testing.T) {
 		input.Kubernetes.PodName = ""
 		for _, value := range []string{"something", "anything"} {
 			input.Host.Hostname = value
-			assert.Zero(t, agg.AggregateTransaction(input))
-			assert.Zero(t, agg.AggregateTransaction(input))
+			agg.AggregateTransaction(input)
+			agg.AggregateTransaction(input)
 			addExpectedCount(2)
 		}
 
@@ -553,8 +577,8 @@ func TestAggregationFields(t *testing.T) {
 		// non-root traces.
 		for _, value := range []string{"something", "anything"} {
 			input.Parent.ID = value
-			assert.Zero(t, agg.AggregateTransaction(input))
-			assert.Zero(t, agg.AggregateTransaction(input))
+			agg.AggregateTransaction(input)
+			agg.AggregateTransaction(input)
 		}
 		addExpectedCount(4)
 	}
@@ -568,6 +592,8 @@ func BenchmarkAggregateTransaction(b *testing.B) {
 	agg, err := txmetrics.NewAggregator(txmetrics.AggregatorConfig{
 		BatchProcessor:                 makeErrBatchProcessor(nil),
 		MaxTransactionGroups:           1000,
+		MaxTransactionGroupsPerService: 100,
+		MaxServices:                    1000,
 		MetricsInterval:                time.Minute,
 		HDRHistogramSignificantFigures: 2,
 	})
