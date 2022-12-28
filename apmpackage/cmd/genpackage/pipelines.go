@@ -157,7 +157,7 @@ var eventDurationPipeline = []map[string]interface{}{{
 		"source": strings.TrimSpace(`
 def durationNanos = ctx.event?.duration ?: 0;
 def eventType = ctx.processor.event;
-ctx.get(ctx.processor.event).duration = ["us": (int)(durationNanos/1000)];
+ctx.get(ctx.processor.event).duration = ["us": (long)(durationNanos/1000)];
 `),
 	},
 }, {
