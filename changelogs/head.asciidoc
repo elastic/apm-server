@@ -24,3 +24,5 @@ https://github.com/elastic/apm-server/compare/8.6\...main[View commits]
 ==== Added
 - Metrics data streams now use synthetic source {pull}9756[9756]
 - Add `event.success_count` to transaction events and transaction metrics {pull}9819[9819]
+- Dedicated overflow buckets for transaction and service aggregation to limit cardinality {pull}9856[9856]
+- Automatically scale `MaxGroups` and `MaxTransactionGroups` based on available memory {pull}9856[9856]

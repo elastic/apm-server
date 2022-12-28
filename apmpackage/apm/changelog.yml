@@ -18,6 +18,9 @@
     - description: Cast event.duration to long in event_duration pipeline
       type: bugfix
       link: https://github.com/elastic/apm-server/pull/9901
+    - description: Add transaction and service overflow metrics
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/9856
 - version: "8.6.0"
   changes:
     - description: Change `ecs.version` to a `constant_keyword` field
