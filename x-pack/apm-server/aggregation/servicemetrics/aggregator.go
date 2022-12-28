@@ -11,6 +11,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/axiomhq/hyperloglog"
 	"github.com/cespare/xxhash/v2"
 	"github.com/pkg/errors"
 
@@ -183,63 +184,81 @@ func (a *Aggregator) publish(ctx context.Context) error {
 
 	batch := make(model.Batch, 0, size)
 	for key, metrics := range a.inactive.m {
-		for _, mme := range metrics {
-			totalCount, counts, values := mme.serviceMetrics.histogramBuckets()
-			metricset := makeMetricset(mme.aggregationKey, mme.serviceMetrics, totalCount, counts, values)
-			batch = append(batch, metricset)
+		for _, entry := range metrics {
+			totalCount, counts, values := entry.serviceMetrics.histogramBuckets()
+			m := makeMetricset(entry.aggregationKey, entry.serviceMetrics, totalCount, counts, values)
+			batch = append(batch, m)
+			entry.histogram.Reset()
 		}
 		delete(a.inactive.m, key)
 	}
+	if a.inactive.other != nil {
+		entry := a.inactive.other
+		totalCount, counts, values := entry.serviceMetrics.histogramBuckets()
+		m := makeMetricset(entry.aggregationKey, entry.serviceMetrics, totalCount, counts, values)
+		m.Metricset.Samples = append(m.Metricset.Samples, model.MetricsetSample{
+			Name:  "service.aggregation.overflow_count",
+			Value: float64(a.inactive.otherCardinalityEstimator.Estimate()),
+		})
+		batch = append(batch, m)
+		entry.histogram.Reset()
+		a.inactive.other = nil
+		a.inactive.otherCardinalityEstimator = nil
+	}
+	a.inactive.entries = 0
 	a.config.Logger.Debugf("publishing %d metricsets", len(batch))
 	return a.config.BatchProcessor.ProcessBatch(ctx, &batch)
 }
 
-// ProcessBatch aggregates all service latency metrics
+// ProcessBatch aggregates all service latency metrics.
+//
+// To contain cardinality of the aggregated metrics the following
+// limits are considered:
+//
+//   - MaxGroups: Limits the total number of services that the
+//     service metrics aggregator produces. Once this limit is
+//     breached the metrics are aggregated in a dedicated bucket
+//     with `service.name` as `other`.
 func (a *Aggregator) ProcessBatch(ctx context.Context, b *model.Batch) error {
 	a.mu.RLock()
 	defer a.mu.RUnlock()
 	for _, event := range *b {
 		tx := event.Transaction
 		if event.Processor == model.TransactionProcessor && tx != nil {
-			if msEvent := a.processTransaction(&event); msEvent.Metricset != nil {
-				*b = append(*b, msEvent)
-			}
+			a.processTransaction(&event)
 		}
 	}
 	return nil
 }
 
-func (a *Aggregator) processTransaction(event *model.APMEvent) model.APMEvent {
+func (a *Aggregator) processTransaction(event *model.APMEvent) {
 	if event.Transaction == nil || event.Transaction.RepresentativeCount <= 0 {
-		return model.APMEvent{}
+		return
 	}
 	key := makeAggregationKey(event, a.config.Interval)
 	metrics := makeServiceMetrics(event)
-	if a.active.storeOrUpdate(key, metrics, a.config.Logger) {
-		return model.APMEvent{}
-	}
-	count := transactionCount(event.Transaction)
-	counts := []int64{int64(math.Round(count))}
-	values := []float64{float64(event.Event.Duration.Microseconds())}
-	return makeMetricset(key, metrics, counts[0], counts, values)
+	a.active.storeOrUpdate(key, metrics, a.config.Logger)
 }
 
 type metricsBuffer struct {
 	maxSize            int
 	significantFigures int
 
-	mu      sync.RWMutex
-	entries int
-	m       map[uint64][]*metricsMapEntry
-	space   []metricsMapEntry
+	mu                        sync.RWMutex
+	entries                   int
+	space                     []metricsMapEntry
+	m                         map[uint64][]*metricsMapEntry
+	other                     *metricsMapEntry
+	otherCardinalityEstimator *hyperloglog.Sketch
 }
 
 func newMetricsBuffer(maxSize int, significantFigures int) *metricsBuffer {
 	return &metricsBuffer{
 		maxSize:            maxSize,
 		significantFigures: significantFigures,
-		m:                  make(map[uint64][]*metricsMapEntry),
-		space:              make([]metricsMapEntry, maxSize),
+		// keep one reserved entry for overflow bucket
+		space: make([]metricsMapEntry, maxSize+1),
+		m:     make(map[uint64][]*metricsMapEntry),
 	}
 }
 
@@ -248,7 +267,7 @@ type metricsMapEntry struct {
 	aggregationKey
 }
 
-func (mb *metricsBuffer) storeOrUpdate(key aggregationKey, metrics serviceMetrics, logger *logp.Logger) bool {
+func (mb *metricsBuffer) storeOrUpdate(key aggregationKey, metrics serviceMetrics, logger *logp.Logger) {
 	// hash does not use the serviceMetrics so it is safe to call concurrently.
 	hash := key.hash()
 
@@ -256,62 +275,63 @@ func (mb *metricsBuffer) storeOrUpdate(key aggregationKey, metrics serviceMetric
 	mb.mu.Lock()
 	defer mb.mu.Unlock()
 
+	var entry *metricsMapEntry
 	entries, ok := mb.m[hash]
 	if ok {
 		for offset, old := range entries {
 			if old.aggregationKey.equal(key) {
-				entries[offset].serviceMetrics = serviceMetrics{
-					transactionDuration: old.transactionDuration + metrics.transactionDuration,
-					transactionCount:    old.transactionCount + metrics.transactionCount,
-					failureCount:        old.failureCount + metrics.failureCount,
-					successCount:        old.successCount + metrics.successCount,
-					histogram:           old.histogram,
-				}
-
-				entries[offset].recordDuration(time.Duration(metrics.transactionDuration), metrics.transactionCount)
-				return true
+				entry = entries[offset]
+				break
 			}
 		}
-	} else if mb.entries >= len(mb.space) {
-		return false
 	}
-
-	half := mb.maxSize / 2
-	if !ok {
-		switch mb.entries {
-		case mb.maxSize:
-			return false
-		case half - 1:
-			logger.Warn("service metrics groups reached 50% capacity")
-		case mb.maxSize - 1:
-			logger.Warn("service metrics groups reached 100% capacity")
+	if entry == nil && mb.entries >= mb.maxSize && mb.other != nil {
+		entry = mb.other
+		// axiomhq/hyerloglog uses metrohash but here we are using
+		// xxhash. Metrohash has better performance but since we are
+		// already calculating xxhash we can use it directly.
+		mb.otherCardinalityEstimator.InsertHash(hash)
+	}
+	if entry != nil {
+		entry.serviceMetrics = serviceMetrics{
+			transactionDuration: entry.transactionDuration + metrics.transactionDuration,
+			transactionCount:    entry.transactionCount + metrics.transactionCount,
+			failureCount:        entry.failureCount + metrics.failureCount,
+			successCount:        entry.successCount + metrics.successCount,
+			histogram:           entry.histogram,
 		}
+		entry.recordDuration(time.Duration(metrics.transactionDuration), metrics.transactionCount)
+		return
 	}
-
-	entry := &mb.space[mb.entries]
+	if mb.entries >= mb.maxSize {
+		logger.Warnf(`
+Service aggregation group limit of %d reached, new metric documents will be grouped
+under a dedicated bucket identified by service name 'other'.`[1:], mb.maxSize)
+		mb.other = &mb.space[len(mb.space)-1]
+		mb.otherCardinalityEstimator = hyperloglog.New14()
+		mb.otherCardinalityEstimator.InsertHash(hash)
+		entry = mb.other
+		key = makeOverflowAggregationKey(key)
+	} else {
+		entry = &mb.space[mb.entries]
+		mb.m[hash] = append(entries, entry)
+		mb.entries++
+	}
 	entry.aggregationKey = key
-
 	entry.serviceMetrics = serviceMetrics{
 		transactionDuration: metrics.transactionDuration,
 		transactionCount:    metrics.transactionCount,
 		failureCount:        metrics.failureCount,
 		successCount:        metrics.successCount,
 	}
-
 	if entry.serviceMetrics.histogram == nil {
-		entry.histogram = hdrhistogram.New(
+		entry.serviceMetrics.histogram = hdrhistogram.New(
 			minDuration.Microseconds(),
 			maxDuration.Microseconds(),
 			mb.significantFigures,
 		)
-	} else {
-		entry.serviceMetrics.histogram.Reset()
 	}
-
-	entry.serviceMetrics.recordDuration(time.Duration(metrics.transactionDuration), metrics.transactionCount)
-	mb.m[hash] = append(entries, entry)
-	mb.entries++
-	return true
+	entry.recordDuration(time.Duration(metrics.transactionDuration), metrics.transactionCount)
 }
 
 type aggregationKey struct {
@@ -359,10 +379,17 @@ func makeAggregationKey(event *model.APMEvent, interval time.Duration) aggregati
 			transactionType:    event.Transaction.Type,
 		},
 	}
-
 	key.AggregatedGlobalLabels.Read(event)
-
 	return key
+}
+
+func makeOverflowAggregationKey(oldKey aggregationKey) aggregationKey {
+	return aggregationKey{
+		comparable: comparable{
+			timestamp:   oldKey.timestamp,
+			serviceName: "other",
+		},
+	}
 }
 
 type serviceMetrics struct {
@@ -450,11 +477,4 @@ func makeMetricset(key aggregationKey, metrics serviceMetrics, totalCount int64,
 			},
 		},
 	}
-}
-
-func transactionCount(tx *model.Transaction) float64 {
-	if tx.RepresentativeCount > 0 {
-		return tx.RepresentativeCount
-	}
-	return 1
 }

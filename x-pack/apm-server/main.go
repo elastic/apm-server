@@ -7,6 +7,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"math"
 	"net/http"
 	"os"
 	"sync"
@@ -111,6 +112,8 @@ func newProcessors(args beater.ServerParams) ([]namedProcessor, error) {
 		MaxTransactionGroups:           args.Config.Aggregation.Transactions.MaxTransactionGroups,
 		MetricsInterval:                metricsInterval,
 		RollUpIntervals:                rollUpMetricsIntervals,
+		MaxTransactionGroupsPerService: int(math.Ceil(0.1 * float64(args.Config.Aggregation.Transactions.MaxTransactionGroups))),
+		MaxServices:                    args.Config.Aggregation.Transactions.MaxTransactionGroups, // same as max txn grps
 		HDRHistogramSignificantFigures: args.Config.Aggregation.Transactions.HDRHistogramSignificantFigures,
 	})
 	if err != nil {

@@ -3,6 +3,7 @@ module github.com/elastic/apm-server
 go 1.19
 
 require (
+	github.com/axiomhq/hyperloglog v0.0.0-20220105174342-98591331716a
 	github.com/cespare/xxhash/v2 v2.1.2
 	github.com/dgraph-io/badger/v2 v2.2007.3-0.20201012072640-f5a7e0a1c83b
 	github.com/dustin/go-humanize v1.0.0
@@ -70,6 +71,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dgraph-io/ristretto v0.1.0 // indirect
 	github.com/dgryski/go-farm v0.0.0-20200201041132-a6ae2369ad13 // indirect
+	github.com/dgryski/go-metro v0.0.0-20180109044635-280f6062b5bc // indirect
 	github.com/dlclark/regexp2 v1.7.0 // indirect
 	github.com/dop251/goja v0.0.0-20221224150820-cc4634e76e9a // indirect
 	github.com/dop251/goja_nodejs v0.0.0-20221211191749-434192f0843e // indirect
@@ -137,7 +139,7 @@ require (
 	golang.org/x/sys v0.3.0 // indirect
 	golang.org/x/text v0.5.0 // indirect
 	golang.org/x/tools v0.4.0 // indirect
-	google.golang.org/genproto v0.0.0-20221207170731-23e4bf6bdc37 // indirect
+	google.golang.org/genproto v0.0.0-20221227171554-f9683d7f8bef // indirect
 	gopkg.in/jcmturner/aescts.v1 v1.0.1 // indirect
 	gopkg.in/jcmturner/dnsutils.v1 v1.0.1 // indirect
 	gopkg.in/jcmturner/goidentity.v3 v3.0.0 // indirect
@@ -187,3 +189,6 @@ exclude (
 )
 
 exclude github.com/elastic/elastic-agent v0.0.0-20220831162706-5f1e54f40d3e
+
+// Workaround until https://github.com/axiomhq/hyperloglog/pull/33 PR is released
+exclude github.com/influxdata/influxdb v1.7.6

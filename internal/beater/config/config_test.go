@@ -420,7 +420,7 @@ func TestUnpackConfig(t *testing.T) {
 				KibanaAgentConfig: KibanaAgentConfig{Cache: Cache{Expiration: 30 * time.Second}},
 				Aggregation: AggregationConfig{
 					Transactions: TransactionAggregationConfig{
-						MaxTransactionGroups:           10000,
+						MaxTransactionGroups:           0, // Default value is set as per memory limit
 						HDRHistogramSignificantFigures: 2,
 					},
 					ServiceDestinations: ServiceDestinationAggregationConfig{
@@ -429,7 +429,7 @@ func TestUnpackConfig(t *testing.T) {
 					},
 					Service: ServiceAggregationConfig{
 						Interval:                       time.Minute,
-						MaxGroups:                      10000,
+						MaxGroups:                      0, // Default value is set as per memory limit
 						HDRHistogramSignificantFigures: 5,
 					},
 				},
