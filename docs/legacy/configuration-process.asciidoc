@@ -199,6 +199,9 @@ Events will be written to `traces-*`, `logs-*`, and `metrics-*` data streams.
 Enabling data streams disables the setup of index templates, ILM policies, and ingest pipelines.
 Defaults to false.
 
+WARNING: Other steps are required to switch to data streams.
+Please see <<upgrade-to-data-streams>> before changing this setting.
+
 [[data_streams.wait_for_integration]]
 [float]
 ==== `wait_for_integration`
