@@ -7,10 +7,13 @@ package txmetrics_test
 import (
 	"context"
 	"fmt"
+	"net/netip"
 	"sort"
 	"testing"
 	"time"
 
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -83,6 +86,7 @@ func TestTxnAggregatorProcessBatch(t *testing.T) {
 	const maxSvcs = 20
 	const maxTxnGrps = 20
 	const maxTxnGrpsPerSvc = 2
+	const txnDuration = 100 * time.Millisecond
 	for _, tc := range []struct {
 		// all unique txns are distributed in unique services sequentially
 		// for 7 transactions and 3 services; first three service will receive
@@ -141,7 +145,7 @@ func TestTxnAggregatorProcessBatch(t *testing.T) {
 				MaxTransactionGroups:           maxTxnGrps,
 				MaxTransactionGroupsPerService: maxTxnGrpsPerSvc,
 				MetricsInterval:                30 * time.Second,
-				HDRHistogramSignificantFigures: 1,
+				HDRHistogramSignificantFigures: 5,
 			})
 			require.NoError(t, err)
 
@@ -150,6 +154,10 @@ func TestTxnAggregatorProcessBatch(t *testing.T) {
 			for i := 0; i < len(batch); i++ {
 				batch[i] = model.APMEvent{
 					Processor: model.TransactionProcessor,
+					Event: model.Event{
+						Outcome:  "success",
+						Duration: txnDuration,
+					},
 					Transaction: &model.Transaction{
 						Name:                fmt.Sprintf("foo%d", i%tc.uniqueTxnCount),
 						RepresentativeCount: 1,
@@ -176,21 +184,53 @@ func TestTxnAggregatorProcessBatch(t *testing.T) {
 
 			require.NoError(t, agg.Stop(context.Background()))
 			metricsets := batchMetricsets(t, expectBatch(t, batches))
-			var foundPerSvcOverflow, foundOtherSvcOverflow bool
+			var totalOverflowMetricsets int
 			for _, m := range metricsets {
-				if m.Transaction.Name == "other" {
-					require.Equal(t, "transaction.aggregation.overflow_count", m.Metricset.Samples[0].Name)
-					if m.Service.Name == "other" {
-						foundOtherSvcOverflow = true
-						assert.Equal(t, tc.expectedOtherSvcTxnLimitOverflow, int(m.Metricset.Samples[0].Value))
-					} else {
-						foundPerSvcOverflow = true
-						assert.Equal(t, tc.expectedPerSvcTxnLimitOverflow, int(m.Metricset.Samples[0].Value))
-					}
+				if m.Transaction.Name != "other" {
+					// only test for overflow cases
+					continue
+				}
+				totalOverflowMetricsets++
+				count := tc.expectedPerSvcTxnLimitOverflow
+				if m.Service.Name == "other" {
+					count = tc.expectedOtherSvcTxnLimitOverflow
+				}
+				assert.Empty(t, cmp.Diff(model.APMEvent{
+					Processor: model.MetricsetProcessor,
+					Transaction: &model.Transaction{
+						Name: "other",
+						DurationHistogram: model.Histogram{
+							Counts: []int64{int64(count * repCount)},
+							Values: []float64{float64(txnDuration.Microseconds())},
+						},
+					},
+					Metricset: &model.Metricset{
+						Name:     "transaction",
+						DocCount: int64(count * repCount),
+						Samples: []model.MetricsetSample{
+							{
+								Name:  "transaction.aggregation.overflow_count",
+								Value: float64(count),
+							},
+						},
+					},
+				}, m, cmpopts.IgnoreTypes(netip.Addr{}, time.Time{}), cmpopts.IgnoreFields(model.Service{}, "Name")))
+			}
+			var expectedTotalOverflowGrps int
+			if tc.expectedPerSvcTxnLimitOverflow > 0 {
+				// since for this test we are overflowing all the services equally, each overflow
+				// svc will account for 1 metricset.
+				if tc.uniqueServices > maxSvcs {
+					expectedTotalOverflowGrps += maxSvcs
+				} else {
+					expectedTotalOverflowGrps += tc.uniqueServices
 				}
 			}
-			assert.Equal(t, tc.expectedPerSvcTxnLimitOverflow > 0, foundPerSvcOverflow)
-			assert.Equal(t, tc.expectedOtherSvcTxnLimitOverflow > 0, foundOtherSvcOverflow)
+			if tc.expectedOtherSvcTxnLimitOverflow > 0 {
+				// if the overflow spills into the other svc bucket then we will have another metricset
+				expectedTotalOverflowGrps++
+			}
+			assert.Equal(t, expectedTotalOverflowGrps, totalOverflowMetricsets)
 		})
 	}
 }

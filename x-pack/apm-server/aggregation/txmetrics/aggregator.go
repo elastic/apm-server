@@ -255,7 +255,6 @@ func (a *Aggregator) publish(ctx context.Context) error {
 				Value: float64(svcEntry.otherCardinalityEstimator.Estimate()),
 			})
 			batch = append(batch, m)
-
 			entry.histogram.Reset()
 			svcEntry.other = nil
 			svcEntry.otherCardinalityEstimator = nil
@@ -265,7 +264,6 @@ func (a *Aggregator) publish(ctx context.Context) error {
 	}
 	a.inactive.entries = 0
 	a.inactive.services = 0
-
 	a.config.Logger.Debugf("publishing %d metricsets", len(batch))
 	return a.config.BatchProcessor.ProcessBatch(ctx, &batch)
 }
@@ -422,7 +420,7 @@ that configuration option appropriately, may lead to better results.`[1:],
 		atomic.AddInt64(&a.metrics.overflowed, 1)
 		entry = svcEntry.other
 		// For `other` service we only account for `other` transaction bucket.
-		key = a.makeOverflowAggregationKey(key, svcOverflow)
+		key = a.makeOverflowAggregationKey(key, svcOverflow, a.config.MetricsInterval)
 	} else {
 		entry = &m.space[m.entries]
 		m.entries++
@@ -440,14 +438,23 @@ that configuration option appropriately, may lead to better results.`[1:],
 	entry.recordDuration(duration, count)
 }
 
-func (a *Aggregator) makeOverflowAggregationKey(oldKey transactionAggregationKey, svcOverflow bool) transactionAggregationKey {
+func (a *Aggregator) makeOverflowAggregationKey(
+	oldKey transactionAggregationKey,
+	svcOverflow bool,
+	interval time.Duration,
+) transactionAggregationKey {
 	svcName := oldKey.serviceName
 	if svcOverflow {
 		svcName = overflowBucketName
 	}
 	return transactionAggregationKey{
 		comparable: comparable{
-			timestamp:       oldKey.timestamp,
+			// We are using `time.Now` here to align the overflow aggregation to
+			// the evaluation time rather than event time. This prevents us from
+			// cases of bad timestamps when the server receives some events with
+			// old timestamp and these events overflow causing the indexed event
+			// to have old timestamp too.
+			timestamp:       time.Now().Truncate(interval),
 			transactionName: overflowBucketName,
 			serviceName:     svcName,
 		},
