@@ -13,40 +13,31 @@ See {ref}/index-lifecycle-management.html[ILM: Manage the index lifecycle] to le
 === Default policies
 
 The table below describes the default index lifecycle policy applied to each APM data stream.
-Each policy includes a rollover and delete definition:
+Each policy includes a rollover definition;
+using rollover indices prevents a single index from growing too large and optimizes indexing and search performance. Rollover, i.e. writing to a new index, occurs after either an age or size metric is met.
 
-* **Rollover**: Using rollover indices prevents a single index from growing too large and optimizes indexing and search performance. Rollover, i.e. writing to a new index, occurs after either an age or size metric is met.
-* **Delete**: The delete phase permanently removes the index after a time threshold is met.
-
-[cols="1,1,1",options="header"]
+[cols="1,1",options="header"]
 |===
 |Data stream
 |Rollover after
-|Delete after
 
 |`traces-apm`
 |30 days / 50 gb
-|10 days
 
 |`traces-apm.rum`
 |30 days / 50 gb
-|90 days
 
 |`metrics-apm.profiling`
 |30 days / 50 gb
-|10 days
 
 |`metrics-apm.internal`
 |30 days / 50 gb
-|90 days
 
 |`metrics-apm.app`
 |30 days / 50 gb
-|90 days
 
 |`logs-apm.error`
 |30 days / 50 gb
-|10 days
 
 |===
 
