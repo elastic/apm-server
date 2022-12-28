@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 export TF_IN_AUTOMATION=1
 export TF_CLI_ARGS=-no-color
@@ -74,7 +74,7 @@ terraform_destroy() {
         echo "-> Printing terraform logs:"
         cat tf.log
     fi
-    echo "-> Destroying the underlying infrastructure..." 
+    echo "-> Destroying the underlying infrastructure..."
     terraform destroy -auto-approve >> tf.log
     rm -f terraform.tfvars tf.log
     if [[ -z ${1} || ${1} -gt 0 ]]; then rm -f main.tf; fi
@@ -192,7 +192,7 @@ upgrade_managed() {
     if [[ ! ${ENABLED} ]]; then
         echo "-> Failed migrating and enabling the APM Integration"
         exit 6
-    fi  
+    fi
 
     # Allow the new server to start serving requets. Waiting for an arbitrary 70 seconds
     # period is not ideal, but there aren't any other APIs we can query.
@@ -366,14 +366,17 @@ elasticsearch_curl() {
 }
 
 curl_fail() {
-    if [ -z "${HAS_FAIL_WITH_BODY}" ]; then
-        curl -s --fail-with-body example.com &>/dev/null
-        HAS_FAIL_WITH_BODY=$?
-    fi
-
-    if [ "${HAS_FAIL_WITH_BODY}" -eq 0 ]; then
+    if is_curl_fail_with_body; then
         curl -s --fail-with-body "${@}"
     else
         curl -s --fail "${@}"
     fi
+}
+
+is_curl_fail_with_body() {
+    if [ -z "${HAS_FAIL_WITH_BODY}" ]; then
+        curl -s --fail-with-body example.com > /dev/null 2>&1
+        HAS_FAIL_WITH_BODY=$?
+    fi
+    return $HAS_FAIL_WITH_BODY
 }
