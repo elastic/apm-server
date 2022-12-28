@@ -15,6 +15,9 @@
     - description: Add `event.success_count` for transaction events and transaction metrics. Rename `transaction.success_count` to `event.success_count` for service metrics.
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/9819
+    - description: Cast event.duration to long in event_duration pipeline
+      type: bugfix
+      link: https://github.com/elastic/apm-server/pull/9901
 - version: "8.6.0"
   changes:
     - description: Change `ecs.version` to a `constant_keyword` field
