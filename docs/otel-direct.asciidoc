@@ -14,9 +14,9 @@ be sent directly to the {stack}.
 
 [float]
 [[connect-open-telemetry-collector]]
-==== Connect OpenTelemetry Collector instances
+==== Send data from an OpenTelemetry collector
 
-Connect your OpenTelemetry collector instances to Elastic {observability} using the OTLP exporter.
+Connect your OpenTelemetry collector instances to Elastic {observability} using the OTLP exporter:
 
 [source,yaml]
 ----
@@ -70,10 +70,14 @@ https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/otl
 
 You're now ready to export traces and metrics from your services and applications.
 
+TIP: When using the OpenTelemetry collector, you should always prefer sending data via the [`OTLP` exporter](https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/otlphttpexporter) to an Elastic APM Server.
+Other methods, like using the [`elasticsearch` exporter](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/elasticsearchexporter) to send data directly to {es} will send data to the {stack},
+but will bypass all of the validation and data processing that the APM Server performs.
+In addition, your data will not be viewable in the {kib} {observability} apps if you use the `elasticsearch` exporter.
 
 [float]
 [[instrument-apps-otel]]
-==== OpenTelemetry agent
+==== Send data from an OpenTelemetry agent
 
 To export traces and metrics to APM Server, instrument your services and applications
 with the OpenTelemetry API, SDK, or both. For example, if you are a Java developer, you need to instrument your Java app with the
@@ -98,7 +102,7 @@ java -javaagent:/path/to/opentelemetry-javaagent-all.jar \
 |===
 
 | `OTEL_RESOURCE_ATTRIBUTES` | Fields that describe the service and the environment that the service runs in. See
-{apm-guide-ref}/open-telemetry.html#open-telemetry-resource-attributes[Resource attributes] for more information.
+<<open-telemetry-resource-attributes,resource attributes>> for more information.
 
 | `OTEL_EXPORTER_OTLP_ENDPOINT` | APM Server URL. The host and port that APM Server listens for events on.
 

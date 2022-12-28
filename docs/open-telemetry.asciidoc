@@ -73,47 +73,13 @@ include::./otel-limitations.asciidoc[]
 
 include::./otel-attrs.asciidoc[]
 
-
-// IGNORE BELOW THIS LINE
-// ****************************************************************************************************************************
-// This is used in the obs-docs repo and will be removed in a future PR
-
+// ****
+// The text below is used in the Quick start guide
 // tag::otel-get-started[]
-To export traces and metrics to APM Server, instrument your services and applications
-with the OpenTelemetry API, SDK, or both. For example, if you are a Java developer, you need to instrument your Java app with the
-https://github.com/open-telemetry/opentelemetry-java-instrumentation[OpenTelemetry agent for Java].
-See the https://opentelemetry.io/docs/instrumentation/[OpenTelemetry Instrumentation guides] to download the
-OpenTelemetry Agent or SDK for your language.
+Elastic integrates with OpenTelemetry, allowing you to reuse your existing instrumentation
+to easily send observability data to the {stack}.
 
-Define the following environment variables to configure the OpenTelemetry agent and enable communication with Elastic APM.
-
-[source,bash]
-----
-export OTEL_RESOURCE_ATTRIBUTES=service.name=checkoutService,service.version=1.1,deployment.environment=production
-export OTEL_EXPORTER_OTLP_ENDPOINT=https://apm_server_url:8200
-export OTEL_EXPORTER_OTLP_HEADERS="Authorization=Bearer an_apm_secret_token"
-export OTEL_METRICS_EXPORTER="otlp" \
-export OTEL_LOGS_EXPORTER="otlp" \
-java -javaagent:/path/to/opentelemetry-javaagent-all.jar \
-     -classpath lib/*:classes/ \
-     com.mycompany.checkout.CheckoutServiceServer
-----
-
-|===
-
-| `OTEL_RESOURCE_ATTRIBUTES` | Fields that describe the service and the environment that the service runs in. See
-{apm-guide-ref}/open-telemetry.html#open-telemetry-resource-attributes[Resource attributes] for more information.
-
-| `OTEL_EXPORTER_OTLP_ENDPOINT` | APM Server URL. The host and port that APM Server listens for events on.
-
-| `OTEL_EXPORTER_OTLP_HEADERS` | Authorization header that includes the Elastic APM Secret token or API key: `"Authorization=Bearer an_apm_secret_token"` or `"Authorization=ApiKey an_api_key"`.
-
-For information on how to format an API key, see
-{apm-guide-ref}/api-key.html[API keys].
-
-Please note the required space between `Bearer` and `an_apm_secret_token`, and `APIKey` and `an_api_key`.
-
-| `OTEL_EXPORTER_OTLP_CERTIFICATE` | The trusted certificate used to verify the TLS credentials of the client. (optional)
-
-|===
+For more information on how to combine Elastic and OpenTelemetry,
+see {apm-guide-ref}/open-telemetry.html[OpenTelemetry integration].
 // end::otel-get-started[]
+// ****
