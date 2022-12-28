@@ -1,8 +1,6 @@
 ---
 description: Pipeline for ingesting APM internal metrics.
 processors:
-  - drop:
-      if: ctx?.metricset?.name == "transaction"
   - pipeline:
       name: observer_version
   - pipeline:
