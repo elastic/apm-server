@@ -80,7 +80,8 @@ func TestTransactionAggregation(t *testing.T) {
 	// Stop server to ensure metrics are flushed on shutdown.
 	assert.NoError(t, srv.Close())
 
-	result := systemtest.Elasticsearch.ExpectMinDocs(t, 3, "metrics-apm.transaction*",
+	// Wait for 9 documents to be indexed (3 transaction names * 3 integration intervals)
+	result := systemtest.Elasticsearch.ExpectMinDocs(t, 9, "metrics-apm.transaction*",
 		estest.ExistsQuery{Field: "transaction.duration.histogram"},
 	)
 	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits)
@@ -141,7 +142,7 @@ func TestTransactionAggregationShutdown(t *testing.T) {
 	// Stop server to ensure metrics are flushed on shutdown.
 	assert.NoError(t, srv.Close())
 
-	result := systemtest.Elasticsearch.ExpectMinDocs(t, 2, "metrics-apm.transaction*",
+	result := systemtest.Elasticsearch.ExpectMinDocs(t, 3, "metrics-apm.transaction*",
 		estest.ExistsQuery{Field: "transaction.duration.histogram"},
 	)
 	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits)

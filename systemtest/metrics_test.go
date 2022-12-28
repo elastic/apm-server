@@ -237,6 +237,8 @@ func unmarshalMetricsetDoc(t testing.TB, hit *estest.SearchHit) metricsetDoc {
 		t.Fatal(err)
 	}
 	doc.MetricsetName = hit.Fields["metricset.name"][0].(string)
-	doc.MetricsetInterval = hit.Fields["metricset.interval"][0].(string)
+	if interval := hit.Fields["metricset.interval"]; len(interval) > 0 {
+		doc.MetricsetInterval = interval[0].(string)
+	}
 	return doc
 }

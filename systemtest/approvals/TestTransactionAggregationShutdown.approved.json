@@ -90,7 +90,11 @@
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
-                "outcome": "success"
+                "outcome": "success",
+                "success_count": {
+                    "sum": 1,
+                    "value_count": 1
+                }
             },
             "host": {
                 "hostname": "beowulf",
@@ -159,7 +163,11 @@
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
-                "outcome": "success"
+                "outcome": "success",
+                "success_count": {
+                    "sum": 1,
+                    "value_count": 1
+                }
             },
             "host": {
                 "hostname": "beowulf",

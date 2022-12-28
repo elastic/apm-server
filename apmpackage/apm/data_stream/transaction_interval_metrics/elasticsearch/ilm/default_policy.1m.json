@@ -5,7 +5,7 @@
                 "actions": {
                     "rollover": {
                         "max_age": "7d",
-                        "max_size": "5gb"
+                        "max_size": "50gb"
                     },
                     "set_priority": {
                         "priority": 100
@@ -13,7 +13,7 @@
                 }
             },
             "delete": {
-                "min_age": "30d",
+                "min_age": "90d",
                 "actions": {
                     "delete": {}
                 }

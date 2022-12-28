@@ -92,8 +92,8 @@
                 "ingested": "dynamic",
                 "outcome": "success",
                 "success_count": {
-                    "sum": 10,
-                    "value_count": 10
+                    "sum": 5,
+                    "value_count": 5
                 }
             },
             "host": {
@@ -163,7 +163,11 @@
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
-                "outcome": "success"
+                "outcome": "success",
+                "success_count": {
+                    "sum": 5,
+                    "value_count": 5
+                }
             },
             "host": {
                 "hostname": "beowulf",
@@ -232,7 +236,11 @@
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
-                "outcome": "success"
+                "outcome": "success",
+                "success_count": {
+                    "sum": 10,
+                    "value_count": 10
+                }
             },
             "host": {
                 "hostname": "beowulf",
@@ -301,7 +309,11 @@
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
-                "outcome": "success"
+                "outcome": "success",
+                "success_count": {
+                    "sum": 10,
+                    "value_count": 10
+                }
             },
             "host": {
                 "hostname": "beowulf",
@@ -370,7 +382,11 @@
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
-                "outcome": "success"
+                "outcome": "success",
+                "success_count": {
+                    "sum": 10,
+                    "value_count": 10
+                }
             },
             "host": {
                 "hostname": "beowulf",

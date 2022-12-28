@@ -12,6 +12,17 @@ elasticsearch:
       # use synthetic source to reduce storage size.
       _source:
         mode: synthetic
+      # We map event.success_count here because aggregate_metric_double
+      # is not currently supported by package-spec.
+      #
+      # See https://github.com/elastic/package-spec/issues/363
+      properties:
+        event:
+          properties:
+            success_count:
+              type: aggregate_metric_double
+              metrics: [sum, value_count]
+              default_metric: sum
     settings:
       index:
         sort.field: "@timestamp"
