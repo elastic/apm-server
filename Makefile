@@ -330,7 +330,9 @@ testing/rally/corpora:
 ##############################################################################
 
 SMOKETEST_VERSIONS ?= latest
-SMOKETEST_DIRS = $$(find $(CURRENT_DIR)/testing/smoke -mindepth 1 -maxdepth 1 -type d)
+# supported-os tests are exclude and hence they are not running as part of this process
+# since they are required to run against different versions in a different CI pipeline.
+SMOKETEST_DIRS = $$(find $(CURRENT_DIR)/testing/smoke -mindepth 1 -maxdepth 1 -type d | grep -v supported-os)
 
 .PHONY: smoketest/discover
 smoketest/discover:
