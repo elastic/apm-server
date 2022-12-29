@@ -105,6 +105,9 @@ func (s *MetadataCachingFetcher) update(ms map[Identifier]Metadata) {
 
 	for id, contentHash := range s.set {
 		if metadata, ok := ms[id]; ok {
+			// already in the cache, remove from the updates.
+			delete(ms, id)
+
 			// content hash changed, invalidate the sourcemap cache
 			if contentHash != metadata.contentHash {
 				s.invalidationChan <- id
@@ -117,6 +120,10 @@ func (s *MetadataCachingFetcher) update(ms map[Identifier]Metadata) {
 			// remove from metadata cache
 			delete(s.set, id)
 		}
+	}
+	// add new sourcemaps to the metadata cache.
+	for id, m := range ms {
+		s.set[id] = m.contentHash
 	}
 }
 
