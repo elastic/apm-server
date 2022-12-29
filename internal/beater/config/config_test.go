@@ -155,6 +155,7 @@ func TestUnpackConfig(t *testing.T) {
 				"aggregation": map[string]interface{}{
 					"transactions": map[string]interface{}{
 						"interval":                         "1s",
+						"rollup_intervals":                 []string{"10s", "10m"},
 						"max_groups":                       123,
 						"hdrhistogram_significant_figures": 1,
 					},
@@ -252,7 +253,6 @@ func TestUnpackConfig(t *testing.T) {
 				KibanaAgentConfig: KibanaAgentConfig{Cache: Cache{Expiration: 2 * time.Minute}},
 				Aggregation: AggregationConfig{
 					Transactions: TransactionAggregationConfig{
-						Interval:                       time.Second,
 						MaxTransactionGroups:           123,
 						HDRHistogramSignificantFigures: 1,
 					},
@@ -420,7 +420,6 @@ func TestUnpackConfig(t *testing.T) {
 				KibanaAgentConfig: KibanaAgentConfig{Cache: Cache{Expiration: 30 * time.Second}},
 				Aggregation: AggregationConfig{
 					Transactions: TransactionAggregationConfig{
-						Interval:                       time.Minute,
 						MaxTransactionGroups:           0, // Default value is set as per memory limit
 						HDRHistogramSignificantFigures: 2,
 					},
