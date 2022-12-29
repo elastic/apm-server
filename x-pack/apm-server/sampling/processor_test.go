@@ -666,7 +666,7 @@ func TestStorageLimit(t *testing.T) {
 		require.NoError(t, err)
 		go processor.Run()
 		defer processor.Stop(context.Background())
-		var batch model.Batch
+		batch := make(model.Batch, 0, n)
 		for i := 0; i < n; i++ {
 			traceID := uuid.Must(uuid.NewV4()).String()
 			batch = append(batch, model.APMEvent{
