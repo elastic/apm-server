@@ -88,11 +88,11 @@ func (s *esFetcher) Fetch(ctx context.Context, name, version, path string) (*sou
 		if resp.StatusCode == http.StatusNotFound {
 			return nil, nil
 		}
-		b, err := io.ReadAll(resp.Body)
+		body, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return nil, errors.Wrap(err, errMsgParseSourcemap)
 		}
-		return nil, errors.New(fmt.Sprintf("%s %s", errMsgParseSourcemap, b))
+		return nil, errors.New(fmt.Sprintf("%s %s", errMsgParseSourcemap, body))
 	}
 
 	// parse response
@@ -105,23 +105,23 @@ func (s *esFetcher) Fetch(ctx context.Context, name, version, path string) (*sou
 		return nil, nil
 	}
 
-	d, err := base64.StdEncoding.DecodeString(body)
+	decodedBody, err := base64.StdEncoding.DecodeString(body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to base64 decode string: %w", err)
 	}
 
-	r, err := zlib.NewReader(bytes.NewReader(d))
+	r, err := zlib.NewReader(bytes.NewReader(decodedBody))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create zlib reader: %w", err)
 	}
 	defer r.Close()
 
-	bbb, err := io.ReadAll(r)
+	uncompressedBody, err := io.ReadAll(r)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read sourcemap content: %w", err)
 	}
 
-	return parseSourceMap(string(bbb))
+	return parseSourceMap(string(uncompressedBody))
 }
 
 func (s *esFetcher) runSearchQuery(ctx context.Context, name, version, path string) (*esapi.Response, error) {

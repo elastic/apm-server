@@ -49,7 +49,7 @@ func NewCachingFetcher(
 ) (*CachingFetcher, error) {
 	logger := logp.NewLogger(logs.Sourcemap)
 
-	c, err := lru.NewWithEvict(cacheSize, func(key, value interface{}) {
+	lruCache, err := lru.NewWithEvict(cacheSize, func(key, value interface{}) {
 		if !logger.IsDebug() {
 			return
 		}
@@ -61,13 +61,13 @@ func NewCachingFetcher(
 	}
 
 	go func() {
-		for i := range invalidationChan {
-			c.Remove(i)
+		for identifier := range invalidationChan {
+			lruCache.Remove(identifier)
 		}
 	}()
 
 	return &CachingFetcher{
-		cache:   c,
+		cache:   lruCache,
 		backend: backend,
 		logger:  logger,
 	}, nil
