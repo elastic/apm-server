@@ -4,7 +4,7 @@ name: Test Report
 on:
   workflow_run:
     workflows:
-      - test
+      - ci
     types:
       - completed
 
