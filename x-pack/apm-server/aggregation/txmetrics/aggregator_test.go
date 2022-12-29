@@ -7,10 +7,13 @@ package txmetrics_test
 import (
 	"context"
 	"fmt"
+	"net/netip"
 	"sort"
 	"testing"
 	"time"
 
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -83,6 +86,7 @@ func TestTxnAggregatorProcessBatch(t *testing.T) {
 	const maxSvcs = 20
 	const maxTxnGrps = 20
 	const maxTxnGrpsPerSvc = 2
+	const txnDuration = 100 * time.Millisecond
 	for _, tc := range []struct {
 		// all unique txns are distributed in unique services sequentially
 		// for 7 transactions and 3 services; first three service will receive
@@ -141,7 +145,7 @@ func TestTxnAggregatorProcessBatch(t *testing.T) {
 				MaxTransactionGroups:           maxTxnGrps,
 				MaxTransactionGroupsPerService: maxTxnGrpsPerSvc,
 				MetricsInterval:                30 * time.Second,
-				HDRHistogramSignificantFigures: 1,
+				HDRHistogramSignificantFigures: 5,
 			})
 			require.NoError(t, err)
 
@@ -150,6 +154,10 @@ func TestTxnAggregatorProcessBatch(t *testing.T) {
 			for i := 0; i < len(batch); i++ {
 				batch[i] = model.APMEvent{
 					Processor: model.TransactionProcessor,
+					Event: model.Event{
+						Outcome:  "success",
+						Duration: txnDuration,
+					},
 					Transaction: &model.Transaction{
 						Name:                fmt.Sprintf("foo%d", i%tc.uniqueTxnCount),
 						RepresentativeCount: 1,
@@ -176,39 +184,62 @@ func TestTxnAggregatorProcessBatch(t *testing.T) {
 
 			require.NoError(t, agg.Stop(context.Background()))
 			metricsets := batchMetricsets(t, expectBatch(t, batches))
-			var foundPerSvcOverflow, foundOtherSvcOverflow bool
-			for _, m := range metricsets {
-				if m.Transaction.Name == "other" {
-					require.Equal(t, "transaction.aggregation.overflow_count", m.Metricset.Samples[0].Name)
-					if m.Service.Name == "other" {
-						foundOtherSvcOverflow = true
-						assert.Equal(t, tc.expectedOtherSvcTxnLimitOverflow, int(m.Metricset.Samples[0].Value))
-					} else {
-						foundPerSvcOverflow = true
-						assert.Equal(t, tc.expectedPerSvcTxnLimitOverflow, int(m.Metricset.Samples[0].Value))
-					}
+			var expectedOverflowMetricsets []model.APMEvent
+			var totalOverflowSvcCount int
+			if tc.expectedPerSvcTxnLimitOverflow > 0 {
+				totalOverflowSvcCount = tc.uniqueServices
+				if tc.uniqueServices > maxSvcs {
+					totalOverflowSvcCount = maxSvcs
 				}
 			}
-			assert.Equal(t, tc.expectedPerSvcTxnLimitOverflow > 0, foundPerSvcOverflow)
-			assert.Equal(t, tc.expectedOtherSvcTxnLimitOverflow > 0, foundOtherSvcOverflow)
+			if tc.expectedOtherSvcTxnLimitOverflow > 0 {
+				expectedOverflowMetricsets = append(
+					expectedOverflowMetricsets,
+					createOverflowMetricset(tc.expectedOtherSvcTxnLimitOverflow, repCount, txnDuration),
+				)
+			}
+			for i := 0; i < totalOverflowSvcCount; i++ {
+				expectedOverflowMetricsets = append(
+					expectedOverflowMetricsets,
+					createOverflowMetricset(tc.expectedPerSvcTxnLimitOverflow, repCount, txnDuration),
+				)
+			}
+			assert.Empty(t, cmp.Diff(
+				expectedOverflowMetricsets,
+				metricsets,
+				cmpopts.IgnoreSliceElements(func(a model.APMEvent) bool {
+					return a.Transaction.Name != "other"
+				}),
+				cmpopts.IgnoreTypes(netip.Addr{}),
+				cmpopts.IgnoreFields(model.APMEvent{}, "Timestamp", "Service.Name"),
+				cmpopts.SortSlices(func(a, b model.APMEvent) bool {
+					return a.Service.Name < b.Service.Name
+				}),
+			))
 		})
 	}
 }
 
 func TestAggregatorRun(t *testing.T) {
-	batches := make(chan model.Batch, 1)
-	agg, err := txmetrics.NewAggregator(txmetrics.AggregatorConfig{
+	batches := make(chan model.Batch, 6)
+	config := txmetrics.AggregatorConfig{
 		BatchProcessor:                 makeChanBatchProcessor(batches),
 		MaxTransactionGroups:           2,
 		MaxTransactionGroupsPerService: 2,
 		MaxServices:                    2,
 		MetricsInterval:                10 * time.Millisecond,
+		RollUpIntervals:                []time.Duration{200 * time.Millisecond, time.Second},
 		HDRHistogramSignificantFigures: 1,
-	})
+	}
+	agg, err := txmetrics.NewAggregator(config)
 	require.NoError(t, err)
 
+	intervals := append([]time.Duration{config.MetricsInterval}, config.RollUpIntervals...)
+	now := time.Now()
 	for i := 0; i < 1000; i++ {
-		agg.AggregateTransaction(model.APMEvent{
+		event := model.APMEvent{
+			Event:     model.Event{Duration: time.Second},
+			Timestamp: now,
 			Processor: model.TransactionProcessor,
 			Labels: model.Labels{
 				"department_name": model.LabelValue{Global: true, Value: "apm"},
@@ -223,43 +254,61 @@ func TestAggregatorRun(t *testing.T) {
 				Name:                "T-1000",
 				RepresentativeCount: 1,
 			},
-		})
+		}
+		if i%2 == 0 {
+			event.Event = model.Event{Duration: 100 * time.Millisecond}
+		}
+		agg.AggregateTransaction(event)
 	}
 	for i := 0; i < 800; i++ {
-		agg.AggregateTransaction(model.APMEvent{
+		event := model.APMEvent{
+			Event:     model.Event{Duration: time.Second},
+			Timestamp: now,
 			Processor: model.TransactionProcessor,
 			Transaction: &model.Transaction{
 				Name:                "T-800",
 				RepresentativeCount: 1,
 			},
-		})
+		}
+		if i%2 == 0 {
+			event.Event = model.Event{Duration: 100 * time.Millisecond}
+		}
+		agg.AggregateTransaction(event)
 	}
 
 	go agg.Run()
 	defer agg.Stop(context.Background())
+	// Stop the aggregator to ensure all metrics are published.
+	assert.NoError(t, agg.Stop(context.Background()))
 
-	batch := expectBatch(t, batches)
-	metricsets := batchMetricsets(t, batch)
-	require.Len(t, metricsets, 2)
-	sort.Slice(metricsets, func(i, j int) bool {
-		return metricsets[i].Transaction.Name < metricsets[j].Transaction.Name
-	})
+	for i := 0; i < 3; i++ {
+		batch := expectBatch(t, batches)
+		metricsets := batchMetricsets(t, batch)
+		require.Len(t, metricsets, 2)
+		sort.Slice(metricsets, func(i, j int) bool {
+			return metricsets[i].Transaction.Name < metricsets[j].Transaction.Name
+		})
 
-	assert.Equal(t, "T-1000", metricsets[0].Transaction.Name)
-	assert.Equal(t, model.Labels{
-		"department_name": model.LabelValue{Value: "apm"},
-		"organization":    model.LabelValue{Value: "observability"},
-		"company":         model.LabelValue{Value: "elastic"},
-	}, metricsets[0].Labels)
-	assert.Equal(t, model.NumericLabels{
-		"user_id":     model.NumericLabelValue{Value: 100},
-		"cost_center": model.NumericLabelValue{Value: 10},
-	}, metricsets[0].NumericLabels)
-	assert.Equal(t, []int64{1000}, metricsets[0].Transaction.DurationHistogram.Counts)
-	assert.Equal(t, "T-800", metricsets[1].Transaction.Name)
-	assert.Empty(t, metricsets[1].Labels)
-	assert.Empty(t, metricsets[1].NumericLabels)
-	assert.Equal(t, []int64{800}, metricsets[1].Transaction.DurationHistogram.Counts)
+		assert.Equal(t, "T-1000", metricsets[0].Transaction.Name)
+		assert.Equal(t, model.Labels{
+			"department_name": model.LabelValue{Value: "apm"},
+			"organization":    model.LabelValue{Value: "observability"},
+			"company":         model.LabelValue{Value: "elastic"},
+		}, metricsets[0].Labels)
+		assert.Equal(t, model.NumericLabels{
+			"user_id":     model.NumericLabelValue{Value: 100},
+			"cost_center": model.NumericLabelValue{Value: 10},
+		}, metricsets[0].NumericLabels)
+		assert.Equal(t, []int64{500, 500}, metricsets[0].Transaction.DurationHistogram.Counts)
+		assert.Equal(t, "T-800", metricsets[1].Transaction.Name)
+		assert.Empty(t, metricsets[1].Labels)
+		assert.Empty(t, metricsets[1].NumericLabels)
+		assert.Equal(t, []int64{400, 400}, metricsets[1].Transaction.DurationHistogram.Counts)
+		for _, event := range metricsets {
+			assert.Equal(t, now.Truncate(intervals[i]), event.Timestamp)
+			assert.Equal(t, fmt.Sprintf("%.0fs", intervals[i].Seconds()), event.Metricset.Interval)
+		}
+	}
 
 	select {
 	case <-batches:
@@ -533,6 +582,7 @@ func TestAggregationFields(t *testing.T) {
 		expectedEvent.Metricset = &model.Metricset{
 			Name:     "transaction",
 			DocCount: expectedCount,
+			Interval: "0s",
 		}
 		expectedEvent.Transaction = &model.Transaction{
 			Name:   input.Transaction.Name,
@@ -650,4 +700,28 @@ func batchMetricsets(t testing.TB, batch model.Batch) []model.APMEvent {
 		metricsets = append(metricsets, event)
 	}
 	return metricsets
+}
+
+func createOverflowMetricset(overflowCount, repCount int, txnDuration time.Duration) model.APMEvent {
+	return model.APMEvent{
+		Processor: model.MetricsetProcessor,
+		Transaction: &model.Transaction{
+			Name: "other",
+			DurationHistogram: model.Histogram{
+				Counts: []int64{int64(overflowCount * repCount)},
+				Values: []float64{float64(txnDuration.Microseconds())},
+			},
+		},
+		Metricset: &model.Metricset{
+			Name:     "transaction",
+			DocCount: int64(overflowCount * repCount),
+			Interval: "30s",
+			Samples: []model.MetricsetSample{
+				{
+					Name:  "transaction.aggregation.overflow_count",
+					Value: float64(overflowCount),
+				},
+			},
+		},
+	}
 }
