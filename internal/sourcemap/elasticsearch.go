@@ -138,16 +138,10 @@ func (s *esFetcher) runSearchQuery(ctx context.Context, name, version, path stri
 }
 
 func parse(body io.ReadCloser, name, version, path string, logger *logp.Logger) (string, error) {
-	b, err := io.ReadAll(body)
-	if err != nil {
-		return "", err
-	}
-
 	var esSourcemapResponse esSourcemapResponse
-	if err := json.Unmarshal(b, &esSourcemapResponse); err != nil {
+	if err := json.NewDecoder(body).Decode(&esSourcemapResponse); err != nil {
 		return "", err
 	}
-
 	hits := esSourcemapResponse.Hits.Total.Value
 	if hits == 0 || len(esSourcemapResponse.Hits.Hits) == 0 {
 		return "", nil
