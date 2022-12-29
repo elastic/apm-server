@@ -99,17 +99,17 @@ func maybeParseURLPath(s string) string {
 	return url.Path
 }
 
-func (s *MetadataCachingFetcher) update(ms map[Identifier]Metadata) {
+func (s *MetadataCachingFetcher) update(updates map[Identifier]string) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
 	for id, contentHash := range s.set {
-		if metadata, ok := ms[id]; ok {
+		if updatedHash, ok := updates[id]; ok {
 			// already in the cache, remove from the updates.
-			delete(ms, id)
+			delete(updates, id)
 
 			// content hash changed, invalidate the sourcemap cache
-			if contentHash != metadata.contentHash {
+			if contentHash != updatedHash {
 				s.invalidationChan <- id
 			}
 		} else {
@@ -122,8 +122,8 @@ func (s *MetadataCachingFetcher) update(ms map[Identifier]Metadata) {
 		}
 	}
 	// add new sourcemaps to the metadata cache.
-	for id, m := range ms {
-		s.set[id] = m.contentHash
+	for id, contentHash := range updates {
+		s.set[id] = contentHash
 	}
 }
 
@@ -180,22 +180,19 @@ func (s *MetadataCachingFetcher) sync(ctx context.Context) error {
 		return err
 	}
 
-	ms := make(map[Identifier]Metadata, len(body.Hits.Hits))
+	updates := make(map[Identifier]string, len(body.Hits.Hits))
 	for _, v := range body.Hits.Hits {
-		m := Metadata{
-			id: Identifier{
-				name:    v.Source.ServiceName,
-				version: v.Source.ServiceVersion,
-				path:    v.Source.BundleFilepath,
-			},
-			contentHash: v.Source.ContentHash,
+		id := Identifier{
+			name:    v.Source.ServiceName,
+			version: v.Source.ServiceVersion,
+			path:    v.Source.BundleFilepath,
 		}
 
-		ms[m.id] = m
+		updates[id] = v.Source.ContentHash
 	}
 
 	// Update cache
-	s.update(ms)
+	s.update(updates)
 	return nil
 }
 
