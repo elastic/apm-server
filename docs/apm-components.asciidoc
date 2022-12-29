@@ -25,10 +25,8 @@ image::./images/apm-architecture-two.png[Architecture of Elastic APM with an edg
 
 In addition, Elastic supports OpenTelemetry:
 
-image::./images/apm-otel-architecture.png[Architecture of Elastic APM with OpenTelemetry]
-
-^&#42;^The OpenTelemetry Bridge is available in the Elastic Java, .NET, Node.js, and Python agents +
-^&#42;&#42;^See the official https://opentelemetry.io/docs/instrumentation/[OpenTelemetry docs] for a full list of supported languages
+[subs=attributes+]
+include::./diagrams/apm-otel-architecture.asciidoc[Architecture of Elastic APM with OpenTelemetry]
 
 // Not sure which to choose? See the [blog post]
 

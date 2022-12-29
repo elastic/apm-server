@@ -23,7 +23,8 @@ OpenTelemetry project, see the {ot-spec}[spec].
 [float]
 == OpenTelemetry and the {stack}
 
-image::./images/apm-otel-architecture.png[Architecture of Elastic APM with OpenTelemetry]
+[subs=attributes+]
+include::./diagrams/apm-otel-architecture.asciidoc[Architecture of Elastic APM with OpenTelemetry]
 
 Elastic integrates with OpenTelemetry, allowing you to reuse your existing instrumentation
 to easily send observability data to the {stack}.
