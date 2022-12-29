@@ -235,17 +235,14 @@ func newAgentConfigFetcher(
 	// 1. fleet agent config
 	// 2. kibana fetcher if (1) is not available
 	// 3. no fallback if both (1) and (2) are not available
-	var (
-		fetcher agentcfg.Fetcher
-		runFunc func(context.Context) error
-	)
+	var fallbackFetcher agentcfg.Fetcher
 
 	switch {
 	case cfg.FleetAgentConfigs != nil:
 		agentConfigurations := agentcfg.ConvertAgentConfigs(cfg.FleetAgentConfigs)
-		fetcher = agentcfg.NewDirectFetcher(agentConfigurations)
+		fallbackFetcher = agentcfg.NewDirectFetcher(agentConfigurations)
 	case kibanaClient != nil:
-		fetcher = agentcfg.NewKibanaFetcher(kibanaClient, cfg.AgentConfig.Cache.Expiration)
+		fallbackFetcher = agentcfg.NewKibanaFetcher(kibanaClient, cfg.AgentConfig.Cache.Expiration)
 	default:
 		// It is possible that none of the above applies.
 	}
@@ -254,11 +251,8 @@ func newAgentConfigFetcher(
 	if err != nil {
 		return nil, nil, err
 	}
-	esFetcher := agentcfg.NewElasticsearchFetcher(esClient, cfg.AgentConfig.Cache.Expiration, fetcher)
+	esFetcher := agentcfg.NewElasticsearchFetcher(esClient, cfg.AgentConfig.Cache.Expiration, fallbackFetcher)
 	agentcfgMonitoringRegistry.Remove("elasticsearch")
 	monitoring.NewFunc(agentcfgMonitoringRegistry, "elasticsearch", esFetcher.CollectMonitoring, monitoring.Report)
-	runFunc = esFetcher.Run
-	fetcher = esFetcher
-
-	return agentcfg.SanitizingFetcher{fetcher}, runFunc, nil
+	return agentcfg.SanitizingFetcher{Fetcher: esFetcher}, esFetcher.Run, nil
 }

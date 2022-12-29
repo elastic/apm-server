@@ -121,7 +121,7 @@ func (f *ElasticsearchFetcher) Fetch(ctx context.Context, query Query) (Result, 
 
 // Run refreshes the fetcher cache by querying Elasticsearch periodically.
 func (f *ElasticsearchFetcher) Run(ctx context.Context) error {
-	t := time.NewTicker(f.cacheDuration) // TODO(carsonip): cache duration
+	t := time.NewTicker(f.cacheDuration)
 	defer t.Stop()
 	for {
 		select {
@@ -132,13 +132,15 @@ func (f *ElasticsearchFetcher) Run(ctx context.Context) error {
 
 		if err := f.refreshCache(ctx); err != nil {
 			f.logger.Errorf("refresh cache error: %s", err)
+		} else {
+			f.logger.Debugf("refresh cache success")
 		}
 	}
 }
 
 func (f *ElasticsearchFetcher) refreshCache(ctx context.Context) (err error) {
 	scrollID := ""
-	var buffer []AgentConfig
+	buffer := make([]AgentConfig, 0, len(f.cache))
 
 	// The refresh cache operation should complete within refreshCacheTimeout.
 	ctx, cancel := context.WithTimeout(ctx, refreshCacheTimeout)

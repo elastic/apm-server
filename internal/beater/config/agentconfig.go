@@ -35,7 +35,7 @@ import (
 const msgInvalidConfigAgentCfg = "invalid value for `apm-server.agent.config.cache.expiration`, only accepting full seconds"
 
 // esCredentialsConfig is exposed to allow fine-tuned permission control
-// and is required when working with Fleet.
+// and is required when working with Elastic Agent standalone or Fleet.
 type esCredentialsConfig struct {
 	Username string `config:"username"`
 	Password string `config:"password"`

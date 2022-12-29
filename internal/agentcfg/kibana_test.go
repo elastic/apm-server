@@ -65,7 +65,7 @@ func TestKibanaFetcher(t *testing.T) {
 
 		_, err := NewKibanaFetcher(client, testExpiration).Fetch(context.Background(), query(t.Name()))
 		require.Error(t, err)
-		assert.Equal(t, "{\"error\":\"an error\"}"+"\n", err.Error())
+		assert.Equal(t, "agentcfg kibana request fail with status code 417: {\"error\":\"an error\"}\n", err.Error())
 	})
 
 	t.Run("NotFound", func(t *testing.T) {
