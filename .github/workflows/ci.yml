@@ -66,7 +66,7 @@ jobs:
           go run -modfile=tools/go.mod gotest.tools/gotestsum \
           --no-color -f standard-quiet --jsonfile "$OUTPUT_JSON_FILE" --junitfile "$OUTPUT_JUNIT_FILE" \
           --raw-command -- make system-test
-      - uses: actions/upload-artifact@v2  # upload test results
+      - uses: actions/upload-artifact@v3  # upload test results
         if: success() || failure() # run this step even if previous step failed
         with:
           name: test-results
