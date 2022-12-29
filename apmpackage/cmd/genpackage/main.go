@@ -18,6 +18,8 @@
 package main
 
 import (
+	"bytes"
+	"errors"
 	"flag"
 	"fmt"
 	"io/fs"
@@ -26,6 +28,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"text/template"
 
 	"github.com/elastic/elastic-agent-libs/version"
 )
@@ -45,44 +48,107 @@ func generatePackage(pkgfs fs.FS, version, ecsVersion *version.V, ecsReference s
 		if err != nil {
 			return err
 		}
-		outputPath := filepath.Join(*outputDir, path)
-		if d.IsDir() {
-			if err := os.Mkdir(outputPath, 0755); err != nil {
+		for _, p := range maybeIntervalPath(path) {
+			outputPath := filepath.Join(*outputDir, p.Path)
+			if d.IsDir() {
+				if err := os.Mkdir(outputPath, 0755); err != nil && !errors.Is(err, os.ErrExist) {
+					return err
+				}
+				continue
+			} else if strings.HasPrefix(d.Name(), ".") || !d.Type().IsRegular() {
+				// Ignore hidden or non-regular files.
+				continue
+			}
+			if p.Interval != "" && strings.HasPrefix(d.Name(), "default_policy") && strings.HasSuffix(d.Name(), ".json") {
+				if !strings.Contains(path, p.Interval) {
+					// Skip policies that don't match the interval.
+					continue
+				}
+			}
+			err := renderFile(pkgfs, path, outputPath, version, ecsVersion, ecsReference, p.Interval)
+			if err != nil {
 				return err
 			}
-			return nil
-		} else if strings.HasPrefix(d.Name(), ".") || !d.Type().IsRegular() {
-			// Ignore hidden or non-regular files.
-			return nil
 		}
-		return renderFile(pkgfs, path, outputPath, version, ecsVersion, ecsReference)
+		return nil
 	})
 }
 
-func renderFile(pkgfs fs.FS, path, outputPath string, version, ecsVersion *version.V, ecsReference string) error {
+func renderFile(pkgfs fs.FS, path, outputPath string, version, ecsVersion *version.V, ecsReference, interval string) error {
 	content, err := fs.ReadFile(pkgfs, path)
 	if err != nil {
 		return err
 	}
-	content, err = transformFile(path, content, version, ecsVersion, ecsReference)
+	// Ignore files that have a `generated` prefix.
+	if bytes.HasPrefix(content, []byte("generated")) {
+		return nil
+	}
+	if bytes.Contains(content, []byte(`{{ .Interval }}`)) {
+		if interval == "" {
+			return fmt.Errorf("%s: file contains interval template, but interval is empty", outputPath)
+		}
+		tpl, err := template.New(path).Parse(string(content))
+		if err != nil {
+			return err
+		}
+		var buf bytes.Buffer
+		if err := tpl.Execute(&buf, pathInterval{Interval: interval}); err != nil {
+			return err
+		}
+		content = buf.Bytes()
+	}
+	content, err = transformFile(path, content, version, ecsVersion, ecsReference, interval)
 	if err != nil {
 		return fmt.Errorf("error transforming %q: %w", path, err)
 	}
 	if err := os.WriteFile(outputPath, content, 0644); err != nil {
 		return err
 	}
+
+	type identicalDataStreams struct {
+		source, destination string
+	}
 	// The "traces" and "rum_traces" data streams should have identical fields.
-	//
-	// Copy all files in `data_stream/traces/fields` to `data_stream/rum_traces/fields`.
-	if filepath.ToSlash(filepath.Dir(path)) == "data_stream/traces/fields" {
-		tracesDir := filepath.Dir(filepath.Dir(outputPath))
-		rumTracesFieldsDir := filepath.Join(tracesDir, "..", "rum_traces", "fields")
-		copyOutputPath := filepath.Join(rumTracesFieldsDir, filepath.Base(outputPath))
-		if err := os.WriteFile(copyOutputPath, content, 0644); err != nil {
-			return err
+	copyDataStreams := []identicalDataStreams{{
+		source:      "data_stream/traces/fields",
+		destination: filepath.Join("..", "rum_traces", "fields"),
+	}}
+	for _, ds := range copyDataStreams {
+		if filepath.ToSlash(filepath.Dir(path)) == ds.source {
+			originDir := filepath.Dir(filepath.Dir(outputPath))
+			destinationDir := filepath.Join(originDir, ds.destination)
+			if _, err := os.Stat(destinationDir); errors.Is(err, os.ErrNotExist) {
+				if err := os.MkdirAll(destinationDir, 0755); err != nil {
+					return err
+				}
+			}
+			copyOutputPath := filepath.Join(destinationDir, filepath.Base(outputPath))
+			if err := os.WriteFile(copyOutputPath, content, 0644); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
+}
+
+type pathInterval struct {
+	Path     string
+	Interval string
+}
+
+func maybeIntervalPath(path string) []pathInterval {
+	if !strings.Contains(path, "_interval_") {
+		return []pathInterval{{Path: path}}
+	}
+	metricInterval := []string{"1m", "10m", "60m"}
+	paths := make([]pathInterval, 0, len(metricInterval))
+	for _, interval := range metricInterval {
+		paths = append(paths, pathInterval{
+			Path:     strings.Replace(path, "interval", interval, 1),
+			Interval: interval,
+		})
+	}
+	return paths
 }
 
 func main() {

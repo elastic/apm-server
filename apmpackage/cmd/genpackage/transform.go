@@ -32,12 +32,12 @@ const (
 	integrationName = "apm"
 )
 
-func transformFile(path string, content []byte, version, ecsVersion *version.V, ecsReference string) ([]byte, error) {
+func transformFile(path string, content []byte, version, ecsVersion *version.V, ecsReference, interval string) ([]byte, error) {
 	if path == "manifest.yml" {
 		return transformPackageManifest(content, version)
 	}
 	if isDataStreamManifest(path) {
-		return transformDataStreamManifest(path, content, version)
+		return transformDataStreamManifest(path, content, version, interval)
 	}
 	if isIngestPipeline(path) {
 		return transformIngestPipeline(path, content, version)
@@ -111,7 +111,7 @@ func transformPackageManifest(content []byte, version *version.V) ([]byte, error
 	return marshalYAML(&doc)
 }
 
-func transformDataStreamManifest(path string, content []byte, version *version.V) ([]byte, error) {
+func transformDataStreamManifest(path string, content []byte, version *version.V, interval string) ([]byte, error) {
 	var doc yaml.Node
 	if err := yaml.Unmarshal(content, &doc); err != nil {
 		return nil, err
@@ -127,6 +127,9 @@ func transformDataStreamManifest(path string, content []byte, version *version.V
 	dataStreamType := yamlMapLookup(doc.Content[0], "type").Value
 	dataStreamName := filepath.Base(filepath.Dir(path))
 	expected := fmt.Sprintf("%s-%s.%s-default_policy", dataStreamType, integrationName, dataStreamName)
+	if interval != "" {
+		expected = fmt.Sprintf("%s-%s.%s-default_policy.%s", dataStreamType, integrationName, dataStreamName, interval)
+	}
 	if ilmPolicy.Value != expected {
 		return nil, fmt.Errorf("expected ilm_policy to be %q, got %q", expected, ilmPolicy.Value)
 	}
