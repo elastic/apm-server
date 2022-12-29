@@ -3,6 +3,9 @@
 # change type can be one of: enhancement, bugfix, breaking-change
 - version: "generated"
   changes:
+    - description: Cast event.duration to long in event_duration pipeline
+      type: bugfix
+      link: https://github.com/elastic/apm-server/pull/9901
     - description: Change `ecs.version` to a `constant_keyword` field
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/9208
