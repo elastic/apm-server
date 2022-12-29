@@ -36,14 +36,19 @@ import (
 	"github.com/elastic/apm-server/systemtest/apmservertest"
 )
 
+// httpDoRetryOnUnavailable retries http.DefaultClient.Do until the status code
+// is not 503. It closes all response body except the one returned.
 func httpDoRetryOnUnavailable(req *http.Request) (resp *http.Response, err error) {
 	maxRetries := 70
 	for i := 0; i < maxRetries; i++ {
+		if resp != nil {
+			resp.Body.Close()
+			<-time.After(500 * time.Millisecond)
+		}
 		resp, err = http.DefaultClient.Do(req)
 		if err != nil || resp.StatusCode != http.StatusServiceUnavailable {
 			return
 		}
-		<-time.After(500 * time.Millisecond)
 	}
 	return
 }

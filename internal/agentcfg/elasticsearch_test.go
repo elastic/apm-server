@@ -107,8 +107,8 @@ func TestRefreshCacheScroll(t *testing.T) {
 	err := fetcher.refreshCache(context.Background())
 	require.NoError(t, err)
 	require.Len(t, fetcher.cache, 2)
-	require.Equal(t, fetcher.cache[0].ServiceName, "first")
-	require.Equal(t, fetcher.cache[1].ServiceName, "second")
+	require.Equal(t, "first", fetcher.cache[0].ServiceName)
+	require.Equal(t, "second", fetcher.cache[1].ServiceName)
 }
 
 func TestFetchOnCacheNotReady(t *testing.T) {
