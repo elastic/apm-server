@@ -1,5 +1,8 @@
 - version: generated
   changes:
+    - description: Introduce `metrics-apm.transaction-${interval}` data stream for transaction metrics (`1m`, `10m` and `60m`).
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/9846
     - description: Enable synthetic source for metrics data streams
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/9756
@@ -9,6 +12,18 @@
     - description: Added agent health metrics
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/9672
+    - description: Add `agent.activation_method` field
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/9850
+    - description: Add `event.success_count` for transaction events and transaction metrics. Rename `transaction.success_count` to `event.success_count` for service metrics.
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/9819
+    - description: Cast event.duration to long in event_duration pipeline
+      type: bugfix
+      link: https://github.com/elastic/apm-server/pull/9901
+    - description: Add transaction and service overflow metrics
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/9856
 - version: "8.6.0"
   changes:
     - description: Change `ecs.version` to a `constant_keyword` field

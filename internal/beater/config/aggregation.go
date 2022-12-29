@@ -22,15 +22,13 @@ import (
 )
 
 const (
-	defaultTransactionAggregationInterval                       = time.Minute
-	defaultTransactionAggregationMaxGroups                      = 10000
 	defaultTransactionAggregationHDRHistogramSignificantFigures = 2
 
 	defaultServiceDestinationAggregationInterval  = time.Minute
 	defaultServiceDestinationAggregationMaxGroups = 10000
 
-	defaultServiceAggregationInterval  = time.Minute
-	defaultServiceAggregationMaxGroups = 10000
+	defaultServiceAggregationInterval                       = time.Minute
+	defaultServiceAggregationHDRHistogramSignificantFigures = 5
 )
 
 // AggregationConfig holds configuration related to various metrics aggregations.
@@ -42,9 +40,8 @@ type AggregationConfig struct {
 
 // TransactionAggregationConfig holds configuration related to transaction metrics aggregation.
 type TransactionAggregationConfig struct {
-	Interval                       time.Duration `config:"interval" validate:"min=1"`
-	MaxTransactionGroups           int           `config:"max_groups" validate:"min=1"`
-	HDRHistogramSignificantFigures int           `config:"hdrhistogram_significant_figures" validate:"min=1, max=5"`
+	MaxTransactionGroups           int `config:"max_groups"` // if <= 0 then will be set based on memory limits
+	HDRHistogramSignificantFigures int `config:"hdrhistogram_significant_figures" validate:"min=1, max=5"`
 }
 
 // ServiceDestinationAggregationConfig holds configuration related to span metrics aggregation for service maps.
@@ -55,16 +52,15 @@ type ServiceDestinationAggregationConfig struct {
 
 // ServiceAggregationConfig holds configuration related to service metrics aggregation.
 type ServiceAggregationConfig struct {
-	Enabled   bool          `config:"enabled"`
-	Interval  time.Duration `config:"interval" validate:"min=1"`
-	MaxGroups int           `config:"max_groups" validate:"min=1"`
+	Enabled                        bool          `config:"enabled"`
+	Interval                       time.Duration `config:"interval" validate:"min=1"`
+	MaxGroups                      int           `config:"max_groups"` // if <= 0 then will be set based on memory limits
+	HDRHistogramSignificantFigures int           `config:"hdrhistogram_significant_figures" validate:"min=1, max=5"`
 }
 
 func defaultAggregationConfig() AggregationConfig {
 	return AggregationConfig{
 		Transactions: TransactionAggregationConfig{
-			Interval:                       defaultTransactionAggregationInterval,
-			MaxTransactionGroups:           defaultTransactionAggregationMaxGroups,
 			HDRHistogramSignificantFigures: defaultTransactionAggregationHDRHistogramSignificantFigures,
 		},
 		ServiceDestinations: ServiceDestinationAggregationConfig{
@@ -75,9 +71,9 @@ func defaultAggregationConfig() AggregationConfig {
 			// NOTE(axw) service metrics are in technical preview,
 			// disabled by default. Once proven, they may be always
 			// enabled in a future release, without configuration.
-			Enabled:   false,
-			Interval:  defaultServiceAggregationInterval,
-			MaxGroups: defaultServiceAggregationMaxGroups,
+			Enabled:                        false,
+			Interval:                       defaultServiceAggregationInterval,
+			HDRHistogramSignificantFigures: defaultServiceAggregationHDRHistogramSignificantFigures,
 		},
 	}
 }

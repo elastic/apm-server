@@ -93,7 +93,9 @@ func TestOTLPGRPCTraces(t *testing.T) {
 
 	err = withOTLPTracer(newOTLPTracerProvider(newOTLPTraceExporter(t, srv), sdktrace.WithResource(resource)), func(tracer trace.Tracer) {
 		startTime := time.Unix(123, 456)
-		endTime := startTime.Add(time.Second)
+		// create a span with 1y duration to make sure the final event.duration is
+		// correct for large values.
+		endTime := startTime.Add(time.Hour * 24 * 365)
 		_, span := tracer.Start(ctx, "operation_name", trace.WithTimestamp(startTime), trace.WithAttributes(
 			attribute.StringSlice("span_attribute_array", []string{"a", "b", "c"}),
 		))

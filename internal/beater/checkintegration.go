@@ -115,6 +115,11 @@ func checkIntegrationInstalledElasticsearch(ctx context.Context, esClient *elast
 		"metrics-apm.internal",
 		"logs-apm.error",
 	}
+	for _, intervals := range []string{"1m", "10m", "60m"} {
+		for _, ds := range []string{"metrics-apm.transaction"} {
+			templates = append(templates, fmt.Sprintf("%s.%s", ds, intervals))
+		}
+	}
 	// IndicesGetIndexTemplateRequest accepts a slice of template names,
 	// but the REST API expects just one index template name. Query them
 	// in parallel.

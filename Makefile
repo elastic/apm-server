@@ -132,7 +132,7 @@ update: go-generate add-headers build-package notice apm-server.docker.yml docs/
 	@go mod download all # make sure go.sum is complete
 
 apm-server.docker.yml: apm-server.yml
-	sed -e 's/localhost:8200/0.0.0.0:8200/' -e 's/localhost:9200/elasticsearch:9200/' $< > $@
+	sed -e 's/127.0.0.1:8200/0.0.0.0:8200/' -e 's/localhost:9200/elasticsearch:9200/' $< > $@
 
 .PHONY: go-generate
 go-generate:
@@ -330,7 +330,9 @@ testing/rally/corpora:
 ##############################################################################
 
 SMOKETEST_VERSIONS ?= latest
-SMOKETEST_DIRS = $$(find $(CURRENT_DIR)/testing/smoke -mindepth 1 -maxdepth 1 -type d)
+# supported-os tests are exclude and hence they are not running as part of this process
+# since they are required to run against different versions in a different CI pipeline.
+SMOKETEST_DIRS = $$(find $(CURRENT_DIR)/testing/smoke -mindepth 1 -maxdepth 1 -type d | grep -v supported-os)
 
 .PHONY: smoketest/discover
 smoketest/discover:

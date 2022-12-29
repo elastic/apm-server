@@ -45,9 +45,9 @@
         }
       },
       "required": [
+        "compression_strategy",
         "count",
-        "sum",
-        "compression_strategy"
+        "sum"
       ]
     },
     "context": {
@@ -871,12 +871,12 @@
     }
   },
   "required": [
-    "duration",
     "id",
+    "trace_id",
     "name",
     "parent_id",
-    "trace_id",
-    "type"
+    "type",
+    "duration"
   ],
   "anyOf": [
     {
