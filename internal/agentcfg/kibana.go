@@ -89,7 +89,7 @@ func (f *KibanaFetcher) request(ctx context.Context, r io.Reader) ([]byte, error
 
 	result, err := io.ReadAll(resp.Body)
 	if resp.StatusCode >= http.StatusBadRequest {
-		return nil, errors.Errorf("agentcfg kibana request fail with status code %d: %s", resp.StatusCode, string(result))
+		return nil, errors.Errorf("agentcfg kibana request failed with status code %d: %s", resp.StatusCode, string(result))
 	}
 	if err != nil {
 		return nil, errors.Wrap(err, ErrMsgReadKibanaResponse)
