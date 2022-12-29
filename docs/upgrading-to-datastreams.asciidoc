@@ -27,8 +27,9 @@ Data streams offer a number of benefits over classic indices:
 [[considerations-data-streams]]
 === Data streams considerations
 
-* Users on {ece} require additional steps prior to migrating, like configuring TLS certificates for the connection between APM Server and {es}
-* RUM sourcemaps are not working with data streams in 7.16 -- this will be fixed in 8.0
+* Users on {ece} require additional steps prior to migrating, like configuring TLS certificates for the connection between APM Server and {es}.
+* Users on {ess} must follow the <<apm-integration-upgrade-steps-ess>> guide.
+* RUM source maps are not working with data streams in version 7.17. This bug is fixed in version 8.0.
 
 [discrete]
 [[apm-data-streams-upgrade-steps]]
