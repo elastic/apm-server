@@ -186,7 +186,7 @@ func (a *Aggregator) processTransaction(event *model.APMEvent) {
 	}
 	key := makeAggregationKey(event, a.config.Interval)
 	metrics := makeServiceMetrics(event)
-	a.active.storeOrUpdate(key, metrics, a.config.Logger)
+	a.active.storeOrUpdate(key, metrics, a.config.Interval, a.config.Logger)
 }
 
 type metricsBuffer struct {
@@ -216,7 +216,12 @@ type metricsMapEntry struct {
 	aggregationKey
 }
 
-func (mb *metricsBuffer) storeOrUpdate(key aggregationKey, metrics serviceMetrics, logger *logp.Logger) {
+func (mb *metricsBuffer) storeOrUpdate(
+	key aggregationKey,
+	metrics serviceMetrics,
+	interval time.Duration,
+	logger *logp.Logger,
+) {
 	// hash does not use the serviceMetrics so it is safe to call concurrently.
 	hash := key.hash()
 
@@ -260,7 +265,7 @@ under a dedicated bucket identified by service name 'other'.`[1:], mb.maxSize)
 		mb.otherCardinalityEstimator = hyperloglog.New14()
 		mb.otherCardinalityEstimator.InsertHash(hash)
 		entry = mb.other
-		key = makeOverflowAggregationKey(key)
+		key = makeOverflowAggregationKey(key, interval)
 	} else {
 		entry = &mb.space[mb.entries]
 		mb.m[hash] = append(entries, entry)
@@ -332,10 +337,15 @@ func makeAggregationKey(event *model.APMEvent, interval time.Duration) aggregati
 	return key
 }
 
-func makeOverflowAggregationKey(oldKey aggregationKey) aggregationKey {
+func makeOverflowAggregationKey(oldKey aggregationKey, interval time.Duration) aggregationKey {
 	return aggregationKey{
 		comparable: comparable{
-			timestamp:   oldKey.timestamp,
+			// We are using `time.Now` here to align the overflow aggregation to
+			// the evaluation time rather than event time. This prevents us from
+			// cases of bad timestamps when the server receives some events with
+			// old timestamp and these events overflow causing the indexed event
+			// to have old timestamp too.
+			timestamp:   time.Now().Truncate(interval),
 			serviceName: "other",
 		},
 	}
