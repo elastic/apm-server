@@ -37,7 +37,7 @@ type Cache struct {
 }
 
 type Elasticsearch struct {
-	ApiKey string `config:"api_key"`
+	APIKey string `config:"api_key"`
 }
 
 // defaultKibanaAgentConfig holds the default KibanaAgentConfig
