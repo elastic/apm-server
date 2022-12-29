@@ -59,8 +59,9 @@ func TestNewAggregatorConfigInvalid(t *testing.T) {
 			MaxTransactionGroups:           1,
 			MaxTransactionGroupsPerService: 1,
 			MaxServices:                    1,
+			HDRHistogramSignificantFigures: 5,
 		},
-		err: "MetricsInterval unspecified or negative",
+		err: "Interval unspecified or negative",
 	}, {
 		config: txmetrics.AggregatorConfig{
 			BatchProcessor:                 batchProcessor,

@@ -39,8 +39,9 @@ func TestNewAggregatorConfigInvalid(t *testing.T) {
 		err: "MaxGroups unspecified or negative",
 	}, {
 		config: AggregatorConfig{
-			BatchProcessor: report,
-			MaxGroups:      1,
+			BatchProcessor:                 report,
+			MaxGroups:                      1,
+			HDRHistogramSignificantFigures: 1,
 		},
 		err: "Interval unspecified or negative",
 	}} {

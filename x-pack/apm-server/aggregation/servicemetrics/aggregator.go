@@ -20,6 +20,7 @@ import (
 
 	"github.com/elastic/apm-data/model"
 	"github.com/elastic/apm-server/internal/logs"
+	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/baseaggregator"
 	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/labels"
 )
 
@@ -67,9 +68,6 @@ func (config AggregatorConfig) Validate() error {
 	if config.MaxGroups <= 0 {
 		return errors.New("MaxGroups unspecified or negative")
 	}
-	if config.Interval <= 0 {
-		return errors.New("Interval unspecified or negative")
-	}
 	if n := config.HDRHistogramSignificantFigures; n < 1 || n > 5 {
 		return errors.Errorf("HDRHistogramSignificantFigures (%d) outside range [1,5]", n)
 	}
@@ -78,9 +76,7 @@ func (config AggregatorConfig) Validate() error {
 
 // Aggregator aggregates service latency and throughput, periodically publishing service metrics.
 type Aggregator struct {
-	stopMu   sync.Mutex
-	stopping chan struct{}
-	stopped  chan struct{}
+	*baseaggregator.Aggregator
 
 	config AggregatorConfig
 
@@ -98,71 +94,24 @@ func NewAggregator(config AggregatorConfig) (*Aggregator, error) {
 	if config.Logger == nil {
 		config.Logger = logp.NewLogger(logs.ServiceMetrics)
 	}
-	return &Aggregator{
-		stopping: make(chan struct{}),
-		stopped:  make(chan struct{}),
+	aggregator := Aggregator{
 		config:   config,
 		active:   newMetricsBuffer(config.MaxGroups, config.HDRHistogramSignificantFigures),
 		inactive: newMetricsBuffer(config.MaxGroups, config.HDRHistogramSignificantFigures),
-	}, nil
+	}
+	base, err := baseaggregator.New(baseaggregator.AggregatorConfig{
+		PublishFunc: aggregator.publish, // inject local publish
+		Logger:      config.Logger,
+		Interval:    config.Interval,
+	})
+	if err != nil {
+		return nil, err
+	}
+	aggregator.Aggregator = base
+	return &aggregator, nil
 }
 
-// Run runs the Aggregator, periodically publishing and clearing aggregated
-// metrics. Run returns when either a fatal error occurs, or the Aggregator's
-// Stop method is invoked.
-func (a *Aggregator) Run() error {
-	ticker := time.NewTicker(a.config.Interval)
-	defer ticker.Stop()
-	defer func() {
-		a.stopMu.Lock()
-		defer a.stopMu.Unlock()
-		select {
-		case <-a.stopped:
-		default:
-			close(a.stopped)
-		}
-	}()
-	var stop bool
-	for !stop {
-		select {
-		case <-a.stopping:
-			stop = true
-		case <-ticker.C:
-		}
-		if err := a.publish(context.Background()); err != nil {
-			a.config.Logger.With(logp.Error(err)).Warnf(
-				"publishing service metrics failed: %s", err,
-			)
-		}
-	}
-	return nil
-}
-
-// Stop stops the Aggregator if it is running, waiting for it to flush any
-// aggregated metrics and return, or for the context to be cancelled.
-//
-// After Stop has been called the aggregator cannot be reused, as the Run
-// method will always return immediately.
-func (a *Aggregator) Stop(ctx context.Context) error {
-	a.stopMu.Lock()
-	select {
-	case <-a.stopped:
-	case <-a.stopping:
-		// Already stopping/stopped.
-	default:
-		close(a.stopping)
-	}
-	a.stopMu.Unlock()
-
-	select {
-	case <-a.stopped:
-	case <-ctx.Done():
-		return ctx.Err()
-	}
-	return nil
-}
-
-func (a *Aggregator) publish(ctx context.Context) error {
+func (a *Aggregator) publish(ctx context.Context, _ time.Duration) error {
 	// We hold a.mu only long enough to swap the serviceMetrics. This will
 	// be blocked by serviceMetrics updates, which is OK, as we prefer not
 	// to block serviceMetrics updaters. After the lock is released nothing
