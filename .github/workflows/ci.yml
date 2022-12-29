@@ -58,4 +58,16 @@ jobs:
           go-version-file: systemtest/go.mod
           cache: true
       - run: docker-compose up -d
-      - run: make system-test
+      - env:
+          GOTESTFLAGS: "-v -json"
+          OUTPUT_JSON_FILE: "build/TEST-go-system_tests.out.json"
+          OUTPUT_JUNIT_FILE: "build/TEST-go-system_tests.xml"
+        run: |
+          go run -modfile=tools/go.mod gotest.tools/gotestsum \
+          --no-color -f standard-quiet --jsonfile "$OUTPUT_JSON_FILE" --junitfile "$OUTPUT_JUNIT_FILE" \
+          --raw-command -- make system-test
+      - uses: actions/upload-artifact@v2  # upload test results
+        if: success() || failure() # run this step even if previous step failed
+        with:
+          name: test-results
+          path: 'build/*.xml'
