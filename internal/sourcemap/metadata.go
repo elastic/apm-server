@@ -110,34 +110,24 @@ func maybeParseURLPath(s string) string {
 	return url.Path
 }
 
-func (s *MetadataCachingFetcher) update(ms []Metadata) {
+func (s *MetadataCachingFetcher) update(ms map[Identifier]Metadata) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	for _, m := range ms {
-		if contentHash, ok := s.set[m.id]; ok {
-			// seen
-			delete(s.set, m.id)
-
+	for id, contentHash := range s.set {
+		if metadata, ok := ms[id]; ok {
 			// content hash changed, invalidate the sourcemap cache
-			if contentHash != m.contentHash {
-				s.invalidationChan <- m.id
+			if contentHash != metadata.contentHash {
+				s.invalidationChan <- id
 			}
+		} else {
+			// the sourcemap no longer exists in ES.
+			// invalidate the sourcemap cache.
+			s.invalidationChan <- id
+
+			// remove from metadata cache
+			delete(s.set, id)
 		}
-	}
-
-	// Loop for any unseed sourcemap
-	for k := range s.set {
-		// the sourcemap no longer exists in ES.
-		// invalidate the sourcemap cache.
-		s.invalidationChan <- k
-
-		// remove from metadata cache
-		delete(s.set, k)
-	}
-
-	for _, m := range ms {
-		s.set[m.id] = m.contentHash
 	}
 }
 
@@ -196,7 +186,7 @@ func (s *MetadataCachingFetcher) sync(ctx context.Context) error {
 		return err
 	}
 
-	var ms []Metadata
+	ms := make(map[Identifier]Metadata, len(body.Hits.Hits))
 	for _, v := range body.Hits.Hits {
 		m := Metadata{
 			id: Identifier{
@@ -207,7 +197,7 @@ func (s *MetadataCachingFetcher) sync(ctx context.Context) error {
 			contentHash: v.Source.ContentHash,
 		}
 
-		ms = append(ms, m)
+		ms[m.id] = m
 	}
 
 	// Update cache
