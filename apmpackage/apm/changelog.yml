@@ -3,11 +3,6 @@
 # change type can be one of: enhancement, bugfix, breaking-change
 - version: "generated"
   changes:
-    - description: Placeholder
-      type: bugfix
-      link: https://github.com/elastic/apm-server/pull/123
-- version: "8.6.0"
-  changes:
     - description: Cast event.duration to long in event_duration pipeline
       type: bugfix
       link: https://github.com/elastic/apm-server/pull/9901
