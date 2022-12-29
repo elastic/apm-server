@@ -43,7 +43,6 @@ type MetadataCachingFetcher struct {
 	mu               sync.RWMutex
 	backend          Fetcher
 	logger           *logp.Logger
-	once             sync.Once
 	index            string
 	invalidationChan chan<- Identifier
 }
@@ -65,16 +64,6 @@ func NewMetadataCachingFetcher(
 }
 
 func (s *MetadataCachingFetcher) Fetch(ctx context.Context, name, version, path string) (*sourcemap.Consumer, error) {
-	if len(s.set) == 0 {
-		// If cache is empty and we're trying to fetch a sourcemap
-		// make sure the initial cache population has ended.
-		s.once.Do(func() {
-			if err := s.sync(ctx); err != nil {
-				s.logger.Error("failed to fetch sourcemaps metadata: %v", err)
-			}
-		})
-	}
-
 	key := Identifier{
 		name:    name,
 		version: version,
@@ -134,14 +123,12 @@ func (s *MetadataCachingFetcher) update(ms map[Identifier]Metadata) {
 func (s *MetadataCachingFetcher) StartBackgroundSync() {
 	go func() {
 		// First run, populate cache
-		s.once.Do(func() {
-			ctx, cleanup := context.WithTimeout(context.Background(), 10*time.Second)
-			defer cleanup()
+		ctx, cleanup := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cleanup()
 
-			if err := s.sync(ctx); err != nil {
-				s.logger.Error("failed to fetch sourcemaps metadata: %v", err)
-			}
-		})
+		if err := s.sync(ctx); err != nil {
+			s.logger.Error("failed to fetch sourcemaps metadata: %v", err)
+		}
 	}()
 
 	go func() {
