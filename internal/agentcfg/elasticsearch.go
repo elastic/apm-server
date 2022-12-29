@@ -101,12 +101,14 @@ func NewElasticsearchFetcher(client *elasticsearch.Client, cacheDuration time.Du
 // Fetch finds a matching agent config based on the received query.
 func (f *ElasticsearchFetcher) Fetch(ctx context.Context, query Query) (Result, error) {
 	if !f.firstRunCompleted.Get() {
+		f.logger.Warnf("rejecting fetch request: cache is not ready")
 		return Result{}, errors.New(ErrCacheNotReady)
 	}
 
 	if !f.expectedIndexExists {
 		if f.fallbackFetcher == nil {
 			defer atomic.AddInt64(&f.metrics.fetchFallbackUnavailable, 1)
+			f.logger.Errorf("rejecting fetch request: elasticsearch is unreachable and no fallback fetcher is configured")
 			return Result{}, errors.New(ErrAgentRemoteConfigurationDisabled)
 		}
 		defer atomic.AddInt64(&f.metrics.fetchFallback, 1)

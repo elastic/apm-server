@@ -181,6 +181,8 @@ func queryAgentConfig(t testing.TB, serverURL, serviceName, serviceEnvironment, 
 		err = json.NewDecoder(resp.Body).Decode(&errorObj)
 		require.NoError(t, err)
 	case http.StatusServiceUnavailable:
+		err = json.NewDecoder(resp.Body).Decode(&errorObj)
+		require.NoError(t, err)
 	default:
 		t.Fatalf("unexpected status %q", resp.Status)
 	}
@@ -205,18 +207,19 @@ func TestAgentConfigForbiddenOnDisabled(t *testing.T) {
 
 	url := srv.URL
 
+	expectedErrorMsg := "Agent remote configuration is disabled. Configure the `apm-server.kibana` section in apm-server.yml to enable it. If you are using a RUM agent, you also need to configure the `apm-server.rum` section. If you are not using remote configuration, you can safely ignore this error."
+
 	var resp *http.Response
 	var errorObj map[string]interface{}
 	maxRetries := 20
 	for i := 0; i < maxRetries; i++ {
 		_, resp, errorObj = queryAgentConfig(t, url, serviceName, serviceEnvironment, "")
-		if resp.StatusCode == http.StatusForbidden {
+		if resp.StatusCode == http.StatusServiceUnavailable && errorObj["error"].(string) == expectedErrorMsg {
 			break
 		}
 		<-time.After(500 * time.Millisecond)
 	}
 
-	assert.Equal(t, http.StatusForbidden, resp.StatusCode)
-	expectedErrorMsg := "Agent remote configuration is disabled. Configure the `apm-server.kibana` section in apm-server.yml to enable it. If you are using a RUM agent, you also need to configure the `apm-server.rum` section. If you are not using remote configuration, you can safely ignore this error."
+	assert.Equal(t, http.StatusServiceUnavailable, resp.StatusCode)
 	assert.Equal(t, expectedErrorMsg, errorObj["error"].(string))
 }

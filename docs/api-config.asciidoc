@@ -46,8 +46,7 @@ http(s)://{hostname}:{port}/config/v1/agents
 ==== Responses
 
 * Successful - `200`
-* {es} is unreachable and {kib} endpoint is disabled - `403`
-* APM Server is starting up or both {es} and {kib} are unreachable - `503`
+* APM Server is starting up or {es} is unreachable - `503`
 
 [float]
 [[api-config-api-example]]
