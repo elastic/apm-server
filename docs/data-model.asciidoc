@@ -302,6 +302,7 @@ You can filter and group by these dimensions (some of which are optional, for ex
 * `transaction.type`: The type of the transaction, for example `request`
 * `transaction.result`: The result of the transaction, for example `HTTP 2xx`
 * `transaction.root`: A boolean flag indicating whether the transaction is the root of a trace
+* `metricset.interval`: A string with the aggregation interval the metricset represents.
 * `event.outcome`: The outcome of the transaction, for example `success`
 * `agent.name`: The name of the {apm-agent} that instrumented the transaction, for example `java`
 * `service.name`: The name of the service that served the transaction

@@ -22,7 +22,6 @@ import (
 )
 
 const (
-	defaultTransactionAggregationInterval                       = time.Minute
 	defaultTransactionAggregationHDRHistogramSignificantFigures = 2
 
 	defaultServiceDestinationAggregationInterval  = time.Minute
@@ -41,9 +40,8 @@ type AggregationConfig struct {
 
 // TransactionAggregationConfig holds configuration related to transaction metrics aggregation.
 type TransactionAggregationConfig struct {
-	Interval                       time.Duration `config:"interval" validate:"min=1"`
-	MaxTransactionGroups           int           `config:"max_groups"` // if <= 0 then will be set based on memory limits
-	HDRHistogramSignificantFigures int           `config:"hdrhistogram_significant_figures" validate:"min=1, max=5"`
+	MaxTransactionGroups           int `config:"max_groups"` // if <= 0 then will be set based on memory limits
+	HDRHistogramSignificantFigures int `config:"hdrhistogram_significant_figures" validate:"min=1, max=5"`
 }
 
 // ServiceDestinationAggregationConfig holds configuration related to span metrics aggregation for service maps.
@@ -63,7 +61,6 @@ type ServiceAggregationConfig struct {
 func defaultAggregationConfig() AggregationConfig {
 	return AggregationConfig{
 		Transactions: TransactionAggregationConfig{
-			Interval:                       defaultTransactionAggregationInterval,
 			HDRHistogramSignificantFigures: defaultTransactionAggregationHDRHistogramSignificantFigures,
 		},
 		ServiceDestinations: ServiceDestinationAggregationConfig{
