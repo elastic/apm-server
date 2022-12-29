@@ -185,37 +185,24 @@ func TestTxnAggregatorProcessBatch(t *testing.T) {
 			require.NoError(t, agg.Stop(context.Background()))
 			metricsets := batchMetricsets(t, expectBatch(t, batches))
 			var expectedOverflowMetricsets []model.APMEvent
-			for _, m := range metricsets {
-				if m.Transaction.Name != "other" {
-					// only test for overflow cases
-					continue
+			var totalOverflowSvcCount int
+			if tc.expectedPerSvcTxnLimitOverflow > 0 {
+				totalOverflowSvcCount = tc.uniqueServices
+				if tc.uniqueServices > maxSvcs {
+					totalOverflowSvcCount = maxSvcs
 				}
-				count := tc.expectedPerSvcTxnLimitOverflow
-				if m.Service.Name == "other" {
-					count = tc.expectedOtherSvcTxnLimitOverflow
-				}
-				expectedOverflowMetricsets = append(expectedOverflowMetricsets, model.APMEvent{
-					Processor: model.MetricsetProcessor,
-					Service:   model.Service{Name: m.Service.Name},
-					Transaction: &model.Transaction{
-						Name: "other",
-						DurationHistogram: model.Histogram{
-							Counts: []int64{int64(count * repCount)},
-							Values: []float64{float64(txnDuration.Microseconds())},
-						},
-					},
-					Metricset: &model.Metricset{
-						Name:     "transaction",
-						DocCount: int64(count * repCount),
-						Interval: "30s",
-						Samples: []model.MetricsetSample{
-							{
-								Name:  "transaction.aggregation.overflow_count",
-								Value: float64(count),
-							},
-						},
-					},
-				})
+			}
+			if tc.expectedOtherSvcTxnLimitOverflow > 0 {
+				expectedOverflowMetricsets = append(
+					expectedOverflowMetricsets,
+					createOverflowMetricset(tc.expectedOtherSvcTxnLimitOverflow, repCount, txnDuration),
+				)
+			}
+			for i := 0; i < totalOverflowSvcCount; i++ {
+				expectedOverflowMetricsets = append(
+					expectedOverflowMetricsets,
+					createOverflowMetricset(tc.expectedPerSvcTxnLimitOverflow, repCount, txnDuration),
+				)
 			}
 			assert.Empty(t, cmp.Diff(
 				expectedOverflowMetricsets,
@@ -226,9 +213,6 @@ func TestTxnAggregatorProcessBatch(t *testing.T) {
 				cmpopts.IgnoreTypes(netip.Addr{}),
 				cmpopts.IgnoreFields(model.APMEvent{}, "Timestamp", "Service.Name"),
 				cmpopts.SortSlices(func(a, b model.APMEvent) bool {
-					if a.Transaction.Name != b.Transaction.Name {
-						return a.Transaction.Name < b.Transaction.Name
-					}
 					return a.Service.Name < b.Service.Name
 				}),
 			))
@@ -716,4 +700,28 @@ func batchMetricsets(t testing.TB, batch model.Batch) []model.APMEvent {
 		metricsets = append(metricsets, event)
 	}
 	return metricsets
+}
+
+func createOverflowMetricset(overflowCount, repCount int, txnDuration time.Duration) model.APMEvent {
+	return model.APMEvent{
+		Processor: model.MetricsetProcessor,
+		Transaction: &model.Transaction{
+			Name: "other",
+			DurationHistogram: model.Histogram{
+				Counts: []int64{int64(overflowCount * repCount)},
+				Values: []float64{float64(txnDuration.Microseconds())},
+			},
+		},
+		Metricset: &model.Metricset{
+			Name:     "transaction",
+			DocCount: int64(overflowCount * repCount),
+			Interval: "30s",
+			Samples: []model.MetricsetSample{
+				{
+					Name:  "transaction.aggregation.overflow_count",
+					Value: float64(overflowCount),
+				},
+			},
+		},
+	}
 }
