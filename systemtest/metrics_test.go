@@ -216,10 +216,11 @@ type metricsetSample struct {
 }
 
 type metricsetDoc struct {
-	Trasaction    metricsetTransaction `json:"transaction"`
-	Span          metricsetSpan        `json:"span"`
-	MetricsetName string               `json:"metricset.name"`
-	Labels        map[string]string    `json:"labels"`
+	Trasaction        metricsetTransaction `json:"transaction"`
+	Span              metricsetSpan        `json:"span"`
+	MetricsetName     string               `json:"metricset.name"`
+	MetricsetInterval string               `json:"metricset.interval"`
+	Labels            map[string]string    `json:"labels"`
 }
 
 func unmarshalMetricsetDocs(t testing.TB, hits []estest.SearchHit) []metricsetDoc {
@@ -236,5 +237,8 @@ func unmarshalMetricsetDoc(t testing.TB, hit *estest.SearchHit) metricsetDoc {
 		t.Fatal(err)
 	}
 	doc.MetricsetName = hit.Fields["metricset.name"][0].(string)
+	if interval := hit.Fields["metricset.interval"]; len(interval) > 0 {
+		doc.MetricsetInterval = interval[0].(string)
+	}
 	return doc
 }

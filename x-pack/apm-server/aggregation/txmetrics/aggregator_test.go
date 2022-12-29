@@ -236,19 +236,25 @@ func TestTxnAggregatorProcessBatch(t *testing.T) {
 }
 
 func TestAggregatorRun(t *testing.T) {
-	batches := make(chan model.Batch, 1)
-	agg, err := txmetrics.NewAggregator(txmetrics.AggregatorConfig{
+	batches := make(chan model.Batch, 6)
+	config := txmetrics.AggregatorConfig{
 		BatchProcessor:                 makeChanBatchProcessor(batches),
 		MaxTransactionGroups:           2,
 		MaxTransactionGroupsPerService: 2,
 		MaxServices:                    2,
 		MetricsInterval:                10 * time.Millisecond,
+		RollUpIntervals:                []time.Duration{200 * time.Millisecond, time.Second},
 		HDRHistogramSignificantFigures: 1,
-	})
+	}
+	agg, err := txmetrics.NewAggregator(config)
 	require.NoError(t, err)
 
+	intervals := append([]time.Duration{config.MetricsInterval}, config.RollUpIntervals...)
+	now := time.Now()
 	for i := 0; i < 1000; i++ {
-		agg.AggregateTransaction(model.APMEvent{
+		event := model.APMEvent{
+			Event:     model.Event{Duration: time.Second},
+			Timestamp: now,
 			Processor: model.TransactionProcessor,
 			Labels: model.Labels{
 				"department_name": model.LabelValue{Global: true, Value: "apm"},
@@ -263,43 +269,61 @@ func TestAggregatorRun(t *testing.T) {
 				Name:                "T-1000",
 				RepresentativeCount: 1,
 			},
-		})
+		}
+		if i%2 == 0 {
+			event.Event = model.Event{Duration: 100 * time.Millisecond}
+		}
+		agg.AggregateTransaction(event)
 	}
 	for i := 0; i < 800; i++ {
-		agg.AggregateTransaction(model.APMEvent{
+		event := model.APMEvent{
+			Event:     model.Event{Duration: time.Second},
+			Timestamp: now,
 			Processor: model.TransactionProcessor,
 			Transaction: &model.Transaction{
 				Name:                "T-800",
 				RepresentativeCount: 1,
 			},
-		})
+		}
+		if i%2 == 0 {
+			event.Event = model.Event{Duration: 100 * time.Millisecond}
+		}
+		agg.AggregateTransaction(event)
 	}
 
 	go agg.Run()
 	defer agg.Stop(context.Background())
+	// Stop the aggregator to ensure all metrics are published.
+	assert.NoError(t, agg.Stop(context.Background()))
 
-	batch := expectBatch(t, batches)
-	metricsets := batchMetricsets(t, batch)
-	require.Len(t, metricsets, 2)
-	sort.Slice(metricsets, func(i, j int) bool {
-		return metricsets[i].Transaction.Name < metricsets[j].Transaction.Name
-	})
+	for i := 0; i < 3; i++ {
+		batch := expectBatch(t, batches)
+		metricsets := batchMetricsets(t, batch)
+		require.Len(t, metricsets, 2)
+		sort.Slice(metricsets, func(i, j int) bool {
+			return metricsets[i].Transaction.Name < metricsets[j].Transaction.Name
+		})
 
-	assert.Equal(t, "T-1000", metricsets[0].Transaction.Name)
-	assert.Equal(t, model.Labels{
-		"department_name": model.LabelValue{Value: "apm"},
-		"organization":    model.LabelValue{Value: "observability"},
-		"company":         model.LabelValue{Value: "elastic"},
-	}, metricsets[0].Labels)
-	assert.Equal(t, model.NumericLabels{
-		"user_id":     model.NumericLabelValue{Value: 100},
-		"cost_center": model.NumericLabelValue{Value: 10},
-	}, metricsets[0].NumericLabels)
-	assert.Equal(t, []int64{1000}, metricsets[0].Transaction.DurationHistogram.Counts)
-	assert.Equal(t, "T-800", metricsets[1].Transaction.Name)
-	assert.Empty(t, metricsets[1].Labels)
-	assert.Empty(t, metricsets[1].NumericLabels)
-	assert.Equal(t, []int64{800}, metricsets[1].Transaction.DurationHistogram.Counts)
+		assert.Equal(t, "T-1000", metricsets[0].Transaction.Name)
+		assert.Equal(t, model.Labels{
+			"department_name": model.LabelValue{Value: "apm"},
+			"organization":    model.LabelValue{Value: "observability"},
+			"company":         model.LabelValue{Value: "elastic"},
+		}, metricsets[0].Labels)
+		assert.Equal(t, model.NumericLabels{
+			"user_id":     model.NumericLabelValue{Value: 100},
+			"cost_center": model.NumericLabelValue{Value: 10},
+		}, metricsets[0].NumericLabels)
+		assert.Equal(t, []int64{500, 500}, metricsets[0].Transaction.DurationHistogram.Counts)
+		assert.Equal(t, "T-800", metricsets[1].Transaction.Name)
+		assert.Empty(t, metricsets[1].Labels)
+		assert.Empty(t, metricsets[1].NumericLabels)
+		assert.Equal(t, []int64{400, 400}, metricsets[1].Transaction.DurationHistogram.Counts)
+		for _, event := range metricsets {
+			assert.Equal(t, now.Truncate(intervals[i]), event.Timestamp)
+			assert.Equal(t, fmt.Sprintf("%.0fs", intervals[i].Seconds()), event.Metricset.Interval)
+		}
+	}
 
 	select {
 	case <-batches:
@@ -573,6 +597,7 @@ func TestAggregationFields(t *testing.T) {
 		expectedEvent.Metricset = &model.Metricset{
 			Name:     "transaction",
 			DocCount: expectedCount,
+			Interval: "0s",
 		}
 		expectedEvent.Transaction = &model.Transaction{
 			Name:   input.Transaction.Name,
