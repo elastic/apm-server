@@ -184,19 +184,19 @@ func TestTxnAggregatorProcessBatch(t *testing.T) {
 
 			require.NoError(t, agg.Stop(context.Background()))
 			metricsets := batchMetricsets(t, expectBatch(t, batches))
-			var totalOverflowMetricsets int
+			var expectedOverflowMetricsets []model.APMEvent
 			for _, m := range metricsets {
 				if m.Transaction.Name != "other" {
 					// only test for overflow cases
 					continue
 				}
-				totalOverflowMetricsets++
 				count := tc.expectedPerSvcTxnLimitOverflow
 				if m.Service.Name == "other" {
 					count = tc.expectedOtherSvcTxnLimitOverflow
 				}
-				assert.Empty(t, cmp.Diff(model.APMEvent{
+				expectedOverflowMetricsets = append(expectedOverflowMetricsets, model.APMEvent{
 					Processor: model.MetricsetProcessor,
+					Service:   model.Service{Name: m.Service.Name},
 					Transaction: &model.Transaction{
 						Name: "other",
 						DurationHistogram: model.Histogram{
@@ -207,6 +207,7 @@ func TestTxnAggregatorProcessBatch(t *testing.T) {
 					Metricset: &model.Metricset{
 						Name:     "transaction",
 						DocCount: int64(count * repCount),
+						Interval: "30s",
 						Samples: []model.MetricsetSample{
 							{
 								Name:  "transaction.aggregation.overflow_count",
@@ -214,23 +215,23 @@ func TestTxnAggregatorProcessBatch(t *testing.T) {
 							},
 						},
 					},
-				}, m, cmpopts.IgnoreTypes(netip.Addr{}, time.Time{}), cmpopts.IgnoreFields(model.Service{}, "Name")))
+				})
 			}
-			var expectedTotalOverflowGrps int
-			if tc.expectedPerSvcTxnLimitOverflow > 0 {
-				// since for this test we are overflowing all the services equally, each overflow
-				// svc will account for 1 metricset.
-				if tc.uniqueServices > maxSvcs {
-					expectedTotalOverflowGrps += maxSvcs
-				} else {
-					expectedTotalOverflowGrps += tc.uniqueServices
-				}
-			}
-			if tc.expectedOtherSvcTxnLimitOverflow > 0 {
-				// if the overflow spills into the other svc bucket then we will have another metricset
-				expectedTotalOverflowGrps++
-			}
-			assert.Equal(t, expectedTotalOverflowGrps, totalOverflowMetricsets)
+			assert.Empty(t, cmp.Diff(
+				expectedOverflowMetricsets,
+				metricsets,
+				cmpopts.IgnoreSliceElements(func(a model.APMEvent) bool {
+					return a.Transaction.Name != "other"
+				}),
+				cmpopts.IgnoreTypes(netip.Addr{}),
+				cmpopts.IgnoreFields(model.APMEvent{}, "Timestamp", "Service.Name"),
+				cmpopts.SortSlices(func(a, b model.APMEvent) bool {
+					if a.Transaction.Name != b.Transaction.Name {
+						return a.Transaction.Name < b.Transaction.Name
+					}
+					return a.Service.Name < b.Service.Name
+				}),
+			))
 		})
 	}
 }
