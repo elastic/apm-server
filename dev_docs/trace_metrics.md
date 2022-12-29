@@ -13,12 +13,15 @@ attributes such as `service.name`, `transaction.name`, and `kubernetes.pod.name`
 The latency is then recorded in an [HDRHistogram](http://hdrhistogram.org/) for
 that group. Transaction group latency histograms are periodically indexed (every
 minute by default), with configurable precision (defaults to 2 significant figures).
+From 8.7.0 onwards, the Transaction Metrics aggregator publishes metrics for 3
+different periods: `1m`, `10m`, and `60m`.
 
 To protect against memory exhaustion due to high-cardinality transaction names
 (or other attributes), APM Server places a limit on the number of transaction
 groups that are tracked at any given time. By default, this limit is 10000
-transaction groups. When transaction group latency histograms are indexed, the
-groups are reset, enabling a different set of 10000 groups to be recorded.
+transaction groups per GB of memory. When transaction group latency histograms
+are indexed, the groups are reset, enabling a different set of groups to be
+recorded.
 
 ## Service destination metrics
 
