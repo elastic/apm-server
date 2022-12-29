@@ -289,7 +289,7 @@ func TestAggregatorOverflow(t *testing.T) {
 			overflowEvent = &m
 		}
 	}
-	out := cmp.Diff(model.APMEvent{
+	assert.Empty(t, cmp.Diff(model.APMEvent{
 		Service: model.Service{
 			Name: "other",
 		},
@@ -320,8 +320,7 @@ func TestAggregatorOverflow(t *testing.T) {
 				},
 			},
 		},
-	}, *overflowEvent, cmpopts.IgnoreTypes(netip.Addr{}))
-	assert.Empty(t, out)
+	}, *overflowEvent, cmpopts.IgnoreTypes(netip.Addr{}, time.Time{})))
 }
 
 func makeTransaction(

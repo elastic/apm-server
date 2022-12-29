@@ -44,6 +44,7 @@ import (
 
 const (
 	tailSamplingStorageDir = "tail_sampling"
+	metricsInterval        = time.Minute
 )
 
 var (
@@ -63,6 +64,8 @@ var (
 	// samplerUUID is a UUID used to identify sampled trace ID documents
 	// published by this process.
 	samplerUUID = uuid.Must(uuid.NewV4())
+
+	rollUpMetricsIntervals = []time.Duration{10 * time.Minute, time.Hour}
 )
 
 func init() {
@@ -107,9 +110,10 @@ func newProcessors(args beater.ServerParams) ([]namedProcessor, error) {
 	agg, err := txmetrics.NewAggregator(txmetrics.AggregatorConfig{
 		BatchProcessor:                 args.BatchProcessor,
 		MaxTransactionGroups:           args.Config.Aggregation.Transactions.MaxTransactionGroups,
+		MetricsInterval:                metricsInterval,
+		RollUpIntervals:                rollUpMetricsIntervals,
 		MaxTransactionGroupsPerService: int(math.Ceil(0.1 * float64(args.Config.Aggregation.Transactions.MaxTransactionGroups))),
 		MaxServices:                    args.Config.Aggregation.Transactions.MaxTransactionGroups, // same as max txn grps
-		MetricsInterval:                args.Config.Aggregation.Transactions.Interval,
 		HDRHistogramSignificantFigures: args.Config.Aggregation.Transactions.HDRHistogramSignificantFigures,
 	})
 	if err != nil {
