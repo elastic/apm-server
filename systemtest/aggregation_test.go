@@ -67,16 +67,17 @@ func TestTransactionAggregation(t *testing.T) {
 	systemtest.SendBackendEventsLiteral(t, srv.URL, faasPayload)
 	tracer.Flush(nil)
 
-	// Make sure apm-server.aggregation.txmetrics metrics are published. Metric values are unit tested.
-	doc := getBeatsMonitoringStats(t, srv, nil)
-	assert.True(t, gjson.GetBytes(doc.RawSource, "beats_stats.metrics.apm-server.aggregation.txmetrics").Exists())
-
 	// Wait for the transaction to be indexed, indicating that Elasticsearch
 	// indices have been setup and we should not risk triggering the shutdown
 	// timeout while waiting for the aggregated metrics to be indexed.
 	systemtest.Elasticsearch.ExpectDocs(t, "traces-apm*",
 		estest.TermQuery{Field: "processor.event", Value: "transaction"},
 	)
+
+	// Make sure apm-server.aggregation.txmetrics metrics are published. Metric values are unit tested.
+	doc := getBeatsMonitoringStats(t, srv, nil)
+	assert.True(t, gjson.GetBytes(doc.RawSource, "beats_stats.metrics.apm-server.aggregation.txmetrics").Exists())
+
 	// Stop server to ensure metrics are flushed on shutdown.
 	assert.NoError(t, srv.Close())
 
