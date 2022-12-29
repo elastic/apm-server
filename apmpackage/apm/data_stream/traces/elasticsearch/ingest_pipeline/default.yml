@@ -15,6 +15,18 @@ processors:
       name: client_geoip
   - pipeline:
       name: event_duration
+  # event.success_count logic
+  - set:
+      if: ctx.event?.outcome == 'success'
+      field: event.success_count
+      value: 1
+      ignore_failure: true
+  - set:
+      if: ctx.event?.outcome == 'failure'
+      field: event.success_count
+      value: 0
+      ignore_failure: true
+  # end of event.success_count logic
   - remove:
       # Remove some metadata from spans that is available in the parent transaction, to cut down on storage costs.
       if: ctx.processor?.event == 'span'

@@ -4,7 +4,7 @@
 ################################################################################
 ARG BASE_REGISTRY=registry1.dsop.io
 ARG BASE_IMAGE=ironbank/redhat/ubi/ubi8
-ARG BASE_TAG=8.6
+ARG BASE_TAG=8.7
 
 FROM ${BASE_REGISTRY}/${BASE_IMAGE}:${BASE_TAG} AS prep_files
 
@@ -71,4 +71,4 @@ EXPOSE 8200
 ENTRYPOINT ["/tinit", "--", "/usr/share/apm-server/apm-server"]
 CMD ["-environment", "container"]
 
-HEALTHCHECK --interval=10s --timeout=5s --start-period=1m --retries=5 CMD (curl -I -f --max-time 5 https://localhost:8200 || curl -I -f --max-time 5 http://localhost:8200 || exit 1)
+HEALTHCHECK --interval=10s --timeout=5s --start-period=1m --retries=5 CMD (curl -I -f --max-time 5 https://127.0.0.1:8200 || curl -I -f --max-time 5 http://127.0.0.1:8200 || exit 1)

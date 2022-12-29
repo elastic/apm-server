@@ -7,6 +7,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"math"
 	"net/http"
 	"os"
 	"sync"
@@ -43,6 +44,7 @@ import (
 
 const (
 	tailSamplingStorageDir = "tail_sampling"
+	metricsInterval        = time.Minute
 )
 
 var (
@@ -62,6 +64,8 @@ var (
 	// samplerUUID is a UUID used to identify sampled trace ID documents
 	// published by this process.
 	samplerUUID = uuid.Must(uuid.NewV4())
+
+	rollUpMetricsIntervals = []time.Duration{10 * time.Minute, time.Hour}
 )
 
 func init() {
@@ -106,7 +110,10 @@ func newProcessors(args beater.ServerParams) ([]namedProcessor, error) {
 	agg, err := txmetrics.NewAggregator(txmetrics.AggregatorConfig{
 		BatchProcessor:                 args.BatchProcessor,
 		MaxTransactionGroups:           args.Config.Aggregation.Transactions.MaxTransactionGroups,
-		MetricsInterval:                args.Config.Aggregation.Transactions.Interval,
+		MetricsInterval:                metricsInterval,
+		RollUpIntervals:                rollUpMetricsIntervals,
+		MaxTransactionGroupsPerService: int(math.Ceil(0.1 * float64(args.Config.Aggregation.Transactions.MaxTransactionGroups))),
+		MaxServices:                    args.Config.Aggregation.Transactions.MaxTransactionGroups, // same as max txn grps
 		HDRHistogramSignificantFigures: args.Config.Aggregation.Transactions.HDRHistogramSignificantFigures,
 	})
 	if err != nil {
@@ -132,9 +139,10 @@ func newProcessors(args beater.ServerParams) ([]namedProcessor, error) {
 		const serviceName = "service metrics aggregation"
 		args.Logger.Infof("creating %s with config: %+v", serviceName, args.Config.Aggregation.Service)
 		serviceAggregator, err := servicemetrics.NewAggregator(servicemetrics.AggregatorConfig{
-			BatchProcessor: args.BatchProcessor,
-			Interval:       args.Config.Aggregation.Service.Interval,
-			MaxGroups:      args.Config.Aggregation.Service.MaxGroups,
+			BatchProcessor:                 args.BatchProcessor,
+			Interval:                       args.Config.Aggregation.Service.Interval,
+			MaxGroups:                      args.Config.Aggregation.Service.MaxGroups,
+			HDRHistogramSignificantFigures: args.Config.Aggregation.Service.HDRHistogramSignificantFigures,
 		})
 		if err != nil {
 			return nil, errors.Wrapf(err, "error creating %s", spanName)

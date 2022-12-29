@@ -54,10 +54,11 @@ type benchmark struct {
 	f    BenchmarkFunc
 }
 
-func runBenchmark(f BenchmarkFunc) (testing.BenchmarkResult, bool, error) {
+func runBenchmark(f BenchmarkFunc) (testing.BenchmarkResult, bool, bool, error) {
 	// Run the benchmark. testing.Benchmark will invoke the function
 	// multiple times, but only returns the final result.
-	var ok bool
+	var failed bool
+	var skipped bool
 	var collector *expvar.Collector
 	result := testing.Benchmark(func(b *testing.B) {
 		ctx, cancel := context.WithCancel(context.Background())
@@ -67,13 +68,26 @@ func runBenchmark(f BenchmarkFunc) (testing.BenchmarkResult, bool, error) {
 		collector, err = expvar.StartNewCollector(ctx, server, 100*time.Millisecond)
 		if err != nil {
 			b.Error(err)
-			ok = !b.Failed()
+			failed = b.Failed()
 			return
 		}
 
 		limiter := loadgen.GetNewLimiter(loadgencfg.Config.MaxEPM)
 		b.ResetTimer()
-		f(b, limiter)
+		signal := make(chan bool)
+		// f can panic or call runtime.Goexit, stopping the goroutine.
+		// When that happens the function won't return and ok=false will
+		// be returned, making the benchmark looks like failure.
+		go func() {
+			// Signal that we're done whether we return normally
+			// or by SkipNow/FailNow's runtime.Goexit.
+			defer func() {
+				signal <- true
+			}()
+
+			f(b, limiter)
+		}()
+		<-signal
 		if !b.Failed() {
 			watcher, err := collector.WatchMetric(expvar.ActiveEvents, 0)
 			if err != nil {
@@ -82,12 +96,13 @@ func runBenchmark(f BenchmarkFunc) (testing.BenchmarkResult, bool, error) {
 				b.Error("failed to wait for APM server to be inactive")
 			}
 		}
-		ok = !b.Failed()
+		failed = b.Failed()
+		skipped = b.Skipped()
 	})
 	if result.Extra != nil {
 		addExpvarMetrics(&result, collector, benchConfig.Detailed)
 	}
-	return result, ok, nil
+	return result, failed, skipped, nil
 }
 
 func addExpvarMetrics(result *testing.BenchmarkResult, collector *expvar.Collector, detailed bool) {
@@ -210,11 +225,14 @@ func Run(allBenchmarks ...BenchmarkFunc) error {
 			name := fullBenchmarkName(benchmark.name, agents)
 			for i := 0; i < int(benchConfig.Count); i++ {
 				profileChan := profiles.record(name)
-				result, ok, err := runBenchmark(benchmark.f)
+				result, failed, skipped, err := runBenchmark(benchmark.f)
 				if err != nil {
 					return err
 				}
-				if !ok {
+				if skipped {
+					continue
+				}
+				if failed {
 					fmt.Fprintf(os.Stderr, "--- FAIL: %s\n", name)
 					return fmt.Errorf("benchmark %q failed", name)
 				} else {

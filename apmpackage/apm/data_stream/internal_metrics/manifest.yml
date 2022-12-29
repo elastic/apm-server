@@ -26,6 +26,8 @@ elasticsearch:
                   type: aggregate_metric_double
                   metrics: [sum, value_count]
                   default_metric: sum
+        event:
+          properties:
             success_count:
               type: aggregate_metric_double
               metrics: [sum, value_count]

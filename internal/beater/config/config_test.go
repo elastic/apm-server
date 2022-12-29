@@ -155,6 +155,7 @@ func TestUnpackConfig(t *testing.T) {
 				"aggregation": map[string]interface{}{
 					"transactions": map[string]interface{}{
 						"interval":                         "1s",
+						"rollup_intervals":                 []string{"10s", "10m"},
 						"max_groups":                       123,
 						"hdrhistogram_significant_figures": 1,
 					},
@@ -252,7 +253,6 @@ func TestUnpackConfig(t *testing.T) {
 				KibanaAgentConfig: KibanaAgentConfig{Cache: Cache{Expiration: 2 * time.Minute}},
 				Aggregation: AggregationConfig{
 					Transactions: TransactionAggregationConfig{
-						Interval:                       time.Second,
 						MaxTransactionGroups:           123,
 						HDRHistogramSignificantFigures: 1,
 					},
@@ -261,8 +261,9 @@ func TestUnpackConfig(t *testing.T) {
 						MaxGroups: 456,
 					},
 					Service: ServiceAggregationConfig{
-						Interval:  time.Minute,
-						MaxGroups: 457,
+						Interval:                       time.Minute,
+						MaxGroups:                      457,
+						HDRHistogramSignificantFigures: 5,
 					},
 				},
 				Sampling: SamplingConfig{
@@ -419,8 +420,7 @@ func TestUnpackConfig(t *testing.T) {
 				KibanaAgentConfig: KibanaAgentConfig{Cache: Cache{Expiration: 30 * time.Second}},
 				Aggregation: AggregationConfig{
 					Transactions: TransactionAggregationConfig{
-						Interval:                       time.Minute,
-						MaxTransactionGroups:           10000,
+						MaxTransactionGroups:           0, // Default value is set as per memory limit
 						HDRHistogramSignificantFigures: 2,
 					},
 					ServiceDestinations: ServiceDestinationAggregationConfig{
@@ -428,8 +428,9 @@ func TestUnpackConfig(t *testing.T) {
 						MaxGroups: 10000,
 					},
 					Service: ServiceAggregationConfig{
-						Interval:  time.Minute,
-						MaxGroups: 10000,
+						Interval:                       time.Minute,
+						MaxGroups:                      0, // Default value is set as per memory limit
+						HDRHistogramSignificantFigures: 5,
 					},
 				},
 				Sampling: SamplingConfig{

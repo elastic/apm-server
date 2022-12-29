@@ -226,3 +226,63 @@ func TestECSVersion(t *testing.T) {
 	result := systemtest.Elasticsearch.ExpectDocs(t, "traces-apm*", nil)
 	assert.Equal(t, []interface{}{"8.6.0-dev"}, result.Hits.Hits[0].Fields["ecs.version"])
 }
+
+func TestIngestPipelineEventSuccessCount(t *testing.T) {
+	type test struct {
+		source                string
+		eventSuccessCountNull bool
+		eventSuccessCountVal  int
+	}
+
+	tests := []test{
+		{
+			source: `{"@timestamp": "2022-02-15", "observer": {"version": "8.2.0"}, 
+"processor": {"event": "transaction"}}`,
+			eventSuccessCountNull: true,
+		},
+		{
+			source: `{"@timestamp": "2022-02-15", "observer": {"version": "8.2.0"}, 
+"processor": {"event": "transaction"}, "event": {"outcome": "success"}}`,
+			eventSuccessCountVal: 1,
+		},
+		{
+			source: `{"@timestamp": "2022-02-15", "observer": {"version": "8.2.0"}, 
+"processor": {"event": "transaction"}, "event": {"outcome": "failure"}}`,
+			eventSuccessCountVal: 0,
+		},
+		{
+			source: `{"@timestamp": "2022-02-15", "observer": {"version": "8.2.0"}, 
+"processor": {"event": "transaction"}, "event": {"outcome": "unknown"}}`,
+			eventSuccessCountNull: true,
+		},
+	}
+
+	for _, test := range tests {
+		var indexResponse struct {
+			Index string `json:"_index"`
+			ID    string `json:"_id"`
+		}
+		_, err := systemtest.Elasticsearch.Do(context.Background(), esapi.IndexRequest{
+			Index:   "traces-apm-default",
+			Body:    strings.NewReader(test.source),
+			Refresh: "true",
+		}, &indexResponse)
+		require.NoError(t, err)
+
+		var doc struct {
+			Source json.RawMessage `json:"_source"`
+		}
+		_, err = systemtest.Elasticsearch.Do(context.Background(), esapi.GetRequest{
+			Index:      indexResponse.Index,
+			DocumentID: indexResponse.ID,
+		}, &doc)
+		require.NoError(t, err)
+
+		successCount := gjson.GetBytes(doc.Source, "event.success_count")
+		if test.eventSuccessCountNull {
+			assert.Equal(t, nil, successCount.Value())
+		} else {
+			assert.Equal(t, test.eventSuccessCountVal, int(successCount.Value().(float64)))
+		}
+	}
+}

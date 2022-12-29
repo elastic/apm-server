@@ -48,6 +48,7 @@ Metrics are stored in the following data streams:
 +
 // tag::metrics-data-streams[]
 - APM internal metrics: `metrics-apm.internal-<namespace>`
+- APM transaction metrics: `metrics-apm.transaction.<metricset.interval>-<namespace>`
 - Application metrics: `metrics-apm.app.<service.name>-<namespace>`
 // end::metrics-data-streams[]
 +
