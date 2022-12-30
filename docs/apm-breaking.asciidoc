@@ -5,13 +5,69 @@
 === Breaking Changes
 
 // These tagged regions are required for the stack-docs repo includes
-// tag::83-bc[]
-// end::83-bc[]
+// tag::87-bc[]
+// end::87-bc[]
 // tag::notable-v8-breaking-changes[]
 // end::notable-v8-breaking-changes[]
 
 This section describes the breaking changes and deprecations introduced in this release
 and previous minor versions.
+
+// tag::86-bc[]
+[float]
+[[breaking-changes-8.6]]
+=== 8.6
+
+The following breaking changes and deprecations are introduced in APM version 8.6.0:
+
+[float]
+==== `apm-server.decoder.*` no longer recorded
+The stack monitoring metrics, `apm-server.decoder.*`, are no longer recorded.
+These metrics were not used by stack monitoring, so there should be no noticeable change.
+
+For more details, see https://github.com/elastic/apm-server/pull/9210[PR #9210].
+
+[float]
+==== `ecs.version` is now a `constant_keyword` field
+Instead of adding `ecs.version` as a field in every document written by APM Server,
+it is now a `constant_keyword` field with its value set in data stream mappings.
+
+This change removes `ecs.version` from `_source`. It is now only available through
+the {ref}/script-fields-api.html[{es} `field` API].
+APM does not currently rely on the `ecs.version` field, so there should be no noticeable change.
+
+For more details, see https://github.com/elastic/apm-server/pull/9208[PR #9208].
+
+[float]
+==== `context.http.response.*_size` fields now enforce integer values
+New field mappings enforce integer values for `context.http.response.*_size`.
+The fields are mapped with `index: false` to minimize storage overhead.
+
+For more details, see https://github.com/elastic/apm-server/pull/9429[PR #9429].
+
+[float]
+==== `observer.id` and `observer.ephemeral_id` removed
+
+`observer.id` and `observer.ephemeral_id` are no longer added to APM documents.
+The APM UI does not currently rely on these field, so there should be no noticeable change.
+
+For more details, see https://github.com/elastic/apm-server/pull/9412[PR #9412].
+
+[float]
+==== `timeseries.instance` removed
+`timeseries.instance` has been removed from transaction metrics docs.
+The APM UI did not use this field, so there should be no noticeable change.
+
+For more details, see https://github.com/elastic/apm-server/pull/9565[PR #9565].
+
+[float]
+==== `apm-server apikey` commands deprecated
+The `apm-server apikey` commands have been deprecated.
+API keys should be managed through either the Kibana or Elasticsearch REST APIs;
+see <<api-key>> to learn how.
+
+For more details, see https://github.com/elastic/apm-server/pull/9446[PR #9446].
+// end::86-bc[]
 
 [float]
 [[breaking-changes-8.2]]
