@@ -163,8 +163,10 @@ func (h requestHandler) handleRequest(r *http.Request) (int, error) {
 	switch encoding {
 	case "deflate":
 		body, err = zlib.NewReader(r.Body)
+		defer body.Close()
 	case "gzip":
 		body, err = gzip.NewReader(r.Body)
+		defer body.Close()
 	case "":
 	default:
 		return http.StatusBadRequest, fmt.Errorf(
