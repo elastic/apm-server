@@ -18,12 +18,12 @@ Generally, there are two ways that these four components can work together:
 APM agents on edge machines send data to a centrally hosted APM integration:
 
 [subs=attributes+]
-include::./diagrams/apm-architecture-edge.asciidoc[Elastic APM architecture with central APM integration]
+include::./diagrams/apm-architecture-central.asciidoc[Elastic APM architecture with edge APM integrations]
 
 Or, APM agents and the APM integration live on edge machines and enroll via a centrally hosted {agent}:
 
 [subs=attributes+]
-include::./diagrams/apm-architecture-central.asciidoc[Elastic APM architecture with edge APM integrations]
+include::./diagrams/apm-architecture-edge.asciidoc[Elastic APM architecture with central APM integration]
 
 Read on to learn more about each of these components!
 
