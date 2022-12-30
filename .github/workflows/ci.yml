@@ -67,7 +67,19 @@ jobs:
           --no-color -f standard-quiet --jsonfile "$OUTPUT_JSON_FILE" --junitfile "$OUTPUT_JUNIT_FILE" \
           --raw-command -- make system-test
       - uses: actions/upload-artifact@v3  # upload test results
-        if: success() || failure() # run this step even if previous step failed
+        if: ${{ always() }} # run this step even if previous step failed
         with:
           name: test-results
           path: 'build/*.xml'
+
+  system-test-results:
+    runs-on: ubuntu-latest
+    needs: system-test
+    if: ${{ always() }} # run this step even if `system-test` failed.
+    steps:
+      - uses: elastic/apm-pipeline-library/.github/actions/test-report@current
+        with:
+          artifact: test-results            # artifact name
+          name: system-test-results         # Name of the check run which will be created
+          path: "*.xml"                     # Path to test results (inside artifact .zip)
+          reporter: java-junit              # Format of test results
