@@ -401,7 +401,8 @@ func makeMetricset(key aggregationKey, metrics spanMetrics) model.APMEvent {
 		},
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
-			Name: metricsetName,
+			Name:     metricsetName,
+			DocCount: int64(math.Round(metrics.count)),
 		},
 		Span: &model.Span{
 			Name: key.spanName,
