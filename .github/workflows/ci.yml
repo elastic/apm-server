@@ -1,0 +1,73 @@
+name: ci
+
+on:
+  push:
+    branches:
+      - main
+      - 7.1*
+      - 8.*
+    paths-ignore:
+      - '**.md'
+      - '**.asciidoc'
+  pull_request:
+    paths-ignore:
+      - '**.md'
+      - '**.asciidoc'
+
+# limit the access of the generated GITHUB_TOKEN
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with:
+          go-version-file: go.mod
+          cache: true
+          cache-dependency-path: |
+            go.sum
+            tools/go.sum
+      - run: make check-full
+      - name: Ensure .go-version is up to date
+        run: make update-go-version
+        if: ${{ github.ref == 'main' }}
+
+  test:
+    strategy:
+      matrix:
+        # TODO: add ubuntu-latest if/when we're ready to move off Jenkins.
+        os: ['macos-latest', 'windows-latest']
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with:
+          go-version-file: go.mod
+          cache: true
+      - run: go test -v ./...
+
+  system-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with:
+          go-version-file: systemtest/go.mod
+          cache: true
+      - run: docker-compose up -d
+      - env:
+          GOTESTFLAGS: "-v -json"
+          OUTPUT_JSON_FILE: "build/TEST-go-system_tests.out.json"
+          OUTPUT_JUNIT_FILE: "build/TEST-go-system_tests.xml"
+        run: |
+          go run -modfile=tools/go.mod gotest.tools/gotestsum \
+          --no-color -f standard-quiet --jsonfile "$OUTPUT_JSON_FILE" --junitfile "$OUTPUT_JUNIT_FILE" \
+          --raw-command -- make system-test
+      - uses: actions/upload-artifact@v3  # upload test results
+        if: ${{ always() }} # run this step even if previous step failed
+        with:
+          name: test-results
+          path: 'build/*.xml'

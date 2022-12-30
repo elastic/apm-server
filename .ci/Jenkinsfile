@@ -78,6 +78,7 @@ pipeline {
         }
       }
     }
+<<<<<<< HEAD
     /**
     Updating generated files for Beat.
     Checks the GO environment.
@@ -111,6 +112,11 @@ pipeline {
       }
     }
     stage('Build and Test'){
+=======
+
+    // Run unit tests, benchmarks, and packaging in parallel.
+    stage('Build and test') {
+>>>>>>> 69e4e06b5 (ci: Move systemtests to GitHub actions (#9928))
       failFast false
       parallel {
         /**
@@ -318,6 +324,7 @@ pipeline {
             }
           }
         }
+<<<<<<< HEAD
         /**
         Runs System and Environment Tests, then generate coverage and unit test reports.
         Finally archive the results.
@@ -369,6 +376,12 @@ pipeline {
         Runs benchmarks on the current version and compare it with the previous ones.
         Finally archive the results.
         */
+=======
+
+        // Run the microbenchmarks for the current commit, send them to the benchmarks
+        // Elasticsearch cluster, and compare with the benchmark results from the most
+        // recent branch build.
+>>>>>>> 69e4e06b5 (ci: Move systemtests to GitHub actions (#9928))
         stage('Benchmarking') {
           agent { label 'microbenchmarks-pool' }
           options { skipDefaultCheckout() }
