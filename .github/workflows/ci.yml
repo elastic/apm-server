@@ -71,15 +71,3 @@ jobs:
         with:
           name: test-results
           path: 'build/*.xml'
-
-  system-test-results:
-    runs-on: ubuntu-latest
-    needs: system-test
-    if: ${{ always() }} # run this step even if `system-test` failed.
-    steps:
-      - uses: elastic/apm-pipeline-library/.github/actions/test-report@current
-        with:
-          artifact: test-results            # artifact name
-          name: system-test-results         # Name of the check run which will be created
-          path: "*.xml"                     # Path to test results (inside artifact .zip)
-          reporter: java-junit              # Format of test results
