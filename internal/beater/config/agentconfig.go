@@ -42,13 +42,6 @@ type esCredentialsConfig struct {
 	APIKey   string `config:"api_key"`
 }
 
-func (c *esCredentialsConfig) Unpack(in **elasticsearch.Config) error {
-	(*in).Username = c.Username
-	(*in).Password = c.Password
-	(*in).APIKey = c.APIKey
-	return nil
-}
-
 // AgentConfig configuration for dynamically querying agent configuration
 // via Elasticsearch or Kibana.
 type AgentConfig struct {
@@ -89,9 +82,9 @@ func (c *AgentConfig) setup(log *logp.Logger, outputESCfg *config.C) error {
 		}
 	}
 	if c.es != nil {
-		if err := c.es.Unpack(&c.ESConfig); err != nil {
-			return errors.Wrap(err, "unpacking user supplied Elasticsearch config into agent config")
-		}
+		c.ESConfig.Username = c.es.Username
+		c.ESConfig.Password = c.es.Password
+		c.ESConfig.APIKey = c.es.APIKey
 	}
 	return nil
 }
