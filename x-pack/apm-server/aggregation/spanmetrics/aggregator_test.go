@@ -138,7 +138,7 @@ func TestAggregatorRun(t *testing.T) {
 		},
 		Event:     model.Event{Outcome: "success"},
 		Processor: model.MetricsetProcessor,
-		Metricset: &model.Metricset{Name: "service_destination"},
+		Metricset: &model.Metricset{Name: "service_destination", DocCount: 100},
 		Span: &model.Span{
 			Name: "service-A:" + destinationX,
 			DestinationService: &model.DestinationService{
@@ -160,7 +160,7 @@ func TestAggregatorRun(t *testing.T) {
 		},
 		Event:     model.Event{Outcome: "failure"},
 		Processor: model.MetricsetProcessor,
-		Metricset: &model.Metricset{Name: "service_destination"},
+		Metricset: &model.Metricset{Name: "service_destination", DocCount: 100},
 		Span: &model.Span{
 			Name: "service-A:" + destinationZ,
 			DestinationService: &model.DestinationService{
@@ -182,7 +182,7 @@ func TestAggregatorRun(t *testing.T) {
 		},
 		Event:     model.Event{Outcome: "success"},
 		Processor: model.MetricsetProcessor,
-		Metricset: &model.Metricset{Name: "service_destination"},
+		Metricset: &model.Metricset{Name: "service_destination", DocCount: 300},
 		Span: &model.Span{
 			Name: "service-A:" + destinationZ,
 			DestinationService: &model.DestinationService{
@@ -200,7 +200,7 @@ func TestAggregatorRun(t *testing.T) {
 		},
 		Event:     model.Event{Outcome: "success"},
 		Processor: model.MetricsetProcessor,
-		Metricset: &model.Metricset{Name: "service_destination"},
+		Metricset: &model.Metricset{Name: "service_destination", DocCount: 100},
 		Span: &model.Span{
 			Name: "service-A:" + destinationZ,
 			DestinationService: &model.DestinationService{
@@ -222,7 +222,7 @@ func TestAggregatorRun(t *testing.T) {
 		},
 		Event:     model.Event{Outcome: "success"},
 		Processor: model.MetricsetProcessor,
-		Metricset: &model.Metricset{Name: "service_destination"},
+		Metricset: &model.Metricset{Name: "service_destination", DocCount: 100},
 		Span: &model.Span{
 			Name: "service-B:" + destinationZ,
 			DestinationService: &model.DestinationService{
@@ -274,7 +274,7 @@ func TestAggregateCompositeSpan(t *testing.T) {
 		},
 		Event:     model.Event{Outcome: "success"},
 		Processor: model.MetricsetProcessor,
-		Metricset: &model.Metricset{Name: "service_destination"},
+		Metricset: &model.Metricset{Name: "service_destination", DocCount: 50},
 		Span: &model.Span{
 			Name: "service-A:final_destination",
 			DestinationService: &model.DestinationService{
@@ -388,7 +388,7 @@ func TestAggregateTransactionDroppedSpansStats(t *testing.T) {
 			},
 			Event:     model.Event{Outcome: "success"},
 			Processor: model.MetricsetProcessor,
-			Metricset: &model.Metricset{Name: "service_destination"},
+			Metricset: &model.Metricset{Name: "service_destination", DocCount: 20},
 			Span: &model.Span{
 				DestinationService: &model.DestinationService{
 					Resource: "https://elasticsearch:9200",
@@ -410,7 +410,7 @@ func TestAggregateTransactionDroppedSpansStats(t *testing.T) {
 			},
 			Event:     model.Event{Outcome: "success"},
 			Processor: model.MetricsetProcessor,
-			Metricset: &model.Metricset{Name: "service_destination"},
+			Metricset: &model.Metricset{Name: "service_destination", DocCount: 10},
 			Span: &model.Span{
 				DestinationService: &model.DestinationService{
 					Resource: "postgres/testdb",
@@ -428,7 +428,7 @@ func TestAggregateTransactionDroppedSpansStats(t *testing.T) {
 			},
 			Event:     model.Event{Outcome: "success"},
 			Processor: model.MetricsetProcessor,
-			Metricset: &model.Metricset{Name: "service_destination"},
+			Metricset: &model.Metricset{Name: "service_destination", DocCount: 4},
 			Span: &model.Span{
 				DestinationService: &model.DestinationService{
 					Resource: "mysql://mysql:3306",
@@ -579,7 +579,7 @@ func TestAggregatorMaxGroups(t *testing.T) {
 			},
 			Event:     model.Event{Outcome: "success"},
 			Processor: model.MetricsetProcessor,
-			Metricset: &model.Metricset{Name: "service_destination"},
+			Metricset: &model.Metricset{Name: "service_destination", DocCount: 1},
 			Span: &model.Span{
 				Name: "service:destination5",
 				DestinationService: &model.DestinationService{
