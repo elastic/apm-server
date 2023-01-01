@@ -129,7 +129,7 @@ variable "BUILD_ID" {
 
 variable "CREATED_DATE" {
   description = "Creation date in epoch time for tagging purposes"
-  default     = "unknown-date"
+  default     = ""
 }
 
 variable "ENVIRONMENT" {

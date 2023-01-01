@@ -1,4 +1,6 @@
 user_name = "USER"
+ENVIRONMENT = "dev"
+REPO = "apm-server"
 
 # The ESS region where the deployment will be provisioned. See the full list
 # in https://www.elastic.co/guide/en/cloud/current/ec-reference-regions.html.
