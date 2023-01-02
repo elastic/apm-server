@@ -141,7 +141,8 @@ func newProcessors(args beater.ServerParams) ([]namedProcessor, error) {
 		args.Logger.Infof("creating %s with config: %+v", serviceName, args.Config.Aggregation.Service)
 		serviceAggregator, err := servicemetrics.NewAggregator(servicemetrics.AggregatorConfig{
 			BatchProcessor:                 args.BatchProcessor,
-			Interval:                       args.Config.Aggregation.Service.Interval,
+			Interval:                       metricsInterval,
+			RollUpIntervals:                rollUpMetricsIntervals,
 			MaxGroups:                      args.Config.Aggregation.Service.MaxGroups,
 			HDRHistogramSignificantFigures: args.Config.Aggregation.Service.HDRHistogramSignificantFigures,
 		})
