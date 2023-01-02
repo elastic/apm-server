@@ -14,7 +14,7 @@ require (
 	github.com/dop251/goja_nodejs v0.0.0-20221211191749-434192f0843e // indirect
 	github.com/dustin/go-humanize v1.0.0
 	github.com/elastic/apm-server/approvaltest v0.0.0-00010101000000-000000000000
-	github.com/elastic/beats/v7 v7.17.9-0.20221229064127-95901bc08b88
+	github.com/elastic/beats/v7 v7.17.9-0.20221230064647-9fede90ea572
 	github.com/elastic/ecs v1.12.0
 	github.com/elastic/elastic-agent-client/v7 v7.0.3 // indirect
 	github.com/elastic/gmux v0.2.0
