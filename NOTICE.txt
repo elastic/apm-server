@@ -1,5 +1,5 @@
 Elastic APM Server
-Copyright 2014-2022 Elasticsearch BV
+Copyright 2014-2023 Elasticsearch BV
 
 This product includes software developed by The Apache Software 
 Foundation (http://www.apache.org/).
@@ -576,11 +576,11 @@ SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/beats/v7
-Version: v7.17.9-0.20221229064127-95901bc08b88
+Version: v7.17.9-0.20221230064647-9fede90ea572
 Licence type (autodetected): Elastic
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.17.9-0.20221229064127-95901bc08b88/LICENSE.txt:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.17.9-0.20221230064647-9fede90ea572/LICENSE.txt:
 
 Source code in this repository is variously licensed under the Apache License
 Version 2.0, an Apache compatible license, or the Elastic License. Outside of
