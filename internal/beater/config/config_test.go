@@ -257,7 +257,6 @@ func TestUnpackConfig(t *testing.T) {
 						HDRHistogramSignificantFigures: 1,
 					},
 					ServiceDestinations: ServiceDestinationAggregationConfig{
-						Interval:  time.Minute,
 						MaxGroups: 456,
 					},
 					Service: ServiceAggregationConfig{
@@ -424,7 +423,6 @@ func TestUnpackConfig(t *testing.T) {
 						HDRHistogramSignificantFigures: 2,
 					},
 					ServiceDestinations: ServiceDestinationAggregationConfig{
-						Interval:  time.Minute,
 						MaxGroups: 10000,
 					},
 					Service: ServiceAggregationConfig{
