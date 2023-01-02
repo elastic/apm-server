@@ -149,6 +149,7 @@ func TestAggregatorRun(t *testing.T) {
 			Metricset: &model.Metricset{
 				Name:     "service_destination",
 				Interval: fmt.Sprintf("%.0fs", interval.Seconds()),
+				DocCount: 100,
 			},
 			Span: &model.Span{
 				Name: "service-A:" + destinationX,
@@ -175,6 +176,7 @@ func TestAggregatorRun(t *testing.T) {
 			Metricset: &model.Metricset{
 				Name:     "service_destination",
 				Interval: fmt.Sprintf("%.0fs", interval.Seconds()),
+				DocCount: 100,
 			},
 			Span: &model.Span{
 				Name: "service-A:" + destinationZ,
@@ -201,6 +203,7 @@ func TestAggregatorRun(t *testing.T) {
 			Metricset: &model.Metricset{
 				Name:     "service_destination",
 				Interval: fmt.Sprintf("%.0fs", interval.Seconds()),
+				DocCount: 300,
 			},
 			Span: &model.Span{
 				Name: "service-A:" + destinationZ,
@@ -223,6 +226,7 @@ func TestAggregatorRun(t *testing.T) {
 			Metricset: &model.Metricset{
 				Name:     "service_destination",
 				Interval: fmt.Sprintf("%.0fs", interval.Seconds()),
+				DocCount: 100,
 			},
 			Span: &model.Span{
 				Name: "service-A:" + destinationZ,
@@ -249,6 +253,7 @@ func TestAggregatorRun(t *testing.T) {
 			Metricset: &model.Metricset{
 				Name:     "service_destination",
 				Interval: fmt.Sprintf("%.0fs", interval.Seconds()),
+				DocCount: 100,
 			},
 			Span: &model.Span{
 				Name: "service-B:" + destinationZ,
@@ -302,7 +307,7 @@ func TestAggregateCompositeSpan(t *testing.T) {
 		},
 		Event:     model.Event{Outcome: "success"},
 		Processor: model.MetricsetProcessor,
-		Metricset: &model.Metricset{Name: "service_destination", Interval: "0s"},
+		Metricset: &model.Metricset{Name: "service_destination", Interval: "0s", DocCount: 50},
 		Span: &model.Span{
 			Name: "service-A:final_destination",
 			DestinationService: &model.DestinationService{
@@ -416,7 +421,7 @@ func TestAggregateTransactionDroppedSpansStats(t *testing.T) {
 			},
 			Event:     model.Event{Outcome: "success"},
 			Processor: model.MetricsetProcessor,
-			Metricset: &model.Metricset{Name: "service_destination", Interval: "0s"},
+			Metricset: &model.Metricset{Name: "service_destination", Interval: "0s", DocCount: 20},
 			Span: &model.Span{
 				DestinationService: &model.DestinationService{
 					Resource: "https://elasticsearch:9200",
@@ -438,7 +443,7 @@ func TestAggregateTransactionDroppedSpansStats(t *testing.T) {
 			},
 			Event:     model.Event{Outcome: "success"},
 			Processor: model.MetricsetProcessor,
-			Metricset: &model.Metricset{Name: "service_destination", Interval: "0s"},
+			Metricset: &model.Metricset{Name: "service_destination", Interval: "0s", DocCount: 10},
 			Span: &model.Span{
 				DestinationService: &model.DestinationService{
 					Resource: "postgres/testdb",
@@ -456,7 +461,7 @@ func TestAggregateTransactionDroppedSpansStats(t *testing.T) {
 			},
 			Event:     model.Event{Outcome: "success"},
 			Processor: model.MetricsetProcessor,
-			Metricset: &model.Metricset{Name: "service_destination", Interval: "0s"},
+			Metricset: &model.Metricset{Name: "service_destination", Interval: "0s", DocCount: 4},
 			Span: &model.Span{
 				DestinationService: &model.DestinationService{
 					Resource: "mysql://mysql:3306",
@@ -607,7 +612,7 @@ func TestAggregatorMaxGroups(t *testing.T) {
 			},
 			Event:     model.Event{Outcome: "success"},
 			Processor: model.MetricsetProcessor,
-			Metricset: &model.Metricset{Name: "service_destination"},
+			Metricset: &model.Metricset{Name: "service_destination", DocCount: 1},
 			Span: &model.Span{
 				Name: "service:destination5",
 				DestinationService: &model.DestinationService{

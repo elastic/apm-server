@@ -112,8 +112,15 @@ func TestQueryElasticsearchClusterName(t *testing.T) {
 			logger := logp.NewLogger("go_tests_apm_server", zap.Hooks(detectMessageInLog(t, tc.expectedLogMsg)))
 			var client *elasticsearch.Client
 			if tc.throwErr {
+				conf := elasticsearch.DefaultConfig()
+				// This is intentionally going to fail, no need to retry.
+				conf.MaxRetries = 1
+				// We cannot disable retries so the first retry is going to block and kickin
+				// the backoff period.
+				// Set the backoff init to 0 to disable the backoff.
+				conf.Backoff.Init = 0
 				client, _ = elasticsearch.NewClientParams(elasticsearch.ClientParams{
-					Config:    elasticsearch.DefaultConfig(),
+					Config:    conf,
 					Transport: errTransport{},
 				})
 			} else {
