@@ -362,6 +362,7 @@ You can filter and group by these dimensions:
 * `service.environment`: The environment of the service that made the request
 * `service.target.name`: The target service name, for example `customer_db`
 * `service.target.type`: The target service type, for example `mysql`
+* `metricset.interval`: A string with the aggregation interval the metricset represents.
 --
 
 The `@timestamp` field of these documents holds the start of the aggregation interval.
