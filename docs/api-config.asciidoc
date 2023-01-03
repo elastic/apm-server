@@ -46,6 +46,7 @@ http(s)://{hostname}:{port}/config/v1/agents
 ==== Responses
 
 * Successful - `200`
+* APM Server is configured to fetch agent configuration from {es} but the configuration is invalid - `403`
 * APM Server is starting up or {es} is unreachable - `503`
 
 [float]
