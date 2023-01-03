@@ -144,9 +144,17 @@ func (f *ElasticsearchFetcher) Run(ctx context.Context) error {
 		}
 
 		if err := f.refreshCache(ctx); err != nil {
-			f.logger.Errorf("refresh cache error: %s", err)
+			// Do not log as error when there is a fallback.
+			var logFunc func(string, ...interface{})
+			if f.fallbackFetcher == nil {
+				logFunc = f.logger.Errorf
+			} else {
+				logFunc = f.logger.Warnf
+			}
+
+			logFunc("refresh cache error: %s", err)
 			if f.invalidESCfg.Get() {
-				f.logger.Errorf("stopping refresh cache background job: elasticsearch config is invalid")
+				logFunc("stopping refresh cache background job: elasticsearch config is invalid")
 				return nil
 			}
 		} else {
