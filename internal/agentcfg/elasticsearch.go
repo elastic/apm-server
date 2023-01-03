@@ -59,32 +59,13 @@ type ElasticsearchFetcher struct {
 
 	searchSize int
 
-	firstRunCompleted rwFlag
-	invalidESCfg      rwFlag
-	cacheInitialized  rwFlag
+	firstRunCompleted atomic.Bool
+	invalidESCfg      atomic.Bool
+	cacheInitialized  atomic.Bool
 
 	logger *logp.Logger
 
 	metrics fetcherMetrics
-}
-
-type rwFlag struct {
-	mu  sync.RWMutex
-	val bool
-}
-
-func (r *rwFlag) Get() bool {
-	r.mu.RLock()
-	defer r.mu.RUnlock()
-	return r.val
-}
-
-func (r *rwFlag) Set() {
-	if !r.Get() {
-		r.mu.Lock()
-		defer r.mu.Unlock()
-		r.val = true
-	}
 }
 
 type fetcherMetrics struct {
@@ -106,7 +87,7 @@ func NewElasticsearchFetcher(client *elasticsearch.Client, cacheDuration time.Du
 
 // Fetch finds a matching agent config based on the received query.
 func (f *ElasticsearchFetcher) Fetch(ctx context.Context, query Query) (Result, error) {
-	if f.cacheInitialized.Get() {
+	if f.cacheInitialized.Load() {
 		// Happy path: serve fetch requests using an initialized cache.
 		f.mu.RLock()
 		defer f.mu.RUnlock()
@@ -114,14 +95,14 @@ func (f *ElasticsearchFetcher) Fetch(ctx context.Context, query Query) (Result, 
 		return matchAgentConfig(query, f.cache), nil
 	}
 
-	if !f.firstRunCompleted.Get() {
+	if !f.firstRunCompleted.Load() {
 		f.logger.Warnf("rejecting fetch request: first refresh cache run has not completed")
 		return Result{}, errors.New(ErrInfrastructureNotReady)
 	} else {
 		if f.fallbackFetcher != nil {
 			defer atomic.AddInt64(&f.metrics.fetchFallback, 1)
 			return f.fallbackFetcher.Fetch(ctx, query)
-		} else if f.fallbackFetcher == nil && f.invalidESCfg.Get() {
+		} else if f.fallbackFetcher == nil && f.invalidESCfg.Load() {
 			defer atomic.AddInt64(&f.metrics.fetchFallbackUnavailable, 1)
 			f.logger.Errorf("rejecting fetch request: no valid elasticsearch config")
 			return Result{}, errors.New(ErrNoValidElasticsearchConfig)
@@ -153,7 +134,7 @@ func (f *ElasticsearchFetcher) Run(ctx context.Context) error {
 			}
 
 			logFunc("refresh cache error: %s", err)
-			if f.invalidESCfg.Get() {
+			if f.invalidESCfg.Load() {
 				logFunc("stopping refresh cache background job: elasticsearch config is invalid")
 				return nil
 			}
@@ -172,7 +153,7 @@ func (f *ElasticsearchFetcher) refreshCache(ctx context.Context) (err error) {
 	defer cancel()
 
 	// Flag that first run has completed regardless of outcome.
-	defer f.firstRunCompleted.Set()
+	defer f.firstRunCompleted.Store(true)
 
 	defer func() {
 		if err != nil {
@@ -219,7 +200,7 @@ func (f *ElasticsearchFetcher) refreshCache(ctx context.Context) (err error) {
 				if resp.StatusCode >= http.StatusBadRequest {
 					// Elasticsearch returns 401 on unauthorized requests and 403 on insufficient permission
 					if resp.StatusCode == http.StatusUnauthorized || resp.StatusCode == http.StatusForbidden {
-						f.invalidESCfg.Set()
+						f.invalidESCfg.Store(true)
 					}
 					return fmt.Errorf("refresh cache returns non-200 status: %d", resp.StatusCode)
 				}
@@ -260,7 +241,7 @@ func (f *ElasticsearchFetcher) refreshCache(ctx context.Context) (err error) {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	f.cache = buffer
-	f.cacheInitialized.Set()
+	f.cacheInitialized.Store(true)
 	atomic.StoreInt64(&f.metrics.cacheEntriesCount, int64(len(f.cache)))
 	f.last = time.Now()
 	return nil
