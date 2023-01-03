@@ -225,10 +225,10 @@ func TestAgentConfigForbiddenOnInvalidConfig(t *testing.T) {
 		return srv
 	}
 
-	// Username and password with insufficient permission.
+	// Username and password with insufficient privileges.
 	// No fallback because apm-server.agent.config.elasticsearch.username
 	// and apm-server.agent.config.elasticsearch.password are explicitly configured.
-	srvInsufficientPermissionUsernamePasswordSetup := func(t *testing.T) *apmservertest.Server {
+	srvInsufficientPrivilegesUsernamePasswordSetup := func(t *testing.T) *apmservertest.Server {
 		srv := apmservertest.NewUnstartedServerTB(t)
 		srv.Config.AgentConfig = &apmservertest.AgentConfig{
 			CacheExpiration:       time.Second,
@@ -241,15 +241,15 @@ func TestAgentConfigForbiddenOnInvalidConfig(t *testing.T) {
 		return srv
 	}
 
-	// API key with insufficient permission.
+	// API key with insufficient privileges.
 	// No fallback because apm-server.agent.config.elasticsearch.api_key is explicitly configured.
-	srvInsufficientPermissionAPIKeySetup := func(t *testing.T) *apmservertest.Server {
+	srvInsufficientPrivilegesAPIKeySetup := func(t *testing.T) *apmservertest.Server {
 		apiKeyName := t.Name()
 		systemtest.InvalidateAPIKeyByName(t, apiKeyName)
 		t.Cleanup(func() {
 			systemtest.InvalidateAPIKeyByName(t, apiKeyName)
 		})
-		// Create an API Key without agent config read permission
+		// Create an API Key without agent config read privileges
 		apiKeyBase64 := createAPIKey(t, apiKeyName, "--sourcemap")
 		apiKeyBytes, err := base64.StdEncoding.DecodeString(apiKeyBase64)
 		require.NoError(t, err)
@@ -277,12 +277,12 @@ func TestAgentConfigForbiddenOnInvalidConfig(t *testing.T) {
 			srvSetup: srvInvalidAPIKeySetup,
 		},
 		{
-			name:     "insufficient_permission_username_password",
-			srvSetup: srvInsufficientPermissionUsernamePasswordSetup,
+			name:     "insufficient_privileges_username_password",
+			srvSetup: srvInsufficientPrivilegesUsernamePasswordSetup,
 		},
 		{
-			name:     "insufficient_permission_api_key",
-			srvSetup: srvInsufficientPermissionAPIKeySetup,
+			name:     "insufficient_privileges_api_key",
+			srvSetup: srvInsufficientPrivilegesAPIKeySetup,
 		},
 	}
 
