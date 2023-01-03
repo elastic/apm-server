@@ -24,7 +24,6 @@ import (
 const (
 	defaultTransactionAggregationHDRHistogramSignificantFigures = 2
 
-	defaultServiceDestinationAggregationInterval  = time.Minute
 	defaultServiceDestinationAggregationMaxGroups = 10000
 
 	defaultServiceAggregationInterval                       = time.Minute
@@ -46,8 +45,7 @@ type TransactionAggregationConfig struct {
 
 // ServiceDestinationAggregationConfig holds configuration related to span metrics aggregation for service maps.
 type ServiceDestinationAggregationConfig struct {
-	Interval  time.Duration `config:"interval" validate:"min=1"`
-	MaxGroups int           `config:"max_groups" validate:"min=1"`
+	MaxGroups int `config:"max_groups" validate:"min=1"`
 }
 
 // ServiceAggregationConfig holds configuration related to service metrics aggregation.
@@ -64,7 +62,6 @@ func defaultAggregationConfig() AggregationConfig {
 			HDRHistogramSignificantFigures: defaultTransactionAggregationHDRHistogramSignificantFigures,
 		},
 		ServiceDestinations: ServiceDestinationAggregationConfig{
-			Interval:  defaultServiceDestinationAggregationInterval,
 			MaxGroups: defaultServiceDestinationAggregationMaxGroups,
 		},
 		Service: ServiceAggregationConfig{

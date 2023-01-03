@@ -39,8 +39,9 @@ func TestNewAggregatorConfigInvalid(t *testing.T) {
 		err: "MaxGroups unspecified or negative",
 	}, {
 		config: AggregatorConfig{
-			BatchProcessor: report,
-			MaxGroups:      1,
+			BatchProcessor:                 report,
+			MaxGroups:                      1,
+			HDRHistogramSignificantFigures: 1,
 		},
 		err: "Interval unspecified or negative",
 	}} {
@@ -289,7 +290,7 @@ func TestAggregatorOverflow(t *testing.T) {
 			overflowEvent = &m
 		}
 	}
-	out := cmp.Diff(model.APMEvent{
+	assert.Empty(t, cmp.Diff(model.APMEvent{
 		Service: model.Service{
 			Name: "other",
 		},
@@ -320,8 +321,7 @@ func TestAggregatorOverflow(t *testing.T) {
 				},
 			},
 		},
-	}, *overflowEvent, cmpopts.IgnoreTypes(netip.Addr{}))
-	assert.Empty(t, out)
+	}, *overflowEvent, cmpopts.IgnoreTypes(netip.Addr{}, time.Time{})))
 }
 
 func makeTransaction(

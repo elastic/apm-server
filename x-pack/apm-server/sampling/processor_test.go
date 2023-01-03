@@ -298,6 +298,12 @@ func TestProcessLocalTailSamplingUnsampled(t *testing.T) {
 		err := processor.ProcessBatch(context.Background(), &batch)
 		require.NoError(t, err)
 		assert.Empty(t, batch)
+
+		// break out of the loop as soon as the first one is dropped.
+		droppedEvents := collectProcessorMetrics(processor).Ints["sampling.events.dropped"]
+		if droppedEvents != 0 {
+			break
+		}
 	}
 
 	// Stop the processor so we can access the database.
