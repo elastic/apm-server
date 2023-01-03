@@ -69,9 +69,9 @@ type ElasticsearchFetcher struct {
 }
 
 type fetcherMetrics struct {
-	fetchES, fetchFallback, fetchFallbackUnavailable int64
-	cacheRefreshSuccesses, cacheRefreshFailures      int64
-	cacheEntriesCount                                int64
+	fetchES, fetchFallback, fetchFallbackUnavailable,
+	cacheRefreshSuccesses, cacheRefreshFailures,
+	cacheEntriesCount atomic.Int64
 }
 
 func NewElasticsearchFetcher(client *elasticsearch.Client, cacheDuration time.Duration, fetcher Fetcher) *ElasticsearchFetcher {
@@ -91,25 +91,28 @@ func (f *ElasticsearchFetcher) Fetch(ctx context.Context, query Query) (Result, 
 		// Happy path: serve fetch requests using an initialized cache.
 		f.mu.RLock()
 		defer f.mu.RUnlock()
-		defer atomic.AddInt64(&f.metrics.fetchES, 1)
+		defer f.metrics.fetchES.Add(1)
 		return matchAgentConfig(query, f.cache), nil
 	}
 
 	if !f.firstRunCompleted.Load() {
 		f.logger.Warnf("rejecting fetch request: first refresh cache run has not completed")
 		return Result{}, errors.New(ErrInfrastructureNotReady)
+	}
+
+	if f.fallbackFetcher != nil {
+		defer f.metrics.fetchFallback.Add(1)
+		return f.fallbackFetcher.Fetch(ctx, query)
+	}
+
+	if f.invalidESCfg.Load() {
+		defer f.metrics.fetchFallbackUnavailable.Add(1)
+		f.logger.Errorf("rejecting fetch request: no valid elasticsearch config")
+		return Result{}, errors.New(ErrNoValidElasticsearchConfig)
 	} else {
-		if f.fallbackFetcher != nil {
-			defer atomic.AddInt64(&f.metrics.fetchFallback, 1)
-			return f.fallbackFetcher.Fetch(ctx, query)
-		} else if f.fallbackFetcher == nil && f.invalidESCfg.Load() {
-			defer atomic.AddInt64(&f.metrics.fetchFallbackUnavailable, 1)
-			f.logger.Errorf("rejecting fetch request: no valid elasticsearch config")
-			return Result{}, errors.New(ErrNoValidElasticsearchConfig)
-		} else {
-			f.logger.Warnf("rejecting fetch request: infrastructure is not ready")
-			return Result{}, errors.New(ErrInfrastructureNotReady)
-		}
+		defer f.metrics.fetchFallbackUnavailable.Add(1)
+		f.logger.Warnf("rejecting fetch request: infrastructure is not ready")
+		return Result{}, errors.New(ErrInfrastructureNotReady)
 	}
 }
 
@@ -157,9 +160,9 @@ func (f *ElasticsearchFetcher) refreshCache(ctx context.Context) (err error) {
 
 	defer func() {
 		if err != nil {
-			atomic.AddInt64(&f.metrics.cacheRefreshFailures, 1)
+			f.metrics.cacheRefreshFailures.Add(1)
 		} else {
-			atomic.AddInt64(&f.metrics.cacheRefreshSuccesses, 1)
+			f.metrics.cacheRefreshSuccesses.Add(1)
 		}
 	}()
 
@@ -242,7 +245,7 @@ func (f *ElasticsearchFetcher) refreshCache(ctx context.Context) (err error) {
 	defer f.mu.Unlock()
 	f.cache = buffer
 	f.cacheInitialized.Store(true)
-	atomic.StoreInt64(&f.metrics.cacheEntriesCount, int64(len(f.cache)))
+	f.metrics.cacheEntriesCount.Store(int64(len(f.cache)))
 	f.last = time.Now()
 	return nil
 }
@@ -255,10 +258,10 @@ func (f *ElasticsearchFetcher) CollectMonitoring(_ monitoring.Mode, V monitoring
 	V.OnRegistryStart()
 	defer V.OnRegistryFinished()
 
-	monitoring.ReportInt(V, "cache.entries.count", atomic.LoadInt64(&f.metrics.cacheEntriesCount))
-	monitoring.ReportInt(V, "fetch.es", atomic.LoadInt64(&f.metrics.fetchES))
-	monitoring.ReportInt(V, "fetch.fallback", atomic.LoadInt64(&f.metrics.fetchFallback))
-	monitoring.ReportInt(V, "fetch.unavailable", atomic.LoadInt64(&f.metrics.fetchFallbackUnavailable))
-	monitoring.ReportInt(V, "cache.refresh.successes", atomic.LoadInt64(&f.metrics.cacheRefreshSuccesses))
-	monitoring.ReportInt(V, "cache.refresh.failures", atomic.LoadInt64(&f.metrics.cacheRefreshFailures))
+	monitoring.ReportInt(V, "cache.entries.count", f.metrics.cacheEntriesCount.Load())
+	monitoring.ReportInt(V, "fetch.es", f.metrics.fetchES.Load())
+	monitoring.ReportInt(V, "fetch.fallback", f.metrics.fetchFallback.Load())
+	monitoring.ReportInt(V, "fetch.unavailable", f.metrics.fetchFallbackUnavailable.Load())
+	monitoring.ReportInt(V, "cache.refresh.successes", f.metrics.cacheRefreshSuccesses.Load())
+	monitoring.ReportInt(V, "cache.refresh.failures", f.metrics.cacheRefreshFailures.Load())
 }
