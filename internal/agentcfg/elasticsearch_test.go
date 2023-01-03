@@ -115,7 +115,7 @@ func TestFetchOnCacheNotReady(t *testing.T) {
 	fetcher := newElasticsearchFetcher(t, []map[string]interface{}{}, 1)
 
 	_, err := fetcher.Fetch(context.Background(), Query{Service: Service{Name: ""}, Etag: ""})
-	require.EqualError(t, err, ErrCacheNotReady)
+	require.EqualError(t, err, ErrInfrastructureNotReady)
 
 	err = fetcher.refreshCache(context.Background())
 	require.NoError(t, err)
@@ -130,7 +130,7 @@ func (f fetcherFunc) Fetch(ctx context.Context, query Query) (Result, error) {
 	return f(ctx, query)
 }
 
-func TestFetchIndexDoesNotExist(t *testing.T) {
+func TestFetchUseFallback(t *testing.T) {
 	fallbackFetcherCalled := false
 	fallbackFetcher := fetcherFunc(func(context.Context, Query) (Result, error) {
 		fallbackFetcherCalled = true
@@ -143,7 +143,32 @@ func TestFetchIndexDoesNotExist(t *testing.T) {
 	)
 
 	fetcher.refreshCache(context.Background())
-	require.False(t, fetcher.expectedIndexExists)
 	fetcher.Fetch(context.Background(), Query{Service: Service{Name: ""}, Etag: ""})
 	require.True(t, fallbackFetcherCalled)
+}
+
+func TestFetchNoFallbackInvalidESCfg(t *testing.T) {
+	fetcher := NewElasticsearchFetcher(
+		newMockElasticsearchClient(t, 401, func(w io.Writer) {}),
+		time.Second,
+		nil,
+	)
+
+	err := fetcher.refreshCache(context.Background())
+	require.EqualError(t, err, "refresh cache returns non-200 status: 401")
+	_, err = fetcher.Fetch(context.Background(), Query{Service: Service{Name: ""}, Etag: ""})
+	require.EqualError(t, err, ErrNoValidElasticsearchConfig)
+}
+
+func TestFetchNoFallback(t *testing.T) {
+	fetcher := NewElasticsearchFetcher(
+		newMockElasticsearchClient(t, 500, func(w io.Writer) {}),
+		time.Second,
+		nil,
+	)
+
+	err := fetcher.refreshCache(context.Background())
+	require.EqualError(t, err, "refresh cache returns non-200 status: 500")
+	_, err = fetcher.Fetch(context.Background(), Query{Service: Service{Name: ""}, Etag: ""})
+	require.EqualError(t, err, ErrInfrastructureNotReady)
 }

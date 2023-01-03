@@ -94,25 +94,25 @@ type TLSConfig struct {
 // Elasticsearch-based implementation of agent configuration.
 type AgentConfig struct {
 	CacheExpiration       time.Duration
-	ElasticsearchHosts    []string
 	ElasticsearchUsername string
 	ElasticsearchPassword string
+	ElasticsearchAPIKey   string
 }
 
 func (c *AgentConfig) MarshalJSON() ([]byte, error) {
 	// time.Duration is encoded as int64.
 	// Convert time.Durations to durations, to encode as duration strings.
 	type config struct {
-		CacheExpiration       string   `json:"cache.expiration,omitempty"`
-		ElasticsearchHosts    []string `json:"elasticsearch.hosts,omitempty"`
-		ElasticsearchUsername string   `json:"elasticsearch.username,omitempty"`
-		ElasticsearchPassword string   `json:"elasticsearch.password,omitempty"`
+		CacheExpiration       string `json:"cache.expiration,omitempty"`
+		ElasticsearchUsername string `json:"elasticsearch.username,omitempty"`
+		ElasticsearchPassword string `json:"elasticsearch.password,omitempty"`
+		ElasticsearchAPIKey   string `json:"elasticsearch.api_key,omitempty"`
 	}
 	return json.Marshal(config{
 		CacheExpiration:       durationString(c.CacheExpiration),
-		ElasticsearchHosts:    c.ElasticsearchHosts,
 		ElasticsearchUsername: c.ElasticsearchUsername,
 		ElasticsearchPassword: c.ElasticsearchPassword,
+		ElasticsearchAPIKey:   c.ElasticsearchAPIKey,
 	})
 }
 

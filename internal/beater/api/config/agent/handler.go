@@ -184,19 +184,19 @@ func extractInternalError(c *request.Context, err error) {
 		body = authErrMsg(c, fullMsg, agentcfg.ErrUnauthorized)
 		keyword = agentcfg.ErrUnauthorized
 
-	case strings.Contains(msg, agentcfg.ErrAgentRemoteConfigurationDisabled):
-		body = "Agent remote configuration is disabled. Configure the `apm-server.kibana` section in apm-server.yml to enable it. If you are using a RUM agent, you also need to configure the `apm-server.rum` section. If you are not using remote configuration, you can safely ignore this error."
+	case strings.Contains(msg, agentcfg.ErrNoValidElasticsearchConfig):
+		body = "Your Elasticsearch configuration does not support agent config queries. Check your configurations at `output.elasticsearch` or `apm-server.agent.config.elasticsearch`."
 		c.Result.Set(
-			request.IDResponseErrorsServiceUnavailable,
-			http.StatusServiceUnavailable,
+			request.IDResponseErrorsForbidden,
+			http.StatusForbidden,
 			keyword,
 			body,
 			err,
 		)
 		return
 
-	case strings.Contains(msg, agentcfg.ErrCacheNotReady):
-		body = "Agent remote configuration is not ready. Please retry later."
+	case strings.Contains(msg, agentcfg.ErrInfrastructureNotReady):
+		body = "Agent configuration infrastructure is not ready. Please retry later."
 		c.Result.Set(
 			request.IDResponseErrorsServiceUnavailable,
 			http.StatusServiceUnavailable,

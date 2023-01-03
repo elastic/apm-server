@@ -36,9 +36,15 @@ import (
 
 const ElasticsearchIndexName = ".apm-agent-configuration"
 
-// ErrCacheNotReady is returned when a fetch request comes in while
-// the first run of refresh cache has not completed yet.
-const ErrCacheNotReady = "agentcfg elasticsearch cache is not ready"
+const (
+	// ErrInfrastructureNotReady is returned when a fetch request comes in while
+	// the first run of refresh cache has not completed yet.
+	ErrInfrastructureNotReady = "agentcfg infrastructure is not ready"
+
+	// ErrNoValidElasticsearchConfig is an error where the server is
+	// not properly configured to fetch agent configuration.
+	ErrNoValidElasticsearchConfig = "no valid elasticsearch config to fetch agent config"
+)
 
 const refreshCacheTimeout = 5 * time.Second
 
@@ -47,14 +53,15 @@ type ElasticsearchFetcher struct {
 	cacheDuration   time.Duration
 	fallbackFetcher Fetcher
 
-	mu                  sync.RWMutex
-	last                time.Time
-	cache               []AgentConfig
-	expectedIndexExists bool
+	mu    sync.RWMutex
+	last  time.Time
+	cache []AgentConfig
 
 	searchSize int
 
 	firstRunCompleted rwFlag
+	invalidESCfg      rwFlag
+	cacheInitialized  rwFlag
 
 	logger *logp.Logger
 
@@ -89,36 +96,40 @@ type fetcherMetrics struct {
 func NewElasticsearchFetcher(client *elasticsearch.Client, cacheDuration time.Duration, fetcher Fetcher) *ElasticsearchFetcher {
 	logger := logp.NewLogger("agentcfg")
 	return &ElasticsearchFetcher{
-		client:            client,
-		cacheDuration:     cacheDuration,
-		fallbackFetcher:   fetcher,
-		searchSize:        100,
-		firstRunCompleted: rwFlag{},
-		logger:            logger,
+		client:          client,
+		cacheDuration:   cacheDuration,
+		fallbackFetcher: fetcher,
+		searchSize:      100,
+		logger:          logger,
 	}
 }
 
 // Fetch finds a matching agent config based on the received query.
 func (f *ElasticsearchFetcher) Fetch(ctx context.Context, query Query) (Result, error) {
+	if f.cacheInitialized.Get() {
+		// Happy path: serve fetch requests using an initialized cache.
+		f.mu.RLock()
+		defer f.mu.RUnlock()
+		defer atomic.AddInt64(&f.metrics.fetchES, 1)
+		return matchAgentConfig(query, f.cache), nil
+	}
+
 	if !f.firstRunCompleted.Get() {
-		f.logger.Warnf("rejecting fetch request: cache is not ready")
-		return Result{}, errors.New(ErrCacheNotReady)
-	}
-
-	if !f.expectedIndexExists {
-		if f.fallbackFetcher == nil {
+		f.logger.Warnf("rejecting fetch request: first refresh cache run has not completed")
+		return Result{}, errors.New(ErrInfrastructureNotReady)
+	} else {
+		if f.fallbackFetcher != nil {
+			defer atomic.AddInt64(&f.metrics.fetchFallback, 1)
+			return f.fallbackFetcher.Fetch(ctx, query)
+		} else if f.fallbackFetcher == nil && f.invalidESCfg.Get() {
 			defer atomic.AddInt64(&f.metrics.fetchFallbackUnavailable, 1)
-			f.logger.Errorf("rejecting fetch request: elasticsearch is unreachable and no fallback fetcher is configured")
-			return Result{}, errors.New(ErrAgentRemoteConfigurationDisabled)
+			f.logger.Errorf("rejecting fetch request: no valid elasticsearch config")
+			return Result{}, errors.New(ErrNoValidElasticsearchConfig)
+		} else {
+			f.logger.Warnf("rejecting fetch request: infrastructure is not ready")
+			return Result{}, errors.New(ErrInfrastructureNotReady)
 		}
-		defer atomic.AddInt64(&f.metrics.fetchFallback, 1)
-		return f.fallbackFetcher.Fetch(ctx, query)
 	}
-
-	f.mu.RLock()
-	defer f.mu.RUnlock()
-	defer atomic.AddInt64(&f.metrics.fetchES, 1)
-	return matchAgentConfig(query, f.cache), nil
 }
 
 // Run refreshes the fetcher cache by querying Elasticsearch periodically.
@@ -134,6 +145,10 @@ func (f *ElasticsearchFetcher) Run(ctx context.Context) error {
 
 		if err := f.refreshCache(ctx); err != nil {
 			f.logger.Errorf("refresh cache error: %s", err)
+			if f.invalidESCfg.Get() {
+				f.logger.Errorf("stopping refresh cache background job: elasticsearch config is invalid")
+				return nil
+			}
 		} else {
 			f.logger.Debugf("refresh cache success")
 		}
@@ -193,9 +208,11 @@ func (f *ElasticsearchFetcher) refreshCache(ctx context.Context) (err error) {
 				}
 				defer resp.Body.Close()
 
-				if resp.StatusCode == http.StatusOK {
-					f.expectedIndexExists = true
-				} else {
+				if resp.StatusCode >= http.StatusBadRequest {
+					// Elasticsearch returns 401 on unauthorized requests and 403 on insufficient permission
+					if resp.StatusCode == http.StatusUnauthorized || resp.StatusCode == http.StatusForbidden {
+						f.invalidESCfg.Set()
+					}
 					return fmt.Errorf("refresh cache returns non-200 status: %d", resp.StatusCode)
 				}
 			} else {
@@ -235,6 +252,7 @@ func (f *ElasticsearchFetcher) refreshCache(ctx context.Context) (err error) {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	f.cache = buffer
+	f.cacheInitialized.Set()
 	atomic.StoreInt64(&f.metrics.cacheEntriesCount, int64(len(f.cache)))
 	f.last = time.Now()
 	return nil

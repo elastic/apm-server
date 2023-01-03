@@ -133,3 +133,13 @@ func InvalidateAPIKey(t testing.TB, id string) {
 		t.Fatal(err)
 	}
 }
+
+// InvalidateAPIKeyByName invalidates the API Key with the given name.
+func InvalidateAPIKeyByName(t testing.TB, name string) {
+	req := esapi.SecurityInvalidateAPIKeyRequest{
+		Body: esutil.NewJSONReader(map[string]interface{}{"name": name}),
+	}
+	if _, err := Elasticsearch.Do(context.Background(), req, nil); err != nil {
+		t.Fatal(err)
+	}
+}

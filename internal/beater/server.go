@@ -232,12 +232,15 @@ func newAgentConfigFetcher(
 	newElasticsearchClient func(*elasticsearch.Config) (*elasticsearch.Client, error),
 ) (agentcfg.Fetcher, func(context.Context) error, error) {
 	// Always use ElasticsearchFetcher, and as a fallback, use:
-	// 1. fleet agent config
-	// 2. kibana fetcher if (1) is not available
-	// 3. no fallback if both (1) and (2) are not available
+	// 1. no fallback if Elasticsearch is explicitly configured
+	// 2. fleet agent config
+	// 3. kibana fetcher if (2) is not available
+	// 4. no fallback if both (2) and (3) are not available
 	var fallbackFetcher agentcfg.Fetcher
 
 	switch {
+	case cfg.AgentConfig.ESConfigured:
+		// Disable fallback because agent config Elasticsearch is explicitly configured.
 	case cfg.FleetAgentConfigs != nil:
 		agentConfigurations := agentcfg.ConvertAgentConfigs(cfg.FleetAgentConfigs)
 		fallbackFetcher = agentcfg.NewDirectFetcher(agentConfigurations)

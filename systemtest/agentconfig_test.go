@@ -18,6 +18,7 @@
 package systemtest_test
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"net/http"
 	"net/url"
@@ -46,7 +47,6 @@ func TestAgentConfig(t *testing.T) {
 	srvElasticsearch := apmservertest.NewUnstartedServerTB(t)
 	srvElasticsearch.Config.AgentConfig = &apmservertest.AgentConfig{
 		CacheExpiration:       time.Second,
-		ElasticsearchHosts:    []string{"localhost"},
 		ElasticsearchUsername: "admin",
 		ElasticsearchPassword: "changeme",
 	}
@@ -55,7 +55,7 @@ func TestAgentConfig(t *testing.T) {
 
 	// Run apm-server standalone, exercising the Kibana agent config implementation.
 	srvKibana := apmservertest.NewUnstartedServerTB(t)
-	srvKibana.Config.AgentConfig = &apmservertest.AgentConfig{CacheExpiration: time.Second, ElasticsearchUsername: "wrong"}
+	srvKibana.Config.AgentConfig = &apmservertest.AgentConfig{CacheExpiration: time.Second}
 	err = srvKibana.Start()
 	require.NoError(t, err)
 
@@ -189,37 +189,127 @@ func queryAgentConfig(t testing.TB, serverURL, serviceName, serviceEnvironment, 
 	return attrs, resp, errorObj
 }
 
-func TestAgentConfigForbiddenOnDisabled(t *testing.T) {
+func TestAgentConfigForbiddenOnInvalidConfig(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
 
 	serviceName := "systemtest_service"
 	serviceEnvironment := "testing"
 
-	// Run apm-server standalone with no ES and Kibana connection.
-	srv := apmservertest.NewUnstartedServerTB(t)
-	srv.Config.AgentConfig = &apmservertest.AgentConfig{
-		CacheExpiration:       time.Second,
-		ElasticsearchUsername: "wrong",
-	}
-	srv.Config.Kibana = nil
-	err := srv.Start()
-	require.NoError(t, err)
-
-	url := srv.URL
-
-	expectedErrorMsg := "Agent remote configuration is disabled. Configure the `apm-server.kibana` section in apm-server.yml to enable it. If you are using a RUM agent, you also need to configure the `apm-server.rum` section. If you are not using remote configuration, you can safely ignore this error."
-
-	var resp *http.Response
-	var errorObj map[string]interface{}
-	maxRetries := 20
-	for i := 0; i < maxRetries; i++ {
-		_, resp, errorObj = queryAgentConfig(t, url, serviceName, serviceEnvironment, "")
-		if resp.StatusCode == http.StatusServiceUnavailable && errorObj["error"].(string) == expectedErrorMsg {
-			break
+	// Unauthorized username and password.
+	// No fallback because apm-server.agent.config.elasticsearch.username
+	// and apm-server.agent.config.elasticsearch.password are explicitly configured.
+	srvInvalidUsernamePasswordSetup := func(t *testing.T) *apmservertest.Server {
+		srv := apmservertest.NewUnstartedServerTB(t)
+		srv.Config.AgentConfig = &apmservertest.AgentConfig{
+			CacheExpiration:       time.Second,
+			ElasticsearchUsername: "bad_username",
+			ElasticsearchPassword: "bad_password",
 		}
-		<-time.After(500 * time.Millisecond)
+		srv.Config.Kibana = nil
+		err := srv.Start()
+		require.NoError(t, err)
+		return srv
 	}
 
-	assert.Equal(t, http.StatusServiceUnavailable, resp.StatusCode)
-	assert.Equal(t, expectedErrorMsg, errorObj["error"].(string))
+	// Unauthorized API key.
+	// No fallback because apm-server.agent.config.elasticsearch.api_key is explicitly configured.
+	srvInvalidAPIKeySetup := func(t *testing.T) *apmservertest.Server {
+		srv := apmservertest.NewUnstartedServerTB(t)
+		srv.Config.AgentConfig = &apmservertest.AgentConfig{
+			CacheExpiration:     time.Second,
+			ElasticsearchAPIKey: "bad_api_key",
+		}
+		srv.Config.Kibana = nil
+		err := srv.Start()
+		require.NoError(t, err)
+		return srv
+	}
+
+	// Username and password with insufficient permission.
+	// No fallback because apm-server.agent.config.elasticsearch.username
+	// and apm-server.agent.config.elasticsearch.password are explicitly configured.
+	srvInsufficientPermissionUsernamePasswordSetup := func(t *testing.T) *apmservertest.Server {
+		srv := apmservertest.NewUnstartedServerTB(t)
+		srv.Config.AgentConfig = &apmservertest.AgentConfig{
+			CacheExpiration:       time.Second,
+			ElasticsearchUsername: "apm_server_user",
+			ElasticsearchPassword: "changeme",
+		}
+		srv.Config.Kibana = nil
+		err := srv.Start()
+		require.NoError(t, err)
+		return srv
+	}
+
+	// API key with insufficient permission.
+	// No fallback because apm-server.agent.config.elasticsearch.api_key is explicitly configured.
+	srvInsufficientPermissionAPIKeySetup := func(t *testing.T) *apmservertest.Server {
+		apiKeyName := t.Name()
+		systemtest.InvalidateAPIKeyByName(t, apiKeyName)
+		t.Cleanup(func() {
+			systemtest.InvalidateAPIKeyByName(t, apiKeyName)
+		})
+		// Create an API Key without agent config read permission
+		apiKeyBase64 := createAPIKey(t, apiKeyName, "--sourcemap")
+		apiKeyBytes, err := base64.StdEncoding.DecodeString(apiKeyBase64)
+		require.NoError(t, err)
+		srv := apmservertest.NewUnstartedServerTB(t)
+		srv.Config.AgentConfig = &apmservertest.AgentConfig{
+			CacheExpiration:     time.Second,
+			ElasticsearchAPIKey: string(apiKeyBytes),
+		}
+		srv.Config.Kibana = nil
+		err = srv.Start()
+		require.NoError(t, err)
+		return srv
+	}
+
+	tests := []struct {
+		name     string
+		srvSetup func(*testing.T) *apmservertest.Server
+	}{
+		{
+			name:     "invalid_username_password",
+			srvSetup: srvInvalidUsernamePasswordSetup,
+		},
+		{
+			name:     "invalid_api_key",
+			srvSetup: srvInvalidAPIKeySetup,
+		},
+		{
+			name:     "insufficient_permission_username_password",
+			srvSetup: srvInsufficientPermissionUsernamePasswordSetup,
+		},
+		{
+			name:     "insufficient_permission_api_key",
+			srvSetup: srvInsufficientPermissionAPIKeySetup,
+		},
+	}
+
+	for _, tc := range tests {
+		tc := tc // capture range variable
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			srv := tc.srvSetup(t)
+			url := srv.URL
+
+			expectedErrorMsg := "Your Elasticsearch configuration does not support agent config queries. Check your configurations at `output.elasticsearch` or `apm-server.agent.config.elasticsearch`."
+
+			var resp *http.Response
+			var errorObj map[string]interface{}
+			maxRetries := 20
+			for i := 0; i < maxRetries; i++ {
+				_, resp, errorObj = queryAgentConfig(t, url, serviceName, serviceEnvironment, "")
+				if resp.StatusCode == http.StatusForbidden {
+					break
+				}
+				<-time.After(500 * time.Millisecond)
+			}
+
+			assert.Equal(t, http.StatusForbidden, resp.StatusCode)
+			assert.Equal(t, expectedErrorMsg, errorObj["error"].(string))
+		})
+	}
+
 }

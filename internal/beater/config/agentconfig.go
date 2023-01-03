@@ -48,7 +48,8 @@ type AgentConfig struct {
 	ESConfig *elasticsearch.Config
 	Cache    Cache `config:"cache"`
 
-	es *esCredentialsConfig
+	ESConfigured bool
+	es           *esCredentialsConfig
 }
 
 func (c *AgentConfig) Unpack(in *config.C) error {
@@ -82,6 +83,7 @@ func (c *AgentConfig) setup(log *logp.Logger, outputESCfg *config.C) error {
 		}
 	}
 	if c.es != nil {
+		c.ESConfigured = true
 		c.ESConfig.Username = c.es.Username
 		c.ESConfig.Password = c.es.Password
 		c.ESConfig.APIKey = c.es.APIKey

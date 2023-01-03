@@ -92,7 +92,15 @@ func TestUnpackConfig(t *testing.T) {
 			CompressionLevel: 5,
 			Backoff:          elasticsearch.DefaultBackoffConfig,
 		},
-		Cache: Cache{Expiration: 30 * time.Second},
+		Cache:        Cache{Expiration: 30 * time.Second},
+		ESConfigured: true,
+	}
+
+	agentcfgUnexpectedFieldConfig := DefaultConfig()
+	agentcfgUnexpectedFieldConfig.AgentConfig = AgentConfig{
+		ESConfig:     elasticsearch.DefaultConfig(),
+		Cache:        Cache{Expiration: 30 * time.Second},
+		ESConfigured: true,
 	}
 
 	tests := map[string]struct {
@@ -295,7 +303,8 @@ func TestUnpackConfig(t *testing.T) {
 						CompressionLevel: 5,
 						Backoff:          elasticsearch.DefaultBackoffConfig,
 					},
-					Cache: Cache{Expiration: 2 * time.Minute},
+					Cache:        Cache{Expiration: 2 * time.Minute},
+					ESConfigured: true,
 				},
 				Aggregation: AggregationConfig{
 					Transactions: TransactionAggregationConfig{
@@ -572,7 +581,7 @@ func TestUnpackConfig(t *testing.T) {
 					"hosts": []string{"localhost:9201", "localhost:9202"},
 				},
 			},
-			outCfg: DefaultConfig(),
+			outCfg: agentcfgUnexpectedFieldConfig,
 		},
 	}
 

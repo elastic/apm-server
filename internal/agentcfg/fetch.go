@@ -28,10 +28,6 @@ import (
 // configuration to the Jaeger remote sampler protocol.
 const TransactionSamplingRateKey = "transaction_sample_rate"
 
-// ErrAgentRemoteConfigurationDisabled is an error where the server is
-// not properly configured to fetch agent configuration.
-const ErrAgentRemoteConfigurationDisabled = "agent remote configuration disabled"
-
 // Fetcher defines a common interface to retrieving agent config.
 type Fetcher interface {
 	Fetch(context.Context, Query) (Result, error)
