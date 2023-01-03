@@ -20,6 +20,7 @@ package systemtest
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -101,23 +102,15 @@ func InitFleet() error {
 // IntegrationPackage to the installed package. InitFleetPackage assumes
 // that Fleet has been set up already.
 func InitFleetPackage() error {
-	// Build the integration package.
 	_, filename, _, ok := runtime.Caller(0)
 	if !ok {
-		log.Fatal("could not locate systemtest directory")
+		return errors.New("could not locate systemtest directory")
 	}
 	systemtestDir := filepath.Dir(filename)
 	repoRoot := filepath.Join(systemtestDir, "..")
-	cmd := exec.Command("make", "build-package")
-	cmd.Dir = repoRoot
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	if err := cmd.Run(); err != nil {
-		return err
-	}
 
 	// Locate the integration package zip.
-	cmd = exec.Command("make", "--no-print-directory", "get-version")
+	cmd := exec.Command("make", "--no-print-directory", "get-version")
 	cmd.Dir = repoRoot
 	output, err := cmd.Output()
 	if err != nil {

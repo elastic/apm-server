@@ -31,7 +31,8 @@ aggregation: span events describing an operation that involves another service
 are grouped by the originating and target services, and the span latency is
 accumulated. For these metrics we record only a count and sum, enabling calculation
 of throughput and average latency. Once again, a default limit of 10000 groups is
-imposed.
+imposed. From 8.7.0 onwards, the Service destination aggregator publishes metrics
+for 3 different periods: `1m`, `10m`, and `60m`.
 
 ## Dealing with sampling
 
