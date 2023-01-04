@@ -54,7 +54,7 @@ init-aws-profile: ~/.aws/credentials
 	@touch $@
 
 terraform.tfvars:
-	@sed "s/USER/$(USER)/" $(TFVARS_SOURCE) > terraform.tfvars
+	@cp $(TFVARS_SOURCE) terraform.tfvars
 
 .PHONY: apmbench
 apmbench:

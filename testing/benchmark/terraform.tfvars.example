@@ -1,4 +1,3 @@
-user_name = "USER"
 ENVIRONMENT = "dev"
 REPO = "apm-server"
 
