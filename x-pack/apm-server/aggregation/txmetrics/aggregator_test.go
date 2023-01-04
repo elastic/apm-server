@@ -594,6 +594,10 @@ func TestAggregationFields(t *testing.T) {
 				Counts: []int64{expectedCount},
 				Values: []float64{0},
 			},
+			DurationSummary: model.SummaryMetric{
+				Count: expectedCount,
+				Sum:   0,
+			},
 		}
 		expected = append(expected, expectedEvent)
 	}
@@ -711,6 +715,10 @@ func createOverflowMetricset(overflowCount, repCount int, txnDuration time.Durat
 			DurationHistogram: model.Histogram{
 				Counts: []int64{int64(overflowCount * repCount)},
 				Values: []float64{float64(txnDuration.Microseconds())},
+			},
+			DurationSummary: model.SummaryMetric{
+				Count: int64(overflowCount * repCount),
+				Sum:   float64(txnDuration.Microseconds()),
 			},
 		},
 		Metricset: &model.Metricset{
