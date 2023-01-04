@@ -1,5 +1,5 @@
 ---
-description: Pipeline for ingesting APM transaction metrics.
+description: Pipeline for ingesting APM service destination metrics.
 processors:
   - pipeline:
       name: observer_version
