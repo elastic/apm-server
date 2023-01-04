@@ -154,7 +154,6 @@ func TestUnpackConfig(t *testing.T) {
 				"agent.config.cache.expiration": "2m",
 				"aggregation": map[string]interface{}{
 					"transactions": map[string]interface{}{
-						"interval":                         "1s",
 						"rollup_intervals":                 []string{"10s", "10m"},
 						"max_groups":                       123,
 						"hdrhistogram_significant_figures": 1,
@@ -260,7 +259,6 @@ func TestUnpackConfig(t *testing.T) {
 						MaxGroups: 456,
 					},
 					Service: ServiceAggregationConfig{
-						Interval:                       time.Minute,
 						MaxGroups:                      457,
 						HDRHistogramSignificantFigures: 5,
 					},
@@ -426,7 +424,6 @@ func TestUnpackConfig(t *testing.T) {
 						MaxGroups: 10000,
 					},
 					Service: ServiceAggregationConfig{
-						Interval:                       time.Minute,
 						MaxGroups:                      0, // Default value is set as per memory limit
 						HDRHistogramSignificantFigures: 5,
 					},
