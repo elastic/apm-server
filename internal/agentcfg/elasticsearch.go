@@ -60,9 +60,8 @@ type ElasticsearchFetcher struct {
 
 	searchSize int
 
-	firstRunCompleted atomic.Bool
-	invalidESCfg      atomic.Bool
-	cacheInitialized  atomic.Bool
+	invalidESCfg     atomic.Bool
+	cacheInitialized atomic.Bool
 
 	logger *logp.Logger
 
@@ -94,11 +93,6 @@ func (f *ElasticsearchFetcher) Fetch(ctx context.Context, query Query) (Result, 
 		defer f.mu.RUnlock()
 		f.metrics.fetchES.Add(1)
 		return matchAgentConfig(query, f.cache), nil
-	}
-
-	if !f.firstRunCompleted.Load() {
-		f.logger.Warnf("rejecting fetch request: first refresh cache run has not completed")
-		return Result{}, errors.New(ErrInfrastructureNotReady)
 	}
 
 	if f.fallbackFetcher != nil {
@@ -155,9 +149,6 @@ func (f *ElasticsearchFetcher) refreshCache(ctx context.Context) (err error) {
 	// The refresh cache operation should complete within refreshCacheTimeout.
 	ctx, cancel := context.WithTimeout(ctx, refreshCacheTimeout)
 	defer cancel()
-
-	// Flag that first run has completed regardless of outcome.
-	defer f.firstRunCompleted.Store(true)
 
 	defer func() {
 		if err != nil {

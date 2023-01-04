@@ -36,23 +36,6 @@ import (
 	"github.com/elastic/apm-server/systemtest/apmservertest"
 )
 
-// httpDoRetryOnUnavailable retries http.DefaultClient.Do until the status code
-// is not 503. It closes all response body except the one returned.
-func httpDoRetryOnUnavailable(req *http.Request) (resp *http.Response, err error) {
-	maxRetries := 70
-	for i := 0; i < maxRetries; i++ {
-		if resp != nil {
-			resp.Body.Close()
-			<-time.After(500 * time.Millisecond)
-		}
-		resp, err = http.DefaultClient.Do(req)
-		if err != nil || resp.StatusCode != http.StatusServiceUnavailable {
-			return
-		}
-	}
-	return
-}
-
 func TestAuth(t *testing.T) {
 	systemtest.InvalidateAPIKeys(t)
 	defer systemtest.InvalidateAPIKeys(t)
@@ -136,7 +119,7 @@ func TestAuth(t *testing.T) {
 		copyHeaders(req.Header, headers)
 		req.Header.Add("Content-Type", "application/json")
 		req.URL.RawQuery = url.Values{"service.name": []string{"systemtest_service"}}.Encode()
-		resp, err := httpDoRetryOnUnavailable(req)
+		resp, err := http.DefaultClient.Do(req)
 		require.NoError(t, err)
 		defer resp.Body.Close()
 		if apiKey == "ingest" || apiKey == "sourcemap" {
@@ -161,7 +144,7 @@ func TestAuth(t *testing.T) {
 		copyHeaders(req.Header, headers)
 		req.Header.Add("Content-Type", "application/json")
 		req.URL.RawQuery = url.Values{"service.name": []string{"systemtest_service"}}.Encode()
-		resp, err := httpDoRetryOnUnavailable(req)
+		resp, err := http.DefaultClient.Do(req)
 		require.NoError(t, err)
 		defer resp.Body.Close()
 		if apiKey == "ingest" || apiKey == "sourcemap" {
