@@ -314,8 +314,7 @@ type ServiceAggregationConfig struct {
 	//
 	// Service metrics aggregation is disabled by default while the
 	// feature is in technical preview.
-	Enabled  *bool `json:"enabled,omitempty"`
-	Interval time.Duration
+	Enabled *bool `json:"enabled,omitempty"`
 }
 
 func (s *ServiceAggregationConfig) MarshalJSON() ([]byte, error) {
@@ -326,8 +325,7 @@ func (s *ServiceAggregationConfig) MarshalJSON() ([]byte, error) {
 		Interval string `json:"interval,omitempty"`
 	}
 	return json.Marshal(config{
-		Enabled:  s.Enabled,
-		Interval: durationString(s.Interval),
+		Enabled: s.Enabled,
 	})
 }
 
