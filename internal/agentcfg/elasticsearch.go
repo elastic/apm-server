@@ -38,7 +38,8 @@ const ElasticsearchIndexName = ".apm-agent-configuration"
 
 const (
 	// ErrInfrastructureNotReady is returned when a fetch request comes in while
-	// the first run of refresh cache has not completed yet.
+	// the infrastructure is not ready to serve the request.
+	// This may happen when the local cache is not initialized and no fallback fetcher is configured.
 	ErrInfrastructureNotReady = "agentcfg infrastructure is not ready"
 
 	// ErrNoValidElasticsearchConfig is an error where the server is
@@ -91,7 +92,7 @@ func (f *ElasticsearchFetcher) Fetch(ctx context.Context, query Query) (Result, 
 		// Happy path: serve fetch requests using an initialized cache.
 		f.mu.RLock()
 		defer f.mu.RUnlock()
-		defer f.metrics.fetchES.Add(1)
+		f.metrics.fetchES.Add(1)
 		return matchAgentConfig(query, f.cache), nil
 	}
 
@@ -101,19 +102,19 @@ func (f *ElasticsearchFetcher) Fetch(ctx context.Context, query Query) (Result, 
 	}
 
 	if f.fallbackFetcher != nil {
-		defer f.metrics.fetchFallback.Add(1)
+		f.metrics.fetchFallback.Add(1)
 		return f.fallbackFetcher.Fetch(ctx, query)
 	}
 
 	if f.invalidESCfg.Load() {
-		defer f.metrics.fetchFallbackUnavailable.Add(1)
+		f.metrics.fetchFallbackUnavailable.Add(1)
 		f.logger.Errorf("rejecting fetch request: no valid elasticsearch config")
 		return Result{}, errors.New(ErrNoValidElasticsearchConfig)
-	} else {
-		defer f.metrics.fetchFallbackUnavailable.Add(1)
-		f.logger.Warnf("rejecting fetch request: infrastructure is not ready")
-		return Result{}, errors.New(ErrInfrastructureNotReady)
 	}
+
+	f.metrics.fetchFallbackUnavailable.Add(1)
+	f.logger.Warnf("rejecting fetch request: infrastructure is not ready")
+	return Result{}, errors.New(ErrInfrastructureNotReady)
 }
 
 // Run refreshes the fetcher cache by querying Elasticsearch periodically.
@@ -242,8 +243,8 @@ func (f *ElasticsearchFetcher) refreshCache(ctx context.Context) (err error) {
 	}
 
 	f.mu.Lock()
-	defer f.mu.Unlock()
 	f.cache = buffer
+	f.mu.Unlock()
 	f.cacheInitialized.Store(true)
 	f.metrics.cacheEntriesCount.Store(int64(len(f.cache)))
 	f.last = time.Now()
