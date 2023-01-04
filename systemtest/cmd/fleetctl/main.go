@@ -21,6 +21,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"net/url"
 	"reflect"
 	"strings"
 
@@ -30,9 +31,7 @@ import (
 	"github.com/elastic/apm-server/systemtest/fleettest"
 )
 
-var (
-	kibanaURL string
-)
+var client *fleettest.Client
 
 func parseKV(s ...string) (map[string]string, error) {
 	out := make(map[string]string)
@@ -50,8 +49,7 @@ func parseKV(s ...string) (map[string]string, error) {
 var listPackagePoliciesCommand = &cobra.Command{
 	Use:   "list-policies",
 	Short: "List Fleet integration package policies",
-	RunE: func(cmd *cobra.Command, args []string) error {
-		client := fleettest.NewClient(kibanaURL)
+	RunE: func(cmd *cobra.Command, _ []string) error {
 		policies, err := client.ListPackagePolicies()
 		if err != nil {
 			return fmt.Errorf("failed to fetch package policies: %w", err)
@@ -64,13 +62,12 @@ var setPolicyVarCommand = &cobra.Command{
 	Use:   "set-policy-var <policy-id> <k=v [k=v...]>",
 	Short: "Set config vars for a Fleet integration package policy",
 	Args:  cobra.MinimumNArgs(2),
-	RunE: func(cmd *cobra.Command, args []string) error {
+	RunE: func(_ *cobra.Command, args []string) error {
 		setVars, err := parseKV(args[1:]...)
 		if err != nil {
 			return err
 		}
 
-		client := fleettest.NewClient(kibanaURL)
 		policy, err := client.PackagePolicy(args[0])
 		if err != nil {
 			return fmt.Errorf("failed to fetch package policy: %w", err)
@@ -103,13 +100,12 @@ var setPolicyConfigCommand = &cobra.Command{
 	Use:   "set-policy-config <policy-id> <k=v [k=v...]>",
 	Short: "Set arbitrary config for a Fleet integration package policy",
 	Args:  cobra.MinimumNArgs(2),
-	RunE: func(cmd *cobra.Command, args []string) error {
+	RunE: func(_ *cobra.Command, args []string) error {
 		config, err := parseKV(args[1:]...)
 		if err != nil {
 			return err
 		}
 
-		client := fleettest.NewClient(kibanaURL)
 		policy, err := client.PackagePolicy(args[0])
 		if err != nil {
 			return fmt.Errorf("failed to fetch package policy: %w", err)
@@ -136,6 +132,10 @@ var setPolicyConfigCommand = &cobra.Command{
 		}
 
 		existing := policy.Inputs[0].Config
+		if existing == nil {
+			existing = make(map[string]interface{})
+			policy.Inputs[0].Config = existing
+		}
 		for k, v := range config {
 			var value interface{}
 			if err := yaml.Unmarshal([]byte(v), &value); err != nil {
@@ -158,11 +158,28 @@ var setPolicyConfigCommand = &cobra.Command{
 }
 
 func main() {
-	rootCommand := &cobra.Command{Use: "fleetctl"}
+	var (
+		kibanaURL  string
+		kibanaUser string
+		kibanaPass string
+	)
+	rootCommand := &cobra.Command{Use: "fleetctl",
+		PersistentPreRunE: func(_ *cobra.Command, _ []string) error {
+			u, err := url.Parse(kibanaURL)
+			if err != nil {
+				return err
+			}
+			u.User = url.UserPassword(kibanaUser, kibanaPass)
+			client = fleettest.NewClient(u.String())
+			return nil
+		},
+	}
 	rootCommand.AddCommand(listPackagePoliciesCommand)
 	rootCommand.AddCommand(setPolicyVarCommand)
 	rootCommand.AddCommand(setPolicyConfigCommand)
 	rootCommand.PersistentFlags().StringVarP(&kibanaURL, "kibana", "u", "http://localhost:5601", "URL of the Kibana server")
+	rootCommand.PersistentFlags().StringVar(&kibanaUser, "user", "admin", "Username to use for Kibana authentication")
+	rootCommand.PersistentFlags().StringVar(&kibanaPass, "pass", "changeme", "Password to use for Kibana authentication")
 
 	if err := rootCommand.Execute(); err != nil {
 		log.Fatal(err)
