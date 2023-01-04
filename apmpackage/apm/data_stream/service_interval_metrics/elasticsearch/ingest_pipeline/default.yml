@@ -1,5 +1,5 @@
 ---
-description: Pipeline for ingesting APM internal metrics.
+description: Pipeline for ingesting APM service metrics.
 processors:
   - pipeline:
       name: observer_version
@@ -7,16 +7,3 @@ processors:
       name: observer_ids
   - pipeline:
       name: ecs_version
-  - pipeline:
-      name: user_agent
-  - pipeline:
-      name: process_ppid
-  - pipeline:
-      name: client_geoip
-  - remove:
-      field: _metric_descriptions
-      ignore_missing: true
-  - remove:
-      # Removed in 8.6.0
-      field: timeseries.instance
-      ignore_missing: true
