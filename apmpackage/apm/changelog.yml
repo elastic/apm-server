@@ -1,5 +1,8 @@
 - version: generated
   changes:
+    - description: Introduce `metrics-apm.service-${interval}` data stream for service metrics (`1m`, `10m` and `60m`).
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/9960
     - description: Introduce `metrics-apm.service_destination-${interval}` data stream for service_destination metrics (`1m`, `10m` and `60m`).
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/9926
