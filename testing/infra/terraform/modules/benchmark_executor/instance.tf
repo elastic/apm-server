@@ -45,7 +45,7 @@ module "vpc" {
   tags = merge(local.ci_tags, var.tags)
 
   vpc_tags = {
-    name = "vpc-${var.user_name}-worker"
+    Name = "vpc-${var.user_name}-worker"
   }
 }
 
