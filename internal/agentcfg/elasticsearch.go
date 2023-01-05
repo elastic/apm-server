@@ -21,6 +21,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"sync"
 	"sync/atomic"
@@ -197,7 +198,11 @@ func (f *ElasticsearchFetcher) refreshCache(ctx context.Context) (err error) {
 					if resp.StatusCode == http.StatusUnauthorized || resp.StatusCode == http.StatusForbidden {
 						f.invalidESCfg.Store(true)
 					}
-					return fmt.Errorf("refresh cache returns non-200 status: %d", resp.StatusCode)
+					bodyBytes, err := io.ReadAll(resp.Body)
+					if err != nil {
+						f.logger.Debugf("refresh cache elasticsearch returned status %d: %s", resp.StatusCode, string(bodyBytes))
+					}
+					return fmt.Errorf("refresh cache elasticsearch returned status %d", resp.StatusCode)
 				}
 			} else {
 				resp, err = esapi.ScrollRequest{
