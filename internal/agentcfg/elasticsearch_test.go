@@ -155,7 +155,7 @@ func TestFetchNoFallbackInvalidESCfg(t *testing.T) {
 	)
 
 	err := fetcher.refreshCache(context.Background())
-	require.EqualError(t, err, "refresh cache returns non-200 status: 401")
+	require.EqualError(t, err, "refresh cache elasticsearch returned status 401")
 	_, err = fetcher.Fetch(context.Background(), Query{Service: Service{Name: ""}, Etag: ""})
 	require.EqualError(t, err, ErrNoValidElasticsearchConfig)
 }
@@ -168,7 +168,7 @@ func TestFetchNoFallback(t *testing.T) {
 	)
 
 	err := fetcher.refreshCache(context.Background())
-	require.EqualError(t, err, "refresh cache returns non-200 status: 500")
+	require.EqualError(t, err, "refresh cache elasticsearch returned status 500")
 	_, err = fetcher.Fetch(context.Background(), Query{Service: Service{Name: ""}, Etag: ""})
 	require.EqualError(t, err, ErrInfrastructureNotReady)
 }
