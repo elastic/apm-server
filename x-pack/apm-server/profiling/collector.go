@@ -27,6 +27,7 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/esutil"
 
 	"github.com/elastic/apm-server/x-pack/apm-server/profiling/common"
+	"github.com/elastic/apm-server/x-pack/apm-server/profiling/libpf"
 )
 
 var (
@@ -50,7 +51,6 @@ var (
 )
 
 const (
-	actionIndex  = "index"
 	actionCreate = "create"
 	actionUpdate = "update"
 
@@ -68,7 +68,7 @@ type ElasticCollector struct {
 	logger         *logp.Logger
 	indexer        esutil.BulkIndexer
 	metricsIndexer esutil.BulkIndexer
-	indexes        [MaxEventsIndexes]string
+	indexes        [common.MaxEventsIndexes]string
 
 	sourceFilesLock sync.Mutex
 	sourceFiles     *simplelru.LRU
@@ -100,7 +100,8 @@ func NewCollector(
 
 	// Precalculate index names to minimise per-TraceEvent overhead.
 	for i := range c.indexes {
-		c.indexes[i] = fmt.Sprintf("%s-%dpow%02d", EventsIndexPrefix, SamplingFactor, i+1)
+		c.indexes[i] = fmt.Sprintf("%s-%dpow%02d", common.EventsIndexPrefix,
+			common.SamplingFactor, i+1)
 	}
 	return c
 }
@@ -118,7 +119,7 @@ func (e *ElasticCollector) AddCountsForTraces(ctx context.Context,
 	// Store every event as-is into the full events index.
 	e.logger.Infof("adding %d trace events", len(traceEvents))
 	for i := range traceEvents {
-		if err := e.indexStacktrace(ctx, &traceEvents[i], AllEventsIndex); err != nil {
+		if err := e.indexStacktrace(ctx, &traceEvents[i], common.AllEventsIndex); err != nil {
 			return nil, errCustomer
 		}
 	}
@@ -137,7 +138,7 @@ func (e *ElasticCollector) AddCountsForTraces(ctx context.Context,
 			for j := uint16(0); j < traceEvents[i].Count; j++ {
 				// samplingRatio is the probability p=0.2 for an event to be copied into the next
 				// downsampled index.
-				if rand.Float64() < SamplingRatio { //nolint:gosec
+				if rand.Float64() < common.SamplingRatio { //nolint:gosec
 					count++
 				}
 			}
@@ -264,7 +265,7 @@ func mapToStackTraceEvents(ctx context.Context,
 				ProjectID:     projectID,
 				TimeStamp:     ts,
 				HostID:        hostID,
-				StackTraceID:  EncodeStackTraceID(traces[i].Hash),
+				StackTraceID:  common.EncodeStackTraceID(traces[i].Hash),
 				PodName:       traces[i].PodName,
 				ContainerName: traces[i].ContainerName,
 				ThreadName:    traces[i].Comm,
@@ -357,13 +358,13 @@ func (e *ElasticCollector) AddExecutableMetadata(ctx context.Context,
 	filenames := in.GetFilenames()
 	buildIDs := in.GetBuildIDs()
 
-	lastSeen := GetStartOfWeekFromTime(time.Now())
+	lastSeen := common.GetStartOfWeekFromTime(time.Now())
 
 	for i := 0; i < numHiFileIDs; i++ {
-		fileID := NewFileID(hiFileIDs[i], loFileIDs[i])
+		fileID := libpf.NewFileID(hiFileIDs[i], loFileIDs[i])
 
 		// DocID is the base64-encoded FileID.
-		docID := EncodeFileID(fileID)
+		docID := common.EncodeFileID(fileID)
 
 		exeMetadata := ExeMetadata{
 			ScriptedUpsert: true,
@@ -381,7 +382,7 @@ func (e *ElasticCollector) AddExecutableMetadata(ctx context.Context,
 		_ = json.NewEncoder(&buf).Encode(exeMetadata)
 
 		err := multiplexCurrentNextIndicesWrite(ctx, e, &esutil.BulkIndexerItem{
-			Index:      ExecutablesIndex,
+			Index:      common.ExecutablesIndex,
 			Action:     actionUpdate,
 			DocumentID: docID,
 			OnFailure: func(
@@ -430,18 +431,18 @@ func (e *ElasticCollector) SetFramesForTraces(ctx context.Context,
 	for _, trace := range traces {
 		// We use the base64-encoded trace hash as the document ID. This seems to be an
 		// appropriate way to do K/V lookups with ES.
-		docID := EncodeStackTraceID(trace.Hash)
+		docID := common.EncodeStackTraceID(trace.Hash)
 
 		toIndex := StackTrace{
-			FrameIDs: EncodeFrameIDs(trace.Files, trace.Linenos),
-			Types:    EncodeFrameTypes(trace.FrameTypes),
+			FrameIDs: common.EncodeFrameIDs(trace.Files, trace.Linenos),
+			Types:    common.EncodeFrameTypes(trace.FrameTypes),
 		}
 
 		var body bytes.Buffer
 		_ = json.NewEncoder(&body).Encode(toIndex)
 
 		err = multiplexCurrentNextIndicesWrite(ctx, e, &esutil.BulkIndexerItem{
-			Index:      StackTraceIndex,
+			Index:      common.StackTraceIndex,
 			Action:     actionCreate,
 			DocumentID: docID,
 			OnFailure: func(
@@ -507,7 +508,7 @@ func (e *ElasticCollector) AddFrameMetadata(ctx context.Context, in *AddFrameMet
 	counterStackframesTotal.Add(int64(arraySize))
 
 	for i := 0; i < arraySize; i++ {
-		fileID := NewFileID(hiFileIDs[i], loFileIDs[i])
+		fileID := libpf.NewFileID(hiFileIDs[i], loFileIDs[i])
 
 		if fileID.IsZero() {
 			e.logger.Warn("Attempting to report metadata for invalid FileID 0." +
@@ -516,7 +517,7 @@ func (e *ElasticCollector) AddFrameMetadata(ctx context.Context, in *AddFrameMet
 			continue
 		}
 
-		sourceFileID := NewFileID(hiSourceIDs[i], loSourceIDs[i])
+		sourceFileID := libpf.NewFileID(hiSourceIDs[i], loSourceIDs[i])
 		filename := filenames[i]
 		e.sourceFilesLock.Lock()
 		if filename == "" {
@@ -536,13 +537,13 @@ func (e *ElasticCollector) AddFrameMetadata(ctx context.Context, in *AddFrameMet
 			SourceType:     int16(types[i]),
 		}
 
-		docID := EncodeFrameID(fileID, addressOrLines[i])
+		docID := common.EncodeFrameID(fileID, addressOrLines[i])
 
 		var buf bytes.Buffer
 		_ = json.NewEncoder(&buf).Encode(frameMetadata)
 
 		err := multiplexCurrentNextIndicesWrite(ctx, e, &esutil.BulkIndexerItem{
-			Index:      StackFrameIndex,
+			Index:      common.StackFrameIndex,
 			Action:     actionCreate,
 			DocumentID: docID,
 			OnFailure: func(
@@ -595,7 +596,7 @@ func (e *ElasticCollector) AddFallbackSymbols(ctx context.Context,
 	counterStackframesTotal.Add(int64(arraySize))
 
 	for i := 0; i < arraySize; i++ {
-		fileID := NewFileID(hiFileIDs[i], loFileIDs[i])
+		fileID := libpf.NewFileID(hiFileIDs[i], loFileIDs[i])
 
 		if fileID.IsZero() {
 			e.logger.Warn("" +
@@ -607,16 +608,16 @@ func (e *ElasticCollector) AddFallbackSymbols(ctx context.Context,
 
 		frameMetadata := StackFrame{
 			FunctionName: symbols[i],
-			SourceType:   SourceTypeC,
+			SourceType:   libpf.SourceTypeC,
 		}
 
-		docID := EncodeFrameID(fileID, addressOrLines[i])
+		docID := common.EncodeFrameID(fileID, addressOrLines[i])
 
 		var buf bytes.Buffer
 		_ = json.NewEncoder(&buf).Encode(frameMetadata)
 
 		err := multiplexCurrentNextIndicesWrite(ctx, e, &esutil.BulkIndexerItem{
-			Index: StackFrameIndex,
+			Index: common.StackFrameIndex,
 			// Use 'create' instead of 'index' to not overwrite an existing document,
 			// possibly containing a fully symbolized frame.
 			Action:     actionCreate,
@@ -748,7 +749,7 @@ func (e *ElasticCollector) AddMetrics(ctx context.Context, in *Metrics) (*empty.
 			continue
 		}
 		err := e.metricsIndexer.Add(ctx, esutil.BulkIndexerItem{
-			Index:  MetricsIndex,
+			Index:  common.MetricsIndex,
 			Action: actionCreate,
 			Body:   makeBody(metric),
 			OnFailure: func(

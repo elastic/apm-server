@@ -492,6 +492,14 @@ func makeMetricset(key transactionAggregationKey, totalCount int64, counts []int
 	case "unknown":
 		// Keep both Count and Sum as 0.
 	}
+
+	transactionDurationSummary := model.SummaryMetric{
+		Count: totalCount,
+	}
+	for _, v := range values {
+		transactionDurationSummary.Sum += v
+	}
+
 	return model.APMEvent{
 		Timestamp:  key.timestamp,
 		Agent:      model.Agent{Name: key.agentName},
@@ -556,6 +564,7 @@ func makeMetricset(key transactionAggregationKey, totalCount int64, counts []int
 				Counts: counts,
 				Values: values,
 			},
+			DurationSummary: transactionDurationSummary,
 		},
 	}
 }

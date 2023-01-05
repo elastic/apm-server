@@ -66,6 +66,10 @@
                         "values": [
                             1003519
                         ]
+                    },
+                    "summary": {
+                        "sum": 1003519,
+                        "value_count": 1
                     }
                 },
                 "name": "name",
@@ -139,6 +143,10 @@
                         "values": [
                             1003519
                         ]
+                    },
+                    "summary": {
+                        "sum": 1003519,
+                        "value_count": 1
                     }
                 },
                 "name": "name",
@@ -212,6 +220,10 @@
                         "values": [
                             1003519
                         ]
+                    },
+                    "summary": {
+                        "sum": 1003519,
+                        "value_count": 1
                     }
                 },
                 "name": "name",
