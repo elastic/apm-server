@@ -77,12 +77,13 @@ func (c *AgentConfig) setup(log *logp.Logger, outputESCfg *config.C) error {
 		return errors.New(msgInvalidConfigAgentCfg)
 	}
 	if outputESCfg != nil {
-		log.Info("using Elasticsearch output config for fetching agent config")
+		log.Info("using output.elasticsearch for fetching agent config")
 		if err := outputESCfg.Unpack(&c.ESConfig); err != nil {
-			return errors.Wrap(err, "unpacking Elasticsearch output config into agent config")
+			return errors.Wrap(err, "error unpacking output.elasticsearch for fetching agent config")
 		}
 	}
 	if c.es != nil {
+		log.Info("using apm-server.agent.config.elasticsearch for fetching agent config")
 		c.ESConfigured = true
 		c.ESConfig.Username = c.es.Username
 		c.ESConfig.Password = c.es.Password
