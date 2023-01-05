@@ -199,7 +199,7 @@ func (f *ElasticsearchFetcher) refreshCache(ctx context.Context) (err error) {
 						f.invalidESCfg.Store(true)
 					}
 					bodyBytes, err := io.ReadAll(resp.Body)
-					if err != nil {
+					if err == nil {
 						f.logger.Debugf("refresh cache elasticsearch returned status %d: %s", resp.StatusCode, string(bodyBytes))
 					}
 					return fmt.Errorf("refresh cache elasticsearch returned status %d", resp.StatusCode)
