@@ -69,7 +69,7 @@ type ElasticsearchFetcher struct {
 }
 
 type fetcherMetrics struct {
-	fetchES, fetchFallback, fetchFallbackUnavailable,
+	fetchES, fetchFallback, fetchFallbackUnavailable, fetchInvalid,
 	cacheRefreshSuccesses, cacheRefreshFailures,
 	cacheEntriesCount atomic.Int64
 }
@@ -101,7 +101,7 @@ func (f *ElasticsearchFetcher) Fetch(ctx context.Context, query Query) (Result, 
 	}
 
 	if f.invalidESCfg.Load() {
-		f.metrics.fetchFallbackUnavailable.Add(1)
+		f.metrics.fetchInvalid.Add(1)
 		f.logger.Errorf("rejecting fetch request: no valid elasticsearch config")
 		return Result{}, errors.New(ErrNoValidElasticsearchConfig)
 	}
@@ -254,6 +254,7 @@ func (f *ElasticsearchFetcher) CollectMonitoring(_ monitoring.Mode, V monitoring
 	monitoring.ReportInt(V, "fetch.es", f.metrics.fetchES.Load())
 	monitoring.ReportInt(V, "fetch.fallback", f.metrics.fetchFallback.Load())
 	monitoring.ReportInt(V, "fetch.unavailable", f.metrics.fetchFallbackUnavailable.Load())
+	monitoring.ReportInt(V, "fetch.invalid", f.metrics.fetchInvalid.Load())
 	monitoring.ReportInt(V, "cache.refresh.successes", f.metrics.cacheRefreshSuccesses.Load())
 	monitoring.ReportInt(V, "cache.refresh.failures", f.metrics.cacheRefreshFailures.Load())
 }
