@@ -54,7 +54,6 @@ pipeline {
         TF_VAR_CREATED_DATE = "${env.CREATED_DATE}"
         GOBENCH_TAGS = "branch=${BRANCH_NAME},commit=${GIT_BASE_COMMIT},pr=${CHANGE_ID},target_branch=${CHANGE_TARGET}"
         USER = "benchci-${TF_VAR_BRANCH}-${env.BUILD_ID}" // use branch & build as prefix
-	TF_VAR_user_name = "${env.USER}"
       }
       steps {
         dir("${BASE_DIR}") {
