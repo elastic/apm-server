@@ -1,19 +1,19 @@
-title: APM transaction metrics {{ .Interval }}
+title: APM service metrics {{ .Interval }}
 type: metrics
-dataset: apm.transaction.{{ .Interval }}
-ilm_policy: metrics-apm.transaction_interval_metrics-default_policy.{{ .Interval }}
+dataset: apm.service.{{ .Interval }}
+ilm_policy: metrics-apm.service_interval_metrics-default_policy.{{ .Interval }}
 elasticsearch:
   index_template:
     mappings:
-      # Transaction metrics should have all fields strictly mapped;
+      # Internal metrics should have all fields strictly mapped;
       # we are in full control of the field names.
       dynamic: strict
       # Individual measurements are typically uninteresting, so
       # use synthetic source to reduce storage size.
       _source:
         mode: synthetic
-      # We map transaction.duration.summary and event.success_count here
-      # because aggregate_metric_double is not currently supported by package-spec.
+      # We map transaction.duration.summary here because aggregate_metric_double
+      # is not currently supported by package-spec.
       #
       # See https://github.com/elastic/package-spec/issues/363
       properties:

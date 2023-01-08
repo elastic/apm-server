@@ -66,6 +66,10 @@
                         "values": [
                             1003519
                         ]
+                    },
+                    "summary": {
+                        "sum": 1003519,
+                        "value_count": 5
                     }
                 },
                 "name": "abc",
@@ -139,6 +143,10 @@
                         "values": [
                             1003519
                         ]
+                    },
+                    "summary": {
+                        "sum": 1003519,
+                        "value_count": 5
                     }
                 },
                 "name": "abc",
@@ -212,6 +220,10 @@
                         "values": [
                             1003519
                         ]
+                    },
+                    "summary": {
+                        "sum": 1003519,
+                        "value_count": 5
                     }
                 },
                 "name": "abc",
@@ -285,6 +297,10 @@
                         "values": [
                             1003519
                         ]
+                    },
+                    "summary": {
+                        "sum": 1003519,
+                        "value_count": 10
                     }
                 },
                 "name": "def",
@@ -358,6 +374,10 @@
                         "values": [
                             1003519
                         ]
+                    },
+                    "summary": {
+                        "sum": 1003519,
+                        "value_count": 10
                     }
                 },
                 "name": "def",
@@ -431,6 +451,10 @@
                         "values": [
                             1003519
                         ]
+                    },
+                    "summary": {
+                        "sum": 1003519,
+                        "value_count": 10
                     }
                 },
                 "name": "def",
@@ -541,6 +565,10 @@
                         "values": [
                             38911
                         ]
+                    },
+                    "summary": {
+                        "sum": 38911,
+                        "value_count": 1
                     }
                 },
                 "name": "faas",
@@ -652,6 +680,10 @@
                         "values": [
                             38911
                         ]
+                    },
+                    "summary": {
+                        "sum": 38911,
+                        "value_count": 1
                     }
                 },
                 "name": "faas",
@@ -763,6 +795,10 @@
                         "values": [
                             38911
                         ]
+                    },
+                    "summary": {
+                        "sum": 38911,
+                        "value_count": 1
                     }
                 },
                 "name": "faas",
