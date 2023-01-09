@@ -2,6 +2,7 @@
   name: agent.ephemeral_id
 - external: ecs
   name: agent.name
+  dimension: true
 - external: ecs
   name: agent.version
   index: false
