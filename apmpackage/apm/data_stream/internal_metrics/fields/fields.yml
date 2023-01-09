@@ -89,10 +89,12 @@
     Version of the runtime used.
 - name: service.target.name
   type: keyword
+  dimension: true
   description: |
     Target service for which data is collected.
 - name: service.target.type
   type: keyword
+  dimension: true
   description: |
     Type of the target service for which data is collected
 - name: span.destination.service.resource

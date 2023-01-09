@@ -45,7 +45,6 @@
   name: cloud.machine.type
 - external: ecs
   name: cloud.project.id
-  dimension: true
 - external: ecs
   name: cloud.project.name
 - external: ecs
@@ -99,6 +98,7 @@
   name: process.title
 - external: ecs
   name: service.environment
+  dimension: true
 - external: ecs
   name: service.name
   dimension: true
