@@ -11,9 +11,7 @@ Ready to jump in? Read the [APM quick start](https://ela.st/quick-start-apm).
 
 ## Data Streams
 
-When using the APM integration, APM events are indexed into data streams. Data stream names contain the event type,
-service name, and a user-configurable namespace.
-
+When using the APM integration, APM events are indexed into data streams.
 See [APM data streams](https://ela.st/apm-data-streams) for more information.
 
 ### Traces
