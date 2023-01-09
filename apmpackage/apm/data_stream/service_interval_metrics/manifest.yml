@@ -1,0 +1,37 @@
+title: APM service metrics {{ .Interval }}
+type: metrics
+dataset: apm.service.{{ .Interval }}
+ilm_policy: metrics-apm.service_interval_metrics-default_policy.{{ .Interval }}
+elasticsearch:
+  index_template:
+    mappings:
+      # Internal metrics should have all fields strictly mapped;
+      # we are in full control of the field names.
+      dynamic: strict
+      # Individual measurements are typically uninteresting, so
+      # use synthetic source to reduce storage size.
+      _source:
+        mode: synthetic
+      # We map transaction.duration.summary here because aggregate_metric_double
+      # is not currently supported by package-spec.
+      #
+      # See https://github.com/elastic/package-spec/issues/363
+      properties:
+        transaction:
+          properties:
+            duration:
+              properties:
+                summary:
+                  type: aggregate_metric_double
+                  metrics: [sum, value_count]
+                  default_metric: sum
+        event:
+          properties:
+            success_count:
+              type: aggregate_metric_double
+              metrics: [sum, value_count]
+              default_metric: sum
+    settings:
+      index:
+        sort.field: "@timestamp"
+        sort.order: desc

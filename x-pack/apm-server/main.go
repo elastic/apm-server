@@ -126,9 +126,10 @@ func newProcessors(args beater.ServerParams) ([]namedProcessor, error) {
 	const spanName = "service destinations aggregation"
 	args.Logger.Infof("creating %s with config: %+v", spanName, args.Config.Aggregation.ServiceDestinations)
 	spanAggregator, err := spanmetrics.NewAggregator(spanmetrics.AggregatorConfig{
-		BatchProcessor: args.BatchProcessor,
-		Interval:       args.Config.Aggregation.ServiceDestinations.Interval,
-		MaxGroups:      args.Config.Aggregation.ServiceDestinations.MaxGroups,
+		BatchProcessor:  args.BatchProcessor,
+		Interval:        metricsInterval,
+		RollUpIntervals: rollUpMetricsIntervals,
+		MaxGroups:       args.Config.Aggregation.ServiceDestinations.MaxGroups,
 	})
 	if err != nil {
 		return nil, errors.Wrapf(err, "error creating %s", spanName)
@@ -140,7 +141,8 @@ func newProcessors(args beater.ServerParams) ([]namedProcessor, error) {
 		args.Logger.Infof("creating %s with config: %+v", serviceName, args.Config.Aggregation.Service)
 		serviceAggregator, err := servicemetrics.NewAggregator(servicemetrics.AggregatorConfig{
 			BatchProcessor:                 args.BatchProcessor,
-			Interval:                       args.Config.Aggregation.Service.Interval,
+			Interval:                       metricsInterval,
+			RollUpIntervals:                rollUpMetricsIntervals,
 			MaxGroups:                      args.Config.Aggregation.Service.MaxGroups,
 			HDRHistogramSignificantFigures: args.Config.Aggregation.Service.HDRHistogramSignificantFigures,
 		})

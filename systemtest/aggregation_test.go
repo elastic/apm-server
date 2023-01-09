@@ -151,14 +151,7 @@ func TestTransactionAggregationShutdown(t *testing.T) {
 
 func TestServiceDestinationAggregation(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
-	srv := apmservertest.NewUnstartedServerTB(t)
-	srv.Config.Aggregation = &apmservertest.AggregationConfig{
-		ServiceDestinations: &apmservertest.ServiceDestinationAggregationConfig{
-			Interval: time.Second,
-		},
-	}
-	err := srv.Start()
-	require.NoError(t, err)
+	srv := apmservertest.NewServerTB(t)
 
 	// Send spans to the server to be aggregated.
 	tracer := srv.Tracer()
@@ -176,7 +169,13 @@ func TestServiceDestinationAggregation(t *testing.T) {
 	tx.End()
 	tracer.Flush(nil)
 
-	result := systemtest.Elasticsearch.ExpectDocs(t, "metrics-apm.internal-*",
+	// Wait for the transaction to be indexed, indicating that Elasticsearch
+	// indices have been setup and we should not risk triggering the shutdown
+	// timeout while waiting for the aggregated metrics to be indexed.
+	systemtest.Elasticsearch.ExpectMinDocs(t, 6, "traces-apm*", nil)
+	require.NoError(t, srv.Close())
+
+	result := systemtest.Elasticsearch.ExpectDocs(t, "metrics-apm.service_destination*",
 		estest.ExistsQuery{Field: "span.destination.service.response_time.count"},
 	)
 	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits)
@@ -232,10 +231,7 @@ func TestServiceMetricsAggregation(t *testing.T) {
 	srv := apmservertest.NewUnstartedServerTB(t)
 	enabled := true
 	srv.Config.Aggregation = &apmservertest.AggregationConfig{
-		Service: &apmservertest.ServiceAggregationConfig{
-			Enabled:  &enabled,
-			Interval: time.Second,
-		},
+		Service: &apmservertest.ServiceAggregationConfig{Enabled: &enabled},
 	}
 	err := srv.Start()
 	require.NoError(t, err)
@@ -251,7 +247,15 @@ func TestServiceMetricsAggregation(t *testing.T) {
 	}
 	tracer.Flush(nil)
 
-	result := systemtest.Elasticsearch.ExpectMinDocs(t, 2, "metrics-apm.internal-*",
+	// Wait for the transaction to be indexed, indicating that Elasticsearch
+	// indices have been setup and we should not risk triggering the shutdown
+	// timeout while waiting for the aggregated metrics to be indexed.
+	systemtest.Elasticsearch.ExpectMinDocs(t, 2, "traces-apm*",
+		estest.TermQuery{Field: "processor.event", Value: "transaction"},
+	)
+	// Stop server to ensure metrics are flushed on shutdown.
+	assert.NoError(t, srv.Close())
+	result := systemtest.Elasticsearch.ExpectMinDocs(t, 2, "metrics-apm.service*",
 		estest.TermQuery{Field: "metricset.name", Value: "service"},
 	)
 	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits)
@@ -263,10 +267,7 @@ func TestServiceMetricsAggregationLabels(t *testing.T) {
 	srv := apmservertest.NewUnstartedServerTB(t)
 	enabled := true
 	srv.Config.Aggregation = &apmservertest.AggregationConfig{
-		Service: &apmservertest.ServiceAggregationConfig{
-			Enabled:  &enabled,
-			Interval: time.Second,
-		},
+		Service: &apmservertest.ServiceAggregationConfig{Enabled: &enabled},
 	}
 	err := srv.Start()
 	require.NoError(t, err)
@@ -280,20 +281,33 @@ func TestServiceMetricsAggregationLabels(t *testing.T) {
 	tx.End()
 	tracer.Flush(nil)
 
-	result := systemtest.Elasticsearch.ExpectDocs(t, "metrics-apm.internal-*", estest.BoolQuery{
+	// Wait for the transaction to be indexed, indicating that Elasticsearch
+	// indices have been setup and we should not risk triggering the shutdown
+	// timeout while waiting for the aggregated metrics to be indexed.
+	systemtest.Elasticsearch.ExpectDocs(t, "traces-apm*",
+		estest.TermQuery{Field: "processor.event", Value: "transaction"},
+	)
+	// Stop server to ensure metrics are flushed on shutdown.
+	assert.NoError(t, srv.Close())
+	result := systemtest.Elasticsearch.ExpectDocs(t, "metrics-apm.service*", estest.BoolQuery{
 		Filter: []interface{}{
 			estest.TermQuery{Field: "metricset.name", Value: "service"},
 		},
 	})
 
 	docs := unmarshalMetricsetDocs(t, result.Hits.Hits)
-	assert.ElementsMatch(t, []metricsetDoc{{
-		Trasaction:    metricsetTransaction{Type: "type"},
-		MetricsetName: "service",
-		Labels: map[string]string{
-			"department_name": "apm",
-			"organization":    "observability",
-			"company":         "elastic",
-		},
-	}}, docs)
+	var metricsets []metricsetDoc
+	for _, interval := range []string{"1m", "10m", "60m"} {
+		metricsets = append(metricsets, metricsetDoc{
+			Trasaction:        metricsetTransaction{Type: "type"},
+			MetricsetInterval: interval,
+			MetricsetName:     "service",
+			Labels: map[string]string{
+				"department_name": "apm",
+				"organization":    "observability",
+				"company":         "elastic",
+			},
+		})
+	}
+	assert.ElementsMatch(t, metricsets, docs)
 }

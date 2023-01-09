@@ -22,7 +22,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/assert"
 	"go.elastic.co/apm/v2"
 
 	"github.com/elastic/apm-server/systemtest"
@@ -34,14 +34,7 @@ func TestTransactionDroppedSpansStats(t *testing.T) {
 	// Disable span compression.
 	t.Setenv("ELASTIC_APM_SPAN_COMPRESSION_ENABLED", "false")
 	systemtest.CleanupElasticsearch(t)
-	srv := apmservertest.NewUnstartedServerTB(t)
-	srv.Config.Aggregation = &apmservertest.AggregationConfig{
-		ServiceDestinations: &apmservertest.ServiceDestinationAggregationConfig{
-			Interval: time.Second,
-		},
-	}
-	err := srv.Start()
-	require.NoError(t, err)
+	srv := apmservertest.NewServerTB(t)
 
 	tracer := srv.Tracer()
 	tx := tracer.StartTransaction("huge-traces", "type")
@@ -69,7 +62,16 @@ func TestTransactionDroppedSpansStats(t *testing.T) {
 	tx.End()
 	tracer.Flush(nil)
 
-	metricsResult := systemtest.Elasticsearch.ExpectMinDocs(t, 2, "metrics-apm.internal-*",
+	// Wait for the transaction to be indexed, indicating that Elasticsearch
+	// indices have been setup and we should not risk triggering the shutdown
+	// timeout while waiting for the aggregated metrics to be indexed.
+	systemtest.Elasticsearch.ExpectDocs(t, "traces-apm*",
+		estest.TermQuery{Field: "transaction.id", Value: tx.TraceContext().Span.String()},
+	)
+	// Stop server to flushed metrics on shutdown.
+	assert.NoError(t, srv.Close())
+
+	metricsResult := systemtest.Elasticsearch.ExpectMinDocs(t, 6, "metrics-apm.service_destination*",
 		estest.TermQuery{Field: "metricset.name", Value: "service_destination"},
 	)
 	systemtest.ApproveEvents(t, t.Name()+"Metrics", metricsResult.Hits.Hits, "@timestamp")
@@ -85,14 +87,7 @@ func TestTransactionDroppedSpansStats(t *testing.T) {
 func TestCompressedSpans(t *testing.T) {
 	t.Setenv("ELASTIC_APM_SPAN_COMPRESSION_SAME_KIND_MAX_DURATION", "5ms")
 	systemtest.CleanupElasticsearch(t)
-	srv := apmservertest.NewUnstartedServerTB(t)
-	srv.Config.Aggregation = &apmservertest.AggregationConfig{
-		ServiceDestinations: &apmservertest.ServiceDestinationAggregationConfig{
-			Interval: time.Second,
-		},
-	}
-	err := srv.Start()
-	require.NoError(t, err)
+	srv := apmservertest.NewServerTB(t)
 
 	tracer := srv.Tracer()
 	tracer.SetSpanCompressionEnabled(true)

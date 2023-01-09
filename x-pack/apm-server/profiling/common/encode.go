@@ -2,13 +2,15 @@
 // or more contributor license agreements. Licensed under the Elastic License 2.0;
 // you may not use this file except in compliance with the Elastic License 2.0.
 
-package profiling
+package common
 
 import (
 	"bytes"
 	"encoding/base64"
 	"encoding/binary"
 	"io"
+
+	"github.com/elastic/apm-server/x-pack/apm-server/profiling/libpf"
 )
 
 func base64URLEncode(in []byte) string {
@@ -16,18 +18,18 @@ func base64URLEncode(in []byte) string {
 }
 
 // EncodeStackTraceID encodes a StackTraceID into its ES representation.
-func EncodeStackTraceID(hash TraceHash) string {
+func EncodeStackTraceID(hash libpf.TraceHash) string {
 	return base64URLEncode(hash.Bytes())
 }
 
 // EncodeFileID encodes a FileID into its ES representation.
-func EncodeFileID(fileID FileID) string {
+func EncodeFileID(fileID libpf.FileID) string {
 	return base64URLEncode(fileID.Bytes())
 }
 
 // EncodeFrameID creates a single frameID by concatenating a fileID and
 // an addressOrLineno value. The result is returned as base64url encoded string.
-func EncodeFrameID(fileID FileID, addressOrLineno uint64) string {
+func EncodeFrameID(fileID libpf.FileID, addressOrLineno uint64) string {
 	frameID := make([]byte, 24)
 
 	// DocID is the base64-encoded FileID+address.
@@ -41,7 +43,7 @@ func EncodeFrameID(fileID FileID, addressOrLineno uint64) string {
 // and encodes the frameIDs as a single concatenated base64url string.
 // Prefix compression, as well as the future synthetic source feature, requires a
 // single value instead of an array of values.
-func EncodeFrameIDs(fileIDs []FileID, addressOrLinenos []AddressOrLineno) string {
+func EncodeFrameIDs(fileIDs []libpf.FileID, addressOrLinenos []libpf.AddressOrLineno) string {
 	var buf bytes.Buffer
 	for i := len(addressOrLinenos) - 1; i >= 0; i-- {
 		buf.Write(fileIDs[i].Bytes())
@@ -52,10 +54,10 @@ func EncodeFrameIDs(fileIDs []FileID, addressOrLinenos []AddressOrLineno) string
 
 // EncodeFrameTypes applies run-length encoding to the frame types in reverse order
 // and returns the results as base64url encoded string.
-func EncodeFrameTypes(frameTypes []InterpType) string {
+func EncodeFrameTypes(frameTypes []libpf.InterpType) string {
 	var buf bytes.Buffer
 	RunLengthEncodeReverse(frameTypes, &buf,
-		func(frameType InterpType) []byte {
+		func(frameType libpf.InterpType) []byte {
 			return []byte{byte(frameType)}
 		})
 	return base64URLEncode(buf.Bytes())
