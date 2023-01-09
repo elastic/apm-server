@@ -11,10 +11,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/apm-server/internal/elasticsearch"
-	"github.com/elastic/apm-server/internal/model"
+	"github.com/elastic/apm-data/model"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage"
+	"github.com/elastic/go-elasticsearch/v8"
 )
 
 func TestNewProcessorConfigInvalid(t *testing.T) {
@@ -59,10 +59,7 @@ func TestNewProcessorConfigInvalid(t *testing.T) {
 	config.CompressionLevel = 0
 
 	assertInvalidConfigError("invalid remote sampling config: Elasticsearch unspecified")
-	var elasticsearchClient struct {
-		elasticsearch.Client
-	}
-	config.Elasticsearch = elasticsearchClient
+	config.Elasticsearch = &elasticsearch.Client{}
 
 	assertInvalidConfigError("invalid remote sampling config: SampledTracesDataStream unspecified or invalid")
 	config.SampledTracesDataStream = sampling.DataStreamConfig{

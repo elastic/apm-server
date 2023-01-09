@@ -26,7 +26,6 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/elastic/beats/v7/libbeat/common"
-	"github.com/elastic/beats/v7/libbeat/outputs/elasticsearch"
 	"github.com/elastic/elastic-agent-libs/transport"
 	"github.com/elastic/elastic-agent-libs/transport/tlscommon"
 )
@@ -59,10 +58,20 @@ type Config struct {
 	MaxRetries   int               `config:"max_retries"`
 
 	// CompressionLevel holds the gzip compression level used when bulk indexing
-	// with modelindexer; it is otherwise ignored.
+	// with go-docappender; it is otherwise ignored.
 	CompressionLevel int `config:"compression_level" validate:"min=0, max=9"`
 
-	elasticsearch.Backoff `config:"backoff"`
+	Backoff BackoffConfig `config:"backoff"`
+}
+
+// BackoffConfig holds configuration related to exponental backoff for retries.
+type BackoffConfig struct {
+	// Init holds the initial backoff duration, to use on the first attempt
+	// after a failure.
+	Init time.Duration
+
+	// Max holds the maximum backoff duration.
+	Max time.Duration
 }
 
 // DefaultConfig returns a default config.

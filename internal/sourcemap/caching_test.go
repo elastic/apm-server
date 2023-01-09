@@ -119,7 +119,7 @@ func TestStore_Fetch(t *testing.T) {
 	})
 
 	t.Run("invalidFromES", func(t *testing.T) {
-		for name, client := range map[string]elasticsearch.Client{
+		for name, client := range map[string]*elasticsearch.Client{
 			"invalid": newMockElasticsearchClient(t, http.StatusOK,
 				sourcemapSearchResponseBody(1, []map[string]interface{}{sourcemapHit("foo")}),
 			),
@@ -331,7 +331,7 @@ func TestCleanupInterval(t *testing.T) {
 	}
 }
 
-func testCachingFetcher(t *testing.T, client elasticsearch.Client) *CachingFetcher {
+func testCachingFetcher(t *testing.T, client *elasticsearch.Client) *CachingFetcher {
 	esFetcher := NewElasticsearchFetcher(client, "apm-*sourcemap*")
 	cachingFetcher, err := NewCachingFetcher(esFetcher, time.Minute)
 	require.NoError(t, err)

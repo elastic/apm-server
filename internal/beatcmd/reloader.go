@@ -201,7 +201,13 @@ func (r *Reloader) reload(inputConfig, outputConfig *config.C) error {
 	// Start the new runner.
 	var g errgroup.Group
 	ctx, cancel := context.WithCancel(context.Background())
-	g.Go(func() error { return newRunner.Run(ctx) })
+	g.Go(func() error {
+		if err := newRunner.Run(ctx); err != nil && !errors.Is(err, context.Canceled) {
+			r.logger.With(logp.Error(err)).Error("runner returned with an error")
+			return err
+		}
+		return nil
+	})
 	stopRunner := func() error {
 		cancel()
 		return g.Wait()
@@ -209,9 +215,7 @@ func (r *Reloader) reload(inputConfig, outputConfig *config.C) error {
 
 	// Stop any existing runner.
 	if r.runner != nil {
-		if err := r.stopRunner(); err != nil && !errors.Is(err, context.Canceled) {
-			r.logger.With(logp.Error(err)).Error("on reload, old runner stopped with an error")
-		}
+		_ = r.stopRunner() // logged above
 	}
 	r.runner = newRunner
 	r.stopRunner = stopRunner

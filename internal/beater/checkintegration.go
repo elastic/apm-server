@@ -40,7 +40,7 @@ import (
 func checkIntegrationInstalled(
 	ctx context.Context,
 	kibanaClient *kibana.Client,
-	esClient elasticsearch.Client,
+	esClient *elasticsearch.Client,
 	logger *logp.Logger,
 ) (err error) {
 	defer func() {
@@ -106,7 +106,7 @@ func checkIntegrationInstalledKibana(ctx context.Context, kibanaClient *kibana.C
 	return result.Response.Status == "installed", nil
 }
 
-func checkIntegrationInstalledElasticsearch(ctx context.Context, esClient elasticsearch.Client, _ *logp.Logger) (bool, error) {
+func checkIntegrationInstalledElasticsearch(ctx context.Context, esClient *elasticsearch.Client, _ *logp.Logger) (bool, error) {
 	// TODO(axw) generate the list of expected index templates.
 	templates := []string{
 		"traces-apm",
@@ -114,6 +114,11 @@ func checkIntegrationInstalledElasticsearch(ctx context.Context, esClient elasti
 		"metrics-apm.app",
 		"metrics-apm.internal",
 		"logs-apm.error",
+	}
+	for _, intervals := range []string{"1m", "10m", "60m"} {
+		for _, ds := range []string{"metrics-apm.transaction"} {
+			templates = append(templates, fmt.Sprintf("%s.%s", ds, intervals))
+		}
 	}
 	// IndicesGetIndexTemplateRequest accepts a slice of template names,
 	// but the REST API expects just one index template name. Query them

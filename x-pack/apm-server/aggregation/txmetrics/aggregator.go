@@ -12,6 +12,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/axiomhq/hyperloglog"
 	"github.com/cespare/xxhash/v2"
 	"github.com/pkg/errors"
 
@@ -19,8 +20,10 @@ import (
 	"github.com/elastic/elastic-agent-libs/monitoring"
 	"github.com/elastic/go-hdrhistogram"
 
+	"github.com/elastic/apm-data/model"
 	"github.com/elastic/apm-server/internal/logs"
-	"github.com/elastic/apm-server/internal/model"
+	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/baseaggregator"
+	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/interval"
 	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/labels"
 )
 
@@ -37,25 +40,20 @@ const (
 	// publish metrics, we will scale down to 5 (5000 / histogramCountScale).
 	histogramCountScale = 1000
 
-	// tooManyGroupsLoggerRateLimit is the maximum frequency at which
-	// "too many groups" log messages are logged.
-	tooManyGroupsLoggerRateLimit = time.Minute
-
 	metricsetName = "transaction"
+
+	// overflowBucketName is an identifier to denote overflow buckets
+	overflowBucketName = "other"
 )
 
 // Aggregator aggregates transaction durations, periodically publishing histogram metrics.
 type Aggregator struct {
-	stopMu   sync.Mutex
-	stopping chan struct{}
-	stopped  chan struct{}
-
-	config              AggregatorConfig
-	metrics             *aggregatorMetrics // heap-allocated for 64-bit alignment
-	tooManyGroupsLogger *logp.Logger
+	*baseaggregator.Aggregator
+	config  AggregatorConfig
+	metrics *aggregatorMetrics // heap-allocated for 64-bit alignment
 
 	mu               sync.RWMutex
-	active, inactive *metrics
+	active, inactive map[time.Duration]*metrics
 }
 
 type aggregatorMetrics struct {
@@ -78,10 +76,32 @@ type AggregatorConfig struct {
 	// individual metrics documents to be immediately published.
 	MaxTransactionGroups int
 
+	// MaxTransactionGroupsPerService is the maximum number of distinct
+	// transaction group per service to store within an aggregation period.
+	//
+	// When the limit on per service transaction group is reached the new
+	// transactions will be aggregated in a dedicated transaction group
+	// per service identified by `other`.
+	MaxTransactionGroupsPerService int
+
+	// MaxServices is the maximum number of distinct services that the
+	// transaction groups will aggregate for.
+	//
+	// When the limit on service count is reached a new service, identified
+	// by name `other` will be used to aggregate all transactions within a
+	// single bucket.
+	MaxServices int
+
 	// MetricsInterval is the interval between publishing of aggregated
 	// metrics. There may be additional metrics reported at arbitrary
 	// times if the aggregation groups fill up.
 	MetricsInterval time.Duration
+
+	// RollUpIntervals are additional MetricsInterval for the aggregator to
+	// compute and publish metrics for. Each additional interval is constrained
+	// to the same rules as MetricsInterval, and will result in additional
+	// memory to be allocated.
+	RollUpIntervals []time.Duration
 
 	// HDRHistogramSignificantFigures is the number of significant figures
 	// to maintain in the HDR Histograms. HDRHistogramSignificantFigures
@@ -97,8 +117,11 @@ func (config AggregatorConfig) Validate() error {
 	if config.MaxTransactionGroups <= 0 {
 		return errors.New("MaxTransactionGroups unspecified or negative")
 	}
-	if config.MetricsInterval <= 0 {
-		return errors.New("MetricsInterval unspecified or negative")
+	if config.MaxTransactionGroupsPerService <= 0 {
+		return errors.New("MaxTransactionGroupsPerService unspecified or negative")
+	}
+	if config.MaxServices <= 0 {
+		return errors.New("MaxServices unspecified or negative")
 	}
 	if n := config.HDRHistogramSignificantFigures; n < 1 || n > 5 {
 		return errors.Errorf("HDRHistogramSignificantFigures (%d) outside range [1,5]", n)
@@ -114,70 +137,27 @@ func NewAggregator(config AggregatorConfig) (*Aggregator, error) {
 	if config.Logger == nil {
 		config.Logger = logp.NewLogger(logs.TransactionMetrics)
 	}
-	return &Aggregator{
-		stopping:            make(chan struct{}),
-		stopped:             make(chan struct{}),
-		config:              config,
-		metrics:             &aggregatorMetrics{},
-		tooManyGroupsLogger: config.Logger.WithOptions(logs.WithRateLimit(tooManyGroupsLoggerRateLimit)),
-		active:              newMetrics(config.MaxTransactionGroups),
-		inactive:            newMetrics(config.MaxTransactionGroups),
-	}, nil
-}
-
-// Run runs the Aggregator, periodically publishing and clearing aggregated
-// metrics. Run returns when either a fatal error occurs, or the Aggregator's
-// Stop method is invoked.
-func (a *Aggregator) Run() error {
-	ticker := time.NewTicker(a.config.MetricsInterval)
-	defer ticker.Stop()
-	defer func() {
-		a.stopMu.Lock()
-		defer a.stopMu.Unlock()
-		select {
-		case <-a.stopped:
-		default:
-			close(a.stopped)
-		}
-	}()
-	var stop bool
-	for !stop {
-		select {
-		case <-a.stopping:
-			stop = true
-		case <-ticker.C:
-		}
-		if err := a.publish(context.Background()); err != nil {
-			a.config.Logger.With(logp.Error(err)).Warnf(
-				"publishing transaction metrics failed: %s", err,
-			)
-		}
+	aggregator := Aggregator{
+		config:   config,
+		metrics:  &aggregatorMetrics{},
+		active:   make(map[time.Duration]*metrics),
+		inactive: make(map[time.Duration]*metrics),
 	}
-	return nil
-}
-
-// Stop stops the Aggregator if it is running, waiting for it to flush any
-// aggregated metrics and return, or for the context to be cancelled.
-//
-// After Stop has been called the aggregator cannot be reused, as the Run
-// method will always return immediately.
-func (a *Aggregator) Stop(ctx context.Context) error {
-	a.stopMu.Lock()
-	select {
-	case <-a.stopped:
-	case <-a.stopping:
-		// Already stopping/stopped.
-	default:
-		close(a.stopping)
+	base, err := baseaggregator.New(baseaggregator.AggregatorConfig{
+		PublishFunc:     aggregator.publish, // inject local publish
+		Logger:          config.Logger,
+		Interval:        config.MetricsInterval,
+		RollUpIntervals: config.RollUpIntervals,
+	})
+	if err != nil {
+		return nil, err
 	}
-	a.stopMu.Unlock()
-
-	select {
-	case <-a.stopped:
-	case <-ctx.Done():
-		return ctx.Err()
+	aggregator.Aggregator = base
+	for _, interval := range aggregator.Intervals {
+		aggregator.active[interval] = newMetrics(config.MaxTransactionGroups, config.MaxServices)
+		aggregator.inactive[interval] = newMetrics(config.MaxTransactionGroups, config.MaxServices)
 	}
-	return nil
+	return &aggregator, nil
 }
 
 // CollectMonitoring may be called to collect monitoring metrics from the
@@ -191,7 +171,7 @@ func (a *Aggregator) CollectMonitoring(_ monitoring.Mode, V monitoring.Visitor) 
 	a.mu.RLock()
 	defer a.mu.RUnlock()
 
-	m := a.active
+	m := a.active[a.config.MetricsInterval]
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
@@ -199,51 +179,68 @@ func (a *Aggregator) CollectMonitoring(_ monitoring.Mode, V monitoring.Visitor) 
 	monitoring.ReportInt(V, "overflowed", atomic.LoadInt64(&a.metrics.overflowed))
 }
 
-func (a *Aggregator) publish(ctx context.Context) error {
+func (a *Aggregator) publish(ctx context.Context, period time.Duration) error {
 	// We hold a.mu only long enough to swap the metrics. This will
 	// be blocked by metrics updates, which is OK, as we prefer not
 	// to block metrics updaters. After the lock is released nothing
 	// will be accessing a.inactive.
 	a.mu.Lock()
-	a.active, a.inactive = a.inactive, a.active
+	current := a.active[period]
+	a.active[period], a.inactive[period] = a.inactive[period], current
 	a.mu.Unlock()
 
-	if a.inactive.entries == 0 {
+	if current.entries == 0 {
 		a.config.Logger.Debugf("no metrics to publish")
 		return nil
 	}
 
-	// TODO(axw) record either the aggregation interval in effect, or
-	// the specific time period (date_range) on the metrics documents.
-
-	batch := make(model.Batch, 0, a.inactive.entries)
-	for hash, entries := range a.inactive.m {
-		for _, entry := range entries {
-			totalCount, counts, values := entry.transactionMetrics.histogramBuckets()
-			batch = append(batch, makeMetricset(entry.transactionAggregationKey, totalCount, counts, values))
+	intervalStr := interval.FormatDuration(period)
+	batch := make(model.Batch, 0, current.entries)
+	for svc, svcEntry := range current.m {
+		for hash, entries := range svcEntry.m {
+			for _, entry := range entries {
+				totalCount, counts, values := entry.transactionMetrics.histogramBuckets()
+				event := makeMetricset(entry.transactionAggregationKey, totalCount, counts, values)
+				// Record the metricset interval as metricset.interval.
+				event.Metricset.Interval = intervalStr
+				batch = append(batch, event)
+				entry.histogram.Reset()
+			}
+			delete(svcEntry.m, hash)
 		}
-		delete(a.inactive.m, hash)
+		if svcEntry.other != nil {
+			entry := svcEntry.other
+			totalCount, counts, values := entry.transactionMetrics.histogramBuckets()
+			m := makeMetricset(entry.transactionAggregationKey, totalCount, counts, values)
+			// Record the metricset interval as metricset.interval.
+			m.Metricset.Interval = intervalStr
+			m.Metricset.Samples = append(m.Metricset.Samples, model.MetricsetSample{
+				Name:  "transaction.aggregation.overflow_count",
+				Value: float64(svcEntry.otherCardinalityEstimator.Estimate()),
+			})
+			batch = append(batch, m)
+			entry.histogram.Reset()
+			svcEntry.other = nil
+			svcEntry.otherCardinalityEstimator = nil
+			svcEntry.entries = 0
+		}
+		delete(current.m, svc)
 	}
-	a.inactive.entries = 0
+	current.entries = 0
+	current.services = 0
 
-	a.config.Logger.Debugf("publishing %d metricsets", len(batch))
+	a.config.Logger.Debugf("%s interval: publishing %d metricsets", period, len(batch))
 	return a.config.BatchProcessor.ProcessBatch(ctx, &batch)
 }
 
-// ProcessBatch aggregates all transactions contained in "b", adding to it any
-// metricsets requiring immediate publication appended.
-//
-// This method is expected to be used immediately prior to publishing the
-// events, so that the metricsets requiring immediate publication can be
-// included in the same batch.
+// ProcessBatch aggregates all transactions contained in "b". On overflow
+// the metrics are aggregated into `other` buckets to contain cardinality.
 func (a *Aggregator) ProcessBatch(ctx context.Context, b *model.Batch) error {
 	for _, event := range *b {
 		if event.Processor != model.TransactionProcessor {
 			continue
 		}
-		if metricsetEvent := a.AggregateTransaction(event); metricsetEvent.Metricset != nil {
-			*b = append(*b, metricsetEvent)
-		}
+		a.AggregateTransaction(event)
 	}
 	return nil
 }
@@ -254,34 +251,35 @@ func (a *Aggregator) ProcessBatch(ctx context.Context, b *model.Batch) error {
 // of transaction groups being exceeded, then a metricset APMEvent will
 // be returned which should be published immediately, along with the
 // transaction. Otherwise, the returned event will be the zero value.
-func (a *Aggregator) AggregateTransaction(event model.APMEvent) model.APMEvent {
-	if event.Transaction.RepresentativeCount <= 0 {
-		return model.APMEvent{}
+//
+// To contain the cardinality of the aggregated metrics the following
+// limits are considered:
+//
+//   - MaxTransactionGroupsPerService: Limits the maximum number of
+//     transactions that a specific service can produce in one aggregation
+//     interval. Once the limit is breached the new transactions are
+//     aggregated under a dedicated bucket with `transaction.name` as other.
+//   - MaxTransactionGroups: Limits the  maximum number of transaction groups
+//     that the aggregator can produce in one aggregation interval. Once the
+//     limit is breached the new transactions are aggregated in the `other`
+//     transaction bucket of their corresponding services.
+//   - MaxServices: Limits the maximum number of services that the aggregator
+//     can aggregate over. Once this limit is breached the metrics will be
+//     aggregated in the `other` transaction bucket of a dedicated service
+//     with `service.name` as other.
+func (a *Aggregator) AggregateTransaction(event model.APMEvent) {
+	count := event.Transaction.RepresentativeCount
+	if count <= 0 {
+		return
 	}
-
-	key := a.makeTransactionAggregationKey(event, a.config.MetricsInterval)
-	hash := key.hash()
-	count := transactionCount(event.Transaction)
-	if a.updateTransactionMetrics(key, hash, event.Transaction.RepresentativeCount, event.Event.Duration) {
-		return model.APMEvent{}
+	for _, interval := range a.Intervals {
+		key := a.makeTransactionAggregationKey(event, interval)
+		hash := key.hash()
+		a.updateTransactionMetrics(key, hash, count, event.Event.Duration, interval)
 	}
-	// Too many aggregation keys: could not update metrics, so immediately
-	// publish a single-value metric document.
-	a.tooManyGroupsLogger.Warn(`
-Transaction group limit reached, falling back to sending individual metric documents.
-This is typically caused by ineffective transaction grouping, e.g. by creating many
-unique transaction names.
-If you are using an agent with 'use_path_as_transaction_name' enabled, it may cause
-high cardinality. If your agent supports the 'transaction_name_groups' option, setting
-that configuration option appropriately, may lead to better results.`[1:],
-	)
-	atomic.AddInt64(&a.metrics.overflowed, 1)
-	counts := []int64{int64(math.Round(count))}
-	values := []float64{float64(event.Event.Duration.Microseconds())}
-	return makeMetricset(key, counts[0], counts, values)
 }
 
-func (a *Aggregator) updateTransactionMetrics(key transactionAggregationKey, hash uint64, count float64, duration time.Duration) bool {
+func (a *Aggregator) updateTransactionMetrics(key transactionAggregationKey, hash uint64, count float64, duration, interval time.Duration) {
 	if duration < minDuration {
 		duration = minDuration
 	} else if duration > maxDuration {
@@ -291,36 +289,113 @@ func (a *Aggregator) updateTransactionMetrics(key transactionAggregationKey, has
 	a.mu.RLock()
 	defer a.mu.RUnlock()
 
-	m := a.active
+	m := a.active[interval]
 	m.mu.RLock()
-	entries, ok := m.m[hash]
+	var ok bool
+	var entries []*metricsMapEntry
+	svcEntry, svcOk := m.m[key.serviceName]
+	if svcOk {
+		entries, ok = svcEntry.m[hash]
+	}
 	m.mu.RUnlock()
 	var offset int
 	if ok {
 		for offset = range entries {
 			if entries[offset].transactionAggregationKey.equal(key) {
 				entries[offset].recordDuration(duration, count)
-				return true
+				return
 			}
 		}
 		offset++ // where to start searching with the write lock below
 	}
 
+	entries = nil
+	var svcOverflow bool
 	m.mu.Lock()
-	entries, ok = m.m[hash]
-	if ok {
-		for i := range entries[offset:] {
-			if entries[offset+i].transactionAggregationKey.equal(key) {
-				m.mu.Unlock()
-				entries[offset+i].recordDuration(duration, count)
-				return true
+	defer m.mu.Unlock()
+	svcEntry, svcOk = m.m[key.serviceName]
+	if svcOk {
+		entries, ok := svcEntry.m[hash]
+		if ok {
+			for i := range entries[offset:] {
+				if entries[offset+i].transactionAggregationKey.equal(key) {
+					entries[offset+i].recordDuration(duration, count)
+					return
+				}
 			}
 		}
-	} else if m.entries >= len(m.space) {
-		m.mu.Unlock()
-		return false
+	} else {
+		if m.services >= a.config.MaxServices {
+			svcOverflow = true
+			svcEntry = &m.svcSpace[len(m.svcSpace)-1]
+			m.services++
+			m.m[overflowBucketName] = svcEntry
+		} else {
+			svcEntry = &m.svcSpace[m.services]
+			m.services++
+			m.m[key.serviceName] = svcEntry
+		}
+		if svcEntry.m == nil {
+			svcEntry.m = make(map[uint64][]*metricsMapEntry)
+		}
 	}
-	entry := &m.space[m.entries]
+	var entry *metricsMapEntry
+	txnOverflow := m.entries >= a.config.MaxTransactionGroups
+	perSvcTxnOverflow := svcEntry.entries >= a.config.MaxTransactionGroupsPerService
+	if svcOverflow || txnOverflow || perSvcTxnOverflow {
+		if svcEntry.other != nil {
+			// axiomhq/hyerloglog uses metrohash but here we are using
+			// xxhash. Metrohash has better performance but since we are
+			// already calculating xxhash we can use it directly.
+			svcEntry.otherCardinalityEstimator.InsertHash(hash)
+			atomic.AddInt64(&a.metrics.overflowed, 1)
+			svcEntry.other.recordDuration(duration, count)
+			return
+		}
+		if svcOverflow {
+			a.config.Logger.Warnf(`
+%s Service limit of %d reached, new metric documents will be grouped under a dedicated
+overflow bucket identified by service name 'other'.`[1:], interval.String(), a.config.MaxServices)
+		} else if perSvcTxnOverflow {
+			a.config.Logger.Warnf(`
+%s Transaction group limit of %d reached for service %s, new metric documents will be grouped
+under a dedicated bucket identified by transaction name 'other'. This is typically
+caused by ineffective transaction grouping, e.g. by creating many unique transaction
+names.
+If you are using an agent with 'use_path_as_transaction_name' enabled, it may cause
+high cardinality. If your agent supports the 'transaction_name_groups' option, setting
+that configuration option appropriately, may lead to better results.`[1:],
+				interval.String(),
+				a.config.MaxTransactionGroupsPerService,
+				key.serviceName,
+			)
+		} else {
+			a.config.Logger.Warnf(`
+%s Overall transaction group limit of %d reached, new metric documents will be grouped
+under a dedicated bucket identified by transaction name 'other'. This is typically
+caused by ineffective transaction grouping, e.g. by creating many unique transaction
+names.
+If you are using an agent with 'use_path_as_transaction_name' enabled, it may cause
+high cardinality. If your agent supports the 'transaction_name_groups' option, setting
+that configuration option appropriately, may lead to better results.`[1:],
+				interval.String(),
+				a.config.MaxTransactionGroups,
+			)
+		}
+		svcEntry.other = &m.space[m.entries]
+		m.entries++
+		svcEntry.otherCardinalityEstimator = hyperloglog.New14()
+		svcEntry.otherCardinalityEstimator.InsertHash(hash)
+		atomic.AddInt64(&a.metrics.overflowed, 1)
+		entry = svcEntry.other
+		// For `other` service we only account for `other` transaction bucket.
+		key = a.makeOverflowAggregationKey(key, svcOverflow, a.config.MetricsInterval)
+	} else {
+		entry = &m.space[m.entries]
+		m.entries++
+		svcEntry.m[hash] = append(entries, entry)
+		svcEntry.entries++
+	}
 	entry.transactionAggregationKey = key
 	if entry.transactionMetrics.histogram == nil {
 		entry.transactionMetrics.histogram = hdrhistogram.New(
@@ -328,14 +403,31 @@ func (a *Aggregator) updateTransactionMetrics(key transactionAggregationKey, has
 			maxDuration.Microseconds(),
 			a.config.HDRHistogramSignificantFigures,
 		)
-	} else {
-		entry.transactionMetrics.histogram.Reset()
 	}
 	entry.recordDuration(duration, count)
-	m.m[hash] = append(entries, entry)
-	m.entries++
-	m.mu.Unlock()
-	return true
+}
+
+func (a *Aggregator) makeOverflowAggregationKey(
+	oldKey transactionAggregationKey,
+	svcOverflow bool,
+	interval time.Duration,
+) transactionAggregationKey {
+	svcName := oldKey.serviceName
+	if svcOverflow {
+		svcName = overflowBucketName
+	}
+	return transactionAggregationKey{
+		comparable: comparable{
+			// We are using `time.Now` here to align the overflow aggregation to
+			// the evaluation time rather than event time. This prevents us from
+			// cases of bad timestamps when the server receives some events with
+			// old timestamp and these events overflow causing the indexed event
+			// to have old timestamp too.
+			timestamp:       time.Now().Truncate(interval),
+			transactionName: overflowBucketName,
+			serviceName:     svcName,
+		},
+	}
 }
 
 func (a *Aggregator) makeTransactionAggregationKey(event model.APMEvent, interval time.Duration) transactionAggregationKey {
@@ -390,6 +482,24 @@ func (a *Aggregator) makeTransactionAggregationKey(event model.APMEvent, interva
 
 // makeMetricset makes a metricset event from key, counts, and values, with timestamp ts.
 func makeMetricset(key transactionAggregationKey, totalCount int64, counts []int64, values []float64) model.APMEvent {
+	var eventSuccessCount model.SummaryMetric
+	switch key.eventOutcome {
+	case "success":
+		eventSuccessCount.Count = totalCount
+		eventSuccessCount.Sum = float64(totalCount)
+	case "failure":
+		eventSuccessCount.Count = totalCount
+	case "unknown":
+		// Keep both Count and Sum as 0.
+	}
+
+	transactionDurationSummary := model.SummaryMetric{
+		Count: totalCount,
+	}
+	for _, v := range values {
+		transactionDurationSummary.Sum += v
+	}
+
 	return model.APMEvent{
 		Timestamp:  key.timestamp,
 		Agent:      model.Agent{Name: key.agentName},
@@ -428,7 +538,8 @@ func makeMetricset(key transactionAggregationKey, totalCount int64, counts []int
 			},
 		},
 		Event: model.Event{
-			Outcome: key.eventOutcome,
+			Outcome:      key.eventOutcome,
+			SuccessCount: eventSuccessCount,
 		},
 		FAAS: model.FAAS{
 			Coldstart:   key.faasColdstart,
@@ -453,22 +564,35 @@ func makeMetricset(key transactionAggregationKey, totalCount int64, counts []int
 				Counts: counts,
 				Values: values,
 			},
+			DurationSummary: transactionDurationSummary,
 		},
 	}
 }
 
 type metrics struct {
-	mu      sync.RWMutex
-	entries int
-	m       map[uint64][]*metricsMapEntry
-	space   []metricsMapEntry
+	mu       sync.RWMutex
+	space    []metricsMapEntry
+	svcSpace []svcMetricsMapEntry
+	m        map[string]*svcMetricsMapEntry
+	entries  int // total number of tx groups getting aggregated including overflow
+	services int
 }
 
-func newMetrics(maxGroups int) *metrics {
+func newMetrics(maxGroups, maxServices int) *metrics {
 	return &metrics{
-		m:     make(map[uint64][]*metricsMapEntry),
-		space: make([]metricsMapEntry, maxGroups),
+		// keep reserved entries for overflow (1 per service and 1 for `other` service)
+		space: make([]metricsMapEntry, maxGroups*2+1),
+		// keep 1 reserved entry for `other` service
+		svcSpace: make([]svcMetricsMapEntry, maxServices+1),
+		m:        make(map[string]*svcMetricsMapEntry),
 	}
+}
+
+type svcMetricsMapEntry struct {
+	entries                   int // total number of tx groups for this svc getting aggregated
+	m                         map[uint64][]*metricsMapEntry
+	other                     *metricsMapEntry
+	otherCardinalityEstimator *hyperloglog.Sketch
 }
 
 type metricsMapEntry struct {
@@ -601,11 +725,4 @@ func (m *transactionMetrics) histogramBuckets() (totalCount int64, counts []int6
 		totalCount += count
 	}
 	return totalCount, counts, values
-}
-
-func transactionCount(tx *model.Transaction) float64 {
-	if tx.RepresentativeCount > 0 {
-		return tx.RepresentativeCount
-	}
-	return 1
 }

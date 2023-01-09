@@ -30,12 +30,12 @@ import (
 
 	"github.com/elastic/elastic-agent-libs/monitoring"
 
+	"github.com/elastic/apm-data/input/elasticapm"
+	"github.com/elastic/apm-data/model"
 	"github.com/elastic/apm-server/internal/beater/auth"
 	"github.com/elastic/apm-server/internal/beater/headers"
 	"github.com/elastic/apm-server/internal/beater/ratelimit"
 	"github.com/elastic/apm-server/internal/beater/request"
-	"github.com/elastic/apm-server/internal/model"
-	"github.com/elastic/apm-server/internal/processor/stream"
 	"github.com/elastic/apm-server/internal/publish"
 )
 
@@ -47,6 +47,11 @@ var (
 	// MonitoringMap holds a mapping for request.IDs to monitoring counters
 	MonitoringMap = request.DefaultMonitoringMapForRegistry(registry)
 	registry      = monitoring.Default.NewRegistry("apm-server.server")
+
+	streamRegistry = monitoring.Default.NewRegistry("apm-server.processor.stream")
+	eventsAccepted = monitoring.NewInt(streamRegistry, "accepted")
+	eventsInvalid  = monitoring.NewInt(streamRegistry, "errors.invalid")
+	eventsTooLarge = monitoring.NewInt(streamRegistry, "errors.toolarge")
 
 	errMethodNotAllowed   = errors.New("only POST requests are supported")
 	errServerShuttingDown = errors.New("server is shutting down")
@@ -63,7 +68,7 @@ type StreamHandler interface {
 		stream io.Reader,
 		batchSize int,
 		processor model.BatchProcessor,
-		out *stream.Result,
+		out *elasticapm.Result,
 	) error
 }
 
@@ -81,11 +86,13 @@ func Handler(handler StreamHandler, requestMetadataFunc RequestMetadataFunc, bat
 		}
 
 		// Async can be set by clients to request non-blocking event processing,
-		// returning immediately with an error `publish.ErrFull` when it can't be
-		// serviced.
+		// returning immediately with an error `elasticapm.ErrQueueFull` when it
+		// can't be serviced.
+		//
 		// Async processing has weaker guarantees for the client since any
 		// errors while processing the batch cannot be communicated back to the
 		// client.
+		//
 		// Instead, errors are logged by the APM Server.
 		async := asyncRequest(c.Request)
 
@@ -106,20 +113,20 @@ func Handler(handler StreamHandler, requestMetadataFunc RequestMetadataFunc, bat
 			return
 		}
 
-		base := requestMetadataFunc(c)
-		var result stream.Result
-		if err := handler.HandleStream(
+		var result elasticapm.Result
+		err := handler.HandleStream(
 			ctx,
 			async,
-			base,
+			requestMetadataFunc(c),
 			c.Request.Body,
 			batchSize,
 			batchProcessor,
 			&result,
-		); err != nil {
-			result.Add(err)
-		}
-		writeStreamResult(c, &result)
+		)
+		eventsAccepted.Add(int64(result.Accepted))
+		eventsInvalid.Add(int64(result.Invalid))
+		eventsTooLarge.Add(int64(result.TooLarge))
+		writeStreamResult(c, result, err)
 	}
 }
 
@@ -137,74 +144,38 @@ func validateRequest(c *request.Context) error {
 }
 
 func writeError(c *request.Context, err error) {
-	var result stream.Result
-	result.Add(err)
-	writeStreamResult(c, &result)
+	writeStreamResult(c, elasticapm.Result{}, err)
 }
 
-func writeStreamResult(c *request.Context, sr *stream.Result) {
+func writeStreamResult(c *request.Context, streamResult elasticapm.Result, streamErr error) {
 	statusCode := http.StatusAccepted
 	id := request.IDResponseValidAccepted
-	jsonResult := jsonResult{Accepted: sr.Accepted}
+	jsonResult := jsonResult{Accepted: streamResult.Accepted}
 	var errorMessages []string
 
-	if n := len(sr.Errors); n > 0 {
-		jsonResult.Errors = make([]jsonError, n)
-		errorMessages = make([]string, n)
+	if n := len(streamResult.Errors); n > 0 {
+		if streamErr != nil {
+			n++
+		}
+		jsonResult.Errors = make([]jsonError, 0, n)
+		errorMessages = make([]string, 0, n)
 	}
 
-	for i, err := range sr.Errors {
-		errID := request.IDResponseErrorsInternal
-		var invalidInput *stream.InvalidInputError
-		if errors.As(err, &invalidInput) {
-			if invalidInput.TooLarge {
-				errID = request.IDResponseErrorsRequestTooLarge
-			} else {
-				errID = request.IDResponseErrorsValidate
-			}
-			jsonResult.Errors[i] = jsonError{
-				Message:  invalidInput.Message,
-				Document: invalidInput.Document,
-			}
-		} else {
-			if errors.As(err, &compressedRequestReaderError{}) {
-				errID = request.IDResponseErrorsValidate
-			} else {
-				switch {
-				case errors.Is(err, publish.ErrChannelClosed):
-					errID = request.IDResponseErrorsShuttingDown
-					err = errServerShuttingDown
-				case errors.Is(err, publish.ErrFull):
-					errID = request.IDResponseErrorsFullQueue
-				case errors.Is(err, errMethodNotAllowed):
-					errID = request.IDResponseErrorsMethodNotAllowed
-				case errors.Is(err, errInvalidContentType):
-					errID = request.IDResponseErrorsValidate
-				case errors.Is(err, ratelimit.ErrRateLimitExceeded):
-					errID = request.IDResponseErrorsRateLimit
-				case errors.Is(err, auth.ErrUnauthorized):
-					errID = request.IDResponseErrorsForbidden
-				}
-			}
-			jsonResult.Errors[i] = jsonError{Message: err.Error()}
-		}
-		errorMessages[i] = jsonResult.Errors[i].Message
-
-		var errStatusCode int
-		switch errID {
-		case request.IDResponseErrorsMethodNotAllowed:
-			// TODO: remove exception case and use StatusMethodNotAllowed (breaking bugfix)
-			errStatusCode = http.StatusBadRequest
-		case request.IDResponseErrorsRequestTooLarge:
-			// TODO: remove exception case and use StatusRequestEntityTooLarge (breaking bugfix)
-			errStatusCode = http.StatusBadRequest
-		default:
-			errStatusCode = request.MapResultIDToStatus[errID].Code
-		}
+	processError := func(err error) {
+		errID, jsonErr := processStreamError(err)
+		errStatusCode := errStatusCode(errID)
+		jsonResult.Errors = append(jsonResult.Errors, jsonErr)
+		errorMessages = append(errorMessages, jsonErr.Message)
 		if errStatusCode > statusCode {
 			statusCode = errStatusCode
 			id = errID
 		}
+	}
+	for _, err := range streamResult.Errors {
+		processError(err)
+	}
+	if streamErr != nil {
+		processError(streamErr)
 	}
 
 	var err error
@@ -212,6 +183,59 @@ func writeStreamResult(c *request.Context, sr *stream.Result) {
 		err = errors.New(strings.Join(errorMessages, ", "))
 	}
 	writeResult(c, id, statusCode, &jsonResult, err)
+}
+
+func processStreamError(err error) (request.ResultID, jsonError) {
+	errID := request.IDResponseErrorsInternal
+
+	var invalidInput *elasticapm.InvalidInputError
+	if errors.As(err, &invalidInput) {
+		if invalidInput.TooLarge {
+			errID = request.IDResponseErrorsRequestTooLarge
+		} else {
+			errID = request.IDResponseErrorsValidate
+		}
+		return errID, jsonError{
+			Message:  invalidInput.Message,
+			Document: invalidInput.Document,
+		}
+	}
+
+	if errors.As(err, &compressedRequestReaderError{}) {
+		errID = request.IDResponseErrorsValidate
+	} else {
+		switch {
+		case errors.Is(err, publish.ErrChannelClosed):
+			errID = request.IDResponseErrorsShuttingDown
+			err = errServerShuttingDown
+		case errors.Is(err, publish.ErrFull):
+			errID = request.IDResponseErrorsFullQueue
+		case errors.Is(err, elasticapm.ErrQueueFull):
+			errID = request.IDResponseErrorsFullQueue
+		case errors.Is(err, errMethodNotAllowed):
+			errID = request.IDResponseErrorsMethodNotAllowed
+		case errors.Is(err, errInvalidContentType):
+			errID = request.IDResponseErrorsValidate
+		case errors.Is(err, ratelimit.ErrRateLimitExceeded):
+			errID = request.IDResponseErrorsRateLimit
+		case errors.Is(err, auth.ErrUnauthorized):
+			errID = request.IDResponseErrorsForbidden
+		}
+	}
+	return errID, jsonError{Message: err.Error()}
+}
+
+func errStatusCode(errID request.ResultID) int {
+	switch errID {
+	case request.IDResponseErrorsMethodNotAllowed:
+		// TODO: remove exception case and use StatusMethodNotAllowed (breaking bugfix)
+		return http.StatusBadRequest
+	case request.IDResponseErrorsRequestTooLarge:
+		// TODO: remove exception case and use StatusRequestEntityTooLarge (breaking bugfix)
+		return http.StatusBadRequest
+	default:
+		return request.MapResultIDToStatus[errID].Code
+	}
 }
 
 func writeResult(c *request.Context, id request.ResultID, statusCode int, result *jsonResult, err error) {

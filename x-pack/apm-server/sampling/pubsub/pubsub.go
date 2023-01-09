@@ -5,6 +5,7 @@
 package pubsub
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -15,15 +16,16 @@ import (
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
+	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/go-docappender"
 	"github.com/elastic/go-elasticsearch/v8/esapi"
 	"github.com/elastic/go-elasticsearch/v8/esutil"
 
+	"github.com/elastic/apm-data/model"
 	"github.com/elastic/apm-server/internal/logs"
-	"github.com/elastic/apm-server/internal/model"
-	"github.com/elastic/apm-server/internal/model/modelindexer"
 )
 
 // ErrClosed may be returned by Pubsub methods after the Close method is called.
@@ -58,29 +60,31 @@ func New(config Config) (*Pubsub, error) {
 
 // PublishSampledTraceIDs receives trace IDs from the traceIDs channel,
 // indexing them into Elasticsearch. PublishSampledTraceIDs returns when
-// ctx is canceled.
+// ctx is canceled, or traceIDs is closed.
 func (p *Pubsub) PublishSampledTraceIDs(ctx context.Context, traceIDs <-chan string) error {
-	indexer, err := modelindexer.New(p.config.Client, modelindexer.Config{
-		CompressionLevel: p.config.CompressionLevel,
-		FlushInterval:    p.config.FlushInterval,
-		EventBufferSize:  100, // Reduce memory footprint
+	appender, err := docappender.New(p.config.Client, docappender.Config{
+		CompressionLevel:   p.config.CompressionLevel,
+		FlushInterval:      p.config.FlushInterval,
+		DocumentBufferSize: 100, // Reduce memory footprint
 		// Disable autoscaling for the TBS sampled traces published documents.
-		Scaling: modelindexer.ScalingConfig{Disabled: true},
+		Scaling: docappender.ScalingConfig{Disabled: true},
+		Logger:  zap.New(p.config.Logger.Core(), zap.WithCaller(true)),
 	})
 	if err != nil {
 		return err
 	}
 
-	result := p.indexSampledTraceIDs(ctx, traceIDs, indexer)
+	result := p.indexSampledTraceIDs(ctx, traceIDs, appender)
 	ctx, cancel := context.WithTimeout(context.Background(), p.config.FlushInterval)
 	defer cancel()
-	if err := indexer.Close(ctx); err != nil {
+	if err := appender.Close(ctx); err != nil {
 		result = multierror.Append(result, err)
 	}
 	return result
 }
 
-func (p *Pubsub) indexSampledTraceIDs(ctx context.Context, traceIDs <-chan string, indexer *modelindexer.Indexer) error {
+func (p *Pubsub) indexSampledTraceIDs(ctx context.Context, traceIDs <-chan string, appender *docappender.Appender) error {
+	index := p.config.DataStream.String()
 	for {
 		select {
 		case <-ctx.Done():
@@ -88,15 +92,29 @@ func (p *Pubsub) indexSampledTraceIDs(ctx context.Context, traceIDs <-chan strin
 				return err
 			}
 			return nil
-		case id := <-traceIDs:
+		case id, ok := <-traceIDs:
+			if !ok {
+				return nil
+			}
 			doc := model.APMEvent{
 				Timestamp:  time.Now(),
 				DataStream: model.DataStream(p.config.DataStream),
 				Agent:      model.Agent{EphemeralID: p.config.ServerID},
 				Trace:      model.Trace{ID: id},
 			}
-			if err := indexer.ProcessBatch(ctx, &model.Batch{doc}); err != nil {
-				p.config.Logger.With(logp.Error(err)).With(logp.Reflect("event", doc)).Debug("failed to index sampled trace id")
+			data, err := doc.MarshalJSON()
+			if err != nil {
+				p.config.Logger.With(
+					logp.Error(err),
+					logp.Reflect("event", doc),
+				).Debug("failed to encode sampled trace document")
+				return err
+			}
+			if err := appender.Add(ctx, index, bytes.NewReader(data)); err != nil {
+				p.config.Logger.With(
+					logp.Error(err),
+					logp.Reflect("event", doc),
+				).Debug("failed to index sampled trace document")
 				return err
 			}
 		}

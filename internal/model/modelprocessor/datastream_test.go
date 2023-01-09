@@ -23,7 +23,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/elastic/apm-server/internal/model"
+	"github.com/elastic/apm-data/model"
 	"github.com/elastic/apm-server/internal/model/modelprocessor"
 )
 
@@ -118,6 +118,22 @@ func TestSetDataStream(t *testing.T) {
 			Transaction: &model.Transaction{Name: "foo"},
 		},
 		output: model.DataStream{Type: "metrics", Dataset: "apm.internal", Namespace: "custom"},
+	}, {
+		input: model.APMEvent{
+			Processor:   model.MetricsetProcessor,
+			Service:     model.Service{Name: "service-name"},
+			Metricset:   &model.Metricset{Name: "transaction", Interval: "1m"},
+			Transaction: &model.Transaction{Name: "foo"},
+		},
+		output: model.DataStream{Type: "metrics", Dataset: "apm.transaction.1m", Namespace: "custom"},
+	}, {
+		input: model.APMEvent{
+			Processor:   model.MetricsetProcessor,
+			Service:     model.Service{Name: "service-name"},
+			Metricset:   &model.Metricset{Name: "transaction", Interval: "60m"},
+			Transaction: &model.Transaction{Name: "foo"},
+		},
+		output: model.DataStream{Type: "metrics", Dataset: "apm.transaction.60m", Namespace: "custom"},
 	}, {
 		input: model.APMEvent{
 			Processor: model.MetricsetProcessor,

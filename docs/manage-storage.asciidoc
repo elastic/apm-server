@@ -8,6 +8,12 @@ The <<storage-guide,storage and sizing guide>> attempts to define a "typical" st
 and there are additional settings you can tweak to <<reduce-apm-storage,reduce storage>>,
 or to <<apm-tune-elasticsearch,tune data ingestion in {es}>>.
 
+In addition, the APM UI makes it easy to visualize your APM data usage with
+{kibana-ref}/storage-explorer.html[storage explorer].
+Storage explorer allows you to analyze the storage footprint of each of your services to see
+which are producing large amounts of data--so you can better reduce the data you're collecting
+or forecast and prepare for future storage needs.
+
 include::./data-streams.asciidoc[]
 
 include::./ilm-how-to.asciidoc[]
@@ -82,14 +88,27 @@ The amount of storage for APM data depends on several factors:
 the number of services you are instrumenting, how much traffic the services see, agent and server settings,
 and the length of time you store your data.
 
+Here are some ways you can reduce either the amount of APM data you're ingesting
+or the amount of data you're retaining.
+
 [float]
 ==== Reduce the sample rate
 
-The transaction sample rate directly influences the number of documents (more precisely, spans) to be indexed.
-It is the easiest way to reduce storage.
+Distributed tracing can generate a substantial amount of data.
+More data can mean higher costs and more noise.
+Sampling aims to lower the amount of data ingested and the effort required to analyze that data.
 
-The transaction sample rate is a configuration setting of each agent.
-Reducing it does not affect the collection of metrics such as _Transactions per second_.
+See <<sampling>> to learn more.
+
+[float]
+==== Enable span compression
+
+In some cases, APM agents may collect large amounts of very similar or identical spans in a transaction.
+These repeated, similar spans often don't provide added benefit, especially if they are of very short duration.
+Span compression takes these similar spans and compresses them into a single span--
+retaining important information but reducing processing and storage overhead.
+
+See <<span-compression>> to learn more.
 
 [float]
 ==== Reduce collected stack trace information
@@ -108,16 +127,19 @@ This might mean deleting old documents periodically,
 deleting data collected for specific services or customers,
 or deleting specific indices.
 
-Depending on your use case,
-you can delete data periodically with <<delete-data-with-ilm,{ilm}>>,
-{curator-ref-current}[Curator], the {ref}/docs-delete-by-query.html[Delete By Query API],
-or in the {kibana-ref}/managing-indices.html[{kib} Index Management UI].
+Depending on your use case, you can delete data:
+
+* periodically with <<delete-data-with-ilm,{ilm}>>
+* <<delete-data-query,matching a query>>
+* with the <<delete-data-in-kibana,{kib} Index Management UI>>
+
+If you want to delete data for security or privacy reasons, see <<apm-data-security>>.
 
 [float]
 [[delete-data-with-ilm]]
-===== Delete data with {ilm-init}
+===== Delete data with {ilm} ({ilm-init})
 
-Index Lifecycle management ({ilm-init}) enables you to automate how you want to manage your indices over time.
+Index lifecycle management enables you to automate how you want to manage your indices over time.
 You can base actions on factors such as shard size and performance requirements.
 See <<ilm-how-to>> to learn more.
 
@@ -125,7 +147,7 @@ See <<ilm-how-to>> to learn more.
 [[delete-data-query]]
 ===== Delete data matching a query
 
-You can delete all APM documents matching a specific query.
+You can delete all APM documents matching a specific query with the {ref}/docs-delete-by-query.html[Delete By Query API].
 For example, to delete all documents with a given `service.name`, use the following request:
 
 ["source","console"]
@@ -144,30 +166,22 @@ POST /.ds-*-apm*/_delete_by_query
 
 [float]
 [[delete-data-in-kibana]]
-===== Delete data via {kib} Index Management UI
+===== Delete data with {kib} Index Management
 
-Select the indices you want to delete, and click **Manage indices** to see the available actions.
-Then click **delete indices**.
-
-[float]
-[[manage-indices-in-kibana]]
-=== Manage Indices via {kib}
-
-{kib}'s {ref}/index-mgmt.html[index management] allows you to manage your cluster's
+{kib}'s {ref}/index-mgmt.html[Index Management] allows you to manage your cluster's
 indices, data streams, index templates, and much more.
+
+In {kib}, navigate to **Stack Management** > **Index Management** > **Data Streams**.
+Select the data streams you want to delete, and click **Delete data streams**.
 
 [float]
 [[update-data]]
-=== Update existing data
+==== Update existing data
 
 You might want to update documents that are already indexed.
 For example, if you your service name was set incorrectly.
 
 To do this, you can use the {ref}/docs-update-by-query.html[Update By Query API].
-
-[float]
-==== Rename a service
-
 To rename a service, send the following request:
 
 ["source","sh"]

@@ -27,19 +27,19 @@ import (
 	"github.com/jaegertracing/jaeger/proto-gen/api_v2"
 	jaegertranslator "github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger"
 	"go.opentelemetry.io/collector/consumer"
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/monitoring"
 
+	"github.com/elastic/apm-data/input/otlp"
+	"github.com/elastic/apm-data/model"
 	"github.com/elastic/apm-server/internal/agentcfg"
 	"github.com/elastic/apm-server/internal/beater/auth"
 	"github.com/elastic/apm-server/internal/beater/config"
 	"github.com/elastic/apm-server/internal/beater/request"
-	"github.com/elastic/apm-server/internal/model"
-	"github.com/elastic/apm-server/internal/processor/otel"
 )
 
 var (
@@ -62,11 +62,14 @@ const (
 // RegisterGRPCServices registers Jaeger gRPC services with srv.
 func RegisterGRPCServices(
 	srv *grpc.Server,
-	logger *logp.Logger,
+	logger *zap.Logger,
 	processor model.BatchProcessor,
 	fetcher agentcfg.Fetcher,
 ) {
-	traceConsumer := &otel.Consumer{Processor: processor}
+	traceConsumer := otlp.NewConsumer(otlp.ConsumerConfig{
+		Processor: processor,
+		Logger:    logger,
+	})
 	api_v2.RegisterCollectorServiceServer(srv, &grpcCollector{traceConsumer})
 	api_v2.RegisterSamplingManagerServer(srv, &grpcSampler{logger, fetcher})
 }
@@ -136,11 +139,11 @@ var (
 		gRPCSamplingRegistry, append(request.DefaultResultIDs, request.IDEventReceivedCount),
 	)
 
-	jaegerAgentPrefixes = []string{otel.AgentNameJaeger}
+	jaegerAgentPrefixes = []string{otlp.AgentNameJaeger}
 )
 
 type grpcSampler struct {
-	logger  *logp.Logger
+	logger  *zap.Logger
 	fetcher agentcfg.Fetcher
 }
 
@@ -154,7 +157,7 @@ func (s *grpcSampler) GetSamplingStrategy(
 	samplingRate, err := s.fetchSamplingRate(ctx, params.ServiceName)
 	if err != nil {
 		// do not return full error details since this is part of an unprotected endpoint response
-		s.logger.With(logp.Error(err)).Error("No valid sampling rate fetched from Kibana.")
+		s.logger.Error("no valid sampling rate fetched from Kibana", zap.Error(err))
 		return nil, errors.New("no sampling rate available, check server logs for more details")
 	}
 

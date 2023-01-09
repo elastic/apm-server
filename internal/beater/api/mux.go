@@ -26,10 +26,13 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
+	"go.uber.org/zap"
 
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/monitoring"
 
+	"github.com/elastic/apm-data/input/elasticapm"
+	"github.com/elastic/apm-data/model"
 	"github.com/elastic/apm-server/internal/agentcfg"
 	"github.com/elastic/apm-server/internal/beater/api/config/agent"
 	"github.com/elastic/apm-server/internal/beater/api/intake"
@@ -41,9 +44,7 @@ import (
 	"github.com/elastic/apm-server/internal/beater/ratelimit"
 	"github.com/elastic/apm-server/internal/beater/request"
 	"github.com/elastic/apm-server/internal/logs"
-	"github.com/elastic/apm-server/internal/model"
 	"github.com/elastic/apm-server/internal/model/modelprocessor"
-	"github.com/elastic/apm-server/internal/processor/stream"
 	"github.com/elastic/apm-server/internal/sourcemap"
 	"github.com/elastic/apm-server/internal/version"
 )
@@ -103,26 +104,30 @@ func NewMux(
 		intakeSemaphore:  make(chan struct{}, beaterConfig.MaxConcurrentDecoders),
 	}
 
+	zapLogger := zap.New(logger.Core(), zap.WithCaller(true))
+	builder.intakeProcessor = elasticapm.NewProcessor(elasticapm.Config{
+		MaxEventSize: beaterConfig.MaxEventSize,
+		Semaphore:    builder.intakeSemaphore,
+		Logger:       zapLogger,
+	})
+
 	type route struct {
 		path      string
 		handlerFn func() (request.Handler, error)
 	}
 
-	otlpHandlers, err := otlp.NewHTTPHandlers(batchProcessor)
-	if err != nil {
-		return nil, err
-	}
-
+	otlpHandlers := otlp.NewHTTPHandlers(zapLogger, batchProcessor)
+	rumIntakeHandler := builder.rumIntakeHandler()
 	routeMap := []route{
 		{RootPath, builder.rootHandler(publishReady)},
 		{AgentConfigPath, builder.backendAgentConfigHandler(fetcher)},
 		{AgentConfigRUMPath, builder.rumAgentConfigHandler(fetcher)},
-		{IntakeRUMPath, builder.rumIntakeHandler(stream.RUMV2Processor)},
-		{IntakeRUMV3Path, builder.rumIntakeHandler(stream.RUMV3Processor)},
+		{IntakeRUMPath, rumIntakeHandler},
+		{IntakeRUMV3Path, rumIntakeHandler},
 		{IntakePath, builder.backendIntakeHandler},
-		{OTLPTracesIntakePath, builder.otlpHandler(otlpHandlers.TraceHandler, otlp.HTTPTracesMonitoringMap)},
-		{OTLPMetricsIntakePath, builder.otlpHandler(otlpHandlers.MetricsHandler, otlp.HTTPMetricsMonitoringMap)},
-		{OTLPLogsIntakePath, builder.otlpHandler(otlpHandlers.LogsHandler, otlp.HTTPLogsMonitoringMap)},
+		{OTLPTracesIntakePath, builder.otlpHandler(otlpHandlers.HandleTraces, otlp.HTTPTracesMonitoringMap)},
+		{OTLPMetricsIntakePath, builder.otlpHandler(otlpHandlers.HandleMetrics, otlp.HTTPMetricsMonitoringMap)},
+		{OTLPLogsIntakePath, builder.otlpHandler(otlpHandlers.HandleLogs, otlp.HTTPLogsMonitoringMap)},
 	}
 
 	for _, route := range routeMap {
@@ -162,15 +167,12 @@ type routeBuilder struct {
 	ratelimitStore   *ratelimit.Store
 	sourcemapFetcher sourcemap.Fetcher
 	fleetManaged     bool
+	intakeProcessor  *elasticapm.Processor
 	intakeSemaphore  chan struct{}
 }
 
 func (r *routeBuilder) backendIntakeHandler() (request.Handler, error) {
-	intakeProcessor := stream.BackendProcessor(stream.Config{
-		MaxEventSize: r.cfg.MaxEventSize,
-		Semaphore:    r.intakeSemaphore,
-	})
-	h := intake.Handler(intakeProcessor, backendRequestMetadataFunc(r.cfg), r.batchProcessor)
+	h := intake.Handler(r.intakeProcessor, backendRequestMetadataFunc(r.cfg), r.batchProcessor)
 	return middleware.Wrap(h, backendMiddleware(r.cfg, r.authenticator, r.ratelimitStore, intake.MonitoringMap)...)
 }
 
@@ -183,7 +185,7 @@ func (r *routeBuilder) otlpHandler(handler http.HandlerFunc, monitoringMap map[r
 	}
 }
 
-func (r *routeBuilder) rumIntakeHandler(newProcessor func(stream.Config) *stream.Processor) func() (request.Handler, error) {
+func (r *routeBuilder) rumIntakeHandler() func() (request.Handler, error) {
 	return func() (request.Handler, error) {
 		var batchProcessors modelprocessor.Chained
 		// The order of these processors is important. Source mapping must happen before identifying library frames, or
@@ -212,11 +214,7 @@ func (r *routeBuilder) rumIntakeHandler(newProcessor func(stream.Config) *stream
 			batchProcessors = append(batchProcessors, modelprocessor.SetCulprit{})
 		}
 		batchProcessors = append(batchProcessors, r.batchProcessor) // r.batchProcessor always goes last
-		intakeProcessor := newProcessor(stream.Config{
-			MaxEventSize: r.cfg.MaxEventSize,
-			Semaphore:    r.intakeSemaphore,
-		})
-		h := intake.Handler(intakeProcessor, rumRequestMetadataFunc(r.cfg), batchProcessors)
+		h := intake.Handler(r.intakeProcessor, rumRequestMetadataFunc(r.cfg), batchProcessors)
 		return middleware.Wrap(h, rumMiddleware(r.cfg, r.authenticator, r.ratelimitStore, intake.MonitoringMap)...)
 	}
 }

@@ -22,7 +22,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 	"time"
 
@@ -30,7 +29,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	apmVersion "github.com/elastic/apm-server/internal/version"
-	"github.com/elastic/beats/v7/libbeat/version"
 	esv8 "github.com/elastic/go-elasticsearch/v8"
 )
 
@@ -46,18 +44,6 @@ func TestClient(t *testing.T) {
 		goESClient, err := NewClient(&cfg)
 		require.NoError(t, err)
 		assert.NotNil(t, goESClient)
-	})
-
-	t.Run("valid version", func(t *testing.T) {
-		cfg := Config{Hosts: Hosts{"localhost:9200", "localhost:9201"}}
-		goESClient, err := NewClient(&cfg)
-		require.NoError(t, err)
-		if strings.HasPrefix(version.GetDefaultVersion(), "8.") {
-			_, ok := goESClient.(clientV8)
-			assert.True(t, ok)
-		} else {
-			assert.Fail(t, "unknown version ", version.GetDefaultVersion())
-		}
 	})
 }
 

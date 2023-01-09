@@ -126,12 +126,6 @@
   type: keyword
   description: |
     Keyword of specific relevance in the service's domain (eg: 'db.postgresql.query', 'template.erb', 'cache', etc).
-- name: transaction.failure_count
-  type: long
-  description: "Count of transactions with 'event.outcome: failure'"
-- name: transaction.success_count
-  type: long
-  description: "Count of transactions with 'event.outcome: success'"
 - name: transaction.duration.histogram
   type: histogram
   description: |
@@ -169,3 +163,9 @@
   dynamic: true
   description: |
     Custom key/value pairs. Can be used to add meta information to events. Should not contain nested objects. All values are stored as scaled_float.
+- name: transaction.aggregation.overflow_count
+  type: long
+  description: Number of aggregation groups that overflowed for transaction metrics aggregation
+- name: service.aggregation.overflow_count
+  type: long
+  description: Number of aggregation groups that overflowed for service metrics aggregation.

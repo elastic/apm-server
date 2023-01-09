@@ -29,11 +29,11 @@ import (
 // To use a common pipeline, define a "pipeline" processor with the "name" property set to one of
 // the common pipelines. e.g.
 //
-//   processors:
-//     - ...
-//     - pipeline:
-//         name: observer_version
-//     - ...
+//	processors:
+//	  - ...
+//	  - pipeline:
+//	      name: observer_version
+//	  - ...
 func getCommonPipeline(name string, version *version.V) []map[string]interface{} {
 	commonPipelines := map[string][]map[string]interface{}{
 		"observer_version": getObserverVersionPipeline(version),
@@ -157,7 +157,7 @@ var eventDurationPipeline = []map[string]interface{}{{
 		"source": strings.TrimSpace(`
 def durationNanos = ctx.event?.duration ?: 0;
 def eventType = ctx.processor.event;
-ctx.get(ctx.processor.event).duration = ["us": (int)(durationNanos/1000)];
+ctx.get(ctx.processor.event).duration = ["us": (long)(durationNanos/1000)];
 `),
 	},
 }, {

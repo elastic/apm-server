@@ -32,6 +32,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/ptrace"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zaptest/observer"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
@@ -39,13 +41,12 @@ import (
 
 	"github.com/elastic/elastic-agent-libs/logp"
 
+	"github.com/elastic/apm-data/model"
 	"github.com/elastic/apm-server/internal/agentcfg"
 	"github.com/elastic/apm-server/internal/approvaltest"
 	"github.com/elastic/apm-server/internal/beater/auth"
 	"github.com/elastic/apm-server/internal/beater/config"
 	"github.com/elastic/apm-server/internal/beater/interceptors"
-	"github.com/elastic/apm-server/internal/model"
-	"github.com/elastic/apm-server/internal/model/modelindexer/modelindexertest"
 )
 
 func TestPostSpans(t *testing.T) {
@@ -53,7 +54,7 @@ func TestPostSpans(t *testing.T) {
 	var processor model.ProcessBatchFunc = func(ctx context.Context, batch *model.Batch) error {
 		return processorErr
 	}
-	conn := newServer(t, processor, nil)
+	conn, _ := newServer(t, processor, nil)
 
 	client := api_v2.NewCollectorServiceClient(conn)
 	result, err := client.PostSpans(context.Background(), &api_v2.PostSpansRequest{})
@@ -118,10 +119,14 @@ func TestApprovals(t *testing.T) {
 			var docs [][]byte
 			var processor model.ProcessBatchFunc = func(ctx context.Context, batch *model.Batch) error {
 				batches++
-				docs = modelindexertest.AppendEncodedBatch(t, docs, *batch)
+				for _, event := range *batch {
+					data, err := event.MarshalJSON()
+					require.NoError(t, err)
+					docs = append(docs, data)
+				}
 				return nil
 			}
-			conn := newServer(t, processor, nil)
+			conn, _ := newServer(t, processor, nil)
 			client := api_v2.NewCollectorServiceClient(conn)
 
 			f := filepath.Join("..", "..", "..", "testdata", "jaeger", name)
@@ -154,7 +159,7 @@ func TestGRPCSampler_GetSamplingStrategy(t *testing.T) {
 		"unauthorized": {
 			params:           &api_v2.SamplingStrategyParameters{ServiceName: unauthorizedServiceName},
 			expectedErrMsg:   "no sampling rate available",
-			expectedLogMsg:   "No valid sampling rate fetched",
+			expectedLogMsg:   "no valid sampling rate fetched",
 			expectedLogError: `unauthorized: anonymous access not permitted for service "serviceB"`,
 		},
 		"withSamplingRate": {
@@ -176,7 +181,7 @@ func TestGRPCSampler_GetSamplingStrategy(t *testing.T) {
 				},
 			}, nil),
 			expectedErrMsg: "no sampling rate available",
-			expectedLogMsg: "No valid sampling rate fetched",
+			expectedLogMsg: "no valid sampling rate fetched",
 		},
 		"invalidSamplingRate": {
 			params: &api_v2.SamplingStrategyParameters{ServiceName: authorizedServiceName},
@@ -188,13 +193,13 @@ func TestGRPCSampler_GetSamplingStrategy(t *testing.T) {
 				},
 			}, nil),
 			expectedErrMsg: "no sampling rate available",
-			expectedLogMsg: "No valid sampling rate fetched",
+			expectedLogMsg: "no valid sampling rate fetched",
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
 			require.NoError(t, logp.DevelopmentSetup(logp.ToObserverOutput()))
 
-			conn := newServer(t, nil, tc.fetcher)
+			conn, logs := newServer(t, nil, tc.fetcher)
 			client := api_v2.NewSamplingManagerClient(conn)
 			resp, err := client.GetSamplingStrategy(context.Background(), tc.params)
 
@@ -204,7 +209,6 @@ func TestGRPCSampler_GetSamplingStrategy(t *testing.T) {
 				assert.Contains(t, err.Error(), tc.expectedErrMsg)
 				assert.Nil(t, resp)
 
-				logs := logp.ObserverLogs()
 				require.Equal(t, 1, logs.Len())
 				log := logs.All()[0]
 				assert.Contains(t, log.Message, tc.expectedLogMsg)
@@ -227,7 +231,7 @@ const (
 	unauthorizedServiceName = "serviceB"
 )
 
-func newServer(t *testing.T, batchProcessor model.BatchProcessor, agentcfgFetcher agentcfg.Fetcher) *grpc.ClientConn {
+func newServer(t *testing.T, batchProcessor model.BatchProcessor, agentcfgFetcher agentcfg.Fetcher) (*grpc.ClientConn, *observer.ObservedLogs) {
 	lis, err := net.Listen("tcp", "localhost:0")
 	require.NoError(t, err)
 
@@ -241,15 +245,15 @@ func newServer(t *testing.T, batchProcessor model.BatchProcessor, agentcfgFetche
 	require.NoError(t, err)
 	srv := grpc.NewServer(grpc.UnaryInterceptor(interceptors.Auth(authenticator)))
 
-	logger := logp.NewLogger("jaeger.test")
-	RegisterGRPCServices(srv, logger, batchProcessor, agentcfgFetcher)
+	core, observedLogs := observer.New(zap.DebugLevel)
+	RegisterGRPCServices(srv, zap.New(core), batchProcessor, agentcfgFetcher)
 
 	go srv.Serve(lis)
 	t.Cleanup(srv.GracefulStop)
 	conn, err := grpc.Dial(lis.Addr().String(), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	require.NoError(t, err)
 	t.Cleanup(func() { conn.Close() })
-	return conn
+	return conn, observedLogs
 }
 
 func mockAgentConfigFetcher(result agentcfg.Result, err error) agentcfg.Fetcher {

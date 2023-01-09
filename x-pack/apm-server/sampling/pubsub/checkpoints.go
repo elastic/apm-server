@@ -13,16 +13,15 @@ import (
 
 	"github.com/pkg/errors"
 
+	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/elastic/go-elasticsearch/v8/esapi"
-
-	"github.com/elastic/apm-server/internal/elasticsearch"
 )
 
 // getGlobalCheckpoints returns the current global checkpoint for each index
 // underlying dataStream. Each index is required to have a single (primary) shard.
 func getGlobalCheckpoints(
 	ctx context.Context,
-	client elasticsearch.Client,
+	client *elasticsearch.Client,
 	dataStream string,
 ) (map[string]int64, error) {
 	indexGlobalCheckpoints := make(map[string]int64)

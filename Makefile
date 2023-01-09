@@ -128,23 +128,21 @@ bench:
 # Rules for updating config files, etc.
 ##############################################################################
 
-update: go-generate add-headers build-package notice apm-server.docker.yml
+update: go-generate add-headers build-package notice apm-server.docker.yml docs/spec
 	@go mod download all # make sure go.sum is complete
 
 apm-server.docker.yml: apm-server.yml
-	sed -e 's/localhost:8200/0.0.0.0:8200/' -e 's/localhost:9200/elasticsearch:9200/' $< > $@
+	sed -e 's/127.0.0.1:8200/0.0.0.0:8200/' -e 's/localhost:9200/elasticsearch:9200/' $< > $@
 
 .PHONY: go-generate
 go-generate:
-	@$(GO) run internal/model/modeldecoder/generator/cmd/main.go
 	@$(GO) run internal/model/modelprocessor/generate_internal_metrics.go
-	@bash script/vendor_otel.sh
 	@cd cmd/intake-receiver && APM_SERVER_VERSION=$(APM_SERVER_VERSION) $(GO) generate .
 
 .PHONY: add-headers
 add-headers: $(GOLICENSER)
 ifndef CHECK_HEADERS_DISABLED
-	@$(GOLICENSER) -exclude x-pack -exclude internal/otel_collector -exclude internal/.otel_collector_mixin
+	@$(GOLICENSER) -exclude x-pack
 	@$(GOLICENSER) -license Elasticv2 x-pack
 endif
 
@@ -152,6 +150,13 @@ endif
 .PHONY: get-version
 get-version:
 	@echo $(APM_SERVER_VERSION)
+
+# update-go-version updates .go-version, documentation, and build files
+# to use the most recent patch version for the major.minor Go version
+# defined in go.mod.
+.PHONY: update-go-version
+update-go-version:
+	$(GITROOT)/script/update_go_version.sh
 
 ##############################################################################
 # Integration package generation.
@@ -194,12 +199,20 @@ testing/infra/terraform/modules/%/README.md: .FORCE
 .PHONY: .FORCE
 .FORCE:
 
+# Copy docs/spec from apm-data to trigger updates to agents.
+#
+# TODO in the future we should probably trigger the updates from apm-data,
+# and just keep the JSON Schema there.
+docs/spec: go.mod
+	@$(GO) mod download github.com/elastic/apm-data
+	rsync -v --delete --chmod=Du+rwx,go+rx --chmod=Fu+rw,go+r -r $$($(GO) list -m -f {{.Dir}} github.com/elastic/apm-data)/input/elasticapm/docs/spec ./docs
+
 ##############################################################################
 # Beats synchronisation.
 ##############################################################################
 
 BEATS_VERSION?=main
-BEATS_MODULE:=$(shell $(GO) list -m -f {{.Path}} all | grep github.com/elastic/beats)
+BEATS_MODULE:=github.com/elastic/beats/v7
 
 .PHONY: update-beats
 update-beats: update-beats-module update
@@ -208,9 +221,6 @@ update-beats: update-beats-module update
 .PHONY: update-beats-module
 update-beats-module:
 	$(GO) get -d -u $(BEATS_MODULE)@$(BEATS_VERSION) && $(GO) mod tidy
-	cp -f $$($(GO) list -m -f {{.Dir}} $(BEATS_MODULE))/.go-version .go-version
-	find . -maxdepth 3 -name Dockerfile -exec sed -i'.bck' -E -e "s#(FROM golang):[0-9]+\.[0-9]+\.[0-9]+#\1:$$(cat .go-version)#g" {} \;
-	sed -i'.bck' -E -e "s#(:go-version): [0-9]+\.[0-9]+\.[0-9]+#\1: $$(cat .go-version)#g" docs/version.asciidoc
 
 .PHONY: update-beats-docs
 update-beats-docs:
@@ -234,7 +244,7 @@ staticcheck: $(STATICCHECK)
 .PHONY: check-headers
 check-headers: $(GOLICENSER)
 ifndef CHECK_HEADERS_DISABLED
-	@$(GOLICENSER) -d -exclude build -exclude x-pack -exclude internal/otel_collector -exclude internal/.otel_collector_mixin
+	@$(GOLICENSER) -d -exclude build -exclude x-pack
 	@$(GOLICENSER) -d -exclude build -license Elasticv2 x-pack
 endif
 

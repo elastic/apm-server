@@ -35,6 +35,7 @@ import (
 	"go.elastic.co/apm/module/apmgrpc/v2"
 	"go.elastic.co/apm/module/apmhttp/v2"
 	"go.elastic.co/apm/v2"
+	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 
@@ -52,8 +53,10 @@ import (
 	"github.com/elastic/elastic-agent-libs/monitoring"
 	"github.com/elastic/elastic-agent-libs/transport"
 	"github.com/elastic/elastic-agent-libs/transport/tlscommon"
+	"github.com/elastic/go-docappender"
 	"github.com/elastic/go-ucfg"
 
+	"github.com/elastic/apm-data/model"
 	"github.com/elastic/apm-server/internal/agentcfg"
 	"github.com/elastic/apm-server/internal/beater/auth"
 	"github.com/elastic/apm-server/internal/beater/config"
@@ -63,8 +66,6 @@ import (
 	"github.com/elastic/apm-server/internal/elasticsearch"
 	"github.com/elastic/apm-server/internal/idxmgmt"
 	"github.com/elastic/apm-server/internal/kibana"
-	"github.com/elastic/apm-server/internal/model"
-	"github.com/elastic/apm-server/internal/model/modelindexer"
 	"github.com/elastic/apm-server/internal/model/modelprocessor"
 	"github.com/elastic/apm-server/internal/publish"
 	"github.com/elastic/apm-server/internal/sourcemap"
@@ -179,36 +180,57 @@ func (s *Runner) Run(ctx context.Context) error {
 
 	// Obtain the memory limit for the APM Server process. Certain config
 	// values will be sized according to the maximum memory set for the server.
-	var memLimit float64
+	var memLimitGB float64
 	if cgroupReader := newCgroupReader(); cgroupReader != nil {
 		if limit, err := cgroupMemoryLimit(cgroupReader); err != nil {
 			s.logger.Warn(err)
 		} else {
-			// Limit the memory to 80% of the cgroup memory limit.
-			memLimit = float64(limit) / 1024 / 1024 / 1024 * 0.8
+			memLimitGB = float64(limit) / 1024 / 1024 / 1024
 		}
 	}
-	if memLimit <= 0 {
-		s.logger.Info("no cgroups detected, falling back to total system memory")
-		if limit, err := systemMemoryLimit(); err != nil {
-			s.logger.Warn(err)
-		} else {
-			// If no cgroup limit is set, only return 50% of the total memory.
-			// to have a margin of safety for other processes.
-			memLimit = float64(limit) / 1024 / 1024 / 1024 * 0.5
+	if limit, err := systemMemoryLimit(); err != nil {
+		s.logger.Warn(err)
+	} else {
+		var fallback bool
+		if memLimitGB <= 0 {
+			s.logger.Info("no cgroups detected, falling back to total system memory")
+			fallback = true
+		}
+		if memLimitGB > float64(limit) {
+			s.logger.Info("cgroup memory limit exceed available memory, falling back to the total system memory")
+			fallback = true
+		}
+		if fallback {
+			// If no cgroup limit is set, return a fraction of the total memory
+			// to have a margin of safety for other processes. The fraction value
+			// of 0.625 is used to keep the 80% of the total system memory limit
+			// to be 50% of the total for calculating the number of decoders.
+			memLimitGB = float64(limit) / 1024 / 1024 / 1024 * 0.625
 		}
 	}
-	if memLimit <= 0 {
-		memLimit = 0.8 // Assume of 80% of 1GB if memory discovery fails.
+	if memLimitGB <= 0 {
+		memLimitGB = 1
 		s.logger.Infof(
 			"failed to discover memory limit, default to %0.1fgb of memory",
-			memLimit,
+			memLimitGB,
 		)
 	}
 	if s.config.MaxConcurrentDecoders == 0 {
-		s.config.MaxConcurrentDecoders = maxConcurrentDecoders(memLimit)
-		s.logger.Infof("MaxConcurrentDecoders set to %d based on %0.1fgb of memory",
-			s.config.MaxConcurrentDecoders, memLimit,
+		s.config.MaxConcurrentDecoders = maxConcurrentDecoders(memLimitGB)
+		s.logger.Infof("MaxConcurrentDecoders set to %d based on 80 percent of %0.1fgb of memory",
+			s.config.MaxConcurrentDecoders, memLimitGB,
+		)
+	}
+	if s.config.Aggregation.Transactions.MaxTransactionGroups <= 0 {
+		s.config.Aggregation.Transactions.MaxTransactionGroups = maxGroupsForAggregation(memLimitGB)
+		s.logger.Infof("MaxTransactionGroups set to %d based on %0.1fgb of memory",
+			s.config.Aggregation.Transactions.MaxTransactionGroups, memLimitGB,
+		)
+	}
+	if s.config.Aggregation.Service.MaxGroups <= 0 {
+		s.config.Aggregation.Service.MaxGroups = maxGroupsForAggregation(memLimitGB)
+		s.logger.Infof("MaxGroups for service aggregation set to %d based on %0.1fgb of memory",
+			s.config.Aggregation.Service.MaxGroups, memLimitGB,
 		)
 	}
 
@@ -226,12 +248,14 @@ func (s *Runner) Run(ctx context.Context) error {
 
 	// ELASTIC_AGENT_CLOUD is set when running in Elastic Cloud.
 	inElasticCloud := os.Getenv("ELASTIC_AGENT_CLOUD") != ""
-	if inElasticCloud && s.config.Kibana.Enabled {
-		go func() {
-			if err := kibana.SendConfig(ctx, kibanaClient, (*ucfg.Config)(s.rawConfig)); err != nil {
-				s.logger.Infof("failed to upload config to kibana: %v", err)
-			}
-		}()
+	if inElasticCloud {
+		if s.config.Kibana.Enabled {
+			go func() {
+				if err := kibana.SendConfig(ctx, kibanaClient, (*ucfg.Config)(s.rawConfig)); err != nil {
+					s.logger.Infof("failed to upload config to kibana: %v", err)
+				}
+			}()
+		}
 	}
 
 	if s.config.JavaAttacherConfig.Enabled {
@@ -289,7 +313,7 @@ func (s *Runner) Run(ctx context.Context) error {
 		return err
 	}
 	defer esoutput.DeregisterConnectCallback(callbackUUID)
-	newElasticsearchClient := func(cfg *elasticsearch.Config) (elasticsearch.Client, error) {
+	newElasticsearchClient := func(cfg *elasticsearch.Config) (*elasticsearch.Client, error) {
 		httpTransport, err := elasticsearch.NewHTTPTransport(cfg)
 		if err != nil {
 			return nil, err
@@ -355,7 +379,7 @@ func (s *Runner) Run(ctx context.Context) error {
 	// Create the BatchProcessor chain that is used to process all events,
 	// including the metrics aggregated by APM Server.
 	finalBatchProcessor, closeFinalBatchProcessor, err := s.newFinalBatchProcessor(
-		tracer, newElasticsearchClient, memLimit,
+		tracer, newElasticsearchClient, memLimitGB,
 	)
 	if err != nil {
 		return err
@@ -470,11 +494,24 @@ func (s *Runner) Run(ctx context.Context) error {
 func maxConcurrentDecoders(memLimitGB float64) uint {
 	// Allow 128 concurrent decoders for each 1GB memory, limited to at most 2048.
 	const max = 2048
-	decoders := uint(128 * memLimitGB)
+	// Use 80% of the total memory limit to calculate decoders
+	decoders := uint(128 * memLimitGB * 0.8)
 	if decoders > max {
 		return max
 	}
 	return decoders
+}
+
+// maxGroupsForAggregation calculates the maximum transaction groups or service
+// groups that a particular memory limit can have. The previous default value
+// of 10_000 is kept as a starting point for 1GB instances and scaled linearly
+// for bigger instances.
+func maxGroupsForAggregation(memLimitGB float64) int {
+	const maxMemGB = 64
+	if memLimitGB > maxMemGB {
+		memLimitGB = maxMemGB
+	}
+	return int(memLimitGB * 10_000)
 }
 
 // waitReady waits until the server is ready to index events.
@@ -484,7 +521,7 @@ func (s *Runner) waitReady(
 	tracer *apm.Tracer,
 ) error {
 	var preconditions []func(context.Context) error
-	var esOutputClient elasticsearch.Client
+	var esOutputClient *elasticsearch.Client
 	if s.elasticsearchOutputConfig != nil {
 		esConfig := elasticsearch.DefaultConfig()
 		err := s.elasticsearchOutputConfig.Unpack(&esConfig)
@@ -510,7 +547,7 @@ func (s *Runner) waitReady(
 		}
 		if requiredLicenseLevel > licenser.Basic {
 			preconditions = append(preconditions, func(ctx context.Context) error {
-				license, err := elasticsearch.GetLicense(ctx, esOutputClient)
+				license, err := getElasticsearchLicense(ctx, esOutputClient)
 				if err != nil {
 					return errors.Wrap(err, "error getting Elasticsearch licensing information")
 				}
@@ -559,10 +596,10 @@ func (s *Runner) waitReady(
 
 // newFinalBatchProcessor returns the final model.BatchProcessor that publishes events,
 // and a cleanup function which should be called on server shutdown. If the output is
-// "elasticsearch", then we use modelindexer; otherwise we use the libbeat publisher.
+// "elasticsearch", then we use docappender; otherwise we use the libbeat publisher.
 func (s *Runner) newFinalBatchProcessor(
 	tracer *apm.Tracer,
-	newElasticsearchClient func(cfg *elasticsearch.Config) (elasticsearch.Client, error),
+	newElasticsearchClient func(cfg *elasticsearch.Config) (*elasticsearch.Client, error),
 	memLimit float64,
 ) (model.BatchProcessor, func(context.Context) error, error) {
 
@@ -608,39 +645,40 @@ func (s *Runner) newFinalBatchProcessor(
 	if err != nil {
 		return nil, nil, err
 	}
-	var scalingCfg modelindexer.ScalingConfig
+	var scalingCfg docappender.ScalingConfig
 	if enabled := esConfig.Scaling.Enabled; enabled != nil {
 		scalingCfg.Disabled = !*enabled
 	}
-	opts := modelindexer.Config{
+	opts := docappender.Config{
 		CompressionLevel: esConfig.CompressionLevel,
 		FlushBytes:       flushBytes,
 		FlushInterval:    esConfig.FlushInterval,
 		Tracer:           tracer,
 		MaxRequests:      esConfig.MaxRequests,
 		Scaling:          scalingCfg,
+		Logger:           zap.New(s.logger.Core(), zap.WithCaller(true)),
 	}
-	opts = modelIndexerConfig(opts, memLimit, s.logger)
-	indexer, err := modelindexer.New(client, opts)
+	opts = docappenderConfig(opts, memLimit, s.logger)
+	appender, err := docappender.New(client, opts)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	// Install our own libbeat-compatible metrics callback which uses the modelindexer stats.
+	// Install our own libbeat-compatible metrics callback which uses the docappender stats.
 	// All the metrics below are required to be reported to be able to display all relevant
 	// fields in the Stack Monitoring UI.
 	monitoring.NewFunc(libbeatMonitoringRegistry, "output.write", func(_ monitoring.Mode, v monitoring.Visitor) {
 		v.OnRegistryStart()
 		defer v.OnRegistryFinished()
 		v.OnKey("bytes")
-		v.OnInt(indexer.Stats().BytesTotal)
+		v.OnInt(appender.Stats().BytesTotal)
 	})
 	outputType := monitoring.NewString(libbeatMonitoringRegistry.GetRegistry("output"), "type")
 	outputType.Set("elasticsearch")
 	monitoring.NewFunc(libbeatMonitoringRegistry, "output.events", func(_ monitoring.Mode, v monitoring.Visitor) {
 		v.OnRegistryStart()
 		defer v.OnRegistryFinished()
-		stats := indexer.Stats()
+		stats := appender.Stats()
 		v.OnKey("acked")
 		v.OnInt(stats.Indexed)
 		v.OnKey("active")
@@ -658,13 +696,13 @@ func (s *Runner) newFinalBatchProcessor(
 		v.OnRegistryStart()
 		defer v.OnRegistryFinished()
 		v.OnKey("total")
-		v.OnInt(indexer.Stats().Added)
+		v.OnInt(appender.Stats().Added)
 	})
 	monitoring.Default.Remove("output")
 	monitoring.NewFunc(monitoring.Default, "output.elasticsearch.bulk_requests", func(_ monitoring.Mode, v monitoring.Visitor) {
 		v.OnRegistryStart()
 		defer v.OnRegistryFinished()
-		stats := indexer.Stats()
+		stats := appender.Stats()
 		v.OnKey("available")
 		v.OnInt(stats.AvailableBulkRequests)
 		v.OnKey("completed")
@@ -673,7 +711,7 @@ func (s *Runner) newFinalBatchProcessor(
 	monitoring.NewFunc(monitoring.Default, "output.elasticsearch.indexers", func(_ monitoring.Mode, v monitoring.Visitor) {
 		v.OnRegistryStart()
 		defer v.OnRegistryFinished()
-		stats := indexer.Stats()
+		stats := appender.Stats()
 		v.OnKey("active")
 		v.OnInt(stats.IndexersActive)
 		v.OnKey("created")
@@ -681,19 +719,20 @@ func (s *Runner) newFinalBatchProcessor(
 		v.OnKey("destroyed")
 		v.OnInt(stats.IndexersDestroyed)
 	})
-	return indexer, indexer.Close, nil
+	return newDocappenderBatchProcessor(appender), appender.Close, nil
 }
 
-func modelIndexerConfig(
-	opts modelindexer.Config, memLimit float64, logger *logp.Logger,
-) modelindexer.Config {
+func docappenderConfig(
+	opts docappender.Config, memLimit float64, logger *logp.Logger,
+) docappender.Config {
 	const logMessage = "%s set to %d based on %0.1fgb of memory"
-	opts.EventBufferSize = int(1024 * memLimit)
-	if opts.EventBufferSize >= 61440 {
-		opts.EventBufferSize = 61440
+	// Use 80% of the total memory limit to calculate buffer size
+	opts.DocumentBufferSize = int(1024 * memLimit * 0.8)
+	if opts.DocumentBufferSize >= 61440 {
+		opts.DocumentBufferSize = 61440
 	}
 	logger.Infof(logMessage,
-		"modelindexer.EventBufferSize", opts.EventBufferSize, memLimit,
+		"docappender.DocumentBufferSize", opts.DocumentBufferSize, memLimit,
 	)
 	if opts.MaxRequests > 0 {
 		return opts
@@ -707,7 +746,7 @@ func modelIndexerConfig(
 	}
 	opts.MaxRequests = maxRequests
 	logger.Infof(logMessage,
-		"modelindexer.MaxRequests", opts.MaxRequests, memLimit,
+		"docappender.MaxRequests", opts.MaxRequests, memLimit,
 	)
 	return opts
 }
@@ -773,7 +812,7 @@ func newSourcemapFetcher(
 	cfg config.SourceMapping,
 	fleetCfg *config.Fleet,
 	kibanaClient *kibana.Client,
-	newElasticsearchClient func(*elasticsearch.Config) (elasticsearch.Client, error),
+	newElasticsearchClient func(*elasticsearch.Config) (*elasticsearch.Client, error),
 ) (sourcemap.Fetcher, error) {
 	// When running under Fleet we only fetch via Fleet Server.
 	if fleetCfg != nil {
@@ -846,7 +885,7 @@ func newSourcemapFetcher(
 // TODO: This is copying behavior from libbeat:
 // https://github.com/elastic/beats/blob/b9ced47dba8bb55faa3b2b834fd6529d3c4d0919/libbeat/cmd/instance/beat.go#L927-L950
 // Remove this when cluster_uuid no longer needs to be queried from ES.
-func queryClusterUUID(ctx context.Context, esClient elasticsearch.Client) error {
+func queryClusterUUID(ctx context.Context, esClient *elasticsearch.Client) error {
 	stateRegistry := monitoring.GetNamespace("state").GetRegistry()
 	outputES := "outputs.elasticsearch"
 	// Running under elastic-agent, the callback linked above is not

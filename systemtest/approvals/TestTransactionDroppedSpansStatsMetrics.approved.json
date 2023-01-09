@@ -2,18 +2,27 @@
     "events": [
         {
             "@timestamp": "dynamic",
+            "_doc_count": 4,
             "agent": {
                 "name": "go"
             },
-            "data_stream.dataset": "apm.internal",
-            "data_stream.namespace": "default",
-            "data_stream.type": "metrics",
+            "data_stream": {
+                "dataset": "apm.service_destination.10m",
+                "namespace": "default",
+                "type": "metrics"
+            },
+            "ecs": {
+                "version": "dynamic"
+            },
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
                 "outcome": "success"
             },
-            "metricset.name": "service_destination",
+            "metricset": {
+                "interval": "10m",
+                "name": "service_destination"
+            },
             "observer": {
                 "hostname": "dynamic",
                 "type": "apm-server",
@@ -32,7 +41,9 @@
                         "resource": "elasticsearch",
                         "response_time": {
                             "count": 4,
-                            "sum.us": 3600
+                            "sum": {
+                                "us": 3600
+                            }
                         }
                     }
                 }
@@ -40,18 +51,125 @@
         },
         {
             "@timestamp": "dynamic",
+            "_doc_count": 4,
             "agent": {
                 "name": "go"
             },
-            "data_stream.dataset": "apm.internal",
-            "data_stream.namespace": "default",
-            "data_stream.type": "metrics",
+            "data_stream": {
+                "dataset": "apm.service_destination.1m",
+                "namespace": "default",
+                "type": "metrics"
+            },
+            "ecs": {
+                "version": "dynamic"
+            },
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
                 "outcome": "success"
             },
-            "metricset.name": "service_destination",
+            "metricset": {
+                "interval": "1m",
+                "name": "service_destination"
+            },
+            "observer": {
+                "hostname": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic"
+            },
+            "processor": {
+                "event": "metric",
+                "name": "metric"
+            },
+            "service": {
+                "name": "systemtest"
+            },
+            "span": {
+                "destination": {
+                    "service": {
+                        "resource": "elasticsearch",
+                        "response_time": {
+                            "count": 4,
+                            "sum": {
+                                "us": 3600
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "@timestamp": "dynamic",
+            "_doc_count": 4,
+            "agent": {
+                "name": "go"
+            },
+            "data_stream": {
+                "dataset": "apm.service_destination.60m",
+                "namespace": "default",
+                "type": "metrics"
+            },
+            "ecs": {
+                "version": "dynamic"
+            },
+            "event": {
+                "agent_id_status": "missing",
+                "ingested": "dynamic",
+                "outcome": "success"
+            },
+            "metricset": {
+                "interval": "60m",
+                "name": "service_destination"
+            },
+            "observer": {
+                "hostname": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic"
+            },
+            "processor": {
+                "event": "metric",
+                "name": "metric"
+            },
+            "service": {
+                "name": "systemtest"
+            },
+            "span": {
+                "destination": {
+                    "service": {
+                        "resource": "elasticsearch",
+                        "response_time": {
+                            "count": 4,
+                            "sum": {
+                                "us": 3600
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "@timestamp": "dynamic",
+            "_doc_count": 50,
+            "agent": {
+                "name": "go"
+            },
+            "data_stream": {
+                "dataset": "apm.service_destination.10m",
+                "namespace": "default",
+                "type": "metrics"
+            },
+            "ecs": {
+                "version": "dynamic"
+            },
+            "event": {
+                "agent_id_status": "missing",
+                "ingested": "dynamic",
+                "outcome": "success"
+            },
+            "metricset": {
+                "interval": "10m",
+                "name": "service_destination"
+            },
             "observer": {
                 "hostname": "dynamic",
                 "type": "apm-server",
@@ -70,7 +188,107 @@
                         "resource": "redis",
                         "response_time": {
                             "count": 50,
-                            "sum.us": 5000
+                            "sum": {
+                                "us": 5000
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "@timestamp": "dynamic",
+            "_doc_count": 50,
+            "agent": {
+                "name": "go"
+            },
+            "data_stream": {
+                "dataset": "apm.service_destination.1m",
+                "namespace": "default",
+                "type": "metrics"
+            },
+            "ecs": {
+                "version": "dynamic"
+            },
+            "event": {
+                "agent_id_status": "missing",
+                "ingested": "dynamic",
+                "outcome": "success"
+            },
+            "metricset": {
+                "interval": "1m",
+                "name": "service_destination"
+            },
+            "observer": {
+                "hostname": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic"
+            },
+            "processor": {
+                "event": "metric",
+                "name": "metric"
+            },
+            "service": {
+                "name": "systemtest"
+            },
+            "span": {
+                "destination": {
+                    "service": {
+                        "resource": "redis",
+                        "response_time": {
+                            "count": 50,
+                            "sum": {
+                                "us": 5000
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "@timestamp": "dynamic",
+            "_doc_count": 50,
+            "agent": {
+                "name": "go"
+            },
+            "data_stream": {
+                "dataset": "apm.service_destination.60m",
+                "namespace": "default",
+                "type": "metrics"
+            },
+            "ecs": {
+                "version": "dynamic"
+            },
+            "event": {
+                "agent_id_status": "missing",
+                "ingested": "dynamic",
+                "outcome": "success"
+            },
+            "metricset": {
+                "interval": "60m",
+                "name": "service_destination"
+            },
+            "observer": {
+                "hostname": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic"
+            },
+            "processor": {
+                "event": "metric",
+                "name": "metric"
+            },
+            "service": {
+                "name": "systemtest"
+            },
+            "span": {
+                "destination": {
+                    "service": {
+                        "resource": "redis",
+                        "response_time": {
+                            "count": 50,
+                            "sum": {
+                                "us": 5000
+                            }
                         }
                     }
                 }

@@ -76,7 +76,7 @@ func createApikeyCmd() *cobra.Command {
 		Short: short,
 		Long: short + `.
 If no privilege(s) are specified, the API Key will be valid for all.`,
-		Run: makeAPIKeyRun(&json, func(client es.Client, config *config.Config, args []string) error {
+		Run: makeAPIKeyRun(&json, func(client *es.Client, config *config.Config, args []string) error {
 			privileges := booleansToPrivileges(ingest, sourcemap, agentConfig)
 			if len(privileges) == 0 {
 				// No privileges specified, grant all.
@@ -113,7 +113,7 @@ func invalidateApikeyCmd() *cobra.Command {
 		Long: short + `.
 If both "id" and "name" are supplied, only "id" will be used.
 If neither of them are, an error will be returned.`,
-		Run: makeAPIKeyRun(&json, func(client es.Client, config *config.Config, args []string) error {
+		Run: makeAPIKeyRun(&json, func(client *es.Client, config *config.Config, args []string) error {
 			if id == "" && name == "" {
 				// TODO(axw) this should trigger usage
 				return errors.New(`either "id" or "name" are required`)
@@ -140,7 +140,7 @@ func getApikeysCmd() *cobra.Command {
 		Long: short + `.
 If both "id" and "name" are supplied, only "id" will be used.
 If neither of them are, an error will be returned.`,
-		Run: makeAPIKeyRun(&json, func(client es.Client, config *config.Config, args []string) error {
+		Run: makeAPIKeyRun(&json, func(client *es.Client, config *config.Config, args []string) error {
 			if id == "" && name == "" {
 				// TODO(axw) this should trigger usage
 				return errors.New(`either "id" or "name" are required`)
@@ -169,7 +169,7 @@ If no privilege(s) are specified, the credentials will be queried for all.`
 		Use:   "verify",
 		Short: short,
 		Long:  long,
-		Run: makeAPIKeyRun(&json, func(client es.Client, config *config.Config, args []string) error {
+		Run: makeAPIKeyRun(&json, func(client *es.Client, config *config.Config, args []string) error {
 			privileges := booleansToPrivileges(ingest, sourcemap, agentConfig)
 			if len(privileges) == 0 {
 				privileges = auth.AllPrivilegeActions()
@@ -194,7 +194,7 @@ If no privilege(s) are specified, the credentials will be queried for all.`
 	return verify
 }
 
-type apikeyRunFunc func(client es.Client, config *config.Config, args []string) error
+type apikeyRunFunc func(client *es.Client, config *config.Config, args []string) error
 
 type cobraRunFunc func(cmd *cobra.Command, args []string)
 
@@ -217,7 +217,7 @@ func makeAPIKeyRun(json *bool, f apikeyRunFunc) cobraRunFunc {
 }
 
 // apm-server.api_key.enabled is implicitly true
-func bootstrap() (es.Client, *config.Config, error) {
+func bootstrap() (*es.Client, *config.Config, error) {
 	cfg, _, _, err := LoadConfig(WithMergeConfig(
 		agentconfig.MustNewConfigFrom(map[string]interface{}{
 			"apm-server.auth.api_key.enabled": true,
@@ -257,7 +257,7 @@ func booleansToPrivileges(ingest, sourcemap, agentConfig bool) []es.PrivilegeAct
 	return privileges
 }
 
-func createAPIKey(client es.Client, keyName, expiry string, privileges []es.PrivilegeAction, asJSON bool) error {
+func createAPIKey(client *es.Client, keyName, expiry string, privileges []es.PrivilegeAction, asJSON bool) error {
 
 	// Elasticsearch will allow a user without the right apm privileges to create API keys, but the keys won't validate
 	// check first whether the user has the right privileges, and bail out early if not
@@ -343,7 +343,7 @@ PUT /_security/role/my_role {
 	return nil
 }
 
-func getAPIKey(client es.Client, id, name *string, validOnly, asJSON bool) error {
+func getAPIKey(client *es.Client, id, name *string, validOnly, asJSON bool) error {
 	if isSet(id) {
 		name = nil
 	} else if isSet(name) {
@@ -385,7 +385,7 @@ func getAPIKey(client es.Client, id, name *string, validOnly, asJSON bool) error
 	return nil
 }
 
-func invalidateAPIKey(client es.Client, id string, name string, asJSON bool) error {
+func invalidateAPIKey(client *es.Client, id string, name string, asJSON bool) error {
 	invalidateKeysRequest := es.InvalidateAPIKeyRequest{}
 	if id != "" {
 		invalidateKeysRequest.IDs = []string{id}

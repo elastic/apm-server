@@ -7,6 +7,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"math"
 	"net/http"
 	"os"
 	"sync"
@@ -26,11 +27,12 @@ import (
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/monitoring"
 	"github.com/elastic/elastic-agent-libs/paths"
+	"github.com/elastic/go-elasticsearch/v8"
+	"github.com/elastic/go-elasticsearch/v8/esutil"
 
+	"github.com/elastic/apm-data/model"
 	"github.com/elastic/apm-server/internal/beatcmd"
 	"github.com/elastic/apm-server/internal/beater"
-	"github.com/elastic/apm-server/internal/elasticsearch"
-	"github.com/elastic/apm-server/internal/model"
 	"github.com/elastic/apm-server/internal/model/modelprocessor"
 	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/servicemetrics"
 	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/spanmetrics"
@@ -42,6 +44,7 @@ import (
 
 const (
 	tailSamplingStorageDir = "tail_sampling"
+	metricsInterval        = time.Minute
 )
 
 var (
@@ -61,6 +64,8 @@ var (
 	// samplerUUID is a UUID used to identify sampled trace ID documents
 	// published by this process.
 	samplerUUID = uuid.Must(uuid.NewV4())
+
+	rollUpMetricsIntervals = []time.Duration{10 * time.Minute, time.Hour}
 )
 
 func init() {
@@ -105,7 +110,10 @@ func newProcessors(args beater.ServerParams) ([]namedProcessor, error) {
 	agg, err := txmetrics.NewAggregator(txmetrics.AggregatorConfig{
 		BatchProcessor:                 args.BatchProcessor,
 		MaxTransactionGroups:           args.Config.Aggregation.Transactions.MaxTransactionGroups,
-		MetricsInterval:                args.Config.Aggregation.Transactions.Interval,
+		MetricsInterval:                metricsInterval,
+		RollUpIntervals:                rollUpMetricsIntervals,
+		MaxTransactionGroupsPerService: int(math.Ceil(0.1 * float64(args.Config.Aggregation.Transactions.MaxTransactionGroups))),
+		MaxServices:                    args.Config.Aggregation.Transactions.MaxTransactionGroups, // same as max txn grps
 		HDRHistogramSignificantFigures: args.Config.Aggregation.Transactions.HDRHistogramSignificantFigures,
 	})
 	if err != nil {
@@ -118,9 +126,10 @@ func newProcessors(args beater.ServerParams) ([]namedProcessor, error) {
 	const spanName = "service destinations aggregation"
 	args.Logger.Infof("creating %s with config: %+v", spanName, args.Config.Aggregation.ServiceDestinations)
 	spanAggregator, err := spanmetrics.NewAggregator(spanmetrics.AggregatorConfig{
-		BatchProcessor: args.BatchProcessor,
-		Interval:       args.Config.Aggregation.ServiceDestinations.Interval,
-		MaxGroups:      args.Config.Aggregation.ServiceDestinations.MaxGroups,
+		BatchProcessor:  args.BatchProcessor,
+		Interval:        metricsInterval,
+		RollUpIntervals: rollUpMetricsIntervals,
+		MaxGroups:       args.Config.Aggregation.ServiceDestinations.MaxGroups,
 	})
 	if err != nil {
 		return nil, errors.Wrapf(err, "error creating %s", spanName)
@@ -131,9 +140,11 @@ func newProcessors(args beater.ServerParams) ([]namedProcessor, error) {
 		const serviceName = "service metrics aggregation"
 		args.Logger.Infof("creating %s with config: %+v", serviceName, args.Config.Aggregation.Service)
 		serviceAggregator, err := servicemetrics.NewAggregator(servicemetrics.AggregatorConfig{
-			BatchProcessor: args.BatchProcessor,
-			Interval:       args.Config.Aggregation.Service.Interval,
-			MaxGroups:      args.Config.Aggregation.Service.MaxGroups,
+			BatchProcessor:                 args.BatchProcessor,
+			Interval:                       metricsInterval,
+			RollUpIntervals:                rollUpMetricsIntervals,
+			MaxGroups:                      args.Config.Aggregation.Service.MaxGroups,
+			HDRHistogramSignificantFigures: args.Config.Aggregation.Service.HDRHistogramSignificantFigures,
 		})
 		if err != nil {
 			return nil, errors.Wrapf(err, "error creating %s", spanName)
@@ -285,15 +296,23 @@ func newProfilingCollector(args beater.ServerParams) (*profiling.ElasticCollecto
 	if err != nil {
 		return nil, nil, err
 	}
+
 	// Elasticsearch should default to 100 MB for the http.max_content_length configuration,
-	// so we flush the buffer when at 16 MiB or every 4 seconds.
-	// This should reduce the lock contention between multiple workers trying to write or flush
-	// the bulk indexer buffer.
-	bulkIndexerConfig := elasticsearch.BulkIndexerConfig{
-		FlushBytes:    1 << 24,
-		FlushInterval: 4 * time.Second,
-	}
-	indexer, err := client.NewBulkIndexer(bulkIndexerConfig)
+	// so we flush the buffer (per-worker, number of workers is equal to the number of cores)
+	// when at 4 MiB or every 4 seconds. This should reduce the lock contention between
+	// multiple workers trying to write or flush the bulk indexer buffer but also keep
+	// memory spikes to acceptable levels (go-elasticsearch can exhibit pathological behavior
+	// if thousands of items are added to its bulk indexer at once, since they are kept in memory
+	// for the entire duration of an ES request-response cycle).
+	const (
+		flushBytes    = 1 << 22
+		flushInterval = 4 * time.Second
+	)
+	indexer, err := esutil.NewBulkIndexer(esutil.BulkIndexerConfig{
+		Client:        client,
+		FlushBytes:    flushBytes,
+		FlushInterval: flushInterval,
+	})
 	if err != nil {
 		return nil, nil, err
 	}
@@ -302,7 +321,11 @@ func newProfilingCollector(args beater.ServerParams) (*profiling.ElasticCollecto
 	if err != nil {
 		return nil, nil, err
 	}
-	metricsIndexer, err := metricsClient.NewBulkIndexer(bulkIndexerConfig)
+	metricsIndexer, err := esutil.NewBulkIndexer(esutil.BulkIndexerConfig{
+		Client:        metricsClient,
+		FlushBytes:    flushBytes,
+		FlushInterval: flushInterval,
+	})
 	if err != nil {
 		return nil, nil, err
 	}
@@ -334,7 +357,7 @@ func newProfilingCollector(args beater.ServerParams) (*profiling.ElasticCollecto
 // Fetch the Cluster name from Elasticsearch: Profiling adds it as a field in
 // the host-agent metrics documents for debugging purposes.
 // In Cloud deployments, the Cluster name is set equal to the Cluster ID.
-func queryElasticsearchClusterName(client elasticsearch.Client, logger *logp.Logger) (string, error) {
+func queryElasticsearchClusterName(client *elasticsearch.Client, logger *logp.Logger) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "/", nil)

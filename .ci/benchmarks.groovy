@@ -19,7 +19,7 @@ pipeline {
     TESTING_BENCHMARK_DIR = 'testing/benchmark'
   }
   options {
-    timeout(time: 3, unit: 'HOURS')
+    timeout(time: 4, unit: 'HOURS')
     buildDiscarder(logRotator(numToKeepStr: '100', artifactNumToKeepStr: '30', daysToKeepStr: '30'))
     timestamps()
     ansiColor('xterm')
@@ -46,7 +46,6 @@ pipeline {
         TF_VAR_public_key = "./id_rsa_terraform.pub"
         BENCHMARK_RESULT = "benchmark-result.txt"
         TFVARS_SOURCE = "system-profiles/8GBx1zone.tfvars" // Default to use an 8gb profile
-        USER = "benchci-${env.BUILD_ID}" // use build as prefix
         // cloud tags
         TF_VAR_BUILD_ID = "${env.BUILD_ID}"
         TF_VAR_ENVIRONMENT= 'ci'
@@ -54,6 +53,7 @@ pipeline {
         TF_VAR_REPO = "${REPO}"
         TF_VAR_CREATED_DATE = "${env.CREATED_DATE}"
         GOBENCH_TAGS = "branch=${BRANCH_NAME},commit=${GIT_BASE_COMMIT},pr=${CHANGE_ID},target_branch=${CHANGE_TARGET}"
+        USER = "benchci-${TF_VAR_BRANCH}-${env.BUILD_ID}" // use branch & build as prefix
       }
       steps {
         dir("${BASE_DIR}") {

@@ -7,11 +7,10 @@ package main
 // This file is mandatory as otherwise the apm-server.test binary is not generated correctly.
 
 import (
-	"bytes"
 	"context"
 	"fmt"
-	"io"
 	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/pkg/errors"
@@ -44,6 +43,10 @@ func TestMonitoring(t *testing.T) {
 	cfg := config.DefaultConfig()
 	cfg.Sampling.Tail.Enabled = true
 	cfg.Sampling.Tail.Policies = []config.TailSamplingPolicy{{SampleRate: 0.1}}
+	// MaxTransactionGroups and MaxGroups are configured based on memory limit.
+	// Overriding here to avoid validation errors.
+	cfg.Aggregation.Transactions.MaxTransactionGroups = 10000
+	cfg.Aggregation.Service.MaxGroups = 10000
 
 	// Wrap & run the server twice, to ensure metric registration does not panic.
 	runServerError := errors.New("runServer")
@@ -107,8 +110,23 @@ func TestQueryElasticsearchClusterName(t *testing.T) {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			logger := logp.NewLogger("go_tests_apm_server", zap.Hooks(detectMessageInLog(t, tc.expectedLogMsg)))
-			mockedClient := mockEsClusterName{io.NopCloser(bytes.NewBufferString(tc.body)), tc.throwErr}
-			result, err := queryElasticsearchClusterName(&mockedClient, logger)
+			var client *elasticsearch.Client
+			if tc.throwErr {
+				conf := elasticsearch.DefaultConfig()
+				// This is intentionally going to fail, no need to retry.
+				conf.MaxRetries = 1
+				// We cannot disable retries so the first retry is going to block and kickin
+				// the backoff period.
+				// Set the backoff init to 0 to disable the backoff.
+				conf.Backoff.Init = 0
+				client, _ = elasticsearch.NewClientParams(elasticsearch.ClientParams{
+					Config:    conf,
+					Transport: errTransport{},
+				})
+			} else {
+				client = newMockElasticsearchClient(t, tc.body)
+			}
+			result, err := queryElasticsearchClusterName(client, logger)
 			if tc.throwErr {
 				// Even when the server does not reply, we don't want to return an error to the caller
 				require.Nil(t, err)
@@ -130,22 +148,19 @@ func detectMessageInLog(t *testing.T, contained string) func(zapcore.Entry) erro
 	}
 }
 
-type mockEsClusterName struct {
-	body     io.ReadCloser
-	throwErr bool
+func newMockElasticsearchClient(t testing.TB, body string) *elasticsearch.Client {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("X-Elastic-Product", "Elasticsearch")
+		w.Write([]byte(body))
+	}))
+	t.Cleanup(srv.Close)
+	client, err := elasticsearch.NewClient(&elasticsearch.Config{Hosts: []string{srv.URL}})
+	require.NoError(t, err)
+	return client
 }
 
-func (c *mockEsClusterName) Perform(r *http.Request) (*http.Response, error) {
-	if c.throwErr {
-		return nil, fmt.Errorf("connection closed")
-	}
-	return &http.Response{
-		StatusCode: 200,
-		Body:       c.body,
-		Request:    r,
-	}, nil
-}
+type errTransport struct{}
 
-func (c *mockEsClusterName) NewBulkIndexer(_ elasticsearch.BulkIndexerConfig) (elasticsearch.BulkIndexer, error) {
-	return nil, nil
+func (errTransport) RoundTrip(r *http.Request) (*http.Response, error) {
+	return nil, fmt.Errorf("connection closed")
 }

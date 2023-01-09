@@ -240,13 +240,11 @@ type ConsoleOutputConfig struct {
 
 // ElasticsearchOutputConfig holds APM Server libbeat Elasticsearch output configuration.
 type ElasticsearchOutputConfig struct {
-	Enabled  bool     `json:"enabled"`
-	Hosts    []string `json:"hosts,omitempty"`
-	Username string   `json:"username,omitempty"`
-	Password string   `json:"password,omitempty"`
-	APIKey   string   `json:"api_key,omitempty"`
-
-	// modelindexer settings
+	Enabled       bool          `json:"enabled"`
+	Hosts         []string      `json:"hosts,omitempty"`
+	Username      string        `json:"username,omitempty"`
+	Password      string        `json:"password,omitempty"`
+	APIKey        string        `json:"api_key,omitempty"`
 	FlushBytes    string        `json:"flush_bytes,omitempty"`
 	FlushInterval time.Duration `json:"flush_interval,omitempty"`
 }
@@ -298,25 +296,7 @@ func (m *MonitoringConfig) MarshalJSON() ([]byte, error) {
 
 // AggregationConfig holds APM Server metrics aggregation configuration.
 type AggregationConfig struct {
-	Transactions        *TransactionAggregationConfig        `json:"transactions,omitempty"`
-	Service             *ServiceAggregationConfig            `json:"service,omitempty"`
-	ServiceDestinations *ServiceDestinationAggregationConfig `json:"service_destinations,omitempty"`
-}
-
-// TransactionAggregationConfig holds APM Server transaction metrics aggregation configuration.
-type TransactionAggregationConfig struct {
-	Interval time.Duration
-}
-
-func (m *TransactionAggregationConfig) MarshalJSON() ([]byte, error) {
-	// time.Duration is encoded as int64.
-	// Convert time.Durations to durations, to encode as duration strings.
-	type config struct {
-		Interval string `json:"interval,omitempty"`
-	}
-	return json.Marshal(config{
-		Interval: durationString(m.Interval),
-	})
+	Service *ServiceAggregationConfig `json:"service,omitempty"`
 }
 
 // ServiceAggregationConfig holds APM Server service metrics aggregation configuration.
@@ -325,8 +305,7 @@ type ServiceAggregationConfig struct {
 	//
 	// Service metrics aggregation is disabled by default while the
 	// feature is in technical preview.
-	Enabled  *bool `json:"enabled,omitempty"`
-	Interval time.Duration
+	Enabled *bool `json:"enabled,omitempty"`
 }
 
 func (s *ServiceAggregationConfig) MarshalJSON() ([]byte, error) {
@@ -337,24 +316,7 @@ func (s *ServiceAggregationConfig) MarshalJSON() ([]byte, error) {
 		Interval string `json:"interval,omitempty"`
 	}
 	return json.Marshal(config{
-		Enabled:  s.Enabled,
-		Interval: durationString(s.Interval),
-	})
-}
-
-// ServiceDestinationAggregationConfig holds APM Server service destination metrics aggregation configuration.
-type ServiceDestinationAggregationConfig struct {
-	Interval time.Duration
-}
-
-func (s *ServiceDestinationAggregationConfig) MarshalJSON() ([]byte, error) {
-	// time.Duration is encoded as int64.
-	// Convert time.Durations to durations, to encode as duration strings.
-	type config struct {
-		Interval string `json:"interval,omitempty"`
-	}
-	return json.Marshal(config{
-		Interval: durationString(s.Interval),
+		Enabled: s.Enabled,
 	})
 }
 

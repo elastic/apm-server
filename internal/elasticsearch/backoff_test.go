@@ -22,13 +22,11 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-
-	"github.com/elastic/beats/v7/libbeat/outputs/elasticsearch"
 )
 
 func TestExponentialBackoff(t *testing.T) {
 	init := 2 * time.Second
-	backoffCfg := elasticsearch.Backoff{
+	backoffCfg := BackoffConfig{
 		Init: init,
 		Max:  time.Minute,
 	}

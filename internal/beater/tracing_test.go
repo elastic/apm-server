@@ -41,10 +41,9 @@ func TestServerTracingEnabled(t *testing.T) {
 
 					// The output instrumentation may send transactions for
 					// bulk operations, e.g. there will be "flush" transactions
-					// send by modelindexer for _bulk requests. When the server
-					// sends traces to itself, it will enter a state where it
-					// continues to regularly send traces to itself from the
-					// traced output.
+					// sent for _bulk requests. When the server sends traces to
+					// itself, it will enter a state where it continues to
+					// regularly send traces to itself from the traced output.
 					//
 					// TODO(axw) we should consider having a separate processor
 					// pipeline (including output) with no tracing. For now, we

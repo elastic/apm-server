@@ -74,10 +74,10 @@ func (j *JavaAttacher) getAttacherJar(uid string) string {
 
 // createAttacherTempDir looks for a temp dir that is already mapped to the given user.
 // If such is not found, creates one as follows:
-// 	1.	create a temporary dir with 0700 access
-//	2.	copy the bundled attacher jar into the tmp dir with 0600 mode
-//	3.	change tmp dir and tmp attacher jar owner to the given user
-//	4.	keep a mapping of this jar to the user ID
+//  1. create a temporary dir with 0700 access
+//  2. copy the bundled attacher jar into the tmp dir with 0600 mode
+//  3. change tmp dir and tmp attacher jar owner to the given user
+//  4. keep a mapping of this jar to the user ID
 //
 // NOTE: this method is not thread-safe, so it should not be invoked concurrently by multiple goroutines
 func (j *JavaAttacher) createAttacherTempDir(uidS string) (string, error) {

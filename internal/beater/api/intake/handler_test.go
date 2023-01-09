@@ -22,6 +22,8 @@ import (
 	"compress/gzip"
 	"compress/zlib"
 	"context"
+	"errors"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -31,15 +33,20 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/elastic/apm-data/input/elasticapm"
+	"github.com/elastic/apm-data/model"
 	"github.com/elastic/apm-server/internal/approvaltest"
 	"github.com/elastic/apm-server/internal/beater/config"
 	"github.com/elastic/apm-server/internal/beater/headers"
 	"github.com/elastic/apm-server/internal/beater/request"
-	"github.com/elastic/apm-server/internal/model"
 	"github.com/elastic/apm-server/internal/model/modelprocessor"
-	"github.com/elastic/apm-server/internal/processor/stream"
 	"github.com/elastic/apm-server/internal/publish"
 )
+
+// TODO: these tests should be rewritten to use a mock StreamHandler
+// implementation which returns controlled errors/results, rather
+// than adding the complexity of real data. Integration tests belong
+// elsewhere.
 
 func TestIntakeHandler(t *testing.T) {
 	for name, tc := range map[string]testcaseIntakeHandler{
@@ -88,12 +95,10 @@ func TestIntakeHandler(t *testing.T) {
 		},
 		"TooLarge": {
 			path: "errors.ndjson",
-			processor: func() *stream.Processor {
-				return stream.BackendProcessor(stream.Config{
-					MaxEventSize: 10,
-					Semaphore:    make(chan struct{}, 1),
-				})
-			}(),
+			processor: elasticapm.NewProcessor(elasticapm.Config{
+				MaxEventSize: 10,
+				Semaphore:    make(chan struct{}, 1),
+			}),
 			code: http.StatusBadRequest, id: request.IDResponseErrorsRequestTooLarge},
 		"Closing": {
 			path: "errors.ndjson",
@@ -104,9 +109,17 @@ func TestIntakeHandler(t *testing.T) {
 		"FullQueue": {
 			path: "errors.ndjson",
 			batchProcessor: model.ProcessBatchFunc(func(context.Context, *model.Batch) error {
+				return elasticapm.ErrQueueFull
+			}),
+			code: http.StatusServiceUnavailable, id: request.IDResponseErrorsFullQueue,
+		},
+		"FullQueueLegacy": {
+			path: "errors.ndjson",
+			batchProcessor: model.ProcessBatchFunc(func(context.Context, *model.Batch) error {
 				return publish.ErrFull
 			}),
-			code: http.StatusServiceUnavailable, id: request.IDResponseErrorsFullQueue},
+			code: http.StatusServiceUnavailable, id: request.IDResponseErrorsFullQueue,
+		},
 		"InvalidEvent": {
 			path: "invalid-event.ndjson",
 			code: http.StatusBadRequest, id: request.IDResponseErrorsValidate},
@@ -154,6 +167,37 @@ func TestIntakeHandler(t *testing.T) {
 	}
 }
 
+func TestIntakeHandlerMonitoring(t *testing.T) {
+	eventsAccepted.Set(1)
+	eventsInvalid.Set(2)
+	eventsTooLarge.Set(3)
+
+	streamHandler := streamHandlerFunc(func(
+		ctx context.Context,
+		async bool,
+		base model.APMEvent,
+		stream io.Reader,
+		batchSize int,
+		processor model.BatchProcessor,
+		out *elasticapm.Result,
+	) error {
+		out.Accepted = 10
+		out.Invalid = 100
+		out.TooLarge = 1000
+		return errors.New("something bad happened at the end")
+	})
+
+	h := Handler(streamHandler, emptyRequestMetadata, modelprocessor.Nop{})
+	req := httptest.NewRequest("POST", "/", nil)
+	c := request.NewContext()
+	c.Reset(httptest.NewRecorder(), req)
+	h(c)
+
+	assert.Equal(t, int64(11), eventsAccepted.Get())
+	assert.Equal(t, int64(102), eventsInvalid.Get())
+	assert.Equal(t, int64(1003), eventsTooLarge.Get())
+}
+
 func TestIntakeHandlerContentType(t *testing.T) {
 	for _, contentType := range []string{
 		"",
@@ -178,7 +222,7 @@ type testcaseIntakeHandler struct {
 	c              *request.Context
 	w              *httptest.ResponseRecorder
 	r              *http.Request
-	processor      *stream.Processor
+	processor      *elasticapm.Processor
 	batchProcessor model.BatchProcessor
 	path           string
 	contentType    string
@@ -191,7 +235,7 @@ func (tc *testcaseIntakeHandler) setup(t *testing.T) {
 	if tc.processor == nil {
 		cfg := config.DefaultConfig()
 		cfg.MaxConcurrentDecoders = 10
-		tc.processor = stream.BackendProcessor(stream.Config{
+		tc.processor = elasticapm.NewProcessor(elasticapm.Config{
 			MaxEventSize: cfg.MaxEventSize,
 			Semaphore:    make(chan struct{}, cfg.MaxConcurrentDecoders),
 		})
@@ -245,4 +289,26 @@ func compressedRequest(t *testing.T, compressionType string, compressPayload boo
 
 func emptyRequestMetadata(*request.Context) model.APMEvent {
 	return model.APMEvent{}
+}
+
+type streamHandlerFunc func(
+	ctx context.Context,
+	async bool,
+	base model.APMEvent,
+	stream io.Reader,
+	batchSize int,
+	processor model.BatchProcessor,
+	out *elasticapm.Result,
+) error
+
+func (f streamHandlerFunc) HandleStream(
+	ctx context.Context,
+	async bool,
+	base model.APMEvent,
+	stream io.Reader,
+	batchSize int,
+	processor model.BatchProcessor,
+	out *elasticapm.Result,
+) error {
+	return f(ctx, async, base, stream, batchSize, processor, out)
 }

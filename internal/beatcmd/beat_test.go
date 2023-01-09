@@ -46,9 +46,6 @@ func TestRunMaxProcs(t *testing.T) {
 		t.Run(fmt.Sprintf("%d_GOMAXPROCS", n), func(t *testing.T) {
 			t.Setenv("GOMAXPROCS", strconv.Itoa(n))
 			beat := newNopBeat(t, "output.console.enabled: true")
-
-			// Capture logs for testing.
-			logp.DevelopmentSetup(logp.ToObserverOutput())
 			logs := logp.ObserverLogs()
 
 			stop := runBeat(t, beat)

@@ -45,6 +45,14 @@ Again, the sample rates of `Service B` and `Service C` are ignored.
 
 image::./images/dt-sampling-example-2.png[Distributed tracing and head based sampling example two]
 
+**OpenTelemetry with head-based sampling**
+
+Head-based sampling is implemented in the APM agents and SDKs, and
+requires the sample rate to be propagated between services and the APM Server.
+This functionality is not currently supported by OpenTelemetry,
+which results in inaccurate APM throughput, latency, and error metrics.
+OpenTelemetry users should consider using tail-based sampling instead.
+
 [float]
 [[tail-based-sampling]]
 ==== Tail-based sampling
@@ -73,6 +81,11 @@ and `1` (`100%`) for traces with a `failure` outcome,
 the sampled traces would look something like this:
 
 image::./images/dt-sampling-example-3.png[Distributed tracing and tail based sampling example one]
+
+**OpenTelemetry with tail-based sampling**
+
+Tail-based sampling is implemented entirely in APM Server,
+and will work with traces sent by either Elastic APM agents or OpenTelemetry SDKs.
 
 [float]
 === Sampled data and visualizations
