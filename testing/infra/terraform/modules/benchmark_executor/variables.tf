@@ -36,7 +36,7 @@ variable "private_key" {
 variable "tags" {
   type        = map(string)
   default     = {}
-  description = "Optional set of tags to use for all deployments"
+  description = "Optional set of tags to use for all resources"
 }
 
 ## VPC Network settings
