@@ -1,0 +1,25 @@
+- name: metricset.name
+  type: constant_keyword
+  description: Name of the set of metrics.
+- name: metricset.interval
+  type: constant_keyword
+  description: Metricset aggregation interval.
+- name: processor.event
+  type: constant_keyword
+  description: Processor event.
+- name: processor.name
+  type: constant_keyword
+  description: Processor name.
+- name: transaction.type
+  type: keyword
+  description: |
+    Keyword of specific relevance in the service's domain (eg. 'request', 'backgroundjob', etc)
+- name: transaction.duration.histogram
+  type: histogram
+  description: |
+    Pre-aggregated histogram of transaction durations.
+- name: numeric_labels
+  type: object
+  dynamic: true
+  description: |
+    Custom key/value pairs. Can be used to add meta information to events. Should not contain nested objects. All values are stored as scaled_float.

@@ -39,8 +39,9 @@ func TestNewAggregatorConfigInvalid(t *testing.T) {
 		err: "MaxGroups unspecified or negative",
 	}, {
 		config: AggregatorConfig{
-			BatchProcessor: report,
-			MaxGroups:      1,
+			BatchProcessor:                 report,
+			MaxGroups:                      1,
+			HDRHistogramSignificantFigures: 1,
 		},
 		err: "Interval unspecified or negative",
 	}} {
@@ -52,13 +53,15 @@ func TestNewAggregatorConfigInvalid(t *testing.T) {
 }
 
 func TestAggregatorRun(t *testing.T) {
-	batches := make(chan model.Batch, 1)
-	agg, err := NewAggregator(AggregatorConfig{
+	batches := make(chan model.Batch, 3)
+	config := AggregatorConfig{
 		BatchProcessor:                 makeChanBatchProcessor(batches),
 		Interval:                       1 * time.Millisecond,
+		RollUpIntervals:                []time.Duration{200 * time.Millisecond, time.Second},
 		MaxGroups:                      1000,
 		HDRHistogramSignificantFigures: 5,
-	})
+	}
+	agg, err := NewAggregator(config)
 	require.NoError(t, err)
 
 	type input struct {
@@ -106,110 +109,124 @@ func TestAggregatorRun(t *testing.T) {
 	// Start the aggregator after processing to ensure metrics are aggregated deterministically.
 	go agg.Run()
 	defer agg.Stop(context.Background())
+	// Stop the aggregator to ensure all metrics are published.
+	assert.NoError(t, agg.Stop(context.Background()))
 
-	batch := expectBatch(t, batches)
-	metricsets := batchMetricsets(t, batch)
-	expected := []model.APMEvent{{
-		Processor: model.MetricsetProcessor,
-		Metricset: &model.Metricset{Name: "service", DocCount: 6},
-		Service:   model.Service{Name: "backend"},
-		Agent:     model.Agent{Name: "java"},
-		Transaction: &model.Transaction{
-			Type: "request",
-			DurationSummary: model.SummaryMetric{
-				Count: 6,
-				Sum:   6000, // 6ms in micros
+	for _, interval := range append([]time.Duration{config.Interval}, config.RollUpIntervals...) {
+		batch := expectBatch(t, batches)
+		metricsets := batchMetricsets(t, batch)
+		expected := []model.APMEvent{{
+			Processor: model.MetricsetProcessor,
+			Metricset: &model.Metricset{
+				Name: "service", DocCount: 6, Interval: fmt.Sprintf("%.0fs", interval.Seconds()),
 			},
-			DurationHistogram: model.Histogram{
-				Values: []float64{1000, 2000, 3000},
-				Counts: []int64{1, 2, 3},
+			Service: model.Service{Name: "backend"},
+			Agent:   model.Agent{Name: "java"},
+			Transaction: &model.Transaction{
+				Type: "request",
+				DurationSummary: model.SummaryMetric{
+					Count: 6,
+					Sum:   6000, // 6ms in micros
+				},
+				DurationHistogram: model.Histogram{
+					Values: []float64{1000, 2000, 3000},
+					Counts: []int64{1, 2, 3},
+				},
 			},
-		},
-		Event: model.Event{
-			SuccessCount: model.SummaryMetric{
-				Count: 5,
-				Sum:   2,
+			Event: model.Event{
+				SuccessCount: model.SummaryMetric{
+					Count: 5,
+					Sum:   2,
+				},
 			},
-		},
-	}, {
-		Processor: model.MetricsetProcessor,
-		Metricset: &model.Metricset{Name: "service", DocCount: 1},
-		Service:   model.Service{Name: "backend"},
-		Agent:     model.Agent{Name: "go"},
-		Transaction: &model.Transaction{
-			Type: "request",
-			DurationSummary: model.SummaryMetric{
-				Count: 1,
-				Sum:   1000, // 1ms in micros
+		}, {
+			Processor: model.MetricsetProcessor,
+			Metricset: &model.Metricset{
+				Name: "service", DocCount: 1, Interval: fmt.Sprintf("%.0fs", interval.Seconds()),
 			},
-			DurationHistogram: model.Histogram{
-				Values: []float64{1000},
-				Counts: []int64{1},
+			Service: model.Service{Name: "backend"},
+			Agent:   model.Agent{Name: "go"},
+			Transaction: &model.Transaction{
+				Type: "request",
+				DurationSummary: model.SummaryMetric{
+					Count: 1,
+					Sum:   1000, // 1ms in micros
+				},
+				DurationHistogram: model.Histogram{
+					Values: []float64{1000},
+					Counts: []int64{1},
+				},
 			},
-		},
-	}, {
-		Processor: model.MetricsetProcessor,
-		Metricset: &model.Metricset{Name: "service", DocCount: 1},
-		Service:   model.Service{Name: "backend"},
-		Agent:     model.Agent{Name: "go"},
-		Transaction: &model.Transaction{
-			Type: "background",
-			DurationSummary: model.SummaryMetric{
-				Count: 1,
-				Sum:   1000, // 1ms in micros
+		}, {
+			Processor: model.MetricsetProcessor,
+			Metricset: &model.Metricset{
+				Name: "service", DocCount: 1, Interval: fmt.Sprintf("%.0fs", interval.Seconds()),
 			},
-			DurationHistogram: model.Histogram{
-				Values: []float64{1000},
-				Counts: []int64{1},
+			Service: model.Service{Name: "backend"},
+			Agent:   model.Agent{Name: "go"},
+			Transaction: &model.Transaction{
+				Type: "background",
+				DurationSummary: model.SummaryMetric{
+					Count: 1,
+					Sum:   1000, // 1ms in micros
+				},
+				DurationHistogram: model.Histogram{
+					Values: []float64{1000},
+					Counts: []int64{1},
+				},
 			},
-		},
-	}, {
-		Processor: model.MetricsetProcessor,
-		Metricset: &model.Metricset{Name: "service", DocCount: 1},
-		Service:   model.Service{Name: "frontend"},
-		Agent:     model.Agent{Name: "rum-js"},
-		Transaction: &model.Transaction{
-			Type: "page-load",
-			DurationSummary: model.SummaryMetric{
-				Count: 1,
-				Sum:   1000, // 1ms in micros
+		}, {
+			Processor: model.MetricsetProcessor,
+			Metricset: &model.Metricset{
+				Name: "service", DocCount: 1, Interval: fmt.Sprintf("%.0fs", interval.Seconds()),
 			},
-			DurationHistogram: model.Histogram{
-				Values: []float64{1000},
-				Counts: []int64{1},
+			Service: model.Service{Name: "frontend"},
+			Agent:   model.Agent{Name: "rum-js"},
+			Transaction: &model.Transaction{
+				Type: "page-load",
+				DurationSummary: model.SummaryMetric{
+					Count: 1,
+					Sum:   1000, // 1ms in micros
+				},
+				DurationHistogram: model.Histogram{
+					Values: []float64{1000},
+					Counts: []int64{1},
+				},
 			},
-		},
-	}, {
-		Processor: model.MetricsetProcessor,
-		Metricset: &model.Metricset{Name: "service", DocCount: 1},
-		Service:   model.Service{Name: "frontend", Environment: "staging"},
-		Agent:     model.Agent{Name: "rum-js"},
-		Transaction: &model.Transaction{
-			Type: "page-load",
-			DurationSummary: model.SummaryMetric{
-				Count: 1,
-				Sum:   1000, // 1ms in micros
+		}, {
+			Processor: model.MetricsetProcessor,
+			Metricset: &model.Metricset{
+				Name: "service", DocCount: 1, Interval: fmt.Sprintf("%.0fs", interval.Seconds()),
 			},
-			DurationHistogram: model.Histogram{
-				Values: []float64{1000},
-				Counts: []int64{1},
+			Service: model.Service{Name: "frontend", Environment: "staging"},
+			Agent:   model.Agent{Name: "rum-js"},
+			Transaction: &model.Transaction{
+				Type: "page-load",
+				DurationSummary: model.SummaryMetric{
+					Count: 1,
+					Sum:   1000, // 1ms in micros
+				},
+				DurationHistogram: model.Histogram{
+					Values: []float64{1000},
+					Counts: []int64{1},
+				},
 			},
-		},
-	}}
+		}}
 
-	assert.Equal(t, len(expected), len(metricsets))
-	out := cmp.Diff(expected, metricsets, cmpopts.IgnoreTypes(netip.Addr{}), cmpopts.SortSlices(func(e1 model.APMEvent, e2 model.APMEvent) bool {
-		if e1.Transaction.Type != e2.Transaction.Type {
-			return e1.Transaction.Type < e2.Transaction.Type
-		}
+		assert.Equal(t, len(expected), len(metricsets))
+		out := cmp.Diff(expected, metricsets, cmpopts.IgnoreTypes(netip.Addr{}), cmpopts.SortSlices(func(e1 model.APMEvent, e2 model.APMEvent) bool {
+			if e1.Transaction.Type != e2.Transaction.Type {
+				return e1.Transaction.Type < e2.Transaction.Type
+			}
 
-		if e1.Agent.Name != e2.Agent.Name {
-			return e1.Agent.Name < e2.Agent.Name
-		}
+			if e1.Agent.Name != e2.Agent.Name {
+				return e1.Agent.Name < e2.Agent.Name
+			}
 
-		return e1.Service.Environment < e2.Service.Environment
-	}))
-	assert.Empty(t, out)
+			return e1.Service.Environment < e2.Service.Environment
+		}))
+		assert.Empty(t, out)
+	}
 
 	select {
 	case <-batches:
@@ -313,6 +330,7 @@ func TestAggregatorOverflow(t *testing.T) {
 		Metricset: &model.Metricset{
 			Name:     "service",
 			DocCount: int64(overflowCount),
+			Interval: "10s",
 			Samples: []model.MetricsetSample{
 				{
 					Name:  "service.aggregation.overflow_count",

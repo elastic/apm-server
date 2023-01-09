@@ -24,6 +24,7 @@ import (
 	"github.com/elastic/elastic-agent-libs/logp"
 
 	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-server/internal/agentcfg"
 	"github.com/elastic/apm-server/internal/beater/api"
 	"github.com/elastic/apm-server/internal/beater/auth"
 	"github.com/elastic/apm-server/internal/beater/config"
@@ -39,11 +40,12 @@ func newTracerServer(cfg *config.Config, listener net.Listener, logger *logp.Log
 	if err != nil {
 		return nil, err
 	}
+	agentConfigFetcher := agentcfg.SanitizingFetcher{Fetcher: agentcfg.NewDirectFetcher(agentcfg.ConvertAgentConfigs(cfg.FleetAgentConfigs))}
 	mux, err := api.NewMux(
 		cfg,
 		batchProcessor,
 		authenticator,
-		newAgentConfigFetcher(cfg, nil /* kibana client */),
+		agentConfigFetcher,
 		ratelimitStore,
 		nil,                         // no sourcemap store
 		false,                       // not managed

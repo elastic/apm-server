@@ -6,11 +6,13 @@ package profiling
 
 import (
 	"fmt"
+
+	"github.com/elastic/apm-server/x-pack/apm-server/profiling/libpf"
 )
 
 // CollectTracesAndCounts reads the RPC request and builds a list of traces and their counts
 // using the libpf type. We export this function to allow other collectors to use the same logic.
-func CollectTracesAndCounts(in *AddCountsForTracesRequest) ([]TraceAndCounts, error) {
+func CollectTracesAndCounts(in *AddCountsForTracesRequest) ([]libpf.TraceAndCounts, error) {
 	hiTraceHashes := in.GetHiTraceHashes()
 	loTraceHashes := in.GetLoTraceHashes()
 	counts := in.GetCounts()
@@ -59,9 +61,9 @@ func CollectTracesAndCounts(in *AddCountsForTracesRequest) ([]TraceAndCounts, er
 		}
 	} // End sanity checks
 
-	traces := make([]TraceAndCounts, numTraces)
+	traces := make([]libpf.TraceAndCounts, numTraces)
 	for i := uint32(0); i < numTraces; i++ {
-		traceHash := NewTraceHash(hiTraceHashes[i], loTraceHashes[i])
+		traceHash := libpf.NewTraceHash(hiTraceHashes[i], loTraceHashes[i])
 		traces[i].Hash = traceHash
 		traces[i].Count = uint16(counts[i])
 		traces[i].Comm = uniqMetadata[commsIdx[i]]
@@ -78,7 +80,7 @@ func CollectTracesAndCounts(in *AddCountsForTracesRequest) ([]TraceAndCounts, er
 
 // CollectTracesAndFrames reads the RPC request and builds a list of traces and their frames
 // using the libpf type. We export this function to allow other collectors to use the same logic.
-func CollectTracesAndFrames(in *SetFramesForTracesRequest) ([]*Trace, error) {
+func CollectTracesAndFrames(in *SetFramesForTracesRequest) ([]*libpf.Trace, error) {
 	hiTraceHashes := in.GetHiTraceHashes()
 	loTraceHashes := in.GetLoTraceHashes()
 	frameCounts := in.GetFrameCounts()
@@ -150,22 +152,22 @@ func CollectTracesAndFrames(in *SetFramesForTracesRequest) ([]*Trace, error) {
 		}
 	} // End sanity checks
 
-	traces := make([]*Trace, numTraces)
+	traces := make([]*libpf.Trace, numTraces)
 	// Keeps track of current position in flattened arrays
 	j := 0
 	for i := uint32(0); i < numTraces; i++ {
 		numFrames := int(frameCounts[i])
-		trace := &Trace{
-			Hash:       NewTraceHash(hiTraceHashes[i], loTraceHashes[i]),
-			Files:      make([]FileID, numFrames),
-			Linenos:    make([]AddressOrLineno, numFrames),
-			FrameTypes: make([]InterpType, numFrames),
+		trace := &libpf.Trace{
+			Hash:       libpf.NewTraceHash(hiTraceHashes[i], loTraceHashes[i]),
+			Files:      make([]libpf.FileID, numFrames),
+			Linenos:    make([]libpf.AddressOrLineno, numFrames),
+			FrameTypes: make([]libpf.InterpType, numFrames),
 		}
 
 		for k := 0; k < numFrames; k++ {
-			trace.Files[k] = NewFileID(hiContainers[j], loContainers[j])
-			trace.Linenos[k] = AddressOrLineno(offsets[j])
-			trace.FrameTypes[k] = InterpType(types[j])
+			trace.Files[k] = libpf.NewFileID(hiContainers[j], loContainers[j])
+			trace.Linenos[k] = libpf.AddressOrLineno(offsets[j])
+			trace.FrameTypes[k] = libpf.InterpType(types[j])
 			j++
 		}
 

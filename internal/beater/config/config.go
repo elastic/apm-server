@@ -33,8 +33,6 @@ import (
 const (
 	// DefaultPort of APM Server
 	DefaultPort = "8200"
-
-	msgInvalidConfigAgentCfg = "invalid value for `apm-server.agent.config.cache.expiration`, only accepting full seconds"
 )
 
 // Config holds configuration information nested under the key `apm-server`
@@ -60,7 +58,7 @@ type Config struct {
 	AugmentEnabled            bool                    `config:"capture_personal_data"`
 	RumConfig                 RumConfig               `config:"rum"`
 	Kibana                    KibanaConfig            `config:"kibana"`
-	KibanaAgentConfig         KibanaAgentConfig       `config:"agent.config"`
+	AgentConfig               AgentConfig             `config:"agent.config"`
 	Aggregation               AggregationConfig       `config:"aggregation"`
 	Sampling                  SamplingConfig          `config:"sampling"`
 	Profiling                 ProfilingConfig         `config:"profiling"`
@@ -68,7 +66,7 @@ type Config struct {
 	DefaultServiceEnvironment string                  `config:"default_service_environment"`
 	JavaAttacherConfig        JavaAttacherConfig      `config:"java_attacher"`
 
-	AgentConfigs []AgentConfig `config:"agent_config"`
+	FleetAgentConfigs []FleetAgentConfig `config:"agent_config"`
 
 	// WaitReadyInterval holds the interval for checks when waiting for
 	// the integration package to be installed, and for checking the
@@ -92,14 +90,14 @@ func NewConfig(ucfg *config.C, outputESCfg *config.C) (*Config, error) {
 		return nil, errors.Wrap(err, "Error processing configuration")
 	}
 
-	if float64(int(c.KibanaAgentConfig.Cache.Expiration.Seconds())) != c.KibanaAgentConfig.Cache.Expiration.Seconds() {
-		return nil, errors.New(msgInvalidConfigAgentCfg)
-	}
-
-	for i := range c.AgentConfigs {
-		if err := c.AgentConfigs[i].setup(); err != nil {
+	for i := range c.FleetAgentConfigs {
+		if err := c.FleetAgentConfigs[i].setup(); err != nil {
 			return nil, err
 		}
+	}
+
+	if err := c.AgentConfig.setup(logger, outputESCfg); err != nil {
+		return nil, err
 	}
 
 	if err := c.RumConfig.setup(logger, outputESCfg); err != nil {
@@ -149,7 +147,7 @@ func DefaultConfig() *Config {
 		Pprof:              PprofConfig{Enabled: false},
 		RumConfig:          defaultRum(),
 		Kibana:             defaultKibanaConfig(),
-		KibanaAgentConfig:  defaultKibanaAgentConfig(),
+		AgentConfig:        defaultAgentConfig(),
 		Aggregation:        defaultAggregationConfig(),
 		Sampling:           defaultSamplingConfig(),
 		Profiling:          defaultProfilingConfig(),
