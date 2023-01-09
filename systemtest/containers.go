@@ -130,22 +130,30 @@ func waitContainerHealthy(ctx context.Context, serviceName string) error {
 		return err
 	}
 
+	t := time.NewTicker(1500 * time.Millisecond)
+	defer t.Stop()
+
 	first := true
 	for {
-		containerJSON, err := docker.ContainerInspect(ctx, container.ID)
-		if err != nil {
-			return err
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-t.C:
+			containerJSON, err := docker.ContainerInspect(ctx, container.ID)
+			if err != nil {
+				return err
+			}
+			if containerJSON.State.Health.Status == "healthy" {
+				log.Printf("Container %s  Healthy", serviceName)
+				return nil
+			}
+
+			if first {
+				log.Printf("Waiting for %s container (%s) to become healthy", serviceName, container.ID)
+				first = false
+			}
 		}
-		if containerJSON.State.Health.Status == "healthy" {
-			break
-		}
-		if first {
-			log.Printf("Waiting for %s container (%s) to become healthy", serviceName, container.ID)
-			first = false
-		}
-		time.Sleep(5 * time.Second)
 	}
-	return nil
 }
 
 func stackContainerInfo(ctx context.Context, docker *client.Client, name string) (*types.Container, error) {

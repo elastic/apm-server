@@ -18,6 +18,7 @@
 package systemtest_test
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"net/http"
 	"net/url"
@@ -42,15 +43,26 @@ func TestAgentConfig(t *testing.T) {
 	systemtest.DeleteAgentConfig(t, serviceName, "")
 	systemtest.DeleteAgentConfig(t, serviceName, serviceEnvironment)
 
+	// Run apm-server standalone, exercising the Elasticsearch agent config implementation.
+	srvElasticsearch := apmservertest.NewUnstartedServerTB(t)
+	srvElasticsearch.Config.AgentConfig = &apmservertest.AgentConfig{
+		CacheExpiration:       time.Second,
+		ElasticsearchUsername: "admin",
+		ElasticsearchPassword: "changeme",
+	}
+	err := srvElasticsearch.Start()
+	require.NoError(t, err)
+
 	// Run apm-server standalone, exercising the Kibana agent config implementation.
-	srv := apmservertest.NewUnstartedServerTB(t)
-	srv.Config.KibanaAgentConfig = &apmservertest.KibanaAgentConfig{CacheExpiration: time.Second}
-	err := srv.Start()
+	srvKibana := apmservertest.NewUnstartedServerTB(t)
+	srvKibana.Config.AgentConfig = &apmservertest.AgentConfig{CacheExpiration: time.Second}
+	err = srvKibana.Start()
 	require.NoError(t, err)
 
 	// Run apm-server under Fleet, exercising the Fleet agent config implementation.
 	apmIntegration := newAPMIntegration(t, map[string]interface{}{})
-	serverURLs := []string{srv.URL, apmIntegration.URL}
+
+	serverURLs := []string{srvElasticsearch.URL, srvKibana.URL, apmIntegration.URL}
 
 	expectChange := func(serverURL string, etag string) (map[string]string, *http.Response) {
 		t.Helper()
@@ -58,7 +70,7 @@ func TestAgentConfig(t *testing.T) {
 		defer timer.Stop()
 		interval := 100 * time.Millisecond
 		for {
-			settings, resp := queryAgentConfig(t, serverURL, serviceName, serviceEnvironment, etag)
+			settings, resp, _ := queryAgentConfig(t, serverURL, serviceName, serviceEnvironment, etag)
 			if resp.StatusCode == http.StatusOK {
 				return settings, resp
 			}
@@ -76,7 +88,7 @@ func TestAgentConfig(t *testing.T) {
 		assert.Empty(t, settings)
 		etag := resp.Header.Get("Etag")
 		assert.Equal(t, `"-"`, etag)
-		_, resp = queryAgentConfig(t, url, serviceName, serviceEnvironment, etag)
+		_, resp, _ = queryAgentConfig(t, url, serviceName, serviceEnvironment, etag)
 		assert.Equal(t, http.StatusNotModified, resp.StatusCode)
 	}
 
@@ -89,7 +101,7 @@ func TestAgentConfig(t *testing.T) {
 		assert.Equal(t, configured, settings)
 		etag := resp.Header.Get("Etag")
 		assert.NotEqual(t, `"-"`, etag)
-		_, resp = queryAgentConfig(t, url, serviceName, serviceEnvironment, etag)
+		_, resp, _ = queryAgentConfig(t, url, serviceName, serviceEnvironment, etag)
 		assert.Equal(t, http.StatusNotModified, resp.StatusCode)
 		if i == 0 {
 			etag1 = etag
@@ -116,19 +128,22 @@ func TestAgentConfig(t *testing.T) {
 	}
 
 	// Wait for an "agent_config" metricset to be reported, which should contain the
-	// etag of the configuration as a label. We should only receive one metricset, as
-	// we only produce these documents when the etag matches.
+	// etag of the configuration as a label. We should only receive one metricset per
+	// server, as we only produce these documents when the etag matches.
+	//
+	// Known issue: APM integration does not produce documents because it does not have
+	// enough time to flush before reload
 	result := systemtest.Elasticsearch.ExpectDocs(t, "metrics-apm.internal-*", estest.TermQuery{
 		Field: "metricset.name",
 		Value: "agent_config",
 	}, estest.WithTimeout(time.Minute))
-	require.Len(t, result.Hits.Hits, 1)
+	require.Len(t, result.Hits.Hits, 2)
 	etag := gjson.GetBytes(result.Hits.Hits[0].RawSource, "labels.etag")
 	assert.Equal(t, etag1, strconv.Quote(etag.String()))
 	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits, "@timestamp", "labels.etag")
 }
 
-func queryAgentConfig(t testing.TB, serverURL, serviceName, serviceEnvironment, etag string) (map[string]string, *http.Response) {
+func queryAgentConfig(t testing.TB, serverURL, serviceName, serviceEnvironment, etag string) (map[string]string, *http.Response, map[string]interface{}) {
 	query := make(url.Values)
 	query.Set("service.name", serviceName)
 	if serviceEnvironment != "" {
@@ -155,14 +170,146 @@ func queryAgentConfig(t testing.TB, serverURL, serviceName, serviceEnvironment, 
 	require.NoError(t, err)
 	defer resp.Body.Close()
 
+	errorObj := make(map[string]interface{})
 	attrs := make(map[string]string)
 	switch resp.StatusCode {
 	case http.StatusOK:
 		err = json.NewDecoder(resp.Body).Decode(&attrs)
 		require.NoError(t, err)
 	case http.StatusNotModified:
+	case http.StatusForbidden:
+		err = json.NewDecoder(resp.Body).Decode(&errorObj)
+		require.NoError(t, err)
+	case http.StatusServiceUnavailable:
+		err = json.NewDecoder(resp.Body).Decode(&errorObj)
+		require.NoError(t, err)
 	default:
 		t.Fatalf("unexpected status %q", resp.Status)
 	}
-	return attrs, resp
+	return attrs, resp, errorObj
+}
+
+func TestAgentConfigForbiddenOnInvalidConfig(t *testing.T) {
+	systemtest.CleanupElasticsearch(t)
+
+	serviceName := "systemtest_service"
+	serviceEnvironment := "testing"
+
+	// Unauthorized username and password.
+	// No fallback because apm-server.agent.config.elasticsearch.username
+	// and apm-server.agent.config.elasticsearch.password are explicitly configured.
+	srvInvalidUsernamePasswordSetup := func(t *testing.T) *apmservertest.Server {
+		srv := apmservertest.NewUnstartedServerTB(t)
+		srv.Config.AgentConfig = &apmservertest.AgentConfig{
+			CacheExpiration:       time.Second,
+			ElasticsearchUsername: "bad_username",
+			ElasticsearchPassword: "bad_password",
+		}
+		srv.Config.Kibana = nil
+		err := srv.Start()
+		require.NoError(t, err)
+		return srv
+	}
+
+	// Unauthorized API key.
+	// No fallback because apm-server.agent.config.elasticsearch.api_key is explicitly configured.
+	srvInvalidAPIKeySetup := func(t *testing.T) *apmservertest.Server {
+		srv := apmservertest.NewUnstartedServerTB(t)
+		srv.Config.AgentConfig = &apmservertest.AgentConfig{
+			CacheExpiration:     time.Second,
+			ElasticsearchAPIKey: "bad_api_key",
+		}
+		srv.Config.Kibana = nil
+		err := srv.Start()
+		require.NoError(t, err)
+		return srv
+	}
+
+	// Username and password with insufficient privileges.
+	// No fallback because apm-server.agent.config.elasticsearch.username
+	// and apm-server.agent.config.elasticsearch.password are explicitly configured.
+	srvInsufficientPrivilegesUsernamePasswordSetup := func(t *testing.T) *apmservertest.Server {
+		srv := apmservertest.NewUnstartedServerTB(t)
+		srv.Config.AgentConfig = &apmservertest.AgentConfig{
+			CacheExpiration:       time.Second,
+			ElasticsearchUsername: "apm_server_user",
+			ElasticsearchPassword: "changeme",
+		}
+		srv.Config.Kibana = nil
+		err := srv.Start()
+		require.NoError(t, err)
+		return srv
+	}
+
+	// API key with insufficient privileges.
+	// No fallback because apm-server.agent.config.elasticsearch.api_key is explicitly configured.
+	srvInsufficientPrivilegesAPIKeySetup := func(t *testing.T) *apmservertest.Server {
+		apiKeyName := t.Name()
+		systemtest.InvalidateAPIKeyByName(t, apiKeyName)
+		t.Cleanup(func() {
+			systemtest.InvalidateAPIKeyByName(t, apiKeyName)
+		})
+		// Create an API Key without agent config read privileges
+		apiKeyBase64 := createAPIKey(t, apiKeyName, "--sourcemap")
+		apiKeyBytes, err := base64.StdEncoding.DecodeString(apiKeyBase64)
+		require.NoError(t, err)
+		srv := apmservertest.NewUnstartedServerTB(t)
+		srv.Config.AgentConfig = &apmservertest.AgentConfig{
+			CacheExpiration:     time.Second,
+			ElasticsearchAPIKey: string(apiKeyBytes),
+		}
+		srv.Config.Kibana = nil
+		err = srv.Start()
+		require.NoError(t, err)
+		return srv
+	}
+
+	tests := []struct {
+		name     string
+		srvSetup func(*testing.T) *apmservertest.Server
+	}{
+		{
+			name:     "invalid_username_password",
+			srvSetup: srvInvalidUsernamePasswordSetup,
+		},
+		{
+			name:     "invalid_api_key",
+			srvSetup: srvInvalidAPIKeySetup,
+		},
+		{
+			name:     "insufficient_privileges_username_password",
+			srvSetup: srvInsufficientPrivilegesUsernamePasswordSetup,
+		},
+		{
+			name:     "insufficient_privileges_api_key",
+			srvSetup: srvInsufficientPrivilegesAPIKeySetup,
+		},
+	}
+
+	for _, tc := range tests {
+		tc := tc // capture range variable
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			srv := tc.srvSetup(t)
+			url := srv.URL
+
+			expectedErrorMsg := "Your Elasticsearch configuration does not support agent config queries. Check your configurations at `output.elasticsearch` or `apm-server.agent.config.elasticsearch`."
+
+			var resp *http.Response
+			var errorObj map[string]interface{}
+			maxRetries := 20
+			for i := 0; i < maxRetries; i++ {
+				_, resp, errorObj = queryAgentConfig(t, url, serviceName, serviceEnvironment, "")
+				if resp.StatusCode == http.StatusForbidden {
+					break
+				}
+				<-time.After(500 * time.Millisecond)
+			}
+
+			assert.Equal(t, http.StatusForbidden, resp.StatusCode)
+			assert.Equal(t, expectedErrorMsg, errorObj["error"].(string))
+		})
+	}
+
 }
