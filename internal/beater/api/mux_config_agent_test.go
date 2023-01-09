@@ -56,34 +56,16 @@ func TestConfigAgentHandler_AuthorizationMiddleware(t *testing.T) {
 	})
 }
 
-func TestConfigAgentHandler_KillSwitchMiddleware(t *testing.T) {
-	t.Run("Off", func(t *testing.T) {
-		rec, err := requestToMuxerWithPattern(config.DefaultConfig(), AgentConfigPath)
-		require.NoError(t, err)
-		require.Equal(t, http.StatusForbidden, rec.Code)
-		assert.JSONEq(t, "{\"error\":\"forbidden request: Agent remote configuration is disabled. Configure the `apm-server.kibana` section in apm-server.yml to enable it. If you are using a RUM agent, you also need to configure the `apm-server.rum` section. If you are not using remote configuration, you can safely ignore this error.\"}", rec.Body.String())
-
-	})
-
-	t.Run("On", func(t *testing.T) {
-		queryString := map[string]string{"service.name": "service1"}
-		rec, err := requestToMuxerWithHeaderAndQueryString(configEnabledConfigAgent(), AgentConfigPath, http.MethodGet, nil, queryString)
-		require.NoError(t, err)
-		require.NotEqual(t, http.StatusForbidden, rec.Code)
-		assert.JSONEq(t, "{}", rec.Body.String())
-	})
-}
-
 func TestConfigAgentHandler_PanicMiddleware(t *testing.T) {
 	testPanicMiddleware(t, "/config/v1/agents")
 }
 
 func TestConfigAgentHandler_MonitoringMiddleware(t *testing.T) {
 	testMonitoringMiddleware(t, "/config/v1/agents", agent.MonitoringMap, map[request.ResultID]int{
-		request.IDRequestCount:            1,
-		request.IDResponseCount:           1,
-		request.IDResponseErrorsCount:     1,
-		request.IDResponseErrorsForbidden: 1,
+		request.IDRequestCount:               1,
+		request.IDResponseCount:              1,
+		request.IDResponseErrorsCount:        1,
+		request.IDResponseErrorsInvalidQuery: 1,
 	})
 }
 
