@@ -14,6 +14,8 @@ import (
 
 	"github.com/elastic/apm-data/model"
 	"github.com/elastic/apm-server/internal/logs"
+	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/baseaggregator"
+	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/interval"
 	"github.com/elastic/elastic-agent-libs/logp"
 )
 
@@ -27,6 +29,22 @@ type AggregatorConfig struct {
 	// processing metrics documents.
 	BatchProcessor model.BatchProcessor
 
+	// Logger is the logger for logging metrics aggregation/publishing.
+	//
+	// If Logger is nil, a new logger will be constructed.
+	Logger *logp.Logger
+
+	// RollUpIntervals are additional MetricsInterval for the aggregator to
+	// compute and publish metrics for. Each additional interval is constrained
+	// to the same rules as MetricsInterval, and will result in additional
+	// memory to be allocated.
+	RollUpIntervals []time.Duration
+
+	// Interval is the interval between publishing of aggregated metrics.
+	// There may be additional metrics reported at arbitrary times if the
+	// aggregation groups fill up.
+	Interval time.Duration
+
 	// MaxGroups is the maximum number of distinct service destination
 	// group metrics to store within an aggregation period. Once this
 	// number of groups is reached, any new aggregation keys will cause
@@ -38,16 +56,6 @@ type AggregatorConfig struct {
 	// this, once MaxGroups becomes 50% full then we will stop aggregating
 	// on span.name.
 	MaxGroups int
-
-	// Interval is the interval between publishing of aggregated metrics.
-	// There may be additional metrics reported at arbitrary times if the
-	// aggregation groups fill up.
-	Interval time.Duration
-
-	// Logger is the logger for logging metrics aggregation/publishing.
-	//
-	// If Logger is nil, a new logger will be constructed.
-	Logger *logp.Logger
 }
 
 // Validate validates the aggregator config.
@@ -58,24 +66,19 @@ func (config AggregatorConfig) Validate() error {
 	if config.MaxGroups <= 0 {
 		return errors.New("MaxGroups unspecified or negative")
 	}
-	if config.Interval <= 0 {
-		return errors.New("Interval unspecified or negative")
-	}
 	return nil
 }
 
 // Aggregator aggregates transaction durations, periodically publishing histogram spanMetrics.
 type Aggregator struct {
-	stopMu   sync.Mutex
-	stopping chan struct{}
-	stopped  chan struct{}
+	*baseaggregator.Aggregator
 
 	config AggregatorConfig
 
 	mu sync.RWMutex
 	// These two metricsBuffer are set to the same size and act as buffers
 	// for caching and then publishing the metrics as batches.
-	active, inactive *metricsBuffer
+	active, inactive map[time.Duration]*metricsBuffer
 }
 
 // NewAggregator returns a new Aggregator with the given config.
@@ -86,71 +89,29 @@ func NewAggregator(config AggregatorConfig) (*Aggregator, error) {
 	if config.Logger == nil {
 		config.Logger = logp.NewLogger(logs.SpanMetrics)
 	}
-	return &Aggregator{
-		stopping: make(chan struct{}),
-		stopped:  make(chan struct{}),
+	aggregator := Aggregator{
 		config:   config,
-		active:   newMetricsBuffer(config.MaxGroups),
-		inactive: newMetricsBuffer(config.MaxGroups),
-	}, nil
+		active:   make(map[time.Duration]*metricsBuffer),
+		inactive: make(map[time.Duration]*metricsBuffer),
+	}
+	base, err := baseaggregator.New(baseaggregator.AggregatorConfig{
+		PublishFunc:     aggregator.publish, // inject local publish
+		Logger:          config.Logger,
+		Interval:        config.Interval,
+		RollUpIntervals: config.RollUpIntervals,
+	})
+	if err != nil {
+		return nil, err
+	}
+	aggregator.Aggregator = base
+	for _, interval := range aggregator.Intervals {
+		aggregator.active[interval] = newMetricsBuffer(config.MaxGroups)
+		aggregator.inactive[interval] = newMetricsBuffer(config.MaxGroups)
+	}
+	return &aggregator, nil
 }
 
-// Run runs the Aggregator, periodically publishing and clearing aggregated
-// metrics. Run returns when either a fatal error occurs, or the Aggregator's
-// Stop method is invoked.
-func (a *Aggregator) Run() error {
-	ticker := time.NewTicker(a.config.Interval)
-	defer ticker.Stop()
-	defer func() {
-		a.stopMu.Lock()
-		defer a.stopMu.Unlock()
-		select {
-		case <-a.stopped:
-		default:
-			close(a.stopped)
-		}
-	}()
-	var stop bool
-	for !stop {
-		select {
-		case <-a.stopping:
-			stop = true
-		case <-ticker.C:
-		}
-		if err := a.publish(context.Background()); err != nil {
-			a.config.Logger.With(logp.Error(err)).Warnf(
-				"publishing span metrics failed: %s", err,
-			)
-		}
-	}
-	return nil
-}
-
-// Stop stops the Aggregator if it is running, waiting for it to flush any
-// aggregated metrics and return, or for the context to be cancelled.
-//
-// After Stop has been called the aggregator cannot be reused, as the Run
-// method will always return immediately.
-func (a *Aggregator) Stop(ctx context.Context) error {
-	a.stopMu.Lock()
-	select {
-	case <-a.stopped:
-	case <-a.stopping:
-		// Already stopping/stopped.
-	default:
-		close(a.stopping)
-	}
-	a.stopMu.Unlock()
-
-	select {
-	case <-a.stopped:
-	case <-ctx.Done():
-		return ctx.Err()
-	}
-	return nil
-}
-
-func (a *Aggregator) publish(ctx context.Context) error {
+func (a *Aggregator) publish(ctx context.Context, period time.Duration) error {
 	// We hold a.mu only long enough to swap the spanMetrics. This will
 	// be blocked by spanMetrics updates, which is OK, as we prefer not
 	// to block spanMetrics updaters. After the lock is released nothing
@@ -161,22 +122,26 @@ func (a *Aggregator) publish(ctx context.Context) error {
 	// inactive property while publish is running. `a.active` is the buffer that
 	// receives/stores/updates the metricsets, once swapped, we're working on the
 	// `a.inactive` which we're going to process and publish.
-	a.active, a.inactive = a.inactive, a.active
+	current := a.active[period]
+	a.active[period], a.inactive[period] = a.inactive[period], current
 	a.mu.Unlock()
 
-	size := len(a.inactive.m)
+	size := len(current.m)
 	if size == 0 {
 		a.config.Logger.Debugf("no span metrics to publish")
 		return nil
 	}
 
+	intervalStr := interval.FormatDuration(period)
 	batch := make(model.Batch, 0, size)
-	for key, metrics := range a.inactive.m {
-		metricset := makeMetricset(key, metrics)
-		batch = append(batch, metricset)
-		delete(a.inactive.m, key)
+	for key, metrics := range current.m {
+		event := makeMetricset(key, metrics)
+		// Record the metricset interval as metricset.interval.
+		event.Metricset.Interval = intervalStr
+		batch = append(batch, event)
+		delete(current.m, key)
 	}
-	a.config.Logger.Debugf("publishing %d metricsets", len(batch))
+	a.config.Logger.Debugf("%s interval: publishing %d metricsets", period, len(batch))
 	return a.config.BatchProcessor.ProcessBatch(ctx, &batch)
 }
 
@@ -191,18 +156,14 @@ func (a *Aggregator) ProcessBatch(ctx context.Context, b *model.Batch) error {
 	defer a.mu.RUnlock()
 	for _, event := range *b {
 		if event.Processor == model.SpanProcessor {
-			if msEvent := a.processSpan(&event); msEvent.Metricset != nil {
-				*b = append(*b, msEvent)
-			}
+			a.processSpan(&event, b)
 			continue
 		}
 
 		tx := event.Transaction
 		if event.Processor == model.TransactionProcessor && tx != nil {
 			for _, dss := range tx.DroppedSpansStats {
-				if msEvent := a.processDroppedSpanStats(&event, dss); msEvent.Metricset != nil {
-					*b = append(*b, msEvent)
-				}
+				a.processDroppedSpanStats(&event, dss, b)
 			}
 			// NOTE(marclop) The event.Transaction.DroppedSpansStats is unset
 			// via the `modelprocessor.DroppedSpansStatsDiscarder` appended just
@@ -213,15 +174,15 @@ func (a *Aggregator) ProcessBatch(ctx context.Context, b *model.Batch) error {
 	return nil
 }
 
-func (a *Aggregator) processSpan(event *model.APMEvent) model.APMEvent {
+func (a *Aggregator) processSpan(event *model.APMEvent, b *model.Batch) {
 	if event.Span.DestinationService == nil || event.Span.DestinationService.Resource == "" {
-		return model.APMEvent{}
+		return
 	}
 	if event.Span.RepresentativeCount <= 0 {
 		// RepresentativeCount is zero when the sample rate is unknown.
 		// We cannot calculate accurate span metrics without the sample
 		// rate, so we don't calculate any at all in this case.
-		return model.APMEvent{}
+		return
 	}
 
 	// For composite spans we use the composite sum duration, which is the sum of
@@ -239,60 +200,61 @@ func (a *Aggregator) processSpan(event *model.APMEvent) model.APMEvent {
 		serviceTargetType = event.Service.Target.Type
 		serviceTargetName = event.Service.Target.Name
 	}
-	key := makeAggregationKey(
-		event,
-		event.Span.DestinationService.Resource,
-		serviceTargetType,
-		serviceTargetName,
-		event.Span.Name,
-		a.config.Interval,
-	)
 	metrics := spanMetrics{
 		count: float64(count) * event.Span.RepresentativeCount,
 		sum:   float64(duration) * event.Span.RepresentativeCount,
 	}
-	if a.active.storeOrUpdate(key, metrics, a.config.Logger) {
-		return model.APMEvent{}
+	for _, interval := range a.Intervals {
+		key := makeAggregationKey(
+			event,
+			event.Span.DestinationService.Resource,
+			serviceTargetType,
+			serviceTargetName,
+			event.Span.Name,
+			interval,
+		)
+		if !a.active[interval].storeOrUpdate(key, metrics, a.config.Logger) {
+			*b = append(*b, makeMetricset(key, metrics))
+		}
 	}
-	return makeMetricset(key, metrics)
 }
 
-func (a *Aggregator) processDroppedSpanStats(event *model.APMEvent, dss model.DroppedSpanStats) model.APMEvent {
+func (a *Aggregator) processDroppedSpanStats(event *model.APMEvent, dss model.DroppedSpanStats, b *model.Batch) {
 	representativeCount := event.Transaction.RepresentativeCount
 	if representativeCount <= 0 {
 		// RepresentativeCount is zero when the sample rate is unknown.
 		// We cannot calculate accurate span metrics without the sample
 		// rate, so we don't calculate any at all in this case.
-		return model.APMEvent{}
+		return
 	}
 
-	key := makeAggregationKey(
-		event,
-		dss.DestinationServiceResource,
-		dss.ServiceTargetType,
-		dss.ServiceTargetName,
-
-		// BUG(axw) dropped span statistics do not contain span name.
-		// Capturing the service name requires changes to Elastic APM agents.
-		"",
-
-		a.config.Interval,
-	)
 	metrics := spanMetrics{
 		count: float64(dss.Duration.Count) * representativeCount,
 		sum:   float64(dss.Duration.Sum) * representativeCount,
 	}
-	if a.active.storeOrUpdate(key, metrics, a.config.Logger) {
-		return model.APMEvent{}
+	for _, interval := range a.Intervals {
+		key := makeAggregationKey(
+			event,
+			dss.DestinationServiceResource,
+			dss.ServiceTargetType,
+			dss.ServiceTargetName,
+
+			// BUG(axw) dropped span statistics do not contain span name.
+			// Capturing the service name requires changes to Elastic APM agents.
+			"",
+
+			interval,
+		)
+		if !a.active[interval].storeOrUpdate(key, metrics, a.config.Logger) {
+			*b = append(*b, makeMetricset(key, metrics))
+		}
 	}
-	return makeMetricset(key, metrics)
 }
 
 type metricsBuffer struct {
+	mu      sync.RWMutex
+	m       map[aggregationKey]spanMetrics
 	maxSize int
-
-	mu sync.RWMutex
-	m  map[aggregationKey]spanMetrics
 }
 
 func newMetricsBuffer(maxSize int) *metricsBuffer {
@@ -401,7 +363,8 @@ func makeMetricset(key aggregationKey, metrics spanMetrics) model.APMEvent {
 		},
 		Processor: model.MetricsetProcessor,
 		Metricset: &model.Metricset{
-			Name: metricsetName,
+			Name:     metricsetName,
+			DocCount: int64(math.Round(metrics.count)),
 		},
 		Span: &model.Span{
 			Name: key.spanName,

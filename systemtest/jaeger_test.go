@@ -67,14 +67,13 @@ func testJaegerGRPC(t *testing.T, srv *apmservertest.Server, addr string, dialOp
 	_, err = client.PostSpans(context.Background(), request)
 	require.NoError(t, err)
 
-	doc := getBeatsMonitoringStats(t, srv, nil)
-	assert.Equal(t, int64(1), gjson.GetBytes(doc.RawSource, "beats_stats.metrics.apm-server.jaeger.grpc.collect.request.count").Int())
-
 	systemtest.Elasticsearch.ExpectDocs(t, "traces-apm*", estest.BoolQuery{Filter: []interface{}{
 		estest.TermQuery{Field: "processor.event", Value: "transaction"},
 	}})
-
 	// TODO(axw) check document contents. We currently do this in beater/jaeger.
+
+	doc := getBeatsMonitoringStats(t, srv, nil)
+	assert.Equal(t, int64(1), gjson.GetBytes(doc.RawSource, "beats_stats.metrics.apm-server.jaeger.grpc.collect.request.count").Int())
 }
 
 func TestJaegerGRPCSampling(t *testing.T) {

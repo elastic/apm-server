@@ -22,6 +22,7 @@ import (
 
 	"github.com/elastic/apm-data/model"
 	"github.com/elastic/apm-server/internal/logs"
+	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/baseaggregator"
 	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/interval"
 	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/labels"
 )
@@ -47,17 +48,12 @@ const (
 
 // Aggregator aggregates transaction durations, periodically publishing histogram metrics.
 type Aggregator struct {
-	stopMu   sync.Mutex
-	stopping chan struct{}
-	stopped  chan struct{}
-
+	*baseaggregator.Aggregator
 	config  AggregatorConfig
 	metrics *aggregatorMetrics // heap-allocated for 64-bit alignment
 
 	mu               sync.RWMutex
 	active, inactive map[time.Duration]*metrics
-
-	intervals []time.Duration // List of all intervals.
 }
 
 type aggregatorMetrics struct {
@@ -127,17 +123,6 @@ func (config AggregatorConfig) Validate() error {
 	if config.MaxServices <= 0 {
 		return errors.New("MaxServices unspecified or negative")
 	}
-	if config.MetricsInterval <= 0 {
-		return errors.New("MetricsInterval unspecified or negative")
-	}
-	for i, interval := range config.RollUpIntervals {
-		if interval <= 0 {
-			return errors.Errorf("RollUpIntervals[%d]: unspecified or negative", i)
-		}
-		if interval%config.MetricsInterval != 0 {
-			return errors.Errorf("RollUpIntervals[%d]: interval must be a multiple of MetricsInterval", i)
-		}
-	}
 	if n := config.HDRHistogramSignificantFigures; n < 1 || n > 5 {
 		return errors.Errorf("HDRHistogramSignificantFigures (%d) outside range [1,5]", n)
 	}
@@ -153,86 +138,26 @@ func NewAggregator(config AggregatorConfig) (*Aggregator, error) {
 		config.Logger = logp.NewLogger(logs.TransactionMetrics)
 	}
 	aggregator := Aggregator{
-		stopping:  make(chan struct{}),
-		stopped:   make(chan struct{}),
-		config:    config,
-		metrics:   &aggregatorMetrics{},
-		intervals: append([]time.Duration{config.MetricsInterval}, config.RollUpIntervals...),
+		config:   config,
+		metrics:  &aggregatorMetrics{},
+		active:   make(map[time.Duration]*metrics),
+		inactive: make(map[time.Duration]*metrics),
 	}
-	aggregator.active = make(map[time.Duration]*metrics)
-	aggregator.inactive = make(map[time.Duration]*metrics)
-	for _, interval := range aggregator.intervals {
+	base, err := baseaggregator.New(baseaggregator.AggregatorConfig{
+		PublishFunc:     aggregator.publish, // inject local publish
+		Logger:          config.Logger,
+		Interval:        config.MetricsInterval,
+		RollUpIntervals: config.RollUpIntervals,
+	})
+	if err != nil {
+		return nil, err
+	}
+	aggregator.Aggregator = base
+	for _, interval := range aggregator.Intervals {
 		aggregator.active[interval] = newMetrics(config.MaxTransactionGroups, config.MaxServices)
 		aggregator.inactive[interval] = newMetrics(config.MaxTransactionGroups, config.MaxServices)
 	}
 	return &aggregator, nil
-}
-
-// Run runs the Aggregator, periodically publishing and clearing aggregated
-// metrics. Run returns when either a fatal error occurs, or the Aggregator's
-// Stop method is invoked.
-func (a *Aggregator) Run() error {
-	ticker := time.NewTicker(a.config.MetricsInterval)
-	defer ticker.Stop()
-	defer func() {
-		a.stopMu.Lock()
-		defer a.stopMu.Unlock()
-		select {
-		case <-a.stopped:
-		default:
-			close(a.stopped)
-		}
-	}()
-	var stop bool
-	var ticks uint64
-	for !stop {
-		ticks++
-		select {
-		case <-a.stopping:
-			stop = true
-		case <-ticker.C:
-		}
-		// Publish the metricsets for all configured intervals.
-		for _, interval := range a.intervals {
-			// Publish $interval MetricSets when:
-			//  - ticks * MetricsInterval % $interval == 0.
-			//  - Aggregator is stopped.
-			if !stop && (ticks*uint64(a.config.MetricsInterval))%uint64(interval) != 0 {
-				continue
-			}
-			if err := a.publish(context.Background(), interval); err != nil {
-				a.config.Logger.With(logp.Error(err)).Warnf(
-					"publishing %s transaction metrics failed: %s",
-					interval.String(), err,
-				)
-			}
-		}
-	}
-	return nil
-}
-
-// Stop stops the Aggregator if it is running, waiting for it to flush any
-// aggregated metrics and return, or for the context to be cancelled.
-//
-// After Stop has been called the aggregator cannot be reused, as the Run
-// method will always return immediately.
-func (a *Aggregator) Stop(ctx context.Context) error {
-	a.stopMu.Lock()
-	select {
-	case <-a.stopped:
-	case <-a.stopping:
-		// Already stopping/stopped.
-	default:
-		close(a.stopping)
-	}
-	a.stopMu.Unlock()
-
-	select {
-	case <-a.stopped:
-	case <-ctx.Done():
-		return ctx.Err()
-	}
-	return nil
 }
 
 // CollectMonitoring may be called to collect monitoring metrics from the
@@ -294,7 +219,6 @@ func (a *Aggregator) publish(ctx context.Context, period time.Duration) error {
 				Value: float64(svcEntry.otherCardinalityEstimator.Estimate()),
 			})
 			batch = append(batch, m)
-
 			entry.histogram.Reset()
 			svcEntry.other = nil
 			svcEntry.otherCardinalityEstimator = nil
@@ -348,7 +272,7 @@ func (a *Aggregator) AggregateTransaction(event model.APMEvent) {
 	if count <= 0 {
 		return
 	}
-	for _, interval := range a.intervals {
+	for _, interval := range a.Intervals {
 		key := a.makeTransactionAggregationKey(event, interval)
 		hash := key.hash()
 		a.updateTransactionMetrics(key, hash, count, event.Event.Duration, interval)
@@ -465,7 +389,7 @@ that configuration option appropriately, may lead to better results.`[1:],
 		atomic.AddInt64(&a.metrics.overflowed, 1)
 		entry = svcEntry.other
 		// For `other` service we only account for `other` transaction bucket.
-		key = a.makeOverflowAggregationKey(key, svcOverflow)
+		key = a.makeOverflowAggregationKey(key, svcOverflow, a.config.MetricsInterval)
 	} else {
 		entry = &m.space[m.entries]
 		m.entries++
@@ -483,14 +407,23 @@ that configuration option appropriately, may lead to better results.`[1:],
 	entry.recordDuration(duration, count)
 }
 
-func (a *Aggregator) makeOverflowAggregationKey(oldKey transactionAggregationKey, svcOverflow bool) transactionAggregationKey {
+func (a *Aggregator) makeOverflowAggregationKey(
+	oldKey transactionAggregationKey,
+	svcOverflow bool,
+	interval time.Duration,
+) transactionAggregationKey {
 	svcName := oldKey.serviceName
 	if svcOverflow {
 		svcName = overflowBucketName
 	}
 	return transactionAggregationKey{
 		comparable: comparable{
-			timestamp:       oldKey.timestamp,
+			// We are using `time.Now` here to align the overflow aggregation to
+			// the evaluation time rather than event time. This prevents us from
+			// cases of bad timestamps when the server receives some events with
+			// old timestamp and these events overflow causing the indexed event
+			// to have old timestamp too.
+			timestamp:       time.Now().Truncate(interval),
 			transactionName: overflowBucketName,
 			serviceName:     svcName,
 		},
@@ -559,6 +492,14 @@ func makeMetricset(key transactionAggregationKey, totalCount int64, counts []int
 	case "unknown":
 		// Keep both Count and Sum as 0.
 	}
+
+	transactionDurationSummary := model.SummaryMetric{
+		Count: totalCount,
+	}
+	for _, v := range values {
+		transactionDurationSummary.Sum += v
+	}
+
 	return model.APMEvent{
 		Timestamp:  key.timestamp,
 		Agent:      model.Agent{Name: key.agentName},
@@ -623,6 +564,7 @@ func makeMetricset(key transactionAggregationKey, totalCount int64, counts []int
 				Counts: counts,
 				Values: values,
 			},
+			DurationSummary: transactionDurationSummary,
 		},
 	}
 }

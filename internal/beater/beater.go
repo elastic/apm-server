@@ -395,8 +395,18 @@ func (s *Runner) Run(ctx context.Context) error {
 		finalBatchProcessor,
 	}
 
+	agentConfigFetcher, fetcherRunFunc, err := newAgentConfigFetcher(ctx, s.config, kibanaClient, newElasticsearchClient)
+	if err != nil {
+		return err
+	}
+	if fetcherRunFunc != nil {
+		g.Go(func() error {
+			return fetcherRunFunc(ctx)
+		})
+	}
+
 	agentConfigReporter := agentcfg.NewReporter(
-		newAgentConfigFetcher(s.config, kibanaClient),
+		agentConfigFetcher,
 		batchProcessor, 30*time.Second,
 	)
 	g.Go(func() error {
