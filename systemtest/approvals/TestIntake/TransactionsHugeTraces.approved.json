@@ -7,6 +7,15 @@
                 "version": "3.14.0"
             },
             "client": {
+                "geo": {
+                    "continent_name": "North America",
+                    "country_iso_code": "US",
+                    "country_name": "United States",
+                    "location": {
+                        "lat": 37.751,
+                        "lon": -97.822
+                    }
+                },
                 "ip": "12.53.12.1"
             },
             "cloud": {
@@ -39,8 +48,10 @@
             "data_stream.namespace": "default",
             "data_stream.type": "traces",
             "event": {
-                "duration": 32592981,
-                "outcome": "success"
+                "agent_id_status": "missing",
+                "ingested": "dynamic",
+                "outcome": "success",
+                "success_count": 1
             },
             "host": {
                 "architecture": "x64",
@@ -190,6 +201,9 @@
                     "my_key": 1,
                     "some_other_value": "foo bar"
                 },
+                "duration": {
+                    "us": 32592
+                },
                 "id": "ddf109a4c4aa5f2b6e984548ca57774c",
                 "name": "GET /api/types",
                 "representative_count": 1,
@@ -217,7 +231,17 @@
                 "name": "foo"
             },
             "user_agent": {
-                "original": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36, Mozilla Chrome Edge"
+                "device": {
+                    "name": "Mac"
+                },
+                "name": "Chrome",
+                "original": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36, Mozilla Chrome Edge",
+                "os": {
+                    "full": "Mac OS X 10.10.5",
+                    "name": "Mac OS X",
+                    "version": "10.10.5"
+                },
+                "version": "51.0.2704.103"
             }
         }
     ]

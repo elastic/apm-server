@@ -19,12 +19,12 @@ package api
 
 import (
 	"net/http"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/apm-server/internal/approvaltest"
 	"github.com/elastic/apm-server/internal/beater/api/intake"
 	"github.com/elastic/apm-server/internal/beater/config"
 	"github.com/elastic/apm-server/internal/beater/headers"
@@ -39,7 +39,10 @@ func TestIntakeBackendHandler_AuthorizationMiddleware(t *testing.T) {
 		require.NoError(t, err)
 
 		assert.Equal(t, http.StatusUnauthorized, rec.Code)
-		approvaltest.ApproveJSON(t, approvalPathIntakeBackend(t.Name()), rec.Body.Bytes())
+
+		expected, err := os.ReadFile(approvalPathIntakeBackend(t.Name()) + ".approved.json")
+		require.NoError(t, err)
+		assert.JSONEq(t, string(expected), rec.Body.String())
 	})
 
 	t.Run("Authorized", func(t *testing.T) {
@@ -50,7 +53,10 @@ func TestIntakeBackendHandler_AuthorizationMiddleware(t *testing.T) {
 		require.NoError(t, err)
 
 		require.NotEqual(t, http.StatusUnauthorized, rec.Code)
-		approvaltest.ApproveJSON(t, approvalPathIntakeBackend(t.Name()), rec.Body.Bytes())
+
+		expected, err := os.ReadFile(approvalPathIntakeBackend(t.Name()) + ".approved.json")
+		require.NoError(t, err)
+		assert.JSONEq(t, string(expected), rec.Body.String())
 	})
 }
 

@@ -35,7 +35,6 @@ import (
 
 	"github.com/elastic/apm-data/input/elasticapm"
 	"github.com/elastic/apm-data/model"
-	"github.com/elastic/apm-server/internal/approvaltest"
 	"github.com/elastic/apm-server/internal/beater/config"
 	"github.com/elastic/apm-server/internal/beater/headers"
 	"github.com/elastic/apm-server/internal/beater/request"
@@ -161,8 +160,10 @@ func TestIntakeHandler(t *testing.T) {
 			} else {
 				assert.NotNil(t, tc.c.Result.Err)
 			}
-			body := tc.w.Body.Bytes()
-			approvaltest.ApproveJSON(t, "test_approved/"+name, body)
+
+			expected, err := os.ReadFile("test_approved/" + name + ".approved.json")
+			require.NoError(t, err)
+			assert.JSONEq(t, string(expected), tc.w.Body.String())
 		})
 	}
 }
