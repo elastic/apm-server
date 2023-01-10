@@ -37,6 +37,10 @@ module "tags" {
 
 provider "ec" {}
 
+provider "aws" {
+  region = var.worker_region
+}
+
 locals {
   name_prefix = "${coalesce(var.user_name, "unknown-user")}-bench"
 }
