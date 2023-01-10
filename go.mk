@@ -55,5 +55,5 @@ $(NFPM): $(GITROOT)/tools/go.mod
 	$(GO) build -o $@ -modfile=$< github.com/goreleaser/nfpm/v2/cmd/nfpm
 
 .PHONY: $(APPROVALS)
-$(APPROVALS):
-	@$(GO) build -o $@ github.com/elastic/apm-server/internal/approvaltest/cmd/check-approvals
+$(APPROVALS): $(GITROOT)/systemtest/go.mod
+	@cd $(<D) && $(GO) build -o $@ github.com/elastic/apm-server/systemtest/internal/approvaltest/cmd/check-approvals

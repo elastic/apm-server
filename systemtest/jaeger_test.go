@@ -39,44 +39,61 @@ import (
 	"github.com/elastic/apm-server/systemtest/estest"
 )
 
-func TestJaegerGRPCMuxed(t *testing.T) {
-	systemtest.CleanupElasticsearch(t)
+func TestJaeger(t *testing.T) {
 	srv := apmservertest.NewUnstartedServerTB(t)
 	srv.Config.Monitoring = newFastMonitoringConfig()
 	require.NoError(t, srv.Start())
-	testJaegerGRPC(t, srv, serverAddr(srv), grpc.WithInsecure())
+
+	for _, name := range []string{"batch_0", "batch_1"} {
+		t.Run(name, func(t *testing.T) {
+			systemtest.CleanupElasticsearch(t)
+			hits := sendJaegerBatch(t, srv, "../testdata/jaeger/"+name+".json", grpc.WithInsecure())
+			systemtest.ApproveEvents(t, t.Name(), hits)
+		})
+	}
+
+	doc := getBeatsMonitoringStats(t, srv, nil)
+	assert.GreaterOrEqual(t, gjson.GetBytes(doc.RawSource, "beats_stats.metrics.apm-server.jaeger.grpc.collect.request.count").Int(), int64(1))
 }
 
-func TestJaegerGRPCMuxedTLS(t *testing.T) {
+func TestJaegerMuxedTLS(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
 	srv := apmservertest.NewUnstartedServerTB(t)
 	srv.Config.Monitoring = newFastMonitoringConfig()
 	srv.Config.TLS = &apmservertest.TLSConfig{ClientAuthentication: "required"}
 	require.NoError(t, srv.StartTLS())
-	testJaegerGRPC(t, srv, serverAddr(srv), grpc.WithTransportCredentials(credentials.NewTLS(srv.TLS)))
+	sendJaegerBatch(t, srv,
+		"../testdata/jaeger/batch_0.json",
+		grpc.WithTransportCredentials(credentials.NewTLS(srv.TLS)),
+	)
 }
 
-func testJaegerGRPC(t *testing.T, srv *apmservertest.Server, addr string, dialOptions ...grpc.DialOption) {
-	conn, err := grpc.Dial(addr, dialOptions...)
+func sendJaegerBatch(
+	t *testing.T, srv *apmservertest.Server,
+	filename string,
+	dialOptions ...grpc.DialOption,
+) []estest.SearchHit {
+	conn, err := grpc.Dial(serverAddr(srv), dialOptions...)
 	require.NoError(t, err)
 	defer conn.Close()
 
 	client := api_v2.NewCollectorServiceClient(conn)
-	request, err := decodeJaegerPostSpansRequest("../testdata/jaeger/batch_0.json")
+	request, err := decodeJaegerPostSpansRequest(filename)
 	require.NoError(t, err)
 	_, err = client.PostSpans(context.Background(), request)
 	require.NoError(t, err)
 
-	systemtest.Elasticsearch.ExpectDocs(t, "traces-apm*", estest.BoolQuery{Filter: []interface{}{
-		estest.TermQuery{Field: "processor.event", Value: "transaction"},
-	}})
-	// TODO(axw) check document contents. We currently do this in beater/jaeger.
+	expected := len(request.Batch.Spans)
+	for _, span := range request.Batch.Spans {
+		expected += len(span.GetLogs())
+	}
 
-	doc := getBeatsMonitoringStats(t, srv, nil)
-	assert.Equal(t, int64(1), gjson.GetBytes(doc.RawSource, "beats_stats.metrics.apm-server.jaeger.grpc.collect.request.count").Int())
+	result := systemtest.Elasticsearch.ExpectMinDocs(t, expected, "traces-apm*,logs-apm*", nil)
+	assert.Equal(t, expected, result.Hits.Total.Value)
+	return result.Hits.Hits
 }
 
-func TestJaegerGRPCSampling(t *testing.T) {
+func TestJaegerSampling(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
 	srv := apmservertest.NewUnstartedServerTB(t)
 	err := srv.Start()
@@ -94,7 +111,7 @@ func TestJaegerGRPCSampling(t *testing.T) {
 	assert.Regexp(t, "no sampling rate available", err.Error())
 }
 
-func TestJaegerGRPCAuth(t *testing.T) {
+func TestJaegerAuth(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
 	srv := apmservertest.NewUnstartedServerTB(t)
 	srv.Config.AgentAuth.SecretToken = "secret"
