@@ -24,8 +24,8 @@ import (
 
 	"github.com/tidwall/gjson"
 
-	"github.com/elastic/apm-server/internal/approvaltest"
 	"github.com/elastic/apm-server/systemtest/estest"
+	"github.com/elastic/apm-server/systemtest/internal/approvaltest"
 )
 
 // ApproveEvents compares the _source of the search hits with the
@@ -74,6 +74,7 @@ var apmEventSortFields = []string{
 	"transaction.type",
 	"span.type",
 	"service.name",
+	"message",
 	"metricset.interval", // useful to sort different interval metric sets.
 	"@timestamp",         // last resort before _id; order is generally guaranteed
 }

@@ -3,10 +3,127 @@
         {
             "@timestamp": "2017-05-30T18:53:27.154Z",
             "agent": {
+                "name": "elastic-node",
+                "version": "3.14.0"
+            },
+            "data_stream.dataset": "apm",
+            "data_stream.namespace": "default",
+            "data_stream.type": "traces",
+            "event": {
+                "agent_id_status": "missing",
+                "ingested": "dynamic",
+                "outcome": "success",
+                "success_count": 1
+            },
+            "http": {
+                "request": {
+                    "method": "GET"
+                },
+                "response": {
+                    "status_code": 200
+                }
+            },
+            "labels": {
+                "span_tag": "something"
+            },
+            "observer": {
+                "hostname": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic"
+            },
+            "parent": {
+                "id": "945254c567a5417e"
+            },
+            "processor": {
+                "event": "span",
+                "name": "transaction"
+            },
+            "service": {
+                "environment": "staging",
+                "name": "1234_service-12a3"
+            },
+            "span": {
+                "db": {
+                    "instance": "customers",
+                    "statement": "SELECT * FROM product_types WHERE user_id=?",
+                    "type": "sql",
+                    "user": {
+                        "name": "readonly_user"
+                    }
+                },
+                "duration": {
+                    "us": 3781
+                },
+                "id": "0aaaaaaaaaaaaaaa",
+                "name": "SELECT FROM product_types",
+                "stacktrace": [
+                    {
+                        "abs_path": "net.js",
+                        "context": {
+                            "post": [
+                                "    ins.currentTransaction = prev",
+                                "    return result",
+                                "}"
+                            ],
+                            "pre": [
+                                "  var trans = this.currentTransaction",
+                                ""
+                            ]
+                        },
+                        "exclude_from_grouping": false,
+                        "filename": "net.js",
+                        "function": "onread",
+                        "library_frame": true,
+                        "line": {
+                            "column": 4,
+                            "context": "line3",
+                            "number": 547
+                        },
+                        "module": "some module",
+                        "vars": {
+                            "key": "value"
+                        }
+                    },
+                    {
+                        "exclude_from_grouping": false,
+                        "filename": "my2file.js",
+                        "line": {
+                            "number": 10
+                        }
+                    }
+                ],
+                "sync": false,
+                "type": "unknown"
+            },
+            "timestamp": {
+                "us": 1496170407154000
+            },
+            "trace": {
+                "id": "945254c567a5417eaaaaaaaaaaaaaaaa"
+            },
+            "transaction": {
+                "id": "945254c567a5417e"
+            },
+            "url": {
+                "original": "http://localhost:8000"
+            }
+        },
+        {
+            "@timestamp": "2017-05-30T18:53:27.154Z",
+            "agent": {
                 "name": "js-base",
                 "version": "1.3"
             },
             "client": {
+                "geo": {
+                    "continent_name": "North America",
+                    "country_iso_code": "US",
+                    "country_name": "United States",
+                    "location": {
+                        "lat": 37.751,
+                        "lon": -97.822
+                    }
+                },
                 "ip": "8.8.8.8"
             },
             "container": {
@@ -16,7 +133,8 @@
             "data_stream.namespace": "default",
             "data_stream.type": "traces",
             "event": {
-                "duration": 32592981,
+                "agent_id_status": "missing",
+                "ingested": "dynamic",
                 "outcome": "success"
             },
             "host": {
@@ -155,6 +273,9 @@
                     "my_key": 1,
                     "some_other_value": "foo bar"
                 },
+                "duration": {
+                    "us": 32592
+                },
                 "id": "945254c567a5417e",
                 "marks": {
                     "another_mark": {
@@ -191,161 +312,11 @@
                 "id": "99"
             },
             "user_agent": {
+                "device": {
+                    "name": "Other"
+                },
+                "name": "Other",
                 "original": "Mozilla Chrome Edge"
-            }
-        },
-        {
-            "@timestamp": "2017-05-30T18:53:27.154Z",
-            "agent": {
-                "name": "elastic-node",
-                "version": "3.14.0"
-            },
-            "container": {
-                "id": "container-id"
-            },
-            "data_stream.dataset": "apm",
-            "data_stream.namespace": "default",
-            "data_stream.type": "traces",
-            "event": {
-                "duration": 3781912,
-                "outcome": "success"
-            },
-            "host": {
-                "architecture": "x64",
-                "ip": [
-                    "127.0.0.1"
-                ],
-                "os": {
-                    "platform": "darwin"
-                }
-            },
-            "http": {
-                "request": {
-                    "method": "GET"
-                },
-                "response": {
-                    "status_code": 200
-                }
-            },
-            "kubernetes": {
-                "namespace": "namespace1",
-                "pod": {
-                    "name": "pod-name",
-                    "uid": "pod-uid"
-                }
-            },
-            "labels": {
-                "span_tag": "something"
-            },
-            "observer": {
-                "hostname": "dynamic",
-                "type": "apm-server",
-                "version": "dynamic"
-            },
-            "parent": {
-                "id": "945254c567a5417e"
-            },
-            "process": {
-                "args": [
-                    "node",
-                    "server.js"
-                ],
-                "parent": {
-                    "pid": 6789
-                },
-                "pid": 1234,
-                "title": "node"
-            },
-            "processor": {
-                "event": "span",
-                "name": "transaction"
-            },
-            "service": {
-                "environment": "staging",
-                "framework": {
-                    "name": "Express",
-                    "version": "1.2.3"
-                },
-                "language": {
-                    "name": "ecmascript",
-                    "version": "8"
-                },
-                "name": "1234_service-12a3",
-                "node": {
-                    "name": "container-id"
-                },
-                "runtime": {
-                    "name": "node",
-                    "version": "8.0.0"
-                },
-                "version": "5.1.3"
-            },
-            "span": {
-                "db": {
-                    "instance": "customers",
-                    "statement": "SELECT * FROM product_types WHERE user_id=?",
-                    "type": "sql",
-                    "user": {
-                        "name": "readonly_user"
-                    }
-                },
-                "id": "0aaaaaaaaaaaaaaa",
-                "name": "SELECT FROM product_types",
-                "stacktrace": [
-                    {
-                        "abs_path": "net.js",
-                        "context": {
-                            "post": [
-                                "    ins.currentTransaction = prev",
-                                "    return result",
-                                "}"
-                            ],
-                            "pre": [
-                                "  var trans = this.currentTransaction",
-                                ""
-                            ]
-                        },
-                        "exclude_from_grouping": false,
-                        "filename": "net.js",
-                        "function": "onread",
-                        "library_frame": true,
-                        "line": {
-                            "column": 4,
-                            "context": "line3",
-                            "number": 547
-                        },
-                        "module": "some module",
-                        "vars": {
-                            "key": "value"
-                        }
-                    },
-                    {
-                        "exclude_from_grouping": false,
-                        "filename": "my2file.js",
-                        "line": {
-                            "number": 10
-                        }
-                    }
-                ],
-                "sync": false,
-                "type": "unknown"
-            },
-            "timestamp": {
-                "us": 1496170407154000
-            },
-            "trace": {
-                "id": "945254c567a5417eaaaaaaaaaaaaaaaa"
-            },
-            "transaction": {
-                "id": "945254c567a5417e"
-            },
-            "url": {
-                "original": "http://localhost:8000"
-            },
-            "user": {
-                "email": "foo@bar.com",
-                "id": "123user",
-                "name": "foo"
             }
         }
     ]

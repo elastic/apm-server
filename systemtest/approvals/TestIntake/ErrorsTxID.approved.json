@@ -93,6 +93,7 @@
                     }
                 ],
                 "grouping_key": "9a4054e958afe722b5877e8fac578ff3",
+                "grouping_name": "Request method 'POST' not supported",
                 "id": "9876543210abcdeffedcba0123456789",
                 "log": {
                     "level": "error",
@@ -141,6 +142,10 @@
                         }
                     ]
                 }
+            },
+            "event": {
+                "agent_id_status": "missing",
+                "ingested": "dynamic"
             },
             "host": {
                 "architecture": "amd64",

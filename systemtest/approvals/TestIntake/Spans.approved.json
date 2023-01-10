@@ -1,0 +1,1075 @@
+{
+    "events": [
+        {
+            "@timestamp": "2018-07-30T18:53:42.281Z",
+            "agent": {
+                "ephemeral_id": "justanid",
+                "name": "elastic-ruby",
+                "version": "2.2"
+            },
+            "cloud": {
+                "account": {
+                    "id": "account_id",
+                    "name": "account_name"
+                },
+                "availability_zone": "cloud_availability_zone",
+                "instance": {
+                    "id": "instance_id",
+                    "name": "instance_name"
+                },
+                "machine": {
+                    "type": "machine_type"
+                },
+                "project": {
+                    "id": "project_id",
+                    "name": "project_name"
+                },
+                "provider": "cloud_provider",
+                "region": "cloud_region",
+                "service": {
+                    "name": "lambda"
+                }
+            },
+            "data_stream.dataset": "apm",
+            "data_stream.namespace": "default",
+            "data_stream.type": "traces",
+            "destination": {
+                "address": "0:0::0:1",
+                "ip": "0:0::0:1",
+                "port": 5432
+            },
+            "event": {
+                "agent_id_status": "missing",
+                "ingested": "dynamic",
+                "outcome": "success",
+                "success_count": 1
+            },
+            "http": {
+                "request": {
+                    "method": "GET"
+                },
+                "response": {
+                    "decoded_body_size": 401,
+                    "encoded_body_size": 356,
+                    "status_code": 200,
+                    "transfer_size": 30012
+                }
+            },
+            "labels": {
+                "tag1": "label1"
+            },
+            "observer": {
+                "hostname": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic"
+            },
+            "parent": {
+                "id": "abcdef0123456789"
+            },
+            "processor": {
+                "event": "span",
+                "name": "transaction"
+            },
+            "service": {
+                "environment": "staging",
+                "name": "service1",
+                "target": {
+                    "name": "testdb",
+                    "type": "postgres"
+                }
+            },
+            "span": {
+                "action": "query",
+                "db": {
+                    "instance": "customers",
+                    "link": "other.db.com",
+                    "rows_affected": 2,
+                    "statement": "SELECT * FROM product_types WHERE user_id=?",
+                    "type": "sql",
+                    "user": {
+                        "name": "readonly_user"
+                    }
+                },
+                "destination": {
+                    "service": {
+                        "name": "postgresql",
+                        "resource": "postgres/testdb",
+                        "type": "db"
+                    }
+                },
+                "duration": {
+                    "us": 3781
+                },
+                "id": "1234567890aaaade",
+                "name": "SELECT FROM product_types",
+                "stacktrace": [
+                    {
+                        "classname": "Core.js",
+                        "exclude_from_grouping": false,
+                        "filename": "net.js",
+                        "line": {
+                            "number": 547
+                        }
+                    },
+                    {
+                        "context": {
+                            "post": [
+                                "    ins.currentTransaction = prev",
+                                "}"
+                            ]
+                        },
+                        "exclude_from_grouping": false,
+                        "filename": "file2.js",
+                        "line": {
+                            "number": 12
+                        }
+                    },
+                    {
+                        "abs_path": "net.js",
+                        "context": {
+                            "post": [
+                                "    ins.currentTransaction = prev",
+                                "    return result"
+                            ],
+                            "pre": [
+                                "  var trans = this.currentTransaction",
+                                ""
+                            ]
+                        },
+                        "exclude_from_grouping": false,
+                        "filename": "net.js",
+                        "function": "onread",
+                        "library_frame": true,
+                        "line": {
+                            "column": 4,
+                            "context": "line3",
+                            "number": 547
+                        },
+                        "module": "some module",
+                        "vars": {
+                            "key": "value"
+                        }
+                    }
+                ],
+                "subtype": "postgresql",
+                "sync": true,
+                "type": "db"
+            },
+            "timestamp": {
+                "us": 1532976822281000
+            },
+            "trace": {
+                "id": "abcdef0123456789abcdef9876543210"
+            },
+            "url": {
+                "original": "http://localhost:8000"
+            }
+        },
+        {
+            "@timestamp": "2018-07-30T18:53:42.281Z",
+            "agent": {
+                "name": "elastic-node",
+                "version": "3.14.0"
+            },
+            "cloud": {
+                "account": {
+                    "id": "account_id",
+                    "name": "account_name"
+                },
+                "availability_zone": "cloud_availability_zone",
+                "instance": {
+                    "id": "instance_id",
+                    "name": "instance_name"
+                },
+                "machine": {
+                    "type": "machine_type"
+                },
+                "project": {
+                    "id": "project_id",
+                    "name": "project_name"
+                },
+                "provider": "cloud_provider",
+                "region": "cloud_region",
+                "service": {
+                    "name": "lambda"
+                }
+            },
+            "data_stream.dataset": "apm",
+            "data_stream.namespace": "default",
+            "data_stream.type": "traces",
+            "event": {
+                "agent_id_status": "missing",
+                "ingested": "dynamic",
+                "outcome": "unknown"
+            },
+            "labels": {
+                "tag1": "label1"
+            },
+            "observer": {
+                "hostname": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic"
+            },
+            "parent": {
+                "id": "ababcdcdefefabde"
+            },
+            "processor": {
+                "event": "span",
+                "name": "transaction"
+            },
+            "service": {
+                "environment": "staging",
+                "name": "backendspans"
+            },
+            "span": {
+                "action": "call",
+                "duration": {
+                    "us": 13980
+                },
+                "id": "abcde56a89012345",
+                "name": "get /api/types",
+                "subtype": "http",
+                "sync": false,
+                "type": "request"
+            },
+            "timestamp": {
+                "us": 1532976822281000
+            },
+            "trace": {
+                "id": "abcdef0123456789abcdef9876543210"
+            }
+        },
+        {
+            "@timestamp": "2018-07-30T18:53:42.281Z",
+            "agent": {
+                "name": "elastic-node",
+                "version": "3.14.0"
+            },
+            "cloud": {
+                "account": {
+                    "id": "account_id",
+                    "name": "account_name"
+                },
+                "availability_zone": "cloud_availability_zone",
+                "instance": {
+                    "id": "instance_id",
+                    "name": "instance_name"
+                },
+                "machine": {
+                    "type": "machine_type"
+                },
+                "project": {
+                    "id": "project_id",
+                    "name": "project_name"
+                },
+                "provider": "cloud_provider",
+                "region": "cloud_region",
+                "service": {
+                    "name": "lambda"
+                }
+            },
+            "data_stream.dataset": "apm",
+            "data_stream.namespace": "default",
+            "data_stream.type": "traces",
+            "event": {
+                "agent_id_status": "missing",
+                "ingested": "dynamic",
+                "outcome": "unknown"
+            },
+            "labels": {
+                "tag1": "value1",
+                "tag4": "true"
+            },
+            "numeric_labels": {
+                "tag2": 123,
+                "tag3": 12.34
+            },
+            "observer": {
+                "hostname": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic"
+            },
+            "parent": {
+                "id": "abcdefabcdef7890"
+            },
+            "processor": {
+                "event": "span",
+                "name": "transaction"
+            },
+            "service": {
+                "environment": "staging",
+                "name": "backendspans"
+            },
+            "span": {
+                "duration": {
+                    "us": 3564
+                },
+                "id": "0123456a89012345",
+                "name": "GET /api/types",
+                "subtype": "http",
+                "type": "request"
+            },
+            "timestamp": {
+                "us": 1532976822281000
+            },
+            "trace": {
+                "id": "abcdef0123456789abcdef9876543210"
+            },
+            "transaction": {
+                "id": "ab23456a89012345"
+            }
+        },
+        {
+            "@timestamp": "2018-07-30T18:53:42.281Z",
+            "agent": {
+                "name": "elastic-node",
+                "version": "3.14.0"
+            },
+            "cloud": {
+                "account": {
+                    "id": "account_id",
+                    "name": "account_name"
+                },
+                "availability_zone": "cloud_availability_zone",
+                "instance": {
+                    "id": "instance_id",
+                    "name": "instance_name"
+                },
+                "machine": {
+                    "type": "machine_type"
+                },
+                "project": {
+                    "id": "project_id",
+                    "name": "project_name"
+                },
+                "provider": "cloud_provider",
+                "region": "cloud_region",
+                "service": {
+                    "name": "lambda"
+                }
+            },
+            "data_stream.dataset": "apm",
+            "data_stream.namespace": "default",
+            "data_stream.type": "traces",
+            "event": {
+                "agent_id_status": "missing",
+                "ingested": "dynamic",
+                "outcome": "unknown"
+            },
+            "labels": {
+                "tag1": "label1"
+            },
+            "observer": {
+                "hostname": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic"
+            },
+            "parent": {
+                "id": "0000000011111111"
+            },
+            "processor": {
+                "event": "span",
+                "name": "transaction"
+            },
+            "service": {
+                "environment": "prod",
+                "name": "backendspans"
+            },
+            "span": {
+                "duration": {
+                    "us": 32592
+                },
+                "id": "1234abcdef567895",
+                "name": "GET /api/types",
+                "type": "request"
+            },
+            "timestamp": {
+                "us": 1532976822281000
+            },
+            "trace": {
+                "id": "abcdef0123456789abcdef9876543210"
+            },
+            "transaction": {
+                "id": "ab45781d265894fe"
+            }
+        },
+        {
+            "@timestamp": "2021-07-06T11:58:05.682Z",
+            "agent": {
+                "name": "elastic-node",
+                "version": "3.14.0"
+            },
+            "cloud": {
+                "account": {
+                    "id": "account_id",
+                    "name": "account_name"
+                },
+                "availability_zone": "cloud_availability_zone",
+                "instance": {
+                    "id": "instance_id",
+                    "name": "instance_name"
+                },
+                "machine": {
+                    "type": "machine_type"
+                },
+                "project": {
+                    "id": "project_id",
+                    "name": "project_name"
+                },
+                "provider": "cloud_provider",
+                "region": "cloud_region",
+                "service": {
+                    "name": "lambda"
+                }
+            },
+            "data_stream.dataset": "apm",
+            "data_stream.namespace": "default",
+            "data_stream.type": "traces",
+            "event": {
+                "agent_id_status": "missing",
+                "ingested": "dynamic",
+                "outcome": "success",
+                "success_count": 1
+            },
+            "labels": {
+                "tag1": "label1"
+            },
+            "observer": {
+                "hostname": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic"
+            },
+            "parent": {
+                "id": "abcdef0123456789"
+            },
+            "processor": {
+                "event": "span",
+                "name": "transaction"
+            },
+            "service": {
+                "environment": "staging",
+                "name": "backendspans"
+            },
+            "span": {
+                "action": "query",
+                "composite": {
+                    "compression_strategy": "exact_match",
+                    "count": 10,
+                    "sum": {
+                        "us": 359298
+                    }
+                },
+                "duration": {
+                    "us": 378191
+                },
+                "id": "abcdef01234567",
+                "name": "SELECT FROM p_details",
+                "subtype": "postgresql",
+                "type": "db"
+            },
+            "timestamp": {
+                "us": 1625572685682272
+            },
+            "trace": {
+                "id": "edcbaf0123456789abcdef9876543210"
+            },
+            "transaction": {
+                "id": "01af25874dec69dd"
+            }
+        },
+        {
+            "@timestamp": "2018-07-30T18:53:42.281Z",
+            "agent": {
+                "ephemeral_id": "justanid",
+                "name": "elastic-ruby",
+                "version": "2.2"
+            },
+            "cloud": {
+                "account": {
+                    "id": "account_id",
+                    "name": "account_name"
+                },
+                "availability_zone": "cloud_availability_zone",
+                "instance": {
+                    "id": "instance_id",
+                    "name": "instance_name"
+                },
+                "machine": {
+                    "type": "machine_type"
+                },
+                "project": {
+                    "id": "project_id",
+                    "name": "project_name"
+                },
+                "provider": "cloud_provider",
+                "region": "cloud_region",
+                "service": {
+                    "name": "lambda"
+                }
+            },
+            "data_stream.dataset": "apm",
+            "data_stream.namespace": "default",
+            "data_stream.type": "traces",
+            "destination": {
+                "address": "0:0::0:1",
+                "ip": "0:0::0:1",
+                "port": 5432
+            },
+            "event": {
+                "agent_id_status": "missing",
+                "ingested": "dynamic",
+                "outcome": "success",
+                "success_count": 1
+            },
+            "http": {
+                "request": {
+                    "method": "GET"
+                },
+                "response": {
+                    "decoded_body_size": 401,
+                    "encoded_body_size": 356,
+                    "status_code": 200,
+                    "transfer_size": 30012
+                }
+            },
+            "labels": {
+                "tag1": "label1"
+            },
+            "observer": {
+                "hostname": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic"
+            },
+            "parent": {
+                "id": "abcdef0123456789"
+            },
+            "processor": {
+                "event": "span",
+                "name": "transaction"
+            },
+            "service": {
+                "environment": "staging",
+                "name": "service1",
+                "target": {
+                    "name": "testdb",
+                    "type": "postgres"
+                }
+            },
+            "span": {
+                "action": "query",
+                "db": {
+                    "instance": "customers",
+                    "link": "other.db.com",
+                    "rows_affected": 2,
+                    "statement": "SELECT * FROM product_types WHERE user_id=?",
+                    "type": "sql",
+                    "user": {
+                        "name": "readonly_user"
+                    }
+                },
+                "destination": {
+                    "service": {
+                        "name": "postgresql",
+                        "resource": "postgresql",
+                        "type": "db"
+                    }
+                },
+                "duration": {
+                    "us": 3781
+                },
+                "id": "fdc4567890aaaade",
+                "name": "SELECT FROM product_types",
+                "stacktrace": [
+                    {
+                        "classname": "Core.js",
+                        "exclude_from_grouping": false,
+                        "filename": "net.js",
+                        "line": {
+                            "number": 547
+                        }
+                    },
+                    {
+                        "context": {
+                            "post": [
+                                "    ins.currentTransaction = prev",
+                                "}"
+                            ]
+                        },
+                        "exclude_from_grouping": false,
+                        "filename": "file2.js",
+                        "line": {
+                            "number": 12
+                        }
+                    },
+                    {
+                        "abs_path": "net.js",
+                        "context": {
+                            "post": [
+                                "    ins.currentTransaction = prev",
+                                "    return result"
+                            ],
+                            "pre": [
+                                "  var trans = this.currentTransaction",
+                                ""
+                            ]
+                        },
+                        "exclude_from_grouping": false,
+                        "filename": "net.js",
+                        "function": "onread",
+                        "library_frame": true,
+                        "line": {
+                            "column": 4,
+                            "context": "line3",
+                            "number": 547
+                        },
+                        "module": "some module",
+                        "vars": {
+                            "key": "value"
+                        }
+                    }
+                ],
+                "subtype": "postgresql",
+                "sync": true,
+                "type": "db"
+            },
+            "timestamp": {
+                "us": 1532976822281000
+            },
+            "trace": {
+                "id": "fdceas0123456789abcdef9876543210"
+            },
+            "url": {
+                "original": "http://localhost:8000"
+            }
+        },
+        {
+            "@timestamp": "2018-07-30T18:53:42.281Z",
+            "agent": {
+                "name": "elastic-node",
+                "version": "3.14.0"
+            },
+            "cloud": {
+                "account": {
+                    "id": "account_id",
+                    "name": "account_name"
+                },
+                "availability_zone": "cloud_availability_zone",
+                "instance": {
+                    "id": "instance_id",
+                    "name": "instance_name"
+                },
+                "machine": {
+                    "type": "machine_type"
+                },
+                "project": {
+                    "id": "project_id",
+                    "name": "project_name"
+                },
+                "provider": "cloud_provider",
+                "region": "cloud_region",
+                "service": {
+                    "name": "lambda"
+                }
+            },
+            "data_stream.dataset": "apm",
+            "data_stream.namespace": "default",
+            "data_stream.type": "traces",
+            "destination": {
+                "address": "0:0::0:1",
+                "ip": "0:0::0:1"
+            },
+            "event": {
+                "agent_id_status": "missing",
+                "ingested": "dynamic",
+                "outcome": "unknown"
+            },
+            "labels": {
+                "tag1": "label1"
+            },
+            "observer": {
+                "hostname": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic"
+            },
+            "parent": {
+                "id": "abcdef0123456789"
+            },
+            "processor": {
+                "event": "span",
+                "name": "transaction"
+            },
+            "service": {
+                "environment": "staging",
+                "name": "backendspans"
+            },
+            "span": {
+                "action": "receive",
+                "duration": {
+                    "us": 141581
+                },
+                "id": "00xxx12312312312",
+                "message": {
+                    "age": {
+                        "ms": 1577958057123
+                    },
+                    "queue": {
+                        "name": "new_users"
+                    },
+                    "routing_key": "user-created-span"
+                },
+                "name": "Rabbitmq receive",
+                "subtype": "JMS",
+                "type": "messaging"
+            },
+            "timestamp": {
+                "us": 1532976822281000
+            },
+            "trace": {
+                "id": "fdedef0123456789abcdef9876543210"
+            },
+            "transaction": {
+                "id": "01af25874dec69dd"
+            }
+        },
+        {
+            "@timestamp": "2018-07-30T18:53:42.281Z",
+            "agent": {
+                "name": "elastic-node",
+                "version": "3.14.0"
+            },
+            "child": {
+                "id": [
+                    "51234abcdef56789"
+                ]
+            },
+            "cloud": {
+                "account": {
+                    "id": "account_id",
+                    "name": "account_name"
+                },
+                "availability_zone": "cloud_availability_zone",
+                "instance": {
+                    "id": "instance_id",
+                    "name": "instance_name"
+                },
+                "machine": {
+                    "type": "machine_type"
+                },
+                "project": {
+                    "id": "project_id",
+                    "name": "project_name"
+                },
+                "provider": "cloud_provider",
+                "region": "cloud_region",
+                "service": {
+                    "name": "lambda"
+                }
+            },
+            "data_stream.dataset": "apm",
+            "data_stream.namespace": "default",
+            "data_stream.type": "traces",
+            "event": {
+                "agent_id_status": "missing",
+                "ingested": "dynamic",
+                "outcome": "success",
+                "success_count": 1
+            },
+            "labels": {
+                "tag1": "label1"
+            },
+            "observer": {
+                "hostname": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic"
+            },
+            "parent": {
+                "id": "abcdef0123456789"
+            },
+            "processor": {
+                "event": "span",
+                "name": "transaction"
+            },
+            "service": {
+                "environment": "staging",
+                "name": "backendspans"
+            },
+            "span": {
+                "action": "query.custom",
+                "duration": {
+                    "us": 141581
+                },
+                "id": "abcdef01234567",
+                "name": "GET /api/types",
+                "subtype": "postgresql",
+                "type": "db"
+            },
+            "timestamp": {
+                "us": 1532976822281000
+            },
+            "trace": {
+                "id": "fdedef0123456789abcdef9876543210"
+            },
+            "transaction": {
+                "id": "01af25874dec69dd"
+            }
+        },
+        {
+            "@timestamp": "2018-07-30T18:33:03.584Z",
+            "agent": {
+                "name": "elastic-node",
+                "version": "3.14.0"
+            },
+            "cloud": {
+                "account": {
+                    "id": "account_id",
+                    "name": "account_name"
+                },
+                "availability_zone": "cloud_availability_zone",
+                "instance": {
+                    "id": "instance_id",
+                    "name": "instance_name"
+                },
+                "machine": {
+                    "type": "machine_type"
+                },
+                "project": {
+                    "id": "project_id",
+                    "name": "project_name"
+                },
+                "provider": "cloud_provider",
+                "region": "cloud_region",
+                "service": {
+                    "name": "lambda"
+                }
+            },
+            "data_stream.dataset": "apm",
+            "data_stream.namespace": "default",
+            "data_stream.type": "traces",
+            "destination": {
+                "address": "0:0::0:1",
+                "ip": "0:0::0:1",
+                "port": 8080
+            },
+            "event": {
+                "agent_id_status": "missing",
+                "ingested": "dynamic",
+                "outcome": "success",
+                "success_count": 1
+            },
+            "labels": {
+                "tag1": "label1"
+            },
+            "observer": {
+                "hostname": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic"
+            },
+            "parent": {
+                "id": "abcdef0123456789"
+            },
+            "processor": {
+                "event": "span",
+                "name": "transaction"
+            },
+            "service": {
+                "environment": "staging",
+                "name": "backendspans",
+                "target": {
+                    "name": "localhost:8080",
+                    "type": ""
+                }
+            },
+            "span": {
+                "action": "request",
+                "destination": {
+                    "service": {
+                        "name": "external",
+                        "resource": "localhost:8080",
+                        "type": "http"
+                    }
+                },
+                "duration": {
+                    "us": 988
+                },
+                "id": "ljf4567890aaaade",
+                "name": "Request",
+                "subtype": "http",
+                "type": "external"
+            },
+            "timestamp": {
+                "us": 1532975583584217
+            },
+            "trace": {
+                "id": "ljfjev0123456789abcdef9876543210"
+            },
+            "transaction": {
+                "id": "01af25874dec69dd"
+            }
+        },
+        {
+            "@timestamp": "2018-07-30T18:53:42.281Z",
+            "agent": {
+                "ephemeral_id": "justanid",
+                "name": "elastic-ruby",
+                "version": "2.2"
+            },
+            "cloud": {
+                "account": {
+                    "id": "account_id",
+                    "name": "account_name"
+                },
+                "availability_zone": "cloud_availability_zone",
+                "instance": {
+                    "id": "instance_id",
+                    "name": "instance_name"
+                },
+                "machine": {
+                    "type": "machine_type"
+                },
+                "project": {
+                    "id": "project_id",
+                    "name": "project_name"
+                },
+                "provider": "cloud_provider",
+                "region": "cloud_region",
+                "service": {
+                    "name": "lambda"
+                }
+            },
+            "data_stream.dataset": "apm",
+            "data_stream.namespace": "default",
+            "data_stream.type": "traces",
+            "destination": {
+                "address": "0:0::0:1",
+                "ip": "0:0::0:1",
+                "port": 5432
+            },
+            "event": {
+                "agent_id_status": "missing",
+                "ingested": "dynamic",
+                "outcome": "success",
+                "success_count": 1
+            },
+            "http": {
+                "request": {
+                    "id": "some-request-id",
+                    "method": "GET"
+                },
+                "response": {
+                    "decoded_body_size": 401,
+                    "encoded_body_size": 356,
+                    "status_code": 200,
+                    "transfer_size": 30012
+                }
+            },
+            "labels": {
+                "tag1": "label1"
+            },
+            "observer": {
+                "hostname": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic"
+            },
+            "parent": {
+                "id": "abcdef0123456789"
+            },
+            "processor": {
+                "event": "span",
+                "name": "transaction"
+            },
+            "service": {
+                "environment": "staging",
+                "name": "service1",
+                "target": {
+                    "type": "postgresql"
+                }
+            },
+            "span": {
+                "action": "query",
+                "db": {
+                    "instance": "customers",
+                    "link": "other.db.com",
+                    "rows_affected": 2,
+                    "statement": "SELECT * FROM product_types WHERE user_id=?",
+                    "type": "sql",
+                    "user": {
+                        "name": "readonly_user"
+                    }
+                },
+                "destination": {
+                    "service": {
+                        "name": "postgresql",
+                        "resource": "postgresql",
+                        "type": "db"
+                    }
+                },
+                "duration": {
+                    "us": 3781
+                },
+                "id": "ute4567890aaaade",
+                "name": "SELECT FROM product_types",
+                "stacktrace": [
+                    {
+                        "classname": "Core.js",
+                        "exclude_from_grouping": false,
+                        "filename": "net.js",
+                        "line": {
+                            "number": 547
+                        }
+                    },
+                    {
+                        "context": {
+                            "post": [
+                                "    ins.currentTransaction = prev",
+                                "}"
+                            ]
+                        },
+                        "exclude_from_grouping": false,
+                        "filename": "file2.js",
+                        "line": {
+                            "number": 12
+                        }
+                    },
+                    {
+                        "abs_path": "net.js",
+                        "context": {
+                            "post": [
+                                "    ins.currentTransaction = prev",
+                                "    return result"
+                            ],
+                            "pre": [
+                                "  var trans = this.currentTransaction",
+                                ""
+                            ]
+                        },
+                        "exclude_from_grouping": false,
+                        "filename": "net.js",
+                        "function": "onread",
+                        "library_frame": true,
+                        "line": {
+                            "column": 4,
+                            "context": "line3",
+                            "number": 547
+                        },
+                        "module": "some module",
+                        "vars": {
+                            "key": "value"
+                        }
+                    }
+                ],
+                "subtype": "postgresql",
+                "sync": true,
+                "type": "db"
+            },
+            "timestamp": {
+                "us": 1532976822281000
+            },
+            "trace": {
+                "id": "utedif0123456789abcdef9876543210"
+            },
+            "url": {
+                "original": "http://localhost:8000"
+            }
+        }
+    ]
+}

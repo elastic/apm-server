@@ -9,6 +9,15 @@
                 "version": "3.14.0"
             },
             "client": {
+                "geo": {
+                    "continent_name": "North America",
+                    "country_iso_code": "US",
+                    "country_name": "United States",
+                    "location": {
+                        "lat": 37.751,
+                        "lon": -97.822
+                    }
+                },
                 "ip": "12.53.12.1"
             },
             "cloud": {
@@ -144,6 +153,7 @@
                     }
                 ],
                 "grouping_key": "d72b25a26fde3f3aaad1c86950acd070",
+                "grouping_name": "My service could not talk to the database named foobar",
                 "id": "0123456789012345",
                 "log": {
                     "level": "warning",
@@ -216,6 +226,10 @@
                         }
                     ]
                 }
+            },
+            "event": {
+                "agent_id_status": "missing",
+                "ingested": "dynamic"
             },
             "host": {
                 "architecture": "x64",
@@ -350,6 +364,10 @@
                 "name": "foo"
             },
             "user_agent": {
+                "device": {
+                    "name": "Other"
+                },
+                "name": "Other",
                 "original": "Mozilla Chrome Edge"
             }
         },
@@ -391,17 +409,18 @@
             "data_stream.namespace": "default",
             "data_stream.type": "logs",
             "error": {
-                "grouping_key": "dc8dd667f7036ec5f0bae87bf2188243",
-                "id": "xFoaabb123FFFFFF",
-                "log": {
-                    "message": "no user found",
-                    "stacktrace": [
-                        {
-                            "classname": "User::Special",
-                            "exclude_from_grouping": false
-                        }
-                    ]
-                }
+                "exception": [
+                    {
+                        "message": "Cannot read property 'baz' no defined"
+                    }
+                ],
+                "grouping_key": "ae0232fed4cb40e7ebc62a585a421d60",
+                "grouping_name": "Cannot read property 'baz' no defined",
+                "id": "cdefab0123456789"
+            },
+            "event": {
+                "agent_id_status": "missing",
+                "ingested": "dynamic"
             },
             "host": {
                 "architecture": "x64",
@@ -424,7 +443,7 @@
                     "uid": "pod-uid"
                 }
             },
-            "message": "no user found",
+            "message": "Cannot read property 'baz' no defined",
             "observer": {
                 "hostname": "dynamic",
                 "type": "apm-server",
@@ -513,13 +532,22 @@
             "data_stream.namespace": "default",
             "data_stream.type": "logs",
             "error": {
-                "exception": [
-                    {
-                        "message": "Cannot read property 'baz' no defined"
-                    }
-                ],
-                "grouping_key": "ae0232fed4cb40e7ebc62a585a421d60",
-                "id": "cdefab0123456789"
+                "grouping_key": "dc8dd667f7036ec5f0bae87bf2188243",
+                "grouping_name": "no user found",
+                "id": "xFoaabb123FFFFFF",
+                "log": {
+                    "message": "no user found",
+                    "stacktrace": [
+                        {
+                            "classname": "User::Special",
+                            "exclude_from_grouping": false
+                        }
+                    ]
+                }
+            },
+            "event": {
+                "agent_id_status": "missing",
+                "ingested": "dynamic"
             },
             "host": {
                 "architecture": "x64",
@@ -542,7 +570,7 @@
                     "uid": "pod-uid"
                 }
             },
-            "message": "Cannot read property 'baz' no defined",
+            "message": "no user found",
             "observer": {
                 "hostname": "dynamic",
                 "type": "apm-server",
@@ -637,7 +665,12 @@
                     }
                 ],
                 "grouping_key": "c3868d6704b923014eaffea034e70a3d",
+                "grouping_name": null,
                 "id": "cdefab0123456780"
+            },
+            "event": {
+                "agent_id_status": "missing",
+                "ingested": "dynamic"
             },
             "host": {
                 "architecture": "x64",
@@ -755,11 +788,16 @@
             "data_stream.type": "logs",
             "error": {
                 "grouping_key": "d6b3f958dfea98dc9ed2b57d5f0c48bb",
+                "grouping_name": "Cannot read property 'baz' of undefined",
                 "id": "abcdef0123456789",
                 "log": {
                     "level": "custom log level",
                     "message": "Cannot read property 'baz' of undefined"
                 }
+            },
+            "event": {
+                "agent_id_status": "missing",
+                "ingested": "dynamic"
             },
             "host": {
                 "architecture": "x64",
