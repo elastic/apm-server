@@ -11,7 +11,7 @@ pipeline {
     BENCHMARK_ES_SECRET = 'secret/observability-team/ci/benchmark-cloud'
     BENCHMARK_KIBANA_SECRET = 'secret/observability-team/ci/apm-benchmark-kibana'
     PNG_REPORT_FILE = 'out.png'
-    TERRAFORM_VERSION = '1.1.9'
+    TERRAFORM_VERSION = '1.3.7'
     CREATED_DATE = "${new Date().getTime()}"
     JOB_GCS_BUCKET_STASH = 'apm-ci-temp'
     JOB_GCS_CREDENTIALS = 'apm-ci-gcs-plugin'
