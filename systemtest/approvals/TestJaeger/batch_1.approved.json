@@ -1,46 +1,195 @@
 {
     "events": [
         {
-            "@timestamp": "2019-12-20T07:41:44.954Z",
+            "@timestamp": "2019-12-20T07:41:45.006Z",
             "agent": {
                 "ephemeral_id": "2e3f8db3eb77fae0",
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
+            "data_stream.dataset": "apm.error",
+            "data_stream.namespace": "default",
+            "data_stream.type": "logs",
+            "error": {
+                "exception": [
+                    {
+                        "message": "redis timeout"
+                    }
+                ],
+                "grouping_key": "dd09a7d0d9dde0adfcd694967c5a88de",
+                "grouping_name": "redis timeout",
+                "log": {
+                    "message": "redis timeout"
+                }
+            },
             "event": {
-                "duration": 19711000,
-                "outcome": "unknown"
+                "agent_id_status": "missing",
+                "ingested": "dynamic"
             },
             "host": {
                 "hostname": "host01",
                 "ip": [
                     "10.0.0.13"
-                ]
+                ],
+                "name": "host01"
             },
             "labels": {
-                "param_location": "728,326"
+                "driver_id": "T762465C"
+            },
+            "message": "redis timeout",
+            "observer": {
+                "hostname": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic"
             },
             "parent": {
-                "id": "7be2fd98d0973be3"
+                "id": "333295bfb438ea03"
             },
             "processor": {
-                "event": "span",
-                "name": "transaction"
+                "event": "error",
+                "name": "error"
             },
             "service": {
                 "language": {
                     "name": "Go"
                 },
-                "name": "redis"
-            },
-            "span": {
-                "id": "6e09e8bcefd6b828",
-                "name": "FindDriverIDs",
-                "representative_count": 1,
-                "type": "unknown"
+                "name": "redis",
+                "node": {
+                    "name": "host01"
+                }
             },
             "timestamp": {
-                "us": 1576827704954062
+                "us": 1576827705006847
+            },
+            "trace": {
+                "id": "00000000000000007be2fd98d0973be3"
+            }
+        },
+        {
+            "@timestamp": "2019-12-20T07:41:45.089Z",
+            "agent": {
+                "ephemeral_id": "2e3f8db3eb77fae0",
+                "name": "Jaeger/Go",
+                "version": "2.20.1"
+            },
+            "data_stream.dataset": "apm.error",
+            "data_stream.namespace": "default",
+            "data_stream.type": "logs",
+            "error": {
+                "exception": [
+                    {
+                        "message": "redis timeout"
+                    }
+                ],
+                "grouping_key": "dd09a7d0d9dde0adfcd694967c5a88de",
+                "grouping_name": "redis timeout",
+                "log": {
+                    "message": "redis timeout"
+                }
+            },
+            "event": {
+                "agent_id_status": "missing",
+                "ingested": "dynamic"
+            },
+            "host": {
+                "hostname": "host01",
+                "ip": [
+                    "10.0.0.13"
+                ],
+                "name": "host01"
+            },
+            "labels": {
+                "driver_id": "T781861C"
+            },
+            "message": "redis timeout",
+            "observer": {
+                "hostname": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic"
+            },
+            "parent": {
+                "id": "614811d6c498bfb0"
+            },
+            "processor": {
+                "event": "error",
+                "name": "error"
+            },
+            "service": {
+                "language": {
+                    "name": "Go"
+                },
+                "name": "redis",
+                "node": {
+                    "name": "host01"
+                }
+            },
+            "timestamp": {
+                "us": 1576827705089372
+            },
+            "trace": {
+                "id": "00000000000000007be2fd98d0973be3"
+            }
+        },
+        {
+            "@timestamp": "2019-12-20T07:41:45.172Z",
+            "agent": {
+                "ephemeral_id": "2e3f8db3eb77fae0",
+                "name": "Jaeger/Go",
+                "version": "2.20.1"
+            },
+            "data_stream.dataset": "apm.error",
+            "data_stream.namespace": "default",
+            "data_stream.type": "logs",
+            "error": {
+                "exception": [
+                    {
+                        "message": "redis timeout"
+                    }
+                ],
+                "grouping_key": "dd09a7d0d9dde0adfcd694967c5a88de",
+                "grouping_name": "redis timeout",
+                "log": {
+                    "message": "redis timeout"
+                }
+            },
+            "event": {
+                "agent_id_status": "missing",
+                "ingested": "dynamic"
+            },
+            "host": {
+                "hostname": "host01",
+                "ip": [
+                    "10.0.0.13"
+                ],
+                "name": "host01"
+            },
+            "labels": {
+                "driver_id": "T752547C"
+            },
+            "message": "redis timeout",
+            "observer": {
+                "hostname": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic"
+            },
+            "parent": {
+                "id": "0242ee3774d9eab1"
+            },
+            "processor": {
+                "event": "error",
+                "name": "error"
+            },
+            "service": {
+                "language": {
+                    "name": "Go"
+                },
+                "name": "redis",
+                "node": {
+                    "name": "host01"
+                }
+            },
+            "timestamp": {
+                "us": 1576827705172347
             },
             "trace": {
                 "id": "00000000000000007be2fd98d0973be3"
@@ -53,16 +202,29 @@
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
+            "data_stream.dataset": "apm.app",
+            "data_stream.namespace": "default",
+            "data_stream.type": "logs",
+            "event": {
+                "agent_id_status": "missing",
+                "ingested": "dynamic"
+            },
             "host": {
                 "hostname": "host01",
                 "ip": [
                     "10.0.0.13"
-                ]
+                ],
+                "name": "host01"
             },
             "labels": {
                 "level": "info"
             },
             "message": "Found drivers",
+            "observer": {
+                "hostname": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic"
+            },
             "parent": {
                 "id": "7be2fd98d0973be3"
             },
@@ -74,7 +236,207 @@
                 "language": {
                     "name": "Go"
                 },
+                "name": "redis",
+                "node": {
+                    "name": "host01"
+                }
+            },
+            "trace": {
+                "id": "00000000000000007be2fd98d0973be3"
+            }
+        },
+        {
+            "@timestamp": "2019-12-20T07:41:45.132Z",
+            "agent": {
+                "ephemeral_id": "2e3f8db3eb77fae0",
+                "name": "Jaeger/Go",
+                "version": "2.20.1"
+            },
+            "data_stream.dataset": "apm",
+            "data_stream.namespace": "default",
+            "data_stream.type": "traces",
+            "event": {
+                "agent_id_status": "missing",
+                "ingested": "dynamic",
+                "outcome": "failure",
+                "success_count": 0
+            },
+            "labels": {
+                "param_driverID": "T752547C"
+            },
+            "observer": {
+                "hostname": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic"
+            },
+            "parent": {
+                "id": "7be2fd98d0973be3"
+            },
+            "processor": {
+                "event": "span",
+                "name": "transaction"
+            },
+            "service": {
                 "name": "redis"
+            },
+            "span": {
+                "duration": {
+                    "us": 39602
+                },
+                "id": "0242ee3774d9eab1",
+                "name": "GetDriver",
+                "representative_count": 1,
+                "type": "unknown"
+            },
+            "timestamp": {
+                "us": 1576827705132896
+            },
+            "trace": {
+                "id": "00000000000000007be2fd98d0973be3"
+            }
+        },
+        {
+            "@timestamp": "2019-12-20T07:41:45.089Z",
+            "agent": {
+                "ephemeral_id": "2e3f8db3eb77fae0",
+                "name": "Jaeger/Go",
+                "version": "2.20.1"
+            },
+            "data_stream.dataset": "apm",
+            "data_stream.namespace": "default",
+            "data_stream.type": "traces",
+            "event": {
+                "agent_id_status": "missing",
+                "ingested": "dynamic",
+                "outcome": "unknown"
+            },
+            "labels": {
+                "param_driverID": "T781861C"
+            },
+            "observer": {
+                "hostname": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic"
+            },
+            "parent": {
+                "id": "7be2fd98d0973be3"
+            },
+            "processor": {
+                "event": "span",
+                "name": "transaction"
+            },
+            "service": {
+                "name": "redis"
+            },
+            "span": {
+                "duration": {
+                    "us": 11802
+                },
+                "id": "231604559da84d61",
+                "name": "GetDriver",
+                "representative_count": 1,
+                "type": "unknown"
+            },
+            "timestamp": {
+                "us": 1576827705089459
+            },
+            "trace": {
+                "id": "00000000000000007be2fd98d0973be3"
+            }
+        },
+        {
+            "@timestamp": "2019-12-20T07:41:45.186Z",
+            "agent": {
+                "ephemeral_id": "2e3f8db3eb77fae0",
+                "name": "Jaeger/Go",
+                "version": "2.20.1"
+            },
+            "data_stream.dataset": "apm",
+            "data_stream.namespace": "default",
+            "data_stream.type": "traces",
+            "event": {
+                "agent_id_status": "missing",
+                "ingested": "dynamic",
+                "outcome": "unknown"
+            },
+            "labels": {
+                "param_driverID": "T757338C"
+            },
+            "observer": {
+                "hostname": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic"
+            },
+            "parent": {
+                "id": "7be2fd98d0973be3"
+            },
+            "processor": {
+                "event": "span",
+                "name": "transaction"
+            },
+            "service": {
+                "name": "redis"
+            },
+            "span": {
+                "duration": {
+                    "us": 10431
+                },
+                "id": "2b4c28f02b272f17",
+                "name": "GetDriver",
+                "representative_count": 1,
+                "type": "unknown"
+            },
+            "timestamp": {
+                "us": 1576827705186670
+            },
+            "trace": {
+                "id": "00000000000000007be2fd98d0973be3"
+            }
+        },
+        {
+            "@timestamp": "2019-12-20T07:41:45.113Z",
+            "agent": {
+                "ephemeral_id": "2e3f8db3eb77fae0",
+                "name": "Jaeger/Go",
+                "version": "2.20.1"
+            },
+            "data_stream.dataset": "apm",
+            "data_stream.namespace": "default",
+            "data_stream.type": "traces",
+            "event": {
+                "agent_id_status": "missing",
+                "ingested": "dynamic",
+                "outcome": "unknown"
+            },
+            "labels": {
+                "param_driverID": "T708771C"
+            },
+            "observer": {
+                "hostname": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic"
+            },
+            "parent": {
+                "id": "7be2fd98d0973be3"
+            },
+            "processor": {
+                "event": "span",
+                "name": "transaction"
+            },
+            "service": {
+                "name": "redis"
+            },
+            "span": {
+                "duration": {
+                    "us": 11986
+                },
+                "id": "2ef335bad24accc2",
+                "name": "GetDriver",
+                "representative_count": 1,
+                "type": "unknown"
+            },
+            "timestamp": {
+                "us": 1576827705113531
             },
             "trace": {
                 "id": "00000000000000007be2fd98d0973be3"
@@ -87,18 +449,22 @@
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
+            "data_stream.dataset": "apm",
+            "data_stream.namespace": "default",
+            "data_stream.type": "traces",
             "event": {
-                "duration": 33732000,
-                "outcome": "failure"
-            },
-            "host": {
-                "hostname": "host01",
-                "ip": [
-                    "10.0.0.13"
-                ]
+                "agent_id_status": "missing",
+                "ingested": "dynamic",
+                "outcome": "failure",
+                "success_count": 0
             },
             "labels": {
                 "param_driverID": "T762465C"
+            },
+            "observer": {
+                "hostname": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic"
             },
             "parent": {
                 "id": "7be2fd98d0973be3"
@@ -108,12 +474,12 @@
                 "name": "transaction"
             },
             "service": {
-                "language": {
-                    "name": "Go"
-                },
                 "name": "redis"
             },
             "span": {
+                "duration": {
+                    "us": 33732
+                },
                 "id": "333295bfb438ea03",
                 "name": "GetDriver",
                 "representative_count": 1,
@@ -127,46 +493,148 @@
             }
         },
         {
-            "@timestamp": "2019-12-20T07:41:45.006Z",
+            "@timestamp": "2019-12-20T07:41:45.125Z",
             "agent": {
                 "ephemeral_id": "2e3f8db3eb77fae0",
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
-            "error": {
-                "exception": [
-                    {
-                        "message": "redis timeout"
-                    }
-                ],
-                "log": {
-                    "message": "redis timeout"
-                }
-            },
-            "host": {
-                "hostname": "host01",
-                "ip": [
-                    "10.0.0.13"
-                ]
+            "data_stream.dataset": "apm",
+            "data_stream.namespace": "default",
+            "data_stream.type": "traces",
+            "event": {
+                "agent_id_status": "missing",
+                "ingested": "dynamic",
+                "outcome": "unknown"
             },
             "labels": {
-                "driver_id": "T762465C"
+                "param_driverID": "T710624C"
+            },
+            "observer": {
+                "hostname": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic"
             },
             "parent": {
-                "id": "333295bfb438ea03"
+                "id": "7be2fd98d0973be3"
             },
             "processor": {
-                "event": "error",
-                "name": "error"
+                "event": "span",
+                "name": "transaction"
             },
             "service": {
-                "language": {
-                    "name": "Go"
-                },
                 "name": "redis"
             },
+            "span": {
+                "duration": {
+                    "us": 7311
+                },
+                "id": "38ec645e7201224d",
+                "name": "GetDriver",
+                "representative_count": 1,
+                "type": "unknown"
+            },
             "timestamp": {
-                "us": 1576827705006847
+                "us": 1576827705125567
+            },
+            "trace": {
+                "id": "00000000000000007be2fd98d0973be3"
+            }
+        },
+        {
+            "@timestamp": "2019-12-20T07:41:45.054Z",
+            "agent": {
+                "ephemeral_id": "2e3f8db3eb77fae0",
+                "name": "Jaeger/Go",
+                "version": "2.20.1"
+            },
+            "data_stream.dataset": "apm",
+            "data_stream.namespace": "default",
+            "data_stream.type": "traces",
+            "event": {
+                "agent_id_status": "missing",
+                "ingested": "dynamic",
+                "outcome": "failure",
+                "success_count": 0
+            },
+            "labels": {
+                "param_driverID": "T781861C"
+            },
+            "observer": {
+                "hostname": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic"
+            },
+            "parent": {
+                "id": "7be2fd98d0973be3"
+            },
+            "processor": {
+                "event": "span",
+                "name": "transaction"
+            },
+            "service": {
+                "name": "redis"
+            },
+            "span": {
+                "duration": {
+                    "us": 35375
+                },
+                "id": "614811d6c498bfb0",
+                "name": "GetDriver",
+                "representative_count": 1,
+                "type": "unknown"
+            },
+            "timestamp": {
+                "us": 1576827705054046
+            },
+            "trace": {
+                "id": "00000000000000007be2fd98d0973be3"
+            }
+        },
+        {
+            "@timestamp": "2019-12-20T07:41:45.101Z",
+            "agent": {
+                "ephemeral_id": "2e3f8db3eb77fae0",
+                "name": "Jaeger/Go",
+                "version": "2.20.1"
+            },
+            "data_stream.dataset": "apm",
+            "data_stream.namespace": "default",
+            "data_stream.type": "traces",
+            "event": {
+                "agent_id_status": "missing",
+                "ingested": "dynamic",
+                "outcome": "unknown"
+            },
+            "labels": {
+                "param_driverID": "T705860C"
+            },
+            "observer": {
+                "hostname": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic"
+            },
+            "parent": {
+                "id": "7be2fd98d0973be3"
+            },
+            "processor": {
+                "event": "span",
+                "name": "transaction"
+            },
+            "service": {
+                "name": "redis"
+            },
+            "span": {
+                "duration": {
+                    "us": 12236
+                },
+                "id": "61f7ecf24d13c36a",
+                "name": "GetDriver",
+                "representative_count": 1,
+                "type": "unknown"
+            },
+            "timestamp": {
+                "us": 1576827705101278
             },
             "trace": {
                 "id": "00000000000000007be2fd98d0973be3"
@@ -179,18 +647,21 @@
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
+            "data_stream.dataset": "apm",
+            "data_stream.namespace": "default",
+            "data_stream.type": "traces",
             "event": {
-                "duration": 9240000,
+                "agent_id_status": "missing",
+                "ingested": "dynamic",
                 "outcome": "unknown"
-            },
-            "host": {
-                "hostname": "host01",
-                "ip": [
-                    "10.0.0.13"
-                ]
             },
             "labels": {
                 "param_driverID": "T762465C"
+            },
+            "observer": {
+                "hostname": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic"
             },
             "parent": {
                 "id": "7be2fd98d0973be3"
@@ -200,12 +671,12 @@
                 "name": "transaction"
             },
             "service": {
-                "language": {
-                    "name": "Go"
-                },
                 "name": "redis"
             },
             "span": {
+                "duration": {
+                    "us": 9240
+                },
                 "id": "627c37a97e475c2f",
                 "name": "GetDriver",
                 "representative_count": 1,
@@ -219,24 +690,27 @@
             }
         },
         {
-            "@timestamp": "2019-12-20T07:41:45.016Z",
+            "@timestamp": "2019-12-20T07:41:45.172Z",
             "agent": {
                 "ephemeral_id": "2e3f8db3eb77fae0",
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
+            "data_stream.dataset": "apm",
+            "data_stream.namespace": "default",
+            "data_stream.type": "traces",
             "event": {
-                "duration": 12561000,
+                "agent_id_status": "missing",
+                "ingested": "dynamic",
                 "outcome": "unknown"
             },
-            "host": {
-                "hostname": "host01",
-                "ip": [
-                    "10.0.0.13"
-                ]
-            },
             "labels": {
-                "param_driverID": "T712515C"
+                "param_driverID": "T752547C"
+            },
+            "observer": {
+                "hostname": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic"
             },
             "parent": {
                 "id": "7be2fd98d0973be3"
@@ -246,19 +720,19 @@
                 "name": "transaction"
             },
             "service": {
-                "language": {
-                    "name": "Go"
-                },
                 "name": "redis"
             },
             "span": {
-                "id": "7bd7663d39c5a847",
+                "duration": {
+                    "us": 14029
+                },
+                "id": "6a63d1e81cfc7d95",
                 "name": "GetDriver",
                 "representative_count": 1,
                 "type": "unknown"
             },
             "timestamp": {
-                "us": 1576827705016845
+                "us": 1576827705172618
             },
             "trace": {
                 "id": "00000000000000007be2fd98d0973be3"
@@ -271,18 +745,21 @@
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
+            "data_stream.dataset": "apm",
+            "data_stream.namespace": "default",
+            "data_stream.type": "traces",
             "event": {
-                "duration": 10630000,
+                "agent_id_status": "missing",
+                "ingested": "dynamic",
                 "outcome": "unknown"
-            },
-            "host": {
-                "hostname": "host01",
-                "ip": [
-                    "10.0.0.13"
-                ]
             },
             "labels": {
                 "param_driverID": "T752110C"
+            },
+            "observer": {
+                "hostname": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic"
             },
             "parent": {
                 "id": "7be2fd98d0973be3"
@@ -292,12 +769,12 @@
                 "name": "transaction"
             },
             "service": {
-                "language": {
-                    "name": "Go"
-                },
                 "name": "redis"
             },
             "span": {
+                "duration": {
+                    "us": 10630
+                },
                 "id": "6b4051dd2a5e2366",
                 "name": "GetDriver",
                 "representative_count": 1,
@@ -317,18 +794,21 @@
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
+            "data_stream.dataset": "apm",
+            "data_stream.namespace": "default",
+            "data_stream.type": "traces",
             "event": {
-                "duration": 13946000,
+                "agent_id_status": "missing",
+                "ingested": "dynamic",
                 "outcome": "unknown"
-            },
-            "host": {
-                "hostname": "host01",
-                "ip": [
-                    "10.0.0.13"
-                ]
             },
             "labels": {
                 "param_driverID": "T757670C"
+            },
+            "observer": {
+                "hostname": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic"
             },
             "parent": {
                 "id": "7be2fd98d0973be3"
@@ -338,12 +818,12 @@
                 "name": "transaction"
             },
             "service": {
-                "language": {
-                    "name": "Go"
-                },
                 "name": "redis"
             },
             "span": {
+                "duration": {
+                    "us": 13946
+                },
                 "id": "6df97a86b9b3451b",
                 "name": "GetDriver",
                 "representative_count": 1,
@@ -357,116 +837,27 @@
             }
         },
         {
-            "@timestamp": "2019-12-20T07:41:45.054Z",
+            "@timestamp": "2019-12-20T07:41:44.954Z",
             "agent": {
                 "ephemeral_id": "2e3f8db3eb77fae0",
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
+            "data_stream.dataset": "apm",
+            "data_stream.namespace": "default",
+            "data_stream.type": "traces",
             "event": {
-                "duration": 35375000,
-                "outcome": "failure"
-            },
-            "host": {
-                "hostname": "host01",
-                "ip": [
-                    "10.0.0.13"
-                ]
-            },
-            "labels": {
-                "param_driverID": "T781861C"
-            },
-            "parent": {
-                "id": "7be2fd98d0973be3"
-            },
-            "processor": {
-                "event": "span",
-                "name": "transaction"
-            },
-            "service": {
-                "language": {
-                    "name": "Go"
-                },
-                "name": "redis"
-            },
-            "span": {
-                "id": "614811d6c498bfb0",
-                "name": "GetDriver",
-                "representative_count": 1,
-                "type": "unknown"
-            },
-            "timestamp": {
-                "us": 1576827705054046
-            },
-            "trace": {
-                "id": "00000000000000007be2fd98d0973be3"
-            }
-        },
-        {
-            "@timestamp": "2019-12-20T07:41:45.089Z",
-            "agent": {
-                "ephemeral_id": "2e3f8db3eb77fae0",
-                "name": "Jaeger/Go",
-                "version": "2.20.1"
-            },
-            "error": {
-                "exception": [
-                    {
-                        "message": "redis timeout"
-                    }
-                ],
-                "log": {
-                    "message": "redis timeout"
-                }
-            },
-            "host": {
-                "hostname": "host01",
-                "ip": [
-                    "10.0.0.13"
-                ]
-            },
-            "labels": {
-                "driver_id": "T781861C"
-            },
-            "parent": {
-                "id": "614811d6c498bfb0"
-            },
-            "processor": {
-                "event": "error",
-                "name": "error"
-            },
-            "service": {
-                "language": {
-                    "name": "Go"
-                },
-                "name": "redis"
-            },
-            "timestamp": {
-                "us": 1576827705089372
-            },
-            "trace": {
-                "id": "00000000000000007be2fd98d0973be3"
-            }
-        },
-        {
-            "@timestamp": "2019-12-20T07:41:45.089Z",
-            "agent": {
-                "ephemeral_id": "2e3f8db3eb77fae0",
-                "name": "Jaeger/Go",
-                "version": "2.20.1"
-            },
-            "event": {
-                "duration": 11802000,
+                "agent_id_status": "missing",
+                "ingested": "dynamic",
                 "outcome": "unknown"
             },
-            "host": {
-                "hostname": "host01",
-                "ip": [
-                    "10.0.0.13"
-                ]
-            },
             "labels": {
-                "param_driverID": "T781861C"
+                "param_location": "728,326"
+            },
+            "observer": {
+                "hostname": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic"
             },
             "parent": {
                 "id": "7be2fd98d0973be3"
@@ -476,43 +867,46 @@
                 "name": "transaction"
             },
             "service": {
-                "language": {
-                    "name": "Go"
-                },
                 "name": "redis"
             },
             "span": {
-                "id": "231604559da84d61",
-                "name": "GetDriver",
+                "duration": {
+                    "us": 19711
+                },
+                "id": "6e09e8bcefd6b828",
+                "name": "FindDriverIDs",
                 "representative_count": 1,
                 "type": "unknown"
             },
             "timestamp": {
-                "us": 1576827705089459
+                "us": 1576827704954062
             },
             "trace": {
                 "id": "00000000000000007be2fd98d0973be3"
             }
         },
         {
-            "@timestamp": "2019-12-20T07:41:45.101Z",
+            "@timestamp": "2019-12-20T07:41:45.016Z",
             "agent": {
                 "ephemeral_id": "2e3f8db3eb77fae0",
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
+            "data_stream.dataset": "apm",
+            "data_stream.namespace": "default",
+            "data_stream.type": "traces",
             "event": {
-                "duration": 12236000,
+                "agent_id_status": "missing",
+                "ingested": "dynamic",
                 "outcome": "unknown"
             },
-            "host": {
-                "hostname": "host01",
-                "ip": [
-                    "10.0.0.13"
-                ]
-            },
             "labels": {
-                "param_driverID": "T705860C"
+                "param_driverID": "T712515C"
+            },
+            "observer": {
+                "hostname": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic"
             },
             "parent": {
                 "id": "7be2fd98d0973be3"
@@ -522,295 +916,19 @@
                 "name": "transaction"
             },
             "service": {
-                "language": {
-                    "name": "Go"
-                },
                 "name": "redis"
             },
             "span": {
-                "id": "61f7ecf24d13c36a",
+                "duration": {
+                    "us": 12561
+                },
+                "id": "7bd7663d39c5a847",
                 "name": "GetDriver",
                 "representative_count": 1,
                 "type": "unknown"
             },
             "timestamp": {
-                "us": 1576827705101278
-            },
-            "trace": {
-                "id": "00000000000000007be2fd98d0973be3"
-            }
-        },
-        {
-            "@timestamp": "2019-12-20T07:41:45.113Z",
-            "agent": {
-                "ephemeral_id": "2e3f8db3eb77fae0",
-                "name": "Jaeger/Go",
-                "version": "2.20.1"
-            },
-            "event": {
-                "duration": 11986000,
-                "outcome": "unknown"
-            },
-            "host": {
-                "hostname": "host01",
-                "ip": [
-                    "10.0.0.13"
-                ]
-            },
-            "labels": {
-                "param_driverID": "T708771C"
-            },
-            "parent": {
-                "id": "7be2fd98d0973be3"
-            },
-            "processor": {
-                "event": "span",
-                "name": "transaction"
-            },
-            "service": {
-                "language": {
-                    "name": "Go"
-                },
-                "name": "redis"
-            },
-            "span": {
-                "id": "2ef335bad24accc2",
-                "name": "GetDriver",
-                "representative_count": 1,
-                "type": "unknown"
-            },
-            "timestamp": {
-                "us": 1576827705113531
-            },
-            "trace": {
-                "id": "00000000000000007be2fd98d0973be3"
-            }
-        },
-        {
-            "@timestamp": "2019-12-20T07:41:45.125Z",
-            "agent": {
-                "ephemeral_id": "2e3f8db3eb77fae0",
-                "name": "Jaeger/Go",
-                "version": "2.20.1"
-            },
-            "event": {
-                "duration": 7311000,
-                "outcome": "unknown"
-            },
-            "host": {
-                "hostname": "host01",
-                "ip": [
-                    "10.0.0.13"
-                ]
-            },
-            "labels": {
-                "param_driverID": "T710624C"
-            },
-            "parent": {
-                "id": "7be2fd98d0973be3"
-            },
-            "processor": {
-                "event": "span",
-                "name": "transaction"
-            },
-            "service": {
-                "language": {
-                    "name": "Go"
-                },
-                "name": "redis"
-            },
-            "span": {
-                "id": "38ec645e7201224d",
-                "name": "GetDriver",
-                "representative_count": 1,
-                "type": "unknown"
-            },
-            "timestamp": {
-                "us": 1576827705125567
-            },
-            "trace": {
-                "id": "00000000000000007be2fd98d0973be3"
-            }
-        },
-        {
-            "@timestamp": "2019-12-20T07:41:45.132Z",
-            "agent": {
-                "ephemeral_id": "2e3f8db3eb77fae0",
-                "name": "Jaeger/Go",
-                "version": "2.20.1"
-            },
-            "event": {
-                "duration": 39602000,
-                "outcome": "failure"
-            },
-            "host": {
-                "hostname": "host01",
-                "ip": [
-                    "10.0.0.13"
-                ]
-            },
-            "labels": {
-                "param_driverID": "T752547C"
-            },
-            "parent": {
-                "id": "7be2fd98d0973be3"
-            },
-            "processor": {
-                "event": "span",
-                "name": "transaction"
-            },
-            "service": {
-                "language": {
-                    "name": "Go"
-                },
-                "name": "redis"
-            },
-            "span": {
-                "id": "0242ee3774d9eab1",
-                "name": "GetDriver",
-                "representative_count": 1,
-                "type": "unknown"
-            },
-            "timestamp": {
-                "us": 1576827705132896
-            },
-            "trace": {
-                "id": "00000000000000007be2fd98d0973be3"
-            }
-        },
-        {
-            "@timestamp": "2019-12-20T07:41:45.172Z",
-            "agent": {
-                "ephemeral_id": "2e3f8db3eb77fae0",
-                "name": "Jaeger/Go",
-                "version": "2.20.1"
-            },
-            "error": {
-                "exception": [
-                    {
-                        "message": "redis timeout"
-                    }
-                ],
-                "log": {
-                    "message": "redis timeout"
-                }
-            },
-            "host": {
-                "hostname": "host01",
-                "ip": [
-                    "10.0.0.13"
-                ]
-            },
-            "labels": {
-                "driver_id": "T752547C"
-            },
-            "parent": {
-                "id": "0242ee3774d9eab1"
-            },
-            "processor": {
-                "event": "error",
-                "name": "error"
-            },
-            "service": {
-                "language": {
-                    "name": "Go"
-                },
-                "name": "redis"
-            },
-            "timestamp": {
-                "us": 1576827705172347
-            },
-            "trace": {
-                "id": "00000000000000007be2fd98d0973be3"
-            }
-        },
-        {
-            "@timestamp": "2019-12-20T07:41:45.172Z",
-            "agent": {
-                "ephemeral_id": "2e3f8db3eb77fae0",
-                "name": "Jaeger/Go",
-                "version": "2.20.1"
-            },
-            "event": {
-                "duration": 14029000,
-                "outcome": "unknown"
-            },
-            "host": {
-                "hostname": "host01",
-                "ip": [
-                    "10.0.0.13"
-                ]
-            },
-            "labels": {
-                "param_driverID": "T752547C"
-            },
-            "parent": {
-                "id": "7be2fd98d0973be3"
-            },
-            "processor": {
-                "event": "span",
-                "name": "transaction"
-            },
-            "service": {
-                "language": {
-                    "name": "Go"
-                },
-                "name": "redis"
-            },
-            "span": {
-                "id": "6a63d1e81cfc7d95",
-                "name": "GetDriver",
-                "representative_count": 1,
-                "type": "unknown"
-            },
-            "timestamp": {
-                "us": 1576827705172618
-            },
-            "trace": {
-                "id": "00000000000000007be2fd98d0973be3"
-            }
-        },
-        {
-            "@timestamp": "2019-12-20T07:41:45.186Z",
-            "agent": {
-                "ephemeral_id": "2e3f8db3eb77fae0",
-                "name": "Jaeger/Go",
-                "version": "2.20.1"
-            },
-            "event": {
-                "duration": 10431000,
-                "outcome": "unknown"
-            },
-            "host": {
-                "hostname": "host01",
-                "ip": [
-                    "10.0.0.13"
-                ]
-            },
-            "labels": {
-                "param_driverID": "T757338C"
-            },
-            "parent": {
-                "id": "7be2fd98d0973be3"
-            },
-            "processor": {
-                "event": "span",
-                "name": "transaction"
-            },
-            "service": {
-                "language": {
-                    "name": "Go"
-                },
-                "name": "redis"
-            },
-            "span": {
-                "id": "2b4c28f02b272f17",
-                "name": "GetDriver",
-                "representative_count": 1,
-                "type": "unknown"
-            },
-            "timestamp": {
-                "us": 1576827705186670
+                "us": 1576827705016845
             },
             "trace": {
                 "id": "00000000000000007be2fd98d0973be3"

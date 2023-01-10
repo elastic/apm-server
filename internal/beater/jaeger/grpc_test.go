@@ -19,11 +19,8 @@ package jaeger
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"net"
-	"os"
-	"path/filepath"
 	"testing"
 
 	"github.com/jaegertracing/jaeger/proto-gen/api_v2"
@@ -43,7 +40,6 @@ import (
 
 	"github.com/elastic/apm-data/model"
 	"github.com/elastic/apm-server/internal/agentcfg"
-	"github.com/elastic/apm-server/internal/approvaltest"
 	"github.com/elastic/apm-server/internal/beater/auth"
 	"github.com/elastic/apm-server/internal/beater/config"
 	"github.com/elastic/apm-server/internal/beater/interceptors"
@@ -110,39 +106,6 @@ func newPostSpansRequest(t *testing.T) *api_v2.PostSpansRequest {
 	require.NoError(t, err)
 	require.Len(t, batches, 1)
 	return &api_v2.PostSpansRequest{Batch: *batches[0]}
-}
-
-func TestApprovals(t *testing.T) {
-	for _, name := range []string{"batch_0", "batch_1"} {
-		t.Run(name, func(t *testing.T) {
-			var batches int
-			var docs [][]byte
-			var processor model.ProcessBatchFunc = func(ctx context.Context, batch *model.Batch) error {
-				batches++
-				for _, event := range *batch {
-					data, err := event.MarshalJSON()
-					require.NoError(t, err)
-					docs = append(docs, data)
-				}
-				return nil
-			}
-			conn, _ := newServer(t, processor, nil)
-			client := api_v2.NewCollectorServiceClient(conn)
-
-			f := filepath.Join("..", "..", "..", "testdata", "jaeger", name)
-			data, err := os.ReadFile(f + ".json")
-			require.NoError(t, err)
-
-			var request api_v2.PostSpansRequest
-			err = json.Unmarshal(data, &request)
-			require.NoError(t, err)
-			_, err = client.PostSpans(context.Background(), &request)
-			require.NoError(t, err)
-
-			require.Equal(t, 1, batches)
-			approvaltest.ApproveEventDocs(t, f, docs)
-		})
-	}
 }
 
 func TestGRPCSampler_GetSamplingStrategy(t *testing.T) {

@@ -93,6 +93,7 @@
                     }
                 ],
                 "grouping_key": "9a4054e958afe722b5877e8fac578ff3",
+                "grouping_name": "Request method 'POST' not supported",
                 "id": "9876543210abcdeffedcba0123456789",
                 "log": {
                     "level": "error",
@@ -141,6 +142,10 @@
                         }
                     ]
                 }
+            },
+            "event": {
+                "agent_id_status": "missing",
+                "ingested": "dynamic"
             },
             "host": {
                 "architecture": "amd64",
@@ -296,28 +301,121 @@
             "agent": {
                 "ephemeral_id": "e71be9ac-93b0-44b9-a997-5638f6ccfc36",
                 "name": "java",
-                "version": "1.10.0-SNAPSHOT"
+                "version": "1.10.0"
             },
             "container": {
                 "id": "8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"
+            },
+            "data_stream": {
+                "dataset": "apm.internal",
+                "namespace": "default",
+                "type": "metrics"
+            },
+            "ecs": {
+                "version": "dynamic"
+            },
+            "event": {
+                "agent_id_status": "missing",
+                "ingested": "dynamic"
+            },
+            "host": {
+                "architecture": "amd64",
+                "hostname": "node-name",
+                "ip": "127.0.0.1",
+                "name": "host1",
+                "os": {
+                    "platform": "Linux"
+                }
+            },
+            "kubernetes": {
+                "namespace": "default",
+                "node": {
+                    "name": "node-name"
+                },
+                "pod": {
+                    "name": "instrumented-java-service",
+                    "uid": "b17f231da0ad128dc6c6c0b2e82f6f303d3893e3"
+                }
+            },
+            "labels": {
+                "ab_testing": "true",
+                "group": "experimental",
+                "success": "true"
+            },
+            "metricset": {
+                "name": "span_breakdown"
+            },
+            "numeric_labels": {
+                "code": 200,
+                "segment": 5
+            },
+            "observer": {
+                "hostname": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic"
+            },
+            "process": {
+                "args": "-v",
+                "parent": {
+                    "pid": 1
+                },
+                "pid": 1234,
+                "title": "/usr/lib/jvm/java-10-openjdk-amd64/bin/java"
+            },
+            "processor": {
+                "event": "metric",
+                "name": "metric"
+            },
+            "service": {
+                "environment": "production",
+                "framework": {
+                    "name": "spring",
+                    "version": "5.0.0"
+                },
+                "language": {
+                    "name": "Java",
+                    "version": "10.0.2"
+                },
+                "name": "1234_service-12a3",
+                "node": {
+                    "name": "8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"
+                },
+                "runtime": {
+                    "name": "Java",
+                    "version": "10.0.2"
+                },
+                "version": "4.3.0"
+            },
+            "span": {
+                "self_time": {
+                    "count": 1,
+                    "sum": {
+                        "us": 633
+                    }
+                },
+                "subtype": "mysql",
+                "type": "db"
+            },
+            "transaction": {
+                "name": "GET/",
+                "type": "request"
+            }
+        },
+        {
+            "@timestamp": "2019-10-21T11:30:44.929Z",
+            "agent": {
+                "ephemeral_id": "e71be9ac-93b0-44b9-a997-5638f6ccfc36",
+                "name": "java",
+                "version": "1.10.0-SNAPSHOT"
             },
             "data_stream.dataset": "apm",
             "data_stream.namespace": "default",
             "data_stream.type": "traces",
             "event": {
-                "duration": 3781912,
-                "outcome": "success"
-            },
-            "host": {
-                "architecture": "amd64",
-                "hostname": "node-name",
-                "ip": [
-                    "127.0.0.1"
-                ],
-                "name": "host1",
-                "os": {
-                    "platform": "Linux"
-                }
+                "agent_id_status": "missing",
+                "ingested": "dynamic",
+                "outcome": "success",
+                "success_count": 1
             },
             "http": {
                 "request": {
@@ -335,16 +433,6 @@
                     "transfer_size": 30012
                 }
             },
-            "kubernetes": {
-                "namespace": "default",
-                "node": {
-                    "name": "node-name"
-                },
-                "pod": {
-                    "name": "instrumented-java-service",
-                    "uid": "b17f231da0ad128dc6c6c0b2e82f6f303d3893e3"
-                }
-            },
             "labels": {
                 "ab_testing": "true",
                 "group": "experimental"
@@ -360,38 +448,13 @@
             "parent": {
                 "id": "abcdef0123456789"
             },
-            "process": {
-                "args": [
-                    "-v"
-                ],
-                "parent": {
-                    "pid": 1
-                },
-                "pid": 1234,
-                "title": "/usr/lib/jvm/java-10-openjdk-amd64/bin/java"
-            },
             "processor": {
                 "event": "span",
                 "name": "transaction"
             },
             "service": {
                 "environment": "production",
-                "framework": {
-                    "name": "spring",
-                    "version": "5.0.0"
-                },
-                "language": {
-                    "name": "Java",
-                    "version": "10.0.2"
-                },
-                "name": "opbeans-java-1",
-                "node": {
-                    "name": "8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"
-                },
-                "runtime": {
-                    "name": "Java",
-                    "version": "10.0.2"
-                }
+                "name": "opbeans-java-1"
             },
             "span": {
                 "action": "connect",
@@ -403,6 +466,9 @@
                     "user": {
                         "name": "postgres"
                     }
+                },
+                "duration": {
+                    "us": 3781
                 },
                 "id": "1234567890aaaade",
                 "name": "GET users-authenticated",
@@ -456,6 +522,15 @@
                 "version": "1.10.0-SNAPSHOT"
             },
             "client": {
+                "geo": {
+                    "continent_name": "North America",
+                    "country_iso_code": "US",
+                    "country_name": "United States",
+                    "location": {
+                        "lat": 37.751,
+                        "lon": -97.822
+                    }
+                },
                 "ip": "12.53.12.1"
             },
             "container": {
@@ -465,8 +540,10 @@
             "data_stream.namespace": "default",
             "data_stream.type": "traces",
             "event": {
-                "duration": 32592981,
-                "outcome": "success"
+                "agent_id_status": "missing",
+                "ingested": "dynamic",
+                "outcome": "success",
+                "success_count": 1
             },
             "host": {
                 "architecture": "amd64",
@@ -611,6 +688,9 @@
                     "my_key": 1,
                     "some_other_value": "foobar"
                 },
+                "duration": {
+                    "us": 32592
+                },
                 "id": "4340a8e0df1906ecbfa9",
                 "name": "ResourceHttpRequestHandler",
                 "representative_count": 1,
@@ -638,103 +718,12 @@
                 "name": "foo"
             },
             "user_agent": {
-                "original": "Mozilla/5.0(Macintosh;IntelMacOSX10_10_5)AppleWebKit/537.36(KHTML,likeGecko)Chrome/51.0.2704.103Safari/537.36, MozillaChromeEdge"
-            }
-        },
-        {
-            "@timestamp": "2019-10-21T11:30:44.929Z",
-            "agent": {
-                "ephemeral_id": "e71be9ac-93b0-44b9-a997-5638f6ccfc36",
-                "name": "java",
-                "version": "1.10.0"
-            },
-            "container": {
-                "id": "8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"
-            },
-            "data_stream.dataset": "apm.internal",
-            "data_stream.namespace": "default",
-            "data_stream.type": "metrics",
-            "host": {
-                "architecture": "amd64",
-                "hostname": "node-name",
-                "ip": [
-                    "127.0.0.1"
-                ],
-                "name": "host1",
-                "os": {
-                    "platform": "Linux"
-                }
-            },
-            "kubernetes": {
-                "namespace": "default",
-                "node": {
-                    "name": "node-name"
+                "device": {
+                    "name": "Other"
                 },
-                "pod": {
-                    "name": "instrumented-java-service",
-                    "uid": "b17f231da0ad128dc6c6c0b2e82f6f303d3893e3"
-                }
-            },
-            "labels": {
-                "ab_testing": "true",
-                "group": "experimental",
-                "success": "true"
-            },
-            "metricset.name": "span_breakdown",
-            "numeric_labels": {
-                "code": 200,
-                "segment": 5
-            },
-            "observer": {
-                "hostname": "dynamic",
-                "type": "apm-server",
-                "version": "dynamic"
-            },
-            "process": {
-                "args": [
-                    "-v"
-                ],
-                "parent": {
-                    "pid": 1
-                },
-                "pid": 1234,
-                "title": "/usr/lib/jvm/java-10-openjdk-amd64/bin/java"
-            },
-            "processor": {
-                "event": "metric",
-                "name": "metric"
-            },
-            "service": {
-                "environment": "production",
-                "framework": {
-                    "name": "spring",
-                    "version": "5.0.0"
-                },
-                "language": {
-                    "name": "Java",
-                    "version": "10.0.2"
-                },
-                "name": "1234_service-12a3",
-                "node": {
-                    "name": "8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"
-                },
-                "runtime": {
-                    "name": "Java",
-                    "version": "10.0.2"
-                },
-                "version": "4.3.0"
-            },
-            "span": {
-                "self_time": {
-                    "count": 1,
-                    "sum.us": 633
-                },
-                "subtype": "mysql",
-                "type": "db"
-            },
-            "transaction": {
-                "name": "GET/",
-                "type": "request"
+                "name": "Chrome",
+                "original": "Mozilla/5.0(Macintosh;IntelMacOSX10_10_5)AppleWebKit/537.36(KHTML,likeGecko)Chrome/51.0.2704.103Safari/537.36, MozillaChromeEdge",
+                "version": "51.0.2704.103"
             }
         }
     ]

@@ -1,90 +1,41 @@
 {
     "events": [
         {
-            "@timestamp": "2017-05-30T18:53:42.281Z",
+            "@timestamp": "2017-05-30T18:53:41.364Z",
             "agent": {
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
-            "data_stream.dataset": "apm.internal",
-            "data_stream.namespace": "default",
-            "data_stream.type": "metrics",
-            "host": {
-                "ip": [
-                    "127.0.0.1"
-                ]
+            "data_stream": {
+                "dataset": "apm.app.1234_service_12a3",
+                "namespace": "default",
+                "type": "metrics"
             },
-            "labels": {
-                "some": "abc",
-                "success": "true",
-                "tag1": "one"
-            },
-            "metricset.name": "span_breakdown",
-            "numeric_labels": {
-                "code": 200,
-                "tag2": 2
-            },
-            "observer": {
-                "hostname": "dynamic",
-                "type": "apm-server",
+            "ecs": {
                 "version": "dynamic"
             },
-            "process": {
-                "pid": 1234
+            "event": {
+                "agent_id_status": "missing",
+                "ingested": "dynamic"
             },
-            "processor": {
-                "event": "metric",
-                "name": "metric"
-            },
-            "service": {
-                "language": {
-                    "name": "ecmascript"
-                },
-                "name": "1234_service-12a3",
-                "node": {
-                    "name": "node-1"
+            "go": {
+                "memstats": {
+                    "heap": {
+                        "sys": {
+                            "bytes": 6520832
+                        }
+                    }
                 }
             },
-            "span": {
-                "self_time": {
-                    "count": 1,
-                    "sum.us": 633
-                },
-                "subtype": "mysql",
-                "type": "db"
-            },
-            "transaction": {
-                "name": "GET /",
-                "type": "request"
-            },
-            "user": {
-                "email": "user@mail.com",
-                "id": "axb123hg",
-                "name": "logged-in-user"
-            }
-        },
-        {
-            "@timestamp": "2017-05-30T18:53:41.364Z",
-            "_metric_descriptions": {
-                "go.memstats.heap.sys.bytes": {}
-            },
-            "agent": {
-                "name": "elastic-node",
-                "version": "3.14.0"
-            },
-            "data_stream.dataset": "apm.app.1234_service_12a3",
-            "data_stream.namespace": "default",
-            "data_stream.type": "metrics",
-            "go.memstats.heap.sys.bytes": 6520832,
             "host": {
-                "ip": [
-                    "127.0.0.1"
-                ]
+                "ip": "127.0.0.1"
             },
             "labels": {
                 "tag1": "one"
             },
-            "metricset.name": "app",
+            "metricset": {
+                "name": "app"
+            },
             "numeric_labels": {
                 "tag2": 2
             },
@@ -117,26 +68,31 @@
         },
         {
             "@timestamp": "2017-05-30T18:53:41.366Z",
-            "_metric_descriptions": {
-                "system.process.cgroup.memory.mem.limit.bytes": {},
-                "system.process.cgroup.memory.mem.usage.bytes": {}
-            },
             "agent": {
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
-            "data_stream.dataset": "apm.internal",
-            "data_stream.namespace": "default",
-            "data_stream.type": "metrics",
+            "data_stream": {
+                "dataset": "apm.internal",
+                "namespace": "default",
+                "type": "metrics"
+            },
+            "ecs": {
+                "version": "dynamic"
+            },
+            "event": {
+                "agent_id_status": "missing",
+                "ingested": "dynamic"
+            },
             "host": {
-                "ip": [
-                    "127.0.0.1"
-                ]
+                "ip": "127.0.0.1"
             },
             "labels": {
                 "tag1": "one"
             },
-            "metricset.name": "app",
+            "metricset": {
+                "name": "app"
+            },
             "numeric_labels": {
                 "tag2": 2
             },
@@ -161,8 +117,22 @@
                     "name": "node-1"
                 }
             },
-            "system.process.cgroup.memory.mem.limit.bytes": 2048,
-            "system.process.cgroup.memory.mem.usage.bytes": 1024,
+            "system": {
+                "process": {
+                    "cgroup": {
+                        "memory": {
+                            "mem": {
+                                "limit": {
+                                    "bytes": 2048
+                                },
+                                "usage": {
+                                    "bytes": 1024
+                                }
+                            }
+                        }
+                    }
+                }
+            },
             "user": {
                 "email": "user@mail.com",
                 "id": "axb123hg",
@@ -171,32 +141,31 @@
         },
         {
             "@timestamp": "2017-05-30T18:53:41.367Z",
-            "_metric_descriptions": {
-                "system.process.cgroup.cpu.cfs.period.us": {},
-                "system.process.cgroup.cpu.cfs.quota.us": {},
-                "system.process.cgroup.cpu.id": {},
-                "system.process.cgroup.cpu.stats.periods": {},
-                "system.process.cgroup.cpu.stats.throttled.ns": {},
-                "system.process.cgroup.cpu.stats.throttled.periods": {},
-                "system.process.cgroup.cpuacct.id": {},
-                "system.process.cgroup.cpuacct.total.ns": {}
-            },
             "agent": {
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
-            "data_stream.dataset": "apm.app.1234_service_12a3",
-            "data_stream.namespace": "default",
-            "data_stream.type": "metrics",
+            "data_stream": {
+                "dataset": "apm.app.1234_service_12a3",
+                "namespace": "default",
+                "type": "metrics"
+            },
+            "ecs": {
+                "version": "dynamic"
+            },
+            "event": {
+                "agent_id_status": "missing",
+                "ingested": "dynamic"
+            },
             "host": {
-                "ip": [
-                    "127.0.0.1"
-                ]
+                "ip": "127.0.0.1"
             },
             "labels": {
                 "tag1": "one"
             },
-            "metricset.name": "app",
+            "metricset": {
+                "name": "app"
+            },
             "numeric_labels": {
                 "tag2": 2
             },
@@ -221,14 +190,36 @@
                     "name": "node-1"
                 }
             },
-            "system.process.cgroup.cpu.cfs.period.us": 1024,
-            "system.process.cgroup.cpu.cfs.quota.us": 2048,
-            "system.process.cgroup.cpu.id": 2048,
-            "system.process.cgroup.cpu.stats.periods": 2048,
-            "system.process.cgroup.cpu.stats.throttled.ns": 2048,
-            "system.process.cgroup.cpu.stats.throttled.periods": 2048,
-            "system.process.cgroup.cpuacct.id": 2048,
-            "system.process.cgroup.cpuacct.total.ns": 2048,
+            "system": {
+                "process": {
+                    "cgroup": {
+                        "cpu": {
+                            "cfs": {
+                                "period": {
+                                    "us": 1024
+                                },
+                                "quota": {
+                                    "us": 2048
+                                }
+                            },
+                            "id": 2048,
+                            "stats": {
+                                "periods": 2048,
+                                "throttled": {
+                                    "ns": 2048,
+                                    "periods": 2048
+                                }
+                            }
+                        },
+                        "cpuacct": {
+                            "id": 2048,
+                            "total": {
+                                "ns": 2048
+                            }
+                        }
+                    }
+                }
+            },
             "user": {
                 "email": "user@mail.com",
                 "id": "axb123hg",
@@ -237,23 +228,24 @@
         },
         {
             "@timestamp": "2017-05-30T18:53:41.368Z",
-            "_metric_descriptions": {
-                "latency_distribution": {
-                    "type": "histogram",
-                    "unit": "s"
-                }
-            },
             "agent": {
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
-            "data_stream.dataset": "apm.app.1234_service_12a3",
-            "data_stream.namespace": "default",
-            "data_stream.type": "metrics",
+            "data_stream": {
+                "dataset": "apm.app.1234_service_12a3",
+                "namespace": "default",
+                "type": "metrics"
+            },
+            "ecs": {
+                "version": "dynamic"
+            },
+            "event": {
+                "agent_id_status": "missing",
+                "ingested": "dynamic"
+            },
             "host": {
-                "ip": [
-                    "127.0.0.1"
-                ]
+                "ip": "127.0.0.1"
             },
             "labels": {
                 "tag1": "one"
@@ -270,7 +262,9 @@
                     3.3
                 ]
             },
-            "metricset.name": "app",
+            "metricset": {
+                "name": "app"
+            },
             "numeric_labels": {
                 "tag2": 2
             },
@@ -303,39 +297,40 @@
         },
         {
             "@timestamp": "2017-05-30T18:53:41.369Z",
-            "_metric_descriptions": {
-                "faas.billed_duration": {},
-                "faas.coldstart_duration": {},
-                "faas.duration": {},
-                "faas.timeout": {},
-                "system.memory.actual.free": {},
-                "system.memory.total": {}
-            },
             "agent": {
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
-            "data_stream.dataset": "apm.internal",
-            "data_stream.namespace": "default",
-            "data_stream.type": "metrics",
-            "faas": {
-                "coldstart": true,
-                "execution": "6f7f0961f83442118a7af6fe80b88d56",
-                "id": "arn:aws:lambda:us-east-2:123456789012:function:custom-runtime"
+            "data_stream": {
+                "dataset": "apm.internal",
+                "namespace": "default",
+                "type": "metrics"
             },
-            "faas.billed_duration": 183,
-            "faas.coldstart_duration": 422.9700012207031,
-            "faas.duration": 182.42999267578125,
-            "faas.timeout": 5000,
+            "ecs": {
+                "version": "dynamic"
+            },
+            "event": {
+                "agent_id_status": "missing",
+                "ingested": "dynamic"
+            },
+            "faas": {
+                "billed_duration": 183,
+                "coldstart": true,
+                "coldstart_duration": 422.97,
+                "duration": 182.43,
+                "execution": "6f7f0961f83442118a7af6fe80b88d56",
+                "id": "arn:aws:lambda:us-east-2:123456789012:function:custom-runtime",
+                "timeout": 5000
+            },
             "host": {
-                "ip": [
-                    "127.0.0.1"
-                ]
+                "ip": "127.0.0.1"
             },
             "labels": {
                 "tag1": "one"
             },
-            "metricset.name": "app",
+            "metricset": {
+                "name": "app"
+            },
             "numeric_labels": {
                 "tag2": 2
             },
@@ -360,8 +355,88 @@
                     "name": "node-1"
                 }
             },
-            "system.memory.actual.free": 54525952,
-            "system.memory.total": 134217728,
+            "system": {
+                "memory": {
+                    "actual": {
+                        "free": 54525952
+                    },
+                    "total": 134217728
+                }
+            },
+            "user": {
+                "email": "user@mail.com",
+                "id": "axb123hg",
+                "name": "logged-in-user"
+            }
+        },
+        {
+            "@timestamp": "2017-05-30T18:53:42.281Z",
+            "agent": {
+                "name": "elastic-node",
+                "version": "3.14.0"
+            },
+            "data_stream": {
+                "dataset": "apm.internal",
+                "namespace": "default",
+                "type": "metrics"
+            },
+            "ecs": {
+                "version": "dynamic"
+            },
+            "event": {
+                "agent_id_status": "missing",
+                "ingested": "dynamic"
+            },
+            "host": {
+                "ip": "127.0.0.1"
+            },
+            "labels": {
+                "some": "abc",
+                "success": "true",
+                "tag1": "one"
+            },
+            "metricset": {
+                "name": "span_breakdown"
+            },
+            "numeric_labels": {
+                "code": 200,
+                "tag2": 2
+            },
+            "observer": {
+                "hostname": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic"
+            },
+            "process": {
+                "pid": 1234
+            },
+            "processor": {
+                "event": "metric",
+                "name": "metric"
+            },
+            "service": {
+                "language": {
+                    "name": "ecmascript"
+                },
+                "name": "1234_service-12a3",
+                "node": {
+                    "name": "node-1"
+                }
+            },
+            "span": {
+                "self_time": {
+                    "count": 1,
+                    "sum": {
+                        "us": 633
+                    }
+                },
+                "subtype": "mysql",
+                "type": "db"
+            },
+            "transaction": {
+                "name": "GET /",
+                "type": "request"
+            },
             "user": {
                 "email": "user@mail.com",
                 "id": "axb123hg",
