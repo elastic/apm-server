@@ -56,6 +56,9 @@ import (
 	"github.com/elastic/elastic-agent-libs/monitoring"
 	es "github.com/elastic/go-elasticsearch/v8"
 	"github.com/elastic/go-elasticsearch/v8/esapi"
+
+	"github.com/elastic/apm-server/x-pack/apm-server/profiling/common"
+	"github.com/elastic/apm-server/x-pack/apm-server/profiling/libpf"
 )
 
 var (
@@ -64,7 +67,7 @@ var (
 	rolloverSkippedCounter  = monitoring.NewInt(ilmRegistry, "custom_ilm.skipped_for_time_constraints.count")
 	rolloverFailuresCounter = monitoring.NewInt(ilmRegistry, "custom_ilm.failed.count")
 	rolloverUndeletedIndex  = monitoring.NewInt(ilmRegistry, "custom_ilm.undeleted_index.count")
-	keyValueIndices         = []string{StackTraceIndex, StackFrameIndex, ExecutablesIndex}
+	keyValueIndices         = []string{common.StackTraceIndex, common.StackFrameIndex, common.ExecutablesIndex}
 )
 
 // ScheduleILMExecution creates goroutines to manage ILM with custom policy for key/value data:
@@ -99,7 +102,7 @@ func ScheduleILMExecution(ctx context.Context, logger *logp.Logger, cfg config.P
 			// Jitter and the atomicity of rollover/swap give enough guarantee that
 			// we avoid collisions between multiple instances of the collector.
 			// A more robust concurrency control is implemented in the rollover function.
-			randomizedTicker := time.NewTicker(AddJitter(cfg.ILMConfig.Interval, jitter))
+			randomizedTicker := time.NewTicker(libpf.AddJitter(cfg.ILMConfig.Interval, jitter))
 			runner := &optimisticAliasSwap{
 				client:       client,
 				currentAlias: index,
@@ -113,7 +116,7 @@ func ScheduleILMExecution(ctx context.Context, logger *logp.Logger, cfg config.P
 					}
 					logger.Warnf("Custom ILM strategy: %v", err)
 				}
-				randomizedTicker.Reset(AddJitter(cfg.ILMConfig.Interval, jitter))
+				randomizedTicker.Reset(libpf.AddJitter(cfg.ILMConfig.Interval, jitter))
 			}
 		}(idx)
 	}
@@ -321,7 +324,7 @@ func ilmIndexLockDocument(client *es.Client, targetAlias, phase string,
 	"@timestamp": %d,
 	"phase": "%s"
 }`, time.Now().UTC().Unix(), phase))
-	r, err := client.Index(ILMLockingIndex,
+	r, err := client.Index(common.ILMLockingIndex,
 		body,
 		clientOpts...)
 	if checkESAPIError(http.StatusOK, r, err) != nil {
@@ -335,7 +338,7 @@ func ilmAcquireLock(client *es.Client, targetAlias string, minElapsed time.Durat
 	// When the timestamp of ILM rollover for the target index is not as old as the index,
 	// we don't acquire a lock, because it means a rollover was applied already.
 	// If pre-flight checks are ok, we acquire a lock and signal other replicas about it.
-	resp, err := client.Get(ILMLockingIndex, targetAlias)
+	resp, err := client.Get(common.ILMLockingIndex, targetAlias)
 	if checkESAPIError(http.StatusOK, resp, err) != nil {
 		return false, fmt.Errorf("unable to query Get API for alias: %v", err)
 	}
@@ -463,7 +466,7 @@ func bootstrapILMLockDocument(client *es.Client, targetAlias string) error {
 	// Create the document the first time, when the index is empty
 	// Conflict: another replica has already created the first document
 	// for the same index
-	r, err := client.Index(ILMLockingIndex,
+	r, err := client.Index(common.ILMLockingIndex,
 		body, client.Index.WithDocumentID(targetAlias),
 		client.Index.WithRefresh("true"),
 		client.Index.WithOpType("create"),

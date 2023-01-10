@@ -8,7 +8,7 @@ pipeline {
     BASE_DIR = "src/github.com/elastic/${env.REPO}"
     AWS_ACCOUNT_SECRET = 'secret/observability-team/ci/elastic-observability-aws-account-auth'
     EC_KEY_SECRET = 'secret/observability-team/ci/elastic-cloud/observability-pro'
-    BENCHMARK_ES_SECRET = 'secret/apm-team/ci/benchmark-cloud'
+    BENCHMARK_ES_SECRET = 'secret/observability-team/ci/benchmark-cloud'
     BENCHMARK_KIBANA_SECRET = 'secret/observability-team/ci/apm-benchmark-kibana'
     PNG_REPORT_FILE = 'out.png'
     TERRAFORM_VERSION = '1.1.9'

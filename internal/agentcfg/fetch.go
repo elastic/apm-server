@@ -18,26 +18,9 @@
 package agentcfg
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
-	"io"
-	"net/http"
-	"strings"
-	"time"
 
-	"github.com/pkg/errors"
-
-	"github.com/elastic/elastic-agent-libs/logp"
-
-	"github.com/elastic/apm-server/internal/kibana"
-)
-
-// Error Messages used to signal fetching errors
-const (
-	ErrMsgReadKibanaResponse = "unable to read Kibana response body"
-	ErrMsgSendToKibanaFailed = "sending request to kibana failed"
-	ErrUnauthorized          = "Unauthorized"
+	"github.com/elastic/apm-server/internal/beater/config"
 )
 
 // TransactionSamplingRateKey is the agent configuration key for the
@@ -45,97 +28,77 @@ const (
 // configuration to the Jaeger remote sampler protocol.
 const TransactionSamplingRateKey = "transaction_sample_rate"
 
-const endpoint = "/api/apm/settings/agent-configuration/search"
-
 // Fetcher defines a common interface to retrieving agent config.
 type Fetcher interface {
 	Fetch(context.Context, Query) (Result, error)
 }
 
-// KibanaFetcher holds static information and information shared between requests.
-// It implements the Fetch method to retrieve agent configuration information.
-type KibanaFetcher struct {
-	*cache
-	logger *logp.Logger
-	client *kibana.Client
+// DirectFetcher is an agent config fetcher which serves requests out of a
+// statically defined set of agent configuration. These configurations are
+// typically provided via Fleet.
+type DirectFetcher struct {
+	cfgs []AgentConfig
 }
 
-// NewKibanaFetcher returns a KibanaFetcher instance.
-//
-// NewKibanaFetcher will panic if passed a nil client.
-func NewKibanaFetcher(client *kibana.Client, cacheExpiration time.Duration) *KibanaFetcher {
-	if client == nil {
-		panic("client is required")
-	}
-	logger := logp.NewLogger("agentcfg")
-	return &KibanaFetcher{
-		client: client,
-		logger: logger,
-		cache:  newCache(logger, cacheExpiration),
-	}
+// NewDirectFetcher returns a new DirectFetcher that serves agent configuration
+// requests using cfgs.
+func NewDirectFetcher(cfgs []AgentConfig) *DirectFetcher {
+	return &DirectFetcher{cfgs}
 }
 
-// Fetch retrieves agent configuration, fetched from Kibana or a local temporary cache.
-func (f *KibanaFetcher) Fetch(ctx context.Context, query Query) (Result, error) {
-	req := func() (Result, error) {
-		var buf bytes.Buffer
-		if err := json.NewEncoder(&buf).Encode(query); err != nil {
-			return Result{}, err
-		}
-		return newResult(f.request(ctx, &buf))
-	}
-	result, err := f.fetch(query, req)
-	return sanitize(query.InsecureAgents, result), err
+// Fetch finds a matching AgentConfig in cfgs based on the received Query.
+func (f *DirectFetcher) Fetch(_ context.Context, query Query) (Result, error) {
+	return matchAgentConfig(query, f.cfgs), nil
 }
 
-func (f *KibanaFetcher) request(ctx context.Context, r io.Reader) ([]byte, error) {
-	resp, err := f.client.Send(ctx, http.MethodPost, endpoint, nil, nil, r)
-	if err != nil {
-		return nil, errors.Wrap(err, ErrMsgSendToKibanaFailed)
-	}
-	defer resp.Body.Close()
+// matchAgentConfig finds a matching AgentConfig based on the received Query.
+// Order of precedence:
+// - service.name and service.environment match an AgentConfig
+// - service.name matches an AgentConfig, service.environment == ""
+// - service.environment matches an AgentConfig, service.name == ""
+// - an AgentConfig without a name or environment set
+// Return an empty result if no matching result is found.
+func matchAgentConfig(query Query, cfgs []AgentConfig) Result {
+	name, env := query.Service.Name, query.Service.Environment
+	result := zeroResult()
+	var nameConf, envConf, defaultConf *AgentConfig
 
-	if resp.StatusCode == http.StatusNotFound {
-		return nil, nil
-	}
-
-	result, err := io.ReadAll(resp.Body)
-	if resp.StatusCode >= http.StatusBadRequest {
-		return nil, errors.New(string(result))
-	}
-	if err != nil {
-		return nil, errors.Wrap(err, ErrMsgReadKibanaResponse)
-	}
-	return result, nil
-}
-
-func sanitize(insecureAgents []string, result Result) Result {
-	if len(insecureAgents) == 0 {
-		return result
-	}
-	hasDataForAgent := containsAnyPrefix(result.Source.Agent, insecureAgents) || result.Source.Agent == ""
-	if !hasDataForAgent {
-		return zeroResult()
-	}
-	settings := Settings{}
-	for k, v := range result.Source.Settings {
-		if UnrestrictedSettings[k] {
-			settings[k] = v
+	for i, cfg := range cfgs {
+		if cfg.ServiceName == name && cfg.ServiceEnvironment == env {
+			nameConf = &cfgs[i]
+			break
+		} else if cfg.ServiceName == name && cfg.ServiceEnvironment == "" {
+			nameConf = &cfgs[i]
+		} else if cfg.ServiceName == "" && cfg.ServiceEnvironment == env {
+			envConf = &cfgs[i]
+		} else if cfg.ServiceName == "" && cfg.ServiceEnvironment == "" {
+			defaultConf = &cfgs[i]
 		}
 	}
-	return Result{Source: Source{Etag: result.Source.Etag, Settings: settings}}
-}
 
-func containsAnyPrefix(s string, prefixes []string) bool {
-	for _, prefix := range prefixes {
-		if strings.HasPrefix(s, prefix) {
-			return true
-		}
+	if nameConf != nil {
+		result = Result{Source{
+			Settings: nameConf.Config,
+			Etag:     nameConf.Etag,
+			Agent:    nameConf.AgentName,
+		}}
+	} else if envConf != nil {
+		result = Result{Source{
+			Settings: envConf.Config,
+			Etag:     envConf.Etag,
+			Agent:    envConf.AgentName,
+		}}
+	} else if defaultConf != nil {
+		result = Result{Source{
+			Settings: defaultConf.Config,
+			Etag:     defaultConf.Etag,
+			Agent:    defaultConf.AgentName,
+		}}
 	}
-	return false
+	return result
 }
 
-// AgentConfig holds an agent configuration definition, as used by DirectFetcher.
+// AgentConfig holds an agent configuration definition.
 type AgentConfig struct {
 	// ServiceName holds the service name to which this agent configuration
 	// applies. This is optional.
@@ -160,63 +123,16 @@ type AgentConfig struct {
 	Config map[string]string
 }
 
-// DirectFetcher is an agent config fetcher which serves requests out of a
-// statically defined set of agent configuration. These configurations are
-// typically provided via Fleet.
-type DirectFetcher struct {
-	cfgs []AgentConfig
-}
-
-// NewDirectFetcher returns a new DirectFetcher that serves agent configuration
-// requests using cfgs.
-func NewDirectFetcher(cfgs []AgentConfig) *DirectFetcher {
-	return &DirectFetcher{cfgs}
-}
-
-// Fetch finds a matching AgentConfig based on the received Query.
-// Order of precedence:
-// - service.name and service.environment match an AgentConfig
-// - service.name matches an AgentConfig, service.environment == ""
-// - service.environment matches an AgentConfig, service.name == ""
-// - an AgentConfig without a name or environment set
-// Return an empty result if no matching result is found.
-func (f *DirectFetcher) Fetch(_ context.Context, query Query) (Result, error) {
-	name, env := query.Service.Name, query.Service.Environment
-	result := zeroResult()
-	var nameConf, envConf, defaultConf *AgentConfig
-
-	for i, cfg := range f.cfgs {
-		if cfg.ServiceName == name && cfg.ServiceEnvironment == env {
-			nameConf = &f.cfgs[i]
-			break
-		} else if cfg.ServiceName == name && cfg.ServiceEnvironment == "" {
-			nameConf = &f.cfgs[i]
-		} else if cfg.ServiceName == "" && cfg.ServiceEnvironment == env {
-			envConf = &f.cfgs[i]
-		} else if cfg.ServiceName == "" && cfg.ServiceEnvironment == "" {
-			defaultConf = &f.cfgs[i]
+func ConvertAgentConfigs(fleetAgentConfigs []config.FleetAgentConfig) []AgentConfig {
+	agentConfigurations := make([]AgentConfig, len(fleetAgentConfigs))
+	for i, in := range fleetAgentConfigs {
+		agentConfigurations[i] = AgentConfig{
+			ServiceName:        in.Service.Name,
+			ServiceEnvironment: in.Service.Environment,
+			AgentName:          in.AgentName,
+			Etag:               in.Etag,
+			Config:             in.Config,
 		}
 	}
-
-	if nameConf != nil {
-		result = Result{Source{
-			Settings: nameConf.Config,
-			Etag:     nameConf.Etag,
-			Agent:    nameConf.AgentName,
-		}}
-	} else if envConf != nil {
-		result = Result{Source{
-			Settings: envConf.Config,
-			Etag:     envConf.Etag,
-			Agent:    envConf.AgentName,
-		}}
-	} else if defaultConf != nil {
-		result = Result{Source{
-			Settings: defaultConf.Config,
-			Etag:     defaultConf.Etag,
-			Agent:    defaultConf.AgentName,
-		}}
-	}
-
-	return sanitize(query.InsecureAgents, result), nil
+	return agentConfigurations
 }

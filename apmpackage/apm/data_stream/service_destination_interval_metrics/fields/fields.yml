@@ -1,0 +1,32 @@
+- name: metricset.name
+  type: constant_keyword
+  description: Name of the set of metrics.
+- name: metricset.interval
+  type: constant_keyword
+  description: Metricset aggregation interval.
+- name: processor.event
+  type: constant_keyword
+  description: Processor event.
+- name: processor.name
+  type: constant_keyword
+  description: Processor name.
+- name: service.target.name
+  type: keyword
+  description: Target service for which data is collected.
+- name: service.target.type
+  type: keyword
+  description: Type of the target service for which data is collected
+- name: span.name
+  type: keyword
+  description: Generic designation of a span in the scope of a transaction.
+- name: span.destination.service.resource
+  type: keyword
+  description: |
+    Identifier for the destination service resource being operated on (e.g. 'http://elastic.co:80', 'elasticsearch', 'rabbitmq/queue_name')
+- name: span.destination.service.response_time.count
+  type: long
+  description: Number of aggregated outgoing requests.
+- name: span.destination.service.response_time.sum.us
+  type: long
+  description: Aggregated duration of outgoing requests, in microseconds.
+  unit: micros
