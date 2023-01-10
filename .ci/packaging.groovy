@@ -10,7 +10,7 @@ pipeline {
     NOTIFY_TO = 'build-apm+apm-server@elastic.co'
     JOB_GCS_BUCKET = credentials('gcs-bucket')
     JOB_GCS_CREDENTIALS = 'apm-ci-gcs-plugin'
-    DOCKER_SECRET = 'secret/apm-team/ci/docker-registry/prod'
+    DOCKER_SECRET = 'secret/observability-team/ci/docker-registry/prod'
     DOCKER_REGISTRY = 'docker.elastic.co'
     DRA_OUTPUT = 'release-manager.out'
     COMMIT = "${params?.COMMIT}"
