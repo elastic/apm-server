@@ -6,6 +6,7 @@ on:
     # this workflow when code changes also contain docs changes:
     # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#example-excluding-paths
     paths-ignore: # This expression needs to match the paths ignored on ci.yml.
+      - '**' # Ignore all file changes, except for the below.
       - '!**.md'
       - '!**.asciidoc'
       - '!**.png'
