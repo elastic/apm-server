@@ -1,0 +1,19 @@
+name: ci
+
+on:
+  pull_request:
+    paths: # This expression needs to match the paths ignored on ci.yml.
+      - '**.md'
+      - '**.asciidoc'
+      - '**.png'
+      - '**.svg'
+
+# limit the access of the generated GITHUB_TOKEN
+permissions:
+  contents: read
+
+jobs:
+  system-test:
+    runs-on: ubuntu-latest
+    steps:
+      - run: 'echo "No tests required to run"'
