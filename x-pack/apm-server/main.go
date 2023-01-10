@@ -165,6 +165,8 @@ func newProcessors(args beater.ServerParams) ([]namedProcessor, error) {
 	return processors, nil
 }
 
+// test
+
 func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, error) {
 	tailSamplingConfig := args.Config.Sampling.Tail
 	es, err := args.NewElasticsearchClient(tailSamplingConfig.ESConfig)
