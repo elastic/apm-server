@@ -2,11 +2,14 @@ name: ci
 
 on:
   pull_request:
-    paths: # This expression needs to match the paths ignored on ci.yml.
-      - '**.md'
-      - '**.asciidoc'
-      - '**.png'
-      - '**.svg'
+    # We use a negated paths-ignore expression since using 'paths' would trigger
+    # this workflow when code changes also contain docs changes:
+    # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#example-excluding-paths
+    paths-ignore: # This expression needs to match the paths ignored on ci.yml.
+      - '!**.md'
+      - '!**.asciidoc'
+      - '!**.png'
+      - '!**.svg'
 
 # limit the access of the generated GITHUB_TOKEN
 permissions:
