@@ -80,7 +80,8 @@ COPY --chmod=0755 --from=builder /src/apm-server ./apm-server
 RUN sed -i 's/127.0.0.1:8200/0.0.0.0:8200/' apm-server.yml
 RUN sed -i 's/localhost:9200/elasticsearch:9200/' apm-server.yml
 RUN mkdir --mode=0777 data
-RUN echo 'apm-server:*:1000:0::/usr/share/apm-server:/bin/false' >> /etc/passwd
+RUN echo 'apm-server:*:1000:1000::/usr/share/apm-server:/bin/false' >> /etc/passwd
+RUN chown -R 1000:1000 /usr/share/apm-server
 
 USER apm-server
 EXPOSE 8200
