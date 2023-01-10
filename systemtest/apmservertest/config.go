@@ -48,7 +48,7 @@ type Config struct {
 	RUM                       *RUMConfig         `json:"apm-server.rum,omitempty"`
 	WaitForIntegration        *bool              `json:"apm-server.data_streams.wait_for_integration,omitempty"`
 	DefaultServiceEnvironment string             `json:"apm-server.default_service_environment,omitempty"`
-	KibanaAgentConfig         *KibanaAgentConfig `json:"apm-server.agent.config,omitempty"`
+	AgentConfig               *AgentConfig       `json:"apm-server.agent.config,omitempty"`
 	TLS                       *TLSConfig         `json:"apm-server.ssl,omitempty"`
 
 	// AgentAuth holds configuration for APM agent authorization.
@@ -90,20 +90,29 @@ type TLSConfig struct {
 	SupportedProtocols []string `json:"supported_protocols,omitempty"`
 }
 
-// KibanaAgentConfig holds configuration related to the Kibana-based
-// implementation of agent configuration.
-type KibanaAgentConfig struct {
-	CacheExpiration time.Duration
+// AgentConfig holds configuration related to the Kibana-based or
+// Elasticsearch-based implementation of agent configuration.
+type AgentConfig struct {
+	CacheExpiration       time.Duration
+	ElasticsearchUsername string
+	ElasticsearchPassword string
+	ElasticsearchAPIKey   string
 }
 
-func (c *KibanaAgentConfig) MarshalJSON() ([]byte, error) {
+func (c *AgentConfig) MarshalJSON() ([]byte, error) {
 	// time.Duration is encoded as int64.
 	// Convert time.Durations to durations, to encode as duration strings.
 	type config struct {
-		CacheExpiration string `json:"cache.expiration,omitempty"`
+		CacheExpiration       string `json:"cache.expiration,omitempty"`
+		ElasticsearchUsername string `json:"elasticsearch.username,omitempty"`
+		ElasticsearchPassword string `json:"elasticsearch.password,omitempty"`
+		ElasticsearchAPIKey   string `json:"elasticsearch.api_key,omitempty"`
 	}
 	return json.Marshal(config{
-		CacheExpiration: durationString(c.CacheExpiration),
+		CacheExpiration:       durationString(c.CacheExpiration),
+		ElasticsearchUsername: c.ElasticsearchUsername,
+		ElasticsearchPassword: c.ElasticsearchPassword,
+		ElasticsearchAPIKey:   c.ElasticsearchAPIKey,
 	})
 }
 
