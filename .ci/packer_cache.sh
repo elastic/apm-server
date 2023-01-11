@@ -21,7 +21,7 @@ jenkins_setup
 # Fetch Docker images used for packaging.
 DOCKER_IMAGES="
 docker.elastic.co/infra/release-manager:latest
-golang:1.19.4
+golang:1.19.5
 "
 if [ -x "$(command -v docker)" ]; then
   for image in ${DOCKER_IMAGES}
