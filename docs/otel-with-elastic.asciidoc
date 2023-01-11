@@ -1,9 +1,10 @@
 [[open-telemetry-with-elastic]]
-=== OpenTelemetry API/SDK with Elastic APM agents
+=== Elastic APM agent OpenTelemetry Bridge
 
-++++
-<titleabbrev>OpenTelemetry with Elastic APM agents</titleabbrev>
-++++
+// Old title: OpenTelemetry API/SDK with Elastic APM agents
+// ++++
+// <titleabbrev>OpenTelemetry with Elastic APM agents</titleabbrev>
+// ++++
 
 The Elastic OpenTelemetry bridge translates calls to the OpenTelemetry API to Elastic APM API calls.
 This allows you to reuse your existing instrumentation to create Elastic APM transactions and spans.
@@ -14,6 +15,8 @@ see <<open-telemetry-direct>>.
 See the relevant Elastic APM agent documentation to get started:
 
 * {apm-java-ref}/opentelemetry-bridge.html[Java]
+* .NET (link coming soon)
+// * {apm-dotnet-ref}/opentelemetry-bridge.html[.NET]
 * {apm-node-ref}/opentelemetry-bridge.html[Node.js]
 * {apm-py-ref}/opentelemetry-bridge.html[Python]
 

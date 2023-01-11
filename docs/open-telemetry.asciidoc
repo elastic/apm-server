@@ -30,29 +30,30 @@ Elastic integrates with OpenTelemetry, allowing you to reuse your existing instr
 to easily send observability data to the {stack}.
 There are four ways to integrate OpenTelemetry with the {stack}:
 
-**Elastic OpenTelemetry Bridge**
+**Elastic APM agent OpenTelemetry Bridge**
 
 To unlock the full power of the {stack}, use the Elastic APM OpenTelemetry Bridge,
-currently supported by the Java, Python, and Node.js agents.
+currently supported by the Java, Python, .NET, and Node.js agents.
 
 The Elastic OpenTelemetry bridge translates calls to the OpenTelemetry API to Elastic APM API calls.
-This allows you to reuse your existing instrumentation to create Elastic APM transactions and spans.
+This allows you to reuse your existing instrumentation to create Elastic APM transactions and spans--
+avoiding vendor lock-in and having to redo manual instrumentation.
 
 <<open-telemetry-with-elastic,Get started>>.
 
 **OpenTelemetry agent**
 
 The {stack} natively supports the OpenTelemetry protocol (OTLP).
-This means trace data and metrics collected from your applications and infrastructure can
-be sent directly to the {stack}.
+This means trace data and metrics collected from your applications and infrastructure by an
+OpenTelemetry agent can be sent directly to the {stack}.
 
 <<instrument-apps-otel,Get started>>.
 
 **OpenTelemetry collector**
 
 The {stack} natively supports the OpenTelemetry protocol (OTLP).
-This means trace data and metrics collected from your applications and infrastructure can
-be sent directly to the {stack}.
+This means trace data and metrics collected from your applications and infrastructure by an
+OpenTelemetry collector can be sent directly to the {stack}.
 
 <<connect-open-telemetry-collector,Get started>>.
 
