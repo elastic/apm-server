@@ -104,7 +104,7 @@ pipeline {
 
 def withTestClusterEnv(Closure body) {
   withAWSEnv(secret: "${AWS_ACCOUNT_SECRET}", version: "2.7.6") {
-    withTerraformEnv(version: "${TERRAFORM_VERSION}") {
+    withTerraformEnv(version: "${TERRAFORM_VERSION}", forceInstallation: true) {
       withSecretVault(secret: "${EC_KEY_SECRET}", data: ['apiKey': 'EC_API_KEY'] ) {
         body()
       }
