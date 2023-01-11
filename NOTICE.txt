@@ -5215,11 +5215,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : google.golang.org/grpc
-Version: v1.51.0
+Version: v1.52.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/google.golang.org/grpc@v1.51.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/google.golang.org/grpc@v1.52.0/LICENSE:
 
 
                                  Apache License
@@ -19910,11 +19910,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/oauth2
-Version: v0.0.0-20211104180415-d3ed0bb246c8
+Version: v0.0.0-20221014153046-6fdb5e3db783
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/oauth2@v0.0.0-20211104180415-d3ed0bb246c8/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/oauth2@v0.0.0-20221014153046-6fdb5e3db783/LICENSE:
 
 Copyright (c) 2009 The Go Authors. All rights reserved.
 
@@ -20058,11 +20058,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : google.golang.org/genproto
-Version: v0.0.0-20230109162033-3c3c17ce83e6
+Version: v0.0.0-20230110181048-76db0878b65f
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/google.golang.org/genproto@v0.0.0-20230109162033-3c3c17ce83e6/LICENSE:
+Contents of probable licence file $GOMODCACHE/google.golang.org/genproto@v0.0.0-20230110181048-76db0878b65f/LICENSE:
 
 
                                  Apache License
