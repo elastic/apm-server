@@ -1,14 +1,15 @@
 module github.com/elastic/apm-server/systemtest
 
-go 1.18
+go 1.19
 
 require (
 	github.com/docker/docker v20.10.17+incompatible
 	github.com/docker/go-connections v0.4.0
-	github.com/elastic/apm-server/internal/approvaltest v0.0.0-00010101000000-000000000000
 	github.com/elastic/go-elasticsearch/v8 v8.4.0
+	github.com/fatih/color v1.12.0
 	github.com/gofrs/uuid v4.1.0+incompatible
 	github.com/golang/protobuf v1.5.2
+	github.com/google/go-cmp v0.5.8
 	github.com/google/pprof v0.0.0-20210407192527-94a9f03dee38
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/jaegertracing/jaeger v1.18.1
@@ -17,6 +18,7 @@ require (
 	github.com/stretchr/testify v1.8.0
 	github.com/testcontainers/testcontainers-go v0.11.2-0.20211110075312-4b5710b46477
 	github.com/tidwall/gjson v1.9.3
+	github.com/tidwall/sjson v1.1.1
 	go.elastic.co/apm/v2 v2.1.1-0.20220810211444-b8542dccafec
 	go.elastic.co/fastjson v1.1.0
 	go.opentelemetry.io/collector/pdata v0.56.0
@@ -70,12 +72,13 @@ require (
 	github.com/gogo/googleapis v1.4.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
-	github.com/google/go-cmp v0.5.8 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0 // indirect
 	github.com/jcchavezs/porto v0.1.0 // indirect
 	github.com/joeshaw/multierror v0.0.0-20140124173710-69b34d4ec901 // indirect
 	github.com/magiconair/properties v1.8.5 // indirect
+	github.com/mattn/go-colorable v0.1.8 // indirect
+	github.com/mattn/go-isatty v0.0.12 // indirect
 	github.com/moby/sys/mount v0.2.0 // indirect
 	github.com/moby/sys/mountinfo v0.5.0 // indirect
 	github.com/moby/term v0.0.0-20210610120745-9d4ed1856297 // indirect
@@ -91,7 +94,6 @@ require (
 	github.com/sirupsen/logrus v1.8.1 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.0 // indirect
-	github.com/tidwall/sjson v1.1.1 // indirect
 	go.opencensus.io v0.23.0 // indirect
 	go.opentelemetry.io/proto/otlp v0.18.0 // indirect
 	go.uber.org/atomic v1.7.0 // indirect
@@ -108,6 +110,5 @@ require (
 
 replace (
 	github.com/containerd/containerd => github.com/containerd/containerd v1.6.6
-	github.com/elastic/apm-server/internal/approvaltest => ../internal/approvaltest
 	github.com/opencontainers/image-spec => github.com/opencontainers/image-spec v1.0.2
 )

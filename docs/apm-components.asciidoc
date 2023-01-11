@@ -17,11 +17,13 @@ Generally, there are two ways that these four components can work together:
 
 APM agents on edge machines send data to a centrally hosted APM integration:
 
-image::./images/apm-architecture.png[Architecture of Elastic APM with a central Elastic agent]
+[subs=attributes+]
+include::./diagrams/apm-architecture-central.asciidoc[Elastic APM architecture with edge APM integrations]
 
 Or, APM agents and the APM integration live on edge machines and enroll via a centrally hosted {agent}:
 
-image::./images/apm-architecture-two.png[Architecture of Elastic APM with an edge Elastic agent]
+[subs=attributes+]
+include::./diagrams/apm-architecture-edge.asciidoc[Elastic APM architecture with central APM integration]
 
 In addition, Elastic supports OpenTelemetry:
 

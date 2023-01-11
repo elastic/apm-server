@@ -1,5 +1,14 @@
 - version: generated
   changes:
+    - description: Introduce `metrics-apm.service-${interval}` data stream for service metrics (`1m`, `10m` and `60m`).
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/9960
+    - description: Introduce `metrics-apm.service_destination-${interval}` data stream for service_destination metrics (`1m`, `10m` and `60m`).
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/9926
+    - description: Introduce `metrics-apm.transaction-${interval}` data stream for transaction metrics (`1m`, `10m` and `60m`).
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/9846
     - description: Enable synthetic source for metrics data streams
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/9756
@@ -15,6 +24,15 @@
     - description: Add `event.success_count` for transaction events and transaction metrics. Rename `transaction.success_count` to `event.success_count` for service metrics.
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/9819
+    - description: Cast event.duration to long in event_duration pipeline
+      type: bugfix
+      link: https://github.com/elastic/apm-server/pull/9901
+    - description: Add transaction and service overflow metrics
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/9856
+    - description: Map `transaction.duration.summary` to aggregate_metric_double for transaction metrics
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/9973
 - version: "8.6.0"
   changes:
     - description: Change `ecs.version` to a `constant_keyword` field

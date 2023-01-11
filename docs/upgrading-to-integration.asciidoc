@@ -34,11 +34,13 @@ Generally, there are two ways that these four components can work together:
 
 APM agents on edge machines send data to a centrally hosted APM integration:
 
-image::./images/apm-architecture.png[Architecture of Elastic APM]
+[subs=attributes+]
+include::./diagrams/apm-architecture-central.asciidoc[Elastic APM architecture with edge APM integrations]
 
 Or, APM agents and the APM integration live on edge machines and enroll via a centrally hosted {agent}:
 
-image::./images/apm-architecture-two.png[Architecture of Elastic APM option two]
+[subs=attributes+]
+include::./diagrams/apm-architecture-edge.asciidoc[Elastic APM architecture with central APM integration]
 
 NOTE: In order to collect data from RUM and mobile agents, which run in browser and mobile applications,
 you must run {agent} centrally. For other applications, such as backend services,

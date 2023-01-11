@@ -6,6 +6,7 @@ package servicemetrics
 
 import (
 	"context"
+	"fmt"
 	"net/netip"
 	"sort"
 	"sync"
@@ -16,11 +17,6 @@ import (
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
-	"go.uber.org/zap/zaptest/observer"
-
-	"github.com/elastic/elastic-agent-libs/logp"
 
 	"github.com/elastic/apm-data/model"
 )
@@ -43,8 +39,9 @@ func TestNewAggregatorConfigInvalid(t *testing.T) {
 		err: "MaxGroups unspecified or negative",
 	}, {
 		config: AggregatorConfig{
-			BatchProcessor: report,
-			MaxGroups:      1,
+			BatchProcessor:                 report,
+			MaxGroups:                      1,
+			HDRHistogramSignificantFigures: 1,
 		},
 		err: "Interval unspecified or negative",
 	}} {
@@ -56,13 +53,15 @@ func TestNewAggregatorConfigInvalid(t *testing.T) {
 }
 
 func TestAggregatorRun(t *testing.T) {
-	batches := make(chan model.Batch, 1)
-	agg, err := NewAggregator(AggregatorConfig{
+	batches := make(chan model.Batch, 3)
+	config := AggregatorConfig{
 		BatchProcessor:                 makeChanBatchProcessor(batches),
 		Interval:                       1 * time.Millisecond,
+		RollUpIntervals:                []time.Duration{200 * time.Millisecond, time.Second},
 		MaxGroups:                      1000,
 		HDRHistogramSignificantFigures: 5,
-	})
+	}
+	agg, err := NewAggregator(config)
 	require.NoError(t, err)
 
 	type input struct {
@@ -110,110 +109,124 @@ func TestAggregatorRun(t *testing.T) {
 	// Start the aggregator after processing to ensure metrics are aggregated deterministically.
 	go agg.Run()
 	defer agg.Stop(context.Background())
+	// Stop the aggregator to ensure all metrics are published.
+	assert.NoError(t, agg.Stop(context.Background()))
 
-	batch := expectBatch(t, batches)
-	metricsets := batchMetricsets(t, batch)
-	expected := []model.APMEvent{{
-		Processor: model.MetricsetProcessor,
-		Metricset: &model.Metricset{Name: "service", DocCount: 6},
-		Service:   model.Service{Name: "backend"},
-		Agent:     model.Agent{Name: "java"},
-		Transaction: &model.Transaction{
-			Type: "request",
-			DurationSummary: model.SummaryMetric{
-				Count: 6,
-				Sum:   6000, // 6ms in micros
+	for _, interval := range append([]time.Duration{config.Interval}, config.RollUpIntervals...) {
+		batch := expectBatch(t, batches)
+		metricsets := batchMetricsets(t, batch)
+		expected := []model.APMEvent{{
+			Processor: model.MetricsetProcessor,
+			Metricset: &model.Metricset{
+				Name: "service", DocCount: 6, Interval: fmt.Sprintf("%.0fs", interval.Seconds()),
 			},
-			DurationHistogram: model.Histogram{
-				Values: []float64{1000, 2000, 3000},
-				Counts: []int64{1, 2, 3},
+			Service: model.Service{Name: "backend"},
+			Agent:   model.Agent{Name: "java"},
+			Transaction: &model.Transaction{
+				Type: "request",
+				DurationSummary: model.SummaryMetric{
+					Count: 6,
+					Sum:   6000, // 6ms in micros
+				},
+				DurationHistogram: model.Histogram{
+					Values: []float64{1000, 2000, 3000},
+					Counts: []int64{1, 2, 3},
+				},
 			},
-		},
-		Event: model.Event{
-			SuccessCount: model.SummaryMetric{
-				Count: 5,
-				Sum:   2,
+			Event: model.Event{
+				SuccessCount: model.SummaryMetric{
+					Count: 5,
+					Sum:   2,
+				},
 			},
-		},
-	}, {
-		Processor: model.MetricsetProcessor,
-		Metricset: &model.Metricset{Name: "service", DocCount: 1},
-		Service:   model.Service{Name: "backend"},
-		Agent:     model.Agent{Name: "go"},
-		Transaction: &model.Transaction{
-			Type: "request",
-			DurationSummary: model.SummaryMetric{
-				Count: 1,
-				Sum:   1000, // 1ms in micros
+		}, {
+			Processor: model.MetricsetProcessor,
+			Metricset: &model.Metricset{
+				Name: "service", DocCount: 1, Interval: fmt.Sprintf("%.0fs", interval.Seconds()),
 			},
-			DurationHistogram: model.Histogram{
-				Values: []float64{1000},
-				Counts: []int64{1},
+			Service: model.Service{Name: "backend"},
+			Agent:   model.Agent{Name: "go"},
+			Transaction: &model.Transaction{
+				Type: "request",
+				DurationSummary: model.SummaryMetric{
+					Count: 1,
+					Sum:   1000, // 1ms in micros
+				},
+				DurationHistogram: model.Histogram{
+					Values: []float64{1000},
+					Counts: []int64{1},
+				},
 			},
-		},
-	}, {
-		Processor: model.MetricsetProcessor,
-		Metricset: &model.Metricset{Name: "service", DocCount: 1},
-		Service:   model.Service{Name: "backend"},
-		Agent:     model.Agent{Name: "go"},
-		Transaction: &model.Transaction{
-			Type: "background",
-			DurationSummary: model.SummaryMetric{
-				Count: 1,
-				Sum:   1000, // 1ms in micros
+		}, {
+			Processor: model.MetricsetProcessor,
+			Metricset: &model.Metricset{
+				Name: "service", DocCount: 1, Interval: fmt.Sprintf("%.0fs", interval.Seconds()),
 			},
-			DurationHistogram: model.Histogram{
-				Values: []float64{1000},
-				Counts: []int64{1},
+			Service: model.Service{Name: "backend"},
+			Agent:   model.Agent{Name: "go"},
+			Transaction: &model.Transaction{
+				Type: "background",
+				DurationSummary: model.SummaryMetric{
+					Count: 1,
+					Sum:   1000, // 1ms in micros
+				},
+				DurationHistogram: model.Histogram{
+					Values: []float64{1000},
+					Counts: []int64{1},
+				},
 			},
-		},
-	}, {
-		Processor: model.MetricsetProcessor,
-		Metricset: &model.Metricset{Name: "service", DocCount: 1},
-		Service:   model.Service{Name: "frontend"},
-		Agent:     model.Agent{Name: "rum-js"},
-		Transaction: &model.Transaction{
-			Type: "page-load",
-			DurationSummary: model.SummaryMetric{
-				Count: 1,
-				Sum:   1000, // 1ms in micros
+		}, {
+			Processor: model.MetricsetProcessor,
+			Metricset: &model.Metricset{
+				Name: "service", DocCount: 1, Interval: fmt.Sprintf("%.0fs", interval.Seconds()),
 			},
-			DurationHistogram: model.Histogram{
-				Values: []float64{1000},
-				Counts: []int64{1},
+			Service: model.Service{Name: "frontend"},
+			Agent:   model.Agent{Name: "rum-js"},
+			Transaction: &model.Transaction{
+				Type: "page-load",
+				DurationSummary: model.SummaryMetric{
+					Count: 1,
+					Sum:   1000, // 1ms in micros
+				},
+				DurationHistogram: model.Histogram{
+					Values: []float64{1000},
+					Counts: []int64{1},
+				},
 			},
-		},
-	}, {
-		Processor: model.MetricsetProcessor,
-		Metricset: &model.Metricset{Name: "service", DocCount: 1},
-		Service:   model.Service{Name: "frontend", Environment: "staging"},
-		Agent:     model.Agent{Name: "rum-js"},
-		Transaction: &model.Transaction{
-			Type: "page-load",
-			DurationSummary: model.SummaryMetric{
-				Count: 1,
-				Sum:   1000, // 1ms in micros
+		}, {
+			Processor: model.MetricsetProcessor,
+			Metricset: &model.Metricset{
+				Name: "service", DocCount: 1, Interval: fmt.Sprintf("%.0fs", interval.Seconds()),
 			},
-			DurationHistogram: model.Histogram{
-				Values: []float64{1000},
-				Counts: []int64{1},
+			Service: model.Service{Name: "frontend", Environment: "staging"},
+			Agent:   model.Agent{Name: "rum-js"},
+			Transaction: &model.Transaction{
+				Type: "page-load",
+				DurationSummary: model.SummaryMetric{
+					Count: 1,
+					Sum:   1000, // 1ms in micros
+				},
+				DurationHistogram: model.Histogram{
+					Values: []float64{1000},
+					Counts: []int64{1},
+				},
 			},
-		},
-	}}
+		}}
 
-	assert.Equal(t, len(expected), len(metricsets))
-	out := cmp.Diff(expected, metricsets, cmpopts.IgnoreTypes(netip.Addr{}), cmpopts.SortSlices(func(e1 model.APMEvent, e2 model.APMEvent) bool {
-		if e1.Transaction.Type != e2.Transaction.Type {
-			return e1.Transaction.Type < e2.Transaction.Type
-		}
+		assert.Equal(t, len(expected), len(metricsets))
+		out := cmp.Diff(expected, metricsets, cmpopts.IgnoreTypes(netip.Addr{}), cmpopts.SortSlices(func(e1 model.APMEvent, e2 model.APMEvent) bool {
+			if e1.Transaction.Type != e2.Transaction.Type {
+				return e1.Transaction.Type < e2.Transaction.Type
+			}
 
-		if e1.Agent.Name != e2.Agent.Name {
-			return e1.Agent.Name < e2.Agent.Name
-		}
+			if e1.Agent.Name != e2.Agent.Name {
+				return e1.Agent.Name < e2.Agent.Name
+			}
 
-		return e1.Service.Environment < e2.Service.Environment
-	}))
-	assert.Empty(t, out)
+			return e1.Service.Environment < e2.Service.Environment
+		}))
+		assert.Empty(t, out)
+	}
 
 	select {
 	case <-batches:
@@ -256,85 +269,76 @@ func TestAggregateTimestamp(t *testing.T) {
 	assert.Equal(t, t0.Add(30*time.Second), metricsets[1].Timestamp)
 }
 
-func TestAggregatorMaxGroups(t *testing.T) {
-	core, observed := observer.New(zapcore.DebugLevel)
-	logger := logp.NewLogger("", zap.WrapCore(func(in zapcore.Core) zapcore.Core {
-		return zapcore.NewTee(in, core)
-	}))
-
+func TestAggregatorOverflow(t *testing.T) {
+	maxGrps := 4
+	overflowCount := 100
+	txnDuration := 100 * time.Millisecond
 	batches := make(chan model.Batch, 1)
 	agg, err := NewAggregator(AggregatorConfig{
 		BatchProcessor:                 makeChanBatchProcessor(batches),
-		Interval:                       10 * time.Millisecond,
-		MaxGroups:                      4,
-		Logger:                         logger,
-		HDRHistogramSignificantFigures: 1,
+		Interval:                       10 * time.Second,
+		MaxGroups:                      maxGrps,
+		HDRHistogramSignificantFigures: 5,
 	})
 	require.NoError(t, err)
 
-	// The first four groups will not require immediate publication,
-	// as we have configured a maximum of four buckets. Log messages
-	// are produced after 50% and 100% of capacity are reached.
-	batch := make(model.Batch, 2)
-	batch[0] = makeTransaction("service1", "agent", "tx_type", "success", 100*time.Millisecond, 1)
-	batch[1] = makeTransaction("service2", "agent", "tx_type", "success", 100*time.Millisecond, 1)
-	err = agg.ProcessBatch(context.Background(), &batch)
-	require.NoError(t, err)
-	assert.Empty(t, batchMetricsets(t, batch))
-	assert.Equal(t, 1, observed.FilterMessage("service metrics groups reached 50% capacity").Len())
-	assert.Len(t, observed.TakeAll(), 1)
-
-	batch = append(batch,
-		makeTransaction("service3", "agent", "tx_type", "success", 100*time.Millisecond, 1),
-		makeTransaction("service4", "agent", "tx_type", "success", 100*time.Millisecond, 1),
-	)
-	err = agg.ProcessBatch(context.Background(), &batch)
-	require.NoError(t, err)
-	assert.Empty(t, batchMetricsets(t, batch))
-	assert.Equal(t, 1, observed.FilterMessage("service metrics groups reached 100% capacity").Len())
-	assert.Len(t, observed.TakeAll(), 1)
-
-	// After hitting 100% capacity (four buckets), then subsequent new metrics will
-	// return single-event metricsets for immediate publication.
-	for i := 0; i < 2; i++ {
-		batch = append(batch, makeTransaction("service5", "agent", "tx_type", "success", 100*time.Millisecond, 1))
+	batch := make(model.Batch, maxGrps+overflowCount) // cause overflow
+	for i := 0; i < len(batch); i++ {
+		batch[i] = makeTransaction(
+			fmt.Sprintf("svc%d", i), "agent", "tx_type", "success", txnDuration, 1,
+		)
 	}
-	err = agg.ProcessBatch(context.Background(), &batch)
-	require.NoError(t, err)
-
-	metricsets := batchMetricsets(t, batch)
-	assert.Len(t, metricsets, 2)
-
-	for _, m := range metricsets {
-		out := cmp.Diff(model.APMEvent{
-			Agent: model.Agent{
-				Name: "agent",
-			},
-			Service: model.Service{
-				Name: "service5",
-			},
-			Processor: model.MetricsetProcessor,
-			Transaction: &model.Transaction{
-				Type: "tx_type",
-				DurationSummary: model.SummaryMetric{
-					Count: 1,
-					Sum:   100000,
-				},
-				DurationHistogram: model.Histogram{
-					Values: []float64{100000},
-					Counts: []int64{1},
-				},
-			},
-			Event: model.Event{
-				SuccessCount: model.SummaryMetric{
-					Count: 1,
-					Sum:   1,
-				},
-			},
-			Metricset: &model.Metricset{Name: "service", DocCount: 1},
-		}, m, cmpopts.IgnoreTypes(netip.Addr{}))
-		assert.Empty(t, out)
+	go func(t *testing.T) {
+		t.Helper()
+		require.NoError(t, agg.Run())
+	}(t)
+	require.NoError(t, agg.ProcessBatch(context.Background(), &batch))
+	require.NoError(t, agg.Stop(context.Background()))
+	metricsets := batchMetricsets(t, expectBatch(t, batches))
+	require.Len(t, metricsets, maxGrps+1) // only one `other` metric should overflow
+	var overflowEvent *model.APMEvent
+	for i := range metricsets {
+		m := metricsets[i]
+		if m.Service.Name == "other" {
+			if overflowEvent != nil {
+				require.Fail(t, "only one service should overflow")
+			}
+			overflowEvent = &m
+		}
 	}
+	assert.Empty(t, cmp.Diff(model.APMEvent{
+		Service: model.Service{
+			Name: "other",
+		},
+		Processor: model.MetricsetProcessor,
+		Transaction: &model.Transaction{
+			DurationSummary: model.SummaryMetric{
+				Count: int64(overflowCount),
+				Sum:   float64(int64(overflowCount) * txnDuration.Microseconds()),
+			},
+			DurationHistogram: model.Histogram{
+				Values: []float64{float64(txnDuration.Microseconds())},
+				Counts: []int64{int64(overflowCount)},
+			},
+		},
+		Event: model.Event{
+			SuccessCount: model.SummaryMetric{
+				Count: int64(overflowCount),
+				Sum:   float64(overflowCount),
+			},
+		},
+		Metricset: &model.Metricset{
+			Name:     "service",
+			DocCount: int64(overflowCount),
+			Interval: "10s",
+			Samples: []model.MetricsetSample{
+				{
+					Name:  "service.aggregation.overflow_count",
+					Value: float64(overflowCount),
+				},
+			},
+		},
+	}, *overflowEvent, cmpopts.IgnoreTypes(netip.Addr{}, time.Time{})))
 }
 
 func makeTransaction(

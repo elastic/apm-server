@@ -30,6 +30,7 @@ import (
 
 	"github.com/elastic/beats/v7/libbeat/version"
 	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/elastic-agent-libs/monitoring"
 
 	"github.com/elastic/apm-data/model"
 	"github.com/elastic/apm-server/internal/agentcfg"
@@ -43,6 +44,10 @@ import (
 	"github.com/elastic/apm-server/internal/kibana"
 	"github.com/elastic/apm-server/internal/model/modelprocessor"
 	"github.com/elastic/apm-server/internal/sourcemap"
+)
+
+var (
+	agentcfgMonitoringRegistry = monitoring.Default.NewRegistry("apm-server.agentcfg")
 )
 
 // WrapServerFunc is a function for injecting behaviour into ServerParams
@@ -210,8 +215,11 @@ func (s server) run(ctx context.Context) error {
 	})
 	g.Go(func() error {
 		<-ctx.Done()
-		s.grpcServer.GracefulStop()
+		// httpServer should stop before grpcServer to avoid a panic caused by placing a new connection into
+		// a closed grpc connection channel during shutdown.
+		// See https://github.com/elastic/gmux/issues/13
 		s.httpServer.stop()
+		s.grpcServer.GracefulStop()
 		return nil
 	})
 	if err := g.Wait(); err != http.ErrServerClosed {
@@ -220,20 +228,37 @@ func (s server) run(ctx context.Context) error {
 	return nil
 }
 
-func newAgentConfigFetcher(cfg *config.Config, kibanaClient *kibana.Client) agentcfg.Fetcher {
-	if cfg.AgentConfigs != nil || kibanaClient == nil {
-		// Direct agent configuration is present, disable communication with kibana.
-		agentConfigurations := make([]agentcfg.AgentConfig, len(cfg.AgentConfigs))
-		for i, in := range cfg.AgentConfigs {
-			agentConfigurations[i] = agentcfg.AgentConfig{
-				ServiceName:        in.Service.Name,
-				ServiceEnvironment: in.Service.Environment,
-				AgentName:          in.AgentName,
-				Etag:               in.Etag,
-				Config:             in.Config,
-			}
-		}
-		return agentcfg.NewDirectFetcher(agentConfigurations)
+func newAgentConfigFetcher(
+	ctx context.Context,
+	cfg *config.Config,
+	kibanaClient *kibana.Client,
+	newElasticsearchClient func(*elasticsearch.Config) (*elasticsearch.Client, error),
+) (agentcfg.Fetcher, func(context.Context) error, error) {
+	// Always use ElasticsearchFetcher, and as a fallback, use:
+	// 1. no fallback if Elasticsearch is explicitly configured
+	// 2. fleet agent config
+	// 3. kibana fetcher if (2) is not available
+	// 4. no fallback if both (2) and (3) are not available
+	var fallbackFetcher agentcfg.Fetcher
+
+	switch {
+	case cfg.AgentConfig.ESConfigured:
+		// Disable fallback because agent config Elasticsearch is explicitly configured.
+	case cfg.FleetAgentConfigs != nil:
+		agentConfigurations := agentcfg.ConvertAgentConfigs(cfg.FleetAgentConfigs)
+		fallbackFetcher = agentcfg.NewDirectFetcher(agentConfigurations)
+	case kibanaClient != nil:
+		fallbackFetcher = agentcfg.NewKibanaFetcher(kibanaClient, cfg.AgentConfig.Cache.Expiration)
+	default:
+		// It is possible that none of the above applies.
 	}
-	return agentcfg.NewKibanaFetcher(kibanaClient, cfg.KibanaAgentConfig.Cache.Expiration)
+
+	esClient, err := newElasticsearchClient(cfg.AgentConfig.ESConfig)
+	if err != nil {
+		return nil, nil, err
+	}
+	esFetcher := agentcfg.NewElasticsearchFetcher(esClient, cfg.AgentConfig.Cache.Expiration, fallbackFetcher)
+	agentcfgMonitoringRegistry.Remove("elasticsearch")
+	monitoring.NewFunc(agentcfgMonitoringRegistry, "elasticsearch", esFetcher.CollectMonitoring, monitoring.Report)
+	return agentcfg.SanitizingFetcher{Fetcher: esFetcher}, esFetcher.Run, nil
 }

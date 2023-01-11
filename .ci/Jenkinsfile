@@ -11,7 +11,7 @@ pipeline {
     JOB_GCS_CREDENTIALS = 'apm-ci-gcs-plugin'
     DIAGNOSTIC_INTERVAL = "${params.DIAGNOSTIC_INTERVAL}"
     ES_LOG_LEVEL = "${params.ES_LOG_LEVEL}"
-    DOCKER_SECRET = 'secret/apm-team/ci/docker-registry/prod'
+    DOCKER_SECRET = 'secret/observability-team/ci/docker-registry/prod'
     DOCKER_REGISTRY = 'docker.elastic.co'
   }
   options {
@@ -62,7 +62,7 @@ pipeline {
       }
     }
 
-    // Run unit tests, system tests, benchmarks, and packaging in parallel.
+    // Run unit tests, benchmarks, and packaging in parallel.
     stage('Build and test') {
       failFast false
       parallel {
@@ -117,48 +117,6 @@ pipeline {
                 junit(allowEmptyResults: true,
                   keepLongStdio: true,
                   testResults: "TEST-*.xml")
-              }
-            }
-          }
-        }
-
-        // Run system tests and archive a JUnit report.
-        stage('System tests') {
-          agent { label 'linux && immutable' }
-          options { skipDefaultCheckout() }
-          environment {
-            PATH = "${env.PATH}:${env.WORKSPACE}/bin"
-            HOME = "${env.WORKSPACE}"
-          }
-          when {
-            beforeAgent true
-            allOf {
-              expression { return params.test_sys_env_ci }
-              expression { return env.ONLY_DOCS == "false" }
-            }
-          }
-          steps {
-            withGithubNotify(context: 'System Tests', tab: 'tests') {
-              deleteDir()
-              unstash 'source'
-              dir("${BASE_DIR}"){
-                withGoEnv(){
-                  sh(label: 'Run Linux tests', script: './.ci/scripts/linux-test.sh')
-                }
-              }
-            }
-          }
-          post {
-            always {
-              dir("${BASE_DIR}/build"){
-                archiveArtifacts(allowEmptyArchive: true,
-                  artifacts: "docker-info/**",
-                  defaultExcludes: false
-                )
-                junit(allowEmptyResults: true,
-                  keepLongStdio: true,
-                  testResults: "TEST-*.xml"
-                )
               }
             }
           }

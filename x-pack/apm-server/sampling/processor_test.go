@@ -298,6 +298,12 @@ func TestProcessLocalTailSamplingUnsampled(t *testing.T) {
 		err := processor.ProcessBatch(context.Background(), &batch)
 		require.NoError(t, err)
 		assert.Empty(t, batch)
+
+		// break out of the loop as soon as the first one is dropped.
+		droppedEvents := collectProcessorMetrics(processor).Ints["sampling.events.dropped"]
+		if droppedEvents != 0 {
+			break
+		}
 	}
 
 	// Stop the processor so we can access the database.
@@ -660,7 +666,7 @@ func TestStorageLimit(t *testing.T) {
 		require.NoError(t, err)
 		go processor.Run()
 		defer processor.Stop(context.Background())
-		var batch model.Batch
+		batch := make(model.Batch, 0, n)
 		for i := 0; i < n; i++ {
 			traceID := uuid.Must(uuid.NewV4()).String()
 			batch = append(batch, model.APMEvent{

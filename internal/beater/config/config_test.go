@@ -64,9 +64,49 @@ func TestUnpackConfig(t *testing.T) {
 		"k4": []string{"v4"},
 	}
 
+	reuseOutputESConfig := DefaultConfig()
+	reuseOutputESConfig.AgentConfig = AgentConfig{
+		ESConfig: &elasticsearch.Config{
+			Hosts:            elasticsearch.Hosts{"localhost:9201", "localhost:9202"},
+			Protocol:         "https",
+			Timeout:          5 * time.Second,
+			Username:         "output_username",
+			Password:         "output_password",
+			MaxRetries:       3,
+			CompressionLevel: 5,
+			Backoff:          elasticsearch.DefaultBackoffConfig,
+		},
+		Cache: Cache{Expiration: 30 * time.Second},
+	}
+
+	overwriteOutputESConfig := DefaultConfig()
+	overwriteOutputESConfig.AgentConfig = AgentConfig{
+		ESConfig: &elasticsearch.Config{
+			Hosts:            elasticsearch.Hosts{"localhost:9201", "localhost:9202"},
+			Protocol:         "https",
+			Timeout:          5 * time.Second,
+			Username:         "",
+			Password:         "",
+			APIKey:           "id:api_key",
+			MaxRetries:       3,
+			CompressionLevel: 5,
+			Backoff:          elasticsearch.DefaultBackoffConfig,
+		},
+		Cache:        Cache{Expiration: 30 * time.Second},
+		ESConfigured: true,
+	}
+
+	agentcfgUnexpectedFieldConfig := DefaultConfig()
+	agentcfgUnexpectedFieldConfig.AgentConfig = AgentConfig{
+		ESConfig:     elasticsearch.DefaultConfig(),
+		Cache:        Cache{Expiration: 30 * time.Second},
+		ESConfigured: true,
+	}
+
 	tests := map[string]struct {
-		inpCfg map[string]interface{}
-		outCfg *Config
+		inpCfg         map[string]interface{}
+		inpOutputESCfg map[string]interface{}
+		outCfg         *Config
 	}{
 		"default config": {
 			inpCfg: map[string]interface{}{},
@@ -152,9 +192,12 @@ func TestUnpackConfig(t *testing.T) {
 				},
 				"kibana":                        map[string]interface{}{"enabled": "true"},
 				"agent.config.cache.expiration": "2m",
+				"agent.config.elasticsearch": map[string]interface{}{
+					"api_key": "id:api_key",
+				},
 				"aggregation": map[string]interface{}{
 					"transactions": map[string]interface{}{
-						"interval":                         "1s",
+						"rollup_intervals":                 []string{"10s", "10m"},
 						"max_groups":                       123,
 						"hdrhistogram_significant_figures": 1,
 					},
@@ -249,19 +292,28 @@ func TestUnpackConfig(t *testing.T) {
 					Enabled:      true,
 					ClientConfig: defaultDecodedKibanaClientConfig,
 				},
-				KibanaAgentConfig: KibanaAgentConfig{Cache: Cache{Expiration: 2 * time.Minute}},
+				AgentConfig: AgentConfig{
+					ESConfig: &elasticsearch.Config{
+						Hosts:            elasticsearch.Hosts{"localhost:9200"},
+						Protocol:         "http",
+						Timeout:          5 * time.Second,
+						APIKey:           "id:api_key",
+						MaxRetries:       3,
+						CompressionLevel: 5,
+						Backoff:          elasticsearch.DefaultBackoffConfig,
+					},
+					Cache:        Cache{Expiration: 2 * time.Minute},
+					ESConfigured: true,
+				},
 				Aggregation: AggregationConfig{
 					Transactions: TransactionAggregationConfig{
-						Interval:                       time.Second,
 						MaxTransactionGroups:           123,
 						HDRHistogramSignificantFigures: 1,
 					},
 					ServiceDestinations: ServiceDestinationAggregationConfig{
-						Interval:  time.Minute,
 						MaxGroups: 456,
 					},
 					Service: ServiceAggregationConfig{
-						Interval:                       time.Minute,
 						MaxGroups:                      457,
 						HDRHistogramSignificantFigures: 5,
 					},
@@ -416,21 +468,21 @@ func TestUnpackConfig(t *testing.T) {
 					LibraryPattern:      "rum",
 					ExcludeFromGrouping: "^/webpack",
 				},
-				Kibana:            defaultKibanaConfig(),
-				KibanaAgentConfig: KibanaAgentConfig{Cache: Cache{Expiration: 30 * time.Second}},
+				Kibana: defaultKibanaConfig(),
+				AgentConfig: AgentConfig{
+					ESConfig: elasticsearch.DefaultConfig(),
+					Cache:    Cache{Expiration: 30 * time.Second},
+				},
 				Aggregation: AggregationConfig{
 					Transactions: TransactionAggregationConfig{
-						Interval:                       time.Minute,
-						MaxTransactionGroups:           10000,
+						MaxTransactionGroups:           0, // Default value is set as per memory limit
 						HDRHistogramSignificantFigures: 2,
 					},
 					ServiceDestinations: ServiceDestinationAggregationConfig{
-						Interval:  time.Minute,
 						MaxGroups: 10000,
 					},
 					Service: ServiceAggregationConfig{
-						Interval:                       time.Minute,
-						MaxGroups:                      10000,
+						MaxGroups:                      0, // Default value is set as per memory limit
 						HDRHistogramSignificantFigures: 5,
 					},
 				},
@@ -494,6 +546,38 @@ func TestUnpackConfig(t *testing.T) {
 			},
 			outCfg: responseHeadersConfig,
 		},
+		"agentcfg reuse output es config": {
+			inpCfg: map[string]interface{}{},
+			inpOutputESCfg: map[string]interface{}{
+				"hosts":    []string{"localhost:9201", "localhost:9202"},
+				"username": "output_username",
+				"password": "output_password",
+				"protocol": "https",
+			},
+			outCfg: reuseOutputESConfig,
+		},
+		"agentcfg reuse and overwrite output es config": {
+			inpCfg: map[string]interface{}{
+				"agent.config.elasticsearch": map[string]interface{}{
+					"api_key": "id:api_key",
+				},
+			},
+			inpOutputESCfg: map[string]interface{}{
+				"hosts":    []string{"localhost:9201", "localhost:9202"},
+				"username": "output_username",
+				"password": "output_password",
+				"protocol": "https",
+			},
+			outCfg: overwriteOutputESConfig,
+		},
+		"agentcfg should only accept credentials config": {
+			inpCfg: map[string]interface{}{
+				"agent.config.elasticsearch": map[string]interface{}{
+					"hosts": []string{"localhost:9201", "localhost:9202"},
+				},
+			},
+			outCfg: agentcfgUnexpectedFieldConfig,
+		},
 	}
 
 	for name, test := range tests {
@@ -501,7 +585,13 @@ func TestUnpackConfig(t *testing.T) {
 			inpCfg, err := config.NewConfigFrom(test.inpCfg)
 			assert.NoError(t, err)
 
-			cfg, err := NewConfig(inpCfg, nil)
+			var inpOutputESCfg *config.C
+			if test.inpOutputESCfg != nil {
+				inpOutputESCfg, err = config.NewConfigFrom(test.inpOutputESCfg)
+				assert.NoError(t, err)
+			}
+
+			cfg, err := NewConfig(inpCfg, inpOutputESCfg)
 			require.NoError(t, err)
 			require.NotNil(t, cfg)
 
@@ -624,6 +714,7 @@ func TestNewConfig_ESConfig(t *testing.T) {
 	assert.Equal(t, []string{"192.0.0.168:9200"}, []string(cfg.AgentAuth.APIKey.ESConfig.Hosts))
 	assert.Equal(t, []string{"192.0.0.168:9200"}, []string(cfg.Sampling.Tail.ESConfig.Hosts))
 	assert.Equal(t, []string{"192.0.0.168:9200"}, []string(cfg.Profiling.ESConfig.Hosts))
+	assert.Equal(t, []string{"192.0.0.168:9200"}, []string(cfg.AgentConfig.ESConfig.Hosts))
 	assert.NotEqual(t, []string{"192.0.0.168:9200"}, []string(cfg.Profiling.MetricsESConfig.Hosts))
 }
 

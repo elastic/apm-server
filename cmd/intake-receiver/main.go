@@ -116,7 +116,7 @@ type requestHandler struct {
 	rootResponse string
 }
 
-func (h requestHandler) rootHandler() http.Handler {
+func (h *requestHandler) rootHandler() http.Handler {
 	return logHandler(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case "/":
@@ -136,7 +136,7 @@ func (h requestHandler) rootHandler() http.Handler {
 	}))
 }
 
-func (h requestHandler) eventHandler() http.Handler {
+func (h *requestHandler) eventHandler() http.Handler {
 	return logHandler(
 		http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 			code, err := h.handleRequest(r)
@@ -150,7 +150,7 @@ func (h requestHandler) eventHandler() http.Handler {
 	)
 }
 
-func (h requestHandler) handleRequest(r *http.Request) (int, error) {
+func (h *requestHandler) handleRequest(r *http.Request) (int, error) {
 	buf := h.bufPool.Get().(*bytes.Buffer)
 	defer func() {
 		buf.Reset()
@@ -163,8 +163,10 @@ func (h requestHandler) handleRequest(r *http.Request) (int, error) {
 	switch encoding {
 	case "deflate":
 		body, err = zlib.NewReader(r.Body)
+		defer body.Close()
 	case "gzip":
 		body, err = gzip.NewReader(r.Body)
+		defer body.Close()
 	case "":
 	default:
 		return http.StatusBadRequest, fmt.Errorf(
@@ -202,7 +204,7 @@ func (h requestHandler) handleRequest(r *http.Request) (int, error) {
 	return http.StatusAccepted, nil
 }
 
-func (h requestHandler) processBatch(body io.ReadCloser, buf io.Writer, meta *metadata) error {
+func (h *requestHandler) processBatch(body io.ReadCloser, buf io.Writer, meta *metadata) error {
 	byteBuf := h.bytesBufPool.Get().([]byte)
 	defer func() {
 		byteBuf = byteBuf[:0]

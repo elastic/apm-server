@@ -48,7 +48,7 @@ type Config struct {
 	RUM                       *RUMConfig         `json:"apm-server.rum,omitempty"`
 	WaitForIntegration        *bool              `json:"apm-server.data_streams.wait_for_integration,omitempty"`
 	DefaultServiceEnvironment string             `json:"apm-server.default_service_environment,omitempty"`
-	KibanaAgentConfig         *KibanaAgentConfig `json:"apm-server.agent.config,omitempty"`
+	AgentConfig               *AgentConfig       `json:"apm-server.agent.config,omitempty"`
 	TLS                       *TLSConfig         `json:"apm-server.ssl,omitempty"`
 
 	// AgentAuth holds configuration for APM agent authorization.
@@ -90,20 +90,29 @@ type TLSConfig struct {
 	SupportedProtocols []string `json:"supported_protocols,omitempty"`
 }
 
-// KibanaAgentConfig holds configuration related to the Kibana-based
-// implementation of agent configuration.
-type KibanaAgentConfig struct {
-	CacheExpiration time.Duration
+// AgentConfig holds configuration related to the Kibana-based or
+// Elasticsearch-based implementation of agent configuration.
+type AgentConfig struct {
+	CacheExpiration       time.Duration
+	ElasticsearchUsername string
+	ElasticsearchPassword string
+	ElasticsearchAPIKey   string
 }
 
-func (c *KibanaAgentConfig) MarshalJSON() ([]byte, error) {
+func (c *AgentConfig) MarshalJSON() ([]byte, error) {
 	// time.Duration is encoded as int64.
 	// Convert time.Durations to durations, to encode as duration strings.
 	type config struct {
-		CacheExpiration string `json:"cache.expiration,omitempty"`
+		CacheExpiration       string `json:"cache.expiration,omitempty"`
+		ElasticsearchUsername string `json:"elasticsearch.username,omitempty"`
+		ElasticsearchPassword string `json:"elasticsearch.password,omitempty"`
+		ElasticsearchAPIKey   string `json:"elasticsearch.api_key,omitempty"`
 	}
 	return json.Marshal(config{
-		CacheExpiration: durationString(c.CacheExpiration),
+		CacheExpiration:       durationString(c.CacheExpiration),
+		ElasticsearchUsername: c.ElasticsearchUsername,
+		ElasticsearchPassword: c.ElasticsearchPassword,
+		ElasticsearchAPIKey:   c.ElasticsearchAPIKey,
 	})
 }
 
@@ -296,25 +305,7 @@ func (m *MonitoringConfig) MarshalJSON() ([]byte, error) {
 
 // AggregationConfig holds APM Server metrics aggregation configuration.
 type AggregationConfig struct {
-	Transactions        *TransactionAggregationConfig        `json:"transactions,omitempty"`
-	Service             *ServiceAggregationConfig            `json:"service,omitempty"`
-	ServiceDestinations *ServiceDestinationAggregationConfig `json:"service_destinations,omitempty"`
-}
-
-// TransactionAggregationConfig holds APM Server transaction metrics aggregation configuration.
-type TransactionAggregationConfig struct {
-	Interval time.Duration
-}
-
-func (m *TransactionAggregationConfig) MarshalJSON() ([]byte, error) {
-	// time.Duration is encoded as int64.
-	// Convert time.Durations to durations, to encode as duration strings.
-	type config struct {
-		Interval string `json:"interval,omitempty"`
-	}
-	return json.Marshal(config{
-		Interval: durationString(m.Interval),
-	})
+	Service *ServiceAggregationConfig `json:"service,omitempty"`
 }
 
 // ServiceAggregationConfig holds APM Server service metrics aggregation configuration.
@@ -323,8 +314,7 @@ type ServiceAggregationConfig struct {
 	//
 	// Service metrics aggregation is disabled by default while the
 	// feature is in technical preview.
-	Enabled  *bool `json:"enabled,omitempty"`
-	Interval time.Duration
+	Enabled *bool `json:"enabled,omitempty"`
 }
 
 func (s *ServiceAggregationConfig) MarshalJSON() ([]byte, error) {
@@ -335,24 +325,7 @@ func (s *ServiceAggregationConfig) MarshalJSON() ([]byte, error) {
 		Interval string `json:"interval,omitempty"`
 	}
 	return json.Marshal(config{
-		Enabled:  s.Enabled,
-		Interval: durationString(s.Interval),
-	})
-}
-
-// ServiceDestinationAggregationConfig holds APM Server service destination metrics aggregation configuration.
-type ServiceDestinationAggregationConfig struct {
-	Interval time.Duration
-}
-
-func (s *ServiceDestinationAggregationConfig) MarshalJSON() ([]byte, error) {
-	// time.Duration is encoded as int64.
-	// Convert time.Durations to durations, to encode as duration strings.
-	type config struct {
-		Interval string `json:"interval,omitempty"`
-	}
-	return json.Marshal(config{
-		Interval: durationString(s.Interval),
+		Enabled: s.Enabled,
 	})
 }
 
