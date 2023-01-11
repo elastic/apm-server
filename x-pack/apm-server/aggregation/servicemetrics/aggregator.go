@@ -364,7 +364,7 @@ func makeOverflowAggregationKey(oldKey aggregationKey, interval time.Duration) a
 			// old timestamp and these events overflow causing the indexed event
 			// to have old timestamp too.
 			timestamp:   time.Now().Truncate(interval),
-			serviceName: "other",
+			serviceName: "_other",
 		},
 	}
 }

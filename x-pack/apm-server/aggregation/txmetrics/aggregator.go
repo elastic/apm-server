@@ -43,7 +43,7 @@ const (
 	metricsetName = "transaction"
 
 	// overflowBucketName is an identifier to denote overflow buckets
-	overflowBucketName = "other"
+	overflowBucketName = "_other"
 )
 
 // Aggregator aggregates transaction durations, periodically publishing histogram metrics.
