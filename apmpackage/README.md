@@ -12,7 +12,7 @@
     - Run `docker-compose up -d`: this will start Elasticsearch and Kibana.
 
 3. Test changes
-    - If you just want to intall the integration package, you can do so by running `cd systemtest && go run ./cmd/runapm -init`.
+    - If you just want to install the integration package, you can do so by running `cd systemtest && go run ./cmd/runapm -init`.
       This will build the integration package and upload it to Kibana for installation.
     - If you want to also test code changes in conjunction with changes to the integration package, you can do so by running
       `cd systemtest && go run ./cmd/runapm`. In addition to the above, this will build apm-server and inject it into a local
