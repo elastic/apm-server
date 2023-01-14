@@ -1149,11 +1149,19 @@ Contents of probable licence file $GOMODCACHE/github.com/elastic/gmux@v0.2.0/LIC
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/go-elasticsearch/v8
+<<<<<<< HEAD
 Version: v8.4.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
 Contents of probable licence file $GOMODCACHE/github.com/elastic/go-elasticsearch/v8@v8.4.0/LICENSE:
+=======
+Version: v8.6.0
+Licence type (autodetected): Apache-2.0
+--------------------------------------------------------------------------------
+
+Contents of probable licence file $GOMODCACHE/github.com/elastic/go-elasticsearch/v8@v8.6.0/LICENSE:
+>>>>>>> 64668651 (Update go-elasticsearch to v8.6.0 (#10035))
 
                                  Apache License
                            Version 2.0, January 2004

@@ -12,7 +12,12 @@ require (
 	github.com/elastic/elastic-agent-libs v0.2.16
 	github.com/elastic/elastic-agent-system-metrics v0.4.5-0.20220927192933-25a985b07d51
 	github.com/elastic/gmux v0.2.0
+<<<<<<< HEAD
 	github.com/elastic/go-elasticsearch/v8 v8.4.0
+=======
+	github.com/elastic/go-docappender v0.1.0
+	github.com/elastic/go-elasticsearch/v8 v8.6.0
+>>>>>>> 64668651 (Update go-elasticsearch to v8.6.0 (#10035))
 	github.com/elastic/go-hdrhistogram v0.1.0
 	github.com/elastic/go-sysinfo v1.9.0
 	github.com/elastic/go-ucfg v0.8.6
