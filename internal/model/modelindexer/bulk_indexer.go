@@ -35,8 +35,7 @@ import (
 )
 
 var (
-	gzipHeader = http.Header{"Content-Encoding": []string{"gzip"}, "X-Elastic-Product-Origin": []string{"observability"}}
-	newline    = []byte("\n")
+	newline = []byte("\n")
 )
 
 // NOTE(axw) please avoid introducing apm-server specific details to this code;
