@@ -7567,11 +7567,11 @@ THE SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/dlclark/regexp2
-Version: v1.7.0
+Version: v1.8.0
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/dlclark/regexp2@v1.7.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/dlclark/regexp2@v1.8.0/LICENSE:
 
 The MIT License (MIT)
 
@@ -20058,11 +20058,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : google.golang.org/genproto
-Version: v0.0.0-20230112194545-e10362b5ecf9
+Version: v0.0.0-20230113154510-dbe35b8444a5
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/google.golang.org/genproto@v0.0.0-20230112194545-e10362b5ecf9/LICENSE:
+Contents of probable licence file $GOMODCACHE/google.golang.org/genproto@v0.0.0-20230113154510-dbe35b8444a5/LICENSE:
 
 
                                  Apache License
