@@ -145,7 +145,10 @@ func (a *Aggregator) ProcessBatch(ctx context.Context, b *model.Batch) error {
 	a.mu.RLock()
 	defer a.mu.RUnlock()
 	for _, event := range *b {
-		// Not filtering on Processor.
+		// Ignoring spans since they add no value.
+		if event.Processor == model.SpanProcessor {
+			continue
+		}
 		a.processEvent(&event, b)
 	}
 	return nil

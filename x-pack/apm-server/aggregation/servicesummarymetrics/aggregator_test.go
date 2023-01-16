@@ -200,13 +200,6 @@ func TestAggregatorRun(t *testing.T) {
 			},
 			Service: model.Service{Name: "backend", Environment: "dev"},
 			Agent:   model.Agent{Name: "go"},
-		}, {
-			Processor: model.MetricsetProcessor,
-			Metricset: &model.Metricset{
-				Name: "service_summary", Interval: fmt.Sprintf("%.0fs", interval.Seconds()),
-			},
-			Service: model.Service{Name: "frontend"},
-			Agent:   model.Agent{Name: "js-base"},
 		}}
 
 		assert.Equal(t, len(expected), len(metricsets))
