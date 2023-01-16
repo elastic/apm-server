@@ -1,7 +1,7 @@
 {
     "events": [
         {
-            "@timestamp": "2019-01-09T21:40:53.000Z",
+            "@timestamp": "2017-05-30T18:53:27.154Z",
             "agent": {
                 "name": "elastic-node",
                 "version": "3.14.0"
@@ -36,7 +36,166 @@
             "data_stream.namespace": "default",
             "data_stream.type": "traces",
             "event": {
-                "duration": 32592981,
+                "agent_id_status": "missing",
+                "ingested": "dynamic",
+                "outcome": "unknown"
+            },
+            "host": {
+                "architecture": "x64",
+                "hostname": "node-name",
+                "ip": [
+                    "127.0.0.1"
+                ],
+                "name": "node-name",
+                "os": {
+                    "platform": "darwin"
+                }
+            },
+            "kubernetes": {
+                "namespace": "namespace1",
+                "node": {
+                    "name": "node-name"
+                },
+                "pod": {
+                    "name": "pod-name",
+                    "uid": "pod-uid"
+                }
+            },
+            "labels": {
+                "tag1": "one"
+            },
+            "numeric_labels": {
+                "tag2": 2
+            },
+            "observer": {
+                "hostname": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic"
+            },
+            "parent": {
+                "id": "abcdefabcdef01234567"
+            },
+            "process": {
+                "args": [
+                    "node",
+                    "server.js"
+                ],
+                "parent": {
+                    "pid": 6789
+                },
+                "pid": 1234,
+                "title": "node"
+            },
+            "processor": {
+                "event": "transaction",
+                "name": "transaction"
+            },
+            "service": {
+                "environment": "staging",
+                "framework": {
+                    "name": "Express",
+                    "version": "1.2.3"
+                },
+                "language": {
+                    "name": "ecmascript",
+                    "version": "8"
+                },
+                "name": "1234_service-12a3",
+                "node": {
+                    "name": "node-123"
+                },
+                "runtime": {
+                    "name": "node",
+                    "version": "8.0.0"
+                },
+                "version": "5.1.3"
+            },
+            "session": {
+                "id": "sunday",
+                "sequence": 123
+            },
+            "timestamp": {
+                "us": 1496170407154000
+            },
+            "trace": {
+                "id": "0123456789abcdef0123456789abcdef"
+            },
+            "transaction": {
+                "duration": {
+                    "us": 3000
+                },
+                "id": "00xxxxFFaaaa1234",
+                "message": {
+                    "age": {
+                        "ms": 1577958057123
+                    },
+                    "body": "user created",
+                    "headers": {
+                        "Involved_services": [
+                            "user",
+                            "auth"
+                        ],
+                        "User_id": [
+                            "1ax3"
+                        ]
+                    },
+                    "queue": {
+                        "name": "new_users"
+                    },
+                    "routing_key": "user-created-transaction"
+                },
+                "name": "amqp receive",
+                "representative_count": 1,
+                "sampled": true,
+                "span_count": {
+                    "started": 1
+                },
+                "type": "messaging"
+            },
+            "user": {
+                "email": "bar@user.com",
+                "id": "123user",
+                "name": "bar"
+            }
+        },
+        {
+            "@timestamp": "2017-05-30T18:53:27.154Z",
+            "agent": {
+                "name": "elastic-node",
+                "version": "3.14.0"
+            },
+            "cloud": {
+                "account": {
+                    "id": "account_id",
+                    "name": "account_name"
+                },
+                "availability_zone": "cloud_availability_zone",
+                "instance": {
+                    "id": "instance_id",
+                    "name": "instance_name"
+                },
+                "machine": {
+                    "type": "machine_type"
+                },
+                "project": {
+                    "id": "project_id",
+                    "name": "project_name"
+                },
+                "provider": "cloud_provider",
+                "region": "cloud_region",
+                "service": {
+                    "name": "lambda"
+                }
+            },
+            "container": {
+                "id": "container-id"
+            },
+            "data_stream.dataset": "apm",
+            "data_stream.namespace": "default",
+            "data_stream.type": "traces",
+            "event": {
+                "agent_id_status": "missing",
+                "ingested": "dynamic",
                 "outcome": "unknown"
             },
             "host": {
@@ -110,12 +269,15 @@
                 "version": "5.1.3"
             },
             "timestamp": {
-                "us": 1547070053000000
+                "us": 1496170407154000
             },
             "trace": {
                 "id": "0123456789abcdef0123456789abcdef"
             },
             "transaction": {
+                "duration": {
+                    "us": 32592
+                },
                 "id": "945254c567a5417e",
                 "representative_count": 1,
                 "sampled": true,
@@ -137,6 +299,15 @@
                 "version": "3.14.0"
             },
             "client": {
+                "geo": {
+                    "continent_name": "North America",
+                    "country_iso_code": "US",
+                    "country_name": "United States",
+                    "location": {
+                        "lat": 37.751,
+                        "lon": -97.822
+                    }
+                },
                 "ip": "12.53.12.1"
             },
             "cloud": {
@@ -169,8 +340,10 @@
             "data_stream.namespace": "default",
             "data_stream.type": "traces",
             "event": {
-                "duration": 32592981,
-                "outcome": "success"
+                "agent_id_status": "missing",
+                "ingested": "dynamic",
+                "outcome": "success",
+                "success_count": 1
             },
             "host": {
                 "architecture": "x64",
@@ -320,6 +493,9 @@
                     "my_key": 1,
                     "some_other_value": "foo bar"
                 },
+                "duration": {
+                    "us": 32592
+                },
                 "id": "4340a8e0df1906ecbfa9",
                 "name": "GET /api/types",
                 "representative_count": 1,
@@ -346,7 +522,17 @@
                 "name": "foo"
             },
             "user_agent": {
-                "original": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36, Mozilla Chrome Edge"
+                "device": {
+                    "name": "Mac"
+                },
+                "name": "Chrome",
+                "original": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36, Mozilla Chrome Edge",
+                "os": {
+                    "full": "Mac OS X 10.10.5",
+                    "name": "Mac OS X",
+                    "version": "10.10.5"
+                },
+                "version": "51.0.2704.103"
             }
         },
         {
@@ -386,7 +572,8 @@
             "data_stream.namespace": "default",
             "data_stream.type": "traces",
             "event": {
-                "duration": 13980558,
+                "agent_id_status": "missing",
+                "ingested": "dynamic",
                 "outcome": "unknown"
             },
             "host": {
@@ -468,6 +655,9 @@
                 "id": "0acd456789abcdef0123456789abcdef"
             },
             "transaction": {
+                "duration": {
+                    "us": 13980
+                },
                 "experience": {
                     "cls": 1,
                     "fid": 2,
@@ -496,160 +686,6 @@
                     "started": 436
                 },
                 "type": "request"
-            },
-            "user": {
-                "email": "bar@user.com",
-                "id": "123user",
-                "name": "bar"
-            }
-        },
-        {
-            "@timestamp": "2019-01-09T21:40:53.000Z",
-            "agent": {
-                "name": "elastic-node",
-                "version": "3.14.0"
-            },
-            "cloud": {
-                "account": {
-                    "id": "account_id",
-                    "name": "account_name"
-                },
-                "availability_zone": "cloud_availability_zone",
-                "instance": {
-                    "id": "instance_id",
-                    "name": "instance_name"
-                },
-                "machine": {
-                    "type": "machine_type"
-                },
-                "project": {
-                    "id": "project_id",
-                    "name": "project_name"
-                },
-                "provider": "cloud_provider",
-                "region": "cloud_region",
-                "service": {
-                    "name": "lambda"
-                }
-            },
-            "container": {
-                "id": "container-id"
-            },
-            "data_stream.dataset": "apm",
-            "data_stream.namespace": "default",
-            "data_stream.type": "traces",
-            "event": {
-                "duration": 3000000,
-                "outcome": "unknown"
-            },
-            "host": {
-                "architecture": "x64",
-                "hostname": "node-name",
-                "ip": [
-                    "127.0.0.1"
-                ],
-                "name": "node-name",
-                "os": {
-                    "platform": "darwin"
-                }
-            },
-            "kubernetes": {
-                "namespace": "namespace1",
-                "node": {
-                    "name": "node-name"
-                },
-                "pod": {
-                    "name": "pod-name",
-                    "uid": "pod-uid"
-                }
-            },
-            "labels": {
-                "tag1": "one"
-            },
-            "numeric_labels": {
-                "tag2": 2
-            },
-            "observer": {
-                "hostname": "dynamic",
-                "type": "apm-server",
-                "version": "dynamic"
-            },
-            "parent": {
-                "id": "abcdefabcdef01234567"
-            },
-            "process": {
-                "args": [
-                    "node",
-                    "server.js"
-                ],
-                "parent": {
-                    "pid": 6789
-                },
-                "pid": 1234,
-                "title": "node"
-            },
-            "processor": {
-                "event": "transaction",
-                "name": "transaction"
-            },
-            "service": {
-                "environment": "staging",
-                "framework": {
-                    "name": "Express",
-                    "version": "1.2.3"
-                },
-                "language": {
-                    "name": "ecmascript",
-                    "version": "8"
-                },
-                "name": "1234_service-12a3",
-                "node": {
-                    "name": "node-123"
-                },
-                "runtime": {
-                    "name": "node",
-                    "version": "8.0.0"
-                },
-                "version": "5.1.3"
-            },
-            "session": {
-                "id": "sunday",
-                "sequence": 123
-            },
-            "timestamp": {
-                "us": 1547070053000000
-            },
-            "trace": {
-                "id": "0123456789abcdef0123456789abcdef"
-            },
-            "transaction": {
-                "id": "00xxxxFFaaaa1234",
-                "message": {
-                    "age": {
-                        "ms": 1577958057123
-                    },
-                    "body": "user created",
-                    "headers": {
-                        "Involved_services": [
-                            "user",
-                            "auth"
-                        ],
-                        "User_id": [
-                            "1ax3"
-                        ]
-                    },
-                    "queue": {
-                        "name": "new_users"
-                    },
-                    "routing_key": "user-created-transaction"
-                },
-                "name": "amqp receive",
-                "representative_count": 1,
-                "sampled": true,
-                "span_count": {
-                    "started": 1
-                },
-                "type": "messaging"
             },
             "user": {
                 "email": "bar@user.com",
@@ -699,7 +735,8 @@
             "data_stream.namespace": "default",
             "data_stream.type": "traces",
             "event": {
-                "duration": 38853000,
+                "agent_id_status": "missing",
+                "ingested": "dynamic",
                 "outcome": "unknown"
             },
             "faas": {
@@ -789,6 +826,9 @@
                 "id": "eb56529a1f461c5e7e2f66ecb075e983"
             },
             "transaction": {
+                "duration": {
+                    "us": 38853
+                },
                 "id": "142e61450efb8574",
                 "name": "july-2021-delete-after-july-31",
                 "representative_count": 1,

@@ -209,7 +209,7 @@ func TestTxnAggregatorProcessBatch(t *testing.T) {
 				expectedOverflowMetricsets,
 				metricsets,
 				cmpopts.IgnoreSliceElements(func(a model.APMEvent) bool {
-					return a.Transaction.Name != "other"
+					return a.Transaction.Name != "_other"
 				}),
 				cmpopts.IgnoreTypes(netip.Addr{}),
 				cmpopts.IgnoreFields(model.APMEvent{}, "Timestamp", "Service.Name"),
@@ -711,7 +711,7 @@ func createOverflowMetricset(overflowCount, repCount int, txnDuration time.Durat
 	return model.APMEvent{
 		Processor: model.MetricsetProcessor,
 		Transaction: &model.Transaction{
-			Name: "other",
+			Name: "_other",
 			DurationHistogram: model.Histogram{
 				Counts: []int64{int64(overflowCount * repCount)},
 				Values: []float64{float64(txnDuration.Microseconds())},
