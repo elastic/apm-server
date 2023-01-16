@@ -324,13 +324,9 @@ func (s *Runner) Run(ctx context.Context) error {
 
 	var sourcemapFetcher sourcemap.Fetcher
 	if s.config.RumConfig.Enabled && s.config.RumConfig.SourceMapping.Enabled {
-		esConfig := *s.config.RumConfig.SourceMapping.ESConfig
-		esConfig.APIKey = s.config.KibanaAgentConfig.Elasticsearch.APIKey
-
 		fetcher, err := newSourcemapFetcher(
 			s.config.RumConfig.SourceMapping, s.fleetConfig,
 			kibanaClient, newElasticsearchClient,
-			&esConfig,
 		)
 		if err != nil {
 			return err
@@ -817,9 +813,8 @@ func newSourcemapFetcher(
 	fleetCfg *config.Fleet,
 	kibanaClient *kibana.Client,
 	newElasticsearchClient func(*elasticsearch.Config) (*elasticsearch.Client, error),
-	esConfig *elasticsearch.Config,
 ) (sourcemap.Fetcher, error) {
-	esClient, err := newElasticsearchClient(esConfig)
+	esClient, err := newElasticsearchClient(cfg.ESConfig)
 	if err != nil {
 		return nil, err
 	}
