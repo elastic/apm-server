@@ -35,9 +35,7 @@ import (
 )
 
 var (
-	esHeader   = http.Header{"X-Elastic-Product-Origin": []string{"observability"}}
-	gzipHeader = http.Header{"Content-Encoding": []string{"gzip"}, "X-Elastic-Product-Origin": []string{"observability"}}
-	newline    = []byte("\n")
+	newline = []byte("\n")
 )
 
 // NOTE(axw) please avoid introducing apm-server specific details to this code;
@@ -154,9 +152,10 @@ func (b *bulkIndexer) Flush(ctx context.Context) (elasticsearch.BulkIndexerRespo
 		}
 	}
 
-	req := esapi.BulkRequest{Body: &b.buf, Header: esHeader}
+	req := esapi.BulkRequest{Body: &b.buf, Header: make(http.Header)}
+	req.Header.Set("X-Elastic-Product-Origin", "observability")
 	if b.gzipw != nil {
-		req.Header = gzipHeader
+		req.Header.Set("Content-Encoding", "gzip")
 	}
 
 	bytesFlushed := b.buf.Len()
