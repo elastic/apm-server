@@ -51,6 +51,7 @@
 - external: ecs
   name: cloud.provider
   index: false
+  dimension: true
 - external: ecs
   name: cloud.region
 - external: ecs
@@ -107,6 +108,7 @@
   name: service.node.name
 - external: ecs
   name: service.version
+  dimension: true
 - external: ecs
   name: source.domain
 - external: ecs

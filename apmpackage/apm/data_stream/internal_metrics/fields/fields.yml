@@ -4,6 +4,7 @@
     Boolean indicating whether the function invocation was a coldstart or not.
 - name: faas.id
   type: keyword
+  dimension: true
   description: |
     A unique identifier of the invoked serverless function.
 - name: faas.execution
@@ -24,6 +25,7 @@
     The lambda function name.
 - name: faas.version
   type: keyword
+  dimension: true
   description: |
     The lambda function version.
 - name: kubernetes.namespace
