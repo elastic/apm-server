@@ -56,6 +56,7 @@
   name: cloud.region
 - external: ecs
   name: cloud.service.name
+  dimension: true
 - external: ecs
   name: container.id
 - external: ecs

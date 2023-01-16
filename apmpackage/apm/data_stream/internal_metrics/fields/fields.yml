@@ -73,19 +73,23 @@
     Version of the framework used.
 - name: service.language.name
   type: keyword
+  dimension: true
   description: |
     Name of the programming language used.
 - name: service.language.version
   type: keyword
+  dimension: true
   index: false
   description: |
     Version of the programming language used.
 - name: service.runtime.name
   type: keyword
+  dimension: true
   description: |
     Name of the runtime used.
 - name: service.runtime.version
   type: keyword
+  dimension: true
   index: false
   description: |
     Version of the runtime used.
