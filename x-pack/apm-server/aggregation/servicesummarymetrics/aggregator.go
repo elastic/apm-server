@@ -131,10 +131,12 @@ func (a *Aggregator) publish(ctx context.Context, period time.Duration) error {
 
 	intervalStr := interval.FormatDuration(period)
 	batch := make(model.Batch, 0, size)
-	for key, aggKey := range current.m {
-		m := makeMetricset(aggKey, intervalStr)
-		batch = append(batch, m)
-		delete(current.m, key)
+	for hash, entries := range current.m {
+		for _, key := range entries {
+			m := makeMetricset(*key, intervalStr)
+			batch = append(batch, m)
+		}
+		delete(current.m, hash)
 	}
 	a.config.Logger.Debugf("publishing %d metricsets", len(batch))
 	return a.config.BatchProcessor.ProcessBatch(ctx, &batch)
@@ -166,7 +168,7 @@ func (a *Aggregator) processEvent(event *model.APMEvent, b *model.Batch) {
 
 type metricsBuffer struct {
 	mu sync.RWMutex
-	m  map[uint64]aggregationKey
+	m  map[uint64][]*aggregationKey
 
 	maxSize int
 }
@@ -174,7 +176,7 @@ type metricsBuffer struct {
 func newMetricsBuffer(maxSize int) *metricsBuffer {
 	return &metricsBuffer{
 		maxSize: maxSize,
-		m:       make(map[uint64]aggregationKey),
+		m:       make(map[uint64][]*aggregationKey),
 	}
 }
 
@@ -187,7 +189,17 @@ func (mb *metricsBuffer) storeOrUpdate(
 	mb.mu.Lock()
 	defer mb.mu.Unlock()
 
-	_, ok := mb.m[hash]
+	entries, ok := mb.m[hash]
+	if ok {
+		ok = false
+		for _, old := range entries {
+			if old.equal(key) {
+				ok = true
+				break
+			}
+		}
+	}
+
 	if !ok {
 		n := len(mb.m)
 		half := mb.maxSize / 2
@@ -200,7 +212,7 @@ func (mb *metricsBuffer) storeOrUpdate(
 		case mb.maxSize - 1:
 			logger.Warn("service summary groups reached 100% capacity")
 		}
-		mb.m[hash] = key
+		mb.m[hash] = append(mb.m[hash], &key)
 	}
 	return true
 }
@@ -221,6 +233,11 @@ func (k *aggregationKey) hash() uint64 {
 	h.WriteString(k.serviceEnvironment)
 	h.WriteString(k.serviceName)
 	return h.Sum64()
+}
+
+func (k *aggregationKey) equal(key aggregationKey) bool {
+	return k.comparable == key.comparable &&
+		k.AggregatedGlobalLabels.Equals(&key.AggregatedGlobalLabels)
 }
 
 type comparable struct {
