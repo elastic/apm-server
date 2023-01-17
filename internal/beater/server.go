@@ -248,7 +248,11 @@ func newAgentConfigFetcher(
 		agentConfigurations := agentcfg.ConvertAgentConfigs(cfg.FleetAgentConfigs)
 		fallbackFetcher = agentcfg.NewDirectFetcher(agentConfigurations)
 	case kibanaClient != nil:
-		fallbackFetcher = agentcfg.NewKibanaFetcher(kibanaClient, cfg.AgentConfig.Cache.Expiration)
+		var err error
+		fallbackFetcher, err = agentcfg.NewKibanaFetcher(kibanaClient, cfg.AgentConfig.Cache.Expiration)
+		if err != nil {
+			return nil, nil, err
+		}
 	default:
 		// It is possible that none of the above applies.
 	}

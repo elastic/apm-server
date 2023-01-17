@@ -63,7 +63,9 @@ func TestKibanaFetcher(t *testing.T) {
 		statusCode = http.StatusExpectationFailed
 		response = map[string]interface{}{"error": "an error"}
 
-		_, err := NewKibanaFetcher(client, testExpiration).Fetch(context.Background(), query(t.Name()))
+		kf, err := NewKibanaFetcher(client, testExpiration)
+		require.NoError(t, err)
+		_, err = kf.Fetch(context.Background(), query(t.Name()))
 		require.Error(t, err)
 		assert.Equal(t, "agentcfg kibana request failed with status code 417: {\"error\":\"an error\"}\n", err.Error())
 	})
@@ -72,7 +74,9 @@ func TestKibanaFetcher(t *testing.T) {
 		statusCode = http.StatusNotFound
 		response = map[string]interface{}{}
 
-		result, err := NewKibanaFetcher(client, testExpiration).Fetch(context.Background(), query(t.Name()))
+		kf, err := NewKibanaFetcher(client, testExpiration)
+		require.NoError(t, err)
+		result, err := kf.Fetch(context.Background(), query(t.Name()))
 		require.NoError(t, err)
 		assert.Equal(t, zeroResult(), result)
 	})
@@ -84,14 +88,17 @@ func TestKibanaFetcher(t *testing.T) {
 		b, err := json.Marshal(response)
 		expectedResult, err := newResult(b, err)
 		require.NoError(t, err)
-		result, err := NewKibanaFetcher(client, testExpiration).Fetch(context.Background(), query(t.Name()))
+		kf, err := NewKibanaFetcher(client, testExpiration)
+		require.NoError(t, err)
+		result, err := kf.Fetch(context.Background(), query(t.Name()))
 		require.NoError(t, err)
 		assert.Equal(t, expectedResult, result)
 	})
 
 	t.Run("FetchFromCache", func(t *testing.T) {
 
-		fetcher := NewKibanaFetcher(client, time.Minute)
+		fetcher, err := NewKibanaFetcher(client, time.Minute)
+		require.NoError(t, err)
 		fetch := func(kibanaSamplingRate, expectedSamplingRate float64) {
 			statusCode = http.StatusOK
 			response = mockDoc(kibanaSamplingRate)
