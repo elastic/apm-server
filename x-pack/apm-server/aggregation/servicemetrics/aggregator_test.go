@@ -299,7 +299,7 @@ func TestAggregatorOverflow(t *testing.T) {
 	var overflowEvent *model.APMEvent
 	for i := range metricsets {
 		m := metricsets[i]
-		if m.Service.Name == "other" {
+		if m.Service.Name == "_other" {
 			if overflowEvent != nil {
 				require.Fail(t, "only one service should overflow")
 			}
@@ -308,7 +308,7 @@ func TestAggregatorOverflow(t *testing.T) {
 	}
 	assert.Empty(t, cmp.Diff(model.APMEvent{
 		Service: model.Service{
-			Name: "other",
+			Name: "_other",
 		},
 		Processor: model.MetricsetProcessor,
 		Transaction: &model.Transaction{

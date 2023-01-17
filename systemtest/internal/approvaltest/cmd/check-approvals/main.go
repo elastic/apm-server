@@ -28,7 +28,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/google/go-cmp/cmp"
 
-	"github.com/elastic/apm-server/internal/approvaltest"
+	"github.com/elastic/apm-server/systemtest/internal/approvaltest"
 )
 
 func main() {

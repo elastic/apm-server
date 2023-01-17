@@ -198,9 +198,20 @@ apm-server:
 
   #---------------------------- APM Server - Agent Configuration ----------------------------
 
-  # When using APM agent configuration, information fetched from Kibana will be cached in memory for some time.
-  # Specify cache key expiration via this setting. Default is 30 seconds.
-  #agent.config.cache.expiration: 30s
+  # When using APM agent configuration, information fetched from Elasticsearch or Kibana will be cached in memory for some time.
+  #agent.config:
+    # Specify cache key expiration via this setting. Default is 30 seconds.
+    #cache.expiration: 30s
+
+    # Agent config will be fetched from Elasticsearch using the output.elasticsearch configuration.
+    # Elasticsearch authentication configurations are exposed to allow fine-tuned permission control
+    # and is required when working with Elastic Agent standalone or Fleet.
+    # This will override credentials in output.elasticsearch configuration.
+    #elasticsearch:
+      # Authentication credentials - either API key or username/password.
+      #api_key: "id:api_key"
+      #username: "elastic"
+      #password: "changeme"
 
   #kibana:
     # Enabled must be true to enable APM Agent configuration, and for fetching source maps uploaded through Kibana.

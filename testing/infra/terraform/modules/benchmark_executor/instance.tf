@@ -1,3 +1,11 @@
+locals {
+  ec2_tags = {
+    name       = "${var.user_name}-worker"
+    managed-by = "terraform"
+    owner      = var.user_name
+  }
+}
+
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
   version = "3.14.0"
@@ -30,10 +38,7 @@ module "vpc" {
     }
   ]
 
-  tags = {
-    Owner       = var.user_name
-    Environment = "dev"
-  }
+  tags = merge(var.tags, local.ec2_tags)
   vpc_tags = {
     Name = "vpc-${var.user_name}-worker"
   }
@@ -42,6 +47,7 @@ module "vpc" {
 resource "aws_key_pair" "worker" {
   key_name   = "${var.user_name}_worker_key"
   public_key = file(var.public_key)
+  tags       = merge(var.tags, local.ec2_tags)
 }
 
 data "aws_ami" "worker_ami" {
@@ -66,14 +72,5 @@ module "ec2_instance" {
   subnet_id                   = module.vpc.public_subnets[0]
   associate_public_ip_address = true
   key_name                    = aws_key_pair.worker.id
-
-  tags = {
-    Name       = "${var.user_name}-worker"
-    managed-by = "terraform"
-    Owner      = var.user_name
-    division   = "engineering"
-    org        = "obs"
-    team       = "apm-server"
-    project    = "benchmarks"
-  }
+  tags                        = merge(var.tags, local.ec2_tags)
 }

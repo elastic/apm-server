@@ -1,0 +1,174 @@
+// Licensed to Elasticsearch B.V. under one or more contributor
+// license agreements. See the NOTICE file distributed with
+// this work for additional information regarding copyright
+// ownership. Elasticsearch B.V. licenses this file to you under
+// the Apache License, Version 2.0 (the "License"); you may
+// not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied.  See the License for the
+// specific language governing permissions and limitations
+// under the License.
+
+package agentcfg
+
+import (
+	"context"
+	"encoding/json"
+	"io"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+	"time"
+
+	"github.com/stretchr/testify/require"
+
+	"github.com/elastic/apm-server/internal/elasticsearch"
+)
+
+var sampleHits = []map[string]interface{}{
+	{"_id": "h_KmzYQBfJ4l0GgqXgKA", "_index": ".apm-agent-configuration", "_score": 1, "_source": map[string]interface{}{"@timestamp": 1.669897543296e+12, "applied_by_agent": false, "etag": "ef12bf5e879c38e931d2894a9c90b2cb1b5fa190", "service": map[string]interface{}{"name": "first"}, "settings": map[string]interface{}{"sanitize_field_names": "foo,bar,baz", "transaction_sample_rate": "0.1"}}},
+	{"_id": "hvKmzYQBfJ4l0GgqXgJt", "_index": ".apm-agent-configuration", "_score": 1, "_source": map[string]interface{}{"@timestamp": 1.669897543277e+12, "applied_by_agent": false, "etag": "2da2f86251165ccced5c5e41100a216b0c880db4", "service": map[string]interface{}{"name": "second"}, "settings": map[string]interface{}{"sanitize_field_names": "foo,bar,baz", "transaction_sample_rate": "0.1"}}},
+}
+
+func newMockElasticsearchClient(t testing.TB, statusCode int, responseFunc func(io.Writer)) *elasticsearch.Client {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("X-Elastic-Product", "Elasticsearch")
+		w.WriteHeader(statusCode)
+		responseFunc(w)
+	}))
+	t.Cleanup(srv.Close)
+	config := elasticsearch.DefaultConfig()
+	config.Backoff.Init = time.Nanosecond
+	config.Hosts = []string{srv.URL}
+	client, err := elasticsearch.NewClient(config)
+	require.NoError(t, err)
+	return client
+}
+
+func newElasticsearchFetcher(t testing.TB, hits []map[string]interface{}, searchSize int) *ElasticsearchFetcher {
+	var maxScore = func(hits []map[string]interface{}) interface{} {
+		if len(hits) == 0 {
+			return nil
+		}
+		return 1
+	}
+	var respTmpl = map[string]interface{}{
+		"_scroll_id": "FGluY2x1ZGVfY29udGV4dF91dWlkDXF1ZXJ5QW5kRmV0Y2gBFkJUT0Z5bFUtUXRXM3NTYno0dkM2MlEAAAAAAABnRBY5OUxYalAwUFFoS1NfLV9lWjlSYTRn",
+		"_shards":    map[string]interface{}{"failed": 0, "skipped": 0, "successful": 1, "total": 1},
+		"hits": map[string]interface{}{
+			"hits":      []map[string]interface{}{},
+			"max_score": maxScore(hits),
+			"total":     map[string]interface{}{"relation": "eq", "value": len(hits)},
+		},
+		"timed_out": false,
+		"took":      1,
+	}
+
+	i := 0
+	fetcher := NewElasticsearchFetcher(newMockElasticsearchClient(t, 200, func(w io.Writer) {
+		if i < len(hits) {
+			respTmpl["hits"].(map[string]interface{})["hits"] = hits[i : i+searchSize]
+		} else {
+			respTmpl["hits"].(map[string]interface{})["hits"] = []map[string]interface{}{}
+		}
+
+		b, err := json.Marshal(respTmpl)
+		require.NoError(t, err)
+		w.Write(b)
+		i += searchSize
+	}), time.Second, nil)
+	fetcher.searchSize = searchSize
+	return fetcher
+}
+
+func TestFetch(t *testing.T) {
+	fetcher := newElasticsearchFetcher(t, sampleHits, 2)
+	err := fetcher.refreshCache(context.Background())
+	require.NoError(t, err)
+	require.Len(t, fetcher.cache, 2)
+
+	result, err := fetcher.Fetch(context.Background(), Query{Service: Service{Name: "first"}, Etag: ""})
+	require.NoError(t, err)
+	require.Equal(t, Result{Source: Source{
+		Settings: map[string]string{"sanitize_field_names": "foo,bar,baz", "transaction_sample_rate": "0.1"},
+		Etag:     "ef12bf5e879c38e931d2894a9c90b2cb1b5fa190",
+		Agent:    "",
+	}}, result)
+}
+
+func TestRefreshCacheScroll(t *testing.T) {
+	fetcher := newElasticsearchFetcher(t, sampleHits, 1)
+	err := fetcher.refreshCache(context.Background())
+	require.NoError(t, err)
+	require.Len(t, fetcher.cache, 2)
+	require.Equal(t, "first", fetcher.cache[0].ServiceName)
+	require.Equal(t, "second", fetcher.cache[1].ServiceName)
+}
+
+func TestFetchOnCacheNotReady(t *testing.T) {
+	fetcher := newElasticsearchFetcher(t, []map[string]interface{}{}, 1)
+
+	_, err := fetcher.Fetch(context.Background(), Query{Service: Service{Name: ""}, Etag: ""})
+	require.EqualError(t, err, ErrInfrastructureNotReady)
+
+	err = fetcher.refreshCache(context.Background())
+	require.NoError(t, err)
+
+	_, err = fetcher.Fetch(context.Background(), Query{Service: Service{Name: ""}, Etag: ""})
+	require.NoError(t, err)
+}
+
+type fetcherFunc func(context.Context, Query) (Result, error)
+
+func (f fetcherFunc) Fetch(ctx context.Context, query Query) (Result, error) {
+	return f(ctx, query)
+}
+
+func TestFetchUseFallback(t *testing.T) {
+	fallbackFetcherCalled := false
+	fallbackFetcher := fetcherFunc(func(context.Context, Query) (Result, error) {
+		fallbackFetcherCalled = true
+		return Result{}, nil
+	})
+	fetcher := NewElasticsearchFetcher(
+		newMockElasticsearchClient(t, 404, func(w io.Writer) {}),
+		time.Second,
+		fallbackFetcher,
+	)
+
+	fetcher.refreshCache(context.Background())
+	fetcher.Fetch(context.Background(), Query{Service: Service{Name: ""}, Etag: ""})
+	require.True(t, fallbackFetcherCalled)
+}
+
+func TestFetchNoFallbackInvalidESCfg(t *testing.T) {
+	fetcher := NewElasticsearchFetcher(
+		newMockElasticsearchClient(t, 401, func(w io.Writer) {}),
+		time.Second,
+		nil,
+	)
+
+	err := fetcher.refreshCache(context.Background())
+	require.EqualError(t, err, "refresh cache elasticsearch returned status 401")
+	_, err = fetcher.Fetch(context.Background(), Query{Service: Service{Name: ""}, Etag: ""})
+	require.EqualError(t, err, ErrNoValidElasticsearchConfig)
+}
+
+func TestFetchNoFallback(t *testing.T) {
+	fetcher := NewElasticsearchFetcher(
+		newMockElasticsearchClient(t, 500, func(w io.Writer) {}),
+		time.Second,
+		nil,
+	)
+
+	err := fetcher.refreshCache(context.Background())
+	require.EqualError(t, err, "refresh cache elasticsearch returned status 500")
+	_, err = fetcher.Fetch(context.Background(), Query{Service: Service{Name: ""}, Etag: ""})
+	require.EqualError(t, err, ErrInfrastructureNotReady)
+}

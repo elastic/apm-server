@@ -33,6 +33,12 @@ variable "private_key" {
   type    = string
 }
 
+variable "tags" {
+  type        = map(string)
+  default     = {}
+  description = "Optional set of tags to use for all resources"
+}
+
 ## VPC Network settings
 
 variable "vpc_cidr" {

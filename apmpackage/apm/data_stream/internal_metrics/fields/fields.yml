@@ -171,9 +171,3 @@
   dynamic: true
   description: |
     Custom key/value pairs. Can be used to add meta information to events. Should not contain nested objects. All values are stored as scaled_float.
-- name: transaction.aggregation.overflow_count
-  type: long
-  description: Number of aggregation groups that overflowed for transaction metrics aggregation
-- name: service.aggregation.overflow_count
-  type: long
-  description: Number of aggregation groups that overflowed for service metrics aggregation.

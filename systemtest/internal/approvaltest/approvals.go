@@ -75,21 +75,6 @@ func ApproveEventDocs(t testing.TB, name string, eventDocs [][]byte, dynamic ...
 	approve(t, name, received)
 }
 
-// ApproveJSON compares the given JSON-encoded value with the
-// contents of the file "<name>.approved.json", by decoding the
-// value and passing it to Approve.
-//
-// If the value differs, then the test will fail.
-func ApproveJSON(t testing.TB, name string, encoded []byte) {
-	t.Helper()
-
-	var decoded interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
-		t.Error(err)
-	}
-	approve(t, name, decoded)
-}
-
 // approve compares the given value with the contents of the file
 // "<name>.approved.json".
 //

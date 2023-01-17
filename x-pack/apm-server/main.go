@@ -147,9 +147,9 @@ func newProcessors(args beater.ServerParams) ([]namedProcessor, error) {
 			HDRHistogramSignificantFigures: args.Config.Aggregation.Service.HDRHistogramSignificantFigures,
 		})
 		if err != nil {
-			return nil, errors.Wrapf(err, "error creating %s", spanName)
+			return nil, errors.Wrapf(err, "error creating %s", serviceName)
 		}
-		processors = append(processors, namedProcessor{name: spanName, processor: serviceAggregator})
+		processors = append(processors, namedProcessor{name: serviceName, processor: serviceAggregator})
 	}
 
 	if args.Config.Sampling.Tail.Enabled {

@@ -252,16 +252,7 @@ func agentConfigHandler(
 	fleetManaged bool,
 ) (request.Handler, error) {
 	mw := middlewareFunc(cfg, authenticator, ratelimitStore, agent.MonitoringMap)
-	h := agent.NewHandler(f, cfg.KibanaAgentConfig.Cache.Expiration, cfg.DefaultServiceEnvironment, cfg.AgentAuth.Anonymous.AllowAgent)
-
-	if !cfg.Kibana.Enabled && !fleetManaged {
-		msg := "Agent remote configuration is disabled. " +
-			"Configure the `apm-server.kibana` section in apm-server.yml to enable it. " +
-			"If you are using a RUM agent, you also need to configure the `apm-server.rum` section. " +
-			"If you are not using remote configuration, you can safely ignore this error."
-		mw = append(mw, middleware.KillSwitchMiddleware(cfg.Kibana.Enabled, msg))
-	}
-
+	h := agent.NewHandler(f, cfg.AgentConfig.Cache.Expiration, cfg.DefaultServiceEnvironment, cfg.AgentAuth.Anonymous.AllowAgent)
 	return middleware.Wrap(h, mw...)
 }
 
