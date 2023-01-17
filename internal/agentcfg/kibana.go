@@ -51,7 +51,7 @@ type KibanaFetcher struct {
 
 // NewKibanaFetcher returns a KibanaFetcher instance.
 //
-// NewKibanaFetcher will panic if passed a nil client.
+// NewKibanaFetcher will return an error if passed a nil client.
 func NewKibanaFetcher(client *kibana.Client, cacheExpiration time.Duration) (*KibanaFetcher, error) {
 	if client == nil {
 		return nil, errors.New("client is required")
