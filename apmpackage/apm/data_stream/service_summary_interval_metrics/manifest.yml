@@ -1,0 +1,18 @@
+title: APM service summary metrics {{ .Interval }}
+type: metrics
+dataset: apm.service_summary.{{ .Interval }}
+ilm_policy: metrics-apm.service_summary_interval_metrics-default_policy.{{ .Interval }}
+elasticsearch:
+  index_template:
+    mappings:
+      # Internal metrics should have all fields strictly mapped;
+      # we are in full control of the field names.
+      dynamic: strict
+      # Individual measurements are typically uninteresting, so
+      # use synthetic source to reduce storage size.
+      _source:
+        mode: synthetic
+    settings:
+      index:
+        sort.field: "@timestamp"
+        sort.order: desc

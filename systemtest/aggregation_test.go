@@ -311,3 +311,36 @@ func TestServiceMetricsAggregationLabels(t *testing.T) {
 	}
 	assert.ElementsMatch(t, metricsets, docs)
 }
+
+func TestServiceSummaryMetricsAggregation(t *testing.T) {
+	systemtest.CleanupElasticsearch(t)
+	srv := apmservertest.NewUnstartedServerTB(t)
+	enabled := true
+	srv.Config.Aggregation = &apmservertest.AggregationConfig{
+		Service: &apmservertest.ServiceAggregationConfig{Enabled: &enabled},
+	}
+	err := srv.Start()
+	require.NoError(t, err)
+
+	timestamp, _ := time.Parse(time.RFC3339Nano, "2006-01-02T15:04:05.999999999Z") // should be truncated to 1s
+	tracer := srv.Tracer()
+	for i := 0; i < 2; i++ {
+		tx := tracer.StartTransactionOptions("name", "type", apm.TransactionOptions{Start: timestamp})
+		tx.Duration = time.Second
+		tx.End()
+	}
+	tracer.Flush(nil)
+
+	// Wait for the transaction to be indexed, indicating that Elasticsearch
+	// indices have been setup and we should not risk triggering the shutdown
+	// timeout while waiting for the aggregated metrics to be indexed.
+	systemtest.Elasticsearch.ExpectMinDocs(t, 2, "traces-apm*",
+		estest.TermQuery{Field: "processor.event", Value: "transaction"},
+	)
+	// Stop server to ensure metrics are flushed on shutdown.
+	assert.NoError(t, srv.Close())
+	result := systemtest.Elasticsearch.ExpectMinDocs(t, 1, "metrics-apm.service_summary*",
+		estest.TermQuery{Field: "metricset.name", Value: "service_summary"},
+	)
+	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits)
+}
