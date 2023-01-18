@@ -59,13 +59,17 @@ type esSourcemapResponse struct {
 		}
 		Hits []struct {
 			Source struct {
-				ServiceName    string `json:"service.name"`
-				ServiceVersion string `json:"service.version"`
-				BundleFilepath string `json:"file.path"`
-				Sourcemap      string `json:"content"`
-				ContentHash    string `json:"content_sha256"`
+				Service struct {
+					Name    string `json:"name"`
+					Version string `json:"version"`
+				} `json:"service"`
+				File struct {
+					BundleFilepath string `json:"path"`
+				} `json:"file"`
+				Sourcemap   string `json:"content"`
+				ContentHash string `json:"content_sha256"`
 			} `json:"_source"`
-		}
+		} `json:"hits"`
 	} `json:"hits"`
 }
 

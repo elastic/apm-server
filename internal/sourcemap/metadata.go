@@ -195,9 +195,9 @@ func (s *MetadataCachingFetcher) sync(ctx context.Context) error {
 	updates := make(map[Identifier]string, len(body.Hits.Hits))
 	for _, v := range body.Hits.Hits {
 		id := Identifier{
-			name:    v.Source.ServiceName,
-			version: v.Source.ServiceVersion,
-			path:    v.Source.BundleFilepath,
+			name:    v.Source.Service.Name,
+			version: v.Source.Service.Version,
+			path:    v.Source.File.BundleFilepath,
 		}
 
 		updates[id] = v.Source.ContentHash
