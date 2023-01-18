@@ -1,0 +1,312 @@
+{
+    "events": [
+        {
+            "@timestamp": "dynamic",
+            "agent": {
+                "name": "elastic-node",
+                "version": "3.14.0"
+            },
+            "data_stream.dataset": "apm.error",
+            "data_stream.namespace": "default",
+            "data_stream.type": "logs",
+            "error": {
+                "grouping_key": "0b9cba09845a097a271c6beb4c6207f3",
+                "grouping_name": "error log message",
+                "id": "abcdef0123456789",
+                "log": {
+                    "message": "error log message"
+                }
+            },
+            "event": {
+                "agent_id_status": "missing",
+                "ingested": "dynamic"
+            },
+            "host": {
+                "ip": [
+                    "127.0.0.1"
+                ]
+            },
+            "message": "error log message",
+            "observer": {
+                "hostname": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic"
+            },
+            "processor": {
+                "event": "error",
+                "name": "error"
+            },
+            "service": {
+                "name": "1234_service-12a3"
+            },
+            "timestamp": {
+                "us": "dynamic"
+            }
+        },
+        {
+            "@timestamp": "dynamic",
+            "agent": {
+                "name": "elastic-node",
+                "version": "3.14.0"
+            },
+            "data_stream.dataset": "apm.error",
+            "data_stream.namespace": "default",
+            "data_stream.type": "logs",
+            "error": {
+                "exception": [
+                    {
+                        "message": "error exception message"
+                    }
+                ],
+                "grouping_key": "3a1fb5609458fbb132b44d8fc7cde104",
+                "grouping_name": "error exception message",
+                "id": "abcdef0123456790"
+            },
+            "event": {
+                "agent_id_status": "missing",
+                "ingested": "dynamic"
+            },
+            "host": {
+                "ip": [
+                    "127.0.0.1"
+                ]
+            },
+            "message": "error exception message",
+            "observer": {
+                "hostname": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic"
+            },
+            "processor": {
+                "event": "error",
+                "name": "error"
+            },
+            "service": {
+                "name": "1234_service-12a3"
+            },
+            "timestamp": {
+                "us": "dynamic"
+            }
+        },
+        {
+            "@timestamp": "dynamic",
+            "agent": {
+                "name": "elastic-node",
+                "version": "3.14.0"
+            },
+            "data_stream.dataset": "apm.error",
+            "data_stream.namespace": "default",
+            "data_stream.type": "logs",
+            "error": {
+                "exception": [
+                    {
+                        "type": "error exception type"
+                    }
+                ],
+                "grouping_key": "fa405fa2bd848dab17207e7b544d9ad4",
+                "grouping_name": null,
+                "id": "abcdef0123456791"
+            },
+            "event": {
+                "agent_id_status": "missing",
+                "ingested": "dynamic"
+            },
+            "host": {
+                "ip": [
+                    "127.0.0.1"
+                ]
+            },
+            "observer": {
+                "hostname": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic"
+            },
+            "processor": {
+                "event": "error",
+                "name": "error"
+            },
+            "service": {
+                "name": "1234_service-12a3"
+            },
+            "timestamp": {
+                "us": "dynamic"
+            }
+        },
+        {
+            "@timestamp": "dynamic",
+            "a": 3.2,
+            "agent": {
+                "name": "elastic-node",
+                "version": "3.14.0"
+            },
+            "data_stream": {
+                "dataset": "apm.app.1234_service_12a3",
+                "namespace": "default",
+                "type": "metrics"
+            },
+            "ecs": {
+                "version": "dynamic"
+            },
+            "event": {
+                "agent_id_status": "missing",
+                "ingested": "dynamic"
+            },
+            "host": {
+                "ip": "127.0.0.1"
+            },
+            "metricset": {
+                "name": "app"
+            },
+            "observer": {
+                "hostname": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic"
+            },
+            "processor": {
+                "event": "metric",
+                "name": "metric"
+            },
+            "service": {
+                "name": "1234_service-12a3"
+            }
+        },
+        {
+            "@timestamp": "dynamic",
+            "agent": {
+                "name": "elastic-node",
+                "version": "3.14.0"
+            },
+            "data_stream.dataset": "apm",
+            "data_stream.namespace": "default",
+            "data_stream.type": "traces",
+            "event": {
+                "agent_id_status": "missing",
+                "ingested": "dynamic",
+                "outcome": "unknown"
+            },
+            "observer": {
+                "hostname": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic"
+            },
+            "parent": {
+                "id": "ab23456a89012345"
+            },
+            "processor": {
+                "event": "span",
+                "name": "transaction"
+            },
+            "service": {
+                "name": "1234_service-12a3"
+            },
+            "span": {
+                "duration": {
+                    "us": 3564
+                },
+                "id": "0123456a89012345",
+                "name": "GET /api/types",
+                "type": "request"
+            },
+            "timestamp": {
+                "us": "dynamic"
+            },
+            "trace": {
+                "id": "0123456789abcdef0123456789abcdef"
+            }
+        },
+        {
+            "@timestamp": "dynamic",
+            "agent": {
+                "name": "elastic-node",
+                "version": "3.14.0"
+            },
+            "data_stream.dataset": "apm",
+            "data_stream.namespace": "default",
+            "data_stream.type": "traces",
+            "event": {
+                "agent_id_status": "missing",
+                "ingested": "dynamic",
+                "outcome": "unknown"
+            },
+            "observer": {
+                "hostname": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic"
+            },
+            "parent": {
+                "id": "ab23456a89012345"
+            },
+            "processor": {
+                "event": "span",
+                "name": "transaction"
+            },
+            "service": {
+                "name": "1234_service-12a3"
+            },
+            "span": {
+                "duration": {
+                    "us": 3564
+                },
+                "id": "0123456a89012345",
+                "name": "GET /api/types",
+                "type": "request"
+            },
+            "timestamp": {
+                "us": "dynamic"
+            },
+            "trace": {
+                "id": "0123456789abcdef0123456789abcdef"
+            }
+        },
+        {
+            "@timestamp": "dynamic",
+            "agent": {
+                "name": "elastic-node",
+                "version": "3.14.0"
+            },
+            "data_stream.dataset": "apm",
+            "data_stream.namespace": "default",
+            "data_stream.type": "traces",
+            "event": {
+                "agent_id_status": "missing",
+                "ingested": "dynamic",
+                "outcome": "unknown"
+            },
+            "host": {
+                "ip": [
+                    "127.0.0.1"
+                ]
+            },
+            "observer": {
+                "hostname": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic"
+            },
+            "processor": {
+                "event": "transaction",
+                "name": "transaction"
+            },
+            "service": {
+                "name": "1234_service-12a3"
+            },
+            "timestamp": {
+                "us": "dynamic"
+            },
+            "trace": {
+                "id": "01234567890123456789abcdefabcdef"
+            },
+            "transaction": {
+                "duration": {
+                    "us": 32592
+                },
+                "id": "abcdef1478523690",
+                "representative_count": 1,
+                "sampled": true,
+                "span_count": {
+                    "started": 0
+                },
+                "type": "request"
+            }
+        }
+    ]
+}

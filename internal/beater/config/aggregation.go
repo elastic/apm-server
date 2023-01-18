@@ -45,9 +45,8 @@ type ServiceDestinationAggregationConfig struct {
 
 // ServiceAggregationConfig holds configuration related to service metrics aggregation.
 type ServiceAggregationConfig struct {
-	Enabled                        bool `config:"enabled"`
-	MaxGroups                      int  `config:"max_groups"` // if <= 0 then will be set based on memory limits
-	HDRHistogramSignificantFigures int  `config:"hdrhistogram_significant_figures" validate:"min=1, max=5"`
+	MaxGroups                      int `config:"max_groups"` // if <= 0 then will be set based on memory limits
+	HDRHistogramSignificantFigures int `config:"hdrhistogram_significant_figures" validate:"min=1, max=5"`
 }
 
 func defaultAggregationConfig() AggregationConfig {
@@ -59,10 +58,6 @@ func defaultAggregationConfig() AggregationConfig {
 			MaxGroups: defaultServiceDestinationAggregationMaxGroups,
 		},
 		Service: ServiceAggregationConfig{
-			// NOTE(axw) service metrics are in technical preview,
-			// disabled by default. Once proven, they may be always
-			// enabled in a future release, without configuration.
-			Enabled:                        false,
 			HDRHistogramSignificantFigures: defaultServiceAggregationHDRHistogramSignificantFigures,
 		},
 	}

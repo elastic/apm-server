@@ -209,7 +209,7 @@ func TestAgentConfigHandlerAnonymousAccess(t *testing.T) {
 
 func TestAgentConfigHandlerAuthorizedForService(t *testing.T) {
 	var called bool
-	f := newKibanaFetcher(t, func(w http.ResponseWriter, r *http.Request) {
+	f := newSanitizingKibanaFetcher(t, func(w http.ResponseWriter, r *http.Request) {
 		called = true
 	})
 	h := NewHandler(f, time.Nanosecond, "", nil)
@@ -249,7 +249,7 @@ func TestConfigAgentHandler_DirectConfiguration(t *testing.T) {
 }
 
 func TestAgentConfigHandler_PostOk(t *testing.T) {
-	f := newKibanaFetcher(t, func(w http.ResponseWriter, r *http.Request) {
+	f := newSanitizingKibanaFetcher(t, func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintln(w, `{"_id": "1", "_source": {"settings": {"sampling_rate": 0.5}}}`)
 	})
 	h := NewHandler(f, time.Nanosecond, "", nil)
@@ -264,7 +264,7 @@ func TestAgentConfigHandler_PostOk(t *testing.T) {
 
 func TestAgentConfigHandler_DefaultServiceEnvironment(t *testing.T) {
 	var requestBodies []string
-	f := newKibanaFetcher(t, func(w http.ResponseWriter, r *http.Request) {
+	f := newSanitizingKibanaFetcher(t, func(w http.ResponseWriter, r *http.Request) {
 		body, _ := io.ReadAll(r.Body)
 		requestBodies = append(requestBodies, string(body))
 		fmt.Fprintln(w, `{"_id": "1", "_source": {"settings": {"sampling_rate": 0.5}}}`)
@@ -333,7 +333,7 @@ func TestAgentConfigNoLeak(t *testing.T) {
 }
 
 func getHandler(t testing.TB, agent string) request.Handler {
-	f := newKibanaFetcher(t, func(w http.ResponseWriter, r *http.Request) {
+	f := newSanitizingKibanaFetcher(t, func(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"_id": "1",
 			"_source": map[string]interface{}{
@@ -414,12 +414,14 @@ func target(params map[string]string) string {
 	return t
 }
 
-func newKibanaFetcher(t testing.TB, h http.HandlerFunc) *agentcfg.KibanaFetcher {
+func newSanitizingKibanaFetcher(t testing.TB, h http.HandlerFunc) agentcfg.Fetcher {
 	srv := httptest.NewServer(h)
 	t.Cleanup(srv.Close)
 	client, err := kibana.NewClient(kibana.ClientConfig{Host: srv.URL})
 	require.NoError(t, err)
-	return agentcfg.NewKibanaFetcher(client, time.Nanosecond)
+	kf, err := agentcfg.NewKibanaFetcher(client, time.Nanosecond)
+	require.NoError(t, err)
+	return agentcfg.SanitizingFetcher{Fetcher: kf}
 }
 
 type fetcherFunc func(context.Context, agentcfg.Query) (agentcfg.Result, error)

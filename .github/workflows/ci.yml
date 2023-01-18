@@ -6,13 +6,17 @@ on:
       - main
       - 7.1*
       - 8.*
-    paths-ignore:
+    paths-ignore: # When updating the list of expressions also update ci-docs.yml
       - '**.md'
       - '**.asciidoc'
+      - '**.png'
+      - '**.svg'
   pull_request:
-    paths-ignore:
+    paths-ignore: # When updating the list of expressions also update ci-docs.yml
       - '**.md'
       - '**.asciidoc'
+      - '**.png'
+      - '**.svg'
 
 # limit the access of the generated GITHUB_TOKEN
 permissions:

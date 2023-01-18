@@ -2,7 +2,6 @@
 /.ci/docker/tests/test_helper
 /.ci/docker/target
 /.ci/docker/golang-mage/go.*
-/.ci/docker/golang-mage/approvaltest/
 /.ci/docker/golang-mage/systemtest/
 /.ci/docker/golang-mage/internal/glog
 **/*.idea

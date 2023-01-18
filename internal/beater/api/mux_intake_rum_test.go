@@ -20,12 +20,12 @@ package api
 import (
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/apm-server/internal/approvaltest"
 	"github.com/elastic/apm-server/internal/beater/api/intake"
 	"github.com/elastic/apm-server/internal/beater/auth"
 	"github.com/elastic/apm-server/internal/beater/config"
@@ -76,7 +76,10 @@ func TestRUMHandler_NoAuthorizationRequired(t *testing.T) {
 	rec, err := requestToMuxerWithPattern(cfg, IntakeRUMPath)
 	require.NoError(t, err)
 	assert.NotEqual(t, http.StatusUnauthorized, rec.Code)
-	approvaltest.ApproveJSON(t, approvalPathIntakeRUM(t.Name()), rec.Body.Bytes())
+
+	expected, err := os.ReadFile(approvalPathIntakeRUM(t.Name()) + ".approved.json")
+	require.NoError(t, err)
+	assert.JSONEq(t, string(expected), rec.Body.String())
 }
 
 func TestRUMHandler_KillSwitchMiddleware(t *testing.T) {
@@ -84,14 +87,20 @@ func TestRUMHandler_KillSwitchMiddleware(t *testing.T) {
 		rec, err := requestToMuxerWithPattern(config.DefaultConfig(), IntakeRUMPath)
 		require.NoError(t, err)
 		assert.Equal(t, http.StatusForbidden, rec.Code)
-		approvaltest.ApproveJSON(t, approvalPathIntakeRUM(t.Name()), rec.Body.Bytes())
+
+		expected, err := os.ReadFile(approvalPathIntakeRUM(t.Name()) + ".approved.json")
+		require.NoError(t, err)
+		assert.JSONEq(t, string(expected), rec.Body.String())
 	})
 
 	t.Run("On", func(t *testing.T) {
 		rec, err := requestToMuxerWithPattern(cfgEnabledRUM(), IntakeRUMPath)
 		require.NoError(t, err)
 		assert.NotEqual(t, http.StatusForbidden, rec.Code)
-		approvaltest.ApproveJSON(t, approvalPathIntakeRUM(t.Name()), rec.Body.Bytes())
+
+		expected, err := os.ReadFile(approvalPathIntakeRUM(t.Name()) + ".approved.json")
+		require.NoError(t, err)
+		assert.JSONEq(t, string(expected), rec.Body.String())
 	})
 }
 

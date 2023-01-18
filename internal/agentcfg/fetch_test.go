@@ -19,121 +19,16 @@ package agentcfg
 
 import (
 	"context"
-	"encoding/json"
-	"net/http"
-	"net/http/httptest"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	"github.com/elastic/apm-server/internal/kibana"
 )
 
 var (
 	testExpiration = time.Nanosecond
 )
-
-func TestKibanaFetcher(t *testing.T) {
-	var statusCode int
-	var response map[string]interface{}
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(statusCode)
-		json.NewEncoder(w).Encode(response)
-	}))
-	defer srv.Close()
-	client, err := kibana.NewClient(kibana.ClientConfig{Host: srv.URL})
-	require.NoError(t, err)
-
-	t.Run("ExpectationFailed", func(t *testing.T) {
-		statusCode = http.StatusExpectationFailed
-		response = map[string]interface{}{"error": "an error"}
-
-		_, err := NewKibanaFetcher(client, testExpiration).Fetch(context.Background(), query(t.Name()))
-		require.Error(t, err)
-		assert.Equal(t, "{\"error\":\"an error\"}"+"\n", err.Error())
-	})
-
-	t.Run("NotFound", func(t *testing.T) {
-		statusCode = http.StatusNotFound
-		response = map[string]interface{}{}
-
-		result, err := NewKibanaFetcher(client, testExpiration).Fetch(context.Background(), query(t.Name()))
-		require.NoError(t, err)
-		assert.Equal(t, zeroResult(), result)
-	})
-
-	t.Run("Success", func(t *testing.T) {
-		statusCode = http.StatusOK
-		response = mockDoc(0.5)
-
-		b, err := json.Marshal(response)
-		expectedResult, err := newResult(b, err)
-		require.NoError(t, err)
-		result, err := NewKibanaFetcher(client, testExpiration).Fetch(context.Background(), query(t.Name()))
-		require.NoError(t, err)
-		assert.Equal(t, expectedResult, result)
-	})
-
-	t.Run("FetchFromCache", func(t *testing.T) {
-
-		fetcher := NewKibanaFetcher(client, time.Minute)
-		fetch := func(kibanaSamplingRate, expectedSamplingRate float64) {
-			statusCode = http.StatusOK
-			response = mockDoc(kibanaSamplingRate)
-
-			b, err := json.Marshal(mockDoc(expectedSamplingRate))
-			require.NoError(t, err)
-			expectedResult, err := newResult(b, err)
-			require.NoError(t, err)
-
-			result, err := fetcher.Fetch(context.Background(), query(t.Name()))
-			require.NoError(t, err)
-			assert.Equal(t, expectedResult, result)
-		}
-
-		// nothing cached yet
-		fetch(0.5, 0.5)
-
-		// next fetch runs against cache
-		fetch(0.8, 0.5)
-
-		// after key is expired, fetch from Kibana again
-		fetcher.cache.gocache.Delete(query(t.Name()).id())
-		fetch(0.7, 0.7)
-
-	})
-}
-
-func TestSanitize(t *testing.T) {
-	input := Result{Source: Source{
-		Agent:    "python",
-		Settings: Settings{"transaction_sample_rate": "0.1", "capture_body": "false"}}}
-	// full result as not requested for an insecure agent
-	res := sanitize([]string{}, input)
-	assert.Equal(t, input, res)
-
-	// no result for insecure agent
-	res = sanitize([]string{"rum-js"}, input)
-	assert.Equal(t, zeroResult(), res)
-
-	// limited result for insecure agent
-	insecureAgents := []string{"rum-js"}
-	input.Source.Agent = "rum-js"
-	assert.Equal(t, Settings{"transaction_sample_rate": "0.1"}, sanitize(insecureAgents, input).Source.Settings)
-
-	// limited result for insecure agent prefix
-	insecureAgents = []string{"Jaeger"}
-	input.Source.Agent = "Jaeger/Python"
-	assert.Equal(t, Settings{"transaction_sample_rate": "0.1"}, sanitize(insecureAgents, input).Source.Settings)
-
-	// no result for insecure agent prefix
-	insecureAgents = []string{"Python"}
-	input.Source.Agent = "Jaeger/Python"
-	res = sanitize(insecureAgents, input)
-	assert.Equal(t, zeroResult(), res)
-}
 
 func TestCustomJSON(t *testing.T) {
 	expected := Result{Source: Source{
@@ -142,23 +37,6 @@ func TestCustomJSON(t *testing.T) {
 	input := `{"_id": "1", "_source":{"etag":"123", "settings":{"transaction_sampling_rate": 0.3}}}`
 	actual, _ := newResult([]byte(input), nil)
 	assert.Equal(t, expected, actual)
-}
-
-func query(name string) Query {
-	return Query{Service: Service{Name: name}, Etag: "123"}
-}
-
-func mockDoc(sampleRate float64) map[string]interface{} {
-	return map[string]interface{}{
-		"_id": "1",
-		"_source": map[string]interface{}{
-			"settings": map[string]interface{}{
-				"sampling_rate": sampleRate,
-			},
-			"etag":       "123",
-			"agent_name": "rum-js",
-		},
-	}
 }
 
 func TestDirectConfigurationPrecedence(t *testing.T) {
@@ -240,7 +118,10 @@ func TestDirectConfigurationPrecedence(t *testing.T) {
 					Etag:        "abc123",
 				},
 			},
-			expectedSettings: map[string]string{},
+			expectedSettings: map[string]string{
+				"key1": "val1",
+				"key2": "val2",
+			},
 		},
 		{
 			query: Query{
@@ -264,6 +145,8 @@ func TestDirectConfigurationPrecedence(t *testing.T) {
 				},
 			},
 			expectedSettings: map[string]string{
+				"key1":                    "val1",
+				"key2":                    "val2",
 				"transaction_sample_rate": "0.1",
 			},
 		},
