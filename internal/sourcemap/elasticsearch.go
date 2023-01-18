@@ -168,7 +168,6 @@ func requestBody(name, version, path string) map[string]interface{} {
 	id := name + "-" + version + "-" + path
 	return search(
 		size(1),
-		sort(desc("_score")),
 		source("content"),
 		query(
 			boolean(
