@@ -35,7 +35,7 @@ There are four ways to integrate OpenTelemetry with the {stack}:
 To unlock the full power of the {stack}, use the OpenTelemetry API/SDKs with Elastic APM agents,
 currently supported by the Java, Python, .NET, and Node.js agents.
 
-The Elastic OpenTelemetry bridge translates calls to the OpenTelemetry API to Elastic APM API calls.
+This "bridge" translates calls to the OpenTelemetry API to Elastic APM API calls.
 This allows you to reuse your existing instrumentation to create Elastic APM transactions and spans--
 avoiding vendor lock-in and having to redo manual instrumentation.
 
