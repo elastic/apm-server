@@ -161,6 +161,15 @@ func TestAggregatorRun(t *testing.T) {
 					},
 				},
 			},
+			Labels: model.Labels{
+				"department_name": model.LabelValue{Value: "apm"},
+				"organization":    model.LabelValue{Value: "observability"},
+				"company":         model.LabelValue{Value: "elastic"},
+			},
+			NumericLabels: model.NumericLabels{
+				"user_id":     model.NumericLabelValue{Value: 100},
+				"cost_center": model.NumericLabelValue{Value: 10},
+			},
 		}, {
 			Timestamp: now.Truncate(interval),
 			Agent:     model.Agent{Name: "java"},
@@ -187,6 +196,15 @@ func TestAggregatorRun(t *testing.T) {
 						Sum:   10 * time.Second,
 					},
 				},
+			},
+			Labels: model.Labels{
+				"department_name": model.LabelValue{Value: "apm"},
+				"organization":    model.LabelValue{Value: "observability"},
+				"company":         model.LabelValue{Value: "elastic"},
+			},
+			NumericLabels: model.NumericLabels{
+				"user_id":     model.NumericLabelValue{Value: 100},
+				"cost_center": model.NumericLabelValue{Value: 10},
 			},
 		}, {
 			Timestamp: now.Truncate(interval),
@@ -215,6 +233,15 @@ func TestAggregatorRun(t *testing.T) {
 					},
 				},
 			},
+			Labels: model.Labels{
+				"department_name": model.LabelValue{Value: "apm"},
+				"organization":    model.LabelValue{Value: "observability"},
+				"company":         model.LabelValue{Value: "elastic"},
+			},
+			NumericLabels: model.NumericLabels{
+				"user_id":     model.NumericLabelValue{Value: 100},
+				"cost_center": model.NumericLabelValue{Value: 10},
+			},
 		}, {
 			Timestamp: now.Truncate(interval),
 			Agent:     model.Agent{Name: "java"},
@@ -237,6 +264,15 @@ func TestAggregatorRun(t *testing.T) {
 						Sum:   10 * time.Second,
 					},
 				},
+			},
+			Labels: model.Labels{
+				"department_name": model.LabelValue{Value: "apm"},
+				"organization":    model.LabelValue{Value: "observability"},
+				"company":         model.LabelValue{Value: "elastic"},
+			},
+			NumericLabels: model.NumericLabels{
+				"user_id":     model.NumericLabelValue{Value: 100},
+				"cost_center": model.NumericLabelValue{Value: 10},
 			},
 		}, {
 			Timestamp: now.Truncate(interval),
@@ -264,6 +300,15 @@ func TestAggregatorRun(t *testing.T) {
 						Sum:   10 * time.Second,
 					},
 				},
+			},
+			Labels: model.Labels{
+				"department_name": model.LabelValue{Value: "apm"},
+				"organization":    model.LabelValue{Value: "observability"},
+				"company":         model.LabelValue{Value: "elastic"},
+			},
+			NumericLabels: model.NumericLabels{
+				"user_id":     model.NumericLabelValue{Value: 100},
+				"cost_center": model.NumericLabelValue{Value: 10},
 			},
 		}}, metricsets)
 	}
@@ -317,6 +362,15 @@ func TestAggregateCompositeSpan(t *testing.T) {
 					Sum:   1400 * time.Millisecond,
 				},
 			},
+		},
+		Labels: model.Labels{
+			"department_name": model.LabelValue{Value: "apm"},
+			"organization":    model.LabelValue{Value: "observability"},
+			"company":         model.LabelValue{Value: "elastic"},
+		},
+		NumericLabels: model.NumericLabels{
+			"user_id":     model.NumericLabelValue{Value: 100},
+			"cost_center": model.NumericLabelValue{Value: 10},
 		},
 	}}, metricsets)
 }
@@ -623,6 +677,15 @@ func TestAggregatorMaxGroups(t *testing.T) {
 					},
 				},
 			},
+			Labels: model.Labels{
+				"department_name": model.LabelValue{Value: "apm"},
+				"organization":    model.LabelValue{Value: "observability"},
+				"company":         model.LabelValue{Value: "elastic"},
+			},
+			NumericLabels: model.NumericLabels{
+				"user_id":     model.NumericLabelValue{Value: 100},
+				"cost_center": model.NumericLabelValue{Value: 10},
+			},
 		}, m)
 	}
 }
@@ -643,6 +706,15 @@ func makeSpan(
 		Span: &model.Span{
 			Name:                serviceName + ":" + destinationServiceResource,
 			RepresentativeCount: count,
+		},
+		Labels: model.Labels{
+			"department_name": model.LabelValue{Global: true, Value: "apm"},
+			"organization":    model.LabelValue{Global: true, Value: "observability"},
+			"company":         model.LabelValue{Global: true, Value: "elastic"},
+		},
+		NumericLabels: model.NumericLabels{
+			"user_id":     model.NumericLabelValue{Global: true, Value: 100},
+			"cost_center": model.NumericLabelValue{Global: true, Value: 10},
 		},
 	}
 	if destinationServiceResource != "" {

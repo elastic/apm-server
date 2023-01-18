@@ -33,6 +33,9 @@
     - description: Map `transaction.duration.summary` to aggregate_metric_double for transaction metrics
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/9973
+    - description: Introduce `metrics-apm.service_summary-${interval}` data stream for service summary metrics (`1m`, `10m` and `60m`).
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/10029
 - version: "8.6.0"
   changes:
     - description: Change `ecs.version` to a `constant_keyword` field
