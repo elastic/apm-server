@@ -88,7 +88,8 @@ func isRUMAgentName(agentName string) bool {
 }
 
 func metricsetDataset(event *model.APMEvent) string {
-	if event.Transaction != nil || event.Span != nil || event.Service.Name == "" {
+	if event.Transaction != nil || event.Span != nil || event.Service.Name == "" ||
+		(event.Metricset != nil && event.Metricset.Name == "service_summary") {
 		// Metrics that include well-defined transaction/span fields
 		// (i.e. breakdown metrics, transaction and span metrics) will
 		// be stored separately from custom application metrics.
