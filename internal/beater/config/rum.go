@@ -72,10 +72,6 @@ func (c *RumConfig) setup(log *logp.Logger, outputESCfg *config.C) error {
 		return errors.Wrapf(err, "Invalid regex for `exclude_from_grouping`: ")
 	}
 
-	if c.SourceMapping.esConfigured && len(c.SourceMapping.Metadata) > 0 {
-		return errors.New("configuring both source_mapping.elasticsearch and sourcemapping.source_maps not allowed")
-	}
-
 	// No need to unpack the ESConfig if SourceMapMetadata exist
 	if len(c.SourceMapping.Metadata) > 0 {
 		return nil
