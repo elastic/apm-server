@@ -7,7 +7,7 @@ require (
 	github.com/cespare/xxhash/v2 v2.1.2
 	github.com/dgraph-io/badger/v2 v2.2007.3-0.20201012072640-f5a7e0a1c83b
 	github.com/dustin/go-humanize v1.0.0
-	github.com/elastic/apm-data v0.1.1-0.20230109092954-e34ef4025581
+	github.com/elastic/apm-data v0.1.1-0.20230118033608-607aaa61e212
 	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230114154035-e13355ce2cae
 	github.com/elastic/elastic-agent-client/v7 v7.0.3
 	github.com/elastic/elastic-agent-libs v0.2.16
