@@ -246,15 +246,11 @@ under a dedicated bucket identified by service name '%s'.`[1:], mb.maxSize, over
 			mb.otherCardinalityEstimator = hyperloglog.New14()
 		}
 		mb.otherCardinalityEstimator.InsertHash(hash)
-		return
-	} else if mb.entries == mb.maxSize/2-1 {
-		logger.Warn("service summary groups reached 50% capacity")
-	} else if mb.entries == mb.maxSize-1 {
-		logger.Warn("service summary groups reached 100% capacity")
+	} else {
+		mb.space[mb.entries] = key
+		mb.m[hash] = append(mb.m[hash], &mb.space[mb.entries])
+		mb.entries++
 	}
-	mb.space[mb.entries] = key
-	mb.m[hash] = append(mb.m[hash], &mb.space[mb.entries])
-	mb.entries++
 }
 
 type aggregationKey struct {
