@@ -10,19 +10,8 @@
 - name: processor.name
   type: constant_keyword
   description: Processor name.
-- name: transaction.type
-  type: keyword
-  description: |
-    Keyword of specific relevance in the service's domain (eg. 'request', 'backgroundjob', etc)
-- name: transaction.duration.histogram
-  type: histogram
-  description: |
-    Pre-aggregated histogram of transaction durations.
 - name: numeric_labels
   type: object
   dynamic: true
   description: |
     Custom key/value pairs. Can be used to add meta information to events. Should not contain nested objects. All values are stored as scaled_float.
-- name: service.aggregation.overflow_count
-  type: long
-  description: Number of aggregation groups that overflowed for service metrics aggregation.

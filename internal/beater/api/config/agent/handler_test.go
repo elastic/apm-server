@@ -419,7 +419,9 @@ func newSanitizingKibanaFetcher(t testing.TB, h http.HandlerFunc) agentcfg.Fetch
 	t.Cleanup(srv.Close)
 	client, err := kibana.NewClient(kibana.ClientConfig{Host: srv.URL})
 	require.NoError(t, err)
-	return agentcfg.SanitizingFetcher{Fetcher: agentcfg.NewKibanaFetcher(client, time.Nanosecond)}
+	kf, err := agentcfg.NewKibanaFetcher(client, time.Nanosecond)
+	require.NoError(t, err)
+	return agentcfg.SanitizingFetcher{Fetcher: kf}
 }
 
 type fetcherFunc func(context.Context, agentcfg.Query) (agentcfg.Result, error)
