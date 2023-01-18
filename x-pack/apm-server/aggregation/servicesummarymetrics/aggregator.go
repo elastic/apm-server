@@ -217,6 +217,7 @@ func (mb *metricsBuffer) storeOrUpdate(
 		for _, old := range entries {
 			if old.equal(key) {
 				ok = true
+				break
 			}
 		}
 	}
