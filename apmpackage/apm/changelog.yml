@@ -36,6 +36,9 @@
     - description: Introduce `metrics-apm.service_summary-${interval}` data stream for service summary metrics (`1m`, `10m` and `60m`).
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/10029
+    - description: Add service destination overflow metrics
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/10069
     - description: Add service summary overflow metrics
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/10061
