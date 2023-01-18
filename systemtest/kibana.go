@@ -39,6 +39,7 @@ import (
 	"gopkg.in/yaml.v3"
 
 	"github.com/elastic/apm-server/systemtest/apmservertest"
+	"github.com/elastic/apm-server/systemtest/estest"
 	"github.com/elastic/apm-server/systemtest/fleettest"
 )
 
@@ -296,6 +297,13 @@ func CreateSourceMap(t testing.TB, sourcemap, serviceName, serviceVersion, bundl
 	}
 	err = json.Unmarshal(respBody, &result)
 	require.NoError(t, err)
+
+	id := serviceName + "-" + serviceVersion + "-" + bundleFilepath
+	Elasticsearch.ExpectMinDocs(t, 1, ".apm-source-map", estest.TermQuery{
+		Field: "_id",
+		Value: id,
+	})
+
 	t.Cleanup(func() {
 		DeleteSourceMap(t, result.ID)
 	})
