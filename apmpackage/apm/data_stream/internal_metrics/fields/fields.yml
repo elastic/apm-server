@@ -1,5 +1,6 @@
 - name: faas.coldstart
   type: boolean
+  dimension: true
   description: |
     Boolean indicating whether the function invocation was a coldstart or not.
 - name: faas.id
@@ -17,10 +18,12 @@
     The ID of the origin trigger request.
 - name: faas.trigger.type
   type: keyword
+  dimension: true
   description: |
     The trigger type.
 - name: faas.name
   type: keyword
+  dimension: true
   description: |
     The lambda function name.
 - name: faas.version
@@ -38,6 +41,7 @@
     Kubernetes node name
 - name: kubernetes.pod.name
   type: keyword
+  dimension: true
   description: |
     Kubernetes pod name
 - name: kubernetes.pod.uid
@@ -140,10 +144,12 @@
     Pre-aggregated histogram of transaction durations.
 - name: transaction.name
   type: keyword
+  dimension: true
   description: |
     Generic designation of a transaction in the scope of a single service (eg. 'GET /users/:id').
 - name: transaction.result
   type: keyword
+  dimension: true
   description: |
     The result of the transaction. HTTP status code for HTTP-related transactions.
 - name: transaction.root
@@ -164,6 +170,7 @@
   unit: micros
 - name: transaction.type
   type: keyword
+  dimension: true
   description: |
     Keyword of specific relevance in the service's domain (eg. 'request', 'backgroundjob', etc)
 - name: numeric_labels
