@@ -210,22 +210,17 @@ func (mb *metricsBuffer) storeOrUpdate(
 	mb.mu.Lock()
 	defer mb.mu.Unlock()
 
-	find := func(hash uint64, key aggregationKey) (*aggregationKey, bool) {
-		// This function should only be called when caller is holding the lock mb.mu.
-		// It takes separate hash and key arguments so that hash can be computed
-		// before acquiring the lock.
-		entries, ok := mb.m[hash]
-		if ok {
-			for _, old := range entries {
-				if old.equal(key) {
-					return old, true
-				}
+	// Search in hash table with separate chaining.
+	entries, ok := mb.m[hash]
+	if ok {
+		ok = false
+		for _, old := range entries {
+			if old.equal(key) {
+				ok = true
 			}
 		}
-		return nil, false
 	}
 
-	_, ok := find(hash, key)
 	if ok {
 		return
 	}
