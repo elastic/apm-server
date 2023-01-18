@@ -44,6 +44,7 @@ type MetadataCachingFetcher struct {
 	backend          Fetcher
 	logger           *logp.Logger
 	index            string
+	init             chan struct{}
 	invalidationChan chan<- Identifier
 }
 
@@ -59,6 +60,7 @@ func NewMetadataCachingFetcher(
 		set:              make(map[Identifier]string),
 		backend:          backend,
 		logger:           logp.NewLogger(logs.Sourcemap),
+		init:             make(chan struct{}),
 		invalidationChan: invalidationChan,
 	}
 }
@@ -72,6 +74,14 @@ func (s *MetadataCachingFetcher) Fetch(ctx context.Context, name, version, path 
 
 	s.mu.RLock()
 	defer s.mu.RUnlock()
+
+	select {
+	case <-s.init:
+	default:
+		// metadata cache is not populated yet
+		// forward the request to the backend fetcher
+		return s.backend.Fetch(ctx, name, version, path)
+	}
 
 	if _, found := s.set[key]; found {
 		// Only fetch from ES if the sourcemap id exists
@@ -136,6 +146,8 @@ func (s *MetadataCachingFetcher) StartBackgroundSync() {
 		if err := s.sync(ctx); err != nil {
 			s.logger.Error("failed to fetch sourcemaps metadata: %v", err)
 		}
+
+		close(s.init)
 	}()
 
 	go func() {
