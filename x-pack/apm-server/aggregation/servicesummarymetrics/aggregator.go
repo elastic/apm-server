@@ -170,12 +170,12 @@ func (a *Aggregator) ProcessBatch(ctx context.Context, b *model.Batch) error {
 		if event.Processor == model.SpanProcessor {
 			continue
 		}
-		a.processEvent(&event, b)
+		a.processEvent(&event)
 	}
 	return nil
 }
 
-func (a *Aggregator) processEvent(event *model.APMEvent, b *model.Batch) {
+func (a *Aggregator) processEvent(event *model.APMEvent) {
 	for _, interval := range a.Intervals {
 		key := makeAggregationKey(event, interval)
 		a.active[interval].storeOrUpdate(key, interval, a.config.Logger)
