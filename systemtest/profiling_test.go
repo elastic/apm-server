@@ -27,12 +27,18 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/encoding/gzip"
 	"google.golang.org/grpc/metadata"
 
 	"github.com/elastic/go-elasticsearch/v8/esapi"
 
 	"github.com/elastic/apm-server/systemtest"
 	"github.com/elastic/apm-server/systemtest/internal/profiling"
+)
+
+var (
+	// Used in certain gRPC calls to enable compression
+	gzipOption = grpc.UseCompressor(gzip.Name)
 )
 
 func TestProfiling(t *testing.T) {
@@ -127,7 +133,7 @@ func TestProfiling(t *testing.T) {
 		LoFileIDs: []uint64{2, 1},
 		Filenames: []string{"a.apl", "b.bas"},
 		BuildIDs:  []string{"build1", "build2"},
-	})
+	}, gzipOption)
 	require.NoError(t, err)
 
 	_, err = client.SetFramesForTraces(ctx, &profiling.SetFramesForTracesRequest{
@@ -142,7 +148,7 @@ func TestProfiling(t *testing.T) {
 		PodNamesIdx:       map[uint32]uint32{0: 2},
 		ContainerNamesIdx: map[uint32]uint32{1: 3},
 		UniqueMetadata:    []string{"comm1", "comm2", "pod", "container"},
-	})
+	}, gzipOption)
 	require.NoError(t, err)
 
 	_, err = client.AddFrameMetadata(ctx, &profiling.AddFrameMetadataRequest{
@@ -156,7 +162,7 @@ func TestProfiling(t *testing.T) {
 		FunctionOffsets: []uint32{15, 16},
 		Types:           []uint32{17, 18},
 		Filenames:       []string{"ninete.en", "twen.ty"},
-	})
+	}, gzipOption)
 	require.NoError(t, err)
 
 	_, err = client.AddCountsForTraces(ctx, &profiling.AddCountsForTracesRequest{
@@ -168,7 +174,7 @@ func TestProfiling(t *testing.T) {
 		PodNamesIdx:       map[uint32]uint32{0: 1},
 		ContainerNamesIdx: map[uint32]uint32{0: 2},
 		UniqueMetadata:    []string{"comm", "pod", "container"},
-	})
+	}, gzipOption)
 	require.NoError(t, err)
 
 	// Perform queries and assertions on KV indices. We use wildcard searches below to prevent
@@ -190,7 +196,7 @@ func TestProfiling(t *testing.T) {
 			{Timestamp: 111, IDs: []uint32{0 /* should be omitted */, 1, 2}, Values: []int64{3, 4, 5}},
 			{Timestamp: 222, IDs: []uint32{6, 7, 8}, Values: []int64{0 /* should be omitted */, 9, 10}},
 		},
-	})
+	}, gzipOption)
 	require.NoError(t, err)
 	result = systemtest.Elasticsearch.ExpectMinDocs(t, 2, "profiling-metrics*", nil)
 	systemtest.ApproveEvents(t, t.Name()+"/metrics", result.Hits.Hits)
