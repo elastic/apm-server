@@ -135,10 +135,12 @@ func (a *Aggregator) publish(ctx context.Context, period time.Duration) error {
 
 	intervalStr := interval.FormatDuration(period)
 	batch := make(model.Batch, 0, size)
-	// Looping over the backing array instead of the map for performance.
-	for i := 0; i < current.entries; i++ {
-		m := makeMetricset(current.space[i], intervalStr)
-		batch = append(batch, m)
+	for key, metrics := range current.m {
+		for _, entry := range metrics {
+			m := makeMetricset(*entry, intervalStr)
+			batch = append(batch, m)
+		}
+		delete(current.m, key)
 	}
 	if current.other != nil {
 		m := makeMetricset(*current.other, intervalStr)
@@ -149,10 +151,7 @@ func (a *Aggregator) publish(ctx context.Context, period time.Duration) error {
 		batch = append(batch, m)
 	}
 
-	// Clean up everything except current.space because it is cleaned lazily.
-	for hash := range current.m {
-		delete(current.m, hash)
-	}
+	// Clean up everything.
 	current.entries = 0
 	current.other = nil
 	current.otherCardinalityEstimator = nil
@@ -188,9 +187,7 @@ type metricsBuffer struct {
 	other                     *aggregationKey
 	otherCardinalityEstimator *hyperloglog.Sketch
 
-	// Backing array for all the aggregation keys in m.
-	space []aggregationKey
-	// Number of aggregation keys used in space, excluding overflow bucket.
+	// Number of aggregation keys in m, excluding overflow bucket.
 	entries int
 
 	maxSize int
@@ -200,9 +197,6 @@ func newMetricsBuffer(maxSize int) *metricsBuffer {
 	return &metricsBuffer{
 		maxSize: maxSize,
 		m:       make(map[uint64][]*aggregationKey),
-
-		// Keep one reserved entry for overflow bucket.
-		space: make([]aggregationKey, maxSize+1),
 	}
 }
 
@@ -241,14 +235,13 @@ func (mb *metricsBuffer) storeOrUpdate(
 			logger.Warnf(`
 Service summary aggregation group limit of %d reached, new metric documents will be grouped
 under a dedicated bucket identified by service name '%s'.`[1:], mb.maxSize, overflowServiceName)
-			mb.space[len(mb.space)-1] = makeOverflowAggregationKey(interval)
-			mb.other = &mb.space[len(mb.space)-1]
+			key = makeOverflowAggregationKey(interval)
+			mb.other = &key
 			mb.otherCardinalityEstimator = hyperloglog.New14()
 		}
 		mb.otherCardinalityEstimator.InsertHash(hash)
 	} else {
-		mb.space[mb.entries] = key
-		mb.m[hash] = append(mb.m[hash], &mb.space[mb.entries])
+		mb.m[hash] = append(mb.m[hash], &key)
 		mb.entries++
 	}
 }
