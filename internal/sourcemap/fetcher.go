@@ -68,12 +68,16 @@ func GetIdentifiers(name string, version string, bundleFilepath string) []Identi
 		path:    urlPath.String(),
 	})
 
-	// then try to match the url path
-	identifiers = append(identifiers, Identifier{
-		name:    name,
-		version: version,
-		path:    urlPath.Path,
-	})
+	// "/foo.bundle.js.map" is a valid url
+	// make sure it is included twice
+	if urlPath.String() != urlPath.Path {
+		// then try to match the url path
+		identifiers = append(identifiers, Identifier{
+			name:    name,
+			version: version,
+			path:    urlPath.Path,
+		})
+	}
 
 	return identifiers
 }
