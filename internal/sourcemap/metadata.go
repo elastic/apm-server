@@ -93,8 +93,7 @@ func (s *MetadataCachingFetcher) Fetch(ctx context.Context, name, version, path 
 	select {
 	case <-s.init:
 	default:
-		// metadata cache is not populated yet
-		// forward the request to the backend fetcher
+		s.logger.Debugf("Metadata cache not populated. Falling back to backend fetcher for id: %v", key)
 		return s.backend.Fetch(ctx, key.name, key.version, key.path)
 	}
 
