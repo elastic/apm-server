@@ -29,6 +29,7 @@ import (
 	"net/url"
 	"os"
 	"os/exec"
+	"path"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -278,9 +279,9 @@ func CreateSourceMap(t testing.TB, sourcemap, serviceName, serviceVersion, bundl
 	sourcemapFileWriter.Write([]byte(sourcemap))
 	require.NoError(t, mw.Close())
 
-	url := *KibanaURL
-	url.Path += "/api/apm/sourcemaps"
-	req, _ := http.NewRequest("POST", url.String(), &data)
+	apiURL := *KibanaURL
+	apiURL.Path += "/api/apm/sourcemaps"
+	req, _ := http.NewRequest("POST", apiURL.String(), &data)
 	req.Header.Add("Content-Type", mw.FormDataContentType())
 	req.Header.Set("kbn-xsrf", "1")
 
@@ -298,7 +299,16 @@ func CreateSourceMap(t testing.TB, sourcemap, serviceName, serviceVersion, bundl
 	err = json.Unmarshal(respBody, &result)
 	require.NoError(t, err)
 
-	id := serviceName + "-" + serviceVersion + "-" + bundleFilepath
+	cleanPath := bundleFilepath
+	u, err := url.Parse(bundleFilepath)
+	if err == nil {
+		u.Fragment = ""
+		u.RawQuery = ""
+		u.Path = path.Clean(u.Path)
+		cleanPath = u.String()
+	}
+
+	id := serviceName + "-" + serviceVersion + "-" + cleanPath
 	Elasticsearch.ExpectMinDocs(t, 1, ".apm-source-map", estest.TermQuery{
 		Field: "_id",
 		Value: id,
