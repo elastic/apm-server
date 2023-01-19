@@ -90,14 +90,16 @@ func (s *MetadataCachingFetcher) Fetch(ctx context.Context, name, version, path 
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
+	var forwardRequest bool
+
 	select {
 	case <-s.init:
 	default:
 		s.logger.Debugf("Metadata cache not populated. Falling back to backend fetcher for id: %v", key)
-		return s.backend.Fetch(ctx, key.name, key.version, key.path)
+		forwardRequest = true
 	}
 
-	if _, found := s.set[key]; found {
+	if _, found := s.set[key]; found || forwardRequest {
 		// Only fetch from ES if the sourcemap id exists
 		return s.backend.Fetch(ctx, key.name, key.version, key.path)
 	}
@@ -110,7 +112,7 @@ func (s *MetadataCachingFetcher) Fetch(ctx context.Context, name, version, path 
 	// Try again using url.Path
 	key.path = urlPath
 
-	if _, found := s.set[key]; found {
+	if _, found := s.set[key]; found || forwardRequest {
 		// Only fetch from ES if the sourcemap id exists
 		return s.backend.Fetch(ctx, key.name, key.version, key.path)
 	}
