@@ -84,8 +84,13 @@ func (s *MetadataCachingFetcher) Fetch(ctx context.Context, name, version, path 
 	if _, found := s.set[keys[0]]; found || forwardRequest {
 		// Only fetch from ES if the sourcemap id exists
 		c, err := s.backend.Fetch(ctx, keys[0].name, keys[0].version, keys[0].path)
-		if c != nil || err != nil {
+		if err != nil {
+			return nil, err
+		}
+		if c != nil {
 			return c, err
+		} else if found {
+			s.logger.Debugf("Backed fetcher failed to retrieve sourcemap: %v", keys[0])
 		}
 	}
 
@@ -93,8 +98,13 @@ func (s *MetadataCachingFetcher) Fetch(ctx context.Context, name, version, path 
 		if _, found := s.alias[key]; found || forwardRequest {
 			// Only fetch from ES if the sourcemap id exists
 			c, err := s.backend.Fetch(ctx, key.name, key.version, key.path)
-			if c != nil || err != nil {
+			if err != nil {
+				return nil, err
+			}
+			if c != nil {
 				return c, err
+			} else if found {
+				s.logger.Debugf("Backed fetcher failed to retrieve sourcemap from alias %v", key)
 			}
 		}
 	}
