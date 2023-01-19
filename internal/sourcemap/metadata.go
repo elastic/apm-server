@@ -194,7 +194,7 @@ func (s *MetadataCachingFetcher) StartBackgroundSync() {
 		defer cleanup()
 
 		if err := s.sync(ctx); err != nil {
-			s.logger.Error("failed to fetch sourcemaps metadata: %v", err)
+			s.logger.Errorf("failed to fetch sourcemaps metadata: %v", err)
 		}
 
 		s.logger.Info("init routine completed")
@@ -210,7 +210,7 @@ func (s *MetadataCachingFetcher) StartBackgroundSync() {
 			ctx, cleanup := context.WithTimeout(context.Background(), 10*time.Second)
 
 			if err := s.sync(ctx); err != nil {
-				s.logger.Error("failed to sync sourcemaps metadata: %v", err)
+				s.logger.Errorf("failed to sync sourcemaps metadata: %v", err)
 			}
 
 			cleanup()
