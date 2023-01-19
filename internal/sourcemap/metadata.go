@@ -68,34 +68,28 @@ func NewMetadataCachingFetcher(
 
 func (s *MetadataCachingFetcher) Fetch(ctx context.Context, name, version, path string) (*sourcemap.Consumer, error) {
 	var initPending bool
+	original := Identifier{name: name, version: version, path: path}
 
 	select {
 	case <-s.init:
+		// try to minimize lock contention so that update can finish faster
+		// avoid defer since later down we are waiting for the update routine to
+		// finish and that would create a deadlock
+		s.mu.RLock()
+		if _, found := s.set[original]; found {
+			s.mu.RUnlock()
+			// Only fetch from ES if the sourcemap id exists
+			return s.fetch(ctx, &original)
+		}
+		s.mu.RUnlock()
 	default:
 		s.logger.Debugf("Metadata cache not populated. Falling back to backend fetcher for id: %s, %s, %s", name, version, path)
-		initPending = true
-	}
-
-	original := Identifier{name: name, version: version, path: path}
-
-	// try to minimize lock contention so that init can finish faster
-	// avoid defer since later down we are waiting for the init routine to
-	// finish and that would create a deadlock
-	s.mu.RLock()
-	_, found := s.set[original]
-	s.mu.RUnlock()
-
-	if found || initPending {
-		// Only fetch from ES if the sourcemap id exists
-		c, err := s.backend.Fetch(ctx, original.name, original.version, original.path)
-		if err != nil {
-			return nil, err
-		}
-		if c != nil {
+		// init is in progress, ignore the metadata cache and fetch the sourcemap directly
+		// return if we get a result or an error
+		if c, err := s.backend.Fetch(ctx, original.name, original.version, original.path); c != nil || err != nil {
 			return c, err
-		} else if found {
-			s.logger.Debugf("Backend fetcher failed to retrieve sourcemap: %v", original)
 		}
+		initPending = true
 	}
 
 	keys := GetAliases(name, version, path)
@@ -108,41 +102,34 @@ func (s *MetadataCachingFetcher) Fetch(ctx context.Context, name, version, path 
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	// Try again from the original cache
-	// This is because you might be storing the sourcemap in ES with an alias
-	// or original request id might not be using a clear url.
 	for _, key := range keys {
+		// Try again from the original cache
+		// This is because you might be storing the sourcemap in ES with an alias
+		// or original request id might not be using a clear url.
 		if _, found := s.set[key]; found {
-			// Only fetch from ES if the sourcemap id exists
-			c, err := s.backend.Fetch(ctx, key.name, key.version, key.path)
-			if err != nil {
-				return nil, err
-			}
-			if c != nil {
-				return c, err
-			} else if found {
-				s.logger.Debugf("Backend fetcher failed to retrieve alias sourcemap %v", key)
-			}
+			return s.fetch(ctx, &key)
 		}
-	}
 
-	// Try to retrieve the sourcemap from alias
-	for _, key := range keys {
+		// Try to retrieve the sourcemap from alias
+		// Only fetch from ES if the sourcemap alias exists
 		if id, found := s.alias[key]; found {
-			// Only fetch from ES if the sourcemap id exists
-			c, err := s.backend.Fetch(ctx, id.name, id.version, id.path)
-			if err != nil {
-				return nil, err
-			}
-			if c != nil {
-				return c, err
-			} else if found {
-				s.logger.Debugf("Backend fetcher failed to retrieve sourcemap from alias %v", key)
-			}
+			return s.fetch(ctx, id)
 		}
 	}
 
 	return nil, nil
+}
+
+func (s *MetadataCachingFetcher) fetch(ctx context.Context, key *Identifier) (*sourcemap.Consumer, error) {
+	c, err := s.backend.Fetch(ctx, key.name, key.version, key.path)
+
+	// log a message if the sourcemap is present in the cache but the backend fetcher did not
+	// find it.
+	if err == nil && c == nil {
+		s.logger.Debugf("Backend fetcher failed to retrieve sourcemap: %v", key)
+	}
+
+	return c, err
 }
 
 func (s *MetadataCachingFetcher) update(ctx context.Context, updates map[Identifier]string) {
