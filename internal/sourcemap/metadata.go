@@ -137,6 +137,7 @@ func (s *MetadataCachingFetcher) update(ctx context.Context, updates map[Identif
 
 			// content hash changed, invalidate the sourcemap cache
 			if contentHash != updatedHash {
+				s.logger.Debugf("Hash changed: %s -> %s: invaliding %v", contentHash, updatedHash, id)
 				select {
 				case s.invalidationChan <- id:
 				case <-ctx.Done():
@@ -166,14 +167,18 @@ func (s *MetadataCachingFetcher) update(ctx context.Context, updates map[Identif
 	// add new sourcemaps to the metadata cache.
 	for id, contentHash := range updates {
 		s.set[id] = contentHash
+		s.logger.Debugf("Added metadata id %v", id)
 		// store aliases with a pointer to the original id.
 		// The id is then passed over to the backend fetcher
 		// to minimize the size of the lru cache and
 		// and increase cache hits.
 		for _, k := range GetAliases(id.name, id.version, id.path) {
+			s.logger.Debugf("Added metadata alias %v -> %v", k, id)
 			s.alias[k] = &id
 		}
 	}
+
+	s.logger.Debugf("Cache now has %d entries.", len(s.set))
 }
 
 func (s *MetadataCachingFetcher) StartBackgroundSync() {
