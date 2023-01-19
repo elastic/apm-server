@@ -108,6 +108,25 @@ func (s *MetadataCachingFetcher) Fetch(ctx context.Context, name, version, path 
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
+	// Try again from the original cache
+	// This is because you might be storing the sourcemap in ES with an alias
+	// or original request id might not be using a clear url.
+	for _, key := range keys {
+		if _, found := s.set[key]; found {
+			// Only fetch from ES if the sourcemap id exists
+			c, err := s.backend.Fetch(ctx, key.name, key.version, key.path)
+			if err != nil {
+				return nil, err
+			}
+			if c != nil {
+				return c, err
+			} else if found {
+				s.logger.Debugf("Backend fetcher failed to retrieve alias sourcemap %v", key)
+			}
+		}
+	}
+
+	// Try to retrieve the sourcemap from alias
 	for _, key := range keys {
 		if id, found := s.alias[key]; found {
 			// Only fetch from ES if the sourcemap id exists
