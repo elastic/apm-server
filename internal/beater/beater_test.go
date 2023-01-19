@@ -23,6 +23,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -30,10 +31,54 @@ import (
 
 	"github.com/elastic/apm-server/internal/beater/config"
 	"github.com/elastic/apm-server/internal/elasticsearch"
+	"github.com/elastic/apm-server/internal/version"
 	"github.com/elastic/elastic-agent-libs/monitoring"
 )
 
 var validSourcemap, _ = os.ReadFile("../../testdata/sourcemap/bundle.js.map")
+
+func TestSourcemapIndexPattern(t *testing.T) {
+	test := func(t *testing.T, indexPattern, expected string) {
+		var requestPaths []string
+		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// Ignore duplicates: we might have two requests since the first one
+			// will be from the init goroutine
+			for _, v := range requestPaths {
+				if v == r.URL.Path {
+					return
+				}
+			}
+			requestPaths = append(requestPaths, r.URL.Path)
+		}))
+		defer srv.Close()
+
+		cfg := config.DefaultConfig()
+		cfg.RumConfig.Enabled = true
+		cfg.RumConfig.SourceMapping.ESConfig.Hosts = []string{srv.URL}
+		if indexPattern != "" {
+			cfg.RumConfig.SourceMapping.IndexPattern = indexPattern
+		}
+
+		fetcher, err := newSourcemapFetcher(
+			cfg.RumConfig.SourceMapping, nil,
+			nil, elasticsearch.NewClient,
+		)
+		require.NoError(t, err)
+		fetcher.Fetch(context.Background(), "name", "version", "path")
+		require.Len(t, requestPaths, 1)
+
+		path := requestPaths[0]
+		path = strings.TrimPrefix(path, "/")
+		path = strings.TrimSuffix(path, "/_search")
+		assert.Equal(t, expected, path)
+	}
+	t.Run("default-pattern", func(t *testing.T) {
+		test(t, "", ".apm-source-map")
+	})
+	t.Run("with-observer-version", func(t *testing.T) {
+		test(t, "blah-%{[observer.version]}-blah", fmt.Sprintf("blah-%s-blah", version.Version))
+	})
+}
 
 func TestStoreUsesRUMElasticsearchConfig(t *testing.T) {
 	var called bool

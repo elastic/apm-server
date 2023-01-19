@@ -34,7 +34,7 @@ const (
 	defaultExcludeFromGrouping      = "^/webpack"
 	defaultLibraryPattern           = "node_modules|bower_components|~"
 	defaultSourcemapCacheExpiration = 5 * time.Minute
-	defaultSourcemapIndexPattern    = "apm-*-sourcemap*"
+	defaultSourcemapIndexPattern    = ".apm-source-map"
 	defaultSourcemapTimeout         = 5 * time.Second
 )
 

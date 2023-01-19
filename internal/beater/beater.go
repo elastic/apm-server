@@ -25,6 +25,7 @@ import (
 	"net/http"
 	"os"
 	"runtime"
+	"strings"
 	"time"
 
 	"github.com/dustin/go-humanize"
@@ -806,8 +807,6 @@ func (s *Runner) newLibbeatFinalBatchProcessor(
 	return publisher, stop, nil
 }
 
-const apmSourcemapIndex = ".apm-source-map"
-
 func newSourcemapFetcher(
 	cfg config.SourceMapping,
 	fleetCfg *config.Fleet,
@@ -822,12 +821,14 @@ func newSourcemapFetcher(
 	size := 128
 	invalidationChan := make(chan sourcemap.Identifier, size)
 
-	esFetcher := sourcemap.NewElasticsearchFetcher(esClient, apmSourcemapIndex)
+	index := strings.ReplaceAll(cfg.IndexPattern, "%{[observer.version]}", version.Version)
+
+	esFetcher := sourcemap.NewElasticsearchFetcher(esClient, index)
 	cachingFetcher, err := sourcemap.NewCachingFetcher(esFetcher, invalidationChan, size)
 	if err != nil {
 		return nil, err
 	}
-	metadataCachingFetcher := sourcemap.NewMetadataCachingFetcher(esClient, cachingFetcher, apmSourcemapIndex, invalidationChan)
+	metadataCachingFetcher := sourcemap.NewMetadataCachingFetcher(esClient, cachingFetcher, index, invalidationChan)
 	metadataCachingFetcher.StartBackgroundSync()
 
 	return metadataCachingFetcher, nil
