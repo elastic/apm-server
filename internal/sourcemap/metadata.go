@@ -24,7 +24,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"net/url"
 	"sync"
 	"time"
 
@@ -40,6 +39,7 @@ import (
 type MetadataCachingFetcher struct {
 	esClient         *elasticsearch.Client
 	set              map[Identifier]string
+	alias            map[Identifier]struct{}
 	mu               sync.RWMutex
 	backend          Fetcher
 	logger           *logp.Logger
@@ -58,6 +58,7 @@ func NewMetadataCachingFetcher(
 		esClient:         c,
 		index:            index,
 		set:              make(map[Identifier]string),
+		alias:            make(map[Identifier]struct{}),
 		backend:          backend,
 		logger:           logp.NewLogger(logs.Sourcemap),
 		init:             make(chan struct{}),
@@ -66,27 +67,6 @@ func NewMetadataCachingFetcher(
 }
 
 func (s *MetadataCachingFetcher) Fetch(ctx context.Context, name, version, path string) (*sourcemap.Consumer, error) {
-	var cleanPath string
-	var urlPath string
-
-	u, err := url.Parse(path)
-	if err != nil {
-		// path is not a valid url
-		// assume path
-		cleanPath = path
-	} else {
-		u.RawQuery = ""
-		u.Fragment = ""
-		cleanPath = u.String()
-		urlPath = u.Path
-	}
-
-	key := Identifier{
-		name:    name,
-		version: version,
-		path:    cleanPath,
-	}
-
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
@@ -95,26 +75,28 @@ func (s *MetadataCachingFetcher) Fetch(ctx context.Context, name, version, path 
 	select {
 	case <-s.init:
 	default:
-		s.logger.Debugf("Metadata cache not populated. Falling back to backend fetcher for id: %v", key)
+		s.logger.Debugf("Metadata cache not populated. Falling back to backend fetcher for id: %s, %s, %s", name, version, path)
 		forwardRequest = true
 	}
 
-	if _, found := s.set[key]; found || forwardRequest {
+	keys := GetIdentifiers(name, version, path)
+
+	if _, found := s.set[keys[0]]; found || forwardRequest {
 		// Only fetch from ES if the sourcemap id exists
-		return s.backend.Fetch(ctx, key.name, key.version, key.path)
+		c, err := s.backend.Fetch(ctx, keys[0].name, keys[0].version, keys[0].path)
+		if c != nil || err != nil {
+			return c, err
+		}
 	}
 
-	if urlPath == "" {
-		// return early if path is not a valid url
-		return nil, nil
-	}
-
-	// Try again using url.Path
-	key.path = urlPath
-
-	if _, found := s.set[key]; found || forwardRequest {
-		// Only fetch from ES if the sourcemap id exists
-		return s.backend.Fetch(ctx, key.name, key.version, key.path)
+	for _, key := range keys[1:] {
+		if _, found := s.alias[key]; found || forwardRequest {
+			// Only fetch from ES if the sourcemap id exists
+			c, err := s.backend.Fetch(ctx, key.name, key.version, key.path)
+			if c != nil || err != nil {
+				return c, err
+			}
+		}
 	}
 
 	return nil, nil
@@ -140,11 +122,18 @@ func (s *MetadataCachingFetcher) update(updates map[Identifier]string) {
 
 			// remove from metadata cache
 			delete(s.set, id)
+			// remove alias
+			for _, k := range GetIdentifiers(id.name, id.version, id.path)[1:] {
+				delete(s.alias, k)
+			}
 		}
 	}
 	// add new sourcemaps to the metadata cache.
 	for id, contentHash := range updates {
 		s.set[id] = contentHash
+		for _, k := range GetIdentifiers(id.name, id.version, id.path)[1:] {
+			s.alias[k] = struct{}{}
+		}
 	}
 }
 

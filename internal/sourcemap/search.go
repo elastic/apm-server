@@ -83,6 +83,21 @@ func must(clauses ...map[string]interface{}) map[string]interface{} {
 	return map[string]interface{}{"must": clauses}
 }
 
+func should(clauses ...map[string]interface{}) map[string]interface{} {
+	return map[string]interface{}{"should": clauses}
+}
+
 func term(k, v string) map[string]interface{} {
 	return map[string]interface{}{"term": map[string]interface{}{k: v}}
+}
+
+func boostedTerm(k, v string, boost float32) map[string]interface{} {
+	return map[string]interface{}{
+		"term": map[string]map[string]interface{}{
+			k: {
+				"value": v,
+				"boost": boost,
+			},
+		},
+	}
 }

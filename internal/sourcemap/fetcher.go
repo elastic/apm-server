@@ -19,6 +19,7 @@ package sourcemap
 
 import (
 	"context"
+	"net/url"
 
 	"github.com/go-sourcemap/sourcemap"
 )
@@ -41,4 +42,38 @@ type Identifier struct {
 type Metadata struct {
 	id          Identifier
 	contentHash string
+}
+
+func GetIdentifiers(name string, version string, bundleFilepath string) []Identifier {
+	urlPath, err := url.Parse(bundleFilepath)
+	if err != nil {
+		// bundleFilepath is not an url
+		// use full match
+		return []Identifier{{
+			name:    name,
+			version: version,
+			path:    bundleFilepath,
+		}}
+	}
+
+	identifiers := make([]Identifier, 0, 2)
+
+	urlPath.RawQuery = ""
+	urlPath.Fragment = ""
+
+	// first try to match the full url
+	identifiers = append(identifiers, Identifier{
+		name:    name,
+		version: version,
+		path:    urlPath.String(),
+	})
+
+	// then try to match the url path
+	identifiers = append(identifiers, Identifier{
+		name:    name,
+		version: version,
+		path:    urlPath.Path,
+	})
+
+	return identifiers
 }

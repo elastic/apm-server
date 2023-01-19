@@ -165,16 +165,27 @@ func parse(body io.ReadCloser, name, version, path string, logger *logp.Logger) 
 }
 
 func requestBody(name, version, path string) map[string]interface{} {
-	id := name + "-" + version + "-" + path
+	identifiers := GetIdentifiers(name, version, path)
+
+	m := make([]map[string]interface{}, 0, len(identifiers))
+
+	m = append(m, boostedTerm("_id", identifiers[0].name+"-"+identifiers[0].version+"-"+identifiers[0].path, 2.0))
+
+	for _, k := range identifiers[1:] {
+		id := k.name + "-" + k.version + "-" + k.path
+		m = append(m, term("_id", id))
+	}
+
 	return search(
 		size(1),
 		source("content"),
 		query(
 			boolean(
-				must(
-					term("_id", id),
+				should(
+					m...,
 				),
 			),
 		),
+		sort(desc("_score")),
 	)
 }
