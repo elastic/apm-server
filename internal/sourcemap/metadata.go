@@ -39,7 +39,7 @@ import (
 type MetadataCachingFetcher struct {
 	esClient         *elasticsearch.Client
 	set              map[Identifier]string
-	alias            map[Identifier]struct{}
+	alias            map[Identifier]*Identifier
 	mu               sync.RWMutex
 	backend          Fetcher
 	logger           *logp.Logger
@@ -58,7 +58,7 @@ func NewMetadataCachingFetcher(
 		esClient:         c,
 		index:            index,
 		set:              make(map[Identifier]string),
-		alias:            make(map[Identifier]struct{}),
+		alias:            make(map[Identifier]*Identifier),
 		backend:          backend,
 		logger:           logp.NewLogger(logs.Sourcemap),
 		init:             make(chan struct{}),
@@ -67,44 +67,58 @@ func NewMetadataCachingFetcher(
 }
 
 func (s *MetadataCachingFetcher) Fetch(ctx context.Context, name, version, path string) (*sourcemap.Consumer, error) {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-
-	var forwardRequest bool
+	var initPending bool
 
 	select {
 	case <-s.init:
 	default:
 		s.logger.Debugf("Metadata cache not populated. Falling back to backend fetcher for id: %s, %s, %s", name, version, path)
-		forwardRequest = true
+		initPending = true
 	}
 
-	keys := GetIdentifiers(name, version, path)
+	original := Identifier{name: name, version: version, path: path}
 
-	if _, found := s.set[keys[0]]; found || forwardRequest {
+	// try to minimize lock contention so that init can finish faster
+	// avoid defer since later down we are waiting for the init routine to
+	// finish and that would create a deadlock
+	s.mu.RLock()
+	_, found := s.set[original]
+	s.mu.RUnlock()
+
+	if found || initPending {
 		// Only fetch from ES if the sourcemap id exists
-		c, err := s.backend.Fetch(ctx, keys[0].name, keys[0].version, keys[0].path)
+		c, err := s.backend.Fetch(ctx, original.name, original.version, original.path)
 		if err != nil {
 			return nil, err
 		}
 		if c != nil {
 			return c, err
 		} else if found {
-			s.logger.Debugf("Backed fetcher failed to retrieve sourcemap: %v", keys[0])
+			s.logger.Debugf("Backend fetcher failed to retrieve sourcemap: %v", original)
 		}
 	}
 
-	for _, key := range keys[1:] {
-		if _, found := s.alias[key]; found || forwardRequest {
+	keys := GetAliases(name, version, path)
+	if len(keys) != 0 && initPending {
+		s.logger.Debug("Found aliases. Blocking until init is completed")
+		// aliases only work after init
+		<-s.init
+	}
+
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	for _, key := range keys {
+		if id, found := s.alias[key]; found {
 			// Only fetch from ES if the sourcemap id exists
-			c, err := s.backend.Fetch(ctx, key.name, key.version, key.path)
+			c, err := s.backend.Fetch(ctx, id.name, id.version, id.path)
 			if err != nil {
 				return nil, err
 			}
 			if c != nil {
 				return c, err
 			} else if found {
-				s.logger.Debugf("Backed fetcher failed to retrieve sourcemap from alias %v", key)
+				s.logger.Debugf("Backend fetcher failed to retrieve sourcemap from alias %v", key)
 			}
 		}
 	}
@@ -112,7 +126,7 @@ func (s *MetadataCachingFetcher) Fetch(ctx context.Context, name, version, path 
 	return nil, nil
 }
 
-func (s *MetadataCachingFetcher) update(updates map[Identifier]string) {
+func (s *MetadataCachingFetcher) update(ctx context.Context, updates map[Identifier]string) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -123,17 +137,28 @@ func (s *MetadataCachingFetcher) update(updates map[Identifier]string) {
 
 			// content hash changed, invalidate the sourcemap cache
 			if contentHash != updatedHash {
-				s.invalidationChan <- id
+				select {
+				case s.invalidationChan <- id:
+				case <-ctx.Done():
+					s.logger.Errorf("ctx finished while invaliding id: %v", ctx.Err())
+					return
+				}
+
 			}
 		} else {
 			// the sourcemap no longer exists in ES.
 			// invalidate the sourcemap cache.
-			s.invalidationChan <- id
+			select {
+			case s.invalidationChan <- id:
+			case <-ctx.Done():
+				s.logger.Errorf("ctx finished while invaliding id: %v", ctx.Err())
+				return
+			}
 
 			// remove from metadata cache
 			delete(s.set, id)
 			// remove alias
-			for _, k := range GetIdentifiers(id.name, id.version, id.path)[1:] {
+			for _, k := range GetAliases(id.name, id.version, id.path)[1:] {
 				delete(s.alias, k)
 			}
 		}
@@ -141,8 +166,12 @@ func (s *MetadataCachingFetcher) update(updates map[Identifier]string) {
 	// add new sourcemaps to the metadata cache.
 	for id, contentHash := range updates {
 		s.set[id] = contentHash
-		for _, k := range GetIdentifiers(id.name, id.version, id.path)[1:] {
-			s.alias[k] = struct{}{}
+		// store aliases with a pointer to the original id.
+		// The id is then passed over to the backend fetcher
+		// to minimize the size of the lru cache and
+		// and increase cache hits.
+		for _, k := range GetAliases(id.name, id.version, id.path)[1:] {
+			s.alias[k] = &id
 		}
 	}
 }
@@ -157,6 +186,7 @@ func (s *MetadataCachingFetcher) StartBackgroundSync() {
 			s.logger.Error("failed to fetch sourcemaps metadata: %v", err)
 		}
 
+		s.logger.Info("init routine completed")
 		close(s.init)
 	}()
 
@@ -214,7 +244,7 @@ func (s *MetadataCachingFetcher) sync(ctx context.Context) error {
 	}
 
 	// Update cache
-	s.update(updates)
+	s.update(ctx, updates)
 	return nil
 }
 

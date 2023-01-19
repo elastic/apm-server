@@ -44,40 +44,38 @@ type Metadata struct {
 	contentHash string
 }
 
-func GetIdentifiers(name string, version string, bundleFilepath string) []Identifier {
+func GetAliases(name string, version string, bundleFilepath string) []Identifier {
 	urlPath, err := url.Parse(bundleFilepath)
 	if err != nil {
-		// bundleFilepath is not an url
+		// bundleFilepath is not an url so it
+		// has no alias.
 		// use full match
-		return []Identifier{{
-			name:    name,
-			version: version,
-			path:    bundleFilepath,
-		}}
+		return nil
 	}
 
-	identifiers := make([]Identifier, 0, 2)
+	if urlPath.String() == urlPath.Path {
+		// "/foo.bundle.js.map" is a valid url
+		// bundleFilepath is an url path
+		// no alias
+		return nil
+	}
 
 	urlPath.RawQuery = ""
 	urlPath.Fragment = ""
 
-	// first try to match the full url
-	identifiers = append(identifiers, Identifier{
-		name:    name,
-		version: version,
-		path:    urlPath.String(),
-	})
+	return []Identifier{
+		// first try to match the full url
+		{
+			name:    name,
+			version: version,
+			path:    urlPath.String(),
+		},
 
-	// "/foo.bundle.js.map" is a valid url
-	// make sure it is included twice
-	if urlPath.String() != urlPath.Path {
 		// then try to match the url path
-		identifiers = append(identifiers, Identifier{
+		{
 			name:    name,
 			version: version,
 			path:    urlPath.Path,
-		})
+		},
 	}
-
-	return identifiers
 }

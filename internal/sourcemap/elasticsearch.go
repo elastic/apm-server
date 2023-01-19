@@ -165,13 +165,13 @@ func parse(body io.ReadCloser, name, version, path string, logger *logp.Logger) 
 }
 
 func requestBody(name, version, path string) map[string]interface{} {
-	identifiers := GetIdentifiers(name, version, path)
+	aliases := GetAliases(name, version, path)
 
-	m := make([]map[string]interface{}, 0, len(identifiers))
+	m := make([]map[string]interface{}, 0, 1+len(aliases))
 
-	m = append(m, boostedTerm("_id", identifiers[0].name+"-"+identifiers[0].version+"-"+identifiers[0].path, 2.0))
+	m = append(m, boostedTerm("_id", name+"-"+version+"-"+path, 2.0))
 
-	for _, k := range identifiers[1:] {
+	for _, k := range aliases {
 		id := k.name + "-" + k.version + "-" + k.path
 		m = append(m, term("_id", id))
 	}
