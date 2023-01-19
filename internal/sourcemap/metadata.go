@@ -178,7 +178,7 @@ func (s *MetadataCachingFetcher) update(ctx context.Context, updates map[Identif
 		}
 	}
 
-	s.logger.Debugf("Cache now has %d entries.", len(s.set))
+	s.logger.Debugf("Metadata cache now has %d entries.", len(s.set))
 }
 
 func (s *MetadataCachingFetcher) StartBackgroundSync() {
