@@ -66,10 +66,25 @@ func NewMetadataCachingFetcher(
 }
 
 func (s *MetadataCachingFetcher) Fetch(ctx context.Context, name, version, path string) (*sourcemap.Consumer, error) {
+	var cleanPath string
+	var urlPath string
+
+	u, err := url.Parse(path)
+	if err != nil {
+		// path is not a valid url
+		// assume path
+		cleanPath = path
+	} else {
+		u.RawQuery = ""
+		u.Fragment = ""
+		cleanPath = u.String()
+		urlPath = u.Path
+	}
+
 	key := Identifier{
 		name:    name,
 		version: version,
-		path:    path,
+		path:    cleanPath,
 	}
 
 	s.mu.RLock()
@@ -80,33 +95,28 @@ func (s *MetadataCachingFetcher) Fetch(ctx context.Context, name, version, path 
 	default:
 		// metadata cache is not populated yet
 		// forward the request to the backend fetcher
-		return s.backend.Fetch(ctx, name, version, path)
+		return s.backend.Fetch(ctx, key.name, key.version, key.path)
 	}
 
 	if _, found := s.set[key]; found {
 		// Only fetch from ES if the sourcemap id exists
-		return s.backend.Fetch(ctx, name, version, path)
+		return s.backend.Fetch(ctx, key.name, key.version, key.path)
 	}
 
-	// Try again
-	key.path = maybeParseURLPath(path)
+	if urlPath == "" {
+		// return early if path is not a valid url
+		return nil, nil
+	}
+
+	// Try again using url.Path
+	key.path = urlPath
 
 	if _, found := s.set[key]; found {
 		// Only fetch from ES if the sourcemap id exists
-		return s.backend.Fetch(ctx, name, version, path)
+		return s.backend.Fetch(ctx, key.name, key.version, key.path)
 	}
 
 	return nil, nil
-}
-
-// maybeParseURLPath attempts to parse s as a URL, returning its path component
-// if successful. If s cannot be parsed as a URL, s is returned.
-func maybeParseURLPath(s string) string {
-	url, err := url.Parse(s)
-	if err != nil {
-		return s
-	}
-	return url.Path
 }
 
 func (s *MetadataCachingFetcher) update(updates map[Identifier]string) {
