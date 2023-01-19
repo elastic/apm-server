@@ -63,6 +63,19 @@ func GetAliases(name string, version string, bundleFilepath string) []Identifier
 	urlPath.RawQuery = ""
 	urlPath.Fragment = ""
 
+	if urlPath.String() == bundleFilepath {
+		// bundleFilepath is a valid url and it is
+		// already clean.
+		// Only return the url path as an alias
+		return []Identifier{
+			{
+				name:    name,
+				version: version,
+				path:    urlPath.Path,
+			},
+		}
+	}
+
 	return []Identifier{
 		// first try to match the full url
 		{

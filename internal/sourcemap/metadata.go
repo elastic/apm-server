@@ -158,7 +158,7 @@ func (s *MetadataCachingFetcher) update(ctx context.Context, updates map[Identif
 			// remove from metadata cache
 			delete(s.set, id)
 			// remove alias
-			for _, k := range GetAliases(id.name, id.version, id.path)[1:] {
+			for _, k := range GetAliases(id.name, id.version, id.path) {
 				delete(s.alias, k)
 			}
 		}
@@ -170,7 +170,7 @@ func (s *MetadataCachingFetcher) update(ctx context.Context, updates map[Identif
 		// The id is then passed over to the backend fetcher
 		// to minimize the size of the lru cache and
 		// and increase cache hits.
-		for _, k := range GetAliases(id.name, id.version, id.path)[1:] {
+		for _, k := range GetAliases(id.name, id.version, id.path) {
 			s.alias[k] = &id
 		}
 	}
