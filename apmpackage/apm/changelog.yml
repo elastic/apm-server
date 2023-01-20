@@ -39,6 +39,9 @@
     - description: Add service destination overflow metrics
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/10069
+    - description: Add service summary overflow metrics
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/10061
 - version: "8.6.0"
   changes:
     - description: Change `ecs.version` to a `constant_keyword` field
