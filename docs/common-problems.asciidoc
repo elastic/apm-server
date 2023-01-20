@@ -100,8 +100,8 @@ If the APM Server returns interleaved 503 and 202 responses, it indicates that t
 You have a few options to solve this problem:
 
 * <<reduce-storage, Reduce storage>>
-* <<tune-output-config>>
-* <<adjust-queue-size>>
+* <<tune-apm-server, Tune APM Server output parameters for your Elasticsearch cluster>>
+* <<tune-apm-server, Adjust internal queue size>>
 * <<tune-es, Tune Elasticsearch for higher ingestion>>
 
 [[request-timed-out]]
