@@ -25,6 +25,7 @@ import (
 
 	"github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/go-ucfg"
 
 	"github.com/elastic/apm-server/internal/elasticsearch"
 )
@@ -112,7 +113,8 @@ func (s *SourceMapping) Unpack(inp *config.C) error {
 	}
 	s.esConfigured = inp.HasField("elasticsearch")
 	var err error
-	if s.es, err = inp.Child("elasticsearch", -1); err != nil {
+	var e ucfg.Error
+	if s.es, err = inp.Child("elasticsearch", -1); err != nil && (!errors.As(err, &e) || e.Reason() != ucfg.ErrMissing) {
 		return errors.Wrap(err, "error storing sourcemap elasticsearch config")
 	}
 	return nil
