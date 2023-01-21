@@ -39,11 +39,6 @@ type Identifier struct {
 	path    string
 }
 
-type Metadata struct {
-	id          Identifier
-	contentHash string
-}
-
 func GetAliases(name string, version string, bundleFilepath string) []Identifier {
 	urlPath, err := url.Parse(bundleFilepath)
 	if err != nil {

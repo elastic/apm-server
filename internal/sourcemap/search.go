@@ -79,10 +79,6 @@ func boolean(clause map[string]interface{}) map[string]interface{} {
 	return wrap("bool", clause)
 }
 
-func must(clauses ...map[string]interface{}) map[string]interface{} {
-	return map[string]interface{}{"must": clauses}
-}
-
 func should(clauses ...map[string]interface{}) map[string]interface{} {
 	return map[string]interface{}{"should": clauses}
 }
