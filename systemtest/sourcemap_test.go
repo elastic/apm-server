@@ -37,20 +37,31 @@ func TestRUMErrorSourcemapping(t *testing.T) {
 		require.NoError(t, err)
 		systemtest.CreateSourceMap(t, string(sourcemap), "apm-agent-js", "1.0.1", bundleFilepath)
 
-		srv := apmservertest.NewUnstartedServerTB(t)
-		srv.Config.RUM = &apmservertest.RUMConfig{Enabled: true}
-		err = srv.Start()
-		require.NoError(t, err)
+		apmIntegration := newAPMIntegration(t, map[string]interface{}{"enable_rum": true})
 
-		systemtest.SendRUMEventsPayload(t, srv.URL, "../testdata/intake-v2/errors_rum.ndjson")
-		result := systemtest.Elasticsearch.ExpectDocs(t, "logs-apm.error-*", nil)
-		systemtest.ApproveEvents(
-			t, t.Name(), result.Hits.Hits,
-			// RUM timestamps are set by the server based on the time the payload is received.
-			"@timestamp", "timestamp.us",
-			// RUM events have the source IP and port recorded, which are dynamic in the tests
-			"client.ip", "source.ip", "source.port",
-		)
+		test := func(t *testing.T, serverURL string) {
+			systemtest.SendRUMEventsPayload(t, serverURL, "../testdata/intake-v2/errors_rum.ndjson")
+			result := systemtest.Elasticsearch.ExpectDocs(t, "logs-apm.error-*", nil)
+			systemtest.ApproveEvents(
+				t, t.Name(), result.Hits.Hits,
+				// RUM timestamps are set by the server based on the time the payload is received.
+				"@timestamp", "timestamp.us",
+				// RUM events have the source IP and port recorded, which are dynamic in the tests
+				"client.ip", "source.ip", "source.port",
+			)
+		}
+
+		t.Run("standalone", func(t *testing.T) {
+			srv := apmservertest.NewUnstartedServerTB(t)
+			srv.Config.RUM = &apmservertest.RUMConfig{Enabled: true}
+			err := srv.Start()
+			require.NoError(t, err)
+			test(t, srv.URL)
+		})
+
+		t.Run("integration", func(t *testing.T) {
+			test(t, apmIntegration.URL)
+		})
 	}
 
 	t.Run("absolute_bundle_filepath", func(t *testing.T) {
@@ -121,26 +132,6 @@ func TestNoMatchingSourcemap(t *testing.T) {
 	)
 }
 
-func TestSourcemapElasticsearch(t *testing.T) {
-	systemtest.CleanupElasticsearch(t)
-
-	sourcemap, err := os.ReadFile("../testdata/sourcemap/bundle.js.map")
-	require.NoError(t, err)
-	systemtest.CreateSourceMap(t, string(sourcemap), "apm-agent-js", "1.0.1",
-		"http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
-	)
-
-	srv := apmservertest.NewUnstartedServerTB(t)
-	srv.Config.RUM = &apmservertest.RUMConfig{Enabled: true}
-	err = srv.Start()
-	require.NoError(t, err)
-
-	// Index an error, applying source mapping and caching the source map in the process.
-	systemtest.SendRUMEventsPayload(t, srv.URL, "../testdata/intake-v2/errors_rum.ndjson")
-	result := systemtest.Elasticsearch.ExpectDocs(t, "logs-apm.error-*", nil)
-	assertSourcemapUpdated(t, result, true)
-}
-
 func TestSourcemapCaching(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
 
@@ -165,6 +156,26 @@ func TestSourcemapCaching(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
 	systemtest.SendRUMEventsPayload(t, srv.URL, "../testdata/intake-v2/errors_rum.ndjson")
 	result = systemtest.Elasticsearch.ExpectMinDocs(t, 1, "logs-apm.error-*", nil)
+	assertSourcemapUpdated(t, result, true)
+}
+
+func TestSourcemapElasticsearch(t *testing.T) {
+	systemtest.CleanupElasticsearch(t)
+
+	sourcemap, err := os.ReadFile("../testdata/sourcemap/bundle.js.map")
+	require.NoError(t, err)
+	systemtest.CreateSourceMap(t, string(sourcemap), "apm-agent-js", "1.0.1",
+		"http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
+	)
+
+	srv := apmservertest.NewUnstartedServerTB(t)
+	srv.Config.RUM = &apmservertest.RUMConfig{Enabled: true}
+	err = srv.Start()
+	require.NoError(t, err)
+
+	// Index an error, applying source mapping and caching the source map in the process.
+	systemtest.SendRUMEventsPayload(t, srv.URL, "../testdata/intake-v2/errors_rum.ndjson")
+	result := systemtest.Elasticsearch.ExpectDocs(t, "logs-apm.error-*", nil)
 	assertSourcemapUpdated(t, result, true)
 }
 

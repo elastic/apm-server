@@ -223,3 +223,27 @@ func TestRUMRouting(t *testing.T) {
 		"source.port", "source.ip", "client",
 	)
 }
+
+func TestRUMRoutingIntegration(t *testing.T) {
+	// This test asserts that the events that are coming from the RUM JS agent
+	// are sent to the appropriate datastream.
+	systemtest.CleanupElasticsearch(t)
+	apmIntegration := newAPMIntegration(t, map[string]interface{}{"enable_rum": true})
+
+	body, err := os.Open(filepath.Join("..", "testdata", "intake-v3", "rum_events.ndjson"))
+	require.NoError(t, err)
+	defer body.Close()
+
+	req, err := http.NewRequest("POST", apmIntegration.URL+"/intake/v3/rum/events", body)
+	require.NoError(t, err)
+	req.Header.Add("Content-Type", "application/x-ndjson")
+
+	resp, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+	result := systemtest.Elasticsearch.ExpectDocs(t, "traces-apm.rum*", nil)
+	systemtest.ApproveEvents(
+		t, t.Name(), result.Hits.Hits, "@timestamp", "timestamp.us",
+		"source.port", "source.ip", "client",
+	)
+}
