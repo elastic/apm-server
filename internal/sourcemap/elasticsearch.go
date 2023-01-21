@@ -92,11 +92,11 @@ func (s *esFetcher) Fetch(ctx context.Context, name, version, path string) (*sou
 		if resp.StatusCode == http.StatusNotFound {
 			return nil, nil
 		}
-		body, err := io.ReadAll(resp.Body)
+		b, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return nil, errors.Wrap(err, errMsgParseSourcemap)
 		}
-		return nil, errors.New(fmt.Sprintf("%s %s", errMsgParseSourcemap, body))
+		return nil, errors.New(fmt.Sprintf("%s %s", errMsgParseSourcemap, b))
 	}
 
 	// parse response

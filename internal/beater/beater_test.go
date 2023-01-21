@@ -35,8 +35,6 @@ import (
 	"github.com/elastic/elastic-agent-libs/monitoring"
 )
 
-var validSourcemap, _ = os.ReadFile("../../testdata/sourcemap/bundle.js.map")
-
 func TestSourcemapIndexPattern(t *testing.T) {
 	test := func(t *testing.T, indexPattern, expected string) {
 		var requestPaths []string
@@ -79,6 +77,8 @@ func TestSourcemapIndexPattern(t *testing.T) {
 		test(t, "blah-%{[observer.version]}-blah", fmt.Sprintf("blah-%s-blah", version.Version))
 	})
 }
+
+var validSourcemap, _ = os.ReadFile("../../testdata/sourcemap/bundle.js.map")
 
 func TestStoreUsesRUMElasticsearchConfig(t *testing.T) {
 	var called bool
