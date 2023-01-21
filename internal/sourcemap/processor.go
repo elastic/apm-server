@@ -121,7 +121,7 @@ func (p BatchProcessor) processStacktraceFrame(
 	mapper, err := p.Fetcher.Fetch(ctx, service.Name, service.Version, path)
 	if err != nil {
 		frame.SourcemapError = err.Error()
-		getProcessorLogger().Debugf("failed to fetch source map: %s", frame.SourcemapError)
+		getProcessorLogger().Errorf("failed to fetch source map: %s", frame.SourcemapError)
 		return false, ""
 	}
 	if mapper == nil {
