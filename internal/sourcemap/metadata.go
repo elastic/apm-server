@@ -24,6 +24,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"sync"
 	"time"
 
@@ -67,57 +68,70 @@ func NewMetadataCachingFetcher(
 }
 
 func (s *MetadataCachingFetcher) Fetch(ctx context.Context, name, version, path string) (*sourcemap.Consumer, error) {
-	var initPending bool
 	original := Identifier{name: name, version: version, path: path}
 
 	select {
 	case <-s.init:
-		// try to minimize lock contention so that update can finish faster
-		// avoid defer since later down we are waiting for the update routine to
-		// finish and that would create a deadlock
-		s.mu.RLock()
-		if _, found := s.set[original]; found {
-			s.mu.RUnlock()
+		// the mutex is shared by the update goroutine, we need to release it
+		// as soon as possible to avoid blocking updates.
+		if s.hasID(original) {
 			// Only fetch from ES if the sourcemap id exists
 			return s.fetch(ctx, &original)
 		}
-		s.mu.RUnlock()
 	default:
 		s.logger.Debugf("Metadata cache not populated. Falling back to backend fetcher for id: %s, %s, %s", name, version, path)
 		// init is in progress, ignore the metadata cache and fetch the sourcemap directly
-		// return if we get a result or an error
+		// return if we get a valid sourcemap or an error
 		if c, err := s.backend.Fetch(ctx, original.name, original.version, original.path); c != nil || err != nil {
 			return c, err
 		}
-		initPending = true
-	}
 
-	keys := GetAliases(name, version, path)
-	if len(keys) != 0 && initPending {
-		s.logger.Debug("Found aliases. Blocking until init is completed")
-		// aliases only work after init
+		s.logger.Debug("Blocking until init is completed")
+
+		// Aliases are only available after init is completed.
 		<-s.init
 	}
 
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+	// path is missing from the metadata cache (and ES).
+	// Is it an alias ?
+	// Try to retrieve the sourcemap from the alias map
+	// Only fetch from ES if the sourcemap alias exists
+	if id, found := s.getAlias(original); found {
+		return s.fetch(ctx, id)
+	}
 
-	for _, key := range keys {
-		// Try again from the original cache
-		// This is because you might be storing the sourcemap in ES with an alias
-		// or original request id might not be using a clear url.
-		if _, found := s.set[key]; found {
-			return s.fetch(ctx, &key)
-		}
+	// As a last resort, try to clean the path
+	if urlPath, err := url.Parse(path); err == nil {
+		urlPath.RawQuery = ""
+		urlPath.Fragment = ""
+		urlPath = urlPath.JoinPath()
 
-		// Try to retrieve the sourcemap from alias
-		// Only fetch from ES if the sourcemap alias exists
-		if id, found := s.alias[key]; found {
-			return s.fetch(ctx, id)
+		cleanPath := urlPath.String()
+
+		if cleanPath != path {
+			s.logger.Debugf("original filepath %s converted to %s", path, cleanPath)
+			// we got a different result
+			return s.Fetch(ctx, name, version, cleanPath)
 		}
 	}
 
 	return nil, nil
+}
+
+func (s *MetadataCachingFetcher) hasID(key Identifier) bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	_, ok := s.set[key]
+	return ok
+}
+
+func (s *MetadataCachingFetcher) getAlias(key Identifier) (*Identifier, bool) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	i, ok := s.alias[key]
+	return i, ok
 }
 
 func (s *MetadataCachingFetcher) fetch(ctx context.Context, key *Identifier) (*sourcemap.Consumer, error) {
