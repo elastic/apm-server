@@ -453,7 +453,7 @@ func TestUnpackConfig(t *testing.T) {
 						Cache: Cache{
 							Expiration: 7 * time.Second,
 						},
-						IndexPattern: "apm-*-sourcemap*",
+						IndexPattern: ".apm-source-map",
 						ESConfig:     elasticsearch.DefaultConfig(),
 						Metadata: []SourceMapMetadata{
 							{
