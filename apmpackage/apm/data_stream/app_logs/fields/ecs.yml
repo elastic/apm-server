@@ -83,6 +83,12 @@
 - external: ecs
   name: event.action
 - external: ecs
+  name: event.type
+- external: ecs
+  name: event.category
+- external: ecs
+  name: event.kind
+- external: ecs
   name: host.architecture
 - external: ecs
   name: host.hostname
