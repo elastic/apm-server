@@ -100,17 +100,32 @@ func (s *MetadataCachingFetcher) Fetch(ctx context.Context, name, version, path 
 		return s.fetch(ctx, id)
 	}
 
-	// As a last resort, try to clean the path
 	if urlPath, err := url.Parse(path); err == nil {
+		// The sourcemap coule be stored in ES with a relative
+		// bundle filepath but the request came in with an
+		// absolute path
+		original.path = urlPath.Path
+		if urlPath.Path != path && s.hasID(original) {
+			return s.fetch(ctx, &original)
+		}
+
+		// The sourcemap could be stored on ES under a certain host
+		// but a request came in from a different host.
+		// Look for an alias to the url path to retrieve the correct
+		// host and fetch the sourcemap
+		if id, found := s.getAlias(original); found {
+			return s.fetch(ctx, id)
+		}
+
+		// Clean the url and try again if the result is different from
+		// the original bundle filepath
 		urlPath.RawQuery = ""
 		urlPath.Fragment = ""
 		urlPath = urlPath.JoinPath()
-
 		cleanPath := urlPath.String()
 
 		if cleanPath != path {
 			s.logger.Debugf("original filepath %s converted to %s", path, cleanPath)
-			// we got a different result
 			return s.Fetch(ctx, name, version, cleanPath)
 		}
 	}
