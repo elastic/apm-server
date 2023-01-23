@@ -8,7 +8,7 @@ require (
 	github.com/dgraph-io/badger/v2 v2.2007.3-0.20201012072640-f5a7e0a1c83b
 	github.com/dustin/go-humanize v1.0.0
 	github.com/elastic/apm-data v0.1.1-0.20230118033608-607aaa61e212
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230119220836-de992564e39c
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230123023558-cb8f4f7833da
 	github.com/elastic/elastic-agent-client/v7 v7.0.3
 	github.com/elastic/elastic-agent-libs v0.2.16
 	github.com/elastic/elastic-agent-system-metrics v0.4.5-0.20220927192933-25a985b07d51
@@ -71,8 +71,8 @@ require (
 	github.com/dgryski/go-farm v0.0.0-20200201041132-a6ae2369ad13 // indirect
 	github.com/dgryski/go-metro v0.0.0-20180109044635-280f6062b5bc // indirect
 	github.com/dlclark/regexp2 v1.8.0 // indirect
-	github.com/dop251/goja v0.0.0-20230119130012-17fd568758fe // indirect
-	github.com/dop251/goja_nodejs v0.0.0-20221211191749-434192f0843e // indirect
+	github.com/dop251/goja v0.0.0-20230122112309-96b1610dd4f7 // indirect
+	github.com/dop251/goja_nodejs v0.0.0-20230121151440-041f29a15066 // indirect
 	github.com/eapache/go-resiliency v1.2.0 // indirect
 	github.com/eapache/go-xerial-snappy v0.0.0-20180814174437-776d5712da21 // indirect
 	github.com/eapache/queue v1.1.0 // indirect
@@ -82,7 +82,7 @@ require (
 	github.com/elastic/go-structform v0.0.10 // indirect
 	github.com/elastic/go-windows v1.0.1 // indirect
 	github.com/elastic/gosigar v0.14.2 // indirect
-	github.com/fatih/color v1.13.0 // indirect
+	github.com/fatih/color v1.14.0 // indirect
 	github.com/frankban/quicktest v1.14.0 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/gogo/googleapis v1.4.1 // indirect
