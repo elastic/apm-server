@@ -42,6 +42,9 @@
     - description: Add service summary overflow metrics
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/10061
+    - description: Add event categorization fields
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/10066
     - description: Set data streams with non-default rollup intervals as hidden
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/10070
