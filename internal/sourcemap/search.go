@@ -47,24 +47,6 @@ func size(i int) searchOption {
 	}
 }
 
-func sort(opts ...searchOption) searchOption {
-	return func(m map[string]interface{}) {
-		s := make(map[string]interface{}, len(opts))
-
-		for _, opt := range opts {
-			opt(s)
-		}
-
-		m["sort"] = s
-	}
-}
-
-func desc(k string) searchOption {
-	return func(m map[string]interface{}) {
-		m[k] = map[string]interface{}{"order": "desc"}
-	}
-}
-
 func query(q map[string]interface{}) searchOption {
 	return func(m map[string]interface{}) {
 		m["query"] = q
@@ -79,21 +61,10 @@ func boolean(clause map[string]interface{}) map[string]interface{} {
 	return wrap("bool", clause)
 }
 
-func should(clauses ...map[string]interface{}) map[string]interface{} {
-	return map[string]interface{}{"should": clauses}
+func must(clauses ...map[string]interface{}) map[string]interface{} {
+	return map[string]interface{}{"must": clauses}
 }
 
 func term(k, v string) map[string]interface{} {
 	return map[string]interface{}{"term": map[string]interface{}{k: v}}
-}
-
-func boostedTerm(k, v string, boost float32) map[string]interface{} {
-	return map[string]interface{}{
-		"term": map[string]map[string]interface{}{
-			k: {
-				"value": v,
-				"boost": boost,
-			},
-		},
-	}
 }

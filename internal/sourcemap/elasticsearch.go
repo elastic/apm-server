@@ -165,27 +165,17 @@ func parse(body io.ReadCloser, name, version, path string, logger *logp.Logger) 
 }
 
 func requestBody(name, version, path string) map[string]interface{} {
-	aliases := GetAliases(name, version, path)
-
-	m := make([]map[string]interface{}, 0, 1+len(aliases))
-
-	m = append(m, boostedTerm("_id", name+"-"+version+"-"+path, 2.0))
-
-	for _, k := range aliases {
-		id := k.name + "-" + k.version + "-" + k.path
-		m = append(m, term("_id", id))
-	}
+	id := name + "-" + version + "-" + path
 
 	return search(
 		size(1),
 		source("content"),
 		query(
 			boolean(
-				should(
-					m...,
+				must(
+					term("_id", id),
 				),
 			),
 		),
-		sort(desc("_score")),
 	)
 }
