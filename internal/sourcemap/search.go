@@ -59,7 +59,7 @@ func query(q map[string]interface{}) searchOption {
 	}
 }
 
-func wrap(k string, v map[string]interface{}) map[string]interface{} {
+func wrap(k string, v interface{}) map[string]interface{} {
 	return map[string]interface{}{k: v}
 }
 
@@ -68,9 +68,9 @@ func boolean(clause map[string]interface{}) map[string]interface{} {
 }
 
 func must(clauses ...map[string]interface{}) map[string]interface{} {
-	return map[string]interface{}{"must": clauses}
+	return wrap("must", clauses)
 }
 
 func term(k, v string) map[string]interface{} {
-	return map[string]interface{}{"term": map[string]interface{}{k: v}}
+	return wrap("term", wrap(k, v))
 }
