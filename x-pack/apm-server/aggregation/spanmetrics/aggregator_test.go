@@ -7,19 +7,18 @@ package spanmetrics
 import (
 	"context"
 	"fmt"
+	"net/netip"
 	"sort"
 	"sync"
 	"testing"
 	"time"
 
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
-	"go.uber.org/zap/zaptest/observer"
 
 	"github.com/elastic/apm-data/model"
-	"github.com/elastic/elastic-agent-libs/logp"
 )
 
 func BenchmarkAggregateSpan(b *testing.B) {
@@ -603,91 +602,68 @@ func TestAggregateTimestamp(t *testing.T) {
 	assert.Equal(t, t0.Add(30*time.Second), metricsets[1].Timestamp)
 }
 
-func TestAggregatorMaxGroups(t *testing.T) {
-	core, observed := observer.New(zapcore.DebugLevel)
-	logger := logp.NewLogger("", zap.WrapCore(func(in zapcore.Core) zapcore.Core {
-		return zapcore.NewTee(in, core)
-	}))
-
+func TestAggregatorOverflow(t *testing.T) {
+	maxGrps := 4
+	overflowCount := 100
+	duration := 100 * time.Millisecond
 	batches := make(chan model.Batch, 1)
 	agg, err := NewAggregator(AggregatorConfig{
 		BatchProcessor: makeChanBatchProcessor(batches),
-		Interval:       10 * time.Millisecond,
-		MaxGroups:      4,
-		Logger:         logger,
+		Interval:       10 * time.Second,
+		MaxGroups:      maxGrps,
 	})
 	require.NoError(t, err)
 
-	// The first two transaction groups will not require immediate publication,
-	// as we have configured the spanmetrics with a maximum of four buckets.
-	batch := make(model.Batch, 20)
-	for i := 0; i < len(batch); i += 2 {
-		batch[i] = makeSpan("service", "agent", "destination1", "trg_type_1", "trg_name_1", "success", 100*time.Millisecond, 1)
-		batch[i+1] = makeSpan("service", "agent", "destination2", "trg_type_2", "trg_name_2", "success", 100*time.Millisecond, 1)
+	batch := make(model.Batch, maxGrps+overflowCount) // cause overflow
+	for i := 0; i < len(batch); i++ {
+		batch[i] = makeSpan("service", "agent", fmt.Sprintf("destination%d", i),
+			fmt.Sprintf("trg_type_%d", i), fmt.Sprintf("trg_name_%d", i), "success", duration, 1)
 	}
-	err = agg.ProcessBatch(context.Background(), &batch)
-	require.NoError(t, err)
-	assert.Empty(t, batchMetricsets(t, batch))
-	assert.Equal(t, 1, observed.FilterMessage("service destination groups reached 50% capacity").Len())
-	assert.Len(t, observed.TakeAll(), 1)
-
-	// After hitting 50% capacity (two buckets), then subsequent new metrics will
-	// be aggregated without span.name.
-	batch = append(batch,
-		makeSpan("service", "agent", "destination3", "trg_type_3", "trg_name_3", "success", 100*time.Millisecond, 1),
-		makeSpan("service", "agent", "destination4", "trg_type_4", "trg_name_4", "success", 100*time.Millisecond, 1),
-	)
-	err = agg.ProcessBatch(context.Background(), &batch)
-	require.NoError(t, err)
-	assert.Empty(t, batchMetricsets(t, batch))
-	assert.Equal(t, 1, observed.FilterMessage("service destination groups reached 100% capacity").Len())
-	assert.Len(t, observed.TakeAll(), 1)
-
-	// After hitting 100% capacity (four buckets), then subsequent new metrics will
-	// return single-event metricsets for immediate publication.
-	for i := 0; i < 2; i++ {
-		batch = append(batch, makeSpan("service", "agent", "destination5", "trg_type_5", "trg_name_5", "success", 100*time.Millisecond, 1))
+	go func(t *testing.T) {
+		t.Helper()
+		require.NoError(t, agg.Run())
+	}(t)
+	require.NoError(t, agg.ProcessBatch(context.Background(), &batch))
+	require.NoError(t, agg.Stop(context.Background()))
+	metricsets := batchMetricsets(t, expectBatch(t, batches))
+	require.Len(t, metricsets, maxGrps+1) // only one `other` metric should overflow
+	var overflowEvent *model.APMEvent
+	for i := range metricsets {
+		m := metricsets[i]
+		if m.Service.Name == "_other" {
+			if overflowEvent != nil {
+				require.Fail(t, "only one service should overflow")
+			}
+			overflowEvent = &m
+		}
 	}
-	err = agg.ProcessBatch(context.Background(), &batch)
-	require.NoError(t, err)
-
-	metricsets := batchMetricsets(t, batch)
-	assert.Len(t, metricsets, 2)
-
-	for _, m := range metricsets {
-		assert.Equal(t, model.APMEvent{
-			Agent: model.Agent{Name: "agent"},
-			Service: model.Service{
-				Name: "service",
-				Target: &model.ServiceTarget{
-					Type: "trg_type_5",
-					Name: "trg_name_5",
+	assert.Empty(t, cmp.Diff(model.APMEvent{
+		Service: model.Service{
+			Name: "_other",
+		},
+		Processor: model.MetricsetProcessor,
+		Metricset: &model.Metricset{
+			Name:     "service_destination",
+			DocCount: int64(overflowCount),
+			Interval: "10s",
+			Samples: []model.MetricsetSample{
+				{
+					Name:  "service_destination.aggregation.overflow_count",
+					Value: float64(overflowCount),
 				},
 			},
-			Event:     model.Event{Outcome: "success"},
-			Processor: model.MetricsetProcessor,
-			Metricset: &model.Metricset{Name: "service_destination", DocCount: 1},
-			Span: &model.Span{
-				Name: "service:destination5",
-				DestinationService: &model.DestinationService{
-					Resource: "destination5",
-					ResponseTime: model.AggregatedDuration{
-						Count: 1,
-						Sum:   100 * time.Millisecond,
-					},
+		},
+		Span: &model.Span{
+			Name: "",
+			DestinationService: &model.DestinationService{
+				Resource: "",
+				ResponseTime: model.AggregatedDuration{
+					Count: overflowCount,
+					Sum:   time.Duration(duration.Nanoseconds() * int64(overflowCount)),
 				},
 			},
-			Labels: model.Labels{
-				"department_name": model.LabelValue{Value: "apm"},
-				"organization":    model.LabelValue{Value: "observability"},
-				"company":         model.LabelValue{Value: "elastic"},
-			},
-			NumericLabels: model.NumericLabels{
-				"user_id":     model.NumericLabelValue{Value: 100},
-				"cost_center": model.NumericLabelValue{Value: 10},
-			},
-		}, m)
-	}
+		},
+	}, *overflowEvent, cmpopts.IgnoreTypes(netip.Addr{}, time.Time{})))
 }
 
 func makeSpan(

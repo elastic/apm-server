@@ -253,6 +253,60 @@ func TestAggregateTimestamp(t *testing.T) {
 	assert.Equal(t, t0.Add(30*time.Second), metricsets[1].Timestamp)
 }
 
+func TestAggregatorOverflow(t *testing.T) {
+	maxGrps := 4
+	overflowCount := 100
+	txnDuration := 100 * time.Millisecond
+	batches := make(chan model.Batch, 1)
+	agg, err := NewAggregator(AggregatorConfig{
+		BatchProcessor: makeChanBatchProcessor(batches),
+		Interval:       10 * time.Second,
+		MaxGroups:      maxGrps,
+	})
+	require.NoError(t, err)
+
+	batch := make(model.Batch, maxGrps+overflowCount) // cause overflow
+	for i := 0; i < len(batch); i++ {
+		batch[i] = makeTransaction(
+			fmt.Sprintf("svc%d", i), "agent", "tx_type", "success", txnDuration, 1,
+		)
+	}
+	go func(t *testing.T) {
+		t.Helper()
+		require.NoError(t, agg.Run())
+	}(t)
+	require.NoError(t, agg.ProcessBatch(context.Background(), &batch))
+	require.NoError(t, agg.Stop(context.Background()))
+	metricsets := batchMetricsets(t, expectBatch(t, batches))
+	require.Len(t, metricsets, maxGrps+1) // only one `other` metric should overflow
+	var overflowEvent *model.APMEvent
+	for i := range metricsets {
+		m := metricsets[i]
+		if m.Service.Name == "_other" {
+			if overflowEvent != nil {
+				require.Fail(t, "only one service should overflow")
+			}
+			overflowEvent = &m
+		}
+	}
+	assert.Empty(t, cmp.Diff(model.APMEvent{
+		Service: model.Service{
+			Name: "_other",
+		},
+		Processor: model.MetricsetProcessor,
+		Metricset: &model.Metricset{
+			Name:     "service_summary",
+			Interval: "10s",
+			Samples: []model.MetricsetSample{
+				{
+					Name:  "service_summary.aggregation.overflow_count",
+					Value: float64(overflowCount),
+				},
+			},
+		},
+	}, *overflowEvent, cmpopts.IgnoreTypes(netip.Addr{}, time.Time{})))
+}
+
 func makeTransaction(
 	serviceName, agentName, transactionType, outcome string,
 	duration time.Duration, count float64,
