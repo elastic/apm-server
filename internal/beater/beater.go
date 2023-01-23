@@ -818,6 +818,9 @@ func newSourcemapFetcher(
 		return nil, err
 	}
 
+	// For standalone, we query both Kibana and Elasticsearch for backwards compatibility.
+	var chained sourcemap.ChainedFetcher
+
 	size := 128
 	invalidationChan := make(chan sourcemap.Identifier, size)
 
@@ -831,7 +834,13 @@ func newSourcemapFetcher(
 	metadataCachingFetcher := sourcemap.NewMetadataCachingFetcher(esClient, cachingFetcher, index, invalidationChan)
 	metadataCachingFetcher.StartBackgroundSync()
 
-	return metadataCachingFetcher, nil
+	chained = append(chained, metadataCachingFetcher)
+
+	if kibanaClient != nil {
+		chained = append(chained, sourcemap.NewKibanaFetcher(kibanaClient))
+	}
+
+	return chained, nil
 }
 
 // TODO: This is copying behavior from libbeat:
