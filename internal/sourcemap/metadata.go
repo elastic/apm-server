@@ -255,31 +255,64 @@ func (s *MetadataCachingFetcher) StartBackgroundSync(parent context.Context) {
 }
 
 func (s *MetadataCachingFetcher) sync(ctx context.Context) error {
+	updates := make(map[Identifier]string)
+
+	scrollID, err := s.initialSearch(ctx, updates)
+	if err != nil {
+		return err
+	}
+
+	if scrollID == "" {
+		return nil
+	}
+
+	for {
+		before := len(updates)
+
+		id, err := s.scrollsearch(ctx, scrollID, updates)
+		if err != nil {
+			return err
+		}
+
+		if id != "" {
+			scrollID = id
+		}
+
+		if before == len(updates) {
+			break
+		}
+	}
+
+	s.update(ctx, updates)
+
+	return nil
+}
+
+func (s *MetadataCachingFetcher) initialSearch(ctx context.Context, updates map[Identifier]string) (string, error) {
 	resp, err := s.runSearchQuery(ctx)
 	if err != nil {
-		return errors.Wrap(err, errMsgESFailure)
+		return "", errors.Wrap(err, errMsgESFailure)
 	}
 	defer resp.Body.Close()
 
 	// handle error response
 	if resp.StatusCode >= http.StatusMultipleChoices {
 		if resp.StatusCode == http.StatusNotFound {
-			return nil
+			return "", nil
 		}
 		b, err := io.ReadAll(resp.Body)
 		if err != nil {
-			return errors.Wrap(err, errMsgParseSourcemap)
+			return "", errors.Wrap(err, errMsgParseSourcemap)
 		}
-		return errors.New(fmt.Sprintf("%s %s", errMsgParseSourcemap, b))
+		return "", errors.New(fmt.Sprintf("%s %s", errMsgParseSourcemap, b))
 	}
 
 	// parse response
 	body, err := parseResponse(resp.Body, s.logger)
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	updates := make(map[Identifier]string, len(body.Hits.Hits))
 	for _, v := range body.Hits.Hits {
 		id := Identifier{
 			name:    v.Source.Service.Name,
@@ -290,9 +323,7 @@ func (s *MetadataCachingFetcher) sync(ctx context.Context) error {
 		updates[id] = v.Source.ContentHash
 	}
 
-	// Update cache
-	s.update(ctx, updates)
-	return nil
+	return body.ScrollID, nil
 }
 
 func (s *MetadataCachingFetcher) runSearchQuery(ctx context.Context) (*esapi.Response, error) {
@@ -305,6 +336,7 @@ func (s *MetadataCachingFetcher) runSearchQuery(ctx context.Context) (*esapi.Res
 		Index:          []string{s.index},
 		Body:           &buf,
 		TrackTotalHits: true,
+		Scroll:         time.Minute,
 	}
 	return req.Do(ctx, s.esClient)
 }
@@ -315,13 +347,18 @@ func queryMetadata() map[string]interface{} {
 	)
 }
 
-func parseResponse(body io.ReadCloser, logger *logp.Logger) (esSourcemapResponse, error) {
+type esSearchSourcemapResponse struct {
+	ScrollID string `json:"_scroll_id"`
+	esSourcemapResponse
+}
+
+func parseResponse(body io.ReadCloser, logger *logp.Logger) (esSearchSourcemapResponse, error) {
 	b, err := io.ReadAll(body)
 	if err != nil {
-		return esSourcemapResponse{}, err
+		return esSearchSourcemapResponse{}, err
 	}
 
-	var esSourcemapResponse esSourcemapResponse
+	var esSourcemapResponse esSearchSourcemapResponse
 	if err := json.Unmarshal(b, &esSourcemapResponse); err != nil {
 		return esSourcemapResponse, err
 	}
@@ -331,4 +368,63 @@ func parseResponse(body io.ReadCloser, logger *logp.Logger) (esSourcemapResponse
 	}
 
 	return esSourcemapResponse, nil
+}
+
+func (s *MetadataCachingFetcher) scrollsearch(ctx context.Context, scrollID string, updates map[Identifier]string) (string, error) {
+	resp, err := s.runScrollSearchQuery(ctx, scrollID)
+	if err != nil {
+		return "", errors.Wrap(err, errMsgESFailure)
+	}
+	defer resp.Body.Close()
+
+	// handle error response
+	if resp.StatusCode >= http.StatusMultipleChoices {
+		if resp.StatusCode == http.StatusNotFound {
+			return "", nil
+		}
+		b, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return "", errors.Wrap(err, errMsgParseSourcemap)
+		}
+		return "", errors.New(fmt.Sprintf("%s %s", errMsgParseSourcemap, b))
+	}
+
+	// parse response
+	body, err := parseResponse(resp.Body, s.logger)
+	if err != nil {
+		return "", err
+	}
+
+	for _, v := range body.Hits.Hits {
+		id := Identifier{
+			name:    v.Source.Service.Name,
+			version: v.Source.Service.Version,
+			path:    v.Source.File.BundleFilepath,
+		}
+
+		updates[id] = v.Source.ContentHash
+	}
+
+	return scrollID, nil
+
+}
+
+func (s *MetadataCachingFetcher) runScrollSearchQuery(ctx context.Context, id string) (*esapi.Response, error) {
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(scrollQueryMetadata(id)); err != nil {
+		return nil, err
+	}
+
+	req := esapi.ScrollRequest{
+		ScrollID: id,
+		Scroll:   time.Minute,
+		Body:     &buf,
+	}
+	return req.Do(ctx, s.esClient)
+}
+
+func scrollQueryMetadata(id string) map[string]interface{} {
+	return search(
+		scrollID(id),
+	)
 }
