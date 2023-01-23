@@ -216,10 +216,10 @@ func (s *MetadataCachingFetcher) update(ctx context.Context, updates map[Identif
 	s.logger.Debugf("Metadata cache now has %d entries.", len(s.set))
 }
 
-func (s *MetadataCachingFetcher) StartBackgroundSync() {
+func (s *MetadataCachingFetcher) StartBackgroundSync(parent context.Context) {
 	go func() {
 		// First run, populate cache
-		ctx, cleanup := context.WithTimeout(context.Background(), 10*time.Second)
+		ctx, cleanup := context.WithTimeout(parent, 10*time.Second)
 		defer cleanup()
 
 		defer close(s.init)
@@ -236,14 +236,20 @@ func (s *MetadataCachingFetcher) StartBackgroundSync() {
 		t := time.NewTicker(30 * time.Second)
 		defer t.Stop()
 
-		for range t.C {
-			ctx, cleanup := context.WithTimeout(context.Background(), 10*time.Second)
+		for {
+			select {
+			case <-t.C:
+				ctx, cleanup := context.WithTimeout(parent, 10*time.Second)
 
-			if err := s.sync(ctx); err != nil {
-				s.logger.Errorf("failed to sync sourcemaps metadata: %v", err)
+				if err := s.sync(ctx); err != nil {
+					s.logger.Errorf("failed to sync sourcemaps metadata: %v", err)
+				}
+
+				cleanup()
+			case <-parent.Done():
+				s.logger.Info("update routine done")
+				return
 			}
-
-			cleanup()
 		}
 	}()
 }

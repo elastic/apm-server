@@ -325,13 +325,14 @@ func (s *Runner) Run(ctx context.Context) error {
 
 	var sourcemapFetcher sourcemap.Fetcher
 	if s.config.RumConfig.Enabled && s.config.RumConfig.SourceMapping.Enabled {
-		fetcher, err := newSourcemapFetcher(
+		fetcher, cleanup, err := newSourcemapFetcher(
 			s.config.RumConfig.SourceMapping, s.fleetConfig,
 			kibanaClient, newElasticsearchClient,
 		)
 		if err != nil {
 			return err
 		}
+		defer cleanup()
 		sourcemapFetcher = fetcher
 	}
 
@@ -812,10 +813,10 @@ func newSourcemapFetcher(
 	fleetCfg *config.Fleet,
 	kibanaClient *kibana.Client,
 	newElasticsearchClient func(*elasticsearch.Config) (*elasticsearch.Client, error),
-) (sourcemap.Fetcher, error) {
+) (sourcemap.Fetcher, context.CancelFunc, error) {
 	esClient, err := newElasticsearchClient(cfg.ESConfig)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	// For standalone, we query both Kibana and Elasticsearch for backwards compatibility.
@@ -829,10 +830,12 @@ func newSourcemapFetcher(
 	esFetcher := sourcemap.NewElasticsearchFetcher(esClient, index)
 	cachingFetcher, err := sourcemap.NewCachingFetcher(esFetcher, invalidationChan, size)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	metadataCachingFetcher := sourcemap.NewMetadataCachingFetcher(esClient, cachingFetcher, index, invalidationChan)
-	metadataCachingFetcher.StartBackgroundSync()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	metadataCachingFetcher.StartBackgroundSync(ctx)
 
 	chained = append(chained, metadataCachingFetcher)
 
@@ -840,7 +843,7 @@ func newSourcemapFetcher(
 		chained = append(chained, sourcemap.NewKibanaFetcher(kibanaClient))
 	}
 
-	return chained, nil
+	return chained, cancel, nil
 }
 
 // TODO: This is copying behavior from libbeat:
