@@ -10290,11 +10290,11 @@ limitations under the License.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/fatih/color
-Version: v1.14.0
+Version: v1.14.1
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/fatih/color@v1.14.0/LICENSE.md:
+Contents of probable licence file $GOMODCACHE/github.com/fatih/color@v1.14.1/LICENSE.md:
 
 The MIT License (MIT)
 
@@ -20058,11 +20058,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : google.golang.org/genproto
-Version: v0.0.0-20230119192704-9d59e20e5cd1
+Version: v0.0.0-20230123190316-2c411cf9d197
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/google.golang.org/genproto@v0.0.0-20230119192704-9d59e20e5cd1/LICENSE:
+Contents of probable licence file $GOMODCACHE/google.golang.org/genproto@v0.0.0-20230123190316-2c411cf9d197/LICENSE:
 
 
                                  Apache License
