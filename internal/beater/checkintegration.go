@@ -116,7 +116,7 @@ func checkIntegrationInstalledElasticsearch(ctx context.Context, esClient *elast
 		"logs-apm.error",
 	}
 	for _, intervals := range []string{"1m", "10m", "60m"} {
-		for _, ds := range []string{"metrics-apm.transaction", "metrics-apm.service_transaction", "metrics-apm.service_destination"} {
+		for _, ds := range []string{"metrics-apm.transaction", "metrics-apm.service_transaction", "metrics-apm.service_destination", "metrics-apm.service_summary"} {
 			templates = append(templates, fmt.Sprintf("%s.%s", ds, intervals))
 		}
 	}
