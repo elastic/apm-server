@@ -1,3 +1,12 @@
+[[open-telemetry-other-env]]
+=== Other execution environments
+
+** <<open-telemetry-aws-lambda>>
+** <<open-telemetry-aws-lambda-java-terraform>>
+** <<open-telemetry-aws-lambda-nodejs>>
+** <<open-telemetry-aws-lambda-nodejs-terraform>>
+
+[float]
 [[open-telemetry-aws-lambda]]
 === AWS Lambda Support
 

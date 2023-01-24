@@ -67,7 +67,7 @@ include::./otel-with-elastic.asciidoc[]
 
 include::./otel-direct.asciidoc[]
 
-include::./otel-lambda.asciidoc[]
+include::./otel-other.asciidoc[]
 
 include::./otel-metrics.asciidoc[]
 
