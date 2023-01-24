@@ -55,6 +55,9 @@ func cgroupMemoryLimit(rdr *cgroup.Reader) (uint64, error) {
 		if err != nil {
 			return 0, fmt.Errorf("unable to read cgroup limits: %w", err)
 		}
+		if stats.Memory == nil {
+			return 0, fmt.Errorf("cgroup memory subsystem unavailable")
+		}
 		return stats.Memory.Mem.Limit.Bytes, nil
 	case cgroup.CgroupsV2:
 		stats, err := rdr.GetV2StatsForProcess(pid)
