@@ -42,14 +42,13 @@ const (
 
 // Config holds APM Server configuration.
 type Config struct {
-	Kibana                    *KibanaConfig      `json:"apm-server.kibana,omitempty"`
-	Aggregation               *AggregationConfig `json:"apm-server.aggregation,omitempty"`
-	Sampling                  *SamplingConfig    `json:"apm-server.sampling,omitempty"`
-	RUM                       *RUMConfig         `json:"apm-server.rum,omitempty"`
-	WaitForIntegration        *bool              `json:"apm-server.data_streams.wait_for_integration,omitempty"`
-	DefaultServiceEnvironment string             `json:"apm-server.default_service_environment,omitempty"`
-	AgentConfig               *AgentConfig       `json:"apm-server.agent.config,omitempty"`
-	TLS                       *TLSConfig         `json:"apm-server.ssl,omitempty"`
+	Kibana                    *KibanaConfig   `json:"apm-server.kibana,omitempty"`
+	Sampling                  *SamplingConfig `json:"apm-server.sampling,omitempty"`
+	RUM                       *RUMConfig      `json:"apm-server.rum,omitempty"`
+	WaitForIntegration        *bool           `json:"apm-server.data_streams.wait_for_integration,omitempty"`
+	DefaultServiceEnvironment string          `json:"apm-server.default_service_environment,omitempty"`
+	AgentConfig               *AgentConfig    `json:"apm-server.agent.config,omitempty"`
+	TLS                       *TLSConfig      `json:"apm-server.ssl,omitempty"`
 
 	// AgentAuth holds configuration for APM agent authorization.
 	AgentAuth AgentAuthConfig `json:"apm-server.auth"`
@@ -300,32 +299,6 @@ func (m *MonitoringConfig) MarshalJSON() ([]byte, error) {
 		Elasticsearch: m.Elasticsearch,
 		MetricsPeriod: durationString(m.MetricsPeriod),
 		StatePeriod:   durationString(m.StatePeriod),
-	})
-}
-
-// AggregationConfig holds APM Server metrics aggregation configuration.
-type AggregationConfig struct {
-	Service *ServiceAggregationConfig `json:"service,omitempty"`
-}
-
-// ServiceAggregationConfig holds APM Server service metrics aggregation configuration.
-type ServiceAggregationConfig struct {
-	// Enabled controls whether service metrics aggregation enabled.
-	//
-	// Service metrics aggregation is disabled by default while the
-	// feature is in technical preview.
-	Enabled *bool `json:"enabled,omitempty"`
-}
-
-func (s *ServiceAggregationConfig) MarshalJSON() ([]byte, error) {
-	// time.Duration is encoded as int64.
-	// Convert time.Durations to durations, to encode as duration strings.
-	type config struct {
-		Enabled  *bool  `json:"enabled,omitempty"`
-		Interval string `json:"interval,omitempty"`
-	}
-	return json.Marshal(config{
-		Enabled: s.Enabled,
 	})
 }
 

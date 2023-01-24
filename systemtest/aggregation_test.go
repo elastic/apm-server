@@ -229,10 +229,6 @@ func TestTransactionAggregationLabels(t *testing.T) {
 func TestServiceMetricsAggregation(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
 	srv := apmservertest.NewUnstartedServerTB(t)
-	enabled := true
-	srv.Config.Aggregation = &apmservertest.AggregationConfig{
-		Service: &apmservertest.ServiceAggregationConfig{Enabled: &enabled},
-	}
 	err := srv.Start()
 	require.NoError(t, err)
 
@@ -265,10 +261,6 @@ func TestServiceMetricsAggregationLabels(t *testing.T) {
 	t.Setenv("ELASTIC_APM_GLOBAL_LABELS", "department_name=apm,organization=observability,company=elastic")
 	systemtest.CleanupElasticsearch(t)
 	srv := apmservertest.NewUnstartedServerTB(t)
-	enabled := true
-	srv.Config.Aggregation = &apmservertest.AggregationConfig{
-		Service: &apmservertest.ServiceAggregationConfig{Enabled: &enabled},
-	}
 	err := srv.Start()
 	require.NoError(t, err)
 
@@ -315,10 +307,6 @@ func TestServiceMetricsAggregationLabels(t *testing.T) {
 func TestServiceSummaryMetricsAggregation(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
 	srv := apmservertest.NewUnstartedServerTB(t)
-	enabled := true
-	srv.Config.Aggregation = &apmservertest.AggregationConfig{
-		Service: &apmservertest.ServiceAggregationConfig{Enabled: &enabled},
-	}
 	err := srv.Start()
 	require.NoError(t, err)
 
