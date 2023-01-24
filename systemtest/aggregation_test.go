@@ -226,7 +226,7 @@ func TestTransactionAggregationLabels(t *testing.T) {
 	assert.ElementsMatch(t, metricsets, docs)
 }
 
-func TestServiceMetricsAggregation(t *testing.T) {
+func TestServiceTransactionMetricsAggregation(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
 	srv := apmservertest.NewUnstartedServerTB(t)
 	enabled := true
@@ -261,7 +261,7 @@ func TestServiceMetricsAggregation(t *testing.T) {
 	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits)
 }
 
-func TestServiceMetricsAggregationLabels(t *testing.T) {
+func TestServiceTransactionMetricsAggregationLabels(t *testing.T) {
 	t.Setenv("ELASTIC_APM_GLOBAL_LABELS", "department_name=apm,organization=observability,company=elastic")
 	systemtest.CleanupElasticsearch(t)
 	srv := apmservertest.NewUnstartedServerTB(t)
@@ -301,7 +301,7 @@ func TestServiceMetricsAggregationLabels(t *testing.T) {
 		metricsets = append(metricsets, metricsetDoc{
 			Trasaction:        metricsetTransaction{Type: "type"},
 			MetricsetInterval: interval,
-			MetricsetName:     "service",
+			MetricsetName:     "service_transaction",
 			Labels: map[string]string{
 				"department_name": "apm",
 				"organization":    "observability",

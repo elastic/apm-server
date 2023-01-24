@@ -308,11 +308,11 @@ type AggregationConfig struct {
 	Service *ServiceAggregationConfig `json:"service,omitempty"`
 }
 
-// ServiceAggregationConfig holds APM Server service metrics aggregation configuration.
+// ServiceAggregationConfig holds APM Server service transaction metrics aggregation configuration.
 type ServiceAggregationConfig struct {
-	// Enabled controls whether service metrics aggregation enabled.
+	// Enabled controls whether service transaction metrics aggregation enabled.
 	//
-	// Service metrics aggregation is disabled by default while the
+	// service transaction metrics aggregation is disabled by default while the
 	// feature is in technical preview.
 	Enabled *bool `json:"enabled,omitempty"`
 }

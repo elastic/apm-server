@@ -43,7 +43,7 @@ type ServiceDestinationAggregationConfig struct {
 	MaxGroups int `config:"max_groups" validate:"min=1"`
 }
 
-// ServiceAggregationConfig holds configuration related to service metrics aggregation.
+// ServiceAggregationConfig holds configuration related to service transaction metrics aggregation.
 type ServiceAggregationConfig struct {
 	MaxGroups                      int `config:"max_groups"` // if <= 0 then will be set based on memory limits
 	HDRHistogramSignificantFigures int `config:"hdrhistogram_significant_figures" validate:"min=1, max=5"`
