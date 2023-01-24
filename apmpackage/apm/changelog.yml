@@ -48,6 +48,9 @@
     - description: Set data streams with non-default rollup intervals as hidden
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/10070
+    - description: Rename `metrics-apm.service-${interval}` to `metrics-apm.service_transaction-${interval}`
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/10095
 - version: "8.6.0"
   changes:
     - description: Change `ecs.version` to a `constant_keyword` field
