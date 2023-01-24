@@ -64,6 +64,9 @@ func cgroupMemoryLimit(rdr *cgroup.Reader) (uint64, error) {
 		if err != nil {
 			return 0, fmt.Errorf("unable to read cgroup limits: %w", err)
 		}
+		if stats.Memory == nil {
+			return 0, fmt.Errorf("cgroup memory subsystem unavailable")
+		}
 		return stats.Memory.Mem.Max.Bytes.ValueOr(0), nil
 	}
 	return 0, errors.New("unsupported cgroup version")
