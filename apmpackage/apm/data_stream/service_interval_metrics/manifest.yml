@@ -35,3 +35,5 @@ elasticsearch:
       index:
         sort.field: "@timestamp"
         sort.order: desc
+    data_stream:
+      hidden: {{ .Hidden }}
