@@ -162,7 +162,7 @@ func (a *Aggregator) publish(ctx context.Context, period time.Duration) error {
 		// Record the metricset interval as metricset.interval.
 		m := makeMetricset(entry.aggregationKey, entry.serviceTxMetrics, totalCount, counts, values, intervalStr)
 		m.Metricset.Samples = append(m.Metricset.Samples, model.MetricsetSample{
-			Name:  "service.aggregation.overflow_count",
+			Name:  "service_transaction.aggregation.overflow_count",
 			Value: float64(current.otherCardinalityEstimator.Estimate()),
 		})
 		batch = append(batch, m)

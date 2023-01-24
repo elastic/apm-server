@@ -333,7 +333,7 @@ func TestAggregatorOverflow(t *testing.T) {
 			Interval: "10s",
 			Samples: []model.MetricsetSample{
 				{
-					Name:  "service.aggregation.overflow_count",
+					Name:  "service_transaction.aggregation.overflow_count",
 					Value: float64(overflowCount),
 				},
 			},
