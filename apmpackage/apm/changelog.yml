@@ -45,6 +45,9 @@
     - description: Add event categorization fields
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/10066
+    - description: Set data streams with non-default rollup intervals as hidden
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/10070
 - version: "8.6.0"
   changes:
     - description: Change `ecs.version` to a `constant_keyword` field
