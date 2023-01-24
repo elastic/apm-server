@@ -255,8 +255,8 @@ func TestServiceTransactionMetricsAggregation(t *testing.T) {
 	)
 	// Stop server to ensure metrics are flushed on shutdown.
 	assert.NoError(t, srv.Close())
-	result := systemtest.Elasticsearch.ExpectMinDocs(t, 2, "metrics-apm.service*",
-		estest.TermQuery{Field: "metricset.name", Value: "service"},
+	result := systemtest.Elasticsearch.ExpectMinDocs(t, 2, "metrics-apm.service_transaction*",
+		estest.TermQuery{Field: "metricset.name", Value: "service_transaction"},
 	)
 	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits)
 }
@@ -289,9 +289,9 @@ func TestServiceTransactionMetricsAggregationLabels(t *testing.T) {
 	)
 	// Stop server to ensure metrics are flushed on shutdown.
 	assert.NoError(t, srv.Close())
-	result := systemtest.Elasticsearch.ExpectDocs(t, "metrics-apm.service*", estest.BoolQuery{
+	result := systemtest.Elasticsearch.ExpectDocs(t, "metrics-apm.service_transaction*", estest.BoolQuery{
 		Filter: []interface{}{
-			estest.TermQuery{Field: "metricset.name", Value: "service"},
+			estest.TermQuery{Field: "metricset.name", Value: "service_transaction"},
 		},
 	})
 
