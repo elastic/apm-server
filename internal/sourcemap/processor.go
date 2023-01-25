@@ -125,10 +125,12 @@ func (p BatchProcessor) processStacktraceFrame(
 		return false, ""
 	}
 	if mapper == nil {
+		getProcessorLogger().Debugf("returned empty mapper: %s", path)
 		return false, ""
 	}
-	file, function, lineno, colno, ctxLine, preCtx, postCtx, ok := Map(mapper, *frame.Lineno, *frame.Colno)
-	if !ok {
+	file, function, lineno, colno, ctxLine, preCtx, postCtx, err := Map(mapper, *frame.Lineno, *frame.Colno)
+	if err != nil  {
+		getProcessorLogger().Errorf("failed to map sourcemap %s: %v", path, err)
 		return false, ""
 	}
 
