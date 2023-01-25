@@ -55,8 +55,8 @@ type esFetcher struct {
 type esSourcemapResponse struct {
 	Hits struct {
 		Total struct {
-			Value int
-		}
+			Value int `json:"value"`
+		} `json:"total"`
 		Hits []struct {
 			Source struct {
 				Service struct {
