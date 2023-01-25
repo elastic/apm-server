@@ -29,12 +29,6 @@ func search(opts ...searchOption) map[string]interface{} {
 	return m
 }
 
-func scrollID(s string) searchOption {
-	return func(m map[string]interface{}) {
-		m["scroll_id"] = s
-	}
-}
-
 func source(s string) searchOption {
 	return func(m map[string]interface{}) {
 		m["_source"] = s

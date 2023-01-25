@@ -389,21 +389,9 @@ func (s *MetadataCachingFetcher) scrollsearch(ctx context.Context, scrollID stri
 }
 
 func (s *MetadataCachingFetcher) runScrollSearchQuery(ctx context.Context, id string) (*esapi.Response, error) {
-	var buf bytes.Buffer
-	if err := json.NewEncoder(&buf).Encode(scrollQueryMetadata(id)); err != nil {
-		return nil, err
-	}
-
 	req := esapi.ScrollRequest{
 		ScrollID: id,
 		Scroll:   time.Minute,
-		Body:     &buf,
 	}
 	return req.Do(ctx, s.esClient)
-}
-
-func scrollQueryMetadata(id string) map[string]interface{} {
-	return search(
-		scrollID(id),
-	)
 }
