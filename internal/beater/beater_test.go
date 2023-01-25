@@ -58,7 +58,7 @@ func TestSourcemapIndexPattern(t *testing.T) {
 		}
 
 		fetcher, cleanup, err := newSourcemapFetcher(
-			cfg.RumConfig.SourceMapping, nil,
+			cfg.RumConfig.SourceMapping,
 			nil, elasticsearch.NewClient,
 		)
 		require.NoError(t, err)
@@ -97,7 +97,7 @@ func TestStoreUsesRUMElasticsearchConfig(t *testing.T) {
 	cfg.RumConfig.SourceMapping.ESConfig.Hosts = []string{ts.URL}
 
 	fetcher, cleanup, err := newSourcemapFetcher(
-		cfg.RumConfig.SourceMapping, nil,
+		cfg.RumConfig.SourceMapping,
 		nil, elasticsearch.NewClient,
 	)
 	require.NoError(t, err)

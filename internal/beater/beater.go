@@ -326,7 +326,7 @@ func (s *Runner) Run(ctx context.Context) error {
 	var sourcemapFetcher sourcemap.Fetcher
 	if s.config.RumConfig.Enabled && s.config.RumConfig.SourceMapping.Enabled {
 		fetcher, cleanup, err := newSourcemapFetcher(
-			s.config.RumConfig.SourceMapping, s.fleetConfig,
+			s.config.RumConfig.SourceMapping,
 			kibanaClient, newElasticsearchClient,
 		)
 		if err != nil {
@@ -810,7 +810,6 @@ func (s *Runner) newLibbeatFinalBatchProcessor(
 
 func newSourcemapFetcher(
 	cfg config.SourceMapping,
-	fleetCfg *config.Fleet,
 	kibanaClient *kibana.Client,
 	newElasticsearchClient func(*elasticsearch.Config) (*elasticsearch.Client, error),
 ) (sourcemap.Fetcher, context.CancelFunc, error) {
