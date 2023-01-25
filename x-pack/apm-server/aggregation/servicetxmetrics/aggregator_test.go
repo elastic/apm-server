@@ -2,7 +2,7 @@
 // or more contributor license agreements. Licensed under the Elastic License 2.0;
 // you may not use this file except in compliance with the Elastic License 2.0.
 
-package servicemetrics
+package servicetxmetrics
 
 import (
 	"context"
@@ -118,7 +118,7 @@ func TestAggregatorRun(t *testing.T) {
 		expected := []model.APMEvent{{
 			Processor: model.MetricsetProcessor,
 			Metricset: &model.Metricset{
-				Name: "service", DocCount: 6, Interval: fmt.Sprintf("%.0fs", interval.Seconds()),
+				Name: "service_transaction", DocCount: 6, Interval: fmt.Sprintf("%.0fs", interval.Seconds()),
 			},
 			Service: model.Service{Name: "backend"},
 			Agent:   model.Agent{Name: "java"},
@@ -142,7 +142,7 @@ func TestAggregatorRun(t *testing.T) {
 		}, {
 			Processor: model.MetricsetProcessor,
 			Metricset: &model.Metricset{
-				Name: "service", DocCount: 1, Interval: fmt.Sprintf("%.0fs", interval.Seconds()),
+				Name: "service_transaction", DocCount: 1, Interval: fmt.Sprintf("%.0fs", interval.Seconds()),
 			},
 			Service: model.Service{Name: "backend"},
 			Agent:   model.Agent{Name: "go"},
@@ -160,7 +160,7 @@ func TestAggregatorRun(t *testing.T) {
 		}, {
 			Processor: model.MetricsetProcessor,
 			Metricset: &model.Metricset{
-				Name: "service", DocCount: 1, Interval: fmt.Sprintf("%.0fs", interval.Seconds()),
+				Name: "service_transaction", DocCount: 1, Interval: fmt.Sprintf("%.0fs", interval.Seconds()),
 			},
 			Service: model.Service{Name: "backend"},
 			Agent:   model.Agent{Name: "go"},
@@ -178,7 +178,7 @@ func TestAggregatorRun(t *testing.T) {
 		}, {
 			Processor: model.MetricsetProcessor,
 			Metricset: &model.Metricset{
-				Name: "service", DocCount: 1, Interval: fmt.Sprintf("%.0fs", interval.Seconds()),
+				Name: "service_transaction", DocCount: 1, Interval: fmt.Sprintf("%.0fs", interval.Seconds()),
 			},
 			Service: model.Service{Name: "frontend"},
 			Agent:   model.Agent{Name: "rum-js"},
@@ -196,7 +196,7 @@ func TestAggregatorRun(t *testing.T) {
 		}, {
 			Processor: model.MetricsetProcessor,
 			Metricset: &model.Metricset{
-				Name: "service", DocCount: 1, Interval: fmt.Sprintf("%.0fs", interval.Seconds()),
+				Name: "service_transaction", DocCount: 1, Interval: fmt.Sprintf("%.0fs", interval.Seconds()),
 			},
 			Service: model.Service{Name: "frontend", Environment: "staging"},
 			Agent:   model.Agent{Name: "rum-js"},
@@ -328,12 +328,12 @@ func TestAggregatorOverflow(t *testing.T) {
 			},
 		},
 		Metricset: &model.Metricset{
-			Name:     "service",
+			Name:     "service_transaction",
 			DocCount: int64(overflowCount),
 			Interval: "10s",
 			Samples: []model.MetricsetSample{
 				{
-					Name:  "service.aggregation.overflow_count",
+					Name:  "service_transaction.aggregation.overflow_count",
 					Value: float64(overflowCount),
 				},
 			},

@@ -34,8 +34,8 @@ import (
 	"github.com/elastic/apm-server/internal/beatcmd"
 	"github.com/elastic/apm-server/internal/beater"
 	"github.com/elastic/apm-server/internal/model/modelprocessor"
-	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/servicemetrics"
 	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/servicesummarymetrics"
+	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/servicetxmetrics"
 	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/spanmetrics"
 	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/txmetrics"
 	"github.com/elastic/apm-server/x-pack/apm-server/profiling"
@@ -137,27 +137,27 @@ func newProcessors(args beater.ServerParams) ([]namedProcessor, error) {
 	}
 	processors = append(processors, namedProcessor{name: spanName, processor: spanAggregator})
 
-	const serviceName = "service metrics aggregation"
-	args.Logger.Infof("creating %s with config: %+v", serviceName, args.Config.Aggregation.Service)
-	serviceAggregator, err := servicemetrics.NewAggregator(servicemetrics.AggregatorConfig{
+	const serviceTxName = "service transaction metrics aggregation"
+	args.Logger.Infof("creating %s with config: %+v", serviceTxName, args.Config.Aggregation.ServiceTransactions)
+	serviceTxAggregator, err := servicetxmetrics.NewAggregator(servicetxmetrics.AggregatorConfig{
 		BatchProcessor:                 args.BatchProcessor,
 		Interval:                       metricsInterval,
 		RollUpIntervals:                rollUpMetricsIntervals,
-		MaxGroups:                      args.Config.Aggregation.Service.MaxGroups,
-		HDRHistogramSignificantFigures: args.Config.Aggregation.Service.HDRHistogramSignificantFigures,
+		MaxGroups:                      args.Config.Aggregation.ServiceTransactions.MaxGroups,
+		HDRHistogramSignificantFigures: args.Config.Aggregation.ServiceTransactions.HDRHistogramSignificantFigures,
 	})
 	if err != nil {
-		return nil, errors.Wrapf(err, "error creating %s", serviceName)
+		return nil, errors.Wrapf(err, "error creating %s", serviceTxName)
 	}
-	processors = append(processors, namedProcessor{name: serviceName, processor: serviceAggregator})
+	processors = append(processors, namedProcessor{name: serviceTxName, processor: serviceTxAggregator})
 
 	const serviceSummaryName = "service summary aggregation"
-	args.Logger.Infof("creating %s with config: %+v", serviceSummaryName, args.Config.Aggregation.Service)
+	args.Logger.Infof("creating %s with config: %+v", serviceSummaryName, args.Config.Aggregation.ServiceTransactions)
 	serviceSummaryAggregator, err := servicesummarymetrics.NewAggregator(servicesummarymetrics.AggregatorConfig{
 		BatchProcessor:  args.BatchProcessor,
 		Interval:        metricsInterval,
 		RollUpIntervals: rollUpMetricsIntervals,
-		MaxGroups:       args.Config.Aggregation.Service.MaxGroups,
+		MaxGroups:       args.Config.Aggregation.ServiceTransactions.MaxGroups,
 	})
 	if err != nil {
 		return nil, errors.Wrapf(err, "error creating %s", serviceSummaryName)
