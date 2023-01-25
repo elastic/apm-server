@@ -114,15 +114,9 @@ func (f *ElasticsearchFetcher) Fetch(ctx context.Context, query Query) (Result, 
 
 // Run refreshes the fetcher cache by querying Elasticsearch periodically.
 func (f *ElasticsearchFetcher) Run(ctx context.Context) error {
-	t := time.NewTicker(f.cacheDuration)
-	defer t.Stop()
-	for {
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		case <-t.C:
-		}
-
+	refresh := func() bool {
+		// refresh returns a bool that indicates whether Run should return
+		// immediately without error, e.g. due to invalid Elasticsearch config.
 		if err := f.refreshCache(ctx); err != nil {
 			// Do not log as error when there is a fallback.
 			var logFunc func(string, ...interface{})
@@ -135,10 +129,35 @@ func (f *ElasticsearchFetcher) Run(ctx context.Context) error {
 			logFunc("refresh cache error: %s", err)
 			if f.invalidESCfg.Load() {
 				logFunc("stopping refresh cache background job: elasticsearch config is invalid")
-				return nil
+				return true
 			}
 		} else {
 			f.logger.Debugf("refresh cache success")
+		}
+		return false
+	}
+
+	// Trigger initial run.
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	default:
+		if stop := refresh(); stop {
+			return nil
+		}
+	}
+
+	// Then schedule subsequent runs.
+	t := time.NewTicker(f.cacheDuration)
+	defer t.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-t.C:
+			if stop := refresh(); stop {
+				return nil
+			}
 		}
 	}
 }
