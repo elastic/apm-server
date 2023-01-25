@@ -204,7 +204,7 @@ func TestUnpackConfig(t *testing.T) {
 					"service_destinations": map[string]interface{}{
 						"max_groups": 456,
 					},
-					"service": map[string]interface{}{
+					"service_transactions": map[string]interface{}{
 						"max_groups": 457,
 					},
 				},
@@ -313,7 +313,7 @@ func TestUnpackConfig(t *testing.T) {
 					ServiceDestinations: ServiceDestinationAggregationConfig{
 						MaxGroups: 456,
 					},
-					Service: ServiceAggregationConfig{
+					ServiceTransactions: ServiceTransactionAggregationConfig{
 						MaxGroups:                      457,
 						HDRHistogramSignificantFigures: 5,
 					},
@@ -481,7 +481,7 @@ func TestUnpackConfig(t *testing.T) {
 					ServiceDestinations: ServiceDestinationAggregationConfig{
 						MaxGroups: 10000,
 					},
-					Service: ServiceAggregationConfig{
+					ServiceTransactions: ServiceTransactionAggregationConfig{
 						MaxGroups:                      0, // Default value is set as per memory limit
 						HDRHistogramSignificantFigures: 5,
 					},

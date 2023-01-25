@@ -46,7 +46,7 @@ func TestMonitoring(t *testing.T) {
 	// MaxTransactionGroups and MaxGroups are configured based on memory limit.
 	// Overriding here to avoid validation errors.
 	cfg.Aggregation.Transactions.MaxTransactionGroups = 10000
-	cfg.Aggregation.Service.MaxGroups = 10000
+	cfg.Aggregation.ServiceTransactions.MaxGroups = 10000
 
 	// Wrap & run the server twice, to ensure metric registration does not panic.
 	runServerError := errors.New("runServer")
