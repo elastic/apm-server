@@ -172,11 +172,11 @@ func (s *MetadataCachingFetcher) update(ctx context.Context, updates map[Identif
 
 			// content hash changed, invalidate the sourcemap cache
 			if contentHash != updatedHash {
-				s.logger.Debugf("Hash changed: %s -> %s: invaliding %v", contentHash, updatedHash, id)
+				s.logger.Debugf("Hash changed: %s -> %s: invalidating %v", contentHash, updatedHash, id)
 				select {
 				case s.invalidationChan <- id:
 				case <-ctx.Done():
-					s.logger.Errorf("ctx finished while invaliding id: %v", ctx.Err())
+					s.logger.Errorf("ctx finished while invalidating id: %v", ctx.Err())
 					return
 				}
 
