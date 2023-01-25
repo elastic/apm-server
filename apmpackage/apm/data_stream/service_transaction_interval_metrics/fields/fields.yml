@@ -10,6 +10,10 @@
 - name: processor.name
   type: constant_keyword
   description: Processor name.
+- name: service.language.name
+  type: keyword
+  description: |
+    Name of the programming language used.
 - name: transaction.type
   type: keyword
   description: |
