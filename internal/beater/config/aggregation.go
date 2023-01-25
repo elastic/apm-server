@@ -29,7 +29,7 @@ const (
 type AggregationConfig struct {
 	Transactions        TransactionAggregationConfig        `config:"transactions"`
 	ServiceDestinations ServiceDestinationAggregationConfig `config:"service_destinations"`
-	Service             ServiceAggregationConfig            `config:"service"`
+	ServiceTransactions ServiceTransactionAggregationConfig `config:"service_transactions"`
 }
 
 // TransactionAggregationConfig holds configuration related to transaction metrics aggregation.
@@ -43,8 +43,8 @@ type ServiceDestinationAggregationConfig struct {
 	MaxGroups int `config:"max_groups" validate:"min=1"`
 }
 
-// ServiceAggregationConfig holds configuration related to service metrics aggregation.
-type ServiceAggregationConfig struct {
+// ServiceTransactionAggregationConfig holds configuration related to service transaction metrics aggregation.
+type ServiceTransactionAggregationConfig struct {
 	MaxGroups                      int `config:"max_groups"` // if <= 0 then will be set based on memory limits
 	HDRHistogramSignificantFigures int `config:"hdrhistogram_significant_figures" validate:"min=1, max=5"`
 }
@@ -57,7 +57,7 @@ func defaultAggregationConfig() AggregationConfig {
 		ServiceDestinations: ServiceDestinationAggregationConfig{
 			MaxGroups: defaultServiceDestinationAggregationMaxGroups,
 		},
-		Service: ServiceAggregationConfig{
+		ServiceTransactions: ServiceTransactionAggregationConfig{
 			HDRHistogramSignificantFigures: defaultServiceAggregationHDRHistogramSignificantFigures,
 		},
 	}
