@@ -257,19 +257,19 @@ func (s *MetadataCachingFetcher) StartBackgroundSync(parent context.Context) {
 func (s *MetadataCachingFetcher) sync(ctx context.Context) error {
 	updates := make(map[Identifier]string)
 
-	scrollID, err := s.initialSearch(ctx, updates)
+	result, err := s.initialSearch(ctx, updates)
 	if err != nil {
 		return err
 	}
+
+	scrollID := result.ScrollID
 
 	if scrollID == "" {
 		return nil
 	}
 
 	for {
-		before := len(updates)
-
-		id, err := s.scrollsearch(ctx, scrollID, updates)
+		result, err = s.scrollsearch(ctx, scrollID, updates)
 		if err != nil {
 			return err
 		}
@@ -278,12 +278,12 @@ func (s *MetadataCachingFetcher) sync(ctx context.Context) error {
 		// request each return a _scroll_id. While the _scroll_id may change between
 		// requests, it doesn’t always change — in any case, only the most recently
 		// received _scroll_id should be used.
-		if id != "" {
-			scrollID = id
+		if result.ScrollID != "" {
+			scrollID = result.ScrollID
 		}
 
 		// Stop if there are no new updates
-		if before == len(updates) {
+		if len(result.Hits.Hits) == 0 {
 			break
 		}
 	}
@@ -292,10 +292,10 @@ func (s *MetadataCachingFetcher) sync(ctx context.Context) error {
 	return nil
 }
 
-func (s *MetadataCachingFetcher) initialSearch(ctx context.Context, updates map[Identifier]string) (string, error) {
+func (s *MetadataCachingFetcher) initialSearch(ctx context.Context, updates map[Identifier]string) (*esSearchSourcemapResponse, error) {
 	resp, err := s.runSearchQuery(ctx)
 	if err != nil {
-		return "", errors.Wrap(err, errMsgESFailure)
+		return nil, errors.Wrap(err, errMsgESFailure)
 	}
 	defer resp.Body.Close()
 
@@ -328,23 +328,23 @@ type esSearchSourcemapResponse struct {
 	esSourcemapResponse
 }
 
-func (s *MetadataCachingFetcher) handleUpdateRequest(resp *esapi.Response, updates map[Identifier]string) (string, error) {
+func (s *MetadataCachingFetcher) handleUpdateRequest(resp *esapi.Response, updates map[Identifier]string) (*esSearchSourcemapResponse, error) {
 	// handle error response
 	if resp.StatusCode >= http.StatusMultipleChoices {
 		if resp.StatusCode == http.StatusNotFound {
-			return "", nil
+			return nil, nil
 		}
 		b, err := io.ReadAll(resp.Body)
 		if err != nil {
-			return "", errors.Wrap(err, errMsgParseSourcemap)
+			return nil, errors.Wrap(err, errMsgParseSourcemap)
 		}
-		return "", errors.New(fmt.Sprintf("%s %s", errMsgParseSourcemap, b))
+		return nil, errors.New(fmt.Sprintf("%s %s", errMsgParseSourcemap, b))
 	}
 
 	// parse response
 	body, err := parseResponse(resp.Body, s.logger)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	for _, v := range body.Hits.Hits {
@@ -357,31 +357,31 @@ func (s *MetadataCachingFetcher) handleUpdateRequest(resp *esapi.Response, updat
 		updates[id] = v.Source.ContentHash
 	}
 
-	return body.ScrollID, nil
+	return body, nil
 }
 
-func parseResponse(body io.ReadCloser, logger *logp.Logger) (esSearchSourcemapResponse, error) {
+func parseResponse(body io.ReadCloser, logger *logp.Logger) (*esSearchSourcemapResponse, error) {
 	b, err := io.ReadAll(body)
 	if err != nil {
-		return esSearchSourcemapResponse{}, err
+		return nil, err
 	}
 
 	var esSourcemapResponse esSearchSourcemapResponse
 	if err := json.Unmarshal(b, &esSourcemapResponse); err != nil {
-		return esSourcemapResponse, err
+		return nil, err
 	}
 	hits := esSourcemapResponse.Hits.Total.Value
 	if hits == 0 || len(esSourcemapResponse.Hits.Hits) == 0 {
-		return esSourcemapResponse, nil
+		return &esSourcemapResponse, nil
 	}
 
-	return esSourcemapResponse, nil
+	return &esSourcemapResponse, nil
 }
 
-func (s *MetadataCachingFetcher) scrollsearch(ctx context.Context, scrollID string, updates map[Identifier]string) (string, error) {
+func (s *MetadataCachingFetcher) scrollsearch(ctx context.Context, scrollID string, updates map[Identifier]string) (*esSearchSourcemapResponse, error) {
 	resp, err := s.runScrollSearchQuery(ctx, scrollID)
 	if err != nil {
-		return "", errors.Wrap(err, errMsgESFailure)
+		return nil, errors.Wrap(err, errMsgESFailure)
 	}
 	defer resp.Body.Close()
 
