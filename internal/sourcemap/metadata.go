@@ -276,7 +276,7 @@ func (s *MetadataCachingFetcher) sync(ctx context.Context) error {
 
 		// From the docs: The initial search request and each subsequent scroll
 		// request each return a _scroll_id. While the _scroll_id may change between
-		// requests, it doesn’t always change — in any case, only the most recently
+		// requests, it doesn't always change - in any case, only the most recently
 		// received _scroll_id should be used.
 		if result.ScrollID != "" {
 			scrollID = result.ScrollID
