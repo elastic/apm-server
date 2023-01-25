@@ -57,12 +57,12 @@ func TestSourcemapIndexPattern(t *testing.T) {
 			cfg.RumConfig.SourceMapping.IndexPattern = indexPattern
 		}
 
-		fetcher, cleanup, err := newSourcemapFetcher(
+		fetcher, cancel, err := newSourcemapFetcher(
 			cfg.RumConfig.SourceMapping,
 			nil, elasticsearch.NewClient,
 		)
 		require.NoError(t, err)
-		defer cleanup()
+		defer cancel()
 		fetcher.Fetch(context.Background(), "name", "version", "path")
 		require.Len(t, requestPaths, 1)
 
@@ -96,12 +96,12 @@ func TestStoreUsesRUMElasticsearchConfig(t *testing.T) {
 	cfg.RumConfig.SourceMapping.ESConfig = elasticsearch.DefaultConfig()
 	cfg.RumConfig.SourceMapping.ESConfig.Hosts = []string{ts.URL}
 
-	fetcher, cleanup, err := newSourcemapFetcher(
+	fetcher, cancel, err := newSourcemapFetcher(
 		cfg.RumConfig.SourceMapping,
 		nil, elasticsearch.NewClient,
 	)
 	require.NoError(t, err)
-	defer cleanup()
+	defer cancel()
 	// Check that the provided rum elasticsearch config was used and
 	// Fetch() goes to the test server.
 	_, err = fetcher.Fetch(context.Background(), "app", "1.0", "/bundle/path")

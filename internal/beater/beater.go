@@ -325,14 +325,14 @@ func (s *Runner) Run(ctx context.Context) error {
 
 	var sourcemapFetcher sourcemap.Fetcher
 	if s.config.RumConfig.Enabled && s.config.RumConfig.SourceMapping.Enabled {
-		fetcher, cleanup, err := newSourcemapFetcher(
+		fetcher, cancel, err := newSourcemapFetcher(
 			s.config.RumConfig.SourceMapping,
 			kibanaClient, newElasticsearchClient,
 		)
 		if err != nil {
 			return err
 		}
-		defer cleanup()
+		defer cancel()
 		sourcemapFetcher = fetcher
 	}
 
