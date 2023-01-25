@@ -248,6 +248,8 @@ func (s *MetadataCachingFetcher) StartBackgroundSync(parent context.Context) {
 				cleanup()
 			case <-parent.Done():
 				s.logger.Info("update routine done")
+				// close invalidation channel
+				close(s.invalidationChan)
 				return
 			}
 		}
