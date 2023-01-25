@@ -22,7 +22,7 @@ After finishing the testing, run `make destroy` for deleting the clusters.
 For testing a non-released Elastic Agent image, the cloud base image needs to be configured via `ELASTIC_AGENT_DOCKER_IMAGE` and `ELASTIC_AGENT_IMAGE_TAG`. 
 ```
 ELASTIC_AGENT_DOCKER_IMAGE=docker.elastic.co/observability-ci/elastic-agent-cloud ELASTIC_AGENT_IMAGE_TAG=a8b36d05919c40385fe5a28d30225a112626d48b make elastic_agent_docker_image docker_image.auto.tfvars
-ECE_API_KEY=<your-api-key> make apply
+EC_API_KEY=<your-api-key> make apply
 ```
 NOTE: Before running the above command, ensure that the file `docker_image.auto.tfvars` does not exist, as it won't be overwritten.
 
@@ -33,6 +33,6 @@ First, build the elastic agent docker image from your local branch and push it t
 In this case, the command to build the docker image and create the deployment would look like this: 
 ```
 ELASTIC_AGENT_DOCKER_IMAGE=docker.elastic.co/observability-ci/elastic-agent-cloud ELASTIC_AGENT_IMAGE_TAG=a8b36d05919c40385fe5a28d30225a112626d48b make elastic_agent_docker_image docker_image.auto.tfvars
-ECE_API_KEY=<your-api-key> make apply
+EC_API_KEY=<your-api-key> make apply
 ```
 
