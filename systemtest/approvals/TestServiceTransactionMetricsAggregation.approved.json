@@ -36,6 +36,9 @@
                 "name": "metric"
             },
             "service": {
+                "language": {
+                    "name": "go"
+                },
                 "name": "systemtest"
             },
             "transaction": {
@@ -92,6 +95,9 @@
                 "name": "metric"
             },
             "service": {
+                "language": {
+                    "name": "go"
+                },
                 "name": "systemtest"
             },
             "transaction": {
@@ -148,6 +154,9 @@
                 "name": "metric"
             },
             "service": {
+                "language": {
+                    "name": "go"
+                },
                 "name": "systemtest"
             },
             "transaction": {
@@ -204,6 +213,9 @@
                 "name": "metric"
             },
             "service": {
+                "language": {
+                    "name": "go"
+                },
                 "name": "systemtest"
             },
             "transaction": {
@@ -260,6 +272,9 @@
                 "name": "metric"
             },
             "service": {
+                "language": {
+                    "name": "go"
+                },
                 "name": "systemtest"
             },
             "transaction": {
@@ -316,6 +331,9 @@
                 "name": "metric"
             },
             "service": {
+                "language": {
+                    "name": "go"
+                },
                 "name": "systemtest"
             },
             "transaction": {

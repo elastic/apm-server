@@ -51,6 +51,9 @@
     - description: Rename `metrics-apm.service-${interval}` to `metrics-apm.service_transaction-${interval}` and its overflow count field name
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/10095
+    - description: Add `service.language.name` to service transaction metrics and service summary metrics
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/10111
 - version: "8.6.0"
   changes:
     - description: Change `ecs.version` to a `constant_keyword` field
