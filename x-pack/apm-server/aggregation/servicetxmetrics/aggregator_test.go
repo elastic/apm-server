@@ -2,7 +2,7 @@
 // or more contributor license agreements. Licensed under the Elastic License 2.0;
 // you may not use this file except in compliance with the Elastic License 2.0.
 
-package servicemetrics
+package servicetxmetrics
 
 import (
 	"context"
@@ -65,26 +65,27 @@ func TestAggregatorRun(t *testing.T) {
 	require.NoError(t, err)
 
 	type input struct {
-		serviceName        string
-		serviceEnvironment string
-		agentName          string
-		transactionType    string
-		outcome            string
-		count              float64
+		serviceName         string
+		serviceEnvironment  string
+		serviceLanguageName string
+		agentName           string
+		transactionType     string
+		outcome             string
+		count               float64
 	}
 
 	inputs := []input{
 		{serviceName: "ignored", agentName: "ignored", transactionType: "ignored", count: 0}, // ignored because count is zero
 
-		{serviceName: "backend", agentName: "java", transactionType: "request", outcome: "success", count: 2},
-		{serviceName: "backend", agentName: "java", transactionType: "request", outcome: "failure", count: 3},
-		{serviceName: "backend", agentName: "java", transactionType: "request", outcome: "unknown", count: 1},
+		{serviceName: "backend", serviceLanguageName: "java", agentName: "java", transactionType: "request", outcome: "success", count: 2},
+		{serviceName: "backend", serviceLanguageName: "java", agentName: "java", transactionType: "request", outcome: "failure", count: 3},
+		{serviceName: "backend", serviceLanguageName: "java", agentName: "java", transactionType: "request", outcome: "unknown", count: 1},
 
-		{serviceName: "backend", agentName: "go", transactionType: "request", outcome: "unknown", count: 1},
-		{serviceName: "backend", agentName: "go", transactionType: "background", outcome: "unknown", count: 1},
+		{serviceName: "backend", serviceLanguageName: "go", agentName: "go", transactionType: "request", outcome: "unknown", count: 1},
+		{serviceName: "backend", serviceLanguageName: "go", agentName: "go", transactionType: "background", outcome: "unknown", count: 1},
 
-		{serviceName: "frontend", agentName: "rum-js", transactionType: "page-load", outcome: "unknown", count: 1},
-		{serviceName: "frontend", serviceEnvironment: "staging", agentName: "rum-js", transactionType: "page-load", outcome: "unknown", count: 1},
+		{serviceName: "frontend", serviceLanguageName: "js", agentName: "rum-js", transactionType: "page-load", outcome: "unknown", count: 1},
+		{serviceName: "frontend", serviceLanguageName: "js", serviceEnvironment: "staging", agentName: "rum-js", transactionType: "page-load", outcome: "unknown", count: 1},
 	}
 
 	var wg sync.WaitGroup
@@ -93,7 +94,7 @@ func TestAggregatorRun(t *testing.T) {
 		go func(in input) {
 			defer wg.Done()
 			transaction := makeTransaction(
-				in.serviceName, in.agentName, in.transactionType,
+				in.serviceName, in.serviceLanguageName, in.agentName, in.transactionType,
 				in.outcome, time.Millisecond, in.count,
 			)
 			transaction.Service.Environment = in.serviceEnvironment
@@ -118,9 +119,9 @@ func TestAggregatorRun(t *testing.T) {
 		expected := []model.APMEvent{{
 			Processor: model.MetricsetProcessor,
 			Metricset: &model.Metricset{
-				Name: "service", DocCount: 6, Interval: fmt.Sprintf("%.0fs", interval.Seconds()),
+				Name: "service_transaction", DocCount: 6, Interval: fmt.Sprintf("%.0fs", interval.Seconds()),
 			},
-			Service: model.Service{Name: "backend"},
+			Service: model.Service{Name: "backend", Language: model.Language{Name: "java"}},
 			Agent:   model.Agent{Name: "java"},
 			Transaction: &model.Transaction{
 				Type: "request",
@@ -142,9 +143,9 @@ func TestAggregatorRun(t *testing.T) {
 		}, {
 			Processor: model.MetricsetProcessor,
 			Metricset: &model.Metricset{
-				Name: "service", DocCount: 1, Interval: fmt.Sprintf("%.0fs", interval.Seconds()),
+				Name: "service_transaction", DocCount: 1, Interval: fmt.Sprintf("%.0fs", interval.Seconds()),
 			},
-			Service: model.Service{Name: "backend"},
+			Service: model.Service{Name: "backend", Language: model.Language{Name: "go"}},
 			Agent:   model.Agent{Name: "go"},
 			Transaction: &model.Transaction{
 				Type: "request",
@@ -160,9 +161,9 @@ func TestAggregatorRun(t *testing.T) {
 		}, {
 			Processor: model.MetricsetProcessor,
 			Metricset: &model.Metricset{
-				Name: "service", DocCount: 1, Interval: fmt.Sprintf("%.0fs", interval.Seconds()),
+				Name: "service_transaction", DocCount: 1, Interval: fmt.Sprintf("%.0fs", interval.Seconds()),
 			},
-			Service: model.Service{Name: "backend"},
+			Service: model.Service{Name: "backend", Language: model.Language{Name: "go"}},
 			Agent:   model.Agent{Name: "go"},
 			Transaction: &model.Transaction{
 				Type: "background",
@@ -178,9 +179,9 @@ func TestAggregatorRun(t *testing.T) {
 		}, {
 			Processor: model.MetricsetProcessor,
 			Metricset: &model.Metricset{
-				Name: "service", DocCount: 1, Interval: fmt.Sprintf("%.0fs", interval.Seconds()),
+				Name: "service_transaction", DocCount: 1, Interval: fmt.Sprintf("%.0fs", interval.Seconds()),
 			},
-			Service: model.Service{Name: "frontend"},
+			Service: model.Service{Name: "frontend", Language: model.Language{Name: "js"}},
 			Agent:   model.Agent{Name: "rum-js"},
 			Transaction: &model.Transaction{
 				Type: "page-load",
@@ -196,9 +197,9 @@ func TestAggregatorRun(t *testing.T) {
 		}, {
 			Processor: model.MetricsetProcessor,
 			Metricset: &model.Metricset{
-				Name: "service", DocCount: 1, Interval: fmt.Sprintf("%.0fs", interval.Seconds()),
+				Name: "service_transaction", DocCount: 1, Interval: fmt.Sprintf("%.0fs", interval.Seconds()),
 			},
-			Service: model.Service{Name: "frontend", Environment: "staging"},
+			Service: model.Service{Name: "frontend", Environment: "staging", Language: model.Language{Name: "js"}},
 			Agent:   model.Agent{Name: "rum-js"},
 			Transaction: &model.Transaction{
 				Type: "page-load",
@@ -247,7 +248,7 @@ func TestAggregateTimestamp(t *testing.T) {
 
 	t0 := time.Unix(0, 0)
 	for _, ts := range []time.Time{t0, t0.Add(15 * time.Second), t0.Add(30 * time.Second)} {
-		transaction := makeTransaction("service_name", "agent_name", "tx_type", "success", 100*time.Millisecond, 1)
+		transaction := makeTransaction("service_name", "agent_name", "", "tx_type", "success", 100*time.Millisecond, 1)
 		transaction.Timestamp = ts
 		batch := model.Batch{transaction}
 		err = agg.ProcessBatch(context.Background(), &batch)
@@ -285,7 +286,7 @@ func TestAggregatorOverflow(t *testing.T) {
 	batch := make(model.Batch, maxGrps+overflowCount) // cause overflow
 	for i := 0; i < len(batch); i++ {
 		batch[i] = makeTransaction(
-			fmt.Sprintf("svc%d", i), "agent", "tx_type", "success", txnDuration, 1,
+			fmt.Sprintf("svc%d", i), "agent", "java", "tx_type", "success", txnDuration, 1,
 		)
 	}
 	go func(t *testing.T) {
@@ -328,12 +329,12 @@ func TestAggregatorOverflow(t *testing.T) {
 			},
 		},
 		Metricset: &model.Metricset{
-			Name:     "service",
+			Name:     "service_transaction",
 			DocCount: int64(overflowCount),
 			Interval: "10s",
 			Samples: []model.MetricsetSample{
 				{
-					Name:  "service.aggregation.overflow_count",
+					Name:  "service_transaction.aggregation.overflow_count",
 					Value: float64(overflowCount),
 				},
 			},
@@ -342,12 +343,12 @@ func TestAggregatorOverflow(t *testing.T) {
 }
 
 func makeTransaction(
-	serviceName, agentName, transactionType, outcome string,
+	serviceName, serviceLanguageName, agentName, transactionType, outcome string,
 	duration time.Duration, count float64,
 ) model.APMEvent {
 	return model.APMEvent{
 		Agent:   model.Agent{Name: agentName},
-		Service: model.Service{Name: serviceName},
+		Service: model.Service{Name: serviceName, Language: model.Language{Name: serviceLanguageName}},
 		Event: model.Event{
 			Outcome:  outcome,
 			Duration: duration,

@@ -226,13 +226,9 @@ func TestTransactionAggregationLabels(t *testing.T) {
 	assert.ElementsMatch(t, metricsets, docs)
 }
 
-func TestServiceMetricsAggregation(t *testing.T) {
+func TestServiceTransactionMetricsAggregation(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
 	srv := apmservertest.NewUnstartedServerTB(t)
-	enabled := true
-	srv.Config.Aggregation = &apmservertest.AggregationConfig{
-		Service: &apmservertest.ServiceAggregationConfig{Enabled: &enabled},
-	}
 	err := srv.Start()
 	require.NoError(t, err)
 
@@ -255,20 +251,16 @@ func TestServiceMetricsAggregation(t *testing.T) {
 	)
 	// Stop server to ensure metrics are flushed on shutdown.
 	assert.NoError(t, srv.Close())
-	result := systemtest.Elasticsearch.ExpectMinDocs(t, 2, "metrics-apm.service*",
-		estest.TermQuery{Field: "metricset.name", Value: "service"},
+	result := systemtest.Elasticsearch.ExpectMinDocs(t, 2, "metrics-apm.service_transaction*",
+		estest.TermQuery{Field: "metricset.name", Value: "service_transaction"},
 	)
 	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits)
 }
 
-func TestServiceMetricsAggregationLabels(t *testing.T) {
+func TestServiceTransactionMetricsAggregationLabels(t *testing.T) {
 	t.Setenv("ELASTIC_APM_GLOBAL_LABELS", "department_name=apm,organization=observability,company=elastic")
 	systemtest.CleanupElasticsearch(t)
 	srv := apmservertest.NewUnstartedServerTB(t)
-	enabled := true
-	srv.Config.Aggregation = &apmservertest.AggregationConfig{
-		Service: &apmservertest.ServiceAggregationConfig{Enabled: &enabled},
-	}
 	err := srv.Start()
 	require.NoError(t, err)
 
@@ -289,9 +281,9 @@ func TestServiceMetricsAggregationLabels(t *testing.T) {
 	)
 	// Stop server to ensure metrics are flushed on shutdown.
 	assert.NoError(t, srv.Close())
-	result := systemtest.Elasticsearch.ExpectDocs(t, "metrics-apm.service*", estest.BoolQuery{
+	result := systemtest.Elasticsearch.ExpectDocs(t, "metrics-apm.service_transaction*", estest.BoolQuery{
 		Filter: []interface{}{
-			estest.TermQuery{Field: "metricset.name", Value: "service"},
+			estest.TermQuery{Field: "metricset.name", Value: "service_transaction"},
 		},
 	})
 
@@ -301,7 +293,7 @@ func TestServiceMetricsAggregationLabels(t *testing.T) {
 		metricsets = append(metricsets, metricsetDoc{
 			Trasaction:        metricsetTransaction{Type: "type"},
 			MetricsetInterval: interval,
-			MetricsetName:     "service",
+			MetricsetName:     "service_transaction",
 			Labels: map[string]string{
 				"department_name": "apm",
 				"organization":    "observability",
@@ -315,10 +307,6 @@ func TestServiceMetricsAggregationLabels(t *testing.T) {
 func TestServiceSummaryMetricsAggregation(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
 	srv := apmservertest.NewUnstartedServerTB(t)
-	enabled := true
-	srv.Config.Aggregation = &apmservertest.AggregationConfig{
-		Service: &apmservertest.ServiceAggregationConfig{Enabled: &enabled},
-	}
 	err := srv.Start()
 	require.NoError(t, err)
 

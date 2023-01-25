@@ -257,6 +257,7 @@ func (k *aggregationKey) hash() uint64 {
 	h.WriteString(k.agentName)
 	h.WriteString(k.serviceEnvironment)
 	h.WriteString(k.serviceName)
+	h.WriteString(k.serviceLanguageName)
 	return h.Sum64()
 }
 
@@ -268,9 +269,10 @@ func (k *aggregationKey) equal(key aggregationKey) bool {
 type comparable struct {
 	timestamp time.Time
 
-	agentName          string
-	serviceName        string
-	serviceEnvironment string
+	agentName           string
+	serviceName         string
+	serviceEnvironment  string
+	serviceLanguageName string
 }
 
 func makeAggregationKey(event *model.APMEvent, interval time.Duration) aggregationKey {
@@ -279,9 +281,10 @@ func makeAggregationKey(event *model.APMEvent, interval time.Duration) aggregati
 			// Group metrics by time interval.
 			timestamp: event.Timestamp.Truncate(interval),
 
-			agentName:          event.Agent.Name,
-			serviceName:        event.Service.Name,
-			serviceEnvironment: event.Service.Environment,
+			agentName:           event.Agent.Name,
+			serviceName:         event.Service.Name,
+			serviceEnvironment:  event.Service.Environment,
+			serviceLanguageName: event.Service.Language.Name,
 		},
 	}
 	key.AggregatedGlobalLabels.Read(event)
@@ -308,6 +311,9 @@ func makeMetricset(key aggregationKey, interval string) model.APMEvent {
 		Service: model.Service{
 			Name:        key.serviceName,
 			Environment: key.serviceEnvironment,
+			Language: model.Language{
+				Name: key.serviceLanguageName,
+			},
 		},
 		Agent: model.Agent{
 			Name: key.agentName,
