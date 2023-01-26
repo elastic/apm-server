@@ -10,7 +10,9 @@ https://github.com/elastic/apm-server/compare/8.5\...8.6[View commits]
 [[release-notes-8.6.1]]
 === APM version 8.6.1
 
-No significant changes.
+[float]
+==== Bug fixes
+- Fix panic when memory limits are missing in cgroupV1 {pull}10098[10098]
 
 [float]
 [[release-notes-8.6.0]]
