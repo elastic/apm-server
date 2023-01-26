@@ -18,7 +18,11 @@
 package beater
 
 import (
+	"bytes"
+	"compress/zlib"
 	"context"
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -86,7 +90,13 @@ func TestStoreUsesRUMElasticsearchConfig(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		w.Header().Set("X-Elastic-Product", "Elasticsearch")
-		w.Write(validSourcemap)
+
+		m := sourcemapHit(validSourcemap)
+
+		b, err := json.Marshal(m)
+		require.NoError(t, err)
+
+		w.Write(b)
 	}))
 	defer ts.Close()
 
@@ -104,10 +114,36 @@ func TestStoreUsesRUMElasticsearchConfig(t *testing.T) {
 	defer cancel()
 	// Check that the provided rum elasticsearch config was used and
 	// Fetch() goes to the test server.
-	_, err = fetcher.Fetch(context.Background(), "app", "1.0", "/bundle/path")
+	c, err := fetcher.Fetch(context.Background(), "app", "1.0", "/bundle/path")
 	require.NoError(t, err)
+	require.NotNil(t, c)
 
 	assert.True(t, called)
+}
+
+func sourcemapHit(sourcemap []byte) map[string]interface{} {
+	b := &bytes.Buffer{}
+
+	z := zlib.NewWriter(b)
+	z.Write(sourcemap)
+	z.Close()
+
+	s := base64.StdEncoding.EncodeToString(b.Bytes())
+
+	hits := map[string]interface{}{
+		"_source": map[string]interface{}{
+			"content": s,
+		},
+	}
+
+	resultHits := map[string]interface{}{
+		"total": map[string]interface{}{
+			"value": 1,
+		},
+	}
+	resultHits["hits"] = []map[string]interface{}{hits}
+	result := map[string]interface{}{"hits": resultHits}
+	return result
 }
 
 func TestQueryClusterUUIDRegistriesExist(t *testing.T) {
