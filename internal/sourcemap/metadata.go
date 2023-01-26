@@ -130,7 +130,7 @@ func (s *MetadataCachingFetcher) Fetch(ctx context.Context, name, version, path 
 		}
 	}
 
-	return nil, nil
+	return nil, fmt.Errorf("unable to find sourcemap.url for service.name=%s service.version=%s bundle.path=%s", name, version, path)
 }
 
 func (s *MetadataCachingFetcher) hasID(key Identifier) bool {
@@ -155,7 +155,7 @@ func (s *MetadataCachingFetcher) fetch(ctx context.Context, key *Identifier) (*s
 	// log a message if the sourcemap is present in the cache but the backend fetcher did not
 	// find it.
 	if err == nil && c == nil {
-		s.logger.Debugf("Backend fetcher failed to retrieve sourcemap: %v", key)
+		return nil, fmt.Errorf("unable to find sourcemap for service.name=%s service.version=%s bundle.path=%s", key.name, key.version, key.path)
 	}
 
 	return c, err
