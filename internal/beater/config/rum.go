@@ -56,7 +56,6 @@ type SourceMapping struct {
 	Enabled      bool                  `config:"enabled"`
 	IndexPattern string                `config:"index_pattern"`
 	ESConfig     *elasticsearch.Config `config:"elasticsearch"`
-	Metadata     []SourceMapMetadata   `config:"metadata"`
 	Timeout      time.Duration         `config:"timeout" validate:"positive"`
 	esConfigured bool
 	es           *config.C
@@ -72,12 +71,6 @@ func (c *RumConfig) setup(log *logp.Logger, outputESCfg *config.C) error {
 	}
 	if _, err := regexp.Compile(c.ExcludeFromGrouping); err != nil {
 		return errors.Wrapf(err, "Invalid regex for `exclude_from_grouping`: ")
-	}
-
-	if len(c.SourceMapping.Metadata) > 0 {
-		// We don't have the fleet fetcher anymore.
-		// Ignore metadata and setup the elasticsearch config.
-		log.Warn("Ignoring sourcemap metadata")
 	}
 
 	if outputESCfg == nil {
@@ -126,7 +119,6 @@ func defaultSourcemapping() SourceMapping {
 		Cache:        Cache{Expiration: defaultSourcemapCacheExpiration},
 		IndexPattern: defaultSourcemapIndexPattern,
 		ESConfig:     elasticsearch.DefaultConfig(),
-		Metadata:     []SourceMapMetadata{},
 		Timeout:      defaultSourcemapTimeout,
 	}
 }

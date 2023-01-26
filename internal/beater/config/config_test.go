@@ -281,7 +281,6 @@ func TestUnpackConfig(t *testing.T) {
 							CompressionLevel: 5,
 							Backoff:          elasticsearch.DefaultBackoffConfig,
 						},
-						Metadata:     []SourceMapMetadata{},
 						Timeout:      2 * time.Second,
 						esConfigured: true,
 					},
@@ -373,14 +372,6 @@ func TestUnpackConfig(t *testing.T) {
 				"rum": map[string]interface{}{
 					"enabled": true,
 					"source_mapping": map[string]interface{}{
-						"metadata": []map[string]string{
-							{
-								"service.name":    "opbeans-rum",
-								"service.version": "1.2.3",
-								"bundle.filepath": "/test/e2e/general-usecase/bundle.js.map",
-								"sourcemap.url":   "http://somewhere.com/bundle.js.map",
-							},
-						},
 						"cache": map[string]interface{}{
 							"expiration": 7,
 						},
@@ -455,14 +446,6 @@ func TestUnpackConfig(t *testing.T) {
 						},
 						IndexPattern: ".apm-source-map",
 						ESConfig:     elasticsearch.DefaultConfig(),
-						Metadata: []SourceMapMetadata{
-							{
-								ServiceName:    "opbeans-rum",
-								ServiceVersion: "1.2.3",
-								BundleFilepath: "/test/e2e/general-usecase/bundle.js.map",
-								SourceMapURL:   "http://somewhere.com/bundle.js.map",
-							},
-						},
 						Timeout: 5 * time.Second,
 					},
 					LibraryPattern:      "rum",
