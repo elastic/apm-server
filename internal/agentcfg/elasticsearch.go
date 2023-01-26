@@ -30,6 +30,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/elastic/apm-server/internal/elasticsearch"
+	"github.com/elastic/apm-server/internal/logs"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/monitoring"
 	"github.com/elastic/go-elasticsearch/v8/esapi"
@@ -48,7 +49,10 @@ const (
 	ErrNoValidElasticsearchConfig = "no valid elasticsearch config to fetch agent config"
 )
 
-const refreshCacheTimeout = 5 * time.Second
+const (
+	refreshCacheTimeout = 5 * time.Second
+	loggerRateLimit     = time.Minute
+)
 
 type ElasticsearchFetcher struct {
 	client          *elasticsearch.Client
@@ -64,7 +68,7 @@ type ElasticsearchFetcher struct {
 	invalidESCfg     atomic.Bool
 	cacheInitialized atomic.Bool
 
-	logger *logp.Logger
+	logger, rateLimitedLogger *logp.Logger
 
 	metrics fetcherMetrics
 }
@@ -78,11 +82,12 @@ type fetcherMetrics struct {
 func NewElasticsearchFetcher(client *elasticsearch.Client, cacheDuration time.Duration, fetcher Fetcher) *ElasticsearchFetcher {
 	logger := logp.NewLogger("agentcfg")
 	return &ElasticsearchFetcher{
-		client:          client,
-		cacheDuration:   cacheDuration,
-		fallbackFetcher: fetcher,
-		searchSize:      100,
-		logger:          logger,
+		client:            client,
+		cacheDuration:     cacheDuration,
+		fallbackFetcher:   fetcher,
+		searchSize:        100,
+		logger:            logger,
+		rateLimitedLogger: logger.WithOptions(logs.WithRateLimit(loggerRateLimit)),
 	}
 }
 
@@ -103,12 +108,12 @@ func (f *ElasticsearchFetcher) Fetch(ctx context.Context, query Query) (Result, 
 
 	if f.invalidESCfg.Load() {
 		f.metrics.fetchInvalid.Add(1)
-		f.logger.Errorf("rejecting fetch request: no valid elasticsearch config")
+		f.rateLimitedLogger.Errorf("rejecting fetch request: no valid elasticsearch config")
 		return Result{}, errors.New(ErrNoValidElasticsearchConfig)
 	}
 
 	f.metrics.fetchFallbackUnavailable.Add(1)
-	f.logger.Warnf("rejecting fetch request: infrastructure is not ready")
+	f.rateLimitedLogger.Warnf("rejecting fetch request: infrastructure is not ready")
 	return Result{}, errors.New(ErrInfrastructureNotReady)
 }
 
