@@ -446,7 +446,7 @@ func TestUnpackConfig(t *testing.T) {
 						},
 						IndexPattern: ".apm-source-map",
 						ESConfig:     elasticsearch.DefaultConfig(),
-						Timeout: 5 * time.Second,
+						Timeout:      5 * time.Second,
 					},
 					LibraryPattern:      "rum",
 					ExcludeFromGrouping: "^/webpack",
