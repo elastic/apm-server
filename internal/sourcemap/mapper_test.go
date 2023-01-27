@@ -30,8 +30,8 @@ import (
 
 func TestMapNilConsumer(t *testing.T) {
 	// no sourcemapConsumer
-	_, _, _, _, _, _, _, ok := Map(nil, 0, 0)
-	assert.False(t, ok)
+	_, _, _, _, _, _, _, err := Map(nil, 0, 0)
+	assert.NoError(t, err)
 }
 
 func TestMapNoMatch(t *testing.T) {
@@ -39,8 +39,8 @@ func TestMapNoMatch(t *testing.T) {
 	require.NoError(t, err)
 
 	// nothing found for lineno and colno
-	file, fc, line, col, ctxLine, _, _, ok := Map(m, 0, 0)
-	require.False(t, ok)
+	file, fc, line, col, ctxLine, _, _, err := Map(m, 0, 0)
+	require.Error(t, err)
 	assert.Zero(t, file)
 	assert.Zero(t, fc)
 	assert.Zero(t, line)
@@ -66,8 +66,8 @@ func TestMapMatch(t *testing.T) {
 	test := func(t *testing.T, source []byte) {
 		m, err := sourcemap.Parse("", source)
 		require.NoError(t, err)
-		file, fc, line, col, ctxLine, preCtx, postCtx, ok := Map(m, 1, 7)
-		require.True(t, ok)
+		file, fc, line, col, ctxLine, preCtx, postCtx, err := Map(m, 1, 7)
+		require.NoError(t, err)
 		assert.Equal(t, "webpack:///bundle.js", file)
 		assert.Equal(t, "", fc)
 		assert.Equal(t, 1, line)
