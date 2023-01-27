@@ -1722,11 +1722,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/gofrs/uuid
-Version: v4.3.1+incompatible
+Version: v4.4.0+incompatible
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/gofrs/uuid@v4.3.1+incompatible/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/gofrs/uuid@v4.4.0+incompatible/LICENSE:
 
 Copyright (C) 2013-2018 by Maxim Bublis <b@codemonkey.ru>
 
