@@ -22,7 +22,7 @@ const (
 
 	defaultServiceDestinationAggregationMaxGroups = 10000
 
-	defaultServiceAggregationHDRHistogramSignificantFigures = 5
+	defaultServiceTxAggregationHDRHistogramSignificantFigures = 5
 )
 
 // AggregationConfig holds configuration related to various metrics aggregations.
@@ -58,7 +58,7 @@ func defaultAggregationConfig() AggregationConfig {
 			MaxGroups: defaultServiceDestinationAggregationMaxGroups,
 		},
 		ServiceTransactions: ServiceTransactionAggregationConfig{
-			HDRHistogramSignificantFigures: defaultServiceAggregationHDRHistogramSignificantFigures,
+			HDRHistogramSignificantFigures: defaultServiceTxAggregationHDRHistogramSignificantFigures,
 		},
 	}
 }
