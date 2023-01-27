@@ -89,8 +89,10 @@ func TestAPMServerInstrumentation(t *testing.T) {
 		if !ok {
 			continue
 		}
-		assert.Equal(t, transactionDoc.Trace.ID, traceID)
-		assert.Equal(t, transactionDoc.Transaction.ID, entry.Fields["transaction.id"])
+		assert.Equalf(t, transactionDoc.Trace.ID, traceID,
+			"expecting log with trace id %s; got trace id %s and message \"%s\" instead", transactionDoc.Trace.ID, traceID, entry.Message)
+		assert.Equalf(t, transactionDoc.Transaction.ID, entry.Fields["transaction.id"],
+			"expecting log with transaction id %s; got transaction id %s and message \"%s\" instead", transactionDoc.Transaction.ID, entry.Fields["transaction.id"], entry.Message)
 		return
 	}
 	t.Fatal("failed to identify log message with matching trace IDs")
