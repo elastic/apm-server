@@ -138,10 +138,14 @@ func (a *Aggregator) publish(ctx context.Context, period time.Duration) error {
 	a.active[period], a.inactive[period] = a.inactive[period], current
 	a.mu.Unlock()
 
-	size := len(current.m)
-	if size == 0 {
+	if current.entries == 0 {
 		a.config.Logger.Debugf("no service transaction metrics to publish")
 		return nil
+	}
+
+	size := current.entries
+	if current.other != nil {
+		size++
 	}
 
 	intervalStr := interval.FormatDuration(period)
