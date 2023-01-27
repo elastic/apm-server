@@ -68,30 +68,30 @@ func (s *SyncWorker) Run(parent context.Context) {
 		}
 
 		s.logger.Info("init routine completed")
-	}()
 
-	go func() {
-		// TODO make this a config option ?
-		t := time.NewTicker(30 * time.Second)
-		defer t.Stop()
+		go func() {
+			// TODO make this a config option ?
+			t := time.NewTicker(30 * time.Second)
+			defer t.Stop()
 
-		for {
-			select {
-			case <-t.C:
-				ctx, cleanup := context.WithTimeout(parent, syncTimeout)
+			for {
+				select {
+				case <-t.C:
+					ctx, cleanup := context.WithTimeout(parent, syncTimeout)
 
-				if err := s.sync(ctx); err != nil {
-					s.logger.Errorf("failed to sync sourcemaps metadata: %v", err)
+					if err := s.sync(ctx); err != nil {
+						s.logger.Errorf("failed to sync sourcemaps metadata: %v", err)
+					}
+
+					cleanup()
+				case <-parent.Done():
+					s.logger.Info("update routine done")
+					// close update channel
+					close(s.updateChan)
+					return
 				}
-
-				cleanup()
-			case <-parent.Done():
-				s.logger.Info("update routine done")
-				// close update channel
-				close(s.updateChan)
-				return
 			}
-		}
+		}()
 	}()
 }
 
