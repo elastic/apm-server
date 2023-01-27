@@ -315,7 +315,7 @@ func TestUnpackConfig(t *testing.T) {
 					},
 					ServiceTransactions: ServiceTransactionAggregationConfig{
 						MaxGroups:                      457,
-						HDRHistogramSignificantFigures: 5,
+						HDRHistogramSignificantFigures: 2,
 					},
 				},
 				Sampling: SamplingConfig{
