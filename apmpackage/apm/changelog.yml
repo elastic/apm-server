@@ -36,6 +36,27 @@
     - description: Introduce `metrics-apm.service_summary-${interval}` data stream for service summary metrics (`1m`, `10m` and `60m`).
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/10029
+    - description: Add service destination overflow metrics
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/10069
+    - description: Add service summary overflow metrics
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/10061
+    - description: Add event categorization fields
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/10066
+    - description: Set data streams with non-default rollup intervals as hidden
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/10070
+    - description: Rename `metrics-apm.service-${interval}` to `metrics-apm.service_transaction-${interval}` and its overflow count field name
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/10095
+    - description: Add `service.language.name` to service transaction metrics and service summary metrics
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/10111
+    - description: Remove policy input var `service_metrics_enabled`
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/10109
 - version: "8.6.0"
   changes:
     - description: Change `ecs.version` to a `constant_keyword` field

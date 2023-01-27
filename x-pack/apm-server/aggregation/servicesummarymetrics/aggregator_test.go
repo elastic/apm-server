@@ -68,7 +68,7 @@ func TestAggregatorRun(t *testing.T) {
 	apmEvents := []model.APMEvent{
 		{
 			Agent:   model.Agent{Name: "java"},
-			Service: model.Service{Name: "backend"},
+			Service: model.Service{Name: "backend", Language: model.Language{Name: "java"}},
 			Event: model.Event{
 				Outcome:  "success",
 				Duration: time.Millisecond,
@@ -175,7 +175,7 @@ func TestAggregatorRun(t *testing.T) {
 			Metricset: &model.Metricset{
 				Name: "service_summary", Interval: fmt.Sprintf("%.0fs", interval.Seconds()),
 			},
-			Service: model.Service{Name: "backend"},
+			Service: model.Service{Name: "backend", Language: model.Language{Name: "java"}},
 			Agent:   model.Agent{Name: "java"},
 			Labels: model.Labels{
 				"department_name": model.LabelValue{Value: "apm"},
@@ -191,14 +191,14 @@ func TestAggregatorRun(t *testing.T) {
 			Metricset: &model.Metricset{
 				Name: "service_summary", Interval: fmt.Sprintf("%.0fs", interval.Seconds()),
 			},
-			Service: model.Service{Name: "backend"},
+			Service: model.Service{Name: "backend", Language: model.Language{Name: "go"}},
 			Agent:   model.Agent{Name: "go"},
 		}, {
 			Processor: model.MetricsetProcessor,
 			Metricset: &model.Metricset{
 				Name: "service_summary", Interval: fmt.Sprintf("%.0fs", interval.Seconds()),
 			},
-			Service: model.Service{Name: "backend", Environment: "dev"},
+			Service: model.Service{Name: "backend", Environment: "dev", Language: model.Language{Name: "go"}},
 			Agent:   model.Agent{Name: "go"},
 		}}
 
@@ -231,7 +231,7 @@ func TestAggregateTimestamp(t *testing.T) {
 
 	t0 := time.Unix(0, 0)
 	for _, ts := range []time.Time{t0, t0.Add(15 * time.Second), t0.Add(30 * time.Second)} {
-		transaction := makeTransaction("service_name", "agent_name", "tx_type", "success", 100*time.Millisecond, 1)
+		transaction := makeTransaction("service_name", "agent_name", "", "tx_type", "success", 100*time.Millisecond, 1)
 		transaction.Timestamp = ts
 		batch := model.Batch{transaction}
 		err = agg.ProcessBatch(context.Background(), &batch)
@@ -253,13 +253,67 @@ func TestAggregateTimestamp(t *testing.T) {
 	assert.Equal(t, t0.Add(30*time.Second), metricsets[1].Timestamp)
 }
 
+func TestAggregatorOverflow(t *testing.T) {
+	maxGrps := 4
+	overflowCount := 100
+	txnDuration := 100 * time.Millisecond
+	batches := make(chan model.Batch, 1)
+	agg, err := NewAggregator(AggregatorConfig{
+		BatchProcessor: makeChanBatchProcessor(batches),
+		Interval:       10 * time.Second,
+		MaxGroups:      maxGrps,
+	})
+	require.NoError(t, err)
+
+	batch := make(model.Batch, maxGrps+overflowCount) // cause overflow
+	for i := 0; i < len(batch); i++ {
+		batch[i] = makeTransaction(
+			fmt.Sprintf("svc%d", i), "java", "agent", "tx_type", "success", txnDuration, 1,
+		)
+	}
+	go func(t *testing.T) {
+		t.Helper()
+		require.NoError(t, agg.Run())
+	}(t)
+	require.NoError(t, agg.ProcessBatch(context.Background(), &batch))
+	require.NoError(t, agg.Stop(context.Background()))
+	metricsets := batchMetricsets(t, expectBatch(t, batches))
+	require.Len(t, metricsets, maxGrps+1) // only one `other` metric should overflow
+	var overflowEvent *model.APMEvent
+	for i := range metricsets {
+		m := metricsets[i]
+		if m.Service.Name == "_other" {
+			if overflowEvent != nil {
+				require.Fail(t, "only one service should overflow")
+			}
+			overflowEvent = &m
+		}
+	}
+	assert.Empty(t, cmp.Diff(model.APMEvent{
+		Service: model.Service{
+			Name: "_other",
+		},
+		Processor: model.MetricsetProcessor,
+		Metricset: &model.Metricset{
+			Name:     "service_summary",
+			Interval: "10s",
+			Samples: []model.MetricsetSample{
+				{
+					Name:  "service_summary.aggregation.overflow_count",
+					Value: float64(overflowCount),
+				},
+			},
+		},
+	}, *overflowEvent, cmpopts.IgnoreTypes(netip.Addr{}, time.Time{})))
+}
+
 func makeTransaction(
-	serviceName, agentName, transactionType, outcome string,
+	serviceName, serviceLanguageName, agentName, transactionType, outcome string,
 	duration time.Duration, count float64,
 ) model.APMEvent {
 	return model.APMEvent{
 		Agent:   model.Agent{Name: agentName},
-		Service: model.Service{Name: serviceName},
+		Service: model.Service{Name: serviceName, Language: model.Language{Name: serviceLanguageName}},
 		Event: model.Event{
 			Outcome:  outcome,
 			Duration: duration,

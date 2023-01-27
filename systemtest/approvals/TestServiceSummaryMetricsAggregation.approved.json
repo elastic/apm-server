@@ -31,6 +31,9 @@
                 "name": "metric"
             },
             "service": {
+                "language": {
+                    "name": "go"
+                },
                 "name": "systemtest"
             }
         },
@@ -65,6 +68,9 @@
                 "name": "metric"
             },
             "service": {
+                "language": {
+                    "name": "go"
+                },
                 "name": "systemtest"
             }
         },
@@ -99,6 +105,9 @@
                 "name": "metric"
             },
             "service": {
+                "language": {
+                    "name": "go"
+                },
                 "name": "systemtest"
             }
         }

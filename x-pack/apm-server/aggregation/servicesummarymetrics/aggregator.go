@@ -10,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/axiomhq/hyperloglog"
 	"github.com/cespare/xxhash/v2"
 	"github.com/pkg/errors"
 
@@ -23,7 +24,8 @@ import (
 )
 
 const (
-	metricsetName = "service_summary"
+	metricsetName       = "service_summary"
+	overflowServiceName = "_other"
 )
 
 // AggregatorConfig holds configuration for creating an Aggregator.
@@ -44,8 +46,6 @@ type AggregatorConfig struct {
 	RollUpIntervals []time.Duration
 
 	// Interval is the interval between publishing of aggregated metrics.
-	// There may be additional metrics reported at arbitrary times if the
-	// aggregation groups fill up.
 	Interval time.Duration
 
 	// MaxGroups is the maximum number of distinct service summary metrics to
@@ -123,21 +123,39 @@ func (a *Aggregator) publish(ctx context.Context, period time.Duration) error {
 	a.active[period], a.inactive[period] = a.inactive[period], current
 	a.mu.Unlock()
 
-	size := len(current.m)
-	if size == 0 {
+	if current.entries == 0 {
 		a.config.Logger.Debugf("no service summary metrics to publish")
 		return nil
 	}
 
+	size := current.entries
+	if current.other != nil {
+		size++
+	}
+
 	intervalStr := interval.FormatDuration(period)
 	batch := make(model.Batch, 0, size)
-	for hash, entries := range current.m {
-		for _, key := range entries {
-			m := makeMetricset(*key, intervalStr)
+	for key, metrics := range current.m {
+		for _, entry := range metrics {
+			m := makeMetricset(*entry, intervalStr)
 			batch = append(batch, m)
 		}
-		delete(current.m, hash)
+		delete(current.m, key)
 	}
+	if current.other != nil {
+		m := makeMetricset(*current.other, intervalStr)
+		m.Metricset.Samples = append(m.Metricset.Samples, model.MetricsetSample{
+			Name:  "service_summary.aggregation.overflow_count",
+			Value: float64(current.otherCardinalityEstimator.Estimate()),
+		})
+		batch = append(batch, m)
+	}
+
+	// Clean up everything.
+	current.entries = 0
+	current.other = nil
+	current.otherCardinalityEstimator = nil
+
 	a.config.Logger.Debugf("publishing %d metricsets", len(batch))
 	return a.config.BatchProcessor.ProcessBatch(ctx, &batch)
 }
@@ -151,24 +169,26 @@ func (a *Aggregator) ProcessBatch(ctx context.Context, b *model.Batch) error {
 		if event.Processor == model.SpanProcessor {
 			continue
 		}
-		a.processEvent(&event, b)
+		a.processEvent(&event)
 	}
 	return nil
 }
 
-func (a *Aggregator) processEvent(event *model.APMEvent, b *model.Batch) {
-	for _, period := range a.Intervals {
-		key := makeAggregationKey(event, period)
-		if !a.active[period].storeOrUpdate(key, a.config.Logger) {
-			intervalStr := interval.FormatDuration(period)
-			*b = append(*b, makeMetricset(key, intervalStr))
-		}
+func (a *Aggregator) processEvent(event *model.APMEvent) {
+	for _, interval := range a.Intervals {
+		key := makeAggregationKey(event, interval)
+		a.active[interval].storeOrUpdate(key, interval, a.config.Logger)
 	}
 }
 
 type metricsBuffer struct {
-	mu sync.RWMutex
-	m  map[uint64][]*aggregationKey
+	mu                        sync.RWMutex
+	m                         map[uint64][]*aggregationKey
+	other                     *aggregationKey
+	otherCardinalityEstimator *hyperloglog.Sketch
+
+	// Number of aggregation keys in m, excluding overflow bucket.
+	entries int
 
 	maxSize int
 }
@@ -182,13 +202,15 @@ func newMetricsBuffer(maxSize int) *metricsBuffer {
 
 func (mb *metricsBuffer) storeOrUpdate(
 	key aggregationKey,
+	interval time.Duration,
 	logger *logp.Logger,
-) bool {
+) {
 	hash := key.hash()
 
 	mb.mu.Lock()
 	defer mb.mu.Unlock()
 
+	// Search in hash table with separate chaining.
 	entries, ok := mb.m[hash]
 	if ok {
 		ok = false
@@ -200,21 +222,24 @@ func (mb *metricsBuffer) storeOrUpdate(
 		}
 	}
 
-	if !ok {
-		n := len(mb.m)
-		half := mb.maxSize / 2
-
-		switch n {
-		case mb.maxSize:
-			return false
-		case half - 1:
-			logger.Warn("service summary groups reached 50% capacity")
-		case mb.maxSize - 1:
-			logger.Warn("service summary groups reached 100% capacity")
-		}
-		mb.m[hash] = append(mb.m[hash], &key)
+	if ok {
+		return
 	}
-	return true
+
+	if mb.entries >= mb.maxSize {
+		if mb.otherCardinalityEstimator == nil {
+			logger.Warnf(`
+Service summary aggregation group limit of %d reached, new metric documents will be grouped
+under a dedicated bucket identified by service name '%s'.`[1:], mb.maxSize, overflowServiceName)
+			key = makeOverflowAggregationKey(interval)
+			mb.other = &key
+			mb.otherCardinalityEstimator = hyperloglog.New14()
+		}
+		mb.otherCardinalityEstimator.InsertHash(hash)
+	} else {
+		mb.m[hash] = append(mb.m[hash], &key)
+		mb.entries++
+	}
 }
 
 type aggregationKey struct {
@@ -232,6 +257,7 @@ func (k *aggregationKey) hash() uint64 {
 	h.WriteString(k.agentName)
 	h.WriteString(k.serviceEnvironment)
 	h.WriteString(k.serviceName)
+	h.WriteString(k.serviceLanguageName)
 	return h.Sum64()
 }
 
@@ -243,9 +269,10 @@ func (k *aggregationKey) equal(key aggregationKey) bool {
 type comparable struct {
 	timestamp time.Time
 
-	agentName          string
-	serviceName        string
-	serviceEnvironment string
+	agentName           string
+	serviceName         string
+	serviceEnvironment  string
+	serviceLanguageName string
 }
 
 func makeAggregationKey(event *model.APMEvent, interval time.Duration) aggregationKey {
@@ -254,13 +281,28 @@ func makeAggregationKey(event *model.APMEvent, interval time.Duration) aggregati
 			// Group metrics by time interval.
 			timestamp: event.Timestamp.Truncate(interval),
 
-			agentName:          event.Agent.Name,
-			serviceName:        event.Service.Name,
-			serviceEnvironment: event.Service.Environment,
+			agentName:           event.Agent.Name,
+			serviceName:         event.Service.Name,
+			serviceEnvironment:  event.Service.Environment,
+			serviceLanguageName: event.Service.Language.Name,
 		},
 	}
 	key.AggregatedGlobalLabels.Read(event)
 	return key
+}
+
+func makeOverflowAggregationKey(interval time.Duration) aggregationKey {
+	return aggregationKey{
+		comparable: comparable{
+			// We are using `time.Now` here to align the overflow aggregation to
+			// the evaluation time rather than event time. This prevents us from
+			// cases of bad timestamps when the server receives some events with
+			// old timestamp and these events overflow causing the indexed event
+			// to have old timestamp too.
+			timestamp:   time.Now().Truncate(interval),
+			serviceName: overflowServiceName,
+		},
+	}
 }
 
 func makeMetricset(key aggregationKey, interval string) model.APMEvent {
@@ -269,6 +311,9 @@ func makeMetricset(key aggregationKey, interval string) model.APMEvent {
 		Service: model.Service{
 			Name:        key.serviceName,
 			Environment: key.serviceEnvironment,
+			Language: model.Language{
+				Name: key.serviceLanguageName,
+			},
 		},
 		Agent: model.Agent{
 			Name: key.agentName,

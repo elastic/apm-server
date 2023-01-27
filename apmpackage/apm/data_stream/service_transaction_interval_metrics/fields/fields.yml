@@ -10,6 +10,10 @@
 - name: processor.name
   type: constant_keyword
   description: Processor name.
+- name: service.language.name
+  type: keyword
+  description: |
+    Name of the programming language used.
 - name: transaction.type
   type: keyword
   description: |
@@ -23,6 +27,6 @@
   dynamic: true
   description: |
     Custom key/value pairs. Can be used to add meta information to events. Should not contain nested objects. All values are stored as scaled_float.
-- name: service.aggregation.overflow_count
+- name: service_transaction.aggregation.overflow_count
   type: long
-  description: Number of aggregation groups that overflowed for service metrics aggregation.
+  description: Number of aggregation groups that overflowed for service transaction metrics aggregation.

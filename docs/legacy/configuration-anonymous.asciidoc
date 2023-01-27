@@ -23,6 +23,8 @@ apm-server.auth.anonymous.rate_limit.event_limit: 300
 apm-server.auth.anonymous.rate_limit.ip_limit: 1000
 ----
 
+The anonymous access configuration is ignored if authenticated communication is disabled.
+
 [float]
 [[config-auth-anon-rum]]
 === Real User Monitoring (RUM)
