@@ -37,8 +37,9 @@ func TestBatchProcessor(t *testing.T) {
 		sourcemapSearchResponseBody(1, []map[string]interface{}{sourcemapHit(string(validSourcemap))}),
 	)
 	esFetcher := NewElasticsearchFetcher(client, "index")
-	fetcher, err := NewCachingFetcher(esFetcher, nil, 100)
+	fetcher, ch, err := NewBodyCachingFetcher(esFetcher, 100)
 	require.NoError(t, err)
+	close(ch)
 
 	originalLinenoWithFilename := 1
 	originalColnoWithFilename := 7

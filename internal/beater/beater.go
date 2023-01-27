@@ -821,20 +821,21 @@ func newSourcemapFetcher(
 	// For standalone, we query both Kibana and Elasticsearch for backwards compatibility.
 	var chained sourcemap.ChainedFetcher
 
-	size := 128
-	invalidationChan := make(chan sourcemap.Identifier, size)
-
 	index := strings.ReplaceAll(cfg.IndexPattern, "%{[observer.version]}", version.Version)
 
+	// start background sync job
+	sync, updateChan := sourcemap.NewSyncWorker(esClient, index)
+	ctx, cancel := context.WithCancel(context.Background())
+	sync.Run(ctx)
+
 	esFetcher := sourcemap.NewElasticsearchFetcher(esClient, index)
-	cachingFetcher, err := sourcemap.NewCachingFetcher(esFetcher, invalidationChan, size)
+	size := 128
+	cachingFetcher, invalidateChan, err := sourcemap.NewBodyCachingFetcher(esFetcher, size)
 	if err != nil {
+		cancel()
 		return nil, nil, err
 	}
-	metadataCachingFetcher := sourcemap.NewMetadataCachingFetcher(esClient, cachingFetcher, index, invalidationChan)
-
-	ctx, cancel := context.WithCancel(context.Background())
-	metadataCachingFetcher.StartBackgroundSync(ctx)
+	metadataCachingFetcher := sourcemap.NewMetadataCachingFetcher(cachingFetcher, updateChan, invalidateChan)
 
 	chained = append(chained, metadataCachingFetcher)
 

@@ -40,11 +40,12 @@ var unsupportedVersionSourcemap = `{
 }`
 
 func Test_NewCachingFetcher(t *testing.T) {
-	_, err := NewCachingFetcher(nil, nil, -1)
+	_, _, err := NewBodyCachingFetcher(nil, -1)
 	require.Error(t, err)
 
-	f, err := NewCachingFetcher(nil, nil, 100)
+	f, ch, err := NewBodyCachingFetcher(nil, 100)
 	require.NoError(t, err)
+	close(ch)
 	assert.NotNil(t, f.cache)
 }
 
@@ -159,9 +160,10 @@ func TestStore_Fetch(t *testing.T) {
 	})
 }
 
-func testCachingFetcher(t *testing.T, client *elasticsearch.Client) *CachingFetcher {
+func testCachingFetcher(t *testing.T, client *elasticsearch.Client) *BodyCachingFetcher {
 	esFetcher := NewElasticsearchFetcher(client, "apm-*sourcemap*")
-	cachingFetcher, err := NewCachingFetcher(esFetcher, nil, 100)
+	cachingFetcher, ch, err := NewBodyCachingFetcher(esFetcher, 100)
 	require.NoError(t, err)
+	close(ch)
 	return cachingFetcher
 }

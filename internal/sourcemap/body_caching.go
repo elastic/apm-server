@@ -34,19 +34,18 @@ var (
 	errMsgFailure = "failure querying"
 )
 
-// CachingFetcher wraps a Fetcher, caching source maps in memory and fetching from the wrapped Fetcher on cache misses.
-type CachingFetcher struct {
+// BodyCachingFetcher wraps a Fetcher, caching source maps in memory and fetching from the wrapped Fetcher on cache misses.
+type BodyCachingFetcher struct {
 	cache   *lru.Cache
 	backend Fetcher
 	logger  *logp.Logger
 }
 
-// NewCachingFetcher returns a CachingFetcher that wraps backend, caching results for the configured cacheExpiration.
-func NewCachingFetcher(
+// NewBodyCachingFetcher returns a CachingFetcher that wraps backend, caching results for the configured cacheExpiration.
+func NewBodyCachingFetcher(
 	backend Fetcher,
-	invalidationChan <-chan Identifier,
 	cacheSize int,
-) (*CachingFetcher, error) {
+) (*BodyCachingFetcher, chan<- []Identifier, error) {
 	logger := logp.NewLogger(logs.Sourcemap)
 
 	lruCache, err := lru.NewWithEvict(cacheSize, func(key, value interface{}) {
@@ -57,24 +56,28 @@ func NewCachingFetcher(
 	})
 
 	if err != nil {
-		return nil, fmt.Errorf("failed to create lru cache for caching fetcher: %w", err)
+		return nil, nil, fmt.Errorf("failed to create lru cache for caching fetcher: %w", err)
 	}
 
+	ch := make(chan []Identifier)
+
 	go func() {
-		for identifier := range invalidationChan {
-			lruCache.Remove(identifier)
+		for arr := range ch {
+			for _, id := range arr {
+				lruCache.Remove(id)
+			}
 		}
 	}()
 
-	return &CachingFetcher{
+	return &BodyCachingFetcher{
 		cache:   lruCache,
 		backend: backend,
 		logger:  logger,
-	}, nil
+	}, ch, nil
 }
 
 // Fetch fetches a source map from the cache or wrapped backend.
-func (s *CachingFetcher) Fetch(ctx context.Context, name, version, path string) (*sourcemap.Consumer, error) {
+func (s *BodyCachingFetcher) Fetch(ctx context.Context, name, version, path string) (*sourcemap.Consumer, error) {
 	key := Identifier{
 		name:    name,
 		version: version,
@@ -99,7 +102,7 @@ func (s *CachingFetcher) Fetch(ctx context.Context, name, version, path string) 
 	return consumer, nil
 }
 
-func (s *CachingFetcher) add(key Identifier, consumer *sourcemap.Consumer) {
+func (s *BodyCachingFetcher) add(key Identifier, consumer *sourcemap.Consumer) {
 	s.cache.Add(key, consumer)
 	if !s.logger.IsDebug() {
 		return
