@@ -25,7 +25,7 @@ require (
 	github.com/elastic/go-ucfg v0.8.6
 	github.com/fatih/color v1.14.1 // indirect
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible
-	github.com/gofrs/uuid v4.3.1+incompatible
+	github.com/gofrs/uuid v4.4.0+incompatible
 	github.com/gogo/protobuf v1.3.2
 	github.com/google/pprof v0.0.0-20210720184732-4bb14d4b1be1
 	github.com/hashicorp/errwrap v1.1.0 // indirect
