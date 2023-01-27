@@ -180,9 +180,6 @@ include::install-agents.asciidoc[tag=rum]
 
 include::../../open-telemetry.asciidoc[tag=otel-get-started]
 
-Additional boostrap code may be required.
-See the {apm-guide-ref}/open-telemetry.html[Elastic OpenTelemetry guide] for more information, configuration options, and limitations of this feature.
-
 ++++
   </div>
 </div>
