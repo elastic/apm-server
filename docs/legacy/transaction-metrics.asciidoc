@@ -18,20 +18,12 @@ Example config file:
 apm-server:
   aggregation:
     transactions:
-      interval: 1m
+      max_groups: 10000
 ----
 
 [float]
 [[configuration-aggregation]]
 === Configuration options: `apm-server.aggregation.transactions.*`
-
-[[transactions-interval]]
-[float]
-==== `interval`
-
-Controls the frequency of metrics publication.
-
-Default: `1m`.
 
 [[transactions-max_groups]]
 [float]
