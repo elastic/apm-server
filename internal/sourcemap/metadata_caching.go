@@ -63,9 +63,9 @@ func (s *MetadataCachingFetcher) Fetch(ctx context.Context, name, version, path 
 	case <-s.init:
 		// the mutex is shared by the update goroutine, we need to release it
 		// as soon as possible to avoid blocking updates.
-		if s.hasID(original) {
+		if i, ok := s.getID(original); ok {
 			// Only fetch from ES if the sourcemap id exists
-			return s.fetch(ctx, &original)
+			return s.fetch(ctx, i)
 		}
 	default:
 		s.logger.Debugf("Metadata cache not populated. Falling back to backend fetcher for id: %s, %s, %s", name, version, path)
@@ -83,14 +83,14 @@ func (s *MetadataCachingFetcher) Fetch(ctx context.Context, name, version, path 
 		case <-ctx.Done():
 			return nil, ctx.Err()
 		}
-	}
 
-	// path is missing from the metadata cache (and ES).
-	// Is it an alias ?
-	// Try to retrieve the sourcemap from the alias map
-	// Only fetch from ES if the sourcemap alias exists
-	if id, found := s.getAlias(original); found {
-		return s.fetch(ctx, id)
+		// first map lookup  will fail but this is not going
+		// to be performance issue since it only happens if init
+		// is in progress.
+		if i, ok := s.getID(original); ok {
+			// Only fetch from ES if the sourcemap id exists
+			return s.fetch(ctx, i)
+		}
 	}
 
 	if urlPath, err := url.Parse(path); err == nil {
@@ -98,16 +98,14 @@ func (s *MetadataCachingFetcher) Fetch(ctx context.Context, name, version, path 
 		// bundle filepath but the request came in with an
 		// absolute path
 		original.path = urlPath.Path
-		if urlPath.Path != path && s.hasID(original) {
-			return s.fetch(ctx, &original)
-		}
-
-		// The sourcemap could be stored on ES under a certain host
-		// but a request came in from a different host.
-		// Look for an alias to the url path to retrieve the correct
-		// host and fetch the sourcemap
-		if id, found := s.getAlias(original); found {
-			return s.fetch(ctx, id)
+		if urlPath.Path != path {
+			// The sourcemap could be stored on ES under a certain host
+			// but a request came in from a different host.
+			// Look for an alias to the url path to retrieve the correct
+			// host and fetch the sourcemap
+			if i, ok := s.getID(original); ok {
+				return s.fetch(ctx, i)
+			}
 		}
 
 		// Clean the url and try again if the result is different from
@@ -126,18 +124,17 @@ func (s *MetadataCachingFetcher) Fetch(ctx context.Context, name, version, path 
 	return nil, fmt.Errorf("unable to find sourcemap.url for service.name=%s service.version=%s bundle.path=%s", name, version, path)
 }
 
-func (s *MetadataCachingFetcher) hasID(key Identifier) bool {
+func (s *MetadataCachingFetcher) getID(key Identifier) (*Identifier, bool) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	_, ok := s.set[key]
-	return ok
-}
+	if _, ok := s.set[key]; ok {
+		return &key, ok
+	}
 
-func (s *MetadataCachingFetcher) getAlias(key Identifier) (*Identifier, bool) {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-
+	// path is missing from the metadata cache (and ES).
+	// Is it an alias ?
+	// Try to retrieve the sourcemap from the alias map
 	i, ok := s.alias[key]
 	return i, ok
 }
