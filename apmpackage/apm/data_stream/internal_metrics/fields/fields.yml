@@ -1,6 +1,5 @@
 - name: faas.coldstart
   type: boolean
-  dimension: true
   description: |
     Boolean indicating whether the function invocation was a coldstart or not.
 - name: faas.id
