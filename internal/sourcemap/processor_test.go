@@ -30,6 +30,7 @@ import (
 
 	"github.com/elastic/apm-data/model"
 	"github.com/elastic/apm-server/internal/elasticsearch"
+	"github.com/elastic/apm-server/internal/logs"
 )
 
 func TestBatchProcessor(t *testing.T) {
@@ -185,7 +186,10 @@ func TestBatchProcessor(t *testing.T) {
 		},
 	}
 
-	processor := BatchProcessor{Fetcher: fetcher}
+	processor := BatchProcessor{
+		Fetcher: fetcher,
+		Logger:  logp.NewLogger(logs.Stacktrace),
+	}
 	err = processor.ProcessBatch(context.Background(), &model.Batch{transaction, span1, span2, error1, error2, error3})
 	assert.NoError(t, err)
 
@@ -240,9 +244,14 @@ func TestBatchProcessorElasticsearchUnavailable(t *testing.T) {
 		},
 	}
 
-	logp.DevelopmentSetup(logp.ToObserverOutput())
+	err := logp.DevelopmentSetup(logp.ToObserverOutput())
+	require.NoError(t, err)
+
 	for i := 0; i < 2; i++ {
-		processor := BatchProcessor{Fetcher: fetcher}
+		processor := BatchProcessor{
+			Fetcher: fetcher,
+			Logger:  logp.NewLogger(logs.Stacktrace),
+		}
 		err := processor.ProcessBatch(context.Background(), &model.Batch{span, span})
 		assert.NoError(t, err)
 	}
@@ -252,10 +261,11 @@ func TestBatchProcessorElasticsearchUnavailable(t *testing.T) {
 	expectedFrame.SourcemapError = "failure querying ES: client error"
 	assert.Equal(t, model.Stacktrace{&expectedFrame, &expectedFrame}, span.Span.Stacktrace)
 
-	// We should have a single log message, due to rate limiting.
+	// we should have 8 log messages (2 * 2 * 2)
+	// we are running the processor twice for a batch of two spans with 2 stacktraceframe each
 	entries := logp.ObserverLogs().TakeAll()
-	require.Len(t, entries, 1)
-	assert.Equal(t, "failed to fetch source map: failure querying ES: client error", entries[0].Message)
+	require.Len(t, entries, 8)
+	assert.Equal(t, "failed to fetch source map with path (bundle.js): failure querying ES: client error", entries[0].Message)
 }
 
 func TestBatchProcessorTimeout(t *testing.T) {
@@ -290,7 +300,11 @@ func TestBatchProcessorTimeout(t *testing.T) {
 	}
 
 	before := time.Now()
-	processor := BatchProcessor{Fetcher: fetcher, Timeout: 100 * time.Millisecond}
+	processor := BatchProcessor{
+		Fetcher: fetcher,
+		Timeout: 100 * time.Millisecond,
+		Logger:  logp.NewLogger(logs.Stacktrace),
+	}
 	err = processor.ProcessBatch(context.Background(), &model.Batch{span})
 	assert.NoError(t, err)
 	taken := time.Since(before)

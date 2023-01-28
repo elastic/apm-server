@@ -21,13 +21,11 @@ import (
 	"context"
 	"net/url"
 	"path"
-	"sync"
 	"time"
 
 	"github.com/elastic/elastic-agent-libs/logp"
 
 	"github.com/elastic/apm-data/model"
-	"github.com/elastic/apm-server/internal/logs"
 )
 
 // BatchProcessor is a model.BatchProcessor that performs source mapping for
@@ -43,6 +41,8 @@ type BatchProcessor struct {
 	//
 	// If Timeout is <= 0, it will be ignored.
 	Timeout time.Duration
+
+	Logger *logp.Logger
 }
 
 // ProcessBatch processes spans and errors, applying source maps
@@ -121,14 +121,16 @@ func (p BatchProcessor) processStacktraceFrame(
 	mapper, err := p.Fetcher.Fetch(ctx, service.Name, service.Version, path)
 	if err != nil {
 		frame.SourcemapError = err.Error()
-		getProcessorLogger().Errorf("failed to fetch source map: %s", frame.SourcemapError)
+		p.Logger.Debugf("failed to fetch source map with path (%s): %s", path, frame.SourcemapError)
 		return false, ""
 	}
 	if mapper == nil {
+		p.Logger.Debugf("returned empty mapper: %s", path)
 		return false, ""
 	}
-	file, function, lineno, colno, ctxLine, preCtx, postCtx, ok := Map(mapper, *frame.Lineno, *frame.Colno)
-	if !ok {
+	file, function, lineno, colno, ctxLine, preCtx, postCtx, err := Map(mapper, *frame.Lineno, *frame.Colno)
+	if err != nil {
+		p.Logger.Errorf("failed to map sourcemap %s: %v", path, err)
 		return false, ""
 	}
 
@@ -167,20 +169,3 @@ func maybeCleanURLPath(s string) string {
 	url.Path = path.Clean(url.Path)
 	return url.String()
 }
-
-func getProcessorLogger() *logp.Logger {
-	processorLoggerOnce.Do(func() {
-		// We use a rate limited logger to avoid spamming the logs
-		// due to issues communicating with Elasticsearch, for example.
-		processorLogger = logp.NewLogger(
-			logs.Stacktrace,
-			logs.WithRateLimit(time.Minute),
-		)
-	})
-	return processorLogger
-}
-
-var (
-	processorLoggerOnce sync.Once
-	processorLogger     *logp.Logger
-)
