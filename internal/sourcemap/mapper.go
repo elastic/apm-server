@@ -19,6 +19,7 @@ package sourcemap
 
 import (
 	"bufio"
+	"errors"
 	"strings"
 
 	"github.com/go-sourcemap/sourcemap"
@@ -29,12 +30,17 @@ const sourcemapContentSnippetSize = 5
 // Map sourcemapping for given line and column and return values after sourcemapping
 func Map(mapper *sourcemap.Consumer, lineno, colno int) (
 	file string, function string, line int, col int,
-	contextLine string, preContext []string, postContext []string, ok bool) {
+	contextLine string, preContext []string, postContext []string, err error) {
 
 	if mapper == nil {
 		return
 	}
+	var ok bool
 	file, function, line, col, ok = mapper.Source(lineno, colno)
+	if !ok {
+		err = errors.New("failed to retrieve original source")
+		return
+	}
 	scanner := bufio.NewScanner(strings.NewReader(mapper.SourceContent(file)))
 
 	var currentLine int
@@ -53,10 +59,7 @@ func Map(mapper *sourcemap.Consumer, lineno, colno int) (
 			break
 		}
 	}
-	if scanner.Err() != nil {
-		ok = false
-		return
-	}
+	err = scanner.Err()
 	return
 }
 
