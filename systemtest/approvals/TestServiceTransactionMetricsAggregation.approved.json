@@ -7,7 +7,7 @@
                 "name": "go"
             },
             "data_stream": {
-                "dataset": "apm.service.10m",
+                "dataset": "apm.service_transaction.10m",
                 "namespace": "default",
                 "type": "metrics"
             },
@@ -24,7 +24,7 @@
             },
             "metricset": {
                 "interval": "10m",
-                "name": "service"
+                "name": "service_transaction"
             },
             "observer": {
                 "hostname": "dynamic",
@@ -36,6 +36,9 @@
                 "name": "metric"
             },
             "service": {
+                "language": {
+                    "name": "go"
+                },
                 "name": "systemtest"
             },
             "transaction": {
@@ -63,7 +66,7 @@
                 "name": "go"
             },
             "data_stream": {
-                "dataset": "apm.service.1m",
+                "dataset": "apm.service_transaction.1m",
                 "namespace": "default",
                 "type": "metrics"
             },
@@ -80,7 +83,7 @@
             },
             "metricset": {
                 "interval": "1m",
-                "name": "service"
+                "name": "service_transaction"
             },
             "observer": {
                 "hostname": "dynamic",
@@ -92,6 +95,9 @@
                 "name": "metric"
             },
             "service": {
+                "language": {
+                    "name": "go"
+                },
                 "name": "systemtest"
             },
             "transaction": {
@@ -119,7 +125,7 @@
                 "name": "go"
             },
             "data_stream": {
-                "dataset": "apm.service.60m",
+                "dataset": "apm.service_transaction.60m",
                 "namespace": "default",
                 "type": "metrics"
             },
@@ -136,7 +142,7 @@
             },
             "metricset": {
                 "interval": "60m",
-                "name": "service"
+                "name": "service_transaction"
             },
             "observer": {
                 "hostname": "dynamic",
@@ -148,6 +154,9 @@
                 "name": "metric"
             },
             "service": {
+                "language": {
+                    "name": "go"
+                },
                 "name": "systemtest"
             },
             "transaction": {
@@ -175,7 +184,7 @@
                 "name": "go"
             },
             "data_stream": {
-                "dataset": "apm.service.10m",
+                "dataset": "apm.service_transaction.10m",
                 "namespace": "default",
                 "type": "metrics"
             },
@@ -192,7 +201,7 @@
             },
             "metricset": {
                 "interval": "10m",
-                "name": "service"
+                "name": "service_transaction"
             },
             "observer": {
                 "hostname": "dynamic",
@@ -204,6 +213,9 @@
                 "name": "metric"
             },
             "service": {
+                "language": {
+                    "name": "go"
+                },
                 "name": "systemtest"
             },
             "transaction": {
@@ -231,7 +243,7 @@
                 "name": "go"
             },
             "data_stream": {
-                "dataset": "apm.service.1m",
+                "dataset": "apm.service_transaction.1m",
                 "namespace": "default",
                 "type": "metrics"
             },
@@ -248,7 +260,7 @@
             },
             "metricset": {
                 "interval": "1m",
-                "name": "service"
+                "name": "service_transaction"
             },
             "observer": {
                 "hostname": "dynamic",
@@ -260,6 +272,9 @@
                 "name": "metric"
             },
             "service": {
+                "language": {
+                    "name": "go"
+                },
                 "name": "systemtest"
             },
             "transaction": {
@@ -287,7 +302,7 @@
                 "name": "go"
             },
             "data_stream": {
-                "dataset": "apm.service.60m",
+                "dataset": "apm.service_transaction.60m",
                 "namespace": "default",
                 "type": "metrics"
             },
@@ -304,7 +319,7 @@
             },
             "metricset": {
                 "interval": "60m",
-                "name": "service"
+                "name": "service_transaction"
             },
             "observer": {
                 "hostname": "dynamic",
@@ -316,6 +331,9 @@
                 "name": "metric"
             },
             "service": {
+                "language": {
+                    "name": "go"
+                },
                 "name": "systemtest"
             },
             "transaction": {
