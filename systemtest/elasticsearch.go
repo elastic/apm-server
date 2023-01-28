@@ -99,7 +99,7 @@ func cleanupElasticsearch() error {
 			"metrics-apm*",
 			"logs-apm*",
 		},
-		ExpandWildcards: "all,hidden",
+		ExpandWildcards: "all",
 	}, nil)
 	return err
 }
