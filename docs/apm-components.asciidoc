@@ -25,7 +25,12 @@ Or, APM agents and the APM integration live on edge machines and enroll via a ce
 [subs=attributes+]
 include::./diagrams/apm-architecture-edge.asciidoc[Elastic APM architecture with central APM integration]
 
-Read on to learn more about each of these components!
+In addition, Elastic supports OpenTelemetry:
+
+[subs=attributes+]
+include::./diagrams/apm-otel-architecture.asciidoc[Architecture of Elastic APM with OpenTelemetry]
+
+// Not sure which to choose? See the [blog post]
 
 [float]
 === APM Agents

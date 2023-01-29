@@ -43,6 +43,7 @@ func (es *Client) ExpectMinDocs(t testing.TB, min int, index string, query inter
 	t.Helper()
 	var result SearchResult
 	req := es.Search(index)
+	req.ExpandWildcards = "open,hidden"
 	if min > 10 {
 		// Size defaults to 10. If the caller expects more than 10,
 		// return it in the search so we don't have to search again.
