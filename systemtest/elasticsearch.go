@@ -93,11 +93,14 @@ func CleanupElasticsearch(t testing.TB) {
 }
 
 func cleanupElasticsearch() error {
-	_, err := Elasticsearch.Do(context.Background(), &esapi.IndicesDeleteDataStreamRequest{Name: []string{
-		"traces-apm*",
-		"metrics-apm*",
-		"logs-apm*",
-	}}, nil)
+	_, err := Elasticsearch.Do(context.Background(), &esapi.IndicesDeleteDataStreamRequest{
+		Name: []string{
+			"traces-apm*",
+			"metrics-apm*",
+			"logs-apm*",
+		},
+		ExpandWildcards: "all",
+	}, nil)
 	return err
 }
 
