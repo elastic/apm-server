@@ -20,6 +20,8 @@ package systemtest_test
 import (
 	"context"
 	"errors"
+	"log"
+	"sync"
 	"testing"
 	"time"
 
@@ -89,17 +91,30 @@ func TestDropUnsampled(t *testing.T) {
 func TestTailSampling(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
 
-	apmIntegration1 := newAPMIntegration(t, map[string]interface{}{
-		"tail_sampling_enabled":  true,
-		"tail_sampling_interval": "1s",
-		"tail_sampling_policies": []map[string]interface{}{{"sample_rate": 0.5}},
-	})
+	var wg sync.WaitGroup
+	wg.Add(2)
+	var apmIntegration1 apmIntegration
+	var apmIntegration2 apmIntegration
 
-	apmIntegration2 := newAPMIntegration(t, map[string]interface{}{
-		"tail_sampling_enabled":  true,
-		"tail_sampling_interval": "1s",
-		"tail_sampling_policies": []map[string]interface{}{{"sample_rate": 0.5}},
-	})
+	go func() {
+		defer wg.Done()
+		apmIntegration1 = newAPMIntegration(t, map[string]interface{}{
+			"tail_sampling_enabled":  true,
+			"tail_sampling_interval": "1s",
+			"tail_sampling_policies": []map[string]interface{}{{"sample_rate": 0.5}},
+		})
+	}()
+
+	go func() {
+		defer wg.Done()
+		apmIntegration2 = newAPMIntegration(t, map[string]interface{}{
+			"tail_sampling_enabled":  true,
+			"tail_sampling_interval": "1s",
+			"tail_sampling_policies": []map[string]interface{}{{"sample_rate": 0.5}},
+		})
+	}()
+
+	wg.Wait()
 
 	const total = 200
 	const expected = 100 // 50%
