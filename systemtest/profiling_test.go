@@ -55,8 +55,8 @@ func TestProfiling(t *testing.T) {
 	defer cleanupProfiling()
 	defer systemtest.InvalidateAPIKeys(t)
 
-	// APM Server is running as an Elastic Agent integration,
-	// which means it is provided an API Key with narrow
+	// APM Server is running in standalone mode, which means
+	// it is using the default elasticsearch credentials with narrow
 	// privileges. We must inject an additional API Key for
 	// the profiling code to write to profiling-* indices.
 	var apiKey struct {
