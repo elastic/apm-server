@@ -342,8 +342,8 @@ github.com/eapache/go-xerial-snappy v0.0.0-20180814174437-776d5712da21/go.mod h1
 github.com/eapache/queue v1.1.0 h1:YOEu7KNc61ntiQlcEeUIoDTJ2o8mQznoNvUhiigpIqc=
 github.com/eapache/queue v1.1.0/go.mod h1:6eCeP0CKFpHLu8blIFXhExK/dRa7WDZfr6jVFPTqq+I=
 github.com/eclipse/paho.mqtt.golang v1.3.5 h1:sWtmgNxYM9P2sP+xEItMozsR3w0cqZFlqnNN1bdl41Y=
-github.com/elastic/apm-data v0.1.1-0.20230118033608-607aaa61e212 h1:4JJdGSdRPOTkgnaajqpVMN3Es8cb+Kev3+iwzdbXeLM=
-github.com/elastic/apm-data v0.1.1-0.20230118033608-607aaa61e212/go.mod h1:JLtHUxhBa7oky85/69kMCfOjyzuzDq3fN3MxLy/ufvI=
+github.com/elastic/apm-data v0.1.1-0.20230130063651-f5680fd2c5aa h1:H1KMf+Nrav0VltTOe1JURIrgYQ/OqXsSra9YW2HahYY=
+github.com/elastic/apm-data v0.1.1-0.20230130063651-f5680fd2c5aa/go.mod h1:JLtHUxhBa7oky85/69kMCfOjyzuzDq3fN3MxLy/ufvI=
 github.com/elastic/bayeux v1.0.5 h1:UceFq01ipmT3S8DzFK+uVAkbCdiPR0Bqei8qIGmUeY0=
 github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230129210000-792534525b18 h1:4X5l2XIJZNaeTs9tukkKYaofKpqjswsJPMj6YWj4VYQ=
 github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230129210000-792534525b18/go.mod h1:xvHCfOYq5jViIuPTapXVMjZAakI3y+sKUXYt42NF1Co=
