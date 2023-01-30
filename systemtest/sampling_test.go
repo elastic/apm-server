@@ -20,7 +20,6 @@ package systemtest_test
 import (
 	"context"
 	"errors"
-	"log"
 	"sync"
 	"testing"
 	"time"
