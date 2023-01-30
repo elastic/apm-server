@@ -314,7 +314,7 @@ func TestUnpackConfig(t *testing.T) {
 					},
 					ServiceTransactions: ServiceTransactionAggregationConfig{
 						MaxGroups:                      457,
-						HDRHistogramSignificantFigures: 5,
+						HDRHistogramSignificantFigures: 2,
 					},
 				},
 				Sampling: SamplingConfig{
@@ -466,7 +466,7 @@ func TestUnpackConfig(t *testing.T) {
 					},
 					ServiceTransactions: ServiceTransactionAggregationConfig{
 						MaxGroups:                      0, // Default value is set as per memory limit
-						HDRHistogramSignificantFigures: 5,
+						HDRHistogramSignificantFigures: 2,
 					},
 				},
 				Sampling: SamplingConfig{

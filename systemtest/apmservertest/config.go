@@ -69,6 +69,9 @@ type Config struct {
 
 	// Output holds configuration for the libbeat output.
 	Output OutputConfig `json:"output"`
+
+	// ProfilingConfig holds configuration related to profiling.
+	Profiling *ProfilingConfig `json:"apm-server.profiling,omitempty"`
 }
 
 // Args formats cfg as a list of arguments to pass to apm-server,
@@ -167,6 +170,19 @@ type TailSamplingPolicy struct {
 	TraceName          string  `json:"trace.name,omitempty"`
 	TraceOutcome       string  `json:"trace.outcome,omitempty"`
 	SampleRate         float64 `json:"sample_rate"`
+}
+
+// ProfilingConfig holds configuration related to profiling.
+type ProfilingConfig struct {
+	Enabled bool `json:"enabled"`
+
+	// ESConfig holds Elasticsearch configuration for writing
+	// profiling stacktrace events and metadata documents.
+	ESConfig *ElasticsearchOutputConfig `json:"elasticsearch"`
+
+	// MetricsESConfig holds Elasticsearch configuration for
+	// writing profiling host agent metric documents.
+	MetricsESConfig *ElasticsearchOutputConfig `json:"metrics.elasticsearch"`
 }
 
 // RUMConfig holds APM Server RUM configuration.
