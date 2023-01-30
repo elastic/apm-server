@@ -3,16 +3,28 @@
 
 https://github.com/elastic/apm-server/compare/8.5\...8.6[View commits]
 
+* <<release-notes-8.6.2>>
 * <<release-notes-8.6.1>>
 * <<release-notes-8.6.0>>
+
+[float]
+[[release-notes-8.6.2]]
+=== APM version 8.6.2
+
+https://github.com/elastic/apm-server/compare/v8.6.1\...v8.6.2[View commits]
+
+No significant changes.
 
 [float]
 [[release-notes-8.6.1]]
 === APM version 8.6.1
 
+https://github.com/elastic/apm-server/compare/v8.6.0\...v8.6.1[View commits]
+
 [float]
 ==== Bug fixes
 - Fix panic when memory limits are missing in cgroupV1 {pull}10098[10098]
+- Fix internal traffic filter handling on Elastic Cloud when managed by Elastic Agent (Integrations Server)
 
 [float]
 [[release-notes-8.6.0]]
