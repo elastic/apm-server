@@ -75,8 +75,6 @@
 - external: ecs
   name: error.stack_trace
 - external: ecs
-  name: error.type
-- external: ecs
   name: event.dataset
 - external: ecs
   name: event.outcome
