@@ -91,7 +91,8 @@ func TestTransactionAggregation(t *testing.T) {
 	// the appropriate per-bucket doc_count values.
 	result = estest.SearchResult{}
 	_, err := systemtest.Elasticsearch.Do(context.Background(), &esapi.SearchRequest{
-		Index: []string{"metrics-apm.transaction*"},
+		Index:           []string{"metrics-apm.transaction*"},
+		ExpandWildcards: "open,hidden",
 		Body: strings.NewReader(`{
   "size": 0,
   "query": {"exists":{"field":"transaction.duration.histogram"}},
