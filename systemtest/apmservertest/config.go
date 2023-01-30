@@ -183,15 +183,6 @@ type ProfilingConfig struct {
 	// MetricsESConfig holds Elasticsearch configuration for
 	// writing profiling host agent metric documents.
 	MetricsESConfig *ElasticsearchOutputConfig `json:"metrics.elasticsearch"`
-
-	// ILMConfig
-	ILMConfig *ProfilingILMConfig `json:"keyvalue_retention"`
-}
-
-type ProfilingILMConfig struct {
-	Age         time.Duration `json:"age"`
-	SizeInBytes uint64        `json:"size_bytes"`
-	Interval    time.Duration `json:"execution_interval"`
 }
 
 // RUMConfig holds APM Server RUM configuration.
