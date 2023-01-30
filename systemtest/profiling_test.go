@@ -33,6 +33,7 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/esapi"
 
 	"github.com/elastic/apm-server/systemtest"
+	"github.com/elastic/apm-server/systemtest/apmservertest"
 	"github.com/elastic/apm-server/systemtest/internal/profiling"
 )
 
@@ -82,31 +83,20 @@ func TestProfiling(t *testing.T) {
 
 	const secretToken = "test_token"
 
-	apmIntegration := newAPMIntegrationConfig(t,
-		map[string]interface{}{
-			"secret_token": secretToken,
-		}, map[string]interface{}{
-			"apm-server": map[string]interface{}{
-				"value": map[string]interface{}{
-					"profiling": map[string]interface{}{
-						"enabled": true,
-						"elasticsearch": map[string]interface{}{
-							"api_key": apiKey.ID + ":" + apiKey.APIKey,
-						},
-						// A separate elasticsearch configuration is required
-						// for host agent metrics. In practice this would likely
-						// be a different cluster, with a different API Key,
-						// but we're not going to those lengths for a system test.
-						"metrics.elasticsearch": map[string]interface{}{
-							"hosts":   []string{"elasticsearch:9200"},
-							"api_key": apiKey.ID + ":" + apiKey.APIKey,
-						},
-					},
-				},
-			},
-		})
+	srv := apmservertest.NewUnstartedServerTB(t)
+	srv.Config.Profiling = &apmservertest.ProfilingConfig{
+		Enabled: true,
+		ESConfig: &apmservertest.ElasticsearchOutputConfig{
+			APIKey: apiKey.ID + ":" + apiKey.APIKey,
+		},
+		MetricsESConfig: &apmservertest.ElasticsearchOutputConfig{
+			Hosts:  []string{"localhost:9200"},
+			APIKey: apiKey.ID + ":" + apiKey.APIKey,
+		},
+	}
+	require.NoError(t, srv.Start())
 
-	apmServerURL, _ := url.Parse(apmIntegration.URL)
+	apmServerURL, _ := url.Parse(srv.URL)
 
 	dialCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
