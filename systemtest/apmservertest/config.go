@@ -71,7 +71,7 @@ type Config struct {
 	Output OutputConfig `json:"output"`
 
 	// ProfilingConfig holds configuration related to profiling.
-	Profiling *ProfilingConfig `json:"apm-server.profiling"`
+	Profiling *ProfilingConfig `json:"apm-server.profiling,omitempty"`
 }
 
 // Args formats cfg as a list of arguments to pass to apm-server,
