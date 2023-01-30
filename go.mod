@@ -7,20 +7,20 @@ require (
 	github.com/cespare/xxhash/v2 v2.1.2
 	github.com/dgraph-io/badger/v2 v2.2007.3-0.20201012072640-f5a7e0a1c83b
 	github.com/dustin/go-humanize v1.0.0
-	github.com/elastic/apm-data v0.1.1-0.20230109092954-e34ef4025581
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230109151808-a3304c467023
+	github.com/elastic/apm-data v0.1.1-0.20230118033608-607aaa61e212
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230126172421-762ad188b7ec
 	github.com/elastic/elastic-agent-client/v7 v7.0.3
-	github.com/elastic/elastic-agent-libs v0.2.15
+	github.com/elastic/elastic-agent-libs v0.2.16
 	github.com/elastic/elastic-agent-system-metrics v0.4.5-0.20220927192933-25a985b07d51
 	github.com/elastic/gmux v0.2.0
 	github.com/elastic/go-docappender v0.1.0
-	github.com/elastic/go-elasticsearch/v8 v8.5.0
+	github.com/elastic/go-elasticsearch/v8 v8.6.0
 	github.com/elastic/go-hdrhistogram v0.1.0
 	github.com/elastic/go-sysinfo v1.9.0
 	github.com/elastic/go-ucfg v0.8.6
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible
 	github.com/gofrs/flock v0.8.1
-	github.com/gofrs/uuid v4.3.1+incompatible
+	github.com/gofrs/uuid v4.4.0+incompatible
 	github.com/gogo/protobuf v1.3.2
 	github.com/golang/protobuf v1.5.2
 	github.com/google/go-cmp v0.5.9
@@ -40,7 +40,6 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.8.1
 	github.com/tidwall/gjson v1.14.2
-	github.com/tidwall/sjson v1.2.5
 	go.elastic.co/apm/module/apmelasticsearch/v2 v2.2.0
 	go.elastic.co/apm/module/apmgorilla/v2 v2.2.0
 	go.elastic.co/apm/module/apmgrpc/v2 v2.2.0
@@ -55,7 +54,7 @@ require (
 	golang.org/x/sync v0.1.0
 	golang.org/x/term v0.4.0
 	golang.org/x/time v0.0.0-20220609170525-579cf78fd858
-	google.golang.org/grpc v1.51.0
+	google.golang.org/grpc v1.52.3
 	google.golang.org/protobuf v1.28.1
 	gopkg.in/yaml.v3 v3.0.1
 )
@@ -71,9 +70,9 @@ require (
 	github.com/dgraph-io/ristretto v0.1.0 // indirect
 	github.com/dgryski/go-farm v0.0.0-20200201041132-a6ae2369ad13 // indirect
 	github.com/dgryski/go-metro v0.0.0-20180109044635-280f6062b5bc // indirect
-	github.com/dlclark/regexp2 v1.7.0 // indirect
-	github.com/dop251/goja v0.0.0-20221229151140-b95230a9dbad // indirect
-	github.com/dop251/goja_nodejs v0.0.0-20221211191749-434192f0843e // indirect
+	github.com/dlclark/regexp2 v1.8.0 // indirect
+	github.com/dop251/goja v0.0.0-20230122160437-8f6e415ca41e // indirect
+	github.com/dop251/goja_nodejs v0.0.0-20230121151440-041f29a15066 // indirect
 	github.com/eapache/go-resiliency v1.2.0 // indirect
 	github.com/eapache/go-xerial-snappy v0.0.0-20180814174437-776d5712da21 // indirect
 	github.com/eapache/queue v1.1.0 // indirect
@@ -83,7 +82,7 @@ require (
 	github.com/elastic/go-structform v0.0.10 // indirect
 	github.com/elastic/go-windows v1.0.1 // indirect
 	github.com/elastic/gosigar v0.14.2 // indirect
-	github.com/fatih/color v1.13.0 // indirect
+	github.com/fatih/color v1.14.1 // indirect
 	github.com/frankban/quicktest v1.14.0 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/gogo/googleapis v1.4.1 // indirect
@@ -138,7 +137,7 @@ require (
 	golang.org/x/sys v0.4.0 // indirect
 	golang.org/x/text v0.6.0 // indirect
 	golang.org/x/tools v0.5.0 // indirect
-	google.golang.org/genproto v0.0.0-20230109162033-3c3c17ce83e6 // indirect
+	google.golang.org/genproto v0.0.0-20230125152338-dcaf20b6aeaa // indirect
 	gopkg.in/jcmturner/aescts.v1 v1.0.1 // indirect
 	gopkg.in/jcmturner/dnsutils.v1 v1.0.1 // indirect
 	gopkg.in/jcmturner/goidentity.v3 v3.0.0 // indirect

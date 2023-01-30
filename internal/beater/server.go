@@ -215,8 +215,11 @@ func (s server) run(ctx context.Context) error {
 	})
 	g.Go(func() error {
 		<-ctx.Done()
-		s.grpcServer.GracefulStop()
+		// httpServer should stop before grpcServer to avoid a panic caused by placing a new connection into
+		// a closed grpc connection channel during shutdown.
+		// See https://github.com/elastic/gmux/issues/13
 		s.httpServer.stop()
+		s.grpcServer.GracefulStop()
 		return nil
 	})
 	if err := g.Wait(); err != http.ErrServerClosed {
@@ -245,7 +248,11 @@ func newAgentConfigFetcher(
 		agentConfigurations := agentcfg.ConvertAgentConfigs(cfg.FleetAgentConfigs)
 		fallbackFetcher = agentcfg.NewDirectFetcher(agentConfigurations)
 	case kibanaClient != nil:
-		fallbackFetcher = agentcfg.NewKibanaFetcher(kibanaClient, cfg.AgentConfig.Cache.Expiration)
+		var err error
+		fallbackFetcher, err = agentcfg.NewKibanaFetcher(kibanaClient, cfg.AgentConfig.Cache.Expiration)
+		if err != nil {
+			return nil, nil, err
+		}
 	default:
 		// It is possible that none of the above applies.
 	}

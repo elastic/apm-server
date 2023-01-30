@@ -1,0 +1,12 @@
+---
+description: Pipeline for ingesting APM service transaction metrics.
+processors:
+  - pipeline:
+      name: observer_version
+  - pipeline:
+      name: observer_ids
+  - pipeline:
+      name: ecs_version
+  - remove:
+      field: _metric_descriptions
+      ignore_missing: true

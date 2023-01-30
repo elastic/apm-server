@@ -1,0 +1,26 @@
+[[open-telemetry-with-elastic]]
+=== OpenTelemetry API/SDK with Elastic APM agents
+
+Use the OpenTelemetry API/SDKs with Elastic APM agents.
+This "bridge" translates calls to the OpenTelemetry API to Elastic APM API calls.
+This allows you to reuse your existing instrumentation to create Elastic APM transactions and spans.
+
+TIP: If you'd like to use OpenTelemetry to send data directly to the APM server instead,
+see <<open-telemetry-direct>>.
+
+See the relevant Elastic APM agent documentation to get started:
+
+* {apm-java-ref}/opentelemetry-bridge.html[Java]
+* .NET (link coming soon)
+// * {apm-dotnet-ref}/opentelemetry-bridge.html[.NET]
+* {apm-node-ref}/opentelemetry-bridge.html[Node.js]
+* {apm-py-ref}/opentelemetry-bridge.html[Python]
+
+
+[float]
+[[open-telemetry-elastic-next]]
+==== Next steps
+
+* <<open-telemetry-collect-metrics>>
+* Add <<open-telemetry-resource-attributes>>
+* Learn about the <<open-telemetry-known-limitations,limitations of this integration>>

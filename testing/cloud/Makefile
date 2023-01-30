@@ -2,10 +2,11 @@ MAKEFILE_PATH:=$(abspath $(lastword ${MAKEFILE_LIST}))
 MAKEFILE_DIR:=$(dir ${MAKEFILE_PATH})
 REPO_ROOT:=$(abspath ${MAKEFILE_DIR}/../../)
 IMAGE_TAG?=$(shell grep docker.elastic.co/kibana ${REPO_ROOT}/docker-compose.yml | cut -d: -f3)
+ELASTIC_AGENT_IMAGE_TAG?=${IMAGE_TAG}
 
 export DOCKER_BUILDKIT=1
 
-ELASTIC_AGENT_DOCKER_IMAGE=docker.elastic.co/cloud-release/elastic-agent-cloud
+ELASTIC_AGENT_DOCKER_IMAGE?=docker.elastic.co/cloud-release/elastic-agent-cloud
 ELASTICSEARCH_DOCKER_IMAGE=docker.elastic.co/cloud-release/elasticsearch-cloud-ess
 KIBANA_DOCKER_IMAGE=docker.elastic.co/cloud-release/kibana-cloud
 
@@ -69,6 +70,6 @@ build_kibana_docker_image:
 elastic_agent_docker_image: build_elastic_agent_docker_image
 	docker push "${CI_ELASTIC_AGENT_DOCKER_IMAGE}:${CUSTOM_IMAGE_TAG}"
 build_elastic_agent_docker_image:
-	@env BASE_IMAGE=${ELASTIC_AGENT_DOCKER_IMAGE}:${IMAGE_TAG} GOARCH=amd64 \
+	@env BASE_IMAGE=${ELASTIC_AGENT_DOCKER_IMAGE}:${ELASTIC_AGENT_IMAGE_TAG} GOARCH=amd64 \
 		bash ${REPO_ROOT}/testing/docker/elastic-agent/build.sh \
 		     -t ${CI_ELASTIC_AGENT_DOCKER_IMAGE}:${CUSTOM_IMAGE_TAG}

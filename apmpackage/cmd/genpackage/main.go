@@ -87,12 +87,14 @@ func renderFile(pkgfs fs.FS, path, outputPath string, version, ecsVersion *versi
 		if interval == "" {
 			return fmt.Errorf("%s: file contains interval template, but interval is empty", outputPath)
 		}
+		// Hide data streams with a non-default rollup interval.
+		hidden := interval != "1m"
 		tpl, err := template.New(path).Parse(string(content))
 		if err != nil {
 			return err
 		}
 		var buf bytes.Buffer
-		if err := tpl.Execute(&buf, pathInterval{Interval: interval}); err != nil {
+		if err := tpl.Execute(&buf, pathInterval{Interval: interval, Hidden: hidden}); err != nil {
 			return err
 		}
 		content = buf.Bytes()
@@ -134,6 +136,7 @@ func renderFile(pkgfs fs.FS, path, outputPath string, version, ecsVersion *versi
 type pathInterval struct {
 	Path     string
 	Interval string
+	Hidden   bool
 }
 
 func maybeIntervalPath(path string) []pathInterval {
