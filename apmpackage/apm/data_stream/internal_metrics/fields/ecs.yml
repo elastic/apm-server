@@ -39,7 +39,6 @@
   dimension: true
 - external: ecs
   name: cloud.availability_zone
-  index: false
   dimension: true
 - external: ecs
   name: cloud.instance.id
@@ -56,7 +55,6 @@
   dimension: true
 - external: ecs
   name: cloud.provider
-  index: false
   dimension: true
 - external: ecs
   name: cloud.region
@@ -90,7 +88,6 @@
   dimension: true
 - external: ecs
   name: host.os.platform
-  index: false
   dimension: true
 - external: ecs
   name: labels

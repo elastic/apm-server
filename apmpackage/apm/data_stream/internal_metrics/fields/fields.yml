@@ -82,7 +82,6 @@
 - name: service.language.version
   type: keyword
   dimension: true
-  index: false
   description: |
     Version of the programming language used.
 - name: service.runtime.name
@@ -93,7 +92,6 @@
 - name: service.runtime.version
   type: keyword
   dimension: true
-  index: false
   description: |
     Version of the runtime used.
 - name: service.target.name
