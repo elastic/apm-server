@@ -17,12 +17,10 @@
     The ID of the origin trigger request.
 - name: faas.trigger.type
   type: keyword
-  dimension: true
   description: |
     The trigger type.
 - name: faas.name
   type: keyword
-  dimension: true
   description: |
     The lambda function name.
 - name: faas.version
@@ -40,7 +38,6 @@
     Kubernetes node name
 - name: kubernetes.pod.name
   type: keyword
-  dimension: true
   description: |
     Kubernetes pod name
 - name: kubernetes.pod.uid
@@ -76,22 +73,18 @@
     Version of the framework used.
 - name: service.language.name
   type: keyword
-  dimension: true
   description: |
     Name of the programming language used.
 - name: service.language.version
   type: keyword
-  dimension: true
   description: |
     Version of the programming language used.
 - name: service.runtime.name
   type: keyword
-  dimension: true
   description: |
     Name of the runtime used.
 - name: service.runtime.version
   type: keyword
-  dimension: true
   description: |
     Version of the runtime used.
 - name: service.target.name
