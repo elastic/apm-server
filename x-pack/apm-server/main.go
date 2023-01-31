@@ -124,7 +124,7 @@ func newProcessors(args beater.ServerParams) ([]namedProcessor, error) {
 	aggregationMonitoringRegistry.Remove("txmetrics")
 	monitoring.NewFunc(aggregationMonitoringRegistry, "txmetrics", agg.CollectMonitoring, monitoring.Report)
 
-	const spanName = "service destinations aggregation"
+	const spanName = "service destination metrics aggregation"
 	args.Logger.Infof("creating %s with config: %+v", spanName, args.Config.Aggregation.ServiceDestinations)
 	spanAggregator, err := spanmetrics.NewAggregator(spanmetrics.AggregatorConfig{
 		BatchProcessor:  args.BatchProcessor,
@@ -151,7 +151,7 @@ func newProcessors(args beater.ServerParams) ([]namedProcessor, error) {
 	}
 	processors = append(processors, namedProcessor{name: serviceTxName, processor: serviceTxAggregator})
 
-	const serviceSummaryName = "service summary aggregation"
+	const serviceSummaryName = "service summary metrics aggregation"
 	args.Logger.Infof("creating %s with config: %+v", serviceSummaryName, args.Config.Aggregation.ServiceTransactions)
 	serviceSummaryAggregator, err := servicesummarymetrics.NewAggregator(servicesummarymetrics.AggregatorConfig{
 		BatchProcessor:  args.BatchProcessor,
