@@ -19,6 +19,7 @@ package sourcemap
 
 import (
 	"context"
+	"errors"
 
 	"github.com/go-sourcemap/sourcemap"
 )
@@ -35,10 +36,15 @@ func (c ChainedFetcher) Fetch(ctx context.Context, name, version, path string) (
 	var lastErr error
 	for _, f := range c {
 		consumer, err := f.Fetch(ctx, name, version, path)
+		if !errors.Is(err, ErrFetcherUnvailable) {
+			return consumer, err
+		}
+
 		if err != nil {
 			lastErr = err
 			continue
 		}
+
 		if consumer != nil {
 			return consumer, nil
 		}

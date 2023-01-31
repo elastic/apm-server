@@ -19,19 +19,14 @@ package sourcemap
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/go-sourcemap/sourcemap"
 	lru "github.com/hashicorp/golang-lru"
-	"github.com/pkg/errors"
 
 	"github.com/elastic/apm-server/internal/logs"
 	"github.com/elastic/elastic-agent-libs/logp"
-)
-
-var (
-	errMsgFailure = "failure querying"
 )
 
 // BodyCachingFetcher wraps a Fetcher, caching source maps in memory and fetching from the wrapped Fetcher on cache misses.
@@ -45,7 +40,8 @@ type BodyCachingFetcher struct {
 func NewBodyCachingFetcher(
 	backend Fetcher,
 	cacheSize int,
-) (*BodyCachingFetcher, chan<- []Identifier, error) {
+	invalidationChan <-chan []Identifier,
+) (*BodyCachingFetcher, error) {
 	logger := logp.NewLogger(logs.Sourcemap)
 
 	lruCache, err := lru.NewWithEvict(cacheSize, func(key, value interface{}) {
@@ -56,14 +52,18 @@ func NewBodyCachingFetcher(
 	})
 
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to create lru cache for caching fetcher: %w", err)
+		return nil, fmt.Errorf("failed to create lru cache for caching fetcher: %w", err)
 	}
 
-	ch := make(chan []Identifier)
-
 	go func() {
-		for arr := range ch {
+		logger.Info("listening for invalidation...")
+
+		for arr := range invalidationChan {
 			for _, id := range arr {
+				if logger.IsDebug() {
+					logger.Debugf("Invalidating id %v", id)
+				}
+
 				lruCache.Remove(id)
 			}
 		}
@@ -73,7 +73,7 @@ func NewBodyCachingFetcher(
 		cache:   lruCache,
 		backend: backend,
 		logger:  logger,
-	}, ch, nil
+	}, nil
 }
 
 // Fetch fetches a source map from the cache or wrapped backend.
@@ -93,7 +93,7 @@ func (s *BodyCachingFetcher) Fetch(ctx context.Context, name, version, path stri
 	// fetch from the store and ensure caching for all non-temporary results
 	consumer, err := s.backend.Fetch(ctx, name, version, path)
 	if err != nil {
-		if !strings.Contains(err.Error(), errMsgFailure) {
+		if errors.Is(err, ErrMalformedSourcemap) {
 			s.add(key, nil)
 		}
 		return nil, err
@@ -108,15 +108,4 @@ func (s *BodyCachingFetcher) add(key Identifier, consumer *sourcemap.Consumer) {
 		return
 	}
 	s.logger.Debugf("Added id %v. Cache now has %v entries.", key, s.cache.Len())
-}
-
-func parseSourceMap(data string) (*sourcemap.Consumer, error) {
-	if data == "" {
-		return nil, nil
-	}
-	consumer, err := sourcemap.Parse("", []byte(data))
-	if err != nil {
-		return nil, errors.Wrap(err, errMsgParseSourcemap)
-	}
-	return consumer, nil
 }

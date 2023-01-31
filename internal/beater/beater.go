@@ -824,20 +824,19 @@ func newSourcemapFetcher(
 	index := strings.ReplaceAll(cfg.IndexPattern, "%{[observer.version]}", version.Version)
 
 	// start background sync job
-	sync, updateChan := sourcemap.NewSyncWorker(esClient, index)
 	ctx, cancel := context.WithCancel(context.Background())
-	sync.Run(ctx)
+	metadataFetcher, invalidationChan := sourcemap.NewMetadataFetcher(ctx, esClient, index)
 
 	esFetcher := sourcemap.NewElasticsearchFetcher(esClient, index)
 	size := 128
-	cachingFetcher, invalidateChan, err := sourcemap.NewBodyCachingFetcher(esFetcher, size)
+	cachingFetcher, err := sourcemap.NewBodyCachingFetcher(esFetcher, size, invalidationChan)
 	if err != nil {
 		cancel()
 		return nil, nil, err
 	}
-	metadataCachingFetcher := sourcemap.NewMetadataCachingFetcher(cachingFetcher, updateChan, invalidateChan)
+	sourcemapFetcher := sourcemap.NewSourcemapFetcher(metadataFetcher, cachingFetcher)
 
-	chained = append(chained, metadataCachingFetcher)
+	chained = append(chained, sourcemapFetcher)
 
 	if kibanaClient != nil {
 		chained = append(chained, sourcemap.NewKibanaFetcher(kibanaClient))

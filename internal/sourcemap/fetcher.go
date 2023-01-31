@@ -19,9 +19,16 @@ package sourcemap
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"net/url"
 
 	"github.com/go-sourcemap/sourcemap"
+)
+
+var (
+	ErrFetcherUnvailable  = errors.New("fetcher unavailable")
+	ErrMalformedSourcemap = errors.New("sourcemap malformed")
 )
 
 // Fetcher is an interface for fetching a source map with a given service name, service version,
@@ -31,6 +38,13 @@ type Fetcher interface {
 	//
 	// If there is no such source map available, Fetch returns a nil Consumer.
 	Fetch(ctx context.Context, name string, version string, bundleFilepath string) (*sourcemap.Consumer, error)
+}
+
+// MetadataFetcher is an interface for fetching metadata
+type MetadataFetcher interface {
+	GetID(id Identifier) (*Identifier, bool)
+
+	Ready() <-chan struct{}
 }
 
 type Identifier struct {
@@ -86,4 +100,15 @@ func GetAliases(name string, version string, bundleFilepath string) []Identifier
 			path:    urlPath.Path,
 		},
 	}
+}
+
+func ParseSourceMap(data []byte) (*sourcemap.Consumer, error) {
+	if len(data) == 0 {
+		return nil, nil
+	}
+	consumer, err := sourcemap.Parse("", data)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", ErrMalformedSourcemap, err)
+	}
+	return consumer, nil
 }

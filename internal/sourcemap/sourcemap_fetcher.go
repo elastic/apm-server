@@ -21,7 +21,6 @@ import (
 	"context"
 	"fmt"
 	"net/url"
-	"sync"
 
 	"github.com/go-sourcemap/sourcemap"
 
@@ -29,41 +28,30 @@ import (
 	"github.com/elastic/elastic-agent-libs/logp"
 )
 
-type MetadataCachingFetcher struct {
-	set            map[Identifier]string
-	alias          map[Identifier]*Identifier
-	mu             sync.RWMutex
-	backend        Fetcher
-	logger         *logp.Logger
-	init           chan struct{}
-	updateChan     <-chan map[Identifier]string
-	invalidateChan chan<- []Identifier
+type SourcemapFetcher struct {
+	metadata MetadataFetcher
+	backend  Fetcher
+	logger   *logp.Logger
 }
 
-func NewMetadataCachingFetcher(backend Fetcher, in <-chan map[Identifier]string, out chan<- []Identifier) *MetadataCachingFetcher {
-	s := &MetadataCachingFetcher{
-		set:            make(map[Identifier]string),
-		alias:          make(map[Identifier]*Identifier),
-		backend:        backend,
-		logger:         logp.NewLogger(logs.Sourcemap),
-		init:           make(chan struct{}),
-		updateChan:     in,
-		invalidateChan: out,
+func NewSourcemapFetcher(metadata MetadataFetcher, backend Fetcher) *SourcemapFetcher {
+	s := &SourcemapFetcher{
+		metadata: metadata,
+		backend:  backend,
+		logger:   logp.NewLogger(logs.Sourcemap),
 	}
-
-	go s.handleUpdates()
 
 	return s
 }
 
-func (s *MetadataCachingFetcher) Fetch(ctx context.Context, name, version, path string) (*sourcemap.Consumer, error) {
+func (s *SourcemapFetcher) Fetch(ctx context.Context, name, version, path string) (*sourcemap.Consumer, error) {
 	original := Identifier{name: name, version: version, path: path}
 
 	select {
-	case <-s.init:
+	case <-s.metadata.Ready():
 		// the mutex is shared by the update goroutine, we need to release it
 		// as soon as possible to avoid blocking updates.
-		if i, ok := s.getID(original); ok {
+		if i, ok := s.metadata.GetID(original); ok {
 			// Only fetch from ES if the sourcemap id exists
 			return s.fetch(ctx, i)
 		}
@@ -79,15 +67,15 @@ func (s *MetadataCachingFetcher) Fetch(ctx context.Context, name, version, path 
 
 		// Aliases are only available after init is completed.
 		select {
-		case <-s.init:
+		case <-s.metadata.Ready():
 		case <-ctx.Done():
-			return nil, ctx.Err()
+			return nil, fmt.Errorf("error waiting for metadata fetcher to be ready: %w", ctx.Err())
 		}
 
 		// first map lookup  will fail but this is not going
 		// to be performance issue since it only happens if init
 		// is in progress.
-		if i, ok := s.getID(original); ok {
+		if i, ok := s.metadata.GetID(original); ok {
 			// Only fetch from ES if the sourcemap id exists
 			return s.fetch(ctx, i)
 		}
@@ -103,7 +91,7 @@ func (s *MetadataCachingFetcher) Fetch(ctx context.Context, name, version, path 
 			// but a request came in from a different host.
 			// Look for an alias to the url path to retrieve the correct
 			// host and fetch the sourcemap
-			if i, ok := s.getID(original); ok {
+			if i, ok := s.metadata.GetID(original); ok {
 				return s.fetch(ctx, i)
 			}
 		}
@@ -124,22 +112,7 @@ func (s *MetadataCachingFetcher) Fetch(ctx context.Context, name, version, path 
 	return nil, fmt.Errorf("unable to find sourcemap.url for service.name=%s service.version=%s bundle.path=%s", name, version, path)
 }
 
-func (s *MetadataCachingFetcher) getID(key Identifier) (*Identifier, bool) {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-
-	if _, ok := s.set[key]; ok {
-		return &key, ok
-	}
-
-	// path is missing from the metadata cache (and ES).
-	// Is it an alias ?
-	// Try to retrieve the sourcemap from the alias map
-	i, ok := s.alias[key]
-	return i, ok
-}
-
-func (s *MetadataCachingFetcher) fetch(ctx context.Context, key *Identifier) (*sourcemap.Consumer, error) {
+func (s *SourcemapFetcher) fetch(ctx context.Context, key *Identifier) (*sourcemap.Consumer, error) {
 	c, err := s.backend.Fetch(ctx, key.name, key.version, key.path)
 
 	// log a message if the sourcemap is present in the cache but the backend fetcher did not
@@ -149,67 +122,4 @@ func (s *MetadataCachingFetcher) fetch(ctx context.Context, key *Identifier) (*s
 	}
 
 	return c, err
-}
-
-func (s *MetadataCachingFetcher) handleUpdates() {
-	// run once for init
-	s.update(<-s.updateChan)
-	close(s.init)
-
-	// wait for updates
-	for updates := range s.updateChan {
-		s.update(updates)
-	}
-	close(s.invalidateChan)
-}
-
-func (s *MetadataCachingFetcher) update(updates map[Identifier]string) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	var invalidation []Identifier
-
-	for id, contentHash := range s.set {
-		if updatedHash, ok := updates[id]; ok {
-			// already in the cache, remove from the updates.
-			delete(updates, id)
-
-			// content hash changed, invalidate the sourcemap cache
-			if contentHash != updatedHash {
-				s.logger.Debugf("Hash changed: %s -> %s: invalidating %v", contentHash, updatedHash, id)
-				invalidation = append(invalidation, id)
-			}
-		} else {
-			// the sourcemap no longer exists in ES.
-			// invalidate the sourcemap cache.
-			invalidation = append(invalidation, id)
-
-			// the sourcemap no longer exists in ES.
-			// remove from metadata cache
-			delete(s.set, id)
-
-			// remove alias
-			for _, k := range GetAliases(id.name, id.version, id.path) {
-				delete(s.alias, k)
-			}
-		}
-	}
-
-	s.invalidateChan <- invalidation
-
-	// add new sourcemaps to the metadata cache.
-	for id, contentHash := range updates {
-		s.set[id] = contentHash
-		s.logger.Debugf("Added metadata id %v", id)
-		// store aliases with a pointer to the original id.
-		// The id is then passed over to the backend fetcher
-		// to minimize the size of the lru cache and
-		// and increase cache hits.
-		for _, k := range GetAliases(id.name, id.version, id.path) {
-			s.logger.Debugf("Added metadata alias %v -> %v", k, id)
-			s.alias[k] = &id
-		}
-	}
-
-	s.logger.Debugf("Metadata cache now has %d entries.", len(s.set))
 }

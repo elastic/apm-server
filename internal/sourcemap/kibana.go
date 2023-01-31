@@ -80,7 +80,7 @@ func (s *kibanaFetcher) Fetch(ctx context.Context, name, version, path string) (
 			continue
 		}
 		if a.Body.ServiceName == name && a.Body.ServiceVersion == version && maybeParseURLPath(a.Body.BundleFilepath) == path {
-			return parseSourceMap(string(a.Body.SourceMap))
+			return ParseSourceMap(a.Body.SourceMap)
 		}
 	}
 	return nil, nil

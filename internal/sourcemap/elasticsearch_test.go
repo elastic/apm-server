@@ -41,17 +41,20 @@ import (
 
 func Test_esFetcher_fetchError(t *testing.T) {
 	for name, tc := range map[string]struct {
-		statusCode   int
-		clientError  bool
-		responseBody io.Reader
-		temporary    bool
+		statusCode         int
+		clientError        bool
+		responseBody       io.Reader
+		temporary          bool
+		expectedErrMessage string
 	}{
 		"es not reachable": {
-			clientError: true,
-			temporary:   true,
+			clientError:        true,
+			temporary:          true,
+			expectedErrMessage: "failure querying ES: client error",
 		},
 		"es bad request": {
-			statusCode: http.StatusBadRequest,
+			statusCode:         http.StatusBadRequest,
+			expectedErrMessage: "ES returned unknown status code: 400 Bad Request",
 		},
 		"empty sourcemap string": {
 			statusCode: http.StatusOK,
@@ -62,6 +65,7 @@ func Test_esFetcher_fetchError(t *testing.T) {
 					},
 				},
 			}}),
+			expectedErrMessage: "sourcemap not in the expected format: sourcemap malformed",
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
@@ -73,11 +77,7 @@ func Test_esFetcher_fetchError(t *testing.T) {
 			}
 
 			consumer, err := testESFetcher(client).Fetch(context.Background(), "abc", "1.0", "/tmp")
-			if tc.temporary {
-				assert.Contains(t, err.Error(), errMsgESFailure)
-			} else {
-				assert.NotContains(t, err.Error(), errMsgESFailure)
-			}
+			assert.Equal(t, tc.expectedErrMessage, err.Error())
 			assert.Empty(t, consumer)
 		})
 	}
@@ -90,8 +90,8 @@ func Test_esFetcher_fetch(t *testing.T) {
 		filePath     string
 	}{
 		"no sourcemap found": {
-			statusCode:   http.StatusNotFound,
-			responseBody: sourcemapSearchResponseBody(0, nil),
+			statusCode:   http.StatusOK,
+			responseBody: sourcemapSearchResponseBody(0, []map[string]interface{}{}),
 		},
 		"sourcemap indicated but not found": {
 			statusCode:   http.StatusOK,

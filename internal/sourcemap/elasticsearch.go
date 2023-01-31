@@ -28,22 +28,12 @@ import (
 	"net/http"
 
 	"github.com/go-sourcemap/sourcemap"
-	"github.com/pkg/errors"
 
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/go-elasticsearch/v8/esapi"
 
 	"github.com/elastic/apm-server/internal/elasticsearch"
 	"github.com/elastic/apm-server/internal/logs"
-)
-
-const (
-	errMsgParseSourcemap = "Could not parse Sourcemap"
-)
-
-var (
-	errMsgESFailure         = errMsgFailure + " ES"
-	errSourcemapWrongFormat = errors.New("Sourcemapping ES Result not in expected format")
 )
 
 type esFetcher struct {
@@ -83,20 +73,20 @@ func NewElasticsearchFetcher(c *elasticsearch.Client, index string) Fetcher {
 func (s *esFetcher) Fetch(ctx context.Context, name, version, path string) (*sourcemap.Consumer, error) {
 	resp, err := s.runSearchQuery(ctx, name, version, path)
 	if err != nil {
-		return nil, errors.Wrap(err, errMsgESFailure)
+		return nil, fmt.Errorf("failure querying ES: %w", err)
 	}
 	defer resp.Body.Close()
 
 	// handle error response
 	if resp.StatusCode >= http.StatusMultipleChoices {
-		if resp.StatusCode == http.StatusNotFound {
-			return nil, nil
-		}
 		b, err := io.ReadAll(resp.Body)
 		if err != nil {
-			return nil, errors.Wrap(err, errMsgParseSourcemap)
+			return nil, fmt.Errorf("failed to read ES response body: %w", err)
 		}
-		return nil, errors.New(fmt.Sprintf("%s %s", errMsgParseSourcemap, b))
+		if resp.StatusCode == http.StatusNotFound || resp.StatusCode == http.StatusForbidden {
+			return nil, fmt.Errorf("%w: %s: %s", ErrFetcherUnvailable, resp.Status(), string(b))
+		}
+		return nil, fmt.Errorf("ES returned unknown status code: %s", resp.Status())
 	}
 
 	// parse response
@@ -125,13 +115,13 @@ func (s *esFetcher) Fetch(ctx context.Context, name, version, path string) (*sou
 		return nil, fmt.Errorf("failed to read sourcemap content: %w", err)
 	}
 
-	return parseSourceMap(string(uncompressedBody))
+	return ParseSourceMap(uncompressedBody)
 }
 
 func (s *esFetcher) runSearchQuery(ctx context.Context, name, version, path string) (*esapi.Response, error) {
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(requestBody(name, version, path)); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to encode request body: %w", err)
 	}
 	req := esapi.SearchRequest{
 		Index:          []string{s.index},
@@ -144,22 +134,18 @@ func (s *esFetcher) runSearchQuery(ctx context.Context, name, version, path stri
 func parse(body io.ReadCloser, name, version, path string, logger *logp.Logger) (string, error) {
 	var esSourcemapResponse esSourcemapResponse
 	if err := json.NewDecoder(body).Decode(&esSourcemapResponse); err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to decode sourcemap: %w", err)
 	}
+
 	hits := esSourcemapResponse.Hits.Total.Value
 	if hits == 0 || len(esSourcemapResponse.Hits.Hits) == 0 {
 		return "", nil
 	}
 
-	var esSourcemap string
-	if hits > 1 {
-		logger.Warnf("%d sourcemaps found for service %s version %s and file %s, using the most recent one",
-			hits, name, version, path)
-	}
-	esSourcemap = esSourcemapResponse.Hits.Hits[0].Source.Sourcemap
+	esSourcemap := esSourcemapResponse.Hits.Hits[0].Source.Sourcemap
 	// until https://github.com/golang/go/issues/19858 is resolved
 	if esSourcemap == "" {
-		return "", errSourcemapWrongFormat
+		return "", fmt.Errorf("sourcemap not in the expected format: %w", ErrMalformedSourcemap)
 	}
 	return esSourcemap, nil
 }
