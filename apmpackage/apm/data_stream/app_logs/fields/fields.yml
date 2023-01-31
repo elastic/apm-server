@@ -60,6 +60,11 @@
   index: false
   description: |
     Version of the runtime used.
+- name: session.id
+  type: keyword
+  description: |
+    The ID of the session to which the event belongs.
+  ignore_above: 1024
 - name: faas.id
   type: keyword
   description: |
