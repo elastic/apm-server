@@ -224,7 +224,7 @@ func newMetricsBuffer(maxSize int, significantFigures int) *metricsBuffer {
 		maxSize:            maxSize,
 		significantFigures: significantFigures,
 		// keep one reserved entry for overflow bucket
-		space: make([]metricsMapEntry, maxSize+1),
+		space: make([]metricsMapEntry, (maxSize/16)+1),
 		m:     make(map[uint64][]*metricsMapEntry),
 	}
 }

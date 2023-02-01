@@ -581,9 +581,9 @@ type metrics struct {
 func newMetrics(maxGroups, maxServices int) *metrics {
 	return &metrics{
 		// keep reserved entries for overflow (1 per service and 1 for `other` service)
-		space: make([]metricsMapEntry, maxGroups*2+1),
+		space: make([]metricsMapEntry, (maxGroups*2/16)+1),
 		// keep 1 reserved entry for `other` service
-		svcSpace: make([]svcMetricsMapEntry, maxServices+1),
+		svcSpace: make([]svcMetricsMapEntry, (maxServices/16)+1),
 		m:        make(map[string]*svcMetricsMapEntry),
 	}
 }
