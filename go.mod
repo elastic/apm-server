@@ -69,7 +69,7 @@ require (
 	golang.org/x/sys v0.4.0 // indirect
 	golang.org/x/time v0.0.0-20210723032227-1f47c861a9ac
 	golang.org/x/tools v0.5.0
-	google.golang.org/genproto v0.0.0-20230127162408-596548ed4efa // indirect
+	google.golang.org/genproto v0.0.0-20230131230820-1c016267d619 // indirect
 	google.golang.org/grpc v1.52.3
 	gotest.tools/gotestsum v1.7.0
 	howett.net/plist v1.0.0 // indirect
