@@ -179,6 +179,34 @@ func TestSourcemapElasticsearch(t *testing.T) {
 	assertSourcemapUpdated(t, result, true)
 }
 
+func TestSourcemapElasticsearchUnreachable(t *testing.T) {
+	systemtest.CleanupElasticsearch(t)
+
+	sourcemap, err := os.ReadFile("../testdata/sourcemap/bundle.js.map")
+	require.NoError(t, err)
+	systemtest.CreateSourceMap(t, string(sourcemap), "apm-agent-js", "1.0.1",
+		"http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
+	)
+
+	srv := apmservertest.NewUnstartedServerTB(t)
+	srv.Config.RUM = &apmservertest.RUMConfig{
+		Enabled: true,
+		Sourcemap: &apmservertest.RUMSourcemapConfig{
+			ESConfig: &apmservertest.ElasticsearchOutputConfig{
+				// Use an unreachable address
+				Hosts: []string{"127.0.0.1:12345"},
+			},
+		},
+	}
+	err = srv.Start()
+	require.NoError(t, err)
+
+	// Index an error, applying source mapping and caching the source map in the process.
+	systemtest.SendRUMEventsPayload(t, srv.URL, "../testdata/intake-v2/errors_rum.ndjson")
+	result := systemtest.Elasticsearch.ExpectDocs(t, "logs-apm.error-*", nil)
+	assertSourcemapUpdated(t, result, true)
+}
+
 func TestSourcemapKibana(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
 

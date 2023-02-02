@@ -207,8 +207,9 @@ type RUMConfig struct {
 
 // RUMSourcemapConfig holds APM Server RUM sourcemap configuration.
 type RUMSourcemapConfig struct {
-	Enabled bool                     `json:"enabled,omitempty"`
-	Cache   *RUMSourcemapCacheConfig `json:"cache,omitempty"`
+	Enabled  bool                       `json:"enabled,omitempty"`
+	Cache    *RUMSourcemapCacheConfig   `json:"cache,omitempty"`
+	ESConfig *ElasticsearchOutputConfig `json:"elasticsearch"`
 }
 
 // RUMSourcemapCacheConfig holds sourcemap cache expiration.
