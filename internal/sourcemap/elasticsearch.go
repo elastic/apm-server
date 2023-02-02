@@ -23,8 +23,10 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 
 	"github.com/go-sourcemap/sourcemap"
@@ -73,6 +75,10 @@ func NewElasticsearchFetcher(c *elasticsearch.Client, index string) Fetcher {
 func (s *esFetcher) Fetch(ctx context.Context, name, version, path string) (*sourcemap.Consumer, error) {
 	resp, err := s.runSearchQuery(ctx, name, version, path)
 	if err != nil {
+		var networkErr net.Error
+		if errors.As(err, &networkErr) {
+			return nil, fmt.Errorf("failed to reach elasticsearch: %w, %v: ", errFetcherUnvailable, err)
+		}
 		return nil, fmt.Errorf("failure querying ES: %w", err)
 	}
 	defer resp.Body.Close()
@@ -84,6 +90,10 @@ func (s *esFetcher) Fetch(ctx context.Context, name, version, path string) (*sou
 			return nil, fmt.Errorf("failed to read ES response body: %w", err)
 		}
 		if resp.StatusCode == http.StatusNotFound || resp.StatusCode == http.StatusForbidden {
+			// http.StatusNotFound -> the index is missing
+			// http.StatusForbidden -> we don't have permission to read from the index
+			// In both cases we consider the fetcher unavailable so that APM Server can
+			// fallback to other fetchers
 			return nil, fmt.Errorf("%w: %s: %s", errFetcherUnvailable, resp.Status(), string(b))
 		}
 		return nil, fmt.Errorf("ES returned unknown status code: %s", resp.Status())
