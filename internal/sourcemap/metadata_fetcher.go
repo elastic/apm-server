@@ -99,9 +99,8 @@ func (s *MetadataESFetcher) startBackgrounSync(parent context.Context) {
 			// only close the init chan and mark the fetcher as ready if
 			// sync succeeded
 			close(s.init)
+			s.logger.Info("init routine completed")
 		}
-
-		s.logger.Info("init routine completed")
 
 		go func() {
 			// TODO make this a config option ?
