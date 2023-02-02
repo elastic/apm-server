@@ -269,8 +269,8 @@ func TestUnpackConfig(t *testing.T) {
 					AllowOrigins: []string{"example*"},
 					AllowHeaders: []string{"Authorization"},
 					SourceMapping: SourceMapping{
-						Enabled:      true,
-						Cache:        Cache{Expiration: 8 * time.Minute},
+						Enabled: true,
+						Cache:   Cache{Expiration: 8 * time.Minute},
 						ESConfig: &elasticsearch.Config{
 							Hosts:            elasticsearch.Hosts{"localhost:9201", "localhost:9202"},
 							Protocol:         "http",
@@ -442,8 +442,8 @@ func TestUnpackConfig(t *testing.T) {
 						Cache: Cache{
 							Expiration: 7 * time.Second,
 						},
-						ESConfig:     elasticsearch.DefaultConfig(),
-						Timeout:      5 * time.Second,
+						ESConfig: elasticsearch.DefaultConfig(),
+						Timeout:  5 * time.Second,
 					},
 					LibraryPattern:      "rum",
 					ExcludeFromGrouping: "^/webpack",

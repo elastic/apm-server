@@ -190,7 +190,7 @@ func TestSourcemapKibana(t *testing.T) {
 
 	srv := apmservertest.NewUnstartedServerTB(t)
 	srv.Config.RUM = &apmservertest.RUMConfig{
-		Enabled: true,
+		Enabled:   true,
 		Sourcemap: &apmservertest.RUMSourcemapConfig{
 			// Use the wrong index pattern so that the ES fetcher
 			// will fail and apm server will fall back to kibana

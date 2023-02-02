@@ -113,10 +113,10 @@ func (s *SourceMapping) Unpack(inp *config.C) error {
 
 func defaultSourcemapping() SourceMapping {
 	return SourceMapping{
-		Enabled:      true,
-		Cache:        Cache{Expiration: defaultSourcemapCacheExpiration},
-		ESConfig:     elasticsearch.DefaultConfig(),
-		Timeout:      defaultSourcemapTimeout,
+		Enabled:  true,
+		Cache:    Cache{Expiration: defaultSourcemapCacheExpiration},
+		ESConfig: elasticsearch.DefaultConfig(),
+		Timeout:  defaultSourcemapTimeout,
 	}
 }
 
