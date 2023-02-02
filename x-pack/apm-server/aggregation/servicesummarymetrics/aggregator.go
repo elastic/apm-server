@@ -49,9 +49,9 @@ type AggregatorConfig struct {
 	Interval time.Duration
 
 	// MaxGroups is the maximum number of distinct service summary metrics to
-	// store within an aggregation period.
-	// Once this number of groups is reached, any new aggregation keys will cause
-	// individual metrics documents to be immediately published.
+	// store within an aggregation period. Once this number of groups is
+	// reached, any new aggregation keys will be aggregated in a dedicated
+	// service group identified by `_other`.
 	MaxGroups int
 }
 
@@ -229,7 +229,7 @@ func (mb *metricsBuffer) storeOrUpdate(
 	if mb.entries >= mb.maxSize {
 		if mb.otherCardinalityEstimator == nil {
 			logger.Warnf(`
-Service summary aggregation group limit of %d reached, new metric documents will be grouped
+Service aggregation group limit of %d reached, new metric documents will be grouped
 under a dedicated bucket identified by service name '%s'.`[1:], mb.maxSize, overflowServiceName)
 			key = makeOverflowAggregationKey(interval)
 			mb.other = &key
