@@ -84,7 +84,7 @@ func (s *esFetcher) Fetch(ctx context.Context, name, version, path string) (*sou
 			return nil, fmt.Errorf("failed to read ES response body: %w", err)
 		}
 		if resp.StatusCode == http.StatusNotFound || resp.StatusCode == http.StatusForbidden {
-			return nil, fmt.Errorf("%w: %s: %s", ErrFetcherUnvailable, resp.Status(), string(b))
+			return nil, fmt.Errorf("%w: %s: %s", errFetcherUnvailable, resp.Status(), string(b))
 		}
 		return nil, fmt.Errorf("ES returned unknown status code: %s", resp.Status())
 	}
@@ -115,7 +115,7 @@ func (s *esFetcher) Fetch(ctx context.Context, name, version, path string) (*sou
 		return nil, fmt.Errorf("failed to read sourcemap content: %w", err)
 	}
 
-	return ParseSourceMap(uncompressedBody)
+	return parseSourceMap(uncompressedBody)
 }
 
 func (s *esFetcher) runSearchQuery(ctx context.Context, name, version, path string) (*esapi.Response, error) {
@@ -145,7 +145,7 @@ func parse(body io.ReadCloser, name, version, path string, logger *logp.Logger) 
 	esSourcemap := esSourcemapResponse.Hits.Hits[0].Source.Sourcemap
 	// until https://github.com/golang/go/issues/19858 is resolved
 	if esSourcemap == "" {
-		return "", fmt.Errorf("sourcemap not in the expected format: %w", ErrMalformedSourcemap)
+		return "", fmt.Errorf("sourcemap not in the expected format: %w", errMalformedSourcemap)
 	}
 	return esSourcemap, nil
 }

@@ -45,13 +45,13 @@ func NewSourcemapFetcher(metadata MetadataFetcher, backend Fetcher) *SourcemapFe
 }
 
 func (s *SourcemapFetcher) Fetch(ctx context.Context, name, version, path string) (*sourcemap.Consumer, error) {
-	original := Identifier{name: name, version: version, path: path}
+	original := identifier{name: name, version: version, path: path}
 
 	select {
-	case <-s.metadata.Ready():
+	case <-s.metadata.ready():
 		// the mutex is shared by the update goroutine, we need to release it
 		// as soon as possible to avoid blocking updates.
-		if i, ok := s.metadata.GetID(original); ok {
+		if i, ok := s.metadata.getID(original); ok {
 			// Only fetch from ES if the sourcemap id exists
 			return s.fetch(ctx, i)
 		}
@@ -67,7 +67,7 @@ func (s *SourcemapFetcher) Fetch(ctx context.Context, name, version, path string
 
 		// Aliases are only available after init is completed.
 		select {
-		case <-s.metadata.Ready():
+		case <-s.metadata.ready():
 		case <-ctx.Done():
 			return nil, fmt.Errorf("error waiting for metadata fetcher to be ready: %w", ctx.Err())
 		}
@@ -75,7 +75,7 @@ func (s *SourcemapFetcher) Fetch(ctx context.Context, name, version, path string
 		// first map lookup  will fail but this is not going
 		// to be performance issue since it only happens if init
 		// is in progress.
-		if i, ok := s.metadata.GetID(original); ok {
+		if i, ok := s.metadata.getID(original); ok {
 			// Only fetch from ES if the sourcemap id exists
 			return s.fetch(ctx, i)
 		}
@@ -91,7 +91,7 @@ func (s *SourcemapFetcher) Fetch(ctx context.Context, name, version, path string
 			// but a request came in from a different host.
 			// Look for an alias to the url path to retrieve the correct
 			// host and fetch the sourcemap
-			if i, ok := s.metadata.GetID(original); ok {
+			if i, ok := s.metadata.getID(original); ok {
 				return s.fetch(ctx, i)
 			}
 		}
@@ -112,7 +112,7 @@ func (s *SourcemapFetcher) Fetch(ctx context.Context, name, version, path string
 	return nil, fmt.Errorf("unable to find sourcemap.url for service.name=%s service.version=%s bundle.path=%s", name, version, path)
 }
 
-func (s *SourcemapFetcher) fetch(ctx context.Context, key *Identifier) (*sourcemap.Consumer, error) {
+func (s *SourcemapFetcher) fetch(ctx context.Context, key *identifier) (*sourcemap.Consumer, error) {
 	c, err := s.backend.Fetch(ctx, key.name, key.version, key.path)
 
 	// log a message if the sourcemap is present in the cache but the backend fetcher did not

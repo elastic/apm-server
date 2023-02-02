@@ -27,8 +27,8 @@ import (
 )
 
 var (
-	ErrFetcherUnvailable  = errors.New("fetcher unavailable")
-	ErrMalformedSourcemap = errors.New("sourcemap malformed")
+	errFetcherUnvailable  = errors.New("fetcher unavailable")
+	errMalformedSourcemap = errors.New("sourcemap malformed")
 )
 
 // Fetcher is an interface for fetching a source map with a given service name, service version,
@@ -42,18 +42,18 @@ type Fetcher interface {
 
 // MetadataFetcher is an interface for fetching metadata
 type MetadataFetcher interface {
-	GetID(id Identifier) (*Identifier, bool)
+	getID(id identifier) (*identifier, bool)
 
-	Ready() <-chan struct{}
+	ready() <-chan struct{}
 }
 
-type Identifier struct {
+type identifier struct {
 	name    string
 	version string
 	path    string
 }
 
-func GetAliases(name string, version string, bundleFilepath string) []Identifier {
+func getAliases(name string, version string, bundleFilepath string) []identifier {
 	urlPath, err := url.Parse(bundleFilepath)
 	if err != nil {
 		// bundleFilepath is not an url so it
@@ -76,7 +76,7 @@ func GetAliases(name string, version string, bundleFilepath string) []Identifier
 		// bundleFilepath is a valid url and it is
 		// already clean.
 		// Only return the url path as an alias
-		return []Identifier{
+		return []identifier{
 			{
 				name:    name,
 				version: version,
@@ -85,7 +85,7 @@ func GetAliases(name string, version string, bundleFilepath string) []Identifier
 		}
 	}
 
-	return []Identifier{
+	return []identifier{
 		// first try to match the full url
 		{
 			name:    name,
@@ -102,13 +102,13 @@ func GetAliases(name string, version string, bundleFilepath string) []Identifier
 	}
 }
 
-func ParseSourceMap(data []byte) (*sourcemap.Consumer, error) {
+func parseSourceMap(data []byte) (*sourcemap.Consumer, error) {
 	if len(data) == 0 {
 		return nil, nil
 	}
 	consumer, err := sourcemap.Parse("", data)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrMalformedSourcemap, err)
+		return nil, fmt.Errorf("%w: %v", errMalformedSourcemap, err)
 	}
 	return consumer, nil
 }

@@ -36,7 +36,7 @@ func (c ChainedFetcher) Fetch(ctx context.Context, name, version, path string) (
 	var lastErr error
 	for _, f := range c {
 		consumer, err := f.Fetch(ctx, name, version, path)
-		if !errors.Is(err, ErrFetcherUnvailable) {
+		if !errors.Is(err, errFetcherUnvailable) {
 			return consumer, err
 		}
 
