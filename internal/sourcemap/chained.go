@@ -36,18 +36,16 @@ func (c ChainedFetcher) Fetch(ctx context.Context, name, version, path string) (
 	var lastErr error
 	for _, f := range c {
 		consumer, err := f.Fetch(ctx, name, version, path)
+		// if there are no errors or the error is not errFetcherUnvailable
+		// then the fetcher is working/available.
+		// Return the result: error and consumer.
 		if !errors.Is(err, errFetcherUnvailable) {
 			return consumer, err
 		}
 
-		if err != nil {
-			lastErr = err
-			continue
-		}
-
-		if consumer != nil {
-			return consumer, nil
-		}
+		// err is errFetcherUnvailable
+		// store it in a tmp variable and try the next fetcher
+		lastErr = err
 	}
 	return nil, lastErr
 }
