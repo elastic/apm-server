@@ -167,16 +167,16 @@ func (s *MetadataESFetcher) sync(ctx context.Context) error {
 	return nil
 }
 
-func (s *MetadataESFetcher) update(ctx context.Context, sopurcemaps map[Identifier]string) {
+func (s *MetadataESFetcher) update(ctx context.Context, sourcemaps map[Identifier]string) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
 	var invalidation []Identifier
 
 	for id, contentHash := range s.set {
-		if updatedHash, ok := sopurcemaps[id]; ok {
+		if updatedHash, ok := sourcemaps[id]; ok {
 			// already in the cache, remove from the updates.
-			delete(sopurcemaps, id)
+			delete(sourcemaps, id)
 
 			// content hash changed, invalidate the sourcemap cache
 			if contentHash != updatedHash {
@@ -202,7 +202,7 @@ func (s *MetadataESFetcher) update(ctx context.Context, sopurcemaps map[Identifi
 	s.invalidationChan <- invalidation
 
 	// add new sourcemaps to the metadata cache.
-	for id, contentHash := range sopurcemaps {
+	for id, contentHash := range sourcemaps {
 		s.set[id] = contentHash
 		s.logger.Debugf("Added metadata id %v", id)
 		// store aliases with a pointer to the original id.
