@@ -175,7 +175,6 @@ func TestUnpackConfig(t *testing.T) {
 						"cache": map[string]interface{}{
 							"expiration": 8 * time.Minute,
 						},
-						"index_pattern":       "apm-test*",
 						"elasticsearch.hosts": []string{"localhost:9201", "localhost:9202"},
 						"timeout":             "2s",
 					},
@@ -272,7 +271,6 @@ func TestUnpackConfig(t *testing.T) {
 					SourceMapping: SourceMapping{
 						Enabled:      true,
 						Cache:        Cache{Expiration: 8 * time.Minute},
-						IndexPattern: "apm-test*",
 						ESConfig: &elasticsearch.Config{
 							Hosts:            elasticsearch.Hosts{"localhost:9201", "localhost:9202"},
 							Protocol:         "http",
@@ -444,7 +442,6 @@ func TestUnpackConfig(t *testing.T) {
 						Cache: Cache{
 							Expiration: 7 * time.Second,
 						},
-						IndexPattern: ".apm-source-map",
 						ESConfig:     elasticsearch.DefaultConfig(),
 						Timeout:      5 * time.Second,
 					},

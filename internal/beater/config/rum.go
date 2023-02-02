@@ -35,7 +35,6 @@ const (
 	defaultExcludeFromGrouping      = "^/webpack"
 	defaultLibraryPattern           = "node_modules|bower_components|~"
 	defaultSourcemapCacheExpiration = 5 * time.Minute
-	defaultSourcemapIndexPattern    = ".apm-source-map"
 	defaultSourcemapTimeout         = 5 * time.Second
 )
 
@@ -54,7 +53,6 @@ type RumConfig struct {
 type SourceMapping struct {
 	Cache        Cache                 `config:"cache"`
 	Enabled      bool                  `config:"enabled"`
-	IndexPattern string                `config:"index_pattern"`
 	ESConfig     *elasticsearch.Config `config:"elasticsearch"`
 	Timeout      time.Duration         `config:"timeout" validate:"positive"`
 	esConfigured bool
@@ -117,7 +115,6 @@ func defaultSourcemapping() SourceMapping {
 	return SourceMapping{
 		Enabled:      true,
 		Cache:        Cache{Expiration: defaultSourcemapCacheExpiration},
-		IndexPattern: defaultSourcemapIndexPattern,
 		ESConfig:     elasticsearch.DefaultConfig(),
 		Timeout:      defaultSourcemapTimeout,
 	}

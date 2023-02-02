@@ -194,7 +194,6 @@ func TestSourcemapKibana(t *testing.T) {
 		Sourcemap: &apmservertest.RUMSourcemapConfig{
 			// Use the wrong index pattern so that the ES fetcher
 			// will fail and apm server will fall back to kibana
-			IndexPattern: "example",
 		},
 	}
 	err = srv.Start()

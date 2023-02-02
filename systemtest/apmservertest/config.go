@@ -208,7 +208,6 @@ type RUMConfig struct {
 // RUMSourcemapConfig holds APM Server RUM sourcemap configuration.
 type RUMSourcemapConfig struct {
 	Enabled      bool                     `json:"enabled,omitempty"`
-	IndexPattern string                   `json:"index_pattern"`
 	Cache        *RUMSourcemapCacheConfig `json:"cache,omitempty"`
 }
 

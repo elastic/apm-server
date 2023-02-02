@@ -25,7 +25,6 @@ import (
 	"net/http"
 	"os"
 	"runtime"
-	"strings"
 	"time"
 
 	"github.com/dustin/go-humanize"
@@ -808,6 +807,8 @@ func (s *Runner) newLibbeatFinalBatchProcessor(
 	return publisher, stop, nil
 }
 
+const sourcemapIndex = ".apm-source-map"
+
 func newSourcemapFetcher(
 	cfg config.SourceMapping,
 	kibanaClient *kibana.Client,
@@ -821,13 +822,11 @@ func newSourcemapFetcher(
 	// For standalone, we query both Kibana and Elasticsearch for backwards compatibility.
 	var chained sourcemap.ChainedFetcher
 
-	index := strings.ReplaceAll(cfg.IndexPattern, "%{[observer.version]}", version.Version)
-
 	// start background sync job
 	ctx, cancel := context.WithCancel(context.Background())
-	metadataFetcher, invalidationChan := sourcemap.NewMetadataFetcher(ctx, esClient, index)
+	metadataFetcher, invalidationChan := sourcemap.NewMetadataFetcher(ctx, esClient, sourcemapIndex)
 
-	esFetcher := sourcemap.NewElasticsearchFetcher(esClient, index)
+	esFetcher := sourcemap.NewElasticsearchFetcher(esClient, sourcemapIndex)
 	size := 128
 	cachingFetcher, err := sourcemap.NewBodyCachingFetcher(esFetcher, size, invalidationChan)
 	if err != nil {
