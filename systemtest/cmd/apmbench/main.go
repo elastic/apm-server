@@ -25,7 +25,9 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 
+	"go.elastic.co/apm/v2"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"golang.org/x/time/rate"
 
@@ -120,7 +122,16 @@ func Benchmark10000AggregationGroups(b *testing.B, l *rate.Limiter) {
 				if err := l.Wait(context.Background()); err != nil {
 					b.Fatal(err)
 				}
-				tracer.StartTransaction(fmt.Sprintf("name%d", i), fmt.Sprintf("type%d", i)).End()
+				timestamp, _ := time.Parse(time.RFC3339Nano, "2006-01-02T15:04:05.999999999Z")
+				tx := tracer.StartTransactionOptions(fmt.Sprintf("name%d", i), fmt.Sprintf("type%d", i), apm.TransactionOptions{Start: timestamp})
+				span := tx.StartSpanOptions(fmt.Sprintf("name%d", i), fmt.Sprintf("type%d", i), apm.SpanOptions{Start: timestamp})
+				span.Context.SetDestinationService(apm.DestinationServiceSpanContext{
+					Name:     fmt.Sprintf("name%d", i),
+					Resource: fmt.Sprintf("resource%d", i),
+				})
+				span.Duration = time.Second
+				span.End()
+				tx.End()
 			}
 			tracer.Flush(nil)
 		}
