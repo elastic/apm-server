@@ -220,8 +220,11 @@ func TestSourcemapKibana(t *testing.T) {
 	srv.Config.RUM = &apmservertest.RUMConfig{
 		Enabled:   true,
 		Sourcemap: &apmservertest.RUMSourcemapConfig{
-			// Use the wrong index pattern so that the ES fetcher
+			// Use the wrong credentials so that the ES fetcher
 			// will fail and apm server will fall back to kibana
+			ESConfig: &apmservertest.ElasticsearchOutputConfig{
+				APIKey: "example",
+			},
 		},
 	}
 	err = srv.Start()
