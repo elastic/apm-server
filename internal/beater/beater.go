@@ -819,7 +819,6 @@ func newSourcemapFetcher(
 		return nil, nil, err
 	}
 
-	// For standalone, we query both Kibana and Elasticsearch for backwards compatibility.
 	var chained sourcemap.ChainedFetcher
 
 	// start background sync job
