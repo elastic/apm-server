@@ -89,7 +89,7 @@ func (s *esFetcher) Fetch(ctx context.Context, name, version, path string) (*sou
 		if err != nil {
 			return nil, fmt.Errorf("failed to read ES response body: %w", err)
 		}
-		if resp.StatusCode == http.StatusNotFound || resp.StatusCode == http.StatusForbidden {
+		if resp.StatusCode == http.StatusNotFound || resp.StatusCode == http.StatusUnauthorized || resp.StatusCode == http.StatusForbidden {
 			// http.StatusNotFound -> the index is missing
 			// http.StatusForbidden -> we don't have permission to read from the index
 			// In both cases we consider the fetcher unavailable so that APM Server can
