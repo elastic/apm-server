@@ -20,6 +20,7 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -110,6 +111,22 @@ func benchmarkAgent(b *testing.B, l *rate.Limiter, expr string) {
 	})
 }
 
+func Benchmark10000AggregationGroups(b *testing.B, l *rate.Limiter) {
+	// Benchmark memory usage on aggregating high cardinality data.
+	b.RunParallel(func(pb *testing.PB) {
+		tracer := benchtest.NewTracer(b)
+		for pb.Next() {
+			for i := 0; i < 10000; i++ {
+				if err := l.Wait(context.Background()); err != nil {
+					b.Fatal(err)
+				}
+				tracer.StartTransaction(fmt.Sprintf("name%d", i), fmt.Sprintf("type%d", i)).End()
+			}
+			tracer.Flush(nil)
+		}
+	})
+}
+
 func main() {
 	flag.Parse()
 	if err := benchtest.Run(
@@ -120,6 +137,7 @@ func main() {
 		BenchmarkAgentNodeJS,
 		BenchmarkAgentPython,
 		BenchmarkAgentRuby,
+		Benchmark10000AggregationGroups,
 	); err != nil {
 		log.Fatal(err)
 	}
