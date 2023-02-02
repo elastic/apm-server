@@ -26,7 +26,8 @@ import (
 )
 
 const (
-	metricsetName = "service_transaction"
+	metricsetName       = "service_transaction"
+	overflowServiceName = "_other"
 
 	minDuration time.Duration = 0
 	maxDuration time.Duration = time.Hour
@@ -56,9 +57,10 @@ type AggregatorConfig struct {
 	// aggregation groups fill up.
 	Interval time.Duration
 
-	// MaxGroups is the maximum number of distinct service transaction metrics to store within an aggregation period.
-	// Once this number of groups is reached, any new aggregation keys will cause
-	// individual metrics documents to be immediately published.
+	// MaxGroups is the maximum number of distinct service transaction metrics
+	// to store within an aggregation period. Once this number of groups is
+	// reached, any new aggregation keys will be aggregated in a dedicated
+	// service group identified by `_other`.
 	MaxGroups int
 
 	// HDRHistogramSignificantFigures is the number of significant figures
@@ -183,7 +185,7 @@ func (a *Aggregator) publish(ctx context.Context, period time.Duration) error {
 //   - MaxGroups: Limits the total number of services that the
 //     service transaction metrics aggregator produces. Once this limit is
 //     breached the metrics are aggregated in a dedicated bucket
-//     with `service.name` as `other`.
+//     with `service.name` as `_other`.
 func (a *Aggregator) ProcessBatch(ctx context.Context, b *model.Batch) error {
 	a.mu.RLock()
 	defer a.mu.RUnlock()
@@ -277,8 +279,8 @@ func (mb *metricsBuffer) storeOrUpdate(
 	}
 	if mb.entries >= mb.maxSize {
 		logger.Warnf(`
-Service transaction aggregation group limit of %d reached, new metric documents will be grouped
-under a dedicated bucket identified by service name 'other'.`[1:], mb.maxSize)
+Service aggregation group limit of %d reached, new metric documents will be grouped
+under a dedicated bucket identified by service name '%s'.`[1:], mb.maxSize, overflowServiceName)
 		mb.other = &mb.space[len(mb.space)-1]
 		mb.otherCardinalityEstimator = hyperloglog.New14()
 		mb.otherCardinalityEstimator.InsertHash(hash)
@@ -367,7 +369,7 @@ func makeOverflowAggregationKey(oldKey aggregationKey, interval time.Duration) a
 			// old timestamp and these events overflow causing the indexed event
 			// to have old timestamp too.
 			timestamp:   time.Now().Truncate(interval),
-			serviceName: "_other",
+			serviceName: overflowServiceName,
 		},
 	}
 }
