@@ -115,6 +115,8 @@ func benchmarkAgent(b *testing.B, l *rate.Limiter, expr string) {
 
 func Benchmark10000AggregationGroups(b *testing.B, l *rate.Limiter) {
 	// Benchmark memory usage on aggregating high cardinality data.
+	// This should generate a lot of groups for service transaction metrics,
+	// transaction metrics, and service destination metrics.
 	b.RunParallel(func(pb *testing.PB) {
 		tracer := benchtest.NewTracer(b)
 		for pb.Next() {
