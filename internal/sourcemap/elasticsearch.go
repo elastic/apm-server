@@ -28,6 +28,7 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"net/url"
 
 	"github.com/go-sourcemap/sourcemap"
 
@@ -126,7 +127,7 @@ func (s *esFetcher) runSearchQuery(ctx context.Context, name, version, path stri
 	id := name + "-" + version + "-" + path
 	req := esapi.GetRequest{
 		Index:      s.index,
-		DocumentID: id,
+		DocumentID: url.PathEscape(id),
 	}
 	return req.Do(ctx, s.client)
 }
