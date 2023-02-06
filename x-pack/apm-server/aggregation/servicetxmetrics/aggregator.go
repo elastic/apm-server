@@ -165,6 +165,7 @@ func (a *Aggregator) publish(ctx context.Context, period time.Duration) error {
 			batch = append(batch, m)
 			entry.histogram.Reset()
 			a.histogramPool.Put(entry.histogram)
+			entry.histogram = nil
 		}
 		delete(current.m, key)
 	}
@@ -180,6 +181,7 @@ func (a *Aggregator) publish(ctx context.Context, period time.Duration) error {
 		batch = append(batch, m)
 		entry.histogram.Reset()
 		a.histogramPool.Put(entry.histogram)
+		entry.histogram = nil
 		current.other = nil
 		current.otherCardinalityEstimator = nil
 	}

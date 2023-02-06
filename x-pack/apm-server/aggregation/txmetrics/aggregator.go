@@ -215,6 +215,7 @@ func (a *Aggregator) publish(ctx context.Context, period time.Duration) error {
 				batch = append(batch, event)
 				entry.histogram.Reset()
 				a.histogramPool.Put(entry.histogram)
+				entry.histogram = nil
 			}
 			delete(svcEntry.m, hash)
 		}
@@ -231,6 +232,7 @@ func (a *Aggregator) publish(ctx context.Context, period time.Duration) error {
 			batch = append(batch, m)
 			entry.histogram.Reset()
 			a.histogramPool.Put(entry.histogram)
+			entry.histogram = nil
 			svcEntry.other = nil
 			svcEntry.otherCardinalityEstimator = nil
 			svcEntry.entries = 0
@@ -414,8 +416,8 @@ that configuration option appropriately, may lead to better results.`[1:],
 		svcEntry.entries++
 	}
 	entry.transactionAggregationKey = key
-	if entry.transactionMetrics.histogram == nil {
-		entry.transactionMetrics.histogram = a.histogramPool.Get().(*hdrhistogram.Histogram)
+	entry.transactionMetrics = transactionMetrics{
+		histogram: a.histogramPool.Get().(*hdrhistogram.Histogram),
 	}
 	entry.recordDuration(duration, count)
 }
