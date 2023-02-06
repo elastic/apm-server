@@ -117,27 +117,27 @@ func Benchmark10000AggregationGroups(b *testing.B, l *rate.Limiter) {
 	// Benchmark memory usage on aggregating high cardinality data.
 	// This should generate a lot of groups for service transaction metrics,
 	// transaction metrics, and service destination metrics.
-	b.RunParallel(func(pb *testing.PB) {
+	//
+	// Using b.N instead of b.RunParallel since this benchmark is about memory
+	// usage.
+	for n := 0; n < b.N; n++ {
 		tracer := benchtest.NewTracer(b)
-		for pb.Next() {
-			for i := 0; i < 10000; i++ {
-				if err := l.Wait(context.Background()); err != nil {
-					b.Fatal(err)
-				}
-				timestamp, _ := time.Parse(time.RFC3339Nano, "2006-01-02T15:04:05.999999999Z")
-				tx := tracer.StartTransactionOptions(fmt.Sprintf("name%d", i), fmt.Sprintf("type%d", i), apm.TransactionOptions{Start: timestamp})
-				span := tx.StartSpanOptions(fmt.Sprintf("name%d", i), fmt.Sprintf("type%d", i), apm.SpanOptions{Start: timestamp})
-				span.Context.SetDestinationService(apm.DestinationServiceSpanContext{
-					Name:     fmt.Sprintf("name%d", i),
-					Resource: fmt.Sprintf("resource%d", i),
-				})
-				span.Duration = time.Second
-				span.End()
-				tx.End()
+		for i := 0; i < 10000; i++ {
+			if err := l.Wait(context.Background()); err != nil {
+				b.Fatal(err)
 			}
-			tracer.Flush(nil)
+			tx := tracer.StartTransaction(fmt.Sprintf("name%d", i), fmt.Sprintf("type%d", i))
+			span := tx.StartSpanOptions(fmt.Sprintf("name%d", i), fmt.Sprintf("type%d", i), apm.SpanOptions{})
+			span.Context.SetDestinationService(apm.DestinationServiceSpanContext{
+				Name:     fmt.Sprintf("name%d", i),
+				Resource: fmt.Sprintf("resource%d", i),
+			})
+			span.Duration = time.Second
+			span.End()
+			tx.End()
 		}
-	})
+		tracer.Flush(nil)
+	}
 }
 
 func main() {
