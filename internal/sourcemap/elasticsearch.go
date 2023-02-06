@@ -44,25 +44,19 @@ type esFetcher struct {
 	logger *logp.Logger
 }
 
-type esSourcemapResponse struct {
-	Hits struct {
-		Total struct {
-			Value int `json:"value"`
-		} `json:"total"`
-		Hits []struct {
-			Source struct {
-				Service struct {
-					Name    string `json:"name"`
-					Version string `json:"version"`
-				} `json:"service"`
-				File struct {
-					BundleFilepath string `json:"path"`
-				} `json:"file"`
-				Sourcemap   string `json:"content"`
-				ContentHash string `json:"content_sha256"`
-			} `json:"_source"`
-		} `json:"hits"`
-	} `json:"hits"`
+type esGetSourcemapResponse struct {
+	Found  bool `json:"found"`
+	Source struct {
+		Service struct {
+			Name    string `json:"name"`
+			Version string `json:"version"`
+		} `json:"service"`
+		File struct {
+			BundleFilepath string `json:"path"`
+		} `json:"file"`
+		Sourcemap   string `json:"content"`
+		ContentHash string `json:"content_sha256"`
+	} `json:"_source"`
 }
 
 // NewElasticsearchFetcher returns a Fetcher for fetching source maps stored in Elasticsearch.
@@ -129,49 +123,23 @@ func (s *esFetcher) Fetch(ctx context.Context, name, version, path string) (*sou
 }
 
 func (s *esFetcher) runSearchQuery(ctx context.Context, name, version, path string) (*esapi.Response, error) {
-	var buf bytes.Buffer
-	if err := json.NewEncoder(&buf).Encode(requestBody(name, version, path)); err != nil {
-		return nil, fmt.Errorf("failed to encode request body: %w", err)
-	}
-	req := esapi.SearchRequest{
-		Index:          []string{s.index},
-		Body:           &buf,
-		TrackTotalHits: true,
+	id := name + "-" + version + "-" + path
+	req := esapi.GetRequest{
+		Index:      s.index,
+		DocumentID: id,
 	}
 	return req.Do(ctx, s.client)
 }
 
 func parse(body io.ReadCloser, name, version, path string, logger *logp.Logger) (string, error) {
-	var esSourcemapResponse esSourcemapResponse
+	var esSourcemapResponse esGetSourcemapResponse
 	if err := json.NewDecoder(body).Decode(&esSourcemapResponse); err != nil {
 		return "", fmt.Errorf("failed to decode sourcemap: %w", err)
 	}
 
-	hits := esSourcemapResponse.Hits.Total.Value
-	if hits == 0 || len(esSourcemapResponse.Hits.Hits) == 0 {
+	if !esSourcemapResponse.Found {
 		return "", nil
 	}
 
-	esSourcemap := esSourcemapResponse.Hits.Hits[0].Source.Sourcemap
-	// until https://github.com/golang/go/issues/19858 is resolved
-	if esSourcemap == "" {
-		return "", fmt.Errorf("sourcemap not in the expected format: %w", errMalformedSourcemap)
-	}
-	return esSourcemap, nil
-}
-
-func requestBody(name, version, path string) map[string]interface{} {
-	id := name + "-" + version + "-" + path
-
-	return search(
-		size(1),
-		source("content"),
-		query(
-			boolean(
-				must(
-					term("_id", id),
-				),
-			),
-		),
-	)
+	return esSourcemapResponse.Source.Sourcemap, nil
 }

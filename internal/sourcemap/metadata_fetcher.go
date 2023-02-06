@@ -254,6 +254,27 @@ type esSearchSourcemapResponse struct {
 	esSourcemapResponse
 }
 
+type esSourcemapResponse struct {
+	Hits struct {
+		Total struct {
+			Value int `json:"value"`
+		} `json:"total"`
+		Hits []struct {
+			Source struct {
+				Service struct {
+					Name    string `json:"name"`
+					Version string `json:"version"`
+				} `json:"service"`
+				File struct {
+					BundleFilepath string `json:"path"`
+				} `json:"file"`
+				Sourcemap   string `json:"content"`
+				ContentHash string `json:"content_sha256"`
+			} `json:"_source"`
+		} `json:"hits"`
+	} `json:"hits"`
+}
+
 func (s *MetadataESFetcher) handleUpdateRequest(resp *esapi.Response, updates map[identifier]string) (*esSearchSourcemapResponse, error) {
 	// handle error response
 	if resp.StatusCode >= http.StatusMultipleChoices {
