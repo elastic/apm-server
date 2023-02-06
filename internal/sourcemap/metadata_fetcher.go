@@ -61,7 +61,7 @@ func NewMetadataFetcher(ctx context.Context, esClient *elasticsearch.Client, ind
 		invalidationChan: invalidationCh,
 	}
 
-	s.startBackgrounSync(ctx)
+	s.startBackgroundSync(ctx)
 
 	return s, invalidationCh
 }
@@ -85,7 +85,7 @@ func (s *MetadataESFetcher) ready() <-chan struct{} {
 	return s.init
 }
 
-func (s *MetadataESFetcher) startBackgrounSync(parent context.Context) {
+func (s *MetadataESFetcher) startBackgroundSync(parent context.Context) {
 	go func() {
 		s.logger.Debug("populating metadata cache")
 
