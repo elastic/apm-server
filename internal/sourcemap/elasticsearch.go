@@ -77,7 +77,7 @@ func (s *esFetcher) Fetch(ctx context.Context, name, version, path string) (*sou
 	if err != nil {
 		var networkErr net.Error
 		if errors.As(err, &networkErr) {
-			return nil, fmt.Errorf("failed to reach elasticsearch: %w, %v: ", errFetcherUnvailable, err)
+			return nil, fmt.Errorf("failed to reach elasticsearch: %w: %v ", errFetcherUnvailable, err)
 		}
 		return nil, fmt.Errorf("failure querying ES: %w", err)
 	}
