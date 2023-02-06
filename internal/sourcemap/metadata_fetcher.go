@@ -102,29 +102,27 @@ func (s *MetadataESFetcher) startBackgroundSync(parent context.Context) {
 			s.logger.Info("init routine completed")
 		}
 
-		go func() {
-			// TODO make this a config option ?
-			t := time.NewTicker(30 * time.Second)
-			defer t.Stop()
+		// TODO make this a config option ?
+		t := time.NewTicker(30 * time.Second)
+		defer t.Stop()
 
-			for {
-				select {
-				case <-t.C:
-					ctx, cancel := context.WithTimeout(parent, syncTimeout)
+		for {
+			select {
+			case <-t.C:
+				ctx, cancel := context.WithTimeout(parent, syncTimeout)
 
-					if err := s.sync(ctx); err != nil {
-						s.logger.Errorf("failed to sync sourcemaps metadata: %v", err)
-					}
-
-					cancel()
-				case <-parent.Done():
-					s.logger.Info("update routine done")
-					// close invalidation channel
-					close(s.invalidationChan)
-					return
+				if err := s.sync(ctx); err != nil {
+					s.logger.Errorf("failed to sync sourcemaps metadata: %v", err)
 				}
+
+				cancel()
+			case <-parent.Done():
+				s.logger.Info("update routine done")
+				// close invalidation channel
+				close(s.invalidationChan)
+				return
 			}
-		}()
+		}
 	}()
 }
 
