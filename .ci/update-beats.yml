@@ -23,12 +23,13 @@ actions:
       labels:
         - automation
         - backport-skip
+      title: "[automation] update libbeat and beats packaging"
 
 sources:
   beats:
     kind: shell
     spec:
-      command: make get-latest-beats-version
+      command: .ci/scripts/get-latest-beats-sha.sh
       environments:
           - name: PATH
 
@@ -44,7 +45,7 @@ conditions:
 
 targets:
   beats:
-    name: Install new elastic-apm-node npm dependency version
+    name: Update beats
     sourceid: beats
     scmid: githubConfig
     kind: shell
