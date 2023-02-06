@@ -45,9 +45,6 @@ func NewBodyCachingFetcher(
 	logger := logp.NewLogger(logs.Sourcemap)
 
 	lruCache, err := lru.NewWithEvict(cacheSize, func(key, value interface{}) {
-		if !logger.IsDebug() {
-			return
-		}
 		logger.Debugf("Removed id %v", key)
 	})
 
@@ -60,10 +57,7 @@ func NewBodyCachingFetcher(
 
 		for arr := range invalidationChan {
 			for _, id := range arr {
-				if logger.IsDebug() {
-					logger.Debugf("Invalidating id %v", id)
-				}
-
+				logger.Debugf("Invalidating id %v", id)
 				lruCache.Remove(id)
 			}
 		}
@@ -104,8 +98,5 @@ func (s *BodyCachingFetcher) Fetch(ctx context.Context, name, version, path stri
 
 func (s *BodyCachingFetcher) add(key identifier, consumer *sourcemap.Consumer) {
 	s.cache.Add(key, consumer)
-	if !s.logger.IsDebug() {
-		return
-	}
 	s.logger.Debugf("Added id %v. Cache now has %v entries.", key, s.cache.Len())
 }
