@@ -93,6 +93,8 @@ type Aggregator struct {
 	// These two metricsBuffer are set to the same size and act as buffers
 	// for caching and then publishing the metrics as batches.
 	active, inactive map[time.Duration]*metricsBuffer
+
+	histogramPool sync.Pool
 }
 
 // NewAggregator returns a new Aggregator with the given config.
@@ -107,6 +109,13 @@ func NewAggregator(config AggregatorConfig) (*Aggregator, error) {
 		config:   config,
 		active:   make(map[time.Duration]*metricsBuffer),
 		inactive: make(map[time.Duration]*metricsBuffer),
+		histogramPool: sync.Pool{New: func() interface{} {
+			return hdrhistogram.New(
+				minDuration.Microseconds(),
+				maxDuration.Microseconds(),
+				config.HDRHistogramSignificantFigures,
+			)
+		}},
 	}
 	base, err := baseaggregator.New(baseaggregator.AggregatorConfig{
 		PublishFunc:     aggregator.publish, // inject local publish
@@ -119,8 +128,8 @@ func NewAggregator(config AggregatorConfig) (*Aggregator, error) {
 	}
 	aggregator.Aggregator = base
 	for _, interval := range aggregator.Intervals {
-		aggregator.active[interval] = newMetricsBuffer(config.MaxGroups, config.HDRHistogramSignificantFigures)
-		aggregator.inactive[interval] = newMetricsBuffer(config.MaxGroups, config.HDRHistogramSignificantFigures)
+		aggregator.active[interval] = newMetricsBuffer(config.MaxGroups, &aggregator.histogramPool)
+		aggregator.inactive[interval] = newMetricsBuffer(config.MaxGroups, &aggregator.histogramPool)
 	}
 	return &aggregator, nil
 }
@@ -155,6 +164,7 @@ func (a *Aggregator) publish(ctx context.Context, period time.Duration) error {
 			m := makeMetricset(entry.aggregationKey, entry.serviceTxMetrics, totalCount, counts, values, intervalStr)
 			batch = append(batch, m)
 			entry.histogram.Reset()
+			a.histogramPool.Put(entry.histogram)
 		}
 		delete(current.m, key)
 	}
@@ -169,6 +179,7 @@ func (a *Aggregator) publish(ctx context.Context, period time.Duration) error {
 		})
 		batch = append(batch, m)
 		entry.histogram.Reset()
+		a.histogramPool.Put(entry.histogram)
 		current.other = nil
 		current.otherCardinalityEstimator = nil
 	}
@@ -217,17 +228,18 @@ type metricsBuffer struct {
 	space                     []metricsMapEntry
 	entries                   int
 
-	maxSize            int
-	significantFigures int
+	maxSize int
+
+	histogramPool *sync.Pool
 }
 
-func newMetricsBuffer(maxSize int, significantFigures int) *metricsBuffer {
+func newMetricsBuffer(maxSize int, histogramPool *sync.Pool) *metricsBuffer {
 	return &metricsBuffer{
-		maxSize:            maxSize,
-		significantFigures: significantFigures,
+		maxSize: maxSize,
 		// keep one reserved entry for overflow bucket
-		space: make([]metricsMapEntry, maxSize+1),
-		m:     make(map[uint64][]*metricsMapEntry),
+		space:         make([]metricsMapEntry, maxSize+1),
+		m:             make(map[uint64][]*metricsMapEntry),
+		histogramPool: histogramPool,
 	}
 }
 
@@ -297,13 +309,7 @@ under a dedicated bucket identified by service name '%s'.`[1:], mb.maxSize, over
 		transactionCount:    metrics.transactionCount,
 		failureCount:        metrics.failureCount,
 		successCount:        metrics.successCount,
-	}
-	if entry.serviceTxMetrics.histogram == nil {
-		entry.serviceTxMetrics.histogram = hdrhistogram.New(
-			minDuration.Microseconds(),
-			maxDuration.Microseconds(),
-			mb.significantFigures,
-		)
+		histogram:           mb.histogramPool.Get().(*hdrhistogram.Histogram),
 	}
 	entry.recordDuration(time.Duration(metrics.transactionDuration), metrics.transactionCount)
 }

@@ -54,6 +54,8 @@ type Aggregator struct {
 
 	mu               sync.RWMutex
 	active, inactive map[time.Duration]*metrics
+
+	histogramPool sync.Pool
 }
 
 type aggregatorMetrics struct {
@@ -142,6 +144,13 @@ func NewAggregator(config AggregatorConfig) (*Aggregator, error) {
 		metrics:  &aggregatorMetrics{},
 		active:   make(map[time.Duration]*metrics),
 		inactive: make(map[time.Duration]*metrics),
+		histogramPool: sync.Pool{New: func() interface{} {
+			return hdrhistogram.New(
+				minDuration.Microseconds(),
+				maxDuration.Microseconds(),
+				config.HDRHistogramSignificantFigures,
+			)
+		}},
 	}
 	base, err := baseaggregator.New(baseaggregator.AggregatorConfig{
 		PublishFunc:     aggregator.publish, // inject local publish
@@ -205,6 +214,7 @@ func (a *Aggregator) publish(ctx context.Context, period time.Duration) error {
 				event.Metricset.Interval = intervalStr
 				batch = append(batch, event)
 				entry.histogram.Reset()
+				a.histogramPool.Put(entry.histogram)
 			}
 			delete(svcEntry.m, hash)
 		}
@@ -220,6 +230,7 @@ func (a *Aggregator) publish(ctx context.Context, period time.Duration) error {
 			})
 			batch = append(batch, m)
 			entry.histogram.Reset()
+			a.histogramPool.Put(entry.histogram)
 			svcEntry.other = nil
 			svcEntry.otherCardinalityEstimator = nil
 			svcEntry.entries = 0
@@ -404,11 +415,7 @@ that configuration option appropriately, may lead to better results.`[1:],
 	}
 	entry.transactionAggregationKey = key
 	if entry.transactionMetrics.histogram == nil {
-		entry.transactionMetrics.histogram = hdrhistogram.New(
-			minDuration.Microseconds(),
-			maxDuration.Microseconds(),
-			a.config.HDRHistogramSignificantFigures,
-		)
+		entry.transactionMetrics.histogram = a.histogramPool.Get().(*hdrhistogram.Histogram)
 	}
 	entry.recordDuration(duration, count)
 }
