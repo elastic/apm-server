@@ -1,0 +1,58 @@
+---
+name: Bump beats
+title: Bump beats
+
+scms:
+  githubConfig:
+    kind: github
+    spec:
+      user: '{{ requiredEnv "GIT_USER" }}'
+      email: '{{ requiredEnv "GIT_EMAIL" }}'
+      owner: reakaleek
+      repository: apm-server
+      token: '{{ requiredEnv "GITHUB_TOKEN" }}'
+      username: '{{ requiredEnv "GIT_USER" }}'
+      branch: '{{ requiredEnv "BRANCH_NAME" }}'
+
+actions:
+  apm-server:
+    kind: github/pullrequest
+    scmid: githubConfig
+    spec:
+      automerge: false
+      labels:
+        - automation
+        - backport-skip
+
+sources:
+  beats:
+    kind: shell
+    spec:
+      command: make get-latest-beats-version
+      environments:
+          - name: PATH
+
+conditions:
+  beats-version-check:
+    name: Check beats version
+    kind: shell
+    sourceid: beats
+    spec:
+      command: sh .ci/scripts/check-beats-version.sh
+      environments:
+        - name: BRANCH_NAME
+
+targets:
+  beats:
+    name: Install new elastic-apm-node npm dependency version
+    sourceid: beats
+    scmid: githubConfig
+    kind: shell
+    spec:
+      command: sh .ci/scripts/update-beats.sh
+      environments:
+        - name: PATH
+        - name: GOPATH
+        - name: HOME
+
+

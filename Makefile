@@ -216,7 +216,11 @@ BEATS_MODULE:=github.com/elastic/beats/v7
 
 .PHONY: update-beats
 update-beats: update-beats-module update
-	@echo --- Use this commit message: Update to elastic/beats@$(shell $(GO) list -m -f {{.Version}} $(BEATS_MODULE) | cut -d- -f3)
+	@echo --- Use this commit message: Update to elastic/beats@$$($(MAKE) get-latest-beats-version)
+
+.PHONY: get-latest-beats-version
+get-latest-beats-version:
+	@$(GO) list -m -f {{.Version}} $(BEATS_MODULE) | cut -d- -f3
 
 .PHONY: update-beats-module
 update-beats-module:
