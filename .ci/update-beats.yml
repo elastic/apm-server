@@ -38,7 +38,7 @@ conditions:
     kind: shell
     sourceid: beats
     spec:
-      command: sh .ci/scripts/check-beats-version.sh
+      command: .ci/scripts/check-beats-version.sh
       environments:
         - name: BRANCH_NAME
 
@@ -49,7 +49,7 @@ targets:
     scmid: githubConfig
     kind: shell
     spec:
-      command: sh .ci/scripts/update-beats.sh
+      command: .ci/scripts/update-beats.sh
       environments:
         - name: PATH
         - name: GOPATH

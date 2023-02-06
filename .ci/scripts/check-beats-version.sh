@@ -1,5 +1,5 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
-set -xeu
+set -euo pipefail
 
-exec grep "BEATS_VERSION?=$BRANCH_NAME" Makefile
+grep "BEATS_VERSION?=$BRANCH_NAME" Makefile
