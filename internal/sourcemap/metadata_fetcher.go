@@ -18,7 +18,6 @@
 package sourcemap
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -229,24 +228,13 @@ func (s *MetadataESFetcher) initialSearch(ctx context.Context, updates map[ident
 }
 
 func (s *MetadataESFetcher) runSearchQuery(ctx context.Context) (*esapi.Response, error) {
-	var buf bytes.Buffer
-	if err := json.NewEncoder(&buf).Encode(queryMetadata()); err != nil {
-		return nil, fmt.Errorf("failed to encode metadata query: %w", err)
-	}
-
 	req := esapi.SearchRequest{
 		Index:          []string{s.index},
-		Body:           &buf,
+		Source:         []string{"service.*", "file.path", "content_sha256"},
 		TrackTotalHits: true,
 		Scroll:         time.Minute,
 	}
 	return req.Do(ctx, s.esClient)
-}
-
-func queryMetadata() map[string]interface{} {
-	return search(
-		sources([]string{"service.*", "file.path", "content_sha256"}),
-	)
 }
 
 type esSearchSourcemapResponse struct {
