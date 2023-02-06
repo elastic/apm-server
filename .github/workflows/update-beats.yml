@@ -27,4 +27,5 @@ jobs:
       - name: Run Updatecli
         env:
           GITHUB_TOKEN: ${{ github.token }}
+          BRANCH_NAME: ${{ github.ref_name }}
         run: updatecli apply --config ./.ci/update-beats.yml
