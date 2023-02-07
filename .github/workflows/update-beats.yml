@@ -5,7 +5,8 @@ on:
     branches:
       - main
       - "7.17"
-      - "8.6"
+      - "8.*"
+      - '!8.[0-5]'
 
 permissions:
   pull-requests: write
