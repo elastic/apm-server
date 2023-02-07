@@ -306,7 +306,7 @@ func (s *MetadataESFetcher) handleUpdateRequest(resp *esapi.Response, updates ma
 		if err != nil {
 			return nil, fmt.Errorf("failed to read response body: %w", err)
 		}
-		if resp.StatusCode == http.StatusNotFound || resp.StatusCode == http.StatusForbidden {
+		if resp.StatusCode == http.StatusNotFound || resp.StatusCode == http.StatusForbidden || resp.StatusCode == http.StatusUnauthorized {
 			return nil, fmt.Errorf("%w: %s: %s", errFetcherUnvailable, resp.Status(), string(b))
 		}
 		return nil, fmt.Errorf("ES returned unknown status code: %s", resp.Status())
