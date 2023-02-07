@@ -159,7 +159,10 @@ func (s *MetadataESFetcher) ping(ctx context.Context) error {
 	req := esapi.IndicesGetRequest{
 		Index: []string{s.index},
 	}
-	_, err := req.Do(ctx, s.esClient)
+	resp, err := req.Do(ctx, s.esClient)
+	if err == nil {
+		resp.Body.Close()
+	}
 	return err
 }
 
