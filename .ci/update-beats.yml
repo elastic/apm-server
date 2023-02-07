@@ -1,7 +1,6 @@
 ---
 name: Bump beats
 title: "[automation] update libbeat and beats packaging"
-version: 0.43.0
 
 scms:
   apm-server:
