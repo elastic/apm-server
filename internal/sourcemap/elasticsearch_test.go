@@ -56,17 +56,6 @@ func Test_esFetcher_fetchError(t *testing.T) {
 			statusCode:         http.StatusBadRequest,
 			expectedErrMessage: "ES returned unknown status code: 400 Bad Request",
 		},
-		"empty sourcemap string": {
-			statusCode: http.StatusOK,
-			responseBody: sourcemapSearchResponseBody(1, []map[string]interface{}{{
-				"_source": map[string]interface{}{
-					"sourcemap": map[string]interface{}{
-						"sourcemap": "",
-					},
-				},
-			}}),
-			expectedErrMessage: "sourcemap not in the expected format: sourcemap malformed",
-		},
 	} {
 		t.Run(name, func(t *testing.T) {
 			var client *elasticsearch.Client
@@ -91,15 +80,11 @@ func Test_esFetcher_fetch(t *testing.T) {
 	}{
 		"no sourcemap found": {
 			statusCode:   http.StatusOK,
-			responseBody: sourcemapSearchResponseBody(0, []map[string]interface{}{}),
-		},
-		"sourcemap indicated but not found": {
-			statusCode:   http.StatusOK,
-			responseBody: sourcemapSearchResponseBody(1, []map[string]interface{}{}),
+			responseBody: sourcemapESResponseBody(false, ""),
 		},
 		"valid sourcemap found": {
 			statusCode:   http.StatusOK,
-			responseBody: sourcemapSearchResponseBody(1, []map[string]interface{}{sourcemapHit(validSourcemap)}),
+			responseBody: sourcemapESResponseBody(true, validSourcemap),
 			filePath:     "bundle.js",
 		},
 	} {
@@ -122,16 +107,14 @@ func testESFetcher(client *elasticsearch.Client) *esFetcher {
 	return &esFetcher{client: client, index: "apm-sourcemap", logger: logp.NewLogger(logs.Sourcemap)}
 }
 
-func sourcemapSearchResponseBody(hitsTotal int, hits []map[string]interface{}) io.Reader {
-	resultHits := map[string]interface{}{
-		"total": map[string]interface{}{
-			"value": hitsTotal,
+func sourcemapESResponseBody(found bool, s string) io.Reader {
+	result := map[string]interface{}{
+		"found": found,
+		"_source": map[string]interface{}{
+			"content": encodeSourcemap(s),
 		},
 	}
-	if hits != nil {
-		resultHits["hits"] = hits
-	}
-	result := map[string]interface{}{"hits": resultHits}
+
 	data, err := json.Marshal(result)
 	if err != nil {
 		panic(err)
@@ -139,20 +122,14 @@ func sourcemapSearchResponseBody(hitsTotal int, hits []map[string]interface{}) i
 	return bytes.NewReader(data)
 }
 
-func sourcemapHit(sourcemap string) map[string]interface{} {
+func encodeSourcemap(sourcemap string) string {
 	b := &bytes.Buffer{}
 
 	z := zlib.NewWriter(b)
 	z.Write([]byte(sourcemap))
 	z.Close()
 
-	s := base64.StdEncoding.EncodeToString(b.Bytes())
-
-	return map[string]interface{}{
-		"_source": map[string]interface{}{
-			"content": s,
-		},
-	}
+	return base64.StdEncoding.EncodeToString(b.Bytes())
 }
 
 // newUnavailableElasticsearchClient returns an elasticsearch.Client configured

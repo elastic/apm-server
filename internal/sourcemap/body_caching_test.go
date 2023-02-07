@@ -59,9 +59,7 @@ func TestStore_Fetch(t *testing.T) {
 	t.Run("cache", func(t *testing.T) {
 		t.Run("nil", func(t *testing.T) {
 			var nilConsumer *sourcemap.Consumer
-			store := testCachingFetcher(t, newMockElasticsearchClient(t, http.StatusOK,
-				sourcemapSearchResponseBody(1, []map[string]interface{}{sourcemapHit(validSourcemap)}),
-			))
+			store := testCachingFetcher(t, newMockElasticsearchClient(t, http.StatusOK, sourcemapESResponseBody(true, validSourcemap)))
 			store.add(key, nilConsumer)
 
 			mapper, err := store.Fetch(context.Background(), serviceName, serviceVersion, path)
@@ -82,9 +80,7 @@ func TestStore_Fetch(t *testing.T) {
 	})
 
 	t.Run("validFromES", func(t *testing.T) {
-		store := testCachingFetcher(t, newMockElasticsearchClient(t, http.StatusOK,
-			sourcemapSearchResponseBody(1, []map[string]interface{}{sourcemapHit(validSourcemap)}),
-		))
+		store := testCachingFetcher(t, newMockElasticsearchClient(t, http.StatusOK, sourcemapESResponseBody(true, validSourcemap)))
 		mapper, err := store.Fetch(context.Background(), serviceName, serviceVersion, path)
 		require.NoError(t, err)
 		require.NotNil(t, mapper)
@@ -96,7 +92,7 @@ func TestStore_Fetch(t *testing.T) {
 	})
 
 	t.Run("notFoundInES", func(t *testing.T) {
-		store := testCachingFetcher(t, newMockElasticsearchClient(t, http.StatusOK, sourcemapSearchResponseBody(0, []map[string]interface{}{})))
+		store := testCachingFetcher(t, newMockElasticsearchClient(t, http.StatusOK, sourcemapESResponseBody(false, "")))
 		//not cached
 		cached, found := store.cache.Get(key)
 		require.False(t, found)
@@ -115,12 +111,8 @@ func TestStore_Fetch(t *testing.T) {
 
 	t.Run("invalidFromES", func(t *testing.T) {
 		for name, client := range map[string]*elasticsearch.Client{
-			"invalid": newMockElasticsearchClient(t, http.StatusOK,
-				sourcemapSearchResponseBody(1, []map[string]interface{}{sourcemapHit("foo")}),
-			),
-			"unsupportedVersion": newMockElasticsearchClient(t, http.StatusOK,
-				sourcemapSearchResponseBody(1, []map[string]interface{}{sourcemapHit(unsupportedVersionSourcemap)}),
-			),
+			"invalid":            newMockElasticsearchClient(t, http.StatusOK, sourcemapESResponseBody(true, "foo")),
+			"unsupportedVersion": newMockElasticsearchClient(t, http.StatusOK, sourcemapESResponseBody(true, unsupportedVersionSourcemap)),
 		} {
 			t.Run(name, func(t *testing.T) {
 				store := testCachingFetcher(t, client)

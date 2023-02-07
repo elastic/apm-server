@@ -42,20 +42,30 @@ var validSourcemap, _ = os.ReadFile("../../testdata/sourcemap/bundle.js.map")
 func TestStoreUsesRUMElasticsearchConfig(t *testing.T) {
 	var called bool
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		called = true
 		w.Header().Set("X-Elastic-Product", "Elasticsearch")
-
-		m := sourcemapHit(validSourcemap)
-
-		b, err := json.Marshal(m)
-		require.NoError(t, err)
-
-		w.Write(b)
+		switch r.URL.Path {
+		case "/.apm-source-map":
+			// ping request from the metadata fetcher.
+			// Send a status ok
+			w.WriteHeader(http.StatusOK)
+		case "/.apm-source-map/_search":
+			// search request from the metadata fetcher
+			m := sourcemapSearchResponseBody("app", "1.0", "/bundle/path")
+			w.Write(m)
+		case "/.apm-source-map/_doc/app-1.0-/bundle/path":
+			m := sourcemapGetResponseBody(true, validSourcemap)
+			w.Write(m)
+			called = true
+		default:
+			w.WriteHeader(http.StatusTeapot)
+			t.Fatalf("unhandled request path: %s", r.URL.Path)
+		}
 	}))
 	defer ts.Close()
 
 	cfg := config.DefaultConfig()
 	cfg.RumConfig.Enabled = true
+	cfg.Kibana.Enabled = false
 	cfg.RumConfig.SourceMapping.Enabled = true
 	cfg.RumConfig.SourceMapping.ESConfig = elasticsearch.DefaultConfig()
 	cfg.RumConfig.SourceMapping.ESConfig.Hosts = []string{ts.URL}
@@ -75,29 +85,58 @@ func TestStoreUsesRUMElasticsearchConfig(t *testing.T) {
 	assert.True(t, called)
 }
 
-func sourcemapHit(sourcemap []byte) map[string]interface{} {
+func sourcemapSearchResponseBody(name string, version string, bundlePath string) []byte {
+	result := map[string]interface{}{
+		"hits": map[string]interface{}{
+			"total": map[string]interface{}{
+				"value": 1,
+			},
+			"hits": []map[string]interface{}{
+				{
+					"_source": map[string]interface{}{
+						"service": map[string]interface{}{
+							"name":    name,
+							"version": version,
+						},
+						"file": map[string]interface{}{
+							"path": bundlePath,
+						},
+					},
+				},
+			},
+		},
+	}
+
+	data, err := json.Marshal(result)
+	if err != nil {
+		panic(err)
+	}
+	return data
+}
+
+func sourcemapGetResponseBody(found bool, b []byte) []byte {
+	result := map[string]interface{}{
+		"found": found,
+		"_source": map[string]interface{}{
+			"content": encodeSourcemap(b),
+		},
+	}
+
+	data, err := json.Marshal(result)
+	if err != nil {
+		panic(err)
+	}
+	return data
+}
+
+func encodeSourcemap(sourcemap []byte) string {
 	b := &bytes.Buffer{}
 
 	z := zlib.NewWriter(b)
 	z.Write(sourcemap)
 	z.Close()
 
-	s := base64.StdEncoding.EncodeToString(b.Bytes())
-
-	hits := map[string]interface{}{
-		"_source": map[string]interface{}{
-			"content": s,
-		},
-	}
-
-	resultHits := map[string]interface{}{
-		"total": map[string]interface{}{
-			"value": 1,
-		},
-	}
-	resultHits["hits"] = []map[string]interface{}{hits}
-	result := map[string]interface{}{"hits": resultHits}
-	return result
+	return base64.StdEncoding.EncodeToString(b.Bytes())
 }
 
 func TestQueryClusterUUIDRegistriesExist(t *testing.T) {

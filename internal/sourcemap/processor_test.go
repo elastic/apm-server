@@ -34,9 +34,7 @@ import (
 )
 
 func TestBatchProcessor(t *testing.T) {
-	client := newMockElasticsearchClient(t, http.StatusOK,
-		sourcemapSearchResponseBody(1, []map[string]interface{}{sourcemapHit(string(validSourcemap))}),
-	)
+	client := newMockElasticsearchClient(t, http.StatusOK, sourcemapESResponseBody(true, validSourcemap))
 	esFetcher := NewElasticsearchFetcher(client, "index")
 	fetcher, err := NewBodyCachingFetcher(esFetcher, 100, nil)
 	require.NoError(t, err)
