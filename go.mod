@@ -9,7 +9,7 @@ require (
 	github.com/elastic/apm-server/internal/approvaltest v0.0.0-00010101000000-000000000000
 	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230205193945-4686d76049f6
 	github.com/elastic/elastic-agent-client/v7 v7.0.3
-	github.com/elastic/elastic-agent-libs v0.2.16
+	github.com/elastic/elastic-agent-libs v0.3.0
 	github.com/elastic/elastic-agent-system-metrics v0.4.5-0.20220927192933-25a985b07d51
 	github.com/elastic/gmux v0.2.0
 	github.com/elastic/go-elasticsearch/v8 v8.6.0
@@ -151,7 +151,7 @@ require (
 	go.uber.org/multierr v1.9.0 // indirect
 	golang.org/x/crypto v0.5.0 // indirect
 	golang.org/x/mod v0.7.0 // indirect
-	golang.org/x/sys v0.4.0 // indirect
+	golang.org/x/sys v0.5.0 // indirect
 	golang.org/x/text v0.6.0 // indirect
 	google.golang.org/genproto v0.0.0-20230202175211-008b39050e57 // indirect
 	gopkg.in/jcmturner/aescts.v1 v1.0.1 // indirect
