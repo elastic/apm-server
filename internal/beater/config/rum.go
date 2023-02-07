@@ -34,7 +34,6 @@ const (
 	allowAllOrigins                 = "*"
 	defaultExcludeFromGrouping      = "^/webpack"
 	defaultLibraryPattern           = "node_modules|bower_components|~"
-	defaultSourcemapCacheExpiration = 5 * time.Minute
 	defaultSourcemapTimeout         = 5 * time.Second
 )
 
@@ -51,7 +50,6 @@ type RumConfig struct {
 
 // SourceMapping holds sourcemap config information
 type SourceMapping struct {
-	Cache        Cache                 `config:"cache"`
 	Enabled      bool                  `config:"enabled"`
 	ESConfig     *elasticsearch.Config `config:"elasticsearch"`
 	Timeout      time.Duration         `config:"timeout" validate:"positive"`
@@ -114,7 +112,6 @@ func (s *SourceMapping) Unpack(inp *config.C) error {
 func defaultSourcemapping() SourceMapping {
 	return SourceMapping{
 		Enabled:  true,
-		Cache:    Cache{Expiration: defaultSourcemapCacheExpiration},
 		ESConfig: elasticsearch.DefaultConfig(),
 		Timeout:  defaultSourcemapTimeout,
 	}
