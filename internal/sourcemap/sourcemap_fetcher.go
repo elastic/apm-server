@@ -56,8 +56,6 @@ func (s *SourcemapFetcher) Fetch(ctx context.Context, name, version, path string
 		return nil, fmt.Errorf("error waiting for metadata fetcher to be ready: %w", ctx.Err())
 	}
 
-	// the mutex is shared by the update goroutine, we need to release it
-	// as soon as possible to avoid blocking updates.
 	if i, ok := s.metadata.getID(original); ok {
 		// Only fetch from ES if the sourcemap id exists
 		return s.fetch(ctx, i)
