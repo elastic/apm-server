@@ -120,6 +120,10 @@ func Benchmark10000AggregationGroups(b *testing.B, l *rate.Limiter) {
 	//
 	// Using b.N instead of b.RunParallel since this benchmark is about memory
 	// usage.
+	//
+	// If rate limiter is used, it is possible that part of the 10k
+	// transactions will not fit into the same 1m aggregation period, and this
+	// will cause a lower observed memory usage.
 	for n := 0; n < b.N; n++ {
 		tracer := benchtest.NewTracer(b)
 		for i := 0; i < 10000; i++ {
