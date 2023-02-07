@@ -47,7 +47,7 @@ func (c ChainedFetcher) Fetch(ctx context.Context, name, version, path string) (
 		// previous fetcher is unavailable but the deadline expired so we cannot reuse that
 		if t, _ := ctx.Deadline(); t.Before(time.Now()) {
 			var cancel context.CancelFunc
-			ctx, cancel = context.WithTimeout(context.Background(), 500 * time.Millisecond)
+			ctx, cancel = context.WithTimeout(context.Background(), 500*time.Millisecond)
 			defer cancel()
 		}
 
