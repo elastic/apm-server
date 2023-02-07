@@ -216,14 +216,20 @@ func (s *Runner) Run(ctx context.Context) error {
 		)
 	}
 	if s.config.Aggregation.Transactions.MaxTransactionGroups <= 0 {
-		s.config.Aggregation.Transactions.MaxTransactionGroups = maxGroupsForAggregation(memLimitGB)
-		s.logger.Infof("MaxTransactionGroups set to %d based on %0.1fgb of memory",
+		s.config.Aggregation.Transactions.MaxTransactionGroups = maxTxGroupsForAggregation(memLimitGB)
+		s.logger.Infof("Transactions.MaxTransactionGroups set to %d based on %0.1fgb of memory",
 			s.config.Aggregation.Transactions.MaxTransactionGroups, memLimitGB,
+		)
+	}
+	if s.config.Aggregation.Transactions.MaxServices <= 0 {
+		s.config.Aggregation.Transactions.MaxServices = maxGroupsForAggregation(memLimitGB)
+		s.logger.Infof("Transactions.MaxServices set to %d based on %0.1fgb of memory",
+			s.config.Aggregation.Transactions.MaxServices, memLimitGB,
 		)
 	}
 	if s.config.Aggregation.ServiceTransactions.MaxGroups <= 0 {
 		s.config.Aggregation.ServiceTransactions.MaxGroups = maxGroupsForAggregation(memLimitGB)
-		s.logger.Infof("MaxGroups for service aggregation set to %d based on %0.1fgb of memory",
+		s.logger.Infof("ServiceTransactions.MaxGroups for service aggregation set to %d based on %0.1fgb of memory",
 			s.config.Aggregation.ServiceTransactions.MaxGroups, memLimitGB,
 		)
 	}
@@ -501,16 +507,26 @@ func maxConcurrentDecoders(memLimitGB float64) uint {
 	return decoders
 }
 
-// maxGroupsForAggregation calculates the maximum transaction groups or service
-// groups that a particular memory limit can have. The previous default value
-// of 10_000 is kept as a starting point for 1GB instances and scaled linearly
-// for bigger instances.
+// maxGroupsForAggregation calculates the maximum service groups that a
+// particular memory limit can have. This will be scaled linearly for bigger
+// instances.
 func maxGroupsForAggregation(memLimitGB float64) int {
 	const maxMemGB = 64
 	if memLimitGB > maxMemGB {
 		memLimitGB = maxMemGB
 	}
-	return int(memLimitGB * 10_000)
+	return int(memLimitGB * 1_000)
+}
+
+// maxTxGroupsForAggregation calculates the maximum transaction groups that a
+// particular memory limit can have. This will be scaled linearly for bigger
+// instances.
+func maxTxGroupsForAggregation(memLimitGB float64) int {
+	const maxMemGB = 64
+	if memLimitGB > maxMemGB {
+		memLimitGB = maxMemGB
+	}
+	return int(memLimitGB * 5_000)
 }
 
 // waitReady waits until the server is ready to index events.
