@@ -234,7 +234,11 @@ func (s *MetadataESFetcher) update(ctx context.Context, sourcemaps map[identifie
 		}
 	}
 
-	s.invalidationChan <- invalidation
+	select {
+	case s.invalidationChan <- invalidation:
+	case <-ctx.Done():
+		s.logger.Debug("timed out while invalidating soucemaps")
+	}
 
 	// add new sourcemaps to the metadata cache.
 	for id, contentHash := range sourcemaps {
