@@ -1,29 +1,30 @@
 ---
 name: Bump beats
-title: Bump beats
+title: "[automation] update libbeat and beats packaging"
+version: 0.43.0
 
 scms:
-  githubConfig:
+  apm-server:
     kind: github
     spec:
       user: '{{ requiredEnv "GIT_USER" }}'
       email: '{{ requiredEnv "GIT_EMAIL" }}'
-      owner: reakaleek
+      owner: elastic
       repository: apm-server
       token: '{{ requiredEnv "GITHUB_TOKEN" }}'
       username: '{{ requiredEnv "GIT_USER" }}'
       branch: '{{ requiredEnv "BRANCH_NAME" }}'
 
 actions:
-  apm-server:
+  apm-server-pr:
     kind: github/pullrequest
-    scmid: githubConfig
+    scmid: apm-server
     spec:
+      title: "[automation] update libbeat and beats packaging"
       automerge: false
       labels:
         - automation
         - backport-skip
-      title: "[automation] update libbeat and beats packaging"
 
 sources:
   beats:
@@ -33,21 +34,21 @@ sources:
       environments:
           - name: PATH
 
-#conditions:
-#  beats-version-check:
-#    name: Check beats version
-#    kind: shell
-#    sourceid: beats
-#    spec:
-#      command: .ci/scripts/check-beats-version.sh
-#      environments:
-#        - name: BRANCH_NAME
+conditions:
+  beats-version-check:
+    name: Check beats version
+    kind: shell
+    sourceid: beats
+    spec:
+      command: .ci/scripts/check-beats-version.sh
+      environments:
+        - name: BRANCH_NAME
 
 targets:
   beats:
     name: Update beats
     sourceid: beats
-    scmid: githubConfig
+    scmid: apm-server
     kind: shell
     spec:
       command: .ci/scripts/update-beats.sh
