@@ -159,81 +159,58 @@ func TestSourcemapCaching(t *testing.T) {
 	assertSourcemapUpdated(t, result, true)
 }
 
-func TestSourcemapElasticsearch(t *testing.T) {
-	systemtest.CleanupElasticsearch(t)
-
-	sourcemap, err := os.ReadFile("../testdata/sourcemap/bundle.js.map")
-	require.NoError(t, err)
-	systemtest.CreateSourceMap(t, string(sourcemap), "apm-agent-js", "1.0.1",
-		"http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
-	)
-
-	srv := apmservertest.NewUnstartedServerTB(t)
-	srv.Config.RUM = &apmservertest.RUMConfig{Enabled: true}
-	err = srv.Start()
-	require.NoError(t, err)
-
-	// Index an error, applying source mapping and caching the source map in the process.
-	systemtest.SendRUMEventsPayload(t, srv.URL, "../testdata/intake-v2/errors_rum.ndjson")
-	result := systemtest.Elasticsearch.ExpectDocs(t, "logs-apm.error-*", nil)
-	assertSourcemapUpdated(t, result, true)
-}
-
-func TestSourcemapElasticsearchUnreachable(t *testing.T) {
-	systemtest.CleanupElasticsearch(t)
-
-	sourcemap, err := os.ReadFile("../testdata/sourcemap/bundle.js.map")
-	require.NoError(t, err)
-	systemtest.CreateSourceMap(t, string(sourcemap), "apm-agent-js", "1.0.1",
-		"http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
-	)
-
-	srv := apmservertest.NewUnstartedServerTB(t)
-	srv.Config.RUM = &apmservertest.RUMConfig{
-		Enabled: true,
-		Sourcemap: &apmservertest.RUMSourcemapConfig{
-			ESConfig: &apmservertest.ElasticsearchOutputConfig{
+func TestSourcemapFetcher(t *testing.T) {
+	testCases := []struct {
+		name          string
+		disableKibana bool
+		rumESConfig   *apmservertest.ElasticsearchOutputConfig
+	}{
+		{
+			name:          "elasticsearch",
+			disableKibana: true,
+		}, {
+			name: "kibana fallback with es unreachable",
+			rumESConfig: &apmservertest.ElasticsearchOutputConfig{
 				// Use an unreachable address
 				Hosts: []string{"127.0.0.1:12345"},
 			},
-		},
-	}
-	err = srv.Start()
-	require.NoError(t, err)
-
-	// Index an error, applying source mapping and caching the source map in the process.
-	systemtest.SendRUMEventsPayload(t, srv.URL, "../testdata/intake-v2/errors_rum.ndjson")
-	result := systemtest.Elasticsearch.ExpectDocs(t, "logs-apm.error-*", nil)
-	assertSourcemapUpdated(t, result, true)
-}
-
-func TestSourcemapKibana(t *testing.T) {
-	systemtest.CleanupElasticsearch(t)
-
-	sourcemap, err := os.ReadFile("../testdata/sourcemap/bundle.js.map")
-	require.NoError(t, err)
-	systemtest.CreateSourceMap(t, string(sourcemap), "apm-agent-js", "1.0.1",
-		"http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
-	)
-
-	srv := apmservertest.NewUnstartedServerTB(t)
-	srv.Config.RUM = &apmservertest.RUMConfig{
-		Enabled: true,
-		Sourcemap: &apmservertest.RUMSourcemapConfig{
-			// Use the wrong credentials so that the ES fetcher
-			// will fail and apm server will fall back to kibana
-			ESConfig: &apmservertest.ElasticsearchOutputConfig{
+		}, {
+			name: "kibana fallback with es credentials unauthorized",
+			rumESConfig: &apmservertest.ElasticsearchOutputConfig{
+				// Use the wrong credentials so that the ES fetcher
+				// will fail and apm server will fall back to kiban
 				APIKey: "example",
 			},
 		},
 	}
-	err = srv.Start()
-	require.NoError(t, err)
 
-	// Index an error, applying source mapping and caching the source map in the process.
-	systemtest.SendRUMEventsPayload(t, srv.URL, "../testdata/intake-v2/errors_rum.ndjson")
-	result := systemtest.Elasticsearch.ExpectDocs(t, "logs-apm.error-*", nil)
-	assertSourcemapUpdated(t, result, true)
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			systemtest.CleanupElasticsearch(t)
+
+			sourcemap, err := os.ReadFile("../testdata/sourcemap/bundle.js.map")
+			require.NoError(t, err)
+			systemtest.CreateSourceMap(t, string(sourcemap), "apm-agent-js", "1.0.1",
+				"http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
+			)
+
+			srv := apmservertest.NewUnstartedServerTB(t)
+			srv.Config.Kibana.Enabled = !tc.disableKibana
+			srv.Config.RUM = &apmservertest.RUMConfig{
+				Enabled: true,
+				Sourcemap: &apmservertest.RUMSourcemapConfig{
+					ESConfig: tc.rumESConfig,
+				},
+			}
+			err = srv.Start()
+			require.NoError(t, err)
+
+			// Index an error, applying source mapping and caching the source map in the process.
+			systemtest.SendRUMEventsPayload(t, srv.URL, "../testdata/intake-v2/errors_rum.ndjson")
+			result := systemtest.Elasticsearch.ExpectDocs(t, "logs-apm.error-*", nil)
+			assertSourcemapUpdated(t, result, true)
+		})
+	}
 }
 
 func deleteIndex(t *testing.T, name string) {
