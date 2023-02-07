@@ -437,7 +437,7 @@ func TestUnpackConfig(t *testing.T) {
 					AllowOrigins: []string{"*"},
 					AllowHeaders: []string{},
 					SourceMapping: SourceMapping{
-						Enabled: true,
+						Enabled:  true,
 						ESConfig: elasticsearch.DefaultConfig(),
 						Timeout:  5 * time.Second,
 					},

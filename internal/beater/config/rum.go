@@ -31,10 +31,10 @@ import (
 )
 
 const (
-	allowAllOrigins                 = "*"
-	defaultExcludeFromGrouping      = "^/webpack"
-	defaultLibraryPattern           = "node_modules|bower_components|~"
-	defaultSourcemapTimeout         = 5 * time.Second
+	allowAllOrigins            = "*"
+	defaultExcludeFromGrouping = "^/webpack"
+	defaultLibraryPattern      = "node_modules|bower_components|~"
+	defaultSourcemapTimeout    = 5 * time.Second
 )
 
 // RumConfig holds config information related to the RUM endpoint
