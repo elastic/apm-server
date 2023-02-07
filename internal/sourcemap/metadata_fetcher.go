@@ -129,7 +129,6 @@ func (s *MetadataESFetcher) startBackgroundSync(parent context.Context) {
 
 		close(s.init)
 
-		// TODO make this a config option ?
 		t := time.NewTicker(30 * time.Second)
 		defer t.Stop()
 
