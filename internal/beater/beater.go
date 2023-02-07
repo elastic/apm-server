@@ -23,24 +23,20 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	"net/url"
 	"os"
 	"runtime"
-	"strings"
 	"time"
 
 	"github.com/dustin/go-humanize"
 	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 	"go.elastic.co/apm/module/apmgrpc/v2"
-	"go.elastic.co/apm/module/apmhttp/v2"
 	"go.elastic.co/apm/v2"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
-	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/esleg/eslegclient"
 	"github.com/elastic/beats/v7/libbeat/instrumentation"
 	"github.com/elastic/beats/v7/libbeat/licenser"
@@ -51,8 +47,6 @@ import (
 	agentconfig "github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/monitoring"
-	"github.com/elastic/elastic-agent-libs/transport"
-	"github.com/elastic/elastic-agent-libs/transport/tlscommon"
 	"github.com/elastic/go-docappender"
 	"github.com/elastic/go-ucfg"
 
@@ -222,14 +216,20 @@ func (s *Runner) Run(ctx context.Context) error {
 		)
 	}
 	if s.config.Aggregation.Transactions.MaxTransactionGroups <= 0 {
-		s.config.Aggregation.Transactions.MaxTransactionGroups = maxGroupsForAggregation(memLimitGB)
-		s.logger.Infof("MaxTransactionGroups set to %d based on %0.1fgb of memory",
+		s.config.Aggregation.Transactions.MaxTransactionGroups = maxTxGroupsForAggregation(memLimitGB)
+		s.logger.Infof("Transactions.MaxTransactionGroups set to %d based on %0.1fgb of memory",
 			s.config.Aggregation.Transactions.MaxTransactionGroups, memLimitGB,
+		)
+	}
+	if s.config.Aggregation.Transactions.MaxServices <= 0 {
+		s.config.Aggregation.Transactions.MaxServices = maxGroupsForAggregation(memLimitGB)
+		s.logger.Infof("Transactions.MaxServices set to %d based on %0.1fgb of memory",
+			s.config.Aggregation.Transactions.MaxServices, memLimitGB,
 		)
 	}
 	if s.config.Aggregation.ServiceTransactions.MaxGroups <= 0 {
 		s.config.Aggregation.ServiceTransactions.MaxGroups = maxGroupsForAggregation(memLimitGB)
-		s.logger.Infof("MaxGroups for service aggregation set to %d based on %0.1fgb of memory",
+		s.logger.Infof("ServiceTransactions.MaxGroups for service aggregation set to %d based on %0.1fgb of memory",
 			s.config.Aggregation.ServiceTransactions.MaxGroups, memLimitGB,
 		)
 	}
@@ -330,20 +330,15 @@ func (s *Runner) Run(ctx context.Context) error {
 
 	var sourcemapFetcher sourcemap.Fetcher
 	if s.config.RumConfig.Enabled && s.config.RumConfig.SourceMapping.Enabled {
-		fetcher, err := newSourcemapFetcher(
-			s.config.RumConfig.SourceMapping, s.fleetConfig,
+		fetcher, cancel, err := newSourcemapFetcher(
+			s.config.RumConfig.SourceMapping,
 			kibanaClient, newElasticsearchClient,
 		)
 		if err != nil {
 			return err
 		}
-		cachingFetcher, err := sourcemap.NewCachingFetcher(
-			fetcher, s.config.RumConfig.SourceMapping.Cache.Expiration,
-		)
-		if err != nil {
-			return err
-		}
-		sourcemapFetcher = cachingFetcher
+		defer cancel()
+		sourcemapFetcher = fetcher
 	}
 
 	// Create the runServer function. We start with newBaseRunServer, and then
@@ -512,16 +507,26 @@ func maxConcurrentDecoders(memLimitGB float64) uint {
 	return decoders
 }
 
-// maxGroupsForAggregation calculates the maximum transaction groups or service
-// groups that a particular memory limit can have. The previous default value
-// of 10_000 is kept as a starting point for 1GB instances and scaled linearly
-// for bigger instances.
+// maxGroupsForAggregation calculates the maximum service groups that a
+// particular memory limit can have. This will be scaled linearly for bigger
+// instances.
 func maxGroupsForAggregation(memLimitGB float64) int {
 	const maxMemGB = 64
 	if memLimitGB > maxMemGB {
 		memLimitGB = maxMemGB
 	}
-	return int(memLimitGB * 10_000)
+	return int(memLimitGB * 1_000)
+}
+
+// maxTxGroupsForAggregation calculates the maximum transaction groups that a
+// particular memory limit can have. This will be scaled linearly for bigger
+// instances.
+func maxTxGroupsForAggregation(memLimitGB float64) int {
+	const maxMemGB = 64
+	if memLimitGB > maxMemGB {
+		memLimitGB = maxMemGB
+	}
+	return int(memLimitGB * 5_000)
 }
 
 // waitReady waits until the server is ready to index events.
@@ -818,78 +823,40 @@ func (s *Runner) newLibbeatFinalBatchProcessor(
 	return publisher, stop, nil
 }
 
+const sourcemapIndex = ".apm-source-map"
+
 func newSourcemapFetcher(
 	cfg config.SourceMapping,
-	fleetCfg *config.Fleet,
 	kibanaClient *kibana.Client,
 	newElasticsearchClient func(*elasticsearch.Config) (*elasticsearch.Client, error),
-) (sourcemap.Fetcher, error) {
-	// When running under Fleet we only fetch via Fleet Server.
-	if fleetCfg != nil {
-		var tlsConfig *tlscommon.TLSConfig
-		var err error
-		if fleetCfg.TLS.IsEnabled() {
-			if tlsConfig, err = tlscommon.LoadTLSConfig(fleetCfg.TLS); err != nil {
-				return nil, err
-			}
-		}
-
-		timeout := 30 * time.Second
-		dialer := transport.NetDialer(timeout)
-		tlsDialer := transport.TLSDialer(dialer, tlsConfig, timeout)
-
-		client := *http.DefaultClient
-		client.Transport = apmhttp.WrapRoundTripper(&http.Transport{
-			Proxy:           http.ProxyFromEnvironment,
-			Dial:            dialer.Dial,
-			DialTLS:         tlsDialer.Dial,
-			TLSClientConfig: tlsConfig.ToConfig(),
-		})
-
-		fleetServerURLs := make([]*url.URL, len(fleetCfg.Hosts))
-		for i, host := range fleetCfg.Hosts {
-			urlString, err := common.MakeURL(fleetCfg.Protocol, "", host, 8220)
-			if err != nil {
-				return nil, err
-			}
-			u, err := url.Parse(urlString)
-			if err != nil {
-				return nil, err
-			}
-			fleetServerURLs[i] = u
-		}
-
-		artifactRefs := make([]sourcemap.FleetArtifactReference, len(cfg.Metadata))
-		for i, meta := range cfg.Metadata {
-			artifactRefs[i] = sourcemap.FleetArtifactReference{
-				ServiceName:        meta.ServiceName,
-				ServiceVersion:     meta.ServiceVersion,
-				BundleFilepath:     meta.BundleFilepath,
-				FleetServerURLPath: meta.SourceMapURL,
-			}
-		}
-
-		return sourcemap.NewFleetFetcher(
-			&client,
-			fleetCfg.AccessAPIKey,
-			fleetServerURLs,
-			artifactRefs,
-		)
+) (sourcemap.Fetcher, context.CancelFunc, error) {
+	esClient, err := newElasticsearchClient(cfg.ESConfig)
+	if err != nil {
+		return nil, nil, err
 	}
 
-	// For standalone, we query both Kibana and Elasticsearch for backwards compatibility.
 	var chained sourcemap.ChainedFetcher
+
+	// start background sync job
+	ctx, cancel := context.WithCancel(context.Background())
+	metadataFetcher, invalidationChan := sourcemap.NewMetadataFetcher(ctx, esClient, sourcemapIndex)
+
+	esFetcher := sourcemap.NewElasticsearchFetcher(esClient, sourcemapIndex)
+	size := 128
+	cachingFetcher, err := sourcemap.NewBodyCachingFetcher(esFetcher, size, invalidationChan)
+	if err != nil {
+		cancel()
+		return nil, nil, err
+	}
+	sourcemapFetcher := sourcemap.NewSourcemapFetcher(metadataFetcher, cachingFetcher)
+
+	chained = append(chained, sourcemapFetcher)
+
 	if kibanaClient != nil {
 		chained = append(chained, sourcemap.NewKibanaFetcher(kibanaClient))
 	}
-	esClient, err := newElasticsearchClient(cfg.ESConfig)
-	if err != nil {
-		return nil, err
-	}
-	index := strings.ReplaceAll(cfg.IndexPattern, "%{[observer.version]}", version.Version)
-	esFetcher := sourcemap.NewElasticsearchFetcher(esClient, index)
-	chained = append(chained, esFetcher)
-	return chained, nil
+
+	return chained, cancel, nil
 }
 
 // TODO: This is copying behavior from libbeat:
