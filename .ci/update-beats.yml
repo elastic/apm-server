@@ -28,11 +28,10 @@ actions:
 
 sources:
   beats:
-    kind: shell
+    kind: json
     spec:
-      command: .ci/scripts/get-latest-beats-sha.sh
-      environments:
-          - name: PATH
+      file: 'https://api.github.com/repos/elastic/beats/commits?sha=main&per_page=1'
+      key: '.[0].sha'
 
 conditions:
   beats-version-check:
