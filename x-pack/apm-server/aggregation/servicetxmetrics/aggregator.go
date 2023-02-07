@@ -459,7 +459,7 @@ func makeMetricset(key aggregationKey, metrics serviceTxMetrics, totalCount int6
 		Event: model.Event{
 			SuccessCount: model.SummaryMetric{
 				Count: int64(math.Round(metrics.successCount + metrics.failureCount)),
-				Sum:   metrics.successCount,
+				Sum:   math.Round(metrics.successCount),
 			},
 		},
 	}
