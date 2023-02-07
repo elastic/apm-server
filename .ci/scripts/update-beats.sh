@@ -5,4 +5,4 @@
 #
 set -euo pipefail
 
-make update-beats
+make update-beats BEATS_VERSION="${1}"
