@@ -32,7 +32,7 @@ const (
 	maxDuration time.Duration = time.Hour
 
 	// We scale transaction counts in the histogram, which only permits storing
-	// tnteger counts, to allow for fractional transactions due to sampling.
+	// integer counts, to allow for fractional transactions due to sampling.
 	//
 	// e.g. if the sampling rate is 0.4, then each sampled transaction has a
 	// representative count of 2.5 (1/0.4). If we receive two such transactions
@@ -54,6 +54,8 @@ type Aggregator struct {
 
 	mu               sync.RWMutex
 	active, inactive map[time.Duration]*metrics
+
+	histogramPool sync.Pool
 }
 
 type aggregatorMetrics struct {
@@ -72,8 +74,8 @@ type AggregatorConfig struct {
 
 	// MaxTransactionGroups is the maximum number of distinct transaction
 	// group metrics to store within an aggregation period. Once this number
-	// of groups has been reached, any new aggregation keys will cause
-	// individual metrics documents to be immediately published.
+	// of groups has been reached, any new aggregation keys will be aggregated
+	// in a dedicated service group identified by `_other`.
 	MaxTransactionGroups int
 
 	// MaxTransactionGroupsPerService is the maximum number of distinct
@@ -81,14 +83,14 @@ type AggregatorConfig struct {
 	//
 	// When the limit on per service transaction group is reached the new
 	// transactions will be aggregated in a dedicated transaction group
-	// per service identified by `other`.
+	// per service identified by `_other`.
 	MaxTransactionGroupsPerService int
 
 	// MaxServices is the maximum number of distinct services that the
 	// transaction groups will aggregate for.
 	//
 	// When the limit on service count is reached a new service, identified
-	// by name `other` will be used to aggregate all transactions within a
+	// by name `_other` will be used to aggregate all transactions within a
 	// single bucket.
 	MaxServices int
 
@@ -142,6 +144,13 @@ func NewAggregator(config AggregatorConfig) (*Aggregator, error) {
 		metrics:  &aggregatorMetrics{},
 		active:   make(map[time.Duration]*metrics),
 		inactive: make(map[time.Duration]*metrics),
+		histogramPool: sync.Pool{New: func() interface{} {
+			return hdrhistogram.New(
+				minDuration.Microseconds(),
+				maxDuration.Microseconds(),
+				config.HDRHistogramSignificantFigures,
+			)
+		}},
 	}
 	base, err := baseaggregator.New(baseaggregator.AggregatorConfig{
 		PublishFunc:     aggregator.publish, // inject local publish
@@ -205,6 +214,8 @@ func (a *Aggregator) publish(ctx context.Context, period time.Duration) error {
 				event.Metricset.Interval = intervalStr
 				batch = append(batch, event)
 				entry.histogram.Reset()
+				a.histogramPool.Put(entry.histogram)
+				entry.histogram = nil
 			}
 			delete(svcEntry.m, hash)
 		}
@@ -220,6 +231,8 @@ func (a *Aggregator) publish(ctx context.Context, period time.Duration) error {
 			})
 			batch = append(batch, m)
 			entry.histogram.Reset()
+			a.histogramPool.Put(entry.histogram)
+			entry.histogram = nil
 			svcEntry.other = nil
 			svcEntry.otherCardinalityEstimator = nil
 			svcEntry.entries = 0
@@ -234,7 +247,7 @@ func (a *Aggregator) publish(ctx context.Context, period time.Duration) error {
 }
 
 // ProcessBatch aggregates all transactions contained in "b". On overflow
-// the metrics are aggregated into `other` buckets to contain cardinality.
+// the metrics are aggregated into `_other` buckets to contain cardinality.
 func (a *Aggregator) ProcessBatch(ctx context.Context, b *model.Batch) error {
 	for _, event := range *b {
 		if event.Processor != model.TransactionProcessor {
@@ -258,15 +271,15 @@ func (a *Aggregator) ProcessBatch(ctx context.Context, b *model.Batch) error {
 //   - MaxTransactionGroupsPerService: Limits the maximum number of
 //     transactions that a specific service can produce in one aggregation
 //     interval. Once the limit is breached the new transactions are
-//     aggregated under a dedicated bucket with `transaction.name` as other.
+//     aggregated under a dedicated bucket with `transaction.name` as `_other`.
 //   - MaxTransactionGroups: Limits the  maximum number of transaction groups
 //     that the aggregator can produce in one aggregation interval. Once the
-//     limit is breached the new transactions are aggregated in the `other`
+//     limit is breached the new transactions are aggregated in the `_other`
 //     transaction bucket of their corresponding services.
 //   - MaxServices: Limits the maximum number of services that the aggregator
 //     can aggregate over. Once this limit is breached the metrics will be
-//     aggregated in the `other` transaction bucket of a dedicated service
-//     with `service.name` as other.
+//     aggregated in the `_other` transaction bucket of a dedicated service
+//     with `service.name` as `_other`.
 func (a *Aggregator) AggregateTransaction(event model.APMEvent) {
 	count := event.Transaction.RepresentativeCount
 	if count <= 0 {
@@ -355,11 +368,15 @@ func (a *Aggregator) updateTransactionMetrics(key transactionAggregationKey, has
 		if svcOverflow {
 			a.config.Logger.Warnf(`
 %s Service limit of %d reached, new metric documents will be grouped under a dedicated
-overflow bucket identified by service name 'other'.`[1:], interval.String(), a.config.MaxServices)
+overflow bucket identified by service name '%s'.`[1:],
+				interval.String(),
+				a.config.MaxServices,
+				overflowBucketName,
+			)
 		} else if perSvcTxnOverflow {
 			a.config.Logger.Warnf(`
 %s Transaction group limit of %d reached for service %s, new metric documents will be grouped
-under a dedicated bucket identified by transaction name 'other'. This is typically
+under a dedicated bucket identified by transaction name '%s'. This is typically
 caused by ineffective transaction grouping, e.g. by creating many unique transaction
 names.
 If you are using an agent with 'use_path_as_transaction_name' enabled, it may cause
@@ -368,11 +385,12 @@ that configuration option appropriately, may lead to better results.`[1:],
 				interval.String(),
 				a.config.MaxTransactionGroupsPerService,
 				key.serviceName,
+				overflowBucketName,
 			)
 		} else {
 			a.config.Logger.Warnf(`
 %s Overall transaction group limit of %d reached, new metric documents will be grouped
-under a dedicated bucket identified by transaction name 'other'. This is typically
+under a dedicated bucket identified by transaction name '%s'. This is typically
 caused by ineffective transaction grouping, e.g. by creating many unique transaction
 names.
 If you are using an agent with 'use_path_as_transaction_name' enabled, it may cause
@@ -380,6 +398,7 @@ high cardinality. If your agent supports the 'transaction_name_groups' option, s
 that configuration option appropriately, may lead to better results.`[1:],
 				interval.String(),
 				a.config.MaxTransactionGroups,
+				overflowBucketName,
 			)
 		}
 		svcEntry.other = &m.space[m.entries]
@@ -388,7 +407,7 @@ that configuration option appropriately, may lead to better results.`[1:],
 		svcEntry.otherCardinalityEstimator.InsertHash(hash)
 		atomic.AddInt64(&a.metrics.overflowed, 1)
 		entry = svcEntry.other
-		// For `other` service we only account for `other` transaction bucket.
+		// For `_other` service we only account for `_other` transaction bucket.
 		key = a.makeOverflowAggregationKey(key, svcOverflow, a.config.MetricsInterval)
 	} else {
 		entry = &m.space[m.entries]
@@ -397,12 +416,8 @@ that configuration option appropriately, may lead to better results.`[1:],
 		svcEntry.entries++
 	}
 	entry.transactionAggregationKey = key
-	if entry.transactionMetrics.histogram == nil {
-		entry.transactionMetrics.histogram = hdrhistogram.New(
-			minDuration.Microseconds(),
-			maxDuration.Microseconds(),
-			a.config.HDRHistogramSignificantFigures,
-		)
+	entry.transactionMetrics = transactionMetrics{
+		histogram: a.histogramPool.Get().(*hdrhistogram.Histogram),
 	}
 	entry.recordDuration(duration, count)
 }
@@ -580,9 +595,9 @@ type metrics struct {
 
 func newMetrics(maxGroups, maxServices int) *metrics {
 	return &metrics{
-		// keep reserved entries for overflow (1 per service and 1 for `other` service)
+		// keep reserved entries for overflow (1 per service and 1 for `_other` service)
 		space: make([]metricsMapEntry, maxGroups*2+1),
-		// keep 1 reserved entry for `other` service
+		// keep 1 reserved entry for `_other` service
 		svcSpace: make([]svcMetricsMapEntry, maxServices+1),
 		m:        make(map[string]*svcMetricsMapEntry),
 	}

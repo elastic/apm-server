@@ -333,3 +333,65 @@ func TestServiceSummaryMetricsAggregation(t *testing.T) {
 	)
 	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits)
 }
+
+func TestNonDefaultRollupIntervalHiddenDataStream(t *testing.T) {
+	systemtest.CleanupElasticsearch(t)
+	srv := apmservertest.NewUnstartedServerTB(t)
+	err := srv.Start()
+	require.NoError(t, err)
+
+	timestamp, _ := time.Parse(time.RFC3339Nano, "2006-01-02T15:04:05.999999999Z") // should be truncated to 1s
+	tracer := srv.Tracer()
+	tx := tracer.StartTransactionOptions("name", "type", apm.TransactionOptions{Start: timestamp})
+	span := tx.StartSpanOptions("name", "type", apm.SpanOptions{Start: timestamp})
+	span.Context.SetDestinationService(apm.DestinationServiceSpanContext{
+		Name:     "name",
+		Resource: "resource",
+	})
+	span.Duration = time.Second
+	span.End()
+	tx.End()
+	tracer.Flush(nil)
+
+	// Wait for the transaction to be indexed, indicating that Elasticsearch
+	// indices have been setup and we should not risk triggering the shutdown
+	// timeout while waiting for the aggregated metrics to be indexed.
+	systemtest.Elasticsearch.ExpectMinDocs(t, 1, "traces-apm*",
+		estest.TermQuery{Field: "processor.event", Value: "transaction"},
+	)
+	// Stop server to ensure metrics are flushed on shutdown.
+	assert.NoError(t, srv.Close())
+
+	indexPatterns := []string{
+		"metrics-apm.transaction*",
+		"metrics-apm.service_transaction*",
+		"metrics-apm.service_summary*",
+		"metrics-apm.service_destination*",
+	}
+
+	type Response struct {
+		DataStreams []struct {
+			Name   string `json:"name"`
+			Hidden bool   `json:"hidden"`
+		} `json:"data_streams"`
+	}
+
+	for _, pattern := range indexPatterns {
+		result := Response{}
+		req := esapi.IndicesGetDataStreamRequest{
+			Name:            []string{pattern},
+			ExpandWildcards: "open,hidden",
+		}
+		_, err := systemtest.Elasticsearch.Do(context.Background(), req, &result)
+		assert.NoError(t, err)
+		// 3 rollup intervals
+		assert.Lenf(t, result.DataStreams, 3,
+			"data stream pattern %s: expected to match %d data streams; actual: %d", pattern, 3, len(result.DataStreams))
+		for _, ds := range result.DataStreams {
+			// All non-default rollup interval data streams should be hidden
+			expected := !strings.HasSuffix(ds.Name, ".1m-default")
+			assert.Equalf(t, expected, ds.Hidden,
+				"data stream name %s: .hidden expected: %v; actual: %v", ds.Name, expected, ds.Hidden)
+		}
+	}
+}

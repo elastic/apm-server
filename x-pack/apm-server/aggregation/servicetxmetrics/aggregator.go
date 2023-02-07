@@ -26,7 +26,8 @@ import (
 )
 
 const (
-	metricsetName = "service_transaction"
+	metricsetName       = "service_transaction"
+	overflowServiceName = "_other"
 
 	minDuration time.Duration = 0
 	maxDuration time.Duration = time.Hour
@@ -56,9 +57,10 @@ type AggregatorConfig struct {
 	// aggregation groups fill up.
 	Interval time.Duration
 
-	// MaxGroups is the maximum number of distinct service transaction metrics to store within an aggregation period.
-	// Once this number of groups is reached, any new aggregation keys will cause
-	// individual metrics documents to be immediately published.
+	// MaxGroups is the maximum number of distinct service transaction metrics
+	// to store within an aggregation period. Once this number of groups is
+	// reached, any new aggregation keys will be aggregated in a dedicated
+	// service group identified by `_other`.
 	MaxGroups int
 
 	// HDRHistogramSignificantFigures is the number of significant figures
@@ -91,6 +93,8 @@ type Aggregator struct {
 	// These two metricsBuffer are set to the same size and act as buffers
 	// for caching and then publishing the metrics as batches.
 	active, inactive map[time.Duration]*metricsBuffer
+
+	histogramPool sync.Pool
 }
 
 // NewAggregator returns a new Aggregator with the given config.
@@ -105,6 +109,13 @@ func NewAggregator(config AggregatorConfig) (*Aggregator, error) {
 		config:   config,
 		active:   make(map[time.Duration]*metricsBuffer),
 		inactive: make(map[time.Duration]*metricsBuffer),
+		histogramPool: sync.Pool{New: func() interface{} {
+			return hdrhistogram.New(
+				minDuration.Microseconds(),
+				maxDuration.Microseconds(),
+				config.HDRHistogramSignificantFigures,
+			)
+		}},
 	}
 	base, err := baseaggregator.New(baseaggregator.AggregatorConfig{
 		PublishFunc:     aggregator.publish, // inject local publish
@@ -117,8 +128,8 @@ func NewAggregator(config AggregatorConfig) (*Aggregator, error) {
 	}
 	aggregator.Aggregator = base
 	for _, interval := range aggregator.Intervals {
-		aggregator.active[interval] = newMetricsBuffer(config.MaxGroups, config.HDRHistogramSignificantFigures)
-		aggregator.inactive[interval] = newMetricsBuffer(config.MaxGroups, config.HDRHistogramSignificantFigures)
+		aggregator.active[interval] = newMetricsBuffer(config.MaxGroups, &aggregator.histogramPool)
+		aggregator.inactive[interval] = newMetricsBuffer(config.MaxGroups, &aggregator.histogramPool)
 	}
 	return &aggregator, nil
 }
@@ -153,6 +164,8 @@ func (a *Aggregator) publish(ctx context.Context, period time.Duration) error {
 			m := makeMetricset(entry.aggregationKey, entry.serviceTxMetrics, totalCount, counts, values, intervalStr)
 			batch = append(batch, m)
 			entry.histogram.Reset()
+			a.histogramPool.Put(entry.histogram)
+			entry.histogram = nil
 		}
 		delete(current.m, key)
 	}
@@ -167,6 +180,8 @@ func (a *Aggregator) publish(ctx context.Context, period time.Duration) error {
 		})
 		batch = append(batch, m)
 		entry.histogram.Reset()
+		a.histogramPool.Put(entry.histogram)
+		entry.histogram = nil
 		current.other = nil
 		current.otherCardinalityEstimator = nil
 	}
@@ -183,7 +198,7 @@ func (a *Aggregator) publish(ctx context.Context, period time.Duration) error {
 //   - MaxGroups: Limits the total number of services that the
 //     service transaction metrics aggregator produces. Once this limit is
 //     breached the metrics are aggregated in a dedicated bucket
-//     with `service.name` as `other`.
+//     with `service.name` as `_other`.
 func (a *Aggregator) ProcessBatch(ctx context.Context, b *model.Batch) error {
 	a.mu.RLock()
 	defer a.mu.RUnlock()
@@ -215,17 +230,18 @@ type metricsBuffer struct {
 	space                     []metricsMapEntry
 	entries                   int
 
-	maxSize            int
-	significantFigures int
+	maxSize int
+
+	histogramPool *sync.Pool
 }
 
-func newMetricsBuffer(maxSize int, significantFigures int) *metricsBuffer {
+func newMetricsBuffer(maxSize int, histogramPool *sync.Pool) *metricsBuffer {
 	return &metricsBuffer{
-		maxSize:            maxSize,
-		significantFigures: significantFigures,
+		maxSize: maxSize,
 		// keep one reserved entry for overflow bucket
-		space: make([]metricsMapEntry, maxSize+1),
-		m:     make(map[uint64][]*metricsMapEntry),
+		space:         make([]metricsMapEntry, maxSize+1),
+		m:             make(map[uint64][]*metricsMapEntry),
+		histogramPool: histogramPool,
 	}
 }
 
@@ -277,8 +293,8 @@ func (mb *metricsBuffer) storeOrUpdate(
 	}
 	if mb.entries >= mb.maxSize {
 		logger.Warnf(`
-Service transaction aggregation group limit of %d reached, new metric documents will be grouped
-under a dedicated bucket identified by service name 'other'.`[1:], mb.maxSize)
+Service aggregation group limit of %d reached, new metric documents will be grouped
+under a dedicated bucket identified by service name '%s'.`[1:], mb.maxSize, overflowServiceName)
 		mb.other = &mb.space[len(mb.space)-1]
 		mb.otherCardinalityEstimator = hyperloglog.New14()
 		mb.otherCardinalityEstimator.InsertHash(hash)
@@ -295,13 +311,7 @@ under a dedicated bucket identified by service name 'other'.`[1:], mb.maxSize)
 		transactionCount:    metrics.transactionCount,
 		failureCount:        metrics.failureCount,
 		successCount:        metrics.successCount,
-	}
-	if entry.serviceTxMetrics.histogram == nil {
-		entry.serviceTxMetrics.histogram = hdrhistogram.New(
-			minDuration.Microseconds(),
-			maxDuration.Microseconds(),
-			mb.significantFigures,
-		)
+		histogram:           mb.histogramPool.Get().(*hdrhistogram.Histogram),
 	}
 	entry.recordDuration(time.Duration(metrics.transactionDuration), metrics.transactionCount)
 }
@@ -367,7 +377,7 @@ func makeOverflowAggregationKey(oldKey aggregationKey, interval time.Duration) a
 			// old timestamp and these events overflow causing the indexed event
 			// to have old timestamp too.
 			timestamp:   time.Now().Truncate(interval),
-			serviceName: "_other",
+			serviceName: overflowServiceName,
 		},
 	}
 }
@@ -457,7 +467,7 @@ func makeMetricset(key aggregationKey, metrics serviceTxMetrics, totalCount int6
 		Event: model.Event{
 			SuccessCount: model.SummaryMetric{
 				Count: int64(math.Round(metrics.successCount + metrics.failureCount)),
-				Sum:   metrics.successCount,
+				Sum:   math.Round(metrics.successCount),
 			},
 		},
 	}
