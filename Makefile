@@ -211,7 +211,7 @@ docs/spec: go.mod
 # Beats synchronisation.
 ##############################################################################
 
-BEATS_VERSION?=main
+BEATS_VERSION?=feature/migrate-update-beats-to-updatecli-in-gh-actions
 BEATS_MODULE:=github.com/elastic/beats/v7
 
 .PHONY: update-beats
