@@ -34,11 +34,9 @@ import (
 )
 
 func TestBatchProcessor(t *testing.T) {
-	client := newMockElasticsearchClient(t, http.StatusOK,
-		sourcemapSearchResponseBody(1, []map[string]interface{}{sourcemapHit(string(validSourcemap))}),
-	)
+	client := newMockElasticsearchClient(t, http.StatusOK, sourcemapESResponseBody(true, validSourcemap))
 	esFetcher := NewElasticsearchFetcher(client, "index")
-	fetcher, err := NewCachingFetcher(esFetcher, time.Minute)
+	fetcher, err := NewBodyCachingFetcher(esFetcher, 100, nil)
 	require.NoError(t, err)
 
 	originalLinenoWithFilename := 1
@@ -264,7 +262,7 @@ func TestBatchProcessorElasticsearchUnavailable(t *testing.T) {
 	// we are running the processor twice for a batch of two spans with 2 stacktraceframe each
 	entries := logp.ObserverLogs().TakeAll()
 	require.Len(t, entries, 8)
-	assert.Equal(t, "failed to fetch source map with path (bundle.js): failure querying ES: client error", entries[0].Message)
+	assert.Equal(t, "failed to fetch sourcemap with path (bundle.js): failure querying ES: client error", entries[0].Message)
 }
 
 func TestBatchProcessorTimeout(t *testing.T) {
