@@ -49,36 +49,18 @@ func (s *SourcemapFetcher) Fetch(ctx context.Context, name, version, path string
 
 	select {
 	case <-s.metadata.ready():
-		// the mutex is shared by the update goroutine, we need to release it
-		// as soon as possible to avoid blocking updates.
-		if i, ok := s.metadata.getID(original); ok {
-			// Only fetch from ES if the sourcemap id exists
-			return s.fetch(ctx, i)
+		if err := s.metadata.err(); err != nil {
+			return nil, err
 		}
-	default:
-		s.logger.Debugf("Metadata cache not populated. Falling back to backend fetcher for id: %s, %s, %s", name, version, path)
-		// init is in progress, ignore the metadata cache and fetch the sourcemap directly
-		// return if we get a valid sourcemap or an error
-		if c, err := s.backend.Fetch(ctx, original.name, original.version, original.path); c != nil || err != nil {
-			return c, err
-		}
+	case <-ctx.Done():
+		return nil, fmt.Errorf("error waiting for metadata fetcher to be ready: %w", ctx.Err())
+	}
 
-		s.logger.Debug("Blocking until init is completed")
-
-		// Aliases are only available after init is completed.
-		select {
-		case <-s.metadata.ready():
-		case <-ctx.Done():
-			return nil, fmt.Errorf("error waiting for metadata fetcher to be ready: %w", ctx.Err())
-		}
-
-		// first map lookup  will fail but this is not going
-		// to be performance issue since it only happens if init
-		// is in progress.
-		if i, ok := s.metadata.getID(original); ok {
-			// Only fetch from ES if the sourcemap id exists
-			return s.fetch(ctx, i)
-		}
+	// the mutex is shared by the update goroutine, we need to release it
+	// as soon as possible to avoid blocking updates.
+	if i, ok := s.metadata.getID(original); ok {
+		// Only fetch from ES if the sourcemap id exists
+		return s.fetch(ctx, i)
 	}
 
 	if urlPath, err := url.Parse(path); err == nil {

@@ -20,6 +20,7 @@ package sourcemap
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -44,6 +45,7 @@ type MetadataESFetcher struct {
 	mu               sync.RWMutex
 	logger           *logp.Logger
 	init             chan struct{}
+	initErr          error
 	invalidationChan chan<- []identifier
 }
 
@@ -84,22 +86,46 @@ func (s *MetadataESFetcher) ready() <-chan struct{} {
 	return s.init
 }
 
+func (s *MetadataESFetcher) err() error {
+	select {
+	case <-s.ready():
+		s.mu.RLock()
+		defer s.mu.RUnlock()
+		return s.initErr
+	default:
+		return errors.New("metadata es fetcher not ready")
+	}
+}
+
 func (s *MetadataESFetcher) startBackgroundSync(parent context.Context) {
 	go func() {
 		s.logger.Debug("populating metadata cache")
 
-		// First run, populate cache
-		ctx, cancel := context.WithTimeout(parent, syncTimeout)
-		defer cancel()
+		ctx, cancel := context.WithTimeout(parent, 1*time.Second)
+		err := s.ping(ctx)
+		cancel()
 
-		if err := s.sync(ctx); err != nil {
-			s.logger.Errorf("failed to fetch sourcemaps metadata: %v", err)
+		if err != nil {
+			// it is fine to not lock here since err will not access
+			// initErr until the init channel is closed.
+			s.initErr = fmt.Errorf("failed to ping es cluster: %w: %v", errFetcherUnvailable, err)
+			s.logger.Error(s.initErr)
 		} else {
-			// only close the init chan and mark the fetcher as ready if
-			// sync succeeded
-			close(s.init)
-			s.logger.Info("init routine completed")
+			// First run, populate cache
+			ctx, cancel = context.WithTimeout(parent, syncTimeout)
+			err := s.sync(ctx)
+			cancel()
+
+			if err != nil {
+				s.logger.Errorf("failed to fetch sourcemaps metadata: %v", err)
+			} else {
+				// only close the init chan and mark the fetcher as ready if
+				// sync succeeded
+				s.logger.Info("init routine completed")
+			}
 		}
+
+		close(s.init)
 
 		// TODO make this a config option ?
 		t := time.NewTicker(30 * time.Second)
@@ -123,6 +149,16 @@ func (s *MetadataESFetcher) startBackgroundSync(parent context.Context) {
 			}
 		}
 	}()
+}
+
+func (s *MetadataESFetcher) ping(ctx context.Context) error {
+	// we cannot use PingRequest because the library is
+	// building a broken url and the request is timing out.
+	req := esapi.IndicesGetRequest{
+		Index: []string{s.index},
+	}
+	_, err := req.Do(ctx, s.esClient)
+	return err
 }
 
 func (s *MetadataESFetcher) sync(ctx context.Context) error {

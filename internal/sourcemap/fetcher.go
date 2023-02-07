@@ -45,6 +45,8 @@ type MetadataFetcher interface {
 	getID(id identifier) (*identifier, bool)
 
 	ready() <-chan struct{}
+
+	err() error
 }
 
 type identifier struct {
