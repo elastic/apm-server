@@ -210,13 +210,11 @@ func (s *MetadataESFetcher) update(ctx context.Context, sourcemaps map[identifie
 
 	for id, contentHash := range s.set {
 		if updatedHash, ok := sourcemaps[id]; ok {
-			// already in the cache, remove from the updates.
-			delete(sourcemaps, id)
-
-			// content hash changed, invalidate the sourcemap cache and update hash
-			if contentHash != updatedHash {
-				sourcemaps[id] = updatedHash
-
+			if contentHash == updatedHash {
+				// already in the cache, remove from the updates.
+				delete(sourcemaps, id)
+			} else {
+				// content hash changed, invalidate the sourcemap cache
 				s.logger.Debugf("Hash changed: %s -> %s: invalidating %v", contentHash, updatedHash, id)
 				invalidation = append(invalidation, id)
 			}
