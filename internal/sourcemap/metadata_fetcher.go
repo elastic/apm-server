@@ -116,6 +116,8 @@ func (s *MetadataESFetcher) startBackgroundSync(parent context.Context) {
 			err := s.sync(ctx)
 			cancel()
 
+			s.initErr = err
+
 			if err != nil {
 				s.logger.Errorf("failed to fetch sourcemaps metadata: %v", err)
 			} else {
