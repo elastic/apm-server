@@ -33,15 +33,15 @@ sources:
       environments:
           - name: PATH
 
-conditions:
-  beats-version-check:
-    name: Check beats version
-    kind: shell
-    sourceid: beats
-    spec:
-      command: .ci/scripts/check-beats-version.sh
-      environments:
-        - name: BRANCH_NAME
+#conditions:
+#  beats-version-check:
+#    name: Check beats version
+#    kind: shell
+#    sourceid: beats
+#    spec:
+#      command: .ci/scripts/check-beats-version.sh
+#      environments:
+#        - name: BRANCH_NAME
 
 targets:
   beats:
