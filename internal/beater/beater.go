@@ -526,7 +526,7 @@ func maxGroupsForAggregation(memLimitGB float64) int {
 	if memLimitGB > maxMemGB {
 		memLimitGB = maxMemGB
 	}
-	return int(memLimitGB * 500)
+	return int(memLimitGB * 1_000)
 }
 
 // maxTxGroupsForAggregation calculates the maximum transaction groups that a
@@ -537,7 +537,7 @@ func maxTxGroupsForAggregation(memLimitGB float64) int {
 	if memLimitGB > maxMemGB {
 		memLimitGB = maxMemGB
 	}
-	return int(memLimitGB * 2_500)
+	return int(memLimitGB * 5_000)
 }
 
 // waitReady waits until the server is ready to index events.
