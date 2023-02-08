@@ -27,10 +27,11 @@ actions:
 
 sources:
   beats:
-    kind: file
+    kind: json
     spec:
-      file: 'https://github.com/elastic/beats/commit/{{ requiredEnv "BRANCH_NAME" }}.patch'
-      matchpattern: "^From\\s([0-9a-f]{40})\\s"
+      file: 'https://api.github.com/repos/elastic/beats/commits?sha={{ requiredEnv "BRANCH_NAME" }}&per_page=1'
+      key: '.[0].sha'
+
 
 conditions:
   beats-version-check:
