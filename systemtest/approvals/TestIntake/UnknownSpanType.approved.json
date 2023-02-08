@@ -114,18 +114,6 @@
                 "name": "js-base",
                 "version": "1.3"
             },
-            "client": {
-                "geo": {
-                    "continent_name": "North America",
-                    "country_iso_code": "US",
-                    "country_name": "United States",
-                    "location": {
-                        "lat": 37.751,
-                        "lon": -97.822
-                    }
-                },
-                "ip": "8.8.8.8"
-            },
             "container": {
                 "id": "container-id"
             },
@@ -251,9 +239,6 @@
                     "name": "javascript",
                     "version": "8.0.0"
                 }
-            },
-            "source": {
-                "ip": "8.8.8.8"
             },
             "timestamp": {
                 "us": 1496170407154000
