@@ -1,25 +1,23 @@
 ---
 name: Bump beats
-title: "[automation] update libbeat and beats packaging"
 
 scms:
-  apm-server:
+  default:
     kind: github
     spec:
       user: '{{ requiredEnv "GIT_USER" }}'
       email: '{{ requiredEnv "GIT_EMAIL" }}'
-      owner: reakaleek
+      owner: elastic
       repository: apm-server
       token: '{{ requiredEnv "GITHUB_TOKEN" }}'
       username: '{{ requiredEnv "GIT_USER" }}'
       branch: '{{ requiredEnv "BRANCH_NAME" }}'
 
 actions:
-  apm-server-pr:
+  default:
     kind: github/pullrequest
-    scmid: apm-server
+    scmid: default
     spec:
-      title: "[automation] update libbeat and beats packaging"
       automerge: false
       labels:
         - automation
@@ -43,9 +41,9 @@ conditions:
 
 targets:
   beats:
-    name: Update beats
+    name: 'Update to elastic/beats@{{ source "beats" }}'
     sourceid: beats
-    scmid: apm-server
+    scmid: default
     kind: shell
     spec:
       command: .ci/scripts/update-beats.sh
