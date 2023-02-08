@@ -17,9 +17,6 @@ https://github.com/elastic/apm-server/compare/8.6\...8.7[View commits]
 - Stop indexing span destination metrics to `metrics-apm.internal` {pull}9926[9926]
 
 [float]
-==== Deprecations
-
-[float]
 ==== Bug fixes
 - We no longer unconditionally block shutdown for 5 seconds when tail-based sampling is enabled {pull}9838[9838]
 - Fix a panic caused by accepting new grpc connections during shutdown {pull}10013[10013]
@@ -39,6 +36,7 @@ https://github.com/elastic/apm-server/compare/8.6\...8.7[View commits]
 - Improve APM UI query performance by producing `1m`, `10m` and `60m` aggregation intervals for transaction metrics. Store them into dedicated data streams `metrics-apm.transaction.${interval}` {pull}9846[9846]
 - Improve APM UI query performance by producing `1m`, `10m` and `60m` aggregation intervals for service destination metrics. Store them into dedicated data streams `metrics-apm.service_destination.${interval}` {pull}9926[9926]
 - Improve APM UI query performance by producing `1m`, `10m` and `60m` aggregation intervals for service metrics. Store them into dedicated data streams `metrics-apm.service.${interval}` {pull}9960[9960]
+- Add histogram support to service metrics aggregations {pull}9864[9864]
 - Add a service summary metrics aggregator that writes to `metrics-apm.service_summary.${interval}` with `1m`, `10m` and `60m` intervals {pull}10029[10029]
 - Service metrics and service summary aggregations are now always enabled {pull}10060[10060] {pull}10109[10109]
 - Dedicated overflow buckets for transaction, service, service destination and service summary aggregation to limit cardinality {pull}10069[10069] {pull}9856[9856] {pull}10061[10061]
@@ -49,3 +47,4 @@ https://github.com/elastic/apm-server/compare/8.6\...8.7[View commits]
 - Metrics data streams now use synthetic source {pull}9756[9756]
 - Translate otel log events to error events {pull}10066[10066]
 - Use Elasticsearch fetcher for agent remote configuration where possible {pull}9720[9720] {pull}10088[10088]
+- Fetch sourcemaps from Elasticsearch {pull}9722[9722]
