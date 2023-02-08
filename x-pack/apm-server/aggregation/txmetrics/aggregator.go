@@ -208,10 +208,8 @@ func (a *Aggregator) publish(ctx context.Context, period time.Duration) error {
 	for svc, svcEntry := range current.m {
 		for hash, entries := range svcEntry.m {
 			for _, entry := range entries {
-				totalCount, counts, values := entry.transactionMetrics.histogramBuckets()
-				event := makeMetricset(entry.transactionAggregationKey, entry.transactionMetrics, totalCount, counts, values)
 				// Record the metricset interval as metricset.interval.
-				event.Metricset.Interval = intervalStr
+				event := makeMetricset(entry.transactionAggregationKey, entry.transactionMetrics, intervalStr)
 				batch = append(batch, event)
 				entry.histogram.Reset()
 				a.histogramPool.Put(entry.histogram)
@@ -221,10 +219,8 @@ func (a *Aggregator) publish(ctx context.Context, period time.Duration) error {
 		}
 		if svcEntry.other != nil {
 			entry := svcEntry.other
-			totalCount, counts, values := entry.transactionMetrics.histogramBuckets()
-			m := makeMetricset(entry.transactionAggregationKey, entry.transactionMetrics, totalCount, counts, values)
 			// Record the metricset interval as metricset.interval.
-			m.Metricset.Interval = intervalStr
+			m := makeMetricset(entry.transactionAggregationKey, entry.transactionMetrics, intervalStr)
 			m.Metricset.Samples = append(m.Metricset.Samples, model.MetricsetSample{
 				Name:  "transaction.aggregation.overflow_count",
 				Value: float64(svcEntry.otherCardinalityEstimator.Estimate()),
@@ -495,8 +491,9 @@ func (a *Aggregator) makeTransactionAggregationKey(event model.APMEvent, interva
 	return key
 }
 
-// makeMetricset makes a metricset event from key, counts, and values, with timestamp ts.
-func makeMetricset(key transactionAggregationKey, metrics transactionMetrics, totalCount int64, counts []int64, values []float64) model.APMEvent {
+// makeMetricset makes a metricset event from key, metrics and interval.
+func makeMetricset(key transactionAggregationKey, metrics transactionMetrics, interval string) model.APMEvent {
+	counts, values := metrics.histogramBuckets()
 	metricCount := math.Round(metrics.count)
 	var eventSuccessCount model.SummaryMetric
 	switch key.eventOutcome {
@@ -563,6 +560,7 @@ func makeMetricset(key transactionAggregationKey, metrics transactionMetrics, to
 		Metricset: &model.Metricset{
 			Name:     metricsetName,
 			DocCount: int64(metricCount),
+			Interval: interval,
 		},
 		Transaction: &model.Transaction{
 			Name:   key.transactionName,
@@ -722,7 +720,7 @@ func (m *transactionMetrics) recordDuration(d time.Duration, n float64) {
 	m.histogram.RecordValuesAtomic(d.Microseconds(), count)
 }
 
-func (m *transactionMetrics) histogramBuckets() (totalCount int64, counts []int64, values []float64) {
+func (m *transactionMetrics) histogramBuckets() (counts []int64, values []float64) {
 	// From https://www.elastic.co/guide/en/elasticsearch/reference/current/histogram.html:
 	//
 	// "For the High Dynamic Range (HDR) histogram mode, the values array represents
@@ -738,7 +736,6 @@ func (m *transactionMetrics) histogramBuckets() (totalCount int64, counts []int6
 		count := int64(math.Round(float64(b.Count) / histogramCountScale))
 		counts = append(counts, count)
 		values = append(values, float64(b.To))
-		totalCount += count
 	}
-	return totalCount, counts, values
+	return counts, values
 }
