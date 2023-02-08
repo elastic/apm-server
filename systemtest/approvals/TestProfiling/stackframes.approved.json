@@ -5,7 +5,6 @@
             "Stackframe.function.name": "thirteen()",
             "Stackframe.function.offset": 15,
             "Stackframe.line.number": 11,
-            "Stackframe.source.type": 17,
             "ecs.version": "1.12.0"
         },
         {
@@ -13,7 +12,6 @@
             "Stackframe.function.name": "fourteen()",
             "Stackframe.function.offset": 16,
             "Stackframe.line.number": 12,
-            "Stackframe.source.type": 18,
             "ecs.version": "1.12.0"
         }
     ]
