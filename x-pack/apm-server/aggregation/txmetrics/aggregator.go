@@ -209,7 +209,7 @@ func (a *Aggregator) publish(ctx context.Context, period time.Duration) error {
 		for hash, entries := range svcEntry.m {
 			for _, entry := range entries {
 				totalCount, counts, values := entry.transactionMetrics.histogramBuckets()
-				event := makeMetricset(entry.transactionAggregationKey, totalCount, counts, values)
+				event := makeMetricset(entry.transactionAggregationKey, entry.transactionMetrics, totalCount, counts, values)
 				// Record the metricset interval as metricset.interval.
 				event.Metricset.Interval = intervalStr
 				batch = append(batch, event)
@@ -222,7 +222,7 @@ func (a *Aggregator) publish(ctx context.Context, period time.Duration) error {
 		if svcEntry.other != nil {
 			entry := svcEntry.other
 			totalCount, counts, values := entry.transactionMetrics.histogramBuckets()
-			m := makeMetricset(entry.transactionAggregationKey, totalCount, counts, values)
+			m := makeMetricset(entry.transactionAggregationKey, entry.transactionMetrics, totalCount, counts, values)
 			// Record the metricset interval as metricset.interval.
 			m.Metricset.Interval = intervalStr
 			m.Metricset.Samples = append(m.Metricset.Samples, model.MetricsetSample{
@@ -496,23 +496,17 @@ func (a *Aggregator) makeTransactionAggregationKey(event model.APMEvent, interva
 }
 
 // makeMetricset makes a metricset event from key, counts, and values, with timestamp ts.
-func makeMetricset(key transactionAggregationKey, totalCount int64, counts []int64, values []float64) model.APMEvent {
+func makeMetricset(key transactionAggregationKey, metrics transactionMetrics, totalCount int64, counts []int64, values []float64) model.APMEvent {
+	count := math.Round(metrics.count)
 	var eventSuccessCount model.SummaryMetric
 	switch key.eventOutcome {
 	case "success":
-		eventSuccessCount.Count = totalCount
-		eventSuccessCount.Sum = float64(totalCount)
+		eventSuccessCount.Count = int64(count)
+		eventSuccessCount.Sum = count
 	case "failure":
-		eventSuccessCount.Count = totalCount
+		eventSuccessCount.Count = int64(count)
 	case "unknown":
 		// Keep both Count and Sum as 0.
-	}
-
-	transactionDurationSummary := model.SummaryMetric{
-		Count: totalCount,
-	}
-	for _, v := range values {
-		transactionDurationSummary.Sum += v
 	}
 
 	return model.APMEvent{
@@ -579,7 +573,10 @@ func makeMetricset(key transactionAggregationKey, totalCount int64, counts []int
 				Counts: counts,
 				Values: values,
 			},
-			DurationSummary: transactionDurationSummary,
+			DurationSummary: model.SummaryMetric{
+				Count: int64(count),
+				Sum:   float64(time.Duration(math.Round(metrics.sum)).Microseconds()),
+			},
 		},
 	}
 }
@@ -714,9 +711,13 @@ func (k *transactionAggregationKey) equal(key transactionAggregationKey) bool {
 
 type transactionMetrics struct {
 	histogram *hdrhistogram.Histogram
+	count     float64
+	sum       float64
 }
 
 func (m *transactionMetrics) recordDuration(d time.Duration, n float64) {
+	m.count += n
+	m.sum += n * float64(d)
 	count := int64(math.Round(n * histogramCountScale))
 	m.histogram.RecordValuesAtomic(d.Microseconds(), count)
 }
