@@ -8,7 +8,7 @@ scms:
     spec:
       user: '{{ requiredEnv "GIT_USER" }}'
       email: '{{ requiredEnv "GIT_EMAIL" }}'
-      owner: elastic
+      owner: reakaleek
       repository: apm-server
       token: '{{ requiredEnv "GITHUB_TOKEN" }}'
       username: '{{ requiredEnv "GIT_USER" }}'
@@ -38,9 +38,7 @@ conditions:
     kind: shell
     sourceid: beats
     spec:
-      command: .ci/scripts/check-beats-version.sh
-      environments:
-        - name: BRANCH_NAME
+      command: grep "BEATS_VERSION?={{ requiredEnv "BRANCH_NAME" }}" Makefile
 
 targets:
   beats:
