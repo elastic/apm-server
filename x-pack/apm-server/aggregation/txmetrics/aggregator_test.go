@@ -718,7 +718,7 @@ func createOverflowMetricset(overflowCount, repCount int, txnDuration time.Durat
 			},
 			DurationSummary: model.SummaryMetric{
 				Count: int64(overflowCount * repCount),
-				Sum:   float64(txnDuration.Microseconds()),
+				Sum:   float64(time.Duration(float64(overflowCount*repCount) * float64(txnDuration)).Microseconds()),
 			},
 		},
 		Metricset: &model.Metricset{

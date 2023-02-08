@@ -30,7 +30,7 @@ https://github.com/elastic/apm-server/compare/8.6\...8.7[View commits]
 ==== Added
 - Add `event.success_count` to transaction events and transaction metrics {pull}9819[9819] {pull}10165[10165]
 - Set `_doc_count` for service destination metrics {pull}9931[9931]
-- Add `transaction.duration.summary` to transaction metrics {pull}9973[9973]
+- Add `transaction.duration.summary` to transaction metrics {pull}9973[9973] {pull}10185[10185]
 - Add `service.language.name` to service transaction metrics and service summary metrics {pull}10111[10111]
 - Add global labels to service destination metrics {pull}10056[10056]
 - Improve APM UI query performance by producing `1m`, `10m` and `60m` aggregation intervals for transaction metrics. Store them into dedicated data streams `metrics-apm.transaction.${interval}` {pull}9846[9846]
