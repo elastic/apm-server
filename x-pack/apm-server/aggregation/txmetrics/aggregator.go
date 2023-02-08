@@ -497,14 +497,14 @@ func (a *Aggregator) makeTransactionAggregationKey(event model.APMEvent, interva
 
 // makeMetricset makes a metricset event from key, counts, and values, with timestamp ts.
 func makeMetricset(key transactionAggregationKey, metrics transactionMetrics, totalCount int64, counts []int64, values []float64) model.APMEvent {
-	count := math.Round(metrics.count)
+	metricCount := math.Round(metrics.count)
 	var eventSuccessCount model.SummaryMetric
 	switch key.eventOutcome {
 	case "success":
-		eventSuccessCount.Count = int64(count)
-		eventSuccessCount.Sum = count
+		eventSuccessCount.Count = int64(metricCount)
+		eventSuccessCount.Sum = metricCount
 	case "failure":
-		eventSuccessCount.Count = int64(count)
+		eventSuccessCount.Count = int64(metricCount)
 	case "unknown":
 		// Keep both Count and Sum as 0.
 	}
@@ -562,7 +562,7 @@ func makeMetricset(key transactionAggregationKey, metrics transactionMetrics, to
 		Processor:     model.MetricsetProcessor,
 		Metricset: &model.Metricset{
 			Name:     metricsetName,
-			DocCount: totalCount,
+			DocCount: int64(metricCount),
 		},
 		Transaction: &model.Transaction{
 			Name:   key.transactionName,
@@ -574,7 +574,7 @@ func makeMetricset(key transactionAggregationKey, metrics transactionMetrics, to
 				Values: values,
 			},
 			DurationSummary: model.SummaryMetric{
-				Count: int64(count),
+				Count: int64(metricCount),
 				Sum:   float64(time.Duration(math.Round(metrics.sum)).Microseconds()),
 			},
 		},

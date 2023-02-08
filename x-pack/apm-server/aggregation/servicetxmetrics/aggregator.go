@@ -449,7 +449,7 @@ func makeMetricset(key aggregationKey, metrics serviceTxMetrics, totalCount int6
 		NumericLabels: key.NumericLabels,
 		Processor:     model.MetricsetProcessor,
 		Metricset: &model.Metricset{
-			DocCount: totalCount,
+			DocCount: metricCount,
 			Name:     metricsetName,
 			Interval: interval,
 		},
