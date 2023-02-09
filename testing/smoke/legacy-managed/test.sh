@@ -21,7 +21,10 @@ if [[ -z ${SKIP_DESTROY} ]]; then
 fi
 
 INTEGRATIONS_SERVER=false
-terraform_apply ${LATEST_VERSION} ${INTEGRATIONS_SERVER}
+cleanup_tfvar
+append_tfvar "stack_version" ${LATEST_VERSION}
+append_tfvar "integrations_server" ${INTEGRATIONS_SERVER}
+terraform_apply
 healthcheck 1
 send_events
 legacy_assertions ${LATEST_VERSION}
