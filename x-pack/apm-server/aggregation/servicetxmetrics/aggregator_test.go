@@ -130,8 +130,8 @@ func TestAggregatorRun(t *testing.T) {
 					Sum:   6100, // 6.1ms in micros
 				},
 				DurationHistogram: model.Histogram{
-					Values: []float64{1000, 2100, 3000},
-					Counts: []int64{1, 2, 3},
+					Values: []float64{1000},
+					Counts: []int64{6},
 				},
 			},
 			Event: model.Event{

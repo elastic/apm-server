@@ -281,14 +281,7 @@ func (mb *metricsBuffer) storeOrUpdate(
 		mb.otherCardinalityEstimator.InsertHash(hash)
 	}
 	if entry != nil {
-		entry.serviceTxMetrics = serviceTxMetrics{
-			transactionDuration: entry.transactionDuration + metrics.transactionDuration,
-			transactionCount:    entry.transactionCount + metrics.transactionCount,
-			failureCount:        entry.failureCount + metrics.failureCount,
-			successCount:        entry.successCount + metrics.successCount,
-			histogram:           entry.histogram,
-		}
-		entry.recordDuration(time.Duration(metrics.transactionDuration), metrics.transactionCount)
+		entry.recordMetrics(metrics)
 		return
 	}
 	if mb.entries >= mb.maxSize {
@@ -307,13 +300,9 @@ under a dedicated bucket identified by service name '%s'.`[1:], mb.maxSize, over
 	}
 	entry.aggregationKey = key
 	entry.serviceTxMetrics = serviceTxMetrics{
-		transactionDuration: metrics.transactionDuration,
-		transactionCount:    metrics.transactionCount,
-		failureCount:        metrics.failureCount,
-		successCount:        metrics.successCount,
-		histogram:           mb.histogramPool.Get().(*hdrhistogram.Histogram),
+		histogram: mb.histogramPool.Get().(*hdrhistogram.Histogram),
 	}
-	entry.recordDuration(time.Duration(metrics.transactionDuration), metrics.transactionCount)
+	entry.recordMetrics(metrics)
 }
 
 type aggregationKey struct {
@@ -390,9 +379,14 @@ type serviceTxMetrics struct {
 	successCount        float64
 }
 
-func (m *serviceTxMetrics) recordDuration(d time.Duration, n float64) {
-	count := int64(math.Round(n * histogramCountScale))
-	m.histogram.RecordValuesAtomic(d.Microseconds(), count)
+func (m *serviceTxMetrics) recordMetrics(other serviceTxMetrics) {
+	m.transactionCount += other.transactionCount
+	m.transactionDuration += other.transactionDuration * other.transactionCount
+	m.successCount += other.successCount
+	m.failureCount += other.failureCount
+
+	count := int64(math.Round(other.transactionCount * histogramCountScale))
+	m.histogram.RecordValuesAtomic(time.Duration(other.transactionDuration).Microseconds(), count)
 }
 
 func (m *serviceTxMetrics) histogramBuckets() (totalCount int64, counts []int64, values []float64) {
@@ -419,7 +413,7 @@ func (m *serviceTxMetrics) histogramBuckets() (totalCount int64, counts []int64,
 func makeServiceTxMetrics(event *model.APMEvent) serviceTxMetrics {
 	transactionCount := event.Transaction.RepresentativeCount
 	metrics := serviceTxMetrics{
-		transactionDuration: transactionCount * float64(event.Event.Duration),
+		transactionDuration: float64(event.Event.Duration),
 		transactionCount:    transactionCount,
 	}
 	switch event.Event.Outcome {
