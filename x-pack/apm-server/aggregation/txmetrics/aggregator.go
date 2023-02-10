@@ -491,6 +491,8 @@ func (a *Aggregator) makeTransactionAggregationKey(event model.APMEvent, interva
 	return key
 }
 
+// makeMetricset creates a metricset with key, metrics, and interval.
+// It uses result from histogram for Transaction.DurationSummary and DocCount to avoid discrepancy and UI weirdness.
 func makeMetricset(key transactionAggregationKey, metrics transactionMetrics, interval string) model.APMEvent {
 	totalCount, counts, values := metrics.histogramBuckets()
 

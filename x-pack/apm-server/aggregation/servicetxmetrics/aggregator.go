@@ -423,6 +423,10 @@ func makeServiceTxMetrics(event *model.APMEvent) serviceTxMetrics {
 	return metrics
 }
 
+// makeMetricset creates a metricset with key, metrics, and interval.
+// It uses result from histogram for Transaction.DurationSummary and DocCount to avoid discrepancy and UI weirdness.
+// Event.SuccessCount will maintain separate counts, which may be different from histogram count,
+// but is acceptable since it is used for calculating error ratio.
 func makeMetricset(key aggregationKey, metrics serviceTxMetrics, interval string) model.APMEvent {
 	totalCount, counts, values := metrics.histogramBuckets()
 
