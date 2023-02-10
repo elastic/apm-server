@@ -45,8 +45,12 @@ Specify the following options in the `apm-server.rum` section of the `apm-server
 To enable RUM support, set `apm-server.rum.enabled` to `true`.
 By default this is disabled.
 
-NOTE: Enabling RUM support automatically enables <<configuration-anonymous>>.
-Anonymous access is required as the RUM agent runs in end users' browsers.
+[NOTE]
+====
+If an <<api-key-legacy,API key>> or <<secret-token-legacy,secret token>> is configured,
+then enabling RUM support will automatically enable <<configuration-anonymous>>.
+Anonymous authentication is required as the RUM agent runs in the browser.
+====
 
 [float]
 [[event_rate.limit]]
