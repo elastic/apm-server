@@ -53,6 +53,7 @@ append_tfvar() {
 }
 
 terraform_apply() {
+    echo "-> Applying terraform configuration..."
     terraform apply -auto-approve >> tf.log
 
     ELASTICSEARCH_URL=$(terraform output -raw elasticsearch_url)
