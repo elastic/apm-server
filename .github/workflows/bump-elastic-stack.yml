@@ -13,7 +13,7 @@ permissions:
 jobs:
   filter:
     runs-on: ubuntu-latest
-    timeout-minutes: 3
+    timeout-minutes: 1
     outputs:
       matrix: ${{ steps.generate.outputs.matrix }}
     steps:
@@ -24,16 +24,16 @@ jobs:
           import requests
           r = requests.get(url='https://storage.googleapis.com/artifacts-api/snapshots/branches.json')
           with open(os.environ.get('GITHUB_OUTPUT'), "a") as f:
-            f.write("matrix={}\n".format(r.json()))
+            f.write("matrix={}\n".format(r.json()['branches']))
       - id: debug
-        run: echo "The branches are ${{ steps.generator.outputs.matrix }}"
+        run: echo "The branches are ${{ fromJSON(steps.generator.outputs.matrix) }}"
 
   branches:
     runs-on: ubuntu-latest
     needs: [filter]
     strategy:
       matrix:
-        branch: ${{ fromJSON(needs.filter.outputs.matrix).branches }}
+        branch: ${{ fromJSON(needs.filter.outputs.matrix) }}
     steps:
       - run: echo ${{ matrix.branch }}
 
