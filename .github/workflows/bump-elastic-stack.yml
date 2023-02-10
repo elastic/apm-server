@@ -18,9 +18,15 @@ jobs:
       matrix: ${{ steps.generate.outputs.matrix }}
     steps:
       - id: generator
-        run: echo "matrix=$(curl -s https://storage.googleapis.com/artifacts-api/snapshots/branches.json)" >> $GITHUB_OUTPUT
+        shell: python
+        run: |
+          import os
+          import requests
+          r = requests.get(url='https://storage.googleapis.com/artifacts-api/snapshots/branches.json')
+          with open(os.environ.get('GITHUB_OUTPUT'), "a") as f:
+            f.write("matrix={}\n".format(r.json()))
       - id: debug
-        run: echo "The selected color is ${{ steps.generator.outputs.matrix }}"
+        run: echo "The branches are ${{ steps.generator.outputs.matrix }}"
 
   branches:
     runs-on: ubuntu-latest
@@ -28,5 +34,5 @@ jobs:
     strategy:
       matrix: ${{ fromJson(needs.filter.outputs.matrix) }}
     steps:
-      - run: echo ${{ matrix.branch }}
+      - run: echo ${{ matrix.branches }}
 
