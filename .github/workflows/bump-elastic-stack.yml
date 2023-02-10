@@ -32,7 +32,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: [filter]
     strategy:
-      matrix: ${{ fromJson(needs.filter.outputs.matrix) }}
+      matrix:
+        branch: ${{ fromJSON(needs.filter.outputs.matrix).branches }}
     steps:
-      - run: echo ${{ matrix.branches }}
+      - run: echo ${{ matrix.branch }}
 
