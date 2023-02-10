@@ -159,9 +159,8 @@ func (a *Aggregator) publish(ctx context.Context, period time.Duration) error {
 	batch := make(model.Batch, 0, size)
 	for key, metrics := range current.m {
 		for _, entry := range metrics {
-			totalCount, counts, values := entry.serviceTxMetrics.histogramBuckets()
 			// Record the metricset interval as metricset.interval.
-			m := makeMetricset(entry.aggregationKey, entry.serviceTxMetrics, totalCount, counts, values, intervalStr)
+			m := makeMetricset(entry.aggregationKey, entry.serviceTxMetrics, intervalStr)
 			batch = append(batch, m)
 			entry.histogram.Reset()
 			a.histogramPool.Put(entry.histogram)
@@ -171,9 +170,8 @@ func (a *Aggregator) publish(ctx context.Context, period time.Duration) error {
 	}
 	if current.other != nil {
 		entry := current.other
-		totalCount, counts, values := entry.serviceTxMetrics.histogramBuckets()
 		// Record the metricset interval as metricset.interval.
-		m := makeMetricset(entry.aggregationKey, entry.serviceTxMetrics, totalCount, counts, values, intervalStr)
+		m := makeMetricset(entry.aggregationKey, entry.serviceTxMetrics, intervalStr)
 		m.Metricset.Samples = append(m.Metricset.Samples, model.MetricsetSample{
 			Name:  "service_transaction.aggregation.overflow_count",
 			Value: float64(current.otherCardinalityEstimator.Estimate()),
@@ -425,8 +423,16 @@ func makeServiceTxMetrics(event *model.APMEvent) serviceTxMetrics {
 	return metrics
 }
 
-func makeMetricset(key aggregationKey, metrics serviceTxMetrics, totalCount int64, counts []int64, values []float64, interval string) model.APMEvent {
-	metricCount := int64(math.Round(metrics.transactionCount))
+func makeMetricset(key aggregationKey, metrics serviceTxMetrics, interval string) model.APMEvent {
+	totalCount, counts, values := metrics.histogramBuckets()
+
+	transactionDurationSummary := model.SummaryMetric{
+		Count: totalCount,
+	}
+	for i, v := range values {
+		transactionDurationSummary.Sum += v * float64(counts[i])
+	}
+
 	return model.APMEvent{
 		Timestamp: key.timestamp,
 		Service: model.Service{
@@ -448,11 +454,8 @@ func makeMetricset(key aggregationKey, metrics serviceTxMetrics, totalCount int6
 			Interval: interval,
 		},
 		Transaction: &model.Transaction{
-			Type: key.transactionType,
-			DurationSummary: model.SummaryMetric{
-				Count: metricCount,
-				Sum:   float64(time.Duration(math.Round(metrics.transactionDuration)).Microseconds()),
-			},
+			Type:            key.transactionType,
+			DurationSummary: transactionDurationSummary,
 			DurationHistogram: model.Histogram{
 				Counts: counts,
 				Values: values,
