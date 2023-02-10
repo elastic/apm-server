@@ -1,0 +1,28 @@
+name: Add to obs-docs project
+on:
+  issues:
+    types:
+      - labeled
+jobs:
+  add_to_project:
+    runs-on: ubuntu-latest
+    if: github.event.label.name == 'Team:Docs'
+    steps:
+      - uses: octokit/graphql-action@v2.x
+        id: add_to_project
+        with:
+          query: |
+            mutation add_to_project($projectid:ID!,$contentid:ID!) {
+              addProjectV2ItemById(input:{projectId:$projectid contentId:$contentid}) {
+                item {
+                  ... on ProjectV2Item {
+                    id
+                  }
+                }
+              }
+            }
+          projectid: ${{ env.PROJECT_ID }}
+          contentid: ${{ github.event.issue.node_id }}
+        env:
+          PROJECT_ID: "PVT_kwDOAGc3Zs0iZw"
+          GITHUB_TOKEN: ${{ secrets.APM_TECH_USER_TOKEN }}
