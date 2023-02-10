@@ -1,0 +1,32 @@
+---
+name: bump-elastic-stack-snapshot
+
+on:
+  schedule:
+    - cron: '0 15 * * 1-5'
+  pull_request:
+
+permissions:
+  pull-requests: write
+  contents: write
+
+jobs:
+  filter:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    outputs:
+      matrix: ${{ steps.generate.outputs.matrix }}
+    steps:
+      - id: generator
+        run: echo "matrix=$(curl -s https://storage.googleapis.com/artifacts-api/snapshots/branches.json)" >> $GITHUB_OUTPUT
+      - id: debug
+        run: echo "The selected color is ${{ steps.generator.outputs.matrix }}"
+
+  branches:
+    runs-on: ubuntu-latest
+    needs: [filter]
+    strategy:
+      matrix: ${{ fromJson(needs.filter.outputs.matrix) }}
+    steps:
+      - run: echo ${{ matrix.branch }}
+
