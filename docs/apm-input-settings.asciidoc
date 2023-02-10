@@ -487,6 +487,10 @@ Sample rate
 | (int) The sample rate to apply to trace events matching this policy.
 Required in each policy.
 
+The sample rate must be greater than `0` and less than or equal to `1`.
+For example, a `sample_rate` of `0.01` means that 1% of trace events matching the policy will be sampled.
+A `sample_rate` of `1` means that 100% of trace events matching the policy will be sampled.
+
 // end::sample_rate-setting[]
 
 // =============================================================================
@@ -499,6 +503,8 @@ Trace name
 `trace.name`
 
 | (string) The trace name for events to match a policy.
+A match occurs when the configured `trace.name` matches the `transaction.name` of the root transaction of a trace.
+A root transaction is any transaction with a `parent.id`.
 
 // end::trace_name-setting[]
 
@@ -512,6 +518,7 @@ Trace outcome
 `trace.outcome`
 
 | (string) The trace outcome for events to match a policy.
+A match occurs when the configured `trace.outcome` matches a trace's `event.outcome` field.
 Trace outcome can be `success`, `failure`, or `unknown`.
 
 // end::trace_outcome-setting[]
