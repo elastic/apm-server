@@ -11,7 +11,6 @@ permissions:
   contents: write
 
 jobs:
-  ## TODO: provide composite action that provides the current active branches
   filter:
     runs-on: ubuntu-latest
     timeout-minutes: 1
@@ -19,19 +18,7 @@ jobs:
       matrix: ${{ steps.generator.outputs.matrix }}
     steps:
       - id: generator
-        shell: python
-        run: |
-          import json
-          import os
-          import requests
-          r = requests.get(url='https://storage.googleapis.com/artifacts-api/snapshots/branches.json')
-          matrix = {'include': []}
-          for branch in r.json()['branches']:
-            matrix['include'].append({"branch": branch})
-          with open(os.environ.get('GITHUB_OUTPUT'), "a") as f:
-            f.write("matrix={}\n".format(json.dumps(matrix)))
-      - id: debug
-        run: echo "The branches are ${{ fromJSON(steps.generator.outputs.matrix) }}"
+        uses: elastic/apm-pipeline-library/.github/actions/elastic-stack-snapshot-branches@current
 
   bump-elastic-stack:
     runs-on: ubuntu-latest
