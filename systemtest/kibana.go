@@ -314,9 +314,6 @@ func CreateSourceMap(t testing.TB, sourcemap []byte, serviceName, serviceVersion
 		Value: id,
 	})
 
-	t.Cleanup(func() {
-		DeleteSourceMap(t, result.ID)
-	})
 	return result.ID
 }
 
