@@ -265,7 +265,7 @@ type SourceMap struct {
 // CreateSourceMap creates or replaces a source map with the given service name
 // and version, and bundle filepath. CreateSourceMap returns the ID of the stored
 // source map, which may be passed to DeleteSourceMap for cleanup.
-func CreateSourceMap(t testing.TB, sourcemap, serviceName, serviceVersion, bundleFilepath string) string {
+func CreateSourceMap(t testing.TB, sourcemap []byte, serviceName, serviceVersion, bundleFilepath string) string {
 	t.Helper()
 
 	var data bytes.Buffer
@@ -276,7 +276,7 @@ func CreateSourceMap(t testing.TB, sourcemap, serviceName, serviceVersion, bundl
 
 	sourcemapFileWriter, err := mw.CreateFormFile("sourcemap", "sourcemap.js.map")
 	require.NoError(t, err)
-	sourcemapFileWriter.Write([]byte(sourcemap))
+	sourcemapFileWriter.Write(sourcemap)
 	require.NoError(t, mw.Close())
 
 	apiURL := *KibanaURL
