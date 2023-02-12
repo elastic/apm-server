@@ -20,6 +20,7 @@ package systemtest
 import (
 	"context"
 	"net/url"
+	"strings"
 	"testing"
 	"time"
 
@@ -93,16 +94,28 @@ func CleanupElasticsearch(t testing.TB) {
 }
 
 func cleanupElasticsearch() error {
-	_, err := Elasticsearch.Do(context.Background(), &esapi.IndicesDeleteDataStreamRequest{
+	rsp, err := Elasticsearch.Do(context.Background(), &esapi.IndicesDeleteDataStreamRequest{
 		Name: []string{
 			"traces-apm*",
 			"metrics-apm*",
 			"logs-apm*",
-			".apm-source-map",
 		},
+
 		ExpandWildcards: "all",
 	}, nil)
-	return err
+	if err != nil {
+		return err
+	}
+	rsp.Body.Close()
+	rsp, err = Elasticsearch.Do(context.Background(), &esapi.DeleteByQueryRequest{
+		Index: []string{".apm-source-map"},
+		Body:  strings.NewReader(`{"query": { "match_all": {}}}`),
+	}, nil)
+	if err != nil {
+		return err
+	}
+	rsp.Body.Close()
+	return nil
 }
 
 // ChangeUserPassword changes the password for a given user.
