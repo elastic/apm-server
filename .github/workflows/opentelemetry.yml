@@ -4,9 +4,7 @@ on:
   workflow_run:
     workflows:
       - bump-elastic-stack-snapshot
-      - ci
-      - system-test-reporter
-      - update-beats
+      - macos
     types: [completed]
 
 jobs:
