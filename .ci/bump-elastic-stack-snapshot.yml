@@ -1,0 +1,68 @@
+---
+name: Bump elastic-stack to latest snapshot version
+
+actions:
+  default:
+    title: '[updatecli] Bump elastic stack version to {{ source "latestVersion" }}'
+    kind: github/pullrequest
+    spec:
+      labels:
+        - automation
+        - backport-skip
+        - dependencies
+    scmid: default
+
+scms:
+  default:
+    kind: github
+    spec:
+      user: '{{ requiredEnv "GIT_USER" }}'
+      email: '{{ requiredEnv "GIT_EMAIL" }}'
+      owner: elastic
+      repository: apm-server
+      token: '{{ requiredEnv "GITHUB_TOKEN" }}'
+      username: '{{ requiredEnv "GIT_USER" }}'
+      branch: '{{ requiredEnv "BRANCH" }}'
+
+sources:
+  latestVersion:
+    name: Get latest snapshot build
+    kind: json
+    spec:
+      file: https://storage.googleapis.com/artifacts-api/snapshots/{{ requiredEnv "BRANCH" }}.json
+      key: .build_id
+
+targets:
+  update-docker-compose-yml:
+    name: "Update docker-compose.yml"
+    kind: file
+    sourceid: latestVersion
+    scmid: default
+    spec:
+      file: docker-compose.yml
+      matchpattern: '(.*):\d+.\d+.\d+-.*-SNAPSHOT'
+      replacepattern: '$1:{{ source "latestVersion" }}-SNAPSHOT'
+
+  update-yaml:
+    name: "Update k8s stack yaml files"
+    kind: file
+    sourceid: latestVersion
+    scmid: default
+    spec:
+      files:
+        - testing/infra/k8s/base/stack/apm-server.yaml
+        - testing/infra/k8s/base/stack/elasticsearch.yaml
+        - testing/infra/k8s/base/stack/fleet-server.yaml
+        - testing/infra/k8s/base/stack/kibana.yaml
+      matchpattern: 'version: \d+.\d+.\d+-.*-SNAPSHOT'
+      replacepattern: 'version: {{ source "latestVersion" }}-SNAPSHOT'
+
+  update-kustomization:
+    name: "Update kustomization.yaml"
+    kind: file
+    sourceid: latestVersion
+    scmid: default
+    spec:
+      file: testing/infra/k8s/overlays/local/kustomization.yaml
+      matchpattern: '(image: docker\.elastic\.co/.*):\d+.\d+.\d+-.*-SNAPSHOT'
+      replacepattern: '$1:{{ source "latestVersion" }}-SNAPSHOT'
