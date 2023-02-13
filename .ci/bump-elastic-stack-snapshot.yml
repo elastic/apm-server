@@ -7,8 +7,9 @@ actions:
     kind: github/pullrequest
     spec:
       labels:
-        - dependencies
+        - automation
         - backport-skip
+        - dependencies
     scmid: default
 
 scms:
