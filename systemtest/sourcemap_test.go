@@ -31,17 +31,15 @@ import (
 
 func TestRUMErrorSourcemapping(t *testing.T) {
 	test := func(t *testing.T, bundleFilepath string) {
+		systemtest.CleanupElasticsearch(t)
+
 		sourcemap, err := os.ReadFile("../testdata/sourcemap/bundle.js.map")
 		require.NoError(t, err)
 		systemtest.CreateSourceMap(t, string(sourcemap), "apm-agent-js", "1.0.1", bundleFilepath)
 
-		// Create the integration after uploading the sourcemap, so that it is added
-		// to the integration policy from the start. Otherwise we would have to wait
-		// for the policy to be reloaded.
 		apmIntegration := newAPMIntegration(t, map[string]interface{}{"enable_rum": true})
 
 		test := func(t *testing.T, serverURL string) {
-			systemtest.CleanupElasticsearch(t)
 			systemtest.SendRUMEventsPayload(t, serverURL, "../testdata/intake-v2/errors_rum.ndjson")
 			result := systemtest.Elasticsearch.ExpectDocs(t, "logs-apm.error-*", nil)
 			systemtest.ApproveEvents(
@@ -77,16 +75,18 @@ func TestRUMErrorSourcemapping(t *testing.T) {
 
 func TestRUMSpanSourcemapping(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
-	srv := apmservertest.NewUnstartedServerTB(t)
-	srv.Config.RUM = &apmservertest.RUMConfig{Enabled: true}
-	err := srv.Start()
-	require.NoError(t, err)
 
 	sourcemap, err := os.ReadFile("../testdata/sourcemap/bundle.js.map")
 	require.NoError(t, err)
 	systemtest.CreateSourceMap(t, string(sourcemap), "apm-agent-js", "1.0.0",
 		"http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
 	)
+
+	srv := apmservertest.NewUnstartedServerTB(t)
+	srv.Config.RUM = &apmservertest.RUMConfig{Enabled: true}
+	err = srv.Start()
+	require.NoError(t, err)
+
 	systemtest.SendRUMEventsPayload(t, srv.URL, "../testdata/intake-v2/transactions_spans_rum_2.ndjson")
 	result := systemtest.Elasticsearch.ExpectDocs(t, "traces-apm*", estest.TermQuery{
 		Field: "processor.event",
@@ -104,10 +104,6 @@ func TestRUMSpanSourcemapping(t *testing.T) {
 
 func TestNoMatchingSourcemap(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
-	srv := apmservertest.NewUnstartedServerTB(t)
-	srv.Config.RUM = &apmservertest.RUMConfig{Enabled: true}
-	err := srv.Start()
-	require.NoError(t, err)
 
 	// upload sourcemap with a wrong service version
 	sourcemap, err := os.ReadFile("../testdata/sourcemap/bundle.js.map")
@@ -115,6 +111,11 @@ func TestNoMatchingSourcemap(t *testing.T) {
 	systemtest.CreateSourceMap(t, string(sourcemap), "apm-agent-js", "2.0",
 		"http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
 	)
+
+	srv := apmservertest.NewUnstartedServerTB(t)
+	srv.Config.RUM = &apmservertest.RUMConfig{Enabled: true}
+	err = srv.Start()
+	require.NoError(t, err)
 
 	systemtest.SendRUMEventsPayload(t, srv.URL, "../testdata/intake-v2/transactions_spans_rum_2.ndjson")
 	result := systemtest.Elasticsearch.ExpectDocs(t, "traces-apm*", estest.TermQuery{
@@ -133,16 +134,17 @@ func TestNoMatchingSourcemap(t *testing.T) {
 
 func TestSourcemapCaching(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
-	srv := apmservertest.NewUnstartedServerTB(t)
-	srv.Config.RUM = &apmservertest.RUMConfig{Enabled: true}
-	err := srv.Start()
-	require.NoError(t, err)
 
 	sourcemap, err := os.ReadFile("../testdata/sourcemap/bundle.js.map")
 	require.NoError(t, err)
 	sourcemapID := systemtest.CreateSourceMap(t, string(sourcemap), "apm-agent-js", "1.0.1",
 		"http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
 	)
+
+	srv := apmservertest.NewUnstartedServerTB(t)
+	srv.Config.RUM = &apmservertest.RUMConfig{Enabled: true}
+	err = srv.Start()
+	require.NoError(t, err)
 
 	// Index an error, applying source mapping and caching the source map in the process.
 	systemtest.SendRUMEventsPayload(t, srv.URL, "../testdata/intake-v2/errors_rum.ndjson")
@@ -155,6 +157,60 @@ func TestSourcemapCaching(t *testing.T) {
 	systemtest.SendRUMEventsPayload(t, srv.URL, "../testdata/intake-v2/errors_rum.ndjson")
 	result = systemtest.Elasticsearch.ExpectMinDocs(t, 1, "logs-apm.error-*", nil)
 	assertSourcemapUpdated(t, result, true)
+}
+
+func TestSourcemapFetcher(t *testing.T) {
+	testCases := []struct {
+		name          string
+		disableKibana bool
+		rumESConfig   *apmservertest.ElasticsearchOutputConfig
+	}{
+		{
+			name:          "elasticsearch",
+			disableKibana: true,
+		}, {
+			name: "kibana fallback with es unreachable",
+			rumESConfig: &apmservertest.ElasticsearchOutputConfig{
+				// Use an unreachable address
+				Hosts: []string{"127.0.0.1:12345"},
+			},
+		}, {
+			name: "kibana fallback with es credentials unauthorized",
+			rumESConfig: &apmservertest.ElasticsearchOutputConfig{
+				// Use the wrong credentials so that the ES fetcher
+				// will fail and apm server will fall back to kiban
+				APIKey: "example",
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			systemtest.CleanupElasticsearch(t)
+
+			sourcemap, err := os.ReadFile("../testdata/sourcemap/bundle.js.map")
+			require.NoError(t, err)
+			systemtest.CreateSourceMap(t, string(sourcemap), "apm-agent-js", "1.0.1",
+				"http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
+			)
+
+			srv := apmservertest.NewUnstartedServerTB(t)
+			srv.Config.Kibana.Enabled = !tc.disableKibana
+			srv.Config.RUM = &apmservertest.RUMConfig{
+				Enabled: true,
+				Sourcemap: &apmservertest.RUMSourcemapConfig{
+					ESConfig: tc.rumESConfig,
+				},
+			}
+			err = srv.Start()
+			require.NoError(t, err)
+
+			// Index an error, applying source mapping and caching the source map in the process.
+			systemtest.SendRUMEventsPayload(t, srv.URL, "../testdata/intake-v2/errors_rum.ndjson")
+			result := systemtest.Elasticsearch.ExpectDocs(t, "logs-apm.error-*", nil)
+			assertSourcemapUpdated(t, result, true)
+		})
+	}
 }
 
 func deleteIndex(t *testing.T, name string) {
