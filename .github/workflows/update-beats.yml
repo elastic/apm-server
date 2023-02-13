@@ -1,20 +1,29 @@
 name: update-beats
 
 on:
-  push:
-    branches:
-      - main
-      - "7.17"
-      - "8.*"
-      - '!8.[0-5]'
+  workflow_dispatch:
+  schedule:
+    - cron: '0 15 * * 1-5'
 
 permissions:
   pull-requests: write
   contents: write
 
 jobs:
-  bump:
+  filter:
     runs-on: ubuntu-latest
+    timeout-minutes: 1
+    outputs:
+      matrix: ${{ steps.generator.outputs.matrix }}
+    steps:
+      - id: generator
+        uses: elastic/apm-pipeline-library/.github/actions/elastic-stack-snapshot-branches@current
+  bump:
+    needs:
+      - filter
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJson(needs.filter.outputs.matrix) }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v3
@@ -28,7 +37,7 @@ jobs:
       - name: Run Updatecli
         env:
           GITHUB_TOKEN: ${{ github.token }}
-          BRANCH_NAME: ${{ github.ref_name }}
+          BRANCH_NAME: ${{ matrix.branch }}
         run: updatecli apply --config ./.ci/update-beats.yml
       - if: always()
         uses: elastic/apm-pipeline-library/.github/actions/notify-build-status@current
