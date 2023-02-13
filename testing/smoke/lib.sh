@@ -43,20 +43,19 @@ terraform_init() {
     terraform validate >> tf.log
 }
 
+cleanup_tfvar() {
+    if [[ -f terraform.tfvars ]]; then rm terraform.tfvars; fi
+}
+
 append_tfvar() {
-    if [[ -f terraform.tfvars && ! -z ${3} && ${3} -gt 0 ]]; then rm terraform.tfvars; fi
+    echo "-> Adding tfvar ${1}=\"${2}\""
     echo ${1}=\"${2}\" >> terraform.tfvars
 }
 
 terraform_apply() {
-    echo "-> Creating / Upgrading deployment to version ${1}"
-    if [[ ! -z ${1} ]]; then echo stack_version=\"${1}\" > terraform.tfvars; fi
-    if [[ ! -z ${2} ]]; then echo integrations_server=${2} >> terraform.tfvars; fi
+    echo "-> Applying terraform configuration..."
     terraform apply -auto-approve >> tf.log
 
-    if [[ ${EXPORTED_AUTH} ]]; then
-        return
-    fi
     ELASTICSEARCH_URL=$(terraform output -raw elasticsearch_url)
     ELASTICSEARCH_USER=$(terraform output -raw elasticsearch_username)
     ELASTICSEARCH_PASS=$(terraform output -raw elasticsearch_password)
@@ -64,7 +63,6 @@ terraform_apply() {
     APM_SERVER_URL=$(terraform output -raw apm_server_url)
     KIBANA_URL=$(terraform output -raw kibana_url)
     STACK_VERSION=$(terraform output -raw stack_version)
-    EXPORTED_AUTH=true
 }
 
 terraform_destroy() {
@@ -130,11 +128,11 @@ send_events() {
 
 delete_all() {
     local AUTH=${ELASTICSEARCH_USER}:${ELASTICSEARCH_PASS}
-    local URL=${ELASTICSEARCH_URL}/_all
+    local URL=${ELASTICSEARCH_URL}/*apm*/_delete_by_query?expand_wildcards=all
 
     echo "-> Removing all data from ES..."
 
-    curl_fail -u ${AUTH} -XDELETE "${URL}"
+    curl_fail -H 'Content-Type: application/json' -u ${AUTH} -XPOST ${URL} -d '{"query": {"match_all": {}}}'
 }
 
 legacy_assert_events() {

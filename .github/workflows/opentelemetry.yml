@@ -6,7 +6,7 @@ on:
       - bump-elastic-stack-snapshot
       - ci
       - system-test-reporter
-
+      - update-beats
     types: [completed]
 
 jobs:
