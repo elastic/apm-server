@@ -114,7 +114,7 @@ func newProcessors(args beater.ServerParams) ([]namedProcessor, error) {
 		MetricsInterval:                metricsInterval,
 		RollUpIntervals:                rollUpMetricsIntervals,
 		MaxTransactionGroupsPerService: int(math.Ceil(0.1 * float64(args.Config.Aggregation.Transactions.MaxTransactionGroups))),
-		MaxServices:                    args.Config.Aggregation.Transactions.MaxTransactionGroups, // same as max txn grps
+		MaxServices:                    args.Config.Aggregation.Transactions.MaxServices,
 		HDRHistogramSignificantFigures: args.Config.Aggregation.Transactions.HDRHistogramSignificantFigures,
 	})
 	if err != nil {

@@ -110,7 +110,7 @@ func TestKibanaFetcherInvalidSourcemap(t *testing.T) {
 	})
 	consumer, err := fetcher.Fetch(context.Background(), "service_name", "service_version", "http://host:123/path")
 	require.Error(t, err)
-	assert.EqualError(t, err, "Could not parse Sourcemap: json: cannot unmarshal string into Go value of type sourcemap.v3")
+	assert.EqualError(t, err, "sourcemap malformed: json: cannot unmarshal string into Go value of type sourcemap.v3")
 	assert.Nil(t, consumer)
 }
 

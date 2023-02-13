@@ -98,6 +98,7 @@ func cleanupElasticsearch() error {
 			"traces-apm*",
 			"metrics-apm*",
 			"logs-apm*",
+			".apm-source-map",
 		},
 		ExpandWildcards: "all",
 	}, nil)
