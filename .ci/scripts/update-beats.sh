@@ -5,6 +5,7 @@
 #
 set -euo pipefail
 
+<<<<<<< HEAD
 make update-beats
 COMMIT_MESSAGE="Update to elastic/beats@$(go list -m -f {{.Version}} github.com/elastic/beats/... | cut -d- -f3)"
 
@@ -19,3 +20,6 @@ git diff --staged --quiet || git commit -m "$COMMIT_MESSAGE"
 git --no-pager log -1
 
 echo "You can now push and create a Pull Request"
+=======
+make update-beats BEATS_VERSION="${1}"
+>>>>>>> 956a4a308 (Migrate update-beats pipeline to updatecli and GH actions workflow (#10179))
