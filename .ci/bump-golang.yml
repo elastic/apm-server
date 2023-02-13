@@ -1,0 +1,117 @@
+---
+name: Bump golang-version to latest version
+
+actions:
+  default:
+    title: '[updatecli] Bump Golang version to {{ source "latestGoVersion" }}'
+    kind: github/pullrequest
+    spec:
+      labels:
+        - backport-skip
+        - dependencies
+    scmid: default
+
+scms:
+  default:
+    kind: github
+    spec:
+      user: '{{ requiredEnv "GIT_USER" }}'
+      email: '{{ requiredEnv "GIT_EMAIL" }}'
+      owner: elastic
+      repository: apm-server
+      token: '{{ requiredEnv "GITHUB_TOKEN" }}'
+      username: '{{ requiredEnv "GIT_USER" }}'
+      branch: main
+
+sources:
+  minor:
+    name: Get minor version in .go-version
+    kind: shell
+    transformers:
+      - findsubmatch:
+          pattern: '^\d+.(\d+).\d+$'
+          captureindex: 1
+    spec:
+      command: cat .go-version
+
+  latestGoVersion:
+    name: Get Latest Go Release
+    kind: githubrelease
+    dependson:
+      - minor
+    transformers:
+      - trimprefix: go
+    spec:
+      owner: golang
+      repository: go
+      token: '{{ requiredEnv "GITHUB_TOKEN" }}'
+      username: '{{ requiredEnv "GIT_USER" }}'
+      versionfilter:
+        kind: regex
+        pattern: go1\.{{ source "minor" }}\.\d*$
+
+  gomod:
+    dependson:
+      - latestGoVersion
+    name: Get version in go.mod format
+    kind: shell
+    transformers:
+      - findsubmatch:
+          pattern: '^(\d+.\d+).\d*'
+          captureindex: 1
+    spec:
+      command: echo {{ source "latestGoVersion" }}
+
+conditions:
+  dockerTag:
+    name: Is docker image golang:{{ source "latestGoVersion" }} published
+    kind: dockerimage
+    spec:
+      image: golang
+      tag: '{{ source "latestGoVersion" }}'
+    sourceid: latestGoVersion
+
+  goDefaultVersion-check:
+    name: Check if defined golang version differs
+    kind: shell
+    sourceid: latestGoVersion
+    spec:
+      command: 'grep -v -q {{ source "latestGoVersion" }} .go-version #'
+
+targets:
+  update-go-version:
+    name: "Update .go-version"
+    sourceid: latestGoVersion
+    scmid: default
+    kind: file
+    spec:
+      content: '{{ source "latestGoVersion" }}'
+      file: .go-version
+      matchpattern: '\d+.\d+.\d+'
+  update-version-asciidoc:
+    name: "Update version.asciidoc"
+    sourceid: latestGoVersion
+    scmid: default
+    kind: file
+    spec:
+      file: docs/version.asciidoc
+      matchpattern: '(:go-version:) \d+.\d+.\d+'
+      replacepattern: '$1 {{ source "latestGoVersion" }}'
+  update-dockerfile:
+    name: "Update Dockerfile"
+    sourceid: latestGoVersion
+    scmid: default
+    kind: file
+    spec:
+      file: packaging/docker/Dockerfile
+      matchpattern: '(FROM golang):\d+.\d+.\d+'
+      replacepattern: '$1:{{ source "latestGoVersion" }}'
+  update-gomod:
+    name: "Update go.mod"
+    sourceid: gomod
+    scmid: default
+    kind: file
+    spec:
+      content: 'go {{ source "gomod" }}'
+      file: go.mod
+      matchpattern: 'go \d+.\d+'
