@@ -30,7 +30,6 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -40,6 +39,7 @@ import (
 	"go.elastic.co/apm/v2"
 	"go.elastic.co/apm/v2/transport"
 	"go.uber.org/zap/zapcore"
+	"golang.org/x/sync/errgroup"
 )
 
 // Server is an APM server listening on a system-chosen port on the local
@@ -81,9 +81,6 @@ type Server struct {
 	// Logs provides access to the apm-server log entries.
 	Logs LogEntries
 
-	// Stderr holds the stderr for apm-server, excluding logging.
-	Stderr io.ReadCloser
-
 	// URL holds the base URL for Elastic APM agents, in the form
 	// http[s]://ipaddr:port with no trailing slash.
 	URL string
@@ -106,6 +103,7 @@ type Server struct {
 
 	mu      sync.Mutex
 	tracers []*apm.Tracer
+	eg      errgroup.Group
 }
 
 // NewServerTB returns a started Server, passings args to the apm-server command.
@@ -233,13 +231,16 @@ func (s *Server) start(tls bool) error {
 		s.printCmdline(s.Log, args)
 		stderrReader = io.TeeReader(stderrReader, s.Log)
 	}
-	go s.consumeStderr(stderrReader)
+	s.eg.Go(func() error {
+		return s.consumeStderr(stderrReader)
+	})
 
 	logs := s.Logs.Iterator()
 	defer logs.Close()
 	if err := s.waitUntilListening(tls, logs); err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -358,10 +359,6 @@ func (s *Server) waitUntilListening(tls bool, logs *LogEntryIterator) error {
 
 	// Didn't find message, server probably exited...
 	if err := s.Close(); err != nil {
-		if err, ok := err.(*exec.ExitError); ok && err != nil {
-			stderr, _ := io.ReadAll(s.Stderr)
-			err.Stderr = stderr
-		}
 		return err
 	}
 	return errors.New("server exited cleanly without logging expected startup message")
@@ -370,10 +367,7 @@ func (s *Server) waitUntilListening(tls bool, logs *LogEntryIterator) error {
 // consumeStderr consumes the apm-server process's stderr, recording
 // log entries. After any errors occur decoding log entries, remaining
 // stderr is available through s.Stderr.
-func (s *Server) consumeStderr(procStderr io.Reader) {
-	stderrPipeReader, stderrPipeWriter := io.Pipe()
-	s.Stderr = stderrPipeReader
-
+func (s *Server) consumeStderr(procStderr io.Reader) error {
 	type logEntry struct {
 		Timestamp logpTimestamp `json:"@timestamp"`
 		Message   string        `json:"message"`
@@ -418,8 +412,8 @@ func (s *Server) consumeStderr(procStderr io.Reader) {
 
 	// Send the remaining stderr to s.Stderr.
 	procStderr = io.MultiReader(decoder.Buffered(), procStderr)
-	_, err := io.Copy(stderrPipeWriter, procStderr)
-	stderrPipeWriter.CloseWithError(err)
+	_, err := io.Copy(os.Stderr, procStderr)
+	return err
 }
 
 // Close shuts down the server gracefully if possible, and forcefully otherwise.
@@ -434,7 +428,10 @@ func (s *Server) Close() error {
 	if err := interruptProcess(s.cmd.Process); err != nil {
 		s.cmd.Process.Kill()
 	}
-	return s.Wait()
+	if err := s.Wait(); err != nil {
+		return err
+	}
+	return s.eg.Wait()
 }
 
 func (s *Server) closeTracers() {
