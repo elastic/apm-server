@@ -127,7 +127,7 @@ func TestAggregatorRun(t *testing.T) {
 				Type: "request",
 				DurationSummary: model.SummaryMetric{
 					Count: 6,
-					Sum:   6100, // 6.1ms in micros
+					Sum:   6000, // estimated from histogram
 				},
 				DurationHistogram: model.Histogram{
 					Values: []float64{1000},
