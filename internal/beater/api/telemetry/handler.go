@@ -18,10 +18,12 @@
 package telemetry
 
 import (
-	"github.com/elastic/apm-server/internal/beater/request"
-	"github.com/elastic/elastic-agent-libs/monitoring"
+	"bytes"
 	"io"
 	"net/http"
+
+	"github.com/elastic/apm-server/internal/beater/request"
+	"github.com/elastic/elastic-agent-libs/monitoring"
 )
 
 var (
@@ -44,8 +46,10 @@ type HandlerConfig struct {
 func Handler(cfg HandlerConfig) request.Handler {
 
 	return func(c *request.Context) {
-		err := sendTelemetry(cfg.TelemetryUrl, c.Request.Header.Get("content-type"), c.Request.Body, cfg.ClusterId, cfg.Version)
-		if err != nil {
+		b, err1 := io.ReadAll(c.Request.Body)
+		defer c.Request.Body.Close()
+		err := sendTelemetry(cfg.TelemetryUrl, c.Request.Header.Get("content-type"), b, cfg.ClusterId, cfg.Version)
+		if err != nil || err1 != nil {
 			return
 		}
 		c.Result.SetDefault(request.IDResponseValidOK)
@@ -54,11 +58,13 @@ func Handler(cfg HandlerConfig) request.Handler {
 
 }
 
-func sendTelemetry(url string, contentType string, body io.Reader, clusterId string, version string) error {
+func sendTelemetry(url string, contentType string, body []byte, clusterId string, version string) error {
 
 	client := &http.Client{}
 
-	req, err := http.NewRequest("POST", url, body)
+	bodyreader := io.Reader(bytes.NewBuffer(body))
+
+	req, err := http.NewRequest("POST", url, bodyreader)
 	if err != nil {
 		return err
 	}
@@ -67,11 +73,9 @@ func sendTelemetry(url string, contentType string, body io.Reader, clusterId str
 	req.Header.Add("X-Elastic-Cluster-ID", clusterId)
 	req.Header.Add("X-Elastic-Stack-Version", version)
 
-	resp, err := client.Do(req)
+	_, err = client.Do(req)
 	if err != nil {
 		return err
 	}
-	io.ReadAll(resp.Body)
-	defer resp.Body.Close()
 	return nil
 }

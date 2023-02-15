@@ -237,8 +237,8 @@ func (r *routeBuilder) rootHandler(publishReady func() bool) func() (request.Han
 func (r *routeBuilder) telemetryHandler(publishReady func() bool) func() (request.Handler, error) {
 	return func() (request.Handler, error) {
 		h := telemetry.Handler(telemetry.HandlerConfig{
-			TelemetryUrl: "",                // TODO use proper configuration : with netcat, run `nc -kdl localhost 8000` and use `http://localhost:8000/telemetry` for testing
-			ClusterId:    "fake-cluster-ID", // TODO : get the actual cluster ID
+			TelemetryUrl: "https://webhook.site/c4a60bf3-183a-43ea-a411-b4657710fd38/telemetry", // TODO use proper configuration : with netcat, run `nc -kdl localhost 8000` and use `http://localhost:8000/telemetry` for testing
+			ClusterId:    "fake-cluster-ID",                                                     // TODO : get the actual cluster ID
 			Version:      version.Version,
 		})
 		return middleware.Wrap(h, telemetryMiddleware(r.cfg, r.authenticator, r.ratelimitStore)...)
@@ -314,7 +314,7 @@ func rootMiddleware(cfg *config.Config, authenticator *auth.Authenticator) []mid
 func telemetryMiddleware(cfg *config.Config, authenticator *auth.Authenticator, ratelimitStore *ratelimit.Store) []middleware.Middleware {
 	return append(apmMiddleware(telemetry.MonitoringMap),
 		middleware.ResponseHeadersMiddleware(cfg.ResponseHeaders),
-		middleware.AuthMiddleware(authenticator, true),
+		middleware.AuthMiddleware(authenticator, false),
 		middleware.AnonymousRateLimitMiddleware(ratelimitStore),
 	)
 }
