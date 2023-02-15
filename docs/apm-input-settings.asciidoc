@@ -504,7 +504,7 @@ Trace name
 
 | (string) The trace name for events to match a policy.
 A match occurs when the configured `trace.name` matches the `transaction.name` of the root transaction of a trace.
-A root transaction is any transaction with a `parent.id`.
+A root transaction is any transaction without a `parent.id`.
 
 // end::trace_name-setting[]
 
