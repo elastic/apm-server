@@ -35,8 +35,3 @@ jobs:
           pipeline: ./.ci/bump-elastic-stack-snapshot.yml
         env:
           BRANCH: ${{ matrix.branch }}
-<<<<<<< HEAD
-        run: updatecli apply --config ./.ci/bump-elastic-stack-snapshot.yml
-
-=======
->>>>>>> 87e8c4df (action: use composite updatecli (#10251))
