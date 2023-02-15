@@ -23,9 +23,12 @@ jobs:
     runs-on: ubuntu-latest
     needs: [filter]
     strategy:
+      fail-fast: false
       matrix: ${{ fromJson(needs.filter.outputs.matrix) }}
     steps:
       - uses: actions/checkout@v3
+        with:
+          ref: ${{ matrix.branch }}
 
       - uses: elastic/apm-pipeline-library/.github/actions/updatecli@current
         with:
@@ -35,8 +38,3 @@ jobs:
           pipeline: ./.ci/bump-elastic-stack-snapshot.yml
         env:
           BRANCH: ${{ matrix.branch }}
-<<<<<<< HEAD
-        run: updatecli apply --config ./.ci/bump-elastic-stack-snapshot.yml
-
-=======
->>>>>>> 87e8c4dff (action: use composite updatecli (#10251))
