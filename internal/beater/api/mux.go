@@ -37,6 +37,7 @@ import (
 	"github.com/elastic/apm-server/internal/beater/api/config/agent"
 	"github.com/elastic/apm-server/internal/beater/api/intake"
 	"github.com/elastic/apm-server/internal/beater/api/root"
+	"github.com/elastic/apm-server/internal/beater/api/telemetry"
 	"github.com/elastic/apm-server/internal/beater/auth"
 	"github.com/elastic/apm-server/internal/beater/config"
 	"github.com/elastic/apm-server/internal/beater/middleware"
@@ -54,6 +55,8 @@ const (
 	RootPath = "/"
 
 	// Backend routes
+
+	AgentTelemetryPath = "/telemetry/v1/agents"
 
 	// AgentConfigPath defines the path to query for agent config management
 	AgentConfigPath = "/config/v1/agents"
@@ -120,6 +123,7 @@ func NewMux(
 	rumIntakeHandler := builder.rumIntakeHandler()
 	routeMap := []route{
 		{RootPath, builder.rootHandler(publishReady)},
+		{AgentTelemetryPath, builder.telemetryHandler(publishReady)},
 		{AgentConfigPath, builder.backendAgentConfigHandler(fetcher)},
 		{AgentConfigRUMPath, builder.rumAgentConfigHandler(fetcher)},
 		{IntakeRUMPath, rumIntakeHandler},
@@ -230,6 +234,17 @@ func (r *routeBuilder) rootHandler(publishReady func() bool) func() (request.Han
 	}
 }
 
+func (r *routeBuilder) telemetryHandler(publishReady func() bool) func() (request.Handler, error) {
+	return func() (request.Handler, error) {
+		h := telemetry.Handler(telemetry.HandlerConfig{
+			TelemetryUrl: "",
+			ClusterId:    "",
+			Version:      version.Version,
+		})
+		return middleware.Wrap(h, telemetryMiddleware(r.cfg, r.authenticator, r.ratelimitStore)...)
+	}
+}
+
 func (r *routeBuilder) backendAgentConfigHandler(f agentcfg.Fetcher) func() (request.Handler, error) {
 	return func() (request.Handler, error) {
 		return agentConfigHandler(r.cfg, r.authenticator, r.ratelimitStore, backendMiddleware, f, r.fleetManaged)
@@ -293,6 +308,14 @@ func rootMiddleware(cfg *config.Config, authenticator *auth.Authenticator) []mid
 	return append(apmMiddleware(root.MonitoringMap),
 		middleware.ResponseHeadersMiddleware(cfg.ResponseHeaders),
 		middleware.AuthMiddleware(authenticator, false),
+	)
+}
+
+func telemetryMiddleware(cfg *config.Config, authenticator *auth.Authenticator, ratelimitStore *ratelimit.Store) []middleware.Middleware {
+	return append(apmMiddleware(telemetry.MonitoringMap),
+		middleware.ResponseHeadersMiddleware(cfg.ResponseHeaders),
+		middleware.AuthMiddleware(authenticator, true),
+		middleware.AnonymousRateLimitMiddleware(ratelimitStore),
 	)
 }
 
