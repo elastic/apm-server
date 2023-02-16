@@ -106,6 +106,7 @@ type Server struct {
 
 	mu      sync.Mutex
 	tracers []*apm.Tracer
+	closeCh chan struct{}
 }
 
 // NewServerTB returns a started Server, passings args to the apm-server command.
@@ -160,6 +161,7 @@ func NewUnstartedServer(args ...string) *Server {
 		Config:              DefaultConfig(),
 		EventMetadataFilter: DefaultMetadataFilter{},
 		args:                args,
+		closeCh:             make(chan struct{}),
 	}
 }
 
@@ -430,6 +432,13 @@ func (s *Server) consumeStderr(procStderr io.Reader) {
 // Close must be called in order to clean up any resources created for running
 // the server. Calling Close on an unstarted server is a no-op.
 func (s *Server) Close() error {
+	select {
+	case <-s.closeCh:
+		return nil
+	default:
+		close(s.closeCh)
+	}
+
 	if s.cmd == nil {
 		return nil
 	}
