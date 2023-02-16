@@ -33,11 +33,11 @@ var (
 )
 
 type HandlerConfig struct {
-	// TelemetryUrl contains the URL to send telemetry to
-	TelemetryUrl string
+	// TelemetryURL contains the URL to send telemetry to
+	TelemetryURL string
 
-	// ClusterId contains the elastic cloud cluster ID
-	ClusterId string
+	// ClusterID contains the elastic cloud cluster ID
+	ClusterID string
 
 	// Version contains the APM Server version
 	Version string
@@ -48,7 +48,7 @@ func Handler(cfg HandlerConfig) request.Handler {
 	return func(c *request.Context) {
 		b, err1 := io.ReadAll(c.Request.Body)
 		defer c.Request.Body.Close()
-		err := sendTelemetry(cfg.TelemetryUrl, c.Request.Header.Get("content-type"), b, cfg.ClusterId, cfg.Version)
+		err := sendTelemetry(cfg.TelemetryURL, c.Request.Header.Get("content-type"), b, cfg.ClusterID, cfg.Version)
 		if err != nil || err1 != nil {
 			return
 		}
@@ -58,7 +58,7 @@ func Handler(cfg HandlerConfig) request.Handler {
 
 }
 
-func sendTelemetry(url string, contentType string, body []byte, clusterId string, version string) error {
+func sendTelemetry(url string, contentType string, body []byte, clusterID string, version string) error {
 
 	client := &http.Client{}
 
@@ -70,7 +70,7 @@ func sendTelemetry(url string, contentType string, body []byte, clusterId string
 	}
 
 	req.Header.Add("content-type", contentType)
-	req.Header.Add("X-Elastic-Cluster-ID", clusterId)
+	req.Header.Add("X-Elastic-Cluster-ID", clusterID)
 	req.Header.Add("X-Elastic-Stack-Version", version)
 
 	_, err = client.Do(req)
