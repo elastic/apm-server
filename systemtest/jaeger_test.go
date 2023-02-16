@@ -95,9 +95,7 @@ func sendJaegerBatch(
 
 func TestJaegerSampling(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
-	srv := apmservertest.NewUnstartedServerTB(t)
-	err := srv.Start()
-	require.NoError(t, err)
+	srv := apmservertest.NewServerTB(t)
 
 	conn, err := grpc.Dial(serverAddr(srv), grpc.WithInsecure())
 	require.NoError(t, err)

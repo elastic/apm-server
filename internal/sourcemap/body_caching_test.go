@@ -40,10 +40,15 @@ var unsupportedVersionSourcemap = `{
 }`
 
 func Test_NewCachingFetcher(t *testing.T) {
-	_, err := NewBodyCachingFetcher(nil, -1, nil)
+	// pass a closed channel to aovid leaking a goroutine
+	// by listening to a nil channel
+	ch := make(chan []identifier)
+	close(ch)
+
+	_, err := NewBodyCachingFetcher(nil, -1, ch)
 	require.Error(t, err)
 
-	f, err := NewBodyCachingFetcher(nil, 100, nil)
+	f, err := NewBodyCachingFetcher(nil, 100, ch)
 	require.NoError(t, err)
 	assert.NotNil(t, f.cache)
 }
@@ -152,8 +157,11 @@ func TestStore_Fetch(t *testing.T) {
 }
 
 func testCachingFetcher(t *testing.T, client *elasticsearch.Client) *BodyCachingFetcher {
+	ch := make(chan []identifier)
+	close(ch)
+
 	esFetcher := NewElasticsearchFetcher(client, "apm-*sourcemap*")
-	cachingFetcher, err := NewBodyCachingFetcher(esFetcher, 100, nil)
+	cachingFetcher, err := NewBodyCachingFetcher(esFetcher, 100, ch)
 	require.NoError(t, err)
 	return cachingFetcher
 }
