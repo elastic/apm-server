@@ -39,6 +39,13 @@ output.logstash:
 The `hosts` option specifies the {ls} server and the port (`5044`) where {ls} is configured to listen for incoming
 {beats} connections.
 
+ifdef::apm-server[]
+[float]
+==== Configure the {kib} output
+
+include::../../../../shared-kibana-endpoint.asciidoc[tag=shared-kibana-config]
+endif::[]
+
 ifeval::["{beatname_lc}"=="filebeat"]
 Want to use <<filebeat-modules,{beatname_uc} modules>> with {ls}? You need to do
 some extra setup. For more information, see
