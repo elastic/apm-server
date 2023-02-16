@@ -763,6 +763,10 @@ func (s *Runner) newLibbeatFinalBatchProcessor(
 		return nil, nil, err
 	}
 	stop := func(ctx context.Context) error {
+		// clients need to be closed before running Close so
+		// this method needs to be called after the publisher has
+		// stopped
+		defer pipeline.Close()
 		if err := publisher.Stop(ctx); err != nil {
 			return err
 		}
