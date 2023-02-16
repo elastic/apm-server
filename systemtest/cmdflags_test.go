@@ -28,8 +28,7 @@ func TestAPMServerEnvironment(t *testing.T) {
 	for _, env := range []string{
 		"container",
 		"systemd",
-		// TODO this is a bug in elastic-agent-libs
-		//"macos_service",
+		"macos_service",
 		"windows_service",
 	} {
 		env := env
