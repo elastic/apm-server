@@ -55,13 +55,6 @@ func NewBodyCachingFetcher(
 	go func() {
 		logger.Debug("listening for invalidation...")
 
-		// prevent goroutine leak
-		// this can only happens in tests, otherwise
-		// invalidationChan is never null
-		if invalidationChan == nil {
-			return
-		}
-
 		for arr := range invalidationChan {
 			for _, id := range arr {
 				logger.Debugf("Invalidating id %v", id)

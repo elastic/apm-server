@@ -34,9 +34,12 @@ import (
 )
 
 func TestBatchProcessor(t *testing.T) {
+	ch := make(chan []identifier)
+	close(ch)
+
 	client := newMockElasticsearchClient(t, http.StatusOK, sourcemapESResponseBody(true, validSourcemap))
 	esFetcher := NewElasticsearchFetcher(client, "index")
-	fetcher, err := NewBodyCachingFetcher(esFetcher, 100, nil)
+	fetcher, err := NewBodyCachingFetcher(esFetcher, 100, ch)
 	require.NoError(t, err)
 
 	originalLinenoWithFilename := 1
