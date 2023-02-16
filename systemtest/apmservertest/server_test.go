@@ -40,8 +40,6 @@ func TestMain(m *testing.M) {
 func TestNewServerTB(t *testing.T) {
 	srv := apmservertest.NewServerTB(t)
 	require.NotNil(t, srv)
-	err := srv.Close()
-	assert.NoError(t, err)
 }
 
 func TestNewUnstartedServerTB(t *testing.T) {
@@ -81,9 +79,6 @@ func TestServerStartTLS(t *testing.T) {
 	tracer.StartTransaction("name", "type").End()
 	tracer.Flush(nil)
 	assert.Zero(t, tracer.Stats().Errors)
-
-	err = srv.Close()
-	assert.NoError(t, err)
 }
 
 func TestExpvar(t *testing.T) {
