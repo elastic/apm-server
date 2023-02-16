@@ -38,7 +38,7 @@ import (
 
 func TestTransactionAggregation(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
-	srv := apmservertest.NewUnstartedServer()
+	srv := apmservertest.NewUnstartedServerTB(t)
 	srv.Config.Monitoring = &apmservertest.MonitoringConfig{
 		Enabled:       true,
 		MetricsPeriod: 100 * time.Millisecond,
@@ -125,8 +125,7 @@ func TestTransactionAggregation(t *testing.T) {
 
 func TestTransactionAggregationShutdown(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
-	srv := apmservertest.NewUnstartedServer()
-	require.NoError(t, srv.Start())
+	srv := apmservertest.NewServerTB(t)
 
 	// Send a transaction to the server to be aggregated.
 	tracer := srv.Tracer()
@@ -153,8 +152,7 @@ func TestTransactionAggregationShutdown(t *testing.T) {
 
 func TestServiceDestinationAggregation(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
-	srv := apmservertest.NewUnstartedServer()
-	require.NoError(t, srv.Start())
+	srv := apmservertest.NewServerTB(t)
 
 	// Send spans to the server to be aggregated.
 	tracer := srv.Tracer()
@@ -187,8 +185,7 @@ func TestServiceDestinationAggregation(t *testing.T) {
 func TestTransactionAggregationLabels(t *testing.T) {
 	t.Setenv("ELASTIC_APM_GLOBAL_LABELS", "department_name=apm,organization=observability,company=elastic")
 	systemtest.CleanupElasticsearch(t)
-	srv := apmservertest.NewUnstartedServer()
-	require.NoError(t, srv.Start())
+	srv := apmservertest.NewServerTB(t)
 
 	tracer := srv.Tracer()
 	tx := tracer.StartTransaction("name", "type")
@@ -232,9 +229,7 @@ func TestTransactionAggregationLabels(t *testing.T) {
 
 func TestServiceTransactionMetricsAggregation(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
-	srv := apmservertest.NewUnstartedServer()
-	err := srv.Start()
-	require.NoError(t, err)
+	srv := apmservertest.NewServerTB(t)
 
 	timestamp, _ := time.Parse(time.RFC3339Nano, "2006-01-02T15:04:05.999999999Z") // should be truncated to 1s
 	tracer := srv.Tracer()
@@ -264,9 +259,7 @@ func TestServiceTransactionMetricsAggregation(t *testing.T) {
 func TestServiceTransactionMetricsAggregationLabels(t *testing.T) {
 	t.Setenv("ELASTIC_APM_GLOBAL_LABELS", "department_name=apm,organization=observability,company=elastic")
 	systemtest.CleanupElasticsearch(t)
-	srv := apmservertest.NewUnstartedServer()
-	err := srv.Start()
-	require.NoError(t, err)
+	srv := apmservertest.NewServerTB(t)
 
 	tracer := srv.Tracer()
 	tx := tracer.StartTransaction("name", "type")
@@ -310,9 +303,7 @@ func TestServiceTransactionMetricsAggregationLabels(t *testing.T) {
 
 func TestServiceSummaryMetricsAggregation(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
-	srv := apmservertest.NewUnstartedServer()
-	err := srv.Start()
-	require.NoError(t, err)
+	srv := apmservertest.NewServerTB(t)
 
 	timestamp, _ := time.Parse(time.RFC3339Nano, "2006-01-02T15:04:05.999999999Z") // should be truncated to 1s
 	tracer := srv.Tracer()
@@ -339,9 +330,7 @@ func TestServiceSummaryMetricsAggregation(t *testing.T) {
 
 func TestNonDefaultRollupIntervalHiddenDataStream(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
-	srv := apmservertest.NewUnstartedServer()
-	err := srv.Start()
-	require.NoError(t, err)
+	srv := apmservertest.NewServerTB(t)
 
 	timestamp, _ := time.Parse(time.RFC3339Nano, "2006-01-02T15:04:05.999999999Z") // should be truncated to 1s
 	tracer := srv.Tracer()

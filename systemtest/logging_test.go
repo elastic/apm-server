@@ -40,9 +40,7 @@ import (
 
 func TestAPMServerGRPCRequestLoggingValid(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
-	srv := apmservertest.NewUnstartedServer()
-	err := srv.Start()
-	require.NoError(t, err)
+	srv := apmservertest.NewServerTB(t)
 	addr := serverAddr(srv)
 	conn, err := grpc.Dial(addr, grpc.WithInsecure())
 	require.NoError(t, err)
@@ -82,9 +80,7 @@ func TestAPMServerGRPCRequestLoggingValid(t *testing.T) {
 }
 
 func TestAPMServerRequestLoggingValid(t *testing.T) {
-	srv := apmservertest.NewUnstartedServer()
-	require.NoError(t, srv.Start())
-
+	srv := apmservertest.NewServerTB(t)
 	eventsURL := srv.URL + "/intake/v2/events"
 
 	// Send a request to the server with a single valid event.

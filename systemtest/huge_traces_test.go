@@ -23,7 +23,6 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"go.elastic.co/apm/v2"
 
 	"github.com/elastic/apm-server/systemtest"
@@ -35,8 +34,7 @@ func TestTransactionDroppedSpansStats(t *testing.T) {
 	// Disable span compression.
 	t.Setenv("ELASTIC_APM_SPAN_COMPRESSION_ENABLED", "false")
 	systemtest.CleanupElasticsearch(t)
-	srv := apmservertest.NewUnstartedServer()
-	require.NoError(t, srv.Start())
+	srv := apmservertest.NewServerTB(t)
 
 	tracer := srv.Tracer()
 	tx := tracer.StartTransaction("huge-traces", "type")
