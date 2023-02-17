@@ -2,7 +2,7 @@
 === OpenTelemetry API/SDK with Elastic APM agents
 
 Use the OpenTelemetry API/SDKs with Elastic APM agents.
-This "bridge" translates calls to the OpenTelemetry API to Elastic APM API calls.
+Supported Elastic APM agents translate OpenTelemetry API calls to Elastic APM API calls.
 This allows you to reuse your existing instrumentation to create Elastic APM transactions and spans.
 
 TIP: If you'd like to use OpenTelemetry to send data directly to the APM server instead,
