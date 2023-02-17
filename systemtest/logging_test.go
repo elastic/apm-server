@@ -40,9 +40,7 @@ import (
 
 func TestAPMServerGRPCRequestLoggingValid(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
-	srv := apmservertest.NewUnstartedServerTB(t)
-	err := srv.Start()
-	require.NoError(t, err)
+	srv := apmservertest.NewServerTB(t)
 	addr := serverAddr(srv)
 	conn, err := grpc.Dial(addr, grpc.WithInsecure())
 	require.NoError(t, err)
