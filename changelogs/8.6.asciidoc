@@ -3,9 +3,20 @@
 
 https://github.com/elastic/apm-server/compare/8.5\...8.6[View commits]
 
+* <<release-notes-8.6.3>>
 * <<release-notes-8.6.2>>
 * <<release-notes-8.6.1>>
 * <<release-notes-8.6.0>>
+
+[float]
+[[release-notes-8.6.3]]
+=== APM version 8.6.3
+
+https://github.com/elastic/apm-server/compare/v8.6.2\...v8.6.3[View commits]
+
+[float]
+==== Bug fixes
+- Close channel when stopping final batch processor {pull}10247[10247]
 
 [float]
 [[release-notes-8.6.2]]
