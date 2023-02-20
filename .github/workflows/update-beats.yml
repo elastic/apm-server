@@ -1,36 +1,43 @@
 name: update-beats
 
 on:
-  push:
-    branches:
-      - main
-      - "7.17"
-      - "8.*"
-      - '!8.[0-5]'
+  workflow_dispatch:
+  schedule:
+    - cron: '0 15 * * 1-5'
 
 permissions:
-  pull-requests: write
-  contents: write
+  contents: read
 
 jobs:
-  bump:
+  filter:
     runs-on: ubuntu-latest
+    timeout-minutes: 1
+    outputs:
+      matrix: ${{ steps.generator.outputs.matrix }}
+    steps:
+      - id: generator
+        uses: elastic/apm-pipeline-library/.github/actions/elastic-stack-snapshot-branches@current
+  bump:
+    needs:
+      - filter
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.filter.outputs.matrix) }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v3
         with:
           go-version-file: go.mod
-      - run: go version
-      - name: Setup Git
-        uses: elastic/apm-pipeline-library/.github/actions/setup-git@current
-      - name: Install Updatecli in the runner
-        uses: updatecli/updatecli-action@453502948b442d7b9a923de7b40cc7ce8628505c
-      - name: Run Updatecli
+      - uses: elastic/apm-pipeline-library/.github/actions/updatecli@current
         env:
-          GITHUB_TOKEN: ${{ github.token }}
-          BRANCH_NAME: ${{ github.ref_name }}
-        run: updatecli apply --config ./.ci/update-beats.yml
-      - if: failure()
+          BRANCH_NAME: ${{ matrix.branch }}
+        with:
+          vaultUrl: ${{ secrets.VAULT_ADDR }}
+          vaultRoleId: ${{ secrets.VAULT_ROLE_ID }}
+          vaultSecretId: ${{ secrets.VAULT_SECRET_ID }}
+          pipeline: ./.ci/update-beats.yml
+      - if: always()
         uses: elastic/apm-pipeline-library/.github/actions/notify-build-status@current
         with:
           vaultUrl: ${{ secrets.VAULT_ADDR }}
