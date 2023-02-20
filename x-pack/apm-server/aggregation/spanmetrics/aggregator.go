@@ -52,8 +52,8 @@ type AggregatorConfig struct {
 
 	// MaxGroups is the maximum number of distinct service destination
 	// group metrics to store within an aggregation period. Once this
-	// number of groups is reached, any new aggregation keys will cause
-	// individual metrics documents to be immediately published.
+	// number of groups is reached, any new aggregation keys will be
+	// aggregated in a dedicated service group identified by `_other`.
 	//
 	// Some agents continue to send high cardinality span names, e.g.
 	// Elasticsearch spans may contain a document ID
@@ -171,9 +171,8 @@ func (a *Aggregator) publish(ctx context.Context, period time.Duration) error {
 	return a.config.BatchProcessor.ProcessBatch(ctx, &batch)
 }
 
-// ProcessBatch aggregates all spans contained in "b", adding to it any
-// metricsets requiring immediate publication. It also aggregates transactions
-// where transaction.DroppedSpansStats > 0.
+// ProcessBatch aggregates all spans contained in "b".
+// It also aggregates transactions where transaction.DroppedSpansStats > 0.
 //
 // This method is expected to be used immediately prior to publishing
 // the events.
@@ -182,14 +181,14 @@ func (a *Aggregator) ProcessBatch(ctx context.Context, b *model.Batch) error {
 	defer a.mu.RUnlock()
 	for _, event := range *b {
 		if event.Processor == model.SpanProcessor {
-			a.processSpan(&event, b)
+			a.processSpan(&event)
 			continue
 		}
 
 		tx := event.Transaction
 		if event.Processor == model.TransactionProcessor && tx != nil {
 			for _, dss := range tx.DroppedSpansStats {
-				a.processDroppedSpanStats(&event, dss, b)
+				a.processDroppedSpanStats(&event, dss)
 			}
 			// NOTE(marclop) The event.Transaction.DroppedSpansStats is unset
 			// via the `modelprocessor.DroppedSpansStatsDiscarder` appended just
@@ -200,7 +199,7 @@ func (a *Aggregator) ProcessBatch(ctx context.Context, b *model.Batch) error {
 	return nil
 }
 
-func (a *Aggregator) processSpan(event *model.APMEvent, b *model.Batch) {
+func (a *Aggregator) processSpan(event *model.APMEvent) {
 	if event.Span.DestinationService == nil || event.Span.DestinationService.Resource == "" {
 		return
 	}
@@ -243,7 +242,7 @@ func (a *Aggregator) processSpan(event *model.APMEvent, b *model.Batch) {
 	}
 }
 
-func (a *Aggregator) processDroppedSpanStats(event *model.APMEvent, dss model.DroppedSpanStats, b *model.Batch) {
+func (a *Aggregator) processDroppedSpanStats(event *model.APMEvent, dss model.DroppedSpanStats) {
 	representativeCount := event.Transaction.RepresentativeCount
 	if representativeCount <= 0 {
 		// RepresentativeCount is zero when the sample rate is unknown.

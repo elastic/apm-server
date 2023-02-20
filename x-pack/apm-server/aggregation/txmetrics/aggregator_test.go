@@ -268,7 +268,7 @@ func TestAggregatorRun(t *testing.T) {
 			Processor: model.TransactionProcessor,
 			Transaction: &model.Transaction{
 				Name:                "T-800",
-				RepresentativeCount: 1,
+				RepresentativeCount: 2.5,
 			},
 		}
 		if i%2 == 0 {
@@ -304,7 +304,7 @@ func TestAggregatorRun(t *testing.T) {
 		assert.Equal(t, "T-800", metricsets[1].Transaction.Name)
 		assert.Empty(t, metricsets[1].Labels)
 		assert.Empty(t, metricsets[1].NumericLabels)
-		assert.Equal(t, []int64{400, 400}, metricsets[1].Transaction.DurationHistogram.Counts)
+		assert.Equal(t, []int64{1000, 1000}, metricsets[1].Transaction.DurationHistogram.Counts)
 		for _, event := range metricsets {
 			assert.Equal(t, now.Truncate(intervals[i]), event.Timestamp)
 			assert.Equal(t, fmt.Sprintf("%.0fs", intervals[i].Seconds()), event.Metricset.Interval)
@@ -718,7 +718,7 @@ func createOverflowMetricset(overflowCount, repCount int, txnDuration time.Durat
 			},
 			DurationSummary: model.SummaryMetric{
 				Count: int64(overflowCount * repCount),
-				Sum:   float64(txnDuration.Microseconds()),
+				Sum:   float64(time.Duration(float64(overflowCount*repCount) * float64(txnDuration)).Microseconds()),
 			},
 		},
 		Metricset: &model.Metricset{

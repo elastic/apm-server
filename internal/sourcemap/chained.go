@@ -19,6 +19,8 @@ package sourcemap
 
 import (
 	"context"
+	"errors"
+	"time"
 
 	"github.com/go-sourcemap/sourcemap"
 )
@@ -35,13 +37,23 @@ func (c ChainedFetcher) Fetch(ctx context.Context, name, version, path string) (
 	var lastErr error
 	for _, f := range c {
 		consumer, err := f.Fetch(ctx, name, version, path)
-		if err != nil {
-			lastErr = err
-			continue
+		// if there are no errors or the error is not errFetcherUnvailable
+		// then the fetcher is working/available.
+		// Return the result: error and consumer.
+		if !errors.Is(err, errFetcherUnvailable) {
+			return consumer, err
 		}
-		if consumer != nil {
-			return consumer, nil
+
+		// previous fetcher is unavailable but the deadline expired so we cannot reuse that
+		if t, _ := ctx.Deadline(); t.Before(time.Now()) {
+			var cancel context.CancelFunc
+			ctx, cancel = context.WithTimeout(context.Background(), 500*time.Millisecond)
+			defer cancel()
 		}
+
+		// err is errFetcherUnvailable
+		// store it in a tmp variable and try the next fetcher
+		lastErr = err
 	}
 	return nil, lastErr
 }

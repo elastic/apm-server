@@ -77,7 +77,15 @@
 - external: ecs
   name: error.stack_trace
 - external: ecs
+  name: error.type
+- external: ecs
   name: event.outcome
+- external: ecs
+  name: event.type
+- external: ecs
+  name: event.category
+- external: ecs
+  name: event.kind
 - external: ecs
   name: host.architecture
 - external: ecs

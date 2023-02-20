@@ -9,7 +9,6 @@
 * <<apm-distributed-tracing>>
 * <<apm-rum>>
 * <<sampling>>
-* <<open-telemetry>>
 * <<log-correlation>>
 * <<cross-cluster-search>>
 * <<span-compression>>
@@ -23,8 +22,6 @@ include::./apm-distributed-tracing.asciidoc[]
 include::./apm-rum.asciidoc[]
 
 include::./sampling.asciidoc[]
-
-include::./open-telemetry.asciidoc[]
 
 include::./log-correlation.asciidoc[]
 
