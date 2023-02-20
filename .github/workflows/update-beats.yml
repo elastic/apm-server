@@ -1,0 +1,36 @@
+name: update-beats
+
+on:
+  push:
+    branches:
+      - main
+      - "7.17"
+      - "8.*"
+      - '!8.[0-5]'
+
+permissions:
+  contents: read
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with:
+          go-version-file: go.mod
+      - uses: elastic/apm-pipeline-library/.github/actions/updatecli@current
+        env:
+          BRANCH_NAME: ${{ github.ref_name }}
+        with:
+          vaultUrl: ${{ secrets.VAULT_ADDR }}
+          vaultRoleId: ${{ secrets.VAULT_ROLE_ID }}
+          vaultSecretId: ${{ secrets.VAULT_SECRET_ID }}
+          pipeline: ./.ci/update-beats.yml
+      - if: always()
+        uses: elastic/apm-pipeline-library/.github/actions/notify-build-status@current
+        with:
+          vaultUrl: ${{ secrets.VAULT_ADDR }}
+          vaultRoleId: ${{ secrets.VAULT_ROLE_ID }}
+          vaultSecretId: ${{ secrets.VAULT_SECRET_ID }}
+          slackChannel: "#apm-server"
