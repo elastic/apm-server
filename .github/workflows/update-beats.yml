@@ -11,6 +11,7 @@ on:
 permissions:
   contents: read
 
+
 jobs:
   bump:
     runs-on: ubuntu-latest

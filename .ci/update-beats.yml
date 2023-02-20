@@ -1,0 +1,55 @@
+---
+name: Bump beats
+
+scms:
+  default:
+    kind: github
+    spec:
+      user: '{{ requiredEnv "GIT_USER" }}'
+      email: '{{ requiredEnv "GIT_EMAIL" }}'
+      owner: elastic
+      repository: apm-server
+      token: '{{ requiredEnv "GITHUB_TOKEN" }}'
+      username: '{{ requiredEnv "GIT_USER" }}'
+      branch: '{{ requiredEnv "BRANCH_NAME" }}'
+
+actions:
+  default:
+    kind: github/pullrequest
+    scmid: default
+    spec:
+      automerge: false
+      labels:
+        - automation
+        - backport-skip
+
+sources:
+  beats:
+    kind: json
+    spec:
+      file: 'https://api.github.com/repos/elastic/beats/commits?sha={{ requiredEnv "BRANCH_NAME" }}&per_page=1'
+      key: '.[0].sha'
+
+
+conditions:
+  beats-version-check:
+    name: Check beats version
+    kind: shell
+    sourceid: beats
+    spec:
+      command: grep "BEATS_VERSION?={{ requiredEnv "BRANCH_NAME" }}" Makefile
+
+targets:
+  beats:
+    name: 'Update to elastic/beats@{{ source "beats" }}'
+    sourceid: beats
+    scmid: default
+    kind: shell
+    spec:
+      command: .ci/scripts/update-beats.sh
+      environments:
+        - name: PATH
+        - name: GOPATH
+        - name: HOME
+
+
