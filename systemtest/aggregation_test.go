@@ -336,7 +336,7 @@ func TestServiceSummaryMetricsAggregationOverflow(t *testing.T) {
 	}
 	require.NoError(t, srv.Start())
 
-	f := func(env string) {
+	sendTransaction := func(env string) {
 		t.Setenv("ELASTIC_APM_ENVIRONMENT", env)
 		timestamp, _ := time.Parse(time.RFC3339Nano, "2006-01-02T15:04:05.999999999Z") // should be truncated to 1s
 		tracer := srv.Tracer()
@@ -345,10 +345,10 @@ func TestServiceSummaryMetricsAggregationOverflow(t *testing.T) {
 		tx.End()
 		tracer.Flush(nil)
 	}
-	f("dev")
-	f("staging")
-	f("prod")
-	f("test")
+	sendTransaction("dev")
+	sendTransaction("staging")
+	sendTransaction("prod")
+	sendTransaction("test")
 
 	// Wait for the transaction to be indexed, indicating that Elasticsearch
 	// indices have been setup and we should not risk triggering the shutdown
