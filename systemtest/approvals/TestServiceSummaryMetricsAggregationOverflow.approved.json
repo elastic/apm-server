@@ -1,0 +1,340 @@
+{
+    "events": [
+        {
+            "@timestamp": "dynamic",
+            "data_stream": {
+                "dataset": "apm.service_summary.10m",
+                "namespace": "default",
+                "type": "metrics"
+            },
+            "ecs": {
+                "version": "dynamic"
+            },
+            "event": {
+                "agent_id_status": "missing",
+                "ingested": "dynamic"
+            },
+            "metricset": {
+                "interval": "10m",
+                "name": "service_summary"
+            },
+            "observer": {
+                "hostname": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic"
+            },
+            "processor": {
+                "event": "metric",
+                "name": "metric"
+            },
+            "service": {
+                "name": "_other"
+            },
+            "service_summary": {
+                "aggregation": {
+                    "overflow_count": 2
+                }
+            }
+        },
+        {
+            "@timestamp": "dynamic",
+            "data_stream": {
+                "dataset": "apm.service_summary.1m",
+                "namespace": "default",
+                "type": "metrics"
+            },
+            "ecs": {
+                "version": "dynamic"
+            },
+            "event": {
+                "agent_id_status": "missing",
+                "ingested": "dynamic"
+            },
+            "metricset": {
+                "interval": "1m",
+                "name": "service_summary"
+            },
+            "observer": {
+                "hostname": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic"
+            },
+            "processor": {
+                "event": "metric",
+                "name": "metric"
+            },
+            "service": {
+                "name": "_other"
+            },
+            "service_summary": {
+                "aggregation": {
+                    "overflow_count": 2
+                }
+            }
+        },
+        {
+            "@timestamp": "dynamic",
+            "data_stream": {
+                "dataset": "apm.service_summary.60m",
+                "namespace": "default",
+                "type": "metrics"
+            },
+            "ecs": {
+                "version": "dynamic"
+            },
+            "event": {
+                "agent_id_status": "missing",
+                "ingested": "dynamic"
+            },
+            "metricset": {
+                "interval": "60m",
+                "name": "service_summary"
+            },
+            "observer": {
+                "hostname": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic"
+            },
+            "processor": {
+                "event": "metric",
+                "name": "metric"
+            },
+            "service": {
+                "name": "_other"
+            },
+            "service_summary": {
+                "aggregation": {
+                    "overflow_count": 2
+                }
+            }
+        },
+        {
+            "@timestamp": "dynamic",
+            "agent": {
+                "name": "go"
+            },
+            "data_stream": {
+                "dataset": "apm.service_summary.10m",
+                "namespace": "default",
+                "type": "metrics"
+            },
+            "ecs": {
+                "version": "dynamic"
+            },
+            "event": {
+                "agent_id_status": "missing",
+                "ingested": "dynamic"
+            },
+            "metricset": {
+                "interval": "10m",
+                "name": "service_summary"
+            },
+            "observer": {
+                "hostname": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic"
+            },
+            "processor": {
+                "event": "metric",
+                "name": "metric"
+            },
+            "service": {
+                "environment": "dev",
+                "language": {
+                    "name": "go"
+                },
+                "name": "systemtest"
+            }
+        },
+        {
+            "@timestamp": "dynamic",
+            "agent": {
+                "name": "go"
+            },
+            "data_stream": {
+                "dataset": "apm.service_summary.1m",
+                "namespace": "default",
+                "type": "metrics"
+            },
+            "ecs": {
+                "version": "dynamic"
+            },
+            "event": {
+                "agent_id_status": "missing",
+                "ingested": "dynamic"
+            },
+            "metricset": {
+                "interval": "1m",
+                "name": "service_summary"
+            },
+            "observer": {
+                "hostname": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic"
+            },
+            "processor": {
+                "event": "metric",
+                "name": "metric"
+            },
+            "service": {
+                "environment": "dev",
+                "language": {
+                    "name": "go"
+                },
+                "name": "systemtest"
+            }
+        },
+        {
+            "@timestamp": "dynamic",
+            "agent": {
+                "name": "go"
+            },
+            "data_stream": {
+                "dataset": "apm.service_summary.60m",
+                "namespace": "default",
+                "type": "metrics"
+            },
+            "ecs": {
+                "version": "dynamic"
+            },
+            "event": {
+                "agent_id_status": "missing",
+                "ingested": "dynamic"
+            },
+            "metricset": {
+                "interval": "60m",
+                "name": "service_summary"
+            },
+            "observer": {
+                "hostname": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic"
+            },
+            "processor": {
+                "event": "metric",
+                "name": "metric"
+            },
+            "service": {
+                "environment": "dev",
+                "language": {
+                    "name": "go"
+                },
+                "name": "systemtest"
+            }
+        },
+        {
+            "@timestamp": "dynamic",
+            "agent": {
+                "name": "go"
+            },
+            "data_stream": {
+                "dataset": "apm.service_summary.10m",
+                "namespace": "default",
+                "type": "metrics"
+            },
+            "ecs": {
+                "version": "dynamic"
+            },
+            "event": {
+                "agent_id_status": "missing",
+                "ingested": "dynamic"
+            },
+            "metricset": {
+                "interval": "10m",
+                "name": "service_summary"
+            },
+            "observer": {
+                "hostname": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic"
+            },
+            "processor": {
+                "event": "metric",
+                "name": "metric"
+            },
+            "service": {
+                "environment": "staging",
+                "language": {
+                    "name": "go"
+                },
+                "name": "systemtest"
+            }
+        },
+        {
+            "@timestamp": "dynamic",
+            "agent": {
+                "name": "go"
+            },
+            "data_stream": {
+                "dataset": "apm.service_summary.1m",
+                "namespace": "default",
+                "type": "metrics"
+            },
+            "ecs": {
+                "version": "dynamic"
+            },
+            "event": {
+                "agent_id_status": "missing",
+                "ingested": "dynamic"
+            },
+            "metricset": {
+                "interval": "1m",
+                "name": "service_summary"
+            },
+            "observer": {
+                "hostname": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic"
+            },
+            "processor": {
+                "event": "metric",
+                "name": "metric"
+            },
+            "service": {
+                "environment": "staging",
+                "language": {
+                    "name": "go"
+                },
+                "name": "systemtest"
+            }
+        },
+        {
+            "@timestamp": "dynamic",
+            "agent": {
+                "name": "go"
+            },
+            "data_stream": {
+                "dataset": "apm.service_summary.60m",
+                "namespace": "default",
+                "type": "metrics"
+            },
+            "ecs": {
+                "version": "dynamic"
+            },
+            "event": {
+                "agent_id_status": "missing",
+                "ingested": "dynamic"
+            },
+            "metricset": {
+                "interval": "60m",
+                "name": "service_summary"
+            },
+            "observer": {
+                "hostname": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic"
+            },
+            "processor": {
+                "event": "metric",
+                "name": "metric"
+            },
+            "service": {
+                "environment": "staging",
+                "language": {
+                    "name": "go"
+                },
+                "name": "systemtest"
+            }
+        }
+    ]
+}
