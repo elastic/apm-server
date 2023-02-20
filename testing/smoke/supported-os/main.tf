@@ -23,6 +23,7 @@ module "ec_deployment" {
   elasticsearch_zone_count = 1
 
   stack_version       = var.stack_version
+  tags                = merge(local.ci_tags, module.tags.tags)
 }
 
 locals {
@@ -47,6 +48,26 @@ locals {
     "RHEL-8"                           = "ec2-user"
   }
   apm_port = "8200"
+  ci_tags = {
+    environment  = coalesce(var.ENVIRONMENT, "dev")
+    repo         = coalesce(var.REPO, "apm-server")
+    branch       = var.BRANCH
+    build        = var.BUILD_ID
+    created_date = var.CREATED_DATE
+  }
+}
+
+
+module "tags" {
+  source  = "../../infra/terraform/modules/tags"
+  project = "supported-os"
+}
+
+provider "aws" {
+  region = var.worker_region
+  default_tags {
+    tags = merge(local.ci_tags, module.tags.tags)
+  }
 }
 
 data "aws_ami" "os" {
@@ -142,7 +163,7 @@ resource "aws_instance" "apm" {
 }
 
 data "external" "getlatestapmserver" {
-  program = ["sh", "./latest_apm_server.sh"]
+  program = ["bash", "./latest_apm_server.sh"]
 }
 
 resource "aws_key_pair" "provisioner_key" {
@@ -179,6 +200,35 @@ variable "region" {
   type        = string
 }
 
+variable "worker_region" {
+  default     = "us-west-2"
+  description = "Optional AWS region where the workers will be created. Defaults to us-west-2 (AWS)"
+  type        = string
+}
+
+# CI variables
+variable "BRANCH" {
+  description = "Branch name or pull request for tagging purposes"
+  default     = "unknown"
+}
+
+variable "BUILD_ID" {
+  description = "Build ID in the CI for tagging purposes"
+  default     = "unknown"
+}
+
+variable "CREATED_DATE" {
+  description = "Creation date in epoch time for tagging purposes"
+  default     = "unknown"
+}
+
+variable "ENVIRONMENT" {
+  default = "unknown"
+}
+
+variable "REPO" {
+  default = "unknown"
+}
 output "apm_secret_token" {
   value       = random_password.apm_secret_token.result
   description = "The APM Server secret token"
