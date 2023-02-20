@@ -331,8 +331,8 @@ You can filter and group by these dimensions (some of which are optional, for ex
 * `faas.id`: The unique identifier of the invoked serverless function
 * `faas.name`: The name of the lambda function
 * `faas.version`: The version of the lambda function
-* `labels`: Key-value object containing string labels set globaly by the APM agents.
-* `numeric_labels`: Key-value object containing numeric labels set globaly by the APM agents.
+* `labels`: Key-value object containing string labels set globally by the APM agents.
+* `numeric_labels`: Key-value object containing numeric labels set globally by the APM agents.
 --
 
 The `@timestamp` field of these documents holds the start of the aggregation interval.
@@ -363,6 +363,8 @@ You can filter and group by these dimensions:
 * `service.target.name`: The target service name, for example `customer_db`
 * `service.target.type`: The target service type, for example `mysql`
 * `metricset.interval`: A string with the aggregation interval the metricset represents.
+* `labels`: Key-value object containing string labels set globally by the APM agents.
+* `numeric_labels`: Key-value object containing numeric labels set globally by the APM agents.
 --
 
 The `@timestamp` field of these documents holds the start of the aggregation interval.
