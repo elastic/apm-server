@@ -80,7 +80,7 @@ conditions:
 
 targets:
   update-go-version:
-    name: "Update .go-version"
+    name: 'Update .go-version with Golang version {{ source "latestGoVersion" }}'
     sourceid: latestGoVersion
     scmid: default
     kind: file
@@ -89,7 +89,7 @@ targets:
       file: .go-version
       matchpattern: '\d+.\d+.\d+'
   update-version-asciidoc:
-    name: "Update version.asciidoc"
+    name: 'Update version.asciidoc with Golang version {{ source "latestGoVersion" }}'
     sourceid: latestGoVersion
     scmid: default
     kind: file
@@ -98,7 +98,7 @@ targets:
       matchpattern: '(:go-version:) \d+.\d+.\d+'
       replacepattern: '$1 {{ source "latestGoVersion" }}'
   update-dockerfile:
-    name: "Update Dockerfile"
+    name: 'Update Dockerfile with Golang version {{ source "latestGoVersion" }}'
     sourceid: latestGoVersion
     scmid: default
     kind: file
@@ -107,11 +107,16 @@ targets:
       matchpattern: '(FROM golang):\d+.\d+.\d+'
       replacepattern: '$1:{{ source "latestGoVersion" }}'
   update-gomod:
-    name: "Update go.mod"
+    name: 'Update go.mod files with {{ source "gomod" }}'
     sourceid: gomod
     scmid: default
     kind: file
     spec:
       content: 'go {{ source "gomod" }}'
-      file: go.mod
+      files:
+        - go.mod
+        - cmd/intake-receiver/go.mod
+        - internal/glog/go.mod
+        - systemtest/go.mod
+        - tools/go.mod
       matchpattern: 'go \d+.\d+'
