@@ -7,3 +7,6 @@ processors:
       name: observer_ids
   - pipeline:
       name: ecs_version
+  - remove:
+      field: _metric_descriptions
+      ignore_missing: true

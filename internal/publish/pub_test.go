@@ -195,6 +195,9 @@ func newBlockingPipeline(t testing.TB) *pipeline.Pipeline {
 		pipeline.Settings{},
 	)
 	require.NoError(t, err)
+	t.Cleanup(func() {
+		require.NoError(t, pipeline.Close())
+	})
 	return pipeline
 }
 

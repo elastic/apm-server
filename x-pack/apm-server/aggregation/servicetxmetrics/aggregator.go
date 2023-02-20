@@ -159,9 +159,8 @@ func (a *Aggregator) publish(ctx context.Context, period time.Duration) error {
 	batch := make(model.Batch, 0, size)
 	for key, metrics := range current.m {
 		for _, entry := range metrics {
-			totalCount, counts, values := entry.serviceTxMetrics.histogramBuckets()
 			// Record the metricset interval as metricset.interval.
-			m := makeMetricset(entry.aggregationKey, entry.serviceTxMetrics, totalCount, counts, values, intervalStr)
+			m := makeMetricset(entry.aggregationKey, entry.serviceTxMetrics, intervalStr)
 			batch = append(batch, m)
 			entry.histogram.Reset()
 			a.histogramPool.Put(entry.histogram)
@@ -171,9 +170,8 @@ func (a *Aggregator) publish(ctx context.Context, period time.Duration) error {
 	}
 	if current.other != nil {
 		entry := current.other
-		totalCount, counts, values := entry.serviceTxMetrics.histogramBuckets()
 		// Record the metricset interval as metricset.interval.
-		m := makeMetricset(entry.aggregationKey, entry.serviceTxMetrics, totalCount, counts, values, intervalStr)
+		m := makeMetricset(entry.aggregationKey, entry.serviceTxMetrics, intervalStr)
 		m.Metricset.Samples = append(m.Metricset.Samples, model.MetricsetSample{
 			Name:  "service_transaction.aggregation.overflow_count",
 			Value: float64(current.otherCardinalityEstimator.Estimate()),
@@ -281,14 +279,7 @@ func (mb *metricsBuffer) storeOrUpdate(
 		mb.otherCardinalityEstimator.InsertHash(hash)
 	}
 	if entry != nil {
-		entry.serviceTxMetrics = serviceTxMetrics{
-			transactionDuration: entry.transactionDuration + metrics.transactionDuration,
-			transactionCount:    entry.transactionCount + metrics.transactionCount,
-			failureCount:        entry.failureCount + metrics.failureCount,
-			successCount:        entry.successCount + metrics.successCount,
-			histogram:           entry.histogram,
-		}
-		entry.recordDuration(time.Duration(metrics.transactionDuration), metrics.transactionCount)
+		entry.recordMetrics(metrics)
 		return
 	}
 	if mb.entries >= mb.maxSize {
@@ -307,13 +298,9 @@ under a dedicated bucket identified by service name '%s'.`[1:], mb.maxSize, over
 	}
 	entry.aggregationKey = key
 	entry.serviceTxMetrics = serviceTxMetrics{
-		transactionDuration: metrics.transactionDuration,
-		transactionCount:    metrics.transactionCount,
-		failureCount:        metrics.failureCount,
-		successCount:        metrics.successCount,
-		histogram:           mb.histogramPool.Get().(*hdrhistogram.Histogram),
+		histogram: mb.histogramPool.Get().(*hdrhistogram.Histogram),
 	}
-	entry.recordDuration(time.Duration(metrics.transactionDuration), metrics.transactionCount)
+	entry.recordMetrics(metrics)
 }
 
 type aggregationKey struct {
@@ -390,9 +377,14 @@ type serviceTxMetrics struct {
 	successCount        float64
 }
 
-func (m *serviceTxMetrics) recordDuration(d time.Duration, n float64) {
-	count := int64(math.Round(n * histogramCountScale))
-	m.histogram.RecordValuesAtomic(d.Microseconds(), count)
+func (m *serviceTxMetrics) recordMetrics(other serviceTxMetrics) {
+	m.transactionCount += other.transactionCount
+	m.transactionDuration += other.transactionDuration * other.transactionCount
+	m.successCount += other.successCount
+	m.failureCount += other.failureCount
+
+	count := int64(math.Round(other.transactionCount * histogramCountScale))
+	m.histogram.RecordValuesAtomic(time.Duration(other.transactionDuration).Microseconds(), count)
 }
 
 func (m *serviceTxMetrics) histogramBuckets() (totalCount int64, counts []int64, values []float64) {
@@ -419,7 +411,7 @@ func (m *serviceTxMetrics) histogramBuckets() (totalCount int64, counts []int64,
 func makeServiceTxMetrics(event *model.APMEvent) serviceTxMetrics {
 	transactionCount := event.Transaction.RepresentativeCount
 	metrics := serviceTxMetrics{
-		transactionDuration: transactionCount * float64(event.Event.Duration),
+		transactionDuration: float64(event.Event.Duration),
 		transactionCount:    transactionCount,
 	}
 	switch event.Event.Outcome {
@@ -431,8 +423,20 @@ func makeServiceTxMetrics(event *model.APMEvent) serviceTxMetrics {
 	return metrics
 }
 
-func makeMetricset(key aggregationKey, metrics serviceTxMetrics, totalCount int64, counts []int64, values []float64, interval string) model.APMEvent {
-	metricCount := int64(math.Round(metrics.transactionCount))
+// makeMetricset creates a metricset with key, metrics, and interval.
+// It uses result from histogram for Transaction.DurationSummary and DocCount to avoid discrepancy and UI weirdness.
+// Event.SuccessCount will maintain separate counts, which may be different from histogram count,
+// but is acceptable since it is used for calculating error ratio.
+func makeMetricset(key aggregationKey, metrics serviceTxMetrics, interval string) model.APMEvent {
+	totalCount, counts, values := metrics.histogramBuckets()
+
+	transactionDurationSummary := model.SummaryMetric{
+		Count: totalCount,
+	}
+	for i, v := range values {
+		transactionDurationSummary.Sum += v * float64(counts[i])
+	}
+
 	return model.APMEvent{
 		Timestamp: key.timestamp,
 		Service: model.Service{
@@ -454,11 +458,8 @@ func makeMetricset(key aggregationKey, metrics serviceTxMetrics, totalCount int6
 			Interval: interval,
 		},
 		Transaction: &model.Transaction{
-			Type: key.transactionType,
-			DurationSummary: model.SummaryMetric{
-				Count: metricCount,
-				Sum:   float64(time.Duration(math.Round(metrics.transactionDuration)).Microseconds()),
-			},
+			Type:            key.transactionType,
+			DurationSummary: transactionDurationSummary,
 			DurationHistogram: model.Histogram{
 				Counts: counts,
 				Values: values,
