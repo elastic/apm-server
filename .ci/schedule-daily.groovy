@@ -22,7 +22,8 @@ pipeline {
       steps {
         updateBeatsBuilds(branches: ['main', '8.<minor>', '8.<next-patch>', '7.<minor>'])
         runWindowsBuilds(branches: ['main', '8.<minor>', '8.<next-patch>', '7.<minor>'])
-        runSmokeTests(branches: ['main'])
+        runSmokeTestsOs(branches: ['main', '8.<minor>', '8.<next-patch>'])
+        runSmokeTestsEss(branches: ['main'])
       }
     }
   }
@@ -51,9 +52,16 @@ def runWindowsBuilds(Map args = [:]) {
   }
 }
 
-def runSmokeTests(Map args = [:]) {
+def runSmokeTestsEss(Map args = [:]) {
   def branches = getBranchesFromAliases(aliases: args.branches)
   branches.each { branch ->
     build(job: "apm-server/smoke-tests-ess-mbp/${branch}", wait: false, propagate: false)
+  }
+}
+
+def runSmokeTestsOs(Map args = [:]) {
+  def branches = getBranchesFromAliases(aliases: args.branches)
+  branches.each { branch ->
+    build(job: "apm-server/smoke-tests-os-mbp/${branch}", wait: false, propagate: false)
   }
 }
