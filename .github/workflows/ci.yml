@@ -26,10 +26,11 @@ jobs:
       - uses: actions/setup-go@v3
         with:
           go-version-file: go.mod
-          cache: true
-          cache-dependency-path: |
-            go.sum
-            tools/go.sum
+          # TODO https://github.com/actions/setup-go/issues/304
+          #cache: true
+          #cache-dependency-path: |
+          #  go.sum
+          #  tools/go.sum
       - run: make check-full
       - name: Ensure .go-version is up to date
         run: make update-go-version
@@ -46,7 +47,7 @@ jobs:
       - uses: actions/setup-go@v3
         with:
           go-version-file: go.mod
-          cache: true
+          #cache: true
       - run: go test -v ./...
 
   system-test:
@@ -56,7 +57,7 @@ jobs:
       - uses: actions/setup-go@v3
         with:
           go-version-file: systemtest/go.mod
-          cache: true
+          #cache: true
       - run: docker-compose up -d
       - env:
           GOTESTFLAGS: "-v -json"
