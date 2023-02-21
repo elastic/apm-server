@@ -1,5 +1,6 @@
 ---
 name: Bump beats
+pipelineid: 'update-beats-{{ requiredEnv "BRANCH_NAME" }}'
 
 scms:
   default:

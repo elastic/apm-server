@@ -312,7 +312,7 @@ func ilmIndexLockDocument(client *es.Client, targetAlias, phase string,
 	seqNo, primaryTerm *int) error {
 	clientOpts := []func(request *esapi.IndexRequest){
 		client.Index.WithDocumentID(targetAlias),
-		client.Index.WithRefresh("true"),
+		client.Index.WithRefresh("true"), // TODO: review stateless elasticsearch impact
 	}
 	if seqNo != nil && primaryTerm != nil {
 		clientOpts = append(clientOpts,
@@ -468,7 +468,7 @@ func bootstrapILMLockDocument(client *es.Client, targetAlias string) error {
 	// for the same index
 	r, err := client.Index(common.ILMLockingIndex,
 		body, client.Index.WithDocumentID(targetAlias),
-		client.Index.WithRefresh("true"),
+		client.Index.WithRefresh("true"), // TODO: review stateless elasticsearch impact
 		client.Index.WithOpType("create"),
 	)
 	defer r.Body.Close()

@@ -104,6 +104,7 @@ type Server struct {
 	mu      sync.Mutex
 	tracers []*apm.Tracer
 	eg      errgroup.Group
+	closeCh chan struct{}
 }
 
 // NewServerTB returns a started Server, passings args to the apm-server command.
@@ -135,7 +136,10 @@ func NewUnstartedServerTB(tb testing.TB, args ...string) *Server {
 		errc := make(chan error)
 		go func() { errc <- s.Close() }()
 		select {
-		case <-errc:
+		case err := <-errc:
+			if err != nil {
+				tb.Error(err)
+			}
 			close(errc)
 		case <-time.After(10 * time.Second):
 			// Channel receive on errc never happened. Start up a
@@ -155,6 +159,7 @@ func NewUnstartedServer(args ...string) *Server {
 		Config:              DefaultConfig(),
 		EventMetadataFilter: DefaultMetadataFilter{},
 		args:                args,
+		closeCh:             make(chan struct{}),
 	}
 }
 
@@ -421,10 +426,20 @@ func (s *Server) consumeStderr(procStderr io.Reader) error {
 // Close must be called in order to clean up any resources created for running
 // the server. Calling Close on an unstarted server is a no-op.
 func (s *Server) Close() error {
+	select {
+	case <-s.closeCh:
+		return nil
+	default:
+		close(s.closeCh)
+	}
+
 	if s.cmd == nil {
 		return nil
 	}
 	s.closeTracers()
+	if s.cmd.Process == nil {
+		return errors.New("apm server process not started")
+	}
 	if err := interruptProcess(s.cmd.Process); err != nil {
 		s.cmd.Process.Kill()
 	}
