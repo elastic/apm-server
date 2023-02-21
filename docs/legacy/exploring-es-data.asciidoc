@@ -29,7 +29,7 @@ Traces are stored in the following data streams:
 include::../data-streams.asciidoc[tag=traces-data-streams]
 
 Metrics::
-Metrics include application-based metrics and basic system metrics.
+Metrics include application-based metrics, aggregation metrics, and basic system metrics.
 Metrics are stored in the following data streams:
 +
 include::../data-streams.asciidoc[tag=metrics-data-streams]
