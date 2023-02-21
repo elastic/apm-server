@@ -4,30 +4,41 @@
 IMPORTANT: {deprecation-notice-data}
 If you've already upgraded, see <<apm-data-streams>>.
 
-Elastic APM stores data for each {apm-overview-ref-v}/apm-data-model.html[event type]
-in separate indices. By default, <<ilm,Index Lifecycle Management ({ilm-init})>> is enabled and event data is stored using the following index naming patterns:
+Elastic APM data is stored in data streams.
+include::../data-streams.asciidoc[tag=data-streams]
 
-["source","text"]
-----
-apm-%{[version]}-transaction-000001
-apm-%{[version]}-span-000001
-apm-%{[version]}-error-000001
-apm-%{[version]}-metric-000001
-apm-%{[version]}-sourcemap
-----
+The namespace default is `default`.
+To configure a custom namespace, set `data_streams.namespace`:
 
-If you've disabled {ilm-init} and are instead using daily indices, the default index naming pattern is:
-
-["source","text"]
+[source,yaml]
 ----
-apm-%{[version]}-transaction-%{+yyyy.MM.dd}
-apm-%{[version]}-span-%{+yyyy.MM.dd}
-apm-%{[version]}-error-%{+yyyy.MM.dd}
-apm-%{[version]}-metric-%{+yyyy.MM.dd}
-apm-%{[version]}-sourcemap
+apm-server:
+  data_streams.namespace: custom_namespace
 ----
 
-TIP: If your APM data is being stored in a different format, you may be using an outdated `apm-server.yml` file. You must update your `apm-server.yml` file in order to take advantage of the new format of indices.
+[discrete]
+[[apm-data-streams-list-standalone]]
+== APM data streams
+
+By type, the APM data streams are:
+
+Traces::
+Traces are comprised of {apm-guide-ref}/data-model.html[spans and transactions].
+Traces are stored in the following data streams:
++
+include::../data-streams.asciidoc[tag=traces-data-streams]
+
+Metrics::
+Metrics include application-based metrics, aggregation metrics, and basic system metrics.
+Metrics are stored in the following data streams:
++
+include::../data-streams.asciidoc[tag=metrics-data-streams]
+
+Logs::
+Logs include application error events and application logs.
+Logs are stored in the following data streams:
++
+include::../data-streams.asciidoc[tag=logs-data-streams]
 
 [float]
 [[sample-apm-document]]
@@ -49,27 +60,20 @@ The following examples enable you to interact with {es}'s REST API.
 One possible way to do this is using {kib}'s
 {kibana-ref}/console-kibana.html[{dev-tools-app} console].
 
-Indices, templates, and index-level operations can also be manged via {kib}'s
+Data streams, templates, and index-level operations can also be manged via {kib}'s
 {kibana-ref}/managing-indices.html[Index management] panel.
 
-To see an overview of existing indices, run:
+To see an overview of existing data streams, run:
 ["source","sh"]
 ----
-GET _cat/indices/apm*
+GET /_data_stream/*apm*
 ----
 // CONSOLE
 
-To query all documents collected with a specific APM Server version:
+To query a specific event type, for example, application traces:
 ["source","sh",subs="attributes"]
 ----
-GET apm-{version}-*/_search
-----
-// CONSOLE
-
-To query a specific event type, for example, transactions:
-["source","sh",subs="attributes"]
-----
-GET apm-*transactions-*/_search
+GET traces-apm*/_search
 ----
 // CONSOLE
 
@@ -78,7 +82,7 @@ first, run a query to find template names:
 
 ["source","sh"]
 ----
-GET _cat/templates/apm*
+GET _cat/templates/*apm*
 ----
 // CONSOLE
 
