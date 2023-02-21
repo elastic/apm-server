@@ -4,6 +4,7 @@ on:
   workflow_run:
     workflows:
       - bump-elastic-stack-snapshot
+      - bump-golang
       - ci
       - system-test-reporter
       - update-beats
