@@ -249,7 +249,6 @@ func run(ctx context.Context, serverURL string, period time.Duration) (<-chan ex
 					select {
 					case errChan <- err:
 					case <-ctx.Done():
-						return
 					}
 					return
 				}
