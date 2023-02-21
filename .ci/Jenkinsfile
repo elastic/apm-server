@@ -78,7 +78,6 @@ pipeline {
         }
       }
     }
-<<<<<<< HEAD
     /**
     Updating generated files for Beat.
     Checks the GO environment.
@@ -112,11 +111,6 @@ pipeline {
       }
     }
     stage('Build and Test'){
-=======
-
-    // Run unit tests, benchmarks, and packaging in parallel.
-    stage('Build and test') {
->>>>>>> 69e4e06b5 (ci: Move systemtests to GitHub actions (#9928))
       failFast false
       parallel {
         /**
@@ -324,64 +318,11 @@ pipeline {
             }
           }
         }
-<<<<<<< HEAD
-        /**
-        Runs System and Environment Tests, then generate coverage and unit test reports.
-        Finally archive the results.
-        */
-        stage('System and Environment Tests') {
-          agent { label 'linux && immutable' }
-          options { skipDefaultCheckout() }
-          environment {
-            PATH = "${env.PATH}:${env.WORKSPACE}/bin"
-            HOME = "${env.WORKSPACE}"
-          }
-          when {
-            beforeAgent true
-            allOf {
-              expression { return params.test_sys_env_ci }
-              expression { return env.ONLY_DOCS == "false" }
-            }
-          }
-          steps {
-            withGithubNotify(context: 'System Tests', tab: 'tests') {
-              deleteDir()
-              unstash 'source'
-              dir("${BASE_DIR}"){
-                withMageEnv(){
-                  sh(label: 'Run Linux tests', script: './.ci/scripts/linux-test.sh')
-                }
-              }
-            }
-          }
-          post {
-            always {
-              dir("${BASE_DIR}/build"){
-                archiveArtifacts(allowEmptyArchive: true,
-                  artifacts: "docker-info/**",
-                  defaultExcludes: false
-                )
-                junit(allowEmptyResults: true,
-                  keepLongStdio: true,
-                  testResults: "TEST-*.xml"
-                )
-                catchError(buildResult: 'SUCCESS', message: 'Failed to grab test results tar files', stageResult: 'SUCCESS') {
-                  tar(file: "system-tests-linux-files.tgz", archive: true, dir: "system-tests")
-                }
-              }
-            }
-          }
-        }
+
         /**
         Runs benchmarks on the current version and compare it with the previous ones.
         Finally archive the results.
         */
-=======
-
-        // Run the microbenchmarks for the current commit, send them to the benchmarks
-        // Elasticsearch cluster, and compare with the benchmark results from the most
-        // recent branch build.
->>>>>>> 69e4e06b5 (ci: Move systemtests to GitHub actions (#9928))
         stage('Benchmarking') {
           agent { label 'microbenchmarks-pool' }
           options { skipDefaultCheckout() }
