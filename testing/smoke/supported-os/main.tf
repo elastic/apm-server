@@ -36,6 +36,7 @@ locals {
     "amzn2-ami-kernel-5.10"            = "137112412989" # amazon
     "RHEL-7"                           = "309956199498" # Red Hat
     "RHEL-8"                           = "309956199498" # Red Hat
+    "RHEL-9"                           = "309956199498" # Red Hat
   }
   image_ssh_users = {
     "ubuntu-bionic-18.04-amd64-server" = "ubuntu"
@@ -46,6 +47,7 @@ locals {
     "amzn2-ami-kernel-5.10"            = "ec2-user"
     "RHEL-7"                           = "ec2-user"
     "RHEL-8"                           = "ec2-user"
+    "RHEL-9"                           = "ec2-user"
   }
   apm_port = "8200"
   ci_tags = {
