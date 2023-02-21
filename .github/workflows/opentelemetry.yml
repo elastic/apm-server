@@ -2,7 +2,12 @@ name: OpenTelemetry Export Trace
 
 on:
   workflow_run:
-    workflows: [ci, system-test-reporter]
+    workflows:
+      - bump-elastic-stack-snapshot
+      - bump-golang
+      - ci
+      - system-test-reporter
+      - update-beats
     types: [completed]
 
 jobs:

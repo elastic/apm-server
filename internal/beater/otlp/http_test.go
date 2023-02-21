@@ -68,8 +68,9 @@ func TestConsumeTracesHTTP(t *testing.T) {
 	assert.NoError(t, err)
 	req.Header.Set("Content-Type", "application/x-protobuf")
 	client := http.Client{}
-	_, err = client.Do(req)
+	rsp, err := client.Do(req)
 	assert.NoError(t, err)
+	assert.NoError(t, rsp.Body.Close())
 	require.Len(t, batches, 1)
 	assert.Len(t, batches[0], 1)
 
@@ -113,8 +114,9 @@ func TestConsumeMetricsHTTP(t *testing.T) {
 	assert.NoError(t, err)
 	req.Header.Set("Content-Type", "application/x-protobuf")
 	client := http.Client{}
-	_, err = client.Do(req)
+	rsp, err := client.Do(req)
 	assert.NoError(t, err)
+	assert.NoError(t, rsp.Body.Close())
 
 	actual := map[string]interface{}{}
 	monitoring.GetRegistry("apm-server.otlp.http.metrics").Do(monitoring.Full, func(key string, value interface{}) {
@@ -157,8 +159,9 @@ func TestConsumeLogsHTTP(t *testing.T) {
 	assert.NoError(t, err)
 	req.Header.Set("Content-Type", "application/x-protobuf")
 	client := http.Client{}
-	_, err = client.Do(req)
+	rsp, err := client.Do(req)
 	assert.NoError(t, err)
+	assert.NoError(t, rsp.Body.Close())
 	require.Len(t, batches, 1)
 
 	actual := map[string]interface{}{}
@@ -187,6 +190,9 @@ func newHTTPServer(t *testing.T, batchProcessor model.BatchProcessor) string {
 		ratelimitStore, nil, false, func() bool { return true })
 	require.NoError(t, err)
 	srv := http.Server{Handler: router}
+	t.Cleanup(func() {
+		require.NoError(t, srv.Close())
+	})
 	go srv.Serve(lis)
 	return lis.Addr().String()
 }

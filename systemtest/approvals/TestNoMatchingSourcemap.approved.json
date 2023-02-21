@@ -51,6 +51,9 @@
                         "line": {
                             "column": 18,
                             "number": 1
+                        },
+                        "sourcemap": {
+                            "error": "unable to find sourcemap.url for service.name=apm-agent-js service.version=1.0.0 bundle.path=http://subdomain1.localhost:8000/test/e2e/general-usecase/bundle.js.map"
                         }
                     },
                     {
@@ -62,6 +65,9 @@
                         "line": {
                             "column": 18,
                             "number": 1
+                        },
+                        "sourcemap": {
+                            "error": "unable to find sourcemap.url for service.name=apm-agent-js service.version=1.0.0 bundle.path=http://subdomain2.localhost:8000/test/e2e/general-usecase/bundle.js.map"
                         }
                     }
                 ],

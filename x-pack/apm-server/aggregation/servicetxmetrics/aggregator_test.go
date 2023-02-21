@@ -77,7 +77,7 @@ func TestAggregatorRun(t *testing.T) {
 	inputs := []input{
 		{serviceName: "ignored", agentName: "ignored", transactionType: "ignored", count: 0}, // ignored because count is zero
 
-		{serviceName: "backend", serviceLanguageName: "java", agentName: "java", transactionType: "request", outcome: "success", count: 2},
+		{serviceName: "backend", serviceLanguageName: "java", agentName: "java", transactionType: "request", outcome: "success", count: 2.1},
 		{serviceName: "backend", serviceLanguageName: "java", agentName: "java", transactionType: "request", outcome: "failure", count: 3},
 		{serviceName: "backend", serviceLanguageName: "java", agentName: "java", transactionType: "request", outcome: "unknown", count: 1},
 
@@ -127,11 +127,11 @@ func TestAggregatorRun(t *testing.T) {
 				Type: "request",
 				DurationSummary: model.SummaryMetric{
 					Count: 6,
-					Sum:   6000, // 6ms in micros
+					Sum:   6000, // estimated from histogram
 				},
 				DurationHistogram: model.Histogram{
-					Values: []float64{1000, 2000, 3000},
-					Counts: []int64{1, 2, 3},
+					Values: []float64{1000},
+					Counts: []int64{6},
 				},
 			},
 			Event: model.Event{

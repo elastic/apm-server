@@ -116,6 +116,7 @@ func TestServerRoot(t *testing.T) {
 		if testCase.assertions != nil {
 			testCase.assertions(t, res)
 		}
+		assert.NoError(t, res.Body.Close())
 	}
 }
 

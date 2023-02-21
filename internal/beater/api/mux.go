@@ -194,6 +194,7 @@ func (r *routeBuilder) rumIntakeHandler() func() (request.Handler, error) {
 			batchProcessors = append(batchProcessors, sourcemap.BatchProcessor{
 				Fetcher: r.sourcemapFetcher,
 				Timeout: r.cfg.RumConfig.SourceMapping.Timeout,
+				Logger:  logp.NewLogger(logs.Stacktrace),
 			})
 		}
 		if r.cfg.RumConfig.LibraryPattern != "" {

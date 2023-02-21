@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 
 	"github.com/go-sourcemap/sourcemap"
 
@@ -79,8 +80,18 @@ func (s *kibanaFetcher) Fetch(ctx context.Context, name, version, path string) (
 			continue
 		}
 		if a.Body.ServiceName == name && a.Body.ServiceVersion == version && maybeParseURLPath(a.Body.BundleFilepath) == path {
-			return parseSourceMap(string(a.Body.SourceMap))
+			return parseSourceMap(a.Body.SourceMap)
 		}
 	}
 	return nil, nil
+}
+
+// maybeParseURLPath attempts to parse s as a URL, returning its path component
+// if successful. If s cannot be parsed as a URL, s is returned.
+func maybeParseURLPath(s string) string {
+	url, err := url.Parse(s)
+	if err != nil {
+		return s
+	}
+	return url.Path
 }

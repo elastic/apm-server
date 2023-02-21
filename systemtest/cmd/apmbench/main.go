@@ -20,11 +20,14 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 	"log"
 	"os"
 	"strings"
 	"testing"
+	"time"
 
+	"go.elastic.co/apm/v2"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"golang.org/x/time/rate"
 
@@ -110,6 +113,37 @@ func benchmarkAgent(b *testing.B, l *rate.Limiter, expr string) {
 	})
 }
 
+func Benchmark10000AggregationGroups(b *testing.B, l *rate.Limiter) {
+	// Benchmark memory usage on aggregating high cardinality data.
+	// This should generate a lot of groups for service transaction metrics,
+	// transaction metrics, and service destination metrics.
+	//
+	// Using b.N instead of b.RunParallel since this benchmark is about memory
+	// usage.
+	//
+	// If rate limiter is used, it is possible that part of the 10k
+	// transactions will not fit into the same 1m aggregation period, and this
+	// will cause a lower observed memory usage.
+	for n := 0; n < b.N; n++ {
+		tracer := benchtest.NewTracer(b)
+		for i := 0; i < 10000; i++ {
+			if err := l.Wait(context.Background()); err != nil {
+				b.Fatal(err)
+			}
+			tx := tracer.StartTransaction(fmt.Sprintf("name%d", i), fmt.Sprintf("type%d", i))
+			span := tx.StartSpanOptions(fmt.Sprintf("name%d", i), fmt.Sprintf("type%d", i), apm.SpanOptions{})
+			span.Context.SetDestinationService(apm.DestinationServiceSpanContext{
+				Name:     fmt.Sprintf("name%d", i),
+				Resource: fmt.Sprintf("resource%d", i),
+			})
+			span.Duration = time.Second
+			span.End()
+			tx.End()
+		}
+		tracer.Flush(nil)
+	}
+}
+
 func main() {
 	flag.Parse()
 	if err := benchtest.Run(
@@ -120,6 +154,7 @@ func main() {
 		BenchmarkAgentNodeJS,
 		BenchmarkAgentPython,
 		BenchmarkAgentRuby,
+		Benchmark10000AggregationGroups,
 	); err != nil {
 		log.Fatal(err)
 	}

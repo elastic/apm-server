@@ -210,6 +210,7 @@ func (c *Collector) start(ctx context.Context, serverURL string, period time.Dur
 	outChan, errChan := run(ctx, serverURL, period)
 	go func() {
 		defer c.cleanup()
+
 		for {
 			select {
 			case <-ctx.Done():
@@ -245,10 +246,17 @@ func run(ctx context.Context, serverURL string, period time.Duration) (<-chan ex
 				err := queryExpvar(ctxWithTimeout, &e, serverURL)
 				cancel()
 				if err != nil {
-					errChan <- err
+					select {
+					case errChan <- err:
+					case <-ctx.Done():
+					}
 					return
 				}
-				outChan <- e
+				select {
+				case outChan <- e:
+				case <-ctx.Done():
+					return
+				}
 			}
 		}
 	}()

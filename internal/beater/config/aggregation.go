@@ -22,7 +22,7 @@ const (
 
 	defaultServiceDestinationAggregationMaxGroups = 10000
 
-	defaultServiceAggregationHDRHistogramSignificantFigures = 5
+	defaultServiceTxAggregationHDRHistogramSignificantFigures = 2
 )
 
 // AggregationConfig holds configuration related to various metrics aggregations.
@@ -34,7 +34,8 @@ type AggregationConfig struct {
 
 // TransactionAggregationConfig holds configuration related to transaction metrics aggregation.
 type TransactionAggregationConfig struct {
-	MaxTransactionGroups           int `config:"max_groups"` // if <= 0 then will be set based on memory limits
+	MaxTransactionGroups           int `config:"max_groups"`   // if <= 0 then will be set based on memory limits
+	MaxServices                    int `config:"max_services"` // if <= 0 then will be set based on memory limits
 	HDRHistogramSignificantFigures int `config:"hdrhistogram_significant_figures" validate:"min=1, max=5"`
 }
 
@@ -58,7 +59,7 @@ func defaultAggregationConfig() AggregationConfig {
 			MaxGroups: defaultServiceDestinationAggregationMaxGroups,
 		},
 		ServiceTransactions: ServiceTransactionAggregationConfig{
-			HDRHistogramSignificantFigures: defaultServiceAggregationHDRHistogramSignificantFigures,
+			HDRHistogramSignificantFigures: defaultServiceTxAggregationHDRHistogramSignificantFigures,
 		},
 	}
 }

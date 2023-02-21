@@ -15,7 +15,7 @@ pipeline {
     durabilityHint('PERFORMANCE_OPTIMIZED')
   }
   triggers {
-    cron('H H(3-4) * * *')
+    cron('H H(17-18) * * *')
   }
   stages {
     stage('Nighly benchmarks') {

@@ -26,6 +26,8 @@ include::features.asciidoc[]
 
 include::how-to.asciidoc[]
 
+include::open-telemetry.asciidoc[]
+
 include::manage-storage.asciidoc[]
 
 include::input-apm.asciidoc[]

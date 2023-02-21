@@ -31,6 +31,7 @@ func TestAPMServerEnvironment(t *testing.T) {
 		"macos_service",
 		"windows_service",
 	} {
+		env := env
 		t.Run(env, func(t *testing.T) {
 			t.Parallel()
 			// NewServer adds a cleanup to close the server.

@@ -1,0 +1,32 @@
+[[open-telemetry-known-limitations]]
+=== Limitations
+
+[float]
+[[open-telemetry-traces-limitations]]
+==== OpenTelemetry traces
+
+* Traces of applications using `messaging` semantics might be wrongly displayed as `transactions` in the APM UI, while they should be considered `spans` (see issue https://github.com/elastic/apm-server/issues/7001[#7001]).
+* Inability to see Stack traces in spans.
+* Inability in APM views to view the "Time Spent by Span Type"  (see issue https://github.com/elastic/apm-server/issues/5747[#5747]).
+
+[float]
+[[open-telemetry-metrics-limitations]]
+==== OpenTelemetry metrics
+
+* Inability to see host metrics in Elastic Metrics Infrastructure view when using the OpenTelemetry Collector host metrics receiver (see issue https://github.com/elastic/apm-server/issues/5310[#5310]).
+
+[float]
+[[open-telemetry-otlp-limitations]]
+==== OpenTelemetry Line Protocol (OTLP)
+
+APM Server supports both the {ot-grpc}[(OTLP/gRPC)] and {ot-http}[(OTLP/HTTP)] protocol with ProtoBuf payload.
+APM Server does not yet support JSON Encoding for OTLP/HTTP.
+
+[float]
+[[open-telemetry-collector-exporter]]
+==== OpenTelemetry Collector exporter for Elastic
+
+The https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/elasticexporter#legacy-opentelemetry-collector-exporter-for-elastic[OpenTelemetry Collector exporter for Elastic]
+was deprecated in 7.13 and replaced by the native support of the OpenTelemetry Line Protocol in
+Elastic {observability} (OTLP). To learn more, see
+https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/elasticexporter#migration[migration].
