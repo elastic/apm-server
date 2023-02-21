@@ -211,11 +211,10 @@ func (c *Collector) start(ctx context.Context, serverURL string, period time.Dur
 	go func() {
 		defer c.cleanup()
 
-	outer:
 		for {
 			select {
 			case <-ctx.Done():
-				break outer
+				return
 			case <-errChan:
 				return
 			case m := <-outChan:
@@ -237,11 +236,10 @@ func run(ctx context.Context, serverURL string, period time.Duration) (<-chan ex
 			close(outChan)
 		}()
 
-	outer:
 		for {
 			select {
 			case <-ctx.Done():
-				break outer
+				return
 			case <-ticker.C:
 				var e expvar
 				ctxWithTimeout, cancel := context.WithTimeout(ctx, period)
@@ -251,14 +249,14 @@ func run(ctx context.Context, serverURL string, period time.Duration) (<-chan ex
 					select {
 					case errChan <- err:
 					case <-ctx.Done():
-						break outer
+						return
 					}
 					return
 				}
 				select {
 				case outChan <- e:
 				case <-ctx.Done():
-					break outer
+					return
 				}
 			}
 		}
