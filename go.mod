@@ -7,10 +7,10 @@ require (
 	github.com/cespare/xxhash/v2 v2.2.0
 	github.com/dgraph-io/badger/v2 v2.2007.3-0.20201012072640-f5a7e0a1c83b
 	github.com/dustin/go-humanize v1.0.0
-	github.com/elastic/apm-data v0.1.1-0.20230130063651-f5680fd2c5aa
+	github.com/elastic/apm-data v0.1.1-0.20230220085637-eed09abf029f
 	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230209164158-9f1587069755
 	github.com/elastic/elastic-agent-client/v7 v7.0.3
-	github.com/elastic/elastic-agent-libs v0.3.0
+	github.com/elastic/elastic-agent-libs v0.3.1
 	github.com/elastic/elastic-agent-system-metrics v0.4.5-0.20220927192933-25a985b07d51
 	github.com/elastic/gmux v0.2.0
 	github.com/elastic/go-docappender v0.1.0
@@ -50,7 +50,7 @@ require (
 	go.opentelemetry.io/collector/pdata v0.63.1
 	go.uber.org/automaxprocs v1.5.1
 	go.uber.org/zap v1.24.0
-	golang.org/x/net v0.6.0
+	golang.org/x/net v0.7.0
 	golang.org/x/sync v0.1.0
 	golang.org/x/term v0.5.0
 	golang.org/x/time v0.0.0-20220609170525-579cf78fd858
