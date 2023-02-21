@@ -48,6 +48,7 @@ os_names=(
     "amzn2-ami-kernel-5.10"
     "RHEL-7"
     "RHEL-8"
+    "RHEL-9"
 )
 
 for os in "${os_names[@]}"
