@@ -152,6 +152,8 @@ func validMetadataJSON() string {
 	tracer := apmtest.NewRecordingTracer()
 	tracer.StartTransaction("name", "type").End()
 	tracer.Flush(nil)
+	defer tracer.Close()
+
 	system, process, service, labels := tracer.Metadata()
 
 	var w fastjson.Writer
