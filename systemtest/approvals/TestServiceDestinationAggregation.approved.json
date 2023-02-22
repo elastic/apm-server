@@ -19,6 +19,11 @@
                 "ingested": "dynamic",
                 "outcome": "success"
             },
+            "labels": {
+                "company": "elastic",
+                "department_name": "apm",
+                "organization": "observability"
+            },
             "metricset": {
                 "interval": "10m",
                 "name": "service_destination"
@@ -72,6 +77,11 @@
                 "ingested": "dynamic",
                 "outcome": "success"
             },
+            "labels": {
+                "company": "elastic",
+                "department_name": "apm",
+                "organization": "observability"
+            },
             "metricset": {
                 "interval": "1m",
                 "name": "service_destination"
@@ -124,6 +134,11 @@
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
                 "outcome": "success"
+            },
+            "labels": {
+                "company": "elastic",
+                "department_name": "apm",
+                "organization": "observability"
             },
             "metricset": {
                 "interval": "60m",
