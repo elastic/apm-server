@@ -8,7 +8,6 @@
 * Traces of applications using `messaging` semantics might be wrongly displayed as `transactions` in the APM UI, while they should be considered `spans` (see issue https://github.com/elastic/apm-server/issues/7001[#7001]).
 * Inability to see Stack traces in spans.
 * Inability in APM views to view the "Time Spent by Span Type"  (see issue https://github.com/elastic/apm-server/issues/5747[#5747]).
-* Metrics derived from traces (throughput, latency, and errors) are not accurate when traces are sampled before being ingested by Elastic {observability}, for example, by an OpenTelemetry Collector or OpenTelemetry {apm-agent} or SDK (see issue https://github.com/elastic/apm/issues/472[#472]). Consider using <<tail-based-sampling>> instead.
 
 [float]
 [[open-telemetry-metrics-limitations]]

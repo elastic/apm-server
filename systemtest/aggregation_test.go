@@ -151,6 +151,7 @@ func TestTransactionAggregationShutdown(t *testing.T) {
 }
 
 func TestServiceDestinationAggregation(t *testing.T) {
+	t.Setenv("ELASTIC_APM_GLOBAL_LABELS", "department_name=apm,organization=observability,company=elastic")
 	systemtest.CleanupElasticsearch(t)
 	srv := apmservertest.NewServerTB(t)
 
@@ -158,6 +159,9 @@ func TestServiceDestinationAggregation(t *testing.T) {
 	tracer := srv.Tracer()
 	timestamp, _ := time.Parse(time.RFC3339Nano, "2006-01-02T15:04:05.999999999Z") // should be truncated to 1s
 	tx := tracer.StartTransaction("name", "type")
+	// The label that's set below won't be set in the metricset labels since
+	// the labels will be set on the event and not in the metadata object.
+	tx.Context.SetLabel("mylabel", "myvalue")
 	for i := 0; i < 5; i++ {
 		span := tx.StartSpanOptions("name", "type", apm.SpanOptions{Start: timestamp})
 		span.Context.SetDestinationService(apm.DestinationServiceSpanContext{
@@ -229,9 +233,7 @@ func TestTransactionAggregationLabels(t *testing.T) {
 
 func TestServiceTransactionMetricsAggregation(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
-	srv := apmservertest.NewUnstartedServerTB(t)
-	err := srv.Start()
-	require.NoError(t, err)
+	srv := apmservertest.NewServerTB(t)
 
 	timestamp, _ := time.Parse(time.RFC3339Nano, "2006-01-02T15:04:05.999999999Z") // should be truncated to 1s
 	tracer := srv.Tracer()
@@ -261,9 +263,7 @@ func TestServiceTransactionMetricsAggregation(t *testing.T) {
 func TestServiceTransactionMetricsAggregationLabels(t *testing.T) {
 	t.Setenv("ELASTIC_APM_GLOBAL_LABELS", "department_name=apm,organization=observability,company=elastic")
 	systemtest.CleanupElasticsearch(t)
-	srv := apmservertest.NewUnstartedServerTB(t)
-	err := srv.Start()
-	require.NoError(t, err)
+	srv := apmservertest.NewServerTB(t)
 
 	tracer := srv.Tracer()
 	tx := tracer.StartTransaction("name", "type")
@@ -307,9 +307,7 @@ func TestServiceTransactionMetricsAggregationLabels(t *testing.T) {
 
 func TestServiceSummaryMetricsAggregation(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
-	srv := apmservertest.NewUnstartedServerTB(t)
-	err := srv.Start()
-	require.NoError(t, err)
+	srv := apmservertest.NewServerTB(t)
 
 	timestamp, _ := time.Parse(time.RFC3339Nano, "2006-01-02T15:04:05.999999999Z") // should be truncated to 1s
 	tracer := srv.Tracer()
@@ -334,11 +332,54 @@ func TestServiceSummaryMetricsAggregation(t *testing.T) {
 	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits)
 }
 
-func TestNonDefaultRollupIntervalHiddenDataStream(t *testing.T) {
+func TestServiceSummaryMetricsAggregationOverflow(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
 	srv := apmservertest.NewUnstartedServerTB(t)
-	err := srv.Start()
-	require.NoError(t, err)
+	srv.Config.Aggregation = &apmservertest.AggregationConfig{
+		ServiceTransactionMaxGroups: 2,
+	}
+	require.NoError(t, srv.Start())
+
+	sendTransaction := func(env string) {
+		t.Setenv("ELASTIC_APM_ENVIRONMENT", env)
+		timestamp, _ := time.Parse(time.RFC3339Nano, "2006-01-02T15:04:05.999999999Z") // should be truncated to 1s
+		tracer := srv.Tracer()
+		tx := tracer.StartTransactionOptions("name", "type", apm.TransactionOptions{Start: timestamp})
+		tx.Duration = time.Second
+		tx.End()
+		tracer.Flush(nil)
+	}
+	sendTransaction("dev")
+	sendTransaction("staging")
+	sendTransaction("prod")
+	sendTransaction("test")
+
+	// Wait for the transaction to be indexed, indicating that Elasticsearch
+	// indices have been setup and we should not risk triggering the shutdown
+	// timeout while waiting for the aggregated metrics to be indexed.
+	systemtest.Elasticsearch.ExpectMinDocs(t, 4, "traces-apm*",
+		estest.TermQuery{Field: "processor.event", Value: "transaction"},
+	)
+	// Stop server to ensure metrics are flushed on shutdown.
+	assert.NoError(t, srv.Close())
+	systemtest.Elasticsearch.ExpectMinDocs(t, 3, "metrics-apm.service_summary*",
+		estest.BoolQuery{
+			Must: []interface{}{
+				estest.TermQuery{Field: "metricset.name", Value: "service_summary"},
+				estest.TermQuery{Field: "service.name", Value: "_other"},
+			},
+		},
+	)
+	result := systemtest.Elasticsearch.ExpectMinDocs(t, 9, "metrics-apm.service_summary*",
+		estest.TermQuery{Field: "metricset.name", Value: "service_summary"},
+	)
+	// Ignore timestamp because overflow bucket uses time.Now()
+	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits, "@timestamp")
+}
+
+func TestNonDefaultRollupIntervalHiddenDataStream(t *testing.T) {
+	systemtest.CleanupElasticsearch(t)
+	srv := apmservertest.NewServerTB(t)
 
 	timestamp, _ := time.Parse(time.RFC3339Nano, "2006-01-02T15:04:05.999999999Z") // should be truncated to 1s
 	tracer := srv.Tracer()

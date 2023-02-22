@@ -106,6 +106,7 @@ type Server struct {
 
 	mu      sync.Mutex
 	tracers []*apm.Tracer
+	closeCh chan struct{}
 }
 
 // NewServerTB returns a started Server, passings args to the apm-server command.
@@ -137,7 +138,10 @@ func NewUnstartedServerTB(tb testing.TB, args ...string) *Server {
 		errc := make(chan error)
 		go func() { errc <- s.Close() }()
 		select {
-		case <-errc:
+		case err := <-errc:
+			if err != nil {
+				tb.Error(err)
+			}
 			close(errc)
 		case <-time.After(10 * time.Second):
 			// Channel receive on errc never happened. Start up a
@@ -157,6 +161,7 @@ func NewUnstartedServer(args ...string) *Server {
 		Config:              DefaultConfig(),
 		EventMetadataFilter: DefaultMetadataFilter{},
 		args:                args,
+		closeCh:             make(chan struct{}),
 	}
 }
 
@@ -233,7 +238,11 @@ func (s *Server) start(tls bool) error {
 		s.printCmdline(s.Log, args)
 		stderrReader = io.TeeReader(stderrReader, s.Log)
 	}
-	go s.consumeStderr(stderrReader)
+
+	stderrPipeReader, stderrPipeWriter := io.Pipe()
+	s.Stderr = stderrPipeReader
+
+	go s.consumeStderr(stderrReader, stderrPipeWriter)
 
 	logs := s.Logs.Iterator()
 	defer logs.Close()
@@ -370,10 +379,7 @@ func (s *Server) waitUntilListening(tls bool, logs *LogEntryIterator) error {
 // consumeStderr consumes the apm-server process's stderr, recording
 // log entries. After any errors occur decoding log entries, remaining
 // stderr is available through s.Stderr.
-func (s *Server) consumeStderr(procStderr io.Reader) {
-	stderrPipeReader, stderrPipeWriter := io.Pipe()
-	s.Stderr = stderrPipeReader
-
+func (s *Server) consumeStderr(procStderr io.Reader, out *io.PipeWriter) {
 	type logEntry struct {
 		Timestamp logpTimestamp `json:"@timestamp"`
 		Message   string        `json:"message"`
@@ -418,8 +424,8 @@ func (s *Server) consumeStderr(procStderr io.Reader) {
 
 	// Send the remaining stderr to s.Stderr.
 	procStderr = io.MultiReader(decoder.Buffered(), procStderr)
-	_, err := io.Copy(stderrPipeWriter, procStderr)
-	stderrPipeWriter.CloseWithError(err)
+	_, err := io.Copy(out, procStderr)
+	out.CloseWithError(err)
 }
 
 // Close shuts down the server gracefully if possible, and forcefully otherwise.
@@ -427,14 +433,30 @@ func (s *Server) consumeStderr(procStderr io.Reader) {
 // Close must be called in order to clean up any resources created for running
 // the server. Calling Close on an unstarted server is a no-op.
 func (s *Server) Close() error {
+	select {
+	case <-s.closeCh:
+		return nil
+	default:
+		close(s.closeCh)
+	}
+
 	if s.cmd == nil {
 		return nil
 	}
 	s.closeTracers()
+	if s.cmd.Process == nil {
+		return errors.New("apm server process not started")
+	}
 	if err := interruptProcess(s.cmd.Process); err != nil {
 		s.cmd.Process.Kill()
 	}
-	return s.Wait()
+	if err := s.Wait(); err != nil {
+		return err
+	}
+	// close stderr so that the consumeStderr goroutine
+	// exits
+	s.Stderr.Close()
+	return nil
 }
 
 func (s *Server) closeTracers() {
