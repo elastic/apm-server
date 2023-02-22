@@ -270,7 +270,7 @@ func (b *Beat) Run(ctx context.Context) error {
 	if runtime.GOOS == "darwin" {
 		if host, err := sysinfo.Host(); err != nil {
 			logger.Warnf("failed to retrieve kernel version, ignoring potential deprecation warning: %v", err)
-		} else if strings.HasPrefix("19.", host.Info().KernelVersion) {
+		} else if strings.HasPrefix(host.Info().KernelVersion, "19.") {
 			// macOS 10.15.x (catalina) means darwin kernel 19.y
 			logger.Warn("deprecation notice: support for macOS 10.15 will be removed in an upcoming version")
 		}
