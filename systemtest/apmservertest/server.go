@@ -238,7 +238,11 @@ func (s *Server) start(tls bool) error {
 		s.printCmdline(s.Log, args)
 		stderrReader = io.TeeReader(stderrReader, s.Log)
 	}
-	go s.consumeStderr(stderrReader)
+
+	stderrPipeReader, stderrPipeWriter := io.Pipe()
+	s.Stderr = stderrPipeReader
+
+	go s.consumeStderr(stderrReader, stderrPipeWriter)
 
 	logs := s.Logs.Iterator()
 	defer logs.Close()
@@ -375,10 +379,7 @@ func (s *Server) waitUntilListening(tls bool, logs *LogEntryIterator) error {
 // consumeStderr consumes the apm-server process's stderr, recording
 // log entries. After any errors occur decoding log entries, remaining
 // stderr is available through s.Stderr.
-func (s *Server) consumeStderr(procStderr io.Reader) {
-	stderrPipeReader, stderrPipeWriter := io.Pipe()
-	s.Stderr = stderrPipeReader
-
+func (s *Server) consumeStderr(procStderr io.Reader, out *io.PipeWriter) {
 	type logEntry struct {
 		Timestamp logpTimestamp `json:"@timestamp"`
 		Message   string        `json:"message"`
@@ -423,8 +424,8 @@ func (s *Server) consumeStderr(procStderr io.Reader) {
 
 	// Send the remaining stderr to s.Stderr.
 	procStderr = io.MultiReader(decoder.Buffered(), procStderr)
-	_, err := io.Copy(stderrPipeWriter, procStderr)
-	stderrPipeWriter.CloseWithError(err)
+	_, err := io.Copy(out, procStderr)
+	out.CloseWithError(err)
 }
 
 // Close shuts down the server gracefully if possible, and forcefully otherwise.
@@ -449,7 +450,13 @@ func (s *Server) Close() error {
 	if err := interruptProcess(s.cmd.Process); err != nil {
 		s.cmd.Process.Kill()
 	}
-	return s.Wait()
+	if err := s.Wait(); err != nil {
+		return err
+	}
+	// close stderr so that the consumeStderr goroutine
+	// exits
+	s.Stderr.Close()
+	return nil
 }
 
 func (s *Server) closeTracers() {
