@@ -151,6 +151,7 @@ func TestTransactionAggregationShutdown(t *testing.T) {
 }
 
 func TestServiceDestinationAggregation(t *testing.T) {
+	t.Setenv("ELASTIC_APM_GLOBAL_LABELS", "department_name=apm,organization=observability,company=elastic")
 	systemtest.CleanupElasticsearch(t)
 	srv := apmservertest.NewServerTB(t)
 
@@ -158,6 +159,9 @@ func TestServiceDestinationAggregation(t *testing.T) {
 	tracer := srv.Tracer()
 	timestamp, _ := time.Parse(time.RFC3339Nano, "2006-01-02T15:04:05.999999999Z") // should be truncated to 1s
 	tx := tracer.StartTransaction("name", "type")
+	// The label that's set below won't be set in the metricset labels since
+	// the labels will be set on the event and not in the metadata object.
+	tx.Context.SetLabel("mylabel", "myvalue")
 	for i := 0; i < 5; i++ {
 		span := tx.StartSpanOptions("name", "type", apm.SpanOptions{Start: timestamp})
 		span.Context.SetDestinationService(apm.DestinationServiceSpanContext{
