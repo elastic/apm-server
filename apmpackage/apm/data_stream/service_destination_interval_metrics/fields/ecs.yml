@@ -16,3 +16,6 @@
   name: service.environment
 - external: ecs
   name: service.name
+- external: ecs
+  name: labels
+  dynamic: true
