@@ -201,11 +201,11 @@ func TestTxnAggregatorProcessBatch(t *testing.T) {
 
 			var expectedOverflowMetricsets []model.APMEvent
 			var totalOverflowSvcCount int
-			totalOverflowIntoSpecificSvcBuckets := tc.expectedOverflowReasonPerSvcTxnGrps + tc.expectedOverflowReasonTxnGrps
+			totalOverflowIntoAllSvcBuckets := tc.expectedOverflowReasonPerSvcTxnGrps + tc.expectedOverflowReasonTxnGrps
 			// Assuming that all services in the test will overflow equally, any overflow due to max
 			// transaction groups or per service transaction group limit limit will overflow into the
 			// corresponding service's overflow bucket uptil the max services limit.
-			if totalOverflowIntoSpecificSvcBuckets > 0 {
+			if totalOverflowIntoAllSvcBuckets > 0 {
 				totalOverflowSvcCount = tc.uniqueServices
 				if tc.uniqueServices > maxSvcs {
 					totalOverflowSvcCount = maxSvcs
@@ -220,7 +220,7 @@ func TestTxnAggregatorProcessBatch(t *testing.T) {
 				)
 			}
 			for i := 0; i < totalOverflowSvcCount; i++ {
-				totalOverflowForEachSvcBuckets := totalOverflowIntoSpecificSvcBuckets / totalOverflowSvcCount
+				totalOverflowForEachSvcBuckets := totalOverflowIntoAllSvcBuckets / totalOverflowSvcCount
 				expectedOverflowMetricsets = append(
 					expectedOverflowMetricsets,
 					createOverflowMetricset(totalOverflowForEachSvcBuckets, repCount, txnDuration),
