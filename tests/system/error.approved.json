@@ -95,6 +95,7 @@
         },
         "client": {
             "geo": {
+                "city_name": "Los Angeles",
                 "continent_name": "North America",
                 "country_iso_code": "US",
                 "country_name": "United States",
