@@ -268,15 +268,10 @@ func (b *Beat) Run(ctx context.Context) error {
 	}
 
 	if runtime.GOOS == "darwin" {
-		v, err := kernelVersion()
-		if err != nil {
+		if host, err := sysinfo.Host(); err != nil {
 			logger.Warnf("failed to retrieve kernel version, ignoring potential deprecation warning: %v", err)
-		}
-
-		major, _, _ := strings.Cut(v, ".")
-		// See https://en.wikipedia.org/wiki/Darwin_(operating_system)#Darwin_16%E2%80%9319;_OS_X_rebranded_into_macOS
-		// macOS 10.15.x (catalina) means darwin kernel 19.y
-		if i, err := strconv.Atoi(major); err == nil && i == 19 {
+		} else if strings.HasPrefix("19.", host.Info().KernelVersion) {
+			// macOS 10.15.x (catalina) means darwin kernel 19.y
 			logger.Warn("deprecation notice: support for macOS 10.15 will be removed in an upcoming version")
 		}
 	}
