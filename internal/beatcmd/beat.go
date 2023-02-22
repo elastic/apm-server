@@ -28,6 +28,7 @@ import (
 	"runtime"
 	"runtime/debug"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gofrs/uuid"
@@ -264,6 +265,15 @@ func (b *Beat) Run(ctx context.Context) error {
 			"deprecation notice: support for 32-bit system target " +
 			"architecture will be removed in an upcoming version",
 		)
+	}
+
+	if runtime.GOOS == "darwin" {
+		if host, err := sysinfo.Host(); err != nil {
+			logger.Warnf("failed to retrieve kernel version, ignoring potential deprecation warning: %v", err)
+		} else if strings.HasPrefix("19.", host.Info().KernelVersion) {
+			// macOS 10.15.x (catalina) means darwin kernel 19.y
+			logger.Warn("deprecation notice: support for macOS 10.15 will be removed in an upcoming version")
+		}
 	}
 
 	ctx, cancel := context.WithCancel(ctx)
