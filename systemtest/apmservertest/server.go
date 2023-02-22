@@ -450,10 +450,13 @@ func (s *Server) Close() error {
 	if err := interruptProcess(s.cmd.Process); err != nil {
 		s.cmd.Process.Kill()
 	}
-	// drain stderr even if there was no err so that the
-	// consumeStderr goroutine exits
-	io.ReadAll(s.Stderr)
-	return s.Wait()
+	if err := s.Wait(); err != nil {
+		return err
+	}
+	// close stderr so that the consumeStderr goroutine
+	// exits
+	s.Stderr.Close()
+	return nil
 }
 
 func (s *Server) closeTracers() {
