@@ -15,6 +15,7 @@ https://github.com/elastic/apm-server/compare/8.6\...8.7[View commits]
 - `transaction.success_count` has been moved to `event.success_count` {pull}9819[9819]
 - Stop indexing transaction metrics to `metrics-apm.internal` {pull}9846[9846]
 - Stop indexing span destination metrics to `metrics-apm.internal` {pull}9926[9926]
+- `apmserver.aggregation.txmetrics.overflowed` metric has been renamed to `apmserver.aggregation.txmetrics.overflowed.total` {pull}10330[10330]
 
 [float]
 ==== Bug fixes
