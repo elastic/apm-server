@@ -94,28 +94,23 @@ func CleanupElasticsearch(t testing.TB) {
 }
 
 func cleanupElasticsearch() error {
-	rsp, err := Elasticsearch.Do(context.Background(), &esapi.IndicesDeleteDataStreamRequest{
+	_, err := Elasticsearch.Do(context.Background(), &esapi.IndicesDeleteDataStreamRequest{
 		Name: []string{
 			"traces-apm*",
 			"metrics-apm*",
 			"logs-apm*",
 		},
-
 		ExpandWildcards: "all",
 	}, nil)
 	if err != nil {
 		return err
 	}
-	rsp.Body.Close()
-	rsp, err = Elasticsearch.Do(context.Background(), &esapi.DeleteByQueryRequest{
+
+	_, err = Elasticsearch.Do(context.Background(), &esapi.DeleteByQueryRequest{
 		Index: []string{".apm-source-map"},
 		Body:  strings.NewReader(`{"query": { "match_all": {}}}`),
 	}, nil)
-	if err != nil {
-		return err
-	}
-	rsp.Body.Close()
-	return nil
+	return err
 }
 
 // ChangeUserPassword changes the password for a given user.
