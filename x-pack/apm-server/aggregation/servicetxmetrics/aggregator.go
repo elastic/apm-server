@@ -145,7 +145,7 @@ func NewAggregator(config AggregatorConfig) (*Aggregator, error) {
 // CollectMonitoring may be called to collect monitoring metrics from the
 // aggregation. It is intended to be used with libbeat/monitoring.NewFunc.
 //
-// The metrics should be added to the "apm-server.aggregation.txmetrics" registry.
+// The metrics should be added to the "apm-server.aggregation.servicetxmetrics" registry.
 func (a *Aggregator) CollectMonitoring(_ monitoring.Mode, V monitoring.Visitor) {
 	V.OnRegistryStart()
 	defer V.OnRegistryFinished()

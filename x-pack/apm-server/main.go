@@ -177,6 +177,13 @@ func newProcessors(args beater.ServerParams) ([]namedProcessor, error) {
 		return nil, errors.Wrapf(err, "error creating %s", serviceSummaryName)
 	}
 	processors = append(processors, namedProcessor{name: serviceSummaryName, processor: serviceSummaryAggregator})
+	aggregationMonitoringRegistry.Remove("servicesummarymetrics")
+	monitoring.NewFunc(
+		aggregationMonitoringRegistry,
+		"servicesummarymetrics",
+		serviceSummaryAggregator.CollectMonitoring,
+		monitoring.Report,
+	)
 
 	if args.Config.Sampling.Tail.Enabled {
 		const name = "tail sampler"
