@@ -9,6 +9,7 @@ import (
 	"encoding/binary"
 	"math"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/axiomhq/hyperloglog"
@@ -16,6 +17,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/elastic-agent-libs/monitoring"
 	"github.com/elastic/go-hdrhistogram"
 
 	"github.com/elastic/apm-data/model"
@@ -86,8 +88,8 @@ func (config AggregatorConfig) Validate() error {
 // Aggregator aggregates service latency and throughput, periodically publishing service transaction metrics.
 type Aggregator struct {
 	*baseaggregator.Aggregator
-
-	config AggregatorConfig
+	config  AggregatorConfig
+	metrics *aggregatorMetrics
 
 	mu sync.RWMutex
 	// These two metricsBuffer are set to the same size and act as buffers
@@ -95,6 +97,11 @@ type Aggregator struct {
 	active, inactive map[time.Duration]*metricsBuffer
 
 	histogramPool sync.Pool
+}
+
+type aggregatorMetrics struct {
+	activeGroups int64
+	overflow     int64
 }
 
 // NewAggregator returns a new Aggregator with the given config.
@@ -107,6 +114,7 @@ func NewAggregator(config AggregatorConfig) (*Aggregator, error) {
 	}
 	aggregator := Aggregator{
 		config:   config,
+		metrics:  &aggregatorMetrics{},
 		active:   make(map[time.Duration]*metricsBuffer),
 		inactive: make(map[time.Duration]*metricsBuffer),
 		histogramPool: sync.Pool{New: func() interface{} {
@@ -134,6 +142,20 @@ func NewAggregator(config AggregatorConfig) (*Aggregator, error) {
 	return &aggregator, nil
 }
 
+// CollectMonitoring may be called to collect monitoring metrics from the
+// aggregation. It is intended to be used with libbeat/monitoring.NewFunc.
+//
+// The metrics should be added to the "apm-server.aggregation.txmetrics" registry.
+func (a *Aggregator) CollectMonitoring(_ monitoring.Mode, V monitoring.Visitor) {
+	V.OnRegistryStart()
+	defer V.OnRegistryFinished()
+
+	activeGroups := int64(atomic.LoadInt64(&a.metrics.activeGroups))
+	overflowed := int64(atomic.LoadInt64(&a.metrics.overflow))
+	monitoring.ReportInt(V, "active_groups", activeGroups)
+	monitoring.ReportInt(V, "overflowed.total", overflowed)
+}
+
 func (a *Aggregator) publish(ctx context.Context, period time.Duration) error {
 	// We hold a.mu only long enough to swap the serviceTxMetrics. This will
 	// be blocked by serviceTxMetrics updates, which is OK, as we prefer not
@@ -159,6 +181,7 @@ func (a *Aggregator) publish(ctx context.Context, period time.Duration) error {
 		size++
 	}
 
+	isMetricsPeriod := period == a.config.Interval
 	intervalStr := interval.FormatDuration(period)
 	batch := make(model.Batch, 0, size)
 	for key, metrics := range current.m {
@@ -173,12 +196,17 @@ func (a *Aggregator) publish(ctx context.Context, period time.Duration) error {
 		delete(current.m, key)
 	}
 	if current.other != nil {
+		overflowCount := current.otherCardinalityEstimator.Estimate()
+		if isMetricsPeriod {
+			atomic.AddInt64(&a.metrics.activeGroups, int64(current.entries))
+			atomic.AddInt64(&a.metrics.overflow, int64(overflowCount))
+		}
 		entry := current.other
 		// Record the metricset interval as metricset.interval.
 		m := makeMetricset(entry.aggregationKey, entry.serviceTxMetrics, intervalStr)
 		m.Metricset.Samples = append(m.Metricset.Samples, model.MetricsetSample{
 			Name:  "service_transaction.aggregation.overflow_count",
-			Value: float64(current.otherCardinalityEstimator.Estimate()),
+			Value: float64(overflowCount),
 		})
 		batch = append(batch, m)
 		entry.histogram.Reset()

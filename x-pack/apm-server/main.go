@@ -150,6 +150,13 @@ func newProcessors(args beater.ServerParams) ([]namedProcessor, error) {
 		return nil, errors.Wrapf(err, "error creating %s", serviceTxName)
 	}
 	processors = append(processors, namedProcessor{name: serviceTxName, processor: serviceTxAggregator})
+	aggregationMonitoringRegistry.Remove("servicetxmetrics")
+	monitoring.NewFunc(
+		aggregationMonitoringRegistry,
+		"servicetxmetrics",
+		serviceTxAggregator.CollectMonitoring,
+		monitoring.Report,
+	)
 
 	const serviceSummaryName = "service summary metrics aggregation"
 	args.Logger.Infof("creating %s with config: %+v", serviceSummaryName, args.Config.Aggregation.ServiceTransactions)
