@@ -107,8 +107,9 @@ func cleanupElasticsearch() error {
 	}
 
 	_, err = Elasticsearch.Do(context.Background(), &esapi.DeleteByQueryRequest{
-		Index: []string{".apm-source-map"},
-		Body:  strings.NewReader(`{"query": { "match_all": {}}}`),
+		Index:             []string{".apm-source-map"},
+		Body:              strings.NewReader(`{"query": { "match_all": {}}}`),
+		Conflicts:         "proceed",
 	}, nil)
 	return err
 }
