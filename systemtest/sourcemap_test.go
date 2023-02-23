@@ -38,8 +38,6 @@ func TestRUMErrorSourcemapping(t *testing.T) {
 
 		systemtest.CreateSourceMap(t, sourcemap, "apm-agent-js", "1.0.1", bundleFilepath)
 
-		apmIntegration := newAPMIntegration(t, map[string]interface{}{"enable_rum": true})
-
 		test := func(t *testing.T, serverURL string) {
 			systemtest.SendRUMEventsPayload(t, serverURL, "../testdata/intake-v2/errors_rum.ndjson")
 			result := systemtest.Elasticsearch.ExpectDocs(t, "logs-apm.error-*", nil)
@@ -55,13 +53,11 @@ func TestRUMErrorSourcemapping(t *testing.T) {
 		t.Run("standalone", func(t *testing.T) {
 			srv := apmservertest.NewUnstartedServerTB(t)
 			srv.Config.RUM = &apmservertest.RUMConfig{Enabled: true}
+			// disable kibana to make sure there is no fallback logic
+			srv.Config.Kibana.Enabled = false
 			err := srv.Start()
 			require.NoError(t, err)
 			test(t, srv.URL)
-		})
-
-		t.Run("integration", func(t *testing.T) {
-			test(t, apmIntegration.URL)
 		})
 	}
 
@@ -85,6 +81,7 @@ func TestRUMSpanSourcemapping(t *testing.T) {
 
 	srv := apmservertest.NewUnstartedServerTB(t)
 	srv.Config.RUM = &apmservertest.RUMConfig{Enabled: true}
+	srv.Config.Kibana.Enabled = false
 	err = srv.Start()
 	require.NoError(t, err)
 
