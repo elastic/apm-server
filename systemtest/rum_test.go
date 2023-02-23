@@ -197,13 +197,17 @@ func TestRUMRoutingIntegration(t *testing.T) {
 	// This test asserts that the events that are coming from the RUM JS agent
 	// are sent to the appropriate datastream.
 	systemtest.CleanupElasticsearch(t)
-	apmIntegration := newAPMIntegration(t, nil)
+	srv := apmservertest.NewUnstartedServerTB(t)
+	srv.Config.RUM = &apmservertest.RUMConfig{Enabled: true}
+	srv.Config.Kibana.Enabled = false
+	err := srv.Start()
+	require.NoError(t, err)
 
 	body, err := os.Open(filepath.Join("..", "testdata", "intake-v3", "rum_events.ndjson"))
 	require.NoError(t, err)
 	defer body.Close()
 
-	req, err := http.NewRequest("POST", apmIntegration.URL+"/intake/v3/rum/events", body)
+	req, err := http.NewRequest("POST", srv.URL+"/intake/v3/rum/events", body)
 	require.NoError(t, err)
 	req.Header.Add("Content-Type", "application/x-ndjson")
 
