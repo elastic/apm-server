@@ -95,12 +95,15 @@
         },
         "client": {
             "geo": {
+                "city_name": "Los Angeles",
                 "continent_name": "North America",
                 "country_iso_code": "US",
                 "country_name": "United States",
+                "region_iso_code": "US-CA",
+                "region_name": "California",
                 "location": {
-                    "lat": 37.751,
-                    "lon": -97.822
+                    "lat": 34.0544,
+                    "lon": -118.2441
                 }
             },
             "ip": "8.8.8.8"

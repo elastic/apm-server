@@ -1,0 +1,47 @@
+name: update-beats
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 15 * * 1-5'
+
+permissions:
+  contents: read
+
+
+jobs:
+  filter:
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+    outputs:
+      matrix: ${{ steps.generator.outputs.matrix }}
+    steps:
+      - id: generator
+        uses: elastic/apm-pipeline-library/.github/actions/elastic-stack-snapshot-branches@current
+  bump:
+    needs:
+      - filter
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.filter.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with:
+          go-version-file: go.mod
+      - uses: elastic/apm-pipeline-library/.github/actions/updatecli@current
+        env:
+          BRANCH_NAME: ${{ matrix.branch }}
+        with:
+          vaultUrl: ${{ secrets.VAULT_ADDR }}
+          vaultRoleId: ${{ secrets.VAULT_ROLE_ID }}
+          vaultSecretId: ${{ secrets.VAULT_SECRET_ID }}
+          pipeline: ./.ci/update-beats.yml
+      - if: always()
+        uses: elastic/apm-pipeline-library/.github/actions/notify-build-status@current
+        with:
+          vaultUrl: ${{ secrets.VAULT_ADDR }}
+          vaultRoleId: ${{ secrets.VAULT_ROLE_ID }}
+          vaultSecretId: ${{ secrets.VAULT_SECRET_ID }}
+          slackChannel: "#apm-server"
