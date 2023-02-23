@@ -19,6 +19,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/apm-data/model"
+	"github.com/elastic/elastic-agent-libs/monitoring"
 )
 
 func TestNewAggregatorConfigInvalid(t *testing.T) {
@@ -297,6 +298,17 @@ func TestAggregatorOverflow(t *testing.T) {
 	require.NoError(t, agg.Stop(context.Background()))
 	metricsets := batchMetricsets(t, expectBatch(t, batches))
 	require.Len(t, metricsets, maxGrps+1) // only one `other` metric should overflow
+
+	// assert monitoring
+	registry := monitoring.NewRegistry()
+	monitoring.NewFunc(registry, "servicetxmetrics", agg.CollectMonitoring)
+	expectedMonitoring := monitoring.MakeFlatSnapshot()
+	expectedMonitoring.Ints["servicetxmetrics.active_groups"] = int64(maxGrps)
+	expectedMonitoring.Ints["servicetxmetrics.overflowed.total"] = int64(overflowCount)
+	assert.Equal(t, expectedMonitoring, monitoring.CollectFlatSnapshot(
+		registry, monitoring.Full, false,
+	))
+
 	var overflowEvent *model.APMEvent
 	for i := range metricsets {
 		m := metricsets[i]
