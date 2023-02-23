@@ -138,7 +138,7 @@ func TestSourcemapCaching(t *testing.T) {
 
 	sourcemap, err := os.ReadFile("../testdata/sourcemap/bundle.js.map")
 	require.NoError(t, err)
-	sourcemapID := systemtest.CreateSourceMap(t, sourcemap, "apm-agent-js", "1.0.1",
+	systemtest.CreateSourceMap(t, sourcemap, "apm-agent-js", "1.0.1",
 		"http://localhost:8000/test/e2e/general-usecase/bundle.js.map",
 	)
 
@@ -153,7 +153,6 @@ func TestSourcemapCaching(t *testing.T) {
 	assertSourcemapUpdated(t, result, true)
 
 	// Delete the source map and error, and try again.
-	systemtest.DeleteSourceMap(t, sourcemapID)
 	systemtest.CleanupElasticsearch(t)
 	systemtest.SendRUMEventsPayload(t, srv.URL, "../testdata/intake-v2/errors_rum.ndjson")
 	result = systemtest.Elasticsearch.ExpectMinDocs(t, 1, "logs-apm.error-*", nil)

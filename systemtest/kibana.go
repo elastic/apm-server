@@ -316,21 +316,3 @@ func CreateSourceMap(t testing.TB, sourcemap []byte, serviceName, serviceVersion
 
 	return result.ID
 }
-
-// DeleteSourceMap deletes a source map with the given ID.
-func DeleteSourceMap(t testing.TB, id string) {
-	t.Helper()
-
-	url := *KibanaURL
-	url.Path += "/api/apm/sourcemaps/" + id
-	req, _ := http.NewRequest("DELETE", url.String(), nil)
-	req.Header.Set("kbn-xsrf", "1")
-
-	resp, err := http.DefaultClient.Do(req)
-	require.NoError(t, err)
-	defer resp.Body.Close()
-
-	respBody, err := io.ReadAll(resp.Body)
-	require.NoError(t, err)
-	require.Equal(t, http.StatusOK, resp.StatusCode, string(respBody))
-}
