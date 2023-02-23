@@ -202,6 +202,7 @@ func newAPMIntegrationConfig(t testing.TB, vars, config map[string]interface{}) 
 	agent.Stderr = &output
 	agent.FleetEnrollmentToken = enrollmentAPIKey.APIKey
 	t.Cleanup(func() {
+		defer agent.Close()
 		// Log the elastic-agent container output if the test fails.
 		if !t.Failed() {
 			return
@@ -212,7 +213,6 @@ func newAPMIntegrationConfig(t testing.TB, vars, config map[string]interface{}) 
 			io.Copy(os.Stdout, log)
 			log.Close()
 		}
-		agent.Close()
 	})
 
 	// Start elastic-agent with port 8200 exposed, and wait for the server to service
