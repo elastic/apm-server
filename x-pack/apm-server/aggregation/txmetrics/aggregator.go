@@ -48,8 +48,8 @@ const (
 // Aggregator aggregates transaction durations, periodically publishing histogram metrics.
 type Aggregator struct {
 	*baseaggregator.Aggregator
-	config            AggregatorConfig
-	aggregatorMetrics *aggregatorMetrics
+	config  AggregatorConfig
+	metrics *aggregatorMetrics
 
 	mu               sync.RWMutex
 	active, inactive map[time.Duration]*metrics
@@ -143,10 +143,10 @@ func NewAggregator(config AggregatorConfig) (*Aggregator, error) {
 		config.Logger = logp.NewLogger(logs.TransactionMetrics)
 	}
 	aggregator := Aggregator{
-		config:            config,
-		aggregatorMetrics: &aggregatorMetrics{},
-		active:            make(map[time.Duration]*metrics),
-		inactive:          make(map[time.Duration]*metrics),
+		config:   config,
+		metrics:  &aggregatorMetrics{},
+		active:   make(map[time.Duration]*metrics),
+		inactive: make(map[time.Duration]*metrics),
 		histogramPool: sync.Pool{New: func() interface{} {
 			return hdrhistogram.New(
 				minDuration.Microseconds(),
@@ -180,10 +180,10 @@ func (a *Aggregator) CollectMonitoring(_ monitoring.Mode, V monitoring.Visitor) 
 	V.OnRegistryStart()
 	defer V.OnRegistryFinished()
 
-	metrics := a.aggregatorMetrics
+	metrics := a.metrics
 
-	a.aggregatorMetrics.mu.RLock()
-	defer a.aggregatorMetrics.mu.RUnlock()
+	a.metrics.mu.RLock()
+	defer a.metrics.mu.RUnlock()
 
 	totalOverflow := metrics.servicesOverflow + metrics.perSvcTxnGroupsOverflow + metrics.txnGroupsOverflow
 	monitoring.ReportInt(V, "active_groups", metrics.activeGroups)
@@ -210,7 +210,7 @@ func (a *Aggregator) publish(ctx context.Context, period time.Duration) error {
 		return nil
 	}
 
-	var activeGroups, servicesOverflow, perSvcTxnGroupsOverflow, txnGroupsOverflow int64
+	var servicesOverflow, perSvcTxnGroupsOverflow, txnGroupsOverflow int64
 	isMetricsPeriod := period == a.config.MetricsInterval
 	intervalStr := interval.FormatDuration(period)
 	batch := make(model.Batch, 0, current.entries)
@@ -229,7 +229,6 @@ func (a *Aggregator) publish(ctx context.Context, period time.Duration) error {
 		if svcEntry.other != nil {
 			overflowCount := int64(svcEntry.otherCardinalityEstimator.Estimate())
 			if isMetricsPeriod {
-				activeGroups = int64(current.entries)
 				if svc == overflowBucketName {
 					servicesOverflow += overflowCount
 				} else if svcEntry.entries >= a.config.MaxTransactionGroupsPerService {
@@ -255,17 +254,16 @@ func (a *Aggregator) publish(ctx context.Context, period time.Duration) error {
 		}
 		delete(current.m, svc)
 	}
+	if isMetricsPeriod {
+		a.metrics.mu.Lock()
+		a.metrics.activeGroups += int64(current.entries)
+		a.metrics.servicesOverflow += servicesOverflow
+		a.metrics.perSvcTxnGroupsOverflow += perSvcTxnGroupsOverflow
+		a.metrics.txnGroupsOverflow += txnGroupsOverflow
+		a.metrics.mu.Unlock()
+	}
 	current.entries = 0
 	current.services = 0
-
-	if isMetricsPeriod {
-		a.aggregatorMetrics.mu.Lock()
-		a.aggregatorMetrics.activeGroups += activeGroups
-		a.aggregatorMetrics.servicesOverflow += servicesOverflow
-		a.aggregatorMetrics.perSvcTxnGroupsOverflow += perSvcTxnGroupsOverflow
-		a.aggregatorMetrics.txnGroupsOverflow += txnGroupsOverflow
-		a.aggregatorMetrics.mu.Unlock()
-	}
 
 	a.config.Logger.Debugf("%s interval: publishing %d metricsets", period, len(batch))
 	return a.config.BatchProcessor.ProcessBatch(ctx, &batch)
