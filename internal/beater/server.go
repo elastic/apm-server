@@ -33,6 +33,7 @@ import (
 	"github.com/elastic/elastic-agent-libs/monitoring"
 
 	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelprocessor"
 	"github.com/elastic/apm-server/internal/agentcfg"
 	"github.com/elastic/apm-server/internal/beater/api"
 	"github.com/elastic/apm-server/internal/beater/auth"
@@ -42,7 +43,6 @@ import (
 	"github.com/elastic/apm-server/internal/beater/ratelimit"
 	"github.com/elastic/apm-server/internal/elasticsearch"
 	"github.com/elastic/apm-server/internal/kibana"
-	"github.com/elastic/apm-server/internal/model/modelprocessor"
 	"github.com/elastic/apm-server/internal/sourcemap"
 )
 

@@ -15,37 +15,37 @@
 // specific language governing permissions and limitations
 // under the License.
 
-//go:build tools
-// +build tools
-
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
 	"runtime"
-	"sort"
-	"text/template"
 
 	"gopkg.in/yaml.v3"
+
+	"github.com/elastic/apm-data/model/modelprocessor"
 )
+
+type field struct {
+	Name string
+}
 
 func main() {
 	_, file, _, ok := runtime.Caller(0)
 	if !ok {
 		log.Fatal("runtime.Caller failed")
 	}
-	modelprocessorDir := filepath.Dir(file)
-	repoRoot := filepath.Join(modelprocessorDir, "..", "..", "..")
+	repoRoot := filepath.Join(filepath.Dir(file), "..", "..")
 
 	internalMetricsFieldsDir := filepath.Join(repoRoot, "apmpackage", "apm", "data_stream", "internal_metrics", "fields")
 	files, err := filepath.Glob(filepath.Join(internalMetricsFieldsDir, "*_metrics.yml"))
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	metricNames := make(map[string]struct{})
+	var msg []string
 	for _, file := range files {
 		data, err := os.ReadFile(file)
 		if err != nil {
@@ -57,42 +57,25 @@ func main() {
 			log.Fatal(err)
 		}
 		for _, field := range fields {
-			metricNames[field.Name] = struct{}{}
+			if !modelprocessor.IsInternalMetricName(field.Name) {
+				p, err := filepath.Rel(repoRoot, file)
+				if err != nil {
+					p = file
+				}
+				msg = append(msg, fmt.Sprintf("%s: field '%s'",
+					p, field.Name,
+				))
+			}
 		}
 	}
 
-	justMetricNames := make([]string, 0, len(metricNames))
-	for name := range metricNames {
-		justMetricNames = append(justMetricNames, name)
-	}
-	sort.Strings(justMetricNames)
-
-	fout, err := os.Create(filepath.Join(modelprocessorDir, "internal_metrics.go"))
-	if err != nil {
-		log.Fatal(err)
-	}
-	if err := tmpl.Execute(fout, justMetricNames); err != nil {
-		log.Fatal(err)
-	}
-	if err := fout.Close(); err != nil {
-		log.Fatal(err)
+	if len(msg) > 0 {
+		fmt.Println(`
+found extra internal metrics in apmpackage not present in github.com/elastic/apm-data internally defined metrics
+please update the upstream list of internal metrics:`[1:])
+		for _, m := range msg {
+			fmt.Println("-", m)
+		}
+		os.Exit(1)
 	}
 }
-
-type field struct {
-	Name string
-}
-
-var tmpl = template.Must(template.New("").Parse(`
-package modelprocessor
-
-func isInternalMetricName(name string) bool {
-	switch name {
-	{{range . -}}
-	case "{{.}}":
-		return true
-	{{end -}}
-	}
-	return false
-}
-`[1:]))
