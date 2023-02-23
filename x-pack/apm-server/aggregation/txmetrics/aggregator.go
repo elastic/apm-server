@@ -9,7 +9,6 @@ import (
 	"encoding/binary"
 	"math"
 	"sync"
-	"sync/atomic"
 	"time"
 
 	"github.com/axiomhq/hyperloglog"
@@ -50,7 +49,7 @@ const (
 type Aggregator struct {
 	*baseaggregator.Aggregator
 	config  AggregatorConfig
-	metrics *aggregatorMetrics // heap-allocated for 64-bit alignment
+	metrics *aggregatorMetrics
 
 	mu               sync.RWMutex
 	active, inactive map[time.Duration]*metrics
@@ -59,7 +58,11 @@ type Aggregator struct {
 }
 
 type aggregatorMetrics struct {
-	overflowed int64
+	mu                      sync.RWMutex
+	activeGroups            int64
+	txnGroupsOverflow       int64
+	perSvcTxnGroupsOverflow int64
+	servicesOverflow        int64
 }
 
 // AggregatorConfig holds configuration for creating an Aggregator.
@@ -177,15 +180,19 @@ func (a *Aggregator) CollectMonitoring(_ monitoring.Mode, V monitoring.Visitor) 
 	V.OnRegistryStart()
 	defer V.OnRegistryFinished()
 
-	a.mu.RLock()
-	defer a.mu.RUnlock()
+	metrics := a.metrics
 
-	m := a.active[a.config.MetricsInterval]
-	m.mu.RLock()
-	defer m.mu.RUnlock()
+	a.metrics.mu.RLock()
+	defer a.metrics.mu.RUnlock()
 
-	monitoring.ReportInt(V, "active_groups", int64(m.entries))
-	monitoring.ReportInt(V, "overflowed", atomic.LoadInt64(&a.metrics.overflowed))
+	totalOverflow := metrics.servicesOverflow + metrics.perSvcTxnGroupsOverflow + metrics.txnGroupsOverflow
+	monitoring.ReportInt(V, "active_groups", metrics.activeGroups)
+	monitoring.ReportNamespace(V, "overflowed", func() {
+		monitoring.ReportInt(V, "services", metrics.servicesOverflow)
+		monitoring.ReportInt(V, "per_service_txn_groups", metrics.perSvcTxnGroupsOverflow)
+		monitoring.ReportInt(V, "txn_groups", metrics.txnGroupsOverflow)
+		monitoring.ReportInt(V, "total", totalOverflow)
+	})
 }
 
 func (a *Aggregator) publish(ctx context.Context, period time.Duration) error {
@@ -203,6 +210,8 @@ func (a *Aggregator) publish(ctx context.Context, period time.Duration) error {
 		return nil
 	}
 
+	var servicesOverflow, perSvcTxnGroupsOverflow, txnGroupsOverflow int64
+	isMetricsPeriod := period == a.config.MetricsInterval
 	intervalStr := interval.FormatDuration(period)
 	batch := make(model.Batch, 0, current.entries)
 	for svc, svcEntry := range current.m {
@@ -218,12 +227,22 @@ func (a *Aggregator) publish(ctx context.Context, period time.Duration) error {
 			delete(svcEntry.m, hash)
 		}
 		if svcEntry.other != nil {
+			overflowCount := int64(svcEntry.otherCardinalityEstimator.Estimate())
+			if isMetricsPeriod {
+				if svc == overflowBucketName {
+					servicesOverflow += overflowCount
+				} else if svcEntry.entries >= a.config.MaxTransactionGroupsPerService {
+					perSvcTxnGroupsOverflow += overflowCount
+				} else {
+					txnGroupsOverflow += overflowCount
+				}
+			}
 			entry := svcEntry.other
 			// Record the metricset interval as metricset.interval.
 			m := makeMetricset(entry.transactionAggregationKey, entry.transactionMetrics, intervalStr)
 			m.Metricset.Samples = append(m.Metricset.Samples, model.MetricsetSample{
 				Name:  "transaction.aggregation.overflow_count",
-				Value: float64(svcEntry.otherCardinalityEstimator.Estimate()),
+				Value: float64(overflowCount),
 			})
 			batch = append(batch, m)
 			entry.histogram.Reset()
@@ -234,6 +253,14 @@ func (a *Aggregator) publish(ctx context.Context, period time.Duration) error {
 			svcEntry.entries = 0
 		}
 		delete(current.m, svc)
+	}
+	if isMetricsPeriod {
+		a.metrics.mu.Lock()
+		a.metrics.activeGroups += int64(current.entries)
+		a.metrics.servicesOverflow += servicesOverflow
+		a.metrics.perSvcTxnGroupsOverflow += perSvcTxnGroupsOverflow
+		a.metrics.txnGroupsOverflow += txnGroupsOverflow
+		a.metrics.mu.Unlock()
 	}
 	current.entries = 0
 	current.services = 0
@@ -283,12 +310,12 @@ func (a *Aggregator) AggregateTransaction(event model.APMEvent) {
 	}
 	for _, interval := range a.Intervals {
 		key := a.makeTransactionAggregationKey(event, interval)
-		hash := key.hash()
-		a.updateTransactionMetrics(key, hash, count, event.Event.Duration, interval)
+		a.updateTransactionMetrics(key, count, event.Event.Duration, interval)
 	}
 }
 
-func (a *Aggregator) updateTransactionMetrics(key transactionAggregationKey, hash uint64, count float64, duration, interval time.Duration) {
+func (a *Aggregator) updateTransactionMetrics(key transactionAggregationKey, count float64, duration, interval time.Duration) {
+	hash := key.hash()
 	if duration < minDuration {
 		duration = minDuration
 	} else if duration > maxDuration {
@@ -349,15 +376,14 @@ func (a *Aggregator) updateTransactionMetrics(key transactionAggregationKey, has
 		}
 	}
 	var entry *metricsMapEntry
-	txnOverflow := m.entries >= a.config.MaxTransactionGroups
 	perSvcTxnOverflow := svcEntry.entries >= a.config.MaxTransactionGroupsPerService
+	txnOverflow := m.entries >= a.config.MaxTransactionGroups
 	if svcOverflow || txnOverflow || perSvcTxnOverflow {
 		if svcEntry.other != nil {
 			// axiomhq/hyerloglog uses metrohash but here we are using
 			// xxhash. Metrohash has better performance but since we are
 			// already calculating xxhash we can use it directly.
 			svcEntry.otherCardinalityEstimator.InsertHash(hash)
-			atomic.AddInt64(&a.metrics.overflowed, 1)
 			svcEntry.other.recordDuration(duration, count)
 			return
 		}
@@ -401,7 +427,6 @@ that configuration option appropriately, may lead to better results.`[1:],
 		m.entries++
 		svcEntry.otherCardinalityEstimator = hyperloglog.New14()
 		svcEntry.otherCardinalityEstimator.InsertHash(hash)
-		atomic.AddInt64(&a.metrics.overflowed, 1)
 		entry = svcEntry.other
 		// For `_other` service we only account for `_other` transaction bucket.
 		key = a.makeOverflowAggregationKey(key, svcOverflow, a.config.MetricsInterval)
