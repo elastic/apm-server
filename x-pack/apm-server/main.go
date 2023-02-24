@@ -31,9 +31,9 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/esutil"
 
 	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelprocessor"
 	"github.com/elastic/apm-server/internal/beatcmd"
 	"github.com/elastic/apm-server/internal/beater"
-	"github.com/elastic/apm-server/internal/model/modelprocessor"
 	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/servicesummarymetrics"
 	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/servicetxmetrics"
 	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/spanmetrics"

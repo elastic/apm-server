@@ -136,7 +136,6 @@ apm-server.docker.yml: apm-server.yml
 
 .PHONY: go-generate
 go-generate:
-	@$(GO) run internal/model/modelprocessor/generate_internal_metrics.go
 	@cd cmd/intake-receiver && APM_SERVER_VERSION=$(APM_SERVER_VERSION) $(GO) generate .
 
 .PHONY: add-headers
@@ -254,6 +253,7 @@ check-docker-compose:
 
 check-package: build-package $(ELASTICPACKAGE)
 	@(cd build/apmpackage && $(ELASTICPACKAGE) format --fail-fast && $(ELASTICPACKAGE) lint)
+	@go run cmd/check-internal-metrics/main.go
 
 .PHONY: check-gofmt gofmt
 check-fmt: check-gofmt
