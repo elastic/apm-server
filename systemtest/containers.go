@@ -259,7 +259,6 @@ func NewUnstartedElasticAgentContainer(opts ContainerConfig) (*ElasticAgentConta
 		vcsRef:  vcsRef,
 		request: req,
 		exited:  make(chan struct{}),
-		Reap:    true,
 	}, nil
 }
 
