@@ -19,15 +19,18 @@ package sourcemap
 
 import (
 	"bytes"
+	"compress/zlib"
 	"context"
+	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"net/url"
 
 	"github.com/go-sourcemap/sourcemap"
-	"github.com/pkg/errors"
 
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/go-elasticsearch/v8/esapi"
@@ -36,34 +39,25 @@ import (
 	"github.com/elastic/apm-server/internal/logs"
 )
 
-const (
-	errMsgParseSourcemap = "Could not parse Sourcemap"
-)
-
-var (
-	errMsgESFailure         = errMsgFailure + " ES"
-	errSourcemapWrongFormat = errors.New("Sourcemapping ES Result not in expected format")
-)
-
 type esFetcher struct {
 	client *elasticsearch.Client
 	index  string
 	logger *logp.Logger
 }
 
-type esSourcemapResponse struct {
-	Hits struct {
-		Total struct {
-			Value int
-		}
-		Hits []struct {
-			Source struct {
-				Sourcemap struct {
-					Sourcemap string
-				}
-			} `json:"_source"`
-		}
-	} `json:"hits"`
+type esGetSourcemapResponse struct {
+	Found  bool `json:"found"`
+	Source struct {
+		Service struct {
+			Name    string `json:"name"`
+			Version string `json:"version"`
+		} `json:"service"`
+		File struct {
+			BundleFilepath string `json:"path"`
+		} `json:"file"`
+		Sourcemap   string `json:"content"`
+		ContentHash string `json:"content_sha256"`
+	} `json:"_source"`
 }
 
 // NewElasticsearchFetcher returns a Fetcher for fetching source maps stored in Elasticsearch.
@@ -76,20 +70,28 @@ func NewElasticsearchFetcher(c *elasticsearch.Client, index string) Fetcher {
 func (s *esFetcher) Fetch(ctx context.Context, name, version, path string) (*sourcemap.Consumer, error) {
 	resp, err := s.runSearchQuery(ctx, name, version, path)
 	if err != nil {
-		return nil, errors.Wrap(err, errMsgESFailure)
+		var networkErr net.Error
+		if errors.As(err, &networkErr) {
+			return nil, fmt.Errorf("failed to reach elasticsearch: %w: %v ", errFetcherUnvailable, err)
+		}
+		return nil, fmt.Errorf("failure querying ES: %w", err)
 	}
 	defer resp.Body.Close()
 
 	// handle error response
 	if resp.StatusCode >= http.StatusMultipleChoices {
-		if resp.StatusCode == http.StatusNotFound {
-			return nil, nil
-		}
 		b, err := io.ReadAll(resp.Body)
 		if err != nil {
-			return nil, errors.Wrap(err, errMsgParseSourcemap)
+			return nil, fmt.Errorf("failed to read ES response body: %w", err)
 		}
-		return nil, errors.New(fmt.Sprintf("%s %s", errMsgParseSourcemap, b))
+		if resp.StatusCode == http.StatusNotFound || resp.StatusCode == http.StatusUnauthorized || resp.StatusCode == http.StatusForbidden {
+			// http.StatusNotFound -> the index is missing
+			// http.StatusForbidden -> we don't have permission to read from the index
+			// In both cases we consider the fetcher unavailable so that APM Server can
+			// fallback to other fetchers
+			return nil, fmt.Errorf("%w: %s: %s", errFetcherUnvailable, resp.Status(), string(b))
+		}
+		return nil, fmt.Errorf("ES returned unknown status code: %s", resp.Status())
 	}
 
 	// parse response
@@ -97,116 +99,48 @@ func (s *esFetcher) Fetch(ctx context.Context, name, version, path string) (*sou
 	if err != nil {
 		return nil, err
 	}
-	return parseSourceMap(body)
+
+	if body == "" {
+		return nil, nil
+	}
+
+	decodedBody, err := base64.StdEncoding.DecodeString(body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to base64 decode string: %w", err)
+	}
+
+	r, err := zlib.NewReader(bytes.NewReader(decodedBody))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create zlib reader: %w", err)
+	}
+	defer r.Close()
+
+	uncompressedBody, err := io.ReadAll(r)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read sourcemap content: %w", err)
+	}
+
+	return parseSourceMap(uncompressedBody)
 }
 
 func (s *esFetcher) runSearchQuery(ctx context.Context, name, version, path string) (*esapi.Response, error) {
-	var buf bytes.Buffer
-	if err := json.NewEncoder(&buf).Encode(query(name, version, path)); err != nil {
-		return nil, err
-	}
-	req := esapi.SearchRequest{
-		Index:          []string{s.index},
-		Body:           &buf,
-		TrackTotalHits: true,
+	id := name + "-" + version + "-" + path
+	req := esapi.GetRequest{
+		Index:      s.index,
+		DocumentID: url.PathEscape(id),
 	}
 	return req.Do(ctx, s.client)
 }
 
 func parse(body io.ReadCloser, name, version, path string, logger *logp.Logger) (string, error) {
-	var esSourcemapResponse esSourcemapResponse
+	var esSourcemapResponse esGetSourcemapResponse
 	if err := json.NewDecoder(body).Decode(&esSourcemapResponse); err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to decode sourcemap: %w", err)
 	}
-	hits := esSourcemapResponse.Hits.Total.Value
-	if hits == 0 || len(esSourcemapResponse.Hits.Hits) == 0 {
+
+	if !esSourcemapResponse.Found {
 		return "", nil
 	}
 
-	var esSourcemap string
-	if hits > 1 {
-		logger.Warnf("%d sourcemaps found for service %s version %s and file %s, using the most recent one",
-			hits, name, version, path)
-	}
-	esSourcemap = esSourcemapResponse.Hits.Hits[0].Source.Sourcemap.Sourcemap
-	// until https://github.com/golang/go/issues/19858 is resolved
-	if esSourcemap == "" {
-		return "", errSourcemapWrongFormat
-	}
-	return esSourcemap, nil
-}
-
-func query(name, version, path string) map[string]interface{} {
-	return searchFirst(
-		boolean(
-			must(
-				term("processor.name", "sourcemap"),
-				term("sourcemap.service.name", name),
-				term("sourcemap.service.version", version),
-				term("processor.name", "sourcemap"),
-				boolean(
-					should(
-						// prefer full URL match
-						boostedTerm("sourcemap.bundle_filepath", path, 2.0),
-						term("sourcemap.bundle_filepath", maybeParseURLPath(path)),
-					),
-				),
-			),
-		),
-		"sourcemap.sourcemap",
-		desc("_score"),
-		desc("@timestamp"),
-	)
-}
-
-func wrap(k string, v map[string]interface{}) map[string]interface{} {
-	return map[string]interface{}{k: v}
-}
-
-func boolean(clause map[string]interface{}) map[string]interface{} {
-	return wrap("bool", clause)
-}
-
-func should(clauses ...map[string]interface{}) map[string]interface{} {
-	return map[string]interface{}{"should": clauses}
-}
-
-func must(clauses ...map[string]interface{}) map[string]interface{} {
-	return map[string]interface{}{"must": clauses}
-}
-
-func term(k, v string) map[string]interface{} {
-	return map[string]interface{}{"term": map[string]interface{}{k: v}}
-}
-
-func boostedTerm(k, v string, boost float32) map[string]interface{} {
-	return wrap("term",
-		wrap(k, map[string]interface{}{
-			"value": v,
-			"boost": boost,
-		}),
-	)
-}
-
-func desc(by string) map[string]interface{} {
-	return wrap(by, map[string]interface{}{"order": "desc"})
-}
-
-func searchFirst(query map[string]interface{}, source string, sort ...map[string]interface{}) map[string]interface{} {
-	return map[string]interface{}{
-		"query":   query,
-		"size":    1,
-		"sort":    sort,
-		"_source": source,
-	}
-}
-
-// maybeParseURLPath attempts to parse s as a URL, returning its path component
-// if successful. If s cannot be parsed as a URL, s is returned.
-func maybeParseURLPath(s string) string {
-	url, err := url.Parse(s)
-	if err != nil {
-		return s
-	}
-	return url.Path
+	return esSourcemapResponse.Source.Sourcemap, nil
 }

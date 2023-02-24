@@ -19,6 +19,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/apm-data/model"
+	"github.com/elastic/elastic-agent-libs/monitoring"
 )
 
 func TestNewAggregatorConfigInvalid(t *testing.T) {
@@ -77,7 +78,7 @@ func TestAggregatorRun(t *testing.T) {
 	inputs := []input{
 		{serviceName: "ignored", agentName: "ignored", transactionType: "ignored", count: 0}, // ignored because count is zero
 
-		{serviceName: "backend", serviceLanguageName: "java", agentName: "java", transactionType: "request", outcome: "success", count: 2},
+		{serviceName: "backend", serviceLanguageName: "java", agentName: "java", transactionType: "request", outcome: "success", count: 2.1},
 		{serviceName: "backend", serviceLanguageName: "java", agentName: "java", transactionType: "request", outcome: "failure", count: 3},
 		{serviceName: "backend", serviceLanguageName: "java", agentName: "java", transactionType: "request", outcome: "unknown", count: 1},
 
@@ -127,11 +128,11 @@ func TestAggregatorRun(t *testing.T) {
 				Type: "request",
 				DurationSummary: model.SummaryMetric{
 					Count: 6,
-					Sum:   6000, // 6ms in micros
+					Sum:   6000, // estimated from histogram
 				},
 				DurationHistogram: model.Histogram{
-					Values: []float64{1000, 2000, 3000},
-					Counts: []int64{1, 2, 3},
+					Values: []float64{1000},
+					Counts: []int64{6},
 				},
 			},
 			Event: model.Event{
@@ -297,6 +298,17 @@ func TestAggregatorOverflow(t *testing.T) {
 	require.NoError(t, agg.Stop(context.Background()))
 	metricsets := batchMetricsets(t, expectBatch(t, batches))
 	require.Len(t, metricsets, maxGrps+1) // only one `other` metric should overflow
+
+	// assert monitoring
+	registry := monitoring.NewRegistry()
+	monitoring.NewFunc(registry, "servicetxmetrics", agg.CollectMonitoring)
+	expectedMonitoring := monitoring.MakeFlatSnapshot()
+	expectedMonitoring.Ints["servicetxmetrics.active_groups"] = int64(maxGrps)
+	expectedMonitoring.Ints["servicetxmetrics.overflowed.total"] = int64(overflowCount)
+	assert.Equal(t, expectedMonitoring, monitoring.CollectFlatSnapshot(
+		registry, monitoring.Full, false,
+	))
+
 	var overflowEvent *model.APMEvent
 	for i := range metricsets {
 		m := metricsets[i]

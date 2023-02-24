@@ -153,6 +153,26 @@ func TestFleetIntegrationAnonymousAuth(t *testing.T) {
 	test("denied_service", "allowed_agent", http.StatusForbidden)
 }
 
+func TestFleetIntegrationSourcemap(t *testing.T) {
+	systemtest.CleanupElasticsearch(t)
+
+	sourcemap, err := os.ReadFile("../testdata/sourcemap/bundle.js.map")
+	require.NoError(t, err)
+	systemtest.CreateSourceMap(t, sourcemap, "apm-agent-js", "1.0.1", "http://localhost:8000/test/e2e/../e2e/general-usecase/bundle.js.map")
+
+	apmIntegration := newAPMIntegration(t, map[string]interface{}{"enable_rum": true})
+
+	systemtest.SendRUMEventsPayload(t, apmIntegration.URL, "../testdata/intake-v2/errors_rum.ndjson")
+	result := systemtest.Elasticsearch.ExpectDocs(t, "logs-apm.error-*", nil)
+	systemtest.ApproveEvents(
+		t, t.Name(), result.Hits.Hits,
+		// RUM timestamps are set by the server based on the time the payload is received.
+		"@timestamp", "timestamp.us",
+		// RUM events have the source IP and port recorded, which are dynamic in the tests
+		"client.ip", "source.ip", "source.port",
+	)
+}
+
 func TestFleetPackageNonMultiple(t *testing.T) {
 	agentPolicy, _ := systemtest.CreateAgentPolicy(t, "apm_systemtest", "default", nil, nil)
 
@@ -182,6 +202,7 @@ func newAPMIntegrationConfig(t testing.TB, vars, config map[string]interface{}) 
 	agent.Stderr = &output
 	agent.FleetEnrollmentToken = enrollmentAPIKey.APIKey
 	t.Cleanup(func() {
+		defer agent.Close()
 		// Log the elastic-agent container output if the test fails.
 		if !t.Failed() {
 			return
@@ -192,7 +213,6 @@ func newAPMIntegrationConfig(t testing.TB, vars, config map[string]interface{}) 
 			io.Copy(os.Stdout, log)
 			log.Close()
 		}
-		agent.Close()
 	})
 
 	// Start elastic-agent with port 8200 exposed, and wait for the server to service

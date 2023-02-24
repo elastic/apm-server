@@ -9,7 +9,6 @@ import (
 	"encoding/binary"
 	"math"
 	"sync"
-	"sync/atomic"
 	"time"
 
 	"github.com/axiomhq/hyperloglog"
@@ -32,7 +31,7 @@ const (
 	maxDuration time.Duration = time.Hour
 
 	// We scale transaction counts in the histogram, which only permits storing
-	// tnteger counts, to allow for fractional transactions due to sampling.
+	// integer counts, to allow for fractional transactions due to sampling.
 	//
 	// e.g. if the sampling rate is 0.4, then each sampled transaction has a
 	// representative count of 2.5 (1/0.4). If we receive two such transactions
@@ -50,14 +49,20 @@ const (
 type Aggregator struct {
 	*baseaggregator.Aggregator
 	config  AggregatorConfig
-	metrics *aggregatorMetrics // heap-allocated for 64-bit alignment
+	metrics *aggregatorMetrics
 
 	mu               sync.RWMutex
 	active, inactive map[time.Duration]*metrics
+
+	histogramPool sync.Pool
 }
 
 type aggregatorMetrics struct {
-	overflowed int64
+	mu                      sync.RWMutex
+	activeGroups            int64
+	txnGroupsOverflow       int64
+	perSvcTxnGroupsOverflow int64
+	servicesOverflow        int64
 }
 
 // AggregatorConfig holds configuration for creating an Aggregator.
@@ -72,8 +77,8 @@ type AggregatorConfig struct {
 
 	// MaxTransactionGroups is the maximum number of distinct transaction
 	// group metrics to store within an aggregation period. Once this number
-	// of groups has been reached, any new aggregation keys will cause
-	// individual metrics documents to be immediately published.
+	// of groups has been reached, any new aggregation keys will be aggregated
+	// in a dedicated service group identified by `_other`.
 	MaxTransactionGroups int
 
 	// MaxTransactionGroupsPerService is the maximum number of distinct
@@ -81,14 +86,14 @@ type AggregatorConfig struct {
 	//
 	// When the limit on per service transaction group is reached the new
 	// transactions will be aggregated in a dedicated transaction group
-	// per service identified by `other`.
+	// per service identified by `_other`.
 	MaxTransactionGroupsPerService int
 
 	// MaxServices is the maximum number of distinct services that the
 	// transaction groups will aggregate for.
 	//
 	// When the limit on service count is reached a new service, identified
-	// by name `other` will be used to aggregate all transactions within a
+	// by name `_other` will be used to aggregate all transactions within a
 	// single bucket.
 	MaxServices int
 
@@ -142,6 +147,13 @@ func NewAggregator(config AggregatorConfig) (*Aggregator, error) {
 		metrics:  &aggregatorMetrics{},
 		active:   make(map[time.Duration]*metrics),
 		inactive: make(map[time.Duration]*metrics),
+		histogramPool: sync.Pool{New: func() interface{} {
+			return hdrhistogram.New(
+				minDuration.Microseconds(),
+				maxDuration.Microseconds(),
+				config.HDRHistogramSignificantFigures,
+			)
+		}},
 	}
 	base, err := baseaggregator.New(baseaggregator.AggregatorConfig{
 		PublishFunc:     aggregator.publish, // inject local publish
@@ -168,15 +180,19 @@ func (a *Aggregator) CollectMonitoring(_ monitoring.Mode, V monitoring.Visitor) 
 	V.OnRegistryStart()
 	defer V.OnRegistryFinished()
 
-	a.mu.RLock()
-	defer a.mu.RUnlock()
+	metrics := a.metrics
 
-	m := a.active[a.config.MetricsInterval]
-	m.mu.RLock()
-	defer m.mu.RUnlock()
+	a.metrics.mu.RLock()
+	defer a.metrics.mu.RUnlock()
 
-	monitoring.ReportInt(V, "active_groups", int64(m.entries))
-	monitoring.ReportInt(V, "overflowed", atomic.LoadInt64(&a.metrics.overflowed))
+	totalOverflow := metrics.servicesOverflow + metrics.perSvcTxnGroupsOverflow + metrics.txnGroupsOverflow
+	monitoring.ReportInt(V, "active_groups", metrics.activeGroups)
+	monitoring.ReportNamespace(V, "overflowed", func() {
+		monitoring.ReportInt(V, "services", metrics.servicesOverflow)
+		monitoring.ReportInt(V, "per_service_txn_groups", metrics.perSvcTxnGroupsOverflow)
+		monitoring.ReportInt(V, "txn_groups", metrics.txnGroupsOverflow)
+		monitoring.ReportInt(V, "total", totalOverflow)
+	})
 }
 
 func (a *Aggregator) publish(ctx context.Context, period time.Duration) error {
@@ -194,37 +210,57 @@ func (a *Aggregator) publish(ctx context.Context, period time.Duration) error {
 		return nil
 	}
 
+	var servicesOverflow, perSvcTxnGroupsOverflow, txnGroupsOverflow int64
+	isMetricsPeriod := period == a.config.MetricsInterval
 	intervalStr := interval.FormatDuration(period)
 	batch := make(model.Batch, 0, current.entries)
 	for svc, svcEntry := range current.m {
 		for hash, entries := range svcEntry.m {
 			for _, entry := range entries {
-				totalCount, counts, values := entry.transactionMetrics.histogramBuckets()
-				event := makeMetricset(entry.transactionAggregationKey, totalCount, counts, values)
 				// Record the metricset interval as metricset.interval.
-				event.Metricset.Interval = intervalStr
+				event := makeMetricset(entry.transactionAggregationKey, entry.transactionMetrics, intervalStr)
 				batch = append(batch, event)
 				entry.histogram.Reset()
+				a.histogramPool.Put(entry.histogram)
+				entry.histogram = nil
 			}
 			delete(svcEntry.m, hash)
 		}
 		if svcEntry.other != nil {
+			overflowCount := int64(svcEntry.otherCardinalityEstimator.Estimate())
+			if isMetricsPeriod {
+				if svc == overflowBucketName {
+					servicesOverflow += overflowCount
+				} else if svcEntry.entries >= a.config.MaxTransactionGroupsPerService {
+					perSvcTxnGroupsOverflow += overflowCount
+				} else {
+					txnGroupsOverflow += overflowCount
+				}
+			}
 			entry := svcEntry.other
-			totalCount, counts, values := entry.transactionMetrics.histogramBuckets()
-			m := makeMetricset(entry.transactionAggregationKey, totalCount, counts, values)
 			// Record the metricset interval as metricset.interval.
-			m.Metricset.Interval = intervalStr
+			m := makeMetricset(entry.transactionAggregationKey, entry.transactionMetrics, intervalStr)
 			m.Metricset.Samples = append(m.Metricset.Samples, model.MetricsetSample{
 				Name:  "transaction.aggregation.overflow_count",
-				Value: float64(svcEntry.otherCardinalityEstimator.Estimate()),
+				Value: float64(overflowCount),
 			})
 			batch = append(batch, m)
 			entry.histogram.Reset()
+			a.histogramPool.Put(entry.histogram)
+			entry.histogram = nil
 			svcEntry.other = nil
 			svcEntry.otherCardinalityEstimator = nil
 			svcEntry.entries = 0
 		}
 		delete(current.m, svc)
+	}
+	if isMetricsPeriod {
+		a.metrics.mu.Lock()
+		a.metrics.activeGroups += int64(current.entries)
+		a.metrics.servicesOverflow += servicesOverflow
+		a.metrics.perSvcTxnGroupsOverflow += perSvcTxnGroupsOverflow
+		a.metrics.txnGroupsOverflow += txnGroupsOverflow
+		a.metrics.mu.Unlock()
 	}
 	current.entries = 0
 	current.services = 0
@@ -234,7 +270,7 @@ func (a *Aggregator) publish(ctx context.Context, period time.Duration) error {
 }
 
 // ProcessBatch aggregates all transactions contained in "b". On overflow
-// the metrics are aggregated into `other` buckets to contain cardinality.
+// the metrics are aggregated into `_other` buckets to contain cardinality.
 func (a *Aggregator) ProcessBatch(ctx context.Context, b *model.Batch) error {
 	for _, event := range *b {
 		if event.Processor != model.TransactionProcessor {
@@ -258,15 +294,15 @@ func (a *Aggregator) ProcessBatch(ctx context.Context, b *model.Batch) error {
 //   - MaxTransactionGroupsPerService: Limits the maximum number of
 //     transactions that a specific service can produce in one aggregation
 //     interval. Once the limit is breached the new transactions are
-//     aggregated under a dedicated bucket with `transaction.name` as other.
+//     aggregated under a dedicated bucket with `transaction.name` as `_other`.
 //   - MaxTransactionGroups: Limits the  maximum number of transaction groups
 //     that the aggregator can produce in one aggregation interval. Once the
-//     limit is breached the new transactions are aggregated in the `other`
+//     limit is breached the new transactions are aggregated in the `_other`
 //     transaction bucket of their corresponding services.
 //   - MaxServices: Limits the maximum number of services that the aggregator
 //     can aggregate over. Once this limit is breached the metrics will be
-//     aggregated in the `other` transaction bucket of a dedicated service
-//     with `service.name` as other.
+//     aggregated in the `_other` transaction bucket of a dedicated service
+//     with `service.name` as `_other`.
 func (a *Aggregator) AggregateTransaction(event model.APMEvent) {
 	count := event.Transaction.RepresentativeCount
 	if count <= 0 {
@@ -274,12 +310,12 @@ func (a *Aggregator) AggregateTransaction(event model.APMEvent) {
 	}
 	for _, interval := range a.Intervals {
 		key := a.makeTransactionAggregationKey(event, interval)
-		hash := key.hash()
-		a.updateTransactionMetrics(key, hash, count, event.Event.Duration, interval)
+		a.updateTransactionMetrics(key, count, event.Event.Duration, interval)
 	}
 }
 
-func (a *Aggregator) updateTransactionMetrics(key transactionAggregationKey, hash uint64, count float64, duration, interval time.Duration) {
+func (a *Aggregator) updateTransactionMetrics(key transactionAggregationKey, count float64, duration, interval time.Duration) {
+	hash := key.hash()
 	if duration < minDuration {
 		duration = minDuration
 	} else if duration > maxDuration {
@@ -340,26 +376,29 @@ func (a *Aggregator) updateTransactionMetrics(key transactionAggregationKey, has
 		}
 	}
 	var entry *metricsMapEntry
-	txnOverflow := m.entries >= a.config.MaxTransactionGroups
 	perSvcTxnOverflow := svcEntry.entries >= a.config.MaxTransactionGroupsPerService
+	txnOverflow := m.entries >= a.config.MaxTransactionGroups
 	if svcOverflow || txnOverflow || perSvcTxnOverflow {
 		if svcEntry.other != nil {
 			// axiomhq/hyerloglog uses metrohash but here we are using
 			// xxhash. Metrohash has better performance but since we are
 			// already calculating xxhash we can use it directly.
 			svcEntry.otherCardinalityEstimator.InsertHash(hash)
-			atomic.AddInt64(&a.metrics.overflowed, 1)
 			svcEntry.other.recordDuration(duration, count)
 			return
 		}
 		if svcOverflow {
 			a.config.Logger.Warnf(`
 %s Service limit of %d reached, new metric documents will be grouped under a dedicated
-overflow bucket identified by service name 'other'.`[1:], interval.String(), a.config.MaxServices)
+overflow bucket identified by service name '%s'.`[1:],
+				interval.String(),
+				a.config.MaxServices,
+				overflowBucketName,
+			)
 		} else if perSvcTxnOverflow {
 			a.config.Logger.Warnf(`
 %s Transaction group limit of %d reached for service %s, new metric documents will be grouped
-under a dedicated bucket identified by transaction name 'other'. This is typically
+under a dedicated bucket identified by transaction name '%s'. This is typically
 caused by ineffective transaction grouping, e.g. by creating many unique transaction
 names.
 If you are using an agent with 'use_path_as_transaction_name' enabled, it may cause
@@ -368,11 +407,12 @@ that configuration option appropriately, may lead to better results.`[1:],
 				interval.String(),
 				a.config.MaxTransactionGroupsPerService,
 				key.serviceName,
+				overflowBucketName,
 			)
 		} else {
 			a.config.Logger.Warnf(`
 %s Overall transaction group limit of %d reached, new metric documents will be grouped
-under a dedicated bucket identified by transaction name 'other'. This is typically
+under a dedicated bucket identified by transaction name '%s'. This is typically
 caused by ineffective transaction grouping, e.g. by creating many unique transaction
 names.
 If you are using an agent with 'use_path_as_transaction_name' enabled, it may cause
@@ -380,15 +420,15 @@ high cardinality. If your agent supports the 'transaction_name_groups' option, s
 that configuration option appropriately, may lead to better results.`[1:],
 				interval.String(),
 				a.config.MaxTransactionGroups,
+				overflowBucketName,
 			)
 		}
 		svcEntry.other = &m.space[m.entries]
 		m.entries++
 		svcEntry.otherCardinalityEstimator = hyperloglog.New14()
 		svcEntry.otherCardinalityEstimator.InsertHash(hash)
-		atomic.AddInt64(&a.metrics.overflowed, 1)
 		entry = svcEntry.other
-		// For `other` service we only account for `other` transaction bucket.
+		// For `_other` service we only account for `_other` transaction bucket.
 		key = a.makeOverflowAggregationKey(key, svcOverflow, a.config.MetricsInterval)
 	} else {
 		entry = &m.space[m.entries]
@@ -397,12 +437,8 @@ that configuration option appropriately, may lead to better results.`[1:],
 		svcEntry.entries++
 	}
 	entry.transactionAggregationKey = key
-	if entry.transactionMetrics.histogram == nil {
-		entry.transactionMetrics.histogram = hdrhistogram.New(
-			minDuration.Microseconds(),
-			maxDuration.Microseconds(),
-			a.config.HDRHistogramSignificantFigures,
-		)
+	entry.transactionMetrics = transactionMetrics{
+		histogram: a.histogramPool.Get().(*hdrhistogram.Histogram),
 	}
 	entry.recordDuration(duration, count)
 }
@@ -480,8 +516,11 @@ func (a *Aggregator) makeTransactionAggregationKey(event model.APMEvent, interva
 	return key
 }
 
-// makeMetricset makes a metricset event from key, counts, and values, with timestamp ts.
-func makeMetricset(key transactionAggregationKey, totalCount int64, counts []int64, values []float64) model.APMEvent {
+// makeMetricset creates a metricset with key, metrics, and interval.
+// It uses result from histogram for Transaction.DurationSummary and DocCount to avoid discrepancy and UI weirdness.
+func makeMetricset(key transactionAggregationKey, metrics transactionMetrics, interval string) model.APMEvent {
+	totalCount, counts, values := metrics.histogramBuckets()
+
 	var eventSuccessCount model.SummaryMetric
 	switch key.eventOutcome {
 	case "success":
@@ -496,8 +535,8 @@ func makeMetricset(key transactionAggregationKey, totalCount int64, counts []int
 	transactionDurationSummary := model.SummaryMetric{
 		Count: totalCount,
 	}
-	for _, v := range values {
-		transactionDurationSummary.Sum += v
+	for i, v := range values {
+		transactionDurationSummary.Sum += v * float64(counts[i])
 	}
 
 	return model.APMEvent{
@@ -554,6 +593,7 @@ func makeMetricset(key transactionAggregationKey, totalCount int64, counts []int
 		Metricset: &model.Metricset{
 			Name:     metricsetName,
 			DocCount: totalCount,
+			Interval: interval,
 		},
 		Transaction: &model.Transaction{
 			Name:   key.transactionName,
@@ -580,9 +620,9 @@ type metrics struct {
 
 func newMetrics(maxGroups, maxServices int) *metrics {
 	return &metrics{
-		// keep reserved entries for overflow (1 per service and 1 for `other` service)
-		space: make([]metricsMapEntry, (maxGroups*2/16)+1),
-		// keep 1 reserved entry for `other` service
+		// Total number of entries = 1 per transaction + 1 overflow per service + 1 `_other` service
+		space: make([]metricsMapEntry, ((maxGroups+maxServices)/16)+1),
+		// keep 1 reserved entry for `_other` service
 		svcSpace: make([]svcMetricsMapEntry, (maxServices/16)+1),
 		m:        make(map[string]*svcMetricsMapEntry),
 	}

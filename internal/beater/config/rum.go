@@ -25,17 +25,16 @@ import (
 
 	"github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/go-ucfg"
 
 	"github.com/elastic/apm-server/internal/elasticsearch"
 )
 
 const (
-	allowAllOrigins                 = "*"
-	defaultExcludeFromGrouping      = "^/webpack"
-	defaultLibraryPattern           = "node_modules|bower_components|~"
-	defaultSourcemapCacheExpiration = 5 * time.Minute
-	defaultSourcemapIndexPattern    = "apm-*-sourcemap*"
-	defaultSourcemapTimeout         = 5 * time.Second
+	allowAllOrigins            = "*"
+	defaultExcludeFromGrouping = "^/webpack"
+	defaultLibraryPattern      = "node_modules|bower_components|~"
+	defaultSourcemapTimeout    = 5 * time.Second
 )
 
 // RumConfig holds config information related to the RUM endpoint
@@ -51,13 +50,11 @@ type RumConfig struct {
 
 // SourceMapping holds sourcemap config information
 type SourceMapping struct {
-	Cache        Cache                 `config:"cache"`
 	Enabled      bool                  `config:"enabled"`
-	IndexPattern string                `config:"index_pattern"`
 	ESConfig     *elasticsearch.Config `config:"elasticsearch"`
-	Metadata     []SourceMapMetadata   `config:"metadata"`
 	Timeout      time.Duration         `config:"timeout" validate:"positive"`
 	esConfigured bool
+	es           *config.C
 }
 
 func (c *RumConfig) setup(log *logp.Logger, outputESCfg *config.C) error {
@@ -72,20 +69,29 @@ func (c *RumConfig) setup(log *logp.Logger, outputESCfg *config.C) error {
 		return errors.Wrapf(err, "Invalid regex for `exclude_from_grouping`: ")
 	}
 
-	// No need to unpack the ESConfig if SourceMapMetadata exist
-	if len(c.SourceMapping.Metadata) > 0 {
-		return nil
-	}
-
-	// fall back to elasticsearch output configuration for sourcemap storage if possible
 	if outputESCfg == nil {
 		log.Info("Unable to determine sourcemap storage, sourcemaps will not be applied")
 		return nil
 	}
-	log.Info("Falling back to elasticsearch output for sourcemap storage")
+
+	// Unpack the output elasticsearch config first
 	if err := outputESCfg.Unpack(c.SourceMapping.ESConfig); err != nil {
-		return errors.Wrap(err, "unpacking Elasticsearch config into Sourcemap config")
+		return errors.Wrap(err, "unpacking Elasticsearch output config into Sourcemap config")
 	}
+
+	// SourceMapping ES config not configured, use the main one and return early
+	if c.SourceMapping.es == nil {
+		log.Info("Using default sourcemap Elasticsearch config")
+		return nil
+	}
+
+	// Unpack the SourceMapping ES config on top of the output elasticsearch config
+	if err := c.SourceMapping.es.Unpack(c.SourceMapping.ESConfig); err != nil {
+		return errors.Wrap(err, "unpacking Elasticsearch sourcemap config into Sourcemap config")
+	}
+
+	c.SourceMapping.es = nil
+
 	return nil
 }
 
@@ -95,17 +101,19 @@ func (s *SourceMapping) Unpack(inp *config.C) error {
 		return errors.Wrap(err, "error unpacking sourcemapping config")
 	}
 	s.esConfigured = inp.HasField("elasticsearch")
+	var err error
+	var e ucfg.Error
+	if s.es, err = inp.Child("elasticsearch", -1); err != nil && (!errors.As(err, &e) || e.Reason() != ucfg.ErrMissing) {
+		return errors.Wrap(err, "error storing sourcemap elasticsearch config")
+	}
 	return nil
 }
 
 func defaultSourcemapping() SourceMapping {
 	return SourceMapping{
-		Enabled:      true,
-		Cache:        Cache{Expiration: defaultSourcemapCacheExpiration},
-		IndexPattern: defaultSourcemapIndexPattern,
-		ESConfig:     elasticsearch.DefaultConfig(),
-		Metadata:     []SourceMapMetadata{},
-		Timeout:      defaultSourcemapTimeout,
+		Enabled:  true,
+		ESConfig: elasticsearch.DefaultConfig(),
+		Timeout:  defaultSourcemapTimeout,
 	}
 }
 

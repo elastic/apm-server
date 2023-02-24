@@ -49,13 +49,19 @@ if [[ -z ${SKIP_DESTROY} ]]; then
     trap "terraform_destroy" EXIT
 fi
 
-terraform_apply ${PREV_LATEST_VERSION} ${INTEGRATIONS_SERVER}
+cleanup_tfvar
+append_tfvar "stack_version" ${PREV_LATEST_VERSION}
+append_tfvar "integrations_server" ${INTEGRATIONS_SERVER}
+terraform_apply
 healthcheck 1
 send_events
 ${ASSERT_EVENTS_FUNC} ${STACK_VERSION}
 
 echo "-> Upgrading APM Server from ${STACK_VERSION} to ${LATEST_VERSION}"
-terraform_apply ${LATEST_VERSION} ${INTEGRATIONS_SERVER}
+cleanup_tfvar
+append_tfvar "stack_version" ${LATEST_VERSION}
+append_tfvar "integrations_server" ${INTEGRATIONS_SERVER}
+terraform_apply
 healthcheck 1
 send_events
 ${ASSERT_EVENTS_FUNC} ${STACK_VERSION}

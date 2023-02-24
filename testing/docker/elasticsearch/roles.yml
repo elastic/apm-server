@@ -3,6 +3,8 @@ apm_server:
   indices:
     - names: ['apm-*', 'traces-apm*', 'logs-apm*', 'metrics-apm*']
       privileges: ['write','create_index','manage','manage_ilm']
+    - names: ['.apm-source-map']
+      privileges: ['read']
   applications:
     - application: 'apm'
       privileges: ['sourcemap:write','event:write','config_agent:read']

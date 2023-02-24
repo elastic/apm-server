@@ -175,7 +175,6 @@ func TestUnpackConfig(t *testing.T) {
 						"cache": map[string]interface{}{
 							"expiration": 8 * time.Minute,
 						},
-						"index_pattern":       "apm-test*",
 						"elasticsearch.hosts": []string{"localhost:9201", "localhost:9202"},
 						"timeout":             "2s",
 					},
@@ -270,9 +269,7 @@ func TestUnpackConfig(t *testing.T) {
 					AllowOrigins: []string{"example*"},
 					AllowHeaders: []string{"Authorization"},
 					SourceMapping: SourceMapping{
-						Enabled:      true,
-						Cache:        Cache{Expiration: 8 * time.Minute},
-						IndexPattern: "apm-test*",
+						Enabled: true,
 						ESConfig: &elasticsearch.Config{
 							Hosts:            elasticsearch.Hosts{"localhost:9201", "localhost:9202"},
 							Protocol:         "http",
@@ -281,7 +278,6 @@ func TestUnpackConfig(t *testing.T) {
 							CompressionLevel: 5,
 							Backoff:          elasticsearch.DefaultBackoffConfig,
 						},
-						Metadata:     []SourceMapMetadata{},
 						Timeout:      2 * time.Second,
 						esConfigured: true,
 					},
@@ -373,14 +369,6 @@ func TestUnpackConfig(t *testing.T) {
 				"rum": map[string]interface{}{
 					"enabled": true,
 					"source_mapping": map[string]interface{}{
-						"metadata": []map[string]string{
-							{
-								"service.name":    "opbeans-rum",
-								"service.version": "1.2.3",
-								"bundle.filepath": "/test/e2e/general-usecase/bundle.js.map",
-								"sourcemap.url":   "http://somewhere.com/bundle.js.map",
-							},
-						},
 						"cache": map[string]interface{}{
 							"expiration": 7,
 						},
@@ -449,21 +437,9 @@ func TestUnpackConfig(t *testing.T) {
 					AllowOrigins: []string{"*"},
 					AllowHeaders: []string{},
 					SourceMapping: SourceMapping{
-						Enabled: true,
-						Cache: Cache{
-							Expiration: 7 * time.Second,
-						},
-						IndexPattern: "apm-*-sourcemap*",
-						ESConfig:     elasticsearch.DefaultConfig(),
-						Metadata: []SourceMapMetadata{
-							{
-								ServiceName:    "opbeans-rum",
-								ServiceVersion: "1.2.3",
-								BundleFilepath: "/test/e2e/general-usecase/bundle.js.map",
-								SourceMapURL:   "http://somewhere.com/bundle.js.map",
-							},
-						},
-						Timeout: 5 * time.Second,
+						Enabled:  true,
+						ESConfig: elasticsearch.DefaultConfig(),
+						Timeout:  5 * time.Second,
 					},
 					LibraryPattern:      "rum",
 					ExcludeFromGrouping: "^/webpack",

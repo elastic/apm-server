@@ -9,6 +9,7 @@ import (
 	"encoding/binary"
 	"math"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/axiomhq/hyperloglog"
@@ -21,6 +22,7 @@ import (
 	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/interval"
 	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/labels"
 	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/elastic-agent-libs/monitoring"
 )
 
 const (
@@ -52,8 +54,8 @@ type AggregatorConfig struct {
 
 	// MaxGroups is the maximum number of distinct service destination
 	// group metrics to store within an aggregation period. Once this
-	// number of groups is reached, any new aggregation keys will cause
-	// individual metrics documents to be immediately published.
+	// number of groups is reached, any new aggregation keys will be
+	// aggregated in a dedicated service group identified by `_other`.
 	//
 	// Some agents continue to send high cardinality span names, e.g.
 	// Elasticsearch spans may contain a document ID
@@ -77,13 +79,18 @@ func (config AggregatorConfig) Validate() error {
 // Aggregator aggregates transaction durations, periodically publishing histogram spanMetrics.
 type Aggregator struct {
 	*baseaggregator.Aggregator
-
-	config AggregatorConfig
+	config  AggregatorConfig
+	metrics *aggregatorMetrics
 
 	mu sync.RWMutex
 	// These two metricsBuffer are set to the same size and act as buffers
 	// for caching and then publishing the metrics as batches.
 	active, inactive map[time.Duration]*metricsBuffer
+}
+
+type aggregatorMetrics struct {
+	activeGroups int64
+	overflow     int64
 }
 
 // NewAggregator returns a new Aggregator with the given config.
@@ -96,6 +103,7 @@ func NewAggregator(config AggregatorConfig) (*Aggregator, error) {
 	}
 	aggregator := Aggregator{
 		config:   config,
+		metrics:  &aggregatorMetrics{},
 		active:   make(map[time.Duration]*metricsBuffer),
 		inactive: make(map[time.Duration]*metricsBuffer),
 	}
@@ -114,6 +122,20 @@ func NewAggregator(config AggregatorConfig) (*Aggregator, error) {
 		aggregator.inactive[interval] = newMetricsBuffer(config.MaxGroups)
 	}
 	return &aggregator, nil
+}
+
+// CollectMonitoring may be called to collect monitoring metrics from the
+// aggregation. It is intended to be used with libbeat/monitoring.NewFunc.
+//
+// The metrics should be added to the "apm-server.aggregation.spanmetrics" registry.
+func (a *Aggregator) CollectMonitoring(_ monitoring.Mode, V monitoring.Visitor) {
+	V.OnRegistryStart()
+	defer V.OnRegistryFinished()
+
+	activeGroups := int64(atomic.LoadInt64(&a.metrics.activeGroups))
+	overflowed := int64(atomic.LoadInt64(&a.metrics.overflow))
+	monitoring.ReportInt(V, "active_groups", activeGroups)
+	monitoring.ReportInt(V, "overflowed.total", overflowed)
 }
 
 func (a *Aggregator) publish(ctx context.Context, period time.Duration) error {
@@ -142,6 +164,7 @@ func (a *Aggregator) publish(ctx context.Context, period time.Duration) error {
 	}
 
 	intervalStr := interval.FormatDuration(period)
+	isMetricsPeriod := period == a.config.Interval
 	batch := make(model.Batch, 0, size)
 	for hash, entries := range current.m {
 		for _, entry := range entries {
@@ -153,15 +176,19 @@ func (a *Aggregator) publish(ctx context.Context, period time.Duration) error {
 		delete(current.m, hash)
 	}
 	if current.other != nil {
+		overflowCount := current.otherCardinalityEstimator.Estimate()
+		if isMetricsPeriod {
+			atomic.AddInt64(&a.metrics.activeGroups, int64(current.entries))
+			atomic.AddInt64(&a.metrics.overflow, int64(overflowCount))
+		}
 		entry := current.other
 		m := makeMetricset(entry.aggregationKey, entry.spanMetrics)
 		m.Metricset.Interval = intervalStr
-		count := current.otherCardinalityEstimator.Estimate()
 		m.Metricset.Samples = append(m.Metricset.Samples, model.MetricsetSample{
 			Name:  "service_destination.aggregation.overflow_count",
-			Value: float64(count),
+			Value: float64(overflowCount),
 		})
-		m.Metricset.DocCount = int64(count)
+		m.Metricset.DocCount = int64(overflowCount)
 		batch = append(batch, m)
 		current.other = nil
 		current.otherCardinalityEstimator = nil
@@ -171,9 +198,8 @@ func (a *Aggregator) publish(ctx context.Context, period time.Duration) error {
 	return a.config.BatchProcessor.ProcessBatch(ctx, &batch)
 }
 
-// ProcessBatch aggregates all spans contained in "b", adding to it any
-// metricsets requiring immediate publication. It also aggregates transactions
-// where transaction.DroppedSpansStats > 0.
+// ProcessBatch aggregates all spans contained in "b".
+// It also aggregates transactions where transaction.DroppedSpansStats > 0.
 //
 // This method is expected to be used immediately prior to publishing
 // the events.
@@ -182,14 +208,14 @@ func (a *Aggregator) ProcessBatch(ctx context.Context, b *model.Batch) error {
 	defer a.mu.RUnlock()
 	for _, event := range *b {
 		if event.Processor == model.SpanProcessor {
-			a.processSpan(&event, b)
+			a.processSpan(&event)
 			continue
 		}
 
 		tx := event.Transaction
 		if event.Processor == model.TransactionProcessor && tx != nil {
 			for _, dss := range tx.DroppedSpansStats {
-				a.processDroppedSpanStats(&event, dss, b)
+				a.processDroppedSpanStats(&event, dss)
 			}
 			// NOTE(marclop) The event.Transaction.DroppedSpansStats is unset
 			// via the `modelprocessor.DroppedSpansStatsDiscarder` appended just
@@ -200,7 +226,7 @@ func (a *Aggregator) ProcessBatch(ctx context.Context, b *model.Batch) error {
 	return nil
 }
 
-func (a *Aggregator) processSpan(event *model.APMEvent, b *model.Batch) {
+func (a *Aggregator) processSpan(event *model.APMEvent) {
 	if event.Span.DestinationService == nil || event.Span.DestinationService.Resource == "" {
 		return
 	}
@@ -243,7 +269,7 @@ func (a *Aggregator) processSpan(event *model.APMEvent, b *model.Batch) {
 	}
 }
 
-func (a *Aggregator) processDroppedSpanStats(event *model.APMEvent, dss model.DroppedSpanStats, b *model.Batch) {
+func (a *Aggregator) processDroppedSpanStats(event *model.APMEvent, dss model.DroppedSpanStats) {
 	representativeCount := event.Transaction.RepresentativeCount
 	if representativeCount <= 0 {
 		// RepresentativeCount is zero when the sample rate is unknown.

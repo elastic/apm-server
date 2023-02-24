@@ -93,49 +93,59 @@ func TestTxnAggregatorProcessBatch(t *testing.T) {
 		// for 7 transactions and 3 services; first three service will receive
 		// 2 txns and the last one will receive 1 txn.
 		// Note that practically uniqueTxnCount will always be >= uniqueServices.
-		name                             string
-		uniqueTxnCount                   int
-		uniqueServices                   int
-		expectedActiveGroups             int64
-		expectedPerSvcTxnLimitOverflow   int
-		expectedOtherSvcTxnLimitOverflow int // we will design tests to overflow all the services equally
-		expectedTotalOverflow            int64
+		name                 string
+		uniqueTxnCount       int
+		uniqueServices       int
+		expectedActiveGroups int
+		// expectedOverflowReasonPerSvcTxnGrps represent total number of txn groups
+		// that overflowed due to per service txn group limit assuming all servies
+		// overflow equally. These will be recorded in the `transaction.name: _other`
+		// and the corresponding service name documents.
+		expectedOverflowReasonPerSvcTxnGrps int
+		// expectedOverflowReasonTxnGrps represent total number of txn groups that
+		// overflowed due to max txn groups limit. These will be recorded in the
+		// `transaction.name: _other` and the corresponding service name documents.
+		expectedOverflowReasonTxnGrps int
+		// expectedOverflowReasonSvc represents total number of txn groups that
+		// overflowed due to max services limit. These will be recorded in the
+		// `transaction.name: _other` and the `service.name: _other` document.
+		expectedOverflowReasonSvc int
 	}{
 		{
-			name:                             "record_into_other_txn_if_txn_per_svcs_limit_breached",
-			uniqueTxnCount:                   20,
-			uniqueServices:                   2,
-			expectedActiveGroups:             6,
-			expectedPerSvcTxnLimitOverflow:   8,
-			expectedOtherSvcTxnLimitOverflow: 0,
-			expectedTotalOverflow:            16,
+			name:                                "record_into_other_txn_if_txn_per_svcs_limit_breached",
+			uniqueTxnCount:                      20,
+			uniqueServices:                      2,
+			expectedActiveGroups:                6,
+			expectedOverflowReasonPerSvcTxnGrps: 16,
+			expectedOverflowReasonTxnGrps:       0,
+			expectedOverflowReasonSvc:           0,
 		},
 		{
-			name:                             "record_into_other_txn_if_txn_grps_limit_breached",
-			uniqueTxnCount:                   60,
-			uniqueServices:                   20,
-			expectedActiveGroups:             40,
-			expectedPerSvcTxnLimitOverflow:   2,
-			expectedOtherSvcTxnLimitOverflow: 0,
-			expectedTotalOverflow:            40,
+			name:                                "record_into_other_txn_if_txn_grps_limit_breached",
+			uniqueTxnCount:                      60,
+			uniqueServices:                      20,
+			expectedActiveGroups:                40,
+			expectedOverflowReasonPerSvcTxnGrps: 0,
+			expectedOverflowReasonTxnGrps:       40,
+			expectedOverflowReasonSvc:           0,
 		},
 		{
-			name:                             "record_into_other_txn_other_svc_if_txn_grps_and_svcs_limit_breached",
-			uniqueTxnCount:                   60,
-			uniqueServices:                   60,
-			expectedActiveGroups:             21,
-			expectedPerSvcTxnLimitOverflow:   0,
-			expectedOtherSvcTxnLimitOverflow: 40,
-			expectedTotalOverflow:            40,
+			name:                                "record_into_other_txn_other_svc_if_txn_grps_and_svcs_limit_breached",
+			uniqueTxnCount:                      60,
+			uniqueServices:                      60,
+			expectedActiveGroups:                21,
+			expectedOverflowReasonPerSvcTxnGrps: 0,
+			expectedOverflowReasonTxnGrps:       0,
+			expectedOverflowReasonSvc:           40,
 		},
 		{
-			name:                             "all_overflow",
-			uniqueTxnCount:                   600,
-			uniqueServices:                   60,
-			expectedActiveGroups:             41,
-			expectedPerSvcTxnLimitOverflow:   9,
-			expectedOtherSvcTxnLimitOverflow: 400,
-			expectedTotalOverflow:            580,
+			name:                                "all_overflow",
+			uniqueTxnCount:                      600,
+			uniqueServices:                      60,
+			expectedActiveGroups:                41,
+			expectedOverflowReasonPerSvcTxnGrps: 0,
+			expectedOverflowReasonTxnGrps:       180,
+			expectedOverflowReasonSvc:           400,
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -171,10 +181,16 @@ func TestTxnAggregatorProcessBatch(t *testing.T) {
 				require.NoError(t, agg.Run())
 			}(t)
 			require.NoError(t, agg.ProcessBatch(context.Background(), &batch))
-
+			require.NoError(t, agg.Stop(context.Background()))
+			metricsets := batchMetricsets(t, expectBatch(t, batches))
 			expectedMonitoring := monitoring.MakeFlatSnapshot()
-			expectedMonitoring.Ints["txmetrics.active_groups"] = tc.expectedActiveGroups
-			expectedMonitoring.Ints["txmetrics.overflowed"] = tc.expectedTotalOverflow * int64(repCount)
+
+			expectedMonitoring.Ints["txmetrics.active_groups"] = int64(tc.expectedActiveGroups)
+			expectedMonitoring.Ints["txmetrics.overflowed.per_service_txn_groups"] = int64(tc.expectedOverflowReasonPerSvcTxnGrps)
+			expectedMonitoring.Ints["txmetrics.overflowed.txn_groups"] = int64(tc.expectedOverflowReasonTxnGrps)
+			expectedMonitoring.Ints["txmetrics.overflowed.services"] = int64(tc.expectedOverflowReasonSvc)
+			expectedMonitoring.Ints["txmetrics.overflowed.total"] = int64(
+				tc.expectedOverflowReasonPerSvcTxnGrps + tc.expectedOverflowReasonTxnGrps + tc.expectedOverflowReasonSvc)
 			registry := monitoring.NewRegistry()
 			monitoring.NewFunc(registry, "txmetrics", agg.CollectMonitoring)
 			assert.Equal(t, expectedMonitoring, monitoring.CollectFlatSnapshot(
@@ -183,26 +199,31 @@ func TestTxnAggregatorProcessBatch(t *testing.T) {
 				false, // expvar
 			))
 
-			require.NoError(t, agg.Stop(context.Background()))
-			metricsets := batchMetricsets(t, expectBatch(t, batches))
 			var expectedOverflowMetricsets []model.APMEvent
 			var totalOverflowSvcCount int
-			if tc.expectedPerSvcTxnLimitOverflow > 0 {
+			totalOverflowIntoAllSvcBuckets := tc.expectedOverflowReasonPerSvcTxnGrps + tc.expectedOverflowReasonTxnGrps
+			// Assuming that all services in the test will overflow equally, any overflow due to max
+			// transaction groups or per service transaction group limit limit will overflow into the
+			// corresponding service's overflow bucket uptil the max services limit.
+			if totalOverflowIntoAllSvcBuckets > 0 {
 				totalOverflowSvcCount = tc.uniqueServices
 				if tc.uniqueServices > maxSvcs {
 					totalOverflowSvcCount = maxSvcs
 				}
 			}
-			if tc.expectedOtherSvcTxnLimitOverflow > 0 {
+			// If there are any overflows due to the max services limit then the overflow
+			// will be aggregated under a special `service.name: _other` bucket.
+			if tc.expectedOverflowReasonSvc > 0 {
 				expectedOverflowMetricsets = append(
 					expectedOverflowMetricsets,
-					createOverflowMetricset(tc.expectedOtherSvcTxnLimitOverflow, repCount, txnDuration),
+					createOverflowMetricset(tc.expectedOverflowReasonSvc, repCount, txnDuration),
 				)
 			}
 			for i := 0; i < totalOverflowSvcCount; i++ {
+				totalOverflowForEachSvcBuckets := totalOverflowIntoAllSvcBuckets / totalOverflowSvcCount
 				expectedOverflowMetricsets = append(
 					expectedOverflowMetricsets,
-					createOverflowMetricset(tc.expectedPerSvcTxnLimitOverflow, repCount, txnDuration),
+					createOverflowMetricset(totalOverflowForEachSvcBuckets, repCount, txnDuration),
 				)
 			}
 			assert.Empty(t, cmp.Diff(
@@ -268,7 +289,7 @@ func TestAggregatorRun(t *testing.T) {
 			Processor: model.TransactionProcessor,
 			Transaction: &model.Transaction{
 				Name:                "T-800",
-				RepresentativeCount: 1,
+				RepresentativeCount: 2.5,
 			},
 		}
 		if i%2 == 0 {
@@ -304,7 +325,7 @@ func TestAggregatorRun(t *testing.T) {
 		assert.Equal(t, "T-800", metricsets[1].Transaction.Name)
 		assert.Empty(t, metricsets[1].Labels)
 		assert.Empty(t, metricsets[1].NumericLabels)
-		assert.Equal(t, []int64{400, 400}, metricsets[1].Transaction.DurationHistogram.Counts)
+		assert.Equal(t, []int64{1000, 1000}, metricsets[1].Transaction.DurationHistogram.Counts)
 		for _, event := range metricsets {
 			assert.Equal(t, now.Truncate(intervals[i]), event.Timestamp)
 			assert.Equal(t, fmt.Sprintf("%.0fs", intervals[i].Seconds()), event.Metricset.Interval)
@@ -718,7 +739,7 @@ func createOverflowMetricset(overflowCount, repCount int, txnDuration time.Durat
 			},
 			DurationSummary: model.SummaryMetric{
 				Count: int64(overflowCount * repCount),
-				Sum:   float64(txnDuration.Microseconds()),
+				Sum:   float64(time.Duration(float64(overflowCount*repCount) * float64(txnDuration)).Microseconds()),
 			},
 		},
 		Metricset: &model.Metricset{

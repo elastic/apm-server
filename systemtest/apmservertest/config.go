@@ -72,6 +72,9 @@ type Config struct {
 
 	// ProfilingConfig holds configuration related to profiling.
 	Profiling *ProfilingConfig `json:"apm-server.profiling,omitempty"`
+
+	// AggregationConfig holds configuration related to aggregation.
+	Aggregation *AggregationConfig `json:"apm-server.aggregation,omitempty"`
 }
 
 // Args formats cfg as a list of arguments to pass to apm-server,
@@ -207,13 +210,8 @@ type RUMConfig struct {
 
 // RUMSourcemapConfig holds APM Server RUM sourcemap configuration.
 type RUMSourcemapConfig struct {
-	Enabled bool                     `json:"enabled,omitempty"`
-	Cache   *RUMSourcemapCacheConfig `json:"cache,omitempty"`
-}
-
-// RUMSourcemapCacheConfig holds sourcemap cache expiration.
-type RUMSourcemapCacheConfig struct {
-	Expiration time.Duration `json:"expiration,omitempty"`
+	Enabled  bool                       `json:"enabled,omitempty"`
+	ESConfig *ElasticsearchOutputConfig `json:"elasticsearch"`
 }
 
 // APIKeyConfig holds agent auth configuration.
@@ -323,6 +321,11 @@ func durationString(d time.Duration) string {
 		return ""
 	}
 	return d.String()
+}
+
+// AggregationConfig holds configuration related to aggregation.
+type AggregationConfig struct {
+	ServiceTransactionMaxGroups int `json:"service_transactions.max_groups,omitempty"`
 }
 
 func configArgs(cfg Config, extra map[string]interface{}) ([]string, error) {

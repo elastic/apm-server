@@ -31,9 +31,9 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/esutil"
 
 	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelprocessor"
 	"github.com/elastic/apm-server/internal/beatcmd"
 	"github.com/elastic/apm-server/internal/beater"
-	"github.com/elastic/apm-server/internal/model/modelprocessor"
 	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/servicesummarymetrics"
 	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/servicetxmetrics"
 	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/spanmetrics"
@@ -114,7 +114,7 @@ func newProcessors(args beater.ServerParams) ([]namedProcessor, error) {
 		MetricsInterval:                metricsInterval,
 		RollUpIntervals:                rollUpMetricsIntervals,
 		MaxTransactionGroupsPerService: int(math.Ceil(0.1 * float64(args.Config.Aggregation.Transactions.MaxTransactionGroups))),
-		MaxServices:                    args.Config.Aggregation.Transactions.MaxTransactionGroups, // same as max txn grps
+		MaxServices:                    args.Config.Aggregation.Transactions.MaxServices,
 		HDRHistogramSignificantFigures: args.Config.Aggregation.Transactions.HDRHistogramSignificantFigures,
 	})
 	if err != nil {
@@ -124,7 +124,7 @@ func newProcessors(args beater.ServerParams) ([]namedProcessor, error) {
 	aggregationMonitoringRegistry.Remove("txmetrics")
 	monitoring.NewFunc(aggregationMonitoringRegistry, "txmetrics", agg.CollectMonitoring, monitoring.Report)
 
-	const spanName = "service destinations aggregation"
+	const spanName = "service destination metrics aggregation"
 	args.Logger.Infof("creating %s with config: %+v", spanName, args.Config.Aggregation.ServiceDestinations)
 	spanAggregator, err := spanmetrics.NewAggregator(spanmetrics.AggregatorConfig{
 		BatchProcessor:  args.BatchProcessor,
@@ -136,6 +136,13 @@ func newProcessors(args beater.ServerParams) ([]namedProcessor, error) {
 		return nil, errors.Wrapf(err, "error creating %s", spanName)
 	}
 	processors = append(processors, namedProcessor{name: spanName, processor: spanAggregator})
+	aggregationMonitoringRegistry.Remove("spanmetrics")
+	monitoring.NewFunc(
+		aggregationMonitoringRegistry,
+		"spanmetrics",
+		spanAggregator.CollectMonitoring,
+		monitoring.Report,
+	)
 
 	const serviceTxName = "service transaction metrics aggregation"
 	args.Logger.Infof("creating %s with config: %+v", serviceTxName, args.Config.Aggregation.ServiceTransactions)
@@ -150,8 +157,15 @@ func newProcessors(args beater.ServerParams) ([]namedProcessor, error) {
 		return nil, errors.Wrapf(err, "error creating %s", serviceTxName)
 	}
 	processors = append(processors, namedProcessor{name: serviceTxName, processor: serviceTxAggregator})
+	aggregationMonitoringRegistry.Remove("servicetxmetrics")
+	monitoring.NewFunc(
+		aggregationMonitoringRegistry,
+		"servicetxmetrics",
+		serviceTxAggregator.CollectMonitoring,
+		monitoring.Report,
+	)
 
-	const serviceSummaryName = "service summary aggregation"
+	const serviceSummaryName = "service summary metrics aggregation"
 	args.Logger.Infof("creating %s with config: %+v", serviceSummaryName, args.Config.Aggregation.ServiceTransactions)
 	serviceSummaryAggregator, err := servicesummarymetrics.NewAggregator(servicesummarymetrics.AggregatorConfig{
 		BatchProcessor:  args.BatchProcessor,
@@ -163,6 +177,13 @@ func newProcessors(args beater.ServerParams) ([]namedProcessor, error) {
 		return nil, errors.Wrapf(err, "error creating %s", serviceSummaryName)
 	}
 	processors = append(processors, namedProcessor{name: serviceSummaryName, processor: serviceSummaryAggregator})
+	aggregationMonitoringRegistry.Remove("servicesummarymetrics")
+	monitoring.NewFunc(
+		aggregationMonitoringRegistry,
+		"servicesummarymetrics",
+		serviceSummaryAggregator.CollectMonitoring,
+		monitoring.Report,
+	)
 
 	if args.Config.Sampling.Tail.Enabled {
 		const name = "tail sampler"

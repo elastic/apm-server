@@ -8,6 +8,7 @@ import (
 	"context"
 	"encoding/binary"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/axiomhq/hyperloglog"
@@ -15,6 +16,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/elastic-agent-libs/monitoring"
 
 	"github.com/elastic/apm-data/model"
 	"github.com/elastic/apm-server/internal/logs"
@@ -49,9 +51,9 @@ type AggregatorConfig struct {
 	Interval time.Duration
 
 	// MaxGroups is the maximum number of distinct service summary metrics to
-	// store within an aggregation period.
-	// Once this number of groups is reached, any new aggregation keys will cause
-	// individual metrics documents to be immediately published.
+	// store within an aggregation period. Once this number of groups is
+	// reached, any new aggregation keys will be aggregated in a dedicated
+	// service group identified by `_other`.
 	MaxGroups int
 }
 
@@ -69,13 +71,18 @@ func (config AggregatorConfig) Validate() error {
 // Aggregator aggregates all events, periodically publishing service summary metrics.
 type Aggregator struct {
 	*baseaggregator.Aggregator
-
-	config AggregatorConfig
+	config  AggregatorConfig
+	metrics *aggregatorMetrics
 
 	mu sync.RWMutex
 	// These two metricsBuffer are set to the same size and act as buffers
 	// for caching and then publishing the metrics as batches.
 	active, inactive map[time.Duration]*metricsBuffer
+}
+
+type aggregatorMetrics struct {
+	activeGroups int64
+	overflow     int64
 }
 
 // NewAggregator returns a new Aggregator with the given config.
@@ -88,6 +95,7 @@ func NewAggregator(config AggregatorConfig) (*Aggregator, error) {
 	}
 	aggregator := Aggregator{
 		config:   config,
+		metrics:  &aggregatorMetrics{},
 		active:   make(map[time.Duration]*metricsBuffer),
 		inactive: make(map[time.Duration]*metricsBuffer),
 	}
@@ -106,6 +114,20 @@ func NewAggregator(config AggregatorConfig) (*Aggregator, error) {
 		aggregator.inactive[interval] = newMetricsBuffer(config.MaxGroups)
 	}
 	return &aggregator, nil
+}
+
+// CollectMonitoring may be called to collect monitoring metrics from the
+// aggregation. It is intended to be used with libbeat/monitoring.NewFunc.
+//
+// The metrics should be added to the "apm-server.aggregation.servicesummarymetrics" registry.
+func (a *Aggregator) CollectMonitoring(_ monitoring.Mode, V monitoring.Visitor) {
+	V.OnRegistryStart()
+	defer V.OnRegistryFinished()
+
+	activeGroups := int64(atomic.LoadInt64(&a.metrics.activeGroups))
+	overflowed := int64(atomic.LoadInt64(&a.metrics.overflow))
+	monitoring.ReportInt(V, "active_groups", activeGroups)
+	monitoring.ReportInt(V, "overflowed.total", overflowed)
 }
 
 func (a *Aggregator) publish(ctx context.Context, period time.Duration) error {
@@ -134,6 +156,7 @@ func (a *Aggregator) publish(ctx context.Context, period time.Duration) error {
 	}
 
 	intervalStr := interval.FormatDuration(period)
+	isMetricsPeriod := period == a.config.Interval
 	batch := make(model.Batch, 0, size)
 	for key, metrics := range current.m {
 		for _, entry := range metrics {
@@ -143,10 +166,15 @@ func (a *Aggregator) publish(ctx context.Context, period time.Duration) error {
 		delete(current.m, key)
 	}
 	if current.other != nil {
+		overflowCount := current.otherCardinalityEstimator.Estimate()
+		if isMetricsPeriod {
+			atomic.AddInt64(&a.metrics.activeGroups, int64(current.entries))
+			atomic.AddInt64(&a.metrics.overflow, int64(overflowCount))
+		}
 		m := makeMetricset(*current.other, intervalStr)
 		m.Metricset.Samples = append(m.Metricset.Samples, model.MetricsetSample{
 			Name:  "service_summary.aggregation.overflow_count",
-			Value: float64(current.otherCardinalityEstimator.Estimate()),
+			Value: float64(overflowCount),
 		})
 		batch = append(batch, m)
 	}
@@ -229,7 +257,7 @@ func (mb *metricsBuffer) storeOrUpdate(
 	if mb.entries >= mb.maxSize {
 		if mb.otherCardinalityEstimator == nil {
 			logger.Warnf(`
-Service summary aggregation group limit of %d reached, new metric documents will be grouped
+Service aggregation group limit of %d reached, new metric documents will be grouped
 under a dedicated bucket identified by service name '%s'.`[1:], mb.maxSize, overflowServiceName)
 			key = makeOverflowAggregationKey(interval)
 			mb.other = &key

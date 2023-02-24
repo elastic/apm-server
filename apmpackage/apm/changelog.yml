@@ -1,4 +1,9 @@
-- version: generated
+- version: "generated"
+  changes:
+    - description: Placeholder
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/123
+- version: "8.7.0"
   changes:
     - description: Introduce `metrics-apm.service-${interval}` data stream for service metrics (`1m`, `10m` and `60m`).
       type: enhancement
@@ -57,6 +62,9 @@
     - description: Remove policy input var `service_metrics_enabled`
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/10109
+    - description: Add `event.{labels,numeric_labels}` to service destination metrics
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/10297
 - version: "8.6.0"
   changes:
     - description: Change `ecs.version` to a `constant_keyword` field

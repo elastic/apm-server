@@ -19,7 +19,9 @@ package sourcemap
 
 import (
 	"bytes"
+	"compress/zlib"
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -39,27 +41,20 @@ import (
 
 func Test_esFetcher_fetchError(t *testing.T) {
 	for name, tc := range map[string]struct {
-		statusCode   int
-		clientError  bool
-		responseBody io.Reader
-		temporary    bool
+		statusCode         int
+		clientError        bool
+		responseBody       io.Reader
+		temporary          bool
+		expectedErrMessage string
 	}{
 		"es not reachable": {
-			clientError: true,
-			temporary:   true,
+			clientError:        true,
+			temporary:          true,
+			expectedErrMessage: "failure querying ES: client error",
 		},
 		"es bad request": {
-			statusCode: http.StatusBadRequest,
-		},
-		"empty sourcemap string": {
-			statusCode: http.StatusOK,
-			responseBody: sourcemapSearchResponseBody(1, []map[string]interface{}{{
-				"_source": map[string]interface{}{
-					"sourcemap": map[string]interface{}{
-						"sourcemap": "",
-					},
-				},
-			}}),
+			statusCode:         http.StatusBadRequest,
+			expectedErrMessage: "ES returned unknown status code: 400 Bad Request",
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
@@ -71,11 +66,7 @@ func Test_esFetcher_fetchError(t *testing.T) {
 			}
 
 			consumer, err := testESFetcher(client).Fetch(context.Background(), "abc", "1.0", "/tmp")
-			if tc.temporary {
-				assert.Contains(t, err.Error(), errMsgESFailure)
-			} else {
-				assert.NotContains(t, err.Error(), errMsgESFailure)
-			}
+			assert.Equal(t, tc.expectedErrMessage, err.Error())
 			assert.Empty(t, consumer)
 		})
 	}
@@ -88,16 +79,12 @@ func Test_esFetcher_fetch(t *testing.T) {
 		filePath     string
 	}{
 		"no sourcemap found": {
-			statusCode:   http.StatusNotFound,
-			responseBody: sourcemapSearchResponseBody(0, nil),
-		},
-		"sourcemap indicated but not found": {
 			statusCode:   http.StatusOK,
-			responseBody: sourcemapSearchResponseBody(1, []map[string]interface{}{}),
+			responseBody: sourcemapESResponseBody(false, ""),
 		},
 		"valid sourcemap found": {
 			statusCode:   http.StatusOK,
-			responseBody: sourcemapSearchResponseBody(1, []map[string]interface{}{sourcemapHit(validSourcemap)}),
+			responseBody: sourcemapESResponseBody(true, validSourcemap),
 			filePath:     "bundle.js",
 		},
 	} {
@@ -120,16 +107,14 @@ func testESFetcher(client *elasticsearch.Client) *esFetcher {
 	return &esFetcher{client: client, index: "apm-sourcemap", logger: logp.NewLogger(logs.Sourcemap)}
 }
 
-func sourcemapSearchResponseBody(hitsTotal int, hits []map[string]interface{}) io.Reader {
-	resultHits := map[string]interface{}{
-		"total": map[string]interface{}{
-			"value": hitsTotal,
+func sourcemapESResponseBody(found bool, s string) io.Reader {
+	result := map[string]interface{}{
+		"found": found,
+		"_source": map[string]interface{}{
+			"content": encodeSourcemap(s),
 		},
 	}
-	if hits != nil {
-		resultHits["hits"] = hits
-	}
-	result := map[string]interface{}{"hits": resultHits}
+
 	data, err := json.Marshal(result)
 	if err != nil {
 		panic(err)
@@ -137,14 +122,14 @@ func sourcemapSearchResponseBody(hitsTotal int, hits []map[string]interface{}) i
 	return bytes.NewReader(data)
 }
 
-func sourcemapHit(sourcemap string) map[string]interface{} {
-	return map[string]interface{}{
-		"_source": map[string]interface{}{
-			"sourcemap": map[string]interface{}{
-				"sourcemap": sourcemap,
-			},
-		},
-	}
+func encodeSourcemap(sourcemap string) string {
+	b := &bytes.Buffer{}
+
+	z := zlib.NewWriter(b)
+	z.Write([]byte(sourcemap))
+	z.Close()
+
+	return base64.StdEncoding.EncodeToString(b.Bytes())
 }
 
 // newUnavailableElasticsearchClient returns an elasticsearch.Client configured

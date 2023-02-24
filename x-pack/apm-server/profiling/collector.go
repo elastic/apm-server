@@ -228,7 +228,6 @@ type StackFrame struct {
 	FunctionName   string `json:"Stackframe.function.name,omitempty"`
 	LineNumber     int32  `json:"Stackframe.line.number,omitempty"`
 	FunctionOffset int32  `json:"Stackframe.function.offset,omitempty"`
-	SourceType     int16  `json:"Stackframe.source.type,omitempty"`
 }
 
 // mapToStackTraceEvents maps Prodfiler stacktraces to Elastic documents.
@@ -483,7 +482,6 @@ func (e *ElasticCollector) AddFrameMetadata(ctx context.Context, in *AddFrameMet
 	lineNumbers := in.GetLineNumbers()
 	functionNames := in.GetFunctionNames()
 	functionOffsets := in.GetFunctionOffsets()
-	types := in.GetTypes()
 	filenames := in.GetFilenames()
 
 	arraySize := len(hiFileIDs)
@@ -500,7 +498,6 @@ func (e *ElasticCollector) AddFrameMetadata(ctx context.Context, in *AddFrameMet
 		arraySize != len(lineNumbers) ||
 		arraySize != len(functionNames) ||
 		arraySize != len(functionOffsets) ||
-		arraySize != len(types) ||
 		arraySize != len(filenames) {
 		counterFatalErr.Inc()
 		e.logger.Errorf("mismatch in array sizes (%d)", arraySize)
@@ -535,7 +532,6 @@ func (e *ElasticCollector) AddFrameMetadata(ctx context.Context, in *AddFrameMet
 			FunctionName:   functionNames[i],
 			FunctionOffset: int32(functionOffsets[i]),
 			FileName:       filename,
-			SourceType:     int16(types[i]),
 		}
 
 		docID := common.EncodeFrameID(fileID, addressOrLines[i])
@@ -609,7 +605,6 @@ func (e *ElasticCollector) AddFallbackSymbols(ctx context.Context,
 
 		frameMetadata := StackFrame{
 			FunctionName: symbols[i],
-			SourceType:   libpf.SourceTypeC,
 		}
 
 		docID := common.EncodeFrameID(fileID, addressOrLines[i])
