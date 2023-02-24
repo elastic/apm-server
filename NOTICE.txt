@@ -288,11 +288,11 @@ SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/apm-data
-Version: v0.1.1-0.20230220085637-eed09abf029f
+Version: v0.1.1-0.20230223083125-b7f31c1a6768
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/apm-data@v0.1.1-0.20230220085637-eed09abf029f/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/apm-data@v0.1.1-0.20230223083125-b7f31c1a6768/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004

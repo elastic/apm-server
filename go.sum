@@ -346,6 +346,10 @@ github.com/elastic/apm-data v0.1.1-0.20230130063651-f5680fd2c5aa h1:H1KMf+Nrav0V
 github.com/elastic/apm-data v0.1.1-0.20230130063651-f5680fd2c5aa/go.mod h1:JLtHUxhBa7oky85/69kMCfOjyzuzDq3fN3MxLy/ufvI=
 github.com/elastic/apm-data v0.1.1-0.20230220085637-eed09abf029f h1:sApGEwJhSeH2HJcZaxqSshz9oWa4pmOvnMDXprTrgUc=
 github.com/elastic/apm-data v0.1.1-0.20230220085637-eed09abf029f/go.mod h1:JLtHUxhBa7oky85/69kMCfOjyzuzDq3fN3MxLy/ufvI=
+github.com/elastic/apm-data v0.1.1-0.20230223061150-9b6fe7641eb7 h1:j8DRhFq2uqxCla1Xoy3pdXwlZOegpeVtn3hPnV0WpGk=
+github.com/elastic/apm-data v0.1.1-0.20230223061150-9b6fe7641eb7/go.mod h1:8oEk/myQSw+GHqxPD3e8Oz2qPMawcOH+t9HYZ51p+rE=
+github.com/elastic/apm-data v0.1.1-0.20230223083125-b7f31c1a6768 h1:NdAseK5+GCJ6GjORNrg36ALFDwUPUJAUHgRXZWtyMRg=
+github.com/elastic/apm-data v0.1.1-0.20230223083125-b7f31c1a6768/go.mod h1:8oEk/myQSw+GHqxPD3e8Oz2qPMawcOH+t9HYZ51p+rE=
 github.com/elastic/bayeux v1.0.5 h1:UceFq01ipmT3S8DzFK+uVAkbCdiPR0Bqei8qIGmUeY0=
 github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230209164158-9f1587069755 h1:MGkbqe8cSEQjyYXqlAotl+yCRYxGWMmKsTID2GFx3BI=
 github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230209164158-9f1587069755/go.mod h1:xvHCfOYq5jViIuPTapXVMjZAakI3y+sKUXYt42NF1Co=

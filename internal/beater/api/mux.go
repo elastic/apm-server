@@ -33,6 +33,7 @@ import (
 
 	"github.com/elastic/apm-data/input/elasticapm"
 	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelprocessor"
 	"github.com/elastic/apm-server/internal/agentcfg"
 	"github.com/elastic/apm-server/internal/beater/api/config/agent"
 	"github.com/elastic/apm-server/internal/beater/api/intake"
@@ -44,7 +45,7 @@ import (
 	"github.com/elastic/apm-server/internal/beater/ratelimit"
 	"github.com/elastic/apm-server/internal/beater/request"
 	"github.com/elastic/apm-server/internal/logs"
-	"github.com/elastic/apm-server/internal/model/modelprocessor"
+	srvmodelprocessor "github.com/elastic/apm-server/internal/model/modelprocessor"
 	"github.com/elastic/apm-server/internal/sourcemap"
 	"github.com/elastic/apm-server/internal/version"
 )
@@ -202,14 +203,14 @@ func (r *routeBuilder) rumIntakeHandler() func() (request.Handler, error) {
 			if err != nil {
 				return nil, errors.Wrap(err, "invalid library pattern regex")
 			}
-			batchProcessors = append(batchProcessors, modelprocessor.SetLibraryFrame{Pattern: re})
+			batchProcessors = append(batchProcessors, srvmodelprocessor.SetLibraryFrame{Pattern: re})
 		}
 		if r.cfg.RumConfig.ExcludeFromGrouping != "" {
 			re, err := regexp.Compile(r.cfg.RumConfig.ExcludeFromGrouping)
 			if err != nil {
 				return nil, errors.Wrap(err, "invalid exclude from grouping regex")
 			}
-			batchProcessors = append(batchProcessors, modelprocessor.SetExcludeFromGrouping{Pattern: re})
+			batchProcessors = append(batchProcessors, srvmodelprocessor.SetExcludeFromGrouping{Pattern: re})
 		}
 		if r.sourcemapFetcher != nil {
 			batchProcessors = append(batchProcessors, modelprocessor.SetCulprit{})

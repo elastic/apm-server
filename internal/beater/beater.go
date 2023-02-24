@@ -51,6 +51,7 @@ import (
 	"github.com/elastic/go-ucfg"
 
 	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelprocessor"
 	"github.com/elastic/apm-server/internal/agentcfg"
 	"github.com/elastic/apm-server/internal/beater/auth"
 	"github.com/elastic/apm-server/internal/beater/config"
@@ -60,10 +61,15 @@ import (
 	"github.com/elastic/apm-server/internal/elasticsearch"
 	"github.com/elastic/apm-server/internal/idxmgmt"
 	"github.com/elastic/apm-server/internal/kibana"
-	"github.com/elastic/apm-server/internal/model/modelprocessor"
+	srvmodelprocessor "github.com/elastic/apm-server/internal/model/modelprocessor"
 	"github.com/elastic/apm-server/internal/publish"
 	"github.com/elastic/apm-server/internal/sourcemap"
 	"github.com/elastic/apm-server/internal/version"
+)
+
+var (
+	monitoringRegistry         = monitoring.Default.NewRegistry("apm-server.sampling")
+	transactionsDroppedCounter = monitoring.NewInt(monitoringRegistry, "transactions_dropped")
 )
 
 // Runner initialises and runs and orchestrates the APM Server
@@ -385,7 +391,7 @@ func (s *Runner) Run(ctx context.Context) error {
 		// aggregated metrics are also processed.
 		newObserverBatchProcessor(),
 		&modelprocessor.SetDataStream{Namespace: s.config.DataStreams.Namespace},
-		modelprocessor.NewEventCounter(monitoring.Default.GetRegistry("apm-server")),
+		srvmodelprocessor.NewEventCounter(monitoring.Default.GetRegistry("apm-server")),
 
 		// The server always drops non-RUM unsampled transactions. We store RUM unsampled
 		// transactions as they are needed by the User Experience app, which performs
@@ -393,7 +399,9 @@ func (s *Runner) Run(ctx context.Context) error {
 		//
 		// It is important that this is done just before calling the publisher to
 		// avoid affecting aggregations.
-		modelprocessor.NewDropUnsampled(false /* don't drop RUM unsampled transactions*/),
+		modelprocessor.NewDropUnsampled(false /* don't drop RUM unsampled transactions*/, func(i int64) {
+			transactionsDroppedCounter.Add(i)
+		}),
 		modelprocessor.DroppedSpansStatsDiscarder{},
 		finalBatchProcessor,
 	}
@@ -456,10 +464,8 @@ func (s *Runner) Run(ctx context.Context) error {
 		// aggregation, sampling, and indexing.
 		modelprocessor.SetHostHostname{},
 		modelprocessor.SetServiceNodeName{},
-		modelprocessor.SetMetricsetName{},
 		modelprocessor.SetGroupingKey{},
 		modelprocessor.SetErrorMessage{},
-		modelprocessor.SetUnknownSpanType{},
 	}
 	if s.config.DefaultServiceEnvironment != "" {
 		preBatchProcessors = append(preBatchProcessors, &modelprocessor.SetDefaultServiceEnvironment{
