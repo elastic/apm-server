@@ -158,7 +158,7 @@ func TestFleetIntegrationSourcemap(t *testing.T) {
 
 	sourcemap, err := os.ReadFile("../testdata/sourcemap/bundle.js.map")
 	require.NoError(t, err)
-	systemtest.CreateSourceMap(t, string(sourcemap), "apm-agent-js", "1.0.1", "http://localhost:8000/test/e2e/../e2e/general-usecase/bundle.js.map")
+	systemtest.CreateSourceMap(t, sourcemap, "apm-agent-js", "1.0.1", "http://localhost:8000/test/e2e/../e2e/general-usecase/bundle.js.map")
 
 	apmIntegration := newAPMIntegration(t, map[string]interface{}{"enable_rum": true})
 
