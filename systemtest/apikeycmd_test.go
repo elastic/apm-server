@@ -244,21 +244,21 @@ func TestAPIKeyInfo(t *testing.T) {
 	assert.GreaterOrEqual(t, len(result.APIKeys), 2)
 }
 
-func assertAuthenticateSucceeds(t testing.TB, es *estest.Client) *esapi.Response {
+func assertAuthenticateSucceeds(t testing.TB, es *estest.Client) {
 	t.Helper()
 	resp, err := es.Security.Authenticate()
 	require.NoError(t, err)
 	assert.False(t, resp.IsError())
-	return resp
+	assert.NoError(t, resp.Body.Close())
 }
 
-func assertAuthenticateFails(t testing.TB, es *estest.Client) *esapi.Response {
+func assertAuthenticateFails(t testing.TB, es *estest.Client) {
 	t.Helper()
 	resp, err := es.Security.Authenticate()
 	require.NoError(t, err)
 	assert.True(t, resp.IsError())
 	assert.Equal(t, http.StatusUnauthorized, resp.StatusCode)
-	return resp
+	assert.NoError(t, resp.Body.Close())
 }
 
 func decodeJSONMap(t *testing.T, r io.Reader) map[string]interface{} {
