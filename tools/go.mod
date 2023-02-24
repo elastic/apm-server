@@ -13,7 +13,7 @@ require (
 	github.com/terraform-docs/terraform-docs v0.16.0
 	go.elastic.co/go-licence-detector v0.5.0
 	gotest.tools/gotestsum v1.9.0
-	honnef.co/go/tools v0.3.3
+	honnef.co/go/tools v0.4.2
 )
 
 require (
@@ -208,7 +208,7 @@ require (
 	go.starlark.net v0.0.0-20221205180719-3fd0dac74452 // indirect
 	golang.org/x/build v0.0.0-20220908145327-656fd833c864 // indirect
 	golang.org/x/crypto v0.5.0 // indirect
-	golang.org/x/exp/typeparams v0.0.0-20220907003533-145caa8ea1d0 // indirect
+	golang.org/x/exp/typeparams v0.0.0-20221208152030-732eee02a75a // indirect
 	golang.org/x/mod v0.7.0 // indirect
 	golang.org/x/net v0.7.0 // indirect
 	golang.org/x/oauth2 v0.4.0 // indirect
