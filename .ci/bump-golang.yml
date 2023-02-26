@@ -97,6 +97,15 @@ targets:
       file: docs/version.asciidoc
       matchpattern: '(:go-version:) \d+.\d+.\d+'
       replacepattern: '$1 {{ source "latestGoVersion" }}'
+  update-packer-cache:
+    name: 'Update packer cache with Golang version {{ source "latestGoVersion" }}'
+    sourceid: latestGoVersion
+    scmid: default
+    kind: file
+    spec:
+      file: .ci/packer_cache.sh
+      matchpattern: '(golang):\d+.\d+.\d+'
+      replacepattern: '$1:{{ source "latestGoVersion" }}'
   update-dockerfile:
     name: 'Update Dockerfile with Golang version {{ source "latestGoVersion" }}'
     sourceid: latestGoVersion
