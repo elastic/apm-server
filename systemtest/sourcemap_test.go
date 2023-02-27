@@ -141,6 +141,7 @@ func TestSourcemapCaching(t *testing.T) {
 
 	srv := apmservertest.NewUnstartedServerTB(t)
 	srv.Config.RUM = &apmservertest.RUMConfig{Enabled: true}
+	srv.Config.Kibana.Enabled = false
 	err = srv.Start()
 	require.NoError(t, err)
 
