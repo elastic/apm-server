@@ -83,19 +83,81 @@ func TestNewAggregatorConfigInvalid(t *testing.T) {
 	}
 }
 
+func TestTxnAggregator_ResetAfterPublish(t *testing.T) {
+	// Create a txn aggregator
+	// Send some transactions such that limit is not breached with 1x
+	// but breached with 2x
+	batches := make(chan model.Batch, 1)
+	agg, err := txmetrics.NewAggregator(txmetrics.AggregatorConfig{
+		BatchProcessor:                 makeChanBatchProcessor(batches),
+		MaxServices:                    3,
+		MaxTransactionGroups:           3,
+		MaxTransactionGroupsPerService: 2,
+		MetricsInterval:                100 * time.Millisecond,
+		HDRHistogramSignificantFigures: 5,
+	})
+	assert.NoError(t, err)
+	batch := model.Batch{
+		model.APMEvent{
+			Processor: model.TransactionProcessor,
+			Event: model.Event{
+				Outcome:  "success",
+				Duration: time.Second,
+			},
+			Transaction: &model.Transaction{
+				Name:                "txn1",
+				RepresentativeCount: 1,
+			},
+			Service: model.Service{Name: "svc1"},
+		},
+	}
+	go func(t *testing.T) {
+		t.Helper()
+		require.NoError(t, agg.Run())
+	}(t)
+
+	registry := monitoring.NewRegistry()
+	monitoring.NewFunc(registry, "txmetrics", agg.CollectMonitoring)
+	for i := 0; i < 5; i++ {
+		// The repition count should be set to be higher than 2 because
+		// the aggregators use two datastructures: active and inactive.
+		// Each batch has the same transactions which will not overflow
+		require.NoError(t, agg.ProcessBatch(context.Background(), &batch))
+		batchMetricsets(t, expectBatch(t, batches))
+		expectedMonitoring := monitoring.MakeFlatSnapshot()
+		// active_groups is a counter so it will increase for every iteration
+		// there should be no expected overflow
+		expectedMonitoring.Ints["txmetrics.active_groups"] = int64(i + 1)
+		expectedMonitoring.Ints["txmetrics.overflowed.per_service_txn_groups"] = 0
+		expectedMonitoring.Ints["txmetrics.overflowed.txn_groups"] = 0
+		expectedMonitoring.Ints["txmetrics.overflowed.services"] = 0
+		expectedMonitoring.Ints["txmetrics.overflowed.total"] = 0
+		assert.Equal(t, expectedMonitoring, monitoring.CollectFlatSnapshot(
+			registry,
+			monitoring.Full,
+			false,
+		))
+	}
+}
+
 func TestTxnAggregatorProcessBatch(t *testing.T) {
-	const maxSvcs = 20
-	const maxTxnGrps = 20
-	const maxTxnGrpsPerSvc = 2
 	const txnDuration = 100 * time.Millisecond
 	for _, tc := range []struct {
 		// all unique txns are distributed in unique services sequentially
 		// for 7 transactions and 3 services; first three service will receive
 		// 2 txns and the last one will receive 1 txn.
 		// Note that practically uniqueTxnCount will always be >= uniqueServices.
-		name                 string
-		uniqueTxnCount       int
-		uniqueServices       int
+		name string
+
+		// aggregation limits
+		maxServicesLimit        int
+		maxTxnGroupsLimit       int
+		maxTxnGroupsPerSvcLimit int
+
+		// load distribution of unique transactions across services
+		uniqueTxnCount int
+		uniqueServices int
+
 		expectedActiveGroups int
 		// expectedOverflowReasonPerSvcTxnGrps represent total number of txn groups
 		// that overflowed due to per service txn group limit assuming all servies
@@ -112,55 +174,94 @@ func TestTxnAggregatorProcessBatch(t *testing.T) {
 		expectedOverflowReasonSvc int
 	}{
 		{
-			name:                                "record_into_other_txn_if_txn_per_svcs_limit_breached",
-			uniqueTxnCount:                      20,
-			uniqueServices:                      2,
-			expectedActiveGroups:                6,
-			expectedOverflowReasonPerSvcTxnGrps: 16,
+			name: "no_overflow",
+
+			maxServicesLimit:        10,
+			maxTxnGroupsPerSvcLimit: 10,
+			maxTxnGroupsLimit:       100,
+
+			uniqueTxnCount: 100,
+			uniqueServices: 10,
+
+			expectedActiveGroups:                100,
+			expectedOverflowReasonPerSvcTxnGrps: 0,
 			expectedOverflowReasonTxnGrps:       0,
 			expectedOverflowReasonSvc:           0,
 		},
 		{
-			name:                                "record_into_other_txn_if_txn_grps_limit_breached",
-			uniqueTxnCount:                      60,
-			uniqueServices:                      20,
-			expectedActiveGroups:                40,
-			expectedOverflowReasonPerSvcTxnGrps: 0,
-			expectedOverflowReasonTxnGrps:       40,
+			name: "overflow_for_max_per_svc_txn_grps",
+
+			maxServicesLimit:        20,
+			maxTxnGroupsPerSvcLimit: 10,
+			maxTxnGroupsLimit:       100,
+
+			uniqueTxnCount: 100,
+			uniqueServices: 5,
+
+			expectedActiveGroups:                55, // 10 txn groups + 1 overflow per service
+			expectedOverflowReasonPerSvcTxnGrps: 50,
+			expectedOverflowReasonTxnGrps:       0,
 			expectedOverflowReasonSvc:           0,
 		},
 		{
-			name:                                "record_into_other_txn_other_svc_if_txn_grps_and_svcs_limit_breached",
-			uniqueTxnCount:                      60,
-			uniqueServices:                      60,
-			expectedActiveGroups:                21,
+			name: "overflow_for_max_txn_grps",
+
+			maxServicesLimit:        20,
+			maxTxnGroupsPerSvcLimit: 10,
+			maxTxnGroupsLimit:       100,
+
+			uniqueTxnCount: 200,
+			uniqueServices: 20,
+
+			expectedActiveGroups:                120,
 			expectedOverflowReasonPerSvcTxnGrps: 0,
-			expectedOverflowReasonTxnGrps:       0,
-			expectedOverflowReasonSvc:           40,
+			expectedOverflowReasonTxnGrps:       100,
+			expectedOverflowReasonSvc:           0,
 		},
 		{
-			name:                                "all_overflow",
-			uniqueTxnCount:                      600,
-			uniqueServices:                      60,
-			expectedActiveGroups:                41,
+			name: "overflow_for_max_svcs",
+
+			maxServicesLimit:        10,
+			maxTxnGroupsPerSvcLimit: 10,
+			maxTxnGroupsLimit:       100,
+
+			uniqueTxnCount: 200,
+			uniqueServices: 20,
+
+			expectedActiveGroups:                101,
 			expectedOverflowReasonPerSvcTxnGrps: 0,
-			expectedOverflowReasonTxnGrps:       180,
-			expectedOverflowReasonSvc:           400,
+			expectedOverflowReasonTxnGrps:       0,
+			expectedOverflowReasonSvc:           100,
+		},
+		{
+			name: "overflow_for_max_svcs_and_max_per_svc_txn_grps",
+
+			maxServicesLimit:        10,
+			maxTxnGroupsPerSvcLimit: 10,
+			maxTxnGroupsLimit:       100,
+
+			uniqueTxnCount: 400,
+			uniqueServices: 20,
+
+			expectedActiveGroups:                111,
+			expectedOverflowReasonPerSvcTxnGrps: 100,
+			expectedOverflowReasonTxnGrps:       0,
+			expectedOverflowReasonSvc:           200,
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			batches := make(chan model.Batch, 1)
 			agg, err := txmetrics.NewAggregator(txmetrics.AggregatorConfig{
 				BatchProcessor:                 makeChanBatchProcessor(batches),
-				MaxServices:                    maxSvcs,
-				MaxTransactionGroups:           maxTxnGrps,
-				MaxTransactionGroupsPerService: maxTxnGrpsPerSvc,
+				MaxServices:                    tc.maxServicesLimit,
+				MaxTransactionGroups:           tc.maxTxnGroupsLimit,
+				MaxTransactionGroupsPerService: tc.maxTxnGroupsPerSvcLimit,
 				MetricsInterval:                30 * time.Second,
 				HDRHistogramSignificantFigures: 5,
 			})
 			require.NoError(t, err)
 
-			repCount := 5
+			repCount := 1
 			batch := make(model.Batch, tc.uniqueTxnCount*repCount)
 			for i := 0; i < len(batch); i++ {
 				batch[i] = model.APMEvent{
@@ -207,8 +308,8 @@ func TestTxnAggregatorProcessBatch(t *testing.T) {
 			// corresponding service's overflow bucket uptil the max services limit.
 			if totalOverflowIntoAllSvcBuckets > 0 {
 				totalOverflowSvcCount = tc.uniqueServices
-				if tc.uniqueServices > maxSvcs {
-					totalOverflowSvcCount = maxSvcs
+				if tc.uniqueServices > tc.maxServicesLimit {
+					totalOverflowSvcCount = tc.maxServicesLimit
 				}
 			}
 			// If there are any overflows due to the max services limit then the overflow
