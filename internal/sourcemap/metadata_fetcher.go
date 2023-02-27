@@ -101,9 +101,9 @@ func (s *MetadataESFetcher) startBackgroundSync(parent context.Context) {
 	go func() {
 		s.logger.Debug("populating metadata cache")
 
-		ctx, cancel := context.WithTimeout(parent, 1*time.Second)
-		err := s.ping(ctx)
-		cancel()
+		// the parent ctx does not have a deadline so we
+		// rely on the es client timeout (default 5s).
+		err := s.ping(parent)
 
 		if err != nil {
 			// it is fine to not lock here since err will not access
@@ -112,7 +112,7 @@ func (s *MetadataESFetcher) startBackgroundSync(parent context.Context) {
 			s.logger.Error(s.initErr)
 		} else {
 			// First run, populate cache
-			ctx, cancel = context.WithTimeout(parent, syncTimeout)
+			ctx, cancel := context.WithTimeout(parent, syncTimeout)
 			err := s.sync(ctx)
 			cancel()
 
