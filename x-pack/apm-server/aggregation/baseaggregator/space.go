@@ -10,6 +10,7 @@ import "github.com/pkg/errors"
 // array pre-allocates the required number of entries to reduce GC overhead.
 //
 // Requires protection using mutexes for concurrent usage by the caller.
+// TODO: Update all aggregators to use Space.
 type Space[k any] struct {
 	index int
 	space []k
