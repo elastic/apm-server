@@ -84,9 +84,6 @@ func TestNewAggregatorConfigInvalid(t *testing.T) {
 }
 
 func TestTxnAggregator_ResetAfterPublish(t *testing.T) {
-	// Create a txn aggregator
-	// Send some transactions such that limit is not breached with 1x
-	// but breached with 2x
 	batches := make(chan model.Batch, 1)
 	agg, err := txmetrics.NewAggregator(txmetrics.AggregatorConfig{
 		BatchProcessor:                 makeChanBatchProcessor(batches),
@@ -121,7 +118,8 @@ func TestTxnAggregator_ResetAfterPublish(t *testing.T) {
 	for i := 0; i < 5; i++ {
 		// The repition count should be set to be higher than 2 because
 		// the aggregators use two datastructures: active and inactive.
-		// Each batch has the same transactions which will not overflow
+
+		// Each batch has the same transactions configured to not overflow
 		require.NoError(t, agg.ProcessBatch(context.Background(), &batch))
 		batchMetricsets(t, expectBatch(t, batches))
 		expectedMonitoring := monitoring.MakeFlatSnapshot()
