@@ -657,7 +657,7 @@ func (m *metrics) searchMetricsEntry(
 	// to continue looking for the aggregation key. This will be useful when read
 	// lock is upgraded to write lock and we need to attempt another search to
 	// handle race conditions.
-	return svc, nil, offset + 1
+	return svc, nil, offset
 }
 
 // newServiceEntry creates a new entry for a given service name. If overflow is true then
