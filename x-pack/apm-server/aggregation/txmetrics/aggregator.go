@@ -219,11 +219,11 @@ func (a *Aggregator) publish(ctx context.Context, period time.Duration) error {
 		return nil
 	}
 
-	var overflowGroupsCount int64
 	var servicesOverflow, perSvcTxnGroupsOverflow, txnGroupsOverflow int64
 	isMetricsPeriod := period == a.config.MetricsInterval
 	intervalStr := interval.FormatDuration(period)
-	batch := make(model.Batch, 0, current.entries)
+	totalActiveGroups := current.entries + current.overflowedEntries
+	batch := make(model.Batch, 0, totalActiveGroups)
 	for svc, svcEntry := range current.m {
 		for hash, entries := range svcEntry.m {
 			for _, entry := range entries {
@@ -237,7 +237,6 @@ func (a *Aggregator) publish(ctx context.Context, period time.Duration) error {
 			delete(svcEntry.m, hash)
 		}
 		if svcEntry.other != nil {
-			overflowGroupsCount++
 			overflowCount := int64(svcEntry.otherCardinalityEstimator.Estimate())
 			if isMetricsPeriod {
 				if svc == overflowBucketName {
@@ -265,7 +264,7 @@ func (a *Aggregator) publish(ctx context.Context, period time.Duration) error {
 	}
 	if isMetricsPeriod {
 		a.metrics.mu.Lock()
-		a.metrics.activeGroups += int64(current.entries) + overflowGroupsCount
+		a.metrics.activeGroups += int64(totalActiveGroups)
 		a.metrics.servicesOverflow += servicesOverflow
 		a.metrics.perSvcTxnGroupsOverflow += perSvcTxnGroupsOverflow
 		a.metrics.txnGroupsOverflow += txnGroupsOverflow
@@ -612,18 +611,22 @@ type metrics struct {
 	space    *baseaggregator.Space[metricsMapEntry]
 	svcSpace *baseaggregator.Space[svcMetricsMapEntry]
 	m        map[string]*svcMetricsMapEntry
-	// entries refer to the total number of tx groups getting aggregated excluding overflow.
-	// Used to identify overflow limit breaches as they only account for non-overflow groups.
+	// entries refer to the total number of tx groups getting aggregated excluding
+	// overflow. Used to identify overflow limit breaches as they only account for
+	// non-overflow groups.
 	entries int
-	// services refer to the total number of services getting aggregated excluding overflow.
-	// Used to identify overflow limit breaches as they only account for non-overflow services.
+	// overflowedEntries refer to the total number of overflowed transaction groups
+	// getting aggregated.
+	overflowedEntries int
+	// services refer to the total number of services getting aggregated excluding
+	// overflow. Used to identify overflow limit breaches as they only account for
+	// non-overflow services.
 	services int
 }
 
 func newMetrics(maxGroups, maxServices int) *metrics {
 	return &metrics{
-		// Total number of entries = 1 per transaction + 1 overflow per service + 1 `_other` service
-		// space: make([]metricsMapEntry, maxGroups+maxServices+1),
+		// Total number of entries = 1 per txn + 1 overflow per svc + 1 `_other` svc
 		space: baseaggregator.NewSpace[metricsMapEntry](maxGroups + maxServices + 1),
 		// keep 1 reserved entry for `_other` service
 		svcSpace: baseaggregator.NewSpace[svcMetricsMapEntry](maxServices + 1),
@@ -631,7 +634,11 @@ func newMetrics(maxGroups, maxServices int) *metrics {
 	}
 }
 
-func (m *metrics) searchMetricsEntry(hash uint64, key transactionAggregationKey, offset int) (*svcMetricsMapEntry, *metricsMapEntry, int) {
+func (m *metrics) searchMetricsEntry(
+	hash uint64,
+	key transactionAggregationKey,
+	offset int,
+) (*svcMetricsMapEntry, *metricsMapEntry, int) {
 	svc, ok := m.m[key.serviceName]
 	if !ok {
 		return svc, nil, offset
@@ -712,6 +719,7 @@ func (m *metrics) newMetricsEntry(
 			}
 			svc.other = entry
 			svc.otherCardinalityEstimator = hyperloglog.New14()
+			m.overflowedEntries++
 		}
 		svc.otherCardinalityEstimator.InsertHash(hash)
 		return svc.other, nil
