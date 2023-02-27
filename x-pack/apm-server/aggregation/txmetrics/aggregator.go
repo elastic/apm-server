@@ -345,7 +345,7 @@ func (a *Aggregator) updateTransactionMetrics(key transactionAggregationKey, cou
 	m.mu.RLock()
 	svc, entry, offset := m.searchMetricsEntry(hash, key, 0)
 	m.mu.RUnlock()
-	if entry != nil {
+	if svc != nil && entry != nil {
 		entry.recordDuration(duration, count)
 		return nil
 	}
