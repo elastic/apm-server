@@ -647,18 +647,17 @@ func (m *metrics) searchMetricsEntry(
 	if !ok {
 		return svc, nil, offset
 	}
-	for i := range entries[offset:] {
-		entry := entries[i]
+	for ; offset < len(entries); offset++ {
+		entry := entries[offset]
 		if entry.transactionAggregationKey.equal(key) {
-			return svc, entry, offset
+			return svc, entry, offset + 1
 		}
 	}
-	// increase offset to indicate the next index that should be searched in future
+	// return offset to indicate the next index that should be searched in future
 	// to continue looking for the aggregation key. This will be useful when read
-	// lock is upgraded to write lock and we need to attempt another search to handle
-	// race conditions.
-	offset++
-	return svc, nil, offset
+	// lock is upgraded to write lock and we need to attempt another search to
+	// handle race conditions.
+	return svc, nil, offset + 1
 }
 
 // newServiceEntry creates a new entry for a given service name. If overflow is true then
