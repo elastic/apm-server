@@ -403,7 +403,7 @@ func (a *Aggregator) updateTransactionMetrics(key transactionAggregationKey, cou
 
 func (a *Aggregator) logOverflow(svcName string, interval time.Duration, svcOverflow, perSvcTxnOverflow, txnOverflow bool) {
 	if svcOverflow {
-		a.overflowLogger.Warnf(`
+		a.config.Logger.Warnf(`
 %s Service limit of %d reached, new metric documents will be grouped under a dedicated
 overflow bucket identified by service name '%s'.`[1:],
 			interval.String(),
@@ -412,7 +412,7 @@ overflow bucket identified by service name '%s'.`[1:],
 		)
 	}
 	if perSvcTxnOverflow {
-		a.overflowLogger.Warnf(`
+		a.config.Logger.Warnf(`
 %s Transaction group limit of %d reached for service %s, new metric documents will be grouped
 under a dedicated bucket identified by transaction name '%s'. This is typically
 caused by ineffective transaction grouping, e.g. by creating many unique transaction
@@ -426,7 +426,7 @@ that configuration option appropriately, may lead to better results.`[1:],
 			overflowBucketName,
 		)
 	}
-	a.overflowLogger.Warnf(`
+	a.config.Logger.Warnf(`
 %s Overall transaction group limit of %d reached, new metric documents will be grouped
 under a dedicated bucket identified by transaction name '%s'. This is typically
 caused by ineffective transaction grouping, e.g. by creating many unique transaction
