@@ -304,18 +304,18 @@ func (a *Aggregator) ProcessBatch(ctx context.Context, b *model.Batch) error {
 //     can aggregate over. Once this limit is breached the metrics will be
 //     aggregated in the `_other` transaction bucket of a dedicated service
 //     with `service.name` as `_other`.
-func (a *Aggregator) AggregateTransaction(event model.APMEvent) error {
+func (a *Aggregator) AggregateTransaction(event model.APMEvent) {
 	count := event.Transaction.RepresentativeCount
 	if count <= 0 {
-		return nil
+		return
 	}
 	for _, interval := range a.Intervals {
 		key := makeTransactionAggregationKey(event, interval)
 		if err := a.updateTransactionMetrics(key, count, event.Event.Duration, interval); err != nil {
-			return err
+			a.config.Logger.Errorf("failed to aggregate transaction: %w", err)
 		}
 	}
-	return nil
+	return
 }
 
 func (a *Aggregator) updateTransactionMetrics(key transactionAggregationKey, count float64, duration, interval time.Duration) error {
