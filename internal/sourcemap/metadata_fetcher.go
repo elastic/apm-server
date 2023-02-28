@@ -33,10 +33,6 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/esapi"
 )
 
-const (
-	syncTimeout = 10 * time.Second
-)
-
 type MetadataESFetcher struct {
 	esClient         *elasticsearch.Client
 	index            string
@@ -97,17 +93,15 @@ func (s *MetadataESFetcher) err() error {
 	}
 }
 
-func (s *MetadataESFetcher) startBackgroundSync(parent context.Context) {
+func (s *MetadataESFetcher) startBackgroundSync(ctx context.Context) {
 	go func() {
 		s.logger.Debug("populating metadata cache")
 
 		// First run, populate cache
-		ctx, cancel := context.WithTimeout(parent, syncTimeout)
 		if err := s.sync(ctx); err != nil {
 			s.initErr = fmt.Errorf("failed to populate sourcemap metadata: %w", err)
 			s.logger.Error(s.initErr)
 		}
-		cancel()
 
 		close(s.init)
 
@@ -117,14 +111,10 @@ func (s *MetadataESFetcher) startBackgroundSync(parent context.Context) {
 		for {
 			select {
 			case <-t.C:
-				ctx, cancel := context.WithTimeout(parent, syncTimeout)
-
 				if err := s.sync(ctx); err != nil {
 					s.logger.Errorf("failed to sync sourcemaps metadata: %v", err)
 				}
-
-				cancel()
-			case <-parent.Done():
+			case <-ctx.Done():
 				s.logger.Info("update routine done")
 				// close invalidation channel
 				close(s.invalidationChan)
