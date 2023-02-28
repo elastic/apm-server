@@ -20,6 +20,7 @@ package idxmgmt
 import (
 	"github.com/pkg/errors"
 
+	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/idxmgmt"
 	"github.com/elastic/beats/v7/libbeat/outputs"
 	"github.com/elastic/elastic-agent-libs/config"
@@ -69,13 +70,23 @@ func logWarnings(log *logp.Logger, cfg *config.C) {
 
 type dataStreamsSupporter struct{}
 
-// BuildSelector always returns an error.
+// BuildSelector always returns an IndexSelector that returns an error.
 //
-// BuildSupporter must be implemented by idxmgmt.Supporter, but is only used by the
-// libbeat Elasticsearch output. We do not use the libbeat Elasticsearch output, so
-// any calls to this method are unexpected.
+// BuildSupporter must be implemented by idxmgmt.Supporter, and is used only by
+// the "apm-server test output" command.
 func (dataStreamsSupporter) BuildSelector(*config.C) (outputs.IndexSelector, error) {
-	return nil, errors.New("unexpected call to BuildSelector")
+	return unsupportedIndexSelector{}, nil
+}
+
+type unsupportedIndexSelector struct{}
+
+// Select always returns an error.
+//
+// Select must be implemented by idxmgmt.Supporter, but is only used by the libbeat
+// Elasticsearch output. We do not use the libbeat Elasticsearch output, except for
+// the "apm-server test output" command; calls to this method are unexpected.
+func (unsupportedIndexSelector) Select(event *beat.Event) (string, error) {
+	return "", errors.New("unexpected call to Select")
 }
 
 // Enabled always returns false, indicating that this idxmgmt.Supporter does
