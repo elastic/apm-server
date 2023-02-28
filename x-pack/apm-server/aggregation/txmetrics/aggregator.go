@@ -225,7 +225,7 @@ func (a *Aggregator) publish(ctx context.Context, period time.Duration) error {
 	totalActiveGroups := current.entries + current.overflowedEntries
 	batch := make(model.Batch, 0, totalActiveGroups)
 	for svc, svcEntry := range current.m {
-		for hash, entries := range svcEntry.m {
+		for _, entries := range svcEntry.m {
 			for _, entry := range entries {
 				// Record the metricset interval as metricset.interval.
 				event := makeMetricset(entry.transactionAggregationKey, entry.transactionMetrics, intervalStr)
@@ -234,7 +234,6 @@ func (a *Aggregator) publish(ctx context.Context, period time.Duration) error {
 				a.histogramPool.Put(entry.histogram)
 				entry.histogram = nil
 			}
-			delete(svcEntry.m, hash)
 		}
 		if svcEntry.other != nil {
 			overflowCount := int64(svcEntry.otherCardinalityEstimator.Estimate())
@@ -260,7 +259,6 @@ func (a *Aggregator) publish(ctx context.Context, period time.Duration) error {
 			entry.histogram = nil
 		}
 		svcEntry.reset()
-		delete(current.m, svc)
 	}
 	if isMetricsPeriod {
 		a.metrics.mu.Lock()
@@ -735,6 +733,9 @@ func (m *metrics) newMetricsEntry(
 }
 
 func (m *metrics) reset() {
+	for k := range m.m {
+		delete(m.m, k)
+	}
 	m.entries = 0
 	m.services = 0
 	m.space.Reset()
@@ -751,6 +752,9 @@ type svcMetricsMapEntry struct {
 }
 
 func (s *svcMetricsMapEntry) reset() {
+	for k := range s.m {
+		delete(s.m, k)
+	}
 	s.other = nil
 	s.otherCardinalityEstimator = nil
 	s.entries = 0
