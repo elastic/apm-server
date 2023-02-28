@@ -101,31 +101,13 @@ func (s *MetadataESFetcher) startBackgroundSync(parent context.Context) {
 	go func() {
 		s.logger.Debug("populating metadata cache")
 
-		// the parent ctx does not have a deadline so we
-		// rely on the es client timeout (default 5s).
-		err := s.ping(parent)
-
-		if err != nil {
-			// it is fine to not lock here since err will not access
-			// initErr until the init channel is closed.
-			s.initErr = fmt.Errorf("failed to ping es cluster: %w: %v", errFetcherUnvailable, err)
+		// First run, populate cache
+		ctx, cancel := context.WithTimeout(parent, syncTimeout)
+		if err := s.sync(ctx); err != nil {
+			s.initErr = fmt.Errorf("failed to populate sourcemap metadata: %w", err)
 			s.logger.Error(s.initErr)
-		} else {
-			// First run, populate cache
-			ctx, cancel := context.WithTimeout(parent, syncTimeout)
-			err := s.sync(ctx)
-			cancel()
-
-			s.initErr = err
-
-			if err != nil {
-				s.logger.Errorf("failed to fetch sourcemaps metadata: %v", err)
-			} else {
-				// only close the init chan and mark the fetcher as ready if
-				// sync succeeded
-				s.logger.Info("init routine completed")
-			}
 		}
+		cancel()
 
 		close(s.init)
 
@@ -150,19 +132,6 @@ func (s *MetadataESFetcher) startBackgroundSync(parent context.Context) {
 			}
 		}
 	}()
-}
-
-func (s *MetadataESFetcher) ping(ctx context.Context) error {
-	// we cannot use PingRequest because the library is
-	// building a broken url and the request is timing out.
-	req := esapi.IndicesGetRequest{
-		Index: []string{s.index},
-	}
-	resp, err := req.Do(ctx, s.esClient)
-	if err == nil {
-		resp.Body.Close()
-	}
-	return err
 }
 
 func (s *MetadataESFetcher) sync(ctx context.Context) error {
@@ -264,7 +233,7 @@ func (s *MetadataESFetcher) update(ctx context.Context, sourcemaps map[identifie
 func (s *MetadataESFetcher) initialSearch(ctx context.Context, updates map[identifier]string) (*esSearchSourcemapResponse, error) {
 	resp, err := s.runSearchQuery(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("failed to run initial search query: %w", err)
+		return nil, fmt.Errorf("failed to run initial search query: %w: %v", errFetcherUnvailable, err)
 	}
 	defer resp.Body.Close()
 
