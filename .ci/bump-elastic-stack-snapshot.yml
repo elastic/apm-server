@@ -6,12 +6,15 @@ actions:
   default:
     title: '[updatecli] Bump elastic stack version to {{ source "latestVersion" }}'
     kind: github/pullrequest
+    scmid: default
     spec:
       labels:
         - automation
         - backport-skip
         - dependencies
-    scmid: default
+      description: |-
+        ### What
+        Bump elastic stack version to {{ source "latestVersion" }}
 
 scms:
   default:
