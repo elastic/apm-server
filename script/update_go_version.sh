@@ -14,6 +14,6 @@ eval $(script/gimme/gimme $GOMOD_VERSION.x)
 GOVERSION=$(go env GOVERSION | sed 's/^go//')
 
 echo $GOVERSION > .go-version
-sed -i "s/golang:[[:digit:]]\+\(\.[[:digit:]]\+\)\{1,2\}/golang:$GOVERSION/" .ci/packer_cache.sh packaging/docker/Dockerfile
+sed -i "s/golang:[[:digit:]]\+\(\.[[:digit:]]\+\)\{1,2\}/golang:$GOVERSION/" packaging/docker/Dockerfile
 sed -i "s/^:go-version:.*/:go-version: $GOVERSION/" docs/version.asciidoc
 sed -i "s/\(\[Go\]\[golang-download\]\) [[:digit:]].*/\1 $GOMOD_VERSION.x/" README.md
