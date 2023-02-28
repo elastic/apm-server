@@ -258,6 +258,8 @@ func (s *MetadataESFetcher) update(ctx context.Context, sourcemaps map[identifie
 		}
 	}
 
+	s.initErr = nil
+
 	s.logger.Debugf("Metadata cache now has %d entries.", len(s.set))
 }
 
