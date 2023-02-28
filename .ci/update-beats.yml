@@ -36,7 +36,6 @@ conditions:
   beats-version-check:
     name: Check beats version
     kind: shell
-    sourceid: beats
     disablesourceinput: true
     spec:
       command: grep "BEATS_VERSION?={{ requiredEnv "BRANCH_NAME" }}" Makefile
