@@ -333,12 +333,17 @@ func (a *Aggregator) updateTransactionMetrics(key transactionAggregationKey, cou
 	defer a.mu.RUnlock()
 	m := a.active[interval]
 
+	var (
+		svc    *svcMetricsMapEntry
+		entry  *metricsMapEntry
+		offset int
+	)
 	// Get a read lock over the metrics to search for a pre-existing transaction group
 	// entry.
 	m.mu.RLock()
-	svc, entry, offset := m.searchMetricsEntry(hash, key, 0)
+	svc, entry, offset = m.searchMetricsEntry(hash, key, 0)
 	m.mu.RUnlock()
-	if svc != nil && entry != nil {
+	if entry != nil {
 		entry.recordDuration(duration, count)
 		return nil
 	}
@@ -354,7 +359,7 @@ func (a *Aggregator) updateTransactionMetrics(key transactionAggregationKey, cou
 		return nil
 	}
 
-	// If all attempts to search for existing transaction group has failed then a new
+	// If all attempts to search for existing transaction group have failed then a new
 	// transaction group is created as per the following criteria:
 	// 1. If the service exists:
 	//    1.a. If the number of transaction groups for the service is less than the
@@ -635,7 +640,7 @@ func (m *metrics) searchMetricsEntry(
 ) (*svcMetricsMapEntry, *metricsMapEntry, int) {
 	svc, ok := m.m[key.serviceName]
 	if !ok {
-		return svc, nil, offset
+		return nil, nil, offset
 	}
 	entries, ok := svc.m[hash]
 	if !ok {
@@ -665,7 +670,7 @@ func (m *metrics) newServiceEntry(svcName string, overflow bool) (*svcMetricsMap
 		if !ok {
 			svc, err = m.svcSpace.Next()
 			if err != nil {
-				return svc, err
+				return nil, err
 			}
 			m.m[overflowBucketName] = svc
 		}
@@ -674,7 +679,7 @@ func (m *metrics) newServiceEntry(svcName string, overflow bool) (*svcMetricsMap
 
 	svc, err := m.svcSpace.Next()
 	if err != nil {
-		return svc, err
+		return nil, err
 	}
 	if svc.m == nil {
 		svc.m = make(map[uint64][]*metricsMapEntry)
