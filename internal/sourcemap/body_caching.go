@@ -100,3 +100,7 @@ func (s *BodyCachingFetcher) add(key identifier, consumer *sourcemap.Consumer) {
 	s.cache.Add(key, consumer)
 	s.logger.Debugf("Added id %v. Cache now has %v entries.", key, s.cache.Len())
 }
+
+
+func (s *BodyCachingFetcher) Wait() {
+}

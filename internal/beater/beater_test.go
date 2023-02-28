@@ -28,7 +28,6 @@ import (
 	"net/http/httptest"
 	"os"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -78,7 +77,7 @@ func TestStoreUsesRUMElasticsearchConfig(t *testing.T) {
 	require.NoError(t, err)
 	defer cancel()
 
-	time.Sleep(1 * time.Second)
+	fetcher.Wait()
 
 	// Check that the provided rum elasticsearch config was used and
 	// Fetch() goes to the test server.

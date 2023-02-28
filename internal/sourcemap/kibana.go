@@ -86,6 +86,9 @@ func (s *kibanaFetcher) Fetch(ctx context.Context, name, version, path string) (
 	return nil, nil
 }
 
+func (s *kibanaFetcher) Wait() {
+}
+
 // maybeParseURLPath attempts to parse s as a URL, returning its path component
 // if successful. If s cannot be parsed as a URL, s is returned.
 func maybeParseURLPath(s string) string {

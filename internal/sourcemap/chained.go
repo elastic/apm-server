@@ -49,3 +49,10 @@ func (c ChainedFetcher) Fetch(ctx context.Context, name, version, path string) (
 	}
 	return nil, lastErr
 }
+
+
+func (c ChainedFetcher) Wait() {
+	for _, v := range c {
+		v.Wait()
+	}
+}

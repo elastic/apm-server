@@ -133,3 +133,6 @@ func (s *monitoredFetcher) Fetch(ctx context.Context, name string, version strin
 
 	return &sourcemap.Consumer{}, nil
 }
+
+func (s *monitoredFetcher) Wait() {
+}
