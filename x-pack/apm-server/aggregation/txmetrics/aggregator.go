@@ -315,7 +315,6 @@ func (a *Aggregator) AggregateTransaction(event model.APMEvent) {
 			a.config.Logger.Errorf("failed to aggregate transaction: %w", err)
 		}
 	}
-	return
 }
 
 func (a *Aggregator) updateTransactionMetrics(key transactionAggregationKey, count float64, duration, interval time.Duration) error {
@@ -333,15 +332,10 @@ func (a *Aggregator) updateTransactionMetrics(key transactionAggregationKey, cou
 	defer a.mu.RUnlock()
 	m := a.active[interval]
 
-	var (
-		svc    *svcMetricsMapEntry
-		entry  *metricsMapEntry
-		offset int
-	)
 	// Get a read lock over the metrics to search for a pre-existing transaction group
 	// entry.
 	m.mu.RLock()
-	svc, entry, offset = m.searchMetricsEntry(hash, key, 0)
+	_, entry, offset := m.searchMetricsEntry(hash, key, 0)
 	m.mu.RUnlock()
 	if entry != nil {
 		entry.recordDuration(duration, count)
@@ -351,6 +345,7 @@ func (a *Aggregator) updateTransactionMetrics(key transactionAggregationKey, cou
 	// If cannot find a pre-existing transaction group then acquire a write lock in
 	// order to create a new transaction group. To protect against race conditions due
 	// to manual upgrade of lock search for the transaction group again.
+	var svc *svcMetricsMapEntry
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	svc, entry, _ = m.searchMetricsEntry(hash, key, offset)
