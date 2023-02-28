@@ -1,6 +1,6 @@
 ---
 name: Bump beats
-pipelineid: 'update-beats-{{ requiredEnv "BRANCH_NAME" }}'
+pipelineid: 'updatecli-update-beats-{{ requiredEnv "BRANCH_NAME" }}'
 
 scms:
   default:
@@ -16,6 +16,7 @@ scms:
 
 actions:
   default:
+    title: '[updatecli] Updater to elastic/beats@{{ source "beats" }}'
     kind: github/pullrequest
     scmid: default
     spec:
@@ -31,7 +32,6 @@ sources:
       file: 'https://api.github.com/repos/elastic/beats/commits?sha={{ requiredEnv "BRANCH_NAME" }}&per_page=1'
       key: '.[0].sha'
 
-
 targets:
   beats:
     name: 'Update to elastic/beats@{{ source "beats" }}'
@@ -44,5 +44,3 @@ targets:
         - name: PATH
         - name: GOPATH
         - name: HOME
-
-
