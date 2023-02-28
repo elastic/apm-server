@@ -1,9 +1,6 @@
 ---
 name: Bump beats
-<<<<<<< HEAD
 pipelineid: 'update-beats-{{ requiredEnv "BRANCH_NAME" }}'
-=======
->>>>>>> 956a4a30 (Migrate update-beats pipeline to updatecli and GH actions workflow (#10179))
 
 scms:
   default:
@@ -39,11 +36,7 @@ conditions:
   beats-version-check:
     name: Check beats version
     kind: shell
-<<<<<<< HEAD
-    disablesourceinput: true
-=======
     sourceid: beats
->>>>>>> 956a4a30 (Migrate update-beats pipeline to updatecli and GH actions workflow (#10179))
     spec:
       command: grep "BEATS_VERSION?={{ requiredEnv "BRANCH_NAME" }}" Makefile
 

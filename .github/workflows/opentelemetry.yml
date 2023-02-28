@@ -2,12 +2,8 @@ name: OpenTelemetry Export Trace
 
 on:
   workflow_run:
-<<<<<<< HEAD
     workflows:
       - bump-elastic-stack-snapshot
-=======
-    workflows: 
->>>>>>> 956a4a30 (Migrate update-beats pipeline to updatecli and GH actions workflow (#10179))
       - ci
       - system-test-reporter
       - update-beats
