@@ -230,9 +230,7 @@ func (a *Aggregator) publish(ctx context.Context, period time.Duration) error {
 				// Record the metricset interval as metricset.interval.
 				event := makeMetricset(entry.transactionAggregationKey, entry.transactionMetrics, intervalStr)
 				batch = append(batch, event)
-				entry.histogram.Reset()
-				a.histogramPool.Put(entry.histogram)
-				entry.histogram = nil
+				entry.reset(&a.histogramPool)
 			}
 		}
 		if svcEntry.other != nil {
@@ -254,9 +252,7 @@ func (a *Aggregator) publish(ctx context.Context, period time.Duration) error {
 				Value: float64(overflowCount),
 			})
 			batch = append(batch, m)
-			entry.histogram.Reset()
-			a.histogramPool.Put(entry.histogram)
-			entry.histogram = nil
+			entry.reset(&a.histogramPool)
 		}
 		svcEntry.reset()
 	}
@@ -763,6 +759,12 @@ func (s *svcMetricsMapEntry) reset() {
 type metricsMapEntry struct {
 	transactionMetrics
 	transactionAggregationKey
+}
+
+func (e *metricsMapEntry) reset(pool *sync.Pool) {
+	e.histogram.Reset()
+	pool.Put(e.histogram)
+	e.histogram = nil
 }
 
 // comparable contains the fields with types which can be compared with the
