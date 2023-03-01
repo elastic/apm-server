@@ -317,10 +317,6 @@ func CreateSourceMap(t testing.TB, sourcemap, serviceName, serviceVersion, bundl
 	t.Cleanup(func() {
 		DeleteSourceMap(t, result.ID)
 	})
-<<<<<<< HEAD
-=======
-
->>>>>>> 34d33952 (fix: remove hardcoded timeout and don't block when fetching sourcemaps (#10367))
 	return result.ID
 }
 
