@@ -7,9 +7,9 @@ require (
 	github.com/dgraph-io/badger/v2 v2.2007.3-0.20201012072640-f5a7e0a1c83b
 	github.com/dustin/go-humanize v1.0.0
 	github.com/elastic/apm-server/internal/approvaltest v0.0.0-00010101000000-000000000000
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230210120040-9b77c2c135c2
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230228163552-bd1487f37b3b
 	github.com/elastic/elastic-agent-client/v7 v7.0.3
-	github.com/elastic/elastic-agent-libs v0.3.0
+	github.com/elastic/elastic-agent-libs v0.3.1
 	github.com/elastic/elastic-agent-system-metrics v0.4.5-0.20220927192933-25a985b07d51
 	github.com/elastic/gmux v0.2.0
 	github.com/elastic/go-elasticsearch/v8 v8.6.0
@@ -52,7 +52,7 @@ require (
 	go.opentelemetry.io/collector/semconv v0.63.1
 	go.uber.org/automaxprocs v1.5.1
 	go.uber.org/zap v1.24.0
-	golang.org/x/net v0.6.0
+	golang.org/x/net v0.7.0
 	golang.org/x/sync v0.1.0
 	golang.org/x/term v0.5.0
 	golang.org/x/time v0.0.0-20220609170525-579cf78fd858
@@ -72,9 +72,9 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dgraph-io/ristretto v0.1.0 // indirect
 	github.com/dgryski/go-farm v0.0.0-20200201041132-a6ae2369ad13 // indirect
-	github.com/dlclark/regexp2 v1.8.0 // indirect
-	github.com/dop251/goja v0.0.0-20230203172422-5460598cfa32 // indirect
-	github.com/dop251/goja_nodejs v0.0.0-20230207183254-2229640ea097 // indirect
+	github.com/dlclark/regexp2 v1.8.1 // indirect
+	github.com/dop251/goja v0.0.0-20230226152633-7c93113e17ac // indirect
+	github.com/dop251/goja_nodejs v0.0.0-20230226152057-060fa99b809f // indirect
 	github.com/eapache/go-resiliency v1.2.0 // indirect
 	github.com/eapache/go-xerial-snappy v0.0.0-20180814174437-776d5712da21 // indirect
 	github.com/eapache/queue v1.1.0 // indirect
@@ -152,7 +152,7 @@ require (
 	golang.org/x/mod v0.8.0 // indirect
 	golang.org/x/sys v0.5.0 // indirect
 	golang.org/x/text v0.7.0 // indirect
-	google.golang.org/genproto v0.0.0-20230209215440-0dfe4f8abfcc // indirect
+	google.golang.org/genproto v0.0.0-20230227214838-9b19f0bdc514 // indirect
 	gopkg.in/jcmturner/aescts.v1 v1.0.1 // indirect
 	gopkg.in/jcmturner/dnsutils.v1 v1.0.1 // indirect
 	gopkg.in/jcmturner/goidentity.v3 v3.0.0 // indirect
