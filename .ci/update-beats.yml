@@ -32,14 +32,6 @@ sources:
       key: '.[0].sha'
 
 
-conditions:
-  beats-version-check:
-    name: Check beats version
-    kind: shell
-    sourceid: beats
-    spec:
-      command: grep "BEATS_VERSION?={{ requiredEnv "BRANCH_NAME" }}" Makefile
-
 targets:
   beats:
     name: 'Update to elastic/beats@{{ source "beats" }}'
