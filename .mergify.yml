@@ -137,44 +137,23 @@ pull_request_rules:
         branches:
           - "7.13"
         title: "[{{ destination_branch }}] {{ title }} (backport #{{ number }})"
-  - name: Automatic squash and merge with success checks and the file docker-compose.yml is modified.
+  - name: squash and merge updatecli PRs after CI passes
     conditions:
       - check-success=apm-ci/pr-merge
       - label=automation
-      - files=docker-compose.yml
+      - head~=^updatecli
     actions:
       queue:
         method: squash
         name: default
-  - name: delete upstream branch with changes on docker-compose.yml after merging/closing it
+  - name: delete updatecli branch after merging/closing it
     conditions:
       - or:
         - merged
         - closed
       - and:
         - label=automation
-        - head~=^update-.*-version
-        - files=docker-compose.yml
-    actions:
-      delete_head_branch:
-  - name: automatic merge when CI passes for the make update-beats
-    conditions:
-      - check-success=apm-ci/pr-merge
-      - label=automation
-      - head~=^update-beats
-      - files~=^(go.mod|go.sum|NOTICE.txt)
-    actions:
-      queue:
-        method: squash
-        name: default
-  - name: delete upstream branch after merging changes for the make update-beats
-    conditions:
-      - or:
-        - merged
-        - closed
-      - and:
-        - label=automation
-        - head~=^update-beats
+        - head~=^updatecli
     actions:
       delete_head_branch:
   - name: notify the backport policy
