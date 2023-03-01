@@ -437,9 +437,6 @@
                         "line": {
                             "column": 9,
                             "number": 7662
-                        },
-                        "sourcemap": {
-                            "error": "unable to find sourcemap.url for service.name=apm-a-rum-test-e2e-general-usecase service.version=0.0.1 bundle.path=http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.min.js"
                         }
                     },
                     {
@@ -450,9 +447,6 @@
                         "line": {
                             "column": 3,
                             "number": 7666
-                        },
-                        "sourcemap": {
-                            "error": "unable to find sourcemap.url for service.name=apm-a-rum-test-e2e-general-usecase service.version=0.0.1 bundle.path=http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.min.js"
                         }
                     }
                 ],
