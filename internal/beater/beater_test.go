@@ -18,15 +18,11 @@
 package beater
 
 import (
-	"bytes"
-	"compress/zlib"
 	"context"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"testing"
 	"time"
 
@@ -37,8 +33,6 @@ import (
 	"github.com/elastic/apm-server/internal/elasticsearch"
 	"github.com/elastic/elastic-agent-libs/monitoring"
 )
-
-var validSourcemap, _ = os.ReadFile("../../testdata/sourcemap/bundle.js.map")
 
 func TestStoreUsesRUMElasticsearchConfig(t *testing.T) {
 	initCh := make(chan struct{})
@@ -105,31 +99,6 @@ func sourcemapSearchResponseBody(name string, version string, bundlePath string)
 		panic(err)
 	}
 	return data
-}
-
-func sourcemapGetResponseBody(found bool, b []byte) []byte {
-	result := map[string]interface{}{
-		"found": found,
-		"_source": map[string]interface{}{
-			"content": encodeSourcemap(b),
-		},
-	}
-
-	data, err := json.Marshal(result)
-	if err != nil {
-		panic(err)
-	}
-	return data
-}
-
-func encodeSourcemap(sourcemap []byte) string {
-	b := &bytes.Buffer{}
-
-	z := zlib.NewWriter(b)
-	z.Write(sourcemap)
-	z.Close()
-
-	return base64.StdEncoding.EncodeToString(b.Bytes())
 }
 
 func TestQueryClusterUUIDRegistriesExist(t *testing.T) {
