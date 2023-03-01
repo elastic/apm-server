@@ -54,6 +54,8 @@ func (s *SourcemapFetcher) Fetch(ctx context.Context, name, version, path string
 		}
 	case <-ctx.Done():
 		return nil, fmt.Errorf("error waiting for metadata fetcher to be ready: %w", ctx.Err())
+	default:
+		return nil, fmt.Errorf("metadata fetcher is not ready: %w", errFetcherUnvailable)
 	}
 
 	if i, ok := s.metadata.getID(original); ok {
