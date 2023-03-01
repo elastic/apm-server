@@ -105,7 +105,3 @@ func (s *SourcemapFetcher) fetch(ctx context.Context, key *identifier) (*sourcem
 
 	return c, err
 }
-
-func (s *SourcemapFetcher) Wait() {
-	<-s.metadata.ready()
-}

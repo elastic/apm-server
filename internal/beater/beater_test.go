@@ -28,6 +28,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -40,22 +41,15 @@ import (
 var validSourcemap, _ = os.ReadFile("../../testdata/sourcemap/bundle.js.map")
 
 func TestStoreUsesRUMElasticsearchConfig(t *testing.T) {
-	var called bool
+	initCh := make(chan struct{})
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Elastic-Product", "Elasticsearch")
 		switch r.URL.Path {
-		case "/.apm-source-map":
-			// ping request from the metadata fetcher.
-			// Send a status ok
-			w.WriteHeader(http.StatusOK)
 		case "/.apm-source-map/_search":
 			// search request from the metadata fetcher
 			m := sourcemapSearchResponseBody("app", "1.0", "/bundle/path")
 			w.Write(m)
-		case "/.apm-source-map/_doc/app-1.0-/bundle/path":
-			m := sourcemapGetResponseBody(true, validSourcemap)
-			w.Write(m)
-			called = true
+			close(initCh)
 		default:
 			w.WriteHeader(http.StatusTeapot)
 			t.Fatalf("unhandled request path: %s", r.URL.Path)
@@ -70,22 +64,18 @@ func TestStoreUsesRUMElasticsearchConfig(t *testing.T) {
 	cfg.RumConfig.SourceMapping.ESConfig = elasticsearch.DefaultConfig()
 	cfg.RumConfig.SourceMapping.ESConfig.Hosts = []string{ts.URL}
 
-	fetcher, cancel, err := newSourcemapFetcher(
+	_, cancel, err := newSourcemapFetcher(
 		cfg.RumConfig.SourceMapping,
 		nil, elasticsearch.NewClient,
 	)
 	require.NoError(t, err)
 	defer cancel()
 
-	fetcher.Wait()
-
-	// Check that the provided rum elasticsearch config was used and
-	// Fetch() goes to the test server.
-	c, err := fetcher.Fetch(context.Background(), "app", "1.0", "/bundle/path")
-	require.NoError(t, err)
-	require.NotNil(t, c)
-
-	assert.True(t, called)
+	select {
+	case <-initCh:
+	case <-time.After(10 * time.Second):
+		t.Fatal("timed out waiting for metadata fetcher init to complete")
+	}
 }
 
 func sourcemapSearchResponseBody(name string, version string, bundlePath string) []byte {
