@@ -72,6 +72,15 @@ func Build() error {
 // GolangCrossBuild build the Beat binary inside of the golang-builder.
 // Do not use directly, use crossBuild instead.
 func GolangCrossBuild() error {
+	// beats/dev-tools sets the *beats* directory as a safe directory,
+	// we need to do the same for apm-server since we're out of tree.
+	repo, err := mage.GetProjectRepoInfo()
+	if err != nil {
+		panic(err)
+	}
+	if err := sh.Run("git", "config", "--global", "--add", "safe.directory", repo.RootDir); err != nil {
+		return err
+	}
 	return mage.GolangCrossBuild(mage.DefaultGolangCrossBuildArgs())
 }
 
