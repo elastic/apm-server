@@ -20,7 +20,6 @@ package systemtest
 import (
 	"context"
 	"net/url"
-	"strings"
 	"testing"
 	"time"
 
@@ -101,15 +100,6 @@ func cleanupElasticsearch() error {
 			"logs-apm*",
 		},
 		ExpandWildcards: "all",
-	}, nil)
-	if err != nil {
-		return err
-	}
-
-	_, err = Elasticsearch.Do(context.Background(), &esapi.DeleteByQueryRequest{
-		Index:     []string{".apm-source-map"},
-		Body:      strings.NewReader(`{"query": { "match_all": {}}}`),
-		Conflicts: "proceed",
 	}, nil)
 	return err
 }
