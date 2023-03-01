@@ -145,6 +145,5 @@ func parse(body io.ReadCloser, name, version, path string, logger *logp.Logger) 
 	return esSourcemapResponse.Source.Sourcemap, nil
 }
 
-
 func (s *esFetcher) Wait() {
 }
