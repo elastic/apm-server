@@ -7,7 +7,7 @@ terraform {
     }
     ec = {
       source  = "elastic/ec"
-      version = ">=0.5.0"
+      version = "0.5.1"
     }
   }
 }
