@@ -342,11 +342,11 @@ output.elasticsearch:
   # Configure http request timeout before failing an request to Elasticsearch.
   #timeout: 90
 
-  # The bulk request size threshold, in bytes, before flushing to {es}.
-  # The value must have a suffix, e.g. `"1MB"`. The default is `5MB`.
-  #flush_bytes: 5MB
+  # The bulk request size threshold, in bytes, before flushing to Elasticsearch.
+  # The value must have a suffix, e.g. `"2MB"`. The default is `1MB`.
+  #flush_bytes: 1MB
 
-  # The maximum duration to accumulate events for a bulk request before being flushed to {es}.
+  # The maximum duration to accumulate events for a bulk request before being flushed to Elasticsearch.
   # The value must have a duration suffix, e.g. `"5s"`. The default is `1s`.
   #flush_interval: 1s
 

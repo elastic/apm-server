@@ -434,7 +434,7 @@ endif::[]
 ===== `flush_bytes`
 
 The bulk request size threshold, in bytes, before flushing to {es}.
-The value must have a suffix, e.g. `"1MB"`. The default is `5MB`.
+The value must have a suffix, e.g. `"2MB"`. The default is `1MB`.
 
 ===== `flush_interval`
 
