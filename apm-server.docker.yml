@@ -275,6 +275,7 @@ apm-server:
     # Configure curve types for ECDHE based cipher suites.
     #ssl.curve_types: []
 
+<<<<<<< HEAD
 #================================= General =================================
 
 # Data is buffered in a memory queue before it is published to the configured output.
@@ -298,6 +299,8 @@ apm-server:
     # if the number of events stored in the queue is < `flush.min_events`.
     #flush.timeout: 1s
 
+=======
+>>>>>>> 6120420d (fix: re-add max-procs to config options (#10407))
 # Sets the maximum number of CPUs that can be executing simultaneously. The
 # default is the number of logical CPUs available in the system.
 #max_procs:
