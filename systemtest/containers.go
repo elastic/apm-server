@@ -70,7 +70,7 @@ func init() {
 // which will ensure all containers started by testcontainers are removed
 // after some time if they are left running when the systemtest process
 // exits.
-func initContainerReaper() {
+func initContainerReaper() chan bool {
 	dockerProvider, err := testcontainers.NewDockerProvider()
 	if err != nil {
 		panic(err)
@@ -87,10 +87,14 @@ func initContainerReaper() {
 		panic(err)
 	}
 
+	var closeCh chan bool
+
 	// The connection will be closed on exit.
-	if _, err = containerReaper.Connect(); err != nil {
+	if closeCh, err = containerReaper.Connect(); err != nil {
 		panic(err)
 	}
+
+	return closeCh
 }
 
 // StartStackContainers starts Docker containers for Elasticsearch and Kibana.
@@ -264,10 +268,11 @@ func NewUnstartedElasticAgentContainer(opts ContainerConfig) (*ElasticAgentConta
 
 // ElasticAgentContainer represents an ephemeral Elastic Agent container.
 type ElasticAgentContainer struct {
-	vcsRef    string
-	container testcontainers.Container
-	request   testcontainers.ContainerRequest
-	exited    chan struct{}
+	vcsRef      string
+	container   testcontainers.Container
+	request     testcontainers.ContainerRequest
+	exited      chan struct{}
+	reapCloseCh chan bool
 
 	// Reap entrols whether the container will be automatically reaped if
 	// the controlling process exits. This is true by default, and may be
@@ -317,7 +322,7 @@ func (c *ElasticAgentContainer) Start() error {
 	c.request.ExposedPorts = c.ExposedPorts
 	c.request.WaitingFor = c.WaitingFor
 	if c.Reap {
-		initContainerReaperOnce.Do(initContainerReaper)
+		c.reapCloseCh = initContainerReaper()
 		c.request.Labels = make(map[string]string)
 		for k, v := range containerReaper.Labels() {
 			c.request.Labels[k] = v
@@ -411,6 +416,7 @@ func (c *ElasticAgentContainer) copyLogs(stdout, stderr io.Writer) error {
 
 // Close terminates and removes the container.
 func (c *ElasticAgentContainer) Close() error {
+	defer close(c.reapCloseCh)
 	if c.container == nil {
 		return nil
 	}
