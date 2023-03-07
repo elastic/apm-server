@@ -163,7 +163,7 @@ func TestFleetIntegrationSourcemap(t *testing.T) {
 	apmIntegration := newAPMIntegration(t, map[string]interface{}{"enable_rum": true})
 
 	systemtest.SendRUMEventsPayload(t, apmIntegration.URL, "../testdata/intake-v2/errors_rum.ndjson")
-	result := systemtest.Elasticsearch.ExpectDocs(t, "logs-apm.error-*", nil)
+	result := systemtest.Elasticsearch.ExpectSourcemapError(t, "logs-apm.error-*", nil, true)
 	systemtest.ApproveEvents(
 		t, t.Name(), result.Hits.Hits,
 		// RUM timestamps are set by the server based on the time the payload is received.

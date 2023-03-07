@@ -215,7 +215,7 @@ func TestRUMRoutingIntegration(t *testing.T) {
 	require.NoError(t, err)
 	defer resp.Body.Close()
 
-	result := systemtest.Elasticsearch.ExpectDocs(t, "traces-apm.rum*", nil)
+	result := systemtest.Elasticsearch.ExpectSourcemapError(t, "traces-apm.rum*", nil, false)
 	systemtest.ApproveEvents(
 		t, t.Name(), result.Hits.Hits, "@timestamp", "timestamp.us",
 		"source.port", "source.ip", "client",

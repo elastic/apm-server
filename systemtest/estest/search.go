@@ -18,13 +18,17 @@
 package estest
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/elastic/go-elasticsearch/v8/esapi"
 	"github.com/elastic/go-elasticsearch/v8/esutil"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // ExpectDocs searches index with query, returning the results.
@@ -73,6 +77,76 @@ func (es *Client) ExpectMinDocs(t testing.TB, min int, index string, query inter
 		t.Fatal(err)
 	}
 	return result
+}
+
+func (es *Client) ExpectSourcemapError(t testing.TB, index string, query interface{}, updated bool) SearchResult {
+	t.Helper()
+
+	deadline := time.After(5 * time.Second)
+	timer := time.NewTimer(100 * time.Millisecond)
+	defer timer.Stop()
+
+	for {
+		select {
+		case <-deadline:
+			t.Fatal("timed out while querying es")
+		case <-timer.C:
+			result := es.ExpectDocs(t, index, query)
+
+			if isFetcherAvailable(t, result) {
+				assertSourcemapUpdated(t, result, updated)
+				return result
+			}
+		}
+	}
+}
+
+func isFetcherAvailable(t testing.TB, result SearchResult) bool {
+	t.Helper()
+
+	for _, sh := range result.Hits.Hits {
+		if bytes.Contains(sh.RawSource, []byte("metadata fetcher is not ready: fetcher unavailable")) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func assertSourcemapUpdated(t testing.TB, result SearchResult, updated bool) {
+	t.Helper()
+
+	type StacktraceFrame struct {
+		Sourcemap struct {
+			Updated bool
+		}
+	}
+	type Error struct {
+		Exception []struct {
+			Stacktrace []StacktraceFrame
+		}
+		Log struct {
+			Stacktrace []StacktraceFrame
+		}
+	}
+
+	for _, hit := range result.Hits.Hits {
+		var source struct {
+			Error Error
+		}
+		err := hit.UnmarshalSource(&source)
+		require.NoError(t, err)
+
+		for _, exception := range source.Error.Exception {
+			for _, stacktrace := range exception.Stacktrace {
+				assert.Equal(t, updated, stacktrace.Sourcemap.Updated)
+			}
+		}
+
+		for _, stacktrace := range source.Error.Log.Stacktrace {
+			assert.Equal(t, updated, stacktrace.Sourcemap.Updated)
+		}
+	}
 }
 
 func (es *Client) Search(index string) *SearchRequest {
