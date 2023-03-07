@@ -417,7 +417,9 @@ func (c *ElasticAgentContainer) copyLogs(stdout, stderr io.Writer) error {
 
 // Close terminates and removes the container.
 func (c *ElasticAgentContainer) Close() error {
-	defer close(c.reapCloseCh)
+	if c.reapCloseCh != nil {
+		defer close(c.reapCloseCh)
+	}
 	if c.container == nil {
 		return nil
 	}
