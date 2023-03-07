@@ -203,19 +203,20 @@ func TestRUMRoutingIntegration(t *testing.T) {
 	err := srv.Start()
 	require.NoError(t, err)
 
-	body, err := os.Open(filepath.Join("..", "testdata", "intake-v3", "rum_events.ndjson"))
+	body, err := os.ReadFile(filepath.Join("..", "testdata", "intake-v3", "rum_events.ndjson"))
 	require.NoError(t, err)
-	defer body.Close()
 
-	req, err := http.NewRequest("POST", srv.URL+"/intake/v3/rum/events", body)
-	require.NoError(t, err)
-	req.Header.Add("Content-Type", "application/x-ndjson")
+	retry := func() {
+		req, err := http.NewRequest("POST", srv.URL+"/intake/v3/rum/events", bytes.NewReader(body))
+		require.NoError(t, err)
+		req.Header.Add("Content-Type", "application/x-ndjson")
 
-	resp, err := http.DefaultClient.Do(req)
-	require.NoError(t, err)
-	defer resp.Body.Close()
+		resp, err := http.DefaultClient.Do(req)
+		require.NoError(t, err)
+		defer resp.Body.Close()
+	}
 
-	result := systemtest.Elasticsearch.ExpectSourcemapError(t, "traces-apm.rum*", nil, false)
+	result := systemtest.Elasticsearch.ExpectSourcemapError(t, "traces-apm.rum*", retry, nil, false)
 	systemtest.ApproveEvents(
 		t, t.Name(), result.Hits.Hits, "@timestamp", "timestamp.us",
 		"source.port", "source.ip", "client",

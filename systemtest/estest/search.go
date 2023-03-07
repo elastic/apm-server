@@ -21,6 +21,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"net/http"
 	"strings"
 	"testing"
 	"time"
@@ -80,7 +81,7 @@ func (es *Client) ExpectMinDocs(t testing.TB, min int, index string, query inter
 	return result
 }
 
-func (es *Client) ExpectSourcemapError(t testing.TB, index string, query interface{}, updated bool) SearchResult {
+func (es *Client) ExpectSourcemapError(t testing.TB, index string, retry func(), query interface{}, updated bool) SearchResult {
 	t.Helper()
 
 	deadline := time.After(5 * time.Second)
@@ -92,6 +93,16 @@ func (es *Client) ExpectSourcemapError(t testing.TB, index string, query interfa
 		case <-deadline:
 			t.Fatal("timed out while querying es")
 		case <-ticker.C:
+			rsp, err := es.Do(context.Background(), &esapi.IndicesDeleteDataStreamRequest{
+				Name:            []string{index},
+				ExpandWildcards: "all",
+			}, nil)
+			require.NoError(t, err)
+			require.NoError(t, rsp.Body.Close())
+			require.Equal(t, http.StatusOK, rsp.StatusCode)
+
+			retry()
+
 			result := es.ExpectDocs(t, index, query)
 
 			if isFetcherAvailable(t, result) {
