@@ -93,6 +93,7 @@ func waitContainerHealthy(ctx context.Context, serviceName string) error {
 		return err
 	}
 	defer docker.Close()
+	docker.NegotiateAPIVersion(ctx)
 
 	container, err := stackContainerInfo(ctx, docker, serviceName)
 	if err != nil {
@@ -174,6 +175,7 @@ func NewUnstartedElasticAgentContainer(opts ContainerConfig) (*ElasticAgentConta
 		return nil, err
 	}
 	defer docker.Close()
+	docker.NegotiateAPIVersion(context.Background())
 
 	var networks []string
 	if opts.BaseImageVersion == "" {
@@ -357,6 +359,7 @@ func (c *ElasticAgentContainer) copyLogs(stdout, stderr io.Writer) error {
 		return err
 	}
 	defer docker.Close()
+	docker.NegotiateAPIVersion(ctx)
 
 	options := types.ContainerLogsOptions{
 		ShowStdout: stdout != nil,
@@ -409,6 +412,7 @@ func (c *ElasticAgentContainer) Exec(ctx context.Context, cmd ...string) (stdout
 		return nil, nil, err
 	}
 	defer docker.Close()
+	docker.NegotiateAPIVersion(ctx)
 
 	response, err := docker.ContainerExecCreate(ctx, c.container.GetContainerID(), types.ExecConfig{
 		AttachStderr: true,
