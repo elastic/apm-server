@@ -45,6 +45,7 @@ sources:
 
 conditions:
   is:
+    name: Is version 'github.com/elastic/beats@{{ source "beats" }}' not updated in 'go.mod'?
     kind: file
     disablesourceinput: true
     scmid: default
