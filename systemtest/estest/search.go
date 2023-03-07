@@ -83,15 +83,15 @@ func (es *Client) ExpectMinDocs(t testing.TB, min int, index string, query inter
 func (es *Client) ExpectSourcemapError(t testing.TB, index string, query interface{}, updated bool) SearchResult {
 	t.Helper()
 
-	deadline := time.After(10 * time.Second)
-	timer := time.NewTimer(100 * time.Millisecond)
-	defer timer.Stop()
+	deadline := time.After(5 * time.Second)
+	ticker := time.NewTicker(100 * time.Millisecond)
+	defer ticker.Stop()
 
 	for {
 		select {
 		case <-deadline:
 			t.Fatal("timed out while querying es")
-		case <-timer.C:
+		case <-ticker.C:
 			result := es.ExpectDocs(t, index, query)
 
 			if isFetcherAvailable(t, result) {
