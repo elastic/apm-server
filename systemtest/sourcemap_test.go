@@ -196,6 +196,7 @@ func TestSourcemapFetcher(t *testing.T) {
 			srv.Config.RUM = &apmservertest.RUMConfig{
 				Enabled: true,
 				Sourcemap: &apmservertest.RUMSourcemapConfig{
+					Enabled:  true,
 					ESConfig: tc.rumESConfig,
 				},
 			}
