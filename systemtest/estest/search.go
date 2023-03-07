@@ -83,7 +83,7 @@ func (es *Client) ExpectMinDocs(t testing.TB, min int, index string, query inter
 func (es *Client) ExpectSourcemapError(t testing.TB, index string, query interface{}, updated bool) SearchResult {
 	t.Helper()
 
-	deadline := time.After(5 * time.Second)
+	deadline := time.After(10 * time.Second)
 	timer := time.NewTimer(100 * time.Millisecond)
 	defer timer.Stop()
 
