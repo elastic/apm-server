@@ -39,7 +39,6 @@ import (
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/docker/go-connections/nat"
-	"github.com/gofrs/uuid"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
 	"golang.org/x/sync/errgroup"
@@ -52,9 +51,6 @@ const (
 )
 
 var (
-	containerReaper         *testcontainers.Reaper
-	initContainerReaperOnce sync.Once
-
 	systemtestDir string
 )
 
@@ -64,37 +60,6 @@ func init() {
 		panic("could not locate systemtest directory")
 	}
 	systemtestDir = filepath.Dir(filename)
-}
-
-// InitContainerReaper initialises the testcontainers container reaper,
-// which will ensure all containers started by testcontainers are removed
-// after some time if they are left running when the systemtest process
-// exits.
-func initContainerReaper() chan bool {
-	dockerProvider, err := testcontainers.NewDockerProvider()
-	if err != nil {
-		panic(err)
-	}
-
-	sessionUUID := uuid.Must(uuid.NewV4())
-	containerReaper, err = testcontainers.NewReaper(
-		context.Background(),
-		sessionUUID.String(),
-		dockerProvider,
-		testcontainers.ReaperDefaultImage,
-	)
-	if err != nil {
-		panic(err)
-	}
-
-	var closeCh chan bool
-
-	// The connection will be closed on exit.
-	if closeCh, err = containerReaper.Connect(); err != nil {
-		panic(err)
-	}
-
-	return closeCh
 }
 
 // StartStackContainers starts Docker containers for Elasticsearch and Kibana.
@@ -252,7 +217,7 @@ func NewUnstartedElasticAgentContainer(opts ContainerConfig) (*ElasticAgentConta
 		Image:      agentImage,
 		AutoRemove: true,
 		Networks:   networks,
-		BindMounts: map[string]string{hostCACertPath: containerCACertPath},
+		Mounts:     testcontainers.Mounts(testcontainers.BindMount(hostCACertPath, testcontainers.ContainerMountTarget(containerCACertPath))),
 		Env: map[string]string{
 			"FLEET_URL": "https://fleet-server:8220",
 			"FLEET_CA":  containerCACertPath,
@@ -269,11 +234,10 @@ func NewUnstartedElasticAgentContainer(opts ContainerConfig) (*ElasticAgentConta
 
 // ElasticAgentContainer represents an ephemeral Elastic Agent container.
 type ElasticAgentContainer struct {
-	vcsRef      string
-	container   testcontainers.Container
-	request     testcontainers.ContainerRequest
-	exited      chan struct{}
-	reapCloseCh chan bool
+	vcsRef    string
+	container testcontainers.Container
+	request   testcontainers.ContainerRequest
+	exited    chan struct{}
 
 	// Reap entrols whether the container will be automatically reaped if
 	// the controlling process exits. This is true by default, and may be
@@ -322,13 +286,7 @@ func (c *ElasticAgentContainer) Start() error {
 	}
 	c.request.ExposedPorts = c.ExposedPorts
 	c.request.WaitingFor = c.WaitingFor
-	if c.Reap {
-		c.reapCloseCh = initContainerReaper()
-		c.request.Labels = make(map[string]string)
-		for k, v := range containerReaper.Labels() {
-			c.request.Labels[k] = v
-		}
-	}
+	c.request.SkipReaper = !c.Reap
 
 	container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
 		ContainerRequest: c.request,
@@ -417,9 +375,6 @@ func (c *ElasticAgentContainer) copyLogs(stdout, stderr io.Writer) error {
 
 // Close terminates and removes the container.
 func (c *ElasticAgentContainer) Close() error {
-	if c.reapCloseCh != nil {
-		defer close(c.reapCloseCh)
-	}
 	if c.container == nil {
 		return nil
 	}
