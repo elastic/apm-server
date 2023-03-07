@@ -1,15 +1,23 @@
 ---
 name: Bump golang-version to latest version
+pipelineid: 'updatecli-bump-golang'
 
 actions:
   default:
     title: '[updatecli] Bump Golang version to {{ source "latestGoVersion" }}'
     kind: github/pullrequest
+    scmid: default
     spec:
       labels:
+        - automation
         - backport-skip
         - dependencies
-    scmid: default
+      description: |-
+        ### What
+        Bump go release version with the latest release.
+
+        ### Further details
+        See [changelog](https://github.com/golang/go/issues?q=milestone%3AGo{{ source "latestGoVersion" }}+label%3ACherryPickApproved) for {{ source "latestGoVersion" }}
 
 scms:
   default:
