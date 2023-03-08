@@ -39,7 +39,6 @@ import (
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/docker/go-connections/nat"
-	"github.com/gofrs/uuid"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
 	"golang.org/x/sync/errgroup"
@@ -52,9 +51,6 @@ const (
 )
 
 var (
-	containerReaper         *testcontainers.Reaper
-	initContainerReaperOnce sync.Once
-
 	systemtestDir string
 )
 
@@ -64,33 +60,6 @@ func init() {
 		panic("could not locate systemtest directory")
 	}
 	systemtestDir = filepath.Dir(filename)
-}
-
-// InitContainerReaper initialises the testcontainers container reaper,
-// which will ensure all containers started by testcontainers are removed
-// after some time if they are left running when the systemtest process
-// exits.
-func initContainerReaper() {
-	dockerProvider, err := testcontainers.NewDockerProvider()
-	if err != nil {
-		panic(err)
-	}
-
-	sessionUUID := uuid.Must(uuid.NewV4())
-	containerReaper, err = testcontainers.NewReaper(
-		context.Background(),
-		sessionUUID.String(),
-		dockerProvider,
-		testcontainers.ReaperDefaultImage,
-	)
-	if err != nil {
-		panic(err)
-	}
-
-	// The connection will be closed on exit.
-	if _, err = containerReaper.Connect(); err != nil {
-		panic(err)
-	}
 }
 
 // StartStackContainers starts Docker containers for Elasticsearch and Kibana.
@@ -124,6 +93,7 @@ func waitContainerHealthy(ctx context.Context, serviceName string) error {
 		return err
 	}
 	defer docker.Close()
+	docker.NegotiateAPIVersion(ctx)
 
 	container, err := stackContainerInfo(ctx, docker, serviceName)
 	if err != nil {
@@ -205,6 +175,7 @@ func NewUnstartedElasticAgentContainer(opts ContainerConfig) (*ElasticAgentConta
 		return nil, err
 	}
 	defer docker.Close()
+	docker.NegotiateAPIVersion(context.Background())
 
 	var networks []string
 	if opts.BaseImageVersion == "" {
@@ -248,7 +219,7 @@ func NewUnstartedElasticAgentContainer(opts ContainerConfig) (*ElasticAgentConta
 		Image:      agentImage,
 		AutoRemove: true,
 		Networks:   networks,
-		BindMounts: map[string]string{hostCACertPath: containerCACertPath},
+		Mounts:     testcontainers.Mounts(testcontainers.BindMount(hostCACertPath, testcontainers.ContainerMountTarget(containerCACertPath))),
 		Env: map[string]string{
 			"FLEET_URL": "https://fleet-server:8220",
 			"FLEET_CA":  containerCACertPath,
@@ -317,13 +288,7 @@ func (c *ElasticAgentContainer) Start() error {
 	}
 	c.request.ExposedPorts = c.ExposedPorts
 	c.request.WaitingFor = c.WaitingFor
-	if c.Reap {
-		initContainerReaperOnce.Do(initContainerReaper)
-		c.request.Labels = make(map[string]string)
-		for k, v := range containerReaper.Labels() {
-			c.request.Labels[k] = v
-		}
-	}
+	c.request.SkipReaper = !c.Reap
 
 	container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
 		ContainerRequest: c.request,
@@ -394,6 +359,7 @@ func (c *ElasticAgentContainer) copyLogs(stdout, stderr io.Writer) error {
 		return err
 	}
 	defer docker.Close()
+	docker.NegotiateAPIVersion(ctx)
 
 	options := types.ContainerLogsOptions{
 		ShowStdout: stdout != nil,
@@ -446,6 +412,7 @@ func (c *ElasticAgentContainer) Exec(ctx context.Context, cmd ...string) (stdout
 		return nil, nil, err
 	}
 	defer docker.Close()
+	docker.NegotiateAPIVersion(ctx)
 
 	response, err := docker.ContainerExecCreate(ctx, c.container.GetContainerID(), types.ExecConfig{
 		AttachStderr: true,
