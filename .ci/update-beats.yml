@@ -30,6 +30,22 @@ sources:
     spec:
       file: 'https://api.github.com/repos/elastic/beats/commits?sha={{ requiredEnv "BRANCH_NAME" }}&per_page=1'
       key: '.[0].sha'
+    transformers:
+      # substring 12 chars so it works for the condition
+      - findsubmatch:
+          pattern: ^(.{12}).*
+          captureindex: 1
+
+conditions:
+  is:
+    name: Is version 'github.com/elastic/beats@{{ source "beats" }}' not updated in 'go.mod'?
+    kind: file
+    disablesourceinput: true
+    scmid: default
+    spec:
+      file: go.mod
+      matchpattern: 'github\.com/elastic/beats.*-{{ source "beats" }}'
+    failwhen: true
 
 
 conditions:
