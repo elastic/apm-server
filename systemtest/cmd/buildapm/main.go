@@ -83,6 +83,7 @@ func Main() error {
 		return err
 	}
 	defer docker.Close()
+	docker.NegotiateAPIVersion(context.Background())
 
 	if outputName == "" {
 		outputName = fmt.Sprintf("elastic-agent-systemtest:%s", baseImageVersion)
