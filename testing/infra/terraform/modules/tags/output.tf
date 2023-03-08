@@ -1,7 +1,7 @@
 locals {
   tags = {
     "division" : "engineering"
-    "org" : "observability"
+    "org" : "obs"
     "team" : "apm-server"
     "project" : var.project
   }
