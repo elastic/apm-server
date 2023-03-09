@@ -202,7 +202,7 @@
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
-            "data_stream.dataset": "apm.app",
+            "data_stream.dataset": "apm.app.redis",
             "data_stream.namespace": "default",
             "data_stream.type": "logs",
             "event": {

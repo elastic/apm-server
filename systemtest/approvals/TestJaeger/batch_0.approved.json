@@ -208,7 +208,7 @@
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
-            "data_stream.dataset": "apm.app",
+            "data_stream.dataset": "apm.app.driver",
             "data_stream.namespace": "default",
             "data_stream.type": "logs",
             "event": {
@@ -258,7 +258,7 @@
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
-            "data_stream.dataset": "apm.app",
+            "data_stream.dataset": "apm.app.driver",
             "data_stream.namespace": "default",
             "data_stream.type": "logs",
             "event": {
@@ -306,7 +306,7 @@
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
-            "data_stream.dataset": "apm.app",
+            "data_stream.dataset": "apm.app.driver",
             "data_stream.namespace": "default",
             "data_stream.type": "logs",
             "event": {

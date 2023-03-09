@@ -346,6 +346,8 @@ github.com/eapache/queue v1.1.0/go.mod h1:6eCeP0CKFpHLu8blIFXhExK/dRa7WDZfr6jVFP
 github.com/eclipse/paho.mqtt.golang v1.3.5 h1:sWtmgNxYM9P2sP+xEItMozsR3w0cqZFlqnNN1bdl41Y=
 github.com/elastic/apm-data v0.1.1-0.20230223083125-b7f31c1a6768 h1:NdAseK5+GCJ6GjORNrg36ALFDwUPUJAUHgRXZWtyMRg=
 github.com/elastic/apm-data v0.1.1-0.20230223083125-b7f31c1a6768/go.mod h1:8oEk/myQSw+GHqxPD3e8Oz2qPMawcOH+t9HYZ51p+rE=
+github.com/elastic/apm-data v0.1.1-0.20230306102740-534660e4a151 h1:oD1mWvRXMXMizTpikVgKXj5VIn6/GXm8QZGyC3oKWL4=
+github.com/elastic/apm-data v0.1.1-0.20230306102740-534660e4a151/go.mod h1:8oEk/myQSw+GHqxPD3e8Oz2qPMawcOH+t9HYZ51p+rE=
 github.com/elastic/bayeux v1.0.5 h1:UceFq01ipmT3S8DzFK+uVAkbCdiPR0Bqei8qIGmUeY0=
 github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230308093856-88b1cacdb103 h1:B/31FLQzrRg8bWqUfs+CplgkB/UacXfTrl/e9HQy1Zg=
 github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230308093856-88b1cacdb103/go.mod h1:5B9LEX2eUXlvjtyouE4x58EEOIcGH1mu+HH/5daM67Y=

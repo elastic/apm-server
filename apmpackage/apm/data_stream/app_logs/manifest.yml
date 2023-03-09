@@ -1,6 +1,7 @@
 title: APM application logs
 type: logs
 dataset: apm.app
+dataset_is_prefix: true
 ilm_policy: logs-apm.app_logs-default_policy
 elasticsearch:
   index_template:
