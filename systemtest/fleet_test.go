@@ -153,31 +153,6 @@ func TestFleetIntegrationAnonymousAuth(t *testing.T) {
 	test("denied_service", "allowed_agent", http.StatusForbidden)
 }
 
-<<<<<<< HEAD
-=======
-func TestFleetIntegrationSourcemap(t *testing.T) {
-	systemtest.CleanupElasticsearch(t)
-
-	sourcemap, err := os.ReadFile("../testdata/sourcemap/bundle.js.map")
-	require.NoError(t, err)
-	systemtest.CreateSourceMap(t, sourcemap, "apm-agent-js", "1.0.1", "http://localhost:8000/test/e2e/../e2e/general-usecase/bundle.js.map")
-
-	apmIntegration := newAPMIntegration(t, map[string]interface{}{"enable_rum": true})
-
-	retry := func() {
-		systemtest.SendRUMEventsPayload(t, apmIntegration.URL, "../testdata/intake-v2/errors_rum.ndjson")
-	}
-	result := systemtest.Elasticsearch.ExpectSourcemapError(t, "logs-apm.error-*", retry, nil, true)
-	systemtest.ApproveEvents(
-		t, t.Name(), result.Hits.Hits,
-		// RUM timestamps are set by the server based on the time the payload is received.
-		"@timestamp", "timestamp.us",
-		// RUM events have the source IP and port recorded, which are dynamic in the tests
-		"client.ip", "source.ip", "source.port",
-	)
-}
-
->>>>>>> 96bf4c82 (test: fix sourcemap flaky tests and related issues (#10435))
 func TestFleetPackageNonMultiple(t *testing.T) {
 	agentPolicy, _ := systemtest.CreateAgentPolicy(t, "apm_systemtest", "default", nil, nil)
 

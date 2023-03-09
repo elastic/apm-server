@@ -202,16 +202,10 @@ func TestRUMRoutingIntegration(t *testing.T) {
 	body, err := os.ReadFile(filepath.Join("..", "testdata", "intake-v3", "rum_events.ndjson"))
 	require.NoError(t, err)
 
-<<<<<<< HEAD
-	req, err := http.NewRequest("POST", apmIntegration.URL+"/intake/v3/rum/events", body)
-	require.NoError(t, err)
-	req.Header.Add("Content-Type", "application/x-ndjson")
-=======
 	retry := func() {
-		req, err := http.NewRequest("POST", srv.URL+"/intake/v3/rum/events", bytes.NewReader(body))
+		req, err := http.NewRequest("POST", apmIntegration.URL+"/intake/v3/rum/events", bytes.NewReader(body))
 		require.NoError(t, err)
 		req.Header.Add("Content-Type", "application/x-ndjson")
->>>>>>> 96bf4c82 (test: fix sourcemap flaky tests and related issues (#10435))
 
 		resp, err := http.DefaultClient.Do(req)
 		require.NoError(t, err)
