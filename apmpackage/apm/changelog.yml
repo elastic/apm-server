@@ -1,6 +1,6 @@
 - version: "generated"
   changes:
-    - description: Introduce apm logs data streams per service
+    - description: Store app logs into service-specific data streams
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/10456
 - version: "8.7.0"
