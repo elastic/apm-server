@@ -18,10 +18,16 @@
 package estest
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
+	"net/http"
 	"strings"
 	"testing"
+	"time"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/go-elasticsearch/v8/esapi"
 	"github.com/elastic/go-elasticsearch/v8/esutil"
@@ -73,6 +79,86 @@ func (es *Client) ExpectMinDocs(t testing.TB, min int, index string, query inter
 		t.Fatal(err)
 	}
 	return result
+}
+
+func (es *Client) ExpectSourcemapError(t testing.TB, index string, retry func(), query interface{}, updated bool) SearchResult {
+	t.Helper()
+
+	deadline := time.After(5 * time.Second)
+	ticker := time.NewTicker(100 * time.Millisecond)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-deadline:
+			t.Fatal("timed out while querying es")
+		case <-ticker.C:
+			rsp, err := es.Do(context.Background(), &esapi.IndicesDeleteDataStreamRequest{
+				Name:            []string{index},
+				ExpandWildcards: "all",
+			}, nil)
+			require.NoError(t, err)
+			require.NoError(t, rsp.Body.Close())
+			require.Equal(t, http.StatusOK, rsp.StatusCode)
+
+			retry()
+
+			result := es.ExpectDocs(t, index, query)
+
+			if isFetcherAvailable(t, result) {
+				assertSourcemapUpdated(t, result, updated)
+				return result
+			}
+		}
+	}
+}
+
+func isFetcherAvailable(t testing.TB, result SearchResult) bool {
+	t.Helper()
+
+	for _, sh := range result.Hits.Hits {
+		if bytes.Contains(sh.RawSource, []byte("metadata fetcher is not ready: fetcher unavailable")) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func assertSourcemapUpdated(t testing.TB, result SearchResult, updated bool) {
+	t.Helper()
+
+	type StacktraceFrame struct {
+		Sourcemap struct {
+			Updated bool
+		}
+	}
+	type Error struct {
+		Exception []struct {
+			Stacktrace []StacktraceFrame
+		}
+		Log struct {
+			Stacktrace []StacktraceFrame
+		}
+	}
+
+	for _, hit := range result.Hits.Hits {
+		var source struct {
+			Error Error
+		}
+		err := hit.UnmarshalSource(&source)
+		require.NoError(t, err)
+
+		for _, exception := range source.Error.Exception {
+			for _, stacktrace := range exception.Stacktrace {
+				assert.Equal(t, updated, stacktrace.Sourcemap.Updated)
+			}
+		}
+
+		for _, stacktrace := range source.Error.Log.Stacktrace {
+			assert.Equal(t, updated, stacktrace.Sourcemap.Updated)
+		}
+	}
 }
 
 func (es *Client) Search(index string) *SearchRequest {
