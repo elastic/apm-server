@@ -35,13 +35,13 @@ var events embed.FS
 
 // NewEventHandler creates a eventhandler which loads the files matching the
 // passed regex.
-func NewEventHandler(p, url, token string, l *rate.Limiter) (*eventhandler.Handler, error) {
+func NewEventHandler(p, url, token string, l *rate.Limiter, apiKey string) (*eventhandler.Handler, error) {
 	// We call the HTTPTransport constructor to avoid copying all the config
 	// parsing that creates the `*http.Client`.
 	t, err := transport.NewHTTPTransport(transport.HTTPTransportOptions{})
 	if err != nil {
 		return nil, err
 	}
-	transp := eventhandler.NewTransport(t.Client, url, token)
+	transp := eventhandler.NewTransport(t.Client, url, token, apiKey)
 	return eventhandler.New(filepath.Join("events", p), transp, events, l)
 }
