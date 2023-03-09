@@ -133,7 +133,7 @@ type FileLoggingConfig struct {
 
 // KibanaConfig holds APM Server Kibana connection configuration.
 type KibanaConfig struct {
-	Enabled  bool   `json:"enabled,omitempty"`
+	Enabled  bool   `json:"enabled"`
 	Host     string `json:"host,omitempty"`
 	Username string `json:"username,omitempty"`
 	Password string `json:"password,omitempty"`
@@ -210,7 +210,7 @@ type RUMConfig struct {
 
 // RUMSourcemapConfig holds APM Server RUM sourcemap configuration.
 type RUMSourcemapConfig struct {
-	Enabled  bool                       `json:"enabled,omitempty"`
+	Enabled  bool                       `json:"enabled"`
 	ESConfig *ElasticsearchOutputConfig `json:"elasticsearch"`
 }
 
