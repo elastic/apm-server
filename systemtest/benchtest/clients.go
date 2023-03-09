@@ -108,5 +108,5 @@ func NewEventHandler(tb testing.TB, p string, l *rate.Limiter) *eventhandler.Han
 }
 
 func newEventHandler(p, url, token string, l *rate.Limiter) (*eventhandler.Handler, error) {
-	return loadgen.NewEventHandler(p, url, token, l)
+	return loadgen.NewEventHandler(p, url, token, "", l)
 }

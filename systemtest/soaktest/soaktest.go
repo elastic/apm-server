@@ -48,8 +48,8 @@ func runAgent(ctx context.Context, expr string, limiter *rate.Limiter) error {
 		expr,
 		loadgencfg.Config.ServerURL.String(),
 		loadgencfg.Config.SecretToken,
-		limiter,
 		loadgencfg.Config.APIKey,
+		limiter,
 	)
 	if err != nil {
 		return err
