@@ -275,6 +275,10 @@ apm-server:
     # Configure curve types for ECDHE based cipher suites.
     #ssl.curve_types: []
 
+# Sets the maximum number of CPUs that can be executing simultaneously. The
+# default is the number of logical CPUs available in the system.
+#max_procs:
+
 #============================= Elastic Cloud =============================
 
 # These settings simplify using APM Server with the Elastic Cloud (https://cloud.elastic.co/).
