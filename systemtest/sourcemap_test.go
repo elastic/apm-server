@@ -21,7 +21,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/apm-server/systemtest"
@@ -40,8 +39,10 @@ func TestRUMErrorSourcemapping(t *testing.T) {
 		apmIntegration := newAPMIntegration(t, map[string]interface{}{"enable_rum": true})
 
 		test := func(t *testing.T, serverURL string) {
-			systemtest.SendRUMEventsPayload(t, serverURL, "../testdata/intake-v2/errors_rum.ndjson")
-			result := systemtest.Elasticsearch.ExpectDocs(t, "logs-apm.error-*", nil)
+			retry := func() {
+				systemtest.SendRUMEventsPayload(t, serverURL, "../testdata/intake-v2/errors_rum.ndjson")
+			}
+			result := systemtest.Elasticsearch.ExpectSourcemapError(t, "logs-apm.error-*", retry, nil, true)
 			systemtest.ApproveEvents(
 				t, t.Name(), result.Hits.Hits,
 				// RUM timestamps are set by the server based on the time the payload is received.
@@ -87,11 +88,13 @@ func TestRUMSpanSourcemapping(t *testing.T) {
 	err = srv.Start()
 	require.NoError(t, err)
 
-	systemtest.SendRUMEventsPayload(t, srv.URL, "../testdata/intake-v2/transactions_spans_rum_2.ndjson")
-	result := systemtest.Elasticsearch.ExpectDocs(t, "traces-apm*", estest.TermQuery{
+	retry := func() {
+		systemtest.SendRUMEventsPayload(t, srv.URL, "../testdata/intake-v2/transactions_spans_rum_2.ndjson")
+	}
+	result := systemtest.Elasticsearch.ExpectSourcemapError(t, "traces-apm*", retry, estest.TermQuery{
 		Field: "processor.event",
 		Value: "span",
-	})
+	}, true)
 
 	systemtest.ApproveEvents(
 		t, t.Name(), result.Hits.Hits,
@@ -118,11 +121,13 @@ func TestNoMatchingSourcemap(t *testing.T) {
 	err = srv.Start()
 	require.NoError(t, err)
 
-	systemtest.SendRUMEventsPayload(t, srv.URL, "../testdata/intake-v2/transactions_spans_rum_2.ndjson")
-	result := systemtest.Elasticsearch.ExpectDocs(t, "traces-apm*", estest.TermQuery{
+	retry := func() {
+		systemtest.SendRUMEventsPayload(t, srv.URL, "../testdata/intake-v2/transactions_spans_rum_2.ndjson")
+	}
+	result := systemtest.Elasticsearch.ExpectSourcemapError(t, "traces-apm*", retry, estest.TermQuery{
 		Field: "processor.event",
 		Value: "span",
-	})
+	}, false)
 
 	systemtest.ApproveEvents(
 		t, t.Name(), result.Hits.Hits,
@@ -149,16 +154,15 @@ func TestSourcemapCaching(t *testing.T) {
 	require.NoError(t, err)
 
 	// Index an error, applying source mapping and caching the source map in the process.
-	systemtest.SendRUMEventsPayload(t, srv.URL, "../testdata/intake-v2/errors_rum.ndjson")
-	result := systemtest.Elasticsearch.ExpectDocs(t, "logs-apm.error-*", nil)
-	assertSourcemapUpdated(t, result, true)
+	retry := func() {
+		systemtest.SendRUMEventsPayload(t, srv.URL, "../testdata/intake-v2/errors_rum.ndjson")
+	}
+	systemtest.Elasticsearch.ExpectSourcemapError(t, "logs-apm.error-*", retry, nil, true)
 
 	// Delete the source map and error, and try again.
 	systemtest.DeleteSourceMap(t, sourcemapID)
 	systemtest.CleanupElasticsearch(t)
-	systemtest.SendRUMEventsPayload(t, srv.URL, "../testdata/intake-v2/errors_rum.ndjson")
-	result = systemtest.Elasticsearch.ExpectMinDocs(t, 1, "logs-apm.error-*", nil)
-	assertSourcemapUpdated(t, result, true)
+	systemtest.Elasticsearch.ExpectSourcemapError(t, "logs-apm.error-*", retry, nil, true)
 }
 
 func TestSourcemapFetcher(t *testing.T) {
@@ -201,6 +205,7 @@ func TestSourcemapFetcher(t *testing.T) {
 			srv.Config.RUM = &apmservertest.RUMConfig{
 				Enabled: true,
 				Sourcemap: &apmservertest.RUMSourcemapConfig{
+					Enabled:  true,
 					ESConfig: tc.rumESConfig,
 				},
 			}
@@ -208,9 +213,10 @@ func TestSourcemapFetcher(t *testing.T) {
 			require.NoError(t, err)
 
 			// Index an error, applying source mapping and caching the source map in the process.
-			systemtest.SendRUMEventsPayload(t, srv.URL, "../testdata/intake-v2/errors_rum.ndjson")
-			result := systemtest.Elasticsearch.ExpectDocs(t, "logs-apm.error-*", nil)
-			assertSourcemapUpdated(t, result, true)
+			retry := func() {
+				systemtest.SendRUMEventsPayload(t, srv.URL, "../testdata/intake-v2/errors_rum.ndjson")
+			}
+			systemtest.Elasticsearch.ExpectSourcemapError(t, "logs-apm.error-*", retry, nil, true)
 		})
 	}
 }
@@ -222,40 +228,4 @@ func deleteIndex(t *testing.T, name string) {
 	resp, err = systemtest.Elasticsearch.Indices.Flush()
 	require.NoError(t, err)
 	resp.Body.Close()
-}
-
-func assertSourcemapUpdated(t *testing.T, result estest.SearchResult, updated bool) {
-	t.Helper()
-
-	type StacktraceFrame struct {
-		Sourcemap struct {
-			Updated bool
-		}
-	}
-	type Error struct {
-		Exception []struct {
-			Stacktrace []StacktraceFrame
-		}
-		Log struct {
-			Stacktrace []StacktraceFrame
-		}
-	}
-
-	for _, hit := range result.Hits.Hits {
-		var source struct {
-			Error Error
-		}
-		err := hit.UnmarshalSource(&source)
-		require.NoError(t, err)
-
-		for _, exception := range source.Error.Exception {
-			for _, stacktrace := range exception.Stacktrace {
-				assert.Equal(t, updated, stacktrace.Sourcemap.Updated)
-			}
-		}
-
-		for _, stacktrace := range source.Error.Log.Stacktrace {
-			assert.Equal(t, updated, stacktrace.Sourcemap.Updated)
-		}
-	}
 }
