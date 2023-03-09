@@ -1,8 +1,8 @@
 - version: "generated"
   changes:
-    - description: Placeholder
+    - description: Store app logs into service-specific data streams
       type: enhancement
-      link: https://github.com/elastic/apm-server/pull/123
+      link: https://github.com/elastic/apm-server/pull/10456
 - version: "8.7.0"
   changes:
     - description: Introduce `metrics-apm.service-${interval}` data stream for service metrics (`1m`, `10m` and `60m`).

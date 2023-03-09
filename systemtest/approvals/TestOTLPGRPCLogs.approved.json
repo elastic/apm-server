@@ -6,7 +6,7 @@
                 "name": "otlp/go",
                 "version": "unknown"
             },
-            "data_stream.dataset": "apm.app",
+            "data_stream.dataset": "apm.app.unknown",
             "data_stream.namespace": "default",
             "data_stream.type": "logs",
             "event": {
