@@ -219,7 +219,7 @@ update-beats: update-beats-module update
 
 .PHONY: update-beats-module
 update-beats-module:
-	$(GO) get -d -u $(BEATS_MODULE)@$(BEATS_VERSION) && $(GO) mod tidy
+	$(GO) get -d $(BEATS_MODULE)@$(BEATS_VERSION) && $(GO) mod tidy
 
 .PHONY: update-beats-docs
 update-beats-docs:
