@@ -32,6 +32,7 @@ This module sets up worker with load generation binary for soaktest configured a
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
+| <a name="input_apm_api_key"></a> [apm\_api\_key](#input\_apm\_api\_key) | API Key for auth against the given server URL | `string` | n/a | yes |
 | <a name="input_apm_loadgen_agents_replicas"></a> [apm\_loadgen\_agents\_replicas](#input\_apm\_loadgen\_agents\_replicas) | Number of agents replicas to use, each replica launches 4 agents, one for each type | `string` | n/a | yes |
 | <a name="input_apm_loadgen_max_rate"></a> [apm\_loadgen\_max\_rate](#input\_apm\_loadgen\_max\_rate) | Max load generation rate | `string` | n/a | yes |
 | <a name="input_apm_secret_token"></a> [apm\_secret\_token](#input\_apm\_secret\_token) | Secret token for auth against the given server URL | `string` | n/a | yes |

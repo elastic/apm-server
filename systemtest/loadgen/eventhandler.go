@@ -33,15 +33,23 @@ import (
 //go:embed events/*.ndjson
 var events embed.FS
 
+type EventHandlerParams struct {
+	Path    string
+	URL     string
+	Token   string
+	APIKey  string
+	Limiter *rate.Limiter
+}
+
 // NewEventHandler creates a eventhandler which loads the files matching the
 // passed regex.
-func NewEventHandler(p, url, token string, l *rate.Limiter) (*eventhandler.Handler, error) {
+func NewEventHandler(p EventHandlerParams) (*eventhandler.Handler, error) {
 	// We call the HTTPTransport constructor to avoid copying all the config
 	// parsing that creates the `*http.Client`.
 	t, err := transport.NewHTTPTransport(transport.HTTPTransportOptions{})
 	if err != nil {
 		return nil, err
 	}
-	transp := eventhandler.NewTransport(t.Client, url, token)
-	return eventhandler.New(filepath.Join("events", p), transp, events, l)
+	transp := eventhandler.NewTransport(t.Client, p.URL, p.Token, p.APIKey)
+	return eventhandler.New(filepath.Join("events", p.Path), transp, events, p.Limiter)
 }

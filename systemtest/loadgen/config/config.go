@@ -29,6 +29,7 @@ import (
 var Config struct {
 	ServerURL   *url.URL
 	SecretToken string
+	APIKey      string
 	Secure      bool
 	MaxEPM      int
 }
@@ -45,6 +46,7 @@ func init() {
 			return
 		})
 	flag.StringVar(&Config.SecretToken, "secret-token", "", "secret token for APM Server")
+	flag.StringVar(&Config.APIKey, "api-key", "", "API key for APM Server")
 	flag.BoolVar(&Config.Secure, "secure", false, "validate the remote server TLS certificates")
 	flag.Func(
 		"max-rate",
@@ -81,6 +83,7 @@ func setFlagsFromEnv() {
 	flagEnvMap := map[string][]string{
 		"server":       []string{"ELASTIC_APM_SERVER_URL", "http://127.0.0.1:8200"},
 		"secret-token": []string{"ELASTIC_APM_SECRET_TOKEN", ""},
+		"api-key":      []string{"ELASTIC_APM_API_KEY", ""},
 		"secure":       []string{"ELASTIC_APM_VERIFY_SERVER_CERT", "false"},
 	}
 

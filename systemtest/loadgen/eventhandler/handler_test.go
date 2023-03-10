@@ -80,7 +80,7 @@ func newHandler(t *testing.T, dir, expr string, l *rate.Limiter) (*Handler, *moc
 	ms := &mockServer{got: &bytes.Buffer{}}
 	srv := httptest.NewServer(ms)
 	ms.close = srv.Close
-	transp := NewTransport(srv.Client(), srv.URL, "")
+	transp := NewTransport(srv.Client(), srv.URL, "", "")
 	h, err := New(expr, transp, os.DirFS(dir), l)
 	require.NoError(t, err)
 	return h, ms

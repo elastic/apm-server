@@ -9,23 +9,23 @@ used to configure the module, please refer to the [EC Provider docs](https://reg
 
 | Name | Version |
 |------|---------|
-| <a name="requirement_ec"></a> [ec](#requirement\_ec) | >=0.5.0 |
+| <a name="requirement_ec"></a> [ec](#requirement\_ec) | 0.5.1 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
-| <a name="provider_ec"></a> [ec](#provider\_ec) | 0.5.0 |
-| <a name="provider_external"></a> [external](#provider\_external) | 2.2.3 |
-| <a name="provider_local"></a> [local](#provider\_local) | 2.2.3 |
-| <a name="provider_null"></a> [null](#provider\_null) | 3.2.1 |
+| <a name="provider_ec"></a> [ec](#provider\_ec) | 0.5.1 |
+| <a name="provider_external"></a> [external](#provider\_external) | n/a |
+| <a name="provider_local"></a> [local](#provider\_local) | n/a |
+| <a name="provider_null"></a> [null](#provider\_null) | n/a |
 
 ## Resources
 
 | Name | Type |
 |------|------|
-| [ec_deployment.dedicated_observability_deployment](https://registry.terraform.io/providers/elastic/ec/latest/docs/resources/deployment) | resource |
-| [ec_deployment.deployment](https://registry.terraform.io/providers/elastic/ec/latest/docs/resources/deployment) | resource |
+| [ec_deployment.dedicated_observability_deployment](https://registry.terraform.io/providers/elastic/ec/0.5.1/docs/resources/deployment) | resource |
+| [ec_deployment.deployment](https://registry.terraform.io/providers/elastic/ec/0.5.1/docs/resources/deployment) | resource |
 | [local_file.custom_apm_integration_pkg](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
 | [local_file.drop_pipeline](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
 | [local_file.enable_expvar](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
@@ -36,7 +36,7 @@ used to configure the module, please refer to the [EC Provider docs](https://reg
 | [null_resource.enable_expvar](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
 | [null_resource.secret_token](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
 | [null_resource.shard_settings](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
-| [ec_stack.deployment_version](https://registry.terraform.io/providers/elastic/ec/latest/docs/data-sources/stack) | data source |
+| [ec_stack.deployment_version](https://registry.terraform.io/providers/elastic/ec/0.5.1/docs/data-sources/stack) | data source |
 | [external_external.secret_token](https://registry.terraform.io/providers/hashicorp/external/latest/docs/data-sources/external) | data source |
 
 ## Inputs

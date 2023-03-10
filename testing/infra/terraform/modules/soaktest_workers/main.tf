@@ -8,6 +8,7 @@ locals {
       terraform.workspace,
       var.apm_server_url,
       var.apm_secret_token,
+      var.apm_api_key,
       var.apm_loadgen_max_rate,
       var.apm_loadgen_agents_replicas,
       var.elastic_agent_version,
@@ -123,6 +124,7 @@ resource "google_compute_instance" "worker" {
         remote_usergroup            = "apmsoak",
         apm_server_url              = var.apm_server_url,
         apm_secret_token            = var.apm_secret_token,
+        apm_api_key                 = var.apm_api_key,
         apm_loadgen_max_rate        = var.apm_loadgen_max_rate,
         apm_loadgen_agents_replicas = var.apm_loadgen_agents_replicas,
       }
