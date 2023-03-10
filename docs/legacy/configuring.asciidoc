@@ -25,6 +25,8 @@ include::{libbeat-dir}/shared/configuring-intro.asciidoc[]
 
 include::./configuration-process.asciidoc[]
 
+include::./configuration-agent-config.asciidoc[]
+
 include::./configuration-anonymous.asciidoc[]
 
 include::{libbeat-dir}/shared-instrumentation.asciidoc[]

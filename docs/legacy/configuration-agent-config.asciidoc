@@ -1,0 +1,78 @@
+[[configure-agent-config]]
+== Configure APM agent configuration
+
+++++
+<titleabbrev>APM agent configuration</titleabbrev>
+++++
+
+IMPORTANT: {deprecation-notice-config}
+
+APM agent configuration allows you to fine-tune your APM agents from within the APM app.
+Changes are automatically propagated to your APM agents, so there's no need to redeploy your applications.
+
+To learn more about this feature, see {kibana-ref}/agent-configuration.html[APM agent configuration].
+
+Here's a sample configuration:
+
+[source,yaml]
+----
+apm-server.agent.config.cache.expiration: 45s
+apm-server.agent.config.elasticsearch.api_key: TiNAGG4BaaMdaH1tRfuU:KnR6yE41RrSowb0kQ0HWoA
+----
+
+[float]
+=== APM agent configuration options
+
+You can specify the following options in the `apm-server.agent.config` section of the
++{beatname_lc}.yml+ config file:
+
+[float]
+[[agent-config-cache]]
+==== `apm-server.agent.config.cache.expiration`
+
+When using APM agent configuration, information fetched from {es} will be cached in memory for some time.
+Specify the cache expiration time via this setting. Defaults to `30s` (30 seconds).
+
+[float]
+[[agnent-config-authentication]]
+=== Authentication credentials
+
+For APM Server legacy users,
+APM agent configuration is automatically fetched from {es} using the `output.elasticsearch`
+configuration. Use these authentication configuration variables to fine-tune permission access.
+
+When using a Fleet-managed APM Server or Elastic Agent standalone-managed APM Server,
+you must use these authentication credentials to provide access to {es}.
+
+[float]
+==== `apm-server.agent.config.elasticsearch.username`
+
+The basic authentication username for connecting to {es}.
+
+[float]
+==== `apm-server.agent.config.elasticsearch.password`
+
+The basic authentication password for connecting to {es}.
+
+[float]
+==== `apm-server.agent.config.elasticsearch.api_key`
+
+Authentication with an API key. Formatted as `id:api_key`
+
+[float]
+=== Common problems
+
+You may see the following HTTP 403 error from APM Server when it attempts to fetch APM agent configuration:
+
+[source,log]
+----
+"Your Elasticsearch configuration does not support agent config queries. Check your configurations at `output.elasticsearch` or `apm-server.agent.config.elasticsearch`."
+----
+
+This occurs because the user or API key set in either `apm-server.agent.config.elasticsearch` or `output.elasticsearch`
+(if `apm-server.agent.config.elasticsearch` is not set) does not have adequate permissions to read source maps from {es}.
+
+To fix this error, add the following index-level privileges to the API key:
+
+* `read` privileges on the `.apm-agent-configuration` index
+* `allow_restricted_indices: true`
