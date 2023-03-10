@@ -11,7 +11,7 @@ BENCHMARK_TIME ?= 2m
 BENCHMARK_RUN ?= Benchmark
 BENCHMARK_RESULT ?= benchmark-result.txt
 BENCHMARK_DETAILED ?= true
-BENCHMARK_MAX_RATE ?= 0epm
+BENCHMARK_EVENT_RATE ?= 0/s
 
 GOBENCH_INDEX ?= apmbench-v2
 GOBENCH_USERNAME ?= admin
@@ -78,7 +78,7 @@ log-benckmark-profile:
 	@echo "Running benchmarks..."
 	@echo "Benchmark warmup time: $(BENCHMARK_WARMUP_TIME)"
 	@echo "Benchmark agents: $(BENCHMARK_AGENTS)"
-	@echo "Benchmark max rate: $(BENCHMARK_MAX_RATE)"
+	@echo "Benchmark event rate: $(BENCHMARK_EVENT_RATE)"
 	@echo "Benchmark count: $(BENCHMARK_COUNT)"
 	@echo "Benchmark duration: $(BENCHMARK_TIME)"
 	@echo "Benchmark run expression : $(BENCHMARK_RUN)"
@@ -87,7 +87,7 @@ log-benckmark-profile:
 run-benchmark: log-benckmark-profile
 	@ssh $(SSH_OPTS) -i $(SSH_KEY) $(SSH_USER)@$(WORKER_IP) ". .envrc && bin/apmbench -run='$(BENCHMARK_RUN)' \
 	-benchtime=$(BENCHMARK_TIME) -count=$(BENCHMARK_COUNT) -warmup-time=$(BENCHMARK_WARMUP_TIME) \
-	-agents=$(BENCHMARK_AGENTS) -detailed=$(BENCHMARK_DETAILED) -max-rate=$(BENCHMARK_MAX_RATE)" 2>&1 | tee $(BENCHMARK_RESULT)
+	-agents=$(BENCHMARK_AGENTS) -detailed=$(BENCHMARK_DETAILED) -event-rate=$(BENCHMARK_EVENT_RATE)" 2>&1 | tee $(BENCHMARK_RESULT)
 
 .PHONY: run-benchmark-autotuned
 run-benchmark-autotuned:

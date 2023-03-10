@@ -9,7 +9,7 @@ locals {
       var.apm_server_url,
       var.apm_secret_token,
       var.apm_api_key,
-      var.apm_loadgen_max_rate,
+      var.apm_loadgen_event_rate,
       var.apm_loadgen_agents_replicas,
       var.elastic_agent_version,
       var.fleet_url,
@@ -125,7 +125,7 @@ resource "google_compute_instance" "worker" {
         apm_server_url              = var.apm_server_url,
         apm_secret_token            = var.apm_secret_token,
         apm_api_key                 = var.apm_api_key,
-        apm_loadgen_max_rate        = var.apm_loadgen_max_rate,
+        apm_loadgen_event_rate        = var.apm_loadgen_event_rate,
         apm_loadgen_agents_replicas = var.apm_loadgen_agents_replicas,
       }
     )

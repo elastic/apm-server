@@ -190,7 +190,7 @@ func New(config Config) (*Handler, error) {
 			// Copy the line, as it will be overwritten by the next scan.
 			linecopy := make([]byte, len(line))
 			copy(linecopy, line)
-
+			// if the line is meta, create a new batch
 			if isMeta := bytes.HasPrefix(line, metaHeader); isMeta {
 				h.batches = append(h.batches, batch{
 					metadata: linecopy,
@@ -266,10 +266,43 @@ func (h *Handler) sendBatch(
 	// TODO add an option to send events with a steady event rate;
 	// if the batch is larger than the event rate, it must then be
 	// split into smaller batches.
-	if err := h.config.Limiter.WaitN(ctx, len(b.events)); err != nil {
-		return 0, err
+	burst := h.config.Limiter.Burst()
+	if burst == 0 {
+		err := h.sendHTTPRequest(ctx, b, baseTimestamp, randomBits)
+		if err != nil {
+			return 0, err
+		}
+		return len(b.events), nil
 	}
 
+	events := b.events
+	remaining := len(b.events)
+	for remaining > 0 {
+		n := burst
+		if remaining < burst {
+			n = remaining
+		}
+		tb := batch{
+			metadata: b.metadata,
+			events:   events[:n],
+		}
+		err := h.sendHTTPRequest(ctx, tb, baseTimestamp, randomBits)
+		if err != nil {
+			return len(b.events) - remaining, err
+		}
+		events = events[n:]
+		remaining -= n
+	}
+	return len(b.events), nil
+}
+
+func (h *Handler) sendHTTPRequest(ctx context.Context, b batch, baseTimestamp time.Time, randomBits uint64) error {
+	// if len(b.events) == burst, it will wait for full interval
+	// if len(b.events) < burst, it will wait shorter time than interval - interval will be shifted
+	// len(b.events) > burst cannot happen
+	if err := h.config.Limiter.WaitN(ctx, len(b.events)); err != nil {
+		return err
+	}
 	w := h.writerPool.Get().(*pooledWriter)
 	defer func() {
 		w.Reset()
@@ -335,9 +368,9 @@ func (h *Handler) sendBatch(
 		w.rewriteBuf.Reset()
 	}
 	if err := send(ctx); err != nil {
-		return 0, err
+		return err
 	}
-	return len(b.events), nil
+	return nil
 }
 
 func randomizeTraceID(out *bytes.Buffer, in string, randomBits uint64) bool {
