@@ -50,6 +50,6 @@ func NewEventHandler(p EventHandlerParams) (*eventhandler.Handler, error) {
 	if err != nil {
 		return nil, err
 	}
-	transp := eventhandler.NewTransport(t.Client, p.Url, p.Token, p.APIKey)
+	transp := eventhandler.NewTransport(t.Client, p.URL, p.Token, p.APIKey)
 	return eventhandler.New(filepath.Join("events", p.Path), transp, events, p.Limiter)
 }
