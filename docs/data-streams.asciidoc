@@ -82,6 +82,7 @@ Logs are stored in the following data streams:
 +
 // tag::logs-data-streams[]
 - APM error/exception logging: `logs-apm.error-<namespace>`
+- APM app logging: `logs-apm.app.<service.name>-<namespace>`
 // end::logs-data-streams[]
 
 [discrete]
