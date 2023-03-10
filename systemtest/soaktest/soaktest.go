@@ -44,13 +44,13 @@ func RunBlocking(ctx context.Context) error {
 }
 
 func runAgent(ctx context.Context, expr string, limiter *rate.Limiter) error {
-	handler, err := loadgen.NewEventHandler(
-		expr,
-		loadgencfg.Config.ServerURL.String(),
-		loadgencfg.Config.SecretToken,
-		loadgencfg.Config.APIKey,
-		limiter,
-	)
+	handler, err := loadgen.NewEventHandler(loadgen.EventHandlerParams{
+		Path:    expr,
+		Url:     loadgencfg.Config.ServerURL.String(),
+		Token:   loadgencfg.Config.SecretToken,
+		APIKey:  loadgencfg.Config.APIKey,
+		Limiter: limiter,
+	})
 	if err != nil {
 		return err
 	}

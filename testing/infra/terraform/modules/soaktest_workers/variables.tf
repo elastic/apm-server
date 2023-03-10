@@ -32,6 +32,12 @@ variable "apm_secret_token" {
   sensitive   = true
 }
 
+variable "apm_api_key" {
+  type        = string
+  description = "API Key for auth against the given server URL"
+  sensitive   = true
+}
+
 variable "apm_loadgen_max_rate" {
   type        = string
   description = "Max load generation rate"
