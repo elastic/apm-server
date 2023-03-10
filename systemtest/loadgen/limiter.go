@@ -23,19 +23,24 @@ import (
 	"golang.org/x/time/rate"
 )
 
-func GetNewLimiter(epm int) *rate.Limiter {
+func GetNewLimiter(epm int, burst int) *rate.Limiter {
 	if epm <= 0 {
 		return rate.NewLimiter(rate.Inf, 0)
 	}
 	eps := float64(epm) / float64(60)
-	return rate.NewLimiter(rate.Limit(eps), getBurstSize(int(math.Ceil(eps))))
+	return rate.NewLimiter(rate.Limit(eps), getBurstSize(int(math.Ceil(eps)), burst))
 }
 
-func getBurstSize(eps int) int {
-	burst := eps * 2
-	// Allow for a batch to have 1000 events minimum
-	if burst < 1000 {
-		burst = 1000
+func getBurstSize(eps int, burst int) int {
+	// Use default value when the burst is not set or invalid
+	if burst <= 0 {
+		burst := eps * 2
+		// Allow for a batch to have 1000 events minimum
+		if burst < 1000 {
+			burst = 1000
+		}
+		return burst
 	}
+
 	return burst
 }

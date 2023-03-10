@@ -24,6 +24,10 @@ gcp_zone = "us-west2-b"
 # Defaults to `4000eps` (i.e. 4000 events per second)
 # apm_loadgen_max_rate = "8000eps"
 
+# Max burst at which events will be sent to the APM server
+# Defaults to max(1000, 2*eps)
+# apm_loadgen_burst = "4000"
+
 # Number of agents replicas to use, each replica launches 4 agents, one for each type
 # Defaults to `2`
 # apm_loadgen_agents_replicas = "4"

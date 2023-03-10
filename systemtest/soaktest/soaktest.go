@@ -28,7 +28,7 @@ import (
 )
 
 func RunBlocking(ctx context.Context) error {
-	limiter := loadgen.GetNewLimiter(loadgencfg.Config.MaxEPM)
+	limiter := loadgen.GetNewLimiter(loadgencfg.Config.MaxEPM, loadgencfg.Config.Burst)
 	g, gCtx := errgroup.WithContext(ctx)
 
 	for i := 0; i < soakConfig.AgentsReplicas; i++ {

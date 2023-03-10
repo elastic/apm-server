@@ -32,6 +32,7 @@ var Config struct {
 	APIKey      string
 	Secure      bool
 	MaxEPM      int
+	Burst       int
 }
 
 func init() {
@@ -71,7 +72,20 @@ func init() {
 			}
 			return nil
 		})
+	flag.Func(
+		"burst",
+		"Maximum Burst size for the limiter, must be greater than 0 (default max(1000, 2*eps))",
+		func(b string) error {
+			errStr := "invalid value %s for -burst"
+			burst, err := strconv.Atoi(b)
+			if err != nil || burst <= 0 {
+				return fmt.Errorf(errStr, b)
+			}
 
+			Config.Burst = burst
+
+			return nil
+		})
 	// For configs that can be set via environment variables, set the required
 	// flags from env if they are not explicitly provided via command line
 	setFlagsFromEnv()

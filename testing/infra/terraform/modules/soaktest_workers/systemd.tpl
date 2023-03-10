@@ -17,6 +17,7 @@ ExecStart=${apmsoak_executable_path} \
   -secret-token ${apm_secret_token} \
   -api_key ${apm_api_key} \
   -max-rate ${apm_loadgen_max_rate} \
+  -burst ${apm_loadgen_burst} \
   -agents-replicas ${apm_loadgen_agents_replicas}
 
 [Install]

@@ -43,6 +43,11 @@ variable "apm_loadgen_max_rate" {
   description = "Max load generation rate"
 }
 
+variable "apm_loadgen_burst" {
+  type        = string
+  description = "Max Burst size"
+}
+
 variable "apm_loadgen_agents_replicas" {
   type        = string
   description = "Number of agents replicas to use, each replica launches 4 agents, one for each type"
