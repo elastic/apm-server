@@ -7,7 +7,11 @@
 
 IMPORTANT: {deprecation-notice-config}
 
-Starting in version 8.7.0, APM agent configurations will be fetched directly from {es}.
+You must configure the {kib} endpoint if running APM Server standalone--this allows APM Server to verify that
+the APM package has been installed. The {kib} endpoint is also equired for APM agent configuration when using
+an output other than {es}.
+
+For all other use-cases, starting in version 8.7.0, APM agent configurations will be fetched directly from {es}.
 Configuring and enabling the {kib} endpoint is only used as a fallback.
 Please see <<configure-agent-config>> instead.
 
