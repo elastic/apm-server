@@ -35,7 +35,7 @@ var events embed.FS
 
 type EventHandlerParams struct {
 	Path    string
-	Url     string
+	URL     string
 	Token   string
 	APIKey  string
 	Limiter *rate.Limiter
