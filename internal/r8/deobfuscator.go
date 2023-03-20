@@ -1,222 +1,222 @@
 package r8
 
 import (
-    "fmt"
-    "log"
-    "os"
-    "regexp"
-    "bufio"
-    "strings"
+	"bufio"
+	"fmt"
+	"log"
+	"os"
+	"regexp"
+	"strings"
 )
 
 type StacktraceMethod struct {
-    reference string
-    callSite string
+	reference string
+	callSite  string
 }
 
 type StacktraceType struct {
-    name string
-    indentation int
-    methods []StacktraceMethod
+	name        string
+	indentation int
+	methods     []StacktraceMethod
 }
 
 type MappedType struct {
-    obfuscated StacktraceType
-    realName string
+	obfuscated StacktraceType
+	realName   string
 }
 
 type MappedMethodCall struct {
-    reference string
-    key string
+	reference string
+	key       string
 }
 
 func Deobfuscate(stacktrace *string, mapFilePath string) string {
-    types := findUniqueTypes(stacktrace)
-    mapping := findMappingFor(types, mapFilePath)
+	types := findUniqueTypes(stacktrace)
+	mapping := findMappingFor(types, mapFilePath)
 
-    deobfuscated := *stacktrace
-    for k, v := range mapping {
-        deobfuscated = strings.ReplaceAll(deobfuscated, k, v)
-    }
+	deobfuscated := *stacktrace
+	for k, v := range mapping {
+		deobfuscated = strings.ReplaceAll(deobfuscated, k, v)
+	}
 
-    return deobfuscated
+	return deobfuscated
 }
 
 func findUniqueTypes(stacktrace *string) []StacktraceType {
-    symbolPattern := regexp.MustCompile("^\\s*at (.+)(?:\\.(.+)\\((.+)\\))$")
-    sourceFilePattern := regexp.MustCompile("SourceFile:(\\d+)")
+	symbolPattern := regexp.MustCompile("^\\s*at (.+)(?:\\.(.+)\\((.+)\\))$")
+	sourceFilePattern := regexp.MustCompile("SourceFile:(\\d+)")
 
-    var symbols = make([]*StacktraceType, 0)
-    scanner := bufio.NewScanner(strings.NewReader(*stacktrace))
+	var symbols = make([]*StacktraceType, 0)
+	scanner := bufio.NewScanner(strings.NewReader(*stacktrace))
 
-    for scanner.Scan() {
-        line := scanner.Text()
-        item := symbolPattern.FindStringSubmatchIndex(line)
-        if item != nil {
-            typeIndex := item[2]
-            typeName := line[typeIndex:item[3]]
-            methodName := line[item[4]:item[5]]
-            callSite := line[item[6]:item[7]]
-            sourceFileMatch := sourceFilePattern.FindStringSubmatch(callSite)
-            if sourceFileMatch != nil {
-                methodName = fmt.Sprintf("%s:%s", methodName, sourceFileMatch[1])
-            }
-            symbol := getSymbolForType(typeName, symbols)
-            if symbol == nil {
-                symbol = &StacktraceType{typeName, typeIndex + 1, make([]StacktraceMethod, 0)}
-                symbols = append(symbols, symbol)
-            }
-            method := &StacktraceMethod{methodName, callSite}
-            if !containsMethod(symbol.methods, method) {
-                symbol.methods = append(symbol.methods, *method)
-            }
-        }
-    }
+	for scanner.Scan() {
+		line := scanner.Text()
+		item := symbolPattern.FindStringSubmatchIndex(line)
+		if item != nil {
+			typeIndex := item[2]
+			typeName := line[typeIndex:item[3]]
+			methodName := line[item[4]:item[5]]
+			callSite := line[item[6]:item[7]]
+			sourceFileMatch := sourceFilePattern.FindStringSubmatch(callSite)
+			if sourceFileMatch != nil {
+				methodName = fmt.Sprintf("%s:%s", methodName, sourceFileMatch[1])
+			}
+			symbol := getSymbolForType(typeName, symbols)
+			if symbol == nil {
+				symbol = &StacktraceType{typeName, typeIndex + 1, make([]StacktraceMethod, 0)}
+				symbols = append(symbols, symbol)
+			}
+			method := &StacktraceMethod{methodName, callSite}
+			if !containsMethod(symbol.methods, method) {
+				symbol.methods = append(symbol.methods, *method)
+			}
+		}
+	}
 
-    if err := scanner.Err(); err != nil {
-        log.Fatal(err)
-    }
+	if err := scanner.Err(); err != nil {
+		log.Fatal(err)
+	}
 
-    var result = make([]StacktraceType, len(symbols))
-    for i, v := range symbols {
-        result[i] = *v
-    }
+	var result = make([]StacktraceType, len(symbols))
+	for i, v := range symbols {
+		result[i] = *v
+	}
 
-    return result
+	return result
 }
 
 func containsMethod(methods []StacktraceMethod, method *StacktraceMethod) bool {
-    for _, v := range methods {
-        if v == *method {
-            return true
-        }
-    }
+	for _, v := range methods {
+		if v == *method {
+			return true
+		}
+	}
 
-    return false
+	return false
 }
 
 func getSymbolForType(typeName string, symbols []*StacktraceType) *StacktraceType {
-    for _, v := range symbols {
-        if v.name == typeName {
-            return v
-        }
-    }
-    return nil
+	for _, v := range symbols {
+		if v.name == typeName {
+			return v
+		}
+	}
+	return nil
 }
 
 func findMappingFor(symbols []StacktraceType, mapFilePath string) map[string]string {
-    mapFile, err := os.Open(mapFilePath)
-    if err != nil {
-        log.Fatal(err)
-    }
+	mapFile, err := os.Open(mapFilePath)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-    defer mapFile.Close()
+	defer mapFile.Close()
 
-    var res = make(map[string]string)
-    typePattern := regexp.MustCompile("^([^\\s]+) -> ([^\\s]+):$")
-    methodPattern := regexp.MustCompile("(?:(\\d+):(\\d+):)*[^\\s]+ ([^\\s]+)\\(.*\\)(?:[:\\d]+)* -> ([^\\s]+)")
-    scanner := bufio.NewScanner(mapFile)
-    var currentType *MappedType
-    var currentMappedMethodCall *MappedMethodCall
+	var res = make(map[string]string)
+	typePattern := regexp.MustCompile("^([^\\s]+) -> ([^\\s]+):$")
+	methodPattern := regexp.MustCompile("(?:(\\d+):(\\d+):)*[^\\s]+ ([^\\s]+)\\(.*\\)(?:[:\\d]+)* -> ([^\\s]+)")
+	scanner := bufio.NewScanner(mapFile)
+	var currentType *MappedType
+	var currentMappedMethodCall *MappedMethodCall
 
-    for scanner.Scan() {
-        line := scanner.Text()
-        typeMatch := typePattern.FindStringSubmatch(line)
-        if typeMatch != nil {
-            currentMappedMethodCall = nil
-            if currentType != nil {
-                ensureAllMethodsProvided(&res, currentType)
-            }
-            obfuscatedName := typeMatch[2]
-            stacktraceType := getStacktraceType(symbols, obfuscatedName)
-            if stacktraceType != nil {
-                currentType = &MappedType{*stacktraceType, typeMatch[1]}
-            } else {
-                currentType = nil
-            }
-        } else if currentType != nil {
-            methodMatch := methodPattern.FindStringSubmatch(line)
-            if methodMatch != nil {
-                currentMappedMethodCall = handleMappedMethodCall(&res, methodMatch, currentType, currentMappedMethodCall)
-            }
-        }
-    }
+	for scanner.Scan() {
+		line := scanner.Text()
+		typeMatch := typePattern.FindStringSubmatch(line)
+		if typeMatch != nil {
+			currentMappedMethodCall = nil
+			if currentType != nil {
+				ensureAllMethodsProvided(&res, currentType)
+			}
+			obfuscatedName := typeMatch[2]
+			stacktraceType := getStacktraceType(symbols, obfuscatedName)
+			if stacktraceType != nil {
+				currentType = &MappedType{*stacktraceType, typeMatch[1]}
+			} else {
+				currentType = nil
+			}
+		} else if currentType != nil {
+			methodMatch := methodPattern.FindStringSubmatch(line)
+			if methodMatch != nil {
+				currentMappedMethodCall = handleMappedMethodCall(&res, methodMatch, currentType, currentMappedMethodCall)
+			}
+		}
+	}
 
-    if err := scanner.Err(); err != nil {
-        log.Fatal(err)
-    }
+	if err := scanner.Err(); err != nil {
+		log.Fatal(err)
+	}
 
-    return res
+	return res
 }
 
 func handleMappedMethodCall(res *map[string]string, methodMatch []string, currentType *MappedType, currentMappedMethodCall *MappedMethodCall) *MappedMethodCall {
-    sourceFile := methodMatch[1]
-    sourceFileEndRange := methodMatch[2]
-    methodRealName := methodMatch[3]
-    methodObfuscatedName := methodMatch[4]
-    methodNameReference := methodObfuscatedName
-    if sourceFile != "" {
-        if sourceFile != sourceFileEndRange {
-            return currentMappedMethodCall
-        }
-        methodNameReference = fmt.Sprintf("%s:%s", methodObfuscatedName, sourceFile)
-    }
-    mapReference := currentType.obfuscated.name + ":" + methodNameReference
-    methods := &currentType.obfuscated.methods
-    stacktraceMethod, index := getStacktraceMethod(*methods, methodNameReference)
-    if stacktraceMethod != nil {
-        *methods = removeStacktraceMethod(*methods, index)
-        key := getKey(currentType, methodObfuscatedName, stacktraceMethod.callSite)
-        addMainCall(res, key, currentType, methodRealName, stacktraceMethod.callSite)
-        return &MappedMethodCall{mapReference, key}
-    } else if currentMappedMethodCall != nil && currentMappedMethodCall.reference == mapReference {
-        element, _ := (*res)[currentMappedMethodCall.key]
-        (*res)[currentMappedMethodCall.key] = element + "\n" + fmt.Sprintf("%s%s", strings.Repeat(" ", len(currentType.realName) + currentType.obfuscated.indentation), methodRealName)
-    }
+	sourceFile := methodMatch[1]
+	sourceFileEndRange := methodMatch[2]
+	methodRealName := methodMatch[3]
+	methodObfuscatedName := methodMatch[4]
+	methodNameReference := methodObfuscatedName
+	if sourceFile != "" {
+		if sourceFile != sourceFileEndRange {
+			return currentMappedMethodCall
+		}
+		methodNameReference = fmt.Sprintf("%s:%s", methodObfuscatedName, sourceFile)
+	}
+	mapReference := currentType.obfuscated.name + ":" + methodNameReference
+	methods := &currentType.obfuscated.methods
+	stacktraceMethod, index := getStacktraceMethod(*methods, methodNameReference)
+	if stacktraceMethod != nil {
+		*methods = removeStacktraceMethod(*methods, index)
+		key := getKey(currentType, methodObfuscatedName, stacktraceMethod.callSite)
+		addMainCall(res, key, currentType, methodRealName, stacktraceMethod.callSite)
+		return &MappedMethodCall{mapReference, key}
+	} else if currentMappedMethodCall != nil && currentMappedMethodCall.reference == mapReference {
+		element, _ := (*res)[currentMappedMethodCall.key]
+		(*res)[currentMappedMethodCall.key] = element + "\n" + fmt.Sprintf("%s%s", strings.Repeat(" ", len(currentType.realName)+currentType.obfuscated.indentation), methodRealName)
+	}
 
-    return currentMappedMethodCall
+	return currentMappedMethodCall
 }
 
 func ensureAllMethodsProvided(res *map[string]string, currentType *MappedType) {
-    for _, stacktraceMethod := range currentType.obfuscated.methods {
-        methodName := stacktraceMethod.reference
-        callSite := stacktraceMethod.callSite
-        key := getKey(currentType, methodName, callSite)
-        addMainCall(res, key, currentType, methodName, callSite)
-    }
+	for _, stacktraceMethod := range currentType.obfuscated.methods {
+		methodName := stacktraceMethod.reference
+		callSite := stacktraceMethod.callSite
+		key := getKey(currentType, methodName, callSite)
+		addMainCall(res, key, currentType, methodName, callSite)
+	}
 }
 
 func getKey(currentType *MappedType, methodName string, callSite string) string {
-    return fmt.Sprintf("%s.%s(%s)", currentType.obfuscated.name, methodName, callSite)
+	return fmt.Sprintf("%s.%s(%s)", currentType.obfuscated.name, methodName, callSite)
 }
 
 func addMainCall(res *map[string]string, key string, currentType *MappedType, methodRealName string, callSite string) {
-    (*res)[key] = fmt.Sprintf("%s.%s(%s)", currentType.realName, methodRealName, callSite)
+	(*res)[key] = fmt.Sprintf("%s.%s(%s)", currentType.realName, methodRealName, callSite)
 }
 
 func getStacktraceMethod(slice []StacktraceMethod, reference string) (*StacktraceMethod, int) {
-    for i, v := range slice {
-        if v.reference == reference {
-            return &v, i
-        }
-    }
+	for i, v := range slice {
+		if v.reference == reference {
+			return &v, i
+		}
+	}
 
-    return nil, -1
+	return nil, -1
 }
 
 func removeStacktraceMethod(slice []StacktraceMethod, index int) []StacktraceMethod {
-    newSlice := make([]StacktraceMethod, 0)
-    newSlice = append(newSlice, slice[:index]...)
-    newSlice = append(newSlice, slice[index + 1:]...)
-    return newSlice
+	newSlice := make([]StacktraceMethod, 0)
+	newSlice = append(newSlice, slice[:index]...)
+	newSlice = append(newSlice, slice[index+1:]...)
+	return newSlice
 }
 
 func getStacktraceType(symbols []StacktraceType, typeName string) *StacktraceType {
-    for _, v := range symbols {
-        if v.name == typeName {
-            return &v
-        }
-    }
+	for _, v := range symbols {
+		if v.name == typeName {
+			return &v
+		}
+	}
 
-    return nil
+	return nil
 }
