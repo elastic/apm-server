@@ -32,20 +32,19 @@ import (
 var (
 	metaHeader    = []byte(`{"metadata":`)
 	rumMetaHeader = []byte(`{"m":`)
+	newlineBytes  = []byte("\n")
 )
 
 type batch struct {
-	bytes []byte
-	// items contains the number of events (minus metadata) in the batch.
-	items uint
+	metadata []byte
+	events   [][]byte
 }
 
 // Handler is used to replay a set of stored events to a remote APM Server
 // using a ReplayTransport.
 type Handler struct {
-	config Config
-
-	readerPool *byteReaderPool
+	config     Config
+	writerPool sync.Pool
 	batches    []batch
 }
 
@@ -71,18 +70,19 @@ func New(config Config) (*Handler, error) {
 		config.Limiter = rate.NewLimiter(rate.Inf, 0)
 	}
 
-	var buf bytes.Buffer
-	zw, err := zlib.NewWriterLevel(&buf, zlib.BestCompression)
-	if err != nil {
-		return nil, err
-	}
-	writer := compressedWriter{
-		buf:     &buf,
-		zwriter: zw,
-	}
 	h := Handler{
-		config:     config,
-		readerPool: newByteReaderPool(),
+		config: config,
+		writerPool: sync.Pool{
+			New: func() any {
+				pw := &pooledWriter{}
+				zw, err := zlib.NewWriterLevel(&pw.buf, zlib.BestSpeed)
+				if err != nil {
+					panic(err)
+				}
+				pw.Writer = zw
+				return pw
+			},
+		},
 	}
 	matches, err := fs.Glob(config.Storage, config.Path)
 	if err != nil {
@@ -93,53 +93,33 @@ func New(config Config) (*Handler, error) {
 		if err != nil {
 			return nil, err
 		}
+
 		s := bufio.NewScanner(f)
-		var scanned uint
+		var current *batch
 		for s.Scan() {
 			line := s.Bytes()
 			if len(line) == 0 {
 				continue
 			}
+
 			// TODO(marclop): Suppport RUM headers and handle them differently.
 			if bytes.HasPrefix(line, rumMetaHeader) {
 				return nil, errors.New("rum data support not implemented")
 			}
 
-			if isMeta := bytes.HasPrefix(line, metaHeader); !isMeta {
-				writer.WriteLine(line)
-				scanned++
-				continue
-			}
+			// Copy the line, as it will be overwritten by the next scan.
+			linecopy := make([]byte, len(line))
+			copy(linecopy, line)
+			line = linecopy
 
-			// Since the current token is a metadata line, it means that we've
-			// read the start of the batch, because of that, we'll only flush,
-			// close and copy the compressed contents when the scanned events
-			// are greater than 0. The first iteration will only write the meta
-			// and continue decoding events.
-			// After writing the whole batch to the buffer, we reset it and the
-			// zlib.Writer so it can be used for the next iteration.
-			if scanned > 0 {
-				if err := writer.Close(); err != nil {
-					return nil, err
-				}
-				h.batches = append(h.batches, batch{
-					bytes: writer.Bytes(),
-					items: scanned,
-				})
+			if isMeta := bytes.HasPrefix(line, metaHeader); isMeta {
+				h.batches = append(h.batches, batch{})
+				current = &h.batches[len(h.batches)-1]
+				current.metadata = linecopy
+			} else {
+				current.events = append(current.events, linecopy)
 			}
-			writer.Reset()
-			writer.WriteLine(line)
-			scanned = 0
 		}
-
-		if err := writer.Close(); err != nil {
-			return nil, err
-		}
-		h.batches = append(h.batches, batch{
-			bytes: writer.Bytes(),
-			items: scanned,
-		})
-		writer.Reset()
 	}
 	if len(h.batches) == 0 {
 		return nil, errors.New("eventhandler: glob matched no files, please specify a valid glob pattern")
@@ -162,16 +142,35 @@ func (h *Handler) SendBatches(ctx context.Context) (uint, error) {
 }
 
 func (h *Handler) sendBatch(ctx context.Context, b batch) (uint, error) {
-	if err := h.config.Limiter.WaitN(ctx, int(b.items)); err != nil {
+	// TODO add an option to send events with a steady event rate;
+	// if the batch is larger than the event rate, it must then be
+	// split into smaller batches.
+	if err := h.config.Limiter.WaitN(ctx, len(b.events)); err != nil {
 		return 0, err
 	}
-	r := h.readerPool.newReader(b.bytes)
-	defer h.readerPool.release(r)
-	// NOTE(marclop) RUM event replaying is not yet supported.
-	if err := h.config.Transport.SendV2Events(ctx, r); err != nil {
+
+	w := h.writerPool.Get().(*pooledWriter)
+	defer func() {
+		w.Reset()
+		h.writerPool.Put(w)
+	}()
+	send := func(ctx context.Context) error {
+		if err := w.Close(); err != nil {
+			return err
+		}
+		// NOTE(marclop) RUM event replaying is not yet supported.
+		return h.config.Transport.SendV2Events(ctx, &w.buf)
+	}
+	w.Write(b.metadata)
+	w.Write(newlineBytes)
+	for _, event := range b.events {
+		w.Write(event)
+		w.Write(newlineBytes)
+	}
+	if err := send(ctx); err != nil {
 		return 0, err
 	}
-	return b.items, nil
+	return uint(len(b.events)), nil
 }
 
 // WarmUpServer will "warm up" the remote APM Server by sending events until
@@ -191,53 +190,12 @@ func (h *Handler) WarmUpServer(ctx context.Context) error {
 	}
 }
 
-type compressedWriter struct {
-	zwriter *zlib.Writer
-	buf     *bytes.Buffer
+type pooledWriter struct {
+	buf bytes.Buffer
+	*zlib.Writer
 }
 
-func (w *compressedWriter) WriteLine(in []byte) (n int, err error) {
-	newline := []byte("\n")
-	n, err = w.zwriter.Write(in)
-	if err != nil {
-		return n, err
-	}
-	_, err = w.zwriter.Write(newline)
-	return n + len(newline), err
-}
-
-func (w *compressedWriter) Reset() {
-	w.buf.Reset()
-	w.zwriter.Reset(w.buf)
-}
-
-func (w *compressedWriter) Bytes() []byte {
-	contents := w.buf.Bytes()
-	tmp := make([]byte, len(contents))
-	copy(tmp, contents)
-	return tmp
-}
-
-func (w *compressedWriter) Close() error {
-	return w.zwriter.Close()
-}
-
-func newByteReaderPool() *byteReaderPool {
-	return &byteReaderPool{p: sync.Pool{New: func() any {
-		return bytes.NewReader(nil)
-	}}}
-}
-
-type byteReaderPool struct {
-	p sync.Pool
-}
-
-func (bp *byteReaderPool) newReader(b []byte) *bytes.Reader {
-	r := bp.p.Get().(*bytes.Reader)
-	r.Reset(b)
-	return r
-}
-
-func (bp *byteReaderPool) release(r *bytes.Reader) {
-	bp.p.Put(r)
+func (pw *pooledWriter) Reset() {
+	pw.buf.Reset()
+	pw.Writer.Reset(&pw.buf)
 }
