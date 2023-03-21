@@ -43,10 +43,17 @@ type batch struct {
 // Handler is used to replay a set of stored events to a remote APM Server
 // using a ReplayTransport.
 type Handler struct {
-	transport  *Transport
-	limiter    *rate.Limiter
+	config Config
+
 	readerPool *byteReaderPool
 	batches    []batch
+}
+
+type Config struct {
+	Path      string
+	Transport *Transport
+	Storage   fs.FS
+	Limiter   *rate.Limiter
 }
 
 // New creates a new tracehandler.Handler from a glob expression, a filesystem,
@@ -56,9 +63,12 @@ type Handler struct {
 // The file contents should be in plain text, but the in-memory representation
 // will use zlib compression (BestCompression) to avoid compressing the batches
 // while benchmarking and optimizing memory usage.
-func New(p string, t *Transport, storage fs.FS, l *rate.Limiter) (*Handler, error) {
-	if t == nil {
+func New(config Config) (*Handler, error) {
+	if config.Transport == nil {
 		return nil, errors.New("empty transport received")
+	}
+	if config.Limiter == nil {
+		config.Limiter = rate.NewLimiter(rate.Inf, 0)
 	}
 
 	var buf bytes.Buffer
@@ -70,20 +80,16 @@ func New(p string, t *Transport, storage fs.FS, l *rate.Limiter) (*Handler, erro
 		buf:     &buf,
 		zwriter: zw,
 	}
-	if l == nil {
-		l = rate.NewLimiter(rate.Inf, 0)
-	}
 	h := Handler{
-		transport:  t,
-		limiter:    l,
+		config:     config,
 		readerPool: newByteReaderPool(),
 	}
-	matches, err := fs.Glob(storage, p)
+	matches, err := fs.Glob(config.Storage, config.Path)
 	if err != nil {
 		return nil, err
 	}
 	for _, path := range matches {
-		f, err := storage.Open(path)
+		f, err := config.Storage.Open(path)
 		if err != nil {
 			return nil, err
 		}
@@ -156,13 +162,13 @@ func (h *Handler) SendBatches(ctx context.Context) (uint, error) {
 }
 
 func (h *Handler) sendBatch(ctx context.Context, b batch) (uint, error) {
-	if err := h.limiter.WaitN(ctx, int(b.items)); err != nil {
+	if err := h.config.Limiter.WaitN(ctx, int(b.items)); err != nil {
 		return 0, err
 	}
 	r := h.readerPool.newReader(b.bytes)
 	defer h.readerPool.release(r)
 	// NOTE(marclop) RUM event replaying is not yet supported.
-	if err := h.transport.SendV2Events(ctx, r); err != nil {
+	if err := h.config.Transport.SendV2Events(ctx, r); err != nil {
 		return 0, err
 	}
 	return b.items, nil

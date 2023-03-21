@@ -81,7 +81,12 @@ func newHandler(tb testing.TB, dir, expr string, l *rate.Limiter) (*Handler, *mo
 	srv := httptest.NewServer(ms)
 	ms.close = srv.Close
 	transp := NewTransport(srv.Client(), srv.URL, "", "")
-	h, err := New(expr, transp, os.DirFS(dir), l)
+	h, err := New(Config{
+		Path:      expr,
+		Transport: transp,
+		Storage:   os.DirFS(dir),
+		Limiter:   l,
+	})
 	require.NoError(tb, err)
 	return h, ms
 }
@@ -89,23 +94,39 @@ func newHandler(tb testing.TB, dir, expr string, l *rate.Limiter) (*Handler, *mo
 func TestHandlerNew(t *testing.T) {
 	storage := os.DirFS("testdata")
 	t.Run("success-matches-files", func(t *testing.T) {
-		h, err := New(`python*.ndjson`, &Transport{}, storage, nil)
+		h, err := New(Config{
+			Path:      `python*.ndjson`,
+			Transport: &Transport{},
+			Storage:   storage,
+		})
 		require.NoError(t, err)
 		assert.Greater(t, len(h.batches), 0)
 	})
 	t.Run("failure-matches-no-files", func(t *testing.T) {
-		h, err := New(`go*.ndjson`, &Transport{}, storage, nil)
+		h, err := New(Config{
+			Path:      `go*.ndjson`,
+			Transport: &Transport{},
+			Storage:   storage,
+		})
 		require.EqualError(t, err, "eventhandler: glob matched no files, please specify a valid glob pattern")
 		assert.Nil(t, h)
 	})
 	t.Run("failure-invalid-glob", func(t *testing.T) {
-		h, err := New(``, &Transport{}, storage, nil)
+		h, err := New(Config{
+			Path:      "",
+			Transport: &Transport{},
+			Storage:   storage,
+		})
 		require.EqualError(t, err, "eventhandler: glob matched no files, please specify a valid glob pattern")
 		assert.Nil(t, h)
 	})
 	t.Run("failure-rum-data", func(t *testing.T) {
 		storage := os.DirFS(filepath.Join("..", "..", "..", "testdata", "intake-v3"))
-		h, err := New(`*.ndjson`, &Transport{}, storage, nil)
+		h, err := New(Config{
+			Path:      `*.ndjson`,
+			Transport: &Transport{},
+			Storage:   storage,
+		})
 		require.EqualError(t, err, "rum data support not implemented")
 		assert.Nil(t, h)
 	})
