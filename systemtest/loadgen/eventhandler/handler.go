@@ -20,12 +20,12 @@ package eventhandler
 import (
 	"bufio"
 	"bytes"
-	"compress/zlib"
 	"context"
 	"errors"
 	"io/fs"
 	"sync"
 
+	"github.com/klauspost/compress/zlib"
 	"golang.org/x/time/rate"
 )
 

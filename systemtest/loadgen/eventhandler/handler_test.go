@@ -75,14 +75,14 @@ func (t *mockServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusAccepted)
 }
 
-func newHandler(t *testing.T, dir, expr string, l *rate.Limiter) (*Handler, *mockServer) {
-	t.Helper()
+func newHandler(tb testing.TB, dir, expr string, l *rate.Limiter) (*Handler, *mockServer) {
+	tb.Helper()
 	ms := &mockServer{got: &bytes.Buffer{}}
 	srv := httptest.NewServer(ms)
 	ms.close = srv.Close
 	transp := NewTransport(srv.Client(), srv.URL, "", "")
 	h, err := New(expr, transp, os.DirFS(dir), l)
-	require.NoError(t, err)
+	require.NoError(tb, err)
 	return h, ms
 }
 
@@ -209,4 +209,15 @@ func TestHandlerWarmUp(t *testing.T) {
 		assert.ErrorIs(t, err, context.Canceled)
 		assert.Equal(t, srv.received, uint(0))
 	})
+}
+
+func BenchmarkSendBatches(b *testing.B) {
+	h, srv := newHandler(b, "testdata", "python*.ndjson", rate.NewLimiter(rate.Inf, 0))
+	b.Cleanup(srv.close)
+
+	ctx := context.Background()
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		h.SendBatches(ctx)
+	}
 }
