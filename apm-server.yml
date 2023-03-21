@@ -214,8 +214,8 @@ apm-server:
       #password: "changeme"
 
   #kibana:
-    # Required if running APM Server standalone to check if the APM package has been installed. Also
-    # required for APM agent configuration when using an output other than Elasticsearch.
+    # Required when `apm-server.agent.config.elasticsearch` is not set AND `output.elasticsearch`
+    # is not valid (either because it's not set or there aren't enough privileges).
     #enabled: false
 
     # Scheme and port can be left out and will be set to the default (`http` and `5601`).
