@@ -27,11 +27,12 @@ import (
 )
 
 var Config struct {
-	ServerURL   *url.URL
-	SecretToken string
-	APIKey      string
-	Secure      bool
-	MaxEPM      int
+	ServerURL         *url.URL
+	SecretToken       string
+	APIKey            string
+	Secure            bool
+	MaxEPM            int
+	RewriteTimestamps bool
 }
 
 func init() {
@@ -71,6 +72,13 @@ func init() {
 			}
 			return nil
 		})
+
+	flag.BoolVar(
+		&Config.RewriteTimestamps,
+		"rewrite-timestamps",
+		false,
+		"rewrite event timestamps every iteration, maintaining relative offsets",
+	)
 
 	// For configs that can be set via environment variables, set the required
 	// flags from env if they are not explicitly provided via command line

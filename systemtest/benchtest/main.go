@@ -251,7 +251,12 @@ func Run(allBenchmarks ...BenchmarkFunc) error {
 // agents for the specified duration.
 func warmup(agents int, duration time.Duration, url, token string) error {
 	rl := loadgen.GetNewLimiter(loadgencfg.Config.MaxEPM)
-	h, err := newEventHandler(`*.ndjson`, url, token, rl)
+	h, err := loadgen.NewEventHandler(loadgen.EventHandlerParams{
+		Path:    `*.ndjson`,
+		URL:     url,
+		Token:   token,
+		Limiter: rl,
+	})
 	if err != nil {
 		return fmt.Errorf("unable to create warm-up handler: %w", err)
 	}
