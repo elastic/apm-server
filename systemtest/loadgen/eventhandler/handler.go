@@ -110,7 +110,6 @@ func New(config Config) (*Handler, error) {
 			// Copy the line, as it will be overwritten by the next scan.
 			linecopy := make([]byte, len(line))
 			copy(linecopy, line)
-			line = linecopy
 
 			if isMeta := bytes.HasPrefix(line, metaHeader); isMeta {
 				h.batches = append(h.batches, batch{metadata: linecopy})
