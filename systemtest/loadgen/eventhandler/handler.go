@@ -113,9 +113,8 @@ func New(config Config) (*Handler, error) {
 			line = linecopy
 
 			if isMeta := bytes.HasPrefix(line, metaHeader); isMeta {
-				h.batches = append(h.batches, batch{})
+				h.batches = append(h.batches, batch{metadata: linecopy})
 				current = &h.batches[len(h.batches)-1]
-				current.metadata = linecopy
 			} else {
 				current.events = append(current.events, linecopy)
 			}
