@@ -34,11 +34,12 @@ import (
 var events embed.FS
 
 type EventHandlerParams struct {
-	Path    string
-	URL     string
-	Token   string
-	APIKey  string
-	Limiter *rate.Limiter
+	Path              string
+	URL               string
+	Token             string
+	APIKey            string
+	Limiter           *rate.Limiter
+	RewriteTimestamps bool
 }
 
 // NewEventHandler creates a eventhandler which loads the files matching the
@@ -51,5 +52,11 @@ func NewEventHandler(p EventHandlerParams) (*eventhandler.Handler, error) {
 		return nil, err
 	}
 	transp := eventhandler.NewTransport(t.Client, p.URL, p.Token, p.APIKey)
-	return eventhandler.New(filepath.Join("events", p.Path), transp, events, p.Limiter)
+	return eventhandler.New(eventhandler.Config{
+		Path:              filepath.Join("events", p.Path),
+		Transport:         transp,
+		Storage:           events,
+		Limiter:           p.Limiter,
+		RewriteTimestamps: p.RewriteTimestamps,
+	})
 }

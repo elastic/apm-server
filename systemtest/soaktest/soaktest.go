@@ -45,11 +45,12 @@ func RunBlocking(ctx context.Context) error {
 
 func runAgent(ctx context.Context, expr string, limiter *rate.Limiter) error {
 	handler, err := loadgen.NewEventHandler(loadgen.EventHandlerParams{
-		Path:    expr,
-		URL:     loadgencfg.Config.ServerURL.String(),
-		Token:   loadgencfg.Config.SecretToken,
-		APIKey:  loadgencfg.Config.APIKey,
-		Limiter: limiter,
+		Path:              expr,
+		URL:               loadgencfg.Config.ServerURL.String(),
+		Token:             loadgencfg.Config.SecretToken,
+		APIKey:            loadgencfg.Config.APIKey,
+		Limiter:           limiter,
+		RewriteTimestamps: loadgencfg.Config.RewriteTimestamps,
 	})
 	if err != nil {
 		return err
