@@ -22,10 +22,14 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"io/fs"
 	"sync"
+	"time"
 
 	"github.com/klauspost/compress/zlib"
+	"github.com/tidwall/gjson"
+	"github.com/tidwall/sjson"
 	"golang.org/x/time/rate"
 )
 
@@ -33,35 +37,75 @@ var (
 	metaHeader    = []byte(`{"metadata":`)
 	rumMetaHeader = []byte(`{"m":`)
 	newlineBytes  = []byte("\n")
+
+	// supportedTSFormats lists variations of RFC3339 for supporting
+	// different formats for the timezone offset. Copied from apm-data.
+	supportedTSFormats = []string{
+		"2006-01-02T15:04:05Z07:00", // RFC3339
+		"2006-01-02T15:04:05Z0700",
+		"2006-01-02T15:04:05Z07",
+	}
 )
 
 type batch struct {
 	metadata []byte
-	events   [][]byte
+	events   []event
 }
 
-// Handler is used to replay a set of stored events to a remote APM Server
-// using a ReplayTransport.
+type event struct {
+	payload    []byte
+	objectType string
+	timestamp  time.Time
+}
+
+// Handler replays stored events to an APM Server.
+//
+// It is safe to make concurrent calls to Handler methods.
 type Handler struct {
-	config     Config
-	writerPool sync.Pool
-	batches    []batch
+	config       Config
+	writerPool   sync.Pool
+	batches      []batch
+	minTimestamp time.Time // across all batches
 }
 
+// Config holds configuration for Handler.
 type Config struct {
-	Path      string
+	// Path holds the path to a file within Storage, holding recorded
+	// event batches for replaying. Path may be a glob, in which case
+	// it may match more than one file.
+	//
+	// The file contents are expected to hold ND-JSON event streams in
+	// plain text. These may be transformed, and will be compressed
+	// (with zlib.BestSpeed to minimise overhead), during replay.
+	Path string
+
+	// Storage holds the fs.FS from which the file specified by Path
+	// will read, for extracting batches.
+	Storage fs.FS
+
+	// Limiter holds a rate.Limiter for controlling the event rate.
+	//
+	// If Limiter is nil, an infinite rate limiter will be used.
+	Limiter *rate.Limiter
+
+	// Transport holds the Transport that will be used for replaying
+	// event batches.
 	Transport *Transport
-	Storage   fs.FS
-	Limiter   *rate.Limiter
+
+	// RewriteTimestamps controls whether event timestamps are rewritten
+	// during replay.
+	//
+	// If this is false, then the original timestamps are unmodified.
+	//
+	// If this is true, then for each call to SendBatches the timestamps
+	// be adjusted as follows: first we calculate the smallest timestamp
+	// across all of the batches, and then compute the delta between an
+	// event's timestamp and the smallest timestamp; this is then added
+	// to the current time as recorded when SendBatches is invoked.
+	RewriteTimestamps bool
 }
 
-// New creates a new tracehandler.Handler from a glob expression, a filesystem,
-// Transport and an optional rate limitter. If the rate limitter is empty, an
-// infinite rate limitter will be used. and The glob expression must match one
-// file containing one or more batches.
-// The file contents should be in plain text, but the in-memory representation
-// will use zlib compression (BestCompression) to avoid compressing the batches
-// while benchmarking and optimizing memory usage.
+// New creates a new Handler with config.
 func New(config Config) (*Handler, error) {
 	if config.Transport == nil {
 		return nil, errors.New("empty transport received")
@@ -112,10 +156,43 @@ func New(config Config) (*Handler, error) {
 			copy(linecopy, line)
 
 			if isMeta := bytes.HasPrefix(line, metaHeader); isMeta {
-				h.batches = append(h.batches, batch{metadata: linecopy})
+				h.batches = append(h.batches, batch{
+					metadata: linecopy,
+				})
 				current = &h.batches[len(h.batches)-1]
 			} else {
-				current.events = append(current.events, linecopy)
+				event := event{payload: linecopy}
+				result := gjson.ParseBytes(linecopy)
+				result.ForEach(func(key, value gjson.Result) bool {
+					event.objectType = key.Str // lines look like {"span":{...}}
+					timestampResult := value.Get("timestamp")
+					if timestampResult.Exists() {
+						switch timestampResult.Type {
+						case gjson.Number:
+							us := timestampResult.Int()
+							if us >= 0 {
+								s := us / 1000000
+								ns := (us - (s * 1000000)) * 1000
+								event.timestamp = time.Unix(s, ns)
+							}
+						case gjson.String:
+							tstr := timestampResult.Str
+							for _, f := range supportedTSFormats {
+								if t, err := time.Parse(f, tstr); err == nil {
+									event.timestamp = t
+									break
+								}
+							}
+						}
+					}
+					return false
+				})
+				if !event.timestamp.IsZero() {
+					if h.minTimestamp.IsZero() || event.timestamp.Before(h.minTimestamp) {
+						h.minTimestamp = event.timestamp
+					}
+				}
+				current.events = append(current.events, event)
 			}
 		}
 	}
@@ -125,12 +202,13 @@ func New(config Config) (*Handler, error) {
 	return &h, nil
 }
 
-// SendBatches sends the loaded trace data to the configured transport. Returns
-// the total number of documents sent and any transport errors.
-func (h *Handler) SendBatches(ctx context.Context) (uint, error) {
-	var sentEvents uint
+// SendBatches sends the loaded trace data to the configured transport,
+// returning the total number of documents sent and any transport errors.
+func (h *Handler) SendBatches(ctx context.Context) (int, error) {
+	baseTimestamp := time.Now().UTC()
+	var sentEvents int
 	for _, batch := range h.batches {
-		sent, err := h.sendBatch(ctx, batch)
+		sent, err := h.sendBatch(ctx, batch, baseTimestamp)
 		if err != nil {
 			return sentEvents, err
 		}
@@ -139,7 +217,7 @@ func (h *Handler) SendBatches(ctx context.Context) (uint, error) {
 	return sentEvents, nil
 }
 
-func (h *Handler) sendBatch(ctx context.Context, b batch) (uint, error) {
+func (h *Handler) sendBatch(ctx context.Context, b batch, baseTimestamp time.Time) (int, error) {
 	// TODO add an option to send events with a steady event rate;
 	// if the batch is larger than the event rate, it must then be
 	// split into smaller batches.
@@ -162,18 +240,37 @@ func (h *Handler) sendBatch(ctx context.Context, b batch) (uint, error) {
 	w.Write(b.metadata)
 	w.Write(newlineBytes)
 	for _, event := range b.events {
-		w.Write(event)
+		payload := event.payload
+		if h.config.RewriteTimestamps && !event.timestamp.IsZero() {
+			// We always encode rewritten timestamps as strings,
+			// so we don't lose any precision when offsetting by
+			// either the base timestamp, or the minimum timestamp
+			// across all the batches; string-formatted timestamps
+			// may have nanosecond precision.
+			offset := event.timestamp.Sub(h.minTimestamp)
+			timestamp := baseTimestamp.Add(offset)
+			timestampString := timestamp.Format(time.RFC3339Nano)
+
+			var err error
+			path := event.objectType + ".timestamp"
+			payload, err = sjson.SetBytes(payload, path, timestampString)
+			if err != nil {
+				return 0, fmt.Errorf("failed to rewrite timestamp: %w", err)
+			}
+		}
+		w.Write(payload)
 		w.Write(newlineBytes)
 	}
 	if err := send(ctx); err != nil {
 		return 0, err
 	}
-	return uint(len(b.events)), nil
+	return len(b.events), nil
 }
 
 // WarmUpServer will "warm up" the remote APM Server by sending events until
 // the context is cancelled.
 func (h *Handler) WarmUpServer(ctx context.Context) error {
+	baseTimestamp := time.Now().UTC()
 	for {
 		for _, batch := range h.batches {
 			select {
@@ -181,7 +278,7 @@ func (h *Handler) WarmUpServer(ctx context.Context) error {
 				return ctx.Err()
 			default:
 			}
-			if _, err := h.sendBatch(ctx, batch); err != nil {
+			if _, err := h.sendBatch(ctx, batch, baseTimestamp); err != nil {
 				return err
 			}
 		}
