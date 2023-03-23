@@ -1,25 +1,22 @@
-apiVersion: agent.k8s.elastic.co/v1alpha1
-kind: Agent
+apiVersion: apps/v1
+kind: Deployment
 metadata:
   name: apm-server
   namespace: default
 spec:
-  version: 8.8.0-ba3f07b2-SNAPSHOT
-  mode: fleet
-  policyID: eck-apm-server
-  kibanaRef:
-    name: kibana
-  fleetServerRef:
-    name: fleet-server
-  deployment:
-    replicas: 1
-    strategy:
-      # Can be changed to "Replace" for extremely memory limited environments.
-      type: "RollingUpdate"
-    podTemplate:
-      spec:
-        containers:
-        - name: agent
+  replicas: 1
+  selector:
+    matchLabels:
+      app: apm-server
+  template:
+    metadata:
+      labels:
+        app: apm-server
+    spec:
+      containers:
+        - image: apm-server
+          name: apm-server
+          args: ["-E", "logging.level=debug", "-E", "output.elasticsearch.hosts=${ES_HOST}", "-E", "output.elasticsearch.username=${ES_USER}", "-E", "output.elasticsearch.password=${ES_PASSWORD}"]
           resources:
             limits:
               cpu: 1
@@ -27,5 +24,10 @@ spec:
             requests:
               cpu: 1
               memory: "1Gi"
-        securityContext:
-          runAsUser: 0
+          env:
+            - name: ES_HOST
+              value: http://elasticsearch-es-http.default.svc:9200
+            - name: ES_USER
+              value: admin
+            - name: ES_PASSWORD
+              value: changeme
