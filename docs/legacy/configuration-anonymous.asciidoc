@@ -9,8 +9,12 @@ IMPORTANT: {deprecation-notice-config}
 If you're using {fleet} and the Elastic APM integration, please see <<input-apm>> instead.
 
 Elastic APM agents can send unauthenticated (anonymous) events to the APM Server.
-This is useful for agents that run on clients, like the Real User Monitoring (RUM) agent running in a browser,
-or the iOS/Swift agent running in a user application.
+An event is considered to be anonymous if no authentication token can be extracted from the incoming request.
+This is useful for agents that run on clients, like the Real User Monitoring (RUM)
+agent running in a browser, or the iOS/Swift agent running in a user application.
+
+Enable anonymous authentication in the APM Server to allow the
+ingestion of unauthenticated client-side APM data while still requiring authentication for server-side services.
 
 Example configuration:
 
@@ -23,11 +27,18 @@ apm-server.auth.anonymous.rate_limit.event_limit: 300
 apm-server.auth.anonymous.rate_limit.ip_limit: 1000
 ----
 
+<<<<<<< HEAD
+=======
+IMPORTANT: All anonymous access configuration is ignored if
+<<secure-communication-agents,authenticated communication>> is disabled.
+
+>>>>>>> b6c8e12b (docs: Clarify anonymous authentication details (#10227))
 [float]
 [[config-auth-anon-rum]]
 === Real User Monitoring (RUM)
 
-Anonymous authentication must be enabled to collect RUM data.
+If an <<api-key-legacy,API key>> or <<secret-token-legacy,secret token>> is configured,
+then anonymous authentication must be enabled to collect RUM data.
 For this reason, anonymous auth will be enabled automatically if <<rum-enable,`apm-server.rum.enabled`>>
 is set to `true`, and <<config-auth-anon-enabled,`apm-server.auth.anonymous.enabled`>> is not explicitly defined.
 
