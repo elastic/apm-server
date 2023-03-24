@@ -2,7 +2,7 @@
 @Library('apm@current') _
 
 pipeline {
-  agent { label 'linux && immutable' }
+  agent { label 'microbenchmarks-pool' }
   environment {
     REPO = 'apm-server'
     BASE_DIR = "src/github.com/elastic/${env.REPO}"
@@ -26,6 +26,7 @@ pipeline {
     quietPeriod(10)
   }
   triggers {
+<<<<<<< HEAD
     issueCommentTrigger("(${obltGitHubComments()}|^run\\W+(?:the\\W+)?(hey-apm|package|arm)\\W+tests|^/test|^/hey-apm|^/package)")
   }
   parameters {
@@ -37,6 +38,11 @@ pipeline {
     booleanParam(name: 'intake_ci', defaultValue: true, description: 'Enable test')
     booleanParam(name: 'test_ci', defaultValue: true, description: 'Enable test')
     booleanParam(name: 'test_sys_env_ci', defaultValue: true, description: 'Enable system and environment test')
+=======
+    issueCommentTrigger("(${obltGitHubComments()}|^/package)")
+  }
+  parameters {
+>>>>>>> 75d449fee (ci: remove all the stages that run in GH actions (#10515))
     booleanParam(name: 'bench_ci', defaultValue: true, description: 'Enable benchmarks')
     booleanParam(name: 'release_ci', defaultValue: true, description: 'Enable build the release packages')
     string(name: 'ES_LOG_LEVEL', defaultValue: "error", description: 'Elasticsearch error level')
@@ -78,6 +84,7 @@ pipeline {
         }
       }
     }
+<<<<<<< HEAD
     /**
     Updating generated files for Beat.
     Checks the GO environment.
@@ -443,10 +450,67 @@ pipeline {
                   propagate: false,
                   wait: false,
                   parameters: [string(name: 'COMMIT', value: "${env.GIT_BASE_COMMIT}")])
+=======
+		// Run the packaging pipeline for a PR, when requested.
+    stage('Downstream - Package - PR') {
+      options { skipDefaultCheckout() }
+      when {
+        beforeAgent true
+        allOf {
+          expression { return params.release_ci }
+          expression { return env.ONLY_DOCS == "false" }
+          changeRequest()
+          anyOf {
+            expression { return env.PACKAGING_UPDATED != "false" }
+            expression { return env.GITHUB_COMMENT?.contains('package tests') || env.GITHUB_COMMENT?.contains('/package')}
+>>>>>>> 75d449fee (ci: remove all the stages that run in GH actions (#10515))
           }
         }
       }
+      steps {
+        build(job: "apm-server/apm-server-package-mbp/${env.JOB_BASE_NAME}",
+              propagate: false,
+              wait: false,
+              parameters: [string(name: 'COMMIT', value: "${env.GIT_BASE_COMMIT}")])
+      }
     }
+		// Run the microbenchmarks for the current commit, send them to the benchmarks
+    // Elasticsearch cluster, and compare with the benchmark results from the most
+    // recent branch build.
+    stage('Benchmarking') {
+      options { skipDefaultCheckout() }
+      when {
+        beforeAgent true
+        allOf {
+          expression { return params.bench_ci }
+          expression { return env.ONLY_DOCS == "false" }
+        }
+      }
+      steps {
+        withGithubNotify(context: 'Benchmarking') {
+          deleteDir()
+          unstash 'source'
+          dir("${BASE_DIR}"){
+            withGoEnv(){
+              sh(label: 'Run benchmarks', script: './.ci/scripts/bench.sh')
+            }
+            sendBenchmarks(file: "bench.out", index: "benchmark-server")
+            generateGoBenchmarkDiff(file: 'bench.out', filter: 'exclude')
+          }
+        }
+      }
+      post {
+        cleanup {
+          deleteDir()
+        }
+      }
+    }
+<<<<<<< HEAD
+=======
+    // Run the packaging pipeline for branch builds. This should only be run
+    // after all other stages succeed, to avoid publishing packages for a commit
+    // with failing tests.
+>>>>>>> 75d449fee (ci: remove all the stages that run in GH actions (#10515))
     stage('Downstream - Package') {
       options { skipDefaultCheckout() }
       when {
@@ -461,6 +525,9 @@ pipeline {
     }
   }
   post {
+    always {
+      deleteDir()
+    }
     cleanup {
       notifyBuildResult(goBenchmarkComment: true)
     }
