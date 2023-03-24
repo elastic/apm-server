@@ -252,19 +252,35 @@ In addition to setting the secret token, ensure the configured server URL uses `
 
 Elastic APM agents can send unauthenticated (anonymous) events to the APM Server.
 An event is considered to be anonymous if no authentication token can be extracted from the incoming request.
-By default, these anonymous requests are rejected and an authentication error is returned.
+The APM Server's default response to these these requests depends on its configuration:
 
-In some cases, however, it makes sense to allow anonymous requests -- for
-example, when using the Real User Monitoring (RUM) agent running in a browser,
-or the iOS/Swift agent running in a user application,
-it is not possible to hide or protect a secret token or API key.
-Thus, enabling anonymous authentication is required to ingest client-side APM data.
+[options="header"]
+|====
+|Configuration |Default
+|An <<api-key,API key>> or <<secret-token,secret token>> is configured | Anonymous requests are rejected and an authentication error is returned.
+|No API key or secret token is configured | Anonymous requests are accepted by the APM Server.
+|====
+
+In some cases, however, it makes sense to allow both authenticated and anonymous requests.
+For example, it isn't possible to authenticate requests from front-end services as
+the secret token or API key can't be protected. This is the case with the Real User Monitoring (RUM)
+agent running in a browser, or the iOS/Swift agent running in a user application.
+However, you still likely want to authenticate requests from back-end services.
+To solve this problem, you can enable anonymous authentication in the APM Server to allow the
+ingestion of unauthenticated client-side APM data while still requiring authentication for server-side services.
 
 [float]
 [[anonymous-auth-config]]
-=== Configuring anonymous authentication
+=== Configuring anonymous auth for client-side services
 
-There are a few configuration variables that can mitigate the impact of malicious requests to an
+[NOTE]
+====
+You can only enable and configure anonymous authentication if an <<api-key,API key>> or
+<<secret-token,secret token>> is configured. If neither are configured, these settings will be ignored.
+====
+
+When configuring anonymous authentication for client-side services,
+there are a few configuration variables that can mitigate the impact of malicious requests to an
 unauthenticated APM Server endpoint.
 
 Use the **Allowed anonymous agents** and **Allowed anonymous services** configs to ensure that the
