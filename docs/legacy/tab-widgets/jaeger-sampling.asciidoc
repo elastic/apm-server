@@ -4,11 +4,7 @@ Visit the {kibana-ref}/agent-configuration.html[Agent configuration] page in the
 // end::ess[]
 
 // tag::self-managed[]
-APM Agent central configuration requires the <<setup-kibana-endpoint,{kib} endpoint>> to be configured.
-To enable the {kib} endpoint, set <<kibana-enabled>> to `true`,
-and point <<kibana-host>> at the {kib} host that APM Server will communicate with.
+Visit the {kibana-ref}/agent-configuration.html[Agent configuration] page in the {apm-app} to add a new sampling rate.
 
-Once configured,
-visit the {kibana-ref}/agent-configuration.html[Agent configuration] page in the {apm-app} to add a new sampling rate.
-
+If you run into problems, see <<configure-agent-config>> to learn more.
 // end::self-managed[]

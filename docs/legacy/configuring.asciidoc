@@ -11,6 +11,7 @@ If you've already upgraded, please see <<input-apm>> instead.
 include::{libbeat-dir}/shared/configuring-intro.asciidoc[]
 
 * <<configuration-process>>
+* <<configure-agent-config>>
 * <<configuration-anonymous>>
 * <<configuration-instrumentation>>
 * <<jaeger-reference>>
@@ -24,6 +25,8 @@ include::{libbeat-dir}/shared/configuring-intro.asciidoc[]
 * <<using-environ-vars>>
 
 include::./configuration-process.asciidoc[]
+
+include::./configuration-agent-config.asciidoc[]
 
 include::./configuration-anonymous.asciidoc[]
 
