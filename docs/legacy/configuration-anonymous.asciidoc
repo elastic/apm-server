@@ -27,12 +27,9 @@ apm-server.auth.anonymous.rate_limit.event_limit: 300
 apm-server.auth.anonymous.rate_limit.ip_limit: 1000
 ----
 
-<<<<<<< HEAD
-=======
 IMPORTANT: All anonymous access configuration is ignored if
 <<secure-communication-agents,authenticated communication>> is disabled.
 
->>>>>>> b6c8e12b (docs: Clarify anonymous authentication details (#10227))
 [float]
 [[config-auth-anon-rum]]
 === Real User Monitoring (RUM)
