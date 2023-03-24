@@ -214,7 +214,8 @@ apm-server:
       #password: "changeme"
 
   #kibana:
-    # Enabled must be true to enable APM Agent configuration, and for fetching source maps uploaded through Kibana.
+    # Required when `apm-server.agent.config.elasticsearch` is not set AND `output.elasticsearch`
+    # is not valid (either because it's not set or there aren't enough privileges).
     #enabled: false
 
     # Scheme and port can be left out and will be set to the default (`http` and `5601`).
@@ -226,6 +227,9 @@ apm-server:
     #protocol: "https"
     #username: "elastic"
     #password: "changeme"
+
+    # Optional authentication with an API key
+    #api_key: "id:api_key"
 
     # Optional HTTP path.
     #path: ""
