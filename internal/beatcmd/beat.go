@@ -442,7 +442,7 @@ func (b *Beat) registerMetrics() {
 	monitoring.NewString(beatRegistry, "name").Set(b.Info.Name)
 
 	// state.host
-	monitoring.NewFunc(stateRegistry, "host", host.ReportInfo, monitoring.Report)
+	monitoring.NewFunc(stateRegistry, "host", host.ReportInfo(false), monitoring.Report)
 
 	// state.management
 	managementRegistry := stateRegistry.NewRegistry("management")
