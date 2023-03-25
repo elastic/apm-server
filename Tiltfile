@@ -4,6 +4,7 @@ custom_build(
   deps = ['.'],
   ignore = ['**/*_test.go', 'tools/**', 'systemtest/**', 'docs/**'],
 )
+
 # Build and install the APM integration package whenever source under
 # "apmpackage" changes.
 script_dir = os.path.join(config.main_dir, 'script')
