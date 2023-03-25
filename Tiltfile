@@ -1,3 +1,9 @@
+custom_build(
+  'apm-server',
+  'docker build -t $EXPECTED_REF -f packaging/docker/Dockerfile .',
+  deps = ['.'],
+  ignore = ['**/*_test.go', 'tools/**', 'systemtest/**', 'docs/**'],
+)
 # Build and install the APM integration package whenever source under
 # "apmpackage" changes.
 script_dir = os.path.join(config.main_dir, 'script')
@@ -12,16 +18,9 @@ local_resource(
 
 k8s_yaml(kustomize('testing/infra/k8s/overlays/local'))
 
-k8s_kind('ApmServer')
+k8s_kind('ApmServer', image_json_path='{.spec.image}')
 k8s_kind('Kibana')
 k8s_kind('Elasticsearch')
-
-custom_build('apm-server',
-    'docker build -t $EXPECTED_REF -f packaging/docker/Dockerfile .',
-    ignore=['**/*_test.go', 'tools/**', 'systemtest/**', 'docs/**'],
-    deps=['kibana', 'elasticsearch'],
-)
-
 
 k8s_resource('elastic-operator', objects=['eck-trial-license:Secret:elastic-system'])
 k8s_resource('apm-server', port_forwards=8200)
