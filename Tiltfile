@@ -12,6 +12,7 @@ local_resource(
 
 k8s_yaml(kustomize('testing/infra/k8s/overlays/local'))
 
+k8s_kind('ApmServer')
 k8s_kind('Kibana')
 k8s_kind('Elasticsearch')
 

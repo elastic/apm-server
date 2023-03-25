@@ -1,22 +1,28 @@
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: apm.k8s.elastic.co/v1
+kind: ApmServer
 metadata:
   name: apm-server
-  namespace: default
 spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: apm-server
-  template:
-    metadata:
-      labels:
-        app: apm-server
+  version: 8.8.0-ba3f07b2-SNAPSHOT
+  count: 1
+  config:
+    logging:
+      level: debug
+    output:
+      elasticsearch:
+        hosts: ["http://elasticsearch-es-http.default.svc:9200"]
+        username: admin
+        password: changeme
+  elasticsearchRef:
+    name: elasticsearch
+    namespace: default
+  kibanaRef:
+    name: kibana
+    namespace: default
+  podTemplate:
     spec:
       containers:
-        - image: apm-server
-          name: apm-server
-          args: ["-E", "logging.level=debug", "-E", "output.elasticsearch.hosts=${ES_HOST}", "-E", "output.elasticsearch.username=${ES_USER}", "-E", "output.elasticsearch.password=${ES_PASSWORD}"]
+        - name: apm-server
           resources:
             limits:
               cpu: 1
@@ -24,10 +30,3 @@ spec:
             requests:
               cpu: 1
               memory: "1Gi"
-          env:
-            - name: ES_HOST
-              value: http://elasticsearch-es-http.default.svc:9200
-            - name: ES_USER
-              value: admin
-            - name: ES_PASSWORD
-              value: changeme
