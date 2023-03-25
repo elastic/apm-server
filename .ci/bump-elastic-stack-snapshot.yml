@@ -59,12 +59,3 @@ targets:
         - testing/infra/k8s/base/stack/kibana.yaml
       matchpattern: 'version: \d+.\d+.\d+-.*-SNAPSHOT'
       replacepattern: 'version: {{ source "latestVersion" }}-SNAPSHOT'
-
-
-
-
-
-
-
-
-
