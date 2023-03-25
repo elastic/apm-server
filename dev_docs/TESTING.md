@@ -167,7 +167,7 @@ For local development and testing you can use [Tilt](https://tilt.dev) with a Ku
 We provide Kustomize manifests in [`testing/infra/k8s`](../testing/infra/k8s) for setting up
 the Elastic Stack using [ECK](https://www.elastic.co/guide/en/cloud-on-k8s/current/index.html),
 including standalone APM Server.
-Tilt will watch for source code changes and build and inject a customized elastic-agent Docker image; it will
+Tilt will watch for source code changes and build and inject a customized apm-server Docker image; it will
 also watch for changes to the APM integration package source, and rebuild and upload the
 package to Kibana on changes.
 
