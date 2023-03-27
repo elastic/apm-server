@@ -106,7 +106,7 @@ func findMappingFor(symbols []StacktraceType, mapFilePath string) (map[string]st
 		if typeMatch != nil {
 			currentMappedMethodCall = nil
 			if currentType != nil {
-				ensureAllMethodsProvided(&res, currentType)
+				ensureAllMethodsProvided(res, currentType)
 			}
 			obfuscatedName := typeMatch[2]
 			stacktraceType := getStacktraceType(symbols, obfuscatedName)
@@ -118,12 +118,12 @@ func findMappingFor(symbols []StacktraceType, mapFilePath string) (map[string]st
 		} else if currentType != nil {
 			methodMatch := methodPattern.FindStringSubmatch(line)
 			if methodMatch != nil {
-				currentMappedMethodCall = handleMappedMethodCall(&res, methodMatch, currentType, currentMappedMethodCall)
+				currentMappedMethodCall = handleMappedMethodCall(res, methodMatch, currentType, currentMappedMethodCall)
 			}
 		}
 	}
 	if currentType != nil {
-		ensureAllMethodsProvided(&res, currentType)
+		ensureAllMethodsProvided(res, currentType)
 	}
 
 	if err := scanner.Err(); err != nil {
@@ -133,7 +133,7 @@ func findMappingFor(symbols []StacktraceType, mapFilePath string) (map[string]st
 	return res, nil
 }
 
-func handleMappedMethodCall(res *map[string]string, methodMatch []string, currentType *MappedType, currentMappedMethodCall *MappedMethodCall) *MappedMethodCall {
+func handleMappedMethodCall(res map[string]string, methodMatch []string, currentType *MappedType, currentMappedMethodCall *MappedMethodCall) *MappedMethodCall {
 	sourceFileStart := methodMatch[1]
 	sourceFileEnd := methodMatch[2]
 	methodRealName := methodMatch[3]
@@ -155,14 +155,14 @@ func handleMappedMethodCall(res *map[string]string, methodMatch []string, curren
 		addMainCall(res, key, currentType, methodRealName, methodCallSite)
 		return &MappedMethodCall{mapReference, key}
 	} else if currentMappedMethodCall != nil && currentMappedMethodCall.reference == mapReference {
-		element, _ := (*res)[currentMappedMethodCall.key]
-		(*res)[currentMappedMethodCall.key] = element + "\n" + fmt.Sprintf("%s%s", strings.Repeat(" ", len(currentType.realName)+currentType.obfuscated.indentation), methodRealName)
+		element, _ := res[currentMappedMethodCall.key]
+		res[currentMappedMethodCall.key] = element + "\n" + fmt.Sprintf("%s%s", strings.Repeat(" ", len(currentType.realName)+currentType.obfuscated.indentation), methodRealName)
 	}
 
 	return currentMappedMethodCall
 }
 
-func ensureAllMethodsProvided(res *map[string]string, currentType *MappedType) {
+func ensureAllMethodsProvided(res map[string]string, currentType *MappedType) {
 	for methodName, callSite := range currentType.obfuscated.methods {
 		key := getKey(currentType, methodName, callSite)
 		addMainCall(res, key, currentType, methodName, callSite)
@@ -173,8 +173,8 @@ func getKey(currentType *MappedType, methodName string, callSite string) string 
 	return fmt.Sprintf("%s.%s(%s)", currentType.obfuscated.name, methodName, callSite)
 }
 
-func addMainCall(res *map[string]string, key string, currentType *MappedType, methodRealName string, callSite string) {
-	(*res)[key] = fmt.Sprintf("%s.%s(%s)", currentType.realName, methodRealName, callSite)
+func addMainCall(res map[string]string, key string, currentType *MappedType, methodRealName string, callSite string) {
+	res[key] = fmt.Sprintf("%s.%s(%s)", currentType.realName, methodRealName, callSite)
 }
 
 func getStacktraceType(symbols []StacktraceType, typeName string) *StacktraceType {
