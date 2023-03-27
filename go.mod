@@ -8,7 +8,7 @@ require (
 	github.com/dgraph-io/badger/v2 v2.2007.3-0.20201012072640-f5a7e0a1c83b
 	github.com/dustin/go-humanize v1.0.0
 	github.com/elastic/apm-data v0.1.1-0.20230130063651-f5680fd2c5aa
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230322225031-a8dbc6c06381
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230325214434-03079e38dccd
 	github.com/elastic/elastic-agent-client/v7 v7.0.3
 	github.com/elastic/elastic-agent-libs v0.3.3
 	github.com/elastic/elastic-agent-system-metrics v0.4.6
