@@ -35,14 +35,16 @@ See the relevant https://www.elastic.co/guide/en/apm/agent/index.html[Agent docu
 
 Once log correlation is enabled,
 you must ensure your logs contain APM identifiers.
+
 In some supported frameworks, this is already done for you.
 In other scenarios, like for unstructured logs,
 you'll need to add APM identifiers to your logs in any easy to parse manner.
 
-The identifiers we're interested in are: {ecs-ref}/ecs-tracing.html[`trace.id`] and
-{ecs-ref}/ecs-tracing.html[`transaction.id`]. Certain Agents also support the `span.id` field.
+Log correlation relies on these fields:
+- Service level: {ecs-ref}/ecs-service.html[`service.name`], {ecs-ref}/ecs-service.html[`service.version`], and {ecs-ref}/ecs-service.html[`service.environment`]
+- Trace level: {ecs-ref}/ecs-tracing.html[`trace.id`] and {ecs-ref}/ecs-tracing.html[`transaction.id`]
 
-This process for adding these fields will differ based the Agent you're using, the logging framework,
+The process for adding these fields will differ based the Agent you're using, the logging framework,
 and the type and structure of your logs.
 
 See the relevant https://www.elastic.co/guide/en/apm/agent/index.html[Agent documentation] to learn more.
