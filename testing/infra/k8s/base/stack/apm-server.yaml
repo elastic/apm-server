@@ -5,6 +5,10 @@ metadata:
 spec:
   version: 8.8.0-ba3f07b2-SNAPSHOT
   count: 1
+  http:
+    tls:
+      selfSignedCertificate:
+        disabled: true
   config:
     logging:
       level: debug
