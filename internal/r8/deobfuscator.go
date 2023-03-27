@@ -9,15 +9,10 @@ import (
 	"strings"
 )
 
-type StacktraceMethod struct {
-	reference string
-	callSite  string
-}
-
 type StacktraceType struct {
 	name        string
 	indentation int
-	methods     []StacktraceMethod
+	methods     map[string]string // Maps method references to their stacktrace call site
 }
 
 type MappedType struct {
@@ -63,12 +58,12 @@ func findUniqueTypes(stacktrace *string) []StacktraceType {
 			}
 			symbol := getSymbolForType(typeName, symbols)
 			if symbol == nil {
-				symbol = &StacktraceType{typeName, typeIndex + 1, make([]StacktraceMethod, 0)}
+				symbol = &StacktraceType{typeName, typeIndex + 1, make(map[string]string)}
 				symbols = append(symbols, symbol)
 			}
-			method := &StacktraceMethod{methodName, callSite}
-			if !containsMethod(symbol.methods, method) {
-				symbol.methods = append(symbol.methods, *method)
+			_, foundMethod := symbol.methods[methodName]
+			if !foundMethod {
+				symbol.methods[methodName] = callSite
 			}
 		}
 	}
@@ -83,16 +78,6 @@ func findUniqueTypes(stacktrace *string) []StacktraceType {
 	}
 
 	return result
-}
-
-func containsMethod(methods []StacktraceMethod, method *StacktraceMethod) bool {
-	for _, v := range methods {
-		if v == *method {
-			return true
-		}
-	}
-
-	return false
 }
 
 func getSymbolForType(typeName string, symbols []*StacktraceType) *StacktraceType {
@@ -164,12 +149,11 @@ func handleMappedMethodCall(res *map[string]string, methodMatch []string, curren
 		methodNameReference = fmt.Sprintf("%s:%s", methodObfuscatedName, sourceFileStart)
 	}
 	mapReference := currentType.obfuscated.name + ":" + methodNameReference
-	methods := &currentType.obfuscated.methods
-	stacktraceMethod, index := getStacktraceMethod(*methods, methodNameReference)
-	if stacktraceMethod != nil {
-		*methods = removeStacktraceMethod(*methods, index)
-		key := getKey(currentType, methodObfuscatedName, stacktraceMethod.callSite)
-		addMainCall(res, key, currentType, methodRealName, stacktraceMethod.callSite)
+	methodCallSite, foundMethod := currentType.obfuscated.methods[methodNameReference]
+	if foundMethod {
+		delete(currentType.obfuscated.methods, methodNameReference)
+		key := getKey(currentType, methodObfuscatedName, methodCallSite)
+		addMainCall(res, key, currentType, methodRealName, methodCallSite)
 		return &MappedMethodCall{mapReference, key}
 	} else if currentMappedMethodCall != nil && currentMappedMethodCall.reference == mapReference {
 		element, _ := (*res)[currentMappedMethodCall.key]
@@ -180,9 +164,7 @@ func handleMappedMethodCall(res *map[string]string, methodMatch []string, curren
 }
 
 func ensureAllMethodsProvided(res *map[string]string, currentType *MappedType) {
-	for _, stacktraceMethod := range currentType.obfuscated.methods {
-		methodName := stacktraceMethod.reference
-		callSite := stacktraceMethod.callSite
+	for methodName, callSite := range currentType.obfuscated.methods {
 		key := getKey(currentType, methodName, callSite)
 		addMainCall(res, key, currentType, methodName, callSite)
 	}
@@ -194,23 +176,6 @@ func getKey(currentType *MappedType, methodName string, callSite string) string 
 
 func addMainCall(res *map[string]string, key string, currentType *MappedType, methodRealName string, callSite string) {
 	(*res)[key] = fmt.Sprintf("%s.%s(%s)", currentType.realName, methodRealName, callSite)
-}
-
-func getStacktraceMethod(slice []StacktraceMethod, reference string) (*StacktraceMethod, int) {
-	for i, v := range slice {
-		if v.reference == reference {
-			return &v, i
-		}
-	}
-
-	return nil, -1
-}
-
-func removeStacktraceMethod(slice []StacktraceMethod, index int) []StacktraceMethod {
-	newSlice := make([]StacktraceMethod, 0)
-	newSlice = append(newSlice, slice[:index]...)
-	newSlice = append(newSlice, slice[index+1:]...)
-	return newSlice
 }
 
 func getStacktraceType(symbols []StacktraceType, typeName string) *StacktraceType {
