@@ -1,6 +1,6 @@
 custom_build(
   'apm-server',
-  'docker build -t $EXPECTED_REF -f packaging/docker/Dockerfile .',
+  'DOCKER_BUILDKIT=1 docker build -t $EXPECTED_REF -f packaging/docker/Dockerfile .',
   deps = ['.'],
   ignore = ['**/*_test.go', 'tools/**', 'systemtest/**', 'docs/**'],
 )
