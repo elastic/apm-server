@@ -150,16 +150,18 @@ func findMappingFor(symbols []StacktraceType, mapFilePath string) map[string]str
 }
 
 func handleMappedMethodCall(res *map[string]string, methodMatch []string, currentType *MappedType, currentMappedMethodCall *MappedMethodCall) *MappedMethodCall {
-	sourceFile := methodMatch[1]
-	sourceFileEndRange := methodMatch[2]
+	sourceFileStart := methodMatch[1]
+	sourceFileEnd := methodMatch[2]
 	methodRealName := methodMatch[3]
 	methodObfuscatedName := methodMatch[4]
 	methodNameReference := methodObfuscatedName
-	if sourceFile != "" {
-		if sourceFile != sourceFileEndRange {
+	if sourceFileStart != "" {
+		if sourceFileStart != sourceFileEnd {
+			// This is probably due an edge-case where the mapping line starts with different numbers (e.g 1:2). We don't
+			// have that case in our tests, therefore we are ignoring it.
 			return currentMappedMethodCall
 		}
-		methodNameReference = fmt.Sprintf("%s:%s", methodObfuscatedName, sourceFile)
+		methodNameReference = fmt.Sprintf("%s:%s", methodObfuscatedName, sourceFileStart)
 	}
 	mapReference := currentType.obfuscated.name + ":" + methodNameReference
 	methods := &currentType.obfuscated.methods
