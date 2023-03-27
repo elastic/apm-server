@@ -24,6 +24,13 @@ type MappedMethodCall struct {
 	key       string
 }
 
+type MethodMatch struct {
+	sourceFileStart      string
+	sourceFileEnd        string
+	methodRealName       string
+	methodObfuscatedName string
+}
+
 var symbolPattern = regexp.MustCompile(`^\s*at (.+)\.(.+)\((.+)\)$`)
 var sourceFilePattern = regexp.MustCompile(`SourceFile:(\d+)`)
 var typePattern = regexp.MustCompile(`^(\S+) -> (\S+):$`)
@@ -118,7 +125,12 @@ func findMappingFor(symbols []StacktraceType, mapFilePath string) (map[string]st
 		} else if currentType != nil {
 			methodMatch := methodPattern.FindStringSubmatch(line)
 			if methodMatch != nil {
-				currentMappedMethodCall = handleMappedMethodCall(res, methodMatch, currentType, currentMappedMethodCall)
+				currentMappedMethodCall = handleMappedMethodCall(res, MethodMatch{
+					methodMatch[1],
+					methodMatch[2],
+					methodMatch[3],
+					methodMatch[4],
+				}, currentType, currentMappedMethodCall)
 			}
 		}
 	}
@@ -133,30 +145,26 @@ func findMappingFor(symbols []StacktraceType, mapFilePath string) (map[string]st
 	return res, nil
 }
 
-func handleMappedMethodCall(res map[string]string, methodMatch []string, currentType *MappedType, currentMappedMethodCall *MappedMethodCall) *MappedMethodCall {
-	sourceFileStart := methodMatch[1]
-	sourceFileEnd := methodMatch[2]
-	methodRealName := methodMatch[3]
-	methodObfuscatedName := methodMatch[4]
-	methodNameReference := methodObfuscatedName
-	if sourceFileStart != "" {
-		if sourceFileStart != sourceFileEnd {
+func handleMappedMethodCall(res map[string]string, methodMatch MethodMatch, currentType *MappedType, currentMappedMethodCall *MappedMethodCall) *MappedMethodCall {
+	methodNameReference := methodMatch.methodObfuscatedName
+	if methodMatch.sourceFileStart != "" {
+		if methodMatch.sourceFileStart != methodMatch.sourceFileEnd {
 			// This is probably due an edge-case where the mapping line starts with different numbers (e.g 1:2). We don't
 			// have that case in our tests, therefore we are ignoring it.
 			return currentMappedMethodCall
 		}
-		methodNameReference = fmt.Sprintf("%s:%s", methodObfuscatedName, sourceFileStart)
+		methodNameReference = fmt.Sprintf("%s:%s", methodMatch.methodObfuscatedName, methodMatch.sourceFileStart)
 	}
 	mapReference := currentType.obfuscated.name + ":" + methodNameReference
 	methodCallSite, foundMethod := currentType.obfuscated.methods[methodNameReference]
 	if foundMethod {
 		delete(currentType.obfuscated.methods, methodNameReference)
-		key := getKey(currentType, methodObfuscatedName, methodCallSite)
-		addMainCall(res, key, currentType, methodRealName, methodCallSite)
+		key := getKey(currentType, methodMatch.methodObfuscatedName, methodCallSite)
+		addMainCall(res, key, currentType, methodMatch.methodRealName, methodCallSite)
 		return &MappedMethodCall{mapReference, key}
 	} else if currentMappedMethodCall != nil && currentMappedMethodCall.reference == mapReference {
 		element, _ := res[currentMappedMethodCall.key]
-		res[currentMappedMethodCall.key] = element + "\n" + fmt.Sprintf("%s%s", strings.Repeat(" ", len(currentType.realName)+currentType.obfuscated.indentation), methodRealName)
+		res[currentMappedMethodCall.key] = element + "\n" + fmt.Sprintf("%s%s", strings.Repeat(" ", len(currentType.realName)+currentType.obfuscated.indentation), methodMatch.methodRealName)
 	}
 
 	return currentMappedMethodCall
