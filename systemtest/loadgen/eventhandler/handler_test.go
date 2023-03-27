@@ -27,6 +27,7 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
+	"math/rand"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -122,6 +123,18 @@ func withRateLimiter(l *rate.Limiter) newHandlerOption {
 func withRewriteTimestamps(rewrite bool) newHandlerOption {
 	return func(config *Config) {
 		config.RewriteTimestamps = rewrite
+	}
+}
+
+func withRewriteIDs(rewrite bool) newHandlerOption {
+	return func(config *Config) {
+		config.RewriteIDs = rewrite
+	}
+}
+
+func withRand(rand *rand.Rand) newHandlerOption {
+	return func(config *Config) {
+		config.Rand = rand
 	}
 }
 
@@ -310,6 +323,71 @@ func TestHandlerSendBatchesRewriteTimestamps(t *testing.T) {
 	run(t, true)
 }
 
+func TestHandlerSendBatchesRewriteIDs(t *testing.T) {
+	traceID := "aaa111f"
+	transactionID := "bbb222"
+	spanID := "ccc333"
+	errorID := "ffffffffeeeeeeee"
+
+	originalPayload := fmt.Sprintf(`
+{"metadata":{}}
+{"transaction":{"id":%q,"trace_id":%q}}
+{"span":{"id":%q,"parent_id":%q,"trace_id":%q,"transaction_id":%q}}
+{"metricset":{}}
+{"error":{"id":%q}}
+`[1:], transactionID, traceID, spanID, transactionID, traceID, transactionID, errorID)
+
+	fs := fstest.MapFS{"foo.ndjson": {Data: []byte(originalPayload)}}
+
+	run := func(t *testing.T, rewrite bool) {
+		t.Helper()
+		t.Run(strconv.FormatBool(rewrite), func(t *testing.T) {
+			handler, srv := newHandler(t,
+				withStorage(fs),
+				withRewriteIDs(rewrite),
+				withRand(rand.New(rand.NewSource(0))), // known seed
+			)
+			_, err := handler.SendBatches(context.Background())
+			assert.NoError(t, err)
+
+			if !rewrite {
+				// Original payload should be sent as-is.
+				assert.Equal(t, originalPayload, srv.got.String())
+				return
+			}
+
+			d := json.NewDecoder(bytes.NewReader(srv.got.Bytes()))
+			type object map[string]struct {
+				ID            string `json:"id"`
+				ParentID      string `json:"parent_id"`
+				SpanID        string `json:"span_id"`
+				TraceID       string `json:"trace_id"`
+				TransactionID string `json:"transaction_id"`
+			}
+			var objects []object
+			for {
+				var object object
+				err := d.Decode(&object)
+				if errors.Is(err, io.EOF) {
+					break
+				}
+				require.NoError(t, err)
+				objects = append(objects, object)
+			}
+
+			assert.Equal(t, []object{
+				{"metadata": {}},
+				{"transaction": {ID: "ac3de0", TraceID: "bd2ed30"}},
+				{"span": {ID: "db4cf1", ParentID: "ac3de0", TransactionID: "ac3de0", TraceID: "bd2ed30"}},
+				{"metricset": {}},
+				{"error": {ID: "e8703d0042c137ae"}},
+			}, objects)
+		})
+	}
+	run(t, false)
+	run(t, true)
+}
+
 func TestHandlerWarmUp(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		h, srv := newHandler(t)
@@ -354,5 +432,8 @@ func BenchmarkSendBatches(b *testing.B) {
 	})
 	b.Run("rewrite_timestamps", func(b *testing.B) {
 		run(b, withRewriteTimestamps(true))
+	})
+	b.Run("rewrite_ids", func(b *testing.B) {
+		run(b, withRewriteIDs(true))
 	})
 }
