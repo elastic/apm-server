@@ -159,7 +159,7 @@ func handleMappedMethodCall(res map[string]string, methodMatch MethodMatch, curr
 	methodCallSite, foundMethod := currentType.obfuscated.methods[methodNameReference]
 	if foundMethod {
 		delete(currentType.obfuscated.methods, methodNameReference)
-		key := getKey(currentType, methodMatch.methodObfuscatedName, methodCallSite)
+		key := getKey(currentType.obfuscated.name, methodMatch.methodObfuscatedName, methodCallSite)
 		addMainCall(res, key, currentType, methodMatch.methodRealName, methodCallSite)
 		return &MappedMethodCall{mapReference, key}
 	} else if currentMappedMethodCall != nil && currentMappedMethodCall.reference == mapReference {
@@ -172,13 +172,13 @@ func handleMappedMethodCall(res map[string]string, methodMatch MethodMatch, curr
 
 func ensureAllMethodsProvided(res map[string]string, currentType *MappedType) {
 	for methodName, callSite := range currentType.obfuscated.methods {
-		key := getKey(currentType, methodName, callSite)
+		key := getKey(currentType.obfuscated.name, methodName, callSite)
 		addMainCall(res, key, currentType, methodName, callSite)
 	}
 }
 
-func getKey(currentType *MappedType, methodName string, callSite string) string {
-	return fmt.Sprintf("%s.%s(%s)", currentType.obfuscated.name, methodName, callSite)
+func getKey(typeName string, methodName string, callSite string) string {
+	return fmt.Sprintf("%s.%s(%s)", typeName, methodName, callSite)
 }
 
 func addMainCall(res map[string]string, key string, currentType *MappedType, methodRealName string, callSite string) {
