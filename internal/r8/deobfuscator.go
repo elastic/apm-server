@@ -43,7 +43,7 @@ func Deobfuscate(stacktrace string, mapFilePath string) string {
 }
 
 func findUniqueTypes(stacktrace string) []StacktraceType {
-	var symbols = make([]*StacktraceType, 0)
+	var symbols = make(map[string]StacktraceType)
 	scanner := bufio.NewScanner(strings.NewReader(stacktrace))
 
 	for scanner.Scan() {
@@ -58,10 +58,10 @@ func findUniqueTypes(stacktrace string) []StacktraceType {
 			if sourceFileMatch != nil {
 				methodName = fmt.Sprintf("%s:%s", methodName, sourceFileMatch[1])
 			}
-			symbol := getSymbolForType(typeName, symbols)
-			if symbol == nil {
-				symbol = &StacktraceType{typeName, typeIndex + 1, make(map[string]string)}
-				symbols = append(symbols, symbol)
+			symbol, found := symbols[typeName]
+			if !found {
+				symbol = StacktraceType{typeName, typeIndex + 1, make(map[string]string)}
+				symbols[typeName] = symbol
 			}
 			_, foundMethod := symbol.methods[methodName]
 			if !foundMethod {
@@ -74,21 +74,12 @@ func findUniqueTypes(stacktrace string) []StacktraceType {
 		log.Fatal(err)
 	}
 
-	var result = make([]StacktraceType, len(symbols))
-	for i, v := range symbols {
-		result[i] = *v
+	var result = make([]StacktraceType, 0, len(symbols))
+	for _, symbol := range symbols {
+		result = append(result, symbol)
 	}
 
 	return result
-}
-
-func getSymbolForType(typeName string, symbols []*StacktraceType) *StacktraceType {
-	for _, v := range symbols {
-		if v.name == typeName {
-			return v
-		}
-	}
-	return nil
 }
 
 func findMappingFor(symbols []StacktraceType, mapFilePath string) map[string]string {
