@@ -3,7 +3,6 @@ package r8
 import (
 	"fmt"
 	"github.com/stretchr/testify/assert"
-	"io"
 	"log"
 	"os"
 	"testing"
@@ -30,18 +29,9 @@ func TestDeobfuscation(t *testing.T) {
 }
 
 func readFile(path string) string {
-	file, err := os.Open(path)
+	bytes, err := os.ReadFile(path)
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	defer file.Close()
-
-	bytes, err := io.ReadAll(file)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	return string(bytes)
 }
