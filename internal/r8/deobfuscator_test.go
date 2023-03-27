@@ -16,9 +16,9 @@ func TestDeobfuscation(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		inputPath := c + "/obfuscated-crash.txt"
-		expectedOutputPath := c + "/de-obfuscated-crash.txt"
-		mapFilePath := c + "/mapping.txt"
+		inputPath := c + "/obfuscated-crash"
+		expectedOutputPath := c + "/de-obfuscated-crash"
+		mapFilePath := c + "/mapping"
 		t.Run(fmt.Sprintf("(%s)->(%s)", inputPath, expectedOutputPath), func(t *testing.T) {
 			obfuscated := readFile(inputPath)
 			expected := readFile(expectedOutputPath)
