@@ -627,12 +627,26 @@ IMPORTANT: {deprecation-notice-config}
 If you've already upgraded, see <<anonymous-auth>>.
 
 Elastic APM agents can send unauthenticated (anonymous) events to the APM Server.
-This is useful for agents that run on clients, like the Real User Monitoring (RUM) agent running in a browser,
-or the iOS/Swift agent running in a user application.
-Incoming requests are considered to be anonymous if no authentication token can be extracted from the incoming request.
-By default, these anonymous requests are rejected and an authentication error is returned.
+An event is considered to be anonymous if no authentication token can be extracted from the incoming request.
+The APM Server's default response to these these requests depends on its configuration:
 
-Anonymous authentication must be enabled to collect RUM data.
+[options="header"]
+|====
+|Configuration |Default
+|An <<api-key,API key>> or <<secret-token,secret token>> is configured | Anonymous requests are rejected and an authentication error is returned.
+|No API key or secret token is configured | Anonymous requests are accepted by the APM Server.
+|====
+
+In some cases, however, it makes sense to allow both authenticated and anonymous requests.
+For example, it isn't possible to authenticate requests from front-end services as
+the secret token or API key can't be protected. This is the case with the Real User Monitoring (RUM)
+agent running in a browser, or the iOS/Swift agent running in a user application.
+However, you still likely want to authenticate requests from back-end services.
+To solve this problem, you can enable anonymous authentication in the APM Server to allow the
+ingestion of unauthenticated client-side APM data while still requiring authentication for server-side services.
+
+When an <<api-key,API key>> or <<secret-token,secret token>> is configured,
+anonymous authentication must be enabled to collect RUM data.
 To enable anonymous access, set either <<rum-enable,`apm-server.rum.enabled`>> or
 <<config-auth-anon-enabled,`apm-server.auth.anonymous.enabled`>> to `true`.
 
