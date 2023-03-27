@@ -3,7 +3,6 @@ package r8
 import (
 	"bufio"
 	"fmt"
-	"log"
 	"os"
 	"regexp"
 	"strings"
@@ -30,19 +29,25 @@ var sourceFilePattern = regexp.MustCompile(`SourceFile:(\d+)`)
 var typePattern = regexp.MustCompile(`^(\S+) -> (\S+):$`)
 var methodPattern = regexp.MustCompile(`(?:(\d+):(\d+):)*\S+ (\S+)\(.*\)(?:[:\d]+)* -> (\S+)`)
 
-func Deobfuscate(stacktrace string, mapFilePath string) string {
-	types := findUniqueTypes(stacktrace)
-	mapping := findMappingFor(types, mapFilePath)
+func Deobfuscate(stacktrace string, mapFilePath string) (string, error) {
+	types, err := findUniqueTypes(stacktrace)
+	if err != nil {
+		return "", err
+	}
+	mapping, err := findMappingFor(types, mapFilePath)
+	if err != nil {
+		return "", err
+	}
 
 	deobfuscated := stacktrace
 	for k, v := range mapping {
 		deobfuscated = strings.ReplaceAll(deobfuscated, k, v)
 	}
 
-	return deobfuscated
+	return deobfuscated, nil
 }
 
-func findUniqueTypes(stacktrace string) []StacktraceType {
+func findUniqueTypes(stacktrace string) ([]StacktraceType, error) {
 	var symbols = make(map[string]StacktraceType)
 	scanner := bufio.NewScanner(strings.NewReader(stacktrace))
 
@@ -71,7 +76,7 @@ func findUniqueTypes(stacktrace string) []StacktraceType {
 	}
 
 	if err := scanner.Err(); err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	var result = make([]StacktraceType, 0, len(symbols))
@@ -79,13 +84,13 @@ func findUniqueTypes(stacktrace string) []StacktraceType {
 		result = append(result, symbol)
 	}
 
-	return result
+	return result, nil
 }
 
-func findMappingFor(symbols []StacktraceType, mapFilePath string) map[string]string {
+func findMappingFor(symbols []StacktraceType, mapFilePath string) (map[string]string, error) {
 	mapFile, err := os.Open(mapFilePath)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	defer mapFile.Close()
@@ -119,10 +124,10 @@ func findMappingFor(symbols []StacktraceType, mapFilePath string) map[string]str
 	}
 
 	if err := scanner.Err(); err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
-	return res
+	return res, nil
 }
 
 func handleMappedMethodCall(res *map[string]string, methodMatch []string, currentType *MappedType, currentMappedMethodCall *MappedMethodCall) *MappedMethodCall {
