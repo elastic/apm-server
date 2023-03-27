@@ -25,11 +25,11 @@ type MappedMethodCall struct {
 	key       string
 }
 
-func Deobfuscate(stacktrace *string, mapFilePath string) string {
+func Deobfuscate(stacktrace string, mapFilePath string) string {
 	types := findUniqueTypes(stacktrace)
 	mapping := findMappingFor(types, mapFilePath)
 
-	deobfuscated := *stacktrace
+	deobfuscated := stacktrace
 	for k, v := range mapping {
 		deobfuscated = strings.ReplaceAll(deobfuscated, k, v)
 	}
@@ -37,12 +37,12 @@ func Deobfuscate(stacktrace *string, mapFilePath string) string {
 	return deobfuscated
 }
 
-func findUniqueTypes(stacktrace *string) []StacktraceType {
+func findUniqueTypes(stacktrace string) []StacktraceType {
 	symbolPattern := regexp.MustCompile("^\\s*at (.+)(?:\\.(.+)\\((.+)\\))$")
 	sourceFilePattern := regexp.MustCompile("SourceFile:(\\d+)")
 
 	var symbols = make([]*StacktraceType, 0)
-	scanner := bufio.NewScanner(strings.NewReader(*stacktrace))
+	scanner := bufio.NewScanner(strings.NewReader(stacktrace))
 
 	for scanner.Scan() {
 		line := scanner.Text()
