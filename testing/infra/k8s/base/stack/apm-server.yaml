@@ -16,9 +16,6 @@ spec:
   elasticsearchRef:
     name: elasticsearch
     namespace: default
-  kibanaRef:
-    name: kibana
-    namespace: default
   podTemplate:
     spec:
       containers:
