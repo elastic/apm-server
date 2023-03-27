@@ -122,6 +122,9 @@ func findMappingFor(symbols []StacktraceType, mapFilePath string) (map[string]st
 			}
 		}
 	}
+	if currentType != nil {
+		ensureAllMethodsProvided(&res, currentType)
+	}
 
 	if err := scanner.Err(); err != nil {
 		return nil, err
