@@ -54,7 +54,7 @@ func Deobfuscate(stacktrace string, mapFilePath string) (string, error) {
 	return deobfuscated, nil
 }
 
-func findUniqueTypes(stacktrace string) ([]StacktraceType, error) {
+func findUniqueTypes(stacktrace string) (map[string]StacktraceType, error) {
 	var symbols = make(map[string]StacktraceType)
 	scanner := bufio.NewScanner(strings.NewReader(stacktrace))
 
@@ -86,15 +86,10 @@ func findUniqueTypes(stacktrace string) ([]StacktraceType, error) {
 		return nil, err
 	}
 
-	var result = make([]StacktraceType, 0, len(symbols))
-	for _, symbol := range symbols {
-		result = append(result, symbol)
-	}
-
-	return result, nil
+	return symbols, nil
 }
 
-func findMappingFor(symbols []StacktraceType, mapFilePath string) (map[string]string, error) {
+func findMappingFor(symbols map[string]StacktraceType, mapFilePath string) (map[string]string, error) {
 	mapFile, err := os.Open(mapFilePath)
 	if err != nil {
 		return nil, err
@@ -116,9 +111,9 @@ func findMappingFor(symbols []StacktraceType, mapFilePath string) (map[string]st
 				ensureAllMethodsProvided(res, currentType)
 			}
 			obfuscatedName := typeMatch[2]
-			stacktraceType := getStacktraceType(symbols, obfuscatedName)
-			if stacktraceType != nil {
-				currentType = &MappedType{*stacktraceType, typeMatch[1]}
+			stacktraceType, found := symbols[obfuscatedName]
+			if found {
+				currentType = &MappedType{stacktraceType, typeMatch[1]}
 			} else {
 				currentType = nil
 			}
@@ -179,14 +174,4 @@ func ensureAllMethodsProvided(res map[string]string, currentType *MappedType) {
 
 func getKey(typeName string, methodName string, callSite string) string {
 	return fmt.Sprintf("%s.%s(%s)", typeName, methodName, callSite)
-}
-
-func getStacktraceType(symbols []StacktraceType, typeName string) *StacktraceType {
-	for _, v := range symbols {
-		if v.name == typeName {
-			return &v
-		}
-	}
-
-	return nil
 }
