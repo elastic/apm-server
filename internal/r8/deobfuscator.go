@@ -25,6 +25,11 @@ type MappedMethodCall struct {
 	key       string
 }
 
+var symbolPattern = regexp.MustCompile(`^\s*at (.+)\.(.+)\((.+)\)$`)
+var sourceFilePattern = regexp.MustCompile(`SourceFile:(\d+)`)
+var typePattern = regexp.MustCompile(`^(\S+) -> (\S+):$`)
+var methodPattern = regexp.MustCompile(`(?:(\d+):(\d+):)*\S+ (\S+)\(.*\)(?:[:\d]+)* -> (\S+)`)
+
 func Deobfuscate(stacktrace string, mapFilePath string) string {
 	types := findUniqueTypes(stacktrace)
 	mapping := findMappingFor(types, mapFilePath)
@@ -38,9 +43,6 @@ func Deobfuscate(stacktrace string, mapFilePath string) string {
 }
 
 func findUniqueTypes(stacktrace string) []StacktraceType {
-	symbolPattern := regexp.MustCompile(`^\s*at (.+)\.(.+)\((.+)\)$`)
-	sourceFilePattern := regexp.MustCompile(`SourceFile:(\d+)`)
-
 	var symbols = make([]*StacktraceType, 0)
 	scanner := bufio.NewScanner(strings.NewReader(stacktrace))
 
@@ -98,8 +100,6 @@ func findMappingFor(symbols []StacktraceType, mapFilePath string) map[string]str
 	defer mapFile.Close()
 
 	var res = make(map[string]string)
-	typePattern := regexp.MustCompile(`^(\S+) -> (\S+):$`)
-	methodPattern := regexp.MustCompile(`(?:(\d+):(\d+):)*\S+ (\S+)\(.*\)(?:[:\d]+)* -> (\S+)`)
 	scanner := bufio.NewScanner(mapFile)
 	var currentType *MappedType
 	var currentMappedMethodCall *MappedMethodCall
