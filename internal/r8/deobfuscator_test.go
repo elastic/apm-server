@@ -23,7 +23,7 @@ func TestDeobfuscation(t *testing.T) {
 		t.Run(fmt.Sprintf("(%s)->(%s)", inputPath, expectedOutputPath), func(t *testing.T) {
 			obfuscated := readFile(inputPath)
 			expected := readFile(expectedOutputPath)
-			deobfuscated := Deobfuscate(obfuscated, mapFilePath)
+			deobfuscated, _ := Deobfuscate(obfuscated, mapFilePath)
 			assert.Equal(t, expected, deobfuscated)
 		})
 	}
