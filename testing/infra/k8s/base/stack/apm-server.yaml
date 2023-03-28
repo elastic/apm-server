@@ -14,7 +14,6 @@ spec:
       level: debug
     output:
       elasticsearch:
-        hosts: ["http://elasticsearch-es-http.default.svc:9200"]
         username: admin
         password: changeme
   elasticsearchRef:
