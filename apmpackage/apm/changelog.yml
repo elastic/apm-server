@@ -65,6 +65,9 @@
     - description: Add `event.{labels,numeric_labels}` to service destination metrics
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/10297
+    - description: Update 10m,60m metrics delete phase to 180d, 390d
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/10422
 - version: "8.6.0"
   changes:
     - description: Change `ecs.version` to a `constant_keyword` field
