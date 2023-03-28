@@ -32,6 +32,7 @@ var Config struct {
 	APIKey            string
 	Secure            bool
 	MaxEPM            int
+	RewriteIDs        bool
 	RewriteTimestamps bool
 }
 
@@ -78,6 +79,13 @@ func init() {
 		"rewrite-timestamps",
 		false,
 		"rewrite event timestamps every iteration, maintaining relative offsets",
+	)
+
+	flag.BoolVar(
+		&Config.RewriteIDs,
+		"rewrite-ids",
+		false,
+		"rewrite event IDs every iteration, maintaining event relationships",
 	)
 
 	// For configs that can be set via environment variables, set the required

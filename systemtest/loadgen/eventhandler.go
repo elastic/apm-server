@@ -19,6 +19,7 @@ package loadgen
 
 import (
 	"embed"
+	"math/rand"
 	"path/filepath"
 
 	"golang.org/x/time/rate"
@@ -39,6 +40,8 @@ type EventHandlerParams struct {
 	Token             string
 	APIKey            string
 	Limiter           *rate.Limiter
+	Rand              *rand.Rand
+	RewriteIDs        bool
 	RewriteTimestamps bool
 }
 
@@ -57,6 +60,8 @@ func NewEventHandler(p EventHandlerParams) (*eventhandler.Handler, error) {
 		Transport:         transp,
 		Storage:           events,
 		Limiter:           p.Limiter,
+		Rand:              p.Rand,
+		RewriteIDs:        p.RewriteIDs,
 		RewriteTimestamps: p.RewriteTimestamps,
 	})
 }

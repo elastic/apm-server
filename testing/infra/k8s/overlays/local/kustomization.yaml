@@ -22,21 +22,9 @@ patches:
                 requests:
                   memory: "150Mi"
 - patch: |-
-    apiVersion: agent.k8s.elastic.co/v1alpha1
-    kind: Agent
+    apiVersion: apm.k8s.elastic.co/v1
+    kind: ApmServer
     metadata:
       name: apm-server
     spec:
-      image: elastic-agent
-- patch: |-
-    apiVersion: agent.k8s.elastic.co/v1alpha1
-    kind: Agent
-    metadata:
-      name: fleet-server
-    spec:
-      # Even though we're using the standard elastic-agent image,
-      # we must specify image to appease Tilt's k8s_kind. We specify
-      # image_json_path for overriding the apm-server image (see above),
-      # and we use the same CRD kind for both apm-server and fleet-server.
-      # As soon as you specify image_json_path, it *must* match an image.
-      image: docker.elastic.co/beats/elastic-agent:8.8.0-ba3f07b2-SNAPSHOT
+      image: apm-server
