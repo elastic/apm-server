@@ -1,25 +1,28 @@
-apiVersion: agent.k8s.elastic.co/v1alpha1
-kind: Agent
+apiVersion: apm.k8s.elastic.co/v1
+kind: ApmServer
 metadata:
   name: apm-server
-  namespace: default
 spec:
   version: 8.8.0-ba3f07b2-SNAPSHOT
-  mode: fleet
-  policyID: eck-apm-server
-  kibanaRef:
-    name: kibana
-  fleetServerRef:
-    name: fleet-server
-  deployment:
-    replicas: 1
-    strategy:
-      # Can be changed to "Replace" for extremely memory limited environments.
-      type: "RollingUpdate"
-    podTemplate:
-      spec:
-        containers:
-        - name: agent
+  count: 1
+  http:
+    tls:
+      selfSignedCertificate:
+        disabled: true
+  config:
+    logging:
+      level: debug
+    output:
+      elasticsearch:
+        username: admin
+        password: changeme
+  elasticsearchRef:
+    name: elasticsearch
+    namespace: default
+  podTemplate:
+    spec:
+      containers:
+        - name: apm-server
           resources:
             limits:
               cpu: 1
@@ -27,5 +30,3 @@ spec:
             requests:
               cpu: 1
               memory: "1Gi"
-        securityContext:
-          runAsUser: 0

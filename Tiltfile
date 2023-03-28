@@ -1,8 +1,8 @@
-# Build a custom elastic-agent image with a locally built apm-server binary injected.
 custom_build(
-  'elastic-agent',
-  'bash ./testing/docker/elastic-agent/build.sh -t $EXPECTED_REF',
-  ['go.mod', 'go.sum', 'Makefile', '*.mk', '.git', 'cmd', 'internal', 'x-pack'],
+  'apm-server',
+  'DOCKER_BUILDKIT=1 docker build -t $EXPECTED_REF -f packaging/docker/Dockerfile .',
+  deps = ['.'],
+  ignore = ['**/*_test.go', 'tools/**', 'systemtest/**', 'docs/**'],
 )
 
 # Build and install the APM integration package whenever source under
@@ -19,7 +19,7 @@ local_resource(
 
 k8s_yaml(kustomize('testing/infra/k8s/overlays/local'))
 
-k8s_kind('Agent', image_json_path='{.spec.image}')
+k8s_kind('ApmServer', image_json_path='{.spec.image}')
 k8s_kind('Kibana')
 k8s_kind('Elasticsearch')
 
