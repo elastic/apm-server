@@ -4,4 +4,3 @@ resources:
   - stack/elasticsearch.yaml
   - stack/kibana.yaml
   - stack/apm-server.yaml
-  - stack/fleet-server.yaml

@@ -56,17 +56,6 @@ targets:
       files:
         - testing/infra/k8s/base/stack/apm-server.yaml
         - testing/infra/k8s/base/stack/elasticsearch.yaml
-        - testing/infra/k8s/base/stack/fleet-server.yaml
         - testing/infra/k8s/base/stack/kibana.yaml
       matchpattern: 'version: \d+.\d+.\d+-.*-SNAPSHOT'
       replacepattern: 'version: {{ source "latestVersion" }}-SNAPSHOT'
-
-  update-kustomization:
-    name: "Update kustomization.yaml"
-    kind: file
-    sourceid: latestVersion
-    scmid: default
-    spec:
-      file: testing/infra/k8s/overlays/local/kustomization.yaml
-      matchpattern: '(image: docker\.elastic\.co/.*):\d+.\d+.\d+-.*-SNAPSHOT'
-      replacepattern: '$1:{{ source "latestVersion" }}-SNAPSHOT'
