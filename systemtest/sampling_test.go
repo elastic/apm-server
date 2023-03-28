@@ -20,7 +20,6 @@ package systemtest_test
 import (
 	"context"
 	"errors"
-	"sync"
 	"testing"
 	"time"
 
@@ -90,36 +89,51 @@ func TestDropUnsampled(t *testing.T) {
 func TestTailSampling(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
 
-	var wg sync.WaitGroup
-	wg.Add(2)
-	var apmIntegration1 apmIntegration
-	var apmIntegration2 apmIntegration
+	srv1 := apmservertest.NewUnstartedServerTB(t)
+	srv1.Config.Sampling = &apmservertest.SamplingConfig{
+		Tail: &apmservertest.TailSamplingConfig{
+			Enabled:  true,
+			Interval: 1 * time.Second,
+			Policies: []apmservertest.TailSamplingPolicy{
+				{
+					SampleRate: 0.5,
+				},
+			},
+		},
+	}
+	srv1.Config.Monitoring = &apmservertest.MonitoringConfig{
+		Enabled:       true,
+		MetricsPeriod: 100 * time.Millisecond,
+		StatePeriod:   100 * time.Millisecond,
+	}
+	err := srv1.Start()
+	require.NoError(t, err)
 
-	go func() {
-		defer wg.Done()
-		apmIntegration1 = newAPMIntegration(t, map[string]interface{}{
-			"tail_sampling_enabled":  true,
-			"tail_sampling_interval": "1s",
-			"tail_sampling_policies": []map[string]interface{}{{"sample_rate": 0.5}},
-		})
-	}()
-
-	go func() {
-		defer wg.Done()
-		apmIntegration2 = newAPMIntegration(t, map[string]interface{}{
-			"tail_sampling_enabled":  true,
-			"tail_sampling_interval": "1s",
-			"tail_sampling_policies": []map[string]interface{}{{"sample_rate": 0.5}},
-		})
-	}()
-
-	wg.Wait()
+	srv2 := apmservertest.NewUnstartedServerTB(t)
+	srv2.Config.Sampling = &apmservertest.SamplingConfig{
+		Tail: &apmservertest.TailSamplingConfig{
+			Enabled:  true,
+			Interval: 1 * time.Second,
+			Policies: []apmservertest.TailSamplingPolicy{
+				{
+					SampleRate: 0.5,
+				},
+			},
+		},
+	}
+	srv2.Config.Monitoring = &apmservertest.MonitoringConfig{
+		Enabled:       true,
+		MetricsPeriod: 100 * time.Millisecond,
+		StatePeriod:   100 * time.Millisecond,
+	}
+	err = srv2.Start()
+	require.NoError(t, err)
 
 	const total = 200
 	const expected = 100 // 50%
 
-	tracer1 := apmIntegration1.Tracer
-	tracer2 := apmIntegration2.Tracer
+	tracer1 := srv1.Tracer()
+	tracer2 := srv2.Tracer()
 	for i := 0; i < total; i++ {
 		parent := tracer1.StartTransaction("GET /", "parent")
 		parent.Duration = time.Second * time.Duration(i+1)
@@ -151,8 +165,8 @@ func TestTailSampling(t *testing.T) {
 	}
 
 	// Make sure apm-server.sampling.tail metrics are published. Metric values are unit tested.
-	doc := apmIntegration1.getBeatsMonitoringStats(t, nil)
-	assert.True(t, gjson.GetBytes(doc.RawSource, "apm-server.sampling.tail").Exists())
+	doc := getBeatsMonitoringStats(t, srv1, nil)
+	assert.True(t, gjson.GetBytes(doc.RawSource, "beats_stats.metrics.apm-server.sampling.tail").Exists(), string(doc.RawSource))
 
 	// Check tail-sampling config is reported in telemetry.
 	var state struct {
@@ -165,7 +179,7 @@ func TestTailSampling(t *testing.T) {
 			}
 		} `mapstructure:"apm-server"`
 	}
-	apmIntegration1.getBeatsMonitoringState(t, &state)
+	getBeatsMonitoringState(t, srv1, &state)
 	assert.True(t, state.APMServer.Sampling.Tail.Enabled)
 	assert.Equal(t, 1, state.APMServer.Sampling.Tail.Policies)
 }
