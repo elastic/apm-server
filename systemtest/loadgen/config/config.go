@@ -91,14 +91,9 @@ func init() {
 	flag.Func("header",
 		"extra headers to use when sending data to the apm-server",
 		func(s string) error {
-			var k, v string
-			if i := strings.IndexRune(s, '='); i > 0 {
-				k = s[0:i]
-				v = s[i+1:]
-			}
-			if k == "" || v == "" {
+			k, v, ok := strings.Cut(s, "=")
+			if !ok {
 				return fmt.Errorf("invalid header '%s': format must be key=value", s)
-
 			}
 			if len(Config.Headers) == 0 {
 				Config.Headers = make(map[string]string)
