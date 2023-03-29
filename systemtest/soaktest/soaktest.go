@@ -48,7 +48,7 @@ func RunBlocking(ctx context.Context) error {
 			expr := expr
 			g.Go(func() error {
 				rng := rand.New(rand.NewSource(rngseed))
-				return runAgent(gCtx, expr, limiter, rng)
+				return runAgent(gCtx, expr, limiter, rng, loadgencfg.Config.Headers)
 			})
 		}
 	}
@@ -56,7 +56,7 @@ func RunBlocking(ctx context.Context) error {
 	return g.Wait()
 }
 
-func runAgent(ctx context.Context, expr string, limiter *rate.Limiter, rng *rand.Rand) error {
+func runAgent(ctx context.Context, expr string, limiter *rate.Limiter, rng *rand.Rand, headers map[string]string) error {
 	handler, err := loadgen.NewEventHandler(loadgen.EventHandlerParams{
 		Path:              expr,
 		URL:               loadgencfg.Config.ServerURL.String(),
@@ -66,6 +66,7 @@ func runAgent(ctx context.Context, expr string, limiter *rate.Limiter, rng *rand
 		Rand:              rng,
 		RewriteIDs:        loadgencfg.Config.RewriteIDs,
 		RewriteTimestamps: loadgencfg.Config.RewriteTimestamps,
+		Headers:           headers,
 	})
 	if err != nil {
 		return err
