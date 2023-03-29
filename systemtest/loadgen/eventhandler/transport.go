@@ -33,12 +33,15 @@ type Transport struct {
 }
 
 // NewTransport initializes a new ReplayTransport.
-func NewTransport(c *http.Client, srvURL, token string, apiKey string) *Transport {
+func NewTransport(c *http.Client, srvURL, token, apiKey string, headers map[string]string) *Transport {
 	intakeHeaders := make(http.Header)
 	intakeHeaders.Set("Content-Encoding", "deflate")
 	intakeHeaders.Set("Content-Type", "application/x-ndjson")
 	intakeHeaders.Set("Transfer-Encoding", "chunked")
 	intakeHeaders.Set("Authorization", getAuthHeader(token, apiKey))
+	for name, header := range headers {
+		intakeHeaders.Set(name, header)
+	}
 	return &Transport{
 		client:        c,
 		intakeV2URL:   srvURL + `/intake/v2/events`,

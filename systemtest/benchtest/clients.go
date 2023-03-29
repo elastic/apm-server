@@ -107,6 +107,7 @@ func NewEventHandler(tb testing.TB, p string, l *rate.Limiter) *eventhandler.Han
 		Limiter:           l,
 		RewriteIDs:        serverCfg.RewriteIDs,
 		RewriteTimestamps: serverCfg.RewriteTimestamps,
+		Headers:           serverCfg.Headers,
 	})
 	if err != nil {
 		tb.Fatal(err)

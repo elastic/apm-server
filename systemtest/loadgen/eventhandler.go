@@ -43,6 +43,7 @@ type EventHandlerParams struct {
 	Rand              *rand.Rand
 	RewriteIDs        bool
 	RewriteTimestamps bool
+	Headers           map[string]string
 }
 
 // NewEventHandler creates a eventhandler which loads the files matching the
@@ -54,7 +55,7 @@ func NewEventHandler(p EventHandlerParams) (*eventhandler.Handler, error) {
 	if err != nil {
 		return nil, err
 	}
-	transp := eventhandler.NewTransport(t.Client, p.URL, p.Token, p.APIKey)
+	transp := eventhandler.NewTransport(t.Client, p.URL, p.Token, p.APIKey, p.Headers)
 	return eventhandler.New(eventhandler.Config{
 		Path:              filepath.Join("events", p.Path),
 		Transport:         transp,
