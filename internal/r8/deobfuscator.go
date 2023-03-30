@@ -72,8 +72,8 @@ func findUniqueTypes(stacktrace string) (map[string]StacktraceType, error) {
 			if sourceFileMatch != nil {
 				methodName = fmt.Sprintf("%s:%s", methodName, sourceFileMatch[1])
 			}
-			symbol, found := symbols[typeName]
-			if !found {
+			symbol, ok := symbols[typeName]
+			if !ok {
 				symbol = StacktraceType{typeName, typeIndex + 1, make(map[string]string)}
 				symbols[typeName] = symbol
 			}
