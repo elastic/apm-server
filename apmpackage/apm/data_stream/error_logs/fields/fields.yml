@@ -1,3 +1,8 @@
+- name: agent.activation_method
+  type: keyword
+  index: false
+  description: |
+    The way the agent is installed / used.
 - name: error.culprit
   type: keyword
   description: Function call which was the primary perpetrator of this event.
