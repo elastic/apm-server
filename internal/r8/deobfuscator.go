@@ -138,7 +138,7 @@ func findMappingFor(symbols map[string]StacktraceType, mapReader io.Reader) (map
 	return res, nil
 }
 
-func handleMappedMethodCall(res map[string]string, methodMatch MethodMatch, currentType *MappedType, currentMappedMethodCall *MappedMethodCall) *MappedMethodCall {
+func handleMappedMethodCall(mapping map[string]string, methodMatch MethodMatch, currentType *MappedType, currentMappedMethodCall *MappedMethodCall) *MappedMethodCall {
 	methodNameReference := methodMatch.methodObfuscatedName
 	if methodMatch.sourceFileStart != "" {
 		if methodMatch.sourceFileStart != methodMatch.sourceFileEnd {
@@ -153,10 +153,10 @@ func handleMappedMethodCall(res map[string]string, methodMatch MethodMatch, curr
 	if ok {
 		delete(currentType.obfuscated.methods, methodNameReference)
 		key := getKey(currentType.obfuscated.name, methodMatch.methodObfuscatedName, methodCallSite)
-		res[key] = getKey(currentType.realName, methodMatch.methodRealName, methodCallSite)
+		mapping[key] = getKey(currentType.realName, methodMatch.methodRealName, methodCallSite)
 		return &MappedMethodCall{mapReference, key}
 	} else if currentMappedMethodCall != nil && currentMappedMethodCall.reference == mapReference {
-		res[currentMappedMethodCall.key] += "\n" + fmt.Sprintf("%s%s", strings.Repeat(" ", len(currentType.realName)+currentType.obfuscated.indentation), methodMatch.methodRealName)
+		mapping[currentMappedMethodCall.key] += "\n" + fmt.Sprintf("%s%s", strings.Repeat(" ", len(currentType.realName)+currentType.obfuscated.indentation), methodMatch.methodRealName)
 	}
 
 	return currentMappedMethodCall
