@@ -3,6 +3,7 @@
         {
             "@timestamp": "2017-05-30T18:53:41.364Z",
             "agent": {
+                "activation_method": "some_activation_method",
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
@@ -69,6 +70,7 @@
         {
             "@timestamp": "2017-05-30T18:53:41.366Z",
             "agent": {
+                "activation_method": "some_activation_method",
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
@@ -142,6 +144,7 @@
         {
             "@timestamp": "2017-05-30T18:53:41.367Z",
             "agent": {
+                "activation_method": "some_activation_method",
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
@@ -229,6 +232,7 @@
         {
             "@timestamp": "2017-05-30T18:53:41.368Z",
             "agent": {
+                "activation_method": "some_activation_method",
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
@@ -298,6 +302,7 @@
         {
             "@timestamp": "2017-05-30T18:53:41.369Z",
             "agent": {
+                "activation_method": "some_activation_method",
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
@@ -372,6 +377,7 @@
         {
             "@timestamp": "2017-05-30T18:53:42.281Z",
             "agent": {
+                "activation_method": "some_activation_method",
                 "name": "elastic-node",
                 "version": "3.14.0"
             },

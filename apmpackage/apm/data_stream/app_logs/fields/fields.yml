@@ -98,3 +98,8 @@
   dynamic: true
   description: |
     Custom key/value pairs. Can be used to add meta information to events. Should not contain nested objects. All values are stored as scaled_float.
+- name: agent.activation_method
+  type: keyword
+  index: false
+  description: |
+    The way the agent is installed / used.
