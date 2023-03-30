@@ -58,15 +58,20 @@ func RunBlocking(ctx context.Context) error {
 
 func runAgent(ctx context.Context, expr string, limiter *rate.Limiter, rng *rand.Rand, headers map[string]string) error {
 	handler, err := loadgen.NewEventHandler(loadgen.EventHandlerParams{
-		Path:              expr,
-		URL:               loadgencfg.Config.ServerURL.String(),
-		Token:             loadgencfg.Config.SecretToken,
-		APIKey:            loadgencfg.Config.APIKey,
-		Limiter:           limiter,
-		Rand:              rng,
-		RewriteIDs:        loadgencfg.Config.RewriteIDs,
-		RewriteTimestamps: loadgencfg.Config.RewriteTimestamps,
-		Headers:           headers,
+		Path:                      expr,
+		URL:                       loadgencfg.Config.ServerURL.String(),
+		Token:                     loadgencfg.Config.SecretToken,
+		APIKey:                    loadgencfg.Config.APIKey,
+		Limiter:                   limiter,
+		Rand:                      rng,
+		RewriteIDs:                loadgencfg.Config.RewriteIDs,
+		RewriteServiceNames:       loadgencfg.Config.RewriteServiceNames,
+		RewriteServiceNodeNames:   loadgencfg.Config.RewriteServiceNodeNames,
+		RewriteServiceTargetNames: loadgencfg.Config.RewriteServiceTargetNames,
+		RewriteSpanNames:          loadgencfg.Config.RewriteSpanNames,
+		RewriteTransactionNames:   loadgencfg.Config.RewriteTransactionNames,
+		RewriteTimestamps:         loadgencfg.Config.RewriteTimestamps,
+		Headers:                   headers,
 	})
 	if err != nil {
 		return err

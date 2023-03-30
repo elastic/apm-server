@@ -33,6 +33,7 @@ import (
 
 	"github.com/klauspost/compress/zlib"
 	"github.com/tidwall/gjson"
+	"github.com/tidwall/sjson"
 	"go.elastic.co/fastjson"
 	"golang.org/x/time/rate"
 )
@@ -131,6 +132,25 @@ type Config struct {
 	// single random value to ensure IDs are randomised consistently,
 	// such that event relationships are maintained.
 	RewriteIDs bool
+
+	// RewriteServiceNames controls the rewriting of `service.name`
+	// in events.
+	RewriteServiceNames bool
+
+	// RewriteServiceNodeNames controls the rewriting of
+	// `service.node.name` in events.
+	RewriteServiceNodeNames bool
+
+	// RewriteServiceTargetNames controls the rewriting of
+	// `service.target.name` in events.
+	RewriteServiceTargetNames bool
+
+	// RewriteSpanNames controls the rewriting of `span.name` in events.
+	RewriteSpanNames bool
+
+	// RewriteTransactionNames controls the rewriting of `transaction.name`
+	// in events.
+	RewriteTransactionNames bool
 }
 
 // New creates a new Handler with config.
@@ -164,6 +184,7 @@ func New(config Config) (*Handler, error) {
 			},
 		},
 	}
+
 	matches, err := fs.Glob(config.Storage, config.Path)
 	if err != nil {
 		return nil, err
@@ -304,6 +325,15 @@ func (h *Handler) sendHTTPRequest(ctx context.Context, b batch, baseTimestamp ti
 	if err := h.config.Limiter.WaitN(ctx, len(b.events)); err != nil {
 		return err
 	}
+
+	rewriteAny := h.config.RewriteTimestamps ||
+		h.config.RewriteIDs ||
+		h.config.RewriteServiceNames ||
+		h.config.RewriteServiceNodeNames ||
+		h.config.RewriteServiceTargetNames ||
+		h.config.RewriteSpanNames ||
+		h.config.RewriteTransactionNames
+
 	w := h.writerPool.Get().(*pooledWriter)
 	defer func() {
 		w.Reset()
@@ -316,23 +346,36 @@ func (h *Handler) sendHTTPRequest(ctx context.Context, b batch, baseTimestamp ti
 		// NOTE(marclop) RUM event replaying is not yet supported.
 		return h.config.Transport.SendV2Events(ctx, &w.buf)
 	}
-	w.Write(b.metadata)
+
+	var err error
+	metadata := b.metadata
+	if h.config.RewriteServiceNames {
+		metadata, err = randomizeASCIIField(metadata, "metadata.service.name", randomBits, &w.idBuf)
+		if err != nil {
+			return fmt.Errorf("failed to rewrite `service.name`: %w", err)
+		}
+	}
+	if h.config.RewriteServiceNodeNames {
+		// The intakev2 field name is `service.node.configured_name`,
+		// this is translated to `service.node.name` in the ES documents.
+		metadata, err = randomizeASCIIField(metadata, "metadata.service.node.configured_name", randomBits, &w.idBuf)
+		if err != nil {
+			return fmt.Errorf("failed to rewrite `service.node.name`: %w", err)
+		}
+	}
+	w.Write(metadata)
 	w.Write(newlineBytes)
+
 	for _, event := range b.events {
-		if !h.config.RewriteTimestamps && !h.config.RewriteIDs {
+		if !rewriteAny {
 			w.Write(event.payload)
 			w.Write(newlineBytes)
 			continue
 		}
 		w.rewriteBuf.RawByte('{')
 		w.rewriteBuf.String(event.objectType)
-		w.rewriteBuf.RawString(":{")
-		gjson.GetBytes(event.payload, event.objectType).ForEach(func(key, value gjson.Result) bool {
-			if key.Index > 1 {
-				w.rewriteBuf.RawByte(',')
-			}
-			w.rewriteBuf.RawString(key.Raw)
-			w.rewriteBuf.RawByte(':')
+		w.rewriteBuf.RawString(":")
+		rewriteJSONObject(w, gjson.GetBytes(event.payload, event.objectType), func(key, value gjson.Result) bool {
 			switch key.Str {
 			case "timestamp":
 				if h.config.RewriteTimestamps && !event.timestamp.IsZero() {
@@ -358,12 +401,52 @@ func (h *Handler) sendHTTPRequest(ctx context.Context, b batch, baseTimestamp ti
 				} else {
 					w.rewriteBuf.RawString(value.Raw)
 				}
+			case "name":
+				randomizeASCII(&w.idBuf, value.Str, randomBits)
+				switch {
+				case h.config.RewriteSpanNames && event.objectType == "span":
+					w.rewriteBuf.String(w.idBuf.String())
+				case h.config.RewriteTransactionNames && event.objectType == "transaction":
+					w.rewriteBuf.String(w.idBuf.String())
+				default:
+					w.rewriteBuf.RawString(value.Raw)
+				}
+				w.idBuf.Reset()
+			case "context":
+				if !h.config.RewriteServiceTargetNames {
+					w.rewriteBuf.RawString(value.Raw)
+					break
+				}
+				rewriteJSONObject(w, value, func(key, value gjson.Result) bool {
+					if key.Str != "service" {
+						w.rewriteBuf.RawString(value.Raw)
+						return true
+					}
+					rewriteJSONObject(w, value, func(key, value gjson.Result) bool {
+						if key.Str != "target" {
+							w.rewriteBuf.RawString(value.Raw)
+							return true
+						}
+						rewriteJSONObject(w, value, func(key, value gjson.Result) bool {
+							if key.Str != "name" {
+								w.rewriteBuf.RawString(value.Raw)
+								return true
+							}
+							randomizeASCII(&w.idBuf, value.Str, randomBits)
+							w.rewriteBuf.String(w.idBuf.String())
+							w.idBuf.Reset()
+							return true
+						})
+						return true
+					})
+					return true
+				})
 			default:
 				w.rewriteBuf.RawString(value.Raw)
 			}
 			return true
 		})
-		w.rewriteBuf.RawString("}}")
+		w.rewriteBuf.RawString("}")
 		w.Write(w.rewriteBuf.Bytes())
 		w.Write(newlineBytes)
 		w.rewriteBuf.Reset()
@@ -372,6 +455,19 @@ func (h *Handler) sendHTTPRequest(ctx context.Context, b batch, baseTimestamp ti
 		return err
 	}
 	return nil
+}
+
+func rewriteJSONObject(w *pooledWriter, object gjson.Result, f func(key, value gjson.Result) bool) {
+	w.rewriteBuf.RawByte('{')
+	object.ForEach(func(key, value gjson.Result) bool {
+		if key.Index > 1 {
+			w.rewriteBuf.RawByte(',')
+		}
+		w.rewriteBuf.RawString(key.Raw)
+		w.rewriteBuf.RawByte(':')
+		return f(key, value)
+	})
+	w.rewriteBuf.RawByte('}')
 }
 
 func randomizeTraceID(out *bytes.Buffer, in string, randomBits uint64) bool {
@@ -410,6 +506,46 @@ func randomizeTraceID(out *bytes.Buffer, in string, randomBits uint64) bool {
 		out.WriteByte(b)
 	}
 	return true
+}
+
+func randomizeASCIIField(data []byte, path string, randomBits uint64, scratch *bytes.Buffer) ([]byte, error) {
+	result := gjson.GetBytes(data, path)
+	if !result.Exists() {
+		return data, nil
+	}
+	randomizeASCII(scratch, result.Str, randomBits)
+	defer scratch.Reset()
+
+	data, err := sjson.SetBytes(data, path, scratch.String())
+	if err != nil {
+		return nil, fmt.Errorf("failed to rewrite %q: %w", path, err)
+	}
+	return data, nil
+}
+
+// randomizeASCII replaces ASCII letter and digit runes in the input
+// with random ASCII runes in the same category.
+func randomizeASCII(out *bytes.Buffer, in string, randomBits uint64) {
+	for _, r := range in {
+		// '0' > 'A' > 'a'
+		if r < '0' || r > 'z' {
+			out.WriteRune(r)
+			continue
+		}
+		// Use 5 bits, which is enough to cover either
+		// 26 ASCII letters or 10 ASCII digits.
+		i := (uint8(randomBits) & 0x1f)
+		randomBits = bits.RotateLeft64(randomBits, 5)
+		switch {
+		case r >= 'a':
+			r = rune('a' + i%26)
+		case r >= 'A' && r <= 'Z':
+			r = rune('A' + i%26)
+		case r <= '9':
+			r = rune('0' + i%10)
+		}
+		out.WriteRune(r)
+	}
 }
 
 // WarmUpServer will "warm up" the remote APM Server by sending events until
