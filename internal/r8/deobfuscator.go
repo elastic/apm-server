@@ -118,7 +118,7 @@ func findMappingFor(symbols map[string]StacktraceType, mapReader io.Reader) (map
 		} else if currentType != nil {
 			methodMatch := methodPattern.FindStringSubmatch(line)
 			if methodMatch != nil {
-				currentMappedMethodCall = handleMappedMethodCall(res, MethodMatch{
+				currentMappedMethodCall = upsertMappedMethodCall(res, MethodMatch{
 					methodMatch[1],
 					methodMatch[2],
 					methodMatch[3],
@@ -138,7 +138,7 @@ func findMappingFor(symbols map[string]StacktraceType, mapReader io.Reader) (map
 	return res, nil
 }
 
-func handleMappedMethodCall(mapping map[string]string, methodMatch MethodMatch, currentType *MappedType, currentMappedMethodCall *MappedMethodCall) *MappedMethodCall {
+func upsertMappedMethodCall(mapping map[string]string, methodMatch MethodMatch, currentType *MappedType, currentMappedMethodCall *MappedMethodCall) *MappedMethodCall {
 	methodNameReference := methodMatch.methodObfuscatedName
 	if methodMatch.sourceFileStart != "" {
 		if methodMatch.sourceFileStart != methodMatch.sourceFileEnd {
