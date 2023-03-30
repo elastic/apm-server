@@ -13,7 +13,7 @@ IMPORTANT: You must <<configuration-rum,enable RUM support>> in the APM Server f
 The APM Server exposes an API endpoint to upload source maps for real user monitoring (RUM).
 See the <<sourcemaps,create and upload source maps>> guide to get started.
 
-If you're using the <<apm-integration,APM integration>>,
+If you're using the APM integration,
 you must use the {kib} {kibana-ref}/rum-sourcemap-api.html[source map upload API] instead.
 
 [[sourcemap-endpoint]]
