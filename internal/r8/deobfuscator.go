@@ -106,7 +106,7 @@ func findMappingFor(symbols map[string]StacktraceType, mapReader io.Reader) (map
 		if typeMatch != nil {
 			currentMappedMethodCall = nil
 			if currentType != nil {
-				ensureAllMethodsProvided(res, currentType)
+				mapLeftoverUnmappedMethods(res, currentType)
 			}
 			obfuscatedName := typeMatch[2]
 			stacktraceType, ok := symbols[obfuscatedName]
@@ -128,7 +128,7 @@ func findMappingFor(symbols map[string]StacktraceType, mapReader io.Reader) (map
 		}
 	}
 	if currentType != nil {
-		ensureAllMethodsProvided(res, currentType)
+		mapLeftoverUnmappedMethods(res, currentType)
 	}
 
 	if err := scanner.Err(); err != nil {
@@ -169,7 +169,10 @@ func upsertMappedMethodCall(mapping map[string]string, methodMatch MethodMatch, 
 	return currentMappedMethodCall
 }
 
-func ensureAllMethodsProvided(res map[string]string, currentType *MappedType) {
+// Sometimes the map file contains a type but not a method name belonging to said type, this might happen because the type name was obfuscated
+// but its method wasn't, in this case we use this function to make sure we add the leftover de-obfuscated type names from the map file,
+// along with the method names as found in the stacktrace (which should be de-obfuscated already).
+func mapLeftoverUnmappedMethods(res map[string]string, currentType *MappedType) {
 	for methodName, callSite := range currentType.obfuscated.methods {
 		key := getKey(currentType.obfuscated.name, methodName, callSite)
 		res[key] = getKey(currentType.realName, methodName, callSite)
