@@ -63,11 +63,11 @@ func findUniqueTypes(stacktrace string) (map[string]StacktraceType, error) {
 	for scanner.Scan() {
 		line := scanner.Text()
 		indices := symbolPattern.FindStringSubmatchIndex(line)
-		if item != nil {
-			typeIndex := item[2]
-			typeName := line[typeIndex:item[3]]
-			methodName := line[item[4]:item[5]]
-			callSite := line[item[6]:item[7]]
+		if indices != nil {
+			typeIndex := indices[2]
+			typeName := line[typeIndex:indices[3]]
+			methodName := line[indices[4]:indices[5]]
+			callSite := line[indices[6]:indices[7]]
 			sourceFileMatch := sourceFilePattern.FindStringSubmatch(callSite)
 			if sourceFileMatch != nil {
 				methodName = fmt.Sprintf("%s:%s", methodName, sourceFileMatch[1])
