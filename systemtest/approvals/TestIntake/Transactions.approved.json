@@ -3,6 +3,7 @@
         {
             "@timestamp": "2017-05-30T18:53:27.154Z",
             "agent": {
+                "activation_method": "some_activation_method",
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
@@ -161,6 +162,7 @@
         {
             "@timestamp": "2017-05-30T18:53:27.154Z",
             "agent": {
+                "activation_method": "some_activation_method",
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
@@ -295,6 +297,7 @@
         {
             "@timestamp": "2017-05-30T18:53:27.154Z",
             "agent": {
+                "activation_method": "some_activation_method",
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
@@ -538,6 +541,7 @@
         {
             "@timestamp": "2018-07-30T18:53:42.281Z",
             "agent": {
+                "activation_method": "some_activation_method",
                 "ephemeral_id": "justanid",
                 "name": "elastic-ruby",
                 "version": "2.2"
@@ -696,6 +700,7 @@
         {
             "@timestamp": "2021-09-15T20:11:06.365Z",
             "agent": {
+                "activation_method": "some_activation_method",
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
