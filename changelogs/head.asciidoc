@@ -18,4 +18,3 @@ https://github.com/elastic/apm-server/compare/8.7\...main[View commits]
 
 [float]
 ==== Added
-- R8 stacktrace deobfuscator {pull}10492[10492]
