@@ -73,6 +73,10 @@ func findUniqueTypes(stacktrace string) (map[string]StacktraceType, error) {
 			callSite := line[indices[6]:indices[7]]
 			sourceFileMatch := sourceFilePattern.FindStringSubmatch(callSite)
 			if sourceFileMatch != nil {
+				// Sometimes a method call in the stacktrace might end with (SourceFile:N), where N is an int. When this happens,
+				// it means that the de-obfuscated version of this method starts with "N:N" in the map file. So in those cases,
+				// we append the N to the method name M so that M:N becomes a "method reference" that we can later spot
+				// when looping through the map file looking for the de-obfuscated names.
 				methodName = fmt.Sprintf("%s:%s", methodName, sourceFileMatch[1])
 			}
 			symbol, ok := symbols[typeName]
