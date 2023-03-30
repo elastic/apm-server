@@ -38,6 +38,8 @@ var (
 	methodPattern     = regexp.MustCompile(`(?:(\d+):(\d+):)*\S+ (\S+)\(.*\)(?:[:\d]+)* -> (\S+)`)
 )
 
+// Deobfuscate parses the stacktrace looking for type names and their methods, then searches for those stacktrace items through the mapFile, looking
+// for their de-obfuscated names to later replace the ones in the original stacktrace by their real names found within the mapFile.
 func Deobfuscate(stacktrace string, mapFile io.Reader) (string, error) {
 	types, err := findUniqueTypes(stacktrace)
 	if err != nil {
@@ -50,6 +52,7 @@ func Deobfuscate(stacktrace string, mapFile io.Reader) (string, error) {
 
 	deobfuscated := stacktrace
 	for k, v := range mapping {
+		// Uses ReplaceAll since an obfuscated name may be present several times in a single stacktrace.
 		deobfuscated = strings.ReplaceAll(deobfuscated, k, v)
 	}
 
