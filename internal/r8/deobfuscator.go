@@ -138,6 +138,11 @@ func findMappingFor(symbols map[string]StacktraceType, mapReader io.Reader) (map
 	return res, nil
 }
 
+// Checks if the found methodMatch from the map file is part of the methods previously parsed for the currentType within the
+// stacktrace.
+// If the method is found, then it's added to the mapping in order to be used for replacing the obfuscated name later, it also returns it as the current MappedMethodCall.
+// If the method is NOT found, but it turns out to be a continuation of a previously found method (currentMappedMethodCall), then it appends it to the existing method replacement in the mapping.
+// If the method is NOT found and is also NOT a continuation for the currentMappedMethodCall, then the methodMatch is ignored.
 func upsertMappedMethodCall(mapping map[string]string, methodMatch MethodMatch, currentType *MappedType, currentMappedMethodCall *MappedMethodCall) *MappedMethodCall {
 	methodNameReference := methodMatch.methodObfuscatedName
 	if methodMatch.sourceFileStart != "" {
@@ -151,11 +156,13 @@ func upsertMappedMethodCall(mapping map[string]string, methodMatch MethodMatch, 
 	mapReference := currentType.obfuscated.name + ":" + methodNameReference
 	methodCallSite, ok := currentType.obfuscated.methods[methodNameReference]
 	if ok {
+		// Found this method in the list of methods parsed from the stacktrace for the currentType.
 		delete(currentType.obfuscated.methods, methodNameReference)
 		key := getKey(currentType.obfuscated.name, methodMatch.methodObfuscatedName, methodCallSite)
 		mapping[key] = getKey(currentType.realName, methodMatch.methodRealName, methodCallSite)
 		return &MappedMethodCall{mapReference, key}
 	} else if currentMappedMethodCall != nil && currentMappedMethodCall.reference == mapReference {
+		// This is a continuation call for the currentMappedMethodCall.
 		mapping[currentMappedMethodCall.key] += "\n" + fmt.Sprintf("%s%s", strings.Repeat(" ", len(currentType.realName)+currentType.obfuscated.indentation), methodMatch.methodRealName)
 	}
 
