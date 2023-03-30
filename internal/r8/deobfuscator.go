@@ -106,8 +106,8 @@ func findMappingFor(symbols map[string]StacktraceType, mapReader io.Reader) (map
 				ensureAllMethodsProvided(res, currentType)
 			}
 			obfuscatedName := typeMatch[2]
-			stacktraceType, found := symbols[obfuscatedName]
-			if found {
+			stacktraceType, ok := symbols[obfuscatedName]
+			if ok {
 				currentType = &MappedType{stacktraceType, typeMatch[1]}
 			} else {
 				currentType = nil
