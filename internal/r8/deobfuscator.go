@@ -31,10 +31,12 @@ type MethodMatch struct {
 	methodObfuscatedName string
 }
 
-var symbolPattern = regexp.MustCompile(`^\s*at (.+)\.(.+)\((.+)\)$`)
-var sourceFilePattern = regexp.MustCompile(`SourceFile:(\d+)`)
-var typePattern = regexp.MustCompile(`^(\S+) -> (\S+):$`)
-var methodPattern = regexp.MustCompile(`(?:(\d+):(\d+):)*\S+ (\S+)\(.*\)(?:[:\d]+)* -> (\S+)`)
+var (
+	symbolPattern     = regexp.MustCompile(`^\s*at (.+)\.(.+)\((.+)\)$`)
+	sourceFilePattern = regexp.MustCompile(`SourceFile:(\d+)`)
+	typePattern       = regexp.MustCompile(`^(\S+) -> (\S+):$`)
+	methodPattern     = regexp.MustCompile(`(?:(\d+):(\d+):)*\S+ (\S+)\(.*\)(?:[:\d]+)* -> (\S+)`)
+)
 
 func Deobfuscate(stacktrace string, mapFilePath string) (string, error) {
 	types, err := findUniqueTypes(stacktrace)
