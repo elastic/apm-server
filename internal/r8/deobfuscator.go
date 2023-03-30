@@ -146,8 +146,8 @@ func handleMappedMethodCall(res map[string]string, methodMatch MethodMatch, curr
 		methodNameReference = fmt.Sprintf("%s:%s", methodMatch.methodObfuscatedName, methodMatch.sourceFileStart)
 	}
 	mapReference := currentType.obfuscated.name + ":" + methodNameReference
-	methodCallSite, foundMethod := currentType.obfuscated.methods[methodNameReference]
-	if foundMethod {
+	methodCallSite, ok := currentType.obfuscated.methods[methodNameReference]
+	if ok {
 		delete(currentType.obfuscated.methods, methodNameReference)
 		key := getKey(currentType.obfuscated.name, methodMatch.methodObfuscatedName, methodCallSite)
 		res[key] = getKey(currentType.realName, methodMatch.methodRealName, methodCallSite)
