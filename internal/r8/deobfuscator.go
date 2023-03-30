@@ -38,7 +38,7 @@ var (
 	methodPattern     = regexp.MustCompile(`(?:(\d+):(\d+):)*\S+ (\S+)\(.*\)(?:[:\d]+)* -> (\S+)`)
 )
 
-func Deobfuscate(stacktrace string, mapFilePath string) (string, error) {
+func Deobfuscate(stacktrace string, mapFile io.Reader) (string, error) {
 	types, err := findUniqueTypes(stacktrace)
 	if err != nil {
 		return "", err
