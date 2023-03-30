@@ -77,8 +77,8 @@ func findUniqueTypes(stacktrace string) (map[string]StacktraceType, error) {
 				symbol = StacktraceType{typeName, typeIndex + 1, make(map[string]string)}
 				symbols[typeName] = symbol
 			}
-			_, foundMethod := symbol.methods[methodName]
-			if !foundMethod {
+			_, ok = symbol.methods[methodName]
+			if !ok {
 				symbol.methods[methodName] = callSite
 			}
 		}
