@@ -193,10 +193,10 @@ func upsertMappedMethodCall(mapping map[string]string, methodMatch MethodMatch, 
 // Sometimes the map file contains a type but not a method name belonging to said type, this might happen because the type name was obfuscated
 // but its method wasn't, in this case we use this function to make sure we add the leftover de-obfuscated type names from the map file,
 // along with the method names as found in the stacktrace (which should be de-obfuscated already).
-func mapLeftoverUnmappedMethods(res map[string]string, currentType *MappedType) {
+func mapLeftoverUnmappedMethods(mapping map[string]string, currentType *MappedType) {
 	for methodName, callSite := range currentType.obfuscated.methods {
 		key := getKey(currentType.obfuscated.name, methodName, callSite)
-		res[key] = getKey(currentType.realName, methodName, callSite)
+		mapping[key] = getKey(currentType.realName, methodName, callSite)
 	}
 }
 
