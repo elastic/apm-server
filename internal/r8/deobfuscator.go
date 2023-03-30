@@ -62,7 +62,7 @@ func findUniqueTypes(stacktrace string) (map[string]StacktraceType, error) {
 
 	for scanner.Scan() {
 		line := scanner.Text()
-		item := symbolPattern.FindStringSubmatchIndex(line)
+		indices := symbolPattern.FindStringSubmatchIndex(line)
 		if item != nil {
 			typeIndex := item[2]
 			typeName := line[typeIndex:item[3]]
