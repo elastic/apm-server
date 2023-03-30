@@ -153,8 +153,7 @@ func handleMappedMethodCall(res map[string]string, methodMatch MethodMatch, curr
 		res[key] = getKey(currentType.realName, methodMatch.methodRealName, methodCallSite)
 		return &MappedMethodCall{mapReference, key}
 	} else if currentMappedMethodCall != nil && currentMappedMethodCall.reference == mapReference {
-		element, _ := res[currentMappedMethodCall.key]
-		res[currentMappedMethodCall.key] = element + "\n" + fmt.Sprintf("%s%s", strings.Repeat(" ", len(currentType.realName)+currentType.obfuscated.indentation), methodMatch.methodRealName)
+		res[currentMappedMethodCall.key] += "\n" + fmt.Sprintf("%s%s", strings.Repeat(" ", len(currentType.realName)+currentType.obfuscated.indentation), methodMatch.methodRealName)
 	}
 
 	return currentMappedMethodCall
