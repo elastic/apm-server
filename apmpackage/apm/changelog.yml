@@ -1,4 +1,9 @@
-- version: generated
+- version: "generated"
+  changes:
+    - description: Add missing `agent.activation_method` mapping to `logs-apm.app`, `metrics-apm.app`, `logs-apm.error` and `metrics-apm.internal`
+      type: bugfix
+      link: https://github.com/elastic/apm-server/pull/10552
+- version: "8.7.0"
   changes:
     - description: Introduce `metrics-apm.service-${interval}` data stream for service metrics (`1m`, `10m` and `60m`).
       type: enhancement

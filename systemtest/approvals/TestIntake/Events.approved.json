@@ -3,6 +3,7 @@
         {
             "@timestamp": "2019-10-21T11:30:44.929Z",
             "agent": {
+                "activation_method": "some_activation_method",
                 "ephemeral_id": "e71be9ac-93b0-44b9-a997-5638f6ccfc36",
                 "name": "java",
                 "version": "1.10.0"
@@ -299,6 +300,7 @@
         {
             "@timestamp": "2019-10-21T11:30:44.929Z",
             "agent": {
+                "activation_method": "some_activation_method",
                 "ephemeral_id": "e71be9ac-93b0-44b9-a997-5638f6ccfc36",
                 "name": "java",
                 "version": "1.10.0"
@@ -404,6 +406,7 @@
         {
             "@timestamp": "2019-10-21T11:30:44.929Z",
             "agent": {
+                "activation_method": "some_activation_method",
                 "ephemeral_id": "e71be9ac-93b0-44b9-a997-5638f6ccfc36",
                 "name": "java",
                 "version": "1.10.0-SNAPSHOT"
@@ -517,6 +520,7 @@
         {
             "@timestamp": "2019-10-21T11:30:44.929Z",
             "agent": {
+                "activation_method": "some_activation_method",
                 "ephemeral_id": "e71be9ac-93b0-44b9-a997-5638f6ccfc36",
                 "name": "java",
                 "version": "1.10.0-SNAPSHOT"

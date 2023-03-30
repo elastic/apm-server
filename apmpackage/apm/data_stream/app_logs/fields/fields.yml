@@ -1,3 +1,8 @@
+- name: agent.activation_method
+  type: keyword
+  index: false
+  description: |
+    The way the agent is installed / used.
 - name: http.request.headers
   type: object
   description: |
