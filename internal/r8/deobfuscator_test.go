@@ -20,11 +20,20 @@ func TestDeobfuscation(t *testing.T) {
 		inputPath := c + "/obfuscated-crash"
 		expectedOutputPath := c + "/de-obfuscated-crash"
 		mapFilePath := c + "/mapping"
+		reader, err := os.Open(mapFilePath)
+		if err != nil {
+			log.Fatal(err)
+		}
+
 		t.Run(fmt.Sprintf("(%s)->(%s)", inputPath, expectedOutputPath), func(t *testing.T) {
 			obfuscated := readFile(inputPath)
 			expected := readFile(expectedOutputPath)
-			deobfuscated, _ := Deobfuscate(obfuscated, mapFilePath)
+			deobfuscated, _ := Deobfuscate(obfuscated, reader)
 			assert.Equal(t, expected, deobfuscated)
+			err := reader.Close()
+			if err != nil {
+				log.Fatal(err)
+			}
 		})
 	}
 }

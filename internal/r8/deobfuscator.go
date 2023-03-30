@@ -3,7 +3,7 @@ package r8
 import (
 	"bufio"
 	"fmt"
-	"os"
+	"io"
 	"regexp"
 	"strings"
 )
@@ -43,7 +43,7 @@ func Deobfuscate(stacktrace string, mapFile io.Reader) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	mapping, err := findMappingFor(types, mapFilePath)
+	mapping, err := findMappingFor(types, mapFile)
 	if err != nil {
 		return "", err
 	}
@@ -91,16 +91,9 @@ func findUniqueTypes(stacktrace string) (map[string]StacktraceType, error) {
 	return symbols, nil
 }
 
-func findMappingFor(symbols map[string]StacktraceType, mapFilePath string) (map[string]string, error) {
-	mapFile, err := os.Open(mapFilePath)
-	if err != nil {
-		return nil, err
-	}
-
-	defer mapFile.Close()
-
+func findMappingFor(symbols map[string]StacktraceType, mapReader io.Reader) (map[string]string, error) {
 	var res = make(map[string]string)
-	scanner := bufio.NewScanner(mapFile)
+	scanner := bufio.NewScanner(mapReader)
 	var currentType *MappedType
 	var currentMappedMethodCall *MappedMethodCall
 
