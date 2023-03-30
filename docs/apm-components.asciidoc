@@ -1,39 +1,150 @@
 [[apm-components]]
 == Components and documentation
 
-****
-There are two ways to install, run, and manage Elastic APM:
-
-* With the Elastic APM integration
-* With the standalone (legacy) APM Server binary
-
-This documentation focuses on option one: the **Elastic APM integration**.
-For standalone APM Server (legacy) documentation, please see the <<legacy-apm-overview>>
-and <<overview>>.
-****
-
-Elastic APM consists of four components: *APM agents*, the *Elastic APM integration*, *{es}*, and *{kib}*.
-Generally, there are two ways that these four components can work together:
-
-APM agents on edge machines send data to a centrally hosted APM integration:
-
-[subs=attributes+]
-include::./diagrams/apm-architecture-central.asciidoc[Elastic APM architecture with edge APM integrations]
-
-Or, APM agents and the APM integration live on edge machines and enroll via a centrally hosted {agent}:
-
-[subs=attributes+]
-include::./diagrams/apm-architecture-edge.asciidoc[Elastic APM architecture with central APM integration]
-
-In addition, Elastic supports OpenTelemetry:
-
-[subs=attributes+]
-include::./diagrams/apm-otel-architecture.asciidoc[Architecture of Elastic APM with OpenTelemetry]
-
-// Not sure which to choose? See the [blog post]
+Elastic APM consists of four main components: *APM agents*, the *Elastic APM Server*, *{es}*, and *{kib}*.
+Depending on your use case, there are a few different ways to architect these components.
 
 [float]
-=== APM Agents
+=== {ecloud}
+
+The easiest way to get started with Elastic APM is by using our
+{ess-product}[hosted {es} Service] on {ecloud}.
+The {es} Service is available on AWS, GCP, and Azure.
+
+//ec-manage-integrations-server.html
+Our hosted {es} Service comes with an Integrations server.
+The Integrations server adds a combined APM Server and Fleet Server to your instance.
+As part of provisioning, APM Server and Fleet are automatically configured to work with {es} and {kib}.
+
+But wait, do I need to know what all of that means? No.
+When you use our hosted {es} Service, simply spin-up your instance and point your APM agents towards it.
+
+[float]
+=== Self-managed
+
+If you've chosen to self-manage the Elastic Stack, there are some additional components to be aware of.
+
+[float]
+==== APM Server
+
+The APM Server binary receives performance data from your APM agents,
+validates and processes it, and then transforms the data into {es} documents.
+
+There are three ways to install, configure, and run APM Server:
+
+* **APM Server binary**
+* **Fleet-managed APM Server**
+* **Standalone Elastic Agent-managed APM Server**
+
+Components required by method:
+
+[options="header"]
+|====
+| Installation method                         | APM Server | Elastic Agent | Fleet Server
+| APM Server binary                           | ✔️          |               |
+| Standalone Elastic Agent-managed APM Server | ✔️          | ✔️             |
+| Fleet-managed APM Server                    | ✔️          | ✔️             | ✔️
+|====
+
+[float]
+===== APM Server binary
+Install, configure, and run the APM Server binary wherever you need it.
+Depending on your use-case, APM Server can be run centrally or on edge machines.
+
+How?
+
+1. Install APM Server
+2. Configure APM Server
+3. Run APM Server
+
+**Pros**:
+
+- Automation?
+
+**Cons**:
+
+- Not easy to add other inputs
+
+**Available on Elastic Cloud**: ❌
+
+**Supported outputs**:
+
+- {es}
+- Kafka
+- Logstash
+- etc.
+
+**Configuration method**: YAML
+
+image::./images/bin-ov.png[APM Server binary overview]
+
+[float]
+===== Standalone Elastic Agent-managed APM Server
+// I really don't know how to sell this option
+Instead of installing and configuring the APM Server binary, let {agent} orchestrate it for you.
+Install {agent} and manually configure the agent locally on the system where it's installed.
+You are responsible for managing and upgrading {agent}. This approach is recommended for advanced users only.
+
+How?
+
+1. Install Elastic Agent on your edge machines
+2. Add the APM integration to Elastic Agent (this runs the APM Server binary!)
+3. Use Elastic Agent to configure APM Server, and to add other integrations
+
+**Pros**:
+
+- Easily add integrations for other data sources
+
+**Cons**:
+
+- Automation?
+
+**Available on Elastic Cloud**: ❌
+
+**Supported outputs**: {es}
+
+**Configuration method**: YAML
+
+
+image::./images/ea-ov.png[APM Server ea overview]
+
+[float]
+===== Fleet-managed APM Server
+Simplify the configuration and management of your APM Server instances by using Fleet to manage APM Server.
+Fleet is a web-based UI in Kibana for centrally managing {agent}s.
+Instantly roll out configuration changes and upgrades across your infrastructure.
+
+How?
+
+1. Install Elastic Agent on your edge machines
+2. Add a Fleet Server
+3. Add the APM integration to Elastic Agent (this runs the APM Server binary!)
+4. Use Fleet to push configuration changes and upgrades, and to add other integrations
+
+**Pros**:
+
+- Easily add integrations for other data sources
+
+**Cons**:
+
+- Automation?
+
+**Available on Elastic Cloud**: ✔️
+
+**Supported outputs**: {es}
+
+**Configuration method**: {kib} UI
+
+image::./images/fm-ov.png[APM Server fleet overview]
+
+[float]
+===== What should I use?
+
+image::./images/decision-tree.png[APM Server decision tree]
+
+
+[float]
+==== APM Agents
 
 APM agents are open source libraries written in the same language as your service.
 You may only need one, or you might use all of them.
@@ -54,28 +165,14 @@ Each agent has its own documentation:
 * {apm-rum-ref-v}/intro.html[JavaScript Real User Monitoring (RUM) agent]
 
 [float]
-[[apm-integration]]
-=== Elastic APM integration
-
-The APM integration receives performance data from your APM agents,
-validates and processes it, and then transforms the data into {es} documents.
-Removing this logic from APM agents help keeps them light, prevents certain security risks,
-and improves compatibility across the {stack}.
-
-The Elastic integration runs on {fleet-guide}[{agent}]. {agent} is a single, unified way to add monitoring for logs,
-metrics, traces, and other types of data to each host.
-A single agent makes it easier and faster to deploy monitoring across your infrastructure.
-The agent's single, unified policy makes it easier to add integrations for new data sources.
-
-[float]
-=== {es}
+==== {es}
 
 {ref}/index.html[{es}] is a highly scalable free and open full-text search and analytics engine.
 It allows you to store, search, and analyze large volumes of data quickly and in near real time.
 {es} is used to store APM performance metrics and make use of its aggregations.
 
 [float]
-=== {kib} {apm-app}
+==== {kib} {apm-app}
 
 {kibana-ref}/index.html[{kib}] is a free and open analytics and visualization platform designed to work with {es}.
 You use {kib} to search, view, and interact with data stored in {es}.
@@ -91,3 +188,38 @@ The following sections will help you get started:
 APM also has built-in integrations with {ml-cap}. To learn more about this feature,
 or the {anomaly-detect} feature that's built on top of it,
 refer to {kibana-ref}/machine-learning-integration.html[{ml-cap} integration].
+
+
+// ****
+// There are two ways to install, run, and manage Elastic APM:
+
+// * With the Elastic APM integration
+// * With the standalone (legacy) APM Server binary
+
+// This documentation focuses on option one: the **Elastic APM integration**.
+// For standalone APM Server (legacy) documentation, please see the <<legacy-apm-overview>>
+// and <<overview>>.
+// ****
+
+// Elastic APM consists of four components: *APM agents*, the *Elastic APM integration*, *{es}*, and *{kib}*.
+// Generally, there are two ways that these four components can work together:
+
+// APM agents on edge machines send data to a centrally hosted APM integration:
+
+// [subs=attributes+]
+// include::./diagrams/apm-architecture-central.asciidoc[Elastic APM architecture with edge APM integrations]
+
+// Or, APM agents and the APM integration live on edge machines and enroll via a centrally hosted {agent}:
+
+// [subs=attributes+]
+// include::./diagrams/apm-architecture-edge.asciidoc[Elastic APM architecture with central APM integration]
+
+// In addition, Elastic supports OpenTelemetry:
+
+// [subs=attributes+]
+// include::./diagrams/apm-otel-architecture.asciidoc[Architecture of Elastic APM with OpenTelemetry]
+
+// The Elastic integration runs on {fleet-guide}[{agent}]. {agent} is a single, unified way to add monitoring for logs,
+// metrics, traces, and other types of data to each host.
+// A single agent makes it easier and faster to deploy monitoring across your infrastructure.
+// The agent's single, unified policy makes it easier to add integrations for new data sources.
