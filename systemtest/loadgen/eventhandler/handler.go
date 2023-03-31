@@ -299,7 +299,8 @@ func (h *Handler) sendBatch(
 func (h *Handler) sendHTTPRequest(ctx context.Context, b batch, baseTimestamp time.Time, randomBits uint64) error {
 	// if len(b.events) == burst, it will wait for full interval
 	// if len(b.events) < burst, it will wait shorter time than interval - interval will be shifted
-	// len(b.events) > burst cannot happen
+	// len(b.events) > burst cannot happen, because the caller
+	// arranges for batches to be split as needed.
 	if err := h.config.Limiter.WaitN(ctx, len(b.events)); err != nil {
 		return err
 	}
