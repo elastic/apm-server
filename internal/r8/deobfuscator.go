@@ -120,7 +120,7 @@ func findUniqueTypes(stacktrace string) (map[string]StacktraceType, error) {
 }
 
 func findMappingFor(symbols map[string]StacktraceType, mapReader io.Reader) (map[string]string, error) {
-	var res = make(map[string]string)
+	mapping := make(map[string]string)
 	scanner := bufio.NewScanner(mapReader)
 	var currentType *MappedType
 	var currentMappedMethodCall *MappedMethodCall
