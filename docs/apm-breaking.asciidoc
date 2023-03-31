@@ -135,7 +135,7 @@ There are no breaking changes in APM.
 The following breaking changes are introduced in APM version 8.0.
 
 [float]
-==== Indices are now manged by {fleet}
+==== Indices are now managed by {fleet}
 
 All index management has been removed from APM Server;
 {fleet} is now entirely responsible for setting up index templates, index lifecycle polices,
