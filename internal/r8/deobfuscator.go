@@ -131,7 +131,7 @@ func findMappingFor(symbols map[string]StacktraceType, mapReader io.Reader) (map
 		if typeMatch != nil {
 			currentMappedMethodCall = nil
 			if currentType != nil {
-				mapLeftoverUnmappedMethods(res, currentType)
+				mapLeftoverUnmappedMethods(mapping, currentType)
 			}
 			obfuscatedName := typeMatch[2]
 			stacktraceType, ok := symbols[obfuscatedName]
@@ -143,7 +143,7 @@ func findMappingFor(symbols map[string]StacktraceType, mapReader io.Reader) (map
 		} else if currentType != nil {
 			methodMatch := methodPattern.FindStringSubmatch(line)
 			if methodMatch != nil {
-				currentMappedMethodCall = upsertMappedMethodCall(res, MethodMatch{
+				currentMappedMethodCall = upsertMappedMethodCall(mapping, MethodMatch{
 					sourceFileStart:      methodMatch[1],
 					sourceFileEnd:        methodMatch[2],
 					methodRealName:       methodMatch[3],
@@ -153,14 +153,14 @@ func findMappingFor(symbols map[string]StacktraceType, mapReader io.Reader) (map
 		}
 	}
 	if currentType != nil {
-		mapLeftoverUnmappedMethods(res, currentType)
+		mapLeftoverUnmappedMethods(mapping, currentType)
 	}
 
 	if err := scanner.Err(); err != nil {
 		return nil, err
 	}
 
-	return res, nil
+	return mapping, nil
 }
 
 // Checks if the found methodMatch from the map file is part of the methods previously parsed for the currentType within the
