@@ -28,14 +28,19 @@ import (
 )
 
 var Config struct {
-	ServerURL         *url.URL
-	SecretToken       string
-	APIKey            string
-	Secure            bool
-	EventRate         RateFlag
-	RewriteIDs        bool
-	RewriteTimestamps bool
-	Headers           map[string]string
+	ServerURL                 *url.URL
+	SecretToken               string
+	APIKey                    string
+	Secure                    bool
+	EventRate                 RateFlag
+	RewriteIDs                bool
+	RewriteTimestamps         bool
+	RewriteServiceNames       bool
+	RewriteServiceNodeNames   bool
+	RewriteServiceTargetNames bool
+	RewriteSpanNames          bool
+	RewriteTransactionNames   bool
+	Headers                   map[string]string
 }
 
 type RateFlag struct {
@@ -116,6 +121,22 @@ func init() {
 		},
 	)
 	flag.Var(&Config.EventRate, "event-rate", "Event rate in format of {burst}/{interval}. For example, 200/5s, <= 0 values evaluate to Inf (default 0/s)")
+
+	rewriteNames := map[string]*bool{
+		"service.name":        &Config.RewriteServiceNames,
+		"service.node.name":   &Config.RewriteServiceNodeNames,
+		"service.target.name": &Config.RewriteServiceTargetNames,
+		"span.name":           &Config.RewriteSpanNames,
+		"transaction.name":    &Config.RewriteTransactionNames,
+	}
+	for field, config := range rewriteNames {
+		flag.BoolVar(
+			config,
+			fmt.Sprintf("rewrite-%ss", strings.Replace(field, ".", "-", -1)),
+			false,
+			fmt.Sprintf("replace `%s` in events", field),
+		)
+	}
 
 	// For configs that can be set via environment variables, set the required
 	// flags from env if they are not explicitly provided via command line

@@ -134,6 +134,36 @@ func withRewriteIDs(rewrite bool) newHandlerOption {
 	}
 }
 
+func withRewriteServiceNames(rewrite bool) newHandlerOption {
+	return func(config *Config) {
+		config.RewriteServiceNames = rewrite
+	}
+}
+
+func withRewriteServiceNodeNames(rewrite bool) newHandlerOption {
+	return func(config *Config) {
+		config.RewriteServiceNodeNames = rewrite
+	}
+}
+
+func withRewriteServiceTargetNames(rewrite bool) newHandlerOption {
+	return func(config *Config) {
+		config.RewriteServiceTargetNames = rewrite
+	}
+}
+
+func withRewriteTransactionNames(rewrite bool) newHandlerOption {
+	return func(config *Config) {
+		config.RewriteTransactionNames = rewrite
+	}
+}
+
+func withRewriteSpanNames(rewrite bool) newHandlerOption {
+	return func(config *Config) {
+		config.RewriteSpanNames = rewrite
+	}
+}
+
 func withRand(rand *rand.Rand) newHandlerOption {
 	return func(config *Config) {
 		config.Rand = rand
@@ -394,6 +424,259 @@ func TestHandlerSendBatchesRewriteIDs(t *testing.T) {
 	run(t, true)
 }
 
+func TestHandlerSendBatchesRewriteServiceNames(t *testing.T) {
+	serviceName := "Name_123"
+
+	originalPayload := fmt.Sprintf(`
+{"metadata":{"service":{"name":"%s"}}}
+`[1:], serviceName)
+
+	fs := fstest.MapFS{"foo.ndjson": {Data: []byte(originalPayload)}}
+
+	run := func(t *testing.T, rewrite bool) {
+		t.Helper()
+		t.Run(strconv.FormatBool(rewrite), func(t *testing.T) {
+			handler, srv := newHandler(t,
+				withStorage(fs),
+				withRewriteServiceNames(rewrite),
+				withRand(rand.New(rand.NewSource(123456))), // known seed
+			)
+			_, err := handler.SendBatches(context.Background())
+			assert.NoError(t, err)
+
+			if !rewrite {
+				// Original payload should be sent as-is.
+				assert.Equal(t, originalPayload, srv.got.String())
+				return
+			}
+
+			d := json.NewDecoder(bytes.NewReader(srv.got.Bytes()))
+			var object struct {
+				Metadata struct {
+					Service struct {
+						Name string `json:"name"`
+					} `json:"service"`
+				} `json:"metadata"`
+			}
+
+			err = d.Decode(&object)
+			require.NoError(t, err)
+			assert.Equal(t, "Swfc_801", object.Metadata.Service.Name)
+		})
+	}
+	run(t, false)
+	run(t, true)
+}
+
+func TestHandlerSendBatchesRewriteServiceNodeNames(t *testing.T) {
+	serviceNodeName := "Name_123_Instance1"
+
+	originalPayload := fmt.Sprintf(`
+{"metadata":{"service":{"node":{"configured_name":"%s"}}}}
+`[1:], serviceNodeName)
+
+	fs := fstest.MapFS{"foo.ndjson": {Data: []byte(originalPayload)}}
+
+	run := func(t *testing.T, rewrite bool) {
+		t.Helper()
+		t.Run(strconv.FormatBool(rewrite), func(t *testing.T) {
+			handler, srv := newHandler(t,
+				withStorage(fs),
+				withRewriteServiceNodeNames(rewrite),
+				withRand(rand.New(rand.NewSource(123))), // known seed
+			)
+			_, err := handler.SendBatches(context.Background())
+			assert.NoError(t, err)
+
+			if !rewrite {
+				// Original payload should be sent as-is.
+				assert.Equal(t, originalPayload, srv.got.String())
+				return
+			}
+
+			d := json.NewDecoder(bytes.NewReader(srv.got.Bytes()))
+			var object struct {
+				Metadata struct {
+					Service struct {
+						Node struct {
+							Name string `json:"configured_name"`
+						} `json:"node"`
+					} `json:"service"`
+				} `json:"metadata"`
+			}
+
+			err = d.Decode(&object)
+			require.NoError(t, err)
+			assert.Equal(t, "Rjju_921_Lrapcsti9", object.Metadata.Service.Node.Name)
+		})
+	}
+	run(t, false)
+	run(t, true)
+}
+
+func TestHandlerSendBatchesRewriteServiceTargetNames(t *testing.T) {
+	serviceTargetName := "Name_123"
+
+	originalPayload := fmt.Sprintf(`
+{"metadata":{}}
+{"span":{"context":{"service":{"target":{"type":"foo","name":%q}}}}}
+`[1:], serviceTargetName)
+
+	fs := fstest.MapFS{"foo.ndjson": {Data: []byte(originalPayload)}}
+
+	run := func(t *testing.T, rewrite bool) {
+		t.Helper()
+		t.Run(strconv.FormatBool(rewrite), func(t *testing.T) {
+			handler, srv := newHandler(t,
+				withStorage(fs),
+				withRewriteServiceTargetNames(rewrite),
+				withRand(rand.New(rand.NewSource(123456))), // known seed
+			)
+			_, err := handler.SendBatches(context.Background())
+			assert.NoError(t, err)
+
+			if !rewrite {
+				// Original payload should be sent as-is.
+				assert.Equal(t, originalPayload, srv.got.String())
+				return
+			}
+
+			d := json.NewDecoder(bytes.NewReader(srv.got.Bytes()))
+			var object struct {
+				Span struct {
+					Context struct {
+						Service struct {
+							Target struct {
+								Name string `json:"name"`
+								Type string `json:"type"`
+							} `json:"target"`
+						} `json:"service"`
+					} `json:"context"`
+				} `json:"span"`
+			}
+
+			d.Decode(&object) // skip metadata
+
+			err = d.Decode(&object)
+			require.NoError(t, err)
+			assert.Equal(t, "Swfc_801", object.Span.Context.Service.Target.Name)
+			assert.Equal(t, "foo", object.Span.Context.Service.Target.Type)
+		})
+	}
+	run(t, false)
+	run(t, true)
+}
+
+func TestHandlerSendBatchesRewriteSpanNames(t *testing.T) {
+	transactionName := "Transaction_Name_123"
+	spanName := "Span_abc123_Name"
+
+	originalPayload := fmt.Sprintf(`
+{"metadata":{}}
+{"transaction":{"name":%q}}
+{"span":{"name":%q}}
+`[1:], transactionName, spanName)
+
+	fs := fstest.MapFS{"foo.ndjson": {Data: []byte(originalPayload)}}
+
+	run := func(t *testing.T, rewrite bool) {
+		t.Helper()
+		t.Run(strconv.FormatBool(rewrite), func(t *testing.T) {
+			handler, srv := newHandler(t,
+				withStorage(fs),
+				withRewriteSpanNames(rewrite),
+				withRand(rand.New(rand.NewSource(123456))), // known seed
+			)
+			_, err := handler.SendBatches(context.Background())
+			assert.NoError(t, err)
+
+			if !rewrite {
+				// Original payload should be sent as-is.
+				assert.Equal(t, originalPayload, srv.got.String())
+				return
+			}
+
+			d := json.NewDecoder(bytes.NewReader(srv.got.Bytes()))
+			type object map[string]struct {
+				Name string `json:"name"`
+			}
+			var objects []object
+			for {
+				var object object
+				err := d.Decode(&object)
+				if errors.Is(err, io.EOF) {
+					break
+				}
+				require.NoError(t, err)
+				objects = append(objects, object)
+			}
+
+			assert.Equal(t, []object{
+				{"metadata": {}},
+				{"transaction": {Name: "Transaction_Name_123"}},
+				{"span": {Name: "Swfc_cef201_Nfmk"}},
+			}, objects)
+		})
+	}
+	run(t, false)
+	run(t, true)
+}
+
+func TestHandlerSendBatchesRewriteTransactionNames(t *testing.T) {
+	transactionName := "Transaction_Name_123"
+	spanName := "Span_abc123_Name"
+
+	originalPayload := fmt.Sprintf(`
+{"metadata":{}}
+{"transaction":{"name":%q}}
+{"span":{"name":%q}}
+`[1:], transactionName, spanName)
+
+	fs := fstest.MapFS{"foo.ndjson": {Data: []byte(originalPayload)}}
+
+	run := func(t *testing.T, rewrite bool) {
+		t.Helper()
+		t.Run(strconv.FormatBool(rewrite), func(t *testing.T) {
+			handler, srv := newHandler(t,
+				withStorage(fs),
+				withRewriteTransactionNames(rewrite),
+				withRand(rand.New(rand.NewSource(123456))), // known seed
+			)
+			_, err := handler.SendBatches(context.Background())
+			assert.NoError(t, err)
+
+			if !rewrite {
+				// Original payload should be sent as-is.
+				assert.Equal(t, originalPayload, srv.got.String())
+				return
+			}
+
+			d := json.NewDecoder(bytes.NewReader(srv.got.Bytes()))
+			type object map[string]struct {
+				Name string `json:"name"`
+			}
+			var objects []object
+			for {
+				var object object
+				err := d.Decode(&object)
+				if errors.Is(err, io.EOF) {
+					break
+				}
+				require.NoError(t, err)
+				objects = append(objects, object)
+			}
+
+			assert.Equal(t, []object{
+				{"metadata": {}},
+				{"transaction": {Name: "Swfcucefmkl_Nfmk_959"}},
+				{"span": {Name: "Span_abc123_Name"}},
+			}, objects)
+		})
+	}
+	run(t, false)
+	run(t, true)
+}
+
 func TestHandlerWarmUp(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		h, srv := newHandler(t)
@@ -441,5 +724,20 @@ func BenchmarkSendBatches(b *testing.B) {
 	})
 	b.Run("rewrite_ids", func(b *testing.B) {
 		run(b, withRewriteIDs(true))
+	})
+	b.Run("rewrite_service_names", func(b *testing.B) {
+		run(b, withRewriteServiceNames(true))
+	})
+	b.Run("rewrite_service_node_names", func(b *testing.B) {
+		run(b, withRewriteServiceNodeNames(true))
+	})
+	b.Run("rewrite_service_target_names", func(b *testing.B) {
+		run(b, withRewriteServiceTargetNames(true))
+	})
+	b.Run("rewrite_transaction_names", func(b *testing.B) {
+		run(b, withRewriteTransactionNames(true))
+	})
+	b.Run("rewrite_span_names", func(b *testing.B) {
+		run(b, withRewriteSpanNames(true))
 	})
 }
