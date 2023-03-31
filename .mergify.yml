@@ -200,9 +200,6 @@ pull_request_rules:
       - author=mergify[bot]
       - -conflict
     actions:
-      review:
-        type: APPROVE
-        message: Automatically approving mergify
       queue:
         method: squash
         name: default
