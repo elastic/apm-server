@@ -98,7 +98,11 @@ func findUniqueTypes(stacktrace string) (map[string]StacktraceType, error) {
 			}
 			symbol, ok := symbols[typeName]
 			if !ok {
-				symbol = StacktraceType{typeName, typeIndex + 1, make(map[string]string)}
+				symbol = StacktraceType{
+					name:        typeName,
+					indentation: typeIndex + 1,
+					methods:     make(map[string]string),
+				}
 				symbols[typeName] = symbol
 			}
 			_, ok = symbol.methods[methodName]
