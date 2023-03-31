@@ -85,8 +85,7 @@ be set to `true` if any of `-blockprofile`, `-cpuprofile`, `-memprofile` or `-mu
 
 The default behavior of `apmbench` is to send the captured events to the target APM Server as fast as possible
 with the configured number of `-agents`. The `-agents` flag determines how many concurrent goroutines will be used
-to send the events to the APM Server in parallel. The `-max-rate` can be used to specify rate of events, as `eps`
-or `epm` to send to the APM server instead of the default behaviour. To benchmark the APM Server in setup similar
+to send the events to the APM Server in parallel. The `-event-rate` can be used to specify rate of events, as `{events}/{interval}` format to send to the APM server instead of the default behaviour. For example, `1000/1s` or `10000/5s`. To benchmark the APM Server in setup similar
 to what we'd see in production, the number of agents should be high (>`500`).
 
 By default, `apmbench` will warm up the APM Server by sending events for N duration to the APM Server before any of the
@@ -112,8 +111,8 @@ $ go run main.go -h
 Usage of /var/folders/k9/z1yw8fsn0sjbl5yy7z2rsdpr0000gn/T/go-build4164012609/b001/exe/main:
   -agents-replicas int
     	Number of agents replicas to use, each replica launches 4 agents, one for each type (default 1)
-  -max-rate value
-    	Max event rate as epm or eps with burst size=max(1000, 2*eps), <= 0 values evaluate to Inf (default 0epm)
+  -event-rate value
+    	Event rate in format of {burst}/{interval}, 0/s evaluates to Inf (default 0/s)
   -secret-token string
     	secret token for APM Server
   -secure

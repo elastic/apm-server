@@ -3,7 +3,18 @@
 
 https://github.com/elastic/apm-server/compare/8.6\...8.7[View commits]
 
+* <<release-notes-8.7.1>>
 * <<release-notes-8.7.0>>
+
+[float]
+[[release-notes-8.7.1]]
+=== APM version 8.7.1
+
+https://github.com/elastic/apm-server/compare/v8.7.0\...v8.7.1[View commits]
+
+[float]
+==== Bug fixes
+- Fix indexing failures for metric, error and log documents when `agent.activation_method` is set {pull}10522[10522]
 
 [float]
 [[release-notes-8.7.0]]
@@ -33,25 +44,46 @@ https://github.com/elastic/apm-server/compare/8.6\...8.7[View commits]
 
 [float]
 ==== Added
-- Add `event.success_count` to transaction events and transaction metrics {pull}9819[9819] {pull}10165[10165]
-- Set `_doc_count` for service destination metrics {pull}9931[9931]
-- Add `transaction.duration.summary` to transaction metrics {pull}9973[9973] {pull}10214[10214]
-- Add `service.language.name` to service transaction metrics and service summary metrics {pull}10111[10111]
-- Add global labels to service destination metrics {pull}10056[10056] {pull}10297[10297]
-- Improve APM UI query performance by producing `1m`, `10m` and `60m` aggregation intervals for transaction metrics. Store them into dedicated data streams `metrics-apm.transaction.${interval}` {pull}9846[9846]
-- Improve APM UI query performance by producing `1m`, `10m` and `60m` aggregation intervals for service destination metrics. Store them into dedicated data streams `metrics-apm.service_destination.${interval}` {pull}9926[9926]
-- Improve APM UI query performance by producing `1m`, `10m` and `60m` aggregation intervals for service metrics. Store them into dedicated data streams `metrics-apm.service.${interval}` {pull}9960[9960]
-- Add histogram support to service metrics aggregations {pull}9864[9864] {pull}10214[10214] {pull}10127[10127] {pull}10216[10216]
-- Add a service summary metrics aggregator that writes to `metrics-apm.service_summary.${interval}` with `1m`, `10m` and `60m` intervals {pull}10029[10029]
-- Service metrics and service summary aggregations are now always enabled {pull}10060[10060] {pull}10109[10109]
-- Dedicated overflow buckets for transaction, service, service destination and service summary aggregation to limit cardinality {pull}10069[10069] {pull}9856[9856] {pull}10061[10061] {pull}10302[10302] {pull}10362[10362] {pull}9911[9911] {pull}10012[10012]
-- Automatically scale `MaxGroups`, `MaxTransactionGroups` and `MaxServices` based on available memory {pull}9856[9856] {pull}10157[10157] {pull}10190[10190]
-- Set data streams with non-default rollup intervals as hidden {pull}10070[10070]
-- Rename service metrics to service transaction metrics {pull}10095[10095] {pull}10110[10110]
-- Reduce memory usage of transaction and service transaction aggregations {pull}10178[10178]
 - Metrics data streams now use synthetic source {pull}9756[9756]
 - Translate otel log events to error events {pull}10066[10066] {pull}10128[10128]
 - Use Elasticsearch fetcher for agent remote configuration where possible {pull}9720[9720] {pull}10088[10088] {pull}10115[10115]
 - Fetch sourcemaps from Elasticsearch {pull}9722[9722] {pull}10367[10367] {pull}10360[10360] {pull}10106[10106]
-- Add overflow metrics for transaction, span metrics, service transaction and service summary metrics {pull}10330[10330]
 - Add support for RHEL 9 {pull}10317[10317]
+
+[float]
+==== Transaction metric improvements
+- Add `event.success_count` to transaction metrics {pull}9819[9819] {pull}10165[10165]
+- Add `transaction.duration.summary` to transaction metrics {pull}9973[9973] {pull}10214[10214]
+- Introduce overflow buckets to limit cardinality and scale the max groups based on available memory {pull}9856[9856] {pull}10157[10157] {pull}10362[10362] {pull}9911[9911] {pull}10012[10012] {pull}10190[10190]
+- Add overflow metrics collection {pull}10330[10330]
+- Improve APM UI query performance by producing `1m`, `10m` and `60m` aggregation intervals for transaction metrics. Store them into hidden data streams `metrics-apm.transaction.${interval}` {pull}9846[9846] {pull}10070[10070]
+- Reduce memory footprint of transaction aggregations {pull}10178[10178]
+
+[float]
+==== Service transaction metric improvements
+- Introduce overflow buckets to limit cardinality and scale the max groups based on available memory {pull}9856[9856] {pull}10157[10157] {pull}9911[9911] {pull}10012[10012]
+- Add overflow metrics collection {pull}10330[10330]
+- Rename service metrics to service transaction metrics {pull}10095[10095] {pull}10110[10110]
+- Improve APM UI query performance by producing `1m`, `10m` and `60m` aggregation intervals for service metrics. Store them into hidden data streams `metrics-apm.service.${interval}` {pull}9960[9960] {pull}10070[10070]
+- Add `service.language.name` {pull}10111[10111]
+- Add histogram support {pull}9864[9864] {pull}10214[10214] {pull}10127[10127] {pull}10216[10216]
+- Always enable metrics aggregaton and remove config option {pull}10060[10060] {pull}10109[10109]
+- Reduce memory footprint of service transaction aggregations {pull}10178[10178]
+
+[float]
+==== Service destination metric improvements
+- Introduce overflow buckets to limit cardinality {pull}10069[10069]
+- Add overflow metrics collection {pull}10330[10330]
+- Set `_doc_count` for service destination metrics {pull}9931[9931]
+- Add global labels to service destination metrics {pull}10056[10056] {pull}10297[10297]
+- Improve APM UI query performance by producing `1m`, `10m` and `60m` aggregation intervals for service destination metrics. Store them into data streams `metrics-apm.service_destination.${interval}` and make them hidden for non-default intervals {pull}
+926[9926] {pull}10070[10070]
+
+[float]
+==== Introducing Service summary metric improvements
+- Introduce service summary metrics {pull}10111[10111]
+- Introduce overflow buckets to limit cardinality {pull}10061[10061] {pull}10302[10302]
+- Add overflow metrics collection {pull}10330[10330]
+- Improve APM UI query performance by adding an always enabled service summary metrics aggregator which produces `1m`, `10m` and `60m` aggregation intervals. Store them into data streams `metrics-apm.service_summary.${interval}` and make them hidden for
+non-default intervals {pull}10029[10029] {pull}10060[10060] {pull}10070[10070]
+- Add `service.language.name` {pull}10111[10111]

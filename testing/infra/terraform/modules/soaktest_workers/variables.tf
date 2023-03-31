@@ -38,9 +38,9 @@ variable "apm_api_key" {
   sensitive   = true
 }
 
-variable "apm_loadgen_max_rate" {
+variable "apm_loadgen_event_rate" {
   type        = string
-  description = "Max load generation rate"
+  description = "Load generation rate"
 }
 
 variable "apm_loadgen_agents_replicas" {

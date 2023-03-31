@@ -5,13 +5,42 @@
 === Breaking Changes
 
 // These tagged regions are required for the stack-docs repo includes
-// tag::87-bc[]
-// end::87-bc[]
+// tag::88-bc[]
+// end::88-bc[]
 // tag::notable-v8-breaking-changes[]
 // end::notable-v8-breaking-changes[]
 
 This section describes the breaking changes and deprecations introduced in this release
 and previous minor versions.
+
+// tag::87-bc[]
+[float]
+[[breaking-changes-8.7]]
+=== 8.7
+
+The following breaking changes and deprecations are introduced in APM version 8.7.0:
+
+- `transaction.failure_count` has been removed. `transaction.success_count` type has changed to `aggregated_metric_double`.
+For more details, see https://github.com/elastic/apm-server/pull/9791[PR #9791].
+
+- `transaction.success_count` has been moved to `event.success_count`.
+For more details, see https://github.com/elastic/apm-server/pull/9819[PR #9819].
+
+- Stopped indexing transaction metrics to `metrics-apm.internal`.
+For more details, see https://github.com/elastic/apm-server/pull/9846[PR #9846].
+
+- Stopped indexing span destination metrics to `metrics-apm.internal`.
+For more details, see https://github.com/elastic/apm-server/pull/9926[PR #9926].
+
+- `apmserver.aggregation.txmetrics.overflowed` metric has been renamed to `apmserver.aggregation.txmetrics.overflowed.total`.
+For more details, see https://github.com/elastic/apm-server/pull/10330[PR #10330].
+
+- Elasticsearch source mapping credentials now require access to the `.apm-source-map` index.
+For more details, see https://github.com/elastic/apm-server/pull/9722[PR #9722].
+
+- Changed APM Server default host to `127.0.0.1`.
+For more details, see https://github.com/elastic/apm-server/pull/9877[PR #9877].
+// end::87-bc[]
 
 // tag::86-bc[]
 [float]
