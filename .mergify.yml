@@ -137,23 +137,33 @@ pull_request_rules:
         branches:
           - "7.13"
         title: "[{{ destination_branch }}] {{ title }} (backport #{{ number }})"
-  - name: squash and merge updatecli PRs after CI passes
+  - name: squash and merge updatecli and Mergify PRs after CI passes
     conditions:
       - check-success=apm-ci/pr-merge
-      - label=automation
-      - head~=^updatecli
+      - or:
+        - and:
+          - label=automation
+          - head~=^updatecli
+        - and:
+          - label=backport
+          - head~=^mergify
+          - -conflict
     actions:
       queue:
         method: squash
         name: default
-  - name: delete updatecli branch after merging/closing it
+  - name: delete updatecli and Mergify branches after merging/closing them
     conditions:
+      - or:
+        - and:
+          - label=automation
+          - head~=^updatecli
+        - and:
+          - label=backport
+          - head~=^mergify
       - or:
         - merged
         - closed
-      - and:
-        - label=automation
-        - head~=^updatecli
     actions:
       delete_head_branch:
   - name: notify the backport policy
