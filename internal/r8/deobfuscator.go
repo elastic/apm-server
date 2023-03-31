@@ -37,7 +37,7 @@ type MappedType struct {
 }
 
 type MappedMethodCall struct {
-	reference string
+	reference string // For simple obfuscated methods, it's the method name. For multiline method calls, it's methodName:sourceFileNumber. E.g. for a method named "a" with (SourceFile:4) reference = "a:4"
 	key       string
 }
 
