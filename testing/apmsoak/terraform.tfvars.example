@@ -20,9 +20,9 @@ gcp_zone = "us-west2-b"
 # API Key for auth against the given server URL
 # apm_api_key = "<api_key>"
 
-# Max rate at which events will be sent to the APM server
-# Defaults to `4000eps` (i.e. 4000 events per second)
-# apm_loadgen_max_rate = "8000eps"
+# Event rate at which events will be sent to the APM server
+# Defaults to `4000/s` (i.e. 4000 events per second)
+# apm_loadgen_event_rate = "4000/s"
 
 # Number of agents replicas to use, each replica launches 4 agents, one for each type
 # Defaults to `2`

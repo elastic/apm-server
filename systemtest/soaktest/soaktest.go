@@ -32,7 +32,7 @@ import (
 )
 
 func RunBlocking(ctx context.Context) error {
-	limiter := loadgen.GetNewLimiter(loadgencfg.Config.MaxEPM)
+	limiter := loadgen.GetNewLimiter(loadgencfg.Config.EventRate.Burst, loadgencfg.Config.EventRate.Interval)
 	g, gCtx := errgroup.WithContext(ctx)
 
 	// Create a Rand with the same seed for each agent, so we randomise their IDs consistently.
@@ -83,4 +83,5 @@ func runAgent(ctx context.Context, expr string, limiter *rate.Limiter, rng *rand
 			}
 		}
 	}
+	return nil
 }

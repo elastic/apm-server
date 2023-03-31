@@ -43,9 +43,10 @@ import (
 )
 
 type mockServer struct {
-	got      *bytes.Buffer
-	close    func()
-	received int
+	got          *bytes.Buffer
+	close        func()
+	received     int
+	requestCount int
 }
 
 func (t *mockServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -78,6 +79,7 @@ func (t *mockServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		t.got.Write(line)
 		t.got.Write([]byte("\n"))
 	}
+	t.requestCount++
 	w.WriteHeader(http.StatusAccepted)
 }
 
@@ -241,14 +243,18 @@ func TestHandlerSendBatches(t *testing.T) {
 		assert.Equal(t, 16, srv.received)        // Only the first batch is read
 		assert.Equal(t, 16, n)
 	})
-	t.Run("burst-greater-than-bucket-error", func(t *testing.T) {
-		handler, srv := newHandler(t, withRateLimiter(rate.NewLimiter(10, 10)))
-		ctx, cancel := context.WithCancel(context.Background())
+	t.Run("success-with-batch-bigger-than-burst", func(t *testing.T) {
+		handler, srv := newHandler(t, withRateLimiter(rate.NewLimiter(32, 8))) // rate=8/0.25s
+		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 		defer cancel()
 		n, err := handler.SendBatches(ctx)
-		assert.Error(t, err)
-		assert.Equal(t, 0, srv.received)
-		assert.Equal(t, 0, n)
+		assert.NoError(t, err)
+
+		// the payload is not equal as two metadata are added
+		assert.Equal(t, 32, srv.received)
+		assert.Equal(t, 32, n)                   // Ensure there are 32 events (minus metadata).
+		assert.Equal(t, 2, len(handler.batches)) // Ensure there are 2 batches.
+		assert.Equal(t, 4, srv.requestCount)     // a batch split into 2 requests.
 	})
 }
 
