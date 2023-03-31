@@ -55,10 +55,8 @@ func TestDeobfuscation(t *testing.T) {
 	}
 }
 
-func readFile(path string) string {
+func readFile(t *testing.T, path string) string {
 	bytes, err := os.ReadFile(path)
-	if err != nil {
-		log.Fatal(err)
-	}
+	require.Nil(t, err)
 	return string(bytes)
 }
