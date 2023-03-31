@@ -84,7 +84,7 @@ func Run(rootCtx context.Context) error {
 }
 
 func generateLoad(ctx context.Context, serverURL string, replayCount int) error {
-	inf := loadgen.GetNewLimiter(0)
+	inf := loadgen.GetNewLimiter(0, 0)
 	handler, err := loadgen.NewEventHandler(loadgen.EventHandlerParams{
 		Path:    `*.ndjson`,
 		URL:     serverURL,

@@ -72,7 +72,7 @@ func runBenchmark(f BenchmarkFunc) (testing.BenchmarkResult, bool, bool, error) 
 			return
 		}
 
-		limiter := loadgen.GetNewLimiter(loadgencfg.Config.MaxEPM)
+		limiter := loadgen.GetNewLimiter(loadgencfg.Config.EventRate.Burst, loadgencfg.Config.EventRate.Interval)
 		b.ResetTimer()
 		signal := make(chan bool)
 		// f can panic or call runtime.Goexit, stopping the goroutine.
@@ -250,7 +250,7 @@ func Run(allBenchmarks ...BenchmarkFunc) error {
 // warmup sends events to the remote APM Server using the specified number of
 // agents for the specified duration.
 func warmup(agents int, duration time.Duration, url, token string) error {
-	rl := loadgen.GetNewLimiter(loadgencfg.Config.MaxEPM)
+	rl := loadgen.GetNewLimiter(loadgencfg.Config.EventRate.Burst, loadgencfg.Config.EventRate.Interval)
 	h, err := loadgen.NewEventHandler(loadgen.EventHandlerParams{
 		Path:    `*.ndjson`,
 		URL:     url,
