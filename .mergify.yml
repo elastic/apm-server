@@ -193,9 +193,8 @@ pull_request_rules:
       comment:
         message: |
           This pull request has not been merged yet. Could you please review and merge it @{{ assignee | join(', @') }}? 🙏
-  - name: auto-merge for 7\. or 8\. branches when CI passes
+  - name: auto-merge backport branches when CI passes
     conditions:
-      - base~=^(7|8)\.
       - label=backport
       - author=mergify[bot]
     actions:
