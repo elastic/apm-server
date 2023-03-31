@@ -2,6 +2,9 @@ queue_rules:
   - name: default
     conditions:
       - check-success=apm-ci/pr-merge
+      - check-success=system-test
+      - check-success=lint
+      - check-success=CLA
 pull_request_rules:
   - name: ask to resolve conflict
     conditions:
@@ -139,7 +142,6 @@ pull_request_rules:
         title: "[{{ destination_branch }}] {{ title }} (backport #{{ number }})"
   - name: squash and merge updatecli PRs after CI passes
     conditions:
-      - check-success=apm-ci/pr-merge
       - label=automation
       - head~=^updatecli
     actions:
@@ -191,6 +193,18 @@ pull_request_rules:
       comment:
         message: |
           This pull request has not been merged yet. Could you please review and merge it @{{ assignee | join(', @') }}? 🙏
+  - name: auto-merge for 7\. or 8\. branches when CI passes
+    conditions:
+      - base~=^(7|8)\.
+      - label=backport
+      - author=mergify[bot]
+    actions:
+      review:
+        type: APPROVE
+        message: Automatically approving mergify
+      queue:
+        method: squash
+        name: default
   - name: backport patches to 8.5 branch
     conditions:
       - merged
