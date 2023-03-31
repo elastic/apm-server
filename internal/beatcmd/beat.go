@@ -146,7 +146,7 @@ func (b *Beat) init() error {
 	logp.Info("Beat ID: %v", b.Info.ID)
 
 	// Initialize central config manager.
-	manager, err := management.Factory(b.Config.Management)(b.Config.Management, reload.RegisterV2, b.Beat.Info.ID)
+	manager, err := management.NewManager(b.Config.Management, reload.RegisterV2)
 	if err != nil {
 		return err
 	}
@@ -442,7 +442,7 @@ func (b *Beat) registerMetrics() {
 	monitoring.NewString(beatRegistry, "name").Set(b.Info.Name)
 
 	// state.host
-	monitoring.NewFunc(stateRegistry, "host", host.ReportInfo(false), monitoring.Report)
+	monitoring.NewFunc(stateRegistry, "host", host.ReportInfo("" /* don't use FQDN */), monitoring.Report)
 
 	// state.management
 	managementRegistry := stateRegistry.NewRegistry("management")
