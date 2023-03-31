@@ -25,14 +25,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/apm-server/internal/version"
 	"github.com/elastic/beats/v7/libbeat/common/reload"
-	"github.com/elastic/beats/v7/libbeat/feature"
 	"github.com/elastic/beats/v7/libbeat/management"
 	"github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
@@ -131,17 +129,9 @@ func TestRunManager(t *testing.T) {
 
 	// Register our own mock management implementation.
 	manager := newMockManager()
-	featureRegistry := feature.GlobalRegistry()
-	managementFeature := feature.New(
-		management.Namespace, "testing", management.PluginFunc(func(cfg *config.C) management.FactoryFunc {
-			return func(cfg *config.C, registry *reload.Registry, uuid uuid.UUID) (management.Manager, error) {
-				return manager, nil
-			}
-		}),
-		feature.MakeDetails("testing", "", feature.Experimental),
-	)
-	featureRegistry.Register(managementFeature)
-	defer featureRegistry.Unregister(management.Namespace, "testing")
+	management.SetManagerFactory(func(cfg *config.C, registry *reload.Registry) (management.Manager, error) {
+		return manager, nil
+	})
 
 	calls := make(chan RunnerParams, 1)
 	b := newBeat(t, "management.enabled: true", func(args RunnerParams) (Runner, error) {
