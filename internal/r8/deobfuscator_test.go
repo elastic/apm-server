@@ -19,11 +19,11 @@ package r8
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestDeobfuscation(t *testing.T) {
