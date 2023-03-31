@@ -144,6 +144,7 @@ pull_request_rules:
     conditions:
       - label=automation
       - head~=^updatecli
+      - -conflict
     actions:
       queue:
         method: squash
@@ -193,10 +194,11 @@ pull_request_rules:
       comment:
         message: |
           This pull request has not been merged yet. Could you please review and merge it @{{ assignee | join(', @') }}? 🙏
-  - name: auto-merge backport branches when CI passes
+  - name: squash and merge backport PRs after CI passes
     conditions:
       - label=backport
       - author=mergify[bot]
+      - -conflict
     actions:
       review:
         type: APPROVE
