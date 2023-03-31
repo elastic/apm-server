@@ -185,7 +185,7 @@ func upsertMappedMethodCall(mapping map[string]string, methodMatch MethodMatch, 
 		delete(currentType.obfuscated.methods, methodNameReference)
 		key := getKey(currentType.obfuscated.name, methodMatch.methodObfuscatedName, methodCallSite)
 		mapping[key] = getKey(currentType.realName, methodMatch.methodRealName, methodCallSite)
-		return &MappedMethodCall{mapReference, key}
+		return &MappedMethodCall{reference: mapReference, key: key}
 	} else if currentMappedMethodCall != nil && currentMappedMethodCall.reference == mapReference {
 		// This is a continuation call for the currentMappedMethodCall.
 		mapping[currentMappedMethodCall.key] += "\n" + fmt.Sprintf("%s%s", strings.Repeat(" ", len(currentType.realName)+currentType.obfuscated.indentation), methodMatch.methodRealName)
