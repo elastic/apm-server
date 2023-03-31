@@ -3,6 +3,7 @@
         {
             "@timestamp": "2018-07-30T18:53:42.281Z",
             "agent": {
+                "activation_method": "some_activation_method",
                 "ephemeral_id": "justanid",
                 "name": "elastic-ruby",
                 "version": "2.2"
@@ -168,6 +169,7 @@
         {
             "@timestamp": "2018-07-30T18:53:42.281Z",
             "agent": {
+                "activation_method": "some_activation_method",
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
@@ -242,6 +244,7 @@
         {
             "@timestamp": "2018-07-30T18:53:42.281Z",
             "agent": {
+                "activation_method": "some_activation_method",
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
@@ -322,6 +325,7 @@
         {
             "@timestamp": "2018-07-30T18:53:42.281Z",
             "agent": {
+                "activation_method": "some_activation_method",
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
@@ -396,6 +400,7 @@
         {
             "@timestamp": "2021-07-06T11:58:05.682Z",
             "agent": {
+                "activation_method": "some_activation_method",
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
@@ -480,6 +485,7 @@
         {
             "@timestamp": "2018-07-30T18:53:42.281Z",
             "agent": {
+                "activation_method": "some_activation_method",
                 "ephemeral_id": "justanid",
                 "name": "elastic-ruby",
                 "version": "2.2"
@@ -645,6 +651,7 @@
         {
             "@timestamp": "2018-07-30T18:53:42.281Z",
             "agent": {
+                "activation_method": "some_activation_method",
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
@@ -734,6 +741,7 @@
         {
             "@timestamp": "2018-07-30T18:53:42.281Z",
             "agent": {
+                "activation_method": "some_activation_method",
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
@@ -816,6 +824,7 @@
         {
             "@timestamp": "2018-07-30T18:33:03.584Z",
             "agent": {
+                "activation_method": "some_activation_method",
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
@@ -909,6 +918,7 @@
         {
             "@timestamp": "2018-07-30T18:53:42.281Z",
             "agent": {
+                "activation_method": "some_activation_method",
                 "ephemeral_id": "justanid",
                 "name": "elastic-ruby",
                 "version": "2.2"
