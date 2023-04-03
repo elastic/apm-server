@@ -20,6 +20,7 @@ const (
 	MetadataKeyHostname      = "hostname"
 	MetadataKeyKernelVersion = "kernelVersion"
 	MetadataKeyHostID        = "hostID"
+	MetadataKeyRPCVersion    = "rpcVersion"
 	// Tags will be auto base64 encoded/decoded
 	MetadataKeyTags = "tags-bin"
 )
@@ -36,8 +37,8 @@ func GetProjectID(ctx context.Context) uint32 {
 	// Metadata and host ID have been validated in auth interceptor,
 	// no need to error check here.
 	md, _ := metadata.FromIncomingContext(ctx)
-	projectIDs := GetFirstOrEmpty(md, MetadataKeyProjectID)
-	projectID64, _ := strconv.Atoi(projectIDs)
+	projectIDStr := GetFirstOrEmpty(md, MetadataKeyProjectID)
+	projectID64, _ := strconv.ParseUint(projectIDStr, 10, 32)
 	return uint32(projectID64)
 }
 
@@ -45,8 +46,8 @@ func GetHostID(ctx context.Context) uint64 {
 	// Metadata and host ID have been validated in auth interceptor,
 	// no need to error check here.
 	md, _ := metadata.FromIncomingContext(ctx)
-	hostIDs := GetFirstOrEmpty(md, MetadataKeyHostID)
-	hostID, _ := strconv.ParseUint(hostIDs, 16, 64)
+	hostIDStr := GetFirstOrEmpty(md, MetadataKeyHostID)
+	hostID, _ := strconv.ParseUint(hostIDStr, 16, 64)
 	return hostID
 }
 

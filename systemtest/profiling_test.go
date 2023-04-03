@@ -111,7 +111,9 @@ func TestProfiling(t *testing.T) {
 	ctx := metadata.AppendToOutgoingContext(context.Background(),
 		"secretToken", secretToken,
 		"projectID", "123",
-		"hostID", "abc123")
+		"hostID", "abc123",
+		"rpcVersion", "1",
+	)
 
 	// We always insert 2 elements in KV indices for each test RPC below.
 	// All RPCs use a columnar format, where arrays of fields are bundled
