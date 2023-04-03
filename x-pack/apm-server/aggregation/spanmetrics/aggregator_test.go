@@ -513,7 +513,7 @@ func TestAggregateTransactionDroppedSpansStats(t *testing.T) {
 			Service: model.Service{
 				Name: "go-service",
 			},
-			Event:     model.Event{Outcome: "success"},
+			Event:     model.Event{Outcome: "unknown"},
 			Processor: model.MetricsetProcessor,
 			Metricset: &model.Metricset{Name: "service_destination", Interval: "0s", DocCount: 4},
 			Span: &model.Span{
