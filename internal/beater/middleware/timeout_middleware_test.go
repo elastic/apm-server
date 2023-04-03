@@ -22,6 +22,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 
@@ -29,24 +30,46 @@ import (
 )
 
 func TestTimeoutMiddleware(t *testing.T) {
-	var err error
-	m := TimeoutMiddleware()
-	h := request.Handler(func(c *request.Context) {
-		ctx := c.Request.Context()
-		ctx, cancel := context.WithCancel(ctx)
-		r := c.Request.WithContext(ctx)
-		c.Request = r
-		cancel()
+	t.Run("Cancelled", func(t *testing.T) {
+		var err error
+		h := request.Handler(func(c *request.Context) {
+			ctx := c.Request.Context()
+			ctx, cancel := context.WithCancel(ctx)
+			r := c.Request.WithContext(ctx)
+			c.Request = r
+			cancel()
+		})
+
+		h, err = TimeoutMiddleware()(h)
+		assert.NoError(t, err)
+
+		c := request.NewContext()
+		r, err := http.NewRequest("GET", "/", nil)
+		assert.NoError(t, err)
+		c.Reset(httptest.NewRecorder(), r)
+		h(c)
+
+		assert.Equal(t, http.StatusServiceUnavailable, c.Result.StatusCode)
 	})
+	t.Run("DeadlineExceeded", func(t *testing.T) {
+		var err error
+		h := request.Handler(func(c *request.Context) {
+			ctx := c.Request.Context()
+			ctx, _ = context.WithTimeout(ctx, time.Nanosecond)
+			r := c.Request.WithContext(ctx)
+			c.Request = r
+			<-time.After(2 * time.Nanosecond)
+		})
 
-	h, err = m(h)
-	assert.NoError(t, err)
+		h, err = TimeoutMiddleware()(h)
+		assert.NoError(t, err)
 
-	c := request.NewContext()
-	r, err := http.NewRequest("GET", "/", nil)
-	assert.NoError(t, err)
-	c.Reset(httptest.NewRecorder(), r)
-	h(c)
+		c := request.NewContext()
+		r, err := http.NewRequest("GET", "/", nil)
+		assert.NoError(t, err)
+		c.Reset(httptest.NewRecorder(), r)
+		h(c)
 
-	assert.Equal(t, http.StatusServiceUnavailable, c.Result.StatusCode)
+		assert.Equal(t, http.StatusServiceUnavailable, c.Result.StatusCode)
+	})
 }

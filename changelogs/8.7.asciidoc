@@ -15,6 +15,7 @@ https://github.com/elastic/apm-server/compare/v8.7.0\...v8.7.1[View commits]
 [float]
 ==== Bug fixes
 - Fix indexing failures for metric, error and log documents when `agent.activation_method` is set {pull}10522[10522]
+- metrics: Count context.DeadlineExceeded as timeout {pull}10594[10594]
 
 [float]
 [[release-notes-8.7.0]]
