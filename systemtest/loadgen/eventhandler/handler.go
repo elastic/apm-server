@@ -71,8 +71,10 @@ type Handler struct {
 	config     Config
 	writerPool sync.Pool
 
-	batches      []batch
-	minTimestamp time.Time // across all batches
+	batches       []batch
+	queuedBatches []batch
+	queuedEvents  int
+	minTimestamp  time.Time // across all batches
 }
 
 // Config holds configuration for Handler.
@@ -284,11 +286,9 @@ func (h *Handler) sendBatch(
 	baseTimestamp time.Time,
 	randomBits uint64,
 ) (int, error) {
-	// TODO add an option to send events with a steady event rate;
-	// if the batch is larger than the event rate, it must then be
-	// split into smaller batches.
 	burst := h.config.Limiter.Burst()
 	if burst == 0 {
+		// no need to rate limit as 0 means no limiting
 		err := h.sendHTTPRequest(ctx, b, baseTimestamp, randomBits)
 		if err != nil {
 			return 0, err
@@ -297,35 +297,49 @@ func (h *Handler) sendBatch(
 	}
 
 	events := b.events
-	remaining := len(b.events)
+	remaining := h.queuedEvents + len(b.events)
 	for remaining > 0 {
 		n := burst
 		if remaining < burst {
-			n = remaining
+			// if collected events are smaller than burst size, queue it and repeat it again
+			// so that it can reach the full burst size eventually
+			h.queuedBatches = append(h.queuedBatches, batch{
+				metadata: b.metadata,
+				events:   events,
+			})
+
+			h.queuedEvents += len(events)
+			return 0, nil
 		}
+		// if queuedEvents exist, need to allow (burst - queued event) events from current batch
+		n -= h.queuedEvents
 		tb := batch{
 			metadata: b.metadata,
 			events:   events[:n],
 		}
-		err := h.sendHTTPRequest(ctx, tb, baseTimestamp, randomBits)
-		if err != nil {
-			return len(b.events) - remaining, err
+
+		// the number of events equal to burst is collected from above step
+		// wait for the burst size to ensure the limiter to block for the interval
+		// then send all the queued batches
+		if err := h.config.Limiter.WaitN(ctx, burst); err != nil {
+			return 0, err
 		}
+		for _, qb := range append(h.queuedBatches, tb) {
+			err := h.sendHTTPRequest(ctx, qb, baseTimestamp, randomBits)
+			if err != nil {
+				return 0, err
+			}
+		}
+
 		events = events[n:]
-		remaining -= n
+		remaining = len(events)
+		h.queuedBatches = []batch{}
+		h.queuedEvents = 0
 	}
 	return len(b.events), nil
 }
 
 func (h *Handler) sendHTTPRequest(ctx context.Context, b batch, baseTimestamp time.Time, randomBits uint64) error {
-	// if len(b.events) == burst, it will wait for full interval
-	// if len(b.events) < burst, it will wait shorter time than interval - interval will be shifted
-	// len(b.events) > burst cannot happen, because the caller
-	// arranges for batches to be split as needed.
-	if err := h.config.Limiter.WaitN(ctx, len(b.events)); err != nil {
-		return err
-	}
-
 	rewriteAny := h.config.RewriteTimestamps ||
 		h.config.RewriteIDs ||
 		h.config.RewriteServiceNames ||
