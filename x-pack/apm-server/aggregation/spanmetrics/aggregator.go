@@ -259,6 +259,7 @@ func (a *Aggregator) processSpan(event *model.APMEvent) {
 	for _, interval := range a.Intervals {
 		key := makeAggregationKey(
 			event,
+			event.Event.Outcome,
 			event.Span.DestinationService.Resource,
 			serviceTargetType,
 			serviceTargetName,
@@ -285,6 +286,7 @@ func (a *Aggregator) processDroppedSpanStats(event *model.APMEvent, dss model.Dr
 	for _, interval := range a.Intervals {
 		key := makeAggregationKey(
 			event,
+			dss.Outcome,
 			dss.DestinationServiceResource,
 			dss.ServiceTargetType,
 			dss.ServiceTargetName,
@@ -436,7 +438,7 @@ func (k *aggregationKey) equal(key aggregationKey) bool {
 }
 
 func makeAggregationKey(
-	event *model.APMEvent, resource, targetType, targetName, spanName string, interval time.Duration,
+	event *model.APMEvent, outcome, resource, targetType, targetName, spanName string, interval time.Duration,
 ) aggregationKey {
 	key := aggregationKey{
 		comparable: comparable{
@@ -448,7 +450,7 @@ func makeAggregationKey(
 			agentName:          event.Agent.Name,
 
 			spanName: spanName,
-			outcome:  event.Event.Outcome,
+			outcome:  outcome,
 
 			targetType: targetType,
 			targetName: targetName,
