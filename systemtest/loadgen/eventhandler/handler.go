@@ -272,10 +272,10 @@ func (h *Handler) SendBatches(ctx context.Context) (int, error) {
 	var sentEvents int
 	for _, batch := range h.batches {
 		sent, err := h.sendBatch(ctx, batch, baseTimestamp, randomBits)
+		sentEvents += sent
 		if err != nil {
 			return sentEvents, err
 		}
-		sentEvents += sent
 	}
 	return sentEvents, nil
 }
@@ -296,6 +296,7 @@ func (h *Handler) sendBatch(
 		return len(b.events), nil
 	}
 
+	var sent int
 	events := b.events
 	remaining := h.queuedEvents + len(b.events)
 	for remaining > 0 {
@@ -309,7 +310,7 @@ func (h *Handler) sendBatch(
 			})
 
 			h.queuedEvents += len(events)
-			return 0, nil
+			return sent, nil
 		}
 		// if queuedEvents exist, need to allow (burst - queued event) events from current batch
 		n -= h.queuedEvents
@@ -322,13 +323,14 @@ func (h *Handler) sendBatch(
 		// wait for the burst size to ensure the limiter to block for the interval
 		// then send all the queued batches
 		if err := h.config.Limiter.WaitN(ctx, burst); err != nil {
-			return 0, err
+			return sent, err
 		}
 		for _, qb := range append(h.queuedBatches, tb) {
 			err := h.sendHTTPRequest(ctx, qb, baseTimestamp, randomBits)
 			if err != nil {
-				return 0, err
+				return sent, err
 			}
+			sent += len(qb.events)
 		}
 
 		events = events[n:]
@@ -336,7 +338,7 @@ func (h *Handler) sendBatch(
 		h.queuedBatches = []batch{}
 		h.queuedEvents = 0
 	}
-	return len(b.events), nil
+	return sent, nil
 }
 
 func (h *Handler) sendHTTPRequest(ctx context.Context, b batch, baseTimestamp time.Time, randomBits uint64) error {
