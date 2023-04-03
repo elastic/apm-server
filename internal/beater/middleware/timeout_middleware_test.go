@@ -30,46 +30,35 @@ import (
 )
 
 func TestTimeoutMiddleware(t *testing.T) {
-	t.Run("Cancelled", func(t *testing.T) {
+	test := func(t *testing.T, handler request.Handler) {
 		var err error
-		h := request.Handler(func(c *request.Context) {
+		h, err := TimeoutMiddleware()(handler)
+		assert.NoError(t, err)
+
+		c := request.NewContext()
+		r, err := http.NewRequest("GET", "/", nil)
+		assert.NoError(t, err)
+		c.Reset(httptest.NewRecorder(), r)
+		h(c)
+
+		assert.Equal(t, http.StatusServiceUnavailable, c.Result.StatusCode)
+	}
+	t.Run("Cancelled", func(t *testing.T) {
+		test(t, request.Handler(func(c *request.Context) {
 			ctx := c.Request.Context()
 			ctx, cancel := context.WithCancel(ctx)
 			r := c.Request.WithContext(ctx)
 			c.Request = r
 			cancel()
-		})
-
-		h, err = TimeoutMiddleware()(h)
-		assert.NoError(t, err)
-
-		c := request.NewContext()
-		r, err := http.NewRequest("GET", "/", nil)
-		assert.NoError(t, err)
-		c.Reset(httptest.NewRecorder(), r)
-		h(c)
-
-		assert.Equal(t, http.StatusServiceUnavailable, c.Result.StatusCode)
+		}))
 	})
 	t.Run("DeadlineExceeded", func(t *testing.T) {
-		var err error
-		h := request.Handler(func(c *request.Context) {
+		test(t, request.Handler(func(c *request.Context) {
 			ctx := c.Request.Context()
 			ctx, _ = context.WithTimeout(ctx, time.Nanosecond)
 			r := c.Request.WithContext(ctx)
 			c.Request = r
 			<-time.After(2 * time.Nanosecond)
-		})
-
-		h, err = TimeoutMiddleware()(h)
-		assert.NoError(t, err)
-
-		c := request.NewContext()
-		r, err := http.NewRequest("GET", "/", nil)
-		assert.NoError(t, err)
-		c.Reset(httptest.NewRecorder(), r)
-		h(c)
-
-		assert.Equal(t, http.StatusServiceUnavailable, c.Result.StatusCode)
+		}))
 	})
 }
