@@ -312,16 +312,16 @@ func (h *Handler) sendBatch(
 			h.queuedEvents += len(events)
 			return sent, nil
 		}
-		// if queuedEvents exist, need to allow (burst - queued event) events from current batch
+		// if queuedEvents > 0, need to use (burst - queued event) events from current batch
 		n -= h.queuedEvents
 		tb := batch{
 			metadata: b.metadata,
 			events:   events[:n],
 		}
 
-		// the number of events equal to burst is collected from above step
+		// the number of events equal to burst are collected from above steps
 		// wait for the burst size to ensure the limiter to block for the interval
-		// then send all the queued batches
+		// then send all the events
 		if err := h.config.Limiter.WaitN(ctx, burst); err != nil {
 			return sent, err
 		}
