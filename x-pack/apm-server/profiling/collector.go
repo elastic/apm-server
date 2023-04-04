@@ -77,9 +77,10 @@ type ElasticCollector struct {
 	clusterID string
 }
 
-// NewCollector returns a new ElasticCollector uses indexer for storing stack trace data in
-// Elasticsearch, and metricsIndexer for storing host agent metrics. Separate indexers are
-// used to allow for host agent metrics to be sent to a separate monitoring cluster.
+// NewCollector returns a new ElasticCollector which uses indexer for storing stack trace
+// data in Elasticsearch, and metricsIndexer for storing host agent metrics. Separate
+// indexers are used to allow for host agent metrics to be sent to a separate monitoring
+// cluster.
 func NewCollector(
 	indexer esutil.BulkIndexer,
 	metricsIndexer esutil.BulkIndexer,
@@ -104,6 +105,8 @@ func NewCollector(
 		c.indexes[i] = fmt.Sprintf("%s-%dpow%02d", common.EventsIndexPrefix,
 			common.SamplingFactor, i+1)
 	}
+
+	rpcProtocolVersion = GetRPCVersion()
 	return c
 }
 

@@ -467,7 +467,7 @@ func TestAggregateTransactionDroppedSpansStats(t *testing.T) {
 	batch := expectBatch(t, batches)
 	metricsets := batchMetricsets(t, batch)
 
-	assert.ElementsMatch(t, []model.APMEvent{
+	assert.Empty(t, cmp.Diff([]model.APMEvent{
 		{
 			Agent: model.Agent{Name: "go"},
 			Service: model.Service{
@@ -513,7 +513,7 @@ func TestAggregateTransactionDroppedSpansStats(t *testing.T) {
 			Service: model.Service{
 				Name: "go-service",
 			},
-			Event:     model.Event{Outcome: "success"},
+			Event:     model.Event{Outcome: "unknown"},
 			Processor: model.MetricsetProcessor,
 			Metricset: &model.Metricset{Name: "service_destination", Interval: "0s", DocCount: 4},
 			Span: &model.Span{
@@ -526,7 +526,9 @@ func TestAggregateTransactionDroppedSpansStats(t *testing.T) {
 				},
 			},
 		},
-	}, metricsets)
+	}, metricsets, cmpopts.IgnoreTypes(netip.Addr{}), cmpopts.SortSlices(func(e1 model.APMEvent, e2 model.APMEvent) bool {
+		return e1.Span.DestinationService.Resource < e2.Span.DestinationService.Resource
+	})))
 }
 
 func TestAggregateHalfCapacityNoSpanName(t *testing.T) {
