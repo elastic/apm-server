@@ -17,7 +17,7 @@ https://github.com/elastic/apm-server/compare/v8.7.0\...v8.7.1[View commits]
 - Fix indexing failures for metric, error and log documents when `agent.activation_method` is set {pull}10552[10552]
 - Use droppedspan outcome in service destination aggregation {pull}10592[10592]
 - metrics: Count context.DeadlineExceeded as timeout {pull}10594[10594]
-- metrics: Count GRPC codes.Canceled as timeout {pull}XXXX[XXXX]
+- metrics: Count GRPC codes.Canceled as timeout {pull}10605[10605]
 
 [float]
 [[release-notes-8.7.0]]
