@@ -58,7 +58,7 @@ func TestTimeoutMiddleware(t *testing.T) {
 			ctx, _ = context.WithTimeout(ctx, time.Nanosecond)
 			r := c.Request.WithContext(ctx)
 			c.Request = r
-			<-time.After(2 * time.Nanosecond)
+			<-time.After(100 * time.Nanosecond)
 		}))
 	})
 }
