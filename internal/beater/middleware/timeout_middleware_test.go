@@ -53,12 +53,18 @@ func TestTimeoutMiddleware(t *testing.T) {
 		}))
 	})
 	t.Run("DeadlineExceeded", func(t *testing.T) {
+		var cancel func()
+		defer func() {
+			if cancel != nil {
+				cancel()
+			}
+		}()
 		test(t, request.Handler(func(c *request.Context) {
 			ctx := c.Request.Context()
-			ctx, _ = context.WithTimeout(ctx, time.Nanosecond)
+			ctx, cancel = context.WithTimeout(ctx, time.Nanosecond)
 			r := c.Request.WithContext(ctx)
 			c.Request = r
-			<-time.After(100 * time.Nanosecond)
+			time.Sleep(10 * time.Millisecond)
 		}))
 	})
 }
