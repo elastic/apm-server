@@ -293,10 +293,8 @@ func TestHandlerSendBatches(t *testing.T) {
 		n, _ := handler.SendBatches(ctx)
 		// 12 (1st sec) sent, wait for 2 sec to send events
 		// cancelling at 2nd sec shows queued batches
-		assert.Equal(t, 2, len(handler.batches))       // Ensure there are 2 batches.
-		assert.Equal(t, 1, len(handler.queuedBatches)) // Ensure there are 1 queued batch from previous batch.
-		assert.Equal(t, 4, handler.queuedEvents)       // Ensure there are 4 remaining events from 1st batch (length of 1st batch: 16)
-		assert.Equal(t, 12, srv.received)              // no events sent until next interval (only first burst)
+		assert.Equal(t, 2, len(handler.batches)) // Ensure there are 2 batches.
+		assert.Equal(t, 12, srv.received)        // no events sent until next interval (only first burst)
 		assert.Equal(t, 12, n)
 	})
 	t.Run("success-dequeue-events-and-send-at-next-interval", func(t *testing.T) {
@@ -305,9 +303,7 @@ func TestHandlerSendBatches(t *testing.T) {
 		defer cancel()
 		n, _ := handler.SendBatches(ctx)
 		// 12 (1st sec) + 12 (3rd sec)
-		// cancelling at 2nd sec shows queued batches
-		assert.Equal(t, 2, len(handler.batches)) // Ensure there are 2 batches.
-		assert.Equal(t, 24, srv.received)        // Ensure the burst is sent at the next interval
+		assert.Equal(t, 24, srv.received) // Ensure the events are sent after 2 seconds
 		assert.Equal(t, 24, n)
 	})
 }
