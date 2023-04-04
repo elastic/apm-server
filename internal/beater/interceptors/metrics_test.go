@@ -109,6 +109,21 @@ func TestMetrics(t *testing.T) {
 		},
 		{
 			f: func(ctx context.Context, req interface{}) (interface{}, error) {
+				return nil, status.Error(codes.Canceled, "request timed out")
+			},
+			monitoringInt: map[request.ResultID]int64{
+				request.IDRequestCount:               1,
+				request.IDResponseCount:              1,
+				request.IDResponseValidCount:         0,
+				request.IDResponseErrorsCount:        1,
+				request.IDResponseErrorsInternal:     0,
+				request.IDResponseErrorsRateLimit:    0,
+				request.IDResponseErrorsTimeout:      1,
+				request.IDResponseErrorsUnauthorized: 0,
+			},
+		},
+		{
+			f: func(ctx context.Context, req interface{}) (interface{}, error) {
 				return nil, status.Error(codes.ResourceExhausted, "rate limit exceeded")
 			},
 			monitoringInt: map[request.ResultID]int64{
