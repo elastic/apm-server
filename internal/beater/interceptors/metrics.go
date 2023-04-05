@@ -89,7 +89,7 @@ func Metrics(logger *logp.Logger) grpc.UnaryServerInterceptor {
 				switch s.Code() {
 				case codes.Unauthenticated:
 					m[request.IDResponseErrorsUnauthorized].Inc()
-				case codes.DeadlineExceeded:
+				case codes.DeadlineExceeded, codes.Canceled:
 					m[request.IDResponseErrorsTimeout].Inc()
 				case codes.ResourceExhausted:
 					m[request.IDResponseErrorsRateLimit].Inc()
