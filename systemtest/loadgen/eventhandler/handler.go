@@ -266,18 +266,11 @@ func (h *Handler) SendBatches(ctx context.Context) (int, error) {
 	randomBits := h.config.Rand.Uint64()
 	h.mu.Unlock()
 
-	// var w *pooledWriter
-	w := h.writerPool.Get().(*pooledWriter)
-	defer func() {
-		w.Close()
-		w.Reset()
-		h.writerPool.Put(w)
-	}()
-
+	s := state{}
 	baseTimestamp := time.Now().UTC()
 	var sentEvents int
 	for _, batch := range h.batches {
-		sent, err := h.sendBatch(ctx, w, batch, baseTimestamp, randomBits)
+		sent, err := h.sendBatch(ctx, &s, batch, baseTimestamp, randomBits)
 		sentEvents += sent
 		if err != nil {
 			return sentEvents, err
@@ -288,20 +281,19 @@ func (h *Handler) SendBatches(ctx context.Context) (int, error) {
 
 func (h *Handler) sendBatch(
 	ctx context.Context,
-	w *pooledWriter,
+	s *state,
 	b batch,
 	baseTimestamp time.Time,
 	randomBits uint64,
 ) (int, error) {
 	burst := h.config.Limiter.Burst()
 	if burst == 0 {
-		// no need to rate limit as 0 means no limiting
-		err := h.queueEvents(ctx, w, b, baseTimestamp, randomBits)
+		err := h.queueEvents(ctx, s, b, baseTimestamp, randomBits)
 		if err != nil {
 			return 0, err
 		}
 
-		err = h.sendEvents(ctx, w)
+		err = h.sendEvents(ctx, s)
 		if err != nil {
 			return 0, err
 		}
@@ -312,7 +304,7 @@ func (h *Handler) sendBatch(
 	sent := 0
 	for len(events) > 0 {
 		// max event that can be sent from this iteration
-		maxEvent := burst - w.queuedEvents
+		maxEvent := burst - s.queuedEvents
 		if len(events) < maxEvent {
 			maxEvent = len(events)
 		}
@@ -320,16 +312,16 @@ func (h *Handler) sendBatch(
 			metadata: b.metadata,
 			events:   events[:maxEvent],
 		}
-		err := h.queueEvents(ctx, w, tb, baseTimestamp, randomBits)
+		err := h.queueEvents(ctx, s, tb, baseTimestamp, randomBits)
 		if err != nil {
 			return sent, err
 		}
 		// not ready to send events yet
-		if w.queuedEvents < burst {
+		if s.queuedEvents < burst {
 			continue
 		}
 
-		err = h.sendEvents(ctx, w)
+		err = h.sendEvents(ctx, s)
 		if err != nil {
 			return sent, err
 		}
@@ -340,7 +332,13 @@ func (h *Handler) sendBatch(
 	return sent, nil
 }
 
-func (h *Handler) queueEvents(ctx context.Context, w *pooledWriter, b batch, baseTimestamp time.Time, randomBits uint64) error {
+func (h *Handler) queueEvents(ctx context.Context, s *state, b batch, baseTimestamp time.Time, randomBits uint64) error {
+	// var s *state
+	w := h.writerPool.Get().(*pooledWriter)
+	defer func() {
+		w.Reset()
+		h.writerPool.Put(w)
+	}()
 	rewriteAny := h.config.RewriteTimestamps ||
 		h.config.RewriteIDs ||
 		h.config.RewriteServiceNames ||
@@ -454,25 +452,29 @@ func (h *Handler) queueEvents(ctx context.Context, w *pooledWriter, b batch, bas
 		w.rewriteBuf.Reset()
 	}
 
-	w.queuedEvents += len(b.events)
+	s.queuedEvents += len(b.events)
+	if err := w.Close(); err != nil {
+		return err
+	}
+	clone := bytes.NewBuffer(w.buf.Bytes())
+	s.buffers = append(s.buffers, *clone)
 	return nil
 }
 
-func (h *Handler) sendEvents(ctx context.Context, w *pooledWriter) error {
-	// the number of events equal to burst are collected from above steps
-	// wait for the burst size to ensure the limiter to block for the interval
-	// then send all the events
-	if err := h.config.Limiter.WaitN(ctx, w.queuedEvents); err != nil {
+func (h *Handler) sendEvents(ctx context.Context, s *state) error {
+	if err := h.config.Limiter.WaitN(ctx, s.queuedEvents); err != nil {
 		return err
 	}
 
-	if err := w.Writer.Close(); err != nil {
-		return err
-	}
-	defer w.Reset()
+	defer s.Reset()
 	// NOTE(marclop) RUM event replaying is not yet supported.
-	// TODO: stop when detecting metadata and send, iterate until the buf is flushed
-	return h.config.Transport.SendV2Events(ctx, &w.buf)
+	for _, buf := range s.buffers {
+		err := h.config.Transport.SendV2Events(ctx, &buf)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func rewriteJSONObject(w *pooledWriter, object gjson.Result, f func(key, value gjson.Result) bool) {
@@ -570,12 +572,7 @@ func randomizeASCII(out *bytes.Buffer, in string, randomBits uint64) {
 // the context is cancelled.
 func (h *Handler) WarmUpServer(ctx context.Context) error {
 	baseTimestamp := time.Now().UTC()
-	w := h.writerPool.Get().(*pooledWriter)
-	defer func() {
-		w.Close()
-		w.Reset()
-		h.writerPool.Put(w)
-	}()
+	s := state{}
 	for {
 		for _, batch := range h.batches {
 			select {
@@ -583,7 +580,7 @@ func (h *Handler) WarmUpServer(ctx context.Context) error {
 				return ctx.Err()
 			default:
 			}
-			if _, err := h.sendBatch(ctx, w, batch, baseTimestamp, 0); err != nil {
+			if _, err := h.sendBatch(ctx, &s, batch, baseTimestamp, 0); err != nil {
 				return err
 			}
 		}
@@ -591,10 +588,9 @@ func (h *Handler) WarmUpServer(ctx context.Context) error {
 }
 
 type pooledWriter struct {
-	queuedEvents int
-	rewriteBuf   fastjson.Writer
-	idBuf        bytes.Buffer
-	buf          bytes.Buffer
+	rewriteBuf fastjson.Writer
+	idBuf      bytes.Buffer
+	buf        bytes.Buffer
 	*zlib.Writer
 }
 
@@ -603,5 +599,14 @@ func (pw *pooledWriter) Reset() {
 	pw.idBuf.Reset()
 	pw.buf.Reset()
 	pw.Writer.Reset(&pw.buf)
-	pw.queuedEvents = 0
+}
+
+type state struct {
+	queuedEvents int
+	buffers      []bytes.Buffer
+}
+
+func (s *state) Reset() {
+	s.queuedEvents = 0
+	s.buffers = []bytes.Buffer{}
 }
