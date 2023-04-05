@@ -12,6 +12,7 @@ require (
 	github.com/google/pprof v0.0.0-20210407192527-94a9f03dee38
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/jaegertracing/jaeger v1.18.1
+	github.com/klauspost/compress v1.11.13
 	github.com/mitchellh/mapstructure v1.1.2
 	github.com/spf13/cobra v1.1.3
 	github.com/stretchr/testify v1.8.1
@@ -71,7 +72,6 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0 // indirect
 	github.com/jcchavezs/porto v0.1.0 // indirect
 	github.com/joeshaw/multierror v0.0.0-20140124173710-69b34d4ec901 // indirect
-	github.com/klauspost/compress v1.11.13 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mattn/go-colorable v0.1.12 // indirect
 	github.com/mattn/go-isatty v0.0.16 // indirect
@@ -81,7 +81,7 @@ require (
 	github.com/morikuni/aec v1.0.0 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.1.0-rc2 // indirect
-	github.com/opencontainers/runc v1.1.3 // indirect
+	github.com/opencontainers/runc v1.1.5 // indirect
 	github.com/opentracing/opentracing-go v1.1.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect

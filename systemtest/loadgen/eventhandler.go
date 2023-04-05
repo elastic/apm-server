@@ -35,15 +35,20 @@ import (
 var events embed.FS
 
 type EventHandlerParams struct {
-	Path              string
-	URL               string
-	Token             string
-	APIKey            string
-	Limiter           *rate.Limiter
-	Rand              *rand.Rand
-	RewriteIDs        bool
-	RewriteTimestamps bool
-	Headers           map[string]string
+	Path                      string
+	URL                       string
+	Token                     string
+	APIKey                    string
+	Limiter                   *rate.Limiter
+	Rand                      *rand.Rand
+	RewriteIDs                bool
+	RewriteServiceNames       bool
+	RewriteServiceNodeNames   bool
+	RewriteServiceTargetNames bool
+	RewriteSpanNames          bool
+	RewriteTransactionNames   bool
+	RewriteTimestamps         bool
+	Headers                   map[string]string
 }
 
 // NewEventHandler creates a eventhandler which loads the files matching the
@@ -57,12 +62,17 @@ func NewEventHandler(p EventHandlerParams) (*eventhandler.Handler, error) {
 	}
 	transp := eventhandler.NewTransport(t.Client, p.URL, p.Token, p.APIKey, p.Headers)
 	return eventhandler.New(eventhandler.Config{
-		Path:              filepath.Join("events", p.Path),
-		Transport:         transp,
-		Storage:           events,
-		Limiter:           p.Limiter,
-		Rand:              p.Rand,
-		RewriteIDs:        p.RewriteIDs,
-		RewriteTimestamps: p.RewriteTimestamps,
+		Path:                      filepath.Join("events", p.Path),
+		Transport:                 transp,
+		Storage:                   events,
+		Limiter:                   p.Limiter,
+		Rand:                      p.Rand,
+		RewriteIDs:                p.RewriteIDs,
+		RewriteServiceNames:       p.RewriteServiceNames,
+		RewriteServiceNodeNames:   p.RewriteServiceNodeNames,
+		RewriteServiceTargetNames: p.RewriteServiceTargetNames,
+		RewriteSpanNames:          p.RewriteSpanNames,
+		RewriteTransactionNames:   p.RewriteTransactionNames,
+		RewriteTimestamps:         p.RewriteTimestamps,
 	})
 }

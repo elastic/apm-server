@@ -11,10 +11,25 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/proto"
 
 	"github.com/elastic/apm-server/internal/beater/auth"
 	"github.com/elastic/apm-server/internal/beater/headers"
 )
+
+var (
+	// This is the version of the gRPC protocol specified in collection_agent.proto.
+	// It's retrieved and cached in NewCollector and used to check for protocol mismatches
+	// against the protocol version that the client sends.
+	rpcProtocolVersion uint32
+)
+
+// GetRPCVersion returns the version of the RPC protocol
+func GetRPCVersion() uint32 {
+	// Retrieve protocol version defined in the .proto file
+	options := File_collection_agent_proto.Options()
+	return proto.GetExtension(options, E_Version).(uint32)
+}
 
 // AuthenticateUnaryCall implements the interceptors.UnaryAuthenticator
 // interface, extracting the secret token supplied by the Host Agent,
@@ -27,29 +42,62 @@ func (e *ElasticCollector) AuthenticateUnaryCall(
 ) (auth.AuthenticationDetails, auth.Authorizer, error) {
 	md, _ := metadata.FromIncomingContext(ctx)
 	secretToken := GetFirstOrEmpty(md, MetadataKeySecretToken)
-	projectID := GetFirstOrEmpty(md, MetadataKeyProjectID)
-	hostID := GetFirstOrEmpty(md, MetadataKeyHostID)
+	projectIDStr := GetFirstOrEmpty(md, MetadataKeyProjectID)
+	hostIDStr := GetFirstOrEmpty(md, MetadataKeyHostID)
+	rpcVersionStr := GetFirstOrEmpty(md, MetadataKeyRPCVersion)
 
 	if secretToken == "" {
-		return auth.AuthenticationDetails{}, nil, status.Errorf(codes.Unauthenticated, "secret token is missing")
+		return auth.AuthenticationDetails{}, nil,
+			status.Errorf(codes.FailedPrecondition, "secret token is missing")
 	}
-	if projectID == "" {
-		return auth.AuthenticationDetails{}, nil, status.Errorf(codes.Unauthenticated, "project ID is missing")
+	if projectIDStr == "" {
+		return auth.AuthenticationDetails{}, nil,
+			status.Errorf(codes.FailedPrecondition, "project ID is missing")
 	}
-	if hostID == "" {
-		return auth.AuthenticationDetails{}, nil, status.Errorf(codes.Unauthenticated, "host ID is missing")
+	if hostIDStr == "" {
+		return auth.AuthenticationDetails{}, nil,
+			status.Errorf(codes.FailedPrecondition, "host ID is missing")
+	}
+	if rpcVersionStr == "" {
+		return auth.AuthenticationDetails{}, nil,
+			status.Errorf(codes.FailedPrecondition, "RPC version is missing")
 	}
 
-	if _, err := strconv.Atoi(projectID); err != nil {
+	if _, err := strconv.ParseUint(projectIDStr, 10, 32); err != nil {
 		e.logger.Errorf("possible malicious client request, "+
-			"converting project ID from string (%s) to uint failed: %v", projectID, err)
-		return auth.AuthenticationDetails{}, nil, auth.ErrAuthFailed
+			"converting project ID from string (%s) to uint failed: %v", projectIDStr, err)
+		return auth.AuthenticationDetails{}, nil,
+			status.Errorf(codes.FailedPrecondition, "invalid project ID")
 	}
 
-	if _, err := strconv.ParseUint(hostID, 16, 64); err != nil {
+	if _, err := strconv.ParseUint(hostIDStr, 16, 64); err != nil {
 		e.logger.Errorf("possible malicious client request, "+
-			"converting host ID from string (%s) to uint failed: %v", hostID, err)
-		return auth.AuthenticationDetails{}, nil, auth.ErrAuthFailed
+			"converting host ID from string (%s) to uint failed: %v", hostIDStr, err)
+		return auth.AuthenticationDetails{}, nil,
+			status.Errorf(codes.FailedPrecondition, "invalid host ID")
+	}
+
+	rpcVersion64, err := strconv.ParseUint(rpcVersionStr, 10, 32)
+	if err != nil {
+		e.logger.Errorf("converting RPC version from string (%s) to uint failed: %v",
+			rpcVersionStr, err)
+		return auth.AuthenticationDetails{}, nil,
+			status.Errorf(codes.FailedPrecondition, "invalid RPC version")
+	}
+
+	rpcVersion := uint32(rpcVersion64)
+	if rpcVersion != rpcProtocolVersion {
+		e.logger.Errorf("incompatible RPC version: %d => %d", rpcVersion, rpcProtocolVersion)
+
+		if rpcVersion < rpcProtocolVersion {
+			return auth.AuthenticationDetails{}, nil,
+				status.Errorf(codes.FailedPrecondition,
+					"HostAgent version is unsupported, please upgrade to the latest version")
+		}
+
+		return auth.AuthenticationDetails{}, nil,
+			status.Errorf(codes.FailedPrecondition,
+				"Backend is incompatible with HostAgent, please check your configuration")
 	}
 
 	return authenticator.Authenticate(ctx, headers.Bearer, secretToken)

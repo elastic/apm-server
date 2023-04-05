@@ -78,7 +78,6 @@ const (
 	IDResponseErrorsServiceUnavailable ResultID = "response.errors.unavailable"
 	// IDResponseErrorsInternal identifies responses where internal errors occured
 	IDResponseErrorsInternal ResultID = "response.errors.internal"
-	// IDResponseErrorsServiceUnavailable identifies responses where resource is unavailable
 )
 
 var (

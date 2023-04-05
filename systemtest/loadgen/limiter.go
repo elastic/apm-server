@@ -18,24 +18,21 @@
 package loadgen
 
 import (
-	"math"
+	"time"
 
 	"golang.org/x/time/rate"
 )
 
-func GetNewLimiter(epm int) *rate.Limiter {
-	if epm <= 0 {
+// GetNewLimiter returns a rate limiter that is configured to rate limit burst per interval.
+// eps is calculated as burst/interval(sec), and burst size is set as it is.
+// When using it to send events at steady interval, the caller should control
+// the events size to be equal to burst, and use `WaitN(ctx, burst)`.
+// For example, if the event rate is 100/5s(burst=100,interval=5s) the eps is 20,
+// Meaning to send 100 events, the limiter will wait for 5 seconds.
+func GetNewLimiter(burst int, interval time.Duration) *rate.Limiter {
+	if burst <= 0 || interval <= 0 {
 		return rate.NewLimiter(rate.Inf, 0)
 	}
-	eps := float64(epm) / float64(60)
-	return rate.NewLimiter(rate.Limit(eps), getBurstSize(int(math.Ceil(eps))))
-}
-
-func getBurstSize(eps int) int {
-	burst := eps * 2
-	// Allow for a batch to have 1000 events minimum
-	if burst < 1000 {
-		burst = 1000
-	}
-	return burst
+	eps := float64(burst) / interval.Seconds()
+	return rate.NewLimiter(rate.Limit(eps), burst)
 }
