@@ -722,7 +722,6 @@ func TestHandlerInLoop(t *testing.T) {
 		// the total number of events in batches are smaller than burst
 		// in this case it should call multiple sendBatches to meet the target burst
 		h, srv := newHandler(t, withRateLimiter(rate.NewLimiter(40*rate.Every(time.Second), 40)))
-		fmt.Println("[1] burst:", h.config.Limiter.Burst())
 		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 		defer cancel()
 		err := h.SendBatchesInLoop(ctx)
