@@ -1,6 +1,18 @@
 [[apm-quickstart-new]]
 == Quick start with {ecloud}
 
+This guide describes how to:
+
+* Collect Application Performance Monitoring (APM) data
+* Send APM data to the {stack}
+* Explore and visualize the data in real-time
+
+For feedback and questions, please contact us in the {forum}[discuss forum].
+
+[float]
+[[apm-prereqs-traces]]
+=== Step 1: Set up the hosted {es} Service
+
 The easiest way to get started with Elastic APM is by using our
 {ess-product}[hosted {es} Service] on {ecloud}.
 The {es} Service is available on AWS, GCP, and Azure.
@@ -17,37 +29,72 @@ you don't need to understand how all of these pieces work together!
 When you use our hosted {es} Service,
 simply spin-up your instance and point your *APM agents* towards it.
 
-[float]
-=== Prerequisites
-
-...
-
-[float]
-=== Step 1: Set up Fleet
-
-...
+{ess-product}[Click here] to try it for free.
 
 [float]
 === Step 2: Configure the APM integration
 
-...
+{ecloud} runs a hosted version of {integrations-server} that includes the APM Server.
+
+include::{obs-repo-dir}/observability/tab-widgets/add-apm-integration/content.asciidoc[tag=ess]
 
 [float]
-=== Step 3: Install and run an Elastic Agent on your machine
+=== Step 3: Install APM agents
 
-...
+APM agents are written in the same language as your service.
+To monitor a new service, you must install the agent and configure it with a service name,
+APM Server host, and Secret token.
 
-[float]
-=== Step 4: Install APM agents
+* **Service name**: The APM integration maps an instrumented service's name–defined in each {apm-agent}'s configuration–
+to the index that its data is stored in {es}.
+Service names are case-insensitive and must be unique.
+For example, you cannot have a service named `Foo` and another named `foo`.
+Special characters will be removed from service names and replaced with underscores (`_`).
 
-...
+* **APM Server URL**: The host and port that APM Server listens for events on.
+This should match the host and port defined when setting up the APM integration.
 
-[float]
-=== Step 5: View your data
+* **Secret token**: Authentication method for {apm-agent} and APM Server communication.
+This should match the secret token defined when setting up the APM integration.
 
-...
+TIP: You can edit your APM integration settings if you need to change the APM Server URL
+or secret token to match your APM agents.
 
-[float]
-=== What’s next?
+include::{docdir}/legacy/tab-widgets/install-agents-widget.asciidoc[]
 
-...
+[discrete]
+=== Step 4: View your data
+
+Back in {kib}, under {observability}, select APM.
+You should see application performance monitoring data flowing into the {stack}!
+
+NOTE: The built-in `apm_user` role is not compatible with the APM integration
+as it only provides read access to `apm-*` indices.
+For a list of indices users need access to, refer to
+{apm-guide-ref}/apm-data-streams.html[APM data streams]
+
+// [role="screenshot"]
+// include::{obs-repo-dir}/observability/images/kibana-apm-sample-data.png[{apm-app} with data]
+
+Not seeing any data? Review our list of {apm-guide-ref}/common-problems.html[common problems] for helpful tips.
+
+[discrete]
+=== What's next?
+
+* Now that data is streaming into the {stack}, take your investigation to a
+deeper level! Use https://www.elastic.co/observability[Elastic {observability}]
+to unify your logs, metrics, uptime, and application performance data.
+
+* Want to protect your endpoints from security threats? Try
+https://www.elastic.co/security[{elastic-sec}]. Adding endpoint protection is
+just another integration that you add to the agent policy!
+
+* Are your eyes bleary from staring at a wall of screens?
+{observability-guide}/create-alerts.html[Create alerts] and find out about
+problems while sipping your favorite beverage poolside.
+
+* Want Elastic to do the heavy lifting? Use {ml} to
+{observability-guide}/inspect-log-anomalies.html[detect anomalies].
+
+* Got everything working like you want it? Roll out your agent policies to
+other hosts by deploying {agent}s across your infrastructure!
