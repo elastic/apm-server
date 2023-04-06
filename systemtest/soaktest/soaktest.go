@@ -77,16 +77,9 @@ func runAgent(ctx context.Context, expr string, limiter *rate.Limiter, rng *rand
 		return err
 	}
 
-	for {
-		select {
-		case <-ctx.Done():
-			return nil
-		default:
-			_, err = handler.SendBatches(ctx)
-			if err != nil {
-				return err
-			}
-		}
+	if err := handler.SendBatchesInLoop(ctx); err != nil {
+		return err
 	}
+
 	return nil
 }
