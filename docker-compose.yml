@@ -29,6 +29,10 @@ services:
       - "./testing/docker/elasticsearch/users:/usr/share/elasticsearch/config/users"
       - "./testing/docker/elasticsearch/users_roles:/usr/share/elasticsearch/config/users_roles"
       - "./testing/docker/elasticsearch/ingest-geoip:/usr/share/elasticsearch/config/ingest-geoip"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1g"
 
   kibana:
     image: docker.elastic.co/kibana/kibana:8.8.0-32eb4531-SNAPSHOT
@@ -48,6 +52,10 @@ services:
       elasticsearch: { condition: service_healthy }
     volumes:
       - "./testing/docker/kibana/kibana.yml:/usr/share/kibana/config/kibana.yml"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1g"
 
   fleet-server:
     image: docker.elastic.co/beats/elastic-agent:8.8.0-32eb4531-SNAPSHOT
@@ -76,6 +84,10 @@ services:
     volumes:
       - "./testing/docker/fleet-server/certificate.pem:/etc/pki/tls/certs/fleet-server.pem"
       - "./testing/docker/fleet-server/key.pem:/etc/pki/tls/private/fleet-server-key.pem"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1g"
 
   metricbeat:
     image: docker.elastic.co/beats/metricbeat:8.8.0-32eb4531-SNAPSHOT
@@ -91,3 +103,7 @@ services:
       - "./testing/docker/metricbeat/apm-server.yml://usr/share/metricbeat/modules.d/apm-server.yml"
     profiles:
       - monitoring
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1g"
