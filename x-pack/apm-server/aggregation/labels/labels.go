@@ -50,6 +50,14 @@ func (a *AggregatedGlobalLabels) Write(w io.Writer) {
 }
 
 func (a *AggregatedGlobalLabels) Read(event *model.APMEvent) {
+	// Remove global labels for RUM services to avoid explosion of metric groups
+	// to track for servicetxmetrics.
+	// For consistency, this will remove labels for other aggregated metrics as well.
+	switch event.Agent.Name {
+	case "rum-js", "js-base", "android/java", "iOS/swift":
+		return
+	}
+
 	for k, v := range event.Labels {
 		if !v.Global {
 			continue
