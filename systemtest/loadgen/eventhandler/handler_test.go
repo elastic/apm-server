@@ -699,13 +699,13 @@ func TestHandlerSendBatchesRewriteTransactionNames(t *testing.T) {
 	run(t, true)
 }
 
-func TestHandlerWarmUp(t *testing.T) {
+func TestHandlerInLoop(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		h, srv := newHandler(t)
 		ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
 		defer cancel()
 		// Warm up with more events than  saved.
-		err := h.WarmUpServer(ctx)
+		err := h.SendBatchesInLoop(ctx)
 		assert.ErrorIs(t, err, context.DeadlineExceeded)
 		assert.Greater(t, srv.received, 0)
 	})
@@ -713,9 +713,22 @@ func TestHandlerWarmUp(t *testing.T) {
 		h, srv := newHandler(t)
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 		cancel()
-		err := h.WarmUpServer(ctx)
+		err := h.SendBatchesInLoop(ctx)
 		assert.ErrorIs(t, err, context.Canceled)
 		assert.Equal(t, 0, srv.received)
+	})
+
+	t.Run("success-with-burst-bigger-than-batches", func(t *testing.T) {
+		// the total number of events in batches are smaller than burst
+		// in this case it should call multiple sendBatches to meet the target burst
+		h, srv := newHandler(t, withRateLimiter(rate.NewLimiter(40*rate.Every(time.Second), 40)))
+		fmt.Println("[1] burst:", h.config.Limiter.Burst())
+		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+		defer cancel()
+		err := h.SendBatchesInLoop(ctx)
+
+		assert.Error(t, err)
+		assert.Equal(t, 80, srv.received)
 	})
 }
 

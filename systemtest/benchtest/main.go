@@ -267,7 +267,7 @@ func warmup(agents int, duration time.Duration, url, token string) error {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			h.WarmUpServer(ctx)
+			h.SendBatchesInLoop(ctx)
 		}()
 	}
 	wg.Wait()

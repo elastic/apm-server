@@ -259,12 +259,31 @@ func New(config Config) (*Handler, error) {
 	return &h, nil
 }
 
-// WarmUpServer will "warm up" the remote APM Server by sending events until
-// the context is cancelled.
-func (h *Handler) WarmUpServer(ctx context.Context) error {
+// SendBatchesInLoop will send events in loop, such that it can be used to warm up the remote APM Server,
+// by sending events until the context is cancelled or done channel is closed.
+func (h *Handler) SendBatchesInLoop(ctx context.Context) error {
+	// state is created here because the total number of events in h.batches can be smaller than the burst
+	// and it can lead the sendBatches to finish its cycle without sending the desired burst number of events.
+	// If we keep the state within sendBatches, it will wait for the interval t whenever starting the function as
+	// `s.sent` is set to 0 so it needs to know the previous run's state
+
+	s := state{
+		burst: h.config.Limiter.Burst(),
+	}
+
 	for {
-		if _, err := h.SendBatches(ctx); err != nil {
-			return err
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		default:
+			if _, err := h.sendBatches(ctx, &s); err != nil {
+				return err
+			}
+			// reset after batches so it doesn't exceed th limit
+			// but keep the remainder so the next batches know where to start
+			if s.burst > 0 {
+				s.sent = s.sent % s.burst
+			}
 		}
 	}
 }
@@ -272,20 +291,23 @@ func (h *Handler) WarmUpServer(ctx context.Context) error {
 // SendBatches sends the loaded trace data to the configured transport,
 // returning the total number of documents sent and any transport errors.
 func (h *Handler) SendBatches(ctx context.Context) (int, error) {
+	return h.sendBatches(ctx, &state{
+		burst: h.config.Limiter.Burst(),
+	})
+}
+
+func (h *Handler) sendBatches(ctx context.Context, s *state) (int, error) {
 	h.mu.Lock()
 	randomBits := h.config.Rand.Uint64()
 	h.mu.Unlock()
 
-	s := state{
-		w:     h.writerPool.Get().(*pooledWriter),
-		burst: h.config.Limiter.Burst(),
-	}
+	s.w = h.writerPool.Get().(*pooledWriter)
 	defer h.writerPool.Put(s.w)
 	defer s.w.Reset()
 
 	baseTimestamp := time.Now().UTC()
 	for _, batch := range h.batches {
-		if err := h.sendBatch(ctx, &s, batch, baseTimestamp, randomBits); err != nil {
+		if err := h.sendBatch(ctx, s, batch, baseTimestamp, randomBits); err != nil {
 			return s.sent, err
 		}
 	}
