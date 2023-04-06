@@ -279,7 +279,7 @@ func (h *Handler) SendBatchesInLoop(ctx context.Context) error {
 			if _, err := h.sendBatches(ctx, &s); err != nil {
 				return err
 			}
-			// reset after batches so it doesn't exceed th limit
+			// safeguard `s.sent` so that it doesn't exceed math.MaxInt
 			// but keep the remainder so the next batches know where to start
 			if s.burst > 0 {
 				s.sent = s.sent % s.burst
