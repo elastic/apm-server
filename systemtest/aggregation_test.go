@@ -305,6 +305,43 @@ func TestServiceTransactionMetricsAggregationLabels(t *testing.T) {
 	assert.ElementsMatch(t, metricsets, docs)
 }
 
+// TestServiceTransactionMetricsAggregationLabelsRUM checks that RUM labels are ignored for aggregation
+func TestServiceTransactionMetricsAggregationLabelsRUM(t *testing.T) {
+	t.Setenv("ELASTIC_APM_GLOBAL_LABELS", "department_name=apm,organization=observability,company=elastic")
+	systemtest.CleanupElasticsearch(t)
+	srv := apmservertest.NewServerTB(t)
+
+	rumPayloadWithLabels := `{"metadata":{"service":{"name":"rum-js-test","agent":{"name":"rum-js","version":"5.5.0"}}},"labels": {"tag0": null, "tag1": "one", "tag2": 2}}
+{"transaction":{"trace_id":"611f4fa950f04631aaaaaaaaaaaaaaaa","id":"611f4fa950f04631","type":"page-load","duration":643,"span_count":{"started":0}}}
+`
+	systemtest.SendBackendEventsLiteral(t, srv.URL, rumPayloadWithLabels)
+
+	// Wait for the transaction to be indexed, indicating that Elasticsearch
+	// indices have been setup and we should not risk triggering the shutdown
+	// timeout while waiting for the aggregated metrics to be indexed.
+	systemtest.Elasticsearch.ExpectDocs(t, "traces-apm*",
+		estest.TermQuery{Field: "processor.event", Value: "transaction"},
+	)
+	// Stop server to ensure metrics are flushed on shutdown.
+	assert.NoError(t, srv.Close())
+	result := systemtest.Elasticsearch.ExpectDocs(t, "metrics-apm.service_transaction*", estest.BoolQuery{
+		Filter: []interface{}{
+			estest.TermQuery{Field: "metricset.name", Value: "service_transaction"},
+		},
+	})
+
+	docs := unmarshalMetricsetDocs(t, result.Hits.Hits)
+	var metricsets []metricsetDoc
+	for _, interval := range []string{"1m", "10m", "60m"} {
+		metricsets = append(metricsets, metricsetDoc{
+			Trasaction:        metricsetTransaction{Type: "page-load"},
+			MetricsetInterval: interval,
+			MetricsetName:     "service_transaction",
+		})
+	}
+	assert.ElementsMatch(t, metricsets, docs)
+}
+
 func TestServiceSummaryMetricsAggregation(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
 	srv := apmservertest.NewServerTB(t)
