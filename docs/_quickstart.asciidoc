@@ -1,0 +1,53 @@
+[[apm-quickstart-new]]
+== Quick start with {ecloud}
+
+The easiest way to get started with Elastic APM is by using our
+{ess-product}[hosted {es} Service] on {ecloud}.
+The {es} Service is available on AWS, GCP, and Azure.
+The {es} Service provisions the following components of the {stack}:
+
+* *{es}* -- A highly scalable free and open full-text search and analytics engine.
+* *{kib}* -- An analytics and visualization platform designed to work with {es}.
+* *Integrations Server* -- A combined *APM Server* and *Fleet-managed {agent}*.
+** *APM Server* -- An application that receives, processes, and validates performance data from your APM agents.
+** *Fleet-managed {agent}* -- A server that runs APM Server and provides a control plane for easily configuring and updating APM Server and other integrations.
+
+Don't worry--in order to get started,
+you don't need to understand how all of these pieces work together!
+When you use our hosted {es} Service,
+simply spin-up your instance and point your *APM agents* towards it.
+
+[float]
+=== Prerequisites
+
+...
+
+[float]
+=== Step 1: Set up Fleet
+
+...
+
+[float]
+=== Step 2: Configure the APM integration
+
+...
+
+[float]
+=== Step 3: Install and run an Elastic Agent on your machine
+
+...
+
+[float]
+=== Step 4: Install APM agents
+
+...
+
+[float]
+=== Step 5: View your data
+
+...
+
+[float]
+=== What’s next?
+
+...
