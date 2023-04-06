@@ -259,6 +259,16 @@ func New(config Config) (*Handler, error) {
 	return &h, nil
 }
 
+// WarmUpServer will "warm up" the remote APM Server by sending events until
+// the context is cancelled.
+func (h *Handler) WarmUpServer(ctx context.Context) error {
+	for {
+		if _, err := h.SendBatches(ctx); err != nil {
+			return err
+		}
+	}
+}
+
 // SendBatches sends the loaded trace data to the configured transport,
 // returning the total number of documents sent and any transport errors.
 func (h *Handler) SendBatches(ctx context.Context) (int, error) {
@@ -266,17 +276,20 @@ func (h *Handler) SendBatches(ctx context.Context) (int, error) {
 	randomBits := h.config.Rand.Uint64()
 	h.mu.Unlock()
 
-	s := state{}
+	s := state{
+		w:     h.writerPool.Get().(*pooledWriter),
+		burst: h.config.Limiter.Burst(),
+	}
+	defer h.writerPool.Put(s.w)
+	defer s.w.Reset()
+
 	baseTimestamp := time.Now().UTC()
-	var sentEvents int
 	for _, batch := range h.batches {
-		sent, err := h.sendBatch(ctx, &s, batch, baseTimestamp, randomBits)
-		sentEvents += sent
-		if err != nil {
-			return sentEvents, err
+		if err := h.sendBatch(ctx, &s, batch, baseTimestamp, randomBits); err != nil {
+			return s.sent, err
 		}
 	}
-	return sentEvents, nil
+	return s.sent, nil
 }
 
 func (h *Handler) sendBatch(
@@ -285,60 +298,46 @@ func (h *Handler) sendBatch(
 	b batch,
 	baseTimestamp time.Time,
 	randomBits uint64,
-) (int, error) {
-	burst := h.config.Limiter.Burst()
-	if burst == 0 {
-		err := h.queueEvents(ctx, s, b, baseTimestamp, randomBits)
-		if err != nil {
-			return 0, err
-		}
-
-		err = h.sendEvents(ctx, s)
-		if err != nil {
-			return 0, err
-		}
-		return len(b.events), nil
-	}
-
+) error {
 	events := b.events
-	sent := 0
 	for len(events) > 0 {
-		// max event that can be sent from this iteration
-		maxEvent := burst - s.queuedEvents
-		if len(events) < maxEvent {
-			maxEvent = len(events)
+		n := len(events)
+		if s.burst > 0 {
+			mod := s.sent % s.burst
+			if mod == 0 {
+				// We're starting a new iteration, so wait to send a burst.
+				if err := h.config.Limiter.WaitN(ctx, s.burst); err != nil {
+					return err
+				}
+			}
+			// Send as many events of the batch as we can, up to the
+			// burst size minus however many events have been sent for
+			// this iteration.
+			capacity := s.burst - mod
+			if n > capacity {
+				n = capacity
+			}
 		}
-		tb := batch{
+		if err := h.writeEvents(s.w, batch{
 			metadata: b.metadata,
-			events:   events[:maxEvent],
+			events:   events[:n],
+		}, baseTimestamp, randomBits); err != nil {
+			return err
 		}
-		err := h.queueEvents(ctx, s, tb, baseTimestamp, randomBits)
-		if err != nil {
-			return sent, err
+		if err := s.w.Close(); err != nil {
+			return err
 		}
-		// not ready to send events yet
-		if s.queuedEvents < burst {
-			continue
+		if err := h.config.Transport.SendV2Events(ctx, &s.w.buf); err != nil {
+			return err
 		}
-
-		err = h.sendEvents(ctx, s)
-		if err != nil {
-			return sent, err
-		}
-		sent += burst
-
-		events = events[maxEvent:]
+		s.w.Reset()
+		s.sent += n
+		events = events[n:]
 	}
-	return sent, nil
+	return nil
 }
 
-func (h *Handler) queueEvents(ctx context.Context, s *state, b batch, baseTimestamp time.Time, randomBits uint64) error {
-	// var s *state
-	w := h.writerPool.Get().(*pooledWriter)
-	defer func() {
-		w.Reset()
-		h.writerPool.Put(w)
-	}()
+func (h *Handler) writeEvents(w *pooledWriter, b batch, baseTimestamp time.Time, randomBits uint64) error {
 	rewriteAny := h.config.RewriteTimestamps ||
 		h.config.RewriteIDs ||
 		h.config.RewriteServiceNames ||
@@ -363,13 +362,13 @@ func (h *Handler) queueEvents(ctx context.Context, s *state, b batch, baseTimest
 			return fmt.Errorf("failed to rewrite `service.node.name`: %w", err)
 		}
 	}
-	w.Writer.Write(metadata)
-	w.Writer.Write(newlineBytes)
+	w.Write(metadata)
+	w.Write(newlineBytes)
 
 	for _, event := range b.events {
 		if !rewriteAny {
-			w.Writer.Write(event.payload)
-			w.Writer.Write(newlineBytes)
+			w.Write(event.payload)
+			w.Write(newlineBytes)
 			continue
 		}
 		w.rewriteBuf.RawByte('{')
@@ -447,32 +446,9 @@ func (h *Handler) queueEvents(ctx context.Context, s *state, b batch, baseTimest
 			return true
 		})
 		w.rewriteBuf.RawString("}")
-		w.Writer.Write(w.rewriteBuf.Bytes())
-		w.Writer.Write(newlineBytes)
+		w.Write(w.rewriteBuf.Bytes())
+		w.Write(newlineBytes)
 		w.rewriteBuf.Reset()
-	}
-
-	s.queuedEvents += len(b.events)
-	if err := w.Close(); err != nil {
-		return err
-	}
-	clone := bytes.NewBuffer(w.buf.Bytes())
-	s.buffers = append(s.buffers, *clone)
-	return nil
-}
-
-func (h *Handler) sendEvents(ctx context.Context, s *state) error {
-	if err := h.config.Limiter.WaitN(ctx, s.queuedEvents); err != nil {
-		return err
-	}
-
-	defer s.Reset()
-	// NOTE(marclop) RUM event replaying is not yet supported.
-	for _, buf := range s.buffers {
-		err := h.config.Transport.SendV2Events(ctx, &buf)
-		if err != nil {
-			return err
-		}
 	}
 	return nil
 }
@@ -568,23 +544,10 @@ func randomizeASCII(out *bytes.Buffer, in string, randomBits uint64) {
 	}
 }
 
-// WarmUpServer will "warm up" the remote APM Server by sending events until
-// the context is cancelled.
-func (h *Handler) WarmUpServer(ctx context.Context) error {
-	baseTimestamp := time.Now().UTC()
-	s := state{}
-	for {
-		for _, batch := range h.batches {
-			select {
-			case <-ctx.Done():
-				return ctx.Err()
-			default:
-			}
-			if _, err := h.sendBatch(ctx, &s, batch, baseTimestamp, 0); err != nil {
-				return err
-			}
-		}
-	}
+type state struct {
+	w     *pooledWriter
+	burst int
+	sent  int
 }
 
 type pooledWriter struct {
@@ -599,14 +562,4 @@ func (pw *pooledWriter) Reset() {
 	pw.idBuf.Reset()
 	pw.buf.Reset()
 	pw.Writer.Reset(&pw.buf)
-}
-
-type state struct {
-	queuedEvents int
-	buffers      []bytes.Buffer
-}
-
-func (s *state) Reset() {
-	s.queuedEvents = 0
-	s.buffers = []bytes.Buffer{}
 }

@@ -449,6 +449,7 @@ func TestHandlerSendBatchesRewriteServiceNames(t *testing.T) {
 
 	originalPayload := fmt.Sprintf(`
 {"metadata":{"service":{"name":"%s"}}}
+{"transaction":{}}
 `[1:], serviceName)
 
 	fs := fstest.MapFS{"foo.ndjson": {Data: []byte(originalPayload)}}
@@ -493,6 +494,7 @@ func TestHandlerSendBatchesRewriteServiceNodeNames(t *testing.T) {
 
 	originalPayload := fmt.Sprintf(`
 {"metadata":{"service":{"node":{"configured_name":"%s"}}}}
+{"transaction":{}}
 `[1:], serviceNodeName)
 
 	fs := fstest.MapFS{"foo.ndjson": {Data: []byte(originalPayload)}}
