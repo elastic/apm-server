@@ -18,6 +18,7 @@ https://github.com/elastic/apm-server/compare/v8.7.0\...v8.7.1[View commits]
 - Use droppedspan outcome in service destination aggregation {pull}10592[10592]
 - metrics: Count context.DeadlineExceeded as timeout {pull}10594[10594]
 - metrics: Count GRPC codes.Canceled as timeout {pull}10605[10605]
+- Remove global labels from aggregations for RUM services {pull}10624[10624]
 
 [float]
 [[release-notes-8.7.0]]
