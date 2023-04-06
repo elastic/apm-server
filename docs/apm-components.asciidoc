@@ -9,8 +9,7 @@ It's a separate component by design,
 which helps keep the APM agents light, prevents certain security risks, and improves compatibility across the {stack}.
 
 After the APM Server has validated and processed events from the APM agents,
-the APM server transforms the data into {es} documents and stores them in corresponding
-{apm-server-ref-v}/exploring-es-data.html[{es} indices].
+the APM server transforms the data into {es} documents and stores them in corresponding {es} indices.
 In a matter of seconds, you can start viewing your application performance data in the {kib} {apm-app}.
 
 [float]
