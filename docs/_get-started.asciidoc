@@ -1,0 +1,201 @@
+[[apm-setup-new]]
+== Get started (self-managed)
+
+TIP: The easiest way to get started with Elastic APM is by using our
+{ess-product}[hosted {es} Service] on {ecloud}.
+The {es} Service is available on AWS, GCP, and Azure.
+See <<apm-quickstart-new>> to get started in minutes.
+
+The APM Server binary receives performance data from your APM agents,
+validates and processes it, and then transforms the data into {es} documents.
+If you're on this page, then you've chosen to self-manage the Elastic Stack,
+and you now must decide how to run and configure the APM Server.
+There are two options, and the components required are different for each:
+
+* **<<setup-apm-server-binary,APM Server binary>>**
+* **<<setup-fleet-managed-apm,Fleet-managed APM Server>>**
+// * **<<setup-apm-server-ea,Standalone Elastic Agent-managed APM Server>>**
+
+[float]
+[[setup-apm-server-binary]]
+=== APM Server binary
+
+Install, configure, and run the APM Server binary wherever you need it.
+Depending on your use-case, APM Server can be run centrally or on edge machines.
+
+image::./images/bin-ov.png[APM Server binary overview]
+
+**Pros**:
+
+- Simplest self-managed option
+- No addition component knowledge required
+- YAML configuration simplifies automation
+
+**Supported outputs**:
+
+- {es}
+- {ess}
+- {ls}
+- Kafka
+- Redis
+- File
+- Console
+
+**Required components**:
+
+- APM agents
+- APM Server
+- {stack}
+
+**Configuration method**: YAML
+
+[float]
+[[setup-fleet-managed-apm]]
+=== Fleet-managed APM Server
+
+Fleet is a web-based UI in {kib} that is used to centrally manage {agent}s.
+In this deployment model, use {agent} to spin up APM Server instances that can be centrally-managed in a custom-curated user interface.
+
+NOTE: Fleet-managed APM Server does not have full feature parity with the APM Server binary method of running Elastic APM.
+
+image::./images/fm-ov.png[APM Server fleet overview]
+
+// (outputs, stable APIs)
+// not the best option for a simple test setup or if only interested in centrally running APM Server
+
+**Pros**:
+
+- Conveniently manage one, some, or many different integrations from one central {fleet} UI.
+
+**Supported outputs**:
+
+- {es}
+- {ess}
+
+**Required components**:
+
+- APM agents
+- APM Server
+- {agent}
+- {fleet}
+- {stack}
+
+**Configuration method**: {kib} UI
+
+// [float]
+// [[setup-apm-server-ea]]
+// === Standalone Elastic Agent-managed APM Server
+// // I really don't know how to sell this option
+// Instead of installing and configuring the APM Server binary, let {agent} orchestrate it for you.
+// Install {agent} and manually configure the agent locally on the system where it's installed.
+// You are responsible for managing and upgrading {agent}. This approach is recommended for advanced users only.
+
+// **Pros**:
+
+// - Easily add integrations for other data sources
+// useful if EA already in place for other integrations, and customers want to customize setup rather than using Fleet for configuration
+// // TODO:
+// // maybe get some more hints on this one from the EA team to align with highlighting the same pros & cons.
+
+// **Available on Elastic Cloud**: ❌
+
+// This supports all of the same outputs as binary
+// see https://github.com/elastic/apm-server/issues/10467
+// **Supported outputs**:
+
+// **Configuration method**: YAML
+
+// image::./images/ea-ov.png[APM Server ea overview]
+
+// @simitt's notes for how to include EA-managed in the decision tree:
+// ****
+// If we generally describe Standalone Elastic Agent managed APM Server then we should also add it to this diagram:
+// Do you want to use other integrations?
+// -> yes: Would you like to use the comfort of Fleet UI based management? -> yes: Fleet managed APM Server; -> no: Standalone Elastic Agent managed APM Server
+// -> no: What is your prefered way of configuration? -> yaml: APM Server binary; -> Kibana UI: Fleet managed APM Server
+// ****
+
+// Components required:
+
+// [options="header"]
+// |====
+// | Installation method                         | APM Server | Elastic Agent | Fleet Server
+// | APM Server binary                           | ✔️          |               |
+// // | Standalone Elastic Agent-managed APM Server | ✔️          | ✔️             |
+// | Fleet-managed APM Server                    | ✔️          | ✔️             | ✔️
+// |====
+
+[float]
+=== Help me decide
+
+Use the decision tree below to help determine which method of configuring and running the APM Server is best for your use case.
+
+[subs=attributes+]
+include::./diagrams/apm-decision-tree.asciidoc[APM Server decision tree]
+
+=== APM Server binary
+
+// TODO:
+// These steps won't necessarily be on separate pages in the final version.
+
+==== Step 1: Install
+
+Install the APM Server and the APM integration.
+The integration can be installed either via the Fleet UI or programmatically.
+// see https://github.com/elastic/apm-server/issues/10361
+
+==== Step 2: Set up and configure
+
+Configure APM Server.
+
+==== Step 3: Start
+
+Start APM Server.
+
+==== Step 4: Next steps
+
+...
+
+=== Fleet-managed APM Server
+
+// TODO:
+// These steps won't necessarily be on separate pages in the final version.
+
+==== Step 1: Install
+
+Install Elastic Agent and enable Fleet Server on your edge machines
+Add the APM integration to Elastic Agent (this runs the APM Server binary!)
+
+==== Step 2: Start
+
+Start Elastic Agent
+
+==== Step 3: Configure
+
+Use the Fleet UI to push configuration changes and upgrades, and to add other integrations
+
+==== Step 4: Next steps
+
+...
+
+// === Standalone Elastic Agent-managed APM Server (exclude for now)
+
+// These steps won't necessarily be on separate pages in the final version.
+
+// ==== Step 1: Install
+
+// Install Elastic Agent on your edge machines.
+// Add the APM integration to Elastic Agent (this runs the APM Server binary!).
+// // Still requires Fleet Server
+
+// ==== Step 2: Configure
+
+// Use Elastic Agent to configure APM Server, and to add other integrations
+
+// ==== Step 3: Start
+
+// ...
+
+// ==== Step 4: Next steps
+
+// ...

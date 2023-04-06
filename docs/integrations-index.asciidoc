@@ -16,7 +16,9 @@ endif::[]
 
 include::apm-overview.asciidoc[]
 
-include::apm-components.asciidoc[]
+include::_quickstart.asciidoc[]
+
+include::_get-started.asciidoc[]
 
 include::apm-quick-start.asciidoc[]
 
@@ -39,6 +41,8 @@ include::api.asciidoc[]
 include::troubleshoot-apm.asciidoc[]
 
 include::upgrading.asciidoc[]
+
+include::apm-components.asciidoc[]
 
 include::release-notes.asciidoc[leveloffset=+1]
 
