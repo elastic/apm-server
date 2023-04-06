@@ -161,22 +161,27 @@ Start APM Server.
 // TODO:
 // These steps won't necessarily be on separate pages in the final version.
 
-==== Step 1: Install
+==== Prerequisites
 
-Install Elastic Agent and enable Fleet Server on your edge machines
-Add the APM integration to Elastic Agent (this runs the APM Server binary!)
+Install {es} + {kib}
 
-==== Step 2: Start
+==== Step 1: Set up Fleet
 
-Start Elastic Agent
+Install {agent} and enable {fleet-server}.
 
-==== Step 3: Configure
+==== Step 2: Configure the APM integration
 
-Use the Fleet UI to push configuration changes and upgrades, and to add other integrations
+Add the APM integration to your {agent} (this runs the APM Server binary!)
 
-==== Step 4: Next steps
+==== Step 3: Install APM agents
 
 ...
+
+==== Step 4: View your data
+
+...
+
+==== Step 5: Next steps
 
 // === Standalone Elastic Agent-managed APM Server (exclude for now)
 
