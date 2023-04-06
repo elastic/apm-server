@@ -54,7 +54,7 @@ func (a *AggregatedGlobalLabels) Read(event *model.APMEvent) {
 	// to track for servicetxmetrics.
 	// For consistency, this will remove labels for other aggregated metrics as well.
 	switch event.Agent.Name {
-	case "rum-js", "js-base":
+	case "rum-js", "js-base", "android/java", "iOS/swift":
 		return
 	}
 
