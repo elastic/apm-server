@@ -24,8 +24,6 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type CollectionAgentClient interface {
-	// Sends once initial information about the host
-	SaveHostInfo(ctx context.Context, in *HostInfo, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// For a list of traces, increments their counts by provided values
 	AddCountsForTraces(ctx context.Context, in *AddCountsForTracesRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// Relates a list of stack traces with their hashes
@@ -41,8 +39,6 @@ type CollectionAgentClient interface {
 	// Adds fallback symbols for a set of frames, which can be used when full symbolization isn't
 	// possible.
 	AddFallbackSymbols(ctx context.Context, in *AddFallbackSymbolsRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// Heartbeat message from HA to CA on which we apply hosts per project throttling.
-	Heartbeat(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// GetSymbolsPackageUploadURL returns an URL for uploading symbols of a given file.
 	// The returned URL is a pre-authenticated HTTP PUT. It can be used to perform an upload of a package that contains
 	// the associated symbols.
@@ -67,15 +63,6 @@ type collectionAgentClient struct {
 
 func NewCollectionAgentClient(cc grpc.ClientConnInterface) CollectionAgentClient {
 	return &collectionAgentClient{cc}
-}
-
-func (c *collectionAgentClient) SaveHostInfo(ctx context.Context, in *HostInfo, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, "/collectionagent.CollectionAgent/SaveHostInfo", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
 }
 
 func (c *collectionAgentClient) AddCountsForTraces(ctx context.Context, in *AddCountsForTracesRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
@@ -141,15 +128,6 @@ func (c *collectionAgentClient) AddFallbackSymbols(ctx context.Context, in *AddF
 	return out, nil
 }
 
-func (c *collectionAgentClient) Heartbeat(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, "/collectionagent.CollectionAgent/Heartbeat", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *collectionAgentClient) GetSymbolsPackageUploadURL(ctx context.Context, in *GetSymbolsPackageUploadURLRequest, opts ...grpc.CallOption) (*GetSymbolsPackageUploadURLResponse, error) {
 	out := new(GetSymbolsPackageUploadURLResponse)
 	err := c.cc.Invoke(ctx, "/collectionagent.CollectionAgent/GetSymbolsPackageUploadURL", in, out, opts...)
@@ -172,8 +150,6 @@ func (c *collectionAgentClient) PackageUploadComplete(ctx context.Context, in *P
 // All implementations must embed UnimplementedCollectionAgentServer
 // for forward compatibility
 type CollectionAgentServer interface {
-	// Sends once initial information about the host
-	SaveHostInfo(context.Context, *HostInfo) (*emptypb.Empty, error)
 	// For a list of traces, increments their counts by provided values
 	AddCountsForTraces(context.Context, *AddCountsForTracesRequest) (*emptypb.Empty, error)
 	// Relates a list of stack traces with their hashes
@@ -189,8 +165,6 @@ type CollectionAgentServer interface {
 	// Adds fallback symbols for a set of frames, which can be used when full symbolization isn't
 	// possible.
 	AddFallbackSymbols(context.Context, *AddFallbackSymbolsRequest) (*emptypb.Empty, error)
-	// Heartbeat message from HA to CA on which we apply hosts per project throttling.
-	Heartbeat(context.Context, *emptypb.Empty) (*emptypb.Empty, error)
 	// GetSymbolsPackageUploadURL returns an URL for uploading symbols of a given file.
 	// The returned URL is a pre-authenticated HTTP PUT. It can be used to perform an upload of a package that contains
 	// the associated symbols.
@@ -214,9 +188,6 @@ type CollectionAgentServer interface {
 type UnimplementedCollectionAgentServer struct {
 }
 
-func (UnimplementedCollectionAgentServer) SaveHostInfo(context.Context, *HostInfo) (*emptypb.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SaveHostInfo not implemented")
-}
 func (UnimplementedCollectionAgentServer) AddCountsForTraces(context.Context, *AddCountsForTracesRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddCountsForTraces not implemented")
 }
@@ -238,9 +209,6 @@ func (UnimplementedCollectionAgentServer) ReportHostMetadata(context.Context, *H
 func (UnimplementedCollectionAgentServer) AddFallbackSymbols(context.Context, *AddFallbackSymbolsRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddFallbackSymbols not implemented")
 }
-func (UnimplementedCollectionAgentServer) Heartbeat(context.Context, *emptypb.Empty) (*emptypb.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Heartbeat not implemented")
-}
 func (UnimplementedCollectionAgentServer) GetSymbolsPackageUploadURL(context.Context, *GetSymbolsPackageUploadURLRequest) (*GetSymbolsPackageUploadURLResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetSymbolsPackageUploadURL not implemented")
 }
@@ -258,24 +226,6 @@ type UnsafeCollectionAgentServer interface {
 
 func RegisterCollectionAgentServer(s grpc.ServiceRegistrar, srv CollectionAgentServer) {
 	s.RegisterService(&CollectionAgent_ServiceDesc, srv)
-}
-
-func _CollectionAgent_SaveHostInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(HostInfo)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(CollectionAgentServer).SaveHostInfo(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/collectionagent.CollectionAgent/SaveHostInfo",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CollectionAgentServer).SaveHostInfo(ctx, req.(*HostInfo))
-	}
-	return interceptor(ctx, in, info, handler)
 }
 
 func _CollectionAgent_AddCountsForTraces_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -404,24 +354,6 @@ func _CollectionAgent_AddFallbackSymbols_Handler(srv interface{}, ctx context.Co
 	return interceptor(ctx, in, info, handler)
 }
 
-func _CollectionAgent_Heartbeat_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(emptypb.Empty)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(CollectionAgentServer).Heartbeat(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/collectionagent.CollectionAgent/Heartbeat",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CollectionAgentServer).Heartbeat(ctx, req.(*emptypb.Empty))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _CollectionAgent_GetSymbolsPackageUploadURL_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetSymbolsPackageUploadURLRequest)
 	if err := dec(in); err != nil {
@@ -466,10 +398,6 @@ var CollectionAgent_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*CollectionAgentServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "SaveHostInfo",
-			Handler:    _CollectionAgent_SaveHostInfo_Handler,
-		},
-		{
 			MethodName: "AddCountsForTraces",
 			Handler:    _CollectionAgent_AddCountsForTraces_Handler,
 		},
@@ -496,10 +424,6 @@ var CollectionAgent_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AddFallbackSymbols",
 			Handler:    _CollectionAgent_AddFallbackSymbols_Handler,
-		},
-		{
-			MethodName: "Heartbeat",
-			Handler:    _CollectionAgent_Heartbeat_Handler,
 		},
 		{
 			MethodName: "GetSymbolsPackageUploadURL",

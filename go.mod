@@ -87,6 +87,7 @@ require (
 	github.com/fatih/color v1.14.1 // indirect
 	github.com/frankban/quicktest v1.14.0 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
+	github.com/goccy/go-json v0.10.2 // indirect
 	github.com/gogo/googleapis v1.4.1 // indirect
 	github.com/golang/glog v1.0.0 // indirect
 	github.com/golang/snappy v0.0.4 // indirect

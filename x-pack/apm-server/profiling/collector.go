@@ -73,8 +73,7 @@ type ElasticCollector struct {
 
 	sourceFilesLock sync.Mutex
 	sourceFiles     *simplelru.LRU
-
-	clusterID string
+	clusterID       string
 }
 
 // NewCollector returns a new ElasticCollector which uses indexer for storing stack trace
@@ -106,7 +105,7 @@ func NewCollector(
 			common.SamplingFactor, i+1)
 	}
 
-	rpcProtocolVersion = GetRPCVersion()
+	rpcProtocolVersion = GetRPCVersionFromProto()
 	return c
 }
 
@@ -115,15 +114,24 @@ func (e *ElasticCollector) AddCountsForTraces(ctx context.Context,
 	req *AddCountsForTracesRequest) (*emptypb.Empty, error) {
 	traceEvents, err := mapToStackTraceEvents(ctx, req)
 	if err != nil {
-		e.logger.With(logp.Error(err)).Error("Error mapping host-agent traces to Elastic stacktraces")
+		e.logger.With(
+			logp.Error(err),
+			logp.String("grpc_method", "AddCountsForTraces"),
+		).Error("error mapping host-agent traces to Elastic stacktraces")
 		return nil, errCustomer
 	}
 	counterEventsTotal.Add(int64(len(traceEvents)))
 
 	// Store every event as-is into the full events index.
-	e.logger.Infof("adding %d trace events", len(traceEvents))
+	e.logger.With(
+		logp.String("grpc_method", "AddCountsForTraces"),
+	).Infof("adding %d trace events", len(traceEvents))
 	for i := range traceEvents {
 		if err := e.indexStacktrace(ctx, &traceEvents[i], common.AllEventsIndex); err != nil {
+			e.logger.With(
+				logp.Error(err),
+				logp.String("grpc_method", "AddCountsForTraces"),
+			).Error("Elasticsearch indexing error")
 			return nil, errCustomer
 		}
 	}
@@ -155,7 +163,10 @@ func (e *ElasticCollector) AddCountsForTraces(ctx context.Context,
 			traceEvents[i].Count = count
 
 			if err := e.indexStacktrace(ctx, &traceEvents[i], index); err != nil {
-				e.logger.With(logp.Error(err)).Error("Elasticsearch indexing error")
+				e.logger.With(
+					logp.Error(err),
+					logp.String("grpc_method", "AddCountsForTraces"),
+				).Error("Elasticsearch indexing error")
 				return nil, errCustomer
 			}
 		}
@@ -166,13 +177,15 @@ func (e *ElasticCollector) AddCountsForTraces(ctx context.Context,
 
 func (e *ElasticCollector) indexStacktrace(ctx context.Context, traceEvent *StackTraceEvent,
 	indexName string) (err error) {
-	var encodedTraceEvent bytes.Buffer
-	_ = json.NewEncoder(&encodedTraceEvent).Encode(*traceEvent)
+	body, err := common.EncodeBody(traceEvent)
+	if err != nil {
+		return err
+	}
 
 	return e.indexer.Add(ctx, esutil.BulkIndexerItem{
 		Index:  indexName,
 		Action: actionCreate,
-		Body:   bytes.NewReader(encodedTraceEvent.Bytes()),
+		Body:   body,
 		OnFailure: func(
 			_ context.Context,
 			_ esutil.BulkIndexerItem,
@@ -241,7 +254,6 @@ func mapToStackTraceEvents(ctx context.Context,
 		return nil, err
 	}
 
-	ts := req.GetTimestamp()
 	projectID := GetProjectID(ctx)
 	hostID := GetHostID(ctx)
 	kernelVersion := GetKernelVersion(ctx)
@@ -266,7 +278,7 @@ func mapToStackTraceEvents(ctx context.Context,
 		traceEvents = append(traceEvents,
 			StackTraceEvent{
 				ProjectID:     projectID,
-				TimeStamp:     ts,
+				TimeStamp:     uint32(traces[i].Timestamp),
 				HostID:        hostID,
 				StackTraceID:  common.EncodeStackTraceID(traces[i].Hash),
 				PodName:       traces[i].PodName,
@@ -283,11 +295,6 @@ func mapToStackTraceEvents(ctx context.Context,
 	}
 
 	return traceEvents, nil
-}
-
-// SaveHostInfo is needed too otherwise host-agent will not start properly
-func (*ElasticCollector) SaveHostInfo(context.Context, *HostInfo) (*emptypb.Empty, error) {
-	return &emptypb.Empty{}, nil
 }
 
 // Script written in Painless that will both create a new document (if DocID does not exist),
@@ -342,16 +349,18 @@ func (e *ElasticCollector) AddExecutableMetadata(ctx context.Context,
 	numLoFileIDs := len(loFileIDs)
 
 	if numHiFileIDs == 0 {
-		e.logger.Debug("AddExecutableMetadata request with no entries")
+		e.logger.With(
+			logp.String("grpc_method", "AddExecutableMetadata"),
+		).Debug("request with no entries")
 		return &empty.Empty{}, nil
 	}
 
 	// Sanity check. Should never happen unless the HA is broken.
 	if numHiFileIDs != numLoFileIDs {
-		e.logger.Errorf(
-			"mismatch in number of file IDAs (%d) file IDBs (%d)",
-			numHiFileIDs, numLoFileIDs,
-		)
+		e.logger.With(
+			logp.String("grpc_method", "AddExecutableMetadata"),
+		).Errorf("mismatch in number of file IDAs (%d) file IDBs (%d)",
+			numHiFileIDs, numLoFileIDs)
 		counterFatalErr.Inc()
 		return nil, errCustomer
 	}
@@ -366,10 +375,7 @@ func (e *ElasticCollector) AddExecutableMetadata(ctx context.Context,
 	for i := 0; i < numHiFileIDs; i++ {
 		fileID := libpf.NewFileID(hiFileIDs[i], loFileIDs[i])
 
-		// DocID is the base64-encoded FileID.
-		docID := common.EncodeFileID(fileID)
-
-		exeMetadata := ExeMetadata{
+		body, err := common.EncodeBodyBytes(ExeMetadata{
 			ScriptedUpsert: true,
 			Script: ExeMetadataScript{
 				Source: exeMetadataUpsertScript,
@@ -380,11 +386,19 @@ func (e *ElasticCollector) AddExecutableMetadata(ctx context.Context,
 					EcsVersion: common.EcsVersionString,
 				},
 			},
+		})
+		if err != nil {
+			e.logger.With(
+				logp.Error(err),
+				logp.String("grpc_method", "AddExecutableMetadata"),
+			).Error("failed to JSON encode executable")
+			return nil, errCustomer
 		}
-		var buf bytes.Buffer
-		_ = json.NewEncoder(&buf).Encode(exeMetadata)
 
-		err := multiplexCurrentNextIndicesWrite(ctx, e, &esutil.BulkIndexerItem{
+		// DocID is the base64-encoded FileID.
+		docID := common.EncodeFileID(fileID)
+
+		err = multiplexCurrentNextIndicesWrite(ctx, e, &esutil.BulkIndexerItem{
 			Index:      common.ExecutablesIndex,
 			Action:     actionUpdate,
 			DocumentID: docID,
@@ -398,20 +412,19 @@ func (e *ElasticCollector) AddExecutableMetadata(ctx context.Context,
 				e.logger.With(
 					logp.Error(err),
 					logp.String("error_type", resp.Error.Type),
+					logp.String("grpc_method", "AddExecutableMetadata"),
 				).Errorf("failed to index executable metadata: %s", resp.Error.Reason)
 			},
-		}, buf.Bytes())
+		}, body)
 		if err != nil {
-			e.logger.With(logp.Error(err)).Error("Elasticsearch indexing error")
+			e.logger.With(
+				logp.Error(err),
+				logp.String("grpc_method", "AddExecutableMetadata"),
+			).Error("Elasticsearch indexing error")
 			return nil, errCustomer
 		}
 	}
 
-	return &emptypb.Empty{}, nil
-}
-
-// Heartbeat is needed too otherwise host-agent will not start properly
-func (*ElasticCollector) Heartbeat(context.Context, *emptypb.Empty) (*emptypb.Empty, error) {
 	return &emptypb.Empty{}, nil
 }
 
@@ -423,26 +436,44 @@ func (*ElasticCollector) ReportHostMetadata(context.Context,
 
 func (e *ElasticCollector) SetFramesForTraces(ctx context.Context,
 	req *SetFramesForTracesRequest) (*empty.Empty, error) {
-
 	traces, err := CollectTracesAndFrames(req)
 	if err != nil {
 		counterFatalErr.Inc()
-		return nil, err
+		e.logger.With(
+			logp.Error(err),
+			logp.String("grpc_method", "SetFramesForTraces"),
+		).Error("error collecting frame metadata")
+		return nil, errCustomer
 	}
 	counterStacktracesTotal.Add(int64(len(traces)))
 
 	for _, trace := range traces {
+		numTypes := len(trace.FrameTypes)
+		numFiles := len(trace.Files)
+		numLinenos := len(trace.Linenos)
+		if numTypes != numFiles || numTypes != numLinenos {
+			e.logger.With(
+				logp.String("grpc_method", "SetFramesForTraces"),
+			).Errorf("mismatch in number of data (%d) / linenos (%d) / types (%d)",
+				numFiles, numLinenos, numTypes)
+			continue
+		}
+
+		body, err := common.EncodeBodyBytes(StackTrace{
+			FrameIDs: common.EncodeFrameIDs(trace.Files, trace.Linenos),
+			Types:    common.EncodeFrameTypes(trace.FrameTypes),
+		})
+		if err != nil {
+			e.logger.With(
+				logp.Error(err),
+				logp.String("grpc_method", "SetFramesForTraces"),
+			).Error("failed to JSON encode stacktrace")
+			return nil, errCustomer
+		}
+
 		// We use the base64-encoded trace hash as the document ID. This seems to be an
 		// appropriate way to do K/V lookups with ES.
 		docID := common.EncodeStackTraceID(trace.Hash)
-
-		toIndex := StackTrace{
-			FrameIDs: common.EncodeFrameIDs(trace.Files, trace.Linenos),
-			Types:    common.EncodeFrameTypes(trace.FrameTypes),
-		}
-
-		var body bytes.Buffer
-		_ = json.NewEncoder(&body).Encode(toIndex)
 
 		err = multiplexCurrentNextIndicesWrite(ctx, e, &esutil.BulkIndexerItem{
 			Index:      common.StackTraceIndex,
@@ -462,12 +493,13 @@ func (e *ElasticCollector) SetFramesForTraces(ctx context.Context,
 				}
 				counterStacktracesFailure.Inc()
 			},
-		}, body.Bytes())
+		}, body)
 
 		if err != nil {
-			e.logger.With(logp.Error(err),
+			e.logger.With(
+				logp.Error(err),
 				logp.String("grpc_method", "SetFramesForTraces"),
-			).Error("Elasticsearch indexing error: %v", err)
+			).Error("Elasticsearch indexing error")
 			return nil, errCustomer
 		}
 	}
@@ -477,72 +509,62 @@ func (e *ElasticCollector) SetFramesForTraces(ctx context.Context,
 
 func (e *ElasticCollector) AddFrameMetadata(ctx context.Context, in *AddFrameMetadataRequest) (
 	*empty.Empty, error) {
-	hiFileIDs := in.GetHiFileIDs()
-	loFileIDs := in.GetLoFileIDs()
-	hiSourceIDs := in.GetHiSourceIDs()
-	loSourceIDs := in.GetLoSourceIDs()
-	addressOrLines := in.GetAddressOrLines()
-	lineNumbers := in.GetLineNumbers()
-	functionNames := in.GetFunctionNames()
-	functionOffsets := in.GetFunctionOffsets()
-	filenames := in.GetFilenames()
-
-	arraySize := len(hiFileIDs)
-	if arraySize == 0 {
-		e.logger.Debug("AddFrameMetadata request with no entries")
-		return &empty.Empty{}, nil
+	frames, err := CollectFrameMetadata(in)
+	if err != nil {
+		counterFatalErr.Inc()
+		e.logger.With(
+			logp.Error(err),
+			logp.String("grpc_method", "AddFrameMetadata"),
+		).Error("error collecting frame metadata")
+		return nil, errCustomer
 	}
 
-	// Sanity check. Should never happen unless the HA is broken or client is malicious.
-	if arraySize != len(loFileIDs) ||
-		arraySize != len(hiSourceIDs) ||
-		arraySize != len(loSourceIDs) ||
-		arraySize != len(addressOrLines) ||
-		arraySize != len(lineNumbers) ||
-		arraySize != len(functionNames) ||
-		arraySize != len(functionOffsets) ||
-		arraySize != len(filenames) {
-		counterFatalErr.Inc()
-		e.logger.Errorf("mismatch in array sizes (%d)", arraySize)
-		return nil, errCustomer
+	arraySize := len(frames)
+	if arraySize == 0 {
+		e.logger.With(
+			logp.String("grpc_method", "AddFrameMetadata"),
+		).Debug("request with no entries")
+		return &empty.Empty{}, nil
 	}
 	counterStackframesTotal.Add(int64(arraySize))
 
-	for i := 0; i < arraySize; i++ {
-		fileID := libpf.NewFileID(hiFileIDs[i], loFileIDs[i])
-
-		if fileID.IsZero() {
-			e.logger.Warn("Attempting to report metadata for invalid FileID 0." +
+	for _, frame := range frames {
+		if frame.FileID.IsZero() {
+			e.logger.With(
+				logp.String("grpc_method", "AddFrameMetadata"),
+			).Warn("attempting to report metadata for invalid FileID 0." +
 				" This is likely a mistake and will be discarded.",
 			)
 			continue
 		}
 
-		sourceFileID := libpf.NewFileID(hiSourceIDs[i], loSourceIDs[i])
-		filename := filenames[i]
 		e.sourceFilesLock.Lock()
+		filename := frame.Filename
 		if filename == "" {
-			if v, ok := e.sourceFiles.Get(sourceFileID); ok {
+			if v, ok := e.sourceFiles.Get(frame.SourceID); ok {
 				filename = v.(string)
 			}
 		} else {
-			e.sourceFiles.Add(sourceFileID, filename)
+			e.sourceFiles.Add(frame.SourceID, filename)
 		}
 		e.sourceFilesLock.Unlock()
 
-		frameMetadata := StackFrame{
-			LineNumber:     int32(lineNumbers[i]),
-			FunctionName:   functionNames[i],
-			FunctionOffset: int32(functionOffsets[i]),
+		body, err := common.EncodeBodyBytes(StackFrame{
+			LineNumber:     int32(frame.LineNumber),
+			FunctionName:   frame.FunctionName,
+			FunctionOffset: int32(frame.FunctionOffset),
 			FileName:       filename,
+		})
+		if err != nil {
+			e.logger.With(
+				logp.Error(err),
+				logp.String("grpc_method", "AddFrameMetadata"),
+			).Error("failed to JSON encode stackframe")
+			return nil, errCustomer
 		}
 
-		docID := common.EncodeFrameID(fileID, addressOrLines[i])
-
-		var buf bytes.Buffer
-		_ = json.NewEncoder(&buf).Encode(frameMetadata)
-
-		err := multiplexCurrentNextIndicesWrite(ctx, e, &esutil.BulkIndexerItem{
+		docID := common.EncodeFrameID(frame.FileID, uint64(frame.AddressOrLine))
+		err = multiplexCurrentNextIndicesWrite(ctx, e, &esutil.BulkIndexerItem{
 			Index:      common.StackFrameIndex,
 			Action:     actionCreate,
 			DocumentID: docID,
@@ -560,9 +582,11 @@ func (e *ElasticCollector) AddFrameMetadata(ctx context.Context, in *AddFrameMet
 				}
 				counterStackframesFailure.Inc()
 			},
-		}, buf.Bytes())
+		}, body)
+
 		if err != nil {
-			e.logger.With(logp.Error(err),
+			e.logger.With(
+				logp.Error(err),
 				logp.String("grpc_method", "AddFrameMetadata"),
 			).Error("Elasticsearch indexing error")
 			return nil, errCustomer
@@ -581,7 +605,9 @@ func (e *ElasticCollector) AddFallbackSymbols(ctx context.Context,
 
 	arraySize := len(hiFileIDs)
 	if arraySize == 0 {
-		e.logger.Debug("AddFallbackSymbols request with no entries")
+		e.logger.With(
+			logp.String("grpc_method", "AddFallbackSymbols"),
+		).Debug("request with no entries")
 		return &empty.Empty{}, nil
 	}
 
@@ -589,7 +615,9 @@ func (e *ElasticCollector) AddFallbackSymbols(ctx context.Context,
 	if arraySize != len(loFileIDs) ||
 		arraySize != len(addressOrLines) ||
 		arraySize != len(symbols) {
-		e.logger.Errorf("mismatch in array sizes (%d)", arraySize)
+		e.logger.With(
+			logp.String("grpc_method", "AddFallbackSymbols"),
+		).Errorf("mismatch in array sizes (%d)", arraySize)
 		counterFatalErr.Inc()
 		return nil, errCustomer
 	}
@@ -599,23 +627,27 @@ func (e *ElasticCollector) AddFallbackSymbols(ctx context.Context,
 		fileID := libpf.NewFileID(hiFileIDs[i], loFileIDs[i])
 
 		if fileID.IsZero() {
-			e.logger.Warn("" +
-				"Attempting to report metadata for invalid FileID 0." +
-				" This is likely a mistake and will be discarded.",
-			)
+			e.logger.With(
+				logp.String("grpc_method", "AddFallbackSymbols"),
+			).Warn("attempting to report metadata for invalid FileID 0." +
+				" This is likely a mistake and will be discarded.")
 			continue
 		}
 
-		frameMetadata := StackFrame{
+		body, err := common.EncodeBodyBytes(StackFrame{
 			FunctionName: symbols[i],
+		})
+		if err != nil {
+			e.logger.With(
+				logp.Error(err),
+				logp.String("grpc_method", "AddFallbackSymbols"),
+			).Error("failed to JSON encode fallback stackframe")
+			return nil, errCustomer
 		}
 
 		docID := common.EncodeFrameID(fileID, addressOrLines[i])
 
-		var buf bytes.Buffer
-		_ = json.NewEncoder(&buf).Encode(frameMetadata)
-
-		err := multiplexCurrentNextIndicesWrite(ctx, e, &esutil.BulkIndexerItem{
+		err = multiplexCurrentNextIndicesWrite(ctx, e, &esutil.BulkIndexerItem{
 			Index: common.StackFrameIndex,
 			// Use 'create' instead of 'index' to not overwrite an existing document,
 			// possibly containing a fully symbolized frame.
@@ -635,9 +667,10 @@ func (e *ElasticCollector) AddFallbackSymbols(ctx context.Context,
 				}
 				counterStackframesFailure.Inc()
 			},
-		}, buf.Bytes())
+		}, body)
 		if err != nil {
-			e.logger.With(logp.Error(err),
+			e.logger.With(
+				logp.Error(err),
 				logp.String("grpc_method", "AddFallbackSymbols"),
 			).Error("Elasticsearch indexing error")
 			return nil, errCustomer
@@ -741,10 +774,10 @@ func (e *ElasticCollector) AddMetrics(ctx context.Context, in *Metrics) (*empty.
 
 	for _, metric := range tsmetrics {
 		if len(metric.IDs) != len(metric.Values) {
-			e.logger.Errorf(
-				"Ignoring inconsistent metrics (ids: %d != values: %d)",
-				len(metric.IDs), len(metric.Values),
-			)
+			e.logger.With(
+				logp.String("grpc_method", "AddMetrics"),
+			).Errorf("ignoring inconsistent metrics (ids: %d != values: %d)",
+				len(metric.IDs), len(metric.Values))
 			continue
 		}
 		err := e.metricsIndexer.Add(ctx, esutil.BulkIndexerItem{
@@ -765,6 +798,10 @@ func (e *ElasticCollector) AddMetrics(ctx context.Context, in *Metrics) (*empty.
 			},
 		})
 		if err != nil {
+			e.logger.With(
+				logp.Error(err),
+				logp.String("grpc_method", "AddMetrics"),
+			).Error("Elasticsearch indexing error")
 			return nil, errCustomer
 		}
 	}

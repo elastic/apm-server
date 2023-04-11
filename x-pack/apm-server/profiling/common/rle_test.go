@@ -68,7 +68,7 @@ func Test_RunLengthEncodeReverse(t *testing.T) {
 					return []byte{v}
 				})
 
-			assert.Equal(t, test.expected, buf.Bytes(), "runLengthEncodeReverse (%s)", test.name)
+			assert.Equalf(t, test.expected, buf.Bytes(), "runLengthEncodeReverse (%s)", test.name)
 		})
 	}
 }

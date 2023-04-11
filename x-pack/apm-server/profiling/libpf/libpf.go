@@ -7,12 +7,8 @@ package libpf
 import (
 	"encoding"
 	"encoding/json"
-	"fmt"
-	"hash/crc32"
-	"io"
 	"math"
 	"math/rand"
-	"os"
 	"strconv"
 	"time"
 
@@ -202,123 +198,20 @@ type SourceLineno uint64
 // TODO(thomasdullien): Refactor the name to "FrameType"?
 type InterpType int
 
-const (
-	// PHP identifies the PHP interpreter
-	PHP InterpType = iota + 1
-	// PHPJIT identifes PHP JIT processes
-	PHPJIT
-	// Python identifies the Python interpreter
-	Python
-	// Native identifies native frames.
-	Native
-	// Kernel identifies kernel frames.
-	Kernel
-	// HotSpot identifies Java HotSpot VM frames.
-	HotSpot
-	// Ruby identifies the Ruby interpreter.
-	Ruby
-	// Perl identifies the Perl interpreter
-	Perl
-	// V8 identifies the V8 interpreter
-	V8
-)
-
-var interpTypeToString = map[InterpType]string{
-	PHP:     "php",
-	Python:  "python",
-	Native:  "native",
-	Kernel:  "kernel",
-	HotSpot: "jvm",
-	Ruby:    "ruby",
-	Perl:    "perl",
-	V8:      "v8",
-}
-
-// String converts the frame type int to the related string value to be displayed in the UI.
-func (i InterpType) String() string {
-	if result, ok := interpTypeToString[i]; ok {
-		return result
-	}
-	// nolint:goconst
-	return "<unknown>"
-}
+// FrameType defines the type of frame. This usually corresponds to the interpreter type that
+// emitted it, but can additionally contain meta-information like error frames.
+//
+// A frame type can represent one of the following things:
+//
+//   - A successfully unwound frame. This is represented simply as the `InterpType` ID.
+//   - A partial (non-critical failure), indicated by ORing the `InterpType` ID with the error bit.
+//   - A fatal failure that caused further unwinding to be aborted. This is indicated using the
+//     special value support.FrameMarkerAbort (0xFF). It thus also contains the error bit, but
+//     does not fit into the `InterpType` enum.
+type FrameType int
 
 // SourceType identifies the different forms of source code files that we may deal with.
 type SourceType int
-
-const (
-	SourceTypeC = iota
-	SourceTypeCPP
-	SourceTypePython
-	SourceTypePHP
-	SourceTypeGo
-	SourceTypeJava
-	SourceTypeRuby
-	SourceTypePerl
-	SourceTypeJavaScript
-)
-
-// PackageType identifies the different types of packages that we process
-type PackageType int32
-
-func (t PackageType) String() string {
-	if res, ok := packageTypeToString[t]; ok {
-		return res
-	}
-	// nolint:goconst
-	return "<unknown>"
-}
-
-const (
-	PackageTypeDeb = iota
-	PackageTypeRPM
-	PackageTypeCustomSymbols
-	PackageTypeAPK
-)
-
-var packageTypeToString = map[PackageType]string{
-	PackageTypeDeb:           "deb",
-	PackageTypeRPM:           "rpm",
-	PackageTypeCustomSymbols: "custom",
-	PackageTypeAPK:           "apk",
-}
-
-// SourcePackageType identifies the different types of source
-// package objects that we process
-type SourcePackageType int32
-
-const (
-	SourcePackageTypeDeb = iota
-	SourcePackageTypeRPM
-)
-
-const (
-	CodeIndexingPackageTypeDeb    = "deb"
-	CodeIndexingPackageTypeRpm    = "rpm"
-	CodeIndexingPackageTypeCustom = "custom"
-	CodeIndexingPackageTypeApk    = "apk"
-)
-
-type CodeIndexingMessage struct {
-	SourcePackageName    string `json:"sourcePackageName"`
-	SourcePackageVersion string `json:"sourcePackageVersion"`
-	MirrorName           string `json:"mirrorName"`
-	ForceRetry           bool   `json:"forceRetry"`
-}
-
-// LocalFSPackageID is a fake package identifier, indicating that a particular file was not part of
-// a package, but was extracted directly from a local filesystem.
-var LocalFSPackageID = PackageID{
-	basehash.New128(0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF),
-}
-
-// FileType identifies the different types of packages that we process
-type FileType int32
-
-const (
-	FileTypeNative = iota
-	FileTypePython
-)
 
 // Trace represents a stack trace. Each tuple (Files[i], Linenos[i]) represents a
 // stack frame via the file ID and line number at the offset i in the trace. The
@@ -326,7 +219,7 @@ const (
 type Trace struct {
 	Files         []FileID
 	Linenos       []AddressOrLineno
-	FrameTypes    []InterpType
+	FrameTypes    []FrameType
 	Comm          string
 	PodName       string
 	ContainerName string
@@ -343,57 +236,22 @@ type TraceAndMetadata struct {
 
 type TraceAndCounts struct {
 	Hash          TraceHash
+	Timestamp     UnixTime32
 	Count         uint16
 	Comm          string
 	PodName       string
 	ContainerName string
 }
 
-// StackFrame represents a stack frame - an ID for the file it belongs to, an
-// address (in case it is a binary file) or a line number (in case it is a source
-// file), and a type that says what type of frame this is (Python, PHP, native,
-// more languages in the future).
-// type StackFrame struct {
-//	file          FileID
-//	addressOrLine AddressOrLineno
-//	frameType     InterpType
-// }
-
-// ComputeFileCRC32 computes the CRC32 hash of a file
-func ComputeFileCRC32(filePath string) (int32, error) {
-	f, err := os.Open(filePath)
-	if err != nil {
-		return 0, fmt.Errorf("unable to compute CRC32 for %v: %v", filePath, err)
-	}
-	defer f.Close()
-
-	h := crc32.NewIEEE()
-
-	_, err = io.Copy(h, f)
-	if err != nil {
-		return 0, fmt.Errorf("unable to compute CRC32 for %v: %v (failed copy)", filePath, err)
-	}
-
-	return int32(h.Sum32()), nil
-}
-
-// TimeToInt64 converts a time.Time to an int64. It preserves the "zero-ness" across the
-// conversion, which means a zero Time is converted to 0.
-func TimeToInt64(t time.Time) int64 {
-	if t.IsZero() {
-		// t.UnixNano() is undefined if t.IsZero() is true.
-		return 0
-	}
-	return t.UnixNano()
-}
-
-// Int64ToTime converts an int64 to a time.Time. It preserves the "zero-ness" across the
-// conversion, which means 0 is converted to a zero time.Time (instead of the Unix epoch).
-func Int64ToTime(t int64) time.Time {
-	if t == 0 {
-		return time.Time{}
-	}
-	return time.Unix(0, t)
+type FrameMetadata struct {
+	FileID         FileID
+	SourceID       FileID
+	AddressOrLine  AddressOrLineno
+	LineNumber     SourceLineno
+	SourceType     SourceType
+	FunctionOffset uint32
+	FunctionName   string
+	Filename       string
 }
 
 // Void allows to use maps as sets without memory allocation for the values.
@@ -405,16 +263,6 @@ func Int64ToTime(t int64) time.Time {
 //	that only the keys are significant, but the space saving is marginal and the syntax more
 //	cumbersome, so we generally avoid it.
 type Void struct{}
-
-// Range describes a range with Start and End values.
-type Range struct {
-	Start uint64
-	End   uint64
-}
-
-// HeartbeatIntervalSeconds defines the base interval in seconds in which HAs send alive heartbeats
-// to CA.
-const HeartbeatIntervalSeconds = 30
 
 // AddJitter adds +/- jitter (jitter is [0..1]) to baseDuration
 func AddJitter(baseDuration time.Duration, jitter float64) time.Duration {
