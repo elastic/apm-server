@@ -496,7 +496,7 @@ func makeTransactionAggregationKey(event model.APMEvent, interval time.Duration)
 			cloudProjectName:      event.Cloud.ProjectName,
 			cloudMachineType:      event.Cloud.MachineType,
 
-			faasColdstart:   event.FAAS.Coldstart != nil && *event.FAAS.Coldstart,
+			faasColdstart:   nullableBoolFromPtr(event.FAAS.Coldstart),
 			faasID:          event.FAAS.ID,
 			faasTriggerType: event.FAAS.TriggerType,
 			faasName:        event.FAAS.Name,
@@ -572,7 +572,7 @@ func makeMetricset(key transactionAggregationKey, metrics transactionMetrics, in
 			SuccessCount: eventSuccessCount,
 		},
 		FAAS: model.FAAS{
-			Coldstart:   &key.faasColdstart,
+			Coldstart:   key.faasColdstart.toPtr(),
 			ID:          key.faasID,
 			TriggerType: key.faasTriggerType,
 			Name:        key.faasName,
@@ -767,11 +767,30 @@ func (e *metricsMapEntry) reset(pool *sync.Pool) {
 	e.histogram = nil
 }
 
+type nullableBool struct {
+	isSet bool
+	val   bool
+}
+
+func nullableBoolFromPtr(b *bool) nullableBool {
+	return nullableBool{
+		isSet: b != nil,
+		val:   b != nil && *b,
+	}
+}
+
+func (nb nullableBool) toPtr() *bool {
+	if !nb.isSet {
+		return nil
+	}
+	return &nb.val
+}
+
 // comparable contains the fields with types which can be compared with the
 // equal operator '=='.
 type comparable struct {
 	timestamp              time.Time
-	faasColdstart          bool
+	faasColdstart          nullableBool
 	faasID                 string
 	faasName               string
 	faasVersion            string
@@ -821,7 +840,7 @@ func (k *transactionAggregationKey) hash() uint64 {
 	if k.traceRoot {
 		h.WriteString("1")
 	}
-	if k.faasColdstart {
+	if k.faasColdstart.isSet && k.faasColdstart.val {
 		h.WriteString("1")
 	}
 	k.AggregatedGlobalLabels.Write(&h)
