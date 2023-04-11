@@ -29,7 +29,7 @@ The APM integration offers a number of benefits over the standalone method of ru
 [[apm-arch-upgrade]]
 === APM integration architecture
 
-The Elastic APM integration consists of four components: *APM agents*, the *Elastic APM integration*, *{es}*, and *{kib}*.
+Elastic APM consists of four components: *APM agents*, the *Elastic APM integration*, *{es}*, and *{kib}*.
 Generally, there are two ways that these four components can work together:
 
 APM agents on edge machines send data to a centrally hosted APM integration:
