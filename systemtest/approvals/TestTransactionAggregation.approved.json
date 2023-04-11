@@ -464,7 +464,7 @@
         },
         {
             "@timestamp": "2021-09-15T20:10:00.000Z",
-            "_doc_count": 1,
+            "_doc_count": 2,
             "agent": {
                 "name": "elastic-node"
             },
@@ -560,15 +560,15 @@
                 "duration": {
                     "histogram": {
                         "counts": [
-                            1
+                            2
                         ],
                         "values": [
                             38911
                         ]
                     },
                     "summary": {
-                        "sum": 38911,
-                        "value_count": 1
+                        "sum": 77822,
+                        "value_count": 2
                     }
                 },
                 "name": "faas",
@@ -579,7 +579,7 @@
         },
         {
             "@timestamp": "2021-09-15T20:11:00.000Z",
-            "_doc_count": 1,
+            "_doc_count": 2,
             "agent": {
                 "name": "elastic-node"
             },
@@ -675,15 +675,15 @@
                 "duration": {
                     "histogram": {
                         "counts": [
-                            1
+                            2
                         ],
                         "values": [
                             38911
                         ]
                     },
                     "summary": {
-                        "sum": 38911,
-                        "value_count": 1
+                        "sum": 77822,
+                        "value_count": 2
                     }
                 },
                 "name": "faas",
@@ -694,7 +694,7 @@
         },
         {
             "@timestamp": "2021-09-15T20:00:00.000Z",
-            "_doc_count": 1,
+            "_doc_count": 2,
             "agent": {
                 "name": "elastic-node"
             },
@@ -790,15 +790,15 @@
                 "duration": {
                     "histogram": {
                         "counts": [
-                            1
+                            2
                         ],
                         "values": [
                             38911
                         ]
                     },
                     "summary": {
-                        "sum": 38911,
-                        "value_count": 1
+                        "sum": 77822,
+                        "value_count": 2
                     }
                 },
                 "name": "faas",

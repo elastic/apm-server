@@ -653,12 +653,10 @@ func TestAggregationFields(t *testing.T) {
 	go agg.Run()
 	defer agg.Stop(context.Background())
 
-	falseP := false
 	input := model.APMEvent{
 		Processor:   model.TransactionProcessor,
 		Transaction: &model.Transaction{RepresentativeCount: 1},
 	}
-	input.FAAS.Coldstart = &falseP
 	inputFields := []*string{
 		&input.Transaction.Name,
 		&input.Transaction.Result,
@@ -690,21 +688,13 @@ func TestAggregationFields(t *testing.T) {
 		&input.FAAS.Name,
 		&input.FAAS.Version,
 	}
-	boolInputFields := []*bool{
-		input.FAAS.Coldstart,
+	boolPtrInputFields := []**bool{
+		&input.FAAS.Coldstart,
 	}
 
 	var expected []model.APMEvent
 	addExpectedCount := func(expectedCount int64) {
 		expectedEvent := input
-		expectedEvent.Transaction = nil
-		expectedEvent.Event.Outcome = input.Event.Outcome
-		expectedEvent.Processor = model.MetricsetProcessor
-		expectedEvent.Metricset = &model.Metricset{
-			Name:     "transaction",
-			DocCount: expectedCount,
-			Interval: "0s",
-		}
 		expectedEvent.Transaction = &model.Transaction{
 			Name:   input.Transaction.Name,
 			Type:   input.Transaction.Type,
@@ -719,6 +709,13 @@ func TestAggregationFields(t *testing.T) {
 				Sum:   0,
 			},
 		}
+		expectedEvent.Event.Outcome = input.Event.Outcome
+		expectedEvent.Processor = model.MetricsetProcessor
+		expectedEvent.Metricset = &model.Metricset{
+			Name:     "transaction",
+			DocCount: expectedCount,
+			Interval: "0s",
+		}
 		expected = append(expected, expectedEvent)
 	}
 	for _, field := range inputFields {
@@ -729,11 +726,15 @@ func TestAggregationFields(t *testing.T) {
 			addExpectedCount(2)
 		}
 	}
-	for _, field := range boolInputFields {
-		*field = true
-		agg.AggregateTransaction(input)
-		agg.AggregateTransaction(input)
-		addExpectedCount(2)
+	for _, field := range boolPtrInputFields {
+		for _, value := range []bool{false, true} {
+			value := value
+			*field = &value
+			agg.AggregateTransaction(input)
+			agg.AggregateTransaction(input)
+			addExpectedCount(2)
+		}
+		*field = nil
 	}
 
 	if false {
