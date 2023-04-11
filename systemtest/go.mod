@@ -3,7 +3,7 @@ module github.com/elastic/apm-server/systemtest
 go 1.19
 
 require (
-	github.com/docker/docker v23.0.0+incompatible
+	github.com/docker/docker v23.0.3+incompatible
 	github.com/docker/go-connections v0.4.0
 	github.com/elastic/go-elasticsearch/v8 v8.4.0
 	github.com/fatih/color v1.13.0
