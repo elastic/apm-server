@@ -496,12 +496,12 @@ func makeTransactionAggregationKey(event model.APMEvent, interval time.Duration)
 			cloudProjectName:      event.Cloud.ProjectName,
 			cloudMachineType:      event.Cloud.MachineType,
 
-			faasColdstart:   event.FAAS.Coldstart,
 			faasID:          event.FAAS.ID,
 			faasTriggerType: event.FAAS.TriggerType,
 			faasName:        event.FAAS.Name,
 			faasVersion:     event.FAAS.Version,
 		},
+		faasColdstart: event.FAAS.Coldstart,
 	}
 	key.AggregatedGlobalLabels.Read(&event)
 	return key
@@ -771,7 +771,6 @@ func (e *metricsMapEntry) reset(pool *sync.Pool) {
 // equal operator '=='.
 type comparable struct {
 	timestamp              time.Time
-	faasColdstart          *bool
 	faasID                 string
 	faasName               string
 	faasVersion            string
@@ -811,6 +810,7 @@ type comparable struct {
 type transactionAggregationKey struct {
 	labels.AggregatedGlobalLabels
 	comparable
+	faasColdstart *bool
 }
 
 func (k *transactionAggregationKey) hash() uint64 {
@@ -861,7 +861,18 @@ func (k *transactionAggregationKey) hash() uint64 {
 
 func (k *transactionAggregationKey) equal(key transactionAggregationKey) bool {
 	return k.comparable == key.comparable &&
+		boolPtrsValEqual(k.faasColdstart, key.faasColdstart) &&
 		k.AggregatedGlobalLabels.Equals(&key.AggregatedGlobalLabels)
+}
+
+func boolPtrsValEqual(a, b *bool) bool {
+	if a == nil && b == nil {
+		return true
+	}
+	if a == nil || b == nil {
+		return false
+	}
+	return *a == *b
 }
 
 type transactionMetrics struct {

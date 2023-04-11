@@ -760,6 +760,8 @@ func TestAggregationFields(t *testing.T) {
 
 	batch := expectBatch(t, batches)
 	metricsets := batchMetricsets(t, batch)
+	// BUG(carsonip): This is comparing bool pointer for FAAS.Coldstart but the change in underlying bool value
+	// is not tested.
 	assert.ElementsMatch(t, expected, metricsets)
 }
 
