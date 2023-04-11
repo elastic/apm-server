@@ -8,15 +8,15 @@ require (
 	github.com/dgraph-io/badger/v2 v2.2007.3-0.20201012072640-f5a7e0a1c83b
 	github.com/dustin/go-humanize v1.0.0
 	github.com/elastic/apm-data v0.1.1-0.20230309014206-3ad1a5caedc9
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230405101640-804e9c521aae
-	github.com/elastic/elastic-agent-client/v7 v7.0.3-0.20230315204017-166fd1fd746f
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230406123928-ca13ce86cf08
+	github.com/elastic/elastic-agent-client/v7 v7.1.0
 	github.com/elastic/elastic-agent-libs v0.3.3
-	github.com/elastic/elastic-agent-system-metrics v0.5.1-0.20230328163318-a87a0b315c42
+	github.com/elastic/elastic-agent-system-metrics v0.6.0
 	github.com/elastic/gmux v0.2.0
 	github.com/elastic/go-docappender v0.1.0
 	github.com/elastic/go-elasticsearch/v8 v8.6.0
 	github.com/elastic/go-hdrhistogram v0.1.0
-	github.com/elastic/go-sysinfo v1.9.1-0.20230328042007-6dcfe88b8359
+	github.com/elastic/go-sysinfo v1.10.0
 	github.com/elastic/go-ucfg v0.8.6
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible
 	github.com/gofrs/flock v0.8.1
