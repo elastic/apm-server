@@ -19,7 +19,7 @@ https://github.com/elastic/apm-server/compare/v8.7.0\...v8.7.1[View commits]
 - metrics: Count context.DeadlineExceeded as timeout {pull}10594[10594]
 - metrics: Count GRPC codes.Canceled as timeout {pull}10605[10605]
 - Remove global labels from aggregations for RUM services {pull}10624[10624]
-- Remove redundant aggregation groups on `faas.coldstart` in transaction metrics {pull}10635[10635]
+- Remove redundant aggregation groups on `faas.coldstart` in transaction metrics {pull}10638[10638]
 
 [float]
 [[release-notes-8.7.0]]
