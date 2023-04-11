@@ -496,7 +496,7 @@ func makeTransactionAggregationKey(event model.APMEvent, interval time.Duration)
 			cloudProjectName:      event.Cloud.ProjectName,
 			cloudMachineType:      event.Cloud.MachineType,
 
-			faasColdstart:   event.FAAS.Coldstart != nil && *event.FAAS.Coldstart,
+			faasColdstart:   event.FAAS.Coldstart,
 			faasID:          event.FAAS.ID,
 			faasTriggerType: event.FAAS.TriggerType,
 			faasName:        event.FAAS.Name,
@@ -572,7 +572,7 @@ func makeMetricset(key transactionAggregationKey, metrics transactionMetrics, in
 			SuccessCount: eventSuccessCount,
 		},
 		FAAS: model.FAAS{
-			Coldstart:   &key.faasColdstart,
+			Coldstart:   key.faasColdstart,
 			ID:          key.faasID,
 			TriggerType: key.faasTriggerType,
 			Name:        key.faasName,
@@ -771,7 +771,7 @@ func (e *metricsMapEntry) reset(pool *sync.Pool) {
 // equal operator '=='.
 type comparable struct {
 	timestamp              time.Time
-	faasColdstart          bool
+	faasColdstart          *bool
 	faasID                 string
 	faasName               string
 	faasVersion            string
@@ -821,7 +821,7 @@ func (k *transactionAggregationKey) hash() uint64 {
 	if k.traceRoot {
 		h.WriteString("1")
 	}
-	if k.faasColdstart {
+	if k.faasColdstart != nil && *k.faasColdstart {
 		h.WriteString("1")
 	}
 	k.AggregatedGlobalLabels.Write(&h)
