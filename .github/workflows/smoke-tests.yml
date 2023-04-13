@@ -1,0 +1,93 @@
+name: smoke-tests
+run-name: Smoke Tests
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - feature/github-actions-ess
+  schedule:
+    - cron: '0 3 * * 1-5'
+
+# limit the access of the generated GITHUB_TOKEN
+permissions:
+  contents: read
+
+env:
+  AWS_ACCOUNT_SECRET: 'secret/observability-team/ci/elastic-observability-aws-account-auth'
+  EC_KEY_SECRET: 'secret/observability-team/ci/elastic-cloud/observability-pro'
+
+jobs:
+  prepare:
+    name: Generate smoke tests list
+    runs-on: ubuntu-latest
+    outputs:
+      tests: ${{ steps.generate.outputs.tests }}
+      date: ${{ steps.generate.outputs.date }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup cluster env
+        uses: ./.github/workflows/setup-cluster-env
+        with:
+          vault-url: ${{ secrets.VAULT_ADDR }}
+          vault-role-id: ${{ secrets.VAULT_ROLE_ID }}
+          vault-secret-id: ${{ secrets.VAULT_SECRET_ID }}
+      - id: generate
+        name: Generate matrix and date
+        run: |
+          echo "tests=$(make smoketest/discover)" >> "${GITHUB_OUTPUT}"
+          echo "date=$(date +%s)" >> "${GITHUB_OUTPUT}"
+
+  smoke-tests-ess:
+    name: Run smoke tests ${{ matrix.test }} for ${{ matrix.version }}
+    runs-on: ubuntu-latest
+    needs: prepare
+    env:
+      TF_VAR_BUILD_ID: ${{ github.run_id }}
+      TF_VAR_ENVIRONMENT: 'ci'
+      TF_VAR_BRANCH: ${{ github.ref_name }}
+      TF_VAR_REPO: ${{ github.repository }}
+      TF_VAR_CREATED_DATE: ${{ needs.prepare.outputs.date }}
+    strategy:
+      matrix:
+        test: ${{ fromJSON(needs.prepare.outputs.tests) }}
+        version:
+          - '7.17'
+          - 'latest'
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup cluster env
+        uses: ./.github/workflows/setup-cluster-env
+        with:
+          vault-url: ${{ secrets.VAULT_ADDR }}
+          vault-role-id: ${{ secrets.VAULT_ROLE_ID }}
+          vault-secret-id: ${{ secrets.VAULT_SECRET_ID }}
+      - name: Run smoke tests ${{ matrix.test }} for ${{ matrix.version }}
+        run: make smoketest/run-version TEST_DIR=${{ matrix.test }} SMOKETEST_VERSION=${{ matrix.version }}
+      - if: always()
+        name: Teardown smoke test infra
+        run: make smoketest/cleanup TEST_DIR=${{ matrix.test }}
+
+  smoke-tests-os:
+    name: Run smoke tests OS
+    runs-on: ubuntu-latest
+    needs: prepare
+    env:
+      TF_VAR_BUILD_ID: ${{ github.run_id }}
+      TF_VAR_ENVIRONMENT: 'ci'
+      TF_VAR_BRANCH: ${{ github.ref_name }}
+      TF_VAR_REPO: ${{ github.repository }}
+      TF_VAR_CREATED_DATE: ${{ needs.prepare.outputs.date }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Get version
+        run: echo "VERSION=$(make get-version)" >> "${GITHUB_ENV}"
+      - name: Setup cluster env
+        uses: ./.github/workflows/setup-cluster-env
+        with:
+          vault-url: ${{ secrets.VAULT_ADDR }}
+          vault-role-id: ${{ secrets.VAULT_ROLE_ID }}
+          vault-secret-id: ${{ secrets.VAULT_SECRET_ID }}
+      - name: Run smoke tests OS
+        working-directory: ${{ github.workspace }}/testing/smoke/supported-os
+        run: ./test.sh ${VERSION}-SNAPSHOT
