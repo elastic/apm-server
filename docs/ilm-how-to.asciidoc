@@ -54,7 +54,7 @@ Each policy includes a rollover and delete definition:
 |===
 
 The APM index lifecycle policies can be viewed in {kib}.
-Navigate to *{stack-manage-app}* / *Index Lifecycle Management*, and search for `apm`.
+Navigate to *{stack-manage-app}* / *Index Lifecycle Policies*, and search for `apm`.
 
 TIP: Default {ilm-init} policies can change between minor versions.
 This is not considered a breaking change as index management should continually improve and adapt to new features.
