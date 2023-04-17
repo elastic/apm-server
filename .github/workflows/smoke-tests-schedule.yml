@@ -14,6 +14,8 @@ jobs:
   smoke-tests-ess:
     name: Run smoke tests ${{ matrix.test }} for ${{ matrix.version }}
     uses: ./.github/workflows/smoke-tests-ess.yml
+    with:
+      branch: 'main'
 
   smoke-tests-os:
     name: Run smoke tests OS
