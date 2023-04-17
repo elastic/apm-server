@@ -15,8 +15,7 @@ jobs:
     name: Run smoke tests ESS
     uses: ./.github/workflows/smoke-tests-ess.yml
     with:
-      branch: 'feature/github-actions-ess'
-      # branch: 'main'
+      branch: 'main'
     secrets: inherit
 
   smoke-tests-os:
@@ -24,9 +23,8 @@ jobs:
     strategy:
       matrix:
         branch:
-          - 'feature/github-actions-ess'
-        #   - main
-        #   - 8.7
+          - 'main'
+          - '8.7'
     uses: ./.github/workflows/smoke-tests-os.yml
     with:
       branch: ${{ matrix.branch }}
