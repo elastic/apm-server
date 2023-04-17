@@ -1,0 +1,27 @@
+name: smoke-tests
+run-name: Smoke Tests
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 3 * * 1-5'
+
+# Limit the access of the generated GITHUB_TOKEN
+permissions:
+  contents: read
+
+jobs:
+  smoke-tests-ess:
+    name: Run smoke tests ${{ matrix.test }} for ${{ matrix.version }}
+    uses: ./.github/workflows/smoke-tests-ess.yml@feature/github-actions-ess
+
+  smoke-tests-os:
+    name: Run smoke tests OS
+    strategy:
+      matrix:
+        branch:
+          - main
+          - 8.7
+    uses: ./.github/workflows/smoke-tests-os.yml@feature/github-actions-ess
+    with:
+      branch: ${{ matrix.branch }}
