@@ -12,18 +12,20 @@ permissions:
 
 jobs:
   smoke-tests-ess:
-    name: Run smoke tests ${{ matrix.test }} for ${{ matrix.version }}
+    name: Run smoke tests ESS
     uses: ./.github/workflows/smoke-tests-ess.yml
     with:
-      branch: 'main'
+      branch: 'feature/github-actions-ess'
+      # branch: 'main'
 
   smoke-tests-os:
     name: Run smoke tests OS
     strategy:
       matrix:
         branch:
-          - main
-          - 8.7
+          - 'feature/github-actions-ess'
+        #   - main
+        #   - 8.7
     uses: ./.github/workflows/smoke-tests-os.yml
     with:
       branch: ${{ matrix.branch }}
