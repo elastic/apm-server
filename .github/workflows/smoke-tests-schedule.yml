@@ -17,6 +17,7 @@ jobs:
     with:
       branch: 'feature/github-actions-ess'
       # branch: 'main'
+    secrets: inherit
 
   smoke-tests-os:
     name: Run smoke tests OS
@@ -29,3 +30,4 @@ jobs:
     uses: ./.github/workflows/smoke-tests-os.yml
     with:
       branch: ${{ matrix.branch }}
+    secrets: inherit
