@@ -8,10 +8,12 @@ import (
 	"bytes"
 	"context"
 	"embed"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"log"
 	"math/rand"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -52,6 +54,7 @@ var (
 )
 
 const (
+	actionIndex  = "index"
 	actionCreate = "create"
 	actionUpdate = "update"
 
@@ -74,6 +77,9 @@ type ElasticCollector struct {
 	sourceFilesLock sync.Mutex
 	sourceFiles     *simplelru.LRU
 	clusterID       string
+
+	fileIDQueue    *SymQueue[libpf.FileID]
+	leafFrameQueue *SymQueue[common.FrameID]
 }
 
 // NewCollector returns a new ElasticCollector which uses indexer for storing stack trace
@@ -98,6 +104,14 @@ func NewCollector(
 		sourceFiles:    sourceFiles,
 		clusterID:      esClusterID,
 	}
+
+	queueConfig := DefaultQueueConfig()
+	queueConfig.Size = 8
+	queueConfig.CacheSize = 10240
+	c.fileIDQueue = NewQueue(queueConfig, c.flushExecutablesForSymbolization)
+	queueConfig.Size = 1024
+	queueConfig.CacheSize = 131072
+	c.leafFrameQueue = NewQueue(queueConfig, c.flushLeafFramesForSymbolization)
 
 	// Precalculate index names to minimise per-TraceEvent overhead.
 	for i := range c.indexes {
@@ -434,6 +448,136 @@ func (*ElasticCollector) ReportHostMetadata(context.Context,
 	return &emptypb.Empty{}, nil
 }
 
+// ExecutableSymbolizationData represents an array of executable FileIDs written into the
+// executable symbolization queue index.
+type ExecutableSymbolizationData struct {
+	common.EcsVersion
+	FileID  []string  `json:"Executable.file.id"`
+	Created time.Time `json:"Time.created"`
+	Next    time.Time `json:"Symbolization.time.next"`
+	Retries int       `json:"Symbolization.retries"`
+}
+
+func (e *ElasticCollector) flushExecutablesForSymbolization(ctx context.Context,
+	fileIDs []libpf.FileID) {
+	e.logger.With(
+		logp.String("method", "flushExecutablesForSymbolization"),
+	).Infof("Flush %d executables", len(fileIDs))
+
+	fileIDStrings := make([]string, len(fileIDs))
+	for i := 0; i < len(fileIDs); i++ {
+		fileIDStrings[i] = common.EncodeFileID(fileIDs[i])
+	}
+
+	now := time.Now()
+	body, err := common.EncodeBody(ExecutableSymbolizationData{
+		FileID:  fileIDStrings,
+		Created: now,
+		Next:    now,
+		Retries: 0,
+	})
+	if err != nil {
+		e.logger.With(
+			logp.Error(err),
+			logp.String("method", "flushExecutablesForSymbolization"),
+		).Error("Failed to JSON encode executables")
+		return
+	}
+
+	err = e.indexer.Add(ctx, esutil.BulkIndexerItem{
+		Index:  common.ExecutablesSymQueueIndex,
+		Action: actionIndex,
+		Body:   body,
+		OnFailure: func(ctx context.Context, _ esutil.BulkIndexerItem,
+			resp esutil.BulkIndexerResponseItem, err error) {
+			e.logger.With(
+				logp.Error(err),
+				logp.String("method", "flushExecutablesForSymbolization"),
+			).Errorf("Failed to index document: %#v", resp.Error)
+		},
+	})
+	if err != nil {
+		e.logger.With(
+			logp.Error(err),
+			logp.String("method", "flushExecutablesForSymbolization"),
+		).Error("Elasticsearch indexing error")
+	}
+}
+
+// LeafFrameSymbolizationData represents an array of frame IDs written into the
+// leaf frame symbolization queue index.
+type LeafFrameSymbolizationData struct {
+	common.EcsVersion
+	FrameID []string  `json:"Stacktrace.frame.id"`
+	Created time.Time `json:"Time.created"`
+	Next    time.Time `json:"Symbolization.time.next"`
+	Retries int       `json:"Symbolization.retries"`
+}
+
+func (e *ElasticCollector) flushLeafFramesForSymbolization(ctx context.Context,
+	leafFrames []common.FrameID) {
+	if len(leafFrames) == 0 {
+		// The queue doesn't flush empty arrays, but let's make sure.
+		return
+	}
+
+	// Order the leaf frames by fileID.
+	sort.Slice(leafFrames, func(i, j int) bool {
+		return bytes.Compare(leafFrames[i].FileIDBytes(), leafFrames[j].FileIDBytes()) < 0
+	})
+
+	// Write leaf frames grouped by fileID.
+	// This is very *important* as the symbolization service relies on it.
+	pos := 0
+	key := leafFrames[0].FileIDBytes()
+	for i := 1; i < len(leafFrames); i++ {
+		if !bytes.Equal(key, leafFrames[i].FileIDBytes()) {
+			e.writeLeafFramesForSymbolization(ctx, leafFrames[pos:i])
+			pos = i
+			key = leafFrames[i].FileIDBytes()
+		}
+	}
+	e.writeLeafFramesForSymbolization(ctx, leafFrames[pos:])
+}
+
+func (e *ElasticCollector) writeLeafFramesForSymbolization(ctx context.Context,
+	leafFrames []common.FrameID) {
+	leafFrameStrings := make([]string, len(leafFrames))
+	for i := 0; i < len(leafFrames); i++ {
+		leafFrameStrings[i] = base64.RawURLEncoding.EncodeToString(leafFrames[i].Bytes())
+	}
+
+	now := time.Now()
+	body, err := common.EncodeBody(LeafFrameSymbolizationData{
+		FrameID: leafFrameStrings,
+		Created: now,
+		Next:    now,
+		Retries: 0,
+	})
+	if err != nil {
+		return
+	}
+
+	err = e.indexer.Add(ctx, esutil.BulkIndexerItem{
+		Index:  common.LeafFramesSymQueueIndex,
+		Action: actionIndex,
+		Body:   body,
+		OnFailure: func(ctx context.Context, _ esutil.BulkIndexerItem,
+			resp esutil.BulkIndexerResponseItem, err error) {
+			e.logger.With(
+				logp.Error(err),
+				logp.String("method", "flushLeafFramesForSymbolization"),
+			).Errorf("Failed to index document: %#v", resp.Error)
+		},
+	})
+	if err != nil {
+		e.logger.With(
+			logp.Error(err),
+			logp.String("method", "flushLeafFramesForSymbolization"),
+		).Error("Elasticsearch indexing error")
+	}
+}
+
 func (e *ElasticCollector) SetFramesForTraces(ctx context.Context,
 	req *SetFramesForTracesRequest) (*empty.Empty, error) {
 	traces, err := CollectTracesAndFrames(req)
@@ -457,6 +601,26 @@ func (e *ElasticCollector) SetFramesForTraces(ctx context.Context,
 			).Errorf("mismatch in number of data (%d) / linenos (%d) / types (%d)",
 				numFiles, numLinenos, numTypes)
 			continue
+		}
+
+		// Enqueue file IDs if Native or Kernel
+		for i := 0; i < numFiles; i++ {
+			if trace.FrameTypes[i].IsError() {
+				continue
+			}
+			interpreterType, _ := trace.FrameTypes[i].Interpreter()
+			if interpreterType == libpf.Native || interpreterType == libpf.Kernel {
+				e.fileIDQueue.Add(trace.Files[i])
+			}
+		}
+
+		if !trace.FrameTypes[0].IsError() {
+			// Enqueue leaf frame if Native or Kernel
+			interpreterType, _ := trace.FrameTypes[0].Interpreter()
+			if interpreterType == libpf.Native || interpreterType == libpf.Kernel {
+				e.leafFrameQueue.Add(common.MakeFrameID(trace.Files[0],
+					uint64(trace.Linenos[0])))
+			}
 		}
 
 		body, err := common.EncodeBodyBytes(StackTrace{

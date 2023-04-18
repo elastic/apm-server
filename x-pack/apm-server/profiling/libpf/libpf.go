@@ -7,6 +7,7 @@ package libpf
 import (
 	"encoding"
 	"encoding/json"
+	"fmt"
 	"math"
 	"math/rand"
 	"strconv"
@@ -198,6 +199,56 @@ type SourceLineno uint64
 // TODO(thomasdullien): Refactor the name to "FrameType"?
 type InterpType int
 
+const (
+	// UnknownInterp signifies that the interpreter is unknown.
+	UnknownInterp InterpType = 0
+	// PHP identifies the PHP interpreter.
+	PHP InterpType = 2
+	// PHPJIT identifes PHP JIT processes.
+	PHPJIT InterpType = 9
+	// Python identifies the Python interpreter.
+	Python InterpType = 1
+	// Native identifies native code.
+	Native InterpType = 3
+	// Kernel identifies kernel code.
+	Kernel InterpType = 4
+	// HotSpot identifies the Java HotSpot VM.
+	HotSpot InterpType = 5
+	// Ruby identifies the Ruby interpreter.
+	Ruby InterpType = 6
+	// Perl identifies the Perl interpreter.
+	Perl InterpType = 7
+	// V8 identifies the V8 interpreter.
+	V8 InterpType = 8
+)
+
+// Frame converts the interpreter type into the corresponding frame type.
+func (i InterpType) Frame() FrameType {
+	return FrameType(i)
+}
+
+var interpTypeToString = map[InterpType]string{
+	UnknownInterp: "unknown",
+	PHP:           "php",
+	PHPJIT:        "phpjit",
+	Python:        "python",
+	Native:        "native",
+	Kernel:        "kernel",
+	HotSpot:       "jvm",
+	Ruby:          "ruby",
+	Perl:          "perl",
+	V8:            "v8",
+}
+
+// String converts the frame type int to the related string value to be displayed in the UI.
+func (i InterpType) String() string {
+	if result, ok := interpTypeToString[i]; ok {
+		return result
+	}
+	// nolint:goconst
+	return "<invalid>"
+}
+
 // FrameType defines the type of frame. This usually corresponds to the interpreter type that
 // emitted it, but can additionally contain meta-information like error frames.
 //
@@ -209,6 +260,80 @@ type InterpType int
 //     special value support.FrameMarkerAbort (0xFF). It thus also contains the error bit, but
 //     does not fit into the `InterpType` enum.
 type FrameType int
+
+// Convenience shorthands to create various frame types.
+//
+// Code should not compare against the constants below directly, but instead use the provided
+// methods to query the required information (IsError, Interpreter, ...) to improve forward
+// compatibility and clarify intentions.
+const (
+	// UnknownFrame indicates a frame of an unknown interpreter.
+	// If this appears, it's likely a bug somewhere.
+	UnknownFrame FrameType = 0
+	// PHPFrame identifies PHP interpreter frames.
+	PHPFrame FrameType = 2
+	// PHPJITFrame identifies PHP JIT interpreter frames.
+	PHPJITFrame FrameType = 9
+	// PythonFrame identifies the Python interpreter frames.
+	PythonFrame FrameType = 1
+	// NativeFrame identifies native frames.
+	NativeFrame FrameType = 3
+	// KernelFrame identifies kernel frames.
+	KernelFrame FrameType = 4
+	// HotSpotFrame identifies Java HotSpot VM frames.
+	HotSpotFrame FrameType = 5
+	// RubyFrame identifies the Ruby interpreter frames.
+	RubyFrame FrameType = 6
+	// PerlFrame identifies the Perl interpreter frames.
+	PerlFrame FrameType = 7
+	// V8Frame identifies the V8 interpreter frames.
+	V8Frame FrameType = 8
+	// AbortFrame identifies frames that report that further unwinding was aborted due to an error.
+	AbortFrame FrameType = 255
+)
+
+// Interpreter returns the interpreter that produced the frame.
+func (ty FrameType) Interpreter() (ity InterpType, ok bool) {
+	switch ty {
+	case AbortFrame, UnknownFrame:
+		return UnknownInterp, false
+	default:
+		return InterpType(ty & ^128), true
+	}
+}
+
+// IsInterpType checks whether the frame type belongs to the given interpreter.
+func (ty FrameType) IsInterpType(ity InterpType) bool {
+	ity2, ok := ty.Interpreter()
+	if !ok {
+		return false
+	}
+	return ity == ity2
+}
+
+// Error adds the error bit into the frame type.
+func (ty FrameType) Error() FrameType {
+	return ty | 128
+}
+
+// IsError checks whether the frame is an error frame.
+func (ty FrameType) IsError() bool {
+	return ty&128 != 0
+}
+
+// String implements the Stringer interface.
+func (ty FrameType) String() string {
+	switch ty {
+	case AbortFrame:
+		return "abort-marker"
+	default:
+		interp, _ := ty.Interpreter()
+		if ty.IsError() {
+			return fmt.Sprintf("%s-error", interp)
+		}
+		return interp.String()
+	}
+}
 
 // SourceType identifies the different forms of source code files that we may deal with.
 type SourceType int
