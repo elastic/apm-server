@@ -32,7 +32,7 @@ var (
 )
 
 func configureLogging(cfg *Config) error {
-	logpConfig := logp.DefaultConfig(logp.DefaultEnvironment)
+	logpConfig := logp.DefaultConfig(logEnvironment.env)
 	logpConfig.Beat = "apm-server"
 	if cfg.Logging != nil {
 		if err := cfg.Logging.Unpack(&logpConfig); err != nil {
@@ -52,12 +52,6 @@ func configureLogging(cfg *Config) error {
 	}
 	if logStderr {
 		logpConfig.ToStderr = true
-	} else {
-		// If the process is running in a container or managed by systemd, then log to stderr.
-		switch logEnvironment.env {
-		case logp.ContainerEnvironment, logp.SystemdEnvironment:
-			logpConfig.ToStderr = true
-		}
 	}
 	for _, opt := range logOptions {
 		opt(&logpConfig)
