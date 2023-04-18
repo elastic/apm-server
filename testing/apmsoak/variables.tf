@@ -33,12 +33,6 @@ variable "apm_secret_token" {
   sensitive   = true
 }
 
-variable "apm_api_key" {
-  type        = string
-  description = "API Key for auth against the given server URL"
-  sensitive   = true
-}
-
 variable "apm_loadgen_event_rate" {
   type        = string
   description = "Load generation rate"
@@ -49,6 +43,18 @@ variable "apm_loadgen_agents_replicas" {
   type        = string
   description = "Number of agents replicas to use, each replica launches 4 agents, one for each type"
   default     = "2"
+}
+
+variable "apm_loadgen_rewrite_timestamps" {
+  type = bool
+  description = "Rewrite event timestamps every iteration, maintaining relative offsets"
+  default = false
+}
+
+variable "apm_loadgen_rewrite_ids" {
+  type = bool
+  description = "Rewrite event IDs every iteration, maintaining event relationships"
+  default = false
 }
 
 variable "elastic_agent_version" {
