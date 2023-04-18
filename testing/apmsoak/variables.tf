@@ -46,15 +46,15 @@ variable "apm_loadgen_agents_replicas" {
 }
 
 variable "apm_loadgen_rewrite_timestamps" {
-  type = bool
+  type        = bool
   description = "Rewrite event timestamps every iteration, maintaining relative offsets"
-  default = false
+  default     = false
 }
 
 variable "apm_loadgen_rewrite_ids" {
-  type = bool
+  type        = bool
   description = "Rewrite event IDs every iteration, maintaining event relationships"
-  default = false
+  default     = false
 }
 
 variable "elastic_agent_version" {
