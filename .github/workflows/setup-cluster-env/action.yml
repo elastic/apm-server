@@ -1,6 +1,6 @@
 ---
 
-name: common tasks
+name: setup-cluster-env
 description: Setup cluster env
 
 inputs:

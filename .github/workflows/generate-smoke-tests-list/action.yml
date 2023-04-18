@@ -1,0 +1,37 @@
+---
+
+name: generate-smoke-tests-list
+description: Generate smoke tests list
+
+inputs:
+  vault-url:
+    description: 'Vault URL'
+    required: false
+  vault-role-id:
+    description: 'Vault role ID'
+    required: false
+  vault-secret-id:
+    description: 'Vault secret ID'
+    required: false
+outputs:
+  tests:
+    description: "List of smoke tests"
+    value: ${{ steps.generate.outputs.tests }}
+  date:
+    description: "Current date"
+    value: ${{ steps.generate.outputs.date }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Setup cluster env
+      uses: ./.github/workflows/setup-cluster-env
+      with:
+        vault-url: ${{ inputs.vault-url }}
+        vault-role-id: ${{ inputs.vault-role-id }}
+        vault-secret-id: ${{ inputs.vault-secret-id }}
+    - id: generate
+      name: Generate matrix and date
+      run: |
+        echo "tests=$(make smoketest/discover)" >> "${GITHUB_OUTPUT}"
+        echo "date=$(date +%s)" >> "${GITHUB_OUTPUT}"

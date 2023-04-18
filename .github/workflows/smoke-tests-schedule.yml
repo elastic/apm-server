@@ -11,21 +11,32 @@ permissions:
   contents: read
 
 jobs:
+  prepare-smoke-tests-os:
+    name: Generate smoke tests list
+    runs-on: ubuntu-latest
+    outputs:
+      branches: ${{ steps.generate.outputs.branches }}
+    steps:
+      - uses: actions/checkout@v3
+      - id: generate
+        name: Generate matrix
+        run: |
+          echo "branches=$(./.ci/scripts/smoke-tests-matrix.sh)" >> "${GITHUB_OUTPUT}"
+
+  smoke-tests-os:
+    name: Run smoke tests OS
+    needs: prepare-smoke-tests-os
+    strategy:
+      matrix:
+        branch: ${{ fromJSON(needs.prepare-smoke-tests-os.outputs.branches) }}
+    uses: ./.github/workflows/smoke-tests-os.yml
+    with:
+      branch: ${{ matrix.branch }}
+    secrets: inherit
+
   smoke-tests-ess:
     name: Run smoke tests ESS
     uses: ./.github/workflows/smoke-tests-ess.yml
     with:
       branch: 'main'
-    secrets: inherit
-
-  smoke-tests-os:
-    name: Run smoke tests OS
-    strategy:
-      matrix:
-        branch:
-          - 'main'
-          - '8.7'
-    uses: ./.github/workflows/smoke-tests-os.yml
-    with:
-      branch: ${{ matrix.branch }}
     secrets: inherit
