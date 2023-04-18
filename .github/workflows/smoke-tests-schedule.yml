@@ -30,11 +30,11 @@ jobs:
     needs: prepare-smoke-tests-os
     strategy:
       matrix:
-        branch: ${{ fromJSON(needs.prepare-smoke-tests-os.outputs.branches) }}
+        # branch: ${{ fromJSON(needs.prepare-smoke-tests-os.outputs.branches) }}
+        branch: ['feature/github-actions-ess']
     uses: ./.github/workflows/smoke-tests-os.yml
     with:
-      # branch: ${{ matrix.branch }}
-      branch: ['feature/github-actions-ess']
+      branch: ${{ matrix.branch }}
     secrets: inherit
 
   smoke-tests-ess:
