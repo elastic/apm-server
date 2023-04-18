@@ -33,12 +33,14 @@ jobs:
         branch: ${{ fromJSON(needs.prepare-smoke-tests-os.outputs.branches) }}
     uses: ./.github/workflows/smoke-tests-os.yml
     with:
-      branch: ${{ matrix.branch }}
+      # branch: ${{ matrix.branch }}
+      branch: ['feature/github-actions-ess']
     secrets: inherit
 
   smoke-tests-ess:
     name: Run smoke tests ESS
     uses: ./.github/workflows/smoke-tests-ess.yml
     with:
-      branch: 'main'
+      # branch: 'main'
+      branch: 'feature/github-actions-ess'
     secrets: inherit
