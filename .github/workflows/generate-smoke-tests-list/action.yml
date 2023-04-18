@@ -35,3 +35,4 @@ runs:
       run: |
         echo "tests=$(make smoketest/discover)" >> "${GITHUB_OUTPUT}"
         echo "date=$(date +%s)" >> "${GITHUB_OUTPUT}"
+      shell: 'bash'
