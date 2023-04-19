@@ -14,23 +14,21 @@ jobs:
   prepare-smoke-tests-os:
     name: Generate smoke tests list
     runs-on: ubuntu-latest
-    env:
-      GH_TOKEN: ${{ github.token }}
     outputs:
-      branches: ${{ steps.generate.outputs.branches }}
+      matrix: ${{ steps.generate.outputs.matrix }}
     steps:
       - uses: actions/checkout@v3
       - id: generate
         name: Generate matrix
-        run: |
-          echo "branches=$(./.ci/scripts/smoke-tests-matrix.sh)" >> "${GITHUB_OUTPUT}"
+        uses: elastic/apm-pipeline-library/.github/actions/elastic-stack-snapshot-branches@feature/exclude-branches
+        with:
+          exclude-branches: '7.17'
 
   smoke-tests-os:
     name: Run smoke tests OS
     needs: prepare-smoke-tests-os
     strategy:
-      matrix:
-        branch: ${{ fromJSON(needs.prepare-smoke-tests-os.outputs.branches) }}
+      matrix: ${{ fromJSON(needs.prepare-smoke-tests-os.outputs.matrix) }}
     uses: ./.github/workflows/smoke-tests-os.yml
     with:
       branch: ${{ matrix.branch }}
