@@ -16,8 +16,8 @@ ExecStart=${apmsoak_executable_path} \
   -server ${apm_server_url} \
   -secret-token ${apm_secret_token} \
   -event-rate ${apm_loadgen_event_rate} \
-  -agents-replicas ${apm_loadgen_agents_replicas}
-  -rewrite-timestamps ${apm_loadgen_rewrite_timestamps}
+  -agents-replicas ${apm_loadgen_agents_replicas} \
+  -rewrite-timestamps ${apm_loadgen_rewrite_timestamps} \
   -rewrite-ids ${apm_loadgen_rewrite_ids}
 
 [Install]
