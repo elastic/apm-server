@@ -204,6 +204,7 @@ github.com/adriansr/fsnotify v1.4.8-0.20211018144411-a81f2b630e7c h1:LpOCwE9oTg0
 github.com/adriansr/fsnotify v1.4.8-0.20211018144411-a81f2b630e7c/go.mod h1:onXS6zmTa1LJcurVsOkzywEV/Q3pdEqqu362/8OQzAI=
 github.com/aerospike/aerospike-client-go v1.27.1-0.20170612174108-0f3b54da6bdc h1:9iW/Fbn/R/nyUOiqo6AgwBe8uirqUIoTGF3vKG8qjoc=
 github.com/akavel/rsrc v0.8.0 h1:zjWn7ukO9Kc5Q62DOJCcxGpXC18RawVtYAGdz2aLlfw=
+github.com/akavel/rsrc v0.8.0/go.mod h1:uLoCtb9J+EyAqh+26kdrTgmzRBFPGOolLWKpdxkKq+c=
 github.com/andrewkroh/goja v0.0.0-20190128172624-dd2ac4456e20 h1:7rj9qZ63knnVo2ZeepYHvHuRdG76f3tRUTdIQDzRBeI=
 github.com/andrewkroh/goja v0.0.0-20190128172624-dd2ac4456e20/go.mod h1:cI59GRkC2FRaFYtgbYEqMlgnnfvAwXzjojyZKXwklNg=
 github.com/andrewkroh/sys v0.0.0-20151128191922-287798fe3e43 h1:WFwa9pqou0Nb4DdfBOyaBTH0GqLE74Qwdf61E7ITHwQ=
@@ -370,6 +371,8 @@ github.com/elastic/apm-data v0.1.1-0.20230309014206-3ad1a5caedc9/go.mod h1:8oEk/
 github.com/elastic/bayeux v1.0.5 h1:UceFq01ipmT3S8DzFK+uVAkbCdiPR0Bqei8qIGmUeY0=
 github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230411141035-34614bc17375 h1:C2A3jcRFjJxU7+v/jpbQBdURyfEDdTevYWa9SclZUng=
 github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230411141035-34614bc17375/go.mod h1:vjIBdaueO8kav3DGo9XdUyfOmBuUfTaDdXPrnJUbZdA=
+github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230419133833-3255e53aa48f h1:qGNzKNl4HjN32q1dd0P8kDdkLiBjNbURHVJzOo0ea80=
+github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230419133833-3255e53aa48f/go.mod h1:vjIBdaueO8kav3DGo9XdUyfOmBuUfTaDdXPrnJUbZdA=
 github.com/elastic/elastic-agent-autodiscover v0.5.0 h1:fiDJQKB148RsRISqqbGINtJ/ZPupeVjwn0fbPz9ZDOc=
 github.com/elastic/elastic-agent-client/v7 v7.1.0 h1:3+4GCzYV1kjdECrvCvNCrwnsVN/dt/VPi7UfSY3fJLs=
 github.com/elastic/elastic-agent-client/v7 v7.1.0/go.mod h1:UlVOHSDvTA4Mfdhdg+BE7aqOsUR3ab+x2Zl0aHlBXs4=
@@ -647,6 +650,7 @@ github.com/joeshaw/multierror v0.0.0-20140124173710-69b34d4ec901 h1:rp+c0RAYOWj8
 github.com/joeshaw/multierror v0.0.0-20140124173710-69b34d4ec901/go.mod h1:Z86h9688Y0wesXCyonoVr47MasHilkuLMqGhRZ4Hpak=
 github.com/jonboulle/clockwork v0.2.2 h1:UOGuzwb1PwsrDAObMuhUnj0p5ULPj8V/xJ7Kx9qUBdQ=
 github.com/josephspurrier/goversioninfo v0.0.0-20190209210621-63e6d1acd3dd h1:KikNiFwUO3QLyeKyN4k9yBH9Pcu/gU/yficWi61cJIw=
+github.com/josephspurrier/goversioninfo v0.0.0-20190209210621-63e6d1acd3dd/go.mod h1:eJTEwMjXb7kZ633hO3Ln9mBUCOjX2+FlTljvpl9SYdE=
 github.com/josharian/intern v1.0.0 h1:vlS4z54oSdjm0bgjRigI+G1HpF+tI+9rE5LLzOg8HmY=
 github.com/jpillora/backoff v1.0.0 h1:uvFg412JmmHBHw7iwprIxkPMI+sGQ4kzOWsMeHnm2EA=
 github.com/json-iterator/go v1.1.12 h1:PV8peI4a0ysnczrg+LtxykD8LfKY9ML6u2jnxaEnrnM=

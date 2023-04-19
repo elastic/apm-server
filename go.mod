@@ -8,7 +8,7 @@ require (
 	github.com/dgraph-io/badger/v2 v2.2007.3-0.20201012072640-f5a7e0a1c83b
 	github.com/dustin/go-humanize v1.0.0
 	github.com/elastic/apm-data v0.1.1-0.20230309014206-3ad1a5caedc9
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230411141035-34614bc17375
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230419133833-3255e53aa48f
 	github.com/elastic/elastic-agent-client/v7 v7.1.0
 	github.com/elastic/elastic-agent-libs v0.3.3
 	github.com/elastic/elastic-agent-system-metrics v0.6.0
@@ -63,6 +63,7 @@ require (
 	github.com/DataDog/zstd v1.4.4 // indirect
 	github.com/Microsoft/go-winio v0.6.0 // indirect
 	github.com/Shopify/sarama v1.32.0 // indirect
+	github.com/akavel/rsrc v0.8.0 // indirect
 	github.com/apache/thrift v0.17.0 // indirect
 	github.com/armon/go-radix v1.0.0 // indirect
 	github.com/cespare/xxhash v1.1.0 // indirect
@@ -102,6 +103,7 @@ require (
 	github.com/jcmturner/gokrb5/v8 v8.4.2 // indirect
 	github.com/jcmturner/rpc/v2 v2.0.3 // indirect
 	github.com/joeshaw/multierror v0.0.0-20140124173710-69b34d4ec901 // indirect
+	github.com/josephspurrier/goversioninfo v0.0.0-20190209210621-63e6d1acd3dd // indirect
 	github.com/klauspost/compress v1.15.11 // indirect
 	github.com/lufia/plan9stats v0.0.0-20211012122336-39d0f177ccd0 // indirect
 	github.com/magefile/mage v1.14.0 // indirect
