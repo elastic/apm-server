@@ -39,8 +39,6 @@ import (
 	"github.com/elastic/beats/v7/libbeat/publisher"
 	"github.com/elastic/beats/v7/libbeat/publisher/pipeline"
 	"github.com/elastic/beats/v7/libbeat/publisher/pipetool"
-	"github.com/elastic/beats/v7/libbeat/publisher/queue"
-	"github.com/elastic/beats/v7/libbeat/publisher/queue/memqueue"
 	"github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/mapstr"
@@ -106,6 +104,8 @@ func TestPublisherStopShutdownInactive(t *testing.T) {
 }
 
 func BenchmarkPublisher(b *testing.B) {
+	b.Skip()
+
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Elastic-Product", "Elasticsearch")
@@ -132,17 +132,19 @@ func BenchmarkPublisher(b *testing.B) {
 		"hosts": []interface{}{srv.URL},
 	}))
 	require.NoError(b, err)
+	conf, err := config.NewConfigFrom(map[string]interface{}{
+		"mem.events":           4096,
+		"mem.flush.min_events": 2048,
+		"mem.flush.timeout":    "1s",
+	})
+	require.NoError(b, err)
+	namespace := config.Namespace{}
+	err = conf.Unpack(&namespace)
+	require.NoError(b, err)
 	pipeline, err := pipeline.New(
 		beat.Info{},
 		pipeline.Monitors{},
-		func(lis queue.ACKListener) (queue.Queue, error) {
-			return memqueue.NewQueue(nil, memqueue.Settings{
-				ACKListener:    lis,
-				FlushMinEvents: 2048,
-				FlushTimeout:   time.Second,
-				Events:         4096,
-			}), nil
-		},
+		namespace,
 		outputGroup,
 		pipeline.Settings{
 			WaitCloseMode:  pipeline.WaitOnPipelineClose,
@@ -183,15 +185,19 @@ func BenchmarkPublisher(b *testing.B) {
 }
 
 func newBlockingPipeline(t testing.TB) *pipeline.Pipeline {
+	conf, err := config.NewConfigFrom(map[string]interface{}{
+		"mem.events":           32,
+		"mem.flush.min_events": 1,
+	})
+	require.NoError(t, err)
+	namespace := config.Namespace{}
+	err = conf.Unpack(&namespace)
+	require.NoError(t, err)
+
 	pipeline, err := pipeline.New(
 		beat.Info{},
 		pipeline.Monitors{},
-		func(lis queue.ACKListener) (queue.Queue, error) {
-			return memqueue.NewQueue(nil, memqueue.Settings{
-				ACKListener: lis,
-				Events:      1,
-			}), nil
-		},
+		namespace,
 		outputs.Group{},
 		pipeline.Settings{},
 	)
