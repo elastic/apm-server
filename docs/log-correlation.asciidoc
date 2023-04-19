@@ -41,6 +41,7 @@ In other scenarios, like for unstructured logs,
 you'll need to add APM identifiers to your logs in any easy to parse manner.
 
 Log correlation relies on these fields:
+
 - Service level: {ecs-ref}/ecs-service.html[`service.name`], {ecs-ref}/ecs-service.html[`service.version`], and {ecs-ref}/ecs-service.html[`service.environment`]
 - Trace level: {ecs-ref}/ecs-tracing.html[`trace.id`] and {ecs-ref}/ecs-tracing.html[`transaction.id`]
 - Container level: {ecs-ref}/ecs-container.html[`container.id`] when {ecs-ref}/ecs-service.html[`service.name`] is not available
