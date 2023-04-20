@@ -123,6 +123,20 @@ func NewCollector(
 	return c
 }
 
+// SaveHostInfo is deprecated and not used in 8.8+, but the stub still exists here
+// in order to trigger "upgrade HA, incompatible protocol" user-facing error and
+// stop HA execution in environments still running 8.7 clients.
+func (*ElasticCollector) SaveHostInfo(context.Context, *HostInfo) (*emptypb.Empty, error) {
+	return &emptypb.Empty{}, nil
+}
+
+// Heartbeat is deprecated and not used in 8.8+, but the stub still exists here
+// in order to trigger "upgrade HA, incompatible protocol" user-facing error and
+// stop HA execution in environments still running 8.7 clients.
+func (*ElasticCollector) Heartbeat(context.Context, *emptypb.Empty) (*emptypb.Empty, error) {
+	return &emptypb.Empty{}, nil
+}
+
 // AddCountsForTraces implements the RPC to send stacktrace data: stacktrace hashes and counts.
 func (e *ElasticCollector) AddCountsForTraces(ctx context.Context,
 	req *AddCountsForTracesRequest) (*emptypb.Empty, error) {
