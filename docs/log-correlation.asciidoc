@@ -10,11 +10,12 @@ then jump straight into the corresponding APM traces -- all while preserving the
 
 To get started:
 
-. Enable log correlation
-. Add APM identifiers to your logs
-. Ingest your logs into {es}
+. <<enable-log-correlation>>
+. <<add-apm-identifiers-to-logs>>
+. <<ingest-logs-in-es>>
 
 [float]
+[[enable-log-correlation]]
 ==== Enable Log correlation
 
 Some Agents require you to first enable log correlation in the Agent.
@@ -31,6 +32,7 @@ See the relevant https://www.elastic.co/guide/en/apm/agent/index.html[Agent docu
 // * *Rum*: {apm-rum-ref-v}/[]
 
 [float]
+[[add-apm-identifiers-to-logs]]
 ==== Add APM identifiers to your logs
 
 Once log correlation is enabled,
@@ -41,6 +43,7 @@ In other scenarios, like for unstructured logs,
 you'll need to add APM identifiers to your logs in any easy to parse manner.
 
 Log correlation relies on these fields:
+
 - Service level: {ecs-ref}/ecs-service.html[`service.name`], {ecs-ref}/ecs-service.html[`service.version`], and {ecs-ref}/ecs-service.html[`service.environment`]
 - Trace level: {ecs-ref}/ecs-tracing.html[`trace.id`] and {ecs-ref}/ecs-tracing.html[`transaction.id`]
 
@@ -60,6 +63,7 @@ See the relevant https://www.elastic.co/guide/en/apm/agent/index.html[Agent docu
 // * *Rum*: {apm-rum-ref-v}/[]
 
 [float]
+[[ingest-logs-in-es]]
 ==== Ingest your logs into {es}
 
 Once your logs contain the appropriate identifiers (fields), you need to ingest them into {es}.
