@@ -151,6 +151,10 @@ type Config struct {
 	// RewriteTransactionNames controls the rewriting of `transaction.name`
 	// in events.
 	RewriteTransactionNames bool
+
+	// RewriteTransactionTypes controls the rewriting of `transaction.type`
+	// in events.
+	RewriteTransactionTypes bool
 }
 
 // New creates a new Handler with config.
@@ -366,7 +370,8 @@ func (h *Handler) writeEvents(w *pooledWriter, b batch, baseTimestamp time.Time,
 		h.config.RewriteServiceNodeNames ||
 		h.config.RewriteServiceTargetNames ||
 		h.config.RewriteSpanNames ||
-		h.config.RewriteTransactionNames
+		h.config.RewriteTransactionNames ||
+		h.config.RewriteTransactionTypes
 
 	var err error
 	metadata := b.metadata
@@ -433,6 +438,15 @@ func (h *Handler) writeEvents(w *pooledWriter, b batch, baseTimestamp time.Time,
 					w.rewriteBuf.RawString(value.Raw)
 				}
 				w.idBuf.Reset()
+			case "type":
+				switch {
+				case h.config.RewriteTransactionTypes && event.objectType == "transaction":
+					randomizeASCII(&w.idBuf, value.Str, randomBits)
+					w.rewriteBuf.String(w.idBuf.String())
+					w.idBuf.Reset()
+				default:
+					w.rewriteBuf.RawString(value.Raw)
+				}
 			case "context":
 				if !h.config.RewriteServiceTargetNames {
 					w.rewriteBuf.RawString(value.Raw)
