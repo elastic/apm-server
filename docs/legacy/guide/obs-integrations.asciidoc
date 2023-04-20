@@ -20,11 +20,12 @@ then jump straight into the corresponding APM traces -- all while preserving the
 
 To get started:
 
-. Enable log correlation
-. Add APM identifiers to your logs
-. Ingest your logs into {es}
+. <<legacy-enable-log-correlation>>
+. <<legacy-add-apm-identifiers-to-logs>>
+. <<legacy-ingest-logs-in-es>>
 
 [float]
+[[legacy-enable-log-correlation]]
 ===== Enable Log correlation
 
 // temporary attribute for ECS 1.1
@@ -45,18 +46,22 @@ See the relevant https://www.elastic.co/guide/en/apm/agent/index.html[Agent docu
 // * *Rum*: {apm-rum-ref-v}/[]
 
 [float]
+[[legacy-add-apm-identifiers-to-logs]]
 ===== Add APM identifiers to your logs
 
 Once log correlation is enabled,
 you must ensure your logs contain APM identifiers.
+
 In some supported frameworks, this is already done for you.
 In other scenarios, like for unstructured logs,
 you'll need to add APM identifiers to your logs in any easy to parse manner.
 
-The identifiers we're interested in are: {ecs-ref}/ecs-tracing.html[`trace.id`] and
-{ecs-ref}/ecs-tracing.html[`transaction.id`]. Certain Agents also support the `span.id` field.
+Log correlation relies on these fields:
 
-This process for adding these fields will differ based the Agent you're using, the logging framework,
+- Service level: {ecs-ref}/ecs-service.html[`service.name`], {ecs-ref}/ecs-service.html[`service.version`], and {ecs-ref}/ecs-service.html[`service.environment`]
+- Trace level: {ecs-ref}/ecs-tracing.html[`trace.id`] and {ecs-ref}/ecs-tracing.html[`transaction.id`]
+
+The process for adding these fields will differ based the Agent you're using, the logging framework,
 and the type and structure of your logs.
 
 See the relevant https://www.elastic.co/guide/en/apm/agent/index.html[Agent documentation] to learn more.
@@ -72,6 +77,7 @@ See the relevant https://www.elastic.co/guide/en/apm/agent/index.html[Agent docu
 // * *Rum*: {apm-rum-ref-v}/[]
 
 [float]
+[[legacy-ingest-logs-in-es]]
 ===== Ingest your logs into {es}
 
 Once your logs contain the appropriate identifiers (fields), you need to ingest them into {es}.
