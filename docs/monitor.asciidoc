@@ -60,7 +60,7 @@ If {agent} is already running, you must stop it.
 Use the command that work with your system:
 +
 --
-include::{obs-repo-dir}/ingest-management/tab-widgets/stop-widget.asciidoc[]
+include::{ingest-docs-root}/docs/en/ingest-management/tab-widgets/stop-widget.asciidoc[]
 --
 
 . Start {agent}
@@ -68,7 +68,7 @@ include::{obs-repo-dir}/ingest-management/tab-widgets/stop-widget.asciidoc[]
 Use the command that work with your system:
 +
 --
-include::{obs-repo-dir}/ingest-management/tab-widgets/start-widget.asciidoc[]
+include::{ingest-docs-root}/docs/en/ingest-management/tab-widgets/start-widget.asciidoc[]
 --
 
 [float]

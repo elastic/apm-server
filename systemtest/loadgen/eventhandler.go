@@ -47,6 +47,7 @@ type EventHandlerParams struct {
 	RewriteServiceTargetNames bool
 	RewriteSpanNames          bool
 	RewriteTransactionNames   bool
+	RewriteTransactionTypes   bool
 	RewriteTimestamps         bool
 	Headers                   map[string]string
 }
@@ -73,6 +74,7 @@ func NewEventHandler(p EventHandlerParams) (*eventhandler.Handler, error) {
 		RewriteServiceTargetNames: p.RewriteServiceTargetNames,
 		RewriteSpanNames:          p.RewriteSpanNames,
 		RewriteTransactionNames:   p.RewriteTransactionNames,
+		RewriteTransactionTypes:   p.RewriteTransactionTypes,
 		RewriteTimestamps:         p.RewriteTimestamps,
 	})
 }
