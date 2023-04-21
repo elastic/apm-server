@@ -175,7 +175,7 @@ resource "aws_instance" "apm" {
   vpc_security_group_ids = [aws_security_group.main.id]
 }
 
-resource "null_resource" "getapmserverlogs" {
+resource "null_resource" "apm_server_log" {
   triggers = {
     user        = local.image_ssh_users[var.aws_os]
     host        = aws_instance.apm.public_ip
