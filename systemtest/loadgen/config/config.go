@@ -40,6 +40,7 @@ var Config struct {
 	RewriteServiceTargetNames bool
 	RewriteSpanNames          bool
 	RewriteTransactionNames   bool
+	RewriteTransactionTypes   bool
 	Headers                   map[string]string
 }
 
@@ -128,6 +129,7 @@ func init() {
 		"service.target.name": &Config.RewriteServiceTargetNames,
 		"span.name":           &Config.RewriteSpanNames,
 		"transaction.name":    &Config.RewriteTransactionNames,
+		"transaction.type":    &Config.RewriteTransactionTypes,
 	}
 	for field, config := range rewriteNames {
 		flag.BoolVar(
