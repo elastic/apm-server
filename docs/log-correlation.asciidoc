@@ -46,6 +46,7 @@ Log correlation relies on these fields:
 
 - Service level: {ecs-ref}/ecs-service.html[`service.name`], {ecs-ref}/ecs-service.html[`service.version`], and {ecs-ref}/ecs-service.html[`service.environment`]
 - Trace level: {ecs-ref}/ecs-tracing.html[`trace.id`] and {ecs-ref}/ecs-tracing.html[`transaction.id`]
+- Container level: {ecs-ref}/ecs-container.html[`container.id`] when {ecs-ref}/ecs-service.html[`service.name`] is not available
 
 The process for adding these fields will differ based the Agent you're using, the logging framework,
 and the type and structure of your logs.
