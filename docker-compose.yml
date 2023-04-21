@@ -5,7 +5,7 @@ x-logging: &default-logging
     max-size: "1g"
 services:
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.8.0-bd819e75-SNAPSHOT
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.8.0-3f572553-SNAPSHOT
     ports:
       - 9200:9200
     healthcheck:
@@ -36,7 +36,7 @@ services:
     logging: *default-logging
 
   kibana:
-    image: docker.elastic.co/kibana/kibana:8.8.0-bd819e75-SNAPSHOT
+    image: docker.elastic.co/kibana/kibana:8.8.0-3f572553-SNAPSHOT
     ports:
       - 5601:5601
     healthcheck:
@@ -56,7 +56,7 @@ services:
     logging: *default-logging
 
   fleet-server:
-    image: docker.elastic.co/beats/elastic-agent:8.8.0-bd819e75-SNAPSHOT
+    image: docker.elastic.co/beats/elastic-agent:8.8.0-3f572553-SNAPSHOT
     ports:
       - 8220:8220
     healthcheck:
@@ -85,7 +85,7 @@ services:
     logging: *default-logging
 
   metricbeat:
-    image: docker.elastic.co/beats/metricbeat:8.8.0-bd819e75-SNAPSHOT
+    image: docker.elastic.co/beats/metricbeat:8.8.0-3f572553-SNAPSHOT
     environment:
       ELASTICSEARCH_HOSTS: '["http://elasticsearch:9200"]'
       ELASTICSEARCH_USERNAME: "${KIBANA_ES_USER:-admin}"
