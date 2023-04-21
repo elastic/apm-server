@@ -22,8 +22,8 @@ module "ec_deployment" {
   elasticsearch_size       = "4g"
   elasticsearch_zone_count = 1
 
-  stack_version       = var.stack_version
-  tags                = merge(local.ci_tags, module.tags.tags)
+  stack_version = var.stack_version
+  tags          = merge(local.ci_tags, module.tags.tags)
 }
 
 locals {
@@ -150,18 +150,44 @@ resource "aws_instance" "apm" {
     private_key = file("${var.aws_provisioner_key_name}")
   }
 
+  provisioner "file" {
+    destination = "/tmp/local-apm-server.yml"
+    content = templatefile("${path.module}/apm-server.yml.tftpl", {
+      elasticsearch_url      = module.ec_deployment.elasticsearch_url,
+      elasticsearch_username = module.ec_deployment.elasticsearch_username,
+      elasticsearch_password = module.ec_deployment.elasticsearch_password,
+      apm_port               = local.apm_port
+    })
+  }
+
   provisioner "remote-exec" {
     inline = [
       "curl ${data.external.getlatestapmserver.result.deb} -o apm-server.deb && curl ${data.external.getlatestapmserver.result.rpm} -o apm-server.rpm",
       "sudo dpkg -i apm-server.deb || sudo yum -y install apm-server.rpm",
-      "sudo rm /etc/apm-server/apm-server.yml",
-      "echo \"apm-server:\n  host: \\\"0.0.0.0:${local.apm_port}\\\"\noutput:\n  elasticsearch:\n    hosts: [\\\"${module.ec_deployment.elasticsearch_url}\\\"]\n    username: \\\"${module.ec_deployment.elasticsearch_username}\\\"\n    password: \\\"${module.ec_deployment.elasticsearch_password}\\\"\" | sudo tee -a /etc/apm-server/apm-server.yml",
+      "sudo cp /tmp/local-apm-server.yml /etc/apm-server/apm-server.yml",
+      # remove this line once logging option issue is fixed
+      "sudo touch /var/log/apm-server/apm-server",
       "sudo systemctl start apm-server",
       "sleep 1",
     ]
   }
 
   vpc_security_group_ids = [aws_security_group.main.id]
+}
+
+resource "null_resource" "apm_server_log" {
+  triggers = {
+    user        = local.image_ssh_users[var.aws_os]
+    host        = aws_instance.apm.public_ip
+    private_key = aws_key_pair.provisioner_key.key_name
+  }
+
+  depends_on = [aws_instance.apm]
+
+  provisioner "local-exec" {
+    when    = destroy
+    command = "scp -i ${self.triggers.private_key} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${self.triggers.user}@${self.triggers.host}:/var/log/apm-server/apm-server apm-server.log"
+  }
 }
 
 data "external" "getlatestapmserver" {
@@ -179,15 +205,15 @@ resource "random_password" "apm_secret_token" {
 }
 
 variable "aws_os" {
-  default = ""
+  default     = ""
   description = "Optional aws ec2 instance OS"
-  type    = string
+  type        = string
 }
 
 variable "aws_provisioner_key_name" {
-  default = ""
+  default     = ""
   description = "Optional ssh key name to create the aws key pair and remote provision the ec2 instance"
-  type    = string
+  type        = string
 }
 
 variable "stack_version" {
