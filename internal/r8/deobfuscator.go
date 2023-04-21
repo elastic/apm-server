@@ -23,6 +23,8 @@ import (
 	"io"
 	"regexp"
 	"strings"
+
+	"github.com/elastic/apm-data/model"
 )
 
 type StacktraceType struct {
@@ -57,7 +59,7 @@ var (
 
 // Deobfuscate parses the stacktrace looking for type names and their methods, then searches for those stacktrace items through the mapFile, looking
 // for their de-obfuscated names to later replace the ones in the original stacktrace by their real names found within the mapFile.
-func Deobfuscate(stacktrace string, mapFile io.Reader) (string, error) {
+func Deobfuscate(stacktrace *model.Stacktrace, mapFile io.Reader) (string, error) {
 	types, err := findUniqueTypes(stacktrace)
 	if err != nil {
 		return "", err
