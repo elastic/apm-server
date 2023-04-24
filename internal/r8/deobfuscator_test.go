@@ -21,9 +21,10 @@ import (
 	"os"
 	"testing"
 
-	"github.com/elastic/apm-data/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/elastic/apm-data/model"
 )
 
 type FrameValidation struct {
