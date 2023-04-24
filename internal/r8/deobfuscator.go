@@ -52,6 +52,8 @@ func Deobfuscate(stacktrace *model.Stacktrace, mapFile io.Reader) error {
 	return nil
 }
 
+// Iterates over the stacktrace and groups the frames by classname, along with its methods, which are grouped by
+// the method name.
 func findUniqueTypes(stacktrace *model.Stacktrace) (map[string]StacktraceType, error) {
 	var symbols = make(map[string]StacktraceType)
 
@@ -87,8 +89,8 @@ func findUniqueTypes(stacktrace *model.Stacktrace) (map[string]StacktraceType, e
 	return symbols, nil
 }
 
-// Iterates over the classes and methods found in the map file while checking that, when it finds a class in the map that
-// is part of the classes found in the stacktrace, then it replaces the obfuscated class name and method names by
+// Iterates over the classes and methods found in the map file while looking for classes previously found in the stacktrace.
+// When it finds a class from the stacktrace, it replaces the obfuscated class name and method names by
 // the ones found in the map.
 func resolveMappings(symbols map[string]StacktraceType, mapReader io.Reader) error {
 	scanner := bufio.NewScanner(mapReader)
@@ -126,7 +128,7 @@ func resolveMappings(symbols map[string]StacktraceType, mapReader io.Reader) err
 				methodRealName := methodMatch[3]
 				methodKey := methodObfuscatedName
 				if sourceFileStart != "" && sourceFileStart == sourceFileEnd {
-					// This method might be compressed, in other words, it's deobfuscated form might have multiple lines.
+					// This method might be compressed, in other words, its deobfuscated form might have multiple lines.
 					methodKey += ":" + sourceFileStart
 				}
 				frames, ok := currentType.methods[methodKey]
