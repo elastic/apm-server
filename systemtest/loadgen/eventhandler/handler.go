@@ -283,11 +283,6 @@ func (h *Handler) SendBatchesInLoop(ctx context.Context) error {
 			if _, err := h.sendBatches(ctx, &s); err != nil {
 				return err
 			}
-			// safeguard `s.sent` so that it doesn't exceed math.MaxInt
-			// but keep the remainder so the next batches know where to start
-			if s.burst > 0 {
-				s.sent = s.sent % s.burst
-			}
 		}
 	}
 }
@@ -331,6 +326,10 @@ func (h *Handler) sendBatch(
 		if s.burst > 0 {
 			mod := s.sent % s.burst
 			if mod == 0 {
+				// Safeguard `s.sent` so that it doesn't exceed math.MaxInt
+				// It is safe to reset s.sent 0 here as it is the beginning of the new interval
+				// and we are interested in the number of events sent for the duration
+				s.sent = 0
 				// We're starting a new iteration, so wait to send a burst.
 				if err := h.config.Limiter.WaitN(ctx, s.burst); err != nil {
 					return err
