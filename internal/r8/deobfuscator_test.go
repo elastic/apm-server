@@ -22,6 +22,7 @@ import (
 	"testing"
 
 	"github.com/elastic/apm-data/model"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -41,7 +42,15 @@ func TestSimpleLineDeobfuscation(t *testing.T) {
 	reader, err := os.Open(mapFilePath)
 	require.Nil(t, err)
 	defer reader.Close()
-	Deobfuscate(stacktrace, reader)
+
+	err = Deobfuscate(stacktrace, reader)
+	require.Nil(t, err)
+
+	assert.Equal(t, "androidx.appcompat.view.menu.MenuBuilder", frame.Classname)
+	assert.Equal(t, "androidx.appcompat.view.menu.e", frame.Original.Classname)
+	assert.Equal(t, "dispatchMenuItemSelected", frame.Function)
+	assert.Equal(t, "f", frame.Original.Function)
+	assert.Equal(t, true, frame.SourcemapUpdated)
 }
 
 func TestDeobfuscation(t *testing.T) {
