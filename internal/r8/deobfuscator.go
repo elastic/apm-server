@@ -40,7 +40,7 @@ var (
 // Deobfuscate iterates the stacktrace looking for type names and their methods, then searches for those stacktrace items through the mapFile, looking
 // for their de-obfuscated names to later replace the ones in the original stacktrace by their real names found within the mapFile.
 func Deobfuscate(stacktrace *model.Stacktrace, mapFile io.Reader) error {
-	types, err := findUniqueTypes(stacktrace)
+	types, err := groupUniqueTypes(stacktrace)
 	if err != nil {
 		return err
 	}
@@ -54,7 +54,7 @@ func Deobfuscate(stacktrace *model.Stacktrace, mapFile io.Reader) error {
 
 // Iterates over the stacktrace and groups the frames by classname, along with its methods, which are grouped by
 // the method name.
-func findUniqueTypes(stacktrace *model.Stacktrace) (map[string]StacktraceType, error) {
+func groupUniqueTypes(stacktrace *model.Stacktrace) (map[string]StacktraceType, error) {
 	var symbols = make(map[string]StacktraceType)
 
 	for _, frame := range *stacktrace {
