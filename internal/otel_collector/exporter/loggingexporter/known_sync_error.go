@@ -29,6 +29,7 @@ import (
 //
 // macOS:
 // - sync /dev/stdout: inappropriate ioctl for device
+//
 func knownSyncError(err error) bool {
 	switch err {
 	case syscall.EINVAL, syscall.ENOTSUP, syscall.ENOTTY:
