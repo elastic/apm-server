@@ -317,10 +317,10 @@ func (p *Processor) Stop(ctx context.Context) error {
 
 // Run runs the tail-sampling processor. This method is responsible for:
 //
-//  - periodically making, and then publishing, local sampling decisions
-//  - subscribing to remote sampling decisions
-//  - reacting to both local and remote sampling decisions by reading
-//    related events from local storage, and then reporting them
+//   - periodically making, and then publishing, local sampling decisions
+//   - subscribing to remote sampling decisions
+//   - reacting to both local and remote sampling decisions by reading
+//     related events from local storage, and then reporting them
 //
 // Run returns when a fatal error occurs or the Stop method is invoked.
 func (p *Processor) Run() error {

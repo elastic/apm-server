@@ -32,13 +32,13 @@ var parseHeadersInOrder = []func(http.Header) string{
 // RemoteAddr returns the remote address for the HTTP request.
 //
 // In order:
-//  - if the Forwarded header is set, then the first item in the
-//    list's "for" field is used, if it exists. The "for" value
-//    is returned even if it is an obfuscated identifier.
-//  - if the X-Real-Ip header is set, then its value is returned.
-//  - if the X-Forwarded-For header is set, then the first value
-//    in the comma-separated list is returned.
-//  - otherwise, the host portion of req.RemoteAddr is returned.
+//   - if the Forwarded header is set, then the first item in the
+//     list's "for" field is used, if it exists. The "for" value
+//     is returned even if it is an obfuscated identifier.
+//   - if the X-Real-Ip header is set, then its value is returned.
+//   - if the X-Forwarded-For header is set, then the first value
+//     in the comma-separated list is returned.
+//   - otherwise, the host portion of req.RemoteAddr is returned.
 //
 // Because the client can control the headers, they can control
 // the result of this function. The result should therefore not

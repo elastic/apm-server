@@ -24,7 +24,6 @@ import "strings"
 //
 // Concretely, this function will lowercase the string and replace any
 // reserved characters with "_".
-//
 func NormalizeServiceName(s string) string {
 	s = strings.ToLower(s)
 	s = strings.Map(replaceReservedRune, s)

@@ -23,7 +23,7 @@ import (
 	libtemplate "github.com/elastic/beats/v7/libbeat/template"
 )
 
-//Template returns a template configuration with appropriate ILM settings
+// Template returns a template configuration with appropriate ILM settings
 func Template(ilmEnabled, overwrite bool, name string, policy string) libtemplate.TemplateConfig {
 	template := libtemplate.TemplateConfig{
 		Enabled:   true,
