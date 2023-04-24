@@ -164,9 +164,8 @@ As a part of this change, the following settings have been removed:
 [float]
 ==== New {es} output
 
-APM Server has a new {es} output implementation with defaults that should be sufficient for
-most use cases; it should no longer be necessary to manually tune the output
-of APM Server.
+APM Server has a new {es} output implementation; it is no longer necessary to manually
+tune the output of APM Server.
 
 As a part of this change, the following settings have been removed:
 
