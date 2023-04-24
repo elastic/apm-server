@@ -27,7 +27,11 @@ import (
 )
 
 func TestSimpleLineDeobfuscation(t *testing.T) {
-	//at androidx.appcompat.view.menu.e.f(Unknown Source:4)
+	// Input:
+	// at androidx.appcompat.view.menu.e.f(Unknown Source:4)
+
+	// Expected output:
+	// at androidx.appcompat.view.menu.MenuBuilder.dispatchMenuItemSelected(Unknown Source:4)
 	lineno := 4
 	frame := model.StacktraceFrame{
 		Lineno:    &lineno,
@@ -46,40 +50,44 @@ func TestSimpleLineDeobfuscation(t *testing.T) {
 	err = Deobfuscate(stacktrace, reader)
 	require.Nil(t, err)
 
-	assert.Equal(t, "androidx.appcompat.view.menu.MenuBuilder", frame.Classname)
-	assert.Equal(t, "androidx.appcompat.view.menu.e", frame.Original.Classname)
-	assert.Equal(t, "dispatchMenuItemSelected", frame.Function)
-	assert.Equal(t, "f", frame.Original.Function)
 	assert.Equal(t, true, frame.SourcemapUpdated)
+	assert.Equal(t, "androidx.appcompat.view.menu.MenuBuilder", frame.Classname)
+	assert.Equal(t, "dispatchMenuItemSelected", frame.Function)
+	assert.Equal(t, "androidx.appcompat.view.menu.e", frame.Original.Classname)
+	assert.Equal(t, "f", frame.Original.Function)
 }
 
-func TestDeobfuscation(t *testing.T) {
-	//cases := []string{
-	//	"../../testdata/r8/deobfuscator/1",
-	//	"../../testdata/r8/deobfuscator/2",
-	//	"../../testdata/r8/deobfuscator/3",
-	//}
-	//
-	//for _, c := range cases {
-	//	inputPath := c + "/obfuscated-crash"
-	//	expectedOutputPath := c + "/de-obfuscated-crash"
-	//	mapFilePath := c + "/mapping"
-	//
-	//	t.Run(fmt.Sprintf("(%s)->(%s)", inputPath, expectedOutputPath), func(t *testing.T) {
-	//		t.Parallel()
-	//		reader, err := os.Open(mapFilePath)
-	//		require.Nil(t, err)
-	//		defer reader.Close()
-	//		obfuscated := readFile(t, inputPath)
-	//		expected := readFile(t, expectedOutputPath)
-	//		deobfuscated, _ := Deobfuscate(obfuscated, reader)
-	//		assert.Equal(t, expected, deobfuscated)
-	//	})
-	//}
-}
+func TestDeobfuscateCompressedLine(t *testing.T) {
+	// Input:
+	// at i6.f.a(SourceFile:11)
 
-func readFile(t *testing.T, path string) string {
-	bytes, err := os.ReadFile(path)
+	// Expected output:
+	// at com.google.android.material.navigation.NavigationBarView$1.co.elastic.apm.opbeans.HomeActivity.oops(SourceFile:11)
+	//																				co.elastic.apm.opbeans.HomeActivity.setUpBottomNavigation$lambda-0
+	//																				onMenuItemSelected
+	lineno := 11
+	frame := model.StacktraceFrame{
+		Lineno:    &lineno,
+		Filename:  "SourceFile",
+		Classname: "i6.f",
+		Function:  "a",
+	}
+	var stacktrace = new(model.Stacktrace)
+	*stacktrace = append(*stacktrace, &frame)
+
+	mapFilePath := "../../testdata/r8/deobfuscator/1/mapping"
+	reader, err := os.Open(mapFilePath)
 	require.Nil(t, err)
-	return string(bytes)
+	defer reader.Close()
+
+	err = Deobfuscate(stacktrace, reader)
+	require.Nil(t, err)
+
+	assert.Equal(t, true, frame.SourcemapUpdated)
+	assert.Equal(t, "i6.f", frame.Original.Classname)
+	assert.Equal(t, "a", frame.Original.Function)
+	assert.Equal(t, "com.google.android.material.navigation.NavigationBarView$1", frame.Classname)
+	assert.Equal(t, `co.elastic.apm.opbeans.HomeActivity.oops
+co.elastic.apm.opbeans.HomeActivity.setUpBottomNavigation$lambda-0
+onMenuItemSelected`, frame.Function)
 }
