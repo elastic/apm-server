@@ -32,23 +32,6 @@ type StacktraceType struct {
 	methods map[string][]*model.StacktraceFrame // Maps method references to their stacktrace call site
 }
 
-type MappedType struct {
-	obfuscated StacktraceType
-	realName   string
-}
-
-type MappedMethodCall struct {
-	reference string // For simple obfuscated methods, it's the method name. For multiline method calls, it's methodName:sourceFileNumber. E.g. for a method named "a" with (SourceFile:4) reference = "a:4"
-	key       string
-}
-
-type MethodMatch struct {
-	sourceFileStart      string
-	sourceFileEnd        string
-	methodRealName       string
-	methodObfuscatedName string
-}
-
 var (
 	typePattern   = regexp.MustCompile(`^(\S+) -> (\S+):$`)
 	methodPattern = regexp.MustCompile(`(?:(\d+):(\d+):)*\S+ (\S+)\(.*\)(?:[:\d]+)* -> (\S+)`)
@@ -107,7 +90,7 @@ func findUniqueTypes(stacktrace *model.Stacktrace) (map[string]StacktraceType, e
 
 func findMappingFor(symbols map[string]StacktraceType, mapReader io.Reader) error {
 	scanner := bufio.NewScanner(mapReader)
-	var currentType *MappedType
+	var currentType *StacktraceType
 
 	for scanner.Scan() {
 		line := scanner.Text()
@@ -116,7 +99,7 @@ func findMappingFor(symbols map[string]StacktraceType, mapReader io.Reader) erro
 			obfuscatedName := typeMatch[2]
 			stacktraceType, ok := symbols[obfuscatedName]
 			if ok {
-				currentType = &MappedType{stacktraceType, typeMatch[1]}
+				currentType = &stacktraceType
 				for _, frame := range stacktraceType.frames {
 					frame.Original.Classname = obfuscatedName
 					frame.Classname = typeMatch[1]
@@ -136,7 +119,7 @@ func findMappingFor(symbols map[string]StacktraceType, mapReader io.Reader) erro
 				if sourceFileStart != "" && sourceFileStart == sourceFileEnd {
 					methodKey += ":" + sourceFileStart
 				}
-				frames, ok := currentType.obfuscated.methods[methodKey]
+				frames, ok := currentType.methods[methodKey]
 				if ok {
 					for _, frame := range frames {
 						if frame.Original.Function == "" {
