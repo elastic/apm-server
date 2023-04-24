@@ -112,7 +112,7 @@ func TestProfiling(t *testing.T) {
 		"secretToken", secretToken,
 		"projectID", "123",
 		"hostID", "abc123",
-		"rpcVersion", "1",
+		"rpcVersion", "2",
 	)
 
 	// We always insert 2 elements in KV indices for each test RPC below.
@@ -129,43 +129,40 @@ func TestProfiling(t *testing.T) {
 	require.NoError(t, err)
 
 	_, err = client.SetFramesForTraces(ctx, &profiling.SetFramesForTracesRequest{
-		HiTraceHashes:     []uint64{1, 2},
-		LoTraceHashes:     []uint64{3, 4},
-		FrameCounts:       []uint32{1, 2},
-		Types:             []uint32{7, 8, 9},
-		HiContainers:      []uint64{9, 10, 11},
-		LoContainers:      []uint64{11, 12, 13},
-		Offsets:           []uint64{15, 16, 17},
-		CommsIdx:          []uint32{0, 1},
-		PodNamesIdx:       map[uint32]uint32{0: 2},
-		ContainerNamesIdx: map[uint32]uint32{1: 3},
-		UniqueMetadata:    []string{"comm1", "comm2", "pod", "container"},
+		HiTraceHashes: []uint64{1, 2},
+		LoTraceHashes: []uint64{3, 4},
+		FrameCounts:   []uint32{1, 2},
+		Types:         []uint32{7, 8, 9},
+		HiContainers:  []uint64{9, 10, 11},
+		LoContainers:  []uint64{11, 12, 13},
+		Offsets:       []uint64{15, 16, 17},
 	}, gzipOption)
 	require.NoError(t, err)
 
 	_, err = client.AddFrameMetadata(ctx, &profiling.AddFrameMetadataRequest{
-		HiFileIDs:       []uint64{1, 2},
-		LoFileIDs:       []uint64{3, 4},
-		AddressOrLines:  []uint64{5, 6},
-		HiSourceIDs:     []uint64{7, 8},  // NOTE(axw) unused?
-		LoSourceIDs:     []uint64{9, 10}, // NOTE(axw) unused?
-		LineNumbers:     []uint64{11, 12},
-		FunctionNames:   []string{"thirteen()", "fourteen()"},
-		FunctionOffsets: []uint32{15, 16},
-		Types:           []uint32{17, 18},
-		Filenames:       []string{"ninete.en", "twen.ty"},
+		HiFileIDs:        []uint64{1, 2},
+		LoFileIDs:        []uint64{3, 4},
+		AddressOrLines:   []uint64{5, 6},
+		HiSourceIDs:      []uint64{7, 8},  // NOTE(axw) unused?
+		LoSourceIDs:      []uint64{9, 10}, // NOTE(axw) unused?
+		LineNumbers:      []uint64{11, 12},
+		FunctionNamesIdx: []uint32{0, 1},
+		FunctionOffsets:  []uint32{15, 16},
+		Types:            []uint32{17, 18},
+		FilenamesIdx:     []uint32{2, 3},
+		StringTable:      []string{"thirteen()", "fourteen()", "ninete.en", "twen.ty"},
 	}, gzipOption)
 	require.NoError(t, err)
 
 	_, err = client.AddCountsForTraces(ctx, &profiling.AddCountsForTracesRequest{
-		Timestamp:         123,
+		Timestamps:        []uint64{123},
 		HiTraceHashes:     []uint64{1},
 		LoTraceHashes:     []uint64{2},
 		Counts:            []uint32{3},
 		CommsIdx:          []uint32{0},
 		PodNamesIdx:       map[uint32]uint32{0: 1},
 		ContainerNamesIdx: map[uint32]uint32{0: 2},
-		UniqueMetadata:    []string{"comm", "pod", "container"},
+		StringTable:       []string{"comm", "pod", "container"},
 	}, gzipOption)
 	require.NoError(t, err)
 

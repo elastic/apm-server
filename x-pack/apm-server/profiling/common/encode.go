@@ -27,16 +27,32 @@ func EncodeFileID(fileID libpf.FileID) string {
 	return base64URLEncode(fileID.Bytes())
 }
 
-// EncodeFrameID creates a single frameID by concatenating a fileID and
-// an addressOrLineno value. The result is returned as base64url encoded string.
-func EncodeFrameID(fileID libpf.FileID, addressOrLineno uint64) string {
-	frameID := make([]byte, 24)
+type FrameID [24]byte
+
+func (f FrameID) Bytes() []byte {
+	return f[0:24]
+}
+
+func (f FrameID) FileIDBytes() []byte {
+	return f[0:16]
+}
+
+// MakeFrameID creates a single FrameID by concatenating a fileID and
+// an addressOrLineno value.
+func MakeFrameID(fileID libpf.FileID, addressOrLineno uint64) FrameID {
+	var frameID [24]byte
 
 	// DocID is the base64-encoded FileID+address.
 	binary.BigEndian.PutUint64(frameID[:8], fileID.Hi())
 	binary.BigEndian.PutUint64(frameID[8:16], fileID.Lo())
 	binary.BigEndian.PutUint64(frameID[16:], addressOrLineno)
-	return base64URLEncode(frameID)
+	return frameID
+}
+
+// EncodeFrameID creates a single frameID by concatenating a fileID and
+// an addressOrLineno value. The result is returned as base64url encoded string.
+func EncodeFrameID(fileID libpf.FileID, addressOrLineno uint64) string {
+	return base64URLEncode(MakeFrameID(fileID, addressOrLineno).Bytes())
 }
 
 // EncodeFrameIDs reverses the order of frames to allow for prefix compression (leaf frame last)
@@ -54,10 +70,10 @@ func EncodeFrameIDs(fileIDs []libpf.FileID, addressOrLinenos []libpf.AddressOrLi
 
 // EncodeFrameTypes applies run-length encoding to the frame types in reverse order
 // and returns the results as base64url encoded string.
-func EncodeFrameTypes(frameTypes []libpf.InterpType) string {
+func EncodeFrameTypes(frameTypes []libpf.FrameType) string {
 	var buf bytes.Buffer
 	RunLengthEncodeReverse(frameTypes, &buf,
-		func(frameType libpf.InterpType) []byte {
+		func(frameType libpf.FrameType) []byte {
 			return []byte{byte(frameType)}
 		})
 	return base64URLEncode(buf.Bytes())

@@ -331,7 +331,9 @@ func newProfilingCollector(args beater.ServerParams) (*profiling.ElasticCollecto
 	}
 
 	// Elasticsearch should default to 100 MB for the http.max_content_length configuration,
-	// so we flush the buffer (per-worker, number of workers is equal to the number of cores)
+	// so we flush the buffer (per-worker, number of workers is set to 2 to avoid spawning
+	// too many workers on machines with a large number of cores, esp since the integration
+	// server is throttled to ~2 cores in the configurations that we're using)
 	// when at 4 MiB or every 4 seconds. This should reduce the lock contention between
 	// multiple workers trying to write or flush the bulk indexer buffer but also keep
 	// memory spikes to acceptable levels (go-elasticsearch can exhibit pathological behavior
@@ -340,11 +342,13 @@ func newProfilingCollector(args beater.ServerParams) (*profiling.ElasticCollecto
 	const (
 		flushBytes    = 1 << 22
 		flushInterval = 4 * time.Second
+		numWorkers    = 2
 	)
 	indexer, err := esutil.NewBulkIndexer(esutil.BulkIndexerConfig{
 		Client:        client,
 		FlushBytes:    flushBytes,
 		FlushInterval: flushInterval,
+		NumWorkers:    numWorkers,
 	})
 	if err != nil {
 		return nil, nil, err
@@ -358,6 +362,7 @@ func newProfilingCollector(args beater.ServerParams) (*profiling.ElasticCollecto
 		Client:        metricsClient,
 		FlushBytes:    flushBytes,
 		FlushInterval: flushInterval,
+		NumWorkers:    numWorkers,
 	})
 	if err != nil {
 		return nil, nil, err
