@@ -21,8 +21,8 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"io/ioutil"
 	"net"
+	"os"
 	"path/filepath"
 	"testing"
 	"testing/iotest"
@@ -47,7 +47,7 @@ func TestHandlerReadStreamError(t *testing.T) {
 		return nil
 	})
 
-	payload, err := ioutil.ReadFile("../../testdata/intake-v2/transactions.ndjson")
+	payload, err := os.ReadFile("../../testdata/intake-v2/transactions.ndjson")
 	require.NoError(t, err)
 	timeoutReader := iotest.TimeoutReader(bytes.NewReader(payload))
 
@@ -60,7 +60,7 @@ func TestHandlerReadStreamError(t *testing.T) {
 }
 
 func TestHandlerReportingStreamError(t *testing.T) {
-	payload, err := ioutil.ReadFile("../../testdata/intake-v2/transactions.ndjson")
+	payload, err := os.ReadFile("../../testdata/intake-v2/transactions.ndjson")
 	require.NoError(t, err)
 
 	for _, test := range []struct {
@@ -174,7 +174,7 @@ func TestIntegrationESOutput(t *testing.T) {
 		},
 	}} {
 		t.Run(test.name, func(t *testing.T) {
-			payload, err := ioutil.ReadFile(filepath.Join("../../testdata/intake-v2", test.path))
+			payload, err := os.ReadFile(filepath.Join("../../testdata/intake-v2", test.path))
 			require.NoError(t, err)
 
 			var accepted int
@@ -209,7 +209,7 @@ func TestIntegrationRum(t *testing.T) {
 		{path: "transactions_spans_rum.ndjson", name: "RumTransactions"},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			payload, err := ioutil.ReadFile(filepath.Join("../../testdata/intake-v2", test.path))
+			payload, err := os.ReadFile(filepath.Join("../../testdata/intake-v2", test.path))
 			require.NoError(t, err)
 
 			var accepted int
@@ -242,7 +242,7 @@ func TestRUMV3(t *testing.T) {
 		{path: "rum_events.ndjson", name: "RUMV3Events"},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			payload, err := ioutil.ReadFile(filepath.Join("../../testdata/intake-v3", test.path))
+			payload, err := os.ReadFile(filepath.Join("../../testdata/intake-v3", test.path))
 			require.NoError(t, err)
 
 			var accepted int

@@ -21,7 +21,6 @@ import (
 	"bytes"
 	"context"
 	"io"
-	"io/ioutil"
 	"net/http"
 
 	"github.com/elastic/go-elasticsearch/v7/esapi"
@@ -58,7 +57,7 @@ func (br *bodyRepeater) Perform(req *http.Request) (*http.Response, error) {
 			}
 			br.getBody = func() (io.ReadCloser, error) {
 				r := bytes.NewReader(buf.Bytes())
-				return ioutil.NopCloser(r), nil
+				return io.NopCloser(r), nil
 			}
 		}
 	} else {

@@ -18,7 +18,6 @@
 package systemtest_test
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -31,10 +30,10 @@ import (
 )
 
 func exportConfigCommand(t *testing.T, args ...string) (_ *apmservertest.ServerCmd, homedir string) {
-	tempdir, err := ioutil.TempDir("", "systemtest")
+	tempdir, err := os.MkdirTemp("", "systemtest")
 	require.NoError(t, err)
 	t.Cleanup(func() { os.RemoveAll(tempdir) })
-	err = ioutil.WriteFile(filepath.Join(tempdir, "apm-server.yml"), nil, 0644)
+	err = os.WriteFile(filepath.Join(tempdir, "apm-server.yml"), nil, 0644)
 	require.NoError(t, err)
 
 	allArgs := []string{"config", "--path.home", tempdir}

@@ -25,11 +25,11 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"os"
 	"strings"
 	"testing"
 	"time"
@@ -300,7 +300,7 @@ func TestTransformConfigIndex(t *testing.T) {
 	t.Run("with-observer-version", func(t *testing.T) { test(t, "blah-%{[observer.version]}-blah", "blah-1.2.3-blah") })
 }
 
-var validSourcemap, _ = ioutil.ReadFile("../testdata/sourcemap/bundle.js.map")
+var validSourcemap, _ = os.ReadFile("../testdata/sourcemap/bundle.js.map")
 
 func TestStoreUsesRUMElasticsearchConfig(t *testing.T) {
 	var called bool

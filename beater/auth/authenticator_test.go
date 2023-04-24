@@ -21,7 +21,7 @@ import (
 	"context"
 	"encoding/base64"
 	"errors"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -101,7 +101,7 @@ func TestAuthenticatorAPIKey(t *testing.T) {
 			return
 		}
 		requestURLPath = r.URL.Path
-		requestBody, _ = ioutil.ReadAll(r.Body)
+		requestBody, _ = io.ReadAll(r.Body)
 		requestAuthorizationHeader = r.Header.Get("Authorization")
 		w.Write([]byte(`{
                         "username": "api_key_username",

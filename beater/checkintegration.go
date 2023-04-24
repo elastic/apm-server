@@ -22,7 +22,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 
 	"github.com/pkg/errors"
@@ -91,7 +91,7 @@ func checkIntegrationInstalledKibana(ctx context.Context, kibanaClient kibana.Cl
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		body, _ := ioutil.ReadAll(resp.Body)
+		body, _ := io.ReadAll(resp.Body)
 		return false, fmt.Errorf("unexpected HTTP status: %s (%s)", resp.Status, bytes.TrimSpace(body))
 	}
 	var result struct {
@@ -130,7 +130,7 @@ func checkIntegrationInstalledElasticsearch(ctx context.Context, esClient elasti
 			defer resp.Body.Close()
 
 			if resp.IsError() {
-				body, _ := ioutil.ReadAll(resp.Body)
+				body, _ := io.ReadAll(resp.Body)
 				return fmt.Errorf("unexpected HTTP status: %s (%s)", resp.Status(), bytes.TrimSpace(body))
 			}
 			return nil

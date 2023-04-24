@@ -23,10 +23,10 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -86,7 +86,7 @@ func TestAssetHandler(t *testing.T) {
 		},
 		"valid-full-payload": {
 			sourcemapInput: func() string {
-				b, err := ioutil.ReadFile("../../../../testdata/sourcemap/bundle.js.map")
+				b, err := os.ReadFile("../../../../testdata/sourcemap/bundle.js.map")
 				require.NoError(t, err)
 				return string(b)
 			}(),

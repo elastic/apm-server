@@ -22,10 +22,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"net/textproto"
+	"os"
 	"path/filepath"
 	"testing"
 	"time"
@@ -154,7 +154,7 @@ func TestPublishIntegration(t *testing.T) {
 			require.NoError(t, err)
 			defer apm.Stop()
 
-			b, err := ioutil.ReadFile(filepath.Join("../testdata/intake-v2", tc.payload))
+			b, err := os.ReadFile(filepath.Join("../testdata/intake-v2", tc.payload))
 			require.NoError(t, err)
 			docs := testPublishIntake(t, apm, events, bytes.NewReader(b))
 			approvaltest.ApproveEventDocs(t, "test_approved_es_documents/TestPublishIntegration"+tc.name, docs)
@@ -213,11 +213,11 @@ func TestPublishIntegrationProfile(t *testing.T) {
 
 			var metadata io.Reader
 			if tc.metadata != "" {
-				b, err := ioutil.ReadFile(filepath.Join("../testdata/profile", tc.metadata))
+				b, err := os.ReadFile(filepath.Join("../testdata/profile", tc.metadata))
 				require.NoError(t, err)
 				metadata = bytes.NewReader(b)
 			}
-			profileBytes, err := ioutil.ReadFile(filepath.Join("../testdata/profile", tc.profile))
+			profileBytes, err := os.ReadFile(filepath.Join("../testdata/profile", tc.profile))
 			require.NoError(t, err)
 
 			docs := testPublishProfile(t, apm, events, metadata, bytes.NewReader(profileBytes))

@@ -20,7 +20,7 @@ package benchtest
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 	"strconv"
@@ -50,7 +50,7 @@ func fetchProfile(urlPath string, duration time.Duration) (*profile.Profile, err
 		return nil, err
 	}
 	if resp.StatusCode != http.StatusOK {
-		body, _ := ioutil.ReadAll(resp.Body)
+		body, _ := io.ReadAll(resp.Body)
 		return nil, fmt.Errorf("failed to fetch profile (%s): %s", resp.Status, body)
 	}
 	return profile.Parse(resp.Body)

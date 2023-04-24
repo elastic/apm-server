@@ -23,11 +23,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
 	"net/textproto"
+	"os"
 	"strings"
 	"testing"
 
@@ -268,7 +268,7 @@ func heapProfilePart(t testing.TB) part {
 }
 
 func heapProfileBody(t testing.TB) io.Reader {
-	data, err := ioutil.ReadFile("../../../testdata/profile/heap.pprof")
+	data, err := os.ReadFile("../../../testdata/profile/heap.pprof")
 	require.NoError(t, err)
 	return bytes.NewReader(data)
 }

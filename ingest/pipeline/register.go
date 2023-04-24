@@ -21,7 +21,7 @@ package pipeline
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"os"
 
 	"github.com/elastic/beats/v7/libbeat/esleg/eslegclient"
 	"github.com/elastic/beats/v7/libbeat/logp"
@@ -65,7 +65,7 @@ type pipeline struct {
 }
 
 func loadPipelinesFromJSON(path string) ([]pipeline, error) {
-	pipelineDef, err := ioutil.ReadFile(paths.Resolve(paths.Home, path))
+	pipelineDef, err := os.ReadFile(paths.Resolve(paths.Home, path))
 	if err != nil {
 		return nil, err
 	}

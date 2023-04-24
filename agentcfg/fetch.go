@@ -23,7 +23,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"strings"
 	"time"
@@ -171,7 +170,7 @@ func (f *KibanaFetcher) request(ctx context.Context, r io.Reader) ([]byte, error
 		return nil, nil
 	}
 
-	result, err := ioutil.ReadAll(resp.Body)
+	result, err := io.ReadAll(resp.Body)
 	if resp.StatusCode >= http.StatusBadRequest {
 		return nil, errors.New(string(result))
 	}

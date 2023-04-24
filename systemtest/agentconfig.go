@@ -20,7 +20,7 @@ package systemtest
 import (
 	"bytes"
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"strings"
@@ -70,7 +70,7 @@ func CreateAgentConfig(t testing.TB, serviceName, serviceEnvironment, agentName 
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		body, _ := ioutil.ReadAll(resp.Body)
+		body, _ := io.ReadAll(resp.Body)
 		t.Fatalf("failed to create agent config: %s (%s)", resp.Status, strings.TrimSpace(string(body)))
 	}
 }
@@ -111,7 +111,7 @@ func DeleteAgentConfig(t testing.TB, serviceName, serviceEnvironment string) {
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusNotFound {
-		body, _ := ioutil.ReadAll(resp.Body)
+		body, _ := io.ReadAll(resp.Body)
 		t.Fatalf("failed to create agent config: %s (%s)", resp.Status, strings.TrimSpace(string(body)))
 	}
 }

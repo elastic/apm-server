@@ -22,7 +22,6 @@ import (
 	"context"
 	"encoding/json"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 
@@ -52,7 +51,7 @@ func (c *MockKibanaClient) Send(
 	if err := json.NewEncoder(&buf).Encode(c.body); err != nil {
 		panic(err)
 	}
-	resp := http.Response{StatusCode: c.code, Body: ioutil.NopCloser(&buf)}
+	resp := http.Response{StatusCode: c.code, Body: io.NopCloser(&buf)}
 	if resp.StatusCode == http.StatusBadGateway {
 		return nil, errors.New("testerror")
 	}

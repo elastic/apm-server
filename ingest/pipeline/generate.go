@@ -24,7 +24,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 
@@ -77,7 +76,7 @@ func main() {
 	if err := json.Indent(&indented, buf.Bytes(), "", "  "); err != nil {
 		log.Fatal(err)
 	}
-	if err := ioutil.WriteFile("definition.json", indented.Bytes(), 0644); err != nil {
+	if err := os.WriteFile("definition.json", indented.Bytes(), 0644); err != nil {
 		log.Fatal(err)
 	}
 }
