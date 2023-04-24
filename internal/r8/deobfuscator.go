@@ -26,10 +26,10 @@ import (
 	"github.com/elastic/apm-data/model"
 )
 
+// StacktraceType groups frames belonging to a single class as well as frames that represent the same method call.
 type StacktraceType struct {
-	name    string
 	frames  []*model.StacktraceFrame
-	methods map[string][]*model.StacktraceFrame // Maps method references to their stacktrace call site
+	methods map[string][]*model.StacktraceFrame // Maps method references to all the frames where it appears.
 }
 
 var (
@@ -37,14 +37,14 @@ var (
 	methodPattern = regexp.MustCompile(`(?:(\d+):(\d+):)*\S+ (\S+)\(.*\)(?:[:\d]+)* -> (\S+)`)
 )
 
-// Deobfuscate parses the stacktrace looking for type names and their methods, then searches for those stacktrace items through the mapFile, looking
+// Deobfuscate iterates the stacktrace looking for type names and their methods, then searches for those stacktrace items through the mapFile, looking
 // for their de-obfuscated names to later replace the ones in the original stacktrace by their real names found within the mapFile.
 func Deobfuscate(stacktrace *model.Stacktrace, mapFile io.Reader) error {
 	types, err := findUniqueTypes(stacktrace)
 	if err != nil {
 		return err
 	}
-	err = findMappingFor(types, mapFile)
+	err = resolveMappings(types, mapFile)
 	if err != nil {
 		return err
 	}
@@ -69,7 +69,6 @@ func findUniqueTypes(stacktrace *model.Stacktrace) (map[string]StacktraceType, e
 		symbol, ok := symbols[typeName]
 		if !ok {
 			symbol = StacktraceType{
-				name:    typeName,
 				frames:  make([]*model.StacktraceFrame, 0),
 				methods: make(map[string][]*model.StacktraceFrame),
 			}
@@ -88,7 +87,10 @@ func findUniqueTypes(stacktrace *model.Stacktrace) (map[string]StacktraceType, e
 	return symbols, nil
 }
 
-func findMappingFor(symbols map[string]StacktraceType, mapReader io.Reader) error {
+// Iterates over the classes and methods found in the map file while checking that, when it finds a class in the map that
+// is part of the classes found in the stacktrace, then it replaces the obfuscated class name and method names by
+// the ones found in the map.
+func resolveMappings(symbols map[string]StacktraceType, mapReader io.Reader) error {
 	scanner := bufio.NewScanner(mapReader)
 	var currentType *StacktraceType
 
@@ -96,36 +98,48 @@ func findMappingFor(symbols map[string]StacktraceType, mapReader io.Reader) erro
 		line := scanner.Text()
 		typeMatch := typePattern.FindStringSubmatch(line)
 		if typeMatch != nil {
+			// Found a class declaration within the map.
 			obfuscatedName := typeMatch[2]
 			stacktraceType, ok := symbols[obfuscatedName]
 			if ok {
+				// The class found is also in the stacktrace.
 				currentType = &stacktraceType
 				for _, frame := range stacktraceType.frames {
+					// Multiple frames might point to the same class, so we need to deobfuscate the class name for them all.
 					frame.Original.Classname = obfuscatedName
 					frame.Classname = typeMatch[1]
 					frame.SourcemapUpdated = true
 				}
 			} else {
+				// The class found is not part of the stacktrace. We need to clear the current type to avoid looping
+				// through this class' methods, as R8 maps list the classes' methods right below the class definition.
 				currentType = nil
 			}
 		} else if currentType != nil {
+			// We found a class in the map that is also in the stacktrace, so we enter here to loop through its methods.
 			methodMatch := methodPattern.FindStringSubmatch(line)
 			if methodMatch != nil {
+				// We found a method definition.
 				sourceFileStart := methodMatch[1]
 				sourceFileEnd := methodMatch[2]
 				methodObfuscatedName := methodMatch[4]
 				methodRealName := methodMatch[3]
 				methodKey := methodObfuscatedName
 				if sourceFileStart != "" && sourceFileStart == sourceFileEnd {
+					// This method might be compressed, in other words, it's deobfuscated form might have multiple lines.
 					methodKey += ":" + sourceFileStart
 				}
 				frames, ok := currentType.methods[methodKey]
 				if ok {
+					// We found this method in the stacktrace too. Since a method might be referenced multiple times
+					// in a single stacktrace, we must make sure to deobfuscate them all.
 					for _, frame := range frames {
 						if frame.Original.Function == "" {
 							frame.Original.Function = methodObfuscatedName
 							frame.Function = methodRealName
 						} else {
+							// If it enters here, it means that this method is compressed and its first line was set
+							// previously, so now we have to append extra lines to it.
 							frame.Function += "\n" + methodRealName
 						}
 					}
