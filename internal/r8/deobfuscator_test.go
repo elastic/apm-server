@@ -40,15 +40,9 @@ func TestSimpleLineDeobfuscation(t *testing.T) {
 
 	// Expected output:
 	// at androidx.appcompat.view.menu.MenuBuilder.dispatchMenuItemSelected(Unknown Source:4)
-	lineno := 4
-	frame := model.StacktraceFrame{
-		Lineno:    &lineno,
-		Filename:  "Unknown Source",
-		Classname: "androidx.appcompat.view.menu.e",
-		Function:  "f",
-	}
+	frame := createStacktraceFrame(4, "Unknown Source", "androidx.appcompat.view.menu.e", "f")
 	var stacktrace = new(model.Stacktrace)
-	*stacktrace = append(*stacktrace, &frame)
+	*stacktrace = append(*stacktrace, frame)
 
 	mapFilePath := "../../testdata/r8/deobfuscator/1/mapping"
 	reader, err := os.Open(mapFilePath)
@@ -58,11 +52,13 @@ func TestSimpleLineDeobfuscation(t *testing.T) {
 	err = Deobfuscate(stacktrace, reader)
 	require.Nil(t, err)
 
-	assert.Equal(t, true, frame.SourcemapUpdated)
-	assert.Equal(t, "androidx.appcompat.view.menu.MenuBuilder", frame.Classname)
-	assert.Equal(t, "dispatchMenuItemSelected", frame.Function)
-	assert.Equal(t, "androidx.appcompat.view.menu.e", frame.Original.Classname)
-	assert.Equal(t, "f", frame.Original.Function)
+	verifyFrame(t, frame, FrameValidation{
+		updated:           true,
+		classname:         "androidx.appcompat.view.menu.MenuBuilder",
+		function:          "dispatchMenuItemSelected",
+		originalClassname: "androidx.appcompat.view.menu.e",
+		originalFunction:  "f",
+	})
 }
 
 func TestDeobfuscateCompressedLine(t *testing.T) {
@@ -73,15 +69,9 @@ func TestDeobfuscateCompressedLine(t *testing.T) {
 	// at com.google.android.material.navigation.NavigationBarView$1.co.elastic.apm.opbeans.HomeActivity.oops(SourceFile:11)
 	//																				co.elastic.apm.opbeans.HomeActivity.setUpBottomNavigation$lambda-0
 	//																				onMenuItemSelected
-	lineno := 11
-	frame := model.StacktraceFrame{
-		Lineno:    &lineno,
-		Filename:  "SourceFile",
-		Classname: "i6.f",
-		Function:  "a",
-	}
+	frame := createStacktraceFrame(11, "SourceFile", "i6.f", "a")
 	var stacktrace = new(model.Stacktrace)
-	*stacktrace = append(*stacktrace, &frame)
+	*stacktrace = append(*stacktrace, frame)
 
 	mapFilePath := "../../testdata/r8/deobfuscator/1/mapping"
 	reader, err := os.Open(mapFilePath)
@@ -91,13 +81,15 @@ func TestDeobfuscateCompressedLine(t *testing.T) {
 	err = Deobfuscate(stacktrace, reader)
 	require.Nil(t, err)
 
-	assert.Equal(t, true, frame.SourcemapUpdated)
-	assert.Equal(t, "i6.f", frame.Original.Classname)
-	assert.Equal(t, "a", frame.Original.Function)
-	assert.Equal(t, "com.google.android.material.navigation.NavigationBarView$1", frame.Classname)
-	assert.Equal(t, `co.elastic.apm.opbeans.HomeActivity.oops
+	verifyFrame(t, frame, FrameValidation{
+		updated:           true,
+		originalClassname: "i6.f",
+		originalFunction:  "a",
+		classname:         "com.google.android.material.navigation.NavigationBarView$1",
+		function: `co.elastic.apm.opbeans.HomeActivity.oops
 co.elastic.apm.opbeans.HomeActivity.setUpBottomNavigation$lambda-0
-onMenuItemSelected`, frame.Function)
+onMenuItemSelected`,
+	})
 }
 
 func TestDeobfuscateClassNameOnlyWhenMethodIsNotObfuscated(t *testing.T) {
@@ -106,15 +98,9 @@ func TestDeobfuscateClassNameOnlyWhenMethodIsNotObfuscated(t *testing.T) {
 
 	// Expected output:
 	// at androidx.appcompat.app.AppCompatActivity.onStart(Unknown Source:0)
-	lineno := 0
-	frame := model.StacktraceFrame{
-		Lineno:    &lineno,
-		Filename:  "Unknown Source",
-		Classname: "d.e",
-		Function:  "onStart",
-	}
+	frame := createStacktraceFrame(0, "Unknown Source", "d.e", "onStart")
 	var stacktrace = new(model.Stacktrace)
-	*stacktrace = append(*stacktrace, &frame)
+	*stacktrace = append(*stacktrace, frame)
 
 	mapFilePath := "../../testdata/r8/deobfuscator/2/mapping"
 	reader, err := os.Open(mapFilePath)
@@ -124,11 +110,12 @@ func TestDeobfuscateClassNameOnlyWhenMethodIsNotObfuscated(t *testing.T) {
 	err = Deobfuscate(stacktrace, reader)
 	require.Nil(t, err)
 
-	assert.Equal(t, true, frame.SourcemapUpdated)
-	assert.Equal(t, "d.e", frame.Original.Classname)
-	assert.Equal(t, "", frame.Original.Function)
-	assert.Equal(t, "androidx.appcompat.app.AppCompatActivity", frame.Classname)
-	assert.Equal(t, "onStart", frame.Function)
+	verifyFrame(t, frame, FrameValidation{
+		updated:           true,
+		originalClassname: "d.e",
+		classname:         "androidx.appcompat.app.AppCompatActivity",
+		function:          "onStart",
+	})
 }
 
 func TestDeobfuscateMultipleLines(t *testing.T) {
