@@ -41,6 +41,7 @@ var Config struct {
 	RewriteSpanNames          bool
 	RewriteTransactionNames   bool
 	RewriteTransactionTypes   bool
+	ReplaceGlobalLabels       string
 	Headers                   map[string]string
 }
 
@@ -139,6 +140,12 @@ func init() {
 			fmt.Sprintf("replace `%s` in events", field),
 		)
 	}
+	flag.StringVar(
+		&Config.ReplaceGlobalLabels,
+		"replace-global-labels",
+		"",
+		"replace global labels in events with the specified string",
+	)
 
 	// For configs that can be set via environment variables, set the required
 	// flags from env if they are not explicitly provided via command line

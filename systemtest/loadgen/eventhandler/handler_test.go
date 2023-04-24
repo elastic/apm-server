@@ -170,6 +170,12 @@ func withRewriteSpanNames(rewrite bool) newHandlerOption {
 	}
 }
 
+func withReplaceGlobalLabels(labelsObjStr string) newHandlerOption {
+	return func(config *Config) {
+		config.ReplaceGlobalLabels = labelsObjStr
+	}
+}
+
 func withRand(rand *rand.Rand) newHandlerOption {
 	return func(config *Config) {
 		config.Rand = rand
@@ -757,6 +763,56 @@ func TestHandlerSendBatchesRewriteTransactionTypes(t *testing.T) {
 	run(t, true)
 }
 
+func TestHandlerSendBatchesReplaceGlobalLabels(t *testing.T) {
+	originalPayload := fmt.Sprintf(`
+{"metadata":{}}
+{"transaction":{}}
+`[1:])
+
+	fs := fstest.MapFS{"foo.ndjson": {Data: []byte(originalPayload)}}
+
+	run := func(t *testing.T, labelsObjStr string) {
+		t.Helper()
+		t.Run(fmt.Sprintf(`labelsObjStr="%s"`, labelsObjStr), func(t *testing.T) {
+			handler, srv := newHandler(t,
+				withStorage(fs),
+				withReplaceGlobalLabels(labelsObjStr),
+				withRand(rand.New(rand.NewSource(123456))), // known seed
+			)
+			_, err := handler.SendBatches(context.Background())
+			assert.NoError(t, err)
+
+			if labelsObjStr == "" {
+				// Original payload should be sent as-is.
+				assert.Equal(t, originalPayload, srv.got.String())
+				return
+			}
+
+			d := json.NewDecoder(bytes.NewReader(srv.got.Bytes()))
+			type object map[string]struct {
+				Labels map[string]any `json:"labels"`
+			}
+			var objects []object
+			for {
+				var object object
+				err := d.Decode(&object)
+				if errors.Is(err, io.EOF) {
+					break
+				}
+				require.NoError(t, err)
+				objects = append(objects, object)
+			}
+
+			assert.Equal(t, []object{
+				{"metadata": {Labels: map[string]any{"a": "aa", "b": "bb", "c": "cc", "num1": 1.1, "num2": 2.2}}},
+				{"transaction": {}},
+			}, objects)
+		})
+	}
+	run(t, "")
+	run(t, `{"a":"aa","b":"bb","c":"cc","num1":1.1,"num2":2.2}`)
+}
+
 func TestHandlerInLoop(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		h, srv := newHandler(t)
@@ -834,5 +890,8 @@ func BenchmarkSendBatches(b *testing.B) {
 	})
 	b.Run("rewrite_span_names", func(b *testing.B) {
 		run(b, withRewriteSpanNames(true))
+	})
+	b.Run("replace_global_labels", func(b *testing.B) {
+		run(b, withReplaceGlobalLabels(`{"a":"aa","b":"bb","c":"cc","num0":0,num1":1.1,"num2":2.2}`))
 	})
 }

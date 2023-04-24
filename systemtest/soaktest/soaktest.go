@@ -72,6 +72,7 @@ func runAgent(ctx context.Context, expr string, limiter *rate.Limiter, rng *rand
 		RewriteTransactionNames:   loadgencfg.Config.RewriteTransactionNames,
 		RewriteTransactionTypes:   loadgencfg.Config.RewriteTransactionTypes,
 		RewriteTimestamps:         loadgencfg.Config.RewriteTimestamps,
+		ReplaceGlobalLabels:       loadgencfg.Config.ReplaceGlobalLabels,
 		Headers:                   headers,
 	})
 	if err != nil {
