@@ -34,7 +34,8 @@ runs:
           ${{ env.EC_KEY_SECRET }} apiKey | EC_API_KEY ;
           ${{ env.AWS_ACCOUNT_SECRET }} user | AWS_PROFILE ;
           ${{ env.AWS_ACCOUNT_SECRET }} csv | AWS_ACCOUNT_IMPORT
-    - run: |
+    - name: Configure AWS account
+      run: |
         echo "${AWS_ACCOUNT_IMPORT}" > ${{ runner.temp }}/account.csv;
         sed -i 's/User name/User Name/g' ${{ runner.temp }}/account.csv;
         aws configure import --csv file://${{ runner.temp }}/account.csv;
