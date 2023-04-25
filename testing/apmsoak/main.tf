@@ -15,9 +15,10 @@ terraform {
 module "soaktest_workers" {
   source = "../infra/terraform/modules/soaktest_workers"
 
-  gcp_project = var.gcp_project
-  gcp_region  = var.gcp_region
-  gcp_zone    = var.gcp_zone
+  gcp_project  = var.gcp_project
+  gcp_region   = var.gcp_region
+  gcp_zone     = var.gcp_zone
+  machine_type = var.machine_type
 
   apmsoak_bin_path = var.apmsoak_bin_path
 
