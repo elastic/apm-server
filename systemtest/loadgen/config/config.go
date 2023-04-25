@@ -41,7 +41,7 @@ var Config struct {
 	RewriteSpanNames          bool
 	RewriteTransactionNames   bool
 	RewriteTransactionTypes   bool
-	ReplaceGlobalLabels       string
+	RewriteGlobalLabels       string
 	Headers                   map[string]string
 }
 
@@ -141,8 +141,8 @@ func init() {
 		)
 	}
 	flag.StringVar(
-		&Config.ReplaceGlobalLabels,
-		"replace-global-labels",
+		&Config.RewriteGlobalLabels,
+		"rewrite-global-labels",
 		"",
 		"replace global labels in events with the specified string",
 	)

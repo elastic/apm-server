@@ -170,9 +170,9 @@ func withRewriteSpanNames(rewrite bool) newHandlerOption {
 	}
 }
 
-func withReplaceGlobalLabels(labelsObjStr string) newHandlerOption {
+func withRewriteGlobalLabels(labelsObjStr string) newHandlerOption {
 	return func(config *Config) {
-		config.ReplaceGlobalLabels = labelsObjStr
+		config.RewriteGlobalLabels = labelsObjStr
 	}
 }
 
@@ -763,7 +763,7 @@ func TestHandlerSendBatchesRewriteTransactionTypes(t *testing.T) {
 	run(t, true)
 }
 
-func TestHandlerSendBatchesReplaceGlobalLabels(t *testing.T) {
+func TestHandlerSendBatchesRewriteGlobalLabels(t *testing.T) {
 	originalPayload := fmt.Sprintf(`
 {"metadata":{}}
 {"transaction":{}}
@@ -776,7 +776,7 @@ func TestHandlerSendBatchesReplaceGlobalLabels(t *testing.T) {
 		t.Run(fmt.Sprintf(`labelsObjStr="%s"`, labelsObjStr), func(t *testing.T) {
 			handler, srv := newHandler(t,
 				withStorage(fs),
-				withReplaceGlobalLabels(labelsObjStr),
+				withRewriteGlobalLabels(labelsObjStr),
 				withRand(rand.New(rand.NewSource(123456))), // known seed
 			)
 			_, err := handler.SendBatches(context.Background())
@@ -891,7 +891,7 @@ func BenchmarkSendBatches(b *testing.B) {
 	b.Run("rewrite_span_names", func(b *testing.B) {
 		run(b, withRewriteSpanNames(true))
 	})
-	b.Run("replace_global_labels", func(b *testing.B) {
-		run(b, withReplaceGlobalLabels(`{"a":"aa","b":"bb","c":"cc","num0":0,num1":1.1,"num2":2.2}`))
+	b.Run("rewrite_global_labels", func(b *testing.B) {
+		run(b, withRewriteGlobalLabels(`{"a":"aa","b":"bb","c":"cc","num0":0,num1":1.1,"num2":2.2}`))
 	})
 }

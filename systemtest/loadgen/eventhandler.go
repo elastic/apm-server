@@ -49,7 +49,7 @@ type EventHandlerParams struct {
 	RewriteTransactionNames   bool
 	RewriteTransactionTypes   bool
 	RewriteTimestamps         bool
-	ReplaceGlobalLabels       string
+	RewriteGlobalLabels       string
 	Headers                   map[string]string
 }
 
@@ -77,6 +77,6 @@ func NewEventHandler(p EventHandlerParams) (*eventhandler.Handler, error) {
 		RewriteTransactionNames:   p.RewriteTransactionNames,
 		RewriteTransactionTypes:   p.RewriteTransactionTypes,
 		RewriteTimestamps:         p.RewriteTimestamps,
-		ReplaceGlobalLabels:       p.ReplaceGlobalLabels,
+		RewriteGlobalLabels:       p.RewriteGlobalLabels,
 	})
 }

@@ -156,8 +156,8 @@ type Config struct {
 	// in events.
 	RewriteTransactionTypes bool
 
-	// ReplaceGlobalLabels replaces metadata.labels with the specified string.
-	ReplaceGlobalLabels string
+	// RewriteGlobalLabels replaces metadata.labels with the specified string.
+	RewriteGlobalLabels string
 }
 
 // New creates a new Handler with config.
@@ -392,8 +392,8 @@ func (h *Handler) writeEvents(w *pooledWriter, b batch, baseTimestamp time.Time,
 			return fmt.Errorf("failed to rewrite `service.node.name`: %w", err)
 		}
 	}
-	if h.config.ReplaceGlobalLabels != "" {
-		metadata, err = sjson.SetRawBytes(metadata, "metadata.labels", []byte(h.config.ReplaceGlobalLabels))
+	if h.config.RewriteGlobalLabels != "" {
+		metadata, err = sjson.SetRawBytes(metadata, "metadata.labels", []byte(h.config.RewriteGlobalLabels))
 		if err != nil {
 			return fmt.Errorf("failed to rewrite `labels`: %w", err)
 		}
