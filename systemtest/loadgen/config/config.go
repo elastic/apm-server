@@ -144,7 +144,7 @@ func init() {
 		&Config.RewriteGlobalLabels,
 		"rewrite-global-labels",
 		"",
-		"replace global labels in events with the specified string",
+		"replace global labels in events with the specified string, e.g. {\"foo\":\"bar\"}",
 	)
 
 	// For configs that can be set via environment variables, set the required
