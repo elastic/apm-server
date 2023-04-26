@@ -168,8 +168,6 @@ resource "aws_instance" "apm" {
       "sudo dpkg -i elastic-agent.deb || sudo yum -y install elastic-agent.rpm",
       "sudo elastic-agent install -n",
       "sudo cp /tmp/local-elastic-agent.yml /etc/elastic-agent/elastic-agent.yml",
-      # remove this line once logging option issue is fixed
-      "sudo touch /var/log/apm-server/apm-server",
       "sudo systemctl start elastic-agent",
       "sleep 1",
     ]
