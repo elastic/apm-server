@@ -304,7 +304,7 @@ release-manager-snapshot: release
 release-manager-release: release
 
 .PHONY: release
-release: export PATH:=$(dir $(BIN_MAGE)):$(PATH)
+release: export PATH:=$(realpath $(dir $(BIN_MAGE))):$(PATH)
 release: $(MAGE) build/dependencies.csv
 	$(GO) mod download all
 	$(MAGE) package
