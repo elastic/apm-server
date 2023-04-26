@@ -24,7 +24,9 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type CollectionAgentClient interface {
-	// Sends once initial information about the host
+	// Deprecated: Do not use.
+	// Sends once at startup, information about the host.
+	// This method is deprecated.
 	SaveHostInfo(ctx context.Context, in *HostInfo, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// For a list of traces, increments their counts by provided values
 	AddCountsForTraces(ctx context.Context, in *AddCountsForTracesRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
@@ -41,7 +43,9 @@ type CollectionAgentClient interface {
 	// Adds fallback symbols for a set of frames, which can be used when full symbolization isn't
 	// possible.
 	AddFallbackSymbols(ctx context.Context, in *AddFallbackSymbolsRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	// Deprecated: Do not use.
 	// Heartbeat message from HA to CA on which we apply hosts per project throttling.
+	// This method is deprecated.
 	Heartbeat(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// GetSymbolsPackageUploadURL returns an URL for uploading symbols of a given file.
 	// The returned URL is a pre-authenticated HTTP PUT. It can be used to perform an upload of a package that contains
@@ -69,6 +73,7 @@ func NewCollectionAgentClient(cc grpc.ClientConnInterface) CollectionAgentClient
 	return &collectionAgentClient{cc}
 }
 
+// Deprecated: Do not use.
 func (c *collectionAgentClient) SaveHostInfo(ctx context.Context, in *HostInfo, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	out := new(emptypb.Empty)
 	err := c.cc.Invoke(ctx, "/collectionagent.CollectionAgent/SaveHostInfo", in, out, opts...)
@@ -141,6 +146,7 @@ func (c *collectionAgentClient) AddFallbackSymbols(ctx context.Context, in *AddF
 	return out, nil
 }
 
+// Deprecated: Do not use.
 func (c *collectionAgentClient) Heartbeat(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	out := new(emptypb.Empty)
 	err := c.cc.Invoke(ctx, "/collectionagent.CollectionAgent/Heartbeat", in, out, opts...)
@@ -172,7 +178,9 @@ func (c *collectionAgentClient) PackageUploadComplete(ctx context.Context, in *P
 // All implementations must embed UnimplementedCollectionAgentServer
 // for forward compatibility
 type CollectionAgentServer interface {
-	// Sends once initial information about the host
+	// Deprecated: Do not use.
+	// Sends once at startup, information about the host.
+	// This method is deprecated.
 	SaveHostInfo(context.Context, *HostInfo) (*emptypb.Empty, error)
 	// For a list of traces, increments their counts by provided values
 	AddCountsForTraces(context.Context, *AddCountsForTracesRequest) (*emptypb.Empty, error)
@@ -189,7 +197,9 @@ type CollectionAgentServer interface {
 	// Adds fallback symbols for a set of frames, which can be used when full symbolization isn't
 	// possible.
 	AddFallbackSymbols(context.Context, *AddFallbackSymbolsRequest) (*emptypb.Empty, error)
+	// Deprecated: Do not use.
 	// Heartbeat message from HA to CA on which we apply hosts per project throttling.
+	// This method is deprecated.
 	Heartbeat(context.Context, *emptypb.Empty) (*emptypb.Empty, error)
 	// GetSymbolsPackageUploadURL returns an URL for uploading symbols of a given file.
 	// The returned URL is a pre-authenticated HTTP PUT. It can be used to perform an upload of a package that contains
