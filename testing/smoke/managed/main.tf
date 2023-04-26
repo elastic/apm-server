@@ -185,6 +185,8 @@ resource "null_resource" "getapmserverlogs" {
     private_key = aws_key_pair.provisioner_key.key_name
   }
 
+  depends_on = [aws_instance.apm]
+
   provisioner "local-exec" {
     when    = destroy
     command = "scp -i ${self.triggers.private_key} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${self.triggers.user}@${self.triggers.host}:/var/log/apm-server/apm-server ."
