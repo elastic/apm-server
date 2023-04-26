@@ -8,15 +8,15 @@ require (
 	github.com/dgraph-io/badger/v2 v2.2007.3-0.20201012072640-f5a7e0a1c83b
 	github.com/dustin/go-humanize v1.0.0
 	github.com/elastic/apm-data v0.1.1-0.20230309014206-3ad1a5caedc9
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230405101640-804e9c521aae
-	github.com/elastic/elastic-agent-client/v7 v7.0.3-0.20230315204017-166fd1fd746f
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230411141035-34614bc17375
+	github.com/elastic/elastic-agent-client/v7 v7.1.0
 	github.com/elastic/elastic-agent-libs v0.3.3
-	github.com/elastic/elastic-agent-system-metrics v0.5.1-0.20230328163318-a87a0b315c42
+	github.com/elastic/elastic-agent-system-metrics v0.6.0
 	github.com/elastic/gmux v0.2.0
 	github.com/elastic/go-docappender v0.1.0
-	github.com/elastic/go-elasticsearch/v8 v8.6.0
+	github.com/elastic/go-elasticsearch/v8 v8.7.0
 	github.com/elastic/go-hdrhistogram v0.1.0
-	github.com/elastic/go-sysinfo v1.9.1-0.20230328042007-6dcfe88b8359
+	github.com/elastic/go-sysinfo v1.10.0
 	github.com/elastic/go-ucfg v0.8.6
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible
 	github.com/gofrs/flock v0.8.1
@@ -78,7 +78,7 @@ require (
 	github.com/eapache/go-xerial-snappy v0.0.0-20180814174437-776d5712da21 // indirect
 	github.com/eapache/queue v1.1.0 // indirect
 	github.com/elastic/elastic-agent-shipper-client v0.5.1-0.20230228231646-f04347b666f3 // indirect
-	github.com/elastic/elastic-transport-go/v8 v8.1.0 // indirect
+	github.com/elastic/elastic-transport-go/v8 v8.2.0 // indirect
 	github.com/elastic/go-licenser v0.4.1 // indirect
 	github.com/elastic/go-lumber v0.1.2-0.20220819171948-335fde24ea0f // indirect
 	github.com/elastic/go-structform v0.0.10 // indirect
@@ -87,6 +87,7 @@ require (
 	github.com/fatih/color v1.14.1 // indirect
 	github.com/frankban/quicktest v1.14.0 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
+	github.com/goccy/go-json v0.10.2 // indirect
 	github.com/gogo/googleapis v1.4.1 // indirect
 	github.com/golang/glog v1.0.0 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
@@ -94,6 +95,7 @@ require (
 	github.com/h2non/filetype v1.1.1 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-uuid v1.0.2 // indirect
+	github.com/hnlq715/golang-lru v0.3.1 // indirect
 	github.com/inconshreveable/mousetrap v1.0.1 // indirect
 	github.com/jcchavezs/porto v0.4.0 // indirect
 	github.com/jcmturner/aescts/v2 v2.0.0 // indirect
