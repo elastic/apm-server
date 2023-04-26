@@ -21,7 +21,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 
@@ -237,7 +237,7 @@ func doRequest(ctx context.Context, transport esapiv7.Transport, req esapiv7.Req
 	}
 	defer resp.Body.Close()
 	if resp.IsError() {
-		bytes, err := ioutil.ReadAll(resp.Body)
+		bytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return err
 		}

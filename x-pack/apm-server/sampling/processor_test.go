@@ -7,7 +7,6 @@ package sampling_test
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"math/rand"
 	"os"
 	"path"
@@ -647,7 +646,7 @@ func TestProcessRemoteTailSamplingPersistence(t *testing.T) {
 }
 
 func newTempdirConfig(tb testing.TB) sampling.Config {
-	tempdir, err := ioutil.TempDir("", "samplingtest")
+	tempdir, err := os.MkdirTemp("", "samplingtest")
 	require.NoError(tb, err)
 	tb.Cleanup(func() { os.RemoveAll(tempdir) })
 
@@ -759,7 +758,7 @@ func waitFileModified(tb testing.TB, filename string, after time.Time) ([]byte, 
 				tb.Fatal(err)
 			}
 			if info.ModTime().After(after) {
-				data, err := ioutil.ReadFile(filename)
+				data, err := os.ReadFile(filename)
 				if err != nil {
 					tb.Fatal(err)
 				}

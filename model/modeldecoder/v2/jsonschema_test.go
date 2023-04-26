@@ -20,7 +20,6 @@ package v2
 import (
 	"encoding/json"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -71,7 +70,7 @@ func TestJSONSchema(t *testing.T) {
 		if info.IsDir() {
 			return nil
 		}
-		f, err := ioutil.ReadFile(p)
+		f, err := os.ReadFile(p)
 		if err != nil {
 			return err
 		}

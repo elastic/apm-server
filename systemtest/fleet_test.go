@@ -23,7 +23,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strings"
@@ -79,7 +78,7 @@ func TestFleetIntegrationAnonymousAuth(t *testing.T) {
 		resp, err := http.DefaultClient.Do(req)
 		require.NoError(t, err)
 		defer resp.Body.Close()
-		respBody, _ := ioutil.ReadAll(resp.Body)
+		respBody, _ := io.ReadAll(resp.Body)
 		require.Equal(t, statusCode, resp.StatusCode, string(respBody))
 	}
 	test("allowed_service", "allowed_agent", http.StatusAccepted)

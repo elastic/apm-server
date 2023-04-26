@@ -24,7 +24,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"strings"
 	"time"
@@ -480,9 +479,9 @@ func humanTime(millis *int64) string {
 // one of them will be a noop based on the boolean argument
 func printers(b bool) (func(string, ...interface{}), func(interface{})) {
 	var w1 io.Writer = os.Stdout
-	var w2 = ioutil.Discard
+	var w2 = io.Discard
 	if b {
-		w1 = ioutil.Discard
+		w1 = io.Discard
 		w2 = os.Stdout
 	}
 	return func(f string, i ...interface{}) {

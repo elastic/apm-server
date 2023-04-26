@@ -43,19 +43,19 @@ type ServiceOrigin struct {
 	Version string
 }
 
-//Language has an optional version and name
+// Language has an optional version and name
 type Language struct {
 	Name    string
 	Version string
 }
 
-//Runtime has an optional version and name
+// Runtime has an optional version and name
 type Runtime struct {
 	Name    string
 	Version string
 }
 
-//Framework has an optional version and name
+// Framework has an optional version and name
 type Framework struct {
 	Name    string
 	Version string
@@ -65,7 +65,7 @@ type ServiceNode struct {
 	Name string
 }
 
-//Fields transforms a service instance into a common.MapStr
+// Fields transforms a service instance into a common.MapStr
 func (s *Service) Fields() common.MapStr {
 	if s == nil {
 		return nil

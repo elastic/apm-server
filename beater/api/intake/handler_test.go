@@ -22,9 +22,9 @@ import (
 	"compress/gzip"
 	"compress/zlib"
 	"context"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -175,7 +175,7 @@ func (tc *testcaseIntakeHandler) setup(t *testing.T) {
 	}
 
 	if tc.r == nil {
-		data, err := ioutil.ReadFile(filepath.Join("../../../testdata/intake-v2", tc.path))
+		data, err := os.ReadFile(filepath.Join("../../../testdata/intake-v2", tc.path))
 		require.NoError(t, err)
 
 		tc.r = httptest.NewRequest("POST", "/", bytes.NewBuffer(data))
@@ -192,7 +192,7 @@ func (tc *testcaseIntakeHandler) setup(t *testing.T) {
 }
 
 func compressedRequest(t *testing.T, compressionType string, compressPayload bool) *http.Request {
-	data, err := ioutil.ReadFile("../../../testdata/intake-v2/errors.ndjson")
+	data, err := os.ReadFile("../../../testdata/intake-v2/errors.ndjson")
 	require.NoError(t, err)
 	var buf bytes.Buffer
 	if compressPayload {

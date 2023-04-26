@@ -21,7 +21,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v7"
@@ -80,7 +80,7 @@ func (es *Client) Do(
 		if resp.IsError() {
 			return nil, &Error{StatusCode: resp.StatusCode, Message: resp.String()}
 		}
-		body, err := ioutil.ReadAll(resp.Body)
+		body, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return nil, err
 		}
@@ -89,7 +89,7 @@ func (es *Client) Do(
 				return nil, err
 			}
 		}
-		resp.Body = ioutil.NopCloser(bytes.NewReader(body))
+		resp.Body = io.NopCloser(bytes.NewReader(body))
 		if requestOptions.cond == nil || requestOptions.cond(resp) {
 			break
 		}

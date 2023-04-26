@@ -21,8 +21,8 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"io/ioutil"
 	"net/http"
+	"os"
 	"strings"
 	"testing"
 	"time"
@@ -48,7 +48,7 @@ func TestIndexTemplateCoverage(t *testing.T) {
 		"../testdata/intake-v2/spans.ndjson",
 		"../testdata/intake-v2/transactions.ndjson",
 	} {
-		data, err := ioutil.ReadFile(payloadFile)
+		data, err := os.ReadFile(payloadFile)
 		require.NoError(t, err)
 		req, _ := http.NewRequest("POST", srv.URL+"/intake/v2/events?verbose=true", bytes.NewReader(data))
 		req.Header.Set("Content-Type", "application/x-ndjson")

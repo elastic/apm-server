@@ -20,7 +20,7 @@ package jaeger
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"mime"
 	"net/http"
 
@@ -109,7 +109,7 @@ func (h *httpHandler) handleTraces(c *request.Context) {
 	}
 
 	var batch jaeger.Batch
-	transport := thrift.NewStreamTransport(c.Request.Body, ioutil.Discard)
+	transport := thrift.NewStreamTransport(c.Request.Body, io.Discard)
 	protocol := thrift.NewTBinaryProtocolFactoryConf(nil).GetProtocol(transport)
 	if err := batch.Read(c.Request.Context(), protocol); err != nil {
 		c.Result.SetWithError(request.IDResponseErrorsDecode, err)

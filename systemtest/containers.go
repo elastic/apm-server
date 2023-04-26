@@ -25,7 +25,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net"
 	"net/url"
@@ -689,7 +688,7 @@ func buildElasticAgentImage(ctx context.Context, docker *client.Client, stackVer
 		return "", err
 	}
 	defer resp.Body.Close()
-	if _, err := io.Copy(ioutil.Discard, resp.Body); err != nil {
+	if _, err := io.Copy(io.Discard, resp.Body); err != nil {
 		return "", err
 	}
 	log.Printf("Built image %s", imageName)

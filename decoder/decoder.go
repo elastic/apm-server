@@ -23,7 +23,7 @@ import (
 	jsoniter "github.com/json-iterator/go"
 )
 
-//TODO(simitt): look into config options for performance tuning
+// TODO(simitt): look into config options for performance tuning
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 type Decoder interface {

@@ -9,7 +9,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"sync"
 	"time"
@@ -220,7 +219,7 @@ func (p *Pubsub) refreshIndices(ctx context.Context, indices []string) error {
 	}
 	defer resp.Body.Close()
 	if resp.IsError() {
-		message, _ := ioutil.ReadAll(resp.Body)
+		message, _ := io.ReadAll(resp.Body)
 		return fmt.Errorf("index refresh request failed: %s", message)
 	}
 	return nil
@@ -316,7 +315,7 @@ func (p *Pubsub) doSearchRequest(ctx context.Context, index string, body io.Read
 		if resp.StatusCode == http.StatusNotFound {
 			return errIndexNotFound
 		}
-		message, _ := ioutil.ReadAll(resp.Body)
+		message, _ := io.ReadAll(resp.Body)
 		return fmt.Errorf("search request failed: %s", message)
 	}
 	return json.NewDecoder(resp.Body).Decode(out)

@@ -22,9 +22,9 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"net/url"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -70,7 +70,7 @@ func TestApprovals(t *testing.T) {
 			defer tc.teardown(t)
 
 			f := filepath.Join("..", "..", "testdata", "jaeger", name)
-			data, err := ioutil.ReadFile(f + ".json")
+			data, err := os.ReadFile(f + ".json")
 			require.NoError(t, err)
 			var request api_v2.PostSpansRequest
 			require.NoError(t, json.Unmarshal(data, &request))
