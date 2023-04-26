@@ -1,4 +1,9 @@
-- version: "generated"
+- version: generated
+  changes:
+    - description: Placeholder
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/123
+- version: "8.8.0"
   changes:
     - description: Store app logs into service-specific data streams
       type: enhancement
