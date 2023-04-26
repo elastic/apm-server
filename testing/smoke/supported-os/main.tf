@@ -165,8 +165,6 @@ resource "aws_instance" "apm" {
       "curl ${data.external.getlatestapmserver.result.deb} -o apm-server.deb && curl ${data.external.getlatestapmserver.result.rpm} -o apm-server.rpm",
       "sudo dpkg -i apm-server.deb || sudo yum -y install apm-server.rpm",
       "sudo cp /tmp/local-apm-server.yml /etc/apm-server/apm-server.yml",
-      # remove this line once logging option issue is fixed
-      "sudo touch /var/log/apm-server/apm-server",
       "sudo systemctl start apm-server",
       "sleep 1",
     ]
