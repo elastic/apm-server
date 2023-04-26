@@ -81,8 +81,7 @@ https://github.com/elastic/apm-server/compare/v8.7.0\...v8.7.1[View commits]
 - Add overflow metrics collection {pull}10330[10330]
 - Set `_doc_count` for service destination metrics {pull}9931[9931]
 - Add global labels to service destination metrics {pull}10056[10056] {pull}10297[10297]
-- Improve APM UI query performance by producing `1m`, `10m` and `60m` aggregation intervals for service destination metrics. Store them into data streams `metrics-apm.service_destination.${interval}` and make them hidden for non-default intervals {pull}
-926[9926] {pull}10070[10070]
+- Improve APM UI query performance by producing `1m`, `10m` and `60m` aggregation intervals for service destination metrics. Store them into data streams `metrics-apm.service_destination.${interval}` and make them hidden for non-default intervals {pull}9926[9926] {pull}10070[10070]
 
 [float]
 ==== Introducing Service summary metric improvements
