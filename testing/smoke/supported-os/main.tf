@@ -184,7 +184,7 @@ resource "null_resource" "apm_server_log" {
 
   provisioner "local-exec" {
     when    = destroy
-    command = "scp -i ${self.triggers.private_key} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${self.triggers.user}@${self.triggers.host}:/var/log/apm-server/apm-server apm-server.log"
+    command = "scp -i ${self.triggers.private_key} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${self.triggers.user}@${self.triggers.host}:/var/log/apm-server/apm-server-* ."
   }
 }
 
