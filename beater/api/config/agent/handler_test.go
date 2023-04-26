@@ -23,7 +23,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -183,7 +182,7 @@ func TestAgentConfigHandler(t *testing.T) {
 		require.Equal(t, tc.respStatus, w.Code)
 		require.Equal(t, tc.respCacheControlHeader, w.Header().Get(headers.CacheControl))
 		require.Equal(t, tc.respEtagHeader, w.Header().Get(headers.Etag))
-		b, err := ioutil.ReadAll(w.Body)
+		b, err := io.ReadAll(w.Body)
 		require.NoError(t, err)
 		var actualBody map[string]string
 		json.Unmarshal(b, &actualBody)
@@ -304,8 +303,8 @@ func TestAgentConfigHandler_DefaultServiceEnvironment(t *testing.T) {
 	sendRequest(h, httptest.NewRequest(http.MethodPost, "/config", jsonReader(m{"service": m{"name": "opbeans-node"}})))
 	require.Len(t, kb.requests, 2)
 
-	body0, _ := ioutil.ReadAll(kb.requests[0].Body)
-	body1, _ := ioutil.ReadAll(kb.requests[1].Body)
+	body0, _ := io.ReadAll(kb.requests[0].Body)
+	body1, _ := io.ReadAll(kb.requests[1].Body)
 	assert.Equal(t, `{"service":{"name":"opbeans-node","environment":"specified"},"etag":""}`+"\n", string(body0))
 	assert.Equal(t, `{"service":{"name":"opbeans-node","environment":"default"},"etag":""}`+"\n", string(body1))
 }

@@ -25,7 +25,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -272,14 +271,14 @@ func Fields() error {
 	if err != nil {
 		panic(err)
 	}
-	return ioutil.WriteFile(xpackFieldsInclude, assetData, 0644)
+	return os.WriteFile(xpackFieldsInclude, assetData, 0644)
 }
 
 func generateFieldsYAML(output string, modules ...string) error {
 	if err := mage.GenerateFieldsYAMLTo(output, modules...); err != nil {
 		return err
 	}
-	contents, err := ioutil.ReadFile(output)
+	contents, err := os.ReadFile(output)
 	if err != nil {
 		return err
 	}
@@ -322,7 +321,7 @@ func generateFieldsYAML(output string, modules ...string) error {
 			contents = append(contents[:i], contents[i+buf.Len():]...)
 		}
 	}
-	return ioutil.WriteFile(output, contents, 0644)
+	return os.WriteFile(output, contents, 0644)
 }
 
 // GoTestUnit runs the go test unit.

@@ -20,7 +20,7 @@ package stream
 import (
 	"bytes"
 	"context"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -44,7 +44,7 @@ func benchmarkStreamProcessor(b *testing.B, processor *Processor, files []string
 	const batchSize = 10
 	batchProcessor := nopBatchProcessor{}
 	benchmark := func(b *testing.B, filename string) {
-		data, err := ioutil.ReadFile(filename)
+		data, err := os.ReadFile(filename)
 		if err != nil {
 			b.Error(err)
 		}

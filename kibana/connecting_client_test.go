@@ -19,7 +19,7 @@ package kibana
 
 import (
 	"context"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 	"testing"
@@ -131,7 +131,7 @@ var (
 			Host: "non-existing",
 		},
 	}
-	mockBody    = ioutil.NopCloser(strings.NewReader(`{"response": "ok"}`))
+	mockBody    = io.NopCloser(strings.NewReader(`{"response": "ok"}`))
 	mockStatus  = http.StatusOK
 	mockVersion = *common.MustNewVersion("7.3.0")
 )

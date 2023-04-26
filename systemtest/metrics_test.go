@@ -21,8 +21,8 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"io/ioutil"
 	"net/http"
+	"os"
 	"strings"
 	"testing"
 	"time"
@@ -46,7 +46,7 @@ func testApprovedMetrics(t *testing.T, srv *apmservertest.Server) {
 	err := srv.Start()
 	require.NoError(t, err)
 
-	eventsPayload, err := ioutil.ReadFile("../testdata/intake-v2/metricsets.ndjson")
+	eventsPayload, err := os.ReadFile("../testdata/intake-v2/metricsets.ndjson")
 	require.NoError(t, err)
 
 	req, _ := http.NewRequest("POST", srv.URL+"/intake/v2/events?verbose=true", bytes.NewReader(eventsPayload))

@@ -34,9 +34,11 @@ const (
 )
 
 // CodeGenerator creates following struct methods
-//   `IsSet() bool`
-//   `Reset()`
-//   `validate() error`
+//
+//	`IsSet() bool`
+//	`Reset()`
+//	`validate() error`
+//
 // on all exported and anonymous structs that are referenced
 // by at least one of the root types
 type CodeGenerator struct {

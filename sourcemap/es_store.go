@@ -23,7 +23,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"time"
 
@@ -93,7 +92,7 @@ func (s *esStore) fetch(ctx context.Context, name, version, path string) (string
 		if resp.StatusCode == http.StatusNotFound {
 			return "", nil
 		}
-		b, err := ioutil.ReadAll(resp.Body)
+		b, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return "", errors.Wrap(err, errMsgParseSourcemap)
 		}

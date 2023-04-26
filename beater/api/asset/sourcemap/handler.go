@@ -21,7 +21,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 
@@ -129,7 +129,7 @@ func decode(req *http.Request, smap *sourcemapDoc) error {
 		return err
 	}
 	defer file.Close()
-	bytes, err := ioutil.ReadAll(file)
+	bytes, err := io.ReadAll(file)
 	if err != nil {
 		return err
 	}

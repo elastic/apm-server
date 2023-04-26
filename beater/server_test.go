@@ -24,7 +24,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -99,7 +98,7 @@ func TestServerRoot(t *testing.T) {
 
 	checkResponse := func(hasOk bool) func(t *testing.T, res *http.Response) {
 		return func(t *testing.T, res *http.Response) {
-			b, err := ioutil.ReadAll(res.Body)
+			b, err := io.ReadAll(res.Body)
 			require.NoError(t, err)
 			rsp := string(b)
 			assert.Contains(t, rsp, "build_date")
@@ -191,7 +190,7 @@ func TestServerTcpNoPort(t *testing.T) {
 }
 
 func tmpTestUnix(t *testing.T) string {
-	f, err := ioutil.TempFile("", "test-apm-server")
+	f, err := os.CreateTemp("", "test-apm-server")
 	assert.NoError(t, err)
 	addr := f.Name()
 	f.Close()
@@ -526,7 +525,7 @@ func TestServerConfigReload(t *testing.T) {
 		require.NoError(t, err)
 		defer resp.Body.Close()
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
-		body, err := ioutil.ReadAll(resp.Body)
+		body, err := io.ReadAll(resp.Body)
 		require.NoError(t, err)
 		return string(body)
 	}
@@ -760,7 +759,7 @@ func TestServerElasticsearchDoesNotSupportDocCount(t *testing.T) {
 	beater, err := setupServer(t, cfg, &beatConfig, nil, processor)
 	require.NoError(t, err)
 
-	metricsets, err := ioutil.ReadFile("../testdata/intake-v2/metricsets.ndjson")
+	metricsets, err := os.ReadFile("../testdata/intake-v2/metricsets.ndjson")
 	if err != nil {
 		t.Fatalf("Failed to read test data: %v", err)
 	}
@@ -1071,7 +1070,7 @@ func dummyPipeline(cfg *common.Config, info beat.Info, clients ...outputs.Client
 }
 
 var testData = func() []byte {
-	b, err := ioutil.ReadFile("../testdata/intake-v2/transactions.ndjson")
+	b, err := os.ReadFile("../testdata/intake-v2/transactions.ndjson")
 	if err != nil {
 		panic(err)
 	}
@@ -1095,7 +1094,7 @@ func decodeJSONMap(t *testing.T, r io.Reader) map[string]interface{} {
 }
 
 func body(t *testing.T, response *http.Response) string {
-	body, err := ioutil.ReadAll(response.Body)
+	body, err := io.ReadAll(response.Body)
 	require.NoError(t, err)
 	require.NoError(t, response.Body.Close())
 	return string(body)

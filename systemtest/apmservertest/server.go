@@ -25,7 +25,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"net/url"
@@ -231,7 +230,7 @@ func (s *Server) initTLS() (serverCertPath, serverKeyPath, caCertPath string, _ 
 	// Load a self-signed server certificate for testing TLS encryption.
 	serverCertPath = filepath.Join(repoRoot, "systemtest", "apmservertest", "cert.pem")
 	serverKeyPath = filepath.Join(repoRoot, "systemtest", "apmservertest", "key.pem")
-	serverCertBytes, err := ioutil.ReadFile(serverCertPath)
+	serverCertBytes, err := os.ReadFile(serverCertPath)
 	if err != nil {
 		return "", "", "", err
 	}
@@ -243,11 +242,11 @@ func (s *Server) initTLS() (serverCertPath, serverKeyPath, caCertPath string, _ 
 	// Load a self-signed client certificate for testing TLS client certificate auth.
 	clientCertPath := filepath.Join(repoRoot, "systemtest", "apmservertest", "client_cert.pem")
 	clientKeyPath := filepath.Join(repoRoot, "systemtest", "apmservertest", "client_key.pem")
-	clientCertBytes, err := ioutil.ReadFile(clientCertPath)
+	clientCertBytes, err := os.ReadFile(clientCertPath)
 	if err != nil {
 		return "", "", "", err
 	}
-	clientKeyBytes, err := ioutil.ReadFile(clientKeyPath)
+	clientKeyBytes, err := os.ReadFile(clientKeyPath)
 	if err != nil {
 		return "", "", "", err
 	}
@@ -363,7 +362,7 @@ func (s *Server) waitUntilListening(tls bool, logs *LogEntryIterator) error {
 	// Didn't find message, server probably exited...
 	if err := s.Close(); err != nil {
 		if err, ok := err.(*exec.ExitError); ok && err != nil {
-			stderr, _ := ioutil.ReadAll(s.Stderr)
+			stderr, _ := io.ReadAll(s.Stderr)
 			err.Stderr = stderr
 		}
 		return err

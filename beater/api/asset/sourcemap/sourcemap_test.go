@@ -19,7 +19,7 @@ package sourcemap
 
 import (
 	"context"
-	"io/ioutil"
+	"os"
 	"testing"
 	"time"
 
@@ -56,7 +56,7 @@ func TestTransform(t *testing.T) {
 }
 
 func TestParseSourcemaps(t *testing.T) {
-	fileBytes, err := ioutil.ReadFile("../../../../testdata/sourcemap/bundle.js.map")
+	fileBytes, err := os.ReadFile("../../../../testdata/sourcemap/bundle.js.map")
 	assert.NoError(t, err)
 	parser, err := s.Parse("", fileBytes)
 	assert.NoError(t, err)

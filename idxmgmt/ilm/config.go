@@ -36,13 +36,13 @@ const (
 	defaultPolicyName = "apm-rollover-30-days"
 )
 
-//Config holds information about ILM mode and whether or not the server should manage the setup
+// Config holds information about ILM mode and whether or not the server should manage the setup
 type Config struct {
 	Mode  libilm.Mode `config:"enabled"`
 	Setup Setup       `config:"setup"`
 }
 
-//Setup holds information about how to setup ILM
+// Setup holds information about how to setup ILM
 type Setup struct {
 	Enabled       bool     `config:"enabled"`
 	Overwrite     bool     `config:"overwrite"`
@@ -54,7 +54,7 @@ type Setup struct {
 type Mappings map[string]Mapping
 type Policies map[string]Policy
 
-//Mapping binds together an ILM policy's name and body with an event type
+// Mapping binds together an ILM policy's name and body with an event type
 type Mapping struct {
 	EventType   string `config:"event_type"`
 	PolicyName  string `config:"policy_name"`
@@ -183,7 +183,7 @@ func validate(c *Config) error {
 	return nil
 }
 
-//preparePolicyBody ensures maps are in the format elasticsearch expects for policy bodies
+// preparePolicyBody ensures maps are in the format elasticsearch expects for policy bodies
 func preparePolicyBody(m map[string]interface{}) map[string]interface{} {
 	for k, v := range m {
 		if v == nil {

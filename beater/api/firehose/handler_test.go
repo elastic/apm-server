@@ -21,9 +21,9 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -193,7 +193,7 @@ func (tc *testcaseFirehoseHandler) setup(t *testing.T) {
 	}
 
 	if tc.r == nil {
-		data, err := ioutil.ReadFile(filepath.Join("../../../testdata/firehose", tc.path))
+		data, err := os.ReadFile(filepath.Join("../../../testdata/firehose", tc.path))
 		require.NoError(t, err)
 
 		tc.r = httptest.NewRequest("POST", "/", bytes.NewBuffer(data))
