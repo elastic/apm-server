@@ -11,7 +11,7 @@ https://github.com/elastic/apm-server/compare/8.7\...8.8[View commits]
 
 [float]
 ==== Breaking Changes
-- Store app logs into service-specific data streams{pull}10456[10456]
+- Store app logs into service-specific data streams {pull}10456[10456]
 
 [float]
 ==== Deprecations
