@@ -1,0 +1,26 @@
+[[release-notes-8.8]]
+== APM version 8.8
+
+https://github.com/elastic/apm-server/compare/8.7\...8.8[View commits]
+
+* <<release-notes-8.8.0>>
+
+[float]
+[[release-notes-8.8.0]]
+=== APM version 8.8.0
+
+[float]
+==== Breaking Changes
+- Store app logs into service-specific data streams{pull}10456[10456]
+
+[float]
+==== Deprecations
+
+[float]
+==== Bug fixes
+
+[float]
+==== Intake API Changes
+
+[float]
+==== Added
