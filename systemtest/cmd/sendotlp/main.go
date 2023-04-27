@@ -52,7 +52,7 @@ import (
 	"go.uber.org/zap/zapgrpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
-	"google.golang.org/grpc/credentials/insecure"
+	grpcinsecure "google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/grpclog"
 )
 
@@ -78,6 +78,12 @@ var (
 		"protocol",
 		getenvDefault("OTEL_EXPORTER_OTLP_PROTOCOL", "grpc"),
 		"set transport protocol to one of: grpc (default), http/protobuf",
+	)
+
+	insecure = flag.Bool(
+		"insecure",
+		false,
+		"skip the server's TLS certificate verification",
 	)
 )
 
@@ -232,12 +238,13 @@ func newOTLPExporters(ctx context.Context, endpointURL *url.URL) (*otlpExporters
 
 func newOTLPGRPCExporters(ctx context.Context, endpointURL *url.URL) (*otlpExporters, error) {
 	var transportCredentials credentials.TransportCredentials
+
 	switch endpointURL.Scheme {
 	case "http":
 		// If http:// is specified, then use insecure (plaintext).
-		transportCredentials = insecure.NewCredentials()
+		transportCredentials = grpcinsecure.NewCredentials()
 	case "https":
-		transportCredentials = credentials.NewClientTLSFromCert(nil, "")
+		transportCredentials = credentials.NewTLS(&tls.Config{InsecureSkipVerify: *insecure})
 	}
 
 	grpcConn, err := grpc.DialContext(ctx, endpointURL.Host, grpc.WithTransportCredentials(transportCredentials))
@@ -280,7 +287,7 @@ func newOTLPGRPCExporters(ctx context.Context, endpointURL *url.URL) (*otlpExpor
 }
 
 func newOTLPHTTPExporters(ctx context.Context, endpointURL *url.URL) (*otlpExporters, error) {
-	tlsConfig := &tls.Config{InsecureSkipVerify: true}
+	tlsConfig := &tls.Config{InsecureSkipVerify: *insecure}
 	traceOptions := []otlptracehttp.Option{
 		otlptracehttp.WithEndpoint(endpointURL.Host),
 		otlptracehttp.WithTLSClientConfig(tlsConfig),

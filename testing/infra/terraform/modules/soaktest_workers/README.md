@@ -45,4 +45,5 @@ This module sets up worker with load generation binary for soaktest configured a
 | <a name="input_gcp_project"></a> [gcp\_project](#input\_gcp\_project) | GCP Project name | `string` | `"elastic-apm"` | no |
 | <a name="input_gcp_region"></a> [gcp\_region](#input\_gcp\_region) | GCP region | `string` | `"us-west2"` | no |
 | <a name="input_gcp_zone"></a> [gcp\_zone](#input\_gcp\_zone) | GCP zone | `string` | `"us-west2-b"` | no |
+| <a name="input_machine_type"></a> [machine\_type](#input\_machine\_type) | Machine type for soak test workers | `string` | `"e2-small"` | no |
 <!-- END_TF_DOCS -->

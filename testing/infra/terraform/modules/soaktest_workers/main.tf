@@ -58,7 +58,7 @@ data "google_compute_image" "worker_image" {
 resource "google_compute_instance" "worker" {
   # Trigger a recreate of workers on config changes
   name         = substr("apmsoak-${local.config_hash}", 0, 63)
-  machine_type = "e2-small"
+  machine_type = var.machine_type
   zone         = var.gcp_zone
 
   boot_disk {

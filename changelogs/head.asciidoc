@@ -1,11 +1,10 @@
 [[release-notes-head]]
 == APM version HEAD
 
-https://github.com/elastic/apm-server/compare/8.7\...main[View commits]
+https://github.com/elastic/apm-server/compare/8.8\...main[View commits]
 
 [float]
 ==== Breaking Changes
-- Store app logs into service-specific data streams{pull}10456[10456]
 
 [float]
 ==== Deprecations

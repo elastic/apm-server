@@ -16,6 +16,12 @@ variable "gcp_zone" {
   default     = "us-west2-b"
 }
 
+variable "machine_type" {
+  type        = string
+  description = "Machine type for soak test workers"
+  default     = "e2-small"
+}
+
 variable "apmsoak_bin_path" {
   type        = string
   description = "Path where the apmsoak binary resides on the local machine"
