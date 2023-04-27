@@ -8,7 +8,7 @@ require (
 	github.com/dgraph-io/badger/v2 v2.2007.3-0.20201012072640-f5a7e0a1c83b
 	github.com/dustin/go-humanize v1.0.0
 	github.com/elastic/apm-data v0.1.1-0.20230309014206-3ad1a5caedc9
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230411141035-34614bc17375
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230427145154-c80b6ddc11ff
 	github.com/elastic/elastic-agent-client/v7 v7.1.0
 	github.com/elastic/elastic-agent-libs v0.3.3
 	github.com/elastic/elastic-agent-system-metrics v0.6.0
@@ -19,6 +19,7 @@ require (
 	github.com/elastic/go-sysinfo v1.10.0
 	github.com/elastic/go-ucfg v0.8.6
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible
+	github.com/goccy/go-json v0.10.2
 	github.com/gofrs/flock v0.8.1
 	github.com/gofrs/uuid v4.4.0+incompatible
 	github.com/gogo/protobuf v1.3.2
@@ -28,6 +29,7 @@ require (
 	github.com/gorilla/mux v1.8.0
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/golang-lru v0.5.4
+	github.com/hnlq715/golang-lru v0.3.1
 	github.com/jaegertracing/jaeger v1.38.1
 	github.com/json-iterator/go v1.1.12
 	github.com/libp2p/go-reuseport v0.0.2
@@ -87,7 +89,6 @@ require (
 	github.com/fatih/color v1.14.1 // indirect
 	github.com/frankban/quicktest v1.14.0 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
-	github.com/goccy/go-json v0.10.2 // indirect
 	github.com/gogo/googleapis v1.4.1 // indirect
 	github.com/golang/glog v1.0.0 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
@@ -95,7 +96,6 @@ require (
 	github.com/h2non/filetype v1.1.1 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-uuid v1.0.2 // indirect
-	github.com/hnlq715/golang-lru v0.3.1 // indirect
 	github.com/inconshreveable/mousetrap v1.0.1 // indirect
 	github.com/jcchavezs/porto v0.4.0 // indirect
 	github.com/jcmturner/aescts/v2 v2.0.0 // indirect

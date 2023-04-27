@@ -368,8 +368,8 @@ github.com/eclipse/paho.mqtt.golang v1.3.5 h1:sWtmgNxYM9P2sP+xEItMozsR3w0cqZFlqn
 github.com/elastic/apm-data v0.1.1-0.20230309014206-3ad1a5caedc9 h1:nj0nBnU3hI/h3s4+6CnyOTcQqwH7U6y/2i1XM44wOaU=
 github.com/elastic/apm-data v0.1.1-0.20230309014206-3ad1a5caedc9/go.mod h1:8oEk/myQSw+GHqxPD3e8Oz2qPMawcOH+t9HYZ51p+rE=
 github.com/elastic/bayeux v1.0.5 h1:UceFq01ipmT3S8DzFK+uVAkbCdiPR0Bqei8qIGmUeY0=
-github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230411141035-34614bc17375 h1:C2A3jcRFjJxU7+v/jpbQBdURyfEDdTevYWa9SclZUng=
-github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230411141035-34614bc17375/go.mod h1:vjIBdaueO8kav3DGo9XdUyfOmBuUfTaDdXPrnJUbZdA=
+github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230427145154-c80b6ddc11ff h1:kBenNRaPOcBieSgBbTPGRX4lX/tqT189vWehFqND0SA=
+github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230427145154-c80b6ddc11ff/go.mod h1:vjIBdaueO8kav3DGo9XdUyfOmBuUfTaDdXPrnJUbZdA=
 github.com/elastic/elastic-agent-autodiscover v0.5.0 h1:fiDJQKB148RsRISqqbGINtJ/ZPupeVjwn0fbPz9ZDOc=
 github.com/elastic/elastic-agent-client/v7 v7.1.0 h1:3+4GCzYV1kjdECrvCvNCrwnsVN/dt/VPi7UfSY3fJLs=
 github.com/elastic/elastic-agent-client/v7 v7.1.0/go.mod h1:UlVOHSDvTA4Mfdhdg+BE7aqOsUR3ab+x2Zl0aHlBXs4=
@@ -379,9 +379,6 @@ github.com/elastic/elastic-agent-shipper-client v0.5.1-0.20230228231646-f04347b6
 github.com/elastic/elastic-agent-shipper-client v0.5.1-0.20230228231646-f04347b666f3/go.mod h1:rWarFM7qYxJKsi9WcV6ONcFjH/NA3niDNpTxO+8/GVI=
 github.com/elastic/elastic-agent-system-metrics v0.6.0 h1:2LqS4cEJ+zK/zLbjFYCRt6bkBs4SUflRNAPH4766rOo=
 github.com/elastic/elastic-agent-system-metrics v0.6.0/go.mod h1:lOtxwLoqIzjvStjri2q2b3VOjm0QfgJYzuOuNesaz6s=
-github.com/elastic/elastic-transport-go/v8 v8.0.0-20211216131617-bbee439d559c/go.mod h1:87Tcz8IVNe6rVSLdBux1o/PEItLtyabHU3naC7IoqKI=
-github.com/elastic/elastic-transport-go/v8 v8.1.0 h1:NeqEz1ty4RQz+TVbUrpSU7pZ48XkzGWQj02k5koahIE=
-github.com/elastic/elastic-transport-go/v8 v8.1.0/go.mod h1:87Tcz8IVNe6rVSLdBux1o/PEItLtyabHU3naC7IoqKI=
 github.com/elastic/elastic-transport-go/v8 v8.2.0 h1:hkK5IIs/15mpSXzd5THWVlWTKJyMw6cbCWM3T/B2S5E=
 github.com/elastic/elastic-transport-go/v8 v8.2.0/go.mod h1:87Tcz8IVNe6rVSLdBux1o/PEItLtyabHU3naC7IoqKI=
 github.com/elastic/fsevents v0.0.0-20181029231046-e1d381a4d270 h1:cWPqxlPtir4RoQVCpGSRXmLqjEHpJKbR60rxh1nQZY4=
@@ -390,8 +387,6 @@ github.com/elastic/gmux v0.2.0/go.mod h1:6+9rYPXZXAyCIb7g3WQ0OVWoLNpU/xHz2VXUrtw
 github.com/elastic/go-concert v0.2.0 h1:GAQrhRVXprnNjtvTP9pWJ1d4ToEA4cU5ci7TwTa20xg=
 github.com/elastic/go-docappender v0.1.0 h1:odP2SZICpMQH5FSt3iIStDJwe4FYMKPpyqv/0LJezc0=
 github.com/elastic/go-docappender v0.1.0/go.mod h1:mqNQzslgwiz6/BpSNzxC3g26sf7jZF4h1H60l9kYC+w=
-github.com/elastic/go-elasticsearch/v8 v8.6.0 h1:xMaSe8jIh7NHzmNo9YBkewmaD2Pr+tX+zLkXxhieny4=
-github.com/elastic/go-elasticsearch/v8 v8.6.0/go.mod h1:Usvydt+x0dv9a1TzEUaovqbJor8rmOHy5dSmPeMAE2k=
 github.com/elastic/go-elasticsearch/v8 v8.7.0 h1:ZvbT1YHppBC0QxGnMmaDUxoDa26clwhRaB3Gp5E3UcY=
 github.com/elastic/go-elasticsearch/v8 v8.7.0/go.mod h1:lVb8SvJV8McVkdswpL8YR5QKIkhlWaoSq60YpHilOLI=
 github.com/elastic/go-hdrhistogram v0.1.0 h1:7UVeQ9MsO5c9h8RJeH2S2lXCGi9hQB/94W6Pjjqprc4=
