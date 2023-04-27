@@ -31,8 +31,10 @@ type FrameValidation struct {
 	updated           bool
 	originalClassname string
 	originalFunction  string
+	originalLineno    *int
 	classname         string
 	function          string
+	lineno            *int
 }
 
 func TestSimpleLineDeobfuscation(t *testing.T) {
@@ -47,11 +49,11 @@ func TestSimpleLineDeobfuscation(t *testing.T) {
 
 	mapFilePath := "../../testdata/r8/deobfuscator/1/mapping"
 	reader, err := os.Open(mapFilePath)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	defer reader.Close()
 
 	err = Deobfuscate(stacktrace, reader)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	verifyFrame(t, frame, FrameValidation{
 		updated:           true,
@@ -271,11 +273,16 @@ intercept`,
 }
 
 func verifyFrame(t *testing.T, frame *model.StacktraceFrame, validation FrameValidation) {
+	// Line numbers shouldn't change after the mapping.
+	validation.lineno = (*frame).Lineno
+
 	assert.Equal(t, validation.updated, frame.SourcemapUpdated)
 	assert.Equal(t, validation.originalClassname, frame.Original.Classname)
 	assert.Equal(t, validation.originalFunction, frame.Original.Function)
+	assert.Equal(t, validation.originalLineno, frame.Original.Lineno)
 	assert.Equal(t, validation.classname, frame.Classname)
 	assert.Equal(t, validation.function, frame.Function)
+	assert.Equal(t, validation.lineno, frame.Lineno)
 }
 
 func createStacktraceFrame(lineno int, fileName string, className string, function string) *model.StacktraceFrame {
