@@ -926,7 +926,6 @@ func queryClusterUUID(ctx context.Context, esClient *elasticsearch.Client) error
 }
 
 type nopProcessingSupporter struct {
-	processors []beat.Processor
 }
 
 func (*nopProcessingSupporter) Close() error {
@@ -934,14 +933,9 @@ func (*nopProcessingSupporter) Close() error {
 }
 
 func (p *nopProcessingSupporter) Processors() []string {
-	procList := []string{}
-	for _, proc := range p.processors {
-		procList = append(procList, proc.String())
-	}
-	return procList
+	return nil
 }
 
 func (p *nopProcessingSupporter) Create(cfg beat.ProcessingConfig, _ bool) (beat.Processor, error) {
-	p.processors = append(p.processors, cfg.Processor)
 	return cfg.Processor, nil
 }
