@@ -8,11 +8,8 @@ import (
 	"encoding"
 	"encoding/json"
 	"fmt"
-	"hash/crc32"
-	"io"
 	"math"
 	"math/rand"
-	"os"
 	"strconv"
 	"time"
 
@@ -203,35 +200,44 @@ type SourceLineno uint64
 type InterpType int
 
 const (
-	// PHP identifies the PHP interpreter
-	PHP InterpType = iota + 1
-	// PHPJIT identifes PHP JIT processes
-	PHPJIT
-	// Python identifies the Python interpreter
-	Python
-	// Native identifies native frames.
-	Native
-	// Kernel identifies kernel frames.
-	Kernel
-	// HotSpot identifies Java HotSpot VM frames.
-	HotSpot
+	// UnknownInterp signifies that the interpreter is unknown.
+	UnknownInterp InterpType = 0
+	// PHP identifies the PHP interpreter.
+	PHP InterpType = 2
+	// PHPJIT identifes PHP JIT processes.
+	PHPJIT InterpType = 9
+	// Python identifies the Python interpreter.
+	Python InterpType = 1
+	// Native identifies native code.
+	Native InterpType = 3
+	// Kernel identifies kernel code.
+	Kernel InterpType = 4
+	// HotSpot identifies the Java HotSpot VM.
+	HotSpot InterpType = 5
 	// Ruby identifies the Ruby interpreter.
-	Ruby
-	// Perl identifies the Perl interpreter
-	Perl
-	// V8 identifies the V8 interpreter
-	V8
+	Ruby InterpType = 6
+	// Perl identifies the Perl interpreter.
+	Perl InterpType = 7
+	// V8 identifies the V8 interpreter.
+	V8 InterpType = 8
 )
 
+// Frame converts the interpreter type into the corresponding frame type.
+func (i InterpType) Frame() FrameType {
+	return FrameType(i)
+}
+
 var interpTypeToString = map[InterpType]string{
-	PHP:     "php",
-	Python:  "python",
-	Native:  "native",
-	Kernel:  "kernel",
-	HotSpot: "jvm",
-	Ruby:    "ruby",
-	Perl:    "perl",
-	V8:      "v8",
+	UnknownInterp: "unknown",
+	PHP:           "php",
+	PHPJIT:        "phpjit",
+	Python:        "python",
+	Native:        "native",
+	Kernel:        "kernel",
+	HotSpot:       "jvm",
+	Ruby:          "ruby",
+	Perl:          "perl",
+	V8:            "v8",
 }
 
 // String converts the frame type int to the related string value to be displayed in the UI.
@@ -240,85 +246,97 @@ func (i InterpType) String() string {
 		return result
 	}
 	// nolint:goconst
-	return "<unknown>"
+	return "<invalid>"
+}
+
+// FrameType defines the type of frame. This usually corresponds to the interpreter type that
+// emitted it, but can additionally contain meta-information like error frames.
+//
+// A frame type can represent one of the following things:
+//
+//   - A successfully unwound frame. This is represented simply as the `InterpType` ID.
+//   - A partial (non-critical failure), indicated by ORing the `InterpType` ID with the error bit.
+//   - A fatal failure that caused further unwinding to be aborted. This is indicated using the
+//     special value support.FrameMarkerAbort (0xFF). It thus also contains the error bit, but
+//     does not fit into the `InterpType` enum.
+type FrameType int
+
+// Convenience shorthands to create various frame types.
+//
+// Code should not compare against the constants below directly, but instead use the provided
+// methods to query the required information (IsError, Interpreter, ...) to improve forward
+// compatibility and clarify intentions.
+const (
+	// UnknownFrame indicates a frame of an unknown interpreter.
+	// If this appears, it's likely a bug somewhere.
+	UnknownFrame FrameType = 0
+	// PHPFrame identifies PHP interpreter frames.
+	PHPFrame FrameType = 2
+	// PHPJITFrame identifies PHP JIT interpreter frames.
+	PHPJITFrame FrameType = 9
+	// PythonFrame identifies the Python interpreter frames.
+	PythonFrame FrameType = 1
+	// NativeFrame identifies native frames.
+	NativeFrame FrameType = 3
+	// KernelFrame identifies kernel frames.
+	KernelFrame FrameType = 4
+	// HotSpotFrame identifies Java HotSpot VM frames.
+	HotSpotFrame FrameType = 5
+	// RubyFrame identifies the Ruby interpreter frames.
+	RubyFrame FrameType = 6
+	// PerlFrame identifies the Perl interpreter frames.
+	PerlFrame FrameType = 7
+	// V8Frame identifies the V8 interpreter frames.
+	V8Frame FrameType = 8
+	// AbortFrame identifies frames that report that further unwinding was aborted due to an error.
+	AbortFrame FrameType = 255
+)
+
+// Interpreter returns the interpreter that produced the frame.
+func (ty FrameType) Interpreter() (ity InterpType, ok bool) {
+	switch ty {
+	case AbortFrame, UnknownFrame:
+		return UnknownInterp, false
+	default:
+		return InterpType(ty & ^128), true
+	}
+}
+
+// IsInterpType checks whether the frame type belongs to the given interpreter.
+func (ty FrameType) IsInterpType(ity InterpType) bool {
+	ity2, ok := ty.Interpreter()
+	if !ok {
+		return false
+	}
+	return ity == ity2
+}
+
+// Error adds the error bit into the frame type.
+func (ty FrameType) Error() FrameType {
+	return ty | 128
+}
+
+// IsError checks whether the frame is an error frame.
+func (ty FrameType) IsError() bool {
+	return ty&128 != 0
+}
+
+// String implements the Stringer interface.
+func (ty FrameType) String() string {
+	switch ty {
+	case AbortFrame:
+		return "abort-marker"
+	default:
+		interp, _ := ty.Interpreter()
+		if ty.IsError() {
+			return fmt.Sprintf("%s-error", interp)
+		}
+		return interp.String()
+	}
 }
 
 // SourceType identifies the different forms of source code files that we may deal with.
 type SourceType int
-
-const (
-	SourceTypeC = iota
-	SourceTypeCPP
-	SourceTypePython
-	SourceTypePHP
-	SourceTypeGo
-	SourceTypeJava
-	SourceTypeRuby
-	SourceTypePerl
-	SourceTypeJavaScript
-)
-
-// PackageType identifies the different types of packages that we process
-type PackageType int32
-
-func (t PackageType) String() string {
-	if res, ok := packageTypeToString[t]; ok {
-		return res
-	}
-	// nolint:goconst
-	return "<unknown>"
-}
-
-const (
-	PackageTypeDeb = iota
-	PackageTypeRPM
-	PackageTypeCustomSymbols
-	PackageTypeAPK
-)
-
-var packageTypeToString = map[PackageType]string{
-	PackageTypeDeb:           "deb",
-	PackageTypeRPM:           "rpm",
-	PackageTypeCustomSymbols: "custom",
-	PackageTypeAPK:           "apk",
-}
-
-// SourcePackageType identifies the different types of source
-// package objects that we process
-type SourcePackageType int32
-
-const (
-	SourcePackageTypeDeb = iota
-	SourcePackageTypeRPM
-)
-
-const (
-	CodeIndexingPackageTypeDeb    = "deb"
-	CodeIndexingPackageTypeRpm    = "rpm"
-	CodeIndexingPackageTypeCustom = "custom"
-	CodeIndexingPackageTypeApk    = "apk"
-)
-
-type CodeIndexingMessage struct {
-	SourcePackageName    string `json:"sourcePackageName"`
-	SourcePackageVersion string `json:"sourcePackageVersion"`
-	MirrorName           string `json:"mirrorName"`
-	ForceRetry           bool   `json:"forceRetry"`
-}
-
-// LocalFSPackageID is a fake package identifier, indicating that a particular file was not part of
-// a package, but was extracted directly from a local filesystem.
-var LocalFSPackageID = PackageID{
-	basehash.New128(0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF),
-}
-
-// FileType identifies the different types of packages that we process
-type FileType int32
-
-const (
-	FileTypeNative = iota
-	FileTypePython
-)
 
 // Trace represents a stack trace. Each tuple (Files[i], Linenos[i]) represents a
 // stack frame via the file ID and line number at the offset i in the trace. The
@@ -326,7 +344,7 @@ const (
 type Trace struct {
 	Files         []FileID
 	Linenos       []AddressOrLineno
-	FrameTypes    []InterpType
+	FrameTypes    []FrameType
 	Comm          string
 	PodName       string
 	ContainerName string
@@ -343,57 +361,22 @@ type TraceAndMetadata struct {
 
 type TraceAndCounts struct {
 	Hash          TraceHash
+	Timestamp     UnixTime32
 	Count         uint16
 	Comm          string
 	PodName       string
 	ContainerName string
 }
 
-// StackFrame represents a stack frame - an ID for the file it belongs to, an
-// address (in case it is a binary file) or a line number (in case it is a source
-// file), and a type that says what type of frame this is (Python, PHP, native,
-// more languages in the future).
-// type StackFrame struct {
-//	file          FileID
-//	addressOrLine AddressOrLineno
-//	frameType     InterpType
-// }
-
-// ComputeFileCRC32 computes the CRC32 hash of a file
-func ComputeFileCRC32(filePath string) (int32, error) {
-	f, err := os.Open(filePath)
-	if err != nil {
-		return 0, fmt.Errorf("unable to compute CRC32 for %v: %v", filePath, err)
-	}
-	defer f.Close()
-
-	h := crc32.NewIEEE()
-
-	_, err = io.Copy(h, f)
-	if err != nil {
-		return 0, fmt.Errorf("unable to compute CRC32 for %v: %v (failed copy)", filePath, err)
-	}
-
-	return int32(h.Sum32()), nil
-}
-
-// TimeToInt64 converts a time.Time to an int64. It preserves the "zero-ness" across the
-// conversion, which means a zero Time is converted to 0.
-func TimeToInt64(t time.Time) int64 {
-	if t.IsZero() {
-		// t.UnixNano() is undefined if t.IsZero() is true.
-		return 0
-	}
-	return t.UnixNano()
-}
-
-// Int64ToTime converts an int64 to a time.Time. It preserves the "zero-ness" across the
-// conversion, which means 0 is converted to a zero time.Time (instead of the Unix epoch).
-func Int64ToTime(t int64) time.Time {
-	if t == 0 {
-		return time.Time{}
-	}
-	return time.Unix(0, t)
+type FrameMetadata struct {
+	FileID         FileID
+	SourceID       FileID
+	AddressOrLine  AddressOrLineno
+	LineNumber     SourceLineno
+	SourceType     SourceType
+	FunctionOffset uint32
+	FunctionName   string
+	Filename       string
 }
 
 // Void allows to use maps as sets without memory allocation for the values.
@@ -405,16 +388,6 @@ func Int64ToTime(t int64) time.Time {
 //	that only the keys are significant, but the space saving is marginal and the syntax more
 //	cumbersome, so we generally avoid it.
 type Void struct{}
-
-// Range describes a range with Start and End values.
-type Range struct {
-	Start uint64
-	End   uint64
-}
-
-// HeartbeatIntervalSeconds defines the base interval in seconds in which HAs send alive heartbeats
-// to CA.
-const HeartbeatIntervalSeconds = 30
 
 // AddJitter adds +/- jitter (jitter is [0..1]) to baseDuration
 func AddJitter(baseDuration time.Duration, jitter float64) time.Duration {

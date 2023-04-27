@@ -17,10 +17,10 @@ This modules sets up [rally daemons](https://esrally.readthedocs.io/en/stable/ra
 | Name | Version |
 |------|---------|
 | <a name="provider_archive"></a> [archive](#provider\_archive) | n/a |
-| <a name="provider_google"></a> [google](#provider\_google) | >=4.27.0 |
-| <a name="provider_null"></a> [null](#provider\_null) | >=3.1.1 |
+| <a name="provider_google"></a> [google](#provider\_google) | 4.33.0 |
+| <a name="provider_null"></a> [null](#provider\_null) | 3.1.1 |
 | <a name="provider_remote"></a> [remote](#provider\_remote) | >=0.1.0 |
-| <a name="provider_tls"></a> [tls](#provider\_tls) | >=4.0.1 |
+| <a name="provider_tls"></a> [tls](#provider\_tls) | 4.0.1 |
 
 ## Modules
 

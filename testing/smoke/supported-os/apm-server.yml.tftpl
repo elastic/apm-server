@@ -1,0 +1,13 @@
+apm-server:
+  host: 0.0.0.0:${apm_port}
+output:
+  elasticsearch:
+    hosts: [ ${elasticsearch_url} ]
+    username: ${elasticsearch_username}
+    password: ${elasticsearch_password}
+logging.level: debug
+logging.to_files: true
+logging.files:
+  path: /var/log/apm-server
+  name: apm-server
+

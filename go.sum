@@ -471,6 +471,8 @@ github.com/go-stack/stack v1.8.0 h1:5SgMzNM5HxrEjV0ww2lTmX6E2Izsfxas4+YHWRs3Lsk=
 github.com/go-test/deep v1.0.7 h1:/VSMRlnY/JSyqxQUzQLKVMAskpY/NZKFA5j2P+0pP2M=
 github.com/gobuffalo/here v0.6.7 h1:hpfhh+kt2y9JLDfhYUxxCRxQol540jsVfKUZzjlbp8o=
 github.com/gocarina/gocsv v0.0.0-20170324095351-ffef3ffc77be h1:zXHeEEJ231bTf/IXqvCfeaqjLpXsq42ybLoT4ROSR6Y=
+github.com/goccy/go-json v0.10.2 h1:CrxCmQqYDkv1z7lO7Wbh2HN93uovUHgrECaO5ZrCXAU=
+github.com/goccy/go-json v0.10.2/go.mod h1:6MelG93GURQebXPDq3khkgXZkazVtN9CRI+MGFi0w8I=
 github.com/gocql/gocql v0.0.0-20211222173705-d73e6b1002a7 h1:jmIMM+nEO+vjz9xaRIg9sZNtNLq5nsSbsxwe1OtRwv4=
 github.com/godbus/dbus v0.0.0-20190422162347-ade71ed3457e h1:BWhy2j3IXJhjCbC68FptL43tDKIq8FladmaTs3Xs7Z8=
 github.com/godbus/dbus/v5 v5.0.6 h1:mkgN1ofwASrYnJ5W6U/BxG15eXXXjirgZc7CLqkcaro=
@@ -608,6 +610,8 @@ github.com/hashicorp/hcl v1.0.0/go.mod h1:E5yfLk+7swimpb2L/Alb/PJmXilQ/rhwaUYs4T
 github.com/hashicorp/nomad/api v0.0.0-20201203164818-6318a8ac7bf8 h1:Yrz9yGVJf5Ce2KS7x8hS/MUTIeBmGEhF8nhzolRpSqY=
 github.com/hashicorp/yamux v0.0.0-20190923154419-df201c70410d h1:W+SIwDdl3+jXWeidYySAgzytE3piq6GumXeBjFBG67c=
 github.com/hectane/go-acl v0.0.0-20190604041725-da78bae5fc95 h1:S4qyfL2sEm5Budr4KVMyEniCy+PbS55651I/a+Kn/NQ=
+github.com/hnlq715/golang-lru v0.3.1 h1:Dau3lyBt7QKR4ASQCPZxmRfOvthOS+3QDTCd7aTxyrQ=
+github.com/hnlq715/golang-lru v0.3.1/go.mod h1:RBkgDAtlu0SgTPvpb4VW2/RQnkCBMRD3Lr6B9RhsAS8=
 github.com/ianlancetaylor/demangle v0.0.0-20181102032728-5e5cf60278f6 h1:UDMh68UUwekSh5iP2OMhRRZJiiBccgV7axzUG8vi56c=
 github.com/ianlancetaylor/demangle v0.0.0-20181102032728-5e5cf60278f6/go.mod h1:aSSvb/t6k1mPoxDqO4vJh6VOCGPwU4O0C2/Eqndh1Sc=
 github.com/imdario/mergo v0.3.12 h1:b6R2BslTbIEToALKP7LxUvijTsNI9TAe80pLWN2g/HU=
