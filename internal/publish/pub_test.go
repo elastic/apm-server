@@ -104,8 +104,6 @@ func TestPublisherStopShutdownInactive(t *testing.T) {
 }
 
 func BenchmarkPublisher(b *testing.B) {
-	b.Skip()
-
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Elastic-Product", "Elasticsearch")
