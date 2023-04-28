@@ -177,7 +177,6 @@ func BenchmarkPublisher(b *testing.B) {
 	// Close the publisher and wait for enqueued events to be published.
 	assert.NoError(b, publisher.Stop(context.Background()))
 	assert.NoError(b, acker.Wait(context.Background()))
-	acker.ClientClosed()
 	assert.NoError(b, pipeline.Close())
 	assert.Equal(b, int64(b.N), indexed)
 }

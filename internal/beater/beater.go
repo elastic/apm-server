@@ -828,7 +828,6 @@ func (s *Runner) newLibbeatFinalBatchProcessor(
 			// No output defined, so the acker will never be closed.
 			return nil
 		}
-		defer acker.ClientClosed()
 		return acker.Wait(ctx)
 	}
 	return publisher, stop, nil
