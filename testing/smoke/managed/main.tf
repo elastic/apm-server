@@ -12,7 +12,7 @@ provider "ec" {}
 
 module "tags" {
   source  = "../../infra/terraform/modules/tags"
-  project = "smoke-test-supported-os"
+  project = "smoke-test-ea-managed"
 }
 
 locals {
@@ -55,7 +55,7 @@ module "standalone_apm_server" {
   region                 = var.region
 
   tags       = merge(local.ci_tags, module.tags.tags)
-  ea_managed = false
+  ea_managed = true
 
   BRANCH       = var.BRANCH
   BUILD_ID     = var.BUILD_ID
