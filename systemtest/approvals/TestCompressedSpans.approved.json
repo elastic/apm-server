@@ -15,6 +15,17 @@
                 "outcome": "success",
                 "success_count": 1
             },
+            "host": {
+                "architecture": "i386",
+                "hostname": "beowulf",
+                "ip": [
+                    "127.0.0.1"
+                ],
+                "name": "beowulf",
+                "os": {
+                    "platform": "minix"
+                }
+            },
             "observer": {
                 "hostname": "dynamic",
                 "type": "apm-server",
@@ -79,6 +90,17 @@
                 "ingested": "dynamic",
                 "outcome": "success",
                 "success_count": 1
+            },
+            "host": {
+                "architecture": "i386",
+                "hostname": "beowulf",
+                "ip": [
+                    "127.0.0.1"
+                ],
+                "name": "beowulf",
+                "os": {
+                    "platform": "minix"
+                }
             },
             "observer": {
                 "hostname": "dynamic",
