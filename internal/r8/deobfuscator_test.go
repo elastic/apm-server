@@ -102,15 +102,14 @@ func TestDeobfuscateClassNameOnlyWhenMethodIsNotObfuscated(t *testing.T) {
 	// Expected output:
 	// at androidx.appcompat.app.AppCompatActivity.onStart(Unknown Source:0)
 	frame := createStacktraceFrame(0, "Unknown Source", "d.e", "onStart")
-	var stacktrace = new(model.Stacktrace)
-	*stacktrace = append(*stacktrace, frame)
+	stacktrace := model.Stacktrace{frame}
 
 	mapFilePath := "../../testdata/r8/deobfuscator/2/mapping"
 	reader, err := os.Open(mapFilePath)
 	require.Nil(t, err)
 	defer reader.Close()
 
-	err = Deobfuscate(stacktrace, reader)
+	err = Deobfuscate(&stacktrace, reader)
 	require.Nil(t, err)
 
 	verifyFrame(t, frame, FrameValidation{
