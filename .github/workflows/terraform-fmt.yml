@@ -14,4 +14,4 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: hashicorp/setup-terraform@v2
-      - run: find . -name '*.tf' -exec terraform fmt {} \;; git diff --exit-code
+      - run: terraform fmt -recursive -check -diff
