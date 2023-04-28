@@ -179,95 +179,105 @@ func TestDeobfuscateMultipleLines(t *testing.T) {
 	err = Deobfuscate(stacktrace, reader)
 	require.Nil(t, err)
 
-	verifyFrame(t, (*stacktrace)[0], FrameValidation{function: "getMethod", classname: "java.lang.Class"})
-	verifyFrame(t, (*stacktrace)[1], FrameValidation{function: "getMethod", classname: "java.lang.Class"})
-	verifyFrame(t, (*stacktrace)[2], FrameValidation{
-		updated:           true,
-		function:          "connectFailed",
-		classname:         "co.elastic.apm.android.common.okhttp.eventlistener.Generated_CompositeEventListener",
-		originalFunction:  "e",
-		originalClassname: "m1.b",
-	})
-	verifyFrame(t, (*stacktrace)[3], FrameValidation{
-		updated:           true,
-		function:          "connect",
-		classname:         "okhttp3.internal.connection.RealConnection",
-		originalFunction:  "c",
-		originalClassname: "n8.h",
-	})
-	verifyFrame(t, (*stacktrace)[4], FrameValidation{
-		updated: true,
-		function: `okhttp3.internal.connection.ExchangeFinder.findConnection
+	verifyFrames(t, *stacktrace, []FrameValidation{
+		{function: "getMethod", classname: "java.lang.Class"},
+		{function: "getMethod", classname: "java.lang.Class"},
+		{
+			updated:           true,
+			function:          "connectFailed",
+			classname:         "co.elastic.apm.android.common.okhttp.eventlistener.Generated_CompositeEventListener",
+			originalFunction:  "e",
+			originalClassname: "m1.b",
+		},
+		{
+			updated:           true,
+			function:          "connect",
+			classname:         "okhttp3.internal.connection.RealConnection",
+			originalFunction:  "c",
+			originalClassname: "n8.h",
+		},
+		{
+			updated: true,
+			function: `okhttp3.internal.connection.ExchangeFinder.findConnection
 findHealthyConnection`,
-		classname:         "okhttp3.internal.connection.ExchangeFinder",
-		originalFunction:  "a",
-		originalClassname: "n8.d",
-	})
-	verifyFrame(t, (*stacktrace)[5], FrameValidation{
-		updated: true,
-		function: `okhttp3.internal.connection.ExchangeFinder.find
+			classname:         "okhttp3.internal.connection.ExchangeFinder",
+			originalFunction:  "a",
+			originalClassname: "n8.d",
+		},
+		{
+			updated: true,
+			function: `okhttp3.internal.connection.ExchangeFinder.find
 okhttp3.internal.connection.RealCall.initExchange$okhttp
 intercept`,
-		classname:         "okhttp3.internal.connection.ConnectInterceptor",
-		originalFunction:  "intercept",
-		originalClassname: "n8.a",
+			classname:         "okhttp3.internal.connection.ConnectInterceptor",
+			originalFunction:  "intercept",
+			originalClassname: "n8.a",
+		},
+		{
+			updated:           true,
+			function:          "proceed",
+			classname:         "okhttp3.internal.http.RealInterceptorChain",
+			originalFunction:  "b",
+			originalClassname: "o8.f",
+		},
+		{
+			updated:           true,
+			function:          "intercept",
+			classname:         "okhttp3.internal.cache.CacheInterceptor",
+			originalFunction:  "intercept",
+			originalClassname: "l8.a",
+		},
+		{
+			updated:           true,
+			function:          "proceed",
+			classname:         "okhttp3.internal.http.RealInterceptorChain",
+			originalFunction:  "b",
+			originalClassname: "o8.f",
+		},
+		{
+			updated:           true,
+			function:          "intercept",
+			classname:         "okhttp3.internal.http.BridgeInterceptor",
+			originalFunction:  "intercept",
+			originalClassname: "o8.a",
+		},
+		{
+			updated:           true,
+			function:          "proceed",
+			classname:         "okhttp3.internal.http.RealInterceptorChain",
+			originalFunction:  "b",
+			originalClassname: "o8.f",
+		},
+		{
+			updated:           true,
+			function:          "intercept",
+			classname:         "okhttp3.internal.http.RetryAndFollowUpInterceptor",
+			originalFunction:  "intercept",
+			originalClassname: "o8.h",
+		},
+		{
+			updated:           true,
+			function:          "proceed",
+			classname:         "okhttp3.internal.http.RealInterceptorChain",
+			originalFunction:  "b",
+			originalClassname: "o8.f",
+		},
+		{
+			updated:           true,
+			function:          "intercept",
+			classname:         "co.elastic.apm.opbeans.app.di.ApplicationModule$provideOkHttpClient$$inlined$-addInterceptor$1",
+			originalFunction:  "intercept",
+			originalClassname: "b3.a",
+		},
 	})
-	verifyFrame(t, (*stacktrace)[6], FrameValidation{
-		updated:           true,
-		function:          "proceed",
-		classname:         "okhttp3.internal.http.RealInterceptorChain",
-		originalFunction:  "b",
-		originalClassname: "o8.f",
-	})
-	verifyFrame(t, (*stacktrace)[7], FrameValidation{
-		updated:           true,
-		function:          "intercept",
-		classname:         "okhttp3.internal.cache.CacheInterceptor",
-		originalFunction:  "intercept",
-		originalClassname: "l8.a",
-	})
-	verifyFrame(t, (*stacktrace)[8], FrameValidation{
-		updated:           true,
-		function:          "proceed",
-		classname:         "okhttp3.internal.http.RealInterceptorChain",
-		originalFunction:  "b",
-		originalClassname: "o8.f",
-	})
-	verifyFrame(t, (*stacktrace)[9], FrameValidation{
-		updated:           true,
-		function:          "intercept",
-		classname:         "okhttp3.internal.http.BridgeInterceptor",
-		originalFunction:  "intercept",
-		originalClassname: "o8.a",
-	})
-	verifyFrame(t, (*stacktrace)[10], FrameValidation{
-		updated:           true,
-		function:          "proceed",
-		classname:         "okhttp3.internal.http.RealInterceptorChain",
-		originalFunction:  "b",
-		originalClassname: "o8.f",
-	})
-	verifyFrame(t, (*stacktrace)[11], FrameValidation{
-		updated:           true,
-		function:          "intercept",
-		classname:         "okhttp3.internal.http.RetryAndFollowUpInterceptor",
-		originalFunction:  "intercept",
-		originalClassname: "o8.h",
-	})
-	verifyFrame(t, (*stacktrace)[12], FrameValidation{
-		updated:           true,
-		function:          "proceed",
-		classname:         "okhttp3.internal.http.RealInterceptorChain",
-		originalFunction:  "b",
-		originalClassname: "o8.f",
-	})
-	verifyFrame(t, (*stacktrace)[13], FrameValidation{
-		updated:           true,
-		function:          "intercept",
-		classname:         "co.elastic.apm.opbeans.app.di.ApplicationModule$provideOkHttpClient$$inlined$-addInterceptor$1",
-		originalFunction:  "intercept",
-		originalClassname: "b3.a",
-	})
+}
+
+func verifyFrames(t *testing.T, frames []*model.StacktraceFrame, validations []FrameValidation) {
+	assert.Equal(t, len(validations), len(frames))
+
+	for index, frame := range frames {
+		verifyFrame(t, frame, validations[index])
+	}
 }
 
 func verifyFrame(t *testing.T, frame *model.StacktraceFrame, validation FrameValidation) {
