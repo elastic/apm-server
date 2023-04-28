@@ -157,21 +157,22 @@ func TestDeobfuscateMultipleLines(t *testing.T) {
 	//at okhttp3.internal.http.RealInterceptorChain.proceed(SourceFile:7)
 	//at co.elastic.apm.opbeans.app.di.ApplicationModule$provideOkHttpClient$$inlined$-addInterceptor$1.intercept(SourceFile:5)
 
-	var stacktrace = new(model.Stacktrace)
-	*stacktrace = append(*stacktrace, createStacktraceFrame(2103, "Class.java", "java.lang.Class", "getMethod"))
-	*stacktrace = append(*stacktrace, createStacktraceFrame(1724, "Class.java", "java.lang.Class", "getMethod"))
-	*stacktrace = append(*stacktrace, createStacktraceFrame(32, "Unknown Source", "m1.b", "e"))
-	*stacktrace = append(*stacktrace, createStacktraceFrame(30, "SourceFile", "n8.h", "c"))
-	*stacktrace = append(*stacktrace, createStacktraceFrame(50, "SourceFile", "n8.d", "a"))
-	*stacktrace = append(*stacktrace, createStacktraceFrame(11, "SourceFile", "n8.a", "intercept"))
-	*stacktrace = append(*stacktrace, createStacktraceFrame(7, "SourceFile", "o8.f", "b"))
-	*stacktrace = append(*stacktrace, createStacktraceFrame(29, "SourceFile", "l8.a", "intercept"))
-	*stacktrace = append(*stacktrace, createStacktraceFrame(7, "SourceFile", "o8.f", "b"))
-	*stacktrace = append(*stacktrace, createStacktraceFrame(21, "SourceFile", "o8.a", "intercept"))
-	*stacktrace = append(*stacktrace, createStacktraceFrame(7, "SourceFile", "o8.f", "b"))
-	*stacktrace = append(*stacktrace, createStacktraceFrame(25, "SourceFile", "o8.h", "intercept"))
-	*stacktrace = append(*stacktrace, createStacktraceFrame(7, "SourceFile", "o8.f", "b"))
-	*stacktrace = append(*stacktrace, createStacktraceFrame(5, "SourceFile", "b3.a", "intercept"))
+	stacktrace := model.Stacktrace{
+		createStacktraceFrame(2103, "Class.java", "java.lang.Class", "getMethod"),
+		createStacktraceFrame(1724, "Class.java", "java.lang.Class", "getMethod"),
+		createStacktraceFrame(32, "Unknown Source", "m1.b", "e"),
+		createStacktraceFrame(30, "SourceFile", "n8.h", "c"),
+		createStacktraceFrame(50, "SourceFile", "n8.d", "a"),
+		createStacktraceFrame(11, "SourceFile", "n8.a", "intercept"),
+		createStacktraceFrame(7, "SourceFile", "o8.f", "b"),
+		createStacktraceFrame(29, "SourceFile", "l8.a", "intercept"),
+		createStacktraceFrame(7, "SourceFile", "o8.f", "b"),
+		createStacktraceFrame(21, "SourceFile", "o8.a", "intercept"),
+		createStacktraceFrame(7, "SourceFile", "o8.f", "b"),
+		createStacktraceFrame(25, "SourceFile", "o8.h", "intercept"),
+		createStacktraceFrame(7, "SourceFile", "o8.f", "b"),
+		createStacktraceFrame(5, "SourceFile", "b3.a", "intercept"),
+	}
 
 	mapFilePath := "../../testdata/r8/deobfuscator/3/mapping"
 	reader, err := os.Open(mapFilePath)
