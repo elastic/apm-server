@@ -17,4 +17,4 @@ https://github.com/elastic/apm-server/compare/8.8\...main[View commits]
 
 [float]
 ==== Added
-- Span events now carry `host` and `service.version` attributes.
+- Span events now carry `host` and `service.version` attributes. {pull}10697[10697]
