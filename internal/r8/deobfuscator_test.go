@@ -44,15 +44,14 @@ func TestSimpleLineDeobfuscation(t *testing.T) {
 	// Expected output:
 	// at androidx.appcompat.view.menu.MenuBuilder.dispatchMenuItemSelected(Unknown Source:4)
 	frame := createStacktraceFrame(4, "Unknown Source", "androidx.appcompat.view.menu.e", "f")
-	var stacktrace = new(model.Stacktrace)
-	*stacktrace = append(*stacktrace, frame)
+	stacktrace := model.Stacktrace{frame}
 
 	mapFilePath := "../../testdata/r8/deobfuscator/1/mapping"
 	reader, err := os.Open(mapFilePath)
 	require.NoError(t, err)
 	defer reader.Close()
 
-	err = Deobfuscate(stacktrace, reader)
+	err = Deobfuscate(&stacktrace, reader)
 	require.NoError(t, err)
 
 	verifyFrame(t, frame, FrameValidation{
