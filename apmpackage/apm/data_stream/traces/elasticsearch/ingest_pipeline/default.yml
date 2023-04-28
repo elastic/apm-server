@@ -31,14 +31,12 @@ processors:
       # Remove some metadata from spans that is available in the parent transaction, to cut down on storage costs.
       if: ctx.processor?.event == 'span'
       field:
-        - host
         - process
         - user
         - user_agent
         - container
         - kubernetes
         - service.node
-        - service.version
         - service.language
         - service.runtime
         - service.framework
