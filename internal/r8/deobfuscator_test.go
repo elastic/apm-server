@@ -72,15 +72,14 @@ func TestDeobfuscateCompressedLine(t *testing.T) {
 	//																				co.elastic.apm.opbeans.HomeActivity.setUpBottomNavigation$lambda-0
 	//																				onMenuItemSelected
 	frame := createStacktraceFrame(11, "SourceFile", "i6.f", "a")
-	var stacktrace = new(model.Stacktrace)
-	*stacktrace = append(*stacktrace, frame)
+	stacktrace := model.Stacktrace{frame}
 
 	mapFilePath := "../../testdata/r8/deobfuscator/1/mapping"
 	reader, err := os.Open(mapFilePath)
 	require.Nil(t, err)
 	defer reader.Close()
 
-	err = Deobfuscate(stacktrace, reader)
+	err = Deobfuscate(&stacktrace, reader)
 	require.Nil(t, err)
 
 	verifyFrame(t, frame, FrameValidation{
