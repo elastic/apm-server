@@ -12,18 +12,18 @@ variable "aws_provisioner_key_name" {
 
 variable "elasticsearch_url" {
   description = "The secure Elasticsearch URL"
-type = string
+  type        = string
 }
 
 variable "elasticsearch_username" {
   sensitive   = true
-type = string
+  type        = string
   description = "The Elasticsearch username"
 }
 
 variable "elasticsearch_password" {
   sensitive   = true
-type = string
+  type        = string
   description = "The Elasticsearch password"
 }
 
@@ -46,9 +46,9 @@ variable "worker_region" {
 }
 
 variable "ea_managed" {
-default = false
-   description = "Whether or not install Elastic Agent managed APM Server"
-   type = bool
+  default     = false
+  description = "Whether or not install Elastic Agent managed APM Server"
+  type        = bool
 }
 
 variable "tags" {
@@ -80,4 +80,3 @@ variable "ENVIRONMENT" {
 variable "REPO" {
   default = "unknown"
 }
-

@@ -173,4 +173,3 @@ resource "random_password" "apm_secret_token" {
   length  = 16
   special = false
 }
-

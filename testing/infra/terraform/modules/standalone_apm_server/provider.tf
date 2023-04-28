@@ -4,4 +4,3 @@ provider "aws" {
     tags = var.tags
   }
 }
-

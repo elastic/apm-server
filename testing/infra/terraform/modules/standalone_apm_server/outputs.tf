@@ -8,28 +8,3 @@ output "apm_server_url" {
   value       = "${aws_instance.apm.public_ip}:${local.apm_port}"
   description = "The APM Server URL"
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
