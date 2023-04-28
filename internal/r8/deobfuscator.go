@@ -55,7 +55,7 @@ func Deobfuscate(stacktrace *model.Stacktrace, mapFile io.Reader) error {
 // Iterates over the stacktrace and groups the frames by classname, along with its methods, which are grouped by
 // the method name.
 func groupUniqueTypes(stacktrace *model.Stacktrace) (map[string]StacktraceType, error) {
-	var symbols = make(map[string]StacktraceType)
+	var types = make(map[string]StacktraceType)
 
 	for _, frame := range *stacktrace {
 		typeName := frame.Classname
@@ -68,29 +68,29 @@ func groupUniqueTypes(stacktrace *model.Stacktrace) (map[string]StacktraceType, 
 			// when looping through the map file looking for the de-obfuscated names.
 			methodName = fmt.Sprintf("%s:%d", methodName, *frame.Lineno)
 		}
-		symbol, ok := symbols[typeName]
+		typeItem, ok := types[typeName]
 		if !ok {
-			symbol = StacktraceType{
+			typeItem = StacktraceType{
 				methods: make(map[string][]*model.StacktraceFrame),
 			}
-			symbols[typeName] = symbol
+			types[typeName] = typeItem
 		}
-		_, ok = symbol.methods[methodName]
+		_, ok = typeItem.methods[methodName]
 		if !ok {
-			symbol.methods[methodName] = make([]*model.StacktraceFrame, 0)
+			typeItem.methods[methodName] = make([]*model.StacktraceFrame, 0)
 		}
-		symbol.methods[methodName] = append(symbol.methods[methodName], frame)
+		typeItem.methods[methodName] = append(typeItem.methods[methodName], frame)
 
-		symbols[typeName] = symbol
+		types[typeName] = typeItem
 	}
 
-	return symbols, nil
+	return types, nil
 }
 
 // Iterates over the classes and methods found in the map file while looking for classes previously found in the stacktrace.
 // When it finds a class from the stacktrace, it replaces the obfuscated class name and method names by
 // the ones found in the map.
-func resolveMappings(symbols map[string]StacktraceType, mapReader io.Reader) error {
+func resolveMappings(types map[string]StacktraceType, mapReader io.Reader) error {
 	scanner := bufio.NewScanner(mapReader)
 	var currentType *StacktraceType
 
@@ -100,7 +100,7 @@ func resolveMappings(symbols map[string]StacktraceType, mapReader io.Reader) err
 		if typeMatch != nil {
 			// Found a class declaration within the map.
 			obfuscatedName := typeMatch[2]
-			stacktraceType, ok := symbols[obfuscatedName]
+			stacktraceType, ok := types[obfuscatedName]
 			if ok {
 				// The class found is also in the stacktrace.
 				currentType = &stacktraceType
