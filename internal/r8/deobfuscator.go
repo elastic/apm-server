@@ -28,7 +28,6 @@ import (
 
 // StacktraceType groups frames belonging to a single class as well as frames that represent the same method call.
 type StacktraceType struct {
-	frames  []*model.StacktraceFrame
 	methods map[string][]*model.StacktraceFrame // Maps method references to all the frames where it appears.
 }
 
@@ -72,12 +71,10 @@ func groupUniqueTypes(stacktrace *model.Stacktrace) (map[string]StacktraceType, 
 		symbol, ok := symbols[typeName]
 		if !ok {
 			symbol = StacktraceType{
-				frames:  make([]*model.StacktraceFrame, 0),
 				methods: make(map[string][]*model.StacktraceFrame),
 			}
 			symbols[typeName] = symbol
 		}
-		symbol.frames = append(symbol.frames, frame)
 		_, ok = symbol.methods[methodName]
 		if !ok {
 			symbol.methods[methodName] = make([]*model.StacktraceFrame, 0)
@@ -107,11 +104,13 @@ func resolveMappings(symbols map[string]StacktraceType, mapReader io.Reader) err
 			if ok {
 				// The class found is also in the stacktrace.
 				currentType = &stacktraceType
-				for _, frame := range stacktraceType.frames {
-					// Multiple frames might point to the same class, so we need to deobfuscate the class name for them all.
-					frame.Original.Classname = obfuscatedName
-					frame.Classname = typeMatch[1]
-					frame.SourcemapUpdated = true
+				for _, frames := range stacktraceType.methods {
+					for _, frame := range frames {
+						// Multiple frames might point to the same class, so we need to deobfuscate the class name for them all.
+						frame.Original.Classname = obfuscatedName
+						frame.Classname = typeMatch[1]
+						frame.SourcemapUpdated = true
+					}
 				}
 			} else {
 				// The class found is not part of the stacktrace. We need to clear the current type to avoid looping
