@@ -807,7 +807,7 @@ func (s *Runner) newLibbeatFinalBatchProcessor(
 		output, err := outputs.Load(indexSupporter, beatInfo, stats, outputName, s.outputConfig.Config())
 		return outputName, output, err
 	}
-	pipeline, err := pipeline.Load(beatInfo, monitors, pipeline.Config{}, &nopProcessingSupporter{}, outputFactory)
+	pipeline, err := pipeline.Load(beatInfo, monitors, pipeline.Config{}, nopProcessingSupporter{}, outputFactory)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create libbeat output pipeline: %w", err)
 	}
@@ -927,14 +927,14 @@ func queryClusterUUID(ctx context.Context, esClient *elasticsearch.Client) error
 type nopProcessingSupporter struct {
 }
 
-func (*nopProcessingSupporter) Close() error {
+func (nopProcessingSupporter) Close() error {
 	return nil
 }
 
-func (p *nopProcessingSupporter) Processors() []string {
+func (nopProcessingSupporter) Processors() []string {
 	return nil
 }
 
-func (p *nopProcessingSupporter) Create(cfg beat.ProcessingConfig, _ bool) (beat.Processor, error) {
+func (nopProcessingSupporter) Create(cfg beat.ProcessingConfig, _ bool) (beat.Processor, error) {
 	return cfg.Processor, nil
 }
