@@ -312,7 +312,7 @@ func TestServiceTransactionMetricsAggregationLabelsRUM(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
 	srv := apmservertest.NewServerTB(t)
 
-	rumPayloadWithLabels := `{"metadata":{"service":{"name":"rum-js-test","agent":{"name":"rum-js","version":"5.5.0"}}},"labels": {"tag0": null, "tag1": "one", "tag2": 2}}
+	rumPayloadWithLabels := `{"metadata":{"service":{"name":"rum-js-test","agent":{"name":"rum-js","version":"5.5.0"}},"labels": {"tag0": null, "tag1": "one", "tag2": 2}}}
 {"transaction":{"trace_id":"611f4fa950f04631aaaaaaaaaaaaaaaa","id":"611f4fa950f04631","type":"page-load","duration":643,"span_count":{"started":0}}}
 `
 	systemtest.SendBackendEventsLiteral(t, srv.URL, rumPayloadWithLabels)
