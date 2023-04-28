@@ -155,7 +155,7 @@ func TestDeobfuscateMultipleLines(t *testing.T) {
 	//at okhttp3.internal.http.RealInterceptorChain.proceed(SourceFile:7)
 	//at co.elastic.apm.opbeans.app.di.ApplicationModule$provideOkHttpClient$$inlined$-addInterceptor$1.intercept(SourceFile:5)
 
-	stacktrace := model.Stacktrace{
+	stacktrace := &model.Stacktrace{
 		createStacktraceFrame(2103, "Class.java", "java.lang.Class", "getMethod"),
 		createStacktraceFrame(1724, "Class.java", "java.lang.Class", "getMethod"),
 		createStacktraceFrame(32, "Unknown Source", "m1.b", "e"),
