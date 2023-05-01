@@ -1,0 +1,11 @@
+---
+description: Pipeline for ingesting APM application logs.
+processors:
+  - pipeline:
+      name: process_ppid
+  - pipeline:
+      name: observer_version
+  - pipeline:
+      name: observer_ids
+  - pipeline:
+      name: ecs_version
