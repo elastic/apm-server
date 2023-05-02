@@ -1,5 +1,10 @@
 - version: "generated"
   changes:
+    - description: Placeholder
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/123
+- version: "8.7.1"
+  changes:
     - description: Add missing `agent.activation_method` mapping to `logs-apm.app`, `metrics-apm.app`, `logs-apm.error` and `metrics-apm.internal`
       type: bugfix
       link: https://github.com/elastic/apm-server/pull/10552
