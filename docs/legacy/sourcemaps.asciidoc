@@ -5,9 +5,6 @@
 <titleabbrev>Create and upload source maps (RUM)</titleabbrev>
 ++++
 
-IMPORTANT: {deprecation-notice-data}
-If you've already upgraded, please see <<source-map-how-to>> instead.
-
 Minifying JavaScript bundles in production is a common practice;
 it can greatly improve the load time and network latency of your applications.
 The problem with minifying code is that it can be hard to debug.

@@ -5,9 +5,6 @@
 <titleabbrev>Server information</titleabbrev>
 ++++
 
-IMPORTANT: {deprecation-notice-api}
-If you've already upgraded, see <<api-info>>.
-
 The APM Server exposes an API endpoint to query general server information.
 This lightweight endpoint is useful as a server up/down health check.
 

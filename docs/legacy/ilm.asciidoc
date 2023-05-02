@@ -4,7 +4,4 @@
 // Appends `-legacy` to each section's ID so that they are different from the APM integration IDs
 :append-legacy: -legacy
 
-IMPORTANT: {deprecation-notice-data}
-If you've already upgraded, please see <<ilm-how-to>> instead.
-
 include::../ilm-how-to.asciidoc[tag=ilm-integration]

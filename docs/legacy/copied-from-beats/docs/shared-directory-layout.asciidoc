@@ -14,8 +14,6 @@
 
 // lint disable usr
 
-IMPORTANT: {deprecation-notice-installation}
-
 The directory layout of an installation is as follows:
 
 [cols="<h,<,<m,<m",options="header",]

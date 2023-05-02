@@ -1,8 +1,6 @@
 [[intake-api]]
 = API
 
-IMPORTANT: {deprecation-notice-api}
-If you've already upgraded, see <<api>>.
 
 The APM Server exposes endpoints for:
 

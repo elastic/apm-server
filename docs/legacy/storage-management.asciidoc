@@ -5,9 +5,6 @@
 <titleabbrev>Manage Storage</titleabbrev>
 ++++
 
-IMPORTANT: {deprecation-notice-data}
-If you've already upgraded, please see <<manage-storage>> instead.
-
 * <<sizing-guide, Storage and sizing guide>>
 * <<processing-performance, Processing and performance>>
 * <<reduce-storage, Reduce storage usage>>
@@ -16,9 +13,6 @@ If you've already upgraded, please see <<manage-storage>> instead.
 
 [[sizing-guide]]
 === Storage and sizing guide
-
-IMPORTANT: {deprecation-notice-data}
-If you've already upgraded, please see <<storage-guide>> instead.
 
 APM processing and storage costs are largely dominated by transactions, spans, and stack frames.
 
@@ -85,9 +79,6 @@ NOTE: These examples were indexing the same data over and over with minimal vari
 [[processing-performance]]
 === Processing and performance
 
-IMPORTANT: {deprecation-notice-data}
-If you've already upgraded, please see <<processing-and-performance>> instead.
-
 APM Server performance depends on a number of factors: memory and CPU available,
 network latency, transaction sizes, workload patterns,
 agent and server settings, versions, and protocol.
@@ -132,9 +123,6 @@ NOTE: RUM deserves special consideration. The RUM agent runs in browsers, and th
 
 [[reduce-storage]]
 === Reduce storage
-
-IMPORTANT: {deprecation-notice-data}
-If you've already upgraded, please see <<reduce-apm-storage>> instead.
 
 The amount of storage for APM data depends on several factors:
 the number of services you are instrumenting, how much traffic the services see, agent and server settings,
@@ -252,9 +240,6 @@ Then click **delete indices**.
 [[manage-indices-kibana]]
 === Manage Indices via {kib}
 
-IMPORTANT: {deprecation-notice-data}
-If you've already upgraded, please see <<reduce-apm-storage>> instead.
-
 The {kib} UI for {kibana-ref}/managing-indices.html[managing indices] allows you to view indices,
 index settings, mappings, document counts, used storage per index, and much more.
 You can also perform management operations, like deleting indices directly via the {kib} UI.
@@ -262,9 +247,6 @@ Finally, the UI supports applying bulk operations on several indices at once.
 
 [[update-existing-data]]
 === Update existing data
-
-IMPORTANT: {deprecation-notice-data}
-If you've already upgraded, please see <<reduce-apm-storage>> instead.
 
 You might want to update documents that are already indexed.
 For example, if you your service name was set incorrectly.

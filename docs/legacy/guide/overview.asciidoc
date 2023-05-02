@@ -5,7 +5,6 @@ There are two ways to install, run, and manage Elastic APM:
 * With the standalone (legacy) APM Server binary
 
 This documentation focuses on option two: the **standalone (legacy) APM Server binary**.
-{deprecation-notice-installation}
 ****
 
 Elastic APM is an application performance monitoring system built on the {stack}.

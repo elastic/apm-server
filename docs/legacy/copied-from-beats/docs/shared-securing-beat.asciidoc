@@ -5,9 +5,6 @@
 <titleabbrev>Secure</titleabbrev>
 ++++
 
-IMPORTANT: {deprecation-notice-config}
-If you're using {fleet} and the Elastic APM integration, please see <<secure-agent-communication>> instead.
-
 The following topics provide information about securing the {beatname_uc}
 process and connecting to a cluster that has {security-features} enabled.
 
