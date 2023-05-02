@@ -184,6 +184,11 @@
                 "ingested": "dynamic",
                 "outcome": "unknown"
             },
+            "host": {
+                "ip": [
+                    "127.0.0.1"
+                ]
+            },
             "observer": {
                 "hostname": "dynamic",
                 "type": "apm-server",
@@ -227,6 +232,11 @@
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
                 "outcome": "unknown"
+            },
+            "host": {
+                "ip": [
+                    "127.0.0.1"
+                ]
             },
             "observer": {
                 "hostname": "dynamic",
