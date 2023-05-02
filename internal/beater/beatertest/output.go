@@ -80,10 +80,10 @@ type nullOutput struct {
 }
 
 func init() {
-	outputs.RegisterType("null", makeConsole)
+	outputs.RegisterType("null", makeNullOutput)
 }
 
-func makeConsole(
+func makeNullOutput(
 	_ outputs.IndexManager,
 	_ beat.Info,
 	observer outputs.Observer,
