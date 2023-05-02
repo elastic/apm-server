@@ -82,6 +82,24 @@ func (h Hash128) IsZero() bool {
 	return h.hi == 0 && h.lo == 0
 }
 
+// Compare returns an integer comparing two hashes lexicographically.
+// The result will be 0 if h == other, -1 if h < other, and +1 if h > other.
+func (h Hash128) Compare(other Hash128) int {
+	if int64(h.hi) < int64(other.hi) {
+		return -1
+	}
+	if int64(h.hi) > int64(other.hi) {
+		return 1
+	}
+	if int64(h.lo) < int64(other.lo) {
+		return -1
+	}
+	if int64(h.lo) > int64(other.lo) {
+		return 1
+	}
+	return 0
+}
+
 // copyBytes copies the byte slice representation of a Hash128 into b.
 func (h Hash128) copyBytes(b []byte) []byte {
 	binary.BigEndian.PutUint64(b[0:8], h.hi)

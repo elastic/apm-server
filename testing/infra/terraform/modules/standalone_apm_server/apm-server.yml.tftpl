@@ -1,0 +1,19 @@
+apm-server:
+  host: 0.0.0.0:${apm_port}
+  auth:
+    api_key:
+      enabled: true
+    secret_token: ${apm_secret_token}
+  rum:
+    enabled: true
+output:
+  elasticsearch:
+    hosts: [ ${elasticsearch_url} ]
+    username: ${elasticsearch_username}
+    password: ${elasticsearch_password}
+logging.level: debug
+logging.to_files: true
+logging.files:
+  path: /var/log/apm-server
+  name: apm-server
+  permissions: 0777

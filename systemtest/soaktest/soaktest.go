@@ -70,6 +70,7 @@ func runAgent(ctx context.Context, expr string, limiter *rate.Limiter, rng *rand
 		RewriteServiceTargetNames: loadgencfg.Config.RewriteServiceTargetNames,
 		RewriteSpanNames:          loadgencfg.Config.RewriteSpanNames,
 		RewriteTransactionNames:   loadgencfg.Config.RewriteTransactionNames,
+		RewriteTransactionTypes:   loadgencfg.Config.RewriteTransactionTypes,
 		RewriteTimestamps:         loadgencfg.Config.RewriteTimestamps,
 		Headers:                   headers,
 	})
@@ -77,16 +78,9 @@ func runAgent(ctx context.Context, expr string, limiter *rate.Limiter, rng *rand
 		return err
 	}
 
-	for {
-		select {
-		case <-ctx.Done():
-			return nil
-		default:
-			_, err = handler.SendBatches(ctx)
-			if err != nil {
-				return err
-			}
-		}
+	if err := handler.SendBatchesInLoop(ctx); err != nil {
+		return err
 	}
+
 	return nil
 }

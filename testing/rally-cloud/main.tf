@@ -29,15 +29,15 @@ module "ec_deployment" {
   elasticsearch_size       = var.elasticsearch_size
   elasticsearch_zone_count = var.elasticsearch_zone_count
 
-  custom_apm_integration_pkg_path    = var.custom_apm_integration_pkg_path
+  custom_apm_integration_pkg_path = var.custom_apm_integration_pkg_path
 }
 
 module "rally_workers" {
   source = "../infra/terraform/modules/rally_workers"
 
-  gcp_project     = var.gcp_project
-  gcp_region      = var.gcp_region
-  machine_type    = var.rally_machine_type
+  gcp_project  = var.gcp_project
+  gcp_region   = var.gcp_region
+  machine_type = var.rally_machine_type
 
   resource_prefix      = var.rally_workers_resource_prefix
   rally_dir            = var.rally_dir

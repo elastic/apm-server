@@ -158,6 +158,12 @@ func withRewriteTransactionNames(rewrite bool) newHandlerOption {
 	}
 }
 
+func withRewriteTransactionTypes(rewrite bool) newHandlerOption {
+	return func(config *Config) {
+		config.RewriteTransactionTypes = rewrite
+	}
+}
+
 func withRewriteSpanNames(rewrite bool) newHandlerOption {
 	return func(config *Config) {
 		config.RewriteSpanNames = rewrite
@@ -285,6 +291,26 @@ func TestHandlerSendBatches(t *testing.T) {
 		assert.Equal(t, 32, n)                   // Ensure there are 32 events (minus metadata).
 		assert.Equal(t, 2, len(handler.batches)) // Ensure there are 2 batches.
 		assert.Equal(t, 4, srv.requestCount)     // a batch split into 2 requests.
+	})
+	t.Run("success-queue-when-batch-size-is-smaller-than-burst", func(t *testing.T) {
+		handler, srv := newHandler(t, withRateLimiter(rate.NewLimiter(6, 12))) // event rate = 12/2sec
+		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+		defer cancel()
+		n, _ := handler.SendBatches(ctx)
+		// 12 (1st sec) sent, wait for 2 sec to send events
+		// cancelling at 2nd sec shows queued batches
+		assert.Equal(t, 2, len(handler.batches)) // Ensure there are 2 batches.
+		assert.Equal(t, 12, srv.received)        // no events sent until next interval (only first burst)
+		assert.Equal(t, 12, n)
+	})
+	t.Run("success-dequeue-events-and-send-at-next-interval", func(t *testing.T) {
+		handler, srv := newHandler(t, withRateLimiter(rate.NewLimiter(6, 12))) // event rate = 12/2sec
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
+		n, _ := handler.SendBatches(ctx)
+		// 12 (1st sec) + 12 (3rd sec)
+		assert.Equal(t, 24, srv.received) // Ensure the events are sent after 2 seconds
+		assert.Equal(t, 24, n)
 	})
 }
 
@@ -429,6 +455,7 @@ func TestHandlerSendBatchesRewriteServiceNames(t *testing.T) {
 
 	originalPayload := fmt.Sprintf(`
 {"metadata":{"service":{"name":"%s"}}}
+{"transaction":{}}
 `[1:], serviceName)
 
 	fs := fstest.MapFS{"foo.ndjson": {Data: []byte(originalPayload)}}
@@ -473,6 +500,7 @@ func TestHandlerSendBatchesRewriteServiceNodeNames(t *testing.T) {
 
 	originalPayload := fmt.Sprintf(`
 {"metadata":{"service":{"node":{"configured_name":"%s"}}}}
+{"transaction":{}}
 `[1:], serviceNodeName)
 
 	fs := fstest.MapFS{"foo.ndjson": {Data: []byte(originalPayload)}}
@@ -677,13 +705,65 @@ func TestHandlerSendBatchesRewriteTransactionNames(t *testing.T) {
 	run(t, true)
 }
 
-func TestHandlerWarmUp(t *testing.T) {
+func TestHandlerSendBatchesRewriteTransactionTypes(t *testing.T) {
+	transactionType := "Transaction_Type_123"
+
+	originalPayload := fmt.Sprintf(`
+{"metadata":{}}
+{"transaction":{"type":%q}}
+`[1:], transactionType)
+
+	fs := fstest.MapFS{"foo.ndjson": {Data: []byte(originalPayload)}}
+
+	run := func(t *testing.T, rewrite bool) {
+		t.Helper()
+		t.Run(strconv.FormatBool(rewrite), func(t *testing.T) {
+			handler, srv := newHandler(t,
+				withStorage(fs),
+				withRewriteTransactionTypes(rewrite),
+				withRand(rand.New(rand.NewSource(123456))), // known seed
+			)
+			_, err := handler.SendBatches(context.Background())
+			assert.NoError(t, err)
+
+			if !rewrite {
+				// Original payload should be sent as-is.
+				assert.Equal(t, originalPayload, srv.got.String())
+				return
+			}
+
+			d := json.NewDecoder(bytes.NewReader(srv.got.Bytes()))
+			type object map[string]struct {
+				Type string `json:"type"`
+			}
+			var objects []object
+			for {
+				var object object
+				err := d.Decode(&object)
+				if errors.Is(err, io.EOF) {
+					break
+				}
+				require.NoError(t, err)
+				objects = append(objects, object)
+			}
+
+			assert.Equal(t, []object{
+				{"metadata": {}},
+				{"transaction": {Type: "Swfcucefmkl_Nfmk_959"}},
+			}, objects)
+		})
+	}
+	run(t, false)
+	run(t, true)
+}
+
+func TestHandlerInLoop(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		h, srv := newHandler(t)
 		ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
 		defer cancel()
 		// Warm up with more events than  saved.
-		err := h.WarmUpServer(ctx)
+		err := h.SendBatchesInLoop(ctx)
 		assert.ErrorIs(t, err, context.DeadlineExceeded)
 		assert.Greater(t, srv.received, 0)
 	})
@@ -691,9 +771,21 @@ func TestHandlerWarmUp(t *testing.T) {
 		h, srv := newHandler(t)
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 		cancel()
-		err := h.WarmUpServer(ctx)
+		err := h.SendBatchesInLoop(ctx)
 		assert.ErrorIs(t, err, context.Canceled)
 		assert.Equal(t, 0, srv.received)
+	})
+
+	t.Run("success-with-burst-bigger-than-batches", func(t *testing.T) {
+		// the total number of events in batches are smaller than burst
+		// in this case it should call multiple sendBatches to meet the target burst
+		h, srv := newHandler(t, withRateLimiter(rate.NewLimiter(40*rate.Every(time.Second), 40)))
+		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+		defer cancel()
+		err := h.SendBatchesInLoop(ctx)
+
+		assert.Error(t, err)
+		assert.Equal(t, 80, srv.received)
 	})
 }
 
@@ -736,6 +828,9 @@ func BenchmarkSendBatches(b *testing.B) {
 	})
 	b.Run("rewrite_transaction_names", func(b *testing.B) {
 		run(b, withRewriteTransactionNames(true))
+	})
+	b.Run("rewrite_transaction_types", func(b *testing.B) {
+		run(b, withRewriteTransactionTypes(true))
 	})
 	b.Run("rewrite_span_names", func(b *testing.B) {
 		run(b, withRewriteSpanNames(true))
