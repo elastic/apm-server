@@ -1,9 +1,6 @@
 [[components]]
 == Components and documentation
 
-IMPORTANT: {deprecation-notice-data}
-If you've already upgraded, see <<apm-components>>.
-
 Elastic APM consists of four components: *APM agents*, *APM Server*, *{es}*, and *{kib}*.
 
 image::./images/apm-architecture-cloud.png[Architecture of Elastic APM]
