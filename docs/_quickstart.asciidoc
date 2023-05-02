@@ -22,7 +22,7 @@ The {es} Service provisions the following components of the {stack}:
 * *{kib}* -- An analytics and visualization platform designed to work with {es}.
 * *Integrations Server* -- A combined *APM Server* and *Fleet-managed {agent}*.
 ** *APM Server* -- An application that receives, processes, and validates performance data from your APM agents.
-** *Fleet-managed {agent}* -- A server that runs APM Server and provides a control plane for easily configuring and updating APM Server and other integrations.
+** *Fleet-managed {agent}* -- A server that runs Fleet Server and provides a control plane for easily configuring and updating APM and other integrations.
 
 Don't worry--in order to get started,
 you don't need to understand how all of these pieces work together!
