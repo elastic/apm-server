@@ -77,7 +77,7 @@ image::./images/fm-ov.png[APM Server fleet overview]
 - APM agents
 - APM Server
 - {agent}
-- {fleet}
+- Fleet Server
 - {stack}
 
 **Configuration method**: {kib} UI

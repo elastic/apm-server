@@ -38,6 +38,8 @@ simply spin-up your instance and point your *APM agents* towards it.
 
 include::{obs-repo-dir}/observability/tab-widgets/add-apm-integration/content.asciidoc[tag=ess]
 
+// TODO: Add note above about getting the secret token too!
+
 [float]
 === Step 3: Install APM agents
 
@@ -95,6 +97,3 @@ problems while sipping your favorite beverage poolside.
 
 * Want Elastic to do the heavy lifting? Use {ml} to
 {observability-guide}/inspect-log-anomalies.html[detect anomalies].
-
-* Got everything working like you want it? Roll out your agent policies to
-other hosts by deploying {agent}s across your infrastructure!
