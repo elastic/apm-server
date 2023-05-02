@@ -405,8 +405,8 @@ github.com/elastic/go-seccomp-bpf v1.3.0 h1:e6teyX946lvPOnZERSYRrMYmsjxaQcWhoiGT
 github.com/elastic/go-structform v0.0.10 h1:oy08o/Ih2hHTkNcRY/1HhaYvIp5z6t8si8gnCJPDo1w=
 github.com/elastic/go-structform v0.0.10/go.mod h1:CZWf9aIRYY5SuKSmOhtXScE5uQiLZNqAFnwKR4OrIM4=
 github.com/elastic/go-sysinfo v1.7.1/go.mod h1:i1ZYdU10oLNfRzq4vq62BEwD2fH8KaWh6eh0ikPT9F0=
-github.com/elastic/go-sysinfo v1.10.0 h1:8mhFXJrWFLpeskULp0sGq+jt5DA0AaPU+RfGDOJQPUA=
-github.com/elastic/go-sysinfo v1.10.0/go.mod h1:RgpZTzVQX1UUNtbCnTYE5xzUaZ9+UU4ydR2ZXyzjkBg=
+github.com/elastic/go-sysinfo v1.10.1 h1:qAfoDsw3lnShqqTHVBZbK4+PN3Lz5FBi3o9sM5n9O9s=
+github.com/elastic/go-sysinfo v1.10.1/go.mod h1:QElTrQ6akcnAVCRwdkZtoAkwuTv8UVM4+qe0hPxT4NU=
 github.com/elastic/go-ucfg v0.8.6 h1:stUeyh2goTgGX+/wb9gzKvTv0YB0231LTpKUgCKj4U0=
 github.com/elastic/go-ucfg v0.8.6/go.mod h1:4E8mPOLSUV9hQ7sgLEJ4bvt0KhMuDJa8joDT2QGAEKA=
 github.com/elastic/go-windows v1.0.0/go.mod h1:TsU0Nrp7/y3+VwE82FoZF8gC/XFg/Elz6CcloAxnPgU=
