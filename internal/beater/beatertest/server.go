@@ -71,7 +71,7 @@ func NewServer(t testing.TB, opts ...option) *Server {
 
 // NewUnstartedServer returns a new unstarted APM Server with the given options.
 //
-// By default the server will not send documents to any output. To observe documents
+// By default the server will send documents to no-op output. To observe documents
 // as they would be sent to Elasticsearch, use ElasticsearchOutputConfig and pass the
 // configuration to New(Unstarted)Server.
 //
@@ -99,6 +99,19 @@ func NewUnstartedServer(t testing.TB, opts ...option) *Server {
 
 	cfg, err := agentconfig.MergeConfigs(options.config...)
 	require.NoError(t, err)
+
+	// If no output is defined, use output.null.
+	var outputConfig struct {
+		Output agentconfig.Namespace `config:"output"`
+	}
+	err = cfg.Unpack(&outputConfig)
+	require.NoError(t, err)
+	if !outputConfig.Output.IsSet() {
+		err = cfg.Merge(map[string]any{
+			"output.null": map[string]any{},
+		})
+		require.NoError(t, err)
+	}
 
 	runner, err := beater.NewRunner(beater.RunnerParams{
 		Config:     cfg,
