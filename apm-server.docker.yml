@@ -279,6 +279,18 @@ apm-server:
     # Configure curve types for ECDHE based cipher suites.
     #ssl.curve_types: []
 
+  #---------------------------- APM Server - tail-based sampling ----------------------------
+
+  #sampling.tail:
+    #Set to `true` to enable tail based sampling. Disabled by default.
+    #enabled: false
+
+    #Synchronization interval for multiple APM Servers. Should be in the order of tens of seconds or low minutes.
+    #interval: 1m
+
+    #Criteria used to match a root transaction to a sample rate.
+    #policies: []
+
 # Sets the maximum number of CPUs that can be executing simultaneously. The
 # default is the number of logical CPUs available in the system.
 #max_procs:
