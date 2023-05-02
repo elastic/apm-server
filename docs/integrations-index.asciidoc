@@ -70,22 +70,22 @@ include::release-notes.asciidoc[leveloffset=+1]
 
 == BEGIN "LEGACY" OVERVIEW
 
-include::./legacy/guide/overview.asciidoc[]
-// endif::[]
+// include::./legacy/guide/overview.asciidoc[]
+// // endif::[]
 
-include::./legacy/guide/apm-doc-directory.asciidoc[]
+// include::./legacy/guide/apm-doc-directory.asciidoc[]
 
-include::./legacy/guide/install-and-run.asciidoc[]
+// include::./legacy/guide/install-and-run.asciidoc[]
 
-include::./legacy/guide/quick-start-overview.asciidoc[]
+// include::./legacy/guide/quick-start-overview.asciidoc[]
 
-include::./legacy/guide/apm-data-model.asciidoc[]
+// include::./legacy/guide/apm-data-model.asciidoc[]
 
-include::./legacy/guide/features.asciidoc[]
+// include::./legacy/guide/features.asciidoc[]
 
-include::./legacy/guide/troubleshooting.asciidoc[]
+// include::./legacy/guide/troubleshooting.asciidoc[]
 
-include::./legacy/guide/apm-breaking-changes.asciidoc[]
+// include::./legacy/guide/apm-breaking-changes.asciidoc[]
 
 include::./legacy/guide/redirects.asciidoc[]
 
