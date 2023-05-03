@@ -10,6 +10,51 @@ ifeval::["{version}" == "8.0.0"]
 :github_repo_link: https://github.com/elastic/apm-server/blob/main
 endif::[]
 
+
+// OTHER ATTRS
+// TODO: Check that these are still relevant
+
+:libbeat-dir: {docdir}/legacy/copied-from-beats/docs
+:libbeat-outputs-dir: {docdir}/legacy/copied-from-beats/outputs
+:version: {apm_server_version}
+:beatname_lc: apm-server
+:beatname_uc: APM Server
+:beatname_pkg: {beatname_lc}
+:beat_kib_app: APM app
+:beat_monitoring_user: apm_system
+:beat_monitoring_user_version: 6.5.0
+:beat_monitoring_version: 6.5
+:beat_default_index_prefix: apm
+:access_role: {beat_default_index_prefix}_user
+:beat_version_key: observer.version
+:dockerimage: docker.elastic.co/apm/{beatname_lc}:{version}
+:dockergithub: https://github.com/elastic/apm-server-docker/tree/{doc-branch}
+:dockerconfig: https://raw.githubusercontent.com/elastic/apm-server/{doc-branch}/apm-server.docker.yml
+:discuss_forum: apm
+:github_repo_name: apm-server
+:sample_date_0: 2019.10.20
+:sample_date_1: 2019.10.21
+:sample_date_2: 2019.10.22
+:repo: apm-server
+:no_kibana:
+:no_ilm:
+:no-pipeline:
+:no-processors:
+:no-indices-rules:
+:no_dashboards:
+:apm-server:
+:deb_os:
+:rpm_os:
+:mac_os:
+:docker_platform:
+:win_os:
+:linux_os:
+:apm-package-dir: {docdir}/legacy/apm-package
+
+:downloads: https://artifacts.elastic.co/downloads/apm-server
+
+// END OTHER ATTRS
+
 [[apm-user-guide]]
 = APM User Guide
 
@@ -92,49 +137,7 @@ include::./legacy/guide/redirects.asciidoc[]
 // Legacy APM Server Reference
 // include::legacy/index.asciidoc[]
 
-:libbeat-dir: {docdir}/legacy/copied-from-beats/docs
-:libbeat-outputs-dir: {docdir}/legacy/copied-from-beats/outputs
-:version: {apm_server_version}
-:beatname_lc: apm-server
-:beatname_uc: APM Server
-:beatname_pkg: {beatname_lc}
-:beat_kib_app: APM app
-:beat_monitoring_user: apm_system
-:beat_monitoring_user_version: 6.5.0
-:beat_monitoring_version: 6.5
-:beat_default_index_prefix: apm
-:access_role: {beat_default_index_prefix}_user
-:beat_version_key: observer.version
-:dockerimage: docker.elastic.co/apm/{beatname_lc}:{version}
-:dockergithub: https://github.com/elastic/apm-server-docker/tree/{doc-branch}
-:dockerconfig: https://raw.githubusercontent.com/elastic/apm-server/{doc-branch}/apm-server.docker.yml
-:discuss_forum: apm
-:github_repo_name: apm-server
-:sample_date_0: 2019.10.20
-:sample_date_1: 2019.10.21
-:sample_date_2: 2019.10.22
-:repo: apm-server
-:no_kibana:
-:no_ilm:
-:no-pipeline:
-:no-processors:
-:no-indices-rules:
-:no_dashboards:
-:apm-server:
-:deb_os:
-:rpm_os:
-:mac_os:
-:docker_platform:
-:win_os:
-:linux_os:
-:apm-package-dir: {docdir}/legacy/apm-package
 
-:github_repo_link: https://github.com/elastic/apm-server/blob/v{version}
-ifeval::["{version}" == "8.0.0"]
-:github_repo_link: https://github.com/elastic/apm-server/blob/main
-endif::[]
-
-:downloads: https://artifacts.elastic.co/downloads/apm-server
 
 // ifndef::apm-integration-docs[]
 // [[apm-server]]
@@ -169,8 +172,6 @@ include::./legacy/configuring.asciidoc[leveloffset=+1]
 include::{libbeat-dir}/shared-securing-beat.asciidoc[leveloffset=+1]
 
 include::{libbeat-dir}/monitoring/monitoring-beats.asciidoc[leveloffset=+1]
-
-include::./legacy/intake-api.asciidoc[leveloffset=+1]
 
 include::./legacy/exploring-es-data.asciidoc[leveloffset=+1]
 
