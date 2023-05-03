@@ -45,7 +45,7 @@ API keys can have one or more of these privileges:
 * *Agent configuration* (`config_agent:read`): Required for agents to read
 {kibana-ref}/agent-configuration.html[Agent configuration remotely].
 * *Ingest* (`event:write`): Required for ingesting Agent events.
-* *Source map* (`sourcemap:write`): Required for <<sourcemaps,uploading source maps>>.
+* *Source map* (`sourcemap:write`): Required for <<source-map-how-to,uploading source maps>>.
 
 To secure the communication between APM Agents and the APM Server with API keys,
 make sure <<ssl-setup,SSL/TLS>> is enabled, then complete these steps:

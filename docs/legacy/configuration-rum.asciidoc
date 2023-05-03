@@ -134,7 +134,7 @@ Default: `"^/webpack"` (excludes stack trace frames that have a filename startin
 [[config-sourcemapping-enabled]]
 [float]
 ==== `source_mapping.enabled`
-Used to enable/disable <<sourcemaps,source mapping>> for RUM events.
+Used to enable/disable <<source-map-how-to,source mapping>> for RUM events.
 When enabled, the APM Server needs additional privileges to read source maps.
 See <<privileges-to-publish-events>> for more details.
 
@@ -151,7 +151,7 @@ Otherwise leave this section empty.
 [float]
 ==== `source_mapping.cache.expiration`
 If a source map has been uploaded to the APM Server,
-<<sourcemaps,source mapping>> is automatically applied to documents sent to the RUM endpoint.
+<<source-map-how-to,source mapping>> is automatically applied to documents sent to the RUM endpoint.
 Source maps are fetched from {es} and then kept in an in-memory cache for the configured time.
 Values configured without a time unit are treated as seconds.
 
