@@ -50,10 +50,8 @@ import (
 func TestPublisherStop(t *testing.T) {
 	// Create a pipeline with a limited queue size and no outputs,
 	// so we can simulate a pipeline that blocks indefinitely.
-	pipeline := newBlockingPipeline(t)
-	publisher, err := publish.NewPublisher(
-		pipeline, apmtest.DiscardTracer,
-	)
+	pipeline, client := newBlockingPipeline(t)
+	publisher, err := publish.NewPublisher(pipeline, apmtest.DiscardTracer)
 	require.NoError(t, err)
 	defer func() {
 		cancelledContext, cancel := context.WithCancel(context.Background())
@@ -80,22 +78,16 @@ func TestPublisherStop(t *testing.T) {
 	defer cancel()
 	assert.Equal(t, context.DeadlineExceeded, publisher.Stop(ctx))
 
-	// Set an output which acknowledges events immediately, unblocking publisher.Stop.
-	assert.NoError(t, pipeline.OutputReloader().Reload(nil,
-		func(outputs.Observer, config.Namespace) (outputs.Group, error) {
-			return outputs.Group{Clients: []outputs.Client{&mockClient{}}}, nil
-		},
-	))
+	// Unblock the output, which should unblock publisher.Stop.
+	close(client.unblock)
 	ctx, cancel = context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 	assert.NoError(t, publisher.Stop(ctx))
 }
 
 func TestPublisherStopShutdownInactive(t *testing.T) {
-	publisher, err := publish.NewPublisher(
-		newBlockingPipeline(t),
-		apmtest.DiscardTracer,
-	)
+	pipeline, _ := newBlockingPipeline(t)
+	publisher, err := publish.NewPublisher(pipeline, apmtest.DiscardTracer)
 	require.NoError(t, err)
 
 	// There are no active events, so the publisher should stop immediately
@@ -181,7 +173,8 @@ func BenchmarkPublisher(b *testing.B) {
 	assert.Equal(b, int64(b.N), indexed)
 }
 
-func newBlockingPipeline(t testing.TB) *pipeline.Pipeline {
+func newBlockingPipeline(t testing.TB) (*pipeline.Pipeline, *mockClient) {
+	client := &mockClient{unblock: make(chan struct{})}
 	conf, err := config.NewConfigFrom(map[string]interface{}{
 		"mem.events":           32,
 		"mem.flush.min_events": 1,
@@ -195,14 +188,14 @@ func newBlockingPipeline(t testing.TB) *pipeline.Pipeline {
 		beat.Info{},
 		pipeline.Monitors{},
 		namespace,
-		outputs.Group{},
+		outputs.Group{Clients: []outputs.Client{client}},
 		pipeline.Settings{},
 	)
 	require.NoError(t, err)
 	t.Cleanup(func() {
 		require.NoError(t, pipeline.Close())
 	})
-	return pipeline
+	return pipeline, client
 }
 
 func makeTransformable(events ...beat.Event) publish.Transformer {
@@ -217,11 +210,18 @@ func (f transformableFunc) Transform(ctx context.Context) []beat.Event {
 	return f(ctx)
 }
 
-type mockClient struct{}
+type mockClient struct {
+	unblock chan struct{}
+}
 
-func (*mockClient) String() string { return "mock_client" }
-func (*mockClient) Close() error   { return nil }
-func (*mockClient) Publish(_ context.Context, batch publisher.Batch) error {
+func (c *mockClient) String() string { return "mock_client" }
+func (c *mockClient) Close() error   { return nil }
+func (c *mockClient) Publish(ctx context.Context, batch publisher.Batch) error {
+	select {
+	case <-c.unblock:
+	case <-ctx.Done():
+		return ctx.Err()
+	}
 	batch.ACK()
 	return nil
 }
