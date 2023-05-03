@@ -20,6 +20,7 @@ package sourcemap
 import (
 	"context"
 	"errors"
+	"io"
 
 	"github.com/go-sourcemap/sourcemap"
 )
@@ -48,4 +49,8 @@ func (c ChainedFetcher) Fetch(ctx context.Context, name, version, path string) (
 		lastErr = err
 	}
 	return nil, lastErr
+}
+
+func (c *ChainedFetcher) FetchAndroidMap(ctx context.Context, name string, versionName string, versionCode string) (*io.Reader, error) {
+	return nil, nil
 }

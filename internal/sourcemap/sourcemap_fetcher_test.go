@@ -20,6 +20,7 @@ package sourcemap
 import (
 	"context"
 	"fmt"
+	"io"
 	"testing"
 
 	"github.com/go-sourcemap/sourcemap"
@@ -132,4 +133,8 @@ func (s *monitoredFetcher) Fetch(ctx context.Context, name string, version strin
 	}
 
 	return &sourcemap.Consumer{}, nil
+}
+
+func (s *monitoredFetcher) FetchAndroidMap(ctx context.Context, name string, versionName string, versionCode string) (*io.Reader, error) {
+	return nil, nil
 }

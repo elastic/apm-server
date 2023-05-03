@@ -21,6 +21,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 
 	"github.com/go-sourcemap/sourcemap"
 	lru "github.com/hashicorp/golang-lru"
@@ -94,6 +95,10 @@ func (s *BodyCachingFetcher) Fetch(ctx context.Context, name, version, path stri
 	}
 	s.add(key, consumer)
 	return consumer, nil
+}
+
+func (s *BodyCachingFetcher) FetchAndroidMap(ctx context.Context, name string, versionName string, versionCode string) (*io.Reader, error) {
+	return nil, nil
 }
 
 func (s *BodyCachingFetcher) add(key identifier, consumer *sourcemap.Consumer) {

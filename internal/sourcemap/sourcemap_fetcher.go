@@ -20,6 +20,7 @@ package sourcemap
 import (
 	"context"
 	"fmt"
+	"io"
 	"net/url"
 
 	"github.com/go-sourcemap/sourcemap"
@@ -92,6 +93,10 @@ func (s *SourcemapFetcher) Fetch(ctx context.Context, name, version, path string
 	}
 
 	return nil, fmt.Errorf("unable to find sourcemap.url for service.name=%s service.version=%s bundle.path=%s", name, version, path)
+}
+
+func (s *SourcemapFetcher) FetchAndroidMap(ctx context.Context, name string, versionName string, versionCode string) (*io.Reader, error) {
+	return nil, nil
 }
 
 func (s *SourcemapFetcher) fetch(ctx context.Context, key *identifier) (*sourcemap.Consumer, error) {

@@ -123,6 +123,10 @@ func (s *esFetcher) Fetch(ctx context.Context, name, version, path string) (*sou
 	return parseSourceMap(uncompressedBody)
 }
 
+func (s *esFetcher) FetchAndroidMap(ctx context.Context, name string, versionName string, versionCode string) (*io.Reader, error) {
+	return nil, nil
+}
+
 func (s *esFetcher) runSearchQuery(ctx context.Context, name, version, path string) (*esapi.Response, error) {
 	id := name + "-" + version + "-" + path
 	req := esapi.GetRequest{

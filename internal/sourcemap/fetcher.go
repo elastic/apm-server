@@ -21,6 +21,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"net/url"
 
 	"github.com/go-sourcemap/sourcemap"
@@ -38,6 +39,8 @@ type Fetcher interface {
 	//
 	// If there is no such source map available, Fetch returns a nil Consumer.
 	Fetch(ctx context.Context, name string, version string, bundleFilepath string) (*sourcemap.Consumer, error)
+
+	FetchAndroidMap(ctx context.Context, name string, versionName string, versionCode string) (*io.Reader, error)
 }
 
 // MetadataFetcher is an interface for fetching metadata
