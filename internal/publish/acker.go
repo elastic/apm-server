@@ -70,6 +70,10 @@ func (w *WaitPublishedAcker) Close() {
 	w.decref(1)
 }
 
+func (w *WaitPublishedAcker) ClientClosed() {
+	w.decref(1)
+}
+
 func (w *WaitPublishedAcker) incref(n int64) {
 	atomic.AddInt64(&w.active, 1)
 }
