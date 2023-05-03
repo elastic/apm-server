@@ -924,9 +924,14 @@ func queryClusterUUID(ctx context.Context, esClient *elasticsearch.Client) error
 	return nil
 }
 
-type nopProcessingSupporter struct{}
+type nopProcessingSupporter struct {
+}
 
 func (nopProcessingSupporter) Close() error {
+	return nil
+}
+
+func (nopProcessingSupporter) Processors() []string {
 	return nil
 }
 
