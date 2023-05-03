@@ -576,11 +576,11 @@ SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/beats/v7
-Version: v7.17.10-0.20230427191142-d10abcac36df
+Version: v7.17.11-0.20230503130729-1ed3b8a36960
 Licence type (autodetected): Elastic
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.17.10-0.20230427191142-d10abcac36df/LICENSE.txt:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.17.11-0.20230503130729-1ed3b8a36960/LICENSE.txt:
 
 Source code in this repository is variously licensed under the Apache License
 Version 2.0, an Apache compatible license, or the Elastic License. Outside of
