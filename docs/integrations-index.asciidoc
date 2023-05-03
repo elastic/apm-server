@@ -90,58 +90,22 @@ include::apm-components.asciidoc[]
 
 include::release-notes.asciidoc[leveloffset=+1]
 
-// Legacy APM Overview
-// include::legacy/guide/index.asciidoc[]
-
+// TODO: Figure out if it's safe to remove everything between the *'s
 // ********************************************************
 // ********************************************************
-
 :apm-ref-all: https://www.elastic.co/guide/en/apm/get-started/
 
-// ifndef::apm-integration-docs[]
-// [[gettting-started]]
-// = APM Overview
-// endif::[]
-
-// ifdef::apm-integration-docs[]
 // Overwrite links to the APM Overview and APM Server Ref. Point to APM Guide instead.
 :apm-overview-ref-v: {apm-guide-ref}
 :apm-guide-ref: {apm-guide-ref}
 :apm-server-ref-v: {apm-guide-ref}
 :apm-server-ref: {apm-guide-ref}
-
-// [[legacy-apm-overview]]
-// = Legacy APM Overview
-
-== BEGIN "LEGACY" OVERVIEW
-
-// include::./legacy/guide/overview.asciidoc[]
-// // endif::[]
-
-// include::./legacy/guide/apm-doc-directory.asciidoc[]
-
-// include::./legacy/guide/install-and-run.asciidoc[]
-
-// include::./legacy/guide/quick-start-overview.asciidoc[]
-
-// include::./legacy/guide/apm-data-model.asciidoc[]
-
-// include::./legacy/guide/features.asciidoc[]
-
-// include::./legacy/guide/troubleshooting.asciidoc[]
-
-// include::./legacy/guide/apm-breaking-changes.asciidoc[]
-
-include::./legacy/guide/redirects.asciidoc[]
-
 // ********************************************************
 // ********************************************************
 
 
 // Legacy APM Server Reference
 // include::legacy/index.asciidoc[]
-
-
 
 // ifndef::apm-integration-docs[]
 // [[apm-server]]
