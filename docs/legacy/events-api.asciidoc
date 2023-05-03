@@ -25,7 +25,7 @@ as soon as they are recorded in the agent.
 This makes it simple for agents to serialize each event to a stream of newline delimited JSON.
 The APM Server also treats the HTTP body as a compressed stream and thus reads and handles each event independently.
 
-See the {apm-overview-ref-v}/apm-data-model.html[APM Data Model] to learn more about the different types of events.
+See the {apm-guide-ref}/data-model.html[APM Data Model] to learn more about the different types of events.
 
 [[events-api-endpoint]]
 [float]
