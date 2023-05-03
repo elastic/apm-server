@@ -70,34 +70,59 @@ func NewElasticsearchFetcher(c *elasticsearch.Client, index string) Fetcher {
 func (s *esFetcher) Fetch(ctx context.Context, name, version, path string) (*sourcemap.Consumer, error) {
 	resp, err := s.runSearchQuery(ctx, name, version, path)
 	if err != nil {
-		var networkErr net.Error
-		if errors.As(err, &networkErr) {
-			return nil, fmt.Errorf("failed to reach elasticsearch: %w: %v ", errFetcherUnvailable, err)
-		}
-		return nil, fmt.Errorf("failure querying ES: %w", err)
+		return nil, handleQueryError(err)
 	}
 	defer resp.Body.Close()
 
+	r, queryError := processQueryResponse(resp, err)
+	if queryError != nil {
+		return nil, queryError
+	}
+
+	if r == nil {
+		return nil, nil
+	}
+
+	defer r.Close()
+
+	uncompressedBody, err := io.ReadAll(r)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read sourcemap content: %w", err)
+	}
+
+	return parseSourceMap(uncompressedBody)
+}
+
+func (s *esFetcher) FetchAndroidMap(ctx context.Context, name string, versionName string, versionCode string) (*io.ReadCloser, error) {
+	resp, err := s.runSearchQuery(ctx, name, versionName, versionCode)
+	if err != nil {
+		return nil, handleQueryError(err)
+	}
+	defer resp.Body.Close()
+
+	r, queryError := processQueryResponse(resp, err)
+	if queryError != nil {
+		return nil, queryError
+	}
+
+	if r == nil {
+		return nil, nil
+	}
+
+	return &r, nil
+}
+
+func processQueryResponse(resp *esapi.Response, err error) (io.ReadCloser, error) {
 	// handle error response
-	if resp.StatusCode >= http.StatusMultipleChoices {
-		b, err := io.ReadAll(resp.Body)
-		if err != nil {
-			return nil, fmt.Errorf("failed to read ES response body: %w", err)
-		}
-		if resp.StatusCode == http.StatusNotFound || resp.StatusCode == http.StatusUnauthorized || resp.StatusCode == http.StatusForbidden {
-			// http.StatusNotFound -> the index is missing
-			// http.StatusForbidden -> we don't have permission to read from the index
-			// In both cases we consider the fetcher unavailable so that APM Server can
-			// fallback to other fetchers
-			return nil, fmt.Errorf("%w: %s: %s", errFetcherUnvailable, resp.Status(), string(b))
-		}
-		return nil, fmt.Errorf("ES returned unknown status code: %s", resp.Status())
+	responseError := handleResponseCode(resp)
+	if responseError != nil {
+		return nil, responseError
 	}
 
 	// parse response
-	body, err := parse(resp.Body, name, version, path, s.logger)
-	if err != nil {
-		return nil, err
+	body, parseError := parse(resp.Body)
+	if parseError != nil {
+		return nil, parseError
 	}
 
 	if body == "" {
@@ -113,18 +138,33 @@ func (s *esFetcher) Fetch(ctx context.Context, name, version, path string) (*sou
 	if err != nil {
 		return nil, fmt.Errorf("failed to create zlib reader: %w", err)
 	}
-	defer r.Close()
-
-	uncompressedBody, err := io.ReadAll(r)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read sourcemap content: %w", err)
-	}
-
-	return parseSourceMap(uncompressedBody)
+	return r, nil
 }
 
-func (s *esFetcher) FetchAndroidMap(ctx context.Context, name string, versionName string, versionCode string) (*io.Reader, error) {
-	return nil, nil
+func handleQueryError(queryError error) error {
+	var networkErr net.Error
+	if errors.As(queryError, &networkErr) {
+		return fmt.Errorf("failed to reach elasticsearch: %w: %v ", errFetcherUnvailable, queryError)
+	}
+	return fmt.Errorf("failure querying ES: %w", queryError)
+}
+
+func handleResponseCode(resp *esapi.Response) error {
+	if resp.StatusCode >= http.StatusMultipleChoices {
+		b, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return fmt.Errorf("failed to read ES response body: %w", err)
+		}
+		if resp.StatusCode == http.StatusNotFound || resp.StatusCode == http.StatusUnauthorized || resp.StatusCode == http.StatusForbidden {
+			// http.StatusNotFound -> the index is missing
+			// http.StatusForbidden -> we don't have permission to read from the index
+			// In both cases we consider the fetcher unavailable so that APM Server can
+			// fallback to other fetchers
+			return fmt.Errorf("%w: %s: %s", errFetcherUnvailable, resp.Status(), string(b))
+		}
+		return fmt.Errorf("ES returned unknown status code: %s", resp.Status())
+	}
+	return nil
 }
 
 func (s *esFetcher) runSearchQuery(ctx context.Context, name, version, path string) (*esapi.Response, error) {
@@ -136,7 +176,7 @@ func (s *esFetcher) runSearchQuery(ctx context.Context, name, version, path stri
 	return req.Do(ctx, s.client)
 }
 
-func parse(body io.ReadCloser, name, version, path string, logger *logp.Logger) (string, error) {
+func parse(body io.ReadCloser) (string, error) {
 	var esSourcemapResponse esGetSourcemapResponse
 	if err := json.NewDecoder(body).Decode(&esSourcemapResponse); err != nil {
 		return "", fmt.Errorf("failed to decode sourcemap: %w", err)

@@ -51,6 +51,6 @@ func (c ChainedFetcher) Fetch(ctx context.Context, name, version, path string) (
 	return nil, lastErr
 }
 
-func (c *ChainedFetcher) FetchAndroidMap(ctx context.Context, name string, versionName string, versionCode string) (*io.Reader, error) {
+func (c *ChainedFetcher) FetchAndroidMap(ctx context.Context, name string, versionName string, versionCode string) (*io.ReadCloser, error) {
 	return nil, nil
 }

@@ -135,6 +135,6 @@ func (s *monitoredFetcher) Fetch(ctx context.Context, name string, version strin
 	return &sourcemap.Consumer{}, nil
 }
 
-func (s *monitoredFetcher) FetchAndroidMap(ctx context.Context, name string, versionName string, versionCode string) (*io.Reader, error) {
+func (s *monitoredFetcher) FetchAndroidMap(ctx context.Context, name string, versionName string, versionCode string) (*io.ReadCloser, error) {
 	return nil, nil
 }

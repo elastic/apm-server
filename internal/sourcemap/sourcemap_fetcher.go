@@ -95,7 +95,7 @@ func (s *SourcemapFetcher) Fetch(ctx context.Context, name, version, path string
 	return nil, fmt.Errorf("unable to find sourcemap.url for service.name=%s service.version=%s bundle.path=%s", name, version, path)
 }
 
-func (s *SourcemapFetcher) FetchAndroidMap(ctx context.Context, name string, versionName string, versionCode string) (*io.Reader, error) {
+func (s *SourcemapFetcher) FetchAndroidMap(ctx context.Context, name string, versionName string, versionCode string) (*io.ReadCloser, error) {
 	return nil, nil
 }
 

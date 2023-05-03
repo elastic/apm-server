@@ -97,7 +97,7 @@ func (s *BodyCachingFetcher) Fetch(ctx context.Context, name, version, path stri
 	return consumer, nil
 }
 
-func (s *BodyCachingFetcher) FetchAndroidMap(ctx context.Context, name string, versionName string, versionCode string) (*io.Reader, error) {
+func (s *BodyCachingFetcher) FetchAndroidMap(ctx context.Context, name string, versionName string, versionCode string) (*io.ReadCloser, error) {
 	return nil, nil
 }
 
