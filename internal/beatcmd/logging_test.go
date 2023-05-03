@@ -18,6 +18,12 @@
 package beatcmd
 
 import (
+	"fmt"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+
+	"github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
 )
 
@@ -31,4 +37,102 @@ func init() {
 		logp.ToObserverOutput(),
 		logp.WithLevel(logp.DebugLevel),
 	)
+}
+
+var environments = []logp.Environment{
+	logp.DefaultEnvironment,
+	logp.SystemdEnvironment,
+	logp.ContainerEnvironment,
+	logp.MacOSServiceEnvironment,
+	logp.WindowsServiceEnvironment,
+	logp.InvalidEnvironment,
+}
+
+func TestBuildLoggingConfigPerEnvironment(t *testing.T) {
+	for _, env := range environments {
+		for _, tt := range []struct {
+			name           string
+			cfg            *Config
+			logStderr      bool
+			debugSelectors []string
+			opts           []logp.Option
+
+			expectedErr         error
+			buildExpectedConfig func() logp.Config
+		}{
+			{
+				name: fmt.Sprintf("with an empty config and %s environment", env),
+				cfg:  &Config{},
+
+				buildExpectedConfig: func() logp.Config {
+					cfg := logp.DefaultConfig(env)
+					cfg.Beat = "apm-server"
+					return cfg
+				},
+			},
+			{
+				name: fmt.Sprintf("with an logging config specified and %s environment", env),
+				cfg: &Config{
+					Logging: config.NewConfig(),
+				},
+
+				buildExpectedConfig: func() logp.Config {
+					cfg := logp.DefaultConfig(env)
+					cfg.Beat = "apm-server"
+					return cfg
+				},
+			},
+			{
+				name:      fmt.Sprintf("when logging to stderr and %s environment", env),
+				cfg:       &Config{},
+				logStderr: true,
+
+				buildExpectedConfig: func() logp.Config {
+					cfg := logp.DefaultConfig(env)
+					cfg.Beat = "apm-server"
+					cfg.ToStderr = true
+					return cfg
+				},
+			},
+			{
+				name:           fmt.Sprintf("with debug selectors and %s environment", env),
+				cfg:            &Config{},
+				debugSelectors: []string{"hello,world", "bonjour"},
+
+				buildExpectedConfig: func() logp.Config {
+					cfg := logp.DefaultConfig(env)
+					cfg.Beat = "apm-server"
+					cfg.Level = -1
+					cfg.Selectors = []string{"hello", "world", "bonjour"}
+					return cfg
+				},
+			},
+			{
+				name: fmt.Sprintf("with options and %s environment", env),
+				cfg:  &Config{},
+				opts: []logp.Option{
+					logp.WithLevel(logp.DebugLevel),
+				},
+
+				buildExpectedConfig: func() logp.Config {
+					cfg := logp.DefaultConfig(env)
+					cfg.Beat = "apm-server"
+					cfg.Level = -1
+					return cfg
+				},
+			},
+		} {
+			t.Run(tt.name, func(t *testing.T) {
+				cfg, err := buildLoggingConfig(tt.cfg, env, tt.logStderr, tt.debugSelectors, tt.opts...)
+
+				if tt.expectedErr == nil {
+					assert.NoError(t, err)
+				} else {
+					assert.Equal(t, tt.expectedErr, err)
+				}
+
+				assert.Equal(t, tt.buildExpectedConfig(), cfg)
+			})
+		}
+	}
 }
