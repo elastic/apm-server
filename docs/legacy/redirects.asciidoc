@@ -8,7 +8,7 @@ The following pages have moved or been deleted.
 [role="exclude",id="event-types"]
 === Event types
 
-This page has moved. Please see {apm-overview-ref-v}/apm-data-model.html[APM data model].
+This page has moved. Please see {apm-guide-ref}/data-model.html[APM data model].
 
 // [role="exclude",id="errors"]
 // === Errors
