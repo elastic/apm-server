@@ -325,7 +325,7 @@ If you haven't already, you can now install APM Agents in your services!
 Once you have at least one {apm-agent} sending data to APM Server,
 you can start visualizing your data in the {kibana-ref}/xpack-apm.html[{apm-app}].
 
-If you're migrating from Jaeger, see <<jaeger>>.
+If you're migrating from Jaeger, see <<jaeger-integration>>.
 
 // Shared APM & YUM
 include::{libbeat-dir}/repositories.asciidoc[]

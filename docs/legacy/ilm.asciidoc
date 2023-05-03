@@ -1,7 +1,0 @@
-[[ilm]]
-== Custom {ilm}
-
-// Appends `-legacy` to each section's ID so that they are different from the APM integration IDs
-:append-legacy: -legacy
-
-include::../ilm-how-to.asciidoc[tag=ilm-integration]

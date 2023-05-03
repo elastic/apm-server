@@ -10,8 +10,7 @@ read the following tips:
 
 Other sections in the documentation may also be helpful:
 
-* <<sizing-guide, Storage and sizing guide>>
-* <<processing-performance, Processing and performance>>
+* <<storage-guide, Storage and sizing guide>>
 * <<tune-apm-server, Tune APM Server>>
 * <<tune-es, Tune {es}>>
 * {apm-overview-ref-v}/agent-server-compatibility.html[Agent/Server compatibility matrix]

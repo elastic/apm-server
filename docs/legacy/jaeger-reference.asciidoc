@@ -13,7 +13,7 @@ to the {stack} -- transform data with APM Server, store data in {es}, and visual
 Best of all, no instrumentation changes are needed in your application code.
 // end::jaeger-intro[]
 
-Ready to get started? See the <<jaeger,How to integrate with Jaeger>> guide.
+Ready to get started? See the <<jaeger-integration,How to integrate with Jaeger>> guide.
 
 [float]
 [[jaeger-supported]]
@@ -29,7 +29,7 @@ supports communication with *Jaeger agents* via gRPC.
 SSL settings will automatically be applied to APM Server's Jaeger gRPC endpoint.
 
 * The gRPC endpoint supports probabilistic sampling.
-Sampling decisions can be configured <<jaeger-configure-sampling-central,centrally>> with APM Agent central configuration, or <<jaeger-configure-sampling-local,locally>> in each Jaeger client.
+Sampling decisions can be configured <<configure-sampling-central-jaeger,centrally>> with APM Agent central configuration, or <<configure-sampling-local-jaeger,locally>> in each Jaeger client.
 
 See the https://www.jaegertracing.io/docs/1.22/architecture[Jaeger docs]
 for more information on Jaeger architecture.
