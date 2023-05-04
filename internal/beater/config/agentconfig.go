@@ -48,26 +48,24 @@ type AgentConfig struct {
 	ESConfig *elasticsearch.Config
 	Cache    Cache `config:"cache"`
 
-	ESConfigured bool
-	es           *esCredentialsConfig
+	ESOverrideConfigured bool
+	es                   *config.C
 }
 
 func (c *AgentConfig) Unpack(in *config.C) error {
 	type agentConfig AgentConfig
 	cfg := agentConfig(defaultAgentConfig())
 	if err := in.Unpack(&cfg); err != nil {
-		return errors.Wrap(err, "error unpacking config")
+		return errors.Wrap(err, "error unpacking agent config")
 	}
 	*c = AgentConfig(cfg)
 
-	es, err := in.Child("elasticsearch", -1)
-	if err == nil {
-		err = es.Unpack(&c.es)
-	}
+	var err error
+	c.es, err = in.Child("elasticsearch", -1)
 
 	var ucfgError ucfg.Error
 	if !errors.As(err, &ucfgError) || ucfgError.Reason() != ucfg.ErrMissing {
-		return err
+		return errors.Wrap(err, "error unpacking agent elasticsearch config")
 	}
 	return nil
 }
@@ -84,10 +82,19 @@ func (c *AgentConfig) setup(log *logp.Logger, outputESCfg *config.C) error {
 	}
 	if c.es != nil {
 		log.Info("using apm-server.agent.config.elasticsearch for fetching agent config")
-		c.ESConfigured = true
-		c.ESConfig.Username = c.es.Username
-		c.ESConfig.Password = c.es.Password
-		c.ESConfig.APIKey = c.es.APIKey
+		c.ESOverrideConfigured = true
+
+		// Empty out credential fields before merging if credentials are provided in agentcfg ES config
+		if c.es.HasField("api_key") || c.es.HasField("username") {
+			c.ESConfig.APIKey = ""
+			c.ESConfig.Username = ""
+			c.ESConfig.Password = ""
+		}
+
+		if err := c.es.Unpack(c.ESConfig); err != nil {
+			return errors.Wrap(err, "error unpacking apm-server.agent.config.elasticsearch for fetching agent config")
+		}
+		c.es = nil
 	}
 	return nil
 }
