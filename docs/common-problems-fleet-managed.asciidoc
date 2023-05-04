@@ -1,9 +1,7 @@
 [[common-problems]]
-=== Common problems
+=== Common problems (Fleet-managed APM Server)
 
-This section describes common problems for users running {agent} and the APM integration.
-If you're using the standalone (legacy) APM Server binary, see
-<<common-problems-legacy,legacy common problems>> instead.
+This section describes common problems you might encounter when using a Fleet-managed APM Server.
 
 * <<no-data-indexed>>
 * <<common-response-codes>>

@@ -1,9 +1,7 @@
-[[common-problems-legacy]]
-== Common problems
+[[common-problems-binary]]
+=== Common problems (APM Server binary)
 
-IMPORTANT: {deprecation-notice-data}
-
-This section describes common problems you might encounter with APM Server.
+This section describes common problems you might encounter with the APM Server binary.
 
 * <<no-data-indexed-legacy>>
 * <<data-indexed-no-apm-legacy>>
@@ -108,7 +106,7 @@ Select all `apm-*` index templates and navigate to **Manage Indices** > **Delete
 Install the APM integration by following these steps:
 +
 --
-include::./getting-started-apm-server.asciidoc[tag=install-apm-integration]
+include::./legacy/getting-started-apm-server.asciidoc[tag=install-apm-integration]
 --
 
 . Start APM Server.

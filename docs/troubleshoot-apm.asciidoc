@@ -1,9 +1,9 @@
 [[troubleshoot-apm]]
-== Troubleshooting
+== Troubleshoot
 
-This section provides solutions to <<common-problems>>
-and <<processing-and-performance>> guidance.
-For additional help, see the links below.
+This section provides solutions to common problems
+and processing and performance guidance.
+For additional help with other APM components, see the links below.
 
 [float]
 [[troubleshooting-docs]]
@@ -38,6 +38,8 @@ https://www.elastic.co/subscriptions[Learn more about subscriptions].
 For additional questions and feature requests,
 visit our https://discuss.elastic.co/c/apm[discussion forum].
 
-include::common-problems.asciidoc[]
+include::common-problems-fleet-managed.asciidoc[]
+
+include::common-problems-binary.asciidoc[]
 
 include::processing-performance.asciidoc[]
