@@ -368,8 +368,8 @@ github.com/eclipse/paho.mqtt.golang v1.3.5 h1:sWtmgNxYM9P2sP+xEItMozsR3w0cqZFlqn
 github.com/elastic/apm-data v0.1.1-0.20230309014206-3ad1a5caedc9 h1:nj0nBnU3hI/h3s4+6CnyOTcQqwH7U6y/2i1XM44wOaU=
 github.com/elastic/apm-data v0.1.1-0.20230309014206-3ad1a5caedc9/go.mod h1:8oEk/myQSw+GHqxPD3e8Oz2qPMawcOH+t9HYZ51p+rE=
 github.com/elastic/bayeux v1.0.5 h1:UceFq01ipmT3S8DzFK+uVAkbCdiPR0Bqei8qIGmUeY0=
-github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230503091924-06a77a6e19e5 h1:tb6E5v0tQwZyJT4v0ichHb+hyLTyjmsHYAy9oReLgYM=
-github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230503091924-06a77a6e19e5/go.mod h1:vjIBdaueO8kav3DGo9XdUyfOmBuUfTaDdXPrnJUbZdA=
+github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230504122046-e6f00b4a25d3 h1:1EwTdqT/3e/IQZ2bn4+dywNhQHjBXEj50cocFEIknKU=
+github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230504122046-e6f00b4a25d3/go.mod h1:pxXDhX09waipFtd3JdS6F2bGheHyUlWJ4DO4HOJQGlY=
 github.com/elastic/elastic-agent-autodiscover v0.5.0 h1:fiDJQKB148RsRISqqbGINtJ/ZPupeVjwn0fbPz9ZDOc=
 github.com/elastic/elastic-agent-client/v7 v7.1.0 h1:3+4GCzYV1kjdECrvCvNCrwnsVN/dt/VPi7UfSY3fJLs=
 github.com/elastic/elastic-agent-client/v7 v7.1.0/go.mod h1:UlVOHSDvTA4Mfdhdg+BE7aqOsUR3ab+x2Zl0aHlBXs4=
@@ -1198,7 +1198,7 @@ google.golang.org/api v0.24.0/go.mod h1:lIXQywCXRcnZPGlsd8NbLnOjtAoL6em04bJ9+z0M
 google.golang.org/api v0.28.0/go.mod h1:lIXQywCXRcnZPGlsd8NbLnOjtAoL6em04bJ9+z0MncE=
 google.golang.org/api v0.29.0/go.mod h1:Lcubydp8VUV7KeIHD9z2Bys/sm/vGKnG1UHuDBSrHWM=
 google.golang.org/api v0.30.0/go.mod h1:QGmEvQ87FHZNiUVJkT14jQNYJ4ZJjdRF23ZXz5138Fc=
-google.golang.org/api v0.100.0 h1:LGUYIrbW9pzYQQ8NWXlaIVkgnfubVBZbMFb9P8TK374=
+google.golang.org/api v0.102.0 h1:JxJl2qQ85fRMPNvlZY/enexbxpCjLwGhZUtgfGeQ51I=
 google.golang.org/appengine v1.1.0/go.mod h1:EbEs0AVv82hx2wNQdGPgUI5lhzA/G0D9YwlJXL52JkM=
 google.golang.org/appengine v1.4.0/go.mod h1:xpcJRLb0r/rnEns0DIKYYv+WjYCduHsrkT7/EB5XEv4=
 google.golang.org/appengine v1.5.0/go.mod h1:xpcJRLb0r/rnEns0DIKYYv+WjYCduHsrkT7/EB5XEv4=
