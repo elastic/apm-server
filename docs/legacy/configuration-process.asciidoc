@@ -140,7 +140,7 @@ Enables self instrumentation of the APM Server itself.
 Disabled by default.
 
 [float]
-[[configuration-other]]
+[[configuration-tbs]]
 === Configuration options: tail-based sampling
 
 [[sampling.tail.enabled]]
