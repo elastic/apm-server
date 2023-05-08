@@ -1,0 +1,18 @@
+name: ci
+
+on:
+  pull_request:
+
+# limit the access of the generated GITHUB_TOKEN
+permissions:
+  contents: read
+
+jobs:
+  system-test:
+    runs-on: ubuntu-latest
+    steps:
+      - run: 'echo "No tests required to run"'
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - run: 'echo "No lint required to run"'
