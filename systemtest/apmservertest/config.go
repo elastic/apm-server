@@ -392,9 +392,6 @@ func DefaultConfig() Config {
 			Password: getenvDefault("KIBANA_PASS", defaultKibanaPass),
 		},
 		Output: defaultOutputConfig(),
-		RUM: &RUMConfig{
-			Enabled: true,
-		},
 	}
 }
 

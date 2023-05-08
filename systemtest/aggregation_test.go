@@ -310,7 +310,12 @@ func TestServiceTransactionMetricsAggregationLabels(t *testing.T) {
 func TestServiceTransactionMetricsAggregationLabelsRUM(t *testing.T) {
 	t.Setenv("ELASTIC_APM_GLOBAL_LABELS", "department_name=apm,organization=observability,company=elastic")
 	systemtest.CleanupElasticsearch(t)
-	srv := apmservertest.NewServerTB(t)
+	srv := apmservertest.NewUnstartedServerTB(t)
+	srv.Config.RUM = &apmservertest.RUMConfig{
+		Enabled: true,
+	}
+	err := srv.Start()
+	require.NoError(t, err)
 
 	rumPayloadWithLabels := `{"metadata":{"service":{"name":"rum-js-test","agent":{"name":"rum-js","version":"5.5.0"}},"labels": {"tag0": null, "tag1": "one", "tag2": 2}}}
 {"transaction":{"trace_id":"611f4fa950f04631aaaaaaaaaaaaaaaa","id":"611f4fa950f04631","type":"page-load","duration":643,"span_count":{"started":0}}}
