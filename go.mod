@@ -8,15 +8,15 @@ require (
 	github.com/dgraph-io/badger/v2 v2.2007.3-0.20201012072640-f5a7e0a1c83b
 	github.com/dustin/go-humanize v1.0.0
 	github.com/elastic/apm-data v0.1.1-0.20230130063651-f5680fd2c5aa
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230404185015-be8e3e707bdb
-	github.com/elastic/elastic-agent-client/v7 v7.0.3
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230505200738-28ee5aeefff1
+	github.com/elastic/elastic-agent-client/v7 v7.1.1
 	github.com/elastic/elastic-agent-libs v0.3.3
-	github.com/elastic/elastic-agent-system-metrics v0.4.6
+	github.com/elastic/elastic-agent-system-metrics v0.6.0
 	github.com/elastic/gmux v0.2.0
 	github.com/elastic/go-docappender v0.1.0
 	github.com/elastic/go-elasticsearch/v8 v8.6.0
 	github.com/elastic/go-hdrhistogram v0.1.0
-	github.com/elastic/go-sysinfo v1.9.0
+	github.com/elastic/go-sysinfo v1.10.0
 	github.com/elastic/go-ucfg v0.8.6
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible
 	github.com/gofrs/flock v0.8.1
@@ -53,7 +53,7 @@ require (
 	golang.org/x/net v0.8.0
 	golang.org/x/sync v0.1.0
 	golang.org/x/term v0.6.0
-	golang.org/x/time v0.0.0-20220609170525-579cf78fd858
+	golang.org/x/time v0.3.0
 	google.golang.org/grpc v1.53.0
 	google.golang.org/protobuf v1.28.1
 	gopkg.in/yaml.v3 v3.0.1
@@ -66,6 +66,7 @@ require (
 	github.com/apache/thrift v0.17.0 // indirect
 	github.com/armon/go-radix v1.0.0 // indirect
 	github.com/cespare/xxhash v1.1.0 // indirect
+	github.com/containerd/containerd v0.0.0-00010101000000-000000000000 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dgraph-io/ristretto v0.1.0 // indirect
 	github.com/dgryski/go-farm v0.0.0-20200201041132-a6ae2369ad13 // indirect
@@ -108,6 +109,7 @@ require (
 	github.com/mitchellh/hashstructure v1.1.0 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal v0.63.0 // indirect
+	github.com/opencontainers/image-spec v1.0.3-0.20211202183452-c5a74bcca799 // indirect
 	github.com/opentracing/opentracing-go v1.2.0 // indirect
 	github.com/pierrec/lz4 v2.6.1+incompatible // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
