@@ -82,8 +82,6 @@ include::./intake-api.asciidoc[leveloffset=+1]
 
 include::./exploring-es-data.asciidoc[leveloffset=+1]
 
-include::./fields.asciidoc[leveloffset=+1]
-
 include::./troubleshooting.asciidoc[leveloffset=+1]
 
 include::./breaking-changes.asciidoc[leveloffset=+1]
