@@ -59,8 +59,8 @@ For example, a value of `.2` means that 20% of traces will be sampled.
 
 There are two different ways to configure the sampling rate of your Jaeger agents:
 
-* <<jaeger-configure-sampling-central,{apm-agent} central configuration (default)>>
-* <<jaeger-configure-sampling-local,Local sampling in each Jaeger client>>
+* <<configure-sampling-central-jaeger,{apm-agent} central configuration (default)>>
+* <<configure-sampling-local-jaeger,Local sampling in each Jaeger client>>
 
 [float]
 [[configure-sampling-central-jaeger]]
