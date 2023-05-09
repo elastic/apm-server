@@ -5,9 +5,6 @@
 <titleabbrev>Anonymous authentication</titleabbrev>
 ++++
 
-IMPORTANT: {deprecation-notice-config}
-If you're using {fleet} and the Elastic APM integration, please see <<input-apm>> instead.
-
 Elastic APM agents can send unauthenticated (anonymous) events to the APM Server.
 An event is considered to be anonymous if no authentication token can be extracted from the incoming request.
 This is useful for agents that run on clients, like the Real User Monitoring (RUM)

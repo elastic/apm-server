@@ -14,8 +14,6 @@
 [[securing-communication-elasticsearch]]
 == Secure communication with {es}
 
-IMPORTANT: {deprecation-notice-config}
-
 When sending data to a secured cluster through the `elasticsearch`
 output, {beatname_uc} can use any of the following authentication methods:
 

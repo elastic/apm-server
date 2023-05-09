@@ -1,9 +1,6 @@
 [[exploring-es-data]]
 = Explore data in {es}
 
-IMPORTANT: {deprecation-notice-data}
-If you've already upgraded, see <<apm-data-streams>>.
-
 Elastic APM data is stored in data streams.
 include::../data-streams.asciidoc[tag=data-streams]
 

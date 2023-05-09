@@ -16,8 +16,6 @@
 <titleabbrev>Use internal collection</titleabbrev>
 ++++
 
-IMPORTANT: {deprecation-notice-monitor}
-
 Use internal collectors to send {beats} monitoring data directly to your
 monitoring cluster.
 ifndef::serverless[]

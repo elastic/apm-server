@@ -8,8 +8,6 @@ There are two ways to install, run, and manage Elastic APM:
 * With the standalone (legacy) APM Server binary
 
 This documentation focuses on option one: the **Elastic APM integration**.
-For standalone APM Server (legacy) documentation, please see the <<legacy-apm-overview>>
-and <<overview>>.
 ****
 
 Elastic APM consists of four components: *APM agents*, the *Elastic APM integration*, *{es}*, and *{kib}*.

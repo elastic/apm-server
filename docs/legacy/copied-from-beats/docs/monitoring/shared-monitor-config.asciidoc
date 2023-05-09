@@ -14,8 +14,6 @@
 [[configuration-monitor]]
 === Settings for internal collection
 
-IMPORTANT: {deprecation-notice-monitor}
-
 Use the following settings to configure internal collection when you are not
 using {metricbeat} to collect monitoring data.
 
