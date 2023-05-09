@@ -1,0 +1,74 @@
+[[release-notes-7.9]]
+== APM Server version 7.9
+
+https://github.com/elastic/apm-server/compare/7.8\...7.9[View commits]
+
+[IMPORTANT]
+====
+*Known Issue:* APM Server introduced support for cloud metadata in v7.9 ({pull}3729[3729]).
+Unfortunately, the JSON Schema was too strict, and does not account for `null` values.
+As a result, sending `null` values for cloud metadata causes the payload to be rejected.
+This issue was resolved in v7.10.0 ({pull}4142[4142]).
+To avoid problems, we recommend updating to version ≥7.10.0.
+====
+
+* <<release-notes-7.9.3>>
+* <<release-notes-7.9.2>>
+* <<release-notes-7.9.1>>
+* <<release-notes-7.9.0>>
+
+[float]
+[[release-notes-7.9.3]]
+=== APM Server version 7.9.3
+
+https://github.com/elastic/apm-server/compare/v7.9.2\...v7.9.3[View commits]
+
+[float]
+==== Bug fixes
+* Ensure custom index names are lowercased {pull}4295[4295], {pull}4322[4322]
+
+[float]
+[[release-notes-7.9.2]]
+=== APM Server version 7.9.2
+
+https://github.com/elastic/apm-server/compare/v7.9.1\...v7.9.2[View commits]
+
+[float]
+==== Bug fixes
+* De-dot metadata labels set from process and resource tags to prevent indexing errors {pull}4193[4193]
+
+[float]
+[[release-notes-7.9.1]]
+=== APM Server version 7.9.1
+
+https://github.com/elastic/apm-server/compare/v7.9.0\...v7.9.1[View commits]
+
+[float]
+==== Bug fixes
+* Honour output.elasticsearch.headers configuration in API Key auth and source mapping {pull}4090[4090]
+
+[float]
+[[release-notes-7.9.0]]
+=== APM Server version 7.9.0
+
+https://github.com/elastic/apm-server/compare/v7.8.0\...v7.9.0[View commits]
+
+[float]
+==== Bug fixes
+* Ensure unique names in dynamic templates for fields {pull}3832[3832]
+* Process `user_agent` and `client.ip` for RUM Intake v3 requests {pull}3943[3943]
+
+[float]
+==== Added
+* Support configurable response headers for the RUM endpoints {pull}3820[3820]
+* Support custom {ilm-init} index suffix {pull}3826[3826], {pull}3905[3905]
+* Jaeger traceIds/spanIds are formatted without leading zeros {pull}3849[3849]
+* Index Page URL and referer as ECS fields {pull}3857[3857]
+* Map the Jaeger attribute message_bus.destination to the Elastic APM type messaging {pull}3884[3884]
+* Added user_agent.name to grouping key for page-load transaction metrics {pull}3886[3886]
+* Map the Jaeger attribute peer.service to span.destination.service.name {pull}3897[3897]
+* Add timeseries.instance to transaction.duration.histogram docs {pull}3904[3904]
+* Uses `instrumentation` config and APM tracer from libbeat, deprecating `apm-server.instrumentation` {pull}3836[3836]
+* Scale Jaeger transaction counts by inverse sampling rate in histogram metrics {pull}3722[3722]
+* Use peer.hostname for destination.address if peer.address is not given on Jaeger span {pull}3969[3969]
+* Upgrade Go to 1.14.4 {pull}3961[3961]

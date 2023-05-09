@@ -1,0 +1,227 @@
+[[release-notes-6.8]]
+== APM Server version 6.8
+
+https://github.com/elastic/apm-server/compare/6.7\...6.8[View commits]
+
+* <<release-notes-6.8.23>>
+* <<release-notes-6.8.22>>
+* <<release-notes-6.8.21>>
+* <<release-notes-6.8.20>>
+* <<release-notes-6.8.19>>
+* <<release-notes-6.8.18>>
+* <<release-notes-6.8.17>>
+* <<release-notes-6.8.16>>
+* <<release-notes-6.8.15>>
+* <<release-notes-6.8.14>>
+* <<release-notes-6.8.13>>
+* <<release-notes-6.8.12>>
+* <<release-notes-6.8.11>>
+* <<release-notes-6.8.10>>
+* <<release-notes-6.8.9>>
+* <<release-notes-6.8.8>>
+* <<release-notes-6.8.7>>
+* <<release-notes-6.8.6>>
+* <<release-notes-6.8.5>>
+* <<release-notes-6.8.4>>
+* <<release-notes-6.8.3>>
+* <<release-notes-6.8.2>>
+* <<release-notes-6.8.1>>
+* <<release-notes-6.8.0>>
+
+[float]
+[[release-notes-6.8.23]]
+=== APM Server version 6.8.23
+
+https://github.com/elastic/apm-server/compare/v6.8.22\...v6.8.23[View commits]
+
+No significant changes.
+
+[float]
+[[release-notes-6.8.22]]
+=== APM Server version 6.8.22
+
+https://github.com/elastic/apm-server/compare/v6.8.21\...v6.8.22[View commits]
+
+No significant changes.
+
+[float]
+[[release-notes-6.8.21]]
+=== APM Server version 6.8.21
+
+https://github.com/elastic/apm-server/compare/v6.8.20\...v6.8.21[View commits]
+
+No significant changes.
+
+[float]
+[[release-notes-6.8.20]]
+=== APM Server version 6.8.20
+
+https://github.com/elastic/apm-server/compare/v6.8.19\...v6.8.20[View commits]
+
+No significant changes.
+
+[float]
+[[release-notes-6.8.19]]
+=== APM Server version 6.8.19
+
+https://github.com/elastic/apm-server/compare/v6.8.18\...v6.8.19[View commits]
+
+No significant changes.
+
+[float]
+[[release-notes-6.8.18]]
+=== APM Server version 6.8.18
+
+https://github.com/elastic/apm-server/compare/v6.8.17\...v6.8.18[View commits]
+
+No significant changes.
+
+[float]
+[[release-notes-6.8.17]]
+=== APM Server version 6.8.17
+
+https://github.com/elastic/apm-server/compare/v6.8.16\...v6.8.17[View commits]
+
+No significant changes.
+
+[float]
+[[release-notes-6.8.16]]
+=== APM Server version 6.8.16
+
+https://github.com/elastic/apm-server/compare/v6.8.15\...v6.8.16[View commits]
+
+No significant changes.
+
+[float]
+[[release-notes-6.8.15]]
+=== APM Server version 6.8.15
+
+https://github.com/elastic/apm-server/compare/v6.8.14\...v6.8.15[View commits]
+
+No significant changes.
+
+[float]
+[[release-notes-6.8.14]]
+=== APM Server version 6.8.14
+
+https://github.com/elastic/apm-server/compare/v6.8.13\...v6.8.14[View commits]
+
+No significant changes.
+
+[float]
+[[release-notes-6.8.13]]
+=== APM Server version 6.8.13
+
+https://github.com/elastic/apm-server/compare/v6.8.12\...v6.8.13[View commits]
+
+No significant changes.
+
+[float]
+[[release-notes-6.8.12]]
+=== APM Server version 6.8.12
+
+https://github.com/elastic/apm-server/compare/v6.8.11\...v6.8.12[View commits]
+
+No significant changes.
+
+[float]
+[[release-notes-6.8.11]]
+=== APM Server version 6.8.11
+
+https://github.com/elastic/apm-server/compare/v6.8.10\...v6.8.11[View commits]
+
+No significant changes.
+
+[float]
+[[release-notes-6.8.10]]
+=== APM Server version 6.8.10
+
+https://github.com/elastic/apm-server/compare/v6.8.9\...v6.8.10[View commits]
+
+No significant changes.
+
+[float]
+[[release-notes-6.8.9]]
+=== APM Server version 6.8.9
+
+https://github.com/elastic/apm-server/compare/v6.8.8\...v6.8.9[View commits]
+
+No significant changes.
+
+[float]
+[[release-notes-6.8.8]]
+=== APM Server version 6.8.8
+
+https://github.com/elastic/apm-server/compare/v6.8.7\...v6.8.8[View commits]
+
+No significant changes.
+
+[float]
+[[release-notes-6.8.7]]
+=== APM Server version 6.8.7
+
+https://github.com/elastic/apm-server/compare/v6.8.6\...v6.8.7[View commits]
+
+No significant changes.
+
+[float]
+[[release-notes-6.8.6]]
+=== APM Server version 6.8.6
+
+https://github.com/elastic/apm-server/compare/v6.8.5\...v6.8.6[View commits]
+
+No significant changes.
+
+[float]
+[[release-notes-6.8.5]]
+=== APM Server version 6.8.5
+
+https://github.com/elastic/apm-server/compare/v6.8.4\...v6.8.5[View commits]
+
+No significant changes.
+
+[float]
+[[release-notes-6.8.4]]
+=== APM Server version 6.8.4
+
+https://github.com/elastic/apm-server/compare/v6.8.3\...v6.8.4[View commits]
+
+No significant changes.
+
+[float]
+[[release-notes-6.8.3]]
+=== APM Server version 6.8.3
+
+https://github.com/elastic/apm-server/compare/v6.8.2\...v6.8.3[View commits]
+
+No significant changes.
+
+[float]
+[[release-notes-6.8.2]]
+=== APM Server version 6.8.2
+
+https://github.com/elastic/apm-server/compare/v6.8.1\...v6.8.2[View commits]
+
+No significant changes.
+
+[float]
+[[release-notes-6.8.1]]
+=== APM Server version 6.8.1
+
+https://github.com/elastic/apm-server/compare/v6.8.0\...v6.8.1[View commits]
+
+[float]
+==== Added
+
+- Support more SSL config options for agent/server communication {pull}2224[2224], {pull}2281[2281].
+
+[float]
+[[release-notes-6.8.0]]
+=== APM Server version 6.8.0
+
+https://github.com/elastic/apm-server/compare/v6.7.2\...v6.8.0[View commits]
+
+[float]
+==== Bug fixes
+
+- Fix numeric user id decoding {pull}2147[2147].
