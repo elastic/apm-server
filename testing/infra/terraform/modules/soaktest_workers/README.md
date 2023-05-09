@@ -32,9 +32,10 @@ This module sets up worker with load generation binary for soaktest configured a
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| <a name="input_apm_api_key"></a> [apm\_api\_key](#input\_apm\_api\_key) | API Key for auth against the given server URL | `string` | n/a | yes |
 | <a name="input_apm_loadgen_agents_replicas"></a> [apm\_loadgen\_agents\_replicas](#input\_apm\_loadgen\_agents\_replicas) | Number of agents replicas to use, each replica launches 4 agents, one for each type | `string` | n/a | yes |
 | <a name="input_apm_loadgen_event_rate"></a> [apm\_loadgen\_event\_rate](#input\_apm\_loadgen\_event\_rate) | Load generation rate | `string` | n/a | yes |
+| <a name="input_apm_loadgen_rewrite_ids"></a> [apm\_loadgen\_rewrite\_ids](#input\_apm\_loadgen\_rewrite\_ids) | Rewrite event IDs every iteration, maintaining event relationships | `bool` | `false` | no |
+| <a name="input_apm_loadgen_rewrite_timestamps"></a> [apm\_loadgen\_rewrite\_timestamps](#input\_apm\_loadgen\_rewrite\_timestamps) | Rewrite event timestamps every iteration, maintaining relative offsets | `bool` | `false` | no |
 | <a name="input_apm_secret_token"></a> [apm\_secret\_token](#input\_apm\_secret\_token) | Secret token for auth against the given server URL | `string` | n/a | yes |
 | <a name="input_apm_server_url"></a> [apm\_server\_url](#input\_apm\_server\_url) | APM Server URL for sending the generated load | `string` | n/a | yes |
 | <a name="input_apmsoak_bin_path"></a> [apmsoak\_bin\_path](#input\_apmsoak\_bin\_path) | Path where the apmsoak binary resides on the local machine | `string` | n/a | yes |
@@ -44,4 +45,5 @@ This module sets up worker with load generation binary for soaktest configured a
 | <a name="input_gcp_project"></a> [gcp\_project](#input\_gcp\_project) | GCP Project name | `string` | `"elastic-apm"` | no |
 | <a name="input_gcp_region"></a> [gcp\_region](#input\_gcp\_region) | GCP region | `string` | `"us-west2"` | no |
 | <a name="input_gcp_zone"></a> [gcp\_zone](#input\_gcp\_zone) | GCP zone | `string` | `"us-west2-b"` | no |
+| <a name="input_machine_type"></a> [machine\_type](#input\_machine\_type) | Machine type for soak test workers | `string` | `"e2-small"` | no |
 <!-- END_TF_DOCS -->

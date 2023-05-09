@@ -24,8 +24,8 @@ var (
 	rpcProtocolVersion uint32
 )
 
-// GetRPCVersion returns the version of the RPC protocol
-func GetRPCVersion() uint32 {
+// GetRPCVersionFromProto returns the version of the RPC protocol
+func GetRPCVersionFromProto() uint32 {
 	// Retrieve protocol version defined in the .proto file
 	options := File_collection_agent_proto.Options()
 	return proto.GetExtension(options, E_Version).(uint32)
@@ -40,7 +40,12 @@ func (e *ElasticCollector) AuthenticateUnaryCall(
 	fullMethod string,
 	authenticator *auth.Authenticator,
 ) (auth.AuthenticationDetails, auth.Authorizer, error) {
-	md, _ := metadata.FromIncomingContext(ctx)
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return auth.AuthenticationDetails{}, nil,
+			status.Errorf(codes.FailedPrecondition, "RPC metadata is missing")
+	}
+
 	secretToken := GetFirstOrEmpty(md, MetadataKeySecretToken)
 	projectIDStr := GetFirstOrEmpty(md, MetadataKeyProjectID)
 	hostIDStr := GetFirstOrEmpty(md, MetadataKeyHostID)

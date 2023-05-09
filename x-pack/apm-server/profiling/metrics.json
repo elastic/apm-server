@@ -202,6 +202,7 @@
     "id": 27
   },
   {
+    "obsolete": true,
     "description": "Number of failures to read PyFrameObject->f_back in walk_python_stack()",
     "type": "counter",
     "name": "UnwindPythonErrBadFrameObjectBackAddr",
@@ -209,6 +210,7 @@
     "id": 28
   },
   {
+    "obsolete": true,
     "description": "Number of failures to read PyFrameObject->f_code in process_python_frame()",
     "type": "counter",
     "name": "UnwindPythonErrBadFrameCodeObjectAddr",
@@ -251,6 +253,7 @@
     "id": 34
   },
   {
+    "obsolete": true,
     "description": "Number of failures to get the last instruction address in process_python_frame()",
     "type": "counter",
     "name": "UnwindPythonErrBadFrameLastInstructionAddr",
@@ -265,6 +268,7 @@
     "id": 36
   },
   {
+    "obsolete": true,
     "description": "Number of failures to get code object's kwonlyargcount in process_python_frame()",
     "type": "counter",
     "name": "UnwindPythonErrBadCodeObjectKWOnlyArgCountAddr",
@@ -272,6 +276,7 @@
     "id": 37
   },
   {
+    "obsolete": true,
     "description": "Number of failures to get code object's flags in process_python_frame()",
     "type": "counter",
     "name": "UnwindPythonErrBadCodeObjectFlagsAddr",
@@ -279,6 +284,7 @@
     "id": 38
   },
   {
+    "obsolete": true,
     "description": "Number of failures to get code object's first line number in process_python_frame()",
     "type": "counter",
     "name": "UnwindPythonErrBadCodeObjectFirstLineNumberAddr",
@@ -980,7 +986,7 @@
     "id": 138
   },
   {
-    "description": "Number of failures to read V8 JSFunction object",
+    "description": "Number of failures to read V8 Code/JSFunction object",
     "type": "counter",
     "name": "UnwindV8ErrBadJSFunc",
     "field": "bpf.v8.errors.bad_js_func",
@@ -1036,14 +1042,14 @@
     "id": 146
   },
   {
-    "description": "Number of cache hits for V8 JSFunction",
+    "description": "Number of cache hits for V8 Code/JSFunction",
     "type": "counter",
     "name": "V8AddrToFuncHit",
     "field": "agent.v8.addr_to_func.hits",
     "id": 147
   },
   {
-    "description": "Number of cache misses for V8 JSFunction",
+    "description": "Number of cache misses for V8 Code/JSFunction",
     "type": "counter",
     "name": "V8AddrToFuncMiss",
     "field": "agent.v8.addr_to_func.misses",
@@ -1318,14 +1324,14 @@
     "id": 186
   },
   {
-    "description": "Number of added cache elements for V8 JSFunction",
+    "description": "Number of added cache elements for V8 Code/JSFunction",
     "type": "counter",
     "name": "V8AddrToFuncAdd",
     "field": "agent.v8.addr_to_func.add",
     "id": 187
   },
   {
-    "description": "Number of deleted cache elements for V8 JSFunction",
+    "description": "Number of deleted cache elements for V8 Code/JSFunction",
     "type": "counter",
     "name": "V8AddrToFuncDel",
     "field": "agent.v8.addr_to_func.del",
@@ -1607,5 +1613,44 @@
     "name": "PIDEventsErr",
     "field": "bpf.errors.pid_events",
     "id": 227
+  },
+  {
+    "description": "Number of failures to read _PyCFrame.current_frame in unwind_python()",
+    "type": "counter",
+    "name": "UnwindPythonErrBadCFrameFrameAddr",
+    "field": "bpf.python.errors.bad_cframe_frame_addr",
+    "id": 228
+  },
+  {
+    "description": "Number of times stack unwinding was stopped to not hit the limit of tail calls",
+    "type": "counter",
+    "name": "MaxTailCalls",
+    "field": "bpf.tail_calls_max",
+    "id": 229
+  },
+  {
+    "description": "Indicates if probabilistic profiling is enabled or disabled: 1 profiling is enabled, -1 profiling is disabled.",
+    "type": "gauge",
+    "name": "ProbProfilingStatus",
+    "id": 230
+  },
+  {
+    "description": "Interval in seconds for which probabilistic profiling will be enabled or disabled.",
+    "type": "counter",
+    "name": "ProbProfilingInterval",
+    "id": 231,
+    "unit": "s"
+  },
+  {
+    "description": "Number of times enabling a perf event hook failed",
+    "type": "counter",
+    "name": "PerfEventEnableErr",
+    "id": 232
+  },
+  {
+    "description": "Number of times disabling a perf event hook failed",
+    "type": "counter",
+    "name": "PerfEventDisableErr",
+    "id": 233
   }
 ]

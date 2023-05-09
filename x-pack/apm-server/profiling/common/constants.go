@@ -5,13 +5,15 @@
 package common
 
 const (
-	AllEventsIndex    = "profiling-events-all"
-	EventsIndexPrefix = "profiling-events"
-	StackTraceIndex   = "profiling-stacktraces"
-	StackFrameIndex   = "profiling-stackframes"
-	ExecutablesIndex  = "profiling-executables"
-	MetricsIndex      = "profiling-metrics"
-	ILMLockingIndex   = ".profiling-ilm-lock"
+	AllEventsIndex           = "profiling-events-all"
+	EventsIndexPrefix        = "profiling-events"
+	StackTraceIndex          = "profiling-stacktraces"
+	StackFrameIndex          = "profiling-stackframes"
+	ExecutablesIndex         = "profiling-executables"
+	MetricsIndex             = "profiling-metrics"
+	ExecutablesSymQueueIndex = "profiling-sq-executables"
+	LeafFramesSymQueueIndex  = "profiling-sq-leafframes"
+	ILMLockingIndex          = ".profiling-ilm-lock"
 )
 
 // ## Why do we need downsampling ?

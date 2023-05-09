@@ -31,12 +31,12 @@ var (
 	logOptions        []logp.Option
 )
 
-func configureLogging(cfg *Config) error {
-	logpConfig := logp.DefaultConfig(logp.DefaultEnvironment)
+func buildLoggingConfig(cfg *Config, env logp.Environment, stderr bool, debugSelectors []string, opts ...logp.Option) (logp.Config, error) {
+	logpConfig := logp.DefaultConfig(env)
 	logpConfig.Beat = "apm-server"
 	if cfg.Logging != nil {
 		if err := cfg.Logging.Unpack(&logpConfig); err != nil {
-			return err
+			return logpConfig, err
 		}
 	}
 
@@ -44,24 +44,26 @@ func configureLogging(cfg *Config) error {
 	if logpConfig.Level > logp.InfoLevel && logVerbose {
 		logpConfig.Level = logp.InfoLevel
 	}
-	if len(logDebugSelectors) > 0 {
-		for _, selectors := range logDebugSelectors {
+	if len(debugSelectors) > 0 {
+		for _, selectors := range debugSelectors {
 			logpConfig.Selectors = append(logpConfig.Selectors, strings.Split(selectors, ",")...)
 		}
 		logpConfig.Level = logp.DebugLevel
 	}
-	if logStderr {
+	if stderr {
 		logpConfig.ToStderr = true
-	} else {
-		// If the process is running in a container or managed by systemd, then log to stderr.
-		switch logEnvironment.env {
-		case logp.ContainerEnvironment, logp.SystemdEnvironment:
-			logpConfig.ToStderr = true
-		}
 	}
-	for _, opt := range logOptions {
+	for _, opt := range opts {
 		opt(&logpConfig)
 	}
 
+	return logpConfig, nil
+}
+
+func configureLogging(cfg *Config) error {
+	logpConfig, err := buildLoggingConfig(cfg, logEnvironment.env, logStderr, logDebugSelectors, logOptions...)
+	if err != nil {
+		return err
+	}
 	return logp.Configure(logpConfig)
 }

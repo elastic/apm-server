@@ -140,6 +140,27 @@ Enables self instrumentation of the APM Server itself.
 Disabled by default.
 
 [float]
+[[configuration-tbs]]
+=== Configuration options: tail-based sampling
+
+[[sampling.tail.enabled]]
+[float]
+==== `sampling.tail.enabled`
+Set to `true` to enable tail based sampling.
+Disabled by default.
+
+[[sampling.tail.interval]]
+[float]
+==== `sampling.tail.interval`
+Synchronization interval for multiple APM Servers.
+Should be in the order of tens of seconds or low minutes.
+
+[[sampling.tail.policies]]
+[float]
+==== `sampling.tail.policies`
+Criteria used to match a root transaction to a sample rate.
+
+[float]
 === Configuration options: `max_procs`
 
 [[max_procs]]

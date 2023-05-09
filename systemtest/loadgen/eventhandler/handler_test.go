@@ -158,6 +158,12 @@ func withRewriteTransactionNames(rewrite bool) newHandlerOption {
 	}
 }
 
+func withRewriteTransactionTypes(rewrite bool) newHandlerOption {
+	return func(config *Config) {
+		config.RewriteTransactionTypes = rewrite
+	}
+}
+
 func withRewriteSpanNames(rewrite bool) newHandlerOption {
 	return func(config *Config) {
 		config.RewriteSpanNames = rewrite
@@ -699,6 +705,58 @@ func TestHandlerSendBatchesRewriteTransactionNames(t *testing.T) {
 	run(t, true)
 }
 
+func TestHandlerSendBatchesRewriteTransactionTypes(t *testing.T) {
+	transactionType := "Transaction_Type_123"
+
+	originalPayload := fmt.Sprintf(`
+{"metadata":{}}
+{"transaction":{"type":%q}}
+`[1:], transactionType)
+
+	fs := fstest.MapFS{"foo.ndjson": {Data: []byte(originalPayload)}}
+
+	run := func(t *testing.T, rewrite bool) {
+		t.Helper()
+		t.Run(strconv.FormatBool(rewrite), func(t *testing.T) {
+			handler, srv := newHandler(t,
+				withStorage(fs),
+				withRewriteTransactionTypes(rewrite),
+				withRand(rand.New(rand.NewSource(123456))), // known seed
+			)
+			_, err := handler.SendBatches(context.Background())
+			assert.NoError(t, err)
+
+			if !rewrite {
+				// Original payload should be sent as-is.
+				assert.Equal(t, originalPayload, srv.got.String())
+				return
+			}
+
+			d := json.NewDecoder(bytes.NewReader(srv.got.Bytes()))
+			type object map[string]struct {
+				Type string `json:"type"`
+			}
+			var objects []object
+			for {
+				var object object
+				err := d.Decode(&object)
+				if errors.Is(err, io.EOF) {
+					break
+				}
+				require.NoError(t, err)
+				objects = append(objects, object)
+			}
+
+			assert.Equal(t, []object{
+				{"metadata": {}},
+				{"transaction": {Type: "Swfcucefmkl_Nfmk_959"}},
+			}, objects)
+		})
+	}
+	run(t, false)
+	run(t, true)
+}
+
 func TestHandlerInLoop(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		h, srv := newHandler(t)
@@ -770,6 +828,9 @@ func BenchmarkSendBatches(b *testing.B) {
 	})
 	b.Run("rewrite_transaction_names", func(b *testing.B) {
 		run(b, withRewriteTransactionNames(true))
+	})
+	b.Run("rewrite_transaction_types", func(b *testing.B) {
+		run(b, withRewriteTransactionTypes(true))
 	})
 	b.Run("rewrite_span_names", func(b *testing.B) {
 		run(b, withRewriteSpanNames(true))
