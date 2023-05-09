@@ -13,10 +13,6 @@ on:
 permissions:
   contents: read
 
-env:
-  AWS_ACCOUNT_SECRET: 'secret/observability-team/ci/elastic-observability-aws-account-auth'
-  EC_KEY_SECRET: 'secret/observability-team/ci/elastic-cloud/observability-pro'
-
 jobs:
   prepare:
     name: Generate smoke tests list
@@ -62,6 +58,8 @@ jobs:
           vault-url: ${{ secrets.VAULT_ADDR }}
           vault-role-id: ${{ secrets.VAULT_ROLE_ID }}
           vault-secret-id: ${{ secrets.VAULT_SECRET_ID }}
+          ec-key-secret: 'secret/observability-team/ci/elastic-cloud/observability-pro'
+          aws-account-secret: 'secret/observability-team/ci/elastic-observability-aws-account-auth'
       - name: Run smoke tests ${{ matrix.test }} for ${{ matrix.version }}
         run: make smoketest/run-version TEST_DIR=${{ matrix.test }} SMOKETEST_VERSION=${{ matrix.version }}
       - if: always()

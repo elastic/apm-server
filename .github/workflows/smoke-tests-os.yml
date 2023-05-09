@@ -12,10 +12,6 @@ on:
 permissions:
   contents: read
 
-env:
-  AWS_ACCOUNT_SECRET: 'secret/observability-team/ci/elastic-observability-aws-account-auth'
-  EC_KEY_SECRET: 'secret/observability-team/ci/elastic-cloud/observability-pro'
-
 jobs:
   prepare:
     name: Generate smoke tests list

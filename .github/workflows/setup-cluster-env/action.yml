@@ -6,13 +6,13 @@ description: Setup cluster env
 inputs:
   vault-url:
     description: 'Vault URL'
-    required: false
+    required: true
   vault-role-id:
     description: 'Vault role ID'
-    required: false
+    required: true
   vault-secret-id:
     description: 'Vault secret ID'
-    required: false
+    required: true
 
 runs:
   using: "composite"
@@ -25,6 +25,9 @@ runs:
           go.sum
           tools/go.sum
     - uses: hashicorp/vault-action@v2.5.0
+      env:
+        AWS_ACCOUNT_SECRET: 'secret/observability-team/ci/elastic-observability-aws-account-auth'
+        EC_KEY_SECRET: 'secret/observability-team/ci/elastic-cloud/observability-pro'
       with:
         url: ${{ inputs.vault-url }}
         roleId: ${{ inputs.vault-role-id }}
