@@ -5,8 +5,6 @@
 <titleabbrev>{ls}</titleabbrev>
 ++++
 
-IMPORTANT: {deprecation-notice-config}
-
 The {ls} output sends events directly to {ls} by using the lumberjack
 protocol, which runs over TCP. {ls} allows for additional processing and routing of
 generated events.
@@ -103,7 +101,7 @@ with a {logstash-ref}/use-ingest-pipelines.html[{ls} pipeline config].
 <4> The current version of {beatname_uc}.
 
 In addition to metadata, {beatname_uc} provides the `processor.event` field, which
-can be used to separate {apm-overview-ref-v}/apm-data-model.html[event types] into different indices.
+can be used to separate {apm-guide-ref}/data-model.html[event types] into different indices.
 endif::[]
 
 ifndef::apm-server[]
@@ -186,7 +184,7 @@ endif::[]
 ifdef::apm-server[]
 ==== {ls} and {ilm-init}
 
-When used with {apm-server-ref}/ilm.html[{ilm-cap}], {ls} does not need to create a new index each day.
+When used with {apm-server-ref}/ilm-how-to.html[{ilm-cap}], {ls} does not need to create a new index each day.
 Here's a sample {ls} configuration file that would accomplish this:
 
 [source,logstash]

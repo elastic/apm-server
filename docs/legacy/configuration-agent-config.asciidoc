@@ -5,8 +5,6 @@
 <titleabbrev>APM agent configuration</titleabbrev>
 ++++
 
-IMPORTANT: {deprecation-notice-config}
-
 APM agent configuration allows you to fine-tune your APM agents from within the APM app.
 Changes are automatically propagated to your APM agents, so there's no need to redeploy your applications.
 
