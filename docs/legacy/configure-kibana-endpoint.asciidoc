@@ -5,7 +5,6 @@
 <titleabbrev>{kib} endpoint</titleabbrev>
 ++++
 
-IMPORTANT: {deprecation-notice-config}
 
 You must configure the {kib} endpoint if running APM Server standalone--this allows APM Server to verify that
 the APM package has been installed. The {kib} endpoint is also equired for APM agent configuration when using

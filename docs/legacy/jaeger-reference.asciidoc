@@ -5,9 +5,6 @@
 <titleabbrev>Jaeger</titleabbrev>
 ++++
 
-IMPORTANT: {deprecation-notice-config}
-If you've already upgraded, please see <<jaeger-integration>> instead.
-
 // this content is reused in the how-to guides
 // tag::jaeger-intro[]
 Elastic APM integrates with https://www.jaegertracing.io/[Jaeger], an open-source, distributed tracing system.
@@ -16,7 +13,7 @@ to the {stack} -- transform data with APM Server, store data in {es}, and visual
 Best of all, no instrumentation changes are needed in your application code.
 // end::jaeger-intro[]
 
-Ready to get started? See the <<jaeger,How to integrate with Jaeger>> guide.
+Ready to get started? See the <<jaeger-integration,How to integrate with Jaeger>> guide.
 
 [float]
 [[jaeger-supported]]
@@ -32,7 +29,7 @@ supports communication with *Jaeger agents* via gRPC.
 SSL settings will automatically be applied to APM Server's Jaeger gRPC endpoint.
 
 * The gRPC endpoint supports probabilistic sampling.
-Sampling decisions can be configured <<jaeger-configure-sampling-central,centrally>> with APM Agent central configuration, or <<jaeger-configure-sampling-local,locally>> in each Jaeger client.
+Sampling decisions can be configured <<configure-sampling-central-jaeger,centrally>> with APM Agent central configuration, or <<configure-sampling-local-jaeger,locally>> in each Jaeger client.
 
 See the https://www.jaegertracing.io/docs/1.22/architecture[Jaeger docs]
 for more information on Jaeger architecture.
@@ -55,8 +52,8 @@ it is not possible to mix and match the use of Elastic's APM agents and Jaeger's
 APM agents support a larger number of features, like
 multiple types of metrics, and application breakdown charts.
 When using Jaeger, features like this will not be available in the {apm-app}.
-* Elastic APM's {apm-overview-ref-v}/apm-data-model.html[data model] is different than Jaegers.
+* Elastic APM's {apm-guide-ref}/data-model.html[data model] is different than Jaegers.
 For Jaeger trace data to work with Elastic's data model, we rely on spans being tagged with the appropriate
 https://github.com/opentracing/specification/blob/master/semantic_conventions.md[`span.kind`].
-** Server Jaeger spans are mapped to Elastic APM {apm-overview-ref-v}/transactions.html[transactions].
-** Client Jaeger spans are mapped to Elastic APM {apm-overview-ref-v}/transaction-spans.html[spans] -- unless the span is the root, in which case it is mapped to an Elastic APM {apm-overview-ref-v}/transactions.html[transaction].
+** Server Jaeger spans are mapped to Elastic APM {apm-guide-ref}/data-model-transactions.html[transactions].
+** Client Jaeger spans are mapped to Elastic APM {apm-guide-ref}/data-model-spans.html[spans] -- unless the span is the root, in which case it is mapped to an Elastic APM {apm-guide-ref}/data-model-transactions.html[transaction].

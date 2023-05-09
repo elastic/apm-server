@@ -5,7 +5,6 @@ There are two ways to install, run, and manage Elastic APM:
 * With the standalone (legacy) APM Server binary
 
 This documentation focuses on option two: the **standalone (legacy) APM Server binary**.
-{deprecation-notice-installation}
 ****
 
 The APM Server receives data from APM agents and transforms them into {es} documents.
