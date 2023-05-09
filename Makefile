@@ -336,7 +336,7 @@ SMOKETEST_DIRS = $$(find $(CURRENT_DIR)/testing/smoke -mindepth 1 -maxdepth 1 -t
 
 .PHONY: smoketest/discover
 smoketest/discover:
-	@echo "$(SMOKETEST_DIRS)"
+	@ echo "$(SMOKETEST_DIRS)" | jq -cnR '[inputs | select(length > 0)]'
 
 .PHONY: smoketest/run-version
 smoketest/run-version:
