@@ -184,7 +184,7 @@ endif::[]
 ifdef::apm-server[]
 === {ls} and {ilm-init}
 
-When used with {apm-server-ref}/ilm-how-to.html[{ilm-cap}], {ls} does not need to create a new index each day.
+When used with {apm-guide-ref}/ilm-how-to.html[{ilm-cap}], {ls} does not need to create a new index each day.
 Here's a sample {ls} configuration file that would accomplish this:
 
 [source,logstash]
