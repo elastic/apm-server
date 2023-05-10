@@ -5,9 +5,6 @@
 <titleabbrev>Configure</titleabbrev>
 ++++
 
-IMPORTANT: {deprecation-notice-config}
-If you've already upgraded, please see <<input-apm>> instead.
-
 include::{libbeat-dir}/shared/configuring-intro.asciidoc[]
 
 * <<configuration-process>>
@@ -52,9 +49,6 @@ include::./configuration-rum.asciidoc[]
 // BEGIN SSL SECTION --------------------------------------------
 [[configuration-ssl-landing]]
 == SSL/TLS settings
-
-IMPORTANT: {deprecation-notice-config}
-If you've already upgraded, please see <<secure-agent-communication>> instead.
 
 SSL/TLS is available for:
 

@@ -1,8 +1,6 @@
 [[running-on-docker]]
 === Run {beatname_uc} on Docker
 
-IMPORTANT: {deprecation-notice-installation}
-
 Docker images for {beatname_uc} are available from the Elastic Docker
 registry. The base image is https://hub.docker.com/_/centos/[centos:7].
 

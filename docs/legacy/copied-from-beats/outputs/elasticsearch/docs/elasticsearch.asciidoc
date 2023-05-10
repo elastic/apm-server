@@ -5,8 +5,6 @@
 <titleabbrev>{es}</titleabbrev>
 ++++
 
-IMPORTANT: {deprecation-notice-config}
-
 The {es} output sends events directly to {es} using the {es} HTTP API.
 
 Example configuration:

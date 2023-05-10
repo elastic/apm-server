@@ -218,7 +218,7 @@ Pipelines are a flexible and easy way to filter or obfuscate Elastic APM data.
 [[filters-ingest-pipeline-tutorial]]
 ===== Tutorial: redact sensitive information
 
-Say you decide to <<filter-http-body,capture HTTP request bodies>>
+Say you decide to <<filters-http-body,capture HTTP request bodies>>
 but quickly notice that sensitive information is being collected in the
 `http.request.body.original` field:
 

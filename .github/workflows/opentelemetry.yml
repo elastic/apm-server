@@ -8,6 +8,8 @@ on:
       - ci
       - system-test-reporter
       - update-beats
+      - smoke-tests-os
+      - smoke-tests-ess
     types: [completed]
 
 jobs:

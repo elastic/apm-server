@@ -92,6 +92,7 @@ Here are some ways you can reduce either the amount of APM data you're ingesting
 or the amount of data you're retaining.
 
 [float]
+[[reduce-sample-rate]]
 ==== Reduce the sample rate
 
 Distributed tracing can generate a substantial amount of data.
@@ -111,6 +112,7 @@ retaining important information but reducing processing and storage overhead.
 See <<span-compression>> to learn more.
 
 [float]
+[[reduce-stacktrace]]
 ==== Reduce collected stack trace information
 
 Elastic APM agents collect `stacktrace` information under certain circumstances.
