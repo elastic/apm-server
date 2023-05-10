@@ -21,8 +21,6 @@ pipeline {
     stage('Nighly update Beats builds') {
       steps {
         runWindowsBuilds(branches: ['main', '8.<minor>', '8.<next-patch>', '7.<minor>'])
-        runSmokeTestsOs(branches: ['main', '8.<minor>', '8.<next-patch>'])
-        runSmokeTestsEss(branches: ['main'])
       }
     }
   }
@@ -41,19 +39,5 @@ def runWindowsBuilds(Map args = [:]) {
             booleanParam(name: 'windows_ci', value: true)
           ],
           wait: false, propagate: false)
-  }
-}
-
-def runSmokeTestsEss(Map args = [:]) {
-  def branches = getBranchesFromAliases(aliases: args.branches)
-  branches.each { branch ->
-    build(job: "apm-server/smoke-tests-ess-mbp/${branch}", wait: false, propagate: false)
-  }
-}
-
-def runSmokeTestsOs(Map args = [:]) {
-  def branches = getBranchesFromAliases(aliases: args.branches)
-  branches.each { branch ->
-    build(job: "apm-server/smoke-tests-os-mbp/${branch}", wait: false, propagate: false)
   }
 }
