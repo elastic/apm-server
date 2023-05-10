@@ -11,18 +11,18 @@
 //# tag::outputs-include[]
 include::output-cloud.asciidoc[]
 
-include::elasticsearch/docs/elasticsearch.asciidoc[]
+include::elasticsearch.asciidoc[]
 
-include::logstash/docs/logstash.asciidoc[]
+include::logstash.asciidoc[]
 
-include::kafka/docs/kafka.asciidoc[]
+include::kafka.asciidoc[]
 
-include::redis/docs/redis.asciidoc[]
+include::redis.asciidoc[]
 
-include::fileout/docs/fileout.asciidoc[]
+include::fileout.asciidoc[]
 
-include::console/docs/console.asciidoc[]
+include::console.asciidoc[]
 
-include::codec/docs/codec.asciidoc[]
+include::codec.asciidoc[]
 
 //# end::outputs-include[]
