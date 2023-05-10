@@ -1,0 +1,5 @@
+= Tail-based sampling
+
+Tail-based sampling configuration options.
+
+include::./tab-widgets/sampling-config-widget.asciidoc[]

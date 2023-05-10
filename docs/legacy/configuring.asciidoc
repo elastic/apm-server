@@ -11,36 +11,38 @@ include::{libbeat-dir}/shared/configuring-intro.asciidoc[]
 * <<configure-agent-config>>
 * <<configuration-anonymous>>
 * <<configuration-instrumentation>>
-* <<jaeger-reference>>
-* <<configuration-kerberos>>
 * <<setup-kibana-endpoint>>
 * <<configuration-logging>>
 * <<configuring-output>>
 * <<configuration-path>>
 * <<configuration-rum>>
 * <<configuration-ssl-landing>>
-* <<using-environ-vars>>
 
+== Shared
+
+== Fleet-managed APM Server
+
+...stuff goes here
+
+== APM Server binary
+
+:leveloffset: +1
 include::./configuration-process.asciidoc[]
 
 include::./configuration-agent-config.asciidoc[]
 
 include::./configuration-anonymous.asciidoc[]
 
-include::{libbeat-dir}/shared-instrumentation.asciidoc[]
+// include::{libbeat-dir}/shared-instrumentation.asciidoc[]
 
-include::./jaeger-reference.asciidoc[]
-
-ifndef::no_kerberos[]
-include::{libbeat-dir}/shared-kerberos-config.asciidoc[]
-endif::[]
+// include::./jaeger-reference.asciidoc[]
 
 include::./configure-kibana-endpoint.asciidoc[]
 
 include::{libbeat-dir}/loggingconfig.asciidoc[]
 
-:no-redis-output:
-include::{libbeat-dir}/outputconfig.asciidoc[]
+// :no-redis-output:
+// include::{libbeat-dir}/outputconfig.asciidoc[]
 
 include::{libbeat-dir}/shared-path-config.asciidoc[]
 
@@ -72,3 +74,6 @@ include::ssl-input-settings.asciidoc[]
 :standalone:
 include::{libbeat-dir}/shared-env-vars.asciidoc[]
 :standalone!:
+
+
+:leveloffset: -1

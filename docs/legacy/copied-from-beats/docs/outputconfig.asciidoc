@@ -11,8 +11,8 @@
 //////////////////////////////////////////////////////////////////////////
 
 
-[[configuring-output]]
-== Configure the output
+// [[configuring-output]]
+// == Configure the output
 
 ++++
 <titleabbrev>Output</titleabbrev>
@@ -28,8 +28,8 @@ security-related configuration options.
 
 include::outputs-list.asciidoc[tag=outputs-list]
 
-ifdef::beat-specific-output-config[]
-include::{beat-specific-output-config}[]
-endif::[]
+// ifdef::beat-specific-output-config[]
+// include::{beat-specific-output-config}[]
+// endif::[]
 
 include::outputs-list.asciidoc[tag=outputs-include]

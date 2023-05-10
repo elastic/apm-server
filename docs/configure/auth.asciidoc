@@ -1,0 +1,5 @@
+= Agent authorization
+
+Agent authorization APM Server configuration options.
+
+include::./tab-widgets/auth-config-widget.asciidoc[]
