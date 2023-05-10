@@ -1,4 +1,7 @@
+[[configuring-howto-apm-server]]
 = Configure
+
+include::{libbeat-dir}/shared/configuring-intro.asciidoc[]
 
 How you configure the APM Server depends on your deployment method.
 

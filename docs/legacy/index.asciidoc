@@ -70,9 +70,6 @@ include::./setting-up-and-running.asciidoc[]
 
 include::./howto.asciidoc[leveloffset=+1]
 
-// :beat-specific-output-config: {docdir}/legacy/configuring-output-after.asciidoc
-include::./configuring.asciidoc[leveloffset=+1]
-
 :beat-specific-security: {docdir}/legacy/security.asciidoc
 include::{libbeat-dir}/shared-securing-beat.asciidoc[leveloffset=+1]
 

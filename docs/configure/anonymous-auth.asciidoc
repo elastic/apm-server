@@ -1,7 +1,5 @@
-= Anonymous authentication
-
 [[configuration-anonymous]]
-== Anonymous auth configuration options
+= Anonymous auth configuration options
 
 ++++
 <titleabbrev>Anonymous authentication</titleabbrev>
@@ -31,7 +29,7 @@ IMPORTANT: All anonymous access configuration is ignored if
 
 [float]
 [[config-auth-anon-rum]]
-=== Real User Monitoring (RUM)
+== Real User Monitoring (RUM)
 
 If an <<api-key-legacy,API key>> or <<secret-token-legacy,secret token>> is configured,
 then anonymous authentication must be enabled to collect RUM data.
@@ -42,7 +40,7 @@ See <<configuration-rum>> for additional RUM configuration options.
 
 [float]
 [[config-auth-anon-mitigating]]
-=== Mitigating malicious requests
+== Mitigating malicious requests
 
 There are a few configuration variables that can mitigate the impact of malicious requests to an
 unauthenticated APM Server endpoint.
@@ -56,7 +54,7 @@ This allows you to specify the maximum number of requests allowed per unique IP 
 
 [float]
 [[config-auth-anon-client-ip]]
-==== Deriving an incoming request's `client.ip` address
+=== Deriving an incoming request's `client.ip` address
 
 The remote IP address of an incoming request might be different
 from the end-user's actual IP address, for example, because of a proxy. For this reason,
@@ -71,7 +69,7 @@ If none of these headers are present, the remote address for the incoming reques
 
 [float]
 [[config-auth-anon-client-ip-concerns]]
-==== Using a reverse proxy or load balancer
+=== Using a reverse proxy or load balancer
 
 HTTP headers are easily modified;
 it's possible for anyone to spoof the derived `client.ip` value by changing or setting,
@@ -86,13 +84,13 @@ APM Server's rate limiting feature.
 
 [float]
 [[config-auth-anon]]
-=== Configuration reference
+== Configuration reference
 
 Specify the following options in the `apm-server.auth.anonymous` section of the `apm-server.yml` config file:
 
 [float]
 [[config-auth-anon-enabled]]
-==== `enabled`
+=== `enabled`
 
 Enable or disable anonymous authentication.
 
@@ -100,7 +98,7 @@ Default: `false` (disabled)
 
 [float]
 [[config-auth-anon-allow-agent]]
-==== `allow_agent`
+=== `allow_agent`
 A list of permitted {apm-agent} names for anonymous authentication.
 Names in this list must match the agent's `agent.name`.
 
@@ -108,7 +106,7 @@ Default: `[rum-js, js-base]` (only RUM agent events are accepted)
 
 [float]
 [[config-auth-anon-allow-service]]
-==== `allow_service`
+=== `allow_service`
 A list of permitted service names for anonymous authentication.
 Names in this list must match the agent's `service.name`.
 This can be used to limit the number of service-specific indices or data streams created.
@@ -117,7 +115,7 @@ Default: Not set (any service name is accepted)
 
 [float]
 [[config-auth-anon-ip-limit]]
-==== `rate_limit.ip_limit`
+=== `rate_limit.ip_limit`
 The number of unique IP addresses to track in an LRU cache.
 IP addresses in the cache will be rate limited according to the <<config-auth-anon-event-limit>> setting.
 Consider increasing this default if your application has many concurrent clients.
@@ -126,7 +124,7 @@ Default: `1000`
 
 [float]
 [[config-auth-anon-event-limit]]
-==== `rate_limit.event_limit`
+=== `rate_limit.event_limit`
 The maximum number of events allowed per second, per agent IP address.
 
 Default: `300`

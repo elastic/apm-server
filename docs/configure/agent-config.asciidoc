@@ -1,7 +1,5 @@
-= APM agent configuration
-
 [[configure-agent-config]]
-== Configure APM agent configuration
+= Configure APM agent configuration
 
 ++++
 <titleabbrev>APM agent configuration</titleabbrev>
@@ -21,21 +19,21 @@ apm-server.agent.config.elasticsearch.api_key: TiNAGG4BaaMdaH1tRfuU:KnR6yE41RrSo
 ----
 
 [float]
-=== APM agent configuration options
+== APM agent configuration options
 
 You can specify the following options in the `apm-server.agent.config` section of the
 +{beatname_lc}.yml+ config file:
 
 [float]
 [[agent-config-cache]]
-==== `apm-server.agent.config.cache.expiration`
+=== `apm-server.agent.config.cache.expiration`
 
 When using APM agent configuration, information fetched from {es} will be cached in memory for some time.
 Specify the cache expiration time via this setting. Defaults to `30s` (30 seconds).
 
 [float]
 [[agent-config-authentication]]
-=== Authentication credentials
+== Authentication credentials
 
 For APM Server legacy users and Elastic Agent standalone-managed APM Server,
 APM agent configuration is automatically fetched from {es} using the `output.elasticsearch`
@@ -43,22 +41,22 @@ configuration. If `output.elasticsearch` isn't set or doesn't have sufficient pr
 use these authentication configuration variables provide {es} access.
 
 [float]
-==== `apm-server.agent.config.elasticsearch.username`
+=== `apm-server.agent.config.elasticsearch.username`
 
 The basic authentication username for connecting to {es}.
 
 [float]
-==== `apm-server.agent.config.elasticsearch.password`
+=== `apm-server.agent.config.elasticsearch.password`
 
 The basic authentication password for connecting to {es}.
 
 [float]
-==== `apm-server.agent.config.elasticsearch.api_key`
+=== `apm-server.agent.config.elasticsearch.api_key`
 
 Authentication with an API key. Formatted as `id:api_key`
 
 [float]
-=== Common problems
+== Common problems
 
 You may see either of the following HTTP 403 errors from APM Server when it attempts to fetch APM agent configuration:
 

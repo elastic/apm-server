@@ -29,7 +29,7 @@ ifdef::apm-server[]
 [float]
 === Configure the {kib} output
 
-include::../../../../shared-kibana-endpoint.asciidoc[tag=shared-kibana-config]
+include::../../shared-kibana-endpoint.asciidoc[tag=shared-kibana-config]
 endif::[]
 
 === Configuration options

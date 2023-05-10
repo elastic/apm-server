@@ -132,9 +132,6 @@ include::./legacy/setting-up-and-running.asciidoc[]
 // TODO: This section needs to integrate above
 include::./legacy/data-ingestion.asciidoc[]
 
-// :beat-specific-output-config: {docdir}/legacy/configuring-output-after.asciidoc
-include::./legacy/configuring.asciidoc[leveloffset=+1]
-
 :beat-specific-security: {docdir}/legacy/security.asciidoc
 include::{libbeat-dir}/shared-securing-beat.asciidoc[leveloffset=+1]
 

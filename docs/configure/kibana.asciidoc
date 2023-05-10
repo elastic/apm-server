@@ -1,9 +1,5 @@
-= Kibana endpoint
-
-Kibana endpoint configuration options.
-
 [[setup-kibana-endpoint]]
-== Configure the {kib} endpoint
+= Configure the {kib} endpoint
 
 ++++
 <titleabbrev>{kib} endpoint</titleabbrev>
@@ -27,20 +23,20 @@ apm-server.kibana.host: "http://localhost:5601"
 ----
 
 [float]
-=== {kib} endpoint configuration options
+== {kib} endpoint configuration options
 
 You can specify the following options in the `apm-server.kibana` section of the
 +{beatname_lc}.yml+ config file:
 
 [float]
 [[kibana-enabled]]
-==== `apm-server.kibana.enabled`
+=== `apm-server.kibana.enabled`
 
 Defaults to `false`. Must be `true` to use APM Agent configuration.
 
 [float]
 [[kibana-host]]
-==== `apm-server.kibana.host`
+=== `apm-server.kibana.host`
 
 The {kib} host that APM Server will communicate with. The default is
 `127.0.0.1:5601`. The value of `host` can be a `URL` or `IP:PORT`. For example: `http://192.15.3.2`, `192:15.3.2:5601` or `http://192.15.3.2:6701/path`. If no
@@ -55,7 +51,7 @@ IPv6 addresses must be defined using the following format:
 
 [float]
 [[kibana-protocol-option]]
-==== `apm-server.kibana.protocol`
+=== `apm-server.kibana.protocol`
 
 The name of the protocol {kib} is reachable on. The options are: `http` or
 `https`. The default is `http`. However, if you specify a URL for host, the
@@ -72,30 +68,30 @@ apm-server.kibana.path: /kibana
 
 
 [float]
-==== `apm-server.kibana.username`
+=== `apm-server.kibana.username`
 
 The basic authentication username for connecting to {kib}.
 
 [float]
-==== `apm-server.kibana.password`
+=== `apm-server.kibana.password`
 
 The basic authentication password for connecting to {kib}.
 
 [float]
-==== `apm-server.kibana.api_key`
+=== `apm-server.kibana.api_key`
 
 Authentication with an API key. Formatted as `id:api_key`
 
 [float]
 [[kibana-path-option]]
-==== `apm-server.kibana.path`
+=== `apm-server.kibana.path`
 
 An HTTP path prefix that is prepended to the HTTP API calls. This is useful for
 the cases where {kib} listens behind an HTTP reverse proxy that exports the API
 under a custom prefix.
 
 [float]
-==== `apm-server.kibana.ssl.enabled`
+=== `apm-server.kibana.ssl.enabled`
 
 Enables {beatname_uc} to use SSL settings when connecting to {kib} via HTTPS.
 If you configure {beatname_uc} to connect over HTTPS, this setting defaults to
