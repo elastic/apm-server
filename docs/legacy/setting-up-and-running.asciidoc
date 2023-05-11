@@ -20,6 +20,8 @@ include::{libbeat-dir}/shared-directory-layout.asciidoc[]
 
 include::{libbeat-dir}/command-reference.asciidoc[]
 
+include::./data-ingestion.asciidoc[]
+
 include::./high-availability.asciidoc[]
 
 include::{libbeat-dir}/shared-systemd.asciidoc[]

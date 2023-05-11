@@ -127,9 +127,6 @@ include::./legacy/overview.asciidoc[]
 
 include::./legacy/getting-started-apm-server.asciidoc[]
 
-// TODO: This section needs to integrate above
-include::./legacy/data-ingestion.asciidoc[]
-
 :beat-specific-output-config: {docdir}/legacy/configuring-output-after.asciidoc
 include::./legacy/configuring.asciidoc[leveloffset=+1]
 
