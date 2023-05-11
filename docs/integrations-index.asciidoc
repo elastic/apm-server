@@ -60,11 +60,9 @@ endif::[]
 
 include::apm-overview.asciidoc[]
 
-include::_quickstart.asciidoc[]
-
-include::_get-started.asciidoc[]
-
 include::apm-quick-start.asciidoc[]
+
+include::./legacy/getting-started-apm-server.asciidoc[]
 
 include::data-model.asciidoc[]
 
@@ -126,8 +124,6 @@ include::release-notes.asciidoc[leveloffset=+1]
 
 include::./legacy/overview.asciidoc[]
 // endif::[]
-
-include::./legacy/getting-started-apm-server.asciidoc[]
 
 include::./legacy/setting-up-and-running.asciidoc[]
 
