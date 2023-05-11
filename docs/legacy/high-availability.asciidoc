@@ -1,6 +1,9 @@
 [[high-availability]]
 === High Availability
 
+IMPORTANT: These commands only apply to the APM Server binary installation method.
+Fleet-managed users should see {fleet-guide}/fleet-agent-proxy-support.html[Fleet/Agent proxy support].
+
 To achieve high availability
 you can place multiple instances of APM Server behind a regular HTTP load balancer,
 for example HAProxy or Nginx.

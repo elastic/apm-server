@@ -10,7 +10,22 @@
 //////////////////////////////////////////////////////////////////////////
 
 [[directory-layout]]
-=== Directory layout
+=== Installation layout
+
+View the installation layout and default paths for both Fleet-managed APM Server and the APM Server binary.
+
+[float]
+=== Fleet-managed
+
+{agent} files are installed in the following locations. You cannot override
+these installation paths because they are required for upgrades.
+
+--
+include::{ingest-docs-root}/docs/en/ingest-management/tab-widgets/install-layout-widget.asciidoc[]
+--
+
+[float]
+=== APM Server binary
 
 // lint disable usr
 
