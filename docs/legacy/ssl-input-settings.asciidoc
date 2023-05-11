@@ -26,6 +26,7 @@ Required if `apm-server.ssl.enabled` is `true`.
 ==== `key_passphrase`
 
 The passphrase used to decrypt an encrypted key stored in the configured `key` file.
+We recommend saving the `key_passphrase` in the APM Server <<keystore>>.
 
 [float]
 ==== `supported_protocols`

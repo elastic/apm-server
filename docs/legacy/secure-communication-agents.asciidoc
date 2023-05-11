@@ -554,6 +554,8 @@ Here's how you set the secret token in APM Server:
 apm-server.auth.secret_token: <secret-token>
 ----
 
+We recommend saving the token in the APM Server <<keystore>>.
+
 IMPORTANT: Secret tokens are not applicable for the RUM agent,
 as there is no way to prevent them from being publicly exposed.
 

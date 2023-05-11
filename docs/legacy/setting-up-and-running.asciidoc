@@ -12,11 +12,14 @@ for basic installation and running instructions.
 This section includes additional information on how to set up and run APM Server, including:
 
 * <<directory-layout>>
+* <<keystore>>
 * <<command-line-options>>
 * <<high-availability>>
 * <<running-on-docker>>
 
 include::{libbeat-dir}/shared-directory-layout.asciidoc[]
+
+include::{libbeat-dir}/keystore.asciidoc[]
 
 include::{libbeat-dir}/command-reference.asciidoc[]
 
