@@ -238,15 +238,13 @@ apm-server:
 output.elasticsearch:
   hosts: ["localhost:9200"] <2>
   username: "elastic" <3>
-  password: "changeme" <4>
+  password: "changeme"
 ----
 <1> The `host:port` APM Server listens on.
 <2> The {es} `host:port` to connect to.
 <3> This example uses basic authentication.
 The user provided here needs the privileges required to publish events to {es}.
 To create a dedicated user for this role, see <<privileges-to-publish-events>>.
-<4> We've hard-coded the password here,
-but you should store sensitive values in the <<keystore,secrets keystore>>.
 
 All available configuration options are outlined in
 {apm-server-ref-v}/configuring-howto-apm-server.html[configuring APM Server].
