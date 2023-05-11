@@ -1,9 +1,9 @@
 
 [[setting-up-and-running]]
-== APM Server advanced setup
+== Set up APM Server
 
 ++++
-<titleabbrev>Advanced setup</titleabbrev>
+<titleabbrev>Set up</titleabbrev>
 ++++
 
 Before reading this section, see the <<getting-started-apm-server,getting started documentation>>

@@ -64,8 +64,6 @@ include::apm-quick-start.asciidoc[]
 
 include::./legacy/getting-started-apm-server.asciidoc[]
 
-include::./legacy/setting-up-and-running.asciidoc[]
-
 include::data-model.asciidoc[]
 
 include::features.asciidoc[]
@@ -126,6 +124,8 @@ include::release-notes.asciidoc[leveloffset=+1]
 
 include::./legacy/overview.asciidoc[]
 // endif::[]
+
+include::./legacy/setting-up-and-running.asciidoc[]
 
 // TODO: This section needs to integrate above
 include::./legacy/data-ingestion.asciidoc[]

@@ -1,9 +1,6 @@
 [[running-with-systemd]]
 === {beatname_uc} and systemd
 
-IMPORTANT: These commands only apply to the APM Server binary installation method.
-Fleet-managed users should see {fleet-guide}/start-stop-elastic-agent.html[Start and stop {agent}s on edge hosts].
-
 The DEB and RPM packages include a service unit for Linux systems with
 systemd. On these systems, you can manage {beatname_uc} by using the usual
 systemd commands.
