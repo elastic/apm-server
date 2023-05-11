@@ -1,5 +1,5 @@
 [![Build Status](https://apm-ci.elastic.co/buildStatus/icon?job=apm-server/apm-server-mbp/main)](https://apm-ci.elastic.co/job/apm-server/job/apm-server-mbp/view/change-requests/job/main/)
-[![Smoke Tests on ESS](https://apm-ci.elastic.co/buildStatus/icon?job=apm-server/smoke-tests-ess-mbp/main&subject=smoke%20tests)](https://apm-ci.elastic.co/job/apm-server/job/smoke-tests-ess-mbp/job/main/)
+[![Smoke Tests](https://github.com/elastic/apm-server/actions/workflows/smoke-tests-schedule.yml/badge.svg)](https://github.com/elastic/apm-server/actions/workflows/smoke-tests-schedule.yml)
 
 # APM Server
 
