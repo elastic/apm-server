@@ -22,7 +22,10 @@ pipeline {
       steps {
         updateBeatsBuilds(branches: ['main', '8.<minor>', '8.<next-patch>', '7.<minor>'])
         runWindowsBuilds(branches: ['main', '8.<minor>', '8.<next-patch>', '7.<minor>'])
+<<<<<<< HEAD
         runSmokeTests(branches: ['main'])
+=======
+>>>>>>> 19d0275d (ci: migrate smoke tests to github actions (#10654))
       }
     }
   }
@@ -50,6 +53,7 @@ def runWindowsBuilds(Map args = [:]) {
           wait: false, propagate: false)
   }
 }
+<<<<<<< HEAD
 
 def runSmokeTests(Map args = [:]) {
   def branches = getBranchesFromAliases(aliases: args.branches)
@@ -57,3 +61,5 @@ def runSmokeTests(Map args = [:]) {
     build(job: "apm-server/smoke-tests-ess-mbp/${branch}", wait: false, propagate: false)
   }
 }
+=======
+>>>>>>> 19d0275d (ci: migrate smoke tests to github actions (#10654))

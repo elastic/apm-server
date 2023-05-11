@@ -146,8 +146,8 @@ be configured to use an ECE installation) with some light bash scripting which i
 and upgrades, but ensures there aren't any major problems with APM Server accepting and indexing events where
 it should.
 
-The smoke tests can be found under [`testing/smoke`](./../testing/smoke) and the latest CI runs can be found in
-the [APM CI dashboard](https://ela.st/apm-server-smoke-tests).
+The smoke tests can be found under [`testing/smoke`](./../testing/smoke) and the latest CI runs can be found on 
+[Github Actions](https://github.com/elastic/apm-server/actions/workflows/smoke-tests-schedule.yml).
 
 ### Debugging Failures
 
