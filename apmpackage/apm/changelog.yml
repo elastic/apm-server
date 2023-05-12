@@ -3,6 +3,9 @@
     - description: Placeholder
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/123
+    - description: Handle `metricset.samples` from apm-server
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/10794
 - version: "8.8.0"
   changes:
     - description: Store app logs into service-specific data streams
