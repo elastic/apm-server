@@ -42,6 +42,7 @@
                 },
                 "id": "aaaaaaaaaaaaaaaa",
                 "name": "transaction",
+                "representative_count": 1,
                 "stacktrace": [
                     {
                         "abs_path": "http://subdomain1.localhost:8000/test/e2e/general-usecase/bundle.js.map",
