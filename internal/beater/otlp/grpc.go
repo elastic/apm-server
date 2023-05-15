@@ -77,16 +77,17 @@ func RegisterGRPCServices(
 	})
 	gRPCMonitoredConsumer.set(consumer)
 
-	ptraceotlp.RegisterGRPCServer(grpcServer, tracesService{consumer})
-	pmetricotlp.RegisterGRPCServer(grpcServer, metricsService{consumer})
-	plogotlp.RegisterGRPCServer(grpcServer, logsService{consumer})
+	ptraceotlp.RegisterGRPCServer(grpcServer, &tracesService{consumer: consumer})
+	pmetricotlp.RegisterGRPCServer(grpcServer, &metricsService{consumer: consumer})
+	plogotlp.RegisterGRPCServer(grpcServer, &logsService{consumer: consumer})
 }
 
 type tracesService struct {
+	ptraceotlp.UnimplementedGRPCServer
 	consumer *otlp.Consumer
 }
 
-func (s tracesService) Export(ctx context.Context, req ptraceotlp.ExportRequest) (ptraceotlp.ExportResponse, error) {
+func (s *tracesService) Export(ctx context.Context, req ptraceotlp.ExportRequest) (ptraceotlp.ExportResponse, error) {
 	td := req.Traces()
 	if td.SpanCount() == 0 {
 		return ptraceotlp.NewExportResponse(), nil
@@ -96,10 +97,11 @@ func (s tracesService) Export(ctx context.Context, req ptraceotlp.ExportRequest)
 }
 
 type metricsService struct {
+	pmetricotlp.UnimplementedGRPCServer
 	consumer *otlp.Consumer
 }
 
-func (s metricsService) Export(ctx context.Context, req pmetricotlp.ExportRequest) (pmetricotlp.ExportResponse, error) {
+func (s *metricsService) Export(ctx context.Context, req pmetricotlp.ExportRequest) (pmetricotlp.ExportResponse, error) {
 	md := req.Metrics()
 	if md.DataPointCount() == 0 {
 		return pmetricotlp.NewExportResponse(), nil
@@ -109,10 +111,11 @@ func (s metricsService) Export(ctx context.Context, req pmetricotlp.ExportReques
 }
 
 type logsService struct {
+	plogotlp.UnimplementedGRPCServer
 	consumer *otlp.Consumer
 }
 
-func (s logsService) Export(ctx context.Context, req plogotlp.ExportRequest) (plogotlp.ExportResponse, error) {
+func (s *logsService) Export(ctx context.Context, req plogotlp.ExportRequest) (plogotlp.ExportResponse, error) {
 	ld := req.Logs()
 	if ld.LogRecordCount() == 0 {
 		return plogotlp.NewExportResponse(), nil

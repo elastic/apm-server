@@ -30,6 +30,7 @@ apm-server.rum.library_pattern: "node_modules|bower_components|~"
 apm-server.rum.exclude_from_grouping: "^/webpack"
 apm-server.rum.source_mapping.enabled: true
 apm-server.rum.source_mapping.cache.expiration: 5m
+apm-server.rum.source_mapping.elasticsearch.api_key: TiNAGG4BaaMdaH1tRfuU:KnR6yE41RrSowb0kQ0HWoA
 ----
 
 [float]

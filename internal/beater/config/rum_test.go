@@ -31,7 +31,7 @@ import (
 
 func TestRumSetup(t *testing.T) {
 	rum := defaultRum()
-	rum.SourceMapping.esConfigured = true
+	rum.SourceMapping.esOverrideConfigured = true
 	rum.Enabled = true
 	rum.SourceMapping.ESConfig = &elasticsearch.Config{APIKey: "id:apikey"}
 	esCfg := config.MustNewConfigFrom(map[string]interface{}{

@@ -486,6 +486,7 @@
                 },
                 "id": "1234567890aaaade",
                 "name": "GET users-authenticated",
+                "representative_count": 1,
                 "stacktrace": [
                     {
                         "exclude_from_grouping": false,
