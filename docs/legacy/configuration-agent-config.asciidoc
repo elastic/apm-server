@@ -32,28 +32,15 @@ When using APM agent configuration, information fetched from {es} will be cached
 Specify the cache expiration time via this setting. Defaults to `30s` (30 seconds).
 
 [float]
-[[agent-config-authentication]]
-=== Authentication credentials
+[[agent-config-elasticsearch]]
+==== `apm-server.agent.config.elasticsearch`
+
+Takes the same options as <<elasticsearch-output,output.elasticsearch>>.
 
 For APM Server legacy users and Elastic Agent standalone-managed APM Server,
 APM agent configuration is automatically fetched from {es} using the `output.elasticsearch`
 configuration. If `output.elasticsearch` isn't set or doesn't have sufficient privileges,
-use these authentication configuration variables provide {es} access.
-
-[float]
-==== `apm-server.agent.config.elasticsearch.username`
-
-The basic authentication username for connecting to {es}.
-
-[float]
-==== `apm-server.agent.config.elasticsearch.password`
-
-The basic authentication password for connecting to {es}.
-
-[float]
-==== `apm-server.agent.config.elasticsearch.api_key`
-
-Authentication with an API key. Formatted as `id:api_key`
+use these {es} options to provide {es} access.
 
 [float]
 === Common problems
