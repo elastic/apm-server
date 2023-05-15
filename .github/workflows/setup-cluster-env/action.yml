@@ -42,5 +42,6 @@ runs:
         echo "${AWS_ACCOUNT_IMPORT}" > ${{ runner.temp }}/account.csv;
         sed -i 's/User name/User Name/g' ${{ runner.temp }}/account.csv;
         aws configure import --csv file://${{ runner.temp }}/account.csv;
+        aws configure set default.region us-east-1;
         rm -f ${{ runner.temp }}/account.csv;
       shell: 'bash'
