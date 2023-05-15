@@ -31,10 +31,9 @@ type FrameValidation struct {
 	updated           bool
 	originalClassname string
 	originalFunction  string
-	originalLineno    *int
 	classname         string
 	function          string
-	lineno            *int
+	lineno            int
 }
 
 func TestSimpleLineDeobfuscation(t *testing.T) {
@@ -60,6 +59,7 @@ func TestSimpleLineDeobfuscation(t *testing.T) {
 		function:          "dispatchMenuItemSelected",
 		originalClassname: "androidx.appcompat.view.menu.e",
 		originalFunction:  "f",
+		lineno:            4,
 	})
 }
 
@@ -90,6 +90,7 @@ func TestDeobfuscateCompressedLine(t *testing.T) {
 		function: `co.elastic.apm.opbeans.HomeActivity.oops
 co.elastic.apm.opbeans.HomeActivity.setUpBottomNavigation$lambda-0
 onMenuItemSelected`,
+		lineno: 11,
 	})
 }
 
@@ -180,14 +181,15 @@ func TestDeobfuscateMultipleLines(t *testing.T) {
 	require.Nil(t, err)
 
 	verifyFrames(t, *stacktrace, []FrameValidation{
-		{function: "getMethod", classname: "java.lang.Class"},
-		{function: "getMethod", classname: "java.lang.Class"},
+		{function: "getMethod", classname: "java.lang.Class", lineno: 2103},
+		{function: "getMethod", classname: "java.lang.Class", lineno: 1724},
 		{
 			updated:           true,
 			function:          "connectFailed",
 			classname:         "co.elastic.apm.android.common.okhttp.eventlistener.Generated_CompositeEventListener",
 			originalFunction:  "e",
 			originalClassname: "m1.b",
+			lineno:            32,
 		},
 		{
 			updated:           true,
@@ -195,6 +197,7 @@ func TestDeobfuscateMultipleLines(t *testing.T) {
 			classname:         "okhttp3.internal.connection.RealConnection",
 			originalFunction:  "c",
 			originalClassname: "n8.h",
+			lineno:            30,
 		},
 		{
 			updated: true,
@@ -203,6 +206,7 @@ findHealthyConnection`,
 			classname:         "okhttp3.internal.connection.ExchangeFinder",
 			originalFunction:  "a",
 			originalClassname: "n8.d",
+			lineno:            50,
 		},
 		{
 			updated: true,
@@ -212,6 +216,7 @@ intercept`,
 			classname:         "okhttp3.internal.connection.ConnectInterceptor",
 			originalFunction:  "intercept",
 			originalClassname: "n8.a",
+			lineno:            11,
 		},
 		{
 			updated:           true,
@@ -219,6 +224,7 @@ intercept`,
 			classname:         "okhttp3.internal.http.RealInterceptorChain",
 			originalFunction:  "b",
 			originalClassname: "o8.f",
+			lineno:            7,
 		},
 		{
 			updated:           true,
@@ -226,6 +232,7 @@ intercept`,
 			classname:         "okhttp3.internal.cache.CacheInterceptor",
 			originalFunction:  "intercept",
 			originalClassname: "l8.a",
+			lineno:            29,
 		},
 		{
 			updated:           true,
@@ -233,6 +240,7 @@ intercept`,
 			classname:         "okhttp3.internal.http.RealInterceptorChain",
 			originalFunction:  "b",
 			originalClassname: "o8.f",
+			lineno:            7,
 		},
 		{
 			updated:           true,
@@ -240,6 +248,7 @@ intercept`,
 			classname:         "okhttp3.internal.http.BridgeInterceptor",
 			originalFunction:  "intercept",
 			originalClassname: "o8.a",
+			lineno:            21,
 		},
 		{
 			updated:           true,
@@ -247,6 +256,7 @@ intercept`,
 			classname:         "okhttp3.internal.http.RealInterceptorChain",
 			originalFunction:  "b",
 			originalClassname: "o8.f",
+			lineno:            7,
 		},
 		{
 			updated:           true,
@@ -254,6 +264,7 @@ intercept`,
 			classname:         "okhttp3.internal.http.RetryAndFollowUpInterceptor",
 			originalFunction:  "intercept",
 			originalClassname: "o8.h",
+			lineno:            25,
 		},
 		{
 			updated:           true,
@@ -261,6 +272,7 @@ intercept`,
 			classname:         "okhttp3.internal.http.RealInterceptorChain",
 			originalFunction:  "b",
 			originalClassname: "o8.f",
+			lineno:            7,
 		},
 		{
 			updated:           true,
@@ -268,6 +280,7 @@ intercept`,
 			classname:         "co.elastic.apm.opbeans.app.di.ApplicationModule$provideOkHttpClient$$inlined$-addInterceptor$1",
 			originalFunction:  "intercept",
 			originalClassname: "b3.a",
+			lineno:            5,
 		},
 	})
 }
@@ -281,16 +294,13 @@ func verifyFrames(t *testing.T, frames []*model.StacktraceFrame, validations []F
 }
 
 func verifyFrame(t *testing.T, frame *model.StacktraceFrame, validation FrameValidation) {
-	// Line numbers shouldn't change after the mapping.
-	validation.lineno = (*frame).Lineno
-
 	assert.Equal(t, validation.updated, frame.SourcemapUpdated)
 	assert.Equal(t, validation.originalClassname, frame.Original.Classname)
 	assert.Equal(t, validation.originalFunction, frame.Original.Function)
-	assert.Equal(t, validation.originalLineno, frame.Original.Lineno)
+	assert.Nil(t, frame.Original.Lineno)
 	assert.Equal(t, validation.classname, frame.Classname)
 	assert.Equal(t, validation.function, frame.Function)
-	assert.Equal(t, validation.lineno, frame.Lineno)
+	assert.Equal(t, validation.lineno, *frame.Lineno)
 }
 
 func createStacktraceFrame(lineno int, fileName string, className string, function string) *model.StacktraceFrame {
