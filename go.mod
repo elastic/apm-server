@@ -7,7 +7,7 @@ require (
 	github.com/cespare/xxhash/v2 v2.2.0
 	github.com/dgraph-io/badger/v2 v2.2007.3-0.20201012072640-f5a7e0a1c83b
 	github.com/dustin/go-humanize v1.0.1
-	github.com/elastic/apm-data v0.1.1-0.20230309014206-3ad1a5caedc9
+	github.com/elastic/apm-data v0.1.1-0.20230511095520-caaa44e1c286
 	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230512130148-b4411de255fa
 	github.com/elastic/elastic-agent-client/v7 v7.1.1
 	github.com/elastic/elastic-agent-libs v0.3.8
@@ -49,14 +49,14 @@ require (
 	go.elastic.co/apm/v2 v2.4.1
 	go.elastic.co/fastjson v1.1.0
 	go.opentelemetry.io/collector v0.63.1
-	go.opentelemetry.io/collector/pdata v0.63.1
+	go.opentelemetry.io/collector/pdata v1.0.0-rcv0011
 	go.uber.org/automaxprocs v1.5.1
 	go.uber.org/zap v1.24.0
 	golang.org/x/net v0.10.0
 	golang.org/x/sync v0.1.0
 	golang.org/x/term v0.8.0
 	golang.org/x/time v0.3.0
-	google.golang.org/grpc v1.53.0
+	google.golang.org/grpc v1.54.0
 	google.golang.org/protobuf v1.30.0
 	gopkg.in/yaml.v3 v3.0.1
 )
@@ -135,7 +135,7 @@ require (
 	github.com/yusufpapurcu/wmi v1.2.2 // indirect
 	go.elastic.co/apm/module/apmzap/v2 v2.2.0 // indirect
 	go.elastic.co/ecszap v1.0.1 // indirect
-	go.opentelemetry.io/collector/semconv v0.63.1 // indirect
+	go.opentelemetry.io/collector/semconv v0.76.1 // indirect
 	go.uber.org/atomic v1.10.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.9.0 // indirect

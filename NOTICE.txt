@@ -288,11 +288,11 @@ SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/apm-data
-Version: v0.1.1-0.20230309014206-3ad1a5caedc9
+Version: v0.1.1-0.20230511095520-caaa44e1c286
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/apm-data@v0.1.1-0.20230309014206-3ad1a5caedc9/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/apm-data@v0.1.1-0.20230511095520-caaa44e1c286/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -5963,11 +5963,11 @@ Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector@v0.6
 
 --------------------------------------------------------------------------------
 Dependency : go.opentelemetry.io/collector/pdata
-Version: v0.63.1
+Version: v1.0.0-rcv0011
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/pdata@v0.63.1/LICENSE:
+Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/pdata@v1.0.0-rcv0011/LICENSE:
 
 
                                  Apache License
@@ -6380,11 +6380,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : google.golang.org/grpc
-Version: v1.53.0
+Version: v1.54.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/google.golang.org/grpc@v1.53.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/google.golang.org/grpc@v1.54.0/LICENSE:
 
 
                                  Apache License
@@ -14544,11 +14544,11 @@ Contents of probable licence file $GOMODCACHE/go.elastic.co/ecszap@v1.0.1/LICENS
 
 --------------------------------------------------------------------------------
 Dependency : go.opentelemetry.io/collector/semconv
-Version: v0.63.1
+Version: v0.76.1
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/semconv@v0.63.1/LICENSE:
+Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/semconv@v0.76.1/LICENSE:
 
 
                                  Apache License
