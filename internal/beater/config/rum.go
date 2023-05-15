@@ -50,11 +50,11 @@ type RumConfig struct {
 
 // SourceMapping holds sourcemap config information
 type SourceMapping struct {
-	Enabled      bool                  `config:"enabled"`
-	ESConfig     *elasticsearch.Config `config:"elasticsearch"`
-	Timeout      time.Duration         `config:"timeout" validate:"positive"`
-	esConfigured bool
-	es           *config.C
+	Enabled              bool                  `config:"enabled"`
+	ESConfig             *elasticsearch.Config `config:"elasticsearch"`
+	Timeout              time.Duration         `config:"timeout" validate:"positive"`
+	esOverrideConfigured bool
+	es                   *config.C
 }
 
 func (c *RumConfig) setup(log *logp.Logger, outputESCfg *config.C) error {
@@ -85,6 +85,13 @@ func (c *RumConfig) setup(log *logp.Logger, outputESCfg *config.C) error {
 		return nil
 	}
 
+	// Empty out credential fields before merging if credentials are provided in SourceMapping ES config
+	if c.SourceMapping.es.HasField("api_key") || c.SourceMapping.es.HasField("username") {
+		c.SourceMapping.ESConfig.APIKey = ""
+		c.SourceMapping.ESConfig.Username = ""
+		c.SourceMapping.ESConfig.Password = ""
+	}
+
 	// Unpack the SourceMapping ES config on top of the output elasticsearch config
 	if err := c.SourceMapping.es.Unpack(c.SourceMapping.ESConfig); err != nil {
 		return errors.Wrap(err, "unpacking Elasticsearch sourcemap config into Sourcemap config")
@@ -100,7 +107,7 @@ func (s *SourceMapping) Unpack(inp *config.C) error {
 	if err := inp.Unpack((*underlyingSourceMapping)(s)); err != nil {
 		return errors.Wrap(err, "error unpacking sourcemapping config")
 	}
-	s.esConfigured = inp.HasField("elasticsearch")
+	s.esOverrideConfigured = inp.HasField("elasticsearch")
 	var err error
 	var e ucfg.Error
 	if s.es, err = inp.Child("elasticsearch", -1); err != nil && (!errors.As(err, &e) || e.Reason() != ucfg.ErrMissing) {

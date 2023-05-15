@@ -43,6 +43,7 @@ func getCommonPipeline(name string, version *version.V) []map[string]interface{}
 		"process_ppid":     processPpidPipeline,
 		"client_geoip":     clientGeoIPPipeline,
 		"event_duration":   eventDurationPipeline,
+		"set_metrics":      setMetricsPipeline,
 	}
 	return commonPipelines[name]
 }
@@ -167,3 +168,61 @@ ctx.get(ctx.processor.event).duration = ["us": (long)(durationNanos/1000)];
 		"ignore_failure": true,
 	},
 }}
+
+// setMetricsPipeline extracts metrics from `metricset.samples`, moving them to
+// the top level of the document and adding the _dynamic_templates meta field.
+//
+// This also handles the `_metric_descriptions` field sent by older versions of
+// APM Server, where metrics are set at the top-level in the first place.
+//
+// TODO(axw) handle units in metric descriptions.
+var setMetricsPipeline = []map[string]interface{}{
+	{
+		// Handle _metric_descriptions for backwards compatibility.
+		"script": map[string]interface{}{
+			"if": "ctx._metric_descriptions != null",
+			"source": strings.TrimSpace(`
+Map dynamic_templates = new HashMap();
+for (entry in ctx._metric_descriptions.entrySet()) {
+  String name = entry.getKey();
+  Map description = entry.getValue();
+  String metric_type = description.type;
+  if (metric_type == "histogram") {
+    dynamic_templates[name] = "histogram";
+  } else if (metric_type == "summary") {
+    dynamic_templates[name] = "summary";
+  } else {
+    dynamic_templates[name] = "double";
+  }
+}
+ctx._dynamic_templates = dynamic_templates;
+ctx.remove("_metric_descriptions");
+`),
+		},
+	},
+	{
+		// Handle metricset.samples.
+		"script": map[string]interface{}{
+			"if": "ctx.metricset?.samples != null",
+			"source": strings.TrimSpace(`
+Map dynamic_templates = new HashMap();
+for (sample in ctx.metricset.samples) {
+  String name = sample.name;
+  String metric_type = sample.type;
+  if (metric_type == "histogram") {
+    dynamic_templates[name] = "histogram";
+    ctx.put(name, ["values": sample.values, "counts": sample.counts]);
+  } else if (metric_type == "summary") {
+    dynamic_templates[name] = "summary";
+    ctx.put(name, ["value_count": sample.value_count, "sum": sample.sum]);
+  } else {
+    dynamic_templates[name] = "double";
+    ctx.put(name, sample.value);
+  }
+}
+ctx._dynamic_templates = dynamic_templates;
+ctx.metricset.remove("samples");
+`),
+		},
+	},
+}

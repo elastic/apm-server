@@ -66,6 +66,7 @@
                 },
                 "id": "0aaaaaaaaaaaaaaa",
                 "name": "SELECT FROM product_types",
+                "representative_count": 1,
                 "stacktrace": [
                     {
                         "abs_path": "net.js",
