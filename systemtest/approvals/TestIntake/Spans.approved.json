@@ -114,6 +114,7 @@
                 },
                 "id": "1234567890aaaade",
                 "name": "SELECT FROM product_types",
+                "representative_count": 1,
                 "stacktrace": [
                     {
                         "classname": "Core.js",
@@ -253,6 +254,7 @@
                 },
                 "id": "abcde56a89012345",
                 "name": "get /api/types",
+                "representative_count": 1,
                 "subtype": "http",
                 "sync": false,
                 "type": "request"
@@ -344,6 +346,7 @@
                 },
                 "id": "0123456a89012345",
                 "name": "GET /api/types",
+                "representative_count": 1,
                 "subtype": "http",
                 "type": "request"
             },
@@ -432,6 +435,7 @@
                 },
                 "id": "1234abcdef567895",
                 "name": "GET /api/types",
+                "representative_count": 1,
                 "type": "request"
             },
             "timestamp": {
@@ -528,6 +532,7 @@
                 },
                 "id": "abcdef01234567",
                 "name": "SELECT FROM p_details",
+                "representative_count": 1,
                 "subtype": "postgresql",
                 "type": "db"
             },
@@ -655,6 +660,7 @@
                 },
                 "id": "fdc4567890aaaade",
                 "name": "SELECT FROM product_types",
+                "representative_count": 1,
                 "stacktrace": [
                     {
                         "classname": "Core.js",
@@ -807,6 +813,7 @@
                     "routing_key": "user-created-span"
                 },
                 "name": "Rabbitmq receive",
+                "representative_count": 1,
                 "subtype": "JMS",
                 "type": "messaging"
             },
@@ -902,6 +909,7 @@
                 },
                 "id": "abcdef01234567",
                 "name": "GET /api/types",
+                "representative_count": 1,
                 "subtype": "postgresql",
                 "type": "db"
             },
@@ -1008,6 +1016,7 @@
                 },
                 "id": "ljf4567890aaaade",
                 "name": "Request",
+                "representative_count": 1,
                 "subtype": "http",
                 "type": "external"
             },
@@ -1135,6 +1144,7 @@
                 },
                 "id": "ute4567890aaaade",
                 "name": "SELECT FROM product_types",
+                "representative_count": 1,
                 "stacktrace": [
                     {
                         "classname": "Core.js",
