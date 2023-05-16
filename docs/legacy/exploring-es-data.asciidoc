@@ -54,12 +54,6 @@ GET  /_template/your-template-name
 
 Sample documents for each of the APM event types are available below:
 
-// * <<transaction-indices>>
-// * <<span-indices>>
-// * <<error-indices>>
-// * <<metricset-indices>>
-// * <<sourcemap-indices>>
-
 [%collapsible]
 .Transaction documents
 ====
