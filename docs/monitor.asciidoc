@@ -1,23 +1,9 @@
-[[monitor-apm]]
-=== Monitor APM Server
-
-Use the {stack} {monitor-features} to gain insight into the real-time health and performance of APM Server.
-Stack monitoring exposes key metrics, like intake response count, intake error rate, output event rate,
-output failed event rate, and more.
-
-[float]
-[[monitor-apm-cloud]]
-=== Monitor APM running on {ecloud}
-
-{ecloud} manages the installation and configuration of a monitoring agent for you -- so
-all you have to do is flip a switch and watch the data pour in.
-
-* **{ess}** user? See {ece-ref}/ece-enable-logging-and-monitoring.html[ESS: Enable logging and monitoring].
-* **{ece}** user? See {cloud}/ec-enable-logging-and-monitoring.html[ECE: Enable logging and monitoring].
-
-[float]
 [[monitor-apm-self-install]]
-=== Monitor a self-installation of APM
+=== Monitor a Fleet-managed APM Server
+
+++++
+<titleabbrev>Fleet-managed</titleabbrev>
+++++
 
 NOTE: This guide assumes you are already ingesting APM data into the {stack}.
 

@@ -80,6 +80,8 @@ include::configure/index.asciidoc[leveloffset=+1]
 
 include::secure-agent-communication.asciidoc[]
 
+include::monitor-apm-server.asciidoc[]
+
 include::api.asciidoc[]
 
 include::troubleshoot-apm.asciidoc[]
@@ -134,8 +136,6 @@ include::./legacy/data-ingestion.asciidoc[]
 
 :beat-specific-security: {docdir}/legacy/security.asciidoc
 include::{libbeat-dir}/shared-securing-beat.asciidoc[leveloffset=+1]
-
-include::{libbeat-dir}/monitoring/monitoring-beats.asciidoc[leveloffset=+1]
 
 include::./legacy/exploring-es-data.asciidoc[leveloffset=+1]
 
