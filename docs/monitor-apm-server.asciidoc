@@ -1,6 +1,10 @@
 [[monitor-apm]]
 == Monitor APM Server
 
+++++
+<titleabbrev>Monitor</titleabbrev>
+++++
+
 Use the {stack} {monitor-features} to gain insight into the real-time health and performance of APM Server.
 Stack monitoring exposes key metrics, like intake response count, intake error rate, output event rate,
 output failed event rate, and more.

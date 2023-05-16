@@ -40,22 +40,15 @@ agent.monitoring:
 <3> The port to expose logs/metrics on
 --
 
-. Stop {agent}
+. Enroll {agent}
 +
-If {agent} is already running, you must stop it.
-Use the command that work with your system:
+After editing `elastic-agent.yml`, you must re-enroll {agent} for the changes to take effect.
 +
 --
-include::{ingest-docs-root}/docs/en/ingest-management/tab-widgets/stop-widget.asciidoc[]
+include::{ingest-docs-root}/docs/en/ingest-management/commands.asciidoc[tag=enroll]
 --
 
-. Start {agent}
-+
-Use the command that work with your system:
-+
---
-include::{ingest-docs-root}/docs/en/ingest-management/tab-widgets/start-widget.asciidoc[]
---
+See the {fleet-guide}/elastic-agent-cmd-options.html[{agent} command reference] for more information on the enroll command.
 
 [float]
 [[install-config-metricbeat]]
