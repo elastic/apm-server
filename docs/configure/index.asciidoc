@@ -1,0 +1,40 @@
+[[configuring-howto-apm-server]]
+= Configure
+
+include::{libbeat-dir}/shared/configuring-intro.asciidoc[]
+
+How you configure the APM Server depends on your deployment method.
+
+// TODO: Add tabbed widget here
+To configure {beatname_uc}, edit the configuration file. The default
+configuration file is called  +{beatname_lc}.yml+. The location of the file
+varies by platform. To locate the file, see <<directory-layout>>.
+
+// TODO: Add jump table here
+
+include::general.asciidoc[leveloffset=+1]
+
+include::agent-config.asciidoc[leveloffset=+1]
+
+// Agent authorization
+include::auth.asciidoc[leveloffset=+1]
+
+include::anonymous-auth.asciidoc[leveloffset=+1]
+
+include::instrumentation.asciidoc[leveloffset=+1]
+
+include::kibana.asciidoc[leveloffset=+1]
+
+include::logging.asciidoc[leveloffset=+1]
+
+include::output.asciidoc[leveloffset=+1]
+
+include::path.asciidoc[leveloffset=+1]
+
+include::sampling.asciidoc[leveloffset=+1]
+
+include::rum.asciidoc[leveloffset=+1]
+
+include::tls.asciidoc[leveloffset=+1]
+
+include::env.asciidoc[leveloffset=+1]
