@@ -1,0 +1,31 @@
+[[monitor-apm]]
+== Monitor APM Server
+
+++++
+<titleabbrev>Monitor</titleabbrev>
+++++
+
+Use the {stack} {monitor-features} to gain insight into the real-time health and performance of APM Server.
+Stack monitoring exposes key metrics, like intake response count, intake error rate, output event rate,
+output failed event rate, and more.
+
+Select your deployment method to get started:
+
+* <<monitor-apm-cloud>>
+* <<monitor-apm-self-install>>
+* <<monitoring>>
+
+[float]
+[[monitor-apm-cloud]]
+=== {ecloud}
+
+{ecloud} manages the installation and configuration of a monitoring agent for you -- so
+all you have to do is flip a switch and watch the data pour in.
+
+* **{ess}** user? See {ece-ref}/ece-enable-logging-and-monitoring.html[ESS: Enable logging and monitoring].
+* **{ece}** user? See {cloud}/ec-enable-logging-and-monitoring.html[ECE: Enable logging and monitoring].
+
+
+include::./monitor.asciidoc[]
+
+include::{libbeat-dir}/monitoring/monitoring-beats.asciidoc[leveloffset=+2]
