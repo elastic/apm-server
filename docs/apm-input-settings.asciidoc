@@ -302,7 +302,7 @@ Supported protocol versions
 
 | (array) A list of allowed TLS protocol versions.
 
-*Default:* `["TLSv1.1", "TLSv1.2", "TLSv1.3"]`
+*Default:* `["TLSv1.2", "TLSv1.3"]`
 // end::tls_supported_protocols-setting[]
 
 // =============================================================================

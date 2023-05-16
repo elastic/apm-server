@@ -64,6 +64,8 @@ include::apm-components.asciidoc[]
 
 include::apm-quick-start.asciidoc[]
 
+include::./legacy/setting-up-and-running.asciidoc[]
+
 include::data-model.asciidoc[]
 
 include::features.asciidoc[]
@@ -128,11 +130,6 @@ include::./legacy/overview.asciidoc[]
 // endif::[]
 
 include::./legacy/getting-started-apm-server.asciidoc[]
-
-include::./legacy/setting-up-and-running.asciidoc[]
-
-// TODO: This section needs to integrate above
-include::./legacy/data-ingestion.asciidoc[]
 
 :beat-specific-security: {docdir}/legacy/security.asciidoc
 include::{libbeat-dir}/shared-securing-beat.asciidoc[leveloffset=+1]

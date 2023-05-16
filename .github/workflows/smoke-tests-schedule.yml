@@ -28,6 +28,7 @@ jobs:
     name: Run smoke tests OS
     needs: prepare-smoke-tests-os
     strategy:
+      fail-fast: false
       matrix: ${{ fromJSON(needs.prepare-smoke-tests-os.outputs.matrix) }}
     uses: ./.github/workflows/smoke-tests-os.yml
     with:
