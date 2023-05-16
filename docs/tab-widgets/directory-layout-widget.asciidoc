@@ -1,0 +1,59 @@
+++++
+<div class="tabs" data-tab-group="directory-layout">
+  <div role="tablist" aria-label="Directory layout">
+    <button role="tab"
+            aria-selected="false"
+            aria-controls="zip-tab-install-layout"
+            id="zip-install-layout"
+            tabindex="-1">
+      ZIP, tar.gz, or TGZ
+    </button>
+    <button role="tab"
+            aria-selected="true"
+            aria-controls="docker-tab-install-layout"
+            id="docker-install-layout">
+      Docker
+    </button>
+    <button role="tab"
+            aria-selected="false"
+            aria-controls="deb-tab-dir-layout"
+            id="deb-dir-layout"
+            tabindex="-1">
+      DEB & RPM
+    </button>
+  </div>
+  <div tabindex="0"
+       role="tabpanel"
+       id="zip-tab-install-layout"
+       aria-labelledby="zip-install-layout"
+       hidden="">
+++++
+
+include::directory-layout.asciidoc[tag=zip]
+
+++++
+  </div>
+  <div tabindex="0"
+       role="tabpanel"
+       id="docker-tab-install-layout"
+       aria-labelledby="docker-install-layout">
+++++
+
+include::directory-layout.asciidoc[tag=docker]
+
+++++
+  </div>
+  <div tabindex="0"
+       role="tabpanel"
+       id="deb-tab-dir-layout"
+       aria-labelledby="deb-dir-layout"
+       hidden="">
+
+++++
+
+include::directory-layout.asciidoc[tag=deb]
+
+++++
+  </div>
+</div>
+++++

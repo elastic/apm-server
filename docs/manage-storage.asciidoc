@@ -206,5 +206,3 @@ POST /.ds-*-apm*/_update_by_query?expand_wildcards=all
 // CONSOLE
 
 TIP: Remember to also change the service name in the {apm-agents-ref}/index.html[{apm-agent} configuration].
-
-include::./apm-tune-elasticsearch.asciidoc[]
