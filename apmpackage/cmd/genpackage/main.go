@@ -64,6 +64,7 @@ func generatePackage(pkgfs fs.FS, version, ecsVersion *version.V, ecsReference s
 					// Skip policies that don't match the interval.
 					continue
 				}
+				outputPath = strings.Replace(filepath.Join(*outputDir, p.Path), d.Name(), "default_policy.json", -1)
 			}
 			err := renderFile(pkgfs, path, outputPath, version, ecsVersion, ecsReference, p.Interval)
 			if err != nil {
