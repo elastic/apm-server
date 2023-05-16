@@ -45,9 +45,10 @@ terraform.tfvars
 testing/benchmark/.envrc
 testing/benchmark/benchmark-result.txt
 testing/smoke/**/tf.log
-testing/smoke/**/apm-server.log
+testing/smoke/**/apm-server-*.ndjson
 testing/smoke/**/provisioner_key*
 testing/smoke/**/main.tf
 !testing/smoke/main.tf
 !testing/smoke/supported-os/main.tf
+!testing/smoke/managed/main.tf
 testing/rally-cloud/build

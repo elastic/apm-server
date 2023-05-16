@@ -1,7 +1,6 @@
 [[common-problems-legacy]]
 == Common problems
 
-IMPORTANT: {deprecation-notice-data}
 
 This section describes common problems you might encounter with APM Server.
 

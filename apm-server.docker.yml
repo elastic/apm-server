@@ -183,7 +183,7 @@ apm-server:
         # Scheme and port can be left out and will be set to the default (`http` and `9200`).
         # In case you specify and additional path, the scheme is required: `http://elasticsearch:9200/path`.
         # IPv6 addresses should always be defined as: `https://[2001:db8::1]:9200`.
-        # hosts: ["elasticsearch:9200"]
+        #hosts: ["elasticsearch:9200"]
 
         # Protocol - either `http` (default) or `https`.
         #protocol: "https"
@@ -208,6 +208,15 @@ apm-server:
     # and is required when working with Elastic Agent standalone or Fleet.
     # This will override credentials in output.elasticsearch configuration.
     #elasticsearch:
+      # Array of hosts to connect to.
+      # Scheme and port can be left out and will be set to the default (`http` and `9200`).
+      # In case you specify and additional path, the scheme is required: `http://localhost:9200/path`.
+      # IPv6 addresses should always be defined as: `https://[2001:db8::1]:9200`.
+      #hosts: ["localhost:9200"]
+
+      # Protocol - either `http` (default) or `https`.
+      #protocol: "https"
+
       # Authentication credentials - either API key or username/password.
       #api_key: "id:api_key"
       #username: "elastic"
@@ -278,6 +287,18 @@ apm-server:
 
     # Configure curve types for ECDHE based cipher suites.
     #ssl.curve_types: []
+
+  #---------------------------- APM Server - tail-based sampling ----------------------------
+
+  #sampling.tail:
+    # Set to `true` to enable tail based sampling. Disabled by default.
+    #enabled: false
+
+    # Synchronization interval for multiple APM Servers. Should be in the order of tens of seconds or low minutes.
+    #interval: 1m
+
+    # Criteria used to match a root transaction to a sample rate.
+    #policies: []
 
 # Sets the maximum number of CPUs that can be executing simultaneously. The
 # default is the number of logical CPUs available in the system.

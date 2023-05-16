@@ -14,6 +14,9 @@ https://github.com/elastic/apm-server/compare/8.8\...main[View commits]
 
 [float]
 ==== Intake API Changes
+- Span events now default to having a representative count of 1, if no `sample_rate` field is sent by the agent {pull}10792[10792]
 
 [float]
 ==== Added
+- Span events now carry `host` and `service.version` attributes. {pull}10697[10697]
+- Accept more options in agentcfg ES config; Reliably use `agent.config.elasticsearch` and `rum.source_mapping.elasticsearch` credentials when merging with `output.elasticsearch` credentials {pull}10783[10783]

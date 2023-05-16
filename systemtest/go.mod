@@ -7,7 +7,6 @@ require (
 	github.com/docker/go-connections v0.4.0
 	github.com/elastic/go-elasticsearch/v8 v8.4.0
 	github.com/fatih/color v1.13.0
-	github.com/golang/protobuf v1.5.2
 	github.com/google/go-cmp v0.5.9
 	github.com/google/pprof v0.0.0-20210407192527-94a9f03dee38
 	github.com/hashicorp/go-multierror v1.1.1
@@ -60,7 +59,7 @@ require (
 	github.com/armon/go-radix v1.0.0 // indirect
 	github.com/cenkalti/backoff/v4 v4.2.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/docker/distribution v2.8.1+incompatible // indirect
+	github.com/docker/distribution v2.8.2+incompatible // indirect
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/elastic/elastic-transport-go/v8 v8.1.0 // indirect
 	github.com/elastic/go-licenser v0.4.0 // indirect
@@ -68,6 +67,7 @@ require (
 	github.com/elastic/go-windows v1.0.1 // indirect
 	github.com/gogo/googleapis v1.4.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
+	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0 // indirect
 	github.com/jcchavezs/porto v0.1.0 // indirect

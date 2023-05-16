@@ -3,11 +3,20 @@
     - description: Placeholder
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/123
+    - description: Handle `metricset.samples` from apm-server
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/10794
+    - description: Increase default minimum TLS version to 1.2
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/10812
 - version: "8.8.0"
   changes:
     - description: Store app logs into service-specific data streams
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/10456
+    - description: Add `host` and `service.version` to span events
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/10697
 - version: "8.7.1"
   changes:
     - description: Add missing `agent.activation_method` mapping to `logs-apm.app`, `metrics-apm.app`, `logs-apm.error` and `metrics-apm.internal`

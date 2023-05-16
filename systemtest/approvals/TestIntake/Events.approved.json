@@ -420,6 +420,17 @@
                 "outcome": "success",
                 "success_count": 1
             },
+            "host": {
+                "architecture": "amd64",
+                "hostname": "node-name",
+                "ip": [
+                    "127.0.0.1"
+                ],
+                "name": "host1",
+                "os": {
+                    "platform": "Linux"
+                }
+            },
             "http": {
                 "request": {
                     "method": "GET"
@@ -475,6 +486,7 @@
                 },
                 "id": "1234567890aaaade",
                 "name": "GET users-authenticated",
+                "representative_count": 1,
                 "stacktrace": [
                     {
                         "exclude_from_grouping": false,

@@ -15,6 +15,17 @@
                 "outcome": "success",
                 "success_count": 1
             },
+            "host": {
+                "architecture": "i386",
+                "hostname": "beowulf",
+                "ip": [
+                    "127.0.0.1"
+                ],
+                "name": "beowulf",
+                "os": {
+                    "platform": "minix"
+                }
+            },
             "observer": {
                 "hostname": "dynamic",
                 "type": "apm-server",
@@ -52,6 +63,7 @@
                 },
                 "id": "0000000000000002",
                 "name": "Calls to redis",
+                "representative_count": 1,
                 "subtype": "redis",
                 "type": "db"
             },
@@ -79,6 +91,17 @@
                 "ingested": "dynamic",
                 "outcome": "success",
                 "success_count": 1
+            },
+            "host": {
+                "architecture": "i386",
+                "hostname": "beowulf",
+                "ip": [
+                    "127.0.0.1"
+                ],
+                "name": "beowulf",
+                "os": {
+                    "platform": "minix"
+                }
             },
             "observer": {
                 "hostname": "dynamic",
@@ -117,6 +140,7 @@
                 },
                 "id": "0000000000000034",
                 "name": "_bulk",
+                "representative_count": 1,
                 "subtype": "elasticsearch",
                 "type": "db"
             },
