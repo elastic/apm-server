@@ -34,7 +34,6 @@ ifdef::serverless[]
 endif::serverless[]
 
 :help-command-short-desc: Shows help for any command
-:keystore-command-short-desc: Manages the <<keystore,secrets keystore>>
 :modules-command-short-desc: Manages configured modules
 :package-command-short-desc: Packages the configuration and executable into a zip file
 :remove-command-short-desc: Removes the specified function from your serverless environment
@@ -64,6 +63,8 @@ endif::[]
 ++++
 <titleabbrev>Command reference</titleabbrev>
 ++++
+
+IMPORTANT: These commands only apply to the APM Server binary installation method.
 
 ifndef::no_dashboards[]
 {beatname_uc} provides a command-line interface for starting {beatname_uc} and
@@ -105,9 +106,6 @@ ifdef::apm-server[]
 endif::[]
 |<<export-command,`export`>> |{export-command-short-desc}.
 |<<help-command,`help`>> |{help-command-short-desc}.
-ifndef::serverless[]
-|<<keystore-command,`keystore`>> |{keystore-command-short-desc}.
-endif::[]
 ifeval::["{beatname_lc}"=="functionbeat"]
 |<<package-command,`package`>> |{package-command-short-desc}.
 |<<remove-command,`remove`>> |{remove-command-short-desc}.
@@ -431,65 +429,6 @@ Specifies the name of the command to show help for.
 -----
 {beatname_lc} help export
 -----
-
-ifndef::serverless[]
-[float]
-[[keystore-command]]
-==== `keystore` command
-
-{keystore-command-short-desc}.
-
-*SYNOPSIS*
-
-["source","sh",subs="attributes"]
-----
-{beatname_lc} keystore SUBCOMMAND [FLAGS]
-----
-
-*`SUBCOMMAND`*
-
-*`add KEY`*::
-Adds the specified key to the keystore. Use the `--force` flag to overwrite an
-existing key. Use the `--stdin` flag to pass the value through `stdin`.
-
-*`create`*::
-Creates a keystore to hold secrets. Use the `--force` flag to overwrite the
-existing keystore.
-
-*`list`*::
-Lists the keys in the keystore.
-
-*`remove KEY`*::
-Removes the specified key from the keystore.
-
-*FLAGS*
-
-*`--force`*::
-Valid with the `add` and `create` subcommands. When used with `add`, overwrites
-the specified key. When used with `create`, overwrites the keystore.
-
-*`--stdin`*::
-When used with `add`, uses the stdin as the source of the key's value.
-
-*`-h, --help`*::
-Shows help for the `keystore` command.
-
-
-{global-flags}
-
-*EXAMPLES*
-
-["source","sh",subs="attributes"]
------
-{beatname_lc} keystore create
-{beatname_lc} keystore add ES_PWD
-{beatname_lc} keystore remove ES_PWD
-{beatname_lc} keystore list
------
-
-See <<keystore>> for more examples.
-
-endif::[]
 
 ifeval::["{beatname_lc}"=="functionbeat"]
 [float]

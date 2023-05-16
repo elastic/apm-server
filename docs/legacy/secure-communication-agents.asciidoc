@@ -486,7 +486,6 @@ This option is required if certificate is specified.
 ===== `elasticsearch.ssl.key_passphrase`
 
 An optional passphrase used to decrypt an encrypted key stored in the configured key file.
-It is recommended to use the provided keystore instead of entering the passphrase in plain text.
 
 [float]
 ===== `elasticsearch.ssl.cipher_suites`
@@ -553,8 +552,6 @@ Here's how you set the secret token in APM Server:
 ----
 apm-server.auth.secret_token: <secret-token>
 ----
-
-We recommend saving the token in the APM Server <<keystore>>.
 
 IMPORTANT: Secret tokens are not applicable for the RUM agent,
 as there is no way to prevent them from being publicly exposed.
