@@ -76,6 +76,8 @@ include::manage-storage.asciidoc[]
 
 include::input-apm.asciidoc[]
 
+include::configure/index.asciidoc[leveloffset=+1]
+
 include::secure-agent-communication.asciidoc[]
 
 include::api.asciidoc[]
@@ -130,17 +132,12 @@ include::./legacy/setting-up-and-running.asciidoc[]
 // TODO: This section needs to integrate above
 include::./legacy/data-ingestion.asciidoc[]
 
-:beat-specific-output-config: {docdir}/legacy/configuring-output-after.asciidoc
-include::./legacy/configuring.asciidoc[leveloffset=+1]
-
 :beat-specific-security: {docdir}/legacy/security.asciidoc
 include::{libbeat-dir}/shared-securing-beat.asciidoc[leveloffset=+1]
 
 include::{libbeat-dir}/monitoring/monitoring-beats.asciidoc[leveloffset=+1]
 
 include::./legacy/exploring-es-data.asciidoc[leveloffset=+1]
-
-include::./legacy/fields.asciidoc[leveloffset=+1]
 
 include::./legacy/troubleshooting.asciidoc[leveloffset=+1]
 
