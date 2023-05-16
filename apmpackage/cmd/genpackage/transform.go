@@ -22,6 +22,7 @@ import (
 	"errors"
 	"fmt"
 	"path/filepath"
+	"strings"
 
 	"gopkg.in/yaml.v3"
 
@@ -126,6 +127,7 @@ func transformDataStreamManifest(path string, content []byte, version *version.V
 	}
 	dataStreamType := yamlMapLookup(doc.Content[0], "type").Value
 	dataStreamName := filepath.Base(filepath.Dir(path))
+	dataStreamName = strings.Replace(dataStreamName, "_interval_", fmt.Sprintf("_%s_", interval), -1)
 	expected := fmt.Sprintf("%s-%s.%s-default_policy", dataStreamType, integrationName, dataStreamName)
 	if interval != "" {
 		expected = fmt.Sprintf("%s-%s.%s-default_policy.%s", dataStreamType, integrationName, dataStreamName, interval)

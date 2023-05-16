@@ -1,7 +1,7 @@
 title: APM service summary metrics {{ .Interval }}
 type: metrics
 dataset: apm.service_summary.{{ .Interval }}
-ilm_policy: metrics-apm.service_summary_interval_metrics-default_policy.{{ .Interval }}
+ilm_policy: metrics-apm.service_summary_{{ .Interval }}_metrics-default_policy.{{ .Interval }}
 elasticsearch:
   index_template:
     mappings:
