@@ -17,7 +17,7 @@
     - description: Add `host` and `service.version` to span events
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/10697
-    - description: Fix ILM policy name mismatch in rollup index templates
+    - description: Fix ILM policy name mismatch in rollup interval index templates
       type: bugfix
       link: https://github.com/elastic/apm-server/pull/10824
 - version: "8.7.1"
