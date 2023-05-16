@@ -137,8 +137,6 @@ include::{libbeat-dir}/shared-securing-beat.asciidoc[leveloffset=+1]
 
 include::{libbeat-dir}/monitoring/monitoring-beats.asciidoc[leveloffset=+1]
 
-include::./legacy/exploring-es-data.asciidoc[leveloffset=+1]
-
 include::./legacy/troubleshooting.asciidoc[leveloffset=+1]
 
 // include::./legacy/breaking-changes.asciidoc[leveloffset=+1]
