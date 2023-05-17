@@ -2,7 +2,7 @@
 
 set -eo pipefail
 
-KEY_NAME="provisioner_key"
+KEY_NAME="provisioner_key_$(date +%s)"
 
 ssh-keygen -f ${KEY_NAME} -N ""
 
