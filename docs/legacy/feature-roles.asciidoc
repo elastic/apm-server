@@ -1,6 +1,42 @@
-[role="xpack"]
+[[secure-comms-stack]]
+== Secure communication with the {stack}
+
+++++
+<titleabbrev>With the {stack}</titleabbrev>
+++++
+
+NOTE: This documentation only applies to the APM Server binary.
+
+Use role-based access control or API keys to grant APM Server users access to secured resources.
+
+* <<feature-roles>>
+* <<beats-api-keys>>.
+
+After privileged users have been created, use authentication to connect to a secured Elastic cluster.
+
+* <<securing-communication-elasticsearch>>
+* <<configuring-ssl-logstash>>
+
+For secure communication between APM Server and APM Agents, see <<secure-agent-communication>>.
+
+On Linux, {beatname_uc} can take advantage of secure computing mode to restrict the
+system calls that a process can issue.
+
+* <<linux-seccomp>>
+
+A reference of all available <<configuration-ssl-landing,SSL configuration settings>> is also available.
+
+[float]
+[[security-overview]]
+=== Security Overview
+
+APM Server exposes an HTTP endpoint, and as with anything that opens ports on your servers,
+you should be careful about who can connect to it.
+Firewall rules are recommended to ensure only authorized systems can connect.
+
+[float]
 [[feature-roles]]
-== Grant users access to secured resources
+=== Feature roles
 
 You can use role-based access control to grant users access to secured
 resources. The roles that you set up depend on your organization's security

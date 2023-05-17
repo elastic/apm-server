@@ -1,7 +1,9 @@
 [[linux-seccomp]]
-== Use Linux Secure Computing Mode (seccomp)
+=== Use Linux Secure Computing Mode (seccomp)
 
 beta[]
+
+NOTE: This documentation only applies to the APM Server binary.
 
 On Linux 3.17 and later, {beatname_uc} can take advantage of secure computing
 mode, also known as seccomp. Seccomp restricts the system calls that a process
@@ -25,7 +27,7 @@ https://github.com/elastic/beats/tree/{branch}/libbeat/common/seccomp[here].
 
 [float]
 [[seccomp-policy-config]]
-=== Seccomp Policy Configuration
+==== Seccomp Policy Configuration
 
 The seccomp policy can be customized through the configuration policy. This is
 an example blocklist policy that prohibits `execve`, `execveat`, `fork`, and
@@ -85,7 +87,7 @@ actions that are available depend on the kernel version.
 - `allow` - The kernel will allow the system call to execute.
 
 [float]
-=== {auditbeat} Reports Seccomp Violations
+==== {auditbeat} Reports Seccomp Violations
 
 You can use {auditbeat} to report any seccomp violations that occur on the system.
 The kernel generates an event for each violation and {auditbeat} reports the

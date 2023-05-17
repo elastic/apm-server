@@ -1,0 +1,25 @@
+[[securing-apm-server]]
+== Secure communication with the {stack}
+
+++++
+<titleabbrev>Secure communication</titleabbrev>
+++++
+
+The following topics provide information about securing the APM Server
+process and connecting securely to APM agents and the {stack}.
+
+* <<secure-agent-communication,Secure communication with APM agents>>
+* <<secure-comms-stack,Secure communication with the {stack}>>
+
+:leveloffset: +1
+include::secure-agent-communication.asciidoc[]
+
+// APM privileges
+include::{docdir}/legacy/feature-roles.asciidoc[]
+
+// APM API keys
+include::{docdir}/legacy/api-keys.asciidoc[]
+
+// Linux Seccomp
+include::{docdir}/legacy/copied-from-beats/docs/security/linux-seccomp.asciidoc[]
+:leveloffset: -1
