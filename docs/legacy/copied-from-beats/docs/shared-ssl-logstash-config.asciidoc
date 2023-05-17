@@ -9,7 +9,7 @@
 //// include::../../libbeat/docs/shared-ssl-logstash-config.asciidoc[]
 //////////////////////////////////////////////////////////////////////////
 
-[role="xpack"]
+[float]
 [[configuring-ssl-logstash]]
 == Secure communication with {ls}
 
