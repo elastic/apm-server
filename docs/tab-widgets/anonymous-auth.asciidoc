@@ -1,0 +1,29 @@
+// tag::fleet-managed[]
+When an <<api-key,API key>> or <<secret-token,secret token>> is configured,
+anonymous authentication must be enabled to collect RUM data.
+Set **Anonymous Agent access** to true to enable anonymous authentication.
+
+When configuring anonymous authentication for client-side services,
+there are a few configuration variables that can mitigate the impact of malicious requests to an
+unauthenticated APM Server endpoint.
+
+Use the **Allowed anonymous agents** and **Allowed anonymous services** configs to ensure that the
+`agent.name` and `service.name` of each incoming request match a specified list.
+
+Additionally, the APM Server can rate-limit unauthenticated requests based on the client IP address
+(`client.ip`) of the request.
+This allows you to specify the maximum number of requests allowed per unique IP address, per second.
+// end::fleet-managed[]
+
+// tag::binary[]
+When an <<api-key,API key>> or <<secret-token,secret token>> is configured,
+anonymous authentication must be enabled to collect RUM data.
+To enable anonymous access, set either <<rum-enable,`apm-server.rum.enabled`>> or
+<<config-auth-anon-enabled,`apm-server.auth.anonymous.enabled`>> to `true`.
+
+Because anyone can send anonymous events to the APM Server,
+additional configuration variables are available to rate limit the number anonymous events the APM Server processes;
+throughput is equal to the `rate_limit.ip_limit` times the `rate_limit.event_limit`.
+
+See <<configuration-anonymous>> for a complete list of options and a sample configuration file.
+// end::binary[]

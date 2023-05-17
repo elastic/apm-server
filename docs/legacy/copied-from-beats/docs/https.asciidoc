@@ -10,7 +10,7 @@
 //// This content is structured to be included as a whole file.
 //////////////////////////////////////////////////////////////////////////
 
-[role="xpack"]
+[float]
 [[securing-communication-elasticsearch]]
 == Secure communication with {es}
 
