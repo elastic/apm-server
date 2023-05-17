@@ -64,6 +64,9 @@ func generatePackage(pkgfs fs.FS, version, ecsVersion *version.V, ecsReference s
 					// Skip policies that don't match the interval.
 					continue
 				}
+				// Use `default_policy.json` instead of e.g. `default_policy.1m.json` to
+				// work around a bug in fleet with more than 1 `.` in policy file name.
+				outputPath = strings.Replace(filepath.Join(*outputDir, p.Path), d.Name(), "default_policy.json", -1)
 			}
 			err := renderFile(pkgfs, path, outputPath, version, ecsVersion, ecsReference, p.Interval)
 			if err != nil {
