@@ -16,3 +16,5 @@ but instead leverages an HTTP request timeout to act as back-pressure.
 
 If {es} goes down, the APM Server will eventually deny incoming requests.
 Both the APM Server and {apm-agent}(s) will issue logs accordingly.
+
+TIP: Fleet-managed APM Server users might also be interested in {fleet-guide}/fleet-agent-proxy-support.html[Fleet/Agent proxy support].

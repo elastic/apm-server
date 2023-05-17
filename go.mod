@@ -8,7 +8,7 @@ require (
 	github.com/dgraph-io/badger/v2 v2.2007.3-0.20201012072640-f5a7e0a1c83b
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/apm-data v0.1.1-0.20230511095520-caaa44e1c286
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230515100651-7e4022f28e31
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230516130202-d0a51dc496a0
 	github.com/elastic/elastic-agent-client/v7 v7.1.1
 	github.com/elastic/elastic-agent-libs v0.3.8
 	github.com/elastic/elastic-agent-system-metrics v0.6.0
@@ -41,7 +41,6 @@ require (
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.8.2
-	github.com/tidwall/gjson v1.14.2
 	go.elastic.co/apm/module/apmelasticsearch/v2 v2.4.1
 	go.elastic.co/apm/module/apmgorilla/v2 v2.2.0
 	go.elastic.co/apm/module/apmgrpc/v2 v2.2.0
@@ -123,8 +122,6 @@ require (
 	github.com/shirou/gopsutil v3.21.11+incompatible // indirect
 	github.com/shirou/gopsutil/v3 v3.23.4 // indirect
 	github.com/shoenig/go-m1cpu v0.1.5 // indirect
-	github.com/tidwall/match v1.1.1 // indirect
-	github.com/tidwall/pretty v1.2.0 // indirect
 	github.com/tklauser/go-sysconf v0.3.11 // indirect
 	github.com/tklauser/numcpus v0.6.0 // indirect
 	github.com/uber/jaeger-client-go v2.30.0+incompatible // indirect
