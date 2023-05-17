@@ -14,12 +14,11 @@ varies by platform. To locate the file, see <<directory-layout>>.
 
 include::general.asciidoc[leveloffset=+1]
 
-include::agent-config.asciidoc[leveloffset=+1]
+include::anonymous-auth.asciidoc[leveloffset=+1]
 
-// Agent authorization
 include::auth.asciidoc[leveloffset=+1]
 
-include::anonymous-auth.asciidoc[leveloffset=+1]
+include::agent-config.asciidoc[leveloffset=+1]
 
 include::instrumentation.asciidoc[leveloffset=+1]
 
@@ -31,10 +30,10 @@ include::output.asciidoc[leveloffset=+1]
 
 include::path.asciidoc[leveloffset=+1]
 
-include::sampling.asciidoc[leveloffset=+1]
-
 include::rum.asciidoc[leveloffset=+1]
 
 include::tls.asciidoc[leveloffset=+1]
+
+include::sampling.asciidoc[leveloffset=+1]
 
 include::env.asciidoc[leveloffset=+1]

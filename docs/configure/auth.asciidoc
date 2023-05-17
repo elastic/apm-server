@@ -1,4 +1,4 @@
-= Agent authorization
+= APM agent authorization
 
 Agent authorization APM Server configuration options.
 

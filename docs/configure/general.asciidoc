@@ -6,210 +6,208 @@ General APM Server configuration options.
 include::./tab-widgets/general-config-widget.asciidoc[]
 
 [float]
-== Options
+[[configuration-apm-server]]
+= Configuration options
 
-Host::
+[[host]]
+[float]
+== Host
 Defines the host and port the server is listening on.
 Use `"unix:/path/to.sock"` to listen on a Unix domain socket.
-Default: `127.0.0.1:8200`
-+
+Defaults to 'localhost:8200'. (text)
+
 |====
 | APM Server binary | `apm-server.host`
 | Fleet-managed     | `Host`
 |====
 
-URL::
+[float]
+== URL
 The publicly reachable server URL. For deployments on Elastic Cloud or ECK, the default is unchangeable.
-+
+
 |====
 | APM Server binary | N/A
 | Fleet-managed     | `URL`
 |====
 
-Maximum request header::
+[[max_header_size]]
+[float]
+== Max header size
 Maximum permitted size of a request's header accepted by the server to be processed (in Bytes).
-+
+Defaults to 1048576 Bytes (1 MB). (int)
+
 |====
 | APM Server binary | `apm-server.max_header_size`
 | Fleet-managed     | `Maximum size of a request's header`
 |====
 
-
-
-
-
-
-Example config file:
-
-["source","yaml"]
-----
-apm-server:
-  host: "localhost:8200"
-  rum:
-    enabled: true
-
-output:
-  elasticsearch:
-    hosts: ElasticsearchAddress:9200
-
-max_procs: 4
-----
-
-NOTE: If you are using an X-Pack secured version of {stack},
-you need to specify credentials in the config file before you run the commands that set up and start APM Server.
-For example:
-
-[source,yaml]
-----
-output.elasticsearch:
-  hosts: ["ElasticsearchAddress:9200"]
-  username: "elastic"
-  password: "elastic"
-----
-
-[float]
-[[configuration-apm-server]]
-== Configuration options: `apm-server.*`
-
-[[host]]
-[float]
-=== `host`
-Defines the host and port the server is listening on.
-Use `"unix:/path/to.sock"` to listen on a Unix domain socket.
-Defaults to 'localhost:8200'.
-
-[[max_header_size]]
-[float]
-=== `max_header_size`
-Maximum permitted size of a request's header accepted by the server to be processed (in Bytes).
-Defaults to 1048576 Bytes (1 MB).
-
 [[idle_timeout]]
 [float]
-=== `idle_timeout`
+== Idle timeout
 Maximum amount of time to wait for the next incoming request before underlying connection is closed.
-Defaults to 45 seconds.
+Defaults to `45s` (45 seconds). (text)
+
+|====
+| APM Server binary | `apm-server.idle_timeout`
+| Fleet-managed     | Idle time before underlying connection is closed
+|====
 
 [[read_timeout]]
 [float]
-=== `read_timeout`
+== Read timeout
 Maximum permitted duration for reading an entire request.
-Defaults to 30 seconds.
+Defaults to `3600s` (3600 seconds). (text)
+
+|====
+| APM Server binary | `apm-server.read_timeout`
+| Fleet-managed     | Maximum duration for reading an entire request
+|====
+
+// REVIEWER: Default 3600 seconds (FM) or 30 seconds (binary)?
 
 [[write_timeout]]
 [float]
-=== `write_timeout`
+== Write timeout
 Maximum permitted duration for writing a response.
-Defaults to 30 seconds.
+Defaults to `30s` (30 seconds). (text)
+
+|====
+| APM Server binary | `apm-server.write_timeout`
+| Fleet-managed     | Maximum duration for writing a response
+|====
 
 [[shutdown_timeout]]
 [float]
-=== `shutdown_timeout`
+=== Shutdown timeout
 Maximum duration in seconds before releasing resources when shutting down the server.
-Defaults to 5 seconds.
+Defaults to `30s` (30 seconds). (text)
+
+|====
+| APM Server binary | `apm-server.shutdown_timeout`
+| Fleet-managed     | Maximum duration before releasing resources when shutting down
+|====
+
+// REVIEWER: Default 30 seconds (FM) or 5 seconds (binary)?
 
 [[max_event_size]]
 [float]
-=== `max_event_size`
+== Max event size
 Maximum permitted size of an event accepted by the server to be processed (in Bytes).
-Defaults to 307200 Bytes.
+Defaults to `307200` Bytes. (int)
 
-[float]
-[[configuration-other]]
-== Configuration options: general
+|====
+| APM Server binary | `apm-server.max_event_size`
+| Fleet-managed     | Maximum size per event
+|====
 
 [[max_connections]]
 [float]
-=== `max_connections`
+== Max connections
 Maximum number of TCP connections to accept simultaneously.
-Default value is 0, which means _unlimited_.
+Default value is 0, which means _unlimited_. (int)
 
-[[config-secret-token]]
+|====
+| APM Server binary | `max_connections`
+| Fleet-managed     | Simultaneously accepted connections
+|====
+
+[[custom_http_headers]]
 [float]
-=== `auth.secret_token`
-Authorization token for sending data to the APM server.
-If a token is set, the agents must send it in the following format:
-Authorization: Bearer <secret-token>.
-The token is not used for RUM endpoints. By default, no authorization token is set.
+== Custom HTTP response headers
+Custom HTTP headers to add to HTTP responses. Useful for security policy compliance. (text)
 
-It is recommended to use an authorization token in combination with SSL enabled.
-Read more about <<securing-apm-server, Securing APM Server>> and the <<secret-token, secret token>>.
+|====
+| APM Server binary | N/A
+| Fleet-managed     | Custom HTTP response headers
+|====
 
-[[config-secret-token-legacy]]
-[float]
-=== `secret_token`
 
-deprecated::[7.14.0, Replaced by `auth.secret_token`. See <<config-secret-token>>]
+// [[config-secret-token]]
+// [float]
+// == `auth.secret_token`
+// Authorization token for sending data to the APM server.
+// If a token is set, the agents must send it in the following format:
+// Authorization: Bearer <secret-token>.
+// The token is not used for RUM endpoints. By default, no authorization token is set.
 
-In versions prior to 7.14.0, secret token authorization was known as `apm-server.secret_token`. In 7.14.0 this was renamed `apm-server.auth.secret_token`.
-The old configuration will continue to work until 8.0.0, and the new configuration will take precedence.
+// It is recommended to use an authorization token in combination with SSL enabled.
+// Read more about <<securing-apm-server, Securing APM Server>> and the <<secret-token, secret token>>.
+
+// [[config-secret-token-legacy]]
+// [float]
+// == `secret_token`
+
+// deprecated::[7.14.0, Replaced by `auth.secret_token`. See <<config-secret-token>>]
+
+// In versions prior to 7.14.0, secret token authorization was known as `apm-server.secret_token`. In 7.14.0 this was renamed `apm-server.auth.secret_token`.
+// The old configuration will continue to work until 8.0.0, and the new configuration will take precedence.
 
 [[capture_personal_data]]
 [float]
-=== `capture_personal_data`
+== Capture personal data
 If true,
 APM Server captures the IP of the instrumented service and its User Agent if any.
-Enabled by default.
+Enabled by default. (bool)
+
+|====
+| APM Server binary | `capture_personal_data`
+| Fleet-managed     | Capture personal data
+|====
+
 
 [[default_service_environment]]
 [float]
-=== `default_service_environment`
-Sets the default service environment to associate with data and requests received from agents which have no service environment defined.
+== Default service environment
+Sets the default service environment to associate with data and requests received from agents which have no service environment defined. Default: none. (text)
+
+|====
+| APM Server binary | `default_service_environment`
+| Fleet-managed     | Default Service Environment
+|====
 
 [[expvar.enabled]]
 [float]
-=== `expvar.enabled`
-When set to true APM Server exposes https://golang.org/pkg/expvar/[golang expvar].
+== expvar support
+When set to true APM Server exposes https://golang.org/pkg/expvar/[golang expvar] under `/debug/vars`.
 Disabled by default.
+
+|====
+| APM Server binary | `expvar.enabled`
+| Fleet-managed     | Enable APM Server Golang expvar support
+|====
 
 [[expvar.url]]
 [float]
-=== `expvar.url`
+== expvar URL
 Configure the URL to expose expvar.
 Defaults to `debug/vars`.
 
+|====
+| APM Server binary | `expvar.url`
+| Fleet-managed     | N/A
+|====
+
 [[instrumentation.enabled]]
 [float]
-=== `instrumentation.enabled`
+== APM Server self-instrumentation
+
 Enables self instrumentation of the APM Server itself.
 Disabled by default.
 
-[float]
-[[configuration-tbs]]
-== Configuration options: tail-based sampling
-
-[[sampling.tail.enabled]]
-[float]
-=== `sampling.tail.enabled`
-Set to `true` to enable tail based sampling.
-Disabled by default.
-
-[[sampling.tail.interval]]
-[float]
-=== `sampling.tail.interval`
-Synchronization interval for multiple APM Servers.
-Should be in the order of tens of seconds or low minutes.
-
-[[sampling.tail.policies]]
-[float]
-=== `sampling.tail.policies`
-Criteria used to match a root transaction to a sample rate.
-
-[float]
-== Configuration options: `max_procs`
-
-[[max_procs]]
-[float]
-=== `max_procs`
-Sets the maximum number of CPUs that can be executing simultaneously.
-The default is the number of logical CPUs available in the system.
-
-[float]
-== Configuration options: `data_streams`
+|====
+| APM Server binary | `instrumentation.enabled`
+| Fleet-managed     | N/A
+|====
 
 [[data_streams.wait_for_integration]]
 [float]
-=== `wait_for_integration`
+== `datastreams.wait_for_integration`
 Wait for the `apm` {fleet} integration to be installed by {kib}. Requires either <<kibana-enabled>>
 or for the <<elasticsearch-output, {es} output>> to be configured.
 Defaults to true.
+
+[[data_streams.namespace]]
+[float]
+== `data_streams.namespace`
+
+requires text
