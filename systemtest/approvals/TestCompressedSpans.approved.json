@@ -63,6 +63,7 @@
                 },
                 "id": "0000000000000002",
                 "name": "Calls to redis",
+                "representative_count": 1,
                 "subtype": "redis",
                 "type": "db"
             },
@@ -139,6 +140,7 @@
                 },
                 "id": "0000000000000034",
                 "name": "_bulk",
+                "representative_count": 1,
                 "subtype": "elasticsearch",
                 "type": "db"
             },

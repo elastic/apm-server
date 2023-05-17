@@ -594,7 +594,8 @@
             "http": {
                 "request": {
                     "method": "POST"
-                }
+                },
+                "response": {}
             },
             "kubernetes": {
                 "namespace": "namespace1",
@@ -718,10 +719,14 @@
                     "type": "machine_type"
                 },
                 "origin": {
-                    "account.id": "abc123",
+                    "account": {
+                        "id": "abc123"
+                    },
                     "provider": "aws",
                     "region": "us-east-1",
-                    "service.name": "serviceName"
+                    "service": {
+                        "name": "serviceName"
+                    }
                 },
                 "project": {
                     "id": "project_id",
@@ -748,8 +753,10 @@
                 "coldstart": false,
                 "execution": "2e13b309-23e1-417f-8bf7-074fc96bc683",
                 "name": "faasName",
-                "trigger.request_id": "FuH2Cir_vHcEMUA=",
-                "trigger.type": "http",
+                "trigger": {
+                    "request_id": "FuH2Cir_vHcEMUA=",
+                    "type": "http"
+                },
                 "version": "1.0.0"
             },
             "host": {

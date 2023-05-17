@@ -1,12 +1,10 @@
 
 [[setting-up-and-running]]
-== Set up APM Server
+== APM Server advanced setup
 
 ++++
-<titleabbrev>Set up</titleabbrev>
+<titleabbrev>Advanced setup</titleabbrev>
 ++++
-
-IMPORTANT: {deprecation-notice-installation}
 
 Before reading this section, see the <<getting-started-apm-server,getting started documentation>>
 for basic installation and running instructions.
@@ -14,16 +12,15 @@ for basic installation and running instructions.
 This section includes additional information on how to set up and run APM Server, including:
 
 * <<directory-layout>>
-* <<keystore>>
 * <<command-line-options>>
 * <<high-availability>>
 * <<running-on-docker>>
 
 include::{libbeat-dir}/shared-directory-layout.asciidoc[]
 
-include::{libbeat-dir}/keystore.asciidoc[]
-
 include::{libbeat-dir}/command-reference.asciidoc[]
+
+include::./data-ingestion.asciidoc[]
 
 include::./high-availability.asciidoc[]
 

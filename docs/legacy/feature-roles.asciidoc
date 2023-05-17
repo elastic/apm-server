@@ -2,8 +2,6 @@
 [[feature-roles]]
 == Grant users access to secured resources
 
-IMPORTANT: {deprecation-notice-config}
-
 You can use role-based access control to grant users access to secured
 resources. The roles that you set up depend on your organization's security
 requirements and the minimum privileges required to use specific features.
@@ -38,8 +36,6 @@ In general, there are three types of privileges you'll work with:
 ++++
 <titleabbrev>Create a _writer_ user</titleabbrev>
 ++++
-
-IMPORTANT: {deprecation-notice-config}
 
 APM users that publish events to {es} need privileges to write to APM data streams.
 
@@ -81,8 +77,6 @@ Assign these extra privileges to the *general writer role*.
 ++++
 <titleabbrev>Create a _monitoring_ user</titleabbrev>
 ++++
-
-IMPORTANT: {deprecation-notice-config}
 
 {es-security-features} provides built-in users and roles for publishing and viewing monitoring data.
 The privileges and roles needed to publish monitoring data
@@ -225,8 +219,6 @@ need to view monitoring data for {beatname_uc}:
 <titleabbrev>Create an _API key_ user</titleabbrev>
 ++++
 
-IMPORTANT: {deprecation-notice-config}
-
 You can configure <<api-key-legacy,API keys>> to authorize requests to APM Server.
 To create an APM Server user with the required privileges for creating and managing API keys:
 
@@ -295,8 +287,6 @@ PUT _security/role/apm_api_key <1>
 <titleabbrev>Create a _central config_ user</titleabbrev>
 ++++
 
-IMPORTANT: {deprecation-notice-config}
-
 [[privileges-agent-central-config-server]]
 ==== APM Server central configuration management
 
@@ -340,8 +330,6 @@ See {kibana-ref}/apm-app-central-config-user.html[{apm-app} central configuratio
 
 [[more-security-roles]]
 === Additional APM users and roles
-
-IMPORTANT: {deprecation-notice-config}
 
 In addition to the {beatname_uc} users described in this documentation,
 you'll likely need to create users for other APM tasks:
