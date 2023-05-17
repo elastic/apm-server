@@ -413,7 +413,7 @@ sudo -u apm-server apm-server [<argument...>]
 ----------------------------------
 
 By default, APM Server loads its configuration file from `/etc/apm-server/apm-server.yml`.
-See the <<_deb_and_rpm,deb & rpm default paths>> for a full directory layout.
+See the <<directory-layout,deb & rpm default paths>> for a full directory layout.
 
 // *******************************************************
 // STEP 4

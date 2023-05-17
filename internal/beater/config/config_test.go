@@ -65,42 +65,81 @@ func TestUnpackConfig(t *testing.T) {
 	}
 
 	reuseOutputESConfig := DefaultConfig()
-	reuseOutputESConfig.AgentConfig = AgentConfig{
-		ESConfig: &elasticsearch.Config{
-			Hosts:            elasticsearch.Hosts{"localhost:9201", "localhost:9202"},
-			Protocol:         "https",
-			Timeout:          5 * time.Second,
-			Username:         "output_username",
-			Password:         "output_password",
-			MaxRetries:       3,
-			CompressionLevel: 5,
-			Backoff:          elasticsearch.DefaultBackoffConfig,
-		},
-		Cache: Cache{Expiration: 30 * time.Second},
+	reuseOutputESConfig.AgentConfig.ESOverrideConfigured = false
+	reuseOutputESConfig.AgentConfig.ESConfig = &elasticsearch.Config{
+		Hosts:            elasticsearch.Hosts{"localhost:9200"},
+		Protocol:         "https",
+		Timeout:          5 * time.Second,
+		Username:         "output_username",
+		Password:         "output_password",
+		APIKey:           "",
+		MaxRetries:       3,
+		CompressionLevel: 5,
+		Backoff:          elasticsearch.DefaultBackoffConfig,
+	}
+	reuseOutputESConfig.RumConfig.Enabled = true
+	reuseOutputESConfig.RumConfig.SourceMapping.ESConfig = &elasticsearch.Config{
+		Hosts:            elasticsearch.Hosts{"localhost:9200"},
+		Protocol:         "https",
+		Timeout:          5 * time.Second,
+		Username:         "output_username",
+		Password:         "output_password",
+		APIKey:           "",
+		MaxRetries:       3,
+		CompressionLevel: 5,
+		Backoff:          elasticsearch.DefaultBackoffConfig,
 	}
 
-	overwriteOutputESConfig := DefaultConfig()
-	overwriteOutputESConfig.AgentConfig = AgentConfig{
-		ESConfig: &elasticsearch.Config{
-			Hosts:            elasticsearch.Hosts{"localhost:9201", "localhost:9202"},
-			Protocol:         "https",
-			Timeout:          5 * time.Second,
-			Username:         "",
-			Password:         "",
-			APIKey:           "id:api_key",
-			MaxRetries:       3,
-			CompressionLevel: 5,
-			Backoff:          elasticsearch.DefaultBackoffConfig,
-		},
-		Cache:        Cache{Expiration: 30 * time.Second},
-		ESConfigured: true,
+	overrideHostOutputESConfig := DefaultConfig()
+	overrideHostOutputESConfig.AgentConfig.ESOverrideConfigured = true
+	overrideHostOutputESConfig.AgentConfig.ESConfig = &elasticsearch.Config{
+		Hosts:            elasticsearch.Hosts{"localhost:9202"},
+		Protocol:         "https",
+		Timeout:          5 * time.Second,
+		Username:         "output_username",
+		Password:         "output_password",
+		APIKey:           "",
+		MaxRetries:       3,
+		CompressionLevel: 5,
+		Backoff:          elasticsearch.DefaultBackoffConfig,
+	}
+	overrideHostOutputESConfig.RumConfig.Enabled = true
+	overrideHostOutputESConfig.RumConfig.SourceMapping.ESConfig = &elasticsearch.Config{
+		Hosts:            elasticsearch.Hosts{"localhost:9201"},
+		Protocol:         "https",
+		Timeout:          5 * time.Second,
+		Username:         "output_username",
+		Password:         "output_password",
+		APIKey:           "",
+		MaxRetries:       3,
+		CompressionLevel: 5,
+		Backoff:          elasticsearch.DefaultBackoffConfig,
 	}
 
-	agentcfgUnexpectedFieldConfig := DefaultConfig()
-	agentcfgUnexpectedFieldConfig.AgentConfig = AgentConfig{
-		ESConfig:     elasticsearch.DefaultConfig(),
-		Cache:        Cache{Expiration: 30 * time.Second},
-		ESConfigured: true,
+	overrideCredentialsOutputESConfig := DefaultConfig()
+	overrideCredentialsOutputESConfig.AgentConfig.ESOverrideConfigured = true
+	overrideCredentialsOutputESConfig.AgentConfig.ESConfig = &elasticsearch.Config{
+		Hosts:            elasticsearch.Hosts{"localhost:9202"},
+		Protocol:         "https",
+		Timeout:          5 * time.Second,
+		Username:         "",
+		Password:         "",
+		APIKey:           "id2:api_key2",
+		MaxRetries:       3,
+		CompressionLevel: 5,
+		Backoff:          elasticsearch.DefaultBackoffConfig,
+	}
+	overrideCredentialsOutputESConfig.RumConfig.Enabled = true
+	overrideCredentialsOutputESConfig.RumConfig.SourceMapping.ESConfig = &elasticsearch.Config{
+		Hosts:            elasticsearch.Hosts{"localhost:9201"},
+		Protocol:         "https",
+		Timeout:          5 * time.Second,
+		Username:         "",
+		Password:         "",
+		APIKey:           "id:api_key",
+		MaxRetries:       3,
+		CompressionLevel: 5,
+		Backoff:          elasticsearch.DefaultBackoffConfig,
 	}
 
 	tests := map[string]struct {
@@ -278,8 +317,8 @@ func TestUnpackConfig(t *testing.T) {
 							CompressionLevel: 5,
 							Backoff:          elasticsearch.DefaultBackoffConfig,
 						},
-						Timeout:      2 * time.Second,
-						esConfigured: true,
+						Timeout:              2 * time.Second,
+						esOverrideConfigured: true,
 					},
 					LibraryPattern:      "^custom",
 					ExcludeFromGrouping: "^grouping",
@@ -298,8 +337,8 @@ func TestUnpackConfig(t *testing.T) {
 						CompressionLevel: 5,
 						Backoff:          elasticsearch.DefaultBackoffConfig,
 					},
-					Cache:        Cache{Expiration: 2 * time.Minute},
-					ESConfigured: true,
+					Cache:                Cache{Expiration: 2 * time.Minute},
+					ESOverrideConfigured: true,
 				},
 				Aggregation: AggregationConfig{
 					Transactions: TransactionAggregationConfig{
@@ -522,37 +561,57 @@ func TestUnpackConfig(t *testing.T) {
 			},
 			outCfg: responseHeadersConfig,
 		},
-		"agentcfg reuse output es config": {
-			inpCfg: map[string]interface{}{},
+		"agentcfg and rum sourcemapping reuse output es config": {
+			inpCfg: map[string]interface{}{
+				"rum.enabled": true,
+			},
 			inpOutputESCfg: map[string]interface{}{
-				"hosts":    []string{"localhost:9201", "localhost:9202"},
+				"hosts":    []string{"localhost:9200"},
 				"username": "output_username",
 				"password": "output_password",
 				"protocol": "https",
 			},
 			outCfg: reuseOutputESConfig,
 		},
-		"agentcfg reuse and overwrite output es config": {
+		"agentcfg and rum sourcemapping override host output es config ": {
 			inpCfg: map[string]interface{}{
+				"rum.enabled": true,
+				"rum.source_mapping.elasticsearch": map[string]interface{}{
+					"hosts": []string{"localhost:9201"},
+				},
 				"agent.config.elasticsearch": map[string]interface{}{
-					"api_key": "id:api_key",
+					"hosts": []string{"localhost:9202"},
 				},
 			},
 			inpOutputESCfg: map[string]interface{}{
-				"hosts":    []string{"localhost:9201", "localhost:9202"},
+				"hosts":    []string{"localhost:9200"},
 				"username": "output_username",
 				"password": "output_password",
 				"protocol": "https",
 			},
-			outCfg: overwriteOutputESConfig,
+			outCfg: overrideHostOutputESConfig,
 		},
-		"agentcfg should only accept credentials config": {
+		"agentcfg and rum sourcemapping override credentials output es config ": {
 			inpCfg: map[string]interface{}{
+				"rum.enabled": true,
+				"rum.source_mapping.elasticsearch": map[string]interface{}{
+					"hosts":   []string{"localhost:9201"},
+					"api_key": "id:api_key",
+					"invalid": "invalid",
+				},
 				"agent.config.elasticsearch": map[string]interface{}{
-					"hosts": []string{"localhost:9201", "localhost:9202"},
+					"hosts":   []string{"localhost:9202"},
+					"api_key": "id2:api_key2",
+					"invalid": "invalid",
 				},
 			},
-			outCfg: agentcfgUnexpectedFieldConfig,
+			inpOutputESCfg: map[string]interface{}{
+				"hosts":    []string{"localhost:9200"},
+				"username": "output_username",
+				"password": "output_password",
+				"protocol": "https",
+			},
+			outCfg: overrideCredentialsOutputESConfig,
 		},
 	}
 

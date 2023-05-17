@@ -242,7 +242,7 @@ func newAgentConfigFetcher(
 	var fallbackFetcher agentcfg.Fetcher
 
 	switch {
-	case cfg.AgentConfig.ESConfigured:
+	case cfg.AgentConfig.ESOverrideConfigured:
 		// Disable fallback because agent config Elasticsearch is explicitly configured.
 	case cfg.FleetAgentConfigs != nil:
 		agentConfigurations := agentcfg.ConvertAgentConfigs(cfg.FleetAgentConfigs)

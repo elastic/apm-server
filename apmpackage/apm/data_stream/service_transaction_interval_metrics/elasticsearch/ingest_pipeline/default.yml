@@ -7,6 +7,8 @@ processors:
       name: observer_ids
   - pipeline:
       name: ecs_version
+  - pipeline:
+      name: set_metrics
   - remove:
-      field: _metric_descriptions
+      field: _dynamic_templates
       ignore_missing: true
