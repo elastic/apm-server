@@ -1,7 +1,7 @@
 title: APM service destination metrics {{ .Interval }}
 type: metrics
 dataset: apm.service_destination.{{ .Interval }}
-ilm_policy: metrics-apm.service_destination_interval_metrics-default_policy.{{ .Interval }}
+ilm_policy: metrics-apm.service_destination_{{ .Interval }}_metrics-default_policy
 elasticsearch:
   index_template:
     mappings:
