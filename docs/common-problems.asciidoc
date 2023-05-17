@@ -8,7 +8,6 @@ This section describes common problems you might encounter when using a Fleet-ma
 * <<common-ssl-problems>>
 * <<io-timeout>>
 * <<field-limit-exceeded-legacy>>
-* <<central-config-troubleshooting-legacy>>
 
 [float]
 [[no-data-indexed]]
@@ -54,43 +53,20 @@ If the `mapping.name.type` is `"text"`, your APM indices were not set up correct
 ----
 <1> The `service.name` `mapping.name.type` would be `"keyword"` if this field had been set up correctly.
 
-To fix this problem, you must delete and recreate your APM indices as index templates cannot be applied retroactively.
+To fix this problem, install the APM integration by following these steps:
 
-. Stop your APM Server(s) or {agent}s so they are not writing any new documents.
-
-. Delete your existing `apm` data streams.
-In the {kib} console, run:
-+
-[source,curl]
-----
-DELETE /_data_stream/*apm*
-----
-+
-Alternatively, you can use the {ref}/index-mgmt.html[Index Management] page in {kib}.
-Navigate to **Index Templates**, search for `apm`, select and then delete all `apm` index templates.
-
-. Starting in version 8.0.0, the APM integration provides and sets up APM index templates.
-Install the APM integration by following these steps:
-+
 --
 include::./legacy/getting-started-apm-server.asciidoc[tag=install-apm-integration]
 --
 
-. Start APM Server or {agent}.
+This will reinstall the APM index templates and trigger a data stream index rollover.
 
-. Verify the correct index templates were installed. In the {kib} console, run:
-+
+You can verify the correct index templates were installed by running the following command in the {kib} console:
+
 [source,curl]
 ----
 GET /_index_template/traces-apm
 ----
-+
-Alternatively, you can use the {ref}/index-mgmt.html[**Index Management**] page in {kib}.
-On the **Index Templates** tab, search for `apm` under **Index Templates**.
-
-
-
-
 
 [float]
 [[common-ssl-problems]]
@@ -211,33 +187,3 @@ In the agent logs, you won't see a sign of failures as the APM server asynchrono
 ----
 {\"type\":\"illegal_argument_exception\",\"reason\":\"Limit of total fields [1000] in [INDEX_NAME] has been exceeded\"}
 ----
-
-[[central-config-troubleshooting-legacy]]
-[float]
-=== `/api/apm/settings/agent-configuration/search` errors
-
-// Applies to APM Server binary only
-
-If you're instrumenting and starting a lot of services at the same time
-or using a very large number of service or environment names,
-you may see the following APM Server logs related to {apm-agent} central configuration:
-
-* `.../api/apm/settings/agent-configuration/search: context canceled`
-* `.../api/apm/settings/agent-configuration/search: net/http: TLS handshake timeout`
-
-There are two possible causes:
-
-1. {kib} is overwhelmed by the number of requests coming from APM Server.
-2. {es} can't reply quickly enough to {kib}.
-
-For cause #1, try one or more of the following:
-
-* Increase the <<elasticsearch-output,`apm-server.kibana.timeout`>> setting.
-* Increase the <<setup-kibana-endpoint,`agent.config.cache.expiration`>>.
-* Increase {kib}'s resources so that it is able to manage more requests.
-* If you're not using APM central configuration, disable it with <<setup-kibana-endpoint,`apm-server.kibana.enabled`>>.
-Central configuration can also be disabled at the {apm-agent} level.
-
-For cause #2, investigate why {es} is not responding in a timely manner.
-{kib}'s queries to {es} are simple, so it may just be that {es} is unhealthy.
-If that's not the problem, you may need to use {ref}/index-modules-slowlog.html[Search Slow Log] to investigate your {es} logs.
