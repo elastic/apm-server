@@ -1,57 +1,15 @@
 [[exploring-es-data]]
 = Explore data in {es}
 
-Elastic APM data is stored in data streams.
-include::../data-streams.asciidoc[tag=data-streams]
-
-The namespace default is `default`.
-To configure a custom namespace, set `data_streams.namespace`:
-
-[source,yaml]
-----
-apm-server:
-  data_streams.namespace: custom_namespace
-----
-
-[discrete]
-[[apm-data-streams-list-standalone]]
-== APM data streams
-
-By type, the APM data streams are:
-
-Traces::
-Traces are comprised of {apm-guide-ref}/data-model.html[spans and transactions].
-Traces are stored in the following data streams:
-+
-include::../data-streams.asciidoc[tag=traces-data-streams]
-
-Metrics::
-Metrics include application-based metrics, aggregation metrics, and basic system metrics.
-Metrics are stored in the following data streams:
-+
-include::../data-streams.asciidoc[tag=metrics-data-streams]
-
-Logs::
-Logs include application error events and application logs.
-Logs are stored in the following data streams:
-+
-include::../data-streams.asciidoc[tag=logs-data-streams]
-
-[float]
-[[sample-apm-document]]
-== Sample APM documents
-
-Sample documents for each of the APM event types are available on these pages:
-
-* <<transaction-indices>>
-* <<span-indices>>
-* <<error-indices>>
+* <<elasticsearch-query-examples>>
+* <<sample-apm-document>>
 * <<metricset-indices>>
-* <<sourcemap-indices>>
 
 [float]
 [[elasticsearch-query-examples]]
 == {es} query examples
+
+Elastic APM data is stored in <<apm-data-streams>>.
 
 The following examples enable you to interact with {es}'s REST API.
 One possible way to do this is using {kib}'s
@@ -90,9 +48,60 @@ GET  /_template/your-template-name
 ----
 // CONSOLE
 
+[float]
+[[sample-apm-document]]
+== Sample APM documents
 
-include::./transaction-indices.asciidoc[]
-include::./span-indices.asciidoc[]
-include::./error-indices.asciidoc[]
+Sample documents for each of the APM event types are available below:
+
+[%collapsible]
+.Transaction documents
+====
+Example transaction documents indexed in {es}:
+
+[source,json]
+----
+include::../data/elasticsearch/generated/transactions.json[]
+----
+====
+
+[%collapsible]
+.Span documents
+====
+Example span documents indexed in {es}:
+
+[source,json]
+----
+include::../data/elasticsearch/generated/spans.json[]
+----
+====
+
+[%collapsible]
+.Error documents
+====
+Example error documents indexed in {es}:
+
+[source,json]
+----
+include::../data/elasticsearch/generated/errors.json[]
+----
+====
+
+[%collapsible]
+.Metric document
+====
+include::./metricset-indices.asciidoc[tag=example]
+====
+
+[%collapsible]
+.Source map documents
+====
+Example source map document indexed in {es}:
+
+[source,json]
+----
+include::../data/intake-api/generated/sourcemap/bundle.js.map[]
+----
+====
+
 include::./metricset-indices.asciidoc[]
-include::./sourcemap-indices.asciidoc[]

@@ -18,12 +18,13 @@
 package beater_test
 
 import (
+	"encoding/json"
 	"fmt"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/tidwall/gjson"
+	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/apm-server/internal/beater/beatertest"
 	agentconfig "github.com/elastic/elastic-agent-libs/config"
@@ -70,8 +71,9 @@ func TestServerTracingEnabled(t *testing.T) {
 					case <-time.After(10 * time.Second):
 						t.Fatal("timed out waiting for event")
 					}
-					transactionName := gjson.GetBytes(doc, "transaction.name")
-					if transactionName.Exists() && transactionName.String() == "GET unknown route" {
+					var out map[string]any
+					require.NoError(t, json.Unmarshal(doc, &out))
+					if v, ok := out["transaction"].(map[string]any)["name"]; ok && v == "GET unknown route" {
 						break
 					}
 				}
@@ -87,8 +89,10 @@ func TestServerTracingEnabled(t *testing.T) {
 				select {
 				case doc := <-docs:
 					traced = true
-					transactionType := gjson.GetBytes(doc, "transaction.type")
-					assert.NotEqual(t, "request", transactionType.String())
+					var out map[string]any
+					require.NoError(t, json.Unmarshal(doc, &out))
+					assert.Contains(t, out, "transaction")
+					assert.NotEqual(t, "request", out["transaction"].(map[string]any)["type"])
 				case <-timeout:
 					done = true
 				}
