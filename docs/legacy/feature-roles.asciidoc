@@ -358,31 +358,3 @@ See {kibana-ref}/apm-app-central-config-user.html[{apm-app} central configuratio
 // ++++
 
 // CONTENT
-
-////
-***********************************  ***********************************
-***********************************  ***********************************
-////
-
-[[more-security-roles]]
-=== Additional APM users and roles
-
-In addition to the {beatname_uc} users described in this documentation,
-you'll likely need to create users for other APM tasks:
-
-* An {kibana-ref}/apm-app-reader.html[APM reader], for {kib} users who need to view the {apm-app},
-or create and edit visualizations that access +{beat_default_index_prefix}-*+ data.
-* Various {kibana-ref}/apm-app-api-user.html[{apm-app} API users],
-for interacting with the APIs exposed by the {apm-app}.
-
-[float]
-[[learn-more-security]]
-=== Learn more about users and roles
-
-Want to learn more about creating users and roles? See
-{ref}/secure-cluster.html[Secure a cluster]. Also see:
-
-* {ref}/security-privileges.html[Security privileges] for a description of
-available privileges
-* {ref}/built-in-roles.html[Built-in roles] for a description of roles that
-you can assign to users
