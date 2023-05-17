@@ -1,0 +1,63 @@
+[[anonymous-auth]]
+=== Anonymous authentication
+
+Elastic APM agents can send unauthenticated (anonymous) events to the APM Server.
+An event is considered to be anonymous if no authentication token can be extracted from the incoming request.
+The APM Server's default response to these these requests depends on its configuration:
+
+[options="header"]
+|====
+|Configuration |Default
+|An <<api-key,API key>> or <<secret-token,secret token>> is configured | Anonymous requests are rejected and an authentication error is returned.
+|No API key or secret token is configured | Anonymous requests are accepted by the APM Server.
+|====
+
+In some cases, however, it makes sense to allow both authenticated and anonymous requests.
+For example, it isn't possible to authenticate requests from front-end services as
+the secret token or API key can't be protected. This is the case with the Real User Monitoring (RUM)
+agent running in a browser, or the iOS/Swift agent running in a user application.
+However, you still likely want to authenticate requests from back-end services.
+To solve this problem, you can enable anonymous authentication in the APM Server to allow the
+ingestion of unauthenticated client-side APM data while still requiring authentication for server-side services.
+
+[float]
+[[anonymous-auth-config]]
+=== Configuring anonymous auth for client-side services
+
+[NOTE]
+====
+You can only enable and configure anonymous authentication if an <<api-key,API key>> or
+<<secret-token,secret token>> is configured. If neither are configured, these settings will be ignored.
+====
+
+include::./tab-widgets/anonymous-auth-widget.asciidoc[]
+
+[float]
+[[derive-client-ip]]
+=== Deriving an incoming request's `client.ip` address
+
+The remote IP address of an incoming request might be different
+from the end-user's actual IP address, for example, because of a proxy. For this reason,
+the APM Server attempts to derive the IP address of an incoming request from HTTP headers.
+The supported headers are parsed in the following order:
+
+1. `Forwarded`
+2. `X-Real-Ip`
+3. `X-Forwarded-For`
+
+If none of these headers are present, the remote address for the incoming request is used.
+
+[float]
+[[derive-client-ip-concerns]]
+==== Using a reverse proxy or load balancer
+
+HTTP headers are easily modified;
+it's possible for anyone to spoof the derived `client.ip` value by changing or setting,
+for example, the value of the `X-Forwarded-For` header.
+For this reason, if any of your clients are not trusted,
+we recommend setting up a reverse proxy or load balancer in front of the APM Server.
+
+Using a proxy allows you to clear any existing IP-forwarding HTTP headers,
+and replace them with one set by the proxy.
+This prevents malicious users from cycling spoofed IP addresses to bypass the
+APM Server's rate limiting feature.

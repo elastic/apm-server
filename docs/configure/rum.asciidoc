@@ -47,7 +47,7 @@ By default this is disabled.
 
 [NOTE]
 ====
-If an <<api-key-legacy,API key>> or <<secret-token-legacy,secret token>> is configured,
+If an <<api-key,API key>> or <<secret-token,secret token>> is configured,
 then enabling RUM support will automatically enable <<configuration-anonymous>>.
 Anonymous authentication is required as the RUM agent runs in the browser.
 ====

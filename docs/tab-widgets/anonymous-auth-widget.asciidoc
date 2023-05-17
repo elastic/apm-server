@@ -1,0 +1,40 @@
+++++
+<div class="tabs" data-tab-group="ts">
+  <div role="tablist" aria-label="tls">
+    <button role="tab"
+            aria-selected="true"
+            aria-controls="fm-tab-ts"
+            id="fm-ts">
+      Fleet-managed
+    </button>
+    <button role="tab"
+            aria-selected="false"
+            aria-controls="binary-tab-ts"
+            id="binary-ts"
+            tabindex="-1">
+      APM Server binary
+    </button>
+  </div>
+  <div tabindex="0"
+       role="tabpanel"
+       id="fm-tab-ts"
+       aria-labelledby="fm-ts">
+++++
+
+include::anonymous-auth.asciidoc[tag=fleet-managed]
+
+++++
+  </div>
+  <div tabindex="0"
+       role="tabpanel"
+       id="binary-tab-ts"
+       aria-labelledby="binary-ts"
+       hidden="">
+++++
+
+include::anonymous-auth.asciidoc[tag=binary]
+
+++++
+  </div>
+</div>
+++++

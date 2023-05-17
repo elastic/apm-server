@@ -22,7 +22,7 @@ ifndef::no-output-logstash[]
 endif::[]
 
 ifdef::apm-server[]
-For secure communication between APM Server and APM Agents, see <<secure-communication-agents>>.
+For secure communication between APM Server and APM Agents, see <<secure-agent-communication>>.
 endif::[]
 
 ifndef::serverless[]
@@ -53,19 +53,6 @@ ifndef::apm-server[]
 include::./security/users.asciidoc[]
 // Beat API keys
 include::./security/api-keys.asciidoc[]
-endif::[]
-
-// APM Agent security
-ifdef::apm-server[]
-include::{docdir}/legacy/secure-communication-agents.asciidoc[]
-endif::[]
-
-// Elasticsearch security
-include::./https.asciidoc[]
-
-// Logstash security
-ifndef::no-output-logstash[]
-include::./shared-ssl-logstash-config.asciidoc[]
 endif::[]
 
 // Linux Seccomp
