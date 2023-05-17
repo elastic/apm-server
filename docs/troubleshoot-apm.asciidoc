@@ -1,8 +1,15 @@
 [[troubleshoot-apm]]
 == Troubleshoot
 
-This section provides solutions to common problems
+This section provides solutions to common questions and problems,
 and processing and performance guidance.
+
+* <<common-problems>>
+* <<server-es-down>>
+* <<common-response-codes>>
+* <<processing-and-performance>>
+* <<enable-apm-server-debugging>>
+
 For additional help with other APM components, see the links below.
 
 [float]
@@ -38,8 +45,12 @@ https://www.elastic.co/subscriptions[Learn more about subscriptions].
 For additional questions and feature requests,
 visit our https://discuss.elastic.co/c/apm[discussion forum].
 
-include::common-problems-fleet-managed.asciidoc[]
+include::common-problems.asciidoc[]
 
-include::common-problems-binary.asciidoc[]
+include::apm-server-down.asciidoc[]
+
+include::apm-response-codes.asciidoc[]
 
 include::processing-performance.asciidoc[]
+
+include::./legacy/copied-from-beats/docs/debugging.asciidoc[]

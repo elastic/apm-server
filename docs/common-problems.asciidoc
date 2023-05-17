@@ -1,0 +1,243 @@
+[[common-problems]]
+=== Common problems
+
+This section describes common problems you might encounter when using a Fleet-managed APM Server.
+
+* <<no-data-indexed>>
+* <<common-response-codes>>
+* <<common-ssl-problems>>
+* <<io-timeout>>
+* <<field-limit-exceeded-legacy>>
+* <<central-config-troubleshooting-legacy>>
+
+[float]
+[[no-data-indexed]]
+=== No data is indexed
+
+If no data shows up in {es}, first make sure that your APM components are properly connected.
+
+include::./tab-widgets/no-data-indexed-widget.asciidoc[]
+
+[[data-indexed-no-apm-legacy]]
+[float]
+=== Data is indexed but doesn't appear in the APM UI
+
+The {apm-app} relies on index mappings to query and display data.
+If your APM data isn't showing up in the {apm-app}, but is elsewhere in {kib}, like the Discover app,
+you may have a missing index mapping.
+
+You can determine if a field was mapped correctly with the `_mapping` API.
+For example, run the following command in the {kib} {kibana-ref}/console-kibana.html[console].
+This will display the field data type of the `service.name` field.
+
+[source,curl]
+----
+GET *apm*/_mapping/field/service.name
+----
+
+If the `mapping.name.type` is `"text"`, your APM indices were not set up correctly.
+
+[source,yml]
+----
+".ds-metrics-apm.transaction.1m-default-2023.04.12-000038": {
+   "mappings": {
+   "service.name": {
+      "full_name": "service.name",
+      "mapping": {
+         "name": {
+         "type": "text" <1>
+         }
+      }
+   }
+   }
+}
+----
+<1> The `service.name` `mapping.name.type` would be `"keyword"` if this field had been set up correctly.
+
+To fix this problem, you must delete and recreate your APM indices as index templates cannot be applied retroactively.
+
+. Stop your APM Server(s) or {agent}s so they are not writing any new documents.
+
+. Delete your existing `apm` data streams.
+In the {kib} console, run:
++
+[source,curl]
+----
+DELETE /_data_stream/*apm*
+----
++
+Alternatively, you can use the {ref}/index-mgmt.html[Index Management] page in {kib}.
+Navigate to **Index Templates**, search for `apm`, select and then delete all `apm` index templates.
+
+. Starting in version 8.0.0, the APM integration provides and sets up APM index templates.
+Install the APM integration by following these steps:
++
+--
+include::./legacy/getting-started-apm-server.asciidoc[tag=install-apm-integration]
+--
+
+. Start APM Server or {agent}.
+
+. Verify the correct index templates were installed. In the {kib} console, run:
++
+[source,curl]
+----
+GET /_index_template/traces-apm
+----
++
+Alternatively, you can use the {ref}/index-mgmt.html[**Index Management**] page in {kib}.
+On the **Index Templates** tab, search for `apm` under **Index Templates**.
+
+
+
+
+
+[float]
+[[common-ssl-problems]]
+=== Common SSL-related problems
+
+* <<ssl-client-fails,SSL client fails to connect>>
+* <<cannot-validate-certificate,x509: cannot validate certificate>>
+* <<getsockopt-no-route-to-host,getsockopt: no route to host>>
+* <<getsockopt-connection-refused,getsockopt: connection refused>>
+* <<target-machine-refused-connection,No connection could be made because the target machine actively refused it>>
+
+
+[float]
+[[ssl-client-fails]]
+==== SSL client fails to connect
+
+The target host might be unreachable or the certificate may not be valid.
+To fix this problem:
+
+. Make sure that the APM Server process on the target host is running and you can connect to it.
+Try to ping the target host to verify that you can reach it from the host running APM Server.
+Then use either `nc` or `telnet` to make sure that the port is available. For example:
++
+[source,shell]
+----
+ping <hostname or IP>
+telnet <hostname or IP> 5044
+----
+
+. Verify that the certificate is valid and that the hostname and IP match.
+. Use OpenSSL to test connectivity to the target server and diagnose problems.
+See the https://www.openssl.org/docs/manmaster/man1/openssl-s_client.html[OpenSSL documentation] for more info.
+
+[float]
+[[cannot-validate-certificate]]
+==== x509: cannot validate certificate for <IP address> because it doesn't contain any IP SANs
+
+This happens because your certificate is only valid for the hostname present in the Subject field.
+To resolve this problem, try one of these solutions:
+
+* Create a DNS entry for the hostname, mapping it to the server's IP.
+* Create an entry in `/etc/hosts` for the hostname. Or, on Windows, add an entry to
+`C:\Windows\System32\drivers\etc\hosts`.
+* Re-create the server certificate and add a Subject Alternative Name (SAN) for the IP address of the server. This makes the
+server's certificate valid for both the hostname and the IP address.
+
+[float]
+[[getsockopt-no-route-to-host]]
+==== getsockopt: no route to host
+
+This is not an SSL problem. It's a networking problem. Make sure the two hosts can communicate.
+
+[float]
+[[getsockopt-connection-refused]]
+==== getsockopt: connection refused
+
+This is not an SSL problem. Make sure that {ls} is running and that there is no firewall blocking the traffic.
+
+[float]
+[[target-machine-refused-connection]]
+==== No connection could be made because the target machine actively refused it
+
+A firewall is refusing the connection. Check if a firewall is blocking the traffic on the client, the network, or the
+destination host.
+
+[[io-timeout]]
+[float]
+=== I/O Timeout
+
+I/O Timeouts can occur when your timeout settings across the stack are not configured correctly,
+especially when using a load balancer.
+
+You may see an error like the one below in the {apm-agent} logs, and/or a similar error on the APM Server side:
+
+[source,logs]
+----
+[ElasticAPM] APM Server responded with an error:
+"read tcp 123.34.22.313:8200->123.34.22.40:41602: i/o timeout"
+----
+
+To fix this, ensure timeouts are incrementing from the {apm-agent},
+through your load balancer, to the APM Server.
+
+By default, the agent timeouts are set at 10 seconds, and the server timeout is set at 3600 seconds.
+Your load balancer should be set somewhere between these numbers.
+
+For example:
+
+[source,txt]
+----
+APM agent --> Load Balancer  --> APM Server
+   10s            15s               3600s
+----
+
+The APM Server timeout can be configured by updating the
+<<apm-input-general-settings,maximum duration for reading an entire request>>.
+
+[[field-limit-exceeded-legacy]]
+[float]
+=== Field limit exceeded
+
+When adding too many distinct tag keys on a transaction or span,
+you risk creating a link:{ref}/mapping.html#mapping-limit-settings[mapping explosion].
+
+For example, you should avoid that user-specified data,
+like URL parameters, is used as a tag key.
+Likewise, using the current timestamp or a user ID as a tag key is not a good idea.
+However, tag *values* with a high cardinality are not a problem.
+Just try to keep the number of distinct tag keys at a minimum.
+
+The symptom of a mapping explosion is that transactions and spans are not indexed anymore after a certain time. Usually, on the next day,
+the spans and transactions will be indexed again because a new index is created each day.
+But as soon as the field limit is reached, indexing stops again.
+
+In the agent logs, you won't see a sign of failures as the APM server asynchronously sends the data it received from the agents to {es}. However, the APM server and {es} log a warning like this:
+
+[source,logs]
+----
+{\"type\":\"illegal_argument_exception\",\"reason\":\"Limit of total fields [1000] in [INDEX_NAME] has been exceeded\"}
+----
+
+[[central-config-troubleshooting-legacy]]
+[float]
+=== `/api/apm/settings/agent-configuration/search` errors
+
+// Applies to APM Server binary only
+
+If you're instrumenting and starting a lot of services at the same time
+or using a very large number of service or environment names,
+you may see the following APM Server logs related to {apm-agent} central configuration:
+
+* `.../api/apm/settings/agent-configuration/search: context canceled`
+* `.../api/apm/settings/agent-configuration/search: net/http: TLS handshake timeout`
+
+There are two possible causes:
+
+1. {kib} is overwhelmed by the number of requests coming from APM Server.
+2. {es} can't reply quickly enough to {kib}.
+
+For cause #1, try one or more of the following:
+
+* Increase the <<elasticsearch-output,`apm-server.kibana.timeout`>> setting.
+* Increase the <<setup-kibana-endpoint,`agent.config.cache.expiration`>>.
+* Increase {kib}'s resources so that it is able to manage more requests.
+* If you're not using APM central configuration, disable it with <<setup-kibana-endpoint,`apm-server.kibana.enabled`>>.
+Central configuration can also be disabled at the {apm-agent} level.
+
+For cause #2, investigate why {es} is not responding in a timely manner.
+{kib}'s queries to {es} are simple, so it may just be that {es} is unhealthy.
+If that's not the problem, you may need to use {ref}/index-modules-slowlog.html[Search Slow Log] to investigate your {es} logs.
