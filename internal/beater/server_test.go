@@ -42,7 +42,6 @@ import (
 	"github.com/jaegertracing/jaeger/proto-gen/api_v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tidwall/gjson"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
@@ -748,9 +747,11 @@ func TestWrapServer(t *testing.T) {
 	res.Body.Close()
 
 	doc := <-docs
-	field := gjson.GetBytes(doc, "labels.wrapped_reporter")
-	assert.True(t, field.Exists())
-	assert.Equal(t, "true", field.String())
+	var out map[string]any
+	require.NoError(t, json.Unmarshal(doc, &out))
+	require.Contains(t, out, "labels")
+	require.Contains(t, out["labels"], "wrapped_reporter")
+	require.Equal(t, "true", out["labels"].(map[string]any)["wrapped_reporter"])
 }
 
 var testData = func() []byte {
