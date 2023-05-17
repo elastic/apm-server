@@ -3,15 +3,9 @@
     - description: Store app logs into service-specific data streams
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/10456
-<<<<<<< HEAD
-=======
-    - description: Add `host` and `service.version` to span events
-      type: enhancement
-      link: https://github.com/elastic/apm-server/pull/10697
     - description: Fix ILM policy name mismatch in rollup interval index templates
       type: bugfix
       link: https://github.com/elastic/apm-server/pull/10824
->>>>>>> 2ab58c56 (Fix genpackage ilm_policy name for rollup interval indices (#10824))
 - version: "8.7.1"
   changes:
     - description: Add missing `agent.activation_method` mapping to `logs-apm.app`, `metrics-apm.app`, `logs-apm.error` and `metrics-apm.internal`
