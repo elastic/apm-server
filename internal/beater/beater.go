@@ -427,7 +427,6 @@ func (s *Runner) Run(ctx context.Context) error {
 	// wrap depending on the configuration in order to inject behaviour.
 	serverParams := ServerParams{
 		Config:                 s.config,
-		Managed:                s.fleetConfig != nil,
 		Namespace:              s.config.DataStreams.Namespace,
 		Logger:                 s.logger,
 		Tracer:                 tracer,
