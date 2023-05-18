@@ -187,7 +187,7 @@ func newHTTPServer(t *testing.T, batchProcessor model.BatchProcessor) string {
 	ratelimitStore, _ := ratelimit.NewStore(1000, 1000, 1000)
 	router, err := api.NewMux(
 		cfg, batchProcessor, auth, agentcfg.NewDirectFetcher(nil),
-		ratelimitStore, nil, false, func() bool { return true })
+		ratelimitStore, nil, func() bool { return true })
 	require.NoError(t, err)
 	srv := http.Server{Handler: router}
 	t.Cleanup(func() {
