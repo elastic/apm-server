@@ -465,3 +465,6 @@ for HTTPS-based connections. If the `ssl` section is missing, the host CAs are u
 
 See the <<securing-communication-elasticsearch,secure communication with {es}>> guide
 or <<configuration-ssl,SSL configuration reference>> for more information.
+
+// Elasticsearch security
+include::../../legacy/copied-from-beats/docs/https.asciidoc[]

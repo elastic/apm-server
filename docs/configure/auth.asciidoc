@@ -3,3 +3,150 @@
 Agent authorization APM Server configuration options.
 
 include::./tab-widgets/auth-config-widget.asciidoc[]
+
+[float]
+[[api-key-settings]]
+== API key configuration options
+
+[float]
+[[api-key-auth-settings]]
+=== `auth.api_key.*` configuration options
+
+You can specify the following options in the `apm-server.auth.api_key.*` section of the
++{beatname_lc}.yml+ configuration file.
+They apply to API key communication between the APM Server and APM Agents.
+
+NOTE: These settings are different from the API key settings used for {es} output and monitoring.
+
+[float]
+==== `enabled`
+
+Enable API key authorization by setting `enabled` to `true`.
+By default, `enabled` is set to `false`, and API key support is disabled.
+
+TIP: Not using Elastic APM agents?
+When enabled, third-party APM agents must include a valid API key in the following format:
+`Authorization: ApiKey <token>`. The key must be the base64 encoded representation of the API key's `id:name`.
+
+[float]
+==== `limit`
+
+Each unique API key triggers one request to {es}.
+This setting restricts the number of unique API keys are allowed per minute.
+The minimum value for this setting should be the number of API keys configured in your monitored services.
+The default `limit` is `100`.
+
+[float]
+=== `auth.api_key.elasticsearch.*` configuration options
+
+All of the `auth.api_key.elasticsearch.*` configurations are optional.
+If none are set, configuration settings from the `apm-server.output` section will be reused.
+
+[float]
+==== `elasticsearch.hosts`
+
+API keys are fetched from {es}.
+This configuration needs to point to a secured {es} cluster that is able to serve API key requests.
+
+
+[float]
+==== `elasticsearch.protocol`
+
+The name of the protocol {es} is reachable on.
+The options are: `http` or `https`. The default is `http`.
+If nothing is configured, configuration settings from the `output` section will be reused.
+
+[float]
+==== `elasticsearch.path`
+
+An optional HTTP path prefix that is prepended to the HTTP API calls.
+If nothing is configured, configuration settings from the `output` section will be reused.
+
+[float]
+==== `elasticsearch.proxy_url`
+
+The URL of the proxy to use when connecting to the {es} servers.
+The value may be either a complete URL or a "host[:port]", in which case the "http"scheme is assumed.
+If nothing is configured, configuration settings from the `output` section will be reused.
+
+[float]
+==== `elasticsearch.timeout`
+
+The HTTP request timeout in seconds for the {es} request.
+If nothing is configured, configuration settings from the `output` section will be reused.
+
+[float]
+=== `auth.api_key.elasticsearch.ssl.*` configuration options
+
+SSL is off by default. Set `elasticsearch.protocol` to `https` if you want to enable `https`.
+
+[float]
+==== `elasticsearch.ssl.enabled`
+
+Enable custom SSL settings.
+Set to false to ignore custom SSL settings for secure communication.
+
+[float]
+==== `elasticsearch.ssl.verification_mode`
+
+Configure SSL verification mode.
+If `none` is configured, all server hosts and certificates will be accepted.
+In this mode, SSL based connections are susceptible to man-in-the-middle attacks.
+**Use only for testing**. Default is `full`.
+
+[float]
+==== `elasticsearch.ssl.supported_protocols`
+
+List of supported/valid TLS versions.
+By default, all TLS versions from 1.0 to 1.2 are enabled.
+
+[float]
+==== `elasticsearch.ssl.certificate_authorities`
+
+List of root certificates for HTTPS server verifications.
+
+[float]
+==== `elasticsearch.ssl.certificate`
+
+The path to the certificate for SSL client authentication.
+
+[float]
+==== `elasticsearch.ssl.key`
+
+The client certificate key used for client authentication.
+This option is required if certificate is specified.
+
+[float]
+==== `elasticsearch.ssl.key_passphrase`
+
+An optional passphrase used to decrypt an encrypted key stored in the configured key file.
+
+[float]
+==== `elasticsearch.ssl.cipher_suites`
+
+The list of cipher suites to use. The first entry has the highest priority.
+If this option is omitted, the Go crypto library’s default suites are used (recommended).
+
+[float]
+==== `elasticsearch.ssl.curve_types`
+
+The list of curve types for ECDHE (Elliptic Curve Diffie-Hellman ephemeral key exchange).
+
+[float]
+==== `elasticsearch.ssl.renegotiation`
+
+Configure what types of renegotiation are supported.
+Valid options are `never`, `once`, and `freely`. Default is `never`.
+
+* `never` - Disables renegotiation.
+* `once` - Allows a remote server to request renegotiation once per connection.
+* `freely` - Allows a remote server to repeatedly request renegotiation.
+
+[float]
+[[api-key-settings-legacy]]
+=== `api_key.*` configuration options
+
+deprecated::[7.14.0, Replaced by `auth.api_key.*`. See <<api-key-auth-settings>>]
+
+In versions prior to 7.14.0, API Key authorization was known as `apm-server.api_key`. In 7.14.0 this was renamed `apm-server.auth.api_key`.
+The old configuration will continue to work until 8.0.0, and the new configuration will take precedence.
