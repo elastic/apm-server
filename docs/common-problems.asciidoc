@@ -19,7 +19,7 @@ include::./tab-widgets/no-data-indexed-widget.asciidoc[]
 
 [[data-indexed-no-apm-legacy]]
 [float]
-=== Data is indexed but doesn't appear in the APM UI
+=== Data is indexed but doesn't appear in the APM app
 
 The {apm-app} relies on index mappings to query and display data.
 If your APM data isn't showing up in the {apm-app}, but is elsewhere in {kib}, like the Discover app,
@@ -40,14 +40,14 @@ If the `mapping.name.type` is `"text"`, your APM indices were not set up correct
 ----
 ".ds-metrics-apm.transaction.1m-default-2023.04.12-000038": {
    "mappings": {
-   "service.name": {
-      "full_name": "service.name",
-      "mapping": {
-         "name": {
-         "type": "text" <1>
+      "service.name": {
+         "full_name": "service.name",
+         "mapping": {
+            "name": {
+               "type": "text" <1>
+            }
          }
       }
-   }
    }
 }
 ----
