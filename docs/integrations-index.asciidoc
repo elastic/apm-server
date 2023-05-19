@@ -134,8 +134,6 @@ include::./legacy/getting-started-apm-server.asciidoc[]
 :beat-specific-security: {docdir}/legacy/security.asciidoc
 include::{libbeat-dir}/shared-securing-beat.asciidoc[leveloffset=+1]
 
-include::./legacy/troubleshooting.asciidoc[leveloffset=+1]
-
 // include::./legacy/breaking-changes.asciidoc[leveloffset=+1]
 
 include::./legacy/redirects.asciidoc[]
