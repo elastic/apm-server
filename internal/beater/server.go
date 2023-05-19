@@ -75,9 +75,6 @@ type ServerParams struct {
 	// Config is the configuration used for running the APM Server.
 	Config *config.Config
 
-	// Managed indicates that the server is managed by Fleet.
-	Managed bool
-
 	// Namespace holds the data stream namespace for the server.
 	Namespace string
 
@@ -173,7 +170,7 @@ func newServer(args ServerParams, listener net.Listener) (server, error) {
 	router, err := api.NewMux(
 		args.Config, args.BatchProcessor,
 		args.Authenticator, args.AgentConfig, args.RateLimitStore,
-		args.SourcemapFetcher, args.Managed, publishReady,
+		args.SourcemapFetcher, publishReady,
 	)
 	if err != nil {
 		return server{}, err
