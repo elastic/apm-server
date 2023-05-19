@@ -58,7 +58,6 @@ func TestMonitoring(t *testing.T) {
 			Logger:                 logp.NewLogger(""),
 			Tracer:                 apmtest.DiscardTracer,
 			BatchProcessor:         modelprocessor.Nop{},
-			Managed:                true,
 			Namespace:              "default",
 			NewElasticsearchClient: elasticsearch.NewClient,
 		}, func(ctx context.Context, args beater.ServerParams) error {

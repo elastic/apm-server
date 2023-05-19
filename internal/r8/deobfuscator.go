@@ -22,188 +22,137 @@ import (
 	"fmt"
 	"io"
 	"regexp"
-	"strings"
+
+	"github.com/elastic/apm-data/model"
 )
 
+// StacktraceType groups frames belonging to a single class as well as frames that represent the same method call.
 type StacktraceType struct {
-	name        string
-	indentation int
-	methods     map[string]string // Maps method references to their stacktrace call site
-}
-
-type MappedType struct {
-	obfuscated StacktraceType
-	realName   string
-}
-
-type MappedMethodCall struct {
-	reference string // For simple obfuscated methods, it's the method name. For multiline method calls, it's methodName:sourceFileNumber. E.g. for a method named "a" with (SourceFile:4) reference = "a:4"
-	key       string
-}
-
-type MethodMatch struct {
-	sourceFileStart      string
-	sourceFileEnd        string
-	methodRealName       string
-	methodObfuscatedName string
+	methods map[string][]*model.StacktraceFrame // Maps method references to all the frames where it appears.
 }
 
 var (
-	symbolPattern     = regexp.MustCompile(`^\s*at (.+)\.(.+)\((.+)\)$`)
-	sourceFilePattern = regexp.MustCompile(`SourceFile:(\d+)`)
-	typePattern       = regexp.MustCompile(`^(\S+) -> (\S+):$`)
-	methodPattern     = regexp.MustCompile(`(?:(\d+):(\d+):)*\S+ (\S+)\(.*\)(?:[:\d]+)* -> (\S+)`)
+	typePattern   = regexp.MustCompile(`^(\S+) -> (\S+):$`)
+	methodPattern = regexp.MustCompile(`(?:(\d+):(\d+):)*\S+ (\S+)\(.*\)(?:[:\d]+)* -> (\S+)`)
 )
 
-// Deobfuscate parses the stacktrace looking for type names and their methods, then searches for those stacktrace items through the mapFile, looking
-// for their de-obfuscated names to later replace the ones in the original stacktrace by their real names found within the mapFile.
-func Deobfuscate(stacktrace string, mapFile io.Reader) (string, error) {
-	types, err := findUniqueTypes(stacktrace)
+// Deobfuscate mutates the stacktrace by searching for those items through the mapFile, looking
+// for their de-obfuscated names and replacing the ones in the original stacktrace by their real names found within the mapFile.
+// Note that not all the stacktrace items might be present in the mapFile, for those cases, those frames will remain untouched.
+func Deobfuscate(stacktrace *model.Stacktrace, mapFile io.Reader) error {
+	types, err := groupUniqueTypes(stacktrace)
 	if err != nil {
-		return "", err
+		return err
 	}
-	mapping, err := findMappingFor(types, mapFile)
+	err = resolveMappings(types, mapFile)
 	if err != nil {
-		return "", err
+		return err
 	}
 
-	deobfuscated := stacktrace
-	for k, v := range mapping {
-		// Uses ReplaceAll since an obfuscated name may be present several times in a single stacktrace.
-		deobfuscated = strings.ReplaceAll(deobfuscated, k, v)
-	}
-
-	return deobfuscated, nil
+	return nil
 }
 
-func findUniqueTypes(stacktrace string) (map[string]StacktraceType, error) {
-	var symbols = make(map[string]StacktraceType)
-	scanner := bufio.NewScanner(strings.NewReader(stacktrace))
+// Iterates over the stacktrace and groups the frames by classname, along with its methods, which are grouped by
+// the method name.
+func groupUniqueTypes(stacktrace *model.Stacktrace) (map[string]StacktraceType, error) {
+	var types = make(map[string]StacktraceType)
 
-	for scanner.Scan() {
-		line := scanner.Text()
-		indices := symbolPattern.FindStringSubmatchIndex(line)
-		if indices != nil {
-			typeIndex := indices[2]
-			typeName := line[typeIndex:indices[3]]
-			methodName := line[indices[4]:indices[5]]
-			callSite := line[indices[6]:indices[7]]
-			sourceFileMatch := sourceFilePattern.FindStringSubmatch(callSite)
-			if sourceFileMatch != nil {
-				// Sometimes a method call in the stacktrace might end with (SourceFile:N), where N is an int. When this happens,
-				// it means that the de-obfuscated version of this method starts with "N:N" in the map file. So in those cases,
-				// we append the N to the method name M so that M:N becomes a "method reference" that we can later spot
-				// when looping through the map file looking for the de-obfuscated names.
-				methodName = fmt.Sprintf("%s:%s", methodName, sourceFileMatch[1])
-			}
-			symbol, ok := symbols[typeName]
-			if !ok {
-				symbol = StacktraceType{
-					name:        typeName,
-					indentation: typeIndex + 1,
-					methods:     make(map[string]string),
-				}
-				symbols[typeName] = symbol
-			}
-			_, ok = symbol.methods[methodName]
-			if !ok {
-				symbol.methods[methodName] = callSite
-			}
+	for _, frame := range *stacktrace {
+		typeName := frame.Classname
+		methodName := frame.Function
+		sourceFileName := frame.Filename
+		if sourceFileName == "SourceFile" {
+			// Sometimes a method call in the stacktrace might end with (SourceFile:N), where N is an int. When this happens,
+			// it means that the de-obfuscated version of this method starts with "N:N" in the map file. So in those cases,
+			// we append the N to the method name M so that M:N becomes a "method reference" that we can later spot
+			// when looping through the map file looking for the de-obfuscated names.
+			methodName = fmt.Sprintf("%s:%d", methodName, *frame.Lineno)
 		}
+		typeItem, ok := types[typeName]
+		if !ok {
+			typeItem = StacktraceType{
+				methods: make(map[string][]*model.StacktraceFrame),
+			}
+			types[typeName] = typeItem
+		}
+		_, ok = typeItem.methods[methodName]
+		if !ok {
+			typeItem.methods[methodName] = make([]*model.StacktraceFrame, 0)
+		}
+		typeItem.methods[methodName] = append(typeItem.methods[methodName], frame)
+
+		types[typeName] = typeItem
 	}
 
-	if err := scanner.Err(); err != nil {
-		return nil, err
-	}
-
-	return symbols, nil
+	return types, nil
 }
 
-func findMappingFor(symbols map[string]StacktraceType, mapReader io.Reader) (map[string]string, error) {
-	mapping := make(map[string]string)
+// Iterates over the classes and methods found in the map file while looking for classes previously found in the stacktrace.
+// When it finds a class from the stacktrace, it replaces the obfuscated class name and method names by
+// the ones found in the map.
+func resolveMappings(types map[string]StacktraceType, mapReader io.Reader) error {
 	scanner := bufio.NewScanner(mapReader)
-	var currentType *MappedType
-	var currentMappedMethodCall *MappedMethodCall
+	var currentType *StacktraceType
 
 	for scanner.Scan() {
 		line := scanner.Text()
 		typeMatch := typePattern.FindStringSubmatch(line)
 		if typeMatch != nil {
-			currentMappedMethodCall = nil
-			if currentType != nil {
-				mapLeftoverUnmappedMethods(mapping, currentType)
-			}
+			// Found a class declaration within the map.
 			obfuscatedName := typeMatch[2]
-			stacktraceType, ok := symbols[obfuscatedName]
+			stacktraceType, ok := types[obfuscatedName]
 			if ok {
-				currentType = &MappedType{stacktraceType, typeMatch[1]}
+				// The class found is also in the stacktrace.
+				currentType = &stacktraceType
+				for _, frames := range stacktraceType.methods {
+					for _, frame := range frames {
+						// Multiple frames might point to the same class, so we need to deobfuscate the class name for them all.
+						frame.Original.Classname = obfuscatedName
+						frame.Classname = typeMatch[1]
+						frame.SourcemapUpdated = true
+					}
+				}
 			} else {
+				// The class found is not part of the stacktrace. We need to clear the current type to avoid looping
+				// through this class' methods, as R8 maps list the classes' methods right below the class definition.
 				currentType = nil
 			}
 		} else if currentType != nil {
+			// We found a class in the map that is also in the stacktrace, so we enter here to loop through its methods.
 			methodMatch := methodPattern.FindStringSubmatch(line)
 			if methodMatch != nil {
-				currentMappedMethodCall = upsertMappedMethodCall(mapping, MethodMatch{
-					sourceFileStart:      methodMatch[1],
-					sourceFileEnd:        methodMatch[2],
-					methodRealName:       methodMatch[3],
-					methodObfuscatedName: methodMatch[4],
-				}, currentType, currentMappedMethodCall)
+				// We found a method definition.
+				sourceFileStart := methodMatch[1]
+				sourceFileEnd := methodMatch[2]
+				methodObfuscatedName := methodMatch[4]
+				methodRealName := methodMatch[3]
+				methodKey := methodObfuscatedName
+				if sourceFileStart != "" && sourceFileStart == sourceFileEnd {
+					// This method might be compressed, in other words, its deobfuscated form might have multiple lines.
+					methodKey += ":" + sourceFileStart
+				}
+				frames, ok := currentType.methods[methodKey]
+				if ok {
+					// We found this method in the stacktrace too. Since a method might be referenced multiple times
+					// in a single stacktrace, we must make sure to deobfuscate them all.
+					for _, frame := range frames {
+						if frame.Original.Function == "" {
+							frame.Original.Function = methodObfuscatedName
+							frame.Function = methodRealName
+						} else {
+							// If it enters here, it means that this method is compressed and its first line was set
+							// previously, so now we have to append extra lines to it.
+							frame.Function += "\n" + methodRealName
+						}
+					}
+				}
 			}
 		}
 	}
-	if currentType != nil {
-		mapLeftoverUnmappedMethods(mapping, currentType)
-	}
 
 	if err := scanner.Err(); err != nil {
-		return nil, err
+		return err
 	}
 
-	return mapping, nil
-}
-
-// Checks if the found methodMatch from the map file is part of the methods previously parsed for the currentType within the
-// stacktrace.
-// If the method is found, then it's added to the mapping in order to be used for replacing the obfuscated name later, it also returns it as the current MappedMethodCall.
-// If the method is NOT found, but it turns out to be a continuation of a previously found method (currentMappedMethodCall), then it appends it to the existing method replacement in the mapping.
-// If the method is NOT found and is also NOT a continuation for the currentMappedMethodCall, then the methodMatch is ignored.
-func upsertMappedMethodCall(mapping map[string]string, methodMatch MethodMatch, currentType *MappedType, currentMappedMethodCall *MappedMethodCall) *MappedMethodCall {
-	methodNameReference := methodMatch.methodObfuscatedName
-	if methodMatch.sourceFileStart != "" {
-		if methodMatch.sourceFileStart != methodMatch.sourceFileEnd {
-			// This is probably due an edge-case where the mapping line starts with different numbers (e.g 1:2). We don't
-			// have that case in our tests, therefore we are ignoring it.
-			return currentMappedMethodCall
-		}
-		methodNameReference = fmt.Sprintf("%s:%s", methodMatch.methodObfuscatedName, methodMatch.sourceFileStart)
-	}
-	mapReference := currentType.obfuscated.name + ":" + methodNameReference
-	methodCallSite, ok := currentType.obfuscated.methods[methodNameReference]
-	if ok {
-		// Found this method in the list of methods parsed from the stacktrace for the currentType.
-		delete(currentType.obfuscated.methods, methodNameReference)
-		key := getKey(currentType.obfuscated.name, methodMatch.methodObfuscatedName, methodCallSite)
-		mapping[key] = getKey(currentType.realName, methodMatch.methodRealName, methodCallSite)
-		return &MappedMethodCall{reference: mapReference, key: key}
-	} else if currentMappedMethodCall != nil && currentMappedMethodCall.reference == mapReference {
-		// This is a continuation call for the currentMappedMethodCall.
-		mapping[currentMappedMethodCall.key] += "\n" + fmt.Sprintf("%s%s", strings.Repeat(" ", len(currentType.realName)+currentType.obfuscated.indentation), methodMatch.methodRealName)
-	}
-
-	return currentMappedMethodCall
-}
-
-// Sometimes the map file contains a type but not a method name belonging to said type, this might happen because the type name was obfuscated
-// but its method wasn't, in this case we use this function to make sure we add the leftover de-obfuscated type names from the map file,
-// along with the method names as found in the stacktrace (which should be de-obfuscated already).
-func mapLeftoverUnmappedMethods(mapping map[string]string, currentType *MappedType) {
-	for methodName, callSite := range currentType.obfuscated.methods {
-		key := getKey(currentType.obfuscated.name, methodName, callSite)
-		mapping[key] = getKey(currentType.realName, methodName, callSite)
-	}
-}
-
-func getKey(typeName string, methodName string, callSite string) string {
-	return fmt.Sprintf("%s.%s(%s)", typeName, methodName, callSite)
+	return nil
 }
