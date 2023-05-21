@@ -87,7 +87,6 @@ func NewMux(
 	fetcher agentcfg.Fetcher,
 	ratelimitStore *ratelimit.Store,
 	sourcemapFetcher sourcemap.Fetcher,
-	fleetManaged bool,
 	publishReady func() bool,
 ) (*mux.Router, error) {
 	pool := request.NewContextPool()
@@ -101,7 +100,6 @@ func NewMux(
 		batchProcessor:   batchProcessor,
 		ratelimitStore:   ratelimitStore,
 		sourcemapFetcher: sourcemapFetcher,
-		fleetManaged:     fleetManaged,
 		intakeSemaphore:  make(chan struct{}, beaterConfig.MaxConcurrentDecoders),
 	}
 
@@ -167,7 +165,6 @@ type routeBuilder struct {
 	batchProcessor   model.BatchProcessor
 	ratelimitStore   *ratelimit.Store
 	sourcemapFetcher sourcemap.Fetcher
-	fleetManaged     bool
 	intakeProcessor  *elasticapm.Processor
 	intakeSemaphore  chan struct{}
 }
@@ -233,13 +230,13 @@ func (r *routeBuilder) rootHandler(publishReady func() bool) func() (request.Han
 
 func (r *routeBuilder) backendAgentConfigHandler(f agentcfg.Fetcher) func() (request.Handler, error) {
 	return func() (request.Handler, error) {
-		return agentConfigHandler(r.cfg, r.authenticator, r.ratelimitStore, backendMiddleware, f, r.fleetManaged)
+		return agentConfigHandler(r.cfg, r.authenticator, r.ratelimitStore, backendMiddleware, f)
 	}
 }
 
 func (r *routeBuilder) rumAgentConfigHandler(f agentcfg.Fetcher) func() (request.Handler, error) {
 	return func() (request.Handler, error) {
-		return agentConfigHandler(r.cfg, r.authenticator, r.ratelimitStore, rumMiddleware, f, r.fleetManaged)
+		return agentConfigHandler(r.cfg, r.authenticator, r.ratelimitStore, rumMiddleware, f)
 	}
 }
 
@@ -251,7 +248,6 @@ func agentConfigHandler(
 	ratelimitStore *ratelimit.Store,
 	middlewareFunc middlewareFunc,
 	f agentcfg.Fetcher,
-	fleetManaged bool,
 ) (request.Handler, error) {
 	mw := middlewareFunc(cfg, authenticator, ratelimitStore, agent.MonitoringMap)
 	h := agent.NewHandler(f, cfg.AgentConfig.Cache.Expiration, cfg.DefaultServiceEnvironment, cfg.AgentAuth.Anonymous.AllowAgent)

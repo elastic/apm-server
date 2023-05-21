@@ -251,18 +251,6 @@ https://github.com/elastic/apm-contrib/tree/main/kibana[apm-contrib] repository.
 
 // This section has moved. Please see <<configuration-rum>>.
 
-ifndef::apm-integration-docs[]
-[role="exclude",id="api-key"]
-=== API keys
-
-This section has moved. See <<api-key-legacy>>.
-
-[role="exclude",id="secret-token"]
-=== API keys
-
-This section has moved. See <<secret-token-legacy>>.
-endif::[]
-
 [role="exclude",id="aws-lambda-arch"]
 === APM Architecture for AWS Lambda
 
@@ -326,3 +314,9 @@ Please see <<whats-new>>.
 
 This page has moved.
 Please see {observability-guide}/whats-new.html[What's new in {observability} {minor-version}].
+
+[role="exclude",id="troubleshooting"]
+=== Troubleshooting
+
+This page has moved.
+Please see <<troubleshoot-apm>>.
