@@ -131,8 +131,6 @@ include::./legacy/overview.asciidoc[]
 
 include::./legacy/getting-started-apm-server.asciidoc[]
 
-include::./legacy/troubleshooting.asciidoc[leveloffset=+1]
-
 // include::./legacy/breaking-changes.asciidoc[leveloffset=+1]
 
 include::./legacy/redirects.asciidoc[]
