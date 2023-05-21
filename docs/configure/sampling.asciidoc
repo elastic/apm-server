@@ -1,28 +1,70 @@
+[[tail-based-samling-config]]
 = Tail-based sampling
+
+****
+image:./binary-yes-fm-yes.svg[supported deployment methods]
+
+Most options on this page are supported by all APM Server deployment methods.
+****
 
 Tail-based sampling configuration options.
 
 include::./tab-widgets/sampling-config-widget.asciidoc[]
 
-
-
 [float]
 [[configuration-tbs]]
-== Configuration options: tail-based sampling
+= Configuration options: tail-based sampling
+
+See <<tail-based-sampling>> to learn more.
 
 [[sampling.tail.enabled]]
 [float]
-=== `sampling.tail.enabled`
+== Enable tail-based sampling
 Set to `true` to enable tail based sampling.
-Disabled by default.
+Disabled by default. (bool)
+
+|====
+| APM Server binary | `sampling.tail.enabled`
+| Fleet-managed     | `Enable tail-based sampling`
+|====
 
 [[sampling.tail.interval]]
 [float]
-=== `sampling.tail.interval`
+== Interval
 Synchronization interval for multiple APM Servers.
 Should be in the order of tens of seconds or low minutes.
+Default: `1m` (1 minute). (duration)
+
+|====
+| APM Server binary | `sampling.tail.interval`
+| Fleet-managed     | `Interval`
+|====
 
 [[sampling.tail.policies]]
 [float]
-=== `sampling.tail.policies`
+== `Policies`
 Criteria used to match a root transaction to a sample rate.
+
+Policies map trace events to a sample rate.
+Each policy must specify a sample rate.
+Trace events are matched to policies in the order specified.
+All policy conditions must be true for a trace event to match.
+Each policy list should conclude with a policy that only specifies a sample rate.
+This final policy is used to catch remaining trace events that don't match a stricter policy.
+(`[]policy`)
+
+|====
+| APM Server binary | `sampling.tail.policies`
+| Fleet-managed     | `Policies`
+|====
+
+[[sampling.tail.storage_limit]]
+[float]
+== Storage limit
+The amount of storage space allocated for trace events matching tail sampling policies. Caution: Setting this limit higher than the allowed space may cause APM Server to become unhealthy.
+Default: `3GB`. (text)
+
+|====
+| APM Server binary | `sampling.tail.storage_limit`
+| Fleet-managed     | `Storage limit`
+|====

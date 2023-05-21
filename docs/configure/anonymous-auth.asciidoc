@@ -5,6 +5,12 @@
 <titleabbrev>Anonymous authentication</titleabbrev>
 ++++
 
+****
+image:./binary-yes-fm-yes.svg[supported deployment methods]
+
+Most options on this page are supported by all APM Server deployment methods.
+****
+
 Elastic APM agents can send unauthenticated (anonymous) events to the APM Server.
 An event is considered to be anonymous if no authentication token can be extracted from the incoming request.
 This is useful for agents that run on clients, like the Real User Monitoring (RUM)
@@ -129,8 +135,6 @@ Default: `1000`. (int)
 | Fleet-managed     | `Anonymous Rate limit (IP limit)`
 |====
 
-// Reviewers Default 1000 or 10000?
-
 [float]
 [[config-auth-anon-event-limit]]
 == Event limit
@@ -141,5 +145,3 @@ Default: `300`. (int)
 | APM Server binary | `apm-server.auth.anonymous.rate_limit.event_limit`
 | Fleet-managed     | `Anonymous Event rate limit (event limit)`
 |====
-
-// Reviewers Default 10 or 300?

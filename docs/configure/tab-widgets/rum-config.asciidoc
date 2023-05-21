@@ -23,4 +23,6 @@ apm-server.rum.source_mapping.elasticsearch.api_key: TiNAGG4BaaMdaH1tRfuU:KnR6yE
 To enable RUM, set <<rum-enable>> to `true`.
 
 include::../shared/input-apm.asciidoc[tag=fleet-managed-settings]
++
+. Look for these options under **Real User Monitoring**.
 // end::fleet-managed[]
