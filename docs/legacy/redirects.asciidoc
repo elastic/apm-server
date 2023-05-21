@@ -314,3 +314,9 @@ Please see <<whats-new>>.
 
 This page has moved.
 Please see {observability-guide}/whats-new.html[What's new in {observability} {minor-version}].
+
+[role="exclude",id="troubleshooting"]
+=== Troubleshooting
+
+This page has moved.
+Please see <<troubleshoot-apm>>.

@@ -1,0 +1,29 @@
+[[server-es-down]]
+=== What happens when APM Server or {es} is down?
+
+*If {es} is down*
+
+APM Server does not have an internal queue to buffer requests,
+but instead leverages an HTTP request timeout to act as back-pressure.
+If {es} goes down, the APM Server will eventually deny incoming requests.
+Both the APM Server and {apm-agent}(s) will issue logs accordingly.
+
+*If APM Server is down*
+
+Some agents have internal queues or buffers that will temporarily store data if the APM Server goes down.
+As a general rule of thumb, queues fill up quickly. Assume data will be lost if APM Server goes down.
+Adjusting these queues/buffers can increase the agent's overhead, so use caution when updating default values.
+
+* **Go agent** - Circular buffer with configurable size:
+{apm-go-ref}/configuration.html#config-api-buffer-size[`ELASTIC_APM_BUFFER_SIZE`].
+// * **iOS agent** - ??
+* **Java agent** - Internal buffer with configurable size:
+{apm-java-ref}/config-reporter.html#config-max-queue-size[`max_queue_size`].
+* **Node.js agent** - No internal queue. Data is lost.
+* **PHP agent** - No internal queue. Data is lost.
+* **Python agent** - Internal {apm-py-ref}/tuning-and-overhead.html#tuning-queue[Transaction queue]
+with configurable size and time between flushes.
+* **Ruby agent** - Internal queue with configurable size:
+{apm-ruby-ref}/configuration.html#config-api-buffer-size[`api_buffer_size`].
+* **RUM agent** - No internal queue. Data is lost.
+* **.NET agent** - No internal queue. Data is lost.
