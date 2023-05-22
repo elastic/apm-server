@@ -5,14 +5,18 @@
 <titleabbrev>{kib} endpoint</titleabbrev>
 ++++
 
+****
 
-You must configure the {kib} endpoint if running APM Server standalone--this allows APM Server to verify that
-the APM package has been installed. The {kib} endpoint is also equired for APM agent configuration when using
+image:./binary-yes-fm-no.svg[supported deployment methods]
+
+You must configure the {kib} endpoint when running the APM Server binary with a non-{es} output.
+Configuring the {kib} endpoint allows the APM Server to communicate with {kib} and ensure that the APM integration was properly set up. It is also required for APM agent configuration when using
 an output other than {es}.
 
-For all other use-cases, starting in version 8.7.0, APM agent configurations will be fetched directly from {es}.
+For all other use-cases, starting in version 8.7.0, APM agent configurations is fetched directly from {es}.
 Configuring and enabling the {kib} endpoint is only used as a fallback.
 Please see <<configure-agent-config>> instead.
+****
 
 Here's a sample configuration:
 
@@ -26,7 +30,7 @@ apm-server.kibana.host: "http://localhost:5601"
 == {kib} endpoint configuration options
 
 You can specify the following options in the `apm-server.kibana` section of the
-+{beatname_lc}.yml+ config file:
++{beatname_lc}.yml+ config file. These options are not required for a Fleet-managed APM Server.
 
 [float]
 [[kibana-enabled]]

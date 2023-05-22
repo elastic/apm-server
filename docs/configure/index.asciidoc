@@ -1,25 +1,37 @@
 [[configuring-howto-apm-server]]
 = Configure
 
-include::{libbeat-dir}/shared/configuring-intro.asciidoc[]
-
 How you configure the APM Server depends on your deployment method.
 
-// TODO: Add tabbed widget here
-To configure {beatname_uc}, edit the configuration file. The default
-configuration file is called  +{beatname_lc}.yml+. The location of the file
-varies by platform. To locate the file, see <<directory-layout>>.
+APM Server binary users need to edit the `apm-server.yml` configuration file.
+The location of the file varies by platform. To locate the file, see <<directory-layout>>.
 
-// TODO: Add jump table here
+Fleet-managed users configure the APM Server directly in {kib}.
+Each configuration page describes the specific location.
+
+The following topics describe how to configure APM Server:
+
+* <<configuration-process>>
+* <<configuration-anonymous>>
+* <<apm-agent-auth>>
+* <<configure-agent-config>>
+* <<configuration-instrumentation>>
+* <<setup-kibana-endpoint>>
+* <<configuration-logging>>
+* <<configuring-output>>
+* <<configuration-path>>
+* <<configuration-rum>>
+* <<configuration-ssl-landing>>
+* <<tail-based-samling-config>>
+* <<config-env>>
 
 include::general.asciidoc[leveloffset=+1]
 
-include::agent-config.asciidoc[leveloffset=+1]
+include::anonymous-auth.asciidoc[leveloffset=+1]
 
-// Agent authorization
 include::auth.asciidoc[leveloffset=+1]
 
-include::anonymous-auth.asciidoc[leveloffset=+1]
+include::agent-config.asciidoc[leveloffset=+1]
 
 include::instrumentation.asciidoc[leveloffset=+1]
 
@@ -31,10 +43,10 @@ include::output.asciidoc[leveloffset=+1]
 
 include::path.asciidoc[leveloffset=+1]
 
-include::sampling.asciidoc[leveloffset=+1]
-
 include::rum.asciidoc[leveloffset=+1]
 
 include::tls.asciidoc[leveloffset=+1]
+
+include::sampling.asciidoc[leveloffset=+1]
 
 include::env.asciidoc[leveloffset=+1]

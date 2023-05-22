@@ -320,3 +320,9 @@ Please see {observability-guide}/whats-new.html[What's new in {observability} {m
 
 This page has moved.
 Please see <<troubleshoot-apm>>.
+
+[role="exclude",id="input-apm"]
+=== Configuring
+
+This page has moved.
+Please see <<configuring-howto-apm-server>>.
