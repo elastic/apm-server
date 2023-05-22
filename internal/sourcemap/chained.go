@@ -21,9 +21,10 @@ import (
 	"context"
 	"errors"
 
+	"github.com/go-sourcemap/sourcemap"
+
 	"github.com/elastic/apm-server/internal/logs"
 	"github.com/elastic/elastic-agent-libs/logp"
-	"github.com/go-sourcemap/sourcemap"
 )
 
 // ChainedFetcher is a Fetcher that attempts fetching from each Fetcher in sequence.
