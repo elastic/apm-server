@@ -1,8 +1,8 @@
 [[getting-started-apm-server]]
-== Get started with APM Server (self managed)
+== Self manage APM Server
 
 ++++
-<titleabbrev>Get started (Self managed)</titleabbrev>
+<titleabbrev>Self manage APM Server</titleabbrev>
 ++++
 
 TIP: The easiest way to get started with Elastic APM is by using our
@@ -29,7 +29,6 @@ There are two options, and the components required are different for each:
 === APM Server binary
 
 Install, configure, and run the APM Server binary wherever you need it.
-Depending on your use-case, APM Server can be run centrally or on edge machines.
 
 image::./images/bin-ov.png[APM Server binary overview]
 
