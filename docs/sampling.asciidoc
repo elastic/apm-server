@@ -151,7 +151,7 @@ See the relevant agent's documentation for more details:
 [[configure-tail-based-sampling]]
 ==== Configure tail-based sampling
 
-Enable tail-based sampling in the <<input-apm,APM integration settings>>.
+Enable tail-based sampling with <<sampling-tail-enabled-ref>>.
 When enabled, trace events are mapped to sampling policies.
 Each sampling policy must specify a sample rate, and can optionally specify other conditions.
 All of the policy conditions must be true for a trace event to match it.
@@ -188,27 +188,12 @@ or traces with any other name
 
 ===== Configuration reference
 
-:input-type: tbs
 **Top-level tail-based sampling settings:**
 
-// This looks like the root service name/env, trace name/env, and trace outcome
-
-[cols="2*<a"]
-|===
-include::./apm-input-settings.asciidoc[tag=tail_sampling_enabled-setting]
-include::./apm-input-settings.asciidoc[tag=tail_sampling_interval-setting]
-include::./apm-input-settings.asciidoc[tag=tail_sampling_policies-setting]
-|===
+:leveloffset: +3
+include::./configure/sampling.asciidoc[tag=tbs-top]
 
 **Policy settings:**
 
-[cols="2*<a"]
-|===
-include::./apm-input-settings.asciidoc[tag=sample_rate-setting]
-include::./apm-input-settings.asciidoc[tag=trace_name-setting]
-include::./apm-input-settings.asciidoc[tag=trace_outcome-setting]
-include::./apm-input-settings.asciidoc[tag=service_name-setting]
-include::./apm-input-settings.asciidoc[tag=service_env-setting]
-|===
-
-:input-type!:
+include::./configure/sampling.asciidoc[tag=tbs-policy]
+:leveloffset: -3
