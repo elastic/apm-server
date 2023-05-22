@@ -21,21 +21,35 @@ import (
 	"context"
 	"errors"
 
+	"github.com/elastic/apm-server/internal/logs"
+	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/go-sourcemap/sourcemap"
 )
 
 // ChainedFetcher is a Fetcher that attempts fetching from each Fetcher in sequence.
-type ChainedFetcher []Fetcher
+type ChainedFetcher struct {
+	fetchers []Fetcher
+	logger   *logp.Logger
+}
+
+func NewChainedFetcher(fetchers []Fetcher) *ChainedFetcher {
+	logger := logp.NewLogger(logs.Sourcemap)
+	return &ChainedFetcher{logger: logger, fetchers: fetchers}
+}
 
 // Fetch fetches a source map from Kibana.
 //
 // Fetch calls Fetch on each Fetcher in the chain, in sequence, until one returns
 // a non-nil Consumer and nil error. If no Fetch call succeeds, then the last error
 // will be returned.
-func (c ChainedFetcher) Fetch(ctx context.Context, name, version, path string) (*sourcemap.Consumer, error) {
+func (c *ChainedFetcher) Fetch(ctx context.Context, name, version, path string) (*sourcemap.Consumer, error) {
 	var lastErr error
-	for _, f := range c {
+	for _, f := range c.fetchers {
 		consumer, err := f.Fetch(ctx, name, version, path)
+		// log a message if the previous fetcher failed
+		if lastErr != nil {
+			c.logger.With(logp.Error(lastErr)).Debug("failed to fetch sourcemap, falling back to the next fetcher")
+		}
 		// if there are no errors or the error is not errFetcherUnvailable
 		// then the fetcher is working/available.
 		// Return the result: error and consumer.
