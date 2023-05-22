@@ -1,6 +1,6 @@
 [role="xpack"]
 [[beats-api-keys]]
-== Grant access using API keys
+=== Grant access using API keys
 
 Instead of using usernames and passwords, you can use API keys to grant
 access to {es} resources. You can set API keys to expire at a certain time,
@@ -16,7 +16,7 @@ You can create as many API keys per user as necessary.
 
 [float]
 [[beats-api-key-publish]]
-=== Create an API key for writing events
+==== Create an API key for writing events
 
 In {kib}, navigate to **{stack-manage-app}** > **API keys** and click **Create API key**.
 
@@ -63,7 +63,7 @@ output.elasticsearch:
 
 [float]
 [[beats-api-key-monitor]]
-=== Create an API key for monitoring
+==== Create an API key for monitoring
 
 In {kib}, navigate to **{stack-manage-app}** > **API keys** and click **Create API key**.
 
@@ -107,7 +107,7 @@ monitoring.elasticsearch:
 
 [float]
 [[beats-api-key-es]]
-=== Create an API key with {es} APIs
+==== Create an API key with {es} APIs
 
 You can also use {es}'s {ref}/security-api-create-api-key.html[Create API key API] to create a new API key.
 For example:
@@ -140,7 +140,7 @@ See the {ref}/security-api-create-api-key.html[Create API key] reference for mor
 
 [[learn-more-api-keys]]
 [float]
-=== Learn more about API keys
+==== Learn more about API keys
 
 See the {es} API key documentation for more information:
 
