@@ -80,7 +80,7 @@ include::configure/index.asciidoc[leveloffset=+1]
 
 include::./legacy/setting-up-and-running.asciidoc[]
 
-include::secure-agent-communication.asciidoc[]
+include::secure-comms.asciidoc[]
 
 include::monitor-apm-server.asciidoc[]
 
@@ -93,7 +93,3 @@ include::upgrading.asciidoc[]
 include::release-notes.asciidoc[leveloffset=+1]
 
 include::./legacy/redirects.asciidoc[]
-
-// This is being moved in https://github.com/elastic/apm-server/pull/10841
-:beat-specific-security: {docdir}/legacy/security.asciidoc
-include::{libbeat-dir}/shared-securing-beat.asciidoc[leveloffset=+1]
