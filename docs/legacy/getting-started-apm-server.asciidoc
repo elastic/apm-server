@@ -14,7 +14,7 @@ See <<apm-quick-start>> to get started in minutes.
 IMPORTANT: Starting in version 8.0.0, {fleet} uses the APM integration to set up and manage APM index templates,
 {ilm-init} policies, and ingest pipelines. APM Server will only send data to {es} _after_ the APM integration has been installed.
 
-The APM Server binary receives performance data from your APM agents,
+The APM Server receives performance data from your APM agents,
 validates and processes it, and then transforms the data into {es} documents.
 If you're on this page, then you've chosen to self-manage the Elastic Stack,
 and you now must decide how to run and configure the APM Server.
