@@ -60,7 +60,7 @@ apm-server:
   #write_timeout: 30s
 
   # Maximum duration before releasing resources when shutting down the server.
-  #shutdown_timeout: 5s
+  #shutdown_timeout: 30s
 
   # Maximum permitted size in bytes of an event accepted by the server to be processed.
   #max_event_size: 307200
