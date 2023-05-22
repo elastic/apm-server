@@ -55,7 +55,7 @@ Defaults to `45s` (45 seconds). (text)
 
 |====
 | APM Server binary | `apm-server.idle_timeout`
-| Fleet-managed     | Idle time before underlying connection is closed
+| Fleet-managed     | `Idle time before underlying connection is closed`
 |====
 
 [[read_timeout]]
@@ -66,7 +66,7 @@ Defaults to `3600s` (3600 seconds). (text)
 
 |====
 | APM Server binary | `apm-server.read_timeout`
-| Fleet-managed     | Maximum duration for reading an entire request
+| Fleet-managed     | `Maximum duration for reading an entire request`
 |====
 
 [[write_timeout]]
@@ -77,7 +77,7 @@ Defaults to `30s` (30 seconds). (text)
 
 |====
 | APM Server binary | `apm-server.write_timeout`
-| Fleet-managed     | Maximum duration for writing a response
+| Fleet-managed     | `Maximum duration for writing a response`
 |====
 
 [[shutdown_timeout]]
@@ -88,7 +88,7 @@ Defaults to `30s` (30 seconds). (text)
 
 |====
 | APM Server binary | `apm-server.shutdown_timeout`
-| Fleet-managed     | Maximum duration before releasing resources when shutting down
+| Fleet-managed     | `Maximum duration before releasing resources when shutting down`
 |====
 
 [[max_event_size]]
@@ -99,7 +99,7 @@ Defaults to `307200` Bytes. (int)
 
 |====
 | APM Server binary | `apm-server.max_event_size`
-| Fleet-managed     | Maximum size per event
+| Fleet-managed     | `Maximum size per event`
 |====
 
 [[max_connections]]
@@ -110,7 +110,7 @@ Default value is 0, which means _unlimited_. (int)
 
 |====
 | APM Server binary | `apm-server.max_connections`
-| Fleet-managed     | Simultaneously accepted connections
+| Fleet-managed     | `Simultaneously accepted connections`
 |====
 
 [[custom_http_headers]]
@@ -120,7 +120,7 @@ Custom HTTP headers to add to HTTP responses. Useful for security policy complia
 
 |====
 | APM Server binary | `apm-server.response_headers`
-| Fleet-managed     | Custom HTTP response headers
+| Fleet-managed     | `Custom HTTP response headers`
 |====
 
 [[capture_personal_data]]
@@ -132,7 +132,7 @@ Enabled by default. (bool)
 
 |====
 | APM Server binary | `apm-server.capture_personal_data`
-| Fleet-managed     | Capture personal data
+| Fleet-managed     | `Capture personal data`
 |====
 
 
@@ -143,7 +143,7 @@ Sets the default service environment to associate with data and requests receive
 
 |====
 | APM Server binary | `apm-serer.default_service_environment`
-| Fleet-managed     | Default Service Environment
+| Fleet-managed     | `Default Service Environment`
 |====
 
 [[expvar.enabled]]
@@ -154,7 +154,7 @@ Disabled by default.
 
 |====
 | APM Server binary | `apm-server.expvar.enabled`
-| Fleet-managed     | Enable APM Server Golang expvar support
+| Fleet-managed     | `Enable APM Server Golang expvar support`
 |====
 
 [[expvar.url]]

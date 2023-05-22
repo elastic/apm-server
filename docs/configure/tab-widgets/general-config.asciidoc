@@ -8,10 +8,6 @@ apm-server:
   rum:
     enabled: true
 
-output:
-  elasticsearch:
-    hosts: ElasticsearchAddress:9200
-
 max_procs: 4
 ----
 // end::binary[]
