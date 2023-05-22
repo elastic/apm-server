@@ -144,12 +144,12 @@ include::../diagrams/apm-decision-tree.asciidoc[APM Server decision tree]
 
 === APM Server binary
 
-// *******************************************************
-// STEP 0
-// *******************************************************
+This guide will explain how to set up and configure the APM Server binary.
 
-==== Prerequistes
+[float]
+==== Prerequisites
 
+// tag::prereq[]
 First, see the https://www.elastic.co/support/matrix[Elastic Support Matrix] for information about supported operating systems and product compatibility.
 
 You'll need:
@@ -158,11 +158,11 @@ You'll need:
 * *{kib}* for visualizing with the APM UI.
 
 We recommend you use the same version of {es}, {kib}, and APM Server.
-
-image::images/apm-architecture-diy.png[Install Elastic APM yourself]
-
 See {stack-ref}/installing-elastic-stack.html[Installing the {stack}]
 for more information about installing these products.
+// end::prereq[]
+
+image::images/apm-architecture-diy.png[Install Elastic APM yourself]
 
 // *******************************************************
 // STEP 1
@@ -449,27 +449,57 @@ include::{libbeat-dir}/shared-docker.asciidoc[]
 
 === Fleet-managed APM Server
 
-// TODO:
-// These steps won't necessarily be on separate pages in the final version.
+This guide will explain how to set up and configure a Fleet-managed APM Server.
 
+[float]
 ==== Prerequisites
 
-Install {es} + {kib}
+You need {es} for storing and searching your data, and {kib} for visualizing and managing it.
+When setting these components up, you need:
+
+include::{ingest-docs-root}/docs/en/ingest-management/tab-widgets/prereq.asciidoc[tag=self-managed]
 
 ==== Step 1: Set up Fleet
 
-Install {agent} and enable {fleet-server}.
+Use {fleet} in {kib} to get APM data into the {stack}.
+The first time you use {fleet}, you'll need to set it up and add a
+{fleet-server}:
 
-==== Step 2: Configure the APM integration
+include::{ingest-docs-root}/docs/en/ingest-management/tab-widgets/add-fleet-server/content.asciidoc[tag=self-managed]
 
-Add the APM integration to your {agent} (this runs the APM Server binary!)
+For more information, refer to {fleet-guide}/fleet-server.html[{fleet-server}].
+
+==== Step 2: Add and configure the APM integration
+
+include::{obs-repo-dir}/observability/tab-widgets/add-apm-integration/content.asciidoc[tag=self-managed]
 
 ==== Step 3: Install APM agents
 
-...
+APM agents are written in the same language as your service.
+To monitor a new service, you must install the agent and configure it with a service name,
+APM Server host, and Secret token.
+
+* **Service name**: The APM integration maps an instrumented service's name–defined in each {apm-agent}'s configuration–
+to the index that its data is stored in {es}.
+Service names are case-insensitive and must be unique.
+For example, you cannot have a service named `Foo` and another named `foo`.
+Special characters will be removed from service names and replaced with underscores (`_`).
+
+* **APM Server URL**: The host and port that APM Server listens for events on.
+This should match the host and port defined when setting up the APM integration.
+
+* **Secret token**: Authentication method for {apm-agent} and APM Server communication.
+This should match the secret token defined when setting up the APM integration.
+
+TIP: You can edit your APM integration settings if you need to change the APM Server URL
+or secret token to match your APM agents.
+
+include::./tab-widgets/install-agents-widget.asciidoc[]
 
 ==== Step 4: View your data
 
-...
+Back in {kib}, under {observability}, select APM.
+You should see application performance monitoring data flowing into the {stack}!
 
-==== Step 5: Next steps
+[role="screenshot"]
+image::./guide/images/kibana-apm-sample-data.png[{apm-app} with data]
