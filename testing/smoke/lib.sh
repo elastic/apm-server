@@ -344,13 +344,6 @@ data_stream_assert_pipelines() {
 data_stream_assert_templates_ilm() {
     echo "-> Asserting component templates and ILM policies..."
     local SUCCESS=true
-    local VERSION=${1}
-    local MAJOR_VERSION=$(echo ${VERSION} | cut -d '.' -f1 )
-    if [[ ${MAJOR_VERSION} -eq 7 ]]; then
-        local COMPONENTS=( settings custom )
-    else
-        local COMPONENTS=( package custom )
-    fi
 
     local COMPOSABLE_TEMPLATES=($(elasticsearch_curl "/_component_template" | jq -c -r '.component_templates|to_entries[]|select(.value.component_template._meta.package.name == "apm")|.value'))
     for ct in "${COMPOSABLE_TEMPLATES[@]}"; do
