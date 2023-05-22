@@ -19,7 +19,4 @@ include::{docdir}/legacy/feature-roles.asciidoc[]
 
 // APM API keys
 include::{docdir}/legacy/api-keys.asciidoc[]
-
-// Linux Seccomp
-include::{docdir}/legacy/copied-from-beats/docs/security/linux-seccomp.asciidoc[]
 :leveloffset: -1

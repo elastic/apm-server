@@ -19,11 +19,6 @@ After privileged users have been created, use authentication to connect to a sec
 
 For secure communication between APM Server and APM Agents, see <<secure-agent-communication>>.
 
-On Linux, {beatname_uc} can take advantage of secure computing mode to restrict the
-system calls that a process can issue.
-
-* <<linux-seccomp>>
-
 A reference of all available <<configuration-ssl-landing,SSL configuration settings>> is also available.
 
 [float]
