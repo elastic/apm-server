@@ -1,5 +1,5 @@
 // tag::fleet-managed[]
-Enable API key authorization in the <<input-apm,APM integration settings>>.
+Enable API key authorization in the <<api-key-auth-settings>>.
 You should also set a limit on the number of unique API keys that APM Server allows per minute;
 this value should be the number of unique API keys configured in your monitored services.
 // end::fleet-managed[]

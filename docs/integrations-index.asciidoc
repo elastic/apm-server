@@ -76,8 +76,6 @@ include::open-telemetry.asciidoc[]
 
 include::manage-storage.asciidoc[]
 
-include::input-apm.asciidoc[]
-
 include::configure/index.asciidoc[leveloffset=+1]
 
 include::secure-agent-communication.asciidoc[]
