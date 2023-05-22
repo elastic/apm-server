@@ -1,9 +1,5 @@
 [[metricset-indices]]
-== Metrics documents
-
-++++
-<titleabbrev>Metrics documents</titleabbrev>
-++++
+== Application metrics
 
 APM Server stores application metrics sent by agents as documents in {es}.
 Metric documents contain a timestamp, one or more metric fields,
@@ -129,6 +125,7 @@ The `@timestamp` field of these documents holds the start of the aggregation int
 [[example-metric-document]]
 === Example metric document
 
+// tag::example[]
 Below is an example of a metric document as stored in {es}, containing JVM metrics produced by the {apm-java-agent}.
 The document contains two related metrics: `jvm.gc.time` and `jvm.gc.count`. These are accompanied by various fields describing
 the environment in which the metrics were captured: service name, host name, Kubernetes pod UID, container ID, process ID, and more.
@@ -138,3 +135,4 @@ These fields make it possible to search and aggregate across various dimensions,
 ----
 include::../data/elasticsearch/metricset.json[]
 ----
+// end::example[]

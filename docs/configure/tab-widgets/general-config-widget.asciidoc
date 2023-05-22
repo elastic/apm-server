@@ -1,0 +1,40 @@
+++++
+<div class="tabs" data-tab-group="config-apm">
+  <div role="tablist" aria-label="General">
+    <button role="tab"
+            aria-selected="true"
+            aria-controls="binary-tab"
+            id="binary">
+      APM Server binary
+    </button>
+    <button role="tab"
+            aria-selected="false"
+            aria-controls="fleet-managed-tab"
+            id="fleet-managed"
+            tabindex="-1">
+      Fleet-managed
+    </button>
+  </div>
+  <div tabindex="0"
+       role="tabpanel"
+       id="binary-tab"
+       aria-labelledby="binary">
+++++
+
+include::general-config.asciidoc[tag=binary]
+
+++++
+  </div>
+  <div tabindex="0"
+       role="tabpanel"
+       id="fleet-managed-tab"
+       aria-labelledby="fleet-managed"
+       hidden="">
+++++
+
+include::general-config.asciidoc[tag=fleet-managed]
+
+++++
+  </div>
+</div>
+++++

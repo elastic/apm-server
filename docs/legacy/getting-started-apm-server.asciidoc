@@ -5,8 +5,6 @@
 <titleabbrev>Get started</titleabbrev>
 ++++
 
-IMPORTANT: {deprecation-notice-installation}
-
 IMPORTANT: Starting in version 8.0.0, {fleet} uses the APM integration to set up and manage APM index templates,
 {ilm-init} policies, and ingest pipelines. APM Server will only send data to {es} _after_ the APM integration has been installed.
 
@@ -57,8 +55,6 @@ configure, and start APM Server:
 
 [[installing]]
 === Step 1: Install
-
-IMPORTANT: {deprecation-notice-installation}
 
 NOTE: *Before you begin*: If you haven't installed the {stack}, do that now.
 See {stack-ref}/installing-elastic-stack.html[Learn how to install the
@@ -195,8 +191,6 @@ See <<running-on-docker, Running on Docker>> for deploying Docker containers.
 [[apm-server-configuration]]
 === Step 2: Set up and configure
 
-IMPORTANT: {deprecation-notice-installation}
-
 [float]
 ==== {ecloud}
 
@@ -244,15 +238,13 @@ apm-server:
 output.elasticsearch:
   hosts: ["localhost:9200"] <2>
   username: "elastic" <3>
-  password: "changeme" <4>
+  password: "changeme"
 ----
 <1> The `host:port` APM Server listens on.
 <2> The {es} `host:port` to connect to.
 <3> This example uses basic authentication.
 The user provided here needs the privileges required to publish events to {es}.
 To create a dedicated user for this role, see <<privileges-to-publish-events>>.
-<4> We've hard-coded the password here,
-but you should store sensitive values in the <<keystore,secrets keystore>>.
 
 All available configuration options are outlined in
 {apm-server-ref-v}/configuring-howto-apm-server.html[configuring APM Server].
@@ -263,8 +255,6 @@ All available configuration options are outlined in
 
 [[apm-server-starting]]
 === Step 3: Start
-
-IMPORTANT: {deprecation-notice-installation}
 
 In a production environment, you would put APM Server on its own machines,
 similar to how you run {es}.
@@ -308,7 +298,7 @@ sudo -u apm-server apm-server [<argument...>]
 ----------------------------------
 
 By default, APM Server loads its configuration file from `/etc/apm-server/apm-server.yml`.
-See the <<_deb_and_rpm,deb & rpm default paths>> for a full directory layout.
+See the <<directory-layout,deb & rpm default paths>> for a full directory layout.
 
 // *******************************************************
 // STEP 4
@@ -316,8 +306,6 @@ See the <<_deb_and_rpm,deb & rpm default paths>> for a full directory layout.
 
 [[next-steps]]
 === Step 4: Next steps
-
-IMPORTANT: {deprecation-notice-installation}
 
 // Use a tagged region to pull APM Agent information from the APM Overview
 If you haven't already, you can now install APM Agents in your services!
@@ -335,7 +323,7 @@ If you haven't already, you can now install APM Agents in your services!
 Once you have at least one {apm-agent} sending data to APM Server,
 you can start visualizing your data in the {kibana-ref}/xpack-apm.html[{apm-app}].
 
-If you're migrating from Jaeger, see <<jaeger>>.
+If you're migrating from Jaeger, see <<jaeger-integration>>.
 
 // Shared APM & YUM
 include::{libbeat-dir}/repositories.asciidoc[]

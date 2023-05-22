@@ -402,7 +402,6 @@ func (s *Runner) Run(ctx context.Context) error {
 		modelprocessor.NewDropUnsampled(false /* don't drop RUM unsampled transactions*/, func(i int64) {
 			transactionsDroppedCounter.Add(i)
 		}),
-		modelprocessor.DroppedSpansStatsDiscarder{},
 		finalBatchProcessor,
 	}
 
@@ -428,7 +427,6 @@ func (s *Runner) Run(ctx context.Context) error {
 	// wrap depending on the configuration in order to inject behaviour.
 	serverParams := ServerParams{
 		Config:                 s.config,
-		Managed:                s.fleetConfig != nil,
 		Namespace:              s.config.DataStreams.Namespace,
 		Logger:                 s.logger,
 		Tracer:                 tracer,
@@ -924,9 +922,14 @@ func queryClusterUUID(ctx context.Context, esClient *elasticsearch.Client) error
 	return nil
 }
 
-type nopProcessingSupporter struct{}
+type nopProcessingSupporter struct {
+}
 
 func (nopProcessingSupporter) Close() error {
+	return nil
+}
+
+func (nopProcessingSupporter) Processors() []string {
 	return nil
 }
 

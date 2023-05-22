@@ -1,8 +1,37 @@
-[role="xpack"]
-[[feature-roles]]
-== Grant users access to secured resources
+[[secure-comms-stack]]
+== Secure communication with the {stack}
 
-IMPORTANT: {deprecation-notice-config}
+++++
+<titleabbrev>With the {stack}</titleabbrev>
+++++
+
+NOTE: This documentation only applies to the APM Server binary.
+
+Use role-based access control or API keys to grant APM Server users access to secured resources.
+
+* <<feature-roles>>
+* <<beats-api-keys>>.
+
+After privileged users have been created, use authentication to connect to a secured Elastic cluster.
+
+* <<securing-communication-elasticsearch>>
+* <<configuring-ssl-logstash>>
+
+For secure communication between APM Server and APM Agents, see <<secure-agent-communication>>.
+
+A reference of all available <<configuration-ssl-landing,SSL configuration settings>> is also available.
+
+[float]
+[[security-overview]]
+=== Security Overview
+
+APM Server exposes an HTTP endpoint, and as with anything that opens ports on your servers,
+you should be careful about who can connect to it.
+Firewall rules are recommended to ensure only authorized systems can connect.
+
+[float]
+[[feature-roles]]
+=== Feature roles
 
 You can use role-based access control to grant users access to secured
 resources. The roles that you set up depend on your organization's security
@@ -38,8 +67,6 @@ In general, there are three types of privileges you'll work with:
 ++++
 <titleabbrev>Create a _writer_ user</titleabbrev>
 ++++
-
-IMPORTANT: {deprecation-notice-config}
 
 APM users that publish events to {es} need privileges to write to APM data streams.
 
@@ -81,8 +108,6 @@ Assign these extra privileges to the *general writer role*.
 ++++
 <titleabbrev>Create a _monitoring_ user</titleabbrev>
 ++++
-
-IMPORTANT: {deprecation-notice-config}
 
 {es-security-features} provides built-in users and roles for publishing and viewing monitoring data.
 The privileges and roles needed to publish monitoring data
@@ -225,9 +250,7 @@ need to view monitoring data for {beatname_uc}:
 <titleabbrev>Create an _API key_ user</titleabbrev>
 ++++
 
-IMPORTANT: {deprecation-notice-config}
-
-You can configure <<api-key-legacy,API keys>> to authorize requests to APM Server.
+You can configure <<api-key,API keys>> to authorize requests to APM Server.
 To create an APM Server user with the required privileges for creating and managing API keys:
 
 . Create an **API key role**, called something like `apm_api_key`,
@@ -295,8 +318,6 @@ PUT _security/role/apm_api_key <1>
 <titleabbrev>Create a _central config_ user</titleabbrev>
 ++++
 
-IMPORTANT: {deprecation-notice-config}
-
 [[privileges-agent-central-config-server]]
 ==== APM Server central configuration management
 
@@ -332,33 +353,3 @@ See {kibana-ref}/apm-app-central-config-user.html[{apm-app} central configuratio
 // ++++
 
 // CONTENT
-
-////
-***********************************  ***********************************
-***********************************  ***********************************
-////
-
-[[more-security-roles]]
-=== Additional APM users and roles
-
-IMPORTANT: {deprecation-notice-config}
-
-In addition to the {beatname_uc} users described in this documentation,
-you'll likely need to create users for other APM tasks:
-
-* An {kibana-ref}/apm-app-reader.html[APM reader], for {kib} users who need to view the {apm-app},
-or create and edit visualizations that access +{beat_default_index_prefix}-*+ data.
-* Various {kibana-ref}/apm-app-api-user.html[{apm-app} API users],
-for interacting with the APIs exposed by the {apm-app}.
-
-[float]
-[[learn-more-security]]
-=== Learn more about users and roles
-
-Want to learn more about creating users and roles? See
-{ref}/secure-cluster.html[Secure a cluster]. Also see:
-
-* {ref}/security-privileges.html[Security privileges] for a description of
-available privileges
-* {ref}/built-in-roles.html[Built-in roles] for a description of roles that
-you can assign to users

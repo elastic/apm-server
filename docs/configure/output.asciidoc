@@ -1,0 +1,53 @@
+[[configuring-output]]
+= Configure the output
+
+++++
+<titleabbrev>Output</titleabbrev>
+++++
+
+Output configuration options.
+
+// You configure {beatname_uc} to write to a specific output by setting options
+// in the Outputs section of the +{beatname_lc}.yml+ config file. Only a single
+// output may be defined.
+
+// The following topics describe how to configure each supported output. If you've
+// secured the {stack}, also read <<securing-{beatname_lc}>> for more about
+// security-related configuration options.
+
+include::outputs/outputs-list.asciidoc[tag=outputs-list]
+
+[[sourcemap-output]]
+
+[float]
+== Source maps
+
+Source maps can be uploaded through all outputs but must eventually be stored in {es}.
+When using outputs other than {es}, `source_mapping.elasticsearch` must be set for source maps to be applied.
+Be sure to update `source_mapping.index_pattern` if source maps are stored in the non-default location.
+See <<config-sourcemapping-elasticsearch>> for more details.
+
+[[libbeat-configuration-fields]]
+[float]
+== `fields`
+
+Fields are optional tags that can be added to the documents that APM Server outputs.
+They are defined at the top-level in your configuration file, and will apply to any configured output.
+Fields can be scalar values, arrays, dictionaries, or any nested combination of these.
+By default, the fields that you specify here will be grouped under a `fields` sub-dictionary in the output document.
+
+Example using the {es} output:
+
+[source,yaml]
+------------------------------------------------------------------------------
+fields: {project: "myproject", instance-id: "574734885120952459"}
+#-------------------------- Elasticsearch output --------------------------
+output.elasticsearch:
+  hosts: ["localhost:9200"]
+------------------------------------------------------------------------------
+
+To store the custom fields as top-level fields, set the `fields_under_root` option to true.
+This is not recommended as when new fields are added to APM documents backward compatibility cannot be ensured.
+
+
+include::outputs/outputs-list.asciidoc[tag=outputs-include]

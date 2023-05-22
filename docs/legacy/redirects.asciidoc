@@ -8,7 +8,7 @@ The following pages have moved or been deleted.
 [role="exclude",id="event-types"]
 === Event types
 
-This page has moved. Please see {apm-overview-ref-v}/apm-data-model.html[APM data model].
+This page has moved. Please see {apm-guide-ref}/data-model.html[APM data model].
 
 // [role="exclude",id="errors"]
 // === Errors
@@ -30,134 +30,134 @@ This page has moved. Please see {apm-overview-ref-v}/apm-data-model.html[APM dat
 [role="exclude",id="error-endpoint"]
 === Error endpoint
 
-The error endpoint has been deprecated. Instead, see <<events-api>>.
+The error endpoint has been deprecated. Instead, see <<api-events>>.
 
 [role="exclude",id="error-schema-definition"]
 === Error schema definition
 
-The error schema has moved. Please see <<error-schema>>.
+The error schema has moved. Please see <<api-error-schema>>.
 
 [role="exclude",id="error-api-examples"]
 === Error API examples
 
-The error API examples have moved. Please see <<events-api>>.
+The error API examples have moved. Please see <<api-events>>.
 
 [role="exclude",id="error-payload-schema"]
 === Error payload schema
 
-This schema has changed. Please see <<error-api>>.
+This schema has changed. Please see <<api-error>>.
 
 [role="exclude",id="error-service-schema"]
 === Error service schema
 
-This schema has changed. Please see <<error-api>>.
+This schema has changed. Please see <<api-error>>.
 
 [role="exclude",id="error-system-schema"]
 === Error system schema
 
-This schema has changed. Please see <<error-api>>.
+This schema has changed. Please see <<api-error>>.
 
 [role="exclude",id="error-context-schema"]
 === Error context schema
 
-This schema has changed. Please see <<error-api>>.
+This schema has changed. Please see <<api-error>>.
 
 [role="exclude",id="error-stacktraceframe-schema"]
 === Error stack trace frame schema
 
-This schema has changed. Please see <<error-api>>.
+This schema has changed. Please see <<api-error>>.
 
 [role="exclude",id="payload-with-error"]
 === Payload with error
 
-This is no longer helpful. Please see <<error-api>>.
+This is no longer helpful. Please see <<api-error>>.
 
 [role="exclude",id="payload-with-minimal-exception"]
 === Payload with minimal exception
 
-This is no longer helpful. Please see <<error-api>>.
+This is no longer helpful. Please see <<api-error>>.
 
 [role="exclude",id="payload-with-minimal-log"]
 === Payload with minimal log
 
-This is no longer helpful. Please see <<error-api>>.
+This is no longer helpful. Please see <<api-error>>.
 
 // Transaction API
 
 [role="exclude",id="transaction-endpoint"]
 === Transaction endpoint
 
-The transaction endpoint has been deprecated. Instead, see <<events-api>>.
+The transaction endpoint has been deprecated. Instead, see <<api-events>>.
 
 [role="exclude",id="transaction-schema-definition"]
 === Transaction schema definition
 
-The transaction schema has moved. Please see <<transaction-schema>>.
+The transaction schema has moved. Please see <<api-transaction-schema>>.
 
 [role="exclude",id="transaction-api-examples"]
 === Transaction API examples
 
-The transaction API examples have moved. Please see <<events-api>>.
+The transaction API examples have moved. Please see <<api-events>>.
 
 [role="exclude",id="transaction-span-schema"]
 === Transaction span schema
 
-This schema has changed. Please see <<span-api>>.
+This schema has changed. Please see <<api-span>>.
 
 [role="exclude",id="transaction-payload-schema"]
 === Transaction payload schema
 
-This schema has changed. Please see <<transaction-api>>.
+This schema has changed. Please see <<api-transaction>>.
 
 [role="exclude",id="transaction-service-schema"]
 === Transaction service schema
 
-This schema has changed. Please see <<transaction-api>>.
+This schema has changed. Please see <<api-transaction>>.
 
 [role="exclude",id="transaction-system-schema"]
 === Transaction system schema
 
-This schema has changed. Please see <<transaction-api>>.
+This schema has changed. Please see <<api-transaction>>.
 
 [role="exclude",id="transaction-context-schema"]
 === Transaction context schema
 
-This schema has changed. Please see <<transaction-api>>.
+This schema has changed. Please see <<api-transaction>>.
 
 [role="exclude",id="transaction-stacktraceframe-schema"]
 === Transaction stack trace frame schema
 
-This schema has changed. Please see <<transaction-api>>.
+This schema has changed. Please see <<api-transaction>>.
 
 [role="exclude",id="transaction-request-schema"]
 === Transaction request schema
 
-This schema has changed. Please see <<transaction-api>>.
+This schema has changed. Please see <<api-transaction>>.
 
 [role="exclude",id="transaction-user-schema"]
 === Transaction user schema
 
-This schema has changed. Please see <<transaction-api>>.
+This schema has changed. Please see <<api-transaction>>.
 
 [role="exclude",id="payload-with-transactions"]
 === Payload with transactions
 
-This is no longer helpful. Please see <<transaction-api>>.
+This is no longer helpful. Please see <<api-transaction>>.
 
 [role="exclude",id="payload-with-minimal-transaction"]
 === Payload with minimal transaction
 
-This is no longer helpful. Please see <<transaction-api>>.
+This is no longer helpful. Please see <<api-transaction>>.
 
 [role="exclude",id="payload-with-minimal-span"]
 === Payload with minimal span
 
-This is no longer helpful. Please see <<span-api>>.
+This is no longer helpful. Please see <<api-span>>.
 
 [role="exclude",id="example-intakev2-events"]
 === Example Request Body
 
-This page has moved. Please see <<example-intake-events>>.
+This page has moved. Please see <<api-event-example>>.
 
 // V1 intake API
 
@@ -251,18 +251,6 @@ https://github.com/elastic/apm-contrib/tree/main/kibana[apm-contrib] repository.
 
 // This section has moved. Please see <<configuration-rum>>.
 
-ifndef::apm-integration-docs[]
-[role="exclude",id="api-key"]
-=== API keys
-
-This section has moved. See <<api-key-legacy>>.
-
-[role="exclude",id="secret-token"]
-=== API keys
-
-This section has moved. See <<secret-token-legacy>>.
-endif::[]
-
 [role="exclude",id="aws-lambda-arch"]
 === APM Architecture for AWS Lambda
 
@@ -277,3 +265,58 @@ This section has moved. See {apm-lambda-ref}/aws-lambda-config-options.html[Conf
 === Using AWS Secrets Manager to manage APM authentication keys
 
 This section has moved. See {apm-lambda-ref}/aws-lambda-secrets-manager.html[Using AWS Secrets Manager to manage APM authentication keys].
+
+[role="exclude",id="go-compatibility"]
+=== Go Agent Compatibility
+
+This page has moved. Please see <<agent-server-compatibility>>.
+
+[role="exclude",id="java-compatibility"]
+=== Java Agent Compatibility
+
+This page has moved. Please see <<agent-server-compatibility>>.
+
+[role="exclude",id="dotnet-compatibility"]
+=== .NET Agent Compatibility
+
+This page has moved. Please see <<agent-server-compatibility>>.
+
+[role="exclude",id="nodejs-compatibility"]
+=== Node.js Agent Compatibility
+
+This page has moved. Please see <<agent-server-compatibility>>.
+
+[role="exclude",id="python-compatibility"]
+=== Python Agent Compatibility
+
+This page has moved. Please see <<agent-server-compatibility>>.
+
+[role="exclude",id="ruby-compatibility"]
+=== Ruby Agent Compatibility
+
+This page has moved. Please see <<agent-server-compatibility>>.
+
+[role="exclude",id="rum-compatibility"]
+=== RUM Agent Compatibility
+
+This page has moved. Please see <<agent-server-compatibility>>.
+
+[role="exclude",id="apm-release-notes"]
+=== APM release highlights
+
+This page has moved.
+Please see {observability-guide}/whats-new.html[What's new in {observability} {minor-version}].
+
+Please see <<whats-new>>.
+
+[role="exclude",id="whats-new"]
+=== What's new in APM {minor-version}
+
+This page has moved.
+Please see {observability-guide}/whats-new.html[What's new in {observability} {minor-version}].
+
+[role="exclude",id="troubleshooting"]
+=== Troubleshooting
+
+This page has moved.
+Please see <<troubleshoot-apm>>.

@@ -10,11 +10,9 @@
 //// This content is structured to be included as a whole file.
 //////////////////////////////////////////////////////////////////////////
 
-[role="xpack"]
+[float]
 [[securing-communication-elasticsearch]]
 == Secure communication with {es}
-
-IMPORTANT: {deprecation-notice-config}
 
 When sending data to a secured cluster through the `elasticsearch`
 output, {beatname_uc} can use any of the following authentication methods:
@@ -34,18 +32,10 @@ For example:
 output.elasticsearch:
   hosts: ["https://myEShost:9200"]
   username: "{beat_default_index_prefix}_writer" <1>
-  password: "{pwd}" <2>
+  password: "{pwd}"
 ----------------------------------------------------------------------
 <1> This user needs the privileges required to publish events to {es}.
 To create a user like this, see <<privileges-to-publish-events>>.
-<2> This example shows a hard-coded password, but you should store sensitive
-values
-ifndef::serverless[]
-in the <<keystore,secrets keystore>>.
-endif::[]
-ifdef::serverless[]
-in environment variables.
-endif::[]
 --
 
 * To use token-based *API key authentication*, specify the `api_key` under `output.elasticsearch`.
@@ -138,17 +128,9 @@ For example, specify a unique username and password to connect to {kib} like thi
 setup.kibana:
   host: "mykibanahost:5601"
   username: "{beat_default_index_prefix}_kib_setup" <1>
-  password: "{pwd}" <2>
+  password: "{pwd}"
 ----
 <1> This user needs privileges required to set up dashboards
-<2> This example shows a hard-coded password, but you should store sensitive
-values
-ifndef::serverless[]
-in the <<keystore,secrets keystore>>.
-endif::[]
-ifdef::serverless[]
-in environment variables.
-endif::[]
 endif::no_dashboards[]
 --
 
