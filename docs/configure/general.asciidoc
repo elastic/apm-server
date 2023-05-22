@@ -109,7 +109,7 @@ Maximum number of TCP connections to accept simultaneously.
 Default value is 0, which means _unlimited_. (int)
 
 |====
-| APM Server binary | `max_connections`
+| APM Server binary | `apm-server.max_connections`
 | Fleet-managed     | Simultaneously accepted connections
 |====
 
@@ -119,30 +119,9 @@ Default value is 0, which means _unlimited_. (int)
 Custom HTTP headers to add to HTTP responses. Useful for security policy compliance. (text)
 
 |====
-| APM Server binary | N/A
+| APM Server binary | `apm-server.response_headers`
 | Fleet-managed     | Custom HTTP response headers
 |====
-
-
-// [[config-secret-token]]
-// [float]
-// == `auth.secret_token`
-// Authorization token for sending data to the APM server.
-// If a token is set, the agents must send it in the following format:
-// Authorization: Bearer <secret-token>.
-// The token is not used for RUM endpoints. By default, no authorization token is set.
-
-// It is recommended to use an authorization token in combination with SSL enabled.
-// Read more about <<securing-apm-server, Securing APM Server>> and the <<secret-token, secret token>>.
-
-// [[config-secret-token-legacy]]
-// [float]
-// == `secret_token`
-
-// deprecated::[7.14.0, Replaced by `auth.secret_token`. See <<config-secret-token>>]
-
-// In versions prior to 7.14.0, secret token authorization was known as `apm-server.secret_token`. In 7.14.0 this was renamed `apm-server.auth.secret_token`.
-// The old configuration will continue to work until 8.0.0, and the new configuration will take precedence.
 
 [[capture_personal_data]]
 [float]
@@ -152,7 +131,7 @@ APM Server captures the IP of the instrumented service and its User Agent if any
 Enabled by default. (bool)
 
 |====
-| APM Server binary | `capture_personal_data`
+| APM Server binary | `apm-server.capture_personal_data`
 | Fleet-managed     | Capture personal data
 |====
 
@@ -163,7 +142,7 @@ Enabled by default. (bool)
 Sets the default service environment to associate with data and requests received from agents which have no service environment defined. Default: none. (text)
 
 |====
-| APM Server binary | `default_service_environment`
+| APM Server binary | `apm-serer.default_service_environment`
 | Fleet-managed     | Default Service Environment
 |====
 
@@ -174,7 +153,7 @@ When set to true APM Server exposes https://golang.org/pkg/expvar/[golang expvar
 Disabled by default.
 
 |====
-| APM Server binary | `expvar.enabled`
+| APM Server binary | `apm-server.expvar.enabled`
 | Fleet-managed     | Enable APM Server Golang expvar support
 |====
 
@@ -185,31 +164,7 @@ Configure the URL to expose expvar.
 Defaults to `debug/vars`.
 
 |====
-| APM Server binary | `expvar.url`
-| Fleet-managed     | N/A
-|====
-
-[[instrumentation.enabled]]
-[float]
-== APM Server self-instrumentation
-
-Enables self instrumentation of the APM Server itself.
-Disabled by default.
-
-|====
-| APM Server binary | `instrumentation.enabled`
-| Fleet-managed     | N/A
-|====
-
-[[data_streams.wait_for_integration]]
-[float]
-== Wait for integration
-Wait for the `apm` {fleet} integration to be installed by {kib}. Requires either the <<kibana-enabled,Kibana endpoint>> being enabled
-or for the <<elasticsearch-output, {es} output>> to be configured.
-Defaults to true.
-
-|====
-| APM Server binary | `datastreams.wait_for_integration`
+| APM Server binary | `apm-server.expvar.url`
 | Fleet-managed     | N/A
 |====
 
@@ -223,6 +178,6 @@ This setting changes the name of the integration's data stream.
 For {fleet}-managed users, the namespace is inherited from the selected {agent} policy.
 
 |====
-| APM Server binary | `data_streams.namespace`
+| APM Server binary | `apm-server.data_streams.namespace`
 | Fleet-managed     | `Namespace` (Integration settings > Advanced options)
 |====

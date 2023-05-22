@@ -170,12 +170,3 @@ Valid options are `never`, `once`, and `freely`. Default is `never`.
 * `never` - Disables renegotiation.
 * `once` - Allows a remote server to request renegotiation once per connection.
 * `freely` - Allows a remote server to repeatedly request renegotiation.
-
-[float]
-[[api-key-settings-legacy]]
-= `api_key.*` configuration options
-
-deprecated::[7.14.0, Replaced by `auth.api_key.*`. See <<api-key-auth-settings>>]
-
-In versions prior to 7.14.0, API Key authorization was known as `apm-server.api_key`. In 7.14.0 this was renamed `apm-server.auth.api_key`.
-The old configuration will continue to work until 8.0.0, and the new configuration will take precedence.

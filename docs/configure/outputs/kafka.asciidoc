@@ -39,7 +39,7 @@ NOTE: Events bigger than <<kafka-max_message_bytes,`max_message_bytes`>> will be
 
 ifdef::apm-server[]
 [float]
-=== Configure the {kib} output
+=== {kib} configuration
 
 include::../../shared-kibana-endpoint.asciidoc[tag=shared-kibana-config]
 endif::[]

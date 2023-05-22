@@ -32,7 +32,7 @@ output.redis:
 
 ifdef::apm-server[]
 [float]
-=== Configure the {kib} output
+=== {kib} configuration
 
 include::../../shared-kibana-endpoint.asciidoc[tag=shared-kibana-config]
 endif::[]
