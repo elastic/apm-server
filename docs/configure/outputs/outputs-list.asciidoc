@@ -4,7 +4,6 @@
 * <<logstash-output>>
 * <<kafka-output>>
 * <<redis-output>>
-* <<file-output>>
 * <<console-output>>
 //# end::outputs-list[]
 
@@ -19,10 +18,6 @@ include::kafka.asciidoc[]
 
 include::redis.asciidoc[]
 
-include::fileout.asciidoc[]
-
 include::console.asciidoc[]
-
-include::codec.asciidoc[]
 
 //# end::outputs-include[]

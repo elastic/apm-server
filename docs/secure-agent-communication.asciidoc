@@ -1,6 +1,10 @@
 [[secure-agent-communication]]
 == Secure communication with APM agents
 
+++++
+<titleabbrev>With APM agents</titleabbrev>
+++++
+
 Communication between APM agents and {agent} can be both encrypted and authenticated.
 It is strongly recommended to use both TLS encryption and authentication as secrets are sent as plain text.
 

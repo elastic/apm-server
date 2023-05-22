@@ -30,7 +30,7 @@ Next, install, set up, and run APM Server:
 Use the config file if you need to change the default configuration that APM Server uses to connect to {es},
 or if you need to specify credentials:
 
-* {apm-server-ref-v}/configuring-howto-apm-server.html[Configuring APM Server]
+* {apm-guide-ref}/configuring-howto-apm-server.html[Configuring APM Server]
 ** {apm-server-ref-v}/configuration-process.html[General configuration options]
 ** {apm-server-ref-v}/configuring-output.html[Configure the {es} output]
 

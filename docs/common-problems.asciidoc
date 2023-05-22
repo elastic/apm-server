@@ -162,7 +162,7 @@ APM agent --> Load Balancer  --> APM Server
 ----
 
 The APM Server timeout can be configured by updating the
-<<apm-input-general-settings,maximum duration for reading an entire request>>.
+<<read_timeout,maximum duration for reading an entire request>>.
 
 [[field-limit-exceeded-legacy]]
 [float]

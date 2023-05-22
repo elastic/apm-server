@@ -5,6 +5,12 @@
 <titleabbrev>APM agent configuration</titleabbrev>
 ++++
 
+****
+image:./binary-yes-fm-yes.svg[supported deployment methods]
+
+APM agent configuration is supported by all APM Server deployment methods.
+****
+
 APM agent configuration allows you to fine-tune your APM agents from within the APM app.
 Changes are automatically propagated to your APM agents, so there's no need to redeploy your applications.
 
@@ -19,25 +25,26 @@ apm-server.agent.config.elasticsearch.api_key: TiNAGG4BaaMdaH1tRfuU:KnR6yE41RrSo
 ----
 
 [float]
-== APM agent configuration options
+= APM agent configuration options
 
-You can specify the following options in the `apm-server.agent.config` section of the
+The following options are only supported for APM Server binary users.
+You can specify these options in the `apm-server.agent.config` section of the
 +{beatname_lc}.yml+ config file:
 
 [float]
 [[agent-config-cache]]
-=== `apm-server.agent.config.cache.expiration`
+== `apm-server.agent.config.cache.expiration`
 
 When using APM agent configuration, information fetched from {es} will be cached in memory for some time.
 Specify the cache expiration time via this setting. Defaults to `30s` (30 seconds).
 
 [float]
 [[agent-config-elasticsearch]]
-==== `apm-server.agent.config.elasticsearch`
+== `apm-server.agent.config.elasticsearch`
 
 Takes the same options as <<elasticsearch-output,output.elasticsearch>>.
 
-For APM Server legacy users and Elastic Agent standalone-managed APM Server,
+For APM Server binary users and Elastic Agent standalone-managed APM Server,
 APM agent configuration is automatically fetched from {es} using the `output.elasticsearch`
 configuration. If `output.elasticsearch` isn't set or doesn't have sufficient privileges,
 use these {es} options to provide {es} access.
