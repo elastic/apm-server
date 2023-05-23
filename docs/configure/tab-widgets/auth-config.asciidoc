@@ -18,4 +18,6 @@ max_procs: 4
 
 // tag::fleet-managed[]
 include::../shared/input-apm.asciidoc[tag=fleet-managed-settings]
++
+. Look for these settings under **Agent authorization**.
 // end::fleet-managed[]

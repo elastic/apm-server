@@ -1,5 +1,5 @@
 // tag::fleet-managed[]
-Enable TLS in the <<input-apm,APM integration settings>> and use the <<apm-input-tls-settings>> to set the path to the server certificate and key.
+Enable TLS in the APM integration settings and use the <<agent-server-ssl>> to set the path to the server certificate and key.
 // end::fleet-managed[]
 
 // tag::binary[]
