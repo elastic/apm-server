@@ -10,7 +10,7 @@
 //////////////////////////////////////////////////////////////////////////
 
 [[setup-repositories]]
-=== Repositories for APT and YUM
+==== Repositories for APT and YUM
 
 We have repositories available for APT and YUM-based distributions. Note that we
 provide binary packages, but no source packages.
@@ -23,7 +23,7 @@ We use the PGP key https://pgp.mit.edu/pks/lookup?op=vindex&search=0xD27D666CD88
 to sign all our packages. It is available from https://pgp.mit.edu.
 
 [float]
-==== APT
+===== APT
 
 ifeval::["{release-state}"=="unreleased"]
 
@@ -103,7 +103,7 @@ sudo systemctl enable {beatname_pkg}
 endif::[]
 
 [float]
-==== YUM
+===== YUM
 
 ifeval::["{release-state}"=="unreleased"]
 

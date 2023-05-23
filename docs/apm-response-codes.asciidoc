@@ -12,7 +12,7 @@ See the <<agent-server-compatibility,agent/server compatibility matrix>> to veri
 [float]
 ==== HTTP 400: Event too large
 
-APM agents communicate with the APM server by sending events in an HTTP request. Each event is sent as its own line in the HTTP request body. If events are too large, you should consider increasing the <<apm-input-general-settings,maximum size per event>>
+APM agents communicate with the APM server by sending events in an HTTP request. Each event is sent as its own line in the HTTP request body. If events are too large, you should consider increasing the <<max_event_size>>
 setting in the APM integration, and adjusting relevant settings in the agent.
 
 [[unauthorized]]
@@ -28,7 +28,7 @@ or the <<api-key>> is invalid.
 
 Either you are sending requests to a <<apm-rum,RUM>> endpoint without RUM enabled, or a request
 is coming from an origin not specified in the APM integration settings.
-See the <<apm-input-rum-settings,Allowed origins>> setting for more information.
+See the <<rum-allow-origins,Allowed origins>> setting for more information.
 
 [[request-timed-out]]
 [float]

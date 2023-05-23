@@ -4,7 +4,6 @@
 IMPORTANT: API keys are sent as plain-text,
 so they only provide security when used in combination with <<agent-tls,TLS>>.
 
-// Enable API key authorization in the <<input-apm,APM integration settings>>.
 When enabled, API keys are used to authorize requests to the APM Server.
 API keys are not applicable for APM agents running on clients, like the RUM agent,
 as there is no way to prevent them from being publicly exposed.

@@ -22,6 +22,5 @@ like JVM metrics in the Java Agent, and Go runtime metrics in the Go Agent.
 [float]
 === Give Elastic APM a try
 
-Learn more about the <<apm-components,components>> that make up Elastic APM
-// ,
-// or jump right into the <<install-and-run,quick start guide>>.
+Use the <<apm-quick-start>> to quickly spin up an APM deployment.
+Want to host everything yourself instead? See <<getting-started-apm-server>>.

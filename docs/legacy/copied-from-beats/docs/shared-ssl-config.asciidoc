@@ -37,6 +37,9 @@ output.elasticsearch.ssl.certificate: "/etc/pki/client/cert.pem"
 output.elasticsearch.ssl.key: "/etc/pki/client/cert.key"
 ----
 
+// I don't know where to put this
+include::../../../configure/tab-widgets/tls-config-widget.asciidoc[]
+
 ifndef::no-output-logstash[]
 Also see <<configuring-ssl-logstash>>.
 endif::[]

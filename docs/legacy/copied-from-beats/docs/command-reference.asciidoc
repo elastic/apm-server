@@ -586,9 +586,6 @@ network. This option is useful only for testing {beatname_uc}.
 endif::[]
 
 *`-N, --N`*:: Disables publishing for testing purposes.
-ifndef::no_file_output[]
-This option disables all outputs except the <<file-output,File output>>.
-endif::[]
 
 ifeval::["{beatname_lc}"=="packetbeat"]
 *`-O, --O`*::
@@ -748,7 +745,7 @@ template, {ilm-init} policy, and write alias (if supported and configured).
 
 ifdef::apm-server[]
 *`--pipelines`*::
-Registers the <<configuring-ingest-node,pipeline>> definitions set in `ingest/pipeline/definition.json`.
+Registers the <<ingest-pipelines,pipeline>> definitions set in `ingest/pipeline/definition.json`.
 endif::apm-server[]
 
 *`--template`*::

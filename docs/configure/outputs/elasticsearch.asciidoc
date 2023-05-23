@@ -5,6 +5,13 @@
 <titleabbrev>{es}</titleabbrev>
 ++++
 
+****
+image:./binary-yes-fm-no.svg[supported deployment methods]
+
+This documentation only applies to APM Server binary users.
+Fleet-managed users should see {fleet-guide}/elasticsearch-output.html[Configure the {es} output].
+****
+
 The {es} output sends events directly to {es} using the {es} HTTP API.
 
 Example configuration:
@@ -320,7 +327,7 @@ output.elasticsearch:
   pipeline: my_pipeline_id
 ------------------------------------------------------------------------------
 
-For more information, see <<configuring-ingest-node>>.
+For more information, see <<ingest-pipelines>>.
 
 You can set the ingest node pipeline dynamically by using a format string to
 access any event field. For example, this configuration uses a custom field,
@@ -410,7 +417,7 @@ With this configuration, all events with `log_type: critical` are sent to
 `sev2_pipeline`, and all other events are sent to `sev3_pipeline`.
 
 For more information about ingest node pipelines, see
-<<configuring-ingest-node>>.
+<<ingest-pipelines>>.
 
 endif::[]
 
