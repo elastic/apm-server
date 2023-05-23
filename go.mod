@@ -8,7 +8,7 @@ require (
 	github.com/dgraph-io/badger/v2 v2.2007.3-0.20201012072640-f5a7e0a1c83b
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/apm-data v0.1.1-0.20230511095520-caaa44e1c286
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230522101619-768999720a24
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230523130119-3bc0b3c392d6
 	github.com/elastic/elastic-agent-client/v7 v7.1.1
 	github.com/elastic/elastic-agent-libs v0.3.8
 	github.com/elastic/elastic-agent-system-metrics v0.6.0
@@ -16,7 +16,7 @@ require (
 	github.com/elastic/go-docappender v0.1.0
 	github.com/elastic/go-elasticsearch/v8 v8.7.0
 	github.com/elastic/go-hdrhistogram v0.1.0
-	github.com/elastic/go-sysinfo v1.10.1
+	github.com/elastic/go-sysinfo v1.10.2
 	github.com/elastic/go-ucfg v0.8.6
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible
 	github.com/goccy/go-json v0.10.2
@@ -64,7 +64,7 @@ require (
 	github.com/DataDog/zstd v1.4.4 // indirect
 	github.com/Microsoft/go-winio v0.6.1 // indirect
 	github.com/Shopify/sarama v1.38.1 // indirect
-	github.com/apache/thrift v0.17.0 // indirect
+	github.com/apache/thrift v0.18.1 // indirect
 	github.com/armon/go-radix v1.0.0 // indirect
 	github.com/cespare/xxhash v1.1.0 // indirect
 	github.com/containerd/containerd v1.7.1 // indirect
@@ -103,7 +103,7 @@ require (
 	github.com/jcmturner/gokrb5/v8 v8.4.3 // indirect
 	github.com/jcmturner/rpc/v2 v2.0.3 // indirect
 	github.com/joeshaw/multierror v0.0.0-20140124173710-69b34d4ec901 // indirect
-	github.com/klauspost/compress v1.16.0 // indirect
+	github.com/klauspost/compress v1.16.5 // indirect
 	github.com/lufia/plan9stats v0.0.0-20211012122336-39d0f177ccd0 // indirect
 	github.com/magefile/mage v1.14.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
