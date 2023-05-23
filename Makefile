@@ -362,7 +362,7 @@ smoketest/all:
 		$(MAKE) smoketest/run TEST_DIR=$${test_dir}; \
 	done
 
-.PHONY: smoketest/all
+.PHONY: smoketest/all/cleanup
 smoketest/all/cleanup:
 	@ for test_dir in $(SMOKETEST_DIRS); do \
 		echo "-> Cleanup $${test_dir} smoke tests..."; \
