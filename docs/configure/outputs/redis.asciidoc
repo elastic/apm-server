@@ -88,10 +88,6 @@ output.redis:
   key: "%{[fields.list]:fallback}"
 ------------------------------------------------------------------------------
 
-
-TIP: To learn how to add custom fields to events, see the
-<<libbeat-configuration-fields,`fields`>> option.
-
 See the <<keys-option-redis,`keys`>> setting for other ways to set the key
 dynamically.
 

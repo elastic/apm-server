@@ -222,9 +222,6 @@ index named +normal-{version}-{localdate}+, and all events with
 `log_type: critical` are sent to an index named
 +critical-{version}-{localdate}+.
 
-TIP: To learn how to add custom fields to events, see the
-<<libbeat-configuration-fields,`fields`>> option.
-
 See the <<indices-option-es,`indices`>> setting for other ways to set the index
 dynamically.
 endif::apm-server[]
