@@ -1,10 +1,6 @@
 [[configuration-ssl-landing]]
 = SSL/TLS settings
 
-TLS configuration options.
-
-include::./tab-widgets/tls-config-widget.asciidoc[]
-
 SSL/TLS is available for:
 
 * <<agent-server-ssl,APM Server **inputs**>> (APM Agents)
