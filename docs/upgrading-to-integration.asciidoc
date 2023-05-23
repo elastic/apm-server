@@ -131,7 +131,7 @@ If you're adding the APM integration to a {fleet}-managed {agent}, you can use t
 If you're adding the APM integration to the {fleet-server}, use the policy that the {fleet-server} is running on.
 
 TIP: You'll configure the APM integration in this step.
-See <<input-apm>> for a reference of all available settings.
+See <<configuring-howto-apm-server>> for a reference of all available settings.
 As long as the APM integration is configured with the same secret token or you have API keys enabled on the same host,
 no reconfiguration is required in your APM agents.
 
@@ -193,7 +193,7 @@ Within minutes your data should begin appearing in the {apm-app} again.
 ==== Configure the APM integration
 
 You can now update settings that were removed during the upgrade.
-See <<input-apm>> for a reference of all available settings.
+See <<configuring-howto-apm-server>> for a reference of all available settings.
 
 // lint ignore fleet elastic-cloud
 In {kib}, navigate to **Management** > **Fleet**.

@@ -1,0 +1,116 @@
+[[setup-kibana-endpoint]]
+= Configure the {kib} endpoint
+
+++++
+<titleabbrev>{kib} endpoint</titleabbrev>
+++++
+
+****
+
+image:./binary-yes-fm-no.svg[supported deployment methods]
+
+You must configure the {kib} endpoint when running the APM Server binary with a non-{es} output.
+Configuring the {kib} endpoint allows the APM Server to communicate with {kib} and ensure that the APM integration was properly set up. It is also required for APM agent configuration when using
+an output other than {es}.
+
+For all other use-cases, starting in version 8.7.0, APM agent configurations is fetched directly from {es}.
+Configuring and enabling the {kib} endpoint is only used as a fallback.
+Please see <<configure-agent-config>> instead.
+****
+
+Here's a sample configuration:
+
+[source,yaml]
+----
+apm-server.kibana.enabled: true
+apm-server.kibana.host: "http://localhost:5601"
+----
+
+[float]
+== {kib} endpoint configuration options
+
+You can specify the following options in the `apm-server.kibana` section of the
++{beatname_lc}.yml+ config file. These options are not required for a Fleet-managed APM Server.
+
+[float]
+[[kibana-enabled]]
+=== `apm-server.kibana.enabled`
+
+Defaults to `false`. Must be `true` to use APM Agent configuration.
+
+[float]
+[[kibana-host]]
+=== `apm-server.kibana.host`
+
+The {kib} host that APM Server will communicate with. The default is
+`127.0.0.1:5601`. The value of `host` can be a `URL` or `IP:PORT`. For example: `http://192.15.3.2`, `192:15.3.2:5601` or `http://192.15.3.2:6701/path`. If no
+port is specified, `5601` is used.
+
+NOTE: When a node is defined as an `IP:PORT`, the _scheme_ and _path_ are taken
+from the <<kibana-protocol-option,apm-server.kibana.protocol>> and
+<<kibana-path-option,apm-server.kibana.path>> config options.
+
+IPv6 addresses must be defined using the following format:
+`https://[2001:db8::1]:5601`.
+
+[float]
+[[kibana-protocol-option]]
+=== `apm-server.kibana.protocol`
+
+The name of the protocol {kib} is reachable on. The options are: `http` or
+`https`. The default is `http`. However, if you specify a URL for host, the
+value of `protocol` is overridden by whatever scheme you specify in the URL.
+
+Example config:
+
+[source,yaml]
+----
+apm-server.kibana.host: "192.0.2.255:5601"
+apm-server.kibana.protocol: "http"
+apm-server.kibana.path: /kibana
+----
+
+
+[float]
+=== `apm-server.kibana.username`
+
+The basic authentication username for connecting to {kib}.
+
+[float]
+=== `apm-server.kibana.password`
+
+The basic authentication password for connecting to {kib}.
+
+[float]
+=== `apm-server.kibana.api_key`
+
+Authentication with an API key. Formatted as `id:api_key`
+
+[float]
+[[kibana-path-option]]
+=== `apm-server.kibana.path`
+
+An HTTP path prefix that is prepended to the HTTP API calls. This is useful for
+the cases where {kib} listens behind an HTTP reverse proxy that exports the API
+under a custom prefix.
+
+[float]
+=== `apm-server.kibana.ssl.enabled`
+
+Enables {beatname_uc} to use SSL settings when connecting to {kib} via HTTPS.
+If you configure {beatname_uc} to connect over HTTPS, this setting defaults to
+`true` and {beatname_uc} uses the default SSL settings.
+
+Example configuration:
+
+[source,yaml]
+----
+apm-server.kibana.host: "https://192.0.2.255:5601"
+apm-server.kibana.ssl.enabled: true
+apm-server.kibana.ssl.certificate_authorities: ["/etc/pki/root/ca.pem"]
+apm-server.kibana.ssl.certificate: "/etc/pki/client/cert.pem"
+apm-server.kibana.ssl.key: "/etc/pki/client/cert.key"
+----
+
+For information on the additional SSL configuration options,
+see <<configuration-ssl>>.

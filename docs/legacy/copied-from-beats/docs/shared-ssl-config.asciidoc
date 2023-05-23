@@ -9,9 +9,6 @@ endif::apm-server[]
 ifdef::apm-server[]
 == SSL output settings
 
-IMPORTANT: {deprecation-notice-config}
-If you're using {fleet} and the Elastic APM integration, please see the {fleet-guide}[{fleet} User Guide] instead.
-
 You can specify SSL options with any output that supports SSL, like {es}, {ls}, or Kafka.
 endif::[]
 
@@ -39,6 +36,9 @@ output.elasticsearch.ssl.certificate_authorities: ["/etc/pki/root/ca.pem"]
 output.elasticsearch.ssl.certificate: "/etc/pki/client/cert.pem"
 output.elasticsearch.ssl.key: "/etc/pki/client/cert.key"
 ----
+
+// I don't know where to put this
+include::../../../configure/tab-widgets/tls-config-widget.asciidoc[]
 
 ifndef::no-output-logstash[]
 Also see <<configuring-ssl-logstash>>.
@@ -235,8 +235,8 @@ supports SSL.
 [[client-certificate-authorities]]
 ==== `certificate_authorities`
 
-The list of root certificates for verifications is required. If `certificate_authorities` is empty or not set, the
-system keystore is used. If `certificate_authorities` is self-signed, the host system
+The list of root certificates for verifications is required.
+If `certificate_authorities` is self-signed, the host system
 needs to trust that CA cert as well.
 
 By default you can specify a list of files that +{beatname_lc}+ will read, but you

@@ -34,7 +34,6 @@ ifdef::serverless[]
 endif::serverless[]
 
 :help-command-short-desc: Shows help for any command
-:keystore-command-short-desc: Manages the <<keystore,secrets keystore>>
 :modules-command-short-desc: Manages configured modules
 :package-command-short-desc: Packages the configuration and executable into a zip file
 :remove-command-short-desc: Removes the specified function from your serverless environment
@@ -65,7 +64,7 @@ endif::[]
 <titleabbrev>Command reference</titleabbrev>
 ++++
 
-IMPORTANT: {deprecation-notice-config}
+IMPORTANT: These commands only apply to the APM Server binary installation method.
 
 ifndef::no_dashboards[]
 {beatname_uc} provides a command-line interface for starting {beatname_uc} and
@@ -107,9 +106,6 @@ ifdef::apm-server[]
 endif::[]
 |<<export-command,`export`>> |{export-command-short-desc}.
 |<<help-command,`help`>> |{help-command-short-desc}.
-ifndef::serverless[]
-|<<keystore-command,`keystore`>> |{keystore-command-short-desc}.
-endif::[]
 ifeval::["{beatname_lc}"=="functionbeat"]
 |<<package-command,`package`>> |{package-command-short-desc}.
 |<<remove-command,`remove`>> |{remove-command-short-desc}.
@@ -139,10 +135,10 @@ ifdef::apm-server[]
 
 experimental::[]
 
-deprecated::[8.6.0, Users should create API Keys through {kib} or the {es} REST API. See <<api-key-legacy>>.]
+deprecated::[8.6.0, Users should create API Keys through {kib} or the {es} REST API. See <<api-key>>.]
 
 Communication between APM agents and APM Server now supports sending an
-<<api-key-legacy,API Key in the Authorization header>>.
+<<api-key,API Key in the Authorization header>>.
 APM Server provides an `apikey` command that can create, verify, invalidate,
 and show information about API Keys for agent/server communication.
 Most operations require the `manage_own_api_key` cluster privilege,
@@ -229,7 +225,7 @@ When used with `info`, only returns valid API Keys (not expired or invalidated).
 {beatname_lc} apikey invalidate --name example-001
 -----
 
-For more information, see <<api-key-legacy>>.
+For more information, see <<api-key>>.
 
 endif::[]
 
@@ -434,65 +430,6 @@ Specifies the name of the command to show help for.
 {beatname_lc} help export
 -----
 
-ifndef::serverless[]
-[float]
-[[keystore-command]]
-==== `keystore` command
-
-{keystore-command-short-desc}.
-
-*SYNOPSIS*
-
-["source","sh",subs="attributes"]
-----
-{beatname_lc} keystore SUBCOMMAND [FLAGS]
-----
-
-*`SUBCOMMAND`*
-
-*`add KEY`*::
-Adds the specified key to the keystore. Use the `--force` flag to overwrite an
-existing key. Use the `--stdin` flag to pass the value through `stdin`.
-
-*`create`*::
-Creates a keystore to hold secrets. Use the `--force` flag to overwrite the
-existing keystore.
-
-*`list`*::
-Lists the keys in the keystore.
-
-*`remove KEY`*::
-Removes the specified key from the keystore.
-
-*FLAGS*
-
-*`--force`*::
-Valid with the `add` and `create` subcommands. When used with `add`, overwrites
-the specified key. When used with `create`, overwrites the keystore.
-
-*`--stdin`*::
-When used with `add`, uses the stdin as the source of the key's value.
-
-*`-h, --help`*::
-Shows help for the `keystore` command.
-
-
-{global-flags}
-
-*EXAMPLES*
-
-["source","sh",subs="attributes"]
------
-{beatname_lc} keystore create
-{beatname_lc} keystore add ES_PWD
-{beatname_lc} keystore remove ES_PWD
-{beatname_lc} keystore list
------
-
-See <<keystore>> for more examples.
-
-endif::[]
-
 ifeval::["{beatname_lc}"=="functionbeat"]
 [float]
 [[package-command]]
@@ -649,9 +586,6 @@ network. This option is useful only for testing {beatname_uc}.
 endif::[]
 
 *`-N, --N`*:: Disables publishing for testing purposes.
-ifndef::no_file_output[]
-This option disables all outputs except the <<file-output,File output>>.
-endif::[]
 
 ifeval::["{beatname_lc}"=="packetbeat"]
 *`-O, --O`*::
@@ -811,7 +745,7 @@ template, {ilm-init} policy, and write alias (if supported and configured).
 
 ifdef::apm-server[]
 *`--pipelines`*::
-Registers the <<configuring-ingest-node,pipeline>> definitions set in `ingest/pipeline/definition.json`.
+Registers the <<ingest-pipelines,pipeline>> definitions set in `ingest/pipeline/definition.json`.
 endif::apm-server[]
 
 *`--template`*::

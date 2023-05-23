@@ -9,7 +9,15 @@
 //// include::../../libbeat/docs/debugging.asciidoc[]
 //////////////////////////////////////////////////////////////////////////
 
-IMPORTANT: {deprecation-notice-data}
+[[enable-apm-server-debugging]]
+=== Enable APM Server binary debugging
+
+++++
+<titleabbrev>APM Server binary debugging</titleabbrev>
+++++
+
+NOTE: Fleet-managed users should see {fleet-guide}/monitor-elastic-agent.html[View {agent} logs]
+to learn how to view logs and change the logging level of {agent}.
 
 By default, {beatname_uc} sends all its output to syslog. When you run {beatname_uc} in
 the foreground, you can use the `-e` command line flag to redirect the output to

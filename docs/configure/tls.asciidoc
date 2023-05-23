@@ -1,0 +1,15 @@
+[[configuration-ssl-landing]]
+= SSL/TLS settings
+
+SSL/TLS is available for:
+
+* <<agent-server-ssl,APM Server **inputs**>> (APM Agents)
+* <<configuration-ssl,APM Server **outputs**>> that support SSL, like {es}, {ls}, or Kafka.
+
+Additional information on getting started with SSL/TLS is available in <<securing-apm-server>>.
+
+// :leveloffset: +2
+include::{libbeat-dir}/shared-ssl-config.asciidoc[]
+// :leveloffset: -2
+
+include::../legacy/ssl-input-settings.asciidoc[leveloffset=-1]

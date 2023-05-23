@@ -1,0 +1,183 @@
+[[configuration-process]]
+= General configuration options
+
+****
+image:./binary-yes-fm-yes.svg[supported deployment methods]
+
+Most options on this page are supported by all APM Server deployment methods.
+****
+
+General APM Server configuration options.
+
+include::./tab-widgets/general-config-widget.asciidoc[]
+
+[float]
+[[configuration-apm-server]]
+= Configuration options
+
+[[host]]
+[float]
+== Host
+Defines the host and port the server is listening on.
+Use `"unix:/path/to.sock"` to listen on a Unix domain socket.
+Defaults to 'localhost:8200'. (text)
+
+|====
+| APM Server binary | `apm-server.host`
+| Fleet-managed     | `Host`
+|====
+
+[float]
+== URL
+The publicly reachable server URL. For deployments on Elastic Cloud or ECK, the default is unchangeable.
+
+|====
+| APM Server binary | N/A
+| Fleet-managed     | `URL`
+|====
+
+[[max_header_size]]
+[float]
+== Max header size
+Maximum permitted size of a request's header accepted by the server to be processed (in Bytes).
+Defaults to 1048576 Bytes (1 MB). (int)
+
+|====
+| APM Server binary | `apm-server.max_header_size`
+| Fleet-managed     | `Maximum size of a request's header`
+|====
+
+[[idle_timeout]]
+[float]
+== Idle timeout
+Maximum amount of time to wait for the next incoming request before underlying connection is closed.
+Defaults to `45s` (45 seconds). (text)
+
+|====
+| APM Server binary | `apm-server.idle_timeout`
+| Fleet-managed     | `Idle time before underlying connection is closed`
+|====
+
+[[read_timeout]]
+[float]
+== Read timeout
+Maximum permitted duration for reading an entire request.
+Defaults to `3600s` (3600 seconds). (text)
+
+|====
+| APM Server binary | `apm-server.read_timeout`
+| Fleet-managed     | `Maximum duration for reading an entire request`
+|====
+
+[[write_timeout]]
+[float]
+== Write timeout
+Maximum permitted duration for writing a response.
+Defaults to `30s` (30 seconds). (text)
+
+|====
+| APM Server binary | `apm-server.write_timeout`
+| Fleet-managed     | `Maximum duration for writing a response`
+|====
+
+[[shutdown_timeout]]
+[float]
+=== Shutdown timeout
+Maximum duration in seconds before releasing resources when shutting down the server.
+Defaults to `30s` (30 seconds). (text)
+
+|====
+| APM Server binary | `apm-server.shutdown_timeout`
+| Fleet-managed     | `Maximum duration before releasing resources when shutting down`
+|====
+
+[[max_event_size]]
+[float]
+== Max event size
+Maximum permitted size of an event accepted by the server to be processed (in Bytes).
+Defaults to `307200` Bytes. (int)
+
+|====
+| APM Server binary | `apm-server.max_event_size`
+| Fleet-managed     | `Maximum size per event`
+|====
+
+[[max_connections]]
+[float]
+== Max connections
+Maximum number of TCP connections to accept simultaneously.
+Default value is 0, which means _unlimited_. (int)
+
+|====
+| APM Server binary | `apm-server.max_connections`
+| Fleet-managed     | `Simultaneously accepted connections`
+|====
+
+[[custom_http_headers]]
+[float]
+== Custom HTTP response headers
+Custom HTTP headers to add to HTTP responses. Useful for security policy compliance. (text)
+
+|====
+| APM Server binary | `apm-server.response_headers`
+| Fleet-managed     | `Custom HTTP response headers`
+|====
+
+[[capture_personal_data]]
+[float]
+== Capture personal data
+If true,
+APM Server captures the IP of the instrumented service and its User Agent if any.
+Enabled by default. (bool)
+
+|====
+| APM Server binary | `apm-server.capture_personal_data`
+| Fleet-managed     | `Capture personal data`
+|====
+
+
+[[default_service_environment]]
+[float]
+== Default service environment
+Sets the default service environment to associate with data and requests received from agents which have no service environment defined. Default: none. (text)
+
+|====
+| APM Server binary | `apm-serer.default_service_environment`
+| Fleet-managed     | `Default Service Environment`
+|====
+
+[[expvar.enabled]]
+[float]
+== expvar support
+When set to true APM Server exposes https://golang.org/pkg/expvar/[golang expvar] under `/debug/vars`.
+Disabled by default.
+
+|====
+| APM Server binary | `apm-server.expvar.enabled`
+| Fleet-managed     | `Enable APM Server Golang expvar support`
+|====
+
+[[expvar.url]]
+[float]
+== expvar URL
+Configure the URL to expose expvar.
+Defaults to `debug/vars`.
+
+|====
+| APM Server binary | `apm-server.expvar.url`
+| Fleet-managed     | N/A
+|====
+
+[[data_streams.namespace]]
+[float]
+== Data stream namespace
+
+Change the default namespace.
+This setting changes the name of the integration's data stream.
+
+For {fleet}-managed users, the namespace is inherited from the selected {agent} policy.
+
+|====
+| APM Server binary | `apm-server.data_streams.namespace`
+| Fleet-managed     | `Namespace` (Integration settings > Advanced options)
+|====

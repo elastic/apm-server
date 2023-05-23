@@ -1,0 +1,62 @@
+[[configuration-instrumentation]]
+= Configure APM instrumentation
+
+++++
+<titleabbrev>Instrumentation</titleabbrev>
+++++
+
+****
+image:./binary-yes-fm-no.svg[supported deployment methods]
+
+Instrumentation of APM Server is not yet supported for Fleet-managed APM.
+****
+
+APM Server uses the Elastic APM Go Agent to instrument its publishing pipeline.
+To gain insight into the performance of {beatname_uc}, you can enable this instrumentation and send trace data to APM Server.
+Currently, only the {es} output is instrumented.
+
+Example configuration with instrumentation enabled:
+
+["source","yaml"]
+----
+instrumentation:
+  enabled: true
+  environment: production
+  hosts:
+    - "http://localhost:8200"
+  api_key: L5ER6FEvjkmlfalBealQ3f3fLqf03fazfOV
+----
+
+[float]
+== Configuration options
+
+You can specify the following options in the `instrumentation` section of the +{beatname_lc}.yml+ config file:
+
+[float]
+=== `enabled`
+
+Set to `true` to enable instrumentation of {beatname_uc}.
+Defaults to `false`.
+
+[float]
+=== `environment`
+
+Set the environment in which {beatname_uc} is running, for example, `staging`, `production`, `dev`, etc.
+Environments can be filtered in the {kibana-ref}/xpack-apm.html[{apm-app}].
+
+[float]
+=== `hosts`
+
+The {apm-guide-ref}/getting-started-apm-server.html[APM Server] hosts to report instrumentation data to.
+Defaults to `http://localhost:8200`.
+
+[float]
+=== `api_key`
+
+{apm-guide-ref}/api-key.html[API key] used to secure communication with the APM Server(s).
+If `api_key` is set then `secret_token` will be ignored.
+
+[float]
+=== `secret_token`
+
+{apm-guide-ref}/secret-token.html[Secret token] used to secure communication with the APM Server(s).

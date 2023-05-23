@@ -1,0 +1,25 @@
+// tag::fleet-managed[]
+Enable API key authorization in the <<api-key-auth-settings>>.
+You should also set a limit on the number of unique API keys that APM Server allows per minute;
+this value should be the number of unique API keys configured in your monitored services.
+// end::fleet-managed[]
+
+// tag::binary[]
+API keys are disabled by default. Enable and configure this feature in the `apm-server.auth.api_key`
+section of the +{beatname_lc}.yml+ configuration file.
+
+At a minimum, you must enable API keys,
+and should set a limit on the number of unique API keys that APM Server allows per minute.
+Here's an example `apm-server.auth.api_key` config using 50 unique API keys:
+
+[source,yaml]
+----
+apm-server.auth.api_key.enabled: true <1>
+apm-server.auth.api_key.limit: 50 <2>
+----
+<1> Enables API keys
+<2> Restricts the number of unique API keys that {es} allows each minute.
+This value should be the number of unique API keys configured in your monitored services.
+
+All other configuration options are described in <<api-key>>.
+// end::binary[]

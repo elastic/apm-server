@@ -1,0 +1,23 @@
+//# tag::outputs-list[]
+* <<configure-cloud-id>>
+* <<elasticsearch-output>>
+* <<logstash-output>>
+* <<kafka-output>>
+* <<redis-output>>
+* <<console-output>>
+//# end::outputs-list[]
+
+//# tag::outputs-include[]
+include::output-cloud.asciidoc[]
+
+include::elasticsearch.asciidoc[]
+
+include::logstash.asciidoc[]
+
+include::kafka.asciidoc[]
+
+include::redis.asciidoc[]
+
+include::console.asciidoc[]
+
+//# end::outputs-include[]

@@ -1,0 +1,135 @@
+[[tail-based-samling-config]]
+= Tail-based sampling
+
+****
+image:./binary-yes-fm-yes.svg[supported deployment methods]
+
+Most options on this page are supported by all APM Server deployment methods.
+****
+
+Tail-based sampling configuration options.
+
+include::./tab-widgets/sampling-config-widget.asciidoc[]
+
+[float]
+[[configuration-tbs]]
+= Top-level tail-based sampling settings
+
+See <<tail-based-sampling>> to learn more.
+
+:input-type: ref
+// tag::tbs-top[]
+
+[float]
+[id="sampling-tail-enabled-{input-type}"]
+== Enable tail-based sampling
+Set to `true` to enable tail based sampling.
+Disabled by default. (bool)
+
+|====
+| APM Server binary | `sampling.tail.enabled`
+| Fleet-managed     | `Enable tail-based sampling`
+|====
+
+[float]
+[id="sampling-tail-interval-{input-type}"]
+== Interval
+Synchronization interval for multiple APM Servers.
+Should be in the order of tens of seconds or low minutes.
+Default: `1m` (1 minute). (duration)
+
+|====
+| APM Server binary | `sampling.tail.interval`
+| Fleet-managed     | `Interval`
+|====
+
+[float]
+[id="sampling-tail-policies-{input-type}"]
+== Policies
+Criteria used to match a root transaction to a sample rate.
+
+Policies map trace events to a sample rate.
+Each policy must specify a sample rate.
+Trace events are matched to policies in the order specified.
+All policy conditions must be true for a trace event to match.
+Each policy list should conclude with a policy that only specifies a sample rate.
+This final policy is used to catch remaining trace events that don't match a stricter policy.
+(`[]policy`)
+
+|====
+| APM Server binary | `sampling.tail.policies`
+| Fleet-managed     | `Policies`
+|====
+
+[float]
+[id="sampling-tail-storage_limit-{input-type}"]
+== Storage limit
+The amount of storage space allocated for trace events matching tail sampling policies. Caution: Setting this limit higher than the allowed space may cause APM Server to become unhealthy.
+Default: `3GB`. (text)
+
+|====
+| APM Server binary | `sampling.tail.storage_limit`
+| Fleet-managed     | `Storage limit`
+|====
+
+// end::tbs-top[]
+
+[float]
+[[configuration-tbs-policy]]
+= Policy-level tail-based sampling settings
+
+See <<tail-based-sampling>> to learn more.
+
+// tag::tbs-policy[]
+
+[float]
+[id="sampling-tail-sample-rate-{input-type}"]
+== Sample rate
+
+**`sample_rate`**
+
+The sample rate to apply to trace events matching this policy.
+Required in each policy.
+
+The sample rate must be greater than `0` and less than or equal to `1`.
+For example, a `sample_rate` of `0.01` means that 1% of trace events matching the policy will be sampled.
+A `sample_rate` of `1` means that 100% of trace events matching the policy will be sampled. (int)
+
+[float]
+[id="sampling-tail-trace-name-{input-type}"]
+== Trace name
+
+**`trace.name`**
+
+The trace name for events to match a policy.
+A match occurs when the configured `trace.name` matches the `transaction.name` of the root transaction of a trace.
+A root transaction is any transaction without a `parent.id`. (string)
+
+[float]
+[id="sampling-tail-trace-outcome-{input-type}"]
+== Trace outcome
+
+**`trace.outcome`**
+
+The trace outcome for events to match a policy.
+A match occurs when the configured `trace.outcome` matches a trace's `event.outcome` field.
+Trace outcome can be `success`, `failure`, or `unknown`. (string)
+
+[float]
+[id="sampling-tail-service-name-{input-type}"]
+== Service name
+
+**`service.name`**
+
+The service name for events to match a policy. (string)
+
+[float]
+[id="sampling-tail-service-environment-{input-type}"]
+== Service Environment
+
+**`service.environment`**
+
+The service environment for events to match a policy. (string)
+
+// end::tbs-policy[]
+:!input-type:

@@ -1,0 +1,28 @@
+// tag::binary[]
+To enable RUM support, set `apm-server.rum.enabled` to `true` in your APM Server configuration file.
+
+Example config:
+
+["source","yaml"]
+----
+apm-server.rum.enabled: true
+apm-server.auth.anonymous.rate_limit.event_limit: 300
+apm-server.auth.anonymous.rate_limit.ip_limit: 1000
+apm-server.auth.anonymous.allow_service: [your_service_name]
+apm-server.rum.allow_origins: ['*']
+apm-server.rum.allow_headers: ["header1", "header2"]
+apm-server.rum.library_pattern: "node_modules|bower_components|~"
+apm-server.rum.exclude_from_grouping: "^/webpack"
+apm-server.rum.source_mapping.enabled: true
+apm-server.rum.source_mapping.cache.expiration: 5m
+apm-server.rum.source_mapping.elasticsearch.api_key: TiNAGG4BaaMdaH1tRfuU:KnR6yE41RrSowb0kQ0HWoA
+----
+// end::binary[]
+
+// tag::fleet-managed[]
+To enable RUM, set <<rum-enable>> to `true`.
+
+include::../shared/input-apm.asciidoc[tag=fleet-managed-settings]
++
+. Look for these options under **Real User Monitoring**.
+// end::fleet-managed[]

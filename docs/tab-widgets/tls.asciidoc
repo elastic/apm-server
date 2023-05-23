@@ -1,0 +1,21 @@
+// tag::fleet-managed[]
+Enable TLS in the APM integration settings and use the <<agent-server-ssl>> to set the path to the server certificate and key.
+// end::fleet-managed[]
+
+// tag::binary[]
+The following is a basic APM Server SSL config with secure communication enabled.
+This will make APM Server serve HTTPS requests instead of HTTP.
+
+[source,yaml]
+----
+apm-server.ssl.enabled: true
+apm-server.ssl.certificate: "/path/to/apm-server.crt"
+apm-server.ssl.key: "/path/to/apm-server.key"
+----
+
+A full list of configuration options is available in <<agent-server-ssl>>.
+
+TIP: If APM agents are authenticating themselves using a certificate that cannot be authenticated through known CAs (e.g. self signed certificates), use the `ssl.certificate_authorities` to set a custom CA.
+This will automatically modify the `ssl.client_authentication` configuration to require authentication.
+
+// end::binary[]
