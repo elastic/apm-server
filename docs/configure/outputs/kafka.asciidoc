@@ -118,9 +118,6 @@ event field. For example, this configuration uses a custom field,
 topic: '%{[fields.log_topic]}'
 -----
 
-TIP: To learn how to add custom fields to events, see the
-<<libbeat-configuration-fields,`fields`>> option.
-
 See the <<topics-option-kafka,`topics`>> setting for other ways to set the
 topic dynamically.
 

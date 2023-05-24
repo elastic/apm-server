@@ -9,6 +9,9 @@
     - description: Increase default minimum TLS version to 1.2
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/10812
+    - description: Add `service.language.name` to service destination metrics
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/10881
 - version: "8.8.0"
   changes:
     - description: Store app logs into service-specific data streams

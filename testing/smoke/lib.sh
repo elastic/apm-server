@@ -13,8 +13,10 @@ get_versions() {
 
     local REGION=$(echo var.region | terraform console | tr -d '"')
     local EC_VERSION_ENDPOINT="https://cloud.elastic.co/api/v1/regions/${REGION}/stack/versions?show_deleted=false&show_unusable=false"
-    local RES=$(curl_fail -H "Authorization: ApiKey ${EC_API_KEY}" ${EC_VERSION_ENDPOINT})
-    if [ "$?" -ne 0 ]; then echo "${RES}\n"; fi
+    local RES
+    local RC=0
+    RES=$(curl_fail -H "Authorization: ApiKey ${EC_API_KEY}" ${EC_VERSION_ENDPOINT}) || RC=$?
+    if [ $RC -ne 0 ]; then echo "${RES}"; fi
     VERSIONS=$(echo "${RES}" | jq -r -c '[.stacks[].version | select(. | contains("-") | not)] | sort')
 }
 
@@ -32,8 +34,10 @@ get_latest_snapshot() {
 
     local REGION=$(echo var.region | terraform console | tr -d '"')
     local EC_VERSION_ENDPOINT="https://cloud.elastic.co/api/v1/regions/${REGION}/stack/versions?show_deleted=false&show_unusable=true"
-    local RES=$(curl_fail -H "Authorization: ApiKey ${EC_API_KEY}" ${EC_VERSION_ENDPOINT})
-    if [ "$?" -ne 0 ]; then echo "${RES}\n"; fi
+    local RES
+    local RC=0
+    RES=$(curl_fail -H "Authorization: ApiKey ${EC_API_KEY}" ${EC_VERSION_ENDPOINT}) || RC=$?
+    if [ $RC -ne 0 ]; then echo "${RES}"; fi
     VERSIONS=$(echo "${RES}" | jq -r -c '[.stacks[].version | select(. | contains("-"))] | sort')
 }
 
@@ -88,11 +92,13 @@ assert_document() {
     if [[ -z ${ENTRIES} ]]; then ENTRIES=1; fi
     local AUTH=${ELASTICSEARCH_USER}:${ELASTICSEARCH_PASS}
     local URL=${ELASTICSEARCH_URL}/${INDEX}/_search
+
+    local RC=0
     # RESULT needs to be a global variable in order to be able to parse
     # the whole result in assert_entry. Passing it as a string
     # argument doesn't work well.
-    RESULT=$(curl_fail -u ${AUTH} -XGET "${URL}" -H 'Content-Type: application/json' -d"{\"query\":{\"bool\":{\"must\":[{\"match\":{\"${FIELD}\":\"${VALUE}\"}},{\"match\":{\"observer.version\":\"${VERSION}\"}}]}}}")
-    if [ "$?" -ne 0 ]; then echo "${RESULT}\n"; fi
+    RESULT=$(curl_fail -u ${AUTH} -XGET "${URL}" -H 'Content-Type: application/json' -d"{\"query\":{\"bool\":{\"must\":[{\"match\":{\"${FIELD}\":\"${VALUE}\"}},{\"match\":{\"observer.version\":\"${VERSION}\"}}]}}}") || RC=$?
+    if [ $RC -ne 0 ]; then echo "${RESULT}"; fi
 
     echo "-> Asserting ${INDEX} contains expected documents documents..."
     assert_entry ${FIELD} ${VALUE} ${ENTRIES}
@@ -158,8 +164,10 @@ data_stream_assert_events() {
 }
 
 healthcheck() {
-    local RES=$(curl_fail -H "${APM_AUTH_HEADER}" ${APM_SERVER_URL})
-    if [ "$?" -ne 0 ]; then echo "${RES}\n"; fi
+    local RES
+    local RC=0
+    RES=$(curl_fail -H "${APM_AUTH_HEADER}" ${APM_SERVER_URL}) || RC=$?
+    if [ $RC -ne 0 ]; then echo "${RES}"; fi
     local PUBLISH_READY=$(echo ${RES}| jq '.publish_ready')
     if [[ ! ${PUBLISH_READY} ]]; then
         local MAX_RETRIES=10
@@ -183,8 +191,10 @@ upgrade_managed() {
     local URL_MIGRATE=${KIBANA_URL}/internal/apm/fleet/cloud_apm_package_policy
 
     echo "-> Upgrading APM Server ${CURR_VERSION} to managed mode..."
-    local RESULT=$(curl_fail -H 'kbn-xsrf: true' -u "${AUTH}" -XPOST ${URL_MIGRATE})
-    if [ "$?" -ne 0 ]; then echo "${RESULT}\n"; fi
+    local RESULT
+    local RC=0
+    RESULT=$(curl_fail -H 'kbn-xsrf: true' -u "${AUTH}" -XPOST ${URL_MIGRATE}) || RC=$?
+    if [ $RC -ne 0 ]; then echo "${RESULT}"; fi
     local ENABLED=$(echo ${RESULT} | jq '.cloudApmPackagePolicy.enabled')
 
     if [[ ! ${ENABLED} ]]; then
@@ -192,7 +202,7 @@ upgrade_managed() {
         exit 6
     fi
 
-    # Allow the new server to start serving requets. Waiting for an arbitrary 70 seconds
+    # Allow the new server to start serving requests. Waiting for an arbitrary 70 seconds
     # period is not ideal, but there aren't any other APIs we can query.
     echo "-> Waiting for 70 seconds for the APM Server to become available..."
     sleep 70
@@ -210,8 +220,10 @@ legacy_assert_templates() {
     local SUCCESS=true
     for suffix in "${TEMPLATES[@]}"; do
         local TEMPLATE_NAME=${TEMPLATE_PREFIX}-${suffix}
-        local RESPONSE=$(elasticsearch_curl "/_template/${TEMPLATE_NAME}")
-        if [ "$?" -ne 0 ]; then echo "${RESPONSE}\n"; fi
+        local RESPONSE
+        local RC=0
+        RESPONSE=$(elasticsearch_curl "/_template/${TEMPLATE_NAME}") || RC=$?
+        if [ $RC -ne 0 ]; then echo "${RESPONSE}"; fi
         local ILM_POLICY=$(echo ${RESPONSE} | jq 'to_entries[0]|.value.settings.index.lifecycle')
         local ILM_POLICY_NAME=$(echo ${ILM_POLICY} | jq -r '.name')
         local ILM_POLICY_ROLLOVER_ALIAS=$(echo ${ILM_POLICY} | jq -r '.rollover_alias')
@@ -237,8 +249,10 @@ legacy_assert_ilm() {
     local EXPECTED_PHASES=1
     echo "-> Asserting legacy ILM policies..."
     # Verify the ILM policy exists, and has the right settings.
-    local RESPONSE=$(elasticsearch_curl "/_ilm/policy/${LEGACY_ILM_POLICY}")
-    if [ "$?" -ne 0 ]; then echo "${RESPONSE}\n"; fi
+    local RESPONSE
+    local RC=0
+    RESPONSE=$(elasticsearch_curl "/_ilm/policy/${LEGACY_ILM_POLICY}") || RC=$?
+    if [ $RC -ne 0 ]; then echo "${RESPONSE}"; fi
     local ILM_PHASES=$(echo ${RESPONSE} | jq 'to_entries[0]|.value.policy.phases')
     local ILM_PHASE_COUNT=$(echo ${RESPONSE} | jq -r '. | length')
     local SUCCESS=true
@@ -268,14 +282,18 @@ legacy_assert_ilm() {
 
 legacy_ingest_pipelines() {
     echo "-> Asserting legacy ingest pipelines..."
-    local RESPONSE=$(elasticsearch_curl "/_ingest/pipeline/apm")
-    if [ "$?" -ne 0 ]; then echo "${RESPONSE}\n"; fi
+    local RESPONSE
+    local RC=0
+    RESPONSE=$(elasticsearch_curl "/_ingest/pipeline/apm") || RC=$?
+    if [ $RC -ne 0 ]; then echo "${RESPONSE}"; fi
     local PIPELINES=( $(echo ${RESPONSE} | jq -r '.apm.processors[].pipeline.name') )
     local SUCCESS=true
     for pipeline in "${PIPELINES[@]}"; do
         # Verify the pipeline exists.
-        local RESPONSE=$(elasticsearch_curl "/_ingest/pipeline/${pipeline}")
-        if [ "$?" -ne 0 ]; then echo "${RESPONSE}\n"; fi
+        local RESPONSE
+        local RC=0
+        RESPONSE=$(elasticsearch_curl "/_ingest/pipeline/${pipeline}") || RC=$?
+        if [ $RC -ne 0 ]; then echo "${RESPONSE}"; fi
         local PIPELINE_BODY=$(echo ${RESPONSE} | jq 'to_entries[0]|.value.processors')
         if [[ -z ${PIPELINE_BODY} ]]; then
             echo "-> Invalid ingest pipeline ${pipeline}"
@@ -311,8 +329,10 @@ data_stream_assert_pipelines() {
     # NOTE(marclop) we could assert that the pipelines have some sort of version suffix
     # in their name, however, the APM package version may not equal the deployment version.
     echo "-> Asserting ingest pipelines..."
-    local RESPONSE=$(elasticsearch_curl '/_ingest/pipeline/*apm*')
-    if [ "$?" -ne 0 ]; then echo "${RESPONSE}\n"; fi
+    local RESPONSE
+    local RC=0
+    RESPONSE=$(elasticsearch_curl '/_ingest/pipeline/*apm*') || RC=$?
+    if [ $RC -ne 0 ]; then echo "${RESPONSE}"; fi
     local HAS_APM_PIPELINES=$(echo ${RESPONSE} | jq -r '.|length>0')
     if [[ ${HAS_APM_PIPELINES} != true ]]; then
         echo "-> Did not find any APM ingest pipelines"
@@ -324,31 +344,25 @@ data_stream_assert_pipelines() {
 data_stream_assert_templates_ilm() {
     echo "-> Asserting component templates and ILM policies..."
     local SUCCESS=true
-    local VERSION=${1}
-    local MAJOR_VERSION=$(echo ${VERSION} | cut -d '.' -f1 )
-    if [[ ${MAJOR_VERSION} -eq 7 ]]; then
-        local COMPONENTS=( settings custom )
-    else
-        local COMPONENTS=( package custom )
-    fi
 
-    local RES=$(elasticsearch_curl "/_ilm/policy")
-    if [ "$?" -ne 0 ]; then echo "${RES}\n"; fi
-    local COMPOSABLE_TEMPLATES=( $(echo ${RES} | jq -r 'to_entries[]|select(.key|contains("apm"))|.value.in_use_by.composable_templates[]') )
+    local COMPOSABLE_TEMPLATES=($(elasticsearch_curl "/_component_template" | jq -c -r '.component_templates|to_entries[]|select(.value.component_template._meta.package.name == "apm")|.value'))
     for ct in "${COMPOSABLE_TEMPLATES[@]}"; do
-        for type in "${COMPONENTS[@]}"; do
-            local RESPONSE=$(elasticsearch_curl "/_component_template/${ct}@${type}")
-            if [ "$?" -ne 0 ]; then echo "${RESPONSE}\n"; fi
-            local FOUND=$(echo ${RESPONSE} | jq '.component_templates|length==1')
-            if [[ ${FOUND} != true ]]; then
-                echo "-> Unable to find component template ${ct}@${type}"
+        local CT_NAME=$(echo "${ct}" | jq -r '.name')
+        local ILM_POLICY_NAME=$(echo "${ct}" | jq -r '.component_template.template.settings.index.lifecycle.name // empty')
+        if [[ ! -z "${ILM_POLICY_NAME}" ]]; then
+            # Component template has ILM policy attached, check if ILM policy actually exists.
+            local RES
+            local RC=0
+            RES=$(elasticsearch_curl "/_ilm/policy/${ILM_POLICY_NAME}") || RC=$?
+            if [ $RC -ne 0 ]; then
+                echo "-> ILM policy ${ILM_POLICY_NAME} error: ${RES}"
                 SUCCESS=false
             fi
-            # Ensure the ILM lifecycle policy exists.
-            local ILM_POLICY_NAME=$(echo | jq -r '.component_templates[0].template.settings.index.lifecycle.name')
-	    local RES=$(elasticsearch_curl "/_ilm/policy/${ILM_POLICY_NAME}")
-            if [ "$?" -ne 0 ]; then echo "${RES}\n"; fi
-        done
+        elif [[ $CT_NAME == *@package ]]; then
+            # @package component templates should always have ILM policy.
+            echo "-> Package component template ${CT_NAME} has no ILM policy"
+            SUCCESS=false
+        fi
     done
 
     if [[ ${SUCCESS} == false ]]; then

@@ -1,1 +1,1 @@
-../basic_upgrade/cleanup.sh
+../basic-upgrade/cleanup.sh
