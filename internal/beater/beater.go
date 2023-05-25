@@ -843,7 +843,7 @@ func newSourcemapFetcher(
 		return nil, nil, err
 	}
 
-	var chained sourcemap.ChainedFetcher
+	var fetchers []sourcemap.Fetcher
 
 	// start background sync job
 	ctx, cancel := context.WithCancel(context.Background())
@@ -858,11 +858,13 @@ func newSourcemapFetcher(
 	}
 	sourcemapFetcher := sourcemap.NewSourcemapFetcher(metadataFetcher, cachingFetcher)
 
-	chained = append(chained, sourcemapFetcher)
+	fetchers = append(fetchers, sourcemapFetcher)
 
 	if kibanaClient != nil {
-		chained = append(chained, sourcemap.NewKibanaFetcher(kibanaClient))
+		fetchers = append(fetchers, sourcemap.NewKibanaFetcher(kibanaClient))
 	}
+
+	chained := sourcemap.NewChainedFetcher(fetchers)
 
 	return chained, cancel, nil
 }
