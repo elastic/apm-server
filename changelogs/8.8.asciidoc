@@ -3,7 +3,17 @@
 
 https://github.com/elastic/apm-server/compare/8.7\...8.8[View commits]
 
+* <<release-notes-8.8.1>>
 * <<release-notes-8.8.0>>
+
+[float]
+[[release-notes-8.8.1]]
+=== APM version 8.8.1
+
+https://github.com/elastic/apm-server/compare/v8.8.0\...v8.8.1[View commits]
+
+[float]
+==== Bug fixes
 
 [float]
 [[release-notes-8.8.0]]

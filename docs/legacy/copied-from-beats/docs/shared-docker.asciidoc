@@ -18,7 +18,7 @@ Elastic license levels.
 ===== Pull the image
 
 Obtaining {beatname_uc} for Docker is as simple as issuing a +docker pull+ command
-against the Elastic Docker registry.
+against the Elastic Docker registry and then, optionally, verifying the image.
 
 ifeval::["{release-state}"=="unreleased"]
 
@@ -29,10 +29,22 @@ endif::[]
 
 ifeval::["{release-state}"!="unreleased"]
 
+. Pull the Docker image:
++
 ["source", "sh", subs="attributes"]
 ------------------------------------------------
 docker pull {dockerimage}
 ------------------------------------------------
+
+. Verify the Docker image:
++
+["source", "sh", subs="attributes"]
+------------------------------------------------
+wget https://artifacts.elastic.co/cosign.pub
+cosign verify --key cosign.pub {dockerimage}:{version}
+------------------------------------------------
++
+For details about this step, refer to {ref}/docker.html#docker-verify-signature[Verify the {es} Docker image signature] in the {es} documentation.
 
 endif::[]
 
