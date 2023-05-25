@@ -330,6 +330,10 @@ Please see <<configuring-howto-apm-server>>.
 [role="exclude",id="events-api"]
 === Events Intake API
 
+[discrete]
+[[events-api-errors]]
+==== Errors
+
 This page has been deleted.
 Please see <<apm-overview>>.
 
@@ -341,6 +345,10 @@ Please see <<apm-overview>>.
 
 [role="exclude",id="metadata-api"]
 === Metadata
+
+[discrete]
+[[metadata-schema]]
+==== Errors
 
 This page has been deleted.
 Please see <<apm-overview>>.
@@ -383,6 +391,32 @@ Please see <<apm-overview>>.
 
 [role="exclude",id="overview"]
 === Legacy APM Server Reference
+
+This page has been deleted.
+Please see <<apm-overview>>.
+
+[role="exclude",id="metadata"]
+=== Metadata
+
+This page has been deleted.
+Please see <<apm-overview>>.
+
+[role="exclude",id="distributed-tracing"]
+=== Distributed tracing
+
+This page has been deleted.
+Please see <<apm-overview>>.
+
+[role="exclude",id="sourcemaps"]
+=== How to apply source maps to error stack traces when using minified bundles
+
+[discrete]
+[[sourcemap-rum-generate]]
+==== Sourcemap RUM Generate
+
+[discrete]
+[[sourcemap-rum-upload]]
+==== Sourcemap RUM upload
 
 This page has been deleted.
 Please see <<apm-overview>>.
