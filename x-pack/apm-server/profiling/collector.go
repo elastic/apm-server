@@ -248,12 +248,10 @@ type StackTraceEvent struct {
 	// Host metadata
 	Tags []string `json:"tags,omitempty"`
 	// HostIP is the list of network cards IPs, mapped to an Elasticsearch "ip" data type field
-	HostIP []string `json:"host.ip,omitempty"`
-	// HostIPString is the list of network cards IPs, mapped to an Elasticsearch "keyword" data type
-	HostIPString string `json:"host.ipstring,omitempty"`
-	HostName     string `json:"host.name,omitempty"`
-	OSKernel     string `json:"os.kernel,omitempty"`
-	AgentVersion string `json:"agent.version,omitempty"`
+	HostIP       []string `json:"host.ip,omitempty"`
+	HostName     string   `json:"host.name,omitempty"`
+	OSKernel     string   `json:"os.kernel,omitempty"`
+	AgentVersion string   `json:"agent.version,omitempty"`
 }
 
 // StackTrace represents a stacktrace serializable into the stacktraces index.
@@ -315,7 +313,6 @@ func mapToStackTraceEvents(ctx context.Context,
 				Count:         traces[i].Count,
 				Tags:          tags,
 				HostIP:        ipAddresses,
-				HostIPString:  ipAddress,
 				HostName:      hostName,
 				OSKernel:      kernelVersion,
 				AgentVersion:  agentVersion,
