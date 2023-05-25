@@ -326,3 +326,63 @@ Please see <<troubleshoot-apm>>.
 
 This page has moved.
 Please see <<configuring-howto-apm-server>>.
+
+[role="exclude",id="events-api"]
+=== Events Intake API
+
+This page has been deleted.
+Please see <<apm-overview>>.
+
+[role="exclude",id="intake-api"]
+=== API
+
+This page has been deleted.
+Please see <<apm-overview>>.
+
+[role="exclude",id="metadata-api"]
+=== Metadata
+
+This page has been deleted.
+Please see <<apm-overview>>.
+
+[role="exclude",id="errors"]
+=== Errors
+
+This page has been deleted.
+Please see <<apm-overview>>.
+
+[role="exclude",id="transaction-spans"]
+=== Spans
+
+This page has been deleted.
+Please see <<apm-overview>>.
+
+[role="exclude",id="transactions"]
+=== Transactions
+
+This page has been deleted.
+Please see <<apm-overview>>.
+
+[role="exclude",id="legacy-apm-overview"]
+=== Legacy APM Overview
+
+This page has been deleted.
+Please see <<apm-overview>>.
+
+[role="exclude",id="apm-components"]
+=== Components and documentation
+
+This page has been deleted.
+Please see <<apm-overview>>.
+
+[role="exclude",id="configuring-ingest-node"]
+=== Parse data using ingest node pipelines
+
+This page has been deleted.
+Please see <<apm-overview>>.
+
+[role="exclude",id="overview"]
+=== Legacy APM Server Reference
+
+This page has been deleted.
+Please see <<apm-overview>>.
