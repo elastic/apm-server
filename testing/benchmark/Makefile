@@ -25,7 +25,7 @@ SSH_KEY ?= ~/.ssh/id_rsa_terraform
 WORKER_IP = $(shell terraform output -raw public_ip)
 
 SHELL = /bin/bash
-.SHELLFLAGS = -o pipefail -c
+.SHELLFLAGS = -o pipefail -x -c
 
 # This profile will also be used by the Terraform provider.
 export AWS_PROFILE ?= default
