@@ -130,9 +130,12 @@ CI_ELASTIC_AGENT_DOCKER_IMAGE=docker.elastic.co/observability-ci/elastic-agent
 ELASTIC_AGENT_IMAGE_TAG?=${IMAGE_TAG}
 
 .PHONY: docker-override-committed-version
-docker-override-committed-version: kibana_docker_image elastic_agent_docker_image
-	@echo 'export TF_VAR_docker_image_override={"elasticsearch":"${ELASTICSEARCH_DOCKER_IMAGE}","kibana":"${CI_KIBANA_DOCKER_IMAGE}","apm":"${CI_ELASTIC_AGENT_DOCKER_IMAGE}"}'
-	@echo 'export TF_VAR_docker_image_tag_override={"elasticsearch":"${IMAGE_TAG}","kibana":"${CUSTOM_IMAGE_TAG}","apm":"${CUSTOM_IMAGE_TAG}"}'
+docker-override-committed-version: docker_image.auto.tfvars kibana_docker_image elastic_agent_docker_image
+	@echo '-> done'
+
+docker_image.auto.tfvars:
+	@echo 'docker_image_override={"elasticsearch":"${ELASTICSEARCH_DOCKER_IMAGE}","kibana":"${CI_KIBANA_DOCKER_IMAGE}","apm":"${CI_ELASTIC_AGENT_DOCKER_IMAGE}"}' > $@
+	@echo 'docker_image_tag_override={"elasticsearch":"${IMAGE_TAG}","kibana":"${CUSTOM_IMAGE_TAG}","apm":"${CUSTOM_IMAGE_TAG}"}' >> $@
 
 .PHONY: cleanup-elasticsearch
 cleanup-elasticsearch:
