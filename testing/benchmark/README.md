@@ -78,18 +78,27 @@ Helper commands
 - `terraform.tfvars`: Copies the examples tfvars and sets the `user_name` var with to `$USER`.
 - `apmbench`: Compiles the `apmbench` binary from the provided location (`APMBENCH_PATH`).
 
-### Override the docker image tag
+### Override the docker image  and image tag
+
+Running `make docker-override-committed-version` will create new docker images for `kibana` and `elastic-agent`
+with local `apm` package and `apm-server` and a Terraform variable file. The file named 
+`docker_image.auto.tfvars` contains Terraform Docker image Terraform variables overrides. This file is not 
+overridden automatically, you need to remove it manually if present.
+
+#### Override docker image tag
 
 It is possible to override the tag of the docker image that is run in the remote ESS deployment. You can
 specify any of the avilable tags (such as `8.3.0-SNAPSHOT` or a more specific tag `8.3.0-c655cda8-SNAPSHOT`).
-Alternatively, you can run evaluate the output of `make docker-override-committed-version` in your shell,
-to have use the committed tags in the `docker-compose.yml` file: `eval $(make docker-override-committed-version)`.
+Alternatively, you can run `make docker-override-committed-version` in your shell, to have use the committed
+tags in the `docker-compose.yml` file in the repository root.
 
-### Override the docker image
+#### Override the docker image
 
 It is also possible to override the docker image to one that is allowed to run in ESS. For more information
 on which repositories can be used, please refer to our internal docs. To override the docker image, you'll need
 to specify the full object of images that is defined in `variables.tf`: `docker_image_override`.
+Alternatively, you can run `make docker-override-committed-version` in your shell, to have use the committed
+tags in the `docker-compose.yml` file in the repository root.
 
 ### Set APM index shards
 
