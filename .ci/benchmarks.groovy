@@ -60,6 +60,9 @@ pipeline {
       steps {
         dir("${BASE_DIR}") {
           withGoEnv() {
+            retryWithSleep(retries: 3, seconds: 5, backoff: true) {
+              dockerLogin(secret: "${DOCKER_SECRET}", registry: "${DOCKER_REGISTRY}")
+            }
             dir("${TESTING_BENCHMARK_DIR}") {
               withTestClusterEnv() {
                 sh(label: 'Build apmbench', script: 'make apmbench $SSH_KEY terraform.tfvars')
