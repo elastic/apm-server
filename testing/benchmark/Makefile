@@ -127,6 +127,7 @@ ELASTICSEARCH_DOCKER_IMAGE=docker.elastic.co/cloud-release/elasticsearch-cloud-e
 KIBANA_DOCKER_IMAGE=docker.elastic.co/cloud-release/kibana-cloud
 CI_KIBANA_DOCKER_IMAGE=docker.elastic.co/observability-ci/kibana
 CI_ELASTIC_AGENT_DOCKER_IMAGE=docker.elastic.co/observability-ci/elastic-agent
+ELASTIC_AGENT_IMAGE_TAG?=${IMAGE_TAG}
 
 .PHONY: docker-override-committed-version
 docker-override-committed-version: kibana_docker_image elastic_agent_docker_image
@@ -153,7 +154,9 @@ cleanup-elasticsearch:
 kibana_docker_image: build_kibana_docker_image
 	docker push ${CI_KIBANA_DOCKER_IMAGE}:${CUSTOM_IMAGE_TAG}
 build_kibana_docker_image:
+	@echo "-> Building APM package"
 	$(MAKE) -C ${REPO_ROOT} build-package
+	@echo "-> Building Kibana docker image"
 	docker build -t ${CI_KIBANA_DOCKER_IMAGE}:${CUSTOM_IMAGE_TAG} \
 		-f "${REPO_ROOT}/testing/docker/kibana/Dockerfile-apmpackage" \
 		--build-arg KIBANA_IMAGE=${KIBANA_DOCKER_IMAGE}:${IMAGE_TAG} \
@@ -168,6 +171,7 @@ build_kibana_docker_image:
 elastic_agent_docker_image: build_elastic_agent_docker_image
 	docker push "${CI_ELASTIC_AGENT_DOCKER_IMAGE}:${CUSTOM_IMAGE_TAG}"
 build_elastic_agent_docker_image:
+	@echo "-> Building Elastic Agent docker image"
 	@env BASE_IMAGE=${ELASTIC_AGENT_DOCKER_IMAGE}:${ELASTIC_AGENT_IMAGE_TAG} GOARCH=amd64 \
 		bash ${REPO_ROOT}/testing/docker/elastic-agent/build.sh \
 		     -t ${CI_ELASTIC_AGENT_DOCKER_IMAGE}:${CUSTOM_IMAGE_TAG}
