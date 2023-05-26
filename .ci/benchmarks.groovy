@@ -66,7 +66,7 @@ pipeline {
             dir("${TESTING_BENCHMARK_DIR}") {
               withTestClusterEnv() {
                 sh(label: 'Build apmbench', script: 'make apmbench $SSH_KEY terraform.tfvars')
-                sh(label: 'Spin up benchmark environment', script: '$(make docker-override-committed-version) && make init apply')
+                //sh(label: 'Spin up benchmark environment', script: '$(make docker-override-committed-version) && make init apply')
                 withESBenchmarkEnv() {
                   sh(label: 'Run benchmarks', script: 'make run-benchmark-autotuned index-benchmark-results')
                 }
