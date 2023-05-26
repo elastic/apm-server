@@ -17,6 +17,8 @@ pipeline {
     JOB_GCS_CREDENTIALS = 'apm-ci-gcs-plugin'
     SLACK_CHANNEL = "#apm-server"
     TESTING_BENCHMARK_DIR = 'testing/benchmark'
+    DOCKER_SECRET = 'secret/observability-team/ci/docker-registry/prod'
+    DOCKER_REGISTRY = 'docker.elastic.co'
   }
   options {
     timeout(time: 8, unit: 'HOURS')
