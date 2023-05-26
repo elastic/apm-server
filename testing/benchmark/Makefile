@@ -131,7 +131,7 @@ ELASTIC_AGENT_IMAGE_TAG?=${IMAGE_TAG}
 
 .PHONY: docker-override-committed-version
 docker-override-committed-version: docker_image.auto.tfvars kibana_docker_image elastic_agent_docker_image
-	@echo '-> done'
+	@echo '-> docker image override completed'
 
 docker_image.auto.tfvars:
 	@echo 'docker_image_override={"elasticsearch":"${ELASTICSEARCH_DOCKER_IMAGE}","kibana":"${CI_KIBANA_DOCKER_IMAGE}","apm":"${CI_ELASTIC_AGENT_DOCKER_IMAGE}"}' > $@
