@@ -133,10 +133,6 @@ ELASTIC_AGENT_IMAGE_TAG?=${IMAGE_TAG}
 docker-override-committed-version: docker_image.auto.tfvars kibana_docker_image elastic_agent_docker_image
 	@echo '-> docker image override completed'
 
-docker_image.auto.tfvars:
-	@echo 'docker_image_override={"elasticsearch":"${ELASTICSEARCH_DOCKER_IMAGE}","kibana":"${CI_KIBANA_DOCKER_IMAGE}","apm":"${CI_ELASTIC_AGENT_DOCKER_IMAGE}"}' > $@
-	@echo 'docker_image_tag_override={"elasticsearch":"${IMAGE_TAG}","kibana":"${CUSTOM_IMAGE_TAG}","apm":"${CUSTOM_IMAGE_TAG}"}' >> $@
-
 .PHONY: cleanup-elasticsearch
 cleanup-elasticsearch:
 	$(eval ELASTICSEARCH_URL = $(shell terraform output elasticsearch_url))
@@ -145,6 +141,15 @@ cleanup-elasticsearch:
 	$(eval APM_DATA_STREAMS = traces-apm*,metrics-apm*,logs-apm*)
 	@ echo "-> Deleting APM Server data streams..."
 	@ curl -u $(ELASTICSEARCH_USER):$(ELASTICSEARCH_PASS) -XDELETE $(ELASTICSEARCH_URL)/_data_stream/$(APM_DATA_STREAMS)
+
+##############################################################################
+# Target for creating a .tfvars file, defining the custom Docker images to
+# use in the deployment.
+##############################################################################
+
+docker_image.auto.tfvars:
+	@echo 'docker_image_override={"elasticsearch":"${ELASTICSEARCH_DOCKER_IMAGE}","kibana":"${CI_KIBANA_DOCKER_IMAGE}","apm":"${CI_ELASTIC_AGENT_DOCKER_IMAGE}"}' > $@
+	@echo 'docker_image_tag_override={"elasticsearch":"${IMAGE_TAG}","kibana":"${CUSTOM_IMAGE_TAG}","apm":"${CUSTOM_IMAGE_TAG}"}' >> $@
 
 ##############################################################################
 # Targets for building and pushing custom Kibana and Elastic Agent images.
