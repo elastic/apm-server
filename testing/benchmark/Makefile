@@ -37,6 +37,7 @@ all: $(SSH_KEY) terraform.tfvars apmbench auth apply
 
 MAKEFILE_PATH:=$(abspath $(lastword ${MAKEFILE_LIST}))
 MAKEFILE_DIR:=$(dir ${MAKEFILE_PATH})
+REPO_ROOT:=$(abspath ${MAKEFILE_DIR}/../../)
 
 include ${MAKEFILE_DIR}/../../go.mk
 
@@ -116,10 +117,21 @@ $(SSH_KEY):
 ssh:
 	@ssh $(SSH_OPTS) -i $(SSH_KEY) $(SSH_USER)@$(WORKER_IP)
 
+IMAGE_TAG?=$(shell grep docker.elastic.co/kibana ${REPO_ROOT}/docker-compose.yml | cut -d: -f3)
+# Tag custom images with the username and current timestamp.
+# The timestamp must be included to force images to be pulled.
+USER_NAME?=${USER}
+CUSTOM_IMAGE_TAG:=${IMAGE_TAG}-${USER_NAME}-$(shell date +%s)
+ELASTIC_AGENT_DOCKER_IMAGE?=docker.elastic.co/cloud-release/elastic-agent-cloud
+ELASTICSEARCH_DOCKER_IMAGE=docker.elastic.co/cloud-release/elasticsearch-cloud-ess
+KIBANA_DOCKER_IMAGE=docker.elastic.co/cloud-release/kibana-cloud
+CI_KIBANA_DOCKER_IMAGE=docker.elastic.co/observability-ci/kibana
+CI_ELASTIC_AGENT_DOCKER_IMAGE=docker.elastic.co/observability-ci/elastic-agent
+ELASTIC_AGENT_IMAGE_TAG?=${IMAGE_TAG}
+
 .PHONY: docker-override-committed-version
-docker-override-committed-version:
-	$(eval TAG := $(shell grep docker.elastic.co/ ../../docker-compose.yml |grep SNAPSHOT| cut -d ':' -f3|uniq))
-	@echo 'export TF_VAR_docker_image_tag_override={"elasticsearch":"$(TAG)","kibana":"$(TAG)","apm":"$(TAG)"}'
+docker-override-committed-version: docker_image.auto.tfvars kibana_docker_image elastic_agent_docker_image
+	@echo '-> docker image override completed'
 
 .PHONY: cleanup-elasticsearch
 cleanup-elasticsearch:
@@ -129,3 +141,42 @@ cleanup-elasticsearch:
 	$(eval APM_DATA_STREAMS = traces-apm*,metrics-apm*,logs-apm*)
 	@ echo "-> Deleting APM Server data streams..."
 	@ curl -u $(ELASTICSEARCH_USER):$(ELASTICSEARCH_PASS) -XDELETE $(ELASTICSEARCH_URL)/_data_stream/$(APM_DATA_STREAMS)
+
+##############################################################################
+# Target for creating a .tfvars file, defining the custom Docker images to
+# use in the deployment.
+##############################################################################
+
+docker_image.auto.tfvars:
+	@echo 'docker_image_override={"elasticsearch":"${ELASTICSEARCH_DOCKER_IMAGE}","kibana":"${CI_KIBANA_DOCKER_IMAGE}","apm":"${CI_ELASTIC_AGENT_DOCKER_IMAGE}"}' > $@
+	@echo 'docker_image_tag_override={"elasticsearch":"${IMAGE_TAG}","kibana":"${CUSTOM_IMAGE_TAG}","apm":"${CUSTOM_IMAGE_TAG}"}' >> $@
+
+##############################################################################
+# Targets for building and pushing custom Kibana and Elastic Agent images.
+##############################################################################
+
+# kibana_docker_image builds the Cloud Kibana image with the local
+# APM integration package injected. The image will be based off the
+# stack version defined in ${REPO_ROOT}/.env, unless overridden.
+.PHONY: build_kibana_docker_image
+kibana_docker_image: build_kibana_docker_image
+	docker push ${CI_KIBANA_DOCKER_IMAGE}:${CUSTOM_IMAGE_TAG}
+build_kibana_docker_image:
+	$(MAKE) -C ${REPO_ROOT} build-package
+	docker build -t ${CI_KIBANA_DOCKER_IMAGE}:${CUSTOM_IMAGE_TAG} \
+		-f "${REPO_ROOT}/testing/docker/kibana/Dockerfile-apmpackage" \
+		--build-arg KIBANA_IMAGE=${KIBANA_DOCKER_IMAGE}:${IMAGE_TAG} \
+		--platform linux/amd64 \
+		"${REPO_ROOT}/build/packages"
+
+# elastic_agent_docker_image builds the Cloud Elastic Agent image
+# with the local APM Server binary injected. The image will be based
+# off the stack version defined in ${REPO_ROOT}/docker-compose.yml,
+# unless overridden.
+.PHONY: build_elastic_agent_docker_image
+elastic_agent_docker_image: build_elastic_agent_docker_image
+	docker push "${CI_ELASTIC_AGENT_DOCKER_IMAGE}:${CUSTOM_IMAGE_TAG}"
+build_elastic_agent_docker_image:
+	@env BASE_IMAGE=${ELASTIC_AGENT_DOCKER_IMAGE}:${ELASTIC_AGENT_IMAGE_TAG} GOARCH=amd64 \
+		bash ${REPO_ROOT}/testing/docker/elastic-agent/build.sh \
+		     -t ${CI_ELASTIC_AGENT_DOCKER_IMAGE}:${CUSTOM_IMAGE_TAG}

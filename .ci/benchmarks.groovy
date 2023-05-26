@@ -17,6 +17,8 @@ pipeline {
     JOB_GCS_CREDENTIALS = 'apm-ci-gcs-plugin'
     SLACK_CHANNEL = "#apm-server"
     TESTING_BENCHMARK_DIR = 'testing/benchmark'
+    DOCKER_SECRET = 'secret/observability-team/ci/docker-registry/prod'
+    DOCKER_REGISTRY = 'docker.elastic.co'
   }
   options {
     timeout(time: 8, unit: 'HOURS')
@@ -58,10 +60,13 @@ pipeline {
       steps {
         dir("${BASE_DIR}") {
           withGoEnv() {
+            retryWithSleep(retries: 3, seconds: 5, backoff: true) {
+              dockerLogin(secret: "${DOCKER_SECRET}", registry: "${DOCKER_REGISTRY}")
+            }
             dir("${TESTING_BENCHMARK_DIR}") {
               withTestClusterEnv() {
                 sh(label: 'Build apmbench', script: 'make apmbench $SSH_KEY terraform.tfvars')
-                sh(label: 'Spin up benchmark environment', script: '$(make docker-override-committed-version) && make init apply')
+                sh(label: 'Spin up benchmark environment', script: 'make docker-override-committed-version init apply; echo "-> infra setup done"')
                 withESBenchmarkEnv() {
                   sh(label: 'Run benchmarks', script: 'make run-benchmark-autotuned index-benchmark-results')
                 }
