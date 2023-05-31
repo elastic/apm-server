@@ -1,4 +1,4 @@
-[[metadata-api]]
+[[api-metadata]]
 === Metadata
 
 Every new connection to the APM Server starts with a `metadata` stanza.

@@ -23,9 +23,9 @@ include::./ilm-how-to.asciidoc[]
 
 APM processing and storage costs are largely dominated by transactions, spans, and stack frames.
 
-* <<data-model-transactions,*Transactions*>> describe an event captured by an Elastic {apm-agent} instrumenting a service.
+* <<transactions,*Transactions*>> describe an event captured by an Elastic {apm-agent} instrumenting a service.
 They are the highest level of work being measuring within a service.
-* <<data-model-spans,*Spans*>> belong to transactions. They measure from the start to end of an activity,
+* <<transaction-spans,*Spans*>> belong to transactions. They measure from the start to end of an activity,
 and contain information about a specific code path that has been executed.
 * *Stack frames* belong to spans. Stack frames represent a function call on the call stack,
 and include attributes like function name, file name and path, line number, etc.

@@ -91,8 +91,8 @@ and will work with traces sent by either Elastic APM agents or OpenTelemetry SDK
 === Sampled data and visualizations
 
 A sampled trace retains all data associated with it.
-A non-sampled trace drops all <<data-model-spans,span>> and <<data-model-transactions,transaction>> data^1^.
-Regardless of the sampling decision, all traces retain <<data-model-errors,error>> data.
+A non-sampled trace drops all <<transaction-spans,span>> and <<transactions,transaction>> data^1^.
+Regardless of the sampling decision, all traces retain <<errors,error>> data.
 
 Some visualizations in the {apm-app}, like latency, are powered by aggregated transaction and span <<data-model-metrics,metrics>>.
 Metrics are based on sampled traces and weighted by the inverse sampling rate.

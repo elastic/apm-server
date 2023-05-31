@@ -3,7 +3,7 @@
 
 The APM Server exposes endpoints for:
 
-* <<api-events,Events intake>>
+* <<events-api,Events intake>>
 * <<api-config,Agent configuration>>
 * <<api-info,Server information>>
 

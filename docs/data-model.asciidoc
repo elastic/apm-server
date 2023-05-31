@@ -7,14 +7,14 @@
 Elastic APM agents capture different types of information from within their instrumented applications.
 These are known as events, and can be `spans`, `transactions`, `errors`, or `metrics`.
 
-* <<data-model-spans>>
-* <<data-model-transactions>>
-* <<data-model-errors>>
+* <<transaction-spans>>
+* <<transactions>>
+* <<errors>>
 * <<data-model-metrics>>
 
-Events can contain additional <<data-model-metadata,metadata>> which further enriches your data.
+Events can contain additional <<metadata,metadata>> which further enriches your data.
 
-[[data-model-spans]]
+[[transaction-spans]]
 === Spans
 
 *Spans* contain information about the execution of a specific code path.
@@ -26,7 +26,7 @@ but you can also use the Agent API for custom instrumentation of specific code p
 
 Among other things, spans can contain:
 
-* A `transaction.id` attribute that refers to its parent <<data-model-transactions,transaction>>.
+* A `transaction.id` attribute that refers to its parent <<transactions,transaction>>.
 * A `parent.id` attribute that refers to its parent span or transaction.
 * Its start time and duration.
 * A `name`, `type`, `subtype`, and `action`—see the {span-name-type-sheet}[span name/type alignment]
@@ -92,10 +92,10 @@ include::./data/elasticsearch/generated/spans.json[]
 ----
 ====
 
-[[data-model-transactions]]
+[[transactions]]
 === Transactions
 
-*Transactions* are a special kind of <<data-model-spans,span>> that have additional attributes associated with them.
+*Transactions* are a special kind of <<transaction-spans,span>> that have additional attributes associated with them.
 They describe an event captured by an Elastic {apm-agent} instrumenting a service.
 You can think of transactions as the highest level of work you’re measuring within a service.
 As an example, a transaction might be a:
@@ -107,7 +107,7 @@ As an example, a transaction might be a:
 
 Agents decide whether to sample transactions or not,
 and provide settings to control sampling behavior.
-If sampled, the <<data-model-spans,spans>> of a transaction are sent and stored as separate documents.
+If sampled, the <<transaction-spans,spans>> of a transaction are sent and stored as separate documents.
 Within one transaction there can be 0, 1, or many spans captured.
 
 A transaction contains:
@@ -123,7 +123,7 @@ A transaction contains:
 * Other relevant information depending on the agent. Example: The JavaScript RUM agent captures transaction marks,
 which are points in time relative to the start of the transaction with some label.
 
-In addition, agents provide options for users to capture custom <<data-model-metadata, metadata>>.
+In addition, agents provide options for users to capture custom <<metadata,metadata>>.
 Metadata can be indexed - <<data-model-labels,`labels`>>, or not-indexed - <<data-model-custom,`custom`>>.
 
 Transactions are grouped by their `type` and `name` in the APM UI's
@@ -163,7 +163,7 @@ include::./data/elasticsearch/generated/transactions.json[]
 ----
 ====
 
-[[data-model-errors]]
+[[errors]]
 === Errors
 
 An error event contains at least
@@ -176,7 +176,7 @@ An Error contains:
 * Both the captured `exception` and the captured `log` of an error can contain a `stack trace`,
 which is helpful for debugging.
 * The `culprit` of an error indicates where it originated.
-* An error might relate to the <<data-model-transactions,transaction>> during which it happened,
+* An error might relate to the <<transactions,transaction>> during which it happened,
 via the `transaction.id`.
 * Data about the environment in which the event is recorded:
 ** Service - environment, framework, language, etc.
@@ -185,7 +185,7 @@ via the `transaction.id`.
 ** URL - full, domain, port, query, etc.
 ** <<data-model-user,User>> - (if supplied) email, ID, username, etc.
 
-In addition, agents provide options for users to capture custom <<data-model-metadata,metadata>>.
+In addition, agents provide options for users to capture custom <<metadata,metadata>>.
 Metadata can be indexed - <<data-model-labels,`labels`>>, or not-indexed - <<data-model-custom,`custom`>>.
 
 TIP: Most agents limit keyword fields (e.g. `error.id`) to 1024 characters,
@@ -399,7 +399,7 @@ include::./data/elasticsearch/metricset.json[]
 ====
 
 // This heading is linked to from the APM UI section in Kibana
-[[data-model-metadata]]
+[[metadata]]
 === Metadata
 
 Metadata can enrich your events and make application performance monitoring even more useful.
@@ -416,7 +416,7 @@ Add additional key-value pairs to define multiple labels.
 * Indexed: Yes
 * {es} type: {ref}/object.html[object]
 * {es} field: `labels`
-* Applies to: <<data-model-transactions>> | <<data-model-spans>> | <<data-model-errors>>
+* Applies to: <<transactions>> | <<transaction-spans>> | <<errors>>
 
 Label values can be a string, boolean, or number, although some agents only support string values at this time.
 Because labels for a given key, regardless of agent used, are stored in the same place in {es},
@@ -456,7 +456,7 @@ quickly debug performance issues or errors.
 * Indexed: No
 * {es} type: {ref}/object.html[object]
 * {es} fields: `transaction.custom` | `error.custom`
-* Applies to: <<data-model-transactions>> | <<data-model-errors>>
+* Applies to: <<transactions>> | <<errors>>
 
 IMPORTANT: Setting a circular object, a large object, or a non JSON serializable object can lead to errors.
 
@@ -483,7 +483,7 @@ Indexed means the data is searchable and aggregatable in {es}.
 * Indexed: Yes
 * {es} type: {ref}/keyword.html[keyword]
 * {es} fields: `user.email` | `user.name` | `user.id`
-* Applies to: <<data-model-transactions>> | <<data-model-errors>>
+* Applies to: <<transactions>> | <<errors>>
 
 [float]
 ===== Agent API reference

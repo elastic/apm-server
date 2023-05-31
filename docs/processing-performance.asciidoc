@@ -14,8 +14,8 @@ Let's look at a simple example that makes the following assumptions:
 This leaves us with relevant variables like payload and instance sizes.
 See the table below for approximations.
 As a reminder, events are
-<<data-model-transactions,transactions>> and
-<<data-model-spans,spans>>.
+<<transactions,transactions>> and
+<<transaction-spans,spans>>.
 
 [options="header"]
 |=======================================================================

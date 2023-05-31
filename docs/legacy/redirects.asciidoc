@@ -30,7 +30,7 @@ This page has moved. Please see {apm-guide-ref}/data-model.html[APM data model].
 [role="exclude",id="error-endpoint"]
 === Error endpoint
 
-The error endpoint has been deprecated. Instead, see <<api-events>>.
+// The error endpoint has been deprecated. Instead, see <<api-events>>.
 
 [role="exclude",id="error-schema-definition"]
 === Error schema definition
@@ -40,7 +40,7 @@ The error schema has moved. Please see <<api-error-schema>>.
 [role="exclude",id="error-api-examples"]
 === Error API examples
 
-The error API examples have moved. Please see <<api-events>>.
+// The error API examples have moved. Please see <<api-events>>.
 
 [role="exclude",id="error-payload-schema"]
 === Error payload schema
@@ -87,7 +87,7 @@ This is no longer helpful. Please see <<api-error>>.
 [role="exclude",id="transaction-endpoint"]
 === Transaction endpoint
 
-The transaction endpoint has been deprecated. Instead, see <<api-events>>.
+// The transaction endpoint has been deprecated. Instead, see <<api-events>>.
 
 [role="exclude",id="transaction-schema-definition"]
 === Transaction schema definition
@@ -97,7 +97,7 @@ The transaction schema has moved. Please see <<api-transaction-schema>>.
 [role="exclude",id="transaction-api-examples"]
 === Transaction API examples
 
-The transaction API examples have moved. Please see <<api-events>>.
+// The transaction API examples have moved. Please see <<api-events>>.
 
 [role="exclude",id="transaction-span-schema"]
 === Transaction span schema
@@ -327,8 +327,8 @@ Please see <<troubleshoot-apm>>.
 This page has moved.
 Please see <<configuring-howto-apm-server>>.
 
-[role="exclude",id="events-api"]
-=== Events Intake API
+// [role="exclude",id="events-api"]
+// === Events Intake API
 
 [discrete]
 [[events-api-errors]]
@@ -343,8 +343,8 @@ Please see <<apm-overview>>.
 This page has been deleted.
 Please see <<apm-overview>>.
 
-[role="exclude",id="metadata-api"]
-=== Metadata
+// [role="exclude",id="metadata-api"]
+// === Metadata
 
 [discrete]
 [[metadata-schema]]
@@ -353,23 +353,23 @@ Please see <<apm-overview>>.
 This page has been deleted.
 Please see <<apm-overview>>.
 
-[role="exclude",id="errors"]
-=== Errors
+// [role="exclude",id="errors"]
+// === Errors
 
-This page has been deleted.
-Please see <<apm-overview>>.
+// This page has been deleted.
+// Please see <<apm-overview>>.
 
-[role="exclude",id="transaction-spans"]
-=== Spans
+// [role="exclude",id="transaction-spans"]
+// === Spans
 
-This page has been deleted.
-Please see <<apm-overview>>.
+// This page has been deleted.
+// Please see <<apm-overview>>.
 
-[role="exclude",id="transactions"]
-=== Transactions
+// [role="exclude",id="transactions"]
+// === Transactions
 
-This page has been deleted.
-Please see <<apm-overview>>.
+// This page has been deleted.
+// Please see <<apm-overview>>.
 
 [role="exclude",id="legacy-apm-overview"]
 === Legacy APM Overview
@@ -395,11 +395,11 @@ Please see <<apm-overview>>.
 This page has been deleted.
 Please see <<apm-overview>>.
 
-[role="exclude",id="metadata"]
-=== Metadata
+// [role="exclude",id="metadata"]
+// === Metadata
 
-This page has been deleted.
-Please see <<apm-overview>>.
+// This page has been deleted.
+// Please see <<apm-overview>>.
 
 [role="exclude",id="distributed-tracing"]
 === Distributed tracing
