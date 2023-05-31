@@ -43,6 +43,7 @@ jobs:
       TF_VAR_REPO: ${{ github.repository }}
       TF_VAR_CREATED_DATE: ${{ needs.prepare.outputs.date }}
     strategy:
+      fail-fast: false
       matrix:
         test: ${{ fromJSON(needs.prepare.outputs.tests) }}
         version:
