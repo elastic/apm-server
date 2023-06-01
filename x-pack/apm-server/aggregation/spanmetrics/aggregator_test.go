@@ -262,7 +262,40 @@ func TestAggregatorRun(t *testing.T) {
 				{serviceName: "service-A", agentName: "java", outcome: "success", count: 1},
 			},
 			getExpectedEvents: func(now time.Time, interval time.Duration) []model.APMEvent {
-				return []model.APMEvent{}
+				return []model.APMEvent{
+					{
+						Timestamp: now.Truncate(interval),
+						Agent:     model.Agent{Name: "java"},
+						Service: model.Service{
+							Name: "service-A",
+						},
+						Event:     model.Event{Outcome: "success"},
+						Processor: model.MetricsetProcessor,
+						Metricset: &model.Metricset{
+							Name:     "service_destination",
+							Interval: fmt.Sprintf("%.0fs", interval.Seconds()),
+							DocCount: 100,
+						},
+						Span: &model.Span{
+							Name: "service-A:",
+							DestinationService: &model.DestinationService{
+								ResponseTime: model.AggregatedDuration{
+									Count: 100,
+									Sum:   10 * time.Second,
+								},
+							},
+						},
+						Labels: model.Labels{
+							"department_name": model.LabelValue{Value: "apm"},
+							"organization":    model.LabelValue{Value: "observability"},
+							"company":         model.LabelValue{Value: "elastic"},
+						},
+						NumericLabels: model.NumericLabels{
+							"user_id":     model.NumericLabelValue{Value: 100},
+							"cost_center": model.NumericLabelValue{Value: 10},
+						},
+					},
+				}
 			},
 		},
 		{
@@ -272,7 +305,44 @@ func TestAggregatorRun(t *testing.T) {
 				{serviceName: "service-A", agentName: "java", targetType: trgTypeZ, targetName: trgNameZ, outcome: "success", count: 1},
 			},
 			getExpectedEvents: func(now time.Time, interval time.Duration) []model.APMEvent {
-				return []model.APMEvent{}
+				return []model.APMEvent{
+					{
+						Timestamp: now.Truncate(interval),
+						Agent:     model.Agent{Name: "java"},
+						Service: model.Service{
+							Name: "service-A",
+							Target: &model.ServiceTarget{
+								Type: trgTypeZ,
+								Name: trgNameZ,
+							},
+						},
+						Event:     model.Event{Outcome: "success"},
+						Processor: model.MetricsetProcessor,
+						Metricset: &model.Metricset{
+							Name:     "service_destination",
+							Interval: fmt.Sprintf("%.0fs", interval.Seconds()),
+							DocCount: 100,
+						},
+						Span: &model.Span{
+							Name: "service-A:",
+							DestinationService: &model.DestinationService{
+								ResponseTime: model.AggregatedDuration{
+									Count: 100,
+									Sum:   10 * time.Second,
+								},
+							},
+						},
+						Labels: model.Labels{
+							"department_name": model.LabelValue{Value: "apm"},
+							"organization":    model.LabelValue{Value: "observability"},
+							"company":         model.LabelValue{Value: "elastic"},
+						},
+						NumericLabels: model.NumericLabels{
+							"user_id":     model.NumericLabelValue{Value: 100},
+							"cost_center": model.NumericLabelValue{Value: 10},
+						},
+					},
+				}
 			},
 		},
 		{
