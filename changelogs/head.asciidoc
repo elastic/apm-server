@@ -20,3 +20,4 @@ https://github.com/elastic/apm-server/compare/8.8\...main[View commits]
 ==== Added
 - Span events now carry `host` and `service.version` attributes. {pull}10697[10697]
 - Accept more options in agentcfg ES config; Reliably use `agent.config.elasticsearch` and `rum.source_mapping.elasticsearch` credentials when merging with `output.elasticsearch` credentials {pull}10783[10783]
+- Make aggregation keys even if there is no service destination. {pull}10922[10922]
