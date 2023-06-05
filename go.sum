@@ -379,8 +379,8 @@ github.com/eclipse/paho.mqtt.golang v1.3.5 h1:sWtmgNxYM9P2sP+xEItMozsR3w0cqZFlqn
 github.com/elastic/apm-data v0.1.1-0.20230511095520-caaa44e1c286 h1:2SoliozFfpyREEl8D7sT5stInZBUygXn+2P1KXUYSvA=
 github.com/elastic/apm-data v0.1.1-0.20230511095520-caaa44e1c286/go.mod h1:0c39ujqEzuWaGzKqgbGSutGL6ZTyj8yRc9dnkxv7Lrg=
 github.com/elastic/bayeux v1.0.5 h1:UceFq01ipmT3S8DzFK+uVAkbCdiPR0Bqei8qIGmUeY0=
-github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230602142521-c64f433f9951 h1:hKiSJIHgMoaYOAHPUVJjOOo7OhPLo26jlFFo5I+sJsI=
-github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230602142521-c64f433f9951/go.mod h1:hiBmGUzBxEZEoOELihEPyuyzwKNRwjF0SBlVuYPY3Vs=
+github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230605105648-1458378ef499 h1:Ip5EnvXGLGLI/pi585hWzM+W50ELwnppbmJq9Hwa3po=
+github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230605105648-1458378ef499/go.mod h1:FDuMqKsTwmlAgawCJXthhMDLotON3x7ZcwwoaByg+yo=
 github.com/elastic/elastic-agent-autodiscover v0.6.1 h1:vXR+3QVDL7Ij7IMKul13iIiDmM66HsX6MS6I0T4O8gw=
 github.com/elastic/elastic-agent-client/v7 v7.1.2 h1:p6KvvDMoFCBPvchxcx9cRXpRjsDaii0m/wE3lqQxpmM=
 github.com/elastic/elastic-agent-client/v7 v7.1.2/go.mod h1:G3Mk1pHXxvj3wC5FvsGUlPOsvapTB5SfrUmWiJDXT6Q=
@@ -416,8 +416,8 @@ github.com/elastic/go-seccomp-bpf v1.3.0 h1:e6teyX946lvPOnZERSYRrMYmsjxaQcWhoiGT
 github.com/elastic/go-structform v0.0.10 h1:oy08o/Ih2hHTkNcRY/1HhaYvIp5z6t8si8gnCJPDo1w=
 github.com/elastic/go-structform v0.0.10/go.mod h1:CZWf9aIRYY5SuKSmOhtXScE5uQiLZNqAFnwKR4OrIM4=
 github.com/elastic/go-sysinfo v1.7.1/go.mod h1:i1ZYdU10oLNfRzq4vq62BEwD2fH8KaWh6eh0ikPT9F0=
-github.com/elastic/go-sysinfo v1.10.2 h1:DK4pBq7AHwUY+3gcBykvFmWJQWEtv01Jes3v7ss1RVI=
-github.com/elastic/go-sysinfo v1.10.2/go.mod h1:6KQb31j0QeWBDF88jIdWSxE8cwoOB9tO4Y4osN7Q70E=
+github.com/elastic/go-sysinfo v1.11.0 h1:QW+6BF1oxBoAprH3w2yephF7xLkrrSXj7gl2xC2BM4w=
+github.com/elastic/go-sysinfo v1.11.0/go.mod h1:6KQb31j0QeWBDF88jIdWSxE8cwoOB9tO4Y4osN7Q70E=
 github.com/elastic/go-ucfg v0.8.6 h1:stUeyh2goTgGX+/wb9gzKvTv0YB0231LTpKUgCKj4U0=
 github.com/elastic/go-ucfg v0.8.6/go.mod h1:4E8mPOLSUV9hQ7sgLEJ4bvt0KhMuDJa8joDT2QGAEKA=
 github.com/elastic/go-windows v1.0.0/go.mod h1:TsU0Nrp7/y3+VwE82FoZF8gC/XFg/Elz6CcloAxnPgU=
