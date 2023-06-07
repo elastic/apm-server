@@ -28,19 +28,23 @@ import (
 const sourcemapContentSnippetSize = 5
 
 // Map sourcemapping for given line and column and return values after sourcemapping
-func Map(mapper *sourcemap.Consumer, lineno, colno int) (
-	file string, function string, line int, col int,
+func Map(mapper *sourcemap.Consumer, lineno, colno uint32) (
+	file string, function string, l uint32, c uint32,
 	contextLine string, preContext []string, postContext []string, err error) {
 
 	if mapper == nil {
 		return
 	}
 	var ok bool
-	file, function, line, col, ok = mapper.Source(lineno, colno)
+	var line int
+	var col int
+	file, function, line, col, ok = mapper.Source(int(lineno), int(colno))
 	if !ok {
 		err = errors.New("failed to retrieve original source")
 		return
 	}
+	l = uint32(line)
+	c = uint32(col)
 	scanner := bufio.NewScanner(strings.NewReader(mapper.SourceContent(file)))
 
 	var currentLine int

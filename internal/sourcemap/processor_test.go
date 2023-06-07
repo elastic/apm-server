@@ -42,12 +42,12 @@ func TestBatchProcessor(t *testing.T) {
 	fetcher, err := NewBodyCachingFetcher(esFetcher, 100, ch)
 	require.NoError(t, err)
 
-	originalLinenoWithFilename := 1
-	originalColnoWithFilename := 7
-	originalLinenoWithoutFilename := 1
-	originalColnoWithoutFilename := 23
-	originalLinenoWithFunction := 1
-	originalColnoWithFunction := 67
+	originalLinenoWithFilename := uint32(1)
+	originalColnoWithFilename := uint32(7)
+	originalLinenoWithoutFilename := uint32(1)
+	originalColnoWithoutFilename := uint32(23)
+	originalLinenoWithFunction := uint32(1)
+	originalColnoWithFunction := uint32(67)
 
 	nonMatchingFrame := model.StacktraceFrame{
 		AbsPath:  "bundle.js",
@@ -315,7 +315,7 @@ func cloneFrame(frame model.StacktraceFrame) *model.StacktraceFrame {
 	return &frame
 }
 
-func newInt(v int) *int {
+func newInt(v uint32) *uint32 {
 	return &v
 }
 

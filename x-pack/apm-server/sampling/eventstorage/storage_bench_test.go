@@ -259,7 +259,7 @@ func makeTransaction(id, traceID string) *model.APMEvent {
 		},
 		Process: model.Process{
 			Pid:        123,
-			Ppid:       newIntP(100),
+			Ppid:       100,
 			Title:      "process title",
 			Argv:       []string{"arg1", "arg2", "arg3"},
 			Executable: "main.go",
