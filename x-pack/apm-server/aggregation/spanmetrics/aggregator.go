@@ -260,7 +260,7 @@ func (a *Aggregator) processSpan(event *model.APMEvent) {
 	}
 
 	var resource string
-	if event.Span.DestinationService != nil && event.Span.DestinationService.Resource != "" {
+	if event.Span.DestinationService != nil {
 		resource = event.Span.DestinationService.Resource
 	}
 
