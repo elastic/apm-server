@@ -227,6 +227,11 @@ func (a *Aggregator) ProcessBatch(ctx context.Context, b *model.Batch) error {
 }
 
 func (a *Aggregator) processSpan(event *model.APMEvent) {
+	if event.Service.Target == nil &&
+		(event.Span.DestinationService == nil || event.Span.DestinationService.Resource == "") {
+		return
+	}
+
 	if event.Span.RepresentativeCount <= 0 {
 		// RepresentativeCount is zero when the sample rate is unknown.
 		// We cannot calculate accurate span metrics without the sample
