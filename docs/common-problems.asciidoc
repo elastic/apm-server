@@ -56,7 +56,7 @@ If the `mapping.name.type` is `"text"`, your APM indices were not set up correct
 To fix this problem, install the APM integration by following these steps:
 
 --
-include::./legacy/getting-started-apm-server.asciidoc[tag=install-apm-integration]
+include::{docdir}/getting-started-apm-server.asciidoc[tag=install-apm-integration]
 --
 
 This will reinstall the APM index templates and trigger a data stream index rollover.

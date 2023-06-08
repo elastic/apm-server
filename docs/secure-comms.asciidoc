@@ -15,8 +15,8 @@ process and connecting securely to APM agents and the {stack}.
 include::secure-agent-communication.asciidoc[]
 
 // APM privileges
-include::{docdir}/legacy/feature-roles.asciidoc[]
+include::{docdir}/feature-roles.asciidoc[]
 
 // APM API keys
-include::{docdir}/legacy/api-keys.asciidoc[]
+include::{docdir}/access-api-keys.asciidoc[]
 :leveloffset: -1

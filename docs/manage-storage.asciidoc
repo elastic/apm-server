@@ -207,4 +207,4 @@ POST /.ds-*-apm*/_update_by_query?expand_wildcards=all
 
 TIP: Remember to also change the service name in the {apm-agents-ref}/index.html[{apm-agent} configuration].
 
-include::./legacy/exploring-es-data.asciidoc[leveloffset=+2]
+include::{docdir}/exploring-es-data.asciidoc[leveloffset=+2]

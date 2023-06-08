@@ -138,7 +138,7 @@ image::./images/fm-ov.png[APM Server fleet overview]
 Use the decision tree below to help determine which method of configuring and running the APM Server is best for your use case.
 
 [subs=attributes+]
-include::../diagrams/apm-decision-tree.asciidoc[APM Server decision tree]
+include::{docdir}/diagrams/apm-decision-tree.asciidoc[APM Server decision tree]
 
 
 === APM Server binary

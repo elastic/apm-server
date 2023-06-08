@@ -12,4 +12,4 @@ Additional information on getting started with SSL/TLS is available in <<securin
 include::{libbeat-dir}/shared-ssl-config.asciidoc[]
 // :leveloffset: -2
 
-include::../legacy/ssl-input-settings.asciidoc[leveloffset=-1]
+include::{docdir}/ssl-input-settings.asciidoc[leveloffset=-1]
