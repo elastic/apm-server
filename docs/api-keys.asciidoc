@@ -26,7 +26,7 @@ make sure <<agent-tls,TLS>> is enabled, then complete these steps:
 [float]
 === Enable API keys
 
-include::./tab-widgets/api-key-widget.asciidoc[]
+include::{tab-widget-dir}/api-key-widget.asciidoc[]
 
 [[create-api-key-user]]
 [float]

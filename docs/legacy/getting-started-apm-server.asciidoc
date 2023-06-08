@@ -493,7 +493,7 @@ This should match the secret token defined when setting up the APM integration.
 TIP: You can edit your APM integration settings if you need to change the APM Server URL
 or secret token to match your APM agents.
 
-include::./tab-widgets/install-agents-widget.asciidoc[]
+include::{tab-widget-dir}/install-agents-widget.asciidoc[]
 
 ==== Step 4: View your data
 

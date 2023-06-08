@@ -15,7 +15,7 @@ This section describes common problems you might encounter when using a Fleet-ma
 
 If no data shows up in {es}, first make sure that your APM components are properly connected.
 
-include::./tab-widgets/no-data-indexed-widget.asciidoc[]
+include::{tab-widget-dir}/no-data-indexed-widget.asciidoc[]
 
 [[data-indexed-no-apm-legacy]]
 [float]
