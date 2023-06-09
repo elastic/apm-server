@@ -1,1 +1,1 @@
-include::{tab-widget-dir}/install-agents-widget.asciidoc[]
+include::../../tab-widgets/install-agents-widget.asciidoc[]
