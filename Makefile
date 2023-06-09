@@ -128,8 +128,10 @@ bench:
 # Rules for updating config files, etc.
 ##############################################################################
 
-update: go-generate add-headers build-package notice apm-server.docker.yml docs/spec
-	@go mod download all # make sure go.sum is complete
+tidy:
+	@go mod tidy # make sure go.sum is complete
+
+update: tidy go-generate add-headers build-package notice apm-server.docker.yml docs/spec
 
 apm-server.docker.yml: apm-server.yml
 	sed -e 's/127.0.0.1:8200/0.0.0.0:8200/' -e 's/localhost:9200/elasticsearch:9200/' $< > $@
