@@ -131,7 +131,7 @@ Keys created using this method can only be used for communication with APM Serve
 [float]
 ===== `apikey` subcommands
 
-include::{libbeat-dir}/command-reference.asciidoc[tag=apikey-subcommands]
+include::{docdir}/command-reference.asciidoc[tag=apikey-subcommands]
 
 [[create-api-key-privileges]]
 [float]

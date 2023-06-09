@@ -42,7 +42,7 @@ If this option is omitted, the Go crypto library's https://golang.org/pkg/crypto
 are used (recommended). Note that TLS 1.3 cipher suites are not
 individually configurable in Go, so they are not included in this list.
 
-include::{libbeat-dir}/shared-ssl-config.asciidoc[tag=cipher_suites]
+include::{docdir}/shared-ssl-config.asciidoc[tag=cipher_suites]
 
 [float]
 ==== `curve_types`

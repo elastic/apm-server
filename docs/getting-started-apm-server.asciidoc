@@ -440,10 +440,10 @@ you can start visualizing your data in the {kibana-ref}/xpack-apm.html[{apm-app}
 If you're migrating from Jaeger, see <<jaeger-integration>>.
 
 // Shared APM & YUM
-include::{libbeat-dir}/repositories.asciidoc[]
+include::{docdir}/repositories.asciidoc[]
 
 // Shared docker
-include::{libbeat-dir}/shared-docker.asciidoc[]
+include::{docdir}/shared-docker.asciidoc[]
 
 
 === Fleet-managed APM Server
