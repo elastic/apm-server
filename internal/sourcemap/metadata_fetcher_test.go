@@ -62,11 +62,6 @@ func TestMetadataFetcher(t *testing.T) {
 			searchReponse: defaultSearchResponse,
 			expectID:      true,
 		}, {
-			name:            "ping unreachable",
-			pingUnreachable: true,
-			expectErr:       true,
-			expectID:        false,
-		}, {
 			name:              "search unreachable",
 			pingStatus:        http.StatusOK,
 			searchUnreachable: true,
@@ -98,18 +93,12 @@ func TestMetadataFetcher(t *testing.T) {
 			ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				w.Header().Set("X-Elastic-Product", "Elasticsearch")
 				switch r.URL.Path {
-				case "/.apm-source-map":
-					if tc.pingUnreachable {
-						<-waitCh
-						return
-					}
-					// ping request from the metadata fetcher.
-					w.WriteHeader(tc.pingStatus)
 				case "/.apm-source-map/_search":
 					if tc.searchUnreachable {
 						<-waitCh
 						return
 					}
+					require.NotNil(t, tc.searchReponse, "nil searchReponse, possible unexpected request")
 					// search request from the metadata fetcher
 					tc.searchReponse(w, r)
 				default:
