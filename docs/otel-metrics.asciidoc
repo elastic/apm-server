@@ -33,7 +33,7 @@ Use *Discover* to validate that metrics are successfully reported to {kib}.
 . Launch {kib}:
 +
 --
-include::./shared/open-kibana/open-kibana-widget.asciidoc[]
+include::{tab-widget-dir}/open-kibana-widget.asciidoc[]
 --
 
 . Open the main menu, then click *Discover*.
