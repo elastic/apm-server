@@ -1,33 +1,14 @@
 [[configuration-ssl]]
-ifndef::apm-server[]
-== Configure SSL
+== SSL/TLS output settings
 
-++++
-<titleabbrev>SSL</titleabbrev>
-++++
-endif::apm-server[]
-ifdef::apm-server[]
-== SSL output settings
+****
+image:./binary-yes-fm-no.svg[supported deployment methods]
 
-You can specify SSL options with any output that supports SSL, like {es}, {ls}, or Kafka.
-endif::[]
+These configuration options are only relevant to APM Server binary users. Fleet-managed users should see the {fleet-guide}/fleet-settings.html[Fleet output settings].
+****
 
-ifndef::apm-server[]
-You can specify SSL options when you configure:
-
-* <<configuring-output,outputs>> that support SSL
-ifndef::no_dashboards[]
-* the <<setup-kibana-endpoint,{kib} endpoint>>
-endif::[]
-ifeval::["{beatname_lc}"=="heartbeat"]
-* <<configuration-heartbeat-options,{beatname_uc} monitors>> that support SSL
-endif::[]
-ifeval::["{beatname_lc}"=="metricbeat"]
-* <<metricbeat-modules,modules>> that define the host as an HTTP URL
-endif::[]
-endif::[]
-
-Example output config with SSL enabled:
+You can specify SSL/TLS options with any output that supports SSL, like {es}, {ls}, or Kafka.
+Example output config with SSL/TLS enabled:
 
 [source,yaml]
 ----
@@ -37,57 +18,7 @@ output.elasticsearch.ssl.certificate: "/etc/pki/client/cert.pem"
 output.elasticsearch.ssl.key: "/etc/pki/client/cert.key"
 ----
 
-ifndef::no-output-logstash[]
-Also see <<configuring-ssl-logstash>>.
-endif::[]
-
-ifndef::no_kibana[]
-Example {kib} endpoint config with SSL enabled:
-
-[source,yaml]
-----
-setup.kibana.host: "https://192.0.2.255:5601"
-setup.kibana.ssl.enabled: true
-setup.kibana.ssl.certificate_authorities: ["/etc/pki/root/ca.pem"]
-setup.kibana.ssl.certificate: "/etc/pki/client/cert.pem"
-setup.kibana.ssl.key: "/etc/pki/client/cert.key"
-----
-endif::no_kibana[]
-
-ifeval::["{beatname_lc}"=="heartbeat"]
-Example monitor with SSL enabled:
-
-[source,yaml]
--------------------------------------------------------------------------------
-heartbeat.monitors:
-- type: tcp
-  schedule: '@every 5s'
-  hosts: ["myhost"]
-  ports: [80, 9200, 5044]
-  ssl:
-    certificate_authorities: ['/etc/ca.crt']
-    supported_protocols: ["TLSv1.0", "TLSv1.1", "TLSv1.2"]
--------------------------------------------------------------------------------
-endif::[]
-
-ifeval::["{beatname_lc}"=="metricbeat"]
-Example module with SSL enabled:
-
-[source,yaml]
-----
-- module: http
-  namespace: "myservice"
-  enabled: true
-  period: 10s
-  hosts: ["https://localhost"]
-  path: "/stats"
-  headers:
-    Authorization: "Bearer test123"
-  ssl.verification_mode: "none"
-----
-endif::[]
-
-There are a number of SSL configuration options available to you:
+There are a number of SSL/TLS configuration options available to you:
 
 * <<ssl-common-config,Common configuration options>>
 * <<ssl-client-config,Client configuration options>>
@@ -550,23 +481,3 @@ Allows a remote server to request renegotiation once per connection.
 Allows a remote server to request renegotiation repeatedly.
 +
 The default value is `never`.
-
-ifeval::["{beatname_lc}" == "filebeat"]
-[float]
-[[server-client-renegotiation]]
-==== `client_authentication`
-
-The type of client authentication mode. When `certificate_authorities` is set, it
-defaults to `required`. Otherwise, it defaults to `none`.
-
-The valid options are:
-
-`none`::
-Disables client authentication.
-
-`optional`::
-When a client certificate is supplied, the server will verify it.
-
-`required`::
-Will require clients to provide a valid certificate.
-endif::[]
