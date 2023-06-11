@@ -276,7 +276,3 @@ func makeTransaction(id, traceID string) *model.APMEvent {
 		Trace: model.Trace{ID: traceID},
 	}
 }
-
-func newIntP(i int) *int {
-	return &i
-}
