@@ -105,6 +105,9 @@ func TestReportFetch(t *testing.T) {
 			return e1.Labels["etag"].Value < e2.Labels["etag"].Value
 		}),
 		protocmp.Transform()),
+		cmpopts.SortSlices(func(e1 *modelpb.APMEvent, e2 *modelpb.APMEvent) bool {
+			return e1.Labels["etag"].Value < e2.Labels["etag"].Value
+		}),
 	)
 }
 

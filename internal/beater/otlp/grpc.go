@@ -30,7 +30,7 @@ import (
 
 	"github.com/elastic/apm-data/input"
 	"github.com/elastic/apm-data/input/otlp"
-	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/internal/beater/interceptors"
 	"github.com/elastic/apm-server/internal/beater/request"
 )
@@ -67,8 +67,8 @@ func init() {
 func RegisterGRPCServices(
 	grpcServer *grpc.Server,
 	logger *zap.Logger,
-	processor model.BatchProcessor,
 	semaphore input.Semaphore,
+	processor modelpb.BatchProcessor,
 ) {
 	// TODO(axw) stop assuming we have only one OTLP gRPC service running
 	// at any time, and instead aggregate metrics from consumers that are

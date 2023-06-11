@@ -32,7 +32,7 @@ import (
 
 	"github.com/elastic/apm-data/input"
 	"github.com/elastic/apm-data/input/otlp"
-	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/internal/beater/request"
 	"github.com/elastic/elastic-agent-libs/monitoring"
 )
@@ -52,7 +52,7 @@ func init() {
 	monitoring.NewFunc(httpMetricsRegistry, "consumer", httpMonitoredConsumer.collect, monitoring.Report)
 }
 
-func NewHTTPHandlers(logger *zap.Logger, processor model.BatchProcessor, semaphore input.Semaphore) HTTPHandlers {
+func NewHTTPHandlers(logger *zap.Logger, processor modelpb.BatchProcessor, semaphore input.Semaphore) HTTPHandlers {
 	// TODO(axw) stop assuming we have only one OTLP HTTP consumer running
 	// at any time, and instead aggregate metrics from consumers that are
 	// dynamically registered and unregistered.
