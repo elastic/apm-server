@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage"
 	"github.com/elastic/go-elasticsearch/v8"
@@ -28,7 +28,7 @@ func TestNewProcessorConfigInvalid(t *testing.T) {
 	}
 
 	assertInvalidConfigError("BatchProcessor unspecified")
-	config.BatchProcessor = struct{ model.BatchProcessor }{}
+	config.BatchProcessor = struct{ modelpb.BatchProcessor }{}
 
 	assertInvalidConfigError("invalid local sampling config: FlushInterval unspecified or negative")
 	config.FlushInterval = 1

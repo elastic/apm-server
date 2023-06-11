@@ -23,7 +23,7 @@ import (
 
 	"github.com/elastic/elastic-agent-libs/monitoring"
 
-	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 )
 
 // EventCounter is a model.BatchProcessor that counts the number of events processed,
@@ -48,9 +48,9 @@ func NewEventCounter(registry *monitoring.Registry) *EventCounter {
 }
 
 // ProcessBatch counts events in b, grouping by APMEvent.Processor.Event.
-func (c *EventCounter) ProcessBatch(ctx context.Context, b *model.Batch) error {
+func (c *EventCounter) ProcessBatch(ctx context.Context, b *modelpb.Batch) error {
 	for _, event := range *b {
-		pe := event.Processor.Event
+		pe := event.GetProcessor().GetEvent()
 		if pe == "" {
 			continue
 		}

@@ -10,14 +10,14 @@ import (
 	"math"
 	"sort"
 
-	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 )
 
 type AggregatedGlobalLabels struct {
 	labelKeys        []string
-	Labels           model.Labels
+	Labels           modelpb.Labels
 	numericLabelKeys []string
-	NumericLabels    model.NumericLabels
+	NumericLabels    modelpb.NumericLabels
 }
 
 func (a *AggregatedGlobalLabels) Write(w io.Writer) {
@@ -49,11 +49,11 @@ func (a *AggregatedGlobalLabels) Write(w io.Writer) {
 	}
 }
 
-func (a *AggregatedGlobalLabels) Read(event *model.APMEvent) {
+func (a *AggregatedGlobalLabels) Read(event *modelpb.APMEvent) {
 	// Remove global labels for RUM services to avoid explosion of metric groups
 	// to track for servicetxmetrics.
 	// For consistency, this will remove labels for other aggregated metrics as well.
-	switch event.Agent.Name {
+	switch event.GetAgent().GetName() {
 	case "rum-js", "js-base", "android/java", "iOS/swift":
 		return
 	}
@@ -63,7 +63,7 @@ func (a *AggregatedGlobalLabels) Read(event *model.APMEvent) {
 			continue
 		}
 		if a.Labels == nil {
-			a.Labels = make(model.Labels)
+			a.Labels = make(modelpb.Labels)
 		}
 		if len(v.Values) > 0 {
 			a.Labels.SetSlice(k, v.Values)
@@ -77,7 +77,7 @@ func (a *AggregatedGlobalLabels) Read(event *model.APMEvent) {
 			continue
 		}
 		if a.NumericLabels == nil {
-			a.NumericLabels = make(model.NumericLabels)
+			a.NumericLabels = make(modelpb.NumericLabels)
 		}
 		if len(v.Values) > 0 {
 			a.NumericLabels.SetSlice(k, v.Values)
@@ -96,7 +96,7 @@ func (a *AggregatedGlobalLabels) Equals(x *AggregatedGlobalLabels) bool {
 
 // equalLabels returns true if the labels are equal. The Global property is
 // ignored since only global labels are compared.
-func equalLabels(l, labels model.Labels) bool {
+func equalLabels(l, labels modelpb.Labels) bool {
 	if len(l) != len(labels) {
 		return false
 	}
@@ -123,7 +123,7 @@ func equalLabels(l, labels model.Labels) bool {
 
 // equalNumericLabels returns true if the labels are equal. The Global property
 // is ignored since only global labels are compared.
-func equalNumericLabels(l, labels model.NumericLabels) bool {
+func equalNumericLabels(l, labels modelpb.NumericLabels) bool {
 	if len(l) != len(labels) {
 		return false
 	}
