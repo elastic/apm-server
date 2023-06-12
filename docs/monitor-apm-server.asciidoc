@@ -28,4 +28,4 @@ all you have to do is flip a switch and watch the data pour in.
 
 include::./monitor.asciidoc[]
 
-include::{libbeat-dir}/monitoring/monitoring-beats.asciidoc[leveloffset=+2]
+include::{docdir}/monitoring/monitoring-beats.asciidoc[leveloffset=+2]

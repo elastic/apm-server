@@ -32,7 +32,7 @@ location of the output zip archive containing the certificate and the private ke
 
 Enable TLS and configure the APM Server to point to the extracted certificate and key:
 
-include::./tab-widgets/tls-widget.asciidoc[]
+include::{tab-widget-dir}/tls-widget.asciidoc[]
 
 [float]
 [[agent-self-sign-3]]

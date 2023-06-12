@@ -61,7 +61,7 @@ Example transaction documents indexed in {es}:
 
 [source,json]
 ----
-include::../data/elasticsearch/generated/transactions.json[]
+include::{docdir}/data/elasticsearch/generated/transactions.json[]
 ----
 ====
 
@@ -72,7 +72,7 @@ Example span documents indexed in {es}:
 
 [source,json]
 ----
-include::../data/elasticsearch/generated/spans.json[]
+include::{docdir}/data/elasticsearch/generated/spans.json[]
 ----
 ====
 
@@ -83,14 +83,14 @@ Example error documents indexed in {es}:
 
 [source,json]
 ----
-include::../data/elasticsearch/generated/errors.json[]
+include::{docdir}/data/elasticsearch/generated/errors.json[]
 ----
 ====
 
 [%collapsible]
 .Metric document
 ====
-include::./metricset-indices.asciidoc[tag=example]
+include::{docdir}/metricset-indices.asciidoc[tag=example]
 ====
 
 [%collapsible]
@@ -100,8 +100,8 @@ Example source map document indexed in {es}:
 
 [source,json]
 ----
-include::../data/intake-api/generated/sourcemap/bundle.js.map[]
+include::{docdir}/data/intake-api/generated/sourcemap/bundle.js.map[]
 ----
 ====
 
-include::./metricset-indices.asciidoc[]
+include::{docdir}/metricset-indices.asciidoc[]

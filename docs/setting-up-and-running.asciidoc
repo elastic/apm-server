@@ -16,12 +16,12 @@ This section includes additional information on how to set up and run APM Server
 * <<high-availability>>
 * <<running-on-docker>>
 
-include::{libbeat-dir}/shared-directory-layout.asciidoc[]
+include::{docdir}/shared-directory-layout.asciidoc[]
 
-include::{libbeat-dir}/command-reference.asciidoc[]
+include::{docdir}/command-reference.asciidoc[]
 
-include::./data-ingestion.asciidoc[]
+include::{docdir}/data-ingestion.asciidoc[]
 
-include::./high-availability.asciidoc[]
+include::{docdir}/high-availability.asciidoc[]
 
-include::{libbeat-dir}/shared-systemd.asciidoc[]
+include::{docdir}/shared-systemd.asciidoc[]
