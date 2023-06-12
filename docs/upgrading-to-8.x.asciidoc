@@ -81,10 +81,10 @@ See the {stack-ref}/upgrading-elastic-stack.html[{stack} Installation and Upgrad
 
 . **Install the APM integration via the {fleet} UI**
 +
-include::legacy/getting-started-apm-server.asciidoc[tag=why-apm-integration]
+include::{docdir}/getting-started-apm-server.asciidoc[tag=why-apm-integration]
 +
 --
-include::legacy/getting-started-apm-server.asciidoc[tag=install-apm-integration]
+include::{docdir}/getting-started-apm-server.asciidoc[tag=install-apm-integration]
 --
 
 . **Install the {version} APM Server release**
