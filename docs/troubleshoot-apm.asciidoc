@@ -53,4 +53,4 @@ include::apm-response-codes.asciidoc[]
 
 include::processing-performance.asciidoc[]
 
-include::./legacy/copied-from-beats/docs/debugging.asciidoc[]
+include::{docdir}/debugging.asciidoc[]

@@ -4,6 +4,7 @@ include::{asciidoc-dir}/../../shared/attributes.asciidoc[]
 :apm-integration-docs:
 :apm-package-dir:        {docdir}/apm-package
 :obs-repo-dir:           {observability-docs-root}/docs/en
+:tab-widget-dir:         {docdir}/tab-widgets
 
 :github_repo_link: https://github.com/elastic/apm-server/blob/v{version}
 ifeval::["{version}" == "8.0.0"]
@@ -62,7 +63,7 @@ include::apm-overview.asciidoc[]
 
 include::apm-quick-start.asciidoc[]
 
-include::./legacy/getting-started-apm-server.asciidoc[]
+include::{docdir}/getting-started-apm-server.asciidoc[]
 
 include::data-model.asciidoc[]
 
@@ -76,7 +77,7 @@ include::manage-storage.asciidoc[]
 
 include::configure/index.asciidoc[leveloffset=+1]
 
-include::./legacy/setting-up-and-running.asciidoc[]
+include::{docdir}/setting-up-and-running.asciidoc[]
 
 include::secure-comms.asciidoc[]
 
@@ -90,4 +91,4 @@ include::upgrading.asciidoc[]
 
 include::release-notes.asciidoc[leveloffset=+1]
 
-include::./legacy/redirects.asciidoc[]
+include::{docdir}/redirects.asciidoc[]
