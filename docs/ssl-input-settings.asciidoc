@@ -10,7 +10,7 @@ Most options on this page are supported by all APM Server deployment methods.
 These settings apply to SSL/TLS communication between the APM Server and APM Agents.
 See <<agent-tls>> to learn more.
 
-include::../tab-widgets/tls-widget.asciidoc[]
+include::{tab-widget-dir}/tls-widget.asciidoc[]
 
 [float]
 ==== Enable TLS
@@ -79,7 +79,7 @@ individually configurable in Go, so they are not included in this list.
 | Fleet-managed     | `Cipher suites for TLS connections`
 |====
 
-include::{libbeat-dir}/shared-ssl-config.asciidoc[tag=cipher_suites]
+include::{docdir}/shared-ssl-config.asciidoc[tag=cipher_suites]
 
 [float]
 ==== Curve types for ECDHE based cipher suites

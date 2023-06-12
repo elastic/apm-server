@@ -104,5 +104,5 @@ include drop-in unit files. If you need to add a drop-in manually, use
 +systemctl edit {beatname_pkg}.service+.
 
 ifdef::apm-server[]
-include::{docdir}/legacy/config-ownership.asciidoc[]
+include::{docdir}/config-ownership.asciidoc[]
 endif::apm-server[]
