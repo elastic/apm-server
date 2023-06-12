@@ -111,13 +111,24 @@ func InitFleetPackage() error {
 	systemtestDir := filepath.Dir(filename)
 	repoRoot := filepath.Join(systemtestDir, "..")
 
-	// Locate the integration package zip.
-	cmd := exec.Command("make", "--no-print-directory", "get-version")
+	// Build the integration package.
+	log.Printf("Building package")
+	cmd := exec.Command("make", "build-package")
 	cmd.Dir = repoRoot
 	output, err := cmd.Output()
+
 	if err != nil {
 		return err
 	}
+
+	// Locate the integration package zip.
+	cmd = exec.Command("make", "--no-print-directory", "get-version")
+	cmd.Dir = repoRoot
+	output, err = cmd.Output()
+	if err != nil {
+		return err
+	}
+
 	packageVersion := strings.TrimSpace(string(output))
 	packagesBuildDir := filepath.Join(systemtestDir, "..", "build", "packages")
 	packageFilename := filepath.Join(packagesBuildDir, fmt.Sprintf("apm-%s.zip", packageVersion))
