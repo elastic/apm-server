@@ -34,10 +34,11 @@ const (
 	defaultElasticsearchUser = "apm_server_user"
 	defaultElasticsearchPass = "changeme"
 
-	defaultKibanaHost = "localhost"
-	defaultKibanaPort = "5601"
-	defaultKibanaUser = "apm_user_ro"
-	defaultKibanaPass = "changeme"
+	defaultKibanaHost     = "localhost"
+	defaultKibanaPort     = "5601"
+	defaultKibanaUser     = "apm_user_ro"
+	defaultKibanaPass     = "changeme"
+	defaultKibanaBasePath = ""
 )
 
 // Config holds APM Server configuration.
@@ -387,6 +388,7 @@ func DefaultConfig() Config {
 					getenvDefault("KIBANA_HOST", defaultKibanaHost),
 					KibanaPort(),
 				),
+				Path: getenvDefault("KIBANA_BASE_PATH", defaultKibanaBasePath),
 			}).String(),
 			Username: getenvDefault("KIBANA_USER", defaultKibanaUser),
 			Password: getenvDefault("KIBANA_PASS", defaultKibanaPass),

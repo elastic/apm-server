@@ -33,7 +33,7 @@ type FrameValidation struct {
 	originalFunction  string
 	classname         string
 	function          string
-	lineno            int
+	lineno            uint32
 }
 
 func TestSimpleLineDeobfuscation(t *testing.T) {
@@ -303,7 +303,7 @@ func verifyFrame(t *testing.T, frame *model.StacktraceFrame, validation FrameVal
 	assert.Equal(t, validation.lineno, *frame.Lineno)
 }
 
-func createStacktraceFrame(lineno int, fileName string, className string, function string) *model.StacktraceFrame {
+func createStacktraceFrame(lineno uint32, fileName string, className string, function string) *model.StacktraceFrame {
 	frame := model.StacktraceFrame{
 		Lineno:    &lineno,
 		Filename:  fileName,
