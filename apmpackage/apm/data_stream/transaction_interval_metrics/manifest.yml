@@ -5,9 +5,9 @@ ilm_policy: metrics-apm.transaction_{{ .Interval }}_metrics-default_policy
 elasticsearch:
   index_template:
     mappings:
-      # Transaction metrics should have all fields strictly mapped;
-      # we are in full control of the field names.
-      dynamic: strict
+      # We are in full control of the field names,
+      # but do not block ingestion on unexpected fields.
+      dynamic: runtime
       # Individual measurements are typically uninteresting, so
       # use synthetic source to reduce storage size.
       _source:
