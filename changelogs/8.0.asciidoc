@@ -56,6 +56,7 @@ releases of 8.0.0.
 - APM Server now responds with 403 (HTTP) and PermissionDenied (gRPC) for authenticated but unauthorized requests {pull}5545[5545]
 - `sourcemap.error` and `sourcemap.updated` are no longer set due to failing to find a matching source map {pull}5631[5631]
 - Removed `service.name` from dataset {pull}5451[5451]
+- Removed support for `fields` config {pull}10865[10865]
 
 [float]
 ==== Added
