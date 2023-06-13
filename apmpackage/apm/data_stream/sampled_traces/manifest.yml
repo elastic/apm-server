@@ -15,6 +15,6 @@ elasticsearch:
       # results.
       number_of_shards: 1
     mappings:
-      # Sampled traces should have all fields strictly mapped;
-      # we are in full control of the field names.
-      dynamic: strict
+      # We are in full control of the field names,
+      # but do not block ingestion on unexpected fields.
+      dynamic: runtime
