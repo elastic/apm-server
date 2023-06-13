@@ -37,6 +37,8 @@ releases of 8.0.0.
 ==== Breaking Changes
 - Removed source map upload endpoint {pull}6447[6447]
 - Removed unsupported libbeat `processors` configuration {pull}6474[6474]
+- Introduced a delete phase for all data streams. Traces, errors and logs are kept for 10 days, metrics are kept for 90 days {pull}6480[6480]
+- Changed RUM traces to use a dedicated data stream (`traces-apm.rum`). RUM traces are kept for 90 days {pull}6480[6480]
 - Removed `apm-server.aggregation.transactions.enabled` configuration option {pull}6495[6495]
 - Removed `apm-server.aggregation.service_destinations.enabled` configuration option {pull}6503[6503]
 - Removed legacy Jaeger gRPC/HTTP endpoints {pull}6417[6417]
@@ -57,8 +59,6 @@ releases of 8.0.0.
 
 [float]
 ==== Added
-- Introduced a delete phase for all data streams. Traces, errors and logs are kept for 10 days, metrics are kept for 90 days {pull}6480[6480]
-- Changed RUM traces to use a dedicated data stream (`traces-apm.rum`). RUM traces are kept for 90 days {pull}6480[6480]
 - Standalone apm-server can now fetch source maps uploaded to {kib}, when `apm-server.kibana` is configured {pull}6447[6447]
 - Added metrics for new {es} output: `libbeat.output.events.{acked,batches,toomany}`; added tracing and log correlation {pull}6630[6630]
 - The `labels` indexed field is now ECS compliant (string only) and added a new `numeric_labels` object that holds labels with numeric values {pull}6633[6633]
