@@ -12,6 +12,12 @@
     - description: Add `service.language.name` to service destination metrics
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/10881
+    - description: Remove `timeseries.instance` in ingest pipeline for pre-8.6 compatibility
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/10973
+    - description: Use "dynamic runtime" instead of strict mapping for internal, TBS, and aggregation indices
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/10968
 - version: "8.8.0"
   changes:
     - description: Store app logs into service-specific data streams
