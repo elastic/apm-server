@@ -368,8 +368,8 @@ github.com/eclipse/paho.mqtt.golang v1.3.5 h1:sWtmgNxYM9P2sP+xEItMozsR3w0cqZFlqn
 github.com/elastic/apm-data v0.1.1-0.20230309014206-3ad1a5caedc9 h1:nj0nBnU3hI/h3s4+6CnyOTcQqwH7U6y/2i1XM44wOaU=
 github.com/elastic/apm-data v0.1.1-0.20230309014206-3ad1a5caedc9/go.mod h1:8oEk/myQSw+GHqxPD3e8Oz2qPMawcOH+t9HYZ51p+rE=
 github.com/elastic/bayeux v1.0.5 h1:UceFq01ipmT3S8DzFK+uVAkbCdiPR0Bqei8qIGmUeY0=
-github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230608085412-a1bf8b879792 h1:BfmZAoqDJsWlTny0bD16rRr9343Vs0iYIkbOht48xcc=
-github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230608085412-a1bf8b879792/go.mod h1:lQhFxpBejAnILd56rhSFTgoSMCBpJJqMJoUUodUCTq0=
+github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230613011547-e9d8e83d5e01 h1:iTGO4ujha+4GCccaEfyYpCqRkmqRDYFIOV8xDRJmHc4=
+github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230613011547-e9d8e83d5e01/go.mod h1:tcXxzWhUk5VFq0609QSCUjRrAtf07hMowh6EU4KE9zg=
 github.com/elastic/elastic-agent-autodiscover v0.5.0 h1:fiDJQKB148RsRISqqbGINtJ/ZPupeVjwn0fbPz9ZDOc=
 github.com/elastic/elastic-agent-client/v7 v7.1.2 h1:p6KvvDMoFCBPvchxcx9cRXpRjsDaii0m/wE3lqQxpmM=
 github.com/elastic/elastic-agent-client/v7 v7.1.2/go.mod h1:G3Mk1pHXxvj3wC5FvsGUlPOsvapTB5SfrUmWiJDXT6Q=
@@ -744,7 +744,6 @@ github.com/opentracing-contrib/go-stdlib v1.0.0 h1:TBS7YuVotp8myLon4Pv7BtCBzOTo1
 github.com/opentracing/opentracing-go v1.2.0 h1:uEJPy/1a5RIPAJ0Ov+OIO8OxWu77jEv+1B0VhjKrZUs=
 github.com/opentracing/opentracing-go v1.2.0/go.mod h1:GxEUsuufX4nBwe+T+Wl9TAgYrxe9dPLANfrWvHYVTgc=
 github.com/osquery/osquery-go v0.0.0-20210622151333-99b4efa62ec5 h1:E275nJIUAvIK/RSN8cq9MAcRLk23jaZq+s24B0I8bEw=
-github.com/otiai10/copy v1.2.0 h1:HvG945u96iNadPoG2/Ja2+AUJeW5YuFQMixq9yirC+k=
 github.com/patrickmn/go-cache v2.1.0+incompatible h1:HRMgzkcYKYpi3C8ajMPV8OFXaaRUnok+kx1WdO15EQc=
 github.com/patrickmn/go-cache v2.1.0+incompatible/go.mod h1:3Qf8kWWT7OJRJbdiICTKqZju1ZixQ/KpMGzzAfe6+WQ=
 github.com/pelletier/go-toml v1.2.0/go.mod h1:5z9KED0ma1S8pY6P1sdut58dfprrGBbd/94hg7ilaic=
