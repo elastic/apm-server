@@ -286,3 +286,30 @@ func TestIngestPipelineEventSuccessCount(t *testing.T) {
 		}
 	}
 }
+
+func TestIngestPipelineBackwardCompatibility(t *testing.T) {
+	type test struct {
+		source string
+		index  string
+	}
+
+	tests := []test{
+		{
+			source: `{"@timestamp": "2022-02-15", "observer": {"version": "8.2.0"}, "timeseries": {"instance": "foobar"}}`,
+			index:  "metrics-apm.internal-default",
+		},
+	}
+
+	for _, test := range tests {
+		var indexResponse struct {
+			Index string `json:"_index"`
+			ID    string `json:"_id"`
+		}
+		_, err := systemtest.Elasticsearch.Do(context.Background(), esapi.IndexRequest{
+			Index:   test.index,
+			Body:    strings.NewReader(test.source),
+			Refresh: "true",
+		}, &indexResponse)
+		require.NoError(t, err)
+	}
+}
