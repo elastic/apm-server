@@ -33,7 +33,7 @@ Use *Discover* to validate that metrics are successfully reported to {kib}.
 . Launch {kib}:
 +
 --
-include::./shared/open-kibana/open-kibana-widget.asciidoc[]
+include::{tab-widget-dir}/open-kibana-widget.asciidoc[]
 --
 
 . Open the main menu, then click *Discover*.
@@ -55,7 +55,7 @@ KPI metrics, along with performance-related metrics.
 
 
 [role="screenshot"]
-image::./legacy/guide/images/ecommerce-dashboard.png[OpenTelemetry visualizations]
+image::./images/ecommerce-dashboard.png[OpenTelemetry visualizations]
 
 Let's look at how this dashboard was created, specifically the Sales USD and System load visualizations.
 

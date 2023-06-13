@@ -14,8 +14,8 @@ processors:
   - pipeline:
       name: client_geoip
   - remove:
-      # Removed in 8.6.0
-      field: timeseries.instance
+      # timeseries.instance removed in 8.6.0
+      field: timeseries
       ignore_missing: true
   - pipeline:
       name: set_metrics

@@ -471,4 +471,4 @@ See the <<securing-communication-elasticsearch,secure communication with {es}>> 
 or <<configuration-ssl,SSL configuration reference>> for more information.
 
 // Elasticsearch security
-include::../../legacy/copied-from-beats/docs/https.asciidoc[]
+include::{docdir}/https.asciidoc[]

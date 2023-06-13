@@ -30,5 +30,5 @@ include::{ingest-docs-root}/docs/en/ingest-management/tab-widgets/install-layout
 APM Server uses the following default paths unless you explicitly change them.
 
 --
-include::../../../tab-widgets/directory-layout-widget.asciidoc[]
+include::{tab-widget-dir}/directory-layout-widget.asciidoc[]
 --

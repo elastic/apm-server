@@ -30,7 +30,7 @@ You can only enable and configure anonymous authentication if an <<api-key,API k
 <<secret-token,secret token>> is configured. If neither are configured, these settings will be ignored.
 ====
 
-include::./tab-widgets/anonymous-auth-widget.asciidoc[]
+include::{tab-widget-dir}/anonymous-auth-widget.asciidoc[]
 
 [float]
 [[derive-client-ip]]
