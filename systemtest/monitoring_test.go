@@ -50,6 +50,75 @@ func TestAPMServerMonitoring(t *testing.T) {
 	assert.Contains(t, doc.Metrics, "apm-server")
 }
 
+func TestMonitoring(t *testing.T) {
+	srv := apmservertest.NewUnstartedServerTB(t)
+	srv.Config.Monitoring = newFastMonitoringConfig()
+	err := srv.Start()
+	require.NoError(t, err)
+
+	const N = 15
+	tracer := srv.Tracer()
+	for i := 0; i < N; i++ {
+		tx := tracer.StartTransaction("name", "type")
+		tx.Duration = time.Second
+		tx.End()
+	}
+	tracer.Flush(nil)
+	systemtest.Elasticsearch.ExpectMinDocs(t, N, "traces-*", nil)
+
+	var metrics struct {
+		Libbeat map[string]interface{}
+		Output  map[string]interface{}
+	}
+	getBeatsMonitoringStats(t, srv, &metrics)
+	// Remove the output.write.bytes key since there isn't a way to assert the
+	// writtenBytes at this layer.
+	if o := metrics.Libbeat["output"].(map[string]interface{}); len(o) > 0 {
+		if w := o["write"].(map[string]interface{}); len(w) > 0 {
+			if w["bytes"] != nil {
+				delete(w, "bytes")
+			}
+		}
+	}
+	assert.Equal(t, map[string]interface{}{
+		"output": map[string]interface{}{
+			"events": map[string]interface{}{
+				"acked":   float64(N),
+				"active":  0.0,
+				"batches": 1.0,
+				"failed":  0.0,
+				"toomany": 0.0,
+				"total":   float64(N),
+			},
+			"type":  "elasticsearch",
+			"write": map[string]interface{}{},
+		},
+		"pipeline": map[string]interface{}{
+			"events": map[string]interface{}{
+				"total": float64(N),
+			},
+		},
+	}, metrics.Libbeat)
+	if es := metrics.Output["elasticsearch"].(map[string]interface{}); len(es) > 0 {
+		if br := es["bulk_requests"].(map[string]interface{}); len(br) > 0 {
+			assert.Greater(t, br["available"], float64(10))
+			delete(br, "available")
+		}
+	}
+	assert.Equal(t, map[string]interface{}{
+		"elasticsearch": map[string]interface{}{
+			"bulk_requests": map[string]interface{}{
+				"completed": 1.0,
+			},
+			"indexers": map[string]interface{}{
+				"active":    float64(1),
+				"created":   0.0,
+				"destroyed": 0.0,
+			},
+		},
+	}, metrics.Output)
+}
+
 func TestAPMServerMonitoringBuiltinUser(t *testing.T) {
 	// This test is about ensuring the "apm_system" built-in user
 	// has sufficient privileges to index monitoring data.
