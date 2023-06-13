@@ -36,6 +36,7 @@ import (
 
 	"github.com/elastic/apm-data/input/elasticapm"
 	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/internal/beater/config"
 	"github.com/elastic/apm-server/internal/beater/headers"
 	"github.com/elastic/apm-server/internal/beater/request"
@@ -102,20 +103,20 @@ func TestIntakeHandler(t *testing.T) {
 			code: http.StatusBadRequest, id: request.IDResponseErrorsRequestTooLarge},
 		"Closing": {
 			path: "errors.ndjson",
-			batchProcessor: model.ProcessBatchFunc(func(context.Context, *model.Batch) error {
+			batchProcessor: modelpb.ProcessBatchFunc(func(context.Context, *modelpb.Batch) error {
 				return publish.ErrChannelClosed
 			}),
 			code: http.StatusServiceUnavailable, id: request.IDResponseErrorsShuttingDown},
 		"FullQueue": {
 			path: "errors.ndjson",
-			batchProcessor: model.ProcessBatchFunc(func(context.Context, *model.Batch) error {
+			batchProcessor: modelpb.ProcessBatchFunc(func(context.Context, *modelpb.Batch) error {
 				return elasticapm.ErrQueueFull
 			}),
 			code: http.StatusServiceUnavailable, id: request.IDResponseErrorsFullQueue,
 		},
 		"FullQueueLegacy": {
 			path: "errors.ndjson",
-			batchProcessor: model.ProcessBatchFunc(func(context.Context, *model.Batch) error {
+			batchProcessor: modelpb.ProcessBatchFunc(func(context.Context, *modelpb.Batch) error {
 				return publish.ErrFull
 			}),
 			code: http.StatusServiceUnavailable, id: request.IDResponseErrorsFullQueue,
@@ -180,7 +181,7 @@ func TestIntakeHandlerMonitoring(t *testing.T) {
 		base model.APMEvent,
 		stream io.Reader,
 		batchSize int,
-		processor model.BatchProcessor,
+		processor modelpb.BatchProcessor,
 		out *elasticapm.Result,
 	) error {
 		out.Accepted = 10
@@ -225,7 +226,7 @@ type testcaseIntakeHandler struct {
 	w              *httptest.ResponseRecorder
 	r              *http.Request
 	processor      *elasticapm.Processor
-	batchProcessor model.BatchProcessor
+	batchProcessor modelpb.BatchProcessor
 	path           string
 	contentType    string
 
@@ -299,7 +300,7 @@ type streamHandlerFunc func(
 	base model.APMEvent,
 	stream io.Reader,
 	batchSize int,
-	processor model.BatchProcessor,
+	processor modelpb.BatchProcessor,
 	out *elasticapm.Result,
 ) error
 
@@ -309,7 +310,7 @@ func (f streamHandlerFunc) HandleStream(
 	base model.APMEvent,
 	stream io.Reader,
 	batchSize int,
-	processor model.BatchProcessor,
+	processor modelpb.BatchProcessor,
 	out *elasticapm.Result,
 ) error {
 	return f(ctx, async, base, stream, batchSize, processor, out)
