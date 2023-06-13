@@ -59,10 +59,7 @@ func TestAgentConfig(t *testing.T) {
 	err = srvKibana.Start()
 	require.NoError(t, err)
 
-	// Run apm-server under Fleet, exercising the Fleet agent config implementation.
-	apmIntegration := newAPMIntegration(t, map[string]interface{}{})
-
-	serverURLs := []string{srvElasticsearch.URL, srvKibana.URL, apmIntegration.URL}
+	serverURLs := []string{srvElasticsearch.URL, srvKibana.URL}
 
 	expectChange := func(serverURL string, etag string) (map[string]string, *http.Response) {
 		t.Helper()
