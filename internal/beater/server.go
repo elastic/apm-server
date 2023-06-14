@@ -22,6 +22,7 @@ import (
 	"net"
 	"net/http"
 
+	"github.com/elastic/apm-server/internal/r8"
 	"go.elastic.co/apm/module/apmgorilla/v2"
 	"go.elastic.co/apm/v2"
 	"go.uber.org/zap"
@@ -181,13 +182,16 @@ func newServer(args ServerParams, listener net.Listener) (server, error) {
 		return server{}, err
 	}
 
-	otlpBatchProcessor := args.BatchProcessor
+	var otlpBatchProcessor modelprocessor.Chained
+
+	esClient, err := args.NewElasticsearchClient(elasticsearch.DefaultConfig())
+	if err != nil {
+		return server{}, err
+	}
+	otlpBatchProcessor = append(otlpBatchProcessor, otlp.NewStacktraceProcessor(r8.NewMapFetcher(esClient)))
 	if args.Config.AugmentEnabled {
 		// Add a model processor that sets `client.ip` for events from end-user devices.
-		otlpBatchProcessor = modelprocessor.Chained{
-			model.ProcessBatchFunc(otlp.SetClientMetadata),
-			otlpBatchProcessor,
-		}
+		otlpBatchProcessor = append(otlpBatchProcessor, model.ProcessBatchFunc(otlp.SetClientMetadata))
 	}
 	zapLogger := zap.New(args.Logger.Core(), zap.WithCaller(true))
 	otlp.RegisterGRPCServices(args.GRPCServer, zapLogger, otlpBatchProcessor)
