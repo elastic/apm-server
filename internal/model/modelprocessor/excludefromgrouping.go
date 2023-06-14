@@ -21,7 +21,7 @@ import (
 	"context"
 	"regexp"
 
-	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 )
 
 // SetExcludeFromGrouping is a model.BatchProcessor that identifies stack frames
@@ -33,7 +33,7 @@ type SetExcludeFromGrouping struct {
 // ProcessBatch processes the stack traces of spans and errors in b, updating
 // the exclude_from_grouping  for stack frames based on whether they have a filename
 // matching the regular expression.
-func (s SetExcludeFromGrouping) ProcessBatch(ctx context.Context, b *model.Batch) error {
+func (s SetExcludeFromGrouping) ProcessBatch(ctx context.Context, b *modelpb.Batch) error {
 	for _, event := range *b {
 		switch {
 		case event.Span != nil:
@@ -45,11 +45,11 @@ func (s SetExcludeFromGrouping) ProcessBatch(ctx context.Context, b *model.Batch
 	return nil
 }
 
-func (s SetExcludeFromGrouping) processSpan(ctx context.Context, event *model.Span) {
+func (s SetExcludeFromGrouping) processSpan(ctx context.Context, event *modelpb.Span) {
 	s.processStacktraceFrames(ctx, event.Stacktrace...)
 }
 
-func (s SetExcludeFromGrouping) processError(ctx context.Context, event *model.Error) {
+func (s SetExcludeFromGrouping) processError(ctx context.Context, event *modelpb.Error) {
 	if event.Log != nil {
 		s.processStacktraceFrames(ctx, event.Log.Stacktrace...)
 	}
@@ -58,14 +58,14 @@ func (s SetExcludeFromGrouping) processError(ctx context.Context, event *model.E
 	}
 }
 
-func (s SetExcludeFromGrouping) processException(ctx context.Context, exception *model.Exception) {
+func (s SetExcludeFromGrouping) processException(ctx context.Context, exception *modelpb.Exception) {
 	s.processStacktraceFrames(ctx, exception.Stacktrace...)
 	for _, cause := range exception.Cause {
-		s.processException(ctx, &cause)
+		s.processException(ctx, cause)
 	}
 }
 
-func (s SetExcludeFromGrouping) processStacktraceFrames(ctx context.Context, frames ...*model.StacktraceFrame) {
+func (s SetExcludeFromGrouping) processStacktraceFrames(ctx context.Context, frames ...*modelpb.StacktraceFrame) {
 	for _, frame := range frames {
 		frame.ExcludeFromGrouping = frame.Filename != "" && s.Pattern.MatchString(frame.Filename)
 	}

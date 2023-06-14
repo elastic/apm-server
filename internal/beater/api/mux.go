@@ -33,6 +33,7 @@ import (
 
 	"github.com/elastic/apm-data/input/elasticapm"
 	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-data/model/modelprocessor"
 	"github.com/elastic/apm-server/internal/agentcfg"
 	"github.com/elastic/apm-server/internal/beater/api/config/agent"
@@ -82,7 +83,7 @@ const (
 // APM Server API.
 func NewMux(
 	beaterConfig *config.Config,
-	batchProcessor model.BatchProcessor,
+	batchProcessor modelpb.BatchProcessor,
 	authenticator *auth.Authenticator,
 	fetcher agentcfg.Fetcher,
 	ratelimitStore *ratelimit.Store,
@@ -115,7 +116,7 @@ func NewMux(
 		handlerFn func() (request.Handler, error)
 	}
 
-	otlpHandlers := otlp.NewHTTPHandlers(zapLogger, batchProcessor)
+	otlpHandlers := otlp.NewHTTPHandlers(zapLogger, model.ProtoBatchProcessor(batchProcessor))
 	rumIntakeHandler := builder.rumIntakeHandler()
 	routeMap := []route{
 		{RootPath, builder.rootHandler(publishReady)},
@@ -162,7 +163,7 @@ func NewMux(
 type routeBuilder struct {
 	cfg              *config.Config
 	authenticator    *auth.Authenticator
-	batchProcessor   model.BatchProcessor
+	batchProcessor   modelpb.BatchProcessor
 	ratelimitStore   *ratelimit.Store
 	sourcemapFetcher sourcemap.Fetcher
 	intakeProcessor  *elasticapm.Processor
@@ -170,7 +171,7 @@ type routeBuilder struct {
 }
 
 func (r *routeBuilder) backendIntakeHandler() (request.Handler, error) {
-	h := intake.Handler(r.intakeProcessor, backendRequestMetadataFunc(r.cfg), r.batchProcessor)
+	h := intake.Handler(r.intakeProcessor, backendRequestMetadataFunc(r.cfg), model.ProtoBatchProcessor(r.batchProcessor))
 	return middleware.Wrap(h, backendMiddleware(r.cfg, r.authenticator, r.ratelimitStore, intake.MonitoringMap)...)
 }
 
@@ -185,7 +186,7 @@ func (r *routeBuilder) otlpHandler(handler http.HandlerFunc, monitoringMap map[r
 
 func (r *routeBuilder) rumIntakeHandler() func() (request.Handler, error) {
 	return func() (request.Handler, error) {
-		var batchProcessors modelprocessor.Chained
+		var batchProcessors modelprocessor.PbChained
 		// The order of these processors is important. Source mapping must happen before identifying library frames, or
 		// frames to exclude from error grouping; identifying library frames must happen before updating the error culprit.
 		if r.sourcemapFetcher != nil {
@@ -213,7 +214,7 @@ func (r *routeBuilder) rumIntakeHandler() func() (request.Handler, error) {
 			batchProcessors = append(batchProcessors, modelprocessor.SetCulprit{})
 		}
 		batchProcessors = append(batchProcessors, r.batchProcessor) // r.batchProcessor always goes last
-		h := intake.Handler(r.intakeProcessor, rumRequestMetadataFunc(r.cfg), batchProcessors)
+		h := intake.Handler(r.intakeProcessor, rumRequestMetadataFunc(r.cfg), model.ProtoBatchProcessor(batchProcessors))
 		return middleware.Wrap(h, rumMiddleware(r.cfg, r.authenticator, r.ratelimitStore, intake.MonitoringMap)...)
 	}
 }

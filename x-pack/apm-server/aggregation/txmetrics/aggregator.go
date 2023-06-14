@@ -14,12 +14,13 @@ import (
 	"github.com/axiomhq/hyperloglog"
 	"github.com/cespare/xxhash/v2"
 	"github.com/pkg/errors"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/monitoring"
 	"github.com/elastic/go-hdrhistogram"
 
-	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/internal/logs"
 	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/baseaggregator"
 	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/interval"
@@ -74,7 +75,7 @@ type aggregatorMetrics struct {
 // AggregatorConfig holds configuration for creating an Aggregator.
 type AggregatorConfig struct {
 	// BatchProcessor is a model.BatchProcessor for asynchronously processing metrics documents.
-	BatchProcessor model.BatchProcessor
+	BatchProcessor modelpb.BatchProcessor
 
 	// Logger is the logger for logging histogram aggregation/publishing.
 	//
@@ -223,7 +224,7 @@ func (a *Aggregator) publish(ctx context.Context, period time.Duration) error {
 	isMetricsPeriod := period == a.config.MetricsInterval
 	intervalStr := interval.FormatDuration(period)
 	totalActiveGroups := current.entries + current.overflowedEntries
-	batch := make(model.Batch, 0, totalActiveGroups)
+	batch := make(modelpb.Batch, 0, totalActiveGroups)
 	for svc, svcEntry := range current.m {
 		for _, entries := range svcEntry.m {
 			for _, entry := range entries {
@@ -247,7 +248,7 @@ func (a *Aggregator) publish(ctx context.Context, period time.Duration) error {
 			entry := svcEntry.other
 			// Record the metricset interval as metricset.interval.
 			m := makeMetricset(entry.transactionAggregationKey, entry.transactionMetrics, intervalStr)
-			m.Metricset.Samples = append(m.Metricset.Samples, model.MetricsetSample{
+			m.Metricset.Samples = append(m.Metricset.Samples, &modelpb.MetricsetSample{
 				Name:  "transaction.aggregation.overflow_count",
 				Value: float64(overflowCount),
 			})
@@ -272,9 +273,9 @@ func (a *Aggregator) publish(ctx context.Context, period time.Duration) error {
 
 // ProcessBatch aggregates all transactions contained in "b". On overflow
 // the metrics are aggregated into `_other` buckets to contain cardinality.
-func (a *Aggregator) ProcessBatch(ctx context.Context, b *model.Batch) error {
+func (a *Aggregator) ProcessBatch(ctx context.Context, b *modelpb.Batch) error {
 	for _, event := range *b {
-		if event.Processor != model.TransactionProcessor {
+		if !event.Processor.IsTransaction() {
 			continue
 		}
 		a.AggregateTransaction(event)
@@ -304,14 +305,14 @@ func (a *Aggregator) ProcessBatch(ctx context.Context, b *model.Batch) error {
 //     can aggregate over. Once this limit is breached the metrics will be
 //     aggregated in the `_other` transaction bucket of a dedicated service
 //     with `service.name` as `_other`.
-func (a *Aggregator) AggregateTransaction(event model.APMEvent) {
+func (a *Aggregator) AggregateTransaction(event *modelpb.APMEvent) {
 	count := event.Transaction.RepresentativeCount
 	if count <= 0 {
 		return
 	}
 	for _, interval := range a.Intervals {
 		key := makeTransactionAggregationKey(event, interval)
-		if err := a.updateTransactionMetrics(key, count, event.Event.Duration, interval); err != nil {
+		if err := a.updateTransactionMetrics(key, count, event.GetEvent().GetDuration().AsDuration(), interval); err != nil {
 			a.config.Logger.Errorf("failed to aggregate transaction: %w", err)
 		}
 	}
@@ -457,145 +458,220 @@ func makeOverflowAggregationKey(
 	}
 }
 
-func makeTransactionAggregationKey(event model.APMEvent, interval time.Duration) transactionAggregationKey {
+func makeTransactionAggregationKey(event *modelpb.APMEvent, interval time.Duration) transactionAggregationKey {
 	key := transactionAggregationKey{
 		comparable: comparable{
-			// Group metrics by time interval.
-			timestamp: event.Timestamp.Truncate(interval),
+			traceRoot:         event.GetParent().GetId() == "",
+			transactionName:   event.GetTransaction().GetName(),
+			transactionResult: event.GetTransaction().GetResult(),
+			transactionType:   event.GetTransaction().GetType(),
+			eventOutcome:      event.GetEvent().GetOutcome(),
 
-			traceRoot:         event.Parent.ID == "",
-			transactionName:   event.Transaction.Name,
-			transactionResult: event.Transaction.Result,
-			transactionType:   event.Transaction.Type,
-			eventOutcome:      event.Event.Outcome,
+			agentName:             event.GetAgent().GetName(),
+			serviceEnvironment:    event.GetService().GetEnvironment(),
+			serviceName:           event.GetService().GetName(),
+			serviceVersion:        event.GetService().GetVersion(),
+			serviceNodeName:       event.GetService().GetNode().GetName(),
+			serviceRuntimeName:    event.GetService().GetRuntime().GetName(),
+			serviceRuntimeVersion: event.GetService().GetRuntime().GetVersion(),
 
-			agentName:             event.Agent.Name,
-			serviceEnvironment:    event.Service.Environment,
-			serviceName:           event.Service.Name,
-			serviceVersion:        event.Service.Version,
-			serviceNodeName:       event.Service.Node.Name,
-			serviceRuntimeName:    event.Service.Runtime.Name,
-			serviceRuntimeVersion: event.Service.Runtime.Version,
+			serviceLanguageName:    event.GetService().GetLanguage().GetName(),
+			serviceLanguageVersion: event.GetService().GetLanguage().GetVersion(),
 
-			serviceLanguageName:    event.Service.Language.Name,
-			serviceLanguageVersion: event.Service.Language.Version,
+			hostHostname:      event.GetHost().GetHostname(),
+			hostName:          event.GetHost().GetName(),
+			hostOSPlatform:    event.GetHost().GetOs().GetPlatform(),
+			containerID:       event.GetContainer().GetId(),
+			kubernetesPodName: event.GetKubernetes().GetPodName(),
 
-			hostHostname:      event.Host.Hostname,
-			hostName:          event.Host.Name,
-			hostOSPlatform:    event.Host.OS.Platform,
-			containerID:       event.Container.ID,
-			kubernetesPodName: event.Kubernetes.PodName,
+			cloudProvider:         event.GetCloud().GetProvider(),
+			cloudRegion:           event.GetCloud().GetRegion(),
+			cloudAvailabilityZone: event.GetCloud().GetAvailabilityZone(),
+			cloudServiceName:      event.GetCloud().GetServiceName(),
+			cloudAccountID:        event.GetCloud().GetAccountId(),
+			cloudAccountName:      event.GetCloud().GetAccountName(),
+			cloudProjectID:        event.GetCloud().GetProjectId(),
+			cloudProjectName:      event.GetCloud().GetProjectName(),
+			cloudMachineType:      event.GetCloud().GetMachineType(),
 
-			cloudProvider:         event.Cloud.Provider,
-			cloudRegion:           event.Cloud.Region,
-			cloudAvailabilityZone: event.Cloud.AvailabilityZone,
-			cloudServiceName:      event.Cloud.ServiceName,
-			cloudAccountID:        event.Cloud.AccountID,
-			cloudAccountName:      event.Cloud.AccountName,
-			cloudProjectID:        event.Cloud.ProjectID,
-			cloudProjectName:      event.Cloud.ProjectName,
-			cloudMachineType:      event.Cloud.MachineType,
-
-			faasColdstart:   nullableBoolFromPtr(event.FAAS.Coldstart),
-			faasID:          event.FAAS.ID,
-			faasTriggerType: event.FAAS.TriggerType,
-			faasName:        event.FAAS.Name,
-			faasVersion:     event.FAAS.Version,
+			faasID:          event.GetFaas().GetId(),
+			faasTriggerType: event.GetFaas().GetTriggerType(),
+			faasName:        event.GetFaas().GetName(),
+			faasVersion:     event.GetFaas().GetVersion(),
 		},
 	}
-	key.AggregatedGlobalLabels.Read(&event)
+	if event.Timestamp != nil {
+		// Group metrics by time interval.
+		key.comparable.timestamp = event.Timestamp.AsTime().Truncate(interval)
+	}
+	if event.Faas != nil {
+		key.comparable.faasColdstart = nullableBoolFromPtr(event.Faas.ColdStart)
+	}
+	key.AggregatedGlobalLabels.Read(event)
 	return key
 }
 
 // makeMetricset creates a metricset with key, metrics, and interval.
 // It uses result from histogram for Transaction.DurationSummary and DocCount to avoid discrepancy and UI weirdness.
-func makeMetricset(key transactionAggregationKey, metrics transactionMetrics, interval string) model.APMEvent {
+func makeMetricset(key transactionAggregationKey, metrics transactionMetrics, interval string) *modelpb.APMEvent {
 	totalCount, counts, values := metrics.histogramBuckets()
 
-	var eventSuccessCount model.SummaryMetric
+	var eventSuccessCount *modelpb.SummaryMetric
 	switch key.eventOutcome {
 	case "success":
-		eventSuccessCount.Count = totalCount
-		eventSuccessCount.Sum = float64(totalCount)
+		eventSuccessCount = &modelpb.SummaryMetric{
+			Count: totalCount,
+			Sum:   float64(totalCount),
+		}
 	case "failure":
-		eventSuccessCount.Count = totalCount
+		eventSuccessCount = &modelpb.SummaryMetric{
+			Count: totalCount,
+		}
 	case "unknown":
 		// Keep both Count and Sum as 0.
 	}
 
-	transactionDurationSummary := model.SummaryMetric{
+	var t *timestamppb.Timestamp
+	if !key.timestamp.IsZero() {
+		t = timestamppb.New(key.timestamp)
+	}
+
+	transactionDurationSummary := modelpb.SummaryMetric{
 		Count: totalCount,
 	}
 	for i, v := range values {
 		transactionDurationSummary.Sum += v * float64(counts[i])
 	}
 
-	return model.APMEvent{
-		Timestamp:  key.timestamp,
-		Agent:      model.Agent{Name: key.agentName},
-		Container:  model.Container{ID: key.containerID},
-		Kubernetes: model.Kubernetes{PodName: key.kubernetesPodName},
-		Service: model.Service{
-			Name:        key.serviceName,
-			Version:     key.serviceVersion,
-			Node:        model.ServiceNode{Name: key.serviceNodeName},
-			Environment: key.serviceEnvironment,
-			Runtime: model.Runtime{
-				Name:    key.serviceRuntimeName,
-				Version: key.serviceRuntimeVersion,
-			},
-			Language: model.Language{
-				Name:    key.serviceLanguageName,
-				Version: key.serviceLanguageVersion,
-			},
-		},
-		Cloud: model.Cloud{
+	var agent *modelpb.Agent
+	if key.agentName != "" {
+		agent = &modelpb.Agent{Name: key.agentName}
+	}
+
+	var container *modelpb.Container
+	if key.containerID != "" {
+		container = &modelpb.Container{Name: key.containerID}
+	}
+
+	var hostOs *modelpb.OS
+	if key.hostOSPlatform != "" {
+		hostOs = &modelpb.OS{
+			Platform: key.hostOSPlatform,
+		}
+	}
+
+	var language *modelpb.Language
+	if key.serviceLanguageName != "" || key.serviceLanguageVersion != "" {
+		language = &modelpb.Language{
+			Name:    key.serviceLanguageName,
+			Version: key.serviceLanguageVersion,
+		}
+	}
+
+	var serviceRuntime *modelpb.Runtime
+	if key.serviceRuntimeName != "" || key.serviceRuntimeVersion != "" {
+		serviceRuntime = &modelpb.Runtime{
+			Name:    key.serviceRuntimeName,
+			Version: key.serviceRuntimeVersion,
+		}
+	}
+
+	var serviceNode *modelpb.ServiceNode
+	if key.serviceNodeName != "" {
+		serviceNode = &modelpb.ServiceNode{
+			Name: key.serviceNodeName,
+		}
+	}
+
+	var cloud *modelpb.Cloud
+	if key.cloudProvider != "" || key.cloudRegion != "" || key.cloudAvailabilityZone != "" || key.cloudServiceName != "" || key.cloudAccountID != "" ||
+		key.cloudAccountName != "" || key.cloudMachineType != "" || key.cloudProjectID != "" || key.cloudProjectName != "" {
+		cloud = &modelpb.Cloud{
 			Provider:         key.cloudProvider,
 			Region:           key.cloudRegion,
 			AvailabilityZone: key.cloudAvailabilityZone,
 			ServiceName:      key.cloudServiceName,
-			AccountID:        key.cloudAccountID,
+			AccountId:        key.cloudAccountID,
 			AccountName:      key.cloudAccountName,
 			MachineType:      key.cloudMachineType,
-			ProjectID:        key.cloudProjectID,
+			ProjectId:        key.cloudProjectID,
 			ProjectName:      key.cloudProjectName,
-		},
-		Host: model.Host{
+		}
+	}
+
+	var hostStr *modelpb.Host
+	if key.hostHostname != "" || key.hostName != "" || hostOs != nil {
+		hostStr = &modelpb.Host{
 			Hostname: key.hostHostname,
 			Name:     key.hostName,
-			OS: model.OS{
-				Platform: key.hostOSPlatform,
-			},
-		},
-		Event: model.Event{
-			Outcome:      key.eventOutcome,
-			SuccessCount: eventSuccessCount,
-		},
-		FAAS: model.FAAS{
-			Coldstart:   key.faasColdstart.toPtr(),
-			ID:          key.faasID,
+			Os:       hostOs,
+		}
+	}
+
+	var service *modelpb.Service
+	if key.serviceName != "" || key.serviceVersion != "" || serviceNode != nil || key.serviceEnvironment != "" || serviceRuntime != nil || language != nil {
+		service = &modelpb.Service{
+			Name:        key.serviceName,
+			Version:     key.serviceVersion,
+			Node:        serviceNode,
+			Environment: key.serviceEnvironment,
+			Runtime:     serviceRuntime,
+			Language:    language,
+		}
+	}
+
+	var kube *modelpb.Kubernetes
+	if key.kubernetesPodName != "" {
+		kube = &modelpb.Kubernetes{PodName: key.kubernetesPodName}
+	}
+
+	var faas *modelpb.Faas
+	if key.faasColdstart.isSet || key.faasID != "" || key.faasTriggerType != "" || key.faasName != "" || key.faasVersion != "" {
+		faas = &modelpb.Faas{
+			ColdStart:   key.faasColdstart.toPtr(),
+			Id:          key.faasID,
 			TriggerType: key.faasTriggerType,
 			Name:        key.faasName,
 			Version:     key.faasVersion,
-		},
+		}
+	}
+
+	var eventStr *modelpb.Event
+	if key.eventOutcome != "" || eventSuccessCount != nil {
+		eventStr = &modelpb.Event{
+			Outcome:      key.eventOutcome,
+			SuccessCount: eventSuccessCount,
+		}
+	}
+
+	return &modelpb.APMEvent{
+		Timestamp:     t,
+		Agent:         agent,
+		Container:     container,
+		Kubernetes:    kube,
+		Service:       service,
+		Cloud:         cloud,
+		Host:          hostStr,
+		Event:         eventStr,
+		Faas:          faas,
 		Labels:        key.AggregatedGlobalLabels.Labels,
 		NumericLabels: key.AggregatedGlobalLabels.NumericLabels,
-		Processor:     model.MetricsetProcessor,
-		Metricset: &model.Metricset{
+		Processor:     modelpb.MetricsetProcessor(),
+		Metricset: &modelpb.Metricset{
 			Name:     metricsetName,
 			DocCount: totalCount,
 			Interval: interval,
 		},
-		Transaction: &model.Transaction{
+		Transaction: &modelpb.Transaction{
 			Name:   key.transactionName,
 			Type:   key.transactionType,
 			Result: key.transactionResult,
 			Root:   key.traceRoot,
-			DurationHistogram: model.Histogram{
+			DurationHistogram: &modelpb.Histogram{
 				Counts: counts,
 				Values: values,
 			},
-			DurationSummary: transactionDurationSummary,
+			DurationSummary: &transactionDurationSummary,
 		},
 	}
 }

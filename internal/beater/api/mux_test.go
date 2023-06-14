@@ -31,6 +31,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/internal/agentcfg"
 	"github.com/elastic/apm-server/internal/beater/auth"
 	"github.com/elastic/apm-server/internal/beater/config"
@@ -155,7 +156,7 @@ type muxBuilder struct {
 }
 
 func (m muxBuilder) build(cfg *config.Config) (http.Handler, error) {
-	nopBatchProcessor := model.ProcessBatchFunc(func(context.Context, *model.Batch) error { return nil })
+	nopBatchProcessor := modelpb.ProcessBatchFunc(func(context.Context, *modelpb.Batch) error { return nil })
 	ratelimitStore, _ := ratelimit.NewStore(1000, 1000, 1000)
 	authenticator, _ := auth.NewAuthenticator(cfg.AgentAuth)
 	return NewMux(

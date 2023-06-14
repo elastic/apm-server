@@ -24,7 +24,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/internal/model/modelprocessor"
 )
 
@@ -34,14 +34,14 @@ func TestSetLibraryFrames(t *testing.T) {
 	}
 
 	tests := []struct {
-		input, output model.Batch
+		input, output modelpb.Batch
 	}{{
-		input:  model.Batch{{Error: &model.Error{}}, {Transaction: &model.Transaction{}}},
-		output: model.Batch{{Error: &model.Error{}}, {Transaction: &model.Transaction{}}},
+		input:  modelpb.Batch{{Error: &modelpb.Error{}}, {Transaction: &modelpb.Transaction{}}},
+		output: modelpb.Batch{{Error: &modelpb.Error{}}, {Transaction: &modelpb.Transaction{}}},
 	}, {
-		input: model.Batch{{
-			Span: &model.Span{
-				Stacktrace: model.Stacktrace{
+		input: modelpb.Batch{{
+			Span: &modelpb.Span{
+				Stacktrace: []*modelpb.StacktraceFrame{
 					{LibraryFrame: true, Filename: "foo.go"},
 					{LibraryFrame: false, AbsPath: "foobar.go"},
 					{LibraryFrame: true, Filename: "bar.go"},
@@ -49,21 +49,21 @@ func TestSetLibraryFrames(t *testing.T) {
 				},
 			},
 		}},
-		output: model.Batch{{
-			Span: &model.Span{
-				Stacktrace: model.Stacktrace{
-					{LibraryFrame: true, Filename: "foo.go", Original: model.Original{LibraryFrame: true}},
-					{LibraryFrame: true, AbsPath: "foobar.go", Original: model.Original{LibraryFrame: false}},
-					{LibraryFrame: false, Filename: "bar.go", Original: model.Original{LibraryFrame: true}},
-					{LibraryFrame: false, Original: model.Original{LibraryFrame: true}},
+		output: modelpb.Batch{{
+			Span: &modelpb.Span{
+				Stacktrace: []*modelpb.StacktraceFrame{
+					{LibraryFrame: true, Filename: "foo.go", Original: &modelpb.Original{LibraryFrame: true}},
+					{LibraryFrame: true, AbsPath: "foobar.go", Original: &modelpb.Original{LibraryFrame: false}},
+					{LibraryFrame: false, Filename: "bar.go", Original: &modelpb.Original{LibraryFrame: true}},
+					{LibraryFrame: false, Original: &modelpb.Original{LibraryFrame: true}},
 				},
 			},
 		}},
 	}, {
-		input: model.Batch{{
-			Error: &model.Error{
-				Log: &model.ErrorLog{
-					Stacktrace: model.Stacktrace{
+		input: modelpb.Batch{{
+			Error: &modelpb.Error{
+				Log: &modelpb.ErrorLog{
+					Stacktrace: []*modelpb.StacktraceFrame{
 						{LibraryFrame: true, Filename: "foo.go"},
 						{LibraryFrame: false, AbsPath: "foobar.go"},
 						{LibraryFrame: true, Filename: "bar.go"},
@@ -72,39 +72,39 @@ func TestSetLibraryFrames(t *testing.T) {
 				},
 			},
 		}, {
-			Error: &model.Error{
-				Exception: &model.Exception{
-					Stacktrace: model.Stacktrace{
+			Error: &modelpb.Error{
+				Exception: &modelpb.Exception{
+					Stacktrace: []*modelpb.StacktraceFrame{
 						{LibraryFrame: true, Filename: "foo.go"},
 					},
-					Cause: []model.Exception{{
-						Stacktrace: model.Stacktrace{
+					Cause: []*modelpb.Exception{{
+						Stacktrace: []*modelpb.StacktraceFrame{
 							{LibraryFrame: true, Filename: "foo.go"},
 						},
 					}},
 				},
 			},
 		}},
-		output: model.Batch{{
-			Error: &model.Error{
-				Log: &model.ErrorLog{
-					Stacktrace: model.Stacktrace{
-						{LibraryFrame: true, Filename: "foo.go", Original: model.Original{LibraryFrame: true}},
-						{LibraryFrame: true, AbsPath: "foobar.go", Original: model.Original{LibraryFrame: false}},
-						{LibraryFrame: false, Filename: "bar.go", Original: model.Original{LibraryFrame: true}},
-						{LibraryFrame: false, Original: model.Original{LibraryFrame: true}},
+		output: modelpb.Batch{{
+			Error: &modelpb.Error{
+				Log: &modelpb.ErrorLog{
+					Stacktrace: []*modelpb.StacktraceFrame{
+						{LibraryFrame: true, Filename: "foo.go", Original: &modelpb.Original{LibraryFrame: true}},
+						{LibraryFrame: true, AbsPath: "foobar.go", Original: &modelpb.Original{LibraryFrame: false}},
+						{LibraryFrame: false, Filename: "bar.go", Original: &modelpb.Original{LibraryFrame: true}},
+						{LibraryFrame: false, Original: &modelpb.Original{LibraryFrame: true}},
 					},
 				},
 			},
 		}, {
-			Error: &model.Error{
-				Exception: &model.Exception{
-					Stacktrace: model.Stacktrace{
-						{LibraryFrame: true, Filename: "foo.go", Original: model.Original{LibraryFrame: true}},
+			Error: &modelpb.Error{
+				Exception: &modelpb.Exception{
+					Stacktrace: []*modelpb.StacktraceFrame{
+						{LibraryFrame: true, Filename: "foo.go", Original: &modelpb.Original{LibraryFrame: true}},
 					},
-					Cause: []model.Exception{{
-						Stacktrace: model.Stacktrace{
-							{LibraryFrame: true, Filename: "foo.go", Original: model.Original{LibraryFrame: true}},
+					Cause: []*modelpb.Exception{{
+						Stacktrace: []*modelpb.StacktraceFrame{
+							{LibraryFrame: true, Filename: "foo.go", Original: &modelpb.Original{LibraryFrame: true}},
 						},
 					}},
 				},

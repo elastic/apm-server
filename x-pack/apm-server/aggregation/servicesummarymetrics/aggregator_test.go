@@ -7,7 +7,6 @@ package servicesummarymetrics
 import (
 	"context"
 	"fmt"
-	"net/netip"
 	"sort"
 	"sync"
 	"testing"
@@ -15,13 +14,16 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
+	"google.golang.org/protobuf/testing/protocmp"
+	"google.golang.org/protobuf/types/known/durationpb"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"go.opentelemetry.io/collector/pdata/plog"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/elastic-agent-libs/monitoring"
 )
 
@@ -56,7 +58,7 @@ func TestNewAggregatorConfigInvalid(t *testing.T) {
 }
 
 func TestAggregatorRun(t *testing.T) {
-	batches := make(chan model.Batch, 3)
+	batches := make(chan modelpb.Batch, 3)
 	config := AggregatorConfig{
 		BatchProcessor:  makeChanBatchProcessor(batches),
 		Interval:        1 * time.Millisecond,
@@ -66,84 +68,84 @@ func TestAggregatorRun(t *testing.T) {
 	agg, err := NewAggregator(config)
 	require.NoError(t, err)
 
-	apmEvents := []model.APMEvent{
+	apmEvents := []*modelpb.APMEvent{
 		{
-			Agent:   model.Agent{Name: "java"},
-			Service: model.Service{Name: "backend", Language: model.Language{Name: "java"}},
-			Event: model.Event{
+			Agent:   &modelpb.Agent{Name: "java"},
+			Service: &modelpb.Service{Name: "backend", Language: &modelpb.Language{Name: "java"}},
+			Event: &modelpb.Event{
 				Outcome:  "success",
-				Duration: time.Millisecond,
+				Duration: durationpb.New(time.Millisecond),
 			},
-			Processor: model.TransactionProcessor,
-			Transaction: &model.Transaction{
+			Processor: modelpb.TransactionProcessor(),
+			Transaction: &modelpb.Transaction{
 				Name:                "transaction_name",
 				Type:                "request",
 				RepresentativeCount: 1,
 			},
-			Labels: model.Labels{
-				"department_name": model.LabelValue{Global: true, Value: "apm"},
-				"organization":    model.LabelValue{Global: true, Value: "observability"},
-				"company":         model.LabelValue{Global: true, Value: "elastic"},
+			Labels: modelpb.Labels{
+				"department_name": &modelpb.LabelValue{Global: true, Value: "apm"},
+				"organization":    &modelpb.LabelValue{Global: true, Value: "observability"},
+				"company":         &modelpb.LabelValue{Global: true, Value: "elastic"},
 			},
-			NumericLabels: model.NumericLabels{
-				"user_id":     model.NumericLabelValue{Global: true, Value: 100},
-				"cost_center": model.NumericLabelValue{Global: true, Value: 10},
+			NumericLabels: modelpb.NumericLabels{
+				"user_id":     &modelpb.NumericLabelValue{Global: true, Value: 100},
+				"cost_center": &modelpb.NumericLabelValue{Global: true, Value: 10},
 			},
 		},
 		{
-			Processor: model.LogProcessor,
-			Agent: model.Agent{
+			Processor: modelpb.LogProcessor(),
+			Agent: &modelpb.Agent{
 				Name:    "java",
 				Version: "unknown",
 			},
-			Service: model.Service{
+			Service: &modelpb.Service{
 				Name:     "backend",
-				Language: model.Language{Name: "java"},
+				Language: &modelpb.Language{Name: "java"},
 			},
 			Message: "a random log message",
-			Event: model.Event{
+			Event: &modelpb.Event{
 				Severity: int64(plog.SeverityNumberInfo),
 			},
-			Log:   model.Log{Level: "Info"},
-			Span:  &model.Span{ID: "0200000000000000"},
-			Trace: model.Trace{ID: "01000000000000000000000000000000"},
-			Labels: model.Labels{
-				"department_name": model.LabelValue{Global: true, Value: "apm"},
-				"organization":    model.LabelValue{Global: true, Value: "observability"},
-				"company":         model.LabelValue{Global: true, Value: "elastic"},
+			Log:   &modelpb.Log{Level: "Info"},
+			Span:  &modelpb.Span{Id: "0200000000000000"},
+			Trace: &modelpb.Trace{Id: "01000000000000000000000000000000"},
+			Labels: modelpb.Labels{
+				"department_name": &modelpb.LabelValue{Global: true, Value: "apm"},
+				"organization":    &modelpb.LabelValue{Global: true, Value: "observability"},
+				"company":         &modelpb.LabelValue{Global: true, Value: "elastic"},
 			},
-			NumericLabels: model.NumericLabels{
-				"user_id":     model.NumericLabelValue{Global: true, Value: 100},
-				"cost_center": model.NumericLabelValue{Global: true, Value: 10},
+			NumericLabels: modelpb.NumericLabels{
+				"user_id":     &modelpb.NumericLabelValue{Global: true, Value: 100},
+				"cost_center": &modelpb.NumericLabelValue{Global: true, Value: 10},
 			},
 		},
 		{
-			Processor: model.ErrorProcessor,
-			Agent: model.Agent{
+			Processor: modelpb.ErrorProcessor(),
+			Agent: &modelpb.Agent{
 				Name: "go",
 			},
-			Service: model.Service{
+			Service: &modelpb.Service{
 				Name:     "backend",
-				Language: model.Language{Name: "go"},
+				Language: &modelpb.Language{Name: "go"},
 			},
 		},
 		{
-			Processor: model.MetricsetProcessor,
-			Agent: model.Agent{
+			Processor: modelpb.MetricsetProcessor(),
+			Agent: &modelpb.Agent{
 				Name: "go",
 			},
-			Service: model.Service{
+			Service: &modelpb.Service{
 				Name:        "backend",
 				Environment: "dev",
-				Language:    model.Language{Name: "go"},
+				Language:    &modelpb.Language{Name: "go"},
 			},
 		},
 		{
-			Processor: model.SpanProcessor,
-			Agent: model.Agent{
+			Processor: modelpb.SpanProcessor(),
+			Agent: &modelpb.Agent{
 				Name: "js-base",
 			},
-			Service: model.Service{
+			Service: &modelpb.Service{
 				Name: "frontend",
 			},
 		},
@@ -152,12 +154,12 @@ func TestAggregatorRun(t *testing.T) {
 	var wg sync.WaitGroup
 	for _, in := range apmEvents {
 		wg.Add(1)
-		go func(in model.APMEvent) {
+		go func(in *modelpb.APMEvent) {
 			defer wg.Done()
-			batch := model.Batch{in}
+			batch := modelpb.Batch{in}
 			err := agg.ProcessBatch(context.Background(), &batch)
 			require.NoError(t, err)
-			assert.Equal(t, model.Batch{in}, batch)
+			assert.Equal(t, modelpb.Batch{in}, batch)
 		}(in)
 	}
 	wg.Wait()
@@ -171,47 +173,50 @@ func TestAggregatorRun(t *testing.T) {
 	for _, interval := range append([]time.Duration{config.Interval}, config.RollUpIntervals...) {
 		batch := expectBatch(t, batches)
 		metricsets := batchMetricsets(t, batch)
-		expected := []model.APMEvent{{
-			Processor: model.MetricsetProcessor,
-			Metricset: &model.Metricset{
+		expected := []*modelpb.APMEvent{{
+			Processor: modelpb.MetricsetProcessor(),
+			Metricset: &modelpb.Metricset{
 				Name: "service_summary", Interval: fmt.Sprintf("%.0fs", interval.Seconds()),
 			},
-			Service: model.Service{Name: "backend", Language: model.Language{Name: "java"}},
-			Agent:   model.Agent{Name: "java"},
-			Labels: model.Labels{
-				"department_name": model.LabelValue{Value: "apm"},
-				"organization":    model.LabelValue{Value: "observability"},
-				"company":         model.LabelValue{Value: "elastic"},
+			Service: &modelpb.Service{Name: "backend", Language: &modelpb.Language{Name: "java"}},
+			Agent:   &modelpb.Agent{Name: "java"},
+			Labels: modelpb.Labels{
+				"department_name": &modelpb.LabelValue{Value: "apm"},
+				"organization":    &modelpb.LabelValue{Value: "observability"},
+				"company":         &modelpb.LabelValue{Value: "elastic"},
 			},
-			NumericLabels: model.NumericLabels{
-				"user_id":     model.NumericLabelValue{Value: 100},
-				"cost_center": model.NumericLabelValue{Value: 10},
+			NumericLabels: modelpb.NumericLabels{
+				"user_id":     &modelpb.NumericLabelValue{Value: 100},
+				"cost_center": &modelpb.NumericLabelValue{Value: 10},
 			},
 		}, {
-			Processor: model.MetricsetProcessor,
-			Metricset: &model.Metricset{
+			Processor: modelpb.MetricsetProcessor(),
+			Metricset: &modelpb.Metricset{
 				Name: "service_summary", Interval: fmt.Sprintf("%.0fs", interval.Seconds()),
 			},
-			Service: model.Service{Name: "backend", Language: model.Language{Name: "go"}},
-			Agent:   model.Agent{Name: "go"},
+			Service: &modelpb.Service{Name: "backend", Language: &modelpb.Language{Name: "go"}},
+			Agent:   &modelpb.Agent{Name: "go"},
 		}, {
-			Processor: model.MetricsetProcessor,
-			Metricset: &model.Metricset{
+			Processor: modelpb.MetricsetProcessor(),
+			Metricset: &modelpb.Metricset{
 				Name: "service_summary", Interval: fmt.Sprintf("%.0fs", interval.Seconds()),
 			},
-			Service: model.Service{Name: "backend", Environment: "dev", Language: model.Language{Name: "go"}},
-			Agent:   model.Agent{Name: "go"},
+			Service: &modelpb.Service{Name: "backend", Environment: "dev", Language: &modelpb.Language{Name: "go"}},
+			Agent:   &modelpb.Agent{Name: "go"},
 		}}
 
 		assert.Equal(t, len(expected), len(metricsets))
-		out := cmp.Diff(expected, metricsets, cmpopts.IgnoreTypes(netip.Addr{}), cmpopts.SortSlices(func(e1 model.APMEvent, e2 model.APMEvent) bool {
-			if e1.Agent.Name != e2.Agent.Name {
-				return e1.Agent.Name < e2.Agent.Name
-			}
+		assert.Empty(t, cmp.Diff(expected, metricsets,
+			protocmp.Transform(),
+			cmpopts.SortSlices(func(e1 *modelpb.APMEvent, e2 *modelpb.APMEvent) bool {
+				if e1.Agent.Name != e2.Agent.Name {
+					return e1.Agent.Name < e2.Agent.Name
+				}
 
-			return e1.Service.Environment < e2.Service.Environment
-		}))
-		assert.Empty(t, out)
+				return e1.Service.Environment < e2.Service.Environment
+
+			}),
+		))
 	}
 
 	select {
@@ -222,7 +227,7 @@ func TestAggregatorRun(t *testing.T) {
 }
 
 func TestAggregateTimestamp(t *testing.T) {
-	batches := make(chan model.Batch, 1)
+	batches := make(chan modelpb.Batch, 1)
 	agg, err := NewAggregator(AggregatorConfig{
 		BatchProcessor: makeChanBatchProcessor(batches),
 		Interval:       30 * time.Second,
@@ -230,11 +235,11 @@ func TestAggregateTimestamp(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	t0 := time.Unix(0, 0)
+	t0 := time.Unix(0, 0).UTC()
 	for _, ts := range []time.Time{t0, t0.Add(15 * time.Second), t0.Add(30 * time.Second)} {
 		transaction := makeTransaction("service_name", "agent_name", "", "tx_type", "success", 100*time.Millisecond, 1)
-		transaction.Timestamp = ts
-		batch := model.Batch{transaction}
+		transaction.Timestamp = timestamppb.New(ts)
+		batch := modelpb.Batch{transaction}
 		err = agg.ProcessBatch(context.Background(), &batch)
 		require.NoError(t, err)
 		assert.Empty(t, batchMetricsets(t, batch))
@@ -248,17 +253,17 @@ func TestAggregateTimestamp(t *testing.T) {
 	metricsets := batchMetricsets(t, batch)
 	require.Len(t, metricsets, 2)
 	sort.Slice(metricsets, func(i, j int) bool {
-		return metricsets[i].Timestamp.Before(metricsets[j].Timestamp)
+		return metricsets[i].Timestamp.AsTime().Before(metricsets[j].Timestamp.AsTime())
 	})
-	assert.Equal(t, t0, metricsets[0].Timestamp)
-	assert.Equal(t, t0.Add(30*time.Second), metricsets[1].Timestamp)
+	assert.Equal(t, t0, metricsets[0].Timestamp.AsTime())
+	assert.Equal(t, t0.Add(30*time.Second), metricsets[1].Timestamp.AsTime())
 }
 
 func TestAggregatorOverflow(t *testing.T) {
 	maxGrps := 4
 	overflowCount := 100
 	txnDuration := 100 * time.Millisecond
-	batches := make(chan model.Batch, 1)
+	batches := make(chan modelpb.Batch, 1)
 	agg, err := NewAggregator(AggregatorConfig{
 		BatchProcessor: makeChanBatchProcessor(batches),
 		Interval:       10 * time.Second,
@@ -266,7 +271,7 @@ func TestAggregatorOverflow(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	batch := make(model.Batch, maxGrps+overflowCount) // cause overflow
+	batch := make(modelpb.Batch, maxGrps+overflowCount) // cause overflow
 	for i := 0; i < len(batch); i++ {
 		batch[i] = makeTransaction(
 			fmt.Sprintf("svc%d", i), "java", "agent", "tx_type", "success", txnDuration, 1,
@@ -288,47 +293,50 @@ func TestAggregatorOverflow(t *testing.T) {
 	expectedMonitoring.Ints["servicesummarymetrics.active_groups"] = int64(maxGrps)
 	expectedMonitoring.Ints["servicesummarymetrics.overflowed.total"] = int64(overflowCount)
 
-	var overflowEvent *model.APMEvent
+	var overflowEvent *modelpb.APMEvent
 	for i := range metricsets {
 		m := metricsets[i]
 		if m.Service.Name == "_other" {
 			if overflowEvent != nil {
 				require.Fail(t, "only one service should overflow")
 			}
-			overflowEvent = &m
+			overflowEvent = m
 		}
 	}
-	assert.Empty(t, cmp.Diff(model.APMEvent{
-		Service: model.Service{
+	assert.Empty(t, cmp.Diff(&modelpb.APMEvent{
+		Service: &modelpb.Service{
 			Name: "_other",
 		},
-		Processor: model.MetricsetProcessor,
-		Metricset: &model.Metricset{
+		Processor: modelpb.MetricsetProcessor(),
+		Metricset: &modelpb.Metricset{
 			Name:     "service_summary",
 			Interval: "10s",
-			Samples: []model.MetricsetSample{
+			Samples: []*modelpb.MetricsetSample{
 				{
 					Name:  "service_summary.aggregation.overflow_count",
 					Value: float64(overflowCount),
 				},
 			},
 		},
-	}, *overflowEvent, cmpopts.IgnoreTypes(netip.Addr{}, time.Time{})))
+	}, overflowEvent,
+		protocmp.Transform(),
+		protocmp.IgnoreFields(&modelpb.APMEvent{}, "timestamp"),
+	))
 }
 
 func makeTransaction(
 	serviceName, serviceLanguageName, agentName, transactionType, outcome string,
 	duration time.Duration, count float64,
-) model.APMEvent {
-	return model.APMEvent{
-		Agent:   model.Agent{Name: agentName},
-		Service: model.Service{Name: serviceName, Language: model.Language{Name: serviceLanguageName}},
-		Event: model.Event{
+) *modelpb.APMEvent {
+	return &modelpb.APMEvent{
+		Agent:   &modelpb.Agent{Name: agentName},
+		Service: &modelpb.Service{Name: serviceName, Language: &modelpb.Language{Name: serviceLanguageName}},
+		Event: &modelpb.Event{
 			Outcome:  outcome,
-			Duration: duration,
+			Duration: durationpb.New(duration),
 		},
-		Processor: model.TransactionProcessor,
-		Transaction: &model.Transaction{
+		Processor: modelpb.TransactionProcessor(),
+		Transaction: &modelpb.Transaction{
 			Name:                "transaction_name",
 			Type:                transactionType,
 			RepresentativeCount: count,
@@ -336,12 +344,12 @@ func makeTransaction(
 	}
 }
 
-func makeErrBatchProcessor(err error) model.BatchProcessor {
-	return model.ProcessBatchFunc(func(context.Context, *model.Batch) error { return err })
+func makeErrBatchProcessor(err error) modelpb.BatchProcessor {
+	return modelpb.ProcessBatchFunc(func(context.Context, *modelpb.Batch) error { return err })
 }
 
-func makeChanBatchProcessor(ch chan<- model.Batch) model.BatchProcessor {
-	return model.ProcessBatchFunc(func(ctx context.Context, batch *model.Batch) error {
+func makeChanBatchProcessor(ch chan<- modelpb.Batch) modelpb.BatchProcessor {
+	return modelpb.ProcessBatchFunc(func(ctx context.Context, batch *modelpb.Batch) error {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
@@ -351,7 +359,7 @@ func makeChanBatchProcessor(ch chan<- model.Batch) model.BatchProcessor {
 	})
 }
 
-func expectBatch(t *testing.T, ch <-chan model.Batch) model.Batch {
+func expectBatch(t *testing.T, ch <-chan modelpb.Batch) modelpb.Batch {
 	t.Helper()
 	select {
 	case batch := <-ch:
@@ -362,8 +370,8 @@ func expectBatch(t *testing.T, ch <-chan model.Batch) model.Batch {
 	panic("unreachable")
 }
 
-func batchMetricsets(t testing.TB, batch model.Batch) []model.APMEvent {
-	var metricsets []model.APMEvent
+func batchMetricsets(t testing.TB, batch modelpb.Batch) []*modelpb.APMEvent {
+	var metricsets []*modelpb.APMEvent
 	for _, event := range batch {
 		if event.Metricset == nil {
 			continue

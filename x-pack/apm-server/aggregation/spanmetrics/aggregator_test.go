@@ -7,7 +7,6 @@ package spanmetrics
 import (
 	"context"
 	"fmt"
-	"net/netip"
 	"sort"
 	"sync"
 	"testing"
@@ -17,8 +16,11 @@ import (
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/protobuf/testing/protocmp"
+	"google.golang.org/protobuf/types/known/durationpb"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
-	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/elastic-agent-libs/monitoring"
 )
 
@@ -33,7 +35,7 @@ func BenchmarkAggregateSpan(b *testing.B) {
 	span := makeSpan("test_service", "agent", "test_destination", "trg_type", "trg_name", "success", time.Second, 1)
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			_ = agg.ProcessBatch(context.Background(), &model.Batch{span})
+			_ = agg.ProcessBatch(context.Background(), &modelpb.Batch{span})
 		}
 	})
 }
@@ -91,7 +93,7 @@ func TestAggregatorRun(t *testing.T) {
 
 		inputs []input
 
-		getExpectedEvents func(time.Time, time.Duration) []model.APMEvent
+		getExpectedEvents func(time.Time, time.Duration) []*modelpb.APMEvent
 	}{
 		{
 			name: "with destination and service targets",
@@ -105,151 +107,151 @@ func TestAggregatorRun(t *testing.T) {
 				{serviceName: "service-A", agentName: "java", destination: destinationZ, targetType: trgTypeZ, targetName: trgNameZ, outcome: "failure", count: 1},
 			},
 
-			getExpectedEvents: func(now time.Time, interval time.Duration) []model.APMEvent {
-				return []model.APMEvent{
+			getExpectedEvents: func(now time.Time, interval time.Duration) []*modelpb.APMEvent {
+				return []*modelpb.APMEvent{
 					{
-						Timestamp: now.Truncate(interval),
-						Agent:     model.Agent{Name: "java"},
-						Service: model.Service{
+						Timestamp: timestamppb.New(now.Truncate(interval)),
+						Agent:     &modelpb.Agent{Name: "java"},
+						Service: &modelpb.Service{
 							Name: "service-A",
-							Target: &model.ServiceTarget{
+							Target: &modelpb.ServiceTarget{
 								Type: trgTypeX,
 								Name: trgNameX,
 							},
 						},
-						Event:     model.Event{Outcome: "success"},
-						Processor: model.MetricsetProcessor,
-						Metricset: &model.Metricset{
+						Event:     &modelpb.Event{Outcome: "success"},
+						Processor: modelpb.MetricsetProcessor(),
+						Metricset: &modelpb.Metricset{
 							Name:     "service_destination",
 							Interval: fmt.Sprintf("%.0fs", interval.Seconds()),
 							DocCount: 100,
 						},
-						Span: &model.Span{
+						Span: &modelpb.Span{
 							Name: "service-A:" + destinationX,
-							DestinationService: &model.DestinationService{
+							DestinationService: &modelpb.DestinationService{
 								Resource: destinationX,
-								ResponseTime: model.AggregatedDuration{
+								ResponseTime: &modelpb.AggregatedDuration{
 									Count: 100,
-									Sum:   10 * time.Second,
+									Sum:   durationpb.New(10 * time.Second),
 								},
 							},
 						},
-						Labels: model.Labels{
-							"department_name": model.LabelValue{Value: "apm"},
-							"organization":    model.LabelValue{Value: "observability"},
-							"company":         model.LabelValue{Value: "elastic"},
+						Labels: modelpb.Labels{
+							"department_name": &modelpb.LabelValue{Value: "apm"},
+							"organization":    &modelpb.LabelValue{Value: "observability"},
+							"company":         &modelpb.LabelValue{Value: "elastic"},
 						},
-						NumericLabels: model.NumericLabels{
-							"user_id":     model.NumericLabelValue{Value: 100},
-							"cost_center": model.NumericLabelValue{Value: 10},
+						NumericLabels: modelpb.NumericLabels{
+							"user_id":     &modelpb.NumericLabelValue{Value: 100},
+							"cost_center": &modelpb.NumericLabelValue{Value: 10},
 						},
 					}, {
-						Timestamp: now.Truncate(interval),
-						Agent:     model.Agent{Name: "java"},
-						Service: model.Service{
+						Timestamp: timestamppb.New(now.Truncate(interval)),
+						Agent:     &modelpb.Agent{Name: "java"},
+						Service: &modelpb.Service{
 							Name: "service-A",
-							Target: &model.ServiceTarget{
+							Target: &modelpb.ServiceTarget{
 								Type: trgTypeZ,
 								Name: trgNameZ,
 							},
 						},
-						Event:     model.Event{Outcome: "failure"},
-						Processor: model.MetricsetProcessor,
-						Metricset: &model.Metricset{
+						Event:     &modelpb.Event{Outcome: "failure"},
+						Processor: modelpb.MetricsetProcessor(),
+						Metricset: &modelpb.Metricset{
 							Name:     "service_destination",
 							Interval: fmt.Sprintf("%.0fs", interval.Seconds()),
 							DocCount: 100,
 						},
-						Span: &model.Span{
+						Span: &modelpb.Span{
 							Name: "service-A:" + destinationZ,
-							DestinationService: &model.DestinationService{
+							DestinationService: &modelpb.DestinationService{
 								Resource: destinationZ,
-								ResponseTime: model.AggregatedDuration{
+								ResponseTime: &modelpb.AggregatedDuration{
 									Count: 100,
-									Sum:   10 * time.Second,
+									Sum:   durationpb.New(10 * time.Second),
 								},
 							},
 						},
-						Labels: model.Labels{
-							"department_name": model.LabelValue{Value: "apm"},
-							"organization":    model.LabelValue{Value: "observability"},
-							"company":         model.LabelValue{Value: "elastic"},
+						Labels: modelpb.Labels{
+							"department_name": &modelpb.LabelValue{Value: "apm"},
+							"organization":    &modelpb.LabelValue{Value: "observability"},
+							"company":         &modelpb.LabelValue{Value: "elastic"},
 						},
-						NumericLabels: model.NumericLabels{
-							"user_id":     model.NumericLabelValue{Value: 100},
-							"cost_center": model.NumericLabelValue{Value: 10},
+						NumericLabels: modelpb.NumericLabels{
+							"user_id":     &modelpb.NumericLabelValue{Value: 100},
+							"cost_center": &modelpb.NumericLabelValue{Value: 10},
 						},
 					}, {
-						Timestamp: now.Truncate(interval),
-						Agent:     model.Agent{Name: "java"},
-						Service: model.Service{
+						Timestamp: timestamppb.New(now.Truncate(interval)),
+						Agent:     &modelpb.Agent{Name: "java"},
+						Service: &modelpb.Service{
 							Name: "service-A",
-							Target: &model.ServiceTarget{
+							Target: &modelpb.ServiceTarget{
 								Type: trgTypeZ,
 								Name: trgNameZ,
 							},
 						},
-						Event:     model.Event{Outcome: "success"},
-						Processor: model.MetricsetProcessor,
-						Metricset: &model.Metricset{
+						Event:     &modelpb.Event{Outcome: "success"},
+						Processor: modelpb.MetricsetProcessor(),
+						Metricset: &modelpb.Metricset{
 							Name:     "service_destination",
 							Interval: fmt.Sprintf("%.0fs", interval.Seconds()),
 							DocCount: 300,
 						},
-						Span: &model.Span{
+						Span: &modelpb.Span{
 							Name: "service-A:" + destinationZ,
-							DestinationService: &model.DestinationService{
+							DestinationService: &modelpb.DestinationService{
 								Resource: destinationZ,
-								ResponseTime: model.AggregatedDuration{
+								ResponseTime: &modelpb.AggregatedDuration{
 									Count: 300,
-									Sum:   30 * time.Second,
+									Sum:   durationpb.New(30 * time.Second),
 								},
 							},
 						},
-						Labels: model.Labels{
-							"department_name": model.LabelValue{Value: "apm"},
-							"organization":    model.LabelValue{Value: "observability"},
-							"company":         model.LabelValue{Value: "elastic"},
+						Labels: modelpb.Labels{
+							"department_name": &modelpb.LabelValue{Value: "apm"},
+							"organization":    &modelpb.LabelValue{Value: "observability"},
+							"company":         &modelpb.LabelValue{Value: "elastic"},
 						},
-						NumericLabels: model.NumericLabels{
-							"user_id":     model.NumericLabelValue{Value: 100},
-							"cost_center": model.NumericLabelValue{Value: 10},
+						NumericLabels: modelpb.NumericLabels{
+							"user_id":     &modelpb.NumericLabelValue{Value: 100},
+							"cost_center": &modelpb.NumericLabelValue{Value: 10},
 						},
 					}, {
-						Timestamp: now.Truncate(interval),
-						Agent:     model.Agent{Name: "python"},
-						Service: model.Service{
+						Timestamp: timestamppb.New(now.Truncate(interval)),
+						Agent:     &modelpb.Agent{Name: "python"},
+						Service: &modelpb.Service{
 							Name: "service-B",
-							Target: &model.ServiceTarget{
+							Target: &modelpb.ServiceTarget{
 								Type: trgTypeZ,
 								Name: trgNameZ,
 							},
 						},
-						Event:     model.Event{Outcome: "success"},
-						Processor: model.MetricsetProcessor,
-						Metricset: &model.Metricset{
+						Event:     &modelpb.Event{Outcome: "success"},
+						Processor: modelpb.MetricsetProcessor(),
+						Metricset: &modelpb.Metricset{
 							Name:     "service_destination",
 							Interval: fmt.Sprintf("%.0fs", interval.Seconds()),
 							DocCount: 100,
 						},
-						Span: &model.Span{
+						Span: &modelpb.Span{
 							Name: "service-B:" + destinationZ,
-							DestinationService: &model.DestinationService{
+							DestinationService: &modelpb.DestinationService{
 								Resource: destinationZ,
-								ResponseTime: model.AggregatedDuration{
+								ResponseTime: &modelpb.AggregatedDuration{
 									Count: 100,
-									Sum:   10 * time.Second,
+									Sum:   durationpb.New(10 * time.Second),
 								},
 							},
 						},
-						Labels: model.Labels{
-							"department_name": model.LabelValue{Value: "apm"},
-							"organization":    model.LabelValue{Value: "observability"},
-							"company":         model.LabelValue{Value: "elastic"},
+						Labels: modelpb.Labels{
+							"department_name": &modelpb.LabelValue{Value: "apm"},
+							"organization":    &modelpb.LabelValue{Value: "observability"},
+							"company":         &modelpb.LabelValue{Value: "elastic"},
 						},
-						NumericLabels: model.NumericLabels{
-							"user_id":     model.NumericLabelValue{Value: 100},
-							"cost_center": model.NumericLabelValue{Value: 10},
+						NumericLabels: modelpb.NumericLabels{
+							"user_id":     &modelpb.NumericLabelValue{Value: 100},
+							"cost_center": &modelpb.NumericLabelValue{Value: 10},
 						},
 					},
 				}
@@ -261,8 +263,8 @@ func TestAggregatorRun(t *testing.T) {
 			inputs: []input{
 				{serviceName: "service-A", agentName: "java", outcome: "success", count: 1},
 			},
-			getExpectedEvents: func(now time.Time, interval time.Duration) []model.APMEvent {
-				return []model.APMEvent{}
+			getExpectedEvents: func(now time.Time, interval time.Duration) []*modelpb.APMEvent {
+				return []*modelpb.APMEvent{}
 			},
 		},
 		{
@@ -271,42 +273,42 @@ func TestAggregatorRun(t *testing.T) {
 			inputs: []input{
 				{serviceName: "service-A", agentName: "java", targetType: trgTypeZ, targetName: trgNameZ, outcome: "success", count: 1},
 			},
-			getExpectedEvents: func(now time.Time, interval time.Duration) []model.APMEvent {
-				return []model.APMEvent{
+			getExpectedEvents: func(now time.Time, interval time.Duration) []*modelpb.APMEvent {
+				return []*modelpb.APMEvent{
 					{
-						Timestamp: now.Truncate(interval),
-						Agent:     model.Agent{Name: "java"},
-						Service: model.Service{
+						Timestamp: timestamppb.New(now.Truncate(interval)),
+						Agent:     &modelpb.Agent{Name: "java"},
+						Service: &modelpb.Service{
 							Name: "service-A",
-							Target: &model.ServiceTarget{
+							Target: &modelpb.ServiceTarget{
 								Type: trgTypeZ,
 								Name: trgNameZ,
 							},
 						},
-						Event:     model.Event{Outcome: "success"},
-						Processor: model.MetricsetProcessor,
-						Metricset: &model.Metricset{
+						Event:     &modelpb.Event{Outcome: "success"},
+						Processor: modelpb.MetricsetProcessor(),
+						Metricset: &modelpb.Metricset{
 							Name:     "service_destination",
 							Interval: fmt.Sprintf("%.0fs", interval.Seconds()),
 							DocCount: 100,
 						},
-						Span: &model.Span{
+						Span: &modelpb.Span{
 							Name: "service-A:",
-							DestinationService: &model.DestinationService{
-								ResponseTime: model.AggregatedDuration{
+							DestinationService: &modelpb.DestinationService{
+								ResponseTime: &modelpb.AggregatedDuration{
 									Count: 100,
-									Sum:   10 * time.Second,
+									Sum:   durationpb.New(10 * time.Second),
 								},
 							},
 						},
-						Labels: model.Labels{
-							"department_name": model.LabelValue{Value: "apm"},
-							"organization":    model.LabelValue{Value: "observability"},
-							"company":         model.LabelValue{Value: "elastic"},
+						Labels: modelpb.Labels{
+							"department_name": &modelpb.LabelValue{Value: "apm"},
+							"organization":    &modelpb.LabelValue{Value: "observability"},
+							"company":         &modelpb.LabelValue{Value: "elastic"},
 						},
-						NumericLabels: model.NumericLabels{
-							"user_id":     model.NumericLabelValue{Value: 100},
-							"cost_center": model.NumericLabelValue{Value: 10},
+						NumericLabels: modelpb.NumericLabels{
+							"user_id":     &modelpb.NumericLabelValue{Value: 100},
+							"cost_center": &modelpb.NumericLabelValue{Value: 10},
 						},
 					},
 				}
@@ -318,39 +320,39 @@ func TestAggregatorRun(t *testing.T) {
 			inputs: []input{
 				{serviceName: "service-A", agentName: "java", destination: destinationZ, outcome: "success", count: 1},
 			},
-			getExpectedEvents: func(now time.Time, interval time.Duration) []model.APMEvent {
-				return []model.APMEvent{
+			getExpectedEvents: func(now time.Time, interval time.Duration) []*modelpb.APMEvent {
+				return []*modelpb.APMEvent{
 					{
-						Timestamp: now.Truncate(interval),
-						Agent:     model.Agent{Name: "java"},
-						Service: model.Service{
+						Timestamp: timestamppb.New(now.Truncate(interval)),
+						Agent:     &modelpb.Agent{Name: "java"},
+						Service: &modelpb.Service{
 							Name: "service-A",
 						},
-						Event:     model.Event{Outcome: "success"},
-						Processor: model.MetricsetProcessor,
-						Metricset: &model.Metricset{
+						Event:     &modelpb.Event{Outcome: "success"},
+						Processor: modelpb.MetricsetProcessor(),
+						Metricset: &modelpb.Metricset{
 							Name:     "service_destination",
 							Interval: fmt.Sprintf("%.0fs", interval.Seconds()),
 							DocCount: 100,
 						},
-						Span: &model.Span{
+						Span: &modelpb.Span{
 							Name: "service-A:" + destinationZ,
-							DestinationService: &model.DestinationService{
+							DestinationService: &modelpb.DestinationService{
 								Resource: destinationZ,
-								ResponseTime: model.AggregatedDuration{
+								ResponseTime: &modelpb.AggregatedDuration{
 									Count: 100,
-									Sum:   10 * time.Second,
+									Sum:   durationpb.New(10 * time.Second),
 								},
 							},
 						},
-						Labels: model.Labels{
-							"department_name": model.LabelValue{Value: "apm"},
-							"organization":    model.LabelValue{Value: "observability"},
-							"company":         model.LabelValue{Value: "elastic"},
+						Labels: modelpb.Labels{
+							"department_name": &modelpb.LabelValue{Value: "apm"},
+							"organization":    &modelpb.LabelValue{Value: "observability"},
+							"company":         &modelpb.LabelValue{Value: "elastic"},
 						},
-						NumericLabels: model.NumericLabels{
-							"user_id":     model.NumericLabelValue{Value: 100},
-							"cost_center": model.NumericLabelValue{Value: 10},
+						NumericLabels: modelpb.NumericLabels{
+							"user_id":     &modelpb.NumericLabelValue{Value: 100},
+							"cost_center": &modelpb.NumericLabelValue{Value: 10},
 						},
 					},
 				}
@@ -358,7 +360,7 @@ func TestAggregatorRun(t *testing.T) {
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
-			batches := make(chan model.Batch, 3)
+			batches := make(chan modelpb.Batch, 3)
 			config := AggregatorConfig{
 				BatchProcessor:  makeChanBatchProcessor(batches),
 				Interval:        10 * time.Millisecond,
@@ -376,12 +378,12 @@ func TestAggregatorRun(t *testing.T) {
 				go func(in input) {
 					defer wg.Done()
 					span := makeSpan(in.serviceName, in.agentName, in.destination, in.targetType, in.targetName, in.outcome, 100*time.Millisecond, in.count)
-					span.Timestamp = now
-					batch := model.Batch{span}
+					span.Timestamp = timestamppb.New(now)
+					batch := modelpb.Batch{span}
 					for i := 0; i < 100; i++ {
 						err := agg.ProcessBatch(context.Background(), &batch)
 						require.NoError(t, err)
-						assert.Equal(t, model.Batch{span}, batch)
+						assert.Equal(t, modelpb.Batch{span}, batch)
 					}
 				}(in)
 			}
@@ -404,7 +406,18 @@ func TestAggregatorRun(t *testing.T) {
 					}
 				} else {
 					metricsets := batchMetricsets(t, expectBatch(t, batches))
-					assert.ElementsMatch(t, expectedEvents, metricsets)
+					assert.Empty(t, cmp.Diff(expectedEvents, metricsets,
+						protocmp.Transform(),
+						cmpopts.SortSlices(func(x, y *modelpb.APMEvent) bool {
+							if x.Span.Name != y.Span.Name {
+								return x.Span.Name < y.Span.Name
+							}
+							if x.Event.Outcome != y.Event.Outcome {
+								return x.Event.Outcome < y.Event.Outcome
+							}
+							return x.Agent.Name < y.Agent.Name
+						}),
+					))
 				}
 			}
 
@@ -419,7 +432,7 @@ func TestAggregatorRun(t *testing.T) {
 }
 
 func TestAggregateCompositeSpan(t *testing.T) {
-	batches := make(chan model.Batch, 1)
+	batches := make(chan modelpb.Batch, 1)
 	agg, err := NewAggregator(AggregatorConfig{
 		BatchProcessor: makeChanBatchProcessor(batches),
 		Interval:       10 * time.Millisecond,
@@ -428,8 +441,8 @@ func TestAggregateCompositeSpan(t *testing.T) {
 	require.NoError(t, err)
 
 	span := makeSpan("service-A", "java", "final_destination", "trg_type", "trg_name", "success", time.Second, 2)
-	span.Span.Composite = &model.Composite{Count: 25, Sum: 700 /* milliseconds */}
-	err = agg.ProcessBatch(context.Background(), &model.Batch{span})
+	span.Span.Composite = &modelpb.Composite{Count: 25, Sum: 700 /* milliseconds */}
+	err = agg.ProcessBatch(context.Background(), &modelpb.Batch{span})
 	require.NoError(t, err)
 
 	// Start the aggregator after processing to ensure metrics are aggregated deterministically.
@@ -439,42 +452,42 @@ func TestAggregateCompositeSpan(t *testing.T) {
 	batch := expectBatch(t, batches)
 	metricsets := batchMetricsets(t, batch)
 
-	assert.Equal(t, []model.APMEvent{{
-		Agent: model.Agent{Name: "java"},
-		Service: model.Service{
+	assert.Empty(t, cmp.Diff([]*modelpb.APMEvent{{
+		Agent: &modelpb.Agent{Name: "java"},
+		Service: &modelpb.Service{
 			Name: "service-A",
-			Target: &model.ServiceTarget{
+			Target: &modelpb.ServiceTarget{
 				Type: "trg_type",
 				Name: "trg_name",
 			},
 		},
-		Event:     model.Event{Outcome: "success"},
-		Processor: model.MetricsetProcessor,
-		Metricset: &model.Metricset{Name: "service_destination", Interval: "0s", DocCount: 50},
-		Span: &model.Span{
+		Event:     &modelpb.Event{Outcome: "success"},
+		Processor: modelpb.MetricsetProcessor(),
+		Metricset: &modelpb.Metricset{Name: "service_destination", Interval: "0s", DocCount: 50},
+		Span: &modelpb.Span{
 			Name: "service-A:final_destination",
-			DestinationService: &model.DestinationService{
+			DestinationService: &modelpb.DestinationService{
 				Resource: "final_destination",
-				ResponseTime: model.AggregatedDuration{
+				ResponseTime: &modelpb.AggregatedDuration{
 					Count: 50,
-					Sum:   1400 * time.Millisecond,
+					Sum:   durationpb.New(1400 * time.Millisecond),
 				},
 			},
 		},
-		Labels: model.Labels{
-			"department_name": model.LabelValue{Value: "apm"},
-			"organization":    model.LabelValue{Value: "observability"},
-			"company":         model.LabelValue{Value: "elastic"},
+		Labels: modelpb.Labels{
+			"department_name": &modelpb.LabelValue{Value: "apm"},
+			"organization":    &modelpb.LabelValue{Value: "observability"},
+			"company":         &modelpb.LabelValue{Value: "elastic"},
 		},
-		NumericLabels: model.NumericLabels{
-			"user_id":     model.NumericLabelValue{Value: 100},
-			"cost_center": model.NumericLabelValue{Value: 10},
+		NumericLabels: modelpb.NumericLabels{
+			"user_id":     &modelpb.NumericLabelValue{Value: 100},
+			"cost_center": &modelpb.NumericLabelValue{Value: 10},
 		},
-	}}, metricsets)
+	}}, metricsets, protocmp.Transform()))
 }
 
 func TestAggregateTransactionDroppedSpansStats(t *testing.T) {
-	batches := make(chan model.Batch, 1)
+	batches := make(chan modelpb.Batch, 1)
 	agg, err := NewAggregator(AggregatorConfig{
 		BatchProcessor: makeChanBatchProcessor(batches),
 		Interval:       10 * time.Millisecond,
@@ -482,79 +495,79 @@ func TestAggregateTransactionDroppedSpansStats(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	txWithoutServiceTarget := model.APMEvent{
-		Agent: model.Agent{Name: "go"},
-		Service: model.Service{
+	txWithoutServiceTarget := modelpb.APMEvent{
+		Agent: &modelpb.Agent{Name: "go"},
+		Service: &modelpb.Service{
 			Name: "go-service",
 		},
-		Event: model.Event{
+		Event: &modelpb.Event{
 			Outcome:  "success",
-			Duration: 10 * time.Second,
+			Duration: durationpb.New(10 * time.Second),
 		},
-		Processor: model.TransactionProcessor,
-		Transaction: &model.Transaction{
+		Processor: modelpb.TransactionProcessor(),
+		Transaction: &modelpb.Transaction{
 			RepresentativeCount: 2,
-			DroppedSpansStats: []model.DroppedSpanStats{
+			DroppedSpansStats: []*modelpb.DroppedSpanStats{
 				{
 					DestinationServiceResource: "https://elasticsearch:9200",
 					Outcome:                    "success",
-					Duration: model.AggregatedDuration{
+					Duration: &modelpb.AggregatedDuration{
 						Count: 10,
-						Sum:   1500 * time.Microsecond,
+						Sum:   durationpb.New(1500 * time.Microsecond),
 					},
 				},
 				{
 					DestinationServiceResource: "mysql://mysql:3306",
 					Outcome:                    "unknown",
-					Duration: model.AggregatedDuration{
+					Duration: &modelpb.AggregatedDuration{
 						Count: 2,
-						Sum:   3000 * time.Microsecond,
+						Sum:   durationpb.New(3000 * time.Microsecond),
 					},
 				},
 			},
 		},
 	}
 
-	txWithServiceTarget := model.APMEvent{
-		Agent: model.Agent{Name: "go"},
-		Service: model.Service{
+	txWithServiceTarget := modelpb.APMEvent{
+		Agent: &modelpb.Agent{Name: "go"},
+		Service: &modelpb.Service{
 			Name: "go-service",
 		},
-		Event: model.Event{
+		Event: &modelpb.Event{
 			Outcome:  "success",
-			Duration: 10 * time.Second,
+			Duration: durationpb.New(10 * time.Second),
 		},
-		Processor: model.TransactionProcessor,
-		Transaction: &model.Transaction{
+		Processor: modelpb.TransactionProcessor(),
+		Transaction: &modelpb.Transaction{
 			RepresentativeCount: 1,
-			DroppedSpansStats: []model.DroppedSpanStats{
+			DroppedSpansStats: []*modelpb.DroppedSpanStats{
 				{
 					DestinationServiceResource: "postgres/testdb",
 					ServiceTargetType:          "postgres",
 					ServiceTargetName:          "testdb",
 					Outcome:                    "success",
-					Duration: model.AggregatedDuration{
+					Duration: &modelpb.AggregatedDuration{
 						Count: 10,
-						Sum:   1500 * time.Microsecond,
+						Sum:   durationpb.New(1500 * time.Microsecond),
 					},
 				},
 			},
 		},
 	}
 
-	txWithNoRepresentativeCount := model.APMEvent{
-		Processor: model.TransactionProcessor,
-		Transaction: &model.Transaction{
+	txWithNoRepresentativeCount := modelpb.APMEvent{
+		Processor: modelpb.TransactionProcessor(),
+		Transaction: &modelpb.Transaction{
 			RepresentativeCount: 0,
-			DroppedSpansStats:   make([]model.DroppedSpanStats, 1),
+			DroppedSpansStats:   make([]*modelpb.DroppedSpanStats, 1),
 		},
 	}
 	err = agg.ProcessBatch(
 		context.Background(),
-		&model.Batch{
-			txWithoutServiceTarget,
-			txWithServiceTarget,
-			txWithNoRepresentativeCount,
+		&modelpb.Batch{
+			&txWithoutServiceTarget,
+			&txWithServiceTarget,
+			&txWithNoRepresentativeCount,
 		})
 	require.NoError(t, err)
 
@@ -565,72 +578,74 @@ func TestAggregateTransactionDroppedSpansStats(t *testing.T) {
 	batch := expectBatch(t, batches)
 	metricsets := batchMetricsets(t, batch)
 
-	assert.Empty(t, cmp.Diff([]model.APMEvent{
+	assert.Empty(t, cmp.Diff([]*modelpb.APMEvent{
 		{
-			Agent: model.Agent{Name: "go"},
-			Service: model.Service{
+			Agent: &modelpb.Agent{Name: "go"},
+			Service: &modelpb.Service{
 				Name: "go-service",
 			},
-			Event:     model.Event{Outcome: "success"},
-			Processor: model.MetricsetProcessor,
-			Metricset: &model.Metricset{Name: "service_destination", Interval: "0s", DocCount: 20},
-			Span: &model.Span{
-				DestinationService: &model.DestinationService{
+			Event:     &modelpb.Event{Outcome: "success"},
+			Processor: modelpb.MetricsetProcessor(),
+			Metricset: &modelpb.Metricset{Name: "service_destination", Interval: "0s", DocCount: 20},
+			Span: &modelpb.Span{
+				DestinationService: &modelpb.DestinationService{
 					Resource: "https://elasticsearch:9200",
-					ResponseTime: model.AggregatedDuration{
+					ResponseTime: &modelpb.AggregatedDuration{
 						Count: 20,
-						Sum:   3000 * time.Microsecond,
+						Sum:   durationpb.New(3000 * time.Microsecond),
 					},
 				},
 			},
 		},
 		{
-			Agent: model.Agent{Name: "go"},
-			Service: model.Service{
+			Agent: &modelpb.Agent{Name: "go"},
+			Service: &modelpb.Service{
 				Name: "go-service",
-				Target: &model.ServiceTarget{
+				Target: &modelpb.ServiceTarget{
 					Type: "postgres",
 					Name: "testdb",
 				},
 			},
-			Event:     model.Event{Outcome: "success"},
-			Processor: model.MetricsetProcessor,
-			Metricset: &model.Metricset{Name: "service_destination", Interval: "0s", DocCount: 10},
-			Span: &model.Span{
-				DestinationService: &model.DestinationService{
+			Event:     &modelpb.Event{Outcome: "success"},
+			Processor: modelpb.MetricsetProcessor(),
+			Metricset: &modelpb.Metricset{Name: "service_destination", Interval: "0s", DocCount: 10},
+			Span: &modelpb.Span{
+				DestinationService: &modelpb.DestinationService{
 					Resource: "postgres/testdb",
-					ResponseTime: model.AggregatedDuration{
+					ResponseTime: &modelpb.AggregatedDuration{
 						Count: 10,
-						Sum:   1500 * time.Microsecond,
+						Sum:   durationpb.New(1500 * time.Microsecond),
 					},
 				},
 			},
 		},
 		{
-			Agent: model.Agent{Name: "go"},
-			Service: model.Service{
+			Agent: &modelpb.Agent{Name: "go"},
+			Service: &modelpb.Service{
 				Name: "go-service",
 			},
-			Event:     model.Event{Outcome: "unknown"},
-			Processor: model.MetricsetProcessor,
-			Metricset: &model.Metricset{Name: "service_destination", Interval: "0s", DocCount: 4},
-			Span: &model.Span{
-				DestinationService: &model.DestinationService{
+			Event:     &modelpb.Event{Outcome: "unknown"},
+			Processor: modelpb.MetricsetProcessor(),
+			Metricset: &modelpb.Metricset{Name: "service_destination", Interval: "0s", DocCount: 4},
+			Span: &modelpb.Span{
+				DestinationService: &modelpb.DestinationService{
 					Resource: "mysql://mysql:3306",
-					ResponseTime: model.AggregatedDuration{
+					ResponseTime: &modelpb.AggregatedDuration{
 						Count: 4,
-						Sum:   6000 * time.Microsecond,
+						Sum:   durationpb.New(6000 * time.Microsecond),
 					},
 				},
 			},
 		},
-	}, metricsets, cmpopts.IgnoreTypes(netip.Addr{}), cmpopts.SortSlices(func(e1 model.APMEvent, e2 model.APMEvent) bool {
-		return e1.Span.DestinationService.Resource < e2.Span.DestinationService.Resource
-	})))
+	}, metricsets,
+		protocmp.Transform(),
+		cmpopts.SortSlices(func(e1 *modelpb.APMEvent, e2 *modelpb.APMEvent) bool {
+			return e1.Span.DestinationService.Resource < e2.Span.DestinationService.Resource
+		})))
 }
 
 func TestAggregateHalfCapacityNoSpanName(t *testing.T) {
-	batches := make(chan model.Batch, 1)
+	batches := make(chan modelpb.Batch, 1)
 	agg, err := NewAggregator(AggregatorConfig{
 		BatchProcessor: makeChanBatchProcessor(batches),
 		Interval:       10 * time.Millisecond,
@@ -640,7 +655,7 @@ func TestAggregateHalfCapacityNoSpanName(t *testing.T) {
 
 	err = agg.ProcessBatch(
 		context.Background(),
-		&model.Batch{
+		&modelpb.Batch{
 			makeSpan("service", "agent", "dest1", "target_type", "target1", "success", 100*time.Millisecond, 1),
 			makeSpan("service", "agent", "dest2", "target_type", "target2", "success", 100*time.Millisecond, 1),
 			makeSpan("service", "agent", "dest3", "target_type", "target3", "success", 100*time.Millisecond, 1),
@@ -671,7 +686,7 @@ func TestAggregateHalfCapacityNoSpanName(t *testing.T) {
 }
 
 func TestAggregateTimestamp(t *testing.T) {
-	batches := make(chan model.Batch, 1)
+	batches := make(chan modelpb.Batch, 1)
 	agg, err := NewAggregator(AggregatorConfig{
 		BatchProcessor: makeChanBatchProcessor(batches),
 		Interval:       30 * time.Second,
@@ -679,11 +694,11 @@ func TestAggregateTimestamp(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	t0 := time.Unix(0, 0)
+	t0 := time.Unix(0, 0).UTC()
 	for _, ts := range []time.Time{t0, t0.Add(15 * time.Second), t0.Add(30 * time.Second)} {
 		span := makeSpan("service_name", "agent_name", "destination", "trg_type", "trg_name", "success", 100*time.Millisecond, 1)
-		span.Timestamp = ts
-		batch := model.Batch{span}
+		span.Timestamp = timestamppb.New(ts)
+		batch := modelpb.Batch{span}
 		err = agg.ProcessBatch(context.Background(), &batch)
 		require.NoError(t, err)
 		assert.Empty(t, batchMetricsets(t, batch))
@@ -697,17 +712,17 @@ func TestAggregateTimestamp(t *testing.T) {
 	metricsets := batchMetricsets(t, batch)
 	require.Len(t, metricsets, 2)
 	sort.Slice(metricsets, func(i, j int) bool {
-		return metricsets[i].Timestamp.Before(metricsets[j].Timestamp)
+		return metricsets[i].Timestamp.AsTime().Before(metricsets[j].Timestamp.AsTime())
 	})
-	assert.Equal(t, t0, metricsets[0].Timestamp)
-	assert.Equal(t, t0.Add(30*time.Second), metricsets[1].Timestamp)
+	assert.Equal(t, t0, metricsets[0].Timestamp.AsTime())
+	assert.Equal(t, t0.Add(30*time.Second), metricsets[1].Timestamp.AsTime())
 }
 
 func TestAggregatorOverflow(t *testing.T) {
 	maxGrps := 4
 	overflowCount := 100
 	duration := 100 * time.Millisecond
-	batches := make(chan model.Batch, 1)
+	batches := make(chan modelpb.Batch, 1)
 	agg, err := NewAggregator(AggregatorConfig{
 		BatchProcessor: makeChanBatchProcessor(batches),
 		Interval:       10 * time.Second,
@@ -715,7 +730,7 @@ func TestAggregatorOverflow(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	batch := make(model.Batch, maxGrps+overflowCount) // cause overflow
+	batch := make(modelpb.Batch, maxGrps+overflowCount) // cause overflow
 	for i := 0; i < len(batch); i++ {
 		batch[i] = makeSpan("service", "agent", fmt.Sprintf("destination%d", i),
 			fmt.Sprintf("trg_type_%d", i), fmt.Sprintf("trg_name_%d", i), "success", duration, 1)
@@ -736,92 +751,95 @@ func TestAggregatorOverflow(t *testing.T) {
 	expectedMonitoring.Ints["spanmetrics.active_groups"] = int64(maxGrps)
 	expectedMonitoring.Ints["spanmetrics.overflowed.total"] = int64(overflowCount)
 
-	var overflowEvent *model.APMEvent
+	var overflowEvent *modelpb.APMEvent
 	for i := range metricsets {
 		m := metricsets[i]
 		if m.Service.Name == "_other" {
 			if overflowEvent != nil {
 				require.Fail(t, "only one service should overflow")
 			}
-			overflowEvent = &m
+			overflowEvent = m
 		}
 	}
-	assert.Empty(t, cmp.Diff(model.APMEvent{
-		Service: model.Service{
+	assert.Empty(t, cmp.Diff(&modelpb.APMEvent{
+		Service: &modelpb.Service{
 			Name: "_other",
 		},
-		Processor: model.MetricsetProcessor,
-		Metricset: &model.Metricset{
+		Processor: modelpb.MetricsetProcessor(),
+		Metricset: &modelpb.Metricset{
 			Name:     "service_destination",
 			DocCount: int64(overflowCount),
 			Interval: "10s",
-			Samples: []model.MetricsetSample{
+			Samples: []*modelpb.MetricsetSample{
 				{
 					Name:  "service_destination.aggregation.overflow_count",
 					Value: float64(overflowCount),
 				},
 			},
 		},
-		Span: &model.Span{
+		Span: &modelpb.Span{
 			Name: "",
-			DestinationService: &model.DestinationService{
+			DestinationService: &modelpb.DestinationService{
 				Resource: "",
-				ResponseTime: model.AggregatedDuration{
-					Count: overflowCount,
-					Sum:   time.Duration(duration.Nanoseconds() * int64(overflowCount)),
+				ResponseTime: &modelpb.AggregatedDuration{
+					Count: int64(overflowCount),
+					Sum:   durationpb.New(time.Duration(duration.Nanoseconds() * int64(overflowCount))),
 				},
 			},
 		},
-	}, *overflowEvent, cmpopts.IgnoreTypes(netip.Addr{}, time.Time{})))
+	}, overflowEvent,
+		protocmp.Transform(),
+		protocmp.IgnoreMessages(&timestamppb.Timestamp{}),
+	))
 }
 
 func makeSpan(
 	serviceName, agentName, destinationServiceResource, targetType, targetName, outcome string,
 	duration time.Duration,
 	count float64,
-) model.APMEvent {
-	event := model.APMEvent{
-		Agent:   model.Agent{Name: agentName},
-		Service: model.Service{Name: serviceName},
-		Event: model.Event{
+) *modelpb.APMEvent {
+	event := modelpb.APMEvent{
+		Agent:   &modelpb.Agent{Name: agentName},
+		Service: &modelpb.Service{Name: serviceName},
+		Event: &modelpb.Event{
 			Outcome:  outcome,
-			Duration: duration,
+			Duration: durationpb.New(duration),
 		},
-		Processor: model.SpanProcessor,
-		Span: &model.Span{
+		Processor: modelpb.SpanProcessor(),
+		Span: &modelpb.Span{
 			Name:                serviceName + ":" + destinationServiceResource,
 			RepresentativeCount: count,
 		},
-		Labels: model.Labels{
-			"department_name": model.LabelValue{Global: true, Value: "apm"},
-			"organization":    model.LabelValue{Global: true, Value: "observability"},
-			"company":         model.LabelValue{Global: true, Value: "elastic"},
+		Labels: modelpb.Labels{
+			"department_name": &modelpb.LabelValue{Global: true, Value: "apm"},
+			"organization":    &modelpb.LabelValue{Global: true, Value: "observability"},
+			"company":         &modelpb.LabelValue{Global: true, Value: "elastic"},
 		},
-		NumericLabels: model.NumericLabels{
-			"user_id":     model.NumericLabelValue{Global: true, Value: 100},
-			"cost_center": model.NumericLabelValue{Global: true, Value: 10},
+		NumericLabels: modelpb.NumericLabels{
+			"user_id":     &modelpb.NumericLabelValue{Global: true, Value: 100},
+			"cost_center": &modelpb.NumericLabelValue{Global: true, Value: 10},
 		},
 	}
 	if destinationServiceResource != "" {
-		event.Span.DestinationService = &model.DestinationService{
+		event.Span.DestinationService = &modelpb.DestinationService{
 			Resource: destinationServiceResource,
 		}
 	}
 	if targetType != "" {
-		event.Service.Target = &model.ServiceTarget{
+		event.Service.Target = &modelpb.ServiceTarget{
 			Type: targetType,
 			Name: targetName,
 		}
 	}
-	return event
+	return &event
 }
 
-func makeErrBatchProcessor(err error) model.BatchProcessor {
-	return model.ProcessBatchFunc(func(context.Context, *model.Batch) error { return err })
+func makeErrBatchProcessor(err error) modelpb.BatchProcessor {
+	return modelpb.ProcessBatchFunc(func(context.Context, *modelpb.Batch) error { return err })
 }
 
-func makeChanBatchProcessor(ch chan<- model.Batch) model.BatchProcessor {
-	return model.ProcessBatchFunc(func(ctx context.Context, batch *model.Batch) error {
+func makeChanBatchProcessor(ch chan<- modelpb.Batch) modelpb.BatchProcessor {
+	return modelpb.ProcessBatchFunc(func(ctx context.Context, batch *modelpb.Batch) error {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
@@ -831,7 +849,7 @@ func makeChanBatchProcessor(ch chan<- model.Batch) model.BatchProcessor {
 	})
 }
 
-func expectBatch(t *testing.T, ch <-chan model.Batch) model.Batch {
+func expectBatch(t *testing.T, ch <-chan modelpb.Batch) modelpb.Batch {
 	t.Helper()
 	select {
 	case batch := <-ch:
@@ -842,8 +860,8 @@ func expectBatch(t *testing.T, ch <-chan model.Batch) model.Batch {
 	panic("unreachable")
 }
 
-func batchMetricsets(t testing.TB, batch model.Batch) []model.APMEvent {
-	var metricsets []model.APMEvent
+func batchMetricsets(t testing.TB, batch modelpb.Batch) []*modelpb.APMEvent {
+	var metricsets []*modelpb.APMEvent
 	for _, event := range batch {
 		if event.Metricset == nil {
 			continue

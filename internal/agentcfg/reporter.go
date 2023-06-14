@@ -22,19 +22,21 @@ import (
 	"sync"
 	"time"
 
-	"github.com/elastic/apm-data/model"
+	"google.golang.org/protobuf/types/known/timestamppb"
+
+	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/elastic-agent-libs/logp"
 )
 
 type Reporter struct {
 	f        Fetcher
-	p        model.BatchProcessor
+	p        modelpb.BatchProcessor
 	interval time.Duration
 	logger   *logp.Logger
 	resultc  chan Result
 }
 
-func NewReporter(f Fetcher, batchProcessor model.BatchProcessor, interval time.Duration) Reporter {
+func NewReporter(f Fetcher, batchProcessor modelpb.BatchProcessor, interval time.Duration) Reporter {
 	logger := logp.NewLogger("agentcfg")
 	return Reporter{
 		f:        f,
@@ -82,15 +84,15 @@ func (r Reporter) Run(ctx context.Context) error {
 			continue
 		case <-t.C:
 		}
-		batch := make(model.Batch, 0, len(applied))
+		batch := make(modelpb.Batch, 0, len(applied))
 		for etag := range applied {
-			batch = append(batch, model.APMEvent{
-				Timestamp: time.Now(),
-				Processor: model.MetricsetProcessor,
-				Labels:    model.Labels{"etag": {Value: etag}},
-				Metricset: &model.Metricset{
+			batch = append(batch, &modelpb.APMEvent{
+				Timestamp: timestamppb.Now(),
+				Processor: modelpb.MetricsetProcessor(),
+				Labels:    modelpb.Labels{"etag": {Value: etag}},
+				Metricset: &modelpb.Metricset{
 					Name: "agent_config",
-					Samples: []model.MetricsetSample{
+					Samples: []*modelpb.MetricsetSample{
 						{Name: "agent_config_applied", Value: 1},
 					},
 				},

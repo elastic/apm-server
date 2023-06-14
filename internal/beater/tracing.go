@@ -23,7 +23,7 @@ import (
 
 	"github.com/elastic/elastic-agent-libs/logp"
 
-	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/internal/agentcfg"
 	"github.com/elastic/apm-server/internal/beater/api"
 	"github.com/elastic/apm-server/internal/beater/auth"
@@ -31,7 +31,7 @@ import (
 	"github.com/elastic/apm-server/internal/beater/ratelimit"
 )
 
-func newTracerServer(cfg *config.Config, listener net.Listener, logger *logp.Logger, batchProcessor model.BatchProcessor) (*http.Server, error) {
+func newTracerServer(cfg *config.Config, listener net.Listener, logger *logp.Logger, batchProcessor modelpb.BatchProcessor) (*http.Server, error) {
 	ratelimitStore, err := ratelimit.NewStore(1, 1, 1) // unused, arbitrary params
 	if err != nil {
 		return nil, err

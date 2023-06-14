@@ -20,8 +20,9 @@ package otlp
 import (
 	"context"
 	"net"
+	"net/netip"
 
-	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/internal/beater/interceptors"
 )
 
@@ -29,10 +30,10 @@ import (
 // events, which are assumed to have been sent to the server from the user's device.
 //
 // Client metadata is extracted from ctx, injected by interceptors.ClientMetadata.
-func SetClientMetadata(ctx context.Context, batch *model.Batch) error {
+func SetClientMetadata(ctx context.Context, batch *modelpb.Batch) error {
 	for i := range *batch {
-		event := &(*batch)[i]
-		if event.Agent.Name != "iOS/swift" && event.Agent.Name != "android/java" {
+		event := (*batch)[i]
+		if event.GetAgent().GetName() != "iOS/swift" && event.GetAgent().GetName() != "android/java" {
 			// This is not an event from an agent we would consider to be
 			// running on an end-user device.
 			//
@@ -42,17 +43,23 @@ func SetClientMetadata(ctx context.Context, batch *model.Batch) error {
 		}
 		clientMetadata, ok := interceptors.ClientMetadataFromContext(ctx)
 		if ok {
-			if !event.Source.IP.IsValid() {
+			if _, err := netip.ParseAddr(event.GetSource().GetIp()); err != nil {
 				if tcpAddr, ok := clientMetadata.SourceAddr.(*net.TCPAddr); ok {
-					event.Source.IP = tcpAddr.AddrPort().Addr()
-					event.Source.Port = tcpAddr.Port
+					if event.Source == nil {
+						event.Source = &modelpb.Source{}
+					}
+					event.Source.Ip = tcpAddr.IP.String()
+					event.Source.Port = uint32(tcpAddr.Port)
 				}
 			}
-			if !event.Client.IP.IsValid() {
-				event.Client.IP = clientMetadata.ClientIP
+			if _, err := netip.ParseAddr(event.GetClient().GetIp()); err != nil {
+				if event.Client == nil {
+					event.Client = &modelpb.Client{}
+				}
+				event.Client.Ip = clientMetadata.ClientIP.String()
 			}
 			if clientMetadata.SourceNATIP.IsValid() {
-				event.Source.NAT = &model.NAT{IP: clientMetadata.SourceNATIP}
+				event.Source.Nat = &modelpb.NAT{Ip: clientMetadata.SourceNATIP.String()}
 			}
 		}
 	}

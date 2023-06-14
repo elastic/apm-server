@@ -20,6 +20,7 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
+	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/monitoring"
 	"github.com/elastic/elastic-agent-libs/paths"
@@ -27,7 +28,6 @@ import (
 	"github.com/elastic/apm-server/internal/beater"
 	"github.com/elastic/apm-server/internal/beater/config"
 	"github.com/elastic/apm-server/internal/elasticsearch"
-	"github.com/elastic/apm-server/internal/model/modelprocessor"
 )
 
 func TestMonitoring(t *testing.T) {
@@ -57,7 +57,7 @@ func TestMonitoring(t *testing.T) {
 			Config:                 cfg,
 			Logger:                 logp.NewLogger(""),
 			Tracer:                 apmtest.DiscardTracer,
-			BatchProcessor:         modelprocessor.Nop{},
+			BatchProcessor:         modelpb.ProcessBatchFunc(func(ctx context.Context, b *modelpb.Batch) error { return nil }),
 			Namespace:              "default",
 			NewElasticsearchClient: elasticsearch.NewClient,
 		}, func(ctx context.Context, args beater.ServerParams) error {
