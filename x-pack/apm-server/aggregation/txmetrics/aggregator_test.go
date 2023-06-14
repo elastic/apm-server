@@ -802,10 +802,6 @@ func TestAggregationFields(t *testing.T) {
 	))
 }
 
-func strPtr(s string) *string {
-	return &s
-}
-
 func BenchmarkAggregateTransaction(b *testing.B) {
 	agg, err := txmetrics.NewAggregator(txmetrics.AggregatorConfig{
 		BatchProcessor:                 makeErrBatchProcessor(nil),
