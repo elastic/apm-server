@@ -22,9 +22,10 @@ import (
 	"sync"
 	"time"
 
+	"google.golang.org/protobuf/types/known/timestamppb"
+
 	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/elastic-agent-libs/logp"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type Reporter struct {

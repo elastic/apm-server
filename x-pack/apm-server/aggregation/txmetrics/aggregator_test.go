@@ -873,7 +873,7 @@ func batchMetricsets(t testing.TB, batch modelpb.Batch) []*modelpb.APMEvent {
 func createOverflowMetricset(overflowCount, repCount int, txnDuration time.Duration) *modelpb.APMEvent {
 	return &modelpb.APMEvent{
 		Processor: modelpb.MetricsetProcessor(),
-		Service: &modelpb.Service{},
+		Service:   &modelpb.Service{},
 		Transaction: &modelpb.Transaction{
 			Name: "_other",
 			DurationHistogram: &modelpb.Histogram{
