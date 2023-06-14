@@ -31,6 +31,7 @@ import (
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/monitoring"
 
+	"github.com/elastic/apm-data/input"
 	"github.com/elastic/apm-data/input/elasticapm"
 	"github.com/elastic/apm-data/model"
 	"github.com/elastic/apm-data/model/modelpb"
@@ -89,6 +90,7 @@ func NewMux(
 	ratelimitStore *ratelimit.Store,
 	sourcemapFetcher sourcemap.Fetcher,
 	publishReady func() bool,
+	semaphore input.Semaphore,
 ) (*mux.Router, error) {
 	pool := request.NewContextPool()
 	logger := logp.NewLogger(logs.Handler)
@@ -101,13 +103,13 @@ func NewMux(
 		batchProcessor:   batchProcessor,
 		ratelimitStore:   ratelimitStore,
 		sourcemapFetcher: sourcemapFetcher,
-		intakeSemaphore:  make(chan struct{}, beaterConfig.MaxConcurrentDecoders),
+		intakeSemaphore:  semaphore,
 	}
 
 	zapLogger := zap.New(logger.Core(), zap.WithCaller(true))
 	builder.intakeProcessor = elasticapm.NewProcessor(elasticapm.Config{
 		MaxEventSize: beaterConfig.MaxEventSize,
-		Semaphore:    builder.intakeSemaphore,
+		Semaphore:    semaphore,
 		Logger:       zapLogger,
 	})
 
@@ -116,7 +118,7 @@ func NewMux(
 		handlerFn func() (request.Handler, error)
 	}
 
-	otlpHandlers := otlp.NewHTTPHandlers(zapLogger, model.ProtoBatchProcessor(batchProcessor))
+	otlpHandlers := otlp.NewHTTPHandlers(zapLogger, model.ProtoBatchProcessor(batchProcessor), semaphore)
 	rumIntakeHandler := builder.rumIntakeHandler()
 	routeMap := []route{
 		{RootPath, builder.rootHandler(publishReady)},
@@ -167,7 +169,7 @@ type routeBuilder struct {
 	ratelimitStore   *ratelimit.Store
 	sourcemapFetcher sourcemap.Fetcher
 	intakeProcessor  *elasticapm.Processor
-	intakeSemaphore  chan struct{}
+	intakeSemaphore  input.Semaphore
 }
 
 func (r *routeBuilder) backendIntakeHandler() (request.Handler, error) {

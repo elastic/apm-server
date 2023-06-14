@@ -34,6 +34,7 @@ import (
 	"go.elastic.co/apm/v2"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
+	"golang.org/x/sync/semaphore"
 	"google.golang.org/grpc"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
@@ -439,6 +440,7 @@ func (s *Runner) Run(ctx context.Context) error {
 		KibanaClient:           kibanaClient,
 		NewElasticsearchClient: newElasticsearchClient,
 		GRPCServer:             grpcServer,
+		Semaphore:              semaphore.NewWeighted(int64(s.config.MaxConcurrentDecoders)),
 	}
 	if s.wrapServer != nil {
 		// Wrap the serverParams and runServer function, enabling
@@ -477,7 +479,7 @@ func (s *Runner) Run(ctx context.Context) error {
 		return runServer(ctx, serverParams)
 	})
 	if tracerServerListener != nil {
-		tracerServer, err := newTracerServer(s.config, tracerServerListener, s.logger, serverParams.BatchProcessor)
+		tracerServer, err := newTracerServer(s.config, tracerServerListener, s.logger, serverParams.BatchProcessor, serverParams.Semaphore)
 		if err != nil {
 			return fmt.Errorf("failed to create self-instrumentation server: %w", err)
 		}

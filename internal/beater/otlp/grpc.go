@@ -28,6 +28,7 @@ import (
 
 	"github.com/elastic/elastic-agent-libs/monitoring"
 
+	"github.com/elastic/apm-data/input"
 	"github.com/elastic/apm-data/input/otlp"
 	"github.com/elastic/apm-data/model"
 	"github.com/elastic/apm-server/internal/beater/interceptors"
@@ -67,6 +68,7 @@ func RegisterGRPCServices(
 	grpcServer *grpc.Server,
 	logger *zap.Logger,
 	processor model.BatchProcessor,
+	semaphore input.Semaphore,
 ) {
 	// TODO(axw) stop assuming we have only one OTLP gRPC service running
 	// at any time, and instead aggregate metrics from consumers that are
@@ -74,6 +76,7 @@ func RegisterGRPCServices(
 	consumer := otlp.NewConsumer(otlp.ConsumerConfig{
 		Processor: processor,
 		Logger:    logger,
+		Semaphore: semaphore,
 	})
 	gRPCMonitoredConsumer.set(consumer)
 

@@ -29,6 +29,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/sync/semaphore"
 
 	"github.com/elastic/apm-data/model"
 	"github.com/elastic/apm-data/model/modelpb"
@@ -167,6 +168,7 @@ func (m muxBuilder) build(cfg *config.Config) (http.Handler, error) {
 		ratelimitStore,
 		m.SourcemapFetcher,
 		func() bool { return true },
+		semaphore.NewWeighted(1),
 	)
 }
 

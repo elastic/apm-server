@@ -32,6 +32,7 @@ import (
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	"go.opentelemetry.io/collector/pdata/ptrace/ptraceotlp"
 	"go.uber.org/zap"
+	"golang.org/x/sync/semaphore"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/status"
@@ -190,7 +191,8 @@ func newGRPCServer(t *testing.T, batchProcessor model.BatchProcessor) *grpc.Clie
 	require.NoError(t, err)
 	logger := logp.NewLogger("otlp.grpc.test")
 	srv := grpc.NewServer(grpc.UnaryInterceptor(interceptors.Metrics(logger)))
-	otlp.RegisterGRPCServices(srv, zap.NewNop(), batchProcessor)
+	semaphore := semaphore.NewWeighted(1)
+	otlp.RegisterGRPCServices(srv, zap.NewNop(), batchProcessor, semaphore)
 
 	go srv.Serve(lis)
 	t.Cleanup(srv.GracefulStop)
