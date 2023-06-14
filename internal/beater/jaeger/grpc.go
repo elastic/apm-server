@@ -34,6 +34,7 @@ import (
 
 	"github.com/elastic/elastic-agent-libs/monitoring"
 
+	"github.com/elastic/apm-data/input"
 	"github.com/elastic/apm-data/input/otlp"
 	"github.com/elastic/apm-data/model"
 	"github.com/elastic/apm-server/internal/agentcfg"
@@ -65,10 +66,12 @@ func RegisterGRPCServices(
 	logger *zap.Logger,
 	processor model.BatchProcessor,
 	fetcher agentcfg.Fetcher,
+	semaphore input.Semaphore,
 ) {
 	traceConsumer := otlp.NewConsumer(otlp.ConsumerConfig{
 		Processor: processor,
 		Logger:    logger,
+		Semaphore: semaphore,
 	})
 	api_v2.RegisterCollectorServiceServer(srv, &grpcCollector{traceConsumer})
 	api_v2.RegisterSamplingManagerServer(srv, &grpcSampler{logger, fetcher})

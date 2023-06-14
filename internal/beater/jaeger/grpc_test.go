@@ -31,6 +31,7 @@ import (
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest/observer"
+	"golang.org/x/sync/semaphore"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
@@ -207,9 +208,10 @@ func newServer(t *testing.T, batchProcessor model.BatchProcessor, agentcfgFetche
 	})
 	require.NoError(t, err)
 	srv := grpc.NewServer(grpc.UnaryInterceptor(interceptors.Auth(authenticator)))
+	semaphore := semaphore.NewWeighted(1)
 
 	core, observedLogs := observer.New(zap.DebugLevel)
-	RegisterGRPCServices(srv, zap.New(core), batchProcessor, agentcfgFetcher)
+	RegisterGRPCServices(srv, zap.New(core), batchProcessor, agentcfgFetcher, semaphore)
 
 	go srv.Serve(lis)
 	t.Cleanup(srv.GracefulStop)

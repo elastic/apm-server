@@ -32,6 +32,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/sync/semaphore"
 
 	"github.com/elastic/apm-data/input/elasticapm"
 	"github.com/elastic/apm-data/model"
@@ -96,7 +97,7 @@ func TestIntakeHandler(t *testing.T) {
 			path: "errors.ndjson",
 			processor: elasticapm.NewProcessor(elasticapm.Config{
 				MaxEventSize: 10,
-				Semaphore:    make(chan struct{}, 1),
+				Semaphore:    semaphore.NewWeighted(1),
 			}),
 			code: http.StatusBadRequest, id: request.IDResponseErrorsRequestTooLarge},
 		"Closing": {
@@ -238,7 +239,7 @@ func (tc *testcaseIntakeHandler) setup(t *testing.T) {
 		cfg.MaxConcurrentDecoders = 10
 		tc.processor = elasticapm.NewProcessor(elasticapm.Config{
 			MaxEventSize: cfg.MaxEventSize,
-			Semaphore:    make(chan struct{}, cfg.MaxConcurrentDecoders),
+			Semaphore:    semaphore.NewWeighted(int64(cfg.MaxConcurrentDecoders)),
 		})
 	}
 	if tc.batchProcessor == nil {

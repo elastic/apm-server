@@ -33,6 +33,7 @@ import (
 	"go.opentelemetry.io/collector/pdata/pmetric/pmetricotlp"
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	"go.opentelemetry.io/collector/pdata/ptrace/ptraceotlp"
+	"golang.org/x/sync/semaphore"
 
 	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/internal/agentcfg"
@@ -186,8 +187,15 @@ func newHTTPServer(t *testing.T, batchProcessor modelpb.BatchProcessor) string {
 	auth, _ := auth.NewAuthenticator(cfg.AgentAuth)
 	ratelimitStore, _ := ratelimit.NewStore(1000, 1000, 1000)
 	router, err := api.NewMux(
-		cfg, batchProcessor, auth, agentcfg.NewDirectFetcher(nil),
-		ratelimitStore, nil, func() bool { return true })
+		cfg,
+		batchProcessor,
+		auth,
+		agentcfg.NewDirectFetcher(nil),
+		ratelimitStore,
+		nil,
+		func() bool { return true },
+		semaphore.NewWeighted(1),
+	)
 	require.NoError(t, err)
 	srv := http.Server{Handler: router}
 	t.Cleanup(func() {
