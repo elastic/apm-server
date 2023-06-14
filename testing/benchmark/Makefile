@@ -60,7 +60,6 @@ terraform.tfvars:
 .PHONY: apmbench
 apmbench:
 	@echo "-> Building apmbench..."
-	@exit 1
 	@cd $(APMBENCH_PATH) && CGO_ENABLED=0 GOOS=$(APMBENCH_GOOS) GOARCH=$(APMBENCH_GOARCH) $(GO) build .
 
 .PHONY: init
