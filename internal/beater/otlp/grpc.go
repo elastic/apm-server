@@ -67,8 +67,8 @@ func init() {
 func RegisterGRPCServices(
 	grpcServer *grpc.Server,
 	logger *zap.Logger,
-	semaphore input.Semaphore,
 	processor modelpb.BatchProcessor,
+	semaphore input.Semaphore,
 ) {
 	// TODO(axw) stop assuming we have only one OTLP gRPC service running
 	// at any time, and instead aggregate metrics from consumers that are

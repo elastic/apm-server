@@ -192,7 +192,7 @@ func newGRPCServer(t *testing.T, batchProcessor modelpb.BatchProcessor) *grpc.Cl
 	logger := logp.NewLogger("otlp.grpc.test")
 	srv := grpc.NewServer(grpc.UnaryInterceptor(interceptors.Metrics(logger)))
 	semaphore := semaphore.NewWeighted(1)
-	otlp.RegisterGRPCServices(srv, zap.NewNop(), semaphore, batchProcessor)
+	otlp.RegisterGRPCServices(srv, zap.NewNop(), batchProcessor, semaphore)
 
 	go srv.Serve(lis)
 	t.Cleanup(srv.GracefulStop)
