@@ -43,6 +43,7 @@ pipeline {
         retry(2)
       }
       environment {
+        RUNBOOK = "<https://github.com/elastic/observability-dev/blob/main/docs/apm/apm-server/runbooks/benchmarks.md|Runbook>"
         SSH_KEY = "./id_rsa_terraform"
         TF_VAR_private_key = "./id_rsa_terraform"
         TF_VAR_public_key = "./id_rsa_terraform.pub"
@@ -154,7 +155,7 @@ def sendSlackReportSuccessMessage() {
         "type": "section",
         "text": [
           "type": "mrkdwn",
-          "text": "Nightly benchmarks succesfully executed\n\n <${env.BUILD_URL}|Jenkins Build ${env.BUILD_DISPLAY_NAME}>"
+          "text": "Benchmarks in `${BRANCH_NAME}` branch succeeded! SDH assignee, please investigate any performance regressions following this ${RUNBOOK}.\n\n <${env.BUILD_URL}|Jenkins Build ${env.BUILD_DISPLAY_NAME}>"
         ]
       ],
       [
@@ -184,14 +185,7 @@ def sendSlackReportFailureMessage() {
       "type": "section",
       "text": [
         "type": "mrkdwn",
-        "text": "Nightly benchmarks failed!\n\n <${env.BUILD_URL}|Jenkins Build ${env.BUILD_DISPLAY_NAME}>"
-      ]
-    ],
-    [
-      "type": "section",
-      "text": [
-        "type": "mrkdwn",
-        "text": "SDH Duty assignee, please have a look and follow this <https://github.com/elastic/observability-dev/blob/main/docs/apm/apm-server/runbooks/benchmarks.md|Runbook>!"
+        "text": "Benchmarks in `${BRANCH_NAME}` failed! SDH Duty assignee, please have a look and follow this ${RUNBOOK}!\n\n <${env.BUILD_URL}|Jenkins Build ${env.BUILD_DISPLAY_NAME}>"
       ]
     ]
   ]
