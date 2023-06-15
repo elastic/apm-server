@@ -10,15 +10,15 @@ import (
 	"github.com/elastic/apm-data/model/modelpb"
 )
 
-// JSONCodec is an implementation of Codec, using JSON encoding.
+// ProtobufCodec is an implementation of Codec, using protobuf encoding.
 type ProtobufCodec struct{}
 
-// DecodeEvent decodes data as JSON into event.
+// DecodeEvent decodes data as protobuf into event.
 func (ProtobufCodec) DecodeEvent(data []byte, event *modelpb.APMEvent) error {
 	return proto.Unmarshal(data, event)
 }
 
-// EncodeEvent encodes event as JSON.
+// EncodeEvent encodes event as protobuf.
 func (ProtobufCodec) EncodeEvent(event *modelpb.APMEvent) ([]byte, error) {
 	return proto.Marshal(event)
 }
