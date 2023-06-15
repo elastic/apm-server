@@ -64,34 +64,34 @@ pipeline {
             retryWithSleep(retries: 3, seconds: 5, backoff: true) {
               dockerLogin(secret: "${DOCKER_SECRET}", registry: "${DOCKER_REGISTRY}")
             }
-            // dir("${TESTING_BENCHMARK_DIR}") {
-            //   withTestClusterEnv() {
-            //     sh(label: 'Build apmbench', script: 'make apmbench $SSH_KEY terraform.tfvars')
-            //     sh(label: 'Spin up benchmark environment', script: 'make docker-override-committed-version init apply; echo "-> infra setup done"')
-            //     withESBenchmarkEnv() {
-            //       sh(label: 'Run benchmarks', script: 'make run-benchmark-autotuned index-benchmark-results')
-            //     }
-            //   }
-            // }
+            dir("${TESTING_BENCHMARK_DIR}") {
+              withTestClusterEnv() {
+                sh(label: 'Build apmbench', script: 'make apmbench $SSH_KEY terraform.tfvars')
+                sh(label: 'Spin up benchmark environment', script: 'make docker-override-committed-version init apply; echo "-> infra setup done"')
+                withESBenchmarkEnv() {
+                  sh(label: 'Run benchmarks', script: 'make run-benchmark-autotuned index-benchmark-results')
+                }
+              }
+            }
           }
           downloadPNGReport()
         }
       }
       post {
-        // always {
-        //   dir("${BASE_DIR}/${TESTING_BENCHMARK_DIR}") {
-        //     stashV2(name: 'benchmark_tfstate', bucket: "${JOB_GCS_BUCKET_STASH}", credentialsId: "${JOB_GCS_CREDENTIALS}")
-        //     archiveArtifacts(artifacts: "${env.BENCHMARK_RESULT}", allowEmptyArchive: true)
-        //   }
-        // }
+        always {
+          dir("${BASE_DIR}/${TESTING_BENCHMARK_DIR}") {
+            stashV2(name: 'benchmark_tfstate', bucket: "${JOB_GCS_BUCKET_STASH}", credentialsId: "${JOB_GCS_CREDENTIALS}")
+            archiveArtifacts(artifacts: "${env.BENCHMARK_RESULT}", allowEmptyArchive: true)
+          }
+        }
         cleanup {
           dir("${BASE_DIR}") {
             withGoEnv() {
-              // dir("${TESTING_BENCHMARK_DIR}") {
-              //   withTestClusterEnv() {
-              //     sh(label: 'Tear down benchmark environment', script: 'make destroy')
-              //   }
-              // }
+              dir("${TESTING_BENCHMARK_DIR}") {
+                withTestClusterEnv() {
+                  sh(label: 'Tear down benchmark environment', script: 'make destroy')
+                }
+              }
             }
           }
         }
