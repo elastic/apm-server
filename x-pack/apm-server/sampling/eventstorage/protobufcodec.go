@@ -5,8 +5,9 @@
 package eventstorage
 
 import (
-	"github.com/elastic/apm-data/model/modelpb"
 	"google.golang.org/protobuf/proto"
+
+	"github.com/elastic/apm-data/model/modelpb"
 )
 
 // JSONCodec is an implementation of Codec, using JSON encoding.
