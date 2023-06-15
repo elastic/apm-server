@@ -36,7 +36,7 @@ import (
 
 	"github.com/elastic/apm-data/input"
 	"github.com/elastic/apm-data/input/otlp"
-	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/internal/agentcfg"
 	"github.com/elastic/apm-server/internal/beater/auth"
 	"github.com/elastic/apm-server/internal/beater/config"
@@ -64,7 +64,7 @@ const (
 func RegisterGRPCServices(
 	srv *grpc.Server,
 	logger *zap.Logger,
-	processor model.BatchProcessor,
+	processor modelpb.BatchProcessor,
 	fetcher agentcfg.Fetcher,
 	semaphore input.Semaphore,
 ) {

@@ -37,7 +37,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/status"
 
-	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/internal/beater/interceptors"
 	"github.com/elastic/apm-server/internal/beater/otlp"
 	"github.com/elastic/elastic-agent-libs/logp"
@@ -45,9 +45,9 @@ import (
 )
 
 func TestConsumeTracesGRPC(t *testing.T) {
-	var batches []model.Batch
+	var batches []modelpb.Batch
 	var reportError error
-	var batchProcessor model.ProcessBatchFunc = func(ctx context.Context, batch *model.Batch) error {
+	var batchProcessor modelpb.ProcessBatchFunc = func(ctx context.Context, batch *modelpb.Batch) error {
 		batches = append(batches, *batch)
 		return reportError
 	}
@@ -94,7 +94,7 @@ func TestConsumeTracesGRPC(t *testing.T) {
 
 func TestConsumeMetricsGRPC(t *testing.T) {
 	var reportError error
-	var batchProcessor model.ProcessBatchFunc = func(ctx context.Context, batch *model.Batch) error {
+	var batchProcessor modelpb.ProcessBatchFunc = func(ctx context.Context, batch *modelpb.Batch) error {
 		return reportError
 	}
 
@@ -140,9 +140,9 @@ func TestConsumeMetricsGRPC(t *testing.T) {
 }
 
 func TestConsumeLogsGRPC(t *testing.T) {
-	var batches []model.Batch
+	var batches []modelpb.Batch
 	var reportError error
-	var batchProcessor model.ProcessBatchFunc = func(ctx context.Context, batch *model.Batch) error {
+	var batchProcessor modelpb.ProcessBatchFunc = func(ctx context.Context, batch *modelpb.Batch) error {
 		batches = append(batches, *batch)
 		return reportError
 	}
@@ -186,7 +186,7 @@ func TestConsumeLogsGRPC(t *testing.T) {
 	}, actual)
 }
 
-func newGRPCServer(t *testing.T, batchProcessor model.BatchProcessor) *grpc.ClientConn {
+func newGRPCServer(t *testing.T, batchProcessor modelpb.BatchProcessor) *grpc.ClientConn {
 	lis, err := net.Listen("tcp", "localhost:0")
 	require.NoError(t, err)
 	logger := logp.NewLogger("otlp.grpc.test")

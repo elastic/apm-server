@@ -33,7 +33,6 @@ import (
 	"github.com/elastic/elastic-agent-libs/monitoring"
 
 	"github.com/elastic/apm-data/input"
-	"github.com/elastic/apm-data/model"
 	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-data/model/modelprocessor"
 	"github.com/elastic/apm-server/internal/agentcfg"
@@ -201,8 +200,8 @@ func newServer(args ServerParams, listener net.Listener) (server, error) {
 		}
 	}
 	zapLogger := zap.New(args.Logger.Core(), zap.WithCaller(true))
-	otlp.RegisterGRPCServices(args.GRPCServer, zapLogger, model.ProtoBatchProcessor(otlpBatchProcessor), args.Semaphore)
-	jaeger.RegisterGRPCServices(args.GRPCServer, zapLogger, model.ProtoBatchProcessor(args.BatchProcessor), args.AgentConfig, args.Semaphore)
+	otlp.RegisterGRPCServices(args.GRPCServer, zapLogger, otlpBatchProcessor, args.Semaphore)
+	jaeger.RegisterGRPCServices(args.GRPCServer, zapLogger, args.BatchProcessor, args.AgentConfig, args.Semaphore)
 
 	return server{
 		logger:     args.Logger,
