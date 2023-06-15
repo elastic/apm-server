@@ -17,7 +17,7 @@ JOB_PARAMS=$(echo "
   locatorParams:(
     id:DASHBOARD_APP_LOCATOR,
     params:(
-      dashboardId:8b56efd0-e7ff-11ec-a01b-a55f13ba6a8b,
+      dashboardId:a5bc8390-2f8e-11ed-a369-052d8245fa04,
       preserveSavedFilters:!t,
       timeRange:(
         from:now-30d,
@@ -25,17 +25,15 @@ JOB_PARAMS=$(echo "
       ),
       useHash:!f,
       viewMode:view
-    ),
-    version:'8.3.2'
+    )
   ),
   objectType:dashboard,
-  title:app_bench_diff_shifts_slack,
-  version:'8.3.2'
+  title:app_bench_diff_shifts_slack
 )
 " | tr -d "[:space:]")
 
 
-png_url_path=$(curl -XPOST -v -L -u "$kibana_user:$kibana_pwd" -H 'kbn-xsrf: true' --data-urlencode "jobParams=${JOB_PARAMS}" $kibana_host/api/reporting/generate/pngV2 | jq -r '.path')
+png_url_path=$(curl -XPOST -L -u "$kibana_user:$kibana_pwd" -H 'kbn-xsrf: true' --data-urlencode "jobParams=${JOB_PARAMS}" $kibana_host/api/reporting/generate/pngV2 | jq -r '.path')
 
 
 echo "PNG URL path: $png_url_path"
