@@ -232,7 +232,10 @@ func (rw *ReadWriter) ReadTraceEvents(traceID string, out *modelpb.Batch) error 
 		case entryMetaTraceEvent:
 			var event modelpb.APMEvent
 			if err := item.Value(func(data []byte) error {
-				return rw.s.codec.DecodeEvent(data, &event)
+				if err := rw.s.codec.DecodeEvent(data, &event); err != nil {
+					return fmt.Errorf("codec failed to decode event: %w", err)
+				}
+				return nil
 			}); err != nil {
 				return err
 			}

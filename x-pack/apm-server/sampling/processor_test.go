@@ -18,9 +18,11 @@ import (
 	"time"
 
 	"github.com/gofrs/uuid"
+	"github.com/google/go-cmp/cmp"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/protobuf/testing/protocmp"
 	"google.golang.org/protobuf/types/known/durationpb"
 
 	"github.com/elastic/apm-data/model/modelpb"
@@ -61,7 +63,7 @@ func TestProcessAlreadyTailSampled(t *testing.T) {
 	// subsequent events in the trace will be reported immediately.
 	trace1 := modelpb.Trace{Id: "0102030405060708090a0b0c0d0e0f10"}
 	trace2 := modelpb.Trace{Id: "0102030405060708090a0b0c0d0e0f11"}
-	storage := eventstorage.New(config.DB, eventstorage.JSONCodec{})
+	storage := eventstorage.New(config.DB, eventstorage.ProtobufCodec{})
 	writer := storage.NewReadWriter()
 	wOpts := eventstorage.WriterOpts{
 		TTL:                 time.Minute,
@@ -72,7 +74,7 @@ func TestProcessAlreadyTailSampled(t *testing.T) {
 	writer.Close()
 
 	wOpts.TTL = -1 // expire immediately
-	storage = eventstorage.New(config.DB, eventstorage.JSONCodec{})
+	storage = eventstorage.New(config.DB, eventstorage.ProtobufCodec{})
 	writer = storage.NewReadWriter()
 	assert.NoError(t, writer.WriteTraceSampled(trace2.Id, true, wOpts))
 	assert.NoError(t, writer.Flush(wOpts.StorageLimitInBytes))
@@ -151,7 +153,7 @@ func TestProcessAlreadyTailSampled(t *testing.T) {
 
 	err = reader.ReadTraceEvents(trace2.Id, &batch)
 	assert.NoError(t, err)
-	assert.Equal(t, modelpb.Batch{&transaction2, &span2}, batch)
+	assert.Empty(t, cmp.Diff(modelpb.Batch{&transaction2, &span2}, batch, protocmp.Transform()))
 }
 
 func TestProcessLocalTailSampling(t *testing.T) {
@@ -248,7 +250,7 @@ func TestProcessLocalTailSampling(t *testing.T) {
 	// Stop the processor and flush global storage so we can access the database.
 	assert.NoError(t, processor.Stop(context.Background()))
 	assert.NoError(t, config.Storage.Flush(0))
-	storage := eventstorage.New(config.DB, eventstorage.JSONCodec{})
+	storage := eventstorage.New(config.DB, eventstorage.ProtobufCodec{})
 	reader := storage.NewReadWriter()
 	defer reader.Close()
 
@@ -263,7 +265,7 @@ func TestProcessLocalTailSampling(t *testing.T) {
 	var batch modelpb.Batch
 	err = reader.ReadTraceEvents(sampledTraceID, &batch)
 	assert.NoError(t, err)
-	assert.Equal(t, sampledTraceEvents, batch)
+	assert.Empty(t, cmp.Diff(sampledTraceEvents, batch, protocmp.Transform()))
 
 	// Even though the trace is unsampled, the events will be
 	// available in storage until the TTL expires, as they're
@@ -271,7 +273,7 @@ func TestProcessLocalTailSampling(t *testing.T) {
 	batch = batch[:0]
 	err = reader.ReadTraceEvents(unsampledTraceID, &batch)
 	assert.NoError(t, err)
-	assert.Equal(t, unsampledTraceEvents, batch)
+	assert.Empty(t, cmp.Diff(unsampledTraceEvents, batch, protocmp.Transform()))
 }
 
 func TestProcessLocalTailSamplingUnsampled(t *testing.T) {
@@ -310,7 +312,7 @@ func TestProcessLocalTailSamplingUnsampled(t *testing.T) {
 	// Stop the processor so we can access the database.
 	assert.NoError(t, processor.Stop(context.Background()))
 	assert.NoError(t, config.Storage.Flush(0))
-	storage := eventstorage.New(config.DB, eventstorage.JSONCodec{})
+	storage := eventstorage.New(config.DB, eventstorage.ProtobufCodec{})
 	reader := storage.NewReadWriter()
 	defer reader.Close()
 
@@ -475,9 +477,9 @@ func TestProcessRemoteTailSampling(t *testing.T) {
 	expectedMonitoring.Ints["sampling.events.failed_writes"] = 0
 	assertMonitoring(t, processor, expectedMonitoring, `sampling.events.*`)
 
-	assert.Equal(t, trace1Events, events)
+	assert.Empty(t, cmp.Diff(trace1Events, events, protocmp.Transform()))
 
-	storage := eventstorage.New(config.DB, eventstorage.JSONCodec{})
+	storage := eventstorage.New(config.DB, eventstorage.ProtobufCodec{})
 	reader := storage.NewReadWriter()
 	defer reader.Close()
 
@@ -587,7 +589,7 @@ func TestStorageGC(t *testing.T) {
 	t.Cleanup(func() { badgerDB.Close() })
 	config.DB = badgerDB
 	config.Storage = eventstorage.
-		New(config.DB, eventstorage.JSONCodec{}).
+		New(config.DB, eventstorage.ProtobufCodec{}).
 		NewShardedReadWriter()
 	t.Cleanup(func() { config.Storage.Close() })
 
@@ -771,7 +773,7 @@ func TestGracefulShutdown(t *testing.T) {
 	assert.NoError(t, processor.Stop(context.Background()))
 	assert.NoError(t, config.Storage.Flush(0))
 
-	reader := eventstorage.New(config.DB, eventstorage.JSONCodec{}).NewReadWriter()
+	reader := eventstorage.New(config.DB, eventstorage.ProtobufCodec{}).NewReadWriter()
 
 	var count int
 	for i := 0; i < totalTraces; i++ {
@@ -791,7 +793,7 @@ func newTempdirConfig(tb testing.TB) sampling.Config {
 	require.NoError(tb, err)
 	tb.Cleanup(func() { badgerDB.Close() })
 
-	eventCodec := eventstorage.JSONCodec{}
+	eventCodec := eventstorage.ProtobufCodec{}
 	storage := eventstorage.New(badgerDB, eventCodec).NewShardedReadWriter()
 	tb.Cleanup(func() { storage.Close() })
 
