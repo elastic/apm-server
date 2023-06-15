@@ -20,13 +20,13 @@ package modelprocessor
 import (
 	"context"
 
-	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 )
 
 // Nop is a no-op model.BatchProcessor.
 type Nop struct{}
 
 // ProcessBatch does nothing -- just returns nil.
-func (Nop) ProcessBatch(ctx context.Context, batch *model.Batch) error {
+func (Nop) ProcessBatch(ctx context.Context, batch *modelpb.Batch) error {
 	return nil
 }

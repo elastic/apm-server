@@ -32,6 +32,7 @@ import (
 
 	"github.com/elastic/apm-data/input/elasticapm"
 	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/internal/beater/auth"
 	"github.com/elastic/apm-server/internal/beater/headers"
 	"github.com/elastic/apm-server/internal/beater/ratelimit"
@@ -67,7 +68,7 @@ type StreamHandler interface {
 		base model.APMEvent,
 		stream io.Reader,
 		batchSize int,
-		processor model.BatchProcessor,
+		processor modelpb.BatchProcessor,
 		out *elasticapm.Result,
 	) error
 }
@@ -78,7 +79,7 @@ type StreamHandler interface {
 type RequestMetadataFunc func(*request.Context) model.APMEvent
 
 // Handler returns a request.Handler for managing intake requests for backend and rum events.
-func Handler(handler StreamHandler, requestMetadataFunc RequestMetadataFunc, batchProcessor model.BatchProcessor) request.Handler {
+func Handler(handler StreamHandler, requestMetadataFunc RequestMetadataFunc, batchProcessor modelpb.BatchProcessor) request.Handler {
 	return func(c *request.Context) {
 		if err := validateRequest(c); err != nil {
 			writeError(c, err)
