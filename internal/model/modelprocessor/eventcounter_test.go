@@ -25,16 +25,16 @@ import (
 
 	"github.com/elastic/elastic-agent-libs/monitoring"
 
-	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/internal/model/modelprocessor"
 )
 
 func TestEventCounter(t *testing.T) {
-	batch := model.Batch{
+	batch := modelpb.Batch{
 		{},
-		{Processor: model.TransactionProcessor},
-		{Processor: model.SpanProcessor},
-		{Processor: model.TransactionProcessor},
+		{Processor: modelpb.TransactionProcessor()},
+		{Processor: modelpb.SpanProcessor()},
+		{Processor: modelpb.TransactionProcessor()},
 	}
 
 	expected := monitoring.MakeFlatSnapshot()

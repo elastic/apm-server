@@ -32,7 +32,9 @@ import (
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/monitoring"
 
+	"github.com/elastic/apm-data/input"
 	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-data/model/modelprocessor"
 	"github.com/elastic/apm-server/internal/agentcfg"
 	"github.com/elastic/apm-server/internal/beater/api"
@@ -103,7 +105,7 @@ type ServerParams struct {
 
 	// BatchProcessor is the model.BatchProcessor that is used
 	// for publishing events to the output, such as Elasticsearch.
-	BatchProcessor model.BatchProcessor
+	BatchProcessor modelpb.BatchProcessor
 
 	// PublishReady holds a channel which will be signalled when the serve
 	// is ready to publish events. Readiness means that preconditions for
@@ -135,6 +137,10 @@ type ServerParams struct {
 	// authentication/authorization, logging, metrics, and tracing.
 	// See package internal/beater/interceptors for details.
 	GRPCServer *grpc.Server
+
+	// Semaphore holds a shared semaphore used to limit the number of
+	// concurrently running requests
+	Semaphore input.Semaphore
 }
 
 // newBaseRunServer returns the base RunServerFunc.
@@ -168,9 +174,14 @@ func newServer(args ServerParams, listener net.Listener) (server, error) {
 
 	// Create an HTTP server for serving Elastic APM agent requests.
 	router, err := api.NewMux(
-		args.Config, args.BatchProcessor,
-		args.Authenticator, args.AgentConfig, args.RateLimitStore,
-		args.SourcemapFetcher, publishReady,
+		args.Config,
+		args.BatchProcessor,
+		args.Authenticator,
+		args.AgentConfig,
+		args.RateLimitStore,
+		args.SourcemapFetcher,
+		publishReady,
+		args.Semaphore,
 	)
 	if err != nil {
 		return server{}, err
@@ -184,14 +195,14 @@ func newServer(args ServerParams, listener net.Listener) (server, error) {
 	otlpBatchProcessor := args.BatchProcessor
 	if args.Config.AugmentEnabled {
 		// Add a model processor that sets `client.ip` for events from end-user devices.
-		otlpBatchProcessor = modelprocessor.Chained{
-			model.ProcessBatchFunc(otlp.SetClientMetadata),
+		otlpBatchProcessor = modelprocessor.PbChained{
+			modelpb.ProcessBatchFunc(otlp.SetClientMetadata),
 			otlpBatchProcessor,
 		}
 	}
 	zapLogger := zap.New(args.Logger.Core(), zap.WithCaller(true))
-	otlp.RegisterGRPCServices(args.GRPCServer, zapLogger, otlpBatchProcessor)
-	jaeger.RegisterGRPCServices(args.GRPCServer, zapLogger, args.BatchProcessor, args.AgentConfig)
+	otlp.RegisterGRPCServices(args.GRPCServer, zapLogger, model.ProtoBatchProcessor(otlpBatchProcessor), args.Semaphore)
+	jaeger.RegisterGRPCServices(args.GRPCServer, zapLogger, model.ProtoBatchProcessor(args.BatchProcessor), args.AgentConfig, args.Semaphore)
 
 	return server{
 		logger:     args.Logger,

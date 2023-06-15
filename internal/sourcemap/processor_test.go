@@ -23,12 +23,16 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/testing/protocmp"
 
 	"github.com/elastic/elastic-agent-libs/logp"
 
 	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/internal/elasticsearch"
 	"github.com/elastic/apm-server/internal/logs"
 )
@@ -49,13 +53,13 @@ func TestBatchProcessor(t *testing.T) {
 	originalLinenoWithFunction := uint32(1)
 	originalColnoWithFunction := uint32(67)
 
-	nonMatchingFrame := model.StacktraceFrame{
+	nonMatchingFrame := modelpb.StacktraceFrame{
 		AbsPath:  "bundle.js",
 		Lineno:   newInt(0),
 		Colno:    newInt(0),
 		Function: "original function",
 	}
-	mappedFrameWithFilename := model.StacktraceFrame{
+	mappedFrameWithFilename := modelpb.StacktraceFrame{
 		AbsPath:     "bundle.js",
 		Function:    "<anonymous>",
 		Filename:    "webpack:///bundle.js",
@@ -69,7 +73,7 @@ func TestBatchProcessor(t *testing.T) {
 			"/******/ \t// The require function",
 			"/******/ \tfunction __webpack_require__(moduleId) {",
 		},
-		Original: model.Original{
+		Original: &modelpb.Original{
 			AbsPath:  "bundle.js",
 			Lineno:   &originalLinenoWithFilename,
 			Colno:    &originalColnoWithFilename,
@@ -78,7 +82,7 @@ func TestBatchProcessor(t *testing.T) {
 		SourcemapUpdated: true,
 	}
 
-	mappedFrameWithoutFilename := mappedFrameWithFilename
+	mappedFrameWithoutFilename := proto.Clone(&mappedFrameWithFilename).(*modelpb.StacktraceFrame)
 	mappedFrameWithoutFilename.Original.Lineno = &originalLinenoWithoutFilename
 	mappedFrameWithoutFilename.Original.Colno = &originalColnoWithoutFilename
 	mappedFrameWithoutFilename.Lineno = newInt(5)
@@ -99,7 +103,7 @@ func TestBatchProcessor(t *testing.T) {
 		"",
 	}
 
-	mappedFrameWithFunction := mappedFrameWithoutFilename
+	mappedFrameWithFunction := proto.Clone(mappedFrameWithoutFilename).(*modelpb.StacktraceFrame)
 	mappedFrameWithFunction.Original.Lineno = &originalLinenoWithFunction
 	mappedFrameWithFunction.Original.Colno = &originalColnoWithFunction
 	mappedFrameWithFunction.Lineno = newInt(13)
@@ -119,26 +123,26 @@ func TestBatchProcessor(t *testing.T) {
 		"",
 		" \t\t// Execute the module function",
 	}
-	mappedFrameWithFunction2 := mappedFrameWithFunction
+	mappedFrameWithFunction2 := proto.Clone(mappedFrameWithFunction).(*modelpb.StacktraceFrame)
 	mappedFrameWithFunction2.Function = "exports"
 
-	service := model.Service{
+	service := modelpb.Service{
 		Name:    "service_name",
 		Version: "service_version",
 	}
 
 	// Service intentionally left blank
-	transaction := model.APMEvent{Transaction: &model.Transaction{}}
-	span1 := model.APMEvent{Span: &model.Span{}}
+	transaction := modelpb.APMEvent{Transaction: &modelpb.Transaction{}}
+	span1 := modelpb.APMEvent{Span: &modelpb.Span{}}
 
-	error1 := model.APMEvent{
-		Service: service,
-		Error:   &model.Error{},
+	error1 := modelpb.APMEvent{
+		Service: &service,
+		Error:   &modelpb.Error{},
 	}
-	span2 := model.APMEvent{
-		Service: service,
-		Span: &model.Span{
-			Stacktrace: model.Stacktrace{cloneFrame(nonMatchingFrame), {
+	span2 := modelpb.APMEvent{
+		Service: &service,
+		Span: &modelpb.Span{
+			Stacktrace: []*modelpb.StacktraceFrame{proto.Clone(&nonMatchingFrame).(*modelpb.StacktraceFrame), {
 				AbsPath:  "bundle.js",
 				Lineno:   newInt(originalLinenoWithFilename),
 				Colno:    newInt(originalColnoWithFilename),
@@ -146,11 +150,11 @@ func TestBatchProcessor(t *testing.T) {
 			}},
 		},
 	}
-	error2 := model.APMEvent{
-		Service: service,
-		Error: &model.Error{
-			Log: &model.ErrorLog{
-				Stacktrace: model.Stacktrace{{
+	error2 := modelpb.APMEvent{
+		Service: &service,
+		Error: &modelpb.Error{
+			Log: &modelpb.ErrorLog{
+				Stacktrace: []*modelpb.StacktraceFrame{{
 					AbsPath:  "bundle.js",
 					Lineno:   newInt(originalLinenoWithoutFilename),
 					Colno:    newInt(originalColnoWithoutFilename),
@@ -159,18 +163,18 @@ func TestBatchProcessor(t *testing.T) {
 			},
 		},
 	}
-	error3 := model.APMEvent{
-		Service: service,
-		Error: &model.Error{
-			Exception: &model.Exception{
-				Stacktrace: model.Stacktrace{{
+	error3 := modelpb.APMEvent{
+		Service: &service,
+		Error: &modelpb.Error{
+			Exception: &modelpb.Exception{
+				Stacktrace: []*modelpb.StacktraceFrame{{
 					AbsPath:  "bundle.js",
 					Lineno:   newInt(originalLinenoWithFunction),
 					Colno:    newInt(originalColnoWithFunction),
 					Function: "original function",
 				}},
-				Cause: []model.Exception{{
-					Stacktrace: model.Stacktrace{{
+				Cause: []*modelpb.Exception{{
+					Stacktrace: []*modelpb.StacktraceFrame{{
 						AbsPath:  "bundle.js",
 						Lineno:   newInt(originalLinenoWithFunction),
 						Colno:    newInt(originalColnoWithFunction),
@@ -190,57 +194,66 @@ func TestBatchProcessor(t *testing.T) {
 		Fetcher: fetcher,
 		Logger:  logp.NewLogger(logs.Stacktrace),
 	}
-	err = processor.ProcessBatch(context.Background(), &model.Batch{transaction, span1, span2, error1, error2, error3})
+	err = processor.ProcessBatch(context.Background(), &modelpb.Batch{&transaction, &span1, &span2, &error1, &error2, &error3})
 	assert.NoError(t, err)
 
-	assert.Equal(t, &model.Span{}, span1.Span)
-	assert.Equal(t, &model.Error{}, error1.Error)
-	assert.Equal(t, &model.Span{
-		Stacktrace: model.Stacktrace{
-			cloneFrame(nonMatchingFrame),
-			cloneFrame(mappedFrameWithFilename),
+	assert.Empty(t, cmp.Diff(&modelpb.Span{}, span1.Span, protocmp.Transform()))
+	assert.Empty(t, cmp.Diff(&modelpb.Error{}, error1.Error, protocmp.Transform()))
+	assert.Empty(t, cmp.Diff(&modelpb.Span{
+		Stacktrace: []*modelpb.StacktraceFrame{
+			proto.Clone(&nonMatchingFrame).(*modelpb.StacktraceFrame),
+			proto.Clone(&mappedFrameWithFilename).(*modelpb.StacktraceFrame),
 		},
-	}, span2.Span)
-	assert.Equal(t, &model.Error{
-		Log: &model.ErrorLog{
-			Stacktrace: model.Stacktrace{
-				cloneFrame(mappedFrameWithoutFilename),
+	}, span2.Span, protocmp.Transform()))
+	assert.Empty(t, cmp.Diff(&modelpb.Error{
+		Log: &modelpb.ErrorLog{
+			Stacktrace: []*modelpb.StacktraceFrame{
+				proto.Clone(mappedFrameWithoutFilename).(*modelpb.StacktraceFrame),
 			},
 		},
-	}, error2.Error)
-	assert.Equal(t, &model.Error{
-		Exception: &model.Exception{
-			Stacktrace: model.Stacktrace{
-				cloneFrame(mappedFrameWithFunction),
+	}, error2.Error, protocmp.Transform()))
+	assert.Empty(t, cmp.Diff(&modelpb.Error{
+		Exception: &modelpb.Exception{
+			Stacktrace: []*modelpb.StacktraceFrame{
+				proto.Clone(mappedFrameWithFunction).(*modelpb.StacktraceFrame),
 			},
-			Cause: []model.Exception{{
-				Stacktrace: model.Stacktrace{
-					cloneFrame(mappedFrameWithFunction2),
-					cloneFrame(mappedFrameWithFunction),
+			Cause: []*modelpb.Exception{{
+				Stacktrace: []*modelpb.StacktraceFrame{
+					proto.Clone(mappedFrameWithFunction2).(*modelpb.StacktraceFrame),
+					proto.Clone(mappedFrameWithFunction).(*modelpb.StacktraceFrame),
 				},
 			}},
 		},
-	}, error3.Error)
+	}, error3.Error, protocmp.Transform()))
+}
+
+func toPb(e *model.APMEvent) *modelpb.APMEvent {
+	var out modelpb.APMEvent
+	e.ToModelProtobuf(&out)
+	return &out
 }
 
 func TestBatchProcessorElasticsearchUnavailable(t *testing.T) {
 	client := newUnavailableElasticsearchClient(t)
 	fetcher := NewElasticsearchFetcher(client, "index")
 
-	nonMatchingFrame := model.StacktraceFrame{
+	nonMatchingFrame := modelpb.StacktraceFrame{
 		AbsPath:  "bundle.js",
 		Lineno:   newInt(0),
 		Colno:    newInt(0),
 		Function: "original function",
 	}
 
-	span := model.APMEvent{
-		Service: model.Service{
+	clone1 := proto.Clone(&nonMatchingFrame).(*modelpb.StacktraceFrame)
+	clone2 := proto.Clone(&nonMatchingFrame).(*modelpb.StacktraceFrame)
+
+	span := modelpb.APMEvent{
+		Service: &modelpb.Service{
 			Name:    "service_name",
 			Version: "service_version",
 		},
-		Span: &model.Span{
-			Stacktrace: model.Stacktrace{cloneFrame(nonMatchingFrame), cloneFrame(nonMatchingFrame)},
+		Span: &modelpb.Span{
+			Stacktrace: []*modelpb.StacktraceFrame{clone1, clone2},
 		},
 	}
 
@@ -252,14 +265,14 @@ func TestBatchProcessorElasticsearchUnavailable(t *testing.T) {
 			Fetcher: fetcher,
 			Logger:  logp.NewLogger(logs.Stacktrace),
 		}
-		err := processor.ProcessBatch(context.Background(), &model.Batch{span, span})
+		err := processor.ProcessBatch(context.Background(), &modelpb.Batch{&span, &span})
 		assert.NoError(t, err)
 	}
 
 	// SourcemapError should have been set, but the frames should otherwise be unmodified.
-	expectedFrame := nonMatchingFrame
+	expectedFrame := proto.Clone(&nonMatchingFrame).(*modelpb.StacktraceFrame)
 	expectedFrame.SourcemapError = "failure querying ES: client error"
-	assert.Equal(t, model.Stacktrace{&expectedFrame, &expectedFrame}, span.Span.Stacktrace)
+	assert.Empty(t, cmp.Diff([]*modelpb.StacktraceFrame{expectedFrame, expectedFrame}, span.Span.Stacktrace, protocmp.Transform()))
 
 	// we should have 8 log messages (2 * 2 * 2)
 	// we are running the processor twice for a batch of two spans with 2 stacktraceframe each
@@ -305,7 +318,7 @@ func TestBatchProcessorTimeout(t *testing.T) {
 		Timeout: 100 * time.Millisecond,
 		Logger:  logp.NewLogger(logs.Stacktrace),
 	}
-	err = processor.ProcessBatch(context.Background(), &model.Batch{span})
+	err = processor.ProcessBatch(context.Background(), &modelpb.Batch{toPb(&span)})
 	assert.NoError(t, err)
 	taken := time.Since(before)
 	assert.Less(t, taken, time.Second)

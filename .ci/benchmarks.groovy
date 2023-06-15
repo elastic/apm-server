@@ -100,7 +100,9 @@ pipeline {
           }
         }
         failure {
-          notifyBuildResult(slackNotify: true, slackComment: true)
+          dir("${BASE_DIR}") {
+            sendSlackReportFailureMessage()
+          }
         }
       }
     }
@@ -174,4 +176,24 @@ def sendSlackReportSuccessMessage() {
 
     slackSend(channel: "${env.SLACK_CHANNEL}", blocks: slackMessageBlocks)
   }
+}
+
+def sendSlackReportFailureMessage() {
+  slackMessageBlocks = [
+    [
+      "type": "section",
+      "text": [
+        "type": "mrkdwn",
+        "text": "Nightly benchmarks failed!\n\n <${env.BUILD_URL}|Jenkins Build ${env.BUILD_DISPLAY_NAME}>"
+      ]
+    ],
+    [
+      "type": "section",
+      "text": [
+        "type": "mrkdwn",
+        "text": "SDH Duty assignee, please have a look and follow this <https://github.com/elastic/observability-dev/blob/main/docs/apm/apm-server/runbooks/benchmarks.md|Runbook>!"
+      ]
+    ]
+  ]
+  slackSend(channel: "${env.SLACK_CHANNEL}", blocks: slackMessageBlocks)
 }

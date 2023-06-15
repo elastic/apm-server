@@ -15,12 +15,13 @@ import (
 	"github.com/axiomhq/hyperloglog"
 	"github.com/cespare/xxhash/v2"
 	"github.com/pkg/errors"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/monitoring"
 	"github.com/elastic/go-hdrhistogram"
 
-	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/internal/logs"
 	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/baseaggregator"
 	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/interval"
@@ -41,7 +42,7 @@ const (
 type AggregatorConfig struct {
 	// BatchProcessor is a model.BatchProcessor for asynchronously
 	// processing metrics documents.
-	BatchProcessor model.BatchProcessor
+	BatchProcessor modelpb.BatchProcessor
 
 	// Logger is the logger for logging metrics aggregation/publishing.
 	//
@@ -183,7 +184,7 @@ func (a *Aggregator) publish(ctx context.Context, period time.Duration) error {
 
 	isMetricsPeriod := period == a.config.Interval
 	intervalStr := interval.FormatDuration(period)
-	batch := make(model.Batch, 0, size)
+	batch := make(modelpb.Batch, 0, size)
 	for key, metrics := range current.m {
 		for _, entry := range metrics {
 			// Record the metricset interval as metricset.interval.
@@ -204,7 +205,7 @@ func (a *Aggregator) publish(ctx context.Context, period time.Duration) error {
 		entry := current.other
 		// Record the metricset interval as metricset.interval.
 		m := makeMetricset(entry.aggregationKey, entry.serviceTxMetrics, intervalStr)
-		m.Metricset.Samples = append(m.Metricset.Samples, model.MetricsetSample{
+		m.Metricset.Samples = append(m.Metricset.Samples, &modelpb.MetricsetSample{
 			Name:  "service_transaction.aggregation.overflow_count",
 			Value: float64(overflowCount),
 		})
@@ -229,19 +230,19 @@ func (a *Aggregator) publish(ctx context.Context, period time.Duration) error {
 //     service transaction metrics aggregator produces. Once this limit is
 //     breached the metrics are aggregated in a dedicated bucket
 //     with `service.name` as `_other`.
-func (a *Aggregator) ProcessBatch(ctx context.Context, b *model.Batch) error {
+func (a *Aggregator) ProcessBatch(ctx context.Context, b *modelpb.Batch) error {
 	a.mu.RLock()
 	defer a.mu.RUnlock()
 	for _, event := range *b {
 		tx := event.Transaction
-		if event.Processor == model.TransactionProcessor && tx != nil {
-			a.processTransaction(&event)
+		if event.Processor.IsTransaction() && tx != nil {
+			a.processTransaction(event)
 		}
 	}
 	return nil
 }
 
-func (a *Aggregator) processTransaction(event *model.APMEvent) {
+func (a *Aggregator) processTransaction(event *modelpb.APMEvent) {
 	if event.Transaction == nil || event.Transaction.RepresentativeCount <= 0 {
 		return
 	}
@@ -370,18 +371,20 @@ type comparable struct {
 	transactionType     string
 }
 
-func makeAggregationKey(event *model.APMEvent, interval time.Duration) aggregationKey {
+func makeAggregationKey(event *modelpb.APMEvent, interval time.Duration) aggregationKey {
 	key := aggregationKey{
 		comparable: comparable{
-			// Group metrics by time interval.
-			timestamp: event.Timestamp.Truncate(interval),
 
-			agentName:           event.Agent.Name,
-			serviceName:         event.Service.Name,
-			serviceEnvironment:  event.Service.Environment,
-			serviceLanguageName: event.Service.Language.Name,
-			transactionType:     event.Transaction.Type,
+			agentName:           event.GetAgent().GetName(),
+			serviceName:         event.GetService().GetName(),
+			serviceEnvironment:  event.GetService().GetEnvironment(),
+			serviceLanguageName: event.GetService().GetLanguage().GetName(),
+			transactionType:     event.GetTransaction().GetType(),
 		},
+	}
+	if event.Timestamp != nil {
+		// Group metrics by time interval.
+		key.comparable.timestamp = event.Timestamp.AsTime().Truncate(interval)
 	}
 	key.AggregatedGlobalLabels.Read(event)
 	return key
@@ -440,10 +443,10 @@ func (m *serviceTxMetrics) histogramBuckets() (totalCount int64, counts []int64,
 	return totalCount, counts, values
 }
 
-func makeServiceTxMetrics(event *model.APMEvent) serviceTxMetrics {
+func makeServiceTxMetrics(event *modelpb.APMEvent) serviceTxMetrics {
 	transactionCount := event.Transaction.RepresentativeCount
 	metrics := serviceTxMetrics{
-		transactionDuration: float64(event.Event.Duration),
+		transactionDuration: float64(event.Event.Duration.AsDuration()),
 		transactionCount:    transactionCount,
 	}
 	switch event.Event.Outcome {
@@ -459,49 +462,67 @@ func makeServiceTxMetrics(event *model.APMEvent) serviceTxMetrics {
 // It uses result from histogram for Transaction.DurationSummary and DocCount to avoid discrepancy and UI weirdness.
 // Event.SuccessCount will maintain separate counts, which may be different from histogram count,
 // but is acceptable since it is used for calculating error ratio.
-func makeMetricset(key aggregationKey, metrics serviceTxMetrics, interval string) model.APMEvent {
+func makeMetricset(key aggregationKey, metrics serviceTxMetrics, interval string) *modelpb.APMEvent {
 	totalCount, counts, values := metrics.histogramBuckets()
 
-	transactionDurationSummary := model.SummaryMetric{
+	transactionDurationSummary := modelpb.SummaryMetric{
 		Count: totalCount,
 	}
 	for i, v := range values {
 		transactionDurationSummary.Sum += v * float64(counts[i])
 	}
 
-	return model.APMEvent{
-		Timestamp: key.timestamp,
-		Service: model.Service{
+	var t *timestamppb.Timestamp
+	if !key.timestamp.IsZero() {
+		t = timestamppb.New(key.timestamp)
+	}
+
+	var event *modelpb.Event
+	if metrics.successCount != 0 || metrics.failureCount != 0 {
+		event = &modelpb.Event{
+			SuccessCount: &modelpb.SummaryMetric{
+				Count: int64(math.Round(metrics.successCount + metrics.failureCount)),
+				Sum:   math.Round(metrics.successCount),
+			},
+		}
+	}
+
+	var agent *modelpb.Agent
+	if key.agentName != "" {
+		agent = &modelpb.Agent{Name: key.agentName}
+	}
+
+	var language *modelpb.Language
+	if key.serviceLanguageName != "" {
+		language = &modelpb.Language{
+			Name: key.serviceLanguageName,
+		}
+	}
+
+	return &modelpb.APMEvent{
+		Timestamp: t,
+		Service: &modelpb.Service{
 			Name:        key.serviceName,
 			Environment: key.serviceEnvironment,
-			Language: model.Language{
-				Name: key.serviceLanguageName,
-			},
+			Language:    language,
 		},
-		Agent: model.Agent{
-			Name: key.agentName,
-		},
+		Agent:         agent,
 		Labels:        key.Labels,
 		NumericLabels: key.NumericLabels,
-		Processor:     model.MetricsetProcessor,
-		Metricset: &model.Metricset{
+		Processor:     modelpb.MetricsetProcessor(),
+		Metricset: &modelpb.Metricset{
 			DocCount: totalCount,
 			Name:     metricsetName,
 			Interval: interval,
 		},
-		Transaction: &model.Transaction{
+		Transaction: &modelpb.Transaction{
 			Type:            key.transactionType,
-			DurationSummary: transactionDurationSummary,
-			DurationHistogram: model.Histogram{
+			DurationSummary: &transactionDurationSummary,
+			DurationHistogram: &modelpb.Histogram{
 				Counts: counts,
 				Values: values,
 			},
 		},
-		Event: model.Event{
-			SuccessCount: model.SummaryMetric{
-				Count: int64(math.Round(metrics.successCount + metrics.failureCount)),
-				Sum:   math.Round(metrics.successCount),
-			},
-		},
+		Event: event,
 	}
 }

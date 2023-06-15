@@ -15,7 +15,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling"
 )
 
@@ -37,21 +37,21 @@ func BenchmarkProcess(b *testing.B) {
 			binary.LittleEndian.PutUint64(traceID[8:], rng.Uint64())
 			transactionID := traceID[:8]
 			spanID := traceID[8:]
-			trace := model.Trace{ID: hex.EncodeToString(traceID[:])}
-			transaction := &model.Transaction{
-				ID: hex.EncodeToString(transactionID),
+			trace := modelpb.Trace{Id: hex.EncodeToString(traceID[:])}
+			transaction := &modelpb.Transaction{
+				Id: hex.EncodeToString(transactionID),
 			}
-			spanParent := model.Parent{
-				ID: hex.EncodeToString(transactionID),
+			spanParent := modelpb.Parent{
+				Id: hex.EncodeToString(transactionID),
 			}
-			span := &model.Span{
-				ID: hex.EncodeToString(spanID),
+			span := &modelpb.Span{
+				Id: hex.EncodeToString(spanID),
 			}
-			batch := model.Batch{
-				{Trace: trace, Transaction: transaction},
-				{Trace: trace, Span: span, Parent: spanParent},
-				{Trace: trace, Span: span, Parent: spanParent},
-				{Trace: trace, Span: span, Parent: spanParent},
+			batch := modelpb.Batch{
+				{Trace: &trace, Transaction: transaction},
+				{Trace: &trace, Span: span, Parent: &spanParent},
+				{Trace: &trace, Span: span, Parent: &spanParent},
+				{Trace: &trace, Span: span, Parent: &spanParent},
 			}
 			if err := processor.ProcessBatch(context.Background(), &batch); err != nil {
 				b.Fatal(err)

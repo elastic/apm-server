@@ -10,7 +10,7 @@ import (
 
 	"github.com/gofrs/uuid"
 
-	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage"
 )
 
@@ -26,8 +26,8 @@ func BenchmarkShardedWriteTransactionUncontended(b *testing.B) {
 
 	b.RunParallel(func(pb *testing.PB) {
 		traceID := uuid.Must(uuid.NewV4()).String()
-		transaction := &model.APMEvent{
-			Transaction: &model.Transaction{ID: traceID},
+		transaction := &modelpb.APMEvent{
+			Transaction: &modelpb.Transaction{Id: traceID},
 		}
 		for pb.Next() {
 			if err := sharded.WriteTraceEvent(traceID, traceID, transaction, wOpts); err != nil {
@@ -53,8 +53,8 @@ func BenchmarkShardedWriteTransactionContended(b *testing.B) {
 
 	b.RunParallel(func(pb *testing.PB) {
 		transactionID := uuid.Must(uuid.NewV4()).String()
-		transaction := &model.APMEvent{
-			Transaction: &model.Transaction{ID: transactionID},
+		transaction := &modelpb.APMEvent{
+			Transaction: &modelpb.Transaction{Id: transactionID},
 		}
 		for pb.Next() {
 			if err := sharded.WriteTraceEvent(traceID, transactionID, transaction, wOpts); err != nil {

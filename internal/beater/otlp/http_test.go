@@ -33,8 +33,9 @@ import (
 	"go.opentelemetry.io/collector/pdata/pmetric/pmetricotlp"
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	"go.opentelemetry.io/collector/pdata/ptrace/ptraceotlp"
+	"golang.org/x/sync/semaphore"
 
-	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/internal/agentcfg"
 	"github.com/elastic/apm-server/internal/beater/api"
 	"github.com/elastic/apm-server/internal/beater/auth"
@@ -44,9 +45,9 @@ import (
 )
 
 func TestConsumeTracesHTTP(t *testing.T) {
-	var batches []model.Batch
+	var batches []modelpb.Batch
 	var reportError error
-	var batchProcessor model.ProcessBatchFunc = func(ctx context.Context, batch *model.Batch) error {
+	var batchProcessor modelpb.ProcessBatchFunc = func(ctx context.Context, batch *modelpb.Batch) error {
 		batches = append(batches, *batch)
 		return reportError
 	}
@@ -91,7 +92,7 @@ func TestConsumeTracesHTTP(t *testing.T) {
 
 func TestConsumeMetricsHTTP(t *testing.T) {
 	var reportError error
-	var batchProcessor model.ProcessBatchFunc = func(ctx context.Context, batch *model.Batch) error {
+	var batchProcessor modelpb.ProcessBatchFunc = func(ctx context.Context, batch *modelpb.Batch) error {
 		return reportError
 	}
 
@@ -136,9 +137,9 @@ func TestConsumeMetricsHTTP(t *testing.T) {
 }
 
 func TestConsumeLogsHTTP(t *testing.T) {
-	var batches []model.Batch
+	var batches []modelpb.Batch
 	var reportError error
-	var batchProcessor model.ProcessBatchFunc = func(ctx context.Context, batch *model.Batch) error {
+	var batchProcessor modelpb.ProcessBatchFunc = func(ctx context.Context, batch *modelpb.Batch) error {
 		batches = append(batches, *batch)
 		return reportError
 	}
@@ -179,15 +180,22 @@ func TestConsumeLogsHTTP(t *testing.T) {
 	}, actual)
 }
 
-func newHTTPServer(t *testing.T, batchProcessor model.BatchProcessor) string {
+func newHTTPServer(t *testing.T, batchProcessor modelpb.BatchProcessor) string {
 	lis, err := net.Listen("tcp", "localhost:0")
 	require.NoError(t, err)
 	cfg := &config.Config{}
 	auth, _ := auth.NewAuthenticator(cfg.AgentAuth)
 	ratelimitStore, _ := ratelimit.NewStore(1000, 1000, 1000)
 	router, err := api.NewMux(
-		cfg, batchProcessor, auth, agentcfg.NewDirectFetcher(nil),
-		ratelimitStore, nil, func() bool { return true })
+		cfg,
+		batchProcessor,
+		auth,
+		agentcfg.NewDirectFetcher(nil),
+		ratelimitStore,
+		nil,
+		func() bool { return true },
+		semaphore.NewWeighted(1),
+	)
 	require.NoError(t, err)
 	srv := http.Server{Handler: router}
 	t.Cleanup(func() {

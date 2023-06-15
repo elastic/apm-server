@@ -53,7 +53,7 @@ import (
 	agentconfig "github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/monitoring"
 
-	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/internal/beater"
 	"github.com/elastic/apm-server/internal/beater/api"
 	"github.com/elastic/apm-server/internal/beater/beatertest"
@@ -721,18 +721,18 @@ func TestWrapServer(t *testing.T) {
 	srv := beatertest.NewServer(t, beatertest.WithConfig(escfg), beatertest.WithWrapServer(
 		func(args beater.ServerParams, runServer beater.RunServerFunc) (beater.ServerParams, beater.RunServerFunc, error) {
 			origBatchProcessor := args.BatchProcessor
-			args.BatchProcessor = model.ProcessBatchFunc(func(ctx context.Context, batch *model.Batch) error {
+			args.BatchProcessor = modelpb.ProcessBatchFunc(func(ctx context.Context, batch *modelpb.Batch) error {
 				for i := range *batch {
-					event := &(*batch)[i]
-					if event.Processor != model.TransactionProcessor {
+					event := (*batch)[i]
+					if !event.Processor.IsTransaction() {
 						continue
 					}
 					// Add a label to test that everything
 					// goes through the wrapped reporter.
 					if event.Labels == nil {
-						event.Labels = make(model.Labels)
+						event.Labels = make(modelpb.Labels)
 					}
-					event.Labels.Set("wrapped_reporter", "true")
+					modelpb.Labels(event.Labels).Set("wrapped_reporter", "true")
 				}
 				return origBatchProcessor.ProcessBatch(ctx, batch)
 			})

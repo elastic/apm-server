@@ -23,7 +23,8 @@ import (
 
 	"github.com/elastic/elastic-agent-libs/logp"
 
-	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/input"
+	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/internal/agentcfg"
 	"github.com/elastic/apm-server/internal/beater/api"
 	"github.com/elastic/apm-server/internal/beater/auth"
@@ -31,7 +32,7 @@ import (
 	"github.com/elastic/apm-server/internal/beater/ratelimit"
 )
 
-func newTracerServer(cfg *config.Config, listener net.Listener, logger *logp.Logger, batchProcessor model.BatchProcessor) (*http.Server, error) {
+func newTracerServer(cfg *config.Config, listener net.Listener, logger *logp.Logger, batchProcessor modelpb.BatchProcessor, semaphore input.Semaphore) (*http.Server, error) {
 	ratelimitStore, err := ratelimit.NewStore(1, 1, 1) // unused, arbitrary params
 	if err != nil {
 		return nil, err
@@ -49,6 +50,7 @@ func newTracerServer(cfg *config.Config, listener net.Listener, logger *logp.Log
 		ratelimitStore,
 		nil,                         // no sourcemap store
 		func() bool { return true }, // ready for publishing
+		semaphore,
 	)
 	if err != nil {
 		return nil, err

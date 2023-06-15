@@ -29,6 +29,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"go.elastic.co/apm/v2/apmtest"
 
@@ -43,7 +44,7 @@ import (
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/mapstr"
 
-	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/internal/publish"
 )
 
@@ -151,10 +152,10 @@ func BenchmarkPublisher(b *testing.B) {
 	)
 	require.NoError(b, err)
 
-	batch := model.Batch{
-		model.APMEvent{
-			Processor: model.TransactionProcessor,
-			Timestamp: time.Now(),
+	batch := modelpb.Batch{
+		&modelpb.APMEvent{
+			Processor: modelpb.TransactionProcessor(),
+			Timestamp: timestamppb.Now(),
 		},
 	}
 	ctx := context.Background()

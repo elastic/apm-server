@@ -31,8 +31,10 @@ import (
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/monitoring"
 
+	"github.com/elastic/apm-data/input"
 	"github.com/elastic/apm-data/input/elasticapm"
 	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-data/model/modelprocessor"
 	"github.com/elastic/apm-server/internal/agentcfg"
 	"github.com/elastic/apm-server/internal/beater/api/config/agent"
@@ -82,12 +84,13 @@ const (
 // APM Server API.
 func NewMux(
 	beaterConfig *config.Config,
-	batchProcessor model.BatchProcessor,
+	batchProcessor modelpb.BatchProcessor,
 	authenticator *auth.Authenticator,
 	fetcher agentcfg.Fetcher,
 	ratelimitStore *ratelimit.Store,
 	sourcemapFetcher sourcemap.Fetcher,
 	publishReady func() bool,
+	semaphore input.Semaphore,
 ) (*mux.Router, error) {
 	pool := request.NewContextPool()
 	logger := logp.NewLogger(logs.Handler)
@@ -100,13 +103,13 @@ func NewMux(
 		batchProcessor:   batchProcessor,
 		ratelimitStore:   ratelimitStore,
 		sourcemapFetcher: sourcemapFetcher,
-		intakeSemaphore:  make(chan struct{}, beaterConfig.MaxConcurrentDecoders),
+		intakeSemaphore:  semaphore,
 	}
 
 	zapLogger := zap.New(logger.Core(), zap.WithCaller(true))
 	builder.intakeProcessor = elasticapm.NewProcessor(elasticapm.Config{
 		MaxEventSize: beaterConfig.MaxEventSize,
-		Semaphore:    builder.intakeSemaphore,
+		Semaphore:    semaphore,
 		Logger:       zapLogger,
 	})
 
@@ -115,7 +118,7 @@ func NewMux(
 		handlerFn func() (request.Handler, error)
 	}
 
-	otlpHandlers := otlp.NewHTTPHandlers(zapLogger, batchProcessor)
+	otlpHandlers := otlp.NewHTTPHandlers(zapLogger, model.ProtoBatchProcessor(batchProcessor), semaphore)
 	rumIntakeHandler := builder.rumIntakeHandler()
 	routeMap := []route{
 		{RootPath, builder.rootHandler(publishReady)},
@@ -162,15 +165,15 @@ func NewMux(
 type routeBuilder struct {
 	cfg              *config.Config
 	authenticator    *auth.Authenticator
-	batchProcessor   model.BatchProcessor
+	batchProcessor   modelpb.BatchProcessor
 	ratelimitStore   *ratelimit.Store
 	sourcemapFetcher sourcemap.Fetcher
 	intakeProcessor  *elasticapm.Processor
-	intakeSemaphore  chan struct{}
+	intakeSemaphore  input.Semaphore
 }
 
 func (r *routeBuilder) backendIntakeHandler() (request.Handler, error) {
-	h := intake.Handler(r.intakeProcessor, backendRequestMetadataFunc(r.cfg), r.batchProcessor)
+	h := intake.Handler(r.intakeProcessor, backendRequestMetadataFunc(r.cfg), model.ProtoBatchProcessor(r.batchProcessor))
 	return middleware.Wrap(h, backendMiddleware(r.cfg, r.authenticator, r.ratelimitStore, intake.MonitoringMap)...)
 }
 
@@ -185,7 +188,7 @@ func (r *routeBuilder) otlpHandler(handler http.HandlerFunc, monitoringMap map[r
 
 func (r *routeBuilder) rumIntakeHandler() func() (request.Handler, error) {
 	return func() (request.Handler, error) {
-		var batchProcessors modelprocessor.Chained
+		var batchProcessors modelprocessor.PbChained
 		// The order of these processors is important. Source mapping must happen before identifying library frames, or
 		// frames to exclude from error grouping; identifying library frames must happen before updating the error culprit.
 		if r.sourcemapFetcher != nil {
@@ -213,7 +216,7 @@ func (r *routeBuilder) rumIntakeHandler() func() (request.Handler, error) {
 			batchProcessors = append(batchProcessors, modelprocessor.SetCulprit{})
 		}
 		batchProcessors = append(batchProcessors, r.batchProcessor) // r.batchProcessor always goes last
-		h := intake.Handler(r.intakeProcessor, rumRequestMetadataFunc(r.cfg), batchProcessors)
+		h := intake.Handler(r.intakeProcessor, rumRequestMetadataFunc(r.cfg), model.ProtoBatchProcessor(batchProcessors))
 		return middleware.Wrap(h, rumMiddleware(r.cfg, r.authenticator, r.ratelimitStore, intake.MonitoringMap)...)
 	}
 }

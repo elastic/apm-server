@@ -34,6 +34,7 @@ import (
 	"go.elastic.co/apm/v2"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
+	"golang.org/x/sync/semaphore"
 	"google.golang.org/grpc"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
@@ -50,7 +51,7 @@ import (
 	"github.com/elastic/go-docappender"
 	"github.com/elastic/go-ucfg"
 
-	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-data/model/modelprocessor"
 	"github.com/elastic/apm-server/internal/agentcfg"
 	"github.com/elastic/apm-server/internal/beater/auth"
@@ -385,7 +386,7 @@ func (s *Runner) Run(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	batchProcessor := modelprocessor.Chained{
+	batchProcessor := modelprocessor.PbChained{
 		// Ensure all events have observer.*, ecs.*, and data_stream.* fields added,
 		// and are counted in metrics. This is done in the final processors to ensure
 		// aggregated metrics are also processed.
@@ -439,6 +440,7 @@ func (s *Runner) Run(ctx context.Context) error {
 		KibanaClient:           kibanaClient,
 		NewElasticsearchClient: newElasticsearchClient,
 		GRPCServer:             grpcServer,
+		Semaphore:              semaphore.NewWeighted(int64(s.config.MaxConcurrentDecoders)),
 	}
 	if s.wrapServer != nil {
 		// Wrap the serverParams and runServer function, enabling
@@ -451,12 +453,12 @@ func (s *Runner) Run(ctx context.Context) error {
 
 	// Add pre-processing batch processors to the beginning of the chain,
 	// applying only to the events that are decoded from agent/client payloads.
-	preBatchProcessors := modelprocessor.Chained{
+	preBatchProcessors := modelprocessor.PbChained{
 		// Add a model processor that rate limits, and checks authorization for the
 		// agent and service for each event. These must come at the beginning of the
 		// processor chain.
-		model.ProcessBatchFunc(rateLimitBatchProcessor),
-		model.ProcessBatchFunc(authorizeEventIngestProcessor),
+		modelpb.ProcessBatchFunc(rateLimitBatchProcessor),
+		modelpb.ProcessBatchFunc(authorizeEventIngestProcessor),
 
 		// Pre-process events before they are sent to the final processors for
 		// aggregation, sampling, and indexing.
@@ -477,7 +479,7 @@ func (s *Runner) Run(ctx context.Context) error {
 		return runServer(ctx, serverParams)
 	})
 	if tracerServerListener != nil {
-		tracerServer, err := newTracerServer(s.config, tracerServerListener, s.logger, serverParams.BatchProcessor)
+		tracerServer, err := newTracerServer(s.config, tracerServerListener, s.logger, serverParams.BatchProcessor, serverParams.Semaphore)
 		if err != nil {
 			return fmt.Errorf("failed to create self-instrumentation server: %w", err)
 		}
@@ -620,7 +622,7 @@ func (s *Runner) newFinalBatchProcessor(
 	tracer *apm.Tracer,
 	newElasticsearchClient func(cfg *elasticsearch.Config) (*elasticsearch.Client, error),
 	memLimit float64,
-) (model.BatchProcessor, func(context.Context) error, error) {
+) (modelpb.BatchProcessor, func(context.Context) error, error) {
 
 	monitoring.Default.Remove("libbeat")
 	libbeatMonitoringRegistry := monitoring.Default.NewRegistry("libbeat")
@@ -773,7 +775,7 @@ func docappenderConfig(
 func (s *Runner) newLibbeatFinalBatchProcessor(
 	tracer *apm.Tracer,
 	libbeatMonitoringRegistry *monitoring.Registry,
-) (model.BatchProcessor, func(context.Context) error, error) {
+) (modelpb.BatchProcessor, func(context.Context) error, error) {
 	// When the publisher stops cleanly it will close its pipeline client,
 	// calling the acker's Close method and unblock Wait.
 	acker := publish.NewWaitPublishedAcker()
