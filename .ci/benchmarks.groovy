@@ -79,19 +79,19 @@ pipeline {
       }
       post {
         always {
-          dir("${BASE_DIR}/${TESTING_BENCHMARK_DIR}") {
-            stashV2(name: 'benchmark_tfstate', bucket: "${JOB_GCS_BUCKET_STASH}", credentialsId: "${JOB_GCS_CREDENTIALS}")
-            archiveArtifacts(artifacts: "${env.BENCHMARK_RESULT}", allowEmptyArchive: true)
-          }
+          // dir("${BASE_DIR}/${TESTING_BENCHMARK_DIR}") {
+          //   stashV2(name: 'benchmark_tfstate', bucket: "${JOB_GCS_BUCKET_STASH}", credentialsId: "${JOB_GCS_CREDENTIALS}")
+          //   archiveArtifacts(artifacts: "${env.BENCHMARK_RESULT}", allowEmptyArchive: true)
+          // }
         }
         cleanup {
           dir("${BASE_DIR}") {
             withGoEnv() {
-              dir("${TESTING_BENCHMARK_DIR}") {
-                withTestClusterEnv() {
-                  sh(label: 'Tear down benchmark environment', script: 'make destroy')
-                }
-              }
+              // dir("${TESTING_BENCHMARK_DIR}") {
+              //   withTestClusterEnv() {
+              //     sh(label: 'Tear down benchmark environment', script: 'make destroy')
+              //   }
+              // }
             }
           }
         }
