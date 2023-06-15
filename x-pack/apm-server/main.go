@@ -271,7 +271,7 @@ func getStorage(db *badger.DB) *eventstorage.ShardedReadWriter {
 	storageMu.Lock()
 	defer storageMu.Unlock()
 	if storage == nil {
-		eventCodec := eventstorage.JSONCodec{}
+		eventCodec := eventstorage.ProtobufCodec{}
 		storage = eventstorage.New(db, eventCodec).NewShardedReadWriter()
 	}
 	return storage
