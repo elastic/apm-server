@@ -10,14 +10,14 @@ JOB_PARAMS=$(echo "
 (
   layout:(
     dimensions:(
-      height:400,
+      height:636,
       width:${table_width_px}
     ),id:preserve_layout
   ),
   locatorParams:(
     id:DASHBOARD_APP_LOCATOR,
     params:(
-      dashboardId:a5bc8390-2f8e-11ed-a369-052d8245fa04,
+      dashboardId:8b56efd0-e7ff-11ec-a01b-a55f13ba6a8b,
       preserveSavedFilters:!t,
       timeRange:(
         from:now-30d,
