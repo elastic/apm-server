@@ -443,8 +443,8 @@ github.com/eapache/go-xerial-snappy v0.0.0-20180814174437-776d5712da21/go.mod h1
 github.com/eapache/queue v1.1.0 h1:YOEu7KNc61ntiQlcEeUIoDTJ2o8mQznoNvUhiigpIqc=
 github.com/eapache/queue v1.1.0/go.mod h1:6eCeP0CKFpHLu8blIFXhExK/dRa7WDZfr6jVFPTqq+I=
 github.com/eclipse/paho.mqtt.golang v1.2.1-0.20200121105743-0d940dd29fd2 h1:DW6WrARxK5J+o8uAKCiACi5wy9EK1UzrsCpGBPsKHAA=
-github.com/elastic/beats/v7 v7.17.11-0.20230614171559-2e6c25dffcb3 h1:WMOg8ZPSX+Dd6tkZ4gwedbTaUQIwycf/M2neeyqtOVQ=
-github.com/elastic/beats/v7 v7.17.11-0.20230614171559-2e6c25dffcb3/go.mod h1:XyGO3TrCqoNDjwvILzfzVgbxRzratEMVX0L/HIKJnqE=
+github.com/elastic/beats/v7 v7.17.11-0.20230615163915-56b9e3b1fb3e h1:zvL3D6IJDgaIs9erUgElD69xjFRtBHXx/4YDp8dVXmo=
+github.com/elastic/beats/v7 v7.17.11-0.20230615163915-56b9e3b1fb3e/go.mod h1:XyGO3TrCqoNDjwvILzfzVgbxRzratEMVX0L/HIKJnqE=
 github.com/elastic/ecs v1.12.0 h1:u6WZ2AWtxv5vHvTQ4EuVZdWZ51mKHQ2UIltRePcta5U=
 github.com/elastic/ecs v1.12.0/go.mod h1:pgiLbQsijLOJvFR8OTILLu0Ni/R/foUNg0L+T6mU9b4=
 github.com/elastic/elastic-agent-client/v7 v7.0.3 h1:YqZPnO7Z9rlj25sFZEUaxGGK3mZR4v0uSOcfO8GRv7s=
