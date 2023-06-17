@@ -1,7 +1,7 @@
 title: APM tail-sampled traces
 type: traces
 dataset: apm.sampled
-ilm_policy: traces-apm.sampled-default_policy
+ilm_policy: traces-apm.sampled_traces-default_policy
 elasticsearch:
   privileges:
     # We need additional privileges for the sampled traces data stream,
