@@ -35,7 +35,6 @@ import (
 	"golang.org/x/sync/semaphore"
 
 	"github.com/elastic/apm-data/input/elasticapm"
-	"github.com/elastic/apm-data/model"
 	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/internal/beater/config"
 	"github.com/elastic/apm-server/internal/beater/headers"
@@ -178,7 +177,7 @@ func TestIntakeHandlerMonitoring(t *testing.T) {
 	streamHandler := streamHandlerFunc(func(
 		ctx context.Context,
 		async bool,
-		base model.APMEvent,
+		base *modelpb.APMEvent,
 		stream io.Reader,
 		batchSize int,
 		processor modelpb.BatchProcessor,
@@ -290,14 +289,14 @@ func compressedRequest(t *testing.T, compressionType string, compressPayload boo
 	return req
 }
 
-func emptyRequestMetadata(*request.Context) model.APMEvent {
-	return model.APMEvent{}
+func emptyRequestMetadata(*request.Context) *modelpb.APMEvent {
+	return &modelpb.APMEvent{}
 }
 
 type streamHandlerFunc func(
 	ctx context.Context,
 	async bool,
-	base model.APMEvent,
+	base *modelpb.APMEvent,
 	stream io.Reader,
 	batchSize int,
 	processor modelpb.BatchProcessor,
@@ -307,7 +306,7 @@ type streamHandlerFunc func(
 func (f streamHandlerFunc) HandleStream(
 	ctx context.Context,
 	async bool,
-	base model.APMEvent,
+	base *modelpb.APMEvent,
 	stream io.Reader,
 	batchSize int,
 	processor modelpb.BatchProcessor,
