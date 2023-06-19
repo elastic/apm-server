@@ -31,7 +31,6 @@ import (
 
 	"github.com/elastic/elastic-agent-libs/logp"
 
-	"github.com/elastic/apm-data/model"
 	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/internal/elasticsearch"
 	"github.com/elastic/apm-server/internal/logs"
@@ -227,12 +226,6 @@ func TestBatchProcessor(t *testing.T) {
 	}, error3.Error, protocmp.Transform()))
 }
 
-func toPb(e *model.APMEvent) *modelpb.APMEvent {
-	var out modelpb.APMEvent
-	e.ToModelProtobuf(&out)
-	return &out
-}
-
 func TestBatchProcessorElasticsearchUnavailable(t *testing.T) {
 	client := newUnavailableElasticsearchClient(t)
 	fetcher := NewElasticsearchFetcher(client, "index")
@@ -296,19 +289,19 @@ func TestBatchProcessorTimeout(t *testing.T) {
 	require.NoError(t, err)
 	fetcher := NewElasticsearchFetcher(client, "index")
 
-	frame := model.StacktraceFrame{
+	frame := modelpb.StacktraceFrame{
 		AbsPath:  "bundle.js",
 		Lineno:   newInt(0),
 		Colno:    newInt(0),
 		Function: "original function",
 	}
-	span := model.APMEvent{
-		Service: model.Service{
+	span := modelpb.APMEvent{
+		Service: &modelpb.Service{
 			Name:    "service_name",
 			Version: "service_version",
 		},
-		Span: &model.Span{
-			Stacktrace: model.Stacktrace{cloneFrame(frame)},
+		Span: &modelpb.Span{
+			Stacktrace: []*modelpb.StacktraceFrame{cloneFrame(&frame)},
 		},
 	}
 
@@ -318,14 +311,14 @@ func TestBatchProcessorTimeout(t *testing.T) {
 		Timeout: 100 * time.Millisecond,
 		Logger:  logp.NewLogger(logs.Stacktrace),
 	}
-	err = processor.ProcessBatch(context.Background(), &modelpb.Batch{toPb(&span)})
+	err = processor.ProcessBatch(context.Background(), &modelpb.Batch{&span})
 	assert.NoError(t, err)
 	taken := time.Since(before)
 	assert.Less(t, taken, time.Second)
 }
 
-func cloneFrame(frame model.StacktraceFrame) *model.StacktraceFrame {
-	return &frame
+func cloneFrame(frame *modelpb.StacktraceFrame) *modelpb.StacktraceFrame {
+	return proto.Clone(frame).(*modelpb.StacktraceFrame)
 }
 
 func newInt(v uint32) *uint32 {

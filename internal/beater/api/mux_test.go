@@ -31,7 +31,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"golang.org/x/sync/semaphore"
 
-	"github.com/elastic/apm-data/model"
 	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/internal/agentcfg"
 	"github.com/elastic/apm-server/internal/beater/auth"
@@ -44,36 +43,36 @@ import (
 )
 
 func TestBackendRequestMetadata(t *testing.T) {
-	tNow := time.Now()
+	tNow := time.Now().UTC()
 	c := &request.Context{Timestamp: tNow}
 	cfg := &config.Config{AugmentEnabled: true}
 	event := backendRequestMetadataFunc(cfg)(c)
-	assert.Equal(t, tNow, event.Timestamp)
-	assert.Equal(t, model.Host{}, event.Host)
+	assert.Equal(t, tNow, event.Timestamp.AsTime())
+	assert.Nil(t, nil, event.Host)
 
 	c.ClientIP = netip.MustParseAddr("127.0.0.1")
 	event = backendRequestMetadataFunc(cfg)(c)
-	assert.Equal(t, tNow, event.Timestamp)
-	assert.NotEqual(t, model.Host{}, event.Host)
+	assert.Equal(t, tNow, event.Timestamp.AsTime())
+	assert.Equal(t, &modelpb.Host{Ip: []string{c.ClientIP.String()}}, event.Host)
 }
 
 func TestRUMRequestMetadata(t *testing.T) {
-	tNow := time.Now()
+	tNow := time.Now().UTC()
 	c := &request.Context{Timestamp: tNow}
 	cfg := &config.Config{AugmentEnabled: true}
 	event := rumRequestMetadataFunc(cfg)(c)
-	assert.Equal(t, tNow, event.Timestamp)
-	assert.Equal(t, model.Client{}, event.Client)
-	assert.Equal(t, model.Source{}, event.Source)
-	assert.Equal(t, model.UserAgent{}, event.UserAgent)
+	assert.Equal(t, tNow, event.Timestamp.AsTime())
+	assert.Nil(t, event.Client)
+	assert.Nil(t, event.Source)
+	assert.Nil(t, event.UserAgent)
 
 	ip := netip.MustParseAddr("127.0.0.1")
 	c = &request.Context{Timestamp: tNow, ClientIP: ip, SourceIP: ip, UserAgent: "firefox"}
 	event = rumRequestMetadataFunc(cfg)(c)
-	assert.Equal(t, tNow, event.Timestamp)
-	assert.NotEqual(t, model.Client{}, event.Client)
-	assert.NotEqual(t, model.Source{}, event.Source)
-	assert.NotEqual(t, model.UserAgent{}, event.UserAgent)
+	assert.Equal(t, tNow, event.Timestamp.AsTime())
+	assert.Equal(t, &modelpb.Client{Ip: c.ClientIP.String()}, event.Client)
+	assert.Equal(t, &modelpb.Source{Ip: c.SourceIP.String()}, event.Source)
+	assert.Equal(t, &modelpb.UserAgent{Original: c.UserAgent}, event.UserAgent)
 }
 
 func requestToMuxerWithPattern(cfg *config.Config, pattern string) (*httptest.ResponseRecorder, error) {
