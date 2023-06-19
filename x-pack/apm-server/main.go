@@ -425,7 +425,7 @@ func wrapServer(args beater.ServerParams, runServer beater.RunServerFunc) (beate
 	}
 
 	// Add the processors to the chain.
-	processorChain := make(modelprocessor.PbChained, len(processors)+1)
+	processorChain := make(modelprocessor.Chained, len(processors)+1)
 	for i, p := range processors {
 		processorChain[i] = p
 	}

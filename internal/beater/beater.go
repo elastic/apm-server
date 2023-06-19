@@ -386,7 +386,7 @@ func (s *Runner) Run(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	batchProcessor := modelprocessor.PbChained{
+	batchProcessor := modelprocessor.Chained{
 		// Ensure all events have observer.*, ecs.*, and data_stream.* fields added,
 		// and are counted in metrics. This is done in the final processors to ensure
 		// aggregated metrics are also processed.
@@ -453,7 +453,7 @@ func (s *Runner) Run(ctx context.Context) error {
 
 	// Add pre-processing batch processors to the beginning of the chain,
 	// applying only to the events that are decoded from agent/client payloads.
-	preBatchProcessors := modelprocessor.PbChained{
+	preBatchProcessors := modelprocessor.Chained{
 		// Add a model processor that rate limits, and checks authorization for the
 		// agent and service for each event. These must come at the beginning of the
 		// processor chain.

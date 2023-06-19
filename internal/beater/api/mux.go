@@ -187,7 +187,7 @@ func (r *routeBuilder) otlpHandler(handler http.HandlerFunc, monitoringMap map[r
 
 func (r *routeBuilder) rumIntakeHandler() func() (request.Handler, error) {
 	return func() (request.Handler, error) {
-		var batchProcessors modelprocessor.PbChained
+		var batchProcessors modelprocessor.Chained
 		// The order of these processors is important. Source mapping must happen before identifying library frames, or
 		// frames to exclude from error grouping; identifying library frames must happen before updating the error culprit.
 		if r.sourcemapFetcher != nil {
