@@ -428,6 +428,21 @@ include::./data-streams.asciidoc[tag=metrics-data-streams]
 See <<apm-data-streams>> to learn more.
 
 [float]
+==== Aggregated metrics: limits and overflows
+
+For transaction, service-transaction, service-destination, and service-summary metrics, there are limits on the number
+of unique aggregation groups. When a dimension has a high cardinality and exceeds the limit, the metrics will be aggregated
+under a dedicated overflow bucket.
+
+For example, when `transaction.name` has a lot of unique values and reaches the limit
+of unique transaction groups tracked, any transactions with new `transaction.name` will all be aggregated under
+`transaction.name`: `_other`.
+
+This issue can be resolved by increasing memory available to APM Server, or by ensuring that the dimensions do not use values
+that are based on parameters that can change. For example, user ids, product ids, order numbers, query parameters, etc.,
+should be stripped away from the dimensions.
+
+[float]
 ==== Example metric document
 
 This example shows what metric documents can look like when indexed in {es}.
