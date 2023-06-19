@@ -12,6 +12,7 @@ https://github.com/elastic/apm-server/compare/8.8\...main[View commits]
 [float]
 ==== Bug fixes
 - Limit the amount of concurrent OTLP requests being processed in parallel {pull}10987[10987].
+- Added CA certificates bundle to the Docker images {pull}11015[11015]
 
 [float]
 ==== Intake API Changes
