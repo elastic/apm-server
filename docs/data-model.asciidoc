@@ -437,7 +437,8 @@ there are limits on the number of unique groups tracked at any given time.
 ===== Limits
 
 For transaction metrics, the limits are 1000 services per GB of APM Server, and 5000 transaction
-groups per GB of APM Server. Additionally, each service may only consume up to 10% of the transaction groups, which is 500 transaction groups per service per GB of APM Server.
+groups per GB of APM Server. Additionally, each service may only consume up to 10% of the transaction groups,
+which is 500 transaction groups per service per GB of APM Server.
 
 For service-transaction metrics, the limit is 1000 service transaction groups per GB of APM Server.
 
@@ -458,7 +459,10 @@ of unique transaction groups tracked, any transactions with new `transaction.nam
 `transaction.name`: `_other`.
 
 Another example of how the transaction group limit may be reached is if `transaction.name` contains just a few unique values,
-but the service is deployed on a lot of different hosts. As `host.name` is part of the aggregation key for transaction metrics, the max transaction group limit is reached for a service that has 100 instances and 40 different transaction names when connected to an APM Server with 8GB of RAM . Once this limit is reached, any new combinations of transaction.name and host.name for that service will be aggregated under `transaction.name`: `_other`.
+but the service is deployed on a lot of different hosts. As `host.name` is part of the aggregation key for transaction metrics,
+the max transaction group limit is reached for a service that has 100 instances and 40 different transaction names when
+connected to an APM Server with 8GB of RAM. Once this limit is reached, any new combinations of `transaction.name` and
+`host.name` for that service will be aggregated under `transaction.name`: `_other`.
 
 This issue can be resolved by increasing memory available to APM Server, or by ensuring that the dimensions do not use values
 that are based on parameters that can change. For example, user ids, product ids, order numbers, query parameters, etc.,
