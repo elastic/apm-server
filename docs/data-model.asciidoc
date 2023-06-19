@@ -457,6 +457,10 @@ For example, when `transaction.name` has a lot of unique values and reaches the 
 of unique transaction groups tracked, any transactions with new `transaction.name` will be aggregated under
 `transaction.name`: `_other`.
 
+Another example is that `transaction.name` contains just a few unique values and stays within the transaction groups limit,
+but `service.name` has high cardinality and reaches the max services limit. Any transactions with new `service.name` will
+be aggregated under `service.name`: `_other` and `transaction.name`: `_other`.
+
 This issue can be resolved by increasing memory available to APM Server, or by ensuring that the dimensions do not use values
 that are based on parameters that can change. For example, user ids, product ids, order numbers, query parameters, etc.,
 should be stripped away from the dimensions.
