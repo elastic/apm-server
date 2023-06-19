@@ -71,6 +71,7 @@ ENV BEAT_STRICT_PERMS=false
 
 COPY --chmod=0755 packaging/docker/docker-entrypoint /usr/local/bin/docker-entrypoint
 COPY --chmod=0644 licenses/ELASTIC-LICENSE-2.0.txt NOTICE.txt /licenses/
+COPY --chmod=0644 packaging/docker/cacert.pem /etc/pki/tls/certs/ca-bundle.crt
 
 # Copy files world-readable, and create the data directory world-writeable,
 # to permit running the container with arbitrary UIDs and GIDs.
