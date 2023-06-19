@@ -454,7 +454,7 @@ When a dimension has a high cardinality and exceeds the limit, the metrics will 
 under a dedicated overflow bucket.
 
 For example, when `transaction.name` has a lot of unique values and reaches the limit
-of unique transaction groups tracked, any transactions with new `transaction.name` will all be aggregated under
+of unique transaction groups tracked, any transactions with new `transaction.name` will be aggregated under
 `transaction.name`: `_other`.
 
 This issue can be resolved by increasing memory available to APM Server, or by ensuring that the dimensions do not use values
