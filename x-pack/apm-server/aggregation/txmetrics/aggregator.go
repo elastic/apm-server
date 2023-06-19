@@ -550,7 +550,7 @@ func makeMetricset(key transactionAggregationKey, metrics transactionMetrics, in
 
 	var container *modelpb.Container
 	if key.containerID != "" {
-		container = &modelpb.Container{Name: key.containerID}
+		container = &modelpb.Container{Id: key.containerID}
 	}
 
 	var hostOs *modelpb.OS

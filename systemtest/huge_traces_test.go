@@ -31,7 +31,6 @@ import (
 )
 
 func TestTransactionDroppedSpansStats(t *testing.T) {
-	t.Skip("TODO  FIX")
 	// Disable span compression.
 	t.Setenv("ELASTIC_APM_SPAN_COMPRESSION_ENABLED", "false")
 	systemtest.CleanupElasticsearch(t)
