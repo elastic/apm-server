@@ -288,10 +288,10 @@ You can filter and group by these dimensions:
 To power {kibana-ref}/xpack-apm.html[{apm-app}] visualizations,
 APM Server aggregates transaction events into latency distribution metrics.
 
-*`transaction.duration.histogram`*::
+*`transaction.duration.summary`* and *`transaction.duration.histogram`*::
 +
 --
-This metric measures the latency distribution of transaction groups,
+These metric measures the aggregated latency and latency distribution of transaction groups,
 used to power visualizations and analytics in Elastic APM.
 
 These metric documents can be identified by searching for `metricset.name: transaction`.
@@ -338,6 +338,34 @@ You can filter and group by these dimensions (some of which are optional, for ex
 The `@timestamp` field of these documents holds the start of the aggregation interval.
 
 [float]
+===== Service-transaction metrics
+
+To power {kibana-ref}/xpack-apm.html[{apm-app}] visualizations,
+APM Server aggregates transaction events into service-transaction metrics.
+
+*`transaction.duration.summary`* and *`transaction.duration.histogram`*::
++
+--
+These metric measures the aggregated latency and latency distribution of service transaction groups,
+used to power visualizations and analytics in Elastic APM.
+
+These metric documents can be identified by searching for `metricset.name: service_transaction`.
+
+You can filter and group by these dimensions:
+
+* `agent.name`: The name of the {apm-agent} that instrumented the operation, for example `java`
+* `service.name`: The name of the service that made the request
+* `service.environment`: The environment of the service that made the request
+* `service.language.name`: The language name of the service that served the transaction, for example `Go`
+* `transaction.type`: The type of the enclosing transaction, for example `request`
+* `metricset.interval`: A string with the aggregation interval the metricset represents.
+* `labels`: Key-value object containing string labels set globally by the APM agents.
+* `numeric_labels`: Key-value object containing numeric labels set globally by the APM agents.
+--
+
+The `@timestamp` field of these documents holds the start of the aggregation interval.
+
+[float]
 ===== Service-destination metrics
 
 To power {kibana-ref}/xpack-apm.html[{apm-app}] visualizations,
@@ -366,6 +394,27 @@ You can filter and group by these dimensions:
 * `labels`: Key-value object containing string labels set globally by the APM agents.
 * `numeric_labels`: Key-value object containing numeric labels set globally by the APM agents.
 --
+
+The `@timestamp` field of these documents holds the start of the aggregation interval.
+
+[float]
+===== Service-summary metrics
+
+To power {kibana-ref}/xpack-apm.html[{apm-app}] visualizations,
+APM Server aggregates transaction, error, log, and metric events into service-summary metrics.
+
+These metric documents can be identified by searching for `metricset.name: service_summary`.
+
+You can filter and group by these dimensions:
+
+* `agent.name`: The name of the {apm-agent} that instrumented the operation, for example `java`
+* `service.name`: The name of the service that made the request
+* `service.environment`: The environment of the service that made the request
+* `service.language.name`: The language name of the service that served the transaction, for example `Go`
+* `metricset.interval`: A string with the aggregation interval the metricset represents.
+* `labels`: Key-value object containing string labels set globally by the APM agents.
+* `numeric_labels`: Key-value object containing numeric labels set globally by the APM agents.
+
 
 The `@timestamp` field of these documents holds the start of the aggregation interval.
 
