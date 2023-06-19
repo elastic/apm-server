@@ -436,8 +436,8 @@ there are limits on the number of unique groups tracked at any given time.
 [float]
 ===== Limits
 
-For transaction metrics, the limits are 1000 services per GB of APM Server, 5000 transaction
-groups per GB of APM Server, and 500 transaction groups per service per GB of APM Server.
+For transaction metrics, the limits are 1000 services per GB of APM Server, and 5000 transaction
+groups per GB of APM Server. Additionally, each service may only consume up to 10% of the transaction groups, which is 500 transaction groups per service per GB of APM Server.
 
 For service-transaction metrics, the limit is 1000 service transaction groups per GB of APM Server.
 
