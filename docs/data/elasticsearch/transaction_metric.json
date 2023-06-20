@@ -33,7 +33,7 @@
     "name": "transaction"
   },
   "observer": {
-    "hostname": "carson-elastic",
+    "hostname": "hostname",
     "type": "apm-server",
     "version": "8.8.2"
   },
