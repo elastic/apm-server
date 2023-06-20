@@ -347,7 +347,7 @@ APM Server aggregates transaction events into service-transaction metrics.
 *`transaction.duration.summary`* and *`transaction.duration.histogram`*::
 +
 --
-These metrics measure the aggregated latency and latency distribution of service transaction groups,
+These metrics represent the latency summary and latency distribution of service transaction groups,
 used to power visualizations and analytics in Elastic APM.
 
 These metric documents can be identified by searching for `metricset.name: service_transaction`.
