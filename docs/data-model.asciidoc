@@ -252,6 +252,26 @@ For a full list of tracked metrics, see the relevant agent documentation:
 * {apm-ruby-ref-v}/metrics.html[Ruby]
 
 [float]
+===== Example system metric document
+
+This example shows what system metric documents can look like when indexed in {es}.
+
+[%collapsible]
+.Expand {es} document
+====
+
+This example contains JVM metrics produced by the {apm-java-agent}.
+and contains two related metrics: `jvm.gc.time` and `jvm.gc.count`. These are accompanied by various fields describing
+the environment in which the metrics were captured: service name, host name, Kubernetes pod UID, container ID, process ID, and more.
+These fields make it possible to search and aggregate across various dimensions, such as by service, host, and Kubernetes pod.
+
+[source,json]
+----
+include::./data/elasticsearch/metricset.json[]
+----
+====
+
+[float]
 ==== Calculated metrics
 
 APM agents and APM Server calculate metrics from trace events to power visualizations in the {apm-app}.
@@ -285,6 +305,21 @@ You can filter and group by these dimensions:
 * `span.type`: The type of the span, for example `app`, `template` or `db`
 * `span.subtype`: The sub-type of the span, for example `mysql` (optional)
 --
+
+[float]
+===== Example breakdown metric document
+
+This example shows what breakdown metric documents can look like when indexed in {es}.
+
+[%collapsible]
+.Expand {es} document
+====
+
+[source,json]
+----
+include::./data/elasticsearch/span_breakdown.json[]
+----
+====
 
 [float]
 ===== Transaction metrics
@@ -343,6 +378,21 @@ You can filter and group by these dimensions (some of which are optional, for ex
 The `@timestamp` field of these documents holds the start of the aggregation interval.
 
 [float]
+===== Example transaction document
+
+This example shows what transaction documents can look like when indexed in {es}.
+
+[%collapsible]
+.Expand {es} document
+====
+
+[source,json]
+----
+include::./data/elasticsearch/transaction_metric.json[]
+----
+====
+
+[float]
 ===== Service-transaction metrics
 
 To power {kibana-ref}/xpack-apm.html[{apm-app}] visualizations,
@@ -369,6 +419,21 @@ You can filter and group by these dimensions:
 --
 
 The `@timestamp` field of these documents holds the start of the aggregation interval.
+
+[float]
+===== Example service-transaction document
+
+This example shows what service-transaction documents can look like when indexed in {es}.
+
+[%collapsible]
+.Expand {es} document
+====
+
+[source,json]
+----
+include::./data/elasticsearch/service_transaction_metric.json[]
+----
+====
 
 [float]
 ===== Service-destination metrics
@@ -403,6 +468,21 @@ You can filter and group by these dimensions:
 The `@timestamp` field of these documents holds the start of the aggregation interval.
 
 [float]
+===== Example service-destination document
+
+This example shows what service-destination documents can look like when indexed in {es}.
+
+[%collapsible]
+.Expand {es} document
+====
+
+[source,json]
+----
+include::./data/elasticsearch/service_destination_metric.json[]
+----
+====
+
+[float]
 ===== Service-summary metrics
 
 To power {kibana-ref}/xpack-apm.html[{apm-app}] visualizations,
@@ -421,6 +501,21 @@ You can filter and group by these dimensions:
 * `service.name`: The name of the service that made the request
 
 The `@timestamp` field of these documents holds the start of the aggregation interval.
+
+[float]
+===== Example service-summary document
+
+This example shows what service-summary documents can look like when indexed in {es}.
+
+[%collapsible]
+.Expand {es} document
+====
+
+[source,json]
+----
+include::./data/elasticsearch/service_summary_metric.json[]
+----
+====
 
 [float]
 ==== Data streams
@@ -468,26 +563,6 @@ connected to an APM Server with 8GB of RAM. Once this limit is reached, any new 
 This issue can be resolved by increasing memory available to APM Server, or by ensuring that the dimensions do not use values
 that are based on parameters that can change. For example, user ids, product ids, order numbers, query parameters, etc.,
 should be stripped away from the dimensions.
-
-[float]
-==== Example metric document
-
-This example shows what metric documents can look like when indexed in {es}.
-
-[%collapsible]
-.Expand {es} document
-====
-
-This example contains JVM metrics produced by the {apm-java-agent}.
-and contains two related metrics: `jvm.gc.time` and `jvm.gc.count`. These are accompanied by various fields describing
-the environment in which the metrics were captured: service name, host name, Kubernetes pod UID, container ID, process ID, and more.
-These fields make it possible to search and aggregate across various dimensions, such as by service, host, and Kubernetes pod.
-
-[source,json]
-----
-include::./data/elasticsearch/metricset.json[]
-----
-====
 
 // This heading is linked to from the APM UI section in Kibana
 [[data-model-metadata]]
