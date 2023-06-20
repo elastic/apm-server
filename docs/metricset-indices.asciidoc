@@ -18,6 +18,10 @@ Metric documents can be identified by searching for `processor.event: metric`.
 === APM-defined metrics
 
 The APM Agents and APM Server also calculate metrics from trace events, used to power various features of Elastic APM.
+
+APM-defined metrics are an implementation detail and while we aim for stability for these data models,
+the dimensions and concrete limits for aggregations are subject to change within minor version updates.
+
 These metrics are described below.
 
 [float]

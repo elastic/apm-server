@@ -255,6 +255,10 @@ For a full list of tracked metrics, see the relevant agent documentation:
 ==== Calculated metrics
 
 APM agents and APM Server calculate metrics from trace events to power visualizations in the {apm-app}.
+
+Calculated metrics are an implementation detail and while we aim for stability for these data models,
+the dimensions and concrete limits for aggregations are subject to change within minor version updates.
+
 These metrics are described below.
 
 [float]
