@@ -1,0 +1,38 @@
+{
+  "@timestamp": "2022-02-28T13:37:00.000Z",
+  "agent": {
+    "name": "nodejs"
+  },
+  "data_stream": {
+    "dataset": "apm.service_summary.1m",
+    "namespace": "default",
+    "type": "metrics"
+  },
+  "ecs": {
+    "version": "8.6.0-dev"
+  },
+  "event": {
+    "agent_id_status": "missing",
+    "ingested": "2023-06-20T09:45:53Z"
+  },
+  "metricset": {
+    "interval": "1m",
+    "name": "service_summary"
+  },
+  "observer": {
+    "hostname": "hostname",
+    "type": "apm-server",
+    "version": "8.8.2"
+  },
+  "processor": {
+    "event": "metric",
+    "name": "metric"
+  },
+  "service": {
+    "environment": "production",
+    "language": {
+      "name": "javascript"
+    },
+    "name": "opbeans-node"
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "@timestamp": "2022-02-28T13:41:00.000Z",
+  "_doc_count": 7488,
+  "agent": {
+    "name": "ruby"
+  },
+  "data_stream": {
+    "dataset": "apm.service_destination.1m",
+    "namespace": "default",
+    "type": "metrics"
+  },
+  "ecs": {
+    "version": "8.6.0-dev"
+  },
+  "event": {
+    "agent_id_status": "missing",
+    "ingested": "2023-06-20T09:45:53Z",
+    "outcome": "unknown"
+  },
+  "metricset": {
+    "interval": "1m",
+    "name": "service_destination"
+  },
+  "observer": {
+    "hostname": "hostname",
+    "type": "apm-server",
+    "version": "8.8.2"
+  },
+  "processor": {
+    "event": "metric",
+    "name": "metric"
+  },
+  "service": {
+    "environment": "production",
+    "name": "opbeans-ruby",
+    "target": {
+      "type": "postgresql"
+    }
+  },
+  "span": {
+    "destination": {
+      "service": {
+        "resource": "postgresql",
+        "response_time": {
+          "count": 7488,
+          "sum": {
+            "us": 21309833
+          }
+        }
+      }
+    },
+    "name": "SELECT FROM product_kinds"
+  }
+}
