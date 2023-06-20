@@ -13,7 +13,7 @@
     "title": "/opt/java/openjdk/bin/java",
     "parent": {
       "pid": 1
-    },
+    }
   },
   "agent": {
     "name": "java",
