@@ -559,8 +559,9 @@ of unique transaction groups tracked, any transactions with new `transaction.nam
 
 Another example of how the transaction group limit may be reached is if `transaction.name` contains just a few unique values,
 but the service is deployed on a lot of different hosts. As `host.name` is part of the aggregation key for transaction metrics,
-the max transaction group limit is reached for a service that has 100 instances and 40 different transaction names when
-connected to an APM Server with 8GB of RAM. Once this limit is reached, any new combinations of `transaction.name` and
+the max transaction group limit is reached for a service that has 100 instances, 10 different transaction names, and
+4 transaction results per transaction name when connected to an APM Server with 8GB of RAM.
+Once this limit is reached, any new combinations of `transaction.name`, `transaction.result`, and
 `host.name` for that service will be aggregated under `transaction.name`: `_other`.
 
 This issue can be resolved by increasing memory available to APM Server, or by ensuring that the dimensions do not use values
