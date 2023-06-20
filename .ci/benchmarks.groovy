@@ -47,7 +47,7 @@ pipeline {
         TF_VAR_private_key = "./id_rsa_terraform"
         TF_VAR_public_key = "./id_rsa_terraform.pub"
         BENCHMARK_RESULT = "benchmark-result.txt"
-        TFVARS_SOURCE = "system-profiles/8GBx1zone.tfvars" // Default to use an 8gb profile
+        TFVARS_SOURCE = "system-profiles/1GBx1zone.tfvars" // Default to use an 8gb profile
         // cloud tags
         TF_VAR_BUILD_ID = "${env.BUILD_ID}"
         TF_VAR_ENVIRONMENT= 'ci'
@@ -56,6 +56,8 @@ pipeline {
         TF_VAR_CREATED_DATE = "${env.CREATED_DATE}"
         GOBENCH_TAGS = "branch=${BRANCH_NAME},commit=${GIT_BASE_COMMIT},pr=${CHANGE_ID},target_branch=${CHANGE_TARGET}"
         USER = "benchci-${TF_VAR_BRANCH}-${env.BUILD_ID}" // use branch & build as prefix
+
+        BENCHMARK_AGENTS = 10
       }
       steps {
         dir("${BASE_DIR}") {
