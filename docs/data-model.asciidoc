@@ -298,41 +298,42 @@ These metric documents can be identified by searching for `metricset.name: trans
 
 You can filter and group by these dimensions (some of which are optional, for example `container.id`):
 
-* `transaction.name`: The name of the transaction, for example `GET /`
-* `transaction.type`: The type of the transaction, for example `request`
-* `transaction.result`: The result of the transaction, for example `HTTP 2xx`
-* `transaction.root`: A boolean flag indicating whether the transaction is the root of a trace
-* `metricset.interval`: A string with the aggregation interval the metricset represents.
-* `event.outcome`: The outcome of the transaction, for example `success`
 * `agent.name`: The name of the {apm-agent} that instrumented the transaction, for example `java`
-* `service.name`: The name of the service that served the transaction
-* `service.version`: The version of the service that served the transaction
-* `service.node.name`: The name of the service instance that served the transaction
-* `service.environment`: The environment of the service that served the transaction
-* `service.language.name`: The language name of the service that served the transaction, for example `Go`
-* `service.language.version`: The language version of the service that served the transaction
-* `service.runtime.name`: The runtime name of the service that served the transaction, for example `jRuby`
-* `service.runtime.version`: The runtime version that served the transaction
-* `host.hostname`: The hostname of the service that served the transaction
-* `host.os.platform`: The platform name of the service that served the transaction, for example `linux`
-* `container.id`: The container ID of the service that served the transaction
-* `kubernetes.pod.name`: The name of the Kubernetes pod running the service that served the transaction
-* `cloud.provider`: The cloud provider hosting the service instance that served the transaction
-* `cloud.region`: The cloud region hosting the service instance that served the transaction
-* `cloud.availability_zone`: The cloud availability zone hosting the service instance that served the transaction
 * `cloud.account.id`: The cloud account id of the service that served the transaction
 * `cloud.account.name`: The cloud account name of the service that served the transaction
+* `cloud.availability_zone`: The cloud availability zone hosting the service instance that served the transaction
 * `cloud.machine.type`: The cloud machine type or instance type of the service that served the transaction
 * `cloud.project.id`: The cloud project identifier of the service that served the transaction
 * `cloud.project.name`: The cloud project name of the service that served the transaction
+* `cloud.provider`: The cloud provider hosting the service instance that served the transaction
+* `cloud.region`: The cloud region hosting the service instance that served the transaction
 * `cloud.service.name`: The cloud service name of the service that served the transaction
+* `container.id`: The container ID of the service that served the transaction
+* `event.outcome`: The outcome of the transaction, for example `success`
 * `faas.coldstart`: Whether the _serverless_ service that served the transaction had a cold start
-* `faas.trigger.type`: The trigger type that the lambda function was executed by of the service that served the transaction
 * `faas.id`: The unique identifier of the invoked serverless function
 * `faas.name`: The name of the lambda function
+* `faas.trigger.type`: The trigger type that the lambda function was executed by of the service that served the transaction
 * `faas.version`: The version of the lambda function
+* `host.hostname`: The detected hostname of the service that served the transaction
+* `host.name`: The user-defined name of the host or the detected hostname of the service that served the transaction
+* `host.os.platform`: The platform name of the service that served the transaction, for example `linux`
+* `kubernetes.pod.name`: The name of the Kubernetes pod running the service that served the transaction
 * `labels`: Key-value object containing string labels set globally by the APM agents.
+* `metricset.interval`: A string with the aggregation interval the metricset represents.
 * `numeric_labels`: Key-value object containing numeric labels set globally by the APM agents.
+* `service.environment`: The environment of the service that served the transaction
+* `service.language.name`: The language name of the service that served the transaction, for example `Go`
+* `service.language.version`: The language version of the service that served the transaction
+* `service.name`: The name of the service that served the transaction
+* `service.node.name`: The name of the service instance that served the transaction
+* `service.runtime.name`: The runtime name of the service that served the transaction, for example `jRuby`
+* `service.runtime.version`: The runtime version that served the transaction
+* `service.version`: The version of the service that served the transaction
+* `transaction.name`: The name of the transaction, for example `GET /`
+* `transaction.result`: The result of the transaction, for example `HTTP 2xx`
+* `transaction.root`: A boolean flag indicating whether the transaction is the root of a trace
+* `transaction.type`: The type of the transaction, for example `request`
 --
 
 The `@timestamp` field of these documents holds the start of the aggregation interval.
@@ -354,13 +355,13 @@ These metric documents can be identified by searching for `metricset.name: servi
 You can filter and group by these dimensions:
 
 * `agent.name`: The name of the {apm-agent} that instrumented the operation, for example `java`
-* `service.name`: The name of the service that made the request
+* `labels`: Key-value object containing string labels set globally by the APM agents.
+* `metricset.interval`: A string with the aggregation interval the metricset represents.
+* `numeric_labels`: Key-value object containing numeric labels set globally by the APM agents.
 * `service.environment`: The environment of the service that made the request
 * `service.language.name`: The language name of the service that served the transaction, for example `Go`
+* `service.name`: The name of the service that made the request
 * `transaction.type`: The type of the enclosing transaction, for example `request`
-* `metricset.interval`: A string with the aggregation interval the metricset represents.
-* `labels`: Key-value object containing string labels set globally by the APM agents.
-* `numeric_labels`: Key-value object containing numeric labels set globally by the APM agents.
 --
 
 The `@timestamp` field of these documents holds the start of the aggregation interval.
@@ -382,17 +383,17 @@ These metric documents can be identified by searching for `metricset.name: servi
 
 You can filter and group by these dimensions:
 
-* `span.destination.service.resource`: The destination service resource, for example `mysql`
-* `span.name`: The name of the operation, for example `SELECT FROM table_name`.
-* `event.outcome`: The outcome of the operation, for example `success`
 * `agent.name`: The name of the {apm-agent} that instrumented the operation, for example `java`
-* `service.name`: The name of the service that made the request
+* `event.outcome`: The outcome of the operation, for example `success`
+* `labels`: Key-value object containing string labels set globally by the APM agents.
+* `metricset.interval`: A string with the aggregation interval the metricset represents.
+* `numeric_labels`: Key-value object containing numeric labels set globally by the APM agents.
 * `service.environment`: The environment of the service that made the request
+* `service.name`: The name of the service that made the request
 * `service.target.name`: The target service name, for example `customer_db`
 * `service.target.type`: The target service type, for example `mysql`
-* `metricset.interval`: A string with the aggregation interval the metricset represents.
-* `labels`: Key-value object containing string labels set globally by the APM agents.
-* `numeric_labels`: Key-value object containing numeric labels set globally by the APM agents.
+* `span.destination.service.resource`: The destination service resource, for example `mysql`
+* `span.name`: The name of the operation, for example `SELECT FROM table_name`.
 --
 
 The `@timestamp` field of these documents holds the start of the aggregation interval.
@@ -408,13 +409,12 @@ These metric documents can be identified by searching for `metricset.name: servi
 You can filter and group by these dimensions:
 
 * `agent.name`: The name of the {apm-agent} that instrumented the operation, for example `java`
-* `service.name`: The name of the service that made the request
+* `labels`: Key-value object containing string labels set globally by the APM agents.
+* `metricset.interval`: A string with the aggregation interval the metricset represents.
+* `numeric_labels`: Key-value object containing numeric labels set globally by the APM agents.
 * `service.environment`: The environment of the service that made the request
 * `service.language.name`: The language name of the service that served the transaction, for example `Go`
-* `metricset.interval`: A string with the aggregation interval the metricset represents.
-* `labels`: Key-value object containing string labels set globally by the APM agents.
-* `numeric_labels`: Key-value object containing numeric labels set globally by the APM agents.
-
+* `service.name`: The name of the service that made the request
 
 The `@timestamp` field of these documents holds the start of the aggregation interval.
 
