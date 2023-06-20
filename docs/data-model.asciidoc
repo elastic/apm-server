@@ -331,7 +331,7 @@ APM Server aggregates transaction events into latency distribution metrics.
 +
 --
 These metrics represent the latency summary and latency distribution of transaction groups,
-used to power visualizations and analytics in Elastic APM.
+used to power transaction-oriented visualizations and analytics in Elastic APM.
 
 These metric documents can be identified by searching for `metricset.name: transaction`.
 
@@ -397,12 +397,15 @@ include::./data/elasticsearch/transaction_metric.json[]
 
 To power {kibana-ref}/xpack-apm.html[{apm-app}] visualizations,
 APM Server aggregates transaction events into service-transaction metrics.
+Service-transaction metrics are similar to transaction metrics, but they usually
+have a much lower cardinality as they have significantly fewer dimensions.
+The UI uses them when fewer details of the transactions are needed.
 
 *`transaction.duration.summary`* and *`transaction.duration.histogram`*::
 +
 --
 These metrics represent the latency summary and latency distribution of service transaction groups,
-used to power visualizations and analytics in Elastic APM.
+used to power service-oriented visualizations and analytics in Elastic APM.
 
 These metric documents can be identified by searching for `metricset.name: service_transaction`.
 
