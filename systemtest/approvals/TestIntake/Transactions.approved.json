@@ -88,8 +88,7 @@
                 "title": "node"
             },
             "processor": {
-                "event": "transaction",
-                "name": "transaction"
+                "event": "transaction"
             },
             "service": {
                 "environment": "staging",
@@ -247,8 +246,7 @@
                 "title": "node"
             },
             "processor": {
-                "event": "transaction",
-                "name": "transaction"
+                "event": "transaction"
             },
             "service": {
                 "environment": "staging",
@@ -452,8 +450,7 @@
                 "title": "node"
             },
             "processor": {
-                "event": "transaction",
-                "name": "transaction"
+                "event": "transaction"
             },
             "service": {
                 "environment": "staging",
@@ -630,8 +627,7 @@
                 "title": "node"
             },
             "processor": {
-                "event": "transaction",
-                "name": "transaction"
+                "event": "transaction"
             },
             "service": {
                 "environment": "testing",
@@ -803,8 +799,7 @@
                 "title": "node"
             },
             "processor": {
-                "event": "transaction",
-                "name": "transaction"
+                "event": "transaction"
             },
             "service": {
                 "environment": "staging",

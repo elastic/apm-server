@@ -241,10 +241,6 @@
                 "pid": 1234,
                 "title": "/usr/lib/jvm/java-10-openjdk-amd64/bin/java"
             },
-            "processor": {
-                "event": "error",
-                "name": "error"
-            },
             "service": {
                 "environment": "production",
                 "framework": {
@@ -486,8 +482,7 @@
                 "title": "/usr/lib/jvm/java-10-openjdk-amd64/bin/java"
             },
             "processor": {
-                "event": "span",
-                "name": "transaction"
+                "event": "span"
             },
             "service": {
                 "environment": "production",
@@ -698,8 +693,7 @@
                 "title": "/usr/lib/jvm/java-10-openjdk-amd64/bin/java"
             },
             "processor": {
-                "event": "transaction",
-                "name": "transaction"
+                "event": "transaction"
             },
             "service": {
                 "environment": "production",

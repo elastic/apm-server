@@ -32,9 +32,9 @@ import (
 func TestEventCounter(t *testing.T) {
 	batch := modelpb.Batch{
 		{},
-		{Processor: modelpb.TransactionProcessor()},
-		{Processor: modelpb.SpanProcessor()},
-		{Processor: modelpb.TransactionProcessor()},
+		{Transaction: &modelpb.Transaction{Type: "transaction_type"}},
+		{Span: &modelpb.Span{Type: "span_type"}},
+		{Transaction: &modelpb.Transaction{Type: "transaction_type"}},
 	}
 
 	expected := monitoring.MakeFlatSnapshot()

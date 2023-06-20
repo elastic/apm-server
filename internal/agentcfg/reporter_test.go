@@ -81,8 +81,7 @@ func TestReportFetch(t *testing.T) {
 	// reported in exactly the same order they were fetched.
 	assert.Empty(t, cmp.Diff([]*modelpb.APMEvent{
 		{
-			Processor: modelpb.MetricsetProcessor(),
-			Labels:    modelpb.Labels{"etag": {Value: "abc123"}},
+			Labels: modelpb.Labels{"etag": {Value: "abc123"}},
 			Metricset: &modelpb.Metricset{
 				Name: "agent_config",
 				Samples: []*modelpb.MetricsetSample{
@@ -91,8 +90,7 @@ func TestReportFetch(t *testing.T) {
 			},
 		},
 		{
-			Processor: modelpb.MetricsetProcessor(),
-			Labels:    modelpb.Labels{"etag": {Value: "def456"}},
+			Labels: modelpb.Labels{"etag": {Value: "def456"}},
 			Metricset: &modelpb.Metricset{
 				Name: "agent_config",
 				Samples: []*modelpb.MetricsetSample{

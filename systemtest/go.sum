@@ -87,6 +87,8 @@ github.com/elastic/apm-perf v0.0.0-20230608162138-29920c01cfd6 h1:xT0z9yPjU0Csoq
 github.com/elastic/apm-perf v0.0.0-20230608162138-29920c01cfd6/go.mod h1:zK9WN3ehaqmWNgGCDtLpJ3ensSTsZ+N+T4TD11fQPx0=
 github.com/elastic/apm-tools v0.0.0-20230710072437-2700b8f3f6d4 h1:R1geTjfQUMlo75M9dOQJk/1b8WK66bbXm2X1hSS3GfY=
 github.com/elastic/apm-tools v0.0.0-20230710072437-2700b8f3f6d4/go.mod h1:cA38VtF9v5JAzmIKAgL8PHMSsrWtaWrI5OSjvCG+DDM=
+github.com/elastic/apm-tools v0.0.0-20230712130005-87efbbd3dafd h1:5elmFJcigfMwDGLVsb0jHCyYZKOVVHDsblOrTMHrqLo=
+github.com/elastic/apm-tools v0.0.0-20230712130005-87efbbd3dafd/go.mod h1:cA38VtF9v5JAzmIKAgL8PHMSsrWtaWrI5OSjvCG+DDM=
 github.com/elastic/elastic-transport-go/v8 v8.3.0 h1:DJGxovyQLXGr62e9nDMPSxRyWION0Bh6d9eCFBriiHo=
 github.com/elastic/elastic-transport-go/v8 v8.3.0/go.mod h1:87Tcz8IVNe6rVSLdBux1o/PEItLtyabHU3naC7IoqKI=
 github.com/elastic/go-elasticsearch/v8 v8.8.1 h1:/OiP5Yex40q5eWpzFVQIS8jRE7SaEZrFkG9JbE6TXtY=

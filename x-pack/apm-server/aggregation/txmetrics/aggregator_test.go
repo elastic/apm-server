@@ -99,12 +99,12 @@ func TestTxnAggregator_ResetAfterPublish(t *testing.T) {
 	assert.NoError(t, err)
 	batch := modelpb.Batch{
 		&modelpb.APMEvent{
-			Processor: modelpb.TransactionProcessor(),
 			Event: &modelpb.Event{
 				Outcome:  "success",
 				Duration: durationpb.New(time.Second),
 			},
 			Transaction: &modelpb.Transaction{
+				Type:                "type",
 				Name:                "txn1",
 				RepresentativeCount: 1,
 			},
@@ -266,12 +266,12 @@ func TestTxnAggregatorProcessBatch(t *testing.T) {
 			batch := make(modelpb.Batch, tc.uniqueTxnCount*repCount)
 			for i := 0; i < len(batch); i++ {
 				batch[i] = &modelpb.APMEvent{
-					Processor: modelpb.TransactionProcessor(),
 					Event: &modelpb.Event{
 						Outcome:  "success",
 						Duration: durationpb.New(txnDuration),
 					},
 					Transaction: &modelpb.Transaction{
+						Type:                "type",
 						Name:                fmt.Sprintf("foo%d", i%tc.uniqueTxnCount),
 						RepresentativeCount: 1,
 					},
@@ -374,7 +374,6 @@ func TestAggregatorRun(t *testing.T) {
 		event := modelpb.APMEvent{
 			Event:     &modelpb.Event{Duration: durationpb.New(time.Second)},
 			Timestamp: timestamppb.New(now),
-			Processor: modelpb.TransactionProcessor(),
 			Labels: modelpb.Labels{
 				"department_name": &modelpb.LabelValue{Global: true, Value: "apm"},
 				"organization":    &modelpb.LabelValue{Global: true, Value: "observability"},
@@ -385,6 +384,7 @@ func TestAggregatorRun(t *testing.T) {
 				"cost_center": &modelpb.NumericLabelValue{Global: true, Value: 10},
 			},
 			Transaction: &modelpb.Transaction{
+				Type:                "type",
 				Name:                "T-1000",
 				RepresentativeCount: 1,
 			},
@@ -398,8 +398,8 @@ func TestAggregatorRun(t *testing.T) {
 		event := modelpb.APMEvent{
 			Event:     &modelpb.Event{Duration: durationpb.New(time.Second)},
 			Timestamp: timestamppb.New(now),
-			Processor: modelpb.TransactionProcessor(),
 			Transaction: &modelpb.Transaction{
+				Type:                "type",
 				Name:                "T-800",
 				RepresentativeCount: 2.5,
 			},
@@ -487,8 +487,8 @@ func TestAggregatorRunPublishErrors(t *testing.T) {
 
 	for i := 0; i < 2; i++ {
 		agg.AggregateTransaction(&modelpb.APMEvent{
-			Processor: modelpb.TransactionProcessor(),
 			Transaction: &modelpb.Transaction{
+				Type:                "type",
 				Name:                "T-1000",
 				RepresentativeCount: 1,
 			},
@@ -544,8 +544,8 @@ func TestAggregateRepresentativeCount(t *testing.T) {
 
 			for _, rc := range tc.representativeCounts {
 				agg.AggregateTransaction(&modelpb.APMEvent{
-					Processor: modelpb.TransactionProcessor(),
 					Transaction: &modelpb.Transaction{
+						Type:                "type",
 						Name:                "foo",
 						RepresentativeCount: rc,
 					},
@@ -581,9 +581,12 @@ func TestAggregateTimestamp(t *testing.T) {
 	t0 := time.Unix(0, 0).UTC()
 	for _, ts := range []time.Time{t0, t0.Add(15 * time.Second), t0.Add(30 * time.Second)} {
 		agg.AggregateTransaction(&modelpb.APMEvent{
-			Timestamp:   timestamppb.New(ts),
-			Processor:   modelpb.TransactionProcessor(),
-			Transaction: &modelpb.Transaction{Name: "name", RepresentativeCount: 1},
+			Timestamp: timestamppb.New(ts),
+			Transaction: &modelpb.Transaction{
+				Type:                "type",
+				Name:                "name",
+				RepresentativeCount: 1,
+			},
 		})
 	}
 
@@ -632,9 +635,9 @@ func testHDRHistogramSignificantFigures(t *testing.T, sigfigs int) {
 			101111 * time.Microsecond,
 		} {
 			agg.AggregateTransaction(&modelpb.APMEvent{
-				Processor: modelpb.TransactionProcessor(),
-				Event:     &modelpb.Event{Duration: durationpb.New(duration)},
+				Event: &modelpb.Event{Duration: durationpb.New(duration)},
 				Transaction: &modelpb.Transaction{
+					Type:                "type",
 					Name:                "T-1000",
 					RepresentativeCount: 1,
 				},
@@ -672,16 +675,18 @@ func TestAggregationFields(t *testing.T) {
 	defer agg.Stop(context.Background())
 
 	input := modelpb.APMEvent{
-		Processor:   modelpb.TransactionProcessor(),
-		Transaction: &modelpb.Transaction{RepresentativeCount: 1},
-		Event:       &modelpb.Event{},
-		Agent:       &modelpb.Agent{},
-		Service:     &modelpb.Service{Node: &modelpb.ServiceNode{}, Language: &modelpb.Language{}, Runtime: &modelpb.Runtime{}},
-		Container:   &modelpb.Container{},
-		Kubernetes:  &modelpb.Kubernetes{},
-		Cloud:       &modelpb.Cloud{},
-		Host:        &modelpb.Host{Os: &modelpb.OS{}},
-		Faas:        &modelpb.Faas{},
+		Transaction: &modelpb.Transaction{
+			Type:                "type",
+			RepresentativeCount: 1,
+		},
+		Event:      &modelpb.Event{},
+		Agent:      &modelpb.Agent{},
+		Service:    &modelpb.Service{Node: &modelpb.ServiceNode{}, Language: &modelpb.Language{}, Runtime: &modelpb.Runtime{}},
+		Container:  &modelpb.Container{},
+		Kubernetes: &modelpb.Kubernetes{},
+		Cloud:      &modelpb.Cloud{},
+		Host:       &modelpb.Host{Os: &modelpb.OS{}},
+		Faas:       &modelpb.Faas{},
 	}
 	inputFields := []*string{
 		&input.Transaction.Name,
@@ -736,7 +741,6 @@ func TestAggregationFields(t *testing.T) {
 			},
 		}
 		expectedEvent.Event.Outcome = input.Event.Outcome
-		expectedEvent.Processor = modelpb.MetricsetProcessor()
 		expectedEvent.Metricset = &modelpb.Metricset{
 			Name:     "transaction",
 			DocCount: expectedCount,
@@ -814,9 +818,9 @@ func BenchmarkAggregateTransaction(b *testing.B) {
 	require.NoError(b, err)
 
 	event := modelpb.APMEvent{
-		Processor: modelpb.TransactionProcessor(),
-		Event:     &modelpb.Event{Duration: durationpb.New(time.Millisecond)},
+		Event: &modelpb.Event{Duration: durationpb.New(time.Millisecond)},
 		Transaction: &modelpb.Transaction{
+			Type:                "type",
 			Name:                "T-1000",
 			RepresentativeCount: 1,
 		},
@@ -868,8 +872,7 @@ func batchMetricsets(t testing.TB, batch modelpb.Batch) []*modelpb.APMEvent {
 
 func createOverflowMetricset(overflowCount, repCount int, txnDuration time.Duration) *modelpb.APMEvent {
 	return &modelpb.APMEvent{
-		Processor: modelpb.MetricsetProcessor(),
-		Service:   &modelpb.Service{},
+		Service: &modelpb.Service{},
 		Transaction: &modelpb.Transaction{
 			Name: "_other",
 			DurationHistogram: &modelpb.Histogram{
