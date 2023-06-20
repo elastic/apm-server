@@ -1,0 +1,126 @@
+{
+  "@timestamp": "2022-02-28T13:39:00.000Z",
+  "_doc_count": 2421,
+  "agent": {
+    "name": "ruby"
+  },
+  "data_stream": {
+    "dataset": "apm.transaction.1m",
+    "namespace": "default",
+    "type": "metrics"
+  },
+  "ecs": {
+    "version": "8.6.0-dev"
+  },
+  "event": {
+    "agent_id_status": "missing",
+    "ingested": "2023-06-20T09:49:53Z",
+    "outcome": "success",
+    "success_count": {
+      "sum": 2421.0,
+      "value_count": 2421
+    }
+  },
+  "host": {
+    "hostname": "19887b56414b",
+    "name": "19887b56414b",
+    "os": {
+      "platform": "linux"
+    }
+  },
+  "metricset": {
+    "interval": "1m",
+    "name": "transaction"
+  },
+  "observer": {
+    "hostname": "hostname",
+    "type": "apm-server",
+    "version": "8.8.2"
+  },
+  "processor": {
+    "event": "metric",
+    "name": "metric"
+  },
+  "service": {
+    "environment": "production",
+    "language": {
+      "name": "ruby",
+      "version": "2.7.3"
+    },
+    "name": "opbeans-ruby",
+    "node": {
+      "name": "19887b56414b"
+    },
+    "runtime": {
+      "name": "ruby",
+      "version": "2.7.3"
+    },
+    "version": "None"
+  },
+  "transaction": {
+    "duration": {
+      "histogram": {
+        "values": [
+          16255.0,
+          20095.0,
+          20351.0,
+          24447.0,
+          24703.0,
+          25087.0,
+          25471.0,
+          26111.0,
+          26623.0,
+          28287.0,
+          29695.0,
+          30847.0,
+          31231.0,
+          31871.0,
+          33023.0,
+          36351.0,
+          41727.0,
+          44287.0,
+          46847.0,
+          56575.0,
+          61695.0,
+          81407.0,
+          88575.0,
+          107519.0
+        ],
+        "counts": [
+          90,
+          89,
+          90,
+          90,
+          90,
+          180,
+          180,
+          90,
+          89,
+          90,
+          90,
+          90,
+          90,
+          89,
+          90,
+          90,
+          89,
+          89,
+          90,
+          179,
+          89,
+          89,
+          90,
+          89
+        ]
+      },
+      "summary": {
+        "sum": 9.5487371E7,
+        "value_count": 2421
+      }
+    },
+    "name": "Api::CustomersController#index",
+    "result": "HTTP 2xx",
+    "root": true,
+    "type": "request"
+  }
+}
