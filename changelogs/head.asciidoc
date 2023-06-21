@@ -14,6 +14,7 @@ https://github.com/elastic/apm-server/compare/8.8\...main[View commits]
 - Limit the amount of concurrent OTLP requests being processed in parallel {pull}10987[10987].
 - Added CA certificates bundle to the Docker images {pull}11015[11015]
 - Derivation of transaction and span type from OTLP spans is now deterministic {pull}11036[11036]
+- Populate `span.id` and `transaction.id` for logs derived from OTLP spans {pull}11038[11038]
 
 [float]
 ==== Intake API Changes
