@@ -1,13 +1,13 @@
-[[release-notes-head]]
-== APM version HEAD
+[[release-notes-8.9]]
+== APM version 8.9
 
-https://github.com/elastic/apm-server/compare/8.8\...main[View commits]
+https://github.com/elastic/apm-server/compare/8.9\...main[View commits]
+
+* <<release-notes-8.9.0>>
 
 [float]
-==== Breaking Changes
-
-[float]
-==== Deprecations
+[[release-notes-8.9.0]]
+=== APM version 8.9.0
 
 [float]
 ==== Bug fixes
