@@ -310,5 +310,5 @@ release: $(MAGE) build/dependencies.csv
 	$(MAGE) package
 	@$(MAGE) ironbank
 
-build/dependencies.csv: $(PYTHON) go.mod
-	$(PYTHON) script/generate_notice.py ./x-pack/apm-server --csv $@
+build/dependencies.csv: go.mod
+	python3 script/generate_notice.py ./x-pack/apm-server --csv $@
