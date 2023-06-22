@@ -2,7 +2,7 @@ FROM golang:1.19.9
 MAINTAINER Nicolas Ruflin <ruflin@elastic.co>
 
 RUN apt-get update
-RUN apt-get install -y --no-install-recommends netcat python3 python3-pip python3-venv
+RUN apt-get install -y --no-install-recommends python3 python3-pip python3-venv
 RUN apt-get clean
 
 ARG UID=1000

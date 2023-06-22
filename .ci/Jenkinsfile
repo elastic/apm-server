@@ -11,7 +11,6 @@ pipeline {
     JOB_GCS_CREDENTIALS = 'apm-ci-gcs-plugin'
     CODECOV_SECRET = 'secret/apm-team/ci/apm-server-codecov'
     DIAGNOSTIC_INTERVAL = "${params.DIAGNOSTIC_INTERVAL}"
-    ES_LOG_LEVEL = "${params.ES_LOG_LEVEL}"
     DOCKER_SECRET = 'secret/observability-team/ci/docker-registry/prod'
     DOCKER_REGISTRY = 'docker.elastic.co'
   }
@@ -30,16 +29,7 @@ pipeline {
   }
   parameters {
     booleanParam(name: 'Run_As_Main_Branch', defaultValue: false, description: 'Allow to run any steps on a PR, some steps normally only run on main branch.')
-    booleanParam(name: 'arm_ci', defaultValue: true, description: 'Enable ARM build')
-    booleanParam(name: 'linux_ci', defaultValue: true, description: 'Enable Linux build')
-    booleanParam(name: 'osx_ci', defaultValue: false, description: 'Enable OSX CI')
-    booleanParam(name: 'windows_ci', defaultValue: true, description: 'Enable Windows CI')
-    booleanParam(name: 'intake_ci', defaultValue: true, description: 'Enable test')
-    booleanParam(name: 'test_ci', defaultValue: true, description: 'Enable test')
-    booleanParam(name: 'test_sys_env_ci', defaultValue: true, description: 'Enable system and environment test')
-    booleanParam(name: 'bench_ci', defaultValue: true, description: 'Enable benchmarks')
     booleanParam(name: 'release_ci', defaultValue: true, description: 'Enable build the release packages')
-    string(name: 'ES_LOG_LEVEL', defaultValue: "error", description: 'Elasticsearch error level')
   }
   stages {
     /**
@@ -78,373 +68,26 @@ pipeline {
         }
       }
     }
-    /**
-    Updating generated files for Beat.
-    Checks the GO environment.
-    Checks the Python environment.
-    Checks YAML files are generated.
-    Validate that all updates were committed.
-    */
-    stage('Intake') {
+    stage('Downstream - Package - PR') {
       options { skipDefaultCheckout() }
-      environment {
-        PATH = "${env.PATH}:${env.WORKSPACE}/bin"
-        HOME = "${env.WORKSPACE}"
-      }
       when {
         beforeAgent true
         allOf {
-          expression { return params.intake_ci }
+          expression { return params.release_ci }
           expression { return env.ONLY_DOCS == "false" }
+          changeRequest()
+          anyOf {
+            expression { return env.BEATS_UPDATED != "false" }
+            expression { return env.GITHUB_COMMENT?.contains('package tests') || env.GITHUB_COMMENT?.contains('/package')}
+            expression { return params.Run_As_Main_Branch }
+          }
         }
       }
       steps {
-        withGithubNotify(context: 'Intake') {
-          deleteDir()
-          unstash 'source'
-          dir("${BASE_DIR}"){
-            withGoEnv(){
-              sh(label: 'Run intake', script: './.ci/scripts/intake.sh')
-            }
-          }
-        }
-      }
-    }
-    stage('Build and Test'){
-      failFast false
-      parallel {
-        /**
-        Build on a linux environment.
-        */
-        stage('linux build') {
-          options { skipDefaultCheckout() }
-          when {
-            beforeAgent true
-            allOf {
-              expression { return params.linux_ci }
-              expression { return env.ONLY_DOCS == "false" }
-            }
-          }
-          steps {
-            withGithubNotify(context: 'Build - Linux') {
-              deleteDir()
-              unstash 'source'
-              dir(BASE_DIR){
-                withMageEnv(){
-                  retry(2) { // Retry in case there are any errors to avoid temporary glitches
-                    sleep randomNumber(min: 5, max: 10)
-                    sh(label: 'Linux build', script: './.ci/scripts/build.sh')
-                  }
-                }
-              }
-            }
-          }
-        }
-        /**
-        Build and Test on a windows environment.
-        */
-        stage('windows build-test') {
-          agent { label 'windows-2019-immutable' }
-          options {
-            skipDefaultCheckout()
-            warnError('Windows execution failed')
-          }
-          when {
-            beforeAgent true
-            allOf {
-              expression { return params.windows_ci }
-              expression { return env.ONLY_DOCS == "false" }
-            }
-          }
-          steps {
-            withGithubNotify(context: 'Build-Test - Windows') {
-              deleteDir()
-              unstash 'source'
-              dir(BASE_DIR){
-                withMageEnv(){
-                  retry(2) { // Retry in case there are any errors to avoid temporary glitches
-                    sleep randomNumber(min: 5, max: 10)
-                    powershell(label: 'Windows build', script: '.\\.ci\\scripts\\windows-build.ps1')
-                    powershell(label: 'Run Window tests', script: '.\\.ci\\scripts\\windows-test.ps1')
-                  }
-                }
-              }
-            }
-          }
-          post {
-            always {
-              junit(allowEmptyResults: true,
-                keepLongStdio: true,
-                testResults: "${BASE_DIR}/build/TEST-*.xml")
-            }
-          }
-        }
-        /**
-        Build on a mac environment.
-        */
-        stage('OSX build-test') {
-          agent { label 'orka && darwin && x86_64' }
-          options {
-            skipDefaultCheckout()
-            warnError('OSX execution failed')
-          }
-          when {
-            beforeAgent true
-            allOf {
-              expression { return params.osx_ci }
-              expression { return env.ONLY_DOCS == "false" }
-            }
-          }
-          steps {
-            withGithubNotify(context: 'Build-Test - OSX') {
-              deleteDir()
-              unstash 'source'
-              dir(BASE_DIR){
-                withMageEnv(){
-                  // Retry in case there are any errors to avoid temporary glitches
-                  retryWithSleep(retries: 2) {
-                    sh(label: 'OSX build', script: '.ci/scripts/build.sh')
-                    sh(label: 'Run Unit tests', script: '.ci/scripts/unit-test.sh')
-                  }
-                }
-              }
-            }
-          }
-          post {
-            always {
-              junit(allowEmptyResults: true,
-                keepLongStdio: true,
-                testResults: "${BASE_DIR}/build/TEST-*.xml")
-            }
-          }
-        }
-        stage('ARM build-test') {
-          agent { label 'arm' }
-          options {
-            skipDefaultCheckout()
-            warnError('ARM execution failed')
-          }
-          when {
-            beforeAgent true
-            anyOf {
-              expression { return env.GITHUB_COMMENT?.contains('arm tests') || env.GITHUB_COMMENT?.contains('/arm')}
-              branch 'master'
-              allOf {
-                changeRequest()
-                expression { return params.arm_ci }
-              }
-            }
-          }
-          environment {
-            HOME = "${env.WORKSPACE}"
-          }
-          steps {
-            withGithubNotify(context: 'Build-Test - ARM') {
-              deleteDir()
-              unstash 'source'
-              dir("${BASE_DIR}"){
-                withMageEnv(){
-                  sh(label: 'ARM build', script: '.ci/scripts/build.sh')
-                  sh(label: 'ARM Unit tests', script: './.ci/scripts/unit-test.sh')
-                }
-              }
-            }
-          }
-          post {
-            always {
-              junit(allowEmptyResults: true,
-                keepLongStdio: true,
-                testResults: "${BASE_DIR}/build/TEST-*.xml")
-            }
-          }
-        }
-        /**
-          Run unit tests and report junit results.
-        */
-        stage('Unit Test') {
-          agent { label 'linux && immutable' }
-          options { skipDefaultCheckout() }
-          environment {
-            PATH = "${env.PATH}:${env.WORKSPACE}/bin"
-            HOME = "${env.WORKSPACE}"
-            TEST_COVERAGE = "true"
-          }
-          when {
-            beforeAgent true
-            allOf {
-              expression { return params.test_ci }
-              expression { return env.ONLY_DOCS == "false" }
-            }
-          }
-          steps {
-            withGithubNotify(context: 'Unit Tests', tab: 'tests') {
-              deleteDir()
-              unstash 'source'
-              dir("${BASE_DIR}"){
-                withMageEnv(){
-                  sh(label: 'Run Unit tests', script: './.ci/scripts/unit-test.sh')
-                }
-              }
-            }
-          }
-          post {
-            always {
-              dir("${BASE_DIR}/build"){
-                publishHTML(target: [
-                  allowMissing: true,
-                  keepAll: true,
-                  reportDir: ".",
-                  reportFiles: 'TEST-*.html',
-                  reportName: 'Coverage-Sourcecode-Files',
-                  reportTitles: 'Coverage'])
-                cobertura(autoUpdateHealth: false,
-                  autoUpdateStability: false,
-                  coberturaReportFile: "TEST-*_cov.xml",
-                  conditionalCoverageTargets: '70, 0, 0',
-                  failNoReports: false,
-                  failUnhealthy: false,
-                  failUnstable: false,
-                  lineCoverageTargets: '80, 0, 0',
-                  maxNumberOfBuilds: 0,
-                  methodCoverageTargets: '80, 0, 0',
-                  onlyStable: false,
-                  sourceEncoding: 'ASCII',
-                  zoomCoverageChart: false)
-                junit(allowEmptyResults: true,
-                    keepLongStdio: true,
-                    testResults: "TEST-*.xml")
-              }
-              codecov(repo: env.REPO, basedir: "${BASE_DIR}", secret: "${CODECOV_SECRET}")
-            }
-          }
-        }
-        /**
-        Runs System and Environment Tests, then generate coverage and unit test reports.
-        Finally archive the results.
-        */
-        stage('System and Environment Tests') {
-          agent { label 'linux && immutable' }
-          options { skipDefaultCheckout() }
-          environment {
-            PATH = "${env.PATH}:${env.WORKSPACE}/bin"
-            HOME = "${env.WORKSPACE}"
-          }
-          when {
-            beforeAgent true
-            allOf {
-              expression { return params.test_sys_env_ci }
-              expression { return env.ONLY_DOCS == "false" }
-            }
-          }
-          steps {
-            withGithubNotify(context: 'System Tests', tab: 'tests') {
-              deleteDir()
-              unstash 'source'
-              dir("${BASE_DIR}"){
-                withMageEnv(){
-                  sh(label: 'Run Linux tests', script: './.ci/scripts/linux-test.sh')
-                }
-              }
-            }
-          }
-          post {
-            always {
-              dir("${BASE_DIR}/build"){
-                archiveArtifacts(allowEmptyArchive: true,
-                  artifacts: "docker-info/**",
-                  defaultExcludes: false
-                )
-                junit(allowEmptyResults: true,
-                  keepLongStdio: true,
-                  testResults: "TEST-*.xml"
-                )
-                catchError(buildResult: 'SUCCESS', message: 'Failed to grab test results tar files', stageResult: 'SUCCESS') {
-                  tar(file: "system-tests-linux-files.tgz", archive: true, dir: "system-tests")
-                }
-              }
-            }
-          }
-        }
-        /**
-        Runs benchmarks on the current version and compare it with the previous ones.
-        Finally archive the results.
-        */
-        stage('Benchmarking') {
-          agent { label 'microbenchmarks-pool' }
-          options { skipDefaultCheckout() }
-          when {
-            beforeAgent true
-            allOf {
-              expression { return params.bench_ci }
-              expression { return env.ONLY_DOCS == "false" }
-            }
-          }
-          steps {
-            withGithubNotify(context: 'Benchmarking') {
-              deleteDir()
-              unstash 'source'
-              dir("${BASE_DIR}"){
-                withMageEnv(){
-                  sh(label: 'Run benchmarks', script: './.ci/scripts/bench.sh')
-                }
-                sendBenchmarks(file: "bench.out", index: "benchmark-server")
-                generateGoBenchmarkDiff(file: 'bench.out', filter: 'exclude')
-              }
-            }
-          }
-          post {
-            cleanup {
-              deleteDir()
-            }
-          }
-        }
-        stage('Hey-Apm') {
-          agent { label 'linux && immutable' }
-          options { skipDefaultCheckout() }
-          when {
-            beforeAgent true
-            expression { return env.GITHUB_COMMENT?.contains('hey-apm tests') || env.GITHUB_COMMENT?.contains('/hey-apm')}
-          }
-          steps {
-            withGithubNotify(context: 'Hey-Apm') {
-              deleteDir()
-              unstash 'source'
-              dir("${BASE_DIR}"){
-                withMageEnv(){
-                  sh(label: 'Package', script: "./.ci/scripts/package-docker.sh")
-                  dockerLogin(secret: env.DOCKER_SECRET, registry: env.DOCKER_REGISTRY)
-                  sh(label: 'Push', script: "./.ci/scripts/push-docker.sh ${env.GIT_BASE_COMMIT} ${env.DOCKER_REGISTRY}/observability-ci/apm-server")
-                }
-              }
-              build(job: 'apm-server/apm-hey-test-benchmark', propagate: true, wait: true,
-                    parameters: [string(name: 'GO_VERSION', value: '1.12.1'),
-                                 string(name: 'STACK_VERSION', value: "${env.GIT_BASE_COMMIT}"),
-                                 string(name: 'APM_DOCKER_IMAGE', value: "${env.DOCKER_IMAGE}")])
-            }
-          }
-        }
-        stage('Downstream - Package - PR') {
-          options { skipDefaultCheckout() }
-          when {
-            beforeAgent true
-            allOf {
-              expression { return params.release_ci }
-              expression { return env.ONLY_DOCS == "false" }
-              changeRequest()
-              anyOf {
-                expression { return env.BEATS_UPDATED != "false" }
-                expression { return env.GITHUB_COMMENT?.contains('package tests') || env.GITHUB_COMMENT?.contains('/package')}
-                expression { return params.Run_As_Main_Branch }
-              }
-            }
-          }
-          steps {
-            build(job: "apm-server/apm-server-package-mbp/${env.JOB_BASE_NAME}",
-                  propagate: false,
-                  wait: false,
-                  parameters: [string(name: 'COMMIT', value: "${env.GIT_BASE_COMMIT}")])
-          }
-        }
+        build(job: "apm-server/apm-server-package-mbp/${env.JOB_BASE_NAME}",
+              propagate: false,
+              wait: false,
+              parameters: [string(name: 'COMMIT', value: "${env.GIT_BASE_COMMIT}")])
       }
     }
     stage('Downstream - Package') {

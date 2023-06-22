@@ -3,7 +3,7 @@ FROM golang:1.19.9
 RUN set -x && \
     apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-         netcat python3 python3-pip python3-venv && \
+         python3 python3-pip python3-venv && \
     apt-get clean
 
 

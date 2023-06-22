@@ -1,2 +1,5 @@
 CHANGELOG.asciidoc merge=union
 internal/otel_collector linguist-generated=true
+**.ndjson text eol=lf
+**.json text eol=lf
+**.map text eol=lf
