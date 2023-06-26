@@ -21,7 +21,7 @@ get_versions() {
 }
 
 get_latest_patch() {
-    LATEST_PATCH=$(echo ${VERSIONS} | jq -r -c "max_by(. | select(. | startswith(\"${1}\")) | split(\".\") | map(tonumber))" | cut -d '.' -f3)
+    LATEST_PATCH=$(echo ${VERSIONS} | jq -r -c "max_by(. | select(. | startswith(\"${1}\")) | if endswith(\"-SNAPSHOT\") then .[:-9] else . end | split(\".\") | map(tonumber))" | cut -d '.' -f3)
 }
 
 get_latest_snapshot() {
