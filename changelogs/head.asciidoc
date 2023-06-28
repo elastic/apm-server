@@ -17,3 +17,5 @@ https://github.com/elastic/apm-server/compare/8.9\...main[View commits]
 
 [float]
 ==== Added
+
+- Stop dropping metadata fields from span documents. {pull}11089[11089]
