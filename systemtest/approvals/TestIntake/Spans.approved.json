@@ -31,6 +31,9 @@
                     "name": "lambda"
                 }
             },
+            "container": {
+                "id": "container-id"
+            },
             "data_stream.dataset": "apm",
             "data_stream.namespace": "default",
             "data_stream.type": "traces",
@@ -67,6 +70,16 @@
                     "transfer_size": 30012
                 }
             },
+            "kubernetes": {
+                "namespace": "namespace1",
+                "node": {
+                    "name": "node-name"
+                },
+                "pod": {
+                    "name": "pod-name",
+                    "uid": "pod-uid"
+                }
+            },
             "labels": {
                 "tag1": "label1"
             },
@@ -78,13 +91,39 @@
             "parent": {
                 "id": "abcdef0123456789"
             },
+            "process": {
+                "args": [
+                    "node",
+                    "server.js"
+                ],
+                "parent": {
+                    "pid": 6789
+                },
+                "pid": 1234,
+                "title": "node"
+            },
             "processor": {
                 "event": "span",
                 "name": "transaction"
             },
             "service": {
                 "environment": "staging",
+                "framework": {
+                    "name": "Express",
+                    "version": "1.2.3"
+                },
+                "language": {
+                    "name": "ecmascript",
+                    "version": "8"
+                },
                 "name": "service1",
+                "node": {
+                    "name": "container-id"
+                },
+                "runtime": {
+                    "name": "node",
+                    "version": "8.0.0"
+                },
                 "target": {
                     "name": "testdb",
                     "type": "postgres"
@@ -176,6 +215,12 @@
             },
             "url": {
                 "original": "http://localhost:8000"
+            },
+            "user": {
+                "domain": "ldap://abc",
+                "email": "s@test.com",
+                "id": "123",
+                "name": "john"
             }
         },
         {
@@ -208,6 +253,9 @@
                     "name": "lambda"
                 }
             },
+            "container": {
+                "id": "container-id"
+            },
             "data_stream.dataset": "apm",
             "data_stream.namespace": "default",
             "data_stream.type": "traces",
@@ -227,6 +275,16 @@
                     "platform": "darwin"
                 }
             },
+            "kubernetes": {
+                "namespace": "namespace1",
+                "node": {
+                    "name": "node-name"
+                },
+                "pod": {
+                    "name": "pod-name",
+                    "uid": "pod-uid"
+                }
+            },
             "labels": {
                 "tag1": "label1"
             },
@@ -238,13 +296,39 @@
             "parent": {
                 "id": "ababcdcdefefabde"
             },
+            "process": {
+                "args": [
+                    "node",
+                    "server.js"
+                ],
+                "parent": {
+                    "pid": 6789
+                },
+                "pid": 1234,
+                "title": "node"
+            },
             "processor": {
                 "event": "span",
                 "name": "transaction"
             },
             "service": {
                 "environment": "staging",
+                "framework": {
+                    "name": "Express",
+                    "version": "1.2.3"
+                },
+                "language": {
+                    "name": "ecmascript",
+                    "version": "8"
+                },
                 "name": "backendspans",
+                "node": {
+                    "name": "container-id"
+                },
+                "runtime": {
+                    "name": "node",
+                    "version": "8.0.0"
+                },
                 "version": "5.1.3"
             },
             "span": {
@@ -264,6 +348,12 @@
             },
             "trace": {
                 "id": "abcdef0123456789abcdef9876543210"
+            },
+            "user": {
+                "domain": "ldap://abc",
+                "email": "s@test.com",
+                "id": "123",
+                "name": "john"
             }
         },
         {
@@ -296,6 +386,9 @@
                     "name": "lambda"
                 }
             },
+            "container": {
+                "id": "container-id"
+            },
             "data_stream.dataset": "apm",
             "data_stream.namespace": "default",
             "data_stream.type": "traces",
@@ -315,6 +408,16 @@
                     "platform": "darwin"
                 }
             },
+            "kubernetes": {
+                "namespace": "namespace1",
+                "node": {
+                    "name": "node-name"
+                },
+                "pod": {
+                    "name": "pod-name",
+                    "uid": "pod-uid"
+                }
+            },
             "labels": {
                 "tag1": "value1",
                 "tag4": "true"
@@ -331,13 +434,39 @@
             "parent": {
                 "id": "abcdefabcdef7890"
             },
+            "process": {
+                "args": [
+                    "node",
+                    "server.js"
+                ],
+                "parent": {
+                    "pid": 6789
+                },
+                "pid": 1234,
+                "title": "node"
+            },
             "processor": {
                 "event": "span",
                 "name": "transaction"
             },
             "service": {
                 "environment": "staging",
+                "framework": {
+                    "name": "Express",
+                    "version": "1.2.3"
+                },
+                "language": {
+                    "name": "ecmascript",
+                    "version": "8"
+                },
                 "name": "backendspans",
+                "node": {
+                    "name": "container-id"
+                },
+                "runtime": {
+                    "name": "node",
+                    "version": "8.0.0"
+                },
                 "version": "5.1.3"
             },
             "span": {
@@ -358,6 +487,12 @@
             },
             "transaction": {
                 "id": "ab23456a89012345"
+            },
+            "user": {
+                "domain": "ldap://abc",
+                "email": "s@test.com",
+                "id": "123",
+                "name": "john"
             }
         },
         {
@@ -390,6 +525,9 @@
                     "name": "lambda"
                 }
             },
+            "container": {
+                "id": "container-id"
+            },
             "data_stream.dataset": "apm",
             "data_stream.namespace": "default",
             "data_stream.type": "traces",
@@ -409,6 +547,16 @@
                     "platform": "darwin"
                 }
             },
+            "kubernetes": {
+                "namespace": "namespace1",
+                "node": {
+                    "name": "node-name"
+                },
+                "pod": {
+                    "name": "pod-name",
+                    "uid": "pod-uid"
+                }
+            },
             "labels": {
                 "tag1": "label1"
             },
@@ -420,13 +568,39 @@
             "parent": {
                 "id": "0000000011111111"
             },
+            "process": {
+                "args": [
+                    "node",
+                    "server.js"
+                ],
+                "parent": {
+                    "pid": 6789
+                },
+                "pid": 1234,
+                "title": "node"
+            },
             "processor": {
                 "event": "span",
                 "name": "transaction"
             },
             "service": {
                 "environment": "prod",
+                "framework": {
+                    "name": "Express",
+                    "version": "1.2.3"
+                },
+                "language": {
+                    "name": "ecmascript",
+                    "version": "8"
+                },
                 "name": "backendspans",
+                "node": {
+                    "name": "container-id"
+                },
+                "runtime": {
+                    "name": "node",
+                    "version": "8.0.0"
+                },
                 "version": "5.1.3"
             },
             "span": {
@@ -446,6 +620,12 @@
             },
             "transaction": {
                 "id": "ab45781d265894fe"
+            },
+            "user": {
+                "domain": "ldap://abc",
+                "email": "s@test.com",
+                "id": "123",
+                "name": "john"
             }
         },
         {
@@ -478,6 +658,9 @@
                     "name": "lambda"
                 }
             },
+            "container": {
+                "id": "container-id"
+            },
             "data_stream.dataset": "apm",
             "data_stream.namespace": "default",
             "data_stream.type": "traces",
@@ -498,6 +681,16 @@
                     "platform": "darwin"
                 }
             },
+            "kubernetes": {
+                "namespace": "namespace1",
+                "node": {
+                    "name": "node-name"
+                },
+                "pod": {
+                    "name": "pod-name",
+                    "uid": "pod-uid"
+                }
+            },
             "labels": {
                 "tag1": "label1"
             },
@@ -509,13 +702,39 @@
             "parent": {
                 "id": "abcdef0123456789"
             },
+            "process": {
+                "args": [
+                    "node",
+                    "server.js"
+                ],
+                "parent": {
+                    "pid": 6789
+                },
+                "pid": 1234,
+                "title": "node"
+            },
             "processor": {
                 "event": "span",
                 "name": "transaction"
             },
             "service": {
                 "environment": "staging",
+                "framework": {
+                    "name": "Express",
+                    "version": "1.2.3"
+                },
+                "language": {
+                    "name": "ecmascript",
+                    "version": "8"
+                },
                 "name": "backendspans",
+                "node": {
+                    "name": "container-id"
+                },
+                "runtime": {
+                    "name": "node",
+                    "version": "8.0.0"
+                },
                 "version": "5.1.3"
             },
             "span": {
@@ -544,6 +763,12 @@
             },
             "transaction": {
                 "id": "01af25874dec69dd"
+            },
+            "user": {
+                "domain": "ldap://abc",
+                "email": "s@test.com",
+                "id": "123",
+                "name": "john"
             }
         },
         {
@@ -576,6 +801,9 @@
                 "service": {
                     "name": "lambda"
                 }
+            },
+            "container": {
+                "id": "container-id"
             },
             "data_stream.dataset": "apm",
             "data_stream.namespace": "default",
@@ -613,6 +841,16 @@
                     "transfer_size": 30012
                 }
             },
+            "kubernetes": {
+                "namespace": "namespace1",
+                "node": {
+                    "name": "node-name"
+                },
+                "pod": {
+                    "name": "pod-name",
+                    "uid": "pod-uid"
+                }
+            },
             "labels": {
                 "tag1": "label1"
             },
@@ -624,13 +862,39 @@
             "parent": {
                 "id": "abcdef0123456789"
             },
+            "process": {
+                "args": [
+                    "node",
+                    "server.js"
+                ],
+                "parent": {
+                    "pid": 6789
+                },
+                "pid": 1234,
+                "title": "node"
+            },
             "processor": {
                 "event": "span",
                 "name": "transaction"
             },
             "service": {
                 "environment": "staging",
+                "framework": {
+                    "name": "Express",
+                    "version": "1.2.3"
+                },
+                "language": {
+                    "name": "ecmascript",
+                    "version": "8"
+                },
                 "name": "service1",
+                "node": {
+                    "name": "container-id"
+                },
+                "runtime": {
+                    "name": "node",
+                    "version": "8.0.0"
+                },
                 "target": {
                     "name": "testdb",
                     "type": "postgres"
@@ -722,6 +986,12 @@
             },
             "url": {
                 "original": "http://localhost:8000"
+            },
+            "user": {
+                "domain": "ldap://abc",
+                "email": "s@test.com",
+                "id": "123",
+                "name": "john"
             }
         },
         {
@@ -754,6 +1024,9 @@
                     "name": "lambda"
                 }
             },
+            "container": {
+                "id": "container-id"
+            },
             "data_stream.dataset": "apm",
             "data_stream.namespace": "default",
             "data_stream.type": "traces",
@@ -777,6 +1050,16 @@
                     "platform": "darwin"
                 }
             },
+            "kubernetes": {
+                "namespace": "namespace1",
+                "node": {
+                    "name": "node-name"
+                },
+                "pod": {
+                    "name": "pod-name",
+                    "uid": "pod-uid"
+                }
+            },
             "labels": {
                 "tag1": "label1"
             },
@@ -788,13 +1071,39 @@
             "parent": {
                 "id": "abcdef0123456789"
             },
+            "process": {
+                "args": [
+                    "node",
+                    "server.js"
+                ],
+                "parent": {
+                    "pid": 6789
+                },
+                "pid": 1234,
+                "title": "node"
+            },
             "processor": {
                 "event": "span",
                 "name": "transaction"
             },
             "service": {
                 "environment": "staging",
+                "framework": {
+                    "name": "Express",
+                    "version": "1.2.3"
+                },
+                "language": {
+                    "name": "ecmascript",
+                    "version": "8"
+                },
                 "name": "backendspans",
+                "node": {
+                    "name": "container-id"
+                },
+                "runtime": {
+                    "name": "node",
+                    "version": "8.0.0"
+                },
                 "version": "5.1.3"
             },
             "span": {
@@ -825,6 +1134,12 @@
             },
             "transaction": {
                 "id": "01af25874dec69dd"
+            },
+            "user": {
+                "domain": "ldap://abc",
+                "email": "s@test.com",
+                "id": "123",
+                "name": "john"
             }
         },
         {
@@ -862,6 +1177,9 @@
                     "name": "lambda"
                 }
             },
+            "container": {
+                "id": "container-id"
+            },
             "data_stream.dataset": "apm",
             "data_stream.namespace": "default",
             "data_stream.type": "traces",
@@ -882,6 +1200,16 @@
                     "platform": "darwin"
                 }
             },
+            "kubernetes": {
+                "namespace": "namespace1",
+                "node": {
+                    "name": "node-name"
+                },
+                "pod": {
+                    "name": "pod-name",
+                    "uid": "pod-uid"
+                }
+            },
             "labels": {
                 "tag1": "label1"
             },
@@ -893,13 +1221,39 @@
             "parent": {
                 "id": "abcdef0123456789"
             },
+            "process": {
+                "args": [
+                    "node",
+                    "server.js"
+                ],
+                "parent": {
+                    "pid": 6789
+                },
+                "pid": 1234,
+                "title": "node"
+            },
             "processor": {
                 "event": "span",
                 "name": "transaction"
             },
             "service": {
                 "environment": "staging",
+                "framework": {
+                    "name": "Express",
+                    "version": "1.2.3"
+                },
+                "language": {
+                    "name": "ecmascript",
+                    "version": "8"
+                },
                 "name": "backendspans",
+                "node": {
+                    "name": "container-id"
+                },
+                "runtime": {
+                    "name": "node",
+                    "version": "8.0.0"
+                },
                 "version": "5.1.3"
             },
             "span": {
@@ -921,6 +1275,12 @@
             },
             "transaction": {
                 "id": "01af25874dec69dd"
+            },
+            "user": {
+                "domain": "ldap://abc",
+                "email": "s@test.com",
+                "id": "123",
+                "name": "john"
             }
         },
         {
@@ -953,6 +1313,9 @@
                     "name": "lambda"
                 }
             },
+            "container": {
+                "id": "container-id"
+            },
             "data_stream.dataset": "apm",
             "data_stream.namespace": "default",
             "data_stream.type": "traces",
@@ -978,6 +1341,16 @@
                     "platform": "darwin"
                 }
             },
+            "kubernetes": {
+                "namespace": "namespace1",
+                "node": {
+                    "name": "node-name"
+                },
+                "pod": {
+                    "name": "pod-name",
+                    "uid": "pod-uid"
+                }
+            },
             "labels": {
                 "tag1": "label1"
             },
@@ -989,13 +1362,39 @@
             "parent": {
                 "id": "abcdef0123456789"
             },
+            "process": {
+                "args": [
+                    "node",
+                    "server.js"
+                ],
+                "parent": {
+                    "pid": 6789
+                },
+                "pid": 1234,
+                "title": "node"
+            },
             "processor": {
                 "event": "span",
                 "name": "transaction"
             },
             "service": {
                 "environment": "staging",
+                "framework": {
+                    "name": "Express",
+                    "version": "1.2.3"
+                },
+                "language": {
+                    "name": "ecmascript",
+                    "version": "8"
+                },
                 "name": "backendspans",
+                "node": {
+                    "name": "container-id"
+                },
+                "runtime": {
+                    "name": "node",
+                    "version": "8.0.0"
+                },
                 "target": {
                     "name": "localhost:8080",
                     "type": ""
@@ -1028,6 +1427,12 @@
             },
             "transaction": {
                 "id": "01af25874dec69dd"
+            },
+            "user": {
+                "domain": "ldap://abc",
+                "email": "s@test.com",
+                "id": "123",
+                "name": "john"
             }
         },
         {
@@ -1060,6 +1465,9 @@
                 "service": {
                     "name": "lambda"
                 }
+            },
+            "container": {
+                "id": "container-id"
             },
             "data_stream.dataset": "apm",
             "data_stream.namespace": "default",
@@ -1098,6 +1506,16 @@
                     "transfer_size": 30012
                 }
             },
+            "kubernetes": {
+                "namespace": "namespace1",
+                "node": {
+                    "name": "node-name"
+                },
+                "pod": {
+                    "name": "pod-name",
+                    "uid": "pod-uid"
+                }
+            },
             "labels": {
                 "tag1": "label1"
             },
@@ -1109,13 +1527,39 @@
             "parent": {
                 "id": "abcdef0123456789"
             },
+            "process": {
+                "args": [
+                    "node",
+                    "server.js"
+                ],
+                "parent": {
+                    "pid": 6789
+                },
+                "pid": 1234,
+                "title": "node"
+            },
             "processor": {
                 "event": "span",
                 "name": "transaction"
             },
             "service": {
                 "environment": "staging",
+                "framework": {
+                    "name": "Express",
+                    "version": "1.2.3"
+                },
+                "language": {
+                    "name": "ecmascript",
+                    "version": "8"
+                },
                 "name": "service1",
+                "node": {
+                    "name": "container-id"
+                },
+                "runtime": {
+                    "name": "node",
+                    "version": "8.0.0"
+                },
                 "target": {
                     "type": "postgresql"
                 }
@@ -1206,6 +1650,12 @@
             },
             "url": {
                 "original": "http://localhost:8000"
+            },
+            "user": {
+                "domain": "ldap://abc",
+                "email": "s@test.com",
+                "id": "123",
+                "name": "john"
             }
         }
     ]

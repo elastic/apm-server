@@ -411,6 +411,9 @@
                 "name": "java",
                 "version": "1.10.0-SNAPSHOT"
             },
+            "container": {
+                "id": "8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"
+            },
             "data_stream.dataset": "apm",
             "data_stream.namespace": "default",
             "data_stream.type": "traces",
@@ -447,6 +450,16 @@
                     "transfer_size": 30012
                 }
             },
+            "kubernetes": {
+                "namespace": "default",
+                "node": {
+                    "name": "node-name"
+                },
+                "pod": {
+                    "name": "instrumented-java-service",
+                    "uid": "b17f231da0ad128dc6c6c0b2e82f6f303d3893e3"
+                }
+            },
             "labels": {
                 "ab_testing": "true",
                 "group": "experimental"
@@ -462,13 +475,38 @@
             "parent": {
                 "id": "abcdef0123456789"
             },
+            "process": {
+                "args": [
+                    "-v"
+                ],
+                "parent": {
+                    "pid": 1
+                },
+                "pid": 1234,
+                "title": "/usr/lib/jvm/java-10-openjdk-amd64/bin/java"
+            },
             "processor": {
                 "event": "span",
                 "name": "transaction"
             },
             "service": {
                 "environment": "production",
-                "name": "opbeans-java-1"
+                "framework": {
+                    "name": "spring",
+                    "version": "5.0.0"
+                },
+                "language": {
+                    "name": "Java",
+                    "version": "10.0.2"
+                },
+                "name": "opbeans-java-1",
+                "node": {
+                    "name": "8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"
+                },
+                "runtime": {
+                    "name": "Java",
+                    "version": "10.0.2"
+                }
             },
             "span": {
                 "action": "connect",
