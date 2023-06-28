@@ -26,3 +26,4 @@ processors:
       field: event.success_count
       value: 0
       ignore_failure: true
+  # end of event.success_count logic
