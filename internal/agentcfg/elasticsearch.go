@@ -129,7 +129,15 @@ func (f *ElasticsearchFetcher) Run(ctx context.Context) error {
 	refresh := func() bool {
 		// refresh returns a bool that indicates whether Run should return
 		// immediately without error, e.g. due to invalid Elasticsearch config.
+		tx := f.tracer.StartTransaction("ElasticsearchFetcher.refresh", "")
+		defer tx.End()
+		ctx = apm.ContextWithTransaction(ctx, tx)
+
 		if err := f.refreshCache(ctx); err != nil {
+			if e := apm.CaptureError(ctx, err); e != nil {
+				e.Send()
+			}
+
 			// Do not log as error when there is a fallback.
 			var logFunc func(string, ...interface{})
 			if f.fallbackFetcher == nil {
