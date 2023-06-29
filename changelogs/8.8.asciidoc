@@ -13,7 +13,9 @@ https://github.com/elastic/apm-server/compare/8.7\...8.8[View commits]
 
 https://github.com/elastic/apm-server/compare/v8.8.1\...v8.8.2[View commits]
 
-No significant changes.
+[float]
+==== Bug fixes
+- Added CA certificates bundle to the Docker images {pull}11015[11015]
 
 [float]
 [[release-notes-8.8.1]]
