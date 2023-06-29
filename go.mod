@@ -8,7 +8,7 @@ require (
 	github.com/dgraph-io/badger/v2 v2.2007.3-0.20201012072640-f5a7e0a1c83b
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/apm-data v0.1.1-0.20230628080651-9f67b9cdd993
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230628114039-26827e77650b
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230629140819-59447f67558e
 	github.com/elastic/elastic-agent-client/v7 v7.1.2
 	github.com/elastic/elastic-agent-libs v0.3.9
 	github.com/elastic/elastic-agent-system-metrics v0.6.1
@@ -137,7 +137,7 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.9.0 // indirect
 	golang.org/x/mod v0.10.0 // indirect
-	golang.org/x/sys v0.8.0 // indirect
+	golang.org/x/sys v0.9.0 // indirect
 	golang.org/x/text v0.9.0 // indirect
 	golang.org/x/tools v0.9.3 // indirect
 	google.golang.org/genproto v0.0.0-20230306155012-7f2fa6fef1f4 // indirect
