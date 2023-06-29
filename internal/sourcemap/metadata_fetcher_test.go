@@ -28,6 +28,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.elastic.co/apm/v2/apmtest"
+	"go.elastic.co/apm/v2/transport/transporttest"
 
 	"github.com/elastic/apm-server/internal/elasticsearch"
 	"github.com/elastic/elastic-agent-libs/logp"
@@ -118,8 +119,8 @@ func TestMetadataFetcher(t *testing.T) {
 			ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
 			defer cancel()
 
-			rt := apmtest.NewRecordingTracer()
-			fetcher, _ := NewMetadataFetcher(ctx, esClient, ".apm-source-map", rt.Tracer)
+			tracer, recorder := transporttest.NewRecorderTracer()
+			fetcher, _ := NewMetadataFetcher(ctx, esClient, ".apm-source-map", tracer)
 
 			<-fetcher.ready()
 			if tc.expectErr {
@@ -132,6 +133,10 @@ func TestMetadataFetcher(t *testing.T) {
 			assert.Equal(t, tc.expectID, ok)
 
 			close(waitCh)
+			tracer.Flush(nil)
+
+			assert.Len(t, recorder.Payloads().Transactions, 1)
+			assert.Greater(t, len(recorder.Payloads().Spans), 1)
 		})
 	}
 }
