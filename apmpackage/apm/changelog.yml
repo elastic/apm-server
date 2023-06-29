@@ -1,11 +1,16 @@
 # newer versions go on top
 #
 # change type can be one of: enhancement, bugfix, breaking-change
-- version: "7.17.11"
+- version: "7.17.12"
   changes:
     - description: Placeholder
       type: bugfix
       link: https://github.com/elastic/apm-server/pull/1234
+- version: "7.17.11"
+  changes:
+    - description: fixed the `sampled_traces` data stream's ILM policy name
+      type: bugfix
+      link: https://github.com/elastic/apm-server/pull/10937
 - version: "7.17.6"
   changes:
     - description: Support TLSv1.3 and remove TLSv1.0 in the default TLS supported protocols
