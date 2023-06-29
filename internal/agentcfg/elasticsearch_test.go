@@ -27,6 +27,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	"go.elastic.co/apm/v2/apmtest"
 
 	"github.com/elastic/apm-server/internal/elasticsearch"
 )
@@ -71,6 +72,8 @@ func newElasticsearchFetcher(t testing.TB, hits []map[string]interface{}, search
 	}
 
 	i := 0
+	rt := apmtest.NewRecordingTracer()
+
 	fetcher := NewElasticsearchFetcher(newMockElasticsearchClient(t, 200, func(w io.Writer) {
 		if i < len(hits) {
 			respTmpl["hits"].(map[string]interface{})["hits"] = hits[i : i+searchSize]
@@ -82,7 +85,7 @@ func newElasticsearchFetcher(t testing.TB, hits []map[string]interface{}, search
 		require.NoError(t, err)
 		w.Write(b)
 		i += searchSize
-	}), time.Second, nil)
+	}), time.Second, nil, rt.Tracer)
 	fetcher.searchSize = searchSize
 	return fetcher
 }
@@ -140,6 +143,7 @@ func TestFetchUseFallback(t *testing.T) {
 		newMockElasticsearchClient(t, 404, func(w io.Writer) {}),
 		time.Second,
 		fallbackFetcher,
+		apmtest.NewRecordingTracer().Tracer,
 	)
 
 	fetcher.refreshCache(context.Background())
@@ -152,6 +156,7 @@ func TestFetchNoFallbackInvalidESCfg(t *testing.T) {
 		newMockElasticsearchClient(t, 401, func(w io.Writer) {}),
 		time.Second,
 		nil,
+		apmtest.NewRecordingTracer().Tracer,
 	)
 
 	err := fetcher.refreshCache(context.Background())
@@ -165,6 +170,7 @@ func TestFetchNoFallback(t *testing.T) {
 		newMockElasticsearchClient(t, 500, func(w io.Writer) {}),
 		time.Second,
 		nil,
+		apmtest.NewRecordingTracer().Tracer,
 	)
 
 	err := fetcher.refreshCache(context.Background())
