@@ -27,6 +27,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.elastic.co/apm/v2/apmtest"
 
 	"github.com/elastic/apm-server/internal/elasticsearch"
 	"github.com/elastic/elastic-agent-libs/logp"
@@ -117,7 +118,8 @@ func TestMetadataFetcher(t *testing.T) {
 			ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
 			defer cancel()
 
-			fetcher, _ := NewMetadataFetcher(ctx, esClient, ".apm-source-map")
+			rt := apmtest.NewRecordingTracer()
+			fetcher, _ := NewMetadataFetcher(ctx, esClient, ".apm-source-map", rt.Tracer)
 
 			<-fetcher.ready()
 			if tc.expectErr {
@@ -243,7 +245,8 @@ func TestInvalidation(t *testing.T) {
 			ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
 			defer cancel()
 
-			fetcher, invalidationChan := NewMetadataFetcher(ctx, esClient, ".apm-source-map")
+			rt := apmtest.NewRecordingTracer()
+			fetcher, invalidationChan := NewMetadataFetcher(ctx, esClient, ".apm-source-map", rt.Tracer)
 
 			invCh := make(chan struct{})
 			go func() {

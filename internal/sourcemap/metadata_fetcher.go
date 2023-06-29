@@ -31,6 +31,7 @@ import (
 	"github.com/elastic/apm-server/internal/logs"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/go-elasticsearch/v8/esapi"
+	"go.elastic.co/apm/v2"
 )
 
 type MetadataESFetcher struct {
@@ -43,9 +44,15 @@ type MetadataESFetcher struct {
 	init             chan struct{}
 	initErr          error
 	invalidationChan chan<- []identifier
+	tracer           *apm.Tracer
 }
 
-func NewMetadataFetcher(ctx context.Context, esClient *elasticsearch.Client, index string) (MetadataFetcher, <-chan []identifier) {
+func NewMetadataFetcher(
+	ctx context.Context,
+	esClient *elasticsearch.Client,
+	index string,
+	tracer *apm.Tracer,
+) (MetadataFetcher, <-chan []identifier) {
 	invalidationCh := make(chan []identifier)
 
 	s := &MetadataESFetcher{
@@ -56,6 +63,7 @@ func NewMetadataFetcher(ctx context.Context, esClient *elasticsearch.Client, ind
 		logger:           logp.NewLogger(logs.Sourcemap),
 		init:             make(chan struct{}),
 		invalidationChan: invalidationCh,
+		tracer:           tracer,
 	}
 
 	s.startBackgroundSync(ctx)
