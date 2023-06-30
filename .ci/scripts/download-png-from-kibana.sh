@@ -37,6 +37,11 @@ JOB_PARAMS=$(echo "
 
 png_url_path=$(curl -XPOST -v -L -u "$kibana_user:$kibana_pwd" -H 'kbn-xsrf: true' --data-urlencode "jobParams=${JOB_PARAMS}" $kibana_host/api/reporting/generate/pngV2 | jq -r '.path')
 
+if [[ "$png_url_path" == "null" ]]
+then
+  echo "PNG URL path is null"
+  exit 1
+fi
 
 echo "PNG URL path: $png_url_path"
 
