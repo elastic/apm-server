@@ -27,11 +27,12 @@ import (
 	"sync"
 	"time"
 
+	"go.elastic.co/apm/v2"
+
 	"github.com/elastic/apm-server/internal/elasticsearch"
 	"github.com/elastic/apm-server/internal/logs"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/go-elasticsearch/v8/esapi"
-	"go.elastic.co/apm/v2"
 )
 
 type MetadataESFetcher struct {
