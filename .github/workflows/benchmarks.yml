@@ -137,7 +137,7 @@ jobs:
           vaultUrl: ${{ secrets.VAULT_ADDR }}
           vaultRoleId: ${{ secrets.VAULT_ROLE_ID }}
           vaultSecretId: ${{ secrets.VAULT_SECRET_ID }}
-          slackChannel: "#apm-sever"
+          slackChannel: "#apm-server"
 
       - uses: slackapi/slack-github-action@v1.24.0
         with:
