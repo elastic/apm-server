@@ -618,8 +618,8 @@ github.com/elastic/apm-data v0.1.1-0.20230309014206-3ad1a5caedc9 h1:nj0nBnU3hI/h
 github.com/elastic/apm-data v0.1.1-0.20230309014206-3ad1a5caedc9/go.mod h1:8oEk/myQSw+GHqxPD3e8Oz2qPMawcOH+t9HYZ51p+rE=
 github.com/elastic/bayeux v1.0.5 h1:UceFq01ipmT3S8DzFK+uVAkbCdiPR0Bqei8qIGmUeY0=
 github.com/elastic/bayeux v1.0.5/go.mod h1:CSI4iP7qeo5MMlkznGvYKftp8M7qqP/3nzmVZoXHY68=
-github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230629122104-f333d2549ddc h1:1eDaVaHhylQxWxmLelJPs/mZ/O3rWRwOcX7UHDcdOgI=
-github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230629122104-f333d2549ddc/go.mod h1:tcXxzWhUk5VFq0609QSCUjRrAtf07hMowh6EU4KE9zg=
+github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230629163659-cf6d82889687 h1:T88z7XrKsepwZzoSpPn11G4NNKpbg8L56r+VtCf/pv4=
+github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230629163659-cf6d82889687/go.mod h1:tcXxzWhUk5VFq0609QSCUjRrAtf07hMowh6EU4KE9zg=
 github.com/elastic/elastic-agent-autodiscover v0.5.0 h1:fiDJQKB148RsRISqqbGINtJ/ZPupeVjwn0fbPz9ZDOc=
 github.com/elastic/elastic-agent-autodiscover v0.5.0/go.mod h1:p3MSf9813JEnolCTD0GyVAr3+Eptg2zQ9aZVFjl4tJ4=
 github.com/elastic/elastic-agent-client/v7 v7.1.2 h1:p6KvvDMoFCBPvchxcx9cRXpRjsDaii0m/wE3lqQxpmM=
