@@ -132,16 +132,14 @@ jobs:
         uses: elastic/apm-pipeline-library/.github/actions/notify-build-status@current
         with:
           message: |
-            Nightly benchmarks failed!
+            ${{ github.event_name == 'schedule' && 'Nightly benchmarks failed!' || 'Benchmarks failed!' }}
             SDH Duty assignee, please have a look and follow this <https://github.com/elastic/observability-dev/blob/main/docs/apm/apm-server/runbooks/benchmarks.md|Runbook>!
           vaultUrl: ${{ secrets.VAULT_ADDR }}
           vaultRoleId: ${{ secrets.VAULT_ROLE_ID }}
           vaultSecretId: ${{ secrets.VAULT_SECRET_ID }}
           slackChannel: "#apm-sever"
 
-      - name: Post to a Slack channel
-        id: slack
-        uses: slackapi/slack-github-action@v1.24.0
+      - uses: slackapi/slack-github-action@v1.24.0
         with:
           channel-id: "#apm-server"
           payload: |
