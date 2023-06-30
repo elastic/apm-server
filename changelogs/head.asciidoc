@@ -17,3 +17,4 @@ https://github.com/elastic/apm-server/compare/8.9\...main[View commits]
 
 [float]
 ==== Added
+- Add a transaction to the source map periodic refresh action. {pull}11116[11116]
