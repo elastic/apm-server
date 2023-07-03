@@ -29,6 +29,7 @@ func NewAggregator(
 	ctx context.Context,
 	nextProcessor modelpb.BatchProcessor,
 ) (*Aggregator, error) {
+	// TODO(carsonip): Respect apm-server log config
 	var apmzapCore apmzap.Core
 	encoderCfg := ecszap.NewDefaultEncoderConfig()
 	level := zap.NewAtomicLevelAt(zapcore.DebugLevel)
@@ -39,7 +40,6 @@ func NewAggregator(
 	if err != nil {
 		return nil, err
 	}
-	defer os.RemoveAll(dir)
 	baseaggregator, err := aggregators.New(aggregators.AggregatorConfig{
 		DataDir: dir,
 		// TODO(carsonip): Use limits from config
