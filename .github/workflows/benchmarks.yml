@@ -82,7 +82,12 @@ jobs:
         run: make apmbench $SSH_KEY terraform.tfvars
 
       - name: Spin up benchmark environment
-        run: make docker-override-committed-version init apply; echo "-> infra setup done"
+        id: deploy
+        run: |
+          make docker-override-committed-version init apply
+          admin_console_url=$(terraform output -raw admin_console_url)
+          echo "admin_console_url=$admin_console_url" >> "$GITHUB_OUTPUT"
+          echo "-> infra setup done"
 
       - name: Run benchmarks
         run: make run-benchmark-autotuned index-benchmark-results
@@ -141,29 +146,50 @@ jobs:
           channel-id: "#apm-server"
           payload: |
             {
-            	"blocks": [
-            		{
-            			"type": "section",
-            			"text": {
-            				"type": "mrkdwn",
-            				"text": "Nightly benchmarks succesfully executed"
-            			},
-            			"accessory": {
-            				"type": "button",
-            				"style": "primary",
-            				"text": {
-            					"type": "plain_text",
-            					"text": "Workflow Run #${{ github.run_id }}",
-            					"emoji": true
-            				},
-            				"url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}",
-            				"action_id": "button-action"
-            			}
-            		},
-            		{
-            			"type": "image",
-            			"image_url": "${{ steps.s3-upload-png.outputs.png_report_url }}",
-            			"alt_text": "kibana-png-report"
-            		}
-            	]
+                "blocks": [
+                    {
+                        "type": "section",
+                        "text": {
+                            "type": "mrkdwn",
+                            "text": "Nightly benchmarks succesfully executed"
+                        },
+                        "accessory": {
+                            "type": "button",
+                            "style": "primary",
+                            "text": {
+                                "type": "plain_text",
+                                "text": "Workflow Run #${{ github.run_id }}",
+                                "emoji": true
+                            },
+                            "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}",
+                            "action_id": "workflow-run-button"
+                        }
+                    },
+                    {
+                        "type": "image",
+                        "image_url": "${{ steps.s3-upload-png.outputs.png_report_url }}",
+                        "alt_text": "kibana-png-report"
+                    },
+                    {
+                        "type": "section",
+                        "accessory": {
+                            "type": "button",
+                            "text": {
+                                "type": "plain_text",
+                                "text": "Benchmarks dashboard"
+                            },
+                            "url": "${{ env.KIBANA_DASHBOARD_URL }}",
+                            "action_id": "kibana-dashboard-button"
+                        },
+                        "accessory": {
+                            "type": "button",
+                            "text": {
+                                "type": "plain_text",
+                                "text": "Elastic Cloud deployment"
+                            },
+                            "url": "${{ steps.deploy.outputs.admin_console_url }}",
+                            "action_id": "admin-console-button"
+                        }
+                    }
+                ]
             }
