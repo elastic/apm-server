@@ -407,7 +407,13 @@ func (s *Runner) Run(ctx context.Context) error {
 		finalBatchProcessor,
 	}
 
-	agentConfigFetcher, fetcherRunFunc, err := newAgentConfigFetcher(ctx, s.config, kibanaClient, newElasticsearchClient)
+	agentConfigFetcher, fetcherRunFunc, err := newAgentConfigFetcher(
+		ctx,
+		s.config,
+		kibanaClient,
+		newElasticsearchClient,
+		tracer,
+	)
 	if err != nil {
 		return err
 	}
