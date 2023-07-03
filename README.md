@@ -63,6 +63,19 @@ APM Server expects index templates, ILM policies, and ingest pipelines to be set
 This should be done by [installing the APM integration](https://www.elastic.co/guide/en/fleet/current/fleet-quick-start-traces.html#add-apm-integration).
 When running APM Server directly, it is only necessary to install the integration and not to run an Elastic Agent.
 
+#### Tilt
+
+You can also run APM Server in a containerized environment using
+[Tilt](https://tilt.dev/).
+
+```
+tilt up
+```
+
+See [dev docs
+testing](https://github.com/elastic/apm-server/blob/5f247b3f66b0fab04381eee5a53e676dba030937/dev_docs/TESTING.md#tilt--kubernetes)
+for additional information.
+
 ### Testing
 
 For Testing check out the [testing guide](dev_docs/TESTING.md)
@@ -140,4 +153,5 @@ Building pre-release images can be done by running `make package-docker-snapshot
 
 ## Documentation
 
-[Documentation](https://www.elastic.co/guide/en/apm/server/current/index.html) for the APM Server can be found in the `docs` folder.
+[Documentation](https://www.elastic.co/guide/en/apm/server/current/index.html)
+for the APM Server can be found in the `docs` and `dev_docs` folders.
