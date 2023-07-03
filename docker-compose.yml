@@ -1,3 +1,8 @@
+#
+# This configuration is used for systemtests
+# For manual testing, you should probably prefer using Tilt.
+# See https://github.com/elastic/apm-server/blob/main/dev_docs/TESTING.md#tilt--kubernetes
+#
 version: '3.9'
 x-logging: &default-logging
   driver: "json-file"
