@@ -28,6 +28,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.elastic.co/apm/v2/apmtest"
 
 	"github.com/elastic/apm-server/internal/beater/config"
 	"github.com/elastic/apm-server/internal/elasticsearch"
@@ -61,6 +62,7 @@ func TestStoreUsesRUMElasticsearchConfig(t *testing.T) {
 	_, cancel, err := newSourcemapFetcher(
 		cfg.RumConfig.SourceMapping,
 		nil, elasticsearch.NewClient,
+		apmtest.NewRecordingTracer().Tracer,
 	)
 	require.NoError(t, err)
 	defer cancel()
