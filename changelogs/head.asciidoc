@@ -17,5 +17,5 @@ https://github.com/elastic/apm-server/compare/8.9\...main[View commits]
 
 [float]
 ==== Added
-
+- Add a self-instrumentation transaction to the source map periodic refresh action. {pull}11116[11116]
 - Stop dropping metadata fields from span documents. {pull}11089[11089]
