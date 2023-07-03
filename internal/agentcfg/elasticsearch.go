@@ -95,6 +95,7 @@ func NewElasticsearchFetcher(
 		searchSize:        100,
 		logger:            logger,
 		rateLimitedLogger: logger.WithOptions(logs.WithRateLimit(loggerRateLimit)),
+		tracer:            tracer,
 	}
 }
 
@@ -200,6 +201,9 @@ type cacheResult struct {
 }
 
 func (f *ElasticsearchFetcher) refreshCache(ctx context.Context) (err error) {
+	span := apm.TransactionFromContext(ctx).StartSpan("ElasticsearchFetcher.refreshCache", "", nil)
+	defer span.End()
+
 	scrollID := ""
 	buffer := make([]AgentConfig, 0, len(f.cache))
 
