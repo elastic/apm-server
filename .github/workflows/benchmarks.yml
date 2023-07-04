@@ -1,6 +1,7 @@
 name: benchmarks
 
 on:
+  workflow_dispatch:
   schedule:
     - cron: '0 17 * * *'
 
@@ -149,7 +150,7 @@ jobs:
                         "type": "section",
                         "text": {
                             "type": "mrkdwn",
-                            "text": "Nightly benchmarks succesfully executed"
+                            "text": "${{ github.event_name == 'schedule' && 'Nightly succesfully executed!' || 'Benchmarks succesfully executed!' }}"
                         },
                         "accessory": {
                             "type": "button",
