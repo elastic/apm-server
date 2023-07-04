@@ -27,19 +27,3 @@ processors:
       value: 0
       ignore_failure: true
   # end of event.success_count logic
-  - remove:
-      # Remove some metadata from spans that is available in the parent transaction, to cut down on storage costs.
-      if: ctx.processor?.event == 'span'
-      field:
-        - process
-        - user
-        - user_agent
-        - container
-        - kubernetes
-        - service.node
-        - service.language
-        - service.runtime
-        - service.framework
-      ignore_missing: true
-      ignore_failure: true
-
