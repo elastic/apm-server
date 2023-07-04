@@ -34,12 +34,27 @@
             "parent": {
                 "id": "0000000000000001"
             },
+            "process": {
+                "pid": 1,
+                "title": "systemtest.test"
+            },
             "processor": {
                 "event": "span",
                 "name": "transaction"
             },
             "service": {
+                "language": {
+                    "name": "go",
+                    "version": "2.0"
+                },
                 "name": "systemtest",
+                "node": {
+                    "name": "beowulf"
+                },
+                "runtime": {
+                    "name": "gc",
+                    "version": "2.0"
+                },
                 "target": {
                     "type": "redis"
                 }
@@ -111,12 +126,27 @@
             "parent": {
                 "id": "0000000000000001"
             },
+            "process": {
+                "pid": 1,
+                "title": "systemtest.test"
+            },
             "processor": {
                 "event": "span",
                 "name": "transaction"
             },
             "service": {
+                "language": {
+                    "name": "go",
+                    "version": "2.0"
+                },
                 "name": "systemtest",
+                "node": {
+                    "name": "beowulf"
+                },
+                "runtime": {
+                    "name": "gc",
+                    "version": "2.0"
+                },
                 "target": {
                     "type": "elasticsearch"
                 }

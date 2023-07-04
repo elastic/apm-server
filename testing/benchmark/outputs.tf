@@ -34,3 +34,8 @@ output "apm_server_url" {
   value       = module.ec_deployment.apm_url
   description = "The APM Server URL"
 }
+
+output "admin_console_url" {
+  value       = module.ec_deployment.admin_console_url
+  description = "The admin console URL"
+}

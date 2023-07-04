@@ -340,6 +340,7 @@ func (s *Runner) Run(ctx context.Context) error {
 		fetcher, cancel, err := newSourcemapFetcher(
 			s.config.RumConfig.SourceMapping,
 			kibanaClient, newElasticsearchClient,
+			tracer,
 		)
 		if err != nil {
 			return err
@@ -406,7 +407,13 @@ func (s *Runner) Run(ctx context.Context) error {
 		finalBatchProcessor,
 	}
 
-	agentConfigFetcher, fetcherRunFunc, err := newAgentConfigFetcher(ctx, s.config, kibanaClient, newElasticsearchClient)
+	agentConfigFetcher, fetcherRunFunc, err := newAgentConfigFetcher(
+		ctx,
+		s.config,
+		kibanaClient,
+		newElasticsearchClient,
+		tracer,
+	)
 	if err != nil {
 		return err
 	}
@@ -839,6 +846,7 @@ func newSourcemapFetcher(
 	cfg config.SourceMapping,
 	kibanaClient *kibana.Client,
 	newElasticsearchClient func(*elasticsearch.Config) (*elasticsearch.Client, error),
+	tracer *apm.Tracer,
 ) (sourcemap.Fetcher, context.CancelFunc, error) {
 	esClient, err := newElasticsearchClient(cfg.ESConfig)
 	if err != nil {
@@ -849,7 +857,7 @@ func newSourcemapFetcher(
 
 	// start background sync job
 	ctx, cancel := context.WithCancel(context.Background())
-	metadataFetcher, invalidationChan := sourcemap.NewMetadataFetcher(ctx, esClient, sourcemapIndex)
+	metadataFetcher, invalidationChan := sourcemap.NewMetadataFetcher(ctx, esClient, sourcemapIndex, tracer)
 
 	esFetcher := sourcemap.NewElasticsearchFetcher(esClient, sourcemapIndex)
 	size := 128
