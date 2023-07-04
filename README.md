@@ -16,7 +16,7 @@ To get started with APM, see our [Quick start guide](https://www.elastic.co/guid
 
 ### Requirements
 
-* [Go][golang-download] 1.19.x
+* [Go][golang-download] 1.20.x
 
 [golang-download]: https://golang.org/dl/
 
