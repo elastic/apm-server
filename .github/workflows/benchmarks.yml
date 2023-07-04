@@ -171,25 +171,27 @@ jobs:
                         "alt_text": "kibana-png-report"
                     },
                     {
-                        "type": "section",
-                        "accessory": {
-                            "type": "button",
-                            "text": {
-                                "type": "plain_text",
-                                "text": "Benchmarks dashboard"
+                        "type": "actions",
+                        "elements": [
+                            {
+                                "type": "button",
+                                "text": {
+                                    "type": "plain_text",
+                                    "text": "Benchmarks dashboard"
+                                },
+                                "url": "${{ env.KIBANA_DASHBOARD_URL }}",
+                                "action_id": "kibana-dashboard-button"
                             },
-                            "url": "${{ env.KIBANA_DASHBOARD_URL }}",
-                            "action_id": "kibana-dashboard-button"
-                        },
-                        "accessory": {
-                            "type": "button",
-                            "text": {
-                                "type": "plain_text",
-                                "text": "Elastic Cloud deployment"
-                            },
-                            "url": "${{ steps.deploy.outputs.admin_console_url }}",
-                            "action_id": "admin-console-button"
-                        }
+                            {
+                                "type": "button",
+                                "text": {
+                                    "type": "plain_text",
+                                    "text": "Elastic Cloud deployment"
+                                },
+                                "url": "${{ steps.deploy.outputs.admin_console_url }}",
+                                "action_id": "admin-console-button"
+                            }
+                        ]
                     }
                 ]
             }
