@@ -12,7 +12,6 @@ require (
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/jaegertracing/jaeger v1.18.1
 	github.com/klauspost/compress v1.11.13
-	github.com/mitchellh/mapstructure v1.1.2
 	github.com/spf13/cobra v1.1.3
 	github.com/stretchr/testify v1.8.1
 	github.com/testcontainers/testcontainers-go v0.18.0
