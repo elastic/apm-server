@@ -48,7 +48,6 @@ jobs:
           BENCHMARK_CLOUD_CREDENTIALS_PATH: secret/observability-team/ci/benchmark-cloud
           EC_CREDENTIALS_PATH: secret/observability-team/ci/elastic-cloud/observability-pro
           KIBANA_CREDENTIALS_PATH: secret/observability-team/ci/apm-benchmark-kibana
-          SLACK_CREDENTIALS_PATH: secret/observability-team/ci/stack-integartion-token
         with:
           url: ${{ secrets.VAULT_ADDR }}
           roleId: ${{ secrets.VAULT_ROLE_ID }}
