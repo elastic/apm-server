@@ -65,7 +65,6 @@ jobs:
             ${{ env.KIBANA_CREDENTIALS_PATH }} password | KIBANA_PASSWORD ;
             ${{ env.KIBANA_CREDENTIALS_PATH }} kibana_url | KIBANA_ENDPOINT ;
             ${{ env.KIBANA_CREDENTIALS_PATH }} kibana_dashboard_url | KIBANA_DASHBOARD_URL ;
-            ${{ env.SLACK_CREDENTIALS_PATH }} integration_token | SLACK_BOT_TOKEN ;
 
       - uses: elastic/apm-pipeline-library/.github/actions/docker-login@main
         with:
@@ -140,9 +139,12 @@ jobs:
           vaultSecretId: ${{ secrets.VAULT_SECRET_ID }}
           slackChannel: "#apm-server"
 
-      - uses: slackapi/slack-github-action@v1.24.0
+      - uses: elastic/apm-pipeline-library/.github/actions/slack-message@current
         with:
-          channel-id: "#apm-server"
+          url: ${{ secrets.VAULT_ADDR }}
+          roleId: ${{ secrets.VAULT_ROLE_ID }}
+          secretId: ${{ secrets.VAULT_SECRET_ID }}
+          channel: "#apm-server"
           payload: |
             {
                 "blocks": [
