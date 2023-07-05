@@ -99,15 +99,25 @@ func newElasticsearchFetcher(
 func TestRun(t *testing.T) {
 	rt := apmtest.NewRecordingTracer()
 	fetcher := newElasticsearchFetcher(t, sampleHits, 2, rt.Tracer)
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+
+	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
+	go func() {
+		err := fetcher.Run(ctx)
+		assert.Equal(t, context.Canceled, err)
+	}()
 
-	err := fetcher.Run(ctx)
-	assert.Equal(t, context.DeadlineExceeded, err)
+	assert.Eventually(t, func() bool {
+		rt.Tracer.Flush(nil)
+		payloads := rt.Payloads()
+		return len(payloads.Transactions) == 1 && len(payloads.Spans) == 3
+	}, 10*time.Second, 10*time.Millisecond)
 
-	rt.Tracer.Flush(nil)
-	assert.Len(t, rt.Payloads().Transactions, 1)
-	assert.Greater(t, len(rt.Payloads().Spans), 1)
+	payloads := rt.Payloads()
+	assert.Equal(t, "ElasticsearchFetcher.refresh", payloads.Transactions[0].Name)
+	assert.Equal(t, "Elasticsearch: POST .apm-agent-configuration/_search", payloads.Spans[0].Name)
+	assert.Equal(t, "Elasticsearch: POST _search/scroll", payloads.Spans[1].Name)
+	assert.Equal(t, "ElasticsearchFetcher.refreshCache", payloads.Spans[2].Name)
 }
 
 func TestFetch(t *testing.T) {
