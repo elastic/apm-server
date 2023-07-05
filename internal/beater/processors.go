@@ -84,6 +84,17 @@ func newObserverBatchProcessor() modelpb.ProcessBatchFunc {
 	}
 }
 
+// TODO remove this once we have added `event.received` to the
+// data stream mappings, in 8.10.
+func removeEventReceivedBatchProcessor(ctx context.Context, batch *modelpb.Batch) error {
+	for _, event := range *batch {
+		if event.Event != nil && event.Event.Received != nil {
+			event.Event.Received = nil
+		}
+	}
+	return nil
+}
+
 func newDocappenderBatchProcessor(a *docappender.Appender) modelpb.ProcessBatchFunc {
 	var pool sync.Pool
 	pool.New = func() any {
