@@ -461,7 +461,7 @@ func makeOverflowAggregationKey(
 func makeTransactionAggregationKey(event *modelpb.APMEvent, interval time.Duration) transactionAggregationKey {
 	key := transactionAggregationKey{
 		comparable: comparable{
-			traceRoot:         event.GetParent().GetId() == "",
+			traceRoot:         event.GetParentId() == "",
 			transactionName:   event.GetTransaction().GetName(),
 			transactionResult: event.GetTransaction().GetResult(),
 			transactionType:   event.GetTransaction().GetType(),
