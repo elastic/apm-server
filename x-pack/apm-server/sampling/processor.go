@@ -227,7 +227,7 @@ func (p *Processor) processTransaction(event *modelpb.APMEvent) (report, stored 
 		return false, false, err
 	}
 
-	if event.GetParent().GetId() != "" {
+	if event.GetParentId() != "" {
 		// Non-root transaction: write to local storage while we wait
 		// for a sampling decision.
 		return false, true, p.eventStore.WriteTraceEvent(
