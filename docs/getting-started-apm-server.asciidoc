@@ -329,6 +329,7 @@ An internet connection is required to install the APM integration via the {fleet
 . Click **Add Elastic Agent later**. You do not need to run an {agent} to complete the setup.
 ====
 
+// tag::install-apm-integration-no-internet[]
 [%collapsible]
 .**If you don't have an internet connection**
 ====
@@ -360,6 +361,7 @@ POST kbn:/api/fleet/epm/packages/apm/{version}
 +
 See {kibana-ref}/api.html[Kibana API] to learn more about how to use the Kibana APIs.
 ====
+// end::install-apm-integration-no-internet[]
 // end::install-apm-integration[]
 
 [float]
@@ -496,6 +498,14 @@ For more information, refer to {fleet-guide}/fleet-server.html[{fleet-server}].
 ==== Step 2: Add and configure the APM integration
 
 include::{obs-repo-dir}/observability/tab-widgets/add-apm-integration/content.asciidoc[tag=self-managed]
+
+****
+An internet connection is required to install the APM integration via the Fleet UI in Kibana.
+
+--
+include::{docdir}/getting-started-apm-server.asciidoc[tag=install-apm-integration-no-internet]
+--
+****
 
 ==== Step 3: Install APM agents
 
