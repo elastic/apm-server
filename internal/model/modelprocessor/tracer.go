@@ -20,18 +20,19 @@ package modelprocessor
 import (
 	"context"
 
-	"github.com/elastic/apm-data/model/modelpb"
 	"go.elastic.co/apm/v2"
+
+	"github.com/elastic/apm-data/model/modelpb"
 )
 
-// TracerStart is a model.BatchProcessor that wraps another processor within a
+// Tracer is a model.BatchProcessor that wraps another processor within a
 // transaction.
 type Tracer struct {
 	sName     string
 	processor modelpb.BatchProcessor
 }
 
-// NewTracerStart returns a Tracer that emits transactions for batches processed.
+// NewTracer returns a Tracer that emits transactions for batches processed.
 func NewTracer(n string, p modelpb.BatchProcessor) *Tracer {
 	return &Tracer{
 		sName:     n,

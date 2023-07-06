@@ -22,10 +22,11 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/stretchr/testify/assert"
 	"go.elastic.co/apm/v2"
 	"go.elastic.co/apm/v2/apmtest"
+
+	"github.com/elastic/apm-data/model/modelpb"
 )
 
 func TestTracer(t *testing.T) {
