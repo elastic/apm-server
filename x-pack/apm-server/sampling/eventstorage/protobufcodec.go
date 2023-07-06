@@ -5,8 +5,6 @@
 package eventstorage
 
 import (
-	"google.golang.org/protobuf/proto"
-
 	"github.com/elastic/apm-data/model/modelpb"
 )
 
@@ -15,10 +13,10 @@ type ProtobufCodec struct{}
 
 // DecodeEvent decodes data as protobuf into event.
 func (ProtobufCodec) DecodeEvent(data []byte, event *modelpb.APMEvent) error {
-	return proto.Unmarshal(data, event)
+	return event.UnmarshalVT(data)
 }
 
 // EncodeEvent encodes event as protobuf.
 func (ProtobufCodec) EncodeEvent(event *modelpb.APMEvent) ([]byte, error) {
-	return proto.Marshal(event)
+	return event.MarshalVT()
 }
