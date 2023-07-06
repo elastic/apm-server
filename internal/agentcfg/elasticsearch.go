@@ -201,7 +201,7 @@ type cacheResult struct {
 }
 
 func (f *ElasticsearchFetcher) refreshCache(ctx context.Context) (err error) {
-	span := apm.TransactionFromContext(ctx).StartSpan("ElasticsearchFetcher.refreshCache", "", nil)
+	span, ctx := apm.StartSpan(ctx, "ElasticsearchFetcher.refreshCache", "")
 	defer span.End()
 
 	scrollID := ""

@@ -387,7 +387,7 @@ func (s *Runner) Run(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	batchProcessor := modelprocessor.Chained{
+	batchProcessor := srvmodelprocessor.NewTracer("beater.ProcessBatch", modelprocessor.Chained{
 		// Ensure all events have observer.*, ecs.*, and data_stream.* fields added,
 		// and are counted in metrics. This is done in the final processors to ensure
 		// aggregated metrics are also processed.
@@ -405,7 +405,7 @@ func (s *Runner) Run(ctx context.Context) error {
 			transactionsDroppedCounter.Add(i)
 		}),
 		finalBatchProcessor,
-	}
+	})
 
 	agentConfigFetcher, fetcherRunFunc, err := newAgentConfigFetcher(
 		ctx,
@@ -466,6 +466,10 @@ func (s *Runner) Run(ctx context.Context) error {
 		// processor chain.
 		modelpb.ProcessBatchFunc(rateLimitBatchProcessor),
 		modelpb.ProcessBatchFunc(authorizeEventIngestProcessor),
+
+		// Add a model processor that removes `event.received`, which is added by
+		// apm-data, but which we don't yet map.
+		modelpb.ProcessBatchFunc(removeEventReceivedBatchProcessor),
 
 		// Pre-process events before they are sent to the final processors for
 		// aggregation, sampling, and indexing.
