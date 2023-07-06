@@ -1,0 +1,82 @@
+{
+  "@timestamp": "2022-02-28T13:41:14.594Z",
+  "agent": {
+    "name": "ruby",
+    "version": "4.5.0"
+  },
+  "data_stream": {
+    "dataset": "apm.internal",
+    "namespace": "default",
+    "type": "metrics"
+  },
+  "ecs": {
+    "version": "8.6.0-dev"
+  },
+  "event": {
+    "agent_id_status": "missing",
+    "ingested": "2023-06-20T09:45:03Z"
+  },
+  "host": {
+    "architecture": "x86_64",
+    "hostname": "19887b56414b",
+    "ip": "127.0.0.1",
+    "name": "19887b56414b",
+    "os": {
+      "platform": "linux"
+    }
+  },
+  "metricset": {
+    "name": "span_breakdown"
+  },
+  "observer": {
+    "hostname": "hostname",
+    "type": "apm-server",
+    "version": "8.8.2"
+  },
+  "process": {
+    "args": [
+      "-C",
+      "config/puma.rb"
+    ],
+    "pid": 150,
+    "title": "/usr/local/bundle/bin/puma"
+  },
+  "processor": {
+    "event": "metric",
+    "name": "metric"
+  },
+  "service": {
+    "environment": "production",
+    "framework": {
+      "name": "Ruby on Rails",
+      "version": "6.1.4.1"
+    },
+    "language": {
+      "name": "ruby",
+      "version": "2.7.3"
+    },
+    "name": "opbeans-ruby",
+    "node": {
+      "name": "19887b56414b"
+    },
+    "runtime": {
+      "name": "ruby",
+      "version": "2.7.3"
+    },
+    "version": "None"
+  },
+  "span": {
+    "self_time": {
+      "count": 1,
+      "sum": {
+        "us": 3473
+      }
+    },
+    "subtype": "controller",
+    "type": "app"
+  },
+  "transaction": {
+    "name": "Api::OrdersController#create",
+    "type": "request"
+  }
+}

@@ -1,14 +1,14 @@
 module github.com/elastic/apm-server
 
-go 1.19
+go 1.20
 
 require (
 	github.com/axiomhq/hyperloglog v0.0.0-20230201085229-3ddf4bad03dc
 	github.com/cespare/xxhash/v2 v2.2.0
 	github.com/dgraph-io/badger/v2 v2.2007.3-0.20201012072640-f5a7e0a1c83b
 	github.com/dustin/go-humanize v1.0.1
-	github.com/elastic/apm-data v0.1.1-0.20230614083312-a0d42115e6b7
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230614101022-4a16c6a58cfa
+	github.com/elastic/apm-data v0.1.1-0.20230705050140-e5828f1f7c8f
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230705124902-8597ca78aba6
 	github.com/elastic/elastic-agent-client/v7 v7.1.2
 	github.com/elastic/elastic-agent-libs v0.3.9
 	github.com/elastic/elastic-agent-system-metrics v0.6.1
@@ -40,19 +40,19 @@ require (
 	github.com/ryanuber/go-glob v1.0.0
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/pflag v1.0.5
-	github.com/stretchr/testify v1.8.2
+	github.com/stretchr/testify v1.8.3
 	go.elastic.co/apm/module/apmelasticsearch/v2 v2.4.1
 	go.elastic.co/apm/module/apmgorilla/v2 v2.2.0
 	go.elastic.co/apm/module/apmgrpc/v2 v2.2.0
 	go.elastic.co/apm/module/apmhttp/v2 v2.4.1
 	go.elastic.co/apm/v2 v2.4.1
-	go.elastic.co/fastjson v1.1.0
+	go.elastic.co/fastjson v1.3.0
 	go.opentelemetry.io/collector v0.63.1
 	go.opentelemetry.io/collector/pdata v1.0.0-rcv0011
 	go.uber.org/automaxprocs v1.5.1
 	go.uber.org/zap v1.24.0
 	golang.org/x/net v0.10.0
-	golang.org/x/sync v0.1.0
+	golang.org/x/sync v0.2.0
 	golang.org/x/term v0.8.0
 	golang.org/x/time v0.3.0
 	google.golang.org/grpc v1.54.0
@@ -136,10 +136,10 @@ require (
 	go.uber.org/atomic v1.10.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.9.0 // indirect
-	golang.org/x/mod v0.9.0 // indirect
-	golang.org/x/sys v0.8.0 // indirect
+	golang.org/x/mod v0.10.0 // indirect
+	golang.org/x/sys v0.9.0 // indirect
 	golang.org/x/text v0.9.0 // indirect
-	golang.org/x/tools v0.7.0 // indirect
+	golang.org/x/tools v0.9.3 // indirect
 	google.golang.org/genproto v0.0.0-20230306155012-7f2fa6fef1f4 // indirect
 	gopkg.in/jcmturner/aescts.v1 v1.0.1 // indirect
 	gopkg.in/jcmturner/dnsutils.v1 v1.0.1 // indirect

@@ -21,7 +21,7 @@ get_versions() {
 }
 
 get_latest_patch() {
-    LATEST_PATCH=$(echo ${VERSIONS} | jq -r -c "[.[] | select(. |startswith(\"${1}\"))] | last" | cut -d '.' -f3)
+    LATEST_PATCH=$(echo ${VERSIONS} | jq -r -c "max_by(. | select(. | startswith(\"${1}\")) | if endswith(\"-SNAPSHOT\") then .[:-9] else . end | split(\".\") | map(tonumber))" | cut -d '.' -f3)
 }
 
 get_latest_snapshot() {
@@ -344,19 +344,25 @@ data_stream_assert_pipelines() {
 data_stream_assert_templates_ilm() {
     echo "-> Asserting component templates and ILM policies..."
     local SUCCESS=true
+    local VERSION=${1}
 
     local COMPOSABLE_TEMPLATES=($(elasticsearch_curl "/_component_template" | jq -c -r '.component_templates|to_entries[]|select(.value.component_template._meta.package.name == "apm")|.value'))
     for ct in "${COMPOSABLE_TEMPLATES[@]}"; do
         local CT_NAME=$(echo "${ct}" | jq -r '.name')
         local ILM_POLICY_NAME=$(echo "${ct}" | jq -r '.component_template.template.settings.index.lifecycle.name // empty')
         if [[ ! -z "${ILM_POLICY_NAME}" ]]; then
-            # Component template has ILM policy attached, check if ILM policy actually exists.
-            local RES
-            local RC=0
-            RES=$(elasticsearch_curl "/_ilm/policy/${ILM_POLICY_NAME}") || RC=$?
-            if [ $RC -ne 0 ]; then
-                echo "-> ILM policy ${ILM_POLICY_NAME} error: ${RES}"
-                SUCCESS=false
+            # ignore tail based sampling ILM policy for 7.x
+            if [ "${ILM_POLICY_NAME}" = "traces-apm.sampled-default_policy" ] && [ "${VERSION}" != "${VERSION#7.}" ]; then
+                SUCCESS=true
+            else
+                # Component template has ILM policy attached, check if ILM policy actually exists.
+                local RES
+                local RC=0
+                RES=$(elasticsearch_curl "/_ilm/policy/${ILM_POLICY_NAME}") || RC=$?
+                if [ $RC -ne 0 ]; then
+                    echo "-> ILM policy ${ILM_POLICY_NAME} error: ${RES}"
+                    SUCCESS=false
+                fi
             fi
         elif [[ $CT_NAME == *@package ]]; then
             # @package component templates should always have ILM policy.

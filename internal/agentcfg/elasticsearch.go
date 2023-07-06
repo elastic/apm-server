@@ -28,6 +28,7 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	"go.elastic.co/apm/v2"
 
 	"github.com/elastic/apm-server/internal/elasticsearch"
 	"github.com/elastic/apm-server/internal/logs"
@@ -70,6 +71,7 @@ type ElasticsearchFetcher struct {
 
 	logger, rateLimitedLogger *logp.Logger
 
+	tracer  *apm.Tracer
 	metrics fetcherMetrics
 }
 
@@ -79,7 +81,12 @@ type fetcherMetrics struct {
 	cacheEntriesCount atomic.Int64
 }
 
-func NewElasticsearchFetcher(client *elasticsearch.Client, cacheDuration time.Duration, fetcher Fetcher) *ElasticsearchFetcher {
+func NewElasticsearchFetcher(
+	client *elasticsearch.Client,
+	cacheDuration time.Duration,
+	fetcher Fetcher,
+	tracer *apm.Tracer,
+) *ElasticsearchFetcher {
 	logger := logp.NewLogger("agentcfg")
 	return &ElasticsearchFetcher{
 		client:            client,
@@ -88,6 +95,7 @@ func NewElasticsearchFetcher(client *elasticsearch.Client, cacheDuration time.Du
 		searchSize:        100,
 		logger:            logger,
 		rateLimitedLogger: logger.WithOptions(logs.WithRateLimit(loggerRateLimit)),
+		tracer:            tracer,
 	}
 }
 
@@ -122,7 +130,15 @@ func (f *ElasticsearchFetcher) Run(ctx context.Context) error {
 	refresh := func() bool {
 		// refresh returns a bool that indicates whether Run should return
 		// immediately without error, e.g. due to invalid Elasticsearch config.
+		tx := f.tracer.StartTransaction("ElasticsearchFetcher.refresh", "")
+		defer tx.End()
+		ctx = apm.ContextWithTransaction(ctx, tx)
+
 		if err := f.refreshCache(ctx); err != nil {
+			if e := apm.CaptureError(ctx, err); e != nil {
+				e.Send()
+			}
+
 			// Do not log as error when there is a fallback.
 			var logFunc func(string, ...interface{})
 			if f.fallbackFetcher == nil {
@@ -167,7 +183,27 @@ func (f *ElasticsearchFetcher) Run(ctx context.Context) error {
 	}
 }
 
+type cacheResult struct {
+	Hits struct {
+		Hits []struct {
+			Source struct {
+				AgentName string `json:"agent_name"`
+				ETag      string `json:"etag"`
+				Service   struct {
+					Name        string `json:"name"`
+					Environment string `json:"environment"`
+				} `json:"service"`
+				Settings map[string]string `json:"settings"`
+			} `json:"_source"`
+		} `json:"hits"`
+	} `json:"hits"`
+	ScrollID string `json:"_scroll_id"`
+}
+
 func (f *ElasticsearchFetcher) refreshCache(ctx context.Context) (err error) {
+	span, ctx := apm.StartSpan(ctx, "ElasticsearchFetcher.refreshCache", "")
+	defer span.End()
+
 	scrollID := ""
 	buffer := make([]AgentConfig, 0, len(f.cache))
 
@@ -183,68 +219,10 @@ func (f *ElasticsearchFetcher) refreshCache(ctx context.Context) (err error) {
 		}
 	}()
 
-	var result struct {
-		Hits struct {
-			Hits []struct {
-				Source struct {
-					AgentName string `json:"agent_name"`
-					ETag      string `json:"etag"`
-					Service   struct {
-						Name        string `json:"name"`
-						Environment string `json:"environment"`
-					} `json:"service"`
-					Settings map[string]string `json:"settings"`
-				} `json:"_source"`
-			} `json:"hits"`
-		} `json:"hits"`
-		ScrollID string `json:"_scroll_id"`
-	}
-
 	for {
-		err = func() error {
-			var (
-				resp *esapi.Response
-				err  error
-			)
-			if scrollID == "" {
-				resp, err = esapi.SearchRequest{
-					Index:  []string{ElasticsearchIndexName},
-					Size:   &f.searchSize,
-					Scroll: f.cacheDuration,
-				}.Do(ctx, f.client)
-				if err != nil {
-					return err
-				}
-				defer resp.Body.Close()
-
-				if resp.StatusCode >= http.StatusBadRequest {
-					// Elasticsearch returns 401 on unauthorized requests and 403 on insufficient permission
-					if resp.StatusCode == http.StatusUnauthorized || resp.StatusCode == http.StatusForbidden {
-						f.invalidESCfg.Store(true)
-					}
-					bodyBytes, err := io.ReadAll(resp.Body)
-					if err == nil {
-						f.logger.Debugf("refresh cache elasticsearch returned status %d: %s", resp.StatusCode, string(bodyBytes))
-					}
-					return fmt.Errorf("refresh cache elasticsearch returned status %d", resp.StatusCode)
-				}
-			} else {
-				resp, err = esapi.ScrollRequest{
-					ScrollID: result.ScrollID,
-					Scroll:   f.cacheDuration,
-				}.Do(ctx, f.client)
-				if err != nil {
-					return err
-				}
-				defer resp.Body.Close()
-			}
-			if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-				return err
-			}
-			return nil
-		}()
+		result, err := f.singlePageRefresh(ctx, scrollID)
 		if err != nil {
-			return
+			return err
 		}
 
 		for _, hit := range result.Hits.Hits {
@@ -269,6 +247,45 @@ func (f *ElasticsearchFetcher) refreshCache(ctx context.Context) (err error) {
 	f.metrics.cacheEntriesCount.Store(int64(len(f.cache)))
 	f.last = time.Now()
 	return nil
+}
+
+func (f *ElasticsearchFetcher) singlePageRefresh(ctx context.Context, scrollID string) (cacheResult, error) {
+	var result cacheResult
+
+	if scrollID == "" {
+		resp, err := esapi.SearchRequest{
+			Index:  []string{ElasticsearchIndexName},
+			Size:   &f.searchSize,
+			Scroll: f.cacheDuration,
+		}.Do(ctx, f.client)
+		if err != nil {
+			return result, err
+		}
+		defer resp.Body.Close()
+
+		if resp.StatusCode >= http.StatusBadRequest {
+			// Elasticsearch returns 401 on unauthorized requests and 403 on insufficient permission
+			if resp.StatusCode == http.StatusUnauthorized || resp.StatusCode == http.StatusForbidden {
+				f.invalidESCfg.Store(true)
+			}
+			bodyBytes, err := io.ReadAll(resp.Body)
+			if err == nil {
+				f.logger.Debugf("refresh cache elasticsearch returned status %d: %s", resp.StatusCode, string(bodyBytes))
+			}
+			return result, fmt.Errorf("refresh cache elasticsearch returned status %d", resp.StatusCode)
+		}
+		return result, json.NewDecoder(resp.Body).Decode(&result)
+	}
+
+	resp, err := esapi.ScrollRequest{
+		ScrollID: result.ScrollID,
+		Scroll:   f.cacheDuration,
+	}.Do(ctx, f.client)
+	if err != nil {
+		return result, err
+	}
+	defer resp.Body.Close()
+	return result, json.NewDecoder(resp.Body).Decode(&result)
 }
 
 // CollectMonitoring may be called to collect monitoring metrics from the

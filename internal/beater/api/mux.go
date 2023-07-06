@@ -20,20 +20,19 @@ package api
 import (
 	"net/http"
 	httppprof "net/http/pprof"
-	"net/netip"
 	"regexp"
 	"runtime/pprof"
 
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/monitoring"
 
 	"github.com/elastic/apm-data/input"
 	"github.com/elastic/apm-data/input/elasticapm"
-	"github.com/elastic/apm-data/model"
 	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-data/model/modelprocessor"
 	"github.com/elastic/apm-server/internal/agentcfg"
@@ -118,7 +117,7 @@ func NewMux(
 		handlerFn func() (request.Handler, error)
 	}
 
-	otlpHandlers := otlp.NewHTTPHandlers(zapLogger, model.ProtoBatchProcessor(batchProcessor), semaphore)
+	otlpHandlers := otlp.NewHTTPHandlers(zapLogger, batchProcessor, semaphore)
 	rumIntakeHandler := builder.rumIntakeHandler()
 	routeMap := []route{
 		{RootPath, builder.rootHandler(publishReady)},
@@ -173,7 +172,7 @@ type routeBuilder struct {
 }
 
 func (r *routeBuilder) backendIntakeHandler() (request.Handler, error) {
-	h := intake.Handler(r.intakeProcessor, backendRequestMetadataFunc(r.cfg), model.ProtoBatchProcessor(r.batchProcessor))
+	h := intake.Handler(r.intakeProcessor, backendRequestMetadataFunc(r.cfg), r.batchProcessor)
 	return middleware.Wrap(h, backendMiddleware(r.cfg, r.authenticator, r.ratelimitStore, intake.MonitoringMap)...)
 }
 
@@ -188,7 +187,7 @@ func (r *routeBuilder) otlpHandler(handler http.HandlerFunc, monitoringMap map[r
 
 func (r *routeBuilder) rumIntakeHandler() func() (request.Handler, error) {
 	return func() (request.Handler, error) {
-		var batchProcessors modelprocessor.PbChained
+		var batchProcessors modelprocessor.Chained
 		// The order of these processors is important. Source mapping must happen before identifying library frames, or
 		// frames to exclude from error grouping; identifying library frames must happen before updating the error culprit.
 		if r.sourcemapFetcher != nil {
@@ -216,7 +215,7 @@ func (r *routeBuilder) rumIntakeHandler() func() (request.Handler, error) {
 			batchProcessors = append(batchProcessors, modelprocessor.SetCulprit{})
 		}
 		batchProcessors = append(batchProcessors, r.batchProcessor) // r.batchProcessor always goes last
-		h := intake.Handler(r.intakeProcessor, rumRequestMetadataFunc(r.cfg), model.ProtoBatchProcessor(batchProcessors))
+		h := intake.Handler(r.intakeProcessor, rumRequestMetadataFunc(r.cfg), batchProcessors)
 		return middleware.Wrap(h, rumMiddleware(r.cfg, r.authenticator, r.ratelimitStore, intake.MonitoringMap)...)
 	}
 }
@@ -296,43 +295,52 @@ func rootMiddleware(cfg *config.Config, authenticator *auth.Authenticator) []mid
 	)
 }
 
-func baseRequestMetadata(c *request.Context) model.APMEvent {
-	return model.APMEvent{
-		Timestamp: c.Timestamp,
+func baseRequestMetadata(c *request.Context) *modelpb.APMEvent {
+	return &modelpb.APMEvent{
+		Timestamp: timestamppb.New(c.Timestamp),
 	}
 }
 
-func backendRequestMetadataFunc(cfg *config.Config) func(c *request.Context) model.APMEvent {
+func backendRequestMetadataFunc(cfg *config.Config) func(c *request.Context) *modelpb.APMEvent {
 	if !cfg.AugmentEnabled {
 		return baseRequestMetadata
 	}
-	return func(c *request.Context) model.APMEvent {
-		var hostIP []netip.Addr
+	return func(c *request.Context) *modelpb.APMEvent {
+		e := modelpb.APMEvent{
+			Timestamp: timestamppb.New(c.Timestamp),
+		}
+
 		if c.ClientIP.IsValid() {
-			hostIP = []netip.Addr{c.ClientIP}
+			e.Host = &modelpb.Host{Ip: []string{c.ClientIP.String()}}
 		}
-		return model.APMEvent{
-			Host:      model.Host{IP: hostIP},
-			Timestamp: c.Timestamp,
-		}
+		return &e
 	}
 }
 
-func rumRequestMetadataFunc(cfg *config.Config) func(c *request.Context) model.APMEvent {
+func rumRequestMetadataFunc(cfg *config.Config) func(c *request.Context) *modelpb.APMEvent {
 	if !cfg.AugmentEnabled {
 		return baseRequestMetadata
 	}
-	return func(c *request.Context) model.APMEvent {
-		e := model.APMEvent{
-			Client:    model.Client{IP: c.ClientIP},
-			Source:    model.Source{IP: c.SourceIP, Port: c.SourcePort},
-			Timestamp: c.Timestamp,
-			UserAgent: model.UserAgent{Original: c.UserAgent},
+	return func(c *request.Context) *modelpb.APMEvent {
+		e := modelpb.APMEvent{
+			Timestamp: timestamppb.New(c.Timestamp),
+		}
+		if c.UserAgent != "" {
+			e.UserAgent = &modelpb.UserAgent{Original: c.UserAgent}
+		}
+		if c.ClientIP.IsValid() {
+			e.Client = &modelpb.Client{Ip: c.ClientIP.String()}
+		}
+		if c.SourcePort != 0 || c.SourceIP.IsValid() {
+			e.Source = &modelpb.Source{Port: uint32(c.SourcePort)}
+			if c.SourceIP.IsValid() {
+				e.Source.Ip = c.SourceIP.String()
+			}
 		}
 		if c.SourceNATIP.IsValid() {
-			e.Source.NAT = &model.NAT{IP: c.SourceNATIP}
+			e.Source.Nat = &modelpb.NAT{Ip: c.SourceNATIP.String()}
 		}
-		return e
+		return &e
 	}
 }
 

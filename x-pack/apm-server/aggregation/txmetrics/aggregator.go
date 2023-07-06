@@ -461,7 +461,7 @@ func makeOverflowAggregationKey(
 func makeTransactionAggregationKey(event *modelpb.APMEvent, interval time.Duration) transactionAggregationKey {
 	key := transactionAggregationKey{
 		comparable: comparable{
-			traceRoot:         event.GetParent().GetId() == "",
+			traceRoot:         event.GetParentId() == "",
 			transactionName:   event.GetTransaction().GetName(),
 			transactionResult: event.GetTransaction().GetResult(),
 			transactionType:   event.GetTransaction().GetType(),
@@ -550,7 +550,7 @@ func makeMetricset(key transactionAggregationKey, metrics transactionMetrics, in
 
 	var container *modelpb.Container
 	if key.containerID != "" {
-		container = &modelpb.Container{Name: key.containerID}
+		container = &modelpb.Container{Id: key.containerID}
 	}
 
 	var hostOs *modelpb.OS
@@ -901,8 +901,8 @@ type comparable struct {
 	traceRoot              bool
 }
 
-// NOTE(axw) the dimensions should be kept in sync with docs/metricset-indices.asciidoc (legacy).
-// And docs/data-model.asciidoc for the current documentation on the APM Server model.
+// NOTE(axw) the dimensions should be kept in sync with docs/data-model.asciidoc
+// for the current documentation on the APM Server model.
 type transactionAggregationKey struct {
 	labels.AggregatedGlobalLabels
 	comparable

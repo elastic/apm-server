@@ -340,6 +340,7 @@ func (s *Runner) Run(ctx context.Context) error {
 		fetcher, cancel, err := newSourcemapFetcher(
 			s.config.RumConfig.SourceMapping,
 			kibanaClient, newElasticsearchClient,
+			tracer,
 		)
 		if err != nil {
 			return err
@@ -386,7 +387,7 @@ func (s *Runner) Run(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	batchProcessor := modelprocessor.PbChained{
+	batchProcessor := modelprocessor.Chained{
 		// Ensure all events have observer.*, ecs.*, and data_stream.* fields added,
 		// and are counted in metrics. This is done in the final processors to ensure
 		// aggregated metrics are also processed.
@@ -406,7 +407,13 @@ func (s *Runner) Run(ctx context.Context) error {
 		finalBatchProcessor,
 	}
 
-	agentConfigFetcher, fetcherRunFunc, err := newAgentConfigFetcher(ctx, s.config, kibanaClient, newElasticsearchClient)
+	agentConfigFetcher, fetcherRunFunc, err := newAgentConfigFetcher(
+		ctx,
+		s.config,
+		kibanaClient,
+		newElasticsearchClient,
+		tracer,
+	)
 	if err != nil {
 		return err
 	}
@@ -453,12 +460,16 @@ func (s *Runner) Run(ctx context.Context) error {
 
 	// Add pre-processing batch processors to the beginning of the chain,
 	// applying only to the events that are decoded from agent/client payloads.
-	preBatchProcessors := modelprocessor.PbChained{
+	preBatchProcessors := modelprocessor.Chained{
 		// Add a model processor that rate limits, and checks authorization for the
 		// agent and service for each event. These must come at the beginning of the
 		// processor chain.
 		modelpb.ProcessBatchFunc(rateLimitBatchProcessor),
 		modelpb.ProcessBatchFunc(authorizeEventIngestProcessor),
+
+		// Add a model processor that removes `event.received`, which is added by
+		// apm-data, but which we don't yet map.
+		modelpb.ProcessBatchFunc(removeEventReceivedBatchProcessor),
 
 		// Pre-process events before they are sent to the final processors for
 		// aggregation, sampling, and indexing.
@@ -839,6 +850,7 @@ func newSourcemapFetcher(
 	cfg config.SourceMapping,
 	kibanaClient *kibana.Client,
 	newElasticsearchClient func(*elasticsearch.Config) (*elasticsearch.Client, error),
+	tracer *apm.Tracer,
 ) (sourcemap.Fetcher, context.CancelFunc, error) {
 	esClient, err := newElasticsearchClient(cfg.ESConfig)
 	if err != nil {
@@ -849,7 +861,7 @@ func newSourcemapFetcher(
 
 	// start background sync job
 	ctx, cancel := context.WithCancel(context.Background())
-	metadataFetcher, invalidationChan := sourcemap.NewMetadataFetcher(ctx, esClient, sourcemapIndex)
+	metadataFetcher, invalidationChan := sourcemap.NewMetadataFetcher(ctx, esClient, sourcemapIndex, tracer)
 
 	esFetcher := sourcemap.NewElasticsearchFetcher(esClient, sourcemapIndex)
 	size := 128

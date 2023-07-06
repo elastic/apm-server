@@ -2,7 +2,7 @@ ARG BASE_IMAGE=ubuntu:20.04
 
 # Build the apm-server binary. The golang image version is kept
 # up to date with go.mod by Makefile.
-FROM golang:1.19.10 as builder
+FROM golang:1.20.5 as builder
 WORKDIR /src
 COPY go.mod go.sum /src/
 COPY internal/glog/go.mod /src/internal/glog/go.mod
@@ -71,6 +71,7 @@ ENV BEAT_STRICT_PERMS=false
 
 COPY --chmod=0755 packaging/docker/docker-entrypoint /usr/local/bin/docker-entrypoint
 COPY --chmod=0644 licenses/ELASTIC-LICENSE-2.0.txt NOTICE.txt /licenses/
+COPY --chmod=0644 packaging/docker/cacert.pem /etc/pki/tls/certs/ca-bundle.crt
 
 # Copy files world-readable, and create the data directory world-writeable,
 # to permit running the container with arbitrary UIDs and GIDs.

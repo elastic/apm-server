@@ -38,7 +38,8 @@
     },
     {
       "operation": {
-        "operation-type": "force-merge"
+        "operation-type": "force-merge",
+        "max-num-segments": 1
       }
     }
   ]

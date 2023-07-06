@@ -24,7 +24,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 )
 
 type FrameValidation struct {
@@ -43,7 +43,7 @@ func TestSimpleLineDeobfuscation(t *testing.T) {
 	// Expected output:
 	// at androidx.appcompat.view.menu.MenuBuilder.dispatchMenuItemSelected(Unknown Source:4)
 	frame := createStacktraceFrame(4, "Unknown Source", "androidx.appcompat.view.menu.e", "f")
-	stacktrace := model.Stacktrace{frame}
+	stacktrace := []*modelpb.StacktraceFrame{frame}
 
 	mapFilePath := "../../testdata/r8/deobfuscator/1/mapping"
 	reader, err := os.Open(mapFilePath)
@@ -72,7 +72,7 @@ func TestDeobfuscateCompressedLine(t *testing.T) {
 	//																				co.elastic.apm.opbeans.HomeActivity.setUpBottomNavigation$lambda-0
 	//																				onMenuItemSelected
 	frame := createStacktraceFrame(11, "SourceFile", "i6.f", "a")
-	stacktrace := model.Stacktrace{frame}
+	stacktrace := []*modelpb.StacktraceFrame{frame}
 
 	mapFilePath := "../../testdata/r8/deobfuscator/1/mapping"
 	reader, err := os.Open(mapFilePath)
@@ -101,7 +101,7 @@ func TestDeobfuscateClassNameOnlyWhenMethodIsNotObfuscated(t *testing.T) {
 	// Expected output:
 	// at androidx.appcompat.app.AppCompatActivity.onStart(Unknown Source:0)
 	frame := createStacktraceFrame(0, "Unknown Source", "d.e", "onStart")
-	stacktrace := model.Stacktrace{frame}
+	stacktrace := []*modelpb.StacktraceFrame{frame}
 
 	mapFilePath := "../../testdata/r8/deobfuscator/2/mapping"
 	reader, err := os.Open(mapFilePath)
@@ -155,7 +155,7 @@ func TestDeobfuscateMultipleLines(t *testing.T) {
 	//at okhttp3.internal.http.RealInterceptorChain.proceed(SourceFile:7)
 	//at co.elastic.apm.opbeans.app.di.ApplicationModule$provideOkHttpClient$$inlined$-addInterceptor$1.intercept(SourceFile:5)
 
-	stacktrace := &model.Stacktrace{
+	stacktrace := &[]*modelpb.StacktraceFrame{
 		createStacktraceFrame(2103, "Class.java", "java.lang.Class", "getMethod"),
 		createStacktraceFrame(1724, "Class.java", "java.lang.Class", "getMethod"),
 		createStacktraceFrame(32, "Unknown Source", "m1.b", "e"),
@@ -285,7 +285,7 @@ intercept`,
 	})
 }
 
-func verifyFrames(t *testing.T, frames []*model.StacktraceFrame, validations []FrameValidation) {
+func verifyFrames(t *testing.T, frames []*modelpb.StacktraceFrame, validations []FrameValidation) {
 	assert.Equal(t, len(validations), len(frames))
 
 	for index, frame := range frames {
@@ -293,18 +293,20 @@ func verifyFrames(t *testing.T, frames []*model.StacktraceFrame, validations []F
 	}
 }
 
-func verifyFrame(t *testing.T, frame *model.StacktraceFrame, validation FrameValidation) {
+func verifyFrame(t *testing.T, frame *modelpb.StacktraceFrame, validation FrameValidation) {
 	assert.Equal(t, validation.updated, frame.SourcemapUpdated)
-	assert.Equal(t, validation.originalClassname, frame.Original.Classname)
-	assert.Equal(t, validation.originalFunction, frame.Original.Function)
-	assert.Nil(t, frame.Original.Lineno)
+	assert.Equal(t, validation.originalClassname, frame.GetOriginal().GetClassname())
+	assert.Equal(t, validation.originalFunction, frame.GetOriginal().GetFunction())
+	if frame.Original != nil {
+		assert.Nil(t, frame.Original.Lineno)
+	}
 	assert.Equal(t, validation.classname, frame.Classname)
 	assert.Equal(t, validation.function, frame.Function)
 	assert.Equal(t, validation.lineno, *frame.Lineno)
 }
 
-func createStacktraceFrame(lineno uint32, fileName string, className string, function string) *model.StacktraceFrame {
-	frame := model.StacktraceFrame{
+func createStacktraceFrame(lineno uint32, fileName string, className string, function string) *modelpb.StacktraceFrame {
+	frame := modelpb.StacktraceFrame{
 		Lineno:    &lineno,
 		Filename:  fileName,
 		Classname: className,

@@ -33,7 +33,6 @@ import (
 	"github.com/elastic/elastic-agent-libs/monitoring"
 
 	"github.com/elastic/apm-data/input"
-	"github.com/elastic/apm-data/model"
 	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-data/model/modelprocessor"
 	"github.com/elastic/apm-server/internal/agentcfg"
@@ -195,14 +194,14 @@ func newServer(args ServerParams, listener net.Listener) (server, error) {
 	otlpBatchProcessor := args.BatchProcessor
 	if args.Config.AugmentEnabled {
 		// Add a model processor that sets `client.ip` for events from end-user devices.
-		otlpBatchProcessor = modelprocessor.PbChained{
+		otlpBatchProcessor = modelprocessor.Chained{
 			modelpb.ProcessBatchFunc(otlp.SetClientMetadata),
 			otlpBatchProcessor,
 		}
 	}
 	zapLogger := zap.New(args.Logger.Core(), zap.WithCaller(true))
-	otlp.RegisterGRPCServices(args.GRPCServer, zapLogger, model.ProtoBatchProcessor(otlpBatchProcessor), args.Semaphore)
-	jaeger.RegisterGRPCServices(args.GRPCServer, zapLogger, model.ProtoBatchProcessor(args.BatchProcessor), args.AgentConfig, args.Semaphore)
+	otlp.RegisterGRPCServices(args.GRPCServer, zapLogger, otlpBatchProcessor, args.Semaphore)
+	jaeger.RegisterGRPCServices(args.GRPCServer, zapLogger, args.BatchProcessor, args.AgentConfig, args.Semaphore)
 
 	return server{
 		logger:     args.Logger,
@@ -241,6 +240,7 @@ func newAgentConfigFetcher(
 	cfg *config.Config,
 	kibanaClient *kibana.Client,
 	newElasticsearchClient func(*elasticsearch.Config) (*elasticsearch.Client, error),
+	tracer *apm.Tracer,
 ) (agentcfg.Fetcher, func(context.Context) error, error) {
 	// Always use ElasticsearchFetcher, and as a fallback, use:
 	// 1. no fallback if Elasticsearch is explicitly configured
@@ -269,7 +269,7 @@ func newAgentConfigFetcher(
 	if err != nil {
 		return nil, nil, err
 	}
-	esFetcher := agentcfg.NewElasticsearchFetcher(esClient, cfg.AgentConfig.Cache.Expiration, fallbackFetcher)
+	esFetcher := agentcfg.NewElasticsearchFetcher(esClient, cfg.AgentConfig.Cache.Expiration, fallbackFetcher, tracer)
 	agentcfgMonitoringRegistry.Remove("elasticsearch")
 	monitoring.NewFunc(agentcfgMonitoringRegistry, "elasticsearch", esFetcher.CollectMonitoring, monitoring.Report)
 	return agentcfg.SanitizingFetcher{Fetcher: esFetcher}, esFetcher.Run, nil

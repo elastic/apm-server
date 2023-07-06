@@ -58,7 +58,7 @@ func BenchmarkWriteTransaction(b *testing.B) {
 	cases := []testCase{
 		{
 			name:  "json_codec",
-			codec: eventstorage.JSONCodec{},
+			codec: eventstorage.ProtobufCodec{},
 		},
 		{
 			// This tests the eventstorage performance without
@@ -140,7 +140,7 @@ func BenchmarkReadEvents(b *testing.B) {
 	cases := []testCase{
 		{
 			name:  "json_codec",
-			codec: eventstorage.JSONCodec{},
+			codec: eventstorage.ProtobufCodec{},
 		},
 		{
 			// This tests the eventstorage performance without
@@ -168,7 +168,7 @@ func BenchmarkIsTraceSampled(b *testing.B) {
 
 	// Test with varying numbers of events in the trace.
 	db := newBadgerDB(b, badgerOptions)
-	store := eventstorage.New(db, eventstorage.JSONCodec{})
+	store := eventstorage.New(db, eventstorage.ProtobufCodec{})
 	readWriter := store.NewReadWriter()
 	defer readWriter.Close()
 	wOpts := eventstorage.WriterOpts{
