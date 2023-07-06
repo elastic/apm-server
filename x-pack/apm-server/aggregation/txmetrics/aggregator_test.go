@@ -725,7 +725,7 @@ func TestAggregationFields(t *testing.T) {
 			Name:   input.Transaction.Name,
 			Type:   input.Transaction.Type,
 			Result: input.Transaction.Result,
-			Root:   input.GetParent().GetId() == "",
+			Root:   input.GetParentId() == "",
 			DurationHistogram: &modelpb.Histogram{
 				Counts: []int64{expectedCount},
 				Values: []float64{0},
@@ -778,7 +778,7 @@ func TestAggregationFields(t *testing.T) {
 		// Parent.ID only impacts aggregation as far as grouping root and
 		// non-root traces.
 		for _, value := range []string{"something", "anything"} {
-			input.Parent.Id = value
+			input.ParentId = value
 			agg.AggregateTransaction(&input)
 			agg.AggregateTransaction(&input)
 		}

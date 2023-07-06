@@ -1,6 +1,7 @@
 name: benchmarks
 
 on:
+  workflow_dispatch:
   schedule:
     - cron: '0 17 * * *'
 
@@ -47,7 +48,6 @@ jobs:
           BENCHMARK_CLOUD_CREDENTIALS_PATH: secret/observability-team/ci/benchmark-cloud
           EC_CREDENTIALS_PATH: secret/observability-team/ci/elastic-cloud/observability-pro
           KIBANA_CREDENTIALS_PATH: secret/observability-team/ci/apm-benchmark-kibana
-          SLACK_CREDENTIALS_PATH: secret/observability-team/ci/stack-integartion-token
         with:
           url: ${{ secrets.VAULT_ADDR }}
           roleId: ${{ secrets.VAULT_ROLE_ID }}
@@ -64,7 +64,6 @@ jobs:
             ${{ env.KIBANA_CREDENTIALS_PATH }} password | KIBANA_PASSWORD ;
             ${{ env.KIBANA_CREDENTIALS_PATH }} kibana_url | KIBANA_ENDPOINT ;
             ${{ env.KIBANA_CREDENTIALS_PATH }} kibana_dashboard_url | KIBANA_DASHBOARD_URL ;
-            ${{ env.SLACK_CREDENTIALS_PATH }} integration_token | SLACK_BOT_TOKEN ;
 
       - uses: elastic/apm-pipeline-library/.github/actions/docker-login@main
         with:
@@ -132,18 +131,19 @@ jobs:
         uses: elastic/apm-pipeline-library/.github/actions/notify-build-status@current
         with:
           message: |
-            Nightly benchmarks failed!
+            ${{ github.event_name == 'schedule' && 'Nightly benchmarks failed!' || 'Benchmarks failed!' }}
             SDH Duty assignee, please have a look and follow this <https://github.com/elastic/observability-dev/blob/main/docs/apm/apm-server/runbooks/benchmarks.md|Runbook>!
           vaultUrl: ${{ secrets.VAULT_ADDR }}
           vaultRoleId: ${{ secrets.VAULT_ROLE_ID }}
           vaultSecretId: ${{ secrets.VAULT_SECRET_ID }}
-          slackChannel: "#apm-sever"
+          slackChannel: "#apm-server"
 
-      - name: Post to a Slack channel
-        id: slack
-        uses: slackapi/slack-github-action@v1.24.0
+      - uses: elastic/apm-pipeline-library/.github/actions/slack-message@current
         with:
-          channel-id: "#apm-server"
+          url: ${{ secrets.VAULT_ADDR }}
+          roleId: ${{ secrets.VAULT_ROLE_ID }}
+          secretId: ${{ secrets.VAULT_SECRET_ID }}
+          channel: "#apm-server"
           payload: |
             {
                 "blocks": [
@@ -151,7 +151,7 @@ jobs:
                         "type": "section",
                         "text": {
                             "type": "mrkdwn",
-                            "text": "Nightly benchmarks succesfully executed"
+                            "text": "${{ github.event_name == 'schedule' && 'Nightly succesfully executed!' || 'Benchmarks succesfully executed!' }}"
                         },
                         "accessory": {
                             "type": "button",
@@ -171,25 +171,27 @@ jobs:
                         "alt_text": "kibana-png-report"
                     },
                     {
-                        "type": "section",
-                        "accessory": {
-                            "type": "button",
-                            "text": {
-                                "type": "plain_text",
-                                "text": "Benchmarks dashboard"
+                        "type": "actions",
+                        "elements": [
+                            {
+                                "type": "button",
+                                "text": {
+                                    "type": "plain_text",
+                                    "text": "Benchmarks dashboard"
+                                },
+                                "url": "${{ env.KIBANA_DASHBOARD_URL }}",
+                                "action_id": "kibana-dashboard-button"
                             },
-                            "url": "${{ env.KIBANA_DASHBOARD_URL }}",
-                            "action_id": "kibana-dashboard-button"
-                        },
-                        "accessory": {
-                            "type": "button",
-                            "text": {
-                                "type": "plain_text",
-                                "text": "Elastic Cloud deployment"
-                            },
-                            "url": "${{ steps.deploy.outputs.admin_console_url }}",
-                            "action_id": "admin-console-button"
-                        }
+                            {
+                                "type": "button",
+                                "text": {
+                                    "type": "plain_text",
+                                    "text": "Elastic Cloud deployment"
+                                },
+                                "url": "${{ steps.deploy.outputs.admin_console_url }}",
+                                "action_id": "admin-console-button"
+                            }
+                        ]
                     }
                 ]
             }

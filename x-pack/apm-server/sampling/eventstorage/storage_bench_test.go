@@ -57,7 +57,7 @@ func BenchmarkWriteTransaction(b *testing.B) {
 	}
 	cases := []testCase{
 		{
-			name:  "json_codec",
+			name:  "proto_codec",
 			codec: eventstorage.ProtobufCodec{},
 		},
 		{
@@ -139,7 +139,7 @@ func BenchmarkReadEvents(b *testing.B) {
 	}
 	cases := []testCase{
 		{
-			name:  "json_codec",
+			name:  "proto_codec",
 			codec: eventstorage.ProtobufCodec{},
 		},
 		{
