@@ -28,21 +28,21 @@ import (
 // Tracer is a model.BatchProcessor that wraps another processor within a
 // transaction.
 type Tracer struct {
-	sName     string
+	spanName  string
 	processor modelpb.BatchProcessor
 }
 
 // NewTracer returns a Tracer that emits transactions for batches processed.
 func NewTracer(n string, p modelpb.BatchProcessor) *Tracer {
 	return &Tracer{
-		sName:     n,
+		spanName:  n,
 		processor: p,
 	}
 }
 
 // ProcessBatch runs for each batch run, and emits telemetry
 func (c *Tracer) ProcessBatch(ctx context.Context, b *modelpb.Batch) error {
-	span, ctx := apm.StartSpan(ctx, c.sName, "")
+	span, ctx := apm.StartSpan(ctx, c.spanName, "")
 	defer span.End()
 
 	err := c.processor.ProcessBatch(ctx, b)
