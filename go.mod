@@ -13,7 +13,7 @@ require (
 	github.com/elastic/elastic-agent-libs v0.3.9
 	github.com/elastic/elastic-agent-system-metrics v0.6.1
 	github.com/elastic/gmux v0.2.0
-	github.com/elastic/go-docappender v0.1.0
+	github.com/elastic/go-docappender v0.2.0
 	github.com/elastic/go-elasticsearch/v8 v8.8.2
 	github.com/elastic/go-hdrhistogram v0.1.0
 	github.com/elastic/go-sysinfo v1.11.0
@@ -39,19 +39,19 @@ require (
 	github.com/ryanuber/go-glob v1.0.0
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/pflag v1.0.5
-	github.com/stretchr/testify v1.8.3
-	go.elastic.co/apm/module/apmelasticsearch/v2 v2.4.1
+	github.com/stretchr/testify v1.8.4
+	go.elastic.co/apm/module/apmelasticsearch/v2 v2.4.3
 	go.elastic.co/apm/module/apmgorilla/v2 v2.2.0
 	go.elastic.co/apm/module/apmgrpc/v2 v2.2.0
-	go.elastic.co/apm/module/apmhttp/v2 v2.4.1
-	go.elastic.co/apm/v2 v2.4.1
+	go.elastic.co/apm/module/apmhttp/v2 v2.4.3
+	go.elastic.co/apm/v2 v2.4.3
 	go.elastic.co/fastjson v1.3.0
 	go.opentelemetry.io/collector v0.63.1
 	go.opentelemetry.io/collector/pdata v1.0.0-rcv0011
 	go.uber.org/automaxprocs v1.5.1
 	go.uber.org/zap v1.24.0
 	golang.org/x/net v0.10.0
-	golang.org/x/sync v0.2.0
+	golang.org/x/sync v0.3.0
 	golang.org/x/term v0.8.0
 	golang.org/x/time v0.3.0
 	google.golang.org/grpc v1.54.0
@@ -95,7 +95,6 @@ require (
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-uuid v1.0.3 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
-	github.com/jcchavezs/porto v0.4.0 // indirect
 	github.com/jcmturner/aescts/v2 v2.0.0 // indirect
 	github.com/jcmturner/dnsutils/v2 v2.0.0 // indirect
 	github.com/jcmturner/gofork v1.7.6 // indirect
@@ -130,7 +129,7 @@ require (
 	github.com/xdg/stringprep v1.0.3 // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
 	github.com/yusufpapurcu/wmi v1.2.2 // indirect
-	go.elastic.co/apm/module/apmzap/v2 v2.2.0 // indirect
+	go.elastic.co/apm/module/apmzap/v2 v2.4.3 // indirect
 	go.elastic.co/ecszap v1.0.1 // indirect
 	go.opentelemetry.io/collector/semconv v0.76.1 // indirect
 	go.uber.org/atomic v1.10.0 // indirect
