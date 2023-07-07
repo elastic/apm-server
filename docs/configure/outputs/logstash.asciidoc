@@ -11,209 +11,181 @@ image:./binary-yes-fm-no.svg[supported deployment methods]
 The {ls} output is not yet supported by {fleet}-managed APM Server.
 ****
 
-The {ls} output sends events directly to {ls} by using the lumberjack
-protocol, which runs over TCP. {ls} allows for additional processing and routing of
-generated events.
+{ls} allows for additional processing and routing of APM events.
+The {ls} output sends events directly to {ls} using the lumberjack
+protocol, which runs over TCP.
 
-// tag::shared-logstash-config[]
-
-[IMPORTANT]
-.Prerequisite
-To send events to {ls}, you also need to create a {ls} configuration pipeline
-that listens for incoming {beats} connections and indexes the received events into
-{es}. For more information, see
-{logstash-ref}/getting-started-with-logstash.html[Getting Started with {ls}].
-Also see the documentation for the
-{logstash-ref}/plugins-inputs-beats.html[{beats} input] and
-{logstash-ref}/plugins-outputs-elasticsearch.html[{es} output] plugins.
-
-If you want to use {ls} to perform additional processing on the data collected by
-{beatname_uc}, you need to configure {beatname_uc} to use {ls}.
-
-To do this, edit the {beatname_uc} configuration file to disable the {es}
-output by commenting it out and enable the {ls} output by uncommenting the
-{ls} section:
-
-[source,yaml]
-------------------------------------------------------------------------------
-output.logstash:
-  hosts: ["127.0.0.1:5044"]
-------------------------------------------------------------------------------
-
-The `hosts` option specifies the {ls} server and the port (`5044`) where {ls} is configured to listen for incoming
-{beats} connections.
-
-ifdef::apm-server[]
 [float]
-=== {kib} configuration
+== Send events to {ls}
+
+To send events to {ls}, you must:
+
+. <<ls-output-config,Enable the {ls} output in APM Server>>
+. <<ls-kib-config,Enable the {kib} endpoint in APM Server>>
+. <<ls-config-pipeline,Create a {ls} configuration pipeline in {ls}>>
+
+[float]
+[[ls-output-config]]
+=== {ls} output configuration
+
+To enable the {ls} output in APM Server,
+edit the `apm-server.yml` file to:
+
+. Disable the {es} output by commenting it out and
+. Enable the {ls} output by uncommenting the {ls} section and setting `enabled` to `true`:
++
+[source,yaml]
+----
+output.logstash:
+  enabled: true
+  hosts: ["localhost:5044"] <1>
+----
+<1> The `hosts` option specifies the {ls} server and the port (`5044`) where {ls} is configured to listen for incoming
+APM Server connections.
+
+[float]
+[[ls-kib-config]]
+=== {kib} endpoint configuration
 
 include::../../shared-kibana-endpoint.asciidoc[tag=shared-kibana-config]
-endif::[]
 
-ifeval::["{beatname_lc}"=="filebeat"]
-Want to use <<filebeat-modules,{beatname_uc} modules>> with {ls}? You need to do
-some extra setup. For more information, see
-{logstash-ref}/filebeat-modules.html[Working with {beatname_uc} modules].
-endif::[]
+[float]
+[[ls-config-pipeline]]
+=== {ls} configuration pipeline
 
-// end::shared-logstash-config[]
+Finally, you must create a {ls} configuration pipeline that listens for incoming
+APM Server connections, dedots the `data_stream.*` fields, and indexes received events into {es}.
 
-=== Accessing metadata fields
-
-Every event sent to {ls} contains the following metadata fields that you can
-use in {ls} for indexing and filtering:
-
-ifndef::apm-server[]
-["source","json",subs="attributes"]
-------------------------------------------------------------------------------
-{
-    ...
-    "@metadata": { <1>
-      "beat": "{beat_default_index_prefix}", <2>
-      "version": "{version}" <3>
-    }
-}
-------------------------------------------------------------------------------
-<1> {beatname_uc} uses the `@metadata` field to send metadata to {ls}. See the
-{logstash-ref}/event-dependent-configuration.html#metadata[{ls} documentation]
-for more about the `@metadata` field.
-<2> The default is {beat_default_index_prefix}. To change this value, set the
-<<logstash-index,`index`>> option in the {beatname_uc} config file.
-<3> The current version of {beatname_uc}.
-
-You can access this metadata from within the {ls} config file to set values
-dynamically based on the contents of the metadata.
-endif::[]
-
-ifdef::apm-server[]
-["source","json",subs="attributes"]
-------------------------------------------------------------------------------
-{
-    ...
-    "@metadata": { <1>
-      "beat": "{beat_default_index_prefix}", <2>
-      "pipeline":"apm", <3>
-      "version": "{version}" <4>
-    }
-}
-------------------------------------------------------------------------------
-<1> {beatname_uc} uses the `@metadata` field to send metadata to {ls}. See the
-{logstash-ref}/event-dependent-configuration.html#metadata[{ls} documentation]
-for more about the `@metadata` field.
-<2> The default is {beat_default_index_prefix}. To change this value, set the
-<<logstash-index,`index`>> option in the {beatname_uc} config file.
-<3> The default pipeline configuration: `apm`. Additional pipelines can be enabled
-with a {logstash-ref}/use-ingest-pipelines.html[{ls} pipeline config].
-<4> The current version of {beatname_uc}.
-
-In addition to metadata, {beatname_uc} provides the `processor.event` field, which
-can be used to separate {apm-guide-ref}/data-model.html[event types] into different indices.
-endif::[]
-
-ifndef::apm-server[]
-For example, the following {ls} configuration file tells
-{ls} to use the index reported by {beatname_uc} for indexing events
-into {es}:
-
-[source,logstash]
-------------------------------------------------------------------------------
-
+. Use the {logstash-ref}/plugins-inputs-elastic_agent.html[Elastic Agent input plugin] to configure
+{ls} to receive events from the APM Server. A minimal `input` config might look like this:
++
+[source,conf]
+----
 input {
-  beats {
+  elastic_agent {
     port => 5044
+  }
+}
+----
+
+. Use the {logstash-ref}/plugins-filters-mutate.html[Mutate filter plugin] to set up <<apm-data-streams,data streams>>.
+Because the {ls} {es} output doesn't understand dotted field notation, you must use this filter to
+dedot the default `data_stream.*` fields sent from APM Server to {ls}.
++
+[source,conf]
+----
+filter {
+  mutate {
+    rename => {
+      "[data_stream.type]" => "[data_stream][type]"
+      "[data_stream.dataset]" => "[data_stream][dataset]"
+      "[data_stream.namespace]" => "[data_stream][namespace]"
+    }
+  }
+}
+----
++
+.Expand to learn more
+[%collapsible]
+====
+****
+APM Server sends data stream information to {ls} in the following format:
+
+[source,json]
+----
+{
+  "data_stream.dataset": "apm",
+  "data_stream.type": "traces",
+  "data_stream.namespace": "default"
+}
+----
+
+{es} expects to receive data stream information in the following format:
+
+[source,json]
+----
+"data_stream" {
+  "dataset": "apm",
+  "type": "traces",
+  "dataset": "default"
+}
+----
+
+The mutation defined above transforms what APM Server sends to {ls} into a data format that {es} understands.
+This allows you to automatically route APM data to the appropriate data streams.
+****
+====
+
+. Use the {logstash-ref}/plugins-outputs-elasticsearch.html[{es} output plugin] to send
+events to {es} for indexing. A minimal `output` config might look like this:
++
+[source,conf]
+----
+output {
+  elasticsearch {
+    data_stream => "true" <1>
+    cloud_id => "YOUR_CLOUD_ID_HERE" <2>
+    cloud_auth => "YOUR_CLOUD_AUTH_HERE" <2>
+  }
+}
+----
+<1> Enables indexing into {es} data streams.
+<2> This example assumes you're sending data to {ecloud}. If you're using a self-hosted version of {es}, use `hosts` instead. See {logstash-ref}/plugins-outputs-elasticsearch.html[{es} output plugin] for more information.
+
+Here's what your basic {ls} configuration file will look like when we put everything together:
+
+[source,conf]
+----
+input {
+  elastic_agent {
+    port => 5044
+  }
+}
+
+filter {
+  mutate {
+    rename => {
+      "[data_stream.type]" => "[data_stream][type]"
+      "[data_stream.dataset]" => "[data_stream][dataset]"
+      "[data_stream.namespace]" => "[data_stream][namespace]"
+    }
   }
 }
 
 output {
   elasticsearch {
-    hosts => ["http://localhost:9200"]
-    index => "%{[@metadata][beat]}-%{[@metadata][version]}" <1>
+    data_stream => "true"
+    cloud_id => "YOUR_CLOUD_ID_HERE"
+    cloud_auth => "YOUR_CLOUD_AUTH_HERE"
   }
 }
-------------------------------------------------------------------------------
-<1> `%{[@metadata][beat]}` sets the first part of the index name to the value
-of the `beat` metadata field and `%{[@metadata][version]}` sets the second part to
-the Beat's version. For example:
-+{beat_default_index_prefix}-{version}+.
-endif::[]
+----
 
-ifdef::apm-server[]
-For example, the following {ls} configuration file tells
-{ls} to use the index and event types reported by {beatname_uc} for indexing events
-into {es}:
+[float]
+== Accessing the @metadata field
 
-[source,logstash]
-------
-input {
-    beats {
-        port => 5044
+Every event sent to {ls} contains a special field called
+{logstash-ref}/event-dependent-configuration.html#metadata[`@metadata`] that you can
+use in {ls} for conditionals, filtering, indexing and more.
+APM Server sends the following @metadata to {ls}:
+
+["source","json",subs="attributes"]
+----
+{
+    ...
+    "@metadata": {
+      "beat": "apm-server", <1>
+      "version": "{version}" <2>
     }
 }
+----
+<1> To change the default `apm-server` value, set the
+<<logstash-index,`index`>> option in the APM Server config file.
+<2> The current version of APM Server.
 
-filter {
-    if [@metadata][beat] == "apm" {
-        if [processor][event] == "sourcemap" {
-            mutate {
-                add_field => { "[@metadata][index]" => "%{[@metadata][beat]}-%{[@metadata][version]}-%{[processor][event]}" } <1>
-            }
-        } else {
-            mutate {
-                add_field => { "[@metadata][index]" => "%{[@metadata][beat]}-%{[@metadata][version]}-%{[processor][event]}-%{+yyyy.MM.dd}" } <2>
-            }
-        }
-    }
-}
-
-output {
-    elasticsearch {
-        hosts => ["http://localhost:9200"]
-        index => "%{[@metadata][index]}"
-    }
-}
-------
-<1> Creates a new field named `@metadata.index`.
-`%{[@metadata][beat]}` sets the first part of the index name to the value of the `metadata.beat` field.
-`%{[@metadata][version]}` sets the second part to {beatname_uc}'s version.
-`%{[processor][event]}` sets the final part based on the APM event type.
-For example: +{beat_default_index_prefix}-{version}-sourcemap+.
-<2> In addition to the above rules, this pattern appends a date to the `index` name so {ls} creates a new index each day.
-For example: +{beat_default_index_prefix}-{version}-transaction-{sample_date_0}+.
-endif::[]
-
-Events indexed into {es} with the {ls} configuration shown here
-will be similar to events directly indexed by {beatname_uc} into {es}.
-
-ifndef::apm-server[]
-NOTE: If {ilm-init} is not being used, set `index` to `%{[@metadata][beat]}-%{[@metadata][version]}-%{+YYYY.MM.dd}` instead so {ls} creates an index per day, based on the `@timestamp` value of the events coming from {beats}.
-endif::[]
-
-ifdef::apm-server[]
-=== {ls} and {ilm-init}
-
-When used with {apm-guide-ref}/ilm-how-to.html[{ilm-cap}], {ls} does not need to create a new index each day.
-Here's a sample {ls} configuration file that would accomplish this:
-
-[source,logstash]
-------
-input {
-    beats {
-        port => 5044
-    }
-}
-
-output {
-    elasticsearch {
-        hosts => ["http://localhost:9200"]
-        index => "%{[@metadata][beat]}-%{[@metadata][version]}-%{[processor][event]}" <1>
-    }
-}
-------
-<1> Outputs documents to an index:
-`%{[@metadata][beat]}` sets the first part of the index name to the value of the `metadata.beat` field.
-`%{[@metadata][version]}` sets the second part to {beatname_uc}'s version.
-`%{[processor][event]}` sets the final part based on the APM event type.
-For example: +{beat_default_index_prefix}-{version}-sourcemap+.
-endif::[]
+In addition to @metadata, APM Server provides other potentially useful fields, like the
+`processor.event` field and `data_stream` fields, which can be used to conditionally operate on
+{apm-guide-ref}/data-model.html[event types], namespaces, or datasets.
 
 === Compatibility
 
@@ -231,12 +203,7 @@ You can specify the following options in the `logstash` section of the
 The enabled config is a boolean setting to enable or disable the output. If set
 to false, the output is disabled.
 
-ifndef::apm-server[]
-The default value is `true`.
-endif::[]
-ifdef::apm-server[]
 The default value is `false`.
-endif::[]
 
 [[hosts]]
 ==== `hosts`
@@ -333,7 +300,7 @@ that when a proxy is used the name resolution occurs on the proxy server.
 [[logstash-index]]
 ==== `index`
 
-The index root name to write events to. The default is the Beat name. For
+The index root name to write events to. The default is `apm-server`. For
 example +"{beat_default_index_prefix}"+ generates +"[{beat_default_index_prefix}-]{version}-YYYY.MM.DD"+
 indices (for example, +"{beat_default_index_prefix}-{version}-2017.04.26"+).
 
@@ -344,7 +311,7 @@ can then be accessed in {ls}'s output section as `%{[@metadata][beat]}`.
 
 Configuration options for SSL parameters like the root CA for {ls} connections. See
 <<configuration-ssl>> for more information. To use SSL, you must also configure the
-https://www.elastic.co/guide/en/logstash/current/plugins-inputs-beats.html[{beats} input plugin for {ls}] to use SSL/TLS.
+{logstash-ref}/plugins-inputs-beats.html[{beats} input plugin for {ls}] to use SSL/TLS.
 
 ==== `timeout`
 
@@ -352,18 +319,12 @@ The number of seconds to wait for responses from the {ls} server before timing o
 
 ==== `max_retries`
 
-ifdef::ignores_max_retries[]
-{beatname_uc} ignores the `max_retries` setting and retries indefinitely.
-endif::[]
-
-ifndef::ignores_max_retries[]
 The number of times to retry publishing an event after a publishing failure.
 After the specified number of retries, the events are typically dropped.
 
 Set `max_retries` to a value less than 0 to retry until all events are published.
 
 The default is 3.
-endif::[]
 
 ==== `bulk_max_size`
 
@@ -381,7 +342,6 @@ throughput.
 Setting `bulk_max_size` to values less than or equal to 0 disables the
 splitting of batches. When splitting is disabled, the queue decides on the
 number of events to be contained in a batch.
-
 
 ==== `slow_start`
 
