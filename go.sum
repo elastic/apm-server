@@ -162,6 +162,8 @@ github.com/eapache/queue v1.1.0/go.mod h1:6eCeP0CKFpHLu8blIFXhExK/dRa7WDZfr6jVFP
 github.com/eknkc/amber v0.0.0-20171010120322-cdade1c07385/go.mod h1:0vRUJqYpeSZifjYj7uP3BG/gKcuzL9xWVV/Y+cK33KM=
 github.com/elastic/apm-aggregation v0.0.0-20230630084251-60936ed32090 h1:7gc1lOqtxYjobP46VS0pQLI6smNLsf91/x6nqY5+eFo=
 github.com/elastic/apm-aggregation v0.0.0-20230630084251-60936ed32090/go.mod h1:+jY590egKfCcdbELbxBx8Kk6tBF2MHbsPyElaQA7B9A=
+github.com/elastic/apm-aggregation v0.0.0-20230706092342-46ef2cba41a8 h1:Lh+r8oiK4wF2w29284J6FEX1yQSO1o0jL6mM56o5vtU=
+github.com/elastic/apm-aggregation v0.0.0-20230706092342-46ef2cba41a8/go.mod h1:+jY590egKfCcdbELbxBx8Kk6tBF2MHbsPyElaQA7B9A=
 github.com/elastic/apm-data v0.1.1-0.20230628080651-9f67b9cdd993 h1:getNVnFnGrKoBQSHkyuimzQnJ+LJB1MOmdXzP+hOnqU=
 github.com/elastic/apm-data v0.1.1-0.20230628080651-9f67b9cdd993/go.mod h1:8HEBtP5evAcAvYeu/Nnn1yrdIoyECqm425/Ggs9JHv8=
 github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230629140819-59447f67558e h1:p8Jw07QQcGms6laxrVzOUUgCk/wPFubTELcbfH3F4+s=

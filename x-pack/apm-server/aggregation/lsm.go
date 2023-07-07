@@ -40,10 +40,9 @@ func NewAggregator(
 	if err != nil {
 		return nil, err
 	}
-	baseaggregator, err := aggregators.New(aggregators.AggregatorConfig{
-		DataDir: dir,
-		// TODO(carsonip): Use limits from config
-		Limits: aggregators.Limits{
+	baseaggregator, err := aggregators.New(
+		aggregators.WithDataDir(dir),
+		aggregators.WithLimits(aggregators.Limits{
 			MaxSpanGroups:                         1000,
 			MaxSpanGroupsPerService:               100,
 			MaxTransactionGroups:                  1000,
@@ -52,10 +51,11 @@ func NewAggregator(
 			MaxServiceTransactionGroupsPerService: 100,
 			MaxServiceInstanceGroupsPerService:    100,
 			MaxServices:                           1000,
-		},
-		Processor:            wrapNextProcessor(nextProcessor),
-		AggregationIntervals: []time.Duration{time.Minute, 10 * time.Minute, time.Hour},
-	}, logger)
+		}),
+		aggregators.WithProcessor(wrapNextProcessor(nextProcessor)),
+		aggregators.WithAggregationIntervals([]time.Duration{time.Second, time.Minute, time.Hour}),
+		aggregators.WithLogger(logger),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create base aggregator: %w", err)
 	}
