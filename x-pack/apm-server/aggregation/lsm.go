@@ -53,7 +53,7 @@ func NewAggregator(
 			MaxServices:                           1000,
 		}),
 		aggregators.WithProcessor(wrapNextProcessor(nextProcessor)),
-		aggregators.WithAggregationIntervals([]time.Duration{time.Second, time.Minute, time.Hour}),
+		aggregators.WithAggregationIntervals([]time.Duration{time.Minute, 10 * time.Minute, time.Hour}),
 		aggregators.WithLogger(logger),
 	)
 	if err != nil {
