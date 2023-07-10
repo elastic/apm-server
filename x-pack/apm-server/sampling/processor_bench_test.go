@@ -41,17 +41,14 @@ func BenchmarkProcess(b *testing.B) {
 			transaction := &modelpb.Transaction{
 				Id: hex.EncodeToString(transactionID),
 			}
-			spanParent := modelpb.Parent{
-				Id: hex.EncodeToString(transactionID),
-			}
 			span := &modelpb.Span{
 				Id: hex.EncodeToString(spanID),
 			}
 			batch := modelpb.Batch{
 				{Trace: &trace, Transaction: transaction},
-				{Trace: &trace, Span: span, Parent: &spanParent},
-				{Trace: &trace, Span: span, Parent: &spanParent},
-				{Trace: &trace, Span: span, Parent: &spanParent},
+				{Trace: &trace, Span: span, ParentId: transaction.Id},
+				{Trace: &trace, Span: span, ParentId: transaction.Id},
+				{Trace: &trace, Span: span, ParentId: transaction.Id},
 			}
 			if err := processor.ProcessBatch(context.Background(), &batch); err != nil {
 				b.Fatal(err)

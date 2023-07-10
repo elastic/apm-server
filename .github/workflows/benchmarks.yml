@@ -1,0 +1,197 @@
+name: benchmarks
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 17 * * *'
+
+env:
+  PNG_REPORT_FILE: out.png
+  BENCHMARK_RESULT: benchmark-result.txt
+  WORKING_DIRECTORY: testing/benchmark
+
+jobs:
+  benchmarks:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+    env:
+      SSH_KEY: ./id_rsa_terraform
+      TF_VAR_private_key: ./id_rsa_terraform
+      TF_VAR_public_key: ./id_rsa_terraform.pub
+      TFVARS_SOURCE: "system-profiles/8GBx1zone.tfvars" # // Default to use an 8gb profile
+      TF_VAR_BUILD_ID: ${{ github.run_id }}
+      TF_VAR_ENVIRONMENT: ci
+      TF_VAR_REPO: ${{ github.repository }}
+      GOBENCH_TAGS: branch=${{ github.head_ref || github.ref }},commit=${{ github.sha }},target_branch=${{ github.base_ref }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-go@v4
+        with:
+          go-version-file: 'go.mod'
+
+      - uses: rlespinasse/github-slug-action@d1ca8ffbce40ea2371e35bca356db0acacf567d2
+
+      - name: Set up env
+        run: |
+          SLUGGED_BRANCH_NAME=${{ env.GITHUB_HEAD_REF_SLUG || env.GITHUB_REF_SLUG }}
+          CREATED_AT=$(date +%s)
+          echo "TF_VAR_BRANCH=${SLUGGED_BRANCH_NAME}" >> "$GITHUB_ENV"
+          echo "TF_VAR_CREATED_AT=${CREATED_AT}" >> "$GITHUB_ENV"
+          echo "USER=benchci-$SLUGGED_BRANCH_NAME-$CREATED_AT" >> "$GITHUB_ENV"
+
+      - uses: hashicorp/vault-action@v2.6.0
+        env:
+          AWS_CREDENTIALS_PATH: secret/observability-team/ci/elastic-observability-aws-account-auth
+          BENCHMARK_CLOUD_CREDENTIALS_PATH: secret/observability-team/ci/benchmark-cloud
+          EC_CREDENTIALS_PATH: secret/observability-team/ci/elastic-cloud/observability-pro
+          KIBANA_CREDENTIALS_PATH: secret/observability-team/ci/apm-benchmark-kibana
+        with:
+          url: ${{ secrets.VAULT_ADDR }}
+          roleId: ${{ secrets.VAULT_ROLE_ID }}
+          secretId: ${{ secrets.VAULT_SECRET_ID }}
+          method: approle
+          secrets: |
+            ${{ env.AWS_CREDENTIALS_PATH }} access_key | AWS_ACCESS_KEY_ID ;
+            ${{ env.AWS_CREDENTIALS_PATH }} secret_key | AWS_SECRET_ACCESS_KEY ;
+            ${{ env.BENCHMARK_CLOUD_CREDENTIALS_PATH }} user | GOBENCH_USERNAME ;
+            ${{ env.BENCHMARK_CLOUD_CREDENTIALS_PATH }} password | GOBENCH_PASSWORD ;
+            ${{ env.BENCHMARK_CLOUD_CREDENTIALS_PATH }} url | GOBENCH_HOST ;
+            ${{ env.EC_CREDENTIALS_PATH }} apiKey | EC_API_KEY ;
+            ${{ env.KIBANA_CREDENTIALS_PATH }} user | KIBANA_USERNAME ;
+            ${{ env.KIBANA_CREDENTIALS_PATH }} password | KIBANA_PASSWORD ;
+            ${{ env.KIBANA_CREDENTIALS_PATH }} kibana_url | KIBANA_ENDPOINT ;
+            ${{ env.KIBANA_CREDENTIALS_PATH }} kibana_dashboard_url | KIBANA_DASHBOARD_URL ;
+
+      - uses: elastic/apm-pipeline-library/.github/actions/docker-login@main
+        with:
+          registry: docker.elastic.co
+          secret: secret/observability-team/ci/docker-registry/prod
+          url: ${{ secrets.VAULT_ADDR }}
+          roleId: ${{ secrets.VAULT_ROLE_ID }}
+          secretId: ${{ secrets.VAULT_SECRET_ID }}
+      - uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.3.7
+          terraform_wrapper: false
+
+      - name: Build apmbench
+        run: make apmbench $SSH_KEY terraform.tfvars
+
+      - name: Spin up benchmark environment
+        id: deploy
+        run: |
+          make docker-override-committed-version init apply
+          admin_console_url=$(terraform output -raw admin_console_url)
+          echo "admin_console_url=$admin_console_url" >> "$GITHUB_OUTPUT"
+          echo "-> infra setup done"
+
+      - name: Run benchmarks
+        run: make run-benchmark-autotuned index-benchmark-results
+
+      - name: Download PNG
+        run: >-
+          ${{ github.workspace }}/.ci/scripts/download-png-from-kibana.sh
+          $KIBANA_ENDPOINT
+          $KIBANA_USERNAME
+          $KIBANA_PASSWORD
+          $PNG_REPORT_FILE
+
+      - name: Upload PNG
+        uses: actions/upload-artifact@v3
+        with:
+          name: kibana-png-report
+          path: ${{ env.WORKING_DIRECTORY }}/${{ env.PNG_REPORT_FILE }}
+          if-no-files-found: error
+
+      - name: Upload PNG to AWS S3
+        id: s3-upload-png
+        env:
+          AWS_DEFAULT_REGION: us-east-1
+        run: |
+          DEST_NAME="github-run-id-${{ github.run_id }}.png"
+          aws s3 --debug cp ${{ env.PNG_REPORT_FILE }} s3://elastic-apm-server-benchmark-reports/${DEST_NAME}
+          echo "png_report_url=https://elastic-apm-server-benchmark-reports.s3.amazonaws.com/${DEST_NAME}" >> "$GITHUB_OUTPUT"
+
+      - name: Upload benchmark result
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: benchmark-result
+          path: ${{ env.WORKING_DIRECTORY }}/${{ env.BENCHMARK_RESULT }}
+          if-no-files-found: error
+
+      - name: Tear down benchmark environment
+        if: always()
+        run: make destroy
+
+      - if: failure()
+        uses: elastic/apm-pipeline-library/.github/actions/notify-build-status@current
+        with:
+          message: |
+            ${{ github.event_name == 'schedule' && 'Nightly benchmarks failed!' || 'Benchmarks failed!' }}
+            SDH Duty assignee, please have a look and follow this <https://github.com/elastic/observability-dev/blob/main/docs/apm/apm-server/runbooks/benchmarks.md|Runbook>!
+          vaultUrl: ${{ secrets.VAULT_ADDR }}
+          vaultRoleId: ${{ secrets.VAULT_ROLE_ID }}
+          vaultSecretId: ${{ secrets.VAULT_SECRET_ID }}
+          slackChannel: "#apm-server"
+
+      - uses: elastic/apm-pipeline-library/.github/actions/slack-message@current
+        with:
+          url: ${{ secrets.VAULT_ADDR }}
+          roleId: ${{ secrets.VAULT_ROLE_ID }}
+          secretId: ${{ secrets.VAULT_SECRET_ID }}
+          channel: "#apm-server"
+          payload: |
+            {
+                "blocks": [
+                    {
+                        "type": "section",
+                        "text": {
+                            "type": "mrkdwn",
+                            "text": "${{ github.event_name == 'schedule' && 'Nightly succesfully executed!' || 'Benchmarks succesfully executed!' }}"
+                        },
+                        "accessory": {
+                            "type": "button",
+                            "style": "primary",
+                            "text": {
+                                "type": "plain_text",
+                                "text": "Workflow Run #${{ github.run_id }}",
+                                "emoji": true
+                            },
+                            "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}",
+                            "action_id": "workflow-run-button"
+                        }
+                    },
+                    {
+                        "type": "image",
+                        "image_url": "${{ steps.s3-upload-png.outputs.png_report_url }}",
+                        "alt_text": "kibana-png-report"
+                    },
+                    {
+                        "type": "actions",
+                        "elements": [
+                            {
+                                "type": "button",
+                                "text": {
+                                    "type": "plain_text",
+                                    "text": "Benchmarks dashboard"
+                                },
+                                "url": "${{ env.KIBANA_DASHBOARD_URL }}",
+                                "action_id": "kibana-dashboard-button"
+                            },
+                            {
+                                "type": "button",
+                                "text": {
+                                    "type": "plain_text",
+                                    "text": "Elastic Cloud deployment"
+                                },
+                                "url": "${{ steps.deploy.outputs.admin_console_url }}",
+                                "action_id": "admin-console-button"
+                            }
+                        ]
+                    }
+                ]
+            }

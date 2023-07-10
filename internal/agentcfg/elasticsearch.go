@@ -28,6 +28,7 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	"go.elastic.co/apm/v2"
 
 	"github.com/elastic/apm-server/internal/elasticsearch"
 	"github.com/elastic/apm-server/internal/logs"
@@ -70,6 +71,7 @@ type ElasticsearchFetcher struct {
 
 	logger, rateLimitedLogger *logp.Logger
 
+	tracer  *apm.Tracer
 	metrics fetcherMetrics
 }
 
@@ -79,7 +81,12 @@ type fetcherMetrics struct {
 	cacheEntriesCount atomic.Int64
 }
 
-func NewElasticsearchFetcher(client *elasticsearch.Client, cacheDuration time.Duration, fetcher Fetcher) *ElasticsearchFetcher {
+func NewElasticsearchFetcher(
+	client *elasticsearch.Client,
+	cacheDuration time.Duration,
+	fetcher Fetcher,
+	tracer *apm.Tracer,
+) *ElasticsearchFetcher {
 	logger := logp.NewLogger("agentcfg")
 	return &ElasticsearchFetcher{
 		client:            client,
@@ -88,6 +95,7 @@ func NewElasticsearchFetcher(client *elasticsearch.Client, cacheDuration time.Du
 		searchSize:        100,
 		logger:            logger,
 		rateLimitedLogger: logger.WithOptions(logs.WithRateLimit(loggerRateLimit)),
+		tracer:            tracer,
 	}
 }
 
@@ -122,7 +130,15 @@ func (f *ElasticsearchFetcher) Run(ctx context.Context) error {
 	refresh := func() bool {
 		// refresh returns a bool that indicates whether Run should return
 		// immediately without error, e.g. due to invalid Elasticsearch config.
+		tx := f.tracer.StartTransaction("ElasticsearchFetcher.refresh", "")
+		defer tx.End()
+		ctx = apm.ContextWithTransaction(ctx, tx)
+
 		if err := f.refreshCache(ctx); err != nil {
+			if e := apm.CaptureError(ctx, err); e != nil {
+				e.Send()
+			}
+
 			// Do not log as error when there is a fallback.
 			var logFunc func(string, ...interface{})
 			if f.fallbackFetcher == nil {
@@ -185,6 +201,9 @@ type cacheResult struct {
 }
 
 func (f *ElasticsearchFetcher) refreshCache(ctx context.Context) (err error) {
+	span, ctx := apm.StartSpan(ctx, "ElasticsearchFetcher.refreshCache", "")
+	defer span.End()
+
 	scrollID := ""
 	buffer := make([]AgentConfig, 0, len(f.cache))
 
