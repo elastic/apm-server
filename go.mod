@@ -45,7 +45,7 @@ require (
 	go.elastic.co/apm/module/apmgorilla/v2 v2.2.0
 	go.elastic.co/apm/module/apmgrpc/v2 v2.2.0
 	go.elastic.co/apm/module/apmhttp/v2 v2.4.3
-	go.elastic.co/apm/module/apmzap/v2 v2.2.0
+	go.elastic.co/apm/module/apmzap/v2 v2.4.3
 	go.elastic.co/apm/v2 v2.4.3
 	go.elastic.co/ecszap v1.0.1
 	go.elastic.co/fastjson v1.3.0
