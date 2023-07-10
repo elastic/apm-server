@@ -3,6 +3,9 @@
     - description: Placeholder
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/123
+    - description: Add permissions to reroute events
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/11168
 - version: "8.9.0"
   changes:
     - description: Handle `metricset.samples` from apm-server

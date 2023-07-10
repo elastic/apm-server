@@ -3,6 +3,9 @@ type: metrics
 dataset: apm.service_destination.{{ .Interval }}
 ilm_policy: metrics-apm.service_destination_{{ .Interval }}_metrics-default_policy
 elasticsearch:
+  # Ensures agents have permissions to write data to `logs-*-*`
+  dynamic_dataset: true
+  dynamic_namespace: true
   index_template:
     mappings:
       # We are in full control of the field names,
