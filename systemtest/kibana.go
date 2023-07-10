@@ -42,6 +42,7 @@ import (
 	"github.com/elastic/apm-server/systemtest/apmservertest"
 	"github.com/elastic/apm-server/systemtest/estest"
 	"github.com/elastic/apm-server/systemtest/fleettest"
+	"github.com/elastic/apm-tools/pkg/espoll"
 )
 
 const (
@@ -320,7 +321,7 @@ func CreateSourceMap(t testing.TB, sourcemap []byte, serviceName, serviceVersion
 	}
 
 	id := serviceName + "-" + serviceVersion + "-" + cleanPath
-	Elasticsearch.ExpectMinDocs(t, 1, ".apm-source-map", estest.TermQuery{
+	estest.ExpectMinDocs(t, Elasticsearch, 1, ".apm-source-map", espoll.TermQuery{
 		Field: "_id",
 		Value: id,
 	})

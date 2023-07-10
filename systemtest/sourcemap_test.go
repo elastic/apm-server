@@ -26,6 +26,8 @@ import (
 	"github.com/elastic/apm-server/systemtest"
 	"github.com/elastic/apm-server/systemtest/apmservertest"
 	"github.com/elastic/apm-server/systemtest/estest"
+	"github.com/elastic/apm-tools/pkg/approvaltest"
+	"github.com/elastic/apm-tools/pkg/espoll"
 )
 
 func TestRUMErrorSourcemapping(t *testing.T) {
@@ -41,8 +43,8 @@ func TestRUMErrorSourcemapping(t *testing.T) {
 			retry := func() {
 				systemtest.SendRUMEventsPayload(t, serverURL, "../testdata/intake-v2/errors_rum.ndjson")
 			}
-			result := systemtest.Elasticsearch.ExpectSourcemapError(t, "logs-apm.error-*", retry, nil, true)
-			systemtest.ApproveEvents(
+			result := estest.ExpectSourcemapError(t, systemtest.Elasticsearch, "logs-apm.error-*", retry, nil, true)
+			approvaltest.ApproveEvents(
 				t, t.Name(), result.Hits.Hits,
 				// RUM timestamps are set by the server based on the time the payload is received.
 				"@timestamp", "timestamp.us",
@@ -89,12 +91,12 @@ func TestRUMSpanSourcemapping(t *testing.T) {
 	retry := func() {
 		systemtest.SendRUMEventsPayload(t, srv.URL, "../testdata/intake-v2/transactions_spans_rum_2.ndjson")
 	}
-	result := systemtest.Elasticsearch.ExpectSourcemapError(t, "traces-apm*", retry, estest.TermQuery{
+	result := estest.ExpectSourcemapError(t, systemtest.Elasticsearch, "traces-apm*", retry, espoll.TermQuery{
 		Field: "processor.event",
 		Value: "span",
 	}, true)
 
-	systemtest.ApproveEvents(
+	approvaltest.ApproveEvents(
 		t, t.Name(), result.Hits.Hits,
 		// RUM timestamps are set by the server based on the time the payload is received.
 		"@timestamp", "timestamp.us",
@@ -122,12 +124,12 @@ func TestNoMatchingSourcemap(t *testing.T) {
 	retry := func() {
 		systemtest.SendRUMEventsPayload(t, srv.URL, "../testdata/intake-v2/transactions_spans_rum_2.ndjson")
 	}
-	result := systemtest.Elasticsearch.ExpectSourcemapError(t, "traces-apm*", retry, estest.TermQuery{
+	result := estest.ExpectSourcemapError(t, systemtest.Elasticsearch, "traces-apm*", retry, espoll.TermQuery{
 		Field: "processor.event",
 		Value: "span",
 	}, false)
 
-	systemtest.ApproveEvents(
+	approvaltest.ApproveEvents(
 		t, t.Name(), result.Hits.Hits,
 		// RUM timestamps are set by the server based on the time the payload is received.
 		"@timestamp", "timestamp.us",
@@ -155,11 +157,11 @@ func TestSourcemapCaching(t *testing.T) {
 	retry := func() {
 		systemtest.SendRUMEventsPayload(t, srv.URL, "../testdata/intake-v2/errors_rum.ndjson")
 	}
-	systemtest.Elasticsearch.ExpectSourcemapError(t, "logs-apm.error-*", retry, nil, true)
+	estest.ExpectSourcemapError(t, systemtest.Elasticsearch, "logs-apm.error-*", retry, nil, true)
 
 	// Delete the source map and error, and try again.
 	systemtest.CleanupElasticsearch(t)
-	systemtest.Elasticsearch.ExpectSourcemapError(t, "logs-apm.error-*", retry, nil, true)
+	estest.ExpectSourcemapError(t, systemtest.Elasticsearch, "logs-apm.error-*", retry, nil, true)
 }
 
 func TestSourcemapFetcher(t *testing.T) {
@@ -214,7 +216,7 @@ func TestSourcemapFetcher(t *testing.T) {
 			retry := func() {
 				systemtest.SendRUMEventsPayload(t, srv.URL, "../testdata/intake-v2/errors_rum.ndjson")
 			}
-			systemtest.Elasticsearch.ExpectSourcemapError(t, "logs-apm.error-*", retry, nil, true)
+			estest.ExpectSourcemapError(t, systemtest.Elasticsearch, "logs-apm.error-*", retry, nil, true)
 		})
 	}
 }

@@ -34,6 +34,8 @@ import (
 	"github.com/elastic/apm-server/systemtest"
 	"github.com/elastic/apm-server/systemtest/apmservertest"
 	"github.com/elastic/apm-server/systemtest/estest"
+	"github.com/elastic/apm-tools/pkg/approvaltest"
+	"github.com/elastic/apm-tools/pkg/espoll"
 )
 
 func TestRUMXForwardedFor(t *testing.T) {
@@ -64,11 +66,11 @@ func TestRUMXForwardedFor(t *testing.T) {
 	io.Copy(io.Discard, resp.Body)
 	resp.Body.Close()
 
-	result := systemtest.Elasticsearch.ExpectMinDocs(t, 2, "traces-apm*,metrics-apm*", estest.TermsQuery{
+	result := estest.ExpectMinDocs(t, systemtest.Elasticsearch, 2, "traces-apm*,metrics-apm*", espoll.TermsQuery{
 		Field:  "processor.event",
 		Values: []interface{}{"transaction", "metric"},
 	})
-	systemtest.ApproveEvents(
+	approvaltest.ApproveEvents(
 		t, t.Name(), result.Hits.Hits,
 		// RUM timestamps are set by the server based on the time the payload is received.
 		"@timestamp", "timestamp.us",
@@ -215,9 +217,8 @@ func TestRUMRoutingIntegration(t *testing.T) {
 		require.NoError(t, err)
 		defer resp.Body.Close()
 	}
-
-	result := systemtest.Elasticsearch.ExpectSourcemapError(t, "traces-apm.rum*", retry, nil, false)
-	systemtest.ApproveEvents(
+	result := estest.ExpectSourcemapError(t, systemtest.Elasticsearch, "traces-apm.rum*", retry, nil, false)
+	approvaltest.ApproveEvents(
 		t, t.Name(), result.Hits.Hits, "@timestamp", "timestamp.us",
 		"source.port", "source.ip", "client",
 	)
