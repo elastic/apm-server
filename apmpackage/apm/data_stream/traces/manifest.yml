@@ -3,6 +3,8 @@ type: traces
 dataset: apm
 ilm_policy: traces-apm.traces-default_policy
 elasticsearch:
+  # Ensures agents have permissions to write data to `traces-*-*`
+  dynamic_dataset: true
   dynamic_namespace: true
   index_template:
     mappings:
