@@ -3,9 +3,6 @@ type: traces
 dataset: apm.sampled
 ilm_policy: traces-apm.sampled_traces-default_policy
 elasticsearch:
-  # Ensures agents have permissions to write data to `logs-*-*`
-  dynamic_dataset: true
-  dynamic_namespace: true
   privileges:
     # We need additional privileges for the sampled traces data stream,
     # for refreshing indices, querying index stats, and reading documents.
