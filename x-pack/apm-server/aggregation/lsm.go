@@ -25,6 +25,7 @@ type Aggregator struct {
 // NewAggregator returns a new instance of aggregator.
 func NewAggregator(
 	ctx context.Context,
+	maxSvcs int, maxTxGroups int,
 	nextProcessor modelpb.BatchProcessor,
 	logger *logp.Logger,
 ) (*Aggregator, error) {
@@ -37,14 +38,14 @@ func NewAggregator(
 	baseaggregator, err := aggregators.New(
 		aggregators.WithDataDir(dir),
 		aggregators.WithLimits(aggregators.Limits{
-			MaxSpanGroups:                         1000,
-			MaxSpanGroupsPerService:               100,
-			MaxTransactionGroups:                  1000,
-			MaxTransactionGroupsPerService:        100,
-			MaxServiceTransactionGroups:           1000,
-			MaxServiceTransactionGroupsPerService: 100,
-			MaxServiceInstanceGroupsPerService:    100,
-			MaxServices:                           1000,
+			MaxSpanGroups:                         10000,
+			MaxSpanGroupsPerService:               1000,
+			MaxTransactionGroups:                  maxTxGroups,
+			MaxTransactionGroupsPerService:        maxTxGroups / 10,
+			MaxServiceTransactionGroups:           maxSvcs,
+			MaxServiceTransactionGroupsPerService: maxSvcs / 10,
+			MaxServiceInstanceGroupsPerService:    maxSvcs / 10,
+			MaxServices:                           maxSvcs,
 		}),
 		aggregators.WithProcessor(wrapNextProcessor(nextProcessor)),
 		aggregators.WithAggregationIntervals([]time.Duration{time.Minute, 10 * time.Minute, time.Hour}),
