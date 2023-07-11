@@ -276,8 +276,8 @@ func TestHandlerSendBatches(t *testing.T) {
 		n, err := handler.SendBatches(ctx)
 		// 16 + 9 (1st sec) < 32 (total send)
 		assert.Error(t, err)
-		assert.Equal(t, 2, len(handler.batches)) // Ensure there are 2 batches.
-		assert.Equal(t, int64(16), srv.received.Load())        // Only the first batch is read
+		assert.Equal(t, 2, len(handler.batches))        // Ensure there are 2 batches.
+		assert.Equal(t, int64(16), srv.received.Load()) // Only the first batch is read
 		assert.Equal(t, 16, n)
 	})
 	t.Run("success-with-batch-bigger-than-burst", func(t *testing.T) {
@@ -289,9 +289,9 @@ func TestHandlerSendBatches(t *testing.T) {
 
 		// the payload is not equal as two metadata are added
 		assert.Equal(t, int64(32), srv.received.Load())
-		assert.Equal(t, 32, n)                   // Ensure there are 32 events (minus metadata).
-		assert.Equal(t, 2, len(handler.batches)) // Ensure there are 2 batches.
-		assert.Equal(t, int64(4), srv.requestCount.Load())     // a batch split into 2 requests.
+		assert.Equal(t, 32, n)                             // Ensure there are 32 events (minus metadata).
+		assert.Equal(t, 2, len(handler.batches))           // Ensure there are 2 batches.
+		assert.Equal(t, int64(4), srv.requestCount.Load()) // a batch split into 2 requests.
 	})
 	t.Run("success-queue-when-batch-size-is-smaller-than-burst", func(t *testing.T) {
 		handler, srv := newHandler(t, withRateLimiter(rate.NewLimiter(6, 12))) // event rate = 12/2sec
@@ -300,8 +300,8 @@ func TestHandlerSendBatches(t *testing.T) {
 		n, _ := handler.SendBatches(ctx)
 		// 12 (1st sec) sent, wait for 2 sec to send events
 		// cancelling at 2nd sec shows queued batches
-		assert.Equal(t, 2, len(handler.batches)) // Ensure there are 2 batches.
-		assert.Equal(t, int64(12), srv.received.Load())        // no events sent until next interval (only first burst)
+		assert.Equal(t, 2, len(handler.batches))        // Ensure there are 2 batches.
+		assert.Equal(t, int64(12), srv.received.Load()) // no events sent until next interval (only first burst)
 		assert.Equal(t, 12, n)
 	})
 	t.Run("success-dequeue-events-and-send-at-next-interval", func(t *testing.T) {
