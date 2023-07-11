@@ -10,13 +10,11 @@ import (
 	"os"
 	"time"
 
-	"go.elastic.co/apm/module/apmzap/v2"
-	"go.elastic.co/ecszap"
 	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 
 	"github.com/elastic/apm-aggregation/aggregators"
 	"github.com/elastic/apm-data/model/modelpb"
+	"github.com/elastic/elastic-agent-libs/logp"
 )
 
 type Aggregator struct {
@@ -28,13 +26,9 @@ type Aggregator struct {
 func NewAggregator(
 	ctx context.Context,
 	nextProcessor modelpb.BatchProcessor,
+	logger *logp.Logger,
 ) (*Aggregator, error) {
-	// TODO(carsonip): Respect apm-server log config
-	var apmzapCore apmzap.Core
-	encoderCfg := ecszap.NewDefaultEncoderConfig()
-	level := zap.NewAtomicLevelAt(zapcore.DebugLevel)
-	core := ecszap.NewCore(encoderCfg, os.Stderr, level)
-	logger := zap.New(apmzapCore.WrapCore(core), zap.AddCaller())
+	zapLogger := zap.New(logger.Core(), zap.WithCaller(true)).Named("aggregator")
 	// TODO(carsonip): Where should we store the db files? Should it be configurable?
 	dir, err := os.MkdirTemp("", "lsm")
 	if err != nil {
@@ -54,13 +48,13 @@ func NewAggregator(
 		}),
 		aggregators.WithProcessor(wrapNextProcessor(nextProcessor)),
 		aggregators.WithAggregationIntervals([]time.Duration{time.Minute, 10 * time.Minute, time.Hour}),
-		aggregators.WithLogger(logger),
+		aggregators.WithLogger(zapLogger),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create base aggregator: %w", err)
 	}
 	agg := &Aggregator{
-		logger:         logger,
+		logger:         zapLogger,
 		baseaggregator: baseaggregator,
 	}
 	return agg, err
