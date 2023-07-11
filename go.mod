@@ -8,12 +8,12 @@ require (
 	github.com/dgraph-io/badger/v2 v2.2007.3-0.20201012072640-f5a7e0a1c83b
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/apm-data v0.1.1-0.20230705050140-e5828f1f7c8f
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230706134244-f75a2ed898bc
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230711084107-a705396db6c8
 	github.com/elastic/elastic-agent-client/v7 v7.1.2
 	github.com/elastic/elastic-agent-libs v0.3.9
 	github.com/elastic/elastic-agent-system-metrics v0.6.1
 	github.com/elastic/gmux v0.2.0
-	github.com/elastic/go-docappender v0.1.0
+	github.com/elastic/go-docappender v0.2.1-0.20230710012924-31c7e23227e7
 	github.com/elastic/go-elasticsearch/v8 v8.8.2
 	github.com/elastic/go-hdrhistogram v0.1.0
 	github.com/elastic/go-sysinfo v1.11.0
@@ -39,19 +39,19 @@ require (
 	github.com/ryanuber/go-glob v1.0.0
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/pflag v1.0.5
-	github.com/stretchr/testify v1.8.3
-	go.elastic.co/apm/module/apmelasticsearch/v2 v2.4.1
+	github.com/stretchr/testify v1.8.4
+	go.elastic.co/apm/module/apmelasticsearch/v2 v2.4.3
 	go.elastic.co/apm/module/apmgorilla/v2 v2.2.0
 	go.elastic.co/apm/module/apmgrpc/v2 v2.2.0
-	go.elastic.co/apm/module/apmhttp/v2 v2.4.1
-	go.elastic.co/apm/v2 v2.4.1
+	go.elastic.co/apm/module/apmhttp/v2 v2.4.3
+	go.elastic.co/apm/v2 v2.4.3
 	go.elastic.co/fastjson v1.3.0
 	go.opentelemetry.io/collector v0.63.1
 	go.opentelemetry.io/collector/pdata v1.0.0-rcv0011
 	go.uber.org/automaxprocs v1.5.1
 	go.uber.org/zap v1.24.0
 	golang.org/x/net v0.10.0
-	golang.org/x/sync v0.2.0
+	golang.org/x/sync v0.3.0
 	golang.org/x/term v0.8.0
 	golang.org/x/time v0.3.0
 	google.golang.org/grpc v1.54.0
@@ -95,7 +95,6 @@ require (
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-uuid v1.0.3 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
-	github.com/jcchavezs/porto v0.4.0 // indirect
 	github.com/jcmturner/aescts/v2 v2.0.0 // indirect
 	github.com/jcmturner/dnsutils/v2 v2.0.0 // indirect
 	github.com/jcmturner/gofork v1.7.6 // indirect
@@ -122,6 +121,9 @@ require (
 	github.com/shirou/gopsutil v3.21.11+incompatible // indirect
 	github.com/shirou/gopsutil/v3 v3.23.4 // indirect
 	github.com/shoenig/go-m1cpu v0.1.5 // indirect
+	github.com/tidwall/gjson v1.14.4 // indirect
+	github.com/tidwall/match v1.1.1 // indirect
+	github.com/tidwall/pretty v1.2.0 // indirect
 	github.com/tklauser/go-sysconf v0.3.11 // indirect
 	github.com/tklauser/numcpus v0.6.0 // indirect
 	github.com/uber/jaeger-client-go v2.30.0+incompatible // indirect
@@ -130,7 +132,7 @@ require (
 	github.com/xdg/stringprep v1.0.3 // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
 	github.com/yusufpapurcu/wmi v1.2.2 // indirect
-	go.elastic.co/apm/module/apmzap/v2 v2.2.0 // indirect
+	go.elastic.co/apm/module/apmzap/v2 v2.4.3 // indirect
 	go.elastic.co/ecszap v1.0.1 // indirect
 	go.opentelemetry.io/collector/semconv v0.76.1 // indirect
 	go.uber.org/atomic v1.10.0 // indirect
