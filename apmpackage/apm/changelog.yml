@@ -3,7 +3,10 @@
     - description: Placeholder
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/123
-    - description: Add permissions to reroute events
+    - description: Add permissions to reroute to dedicated datasets for logs, metrics and traces
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/11168
+    - description: Add permissions to reroute to dedicated namespaces for every data stream.
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/11168
 - version: "8.9.0"
