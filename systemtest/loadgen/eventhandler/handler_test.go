@@ -33,6 +33,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"sync/atomic"
 	"testing"
 	"testing/fstest"
 	"time"
@@ -45,8 +46,8 @@ import (
 type mockServer struct {
 	got          *bytes.Buffer
 	close        func()
-	received     int
-	requestCount int
+	received     atomic.Int64
+	requestCount atomic.Int64
 }
 
 func (t *mockServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -74,12 +75,12 @@ func (t *mockServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		isMeta := bytes.HasPrefix(line, metaHeader) ||
 			bytes.HasPrefix(line, rumMetaHeader)
 		if !isMeta {
-			t.received++
+			t.received.Add(1)
 		}
 		t.got.Write(line)
 		t.got.Write([]byte("\n"))
 	}
-	t.requestCount++
+	t.requestCount.Add(1)
 	w.WriteHeader(http.StatusAccepted)
 }
 
@@ -229,7 +230,7 @@ func TestHandlerSendBatches(t *testing.T) {
 		assert.NoError(t, err)
 
 		assert.Equal(t, string(b), srv.got.String()) // Ensure the contents match.
-		assert.Equal(t, 32, srv.received)
+		assert.Equal(t, int64(32), srv.received.Load())
 		assert.Equal(t, 32, n)                   // Ensure there are 32 events (minus metadata).
 		assert.Equal(t, 2, len(handler.batches)) // Ensure there are 2 batches.
 	})
@@ -239,7 +240,7 @@ func TestHandlerSendBatches(t *testing.T) {
 		cancel()
 		n, err := handler.SendBatches(ctx)
 		assert.Error(t, err)
-		assert.Equal(t, 0, srv.received)
+		assert.Equal(t, int64(0), srv.received.Load())
 		assert.Equal(t, 0, n)
 	})
 	t.Run("returns-error", func(t *testing.T) {
@@ -265,7 +266,7 @@ func TestHandlerSendBatches(t *testing.T) {
 
 		assert.Equal(t, string(b), srv.got.String()) // Ensure the contents match.
 		assert.Equal(t, 2, len(handler.batches))     // Ensure there are 2 batches.
-		assert.Equal(t, 32, srv.received)
+		assert.Equal(t, int64(32), srv.received.Load())
 		assert.Equal(t, 32, n) // Ensure there are 32 events (minus metadata).
 	})
 	t.Run("failure-with-rate-limit", func(t *testing.T) {
@@ -276,7 +277,7 @@ func TestHandlerSendBatches(t *testing.T) {
 		// 16 + 9 (1st sec) < 32 (total send)
 		assert.Error(t, err)
 		assert.Equal(t, 2, len(handler.batches)) // Ensure there are 2 batches.
-		assert.Equal(t, 16, srv.received)        // Only the first batch is read
+		assert.Equal(t, int64(16), srv.received.Load())        // Only the first batch is read
 		assert.Equal(t, 16, n)
 	})
 	t.Run("success-with-batch-bigger-than-burst", func(t *testing.T) {
@@ -287,10 +288,10 @@ func TestHandlerSendBatches(t *testing.T) {
 		assert.NoError(t, err)
 
 		// the payload is not equal as two metadata are added
-		assert.Equal(t, 32, srv.received)
+		assert.Equal(t, int64(32), srv.received.Load())
 		assert.Equal(t, 32, n)                   // Ensure there are 32 events (minus metadata).
 		assert.Equal(t, 2, len(handler.batches)) // Ensure there are 2 batches.
-		assert.Equal(t, 4, srv.requestCount)     // a batch split into 2 requests.
+		assert.Equal(t, int64(4), srv.requestCount.Load())     // a batch split into 2 requests.
 	})
 	t.Run("success-queue-when-batch-size-is-smaller-than-burst", func(t *testing.T) {
 		handler, srv := newHandler(t, withRateLimiter(rate.NewLimiter(6, 12))) // event rate = 12/2sec
@@ -300,7 +301,7 @@ func TestHandlerSendBatches(t *testing.T) {
 		// 12 (1st sec) sent, wait for 2 sec to send events
 		// cancelling at 2nd sec shows queued batches
 		assert.Equal(t, 2, len(handler.batches)) // Ensure there are 2 batches.
-		assert.Equal(t, 12, srv.received)        // no events sent until next interval (only first burst)
+		assert.Equal(t, int64(12), srv.received.Load())        // no events sent until next interval (only first burst)
 		assert.Equal(t, 12, n)
 	})
 	t.Run("success-dequeue-events-and-send-at-next-interval", func(t *testing.T) {
@@ -309,7 +310,7 @@ func TestHandlerSendBatches(t *testing.T) {
 		defer cancel()
 		n, _ := handler.SendBatches(ctx)
 		// 12 (1st sec) + 12 (3rd sec)
-		assert.Equal(t, 24, srv.received) // Ensure the events are sent after 2 seconds
+		assert.Equal(t, int64(24), srv.received.Load()) // Ensure the events are sent after 2 seconds
 		assert.Equal(t, 24, n)
 	})
 }
@@ -765,7 +766,7 @@ func TestHandlerInLoop(t *testing.T) {
 		// Warm up with more events than  saved.
 		err := h.SendBatchesInLoop(ctx)
 		assert.ErrorIs(t, err, context.DeadlineExceeded)
-		assert.Greater(t, srv.received, 0)
+		assert.Greater(t, srv.received.Load(), int64(0))
 	})
 	t.Run("cancel-before-warmup", func(t *testing.T) {
 		h, srv := newHandler(t)
@@ -773,7 +774,7 @@ func TestHandlerInLoop(t *testing.T) {
 		cancel()
 		err := h.SendBatchesInLoop(ctx)
 		assert.ErrorIs(t, err, context.Canceled)
-		assert.Equal(t, 0, srv.received)
+		assert.Equal(t, int64(0), srv.received.Load())
 	})
 
 	t.Run("success-with-burst-bigger-than-batches", func(t *testing.T) {
@@ -785,7 +786,7 @@ func TestHandlerInLoop(t *testing.T) {
 		err := h.SendBatchesInLoop(ctx)
 
 		assert.Error(t, err)
-		assert.Equal(t, 80, srv.received)
+		assert.Equal(t, int64(80), srv.received.Load())
 	})
 }
 
