@@ -52,7 +52,7 @@ The agent selects this strategy if two adjacent spans have the same:
 === Settings
 
 The agent has configuration settings to define upper thresholds in terms of span duration for both strategies.
-For the "Same-Kind" strategy, the limit is 0 milliseconds. For the "Exact-Match" strategy, the limit is 50 milliseconds.
+For the "Same-Kind" strategy, the default limit is 0 milliseconds, which means that the "Same-Kind" strategy is disabled by default. For the "Exact-Match" strategy, the default limit is 50 milliseconds.
 Spans with longer duration are not compressed. Please refer to the agent documentation for specifics.
 
 [float]
