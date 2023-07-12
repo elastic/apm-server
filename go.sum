@@ -661,6 +661,7 @@ go.elastic.co/apm/module/apmhttp/v2 v2.2.0/go.mod h1:lA/MHCxZkURm66gWHzgggOhArLr
 go.elastic.co/apm/module/apmhttp/v2 v2.4.3 h1:bBqbbtQSEL+uVpH5CS656E9x6pXha8kkZ468/G0T5Eo=
 go.elastic.co/apm/module/apmhttp/v2 v2.4.3/go.mod h1:PsafA29/iwRva1ouV+70Lfu6RyAJHh6Zcc+jL6eZ83E=
 go.elastic.co/apm/module/apmotel/v2 v2.4.3 h1:LfxiPWNhlY0R+MW5++BvNuAqxvjlNuT/rpD/vYjj2KU=
+go.elastic.co/apm/module/apmotel/v2 v2.4.3/go.mod h1:T7YnY2jVaaXeKlhO94UMEMreH/CzDn9xkJ40sFozouY=
 go.elastic.co/apm/module/apmzap/v2 v2.4.3 h1:7jsuiJLP5BHQ9tpHRGu9oiiDqYdIBE24WF0P5te8sOk=
 go.elastic.co/apm/module/apmzap/v2 v2.4.3/go.mod h1:f9qtIFTU/dCnUqoDeuNrRevCR3fMJe6YMw9SelFjzbY=
 go.elastic.co/apm/v2 v2.2.0/go.mod h1:KGQn56LtRmkQjt2qw4+c1Jz8gv9rCBUU/m21uxrqcps=
@@ -687,7 +688,9 @@ go.opentelemetry.io/otel v1.16.0/go.mod h1:vl0h9NUa1D5s1nv3A5vZOYWn8av4K8Ml6JDeH
 go.opentelemetry.io/otel/metric v1.16.0 h1:RbrpwVG1Hfv85LgnZ7+txXioPDoh6EdbZHo26Q3hqOo=
 go.opentelemetry.io/otel/metric v1.16.0/go.mod h1:QE47cpOmkwipPiefDwo2wDzwJrlfxxNYodqc4xnGCo4=
 go.opentelemetry.io/otel/sdk v1.16.0 h1:Z1Ok1YsijYL0CSJpHt4cS3wDDh7p572grzNrBMiMWgE=
+go.opentelemetry.io/otel/sdk v1.16.0/go.mod h1:tMsIuKXuuIWPBAOrH+eHtvhTL+SntFtXF9QD68aP6p4=
 go.opentelemetry.io/otel/sdk/metric v0.39.0 h1:Kun8i1eYf48kHH83RucG93ffz0zGV1sh46FAScOTuDI=
+go.opentelemetry.io/otel/sdk/metric v0.39.0/go.mod h1:piDIRgjcK7u0HCL5pCA4e74qpK/jk3NiUoAHATVAmiI=
 go.opentelemetry.io/otel/trace v1.16.0 h1:8JRpaObFoW0pxuVPapkgH8UhHQj+bJW8jJsCZEu5MQs=
 go.opentelemetry.io/otel/trace v1.16.0/go.mod h1:Yt9vYq1SdNz3xdjZZK7wcXv1qv2pwLkqr2QVwea0ef0=
 go.opentelemetry.io/proto/otlp v0.7.0/go.mod h1:PqfVotwruBrMGOCsRd/89rSnXhoiJIqeYNgFYFoEGnI=

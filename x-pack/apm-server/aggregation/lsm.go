@@ -10,6 +10,10 @@ import (
 	"os"
 	"time"
 
+	"go.elastic.co/apm/module/apmotel/v2"
+	"go.elastic.co/apm/v2"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/sdk/metric"
 	"go.uber.org/zap"
 
 	"github.com/elastic/apm-aggregation/aggregators"
@@ -29,12 +33,28 @@ func NewAggregator(
 	maxSvcs int, maxTxGroups int,
 	nextProcessor modelpb.BatchProcessor,
 	logger *logp.Logger,
+	tracer *apm.Tracer,
 ) (*Aggregator, error) {
 	zapLogger := zap.New(logger.Core(), zap.WithCaller(true)).Named("aggregator")
-	storageDir := paths.Resolve(paths.Data, "aggregation")
+	storageDir := paths.Resolve(paths.Data, "aggregator")
 	if err := os.MkdirAll(storageDir, os.ModePerm); err != nil {
 		return nil, err
 	}
+
+	tp, err := apmotel.NewTracerProvider()
+	if err != nil {
+		return nil, fmt.Errorf("failed creating apmotel tracer provider: %w", err)
+	}
+	otel.SetTracerProvider(tp)
+
+	exporter, err := apmotel.NewGatherer()
+	if err != nil {
+		return nil, fmt.Errorf("failed creating apmotel gatherer: %w", err)
+	}
+	mp := metric.NewMeterProvider(metric.WithReader(exporter))
+	otel.SetMeterProvider(mp)
+	tracer.RegisterMetricsGatherer(exporter)
+
 	baseaggregator, err := aggregators.New(
 		aggregators.WithDataDir(storageDir),
 		aggregators.WithLimits(aggregators.Limits{
@@ -50,7 +70,10 @@ func NewAggregator(
 		aggregators.WithProcessor(wrapNextProcessor(nextProcessor)),
 		aggregators.WithAggregationIntervals([]time.Duration{time.Minute, 10 * time.Minute, time.Hour}),
 		aggregators.WithLogger(zapLogger),
+		aggregators.WithMeter(mp.Meter("aggregator")),
+		aggregators.WithTracer(tp.Tracer("aggregator")),
 	)
+
 	if err != nil {
 		return nil, fmt.Errorf("failed to create base aggregator: %w", err)
 	}
