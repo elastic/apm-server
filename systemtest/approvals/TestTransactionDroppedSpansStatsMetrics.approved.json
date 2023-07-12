@@ -33,7 +33,10 @@
                 "name": "metric"
             },
             "service": {
-                "name": "systemtest"
+                "name": "systemtest",
+                "target": {
+                    "type": "elasticsearch"
+                }
             },
             "span": {
                 "destination": {
@@ -82,7 +85,10 @@
                 "name": "metric"
             },
             "service": {
-                "name": "systemtest"
+                "name": "systemtest",
+                "target": {
+                    "type": "elasticsearch"
+                }
             },
             "span": {
                 "destination": {
@@ -131,7 +137,10 @@
                 "name": "metric"
             },
             "service": {
-                "name": "systemtest"
+                "name": "systemtest",
+                "target": {
+                    "type": "elasticsearch"
+                }
             },
             "span": {
                 "destination": {
@@ -180,7 +189,10 @@
                 "name": "metric"
             },
             "service": {
-                "name": "systemtest"
+                "name": "systemtest",
+                "target": {
+                    "type": "redis"
+                }
             },
             "span": {
                 "destination": {
@@ -229,7 +241,10 @@
                 "name": "metric"
             },
             "service": {
-                "name": "systemtest"
+                "name": "systemtest",
+                "target": {
+                    "type": "redis"
+                }
             },
             "span": {
                 "destination": {
@@ -278,7 +293,10 @@
                 "name": "metric"
             },
             "service": {
-                "name": "systemtest"
+                "name": "systemtest",
+                "target": {
+                    "type": "redis"
+                }
             },
             "span": {
                 "destination": {
