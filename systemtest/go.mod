@@ -5,19 +5,19 @@ go 1.20
 require (
 	github.com/docker/docker v23.0.3+incompatible
 	github.com/docker/go-connections v0.4.0
+	github.com/elastic/apm-perf v0.0.0-20230608162138-29920c01cfd6
 	github.com/elastic/go-elasticsearch/v8 v8.4.0
 	github.com/fatih/color v1.13.0
 	github.com/google/go-cmp v0.5.9
 	github.com/google/pprof v0.0.0-20210407192527-94a9f03dee38
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/jaegertracing/jaeger v1.47.0
-	github.com/klauspost/compress v1.16.7
 	github.com/spf13/cobra v1.7.0
 	github.com/stretchr/testify v1.8.4
 	github.com/testcontainers/testcontainers-go v0.18.0
-	github.com/tidwall/gjson v1.9.3
-	github.com/tidwall/sjson v1.1.1
-	go.elastic.co/apm/v2 v2.1.1-0.20220810211444-b8542dccafec
+	github.com/tidwall/gjson v1.14.4
+	github.com/tidwall/sjson v1.2.5
+	go.elastic.co/apm/v2 v2.4.1
 	go.elastic.co/fastjson v1.1.0
 	go.opentelemetry.io/collector/pdata v1.0.0-rcv0013
 	go.opentelemetry.io/collector/semconv v0.81.0
@@ -34,7 +34,7 @@ require (
 	go.uber.org/zap v1.24.0
 	golang.org/x/sync v0.2.0
 	golang.org/x/sys v0.10.0
-	golang.org/x/time v0.0.0-20220210224613-90d013bbcef8
+	golang.org/x/time v0.3.0
 	google.golang.org/grpc v1.56.1
 	google.golang.org/protobuf v1.31.0
 	gopkg.in/yaml.v3 v3.0.1
@@ -70,6 +70,7 @@ require (
 	github.com/jcchavezs/porto v0.1.0 // indirect
 	github.com/joeshaw/multierror v0.0.0-20140124173710-69b34d4ec901 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
+	github.com/klauspost/compress v1.16.7 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mattn/go-colorable v0.1.12 // indirect
 	github.com/mattn/go-isatty v0.0.16 // indirect
@@ -86,7 +87,6 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/prometheus/procfs v0.10.1 // indirect
-	github.com/santhosh-tekuri/jsonschema v1.2.4 // indirect
 	github.com/sirupsen/logrus v1.9.0 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.0 // indirect
