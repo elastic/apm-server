@@ -54,6 +54,8 @@ import (
 	"github.com/elastic/apm-server/systemtest"
 	"github.com/elastic/apm-server/systemtest/apmservertest"
 	"github.com/elastic/apm-server/systemtest/estest"
+	"github.com/elastic/apm-tools/pkg/approvaltest"
+	"github.com/elastic/apm-tools/pkg/espoll"
 )
 
 var otelErrors = make(chan error, 1)
@@ -111,15 +113,15 @@ func TestOTLPGRPCTraces(t *testing.T) {
 	require.NoError(t, err)
 
 	indices := "traces-apm*,logs-apm*"
-	result := systemtest.Elasticsearch.ExpectMinDocs(t, 3, indices, estest.BoolQuery{
+	result := estest.ExpectMinDocs(t, systemtest.Elasticsearch, 3, indices, espoll.BoolQuery{
 		Should: []interface{}{
-			estest.TermQuery{Field: "processor.event", Value: "transaction"},
-			estest.TermQuery{Field: "processor.event", Value: "log"},
-			estest.TermQuery{Field: "processor.event", Value: "error"},
+			espoll.TermQuery{Field: "processor.event", Value: "transaction"},
+			espoll.TermQuery{Field: "processor.event", Value: "log"},
+			espoll.TermQuery{Field: "processor.event", Value: "error"},
 		},
 		MinimumShouldMatch: 1,
 	})
-	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits, "error.id")
+	approvaltest.ApproveEvents(t, t.Name(), result.Hits.Hits, "error.id")
 }
 
 func TestOTLPGRPCTraceSpanLinks(t *testing.T) {
@@ -140,13 +142,13 @@ func TestOTLPGRPCTraceSpanLinks(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	result := systemtest.Elasticsearch.ExpectMinDocs(t, 2, "traces-apm*", estest.BoolQuery{
+	result := estest.ExpectMinDocs(t, systemtest.Elasticsearch, 2, "traces-apm*", espoll.BoolQuery{
 		Should: []interface{}{
-			estest.TermQuery{
+			espoll.TermQuery{
 				Field: "trace.id",
 				Value: spanContext1.TraceID().String(),
 			},
-			estest.TermQuery{
+			espoll.TermQuery{
 				Field: "span.links.trace.id",
 				Value: spanContext1.TraceID().String(),
 			},
@@ -216,14 +218,14 @@ func TestOTLPGRPCMetrics(t *testing.T) {
 	summaryDP.SetSum(123.456)
 	metricsClient.Export(context.Background(), pmetricotlp.NewExportRequestFromMetrics(metrics))
 
-	result := systemtest.Elasticsearch.ExpectDocs(t, "metrics-apm.app.*", estest.ExistsQuery{Field: "counter"})
-	systemtest.ApproveEvents(t, t.Name()+"_counter", result.Hits.Hits, "@timestamp")
+	result := estest.ExpectDocs(t, systemtest.Elasticsearch, "metrics-apm.app.*", espoll.ExistsQuery{Field: "counter"})
+	approvaltest.ApproveEvents(t, t.Name()+"_counter", result.Hits.Hits, "@timestamp")
 
-	result = systemtest.Elasticsearch.ExpectDocs(t, "metrics-apm.app.*", estest.ExistsQuery{Field: "summary"})
-	systemtest.ApproveEvents(t, t.Name()+"_summary", result.Hits.Hits, "@timestamp")
+	result = estest.ExpectDocs(t, systemtest.Elasticsearch, "metrics-apm.app.*", espoll.ExistsQuery{Field: "summary"})
+	approvaltest.ApproveEvents(t, t.Name()+"_summary", result.Hits.Hits, "@timestamp")
 
-	result = systemtest.Elasticsearch.ExpectDocs(t, "metrics-apm.app.*", estest.ExistsQuery{Field: "histogram"})
-	systemtest.ApproveEvents(t, t.Name()+"_histogram", result.Hits.Hits, "@timestamp")
+	result = estest.ExpectDocs(t, systemtest.Elasticsearch, "metrics-apm.app.*", espoll.ExistsQuery{Field: "histogram"})
+	approvaltest.ApproveEvents(t, t.Name()+"_histogram", result.Hits.Hits, "@timestamp")
 
 	// Make sure we report monitoring for the metrics consumer. Metric values are unit tested.
 	doc := getBeatsMonitoringStats(t, srv, nil)
@@ -246,10 +248,10 @@ func TestOTLPGRPCLogs(t *testing.T) {
 	_, err = logsClient.Export(ctx, plogotlp.NewExportRequestFromLogs(logs))
 	require.NoError(t, err)
 
-	result := systemtest.Elasticsearch.ExpectDocs(t, "logs-apm*", estest.TermQuery{
+	result := estest.ExpectDocs(t, systemtest.Elasticsearch, "logs-apm*", espoll.TermQuery{
 		Field: "processor.event", Value: "log",
 	})
-	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits)
+	approvaltest.ApproveEvents(t, t.Name(), result.Hits.Hits)
 }
 
 func TestOTLPGRPCAuth(t *testing.T) {
@@ -270,8 +272,8 @@ func TestOTLPGRPCAuth(t *testing.T) {
 		"Authorization": "Bearer abc123",
 	}))))
 	require.NoError(t, err)
-	systemtest.Elasticsearch.ExpectDocs(t, "traces-apm*", estest.BoolQuery{Filter: []interface{}{
-		estest.TermQuery{Field: "processor.event", Value: "transaction"},
+	estest.ExpectDocs(t, systemtest.Elasticsearch, "traces-apm*", espoll.BoolQuery{Filter: []interface{}{
+		espoll.TermQuery{Field: "processor.event", Value: "transaction"},
 	}})
 }
 
@@ -301,13 +303,13 @@ func TestOTLPClientIP(t *testing.T) {
 	require.NoError(t, err)
 
 	// Non-iOS agent documents should have no client.ip field set.
-	result := systemtest.Elasticsearch.ExpectDocs(t, "traces-apm*", estest.TermQuery{
+	result := estest.ExpectDocs(t, systemtest.Elasticsearch, "traces-apm*", espoll.TermQuery{
 		Field: "service.name", Value: "service1",
 	})
 	assert.False(t, gjson.GetBytes(result.Hits.Hits[0].RawSource, "client.ip").Exists())
 
 	// iOS agent documents should have a client.ip field set.
-	result = systemtest.Elasticsearch.ExpectDocs(t, "traces-apm*", estest.TermQuery{
+	result = estest.ExpectDocs(t, systemtest.Elasticsearch, "traces-apm*", espoll.TermQuery{
 		Field: "service.name", Value: "service2",
 	})
 	assert.True(t, gjson.GetBytes(result.Hits.Hits[0].RawSource, "client.ip").Exists())
@@ -322,14 +324,14 @@ func TestOTLPHTTP(t *testing.T) {
 		systemtest.CleanupElasticsearch(t)
 		exporter := newOTLPHTTPTraceExporter(t, srv)
 		sendOTLPTrace(ctx, newOTLPTracerProvider(exporter))
-		systemtest.Elasticsearch.ExpectDocs(t, "traces-apm*", nil)
+		estest.ExpectDocs(t, systemtest.Elasticsearch, "traces-apm*", nil)
 	})
 
 	t.Run("gzip_compressed", func(t *testing.T) {
 		systemtest.CleanupElasticsearch(t)
 		exporter := newOTLPHTTPTraceExporter(t, srv, otlptracehttp.WithCompression(otlptracehttp.GzipCompression))
 		sendOTLPTrace(ctx, newOTLPTracerProvider(exporter))
-		systemtest.Elasticsearch.ExpectDocs(t, "traces-apm*", nil)
+		estest.ExpectDocs(t, systemtest.Elasticsearch, "traces-apm*", nil)
 	})
 }
 

@@ -29,6 +29,8 @@ import (
 	"github.com/elastic/apm-server/systemtest"
 	"github.com/elastic/apm-server/systemtest/apmservertest"
 	"github.com/elastic/apm-server/systemtest/estest"
+	"github.com/elastic/apm-tools/pkg/approvaltest"
+	"github.com/elastic/apm-tools/pkg/espoll"
 )
 
 func TestErrorIngest(t *testing.T) {
@@ -46,8 +48,8 @@ func TestErrorIngest(t *testing.T) {
 	defer resp.Body.Close()
 	assert.Equal(t, http.StatusAccepted, resp.StatusCode)
 
-	result := systemtest.Elasticsearch.ExpectDocs(t, "logs-apm.error*", estest.ExistsQuery{
+	result := estest.ExpectDocs(t, systemtest.Elasticsearch, "logs-apm.error*", espoll.ExistsQuery{
 		Field: "transaction.name",
 	})
-	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits)
+	approvaltest.ApproveEvents(t, t.Name(), result.Hits.Hits)
 }
