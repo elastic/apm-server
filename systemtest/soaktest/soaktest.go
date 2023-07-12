@@ -27,8 +27,8 @@ import (
 	"golang.org/x/sync/errgroup"
 	"golang.org/x/time/rate"
 
-	"github.com/elastic/apm-server/systemtest/loadgen"
-	loadgencfg "github.com/elastic/apm-server/systemtest/loadgen/config"
+	"github.com/elastic/apm-perf/loadgen"
+	loadgencfg "github.com/elastic/apm-perf/loadgen/config"
 )
 
 func RunBlocking(ctx context.Context) error {
