@@ -31,7 +31,9 @@ import (
 	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 	"go.elastic.co/apm/module/apmgrpc/v2"
+	"go.elastic.co/apm/module/apmotel/v2"
 	"go.elastic.co/apm/v2"
+	"go.opentelemetry.io/otel"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 	"golang.org/x/sync/semaphore"
@@ -292,6 +294,12 @@ func (s *Runner) Run(ctx context.Context) error {
 		defer tracerServerListener.Close()
 	}
 	defer tracer.Close()
+
+	provider, err := apmotel.NewTracerProvider(apmotel.WithAPMTracer(tracer))
+	if err != nil {
+		return err
+	}
+	otel.SetTracerProvider(provider)
 
 	// Ensure the libbeat output and go-elasticsearch clients do not index
 	// any events to Elasticsearch before the integration is ready.
