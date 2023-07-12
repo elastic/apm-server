@@ -404,6 +404,10 @@ func (s *Runner) Run(ctx context.Context) error {
 		modelprocessor.NewDropUnsampled(false /* don't drop RUM unsampled transactions*/, func(i int64) {
 			transactionsDroppedCounter.Add(i)
 		}),
+
+		// set span.id for transactions
+		modelprocessor.SetSpanIdTransaction{},
+
 		finalBatchProcessor,
 	})
 
