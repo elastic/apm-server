@@ -25,13 +25,14 @@
 package main
 
 import (
-	_ "github.com/goreleaser/nfpm/v2/cmd/nfpm"       // go.mod/go.sum
-	_ "github.com/josephspurrier/goversioninfo"      // go.mod/go.sum
-	_ "github.com/reviewdog/reviewdog/cmd/reviewdog" // go.mod/go.sum
-	_ "github.com/t-yuki/gocover-cobertura"          // go.mod/go.sum
-	_ "go.elastic.co/go-licence-detector"            // go.mod/go.sum
-	_ "gotest.tools/gotestsum"                       // go.mod/go.sum
-	_ "honnef.co/go/tools/cmd/staticcheck"           // go.mod/go.sum
+	_ "github.com/elastic/apm-tools/cmd/check-approvals" // go.mod/go.sum
+	_ "github.com/goreleaser/nfpm/v2/cmd/nfpm"           // go.mod/go.sum
+	_ "github.com/josephspurrier/goversioninfo"          // go.mod/go.sum
+	_ "github.com/reviewdog/reviewdog/cmd/reviewdog"     // go.mod/go.sum
+	_ "github.com/t-yuki/gocover-cobertura"              // go.mod/go.sum
+	_ "go.elastic.co/go-licence-detector"                // go.mod/go.sum
+	_ "gotest.tools/gotestsum"                           // go.mod/go.sum
+	_ "honnef.co/go/tools/cmd/staticcheck"               // go.mod/go.sum
 
 	_ "github.com/terraform-docs/terraform-docs" // go.mod/go.sum
 
