@@ -7,7 +7,7 @@ require (
 	github.com/cespare/xxhash/v2 v2.2.0
 	github.com/dgraph-io/badger/v2 v2.2007.3-0.20201012072640-f5a7e0a1c83b
 	github.com/dustin/go-humanize v1.0.1
-	github.com/elastic/apm-aggregation v0.0.0-20230706092342-46ef2cba41a8
+	github.com/elastic/apm-aggregation v0.0.0-20230712102102-a150f45223b1
 	github.com/elastic/apm-data v0.1.1-0.20230705050140-e5828f1f7c8f
 	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230706134244-f75a2ed898bc
 	github.com/elastic/elastic-agent-client/v7 v7.1.2
@@ -45,9 +45,7 @@ require (
 	go.elastic.co/apm/module/apmgorilla/v2 v2.2.0
 	go.elastic.co/apm/module/apmgrpc/v2 v2.2.0
 	go.elastic.co/apm/module/apmhttp/v2 v2.4.3
-	go.elastic.co/apm/module/apmzap/v2 v2.4.3
 	go.elastic.co/apm/v2 v2.4.3
-	go.elastic.co/ecszap v1.0.1
 	go.elastic.co/fastjson v1.3.0
 	go.opentelemetry.io/collector v0.63.1
 	go.opentelemetry.io/collector/pdata v1.0.0-rcv0011
@@ -64,7 +62,6 @@ require (
 
 require (
 	github.com/DataDog/zstd v1.4.5 // indirect
-	github.com/HdrHistogram/hdrhistogram-go v1.1.2 // indirect
 	github.com/Microsoft/go-winio v0.6.1 // indirect
 	github.com/Shopify/sarama v1.38.1 // indirect
 	github.com/apache/thrift v0.18.1 // indirect
@@ -149,6 +146,8 @@ require (
 	github.com/xdg/stringprep v1.0.3 // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
 	github.com/yusufpapurcu/wmi v1.2.2 // indirect
+	go.elastic.co/apm/module/apmzap/v2 v2.4.3 // indirect
+	go.elastic.co/ecszap v1.0.1 // indirect
 	go.opentelemetry.io/collector/semconv v0.76.1 // indirect
 	go.opentelemetry.io/otel v1.16.0 // indirect
 	go.opentelemetry.io/otel/metric v1.16.0 // indirect
