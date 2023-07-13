@@ -109,8 +109,8 @@ clean:
 check-full: update check staticcheck check-docker-compose
 
 .PHONY: check-approvals
-check-approvals: $(APPROVALS)
-	@$(APPROVALS)
+check-approvals:
+	@$(GO) run -modfile=tools/go.mod github.com/elastic/apm-tools/cmd/check-approvals
 
 check: check-fmt check-headers check-git-diff check-package
 

@@ -28,6 +28,8 @@ import (
 	"github.com/elastic/apm-server/systemtest"
 	"github.com/elastic/apm-server/systemtest/apmservertest"
 	"github.com/elastic/apm-server/systemtest/estest"
+	"github.com/elastic/apm-tools/pkg/approvaltest"
+	"github.com/elastic/apm-tools/pkg/espoll"
 )
 
 func TestTransactionDroppedSpansStats(t *testing.T) {
@@ -65,21 +67,21 @@ func TestTransactionDroppedSpansStats(t *testing.T) {
 	// Wait for the transaction to be indexed, indicating that Elasticsearch
 	// indices have been setup and we should not risk triggering the shutdown
 	// timeout while waiting for the aggregated metrics to be indexed.
-	systemtest.Elasticsearch.ExpectDocs(t, "traces-apm*",
-		estest.TermQuery{Field: "transaction.id", Value: tx.TraceContext().Span.String()},
+	estest.ExpectDocs(t, systemtest.Elasticsearch, "traces-apm*",
+		espoll.TermQuery{Field: "transaction.id", Value: tx.TraceContext().Span.String()},
 	)
 	// Stop server to flushed metrics on shutdown.
 	assert.NoError(t, srv.Close())
 
-	metricsResult := systemtest.Elasticsearch.ExpectMinDocs(t, 6, "metrics-apm.service_destination*",
-		estest.TermQuery{Field: "metricset.name", Value: "service_destination"},
+	metricsResult := estest.ExpectMinDocs(t, systemtest.Elasticsearch, 6, "metrics-apm.service_destination*",
+		espoll.TermQuery{Field: "metricset.name", Value: "service_destination"},
 	)
-	systemtest.ApproveEvents(t, t.Name()+"Metrics", metricsResult.Hits.Hits, "@timestamp")
+	approvaltest.ApproveEvents(t, t.Name()+"Metrics", metricsResult.Hits.Hits, "@timestamp")
 
-	txResult := systemtest.Elasticsearch.ExpectDocs(t, "traces-apm-*",
-		estest.TermQuery{Field: "transaction.id", Value: tx.TraceContext().Span.String()},
+	txResult := estest.ExpectDocs(t, systemtest.Elasticsearch, "traces-apm-*",
+		espoll.TermQuery{Field: "transaction.id", Value: tx.TraceContext().Span.String()},
 	)
-	systemtest.ApproveEvents(t, t.Name()+"Transaction", txResult.Hits.Hits,
+	approvaltest.ApproveEvents(t, t.Name()+"Transaction", txResult.Hits.Hits,
 		"@timestamp", "timestamp", "trace.id", "transaction.id",
 	)
 }
@@ -145,8 +147,8 @@ func TestCompressedSpans(t *testing.T) {
 	tx.End()
 	tracer.Flush(nil)
 
-	spanResults := systemtest.Elasticsearch.ExpectMinDocs(t, 2, "traces-apm-*",
-		estest.TermQuery{Field: "span.type", Value: "db"},
+	spanResults := estest.ExpectMinDocs(t, systemtest.Elasticsearch, 2, "traces-apm-*",
+		espoll.TermQuery{Field: "span.type", Value: "db"},
 	)
-	systemtest.ApproveEvents(t, t.Name(), spanResults.Hits.Hits)
+	approvaltest.ApproveEvents(t, t.Name(), spanResults.Hits.Hits)
 }

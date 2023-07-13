@@ -24,6 +24,8 @@ import (
 	"github.com/elastic/apm-server/systemtest"
 	"github.com/elastic/apm-server/systemtest/apmservertest"
 	"github.com/elastic/apm-server/systemtest/estest"
+	"github.com/elastic/apm-tools/pkg/approvaltest"
+	"github.com/elastic/apm-tools/pkg/espoll"
 )
 
 func TestIntakeLog(t *testing.T) {
@@ -85,13 +87,13 @@ func TestIntakeLog(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.Name, func(t *testing.T) {
-			result := systemtest.Elasticsearch.ExpectMinDocs(t, test.ExpectedMinDocs, fmt.Sprintf("logs-apm.app.%s-*", test.ServiceName), estest.BoolQuery{
+			result := estest.ExpectMinDocs(t, systemtest.Elasticsearch, test.ExpectedMinDocs, fmt.Sprintf("logs-apm.app.%s-*", test.ServiceName), espoll.BoolQuery{
 				Filter: []interface{}{
-					estest.TermQuery{Field: "processor.event", Value: "log"},
-					estest.MatchPhraseQuery{Field: "message", Value: test.Message},
+					espoll.TermQuery{Field: "processor.event", Value: "log"},
+					espoll.MatchPhraseQuery{Field: "message", Value: test.Message},
 				},
 			})
-			systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits, test.DynamicFields...)
+			approvaltest.ApproveEvents(t, t.Name(), result.Hits.Hits, test.DynamicFields...)
 		})
 	}
 }

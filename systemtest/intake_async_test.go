@@ -23,6 +23,7 @@ import (
 
 	"github.com/elastic/apm-server/systemtest"
 	"github.com/elastic/apm-server/systemtest/apmservertest"
+	"github.com/elastic/apm-server/systemtest/estest"
 )
 
 func TestIntakeAsync(t *testing.T) {
@@ -34,7 +35,7 @@ func TestIntakeAsync(t *testing.T) {
 
 		systemtest.SendBackendEventsAsyncPayload(t, srv.URL, `../testdata/intake-v2/errors.ndjson`)
 		// Ensure the 5 errors are ingested.
-		systemtest.Elasticsearch.ExpectMinDocs(t, 5, "logs-apm.error-*", nil)
+		estest.ExpectMinDocs(t, systemtest.Elasticsearch, 5, "logs-apm.error-*", nil)
 
 		// Send a request with a lot of events (~1920) and expect errors to be
 		// returned, since the semaphore size is 5 (5 concurrent batches).
@@ -58,7 +59,7 @@ func TestIntakeAsync(t *testing.T) {
 
 		systemtest.SendBackendEventsAsyncPayload(t, srv.URL, `../testdata/intake-v2/errors.ndjson`)
 		// Ensure the 5 errors are ingested.
-		systemtest.Elasticsearch.ExpectMinDocs(t, 5, "logs-apm.error-*", nil)
+		estest.ExpectMinDocs(t, systemtest.Elasticsearch, 5, "logs-apm.error-*", nil)
 
 		// Send a request with a lot of events (~1920) and expect it to be processed
 		// without any errors.
