@@ -102,7 +102,7 @@ func newProcessors(args beater.ServerParams) ([]namedProcessor, error) {
 
 	name := "LSM aggregator"
 	agg, err := aggregation.NewAggregator(context.TODO(), args.Config.Aggregation.Transactions.MaxServices,
-		args.Config.Aggregation.Transactions.MaxTransactionGroups, args.BatchProcessor, args.Logger, args.Tracer)
+		args.Config.Aggregation.Transactions.MaxTransactionGroups, args.BatchProcessor, args.Logger)
 	if err != nil {
 		return nil, errors.Wrapf(err, "error creating %s", name)
 	}

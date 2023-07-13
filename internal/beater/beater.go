@@ -296,18 +296,18 @@ func (s *Runner) Run(ctx context.Context) error {
 	}
 	defer tracer.Close()
 
-	provider, err := apmotel.NewTracerProvider(apmotel.WithAPMTracer(tracer))
+	tracerProvider, err := apmotel.NewTracerProvider(apmotel.WithAPMTracer(tracer))
 	if err != nil {
 		return err
 	}
-	otel.SetTracerProvider(provider)
+	otel.SetTracerProvider(tracerProvider)
 
 	exporter, err := apmotel.NewGatherer()
 	if err != nil {
 		return err
 	}
-	mp := metric.NewMeterProvider(metric.WithReader(exporter))
-	otel.SetMeterProvider(mp)
+	meterProvider := metric.NewMeterProvider(metric.WithReader(exporter))
+	otel.SetMeterProvider(meterProvider)
 	tracer.RegisterMetricsGatherer(exporter)
 
 	// Ensure the libbeat output and go-elasticsearch clients do not index
