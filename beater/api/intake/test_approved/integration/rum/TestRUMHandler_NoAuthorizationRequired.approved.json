@@ -2,7 +2,7 @@
     "accepted": 0,
     "errors": [
         {
-            "message": "invalid content type: ''"
+            "message": "validation error: 'metadata' required"
         }
     ]
 }

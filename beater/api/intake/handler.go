@@ -103,7 +103,10 @@ func validateRequest(c *request.Context) error {
 	if c.Request.Method != http.MethodPost {
 		return errMethodNotAllowed
 	}
-	if contentType := c.Request.Header.Get(headers.ContentType); !strings.Contains(contentType, "application/x-ndjson") {
+
+	// Content-Type, if specified, must contain "application/x-ndjson". If unspecified, we assume this.
+	contentType := c.Request.Header.Get(headers.ContentType)
+	if contentType != "" && !strings.Contains(contentType, "application/x-ndjson") {
 		return fmt.Errorf("%w: '%s'", errInvalidContentType, contentType)
 	}
 	return nil
