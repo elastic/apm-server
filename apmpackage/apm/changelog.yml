@@ -1,8 +1,8 @@
 - version: generated
   changes:
-    - description: Placeholder
+    - description: set processor.* fields in mappings and ingest pipeline
       type: enhancement
-      link: https://github.com/elastic/apm-server/pull/123
+      link: https://github.com/elastic/apm-server/pull/11202
 - version: "8.9.0"
   changes:
     - description: Handle `metricset.samples` from apm-server

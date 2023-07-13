@@ -13,6 +13,14 @@ processors:
       name: process_ppid
   - pipeline:
       name: client_geoip
+  - set:
+      if: ctx.transaction?.type != null
+      field: processor.event
+      value: transaction
+  - set:
+      if: ctx.span?.type != null
+      field: processor.event
+      value: span
   - pipeline:
       name: event_duration
   # event.success_count logic
