@@ -30,10 +30,12 @@ import (
 	"google.golang.org/grpc/encoding/gzip"
 	"google.golang.org/grpc/metadata"
 
+	"github.com/elastic/apm-tools/pkg/approvaltest"
 	"github.com/elastic/go-elasticsearch/v8/esapi"
 
 	"github.com/elastic/apm-server/systemtest"
 	"github.com/elastic/apm-server/systemtest/apmservertest"
+	"github.com/elastic/apm-server/systemtest/estest"
 	"github.com/elastic/apm-server/systemtest/internal/profiling"
 )
 
@@ -168,17 +170,17 @@ func TestProfiling(t *testing.T) {
 
 	// Perform queries and assertions on KV indices. We use wildcard searches below to prevent
 	// the searches from failing immediately when the indices haven't yet been created.
-	result := systemtest.Elasticsearch.ExpectMinDocs(t, expectedKVDocs, "profiling-executables-next*", nil)
-	systemtest.ApproveEvents(t, t.Name()+"/executables", result.Hits.Hits, "@timestamp")
+	result := estest.ExpectMinDocs(t, systemtest.Elasticsearch, expectedKVDocs, "profiling-executables-next*", nil)
+	approvaltest.ApproveEvents(t, t.Name()+"/executables", result.Hits.Hits, "@timestamp")
 
-	result = systemtest.Elasticsearch.ExpectMinDocs(t, expectedKVDocs, "profiling-stackframes-next*", nil)
-	systemtest.ApproveEvents(t, t.Name()+"/stackframes", result.Hits.Hits)
+	result = estest.ExpectMinDocs(t, systemtest.Elasticsearch, expectedKVDocs, "profiling-stackframes-next*", nil)
+	approvaltest.ApproveEvents(t, t.Name()+"/stackframes", result.Hits.Hits)
 
-	result = systemtest.Elasticsearch.ExpectMinDocs(t, expectedKVDocs, "profiling-stacktraces-next*", nil)
-	systemtest.ApproveEvents(t, t.Name()+"/stacktraces", result.Hits.Hits)
+	result = estest.ExpectMinDocs(t, systemtest.Elasticsearch, expectedKVDocs, "profiling-stacktraces-next*", nil)
+	approvaltest.ApproveEvents(t, t.Name()+"/stacktraces", result.Hits.Hits)
 
-	result = systemtest.Elasticsearch.ExpectDocs(t, "profiling-events-all*", nil)
-	systemtest.ApproveEvents(t, t.Name()+"/events", result.Hits.Hits)
+	result = estest.ExpectDocs(t, systemtest.Elasticsearch, "profiling-events-all*", nil)
+	approvaltest.ApproveEvents(t, t.Name()+"/events", result.Hits.Hits)
 
 	_, err = client.AddMetrics(ctx, &profiling.Metrics{
 		TsMetrics: []*profiling.TsMetric{
@@ -187,6 +189,6 @@ func TestProfiling(t *testing.T) {
 		},
 	}, gzipOption)
 	require.NoError(t, err)
-	result = systemtest.Elasticsearch.ExpectMinDocs(t, 2, "profiling-metrics*", nil)
-	systemtest.ApproveEvents(t, t.Name()+"/metrics", result.Hits.Hits)
+	result = estest.ExpectMinDocs(t, systemtest.Elasticsearch, 2, "profiling-metrics*", nil)
+	approvaltest.ApproveEvents(t, t.Name()+"/metrics", result.Hits.Hits)
 }
