@@ -37,6 +37,8 @@ import (
 	"github.com/elastic/apm-server/systemtest"
 	"github.com/elastic/apm-server/systemtest/apmservertest"
 	"github.com/elastic/apm-server/systemtest/estest"
+	"github.com/elastic/apm-tools/pkg/approvaltest"
+	"github.com/elastic/apm-tools/pkg/espoll"
 )
 
 func TestJaeger(t *testing.T) {
@@ -48,7 +50,7 @@ func TestJaeger(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			systemtest.CleanupElasticsearch(t)
 			hits := sendJaegerBatch(t, srv, "../testdata/jaeger/"+name+".json", grpc.WithInsecure())
-			systemtest.ApproveEvents(t, t.Name(), hits)
+			approvaltest.ApproveEvents(t, t.Name(), hits)
 		})
 	}
 
@@ -72,7 +74,7 @@ func sendJaegerBatch(
 	t *testing.T, srv *apmservertest.Server,
 	filename string,
 	dialOptions ...grpc.DialOption,
-) []estest.SearchHit {
+) []espoll.SearchHit {
 	conn, err := grpc.Dial(serverAddr(srv), dialOptions...)
 	require.NoError(t, err)
 	defer conn.Close()
@@ -88,7 +90,7 @@ func sendJaegerBatch(
 		expected += len(span.GetLogs())
 	}
 
-	result := systemtest.Elasticsearch.ExpectMinDocs(t, expected, "traces-apm*,logs-apm*", nil)
+	result := estest.ExpectMinDocs(t, systemtest.Elasticsearch, expected, "traces-apm*,logs-apm*", nil)
 	assert.Equal(t, expected, result.Hits.Total.Value)
 	return result.Hits.Hits
 }
@@ -138,8 +140,8 @@ func TestJaegerAuth(t *testing.T) {
 	_, err = client.PostSpans(context.Background(), request)
 	require.NoError(t, err)
 
-	systemtest.Elasticsearch.ExpectDocs(t, "traces-apm*", estest.BoolQuery{Filter: []interface{}{
-		estest.TermQuery{Field: "processor.event", Value: "transaction"},
+	estest.ExpectDocs(t, systemtest.Elasticsearch, "traces-apm*", espoll.BoolQuery{Filter: []interface{}{
+		espoll.TermQuery{Field: "processor.event", Value: "transaction"},
 	}})
 }
 

@@ -32,6 +32,8 @@ import (
 	"github.com/elastic/apm-server/systemtest"
 	"github.com/elastic/apm-server/systemtest/apmservertest"
 	"github.com/elastic/apm-server/systemtest/estest"
+	"github.com/elastic/apm-tools/pkg/approvaltest"
+	"github.com/elastic/apm-tools/pkg/espoll"
 	"github.com/elastic/go-elasticsearch/v8/esapi"
 )
 
@@ -65,22 +67,22 @@ func TestTransactionAggregation(t *testing.T) {
 	// Wait for the transaction to be indexed, indicating that Elasticsearch
 	// indices have been setup and we should not risk triggering the shutdown
 	// timeout while waiting for the aggregated metrics to be indexed.
-	systemtest.Elasticsearch.ExpectDocs(t, "traces-apm*",
-		estest.TermQuery{Field: "processor.event", Value: "transaction"},
+	estest.ExpectDocs(t, systemtest.Elasticsearch, "traces-apm*",
+		espoll.TermQuery{Field: "processor.event", Value: "transaction"},
 	)
 
 	// Stop server to ensure metrics are flushed on shutdown.
 	assert.NoError(t, srv.Close())
 
 	// Wait for 9 documents to be indexed (3 transaction names * 3 integration intervals)
-	result := systemtest.Elasticsearch.ExpectMinDocs(t, 9, "metrics-apm.transaction*",
-		estest.ExistsQuery{Field: "transaction.duration.histogram"},
+	result := estest.ExpectMinDocs(t, systemtest.Elasticsearch, 9, "metrics-apm.transaction*",
+		espoll.ExistsQuery{Field: "transaction.duration.histogram"},
 	)
-	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits)
+	approvaltest.ApproveEvents(t, t.Name(), result.Hits.Hits)
 
 	// Make sure the _doc_count field is added such that aggregations return
 	// the appropriate per-bucket doc_count values.
-	result = estest.SearchResult{}
+	result = espoll.SearchResult{}
 	_, err := systemtest.Elasticsearch.Do(context.Background(), &esapi.SearchRequest{
 		Index:           []string{"metrics-apm.transaction*"},
 		ExpandWildcards: "open,hidden",
@@ -129,16 +131,16 @@ func TestTransactionAggregationShutdown(t *testing.T) {
 	// Wait for the transaction to be indexed, indicating that Elasticsearch
 	// indices have been setup and we should not risk triggering the shutdown
 	// timeout while waiting for the aggregated metrics to be indexed.
-	systemtest.Elasticsearch.ExpectDocs(t, "traces-apm*",
-		estest.TermQuery{Field: "processor.event", Value: "transaction"},
+	estest.ExpectDocs(t, systemtest.Elasticsearch, "traces-apm*",
+		espoll.TermQuery{Field: "processor.event", Value: "transaction"},
 	)
 	// Stop server to ensure metrics are flushed on shutdown.
 	assert.NoError(t, srv.Close())
 
-	result := systemtest.Elasticsearch.ExpectMinDocs(t, 3, "metrics-apm.transaction*",
-		estest.ExistsQuery{Field: "transaction.duration.histogram"},
+	result := estest.ExpectMinDocs(t, systemtest.Elasticsearch, 3, "metrics-apm.transaction*",
+		espoll.ExistsQuery{Field: "transaction.duration.histogram"},
 	)
-	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits)
+	approvaltest.ApproveEvents(t, t.Name(), result.Hits.Hits)
 }
 
 func TestServiceDestinationAggregation(t *testing.T) {
@@ -169,13 +171,13 @@ func TestServiceDestinationAggregation(t *testing.T) {
 	// Wait for the transaction to be indexed, indicating that Elasticsearch
 	// indices have been setup and we should not risk triggering the shutdown
 	// timeout while waiting for the aggregated metrics to be indexed.
-	systemtest.Elasticsearch.ExpectMinDocs(t, 6, "traces-apm*", nil)
+	estest.ExpectMinDocs(t, systemtest.Elasticsearch, 6, "traces-apm*", nil)
 	require.NoError(t, srv.Close())
 
-	result := systemtest.Elasticsearch.ExpectDocs(t, "metrics-apm.service_destination*",
-		estest.ExistsQuery{Field: "span.destination.service.response_time.count"},
+	result := estest.ExpectDocs(t, systemtest.Elasticsearch, "metrics-apm.service_destination*",
+		espoll.ExistsQuery{Field: "span.destination.service.response_time.count"},
 	)
-	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits)
+	approvaltest.ApproveEvents(t, t.Name(), result.Hits.Hits)
 }
 
 func TestTransactionAggregationLabels(t *testing.T) {
@@ -194,17 +196,19 @@ func TestTransactionAggregationLabels(t *testing.T) {
 	// Wait for the transaction to be indexed, indicating that Elasticsearch
 	// indices have been setup and we should not risk triggering the shutdown
 	// timeout while waiting for the aggregated metrics to be indexed.
-	systemtest.Elasticsearch.ExpectDocs(t, "traces-apm*",
-		estest.TermQuery{Field: "processor.event", Value: "transaction"},
+	estest.ExpectDocs(t, systemtest.Elasticsearch, "traces-apm*",
+		espoll.TermQuery{Field: "processor.event", Value: "transaction"},
 	)
 	// Stop server to ensure metrics are flushed on shutdown.
 	assert.NoError(t, srv.Close())
-	result := systemtest.Elasticsearch.ExpectDocs(t, "metrics-apm.transaction*", estest.BoolQuery{
-		Filter: []interface{}{
-			estest.TermQuery{Field: "processor.event", Value: "metric"},
-			estest.TermQuery{Field: "metricset.name", Value: "transaction"},
+	result := estest.ExpectDocs(t, systemtest.Elasticsearch, "metrics-apm.transaction*",
+		espoll.BoolQuery{
+			Filter: []interface{}{
+				espoll.TermQuery{Field: "processor.event", Value: "metric"},
+				espoll.TermQuery{Field: "metricset.name", Value: "transaction"},
+			},
 		},
-	})
+	)
 
 	var metricsets []metricsetDoc
 	for _, interval := range []string{"1m", "10m", "60m"} {
@@ -241,15 +245,15 @@ func TestServiceTransactionMetricsAggregation(t *testing.T) {
 	// Wait for the transaction to be indexed, indicating that Elasticsearch
 	// indices have been setup and we should not risk triggering the shutdown
 	// timeout while waiting for the aggregated metrics to be indexed.
-	systemtest.Elasticsearch.ExpectMinDocs(t, 2, "traces-apm*",
-		estest.TermQuery{Field: "processor.event", Value: "transaction"},
+	estest.ExpectMinDocs(t, systemtest.Elasticsearch, 2, "traces-apm*",
+		espoll.TermQuery{Field: "processor.event", Value: "transaction"},
 	)
 	// Stop server to ensure metrics are flushed on shutdown.
 	assert.NoError(t, srv.Close())
-	result := systemtest.Elasticsearch.ExpectMinDocs(t, 2, "metrics-apm.service_transaction*",
-		estest.TermQuery{Field: "metricset.name", Value: "service_transaction"},
+	result := estest.ExpectMinDocs(t, systemtest.Elasticsearch, 2, "metrics-apm.service_transaction*",
+		espoll.TermQuery{Field: "metricset.name", Value: "service_transaction"},
 	)
-	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits)
+	approvaltest.ApproveEvents(t, t.Name(), result.Hits.Hits)
 }
 
 func TestServiceTransactionMetricsAggregationLabels(t *testing.T) {
@@ -269,16 +273,18 @@ func TestServiceTransactionMetricsAggregationLabels(t *testing.T) {
 	// Wait for the transaction to be indexed, indicating that Elasticsearch
 	// indices have been setup and we should not risk triggering the shutdown
 	// timeout while waiting for the aggregated metrics to be indexed.
-	systemtest.Elasticsearch.ExpectDocs(t, "traces-apm*",
-		estest.TermQuery{Field: "processor.event", Value: "transaction"},
+	estest.ExpectDocs(t, systemtest.Elasticsearch, "traces-apm*",
+		espoll.TermQuery{Field: "processor.event", Value: "transaction"},
 	)
 	// Stop server to ensure metrics are flushed on shutdown.
 	assert.NoError(t, srv.Close())
-	result := systemtest.Elasticsearch.ExpectDocs(t, "metrics-apm.service_transaction*", estest.BoolQuery{
-		Filter: []interface{}{
-			estest.TermQuery{Field: "metricset.name", Value: "service_transaction"},
+	result := estest.ExpectDocs(t, systemtest.Elasticsearch, "metrics-apm.service_transaction*",
+		espoll.BoolQuery{
+			Filter: []interface{}{
+				espoll.TermQuery{Field: "metricset.name", Value: "service_transaction"},
+			},
 		},
-	})
+	)
 
 	docs := unmarshalMetricsetDocs(t, result.Hits.Hits)
 	var metricsets []metricsetDoc
@@ -317,18 +323,18 @@ func TestServiceTransactionMetricsAggregationLabelsRUM(t *testing.T) {
 	// Wait for the transaction to be indexed, indicating that Elasticsearch
 	// indices have been setup and we should not risk triggering the shutdown
 	// timeout while waiting for the aggregated metrics to be indexed.
-	systemtest.Elasticsearch.ExpectDocs(t, "traces-apm.rum*", estest.BoolQuery{
+	estest.ExpectDocs(t, systemtest.Elasticsearch, "traces-apm.rum*", espoll.BoolQuery{
 		Filter: []interface{}{
-			estest.TermQuery{Field: "processor.event", Value: "transaction"},
-			estest.TermQuery{Field: "labels.tag1", Value: "one"},
-			estest.TermQuery{Field: "numeric_labels.tag2", Value: 2},
+			espoll.TermQuery{Field: "processor.event", Value: "transaction"},
+			espoll.TermQuery{Field: "labels.tag1", Value: "one"},
+			espoll.TermQuery{Field: "numeric_labels.tag2", Value: 2},
 		},
 	})
 	// Stop server to ensure metrics are flushed on shutdown.
 	assert.NoError(t, srv.Close())
-	result := systemtest.Elasticsearch.ExpectDocs(t, "metrics-apm.service_transaction*", estest.BoolQuery{
+	result := estest.ExpectDocs(t, systemtest.Elasticsearch, "metrics-apm.service_transaction*", espoll.BoolQuery{
 		Filter: []interface{}{
-			estest.TermQuery{Field: "metricset.name", Value: "service_transaction"},
+			espoll.TermQuery{Field: "metricset.name", Value: "service_transaction"},
 		},
 	})
 
@@ -360,15 +366,15 @@ func TestServiceSummaryMetricsAggregation(t *testing.T) {
 	// Wait for the transaction to be indexed, indicating that Elasticsearch
 	// indices have been setup and we should not risk triggering the shutdown
 	// timeout while waiting for the aggregated metrics to be indexed.
-	systemtest.Elasticsearch.ExpectMinDocs(t, 2, "traces-apm*",
-		estest.TermQuery{Field: "processor.event", Value: "transaction"},
+	estest.ExpectMinDocs(t, systemtest.Elasticsearch, 2, "traces-apm*",
+		espoll.TermQuery{Field: "processor.event", Value: "transaction"},
 	)
 	// Stop server to ensure metrics are flushed on shutdown.
 	assert.NoError(t, srv.Close())
-	result := systemtest.Elasticsearch.ExpectMinDocs(t, 1, "metrics-apm.service_summary*",
-		estest.TermQuery{Field: "metricset.name", Value: "service_summary"},
+	result := estest.ExpectDocs(t, systemtest.Elasticsearch, "metrics-apm.service_summary*",
+		espoll.TermQuery{Field: "metricset.name", Value: "service_summary"},
 	)
-	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits)
+	approvaltest.ApproveEvents(t, t.Name(), result.Hits.Hits)
 }
 
 func TestServiceSummaryMetricsAggregationOverflow(t *testing.T) {
@@ -397,24 +403,24 @@ func TestServiceSummaryMetricsAggregationOverflow(t *testing.T) {
 	// Wait for the transaction to be indexed, indicating that Elasticsearch
 	// indices have been setup and we should not risk triggering the shutdown
 	// timeout while waiting for the aggregated metrics to be indexed.
-	systemtest.Elasticsearch.ExpectMinDocs(t, 4, "traces-apm*",
-		estest.TermQuery{Field: "processor.event", Value: "transaction"},
+	estest.ExpectMinDocs(t, systemtest.Elasticsearch, 4, "traces-apm*",
+		espoll.TermQuery{Field: "processor.event", Value: "transaction"},
 	)
 	// Stop server to ensure metrics are flushed on shutdown.
 	assert.NoError(t, srv.Close())
-	systemtest.Elasticsearch.ExpectMinDocs(t, 3, "metrics-apm.service_summary*",
-		estest.BoolQuery{
+	estest.ExpectMinDocs(t, systemtest.Elasticsearch, 3, "metrics-apm.service_summary*",
+		espoll.BoolQuery{
 			Must: []interface{}{
-				estest.TermQuery{Field: "metricset.name", Value: "service_summary"},
-				estest.TermQuery{Field: "service.name", Value: "_other"},
+				espoll.TermQuery{Field: "metricset.name", Value: "service_summary"},
+				espoll.TermQuery{Field: "service.name", Value: "_other"},
 			},
 		},
 	)
-	result := systemtest.Elasticsearch.ExpectMinDocs(t, 9, "metrics-apm.service_summary*",
-		estest.TermQuery{Field: "metricset.name", Value: "service_summary"},
+	result := estest.ExpectMinDocs(t, systemtest.Elasticsearch, 9, "metrics-apm.service_summary*",
+		espoll.TermQuery{Field: "metricset.name", Value: "service_summary"},
 	)
 	// Ignore timestamp because overflow bucket uses time.Now()
-	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits, "@timestamp")
+	approvaltest.ApproveEvents(t, t.Name(), result.Hits.Hits, "@timestamp")
 }
 
 func TestNonDefaultRollupIntervalHiddenDataStream(t *testing.T) {
@@ -437,8 +443,8 @@ func TestNonDefaultRollupIntervalHiddenDataStream(t *testing.T) {
 	// Wait for the transaction to be indexed, indicating that Elasticsearch
 	// indices have been setup and we should not risk triggering the shutdown
 	// timeout while waiting for the aggregated metrics to be indexed.
-	systemtest.Elasticsearch.ExpectMinDocs(t, 1, "traces-apm*",
-		estest.TermQuery{Field: "processor.event", Value: "transaction"},
+	estest.ExpectDocs(t, systemtest.Elasticsearch, "traces-apm*",
+		espoll.TermQuery{Field: "processor.event", Value: "transaction"},
 	)
 	// Stop server to ensure metrics are flushed on shutdown.
 	assert.NoError(t, srv.Close())

@@ -1,0 +1,42 @@
+{
+    "events": [
+        {
+            "@timestamp": "dynamic",
+            "agent": {
+                "name": "opentelemetry/go",
+                "version": "1.16.0"
+            },
+            "counter": 1,
+            "data_stream": {
+                "dataset": "apm.app.unknown_service_systemtest_test",
+                "namespace": "default",
+                "type": "metrics"
+            },
+            "ecs": {
+                "version": "dynamic"
+            },
+            "event": {
+                "agent_id_status": "missing",
+                "ingested": "dynamic"
+            },
+            "metricset": {
+                "name": "app"
+            },
+            "observer": {
+                "hostname": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic"
+            },
+            "processor": {
+                "event": "metric",
+                "name": "metric"
+            },
+            "service": {
+                "language": {
+                    "name": "go"
+                },
+                "name": "unknown_service_systemtest_test"
+            }
+        }
+    ]
+}

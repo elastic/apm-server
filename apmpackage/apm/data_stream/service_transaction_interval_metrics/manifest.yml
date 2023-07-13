@@ -3,6 +3,7 @@ type: metrics
 dataset: apm.service_transaction.{{ .Interval }}
 ilm_policy: metrics-apm.service_transaction_{{ .Interval }}_metrics-default_policy
 elasticsearch:
+  dynamic_namespace: true
   index_template:
     mappings:
       # We are in full control of the field names,
