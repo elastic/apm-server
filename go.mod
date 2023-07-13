@@ -8,7 +8,7 @@ require (
 	github.com/dgraph-io/badger/v2 v2.2007.3-0.20201012072640-f5a7e0a1c83b
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/apm-data v0.1.1-0.20230705050140-e5828f1f7c8f
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230711084107-a705396db6c8
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230712130343-2dc3f675c783
 	github.com/elastic/elastic-agent-client/v7 v7.1.2
 	github.com/elastic/elastic-agent-libs v0.3.9
 	github.com/elastic/elastic-agent-system-metrics v0.6.1
@@ -44,10 +44,12 @@ require (
 	go.elastic.co/apm/module/apmgorilla/v2 v2.2.0
 	go.elastic.co/apm/module/apmgrpc/v2 v2.2.0
 	go.elastic.co/apm/module/apmhttp/v2 v2.4.3
+	go.elastic.co/apm/module/apmotel/v2 v2.4.3
 	go.elastic.co/apm/v2 v2.4.3
 	go.elastic.co/fastjson v1.3.0
 	go.opentelemetry.io/collector/consumer v0.81.0
 	go.opentelemetry.io/collector/pdata v1.0.0-rcv0013
+	go.opentelemetry.io/otel v1.16.0
 	go.uber.org/automaxprocs v1.5.2
 	go.uber.org/zap v1.24.0
 	golang.org/x/net v0.12.0
@@ -87,6 +89,8 @@ require (
 	github.com/elastic/gosigar v0.14.2 // indirect
 	github.com/fatih/color v1.14.1 // indirect
 	github.com/frankban/quicktest v1.14.0 // indirect
+	github.com/go-logr/logr v1.2.4 // indirect
+	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/gogo/googleapis v1.4.1 // indirect
 	github.com/golang/glog v1.1.0 // indirect
@@ -136,6 +140,10 @@ require (
 	go.elastic.co/apm/module/apmzap/v2 v2.4.3 // indirect
 	go.elastic.co/ecszap v1.0.1 // indirect
 	go.opentelemetry.io/collector/semconv v0.81.0 // indirect
+	go.opentelemetry.io/otel/metric v1.16.0 // indirect
+	go.opentelemetry.io/otel/sdk v1.16.0 // indirect
+	go.opentelemetry.io/otel/sdk/metric v0.39.0 // indirect
+	go.opentelemetry.io/otel/trace v1.16.0 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.11.0 // indirect
