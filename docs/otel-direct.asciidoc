@@ -66,7 +66,7 @@ https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/otl
 <5> Hostname and port of the APM Server endpoint. For example, `elastic-apm-server:8200`.
 <6> Credential for Elastic APM <<secret-token,secret token authorization>> (`Authorization: "Bearer a_secret_token"`) or <<api-key,API key authorization>> (`Authorization: "ApiKey an_api_key"`).
 <7> Environment-specific configuration parameters can be conveniently passed in as environment variables documented https://opentelemetry.io/docs/collector/configuration/#configuration-environment-variables[here] (e.g. `ELASTIC_APM_SERVER_ENDPOINT` and `ELASTIC_APM_SECRET_TOKEN`).
-<8> To send OpenTelemetry logs to {stack} version 8.0+, declare a `logs` pipeline.
+<8>  preview:[] To send OpenTelemetry logs to {stack} version 8.0+, declare a `logs` pipeline.
 
 You're now ready to export traces and metrics from your services and applications.
 
@@ -93,11 +93,12 @@ export OTEL_RESOURCE_ATTRIBUTES=service.name=checkoutService,service.version=1.1
 export OTEL_EXPORTER_OTLP_ENDPOINT=https://apm_server_url:8200
 export OTEL_EXPORTER_OTLP_HEADERS="Authorization=Bearer an_apm_secret_token"
 export OTEL_METRICS_EXPORTER="otlp" \
-export OTEL_LOGS_EXPORTER="otlp" \
+export OTEL_LOGS_EXPORTER="otlp" \ <1>
 java -javaagent:/path/to/opentelemetry-javaagent-all.jar \
      -classpath lib/*:classes/ \
      com.mycompany.checkout.CheckoutServiceServer
 ----
+<1> preview:[] The OpenTelemetry logs intake via APM Server is currently in technical preview.
 
 |===
 
