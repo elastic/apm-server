@@ -22,6 +22,8 @@ import (
 
 	"github.com/elastic/apm-server/systemtest"
 	"github.com/elastic/apm-server/systemtest/apmservertest"
+	"github.com/elastic/apm-server/systemtest/estest"
+	"github.com/elastic/apm-tools/pkg/approvaltest"
 )
 
 func TestIntake(t *testing.T) {
@@ -49,10 +51,10 @@ func TestIntake(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			systemtest.CleanupElasticsearch(t)
 			response := systemtest.SendBackendEventsPayload(t, srv.URL, "../testdata/intake-v2/"+tc.filename)
-			result := systemtest.Elasticsearch.ExpectMinDocs(
-				t, response.Accepted, "traces-apm*,metrics-apm*,logs-apm*", nil,
+			result := estest.ExpectMinDocs(t, systemtest.Elasticsearch,
+				response.Accepted, "traces-apm*,metrics-apm*,logs-apm*", nil,
 			)
-			systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits, tc.dynamicFields...)
+			approvaltest.ApproveEvents(t, t.Name(), result.Hits.Hits, tc.dynamicFields...)
 		})
 	}
 

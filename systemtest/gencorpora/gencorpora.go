@@ -26,7 +26,7 @@ import (
 	"github.com/hashicorp/go-multierror"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/elastic/apm-server/systemtest/loadgen"
+	"github.com/elastic/apm-perf/loadgen"
 )
 
 // Run runs APM-Server and CatBulk server followed by sending

@@ -35,17 +35,13 @@ import (
 	semconv "go.opentelemetry.io/collector/semconv/v1.5.0"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"go.opentelemetry.io/otel/metric"
-	"go.opentelemetry.io/otel/sdk/metric/aggregator/histogram"
-	controller "go.opentelemetry.io/otel/sdk/metric/controller/basic"
-	export "go.opentelemetry.io/otel/sdk/metric/export"
-	processor "go.opentelemetry.io/otel/sdk/metric/processor/basic"
-	"go.opentelemetry.io/otel/sdk/metric/selector/simple"
+	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
+	"go.opentelemetry.io/otel/sdk/metric/aggregation"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdkresource "go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
@@ -58,6 +54,8 @@ import (
 	"github.com/elastic/apm-server/systemtest"
 	"github.com/elastic/apm-server/systemtest/apmservertest"
 	"github.com/elastic/apm-server/systemtest/estest"
+	"github.com/elastic/apm-tools/pkg/approvaltest"
+	"github.com/elastic/apm-tools/pkg/espoll"
 )
 
 var otelErrors = make(chan error, 1)
@@ -115,15 +113,15 @@ func TestOTLPGRPCTraces(t *testing.T) {
 	require.NoError(t, err)
 
 	indices := "traces-apm*,logs-apm*"
-	result := systemtest.Elasticsearch.ExpectMinDocs(t, 3, indices, estest.BoolQuery{
+	result := estest.ExpectMinDocs(t, systemtest.Elasticsearch, 3, indices, espoll.BoolQuery{
 		Should: []interface{}{
-			estest.TermQuery{Field: "processor.event", Value: "transaction"},
-			estest.TermQuery{Field: "processor.event", Value: "log"},
-			estest.TermQuery{Field: "processor.event", Value: "error"},
+			espoll.TermQuery{Field: "processor.event", Value: "transaction"},
+			espoll.TermQuery{Field: "processor.event", Value: "log"},
+			espoll.TermQuery{Field: "processor.event", Value: "error"},
 		},
 		MinimumShouldMatch: 1,
 	})
-	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits, "error.id")
+	approvaltest.ApproveEvents(t, t.Name(), result.Hits.Hits, "error.id")
 }
 
 func TestOTLPGRPCTraceSpanLinks(t *testing.T) {
@@ -144,13 +142,13 @@ func TestOTLPGRPCTraceSpanLinks(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	result := systemtest.Elasticsearch.ExpectMinDocs(t, 2, "traces-apm*", estest.BoolQuery{
+	result := estest.ExpectMinDocs(t, systemtest.Elasticsearch, 2, "traces-apm*", espoll.BoolQuery{
 		Should: []interface{}{
-			estest.TermQuery{
+			espoll.TermQuery{
 				Field: "trace.id",
 				Value: spanContext1.TraceID().String(),
 			},
-			estest.TermQuery{
+			espoll.TermQuery{
 				Field: "span.links.trace.id",
 				Value: spanContext1.TraceID().String(),
 			},
@@ -192,13 +190,12 @@ func TestOTLPGRPCMetrics(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	aggregator := simple.NewWithHistogramDistribution(histogram.WithExplicitBoundaries([]float64{1, 100, 1000, 10000}))
-	err = sendOTLPMetrics(t, ctx, srv, aggregator, func(meter metric.Meter) {
-		float64Counter, err := meter.SyncFloat64().Counter("float64_counter")
+	err = sendOTLPMetrics(t, ctx, srv, func(meter metric.Meter) {
+		float64Counter, err := meter.Float64Counter("counter")
 		require.NoError(t, err)
 		float64Counter.Add(context.Background(), 1)
 
-		int64Histogram, err := meter.SyncInt64().Histogram("int64_histogram")
+		int64Histogram, err := meter.Int64Histogram("histogram")
 		require.NoError(t, err)
 		int64Histogram.Record(context.Background(), 1)
 		int64Histogram.Record(context.Background(), 123)
@@ -212,20 +209,23 @@ func TestOTLPGRPCMetrics(t *testing.T) {
 	conn, err := grpc.Dial(serverAddr(srv), grpc.WithInsecure(), grpc.WithBlock())
 	require.NoError(t, err)
 	defer conn.Close()
-	metricsClient := pmetricotlp.NewClient(conn)
+	metricsClient := pmetricotlp.NewGRPCClient(conn)
 	metrics := pmetric.NewMetrics()
 	metric := metrics.ResourceMetrics().AppendEmpty().ScopeMetrics().AppendEmpty().Metrics().AppendEmpty()
 	metric.SetName("summary")
-	metric.SetDataType(pmetric.MetricDataTypeSummary)
-	summaryDP := metric.Summary().DataPoints().AppendEmpty()
+	summaryDP := metric.SetEmptySummary().DataPoints().AppendEmpty()
 	summaryDP.SetCount(10)
 	summaryDP.SetSum(123.456)
-	metricsClient.Export(context.Background(), pmetricotlp.NewRequestFromMetrics(metrics))
+	metricsClient.Export(context.Background(), pmetricotlp.NewExportRequestFromMetrics(metrics))
 
-	result := systemtest.Elasticsearch.ExpectMinDocs(t, 2, "metrics-apm.app.*", estest.BoolQuery{Filter: []interface{}{
-		estest.TermQuery{Field: "processor.event", Value: "metric"},
-	}})
-	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits, "@timestamp")
+	result := estest.ExpectDocs(t, systemtest.Elasticsearch, "metrics-apm.app.*", espoll.ExistsQuery{Field: "counter"})
+	approvaltest.ApproveEvents(t, t.Name()+"_counter", result.Hits.Hits, "@timestamp")
+
+	result = estest.ExpectDocs(t, systemtest.Elasticsearch, "metrics-apm.app.*", espoll.ExistsQuery{Field: "summary"})
+	approvaltest.ApproveEvents(t, t.Name()+"_summary", result.Hits.Hits, "@timestamp")
+
+	result = estest.ExpectDocs(t, systemtest.Elasticsearch, "metrics-apm.app.*", espoll.ExistsQuery{Field: "histogram"})
+	approvaltest.ApproveEvents(t, t.Name()+"_histogram", result.Hits.Hits, "@timestamp")
 
 	// Make sure we report monitoring for the metrics consumer. Metric values are unit tested.
 	doc := getBeatsMonitoringStats(t, srv, nil)
@@ -242,16 +242,16 @@ func TestOTLPGRPCLogs(t *testing.T) {
 	require.NoError(t, err)
 	defer conn.Close()
 
-	logsClient := plogotlp.NewClient(conn)
+	logsClient := plogotlp.NewGRPCClient(conn)
 
 	logs := newLogs("a log message")
-	_, err = logsClient.Export(ctx, plogotlp.NewRequestFromLogs(logs))
+	_, err = logsClient.Export(ctx, plogotlp.NewExportRequestFromLogs(logs))
 	require.NoError(t, err)
 
-	result := systemtest.Elasticsearch.ExpectDocs(t, "logs-apm*", estest.TermQuery{
+	result := estest.ExpectDocs(t, systemtest.Elasticsearch, "logs-apm*", espoll.TermQuery{
 		Field: "processor.event", Value: "log",
 	})
-	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits)
+	approvaltest.ApproveEvents(t, t.Name(), result.Hits.Hits)
 }
 
 func TestOTLPGRPCAuth(t *testing.T) {
@@ -272,8 +272,8 @@ func TestOTLPGRPCAuth(t *testing.T) {
 		"Authorization": "Bearer abc123",
 	}))))
 	require.NoError(t, err)
-	systemtest.Elasticsearch.ExpectDocs(t, "traces-apm*", estest.BoolQuery{Filter: []interface{}{
-		estest.TermQuery{Field: "processor.event", Value: "transaction"},
+	estest.ExpectDocs(t, systemtest.Elasticsearch, "traces-apm*", espoll.BoolQuery{Filter: []interface{}{
+		espoll.TermQuery{Field: "processor.event", Value: "transaction"},
 	}})
 }
 
@@ -303,13 +303,13 @@ func TestOTLPClientIP(t *testing.T) {
 	require.NoError(t, err)
 
 	// Non-iOS agent documents should have no client.ip field set.
-	result := systemtest.Elasticsearch.ExpectDocs(t, "traces-apm*", estest.TermQuery{
+	result := estest.ExpectDocs(t, systemtest.Elasticsearch, "traces-apm*", espoll.TermQuery{
 		Field: "service.name", Value: "service1",
 	})
 	assert.False(t, gjson.GetBytes(result.Hits.Hits[0].RawSource, "client.ip").Exists())
 
 	// iOS agent documents should have a client.ip field set.
-	result = systemtest.Elasticsearch.ExpectDocs(t, "traces-apm*", estest.TermQuery{
+	result = estest.ExpectDocs(t, systemtest.Elasticsearch, "traces-apm*", espoll.TermQuery{
 		Field: "service.name", Value: "service2",
 	})
 	assert.True(t, gjson.GetBytes(result.Hits.Hits[0].RawSource, "client.ip").Exists())
@@ -324,14 +324,14 @@ func TestOTLPHTTP(t *testing.T) {
 		systemtest.CleanupElasticsearch(t)
 		exporter := newOTLPHTTPTraceExporter(t, srv)
 		sendOTLPTrace(ctx, newOTLPTracerProvider(exporter))
-		systemtest.Elasticsearch.ExpectDocs(t, "traces-apm*", nil)
+		estest.ExpectDocs(t, systemtest.Elasticsearch, "traces-apm*", nil)
 	})
 
 	t.Run("gzip_compressed", func(t *testing.T) {
 		systemtest.CleanupElasticsearch(t)
 		exporter := newOTLPHTTPTraceExporter(t, srv, otlptracehttp.WithCompression(otlptracehttp.GzipCompression))
 		sendOTLPTrace(ctx, newOTLPTracerProvider(exporter))
-		systemtest.Elasticsearch.ExpectDocs(t, "traces-apm*", nil)
+		estest.ExpectDocs(t, systemtest.Elasticsearch, "traces-apm*", nil)
 	})
 }
 
@@ -372,14 +372,14 @@ func TestOTLPAnonymous(t *testing.T) {
 	errStatus, ok := status.FromError(err)
 	require.True(t, ok)
 	assert.Equal(t, codes.PermissionDenied, errStatus.Code())
-	assert.Equal(t, `unauthorized: anonymous access not permitted for agent "open-telemetry/go"`, errStatus.Message())
+	assert.Equal(t, `traces export: rpc error: code = PermissionDenied desc = unauthorized: anonymous access not permitted for agent "open-telemetry/go"`, errStatus.Message())
 
 	err = sendEvent("iOS", "swift", "unallowed_service")
 	assert.Error(t, err)
 	errStatus, ok = status.FromError(err)
 	require.True(t, ok)
 	assert.Equal(t, codes.PermissionDenied, errStatus.Code())
-	assert.Equal(t, `unauthorized: anonymous access not permitted for service "unallowed_service"`, errStatus.Message())
+	assert.Equal(t, `traces export: rpc error: code = PermissionDenied desc = unauthorized: anonymous access not permitted for service "unallowed_service"`, errStatus.Message())
 
 	// If the client does not send telemetry.sdk.*, we default agent name "otlp".
 	// This means it is not possible to bypass the allowed agents list.
@@ -388,7 +388,7 @@ func TestOTLPAnonymous(t *testing.T) {
 	errStatus, ok = status.FromError(err)
 	require.True(t, ok)
 	assert.Equal(t, codes.PermissionDenied, errStatus.Code())
-	assert.Equal(t, `unauthorized: anonymous access not permitted for agent "otlp"`, errStatus.Message())
+	assert.Equal(t, `traces export: rpc error: code = PermissionDenied desc = unauthorized: anonymous access not permitted for agent "otlp"`, errStatus.Message())
 
 	// If the client does not send a service name, we default to "unknown".
 	// This means it is not possible to bypass the allowed services list.
@@ -397,7 +397,7 @@ func TestOTLPAnonymous(t *testing.T) {
 	errStatus, ok = status.FromError(err)
 	require.True(t, ok)
 	assert.Equal(t, codes.PermissionDenied, errStatus.Code())
-	assert.Equal(t, `unauthorized: anonymous access not permitted for service "unknown"`, errStatus.Message())
+	assert.Equal(t, `traces export: rpc error: code = PermissionDenied desc = unauthorized: anonymous access not permitted for service "unknown"`, errStatus.Message())
 }
 
 func TestOTLPRateLimit(t *testing.T) {
@@ -460,7 +460,7 @@ func TestOTLPRateLimit(t *testing.T) {
 	errStatus, ok := status.FromError(err)
 	require.True(t, ok)
 	assert.Equal(t, codes.ResourceExhausted, errStatus.Code())
-	assert.Equal(t, "rate limit exceeded", errStatus.Message())
+	assert.Equal(t, "traces export: rpc error: code = ResourceExhausted desc = rate limit exceeded", errStatus.Message())
 }
 
 func newOTLPTraceExporter(t testing.TB, srv *apmservertest.Server, options ...otlptracegrpc.Option) *otlptrace.Exporter {
@@ -483,7 +483,7 @@ func newOTLPHTTPTraceExporter(t testing.TB, srv *apmservertest.Server, options .
 	return exporter
 }
 
-func newOTLPMetricExporter(t testing.TB, srv *apmservertest.Server, options ...otlpmetricgrpc.Option) *otlpmetric.Exporter {
+func newOTLPMetricExporter(t testing.TB, srv *apmservertest.Server, options ...otlpmetricgrpc.Option) sdkmetric.Exporter {
 	options = append(options, otlpmetricgrpc.WithEndpoint(serverAddr(srv)), otlpmetricgrpc.WithInsecure())
 	exporter, err := otlpmetricgrpc.New(context.Background(), options...)
 	require.NoError(t, err)
@@ -545,23 +545,30 @@ func sendOTLPMetrics(
 	t testing.TB,
 	ctx context.Context,
 	srv *apmservertest.Server,
-	aggregator export.AggregatorSelector,
 	recordMetrics func(metric.Meter),
 ) error {
 	exporter := newOTLPMetricExporter(t, srv)
-	controller := controller.New(
-		processor.NewFactory(aggregator, exporter),
-		controller.WithExporter(exporter),
-		controller.WithCollectPeriod(time.Minute),
+	meterProvider := sdkmetric.NewMeterProvider(
+		sdkmetric.WithReader(
+			sdkmetric.NewPeriodicReader(exporter, sdkmetric.WithInterval(time.Minute)),
+		),
+		sdkmetric.WithView(
+			sdkmetric.NewView(
+				sdkmetric.Instrument{Name: "*histogram"},
+				sdkmetric.Stream{
+					Aggregation: aggregation.ExplicitBucketHistogram{
+						Boundaries: []float64{0, 1, 100, 1000, 10000},
+					},
+				},
+			),
+		),
 	)
-	if err := controller.Start(context.Background()); err != nil {
-		return err
-	}
-	meter := controller.Meter("test-meter")
+	meter := meterProvider.Meter("test-meter")
+
 	recordMetrics(meter)
 
-	// Stopping the controller will collect and export metrics.
-	if err := controller.Stop(context.Background()); err != nil {
+	// Shutting down the meter provider will collect and export metrics.
+	if err := meterProvider.Shutdown(context.Background()); err != nil {
 		return err
 	}
 	select {
@@ -588,28 +595,28 @@ func (m *idGeneratorFuncs) NewSpanID(ctx context.Context, traceID trace.TraceID)
 func newLogs(body interface{}) plog.Logs {
 	logs := plog.NewLogs()
 	resourceLogs := logs.ResourceLogs().AppendEmpty()
-	logs.ResourceLogs().At(0).Resource().Attributes().InsertString(
+	logs.ResourceLogs().At(0).Resource().Attributes().PutStr(
 		semconv.AttributeTelemetrySDKLanguage, "go",
 	)
 	scopeLogs := resourceLogs.ScopeLogs().AppendEmpty()
 	otelLog := scopeLogs.LogRecords().AppendEmpty()
-	otelLog.SetTraceID(pcommon.NewTraceID([16]byte{1}))
-	otelLog.SetSpanID(pcommon.NewSpanID([8]byte{2}))
-	otelLog.SetSeverityNumber(plog.SeverityNumberINFO)
+	otelLog.SetTraceID(pcommon.TraceID{1})
+	otelLog.SetSpanID(pcommon.SpanID{2})
+	otelLog.SetSeverityNumber(plog.SeverityNumberInfo)
 	otelLog.SetSeverityText("Info")
 	otelLog.SetTimestamp(pcommon.NewTimestampFromTime(time.Unix(1, 0)))
-	otelLog.Attributes().InsertString("key", "value")
-	otelLog.Attributes().InsertDouble("numeric_key", 1234)
+	otelLog.Attributes().PutStr("key", "value")
+	otelLog.Attributes().PutDouble("numeric_key", 1234)
 
 	switch b := body.(type) {
 	case string:
-		otelLog.Body().SetStringVal(b)
+		otelLog.Body().SetStr(b)
 	case int:
-		otelLog.Body().SetIntVal(int64(b))
+		otelLog.Body().SetInt(int64(b))
 	case float64:
-		otelLog.Body().SetDoubleVal(float64(b))
+		otelLog.Body().SetDouble(float64(b))
 	case bool:
-		otelLog.Body().SetBoolVal(b)
+		otelLog.Body().SetBool(b)
 	}
 	return logs
 }

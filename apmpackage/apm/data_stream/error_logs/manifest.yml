@@ -3,6 +3,7 @@ type: logs
 dataset: apm.error
 ilm_policy: logs-apm.error_logs-default_policy
 elasticsearch:
+  dynamic_namespace: true
   index_template:
     mappings:
       # TODO(axw) investigate setting `dynamic: runtime`, so that fields are
