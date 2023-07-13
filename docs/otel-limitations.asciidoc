@@ -16,6 +16,13 @@
 * Inability to see host metrics in Elastic Metrics Infrastructure view when using the OpenTelemetry Collector host metrics receiver (see issue https://github.com/elastic/apm-server/issues/5310[#5310]).
 
 [float]
+[[open-telemetry-logs-intake]]
+==== OpenTelemetry logs
+
+* preview:[] The OpenTelemetry logs intake via APM Server is in technical preview.
+* The application logs data stream (`app_logs`) has dynamic mapping disabled. This means the automatic detection and mapping of new fields is disabled (see issue https://github.com/elastic/apm-server/issues/9093[#9093]).
+
+[float]
 [[open-telemetry-otlp-limitations]]
 ==== OpenTelemetry Line Protocol (OTLP)
 
