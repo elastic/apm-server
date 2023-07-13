@@ -167,7 +167,7 @@ output {
 Every event sent to {ls} contains a special field called
 {logstash-ref}/event-dependent-configuration.html#metadata[`@metadata`] that you can
 use in {ls} for conditionals, filtering, indexing and more.
-APM Server sends the following @metadata to {ls}:
+APM Server sends the following `@metadata` to {ls}:
 
 ["source","json",subs="attributes"]
 ----
@@ -183,9 +183,40 @@ APM Server sends the following @metadata to {ls}:
 <<logstash-index,`index`>> option in the APM Server config file.
 <2> The current version of APM Server.
 
-In addition to @metadata, APM Server provides other potentially useful fields, like the
+In addition to `@metadata`, APM Server provides other potentially useful fields, like the
 `processor.event` field and `data_stream` fields, which can be used to conditionally operate on
 {apm-guide-ref}/data-model.html[event types], namespaces, or datasets.
+
+As an example, you might want to use {ls} to route all `metric` events to the same custom metrics data stream,
+rather than to service-specific data streams:
+
+["source","json",subs="attributes"]
+----
+output {
+  if [@metadata][beat] == "apm-server" { <1>
+    if [processor][event] == "metric" { <2>
+      elasticsearch {
+        index => "%{[data_stream][type]}-custom-%{[data_stream][namespace]}" <3>
+        action => "create" <4>
+        cloud_id => "${CLOUD_ID}" <5>
+        cloud_auth => "${CLOUD_AUTH}" <5>
+      }
+    } else {
+      elasticsearch {
+        data_stream => "true" <6>
+        cloud_id => "${CLOUD_ID}"
+        cloud_auth => "${CLOUD_AUTH}"
+      }
+    }
+  }
+}
+----
+<1> Only apply this output if the data is being sent from the APM Server
+<2> Determine if the event type is `metric`
+<3> If the event type is `metric`, output to a custom data stream: `metrics-custom-<YOUR_NAMESPACE>`
+<4> You must explicitly set `action` to `create when using {ls} to output an index to a data stream
+<5> In this example, `cloud_id` and `cloud_auth` are stored as {logstash-ref}/environment-variables.html[environment variables]
+<6> For all other event types, index data directly into the predefined APM data steams
 
 === Compatibility
 
