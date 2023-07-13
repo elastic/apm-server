@@ -32,6 +32,8 @@ import (
 	"github.com/elastic/apm-server/systemtest"
 	"github.com/elastic/apm-server/systemtest/apmservertest"
 	"github.com/elastic/apm-server/systemtest/estest"
+	"github.com/elastic/apm-tools/pkg/approvaltest"
+	"github.com/elastic/apm-tools/pkg/espoll"
 	"github.com/elastic/go-elasticsearch/v8/esapi"
 )
 
@@ -67,12 +69,12 @@ func TestDropUnsampled(t *testing.T) {
 {"metadata":{"service":{"name":"allowed","version":"1.0.0","agent":{"name":"rum-js","version":"0.0.0"}}}}
 {"transaction":{"sampled":false,"trace_id":"x","id":"y","type":"TestDropUnsampled","duration":0,"span_count":{"started":1},"context":{"service":{"name":"allowed"}}}}`[1:])
 
-	result := systemtest.Elasticsearch.ExpectMinDocs(t, 2, "traces-apm*", estest.TermQuery{
+	result := estest.ExpectMinDocs(t, systemtest.Elasticsearch, 2, "traces-apm*", espoll.TermQuery{
 		Field: "transaction.type",
 		Value: "TestDropUnsampled",
 	})
 	assert.Len(t, result.Hits.Hits, 2)
-	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits,
+	approvaltest.ApproveEvents(t, t.Name(), result.Hits.Hits,
 		// RUM timestamps are set by the server based on the time the payload is received.
 		"@timestamp", "timestamp.us",
 		// RUM events have the source port recorded, and in the tests it will be dynamic
@@ -152,13 +154,13 @@ func TestTailSampling(t *testing.T) {
 	refreshPeriodically(t, 250*time.Millisecond, "traces-apm.sampled-*")
 
 	for _, transactionType := range []string{"parent", "child"} {
-		var result estest.SearchResult
+		var result espoll.SearchResult
 		t.Logf("waiting for %d %q transactions", expected, transactionType)
-		_, err := systemtest.Elasticsearch.Search("traces-*").WithQuery(estest.TermQuery{
+		_, err := systemtest.Elasticsearch.NewSearchRequest("traces-*").WithQuery(espoll.TermQuery{
 			Field: "transaction.type",
 			Value: transactionType,
 		}).WithSize(total).Do(context.Background(), &result,
-			estest.WithCondition(result.Hits.MinHitsCondition(expected)),
+			espoll.WithCondition(result.Hits.MinHitsCondition(expected)),
 		)
 		require.NoError(t, err)
 		assert.Equal(t, expected, len(result.Hits.Hits), transactionType)

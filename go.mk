@@ -12,7 +12,6 @@ GOARCH:=$(shell $(GO) env GOARCH)
 export PATH:=$(GOROOT)/bin:$(PATH)
 
 GOOSBUILD:=$(GITROOT)/build/$(shell $(GO) env GOOS)
-APPROVALS=$(GOOSBUILD)/approvals
 GENPACKAGE=$(GOOSBUILD)/genpackage
 GOIMPORTS=$(GOOSBUILD)/goimports
 GOLICENSER=$(GOOSBUILD)/go-licenser
@@ -53,7 +52,3 @@ $(GOVERSIONINFO): $(GITROOT)/tools/go.mod
 
 $(NFPM): $(GITROOT)/tools/go.mod
 	$(GO) build -o $@ -modfile=$< github.com/goreleaser/nfpm/v2/cmd/nfpm
-
-.PHONY: $(APPROVALS)
-$(APPROVALS): $(GITROOT)/systemtest/go.mod
-	@cd $(<D) && $(GO) build -o $@ github.com/elastic/apm-server/systemtest/internal/approvaltest/cmd/check-approvals

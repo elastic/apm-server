@@ -34,6 +34,8 @@ import (
 	"github.com/elastic/apm-server/systemtest"
 	"github.com/elastic/apm-server/systemtest/apmservertest"
 	"github.com/elastic/apm-server/systemtest/estest"
+	"github.com/elastic/apm-tools/pkg/approvaltest"
+	"github.com/elastic/apm-tools/pkg/espoll"
 	"github.com/elastic/go-elasticsearch/v8/esapi"
 )
 
@@ -57,16 +59,16 @@ func TestApprovedMetrics(t *testing.T) {
 
 	// Check the metrics documents are exactly as we expect.
 	indices := []string{"metrics-apm*"}
-	result := systemtest.Elasticsearch.ExpectMinDocs(t, ingestResult.Accepted, strings.Join(indices, ","), estest.BoolQuery{
+	result := estest.ExpectMinDocs(t, systemtest.Elasticsearch, ingestResult.Accepted, strings.Join(indices, ","), espoll.BoolQuery{
 		Filter: []interface{}{
-			estest.TermQuery{Field: "processor.event", Value: "metric"},
+			espoll.TermQuery{Field: "processor.event", Value: "metric"},
 		},
 		MustNot: []interface{}{
 			// Ignore server-produced transaction metrics; we're only interested in the metrics sent by the agent.
-			estest.TermQuery{Field: "metricset.name", Value: "transaction"},
+			espoll.TermQuery{Field: "metricset.name", Value: "transaction"},
 		},
 	})
-	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits)
+	approvaltest.ApproveEvents(t, t.Name(), result.Hits.Hits)
 
 	// Check dynamic mapping of histograms.
 	mappings := getFieldMappings(t, indices, []string{"latency_distribution"})
@@ -96,13 +98,13 @@ func TestBreakdownMetrics(t *testing.T) {
 	tracer.SendMetrics(nil)
 	tracer.Flush(nil)
 
-	result := systemtest.Elasticsearch.ExpectMinDocs(t, 2, "metrics-apm.internal-*", estest.BoolQuery{
+	result := estest.ExpectMinDocs(t, systemtest.Elasticsearch, 2, "metrics-apm.internal-*", espoll.BoolQuery{
 		Filter: []interface{}{
-			estest.TermQuery{
+			espoll.TermQuery{
 				Field: "processor.event",
 				Value: "metric",
 			},
-			estest.TermQuery{
+			espoll.TermQuery{
 				Field: "transaction.type",
 				Value: "tx_type",
 			},
@@ -134,7 +136,7 @@ func TestApplicationMetrics(t *testing.T) {
 	tracer.SendMetrics(nil)
 	tracer.Flush(nil)
 
-	result := systemtest.Elasticsearch.ExpectDocs(t, "metrics-apm.app.*", estest.TermQuery{
+	result := estest.ExpectDocs(t, systemtest.Elasticsearch, "metrics-apm.app.*", espoll.TermQuery{
 		Field: "metricset.name",
 		Value: "app",
 	})
@@ -223,7 +225,7 @@ type metricsetDoc struct {
 	Labels            map[string]string    `json:"labels"`
 }
 
-func unmarshalMetricsetDocs(t testing.TB, hits []estest.SearchHit) []metricsetDoc {
+func unmarshalMetricsetDocs(t testing.TB, hits []espoll.SearchHit) []metricsetDoc {
 	var docs []metricsetDoc
 	for _, hit := range hits {
 		docs = append(docs, unmarshalMetricsetDoc(t, &hit))
@@ -231,7 +233,7 @@ func unmarshalMetricsetDocs(t testing.TB, hits []estest.SearchHit) []metricsetDo
 	return docs
 }
 
-func unmarshalMetricsetDoc(t testing.TB, hit *estest.SearchHit) metricsetDoc {
+func unmarshalMetricsetDoc(t testing.TB, hit *espoll.SearchHit) metricsetDoc {
 	var doc metricsetDoc
 	if err := hit.UnmarshalSource(&doc); err != nil {
 		t.Fatal(err)

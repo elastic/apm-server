@@ -37,9 +37,9 @@ import (
 	"go.elastic.co/apm/v2/stacktrace"
 	"golang.org/x/time/rate"
 
+	"github.com/elastic/apm-perf/loadgen"
+	loadgencfg "github.com/elastic/apm-perf/loadgen/config"
 	"github.com/elastic/apm-server/systemtest/benchtest/expvar"
-	"github.com/elastic/apm-server/systemtest/loadgen"
-	loadgencfg "github.com/elastic/apm-server/systemtest/loadgen/config"
 )
 
 const waitInactiveTimeout = 60 * time.Second

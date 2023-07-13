@@ -28,7 +28,7 @@ import (
 
 	"github.com/google/pprof/profile"
 
-	loadgencfg "github.com/elastic/apm-server/systemtest/loadgen/config"
+	loadgencfg "github.com/elastic/apm-perf/loadgen/config"
 )
 
 func fetchProfile(urlPath string, duration time.Duration) (*profile.Profile, error) {

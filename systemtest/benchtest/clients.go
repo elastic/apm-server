@@ -29,9 +29,9 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 
-	"github.com/elastic/apm-server/systemtest/loadgen"
-	loadgencfg "github.com/elastic/apm-server/systemtest/loadgen/config"
-	"github.com/elastic/apm-server/systemtest/loadgen/eventhandler"
+	"github.com/elastic/apm-perf/loadgen"
+	loadgencfg "github.com/elastic/apm-perf/loadgen/config"
+	"github.com/elastic/apm-perf/loadgen/eventhandler"
 
 	"go.elastic.co/apm/v2"
 	"go.elastic.co/apm/v2/transport"
