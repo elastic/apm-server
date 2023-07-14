@@ -2,7 +2,7 @@ queue_rules:
   - name: default
     conditions:
       - check-success=apm-ci/pr-merge
-      - check-success=system-test
+      - check-success=go-system-tests
       - check-success=lint
       - check-success=CLA
 pull_request_rules:
