@@ -28,6 +28,7 @@ import (
 	"github.com/elastic/apm-server/systemtest"
 	"github.com/elastic/apm-server/systemtest/apmservertest"
 	"github.com/elastic/apm-server/systemtest/estest"
+	"github.com/elastic/apm-tools/pkg/espoll"
 )
 
 func TestErrorGroupingName(t *testing.T) {
@@ -40,7 +41,7 @@ func TestErrorGroupingName(t *testing.T) {
 	tracer.NewErrorLog(apm.ErrorLogRecord{Message: "log_message_overrides", Error: errors.New("exception_message_overridden")}).Send()
 	tracer.Flush(nil)
 
-	result := systemtest.Elasticsearch.ExpectMinDocs(t, 3, "logs-apm.error-*", estest.TermQuery{
+	result := estest.ExpectMinDocs(t, systemtest.Elasticsearch, 3, "logs-apm.error-*", espoll.TermQuery{
 		Field: "processor.event",
 		Value: "error",
 	})

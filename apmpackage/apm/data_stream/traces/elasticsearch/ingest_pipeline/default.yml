@@ -13,6 +13,14 @@ processors:
       name: process_ppid
   - pipeline:
       name: client_geoip
+  - set:
+      if: ctx.transaction?.type != null
+      field: processor.event
+      value: transaction
+  - set:
+      if: ctx.span?.type != null
+      field: processor.event
+      value: span
   - pipeline:
       name: event_duration
   # event.success_count logic
@@ -27,19 +35,3 @@ processors:
       value: 0
       ignore_failure: true
   # end of event.success_count logic
-  - remove:
-      # Remove some metadata from spans that is available in the parent transaction, to cut down on storage costs.
-      if: ctx.processor?.event == 'span'
-      field:
-        - process
-        - user
-        - user_agent
-        - container
-        - kubernetes
-        - service.node
-        - service.language
-        - service.runtime
-        - service.framework
-      ignore_missing: true
-      ignore_failure: true
-

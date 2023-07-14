@@ -31,9 +31,11 @@
     Name of the set of metrics.
 - name: processor.event
   type: constant_keyword
+  value: metric
   description: Processor event.
 - name: processor.name
   type: constant_keyword
+  value: metric
   description: Processor name.
 - name: service.language.name
   type: keyword

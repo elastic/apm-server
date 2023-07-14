@@ -33,6 +33,8 @@ import (
 	"github.com/elastic/apm-server/systemtest"
 	"github.com/elastic/apm-server/systemtest/apmservertest"
 	"github.com/elastic/apm-server/systemtest/estest"
+	"github.com/elastic/apm-tools/pkg/approvaltest"
+	"github.com/elastic/apm-tools/pkg/espoll"
 )
 
 func TestAgentConfig(t *testing.T) {
@@ -130,14 +132,14 @@ func TestAgentConfig(t *testing.T) {
 	//
 	// Known issue: APM integration does not produce documents because it does not have
 	// enough time to flush before reload
-	result := systemtest.Elasticsearch.ExpectDocs(t, "metrics-apm.internal-*", estest.TermQuery{
+	result := estest.ExpectDocs(t, systemtest.Elasticsearch, "metrics-apm.internal-*", espoll.TermQuery{
 		Field: "metricset.name",
 		Value: "agent_config",
-	}, estest.WithTimeout(time.Minute))
+	}, espoll.WithTimeout(time.Minute))
 	require.Len(t, result.Hits.Hits, 2)
 	etag := gjson.GetBytes(result.Hits.Hits[0].RawSource, "labels.etag")
 	assert.Equal(t, etag1, strconv.Quote(etag.String()))
-	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits, "@timestamp", "labels.etag")
+	approvaltest.ApproveEvents(t, t.Name(), result.Hits.Hits, "@timestamp", "labels.etag")
 }
 
 func queryAgentConfig(t testing.TB, serverURL, serviceName, serviceEnvironment, etag string) (map[string]string, *http.Response, map[string]interface{}) {
