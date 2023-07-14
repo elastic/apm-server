@@ -38,4 +38,22 @@ processors:
         - service.framework
       ignore_missing: true
       ignore_failure: true
+  - script:
+      lang: painless
+      source: |
+        def representative_count = ctx?.span?.representative_count != null ? ctx?.span?.representative_count : ctx?.transaction?.representative_count;
+          
+        if(representative_count == null) {
+        return;
+        }
+        
+        int doc_count = (int)representative_count;
+        
+        double decimal = representative_count - doc_count;
+        
+        if (decimal > Math.random()) {
+        doc_count += 1;
+        }
+        
+        ctx._doc_count = doc_count;
 
