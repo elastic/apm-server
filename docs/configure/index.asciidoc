@@ -3,11 +3,11 @@
 
 How you configure the APM Server depends on your deployment method.
 
-APM Server binary users need to edit the `apm-server.yml` configuration file.
+* **APM Server binary** users need to edit the `apm-server.yml` configuration file.
 The location of the file varies by platform. To locate the file, see <<directory-layout>>.
-
-Fleet-managed users configure the APM Server directly in {kib}.
+* **Fleet-managed** users configure the APM Server directly in {kib}.
 Each configuration page describes the specific location.
+* **Elastic cloud** users should see {cloud}/ec-manage-apm-settings.html[Add APM user settings] for information on how to configure Elastic APM.
 
 The following topics describe how to configure APM Server:
 
