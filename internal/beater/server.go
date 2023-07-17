@@ -205,7 +205,7 @@ func newServer(args ServerParams, listener net.Listener) (server, error) {
 			modelpb.ProcessBatchFunc(otlp.SetClientMetadata),
 			otlpBatchProcessor,
 		}
-		otlpBatchProcessor = append(otlpBatchProcessor, model.ProcessBatchFunc(otlp.SetClientMetadata))
+		otlpBatchProcessor = append(otlpBatchProcessor, modelpb.ProcessBatchFunc(otlp.SetClientMetadata))
 	}
 	zapLogger := zap.New(args.Logger.Core(), zap.WithCaller(true))
 	otlp.RegisterGRPCServices(args.GRPCServer, zapLogger, otlpBatchProcessor, args.Semaphore)

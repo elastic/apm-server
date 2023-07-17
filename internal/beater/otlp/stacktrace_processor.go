@@ -3,7 +3,7 @@ package otlp
 import (
 	"context"
 
-	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/internal/r8"
 )
 
@@ -16,7 +16,7 @@ func NewStacktraceProcessor(fetcher *r8.MapFetcher) *StacktraceProcessor {
 	return &StacktraceProcessor{fetcher}
 }
 
-func (p StacktraceProcessor) ProcessBatch(ctx context.Context, batch *model.Batch) error {
+func (p StacktraceProcessor) ProcessBatch(ctx context.Context, batch *modelpb.Batch) error {
 	for _, event := range *batch {
 		if isMobileCrash(event) {
 			err := p.deobfuscate(ctx, event)
@@ -28,7 +28,7 @@ func (p StacktraceProcessor) ProcessBatch(ctx context.Context, batch *model.Batc
 	return nil
 }
 
-func (p StacktraceProcessor) deobfuscate(ctx context.Context, event model.APMEvent) error {
+func (p StacktraceProcessor) deobfuscate(ctx context.Context, event *modelpb.APMEvent) error {
 	mapReader, err := p.fetcher.Fetch(ctx, event.Agent.Name, event.Agent.Version)
 	if err != nil {
 		return err
@@ -43,6 +43,6 @@ func (p StacktraceProcessor) deobfuscate(ctx context.Context, event model.APMEve
 	return nil
 }
 
-func isMobileCrash(event model.APMEvent) bool {
+func isMobileCrash(event *modelpb.APMEvent) bool {
 	return event.Error != nil && event.Event.Category == "device" && event.Error.Type == "crash"
 }
