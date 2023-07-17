@@ -91,7 +91,7 @@ func (p *MapFetcher) Fetch(ctx context.Context, name, version string) ([]byte, e
 }
 
 func (p *MapFetcher) runSearchQuery(ctx context.Context, name, version string) (*esapi.Response, error) {
-	id := name + "-" + version
+	id := name + "-" + version + "-android"
 	req := esapi.GetRequest{
 		Index:      mapIndex,
 		DocumentID: url.PathEscape(id),
