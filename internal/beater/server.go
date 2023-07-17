@@ -201,10 +201,6 @@ func newServer(args ServerParams, listener net.Listener) (server, error) {
 	otlpBatchProcessor = append(otlpBatchProcessor, otlp.NewStacktraceProcessor(r8.NewMapFetcher(esClient)))
 	if args.Config.AugmentEnabled {
 		// Add a model processor that sets `client.ip` for events from end-user devices.
-		otlpBatchProcessor = modelprocessor.Chained{
-			modelpb.ProcessBatchFunc(otlp.SetClientMetadata),
-			otlpBatchProcessor,
-		}
 		otlpBatchProcessor = append(otlpBatchProcessor, modelpb.ProcessBatchFunc(otlp.SetClientMetadata))
 	}
 	zapLogger := zap.New(args.Logger.Core(), zap.WithCaller(true))

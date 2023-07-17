@@ -39,7 +39,7 @@ var (
 // Deobfuscate mutates the stacktrace by searching for those items through the mapFile, looking
 // for their de-obfuscated names and replacing the ones in the original stacktrace by their real names found within the mapFile.
 // Note that not all the stacktrace items might be present in the mapFile, for those cases, those frames will remain untouched.
-func Deobfuscate(stacktrace *[]*modelpb.StacktraceFrame, mapFile io.ReadCloser) error {
+func Deobfuscate(stacktrace *[]*modelpb.StacktraceFrame, mapFile io.Reader) error {
 	types, err := groupUniqueTypes(stacktrace)
 	if err != nil {
 		return err

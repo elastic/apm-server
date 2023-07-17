@@ -1,6 +1,7 @@
 package otlp
 
 import (
+	"bytes"
 	"context"
 
 	"github.com/elastic/apm-data/model/modelpb"
@@ -29,13 +30,12 @@ func (p StacktraceProcessor) ProcessBatch(ctx context.Context, batch *modelpb.Ba
 }
 
 func (p StacktraceProcessor) deobfuscate(ctx context.Context, event *modelpb.APMEvent) error {
-	mapReader, err := p.fetcher.Fetch(ctx, event.Agent.Name, event.Agent.Version)
+	mapBytes, err := p.fetcher.Fetch(ctx, event.Agent.Name, event.Agent.Version)
 	if err != nil {
 		return err
 	}
-	defer mapReader.Close()
 
-	err = r8.Deobfuscate(&event.Error.Exception.Stacktrace, mapReader)
+	err = r8.Deobfuscate(&event.Error.Exception.Stacktrace, bytes.NewReader(mapBytes))
 
 	if err != nil {
 		return err
