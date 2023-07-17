@@ -2,8 +2,6 @@
 = Explore data in {es}
 
 * <<elasticsearch-query-examples>>
-* <<sample-apm-document>>
-* <<metricset-indices>>
 
 [float]
 [[elasticsearch-query-examples]]
@@ -47,61 +45,3 @@ Then, retrieve the specific template you are interested in:
 GET  /_template/your-template-name
 ----
 // CONSOLE
-
-[float]
-[[sample-apm-document]]
-== Sample APM documents
-
-Sample documents for each of the APM event types are available below:
-
-[%collapsible]
-.Transaction documents
-====
-Example transaction documents indexed in {es}:
-
-[source,json]
-----
-include::{docdir}/data/elasticsearch/generated/transactions.json[]
-----
-====
-
-[%collapsible]
-.Span documents
-====
-Example span documents indexed in {es}:
-
-[source,json]
-----
-include::{docdir}/data/elasticsearch/generated/spans.json[]
-----
-====
-
-[%collapsible]
-.Error documents
-====
-Example error documents indexed in {es}:
-
-[source,json]
-----
-include::{docdir}/data/elasticsearch/generated/errors.json[]
-----
-====
-
-[%collapsible]
-.Metric document
-====
-include::{docdir}/metricset-indices.asciidoc[tag=example]
-====
-
-[%collapsible]
-.Source map documents
-====
-Example source map document indexed in {es}:
-
-[source,json]
-----
-include::{docdir}/data/intake-api/generated/sourcemap/bundle.js.map[]
-----
-====
-
-include::{docdir}/metricset-indices.asciidoc[]

@@ -5,6 +5,9 @@ metrics, and service destination metrics. This process is sometimes referred
 to as "pre-aggregation": aggregation of events prior to indexing, and indexing
 the aggregated metrics, as opposed to aggregation of documents in Elasticsearch.
 
+From 8.7.0 onwards, all aggregated metrics are aggregated at 3
+different granularity: `1m`, `10m`, and `60m`.
+
 ## Transaction metrics
 
 Transaction metrics measure the latency distribution for transaction groups.
@@ -13,15 +16,25 @@ attributes such as `service.name`, `transaction.name`, and `kubernetes.pod.name`
 The latency is then recorded in an [HDRHistogram](http://hdrhistogram.org/) for
 that group. Transaction group latency histograms are periodically indexed (every
 minute by default), with configurable precision (defaults to 2 significant figures).
-From 8.7.0 onwards, the Transaction Metrics aggregator publishes metrics for 3
-different periods: `1m`, `10m`, and `60m`.
 
 To protect against memory exhaustion due to high-cardinality transaction names
-(or other attributes), APM Server places a limit on the number of transaction
-groups that are tracked at any given time. By default, this limit is 10000
-transaction groups per GB of memory. When transaction group latency histograms
-are indexed, the groups are reset, enabling a different set of groups to be
-recorded.
+(or other attributes), at any given time, APM Server places a limit on the number
+of services tracked, the number of transaction groups tracked, as well as number
+of groups tracked per service.
+
+By default, the limits are 1,000 services per GB of memory, 5,000 transaction groups
+per GB of memory. When transaction group latency histograms are indexed, the groups
+are reset, enabling a different set of groups to be recorded.
+The per-service limit is 10% of the global limit. For example, for a 2GB APM Server,
+the limits are 2,000 services, 10,000 transaction groups, and for each service,
+there can be a maximum of 1,000 unique transaction groups.
+
+## Service transaction metrics
+
+Service transaction metrics are similar to Transaction metrics, but with fewer
+dimensions. For example, `transaction.name` is no longer considered during aggregation.
+
+A limit of 1,000 unique service transaction groups per GB of memory is enforced.
 
 ## Service destination metrics
 
@@ -30,9 +43,15 @@ from one service to another. This works much the same as transaction metrics
 aggregation: span events describing an operation that involves another service
 are grouped by the originating and target services, and the span latency is
 accumulated. For these metrics we record only a count and sum, enabling calculation
-of throughput and average latency. Once again, a default limit of 10000 groups is
-imposed. From 8.7.0 onwards, the Service destination aggregator publishes metrics
-for 3 different periods: `1m`, `10m`, and `60m`.
+of throughput and average latency. A default limit of 10,000 groups is
+imposed.
+
+## Service summary metrics
+
+Service summary metrics consider transaction, error, log, and metric events and
+basically produce a summary of all services sending events.
+
+A limit of 1,000 unique service summary groups per GB of memory is enforced.
 
 ## Dealing with sampling
 

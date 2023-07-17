@@ -23,12 +23,12 @@ import (
 	"io"
 	"regexp"
 
-	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 )
 
 // StacktraceType groups frames belonging to a single class as well as frames that represent the same method call.
 type StacktraceType struct {
-	methods map[string][]*model.StacktraceFrame // Maps method references to all the frames where it appears.
+	methods map[string][]*modelpb.StacktraceFrame // Maps method references to all the frames where it appears.
 }
 
 var (
@@ -39,7 +39,7 @@ var (
 // Deobfuscate mutates the stacktrace by searching for those items through the mapFile, looking
 // for their de-obfuscated names and replacing the ones in the original stacktrace by their real names found within the mapFile.
 // Note that not all the stacktrace items might be present in the mapFile, for those cases, those frames will remain untouched.
-func Deobfuscate(stacktrace *model.Stacktrace, mapFile io.ReadCloser) error {
+func Deobfuscate(stacktrace *[]*modelpb.StacktraceFrame, mapFile io.ReadCloser) error {
 	types, err := groupUniqueTypes(stacktrace)
 	if err != nil {
 		return err
@@ -54,7 +54,7 @@ func Deobfuscate(stacktrace *model.Stacktrace, mapFile io.ReadCloser) error {
 
 // Iterates over the stacktrace and groups the frames by classname, along with its methods, which are grouped by
 // the method name.
-func groupUniqueTypes(stacktrace *model.Stacktrace) (map[string]StacktraceType, error) {
+func groupUniqueTypes(stacktrace *[]*modelpb.StacktraceFrame) (map[string]StacktraceType, error) {
 	var types = make(map[string]StacktraceType)
 
 	for _, frame := range *stacktrace {
@@ -71,13 +71,13 @@ func groupUniqueTypes(stacktrace *model.Stacktrace) (map[string]StacktraceType, 
 		typeItem, ok := types[typeName]
 		if !ok {
 			typeItem = StacktraceType{
-				methods: make(map[string][]*model.StacktraceFrame),
+				methods: make(map[string][]*modelpb.StacktraceFrame),
 			}
 			types[typeName] = typeItem
 		}
 		_, ok = typeItem.methods[methodName]
 		if !ok {
-			typeItem.methods[methodName] = make([]*model.StacktraceFrame, 0)
+			typeItem.methods[methodName] = make([]*modelpb.StacktraceFrame, 0)
 		}
 		typeItem.methods[methodName] = append(typeItem.methods[methodName], frame)
 
@@ -106,6 +106,9 @@ func resolveMappings(types map[string]StacktraceType, mapReader io.Reader) error
 				currentType = &stacktraceType
 				for _, frames := range stacktraceType.methods {
 					for _, frame := range frames {
+						if frame.Original == nil {
+							frame.Original = &modelpb.Original{}
+						}
 						// Multiple frames might point to the same class, so we need to deobfuscate the class name for them all.
 						frame.Original.Classname = obfuscatedName
 						frame.Classname = typeMatch[1]

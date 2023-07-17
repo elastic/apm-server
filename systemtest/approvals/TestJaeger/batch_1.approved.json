@@ -241,6 +241,9 @@
                     "name": "host01"
                 }
             },
+            "span": {
+                "id": "6e09e8bcefd6b828"
+            },
             "trace": {
                 "id": "00000000000000007be2fd98d0973be3"
             }
@@ -284,7 +287,13 @@
                 "name": "transaction"
             },
             "service": {
-                "name": "redis"
+                "language": {
+                    "name": "Go"
+                },
+                "name": "redis",
+                "node": {
+                    "name": "host01"
+                }
             },
             "span": {
                 "duration": {
@@ -340,7 +349,13 @@
                 "name": "transaction"
             },
             "service": {
-                "name": "redis"
+                "language": {
+                    "name": "Go"
+                },
+                "name": "redis",
+                "node": {
+                    "name": "host01"
+                }
             },
             "span": {
                 "duration": {
@@ -396,7 +411,13 @@
                 "name": "transaction"
             },
             "service": {
-                "name": "redis"
+                "language": {
+                    "name": "Go"
+                },
+                "name": "redis",
+                "node": {
+                    "name": "host01"
+                }
             },
             "span": {
                 "duration": {
@@ -452,7 +473,13 @@
                 "name": "transaction"
             },
             "service": {
-                "name": "redis"
+                "language": {
+                    "name": "Go"
+                },
+                "name": "redis",
+                "node": {
+                    "name": "host01"
+                }
             },
             "span": {
                 "duration": {
@@ -509,7 +536,13 @@
                 "name": "transaction"
             },
             "service": {
-                "name": "redis"
+                "language": {
+                    "name": "Go"
+                },
+                "name": "redis",
+                "node": {
+                    "name": "host01"
+                }
             },
             "span": {
                 "duration": {
@@ -565,7 +598,13 @@
                 "name": "transaction"
             },
             "service": {
-                "name": "redis"
+                "language": {
+                    "name": "Go"
+                },
+                "name": "redis",
+                "node": {
+                    "name": "host01"
+                }
             },
             "span": {
                 "duration": {
@@ -622,7 +661,13 @@
                 "name": "transaction"
             },
             "service": {
-                "name": "redis"
+                "language": {
+                    "name": "Go"
+                },
+                "name": "redis",
+                "node": {
+                    "name": "host01"
+                }
             },
             "span": {
                 "duration": {
@@ -678,7 +723,13 @@
                 "name": "transaction"
             },
             "service": {
-                "name": "redis"
+                "language": {
+                    "name": "Go"
+                },
+                "name": "redis",
+                "node": {
+                    "name": "host01"
+                }
             },
             "span": {
                 "duration": {
@@ -734,7 +785,13 @@
                 "name": "transaction"
             },
             "service": {
-                "name": "redis"
+                "language": {
+                    "name": "Go"
+                },
+                "name": "redis",
+                "node": {
+                    "name": "host01"
+                }
             },
             "span": {
                 "duration": {
@@ -790,7 +847,13 @@
                 "name": "transaction"
             },
             "service": {
-                "name": "redis"
+                "language": {
+                    "name": "Go"
+                },
+                "name": "redis",
+                "node": {
+                    "name": "host01"
+                }
             },
             "span": {
                 "duration": {
@@ -846,7 +909,13 @@
                 "name": "transaction"
             },
             "service": {
-                "name": "redis"
+                "language": {
+                    "name": "Go"
+                },
+                "name": "redis",
+                "node": {
+                    "name": "host01"
+                }
             },
             "span": {
                 "duration": {
@@ -902,7 +971,13 @@
                 "name": "transaction"
             },
             "service": {
-                "name": "redis"
+                "language": {
+                    "name": "Go"
+                },
+                "name": "redis",
+                "node": {
+                    "name": "host01"
+                }
             },
             "span": {
                 "duration": {
@@ -958,7 +1033,13 @@
                 "name": "transaction"
             },
             "service": {
-                "name": "redis"
+                "language": {
+                    "name": "Go"
+                },
+                "name": "redis",
+                "node": {
+                    "name": "host01"
+                }
             },
             "span": {
                 "duration": {
@@ -1014,7 +1095,13 @@
                 "name": "transaction"
             },
             "service": {
-                "name": "redis"
+                "language": {
+                    "name": "Go"
+                },
+                "name": "redis",
+                "node": {
+                    "name": "host01"
+                }
             },
             "span": {
                 "duration": {

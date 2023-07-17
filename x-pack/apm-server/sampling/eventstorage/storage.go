@@ -11,7 +11,7 @@ import (
 
 	"github.com/dgraph-io/badger/v2"
 
-	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 )
 
 const (
@@ -41,8 +41,8 @@ type Storage struct {
 
 // Codec provides methods for encoding and decoding events.
 type Codec interface {
-	DecodeEvent([]byte, *model.APMEvent) error
-	EncodeEvent(*model.APMEvent) ([]byte, error)
+	DecodeEvent([]byte, *modelpb.APMEvent) error
+	EncodeEvent(*modelpb.APMEvent) ([]byte, error)
 }
 
 // New returns a new Storage using db and codec.
@@ -174,7 +174,7 @@ func (rw *ReadWriter) IsTraceSampled(traceID string) (bool, error) {
 //
 // WriteTraceEvent may return before the write is committed to storage.
 // Call Flush to ensure the write is committed.
-func (rw *ReadWriter) WriteTraceEvent(traceID string, id string, event *model.APMEvent, opts WriterOpts) error {
+func (rw *ReadWriter) WriteTraceEvent(traceID string, id string, event *modelpb.APMEvent, opts WriterOpts) error {
 	key := append(append([]byte(traceID), ':'), id...)
 	data, err := rw.s.codec.EncodeEvent(event)
 	if err != nil {
@@ -216,7 +216,7 @@ func (rw *ReadWriter) DeleteTraceEvent(traceID, id string) error {
 }
 
 // ReadTraceEvents reads trace events with the given trace ID from storage into out.
-func (rw *ReadWriter) ReadTraceEvents(traceID string, out *model.Batch) error {
+func (rw *ReadWriter) ReadTraceEvents(traceID string, out *modelpb.Batch) error {
 	opts := badger.DefaultIteratorOptions
 	rw.readKeyBuf = append(append(rw.readKeyBuf[:0], traceID...), ':')
 	opts.Prefix = rw.readKeyBuf
@@ -230,13 +230,16 @@ func (rw *ReadWriter) ReadTraceEvents(traceID string, out *model.Batch) error {
 		}
 		switch item.UserMeta() {
 		case entryMetaTraceEvent:
-			var event model.APMEvent
+			var event modelpb.APMEvent
 			if err := item.Value(func(data []byte) error {
-				return rw.s.codec.DecodeEvent(data, &event)
+				if err := rw.s.codec.DecodeEvent(data, &event); err != nil {
+					return fmt.Errorf("codec failed to decode event: %w", err)
+				}
+				return nil
 			}); err != nil {
 				return err
 			}
-			*out = append(*out, event)
+			*out = append(*out, &event)
 		default:
 			// Unknown entry meta: ignore.
 			continue

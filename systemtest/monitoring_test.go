@@ -23,13 +23,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mitchellh/mapstructure"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/tidwall/gjson"
 
 	"github.com/elastic/apm-server/systemtest"
 	"github.com/elastic/apm-server/systemtest/apmservertest"
 	"github.com/elastic/apm-server/systemtest/estest"
+	"github.com/elastic/apm-tools/pkg/espoll"
 )
 
 func TestAPMServerMonitoring(t *testing.T) {
@@ -47,7 +48,7 @@ func TestAPMServerMonitoring(t *testing.T) {
 	assert.Equal(t, "elasticsearch", state.Output.Name)
 
 	doc := getBeatsMonitoringStats(t, srv, nil)
-	assert.Contains(t, doc.Metrics, "apm-server")
+	assert.True(t, gjson.GetBytes(doc.Metrics, "apm-server").Exists())
 }
 
 func TestMonitoring(t *testing.T) {
@@ -64,59 +65,44 @@ func TestMonitoring(t *testing.T) {
 		tx.End()
 	}
 	tracer.Flush(nil)
-	systemtest.Elasticsearch.ExpectMinDocs(t, N, "traces-*", nil)
+	estest.ExpectMinDocs(t, systemtest.Elasticsearch, N, "traces-*", nil)
 
 	var metrics struct {
-		Libbeat map[string]interface{}
-		Output  map[string]interface{}
+		Libbeat json.RawMessage
+		Output  json.RawMessage
 	}
-	getBeatsMonitoringStats(t, srv, &metrics)
-	// Remove the output.write.bytes key since there isn't a way to assert the
-	// writtenBytes at this layer.
-	if o := metrics.Libbeat["output"].(map[string]interface{}); len(o) > 0 {
-		if w := o["write"].(map[string]interface{}); len(w) > 0 {
-			if w["bytes"] != nil {
-				delete(w, "bytes")
-			}
-		}
-	}
-	assert.Equal(t, map[string]interface{}{
-		"output": map[string]interface{}{
-			"events": map[string]interface{}{
-				"acked":   float64(N),
-				"active":  0.0,
-				"batches": 1.0,
-				"failed":  0.0,
-				"toomany": 0.0,
-				"total":   float64(N),
-			},
-			"type":  "elasticsearch",
-			"write": map[string]interface{}{},
-		},
-		"pipeline": map[string]interface{}{
-			"events": map[string]interface{}{
-				"total": float64(N),
-			},
-		},
-	}, metrics.Libbeat)
-	if es := metrics.Output["elasticsearch"].(map[string]interface{}); len(es) > 0 {
-		if br := es["bulk_requests"].(map[string]interface{}); len(br) > 0 {
-			assert.Greater(t, br["available"], float64(10))
-			delete(br, "available")
-		}
-	}
-	assert.Equal(t, map[string]interface{}{
-		"elasticsearch": map[string]interface{}{
-			"bulk_requests": map[string]interface{}{
-				"completed": 1.0,
-			},
-			"indexers": map[string]interface{}{
-				"active":    float64(1),
-				"created":   0.0,
-				"destroyed": 0.0,
-			},
-		},
-	}, metrics.Output)
+
+	assert.Eventually(t, func() bool {
+		metrics.Libbeat = nil
+		metrics.Output = nil
+		getBeatsMonitoringStats(t, srv, &metrics)
+		acked := gjson.GetBytes(metrics.Libbeat, "output.events.acked")
+		return acked.Int() == N
+	}, 10*time.Second, 10*time.Millisecond)
+
+	// Assert the presence of output.write.bytes, and that it is non-zero;
+	// the exact value may change over time, and that is not relevant to this test.
+	outputWriteBytes := gjson.GetBytes(metrics.Libbeat, "output.write.bytes")
+	assert.NotZero(t, outputWriteBytes.Int())
+
+	// Assert there was a non-zero number of batches written. There's no
+	// guarantee that a single batch is written.
+	batches := gjson.GetBytes(metrics.Libbeat, "output.events.batches")
+	assert.NotZero(t, batches.Int())
+
+	assert.Equal(t, int64(0), gjson.GetBytes(metrics.Libbeat, "output.events.active").Int())
+	assert.Equal(t, int64(0), gjson.GetBytes(metrics.Libbeat, "output.events.failed").Int())
+	assert.Equal(t, int64(0), gjson.GetBytes(metrics.Libbeat, "output.events.toomany").Int())
+	assert.Equal(t, int64(N), gjson.GetBytes(metrics.Libbeat, "output.events.total").Int())
+	assert.Equal(t, int64(N), gjson.GetBytes(metrics.Libbeat, "pipeline.events.total").Int())
+	assert.Equal(t, "elasticsearch", gjson.GetBytes(metrics.Libbeat, "output.type").Str)
+
+	bulkRequestsAvailable := gjson.GetBytes(metrics.Output, "elasticsearch.bulk_requests.available")
+	assert.Greater(t, bulkRequestsAvailable.Int(), int64(10))
+	assert.Equal(t, batches.Int(), gjson.GetBytes(metrics.Output, "elasticsearch.bulk_requests.completed").Int())
+	assert.Equal(t, int64(1), gjson.GetBytes(metrics.Output, "elasticsearch.indexers.active").Int())
+	assert.Zero(t, gjson.GetBytes(metrics.Output, "elasticsearch.indexers.created").Int())
+	assert.Zero(t, gjson.GetBytes(metrics.Output, "elasticsearch.indexers.destroyed").Int())
 }
 
 func TestAPMServerMonitoringBuiltinUser(t *testing.T) {
@@ -150,11 +136,11 @@ func getBeatsMonitoringStats(t testing.TB, srv *apmservertest.Server, out interf
 }
 
 func getBeatsMonitoring(t testing.TB, srv *apmservertest.Server, type_ string, out interface{}) *beatsMonitoringDoc {
-	var result estest.SearchResult
-	req := systemtest.Elasticsearch.Search(".monitoring-beats-*").WithQuery(
-		estest.TermQuery{Field: type_ + ".beat.uuid", Value: srv.BeatUUID},
+	var result espoll.SearchResult
+	req := systemtest.Elasticsearch.NewSearchRequest(".monitoring-beats-*").WithQuery(
+		espoll.TermQuery{Field: type_ + ".beat.uuid", Value: srv.BeatUUID},
 	).WithSort("timestamp:desc")
-	if _, err := req.Do(context.Background(), &result, estest.WithCondition(result.Hits.MinHitsCondition(1))); err != nil {
+	if _, err := req.Do(context.Background(), &result, espoll.WithCondition(result.Hits.MinHitsCondition(1))); err != nil {
 		t.Error(err)
 	}
 
@@ -165,9 +151,9 @@ func getBeatsMonitoring(t testing.TB, srv *apmservertest.Server, type_ string, o
 	if out != nil {
 		switch doc.Type {
 		case "beats_state":
-			assert.NoError(t, mapstructure.Decode(doc.State, out))
+			assert.NoError(t, json.Unmarshal(doc.State, out))
 		case "beats_stats":
-			assert.NoError(t, mapstructure.Decode(doc.Metrics, out))
+			assert.NoError(t, json.Unmarshal(doc.Metrics, out))
 		}
 	}
 	return &doc
@@ -182,11 +168,11 @@ type beatsMonitoringDoc struct {
 }
 
 type BeatsState struct {
-	State map[string]interface{} `json:"state"`
+	State json.RawMessage `json:"state"`
 }
 
 type BeatsStats struct {
-	Metrics map[string]interface{} `json:"metrics"`
+	Metrics json.RawMessage `json:"metrics"`
 }
 
 func newFastMonitoringConfig() *apmservertest.MonitoringConfig {

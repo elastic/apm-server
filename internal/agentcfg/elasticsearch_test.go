@@ -26,7 +26,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.elastic.co/apm/v2"
+	"go.elastic.co/apm/v2/apmtest"
 
 	"github.com/elastic/apm-server/internal/elasticsearch"
 )
@@ -51,7 +54,12 @@ func newMockElasticsearchClient(t testing.TB, statusCode int, responseFunc func(
 	return client
 }
 
-func newElasticsearchFetcher(t testing.TB, hits []map[string]interface{}, searchSize int) *ElasticsearchFetcher {
+func newElasticsearchFetcher(
+	t testing.TB,
+	hits []map[string]interface{},
+	searchSize int,
+	rt *apm.Tracer,
+) *ElasticsearchFetcher {
 	var maxScore = func(hits []map[string]interface{}) interface{} {
 		if len(hits) == 0 {
 			return nil
@@ -71,6 +79,7 @@ func newElasticsearchFetcher(t testing.TB, hits []map[string]interface{}, search
 	}
 
 	i := 0
+
 	fetcher := NewElasticsearchFetcher(newMockElasticsearchClient(t, 200, func(w io.Writer) {
 		if i < len(hits) {
 			respTmpl["hits"].(map[string]interface{})["hits"] = hits[i : i+searchSize]
@@ -82,13 +91,38 @@ func newElasticsearchFetcher(t testing.TB, hits []map[string]interface{}, search
 		require.NoError(t, err)
 		w.Write(b)
 		i += searchSize
-	}), time.Second, nil)
+	}), time.Second, nil, rt)
 	fetcher.searchSize = searchSize
 	return fetcher
 }
 
+func TestRun(t *testing.T) {
+	rt := apmtest.NewRecordingTracer()
+	fetcher := newElasticsearchFetcher(t, sampleHits, 2, rt.Tracer)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	go func() {
+		err := fetcher.Run(ctx)
+		assert.Equal(t, context.Canceled, err)
+	}()
+
+	assert.Eventually(t, func() bool {
+		rt.Tracer.Flush(nil)
+		payloads := rt.Payloads()
+		return len(payloads.Transactions) == 1 && len(payloads.Spans) == 3
+	}, 10*time.Second, 10*time.Millisecond)
+
+	payloads := rt.Payloads()
+	assert.Equal(t, "ElasticsearchFetcher.refresh", payloads.Transactions[0].Name)
+	assert.Equal(t, "Elasticsearch: POST .apm-agent-configuration/_search", payloads.Spans[0].Name)
+	assert.Equal(t, "Elasticsearch: POST _search/scroll", payloads.Spans[1].Name)
+	assert.Equal(t, "ElasticsearchFetcher.refreshCache", payloads.Spans[2].Name)
+}
+
 func TestFetch(t *testing.T) {
-	fetcher := newElasticsearchFetcher(t, sampleHits, 2)
+	rt := apmtest.NewRecordingTracer()
+	fetcher := newElasticsearchFetcher(t, sampleHits, 2, rt.Tracer)
 	err := fetcher.refreshCache(context.Background())
 	require.NoError(t, err)
 	require.Len(t, fetcher.cache, 2)
@@ -103,7 +137,8 @@ func TestFetch(t *testing.T) {
 }
 
 func TestRefreshCacheScroll(t *testing.T) {
-	fetcher := newElasticsearchFetcher(t, sampleHits, 1)
+	rt := apmtest.NewRecordingTracer()
+	fetcher := newElasticsearchFetcher(t, sampleHits, 1, rt.Tracer)
 	err := fetcher.refreshCache(context.Background())
 	require.NoError(t, err)
 	require.Len(t, fetcher.cache, 2)
@@ -112,7 +147,8 @@ func TestRefreshCacheScroll(t *testing.T) {
 }
 
 func TestFetchOnCacheNotReady(t *testing.T) {
-	fetcher := newElasticsearchFetcher(t, []map[string]interface{}{}, 1)
+	rt := apmtest.NewRecordingTracer()
+	fetcher := newElasticsearchFetcher(t, []map[string]interface{}{}, 1, rt.Tracer)
 
 	_, err := fetcher.Fetch(context.Background(), Query{Service: Service{Name: ""}, Etag: ""})
 	require.EqualError(t, err, ErrInfrastructureNotReady)
@@ -140,6 +176,7 @@ func TestFetchUseFallback(t *testing.T) {
 		newMockElasticsearchClient(t, 404, func(w io.Writer) {}),
 		time.Second,
 		fallbackFetcher,
+		apmtest.NewRecordingTracer().Tracer,
 	)
 
 	fetcher.refreshCache(context.Background())
@@ -152,6 +189,7 @@ func TestFetchNoFallbackInvalidESCfg(t *testing.T) {
 		newMockElasticsearchClient(t, 401, func(w io.Writer) {}),
 		time.Second,
 		nil,
+		apmtest.NewRecordingTracer().Tracer,
 	)
 
 	err := fetcher.refreshCache(context.Background())
@@ -165,6 +203,7 @@ func TestFetchNoFallback(t *testing.T) {
 		newMockElasticsearchClient(t, 500, func(w io.Writer) {}),
 		time.Second,
 		nil,
+		apmtest.NewRecordingTracer().Tracer,
 	)
 
 	err := fetcher.refreshCache(context.Background())

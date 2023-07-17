@@ -24,7 +24,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/internal/model/modelprocessor"
 )
 
@@ -34,23 +34,23 @@ func TestSetExcludeFromGrouping(t *testing.T) {
 	}
 
 	tests := []struct {
-		input, output model.Batch
+		input, output modelpb.Batch
 	}{{
-		input:  model.Batch{{Error: &model.Error{}}, {Transaction: &model.Transaction{}}},
-		output: model.Batch{{Error: &model.Error{}}, {Transaction: &model.Transaction{}}},
+		input:  modelpb.Batch{{Error: &modelpb.Error{}}, {Transaction: &modelpb.Transaction{}}},
+		output: modelpb.Batch{{Error: &modelpb.Error{}}, {Transaction: &modelpb.Transaction{}}},
 	}, {
-		input: model.Batch{{
-			Span: &model.Span{
-				Stacktrace: model.Stacktrace{
+		input: modelpb.Batch{{
+			Span: &modelpb.Span{
+				Stacktrace: []*modelpb.StacktraceFrame{
 					{Filename: "foo.go"},
 					{Filename: "bar.go"},
 					{},
 				},
 			},
 		}},
-		output: model.Batch{{
-			Span: &model.Span{
-				Stacktrace: model.Stacktrace{
+		output: modelpb.Batch{{
+			Span: &modelpb.Span{
+				Stacktrace: []*modelpb.StacktraceFrame{
 					{ExcludeFromGrouping: true, Filename: "foo.go"},
 					{Filename: "bar.go"},
 					{},
@@ -58,44 +58,44 @@ func TestSetExcludeFromGrouping(t *testing.T) {
 			},
 		}},
 	}, {
-		input: model.Batch{{
-			Error: &model.Error{
-				Log: &model.ErrorLog{
-					Stacktrace: model.Stacktrace{
+		input: modelpb.Batch{{
+			Error: &modelpb.Error{
+				Log: &modelpb.ErrorLog{
+					Stacktrace: []*modelpb.StacktraceFrame{
 						{Filename: "foo.go"},
 					},
 				},
 			},
 		}, {
-			Error: &model.Error{
-				Exception: &model.Exception{
-					Stacktrace: model.Stacktrace{
+			Error: &modelpb.Error{
+				Exception: &modelpb.Exception{
+					Stacktrace: []*modelpb.StacktraceFrame{
 						{Filename: "foo.go"},
 					},
-					Cause: []model.Exception{{
-						Stacktrace: model.Stacktrace{
+					Cause: []*modelpb.Exception{{
+						Stacktrace: []*modelpb.StacktraceFrame{
 							{Filename: "foo.go"},
 						},
 					}},
 				},
 			},
 		}},
-		output: model.Batch{{
-			Error: &model.Error{
-				Log: &model.ErrorLog{
-					Stacktrace: model.Stacktrace{
+		output: modelpb.Batch{{
+			Error: &modelpb.Error{
+				Log: &modelpb.ErrorLog{
+					Stacktrace: []*modelpb.StacktraceFrame{
 						{ExcludeFromGrouping: true, Filename: "foo.go"},
 					},
 				},
 			},
 		}, {
-			Error: &model.Error{
-				Exception: &model.Exception{
-					Stacktrace: model.Stacktrace{
+			Error: &modelpb.Error{
+				Exception: &modelpb.Exception{
+					Stacktrace: []*modelpb.StacktraceFrame{
 						{ExcludeFromGrouping: true, Filename: "foo.go"},
 					},
-					Cause: []model.Exception{{
-						Stacktrace: model.Stacktrace{
+					Cause: []*modelpb.Exception{{
+						Stacktrace: []*modelpb.StacktraceFrame{
 							{ExcludeFromGrouping: true, Filename: "foo.go"},
 						},
 					}},

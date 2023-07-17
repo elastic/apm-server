@@ -25,7 +25,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"golang.org/x/time/rate"
 
-	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/internal/beater/ratelimit"
 )
 
@@ -33,9 +33,9 @@ func TestRateLimitBatchProcessor(t *testing.T) {
 	limiter := rate.NewLimiter(1, 10)
 	ctx := ratelimit.ContextWithLimiter(context.Background(), limiter)
 
-	batch := make(model.Batch, 5)
+	batch := make(modelpb.Batch, 5)
 	for i := range batch {
-		batch[i].Transaction = &model.Transaction{}
+		batch[i] = &modelpb.APMEvent{Transaction: &modelpb.Transaction{}}
 	}
 	for i := 0; i < 2; i++ {
 		err := rateLimitBatchProcessor(ctx, &batch)

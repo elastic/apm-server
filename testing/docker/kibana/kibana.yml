@@ -20,4 +20,3 @@ xpack.fleet.agentPolicies:
         package:
           name: fleet_server
 
-xpack.profiling.enabled: true

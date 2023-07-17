@@ -27,6 +27,8 @@ import (
 	"sync"
 	"time"
 
+	"go.elastic.co/apm/v2"
+
 	"github.com/elastic/apm-server/internal/elasticsearch"
 	"github.com/elastic/apm-server/internal/logs"
 	"github.com/elastic/elastic-agent-libs/logp"
@@ -43,9 +45,15 @@ type MetadataESFetcher struct {
 	init             chan struct{}
 	initErr          error
 	invalidationChan chan<- []identifier
+	tracer           *apm.Tracer
 }
 
-func NewMetadataFetcher(ctx context.Context, esClient *elasticsearch.Client, index string) (MetadataFetcher, <-chan []identifier) {
+func NewMetadataFetcher(
+	ctx context.Context,
+	esClient *elasticsearch.Client,
+	index string,
+	tracer *apm.Tracer,
+) (MetadataFetcher, <-chan []identifier) {
 	invalidationCh := make(chan []identifier)
 
 	s := &MetadataESFetcher{
@@ -56,6 +64,7 @@ func NewMetadataFetcher(ctx context.Context, esClient *elasticsearch.Client, ind
 		logger:           logp.NewLogger(logs.Sourcemap),
 		init:             make(chan struct{}),
 		invalidationChan: invalidationCh,
+		tracer:           tracer,
 	}
 
 	s.startBackgroundSync(ctx)
@@ -125,10 +134,18 @@ func (s *MetadataESFetcher) startBackgroundSync(ctx context.Context) {
 }
 
 func (s *MetadataESFetcher) sync(ctx context.Context) error {
+	tx := s.tracer.StartTransaction("MetadataESFetcher.sync", "")
+	defer tx.End()
+	ctx = apm.ContextWithTransaction(ctx, tx)
+
 	sourcemaps := make(map[identifier]string)
 
 	result, err := s.initialSearch(ctx, sourcemaps)
 	if err != nil {
+		if e := apm.CaptureError(ctx, err); e != nil {
+			e.Send()
+		}
+
 		return err
 	}
 
@@ -142,6 +159,9 @@ func (s *MetadataESFetcher) sync(ctx context.Context) error {
 	for {
 		result, err = s.scrollsearch(ctx, scrollID, sourcemaps)
 		if err != nil {
+			if e := apm.CaptureError(ctx, err); e != nil {
+				e.Send()
+			}
 			return fmt.Errorf("failed scroll search: %w", err)
 		}
 
@@ -164,6 +184,9 @@ func (s *MetadataESFetcher) sync(ctx context.Context) error {
 }
 
 func (s *MetadataESFetcher) update(ctx context.Context, sourcemaps map[identifier]string) {
+	span := apm.TransactionFromContext(ctx).StartSpan("MetadataESFetcher.update", "", nil)
+	defer span.End()
+
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -223,8 +246,14 @@ func (s *MetadataESFetcher) update(ctx context.Context, sourcemaps map[identifie
 }
 
 func (s *MetadataESFetcher) initialSearch(ctx context.Context, updates map[identifier]string) (*esSearchSourcemapResponse, error) {
+	span := apm.TransactionFromContext(ctx).StartSpan("MetadataESFetcher.initialSearch", "", nil)
+	defer span.End()
+
 	resp, err := s.runSearchQuery(ctx)
 	if err != nil {
+		if e := apm.CaptureError(ctx, err); e != nil {
+			e.Send()
+		}
 		return nil, fmt.Errorf("failed to run initial search query: %w: %v", errFetcherUnvailable, err)
 	}
 	defer resp.Body.Close()
@@ -315,6 +344,9 @@ func parseResponse(body io.ReadCloser, logger *logp.Logger) (*esSearchSourcemapR
 }
 
 func (s *MetadataESFetcher) scrollsearch(ctx context.Context, scrollID string, updates map[identifier]string) (*esSearchSourcemapResponse, error) {
+	span := apm.TransactionFromContext(ctx).StartSpan("MetadataESFetcher.scrollSearch", "", nil)
+	defer span.End()
+
 	resp, err := s.runScrollSearchQuery(ctx, scrollID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to run scroll search query: %w", err)

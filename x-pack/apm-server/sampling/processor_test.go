@@ -18,11 +18,14 @@ import (
 	"time"
 
 	"github.com/gofrs/uuid"
+	"github.com/google/go-cmp/cmp"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/protobuf/testing/protocmp"
+	"google.golang.org/protobuf/types/known/durationpb"
 
-	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/pubsub/pubsubtest"
@@ -35,13 +38,13 @@ func TestProcessUnsampled(t *testing.T) {
 	go processor.Run()
 	defer processor.Stop(context.Background())
 
-	in := model.Batch{{
-		Processor: model.TransactionProcessor,
-		Trace: model.Trace{
-			ID: "0102030405060708090a0b0c0d0e0f10",
+	in := modelpb.Batch{{
+		Processor: modelpb.TransactionProcessor(),
+		Trace: &modelpb.Trace{
+			Id: "0102030405060708090a0b0c0d0e0f10",
 		},
-		Transaction: &model.Transaction{
-			ID:      "0102030405060708",
+		Transaction: &modelpb.Transaction{
+			Id:      "0102030405060708",
 			Sampled: false,
 		},
 	}}
@@ -58,22 +61,22 @@ func TestProcessAlreadyTailSampled(t *testing.T) {
 
 	// Seed event storage with a tail-sampling decisions, to show that
 	// subsequent events in the trace will be reported immediately.
-	trace1 := model.Trace{ID: "0102030405060708090a0b0c0d0e0f10"}
-	trace2 := model.Trace{ID: "0102030405060708090a0b0c0d0e0f11"}
-	storage := eventstorage.New(config.DB, eventstorage.JSONCodec{})
+	trace1 := modelpb.Trace{Id: "0102030405060708090a0b0c0d0e0f10"}
+	trace2 := modelpb.Trace{Id: "0102030405060708090a0b0c0d0e0f11"}
+	storage := eventstorage.New(config.DB, eventstorage.ProtobufCodec{})
 	writer := storage.NewReadWriter()
 	wOpts := eventstorage.WriterOpts{
 		TTL:                 time.Minute,
 		StorageLimitInBytes: 0,
 	}
-	assert.NoError(t, writer.WriteTraceSampled(trace1.ID, true, wOpts))
+	assert.NoError(t, writer.WriteTraceSampled(trace1.Id, true, wOpts))
 	assert.NoError(t, writer.Flush(wOpts.StorageLimitInBytes))
 	writer.Close()
 
 	wOpts.TTL = -1 // expire immediately
-	storage = eventstorage.New(config.DB, eventstorage.JSONCodec{})
+	storage = eventstorage.New(config.DB, eventstorage.ProtobufCodec{})
 	writer = storage.NewReadWriter()
-	assert.NoError(t, writer.WriteTraceSampled(trace2.ID, true, wOpts))
+	assert.NoError(t, writer.WriteTraceSampled(trace2.Id, true, wOpts))
 	assert.NoError(t, writer.Flush(wOpts.StorageLimitInBytes))
 	writer.Close()
 
@@ -88,45 +91,45 @@ func TestProcessAlreadyTailSampled(t *testing.T) {
 	go processor.Run()
 	defer processor.Stop(context.Background())
 
-	transaction1 := model.APMEvent{
-		Processor: model.TransactionProcessor,
-		Trace:     trace1,
-		Transaction: &model.Transaction{
-			ID:      "0102030405060708",
+	transaction1 := modelpb.APMEvent{
+		Processor: modelpb.TransactionProcessor(),
+		Trace:     &trace1,
+		Transaction: &modelpb.Transaction{
+			Id:      "0102030405060708",
 			Sampled: true,
 		},
 	}
-	span1 := model.APMEvent{
-		Processor: model.SpanProcessor,
-		Trace:     trace1,
-		Span: &model.Span{
-			ID: "0102030405060709",
+	span1 := modelpb.APMEvent{
+		Processor: modelpb.SpanProcessor(),
+		Trace:     &trace1,
+		Span: &modelpb.Span{
+			Id: "0102030405060709",
 		},
 	}
-	transaction2 := model.APMEvent{
-		Processor: model.TransactionProcessor,
-		Trace:     trace2,
-		Transaction: &model.Transaction{
-			ID:      "0102030405060710",
+	transaction2 := modelpb.APMEvent{
+		Processor: modelpb.TransactionProcessor(),
+		Trace:     &trace2,
+		Transaction: &modelpb.Transaction{
+			Id:      "0102030405060710",
 			Sampled: true,
 		},
 	}
-	span2 := model.APMEvent{
-		Processor: model.SpanProcessor,
-		Trace:     trace2,
-		Span: &model.Span{
-			ID: "0102030405060711",
+	span2 := modelpb.APMEvent{
+		Processor: modelpb.SpanProcessor(),
+		Trace:     &trace2,
+		Span: &modelpb.Span{
+			Id: "0102030405060711",
 		},
 	}
 
-	batch := model.Batch{transaction1, transaction2, span1, span2}
+	batch := modelpb.Batch{&transaction1, &transaction2, &span1, &span2}
 	err = processor.ProcessBatch(context.Background(), &batch)
 	require.NoError(t, err)
 
 	// Tail sampling decision already made. The first transaction and span should be
 	// reported immediately, whereas the second ones should be written storage since
 	// they were received after the trace sampling entry expired.
-	assert.Equal(t, model.Batch{transaction1, span1}, batch)
+	assert.Equal(t, modelpb.Batch{&transaction1, &span1}, batch)
 
 	expectedMonitoring := monitoring.MakeFlatSnapshot()
 	expectedMonitoring.Ints["sampling.events.processed"] = 4
@@ -144,13 +147,13 @@ func TestProcessAlreadyTailSampled(t *testing.T) {
 	defer reader.Close()
 
 	batch = nil
-	err = reader.ReadTraceEvents(trace1.ID, &batch)
+	err = reader.ReadTraceEvents(trace1.Id, &batch)
 	assert.NoError(t, err)
 	assert.Zero(t, batch)
 
-	err = reader.ReadTraceEvents(trace2.ID, &batch)
+	err = reader.ReadTraceEvents(trace2.Id, &batch)
 	assert.NoError(t, err)
-	assert.Equal(t, model.Batch{transaction2, span2}, batch)
+	assert.Empty(t, cmp.Diff(modelpb.Batch{&transaction2, &span2}, batch, protocmp.Transform()))
 }
 
 func TestProcessLocalTailSampling(t *testing.T) {
@@ -163,38 +166,38 @@ func TestProcessLocalTailSampling(t *testing.T) {
 	processor, err := sampling.NewProcessor(config)
 	require.NoError(t, err)
 
-	trace1 := model.Trace{ID: "0102030405060708090a0b0c0d0e0f10"}
-	trace2 := model.Trace{ID: "0102030405060708090a0b0c0d0e0f11"}
-	trace1Events := model.Batch{{
-		Processor: model.TransactionProcessor,
-		Trace:     trace1,
-		Event:     model.Event{Duration: 123 * time.Millisecond},
-		Transaction: &model.Transaction{
-			ID:      "0102030405060708",
+	trace1 := modelpb.Trace{Id: "0102030405060708090a0b0c0d0e0f10"}
+	trace2 := modelpb.Trace{Id: "0102030405060708090a0b0c0d0e0f11"}
+	trace1Events := modelpb.Batch{{
+		Processor: modelpb.TransactionProcessor(),
+		Trace:     &trace1,
+		Event:     &modelpb.Event{Duration: durationpb.New(123 * time.Millisecond)},
+		Transaction: &modelpb.Transaction{
+			Id:      "0102030405060708",
 			Sampled: true,
 		},
 	}, {
-		Processor: model.SpanProcessor,
-		Trace:     trace1,
-		Event:     model.Event{Duration: 123 * time.Millisecond},
-		Span: &model.Span{
-			ID: "0102030405060709",
+		Processor: modelpb.SpanProcessor(),
+		Trace:     &trace1,
+		Event:     &modelpb.Event{Duration: durationpb.New(123 * time.Millisecond)},
+		Span: &modelpb.Span{
+			Id: "0102030405060709",
 		},
 	}}
-	trace2Events := model.Batch{{
-		Processor: model.TransactionProcessor,
-		Trace:     trace2,
-		Event:     model.Event{Duration: 456 * time.Millisecond},
-		Transaction: &model.Transaction{
-			ID:      "0102030405060710",
+	trace2Events := modelpb.Batch{{
+		Processor: modelpb.TransactionProcessor(),
+		Trace:     &trace2,
+		Event:     &modelpb.Event{Duration: durationpb.New(456 * time.Millisecond)},
+		Transaction: &modelpb.Transaction{
+			Id:      "0102030405060710",
 			Sampled: true,
 		},
 	}, {
-		Processor: model.SpanProcessor,
-		Trace:     trace2,
-		Event:     model.Event{Duration: 456 * time.Millisecond},
-		Span: &model.Span{
-			ID: "0102030405060711",
+		Processor: modelpb.SpanProcessor(),
+		Trace:     &trace2,
+		Event:     &modelpb.Event{Duration: durationpb.New(456 * time.Millisecond)},
+		Span: &modelpb.Span{
+			Id: "0102030405060711",
 		},
 	}}
 
@@ -226,11 +229,11 @@ func TestProcessLocalTailSampling(t *testing.T) {
 	case <-time.After(50 * time.Millisecond):
 	}
 
-	unsampledTraceID := trace2.ID
+	unsampledTraceID := trace2.Id
 	sampledTraceEvents := trace1Events
 	unsampledTraceEvents := trace2Events
-	if sampledTraceID == trace2.ID {
-		unsampledTraceID = trace1.ID
+	if sampledTraceID == trace2.Id {
+		unsampledTraceID = trace1.Id
 		unsampledTraceEvents = trace1Events
 		sampledTraceEvents = trace2Events
 	}
@@ -247,7 +250,7 @@ func TestProcessLocalTailSampling(t *testing.T) {
 	// Stop the processor and flush global storage so we can access the database.
 	assert.NoError(t, processor.Stop(context.Background()))
 	assert.NoError(t, config.Storage.Flush(0))
-	storage := eventstorage.New(config.DB, eventstorage.JSONCodec{})
+	storage := eventstorage.New(config.DB, eventstorage.ProtobufCodec{})
 	reader := storage.NewReadWriter()
 	defer reader.Close()
 
@@ -259,10 +262,10 @@ func TestProcessLocalTailSampling(t *testing.T) {
 	assert.Equal(t, eventstorage.ErrNotFound, err)
 	assert.False(t, sampled)
 
-	var batch model.Batch
+	var batch modelpb.Batch
 	err = reader.ReadTraceEvents(sampledTraceID, &batch)
 	assert.NoError(t, err)
-	assert.Equal(t, sampledTraceEvents, batch)
+	assert.Empty(t, cmp.Diff(sampledTraceEvents, batch, protocmp.Transform()))
 
 	// Even though the trace is unsampled, the events will be
 	// available in storage until the TTL expires, as they're
@@ -270,7 +273,7 @@ func TestProcessLocalTailSampling(t *testing.T) {
 	batch = batch[:0]
 	err = reader.ReadTraceEvents(unsampledTraceID, &batch)
 	assert.NoError(t, err)
-	assert.Equal(t, unsampledTraceEvents, batch)
+	assert.Empty(t, cmp.Diff(unsampledTraceEvents, batch, protocmp.Transform()))
 }
 
 func TestProcessLocalTailSamplingUnsampled(t *testing.T) {
@@ -286,12 +289,12 @@ func TestProcessLocalTailSamplingUnsampled(t *testing.T) {
 	for i := range traceIDs {
 		traceID := uuid.Must(uuid.NewV4()).String()
 		traceIDs[i] = traceID
-		batch := model.Batch{{
-			Processor: model.TransactionProcessor,
-			Trace:     model.Trace{ID: traceID},
-			Event:     model.Event{Duration: time.Millisecond},
-			Transaction: &model.Transaction{
-				ID:      traceID,
+		batch := modelpb.Batch{{
+			Processor: modelpb.TransactionProcessor(),
+			Trace:     &modelpb.Trace{Id: traceID},
+			Event:     &modelpb.Event{Duration: durationpb.New(time.Millisecond)},
+			Transaction: &modelpb.Transaction{
+				Id:      traceID,
 				Sampled: true,
 			},
 		}}
@@ -309,7 +312,7 @@ func TestProcessLocalTailSamplingUnsampled(t *testing.T) {
 	// Stop the processor so we can access the database.
 	assert.NoError(t, processor.Stop(context.Background()))
 	assert.NoError(t, config.Storage.Flush(0))
-	storage := eventstorage.New(config.DB, eventstorage.JSONCodec{})
+	storage := eventstorage.New(config.DB, eventstorage.ProtobufCodec{})
 	reader := storage.NewReadWriter()
 	defer reader.Close()
 
@@ -350,21 +353,21 @@ func TestProcessLocalTailSamplingPolicyOrder(t *testing.T) {
 
 	// Send transactions which would match either policy defined above.
 	rng := rand.New(rand.NewSource(0))
-	service := model.Service{Name: "service_name"}
+	service := modelpb.Service{Name: "service_name"}
 	numTransactions := 100
-	events := make(model.Batch, numTransactions)
+	events := make(modelpb.Batch, numTransactions)
 	for i := range events {
 		var traceIDBytes [16]byte
 		_, err := rng.Read(traceIDBytes[:])
 		require.NoError(t, err)
-		events[i] = model.APMEvent{
-			Service:   service,
-			Processor: model.TransactionProcessor,
-			Trace:     model.Trace{ID: fmt.Sprintf("%x", traceIDBytes[:])},
-			Event:     model.Event{Duration: 123 * time.Millisecond},
-			Transaction: &model.Transaction{
+		events[i] = &modelpb.APMEvent{
+			Service:   &service,
+			Processor: modelpb.TransactionProcessor(),
+			Trace:     &modelpb.Trace{Id: fmt.Sprintf("%x", traceIDBytes[:])},
+			Event:     &modelpb.Event{Duration: durationpb.New(123 * time.Millisecond)},
+			Transaction: &modelpb.Transaction{
 				Name:    "trace_name",
-				ID:      fmt.Sprintf("%x", traceIDBytes[8:]),
+				Id:      fmt.Sprintf("%x", traceIDBytes[8:]),
 				Sampled: true,
 			},
 		}
@@ -410,8 +413,8 @@ func TestProcessRemoteTailSampling(t *testing.T) {
 	subscriber := pubsubtest.SubscriberChan(subscriberChan)
 	config.Elasticsearch = pubsubtest.Client(publisher, subscriber)
 
-	reported := make(chan model.Batch)
-	config.BatchProcessor = model.ProcessBatchFunc(func(ctx context.Context, batch *model.Batch) error {
+	reported := make(chan modelpb.Batch)
+	config.BatchProcessor = modelpb.ProcessBatchFunc(func(ctx context.Context, batch *modelpb.Batch) error {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
@@ -427,12 +430,12 @@ func TestProcessRemoteTailSampling(t *testing.T) {
 
 	traceID1 := "0102030405060708090a0b0c0d0e0f10"
 	traceID2 := "0102030405060708090a0b0c0d0e0f11"
-	trace1Events := model.Batch{{
-		Processor: model.SpanProcessor,
-		Trace:     model.Trace{ID: traceID1},
-		Event:     model.Event{Duration: 123 * time.Millisecond},
-		Span: &model.Span{
-			ID: "0102030405060709",
+	trace1Events := modelpb.Batch{{
+		Processor: modelpb.SpanProcessor(),
+		Trace:     &modelpb.Trace{Id: traceID1},
+		Event:     &modelpb.Event{Duration: durationpb.New(123 * time.Millisecond)},
+		Span: &modelpb.Span{
+			Id: "0102030405060709",
 		},
 	}}
 
@@ -448,7 +451,7 @@ func TestProcessRemoteTailSampling(t *testing.T) {
 	subscriberChan <- traceID2
 	subscriberChan <- traceID1
 
-	var events model.Batch
+	var events modelpb.Batch
 	select {
 	case events = <-reported:
 	case <-time.After(10 * time.Second):
@@ -474,9 +477,9 @@ func TestProcessRemoteTailSampling(t *testing.T) {
 	expectedMonitoring.Ints["sampling.events.failed_writes"] = 0
 	assertMonitoring(t, processor, expectedMonitoring, `sampling.events.*`)
 
-	assert.Equal(t, trace1Events, events)
+	assert.Empty(t, cmp.Diff(trace1Events, events, protocmp.Transform()))
 
-	storage := eventstorage.New(config.DB, eventstorage.JSONCodec{})
+	storage := eventstorage.New(config.DB, eventstorage.ProtobufCodec{})
 	reader := storage.NewReadWriter()
 	defer reader.Close()
 
@@ -488,12 +491,12 @@ func TestProcessRemoteTailSampling(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, sampled)
 
-	var batch model.Batch
+	var batch modelpb.Batch
 	err = reader.ReadTraceEvents(traceID1, &batch)
 	assert.NoError(t, err)
 	assert.Zero(t, batch) // events are deleted from local storage
 
-	batch = model.Batch{}
+	batch = modelpb.Batch{}
 	err = reader.ReadTraceEvents(traceID2, &batch)
 	assert.NoError(t, err)
 	assert.Empty(t, batch)
@@ -511,13 +514,13 @@ func TestGroupsMonitoring(t *testing.T) {
 	defer processor.Stop(context.Background())
 
 	for i := 0; i < config.MaxDynamicServices+2; i++ {
-		err := processor.ProcessBatch(context.Background(), &model.Batch{{
-			Service:   model.Service{Name: fmt.Sprintf("service_%d", i)},
-			Processor: model.TransactionProcessor,
-			Trace:     model.Trace{ID: uuid.Must(uuid.NewV4()).String()},
-			Event:     model.Event{Duration: 123 * time.Millisecond},
-			Transaction: &model.Transaction{
-				ID:      "0102030405060709",
+		err := processor.ProcessBatch(context.Background(), &modelpb.Batch{{
+			Service:   &modelpb.Service{Name: fmt.Sprintf("service_%d", i)},
+			Processor: modelpb.TransactionProcessor(),
+			Trace:     &modelpb.Trace{Id: uuid.Must(uuid.NewV4()).String()},
+			Event:     &modelpb.Event{Duration: durationpb.New(123 * time.Millisecond)},
+			Transaction: &modelpb.Transaction{
+				Id:      "0102030405060709",
 				Sampled: i < config.MaxDynamicServices+1,
 			},
 		}})
@@ -544,12 +547,12 @@ func TestStorageMonitoring(t *testing.T) {
 	defer processor.Stop(context.Background())
 	for i := 0; i < 100; i++ {
 		traceID := uuid.Must(uuid.NewV4()).String()
-		batch := model.Batch{{
-			Processor: model.TransactionProcessor,
-			Trace:     model.Trace{ID: traceID},
-			Event:     model.Event{Duration: 123 * time.Millisecond},
-			Transaction: &model.Transaction{
-				ID:      traceID,
+		batch := modelpb.Batch{{
+			Processor: modelpb.TransactionProcessor(),
+			Trace:     &modelpb.Trace{Id: traceID},
+			Event:     &modelpb.Event{Duration: durationpb.New(123 * time.Millisecond)},
+			Transaction: &modelpb.Transaction{
+				Id:      traceID,
 				Sampled: true,
 			},
 		}}
@@ -586,7 +589,7 @@ func TestStorageGC(t *testing.T) {
 	t.Cleanup(func() { badgerDB.Close() })
 	config.DB = badgerDB
 	config.Storage = eventstorage.
-		New(config.DB, eventstorage.JSONCodec{}).
+		New(config.DB, eventstorage.ProtobufCodec{}).
 		NewShardedReadWriter()
 	t.Cleanup(func() { config.Storage.Close() })
 
@@ -598,12 +601,12 @@ func TestStorageGC(t *testing.T) {
 		defer processor.Stop(context.Background())
 		for i := 0; i < n; i++ {
 			traceID := uuid.Must(uuid.NewV4()).String()
-			batch := model.Batch{{
-				Processor: model.SpanProcessor,
-				Trace:     model.Trace{ID: traceID},
-				Event:     model.Event{Duration: 123 * time.Millisecond},
-				Span: &model.Span{
-					ID: traceID,
+			batch := modelpb.Batch{{
+				Processor: modelpb.SpanProcessor(),
+				Trace:     &modelpb.Trace{Id: traceID},
+				Event:     &modelpb.Event{Duration: durationpb.New(123 * time.Millisecond)},
+				Span: &modelpb.Span{
+					Id: traceID,
 				},
 			}}
 			err := processor.ProcessBatch(context.Background(), &batch)
@@ -661,19 +664,19 @@ func TestStorageLimit(t *testing.T) {
 		t.Skip("skipping slow test")
 	}
 
-	writeBatch := func(n int, c sampling.Config, assertBatch func(b model.Batch)) *sampling.Processor {
+	writeBatch := func(n int, c sampling.Config, assertBatch func(b modelpb.Batch)) *sampling.Processor {
 		processor, err := sampling.NewProcessor(c)
 		require.NoError(t, err)
 		go processor.Run()
 		defer processor.Stop(context.Background())
-		batch := make(model.Batch, 0, n)
+		batch := make(modelpb.Batch, 0, n)
 		for i := 0; i < n; i++ {
 			traceID := uuid.Must(uuid.NewV4()).String()
-			batch = append(batch, model.APMEvent{
-				Processor: model.SpanProcessor,
-				Trace:     model.Trace{ID: traceID},
-				Event:     model.Event{Duration: 123 * time.Millisecond},
-				Span:      &model.Span{ID: traceID},
+			batch = append(batch, &modelpb.APMEvent{
+				Processor: modelpb.SpanProcessor(),
+				Trace:     &modelpb.Trace{Id: traceID},
+				Event:     &modelpb.Event{Duration: durationpb.New(123 * time.Millisecond)},
+				Span:      &modelpb.Span{Id: traceID},
 			})
 		}
 		err = processor.ProcessBatch(context.Background(), &batch)
@@ -685,7 +688,7 @@ func TestStorageLimit(t *testing.T) {
 	config := newTempdirConfig(t)
 	// Write 5K span events and close the DB to persist to disk the storage
 	// size and assert that none are reported immediately.
-	writeBatch(5000, config, func(b model.Batch) { assert.Empty(t, b) })
+	writeBatch(5000, config, func(b modelpb.Batch) { assert.Empty(t, b) })
 	assert.NoError(t, config.Storage.Flush(0))
 	config.Storage.Close()
 	assert.NoError(t, config.DB.Close())
@@ -706,7 +709,7 @@ func TestStorageLimit(t *testing.T) {
 	// Rather than setting a static threshold, use the runtime.NumCPU as a
 	// multiplier since the sharded writers use that variable and the more CPUs
 	// we have, the more sharded writes we'll have, resulting in a greater buffer.
-	processor := writeBatch(150_000*runtime.NumCPU(), config, func(b model.Batch) {
+	processor := writeBatch(150_000*runtime.NumCPU(), config, func(b modelpb.Batch) {
 		assert.NotEmpty(t, b)
 	})
 
@@ -753,13 +756,13 @@ func TestGracefulShutdown(t *testing.T) {
 	totalTraces := 100
 	traceIDGen := func(i int) string { return fmt.Sprintf("trace%d", i) }
 
-	var batch model.Batch
+	var batch modelpb.Batch
 	for i := 0; i < totalTraces; i++ {
-		batch = append(batch, model.APMEvent{
-			Processor: model.TransactionProcessor,
-			Trace:     model.Trace{ID: traceIDGen(i)},
-			Transaction: &model.Transaction{
-				ID:      fmt.Sprintf("tx%d", i),
+		batch = append(batch, &modelpb.APMEvent{
+			Processor: modelpb.TransactionProcessor(),
+			Trace:     &modelpb.Trace{Id: traceIDGen(i)},
+			Transaction: &modelpb.Transaction{
+				Id:      fmt.Sprintf("tx%d", i),
 				Sampled: true,
 			},
 		})
@@ -770,7 +773,7 @@ func TestGracefulShutdown(t *testing.T) {
 	assert.NoError(t, processor.Stop(context.Background()))
 	assert.NoError(t, config.Storage.Flush(0))
 
-	reader := eventstorage.New(config.DB, eventstorage.JSONCodec{}).NewReadWriter()
+	reader := eventstorage.New(config.DB, eventstorage.ProtobufCodec{}).NewReadWriter()
 
 	var count int
 	for i := 0; i < totalTraces; i++ {
@@ -790,12 +793,12 @@ func newTempdirConfig(tb testing.TB) sampling.Config {
 	require.NoError(tb, err)
 	tb.Cleanup(func() { badgerDB.Close() })
 
-	eventCodec := eventstorage.JSONCodec{}
+	eventCodec := eventstorage.ProtobufCodec{}
 	storage := eventstorage.New(badgerDB, eventCodec).NewShardedReadWriter()
 	tb.Cleanup(func() { storage.Close() })
 
 	return sampling.Config{
-		BatchProcessor: model.ProcessBatchFunc(func(context.Context, *model.Batch) error { return nil }),
+		BatchProcessor: modelpb.ProcessBatchFunc(func(context.Context, *modelpb.Batch) error { return nil }),
 		LocalSamplingConfig: sampling.LocalSamplingConfig{
 			FlushInterval:         time.Second,
 			MaxDynamicServices:    1000,

@@ -5,17 +5,20 @@
 package eventstorage_test
 
 import (
-	"encoding/json"
 	"fmt"
 	"testing"
 	"time"
 
 	"github.com/dgraph-io/badger/v2"
 	"github.com/gofrs/uuid"
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/testing/protocmp"
 
-	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage"
 )
 
@@ -35,15 +38,15 @@ func TestWriteEvents(t *testing.T) {
 
 func testWriteEvents(t *testing.T, numSpans int) {
 	db := newBadgerDB(t, badgerOptions)
-	store := eventstorage.New(db, eventstorage.JSONCodec{})
+	store := eventstorage.New(db, eventstorage.ProtobufCodec{})
 	readWriter := store.NewShardedReadWriter()
 	defer readWriter.Close()
 
 	beforeWrite := time.Now()
 	traceID := uuid.Must(uuid.NewV4()).String()
 	transactionID := uuid.Must(uuid.NewV4()).String()
-	transaction := model.APMEvent{
-		Transaction: &model.Transaction{ID: transactionID},
+	transaction := modelpb.APMEvent{
+		Transaction: &modelpb.Transaction{Id: transactionID},
 	}
 	wOpts := eventstorage.WriterOpts{
 		TTL:                 time.Minute,
@@ -51,26 +54,32 @@ func testWriteEvents(t *testing.T, numSpans int) {
 	}
 	assert.NoError(t, readWriter.WriteTraceEvent(traceID, transactionID, &transaction, wOpts))
 
-	var spanEvents []model.APMEvent
+	var spanEvents []*modelpb.APMEvent
 	for i := 0; i < numSpans; i++ {
 		spanID := uuid.Must(uuid.NewV4()).String()
-		span := model.APMEvent{
-			Span: &model.Span{ID: spanID},
+		span := modelpb.APMEvent{
+			Span: &modelpb.Span{Id: spanID},
 		}
 		assert.NoError(t, readWriter.WriteTraceEvent(traceID, spanID, &span, wOpts))
-		spanEvents = append(spanEvents, span)
+		spanEvents = append(spanEvents, &span)
 	}
 	afterWrite := time.Now()
 
 	// We can read our writes without flushing.
-	var batch model.Batch
+	var batch modelpb.Batch
 	assert.NoError(t, readWriter.ReadTraceEvents(traceID, &batch))
-	assert.ElementsMatch(t, append(spanEvents, transaction), batch)
+	spanEvents = append(spanEvents, &transaction)
+	assert.Empty(t, cmp.Diff(modelpb.Batch(spanEvents), batch,
+		cmpopts.SortSlices(func(e1 *modelpb.APMEvent, e2 *modelpb.APMEvent) bool {
+			return e1.GetSpan().GetId() < e2.GetSpan().GetId()
+		}),
+		protocmp.Transform()),
+	)
 
 	// Flush in order for the writes to be visible to other readers.
 	assert.NoError(t, readWriter.Flush(wOpts.StorageLimitInBytes))
 
-	var recorded []model.APMEvent
+	var recorded modelpb.Batch
 	assert.NoError(t, db.View(func(txn *badger.Txn) error {
 		iter := txn.NewIterator(badger.IteratorOptions{
 			Prefix: []byte(traceID),
@@ -94,21 +103,21 @@ func testWriteEvents(t *testing.T, numSpans int) {
 				return !expiryTime.After(upperBound)
 			}, "expiry time %s is after %s", expiryTime, upperBound)
 
-			var event model.APMEvent
+			var event modelpb.APMEvent
 			require.Equal(t, "e", string(item.UserMeta()))
 			assert.NoError(t, item.Value(func(data []byte) error {
-				return json.Unmarshal(data, &event)
+				return proto.Unmarshal(data, &event)
 			}))
-			recorded = append(recorded, event)
+			recorded = append(recorded, &event)
 		}
 		return nil
 	}))
-	assert.ElementsMatch(t, batch, recorded)
+	assert.Empty(t, cmp.Diff(batch, recorded, protocmp.Transform()))
 }
 
 func TestWriteTraceSampled(t *testing.T) {
 	db := newBadgerDB(t, badgerOptions)
-	store := eventstorage.New(db, eventstorage.JSONCodec{})
+	store := eventstorage.New(db, eventstorage.ProtobufCodec{})
 	readWriter := store.NewShardedReadWriter()
 	defer readWriter.Close()
 	wOpts := eventstorage.WriterOpts{
@@ -161,18 +170,24 @@ func TestWriteTraceSampled(t *testing.T) {
 
 func TestReadTraceEvents(t *testing.T) {
 	db := newBadgerDB(t, badgerOptions)
-	store := eventstorage.New(db, eventstorage.JSONCodec{})
+	store := eventstorage.New(db, eventstorage.ProtobufCodec{})
 
 	traceID := [...]byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16}
 	require.NoError(t, db.Update(func(txn *badger.Txn) error {
 		key := append(traceID[:], ":12345678"...)
-		value := []byte(`{"transaction":{"name":"transaction"}}`)
+		value, err := proto.Marshal(&modelpb.APMEvent{Transaction: &modelpb.Transaction{Name: "transaction"}})
+		if err != nil {
+			return err
+		}
 		if err := txn.SetEntry(badger.NewEntry(key, value).WithMeta('e')); err != nil {
 			return err
 		}
 
 		key = append(traceID[:], ":87654321"...)
-		value = []byte(`{"span":{"name":"span"}}`)
+		value, err = proto.Marshal(&modelpb.APMEvent{Span: &modelpb.Span{Name: "span"}})
+		if err != nil {
+			return err
+		}
 		if err := txn.SetEntry(badger.NewEntry(key, value).WithMeta('e')); err != nil {
 			return err
 		}
@@ -180,14 +195,14 @@ func TestReadTraceEvents(t *testing.T) {
 		// Write an entry with the trace ID as a prefix, but with no
 		// proceeding colon, causing it to be ignored.
 		key = append(traceID[:], "nocolon"...)
-		value = []byte(`not-json`)
+		value = []byte(`not-protobuf`)
 		if err := txn.SetEntry(badger.NewEntry(key, value).WithMeta('e')); err != nil {
 			return err
 		}
 
 		// Write an entry with an unknown meta value. It will be ignored.
 		key = append(traceID[:], ":11111111"...)
-		value = []byte(`not-json`)
+		value = []byte(`not-protobuf`)
 		if err := txn.SetEntry(badger.NewEntry(key, value).WithMeta('?')); err != nil {
 			return err
 		}
@@ -197,17 +212,17 @@ func TestReadTraceEvents(t *testing.T) {
 	reader := store.NewShardedReadWriter()
 	defer reader.Close()
 
-	var events model.Batch
+	var events modelpb.Batch
 	assert.NoError(t, reader.ReadTraceEvents(string(traceID[:]), &events))
-	assert.Equal(t, model.Batch{
-		{Transaction: &model.Transaction{Name: "transaction"}},
-		{Span: &model.Span{Name: "span"}},
-	}, events)
+	assert.Empty(t, cmp.Diff(modelpb.Batch{
+		{Transaction: &modelpb.Transaction{Name: "transaction"}},
+		{Span: &modelpb.Span{Name: "span"}},
+	}, events, protocmp.Transform()))
 }
 
 func TestReadTraceEventsDecodeError(t *testing.T) {
 	db := newBadgerDB(t, badgerOptions)
-	store := eventstorage.New(db, eventstorage.JSONCodec{})
+	store := eventstorage.New(db, eventstorage.ProtobufCodec{})
 
 	traceID := [...]byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16}
 	require.NoError(t, db.Update(func(txn *badger.Txn) error {
@@ -222,14 +237,14 @@ func TestReadTraceEventsDecodeError(t *testing.T) {
 	reader := store.NewShardedReadWriter()
 	defer reader.Close()
 
-	var events model.Batch
+	var events modelpb.Batch
 	err := reader.ReadTraceEvents(string(traceID[:]), &events)
 	assert.Error(t, err)
 }
 
 func TestIsTraceSampled(t *testing.T) {
 	db := newBadgerDB(t, badgerOptions)
-	store := eventstorage.New(db, eventstorage.JSONCodec{})
+	store := eventstorage.New(db, eventstorage.ProtobufCodec{})
 
 	require.NoError(t, db.Update(func(txn *badger.Txn) error {
 		if err := txn.SetEntry(badger.NewEntry([]byte("sampled_trace_id"), nil).WithMeta('s')); err != nil {
@@ -274,13 +289,13 @@ func TestStorageLimit(t *testing.T) {
 	db = newBadgerDB(t, opts)
 	lsm, vlog := db.Size()
 
-	store := eventstorage.New(db, eventstorage.JSONCodec{})
+	store := eventstorage.New(db, eventstorage.ProtobufCodec{})
 	readWriter := store.NewReadWriter()
 	defer readWriter.Close()
 
 	traceID := uuid.Must(uuid.NewV4()).String()
 	transactionID := uuid.Must(uuid.NewV4()).String()
-	transaction := model.APMEvent{Transaction: &model.Transaction{ID: transactionID}}
+	transaction := modelpb.APMEvent{Transaction: &modelpb.Transaction{Id: transactionID}}
 	err := readWriter.WriteTraceEvent(traceID, transactionID, &transaction, eventstorage.WriterOpts{
 		TTL:                 time.Minute,
 		StorageLimitInBytes: 1, // ignored in the write, because there's no implicit flush
@@ -293,7 +308,7 @@ func TestStorageLimit(t *testing.T) {
 	assert.ErrorIs(t, err, eventstorage.ErrLimitReached)
 
 	// Assert the stored write has been discarded.
-	var batch model.Batch
+	var batch modelpb.Batch
 	readWriter.ReadTraceEvents(traceID, &batch)
 	assert.Equal(t, 0, len(batch))
 }

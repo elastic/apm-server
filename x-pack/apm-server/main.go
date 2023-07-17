@@ -6,9 +6,7 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"math"
-	"net/http"
 	"os"
 	"sync"
 	"time"
@@ -27,10 +25,8 @@ import (
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/monitoring"
 	"github.com/elastic/elastic-agent-libs/paths"
-	"github.com/elastic/go-elasticsearch/v8"
-	"github.com/elastic/go-elasticsearch/v8/esutil"
 
-	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-data/model/modelprocessor"
 	"github.com/elastic/apm-server/internal/beatcmd"
 	"github.com/elastic/apm-server/internal/beater"
@@ -38,7 +34,6 @@ import (
 	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/servicetxmetrics"
 	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/spanmetrics"
 	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/txmetrics"
-	"github.com/elastic/apm-server/x-pack/apm-server/profiling"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage"
 )
@@ -97,7 +92,7 @@ type namedProcessor struct {
 }
 
 type processor interface {
-	model.BatchProcessor
+	modelpb.BatchProcessor
 	Run() error
 	Stop(context.Context) error
 }
@@ -271,7 +266,7 @@ func getStorage(db *badger.DB) *eventstorage.ShardedReadWriter {
 	storageMu.Lock()
 	defer storageMu.Unlock()
 	if storage == nil {
-		eventCodec := eventstorage.JSONCodec{}
+		eventCodec := eventstorage.ProtobufCodec{}
 		storage = eventstorage.New(db, eventCodec).NewShardedReadWriter()
 	}
 	return storage
@@ -318,106 +313,6 @@ func runServerWithProcessors(ctx context.Context, runServer beater.RunServerFunc
 	return g.Wait()
 }
 
-func newProfilingCollector(args beater.ServerParams) (*profiling.ElasticCollector, func(context.Context) error, error) {
-	logger := args.Logger.Named("profiling")
-
-	client, err := args.NewElasticsearchClient(args.Config.Profiling.ESConfig)
-	if err != nil {
-		return nil, nil, err
-	}
-	clusterName, err := queryElasticsearchClusterName(client, logger)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	// Elasticsearch should default to 100 MB for the http.max_content_length configuration,
-	// so we flush the buffer (per-worker, number of workers is set to 2 to avoid spawning
-	// too many workers on machines with a large number of cores, esp since the integration
-	// server is throttled to ~2 cores in the configurations that we're using)
-	// when at 4 MiB or every 4 seconds. This should reduce the lock contention between
-	// multiple workers trying to write or flush the bulk indexer buffer but also keep
-	// memory spikes to acceptable levels (go-elasticsearch can exhibit pathological behavior
-	// if thousands of items are added to its bulk indexer at once, since they are kept in memory
-	// for the entire duration of an ES request-response cycle).
-	const (
-		flushBytes    = 1 << 22
-		flushInterval = 4 * time.Second
-		numWorkers    = 2
-	)
-	indexer, err := esutil.NewBulkIndexer(esutil.BulkIndexerConfig{
-		Client:        client,
-		FlushBytes:    flushBytes,
-		FlushInterval: flushInterval,
-		NumWorkers:    numWorkers,
-	})
-	if err != nil {
-		return nil, nil, err
-	}
-
-	metricsClient, err := args.NewElasticsearchClient(args.Config.Profiling.MetricsESConfig)
-	if err != nil {
-		return nil, nil, err
-	}
-	metricsIndexer, err := esutil.NewBulkIndexer(esutil.BulkIndexerConfig{
-		Client:        metricsClient,
-		FlushBytes:    flushBytes,
-		FlushInterval: flushInterval,
-		NumWorkers:    numWorkers,
-	})
-	if err != nil {
-		return nil, nil, err
-	}
-
-	profilingCollector := profiling.NewCollector(
-		indexer,
-		metricsIndexer,
-		clusterName,
-		logger,
-	)
-
-	ctx, stopILM := context.WithCancel(context.Background())
-	profiling.ScheduleILMExecution(ctx, logger.Named("ilm"), args.Config.Profiling)
-
-	cleanup := func(ctx context.Context) error {
-		stopILM()
-		var errors error
-		if indexer.Close(ctx); err != nil {
-			errors = multierror.Append(errors, err)
-		}
-		if metricsIndexer.Close(ctx); err != nil {
-			errors = multierror.Append(errors, err)
-		}
-		return errors
-	}
-	return profilingCollector, cleanup, nil
-}
-
-// Fetch the Cluster name from Elasticsearch: Profiling adds it as a field in
-// the host-agent metrics documents for debugging purposes.
-// In Cloud deployments, the Cluster name is set equal to the Cluster ID.
-func queryElasticsearchClusterName(client *elasticsearch.Client, logger *logp.Logger) (string, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "/", nil)
-	if err != nil {
-		return "", err
-	}
-	resp, err := client.Perform(req)
-	if err != nil {
-		logger.Warnf("failed to fetch cluster name from Elasticsearch: %v", err)
-		return "", nil
-	}
-	var r struct {
-		ClusterName string `json:"cluster_name"`
-	}
-	if err := json.NewDecoder(resp.Body).Decode(&r); err != nil {
-		logger.Warnf("failed to parse Elasticsearch JSON response: %v", err)
-	}
-	_ = resp.Body.Close()
-
-	return r.ClusterName, nil
-}
-
 func wrapServer(args beater.ServerParams, runServer beater.RunServerFunc) (beater.ServerParams, beater.RunServerFunc, error) {
 	processors, err := newProcessors(args)
 	if err != nil {
@@ -433,20 +328,6 @@ func wrapServer(args beater.ServerParams, runServer beater.RunServerFunc) (beate
 	args.BatchProcessor = processorChain
 
 	wrappedRunServer := func(ctx context.Context, args beater.ServerParams) error {
-		if args.Config.Profiling.Enabled {
-			profilingCollector, cleanup, err := newProfilingCollector(args)
-			if err != nil {
-				// Profiling support is in technical preview,
-				// so we'll treat errors as non-fatal for now.
-				args.Logger.With(logp.Error(err)).Error(
-					"failed to create profiling collector, continuing without profiling support",
-				)
-			} else {
-				defer cleanup(ctx)
-				profiling.RegisterCollectionAgentServer(args.GRPCServer, profilingCollector)
-				args.Logger.Info("registered profiling collection (technical preview)")
-			}
-		}
 		return runServerWithProcessors(ctx, runServer, args, processors...)
 	}
 	return args, wrappedRunServer, nil

@@ -36,6 +36,8 @@ import (
 	"github.com/elastic/apm-server/systemtest"
 	"github.com/elastic/apm-server/systemtest/apmservertest"
 	"github.com/elastic/apm-server/systemtest/estest"
+	"github.com/elastic/apm-tools/pkg/approvaltest"
+	"github.com/elastic/apm-tools/pkg/espoll"
 	"github.com/elastic/go-elasticsearch/v8/esapi"
 )
 
@@ -65,22 +67,22 @@ func TestIngestPipeline(t *testing.T) {
 	tx.End()
 	tracer.Flush(nil)
 
-	getDoc := func(query estest.TermQuery) estest.SearchHit {
-		result := systemtest.Elasticsearch.ExpectDocs(t, "traces-apm*", query)
+	getDoc := func(query espoll.TermQuery) espoll.SearchHit {
+		result := estest.ExpectDocs(t, systemtest.Elasticsearch, "traces-apm*", query)
 		require.Len(t, result.Hits.Hits, 1)
 		return result.Hits.Hits[0]
 	}
 
-	txDoc := getDoc(estest.TermQuery{Field: "processor.event", Value: "transaction"})
+	txDoc := getDoc(espoll.TermQuery{Field: "processor.event", Value: "transaction"})
 	assert.Equal(t, httpRequest.Header.Get("User-Agent"), gjson.GetBytes(txDoc.RawSource, "user_agent.original").String())
 	assert.Equal(t, "Firefox", gjson.GetBytes(txDoc.RawSource, "user_agent.name").String())
 
-	span1Doc := getDoc(estest.TermQuery{Field: "span.id", Value: span1.TraceContext().Span.String()})
+	span1Doc := getDoc(espoll.TermQuery{Field: "span.id", Value: span1.TraceContext().Span.String()})
 	destinationIP := gjson.GetBytes(span1Doc.RawSource, "destination.ip")
 	assert.True(t, destinationIP.Exists())
 	assert.Equal(t, "::1", destinationIP.String())
 
-	span2Doc := getDoc(estest.TermQuery{Field: "span.id", Value: span2.TraceContext().Span.String()})
+	span2Doc := getDoc(espoll.TermQuery{Field: "span.id", Value: span2.TraceContext().Span.String()})
 	destinationIP = gjson.GetBytes(span2Doc.RawSource, "destination.ip")
 	assert.False(t, destinationIP.Exists()) // destination.address is not an IP
 }
@@ -204,10 +206,10 @@ func TestIngestPipelineDataStreamMigration(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	result := systemtest.Elasticsearch.ExpectMinDocs(t,
+	result := estest.ExpectMinDocs(t, systemtest.Elasticsearch,
 		len(testdata.Hits.Hits), "traces-apm*,logs-apm*,metrics-apm*", nil,
 	)
-	systemtest.ApproveEvents(t, t.Name(), result.Hits.Hits)
+	approvaltest.ApproveEvents(t, t.Name(), result.Hits.Hits)
 }
 
 func TestECSVersion(t *testing.T) {
@@ -223,7 +225,7 @@ func TestECSVersion(t *testing.T) {
 	// and is not present in _source. The value is defined
 	// by the version of ECS we use to build the integration
 	// package.
-	result := systemtest.Elasticsearch.ExpectDocs(t, "traces-apm*", nil)
+	result := estest.ExpectDocs(t, systemtest.Elasticsearch, "traces-apm*", nil)
 	assert.Equal(t, []interface{}{"8.6.0-dev"}, result.Hits.Hits[0].Fields["ecs.version"])
 }
 

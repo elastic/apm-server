@@ -15,8 +15,10 @@ import (
 	"github.com/axiomhq/hyperloglog"
 	"github.com/cespare/xxhash/v2"
 	"github.com/pkg/errors"
+	"google.golang.org/protobuf/types/known/durationpb"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
-	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/internal/logs"
 	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/baseaggregator"
 	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/interval"
@@ -34,7 +36,7 @@ const (
 type AggregatorConfig struct {
 	// BatchProcessor is a model.BatchProcessor for asynchronously
 	// processing metrics documents.
-	BatchProcessor model.BatchProcessor
+	BatchProcessor modelpb.BatchProcessor
 
 	// Logger is the logger for logging metrics aggregation/publishing.
 	//
@@ -165,7 +167,7 @@ func (a *Aggregator) publish(ctx context.Context, period time.Duration) error {
 
 	intervalStr := interval.FormatDuration(period)
 	isMetricsPeriod := period == a.config.Interval
-	batch := make(model.Batch, 0, size)
+	batch := make(modelpb.Batch, 0, size)
 	for hash, entries := range current.m {
 		for _, entry := range entries {
 			event := makeMetricset(entry.aggregationKey, entry.spanMetrics)
@@ -184,7 +186,7 @@ func (a *Aggregator) publish(ctx context.Context, period time.Duration) error {
 		entry := current.other
 		m := makeMetricset(entry.aggregationKey, entry.spanMetrics)
 		m.Metricset.Interval = intervalStr
-		m.Metricset.Samples = append(m.Metricset.Samples, model.MetricsetSample{
+		m.Metricset.Samples = append(m.Metricset.Samples, &modelpb.MetricsetSample{
 			Name:  "service_destination.aggregation.overflow_count",
 			Value: float64(overflowCount),
 		})
@@ -203,19 +205,19 @@ func (a *Aggregator) publish(ctx context.Context, period time.Duration) error {
 //
 // This method is expected to be used immediately prior to publishing
 // the events.
-func (a *Aggregator) ProcessBatch(ctx context.Context, b *model.Batch) error {
+func (a *Aggregator) ProcessBatch(ctx context.Context, b *modelpb.Batch) error {
 	a.mu.RLock()
 	defer a.mu.RUnlock()
 	for _, event := range *b {
-		if event.Processor == model.SpanProcessor {
-			a.processSpan(&event)
+		if event.Processor.IsSpan() {
+			a.processSpan(event)
 			continue
 		}
 
 		tx := event.Transaction
-		if event.Processor == model.TransactionProcessor && tx != nil {
+		if event.Processor.IsTransaction() && tx != nil {
 			for _, dss := range tx.DroppedSpansStats {
-				a.processDroppedSpanStats(&event, dss)
+				a.processDroppedSpanStats(event, dss)
 			}
 			// NOTE(marclop) The event.Transaction.DroppedSpansStats is unset
 			// via the `modelprocessor.DroppedSpansStatsDiscarder` appended just
@@ -226,7 +228,7 @@ func (a *Aggregator) ProcessBatch(ctx context.Context, b *model.Batch) error {
 	return nil
 }
 
-func (a *Aggregator) processSpan(event *model.APMEvent) {
+func (a *Aggregator) processSpan(event *modelpb.APMEvent) {
 	if event.Service.Target == nil &&
 		(event.Span.DestinationService == nil || event.Span.DestinationService.Resource == "") {
 		return
@@ -243,9 +245,9 @@ func (a *Aggregator) processSpan(event *model.APMEvent) {
 	// pre-aggregated spans and excludes time gaps that are counted in the reported
 	// span duration. For non-composite spans we just use the reported span duration.
 	count := 1
-	duration := event.Event.Duration
+	duration := event.Event.Duration.AsDuration()
 	if event.Span.Composite != nil {
-		count = event.Span.Composite.Count
+		count = int(event.Span.Composite.Count)
 		duration = time.Duration(event.Span.Composite.Sum * float64(time.Millisecond))
 	}
 
@@ -278,7 +280,7 @@ func (a *Aggregator) processSpan(event *model.APMEvent) {
 	}
 }
 
-func (a *Aggregator) processDroppedSpanStats(event *model.APMEvent, dss model.DroppedSpanStats) {
+func (a *Aggregator) processDroppedSpanStats(event *modelpb.APMEvent, dss *modelpb.DroppedSpanStats) {
 	representativeCount := event.Transaction.RepresentativeCount
 	if representativeCount <= 0 {
 		// RepresentativeCount is zero when the sample rate is unknown.
@@ -289,7 +291,7 @@ func (a *Aggregator) processDroppedSpanStats(event *model.APMEvent, dss model.Dr
 
 	metrics := spanMetrics{
 		count: float64(dss.Duration.Count) * representativeCount,
-		sum:   float64(dss.Duration.Sum) * representativeCount,
+		sum:   float64(dss.Duration.Sum.AsDuration()) * representativeCount,
 	}
 	for _, interval := range a.Intervals {
 		key := makeAggregationKey(
@@ -446,12 +448,10 @@ func (k *aggregationKey) equal(key aggregationKey) bool {
 }
 
 func makeAggregationKey(
-	event *model.APMEvent, outcome, resource, targetType, targetName, spanName string, interval time.Duration,
+	event *modelpb.APMEvent, outcome, resource, targetType, targetName, spanName string, interval time.Duration,
 ) aggregationKey {
 	key := aggregationKey{
 		comparable: comparable{
-			// Group metrics by time interval.
-			timestamp: event.Timestamp.Truncate(interval),
 
 			serviceName:        event.Service.Name,
 			serviceEnvironment: event.Service.Environment,
@@ -465,6 +465,10 @@ func makeAggregationKey(
 
 			resource: resource,
 		},
+	}
+	if event.Timestamp != nil {
+		// Group metrics by time interval.
+		key.comparable.timestamp = event.Timestamp.AsTime().Truncate(interval)
 	}
 	key.AggregatedGlobalLabels.Read(event)
 	return key
@@ -489,39 +493,54 @@ type spanMetrics struct {
 	sum   float64
 }
 
-func makeMetricset(key aggregationKey, metrics spanMetrics) model.APMEvent {
-	var target *model.ServiceTarget
+func makeMetricset(key aggregationKey, metrics spanMetrics) *modelpb.APMEvent {
+	var target *modelpb.ServiceTarget
 	if key.targetName != "" || key.targetType != "" {
-		target = &model.ServiceTarget{
+		target = &modelpb.ServiceTarget{
 			Type: key.targetType,
 			Name: key.targetName,
 		}
 	}
-	return model.APMEvent{
-		Timestamp: key.timestamp,
-		Agent:     model.Agent{Name: key.agentName},
-		Service: model.Service{
+	var t *timestamppb.Timestamp
+	if !key.timestamp.IsZero() {
+		t = timestamppb.New(key.timestamp)
+	}
+
+	var agent *modelpb.Agent
+	if key.agentName != "" {
+		agent = &modelpb.Agent{Name: key.agentName}
+	}
+
+	var event *modelpb.Event
+	if key.outcome != "" {
+		event = &modelpb.Event{
+			Outcome: key.outcome,
+		}
+	}
+
+	return &modelpb.APMEvent{
+		Timestamp: t,
+		Agent:     agent,
+		Service: &modelpb.Service{
 			Name:        key.serviceName,
 			Environment: key.serviceEnvironment,
 			Target:      target,
 		},
 		Labels:        key.Labels,
 		NumericLabels: key.NumericLabels,
-		Event: model.Event{
-			Outcome: key.outcome,
-		},
-		Processor: model.MetricsetProcessor,
-		Metricset: &model.Metricset{
+		Event:         event,
+		Processor:     modelpb.MetricsetProcessor(),
+		Metricset: &modelpb.Metricset{
 			Name:     metricsetName,
 			DocCount: int64(math.Round(metrics.count)),
 		},
-		Span: &model.Span{
+		Span: &modelpb.Span{
 			Name: key.spanName,
-			DestinationService: &model.DestinationService{
+			DestinationService: &modelpb.DestinationService{
 				Resource: key.resource,
-				ResponseTime: model.AggregatedDuration{
-					Count: int(math.Round(metrics.count)),
-					Sum:   time.Duration(math.Round(metrics.sum)),
+				ResponseTime: &modelpb.AggregatedDuration{
+					Count: int64(math.Round(metrics.count)),
+					Sum:   durationpb.New(time.Duration(math.Round(metrics.sum))),
 				},
 			},
 		},

@@ -1,0 +1,30 @@
+[[release-notes-8.9]]
+== APM version 8.9
+
+https://github.com/elastic/apm-server/compare/8.9\...main[View commits]
+
+* <<release-notes-8.9.0>>
+
+[float]
+[[release-notes-8.9.0]]
+=== APM version 8.9.0
+
+[float]
+==== Bug fixes
+- Limit the amount of concurrent OTLP requests being processed in parallel {pull}10987[10987].
+- Added CA certificates bundle to the Docker images {pull}11015[11015]
+- Derivation of transaction and span type from OTLP spans is now deterministic {pull}11036[11036]
+- Populate `span.id` and `transaction.id` for logs derived from OTLP spans {pull}11038[11038]
+
+[float]
+==== Intake API Changes
+- Span events now default to having a representative count of 1, if no `sample_rate` field is sent by the agent {pull}10792[10792]
+
+[float]
+==== Added
+- Span events now carry `host` and `service.version` attributes. {pull}10697[10697]
+- Accept more options in agentcfg ES config; Reliably use `agent.config.elasticsearch` and `rum.source_mapping.elasticsearch` credentials when merging with `output.elasticsearch` credentials {pull}10783[10783]
+- Emit service destination metrics when only `service.target.*` fields are set. {pull}10922[10922]
+- apmpackage: Remove `timeseries.instance` in ingest pipeline for pre-8.6 compatibility {pull}10973[10973]
+- apmpackage: Use "dynamic: runtime" instead of strict mapping for internal, TBS, and aggregation indices {pull}10968[10968]
+- Corrected as of 5 July 2023 to align with the correct license text for Elastic License 2.0 {pull}11120[11120]

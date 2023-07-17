@@ -51,7 +51,7 @@ func initRand() {
 	} else {
 		seed = n.Int64()
 	}
-	rand.Seed(seed)
+	rand.Seed(seed) //lint:ignore SA1019 libbeat uses deprecated math/rand functions prolifically
 }
 
 func initFlags() {

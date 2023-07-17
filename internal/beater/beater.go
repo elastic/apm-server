@@ -31,9 +31,13 @@ import (
 	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 	"go.elastic.co/apm/module/apmgrpc/v2"
+	"go.elastic.co/apm/module/apmotel/v2"
 	"go.elastic.co/apm/v2"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/sdk/metric"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
+	"golang.org/x/sync/semaphore"
 	"google.golang.org/grpc"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
@@ -50,7 +54,7 @@ import (
 	"github.com/elastic/go-docappender"
 	"github.com/elastic/go-ucfg"
 
-	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-data/model/modelprocessor"
 	"github.com/elastic/apm-server/internal/agentcfg"
 	"github.com/elastic/apm-server/internal/beater/auth"
@@ -292,6 +296,20 @@ func (s *Runner) Run(ctx context.Context) error {
 	}
 	defer tracer.Close()
 
+	provider, err := apmotel.NewTracerProvider(apmotel.WithAPMTracer(tracer))
+	if err != nil {
+		return err
+	}
+	otel.SetTracerProvider(provider)
+
+	exporter, err := apmotel.NewGatherer()
+	if err != nil {
+		return err
+	}
+	mp := metric.NewMeterProvider(metric.WithReader(exporter))
+	otel.SetMeterProvider(mp)
+	tracer.RegisterMetricsGatherer(exporter)
+
 	// Ensure the libbeat output and go-elasticsearch clients do not index
 	// any events to Elasticsearch before the integration is ready.
 	publishReady := make(chan struct{})
@@ -339,6 +357,7 @@ func (s *Runner) Run(ctx context.Context) error {
 		fetcher, cancel, err := newSourcemapFetcher(
 			s.config.RumConfig.SourceMapping,
 			kibanaClient, newElasticsearchClient,
+			tracer,
 		)
 		if err != nil {
 			return err
@@ -385,7 +404,7 @@ func (s *Runner) Run(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	batchProcessor := modelprocessor.Chained{
+	batchProcessor := srvmodelprocessor.NewTracer("beater.ProcessBatch", modelprocessor.Chained{
 		// Ensure all events have observer.*, ecs.*, and data_stream.* fields added,
 		// and are counted in metrics. This is done in the final processors to ensure
 		// aggregated metrics are also processed.
@@ -403,9 +422,15 @@ func (s *Runner) Run(ctx context.Context) error {
 			transactionsDroppedCounter.Add(i)
 		}),
 		finalBatchProcessor,
-	}
+	})
 
-	agentConfigFetcher, fetcherRunFunc, err := newAgentConfigFetcher(ctx, s.config, kibanaClient, newElasticsearchClient)
+	agentConfigFetcher, fetcherRunFunc, err := newAgentConfigFetcher(
+		ctx,
+		s.config,
+		kibanaClient,
+		newElasticsearchClient,
+		tracer,
+	)
 	if err != nil {
 		return err
 	}
@@ -439,6 +464,7 @@ func (s *Runner) Run(ctx context.Context) error {
 		KibanaClient:           kibanaClient,
 		NewElasticsearchClient: newElasticsearchClient,
 		GRPCServer:             grpcServer,
+		Semaphore:              semaphore.NewWeighted(int64(s.config.MaxConcurrentDecoders)),
 	}
 	if s.wrapServer != nil {
 		// Wrap the serverParams and runServer function, enabling
@@ -455,8 +481,12 @@ func (s *Runner) Run(ctx context.Context) error {
 		// Add a model processor that rate limits, and checks authorization for the
 		// agent and service for each event. These must come at the beginning of the
 		// processor chain.
-		model.ProcessBatchFunc(rateLimitBatchProcessor),
-		model.ProcessBatchFunc(authorizeEventIngestProcessor),
+		modelpb.ProcessBatchFunc(rateLimitBatchProcessor),
+		modelpb.ProcessBatchFunc(authorizeEventIngestProcessor),
+
+		// Add a model processor that removes `event.received`, which is added by
+		// apm-data, but which we don't yet map.
+		modelpb.ProcessBatchFunc(removeEventReceivedBatchProcessor),
 
 		// Pre-process events before they are sent to the final processors for
 		// aggregation, sampling, and indexing.
@@ -477,7 +507,7 @@ func (s *Runner) Run(ctx context.Context) error {
 		return runServer(ctx, serverParams)
 	})
 	if tracerServerListener != nil {
-		tracerServer, err := newTracerServer(s.config, tracerServerListener, s.logger, serverParams.BatchProcessor)
+		tracerServer, err := newTracerServer(s.config, tracerServerListener, s.logger, serverParams.BatchProcessor, serverParams.Semaphore)
 		if err != nil {
 			return fmt.Errorf("failed to create self-instrumentation server: %w", err)
 		}
@@ -620,7 +650,7 @@ func (s *Runner) newFinalBatchProcessor(
 	tracer *apm.Tracer,
 	newElasticsearchClient func(cfg *elasticsearch.Config) (*elasticsearch.Client, error),
 	memLimit float64,
-) (model.BatchProcessor, func(context.Context) error, error) {
+) (modelpb.BatchProcessor, func(context.Context) error, error) {
 
 	monitoring.Default.Remove("libbeat")
 	libbeatMonitoringRegistry := monitoring.Default.NewRegistry("libbeat")
@@ -773,7 +803,7 @@ func docappenderConfig(
 func (s *Runner) newLibbeatFinalBatchProcessor(
 	tracer *apm.Tracer,
 	libbeatMonitoringRegistry *monitoring.Registry,
-) (model.BatchProcessor, func(context.Context) error, error) {
+) (modelpb.BatchProcessor, func(context.Context) error, error) {
 	// When the publisher stops cleanly it will close its pipeline client,
 	// calling the acker's Close method and unblock Wait.
 	acker := publish.NewWaitPublishedAcker()
@@ -837,6 +867,7 @@ func newSourcemapFetcher(
 	cfg config.SourceMapping,
 	kibanaClient *kibana.Client,
 	newElasticsearchClient func(*elasticsearch.Config) (*elasticsearch.Client, error),
+	tracer *apm.Tracer,
 ) (sourcemap.Fetcher, context.CancelFunc, error) {
 	esClient, err := newElasticsearchClient(cfg.ESConfig)
 	if err != nil {
@@ -847,7 +878,7 @@ func newSourcemapFetcher(
 
 	// start background sync job
 	ctx, cancel := context.WithCancel(context.Background())
-	metadataFetcher, invalidationChan := sourcemap.NewMetadataFetcher(ctx, esClient, sourcemapIndex)
+	metadataFetcher, invalidationChan := sourcemap.NewMetadataFetcher(ctx, esClient, sourcemapIndex, tracer)
 
 	esFetcher := sourcemap.NewElasticsearchFetcher(esClient, sourcemapIndex)
 	size := 128

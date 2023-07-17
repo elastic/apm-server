@@ -21,7 +21,7 @@ import (
 	"context"
 	"regexp"
 
-	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 )
 
 // SetLibraryFrame is a model.BatchProcessor that identifies stack frames
@@ -33,7 +33,7 @@ type SetLibraryFrame struct {
 // ProcessBatch processes the stack traces of spans and errors in b, updating
 // the library frame flag for stack frames based on whether they have a filename
 // matching the regular expression.
-func (s SetLibraryFrame) ProcessBatch(ctx context.Context, b *model.Batch) error {
+func (s SetLibraryFrame) ProcessBatch(ctx context.Context, b *modelpb.Batch) error {
 	for _, event := range *b {
 		switch {
 		case event.Span != nil:
@@ -45,11 +45,11 @@ func (s SetLibraryFrame) ProcessBatch(ctx context.Context, b *model.Batch) error
 	return nil
 }
 
-func (s SetLibraryFrame) processSpan(ctx context.Context, event *model.Span) {
+func (s SetLibraryFrame) processSpan(ctx context.Context, event *modelpb.Span) {
 	s.processStacktraceFrames(ctx, event.Stacktrace...)
 }
 
-func (s SetLibraryFrame) processError(ctx context.Context, event *model.Error) {
+func (s SetLibraryFrame) processError(ctx context.Context, event *modelpb.Error) {
 	if event.Log != nil {
 		s.processStacktraceFrames(ctx, event.Log.Stacktrace...)
 	}
@@ -58,15 +58,18 @@ func (s SetLibraryFrame) processError(ctx context.Context, event *model.Error) {
 	}
 }
 
-func (s SetLibraryFrame) processException(ctx context.Context, exception *model.Exception) {
+func (s SetLibraryFrame) processException(ctx context.Context, exception *modelpb.Exception) {
 	s.processStacktraceFrames(ctx, exception.Stacktrace...)
 	for _, cause := range exception.Cause {
-		s.processException(ctx, &cause)
+		s.processException(ctx, cause)
 	}
 }
 
-func (s SetLibraryFrame) processStacktraceFrames(ctx context.Context, frames ...*model.StacktraceFrame) {
+func (s SetLibraryFrame) processStacktraceFrames(ctx context.Context, frames ...*modelpb.StacktraceFrame) {
 	for _, frame := range frames {
+		if frame.Original == nil {
+			frame.Original = &modelpb.Original{}
+		}
 		frame.Original.LibraryFrame = frame.LibraryFrame
 		frame.LibraryFrame = frame.Filename != "" && s.Pattern.MatchString(frame.Filename) ||
 			frame.AbsPath != "" && s.Pattern.MatchString(frame.AbsPath)

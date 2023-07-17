@@ -32,9 +32,10 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/sync/semaphore"
 
 	"github.com/elastic/apm-data/input/elasticapm"
-	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/internal/beater/config"
 	"github.com/elastic/apm-server/internal/beater/headers"
 	"github.com/elastic/apm-server/internal/beater/request"
@@ -96,25 +97,25 @@ func TestIntakeHandler(t *testing.T) {
 			path: "errors.ndjson",
 			processor: elasticapm.NewProcessor(elasticapm.Config{
 				MaxEventSize: 10,
-				Semaphore:    make(chan struct{}, 1),
+				Semaphore:    semaphore.NewWeighted(1),
 			}),
 			code: http.StatusBadRequest, id: request.IDResponseErrorsRequestTooLarge},
 		"Closing": {
 			path: "errors.ndjson",
-			batchProcessor: model.ProcessBatchFunc(func(context.Context, *model.Batch) error {
+			batchProcessor: modelpb.ProcessBatchFunc(func(context.Context, *modelpb.Batch) error {
 				return publish.ErrChannelClosed
 			}),
 			code: http.StatusServiceUnavailable, id: request.IDResponseErrorsShuttingDown},
 		"FullQueue": {
 			path: "errors.ndjson",
-			batchProcessor: model.ProcessBatchFunc(func(context.Context, *model.Batch) error {
+			batchProcessor: modelpb.ProcessBatchFunc(func(context.Context, *modelpb.Batch) error {
 				return elasticapm.ErrQueueFull
 			}),
 			code: http.StatusServiceUnavailable, id: request.IDResponseErrorsFullQueue,
 		},
 		"FullQueueLegacy": {
 			path: "errors.ndjson",
-			batchProcessor: model.ProcessBatchFunc(func(context.Context, *model.Batch) error {
+			batchProcessor: modelpb.ProcessBatchFunc(func(context.Context, *modelpb.Batch) error {
 				return publish.ErrFull
 			}),
 			code: http.StatusServiceUnavailable, id: request.IDResponseErrorsFullQueue,
@@ -176,10 +177,10 @@ func TestIntakeHandlerMonitoring(t *testing.T) {
 	streamHandler := streamHandlerFunc(func(
 		ctx context.Context,
 		async bool,
-		base model.APMEvent,
+		base *modelpb.APMEvent,
 		stream io.Reader,
 		batchSize int,
-		processor model.BatchProcessor,
+		processor modelpb.BatchProcessor,
 		out *elasticapm.Result,
 	) error {
 		out.Accepted = 10
@@ -224,7 +225,7 @@ type testcaseIntakeHandler struct {
 	w              *httptest.ResponseRecorder
 	r              *http.Request
 	processor      *elasticapm.Processor
-	batchProcessor model.BatchProcessor
+	batchProcessor modelpb.BatchProcessor
 	path           string
 	contentType    string
 
@@ -238,7 +239,7 @@ func (tc *testcaseIntakeHandler) setup(t *testing.T) {
 		cfg.MaxConcurrentDecoders = 10
 		tc.processor = elasticapm.NewProcessor(elasticapm.Config{
 			MaxEventSize: cfg.MaxEventSize,
-			Semaphore:    make(chan struct{}, cfg.MaxConcurrentDecoders),
+			Semaphore:    semaphore.NewWeighted(int64(cfg.MaxConcurrentDecoders)),
 		})
 	}
 	if tc.batchProcessor == nil {
@@ -288,27 +289,27 @@ func compressedRequest(t *testing.T, compressionType string, compressPayload boo
 	return req
 }
 
-func emptyRequestMetadata(*request.Context) model.APMEvent {
-	return model.APMEvent{}
+func emptyRequestMetadata(*request.Context) *modelpb.APMEvent {
+	return &modelpb.APMEvent{}
 }
 
 type streamHandlerFunc func(
 	ctx context.Context,
 	async bool,
-	base model.APMEvent,
+	base *modelpb.APMEvent,
 	stream io.Reader,
 	batchSize int,
-	processor model.BatchProcessor,
+	processor modelpb.BatchProcessor,
 	out *elasticapm.Result,
 ) error
 
 func (f streamHandlerFunc) HandleStream(
 	ctx context.Context,
 	async bool,
-	base model.APMEvent,
+	base *modelpb.APMEvent,
 	stream io.Reader,
 	batchSize int,
-	processor model.BatchProcessor,
+	processor modelpb.BatchProcessor,
 	out *elasticapm.Result,
 ) error {
 	return f(ctx, async, base, stream, batchSize, processor, out)

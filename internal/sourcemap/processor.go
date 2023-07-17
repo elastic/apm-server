@@ -25,10 +25,10 @@ import (
 
 	"github.com/elastic/elastic-agent-libs/logp"
 
-	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 )
 
-// BatchProcessor is a model.BatchProcessor that performs source mapping for
+// BatchProcessor is a modelpb.BatchProcessor that performs source mapping for
 // span and error events. Any errors fetching source maps, including the
 // timeout expiring, will result in the StacktraceFrame.SourcemapError field
 // being set; the error will not be returned.
@@ -47,35 +47,35 @@ type BatchProcessor struct {
 
 // ProcessBatch processes spans and errors, applying source maps
 // to their stack traces.
-func (p BatchProcessor) ProcessBatch(ctx context.Context, batch *model.Batch) error {
+func (p BatchProcessor) ProcessBatch(ctx context.Context, batch *modelpb.Batch) error {
 	if p.Timeout > 0 {
 		var cancel context.CancelFunc
 		ctx, cancel = context.WithTimeout(ctx, p.Timeout)
 		defer cancel()
 	}
 	for _, event := range *batch {
-		if event.Service.Name == "" || event.Service.Version == "" {
+		if event.GetService().GetName() == "" || event.GetService().GetVersion() == "" {
 			continue
 		}
 		switch {
 		case event.Span != nil:
-			p.processStacktraceFrames(ctx, &event.Service, event.Span.Stacktrace...)
+			p.processStacktraceFrames(ctx, event.Service, event.Span.Stacktrace...)
 		case event.Error != nil:
 			if event.Error.Log != nil {
-				p.processStacktraceFrames(ctx, &event.Service, event.Error.Log.Stacktrace...)
+				p.processStacktraceFrames(ctx, event.Service, event.Error.Log.Stacktrace...)
 			}
 			if event.Error.Exception != nil {
-				p.processException(ctx, &event.Service, event.Error.Exception)
+				p.processException(ctx, event.Service, event.Error.Exception)
 			}
 		}
 	}
 	return nil
 }
 
-func (p BatchProcessor) processException(ctx context.Context, service *model.Service, exception *model.Exception) {
+func (p BatchProcessor) processException(ctx context.Context, service *modelpb.Service, exception *modelpb.Exception) {
 	p.processStacktraceFrames(ctx, service, exception.Stacktrace...)
 	for _, cause := range exception.Cause {
-		p.processException(ctx, service, &cause)
+		p.processException(ctx, service, cause)
 	}
 }
 
@@ -97,7 +97,7 @@ func (p BatchProcessor) processException(ctx context.Context, service *model.Ser
 // - lineno
 // - abs_path is set to the cleaned abs_path
 // - sourcemap.updated is set to true
-func (p BatchProcessor) processStacktraceFrames(ctx context.Context, service *model.Service, frames ...*model.StacktraceFrame) {
+func (p BatchProcessor) processStacktraceFrames(ctx context.Context, service *modelpb.Service, frames ...*modelpb.StacktraceFrame) {
 	prevFunction := "<anonymous>"
 	for i := len(frames) - 1; i >= 0; i-- {
 		frame := frames[i]
@@ -109,8 +109,8 @@ func (p BatchProcessor) processStacktraceFrames(ctx context.Context, service *mo
 
 func (p BatchProcessor) processStacktraceFrame(
 	ctx context.Context,
-	service *model.Service,
-	frame *model.StacktraceFrame,
+	service *modelpb.Service,
+	frame *modelpb.StacktraceFrame,
 	prevFunction string,
 ) (bool, string) {
 	if frame.Colno == nil || frame.Lineno == nil || frame.AbsPath == "" {
@@ -132,6 +132,10 @@ func (p BatchProcessor) processStacktraceFrame(
 	if err != nil {
 		p.Logger.Errorf("failed to map sourcemap %s: %v", path, err)
 		return false, ""
+	}
+
+	if frame.Original == nil {
+		frame.Original = &modelpb.Original{}
 	}
 
 	// Store original source information.

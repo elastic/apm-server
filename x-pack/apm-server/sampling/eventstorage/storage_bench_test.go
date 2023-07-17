@@ -13,7 +13,7 @@ import (
 	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/elastic/apm-data/model"
+	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage"
 )
 
@@ -26,13 +26,13 @@ func BenchmarkWriteTransaction(b *testing.B) {
 
 		traceID := hex.EncodeToString([]byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16})
 		transactionID := hex.EncodeToString([]byte{1, 2, 3, 4, 5, 6, 7, 8})
-		var transaction *model.APMEvent
+		var transaction *modelpb.APMEvent
 		if bigTX {
 			transaction = makeTransaction(transactionID, traceID)
 		} else {
-			transaction = &model.APMEvent{
-				Transaction: &model.Transaction{
-					ID: transactionID,
+			transaction = &modelpb.APMEvent{
+				Transaction: &modelpb.Transaction{
+					Id: transactionID,
 				},
 			}
 		}
@@ -57,8 +57,8 @@ func BenchmarkWriteTransaction(b *testing.B) {
 	}
 	cases := []testCase{
 		{
-			name:  "json_codec",
-			codec: eventstorage.JSONCodec{},
+			name:  "proto_codec",
+			codec: eventstorage.ProtobufCodec{},
 		},
 		{
 			// This tests the eventstorage performance without
@@ -98,13 +98,13 @@ func BenchmarkReadEvents(b *testing.B) {
 
 				for i := 0; i < count; i++ {
 					transactionID := uuid.Must(uuid.NewV4()).String()
-					var transaction *model.APMEvent
+					var transaction *modelpb.APMEvent
 					if bigTX {
 						transaction = makeTransaction(transactionID, traceID)
 					} else {
-						transaction = &model.APMEvent{
-							Transaction: &model.Transaction{
-								ID: transactionID,
+						transaction = &modelpb.APMEvent{
+							Transaction: &modelpb.Transaction{
+								Id: transactionID,
 							},
 						}
 					}
@@ -116,7 +116,7 @@ func BenchmarkReadEvents(b *testing.B) {
 				// NOTE(marclop) We want to check how badly the read performance is affected with
 				// by having uncommitted events in the badger TX.
 				b.ResetTimer()
-				var batch model.Batch
+				var batch modelpb.Batch
 				for i := 0; i < b.N; i++ {
 					batch = batch[:0]
 					if err := readWriter.ReadTraceEvents(traceID, &batch); err != nil {
@@ -139,8 +139,8 @@ func BenchmarkReadEvents(b *testing.B) {
 	}
 	cases := []testCase{
 		{
-			name:  "json_codec",
-			codec: eventstorage.JSONCodec{},
+			name:  "proto_codec",
+			codec: eventstorage.ProtobufCodec{},
 		},
 		{
 			// This tests the eventstorage performance without
@@ -168,7 +168,7 @@ func BenchmarkIsTraceSampled(b *testing.B) {
 
 	// Test with varying numbers of events in the trace.
 	db := newBadgerDB(b, badgerOptions)
-	store := eventstorage.New(db, eventstorage.JSONCodec{})
+	store := eventstorage.New(db, eventstorage.ProtobufCodec{})
 	readWriter := store.NewReadWriter()
 	defer readWriter.Close()
 	wOpts := eventstorage.WriterOpts{
@@ -209,63 +209,63 @@ func BenchmarkIsTraceSampled(b *testing.B) {
 
 type nopCodec struct{}
 
-func (nopCodec) DecodeEvent(data []byte, event *model.APMEvent) error { return nil }
-func (nopCodec) EncodeEvent(*model.APMEvent) ([]byte, error)          { return nil, nil }
+func (nopCodec) DecodeEvent(data []byte, event *modelpb.APMEvent) error { return nil }
+func (nopCodec) EncodeEvent(*modelpb.APMEvent) ([]byte, error)          { return nil, nil }
 
-func makeTransaction(id, traceID string) *model.APMEvent {
-	return &model.APMEvent{
-		Transaction: &model.Transaction{ID: id},
-		Service: model.Service{
+func makeTransaction(id, traceID string) *modelpb.APMEvent {
+	return &modelpb.APMEvent{
+		Transaction: &modelpb.Transaction{Id: id},
+		Service: &modelpb.Service{
 			Name:        "myname",
 			Version:     "version",
 			Environment: "dev",
-			Language: model.Language{
+			Language: &modelpb.Language{
 				Name: "go", Version: "1.17.11",
 			},
-			Runtime: model.Runtime{
+			Runtime: &modelpb.Runtime{
 				Name: "gc",
 			},
-			Framework: model.Framework{
+			Framework: &modelpb.Framework{
 				Name: "name", Version: "foo",
 			},
-			Node: model.ServiceNode{
+			Node: &modelpb.ServiceNode{
 				Name: "serviceNode",
 			},
 		},
-		Processor: model.TransactionProcessor,
-		Labels: model.Labels{
-			"key": model.LabelValue{
+		Processor: modelpb.TransactionProcessor(),
+		Labels: modelpb.Labels{
+			"key": &modelpb.LabelValue{
 				Value: "value",
 			},
-			"key2": model.LabelValue{
+			"key2": &modelpb.LabelValue{
 				Values: []string{"value"},
 			},
 		},
-		DataStream: model.DataStream{
+		DataStream: &modelpb.DataStream{
 			Namespace: "default",
 			Type:      "traces",
 			Dataset:   "apm_server",
 		},
-		Agent: model.Agent{
+		Agent: &modelpb.Agent{
 			Name:    "apm-agent-go",
 			Version: "2.1.0",
 		},
-		Container: model.Container{
-			ID:        "someid",
+		Container: &modelpb.Container{
+			Id:        "someid",
 			Name:      "name",
 			Runtime:   "runtime",
 			ImageName: "ImageName",
 			ImageTag:  "latest",
 		},
-		Process: model.Process{
+		Process: &modelpb.Process{
 			Pid:        123,
 			Ppid:       100,
 			Title:      "process title",
 			Argv:       []string{"arg1", "arg2", "arg3"},
 			Executable: "main.go",
 		},
-		Host: model.Host{
-			OS: model.OS{
+		Host: &modelpb.Host{
+			Os: &modelpb.OS{
 				Platform: "ubuntu",
 				Type:     "linux",
 			},
@@ -273,6 +273,6 @@ func makeTransaction(id, traceID string) *model.APMEvent {
 			Hostname:     "hostname.full.domain",
 			Architecture: "arm64",
 		},
-		Trace: model.Trace{ID: traceID},
+		Trace: &modelpb.Trace{Id: traceID},
 	}
 }
