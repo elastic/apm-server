@@ -17,7 +17,8 @@
             "event": {
                 "agent_id_status": "missing",
                 "dataset": "accesslog",
-                "ingested": "dynamic"
+                "ingested": "dynamic",
+                "kind": "event"
             },
             "faas": {
                 "coldstart": true,
@@ -85,10 +86,6 @@
                     "name": "testThread"
                 },
                 "title": "/usr/lib/jvm/java-10-openjdk-amd64/bin/java"
-            },
-            "processor": {
-                "event": "log",
-                "name": "log"
             },
             "service": {
                 "environment": "prod",

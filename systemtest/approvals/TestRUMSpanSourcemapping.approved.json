@@ -26,8 +26,7 @@
                 "id": "611f4fa950f04631"
             },
             "processor": {
-                "event": "span",
-                "name": "transaction"
+                "event": "span"
             },
             "service": {
                 "name": "apm-agent-js"

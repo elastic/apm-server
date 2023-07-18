@@ -88,7 +88,6 @@ func (r Reporter) Run(ctx context.Context) error {
 		for etag := range applied {
 			batch = append(batch, &modelpb.APMEvent{
 				Timestamp: timestamppb.Now(),
-				Processor: modelpb.MetricsetProcessor(),
 				Labels:    modelpb.Labels{"etag": {Value: etag}},
 				Metricset: &modelpb.Metricset{
 					Name: "agent_config",
