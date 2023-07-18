@@ -121,8 +121,8 @@ github.com/eapache/go-xerial-snappy v0.0.0-20230111030713-bf00bc1b83b6 h1:8yY/I9
 github.com/eapache/go-xerial-snappy v0.0.0-20230111030713-bf00bc1b83b6/go.mod h1:YvSRo5mw33fLEx1+DlK6L2VV43tJt5Eyel9n9XBcR+0=
 github.com/eapache/queue v1.1.0 h1:YOEu7KNc61ntiQlcEeUIoDTJ2o8mQznoNvUhiigpIqc=
 github.com/eapache/queue v1.1.0/go.mod h1:6eCeP0CKFpHLu8blIFXhExK/dRa7WDZfr6jVFPTqq+I=
-github.com/elastic/apm-data v0.1.1-0.20230718113335-f2fb13ed21b5 h1:alol/NEyYamcadxnp/F0aOUKqjVWofnT3XihEuL3g58=
-github.com/elastic/apm-data v0.1.1-0.20230718113335-f2fb13ed21b5/go.mod h1:lMTMoCWNadiDJih/tLechuMTtumEeedtKJlBOYAv030=
+github.com/elastic/apm-data v0.1.1-0.20230718152028-9c38d2361527 h1:ASiUA/r0Wwnhn3HXvNuLzn23ljsKJeQRZsDdODlxMco=
+github.com/elastic/apm-data v0.1.1-0.20230718152028-9c38d2361527/go.mod h1:lMTMoCWNadiDJih/tLechuMTtumEeedtKJlBOYAv030=
 github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230717121825-061cb88e68e2 h1:3lB7AGvcZEGzV9TY23cz9UKh/8szgA8fQD+24P0X5n4=
 github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230717121825-061cb88e68e2/go.mod h1:az1fOGOFvJBTLtC8289lI8F2kMY4NDNNkCdh1Chv4jE=
 github.com/elastic/elastic-agent-autodiscover v0.6.2 h1:7P3cbMBWXjbzA80rxitQjc+PiWyZ4I4F4LqrCYgYlNc=
