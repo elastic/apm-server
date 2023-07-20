@@ -6,7 +6,7 @@ require (
 	github.com/docker/docker v23.0.3+incompatible
 	github.com/docker/go-connections v0.4.0
 	github.com/elastic/apm-perf v0.0.0-20230608162138-29920c01cfd6
-	github.com/elastic/apm-tools v0.0.0-20230710072437-2700b8f3f6d4
+	github.com/elastic/apm-tools v0.0.0-20230712130005-87efbbd3dafd
 	github.com/elastic/go-elasticsearch/v8 v8.8.1
 	github.com/google/pprof v0.0.0-20210407192527-94a9f03dee38
 	github.com/hashicorp/go-multierror v1.1.1

@@ -158,8 +158,7 @@
                 "title": "node"
             },
             "processor": {
-                "event": "transaction",
-                "name": "transaction"
+                "event": "transaction"
             },
             "service": {
                 "environment": "staging",

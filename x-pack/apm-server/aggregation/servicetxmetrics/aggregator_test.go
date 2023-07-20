@@ -119,7 +119,6 @@ func TestAggregatorRun(t *testing.T) {
 		batch := expectBatch(t, batches)
 		metricsets := batchMetricsets(t, batch)
 		expected := []*modelpb.APMEvent{{
-			Processor: modelpb.MetricsetProcessor(),
 			Metricset: &modelpb.Metricset{
 				Name: "service_transaction", DocCount: 6, Interval: fmt.Sprintf("%.0fs", interval.Seconds()),
 			},
@@ -143,7 +142,6 @@ func TestAggregatorRun(t *testing.T) {
 				},
 			},
 		}, {
-			Processor: modelpb.MetricsetProcessor(),
 			Metricset: &modelpb.Metricset{
 				Name: "service_transaction", DocCount: 1, Interval: fmt.Sprintf("%.0fs", interval.Seconds()),
 			},
@@ -161,7 +159,6 @@ func TestAggregatorRun(t *testing.T) {
 				},
 			},
 		}, {
-			Processor: modelpb.MetricsetProcessor(),
 			Metricset: &modelpb.Metricset{
 				Name: "service_transaction", DocCount: 1, Interval: fmt.Sprintf("%.0fs", interval.Seconds()),
 			},
@@ -179,7 +176,6 @@ func TestAggregatorRun(t *testing.T) {
 				},
 			},
 		}, {
-			Processor: modelpb.MetricsetProcessor(),
 			Metricset: &modelpb.Metricset{
 				Name: "service_transaction", DocCount: 1, Interval: fmt.Sprintf("%.0fs", interval.Seconds()),
 			},
@@ -197,7 +193,6 @@ func TestAggregatorRun(t *testing.T) {
 				},
 			},
 		}, {
-			Processor: modelpb.MetricsetProcessor(),
 			Metricset: &modelpb.Metricset{
 				Name: "service_transaction", DocCount: 1, Interval: fmt.Sprintf("%.0fs", interval.Seconds()),
 			},
@@ -330,7 +325,6 @@ func TestAggregatorOverflow(t *testing.T) {
 		Service: &modelpb.Service{
 			Name: "_other",
 		},
-		Processor: modelpb.MetricsetProcessor(),
 		Transaction: &modelpb.Transaction{
 			DurationSummary: &modelpb.SummaryMetric{
 				Count: int64(overflowCount),
@@ -375,7 +369,6 @@ func makeTransaction(
 			Outcome:  outcome,
 			Duration: durationpb.New(duration),
 		},
-		Processor: modelpb.TransactionProcessor(),
 		Transaction: &modelpb.Transaction{
 			Name:                "transaction_name",
 			Type:                transactionType,

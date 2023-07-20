@@ -152,10 +152,10 @@ github.com/eapache/queue v1.1.0/go.mod h1:6eCeP0CKFpHLu8blIFXhExK/dRa7WDZfr6jVFP
 github.com/eknkc/amber v0.0.0-20171010120322-cdade1c07385/go.mod h1:0vRUJqYpeSZifjYj7uP3BG/gKcuzL9xWVV/Y+cK33KM=
 github.com/elastic/apm-aggregation v0.0.0-20230713145622-8825af3c7d55 h1:F+wVsgKYU1zxo4EuyOBuUsL1cP7ijsKfUbzTC7p9RJs=
 github.com/elastic/apm-aggregation v0.0.0-20230713145622-8825af3c7d55/go.mod h1:4pPqdJHDOQGXhUUAE7Vm1vgDPl4fD72IIlgWh5x8fHo=
-github.com/elastic/apm-data v0.1.1-0.20230705050140-e5828f1f7c8f h1:vJUX3M0XlOo2DpdMuKk5UzjozBQAFYNrro9JWQqpcg4=
-github.com/elastic/apm-data v0.1.1-0.20230705050140-e5828f1f7c8f/go.mod h1:8HEBtP5evAcAvYeu/Nnn1yrdIoyECqm425/Ggs9JHv8=
-github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230712130343-2dc3f675c783 h1:FhBKIVxI99/AH8zg4Xf3IBAX7IGy3F36XEWuP+dOwW0=
-github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230712130343-2dc3f675c783/go.mod h1:az1fOGOFvJBTLtC8289lI8F2kMY4NDNNkCdh1Chv4jE=
+github.com/elastic/apm-data v0.1.1-0.20230718152028-9c38d2361527 h1:ASiUA/r0Wwnhn3HXvNuLzn23ljsKJeQRZsDdODlxMco=
+github.com/elastic/apm-data v0.1.1-0.20230718152028-9c38d2361527/go.mod h1:lMTMoCWNadiDJih/tLechuMTtumEeedtKJlBOYAv030=
+github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230720121404-8a9d6f6c8a68 h1:aNJfknSh+FpYYhjnUIJCsbk52U5k1X0gIkkzc7GbzUY=
+github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230720121404-8a9d6f6c8a68/go.mod h1:az1fOGOFvJBTLtC8289lI8F2kMY4NDNNkCdh1Chv4jE=
 github.com/elastic/elastic-agent-autodiscover v0.6.2 h1:7P3cbMBWXjbzA80rxitQjc+PiWyZ4I4F4LqrCYgYlNc=
 github.com/elastic/elastic-agent-client/v7 v7.1.2 h1:p6KvvDMoFCBPvchxcx9cRXpRjsDaii0m/wE3lqQxpmM=
 github.com/elastic/elastic-agent-client/v7 v7.1.2/go.mod h1:G3Mk1pHXxvj3wC5FvsGUlPOsvapTB5SfrUmWiJDXT6Q=
@@ -241,8 +241,6 @@ github.com/go-sourcemap/sourcemap v2.1.3+incompatible/go.mod h1:F8jJfvm2KbVjc5Nq
 github.com/gobwas/httphead v0.0.0-20180130184737-2c6c146eadee/go.mod h1:L0fX3K22YWvt/FAX9NnzrNzcI4wNYi9Yku4O0LKYflo=
 github.com/gobwas/pool v0.2.0/go.mod h1:q8bcK0KcYlCgd9e7WYLm9LpyS+YeLd8JVDW6WezmKEw=
 github.com/gobwas/ws v1.0.2/go.mod h1:szmBTxLgaFppYjEmNtny/v3w89xOydFnnZMcgRRu/EM=
-github.com/goccy/go-json v0.10.2 h1:CrxCmQqYDkv1z7lO7Wbh2HN93uovUHgrECaO5ZrCXAU=
-github.com/goccy/go-json v0.10.2/go.mod h1:6MelG93GURQebXPDq3khkgXZkazVtN9CRI+MGFi0w8I=
 github.com/gofrs/flock v0.8.1 h1:+gYjHKf32LDeiEEFhQaotPbLuUXjY5ZqxKgXy7n59aw=
 github.com/gofrs/flock v0.8.1/go.mod h1:F1TvTiK9OcQqauNUHlbJvyl9Qa1QvF/gOUDKA14jxHU=
 github.com/gofrs/uuid v4.4.0+incompatible h1:3qXRTX8/NbyulANqlc0lchS1gqAVxRgsuW1YrTJupqA=
@@ -319,8 +317,6 @@ github.com/google/pprof v0.0.0-20200708004538-1a94d8640e99/go.mod h1:ZgVRPoUq/hf
 github.com/google/pprof v0.0.0-20230426061923-93006964c1fc h1:AGDHt781oIcL4EFk7cPnvBUYTwU8BEU6GDTO3ZMn1sE=
 github.com/google/renameio v0.1.0/go.mod h1:KWCgfxg9yswjAJkECMjeO8J8rahYeXnNhOm40UhjYkI=
 github.com/google/uuid v1.1.2/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
-github.com/google/uuid v1.3.0 h1:t6JiXgmwXMjEs8VusXIJk2BXHsn+wx8BZdTaoZ5fu7I=
-github.com/google/uuid v1.3.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
 github.com/googleapis/gax-go/v2 v2.0.4/go.mod h1:0Wqv26UfaUD9n4G6kQubkQ+KchISgw+vpHVxEJEs9eg=
 github.com/googleapis/gax-go/v2 v2.0.5/go.mod h1:DWXyrwAJ9X0FpwwEdw+IPEYBICEFu5mhpdKc/us6bOk=
 github.com/gopherjs/gopherjs v0.0.0-20181017120253-0766667cb4d1/go.mod h1:wJfORRmW1u3UXTncJ5qlYoELFm8eSnnEO6hX4iZ3EWY=
@@ -350,8 +346,6 @@ github.com/hashicorp/golang-lru v0.5.1/go.mod h1:/m3WP610KZHVQ1SGc6re/UDhFvYD7pJ
 github.com/hashicorp/golang-lru v0.5.4 h1:YDjusn29QI/Das2iO9M0BHnIbxPeyuCHsjMW+lJfyTc=
 github.com/hashicorp/golang-lru v0.5.4/go.mod h1:iADmTwqILo4mZ8BN3D2Q6+9jd8WM5uGBxy+E8yxSoD4=
 github.com/hashicorp/hcl v1.0.0/go.mod h1:E5yfLk+7swimpb2L/Alb/PJmXilQ/rhwaUYs4T20WEQ=
-github.com/hnlq715/golang-lru v0.3.1 h1:Dau3lyBt7QKR4ASQCPZxmRfOvthOS+3QDTCd7aTxyrQ=
-github.com/hnlq715/golang-lru v0.3.1/go.mod h1:RBkgDAtlu0SgTPvpb4VW2/RQnkCBMRD3Lr6B9RhsAS8=
 github.com/hpcloud/tail v1.0.0/go.mod h1:ab1qPbhIpdTxEkNHXyeSf5vhxWSCs/tWer42PpOxQnU=
 github.com/hydrogen18/memlistener v0.0.0-20141126152155-54553eb933fb/go.mod h1:qEIFzExnS6016fRpRfxrExeVn2gbClQA99gQhnIcdhE=
 github.com/ianlancetaylor/demangle v0.0.0-20181102032728-5e5cf60278f6/go.mod h1:aSSvb/t6k1mPoxDqO4vJh6VOCGPwU4O0C2/Eqndh1Sc=

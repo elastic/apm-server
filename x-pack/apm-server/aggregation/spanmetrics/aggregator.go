@@ -209,13 +209,14 @@ func (a *Aggregator) ProcessBatch(ctx context.Context, b *modelpb.Batch) error {
 	a.mu.RLock()
 	defer a.mu.RUnlock()
 	for _, event := range *b {
-		if event.Processor.IsSpan() {
+		eventType := event.Type()
+		if eventType == modelpb.SpanEventType {
 			a.processSpan(event)
 			continue
 		}
 
 		tx := event.Transaction
-		if event.Processor.IsTransaction() && tx != nil {
+		if eventType == modelpb.TransactionEventType && tx != nil {
 			for _, dss := range tx.DroppedSpansStats {
 				a.processDroppedSpanStats(event, dss)
 			}
@@ -529,7 +530,6 @@ func makeMetricset(key aggregationKey, metrics spanMetrics) *modelpb.APMEvent {
 		Labels:        key.Labels,
 		NumericLabels: key.NumericLabels,
 		Event:         event,
-		Processor:     modelpb.MetricsetProcessor(),
 		Metricset: &modelpb.Metricset{
 			Name:     metricsetName,
 			DocCount: int64(math.Round(metrics.count)),

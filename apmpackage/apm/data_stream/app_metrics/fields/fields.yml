@@ -29,9 +29,11 @@
     Network connection type, eg. "wifi", "cell"
 - name: processor.event
   type: constant_keyword
+  value: metric
   description: Processor event.
 - name: processor.name
   type: constant_keyword
+  value: metric
   description: Processor name.
 - name: service.framework.name
   type: keyword

@@ -76,7 +76,6 @@ func TestAggregatorRun(t *testing.T) {
 				Outcome:  "success",
 				Duration: durationpb.New(time.Millisecond),
 			},
-			Processor: modelpb.TransactionProcessor(),
 			Transaction: &modelpb.Transaction{
 				Name:                "transaction_name",
 				Type:                "request",
@@ -93,7 +92,6 @@ func TestAggregatorRun(t *testing.T) {
 			},
 		},
 		{
-			Processor: modelpb.LogProcessor(),
 			Agent: &modelpb.Agent{
 				Name:    "java",
 				Version: "unknown",
@@ -120,7 +118,6 @@ func TestAggregatorRun(t *testing.T) {
 			},
 		},
 		{
-			Processor: modelpb.ErrorProcessor(),
 			Agent: &modelpb.Agent{
 				Name: "go",
 			},
@@ -128,9 +125,9 @@ func TestAggregatorRun(t *testing.T) {
 				Name:     "backend",
 				Language: &modelpb.Language{Name: "go"},
 			},
+			Error: &modelpb.Error{},
 		},
 		{
-			Processor: modelpb.MetricsetProcessor(),
 			Agent: &modelpb.Agent{
 				Name: "go",
 			},
@@ -141,12 +138,14 @@ func TestAggregatorRun(t *testing.T) {
 			},
 		},
 		{
-			Processor: modelpb.SpanProcessor(),
 			Agent: &modelpb.Agent{
 				Name: "js-base",
 			},
 			Service: &modelpb.Service{
 				Name: "frontend",
+			},
+			Span: &modelpb.Span{
+				Type: "span_type",
 			},
 		},
 	}
@@ -174,7 +173,6 @@ func TestAggregatorRun(t *testing.T) {
 		batch := expectBatch(t, batches)
 		metricsets := batchMetricsets(t, batch)
 		expected := []*modelpb.APMEvent{{
-			Processor: modelpb.MetricsetProcessor(),
 			Metricset: &modelpb.Metricset{
 				Name: "service_summary", Interval: fmt.Sprintf("%.0fs", interval.Seconds()),
 			},
@@ -190,14 +188,12 @@ func TestAggregatorRun(t *testing.T) {
 				"cost_center": &modelpb.NumericLabelValue{Value: 10},
 			},
 		}, {
-			Processor: modelpb.MetricsetProcessor(),
 			Metricset: &modelpb.Metricset{
 				Name: "service_summary", Interval: fmt.Sprintf("%.0fs", interval.Seconds()),
 			},
 			Service: &modelpb.Service{Name: "backend", Language: &modelpb.Language{Name: "go"}},
 			Agent:   &modelpb.Agent{Name: "go"},
 		}, {
-			Processor: modelpb.MetricsetProcessor(),
 			Metricset: &modelpb.Metricset{
 				Name: "service_summary", Interval: fmt.Sprintf("%.0fs", interval.Seconds()),
 			},
@@ -307,7 +303,6 @@ func TestAggregatorOverflow(t *testing.T) {
 		Service: &modelpb.Service{
 			Name: "_other",
 		},
-		Processor: modelpb.MetricsetProcessor(),
 		Metricset: &modelpb.Metricset{
 			Name:     "service_summary",
 			Interval: "10s",
@@ -335,7 +330,6 @@ func makeTransaction(
 			Outcome:  outcome,
 			Duration: durationpb.New(duration),
 		},
-		Processor: modelpb.TransactionProcessor(),
 		Transaction: &modelpb.Transaction{
 			Name:                "transaction_name",
 			Type:                transactionType,

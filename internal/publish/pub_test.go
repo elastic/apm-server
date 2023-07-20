@@ -154,7 +154,6 @@ func BenchmarkPublisher(b *testing.B) {
 
 	batch := modelpb.Batch{
 		&modelpb.APMEvent{
-			Processor: modelpb.TransactionProcessor(),
 			Timestamp: timestamppb.Now(),
 		},
 	}

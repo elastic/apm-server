@@ -135,9 +135,10 @@
     The ID of the parent event.
 - name: processor.event
   type: keyword
-  description: Processor event.
+  description: Processor event, either "transaction" or "span".
 - name: processor.name
   type: constant_keyword
+  value: transaction
   description: Processor name.
 - name: service.framework.name
   type: keyword

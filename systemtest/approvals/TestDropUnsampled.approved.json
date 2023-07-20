@@ -36,8 +36,7 @@
                 "title": "systemtest.test"
             },
             "processor": {
-                "event": "transaction",
-                "name": "transaction"
+                "event": "transaction"
             },
             "service": {
                 "language": {
@@ -97,8 +96,7 @@
                 "version": "dynamic"
             },
             "processor": {
-                "event": "transaction",
-                "name": "transaction"
+                "event": "transaction"
             },
             "service": {
                 "name": "allowed"

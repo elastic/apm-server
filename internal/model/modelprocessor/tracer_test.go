@@ -55,19 +55,12 @@ func TestTracer(t *testing.T) {
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
-			batch := modelpb.Batch{
-				{},
-				{Processor: modelpb.TransactionProcessor()},
-				{Processor: modelpb.SpanProcessor()},
-				{Processor: modelpb.TransactionProcessor()},
-			}
-
 			rt := apmtest.NewRecordingTracer()
 			tx := rt.Tracer.StartTransaction("testTx", "")
 			ctx := apm.ContextWithTransaction(context.Background(), tx)
 
 			processor := NewTracer("testSpan", tt.processor)
-			err := processor.ProcessBatch(ctx, &batch)
+			err := processor.ProcessBatch(ctx, &modelpb.Batch{})
 			assert.Equal(t, tt.expectedErr, err)
 
 			tx.End()
