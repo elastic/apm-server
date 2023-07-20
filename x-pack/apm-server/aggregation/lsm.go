@@ -83,7 +83,7 @@ func (a *Aggregator) Stop(ctx context.Context) error {
 // ProcessBatch implements modelpb.BatchProcessor interface
 // so that aggregator can consume events from intake.
 func (a *Aggregator) ProcessBatch(ctx context.Context, b *modelpb.Batch) error {
-	return a.baseaggregator.AggregateBatch(ctx, "", b)
+	return a.baseaggregator.AggregateBatch(ctx, [16]byte{}, b)
 }
 
 func wrapNextProcessor(processor modelpb.BatchProcessor) aggregators.Processor {
