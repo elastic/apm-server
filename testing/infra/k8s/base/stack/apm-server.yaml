@@ -10,6 +10,11 @@ spec:
       selfSignedCertificate:
         disabled: true
   config:
+    apm-server:
+      pprof:
+        enabled: true
+      expvar:
+        enabled: true
     logging:
       level: debug
     output:
