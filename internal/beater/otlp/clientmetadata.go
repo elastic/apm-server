@@ -20,7 +20,6 @@ package otlp
 import (
 	"context"
 	"net"
-	"net/netip"
 
 	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/internal/beater/interceptors"
@@ -43,23 +42,26 @@ func SetClientMetadata(ctx context.Context, batch *modelpb.Batch) error {
 		}
 		clientMetadata, ok := interceptors.ClientMetadataFromContext(ctx)
 		if ok {
-			if _, err := netip.ParseAddr(event.GetSource().GetIp()); err != nil {
+			if event.GetSource().GetIp() == nil {
 				if tcpAddr, ok := clientMetadata.SourceAddr.(*net.TCPAddr); ok {
 					if event.Source == nil {
 						event.Source = &modelpb.Source{}
 					}
-					event.Source.Ip = tcpAddr.IP.String()
-					event.Source.Port = uint32(tcpAddr.Port)
+					sourceAddrPort := tcpAddr.AddrPort()
+					event.Source.Ip = modelpb.Addr2IP(sourceAddrPort.Addr().Unmap())
+					event.Source.Port = uint32(sourceAddrPort.Port())
 				}
 			}
-			if _, err := netip.ParseAddr(event.GetClient().GetIp()); err != nil {
+			if event.GetClient().GetIp() == nil && clientMetadata.ClientIP.IsValid() {
 				if event.Client == nil {
 					event.Client = &modelpb.Client{}
 				}
-				event.Client.Ip = clientMetadata.ClientIP.String()
+				event.Client.Ip = modelpb.Addr2IP(clientMetadata.ClientIP)
 			}
 			if clientMetadata.SourceNATIP.IsValid() {
-				event.Source.Nat = &modelpb.NAT{Ip: clientMetadata.SourceNATIP.String()}
+				event.Source.Nat = &modelpb.NAT{
+					Ip: modelpb.Addr2IP(clientMetadata.SourceNATIP),
+				}
 			}
 		}
 	}

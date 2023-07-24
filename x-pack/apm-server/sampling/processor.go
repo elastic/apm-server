@@ -143,11 +143,11 @@ func (p *Processor) ProcessBatch(ctx context.Context, batch *modelpb.Batch) erro
 		event := events[i]
 		var report, stored, failed bool
 		var err error
-		switch {
-		case event.Processor.IsTransaction():
+		switch event.Type() {
+		case modelpb.TransactionEventType:
 			atomic.AddInt64(&p.eventMetrics.processed, 1)
 			report, stored, err = p.processTransaction(event)
-		case event.Processor.IsSpan():
+		case modelpb.SpanEventType:
 			atomic.AddInt64(&p.eventMetrics.processed, 1)
 			report, stored, err = p.processSpan(event)
 		default:
@@ -526,12 +526,12 @@ func (p *Processor) Run() error {
 					// we don't publish duplicates; delivery is therefore
 					// at-most-once, not guaranteed.
 					for _, event := range events {
-						switch {
-						case event.Processor.IsTransaction():
+						switch event.Type() {
+						case modelpb.TransactionEventType:
 							if err := p.eventStore.DeleteTraceEvent(event.Trace.Id, event.Transaction.Id); err != nil {
 								return errors.Wrap(err, "failed to delete transaction from local storage")
 							}
-						case event.Processor.IsSpan():
+						case modelpb.SpanEventType:
 							if err := p.eventStore.DeleteTraceEvent(event.Trace.Id, event.Span.Id); err != nil {
 								return errors.Wrap(err, "failed to delete span from local storage")
 							}

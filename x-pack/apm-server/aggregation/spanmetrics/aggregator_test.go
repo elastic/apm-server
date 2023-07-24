@@ -119,8 +119,7 @@ func TestAggregatorRun(t *testing.T) {
 								Name: trgNameX,
 							},
 						},
-						Event:     &modelpb.Event{Outcome: "success"},
-						Processor: modelpb.MetricsetProcessor(),
+						Event: &modelpb.Event{Outcome: "success"},
 						Metricset: &modelpb.Metricset{
 							Name:     "service_destination",
 							Interval: fmt.Sprintf("%.0fs", interval.Seconds()),
@@ -155,8 +154,7 @@ func TestAggregatorRun(t *testing.T) {
 								Name: trgNameZ,
 							},
 						},
-						Event:     &modelpb.Event{Outcome: "failure"},
-						Processor: modelpb.MetricsetProcessor(),
+						Event: &modelpb.Event{Outcome: "failure"},
 						Metricset: &modelpb.Metricset{
 							Name:     "service_destination",
 							Interval: fmt.Sprintf("%.0fs", interval.Seconds()),
@@ -191,8 +189,7 @@ func TestAggregatorRun(t *testing.T) {
 								Name: trgNameZ,
 							},
 						},
-						Event:     &modelpb.Event{Outcome: "success"},
-						Processor: modelpb.MetricsetProcessor(),
+						Event: &modelpb.Event{Outcome: "success"},
 						Metricset: &modelpb.Metricset{
 							Name:     "service_destination",
 							Interval: fmt.Sprintf("%.0fs", interval.Seconds()),
@@ -227,8 +224,7 @@ func TestAggregatorRun(t *testing.T) {
 								Name: trgNameZ,
 							},
 						},
-						Event:     &modelpb.Event{Outcome: "success"},
-						Processor: modelpb.MetricsetProcessor(),
+						Event: &modelpb.Event{Outcome: "success"},
 						Metricset: &modelpb.Metricset{
 							Name:     "service_destination",
 							Interval: fmt.Sprintf("%.0fs", interval.Seconds()),
@@ -285,8 +281,7 @@ func TestAggregatorRun(t *testing.T) {
 								Name: trgNameZ,
 							},
 						},
-						Event:     &modelpb.Event{Outcome: "success"},
-						Processor: modelpb.MetricsetProcessor(),
+						Event: &modelpb.Event{Outcome: "success"},
 						Metricset: &modelpb.Metricset{
 							Name:     "service_destination",
 							Interval: fmt.Sprintf("%.0fs", interval.Seconds()),
@@ -328,8 +323,7 @@ func TestAggregatorRun(t *testing.T) {
 						Service: &modelpb.Service{
 							Name: "service-A",
 						},
-						Event:     &modelpb.Event{Outcome: "success"},
-						Processor: modelpb.MetricsetProcessor(),
+						Event: &modelpb.Event{Outcome: "success"},
 						Metricset: &modelpb.Metricset{
 							Name:     "service_destination",
 							Interval: fmt.Sprintf("%.0fs", interval.Seconds()),
@@ -462,7 +456,6 @@ func TestAggregateCompositeSpan(t *testing.T) {
 			},
 		},
 		Event:     &modelpb.Event{Outcome: "success"},
-		Processor: modelpb.MetricsetProcessor(),
 		Metricset: &modelpb.Metricset{Name: "service_destination", Interval: "0s", DocCount: 50},
 		Span: &modelpb.Span{
 			Name: "service-A:final_destination",
@@ -504,8 +497,8 @@ func TestAggregateTransactionDroppedSpansStats(t *testing.T) {
 			Outcome:  "success",
 			Duration: durationpb.New(10 * time.Second),
 		},
-		Processor: modelpb.TransactionProcessor(),
 		Transaction: &modelpb.Transaction{
+			Type:                "transaction_type",
 			RepresentativeCount: 2,
 			DroppedSpansStats: []*modelpb.DroppedSpanStats{
 				{
@@ -537,8 +530,8 @@ func TestAggregateTransactionDroppedSpansStats(t *testing.T) {
 			Outcome:  "success",
 			Duration: durationpb.New(10 * time.Second),
 		},
-		Processor: modelpb.TransactionProcessor(),
 		Transaction: &modelpb.Transaction{
+			Type:                "transaction_type",
 			RepresentativeCount: 1,
 			DroppedSpansStats: []*modelpb.DroppedSpanStats{
 				{
@@ -556,8 +549,8 @@ func TestAggregateTransactionDroppedSpansStats(t *testing.T) {
 	}
 
 	txWithNoRepresentativeCount := modelpb.APMEvent{
-		Processor: modelpb.TransactionProcessor(),
 		Transaction: &modelpb.Transaction{
+			Type:                "transaction_type",
 			RepresentativeCount: 0,
 			DroppedSpansStats:   make([]*modelpb.DroppedSpanStats, 1),
 		},
@@ -585,7 +578,6 @@ func TestAggregateTransactionDroppedSpansStats(t *testing.T) {
 				Name: "go-service",
 			},
 			Event:     &modelpb.Event{Outcome: "success"},
-			Processor: modelpb.MetricsetProcessor(),
 			Metricset: &modelpb.Metricset{Name: "service_destination", Interval: "0s", DocCount: 20},
 			Span: &modelpb.Span{
 				DestinationService: &modelpb.DestinationService{
@@ -607,7 +599,6 @@ func TestAggregateTransactionDroppedSpansStats(t *testing.T) {
 				},
 			},
 			Event:     &modelpb.Event{Outcome: "success"},
-			Processor: modelpb.MetricsetProcessor(),
 			Metricset: &modelpb.Metricset{Name: "service_destination", Interval: "0s", DocCount: 10},
 			Span: &modelpb.Span{
 				DestinationService: &modelpb.DestinationService{
@@ -625,7 +616,6 @@ func TestAggregateTransactionDroppedSpansStats(t *testing.T) {
 				Name: "go-service",
 			},
 			Event:     &modelpb.Event{Outcome: "unknown"},
-			Processor: modelpb.MetricsetProcessor(),
 			Metricset: &modelpb.Metricset{Name: "service_destination", Interval: "0s", DocCount: 4},
 			Span: &modelpb.Span{
 				DestinationService: &modelpb.DestinationService{
@@ -765,7 +755,6 @@ func TestAggregatorOverflow(t *testing.T) {
 		Service: &modelpb.Service{
 			Name: "_other",
 		},
-		Processor: modelpb.MetricsetProcessor(),
 		Metricset: &modelpb.Metricset{
 			Name:     "service_destination",
 			DocCount: int64(overflowCount),
@@ -805,8 +794,8 @@ func makeSpan(
 			Outcome:  outcome,
 			Duration: durationpb.New(duration),
 		},
-		Processor: modelpb.SpanProcessor(),
 		Span: &modelpb.Span{
+			Type:                "span_type",
 			Name:                serviceName + ":" + destinationServiceResource,
 			RepresentativeCount: count,
 		},

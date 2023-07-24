@@ -103,8 +103,7 @@
                 "title": "node"
             },
             "processor": {
-                "event": "span",
-                "name": "transaction"
+                "event": "span"
             },
             "service": {
                 "environment": "staging",
@@ -308,8 +307,7 @@
                 "title": "node"
             },
             "processor": {
-                "event": "span",
-                "name": "transaction"
+                "event": "span"
             },
             "service": {
                 "environment": "staging",
@@ -446,8 +444,7 @@
                 "title": "node"
             },
             "processor": {
-                "event": "span",
-                "name": "transaction"
+                "event": "span"
             },
             "service": {
                 "environment": "staging",
@@ -580,8 +577,7 @@
                 "title": "node"
             },
             "processor": {
-                "event": "span",
-                "name": "transaction"
+                "event": "span"
             },
             "service": {
                 "environment": "prod",
@@ -714,8 +710,7 @@
                 "title": "node"
             },
             "processor": {
-                "event": "span",
-                "name": "transaction"
+                "event": "span"
             },
             "service": {
                 "environment": "staging",
@@ -874,8 +869,7 @@
                 "title": "node"
             },
             "processor": {
-                "event": "span",
-                "name": "transaction"
+                "event": "span"
             },
             "service": {
                 "environment": "staging",
@@ -1083,8 +1077,7 @@
                 "title": "node"
             },
             "processor": {
-                "event": "span",
-                "name": "transaction"
+                "event": "span"
             },
             "service": {
                 "environment": "staging",
@@ -1233,8 +1226,7 @@
                 "title": "node"
             },
             "processor": {
-                "event": "span",
-                "name": "transaction"
+                "event": "span"
             },
             "service": {
                 "environment": "staging",
@@ -1374,8 +1366,7 @@
                 "title": "node"
             },
             "processor": {
-                "event": "span",
-                "name": "transaction"
+                "event": "span"
             },
             "service": {
                 "environment": "staging",
@@ -1539,8 +1530,7 @@
                 "title": "node"
             },
             "processor": {
-                "event": "span",
-                "name": "transaction"
+                "event": "span"
             },
             "service": {
                 "environment": "staging",

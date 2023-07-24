@@ -3,13 +3,18 @@ kind: ApmServer
 metadata:
   name: apm-server
 spec:
-  version: 8.10.0-464beb1d-SNAPSHOT
+  version: 8.10.0-506cd98d-SNAPSHOT
   count: 1
   http:
     tls:
       selfSignedCertificate:
         disabled: true
   config:
+    apm-server:
+      pprof:
+        enabled: true
+      expvar:
+        enabled: true
     logging:
       level: debug
     output:

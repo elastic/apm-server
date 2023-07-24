@@ -33,10 +33,10 @@ import (
 )
 
 func TestSetClientMetadata(t *testing.T) {
-	netip1234 := "1.2.3.4"
-	ip1234 := net.ParseIP("1.2.3.4")
-	ip5678 := netip.MustParseAddr("5.6.7.8")
-	ip10 := netip.MustParseAddr("10.10.10.10")
+	modelpbIP1234 := modelpb.MustParseIP("1.2.3.4")
+	netIP1234 := net.ParseIP("1.2.3.4")
+	netipAddr5678 := netip.MustParseAddr("5.6.7.8")
+	netipAddr10 := netip.MustParseAddr("10.10.10.10")
 
 	for _, test := range []struct {
 		ctx      context.Context
@@ -45,20 +45,20 @@ func TestSetClientMetadata(t *testing.T) {
 	}{{
 		ctx: context.Background(),
 		in: &modelpb.APMEvent{
-			Client: &modelpb.Client{Ip: netip1234},
+			Client: &modelpb.Client{Ip: modelpbIP1234},
 		},
 		expected: &modelpb.APMEvent{
-			Client: &modelpb.Client{Ip: netip1234},
+			Client: &modelpb.Client{Ip: modelpbIP1234},
 		},
 	}, {
 		ctx: context.Background(),
 		in: &modelpb.APMEvent{
 			Agent:  &modelpb.Agent{Name: "iOS/swift"},
-			Client: &modelpb.Client{Ip: netip1234},
+			Client: &modelpb.Client{Ip: modelpbIP1234},
 		},
 		expected: &modelpb.APMEvent{
 			Agent:  &modelpb.Agent{Name: "iOS/swift"},
-			Client: &modelpb.Client{Ip: netip1234},
+			Client: &modelpb.Client{Ip: modelpbIP1234},
 		},
 	}, {
 		ctx: context.Background(),
@@ -72,11 +72,11 @@ func TestSetClientMetadata(t *testing.T) {
 		ctx: context.Background(),
 		in: &modelpb.APMEvent{
 			Agent:  &modelpb.Agent{Name: "android/java"},
-			Client: &modelpb.Client{Ip: netip1234},
+			Client: &modelpb.Client{Ip: modelpbIP1234},
 		},
 		expected: &modelpb.APMEvent{
 			Agent:  &modelpb.Agent{Name: "android/java"},
-			Client: &modelpb.Client{Ip: netip1234},
+			Client: &modelpb.Client{Ip: modelpbIP1234},
 		},
 	}, {
 		ctx: context.Background(),
@@ -88,64 +88,64 @@ func TestSetClientMetadata(t *testing.T) {
 		},
 	}, {
 		ctx: interceptors.ContextWithClientMetadata(context.Background(), interceptors.ClientMetadataValues{
-			SourceAddr: &net.TCPAddr{IP: ip1234, Port: 4321},
-			ClientIP:   ip5678,
+			SourceAddr: &net.TCPAddr{IP: netIP1234, Port: 4321},
+			ClientIP:   netipAddr5678,
 		}),
 		in: &modelpb.APMEvent{
 			Agent: &modelpb.Agent{Name: "iOS/swift"},
 		},
 		expected: &modelpb.APMEvent{
 			Agent:  &modelpb.Agent{Name: "iOS/swift"},
-			Client: &modelpb.Client{Ip: ip5678.String()},
-			Source: &modelpb.Source{Ip: netip1234, Port: 4321},
+			Client: &modelpb.Client{Ip: modelpb.Addr2IP(netipAddr5678)},
+			Source: &modelpb.Source{Ip: modelpbIP1234, Port: 4321},
 		},
 	}, {
 		ctx: interceptors.ContextWithClientMetadata(context.Background(), interceptors.ClientMetadataValues{
-			SourceAddr:  &net.TCPAddr{IP: ip1234, Port: 4321},
-			SourceNATIP: ip10,
-			ClientIP:    ip5678,
+			SourceAddr:  &net.TCPAddr{IP: netIP1234, Port: 4321},
+			SourceNATIP: netipAddr10,
+			ClientIP:    netipAddr5678,
 		}),
 		in: &modelpb.APMEvent{
 			Agent: &modelpb.Agent{Name: "iOS/swift"},
 		},
 		expected: &modelpb.APMEvent{
 			Agent:  &modelpb.Agent{Name: "iOS/swift"},
-			Client: &modelpb.Client{Ip: ip5678.String()},
+			Client: &modelpb.Client{Ip: modelpb.Addr2IP(netipAddr5678)},
 			Source: &modelpb.Source{
-				Ip:   netip1234,
+				Ip:   modelpbIP1234,
 				Port: 4321,
-				Nat:  &modelpb.NAT{Ip: ip10.String()},
+				Nat:  &modelpb.NAT{Ip: modelpb.Addr2IP(netipAddr10)},
 			},
 		},
 	}, {
 		ctx: interceptors.ContextWithClientMetadata(context.Background(), interceptors.ClientMetadataValues{
-			SourceAddr: &net.TCPAddr{IP: ip1234, Port: 4321},
-			ClientIP:   ip5678,
+			SourceAddr: &net.TCPAddr{IP: netIP1234, Port: 4321},
+			ClientIP:   netipAddr5678,
 		}),
 		in: &modelpb.APMEvent{
 			Agent: &modelpb.Agent{Name: "android/java"},
 		},
 		expected: &modelpb.APMEvent{
 			Agent:  &modelpb.Agent{Name: "android/java"},
-			Client: &modelpb.Client{Ip: ip5678.String()},
-			Source: &modelpb.Source{Ip: netip1234, Port: 4321},
+			Client: &modelpb.Client{Ip: modelpb.Addr2IP(netipAddr5678)},
+			Source: &modelpb.Source{Ip: modelpbIP1234, Port: 4321},
 		},
 	}, {
 		ctx: interceptors.ContextWithClientMetadata(context.Background(), interceptors.ClientMetadataValues{
-			SourceAddr:  &net.TCPAddr{IP: ip1234, Port: 4321},
-			SourceNATIP: ip10,
-			ClientIP:    ip5678,
+			SourceAddr:  &net.TCPAddr{IP: netIP1234, Port: 4321},
+			SourceNATIP: netipAddr10,
+			ClientIP:    netipAddr5678,
 		}),
 		in: &modelpb.APMEvent{
 			Agent: &modelpb.Agent{Name: "android/java"},
 		},
 		expected: &modelpb.APMEvent{
 			Agent:  &modelpb.Agent{Name: "android/java"},
-			Client: &modelpb.Client{Ip: ip5678.String()},
+			Client: &modelpb.Client{Ip: modelpb.Addr2IP(netipAddr5678)},
 			Source: &modelpb.Source{
-				Ip:   netip1234,
+				Ip:   modelpbIP1234,
 				Port: 4321,
-				Nat:  &modelpb.NAT{Ip: ip10.String()},
+				Nat:  &modelpb.NAT{Ip: modelpb.Addr2IP(netipAddr10)},
 			},
 		},
 	}} {
