@@ -724,7 +724,7 @@ func TestWrapServer(t *testing.T) {
 			args.BatchProcessor = modelpb.ProcessBatchFunc(func(ctx context.Context, batch *modelpb.Batch) error {
 				for i := range *batch {
 					event := (*batch)[i]
-					if !event.Processor.IsTransaction() {
+					if event.Type() != modelpb.TransactionEventType {
 						continue
 					}
 					// Add a label to test that everything

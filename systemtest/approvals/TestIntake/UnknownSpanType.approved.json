@@ -65,8 +65,7 @@
                 "title": "node"
             },
             "processor": {
-                "event": "span",
-                "name": "transaction"
+                "event": "span"
             },
             "service": {
                 "environment": "staging",
@@ -270,8 +269,7 @@
                 "title": "node"
             },
             "processor": {
-                "event": "transaction",
-                "name": "transaction"
+                "event": "transaction"
             },
             "service": {
                 "environment": "staging",

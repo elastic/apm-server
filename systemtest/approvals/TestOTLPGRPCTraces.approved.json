@@ -54,10 +54,6 @@
             "parent": {
                 "id": "b3ee9be3b687a611"
             },
-            "processor": {
-                "event": "error",
-                "name": "error"
-            },
             "service": {
                 "framework": {
                     "name": "systemtest"
@@ -90,7 +86,8 @@
             "data_stream.type": "logs",
             "event": {
                 "agent_id_status": "missing",
-                "ingested": "dynamic"
+                "ingested": "dynamic",
+                "kind": "event"
             },
             "labels": {
                 "resource_attribute_array": [
@@ -116,10 +113,6 @@
                 "hostname": "dynamic",
                 "type": "apm-server",
                 "version": "dynamic"
-            },
-            "processor": {
-                "event": "log",
-                "name": "log"
             },
             "service": {
                 "framework": {
@@ -181,8 +174,7 @@
                 "version": "dynamic"
             },
             "processor": {
-                "event": "transaction",
-                "name": "transaction"
+                "event": "transaction"
             },
             "service": {
                 "framework": {

@@ -106,8 +106,7 @@
                 "version": "dynamic"
             },
             "processor": {
-                "event": "transaction",
-                "name": "transaction"
+                "event": "transaction"
             },
             "service": {
                 "name": "rum-js-test"

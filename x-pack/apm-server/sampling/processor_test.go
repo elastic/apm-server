@@ -39,11 +39,11 @@ func TestProcessUnsampled(t *testing.T) {
 	defer processor.Stop(context.Background())
 
 	in := modelpb.Batch{{
-		Processor: modelpb.TransactionProcessor(),
 		Trace: &modelpb.Trace{
 			Id: "0102030405060708090a0b0c0d0e0f10",
 		},
 		Transaction: &modelpb.Transaction{
+			Type:    "type",
 			Id:      "0102030405060708",
 			Sampled: false,
 		},
@@ -92,33 +92,33 @@ func TestProcessAlreadyTailSampled(t *testing.T) {
 	defer processor.Stop(context.Background())
 
 	transaction1 := modelpb.APMEvent{
-		Processor: modelpb.TransactionProcessor(),
-		Trace:     &trace1,
+		Trace: &trace1,
 		Transaction: &modelpb.Transaction{
+			Type:    "type",
 			Id:      "0102030405060708",
 			Sampled: true,
 		},
 	}
 	span1 := modelpb.APMEvent{
-		Processor: modelpb.SpanProcessor(),
-		Trace:     &trace1,
+		Trace: &trace1,
 		Span: &modelpb.Span{
-			Id: "0102030405060709",
+			Type: "type",
+			Id:   "0102030405060709",
 		},
 	}
 	transaction2 := modelpb.APMEvent{
-		Processor: modelpb.TransactionProcessor(),
-		Trace:     &trace2,
+		Trace: &trace2,
 		Transaction: &modelpb.Transaction{
+			Type:    "type",
 			Id:      "0102030405060710",
 			Sampled: true,
 		},
 	}
 	span2 := modelpb.APMEvent{
-		Processor: modelpb.SpanProcessor(),
-		Trace:     &trace2,
+		Trace: &trace2,
 		Span: &modelpb.Span{
-			Id: "0102030405060711",
+			Type: "type",
+			Id:   "0102030405060711",
 		},
 	}
 
@@ -169,35 +169,35 @@ func TestProcessLocalTailSampling(t *testing.T) {
 	trace1 := modelpb.Trace{Id: "0102030405060708090a0b0c0d0e0f10"}
 	trace2 := modelpb.Trace{Id: "0102030405060708090a0b0c0d0e0f11"}
 	trace1Events := modelpb.Batch{{
-		Processor: modelpb.TransactionProcessor(),
-		Trace:     &trace1,
-		Event:     &modelpb.Event{Duration: durationpb.New(123 * time.Millisecond)},
+		Trace: &trace1,
+		Event: &modelpb.Event{Duration: durationpb.New(123 * time.Millisecond)},
 		Transaction: &modelpb.Transaction{
+			Type:    "type",
 			Id:      "0102030405060708",
 			Sampled: true,
 		},
 	}, {
-		Processor: modelpb.SpanProcessor(),
-		Trace:     &trace1,
-		Event:     &modelpb.Event{Duration: durationpb.New(123 * time.Millisecond)},
+		Trace: &trace1,
+		Event: &modelpb.Event{Duration: durationpb.New(123 * time.Millisecond)},
 		Span: &modelpb.Span{
-			Id: "0102030405060709",
+			Type: "type",
+			Id:   "0102030405060709",
 		},
 	}}
 	trace2Events := modelpb.Batch{{
-		Processor: modelpb.TransactionProcessor(),
-		Trace:     &trace2,
-		Event:     &modelpb.Event{Duration: durationpb.New(456 * time.Millisecond)},
+		Trace: &trace2,
+		Event: &modelpb.Event{Duration: durationpb.New(456 * time.Millisecond)},
 		Transaction: &modelpb.Transaction{
+			Type:    "type",
 			Id:      "0102030405060710",
 			Sampled: true,
 		},
 	}, {
-		Processor: modelpb.SpanProcessor(),
-		Trace:     &trace2,
-		Event:     &modelpb.Event{Duration: durationpb.New(456 * time.Millisecond)},
+		Trace: &trace2,
+		Event: &modelpb.Event{Duration: durationpb.New(456 * time.Millisecond)},
 		Span: &modelpb.Span{
-			Id: "0102030405060711",
+			Type: "type",
+			Id:   "0102030405060711",
 		},
 	}}
 
@@ -290,10 +290,10 @@ func TestProcessLocalTailSamplingUnsampled(t *testing.T) {
 		traceID := uuid.Must(uuid.NewV4()).String()
 		traceIDs[i] = traceID
 		batch := modelpb.Batch{{
-			Processor: modelpb.TransactionProcessor(),
-			Trace:     &modelpb.Trace{Id: traceID},
-			Event:     &modelpb.Event{Duration: durationpb.New(time.Millisecond)},
+			Trace: &modelpb.Trace{Id: traceID},
+			Event: &modelpb.Event{Duration: durationpb.New(time.Millisecond)},
 			Transaction: &modelpb.Transaction{
+				Type:    "type",
 				Id:      traceID,
 				Sampled: true,
 			},
@@ -361,11 +361,11 @@ func TestProcessLocalTailSamplingPolicyOrder(t *testing.T) {
 		_, err := rng.Read(traceIDBytes[:])
 		require.NoError(t, err)
 		events[i] = &modelpb.APMEvent{
-			Service:   &service,
-			Processor: modelpb.TransactionProcessor(),
-			Trace:     &modelpb.Trace{Id: fmt.Sprintf("%x", traceIDBytes[:])},
-			Event:     &modelpb.Event{Duration: durationpb.New(123 * time.Millisecond)},
+			Service: &service,
+			Trace:   &modelpb.Trace{Id: fmt.Sprintf("%x", traceIDBytes[:])},
+			Event:   &modelpb.Event{Duration: durationpb.New(123 * time.Millisecond)},
 			Transaction: &modelpb.Transaction{
+				Type:    "type",
 				Name:    "trace_name",
 				Id:      fmt.Sprintf("%x", traceIDBytes[8:]),
 				Sampled: true,
@@ -431,11 +431,11 @@ func TestProcessRemoteTailSampling(t *testing.T) {
 	traceID1 := "0102030405060708090a0b0c0d0e0f10"
 	traceID2 := "0102030405060708090a0b0c0d0e0f11"
 	trace1Events := modelpb.Batch{{
-		Processor: modelpb.SpanProcessor(),
-		Trace:     &modelpb.Trace{Id: traceID1},
-		Event:     &modelpb.Event{Duration: durationpb.New(123 * time.Millisecond)},
+		Trace: &modelpb.Trace{Id: traceID1},
+		Event: &modelpb.Event{Duration: durationpb.New(123 * time.Millisecond)},
 		Span: &modelpb.Span{
-			Id: "0102030405060709",
+			Type: "type",
+			Id:   "0102030405060709",
 		},
 	}}
 
@@ -515,11 +515,11 @@ func TestGroupsMonitoring(t *testing.T) {
 
 	for i := 0; i < config.MaxDynamicServices+2; i++ {
 		err := processor.ProcessBatch(context.Background(), &modelpb.Batch{{
-			Service:   &modelpb.Service{Name: fmt.Sprintf("service_%d", i)},
-			Processor: modelpb.TransactionProcessor(),
-			Trace:     &modelpb.Trace{Id: uuid.Must(uuid.NewV4()).String()},
-			Event:     &modelpb.Event{Duration: durationpb.New(123 * time.Millisecond)},
+			Service: &modelpb.Service{Name: fmt.Sprintf("service_%d", i)},
+			Trace:   &modelpb.Trace{Id: uuid.Must(uuid.NewV4()).String()},
+			Event:   &modelpb.Event{Duration: durationpb.New(123 * time.Millisecond)},
 			Transaction: &modelpb.Transaction{
+				Type:    "type",
 				Id:      "0102030405060709",
 				Sampled: i < config.MaxDynamicServices+1,
 			},
@@ -548,10 +548,10 @@ func TestStorageMonitoring(t *testing.T) {
 	for i := 0; i < 100; i++ {
 		traceID := uuid.Must(uuid.NewV4()).String()
 		batch := modelpb.Batch{{
-			Processor: modelpb.TransactionProcessor(),
-			Trace:     &modelpb.Trace{Id: traceID},
-			Event:     &modelpb.Event{Duration: durationpb.New(123 * time.Millisecond)},
+			Trace: &modelpb.Trace{Id: traceID},
+			Event: &modelpb.Event{Duration: durationpb.New(123 * time.Millisecond)},
 			Transaction: &modelpb.Transaction{
+				Type:    "type",
 				Id:      traceID,
 				Sampled: true,
 			},
@@ -602,11 +602,11 @@ func TestStorageGC(t *testing.T) {
 		for i := 0; i < n; i++ {
 			traceID := uuid.Must(uuid.NewV4()).String()
 			batch := modelpb.Batch{{
-				Processor: modelpb.SpanProcessor(),
-				Trace:     &modelpb.Trace{Id: traceID},
-				Event:     &modelpb.Event{Duration: durationpb.New(123 * time.Millisecond)},
+				Trace: &modelpb.Trace{Id: traceID},
+				Event: &modelpb.Event{Duration: durationpb.New(123 * time.Millisecond)},
 				Span: &modelpb.Span{
-					Id: traceID,
+					Type: "type",
+					Id:   traceID,
 				},
 			}}
 			err := processor.ProcessBatch(context.Background(), &batch)
@@ -673,10 +673,12 @@ func TestStorageLimit(t *testing.T) {
 		for i := 0; i < n; i++ {
 			traceID := uuid.Must(uuid.NewV4()).String()
 			batch = append(batch, &modelpb.APMEvent{
-				Processor: modelpb.SpanProcessor(),
-				Trace:     &modelpb.Trace{Id: traceID},
-				Event:     &modelpb.Event{Duration: durationpb.New(123 * time.Millisecond)},
-				Span:      &modelpb.Span{Id: traceID},
+				Trace: &modelpb.Trace{Id: traceID},
+				Event: &modelpb.Event{Duration: durationpb.New(123 * time.Millisecond)},
+				Span: &modelpb.Span{
+					Type: "type",
+					Id:   traceID,
+				},
 			})
 		}
 		err = processor.ProcessBatch(context.Background(), &batch)
@@ -759,9 +761,9 @@ func TestGracefulShutdown(t *testing.T) {
 	var batch modelpb.Batch
 	for i := 0; i < totalTraces; i++ {
 		batch = append(batch, &modelpb.APMEvent{
-			Processor: modelpb.TransactionProcessor(),
-			Trace:     &modelpb.Trace{Id: traceIDGen(i)},
+			Trace: &modelpb.Trace{Id: traceIDGen(i)},
 			Transaction: &modelpb.Transaction{
+				Type:    "type",
 				Id:      fmt.Sprintf("tx%d", i),
 				Sampled: true,
 			},

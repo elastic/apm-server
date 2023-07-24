@@ -311,7 +311,9 @@ func backendRequestMetadataFunc(cfg *config.Config) func(c *request.Context) *mo
 		}
 
 		if c.ClientIP.IsValid() {
-			e.Host = &modelpb.Host{Ip: []string{c.ClientIP.String()}}
+			e.Host = &modelpb.Host{
+				Ip: []*modelpb.IP{modelpb.Addr2IP(c.ClientIP)},
+			}
 		}
 		return &e
 	}
@@ -329,16 +331,16 @@ func rumRequestMetadataFunc(cfg *config.Config) func(c *request.Context) *modelp
 			e.UserAgent = &modelpb.UserAgent{Original: c.UserAgent}
 		}
 		if c.ClientIP.IsValid() {
-			e.Client = &modelpb.Client{Ip: c.ClientIP.String()}
+			e.Client = &modelpb.Client{Ip: modelpb.Addr2IP(c.ClientIP)}
 		}
 		if c.SourcePort != 0 || c.SourceIP.IsValid() {
 			e.Source = &modelpb.Source{Port: uint32(c.SourcePort)}
 			if c.SourceIP.IsValid() {
-				e.Source.Ip = c.SourceIP.String()
+				e.Source.Ip = modelpb.Addr2IP(c.SourceIP)
 			}
 		}
 		if c.SourceNATIP.IsValid() {
-			e.Source.Nat = &modelpb.NAT{Ip: c.SourceNATIP.String()}
+			e.Source.Nat = &modelpb.NAT{Ip: modelpb.Addr2IP(c.SourceNATIP)}
 		}
 		return &e
 	}

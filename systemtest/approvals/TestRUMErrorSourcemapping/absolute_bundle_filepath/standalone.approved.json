@@ -266,10 +266,6 @@
                 "type": "apm-server",
                 "version": "dynamic"
             },
-            "processor": {
-                "event": "error",
-                "name": "error"
-            },
             "service": {
                 "name": "apm-agent-js",
                 "version": "1.0.1"

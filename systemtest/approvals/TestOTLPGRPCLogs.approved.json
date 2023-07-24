@@ -29,10 +29,6 @@
                 "type": "apm-server",
                 "version": "dynamic"
             },
-            "processor": {
-                "event": "log",
-                "name": "log"
-            },
             "service": {
                 "language": {
                     "name": "go"

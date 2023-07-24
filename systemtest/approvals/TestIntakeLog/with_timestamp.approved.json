@@ -16,7 +16,8 @@
             "data_stream.type": "logs",
             "event": {
                 "agent_id_status": "missing",
-                "ingested": "dynamic"
+                "ingested": "dynamic",
+                "kind": "event"
             },
             "host": {
                 "architecture": "amd64",
@@ -61,10 +62,6 @@
                 },
                 "pid": 1234,
                 "title": "/usr/lib/jvm/java-10-openjdk-amd64/bin/java"
-            },
-            "processor": {
-                "event": "log",
-                "name": "log"
             },
             "service": {
                 "environment": "production",
