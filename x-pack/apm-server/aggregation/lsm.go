@@ -8,6 +8,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"sync"
 	"time"
 
 	"go.opentelemetry.io/otel"
@@ -22,6 +23,10 @@ import (
 type Aggregator struct {
 	logger         *zap.Logger
 	baseaggregator *aggregators.Aggregator
+	writerPool     sync.Pool
+
+	stopOnce sync.Once
+	stopped  chan struct{}
 }
 
 // NewAggregator returns a new instance of aggregator.
@@ -62,28 +67,43 @@ func NewAggregator(
 	agg := &Aggregator{
 		logger:         zapLogger,
 		baseaggregator: baseaggregator,
+		stopped:        make(chan struct{}),
 	}
 	return agg, err
 }
 
 // Run runs all the components of aggregator.
 func (a *Aggregator) Run() error {
-	return a.baseaggregator.Run(context.TODO())
+	if err := a.baseaggregator.StartHarvesting(); err != nil {
+		return err
+	}
+	<-a.stopped
+	return nil
 }
 
 // Stop stops all the component for aggregator.
 func (a *Aggregator) Stop(ctx context.Context) error {
-	err := a.baseaggregator.Stop(ctx)
+	err := a.baseaggregator.Close(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to stop aggregator: %w", err)
 	}
+	a.stopOnce.Do(func() { close(a.stopped) })
 	return nil
 }
 
 // ProcessBatch implements modelpb.BatchProcessor interface
 // so that aggregator can consume events from intake.
 func (a *Aggregator) ProcessBatch(ctx context.Context, b *modelpb.Batch) error {
-	return a.baseaggregator.AggregateBatch(ctx, [16]byte{}, b)
+	writer, ok := a.writerPool.Get().(*aggregators.Writer)
+	if !ok {
+		var err error
+		writer, err = a.baseaggregator.NewWriter()
+		if err != nil {
+			return fmt.Errorf("error creating aggregation writer: %w", err)
+		}
+	}
+	defer a.writerPool.Put(writer)
+	return writer.WriteEventMetrics(ctx, [16]byte{}, (*b)...)
 }
 
 func wrapNextProcessor(processor modelpb.BatchProcessor) aggregators.Processor {
