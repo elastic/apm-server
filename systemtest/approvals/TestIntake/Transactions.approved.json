@@ -2,6 +2,7 @@
     "events": [
         {
             "@timestamp": "2017-05-30T18:53:27.154Z",
+            "_doc_count": 1,
             "agent": {
                 "activation_method": "some_activation_method",
                 "name": "elastic-node",
@@ -160,6 +161,7 @@
         },
         {
             "@timestamp": "2017-05-30T18:53:27.154Z",
+            "_doc_count": 1,
             "agent": {
                 "activation_method": "some_activation_method",
                 "name": "elastic-node",
@@ -294,6 +296,7 @@
         },
         {
             "@timestamp": "2017-05-30T18:53:27.154Z",
+            "_doc_count": 1,
             "agent": {
                 "activation_method": "some_activation_method",
                 "name": "elastic-node",
@@ -537,6 +540,7 @@
         },
         {
             "@timestamp": "2018-07-30T18:53:42.281Z",
+            "_doc_count": 1,
             "agent": {
                 "activation_method": "some_activation_method",
                 "ephemeral_id": "justanid",
@@ -696,6 +700,7 @@
         },
         {
             "@timestamp": "2021-09-15T20:11:06.365Z",
+            "_doc_count": 1,
             "agent": {
                 "activation_method": "some_activation_method",
                 "name": "elastic-node",

@@ -2,6 +2,7 @@
     "events": [
         {
             "@timestamp": "1970-01-01T00:00:00.000Z",
+            "_doc_count": 1,
             "agent": {
                 "name": "go",
                 "version": "0.0.0"
@@ -93,6 +94,7 @@
         },
         {
             "@timestamp": "1970-01-01T00:00:00.050Z",
+            "_doc_count": 1,
             "agent": {
                 "name": "go",
                 "version": "0.0.0"

@@ -2,6 +2,7 @@
     "events": [
         {
             "@timestamp": "2017-05-30T18:53:27.154Z",
+            "_doc_count": 1,
             "agent": {
                 "name": "elastic-node",
                 "version": "3.14.0"
@@ -161,6 +162,7 @@
         },
         {
             "@timestamp": "2017-05-30T18:53:27.154Z",
+            "_doc_count": 1,
             "agent": {
                 "name": "js-base",
                 "version": "1.3"

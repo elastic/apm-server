@@ -235,6 +235,7 @@
         },
         {
             "@timestamp": "2019-12-20T07:41:45.132Z",
+            "_doc_count": 1,
             "agent": {
                 "ephemeral_id": "2e3f8db3eb77fae0",
                 "name": "Jaeger/Go",
@@ -297,6 +298,7 @@
         },
         {
             "@timestamp": "2019-12-20T07:41:45.089Z",
+            "_doc_count": 1,
             "agent": {
                 "ephemeral_id": "2e3f8db3eb77fae0",
                 "name": "Jaeger/Go",
@@ -358,6 +360,7 @@
         },
         {
             "@timestamp": "2019-12-20T07:41:45.186Z",
+            "_doc_count": 1,
             "agent": {
                 "ephemeral_id": "2e3f8db3eb77fae0",
                 "name": "Jaeger/Go",
@@ -419,6 +422,7 @@
         },
         {
             "@timestamp": "2019-12-20T07:41:45.113Z",
+            "_doc_count": 1,
             "agent": {
                 "ephemeral_id": "2e3f8db3eb77fae0",
                 "name": "Jaeger/Go",
@@ -480,6 +484,7 @@
         },
         {
             "@timestamp": "2019-12-20T07:41:44.973Z",
+            "_doc_count": 1,
             "agent": {
                 "ephemeral_id": "2e3f8db3eb77fae0",
                 "name": "Jaeger/Go",
@@ -542,6 +547,7 @@
         },
         {
             "@timestamp": "2019-12-20T07:41:45.125Z",
+            "_doc_count": 1,
             "agent": {
                 "ephemeral_id": "2e3f8db3eb77fae0",
                 "name": "Jaeger/Go",
@@ -603,6 +609,7 @@
         },
         {
             "@timestamp": "2019-12-20T07:41:45.054Z",
+            "_doc_count": 1,
             "agent": {
                 "ephemeral_id": "2e3f8db3eb77fae0",
                 "name": "Jaeger/Go",
@@ -665,6 +672,7 @@
         },
         {
             "@timestamp": "2019-12-20T07:41:45.101Z",
+            "_doc_count": 1,
             "agent": {
                 "ephemeral_id": "2e3f8db3eb77fae0",
                 "name": "Jaeger/Go",
@@ -726,6 +734,7 @@
         },
         {
             "@timestamp": "2019-12-20T07:41:45.007Z",
+            "_doc_count": 1,
             "agent": {
                 "ephemeral_id": "2e3f8db3eb77fae0",
                 "name": "Jaeger/Go",
@@ -787,6 +796,7 @@
         },
         {
             "@timestamp": "2019-12-20T07:41:45.172Z",
+            "_doc_count": 1,
             "agent": {
                 "ephemeral_id": "2e3f8db3eb77fae0",
                 "name": "Jaeger/Go",
@@ -848,6 +858,7 @@
         },
         {
             "@timestamp": "2019-12-20T07:41:45.029Z",
+            "_doc_count": 1,
             "agent": {
                 "ephemeral_id": "2e3f8db3eb77fae0",
                 "name": "Jaeger/Go",
@@ -909,6 +920,7 @@
         },
         {
             "@timestamp": "2019-12-20T07:41:45.040Z",
+            "_doc_count": 1,
             "agent": {
                 "ephemeral_id": "2e3f8db3eb77fae0",
                 "name": "Jaeger/Go",
@@ -970,6 +982,7 @@
         },
         {
             "@timestamp": "2019-12-20T07:41:44.954Z",
+            "_doc_count": 1,
             "agent": {
                 "ephemeral_id": "2e3f8db3eb77fae0",
                 "name": "Jaeger/Go",
@@ -1031,6 +1044,7 @@
         },
         {
             "@timestamp": "2019-12-20T07:41:45.016Z",
+            "_doc_count": 1,
             "agent": {
                 "ephemeral_id": "2e3f8db3eb77fae0",
                 "name": "Jaeger/Go",

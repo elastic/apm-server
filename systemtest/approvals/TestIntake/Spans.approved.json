@@ -2,6 +2,7 @@
     "events": [
         {
             "@timestamp": "2018-07-30T18:53:42.281Z",
+            "_doc_count": 1,
             "agent": {
                 "activation_method": "some_activation_method",
                 "ephemeral_id": "justanid",
@@ -224,6 +225,7 @@
         },
         {
             "@timestamp": "2018-07-30T18:53:42.281Z",
+            "_doc_count": 1,
             "agent": {
                 "activation_method": "some_activation_method",
                 "name": "elastic-node",
@@ -356,6 +358,7 @@
         },
         {
             "@timestamp": "2018-07-30T18:53:42.281Z",
+            "_doc_count": 1,
             "agent": {
                 "activation_method": "some_activation_method",
                 "name": "elastic-node",
@@ -494,6 +497,7 @@
         },
         {
             "@timestamp": "2018-07-30T18:53:42.281Z",
+            "_doc_count": 1,
             "agent": {
                 "activation_method": "some_activation_method",
                 "name": "elastic-node",
@@ -626,6 +630,7 @@
         },
         {
             "@timestamp": "2021-07-06T11:58:05.682Z",
+            "_doc_count": 1,
             "agent": {
                 "activation_method": "some_activation_method",
                 "name": "elastic-node",
@@ -768,6 +773,7 @@
         },
         {
             "@timestamp": "2018-07-30T18:53:42.281Z",
+            "_doc_count": 1,
             "agent": {
                 "activation_method": "some_activation_method",
                 "ephemeral_id": "justanid",
@@ -990,6 +996,7 @@
         },
         {
             "@timestamp": "2018-07-30T18:53:42.281Z",
+            "_doc_count": 1,
             "agent": {
                 "activation_method": "some_activation_method",
                 "name": "elastic-node",
@@ -1137,6 +1144,7 @@
         },
         {
             "@timestamp": "2018-07-30T18:53:42.281Z",
+            "_doc_count": 1,
             "agent": {
                 "activation_method": "some_activation_method",
                 "name": "elastic-node",
@@ -1277,6 +1285,7 @@
         },
         {
             "@timestamp": "2018-07-30T18:33:03.584Z",
+            "_doc_count": 1,
             "agent": {
                 "activation_method": "some_activation_method",
                 "name": "elastic-node",
@@ -1428,6 +1437,7 @@
         },
         {
             "@timestamp": "2018-07-30T18:53:42.281Z",
+            "_doc_count": 1,
             "agent": {
                 "activation_method": "some_activation_method",
                 "ephemeral_id": "justanid",

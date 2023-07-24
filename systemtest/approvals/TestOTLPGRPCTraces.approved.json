@@ -132,6 +132,7 @@
         },
         {
             "@timestamp": "1970-01-01T00:02:03.000Z",
+            "_doc_count": 1,
             "agent": {
                 "name": "opentelemetry/go",
                 "version": "1.16.0"
