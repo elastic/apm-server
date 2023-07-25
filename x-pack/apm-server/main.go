@@ -38,8 +38,6 @@ const (
 )
 
 var (
-	aggregationMonitoringRegistry = monitoring.Default.NewRegistry("apm-server.aggregation")
-
 	// Note: this registry is created in github.com/elastic/apm-server/sampling. That package
 	// will hopefully disappear in the future, when agents no longer send unsampled transactions.
 	samplingMonitoringRegistry = monitoring.Default.GetRegistry("apm-server.sampling")
