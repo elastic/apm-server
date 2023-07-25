@@ -54,6 +54,7 @@ func NewAggregator(
 		aggregators.WithLogger(zapLogger),
 		aggregators.WithMeter(otel.GetMeterProvider().Meter("aggregator")),
 		aggregators.WithTracer(otel.GetTracerProvider().Tracer("aggregator")),
+		aggregators.WithInMemory(true),
 	)
 
 	if err != nil {
