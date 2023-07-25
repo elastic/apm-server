@@ -1,0 +1,33 @@
+outputs:
+  default:
+    type: elasticsearch
+    hosts:
+      - ${elasticsearch_url}
+    username: ${elasticsearch_username}
+    password: ${elasticsearch_password}
+inputs:
+  - id: elastic-apm
+    name: Elastic APM
+    revision: 3
+    type: apm
+    use_output: default
+    meta:
+      package:
+        name: apm
+        version: ${apm_version}
+    data_stream:
+      namespace: default
+    apm-server:
+      auth:
+        api_key:
+          enabled: true
+        secret_token: ${apm_secret_token}
+      rum:
+        enabled: true
+      host: '0.0.0.0:${apm_port}'
+    logging.level: debug
+    logging.to_files: true
+    logging.files:
+      path: /var/log/apm-server
+      name: apm-server
+      permissions: 0777
