@@ -7,7 +7,6 @@ package aggregation
 import (
 	"context"
 	"fmt"
-	"os"
 	"time"
 
 	"go.opentelemetry.io/otel"
@@ -16,7 +15,6 @@ import (
 	"github.com/elastic/apm-aggregation/aggregators"
 	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/elastic-agent-libs/logp"
-	"github.com/elastic/elastic-agent-libs/paths"
 )
 
 type Aggregator struct {
@@ -32,13 +30,8 @@ func NewAggregator(
 	logger *logp.Logger,
 ) (*Aggregator, error) {
 	zapLogger := zap.New(logger.Core(), zap.WithCaller(true)).Named("aggregator")
-	storageDir := paths.Resolve(paths.Data, "aggregator")
-	if err := os.MkdirAll(storageDir, os.ModePerm); err != nil {
-		return nil, err
-	}
 
 	baseaggregator, err := aggregators.New(
-		aggregators.WithDataDir(storageDir),
 		aggregators.WithLimits(aggregators.Limits{
 			MaxSpanGroups:                         10000,
 			MaxSpanGroupsPerService:               1000,
