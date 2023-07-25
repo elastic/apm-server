@@ -47,7 +47,7 @@ func TestMonitoring(t *testing.T) {
 	// Wrap & run the server twice, to ensure metric registration does not panic.
 	runServerError := errors.New("runServer")
 	for i := 0; i < 2; i++ {
-		var aggregationMonitoringSnapshot, tailSamplingMonitoringSnapshot monitoring.FlatSnapshot
+		var tailSamplingMonitoringSnapshot monitoring.FlatSnapshot
 		serverParams, runServer, err := wrapServer(beater.ServerParams{
 			Config:                 cfg,
 			Logger:                 logp.NewLogger(""),
@@ -56,7 +56,6 @@ func TestMonitoring(t *testing.T) {
 			Namespace:              "default",
 			NewElasticsearchClient: elasticsearch.NewClient,
 		}, func(ctx context.Context, args beater.ServerParams) error {
-			aggregationMonitoringSnapshot = monitoring.CollectFlatSnapshot(aggregationMonitoringRegistry, monitoring.Full, false)
 			tailSamplingMonitoringSnapshot = monitoring.CollectFlatSnapshot(samplingMonitoringRegistry, monitoring.Full, false)
 			return runServerError
 		})
@@ -64,7 +63,6 @@ func TestMonitoring(t *testing.T) {
 
 		err = runServer(context.Background(), serverParams)
 		assert.Equal(t, runServerError, err)
-		assert.NotEqual(t, monitoring.MakeFlatSnapshot(), aggregationMonitoringSnapshot)
 		assert.NotEqual(t, monitoring.MakeFlatSnapshot(), tailSamplingMonitoringSnapshot)
 	}
 }
