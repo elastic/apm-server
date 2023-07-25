@@ -30,7 +30,7 @@ func (p StacktraceProcessor) ProcessBatch(ctx context.Context, batch *modelpb.Ba
 }
 
 func (p StacktraceProcessor) deobfuscate(ctx context.Context, event *modelpb.APMEvent) error {
-	mapBytes, err := p.fetcher.Fetch(ctx, event.Agent.Name, event.Agent.Version)
+	mapBytes, err := p.fetcher.Fetch(ctx, event.Service.Name, event.Service.Version)
 	if err != nil {
 		return err
 	}
