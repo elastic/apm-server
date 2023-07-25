@@ -154,8 +154,8 @@ github.com/elastic/apm-aggregation v0.0.0-20230724200629-f55d6236741d h1:r8r+5py
 github.com/elastic/apm-aggregation v0.0.0-20230724200629-f55d6236741d/go.mod h1:KjhIt6NDxQF8/q3T/MLJYes9dlBHAT+hDSigIIss8Fc=
 github.com/elastic/apm-data v0.1.1-0.20230718152028-9c38d2361527 h1:ASiUA/r0Wwnhn3HXvNuLzn23ljsKJeQRZsDdODlxMco=
 github.com/elastic/apm-data v0.1.1-0.20230718152028-9c38d2361527/go.mod h1:lMTMoCWNadiDJih/tLechuMTtumEeedtKJlBOYAv030=
-github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230720121404-8a9d6f6c8a68 h1:aNJfknSh+FpYYhjnUIJCsbk52U5k1X0gIkkzc7GbzUY=
-github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230720121404-8a9d6f6c8a68/go.mod h1:az1fOGOFvJBTLtC8289lI8F2kMY4NDNNkCdh1Chv4jE=
+github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230724222147-3f30e5ed2594 h1:NwiH2mrNmZZarxQbh7ma0rMwfe+/j8GXbdkATP2vmoQ=
+github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230724222147-3f30e5ed2594/go.mod h1:az1fOGOFvJBTLtC8289lI8F2kMY4NDNNkCdh1Chv4jE=
 github.com/elastic/elastic-agent-autodiscover v0.6.2 h1:7P3cbMBWXjbzA80rxitQjc+PiWyZ4I4F4LqrCYgYlNc=
 github.com/elastic/elastic-agent-client/v7 v7.1.2 h1:p6KvvDMoFCBPvchxcx9cRXpRjsDaii0m/wE3lqQxpmM=
 github.com/elastic/elastic-agent-client/v7 v7.1.2/go.mod h1:G3Mk1pHXxvj3wC5FvsGUlPOsvapTB5SfrUmWiJDXT6Q=
@@ -169,8 +169,8 @@ github.com/elastic/elastic-transport-go/v8 v8.3.0 h1:DJGxovyQLXGr62e9nDMPSxRyWIO
 github.com/elastic/elastic-transport-go/v8 v8.3.0/go.mod h1:87Tcz8IVNe6rVSLdBux1o/PEItLtyabHU3naC7IoqKI=
 github.com/elastic/gmux v0.2.0 h1:HzaJ6FQAZzKJ2RTrINIfDXN1voO5EEEJKLb1Hlrn8pw=
 github.com/elastic/gmux v0.2.0/go.mod h1:6+9rYPXZXAyCIb7g3WQ0OVWoLNpU/xHz2VXUrtw6BUg=
-github.com/elastic/go-docappender v0.2.1-0.20230710012924-31c7e23227e7 h1:G3f45Nbt9WIfe5HtVk6swHPEykoBDNykKYuUIR+oAzk=
-github.com/elastic/go-docappender v0.2.1-0.20230710012924-31c7e23227e7/go.mod h1:CYKNXRbbTd0pGh04ij1mcXDfIR1CAIstxeD6jLq8zAE=
+github.com/elastic/go-docappender v0.2.1-0.20230724080315-b714d6181871 h1:8MRHKwtSZy1LfhlUBzKqSLAFEPbStTIcJwwKyf3GghE=
+github.com/elastic/go-docappender v0.2.1-0.20230724080315-b714d6181871/go.mod h1:yqBlaclEXBY6DCP3d28bf/HjJJcXhd2CCIy0kDuLNjQ=
 github.com/elastic/go-elasticsearch/v8 v8.8.2 h1:3ITzPlRNadzDnbLTnMRjrAN4j4G3LvFo5gCIWDPS6pY=
 github.com/elastic/go-elasticsearch/v8 v8.8.2/go.mod h1:GU1BJHO7WeamP7UhuElYwzzHtvf9SDmeVpSSy9+o6Qg=
 github.com/elastic/go-hdrhistogram v0.1.0 h1:7UVeQ9MsO5c9h8RJeH2S2lXCGi9hQB/94W6Pjjqprc4=
@@ -556,12 +556,6 @@ github.com/stretchr/testify v1.8.0/go.mod h1:yNjHg4UonilssWZ8iaSj1OCr/vHnekPRkoO
 github.com/stretchr/testify v1.8.3/go.mod h1:sz/lmYIOXD/1dqDmKjjqLyZ2RngseejIcXlSw2iwfAo=
 github.com/stretchr/testify v1.8.4 h1:CcVxjf3Q8PM0mHUKJCdn+eZZtm5yQwehR5yeSVQQcUk=
 github.com/stretchr/testify v1.8.4/go.mod h1:sz/lmYIOXD/1dqDmKjjqLyZ2RngseejIcXlSw2iwfAo=
-github.com/tidwall/gjson v1.14.4 h1:uo0p8EbA09J7RQaflQ1aBRffTR7xedD2bcIVSYxLnkM=
-github.com/tidwall/gjson v1.14.4/go.mod h1:/wbyibRr2FHMks5tjHJ5F8dMZh3AcwJEMf5vlfC0lxk=
-github.com/tidwall/match v1.1.1 h1:+Ho715JplO36QYgwN9PGYNhgZvoUSc9X2c80KVTi+GA=
-github.com/tidwall/match v1.1.1/go.mod h1:eRSPERbgtNPcGhD8UCthc6PmLEQXEWd3PRB5JTxsfmM=
-github.com/tidwall/pretty v1.2.0 h1:RWIZEg2iJ8/g6fDDYzMpobmaoGh5OLl4AXtGUGPcqCs=
-github.com/tidwall/pretty v1.2.0/go.mod h1:ITEVvHYasfjBbM0u2Pg8T2nJnzm8xPwvNhhsoaGGjNU=
 github.com/tklauser/go-sysconf v0.3.11 h1:89WgdJhk5SNwJfu+GKyYveZ4IaJ7xAkecBo+KdJV0CM=
 github.com/tklauser/go-sysconf v0.3.11/go.mod h1:GqXfhXY3kiPa0nAXPDIQIWzJbMCB7AmcWpGR8lSZfqI=
 github.com/tklauser/numcpus v0.6.0 h1:kebhY2Qt+3U6RNK7UqpYNA+tJ23IBEGKkB7JQBfDYms=
