@@ -90,7 +90,7 @@ type processor interface {
 // newProcessors returns a list of processors which will process
 // events in sequential order, prior to the events being published.
 func newProcessors(args beater.ServerParams) ([]namedProcessor, error) {
-	processors := make([]namedProcessor, 0)
+	processors := make([]namedProcessor, 0, 2)
 
 	name := "LSM aggregator"
 	agg, err := aggregation.NewAggregator(context.TODO(), args.Config.Aggregation.Transactions.MaxServices,
