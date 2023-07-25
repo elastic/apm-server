@@ -1,5 +1,6 @@
 {"name": "github.com/elastic/beats/v7", "licenceType": "Elastic"}
 {"name": "github.com/elastic/elastic-agent-client/v7", "licenceType": "Elastic"}
-{"name": "github.com/elastic/elastic-agent-shipper-client", "licenceType": "Elastic"}
+{"name": "github.com/elastic/elastic-agent-shipper-client", "licenceType": "Elastic-2.0"}
 {"name": "github.com/golang/glog", "licenceType": "Apache-2.0"}
 {"name": "github.com/miekg/dns", "licenceType": "BSD"}
+{"name": "github.com/elastic/apm-aggregation", "licenceType": "Elastic-2.0"}
