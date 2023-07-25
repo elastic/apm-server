@@ -33,6 +33,9 @@
                 "name": "metric"
             },
             "service": {
+                "language": {
+                    "name": "go"
+                },
                 "name": "systemtest",
                 "target": {
                     "type": "elasticsearch"
@@ -85,6 +88,9 @@
                 "name": "metric"
             },
             "service": {
+                "language": {
+                    "name": "go"
+                },
                 "name": "systemtest",
                 "target": {
                     "type": "elasticsearch"
@@ -137,6 +143,9 @@
                 "name": "metric"
             },
             "service": {
+                "language": {
+                    "name": "go"
+                },
                 "name": "systemtest",
                 "target": {
                     "type": "elasticsearch"
@@ -189,6 +198,9 @@
                 "name": "metric"
             },
             "service": {
+                "language": {
+                    "name": "go"
+                },
                 "name": "systemtest",
                 "target": {
                     "type": "redis"
@@ -241,6 +253,9 @@
                 "name": "metric"
             },
             "service": {
+                "language": {
+                    "name": "go"
+                },
                 "name": "systemtest",
                 "target": {
                     "type": "redis"
@@ -293,6 +308,9 @@
                 "name": "metric"
             },
             "service": {
+                "language": {
+                    "name": "go"
+                },
                 "name": "systemtest",
                 "target": {
                     "type": "redis"

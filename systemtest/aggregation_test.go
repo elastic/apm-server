@@ -144,7 +144,6 @@ func TestTransactionAggregationShutdown(t *testing.T) {
 }
 
 func TestServiceDestinationAggregation(t *testing.T) {
-	t.Skip("apm-aggregation emits extra service.language.name for service destination") // TODO(carsonip): Fix test
 	t.Setenv("ELASTIC_APM_GLOBAL_LABELS", "department_name=apm,organization=observability,company=elastic")
 	systemtest.CleanupElasticsearch(t)
 	srv := apmservertest.NewServerTB(t)
