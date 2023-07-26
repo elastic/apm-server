@@ -37,7 +37,7 @@ import (
 )
 
 func TestBatchProcessor(t *testing.T) {
-	ch := make(chan []identifier)
+	ch := make(chan []Identifier)
 	close(ch)
 
 	client := newMockElasticsearchClient(t, http.StatusOK, sourcemapESResponseBody(true, validSourcemap))

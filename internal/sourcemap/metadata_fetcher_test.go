@@ -36,10 +36,10 @@ import (
 
 func TestMetadataFetcher(t *testing.T) {
 	defaultID := metadata{
-		identifier: identifier{
-			name:    "app",
-			version: "1.0",
-			path:    "/bundle/path",
+		Identifier: Identifier{
+			Name:    "app",
+			Version: "1.0",
+			Path:    "/bundle/path",
 		},
 		contentHash: "foo",
 	}
@@ -129,7 +129,7 @@ func TestMetadataFetcher(t *testing.T) {
 				assert.NoError(t, fetcher.err())
 			}
 
-			_, ok := fetcher.getID(defaultID.identifier)
+			_, ok := fetcher.getID(defaultID.Identifier)
 			assert.Equal(t, tc.expectID, ok)
 
 			close(waitCh)
@@ -142,16 +142,16 @@ func TestMetadataFetcher(t *testing.T) {
 }
 
 type metadata struct {
-	identifier
+	Identifier
 	contentHash string
 }
 
 func TestInvalidation(t *testing.T) {
 	defaultID := metadata{
-		identifier: identifier{
-			name:    "app",
-			version: "1.0",
-			path:    "/bundle/path",
+		Identifier: Identifier{
+			Name:    "app",
+			Version: "1.0",
+			Path:    "/bundle/path",
 		},
 		contentHash: "foo",
 	}
@@ -163,47 +163,47 @@ func TestInvalidation(t *testing.T) {
 
 	testCases := []struct {
 		name                 string
-		set                  map[identifier]string
-		alias                map[identifier]*identifier
+		set                  map[Identifier]string
+		alias                map[Identifier]*Identifier
 		searchReponse        func(http.ResponseWriter, *http.Request)
-		expectedInvalidation []identifier
-		expectedset          map[identifier]string
-		expectedalias        map[identifier]*identifier
+		expectedInvalidation []Identifier
+		expectedset          map[Identifier]string
+		expectedalias        map[Identifier]*Identifier
 	}{
 		{
 			name:                 "hash changed",
-			set:                  map[identifier]string{defaultID.identifier: "bar"},
+			set:                  map[Identifier]string{defaultID.Identifier: "bar"},
 			searchReponse:        defaultSearchResponse,
-			expectedInvalidation: []identifier{defaultID.identifier},
-			expectedset:          map[identifier]string{defaultID.identifier: "foo"},
-			expectedalias:        map[identifier]*identifier{},
+			expectedInvalidation: []Identifier{defaultID.Identifier},
+			expectedset:          map[Identifier]string{defaultID.Identifier: "foo"},
+			expectedalias:        map[Identifier]*Identifier{},
 		}, {
 			name: "sourcemap deleted",
-			set:  map[identifier]string{defaultID.identifier: "bar"},
+			set:  map[Identifier]string{defaultID.Identifier: "bar"},
 			searchReponse: func(w http.ResponseWriter, r *http.Request) {
 				m := sourcemapSearchResponseBody([]metadata{})
 				w.Write(m)
 			},
-			expectedInvalidation: []identifier{defaultID.identifier},
-			expectedset:          map[identifier]string{},
-			expectedalias:        map[identifier]*identifier{},
+			expectedInvalidation: []Identifier{defaultID.Identifier},
+			expectedset:          map[Identifier]string{},
+			expectedalias:        map[Identifier]*Identifier{},
 		}, {
 			name: "update ok",
-			set:  map[identifier]string{{name: "example", version: "1.0", path: "/"}: "bar"},
+			set:  map[Identifier]string{{Name: "example", Version: "1.0", Path: "/"}: "bar"},
 			searchReponse: func(w http.ResponseWriter, r *http.Request) {
 				bar := metadata{
-					identifier: identifier{
-						name:    "example",
-						version: "1.0",
-						path:    "/",
+					Identifier: Identifier{
+						Name:    "example",
+						Version: "1.0",
+						Path:    "/",
 					},
 					contentHash: "bar",
 				}
 				m := sourcemapSearchResponseBody([]metadata{defaultID, bar})
 				w.Write(m)
 			},
-			expectedset:   map[identifier]string{defaultID.identifier: "foo", {name: "example", version: "1.0", path: "/"}: "bar"},
-			expectedalias: map[identifier]*identifier{},
+			expectedset:   map[Identifier]string{defaultID.Identifier: "foo", {Name: "example", Version: "1.0", Path: "/"}: "bar"},
+			expectedalias: map[Identifier]*Identifier{},
 		},
 	}
 
@@ -300,11 +300,11 @@ func sourcemapSearchResponseBody(ids []metadata) []byte {
 		m = append(m, map[string]interface{}{
 			"_source": map[string]interface{}{
 				"service": map[string]interface{}{
-					"name":    id.name,
-					"version": id.version,
+					"name":    id.Name,
+					"version": id.Version,
 				},
 				"file": map[string]interface{}{
-					"path": id.path,
+					"path": id.Path,
 				},
 				"content_sha256": id.contentHash,
 			},

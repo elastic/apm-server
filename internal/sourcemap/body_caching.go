@@ -40,7 +40,7 @@ type BodyCachingFetcher struct {
 func NewBodyCachingFetcher(
 	backend Fetcher,
 	cacheSize int,
-	invalidationChan <-chan []identifier,
+	invalidationChan <-chan []Identifier,
 ) (*BodyCachingFetcher, error) {
 	logger := logp.NewLogger(logs.Sourcemap)
 
@@ -72,10 +72,10 @@ func NewBodyCachingFetcher(
 
 // Fetch fetches a source map from the cache or wrapped backend.
 func (s *BodyCachingFetcher) Fetch(ctx context.Context, name, version, path string) (*sourcemap.Consumer, error) {
-	key := identifier{
-		name:    name,
-		version: version,
-		path:    path,
+	key := Identifier{
+		Name:    name,
+		Version: version,
+		Path:    path,
 	}
 
 	// fetch from cache
@@ -87,7 +87,7 @@ func (s *BodyCachingFetcher) Fetch(ctx context.Context, name, version, path stri
 	// fetch from the store and ensure caching for all non-temporary results
 	consumer, err := s.backend.Fetch(ctx, name, version, path)
 	if err != nil {
-		if errors.Is(err, errMalformedSourcemap) {
+		if errors.Is(err, ErrMalformedSourcemap) {
 			s.add(key, nil)
 		}
 		return nil, err
@@ -96,7 +96,7 @@ func (s *BodyCachingFetcher) Fetch(ctx context.Context, name, version, path stri
 	return consumer, nil
 }
 
-func (s *BodyCachingFetcher) add(key identifier, consumer *sourcemap.Consumer) {
+func (s *BodyCachingFetcher) add(key Identifier, consumer *sourcemap.Consumer) {
 	s.cache.Add(key, consumer)
 	s.logger.Debugf("Added id %v. Cache now has %v entries.", key, s.cache.Len())
 }

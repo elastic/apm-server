@@ -28,7 +28,7 @@ import (
 
 var (
 	errFetcherUnvailable  = errors.New("fetcher unavailable")
-	errMalformedSourcemap = errors.New("sourcemap malformed")
+	ErrMalformedSourcemap = errors.New("sourcemap malformed")
 )
 
 // Fetcher is an interface for fetching a source map with a given service name, service version,
@@ -42,20 +42,20 @@ type Fetcher interface {
 
 // MetadataFetcher is an interface for fetching metadata
 type MetadataFetcher interface {
-	getID(id identifier) (*identifier, bool)
+	getID(id Identifier) (*Identifier, bool)
 
 	ready() <-chan struct{}
 
 	err() error
 }
 
-type identifier struct {
-	name    string
-	version string
-	path    string
+type Identifier struct {
+	Name    string
+	Version string
+	Path    string
 }
 
-func getAliases(name string, version string, bundleFilepath string) []identifier {
+func getAliases(name string, version string, bundleFilepath string) []Identifier {
 	urlPath, err := url.Parse(bundleFilepath)
 	if err != nil {
 		// bundleFilepath is not an url so it
@@ -78,28 +78,28 @@ func getAliases(name string, version string, bundleFilepath string) []identifier
 		// bundleFilepath is a valid url and it is
 		// already clean.
 		// Only return the url path as an alias
-		return []identifier{
+		return []Identifier{
 			{
-				name:    name,
-				version: version,
-				path:    urlPath.Path,
+				Name:    name,
+				Version: version,
+				Path:    urlPath.Path,
 			},
 		}
 	}
 
-	return []identifier{
+	return []Identifier{
 		// first try to match the full url
 		{
-			name:    name,
-			version: version,
-			path:    urlPath.String(),
+			Name:    name,
+			Version: version,
+			Path:    urlPath.String(),
 		},
 
 		// then try to match the url path
 		{
-			name:    name,
-			version: version,
-			path:    urlPath.Path,
+			Name:    name,
+			Version: version,
+			Path:    urlPath.Path,
 		},
 	}
 }
@@ -110,7 +110,7 @@ func parseSourceMap(data []byte) (*sourcemap.Consumer, error) {
 	}
 	consumer, err := sourcemap.Parse("", data)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", errMalformedSourcemap, err)
+		return nil, fmt.Errorf("%w: %v", ErrMalformedSourcemap, err)
 	}
 	return consumer, nil
 }

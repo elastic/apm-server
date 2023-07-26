@@ -38,13 +38,13 @@ import (
 type MetadataESFetcher struct {
 	esClient         *elasticsearch.Client
 	index            string
-	set              map[identifier]string
-	alias            map[identifier]*identifier
+	set              map[Identifier]string
+	alias            map[Identifier]*Identifier
 	mu               sync.RWMutex
 	logger           *logp.Logger
 	init             chan struct{}
 	initErr          error
-	invalidationChan chan<- []identifier
+	invalidationChan chan<- []Identifier
 	tracer           *apm.Tracer
 }
 
@@ -53,14 +53,14 @@ func NewMetadataFetcher(
 	esClient *elasticsearch.Client,
 	index string,
 	tracer *apm.Tracer,
-) (MetadataFetcher, <-chan []identifier) {
-	invalidationCh := make(chan []identifier)
+) (MetadataFetcher, <-chan []Identifier) {
+	invalidationCh := make(chan []Identifier)
 
 	s := &MetadataESFetcher{
 		esClient:         esClient,
 		index:            index,
-		set:              make(map[identifier]string),
-		alias:            make(map[identifier]*identifier),
+		set:              make(map[Identifier]string),
+		alias:            make(map[Identifier]*Identifier),
 		logger:           logp.NewLogger(logs.Sourcemap),
 		init:             make(chan struct{}),
 		invalidationChan: invalidationCh,
@@ -72,7 +72,7 @@ func NewMetadataFetcher(
 	return s, invalidationCh
 }
 
-func (s *MetadataESFetcher) getID(key identifier) (*identifier, bool) {
+func (s *MetadataESFetcher) getID(key Identifier) (*Identifier, bool) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
@@ -138,7 +138,7 @@ func (s *MetadataESFetcher) sync(ctx context.Context) error {
 	defer tx.End()
 	ctx = apm.ContextWithTransaction(ctx, tx)
 
-	sourcemaps := make(map[identifier]string)
+	sourcemaps := make(map[Identifier]string)
 
 	result, err := s.initialSearch(ctx, sourcemaps)
 	if err != nil {
@@ -183,14 +183,14 @@ func (s *MetadataESFetcher) sync(ctx context.Context) error {
 	return nil
 }
 
-func (s *MetadataESFetcher) update(ctx context.Context, sourcemaps map[identifier]string) {
+func (s *MetadataESFetcher) update(ctx context.Context, sourcemaps map[Identifier]string) {
 	span := apm.TransactionFromContext(ctx).StartSpan("MetadataESFetcher.update", "", nil)
 	defer span.End()
 
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	var invalidation []identifier
+	var invalidation []Identifier
 
 	for id, contentHash := range s.set {
 		if updatedHash, ok := sourcemaps[id]; ok {
@@ -212,7 +212,7 @@ func (s *MetadataESFetcher) update(ctx context.Context, sourcemaps map[identifie
 			delete(s.set, id)
 
 			// remove aliases
-			for _, k := range getAliases(id.name, id.version, id.path) {
+			for _, k := range getAliases(id.Name, id.Version, id.Path) {
 				delete(s.alias, k)
 			}
 		}
@@ -234,7 +234,7 @@ func (s *MetadataESFetcher) update(ctx context.Context, sourcemaps map[identifie
 		// The id is then passed over to the backend fetcher
 		// to minimize the size of the lru cache and
 		// and increase cache hits.
-		for _, k := range getAliases(id.name, id.version, id.path) {
+		for _, k := range getAliases(id.Name, id.Version, id.Path) {
 			s.logger.Debugf("Added metadata alias %v -> %v", k, id)
 			s.alias[k] = &id
 		}
@@ -245,7 +245,7 @@ func (s *MetadataESFetcher) update(ctx context.Context, sourcemaps map[identifie
 	s.logger.Debugf("Metadata cache now has %d entries.", len(s.set))
 }
 
-func (s *MetadataESFetcher) initialSearch(ctx context.Context, updates map[identifier]string) (*esSearchSourcemapResponse, error) {
+func (s *MetadataESFetcher) initialSearch(ctx context.Context, updates map[Identifier]string) (*esSearchSourcemapResponse, error) {
 	span := apm.TransactionFromContext(ctx).StartSpan("MetadataESFetcher.initialSearch", "", nil)
 	defer span.End()
 
@@ -297,7 +297,7 @@ type esSourcemapResponse struct {
 	} `json:"hits"`
 }
 
-func (s *MetadataESFetcher) handleUpdateRequest(resp *esapi.Response, updates map[identifier]string) (*esSearchSourcemapResponse, error) {
+func (s *MetadataESFetcher) handleUpdateRequest(resp *esapi.Response, updates map[Identifier]string) (*esSearchSourcemapResponse, error) {
 	// handle error response
 	if resp.StatusCode >= http.StatusMultipleChoices {
 		b, err := io.ReadAll(resp.Body)
@@ -317,10 +317,10 @@ func (s *MetadataESFetcher) handleUpdateRequest(resp *esapi.Response, updates ma
 	}
 
 	for _, v := range body.Hits.Hits {
-		id := identifier{
-			name:    v.Source.Service.Name,
-			version: v.Source.Service.Version,
-			path:    v.Source.File.BundleFilepath,
+		id := Identifier{
+			Name:    v.Source.Service.Name,
+			Version: v.Source.Service.Version,
+			Path:    v.Source.File.BundleFilepath,
 		}
 
 		updates[id] = v.Source.ContentHash
@@ -343,7 +343,7 @@ func parseResponse(body io.ReadCloser, logger *logp.Logger) (*esSearchSourcemapR
 	return &esSourcemapResponse, nil
 }
 
-func (s *MetadataESFetcher) scrollsearch(ctx context.Context, scrollID string, updates map[identifier]string) (*esSearchSourcemapResponse, error) {
+func (s *MetadataESFetcher) scrollsearch(ctx context.Context, scrollID string, updates map[Identifier]string) (*esSearchSourcemapResponse, error) {
 	span := apm.TransactionFromContext(ctx).StartSpan("MetadataESFetcher.scrollSearch", "", nil)
 	defer span.End()
 
