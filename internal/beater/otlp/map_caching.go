@@ -21,7 +21,6 @@ type MapCachingFetcher struct {
 func NewMapCachingFetcher(
 	backend MapFetcher,
 	cacheSize int,
-	invalidationChan <-chan []sourcemap.Identifier,
 ) (*MapCachingFetcher, error) {
 	logger := logp.NewLogger(logs.Sourcemap)
 
@@ -32,17 +31,6 @@ func NewMapCachingFetcher(
 	if err != nil {
 		return nil, fmt.Errorf("failed to create lru cache for map caching fetcher: %w", err)
 	}
-
-	go func() {
-		logger.Debug("listening for invalidation...")
-
-		for arr := range invalidationChan {
-			for _, id := range arr {
-				logger.Debugf("Invalidating id %v", id)
-				lruCache.Remove(id)
-			}
-		}
-	}()
 
 	return &MapCachingFetcher{
 		cache:   lruCache,

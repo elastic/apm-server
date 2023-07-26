@@ -198,7 +198,10 @@ func newServer(args ServerParams, listener net.Listener) (server, error) {
 	if err != nil {
 		return server{}, err
 	}
-	otlpBatchProcessor = append(otlpBatchProcessor, otlp.NewStacktraceProcessor(r8.NewMapFetcher(esClient)))
+	mapFetcher := r8.NewMapFetcher(esClient)
+	size := 128
+	cachingFetcher, err := otlp.NewMapCachingFetcher(mapFetcher, size)
+	otlpBatchProcessor = append(otlpBatchProcessor, otlp.NewStacktraceProcessor(cachingFetcher))
 	if args.Config.AugmentEnabled {
 		// Add a model processor that sets `client.ip` for events from end-user devices.
 		otlpBatchProcessor = append(otlpBatchProcessor, modelpb.ProcessBatchFunc(otlp.SetClientMetadata))
