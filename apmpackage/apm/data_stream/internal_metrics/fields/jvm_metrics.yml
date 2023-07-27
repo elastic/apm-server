@@ -56,8 +56,26 @@
   metric_type: gauge
   unit: ms
   index: false
-- name: jvm.gc.alloc
+- name: jvm.memory.non_heap.pool.used
   type: long
   metric_type: gauge
   unit: byte
+  index: false
+- name: jvm.memory.non_heap.pool.committed
+  type: long
+  metric_type: gauge
+  unit: byte
+  index: false
+- name: jvm.memory.non_heap.pool.max
+  type: long
+  metric_type: gauge
+  unit: byte
+  index: false
+- name: jvm.fd.used
+  type: long
+  metric_type: gauge
+  index: false
+- name: jvm.fd.max
+  type: long
+  metric_type: gauge
   index: false
