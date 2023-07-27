@@ -11,8 +11,12 @@ pipeline {
     JOB_GCS_CREDENTIALS = 'apm-ci-gcs-plugin'
     CODECOV_SECRET = 'secret/apm-team/ci/apm-server-codecov'
     DIAGNOSTIC_INTERVAL = "${params.DIAGNOSTIC_INTERVAL}"
+<<<<<<< HEAD
     DOCKER_SECRET = 'secret/observability-team/ci/docker-registry/prod'
     DOCKER_REGISTRY = 'docker.elastic.co'
+=======
+    ES_LOG_LEVEL = "${params.ES_LOG_LEVEL}"
+>>>>>>> 7eaa6f50f (ci: migrate away from jenkins (#11304))
   }
   options {
     timeout(time: 2, unit: 'HOURS')
@@ -28,7 +32,10 @@ pipeline {
     issueCommentTrigger("(${obltGitHubComments()}|^run\\W+(?:the\\W+)?(hey-apm|package|arm)\\W+tests|^/test|^/hey-apm|^/package)")
   }
   parameters {
+<<<<<<< HEAD
     booleanParam(name: 'Run_As_Main_Branch', defaultValue: false, description: 'Allow to run any steps on a PR, some steps normally only run on main branch.')
+=======
+>>>>>>> 7eaa6f50f (ci: migrate away from jenkins (#11304))
     booleanParam(name: 'release_ci', defaultValue: true, description: 'Enable build the release packages')
   }
   stages {
@@ -90,6 +97,12 @@ pipeline {
               parameters: [string(name: 'COMMIT', value: "${env.GIT_BASE_COMMIT}")])
       }
     }
+<<<<<<< HEAD
+=======
+    // Run the packaging pipeline for branch builds. This should only be run
+    // after all other stages succeed, to avoid publishing packages for a commit
+    // with failing tests.
+>>>>>>> 7eaa6f50f (ci: migrate away from jenkins (#11304))
     stage('Downstream - Package') {
       options { skipDefaultCheckout() }
       when {
@@ -104,8 +117,13 @@ pipeline {
     }
   }
   post {
+<<<<<<< HEAD
     cleanup {
       notifyBuildResult(goBenchmarkComment: true)
+=======
+    always {
+      deleteDir()
+>>>>>>> 7eaa6f50f (ci: migrate away from jenkins (#11304))
     }
   }
 }
