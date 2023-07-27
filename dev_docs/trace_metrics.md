@@ -29,6 +29,10 @@ The per-service limit is 10% of the global limit. For example, for a 2GB APM Ser
 the limits are 2,000 services, 10,000 transaction groups, and for each service,
 there can be a maximum of 1,000 unique transaction groups.
 
+## Service instance transaction metrics
+
+TODO
+
 ## Service transaction metrics
 
 Service transaction metrics are similar to Transaction metrics, but with fewer

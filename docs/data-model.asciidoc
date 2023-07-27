@@ -322,7 +322,7 @@ include::./data/elasticsearch/span_breakdown.json[]
 ====
 
 [float]
-===== Transaction metrics
+===== Transaction metrics TODO
 
 To power {kibana-ref}/xpack-apm.html[{apm-app}] visualizations,
 APM Server aggregates transaction events into latency distribution metrics.
@@ -391,6 +391,8 @@ This example shows what transaction documents can look like when indexed in {es}
 include::./data/elasticsearch/transaction_metric.json[]
 ----
 ====
+
+TODO: add service instance transaction metrics
 
 [float]
 ===== Service-transaction metrics
