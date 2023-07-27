@@ -39,8 +39,7 @@
                 "title": "systemtest.test"
             },
             "processor": {
-                "event": "span",
-                "name": "transaction"
+                "event": "span"
             },
             "service": {
                 "language": {
@@ -131,8 +130,7 @@
                 "title": "systemtest.test"
             },
             "processor": {
-                "event": "span",
-                "name": "transaction"
+                "event": "span"
             },
             "service": {
                 "language": {

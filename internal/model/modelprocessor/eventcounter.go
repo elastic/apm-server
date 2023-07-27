@@ -19,6 +19,7 @@ package modelprocessor
 
 import (
 	"context"
+	"fmt"
 	"sync"
 
 	"github.com/elastic/elastic-agent-libs/monitoring"
@@ -35,41 +36,39 @@ type EventCounter struct {
 	registry *monitoring.Registry
 
 	mu            sync.RWMutex
-	eventCounters map[string]*monitoring.Int
+	eventCounters [modelpb.MaxEventType]*monitoring.Int
 }
 
 // NewEventCounter returns an EventCounter that counts events processed, recording
 // them as `<processor.event>.transformations` under the given registry.
 func NewEventCounter(registry *monitoring.Registry) *EventCounter {
-	return &EventCounter{
-		registry:      registry,
-		eventCounters: make(map[string]*monitoring.Int),
-	}
+	return &EventCounter{registry: registry}
 }
 
 // ProcessBatch counts events in b, grouping by APMEvent.Processor.Event.
 func (c *EventCounter) ProcessBatch(ctx context.Context, b *modelpb.Batch) error {
 	for _, event := range *b {
-		pe := event.GetProcessor().GetEvent()
-		if pe == "" {
+		eventType := event.Type()
+		if eventType == modelpb.UndefinedEventType {
 			continue
 		}
+
 		c.mu.RLock()
-		eventCounter := c.eventCounters[pe]
+		eventCounter := c.eventCounters[eventType-1]
 		c.mu.RUnlock()
 		if eventCounter == nil {
 			c.mu.Lock()
-			eventCounter = c.eventCounters[pe]
+			eventCounter = c.eventCounters[eventType-1]
 			if eventCounter == nil {
 				// Metric may exist in the registry but not in our map,
 				// so first check if it exists before attempting to create.
-				name := "processor." + pe + ".transformations"
+				name := fmt.Sprintf("processor.%s.transformations", eventType)
 				var ok bool
 				eventCounter, ok = c.registry.Get(name).(*monitoring.Int)
 				if !ok {
 					eventCounter = monitoring.NewInt(c.registry, name)
 				}
-				c.eventCounters[pe] = eventCounter
+				c.eventCounters[eventType-1] = eventCounter
 			}
 			c.mu.Unlock()
 		}

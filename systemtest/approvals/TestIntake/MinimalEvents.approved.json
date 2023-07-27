@@ -32,10 +32,6 @@
                 "type": "apm-server",
                 "version": "dynamic"
             },
-            "processor": {
-                "event": "error",
-                "name": "error"
-            },
             "service": {
                 "name": "1234_service-12a3"
             },
@@ -77,10 +73,6 @@
                 "type": "apm-server",
                 "version": "dynamic"
             },
-            "processor": {
-                "event": "error",
-                "name": "error"
-            },
             "service": {
                 "name": "1234_service-12a3"
             },
@@ -120,10 +112,6 @@
                 "hostname": "dynamic",
                 "type": "apm-server",
                 "version": "dynamic"
-            },
-            "processor": {
-                "event": "error",
-                "name": "error"
             },
             "service": {
                 "name": "1234_service-12a3"
@@ -198,8 +186,7 @@
                 "id": "ab23456a89012345"
             },
             "processor": {
-                "event": "span",
-                "name": "transaction"
+                "event": "span"
             },
             "service": {
                 "name": "1234_service-12a3"
@@ -248,8 +235,7 @@
                 "id": "ab23456a89012345"
             },
             "processor": {
-                "event": "span",
-                "name": "transaction"
+                "event": "span"
             },
             "service": {
                 "name": "1234_service-12a3"
@@ -295,8 +281,7 @@
                 "version": "dynamic"
             },
             "processor": {
-                "event": "transaction",
-                "name": "transaction"
+                "event": "transaction"
             },
             "service": {
                 "name": "1234_service-12a3"

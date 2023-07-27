@@ -6,9 +6,11 @@
   description: Metricset aggregation interval.
 - name: processor.event
   type: constant_keyword
+  value: metric
   description: Processor event.
 - name: processor.name
   type: constant_keyword
+  value: metric
   description: Processor name.
 - name: service.language.name
   type: keyword

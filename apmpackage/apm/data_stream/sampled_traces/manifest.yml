@@ -3,6 +3,7 @@ type: traces
 dataset: apm.sampled
 ilm_policy: traces-apm.sampled_traces-default_policy
 elasticsearch:
+  dynamic_namespace: true
   privileges:
     # We need additional privileges for the sampled traces data stream,
     # for refreshing indices, querying index stats, and reading documents.
