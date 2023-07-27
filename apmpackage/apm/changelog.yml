@@ -9,6 +9,9 @@
     - description: set processor.* fields in mappings and ingest pipeline
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/11202
+    - description: Added jvm.memory.non_heap.pool.* and jvm.fd.* metrics
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/11303
 - version: "8.9.0"
   changes:
     - description: Handle `metricset.samples` from apm-server
