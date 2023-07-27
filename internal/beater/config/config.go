@@ -61,7 +61,6 @@ type Config struct {
 	AgentConfig               AgentConfig             `config:"agent.config"`
 	Aggregation               AggregationConfig       `config:"aggregation"`
 	Sampling                  SamplingConfig          `config:"sampling"`
-	Profiling                 ProfilingConfig         `config:"profiling"`
 	DataStreams               DataStreamsConfig       `config:"data_streams"`
 	DefaultServiceEnvironment string                  `config:"default_service_environment"`
 	JavaAttacherConfig        JavaAttacherConfig      `config:"java_attacher"`
@@ -121,10 +120,6 @@ func NewConfig(ucfg *config.C, outputESCfg *config.C) (*Config, error) {
 		c.JavaAttacherConfig = defaultJavaAttacherConfig()
 	}
 
-	if err := c.Profiling.setup(logger, outputESCfg); err != nil {
-		return nil, err
-	}
-
 	return c, nil
 }
 
@@ -150,7 +145,6 @@ func DefaultConfig() *Config {
 		AgentConfig:        defaultAgentConfig(),
 		Aggregation:        defaultAggregationConfig(),
 		Sampling:           defaultSamplingConfig(),
-		Profiling:          defaultProfilingConfig(),
 		DataStreams:        defaultDataStreamsConfig(),
 		AgentAuth:          defaultAgentAuth(),
 		JavaAttacherConfig: defaultJavaAttacherConfig(),
