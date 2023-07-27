@@ -1,26 +1,10 @@
 - name: metricset.interval
   type: constant_keyword
   description: Metricset aggregation interval.
-- name: faas.coldstart
-  type: boolean
-  description: |
-    Boolean indicating whether the function invocation was a coldstart or not.
-- name: faas.id
+- name: kubernetes.pod.name
   type: keyword
   description: |
-    A unique identifier of the invoked serverless function.
-- name: faas.trigger.type
-  type: keyword
-  description: |
-    The trigger type.
-- name: faas.name
-  type: keyword
-  description: |
-    The lambda function name.
-- name: faas.version
-  type: keyword
-  description: |
-    The lambda function version.
+    Kubernetes pod name
 - name: metricset.name
   type: constant_keyword
   description: |
@@ -55,18 +39,6 @@
   type: histogram
   description: |
     Pre-aggregated histogram of transaction durations.
-- name: transaction.name
-  type: keyword
-  description: |
-    Generic designation of a transaction in the scope of a single service (eg. 'GET /users/:id').
-- name: transaction.result
-  type: keyword
-  description: |
-    The result of the transaction. HTTP status code for HTTP-related transactions.
-- name: transaction.root
-  type: boolean
-  description: |
-    Identifies metrics for root transactions. This can be used for calculating metrics for traces.
 - name: transaction.type
   type: keyword
   description: |
@@ -76,6 +48,6 @@
   dynamic: true
   description: |
     Custom key/value pairs. Can be used to add meta information to events. Should not contain nested objects. All values are stored as scaled_float.
-- name: transaction.aggregation.overflow_count
+- name: service_instance_transaction.aggregation.overflow_count
   type: long
-  description: Number of aggregation groups that overflowed for transaction metrics aggregation
+  description: Number of aggregation groups that overflowed for service instance transaction metrics aggregation
