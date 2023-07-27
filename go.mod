@@ -26,13 +26,8 @@ require (
 	github.com/gorilla/mux v1.8.0
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/golang-lru v0.5.4
-<<<<<<< HEAD
-	github.com/hnlq715/golang-lru v0.3.1
 	github.com/jaegertracing/jaeger v1.38.1
 	github.com/json-iterator/go v1.1.12
-=======
-	github.com/jaegertracing/jaeger v1.47.0
->>>>>>> c709f26b (Universal Profiling: Remove all UP-related code and tests (#11072))
 	github.com/libp2p/go-reuseport v0.0.2
 	github.com/modern-go/reflect2 v1.0.2
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger v0.63.0
@@ -90,12 +85,8 @@ require (
 	github.com/frankban/quicktest v1.14.0 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/gogo/googleapis v1.4.1 // indirect
-<<<<<<< HEAD
 	github.com/golang/glog v1.0.0 // indirect
-=======
-	github.com/golang/glog v1.1.0 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
->>>>>>> c709f26b (Universal Profiling: Remove all UP-related code and tests (#11072))
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/gomodule/redigo v1.8.9 // indirect
 	github.com/h2non/filetype v1.1.3 // indirect
