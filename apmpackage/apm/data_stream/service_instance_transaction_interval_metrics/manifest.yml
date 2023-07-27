@@ -1,0 +1,40 @@
+title: APM service instance transaction metrics {{ .Interval }}
+type: metrics
+dataset: apm.service_instance_transaction.{{ .Interval }}
+ilm_policy: metrics-apm.service_instance_transaction_{{ .Interval }}_metrics-default_policy
+elasticsearch:
+  dynamic_namespace: true
+  index_template:
+    mappings:
+      # We are in full control of the field names,
+      # but do not block ingestion on unexpected fields.
+      dynamic: runtime
+      # Individual measurements are typically uninteresting, so
+      # use synthetic source to reduce storage size.
+      _source:
+        mode: synthetic
+      # We map transaction.duration.summary and event.success_count here
+      # because aggregate_metric_double is not currently supported by package-spec.
+      #
+      # See https://github.com/elastic/package-spec/issues/363
+      properties:
+        transaction:
+          properties:
+            duration:
+              properties:
+                summary:
+                  type: aggregate_metric_double
+                  metrics: [sum, value_count]
+                  default_metric: sum
+        event:
+          properties:
+            success_count:
+              type: aggregate_metric_double
+              metrics: [sum, value_count]
+              default_metric: sum
+    settings:
+      index:
+        sort.field: "@timestamp"
+        sort.order: desc
+    data_stream:
+      hidden: {{ .Hidden }}
