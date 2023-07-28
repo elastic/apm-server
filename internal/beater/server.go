@@ -208,11 +208,11 @@ func newServer(args ServerParams,
 	mapFetcher := r8.NewMapFetcher(esClient)
 	size := 128
 	cachingFetcher, err := otlp.NewMapCachingFetcher(mapFetcher, size)
-	otlpBatchProcessor = append(otlpBatchProcessor, otlp.NewStacktraceProcessor(cachingFetcher))
 	if args.Config.AugmentEnabled {
 		// Add a model processor that sets `client.ip` for events from end-user devices.
 		otlpBatchProcessor = append(otlpBatchProcessor, modelpb.ProcessBatchFunc(otlp.SetClientMetadata))
 	}
+	otlpBatchProcessor = append(otlpBatchProcessor, otlp.NewStacktraceProcessor(cachingFetcher))
 	zapLogger := zap.New(args.Logger.Core(), zap.WithCaller(true))
 	otlp.RegisterGRPCServices(args.GRPCServer, zapLogger, otlpBatchProcessor, args.Semaphore)
 	jaeger.RegisterGRPCServices(args.GRPCServer, zapLogger, args.BatchProcessor, args.AgentConfig, args.Semaphore)
