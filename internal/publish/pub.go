@@ -30,6 +30,7 @@ import (
 
 	"github.com/elastic/beats/v7/libbeat/beat"
 
+	"github.com/elastic/apm-data/model/modeljson"
 	"github.com/elastic/apm-data/model/modelpb"
 )
 
@@ -194,7 +195,7 @@ func (t batchTransformer) Transform(context.Context) []beat.Event {
 		// from the intermediate map representation for events,
 		// and encode directly to JSON, minimising garbage for
 		// the Elasticsearch output.
-		if err := event.MarshalFastJSON(&w); err != nil {
+		if err := modeljson.MarshalAPMEvent(event, &w); err != nil {
 			continue
 		}
 		beatEvent := beat.Event{Timestamp: event.Timestamp.AsTime()}

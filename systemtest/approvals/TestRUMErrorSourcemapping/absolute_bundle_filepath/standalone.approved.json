@@ -9,9 +9,11 @@
             "client": {
                 "ip": "dynamic"
             },
-            "data_stream.dataset": "apm.error",
-            "data_stream.namespace": "default",
-            "data_stream.type": "logs",
+            "data_stream": {
+                "dataset": "apm.error",
+                "namespace": "default",
+                "type": "logs"
+            },
             "error": {
                 "culprit": "webpack:///webpack/bootstrap 6002740481c9666b0d38 in \u003canonymous\u003e",
                 "exception": [
