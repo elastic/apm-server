@@ -4,7 +4,7 @@
             "@timestamp": "1970-01-01T00:02:03.002Z",
             "agent": {
                 "name": "opentelemetry/go",
-                "version": "1.8.0"
+                "version": "1.16.0"
             },
             "data_stream.dataset": "apm.error",
             "data_stream.namespace": "default",
@@ -54,10 +54,6 @@
             "parent": {
                 "id": "b3ee9be3b687a611"
             },
-            "processor": {
-                "event": "error",
-                "name": "error"
-            },
             "service": {
                 "framework": {
                     "name": "systemtest"
@@ -83,14 +79,15 @@
             "@timestamp": "1970-01-01T00:02:03.001Z",
             "agent": {
                 "name": "opentelemetry/go",
-                "version": "1.8.0"
+                "version": "1.16.0"
             },
             "data_stream.dataset": "apm.app.unknown_service_systemtest_test",
             "data_stream.namespace": "default",
             "data_stream.type": "logs",
             "event": {
                 "agent_id_status": "missing",
-                "ingested": "dynamic"
+                "ingested": "dynamic",
+                "kind": "event"
             },
             "labels": {
                 "resource_attribute_array": [
@@ -117,10 +114,6 @@
                 "type": "apm-server",
                 "version": "dynamic"
             },
-            "processor": {
-                "event": "log",
-                "name": "log"
-            },
             "service": {
                 "framework": {
                     "name": "systemtest"
@@ -141,7 +134,7 @@
             "@timestamp": "1970-01-01T00:02:03.000Z",
             "agent": {
                 "name": "opentelemetry/go",
-                "version": "1.8.0"
+                "version": "1.16.0"
             },
             "data_stream.dataset": "apm",
             "data_stream.namespace": "default",
@@ -181,8 +174,7 @@
                 "version": "dynamic"
             },
             "processor": {
-                "event": "transaction",
-                "name": "transaction"
+                "event": "transaction"
             },
             "service": {
                 "framework": {

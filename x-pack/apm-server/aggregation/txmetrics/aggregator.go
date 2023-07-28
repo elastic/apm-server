@@ -275,7 +275,7 @@ func (a *Aggregator) publish(ctx context.Context, period time.Duration) error {
 // the metrics are aggregated into `_other` buckets to contain cardinality.
 func (a *Aggregator) ProcessBatch(ctx context.Context, b *modelpb.Batch) error {
 	for _, event := range *b {
-		if !event.Processor.IsTransaction() {
+		if event.Type() != modelpb.TransactionEventType {
 			continue
 		}
 		a.AggregateTransaction(event)
@@ -656,7 +656,6 @@ func makeMetricset(key transactionAggregationKey, metrics transactionMetrics, in
 		Faas:          faas,
 		Labels:        key.AggregatedGlobalLabels.Labels,
 		NumericLabels: key.AggregatedGlobalLabels.NumericLabels,
-		Processor:     modelpb.MetricsetProcessor(),
 		Metricset: &modelpb.Metricset{
 			Name:     metricsetName,
 			DocCount: totalCount,

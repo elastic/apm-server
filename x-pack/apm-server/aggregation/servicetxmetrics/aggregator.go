@@ -235,7 +235,7 @@ func (a *Aggregator) ProcessBatch(ctx context.Context, b *modelpb.Batch) error {
 	defer a.mu.RUnlock()
 	for _, event := range *b {
 		tx := event.Transaction
-		if event.Processor.IsTransaction() && tx != nil {
+		if event.Type() == modelpb.TransactionEventType && tx != nil {
 			a.processTransaction(event)
 		}
 	}
@@ -509,7 +509,6 @@ func makeMetricset(key aggregationKey, metrics serviceTxMetrics, interval string
 		Agent:         agent,
 		Labels:        key.Labels,
 		NumericLabels: key.NumericLabels,
-		Processor:     modelpb.MetricsetProcessor(),
 		Metricset: &modelpb.Metricset{
 			DocCount: totalCount,
 			Name:     metricsetName,

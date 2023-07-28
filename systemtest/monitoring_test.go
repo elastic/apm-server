@@ -30,6 +30,7 @@ import (
 	"github.com/elastic/apm-server/systemtest"
 	"github.com/elastic/apm-server/systemtest/apmservertest"
 	"github.com/elastic/apm-server/systemtest/estest"
+	"github.com/elastic/apm-tools/pkg/espoll"
 )
 
 func TestAPMServerMonitoring(t *testing.T) {
@@ -64,7 +65,7 @@ func TestMonitoring(t *testing.T) {
 		tx.End()
 	}
 	tracer.Flush(nil)
-	systemtest.Elasticsearch.ExpectMinDocs(t, N, "traces-*", nil)
+	estest.ExpectMinDocs(t, systemtest.Elasticsearch, N, "traces-*", nil)
 
 	var metrics struct {
 		Libbeat json.RawMessage
@@ -135,11 +136,11 @@ func getBeatsMonitoringStats(t testing.TB, srv *apmservertest.Server, out interf
 }
 
 func getBeatsMonitoring(t testing.TB, srv *apmservertest.Server, type_ string, out interface{}) *beatsMonitoringDoc {
-	var result estest.SearchResult
-	req := systemtest.Elasticsearch.Search(".monitoring-beats-*").WithQuery(
-		estest.TermQuery{Field: type_ + ".beat.uuid", Value: srv.BeatUUID},
+	var result espoll.SearchResult
+	req := systemtest.Elasticsearch.NewSearchRequest(".monitoring-beats-*").WithQuery(
+		espoll.TermQuery{Field: type_ + ".beat.uuid", Value: srv.BeatUUID},
 	).WithSort("timestamp:desc")
-	if _, err := req.Do(context.Background(), &result, estest.WithCondition(result.Hits.MinHitsCondition(1))); err != nil {
+	if _, err := req.Do(context.Background(), &result, espoll.WithCondition(result.Hits.MinHitsCondition(1))); err != nil {
 		t.Error(err)
 	}
 

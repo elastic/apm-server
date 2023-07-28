@@ -27,6 +27,7 @@ import (
 	"github.com/elastic/apm-server/systemtest"
 	"github.com/elastic/apm-server/systemtest/apmservertest"
 	"github.com/elastic/apm-server/systemtest/estest"
+	"github.com/elastic/apm-tools/pkg/espoll"
 )
 
 func TestDefaultServiceEnvironment(t *testing.T) {
@@ -47,8 +48,8 @@ func TestDefaultServiceEnvironment(t *testing.T) {
 	tracerSpecifiedEnvironment.StartTransaction("specified_environment", "type").End()
 	tracerSpecifiedEnvironment.Flush(nil)
 
-	result := systemtest.Elasticsearch.ExpectMinDocs(t, 2, "traces-apm*",
-		estest.TermQuery{Field: "processor.event", Value: "transaction"},
+	result := estest.ExpectMinDocs(t, systemtest.Elasticsearch, 2, "traces-apm*",
+		espoll.TermQuery{Field: "processor.event", Value: "transaction"},
 	)
 	environments := make(map[string]string)
 	for _, hit := range result.Hits.Hits {

@@ -57,7 +57,7 @@ func BenchmarkWriteTransaction(b *testing.B) {
 	}
 	cases := []testCase{
 		{
-			name:  "json_codec",
+			name:  "proto_codec",
 			codec: eventstorage.ProtobufCodec{},
 		},
 		{
@@ -139,7 +139,7 @@ func BenchmarkReadEvents(b *testing.B) {
 	}
 	cases := []testCase{
 		{
-			name:  "json_codec",
+			name:  "proto_codec",
 			codec: eventstorage.ProtobufCodec{},
 		},
 		{
@@ -214,7 +214,7 @@ func (nopCodec) EncodeEvent(*modelpb.APMEvent) ([]byte, error)          { return
 
 func makeTransaction(id, traceID string) *modelpb.APMEvent {
 	return &modelpb.APMEvent{
-		Transaction: &modelpb.Transaction{Id: id},
+		Transaction: &modelpb.Transaction{Type: "type", Id: id},
 		Service: &modelpb.Service{
 			Name:        "myname",
 			Version:     "version",
@@ -232,7 +232,6 @@ func makeTransaction(id, traceID string) *modelpb.APMEvent {
 				Name: "serviceNode",
 			},
 		},
-		Processor: modelpb.TransactionProcessor(),
 		Labels: modelpb.Labels{
 			"key": &modelpb.LabelValue{
 				Value: "value",

@@ -2,7 +2,7 @@
 @Library('apm@current') _
 
 pipeline {
-  agent { label 'microbenchmarks-pool' }
+  agent { label 'linux && immutable' }
   environment {
     REPO = 'apm-server'
     BASE_DIR = "src/github.com/elastic/${env.REPO}"
@@ -11,8 +11,6 @@ pipeline {
     JOB_GCS_CREDENTIALS = 'apm-ci-gcs-plugin'
     DIAGNOSTIC_INTERVAL = "${params.DIAGNOSTIC_INTERVAL}"
     ES_LOG_LEVEL = "${params.ES_LOG_LEVEL}"
-    DOCKER_SECRET = 'secret/observability-team/ci/docker-registry/prod'
-    DOCKER_REGISTRY = 'docker.elastic.co'
   }
   options {
     timeout(time: 2, unit: 'HOURS')
@@ -28,7 +26,6 @@ pipeline {
     issueCommentTrigger("(${obltGitHubComments()}|^/package)")
   }
   parameters {
-    booleanParam(name: 'bench_ci', defaultValue: true, description: 'Enable benchmarks')
     booleanParam(name: 'release_ci', defaultValue: true, description: 'Enable build the release packages')
     string(name: 'ES_LOG_LEVEL', defaultValue: "error", description: 'Elasticsearch error level')
   }
@@ -80,37 +77,6 @@ pipeline {
               parameters: [string(name: 'COMMIT', value: "${env.GIT_BASE_COMMIT}")])
       }
     }
-		// Run the microbenchmarks for the current commit, send them to the benchmarks
-    // Elasticsearch cluster, and compare with the benchmark results from the most
-    // recent branch build.
-    stage('Benchmarking') {
-      options { skipDefaultCheckout() }
-      when {
-        beforeAgent true
-        allOf {
-          expression { return params.bench_ci }
-          expression { return env.ONLY_DOCS == "false" }
-        }
-      }
-      steps {
-        withGithubNotify(context: 'Benchmarking') {
-          deleteDir()
-          unstash 'source'
-          dir("${BASE_DIR}"){
-            withGoEnv(){
-              sh(label: 'Run benchmarks', script: './.ci/scripts/bench.sh')
-            }
-            sendBenchmarks(file: "bench.out", index: "benchmark-server")
-            generateGoBenchmarkDiff(file: 'bench.out', filter: 'exclude')
-          }
-        }
-      }
-      post {
-        cleanup {
-          deleteDir()
-        }
-      }
-    }
     // Run the packaging pipeline for branch builds. This should only be run
     // after all other stages succeed, to avoid publishing packages for a commit
     // with failing tests.
@@ -130,9 +96,6 @@ pipeline {
   post {
     always {
       deleteDir()
-    }
-    cleanup {
-      notifyBuildResult(goBenchmarkComment: true)
     }
   }
 }

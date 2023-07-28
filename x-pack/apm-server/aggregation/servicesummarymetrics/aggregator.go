@@ -194,8 +194,8 @@ func (a *Aggregator) ProcessBatch(ctx context.Context, b *modelpb.Batch) error {
 	a.mu.RLock()
 	defer a.mu.RUnlock()
 	for _, event := range *b {
-		// Ignoring spans since they add no value.
-		if event.Processor.IsSpan() {
+		if event.Type() == modelpb.SpanEventType {
+			// Ignoring spans since they add no value.
 			continue
 		}
 		a.processEvent(event)
@@ -362,7 +362,6 @@ func makeMetricset(key aggregationKey, interval string) *modelpb.APMEvent {
 		Agent:         agent,
 		Labels:        key.Labels,
 		NumericLabels: key.NumericLabels,
-		Processor:     modelpb.MetricsetProcessor(),
 		Metricset: &modelpb.Metricset{
 			Name:     metricsetName,
 			Interval: interval,

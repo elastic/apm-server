@@ -36,8 +36,7 @@
                 "title": "systemtest.test"
             },
             "processor": {
-                "event": "transaction",
-                "name": "transaction"
+                "event": "transaction"
             },
             "service": {
                 "language": {

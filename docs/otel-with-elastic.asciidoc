@@ -11,8 +11,7 @@ see <<open-telemetry-direct>>.
 See the relevant Elastic APM agent documentation to get started:
 
 * {apm-java-ref}/opentelemetry-bridge.html[Java]
-* .NET (link coming soon)
-// * {apm-dotnet-ref}/opentelemetry-bridge.html[.NET]
+* {apm-dotnet-ref}/opentelemetry-bridge.html[.NET]
 * {apm-node-ref}/opentelemetry-bridge.html[Node.js]
 * {apm-py-ref}/opentelemetry-bridge.html[Python]
 

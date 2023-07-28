@@ -42,10 +42,6 @@
             "parent": {
                 "id": "7be2fd98d0973be3"
             },
-            "processor": {
-                "event": "error",
-                "name": "error"
-            },
             "service": {
                 "language": {
                     "name": "Go"
@@ -108,10 +104,6 @@
             },
             "parent": {
                 "id": "7be2fd98d0973be3"
-            },
-            "processor": {
-                "event": "error",
-                "name": "error"
             },
             "service": {
                 "language": {
@@ -176,10 +168,6 @@
             "parent": {
                 "id": "7be2fd98d0973be3"
             },
-            "processor": {
-                "event": "error",
-                "name": "error"
-            },
             "service": {
                 "language": {
                     "name": "Go"
@@ -213,7 +201,8 @@
             "data_stream.type": "logs",
             "event": {
                 "agent_id_status": "missing",
-                "ingested": "dynamic"
+                "ingested": "dynamic",
+                "kind": "event"
             },
             "host": {
                 "hostname": "host01",
@@ -234,10 +223,6 @@
                 "type": "apm-server",
                 "version": "dynamic"
             },
-            "processor": {
-                "event": "log",
-                "name": "log"
-            },
             "service": {
                 "language": {
                     "name": "Go"
@@ -266,7 +251,8 @@
             "data_stream.type": "logs",
             "event": {
                 "agent_id_status": "missing",
-                "ingested": "dynamic"
+                "ingested": "dynamic",
+                "kind": "event"
             },
             "host": {
                 "hostname": "host01",
@@ -285,10 +271,6 @@
                 "type": "apm-server",
                 "version": "dynamic"
             },
-            "processor": {
-                "event": "log",
-                "name": "log"
-            },
             "service": {
                 "language": {
                     "name": "Go"
@@ -317,7 +299,8 @@
             "data_stream.type": "logs",
             "event": {
                 "agent_id_status": "missing",
-                "ingested": "dynamic"
+                "ingested": "dynamic",
+                "kind": "event"
             },
             "host": {
                 "hostname": "host01",
@@ -335,10 +318,6 @@
                 "hostname": "dynamic",
                 "type": "apm-server",
                 "version": "dynamic"
-            },
-            "processor": {
-                "event": "log",
-                "name": "log"
             },
             "service": {
                 "language": {
@@ -394,8 +373,7 @@
                 "version": "dynamic"
             },
             "processor": {
-                "event": "transaction",
-                "name": "transaction"
+                "event": "transaction"
             },
             "service": {
                 "language": {

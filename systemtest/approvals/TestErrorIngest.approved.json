@@ -91,10 +91,6 @@
                 "pid": 1234,
                 "title": "node"
             },
-            "processor": {
-                "event": "error",
-                "name": "error"
-            },
             "service": {
                 "environment": "staging",
                 "framework": {

@@ -31,24 +31,15 @@ import (
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/plog"
 	"go.opentelemetry.io/collector/pdata/plog/plogotlp"
-	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"go.opentelemetry.io/otel/metric"
-	"go.opentelemetry.io/otel/sdk/instrumentation"
-	"go.opentelemetry.io/otel/sdk/metric/aggregator/histogram"
-	controller "go.opentelemetry.io/otel/sdk/metric/controller/basic"
-	"go.opentelemetry.io/otel/sdk/metric/export"
-	"go.opentelemetry.io/otel/sdk/metric/export/aggregation"
-	processor "go.opentelemetry.io/otel/sdk/metric/processor/basic"
-	"go.opentelemetry.io/otel/sdk/metric/sdkapi"
-	"go.opentelemetry.io/otel/sdk/metric/selector/simple"
-	"go.opentelemetry.io/otel/sdk/resource"
+	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
+	"go.opentelemetry.io/otel/sdk/metric/aggregation"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
-	"go.opentelemetry.io/otel/sdk/trace/tracetest"
 	semconv "go.opentelemetry.io/otel/semconv/v1.8.0"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
@@ -119,7 +110,7 @@ func main() {
 	}
 }
 
-func Main(ctx context.Context, logger *zap.SugaredLogger) error {
+func Main(ctx context.Context, logger *zap.SugaredLogger) (result error) {
 	endpointURL, err := url.Parse(*endpoint)
 	if err != nil {
 		return fmt.Errorf("failed to parse endpoint: %w", err)
@@ -141,52 +132,51 @@ func Main(ctx context.Context, logger *zap.SugaredLogger) error {
 	if err != nil {
 		return err
 	}
-	defer otlpExporters.cleanup(ctx)
+	tracerProvider := sdktrace.NewTracerProvider(sdktrace.WithSyncer(otlpExporters.trace))
+	defer func() {
+		if err := tracerProvider.Shutdown(ctx); err != nil {
+			result = errors.Join(result,
+				fmt.Errorf("error shutting down tracer provider: %w", err),
+			)
+		}
+	}()
+
+	meterProvider := sdkmetric.NewMeterProvider(
+		sdkmetric.WithReader(sdkmetric.NewPeriodicReader(
+			otlpExporters.metric,
+			sdkmetric.WithInterval(time.Hour),
+		)),
+		sdkmetric.WithView(sdkmetric.NewView(
+			sdkmetric.Instrument{Name: "*"},
+			sdkmetric.Stream{
+				Aggregation: aggregation.ExplicitBucketHistogram{
+					Boundaries: []float64{1, 10, 100, 1000, 10000},
+				},
+			},
+		)),
+	)
+	defer func() {
+		if err := meterProvider.Shutdown(ctx); err != nil {
+			result = errors.Join(result,
+				fmt.Errorf("error shutting down meter provider: %w", err),
+			)
+		}
+	}()
 
 	logger.Infof("sending OTLP data to %s (%s)", endpointURL.String(), *protocol)
 
-	tracerProvider := sdktrace.NewTracerProvider(
-		sdktrace.WithSyncer(loggingExporter{logger.Desugar()}),
-		sdktrace.WithSyncer(otlpExporters.trace),
-	)
-	metricExporter := chainMetricExporter{loggingExporter{logger.Desugar()}, otlpExporters.metric}
-
-	metricsController := controller.New(
-		processor.NewFactory(
-			simple.NewWithHistogramDistribution(
-				histogram.WithExplicitBoundaries([]float64{1, 10, 100, 1000, 10000}),
-			),
-			aggregation.CumulativeTemporalitySelector(),
-		),
-		controller.WithExporter(metricExporter),
-		controller.WithCollectPeriod(time.Hour),
-	)
-	if err := metricsController.Start(ctx); err != nil {
-		return err
-	}
-
-	logExporter := chainLogExporter{loggingLogExporter{logger.Desugar()}, otlpExporters.log}
 	// Generate some data. Metrics are sent when the controller is stopped, traces and logs
 	// are sent immediately.
-	//
-	if err := generateMetrics(ctx, metricsController.Meter("sendotlp")); err != nil {
-		return err
-	}
-	if err := metricsController.Stop(ctx); err != nil {
+	if err := generateMetrics(ctx, meterProvider.Meter("sendotlp")); err != nil {
 		return err
 	}
 	if err := generateSpans(ctx, tracerProvider.Tracer("sendotlp")); err != nil {
 		return err
 	}
-	if err := generateLogs(ctx, logExporter); err != nil {
+	if err := generateLogs(ctx, otlpExporters.log); err != nil {
 		return err
 	}
-
-	// Shutdown, flushing all data to the server.
-	if err := tracerProvider.Shutdown(ctx); err != nil {
-		return err
-	}
-	return otlpExporters.cleanup(ctx)
+	return nil
 }
 
 func generateSpans(ctx context.Context, tracer trace.Tracer) error {
@@ -207,13 +197,13 @@ func generateSpans(ctx context.Context, tracer trace.Tracer) error {
 }
 
 func generateMetrics(ctx context.Context, meter metric.Meter) error {
-	counter, err := meter.SyncFloat64().Counter("float64_counter")
+	counter, err := meter.Float64Counter("float64_counter")
 	if err != nil {
 		return err
 	}
 	counter.Add(ctx, 1)
 
-	hist, err := meter.SyncInt64().Histogram("int64_histogram")
+	hist, err := meter.Int64Histogram("int64_histogram")
 	if err != nil {
 		return err
 	}
@@ -232,13 +222,15 @@ func generateLogs(ctx context.Context, logger otlplogExporter) error {
 
 	rl := logs.ResourceLogs().AppendEmpty()
 	attribs := rl.Resource().Attributes()
-	attribs.Insert(string(semconv.ServiceNameKey),
-		pcommon.NewValueString(getenvDefault("OTEL_SERVICE_NAME", "unknown_service")))
+	attribs.PutStr(
+		string(semconv.ServiceNameKey),
+		getenvDefault("OTEL_SERVICE_NAME", "unknown_service"),
+	)
 	sl := rl.ScopeLogs().AppendEmpty().LogRecords()
 	record := sl.AppendEmpty()
-	record.Body().SetStringVal("test record")
+	record.Body().SetStr("test record")
 	record.SetTimestamp(pcommon.NewTimestampFromTime(time.Now()))
-	record.SetSeverityNumber(plog.SeverityNumberFATAL)
+	record.SetSeverityNumber(plog.SeverityNumberFatal)
 	record.SetSeverityText("fatal")
 
 	return logger.Export(ctx, logs)
@@ -247,7 +239,7 @@ func generateLogs(ctx context.Context, logger otlplogExporter) error {
 type otlpExporters struct {
 	cleanup func(context.Context) error
 	trace   *otlptrace.Exporter
-	metric  *otlpmetric.Exporter
+	metric  sdkmetric.Exporter
 	log     otlplogExporter
 }
 
@@ -299,21 +291,19 @@ func newOTLPGRPCExporters(ctx context.Context, endpointURL *url.URL) (*otlpExpor
 		cleanup(ctx)
 		return nil, err
 	}
-	cleanup = combineCleanup(otlpTraceExporter.Shutdown, cleanup)
 
 	otlpMetricExporter, err := otlpmetricgrpc.New(ctx, metricOptions...)
 	if err != nil {
 		cleanup(ctx)
 		return nil, err
 	}
-	cleanup = combineCleanup(otlpMetricExporter.Shutdown, cleanup)
 
 	return &otlpExporters{
 		cleanup: cleanup,
 		trace:   otlpTraceExporter,
 		metric:  otlpMetricExporter,
 		log: &otlploggrpcExporter{
-			client:  plogotlp.NewClient(grpcConn),
+			client:  plogotlp.NewGRPCClient(grpcConn),
 			headers: logHeaders,
 		},
 	}, nil
@@ -348,14 +338,12 @@ func newOTLPHTTPExporters(ctx context.Context, endpointURL *url.URL) (*otlpExpor
 		cleanup(ctx)
 		return nil, err
 	}
-	cleanup = combineCleanup(otlpTraceExporter.Shutdown, cleanup)
 
 	otlpMetricExporter, err := otlpmetrichttp.New(ctx, metricOptions...)
 	if err != nil {
 		cleanup(ctx)
 		return nil, err
 	}
-	cleanup = combineCleanup(otlpMetricExporter.Shutdown, cleanup)
 
 	return &otlpExporters{
 		cleanup: cleanup,
@@ -365,109 +353,18 @@ func newOTLPHTTPExporters(ctx context.Context, endpointURL *url.URL) (*otlpExpor
 	}, nil
 }
 
-func combineCleanup(a, b func(context.Context) error) func(context.Context) error {
-	return func(ctx context.Context) error {
-		if err := a(ctx); err != nil {
-			return err
-		}
-		return b(ctx)
-	}
-}
-
-type chainMetricExporter []export.Exporter
-
-func (c chainMetricExporter) Export(ctx context.Context, resource *resource.Resource, r export.InstrumentationLibraryReader) error {
-	for _, exporter := range c {
-		if err := exporter.Export(ctx, resource, r); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (chainMetricExporter) TemporalityFor(desc *sdkapi.Descriptor, kind aggregation.Kind) aggregation.Temporality {
-	return aggregation.StatelessTemporalitySelector().TemporalityFor(desc, kind)
-}
-
-type loggingExporter struct {
-	logger *zap.Logger
-}
-
-func (loggingExporter) Shutdown(ctx context.Context) error {
-	return nil
-}
-
-func (loggingExporter) MarshalLog() interface{} {
-	return "loggingExporter"
-}
-
-func (e loggingExporter) ExportSpans(ctx context.Context, spans []sdktrace.ReadOnlySpan) error {
-	for _, span := range tracetest.SpanStubsFromReadOnlySpans(spans) {
-		e.logger.Info("exporting span", zap.Any("span", span))
-	}
-	return nil
-}
-
-func (e loggingExporter) Export(ctx context.Context, resource *resource.Resource, r export.InstrumentationLibraryReader) error {
-	return r.ForEach(func(_ instrumentation.Library, mr export.Reader) error {
-		return mr.ForEach(e, func(record export.Record) error {
-			fields := []zap.Field{zap.Namespace("metric")}
-
-			desc := record.Descriptor()
-			fields = append(fields, zap.String("name", desc.Name()))
-			fields = append(fields, zap.String("kind", desc.InstrumentKind().String()))
-			if unit := desc.Unit(); unit != "" {
-				fields = append(fields, zap.String("unit", string(unit)))
-			}
-			fields = append(fields, zap.Time("start_time", record.StartTime()))
-			fields = append(fields, zap.Time("end_time", record.EndTime()))
-
-			agg := record.Aggregation()
-			if agg, ok := agg.(aggregation.Histogram); ok {
-				buckets, err := agg.Histogram()
-				if err != nil {
-					return err
-				}
-				fields = append(fields, zap.Float64s("boundaries", buckets.Boundaries))
-				fields = append(fields, zap.Uint64s("counts", buckets.Counts))
-			}
-			if agg, ok := agg.(aggregation.Sum); ok {
-				sum, err := agg.Sum()
-				if err != nil {
-					return err
-				}
-				fields = append(fields, zap.Float64("sum", sum.CoerceToFloat64(desc.NumberKind())))
-			}
-			if agg, ok := agg.(aggregation.Count); ok {
-				count, err := agg.Count()
-				if err != nil {
-					return err
-				}
-				fields = append(fields, zap.Uint64("count", count))
-			}
-
-			e.logger.Info("exporting metric", fields...)
-			return nil
-		})
-	})
-}
-
-func (loggingExporter) TemporalityFor(desc *sdkapi.Descriptor, kind aggregation.Kind) aggregation.Temporality {
-	return aggregation.StatelessTemporalitySelector().TemporalityFor(desc, kind)
-}
-
 type otlplogExporter interface {
 	Export(ctx context.Context, logs plog.Logs) error
 }
 
 // otlploggrpcExporter is a simple synchronous log exporter using GRPC
 type otlploggrpcExporter struct {
-	client  plogotlp.Client
+	client  plogotlp.GRPCClient
 	headers map[string]string
 }
 
 func (e *otlploggrpcExporter) Export(ctx context.Context, logs plog.Logs) error {
-	req := plogotlp.NewRequestFromLogs(logs)
+	req := plogotlp.NewExportRequestFromLogs(logs)
 	md := metadata.New(e.headers)
 	ctx = metadata.NewOutgoingContext(ctx, md)
 
@@ -486,25 +383,5 @@ type otlploghttpExporter struct {
 
 func (e *otlploghttpExporter) Export(ctx context.Context, logs plog.Logs) error {
 	// TODO: implement
-	return nil
-}
-
-type chainLogExporter []otlplogExporter
-
-func (c chainLogExporter) Export(ctx context.Context, logs plog.Logs) error {
-	for _, exporter := range c {
-		if err := exporter.Export(ctx, logs); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-type loggingLogExporter struct {
-	logger *zap.Logger
-}
-
-func (e loggingLogExporter) Export(ctx context.Context, logs plog.Logs) error {
-	e.logger.Info("exporting logs", zap.Int("count", logs.LogRecordCount()))
 	return nil
 }

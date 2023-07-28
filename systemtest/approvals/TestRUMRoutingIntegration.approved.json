@@ -44,8 +44,7 @@
                 "id": "ec2e280be8345240"
             },
             "processor": {
-                "event": "span",
-                "name": "transaction"
+                "event": "span"
             },
             "service": {
                 "environment": "prod",
@@ -129,8 +128,7 @@
                 "id": "ec2e280be8345240"
             },
             "processor": {
-                "event": "span",
-                "name": "transaction"
+                "event": "span"
             },
             "service": {
                 "environment": "prod",
@@ -202,8 +200,7 @@
                 "id": "ec2e280be8345240"
             },
             "processor": {
-                "event": "span",
-                "name": "transaction"
+                "event": "span"
             },
             "service": {
                 "environment": "prod",
@@ -275,8 +272,7 @@
                 "id": "bbd8bcc3be14d814"
             },
             "processor": {
-                "event": "span",
-                "name": "transaction"
+                "event": "span"
             },
             "service": {
                 "environment": "prod",
@@ -349,8 +345,7 @@
                 "id": "ec2e280be8345240"
             },
             "processor": {
-                "event": "span",
-                "name": "transaction"
+                "event": "span"
             },
             "service": {
                 "environment": "prod",
@@ -411,8 +406,7 @@
                 "id": "ec2e280be8345240"
             },
             "processor": {
-                "event": "span",
-                "name": "transaction"
+                "event": "span"
             },
             "service": {
                 "environment": "prod",
@@ -512,8 +506,7 @@
                 "id": "ec2e280be8345240"
             },
             "processor": {
-                "event": "span",
-                "name": "transaction"
+                "event": "span"
             },
             "service": {
                 "environment": "prod",
@@ -584,8 +577,7 @@
                 "id": "ec2e280be8345240"
             },
             "processor": {
-                "event": "span",
-                "name": "transaction"
+                "event": "span"
             },
             "service": {
                 "environment": "prod",
@@ -669,8 +661,7 @@
                 "id": "1ef08ac234fca23b455d9e27c660f1ab"
             },
             "processor": {
-                "event": "transaction",
-                "name": "transaction"
+                "event": "transaction"
             },
             "service": {
                 "environment": "prod",
