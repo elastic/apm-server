@@ -12,6 +12,7 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.uber.org/zap"
 
+	"github.com/elastic/apm-aggregation/aggregationpb"
 	"github.com/elastic/apm-aggregation/aggregators"
 	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/elastic-agent-libs/logp"
@@ -67,7 +68,7 @@ func (a *Aggregator) Run() error {
 
 // Stop stops all the component for aggregator.
 func (a *Aggregator) Stop(ctx context.Context) error {
-	err := a.baseaggregator.Stop(ctx)
+	err := a.baseaggregator.Close(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to stop aggregator: %w", err)
 	}
@@ -84,7 +85,7 @@ func wrapNextProcessor(processor modelpb.BatchProcessor) aggregators.Processor {
 	return func(
 		ctx context.Context,
 		cmk aggregators.CombinedMetricsKey,
-		cm aggregators.CombinedMetrics,
+		cm *aggregationpb.CombinedMetrics,
 		aggregationIvl time.Duration,
 	) error {
 		batch, err := aggregators.CombinedMetricsToBatch(cm, cmk.ProcessingTime, aggregationIvl)
