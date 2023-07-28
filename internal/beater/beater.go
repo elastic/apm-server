@@ -368,7 +368,7 @@ func (s *Runner) Run(ctx context.Context) error {
 
 	// Create the runServer function. We start with newBaseRunServer, and then
 	// wrap depending on the configuration in order to inject behaviour.
-	runServer := newBaseRunServer(s.listener)
+	runServer := newBaseRunServer(s.listener, newElasticsearchClient, s.config.RumConfig.SourceMapping.ESConfig)
 	authenticator, err := auth.NewAuthenticator(s.config.AgentAuth)
 	if err != nil {
 		return err

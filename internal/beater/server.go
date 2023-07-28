@@ -144,9 +144,12 @@ type ServerParams struct {
 }
 
 // newBaseRunServer returns the base RunServerFunc.
-func newBaseRunServer(listener net.Listener) RunServerFunc {
+func newBaseRunServer(listener net.Listener,
+	newElasticsearchClient func(*elasticsearch.Config) (*elasticsearch.Client, error),
+	esConfig *elasticsearch.Config,
+) RunServerFunc {
 	return func(ctx context.Context, args ServerParams) error {
-		srv, err := newServer(args, listener)
+		srv, err := newServer(args, listener, newElasticsearchClient, esConfig)
 		if err != nil {
 			return err
 		}
@@ -162,7 +165,11 @@ type server struct {
 	grpcServer *grpc.Server
 }
 
-func newServer(args ServerParams, listener net.Listener) (server, error) {
+func newServer(args ServerParams,
+	listener net.Listener,
+	newElasticsearchClient func(*elasticsearch.Config) (*elasticsearch.Client, error),
+	esConfig *elasticsearch.Config,
+) (server, error) {
 	publishReady := func() bool {
 		select {
 		case <-args.PublishReady:
@@ -194,7 +201,7 @@ func newServer(args ServerParams, listener net.Listener) (server, error) {
 
 	var otlpBatchProcessor modelprocessor.Chained
 
-	esClient, err := args.NewElasticsearchClient(elasticsearch.DefaultConfig())
+	esClient, err := newElasticsearchClient(esConfig)
 	if err != nil {
 		return server{}, err
 	}
