@@ -20,7 +20,7 @@ jobs:
       SSH_KEY: ./id_rsa_terraform
       TF_VAR_private_key: ./id_rsa_terraform
       TF_VAR_public_key: ./id_rsa_terraform.pub
-      TFVARS_SOURCE: "system-profiles/8GBx1zone.tfvars" # // Default to use an 8gb profile
+      TFVARS_SOURCE: 'system-profiles/8GBx1zone.tfvars' # // Default to use an 8gb profile
       TF_VAR_BUILD_ID: ${{ github.run_id }}
       TF_VAR_ENVIRONMENT: ci
       TF_VAR_REPO: ${{ github.repository }}
@@ -127,23 +127,25 @@ jobs:
         if: always()
         run: make destroy
 
-      - if: failure()
+      # Notify failure to Slack only on schedule (nightly run)
+      - if: failure() && github.event_name == 'schedule'
         uses: elastic/apm-pipeline-library/.github/actions/notify-build-status@current
         with:
           message: |
-            ${{ github.event_name == 'schedule' && 'Nightly benchmarks failed!' || 'Benchmarks failed!' }}
-            SDH Duty assignee, please have a look and follow this <https://github.com/elastic/observability-dev/blob/main/docs/apm/apm-server/runbooks/benchmarks.md|Runbook>!
+            Nightly benchmarks failed! SDH Duty assignee, please have a look and follow this <https://github.com/elastic/observability-dev/blob/main/docs/apm/apm-server/runbooks/benchmarks.md|Runbook>!
           vaultUrl: ${{ secrets.VAULT_ADDR }}
           vaultRoleId: ${{ secrets.VAULT_ROLE_ID }}
           vaultSecretId: ${{ secrets.VAULT_SECRET_ID }}
-          slackChannel: "#apm-server"
+          slackChannel: '#apm-server'
 
-      - uses: elastic/apm-pipeline-library/.github/actions/slack-message@current
+      # Notify result to Slack only on schedule (nightly run)
+      - if: github.event_name == 'schedule'
+        uses: elastic/apm-pipeline-library/.github/actions/slack-message@current
         with:
           url: ${{ secrets.VAULT_ADDR }}
           roleId: ${{ secrets.VAULT_ROLE_ID }}
           secretId: ${{ secrets.VAULT_SECRET_ID }}
-          channel: "#apm-server"
+          channel: '#apm-server'
           payload: |
             {
                 "blocks": [
