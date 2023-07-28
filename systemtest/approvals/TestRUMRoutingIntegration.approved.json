@@ -7,9 +7,11 @@
                 "version": "4.8.1"
             },
             "client": "dynamic",
-            "data_stream.dataset": "apm.rum",
-            "data_stream.namespace": "default",
-            "data_stream.type": "traces",
+            "data_stream": {
+                "dataset": "apm.rum",
+                "namespace": "default",
+                "type": "traces"
+            },
             "destination": {
                 "address": "localhost",
                 "port": 8003
@@ -91,9 +93,11 @@
                 "version": "4.8.1"
             },
             "client": "dynamic",
-            "data_stream.dataset": "apm.rum",
-            "data_stream.namespace": "default",
-            "data_stream.type": "traces",
+            "data_stream": {
+                "dataset": "apm.rum",
+                "namespace": "default",
+                "type": "traces"
+            },
             "destination": {
                 "address": "localhost",
                 "port": 8000
@@ -175,9 +179,11 @@
                 "version": "4.8.1"
             },
             "client": "dynamic",
-            "data_stream.dataset": "apm.rum",
-            "data_stream.namespace": "default",
-            "data_stream.type": "traces",
+            "data_stream": {
+                "dataset": "apm.rum",
+                "namespace": "default",
+                "type": "traces"
+            },
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
@@ -235,9 +241,11 @@
                 "version": "4.8.1"
             },
             "client": "dynamic",
-            "data_stream.dataset": "apm.rum",
-            "data_stream.namespace": "default",
-            "data_stream.type": "traces",
+            "data_stream": {
+                "dataset": "apm.rum",
+                "namespace": "default",
+                "type": "traces"
+            },
             "destination": {
                 "address": "localhost",
                 "port": 8003
@@ -320,9 +328,11 @@
                 "version": "4.8.1"
             },
             "client": "dynamic",
-            "data_stream.dataset": "apm.rum",
-            "data_stream.namespace": "default",
-            "data_stream.type": "traces",
+            "data_stream": {
+                "dataset": "apm.rum",
+                "namespace": "default",
+                "type": "traces"
+            },
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
@@ -381,9 +391,11 @@
                 "version": "4.8.1"
             },
             "client": "dynamic",
-            "data_stream.dataset": "apm.rum",
-            "data_stream.namespace": "default",
-            "data_stream.type": "traces",
+            "data_stream": {
+                "dataset": "apm.rum",
+                "namespace": "default",
+                "type": "traces"
+            },
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
@@ -470,9 +482,11 @@
                 "version": "4.8.1"
             },
             "client": "dynamic",
-            "data_stream.dataset": "apm.rum",
-            "data_stream.namespace": "default",
-            "data_stream.type": "traces",
+            "data_stream": {
+                "dataset": "apm.rum",
+                "namespace": "default",
+                "type": "traces"
+            },
             "destination": {
                 "address": "localhost",
                 "port": 8000
@@ -552,9 +566,11 @@
                 "version": "4.8.1"
             },
             "client": "dynamic",
-            "data_stream.dataset": "apm.rum",
-            "data_stream.namespace": "default",
-            "data_stream.type": "traces",
+            "data_stream": {
+                "dataset": "apm.rum",
+                "namespace": "default",
+                "type": "traces"
+            },
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
@@ -613,9 +629,11 @@
                 "version": "4.8.1"
             },
             "client": "dynamic",
-            "data_stream.dataset": "apm.rum",
-            "data_stream.namespace": "default",
-            "data_stream.type": "traces",
+            "data_stream": {
+                "dataset": "apm.rum",
+                "namespace": "default",
+                "type": "traces"
+            },
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",

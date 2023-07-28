@@ -157,11 +157,11 @@ resource "null_resource" "apm_server_log" {
 }
 
 data "external" "latest_elastic_agent" {
-  program = ["bash", "${path.module}/latest_elastic_agent.sh"]
+  program = ["bash", "${path.module}/latest_elastic_agent.sh", "${var.stack_version}"]
 }
 
 data "external" "latest_apm_server" {
-  program = ["bash", "${path.module}/latest_apm_server.sh"]
+  program = ["bash", "${path.module}/latest_apm_server.sh", "${var.stack_version}"]
 }
 
 resource "aws_key_pair" "provisioner_key" {
