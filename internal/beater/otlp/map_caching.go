@@ -40,7 +40,7 @@ func NewMapCachingFetcher(
 }
 
 // Fetch fetches an android source map from the cache or wrapped backend.
-func (f MapCachingFetcher) Fetch(ctx context.Context, name, version string) ([]byte, error) {
+func (f *MapCachingFetcher) Fetch(ctx context.Context, name, version string) ([]byte, error) {
 	key := sourcemap.Identifier{
 		Name:    name,
 		Version: version,
