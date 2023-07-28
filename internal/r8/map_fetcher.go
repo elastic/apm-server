@@ -43,10 +43,10 @@ func (p *MapFetcher) Fetch(ctx context.Context, name, version string) ([]byte, e
 		}
 		return nil, fmt.Errorf("failure querying ES: %w", err)
 	}
+	defer resp.Body.Close()
 
 	// handle error response
 	if resp.StatusCode >= http.StatusMultipleChoices {
-		defer resp.Body.Close()
 		b, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return nil, fmt.Errorf("failed to read ES response body: %w", err)
