@@ -15,7 +15,6 @@ import (
 
 	"github.com/elastic/apm-server/internal/elasticsearch"
 	"github.com/elastic/apm-server/internal/r8"
-	"github.com/elastic/apm-server/internal/sourcemap"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -31,10 +30,9 @@ func Test_NewCachingFetcher(t *testing.T) {
 
 func TestStore_Fetch(t *testing.T) {
 	serviceName, serviceVersion := "foo", "1.0.1"
-	key := sourcemap.Identifier{
+	key := identifier{
 		Name:    "foo",
 		Version: "1.0.1",
-		Path:    "android",
 	}
 
 	t.Run("cache", func(t *testing.T) {

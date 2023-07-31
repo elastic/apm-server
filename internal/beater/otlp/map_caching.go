@@ -17,6 +17,11 @@ type MapCachingFetcher struct {
 	logger  *logp.Logger
 }
 
+type identifier struct {
+	Name    string
+	Version string
+}
+
 // NewMapCachingFetcher returns a MapCachingFetcher that wraps backend, caching results for the configured cacheExpiration.
 func NewMapCachingFetcher(
 	backend MapFetcher,
@@ -41,10 +46,9 @@ func NewMapCachingFetcher(
 
 // Fetch fetches an android source map from the cache or wrapped backend.
 func (f *MapCachingFetcher) Fetch(ctx context.Context, name, version string) ([]byte, error) {
-	key := sourcemap.Identifier{
+	key := identifier{
 		Name:    name,
 		Version: version,
-		Path:    "android",
 	}
 
 	// fetch from cache
@@ -65,7 +69,7 @@ func (f *MapCachingFetcher) Fetch(ctx context.Context, name, version string) ([]
 	return data, nil
 }
 
-func (f *MapCachingFetcher) add(key sourcemap.Identifier, data []byte) {
+func (f *MapCachingFetcher) add(key identifier, data []byte) {
 	f.cache.Add(key, data)
 	f.logger.Debugf("Added id %v. Cache now has %v entries.", key, f.cache.Len())
 }
