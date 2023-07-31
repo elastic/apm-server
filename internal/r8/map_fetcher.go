@@ -1,7 +1,6 @@
 package r8
 
 import (
-	"bytes"
 	"compress/zlib"
 	"context"
 	"encoding/base64"
@@ -61,18 +60,7 @@ func (p *MapFetcher) Fetch(ctx context.Context, name, version string) ([]byte, e
 		return nil, fmt.Errorf("ES returned unknown status code: %s", resp.Status())
 	}
 
-	body, err := io.ReadAll(resp.Body)
-
-	if err != nil {
-		return nil, err
-	}
-
-	decodedBody, err := base64.StdEncoding.DecodeString(string(body))
-	if err != nil {
-		return nil, fmt.Errorf("failed to base64 decode string: %w", err)
-	}
-
-	r, err := zlib.NewReader(bytes.NewReader(decodedBody))
+	r, err := zlib.NewReader(base64.NewDecoder(base64.StdEncoding, resp.Body))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create zlib reader: %w", err)
 	}
