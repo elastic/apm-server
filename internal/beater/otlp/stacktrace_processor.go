@@ -6,7 +6,6 @@ import (
 	"io"
 
 	"github.com/elastic/apm-data/model/modelpb"
-	"github.com/elastic/apm-server/internal/r8"
 )
 
 type MapFetcher interface {
@@ -57,8 +56,8 @@ func isMobileCrash(event *modelpb.APMEvent) bool {
 	return event.Error != nil && event.Event.Category == "device" && event.Error.Type == "crash"
 }
 
-type crashDeobfuscatorFunc func(stacktrace *[]*modelpb.StacktraceFrame, mapFile io.Reader) error
+type CrashDeobfuscatorFunc func(stacktrace *[]*modelpb.StacktraceFrame, mapFile io.Reader) error
 
-func (d crashDeobfuscatorFunc) Deobfuscate(stacktrace *[]*modelpb.StacktraceFrame, mapFile io.Reader) error {
+func (d CrashDeobfuscatorFunc) Deobfuscate(stacktrace *[]*modelpb.StacktraceFrame, mapFile io.Reader) error {
 	return d(stacktrace, mapFile)
 }

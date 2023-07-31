@@ -213,7 +213,7 @@ func newServer(args ServerParams,
 		otlpBatchProcessor = append(otlpBatchProcessor, modelpb.ProcessBatchFunc(otlp.SetClientMetadata))
 	}
 	otlpBatchProcessor = append(otlpBatchProcessor, args.BatchProcessor)
-	otlpBatchProcessor = append(otlpBatchProcessor, otlp.NewStacktraceProcessor(cachingFetcher))
+	otlpBatchProcessor = append(otlpBatchProcessor, otlp.NewStacktraceProcessor(cachingFetcher, otlp.CrashDeobfuscatorFunc(r8.Deobfuscate)))
 	zapLogger := zap.New(args.Logger.Core(), zap.WithCaller(true))
 	otlp.RegisterGRPCServices(args.GRPCServer, zapLogger, otlpBatchProcessor, args.Semaphore)
 	jaeger.RegisterGRPCServices(args.GRPCServer, zapLogger, args.BatchProcessor, args.AgentConfig, args.Semaphore)
