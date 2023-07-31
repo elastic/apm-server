@@ -20,7 +20,7 @@ import (
 
 const mapIndex = ".apm-android-map"
 
-var errFetcherUnvailable = errors.New("fetcher unavailable")
+var errFetcherUnavailable = errors.New("fetcher unavailable")
 
 type MapFetcher struct {
 	client *elasticsearch.Client
@@ -39,7 +39,7 @@ func (p *MapFetcher) Fetch(ctx context.Context, name, version string) ([]byte, e
 	if err != nil {
 		var networkErr net.Error
 		if errors.As(err, &networkErr) {
-			return nil, fmt.Errorf("failed to reach elasticsearch: %w: %v ", errFetcherUnvailable, err)
+			return nil, fmt.Errorf("failed to reach elasticsearch: %w: %v ", errFetcherUnavailable, err)
 		}
 		return nil, fmt.Errorf("failure querying ES: %w", err)
 	}
@@ -56,7 +56,7 @@ func (p *MapFetcher) Fetch(ctx context.Context, name, version string) ([]byte, e
 			// http.StatusForbidden -> we don't have permission to read from the index
 			// In both cases we consider the fetcher unavailable so that APM Server can
 			// fallback to other fetchers
-			return nil, fmt.Errorf("%w: %s: %s", errFetcherUnvailable, resp.Status(), string(b))
+			return nil, fmt.Errorf("%w: %s: %s", errFetcherUnavailable, resp.Status(), string(b))
 		}
 		return nil, fmt.Errorf("ES returned unknown status code: %s", resp.Status())
 	}
