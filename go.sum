@@ -154,11 +154,11 @@ github.com/elastic/apm-aggregation v0.0.0-20230731142331-d61f076b2ac5 h1:PuqK0sz
 github.com/elastic/apm-aggregation v0.0.0-20230731142331-d61f076b2ac5/go.mod h1:0lKtzE+VV8a28ksvffeaKpMU5aEaicBqM1AF2rP+dGQ=
 github.com/elastic/apm-data v0.1.1-0.20230728063148-1076ea8b4db0 h1:dJEhfgmABnNyC//PM/CDCEEMg5l6I+KjHGDR6o1WMx4=
 github.com/elastic/apm-data v0.1.1-0.20230728063148-1076ea8b4db0/go.mod h1:lMTMoCWNadiDJih/tLechuMTtumEeedtKJlBOYAv030=
-github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230727143857-7fd27bf1f6c4 h1:sICugAEku+oUCgX9p5UkZk0UtzM0yatddqz0ufEObmE=
-github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230727143857-7fd27bf1f6c4/go.mod h1:4vXAyKpsDLbuLh5WpMEQDi87RNpVFUxNqj4rrY2TaLg=
+github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230731064218-c7d59203f2fd h1:awaMokcVXl7GXP7jpy3DC7ukU6OGasa/xeWYQg7EswM=
+github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230731064218-c7d59203f2fd/go.mod h1:fjmlTv3p5gGLbUnsOHeO1wrL+m4r7dDDuf/JcOQEows=
 github.com/elastic/elastic-agent-autodiscover v0.6.2 h1:7P3cbMBWXjbzA80rxitQjc+PiWyZ4I4F4LqrCYgYlNc=
-github.com/elastic/elastic-agent-client/v7 v7.1.2 h1:p6KvvDMoFCBPvchxcx9cRXpRjsDaii0m/wE3lqQxpmM=
-github.com/elastic/elastic-agent-client/v7 v7.1.2/go.mod h1:G3Mk1pHXxvj3wC5FvsGUlPOsvapTB5SfrUmWiJDXT6Q=
+github.com/elastic/elastic-agent-client/v7 v7.2.0 h1:WCPu7t+NGrnjzfu76FxyZpAzoQirIEBn1ne6kKHacIU=
+github.com/elastic/elastic-agent-client/v7 v7.2.0/go.mod h1:9/amG2K2y2oqx39zURcc+hnqcX+nyJ1cZrLgzsgo5c0=
 github.com/elastic/elastic-agent-libs v0.3.9 h1:2xbZUOM20Q9ni3dkNjj8r274fub22SuLqi6SedknV7g=
 github.com/elastic/elastic-agent-libs v0.3.9/go.mod h1:Fy5QqIOax0EOVeQJ2l5Ux+GmJsX549Obllru5R1bHLI=
 github.com/elastic/elastic-agent-shipper-client v0.5.1-0.20230228231646-f04347b666f3 h1:sb+25XJn/JcC9/VL8HX4r4QXSUq4uTNzGS2kxOE7u1U=
@@ -419,8 +419,8 @@ github.com/libp2p/go-reuseport v0.0.2/go.mod h1:SPD+5RwGC7rcnzngoYC86GjPzjSywuQy
 github.com/lufia/plan9stats v0.0.0-20211012122336-39d0f177ccd0 h1:6E+4a0GO5zZEnZ81pIr0yLvtUWk2if982qA3F3QD6H4=
 github.com/lufia/plan9stats v0.0.0-20211012122336-39d0f177ccd0/go.mod h1:zJYVVT2jmtg6P3p1VtQj7WsuWi/y4VnjVBn7F8KPB3I=
 github.com/magefile/mage v1.9.0/go.mod h1:z5UZb/iS3GoOSn0JgWuiw7dxlurVYTu+/jHXqQg881A=
-github.com/magefile/mage v1.14.0 h1:6QDX3g6z1YvJ4olPhT1wksUcSa/V0a1B+pJb73fBjyo=
-github.com/magefile/mage v1.14.0/go.mod h1:z5UZb/iS3GoOSn0JgWuiw7dxlurVYTu+/jHXqQg881A=
+github.com/magefile/mage v1.15.0 h1:BvGheCMAsG3bWUDbZ8AyXXpCNwU9u5CB6sM+HNb9HYg=
+github.com/magefile/mage v1.15.0/go.mod h1:z5UZb/iS3GoOSn0JgWuiw7dxlurVYTu+/jHXqQg881A=
 github.com/magiconair/properties v1.8.0/go.mod h1:PppfXfuXeibc/6YijjN8zIbojt8czPbwD3XqdrwzmxQ=
 github.com/mailru/easyjson v0.7.7 h1:UGYAvKxe3sBsEDzO8ZeWOSlIQfWFlxbzLZe7hwFURr0=
 github.com/mattn/go-colorable v0.1.2/go.mod h1:U0ppj6V5qS13XJ6of8GYAs25YV2eR4EVcfRqFIhoBtE=
