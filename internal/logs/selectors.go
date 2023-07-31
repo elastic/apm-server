@@ -28,6 +28,7 @@ const (
 	Kibana                    = "kibana"
 	Otel                      = "otel"
 	Pipelines                 = "pipelines"
+	R8                        = "R8-sourcemap"
 	Request                   = "request"
 	Response                  = "response"
 	Server                    = "server"

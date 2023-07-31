@@ -29,7 +29,7 @@ type MapFetcher struct {
 
 // NewMapFetcher returns a MapFetcher.
 func NewMapFetcher(c *elasticsearch.Client) *MapFetcher {
-	logger := logp.NewLogger(logs.Sourcemap)
+	logger := logp.NewLogger(logs.R8)
 	return &MapFetcher{c, logger}
 }
 
