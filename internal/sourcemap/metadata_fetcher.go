@@ -212,7 +212,7 @@ func (s *MetadataESFetcher) update(ctx context.Context, sourcemaps map[identifie
 			delete(s.set, id)
 
 			// remove aliases
-			for _, k := range getAliases(id.Name, id.Version, id.Path) {
+			for _, k := range getAliases(id.name, id.version, id.path) {
 				delete(s.alias, k)
 			}
 		}
@@ -234,7 +234,7 @@ func (s *MetadataESFetcher) update(ctx context.Context, sourcemaps map[identifie
 		// The id is then passed over to the backend fetcher
 		// to minimize the size of the lru cache and
 		// and increase cache hits.
-		for _, k := range getAliases(id.Name, id.Version, id.Path) {
+		for _, k := range getAliases(id.name, id.version, id.path) {
 			s.logger.Debugf("Added metadata alias %v -> %v", k, id)
 			s.alias[k] = &id
 		}
@@ -318,9 +318,9 @@ func (s *MetadataESFetcher) handleUpdateRequest(resp *esapi.Response, updates ma
 
 	for _, v := range body.Hits.Hits {
 		id := identifier{
-			Name:    v.Source.Service.Name,
-			Version: v.Source.Service.Version,
-			Path:    v.Source.File.BundleFilepath,
+			name:    v.Source.Service.Name,
+			version: v.Source.Service.Version,
+			path:    v.Source.File.BundleFilepath,
 		}
 
 		updates[id] = v.Source.ContentHash

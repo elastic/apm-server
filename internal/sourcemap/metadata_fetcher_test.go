@@ -37,9 +37,9 @@ import (
 func TestMetadataFetcher(t *testing.T) {
 	defaultID := metadata{
 		identifier: identifier{
-			Name:    "app",
-			Version: "1.0",
-			Path:    "/bundle/path",
+			name:    "app",
+			version: "1.0",
+			path:    "/bundle/path",
 		},
 		contentHash: "foo",
 	}
@@ -149,9 +149,9 @@ type metadata struct {
 func TestInvalidation(t *testing.T) {
 	defaultID := metadata{
 		identifier: identifier{
-			Name:    "app",
-			Version: "1.0",
-			Path:    "/bundle/path",
+			name:    "app",
+			version: "1.0",
+			path:    "/bundle/path",
 		},
 		contentHash: "foo",
 	}
@@ -189,20 +189,20 @@ func TestInvalidation(t *testing.T) {
 			expectedalias:        map[identifier]*identifier{},
 		}, {
 			name: "update ok",
-			set:  map[identifier]string{{Name: "example", Version: "1.0", Path: "/"}: "bar"},
+			set:  map[identifier]string{{name: "example", version: "1.0", path: "/"}: "bar"},
 			searchReponse: func(w http.ResponseWriter, r *http.Request) {
 				bar := metadata{
 					identifier: identifier{
-						Name:    "example",
-						Version: "1.0",
-						Path:    "/",
+						name:    "example",
+						version: "1.0",
+						path:    "/",
 					},
 					contentHash: "bar",
 				}
 				m := sourcemapSearchResponseBody([]metadata{defaultID, bar})
 				w.Write(m)
 			},
-			expectedset:   map[identifier]string{defaultID.identifier: "foo", {Name: "example", Version: "1.0", Path: "/"}: "bar"},
+			expectedset:   map[identifier]string{defaultID.identifier: "foo", {name: "example", version: "1.0", path: "/"}: "bar"},
 			expectedalias: map[identifier]*identifier{},
 		},
 	}
@@ -300,11 +300,11 @@ func sourcemapSearchResponseBody(ids []metadata) []byte {
 		m = append(m, map[string]interface{}{
 			"_source": map[string]interface{}{
 				"service": map[string]interface{}{
-					"name":    id.Name,
-					"version": id.Version,
+					"name":    id.name,
+					"version": id.version,
 				},
 				"file": map[string]interface{}{
-					"path": id.Path,
+					"path": id.path,
 				},
 				"content_sha256": id.contentHash,
 			},

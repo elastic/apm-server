@@ -56,9 +56,9 @@ func Test_NewCachingFetcher(t *testing.T) {
 func TestStore_Fetch(t *testing.T) {
 	serviceName, serviceVersion, path := "foo", "1.0.1", "/tmp"
 	key := identifier{
-		Name:    "foo",
-		Version: "1.0.1",
-		Path:    "/tmp",
+		name:    "foo",
+		version: "1.0.1",
+		path:    "/tmp",
 	}
 
 	t.Run("cache", func(t *testing.T) {

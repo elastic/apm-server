@@ -50,9 +50,9 @@ type MetadataFetcher interface {
 }
 
 type identifier struct {
-	Name    string
-	Version string
-	Path    string
+	name    string
+	version string
+	path    string
 }
 
 func getAliases(name string, version string, bundleFilepath string) []identifier {
@@ -80,9 +80,9 @@ func getAliases(name string, version string, bundleFilepath string) []identifier
 		// Only return the url path as an alias
 		return []identifier{
 			{
-				Name:    name,
-				Version: version,
-				Path:    urlPath.Path,
+				name:    name,
+				version: version,
+				path:    urlPath.Path,
 			},
 		}
 	}
@@ -90,16 +90,16 @@ func getAliases(name string, version string, bundleFilepath string) []identifier
 	return []identifier{
 		// first try to match the full url
 		{
-			Name:    name,
-			Version: version,
-			Path:    urlPath.String(),
+			name:    name,
+			version: version,
+			path:    urlPath.String(),
 		},
 
 		// then try to match the url path
 		{
-			Name:    name,
-			Version: version,
-			Path:    urlPath.Path,
+			name:    name,
+			version: version,
+			path:    urlPath.Path,
 		},
 	}
 }

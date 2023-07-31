@@ -73,9 +73,9 @@ func NewBodyCachingFetcher(
 // Fetch fetches a source map from the cache or wrapped backend.
 func (s *BodyCachingFetcher) Fetch(ctx context.Context, name, version, path string) (*sourcemap.Consumer, error) {
 	key := identifier{
-		Name:    name,
-		Version: version,
-		Path:    path,
+		name:    name,
+		version: version,
+		path:    path,
 	}
 
 	// fetch from cache

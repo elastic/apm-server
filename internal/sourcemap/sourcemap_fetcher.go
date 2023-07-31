@@ -45,7 +45,7 @@ func NewSourcemapFetcher(metadata MetadataFetcher, backend Fetcher) *SourcemapFe
 }
 
 func (s *SourcemapFetcher) Fetch(ctx context.Context, name, version, path string) (*sourcemap.Consumer, error) {
-	original := identifier{Name: name, Version: version, Path: path}
+	original := identifier{name: name, version: version, path: path}
 
 	select {
 	case <-s.metadata.ready():
@@ -67,7 +67,7 @@ func (s *SourcemapFetcher) Fetch(ctx context.Context, name, version, path string
 		// The sourcemap coule be stored in ES with a relative
 		// bundle filepath but the request came in with an
 		// absolute path
-		original.Path = urlPath.Path
+		original.path = urlPath.Path
 		if urlPath.Path != path {
 			// The sourcemap could be stored on ES under a certain host
 			// but a request came in from a different host.
@@ -95,12 +95,12 @@ func (s *SourcemapFetcher) Fetch(ctx context.Context, name, version, path string
 }
 
 func (s *SourcemapFetcher) fetch(ctx context.Context, key *identifier) (*sourcemap.Consumer, error) {
-	c, err := s.backend.Fetch(ctx, key.Name, key.Version, key.Path)
+	c, err := s.backend.Fetch(ctx, key.name, key.version, key.path)
 
 	// log a message if the sourcemap is present in the cache but the backend fetcher did not
 	// find it.
 	if err == nil && c == nil {
-		return nil, fmt.Errorf("unable to find sourcemap for service.name=%s service.version=%s bundle.path=%s", key.Name, key.Version, key.Path)
+		return nil, fmt.Errorf("unable to find sourcemap for service.name=%s service.version=%s bundle.path=%s", key.name, key.version, key.path)
 	}
 
 	return c, err

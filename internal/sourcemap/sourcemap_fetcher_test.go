@@ -29,15 +29,15 @@ import (
 func TestSourcemapFetcher(t *testing.T) {
 	defaultID := metadata{
 		identifier: identifier{
-			Name:    "app",
-			Version: "1.0",
-			Path:    "/bundle/path",
+			name:    "app",
+			version: "1.0",
+			path:    "/bundle/path",
 		},
 		contentHash: "foo",
 	}
 
 	absPathID := defaultID
-	absPathID.Path = "http://example.com" + defaultID.Path
+	absPathID.path = "http://example.com" + defaultID.path
 
 	testCases := []struct {
 		name       string
@@ -68,22 +68,22 @@ func TestSourcemapFetcher(t *testing.T) {
 			alias:      map[identifier]*identifier{absPathID.identifier: &defaultID.identifier},
 		}, {
 			name:       "fetch path with url query",
-			fetchedID:  identifier{Name: absPathID.Name, Version: absPathID.Version, Path: absPathID.Path + "?foo=bar"},
+			fetchedID:  identifier{name: absPathID.name, version: absPathID.version, path: absPathID.path + "?foo=bar"},
 			expectedID: absPathID.identifier,
 			set:        map[identifier]string{absPathID.identifier: "foo"},
 		}, {
 			name:       "fetch path with url fragment",
-			fetchedID:  identifier{Name: absPathID.Name, Version: absPathID.Version, Path: absPathID.Path + "#foo"},
+			fetchedID:  identifier{name: absPathID.name, version: absPathID.version, path: absPathID.path + "#foo"},
 			expectedID: absPathID.identifier,
 			set:        map[identifier]string{absPathID.identifier: "foo"},
 		}, {
 			name:       "fetch path not cleaned",
-			fetchedID:  identifier{Name: absPathID.Name, Version: absPathID.Version, Path: "http://example.com/.././bundle/././path/../path"},
+			fetchedID:  identifier{name: absPathID.name, version: absPathID.version, path: "http://example.com/.././bundle/././path/../path"},
 			expectedID: absPathID.identifier,
 			set:        map[identifier]string{absPathID.identifier: "foo"},
 		}, {
 			name:       "fetch path not cleaned with query and fragment from alias",
-			fetchedID:  identifier{Name: absPathID.Name, Version: absPathID.Version, Path: "http://example.com/.././bundle/././path/../path#foo?foo=bar"},
+			fetchedID:  identifier{name: absPathID.name, version: absPathID.version, path: "http://example.com/.././bundle/././path/../path#foo?foo=bar"},
 			expectedID: defaultID.identifier,
 			alias:      map[identifier]*identifier{absPathID.identifier: &defaultID.identifier},
 		},
@@ -106,7 +106,7 @@ func TestSourcemapFetcher(t *testing.T) {
 
 			monitor := &monitoredFetcher{matchID: tc.expectedID}
 			f := NewSourcemapFetcher(&mFetcher, monitor)
-			_, err := f.Fetch(context.Background(), tc.fetchedID.Name, tc.fetchedID.Version, tc.fetchedID.Path)
+			_, err := f.Fetch(context.Background(), tc.fetchedID.name, tc.fetchedID.version, tc.fetchedID.path)
 			assert.NoError(t, err)
 			// make sure we are forwarding to the backend fetcher once
 			assert.Equal(t, 1, monitor.called)
@@ -121,14 +121,14 @@ type monitoredFetcher struct {
 
 func (s *monitoredFetcher) Fetch(ctx context.Context, name string, version string, bundleFilepath string) (*sourcemap.Consumer, error) {
 	s.called++
-	if s.matchID.Name != name {
-		return nil, fmt.Errorf("mismatched name: expected %s but got %s", s.matchID.Name, name)
+	if s.matchID.name != name {
+		return nil, fmt.Errorf("mismatched name: expected %s but got %s", s.matchID.name, name)
 	}
-	if s.matchID.Version != version {
-		return nil, fmt.Errorf("mismatched version: expected %s but got %s", s.matchID.Version, version)
+	if s.matchID.version != version {
+		return nil, fmt.Errorf("mismatched version: expected %s but got %s", s.matchID.version, version)
 	}
-	if s.matchID.Path != bundleFilepath {
-		return nil, fmt.Errorf("mismatched path: expected %s but got %s", s.matchID.Path, bundleFilepath)
+	if s.matchID.path != bundleFilepath {
+		return nil, fmt.Errorf("mismatched path: expected %s but got %s", s.matchID.path, bundleFilepath)
 	}
 
 	return &sourcemap.Consumer{}, nil
