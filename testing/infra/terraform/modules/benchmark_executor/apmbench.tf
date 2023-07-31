@@ -68,7 +68,7 @@ export ELASTIC_APM_CAPTURE_BODY="all"
 
 # OTEL credentials
 export OTEL_RESOURCE_ATTRIBUTES=service.name=apmbench,deployment.environment=bench
-export OTEL_EXPORTER_OTLP_ENDPOINT="${replace(var.apm_server_url, "https://", "")}"
+export OTEL_EXPORTER_OTLP_ENDPOINT="${var.apm_server_url}"
 export OTEL_EXPORTER_OTLP_HEADERS="Authorization=Bearer $${ELASTIC_APM_SECRET_TOKEN}"
 EOT
   filename = ".envrc"
