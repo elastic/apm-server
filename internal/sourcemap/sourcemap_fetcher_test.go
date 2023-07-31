@@ -28,7 +28,7 @@ import (
 
 func TestSourcemapFetcher(t *testing.T) {
 	defaultID := metadata{
-		Identifier: Identifier{
+		identifier: identifier{
 			Name:    "app",
 			Version: "1.0",
 			Path:    "/bundle/path",
@@ -41,59 +41,59 @@ func TestSourcemapFetcher(t *testing.T) {
 
 	testCases := []struct {
 		name       string
-		fetchedID  Identifier
-		expectedID Identifier
-		set        map[Identifier]string
-		alias      map[Identifier]*Identifier
+		fetchedID  identifier
+		expectedID identifier
+		set        map[identifier]string
+		alias      map[identifier]*identifier
 	}{
 		{
 			name:       "fetch relative path from main set",
-			fetchedID:  defaultID.Identifier,
-			expectedID: defaultID.Identifier,
-			set:        map[Identifier]string{defaultID.Identifier: "foo"},
+			fetchedID:  defaultID.identifier,
+			expectedID: defaultID.identifier,
+			set:        map[identifier]string{defaultID.identifier: "foo"},
 		}, {
 			name:       "fetch relative path from alias",
-			fetchedID:  defaultID.Identifier,
-			expectedID: absPathID.Identifier,
-			alias:      map[Identifier]*Identifier{defaultID.Identifier: &absPathID.Identifier},
+			fetchedID:  defaultID.identifier,
+			expectedID: absPathID.identifier,
+			alias:      map[identifier]*identifier{defaultID.identifier: &absPathID.identifier},
 		}, {
 			name:       "fetch absolute path from main set",
-			fetchedID:  absPathID.Identifier,
-			expectedID: absPathID.Identifier,
-			set:        map[Identifier]string{absPathID.Identifier: "foo"},
+			fetchedID:  absPathID.identifier,
+			expectedID: absPathID.identifier,
+			set:        map[identifier]string{absPathID.identifier: "foo"},
 		}, {
 			name:       "fetch absolute path from alias",
-			fetchedID:  absPathID.Identifier,
-			expectedID: defaultID.Identifier,
-			alias:      map[Identifier]*Identifier{absPathID.Identifier: &defaultID.Identifier},
+			fetchedID:  absPathID.identifier,
+			expectedID: defaultID.identifier,
+			alias:      map[identifier]*identifier{absPathID.identifier: &defaultID.identifier},
 		}, {
 			name:       "fetch path with url query",
-			fetchedID:  Identifier{Name: absPathID.Name, Version: absPathID.Version, Path: absPathID.Path + "?foo=bar"},
-			expectedID: absPathID.Identifier,
-			set:        map[Identifier]string{absPathID.Identifier: "foo"},
+			fetchedID:  identifier{Name: absPathID.Name, Version: absPathID.Version, Path: absPathID.Path + "?foo=bar"},
+			expectedID: absPathID.identifier,
+			set:        map[identifier]string{absPathID.identifier: "foo"},
 		}, {
 			name:       "fetch path with url fragment",
-			fetchedID:  Identifier{Name: absPathID.Name, Version: absPathID.Version, Path: absPathID.Path + "#foo"},
-			expectedID: absPathID.Identifier,
-			set:        map[Identifier]string{absPathID.Identifier: "foo"},
+			fetchedID:  identifier{Name: absPathID.Name, Version: absPathID.Version, Path: absPathID.Path + "#foo"},
+			expectedID: absPathID.identifier,
+			set:        map[identifier]string{absPathID.identifier: "foo"},
 		}, {
 			name:       "fetch path not cleaned",
-			fetchedID:  Identifier{Name: absPathID.Name, Version: absPathID.Version, Path: "http://example.com/.././bundle/././path/../path"},
-			expectedID: absPathID.Identifier,
-			set:        map[Identifier]string{absPathID.Identifier: "foo"},
+			fetchedID:  identifier{Name: absPathID.Name, Version: absPathID.Version, Path: "http://example.com/.././bundle/././path/../path"},
+			expectedID: absPathID.identifier,
+			set:        map[identifier]string{absPathID.identifier: "foo"},
 		}, {
 			name:       "fetch path not cleaned with query and fragment from alias",
-			fetchedID:  Identifier{Name: absPathID.Name, Version: absPathID.Version, Path: "http://example.com/.././bundle/././path/../path#foo?foo=bar"},
-			expectedID: defaultID.Identifier,
-			alias:      map[Identifier]*Identifier{absPathID.Identifier: &defaultID.Identifier},
+			fetchedID:  identifier{Name: absPathID.Name, Version: absPathID.Version, Path: "http://example.com/.././bundle/././path/../path#foo?foo=bar"},
+			expectedID: defaultID.identifier,
+			alias:      map[identifier]*identifier{absPathID.identifier: &defaultID.identifier},
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			mFetcher := MetadataESFetcher{
-				set:   map[Identifier]string{},
-				alias: map[Identifier]*Identifier{},
+				set:   map[identifier]string{},
+				alias: map[identifier]*identifier{},
 				init:  make(chan struct{}),
 			}
 			if tc.set != nil {
@@ -116,7 +116,7 @@ func TestSourcemapFetcher(t *testing.T) {
 
 type monitoredFetcher struct {
 	called  int
-	matchID Identifier
+	matchID identifier
 }
 
 func (s *monitoredFetcher) Fetch(ctx context.Context, name string, version string, bundleFilepath string) (*sourcemap.Consumer, error) {

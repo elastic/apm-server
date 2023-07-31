@@ -36,7 +36,7 @@ import (
 
 func TestMetadataFetcher(t *testing.T) {
 	defaultID := metadata{
-		Identifier: Identifier{
+		identifier: identifier{
 			Name:    "app",
 			Version: "1.0",
 			Path:    "/bundle/path",
@@ -129,7 +129,7 @@ func TestMetadataFetcher(t *testing.T) {
 				assert.NoError(t, fetcher.err())
 			}
 
-			_, ok := fetcher.getID(defaultID.Identifier)
+			_, ok := fetcher.getID(defaultID.identifier)
 			assert.Equal(t, tc.expectID, ok)
 
 			close(waitCh)
@@ -142,13 +142,13 @@ func TestMetadataFetcher(t *testing.T) {
 }
 
 type metadata struct {
-	Identifier
+	identifier
 	contentHash string
 }
 
 func TestInvalidation(t *testing.T) {
 	defaultID := metadata{
-		Identifier: Identifier{
+		identifier: identifier{
 			Name:    "app",
 			Version: "1.0",
 			Path:    "/bundle/path",
@@ -163,36 +163,36 @@ func TestInvalidation(t *testing.T) {
 
 	testCases := []struct {
 		name                 string
-		set                  map[Identifier]string
-		alias                map[Identifier]*Identifier
+		set                  map[identifier]string
+		alias                map[identifier]*identifier
 		searchReponse        func(http.ResponseWriter, *http.Request)
-		expectedInvalidation []Identifier
-		expectedset          map[Identifier]string
-		expectedalias        map[Identifier]*Identifier
+		expectedInvalidation []identifier
+		expectedset          map[identifier]string
+		expectedalias        map[identifier]*identifier
 	}{
 		{
 			name:                 "hash changed",
-			set:                  map[Identifier]string{defaultID.Identifier: "bar"},
+			set:                  map[identifier]string{defaultID.identifier: "bar"},
 			searchReponse:        defaultSearchResponse,
-			expectedInvalidation: []Identifier{defaultID.Identifier},
-			expectedset:          map[Identifier]string{defaultID.Identifier: "foo"},
-			expectedalias:        map[Identifier]*Identifier{},
+			expectedInvalidation: []identifier{defaultID.identifier},
+			expectedset:          map[identifier]string{defaultID.identifier: "foo"},
+			expectedalias:        map[identifier]*identifier{},
 		}, {
 			name: "sourcemap deleted",
-			set:  map[Identifier]string{defaultID.Identifier: "bar"},
+			set:  map[identifier]string{defaultID.identifier: "bar"},
 			searchReponse: func(w http.ResponseWriter, r *http.Request) {
 				m := sourcemapSearchResponseBody([]metadata{})
 				w.Write(m)
 			},
-			expectedInvalidation: []Identifier{defaultID.Identifier},
-			expectedset:          map[Identifier]string{},
-			expectedalias:        map[Identifier]*Identifier{},
+			expectedInvalidation: []identifier{defaultID.identifier},
+			expectedset:          map[identifier]string{},
+			expectedalias:        map[identifier]*identifier{},
 		}, {
 			name: "update ok",
-			set:  map[Identifier]string{{Name: "example", Version: "1.0", Path: "/"}: "bar"},
+			set:  map[identifier]string{{Name: "example", Version: "1.0", Path: "/"}: "bar"},
 			searchReponse: func(w http.ResponseWriter, r *http.Request) {
 				bar := metadata{
-					Identifier: Identifier{
+					identifier: identifier{
 						Name:    "example",
 						Version: "1.0",
 						Path:    "/",
@@ -202,8 +202,8 @@ func TestInvalidation(t *testing.T) {
 				m := sourcemapSearchResponseBody([]metadata{defaultID, bar})
 				w.Write(m)
 			},
-			expectedset:   map[Identifier]string{defaultID.Identifier: "foo", {Name: "example", Version: "1.0", Path: "/"}: "bar"},
-			expectedalias: map[Identifier]*Identifier{},
+			expectedset:   map[identifier]string{defaultID.identifier: "foo", {Name: "example", Version: "1.0", Path: "/"}: "bar"},
+			expectedalias: map[identifier]*identifier{},
 		},
 	}
 

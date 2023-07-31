@@ -42,20 +42,20 @@ type Fetcher interface {
 
 // MetadataFetcher is an interface for fetching metadata
 type MetadataFetcher interface {
-	getID(id Identifier) (*Identifier, bool)
+	getID(id identifier) (*identifier, bool)
 
 	ready() <-chan struct{}
 
 	err() error
 }
 
-type Identifier struct {
+type identifier struct {
 	Name    string
 	Version string
 	Path    string
 }
 
-func getAliases(name string, version string, bundleFilepath string) []Identifier {
+func getAliases(name string, version string, bundleFilepath string) []identifier {
 	urlPath, err := url.Parse(bundleFilepath)
 	if err != nil {
 		// bundleFilepath is not an url so it
@@ -78,7 +78,7 @@ func getAliases(name string, version string, bundleFilepath string) []Identifier
 		// bundleFilepath is a valid url and it is
 		// already clean.
 		// Only return the url path as an alias
-		return []Identifier{
+		return []identifier{
 			{
 				Name:    name,
 				Version: version,
@@ -87,7 +87,7 @@ func getAliases(name string, version string, bundleFilepath string) []Identifier
 		}
 	}
 
-	return []Identifier{
+	return []identifier{
 		// first try to match the full url
 		{
 			Name:    name,

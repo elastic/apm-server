@@ -45,7 +45,7 @@ func NewSourcemapFetcher(metadata MetadataFetcher, backend Fetcher) *SourcemapFe
 }
 
 func (s *SourcemapFetcher) Fetch(ctx context.Context, name, version, path string) (*sourcemap.Consumer, error) {
-	original := Identifier{Name: name, Version: version, Path: path}
+	original := identifier{Name: name, Version: version, Path: path}
 
 	select {
 	case <-s.metadata.ready():
@@ -94,7 +94,7 @@ func (s *SourcemapFetcher) Fetch(ctx context.Context, name, version, path string
 	return nil, fmt.Errorf("unable to find sourcemap.url for service.name=%s service.version=%s bundle.path=%s", name, version, path)
 }
 
-func (s *SourcemapFetcher) fetch(ctx context.Context, key *Identifier) (*sourcemap.Consumer, error) {
+func (s *SourcemapFetcher) fetch(ctx context.Context, key *identifier) (*sourcemap.Consumer, error) {
 	c, err := s.backend.Fetch(ctx, key.Name, key.Version, key.Path)
 
 	// log a message if the sourcemap is present in the cache but the backend fetcher did not
