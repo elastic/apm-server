@@ -212,6 +212,7 @@ func newServer(args ServerParams,
 		// Add a model processor that sets `client.ip` for events from end-user devices.
 		otlpBatchProcessor = append(otlpBatchProcessor, modelpb.ProcessBatchFunc(otlp.SetClientMetadata))
 	}
+	otlpBatchProcessor = append(otlpBatchProcessor, args.BatchProcessor)
 	otlpBatchProcessor = append(otlpBatchProcessor, otlp.NewStacktraceProcessor(cachingFetcher))
 	zapLogger := zap.New(args.Logger.Core(), zap.WithCaller(true))
 	otlp.RegisterGRPCServices(args.GRPCServer, zapLogger, otlpBatchProcessor, args.Semaphore)
