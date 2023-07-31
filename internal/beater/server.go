@@ -207,7 +207,7 @@ func newServer(args ServerParams,
 	}
 	mapFetcher := r8.NewMapFetcher(esClient)
 	size := 128
-	cachingFetcher, err := otlp.NewMapCachingFetcher(mapFetcher, size)
+	cachingFetcher, err := r8.NewMapCachingFetcher(mapFetcher, size)
 	if args.Config.AugmentEnabled {
 		// Add a model processor that sets `client.ip` for events from end-user devices.
 		otlpBatchProcessor = append(otlpBatchProcessor, modelpb.ProcessBatchFunc(otlp.SetClientMetadata))

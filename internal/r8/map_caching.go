@@ -1,10 +1,11 @@
-package otlp
+package r8
 
 import (
 	"context"
 	"errors"
 	"fmt"
 
+	"github.com/elastic/apm-server/internal/beater/otlp"
 	"github.com/elastic/apm-server/internal/logs"
 	"github.com/elastic/apm-server/internal/sourcemap"
 	"github.com/elastic/elastic-agent-libs/logp"
@@ -13,7 +14,7 @@ import (
 
 type MapCachingFetcher struct {
 	cache   *lru.Cache
-	backend MapFetcher
+	backend otlp.MapFetcher
 	logger  *logp.Logger
 }
 
@@ -24,7 +25,7 @@ type identifier struct {
 
 // NewMapCachingFetcher returns a MapCachingFetcher that wraps backend, caching results for the configured cacheExpiration.
 func NewMapCachingFetcher(
-	backend MapFetcher,
+	backend otlp.MapFetcher,
 	cacheSize int,
 ) (*MapCachingFetcher, error) {
 	logger := logp.NewLogger(logs.Sourcemap)
