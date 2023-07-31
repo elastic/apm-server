@@ -23,8 +23,8 @@ type StacktraceProcessor struct {
 }
 
 // NewStacktraceProcessor returns a StacktraceProcessor.
-func NewStacktraceProcessor(fetcher MapFetcher) *StacktraceProcessor {
-	return &StacktraceProcessor{fetcher, crashDeobfuscatorFunc(r8.Deobfuscate)}
+func NewStacktraceProcessor(fetcher MapFetcher, deobfuscator CrashDeobfuscator) *StacktraceProcessor {
+	return &StacktraceProcessor{fetcher, deobfuscator}
 }
 
 func (p StacktraceProcessor) ProcessBatch(ctx context.Context, batch *modelpb.Batch) error {
