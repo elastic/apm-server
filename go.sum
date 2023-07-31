@@ -150,8 +150,8 @@ github.com/eapache/go-xerial-snappy v0.0.0-20230111030713-bf00bc1b83b6/go.mod h1
 github.com/eapache/queue v1.1.0 h1:YOEu7KNc61ntiQlcEeUIoDTJ2o8mQznoNvUhiigpIqc=
 github.com/eapache/queue v1.1.0/go.mod h1:6eCeP0CKFpHLu8blIFXhExK/dRa7WDZfr6jVFPTqq+I=
 github.com/eknkc/amber v0.0.0-20171010120322-cdade1c07385/go.mod h1:0vRUJqYpeSZifjYj7uP3BG/gKcuzL9xWVV/Y+cK33KM=
-github.com/elastic/apm-aggregation v0.0.0-20230731072401-4005592c748c h1:/I9PWJwLgo7f9GIWpr07rh3PlLpD6hyYaUiPJPozuRw=
-github.com/elastic/apm-aggregation v0.0.0-20230731072401-4005592c748c/go.mod h1:9TqNryLsTK31DwrkaYg/ee63G5Mx4i7MqZxqR4PonzY=
+github.com/elastic/apm-aggregation v0.0.0-20230731142331-d61f076b2ac5 h1:PuqK0sziFunpoGJJheZGxWRw3UrLsjZXo89IMIwfOww=
+github.com/elastic/apm-aggregation v0.0.0-20230731142331-d61f076b2ac5/go.mod h1:0lKtzE+VV8a28ksvffeaKpMU5aEaicBqM1AF2rP+dGQ=
 github.com/elastic/apm-data v0.1.1-0.20230728063148-1076ea8b4db0 h1:dJEhfgmABnNyC//PM/CDCEEMg5l6I+KjHGDR6o1WMx4=
 github.com/elastic/apm-data v0.1.1-0.20230728063148-1076ea8b4db0/go.mod h1:lMTMoCWNadiDJih/tLechuMTtumEeedtKJlBOYAv030=
 github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230727143857-7fd27bf1f6c4 h1:sICugAEku+oUCgX9p5UkZk0UtzM0yatddqz0ufEObmE=
