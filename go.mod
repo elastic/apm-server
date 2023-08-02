@@ -182,3 +182,5 @@ replace (
 	// command line flags and conflicting with command line flags added by libbeat.
 	github.com/golang/glog => ./internal/glog
 )
+
+replace github.com/elastic/apm-aggregation => github.com/lahsivjar/apm-aggregation v0.0.0-20230802073401-c73ec92ddf59
