@@ -225,21 +225,27 @@ func (s *Runner) Run(ctx context.Context) error {
 			s.config.MaxConcurrentDecoders, memLimitGB,
 		)
 	}
-	if s.config.Aggregation.Transactions.MaxTransactionGroups <= 0 {
-		s.config.Aggregation.Transactions.MaxTransactionGroups = maxTxGroupsForAggregation(memLimitGB)
-		s.logger.Infof("Transactions.MaxTransactionGroups set to %d based on %0.1fgb of memory",
-			s.config.Aggregation.Transactions.MaxTransactionGroups, memLimitGB,
+
+	if s.config.Aggregation.Transactions.MaxServices > 0 {
+		s.config.Aggregation.MaxServices = s.config.Aggregation.Transactions.MaxServices
+	}
+	if s.config.Aggregation.MaxServices <= 0 {
+		s.config.Aggregation.MaxServices = maxGroupsForAggregation(memLimitGB)
+		s.logger.Infof("Aggregation.MaxServices set to %d based on %0.1fgb of memory",
+			s.config.Aggregation.MaxServices, memLimitGB,
 		)
 	}
-	if s.config.Aggregation.Transactions.MaxServices <= 0 {
-		s.config.Aggregation.Transactions.MaxServices = maxGroupsForAggregation(memLimitGB)
-		s.logger.Infof("Transactions.MaxServices set to %d based on %0.1fgb of memory",
-			s.config.Aggregation.Transactions.MaxServices, memLimitGB,
+
+	if s.config.Aggregation.Transactions.MaxGroups <= 0 {
+		s.config.Aggregation.Transactions.MaxGroups = maxTxGroupsForAggregation(memLimitGB)
+		s.logger.Infof("Aggregation.Transactions.MaxGroups set to %d based on %0.1fgb of memory",
+			s.config.Aggregation.Transactions.MaxGroups, memLimitGB,
 		)
 	}
+
 	if s.config.Aggregation.ServiceTransactions.MaxGroups <= 0 {
 		s.config.Aggregation.ServiceTransactions.MaxGroups = maxGroupsForAggregation(memLimitGB)
-		s.logger.Infof("ServiceTransactions.MaxGroups for service aggregation set to %d based on %0.1fgb of memory",
+		s.logger.Infof("Aggregation.ServiceTransactions.MaxGroups for service aggregation set to %d based on %0.1fgb of memory",
 			s.config.Aggregation.ServiceTransactions.MaxGroups, memLimitGB,
 		)
 	}

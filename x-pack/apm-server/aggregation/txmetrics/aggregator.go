@@ -127,7 +127,7 @@ func (config AggregatorConfig) Validate() error {
 		return errors.New("BatchProcessor unspecified")
 	}
 	if config.MaxTransactionGroups <= 0 {
-		return errors.New("MaxTransactionGroups unspecified or negative")
+		return errors.New("MaxGroups unspecified or negative")
 	}
 	if config.MaxTransactionGroupsPerService <= 0 {
 		return errors.New("MaxTransactionGroupsPerService unspecified or negative")
@@ -297,7 +297,7 @@ func (a *Aggregator) ProcessBatch(ctx context.Context, b *modelpb.Batch) error {
 //     transactions that a specific service can produce in one aggregation
 //     interval. Once the limit is breached the new transactions are
 //     aggregated under a dedicated bucket with `transaction.name` as `_other`.
-//   - MaxTransactionGroups: Limits the  maximum number of transaction groups
+//   - MaxGroups: Limits the  maximum number of transaction groups
 //     that the aggregator can produce in one aggregation interval. Once the
 //     limit is breached the new transactions are aggregated in the `_other`
 //     transaction bucket of their corresponding services.

@@ -45,7 +45,7 @@ func TestNewAggregatorConfigInvalid(t *testing.T) {
 		config: txmetrics.AggregatorConfig{
 			BatchProcessor: batchProcessor,
 		},
-		err: "MaxTransactionGroups unspecified or negative",
+		err: "MaxGroups unspecified or negative",
 	}, {
 		config: txmetrics.AggregatorConfig{
 			BatchProcessor:       batchProcessor,

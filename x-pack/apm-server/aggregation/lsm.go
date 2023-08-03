@@ -26,7 +26,7 @@ type Aggregator struct {
 // NewAggregator returns a new instance of aggregator.
 func NewAggregator(
 	ctx context.Context,
-	maxSvcs, maxTxGroups, maxSvcTxGroups int,
+	maxSvcs, maxTxGroups, maxSvcTxGroups, maxSpanGroups int,
 	nextProcessor modelpb.BatchProcessor,
 	logger *logp.Logger,
 ) (*Aggregator, error) {
@@ -34,13 +34,13 @@ func NewAggregator(
 
 	baseaggregator, err := aggregators.New(
 		aggregators.WithLimits(aggregators.Limits{
-			MaxSpanGroups:                         10000,
-			MaxSpanGroupsPerService:               1000,
+			MaxSpanGroups:                         maxSpanGroups,
+			MaxSpanGroupsPerService:               max(maxSpanGroups/10, 1),
 			MaxTransactionGroups:                  maxTxGroups,
-			MaxTransactionGroupsPerService:        maxTxGroups / 10,
+			MaxTransactionGroupsPerService:        max(maxTxGroups/10, 1),
 			MaxServiceTransactionGroups:           maxSvcTxGroups,
-			MaxServiceTransactionGroupsPerService: maxSvcTxGroups / 10,
-			MaxServiceInstanceGroupsPerService:    maxSvcs,
+			MaxServiceTransactionGroupsPerService: max(maxSvcTxGroups/10, 1),
+			MaxServiceInstanceGroupsPerService:    max(maxSvcs/10, 1),
 			MaxServices:                           maxSvcs,
 		}),
 		aggregators.WithProcessor(wrapNextProcessor(nextProcessor)),
@@ -122,4 +122,11 @@ func removeRUMGlobalLabels(event *modelpb.APMEvent) {
 	for _, v := range event.NumericLabels {
 		v.Global = false
 	}
+}
+
+func max(x, y int) int {
+	if x < y {
+		return y
+	}
+	return x
 }

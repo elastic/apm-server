@@ -378,7 +378,7 @@ func TestServiceSummaryMetricsAggregationOverflow(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
 	srv := apmservertest.NewUnstartedServerTB(t)
 	srv.Config.Aggregation = &apmservertest.AggregationConfig{
-		TransactionMaxServices: 2,
+		MaxServices: 2,
 	}
 	require.NoError(t, srv.Start())
 
