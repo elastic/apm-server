@@ -56,6 +56,11 @@
   metric_type: gauge
   unit: ms
   index: false
+- name: jvm.gc.alloc
+  type: long
+  metric_type: gauge
+  unit: byte
+  index: false
 - name: jvm.memory.non_heap.pool.used
   type: long
   metric_type: gauge
