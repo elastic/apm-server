@@ -78,6 +78,9 @@ func (a *Aggregator) Stop(ctx context.Context) error {
 // ProcessBatch implements modelpb.BatchProcessor interface
 // so that aggregator can consume events from intake.
 func (a *Aggregator) ProcessBatch(ctx context.Context, b *modelpb.Batch) error {
+	for _, e := range *b {
+		removeRUMGlobalLabels(e)
+	}
 	return a.baseaggregator.AggregateBatch(ctx, [16]byte{}, b)
 }
 
@@ -99,5 +102,24 @@ func wrapNextProcessor(processor modelpb.BatchProcessor) aggregators.Processor {
 			return fmt.Errorf("failed to process batch: %w", err)
 		}
 		return nil
+	}
+}
+
+func removeRUMGlobalLabels(event *modelpb.APMEvent) {
+	// Remove global labels for RUM services to avoid explosion of metric groups
+	// to track for servicetxmetrics.
+	// For consistency, this will remove labels for other aggregated metrics as well.
+	switch event.GetAgent().GetName() {
+	case "rum-js", "js-base", "android/java", "iOS/swift":
+	default:
+		return
+	}
+
+	// Setting the labels to non-global so that they are ignored by the aggregator.
+	for _, v := range event.Labels {
+		v.Global = false
+	}
+	for _, v := range event.NumericLabels {
+		v.Global = false
 	}
 }

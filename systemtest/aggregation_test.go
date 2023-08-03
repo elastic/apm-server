@@ -304,8 +304,6 @@ func TestServiceTransactionMetricsAggregationLabels(t *testing.T) {
 
 // TestServiceTransactionMetricsAggregationLabelsRUM checks that RUM labels are ignored for aggregation
 func TestServiceTransactionMetricsAggregationLabelsRUM(t *testing.T) {
-	t.Skip("apm-aggregation does not discard RUM global labels") // TODO(carsonip): Re-enable test
-	t.Setenv("ELASTIC_APM_GLOBAL_LABELS", "department_name=apm,organization=observability,company=elastic")
 	systemtest.CleanupElasticsearch(t)
 	srv := apmservertest.NewUnstartedServerTB(t)
 	srv.Config.RUM = &apmservertest.RUMConfig{
