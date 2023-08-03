@@ -310,6 +310,7 @@ func durationString(d time.Duration) string {
 
 // AggregationConfig holds configuration related to aggregation.
 type AggregationConfig struct {
+	TransactionMaxServices      int `json:"transactions.max_services,omitempty"`
 	ServiceTransactionMaxGroups int `json:"service_transactions.max_groups,omitempty"`
 }
 

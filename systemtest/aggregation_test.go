@@ -375,11 +375,10 @@ func TestServiceSummaryMetricsAggregation(t *testing.T) {
 }
 
 func TestServiceSummaryMetricsAggregationOverflow(t *testing.T) {
-	t.Skip("") // TODO(carsonip): Re-enable test after parsing limit from config
 	systemtest.CleanupElasticsearch(t)
 	srv := apmservertest.NewUnstartedServerTB(t)
 	srv.Config.Aggregation = &apmservertest.AggregationConfig{
-		ServiceTransactionMaxGroups: 2,
+		TransactionMaxServices: 2,
 	}
 	require.NoError(t, srv.Start())
 

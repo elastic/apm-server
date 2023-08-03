@@ -26,7 +26,7 @@ type Aggregator struct {
 // NewAggregator returns a new instance of aggregator.
 func NewAggregator(
 	ctx context.Context,
-	maxSvcs int, maxTxGroups int,
+	maxSvcs, maxTxGroups, maxSvcTxGroups int,
 	nextProcessor modelpb.BatchProcessor,
 	logger *logp.Logger,
 ) (*Aggregator, error) {
@@ -38,9 +38,9 @@ func NewAggregator(
 			MaxSpanGroupsPerService:               1000,
 			MaxTransactionGroups:                  maxTxGroups,
 			MaxTransactionGroupsPerService:        maxTxGroups / 10,
-			MaxServiceTransactionGroups:           maxSvcs,
-			MaxServiceTransactionGroupsPerService: maxSvcs / 10,
-			MaxServiceInstanceGroupsPerService:    maxSvcs / 10,
+			MaxServiceTransactionGroups:           maxSvcTxGroups,
+			MaxServiceTransactionGroupsPerService: maxSvcTxGroups / 10,
+			MaxServiceInstanceGroupsPerService:    maxSvcs,
 			MaxServices:                           maxSvcs,
 		}),
 		aggregators.WithProcessor(wrapNextProcessor(nextProcessor)),
