@@ -9,9 +9,11 @@
             "container": {
                 "id": "container-id"
             },
-            "data_stream.dataset": "apm",
-            "data_stream.namespace": "default",
-            "data_stream.type": "traces",
+            "data_stream": {
+                "dataset": "apm",
+                "namespace": "default",
+                "type": "traces"
+            },
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
@@ -168,9 +170,11 @@
             "container": {
                 "id": "container-id"
             },
-            "data_stream.dataset": "apm.rum",
-            "data_stream.namespace": "default",
-            "data_stream.type": "traces",
+            "data_stream": {
+                "dataset": "apm.rum",
+                "namespace": "default",
+                "type": "traces"
+            },
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
@@ -289,6 +293,9 @@
                     "name": "javascript",
                     "version": "8.0.0"
                 }
+            },
+            "span": {
+                "id": "945254c567a5417e"
             },
             "timestamp": {
                 "us": 1496170407154000

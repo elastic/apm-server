@@ -6,9 +6,11 @@
                 "name": "go",
                 "version": "0.0.0"
             },
-            "data_stream.dataset": "apm",
-            "data_stream.namespace": "default",
-            "data_stream.type": "traces",
+            "data_stream": {
+                "dataset": "apm",
+                "namespace": "default",
+                "type": "traces"
+            },
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
@@ -52,6 +54,9 @@
                     "version": "2.0"
                 }
             },
+            "span": {
+                "id": "dynamic"
+            },
             "timestamp": {
                 "us": "dynamic"
             },
@@ -82,9 +87,11 @@
             "client": {
                 "ip": "127.0.0.1"
             },
-            "data_stream.dataset": "apm.rum",
-            "data_stream.namespace": "default",
-            "data_stream.type": "traces",
+            "data_stream": {
+                "dataset": "apm.rum",
+                "namespace": "default",
+                "type": "traces"
+            },
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
@@ -104,6 +111,9 @@
             "source": {
                 "ip": "127.0.0.1",
                 "port": "dynamic"
+            },
+            "span": {
+                "id": "dynamic"
             },
             "timestamp": {
                 "us": "dynamic"

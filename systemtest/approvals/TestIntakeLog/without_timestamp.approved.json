@@ -11,9 +11,11 @@
             "container": {
                 "id": "8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"
             },
-            "data_stream.dataset": "apm.app.1234_service_12a3",
-            "data_stream.namespace": "default",
-            "data_stream.type": "logs",
+            "data_stream": {
+                "dataset": "apm.app.1234_service_12a3",
+                "namespace": "default",
+                "type": "logs"
+            },
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",

@@ -45,9 +45,11 @@
             "container": {
                 "id": "container-id"
             },
-            "data_stream.dataset": "apm",
-            "data_stream.namespace": "default",
-            "data_stream.type": "traces",
+            "data_stream": {
+                "dataset": "apm",
+                "namespace": "default",
+                "type": "traces"
+            },
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
@@ -182,6 +184,9 @@
             },
             "source": {
                 "ip": "12.53.12.1"
+            },
+            "span": {
+                "id": "ddf109a4c4aa5f2b6e984548ca57774c"
             },
             "timestamp": {
                 "us": 1496170407154000

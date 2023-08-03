@@ -7,14 +7,14 @@ require (
 	github.com/cespare/xxhash/v2 v2.2.0
 	github.com/dgraph-io/badger/v2 v2.2007.3-0.20201012072640-f5a7e0a1c83b
 	github.com/dustin/go-humanize v1.0.1
-	github.com/elastic/apm-data v0.1.1-0.20230803060036-9180b59d7888
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230726082805-f60c665d6476
-	github.com/elastic/elastic-agent-client/v7 v7.1.2
+	github.com/elastic/apm-data v0.1.1-0.20230727133025-e3e170b1fded
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230801205235-90cd631cabf8
+	github.com/elastic/elastic-agent-client/v7 v7.2.0
 	github.com/elastic/elastic-agent-libs v0.3.9
 	github.com/elastic/elastic-agent-system-metrics v0.6.1
 	github.com/elastic/gmux v0.2.0
 	github.com/elastic/go-docappender v0.2.1-0.20230724080315-b714d6181871
-	github.com/elastic/go-elasticsearch/v8 v8.8.2
+	github.com/elastic/go-elasticsearch/v8 v8.9.0
 	github.com/elastic/go-hdrhistogram v0.1.0
 	github.com/elastic/go-sysinfo v1.11.0
 	github.com/elastic/go-ucfg v0.8.6
@@ -107,7 +107,7 @@ require (
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/compress v1.16.7 // indirect
 	github.com/lufia/plan9stats v0.0.0-20211012122336-39d0f177ccd0 // indirect
-	github.com/magefile/mage v1.14.0 // indirect
+	github.com/magefile/mage v1.15.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.17 // indirect
 	github.com/mitchellh/hashstructure v1.1.0 // indirect

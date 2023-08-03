@@ -7,9 +7,11 @@
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
-            "data_stream.dataset": "apm.error",
-            "data_stream.namespace": "default",
-            "data_stream.type": "logs",
+            "data_stream": {
+                "dataset": "apm.error",
+                "namespace": "default",
+                "type": "logs"
+            },
             "error": {
                 "exception": [
                     {
@@ -50,6 +52,9 @@
                 "node": {
                     "name": "host01"
                 }
+            },
+            "span": {
+                "id": "7be2fd98d0973be3"
             },
             "timestamp": {
                 "us": 1576827705007552
@@ -70,9 +75,11 @@
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
-            "data_stream.dataset": "apm.error",
-            "data_stream.namespace": "default",
-            "data_stream.type": "logs",
+            "data_stream": {
+                "dataset": "apm.error",
+                "namespace": "default",
+                "type": "logs"
+            },
             "error": {
                 "exception": [
                     {
@@ -113,6 +120,9 @@
                 "node": {
                     "name": "host01"
                 }
+            },
+            "span": {
+                "id": "7be2fd98d0973be3"
             },
             "timestamp": {
                 "us": 1576827705089431
@@ -133,9 +143,11 @@
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
-            "data_stream.dataset": "apm.error",
-            "data_stream.namespace": "default",
-            "data_stream.type": "logs",
+            "data_stream": {
+                "dataset": "apm.error",
+                "namespace": "default",
+                "type": "logs"
+            },
             "error": {
                 "exception": [
                     {
@@ -177,6 +189,9 @@
                     "name": "host01"
                 }
             },
+            "span": {
+                "id": "7be2fd98d0973be3"
+            },
             "timestamp": {
                 "us": 1576827705172530
             },
@@ -196,9 +211,11 @@
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
-            "data_stream.dataset": "apm.app.driver",
-            "data_stream.namespace": "default",
-            "data_stream.type": "logs",
+            "data_stream": {
+                "dataset": "apm.app.driver",
+                "namespace": "default",
+                "type": "logs"
+            },
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
@@ -232,6 +249,9 @@
                     "name": "host01"
                 }
             },
+            "span": {
+                "id": "7be2fd98d0973be3"
+            },
             "trace": {
                 "id": "00000000000000007be2fd98d0973be3"
             },
@@ -246,9 +266,11 @@
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
-            "data_stream.dataset": "apm.app.driver",
-            "data_stream.namespace": "default",
-            "data_stream.type": "logs",
+            "data_stream": {
+                "dataset": "apm.app.driver",
+                "namespace": "default",
+                "type": "logs"
+            },
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
@@ -280,6 +302,9 @@
                     "name": "host01"
                 }
             },
+            "span": {
+                "id": "7be2fd98d0973be3"
+            },
             "trace": {
                 "id": "00000000000000007be2fd98d0973be3"
             },
@@ -294,9 +319,11 @@
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
-            "data_stream.dataset": "apm.app.driver",
-            "data_stream.namespace": "default",
-            "data_stream.type": "logs",
+            "data_stream": {
+                "dataset": "apm.app.driver",
+                "namespace": "default",
+                "type": "logs"
+            },
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
@@ -328,6 +355,9 @@
                     "name": "host01"
                 }
             },
+            "span": {
+                "id": "7be2fd98d0973be3"
+            },
             "trace": {
                 "id": "00000000000000007be2fd98d0973be3"
             },
@@ -342,9 +372,11 @@
                 "name": "Jaeger/Go",
                 "version": "2.20.1"
             },
-            "data_stream.dataset": "apm",
-            "data_stream.namespace": "default",
-            "data_stream.type": "traces",
+            "data_stream": {
+                "dataset": "apm",
+                "namespace": "default",
+                "type": "traces"
+            },
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
@@ -383,6 +415,9 @@
                 "node": {
                     "name": "host01"
                 }
+            },
+            "span": {
+                "id": "7be2fd98d0973be3"
             },
             "timestamp": {
                 "us": 1576827704953864

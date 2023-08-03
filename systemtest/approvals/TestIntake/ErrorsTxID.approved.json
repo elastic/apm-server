@@ -13,9 +13,11 @@
             "container": {
                 "id": "8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"
             },
-            "data_stream.dataset": "apm.error",
-            "data_stream.namespace": "default",
-            "data_stream.type": "logs",
+            "data_stream": {
+                "dataset": "apm.error",
+                "namespace": "default",
+                "type": "logs"
+            },
             "error": {
                 "culprit": "opbeans.controllers.DTInterceptor.preHandle(DTInterceptor.java:73)",
                 "custom": {
@@ -264,6 +266,9 @@
                 "nat": {
                     "ip": "12.53.12.1"
                 }
+            },
+            "span": {
+                "id": "1234567890987654"
             },
             "timestamp": {
                 "us": 1571657444929001

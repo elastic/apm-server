@@ -34,9 +34,11 @@
             "container": {
                 "id": "container-id"
             },
-            "data_stream.dataset": "apm",
-            "data_stream.namespace": "default",
-            "data_stream.type": "traces",
+            "data_stream": {
+                "dataset": "apm",
+                "namespace": "default",
+                "type": "traces"
+            },
             "destination": {
                 "address": "0:0::0:1",
                 "ip": "0:0::0:1",
@@ -255,9 +257,11 @@
             "container": {
                 "id": "container-id"
             },
-            "data_stream.dataset": "apm",
-            "data_stream.namespace": "default",
-            "data_stream.type": "traces",
+            "data_stream": {
+                "dataset": "apm",
+                "namespace": "default",
+                "type": "traces"
+            },
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
@@ -387,9 +391,11 @@
             "container": {
                 "id": "container-id"
             },
-            "data_stream.dataset": "apm",
-            "data_stream.namespace": "default",
-            "data_stream.type": "traces",
+            "data_stream": {
+                "dataset": "apm",
+                "namespace": "default",
+                "type": "traces"
+            },
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
@@ -525,9 +531,11 @@
             "container": {
                 "id": "container-id"
             },
-            "data_stream.dataset": "apm",
-            "data_stream.namespace": "default",
-            "data_stream.type": "traces",
+            "data_stream": {
+                "dataset": "apm",
+                "namespace": "default",
+                "type": "traces"
+            },
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
@@ -657,9 +665,11 @@
             "container": {
                 "id": "container-id"
             },
-            "data_stream.dataset": "apm",
-            "data_stream.namespace": "default",
-            "data_stream.type": "traces",
+            "data_stream": {
+                "dataset": "apm",
+                "namespace": "default",
+                "type": "traces"
+            },
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
@@ -800,9 +810,11 @@
             "container": {
                 "id": "container-id"
             },
-            "data_stream.dataset": "apm",
-            "data_stream.namespace": "default",
-            "data_stream.type": "traces",
+            "data_stream": {
+                "dataset": "apm",
+                "namespace": "default",
+                "type": "traces"
+            },
             "destination": {
                 "address": "0:0::0:1",
                 "ip": "0:0::0:1",
@@ -1021,9 +1033,11 @@
             "container": {
                 "id": "container-id"
             },
-            "data_stream.dataset": "apm",
-            "data_stream.namespace": "default",
-            "data_stream.type": "traces",
+            "data_stream": {
+                "dataset": "apm",
+                "namespace": "default",
+                "type": "traces"
+            },
             "destination": {
                 "address": "0:0::0:1",
                 "ip": "0:0::0:1"
@@ -1173,9 +1187,11 @@
             "container": {
                 "id": "container-id"
             },
-            "data_stream.dataset": "apm",
-            "data_stream.namespace": "default",
-            "data_stream.type": "traces",
+            "data_stream": {
+                "dataset": "apm",
+                "namespace": "default",
+                "type": "traces"
+            },
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
@@ -1308,9 +1324,11 @@
             "container": {
                 "id": "container-id"
             },
-            "data_stream.dataset": "apm",
-            "data_stream.namespace": "default",
-            "data_stream.type": "traces",
+            "data_stream": {
+                "dataset": "apm",
+                "namespace": "default",
+                "type": "traces"
+            },
             "destination": {
                 "address": "0:0::0:1",
                 "ip": "0:0::0:1",
@@ -1460,9 +1478,11 @@
             "container": {
                 "id": "container-id"
             },
-            "data_stream.dataset": "apm",
-            "data_stream.namespace": "default",
-            "data_stream.type": "traces",
+            "data_stream": {
+                "dataset": "apm",
+                "namespace": "default",
+                "type": "traces"
+            },
             "destination": {
                 "address": "0:0::0:1",
                 "ip": "0:0::0:1",

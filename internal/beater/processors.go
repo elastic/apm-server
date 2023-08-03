@@ -27,6 +27,7 @@ import (
 
 	"go.elastic.co/fastjson"
 
+	"github.com/elastic/apm-data/model/modeljson"
 	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/internal/beater/auth"
 	"github.com/elastic/apm-server/internal/beater/ratelimit"
@@ -103,7 +104,7 @@ func newDocappenderBatchProcessor(a *docappender.Appender) modelpb.ProcessBatchF
 	return func(ctx context.Context, b *modelpb.Batch) error {
 		for _, event := range *b {
 			r := pool.Get().(*pooledReader)
-			if err := event.MarshalFastJSON(&r.jsonw); err != nil {
+			if err := modeljson.MarshalAPMEvent(event, &r.jsonw); err != nil {
 				r.reset()
 				return err
 			}

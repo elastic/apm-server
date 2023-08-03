@@ -6,9 +6,11 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
-            "data_stream.dataset": "apm.error",
-            "data_stream.namespace": "default",
-            "data_stream.type": "logs",
+            "data_stream": {
+                "dataset": "apm.error",
+                "namespace": "default",
+                "type": "logs"
+            },
             "error": {
                 "grouping_key": "0b9cba09845a097a271c6beb4c6207f3",
                 "grouping_name": "error log message",
@@ -45,9 +47,11 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
-            "data_stream.dataset": "apm.error",
-            "data_stream.namespace": "default",
-            "data_stream.type": "logs",
+            "data_stream": {
+                "dataset": "apm.error",
+                "namespace": "default",
+                "type": "logs"
+            },
             "error": {
                 "exception": [
                     {
@@ -86,9 +90,11 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
-            "data_stream.dataset": "apm.error",
-            "data_stream.namespace": "default",
-            "data_stream.type": "logs",
+            "data_stream": {
+                "dataset": "apm.error",
+                "namespace": "default",
+                "type": "logs"
+            },
             "error": {
                 "exception": [
                     {
@@ -164,9 +170,11 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
-            "data_stream.dataset": "apm",
-            "data_stream.namespace": "default",
-            "data_stream.type": "traces",
+            "data_stream": {
+                "dataset": "apm",
+                "namespace": "default",
+                "type": "traces"
+            },
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
@@ -213,9 +221,11 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
-            "data_stream.dataset": "apm",
-            "data_stream.namespace": "default",
-            "data_stream.type": "traces",
+            "data_stream": {
+                "dataset": "apm",
+                "namespace": "default",
+                "type": "traces"
+            },
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
@@ -262,9 +272,11 @@
                 "name": "elastic-node",
                 "version": "3.14.0"
             },
-            "data_stream.dataset": "apm",
-            "data_stream.namespace": "default",
-            "data_stream.type": "traces",
+            "data_stream": {
+                "dataset": "apm",
+                "namespace": "default",
+                "type": "traces"
+            },
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
@@ -285,6 +297,9 @@
             },
             "service": {
                 "name": "1234_service-12a3"
+            },
+            "span": {
+                "id": "abcdef1478523690"
             },
             "timestamp": {
                 "us": "dynamic"

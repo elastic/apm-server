@@ -92,9 +92,11 @@
                 },
                 "ip": "220.244.41.16"
             },
-            "data_stream.dataset": "apm.rum",
-            "data_stream.namespace": "default",
-            "data_stream.type": "traces",
+            "data_stream": {
+                "dataset": "apm.rum",
+                "namespace": "default",
+                "type": "traces"
+            },
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
@@ -116,6 +118,9 @@
                 "nat": {
                     "ip": "127.0.0.1"
                 }
+            },
+            "span": {
+                "id": "611f4fa950f04631"
             },
             "timestamp": {
                 "us": "dynamic"

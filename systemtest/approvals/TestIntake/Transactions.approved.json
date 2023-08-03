@@ -33,9 +33,11 @@
             "container": {
                 "id": "container-id"
             },
-            "data_stream.dataset": "apm",
-            "data_stream.namespace": "default",
-            "data_stream.type": "traces",
+            "data_stream": {
+                "dataset": "apm",
+                "namespace": "default",
+                "type": "traces"
+            },
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
@@ -114,6 +116,9 @@
                 "id": "sunday",
                 "sequence": 123
             },
+            "span": {
+                "id": "00xxxxFFaaaa1234"
+            },
             "timestamp": {
                 "us": 1496170407154000
             },
@@ -191,9 +196,11 @@
             "container": {
                 "id": "container-id"
             },
-            "data_stream.dataset": "apm",
-            "data_stream.namespace": "default",
-            "data_stream.type": "traces",
+            "data_stream": {
+                "dataset": "apm",
+                "namespace": "default",
+                "type": "traces"
+            },
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
@@ -268,6 +275,9 @@
                 },
                 "version": "5.1.3"
             },
+            "span": {
+                "id": "945254c567a5417e"
+            },
             "timestamp": {
                 "us": 1496170407154000
             },
@@ -337,9 +347,11 @@
             "container": {
                 "id": "container-id"
             },
-            "data_stream.dataset": "apm",
-            "data_stream.namespace": "default",
-            "data_stream.type": "traces",
+            "data_stream": {
+                "dataset": "apm",
+                "namespace": "default",
+                "type": "traces"
+            },
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
@@ -475,6 +487,9 @@
             "source": {
                 "ip": "12.53.12.1"
             },
+            "span": {
+                "id": "4340a8e0df1906ecbfa9"
+            },
             "timestamp": {
                 "us": 1496170407154000
             },
@@ -569,9 +584,11 @@
             "container": {
                 "id": "container-id"
             },
-            "data_stream.dataset": "apm",
-            "data_stream.namespace": "default",
-            "data_stream.type": "traces",
+            "data_stream": {
+                "dataset": "apm",
+                "namespace": "default",
+                "type": "traces"
+            },
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
@@ -648,6 +665,9 @@
                     "version": "2.5"
                 },
                 "version": "2"
+            },
+            "span": {
+                "id": "cdef4340a8e0df19"
             },
             "timestamp": {
                 "us": 1532976822281000
@@ -737,9 +757,11 @@
             "container": {
                 "id": "container-id"
             },
-            "data_stream.dataset": "apm",
-            "data_stream.namespace": "default",
-            "data_stream.type": "traces",
+            "data_stream": {
+                "dataset": "apm",
+                "namespace": "default",
+                "type": "traces"
+            },
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
@@ -825,6 +847,9 @@
                     "version": "8.0.0"
                 },
                 "version": "5.1.3"
+            },
+            "span": {
+                "id": "142e61450efb8574"
             },
             "timestamp": {
                 "us": 1631736666365048
