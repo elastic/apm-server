@@ -422,20 +422,20 @@ func (m *serviceTxMetrics) recordMetrics(other serviceTxMetrics) {
 	m.histogram.RecordValuesAtomic(time.Duration(other.transactionDuration).Microseconds(), count)
 }
 
-func (m *serviceTxMetrics) histogramBuckets() (totalCount int64, counts []int64, values []float64) {
+func (m *serviceTxMetrics) histogramBuckets() (totalCount uint64, counts []uint64, values []float64) {
 	// From https://www.elastic.co/guide/en/elasticsearch/reference/current/histogram.html:
 	//
 	// "For the High Dynamic Range (HDR) histogram mode, the values array represents
 	// fixed upper limits of each bucket interval, and the counts array represents
 	// the number of values that are attributed to each interval."
 	distribution := m.histogram.Distribution()
-	counts = make([]int64, 0, len(distribution))
+	counts = make([]uint64, 0, len(distribution))
 	values = make([]float64, 0, len(distribution))
 	for _, b := range distribution {
 		if b.Count <= 0 {
 			continue
 		}
-		count := int64(math.Round(float64(b.Count) / histogramCountScale))
+		count := uint64(math.Round(float64(b.Count) / histogramCountScale))
 		counts = append(counts, count)
 		values = append(values, float64(b.To))
 		totalCount += count
@@ -481,7 +481,7 @@ func makeMetricset(key aggregationKey, metrics serviceTxMetrics, interval string
 	if metrics.successCount != 0 || metrics.failureCount != 0 {
 		event = &modelpb.Event{
 			SuccessCount: &modelpb.SummaryMetric{
-				Count: int64(math.Round(metrics.successCount + metrics.failureCount)),
+				Count: uint64(math.Round(metrics.successCount + metrics.failureCount)),
 				Sum:   math.Round(metrics.successCount),
 			},
 		}

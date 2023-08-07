@@ -757,7 +757,7 @@ func TestAggregatorOverflow(t *testing.T) {
 		},
 		Metricset: &modelpb.Metricset{
 			Name:     "service_destination",
-			DocCount: int64(overflowCount),
+			DocCount: uint64(overflowCount),
 			Interval: "10s",
 			Samples: []*modelpb.MetricsetSample{
 				{
@@ -771,7 +771,7 @@ func TestAggregatorOverflow(t *testing.T) {
 			DestinationService: &modelpb.DestinationService{
 				Resource: "",
 				ResponseTime: &modelpb.AggregatedDuration{
-					Count: int64(overflowCount),
+					Count: uint64(overflowCount),
 					Sum:   durationpb.New(time.Duration(duration.Nanoseconds() * int64(overflowCount))),
 				},
 			},

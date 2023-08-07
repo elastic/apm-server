@@ -967,20 +967,20 @@ func (m *transactionMetrics) recordDuration(d time.Duration, n float64) {
 	m.histogram.RecordValuesAtomic(d.Microseconds(), count)
 }
 
-func (m *transactionMetrics) histogramBuckets() (totalCount int64, counts []int64, values []float64) {
+func (m *transactionMetrics) histogramBuckets() (totalCount uint64, counts []uint64, values []float64) {
 	// From https://www.elastic.co/guide/en/elasticsearch/reference/current/histogram.html:
 	//
 	// "For the High Dynamic Range (HDR) histogram mode, the values array represents
 	// fixed upper limits of each bucket interval, and the counts array represents
 	// the number of values that are attributed to each interval."
 	distribution := m.histogram.Distribution()
-	counts = make([]int64, 0, len(distribution))
+	counts = make([]uint64, 0, len(distribution))
 	values = make([]float64, 0, len(distribution))
 	for _, b := range distribution {
 		if b.Count <= 0 {
 			continue
 		}
-		count := int64(math.Round(float64(b.Count) / histogramCountScale))
+		count := uint64(math.Round(float64(b.Count) / histogramCountScale))
 		counts = append(counts, count)
 		values = append(values, float64(b.To))
 		totalCount += count
