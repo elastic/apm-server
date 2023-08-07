@@ -433,11 +433,11 @@ func TestAggregatorRun(t *testing.T) {
 			"user_id":     &modelpb.NumericLabelValue{Value: 100},
 			"cost_center": &modelpb.NumericLabelValue{Value: 10},
 		}, modelpb.NumericLabels(metricsets[0].NumericLabels))
-		assert.Equal(t, []int64{500, 500}, metricsets[0].Transaction.DurationHistogram.Counts)
+		assert.Equal(t, []uint64{500, 500}, metricsets[0].Transaction.DurationHistogram.Counts)
 		assert.Equal(t, "T-800", metricsets[1].Transaction.Name)
 		assert.Empty(t, metricsets[1].Labels)
 		assert.Empty(t, metricsets[1].NumericLabels)
-		assert.Equal(t, []int64{1000, 1000}, metricsets[1].Transaction.DurationHistogram.Counts)
+		assert.Equal(t, []uint64{1000, 1000}, metricsets[1].Transaction.DurationHistogram.Counts)
 		for _, event := range metricsets {
 			actual := event.Timestamp.AsTime()
 			if event.Timestamp == nil {
@@ -512,7 +512,7 @@ func TestAggregateRepresentativeCount(t *testing.T) {
 	for _, tc := range []struct {
 		name                 string
 		representativeCounts []float64
-		expectedCount        int64
+		expectedCount        uint64
 	}{
 		{
 			name:                 "int",
@@ -561,7 +561,7 @@ func TestAggregateRepresentativeCount(t *testing.T) {
 			require.Nil(t, metricsets[0].Metricset.Samples)
 			require.NotNil(t, metricsets[0].Transaction)
 			durationHistogram := metricsets[0].Transaction.DurationHistogram
-			assert.Equal(t, []int64{tc.expectedCount}, durationHistogram.Counts)
+			assert.Equal(t, []uint64{tc.expectedCount}, durationHistogram.Counts)
 		})
 	}
 }
@@ -724,7 +724,7 @@ func TestAggregationFields(t *testing.T) {
 	}
 
 	var expected []*modelpb.APMEvent
-	addExpectedCount := func(expectedCount int64) {
+	addExpectedCount := func(expectedCount uint64) {
 		expectedEvent := proto.Clone(&input).(*modelpb.APMEvent)
 		expectedEvent.Transaction = &modelpb.Transaction{
 			Name:   input.Transaction.Name,
@@ -732,7 +732,7 @@ func TestAggregationFields(t *testing.T) {
 			Result: input.Transaction.Result,
 			Root:   input.GetParentId() == "",
 			DurationHistogram: &modelpb.Histogram{
-				Counts: []int64{expectedCount},
+				Counts: []uint64{expectedCount},
 				Values: []float64{0},
 			},
 			DurationSummary: &modelpb.SummaryMetric{
@@ -876,17 +876,17 @@ func createOverflowMetricset(overflowCount, repCount int, txnDuration time.Durat
 		Transaction: &modelpb.Transaction{
 			Name: "_other",
 			DurationHistogram: &modelpb.Histogram{
-				Counts: []int64{int64(overflowCount * repCount)},
+				Counts: []uint64{uint64(overflowCount * repCount)},
 				Values: []float64{float64(txnDuration.Microseconds())},
 			},
 			DurationSummary: &modelpb.SummaryMetric{
-				Count: int64(overflowCount * repCount),
+				Count: uint64(overflowCount * repCount),
 				Sum:   float64(time.Duration(float64(overflowCount*repCount) * float64(txnDuration)).Microseconds()),
 			},
 		},
 		Metricset: &modelpb.Metricset{
 			Name:     "transaction",
-			DocCount: int64(overflowCount * repCount),
+			DocCount: uint64(overflowCount * repCount),
 			Interval: "30s",
 			Samples: []*modelpb.MetricsetSample{
 				{

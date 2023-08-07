@@ -132,7 +132,7 @@ func TestAggregatorRun(t *testing.T) {
 				},
 				DurationHistogram: &modelpb.Histogram{
 					Values: []float64{1000},
-					Counts: []int64{6},
+					Counts: []uint64{6},
 				},
 			},
 			Event: &modelpb.Event{
@@ -155,7 +155,7 @@ func TestAggregatorRun(t *testing.T) {
 				},
 				DurationHistogram: &modelpb.Histogram{
 					Values: []float64{1000},
-					Counts: []int64{1},
+					Counts: []uint64{1},
 				},
 			},
 		}, {
@@ -172,7 +172,7 @@ func TestAggregatorRun(t *testing.T) {
 				},
 				DurationHistogram: &modelpb.Histogram{
 					Values: []float64{1000},
-					Counts: []int64{1},
+					Counts: []uint64{1},
 				},
 			},
 		}, {
@@ -189,7 +189,7 @@ func TestAggregatorRun(t *testing.T) {
 				},
 				DurationHistogram: &modelpb.Histogram{
 					Values: []float64{1000},
-					Counts: []int64{1},
+					Counts: []uint64{1},
 				},
 			},
 		}, {
@@ -206,7 +206,7 @@ func TestAggregatorRun(t *testing.T) {
 				},
 				DurationHistogram: &modelpb.Histogram{
 					Values: []float64{1000},
-					Counts: []int64{1},
+					Counts: []uint64{1},
 				},
 			},
 		}}
@@ -327,23 +327,23 @@ func TestAggregatorOverflow(t *testing.T) {
 		},
 		Transaction: &modelpb.Transaction{
 			DurationSummary: &modelpb.SummaryMetric{
-				Count: int64(overflowCount),
+				Count: uint64(overflowCount),
 				Sum:   float64(int64(overflowCount) * txnDuration.Microseconds()),
 			},
 			DurationHistogram: &modelpb.Histogram{
 				Values: []float64{float64(txnDuration.Microseconds())},
-				Counts: []int64{int64(overflowCount)},
+				Counts: []uint64{uint64(overflowCount)},
 			},
 		},
 		Event: &modelpb.Event{
 			SuccessCount: &modelpb.SummaryMetric{
-				Count: int64(overflowCount),
+				Count: uint64(overflowCount),
 				Sum:   float64(overflowCount),
 			},
 		},
 		Metricset: &modelpb.Metricset{
 			Name:     "service_transaction",
-			DocCount: int64(overflowCount),
+			DocCount: uint64(overflowCount),
 			Interval: "10s",
 			Samples: []*modelpb.MetricsetSample{
 				{

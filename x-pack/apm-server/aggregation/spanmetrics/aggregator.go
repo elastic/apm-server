@@ -190,7 +190,7 @@ func (a *Aggregator) publish(ctx context.Context, period time.Duration) error {
 			Name:  "service_destination.aggregation.overflow_count",
 			Value: float64(overflowCount),
 		})
-		m.Metricset.DocCount = int64(overflowCount)
+		m.Metricset.DocCount = overflowCount
 		batch = append(batch, m)
 		current.other = nil
 		current.otherCardinalityEstimator = nil
@@ -532,14 +532,14 @@ func makeMetricset(key aggregationKey, metrics spanMetrics) *modelpb.APMEvent {
 		Event:         event,
 		Metricset: &modelpb.Metricset{
 			Name:     metricsetName,
-			DocCount: int64(math.Round(metrics.count)),
+			DocCount: uint64(math.Round(metrics.count)),
 		},
 		Span: &modelpb.Span{
 			Name: key.spanName,
 			DestinationService: &modelpb.DestinationService{
 				Resource: key.resource,
 				ResponseTime: &modelpb.AggregatedDuration{
-					Count: int64(math.Round(metrics.count)),
+					Count: uint64(math.Round(metrics.count)),
 					Sum:   durationpb.New(time.Duration(math.Round(metrics.sum))),
 				},
 			},
