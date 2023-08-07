@@ -5,7 +5,7 @@ go 1.20
 require (
 	github.com/axiomhq/hyperloglog v0.0.0-20230201085229-3ddf4bad03dc
 	github.com/cespare/xxhash/v2 v2.2.0
-	github.com/dgraph-io/badger/v2 v2.2007.3-0.20201012072640-f5a7e0a1c83b
+	github.com/dgraph-io/badger/v4 v4.2.0
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/apm-data v0.1.1-0.20230727133025-e3e170b1fded
 	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230804142914-5d84cafff95f
@@ -59,13 +59,10 @@ require (
 )
 
 require (
-	github.com/DataDog/zstd v1.4.4 // indirect
 	github.com/Microsoft/go-winio v0.6.1 // indirect
-	github.com/OneOfOne/xxhash v1.2.8 // indirect
 	github.com/Shopify/sarama v1.38.1 // indirect
 	github.com/apache/thrift v0.18.1 // indirect
 	github.com/armon/go-radix v1.0.0 // indirect
-	github.com/cespare/xxhash v1.1.0 // indirect
 	github.com/containerd/containerd v1.7.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dgraph-io/ristretto v0.1.1 // indirect
@@ -91,9 +88,11 @@ require (
 	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/gogo/googleapis v1.4.1 // indirect
 	github.com/golang/glog v1.1.0 // indirect
+	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/gomodule/redigo v1.8.9 // indirect
+	github.com/google/flatbuffers v23.3.3+incompatible // indirect
 	github.com/h2non/filetype v1.1.3 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-uuid v1.0.3 // indirect
@@ -134,6 +133,7 @@ require (
 	github.com/yusufpapurcu/wmi v1.2.3 // indirect
 	go.elastic.co/apm/module/apmzap/v2 v2.4.3 // indirect
 	go.elastic.co/ecszap v1.0.1 // indirect
+	go.opencensus.io v0.24.0 // indirect
 	go.opentelemetry.io/collector/semconv v0.81.0 // indirect
 	go.opentelemetry.io/otel/metric v1.16.0 // indirect
 	go.opentelemetry.io/otel/sdk v1.16.0 // indirect
