@@ -66,7 +66,7 @@ func (a *Aggregator) Run() error {
 	return a.baseaggregator.Run(context.TODO())
 }
 
-// Stop stops all the component for aggregator.
+// Stop stops all the component of aggregator.
 func (a *Aggregator) Stop(ctx context.Context) error {
 	err := a.baseaggregator.Close(ctx)
 	if err != nil {
