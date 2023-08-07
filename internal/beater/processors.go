@@ -108,6 +108,8 @@ func newDocappenderBatchProcessor(a *docappender.Appender) modelpb.ProcessBatchF
 				r.reset()
 				return err
 			}
+			r.indexBuilder.Grow(len(event.DataStream.Type) + 1 +
+				len(event.DataStream.Dataset) + 1 + len(event.DataStream.Namespace))
 			r.indexBuilder.WriteString(event.DataStream.Type)
 			r.indexBuilder.WriteByte('-')
 			r.indexBuilder.WriteString(event.DataStream.Dataset)
