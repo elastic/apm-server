@@ -61,7 +61,10 @@ func New(
 
 // Run runs all the components of aggregator.
 func (a *Aggregator) Run() error {
-	return a.baseaggregator.Run(context.Background())
+	if err := a.baseaggregator.Run(context.Background()); err != aggregators.ErrAggregatorClosed {
+		return err
+	}
+	return nil
 }
 
 // Stop stops all the component of aggregator.
