@@ -461,6 +461,7 @@ You can filter and group by these dimensions:
 * `metricset.interval`: A string with the aggregation interval the metricset represents.
 * `numeric_labels`: Key-value object containing numeric labels set globally by the APM agents.
 * `service.environment`: The environment of the service that made the request
+* `service.language.name`: The language name of the service that served the transaction, for example `Go`
 * `service.name`: The name of the service that made the request
 * `service.target.name`: The target service name, for example `customer_db`
 * `service.target.type`: The target service type, for example `mysql`
