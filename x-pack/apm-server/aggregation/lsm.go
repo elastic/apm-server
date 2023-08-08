@@ -23,12 +23,10 @@ type Aggregator struct {
 	baseaggregator *aggregators.Aggregator
 }
 
-// NewAggregator returns a new instance of aggregator.
-func NewAggregator(
-	ctx context.Context,
+// New returns a new Aggregator.
+func New(
 	maxSvcs, maxTxGroups, maxSvcTxGroups, maxSpanGroups int,
-	nextProcessor modelpb.BatchProcessor,
-	logger *logp.Logger,
+	nextProcessor modelpb.BatchProcessor, logger *logp.Logger,
 ) (*Aggregator, error) {
 	zapLogger := zap.New(logger.Core(), zap.WithCaller(true)).Named("aggregator")
 
@@ -63,7 +61,7 @@ func NewAggregator(
 
 // Run runs all the components of aggregator.
 func (a *Aggregator) Run() error {
-	return a.baseaggregator.Run(context.TODO())
+	return a.baseaggregator.Run(context.Background())
 }
 
 // Stop stops all the component of aggregator.
