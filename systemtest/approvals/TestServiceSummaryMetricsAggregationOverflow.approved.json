@@ -139,7 +139,7 @@
                 "name": "metric"
             },
             "service": {
-                "environment": "dev",
+                "environment": "prod",
                 "language": {
                     "name": "go"
                 },
@@ -177,7 +177,7 @@
                 "name": "metric"
             },
             "service": {
-                "environment": "dev",
+                "environment": "prod",
                 "language": {
                     "name": "go"
                 },
@@ -215,7 +215,7 @@
                 "name": "metric"
             },
             "service": {
-                "environment": "dev",
+                "environment": "prod",
                 "language": {
                     "name": "go"
                 },
@@ -253,7 +253,7 @@
                 "name": "metric"
             },
             "service": {
-                "environment": "staging",
+                "environment": "test",
                 "language": {
                     "name": "go"
                 },
@@ -291,7 +291,7 @@
                 "name": "metric"
             },
             "service": {
-                "environment": "staging",
+                "environment": "test",
                 "language": {
                     "name": "go"
                 },
@@ -329,7 +329,7 @@
                 "name": "metric"
             },
             "service": {
-                "environment": "staging",
+                "environment": "test",
                 "language": {
                     "name": "go"
                 },
