@@ -154,13 +154,13 @@ github.com/elastic/apm-aggregation v0.0.0-20230807142825-c82b2b7e590c h1:VKmJ07O
 github.com/elastic/apm-aggregation v0.0.0-20230807142825-c82b2b7e590c/go.mod h1:TwDJCDT04Ni8WrSrD4oEBATnDa18dteY//jhL4kqGio=
 github.com/elastic/apm-data v0.1.1-0.20230803060036-9180b59d7888 h1:R2HpM1KxROvzvMHq/3XmuT/Y6oTcTteUFMJtQCP04GM=
 github.com/elastic/apm-data v0.1.1-0.20230803060036-9180b59d7888/go.mod h1:lMTMoCWNadiDJih/tLechuMTtumEeedtKJlBOYAv030=
-github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230808073125-1fe462c68f7d h1:bZA2xJV6WQOQvu8C5P7BNsy/rQRbhoUiXtSS4wu37rk=
-github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230808073125-1fe462c68f7d/go.mod h1:tBAWj24oF6Fi+RxfxvkIdCeUTBpvIYll6DVfOnLiTmQ=
+github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230809141712-103869cb3d5f h1:rbPQwGVmOESQWwf4Az08dRvu08tLfVl6ECsXrBrBUq4=
+github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230809141712-103869cb3d5f/go.mod h1:7+UjwltjoWCS6ofhdDC8bILXKAJrE/wOhbAhYWv+5B8=
 github.com/elastic/elastic-agent-autodiscover v0.6.2 h1:7P3cbMBWXjbzA80rxitQjc+PiWyZ4I4F4LqrCYgYlNc=
 github.com/elastic/elastic-agent-client/v7 v7.2.0 h1:WCPu7t+NGrnjzfu76FxyZpAzoQirIEBn1ne6kKHacIU=
 github.com/elastic/elastic-agent-client/v7 v7.2.0/go.mod h1:9/amG2K2y2oqx39zURcc+hnqcX+nyJ1cZrLgzsgo5c0=
-github.com/elastic/elastic-agent-libs v0.3.9 h1:2xbZUOM20Q9ni3dkNjj8r274fub22SuLqi6SedknV7g=
-github.com/elastic/elastic-agent-libs v0.3.9/go.mod h1:Fy5QqIOax0EOVeQJ2l5Ux+GmJsX549Obllru5R1bHLI=
+github.com/elastic/elastic-agent-libs v0.3.10 h1:i6ym5NCQezQ/BmRf8sC7PDy1PDDuttZQhYzXhDvn1e8=
+github.com/elastic/elastic-agent-libs v0.3.10/go.mod h1:mpSfrigixx8x+uMxWKl4LtdlrKIhZbA4yT2eIeIazUQ=
 github.com/elastic/elastic-agent-shipper-client v0.5.1-0.20230228231646-f04347b666f3 h1:sb+25XJn/JcC9/VL8HX4r4QXSUq4uTNzGS2kxOE7u1U=
 github.com/elastic/elastic-agent-shipper-client v0.5.1-0.20230228231646-f04347b666f3/go.mod h1:rWarFM7qYxJKsi9WcV6ONcFjH/NA3niDNpTxO+8/GVI=
 github.com/elastic/elastic-agent-system-metrics v0.6.1 h1:LCN1lvQTkdUuU/rKlpKyVMDU/G/I8/iZWCaW6K+mo4o=
@@ -584,6 +584,8 @@ github.com/xeipuuv/gojsonschema v1.2.0 h1:LhYJRs+L4fBtjZUfuSZIKGeVu0QRy8e5Xi7D17
 github.com/xeipuuv/gojsonschema v1.2.0/go.mod h1:anYRn/JVcOK2ZgGU+IjEV4nwlhoK5sQluxsYJ78Id3Y=
 github.com/xordataexchange/crypt v0.0.3-0.20170626215501-b2862e3d0a77/go.mod h1:aYKd//L2LvnjZzWKhF00oedf4jCCReLcmhLdhm1A27Q=
 github.com/yalp/jsonpath v0.0.0-20180802001716-5cc68e5049a0/go.mod h1:/LWChgwKmvncFJFHJ7Gvn9wZArjbV5/FppcK2fKk/tI=
+github.com/youmark/pkcs8 v0.0.0-20201027041543-1326539a0a0a h1:fZHgsYlfvtyqToslyjUt3VOPF4J7aK/3MPcK7xp3PDk=
+github.com/youmark/pkcs8 v0.0.0-20201027041543-1326539a0a0a/go.mod h1:ul22v+Nro/R083muKhosV54bj5niojjWZvU8xrevuH4=
 github.com/yudai/gojsondiff v1.0.0/go.mod h1:AY32+k2cwILAkW1fbgxQ5mUmMiZFgLIV+FBNExI05xg=
 github.com/yudai/golcs v0.0.0-20170316035057-ecda9a501e82/go.mod h1:lgjkn3NuSvDfVJdfcVVdX+jpBxNmX4rDAzaS45IcYoM=
 github.com/yudai/pp v2.0.1+incompatible/go.mod h1:PuxR/8QJ7cyCkFp/aUDS+JY727OFEZkTdatxwunjIkc=
@@ -658,6 +660,7 @@ golang.org/x/crypto v0.0.0-20190510104115-cbcb75029529/go.mod h1:yigFU9vqHzYiE8U
 golang.org/x/crypto v0.0.0-20190605123033-f99c8df09eb5/go.mod h1:yigFU9vqHzYiE8UmvKecakEJjdnWj3jj499lnFckfCI=
 golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4/go.mod h1:yigFU9vqHzYiE8UmvKecakEJjdnWj3jj499lnFckfCI=
 golang.org/x/crypto v0.0.0-20191011191535-87dc89f01550/go.mod h1:yigFU9vqHzYiE8UmvKecakEJjdnWj3jj499lnFckfCI=
+golang.org/x/crypto v0.0.0-20200302210943-78000ba7a073/go.mod h1:LzIPMQfyMNhhGPhUkYOs5KpL4U8rLKemX1yGLhDgUto=
 golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9/go.mod h1:LzIPMQfyMNhhGPhUkYOs5KpL4U8rLKemX1yGLhDgUto=
 golang.org/x/crypto v0.0.0-20201112155050-0c6587e931a9/go.mod h1:LzIPMQfyMNhhGPhUkYOs5KpL4U8rLKemX1yGLhDgUto=
 golang.org/x/crypto v0.0.0-20210616213533-5ff15b29337e/go.mod h1:GvvjBRRGRdwPK5ydBHafDWAxML/pGHZbMvKqRZ5+Abc=
