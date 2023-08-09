@@ -20,14 +20,14 @@ minute by default), with a fixed precision of 2 significant figures.
 To protect against memory exhaustion due to high-cardinality transaction names
 (or other attributes), at any given time, APM Server places a limit on the number
 of services tracked, the number of transaction groups tracked, as well as number
-of groups tracked per service. See docs for limits.
+of groups tracked per service. See [docs](https://www.elastic.co/guide/en/apm/guide/current/data-model-metrics.html#_aggregated_metrics_limits_and_overflows) for limits.
 
 ## Service transaction metrics
 
 Service transaction metrics are similar to Transaction metrics, but with fewer
 dimensions. For example, `transaction.name` is no longer considered during aggregation.
 
-See docs for limits.
+See [docs](https://www.elastic.co/guide/en/apm/guide/current/data-model-metrics.html#_aggregated_metrics_limits_and_overflows) for limits.
 
 ## Service destination metrics
 
@@ -38,14 +38,14 @@ are grouped by the originating and target services, and the span latency is
 accumulated. For these metrics we record only a count and sum, enabling calculation
 of throughput and average latency.
 
-See docs for limits.
+See [docs](https://www.elastic.co/guide/en/apm/guide/current/data-model-metrics.html#_aggregated_metrics_limits_and_overflows) for limits.
 
 ## Service summary metrics
 
 Service summary metrics consider transaction, error, log, and metric events and
 basically produce a summary of all services sending events.
 
-See docs for limits.
+See [docs](https://www.elastic.co/guide/en/apm/guide/current/data-model-metrics.html#_aggregated_metrics_limits_and_overflows) for limits.
 
 ## Dealing with sampling
 
