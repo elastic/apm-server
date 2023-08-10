@@ -5,6 +5,7 @@ https://github.com/elastic/apm-server/compare/8.9\...main[View commits]
 
 [float]
 ==== Breaking Changes
+- Update badger to v4 {pull}11344[11344]
 
 [float]
 ==== Deprecations
