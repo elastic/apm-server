@@ -6,10 +6,12 @@ on:
       - bump-elastic-stack-snapshot
       - bump-golang
       - ci
+      - microbenchmark
       - system-test-reporter
-      - update-beats
       - smoke-tests-os
       - smoke-tests-ess
+      - Terraform Format
+      - update-beats
     types: [completed]
 
 jobs:

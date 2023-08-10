@@ -27,7 +27,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tidwall/gjson"
 	"go.elastic.co/apm/v2"
 
 	"github.com/elastic/apm-server/systemtest"
@@ -41,11 +40,6 @@ import (
 func TestTransactionAggregation(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
 	srv := apmservertest.NewUnstartedServerTB(t)
-	srv.Config.Monitoring = &apmservertest.MonitoringConfig{
-		Enabled:       true,
-		MetricsPeriod: 100 * time.Millisecond,
-		StatePeriod:   100 * time.Millisecond,
-	}
 	require.NoError(t, srv.Start())
 
 	// Send some transactions to the server to be aggregated.
@@ -76,10 +70,6 @@ func TestTransactionAggregation(t *testing.T) {
 	estest.ExpectDocs(t, systemtest.Elasticsearch, "traces-apm*",
 		espoll.TermQuery{Field: "processor.event", Value: "transaction"},
 	)
-
-	// Make sure apm-server.aggregation.txmetrics metrics are published. Metric values are unit tested.
-	doc := getBeatsMonitoringStats(t, srv, nil)
-	assert.True(t, gjson.GetBytes(doc.RawSource, "beats_stats.metrics.apm-server.aggregation.txmetrics").Exists())
 
 	// Stop server to ensure metrics are flushed on shutdown.
 	assert.NoError(t, srv.Close())
@@ -314,7 +304,6 @@ func TestServiceTransactionMetricsAggregationLabels(t *testing.T) {
 
 // TestServiceTransactionMetricsAggregationLabelsRUM checks that RUM labels are ignored for aggregation
 func TestServiceTransactionMetricsAggregationLabelsRUM(t *testing.T) {
-	t.Setenv("ELASTIC_APM_GLOBAL_LABELS", "department_name=apm,organization=observability,company=elastic")
 	systemtest.CleanupElasticsearch(t)
 	srv := apmservertest.NewUnstartedServerTB(t)
 	srv.Config.RUM = &apmservertest.RUMConfig{
@@ -389,7 +378,7 @@ func TestServiceSummaryMetricsAggregationOverflow(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
 	srv := apmservertest.NewUnstartedServerTB(t)
 	srv.Config.Aggregation = &apmservertest.AggregationConfig{
-		ServiceTransactionMaxGroups: 2,
+		MaxServices: 2,
 	}
 	require.NoError(t, srv.Start())
 

@@ -1,7 +1,8 @@
 queue_rules:
   - name: default
     conditions:
-      - check-success=apm-ci/pr-merge
+      - check-success=test (macos-latest)
+      - check-success=test (windows-latest)
       - check-success=system-test
       - check-success=lint
       - check-success=CLA

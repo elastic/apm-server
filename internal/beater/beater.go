@@ -225,21 +225,24 @@ func (s *Runner) Run(ctx context.Context) error {
 			s.config.MaxConcurrentDecoders, memLimitGB,
 		)
 	}
-	if s.config.Aggregation.Transactions.MaxTransactionGroups <= 0 {
-		s.config.Aggregation.Transactions.MaxTransactionGroups = maxTxGroupsForAggregation(memLimitGB)
-		s.logger.Infof("Transactions.MaxTransactionGroups set to %d based on %0.1fgb of memory",
-			s.config.Aggregation.Transactions.MaxTransactionGroups, memLimitGB,
+
+	if s.config.Aggregation.MaxServices <= 0 {
+		s.config.Aggregation.MaxServices = maxGroupsForAggregation(memLimitGB)
+		s.logger.Infof("Aggregation.MaxServices set to %d based on %0.1fgb of memory",
+			s.config.Aggregation.MaxServices, memLimitGB,
 		)
 	}
-	if s.config.Aggregation.Transactions.MaxServices <= 0 {
-		s.config.Aggregation.Transactions.MaxServices = maxGroupsForAggregation(memLimitGB)
-		s.logger.Infof("Transactions.MaxServices set to %d based on %0.1fgb of memory",
-			s.config.Aggregation.Transactions.MaxServices, memLimitGB,
+
+	if s.config.Aggregation.Transactions.MaxGroups <= 0 {
+		s.config.Aggregation.Transactions.MaxGroups = maxTxGroupsForAggregation(memLimitGB)
+		s.logger.Infof("Aggregation.Transactions.MaxGroups set to %d based on %0.1fgb of memory",
+			s.config.Aggregation.Transactions.MaxGroups, memLimitGB,
 		)
 	}
+
 	if s.config.Aggregation.ServiceTransactions.MaxGroups <= 0 {
 		s.config.Aggregation.ServiceTransactions.MaxGroups = maxGroupsForAggregation(memLimitGB)
-		s.logger.Infof("ServiceTransactions.MaxGroups for service aggregation set to %d based on %0.1fgb of memory",
+		s.logger.Infof("Aggregation.ServiceTransactions.MaxGroups for service aggregation set to %d based on %0.1fgb of memory",
 			s.config.Aggregation.ServiceTransactions.MaxGroups, memLimitGB,
 		)
 	}
@@ -296,18 +299,18 @@ func (s *Runner) Run(ctx context.Context) error {
 	}
 	defer tracer.Close()
 
-	provider, err := apmotel.NewTracerProvider(apmotel.WithAPMTracer(tracer))
+	tracerProvider, err := apmotel.NewTracerProvider(apmotel.WithAPMTracer(tracer))
 	if err != nil {
 		return err
 	}
-	otel.SetTracerProvider(provider)
+	otel.SetTracerProvider(tracerProvider)
 
 	exporter, err := apmotel.NewGatherer()
 	if err != nil {
 		return err
 	}
-	mp := metric.NewMeterProvider(metric.WithReader(exporter))
-	otel.SetMeterProvider(mp)
+	meterProvider := metric.NewMeterProvider(metric.WithReader(exporter))
+	otel.SetMeterProvider(meterProvider)
 	tracer.RegisterMetricsGatherer(exporter)
 
 	// Ensure the libbeat output and go-elasticsearch clients do not index

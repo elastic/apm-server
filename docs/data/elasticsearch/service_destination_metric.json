@@ -32,6 +32,9 @@
   },
   "service": {
     "environment": "production",
+    "language": {
+      "name": "ruby"
+    },
     "name": "opbeans-ruby",
     "target": {
       "type": "postgresql"
