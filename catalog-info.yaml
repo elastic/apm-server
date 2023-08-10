@@ -1,28 +1,15 @@
 ---
 # yaml-language-server: $schema=https://gist.githubusercontent.com/elasticmachine/988b80dae436cafea07d9a4a460a011d/raw/rre.schema.json
 apiVersion: backstage.io/v1alpha1
-kind: Resource
+kind: Component
 metadata:
-  name: buildkite-pipeline-apm-server
-  description: Buildkite Pipeline for apm-server
-  links:
-    - title: Pipeline
-      url: https://buildkite.com/elastic/apm-server
+  name: apm-server
+  description: apm-server
+  annotations:
+    github.com/project-slug: elastic/apm-server
+    github.com/team-slug: elastic/apm-server
 
 spec:
-  type: buildkite-pipeline
-  owner: group:observablt-robots
-  system: buildkite
-  implementation:
-    apiVersion: buildkite.elastic.dev/v1
-    kind: Pipeline
-    metadata:
-      name: apm-server
-    spec:
-      repository: elastic/apm-server
-      pipeline_file: ".buildkite/pipeline.yml"
-      teams:
-        # your-team:
-        #  access_level: MANAGE_BUILD_AND_READ
-        everyone:
-          access_level: READ_ONLY
+  type: tool
+  owner: group:apm-server
+  lifecycle: production
