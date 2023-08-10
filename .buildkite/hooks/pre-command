@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+##
+##  This script prepares the Vault context and required tooling
+##  for the release and snapshot pipelines.
+##
+##  NOTE: *_SECRET or *_TOKEN env variables are masked, hence if you'd like to avoid any
+##        surprises please use the suffix _SECRET or _TOKEN for those values that contain
+##        any sensitive data. Buildkite can mask those values automatically
+##
+
+set -eo pipefail
+
+echo "--- Prepare vault context :vault:"
+VAULT_ROLE_ID_SECRET=$(vault read -field=role-id secret/ci/elastic-apm-server/internal-ci-approle)
+export VAULT_ROLE_ID_SECRET
+
+VAULT_SECRET_ID_SECRET=$(vault read -field=secret-id secret/ci/elastic-apm-server/internal-ci-approle)
+export VAULT_SECRET_ID_SECRET
+
+VAULT_ADDR=$(vault read -field=vault-url secret/ci/elastic-apm-server/internal-ci-approle)
+export VAULT_ADDR
+
+echo "--- Install tools"
