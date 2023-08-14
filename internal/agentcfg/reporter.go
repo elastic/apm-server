@@ -22,8 +22,6 @@ import (
 	"sync"
 	"time"
 
-	"google.golang.org/protobuf/types/known/timestamppb"
-
 	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/elastic-agent-libs/logp"
 )
@@ -87,7 +85,7 @@ func (r Reporter) Run(ctx context.Context) error {
 		batch := make(modelpb.Batch, 0, len(applied))
 		for etag := range applied {
 			batch = append(batch, &modelpb.APMEvent{
-				Timestamp: timestamppb.Now(),
+				Timestamp: modelpb.FromTime(time.Now()),
 				Labels:    modelpb.Labels{"etag": {Value: etag}},
 				Metricset: &modelpb.Metricset{
 					Name: "agent_config",

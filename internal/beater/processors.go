@@ -89,8 +89,8 @@ func newObserverBatchProcessor() modelpb.ProcessBatchFunc {
 // data stream mappings, in 8.10.
 func removeEventReceivedBatchProcessor(ctx context.Context, batch *modelpb.Batch) error {
 	for _, event := range *batch {
-		if event.Event != nil && event.Event.Received != nil {
-			event.Event.Received = nil
+		if event.Event != nil {
+			event.Event.Received = 0
 		}
 	}
 	return nil

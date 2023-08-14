@@ -23,7 +23,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/testing/protocmp"
-	"google.golang.org/protobuf/types/known/durationpb"
 
 	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling"
@@ -170,7 +169,7 @@ func TestProcessLocalTailSampling(t *testing.T) {
 	trace2 := modelpb.Trace{Id: "0102030405060708090a0b0c0d0e0f11"}
 	trace1Events := modelpb.Batch{{
 		Trace: &trace1,
-		Event: &modelpb.Event{Duration: durationpb.New(123 * time.Millisecond)},
+		Event: &modelpb.Event{Duration: uint64(123 * time.Millisecond)},
 		Transaction: &modelpb.Transaction{
 			Type:    "type",
 			Id:      "0102030405060708",
@@ -178,7 +177,7 @@ func TestProcessLocalTailSampling(t *testing.T) {
 		},
 	}, {
 		Trace: &trace1,
-		Event: &modelpb.Event{Duration: durationpb.New(123 * time.Millisecond)},
+		Event: &modelpb.Event{Duration: uint64(123 * time.Millisecond)},
 		Span: &modelpb.Span{
 			Type: "type",
 			Id:   "0102030405060709",
@@ -186,7 +185,7 @@ func TestProcessLocalTailSampling(t *testing.T) {
 	}}
 	trace2Events := modelpb.Batch{{
 		Trace: &trace2,
-		Event: &modelpb.Event{Duration: durationpb.New(456 * time.Millisecond)},
+		Event: &modelpb.Event{Duration: uint64(456 * time.Millisecond)},
 		Transaction: &modelpb.Transaction{
 			Type:    "type",
 			Id:      "0102030405060710",
@@ -194,7 +193,7 @@ func TestProcessLocalTailSampling(t *testing.T) {
 		},
 	}, {
 		Trace: &trace2,
-		Event: &modelpb.Event{Duration: durationpb.New(456 * time.Millisecond)},
+		Event: &modelpb.Event{Duration: uint64(456 * time.Millisecond)},
 		Span: &modelpb.Span{
 			Type: "type",
 			Id:   "0102030405060711",
@@ -291,7 +290,7 @@ func TestProcessLocalTailSamplingUnsampled(t *testing.T) {
 		traceIDs[i] = traceID
 		batch := modelpb.Batch{{
 			Trace: &modelpb.Trace{Id: traceID},
-			Event: &modelpb.Event{Duration: durationpb.New(time.Millisecond)},
+			Event: &modelpb.Event{Duration: uint64(time.Millisecond)},
 			Transaction: &modelpb.Transaction{
 				Type:    "type",
 				Id:      traceID,
@@ -363,7 +362,7 @@ func TestProcessLocalTailSamplingPolicyOrder(t *testing.T) {
 		events[i] = &modelpb.APMEvent{
 			Service: &service,
 			Trace:   &modelpb.Trace{Id: fmt.Sprintf("%x", traceIDBytes[:])},
-			Event:   &modelpb.Event{Duration: durationpb.New(123 * time.Millisecond)},
+			Event:   &modelpb.Event{Duration: uint64(123 * time.Millisecond)},
 			Transaction: &modelpb.Transaction{
 				Type:    "type",
 				Name:    "trace_name",
@@ -432,7 +431,7 @@ func TestProcessRemoteTailSampling(t *testing.T) {
 	traceID2 := "0102030405060708090a0b0c0d0e0f11"
 	trace1Events := modelpb.Batch{{
 		Trace: &modelpb.Trace{Id: traceID1},
-		Event: &modelpb.Event{Duration: durationpb.New(123 * time.Millisecond)},
+		Event: &modelpb.Event{Duration: uint64(123 * time.Millisecond)},
 		Span: &modelpb.Span{
 			Type: "type",
 			Id:   "0102030405060709",
@@ -517,7 +516,7 @@ func TestGroupsMonitoring(t *testing.T) {
 		err := processor.ProcessBatch(context.Background(), &modelpb.Batch{{
 			Service: &modelpb.Service{Name: fmt.Sprintf("service_%d", i)},
 			Trace:   &modelpb.Trace{Id: uuid.Must(uuid.NewV4()).String()},
-			Event:   &modelpb.Event{Duration: durationpb.New(123 * time.Millisecond)},
+			Event:   &modelpb.Event{Duration: uint64(123 * time.Millisecond)},
 			Transaction: &modelpb.Transaction{
 				Type:    "type",
 				Id:      "0102030405060709",
@@ -549,7 +548,7 @@ func TestStorageMonitoring(t *testing.T) {
 		traceID := uuid.Must(uuid.NewV4()).String()
 		batch := modelpb.Batch{{
 			Trace: &modelpb.Trace{Id: traceID},
-			Event: &modelpb.Event{Duration: durationpb.New(123 * time.Millisecond)},
+			Event: &modelpb.Event{Duration: uint64(123 * time.Millisecond)},
 			Transaction: &modelpb.Transaction{
 				Type:    "type",
 				Id:      traceID,
@@ -603,7 +602,7 @@ func TestStorageGC(t *testing.T) {
 			traceID := uuid.Must(uuid.NewV4()).String()
 			batch := modelpb.Batch{{
 				Trace: &modelpb.Trace{Id: traceID},
-				Event: &modelpb.Event{Duration: durationpb.New(123 * time.Millisecond)},
+				Event: &modelpb.Event{Duration: uint64(123 * time.Millisecond)},
 				Span: &modelpb.Span{
 					Type: "type",
 					Id:   traceID,
@@ -674,7 +673,7 @@ func TestStorageLimit(t *testing.T) {
 			traceID := uuid.Must(uuid.NewV4()).String()
 			batch = append(batch, &modelpb.APMEvent{
 				Trace: &modelpb.Trace{Id: traceID},
-				Event: &modelpb.Event{Duration: durationpb.New(123 * time.Millisecond)},
+				Event: &modelpb.Event{Duration: uint64(123 * time.Millisecond)},
 				Span: &modelpb.Span{
 					Type: "type",
 					Id:   traceID,
