@@ -26,7 +26,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
-	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/monitoring"
@@ -297,7 +296,7 @@ func rootMiddleware(cfg *config.Config, authenticator *auth.Authenticator) []mid
 
 func baseRequestMetadata(c *request.Context) *modelpb.APMEvent {
 	return &modelpb.APMEvent{
-		Timestamp: timestamppb.New(c.Timestamp),
+		Timestamp: modelpb.FromTime(c.Timestamp),
 	}
 }
 
@@ -307,7 +306,7 @@ func backendRequestMetadataFunc(cfg *config.Config) func(c *request.Context) *mo
 	}
 	return func(c *request.Context) *modelpb.APMEvent {
 		e := modelpb.APMEvent{
-			Timestamp: timestamppb.New(c.Timestamp),
+			Timestamp: modelpb.FromTime(c.Timestamp),
 		}
 
 		if c.ClientIP.IsValid() {
@@ -325,7 +324,7 @@ func rumRequestMetadataFunc(cfg *config.Config) func(c *request.Context) *modelp
 	}
 	return func(c *request.Context) *modelpb.APMEvent {
 		e := modelpb.APMEvent{
-			Timestamp: timestamppb.New(c.Timestamp),
+			Timestamp: modelpb.FromTime(c.Timestamp),
 		}
 		if c.UserAgent != "" {
 			e.UserAgent = &modelpb.UserAgent{Original: c.UserAgent}

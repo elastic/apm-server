@@ -19,7 +19,6 @@ import (
 	"go.elastic.co/fastjson"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
-	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/go-docappender"
@@ -101,7 +100,7 @@ func (p *Pubsub) indexSampledTraceIDs(ctx context.Context, traceIDs <-chan strin
 			}
 			var w fastjson.Writer
 			doc := modelpb.APMEvent{
-				Timestamp: timestamppb.New(time.Now()),
+				Timestamp: modelpb.FromTime(time.Now()),
 				DataStream: &modelpb.DataStream{
 					Type:      p.config.DataStream.Type,
 					Dataset:   p.config.DataStream.Dataset,
