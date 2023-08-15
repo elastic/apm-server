@@ -28,7 +28,6 @@ import (
 	"github.com/elastic/apm-data/model/modelprocessor"
 	"github.com/elastic/apm-server/internal/beatcmd"
 	"github.com/elastic/apm-server/internal/beater"
-	"github.com/elastic/apm-server/x-pack/apm-server/aggregation"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage"
 )
@@ -92,19 +91,11 @@ type processor interface {
 func newProcessors(args beater.ServerParams) ([]namedProcessor, error) {
 	var processors []namedProcessor
 
-	name := "LSM aggregator"
-	agg, err := aggregation.New(
-		args.Config.Aggregation.MaxServices,
-		args.Config.Aggregation.Transactions.MaxGroups,
-		args.Config.Aggregation.ServiceTransactions.MaxGroups,
-		args.Config.Aggregation.ServiceDestinations.MaxGroups,
-		args.BatchProcessor,
-		args.Logger,
-	)
+	aggregationProcessors, err := newAggregationProcessors(args)
 	if err != nil {
-		return nil, errors.Wrapf(err, "error creating %s", name)
+		return nil, err
 	}
-	processors = append(processors, namedProcessor{name: name, processor: agg})
+	processors = append(processors, aggregationProcessors...)
 
 	if args.Config.Sampling.Tail.Enabled {
 		const name = "tail sampler"
