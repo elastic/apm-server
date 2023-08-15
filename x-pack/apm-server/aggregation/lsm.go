@@ -46,6 +46,7 @@ func New(
 		aggregators.WithMeter(otel.GetMeterProvider().Meter("aggregator")),
 		aggregators.WithTracer(otel.GetTracerProvider().Tracer("aggregator")),
 		aggregators.WithInMemory(true),
+		aggregators.WithOverflowLogging(true),
 	)
 
 	if err != nil {
