@@ -24,6 +24,8 @@ steps:
             type:
             - "snapshot"
             - "staging"
+        artifact_paths:
+          - "build/distributions/**/*"
 
       - label: "Package Ubuntu-20 aarch64"
         key: "package-arm"
@@ -37,6 +39,8 @@ steps:
             type:
             - "snapshot"
             - "staging"
+        artifact_paths:
+          - "build/distributions/**/*"
 
   - label: "DRA"
     key: "dra"

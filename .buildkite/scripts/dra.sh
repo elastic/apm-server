@@ -11,12 +11,16 @@
 
 set -eo pipefail
 
-
 ## Read current version.
 VERSION=$(make get-version)
 
-### TODO: fetch all the generated artifacts
-# BK artifact API call
+echo "+++ Restoring Artifacts"
+buildkite-agent artifact download "build/**/*" .
+
+echo "+++ Changing permissions for the release manager"
+sudo chown -R :1000 build/distributions/
+
+ls -l build/distributions/
 
 ### TODO: retry a few times just in case some infra issues, like the vault accessing.
 docker run --rm \
