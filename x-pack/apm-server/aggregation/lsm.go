@@ -38,7 +38,6 @@ func New(
 			MaxTransactionGroupsPerService:        max(maxTxGroups/10, 1),
 			MaxServiceTransactionGroups:           maxSvcTxGroups,
 			MaxServiceTransactionGroupsPerService: max(maxSvcTxGroups/10, 1),
-			MaxServiceInstanceGroupsPerService:    max(maxSvcs/10, 1),
 			MaxServices:                           maxSvcs,
 		}),
 		aggregators.WithProcessor(wrapNextProcessor(nextProcessor)),
@@ -47,6 +46,7 @@ func New(
 		aggregators.WithMeter(otel.GetMeterProvider().Meter("aggregator")),
 		aggregators.WithTracer(otel.GetTracerProvider().Tracer("aggregator")),
 		aggregators.WithInMemory(true),
+		aggregators.WithOverflowLogging(true),
 	)
 
 	if err != nil {
