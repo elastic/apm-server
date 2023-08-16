@@ -31,7 +31,7 @@ fi
 
 curl -s https://storage.googleapis.com/artifacts-api/snapshots/branches.json > active-branches.json
 if ! grep -q "\"$BUILDKITE_BRANCH\"" active-branches.json ; then
-  echo "Release Manager only support the current active branches, skipping"
+  echo "Release Manager only supports the current active branches, skipping"
   echo "BUILDKITE_BRANCH=$BUILDKITE_BRANCH"
   echo "BUILDKITE_COMMIT=$BUILDKITE_COMMIT"
   echo "VERSION=$VERSION"
