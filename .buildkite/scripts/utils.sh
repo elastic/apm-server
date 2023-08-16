@@ -51,7 +51,8 @@ getOSOptions() {
   esac
 }
 
-installGo(){
+# Wrapper function for executing go
+go(){
     # Search for the go in the Path
     if ! [ -x "$(type -p go | sed 's/go is //g')" ];
     then
@@ -65,6 +66,11 @@ installGo(){
         export GOPATH=$(command go env GOPATH)
         export PATH="${PATH}:${GOPATH}/bin"
     fi
+    pushd "$WORKSPACE"
+    command go "$@"
+    ACTUAL_EXIT_CODE=$?
+    popd
+    return $ACTUAL_EXIT_CODE
 }
 
 retry() {
