@@ -19,12 +19,10 @@ if [[ ${TYPE} == "snapshot" ]]; then
   MAKE_GOAL="${MAKE_GOAL}-snapshot"
 fi
 
-
 echo "--- Debug go"
+echo $PATH
 go version || true
 which go || true
-echo $PATH
-
 
 echo "--- Run Make"
 make $MAKE_GOAL

@@ -82,11 +82,13 @@ get_os_details
 retry 5 curl -sL -o ${WORKSPACE}/gvm "https://github.com/andrewkroh/gvm/releases/download/v0.5.1/gvm-${OS_NAME}-${OS_ARCH}"
 chmod +x ${WORKSPACE}/gvm
 eval "$(${WORKSPACE}/gvm $(cat .go-version))"
-PATH="${PATH}:$(go env GOPATH):$(go env GOPATH)/bin"
+GOPATH=$(go env GOPATH)
+PATH=$GOPATH:$GOPATH/bin:$PATH
 export PATH
-go version || true
+
+echo "--- Debug the :golang: environment..."
+go version
 which go || true
-echo $PATH
 
 exit 0
 
