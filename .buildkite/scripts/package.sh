@@ -19,7 +19,6 @@ if [[ ${TYPE} == "snapshot" ]]; then
   MAKE_GOAL="${MAKE_GOAL}-snapshot"
 fi
 
-echo "--- Run Make"
 make $MAKE_GOAL
 
 # BK artifact API call

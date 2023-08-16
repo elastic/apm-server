@@ -25,6 +25,7 @@ ls -l build/distributions/
 ls -l build/
 
 ### TODO: retry a few times just in case some infra issues, like the vault accessing.
+echo "--- Run release manager"
 set -x
 docker run --rm \
   --name release-manager \
