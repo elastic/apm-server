@@ -87,9 +87,6 @@ eval "$(${WORKSPACE}/gvm $GO_VERSION)"
 echo "Golang version:"
 go version
 
-echo "--- Debug workspace"
-ls -l $WORKSPACE
-
 exit 0
 
 echo "--- Prepare vault context :vault:"
