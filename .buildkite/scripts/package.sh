@@ -20,5 +20,3 @@ if [[ ${TYPE} == "snapshot" ]]; then
 fi
 
 make $MAKE_GOAL
-
-# BK artifact API call

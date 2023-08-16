@@ -26,6 +26,8 @@ ls -l build/distributions/
 ls -l build/
 
 echo "--- Run release manager"
+# TODO: as long as it does not run as part of the GitHub action integration, then let's stop here
+exit 0
 retry 3 docker run --rm \
   --name release-manager \
   -e VAULT_ADDR="${VAULT_ADDR_SECRET}" \
