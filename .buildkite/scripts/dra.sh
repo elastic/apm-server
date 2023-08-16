@@ -16,6 +16,7 @@ VERSION=$(make get-version)
 
 echo "+++ Restoring Artifacts"
 buildkite-agent artifact download "build/**/*" .
+buildkite-agent artifact download "build/dependencies*.csv" .
 
 echo "+++ Changing permissions for the release manager"
 sudo chown -R :1000 build/
@@ -24,10 +25,8 @@ echo "+++ Debug files"
 ls -l build/distributions/
 ls -l build/
 
-### TODO: retry a few times just in case some infra issues, like the vault accessing.
 echo "--- Run release manager"
-set -x
-docker run --rm \
+retry 3 docker run --rm \
   --name release-manager \
   -e VAULT_ADDR="${VAULT_ADDR_SECRET}" \
   -e VAULT_ROLE_ID="${VAULT_ROLE_ID_SECRET}" \
