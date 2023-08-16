@@ -44,7 +44,7 @@ fi
 
 echo "--- Debug :golang:"
 set -x
-${WORKSPACE}/script/run_with_go_ver go env GOROOT
+VERBOSE=true $(git rev-parse --show-toplevel)/script/run_with_go_ver go env GOROOT
 go version
 
 exit 0
