@@ -30,12 +30,16 @@ jobs:
       matrix:
         dra-workflow: ["snapshot", "staging"]
     steps:
-      # exclude if main and staging
       # exclude if branch is not supported anymore isBranchUnifiedReleaseAvailable()
-      - uses: actions/checkout@v3
+      - name: Run buildkite pipeline
+        # NOTE: exclude if main and staging
+        if: ${{ matrix.dra-workflow != 'staging' && github.ref != 'refs/heads/main' }}
+        uses: actions/checkout@v3
 
       - id: buildkite
         name: Run buildkite pipeline
+        # NOTE: exclude if main and staging
+        if: ${{ matrix.dra-workflow != 'staging' && github.ref != 'refs/heads/main' }}
         uses: elastic/apm-pipeline-library/.github/actions/buildkite@current
         with:
           vaultUrl: ${{ secrets.VAULT_ADDR }}
