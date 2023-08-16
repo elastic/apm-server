@@ -26,7 +26,7 @@ https://github.com/elastic/apm-server/compare/8.9\...main[View commits]
 - Add permissions to reroute events in the integration package. {pull}11168[11168]
 
 [float]
-==== Aggregation improvements
+==== Aggregation improvements (except for 386 architecture)
 - Replace aggregation with LSM-based aggregator which has a lower memory footprint {pull}11117[11117]
 - Add `service.language.name` to service destination metrics {pull}11117[11117]
 - Modify per-service transaction groups limit to consider more than service.name; Add per-service service destination groups limit and per-service service transaction groups limit {pull}11117[11117]
