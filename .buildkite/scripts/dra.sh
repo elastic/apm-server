@@ -19,19 +19,17 @@ buildkite-agent artifact download "build/dependencies*.csv" .
 
 echo "--- Changing permissions for the release manager"
 sudo chown -R :1000 build/
-
-echo "--- Debug files"
 ls -l build/distributions/
 ls -l build/
 
 if [[ "${BUILDKITE_PULL_REQUEST:-false}" == "false" ]]; then
-  echo "Release Manager does not run on PRs, skipping"
+  echo "--- :arrow_right: Release Manager does not run on PRs, skipping"
   exit 0
 fi
 
 curl -s https://storage.googleapis.com/artifacts-api/snapshots/branches.json > active-branches.json
 if ! grep -q "\"$BUILDKITE_BRANCH\"" active-branches.json ; then
-  echo "Release Manager only support the current active branches, skipping"
+  echo "--- :arrow_right: Release Manager only support the current active branches, skipping"
   echo "BUILDKITE_BRANCH=$BUILDKITE_BRANCH"
   echo "BUILDKITE_COMMIT=$BUILDKITE_COMMIT"
   echo "VERSION=$VERSION"
