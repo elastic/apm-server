@@ -45,8 +45,7 @@ jobs:
       #     vaultUrl: ${{ secrets.VAULT_ADDR }}
       #     vaultRoleId: ${{ secrets.VAULT_ROLE_ID }}
       #     vaultSecretId: ${{ secrets.VAULT_SECRET_ID }}
-      #     #pipeline: apm-server-package
-      #     pipeline: apm-server
+      #     pipeline: apm-server-package
       #     triggerMessage: "${{ matrix.dra-workflow }} - ${{ github.repository }}@${{ github.ref_name }}"
       #     waitFor: true
       #     printBuildLogs: true
