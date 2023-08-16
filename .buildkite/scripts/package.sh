@@ -20,7 +20,7 @@ if [[ ${TYPE} == "snapshot" ]]; then
 fi
 
 echo "--- Configure golang :golang:"
-eval "$(./gvm $GO_VERSION)"
+eval "$(./gvm $(cat .go-version))"
 echo "Golang version:"
 go version
 
