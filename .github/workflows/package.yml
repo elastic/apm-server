@@ -56,4 +56,5 @@ jobs:
           vaultUrl: ${{ secrets.VAULT_ADDR }}
           vaultRoleId: ${{ secrets.VAULT_ROLE_ID }}
           vaultSecretId: ${{ secrets.VAULT_SECRET_ID }}
-          slackChannel: "#apm-server"
+          #slackChannel: "#apm-server"
+          slackChannel: "#observablt-bots"

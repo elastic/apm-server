@@ -1,7 +1,8 @@
 notify:
   - slack:
       channels:
-        - "#apm-server"
+        #- "#apm-server"
+        - "#observablt-bots"
 
 env:
   IMAGE_UBUNTU_X86_64: "family/core-ubuntu-2004"
