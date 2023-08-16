@@ -7,7 +7,6 @@ on:
       - bump-golang
       - ci
       - microbenchmark
-      - package
       - system-test-reporter
       - smoke-tests-os
       - smoke-tests-ess

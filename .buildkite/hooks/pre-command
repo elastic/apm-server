@@ -73,7 +73,7 @@ if command -v docker &>/dev/null; then
     docker login -u "${DOCKER_USERNAME_SECRET}" -p "${DOCKER_PASSWORD_SECRET}" "${DOCKER_REGISTRY_SECRET}"
     unset DOCKER_USERNAME_SECRET DOCKER_PASSWORD_SECRET
     export DOCKER_REGISTRY_SECRET
-	retry 4 docker pull --quiet docker.elastic.co/infra/release-manager:latest
+    retry 4 docker pull --quiet docker.elastic.co/infra/release-manager:latest
 fi
 
 echo "--- Setting up the :golang: environment..."
