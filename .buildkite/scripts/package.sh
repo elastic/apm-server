@@ -19,9 +19,13 @@ if [[ ${TYPE} == "snapshot" ]]; then
   MAKE_GOAL="${MAKE_GOAL}-snapshot"
 fi
 
+echo "--- Debug workspace"
+ls -l $WORKSPACE
+
 echo "--- Configure golang :golang:"
-eval "$(gvm $GO_VERSION)"
-go version || true
+eval "$($WORKSPACE/gvm $GO_VERSION)"
+echo "Golang version:"
+go version
 
 echo "--- Run Make"
 make $MAKE_GOAL
