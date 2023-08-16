@@ -26,6 +26,7 @@ steps:
             - "staging"
         artifact_paths:
           - "build/distributions/**/*"
+          - "build/dependencies*.csv"
 
       - label: "Package Ubuntu-20 aarch64"
         key: "package-arm"

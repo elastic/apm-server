@@ -22,9 +22,11 @@ echo "+++ Restoring Artifacts"
 buildkite-agent artifact download "build/**/*" .
 
 echo "+++ Changing permissions for the release manager"
-sudo chown -R :1000 build/distributions/
+sudo chown -R :1000 build/
 
+echo "+++ Debug files"
 ls -l build/distributions/
+ls -l build/
 
 ### TODO: retry a few times just in case some infra issues, like the vault accessing.
 docker run --rm \
