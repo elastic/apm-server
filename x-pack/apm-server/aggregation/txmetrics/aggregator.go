@@ -14,7 +14,6 @@ import (
 	"github.com/axiomhq/hyperloglog"
 	"github.com/cespare/xxhash/v2"
 	"github.com/pkg/errors"
-	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/monitoring"
@@ -312,7 +311,7 @@ func (a *Aggregator) AggregateTransaction(event *modelpb.APMEvent) {
 	}
 	for _, interval := range a.Intervals {
 		key := makeTransactionAggregationKey(event, interval)
-		if err := a.updateTransactionMetrics(key, count, event.GetEvent().GetDuration().AsDuration(), interval); err != nil {
+		if err := a.updateTransactionMetrics(key, count, time.Duration(event.GetEvent().GetDuration()), interval); err != nil {
 			a.config.Logger.Errorf("failed to aggregate transaction: %w", err)
 		}
 	}
@@ -500,9 +499,9 @@ func makeTransactionAggregationKey(event *modelpb.APMEvent, interval time.Durati
 			faasVersion:     event.GetFaas().GetVersion(),
 		},
 	}
-	if event.Timestamp != nil {
+	if event.Timestamp != 0 {
 		// Group metrics by time interval.
-		key.comparable.timestamp = event.Timestamp.AsTime().Truncate(interval)
+		key.comparable.timestamp = time.Unix(0, int64(event.Timestamp)).Truncate(interval)
 	}
 	if event.Faas != nil {
 		key.comparable.faasColdstart = nullableBoolFromPtr(event.Faas.ColdStart)
@@ -529,11 +528,6 @@ func makeMetricset(key transactionAggregationKey, metrics transactionMetrics, in
 		}
 	case "unknown":
 		// Keep both Count and Sum as 0.
-	}
-
-	var t *timestamppb.Timestamp
-	if !key.timestamp.IsZero() {
-		t = timestamppb.New(key.timestamp)
 	}
 
 	transactionDurationSummary := modelpb.SummaryMetric{
@@ -645,7 +639,7 @@ func makeMetricset(key transactionAggregationKey, metrics transactionMetrics, in
 	}
 
 	return &modelpb.APMEvent{
-		Timestamp:     t,
+		Timestamp:     uint64(key.timestamp.UnixNano()),
 		Agent:         agent,
 		Container:     container,
 		Kubernetes:    kube,

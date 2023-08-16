@@ -15,8 +15,6 @@ import (
 	"github.com/axiomhq/hyperloglog"
 	"github.com/cespare/xxhash/v2"
 	"github.com/pkg/errors"
-	"google.golang.org/protobuf/types/known/durationpb"
-	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/internal/logs"
@@ -246,7 +244,7 @@ func (a *Aggregator) processSpan(event *modelpb.APMEvent) {
 	// pre-aggregated spans and excludes time gaps that are counted in the reported
 	// span duration. For non-composite spans we just use the reported span duration.
 	count := 1
-	duration := event.Event.Duration.AsDuration()
+	duration := time.Duration(event.Event.Duration)
 	if event.Span.Composite != nil {
 		count = int(event.Span.Composite.Count)
 		duration = time.Duration(event.Span.Composite.Sum * float64(time.Millisecond))
@@ -292,7 +290,7 @@ func (a *Aggregator) processDroppedSpanStats(event *modelpb.APMEvent, dss *model
 
 	metrics := spanMetrics{
 		count: float64(dss.Duration.Count) * representativeCount,
-		sum:   float64(dss.Duration.Sum.AsDuration()) * representativeCount,
+		sum:   float64(dss.Duration.Sum) * representativeCount,
 	}
 	for _, interval := range a.Intervals {
 		key := makeAggregationKey(
@@ -467,9 +465,9 @@ func makeAggregationKey(
 			resource: resource,
 		},
 	}
-	if event.Timestamp != nil {
+	if event.Timestamp != 0 {
 		// Group metrics by time interval.
-		key.comparable.timestamp = event.Timestamp.AsTime().Truncate(interval)
+		key.comparable.timestamp = time.Unix(0, int64(event.Timestamp)).Truncate(interval)
 	}
 	key.AggregatedGlobalLabels.Read(event)
 	return key
@@ -502,10 +500,6 @@ func makeMetricset(key aggregationKey, metrics spanMetrics) *modelpb.APMEvent {
 			Name: key.targetName,
 		}
 	}
-	var t *timestamppb.Timestamp
-	if !key.timestamp.IsZero() {
-		t = timestamppb.New(key.timestamp)
-	}
 
 	var agent *modelpb.Agent
 	if key.agentName != "" {
@@ -520,7 +514,7 @@ func makeMetricset(key aggregationKey, metrics spanMetrics) *modelpb.APMEvent {
 	}
 
 	return &modelpb.APMEvent{
-		Timestamp: t,
+		Timestamp: uint64(key.timestamp.UnixNano()),
 		Agent:     agent,
 		Service: &modelpb.Service{
 			Name:        key.serviceName,
@@ -540,7 +534,7 @@ func makeMetricset(key aggregationKey, metrics spanMetrics) *modelpb.APMEvent {
 				Resource: key.resource,
 				ResponseTime: &modelpb.AggregatedDuration{
 					Count: uint64(math.Round(metrics.count)),
-					Sum:   durationpb.New(time.Duration(math.Round(metrics.sum))),
+					Sum:   uint64(math.Round(metrics.sum)),
 				},
 			},
 		},

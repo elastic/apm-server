@@ -14,7 +14,6 @@ import (
 	"github.com/axiomhq/hyperloglog"
 	"github.com/cespare/xxhash/v2"
 	"github.com/pkg/errors"
-	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/monitoring"
@@ -313,9 +312,9 @@ func makeAggregationKey(event *modelpb.APMEvent, interval time.Duration) aggrega
 			serviceLanguageName: event.GetService().GetLanguage().GetName(),
 		},
 	}
-	if event.Timestamp != nil {
+	if event.Timestamp != 0 {
 		// Group metrics by time interval.
-		key.comparable.timestamp = event.Timestamp.AsTime().Truncate(interval)
+		key.comparable.timestamp = time.Unix(0, int64(event.Timestamp)).Truncate(interval)
 	}
 	key.AggregatedGlobalLabels.Read(event)
 	return key
@@ -336,10 +335,6 @@ func makeOverflowAggregationKey(interval time.Duration) aggregationKey {
 }
 
 func makeMetricset(key aggregationKey, interval string) *modelpb.APMEvent {
-	var t *timestamppb.Timestamp
-	if !key.timestamp.IsZero() {
-		t = timestamppb.New(key.timestamp)
-	}
 	var agent *modelpb.Agent
 	if key.agentName != "" {
 		agent = &modelpb.Agent{Name: key.agentName}
@@ -353,7 +348,7 @@ func makeMetricset(key aggregationKey, interval string) *modelpb.APMEvent {
 	}
 
 	return &modelpb.APMEvent{
-		Timestamp: t,
+		Timestamp: uint64(key.timestamp.UnixNano()),
 		Service: &modelpb.Service{
 			Name:        key.serviceName,
 			Environment: key.serviceEnvironment,
