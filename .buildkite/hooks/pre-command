@@ -30,25 +30,38 @@ retry() {
     return 0
 }
 
-check_platform_architeture() {
-# for downloading the GVM and Terraform packages
-    case "${hw_type}" in
-    "x86_64")
-        arch_type="amd64"
+get_os_details() {
+    case $(uname | tr '[:upper:]' '[:lower:]') in
+    linux*)
+        export OS_NAME=linux
         ;;
-    "aarch64")
-        arch_type="arm64"
+    darwin*)
+        export OS_NAME=osx
         ;;
-    "arm64")
-        arch_type="arm64"
+    msys*)
+        export OS_NAME=windows
         ;;
     *)
-        echo "The current platform/OS type is unsupported yet"
+        export OS_NAME=notset
         ;;
     esac
-
-	platform_type="$(uname)"
-	platform_type_lowercase="${platform_type,,}"
+    case $(uname -m | tr '[:upper:]' '[:lower:]') in
+    aarch64*)
+        export OS_ARCH=arm64
+        ;;
+    arm64*)
+        export OS_ARCH=arm64
+        ;;
+    amd64*)
+        export OS_ARCH=amd64
+        ;;
+    x86_64*)
+        export OS_ARCH=amd64
+        ;;
+    *)
+        export OS_ARCH=notset
+        ;;
+    esac
 }
 
 if command -v docker &>/dev/null; then
@@ -65,13 +78,14 @@ fi
 
 echo "Setting up the :golang: environment..."
 WORKSPACE=$(git rev-parse --show-toplevel)
-check_platform_architeture
-retry 5 curl -sL -o ${WORKSPACE}/gvm "https://github.com/andrewkroh/gvm/releases/download/v0.5.1/gvm-${platform_type_lowercase}-${arch_type}"
+get_os_details
+retry 5 curl -sL -o ${WORKSPACE}/gvm "https://github.com/andrewkroh/gvm/releases/download/v0.5.1/gvm-${OS_NAME}-${OS_ARCH}"
 chmod +x ${WORKSPACE}/gvm
 eval "$(gvm $(cat .go-version))"
 go version
 which go
-export PATH="${PATH}:$(go env GOPATH):$(go env GOPATH)/bin"
+PATH="${PATH}:$(go env GOPATH):$(go env GOPATH)/bin"
+export PATH
 
 exit 0
 
