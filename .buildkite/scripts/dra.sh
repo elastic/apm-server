@@ -11,9 +11,6 @@
 
 set -eo pipefail
 
-echo "--- Configure golang :golang:"
-eval "$(./gvm $(cat .go-version))"
-
 ## Read current version.
 VERSION=$(make get-version)
 

@@ -19,11 +19,6 @@ if [[ ${TYPE} == "snapshot" ]]; then
   MAKE_GOAL="${MAKE_GOAL}-snapshot"
 fi
 
-echo "--- Configure golang :golang:"
-eval "$(./gvm $(cat .go-version))"
-echo "Golang version:"
-go version
-
 echo "--- Run Make"
 make $MAKE_GOAL
 
