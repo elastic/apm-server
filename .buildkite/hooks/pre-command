@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 ##
 ##  This script prepares the Vault context and required tooling
-##  for the release and snapshot pipelines.
+##  for the package pipelines.
 ##
 ##  NOTE: *_SECRET or *_TOKEN env variables are masked, hence if you'd like to avoid any
 ##        surprises please use the suffix _SECRET or _TOKEN for those values that contain
@@ -10,25 +10,14 @@
 
 set -eo pipefail
 
-retry() {
-    local retries=$1
-    shift
+# Use the common set of functions
+if [[ -z "${WORKSPACE-""}" ]]; then
+    WORKSPACE=$(git rev-parse --show-toplevel)
+    export WORKSPACE
+fi
 
-    local count=0
-    until "$@"; do
-        exit=$?
-        wait=$((2 ** count))
-        count=$((count + 1))
-        if [ $count -lt "$retries" ]; then
-            >&2 echo "Retry $count/$retries exited $exit, retrying in $wait seconds..."
-            sleep $wait
-        else
-            >&2 echo "Retry $count/$retries exited $exit, no more retries left."
-            return $exit
-        fi
-    done
-    return 0
-}
+# shellcheck source=/dev/null
+source "${WORKSPACE}/.buildkite/scripts/utils.sh"
 
 if command -v docker &>/dev/null; then
     echo "--- Prepare docker context :docker:"
