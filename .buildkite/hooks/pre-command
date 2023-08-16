@@ -10,14 +10,25 @@
 
 set -eo pipefail
 
-# Use the common set of functions
-if [[ -z "${WORKSPACE-""}" ]]; then
-    WORKSPACE=$(git rev-parse --show-toplevel)
-    export WORKSPACE
-fi
+retry() {
+    local retries=$1
+    shift
 
-# shellcheck source=/dev/null
-source "${WORKSPACE}/.buildkite/scripts/utils.sh"
+    local count=0
+    until "$@"; do
+        exit=$?
+        wait=$((2 ** count))
+        count=$((count + 1))
+        if [ $count -lt "$retries" ]; then
+            >&2 echo "Retry $count/$retries exited $exit, retrying in $wait seconds..."
+            sleep $wait
+        else
+            >&2 echo "Retry $count/$retries exited $exit, no more retries left."
+            return $exit
+        fi
+    done
+    return 0
+}
 
 if command -v docker &>/dev/null; then
     echo "--- Prepare docker context :docker:"
@@ -28,7 +39,13 @@ if command -v docker &>/dev/null; then
     docker login -u "${DOCKER_USERNAME_SECRET}" -p "${DOCKER_PASSWORD_SECRET}" "${DOCKER_REGISTRY_SECRET}"
     unset DOCKER_USERNAME_SECRET DOCKER_PASSWORD_SECRET
     export DOCKER_REGISTRY_SECRET
+	retry 4 docker pull --quiet docker.elastic.co/infra/release-manager:latest
 fi
+
+echo "--- Debug :golang:"
+set -x
+${WORKSPACE}/script/run_with_go_ver go env GOROOT
+go version
 
 exit 0
 

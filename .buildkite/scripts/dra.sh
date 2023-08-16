@@ -11,11 +11,6 @@
 
 set -eo pipefail
 
-# Use common utils file
-_SELF=$(dirname $0)
-source "${_SELF}/utils.sh"
-
-retry 5 docker pull --quiet docker.elastic.co/infra/release-manager:latest
 
 ## Read current version.
 VERSION=$(make get-version)

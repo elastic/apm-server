@@ -7,10 +7,6 @@
 
 set -eo pipefail
 
-# Use common utils file
-_SELF=$(dirname $0)
-source "${_SELF}/utils.sh"
-
 TYPE="$1"
 PLATFORM_TYPE=$(uname -m)
 
