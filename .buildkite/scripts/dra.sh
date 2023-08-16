@@ -14,7 +14,6 @@ set -eo pipefail
 echo "--- Configure golang :golang:"
 eval "$(./gvm $(cat .go-version))"
 
-
 ## Read current version.
 VERSION=$(make get-version)
 
@@ -29,6 +28,7 @@ ls -l build/distributions/
 ls -l build/
 
 ### TODO: retry a few times just in case some infra issues, like the vault accessing.
+set -x
 docker run --rm \
   --name release-manager \
   -e VAULT_ADDR="${VAULT_ADDR_SECRET}" \
