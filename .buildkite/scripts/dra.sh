@@ -23,9 +23,9 @@ VERSION=$(make get-version)
 ### TODO: retry a few times just in case some infra issues, like the vault accessing.
 docker run --rm \
   --name release-manager \
-  -e VAULT_ADDR \
-  -e VAULT_ROLE_ID_SECRET \
-  -e VAULT_SECRET_ID_SECRET \
+  -e VAULT_ADDR="${VAULT_ADDR_SECRET}" \
+  -e VAULT_ROLE_ID="${VAULT_ROLE_ID_SECRET}" \
+  -e VAULT_SECRET_ID="${VAULT_SECRET}" \
   --mount type=bind,readonly=false,src=$(pwd),target=/artifacts \
   docker.elastic.co/infra/release-manager:latest \
     cli collect \

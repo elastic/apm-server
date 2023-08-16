@@ -11,13 +11,12 @@
 set -eo pipefail
 
 echo "--- Prepare vault context :vault:"
-VAULT_ROLE_ID_SECRET=$(vault read -field=role-id secret/ci/elastic-apm-server/internal-ci-approle)
-export VAULT_ROLE_ID_SECRET
+CI_DRA_ROLE_PATH="kv/ci-shared/release/dra-role"
+DRA_CREDS_SECRET=$(retry 5 vault kv get -field=data -format=json ${CI_DRA_ROLE_PATH})
+VAULT_ADDR_SECRET=$(echo ${DRA_CREDS_SECRET} | jq -r '.vault_addr')
+VAULT_ROLE_ID_SECRET=$(echo ${DRA_CREDS_SECRET} | jq -r '.role_id')
+VAULT_SECRET=$(echo ${DRA_CREDS_SECRET} | jq -r '.secret_id')
+export VAULT_ADDR_SECRET VAULT_ROLE_ID_SECRET VAULT_SECRET
 
-VAULT_SECRET_ID_SECRET=$(vault read -field=secret-id secret/ci/elastic-apm-server/internal-ci-approle)
-export VAULT_SECRET_ID_SECRET
-
-VAULT_ADDR=$(vault read -field=vault-url secret/ci/elastic-apm-server/internal-ci-approle)
-export VAULT_ADDR
-
-echo "--- Install tools"
+echo "--- Prepare docker context :docker:"
+DOCKER_REGISTRY="docker.elastic.co"
