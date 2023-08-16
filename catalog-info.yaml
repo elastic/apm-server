@@ -32,7 +32,11 @@ spec:
     apiVersion: buildkite.elastic.dev/v1
     kind: Pipeline
     metadata:
+<<<<<<< HEAD
       name: apm-server-package
+=======
+      name: apm-server
+>>>>>>> 28541e96 (buildkite: package definition (#11399))
     spec:
       repository: elastic/apm-server
       pipeline_file: ".buildkite/package.yml"
