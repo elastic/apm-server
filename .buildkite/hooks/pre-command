@@ -76,8 +76,7 @@ if command -v docker &>/dev/null; then
 	retry 4 docker pull --quiet docker.elastic.co/infra/release-manager:latest
 fi
 
-echo "Setting up the :golang: environment..."
-set -x
+echo "--- Setting up the :golang: environment..."
 WORKSPACE=$(git rev-parse --show-toplevel)
 get_os_details
 retry 5 curl -sL -o ${WORKSPACE}/gvm "https://github.com/andrewkroh/gvm/releases/download/v0.5.1/gvm-${OS_NAME}-${OS_ARCH}"

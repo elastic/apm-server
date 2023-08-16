@@ -19,6 +19,14 @@ if [[ ${TYPE} == "snapshot" ]]; then
   MAKE_GOAL="${MAKE_GOAL}-snapshot"
 fi
 
+
+echo "--- Debug go"
+go version || true
+which go || true
+echo $PATH
+
+
+echo "--- Run Make"
 make $MAKE_GOAL
 
 # BK artifact API call
