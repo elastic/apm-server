@@ -77,11 +77,12 @@ if command -v docker &>/dev/null; then
 fi
 
 echo "Setting up the :golang: environment..."
+set -x
 WORKSPACE=$(git rev-parse --show-toplevel)
 get_os_details
 retry 5 curl -sL -o ${WORKSPACE}/gvm "https://github.com/andrewkroh/gvm/releases/download/v0.5.1/gvm-${OS_NAME}-${OS_ARCH}"
 chmod +x ${WORKSPACE}/gvm
-eval "$(gvm $(cat .go-version))"
+eval "$(${WORKSPACE}/gvm $(cat .go-version))"
 go version
 which go
 PATH="${PATH}:$(go env GOPATH):$(go env GOPATH)/bin"
