@@ -5,11 +5,28 @@
 package main
 
 import (
+	"math"
+	"time"
+
+	"github.com/pkg/errors"
+
+	"github.com/elastic/elastic-agent-libs/monitoring"
+
 	"github.com/elastic/apm-server/internal/beater"
 	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/servicesummarymetrics"
 	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/servicetxmetrics"
 	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/spanmetrics"
 	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/txmetrics"
+)
+
+const (
+	metricsInterval                = time.Minute
+	hdrHistogramSignificantFigures = 2
+)
+
+var (
+	aggregationMonitoringRegistry = monitoring.Default.NewRegistry("apm-server.aggregation")
+	rollUpMetricsIntervals        = []time.Duration{10 * time.Minute, time.Hour}
 )
 
 func newAggregationProcessors(args beater.ServerParams) ([]namedProcessor, error) {
@@ -19,12 +36,12 @@ func newAggregationProcessors(args beater.ServerParams) ([]namedProcessor, error
 	args.Logger.Infof("creating %s with config: %+v", txName, args.Config.Aggregation.Transactions)
 	agg, err := txmetrics.NewAggregator(txmetrics.AggregatorConfig{
 		BatchProcessor:                 args.BatchProcessor,
-		MaxTransactionGroups:           args.Config.Aggregation.Transactions.MaxTransactionGroups,
+		MaxTransactionGroups:           args.Config.Aggregation.Transactions.MaxGroups,
 		MetricsInterval:                metricsInterval,
 		RollUpIntervals:                rollUpMetricsIntervals,
-		MaxTransactionGroupsPerService: int(math.Ceil(0.1 * float64(args.Config.Aggregation.Transactions.MaxTransactionGroups))),
-		MaxServices:                    args.Config.Aggregation.Transactions.MaxServices,
-		HDRHistogramSignificantFigures: args.Config.Aggregation.Transactions.HDRHistogramSignificantFigures,
+		MaxTransactionGroupsPerService: int(math.Ceil(0.1 * float64(args.Config.Aggregation.Transactions.MaxGroups))),
+		MaxServices:                    args.Config.Aggregation.MaxServices,
+		HDRHistogramSignificantFigures: hdrHistogramSignificantFigures,
 	})
 	if err != nil {
 		return nil, errors.Wrapf(err, "error creating %s", txName)
@@ -60,7 +77,7 @@ func newAggregationProcessors(args beater.ServerParams) ([]namedProcessor, error
 		Interval:                       metricsInterval,
 		RollUpIntervals:                rollUpMetricsIntervals,
 		MaxGroups:                      args.Config.Aggregation.ServiceTransactions.MaxGroups,
-		HDRHistogramSignificantFigures: args.Config.Aggregation.ServiceTransactions.HDRHistogramSignificantFigures,
+		HDRHistogramSignificantFigures: hdrHistogramSignificantFigures,
 	})
 	if err != nil {
 		return nil, errors.Wrapf(err, "error creating %s", serviceTxName)
@@ -93,5 +110,5 @@ func newAggregationProcessors(args beater.ServerParams) ([]namedProcessor, error
 		serviceSummaryAggregator.CollectMonitoring,
 		monitoring.Report,
 	)
-	return processor
+	return processors, nil
 }
