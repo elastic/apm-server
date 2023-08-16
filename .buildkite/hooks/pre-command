@@ -30,6 +30,27 @@ retry() {
     return 0
 }
 
+check_platform_architeture() {
+# for downloading the GVM and Terraform packages
+    case "${hw_type}" in
+    "x86_64")
+        arch_type="amd64"
+        ;;
+    "aarch64")
+        arch_type="arm64"
+        ;;
+    "arm64")
+        arch_type="arm64"
+        ;;
+    *)
+        echo "The current platform/OS type is unsupported yet"
+        ;;
+    esac
+
+	platform_type="$(uname)"
+	platform_type_lowercase="${platform_type,,}"
+}
+
 if command -v docker &>/dev/null; then
     echo "--- Prepare docker context :docker:"
     DOCKER_REGISTRY_SECRET_PATH="secret/ci/elastic-apm-server/docker-elastic-observability"
@@ -42,10 +63,15 @@ if command -v docker &>/dev/null; then
 	retry 4 docker pull --quiet docker.elastic.co/infra/release-manager:latest
 fi
 
-echo "--- Debug :golang:"
-set -x
-VERBOSE=true $(git rev-parse --show-toplevel)/script/run_with_go_ver go env GOROOT
+echo "Setting up the :golang: environment..."
+WORKSPACE=$(git rev-parse --show-toplevel)
+check_platform_architeture
+retry 5 curl -sL -o ${WORKSPACE}/gvm "https://github.com/andrewkroh/gvm/releases/download/v0.5.1/gvm-${platform_type_lowercase}-${arch_type}"
+chmod +x ${WORKSPACE}/gvm
+eval "$(gvm $(cat .go-version))"
 go version
+which go
+export PATH="${PATH}:$(go env GOPATH):$(go env GOPATH)/bin"
 
 exit 0
 
