@@ -381,10 +381,9 @@ func makeAggregationKey(event *modelpb.APMEvent, interval time.Duration) aggrega
 			transactionType:     event.GetTransaction().GetType(),
 		},
 	}
-	if event.Timestamp != 0 {
-		// Group metrics by time interval.
-		key.comparable.timestamp = time.Unix(0, int64(event.Timestamp)).Truncate(interval)
-	}
+	// Group metrics by time interval.
+	key.comparable.timestamp = time.Unix(0, int64(event.Timestamp)).Truncate(interval)
+
 	key.AggregatedGlobalLabels.Read(event)
 	return key
 }

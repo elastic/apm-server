@@ -21,8 +21,6 @@ import (
 	"go.uber.org/zap/zaptest/observer"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/testing/protocmp"
-	"google.golang.org/protobuf/types/known/durationpb"
-	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/x-pack/apm-server/aggregation/txmetrics"
@@ -101,7 +99,7 @@ func TestTxnAggregator_ResetAfterPublish(t *testing.T) {
 		&modelpb.APMEvent{
 			Event: &modelpb.Event{
 				Outcome:  "success",
-				Duration: durationpb.New(time.Second),
+				Duration: uint64(time.Second),
 			},
 			Transaction: &modelpb.Transaction{
 				Type:                "type",
@@ -268,7 +266,7 @@ func TestTxnAggregatorProcessBatch(t *testing.T) {
 				batch[i] = &modelpb.APMEvent{
 					Event: &modelpb.Event{
 						Outcome:  "success",
-						Duration: durationpb.New(txnDuration),
+						Duration: uint64(txnDuration),
 					},
 					Transaction: &modelpb.Transaction{
 						Type:                "type",
@@ -372,8 +370,8 @@ func TestAggregatorRun(t *testing.T) {
 	now := time.Now().UTC()
 	for i := 0; i < 1000; i++ {
 		event := modelpb.APMEvent{
-			Event:     &modelpb.Event{Duration: durationpb.New(time.Second)},
-			Timestamp: timestamppb.New(now),
+			Event:     &modelpb.Event{Duration: uint64(time.Second)},
+			Timestamp: uint64(now.UnixNano()),
 			Labels: modelpb.Labels{
 				"department_name": &modelpb.LabelValue{Global: true, Value: "apm"},
 				"organization":    &modelpb.LabelValue{Global: true, Value: "observability"},
@@ -390,14 +388,14 @@ func TestAggregatorRun(t *testing.T) {
 			},
 		}
 		if i%2 == 0 {
-			event.Event = &modelpb.Event{Duration: durationpb.New(100 * time.Millisecond)}
+			event.Event = &modelpb.Event{Duration: uint64(100 * time.Millisecond)}
 		}
 		agg.AggregateTransaction(&event)
 	}
 	for i := 0; i < 800; i++ {
 		event := modelpb.APMEvent{
-			Event:     &modelpb.Event{Duration: durationpb.New(time.Second)},
-			Timestamp: timestamppb.New(now),
+			Event:     &modelpb.Event{Duration: uint64(time.Second)},
+			Timestamp: uint64(now.UnixNano()),
 			Transaction: &modelpb.Transaction{
 				Type:                "type",
 				Name:                "T-800",
@@ -405,7 +403,7 @@ func TestAggregatorRun(t *testing.T) {
 			},
 		}
 		if i%2 == 0 {
-			event.Event = &modelpb.Event{Duration: durationpb.New(100 * time.Millisecond)}
+			event.Event = &modelpb.Event{Duration: uint64(100 * time.Millisecond)}
 		}
 		agg.AggregateTransaction(&event)
 	}
@@ -439,11 +437,11 @@ func TestAggregatorRun(t *testing.T) {
 		assert.Empty(t, metricsets[1].NumericLabels)
 		assert.Equal(t, []uint64{1000, 1000}, metricsets[1].Transaction.DurationHistogram.Counts)
 		for _, event := range metricsets {
-			actual := event.Timestamp.AsTime()
-			if event.Timestamp == nil {
-				actual = time.Time{}
+			actual := event.Timestamp
+			if event.Timestamp == 0 {
+				actual = 0
 			}
-			assert.Equal(t, now.Truncate(intervals[i]), actual)
+			assert.Equal(t, uint64(now.Truncate(intervals[i]).UnixNano()), actual)
 			assert.Equal(t, fmt.Sprintf("%.0fs", intervals[i].Seconds()), event.Metricset.Interval)
 		}
 	}
@@ -581,7 +579,7 @@ func TestAggregateTimestamp(t *testing.T) {
 	t0 := time.Unix(0, 0).UTC()
 	for _, ts := range []time.Time{t0, t0.Add(15 * time.Second), t0.Add(30 * time.Second)} {
 		agg.AggregateTransaction(&modelpb.APMEvent{
-			Timestamp: timestamppb.New(ts),
+			Timestamp: uint64(ts.UnixNano()),
 			Transaction: &modelpb.Transaction{
 				Type:                "type",
 				Name:                "name",
@@ -598,10 +596,10 @@ func TestAggregateTimestamp(t *testing.T) {
 	metricsets := batchMetricsets(t, batch)
 	require.Len(t, metricsets, 2)
 	sort.Slice(metricsets, func(i, j int) bool {
-		return metricsets[i].Timestamp.AsTime().Before(metricsets[j].Timestamp.AsTime())
+		return metricsets[i].Timestamp < metricsets[j].Timestamp
 	})
-	assert.Equal(t, t0, metricsets[0].Timestamp.AsTime())
-	assert.Equal(t, t0.Add(30*time.Second), metricsets[1].Timestamp.AsTime())
+	assert.Equal(t, uint64(t0.UnixNano()), metricsets[0].Timestamp)
+	assert.Equal(t, uint64(t0.Add(30*time.Second).UnixNano()), metricsets[1].Timestamp)
 }
 
 func TestHDRHistogramSignificantFigures(t *testing.T) {
@@ -635,7 +633,7 @@ func testHDRHistogramSignificantFigures(t *testing.T, sigfigs int) {
 			101111 * time.Microsecond,
 		} {
 			agg.AggregateTransaction(&modelpb.APMEvent{
-				Event: &modelpb.Event{Duration: durationpb.New(duration)},
+				Event: &modelpb.Event{Duration: uint64(duration)},
 				Transaction: &modelpb.Transaction{
 					Type:                "type",
 					Name:                "T-1000",
@@ -818,7 +816,7 @@ func BenchmarkAggregateTransaction(b *testing.B) {
 	require.NoError(b, err)
 
 	event := modelpb.APMEvent{
-		Event: &modelpb.Event{Duration: durationpb.New(time.Millisecond)},
+		Event: &modelpb.Event{Duration: uint64(time.Millisecond)},
 		Transaction: &modelpb.Transaction{
 			Type:                "type",
 			Name:                "T-1000",

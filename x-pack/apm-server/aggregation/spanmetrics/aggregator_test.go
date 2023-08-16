@@ -17,8 +17,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/testing/protocmp"
-	"google.golang.org/protobuf/types/known/durationpb"
-	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/elastic-agent-libs/monitoring"
@@ -110,7 +108,7 @@ func TestAggregatorRun(t *testing.T) {
 			getExpectedEvents: func(now time.Time, interval time.Duration) []*modelpb.APMEvent {
 				return []*modelpb.APMEvent{
 					{
-						Timestamp: timestamppb.New(now.Truncate(interval)),
+						Timestamp: uint64(now.Truncate(interval).UnixNano()),
 						Agent:     &modelpb.Agent{Name: "java"},
 						Service: &modelpb.Service{
 							Name: "service-A",
@@ -131,7 +129,7 @@ func TestAggregatorRun(t *testing.T) {
 								Resource: destinationX,
 								ResponseTime: &modelpb.AggregatedDuration{
 									Count: 100,
-									Sum:   durationpb.New(10 * time.Second),
+									Sum:   uint64(10 * time.Second),
 								},
 							},
 						},
@@ -145,7 +143,7 @@ func TestAggregatorRun(t *testing.T) {
 							"cost_center": &modelpb.NumericLabelValue{Value: 10},
 						},
 					}, {
-						Timestamp: timestamppb.New(now.Truncate(interval)),
+						Timestamp: uint64(now.Truncate(interval).UnixNano()),
 						Agent:     &modelpb.Agent{Name: "java"},
 						Service: &modelpb.Service{
 							Name: "service-A",
@@ -166,7 +164,7 @@ func TestAggregatorRun(t *testing.T) {
 								Resource: destinationZ,
 								ResponseTime: &modelpb.AggregatedDuration{
 									Count: 100,
-									Sum:   durationpb.New(10 * time.Second),
+									Sum:   uint64(10 * time.Second),
 								},
 							},
 						},
@@ -180,7 +178,7 @@ func TestAggregatorRun(t *testing.T) {
 							"cost_center": &modelpb.NumericLabelValue{Value: 10},
 						},
 					}, {
-						Timestamp: timestamppb.New(now.Truncate(interval)),
+						Timestamp: uint64(now.Truncate(interval).UnixNano()),
 						Agent:     &modelpb.Agent{Name: "java"},
 						Service: &modelpb.Service{
 							Name: "service-A",
@@ -201,7 +199,7 @@ func TestAggregatorRun(t *testing.T) {
 								Resource: destinationZ,
 								ResponseTime: &modelpb.AggregatedDuration{
 									Count: 300,
-									Sum:   durationpb.New(30 * time.Second),
+									Sum:   uint64(30 * time.Second),
 								},
 							},
 						},
@@ -215,7 +213,7 @@ func TestAggregatorRun(t *testing.T) {
 							"cost_center": &modelpb.NumericLabelValue{Value: 10},
 						},
 					}, {
-						Timestamp: timestamppb.New(now.Truncate(interval)),
+						Timestamp: uint64(now.Truncate(interval).UnixNano()),
 						Agent:     &modelpb.Agent{Name: "python"},
 						Service: &modelpb.Service{
 							Name: "service-B",
@@ -236,7 +234,7 @@ func TestAggregatorRun(t *testing.T) {
 								Resource: destinationZ,
 								ResponseTime: &modelpb.AggregatedDuration{
 									Count: 100,
-									Sum:   durationpb.New(10 * time.Second),
+									Sum:   uint64(10 * time.Second),
 								},
 							},
 						},
@@ -272,7 +270,7 @@ func TestAggregatorRun(t *testing.T) {
 			getExpectedEvents: func(now time.Time, interval time.Duration) []*modelpb.APMEvent {
 				return []*modelpb.APMEvent{
 					{
-						Timestamp: timestamppb.New(now.Truncate(interval)),
+						Timestamp: uint64(now.Truncate(interval).UnixNano()),
 						Agent:     &modelpb.Agent{Name: "java"},
 						Service: &modelpb.Service{
 							Name: "service-A",
@@ -292,7 +290,7 @@ func TestAggregatorRun(t *testing.T) {
 							DestinationService: &modelpb.DestinationService{
 								ResponseTime: &modelpb.AggregatedDuration{
 									Count: 100,
-									Sum:   durationpb.New(10 * time.Second),
+									Sum:   uint64(10 * time.Second),
 								},
 							},
 						},
@@ -318,7 +316,7 @@ func TestAggregatorRun(t *testing.T) {
 			getExpectedEvents: func(now time.Time, interval time.Duration) []*modelpb.APMEvent {
 				return []*modelpb.APMEvent{
 					{
-						Timestamp: timestamppb.New(now.Truncate(interval)),
+						Timestamp: uint64(now.Truncate(interval).UnixNano()),
 						Agent:     &modelpb.Agent{Name: "java"},
 						Service: &modelpb.Service{
 							Name: "service-A",
@@ -335,7 +333,7 @@ func TestAggregatorRun(t *testing.T) {
 								Resource: destinationZ,
 								ResponseTime: &modelpb.AggregatedDuration{
 									Count: 100,
-									Sum:   durationpb.New(10 * time.Second),
+									Sum:   uint64(10 * time.Second),
 								},
 							},
 						},
@@ -372,7 +370,7 @@ func TestAggregatorRun(t *testing.T) {
 				go func(in input) {
 					defer wg.Done()
 					span := makeSpan(in.serviceName, in.agentName, in.destination, in.targetType, in.targetName, in.outcome, 100*time.Millisecond, in.count)
-					span.Timestamp = timestamppb.New(now)
+					span.Timestamp = uint64(now.UnixNano())
 					batch := modelpb.Batch{span}
 					for i := 0; i < 100; i++ {
 						err := agg.ProcessBatch(context.Background(), &batch)
@@ -463,7 +461,7 @@ func TestAggregateCompositeSpan(t *testing.T) {
 				Resource: "final_destination",
 				ResponseTime: &modelpb.AggregatedDuration{
 					Count: 50,
-					Sum:   durationpb.New(1400 * time.Millisecond),
+					Sum:   uint64(1400 * time.Millisecond),
 				},
 			},
 		},
@@ -495,7 +493,7 @@ func TestAggregateTransactionDroppedSpansStats(t *testing.T) {
 		},
 		Event: &modelpb.Event{
 			Outcome:  "success",
-			Duration: durationpb.New(10 * time.Second),
+			Duration: uint64(10 * time.Second),
 		},
 		Transaction: &modelpb.Transaction{
 			Type:                "transaction_type",
@@ -506,7 +504,7 @@ func TestAggregateTransactionDroppedSpansStats(t *testing.T) {
 					Outcome:                    "success",
 					Duration: &modelpb.AggregatedDuration{
 						Count: 10,
-						Sum:   durationpb.New(1500 * time.Microsecond),
+						Sum:   uint64(1500 * time.Microsecond),
 					},
 				},
 				{
@@ -514,7 +512,7 @@ func TestAggregateTransactionDroppedSpansStats(t *testing.T) {
 					Outcome:                    "unknown",
 					Duration: &modelpb.AggregatedDuration{
 						Count: 2,
-						Sum:   durationpb.New(3000 * time.Microsecond),
+						Sum:   uint64(3000 * time.Microsecond),
 					},
 				},
 			},
@@ -528,7 +526,7 @@ func TestAggregateTransactionDroppedSpansStats(t *testing.T) {
 		},
 		Event: &modelpb.Event{
 			Outcome:  "success",
-			Duration: durationpb.New(10 * time.Second),
+			Duration: uint64(10 * time.Second),
 		},
 		Transaction: &modelpb.Transaction{
 			Type:                "transaction_type",
@@ -541,7 +539,7 @@ func TestAggregateTransactionDroppedSpansStats(t *testing.T) {
 					Outcome:                    "success",
 					Duration: &modelpb.AggregatedDuration{
 						Count: 10,
-						Sum:   durationpb.New(1500 * time.Microsecond),
+						Sum:   uint64(1500 * time.Microsecond),
 					},
 				},
 			},
@@ -584,7 +582,7 @@ func TestAggregateTransactionDroppedSpansStats(t *testing.T) {
 					Resource: "https://elasticsearch:9200",
 					ResponseTime: &modelpb.AggregatedDuration{
 						Count: 20,
-						Sum:   durationpb.New(3000 * time.Microsecond),
+						Sum:   uint64(3000 * time.Microsecond),
 					},
 				},
 			},
@@ -605,7 +603,7 @@ func TestAggregateTransactionDroppedSpansStats(t *testing.T) {
 					Resource: "postgres/testdb",
 					ResponseTime: &modelpb.AggregatedDuration{
 						Count: 10,
-						Sum:   durationpb.New(1500 * time.Microsecond),
+						Sum:   uint64(1500 * time.Microsecond),
 					},
 				},
 			},
@@ -622,7 +620,7 @@ func TestAggregateTransactionDroppedSpansStats(t *testing.T) {
 					Resource: "mysql://mysql:3306",
 					ResponseTime: &modelpb.AggregatedDuration{
 						Count: 4,
-						Sum:   durationpb.New(6000 * time.Microsecond),
+						Sum:   uint64(6000 * time.Microsecond),
 					},
 				},
 			},
@@ -687,7 +685,7 @@ func TestAggregateTimestamp(t *testing.T) {
 	t0 := time.Unix(0, 0).UTC()
 	for _, ts := range []time.Time{t0, t0.Add(15 * time.Second), t0.Add(30 * time.Second)} {
 		span := makeSpan("service_name", "agent_name", "destination", "trg_type", "trg_name", "success", 100*time.Millisecond, 1)
-		span.Timestamp = timestamppb.New(ts)
+		span.Timestamp = uint64(ts.UnixNano())
 		batch := modelpb.Batch{span}
 		err = agg.ProcessBatch(context.Background(), &batch)
 		require.NoError(t, err)
@@ -702,10 +700,10 @@ func TestAggregateTimestamp(t *testing.T) {
 	metricsets := batchMetricsets(t, batch)
 	require.Len(t, metricsets, 2)
 	sort.Slice(metricsets, func(i, j int) bool {
-		return metricsets[i].Timestamp.AsTime().Before(metricsets[j].Timestamp.AsTime())
+		return metricsets[i].Timestamp < metricsets[j].Timestamp
 	})
-	assert.Equal(t, t0, metricsets[0].Timestamp.AsTime())
-	assert.Equal(t, t0.Add(30*time.Second), metricsets[1].Timestamp.AsTime())
+	assert.Equal(t, uint64(t0.UnixNano()), metricsets[0].Timestamp)
+	assert.Equal(t, uint64(t0.Add(30*time.Second).UnixNano()), metricsets[1].Timestamp)
 }
 
 func TestAggregatorOverflow(t *testing.T) {
@@ -772,13 +770,13 @@ func TestAggregatorOverflow(t *testing.T) {
 				Resource: "",
 				ResponseTime: &modelpb.AggregatedDuration{
 					Count: uint64(overflowCount),
-					Sum:   durationpb.New(time.Duration(duration.Nanoseconds() * int64(overflowCount))),
+					Sum:   uint64(duration.Nanoseconds() * int64(overflowCount)),
 				},
 			},
 		},
 	}, overflowEvent,
 		protocmp.Transform(),
-		protocmp.IgnoreMessages(&timestamppb.Timestamp{}),
+		protocmp.IgnoreFields(&modelpb.APMEvent{}, "timestamp"),
 	))
 }
 
@@ -792,7 +790,7 @@ func makeSpan(
 		Service: &modelpb.Service{Name: serviceName},
 		Event: &modelpb.Event{
 			Outcome:  outcome,
-			Duration: durationpb.New(duration),
+			Duration: uint64(duration),
 		},
 		Span: &modelpb.Span{
 			Type:                "span_type",

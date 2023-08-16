@@ -499,10 +499,9 @@ func makeTransactionAggregationKey(event *modelpb.APMEvent, interval time.Durati
 			faasVersion:     event.GetFaas().GetVersion(),
 		},
 	}
-	if event.Timestamp != 0 {
-		// Group metrics by time interval.
-		key.comparable.timestamp = time.Unix(0, int64(event.Timestamp)).Truncate(interval)
-	}
+	// Group metrics by time interval.
+	key.comparable.timestamp = time.Unix(0, int64(event.Timestamp)).Truncate(interval)
+
 	if event.Faas != nil {
 		key.comparable.faasColdstart = nullableBoolFromPtr(event.Faas.ColdStart)
 	}

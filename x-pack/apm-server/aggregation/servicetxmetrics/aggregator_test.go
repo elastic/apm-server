@@ -16,8 +16,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/testing/protocmp"
-	"google.golang.org/protobuf/types/known/durationpb"
-	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/elastic-agent-libs/monitoring"
@@ -252,7 +250,7 @@ func TestAggregateTimestamp(t *testing.T) {
 	t0 := time.Unix(0, 0).UTC()
 	for _, ts := range []time.Time{t0, t0.Add(15 * time.Second), t0.Add(30 * time.Second)} {
 		transaction := makeTransaction("service_name", "agent_name", "", "tx_type", "success", 100*time.Millisecond, 1)
-		transaction.Timestamp = timestamppb.New(ts)
+		transaction.Timestamp = uint64(ts.UnixNano())
 		batch := modelpb.Batch{transaction}
 		err = agg.ProcessBatch(context.Background(), &batch)
 		require.NoError(t, err)
@@ -267,10 +265,10 @@ func TestAggregateTimestamp(t *testing.T) {
 	metricsets := batchMetricsets(t, batch)
 	require.Len(t, metricsets, 2)
 	sort.Slice(metricsets, func(i, j int) bool {
-		return metricsets[i].Timestamp.AsTime().Before(metricsets[j].Timestamp.AsTime())
+		return metricsets[i].Timestamp < metricsets[j].Timestamp
 	})
-	assert.Equal(t, t0, metricsets[0].Timestamp.AsTime())
-	assert.Equal(t, t0.Add(30*time.Second), metricsets[1].Timestamp.AsTime())
+	assert.Equal(t, uint64(t0.UnixNano()), metricsets[0].Timestamp)
+	assert.Equal(t, uint64(t0.Add(30*time.Second).UnixNano()), metricsets[1].Timestamp)
 }
 
 func TestAggregatorOverflow(t *testing.T) {
@@ -367,7 +365,7 @@ func makeTransaction(
 		Service: &modelpb.Service{Name: serviceName, Language: &modelpb.Language{Name: serviceLanguageName}},
 		Event: &modelpb.Event{
 			Outcome:  outcome,
-			Duration: durationpb.New(duration),
+			Duration: uint64(duration),
 		},
 		Transaction: &modelpb.Transaction{
 			Name:                "transaction_name",
