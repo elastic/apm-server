@@ -25,9 +25,12 @@ echo "--- Debug files"
 ls -l build/distributions/
 ls -l build/
 
+if [[ "${BUILDKITE_PULL_REQUEST:-false}" == "false" ]]; then
+  echo "Release Manager does not run on PRs, skipping"
+  exit 0
+fi
+
 echo "--- Run release manager"
-# TODO: as long as it does not run as part of the GitHub action integration, then let's stop here
-exit 0
 docker run --rm \
   --name release-manager \
   -e VAULT_ADDR="${VAULT_ADDR_SECRET}" \
