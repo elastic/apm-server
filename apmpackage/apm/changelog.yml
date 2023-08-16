@@ -1,5 +1,10 @@
 - version: generated
   changes:
+    - description: Placeholder
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/123
+- version: "8.10"
+  changes:
     - description: Add permissions to reroute to dedicated datasets for logs, metrics and traces
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/11168
