@@ -10,7 +10,6 @@
 
 set -eo pipefail
 
-
 retry() {
     local retries=$1
     shift
@@ -40,4 +39,10 @@ VAULT_SECRET=$(echo ${DRA_CREDS_SECRET} | jq -r '.secret_id')
 export VAULT_ADDR_SECRET VAULT_ROLE_ID_SECRET VAULT_SECRET
 
 echo "--- Prepare docker context :docker:"
-DOCKER_REGISTRY="docker.elastic.co"
+DOCKER_REGISTRY_SECRET_PATH="secret/ci/elastic-apm-server/docker-elastic-observability"
+DOCKER_USERNAME_SECRET=$(retry 5 vault kv get -field username "${DOCKER_REGISTRY_SECRET_PATH}")
+DOCKER_PASSWORD_SECRET=$(retry 5 vault kv get -field password "${DOCKER_REGISTRY_SECRET_PATH}")
+DOCKER_REGISTRY_SECRET=$(retry 5 vault kv get -field registry "${DOCKER_REGISTRY_SECRET_PATH}")
+docker login -u "${DOCKER_USERNAME_SECRET}" -p "${DOCKER_PASSWORD_SECRET}" "${DOCKER_REGISTRY_SECRET}" 2>/dev/null
+unset DOCKER_USERNAME_SECRET DOCKER_PASSWORD_SECRET
+export DOCKER_REGISTRY_SECRET
