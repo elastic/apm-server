@@ -1,9 +1,7 @@
 notify:
-  - slack:
+  #- slack: "#apm-server"
+  - slack: "#observablt-bots"
     if: build.state == "failed"
-      channels:
-        #- "#apm-server"
-        - "#observablt-bots"
 
 env:
   IMAGE_UBUNTU_X86_64: "family/core-ubuntu-2004"
