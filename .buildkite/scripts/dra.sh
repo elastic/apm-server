@@ -25,8 +25,7 @@ ls -l build/distributions/
 
 if [[ "${BUILDKITE_PULL_REQUEST:-false}" == "false" ]]; then
   echo "--- :arrow_right: Release Manager does not run on PRs, skipping"
-  # TODO: for testing purposes
-  #exit 0
+  exit 0
 fi
 
 curl -s https://storage.googleapis.com/artifacts-api/snapshots/branches.json > active-branches.json
@@ -37,8 +36,7 @@ if ! grep -q "\"$BUILDKITE_BRANCH\"" active-branches.json ; then
   echo "VERSION=$VERSION"
   echo "Supported branches:"
   cat active-branches.json
-  # TODO: for testing purposes
-  #exit 0
+  exit 0
 fi
 
 dra() {
@@ -59,9 +57,7 @@ dra() {
       --commit $BUILDKITE_COMMIT \
       --workflow $workflow \
       --artifact-set main \
-      --version $VERSION \
-      --dry-run
-      ## TODO: for testing purposes it uses --dry-run
+      --version $VERSION
 }
 
 dra "snapshot"
