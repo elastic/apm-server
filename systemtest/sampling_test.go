@@ -80,7 +80,7 @@ func TestDropUnsampled(t *testing.T) {
 		// RUM events have the source port recorded, and in the tests it will be dynamic
 		"source.port",
 		// Ignore dynamically generated trace/transaction ID
-		"trace.id", "transaction.id",
+		"trace.id", "transaction.id", "span.id",
 	)
 
 	doc := getBeatsMonitoringStats(t, srv, nil)

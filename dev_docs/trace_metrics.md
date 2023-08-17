@@ -15,26 +15,19 @@ As transactions are observed by APM Server, it groups them according to various
 attributes such as `service.name`, `transaction.name`, and `kubernetes.pod.name`.
 The latency is then recorded in an [HDRHistogram](http://hdrhistogram.org/) for
 that group. Transaction group latency histograms are periodically indexed (every
-minute by default), with configurable precision (defaults to 2 significant figures).
+minute by default), with a fixed precision of 2 significant figures.
 
 To protect against memory exhaustion due to high-cardinality transaction names
 (or other attributes), at any given time, APM Server places a limit on the number
 of services tracked, the number of transaction groups tracked, as well as number
-of groups tracked per service.
-
-By default, the limits are 1,000 services per GB of memory, 5,000 transaction groups
-per GB of memory. When transaction group latency histograms are indexed, the groups
-are reset, enabling a different set of groups to be recorded.
-The per-service limit is 10% of the global limit. For example, for a 2GB APM Server,
-the limits are 2,000 services, 10,000 transaction groups, and for each service,
-there can be a maximum of 1,000 unique transaction groups.
+of groups tracked per service. See [docs](https://www.elastic.co/guide/en/apm/guide/current/data-model-metrics.html#_aggregated_metrics_limits_and_overflows) for limits.
 
 ## Service transaction metrics
 
 Service transaction metrics are similar to Transaction metrics, but with fewer
 dimensions. For example, `transaction.name` is no longer considered during aggregation.
 
-A limit of 1,000 unique service transaction groups per GB of memory is enforced.
+See [docs](https://www.elastic.co/guide/en/apm/guide/current/data-model-metrics.html#_aggregated_metrics_limits_and_overflows) for limits.
 
 ## Service destination metrics
 
@@ -43,15 +36,16 @@ from one service to another. This works much the same as transaction metrics
 aggregation: span events describing an operation that involves another service
 are grouped by the originating and target services, and the span latency is
 accumulated. For these metrics we record only a count and sum, enabling calculation
-of throughput and average latency. A default limit of 10,000 groups is
-imposed.
+of throughput and average latency.
+
+See [docs](https://www.elastic.co/guide/en/apm/guide/current/data-model-metrics.html#_aggregated_metrics_limits_and_overflows) for limits.
 
 ## Service summary metrics
 
 Service summary metrics consider transaction, error, log, and metric events and
 basically produce a summary of all services sending events.
 
-A limit of 1,000 unique service summary groups per GB of memory is enforced.
+See [docs](https://www.elastic.co/guide/en/apm/guide/current/data-model-metrics.html#_aggregated_metrics_limits_and_overflows) for limits.
 
 ## Dealing with sampling
 

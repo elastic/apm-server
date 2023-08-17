@@ -29,7 +29,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"go.elastic.co/apm/v2/apmtest"
 
@@ -154,7 +153,7 @@ func BenchmarkPublisher(b *testing.B) {
 
 	batch := modelpb.Batch{
 		&modelpb.APMEvent{
-			Timestamp: timestamppb.Now(),
+			Timestamp: modelpb.FromTime(time.Now()),
 		},
 	}
 	ctx := context.Background()

@@ -46,9 +46,11 @@
             "container": {
                 "id": "container-id"
             },
-            "data_stream.dataset": "apm.error",
-            "data_stream.namespace": "default",
-            "data_stream.type": "logs",
+            "data_stream": {
+                "dataset": "apm.error",
+                "namespace": "default",
+                "type": "logs"
+            },
             "error": {
                 "culprit": "my.module.function_name",
                 "custom": {
@@ -401,9 +403,11 @@
             "container": {
                 "id": "container-id"
             },
-            "data_stream.dataset": "apm.error",
-            "data_stream.namespace": "default",
-            "data_stream.type": "logs",
+            "data_stream": {
+                "dataset": "apm.error",
+                "namespace": "default",
+                "type": "logs"
+            },
             "error": {
                 "exception": [
                     {
@@ -520,9 +524,11 @@
             "container": {
                 "id": "container-id"
             },
-            "data_stream.dataset": "apm.error",
-            "data_stream.namespace": "default",
-            "data_stream.type": "logs",
+            "data_stream": {
+                "dataset": "apm.error",
+                "namespace": "default",
+                "type": "logs"
+            },
             "error": {
                 "grouping_key": "dc8dd667f7036ec5f0bae87bf2188243",
                 "grouping_name": "no user found",
@@ -643,9 +649,11 @@
             "container": {
                 "id": "container-id"
             },
-            "data_stream.dataset": "apm.error",
-            "data_stream.namespace": "default",
-            "data_stream.type": "logs",
+            "data_stream": {
+                "dataset": "apm.error",
+                "namespace": "default",
+                "type": "logs"
+            },
             "error": {
                 "exception": [
                     {
@@ -767,9 +775,11 @@
             "container": {
                 "id": "container-id"
             },
-            "data_stream.dataset": "apm.error",
-            "data_stream.namespace": "default",
-            "data_stream.type": "logs",
+            "data_stream": {
+                "dataset": "apm.error",
+                "namespace": "default",
+                "type": "logs"
+            },
             "error": {
                 "grouping_key": "d6b3f958dfea98dc9ed2b57d5f0c48bb",
                 "grouping_name": "Cannot read property 'baz' of undefined",
@@ -843,6 +853,9 @@
                     "version": "8.0.0"
                 },
                 "version": "5.1.3"
+            },
+            "span": {
+                "id": "1234567890987654"
             },
             "timestamp": {
                 "us": 1533827045999000

@@ -1,0 +1,41 @@
+---
+
+name: microbenchmark
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - "8.[0-9]+"
+    paths-ignore:
+      - '**.md'
+      - '**.asciidoc'
+
+# limit the access of the generated GITHUB_TOKEN
+permissions:
+  contents: read
+
+jobs:
+  microbenchmark:
+    runs-on: ubuntu-latest
+    # wait up to 1 hour
+    timeout-minutes: 60
+    steps:
+      - id: buildkite
+        name: Run buildkite pipeline
+        uses: elastic/apm-pipeline-library/.github/actions/buildkite@current
+        with:
+          vaultUrl: ${{ secrets.VAULT_ADDR }}
+          vaultRoleId: ${{ secrets.VAULT_ROLE_ID }}
+          vaultSecretId: ${{ secrets.VAULT_SECRET_ID }}
+          pipeline: apm-agent-microbenchmark
+          triggerMessage: "${{ github.repository }}@${{ github.ref_name }}"
+          waitFor: true
+          printBuildLogs: true
+          buildEnvVars: |
+            script=.ci/scripts/bench.sh
+            repo=apm-server
+            sha=${{ github.sha }}
+            BRANCH_NAME=${{ github.ref_name }}
+            REPO=apm-server

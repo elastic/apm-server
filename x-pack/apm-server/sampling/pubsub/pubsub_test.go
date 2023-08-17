@@ -99,9 +99,11 @@ func TestPublishSampledTraceIDs(t *testing.T) {
 				assert.NoError(t, d.Decode(&doc))
 				assert.Contains(t, doc, "@timestamp")
 				assert.Equal(t, map[string]interface{}{"ephemeral_id": serverID}, doc["agent"])
-				assert.Equal(t, dataStream.Type, doc["data_stream.type"])
-				assert.Equal(t, dataStream.Dataset, doc["data_stream.dataset"])
-				assert.Equal(t, dataStream.Namespace, doc["data_stream.namespace"])
+				ds, ok := doc["data_stream"].(map[string]interface{})
+				require.True(t, ok)
+				assert.Equal(t, dataStream.Type, ds["type"])
+				assert.Equal(t, dataStream.Dataset, ds["dataset"])
+				assert.Equal(t, dataStream.Namespace, ds["namespace"])
 
 				trace := doc["trace"].(map[string]interface{})
 				traceID := trace["id"].(string)
@@ -110,9 +112,7 @@ func TestPublishSampledTraceIDs(t *testing.T) {
 				assert.Empty(t, trace) // no other fields in "trace"
 
 				delete(doc, "@timestamp")
-				delete(doc, "data_stream.type")
-				delete(doc, "data_stream.dataset")
-				delete(doc, "data_stream.namespace")
+				delete(doc, "data_stream")
 				delete(doc, "agent")
 				delete(doc, "trace")
 

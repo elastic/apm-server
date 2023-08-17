@@ -82,7 +82,7 @@ func TestTransactionDroppedSpansStats(t *testing.T) {
 		espoll.TermQuery{Field: "transaction.id", Value: tx.TraceContext().Span.String()},
 	)
 	approvaltest.ApproveEvents(t, t.Name()+"Transaction", txResult.Hits.Hits,
-		"@timestamp", "timestamp", "trace.id", "transaction.id",
+		"@timestamp", "timestamp", "trace.id", "transaction.id", "span.id",
 	)
 }
 

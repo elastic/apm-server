@@ -6,9 +6,11 @@
                 "name": "go",
                 "version": "0.0.0"
             },
-            "data_stream.dataset": "apm",
-            "data_stream.namespace": "default",
-            "data_stream.type": "traces",
+            "data_stream": {
+                "dataset": "apm",
+                "namespace": "default",
+                "type": "traces"
+            },
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
@@ -81,9 +83,6 @@
                 "subtype": "redis",
                 "type": "db"
             },
-            "timestamp": {
-                "us": 0
-            },
             "trace": {
                 "id": "01000000000000000000000000000000"
             },
@@ -97,9 +96,11 @@
                 "name": "go",
                 "version": "0.0.0"
             },
-            "data_stream.dataset": "apm",
-            "data_stream.namespace": "default",
-            "data_stream.type": "traces",
+            "data_stream": {
+                "dataset": "apm",
+                "namespace": "default",
+                "type": "traces"
+            },
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",

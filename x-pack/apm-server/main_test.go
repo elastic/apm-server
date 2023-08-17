@@ -38,16 +38,17 @@ func TestMonitoring(t *testing.T) {
 	cfg := config.DefaultConfig()
 	cfg.Sampling.Tail.Enabled = true
 	cfg.Sampling.Tail.Policies = []config.TailSamplingPolicy{{SampleRate: 0.1}}
-	// MaxTransactionGroups, MaxServices and MaxGroups are configured based on memory limit.
+	// MaxServices and MaxGroups are configured based on memory limit.
 	// Overriding here to avoid validation errors.
-	cfg.Aggregation.Transactions.MaxTransactionGroups = 10000
-	cfg.Aggregation.Transactions.MaxServices = 10000
+	cfg.Aggregation.MaxServices = 10000
+	cfg.Aggregation.Transactions.MaxGroups = 10000
 	cfg.Aggregation.ServiceTransactions.MaxGroups = 10000
+	cfg.Aggregation.ServiceDestinations.MaxGroups = 10000
 
 	// Wrap & run the server twice, to ensure metric registration does not panic.
 	runServerError := errors.New("runServer")
 	for i := 0; i < 2; i++ {
-		var aggregationMonitoringSnapshot, tailSamplingMonitoringSnapshot monitoring.FlatSnapshot
+		var tailSamplingMonitoringSnapshot monitoring.FlatSnapshot
 		serverParams, runServer, err := wrapServer(beater.ServerParams{
 			Config:                 cfg,
 			Logger:                 logp.NewLogger(""),
@@ -56,7 +57,6 @@ func TestMonitoring(t *testing.T) {
 			Namespace:              "default",
 			NewElasticsearchClient: elasticsearch.NewClient,
 		}, func(ctx context.Context, args beater.ServerParams) error {
-			aggregationMonitoringSnapshot = monitoring.CollectFlatSnapshot(aggregationMonitoringRegistry, monitoring.Full, false)
 			tailSamplingMonitoringSnapshot = monitoring.CollectFlatSnapshot(samplingMonitoringRegistry, monitoring.Full, false)
 			return runServerError
 		})
@@ -64,7 +64,6 @@ func TestMonitoring(t *testing.T) {
 
 		err = runServer(context.Background(), serverParams)
 		assert.Equal(t, runServerError, err)
-		assert.NotEqual(t, monitoring.MakeFlatSnapshot(), aggregationMonitoringSnapshot)
 		assert.NotEqual(t, monitoring.MakeFlatSnapshot(), tailSamplingMonitoringSnapshot)
 	}
 }

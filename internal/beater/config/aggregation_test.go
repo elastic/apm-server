@@ -26,36 +26,6 @@ import (
 	"github.com/elastic/elastic-agent-libs/config"
 )
 
-func TestAggregationConfigInvalid(t *testing.T) {
-	type test struct {
-		name string
-
-		key    string
-		value  interface{}
-		expect string
-	}
-
-	for _, test := range []test{{
-		name:   "non-positive hdrhistogram_significant_figures",
-		key:    "aggregation.transactions.hdrhistogram_significant_figures",
-		value:  float64(0),
-		expect: "Error processing configuration: requires value >= 1 accessing 'aggregation.transactions.hdrhistogram_significant_figures'",
-	}, {
-		name:   "hdrhistogram_significant_figures too high",
-		key:    "aggregation.transactions.hdrhistogram_significant_figures",
-		value:  float64(6),
-		expect: "Error processing configuration: requires value <= 5 accessing 'aggregation.transactions.hdrhistogram_significant_figures'",
-	}} {
-		t.Run(test.name, func(t *testing.T) {
-			_, err := NewConfig(config.MustNewConfigFrom(map[string]interface{}{
-				test.key: test.value,
-			}), nil)
-			require.Error(t, err)
-			assert.EqualError(t, err, test.expect)
-		})
-	}
-}
-
 func TestAggregationConfigDefault(t *testing.T) {
 	cfg, err := NewConfig(config.MustNewConfigFrom(map[string]interface{}{}), nil)
 	require.NoError(t, err)

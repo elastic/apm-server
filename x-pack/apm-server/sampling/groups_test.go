@@ -12,7 +12,6 @@ import (
 	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"google.golang.org/protobuf/types/known/durationpb"
 
 	"github.com/elastic/apm-data/model/modelpb"
 )
@@ -272,7 +271,7 @@ func BenchmarkTraceGroups(b *testing.B) {
 		// Duration is non-zero to ensure transactions have a non-zero chance of
 		// being sampled.
 		tx := modelpb.APMEvent{
-			Event: &modelpb.Event{Duration: durationpb.New(time.Second)},
+			Event: &modelpb.Event{Duration: uint64(time.Second)},
 			Transaction: &modelpb.Transaction{
 				Type: "type",
 				Name: uuid.Must(uuid.NewV4()).String(),
@@ -280,7 +279,7 @@ func BenchmarkTraceGroups(b *testing.B) {
 		}
 		for pb.Next() {
 			groups.sampleTrace(&tx)
-			tx.Event.Duration = durationpb.New(tx.Event.Duration.AsDuration() + time.Second)
+			tx.Event.Duration = tx.Event.Duration + uint64(time.Second)
 		}
 	})
 }

@@ -6,9 +6,11 @@
                 "name": "opentelemetry/go",
                 "version": "1.16.0"
             },
-            "data_stream.dataset": "apm.error",
-            "data_stream.namespace": "default",
-            "data_stream.type": "logs",
+            "data_stream": {
+                "dataset": "apm.error",
+                "namespace": "default",
+                "type": "logs"
+            },
             "error": {
                 "exception": [
                     {
@@ -63,6 +65,9 @@
                 },
                 "name": "unknown_service_systemtest_test"
             },
+            "span": {
+                "id": "b3ee9be3b687a611"
+            },
             "timestamp": {
                 "us": 123002000
             },
@@ -81,9 +86,11 @@
                 "name": "opentelemetry/go",
                 "version": "1.16.0"
             },
-            "data_stream.dataset": "apm.app.unknown_service_systemtest_test",
-            "data_stream.namespace": "default",
-            "data_stream.type": "logs",
+            "data_stream": {
+                "dataset": "apm.app.unknown_service_systemtest_test",
+                "namespace": "default",
+                "type": "logs"
+            },
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
@@ -123,6 +130,9 @@
                 },
                 "name": "unknown_service_systemtest_test"
             },
+            "span": {
+                "id": "b3ee9be3b687a611"
+            },
             "trace": {
                 "id": "d2acbef8b37655e48548fd9d61ad6114"
             },
@@ -136,9 +146,11 @@
                 "name": "opentelemetry/go",
                 "version": "1.16.0"
             },
-            "data_stream.dataset": "apm",
-            "data_stream.namespace": "default",
-            "data_stream.type": "traces",
+            "data_stream": {
+                "dataset": "apm",
+                "namespace": "default",
+                "type": "traces"
+            },
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
@@ -184,6 +196,9 @@
                     "name": "go"
                 },
                 "name": "unknown_service_systemtest_test"
+            },
+            "span": {
+                "id": "b3ee9be3b687a611"
             },
             "timestamp": {
                 "us": 123000000

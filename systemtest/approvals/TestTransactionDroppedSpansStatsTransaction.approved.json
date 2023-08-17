@@ -6,9 +6,11 @@
                 "name": "go",
                 "version": "0.0.0"
             },
-            "data_stream.dataset": "apm",
-            "data_stream.namespace": "default",
-            "data_stream.type": "traces",
+            "data_stream": {
+                "dataset": "apm",
+                "namespace": "default",
+                "type": "traces"
+            },
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
@@ -51,6 +53,9 @@
                     "name": "gc",
                     "version": "2.0"
                 }
+            },
+            "span": {
+                "id": "dynamic"
             },
             "timestamp": "dynamic",
             "trace": {

@@ -27,6 +27,7 @@ import (
 
 	"go.elastic.co/fastjson"
 
+	"github.com/elastic/apm-data/model/modeljson"
 	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/internal/beater/auth"
 	"github.com/elastic/apm-server/internal/beater/ratelimit"
@@ -88,8 +89,8 @@ func newObserverBatchProcessor() modelpb.ProcessBatchFunc {
 // data stream mappings, in 8.10.
 func removeEventReceivedBatchProcessor(ctx context.Context, batch *modelpb.Batch) error {
 	for _, event := range *batch {
-		if event.Event != nil && event.Event.Received != nil {
-			event.Event.Received = nil
+		if event.Event != nil {
+			event.Event.Received = 0
 		}
 	}
 	return nil
@@ -103,10 +104,12 @@ func newDocappenderBatchProcessor(a *docappender.Appender) modelpb.ProcessBatchF
 	return func(ctx context.Context, b *modelpb.Batch) error {
 		for _, event := range *b {
 			r := pool.Get().(*pooledReader)
-			if err := event.MarshalFastJSON(&r.jsonw); err != nil {
+			if err := modeljson.MarshalAPMEvent(event, &r.jsonw); err != nil {
 				r.reset()
 				return err
 			}
+			r.indexBuilder.Grow(len(event.DataStream.Type) + 1 +
+				len(event.DataStream.Dataset) + 1 + len(event.DataStream.Namespace))
 			r.indexBuilder.WriteString(event.DataStream.Type)
 			r.indexBuilder.WriteByte('-')
 			r.indexBuilder.WriteString(event.DataStream.Dataset)

@@ -164,7 +164,7 @@ func (g *traceGroup) sampleTrace(transactionEvent *modelpb.APMEvent) (bool, erro
 	defer g.mu.Unlock()
 	g.total++
 	return g.reservoir.Sample(
-		transactionEvent.GetEvent().GetDuration().AsDuration().Seconds(),
+		time.Duration(transactionEvent.GetEvent().GetDuration()).Seconds(),
 		transactionEvent.GetTrace().GetId(),
 	), nil
 }

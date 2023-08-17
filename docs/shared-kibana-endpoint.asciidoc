@@ -1,6 +1,6 @@
 // tag::shared-kibana-config[]
-The APM integration is required to set up and manage APM templates, policies, and pipelines.
-To confirm the integration is installed, APM Server will poll either {es} or {kib} on startup.
+APM Server uses the APM integration to set up and manage APM templates, policies, and pipelines.
+To confirm the integration is installed, APM Server polls either {es} or {kib} on startup.
 When using a non-{es} output, APM Server requires access to {kib} via the
 <<setup-kibana-endpoint,{kib} endpoint>>.
 
