@@ -3,6 +3,7 @@ module github.com/elastic/apm-server
 go 1.20
 
 require (
+	github.com/axiomhq/hyperloglog v0.0.0-20230201085229-3ddf4bad03dc
 	github.com/cespare/xxhash/v2 v2.2.0
 	github.com/dgraph-io/badger/v2 v2.2007.3-0.20201012072640-f5a7e0a1c83b
 	github.com/dustin/go-humanize v1.0.1
@@ -15,6 +16,7 @@ require (
 	github.com/elastic/gmux v0.2.0
 	github.com/elastic/go-docappender v0.2.1-0.20230724080315-b714d6181871
 	github.com/elastic/go-elasticsearch/v8 v8.9.0
+	github.com/elastic/go-hdrhistogram v0.1.0
 	github.com/elastic/go-sysinfo v1.11.0
 	github.com/elastic/go-ucfg v0.8.6
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible
@@ -64,7 +66,6 @@ require (
 	github.com/Shopify/sarama v1.38.1 // indirect
 	github.com/apache/thrift v0.18.1 // indirect
 	github.com/armon/go-radix v1.0.0 // indirect
-	github.com/axiomhq/hyperloglog v0.0.0-20230201085229-3ddf4bad03dc // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash v1.1.0 // indirect
 	github.com/cockroachdb/errors v1.8.1 // indirect
