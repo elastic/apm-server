@@ -16,11 +16,12 @@ VERSION=$(make get-version)
 echo "--- Restoring Artifacts"
 buildkite-agent artifact download "build/**/*" .
 buildkite-agent artifact download "build/dependencies*.csv" .
+# The dependencies file needs to be saved in the build/distributions folder
+cp build/dependencies*.csv build/distributions/
 
 echo "--- Changing permissions for the release manager"
 sudo chown -R :1000 build/
 ls -l build/distributions/
-ls -l build/
 
 if [[ "${BUILDKITE_PULL_REQUEST:-false}" == "false" ]]; then
   echo "--- :arrow_right: Release Manager does not run on PRs, skipping"
