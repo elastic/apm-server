@@ -24,7 +24,8 @@ ls -l build/
 
 if [[ "${BUILDKITE_PULL_REQUEST:-false}" == "false" ]]; then
   echo "--- :arrow_right: Release Manager does not run on PRs, skipping"
-  exit 0
+  # TODO: for testing purposes
+  #exit 0
 fi
 
 curl -s https://storage.googleapis.com/artifacts-api/snapshots/branches.json > active-branches.json
@@ -35,12 +36,15 @@ if ! grep -q "\"$BUILDKITE_BRANCH\"" active-branches.json ; then
   echo "VERSION=$VERSION"
   echo "Supported branches:"
   cat active-branches.json
-  exit 0
+  # TODO: for testing purposes
+  #exit 0
 fi
 
 dra() {
   local workflow=$1
   echo "--- Run release manager $workflow"
+  # TODO: for testing purposes let's force the branch
+  BUILDKITE_BRANCH=main
   docker run --rm \
     --name release-manager \
     -e VAULT_ADDR="${VAULT_ADDR_SECRET}" \
@@ -54,7 +58,9 @@ dra() {
       --commit $BUILDKITE_COMMIT \
       --workflow $workflow \
       --artifact-set main \
-      --version $VERSION
+      --version $VERSION \
+      --dry-run
+      ## TODO: for testing purposes it uses --dry-run
 }
 
 dra "snapshot"
