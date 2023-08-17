@@ -42,8 +42,6 @@ fi
 dra() {
   local workflow=$1
   echo "--- Run release manager $workflow"
-  # TODO: for testing purposes let's force the branch
-  BUILDKITE_BRANCH=main
   docker run --rm \
     --name release-manager \
     -e VAULT_ADDR="${VAULT_ADDR_SECRET}" \
