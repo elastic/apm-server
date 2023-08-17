@@ -1,6 +1,5 @@
 notify:
-  #- slack: "#apm-server"
-  - slack: "#observablt-bots"
+  - slack: "#apm-server"
     if: build.state == "failed"
 
 env:
