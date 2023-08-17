@@ -33,6 +33,8 @@ if ! grep -q "\"$BUILDKITE_BRANCH\"" active-branches.json ; then
   echo "BUILDKITE_BRANCH=$BUILDKITE_BRANCH"
   echo "BUILDKITE_COMMIT=$BUILDKITE_COMMIT"
   echo "VERSION=$VERSION"
+  echo "Supported branches:"
+  cat active-branches.json
   exit 0
 fi
 
