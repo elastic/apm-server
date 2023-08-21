@@ -8,10 +8,6 @@
   type: constant_keyword
   value: metric
   description: Processor event.
-- name: processor.name
-  type: constant_keyword
-  value: metric
-  description: Processor name.
 - name: service.target.name
   type: keyword
   description: Target service for which data is collected.

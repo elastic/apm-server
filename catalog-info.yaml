@@ -32,16 +32,10 @@ spec:
     apiVersion: buildkite.elastic.dev/v1
     kind: Pipeline
     metadata:
-      name: apm-server
+      name: apm-server-package
     spec:
       repository: elastic/apm-server
       pipeline_file: ".buildkite/package.yml"
-      provider_settings:
-        # TODO: delete this section once the BK pipeline works as expected.
-        build_branches: false # Disable builds from branches.
-        # Will not create any builds based on GitHub activity but it will be
-        # triggered using the GitHub Buildkite composite action.
-        #trigger_mode: none
       cancel_intermediate_builds: false
       skip_intermediate_builds: false
       teams:
