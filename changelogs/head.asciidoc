@@ -11,6 +11,7 @@ https://github.com/elastic/apm-server/compare/8.10\...main[View commits]
 
 [float]
 ==== Bug fixes
+- Add back gzip support for grpc otlp endpoint {pull}11434[11434]
 
 [float]
 ==== Intake API Changes
