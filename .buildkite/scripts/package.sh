@@ -10,13 +10,17 @@ set -eo pipefail
 TYPE="$1"
 PLATFORM_TYPE=$(uname -m)
 
-MAKE_GOAL=package
+PLATFORMS=''
+PACKAGES=''
 if [[ ${PLATFORM_TYPE} == "arm" || ${PLATFORM_TYPE} == "aarch64" ]]; then
-  MAKE_GOAL=package-docker
+  PLATFORMS='linux/arm64'
+  PACKAGES='docker'
 fi
 
-if [[ ${TYPE} == "snapshot" ]]; then
-  MAKE_GOAL="${MAKE_GOAL}-snapshot"
+MAKE_GOAL=release-manager-snapshot
+if [[ ${TYPE} == "staging" ]]; then
+  MAKE_GOAL="release-manager-release"
 fi
 
+PLATFORMS=$PLATFORMS PACKAGES=$PACKAGES \
 make $MAKE_GOAL

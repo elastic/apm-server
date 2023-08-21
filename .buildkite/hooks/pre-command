@@ -90,6 +90,9 @@ GOPATH=$(command go env GOPATH)
 PATH="${PATH}:$GOPATH:$GOPATH/bin"
 export PATH
 
+echo "--- Setting up mage..."
+go install github.com/magefile/mage@latest
+
 echo "--- Prepare vault context :vault:"
 CI_DRA_ROLE_PATH="kv/ci-shared/release/dra-role"
 DRA_CREDS_SECRET=$(retry 5 vault kv get -field=data -format=json ${CI_DRA_ROLE_PATH})
