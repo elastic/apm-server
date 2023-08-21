@@ -27,6 +27,7 @@ fi
 # Buildkite uses the pipeline name for the workspace and
 # it breaks the package build process.
 cp -rf . ../apm-server
+cd ../apm-server
 
 PLATFORMS=$PLATFORMS PACKAGES=$PACKAGES \
 make $MAKE_GOAL
