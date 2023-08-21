@@ -22,5 +22,15 @@ if [[ ${TYPE} == "staging" ]]; then
   MAKE_GOAL="release-manager-release"
 fi
 
+# Prepare the context for using a different workspace
+# so the package can use the right folder location.
+# Buildkite uses the pipeline name for the workspace and
+# it breaks the package build process.
+cp -rf . ../apm-server
+
 PLATFORMS=$PLATFORMS PACKAGES=$PACKAGES \
 make $MAKE_GOAL
+
+# Context switch back to the previous workspace
+# so the following steps and archive in Buidlkite work as expected
+cp -rf . ../apm-server-package
