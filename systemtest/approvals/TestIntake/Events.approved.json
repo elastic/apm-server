@@ -366,8 +366,7 @@
                 "title": "/usr/lib/jvm/java-10-openjdk-amd64/bin/java"
             },
             "processor": {
-                "event": "metric",
-                "name": "metric"
+                "event": "metric"
             },
             "service": {
                 "environment": "production",

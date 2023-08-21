@@ -157,8 +157,7 @@
                 "version": "dynamic"
             },
             "processor": {
-                "event": "metric",
-                "name": "metric"
+                "event": "metric"
             },
             "service": {
                 "name": "1234_service-12a3"
