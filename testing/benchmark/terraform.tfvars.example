@@ -14,10 +14,9 @@ user_name = "USER"
 # stack_version = "8.4.0"
 
 # The size of the APM Server.
-# In GCP, use deployment_template="gcp-compute-optimized-v3" to go
-# over 8GB per instance. Otherwise, cloud will provision additional
-# instances / 8gb, for example, if 16gb is set, then there will be
-# 2 x 8gb APM Servers in the same AZ.
+# There is a max size per instance depending on deployment_template.
+# If apm_server_size exceeds the max size per instance, it will be
+# distributed over multiple instances in the same AZ.
 # apm_server_size = "8g"
 
 # The number of AZs the APM Server should span.
