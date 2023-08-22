@@ -25,31 +25,102 @@ Each policy includes a rollover and delete definition:
 * **Rollover**: Using rollover indices prevents a single index from growing too large and optimizes indexing and search performance. Rollover, i.e. writing to a new index, occurs after either an age or size metric is met.
 * **Delete**: The delete phase permanently removes the index after a time threshold is met.
 
-[cols="1,1,1",options="header"]
+[cols="1,1,1,1",options="header"]
 |===
 |Data stream
 |Rollover after
 |Delete after
+|Notes
 
-|`traces-apm`
-|30 days / 50 GB
-|10 days
+| `traces-apm`
+| 30 days / 50 GB
+| 10 days
+| Raw trace event data
 
-|`traces-apm.rum`
-|30 days / 50 GB
-|90 days
+| `traces-apm.rum`
+| 30 days / 50 GB
+| 90 days
+| Raw RUM trace event data, used in the UI
 
-|`metrics-apm.internal`
-|30 days / 50 GB
-|90 days
+| `logs-apm.error`
+| 30 days / 50 GB
+| 10 days
+| Error event data
 
-|`metrics-apm.app`
-|30 days / 50 GB
-|90 days
+| `logs-apm.app`
+| 30 days / 50 GB
+| 10 days
+| Logs event data
 
-|`logs-apm.error`
-|30 days / 50 GB
-|10 days
+| `metrics-apm.app`
+| 30 days / 50 GB
+| 90 days
+| Custom application specific metrics 
+
+| `metrics-apm.internal`
+| 30 days / 50 GB
+| 90 days
+| Common system metrics and language specific metrics (for example, CPU and memory usage)
+
+| `metrics-apm.service_destination_1m`
+| 7 days / 50GB
+| 90 days
+| Aggregated transaction metrics powering the APM UI
+
+| `metrics-apm.service_destination_10m`
+| 14 days / 50GB
+| 180 days
+| Aggregated transaction metrics powering the APM UI
+
+| `metrics-apm.service_destination_60m`
+| 30 days / 50GB
+| 390 days
+| Aggregated transaction metrics powering the APM UI 
+
+| `metrics-apm.service_summary_1m`
+| 7 days / 50GB
+| 90 days
+| Aggregated transaction metrics powering the APM UI  
+
+| `metrics-apm.service_summary_10m`
+| 14 days / 50GB
+| 180 days
+| Aggregated transaction metrics powering the APM UI 
+
+| `metrics-apm.service_summary_60m`
+| 30 days / 50GB
+| 390 days
+| Aggregated transaction metrics powering the APM UI 
+
+| `metrics-apm.service_transaction_1m`
+| 7 days / 50GB
+| 90 days
+| Aggregated transaction metrics powering the APM UI 
+
+| `metrics-apm.service_transaction_10m`
+| 14 days / 50GB
+| 180 days 
+| Aggregated transaction metrics powering the APM UI 
+
+| `metrics-apm.service_transaction_60m`
+| 30 days / 50GB
+| 390 days 
+| Aggregated transaction metrics powering the APM UI 
+
+| `metrics-apm.transaction_1m`
+| 7 days / 50GB
+| 90 days 
+| Aggregated transaction metrics powering the APM UI 
+
+| `metrics-apm.transaction_10m`
+| 14 days / 50GB
+| 180 days 
+| Aggregated transaction metrics powering the APM UI 
+
+| `metrics-apm.transaction_60m`
+| 30 days / 50GB
+| 390 days 
+| Aggregated transaction metrics powering the APM UI 
 
 |===
 
