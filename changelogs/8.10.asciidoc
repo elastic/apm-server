@@ -1,7 +1,7 @@
 [[release-notes-8.10]]
 == APM version 8.10
 
-https://github.com/elastic/apm-server/compare/8.10\...main[View commits]
+https://github.com/elastic/apm-server/compare/8.9\...8.10[View commits]
 
 * <<release-notes-8.10.0>>
 
