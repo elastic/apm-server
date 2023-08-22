@@ -8,11 +8,8 @@ pipeline {
     BASE_DIR = "src/github.com/elastic/${env.REPO}"
     SLACK_CHANNEL = '#apm-server'
     NOTIFY_TO = 'build-apm+apm-server@elastic.co'
-    JOB_GCS_BUCKET = credentials('gcs-bucket')
-    JOB_GCS_CREDENTIALS = 'apm-ci-gcs-plugin'
     DOCKER_SECRET = 'secret/observability-team/ci/docker-registry/prod'
     DOCKER_REGISTRY = 'docker.elastic.co'
-    DRA_OUTPUT = 'release-manager.out'
     COMMIT = "${params?.COMMIT}"
     JOB_GIT_CREDENTIALS = "f6c7695a-671e-4f4f-a331-acdce44ff9ba"
     DOCKER_IMAGE = "${env.DOCKER_REGISTRY}/observability-ci/apm-server"
@@ -46,17 +43,12 @@ pipeline {
             deleteDir()
             smartGitCheckout()
             stash(allowEmpty: true, name: 'source', useDefaultExcludes: false)
-            // set environment variables globally since they are used afterwards but GIT_BASE_COMMIT won't
-            // be available until gitCheckout is executed.
-            setEnvVar('URI_SUFFIX', "commits/${env.GIT_BASE_COMMIT}")
-            // JOB_GCS_BUCKET contains the bucket and some folders, let's build the folder structure
-            setEnvVar('PATH_PREFIX', "${JOB_GCS_BUCKET.contains('/') ? JOB_GCS_BUCKET.substring(JOB_GCS_BUCKET.indexOf('/') + 1) + '/' + env.URI_SUFFIX : env.URI_SUFFIX}")
-            setEnvVar('IS_BRANCH_AVAILABLE', isBranchUnifiedReleaseAvailable(env.BRANCH_NAME))
             dir("${BASE_DIR}"){
               setEnvVar('VERSION', sh(label: 'Get version', script: 'make get-version', returnStdout: true)?.trim())
             }
           }
         }
+<<<<<<< HEAD
         stage('Package') {
           options { skipDefaultCheckout() }
           matrix {
@@ -97,11 +89,32 @@ pipeline {
                     }
                   }
                 }
+=======
+        stage('apmpackage') {
+          options { skipDefaultCheckout() }
+          when {
+            allOf {
+              // The apmpackage stage gets triggered as described in https://github.com/elastic/apm-server/issues/6970
+              changeset pattern: '(internal/version/.*|apmpackage/.*)', comparator: 'REGEXP'
+              not { changeRequest() }
+            }
+          }
+          steps {
+            withGithubNotify(context: 'apmpackage') {
+              runWithGo() {
+                // Build a preview package which includes the Git commit timestamp, and upload it to package storage.
+                // Note, we intentionally do not sign or upload the "release" package, as it does not include a timestamp,
+                // and will break package storage's immutability requirement.
+                sh(label: 'make build-package-snapshot', script: 'make build-package-snapshot')
+                packageStoragePublish('build/packages', 'apm-*-preview-*.zip')
+                archiveArtifacts(allowEmptyArchive: false, artifacts: 'build/packages/*.zip')
+>>>>>>> 56cc6e896 (jenkins: remove DRA (#11413))
               }
             }
           }
           post {
             failure {
+<<<<<<< HEAD
               notifyStatus(subject: "[${env.REPO}@${env.BRANCH_NAME}] package failed.",
                            body: 'Contact the Productivity team [#observablt-robots] if you need further assistance.')
             }
@@ -150,6 +163,12 @@ pipeline {
             }
           }
         }
+=======
+              notifyStatus(subject: "[${env.REPO}@${env.BRANCH_NAME}] apmpackage failed")
+            }
+          }
+        }
+>>>>>>> 56cc6e896 (jenkins: remove DRA (#11413))
       }
     }
   }
@@ -160,6 +179,7 @@ pipeline {
   }
 }
 
+<<<<<<< HEAD
 def runReleaseManager(def args = [:]) {
   deleteDir()
   unstash 'source'
@@ -187,10 +207,19 @@ def publishArtifacts() {
       publishArtifactsDev()
     } else {
       echo "publishArtifacts: type is not required to be published for this particular branch/PR"
+=======
+def runWithGo(Closure body) {
+  deleteDir()
+  unstash 'source'
+  dir("${BASE_DIR}"){
+    withGoEnv() {
+      body()
+>>>>>>> 56cc6e896 (jenkins: remove DRA (#11413))
     }
   }
 }
 
+<<<<<<< HEAD
 def runPackage(def args = [:]) {
   def type = args.type
   def makeGoal = 'release-manager-snapshot'
@@ -247,6 +276,8 @@ def getBucketLocation(type) {
   return "gs://${JOB_GCS_BUCKET}/${URI_SUFFIX}/${type}"
 }
 
+=======
+>>>>>>> 56cc6e896 (jenkins: remove DRA (#11413))
 def notifyStatus(def args = [:]) {
   def releaseManagerFile = args.get('file', '')
   def analyse = args.get('analyse', false)
@@ -260,14 +291,6 @@ def notifyStatus(def args = [:]) {
                              to: "${env.NOTIFY_TO}",
                              subject: subject,
                              body: "Build: (<${env.RUN_DISPLAY_URL}|here>).\n ${body}")
-}
-
-def runIfNoMainAndNoStaging(Closure body) {
-  if (env.BRANCH_NAME.equals('main') && env.TYPE == 'staging') {
-    echo 'INFO: staging artifacts for the main branch are not required.'
-  } else {
-    body()
-  }
 }
 
 def smartGitCheckout() {
