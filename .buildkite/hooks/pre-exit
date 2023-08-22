@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+##
+##  Cleanup the created env variables on the fly.
+##
+
+unset VAULT_ROLE_ID_SECRET
+unset VAULT_ADDR_SECRET
+unset VAULT_SECRET
+
+if command -v docker &>/dev/null; then
+  docker logout $DOCKER_REGISTRY_SECRET
+fi
