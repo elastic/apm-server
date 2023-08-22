@@ -1,0 +1,102 @@
+#!/usr/bin/env bash
+##
+##  This script prepares the Vault context and required tooling
+##  for the package pipelines.
+##
+##  NOTE: *_SECRET or *_TOKEN env variables are masked, hence if you'd like to avoid any
+##        surprises please use the suffix _SECRET or _TOKEN for those values that contain
+##        any sensitive data. Buildkite can mask those values automatically
+##
+
+set -eo pipefail
+
+retry() {
+    local retries=$1
+    shift
+
+    local count=0
+    until "$@"; do
+        exit=$?
+        wait=$((2 ** count))
+        count=$((count + 1))
+        if [ $count -lt "$retries" ]; then
+            >&2 echo "Retry $count/$retries exited $exit, retrying in $wait seconds..."
+            sleep $wait
+        else
+            >&2 echo "Retry $count/$retries exited $exit, no more retries left."
+            return $exit
+        fi
+    done
+    return 0
+}
+
+get_os_details() {
+    case $(uname | tr '[:upper:]' '[:lower:]') in
+    linux*)
+        export OS_NAME=linux
+        ;;
+    darwin*)
+        export OS_NAME=osx
+        ;;
+    msys*)
+        export OS_NAME=windows
+        ;;
+    *)
+        export OS_NAME=notset
+        ;;
+    esac
+    case $(uname -m | tr '[:upper:]' '[:lower:]') in
+    aarch64*)
+        export OS_ARCH=arm64
+        ;;
+    arm64*)
+        export OS_ARCH=arm64
+        ;;
+    amd64*)
+        export OS_ARCH=amd64
+        ;;
+    x86_64*)
+        export OS_ARCH=amd64
+        ;;
+    *)
+        export OS_ARCH=notset
+        ;;
+    esac
+}
+
+if command -v docker &>/dev/null; then
+    echo "--- Prepare docker context :docker:"
+    DOCKER_REGISTRY_SECRET_PATH="secret/ci/elastic-apm-server/docker-elastic-observability"
+    DOCKER_USERNAME_SECRET=$(retry 5 vault kv get -field username "${DOCKER_REGISTRY_SECRET_PATH}")
+    DOCKER_PASSWORD_SECRET=$(retry 5 vault kv get -field password "${DOCKER_REGISTRY_SECRET_PATH}")
+    DOCKER_REGISTRY_SECRET=$(retry 5 vault kv get -field registry "${DOCKER_REGISTRY_SECRET_PATH}")
+    docker login -u "${DOCKER_USERNAME_SECRET}" -p "${DOCKER_PASSWORD_SECRET}" "${DOCKER_REGISTRY_SECRET}"
+    unset DOCKER_USERNAME_SECRET DOCKER_PASSWORD_SECRET
+    export DOCKER_REGISTRY_SECRET
+    retry 4 docker pull --quiet docker.elastic.co/infra/release-manager:latest
+fi
+
+echo "--- Setting up the :golang: environment..."
+GO_VERSION=$(cat .go-version)
+WORKSPACE=$(git rev-parse --show-toplevel)
+export GO_VERSION WORKSPACE
+get_os_details
+retry 5 curl -sL -o ${WORKSPACE}/gvm "https://github.com/andrewkroh/gvm/releases/download/v0.5.1/gvm-${OS_NAME}-${OS_ARCH}"
+chmod +x ${WORKSPACE}/gvm
+eval "$(${WORKSPACE}/gvm $GO_VERSION)"
+echo "Golang version:"
+go version
+GOPATH=$(command go env GOPATH)
+PATH="${PATH}:$GOPATH:$GOPATH/bin"
+export PATH
+
+echo "--- Setting up mage..."
+go install github.com/magefile/mage@latest
+
+echo "--- Prepare vault context :vault:"
+CI_DRA_ROLE_PATH="kv/ci-shared/release/dra-role"
+DRA_CREDS_SECRET=$(retry 5 vault kv get -field=data -format=json ${CI_DRA_ROLE_PATH})
+VAULT_ADDR_SECRET=$(echo ${DRA_CREDS_SECRET} | jq -r '.vault_addr')
+VAULT_ROLE_ID_SECRET=$(echo ${DRA_CREDS_SECRET} | jq -r '.role_id')
+VAULT_SECRET=$(echo ${DRA_CREDS_SECRET} | jq -r '.secret_id')
+export VAULT_ADDR_SECRET VAULT_ROLE_ID_SECRET VAULT_SECRET
