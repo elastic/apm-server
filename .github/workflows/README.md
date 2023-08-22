@@ -34,7 +34,7 @@ Every time there is a merge to main or any release branches the main workflow wi
 ## Package
 
 The packaging and release automation relies on the Unified Release process and Buildkite for generating the
-`DRA`` packages, for further details please go to [the buildkite folder](../../.buildkite/README.md).
+`DRA` packages, for further details please go to [the buildkite folder](../../.buildkite/README.md).
 
 ## OpenTelemetry
 
