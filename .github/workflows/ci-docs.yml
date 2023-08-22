@@ -17,6 +17,14 @@ permissions:
   contents: read
 
 jobs:
+  test:
+    strategy:
+      matrix:
+        os: ['macos-latest', 'windows-latest']
+    runs-on: ${{ matrix.os }}
+    steps:
+      - run: 'echo "No tests required to run"'
+
   system-test:
     runs-on: ubuntu-latest
     steps:
