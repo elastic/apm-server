@@ -41,6 +41,9 @@ fi
 
 dra() {
   local workflow=$1
+  echo "--- Prepare release manager $workflow"
+  .ci/scripts/prepare-release-manager.sh $workflow
+
   echo "--- Run release manager $workflow"
   docker run --rm \
     --name release-manager \
