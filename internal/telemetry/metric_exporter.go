@@ -135,7 +135,14 @@ func addMetric(sm metricdata.Metrics, ms metricsets) error {
 	case metricdata.Histogram[float64]:
 		// Float Histogram
 	case metricdata.Sum[int64]:
-		// Int Sum
+		for _, dp := range m.DataPoints {
+			sample := modelpb.MetricsetSample{
+				Name:  sm.Name,
+				Type:  modelpb.MetricType_METRIC_TYPE_COUNTER,
+				Value: float64(dp.Value),
+			}
+			ms.upsert(dp.Time, dp.Attributes, &sample)
+		}
 	case metricdata.Sum[float64]:
 		for _, dp := range m.DataPoints {
 			sample := modelpb.MetricsetSample{
@@ -146,9 +153,23 @@ func addMetric(sm metricdata.Metrics, ms metricsets) error {
 			ms.upsert(dp.Time, dp.Attributes, &sample)
 		}
 	case metricdata.Gauge[int64]:
-		// Int Gauge
+		for _, dp := range m.DataPoints {
+			sample := modelpb.MetricsetSample{
+				Name:  sm.Name,
+				Type:  modelpb.MetricType_METRIC_TYPE_GAUGE,
+				Value: float64(dp.Value),
+			}
+			ms.upsert(dp.Time, dp.Attributes, &sample)
+		}
 	case metricdata.Gauge[float64]:
-		// Float Gauge
+		for _, dp := range m.DataPoints {
+			sample := modelpb.MetricsetSample{
+				Name:  sm.Name,
+				Type:  modelpb.MetricType_METRIC_TYPE_GAUGE,
+				Value: dp.Value,
+			}
+			ms.upsert(dp.Time, dp.Attributes, &sample)
+		}
 	default:
 		return fmt.Errorf("unknown metric type %q", m)
 	}

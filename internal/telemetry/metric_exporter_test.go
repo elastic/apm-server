@@ -46,9 +46,9 @@ func TestMetricExporter(t *testing.T) {
 		expectedBatch modelpb.Batch
 	}{
 		{
-			name: "with a float64 counter",
+			name: "with an int64 counter",
 			recordMetrics: func(ctx context.Context, meter metric.Meter) {
-				counter, err := meter.Float64Counter("sum_metric")
+				counter, err := meter.Int64Counter("sum_metric")
 				assert.NoError(t, err)
 				counter.Add(ctx, 5, metric.WithAttributes(attribute.Key("A").String("B")))
 			},
@@ -60,6 +60,66 @@ func TestMetricExporter(t *testing.T) {
 						Name: "app",
 						Samples: []*modelpb.MetricsetSample{
 							{Name: "sum_metric", Value: 5, Type: modelpb.MetricType_METRIC_TYPE_COUNTER},
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "with a float64 counter",
+			recordMetrics: func(ctx context.Context, meter metric.Meter) {
+				counter, err := meter.Float64Counter("sum_metric")
+				assert.NoError(t, err)
+				counter.Add(ctx, 3.14, metric.WithAttributes(attribute.Key("A").String("B")))
+			},
+			expectedBatch: modelpb.Batch{
+				{
+					Agent:   &agent,
+					Service: &service,
+					Metricset: &modelpb.Metricset{
+						Name: "app",
+						Samples: []*modelpb.MetricsetSample{
+							{Name: "sum_metric", Value: 3.14, Type: modelpb.MetricType_METRIC_TYPE_COUNTER},
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "with an int64 gauge",
+			recordMetrics: func(ctx context.Context, meter metric.Meter) {
+				counter, err := meter.Int64UpDownCounter("gauge_metric")
+				assert.NoError(t, err)
+				counter.Add(ctx, 5, metric.WithAttributes(attribute.Key("A").String("B")))
+			},
+			expectedBatch: modelpb.Batch{
+				{
+					Agent:   &agent,
+					Service: &service,
+					Metricset: &modelpb.Metricset{
+						Name: "app",
+						Samples: []*modelpb.MetricsetSample{
+							{Name: "gauge_metric", Value: 5, Type: modelpb.MetricType_METRIC_TYPE_COUNTER},
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "with a float64 gauge",
+			recordMetrics: func(ctx context.Context, meter metric.Meter) {
+				counter, err := meter.Float64UpDownCounter("gauge_metric")
+				assert.NoError(t, err)
+				counter.Add(ctx, 3.14, metric.WithAttributes(attribute.Key("A").String("B")))
+			},
+			expectedBatch: modelpb.Batch{
+				{
+					Agent:   &agent,
+					Service: &service,
+					Metricset: &modelpb.Metricset{
+						Name: "app",
+						Samples: []*modelpb.MetricsetSample{
+							{Name: "gauge_metric", Value: 3.14, Type: modelpb.MetricType_METRIC_TYPE_COUNTER},
 						},
 					},
 				},
