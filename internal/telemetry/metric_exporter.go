@@ -131,9 +131,27 @@ func (e *MetricExporter) Export(ctx context.Context, rm *metricdata.ResourceMetr
 func addMetric(sm metricdata.Metrics, ms metricsets) error {
 	switch m := sm.Data.(type) {
 	case metricdata.Histogram[int64]:
-		// Int histogram
+		for _, dp := range m.DataPoints {
+			if hist := buildHistogram(dp); hist != nil {
+				sample := modelpb.MetricsetSample{
+					Name:      sm.Name,
+					Type:      modelpb.MetricType_METRIC_TYPE_HISTOGRAM,
+					Histogram: hist,
+				}
+				ms.upsert(dp.Time, dp.Attributes, &sample)
+			}
+		}
 	case metricdata.Histogram[float64]:
-		// Float Histogram
+		for _, dp := range m.DataPoints {
+			if hist := buildHistogram(dp); hist != nil {
+				sample := modelpb.MetricsetSample{
+					Name:      sm.Name,
+					Type:      modelpb.MetricType_METRIC_TYPE_HISTOGRAM,
+					Histogram: hist,
+				}
+				ms.upsert(dp.Time, dp.Attributes, &sample)
+			}
+		}
 	case metricdata.Sum[int64]:
 		for _, dp := range m.DataPoints {
 			sample := modelpb.MetricsetSample{
@@ -175,6 +193,58 @@ func addMetric(sm metricdata.Metrics, ms metricsets) error {
 	}
 
 	return nil
+}
+
+func buildHistogram[T int64 | float64](dp metricdata.HistogramDataPoint[T]) *modelpb.Histogram {
+	if len(dp.BucketCounts) != len(dp.Bounds)+1 || len(dp.Bounds) == 0 {
+		return nil
+	}
+
+	bounds := make([]float64, 0, len(dp.Bounds))
+	counts := make([]uint64, 0, len(dp.BucketCounts))
+
+	for i, _ := range dp.BucketCounts {
+		bound, count := computeCountAndBounds(i, dp.Bounds, dp.BucketCounts)
+		if count == 0 {
+			continue
+		}
+
+		counts = append(counts, count)
+		bounds = append(bounds, bound)
+	}
+
+	return &modelpb.Histogram{
+		Counts: counts,
+		Values: bounds,
+	}
+}
+
+func computeCountAndBounds(i int, bounds []float64, counts []uint64) (float64, uint64) {
+	count := counts[i]
+	if count == 0 {
+		return 0, 0
+	}
+
+	var bound float64
+	switch i {
+	// (-infinity, explicit_bounds[i]]
+	case 0:
+		bound = bounds[i]
+		if bound > 0 {
+			bound /= 2
+		}
+
+	// (explicit_bounds[i], +infinity)
+	case len(counts) - 1:
+		bound = bounds[i-1]
+
+	// [explicit_bounds[i-1], explicit_bounds[i])
+	default:
+		// Use the midpoint between the boundaries.
+		bound = bounds[i-1] + (bounds[i]-bounds[i-1])/2.0
+	}
+
+	return bound, count
 }
 
 func (e *MetricExporter) ForceFlush(ctx context.Context) error {

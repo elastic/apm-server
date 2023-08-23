@@ -46,6 +46,108 @@ func TestMetricExporter(t *testing.T) {
 		expectedBatch modelpb.Batch
 	}{
 		{
+			name: "with an int64 histogram",
+			recordMetrics: func(ctx context.Context, meter metric.Meter) {
+				counter, err := meter.Int64Histogram("histogram_metric")
+				assert.NoError(t, err)
+				counter.Record(ctx, 3, metric.WithAttributes(
+					attribute.Key("code").String("200"),
+					attribute.Key("method").String("GET"),
+				))
+				counter.Record(ctx, 10, metric.WithAttributes(
+					attribute.Key("code").String("302"),
+					attribute.Key("method").String("GET"),
+				))
+			},
+			expectedBatch: modelpb.Batch{
+				{
+					Agent:   &agent,
+					Service: &service,
+					Metricset: &modelpb.Metricset{
+						Name: "app",
+						Samples: []*modelpb.MetricsetSample{
+							{
+								Name: "histogram_metric",
+								Type: modelpb.MetricType_METRIC_TYPE_HISTOGRAM,
+								Histogram: &modelpb.Histogram{
+									Counts: []uint64{1},
+									Values: []float64{2.5},
+								},
+							},
+						},
+					},
+				},
+				{
+					Agent:   &agent,
+					Service: &service,
+					Metricset: &modelpb.Metricset{
+						Name: "app",
+						Samples: []*modelpb.MetricsetSample{
+							{
+								Name: "histogram_metric",
+								Type: modelpb.MetricType_METRIC_TYPE_HISTOGRAM,
+								Histogram: &modelpb.Histogram{
+									Counts: []uint64{1},
+									Values: []float64{7.5},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "with a float64 histogram",
+			recordMetrics: func(ctx context.Context, meter metric.Meter) {
+				counter, err := meter.Float64Histogram("histogram_metric")
+				assert.NoError(t, err)
+				counter.Record(ctx, 3.4, metric.WithAttributes(
+					attribute.Key("code").String("200"),
+					attribute.Key("method").String("GET"),
+				))
+				counter.Record(ctx, 5.5, metric.WithAttributes(
+					attribute.Key("code").String("302"),
+					attribute.Key("method").String("GET"),
+				))
+			},
+			expectedBatch: modelpb.Batch{
+				{
+					Agent:   &agent,
+					Service: &service,
+					Metricset: &modelpb.Metricset{
+						Name: "app",
+						Samples: []*modelpb.MetricsetSample{
+							{
+								Name: "histogram_metric",
+								Type: modelpb.MetricType_METRIC_TYPE_HISTOGRAM,
+								Histogram: &modelpb.Histogram{
+									Counts: []uint64{1},
+									Values: []float64{2.5},
+								},
+							},
+						},
+					},
+				},
+				{
+					Agent:   &agent,
+					Service: &service,
+					Metricset: &modelpb.Metricset{
+						Name: "app",
+						Samples: []*modelpb.MetricsetSample{
+							{
+								Name: "histogram_metric",
+								Type: modelpb.MetricType_METRIC_TYPE_HISTOGRAM,
+								Histogram: &modelpb.Histogram{
+									Counts: []uint64{1},
+									Values: []float64{7.5},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		{
 			name: "with an int64 counter",
 			recordMetrics: func(ctx context.Context, meter metric.Meter) {
 				counter, err := meter.Int64Counter("sum_metric")
@@ -165,7 +267,7 @@ func assertEventsMatch(t *testing.T, expected []*modelpb.APMEvent, actual []*mod
 		e.Timestamp = 0
 		assert.InDelta(t, now, e.Event.Received, float64((2 * time.Second).Nanoseconds()))
 		e.Event.Received = 0
-		if expected[i].Event == nil {
+		if len(expected) > i && expected[i].Event == nil {
 			e.Event = nil
 		}
 	}
