@@ -23,21 +23,7 @@ echo "--- Changing permissions for the release manager"
 sudo chown -R :1000 build/
 ls -l build/distributions/
 
-if [[ "${BUILDKITE_PULL_REQUEST:-false}" == "true" ]]; then
-  echo "--- :arrow_right: Release Manager does not run on PRs, skipping"
-  exit 0
-fi
-
-curl -s https://storage.googleapis.com/artifacts-api/snapshots/branches.json > active-branches.json
-if ! grep -q "\"$BUILDKITE_BRANCH\"" active-branches.json ; then
-  echo "--- :arrow_right: Release Manager only supports the current active branches, skipping"
-  echo "BUILDKITE_BRANCH=$BUILDKITE_BRANCH"
-  echo "BUILDKITE_COMMIT=$BUILDKITE_COMMIT"
-  echo "VERSION=$VERSION"
-  echo "Supported branches:"
-  cat active-branches.json
-  exit 0
-fi
+BUILDKITE_BRANCH=7.17
 
 dra() {
   local workflow=$1
