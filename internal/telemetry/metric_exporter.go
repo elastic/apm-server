@@ -19,7 +19,11 @@ package telemetry
 
 import (
 	"context"
+	"fmt"
+	"strings"
+	"time"
 
+	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/metric/aggregation"
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
@@ -84,8 +88,72 @@ func (e *MetricExporter) Aggregation(k metric.InstrumentKind) aggregation.Aggreg
 
 func (e *MetricExporter) Export(ctx context.Context, rm *metricdata.ResourceMetrics) error {
 	batch := modelpb.Batch{}
+	now := time.Now()
+
+	baseEvent := modelpb.APMEvent{
+		Service: &modelpb.Service{
+			Name:     "apm-server",
+			Language: &modelpb.Language{Name: "go"},
+		},
+		Agent: &modelpb.Agent{
+			Name:    "internal",
+			Version: "unknown",
+		},
+		Event: &modelpb.Event{
+			Received: modelpb.FromTime(now),
+		},
+	}
+
+	for _, scopeMetrics := range rm.ScopeMetrics {
+		ms := make(metricsets)
+		for _, sm := range scopeMetrics.Metrics {
+			if err := addMetric(sm, ms); err != nil {
+				return err
+			}
+		}
+
+		for key, ms := range ms {
+			event := baseEvent.CloneVT()
+			event.Timestamp = modelpb.FromTime(key.timestamp)
+			metrs := make([]*modelpb.MetricsetSample, 0, len(ms.samples))
+			for _, s := range ms.samples {
+				metrs = append(metrs, s)
+			}
+			event.Metricset = &modelpb.Metricset{Samples: metrs, Name: "app"}
+
+			batch = append(batch, event)
+		}
+	}
 
 	return e.processor.ProcessBatch(ctx, &batch)
+}
+
+func addMetric(sm metricdata.Metrics, ms metricsets) error {
+	switch m := sm.Data.(type) {
+	case metricdata.Histogram[int64]:
+		// Int histogram
+	case metricdata.Histogram[float64]:
+		// Float Histogram
+	case metricdata.Sum[int64]:
+		// Int Sum
+	case metricdata.Sum[float64]:
+		for _, dp := range m.DataPoints {
+			sample := modelpb.MetricsetSample{
+				Name:  sm.Name,
+				Type:  modelpb.MetricType_METRIC_TYPE_COUNTER,
+				Value: dp.Value,
+			}
+			ms.upsert(dp.Time, dp.Attributes, &sample)
+		}
+	case metricdata.Gauge[int64]:
+		// Int Gauge
+	case metricdata.Gauge[float64]:
+		// Float Gauge
+	default:
+		return fmt.Errorf("unknown metric type %q", m)
+	}
+
+	return nil
 }
 
 func (e *MetricExporter) ForceFlush(ctx context.Context) error {
@@ -94,4 +162,47 @@ func (e *MetricExporter) ForceFlush(ctx context.Context) error {
 
 func (e *MetricExporter) Shutdown(ctx context.Context) error {
 	return nil
+}
+
+type metricsets map[metricsetKey]metricset
+
+type metricsetKey struct {
+	timestamp time.Time
+	signature string // combination of all attributes
+}
+
+type metricset struct {
+	attributes attribute.Set
+	samples    map[string]*modelpb.MetricsetSample
+}
+
+// upsert searches for an existing metricset with the given timestamp and labels,
+// and appends the sample to it. If there is no such existing metricset, a new one
+// is created.
+func (ms metricsets) upsert(timestamp time.Time, attributes attribute.Set, sample *modelpb.MetricsetSample) {
+	// We always record metrics as they are given. We also copy some
+	// well-known OpenTelemetry metrics to their Elastic APM equivalents.
+	ms.upsertOne(timestamp, attributes, sample)
+}
+
+func (ms metricsets) upsertOne(timestamp time.Time, attributes attribute.Set, sample *modelpb.MetricsetSample) {
+	var signatureBuilder strings.Builder
+	iter := attributes.Iter()
+	for iter.Next() {
+		_, kv := iter.IndexedAttribute()
+		signatureBuilder.WriteString(string(kv.Key))
+		signatureBuilder.WriteString(kv.Value.Emit())
+	}
+
+	key := metricsetKey{timestamp: timestamp, signature: signatureBuilder.String()}
+
+	m, ok := ms[key]
+	if !ok {
+		m = metricset{
+			attributes: attributes,
+			samples:    make(map[string]*modelpb.MetricsetSample),
+		}
+		ms[key] = m
+	}
+	m.samples[sample.Name] = sample
 }
