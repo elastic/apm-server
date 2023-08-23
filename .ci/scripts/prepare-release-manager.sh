@@ -15,7 +15,7 @@ FINAL_VERSION=$VERSION-SNAPSHOT
 if [ "$TYPE" != "snapshot" ] ; then
   FINAL_VERSION=$VERSION
 fi
-mv build/distributions/dependencies.csv \
+cp build/distributions/dependencies.csv \
    build/distributions/dependencies-"$FINAL_VERSION".csv
 
 # rename docker files to support the unified release format.
