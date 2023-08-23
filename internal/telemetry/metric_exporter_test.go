@@ -63,6 +63,7 @@ func TestMetricExporter(t *testing.T) {
 				{
 					Agent:   &agent,
 					Service: &service,
+					Labels:  modelpb.Labels{"code": {Value: "200"}, "method": {Value: "GET"}},
 					Metricset: &modelpb.Metricset{
 						Name: "app",
 						Samples: []*modelpb.MetricsetSample{
@@ -80,6 +81,7 @@ func TestMetricExporter(t *testing.T) {
 				{
 					Agent:   &agent,
 					Service: &service,
+					Labels:  modelpb.Labels{"code": {Value: "302"}, "method": {Value: "GET"}},
 					Metricset: &modelpb.Metricset{
 						Name: "app",
 						Samples: []*modelpb.MetricsetSample{
@@ -114,6 +116,7 @@ func TestMetricExporter(t *testing.T) {
 				{
 					Agent:   &agent,
 					Service: &service,
+					Labels:  modelpb.Labels{"code": {Value: "200"}, "method": {Value: "GET"}},
 					Metricset: &modelpb.Metricset{
 						Name: "app",
 						Samples: []*modelpb.MetricsetSample{
@@ -131,6 +134,7 @@ func TestMetricExporter(t *testing.T) {
 				{
 					Agent:   &agent,
 					Service: &service,
+					Labels:  modelpb.Labels{"code": {Value: "302"}, "method": {Value: "GET"}},
 					Metricset: &modelpb.Metricset{
 						Name: "app",
 						Samples: []*modelpb.MetricsetSample{
@@ -158,6 +162,7 @@ func TestMetricExporter(t *testing.T) {
 				{
 					Agent:   &agent,
 					Service: &service,
+					Labels:  modelpb.Labels{"A": {Value: "B"}},
 					Metricset: &modelpb.Metricset{
 						Name: "app",
 						Samples: []*modelpb.MetricsetSample{
@@ -178,6 +183,7 @@ func TestMetricExporter(t *testing.T) {
 				{
 					Agent:   &agent,
 					Service: &service,
+					Labels:  modelpb.Labels{"A": {Value: "B"}},
 					Metricset: &modelpb.Metricset{
 						Name: "app",
 						Samples: []*modelpb.MetricsetSample{
@@ -198,6 +204,7 @@ func TestMetricExporter(t *testing.T) {
 				{
 					Agent:   &agent,
 					Service: &service,
+					Labels:  modelpb.Labels{"A": {Value: "B"}},
 					Metricset: &modelpb.Metricset{
 						Name: "app",
 						Samples: []*modelpb.MetricsetSample{
@@ -218,6 +225,7 @@ func TestMetricExporter(t *testing.T) {
 				{
 					Agent:   &agent,
 					Service: &service,
+					Labels:  modelpb.Labels{"A": {Value: "B"}},
 					Metricset: &modelpb.Metricset{
 						Name: "app",
 						Samples: []*modelpb.MetricsetSample{

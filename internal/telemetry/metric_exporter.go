@@ -20,6 +20,7 @@ package telemetry
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -120,6 +121,22 @@ func (e *MetricExporter) Export(ctx context.Context, rm *metricdata.ResourceMetr
 				metrs = append(metrs, s)
 			}
 			event.Metricset = &modelpb.Metricset{Samples: metrs, Name: "app"}
+			if ms.attributes.Len() > 0 {
+				event.Labels = modelpb.Labels(event.Labels).Clone()
+				event.NumericLabels = modelpb.NumericLabels(event.NumericLabels).Clone()
+
+				iter := ms.attributes.Iter()
+				for iter.Next() {
+					_, kv := iter.IndexedAttribute()
+					setLabel(string(kv.Key), event, kv.Value.Emit())
+				}
+				if len(event.Labels) == 0 {
+					event.Labels = nil
+				}
+				if len(event.NumericLabels) == 0 {
+					event.NumericLabels = nil
+				}
+			}
 
 			batch = append(batch, event)
 		}
@@ -253,6 +270,37 @@ func (e *MetricExporter) ForceFlush(ctx context.Context) error {
 
 func (e *MetricExporter) Shutdown(ctx context.Context) error {
 	return nil
+}
+
+func setLabel(key string, event *modelpb.APMEvent, v interface{}) {
+	switch v := v.(type) {
+	case string:
+		modelpb.Labels(event.Labels).Set(key, v)
+	case bool:
+		modelpb.Labels(event.Labels).Set(key, strconv.FormatBool(v))
+	case float64:
+		modelpb.NumericLabels(event.NumericLabels).Set(key, v)
+	case int64:
+		modelpb.NumericLabels(event.NumericLabels).Set(key, float64(v))
+	case []interface{}:
+		if len(v) == 0 {
+			return
+		}
+		switch v[0].(type) {
+		case string:
+			value := make([]string, len(v))
+			for i := range v {
+				value[i] = v[i].(string)
+			}
+			modelpb.Labels(event.Labels).SetSlice(key, value)
+		case float64:
+			value := make([]float64, len(v))
+			for i := range v {
+				value[i] = v[i].(float64)
+			}
+			modelpb.NumericLabels(event.NumericLabels).SetSlice(key, value)
+		}
+	}
 }
 
 type metricsets map[metricsetKey]metricset
