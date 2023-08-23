@@ -33,6 +33,7 @@ var customHistogramBoundaries = []float64{
 }
 
 type Config struct {
+	MetricFilter        []string
 	TemporalitySelector metric.TemporalitySelector
 	AggregationSelector metric.AggregationSelector
 }
@@ -71,6 +72,17 @@ func defaultAggregationSelector(ik metric.InstrumentKind) aggregation.Aggregatio
 		}
 	default:
 		return metric.DefaultAggregationSelector(ik)
+	}
+}
+
+// WithMetricFilter configured the metrics filter. Any metric filtered here
+// will be the only ones to be exported. All other metrics will be ignored.
+//
+// Defaults to not exporting anything.
+func WithMetricFilter(f []string) ConfigOption {
+	return func(cfg Config) Config {
+		cfg.MetricFilter = f
+		return cfg
 	}
 }
 

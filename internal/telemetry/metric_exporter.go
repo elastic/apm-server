@@ -39,6 +39,7 @@ func NewMetricExporter(p modelpb.BatchProcessor, opts ...ConfigOption) *MetricEx
 	return &MetricExporter{
 		processor: p,
 
+		metricFilter:        cfg.MetricFilter,
 		temporalitySelector: cfg.TemporalitySelector,
 		aggregationSelector: cfg.AggregationSelector,
 	}
@@ -49,6 +50,7 @@ func NewMetricExporter(p modelpb.BatchProcessor, opts ...ConfigOption) *MetricEx
 type MetricExporter struct {
 	processor modelpb.BatchProcessor
 
+	metricFilter        []string
 	temporalitySelector metric.TemporalitySelector
 	aggregationSelector metric.AggregationSelector
 }
@@ -84,6 +86,10 @@ func (e *MetricExporter) Export(ctx context.Context, rm *metricdata.ResourceMetr
 	for _, scopeMetrics := range rm.ScopeMetrics {
 		ms := make(metricsets)
 		for _, sm := range scopeMetrics.Metrics {
+			if e.isMetricFiltered(sm.Name) {
+				continue
+			}
+
 			if err := addMetric(sm, ms); err != nil {
 				return err
 			}
@@ -117,8 +123,20 @@ func (e *MetricExporter) Export(ctx context.Context, rm *metricdata.ResourceMetr
 			batch = append(batch, event)
 		}
 	}
+	if len(batch) == 0 {
+		return nil
+	}
 
 	return e.processor.ProcessBatch(ctx, &batch)
+}
+
+func (e *MetricExporter) isMetricFiltered(n string) bool {
+	for _, v := range e.metricFilter {
+		if v == n {
+			return false
+		}
+	}
+	return true
 }
 
 func addMetric(sm metricdata.Metrics, ms metricsets) error {

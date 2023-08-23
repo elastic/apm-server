@@ -42,11 +42,24 @@ func TestMetricExporter(t *testing.T) {
 	for _, tt := range []struct {
 		name string
 
-		recordMetrics func(ctx context.Context, meter metric.Meter)
-		expectedBatch modelpb.Batch
+		exporterConfig []ConfigOption
+		recordMetrics  func(ctx context.Context, meter metric.Meter)
+		expectedBatch  modelpb.Batch
 	}{
 		{
+			name: "with a filtered metric",
+			recordMetrics: func(ctx context.Context, meter metric.Meter) {
+				counter, err := meter.Int64Counter("filtered_metric")
+				assert.NoError(t, err)
+				counter.Add(ctx, 1)
+			},
+			expectedBatch: modelpb.Batch(nil),
+		},
+		{
 			name: "with an int64 histogram",
+			exporterConfig: []ConfigOption{
+				WithMetricFilter([]string{"histogram_metric"}),
+			},
 			recordMetrics: func(ctx context.Context, meter metric.Meter) {
 				counter, err := meter.Int64Histogram("histogram_metric")
 				assert.NoError(t, err)
@@ -100,6 +113,9 @@ func TestMetricExporter(t *testing.T) {
 		},
 		{
 			name: "with a float64 histogram",
+			exporterConfig: []ConfigOption{
+				WithMetricFilter([]string{"histogram_metric"}),
+			},
 			recordMetrics: func(ctx context.Context, meter metric.Meter) {
 				counter, err := meter.Float64Histogram("histogram_metric")
 				assert.NoError(t, err)
@@ -183,6 +199,9 @@ func TestMetricExporter(t *testing.T) {
 		},
 		{
 			name: "with an int64 counter",
+			exporterConfig: []ConfigOption{
+				WithMetricFilter([]string{"sum_metric"}),
+			},
 			recordMetrics: func(ctx context.Context, meter metric.Meter) {
 				counter, err := meter.Int64Counter("sum_metric")
 				assert.NoError(t, err)
@@ -204,6 +223,9 @@ func TestMetricExporter(t *testing.T) {
 		},
 		{
 			name: "with a float64 counter",
+			exporterConfig: []ConfigOption{
+				WithMetricFilter([]string{"sum_metric"}),
+			},
 			recordMetrics: func(ctx context.Context, meter metric.Meter) {
 				counter, err := meter.Float64Counter("sum_metric")
 				assert.NoError(t, err)
@@ -225,6 +247,9 @@ func TestMetricExporter(t *testing.T) {
 		},
 		{
 			name: "with an int64 gauge",
+			exporterConfig: []ConfigOption{
+				WithMetricFilter([]string{"gauge_metric"}),
+			},
 			recordMetrics: func(ctx context.Context, meter metric.Meter) {
 				counter, err := meter.Int64UpDownCounter("gauge_metric")
 				assert.NoError(t, err)
@@ -246,6 +271,9 @@ func TestMetricExporter(t *testing.T) {
 		},
 		{
 			name: "with a float64 gauge",
+			exporterConfig: []ConfigOption{
+				WithMetricFilter([]string{"gauge_metric"}),
+			},
 			recordMetrics: func(ctx context.Context, meter metric.Meter) {
 				counter, err := meter.Float64UpDownCounter("gauge_metric")
 				assert.NoError(t, err)
@@ -274,7 +302,7 @@ func TestMetricExporter(t *testing.T) {
 				batch = append(batch, (*b)...)
 				return nil
 			})
-			e := NewMetricExporter(p)
+			e := NewMetricExporter(p, tt.exporterConfig...)
 
 			provider := sdkmetric.NewMeterProvider(
 				sdkmetric.WithReader(sdkmetric.NewPeriodicReader(e)),
