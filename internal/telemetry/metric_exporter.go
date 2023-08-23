@@ -32,6 +32,15 @@ import (
 	"github.com/elastic/apm-data/model/modelpb"
 )
 
+var customHistogramBoundaries = []float64{
+	0.00390625, 0.00552427, 0.0078125, 0.0110485, 0.015625, 0.0220971, 0.03125,
+	0.0441942, 0.0625, 0.0883883, 0.125, 0.176777, 0.25, 0.353553, 0.5, 0.707107,
+	1, 1.41421, 2, 2.82843, 4, 5.65685, 8, 11.3137, 16, 22.6274, 32, 45.2548, 64,
+	90.5097, 128, 181.019, 256, 362.039, 512, 724.077, 1024, 1448.15, 2048,
+	2896.31, 4096, 5792.62, 8192, 11585.2, 16384, 23170.5, 32768, 46341.0, 65536,
+	92681.9, 131072,
+}
+
 type Config struct {
 	TemporalitySelector metric.TemporalitySelector
 	AggregationSelector metric.AggregationSelector
@@ -45,15 +54,33 @@ func newConfig(opts ...ConfigOption) Config {
 	}
 
 	if config.TemporalitySelector == nil {
-		config.TemporalitySelector = func(metric.InstrumentKind) metricdata.Temporality {
-			return metricdata.CumulativeTemporality
-		}
+		config.TemporalitySelector = defaultTemporalitySelector
 	}
 	if config.AggregationSelector == nil {
-		config.AggregationSelector = metric.DefaultAggregationSelector
+		config.AggregationSelector = defaultAggregationSelector
 	}
 
 	return config
+}
+
+func defaultTemporalitySelector(ik metric.InstrumentKind) metricdata.Temporality {
+	switch ik {
+	case metric.InstrumentKindCounter, metric.InstrumentKindObservableCounter, metric.InstrumentKindHistogram:
+		return metricdata.DeltaTemporality
+	}
+	return metric.DefaultTemporalitySelector(ik)
+}
+
+func defaultAggregationSelector(ik metric.InstrumentKind) aggregation.Aggregation {
+	switch ik {
+	case metric.InstrumentKindHistogram:
+		return aggregation.ExplicitBucketHistogram{
+			Boundaries: customHistogramBoundaries,
+			NoMinMax:   false,
+		}
+	default:
+		return metric.DefaultAggregationSelector(ik)
+	}
 }
 
 // NewMetricExporter initializes a new MetricExporter

@@ -72,7 +72,7 @@ func TestMetricExporter(t *testing.T) {
 								Type: modelpb.MetricType_METRIC_TYPE_HISTOGRAM,
 								Histogram: &modelpb.Histogram{
 									Counts: []uint64{1},
-									Values: []float64{2.5},
+									Values: []float64{3.414215},
 								},
 							},
 						},
@@ -90,7 +90,7 @@ func TestMetricExporter(t *testing.T) {
 								Type: modelpb.MetricType_METRIC_TYPE_HISTOGRAM,
 								Histogram: &modelpb.Histogram{
 									Counts: []uint64{1},
-									Values: []float64{7.5},
+									Values: []float64{9.65685},
 								},
 							},
 						},
@@ -107,7 +107,37 @@ func TestMetricExporter(t *testing.T) {
 					attribute.Key("code").String("200"),
 					attribute.Key("method").String("GET"),
 				))
+				counter.Record(ctx, 3.4, metric.WithAttributes(
+					attribute.Key("code").String("200"),
+					attribute.Key("method").String("GET"),
+				))
+				counter.Record(ctx, 3.4, metric.WithAttributes(
+					attribute.Key("code").String("200"),
+					attribute.Key("method").String("GET"),
+				))
+
 				counter.Record(ctx, 5.5, metric.WithAttributes(
+					attribute.Key("code").String("302"),
+					attribute.Key("method").String("GET"),
+				))
+				counter.Record(ctx, 5.5, metric.WithAttributes(
+					attribute.Key("code").String("302"),
+					attribute.Key("method").String("GET"),
+				))
+				counter.Record(ctx, 5.5, metric.WithAttributes(
+					attribute.Key("code").String("302"),
+					attribute.Key("method").String("GET"),
+				))
+
+				counter.Record(ctx, 11.2, metric.WithAttributes(
+					attribute.Key("code").String("302"),
+					attribute.Key("method").String("GET"),
+				))
+				counter.Record(ctx, 11.2, metric.WithAttributes(
+					attribute.Key("code").String("302"),
+					attribute.Key("method").String("GET"),
+				))
+				counter.Record(ctx, 11.2, metric.WithAttributes(
 					attribute.Key("code").String("302"),
 					attribute.Key("method").String("GET"),
 				))
@@ -124,8 +154,8 @@ func TestMetricExporter(t *testing.T) {
 								Name: "histogram_metric",
 								Type: modelpb.MetricType_METRIC_TYPE_HISTOGRAM,
 								Histogram: &modelpb.Histogram{
-									Counts: []uint64{1},
-									Values: []float64{2.5},
+									Values: []float64{3.414215},
+									Counts: []uint64{3},
 								},
 							},
 						},
@@ -142,8 +172,8 @@ func TestMetricExporter(t *testing.T) {
 								Name: "histogram_metric",
 								Type: modelpb.MetricType_METRIC_TYPE_HISTOGRAM,
 								Histogram: &modelpb.Histogram{
-									Counts: []uint64{1},
-									Values: []float64{7.5},
+									Values: []float64{4.828425, 9.65685},
+									Counts: []uint64{3, 3},
 								},
 							},
 						},
