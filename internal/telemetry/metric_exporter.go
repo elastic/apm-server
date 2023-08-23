@@ -214,7 +214,7 @@ func buildHistogram[T int64 | float64](dp metricdata.HistogramDataPoint[T]) *mod
 	bounds := make([]float64, 0, len(dp.Bounds))
 	counts := make([]uint64, 0, len(dp.BucketCounts))
 
-	for i, _ := range dp.BucketCounts {
+	for i := range dp.BucketCounts {
 		bound, count := computeCountAndBounds(i, dp.Bounds, dp.BucketCounts)
 		if count == 0 {
 			continue
