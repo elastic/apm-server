@@ -16,7 +16,7 @@ There are some other stages that run for every push on the main branches:
 
 * Tests should be triggered on branch, tag and PR basis.
 * Commits that are only affecting the docs files should not trigger any test or similar stages that are not required.
-* Builds do not get triggered automatically for Pull Requests from contributors that are not Elasticians when need to access to any GitHub Secrets.
+* **This is not the case yet**, but if Github secrets are required then Pull Requests from forked repositories won't run any build accessing those secrets. If needed, then create a feature branch.
 
 ## How to interact with the CI?
 
