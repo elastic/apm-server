@@ -86,7 +86,6 @@ type Reloader struct {
 	stopRunner func() error
 
 	mu            sync.Mutex
-	inputRevision int64
 	inputConfig   *config.C
 	outputConfig  *config.C
 	stopped       chan struct{}
@@ -119,24 +118,14 @@ func (r *Reloader) reloadInputs(configs []*reload.ConfigWithMeta) error {
 
 	// Input configuration is expected to have a monotonically
 	// increasing revision number.
-	//
-	// Suppress config input changes that are no newer than
-	// the most recently loaded configuration.
 	revision, err := cfg.Int("revision", -1)
 	if err != nil {
 		return fmt.Errorf("failed to extract input config revision: %w", err)
-	}
-	if r.inputConfig != nil && revision <= r.inputRevision {
-		r.logger.With(
-			logp.Int64("revision", revision),
-		).Debug("suppressing stale input config change")
-		return nil
 	}
 
 	if err := r.reload(cfg, r.outputConfig); err != nil {
 		return fmt.Errorf("failed to load input config: %w", err)
 	}
-	r.inputRevision = revision
 	r.inputConfig = cfg
 	r.logger.With(logp.Int64("revision", revision)).Info("loaded input config")
 	return nil
@@ -148,10 +137,6 @@ func (r *Reloader) reloadInputs(configs []*reload.ConfigWithMeta) error {
 func (r *Reloader) reloadOutput(cfg *reload.ConfigWithMeta) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	if r.outputConfig != nil && configEqual(cfg.Config, r.outputConfig) {
-		r.logger.Debug("suppressing redundant output config change")
-		return nil
-	}
 	if err := r.reload(r.inputConfig, cfg.Config); err != nil {
 		return fmt.Errorf("failed to load output config: %w", err)
 	}
