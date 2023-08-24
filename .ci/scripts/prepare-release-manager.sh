@@ -23,16 +23,14 @@ cp build/distributions/dependencies.csv \
 #       or the unified release process the one to do the transformation
 for i in build/distributions/*linux-arm64.docker.tar.gz*
 do
-  NEW_FILE=${i/linux-arm64.docker.tar.gz/docker-image-arm64.tar.gz}
-  if [ ! -e "${NEW_FILE}" ] ; then
-    mv "$i" "${NEW_FILE}"
+  if [ -e "$i" ] ; then
+    mv "$i" "${i/linux-arm64.docker.tar.gz/docker-image-arm64.tar.gz}"
   fi
 done
 
 for i in build/distributions/*linux-amd64.docker.tar.gz*
 do
-  NEW_FILE=${i/linux-amd64.docker.tar.gz/docker-image.tar.gz}
-  if [ ! -e "${NEW_FILE}" ] ; then
-    mv "$i" "${NEW_FILE}"
+  if [ -e "$i" ] ; then
+    mv "$i" "${i/linux-amd64.docker.tar.gz/docker-image.tar.gz}"
   fi
 done
