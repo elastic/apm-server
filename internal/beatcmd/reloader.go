@@ -85,10 +85,10 @@ type Reloader struct {
 	runner     Runner
 	stopRunner func() error
 
-	mu            sync.Mutex
-	inputConfig   *config.C
-	outputConfig  *config.C
-	stopped       chan struct{}
+	mu           sync.Mutex
+	inputConfig  *config.C
+	outputConfig *config.C
+	stopped      chan struct{}
 }
 
 // Run runs the Reloader, blocking until ctx is cancelled or a fatal error occurs.
