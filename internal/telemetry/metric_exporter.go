@@ -76,10 +76,6 @@ func (e *MetricExporter) Export(ctx context.Context, rm *metricdata.ResourceMetr
 			Name:     "apm-server",
 			Language: &modelpb.Language{Name: "go"},
 		},
-		Agent: &modelpb.Agent{
-			Name:    "internal",
-			Version: "unknown",
-		},
 		Event: &modelpb.Event{
 			Received: modelpb.FromTime(now),
 		},

@@ -37,7 +37,6 @@ import (
 
 func TestMetricExporter(t *testing.T) {
 	service := modelpb.Service{Name: "apm-server", Language: &modelpb.Language{Name: "go"}}
-	agent := modelpb.Agent{Name: "internal", Version: "unknown"}
 
 	for _, tt := range []struct {
 		name string
@@ -74,7 +73,6 @@ func TestMetricExporter(t *testing.T) {
 			},
 			expectedBatch: modelpb.Batch{
 				{
-					Agent:   &agent,
 					Service: &service,
 					Labels:  modelpb.Labels{"code": {Value: "200"}, "method": {Value: "GET"}},
 					Metricset: &modelpb.Metricset{
@@ -92,7 +90,6 @@ func TestMetricExporter(t *testing.T) {
 					},
 				},
 				{
-					Agent:   &agent,
 					Service: &service,
 					Labels:  modelpb.Labels{"code": {Value: "302"}, "method": {Value: "GET"}},
 					Metricset: &modelpb.Metricset{
@@ -160,7 +157,6 @@ func TestMetricExporter(t *testing.T) {
 			},
 			expectedBatch: modelpb.Batch{
 				{
-					Agent:   &agent,
 					Service: &service,
 					Labels:  modelpb.Labels{"code": {Value: "200"}, "method": {Value: "GET"}},
 					Metricset: &modelpb.Metricset{
@@ -178,7 +174,6 @@ func TestMetricExporter(t *testing.T) {
 					},
 				},
 				{
-					Agent:   &agent,
 					Service: &service,
 					Labels:  modelpb.Labels{"code": {Value: "302"}, "method": {Value: "GET"}},
 					Metricset: &modelpb.Metricset{
@@ -209,7 +204,6 @@ func TestMetricExporter(t *testing.T) {
 			},
 			expectedBatch: modelpb.Batch{
 				{
-					Agent:   &agent,
 					Service: &service,
 					Labels:  modelpb.Labels{"A": {Value: "B"}},
 					Metricset: &modelpb.Metricset{
@@ -233,7 +227,6 @@ func TestMetricExporter(t *testing.T) {
 			},
 			expectedBatch: modelpb.Batch{
 				{
-					Agent:   &agent,
 					Service: &service,
 					Labels:  modelpb.Labels{"A": {Value: "B"}},
 					Metricset: &modelpb.Metricset{
@@ -257,7 +250,6 @@ func TestMetricExporter(t *testing.T) {
 			},
 			expectedBatch: modelpb.Batch{
 				{
-					Agent:   &agent,
 					Service: &service,
 					Labels:  modelpb.Labels{"A": {Value: "B"}},
 					Metricset: &modelpb.Metricset{
@@ -281,7 +273,6 @@ func TestMetricExporter(t *testing.T) {
 			},
 			expectedBatch: modelpb.Batch{
 				{
-					Agent:   &agent,
 					Service: &service,
 					Labels:  modelpb.Labels{"A": {Value: "B"}},
 					Metricset: &modelpb.Metricset{
