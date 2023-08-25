@@ -6,8 +6,13 @@ package main
 
 import (
 	"context"
+	"io"
+	"io/fs"
 	"os"
+	"path"
+	"path/filepath"
 	"sync"
+	"time"
 
 	"github.com/dgraph-io/badger/v4"
 	"github.com/gofrs/uuid"
@@ -33,7 +38,8 @@ import (
 )
 
 const (
-	tailSamplingStorageDir = "tail_sampling"
+	oldTailSamplingStorageDir = "tail_sampling"
+	tailSamplingStorageDir    = "tail_sampling_v4"
 )
 
 var (
@@ -115,6 +121,23 @@ func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, er
 	es, err := args.NewElasticsearchClient(tailSamplingConfig.ESConfig)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create Elasticsearch client for tail-sampling")
+	}
+
+	if entries, err := os.ReadDir(oldTailSamplingStorageDir); err == nil {
+		var newest time.Time
+		for _, de := range entries {
+			if i, err := de.Info(); err == nil {
+				if t := i.ModTime(); t.After(newest) {
+					newest = t
+				}
+			}
+		}
+
+		if time.Now().Sub(newest) > tailSamplingConfig.TTL {
+			if err := os.RemoveAll(oldTailSamplingStorageDir); err != nil {
+				args.Logger.Warnf("failed to remove old tail sampling storage dir: %v", err)
+			}
+		}
 	}
 
 	storageDir := paths.Resolve(paths.Data, tailSamplingStorageDir)
