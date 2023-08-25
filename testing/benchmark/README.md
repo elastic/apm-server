@@ -57,6 +57,7 @@ The main commands are:
 
 - `all` (default): runs `auth`, `apmbench`, creates the config files and runs terraform apply.
 - `auth`: Re-generate AWS credentials, they will expire after 4h.
+- `run-benchmark-autotuned`: Run the benchmarks with a computed `BENCHMARK_AGENTS`.
 - `run-benchmark`: Run the benchmarks, can configured by tweaking:
   - `BENCHMARK_WARMUP_TIME`: Set the amount of time to warm the APM Server for. Defaults to `5m`.
   - `BENCHMARK_AGENTS`: Set the number of agents to send data to the APM Server. Defaults to `64`.
