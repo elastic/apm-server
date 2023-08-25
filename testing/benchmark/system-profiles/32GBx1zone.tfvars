@@ -7,7 +7,7 @@ elasticsearch_size = "120g"
 # The number of AZs the Elasticsearch cluster should have.
 elasticsearch_zone_count = 1
 # APM server instance size
-apm_server_size = "32g"
+apm_server_size = "29g"
 # Benchmarks executor size executor
 worker_instance_type = "c6i.2xlarge"
 
