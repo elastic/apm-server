@@ -2,6 +2,11 @@ name: benchmarks
 
 on:
   workflow_dispatch:
+    inputs:
+      profile:
+        description: 'The system profile used to run the benchmarks'
+        required: false
+        type: string
   schedule:
     - cron: '0 17 * * *'
 
@@ -20,7 +25,7 @@ jobs:
       SSH_KEY: ./id_rsa_terraform
       TF_VAR_private_key: ./id_rsa_terraform
       TF_VAR_public_key: ./id_rsa_terraform.pub
-      TFVARS_SOURCE: 'system-profiles/8GBx1zone.tfvars' # // Default to use an 8gb profile
+      TFVARS_SOURCE: ${{ inputs.profile || 'system-profiles/8GBx1zone.tfvars' }} # // Default to use an 8gb profile
       TF_VAR_BUILD_ID: ${{ github.run_id }}
       TF_VAR_ENVIRONMENT: ci
       TF_VAR_REPO: ${{ github.repository }}
