@@ -41,8 +41,7 @@
                 "version": "dynamic"
             },
             "processor": {
-                "event": "metric",
-                "name": "metric"
+                "event": "metric"
             },
             "service": {
                 "language": {

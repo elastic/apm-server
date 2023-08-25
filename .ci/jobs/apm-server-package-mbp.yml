@@ -14,28 +14,15 @@
         discover-pr-origin: merge-current
         discover-tags: false
         disable-pr-notifications: true
-        head-filter-regex: '(main|7\.17|8\.\d+|PR-.*)'
+        head-filter-regex: '(main|7\.17|8\.\d+)'
         notification-context: 'apm-server-package'
         repo: apm-server
         repo-owner: elastic
         credentials-id: 2a9602aa-ab9f-4e52-baf3-b71ca88469c7-UserAndToken
         ssh-checkout:
           credentials: f6c7695a-671e-4f4f-a331-acdce44ff9ba
-        property-strategies:
-          all-branches:
-          - suppress-scm-triggering: true
         build-strategies:
-        - skip-initial-build: true
-        - named-branches:
-            - exact-name:
-                name: 'main'
-                case-sensitive: true
-            - regex-name:
-                regex: '7\.17'
-                case-sensitive: true
-            - regex-name:
-                regex: '8\.\d+'
-                case-sensitive: true
+        - regular-branches: true
         - change-request:
             ignore-target-only-changes: true
         clean:

@@ -24,8 +24,7 @@
                 "version": "dynamic"
             },
             "processor": {
-                "event": "metric",
-                "name": "metric"
+                "event": "metric"
             },
             "service": {
                 "name": "_other"
@@ -60,8 +59,7 @@
                 "version": "dynamic"
             },
             "processor": {
-                "event": "metric",
-                "name": "metric"
+                "event": "metric"
             },
             "service": {
                 "name": "_other"
@@ -96,8 +94,7 @@
                 "version": "dynamic"
             },
             "processor": {
-                "event": "metric",
-                "name": "metric"
+                "event": "metric"
             },
             "service": {
                 "name": "_other"
@@ -135,11 +132,10 @@
                 "version": "dynamic"
             },
             "processor": {
-                "event": "metric",
-                "name": "metric"
+                "event": "metric"
             },
             "service": {
-                "environment": "dev",
+                "environment": "prod",
                 "language": {
                     "name": "go"
                 },
@@ -173,11 +169,10 @@
                 "version": "dynamic"
             },
             "processor": {
-                "event": "metric",
-                "name": "metric"
+                "event": "metric"
             },
             "service": {
-                "environment": "dev",
+                "environment": "prod",
                 "language": {
                     "name": "go"
                 },
@@ -211,11 +206,10 @@
                 "version": "dynamic"
             },
             "processor": {
-                "event": "metric",
-                "name": "metric"
+                "event": "metric"
             },
             "service": {
-                "environment": "dev",
+                "environment": "prod",
                 "language": {
                     "name": "go"
                 },
@@ -249,11 +243,10 @@
                 "version": "dynamic"
             },
             "processor": {
-                "event": "metric",
-                "name": "metric"
+                "event": "metric"
             },
             "service": {
-                "environment": "staging",
+                "environment": "test",
                 "language": {
                     "name": "go"
                 },
@@ -287,11 +280,10 @@
                 "version": "dynamic"
             },
             "processor": {
-                "event": "metric",
-                "name": "metric"
+                "event": "metric"
             },
             "service": {
-                "environment": "staging",
+                "environment": "test",
                 "language": {
                     "name": "go"
                 },
@@ -325,11 +317,10 @@
                 "version": "dynamic"
             },
             "processor": {
-                "event": "metric",
-                "name": "metric"
+                "event": "metric"
             },
             "service": {
-                "environment": "staging",
+                "environment": "test",
                 "language": {
                     "name": "go"
                 },

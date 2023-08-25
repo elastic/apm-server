@@ -29,10 +29,12 @@
                 "version": "dynamic"
             },
             "processor": {
-                "event": "metric",
-                "name": "metric"
+                "event": "metric"
             },
             "service": {
+                "language": {
+                    "name": "go"
+                },
                 "name": "systemtest",
                 "target": {
                     "type": "elasticsearch"
@@ -81,10 +83,12 @@
                 "version": "dynamic"
             },
             "processor": {
-                "event": "metric",
-                "name": "metric"
+                "event": "metric"
             },
             "service": {
+                "language": {
+                    "name": "go"
+                },
                 "name": "systemtest",
                 "target": {
                     "type": "elasticsearch"
@@ -133,10 +137,12 @@
                 "version": "dynamic"
             },
             "processor": {
-                "event": "metric",
-                "name": "metric"
+                "event": "metric"
             },
             "service": {
+                "language": {
+                    "name": "go"
+                },
                 "name": "systemtest",
                 "target": {
                     "type": "elasticsearch"
@@ -185,10 +191,12 @@
                 "version": "dynamic"
             },
             "processor": {
-                "event": "metric",
-                "name": "metric"
+                "event": "metric"
             },
             "service": {
+                "language": {
+                    "name": "go"
+                },
                 "name": "systemtest",
                 "target": {
                     "type": "redis"
@@ -237,10 +245,12 @@
                 "version": "dynamic"
             },
             "processor": {
-                "event": "metric",
-                "name": "metric"
+                "event": "metric"
             },
             "service": {
+                "language": {
+                    "name": "go"
+                },
                 "name": "systemtest",
                 "target": {
                     "type": "redis"
@@ -289,10 +299,12 @@
                 "version": "dynamic"
             },
             "processor": {
-                "event": "metric",
-                "name": "metric"
+                "event": "metric"
             },
             "service": {
+                "language": {
+                    "name": "go"
+                },
                 "name": "systemtest",
                 "target": {
                     "type": "redis"

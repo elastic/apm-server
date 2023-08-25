@@ -206,7 +206,7 @@ func TestOTLPGRPCMetrics(t *testing.T) {
 
 	// opentelemetry-go does not support sending Summary metrics,
 	// so we send them using the lower level OTLP/gRPC client.
-	conn, err := grpc.Dial(serverAddr(srv), grpc.WithInsecure(), grpc.WithBlock())
+	conn, err := grpc.Dial(serverAddr(srv), grpc.WithInsecure(), grpc.WithBlock(), grpc.WithDefaultCallOptions(grpc.UseCompressor("gzip")))
 	require.NoError(t, err)
 	defer conn.Close()
 	metricsClient := pmetricotlp.NewGRPCClient(conn)
@@ -238,7 +238,7 @@ func TestOTLPGRPCLogs(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	conn, err := grpc.Dial(serverAddr(srv), grpc.WithInsecure(), grpc.WithBlock())
+	conn, err := grpc.Dial(serverAddr(srv), grpc.WithInsecure(), grpc.WithBlock(), grpc.WithDefaultCallOptions(grpc.UseCompressor("gzip")))
 	require.NoError(t, err)
 	defer conn.Close()
 

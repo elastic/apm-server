@@ -1,7 +1,7 @@
 [[release-notes-head]]
 == APM version HEAD
 
-https://github.com/elastic/apm-server/compare/8.9\...main[View commits]
+https://github.com/elastic/apm-server/compare/8.10\...main[View commits]
 
 [float]
 ==== Breaking Changes
@@ -11,13 +11,10 @@ https://github.com/elastic/apm-server/compare/8.9\...main[View commits]
 
 [float]
 ==== Bug fixes
+- Add back gzip support for grpc otlp endpoint {pull}11434[11434]
 
 [float]
 ==== Intake API Changes
 
 [float]
 ==== Added
-- Add a self-instrumentation transaction to the source map periodic refresh action. {pull}11116[11116]
-- Add a self-instrumentation transaction to the agent config periodic refresh action. {pull}11129[11129]
-- Stop dropping metadata fields from span documents. {pull}11089[11089]
-- Add permissions to reroute events in the integration package. {pull}11168[11168]

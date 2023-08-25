@@ -198,7 +198,7 @@ func (t batchTransformer) Transform(context.Context) []beat.Event {
 		if err := modeljson.MarshalAPMEvent(event, &w); err != nil {
 			continue
 		}
-		beatEvent := beat.Event{Timestamp: event.Timestamp.AsTime()}
+		beatEvent := beat.Event{Timestamp: modelpb.ToTime(event.Timestamp)}
 		if err := json.Unmarshal(w.Bytes(), &beatEvent.Fields); err != nil {
 			continue
 		}

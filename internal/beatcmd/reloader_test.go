@@ -115,18 +115,6 @@ func TestReloader(t *testing.T) {
 	expectNoEvent(t, r1.stopped, "runner should not have been stopped")
 
 	err = reload.RegisterV2.GetInputList().Reload([]*reload.ConfigWithMeta{{
-		Config: config.MustNewConfigFrom(`{"revision": 1}`),
-	}})
-	assert.NoError(t, err)
-	assertNoReload() // reload suppressed, revision is the same
-
-	err = reload.RegisterV2.GetReloadableOutput().Reload(&reload.ConfigWithMeta{
-		Config: config.MustNewConfigFrom(`{"console.enabled": true}`),
-	})
-	assert.NoError(t, err)
-	assertNoReload() // reload suppressed, config is the same
-
-	err = reload.RegisterV2.GetInputList().Reload([]*reload.ConfigWithMeta{{
 		Config: config.MustNewConfigFrom(`{"revision": 2, "error": true}`),
 	}})
 	assert.EqualError(t, err, "failed to load input config: no runner for you")

@@ -27,7 +27,6 @@ import (
 )
 
 func TestIntake(t *testing.T) {
-	srv := apmservertest.NewServerTB(t)
 	for _, tc := range []struct {
 		filename      string
 		name          string
@@ -49,8 +48,11 @@ func TestIntake(t *testing.T) {
 	} {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
+			srv := apmservertest.NewServerTB(t)
 			systemtest.CleanupElasticsearch(t)
 			response := systemtest.SendBackendEventsPayload(t, srv.URL, "../testdata/intake-v2/"+tc.filename)
+			// Since we are just waiting for traces/metrics/logs and that they should go through almost immediately,
+			// there shouldn't be any aggregated metrics.
 			result := estest.ExpectMinDocs(t, systemtest.Elasticsearch,
 				response.Accepted, "traces-apm*,metrics-apm*,logs-apm*", nil,
 			)

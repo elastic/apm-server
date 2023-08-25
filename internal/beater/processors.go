@@ -89,8 +89,8 @@ func newObserverBatchProcessor() modelpb.ProcessBatchFunc {
 // data stream mappings, in 8.10.
 func removeEventReceivedBatchProcessor(ctx context.Context, batch *modelpb.Batch) error {
 	for _, event := range *batch {
-		if event.Event != nil && event.Event.Received != nil {
-			event.Event.Received = nil
+		if event.Event != nil {
+			event.Event.Received = 0
 		}
 	}
 	return nil
@@ -108,6 +108,8 @@ func newDocappenderBatchProcessor(a *docappender.Appender) modelpb.ProcessBatchF
 				r.reset()
 				return err
 			}
+			r.indexBuilder.Grow(len(event.DataStream.Type) + 1 +
+				len(event.DataStream.Dataset) + 1 + len(event.DataStream.Namespace))
 			r.indexBuilder.WriteString(event.DataStream.Type)
 			r.indexBuilder.WriteByte('-')
 			r.indexBuilder.WriteString(event.DataStream.Dataset)

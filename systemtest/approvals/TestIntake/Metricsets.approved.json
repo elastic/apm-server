@@ -49,8 +49,7 @@
                 "pid": 1234
             },
             "processor": {
-                "event": "metric",
-                "name": "metric"
+                "event": "metric"
             },
             "service": {
                 "language": {
@@ -107,8 +106,7 @@
                 "pid": 1234
             },
             "processor": {
-                "event": "metric",
-                "name": "metric"
+                "event": "metric"
             },
             "service": {
                 "language": {
@@ -181,8 +179,7 @@
                 "pid": 1234
             },
             "processor": {
-                "event": "metric",
-                "name": "metric"
+                "event": "metric"
             },
             "service": {
                 "language": {
@@ -281,8 +278,7 @@
                 "pid": 1234
             },
             "processor": {
-                "event": "metric",
-                "name": "metric"
+                "event": "metric"
             },
             "service": {
                 "language": {
@@ -348,8 +344,7 @@
                 "pid": 1234
             },
             "processor": {
-                "event": "metric",
-                "name": "metric"
+                "event": "metric"
             },
             "service": {
                 "language": {
@@ -417,8 +412,7 @@
                 "pid": 1234
             },
             "processor": {
-                "event": "metric",
-                "name": "metric"
+                "event": "metric"
             },
             "service": {
                 "language": {

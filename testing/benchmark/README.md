@@ -57,6 +57,7 @@ The main commands are:
 
 - `all` (default): runs `auth`, `apmbench`, creates the config files and runs terraform apply.
 - `auth`: Re-generate AWS credentials, they will expire after 4h.
+- `run-benchmark-autotuned`: Run the benchmarks with a computed `BENCHMARK_AGENTS`.
 - `run-benchmark`: Run the benchmarks, can configured by tweaking:
   - `BENCHMARK_WARMUP_TIME`: Set the amount of time to warm the APM Server for. Defaults to `5m`.
   - `BENCHMARK_AGENTS`: Set the number of agents to send data to the APM Server. Defaults to `64`.
@@ -115,4 +116,4 @@ the benchmarks without destroying the deployment.
 Reporting data is taken from the https://`<replace-with-kibana-benchmark-url>`/app/dashboards#/view/a5bc8390-2f8e-11ed-a369-052d8245fa04?_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:now-30d,to:now))
 It's possible to add or modify any metric.
 
-Naming convention for mertics: `[metic_name]_(1w|2w|3w)`. The slack message contains an image and metric details (when CSV reporting is back in Kibana)
+Naming convention for metrics: `[metric_name]_(1w|2w|3w)`. The slack message contains an image and metric details (when CSV reporting is back in Kibana)
