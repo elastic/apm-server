@@ -33,6 +33,8 @@ import (
 )
 
 // NewMetricExporter initializes a new MetricExporter
+// This export logic is heavily inspired from the OTLP input in apm-data.
+// https://github.com/elastic/apm-data/blob/main/input/otlp/metrics.go
 func NewMetricExporter(p modelpb.BatchProcessor, opts ...ConfigOption) *MetricExporter {
 	cfg := newConfig(opts...)
 
