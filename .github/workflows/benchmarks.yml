@@ -12,6 +12,10 @@ on:
         required: false
         type: boolean
         default: false
+      benchmarkAgents:
+        description: 'Set the number of agents to send data to the APM Server'
+        required: false
+        type: string
   schedule:
     - cron: '0 17 * * *'
 
@@ -35,6 +39,8 @@ jobs:
       TF_VAR_ENVIRONMENT: ci
       TF_VAR_REPO: ${{ github.repository }}
       GOBENCH_TAGS: branch=${{ github.head_ref || github.ref }},commit=${{ github.sha }},target_branch=${{ github.base_ref }}
+
+      BENCHMARK_AGENTS: ${{ inputs.benchmarkAgents || 64 }}
     steps:
       - uses: actions/checkout@v3
 
