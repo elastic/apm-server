@@ -22,8 +22,8 @@ Select your deployment method to get started:
 {ecloud} manages the installation and configuration of a monitoring agent for you -- so
 all you have to do is flip a switch and watch the data pour in.
 
-* **{ess}** user? See {ece-ref}/ece-enable-logging-and-monitoring.html[ESS: Enable logging and monitoring].
-* **{ece}** user? See {cloud}/ec-enable-logging-and-monitoring.html[ECE: Enable logging and monitoring].
+* **{ess}** user? See {cloud}/ec-enable-logging-and-monitoring.html[ESS: Enable logging and monitoring].
+* **{ece}** user? See {ece-ref}/ece-enable-logging-and-monitoring.html[ECE: Enable logging and monitoring].
 
 
 include::./monitor.asciidoc[]
