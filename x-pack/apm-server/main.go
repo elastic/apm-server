@@ -6,11 +6,7 @@ package main
 
 import (
 	"context"
-	"io"
-	"io/fs"
 	"os"
-	"path"
-	"path/filepath"
 	"sync"
 	"time"
 
