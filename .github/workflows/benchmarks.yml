@@ -7,6 +7,11 @@ on:
         description: 'The system profile used to run the benchmarks'
         required: false
         type: string
+      runOnStable:
+        description: 'Run the benchmarks on the latest stable version'
+        required: false
+        type: boolean
+        default: false
   schedule:
     - cron: '0 17 * * *'
 
@@ -85,10 +90,14 @@ jobs:
       - name: Build apmbench
         run: make apmbench $SSH_KEY terraform.tfvars
 
+      - name: Override docker committed version
+        if: ${{ !github.event.inputs.runOnStable }}
+        run: make docker-override-committed-version
+
       - name: Spin up benchmark environment
         id: deploy
         run: |
-          make docker-override-committed-version init apply
+          make init apply
           admin_console_url=$(terraform output -raw admin_console_url)
           echo "admin_console_url=$admin_console_url" >> "$GITHUB_OUTPUT"
           echo "-> infra setup done"
