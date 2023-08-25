@@ -21,7 +21,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"reflect"
 	"sync"
 
 	"golang.org/x/sync/errgroup"
@@ -212,13 +211,4 @@ type reloadableListFunc func(config []*reload.ConfigWithMeta) error
 
 func (f reloadableListFunc) Reload(configs []*reload.ConfigWithMeta) error {
 	return f(configs)
-}
-
-// configEqual tells us whether the two config structures are equal, by
-// unpacking them into map[string]interface{} and using reflect.DeepEqual.
-func configEqual(a, b *config.C) bool {
-	var ma, mb map[string]interface{}
-	_ = a.Unpack(&ma)
-	_ = b.Unpack(&mb)
-	return reflect.DeepEqual(ma, mb)
 }
