@@ -39,8 +39,7 @@
                 "version": "dynamic"
             },
             "processor": {
-                "event": "metric",
-                "name": "metric"
+                "event": "metric"
             },
             "service": {
                 "name": "rum-js-test"

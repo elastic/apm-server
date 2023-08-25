@@ -42,8 +42,7 @@ jobs:
   test:
     strategy:
       matrix:
-        # TODO: add ubuntu-latest if/when we're ready to move off Jenkins.
-        os: ['macos-latest', 'windows-latest']
+        os: ['macos-latest', 'ubuntu-latest', 'windows-latest']
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3

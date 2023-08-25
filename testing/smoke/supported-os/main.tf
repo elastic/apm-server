@@ -29,7 +29,7 @@ module "ec_deployment" {
   source = "../../infra/terraform/modules/ec_deployment"
   region = var.region
 
-  deployment_template    = "gcp-compute-optimized-v2"
+  deployment_template    = "gcp-compute-optimized-v3"
   deployment_name_prefix = "smoke-upgrade"
 
   apm_server_size = "1g"

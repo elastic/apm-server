@@ -74,7 +74,7 @@ func TestReportFetch(t *testing.T) {
 		// Assert the timestamp is not empty and set the timestamp to an empty
 		// value so we can assert equality in the list contents.
 		assert.NotZero(t, received.Timestamp, "empty timestamp")
-		bp.received[i].Timestamp = nil
+		bp.received[i].Timestamp = 0
 	}
 
 	// We use assert.ElementsMatch because the etags may not be

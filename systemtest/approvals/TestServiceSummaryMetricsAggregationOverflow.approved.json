@@ -24,8 +24,7 @@
                 "version": "dynamic"
             },
             "processor": {
-                "event": "metric",
-                "name": "metric"
+                "event": "metric"
             },
             "service": {
                 "name": "_other"
@@ -60,8 +59,7 @@
                 "version": "dynamic"
             },
             "processor": {
-                "event": "metric",
-                "name": "metric"
+                "event": "metric"
             },
             "service": {
                 "name": "_other"
@@ -96,8 +94,7 @@
                 "version": "dynamic"
             },
             "processor": {
-                "event": "metric",
-                "name": "metric"
+                "event": "metric"
             },
             "service": {
                 "name": "_other"
@@ -135,8 +132,7 @@
                 "version": "dynamic"
             },
             "processor": {
-                "event": "metric",
-                "name": "metric"
+                "event": "metric"
             },
             "service": {
                 "environment": "prod",
@@ -173,8 +169,7 @@
                 "version": "dynamic"
             },
             "processor": {
-                "event": "metric",
-                "name": "metric"
+                "event": "metric"
             },
             "service": {
                 "environment": "prod",
@@ -211,8 +206,7 @@
                 "version": "dynamic"
             },
             "processor": {
-                "event": "metric",
-                "name": "metric"
+                "event": "metric"
             },
             "service": {
                 "environment": "prod",
@@ -249,8 +243,7 @@
                 "version": "dynamic"
             },
             "processor": {
-                "event": "metric",
-                "name": "metric"
+                "event": "metric"
             },
             "service": {
                 "environment": "test",
@@ -287,8 +280,7 @@
                 "version": "dynamic"
             },
             "processor": {
-                "event": "metric",
-                "name": "metric"
+                "event": "metric"
             },
             "service": {
                 "environment": "test",
@@ -325,8 +317,7 @@
                 "version": "dynamic"
             },
             "processor": {
-                "event": "metric",
-                "name": "metric"
+                "event": "metric"
             },
             "service": {
                 "environment": "test",

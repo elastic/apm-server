@@ -47,12 +47,12 @@ func TestBackendRequestMetadata(t *testing.T) {
 	c := &request.Context{Timestamp: tNow}
 	cfg := &config.Config{AugmentEnabled: true}
 	event := backendRequestMetadataFunc(cfg)(c)
-	assert.Equal(t, tNow, event.Timestamp.AsTime())
+	assert.Equal(t, tNow, modelpb.ToTime(event.Timestamp))
 	assert.Nil(t, nil, event.Host)
 
 	c.ClientIP = netip.MustParseAddr("127.0.0.1")
 	event = backendRequestMetadataFunc(cfg)(c)
-	assert.Equal(t, tNow, event.Timestamp.AsTime())
+	assert.Equal(t, tNow, modelpb.ToTime(event.Timestamp))
 	assert.Equal(t, &modelpb.Host{Ip: []*modelpb.IP{modelpb.Addr2IP(c.ClientIP)}}, event.Host)
 }
 
@@ -61,7 +61,7 @@ func TestRUMRequestMetadata(t *testing.T) {
 	c := &request.Context{Timestamp: tNow}
 	cfg := &config.Config{AugmentEnabled: true}
 	event := rumRequestMetadataFunc(cfg)(c)
-	assert.Equal(t, tNow, event.Timestamp.AsTime())
+	assert.Equal(t, tNow, modelpb.ToTime(event.Timestamp))
 	assert.Nil(t, event.Client)
 	assert.Nil(t, event.Source)
 	assert.Nil(t, event.UserAgent)
@@ -69,7 +69,7 @@ func TestRUMRequestMetadata(t *testing.T) {
 	ip := netip.MustParseAddr("127.0.0.1")
 	c = &request.Context{Timestamp: tNow, ClientIP: ip, SourceIP: ip, UserAgent: "firefox"}
 	event = rumRequestMetadataFunc(cfg)(c)
-	assert.Equal(t, tNow, event.Timestamp.AsTime())
+	assert.Equal(t, tNow, modelpb.ToTime(event.Timestamp))
 	assert.Equal(t, &modelpb.Client{Ip: modelpb.Addr2IP(c.ClientIP)}, event.Client)
 	assert.Equal(t, &modelpb.Source{Ip: modelpb.Addr2IP(c.SourceIP)}, event.Source)
 	assert.Equal(t, &modelpb.UserAgent{Original: c.UserAgent}, event.UserAgent)

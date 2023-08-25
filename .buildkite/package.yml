@@ -1,0 +1,53 @@
+notify:
+  - slack: "#apm-server"
+    if: build.state == "failed"
+
+env:
+  IMAGE_UBUNTU_X86_64: "family/core-ubuntu-2004"
+  IMAGE_UBUNTU_ARM_64: "core-ubuntu-2004-aarch64"
+
+steps:
+  - group: "Package"
+    key: "package"
+    steps:
+      - label: "Package Ubuntu-20 x86_64"
+        key: "package-x86-64"
+        command: ".buildkite/scripts/package.sh {{matrix.type}}"
+        agents:
+          provider: "gcp"
+          image: "${IMAGE_UBUNTU_X86_64}"
+          machineType: "c2-standard-16"
+        matrix:
+          setup:
+            type:
+            - "snapshot"
+            - "staging"
+        artifact_paths:
+          - "build/distributions/**/*"
+          - "build/dependencies*.csv"
+
+      - label: "Package Ubuntu-20 aarch64"
+        key: "package-arm"
+        command: ".buildkite/scripts/package.sh {{matrix.type}}"
+        agents:
+          provider: "aws"
+          imagePrefix: "${IMAGE_UBUNTU_ARM_64}"
+          instanceType: "t4g.2xlarge"
+        matrix:
+          setup:
+            type:
+            - "snapshot"
+            - "staging"
+        artifact_paths:
+          - "build/distributions/**/*"
+
+  - label: "DRA"
+    key: "dra"
+    command: ".buildkite/scripts/dra.sh"
+    agents:
+      provider: "gcp"
+      image: "${IMAGE_UBUNTU_X86_64}"
+      machineType: "c2-standard-16"
+    depends_on:
+      - step: "package"
+        allow_failure: false
