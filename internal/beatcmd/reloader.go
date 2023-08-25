@@ -21,7 +21,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"reflect"
 	"sync"
 
 	"golang.org/x/sync/errgroup"
@@ -85,11 +84,10 @@ type Reloader struct {
 	runner     Runner
 	stopRunner func() error
 
-	mu            sync.Mutex
-	inputRevision int64
-	inputConfig   *config.C
-	outputConfig  *config.C
-	stopped       chan struct{}
+	mu           sync.Mutex
+	inputConfig  *config.C
+	outputConfig *config.C
+	stopped      chan struct{}
 }
 
 // Run runs the Reloader, blocking until ctx is cancelled or a fatal error occurs.
@@ -119,24 +117,14 @@ func (r *Reloader) reloadInputs(configs []*reload.ConfigWithMeta) error {
 
 	// Input configuration is expected to have a monotonically
 	// increasing revision number.
-	//
-	// Suppress config input changes that are no newer than
-	// the most recently loaded configuration.
 	revision, err := cfg.Int("revision", -1)
 	if err != nil {
 		return fmt.Errorf("failed to extract input config revision: %w", err)
-	}
-	if r.inputConfig != nil && revision <= r.inputRevision {
-		r.logger.With(
-			logp.Int64("revision", revision),
-		).Debug("suppressing stale input config change")
-		return nil
 	}
 
 	if err := r.reload(cfg, r.outputConfig); err != nil {
 		return fmt.Errorf("failed to load input config: %w", err)
 	}
-	r.inputRevision = revision
 	r.inputConfig = cfg
 	r.logger.With(logp.Int64("revision", revision)).Info("loaded input config")
 	return nil
@@ -148,10 +136,6 @@ func (r *Reloader) reloadInputs(configs []*reload.ConfigWithMeta) error {
 func (r *Reloader) reloadOutput(cfg *reload.ConfigWithMeta) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	if r.outputConfig != nil && configEqual(cfg.Config, r.outputConfig) {
-		r.logger.Debug("suppressing redundant output config change")
-		return nil
-	}
 	if err := r.reload(r.inputConfig, cfg.Config); err != nil {
 		return fmt.Errorf("failed to load output config: %w", err)
 	}
@@ -227,13 +211,4 @@ type reloadableListFunc func(config []*reload.ConfigWithMeta) error
 
 func (f reloadableListFunc) Reload(configs []*reload.ConfigWithMeta) error {
 	return f(configs)
-}
-
-// configEqual tells us whether the two config structures are equal, by
-// unpacking them into map[string]interface{} and using reflect.DeepEqual.
-func configEqual(a, b *config.C) bool {
-	var ma, mb map[string]interface{}
-	_ = a.Unpack(&ma)
-	_ = b.Unpack(&mb)
-	return reflect.DeepEqual(ma, mb)
 }
