@@ -104,8 +104,8 @@ func (e *MetricExporter) Export(ctx context.Context, rm *metricdata.ResourceMetr
 			}
 			event.Metricset = &modelpb.Metricset{Samples: metrs, Name: "app"}
 			if ms.attributes.Len() > 0 {
-				event.Labels = modelpb.Labels(event.Labels).Clone()
-				event.NumericLabels = modelpb.NumericLabels(event.NumericLabels).Clone()
+				event.Labels = modelpb.Labels{}
+				event.NumericLabels = modelpb.NumericLabels{}
 
 				iter := ms.attributes.Iter()
 				for iter.Next() {
