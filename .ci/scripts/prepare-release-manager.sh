@@ -15,7 +15,7 @@ FINAL_VERSION=$VERSION-SNAPSHOT
 if [ "$TYPE" != "snapshot" ] ; then
   FINAL_VERSION=$VERSION
 fi
-mv build/distributions/dependencies.csv \
+cp build/distributions/dependencies.csv \
    build/distributions/dependencies-"$FINAL_VERSION".csv
 
 # rename docker files to support the unified release format.
@@ -23,10 +23,14 @@ mv build/distributions/dependencies.csv \
 #       or the unified release process the one to do the transformation
 for i in build/distributions/*linux-arm64.docker.tar.gz*
 do
+  if [ -e "$i" ] ; then
     mv "$i" "${i/linux-arm64.docker.tar.gz/docker-image-arm64.tar.gz}"
+  fi
 done
 
 for i in build/distributions/*linux-amd64.docker.tar.gz*
 do
+  if [ -e "$i" ] ; then
     mv "$i" "${i/linux-amd64.docker.tar.gz/docker-image.tar.gz}"
+  fi
 done
