@@ -129,7 +129,7 @@ func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, er
 			}
 		}
 
-		if time.Now().Sub(newest) > tailSamplingConfig.TTL {
+		if time.Since(newest) > tailSamplingConfig.TTL {
 			if err := os.RemoveAll(oldTailSamplingStorageDir); err != nil {
 				args.Logger.Warnf("failed to remove old tail sampling storage dir: %v", err)
 			}
