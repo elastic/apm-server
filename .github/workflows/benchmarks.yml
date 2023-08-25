@@ -111,11 +111,11 @@ jobs:
           echo "-> infra setup done"
 
       - name: Run benchmarks autotuned
-        if: ${{ !github.event.inputs.benchmarkAgents == '' }}
+        if: ${{ github.event.inputs.benchmarkAgents == '' }}
         run: make run-benchmark-autotuned index-benchmark-results
 
       - name: Run benchmarks self tuned
-        if: ${{ !github.event.inputs.benchmarkAgents != '' }}
+        if: ${{ github.event.inputs.benchmarkAgents != '' }}
         run: make run-benchmark index-benchmark-results
 
       - name: Download PNG
