@@ -6,6 +6,9 @@
     - description: Added jvm.memory.non_heap.pool.* and jvm.fd.* metrics
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/11303
+    - description: Remove unused `processor.event` field from logs data streams
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/11494
 - version: "8.10.0"
   changes:
     - description: Add permissions to reroute to dedicated datasets for logs, metrics and traces

@@ -87,12 +87,10 @@ func TestIntakeLog(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.Name, func(t *testing.T) {
-			result := estest.ExpectMinDocs(t, systemtest.Elasticsearch, test.ExpectedMinDocs, fmt.Sprintf("logs-apm.app.%s-*", test.ServiceName), espoll.BoolQuery{
-				Filter: []interface{}{
-					espoll.TermQuery{Field: "processor.event", Value: "log"},
-					espoll.MatchPhraseQuery{Field: "message", Value: test.Message},
-				},
-			})
+			result := estest.ExpectMinDocs(t, systemtest.Elasticsearch, test.ExpectedMinDocs,
+				fmt.Sprintf("logs-apm.app.%s-*", test.ServiceName),
+				espoll.MatchPhraseQuery{Field: "message", Value: test.Message},
+			)
 			approvaltest.ApproveEvents(t, t.Name(), result.Hits.Hits, test.DynamicFields...)
 		})
 	}
