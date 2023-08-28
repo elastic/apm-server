@@ -16,6 +16,10 @@ on:
         description: 'Set the number of agents to send data to the APM Server'
         required: false
         type: string
+      benchmarkRun:
+        description: 'Set the expression that matches the benchmark scenarios to run'
+        required: false
+        type: string
   schedule:
     - cron: '0 17 * * *'
 
@@ -58,6 +62,9 @@ jobs:
 
           if [ ! -z "${{ inputs.benchmarkAgents }}" ]; then
             echo "BENCHMARK_AGENTS=${{ inputs.benchmarkAgents }}" >> "$GITHUB_ENV"
+          fi
+          if [ ! -z "${{ inputs.benchmarkRun }}" ]; then
+            echo "BENCHMARK_RUN=${{ inputs.benchmarkRun }}" >> "$GITHUB_ENV"
           fi
 
       - uses: hashicorp/vault-action@v2.6.0
