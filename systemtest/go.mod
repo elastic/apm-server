@@ -6,7 +6,7 @@ require (
 	github.com/docker/docker v23.0.3+incompatible
 	github.com/docker/go-connections v0.4.0
 	github.com/elastic/apm-perf v0.0.0-20230608162138-29920c01cfd6
-	github.com/elastic/apm-tools v0.0.0-20230712130005-87efbbd3dafd
+	github.com/elastic/apm-tools v0.0.0-20230828065051-3f799314cc8b
 	github.com/elastic/go-elasticsearch/v8 v8.8.1
 	github.com/google/pprof v0.0.0-20210407192527-94a9f03dee38
 	github.com/hashicorp/go-multierror v1.1.1
@@ -15,7 +15,7 @@ require (
 	github.com/stretchr/testify v1.8.4
 	github.com/testcontainers/testcontainers-go v0.18.0
 	github.com/tidwall/gjson v1.14.4
-	go.elastic.co/apm/v2 v2.4.1
+	go.elastic.co/apm/v2 v2.4.3
 	go.elastic.co/fastjson v1.1.0
 	go.opentelemetry.io/collector/pdata v1.0.0-rcv0013
 	go.opentelemetry.io/collector/semconv v0.81.0
@@ -33,8 +33,7 @@ require (
 	golang.org/x/sync v0.2.0
 	golang.org/x/sys v0.10.0
 	golang.org/x/time v0.3.0
-	google.golang.org/grpc v1.56.1
-	google.golang.org/protobuf v1.31.0
+	google.golang.org/grpc v1.56.2
 	gopkg.in/yaml.v3 v3.0.1
 )
 
@@ -58,7 +57,6 @@ require (
 	github.com/docker/distribution v2.8.2+incompatible // indirect
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/elastic/elastic-transport-go/v8 v8.3.0 // indirect
-	github.com/elastic/go-licenser v0.4.0 // indirect
 	github.com/elastic/go-sysinfo v1.7.1 // indirect
 	github.com/elastic/go-windows v1.0.1 // indirect
 	github.com/gogo/googleapis v1.4.1 // indirect
@@ -66,7 +64,6 @@ require (
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/google/uuid v1.3.0 // indirect
-	github.com/jcchavezs/porto v0.1.0 // indirect
 	github.com/joeshaw/multierror v0.0.0-20140124173710-69b34d4ec901 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/compress v1.16.7 // indirect
@@ -94,13 +91,12 @@ require (
 	go.opentelemetry.io/proto/otlp v0.19.0 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	golang.org/x/mod v0.8.0 // indirect
 	golang.org/x/net v0.12.0 // indirect
 	golang.org/x/text v0.11.0 // indirect
-	golang.org/x/tools v0.6.0 // indirect
 	google.golang.org/genproto v0.0.0-20230525234025-438c736192d0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20230525234020-1aefcd67740a // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20230530153820-e85fd2cbaebc // indirect
+	google.golang.org/protobuf v1.31.0 // indirect
 	howett.net/plist v1.0.0 // indirect
 )
 
