@@ -1,5 +1,11 @@
+<<<<<<< HEAD
 [![Build Status](https://apm-ci.elastic.co/buildStatus/icon?job=apm-server/apm-server-mbp/main)](https://apm-ci.elastic.co/job/apm-server/job/apm-server-mbp/view/change-requests/job/main/)
 [![codecov.io](https://codecov.io/github/elastic/apm-server/coverage.svg?branch=main)](https://codecov.io/github/elastic/apm-server?branch=main)
+=======
+[![ci](https://github.com/elastic/apm-server/actions/workflows/ci.yml/badge.svg)](https://github.com/elastic/apm-server/actions/workflows/ci.yml)
+[![Smoke Tests](https://github.com/elastic/apm-server/actions/workflows/smoke-tests-schedule.yml/badge.svg)](https://github.com/elastic/apm-server/actions/workflows/smoke-tests-schedule.yml)
+[![Package status](https://badge.buildkite.com/fc4aa824ffecf245db871971507275aa3c35904e380fef449c.svg?branch=main)](https://buildkite.com/elastic/apm-server-package)
+>>>>>>> e4da05a05 (docs: explain what the CI does (#11464))
 
 # APM Server
 
