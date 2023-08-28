@@ -69,6 +69,7 @@ import (
 	srvmodelprocessor "github.com/elastic/apm-server/internal/model/modelprocessor"
 	"github.com/elastic/apm-server/internal/publish"
 	"github.com/elastic/apm-server/internal/sourcemap"
+	"github.com/elastic/apm-server/internal/telemetry"
 	"github.com/elastic/apm-server/internal/version"
 )
 
@@ -306,14 +307,6 @@ func (s *Runner) Run(ctx context.Context) error {
 	}
 	otel.SetTracerProvider(tracerProvider)
 
-	exporter, err := apmotel.NewGatherer()
-	if err != nil {
-		return err
-	}
-	meterProvider := metric.NewMeterProvider(metric.WithReader(exporter))
-	otel.SetMeterProvider(meterProvider)
-	tracer.RegisterMetricsGatherer(exporter)
-
 	// Ensure the libbeat output and go-elasticsearch clients do not index
 	// any events to Elasticsearch before the integration is ready.
 	publishReady := make(chan struct{})
@@ -427,6 +420,18 @@ func (s *Runner) Run(ctx context.Context) error {
 		}),
 		finalBatchProcessor,
 	})
+
+	exporter, err := apmotel.NewGatherer()
+	if err != nil {
+		return err
+	}
+	localExporter := telemetry.NewMetricExporter(batchProcessor)
+	meterProvider := metric.NewMeterProvider(
+		metric.WithReader(exporter),
+		metric.WithReader(metric.NewPeriodicReader(localExporter)),
+	)
+	otel.SetMeterProvider(meterProvider)
+	tracer.RegisterMetricsGatherer(exporter)
 
 	agentConfigFetcher, fetcherRunFunc, err := newAgentConfigFetcher(
 		ctx,
