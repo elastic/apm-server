@@ -171,8 +171,8 @@ github.com/elastic/elastic-transport-go/v8 v8.3.0 h1:DJGxovyQLXGr62e9nDMPSxRyWIO
 github.com/elastic/elastic-transport-go/v8 v8.3.0/go.mod h1:87Tcz8IVNe6rVSLdBux1o/PEItLtyabHU3naC7IoqKI=
 github.com/elastic/gmux v0.2.0 h1:HzaJ6FQAZzKJ2RTrINIfDXN1voO5EEEJKLb1Hlrn8pw=
 github.com/elastic/gmux v0.2.0/go.mod h1:6+9rYPXZXAyCIb7g3WQ0OVWoLNpU/xHz2VXUrtw6BUg=
-github.com/elastic/go-docappender v0.2.1-0.20230829101627-763a804eb897 h1:cUHLBYTOOe0cBCv6GQH6ZT+LM9WW6OOX2GxftBAUV7I=
-github.com/elastic/go-docappender v0.2.1-0.20230829101627-763a804eb897/go.mod h1:w2xLbH+2d8ByQeddFPOrZcVxEza+XWnpDR94PEE5KJs=
+github.com/elastic/go-docappender v0.2.1-0.20230829163624-c69a1cf8ce35 h1:zBB2RqyEcPlJ16psSXIV6qhhbFB+Bf9RZrgcCk2vCiY=
+github.com/elastic/go-docappender v0.2.1-0.20230829163624-c69a1cf8ce35/go.mod h1:QddPogzCYGtzbR8ZFGRG2kvQ+vRG4A4JGMoH82G1dT8=
 github.com/elastic/go-elasticsearch/v8 v8.9.0 h1:8xtmYjUkqtahl50E0Bg/wjKI7K63krJrrLipbNj/fCU=
 github.com/elastic/go-elasticsearch/v8 v8.9.0/go.mod h1:NGmpvohKiRHXI0Sw4fuUGn6hYOmAXlyCphKpzVBiqDE=
 github.com/elastic/go-licenser v0.3.1/go.mod h1:D8eNQk70FOCVBl3smCGQt/lv7meBeQno2eI1S5apiHQ=
@@ -597,8 +597,8 @@ go.elastic.co/apm/module/apmhttp/v2 v2.4.4 h1:BcJDLFztZByHiJRXXvAHY7bue9+vhzMLn2
 go.elastic.co/apm/module/apmhttp/v2 v2.4.4/go.mod h1:694qsHWRPVkfYqQ224ZSeRx9Dt2FS/xF1igNBGkHi6o=
 go.elastic.co/apm/module/apmotel/v2 v2.4.4 h1:DTIGTLiAZTjshCco2ljLnf35Q9m1MiWXBctCGKeQhzE=
 go.elastic.co/apm/module/apmotel/v2 v2.4.4/go.mod h1:F14e5+BF+fmKs7jUH5i6C0tjzRUVrK4AbaNGw0z3mWk=
-go.elastic.co/apm/module/apmzap/v2 v2.4.3 h1:7jsuiJLP5BHQ9tpHRGu9oiiDqYdIBE24WF0P5te8sOk=
-go.elastic.co/apm/module/apmzap/v2 v2.4.3/go.mod h1:f9qtIFTU/dCnUqoDeuNrRevCR3fMJe6YMw9SelFjzbY=
+go.elastic.co/apm/module/apmzap/v2 v2.4.4 h1:t1Ml4R5KapIoCJzem3d/bEaG0X7Gij0QijFPuf8wba8=
+go.elastic.co/apm/module/apmzap/v2 v2.4.4/go.mod h1:iYOVJKZEIWYr+VdD3IO0zjhC8j6my+v5vZNePNSgmIY=
 go.elastic.co/apm/v2 v2.4.4 h1:KGbmUEtLNQ6sCFGpqTMhfRjqDOKP8IliO+efErKY5lU=
 go.elastic.co/apm/v2 v2.4.4/go.mod h1:+CiBUdrrAGnGCL9TNx7tQz3BrfYV23L8Ljvotoc87so=
 go.elastic.co/ecszap v1.0.1 h1:mBxqEJAEXBlpi5+scXdzL7LTFGogbuxipJC0KTZicyA=
