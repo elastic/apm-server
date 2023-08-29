@@ -13,7 +13,7 @@ require (
 	github.com/elastic/elastic-agent-libs v0.3.13
 	github.com/elastic/elastic-agent-system-metrics v0.6.1
 	github.com/elastic/gmux v0.2.0
-	github.com/elastic/go-docappender v0.2.1-0.20230724080315-b714d6181871
+	github.com/elastic/go-docappender v0.2.1-0.20230829163624-c69a1cf8ce35
 	github.com/elastic/go-elasticsearch/v8 v8.9.0
 	github.com/elastic/go-sysinfo v1.11.1
 	github.com/elastic/go-ucfg v0.8.6
@@ -36,17 +36,17 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.8.4
 	go.elastic.co/apm/module/apmelasticsearch/v2 v2.4.4
-	go.elastic.co/apm/module/apmgorilla/v2 v2.2.0
-	go.elastic.co/apm/module/apmgrpc/v2 v2.2.0
+	go.elastic.co/apm/module/apmgorilla/v2 v2.4.4
+	go.elastic.co/apm/module/apmgrpc/v2 v2.4.4
 	go.elastic.co/apm/module/apmhttp/v2 v2.4.4
-	go.elastic.co/apm/module/apmotel/v2 v2.4.3
+	go.elastic.co/apm/module/apmotel/v2 v2.4.4
 	go.elastic.co/apm/v2 v2.4.4
 	go.elastic.co/fastjson v1.3.0
 	go.opentelemetry.io/collector/consumer v0.81.0
 	go.opentelemetry.io/collector/pdata v1.0.0-rcv0013
-	go.opentelemetry.io/otel v1.16.0
-	go.opentelemetry.io/otel/metric v1.16.0
-	go.opentelemetry.io/otel/sdk/metric v0.39.0
+	go.opentelemetry.io/otel v1.17.0
+	go.opentelemetry.io/otel/metric v1.17.0
+	go.opentelemetry.io/otel/sdk/metric v0.40.0
 	go.uber.org/automaxprocs v1.5.2
 	go.uber.org/zap v1.25.0
 	golang.org/x/net v0.14.0
@@ -148,11 +148,11 @@ require (
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
 	github.com/youmark/pkcs8 v0.0.0-20201027041543-1326539a0a0a // indirect
 	github.com/yusufpapurcu/wmi v1.2.3 // indirect
-	go.elastic.co/apm/module/apmzap/v2 v2.4.3 // indirect
+	go.elastic.co/apm/module/apmzap/v2 v2.4.4 // indirect
 	go.elastic.co/ecszap v1.0.1 // indirect
 	go.opentelemetry.io/collector/semconv v0.81.0 // indirect
-	go.opentelemetry.io/otel/sdk v1.16.0 // indirect
-	go.opentelemetry.io/otel/trace v1.16.0 // indirect
+	go.opentelemetry.io/otel/sdk v1.17.0 // indirect
+	go.opentelemetry.io/otel/trace v1.17.0 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.12.0 // indirect

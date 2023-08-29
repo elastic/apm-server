@@ -26,7 +26,6 @@ import (
 
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/sdk/metric"
-	"go.opentelemetry.io/otel/sdk/metric/aggregation"
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 
 	"github.com/elastic/apm-data/model/modelpb"
@@ -63,7 +62,7 @@ func (e *MetricExporter) Temporality(k metric.InstrumentKind) metricdata.Tempora
 }
 
 // Aggregation returns the Aggregation to use for an instrument kind.
-func (e *MetricExporter) Aggregation(k metric.InstrumentKind) aggregation.Aggregation {
+func (e *MetricExporter) Aggregation(k metric.InstrumentKind) metric.Aggregation {
 	return e.aggregationSelector(k)
 }
 
