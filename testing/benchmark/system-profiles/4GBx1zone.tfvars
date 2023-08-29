@@ -8,3 +8,6 @@ elasticsearch_size = "32g"
 elasticsearch_zone_count = 2
 # APM server instance size
 apm_server_size = "4g"
+
+ess_region = "gcp-us-west2"
+deployment_template = "gcp-cpu-optimized-v5"
