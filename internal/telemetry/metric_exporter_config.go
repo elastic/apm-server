@@ -19,7 +19,6 @@ package telemetry
 
 import (
 	"go.opentelemetry.io/otel/sdk/metric"
-	"go.opentelemetry.io/otel/sdk/metric/aggregation"
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 )
 
@@ -65,10 +64,10 @@ func defaultTemporalitySelector(ik metric.InstrumentKind) metricdata.Temporality
 	return metric.DefaultTemporalitySelector(ik)
 }
 
-func defaultAggregationSelector(ik metric.InstrumentKind) aggregation.Aggregation {
+func defaultAggregationSelector(ik metric.InstrumentKind) metric.Aggregation {
 	switch ik {
 	case metric.InstrumentKindHistogram:
-		return aggregation.ExplicitBucketHistogram{
+		return metric.AggregationExplicitBucketHistogram{
 			Boundaries: customHistogramBoundaries,
 			NoMinMax:   false,
 		}
