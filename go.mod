@@ -8,9 +8,9 @@ require (
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/apm-aggregation v0.0.0-20230815024520-e75a37d9ddd6
 	github.com/elastic/apm-data v0.1.1-0.20230815073233-455fb9f1280f
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230828144913-a182bafd7c1e
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230829141356-01b87e5accc4
 	github.com/elastic/elastic-agent-client/v7 v7.3.0
-	github.com/elastic/elastic-agent-libs v0.3.11
+	github.com/elastic/elastic-agent-libs v0.3.13
 	github.com/elastic/elastic-agent-system-metrics v0.6.1
 	github.com/elastic/gmux v0.2.0
 	github.com/elastic/go-docappender v0.2.1-0.20230724080315-b714d6181871
@@ -35,12 +35,12 @@ require (
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.8.4
-	go.elastic.co/apm/module/apmelasticsearch/v2 v2.4.3
+	go.elastic.co/apm/module/apmelasticsearch/v2 v2.4.4
 	go.elastic.co/apm/module/apmgorilla/v2 v2.2.0
 	go.elastic.co/apm/module/apmgrpc/v2 v2.2.0
-	go.elastic.co/apm/module/apmhttp/v2 v2.4.3
+	go.elastic.co/apm/module/apmhttp/v2 v2.4.4
 	go.elastic.co/apm/module/apmotel/v2 v2.4.3
-	go.elastic.co/apm/v2 v2.4.3
+	go.elastic.co/apm/v2 v2.4.4
 	go.elastic.co/fastjson v1.3.0
 	go.opentelemetry.io/collector/consumer v0.81.0
 	go.opentelemetry.io/collector/pdata v1.0.0-rcv0013
