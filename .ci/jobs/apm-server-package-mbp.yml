@@ -14,7 +14,7 @@
         discover-pr-origin: merge-current
         discover-tags: false
         disable-pr-notifications: true
-        head-filter-regex: '(main|7\.17|9\.9|8\.1\d+)'
+        head-filter-regex: '(main|7\.17|8\.9|8\.1\d+)'
         notification-context: 'apm-server-package'
         repo: apm-server
         repo-owner: elastic
