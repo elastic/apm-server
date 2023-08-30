@@ -33,13 +33,23 @@ import (
 	"github.com/elastic/apm-data/input"
 	"github.com/elastic/apm-data/input/otlp"
 	"github.com/elastic/apm-data/model/modelpb"
+	"github.com/elastic/elastic-agent-libs/monitoring"
 )
 
 var (
-	HTTPMetricsMetricsPrefix = "beats_stats.metrics.apm-server.otlp.http.metrics"
-	HTTPTracesMetricsPrefix  = "beats_stats.metrics.apm-server.otlp.http.traces"
-	HTTPLogsMetricsPrefix    = "beats_stats.metrics.apm-server.otlp.http.logs"
+	httpRegistryName    = "apm-server.otlp.http"
+	httpMetricsRegistry = monitoring.Default.NewRegistry(httpRegistryName)
+
+	HTTPMetricsMetricsPrefix = "beats_stats.metrics." + httpRegistryName + ".metrics"
+	HTTPTracesMetricsPrefix  = "beats_stats.metrics." + httpRegistryName + ".traces"
+	HTTPLogsMetricsPrefix    = "beats_stats.metrics." + httpRegistryName + ".logs"
+
+	httpMonitoredConsumer monitoredConsumer
 )
+
+func init() {
+	monitoring.NewFunc(httpMetricsRegistry, "consumer", httpMonitoredConsumer.collect, monitoring.Report)
+}
 
 func NewHTTPHandlers(logger *zap.Logger, processor modelpb.BatchProcessor, semaphore input.Semaphore) HTTPHandlers {
 	// TODO(axw) stop assuming we have only one OTLP HTTP consumer running
@@ -50,6 +60,8 @@ func NewHTTPHandlers(logger *zap.Logger, processor modelpb.BatchProcessor, semap
 		Logger:    logger,
 		Semaphore: semaphore,
 	})
+	httpMonitoredConsumer.set(consumer)
+
 	return HTTPHandlers{consumer: consumer}
 }
 

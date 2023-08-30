@@ -29,13 +29,23 @@ import (
 	"github.com/elastic/apm-data/input"
 	"github.com/elastic/apm-data/input/otlp"
 	"github.com/elastic/apm-data/model/modelpb"
+	"github.com/elastic/elastic-agent-libs/monitoring"
 )
 
 var (
-	GRPCMetricsMetricsPrefix = "beats_stats.metrics.apm-server.otlp.grpc.metrics"
-	GRPCTracesMetricsPrefix  = "beats_stats.metrics.apm-server.otlp.grpc.traces"
-	GRPCLogsMetricsPrefix    = "beats_stats.metrics.apm-server.otlp.grpc.logs"
+	grpcRegistryName    = "apm-server.otlp.grpc"
+	gRPCMetricsRegistry = monitoring.Default.NewRegistry(grpcRegistryName)
+
+	GRPCMetricsMetricsPrefix = "beats_stats.metrics." + grpcRegistryName + ".metrics"
+	GRPCTracesMetricsPrefix  = "beats_stats.metrics." + grpcRegistryName + ".traces"
+	GRPCLogsMetricsPrefix    = "beats_stats.metrics." + grpcRegistryName + ".logs"
+
+	gRPCMonitoredConsumer monitoredConsumer
 )
+
+func init() {
+	monitoring.NewFunc(gRPCMetricsRegistry, "consumer", gRPCMonitoredConsumer.collect, monitoring.Report)
+}
 
 // RegisterGRPCServices registers OTLP consumer services with the given gRPC server.
 func RegisterGRPCServices(
@@ -52,6 +62,8 @@ func RegisterGRPCServices(
 		Logger:    logger,
 		Semaphore: semaphore,
 	})
+
+	gRPCMonitoredConsumer.set(consumer)
 
 	ptraceotlp.RegisterGRPCServer(grpcServer, &tracesService{consumer: consumer})
 	pmetricotlp.RegisterGRPCServer(grpcServer, &metricsService{consumer: consumer})
