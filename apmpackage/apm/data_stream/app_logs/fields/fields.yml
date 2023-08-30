@@ -31,10 +31,6 @@
   type: keyword
   description: |
     Kubernetes Pod UID
-- name: processor.event
-  type: constant_keyword
-  value: log
-  description: Processor event.
 - name: service.framework.name
   type: keyword
   index: false

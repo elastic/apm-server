@@ -113,14 +113,7 @@ func TestOTLPGRPCTraces(t *testing.T) {
 	require.NoError(t, err)
 
 	indices := "traces-apm*,logs-apm*"
-	result := estest.ExpectMinDocs(t, systemtest.Elasticsearch, 3, indices, espoll.BoolQuery{
-		Should: []interface{}{
-			espoll.TermQuery{Field: "processor.event", Value: "transaction"},
-			espoll.TermQuery{Field: "processor.event", Value: "log"},
-			espoll.TermQuery{Field: "processor.event", Value: "error"},
-		},
-		MinimumShouldMatch: 1,
-	})
+	result := estest.ExpectMinDocs(t, systemtest.Elasticsearch, 3, indices, nil)
 	approvaltest.ApproveEvents(t, t.Name(), result.Hits.Hits, "error.id")
 }
 
@@ -248,9 +241,7 @@ func TestOTLPGRPCLogs(t *testing.T) {
 	_, err = logsClient.Export(ctx, plogotlp.NewExportRequestFromLogs(logs))
 	require.NoError(t, err)
 
-	result := estest.ExpectDocs(t, systemtest.Elasticsearch, "logs-apm*", espoll.TermQuery{
-		Field: "processor.event", Value: "log",
-	})
+	result := estest.ExpectDocs(t, systemtest.Elasticsearch, "logs-apm*", nil)
 	approvaltest.ApproveEvents(t, t.Name(), result.Hits.Hits)
 }
 

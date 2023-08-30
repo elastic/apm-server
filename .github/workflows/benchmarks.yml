@@ -2,6 +2,24 @@ name: benchmarks
 
 on:
   workflow_dispatch:
+    inputs:
+      profile:
+        description: 'The system profile used to run the benchmarks'
+        required: false
+        type: string
+      runOnStable:
+        description: 'Run the benchmarks on the latest stable version'
+        required: false
+        type: boolean
+        default: false
+      benchmarkAgents:
+        description: 'Set the number of agents to send data to the APM Server'
+        required: false
+        type: string
+      benchmarkRun:
+        description: 'Set the expression that matches the benchmark scenarios to run'
+        required: false
+        type: string
   schedule:
     - cron: '0 17 * * *'
 
@@ -20,7 +38,7 @@ jobs:
       SSH_KEY: ./id_rsa_terraform
       TF_VAR_private_key: ./id_rsa_terraform
       TF_VAR_public_key: ./id_rsa_terraform.pub
-      TFVARS_SOURCE: 'system-profiles/8GBx1zone.tfvars' # // Default to use an 8gb profile
+      TFVARS_SOURCE: ${{ inputs.profile || 'system-profiles/8GBx1zone.tfvars' }} # // Default to use an 8gb profile
       TF_VAR_BUILD_ID: ${{ github.run_id }}
       TF_VAR_ENVIRONMENT: ci
       TF_VAR_REPO: ${{ github.repository }}
@@ -41,6 +59,13 @@ jobs:
           echo "TF_VAR_BRANCH=${SLUGGED_BRANCH_NAME}" >> "$GITHUB_ENV"
           echo "TF_VAR_CREATED_AT=${CREATED_AT}" >> "$GITHUB_ENV"
           echo "USER=benchci-$SLUGGED_BRANCH_NAME-$CREATED_AT" >> "$GITHUB_ENV"
+
+          if [ ! -z "${{ inputs.benchmarkAgents }}" ]; then
+            echo "BENCHMARK_AGENTS=${{ inputs.benchmarkAgents }}" >> "$GITHUB_ENV"
+          fi
+          if [ ! -z "${{ inputs.benchmarkRun }}" ]; then
+            echo "BENCHMARK_RUN=${{ inputs.benchmarkRun }}" >> "$GITHUB_ENV"
+          fi
 
       - uses: hashicorp/vault-action@v2.6.0
         env:
@@ -80,16 +105,25 @@ jobs:
       - name: Build apmbench
         run: make apmbench $SSH_KEY terraform.tfvars
 
+      - name: Override docker committed version
+        if: ${{ !github.event.inputs.runOnStable }}
+        run: make docker-override-committed-version
+
       - name: Spin up benchmark environment
         id: deploy
         run: |
-          make docker-override-committed-version init apply
+          make init apply
           admin_console_url=$(terraform output -raw admin_console_url)
           echo "admin_console_url=$admin_console_url" >> "$GITHUB_OUTPUT"
           echo "-> infra setup done"
 
-      - name: Run benchmarks
+      - name: Run benchmarks autotuned
+        if: ${{ github.event.inputs.benchmarkAgents == '' }}
         run: make run-benchmark-autotuned index-benchmark-results
+
+      - name: Run benchmarks self tuned
+        if: ${{ github.event.inputs.benchmarkAgents != '' }}
+        run: make run-benchmark index-benchmark-results
 
       - name: Download PNG
         run: >-
