@@ -11,5 +11,5 @@ apm_server_size = "16g"
 # Benchmarks executor size executor
 worker_instance_type = "c6i.2xlarge"
 
-ess_region = "gcp-us-west2"
+ess_region = "gcp-us-west1"
 deployment_template = "gcp-cpu-optimized-v5"
