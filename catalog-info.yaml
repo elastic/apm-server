@@ -36,6 +36,12 @@ spec:
     spec:
       repository: elastic/apm-server
       pipeline_file: ".buildkite/package.yml"
+      provider_settings:
+        build_branches: true
+        build_pull_requests: true
+        build_tags: false
+        filter_enabled: true
+        filter_condition: build.branch == "main" || build.branch =~ /^[0-9]+\.[0-9]+$$/ || build.branch =~ /^feature\//
       cancel_intermediate_builds: false
       skip_intermediate_builds: false
       teams:
