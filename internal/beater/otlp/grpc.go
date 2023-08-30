@@ -34,7 +34,7 @@ import (
 
 var (
 	grpcRegistryName    = "apm-server.otlp.grpc"
-	gRPCMetricsRegistry = monitoring.Default.NewRegistry(grpcRegistryName)
+	gRPCMetricsRegistry = monitoring.Default.NewRegistry(grpcRegistryName + ".metrics")
 
 	GRPCMetricsMetricsPrefix = "beats_stats.metrics." + grpcRegistryName + ".metrics"
 	GRPCTracesMetricsPrefix  = "beats_stats.metrics." + grpcRegistryName + ".traces"

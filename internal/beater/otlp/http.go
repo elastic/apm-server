@@ -38,7 +38,7 @@ import (
 
 var (
 	httpRegistryName    = "apm-server.otlp.http"
-	httpMetricsRegistry = monitoring.Default.NewRegistry(httpRegistryName)
+	httpMetricsRegistry = monitoring.Default.NewRegistry(httpRegistryName + ".metrics")
 
 	HTTPMetricsMetricsPrefix = "beats_stats.metrics." + httpRegistryName + ".metrics"
 	HTTPTracesMetricsPrefix  = "beats_stats.metrics." + httpRegistryName + ".traces"
