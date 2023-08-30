@@ -21,16 +21,7 @@ import (
 	"sync"
 
 	"github.com/elastic/apm-data/input/otlp"
-	"github.com/elastic/apm-server/internal/beater/request"
 	"github.com/elastic/elastic-agent-libs/monitoring"
-)
-
-var (
-	monitoringKeys = append(request.DefaultResultIDs,
-		request.IDResponseErrorsRateLimit,
-		request.IDResponseErrorsTimeout,
-		request.IDResponseErrorsUnauthorized,
-	)
 )
 
 type monitoredConsumer struct {
