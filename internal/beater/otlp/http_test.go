@@ -85,10 +85,10 @@ func TestConsumeTracesHTTP(t *testing.T) {
 	assert.Len(t, batches[0], 1)
 
 	expectedMetrics := map[string]int64{
-		"apm-server.otlp.http.traces.request.count":        1,
-		"apm-server.otlp.http.traces.response.count":       1,
-		"apm-server.otlp.http.traces.response.valid.count": 1,
-		"apm-server.otlp.http.traces.unset":                1,
+		"beats_stats.metrics.apm-server.otlp.http.traces.request.count":        1,
+		"beats_stats.metrics.apm-server.otlp.http.traces.response.count":       1,
+		"beats_stats.metrics.apm-server.otlp.http.traces.response.valid.count": 1,
+		"beats_stats.metrics.apm-server.otlp.http.traces.unset":                1,
 	}
 	expectMetrics(t, reader, expectedMetrics)
 }
@@ -130,10 +130,10 @@ func TestConsumeMetricsHTTP(t *testing.T) {
 	assert.NoError(t, rsp.Body.Close())
 
 	expectedMetrics := map[string]int64{
-		"apm-server.otlp.http.metrics.request.count":        1,
-		"apm-server.otlp.http.metrics.response.count":       1,
-		"apm-server.otlp.http.metrics.response.valid.count": 1,
-		"apm-server.otlp.http.metrics.unset":                1,
+		"beats_stats.metrics.apm-server.otlp.http.metrics.request.count":        1,
+		"beats_stats.metrics.apm-server.otlp.http.metrics.response.count":       1,
+		"beats_stats.metrics.apm-server.otlp.http.metrics.response.valid.count": 1,
+		"beats_stats.metrics.apm-server.otlp.http.metrics.unset":                1,
 	}
 	expectMetrics(t, reader, expectedMetrics)
 }
@@ -175,10 +175,10 @@ func TestConsumeLogsHTTP(t *testing.T) {
 	require.Len(t, batches, 1)
 
 	expectedMetrics := map[string]int64{
-		"apm-server.otlp.http.logs.request.count":        1,
-		"apm-server.otlp.http.logs.response.count":       1,
-		"apm-server.otlp.http.logs.response.valid.count": 1,
-		"apm-server.otlp.http.logs.unset":                1,
+		"beats_stats.metrics.apm-server.otlp.http.logs.request.count":        1,
+		"beats_stats.metrics.apm-server.otlp.http.logs.response.count":       1,
+		"beats_stats.metrics.apm-server.otlp.http.logs.response.valid.count": 1,
+		"beats_stats.metrics.apm-server.otlp.http.logs.unset":                1,
 	}
 	expectMetrics(t, reader, expectedMetrics)
 }
