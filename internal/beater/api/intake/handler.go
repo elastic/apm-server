@@ -42,10 +42,11 @@ const (
 )
 
 var (
-	MetricsPrefix = "apm-server.server"
+	registryName  = "apm-server.server"
+	MetricsPrefix = "beats_stats.metrics." + registryName
 	// MonitoringMap holds a mapping for request.IDs to monitoring counters
 	MonitoringMap = request.DefaultMonitoringMapForRegistry(registry)
-	registry      = monitoring.Default.NewRegistry(MetricsPrefix)
+	registry      = monitoring.Default.NewRegistry(registryName)
 
 	streamRegistry = monitoring.Default.NewRegistry("apm-server.processor.stream")
 	eventsAccepted = monitoring.NewInt(streamRegistry, "accepted")

@@ -32,9 +32,9 @@ import (
 )
 
 var (
-	GRPCMetricsMetricsPrefix = "apm-server.otlp.grpc.metrics"
-	GRPCTracesMetricsPrefix  = "apm-server.otlp.grpc.traces"
-	GRPCLogsMetricsPrefix    = "apm-server.otlp.grpc.logs"
+	GRPCMetricsMetricsPrefix = "beats_stats.metrics.apm-server.otlp.grpc.metrics"
+	GRPCTracesMetricsPrefix  = "beats_stats.metrics.apm-server.otlp.grpc.traces"
+	GRPCLogsMetricsPrefix    = "beats_stats.metrics.apm-server.otlp.grpc.logs"
 )
 
 // RegisterGRPCServices registers OTLP consumer services with the given gRPC server.

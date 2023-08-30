@@ -43,10 +43,11 @@ const (
 )
 
 var (
-	MetricsPrefix = "apm-server.acm"
+	registryName  = "apm-server.acm"
+	MetricsPrefix = "beats_stats.metrics." + registryName
 	// MonitoringMap holds a mapping for request.IDs to monitoring counters
 	MonitoringMap = request.DefaultMonitoringMapForRegistry(registry)
-	registry      = monitoring.Default.NewRegistry(MetricsPrefix)
+	registry      = monitoring.Default.NewRegistry(registryName)
 
 	errCacheControl = fmt.Sprintf("max-age=%v, must-revalidate", errMaxAgeDuration.Seconds())
 )
