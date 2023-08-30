@@ -33,6 +33,9 @@ import (
 	"go.opentelemetry.io/collector/pdata/pmetric/pmetricotlp"
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	"go.opentelemetry.io/collector/pdata/ptrace/ptraceotlp"
+	"go.opentelemetry.io/otel"
+	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
+	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 	"golang.org/x/sync/semaphore"
 
 	"github.com/elastic/apm-data/model/modelpb"
@@ -41,10 +44,16 @@ import (
 	"github.com/elastic/apm-server/internal/beater/auth"
 	"github.com/elastic/apm-server/internal/beater/config"
 	"github.com/elastic/apm-server/internal/beater/ratelimit"
-	"github.com/elastic/elastic-agent-libs/monitoring"
 )
 
 func TestConsumeTracesHTTP(t *testing.T) {
+	reader := sdkmetric.NewManualReader(sdkmetric.WithTemporalitySelector(
+		func(ik sdkmetric.InstrumentKind) metricdata.Temporality {
+			return metricdata.DeltaTemporality
+		},
+	))
+	otel.SetMeterProvider(sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader)))
+
 	var batches []modelpb.Batch
 	var reportError error
 	var batchProcessor modelpb.ProcessBatchFunc = func(ctx context.Context, batch *modelpb.Batch) error {
@@ -75,22 +84,23 @@ func TestConsumeTracesHTTP(t *testing.T) {
 	require.Len(t, batches, 1)
 	assert.Len(t, batches[0], 1)
 
-	actual := map[string]interface{}{}
-	monitoring.GetRegistry("apm-server.otlp.http.traces").Do(monitoring.Full, func(key string, value interface{}) {
-		actual[key] = value
-	})
-	assert.Equal(t, map[string]interface{}{
-		"request.count":                int64(1),
-		"response.count":               int64(1),
-		"response.errors.count":        int64(0),
-		"response.valid.count":         int64(1),
-		"response.errors.ratelimit":    int64(0),
-		"response.errors.timeout":      int64(0),
-		"response.errors.unauthorized": int64(0),
-	}, actual)
+	expectedMetrics := map[string]int64{
+		"apm-server.otlp.http.traces.request.count":        1,
+		"apm-server.otlp.http.traces.response.count":       1,
+		"apm-server.otlp.http.traces.response.valid.count": 1,
+		"apm-server.otlp.http.traces.unset":                1,
+	}
+	expectMetrics(t, reader, expectedMetrics)
 }
 
 func TestConsumeMetricsHTTP(t *testing.T) {
+	reader := sdkmetric.NewManualReader(sdkmetric.WithTemporalitySelector(
+		func(ik sdkmetric.InstrumentKind) metricdata.Temporality {
+			return metricdata.DeltaTemporality
+		},
+	))
+	otel.SetMeterProvider(sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader)))
+
 	var reportError error
 	var batchProcessor modelpb.ProcessBatchFunc = func(ctx context.Context, batch *modelpb.Batch) error {
 		return reportError
@@ -119,24 +129,23 @@ func TestConsumeMetricsHTTP(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NoError(t, rsp.Body.Close())
 
-	actual := map[string]interface{}{}
-	monitoring.GetRegistry("apm-server.otlp.http.metrics").Do(monitoring.Full, func(key string, value interface{}) {
-		actual[key] = value
-	})
-	assert.Equal(t, map[string]interface{}{
-		"consumer.unsupported_dropped": int64(0),
-
-		"request.count":                int64(1),
-		"response.count":               int64(1),
-		"response.errors.count":        int64(0),
-		"response.valid.count":         int64(1),
-		"response.errors.ratelimit":    int64(0),
-		"response.errors.timeout":      int64(0),
-		"response.errors.unauthorized": int64(0),
-	}, actual)
+	expectedMetrics := map[string]int64{
+		"apm-server.otlp.http.metrics.request.count":        1,
+		"apm-server.otlp.http.metrics.response.count":       1,
+		"apm-server.otlp.http.metrics.response.valid.count": 1,
+		"apm-server.otlp.http.metrics.unset":                1,
+	}
+	expectMetrics(t, reader, expectedMetrics)
 }
 
 func TestConsumeLogsHTTP(t *testing.T) {
+	reader := sdkmetric.NewManualReader(sdkmetric.WithTemporalitySelector(
+		func(ik sdkmetric.InstrumentKind) metricdata.Temporality {
+			return metricdata.DeltaTemporality
+		},
+	))
+	otel.SetMeterProvider(sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader)))
+
 	var batches []modelpb.Batch
 	var reportError error
 	var batchProcessor modelpb.ProcessBatchFunc = func(ctx context.Context, batch *modelpb.Batch) error {
@@ -165,19 +174,13 @@ func TestConsumeLogsHTTP(t *testing.T) {
 	assert.NoError(t, rsp.Body.Close())
 	require.Len(t, batches, 1)
 
-	actual := map[string]interface{}{}
-	monitoring.GetRegistry("apm-server.otlp.http.logs").Do(monitoring.Full, func(key string, value interface{}) {
-		actual[key] = value
-	})
-	assert.Equal(t, map[string]interface{}{
-		"request.count":                int64(1),
-		"response.count":               int64(1),
-		"response.errors.count":        int64(0),
-		"response.valid.count":         int64(1),
-		"response.errors.ratelimit":    int64(0),
-		"response.errors.timeout":      int64(0),
-		"response.errors.unauthorized": int64(0),
-	}, actual)
+	expectedMetrics := map[string]int64{
+		"apm-server.otlp.http.logs.request.count":        1,
+		"apm-server.otlp.http.logs.response.count":       1,
+		"apm-server.otlp.http.logs.response.valid.count": 1,
+		"apm-server.otlp.http.logs.unset":                1,
+	}
+	expectMetrics(t, reader, expectedMetrics)
 }
 
 func newHTTPServer(t *testing.T, batchProcessor modelpb.BatchProcessor) string {

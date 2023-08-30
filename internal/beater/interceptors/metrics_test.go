@@ -20,17 +20,18 @@ package interceptors
 import (
 	"context"
 	"errors"
+	"strings"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"go.opentelemetry.io/otel"
+	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
+	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/elastic/apm-server/internal/beater/monitoringtest"
 	"github.com/elastic/apm-server/internal/beater/request"
-	"github.com/elastic/elastic-agent-libs/logp"
-	"github.com/elastic/elastic-agent-libs/monitoring"
+	"github.com/stretchr/testify/assert"
 )
 
 var monitoringKeys = append(
@@ -40,137 +41,120 @@ var monitoringKeys = append(
 	request.IDResponseErrorsUnauthorized,
 )
 
-func TestMetrics(t *testing.T) {
-	registry := monitoring.NewRegistry()
-
-	monitoringMap := request.MonitoringMapForRegistry(registry, monitoringKeys)
-	methodName := "test_method_name"
-	logger := logp.NewLogger("interceptor.metrics.test")
-
-	interceptor := Metrics(logger)
+func TestMetricsUnaryServerInterceptor(t *testing.T) {
+	interceptor := NewMetricsUnaryServerInterceptor(map[string]string{"test_method_name": "prefix"})
 
 	ctx := context.Background()
 	info := &grpc.UnaryServerInfo{
-		FullMethod: methodName,
-		Server: requestMetricsFunc(func(fullMethod string) map[request.ResultID]*monitoring.Int {
-			assert.Equal(t, methodName, fullMethod)
-			return monitoringMap
-		}),
+		FullMethod: "test_method_name",
 	}
 
 	for _, tc := range []struct {
-		f             func(ctx context.Context, req interface{}) (interface{}, error)
-		monitoringInt map[request.ResultID]int64
+		name     string
+		f        func(ctx context.Context, req interface{}) (interface{}, error)
+		expected map[request.ResultID]int64
 	}{
 		{
+			name: "with an error",
 			f: func(ctx context.Context, req interface{}) (interface{}, error) {
 				return nil, errors.New("error")
 			},
-			monitoringInt: map[request.ResultID]int64{
-				request.IDRequestCount:               1,
-				request.IDResponseCount:              1,
-				request.IDResponseValidCount:         0,
-				request.IDResponseErrorsCount:        1,
-				request.IDResponseErrorsInternal:     1,
-				request.IDResponseErrorsRateLimit:    0,
-				request.IDResponseErrorsTimeout:      0,
-				request.IDResponseErrorsUnauthorized: 0,
+			expected: map[request.ResultID]int64{
+				request.IDRequestCount:        1,
+				request.IDResponseCount:       1,
+				request.IDResponseErrorsCount: 1,
 			},
 		},
 		{
+			name: "with an unauthenticated error",
 			f: func(ctx context.Context, req interface{}) (interface{}, error) {
 				return nil, status.Error(codes.Unauthenticated, "error")
 			},
-			monitoringInt: map[request.ResultID]int64{
+			expected: map[request.ResultID]int64{
 				request.IDRequestCount:               1,
 				request.IDResponseCount:              1,
-				request.IDResponseValidCount:         0,
 				request.IDResponseErrorsCount:        1,
-				request.IDResponseErrorsInternal:     0,
-				request.IDResponseErrorsRateLimit:    0,
-				request.IDResponseErrorsTimeout:      0,
 				request.IDResponseErrorsUnauthorized: 1,
 			},
 		},
 		{
+			name: "with a deadline exceeded",
 			f: func(ctx context.Context, req interface{}) (interface{}, error) {
 				return nil, status.Error(codes.DeadlineExceeded, "request timed out")
 			},
-			monitoringInt: map[request.ResultID]int64{
-				request.IDRequestCount:               1,
-				request.IDResponseCount:              1,
-				request.IDResponseValidCount:         0,
-				request.IDResponseErrorsCount:        1,
-				request.IDResponseErrorsInternal:     0,
-				request.IDResponseErrorsRateLimit:    0,
-				request.IDResponseErrorsTimeout:      1,
-				request.IDResponseErrorsUnauthorized: 0,
+			expected: map[request.ResultID]int64{
+				request.IDRequestCount:          1,
+				request.IDResponseCount:         1,
+				request.IDResponseErrorsCount:   1,
+				request.IDResponseErrorsTimeout: 1,
 			},
 		},
 		{
+			name: "with a canceled",
 			f: func(ctx context.Context, req interface{}) (interface{}, error) {
 				return nil, status.Error(codes.Canceled, "request timed out")
 			},
-			monitoringInt: map[request.ResultID]int64{
-				request.IDRequestCount:               1,
-				request.IDResponseCount:              1,
-				request.IDResponseValidCount:         0,
-				request.IDResponseErrorsCount:        1,
-				request.IDResponseErrorsInternal:     0,
-				request.IDResponseErrorsRateLimit:    0,
-				request.IDResponseErrorsTimeout:      1,
-				request.IDResponseErrorsUnauthorized: 0,
+			expected: map[request.ResultID]int64{
+				request.IDRequestCount:          1,
+				request.IDResponseCount:         1,
+				request.IDResponseErrorsCount:   1,
+				request.IDResponseErrorsTimeout: 1,
 			},
 		},
 		{
+			name: "with a resources exhausted",
 			f: func(ctx context.Context, req interface{}) (interface{}, error) {
 				return nil, status.Error(codes.ResourceExhausted, "rate limit exceeded")
 			},
-			monitoringInt: map[request.ResultID]int64{
-				request.IDRequestCount:               1,
-				request.IDResponseCount:              1,
-				request.IDResponseValidCount:         0,
-				request.IDResponseErrorsCount:        1,
-				request.IDResponseErrorsInternal:     0,
-				request.IDResponseErrorsRateLimit:    1,
-				request.IDResponseErrorsTimeout:      0,
-				request.IDResponseErrorsUnauthorized: 0,
+			expected: map[request.ResultID]int64{
+				request.IDRequestCount:            1,
+				request.IDResponseCount:           1,
+				request.IDResponseErrorsCount:     1,
+				request.IDResponseErrorsRateLimit: 1,
 			},
 		},
 		{
+			name: "with no error",
 			f: func(ctx context.Context, req interface{}) (interface{}, error) {
 				return nil, nil
 			},
-			monitoringInt: map[request.ResultID]int64{
-				request.IDRequestCount:               1,
-				request.IDResponseCount:              1,
-				request.IDResponseValidCount:         1,
-				request.IDResponseErrorsCount:        0,
-				request.IDResponseErrorsInternal:     0,
-				request.IDResponseErrorsRateLimit:    0,
-				request.IDResponseErrorsTimeout:      0,
-				request.IDResponseErrorsUnauthorized: 0,
+			expected: map[request.ResultID]int64{
+				request.IDRequestCount:       1,
+				request.IDResponseCount:      1,
+				request.IDResponseValidCount: 1,
 			},
 		},
 	} {
-		interceptor(ctx, nil, info, tc.f)
-		assertMonitoring(t, tc.monitoringInt, monitoringMap)
-		monitoringtest.ClearRegistry(monitoringMap)
+		t.Run(tc.name, func(t *testing.T) {
+			reader := sdkmetric.NewManualReader(sdkmetric.WithTemporalitySelector(
+				func(ik sdkmetric.InstrumentKind) metricdata.Temporality {
+					return metricdata.DeltaTemporality
+				},
+			))
+			otel.SetMeterProvider(sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader)))
+
+			interceptor(ctx, nil, info, tc.f)
+
+			var rm metricdata.ResourceMetrics
+			assert.NoError(t, reader.Collect(context.Background(), &rm))
+
+			for _, sm := range rm.ScopeMetrics {
+				assert.Equal(t, len(tc.expected), len(sm.Metrics))
+
+				for _, m := range sm.Metrics {
+					switch d := m.Data.(type) {
+					case metricdata.Sum[int64]:
+						assert.Equal(t, 1, len(d.DataPoints))
+						_, name, _ := strings.Cut(m.Name, "prefix.")
+
+						if v, ok := tc.expected[request.ResultID(name)]; ok {
+							assert.Equal(t, v, d.DataPoints[0].Value)
+						} else {
+							assert.Fail(t, "unexpected metric", m.Name)
+						}
+					}
+				}
+			}
+		})
 	}
-}
-
-func assertMonitoring(t *testing.T, expected map[request.ResultID]int64, actual map[request.ResultID]*monitoring.Int) {
-	for _, k := range monitoringKeys {
-		if val, ok := expected[k]; ok {
-			assert.Equalf(t, val, actual[k].Get(), "%s mismatch", k)
-		} else {
-			assert.Zerof(t, actual[k].Get(), "%s mismatch", k)
-		}
-	}
-}
-
-type requestMetricsFunc func(fullMethod string) map[request.ResultID]*monitoring.Int
-
-func (f requestMetricsFunc) RequestMetrics(fullMethod string) map[request.ResultID]*monitoring.Int {
-	return f(fullMethod)
 }

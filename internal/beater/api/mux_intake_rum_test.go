@@ -49,7 +49,7 @@ func TestOPTIONS(t *testing.T) {
 			requestTaken <- struct{}{}
 			<-done
 		},
-		rumMiddleware(cfg, authenticator, ratelimitStore, intake.MonitoringMap)...)
+		rumMiddleware(cfg, authenticator, ratelimitStore, intake.MetricsPrefix)...)
 
 	// use this to block the single allowed concurrent requests
 	go func() {
@@ -126,7 +126,7 @@ func TestIntakeRUMHandler_PanicMiddleware(t *testing.T) {
 func TestRumHandler_MonitoringMiddleware(t *testing.T) {
 	// send GET request resulting in 403 Forbidden error
 	for _, path := range []string{"/intake/v2/rum/events", "/intake/v3/rum/events"} {
-		testMonitoringMiddleware(t, path, intake.MonitoringMap, map[request.ResultID]int{
+		testMonitoringMiddleware(t, path, intake.MetricsPrefix, map[request.ResultID]int64{
 			request.IDRequestCount:            1,
 			request.IDResponseCount:           1,
 			request.IDResponseErrorsCount:     1,

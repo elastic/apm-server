@@ -29,9 +29,10 @@ import (
 )
 
 var (
+	MetricsPrefix = "apm-server.root"
 	// MonitoringMap holds a mapping for request.IDs to monitoring counters
 	MonitoringMap = request.DefaultMonitoringMapForRegistry(registry)
-	registry      = monitoring.Default.NewRegistry("apm-server.root")
+	registry      = monitoring.Default.NewRegistry(MetricsPrefix)
 )
 
 // HandlerConfig holds configuration for Handler.

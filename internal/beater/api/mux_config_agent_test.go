@@ -61,7 +61,7 @@ func TestConfigAgentHandler_PanicMiddleware(t *testing.T) {
 }
 
 func TestConfigAgentHandler_MonitoringMiddleware(t *testing.T) {
-	testMonitoringMiddleware(t, "/config/v1/agents", agent.MonitoringMap, map[request.ResultID]int{
+	testMonitoringMiddleware(t, "/config/v1/agents", agent.MetricsPrefix, map[request.ResultID]int64{
 		request.IDRequestCount:               1,
 		request.IDResponseCount:              1,
 		request.IDResponseErrorsCount:        1,

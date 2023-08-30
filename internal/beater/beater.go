@@ -62,6 +62,7 @@ import (
 	"github.com/elastic/apm-server/internal/beater/config"
 	"github.com/elastic/apm-server/internal/beater/interceptors"
 	javaattacher "github.com/elastic/apm-server/internal/beater/java_attacher"
+	"github.com/elastic/apm-server/internal/beater/otlp"
 	"github.com/elastic/apm-server/internal/beater/ratelimit"
 	"github.com/elastic/apm-server/internal/elasticsearch"
 	"github.com/elastic/apm-server/internal/idxmgmt"
@@ -387,7 +388,11 @@ func (s *Runner) Run(ctx context.Context) error {
 		apmgrpc.NewUnaryServerInterceptor(apmgrpc.WithRecovery(), apmgrpc.WithTracer(tracer)),
 		interceptors.ClientMetadata(),
 		interceptors.Logging(gRPCLogger),
-		interceptors.Metrics(gRPCLogger),
+		interceptors.NewMetricsUnaryServerInterceptor(map[string]string{
+			"/opentelemetry.proto.collector.metrics.v1.MetricsService/Export": otlp.GRPCMetricsMetricsPrefix,
+			"/opentelemetry.proto.collector.trace.v1.TraceService/Export":     otlp.GRPCTracesMetricsPrefix,
+			"/opentelemetry.proto.collector.logs.v1.LogsService/Export":       otlp.GRPCLogsMetricsPrefix,
+		}),
 		interceptors.Timeout(),
 		interceptors.Auth(authenticator),
 		interceptors.AnonymousRateLimit(ratelimitStore),

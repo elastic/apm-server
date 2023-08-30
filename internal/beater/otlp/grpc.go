@@ -26,42 +26,16 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 
-	"github.com/elastic/elastic-agent-libs/monitoring"
-
 	"github.com/elastic/apm-data/input"
 	"github.com/elastic/apm-data/input/otlp"
 	"github.com/elastic/apm-data/model/modelpb"
-	"github.com/elastic/apm-server/internal/beater/interceptors"
-	"github.com/elastic/apm-server/internal/beater/request"
 )
 
 var (
-	gRPCMetricsRegistry      = monitoring.Default.NewRegistry("apm-server.otlp.grpc.metrics")
-	gRPCMetricsMonitoringMap = request.MonitoringMapForRegistry(gRPCMetricsRegistry, monitoringKeys)
-	gRPCTracesRegistry       = monitoring.Default.NewRegistry("apm-server.otlp.grpc.traces")
-	gRPCTracesMonitoringMap  = request.MonitoringMapForRegistry(gRPCTracesRegistry, monitoringKeys)
-	gRPCLogsRegistry         = monitoring.Default.NewRegistry("apm-server.otlp.grpc.logs")
-	gRPCLogsMonitoringMap    = request.MonitoringMapForRegistry(gRPCLogsRegistry, monitoringKeys)
-
-	gRPCMonitoredConsumer monitoredConsumer
+	GRPCMetricsMetricsPrefix = "apm-server.otlp.grpc.metrics"
+	GRPCTracesMetricsPrefix  = "apm-server.otlp.grpc.traces"
+	GRPCLogsMetricsPrefix    = "apm-server.otlp.grpc.logs"
 )
-
-func init() {
-	monitoring.NewFunc(gRPCMetricsRegistry, "consumer", gRPCMonitoredConsumer.collect, monitoring.Report)
-
-	interceptors.RegisterMethodUnaryRequestMetrics(
-		"/opentelemetry.proto.collector.metrics.v1.MetricsService/Export",
-		gRPCMetricsMonitoringMap,
-	)
-	interceptors.RegisterMethodUnaryRequestMetrics(
-		"/opentelemetry.proto.collector.trace.v1.TraceService/Export",
-		gRPCTracesMonitoringMap,
-	)
-	interceptors.RegisterMethodUnaryRequestMetrics(
-		"/opentelemetry.proto.collector.logs.v1.LogsService/Export",
-		gRPCLogsMonitoringMap,
-	)
-}
 
 // RegisterGRPCServices registers OTLP consumer services with the given gRPC server.
 func RegisterGRPCServices(
@@ -78,7 +52,6 @@ func RegisterGRPCServices(
 		Logger:    logger,
 		Semaphore: semaphore,
 	})
-	gRPCMonitoredConsumer.set(consumer)
 
 	ptraceotlp.RegisterGRPCServer(grpcServer, &tracesService{consumer: consumer})
 	pmetricotlp.RegisterGRPCServer(grpcServer, &metricsService{consumer: consumer})

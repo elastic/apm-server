@@ -66,7 +66,7 @@ func TestIntakeBackendHandler_PanicMiddleware(t *testing.T) {
 
 func TestIntakeBackendHandler_MonitoringMiddleware(t *testing.T) {
 	// send GET request resulting in 405 MethodNotAllowed error
-	testMonitoringMiddleware(t, "/intake/v2/events", intake.MonitoringMap, map[request.ResultID]int{
+	testMonitoringMiddleware(t, "/intake/v2/events", intake.MetricsPrefix, map[request.ResultID]int64{
 		request.IDRequestCount:                   1,
 		request.IDResponseCount:                  1,
 		request.IDResponseErrorsCount:            1,

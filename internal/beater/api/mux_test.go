@@ -24,22 +24,24 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/netip"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/otel"
+	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
+	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 	"golang.org/x/sync/semaphore"
 
 	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/internal/agentcfg"
 	"github.com/elastic/apm-server/internal/beater/auth"
 	"github.com/elastic/apm-server/internal/beater/config"
-	"github.com/elastic/apm-server/internal/beater/monitoringtest"
 	"github.com/elastic/apm-server/internal/beater/ratelimit"
 	"github.com/elastic/apm-server/internal/beater/request"
 	"github.com/elastic/apm-server/internal/sourcemap"
-	"github.com/elastic/elastic-agent-libs/monitoring"
 )
 
 func TestBackendRequestMetadata(t *testing.T) {
@@ -133,15 +135,38 @@ func testPanicMiddleware(t *testing.T, urlPath string) {
 	assert.JSONEq(t, `{"error":"panic handling request"}`, rec.Body.String())
 }
 
-func testMonitoringMiddleware(t *testing.T, urlPath string, monitoringMap map[request.ResultID]*monitoring.Int, expected map[request.ResultID]int) {
-	monitoringtest.ClearRegistry(monitoringMap)
+func testMonitoringMiddleware(t *testing.T, urlPath string, metricsPrefix string, expected map[request.ResultID]int64) {
+	reader := sdkmetric.NewManualReader(sdkmetric.WithTemporalitySelector(
+		func(ik sdkmetric.InstrumentKind) metricdata.Temporality {
+			return metricdata.DeltaTemporality
+		},
+	))
+	otel.SetMeterProvider(sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader)))
 
 	h := newTestMux(t, config.DefaultConfig())
 	req := httptest.NewRequest(http.MethodGet, urlPath, nil)
 	h.ServeHTTP(httptest.NewRecorder(), req)
 
-	equal, result := monitoringtest.CompareMonitoringInt(expected, monitoringMap)
-	assert.True(t, equal, result)
+	var rm metricdata.ResourceMetrics
+	assert.NoError(t, reader.Collect(context.Background(), &rm))
+
+	for _, sm := range rm.ScopeMetrics {
+		assert.Equal(t, len(expected), len(sm.Metrics))
+
+		for _, m := range sm.Metrics {
+			switch d := m.Data.(type) {
+			case metricdata.Sum[int64]:
+				assert.Equal(t, 1, len(d.DataPoints))
+				_, name, _ := strings.Cut(m.Name, metricsPrefix+".")
+
+				if v, ok := expected[request.ResultID(name)]; ok {
+					assert.Equal(t, v, d.DataPoints[0].Value)
+				} else {
+					assert.Fail(t, "unexpected metric", m.Name)
+				}
+			}
+		}
+	}
 }
 
 func newTestMux(t *testing.T, cfg *config.Config) http.Handler {

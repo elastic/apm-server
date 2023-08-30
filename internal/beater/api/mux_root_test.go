@@ -64,7 +64,7 @@ func TestRootHandler_PanicMiddleware(t *testing.T) {
 }
 
 func TestRootHandler_MonitoringMiddleware(t *testing.T) {
-	testMonitoringMiddleware(t, "/", root.MonitoringMap, map[request.ResultID]int{
+	testMonitoringMiddleware(t, "/", root.MetricsPrefix, map[request.ResultID]int64{
 		request.IDRequestCount:       1,
 		request.IDResponseCount:      1,
 		request.IDResponseValidCount: 1,

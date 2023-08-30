@@ -18,84 +18,100 @@
 package middleware
 
 import (
+	"context"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"go.opentelemetry.io/otel"
+	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
+	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 
-	"github.com/elastic/elastic-agent-libs/monitoring"
-
-	"github.com/elastic/apm-server/internal/beater/monitoringtest"
 	"github.com/elastic/apm-server/internal/beater/request"
-)
-
-var (
-	mockMonitoringRegistry = monitoring.Default.NewRegistry("mock.monitoring")
-	mockMonitoringNil      = map[request.ResultID]*monitoring.Int{}
-	mockMonitoring         = request.DefaultMonitoringMapForRegistry(mockMonitoringRegistry)
 )
 
 func TestMonitoringHandler(t *testing.T) {
 	checkMonitoring := func(t *testing.T,
 		h func(*request.Context),
-		expected map[request.ResultID]int,
-		m map[request.ResultID]*monitoring.Int,
+		expected map[request.ResultID]int64,
 	) {
-		monitoringtest.ClearRegistry(m)
+		reader := sdkmetric.NewManualReader(sdkmetric.WithTemporalitySelector(
+			func(ik sdkmetric.InstrumentKind) metricdata.Temporality {
+				return metricdata.DeltaTemporality
+			},
+		))
+		otel.SetMeterProvider(sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader)))
+
 		c, _ := DefaultContextWithResponseRecorder()
-		Apply(MonitoringMiddleware(m), h)(c)
-		equal, result := monitoringtest.CompareMonitoringInt(expected, m)
-		assert.True(t, equal, result)
+		Apply(MonitoringMiddleware("prefix"), h)(c)
+
+		var rm metricdata.ResourceMetrics
+		assert.NoError(t, reader.Collect(context.Background(), &rm))
+
+		for _, sm := range rm.ScopeMetrics {
+			assert.Equal(t, len(expected), len(sm.Metrics))
+
+			for _, m := range sm.Metrics {
+				switch d := m.Data.(type) {
+				case metricdata.Sum[int64]:
+					assert.Equal(t, 1, len(d.DataPoints))
+					_, name, _ := strings.Cut(m.Name, "prefix.")
+
+					if v, ok := expected[request.ResultID(name)]; ok {
+						assert.Equal(t, v, d.DataPoints[0].Value)
+					} else {
+						assert.Fail(t, "unexpected metric", m.Name)
+					}
+				}
+			}
+		}
 	}
 
 	t.Run("Error", func(t *testing.T) {
 		checkMonitoring(t,
 			Handler403,
-			map[request.ResultID]int{
+			map[request.ResultID]int64{
 				request.IDRequestCount:            1,
 				request.IDResponseCount:           1,
 				request.IDResponseErrorsCount:     1,
-				request.IDResponseErrorsForbidden: 1},
-			mockMonitoring)
+				request.IDResponseErrorsForbidden: 1,
+			},
+		)
 	})
 
 	t.Run("Accepted", func(t *testing.T) {
 		checkMonitoring(t,
 			Handler202,
-			map[request.ResultID]int{
+			map[request.ResultID]int64{
 				request.IDRequestCount:          1,
 				request.IDResponseCount:         1,
 				request.IDResponseValidCount:    1,
-				request.IDResponseValidAccepted: 1},
-			mockMonitoring)
+				request.IDResponseValidAccepted: 1,
+			},
+		)
 	})
 
 	t.Run("Idle", func(t *testing.T) {
 		checkMonitoring(t,
 			HandlerIdle,
-			map[request.ResultID]int{
+			map[request.ResultID]int64{
 				request.IDRequestCount:       1,
 				request.IDResponseCount:      1,
 				request.IDResponseValidCount: 1,
-				request.IDUnset:              1},
-			mockMonitoring)
+				request.IDUnset:              1,
+			},
+		)
 	})
 
 	t.Run("Panic", func(t *testing.T) {
 		checkMonitoring(t,
 			Apply(RecoverPanicMiddleware(), HandlerPanic),
-			map[request.ResultID]int{
+			map[request.ResultID]int64{
 				request.IDRequestCount:           1,
 				request.IDResponseCount:          1,
 				request.IDResponseErrorsCount:    1,
 				request.IDResponseErrorsInternal: 1,
 			},
-			mockMonitoring)
-	})
-
-	t.Run("Nil", func(t *testing.T) {
-		checkMonitoring(t,
-			HandlerIdle,
-			map[request.ResultID]int{},
-			mockMonitoringNil)
+		)
 	})
 }

@@ -38,11 +38,15 @@ import (
 )
 
 var (
-	httpMetricsRegistry      = monitoring.Default.NewRegistry("apm-server.otlp.http.metrics")
+	HTTPMetricsMetricsPrefix = "apm-server.otlp.http.metrics"
+	HTTPTracesMetricsPrefix  = "apm-server.otlp.http.traces"
+	HTTPLogsMetricsPrefix    = "apm-server.otlp.http.logs"
+
+	httpMetricsRegistry      = monitoring.Default.NewRegistry(HTTPMetricsMetricsPrefix)
 	HTTPMetricsMonitoringMap = request.MonitoringMapForRegistry(httpMetricsRegistry, monitoringKeys)
-	httpTracesRegistry       = monitoring.Default.NewRegistry("apm-server.otlp.http.traces")
+	httpTracesRegistry       = monitoring.Default.NewRegistry(HTTPTracesMetricsPrefix)
 	HTTPTracesMonitoringMap  = request.MonitoringMapForRegistry(httpTracesRegistry, monitoringKeys)
-	httpLogsRegistry         = monitoring.Default.NewRegistry("apm-server.otlp.http.logs")
+	httpLogsRegistry         = monitoring.Default.NewRegistry(HTTPLogsMetricsPrefix)
 	HTTPLogsMonitoringMap    = request.MonitoringMapForRegistry(httpLogsRegistry, monitoringKeys)
 
 	httpMonitoredConsumer monitoredConsumer

@@ -31,6 +31,10 @@ import (
 	"go.opentelemetry.io/collector/pdata/pmetric/pmetricotlp"
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	"go.opentelemetry.io/collector/pdata/ptrace/ptraceotlp"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/sdk/metric"
+	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
+	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 	"go.uber.org/zap"
 	"golang.org/x/sync/semaphore"
 	"google.golang.org/grpc"
@@ -40,11 +44,16 @@ import (
 	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/internal/beater/interceptors"
 	"github.com/elastic/apm-server/internal/beater/otlp"
-	"github.com/elastic/elastic-agent-libs/logp"
-	"github.com/elastic/elastic-agent-libs/monitoring"
 )
 
 func TestConsumeTracesGRPC(t *testing.T) {
+	reader := sdkmetric.NewManualReader(sdkmetric.WithTemporalitySelector(
+		func(ik sdkmetric.InstrumentKind) metricdata.Temporality {
+			return metricdata.DeltaTemporality
+		},
+	))
+	otel.SetMeterProvider(sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader)))
+
 	var batches []modelpb.Batch
 	var reportError error
 	var batchProcessor modelpb.ProcessBatchFunc = func(ctx context.Context, batch *modelpb.Batch) error {
@@ -77,22 +86,23 @@ func TestConsumeTracesGRPC(t *testing.T) {
 	assert.Len(t, batches[0], 1)
 	assert.Len(t, batches[1], 1)
 
-	actual := map[string]interface{}{}
-	monitoring.GetRegistry("apm-server.otlp.grpc.traces").Do(monitoring.Full, func(key string, value interface{}) {
-		actual[key] = value
-	})
-	assert.Equal(t, map[string]interface{}{
-		"request.count":                int64(2),
-		"response.count":               int64(2),
-		"response.errors.count":        int64(1),
-		"response.valid.count":         int64(1),
-		"response.errors.ratelimit":    int64(0),
-		"response.errors.timeout":      int64(0),
-		"response.errors.unauthorized": int64(0),
-	}, actual)
+	expectedMetrics := map[string]int64{
+		"traces.request.count":         2,
+		"traces.response.count":        2,
+		"traces.response.errors.count": 1,
+		"traces.response.valid.count":  1,
+	}
+	expectMetrics(t, reader, expectedMetrics)
 }
 
 func TestConsumeMetricsGRPC(t *testing.T) {
+	reader := sdkmetric.NewManualReader(sdkmetric.WithTemporalitySelector(
+		func(ik sdkmetric.InstrumentKind) metricdata.Temporality {
+			return metricdata.DeltaTemporality
+		},
+	))
+	otel.SetMeterProvider(sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader)))
+
 	var reportError error
 	var batchProcessor modelpb.ProcessBatchFunc = func(ctx context.Context, batch *modelpb.Batch) error {
 		return reportError
@@ -122,24 +132,23 @@ func TestConsumeMetricsGRPC(t *testing.T) {
 	errStatus := status.Convert(err)
 	assert.Equal(t, "failed to publish events", errStatus.Message())
 
-	actual := map[string]interface{}{}
-	monitoring.GetRegistry("apm-server.otlp.grpc.metrics").Do(monitoring.Full, func(key string, value interface{}) {
-		actual[key] = value
-	})
-	assert.Equal(t, map[string]interface{}{
-		"consumer.unsupported_dropped": int64(0),
-
-		"request.count":                int64(2),
-		"response.count":               int64(2),
-		"response.errors.count":        int64(1),
-		"response.valid.count":         int64(1),
-		"response.errors.ratelimit":    int64(0),
-		"response.errors.timeout":      int64(0),
-		"response.errors.unauthorized": int64(0),
-	}, actual)
+	expectedMetrics := map[string]int64{
+		"metrics.request.count":         2,
+		"metrics.response.count":        2,
+		"metrics.response.errors.count": 1,
+		"metrics.response.valid.count":  1,
+	}
+	expectMetrics(t, reader, expectedMetrics)
 }
 
 func TestConsumeLogsGRPC(t *testing.T) {
+	reader := sdkmetric.NewManualReader(sdkmetric.WithTemporalitySelector(
+		func(ik sdkmetric.InstrumentKind) metricdata.Temporality {
+			return metricdata.DeltaTemporality
+		},
+	))
+	otel.SetMeterProvider(sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader)))
+
 	var batches []modelpb.Batch
 	var reportError error
 	var batchProcessor modelpb.ProcessBatchFunc = func(ctx context.Context, batch *modelpb.Batch) error {
@@ -171,26 +180,24 @@ func TestConsumeLogsGRPC(t *testing.T) {
 	assert.Len(t, batches[0], 1)
 	assert.Len(t, batches[1], 1)
 
-	actual := map[string]interface{}{}
-	monitoring.GetRegistry("apm-server.otlp.grpc.logs").Do(monitoring.Full, func(key string, value interface{}) {
-		actual[key] = value
-	})
-	assert.Equal(t, map[string]interface{}{
-		"request.count":                int64(2),
-		"response.count":               int64(2),
-		"response.errors.count":        int64(1),
-		"response.valid.count":         int64(1),
-		"response.errors.ratelimit":    int64(0),
-		"response.errors.timeout":      int64(0),
-		"response.errors.unauthorized": int64(0),
-	}, actual)
+	expectedMetrics := map[string]int64{
+		"logs.request.count":         2,
+		"logs.response.count":        2,
+		"logs.response.errors.count": 1,
+		"logs.response.valid.count":  1,
+	}
+
+	expectMetrics(t, reader, expectedMetrics)
 }
 
 func newGRPCServer(t *testing.T, batchProcessor modelpb.BatchProcessor) *grpc.ClientConn {
 	lis, err := net.Listen("tcp", "localhost:0")
 	require.NoError(t, err)
-	logger := logp.NewLogger("otlp.grpc.test")
-	srv := grpc.NewServer(grpc.UnaryInterceptor(interceptors.Metrics(logger)))
+	srv := grpc.NewServer(grpc.UnaryInterceptor(interceptors.NewMetricsUnaryServerInterceptor(map[string]string{
+		"/opentelemetry.proto.collector.metrics.v1.MetricsService/Export": "metrics",
+		"/opentelemetry.proto.collector.trace.v1.TraceService/Export":     "traces",
+		"/opentelemetry.proto.collector.logs.v1.LogsService/Export":       "logs",
+	})))
 	semaphore := semaphore.NewWeighted(1)
 	otlp.RegisterGRPCServices(srv, zap.NewNop(), batchProcessor, semaphore)
 
@@ -200,4 +207,27 @@ func newGRPCServer(t *testing.T, batchProcessor modelpb.BatchProcessor) *grpc.Cl
 	require.NoError(t, err)
 	t.Cleanup(func() { conn.Close() })
 	return conn
+}
+
+func expectMetrics(t *testing.T, reader metric.Reader, expectedMetrics map[string]int64) {
+	var rm metricdata.ResourceMetrics
+	assert.NoError(t, reader.Collect(context.Background(), &rm))
+
+	assert.NotEqual(t, 0, len(rm.ScopeMetrics))
+	for _, sm := range rm.ScopeMetrics {
+		assert.Equal(t, len(expectedMetrics), len(sm.Metrics))
+
+		for _, m := range sm.Metrics {
+			switch d := m.Data.(type) {
+			case metricdata.Sum[int64]:
+				assert.Equal(t, 1, len(d.DataPoints))
+
+				if v, ok := expectedMetrics[m.Name]; ok {
+					assert.Equal(t, v, d.DataPoints[0].Value)
+				} else {
+					assert.Fail(t, "unexpected metric", m.Name)
+				}
+			}
+		}
+	}
 }

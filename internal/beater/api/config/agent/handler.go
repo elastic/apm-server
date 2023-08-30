@@ -43,9 +43,10 @@ const (
 )
 
 var (
+	MetricsPrefix = "apm-server.acm"
 	// MonitoringMap holds a mapping for request.IDs to monitoring counters
 	MonitoringMap = request.DefaultMonitoringMapForRegistry(registry)
-	registry      = monitoring.Default.NewRegistry("apm-server.acm")
+	registry      = monitoring.Default.NewRegistry(MetricsPrefix)
 
 	errCacheControl = fmt.Sprintf("max-age=%v, must-revalidate", errMaxAgeDuration.Seconds())
 )

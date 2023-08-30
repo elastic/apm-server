@@ -18,35 +18,54 @@
 package middleware
 
 import (
+	"context"
 	"net/http"
-
-	"github.com/elastic/elastic-agent-libs/monitoring"
+	"strings"
 
 	"github.com/elastic/apm-server/internal/beater/request"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/metric"
 )
 
+var usedResults = []request.ResultID{
+	request.IDRequestCount,
+	request.IDResponseCount,
+	request.IDResponseErrorsCount,
+	request.IDResponseValidCount,
+}
+
 // MonitoringMiddleware returns a middleware that increases monitoring counters for collecting metrics
-// about request processing. As input parameter it takes a map capable of mapping a request.ResultID to a counter.
-func MonitoringMiddleware(m map[request.ResultID]*monitoring.Int) Middleware {
-	return func(h request.Handler) (request.Handler, error) {
-		inc := func(id request.ResultID) {
-			if counter, ok := m[id]; ok {
-				counter.Inc()
-			}
+// about request processing. As input parameter it takes a string that will be prepended to every metric name.
+func MonitoringMiddleware(metricPrefix string) Middleware {
+	meter := otel.Meter("internal/beater/middleware")
+	metrics := map[request.ResultID]metric.Int64Counter{}
+
+	for _, v := range usedResults {
+		nm, err := meter.Int64Counter(strings.Join([]string{metricPrefix, string(v)}, "."))
+		if err == nil {
+			metrics[v] = nm
 		}
+	}
+
+	return func(h request.Handler) (request.Handler, error) {
 		return func(c *request.Context) {
-			inc(request.IDRequestCount)
+			ctx := context.Background()
+
+			metrics[request.IDRequestCount].Add(ctx, 1)
 
 			h(c)
 
-			inc(request.IDResponseCount)
+			metrics[request.IDResponseCount].Add(ctx, 1)
 			if c.Result.StatusCode >= http.StatusBadRequest {
-				inc(request.IDResponseErrorsCount)
+				metrics[request.IDResponseErrorsCount].Add(ctx, 1)
 			} else {
-				inc(request.IDResponseValidCount)
+				metrics[request.IDResponseValidCount].Add(ctx, 1)
 			}
 
-			inc(c.Result.ID)
+			nm, err := meter.Int64Counter(strings.Join([]string{metricPrefix, string(c.Result.ID)}, "."))
+			if err == nil {
+				nm.Add(ctx, 1)
+			}
 		}, nil
 
 	}

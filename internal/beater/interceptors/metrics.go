@@ -19,66 +19,56 @@ package interceptors
 
 import (
 	"context"
+	"strings"
 
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/metric"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
 	"github.com/elastic/apm-server/internal/beater/request"
-	"github.com/elastic/elastic-agent-libs/logp"
-	"github.com/elastic/elastic-agent-libs/monitoring"
 )
 
-var methodUnaryRequestMetrics = make(map[string]map[request.ResultID]*monitoring.Int)
-
-// RegisterMethodUnaryRequestMetrics registers a UnaryRequestMetrics for the
-// given full method name. This can be used when the gRPC service implementation
-// is not exensible, such as in the case of the OTLP services.
-//
-// This function must only be called from package init functions; it is not safe
-// for concurrent access.
-func RegisterMethodUnaryRequestMetrics(fullMethod string, m map[request.ResultID]*monitoring.Int) {
-	methodUnaryRequestMetrics[fullMethod] = m
+var usedResults = []request.ResultID{
+	request.IDRequestCount,
+	request.IDResponseCount,
+	request.IDResponseErrorsCount,
+	request.IDResponseValidCount,
+	request.IDResponseErrorsUnauthorized,
+	request.IDResponseErrorsTimeout,
+	request.IDResponseErrorsRateLimit,
 }
 
-// UnaryRequestMetrics is an interface that gRPC services may implement
-// to provide a metrics registry for the Metrics interceptor.
-type UnaryRequestMetrics interface {
-	RequestMetrics(fullMethod string) map[request.ResultID]*monitoring.Int
-}
-
-// Metrics returns a grpc.UnaryServerInterceptor that increments metrics
+// NewMetricsUnaryServerInterceptor returns a grpc.UnaryServerInterceptor that increments metrics
 // for gRPC method calls.
-//
-// If a gRPC service implements UnaryRequestMetrics, its RequestMetrics
-// method will be called to obtain the metrics map for incrementing. If the
-// service does not implement UnaryRequestMetrics, but
-// RegisterMethodUnaryRequestMetrics has been called for the invoked method,
-// then the registered UnaryRequestMetrics will be used instead. Finally,
-// if neither of these are available, a warning will be logged and no metrics
-// will be gathered.
-func Metrics(logger *logp.Logger) grpc.UnaryServerInterceptor {
+func NewMetricsUnaryServerInterceptor(metricPrefix map[string]string) grpc.UnaryServerInterceptor {
+	meter := otel.Meter("internal/beater/middleware")
+	metrics := map[request.ResultID]map[string]metric.Int64Counter{}
+
+	for _, v := range usedResults {
+		for m, p := range metricPrefix {
+			nm, err := meter.Int64Counter(strings.Join([]string{p, string(v)}, "."))
+			if err == nil {
+				if _, ok := metrics[v]; !ok {
+					metrics[v] = map[string]metric.Int64Counter{}
+				}
+
+				metrics[v][m] = nm
+			}
+		}
+	}
+
 	return func(
 		ctx context.Context,
 		req interface{},
 		info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler,
 	) (interface{}, error) {
-		var m map[request.ResultID]*monitoring.Int
-		if requestMetrics, ok := info.Server.(UnaryRequestMetrics); ok {
-			m = requestMetrics.RequestMetrics(info.FullMethod)
-		} else {
-			m = methodUnaryRequestMetrics[info.FullMethod]
-		}
-		if m == nil {
-			logger.With(
-				"grpc.request.method", info.FullMethod,
-			).Warn("metrics registry missing")
-			return handler(ctx, req)
-		}
 
-		m[request.IDRequestCount].Inc()
-		defer m[request.IDResponseCount].Inc()
+		addMetric(ctx, metrics, request.IDRequestCount, info.FullMethod, 1)
+
+		defer addMetric(ctx, metrics, request.IDResponseCount, info.FullMethod, 1)
 
 		resp, err := handler(ctx, req)
 
@@ -88,17 +78,25 @@ func Metrics(logger *logp.Logger) grpc.UnaryServerInterceptor {
 			if s, ok := status.FromError(err); ok {
 				switch s.Code() {
 				case codes.Unauthenticated:
-					m[request.IDResponseErrorsUnauthorized].Inc()
+					addMetric(ctx, metrics, request.IDResponseErrorsUnauthorized, info.FullMethod, 1)
 				case codes.DeadlineExceeded, codes.Canceled:
-					m[request.IDResponseErrorsTimeout].Inc()
+					addMetric(ctx, metrics, request.IDResponseErrorsTimeout, info.FullMethod, 1)
 				case codes.ResourceExhausted:
-					m[request.IDResponseErrorsRateLimit].Inc()
+					addMetric(ctx, metrics, request.IDResponseErrorsRateLimit, info.FullMethod, 1)
 				}
 			}
 		}
 
-		m[responseID].Inc()
+		addMetric(ctx, metrics, responseID, info.FullMethod, 1)
 
 		return resp, err
+	}
+}
+
+func addMetric(ctx context.Context, metrics map[request.ResultID]map[string]metric.Int64Counter, result request.ResultID, method string, c int64) {
+	if r, ok := metrics[result]; ok {
+		if m, ok := r[method]; ok {
+			m.Add(ctx, c)
+		}
 	}
 }
