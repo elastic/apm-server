@@ -22,9 +22,10 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/elastic/apm-server/internal/beater/request"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/metric"
+
+	"github.com/elastic/apm-server/internal/beater/request"
 )
 
 var usedResults = []request.ResultID{

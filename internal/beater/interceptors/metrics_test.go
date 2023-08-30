@@ -23,6 +23,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"go.opentelemetry.io/otel"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
@@ -31,7 +32,6 @@ import (
 	"google.golang.org/grpc/status"
 
 	"github.com/elastic/apm-server/internal/beater/request"
-	"github.com/stretchr/testify/assert"
 )
 
 var monitoringKeys = append(
