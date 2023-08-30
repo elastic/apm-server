@@ -34,13 +34,6 @@ import (
 	"github.com/elastic/apm-server/internal/beater/request"
 )
 
-var monitoringKeys = append(
-	request.DefaultResultIDs,
-	request.IDResponseErrorsRateLimit,
-	request.IDResponseErrorsTimeout,
-	request.IDResponseErrorsUnauthorized,
-)
-
 func TestMetricsUnaryServerInterceptor(t *testing.T) {
 	interceptor := NewMetricsUnaryServerInterceptor(map[string]string{"test_method_name": "prefix"})
 

@@ -32,7 +32,6 @@ import (
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	"go.opentelemetry.io/collector/pdata/ptrace/ptraceotlp"
 	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/sdk/metric"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 	"go.uber.org/zap"
@@ -209,7 +208,7 @@ func newGRPCServer(t *testing.T, batchProcessor modelpb.BatchProcessor) *grpc.Cl
 	return conn
 }
 
-func expectMetrics(t *testing.T, reader metric.Reader, expectedMetrics map[string]int64) {
+func expectMetrics(t *testing.T, reader sdkmetric.Reader, expectedMetrics map[string]int64) {
 	var rm metricdata.ResourceMetrics
 	assert.NoError(t, reader.Collect(context.Background(), &rm))
 
