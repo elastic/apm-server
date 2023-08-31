@@ -344,6 +344,7 @@ Update `kibana.yml` to include the following, then restart {kib}.
 ----
 xpack.fleet.packages:
 - name: apm
+  version: latest
 ----
 +
 See {kibana-ref}/settings.html[Configure Kibana] to learn more about how to edit the Kibana configuration file.
