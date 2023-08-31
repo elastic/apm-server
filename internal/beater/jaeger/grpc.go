@@ -195,7 +195,7 @@ func (s *grpcSampler) GetSamplingStrategy(
 	}, nil
 }
 
-func (c *grpcSampler) MetricsPrefix(fullMethodName string) string {
+func (s *grpcSampler) MetricsPrefix(fullMethodName string) string {
 	return samplerMetricsPrefix
 }
 
@@ -231,13 +231,13 @@ func (s *grpcSampler) fetchSamplingRate(ctx context.Context, service string) (fl
 	return 0, fmt.Errorf("no sampling rate found for %v", service)
 }
 
-func (c *grpcSampler) getMetric(n request.ResultID) metric.Int64Counter {
-	if m, ok := c.counters[n]; ok {
+func (s *grpcSampler) getMetric(n request.ResultID) metric.Int64Counter {
+	if m, ok := s.counters[n]; ok {
 		return m
 	}
 
-	nm, _ := c.meter.Int64Counter(samplerMetricsPrefix + "." + string(n))
-	c.counters[n] = nm
+	nm, _ := s.meter.Int64Counter(samplerMetricsPrefix + "." + string(n))
+	s.counters[n] = nm
 	return nm
 }
 

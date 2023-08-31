@@ -30,16 +30,6 @@ import (
 	"github.com/elastic/apm-server/internal/beater/request"
 )
 
-var usedResults = []request.ResultID{
-	request.IDRequestCount,
-	request.IDResponseCount,
-	request.IDResponseErrorsCount,
-	request.IDResponseValidCount,
-	request.IDResponseErrorsUnauthorized,
-	request.IDResponseErrorsTimeout,
-	request.IDResponseErrorsRateLimit,
-}
-
 // NewMetricsUnaryServerInterceptor returns a grpc.UnaryServerInterceptor that increments metrics
 // for gRPC method calls.
 func NewMetricsUnaryServerInterceptor(metricPrefix map[string]string) grpc.UnaryServerInterceptor {
