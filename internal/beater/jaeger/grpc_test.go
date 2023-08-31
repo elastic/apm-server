@@ -67,6 +67,12 @@ func TestPostSpans(t *testing.T) {
 	result, err := client.PostSpans(context.Background(), &api_v2.PostSpansRequest{})
 	assert.NoError(t, err)
 	assert.NotNil(t, result)
+	expectMetrics(t, reader, map[string]int64{
+		"beats_stats.metrics.apm-server.jaeger.grpc.collect.event.received.count": 0,
+		"beats_stats.metrics.apm-server.jaeger.grpc.collect.request.count":        1,
+		"beats_stats.metrics.apm-server.jaeger.grpc.collect.response.count":       1,
+		"beats_stats.metrics.apm-server.jaeger.grpc.collect.response.valid.count": 1,
+	})
 
 	type testcase struct {
 		request      *api_v2.PostSpansRequest
@@ -92,9 +98,9 @@ func TestPostSpans(t *testing.T) {
 
 			expectedMetrics: map[string]int64{
 				"beats_stats.metrics.apm-server.jaeger.grpc.collect.event.received.count": 2,
-				"beats_stats.metrics.apm-server.jaeger.grpc.collect.request.count":        2,
-				"beats_stats.metrics.apm-server.jaeger.grpc.collect.response.count":       2,
-				"beats_stats.metrics.apm-server.jaeger.grpc.collect.response.valid.count": 2,
+				"beats_stats.metrics.apm-server.jaeger.grpc.collect.request.count":        1,
+				"beats_stats.metrics.apm-server.jaeger.grpc.collect.response.count":       1,
+				"beats_stats.metrics.apm-server.jaeger.grpc.collect.response.valid.count": 1,
 			},
 		},
 		"failing request": {
