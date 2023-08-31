@@ -42,7 +42,6 @@ func (c *Client) Setup() error {
 	for _, path := range []string{"/setup", "/agents/setup"} {
 		req := c.newFleetRequest("POST", path, nil)
 		resp, err := http.DefaultClient.Do(req)
-		fmt.Println(err)
 		if err != nil {
 			return err
 		}
