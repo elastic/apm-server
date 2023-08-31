@@ -812,7 +812,11 @@ func (s *Runner) newLibbeatFinalBatchProcessor(
 		output, err := outputs.Load(indexSupporter, beatInfo, stats, outputName, s.outputConfig.Config())
 		return outputName, output, err
 	}
-	pipeline, err := pipeline.Load(beatInfo, monitors, pipeline.Config{}, nopProcessingSupporter{}, outputFactory)
+	var pipelineConfig pipeline.Config
+	if err := s.rawConfig.Unpack(&pipelineConfig); err != nil {
+		return nil, nil, fmt.Errorf("failed to unpack libbeat pipeline config: %w", err)
+	}
+	pipeline, err := pipeline.Load(beatInfo, monitors, pipelineConfig, nopProcessingSupporter{}, outputFactory)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create libbeat output pipeline: %w", err)
 	}
