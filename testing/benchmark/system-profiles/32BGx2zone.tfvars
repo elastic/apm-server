@@ -3,7 +3,7 @@ user_name = "USER"
 # The number of AZs the APM Server should span.
 apm_server_zone_count = 1
 # The Elasticsearch cluster node size.
-elasticsearch_size = "128g"
+elasticsearch_size = "120g"
 # The number of AZs the Elasticsearch cluster should have.
 elasticsearch_zone_count = 2
 # APM server instance size
