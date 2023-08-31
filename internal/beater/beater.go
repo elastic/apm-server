@@ -308,6 +308,18 @@ func (s *Runner) Run(ctx context.Context) error {
 	}
 	otel.SetTracerProvider(tracerProvider)
 
+	exporter, err := apmotel.NewGatherer()
+	if err != nil {
+		return err
+	}
+	localExporter := telemetry.NewMetricExporter()
+	meterProvider := metric.NewMeterProvider(
+		metric.WithReader(exporter),
+		metric.WithReader(metric.NewPeriodicReader(localExporter)),
+	)
+	otel.SetMeterProvider(meterProvider)
+	tracer.RegisterMetricsGatherer(exporter)
+
 	// Ensure the libbeat output and go-elasticsearch clients do not index
 	// any events to Elasticsearch before the integration is ready.
 	publishReady := make(chan struct{})
@@ -425,18 +437,7 @@ func (s *Runner) Run(ctx context.Context) error {
 		}),
 		finalBatchProcessor,
 	})
-
-	exporter, err := apmotel.NewGatherer()
-	if err != nil {
-		return err
-	}
-	localExporter := telemetry.NewMetricExporter(batchProcessor)
-	meterProvider := metric.NewMeterProvider(
-		metric.WithReader(exporter),
-		metric.WithReader(metric.NewPeriodicReader(localExporter)),
-	)
-	otel.SetMeterProvider(meterProvider)
-	tracer.RegisterMetricsGatherer(exporter)
+	localExporter.SetBatchProcessor(batchProcessor)
 
 	agentConfigFetcher, fetcherRunFunc, err := newAgentConfigFetcher(
 		ctx,

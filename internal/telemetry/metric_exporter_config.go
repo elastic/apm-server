@@ -18,6 +18,7 @@
 package telemetry
 
 import (
+	"github.com/elastic/apm-data/model/modelpb"
 	"go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 )
@@ -34,6 +35,7 @@ var customHistogramBoundaries = []float64{
 }
 
 type Config struct {
+	processor           modelpb.BatchProcessor
 	MetricFilter        []string
 	TemporalitySelector metric.TemporalitySelector
 	AggregationSelector metric.AggregationSelector
