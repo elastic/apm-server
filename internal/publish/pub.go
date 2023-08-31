@@ -142,7 +142,10 @@ func (p *Publisher) Stop(ctx context.Context) error {
 // publishing pipeline.
 func (p *Publisher) ProcessBatch(ctx context.Context, batch *modelpb.Batch) error {
 	b := make(modelpb.Batch, len(*batch))
-	copy(b, *batch)
+	for i, e := range (*batch) {
+		cp := e.CloneVT()
+		b[i] = cp
+	}
 	return p.Send(ctx, PendingReq{Transformable: batchTransformer(b)})
 }
 
