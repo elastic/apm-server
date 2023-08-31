@@ -15,25 +15,26 @@ require (
 	github.com/stretchr/testify v1.8.4
 	github.com/testcontainers/testcontainers-go v0.18.0
 	github.com/tidwall/gjson v1.14.4
-	go.elastic.co/apm/v2 v2.4.3
+	go.elastic.co/apm/module/apmotel/v2 v2.4.4
+	go.elastic.co/apm/v2 v2.4.4
 	go.elastic.co/fastjson v1.1.0
 	go.opentelemetry.io/collector/pdata v1.0.0-rcv0013
 	go.opentelemetry.io/collector/semconv v0.81.0
-	go.opentelemetry.io/otel v1.16.0
-	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc v0.39.0
-	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp v0.39.0
-	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.16.0
-	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.16.0
-	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.16.0
-	go.opentelemetry.io/otel/metric v1.16.0
-	go.opentelemetry.io/otel/sdk v1.16.0
-	go.opentelemetry.io/otel/sdk/metric v0.39.0
-	go.opentelemetry.io/otel/trace v1.16.0
+	go.opentelemetry.io/otel v1.17.0
+	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc v0.40.0
+	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp v0.40.0
+	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.17.0
+	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.17.0
+	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.17.0
+	go.opentelemetry.io/otel/metric v1.17.0
+	go.opentelemetry.io/otel/sdk v1.17.0
+	go.opentelemetry.io/otel/sdk/metric v0.40.0
+	go.opentelemetry.io/otel/trace v1.17.0
 	go.uber.org/zap v1.24.0
 	golang.org/x/sync v0.2.0
-	golang.org/x/sys v0.10.0
+	golang.org/x/sys v0.11.0
 	golang.org/x/time v0.3.0
-	google.golang.org/grpc v1.56.2
+	google.golang.org/grpc v1.57.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
@@ -41,11 +42,10 @@ require (
 	github.com/containerd/containerd v1.6.17 // indirect
 	github.com/go-logr/logr v1.2.4 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
-	github.com/grpc-ecosystem/grpc-gateway/v2 v2.11.1 // indirect
+	github.com/grpc-ecosystem/grpc-gateway/v2 v2.16.0 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
-	go.opentelemetry.io/otel/exporters/otlp/internal/retry v1.16.0 // indirect
 )
 
 require (
@@ -88,14 +88,14 @@ require (
 	github.com/tidwall/sjson v1.2.5 // indirect
 	github.com/uber/jaeger-client-go v2.30.0+incompatible // indirect
 	github.com/uber/jaeger-lib v2.4.1+incompatible // indirect
-	go.opentelemetry.io/otel/exporters/otlp/otlpmetric v0.39.0 // indirect
-	go.opentelemetry.io/proto/otlp v0.19.0 // indirect
+	go.elastic.co/apm/module/apmhttp/v2 v2.4.4 // indirect
+	go.opentelemetry.io/otel/exporters/otlp/otlpmetric v0.40.0 // indirect
+	go.opentelemetry.io/proto/otlp v1.0.0 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/net v0.12.0 // indirect
 	golang.org/x/text v0.11.0 // indirect
-	google.golang.org/genproto v0.0.0-20230525234025-438c736192d0 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20230525234020-1aefcd67740a // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20230530153820-e85fd2cbaebc // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20230530153820-e85fd2cbaebc // indirect
 	google.golang.org/protobuf v1.31.0 // indirect
 	howett.net/plist v1.0.0 // indirect

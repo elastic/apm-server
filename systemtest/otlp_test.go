@@ -41,7 +41,6 @@ import (
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"go.opentelemetry.io/otel/metric"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
-	"go.opentelemetry.io/otel/sdk/metric/aggregation"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdkresource "go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
@@ -547,7 +546,7 @@ func sendOTLPMetrics(
 			sdkmetric.NewView(
 				sdkmetric.Instrument{Name: "*histogram"},
 				sdkmetric.Stream{
-					Aggregation: aggregation.ExplicitBucketHistogram{
+					Aggregation: sdkmetric.AggregationExplicitBucketHistogram{
 						Boundaries: []float64{0, 1, 100, 1000, 10000},
 					},
 				},
