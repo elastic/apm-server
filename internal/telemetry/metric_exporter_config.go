@@ -18,9 +18,10 @@
 package telemetry
 
 import (
-	"github.com/elastic/apm-data/model/modelpb"
 	"go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
+
+	"github.com/elastic/apm-data/model/modelpb"
 )
 
 // Override default otel/prometheus boundaries, as we skip empty buckets and therefore able to use more accurate and higher range boundaries.
