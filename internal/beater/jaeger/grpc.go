@@ -27,12 +27,12 @@ import (
 	"github.com/jaegertracing/jaeger/proto-gen/api_v2"
 	jaegertranslator "github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger"
 	"go.opentelemetry.io/collector/consumer"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/metric"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-
-	"github.com/elastic/elastic-agent-libs/monitoring"
 
 	"github.com/elastic/apm-data/input"
 	"github.com/elastic/apm-data/input/otlp"
@@ -44,14 +44,11 @@ import (
 )
 
 var (
-	gRPCCollectorRegistry                    = monitoring.Default.NewRegistry("apm-server.jaeger.grpc.collect")
-	gRPCCollectorMonitoringMap monitoringMap = request.MonitoringMapForRegistry(
-		gRPCCollectorRegistry, append(request.DefaultResultIDs,
-			request.IDResponseErrorsRateLimit,
-			request.IDResponseErrorsTimeout,
-			request.IDResponseErrorsUnauthorized,
-		),
-	)
+	collectorRegistryName  = "apm-server.jaeger.grpc.collect"
+	collectorMetricsPrefix = "beats_stats.metrics." + collectorRegistryName
+
+	samplerRegistryName  = "apm-server.jaeger.grpc.sampling"
+	samplerMetricsPrefix = "beats_stats.metrics." + samplerRegistryName
 )
 
 const (
@@ -73,13 +70,25 @@ func RegisterGRPCServices(
 		Logger:    logger,
 		Semaphore: semaphore,
 	})
-	api_v2.RegisterCollectorServiceServer(srv, &grpcCollector{traceConsumer})
-	api_v2.RegisterSamplingManagerServer(srv, &grpcSampler{logger, fetcher})
+	api_v2.RegisterCollectorServiceServer(srv, newGrpcCollector(traceConsumer))
+	api_v2.RegisterSamplingManagerServer(srv, newGrpcSampler(logger, fetcher))
 }
 
 // grpcCollector implements Jaeger api_v2 protocol for receiving tracing data
 type grpcCollector struct {
 	consumer consumer.Traces
+
+	meter    metric.Meter
+	counters map[request.ResultID]metric.Int64Counter
+}
+
+func newGrpcCollector(tc *otlp.Consumer) *grpcCollector {
+	return &grpcCollector{
+		consumer: tc,
+
+		meter:    otel.Meter("internal/beater/jaeger/collector"),
+		counters: map[request.ResultID]metric.Int64Counter{},
+	}
 }
 
 // AuthenticateUnaryCall authenticates CollectorService calls.
@@ -109,12 +118,6 @@ func (c *grpcCollector) AuthenticateUnaryCall(
 	return authenticator.Authenticate(ctx, kind, token)
 }
 
-// MonitoringMap returns the request metrics registry for this service,
-// to support interceptors.Metrics.
-func (c *grpcCollector) RequestMetrics(fullMethodName string) map[request.ResultID]*monitoring.Int {
-	return gRPCCollectorMonitoringMap
-}
-
 // PostSpans implements the api_v2/collector.proto. It converts spans received via Jaeger Proto batch to open-telemetry
 // TraceData and passes them on to the internal Consumer taking care of converting into Elastic APM format.
 // The implementation of the protobuf contract is based on the open-telemetry implementation at
@@ -126,9 +129,13 @@ func (c *grpcCollector) PostSpans(ctx context.Context, r *api_v2.PostSpansReques
 	return &api_v2.PostSpansResponse{}, nil
 }
 
+func (c *grpcCollector) MetricsPrefix(fullMethodName string) string {
+	return collectorMetricsPrefix
+}
+
 func (c *grpcCollector) postSpans(ctx context.Context, batch jaegermodel.Batch) error {
 	spanCount := int64(len(batch.Spans))
-	gRPCCollectorMonitoringMap.add(request.IDEventReceivedCount, spanCount)
+	c.getMetric(request.IDEventReceivedCount).Add(ctx, spanCount)
 	traces, err := jaegertranslator.ProtoToTraces([]*jaegermodel.Batch{&batch})
 	if err != nil {
 		return err
@@ -136,18 +143,36 @@ func (c *grpcCollector) postSpans(ctx context.Context, batch jaegermodel.Batch) 
 	return c.consumer.ConsumeTraces(ctx, traces)
 }
 
-var (
-	gRPCSamplingRegistry                    = monitoring.Default.NewRegistry("apm-server.jaeger.grpc.sampling")
-	gRPCSamplingMonitoringMap monitoringMap = request.MonitoringMapForRegistry(
-		gRPCSamplingRegistry, append(request.DefaultResultIDs, request.IDEventReceivedCount),
-	)
+func (c *grpcCollector) getMetric(n request.ResultID) metric.Int64Counter {
+	if m, ok := c.counters[n]; ok {
+		return m
+	}
 
+	nm, _ := c.meter.Int64Counter(collectorMetricsPrefix + "." + string(n))
+	c.counters[n] = nm
+	return nm
+}
+
+var (
 	jaegerAgentPrefixes = []string{otlp.AgentNameJaeger}
 )
 
 type grpcSampler struct {
 	logger  *zap.Logger
 	fetcher agentcfg.Fetcher
+
+	meter    metric.Meter
+	counters map[request.ResultID]metric.Int64Counter
+}
+
+func newGrpcSampler(logger *zap.Logger, fetcher agentcfg.Fetcher) *grpcSampler {
+	return &grpcSampler{
+		logger:  logger,
+		fetcher: fetcher,
+
+		meter:    otel.Meter("internal/beater/jaeger/collector"),
+		counters: map[request.ResultID]metric.Int64Counter{},
+	}
 }
 
 // GetSamplingStrategy implements the api_v2/sampling.proto.
@@ -170,6 +195,10 @@ func (s *grpcSampler) GetSamplingStrategy(
 	}, nil
 }
 
+func (c *grpcSampler) MetricsPrefix(fullMethodName string) string {
+	return samplerMetricsPrefix
+}
+
 func (s *grpcSampler) fetchSamplingRate(ctx context.Context, service string) (float64, error) {
 	// Only service, and not agent, is known for config queries.
 	// For anonymous/untrusted agents, we filter the results using
@@ -186,20 +215,30 @@ func (s *grpcSampler) fetchSamplingRate(ctx context.Context, service string) (fl
 	}
 	result, err := s.fetcher.Fetch(ctx, query)
 	if err != nil {
-		gRPCSamplingMonitoringMap.inc(request.IDResponseErrorsServiceUnavailable)
+		s.getMetric(request.IDResponseErrorsServiceUnavailable).Add(ctx, 1)
 		return 0, fmt.Errorf("fetching sampling rate failed: %w", err)
 	}
 
 	if sr, ok := result.Source.Settings[agentcfg.TransactionSamplingRateKey]; ok {
 		srFloat64, err := strconv.ParseFloat(sr, 64)
 		if err != nil {
-			gRPCSamplingMonitoringMap.inc(request.IDResponseErrorsInternal)
+			s.getMetric(request.IDResponseErrorsInternal).Add(ctx, 1)
 			return 0, fmt.Errorf("parsing error for sampling rate `%v`: %w", sr, err)
 		}
 		return srFloat64, nil
 	}
-	gRPCSamplingMonitoringMap.inc(request.IDResponseErrorsNotFound)
+	s.getMetric(request.IDResponseErrorsNotFound).Add(ctx, 1)
 	return 0, fmt.Errorf("no sampling rate found for %v", service)
+}
+
+func (c *grpcSampler) getMetric(n request.ResultID) metric.Int64Counter {
+	if m, ok := c.counters[n]; ok {
+		return m
+	}
+
+	nm, _ := c.meter.Int64Counter(samplerMetricsPrefix + "." + string(n))
+	c.counters[n] = nm
+	return nm
 }
 
 var anonymousAuthenticator *auth.Authenticator
@@ -233,24 +272,4 @@ func (s *grpcSampler) AuthenticateUnaryCall(
 		return details, authz, err
 	}
 	return anonymousAuthenticator.Authenticate(ctx, "", "")
-}
-
-// MonitoringMap returns the request metrics registry for this service,
-// to support interceptors.Metrics.
-func (s *grpcSampler) RequestMetrics(fullMethodName string) map[request.ResultID]*monitoring.Int {
-	return gRPCSamplingMonitoringMap
-}
-
-type monitoringMap map[request.ResultID]*monitoring.Int
-
-func (m monitoringMap) inc(id request.ResultID) {
-	if counter, ok := m[id]; ok {
-		counter.Inc()
-	}
-}
-
-func (m monitoringMap) add(id request.ResultID, n int64) {
-	if counter, ok := m[id]; ok {
-		counter.Add(n)
-	}
 }

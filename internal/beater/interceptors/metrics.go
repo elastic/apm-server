@@ -43,32 +43,46 @@ var usedResults = []request.ResultID{
 // NewMetricsUnaryServerInterceptor returns a grpc.UnaryServerInterceptor that increments metrics
 // for gRPC method calls.
 func NewMetricsUnaryServerInterceptor(metricPrefix map[string]string) grpc.UnaryServerInterceptor {
-	meter := otel.Meter("internal/beater/middleware")
-	metrics := map[request.ResultID]map[string]metric.Int64Counter{}
+	return newMetricsUnaryServerInterceptor(metricPrefix).Intercept()
+}
 
-	for _, v := range usedResults {
-		for m, p := range metricPrefix {
-			nm, err := meter.Int64Counter(strings.Join([]string{p, string(v)}, "."))
-			if err == nil {
-				if _, ok := metrics[v]; !ok {
-					metrics[v] = map[string]metric.Int64Counter{}
-				}
+// metricsPrefixOverride allows each handler to set their own metrics prefix,
+// and override the one set globally.
+type metricsPrefixOverride interface {
+	// MetricsPrefix is the metrics prefix override.
+	// It takes an argument, which is `info.FullMethod`, and returns a string, which is the new prefix.
+	MetricsPrefix(string) string
+}
 
-				metrics[v][m] = nm
-			}
-		}
+type metricsUnaryServerInterceptor struct {
+	prefixes map[string]string
+	meter    metric.Meter
+	counters map[string]metric.Int64Counter
+}
+
+func newMetricsUnaryServerInterceptor(p map[string]string) *metricsUnaryServerInterceptor {
+	return &metricsUnaryServerInterceptor{
+		prefixes: p,
+		meter:    otel.Meter("internal/beater/middleware"),
+		counters: map[string]metric.Int64Counter{},
 	}
+}
 
+func (i *metricsUnaryServerInterceptor) Intercept() grpc.UnaryServerInterceptor {
 	return func(
 		ctx context.Context,
 		req interface{},
 		info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler,
 	) (interface{}, error) {
+		prefix := i.prefixes[info.FullMethod]
+		if srv, ok := info.Server.(metricsPrefixOverride); ok {
+			prefix = srv.MetricsPrefix(info.FullMethod)
+		}
 
-		addMetric(ctx, metrics, request.IDRequestCount, info.FullMethod, 1)
+		i.getMetric(prefix, request.IDRequestCount).Add(ctx, 1)
 
-		defer addMetric(ctx, metrics, request.IDResponseCount, info.FullMethod, 1)
+		defer i.getMetric(prefix, request.IDResponseCount).Add(ctx, 1)
 
 		resp, err := handler(ctx, req)
 
@@ -78,25 +92,29 @@ func NewMetricsUnaryServerInterceptor(metricPrefix map[string]string) grpc.Unary
 			if s, ok := status.FromError(err); ok {
 				switch s.Code() {
 				case codes.Unauthenticated:
-					addMetric(ctx, metrics, request.IDResponseErrorsUnauthorized, info.FullMethod, 1)
+					i.getMetric(prefix, request.IDResponseErrorsUnauthorized).Add(ctx, 1)
 				case codes.DeadlineExceeded, codes.Canceled:
-					addMetric(ctx, metrics, request.IDResponseErrorsTimeout, info.FullMethod, 1)
+					i.getMetric(prefix, request.IDResponseErrorsTimeout).Add(ctx, 1)
 				case codes.ResourceExhausted:
-					addMetric(ctx, metrics, request.IDResponseErrorsRateLimit, info.FullMethod, 1)
+					i.getMetric(prefix, request.IDResponseErrorsRateLimit).Add(ctx, 1)
 				}
 			}
 		}
 
-		addMetric(ctx, metrics, responseID, info.FullMethod, 1)
+		i.getMetric(prefix, responseID).Add(ctx, 1)
 
 		return resp, err
 	}
 }
 
-func addMetric(ctx context.Context, metrics map[request.ResultID]map[string]metric.Int64Counter, result request.ResultID, method string, c int64) {
-	if r, ok := metrics[result]; ok {
-		if m, ok := r[method]; ok {
-			m.Add(ctx, c)
-		}
+func (i *metricsUnaryServerInterceptor) getMetric(prefix string, n request.ResultID) metric.Int64Counter {
+	name := strings.Join([]string{prefix, string(n)}, ".")
+
+	if m, ok := i.counters[name]; ok {
+		return m
 	}
+
+	nm, _ := i.meter.Int64Counter(string(name))
+	i.counters[name] = nm
+	return nm
 }

@@ -209,17 +209,19 @@ func newGRPCServer(t *testing.T, batchProcessor modelpb.BatchProcessor) *grpc.Cl
 }
 
 func expectMetrics(t *testing.T, reader sdkmetric.Reader, expectedMetrics map[string]int64) {
+	t.Helper()
+
 	var rm metricdata.ResourceMetrics
 	assert.NoError(t, reader.Collect(context.Background(), &rm))
 
 	assert.NotEqual(t, 0, len(rm.ScopeMetrics))
+	foundMetrics := []string{}
 	for _, sm := range rm.ScopeMetrics {
-		assert.Equal(t, len(expectedMetrics), len(sm.Metrics))
-
 		for _, m := range sm.Metrics {
 			switch d := m.Data.(type) {
 			case metricdata.Sum[int64]:
 				assert.Equal(t, 1, len(d.DataPoints))
+				foundMetrics = append(foundMetrics, m.Name)
 
 				if v, ok := expectedMetrics[m.Name]; ok {
 					assert.Equal(t, v, d.DataPoints[0].Value)
@@ -229,4 +231,6 @@ func expectMetrics(t *testing.T, reader sdkmetric.Reader, expectedMetrics map[st
 			}
 		}
 	}
+
+	assert.Equal(t, len(expectedMetrics), len(foundMetrics))
 }

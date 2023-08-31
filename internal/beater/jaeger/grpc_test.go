@@ -29,6 +29,9 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/ptrace"
+	"go.opentelemetry.io/otel"
+	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
+	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest/observer"
 	"golang.org/x/sync/semaphore"
@@ -47,6 +50,13 @@ import (
 )
 
 func TestPostSpans(t *testing.T) {
+	reader := sdkmetric.NewManualReader(sdkmetric.WithTemporalitySelector(
+		func(ik sdkmetric.InstrumentKind) metricdata.Temporality {
+			return metricdata.DeltaTemporality
+		},
+	))
+	otel.SetMeterProvider(sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader)))
+
 	var processorErr error
 	var processor modelpb.ProcessBatchFunc = func(ctx context.Context, batch *modelpb.Batch) error {
 		return processorErr
@@ -62,19 +72,42 @@ func TestPostSpans(t *testing.T) {
 		request      *api_v2.PostSpansRequest
 		processorErr error
 		expectedErr  error
+
+		expectedMetrics map[string]int64
 	}
 
 	for name, tc := range map[string]testcase{
 		"empty request": {
 			request: &api_v2.PostSpansRequest{},
+
+			expectedMetrics: map[string]int64{
+				"beats_stats.metrics.apm-server.jaeger.grpc.collect.event.received.count": 0,
+				"beats_stats.metrics.apm-server.jaeger.grpc.collect.request.count":        1,
+				"beats_stats.metrics.apm-server.jaeger.grpc.collect.response.count":       1,
+				"beats_stats.metrics.apm-server.jaeger.grpc.collect.response.valid.count": 1,
+			},
 		},
 		"successful request": {
 			request: newPostSpansRequest(t),
+
+			expectedMetrics: map[string]int64{
+				"beats_stats.metrics.apm-server.jaeger.grpc.collect.event.received.count": 2,
+				"beats_stats.metrics.apm-server.jaeger.grpc.collect.request.count":        2,
+				"beats_stats.metrics.apm-server.jaeger.grpc.collect.response.count":       2,
+				"beats_stats.metrics.apm-server.jaeger.grpc.collect.response.valid.count": 2,
+			},
 		},
 		"failing request": {
 			request:      newPostSpansRequest(t),
 			processorErr: errors.New("processor failed"),
 			expectedErr:  status.Error(codes.Unknown, "processor failed"),
+
+			expectedMetrics: map[string]int64{
+				"beats_stats.metrics.apm-server.jaeger.grpc.collect.event.received.count":  2,
+				"beats_stats.metrics.apm-server.jaeger.grpc.collect.request.count":         1,
+				"beats_stats.metrics.apm-server.jaeger.grpc.collect.response.count":        1,
+				"beats_stats.metrics.apm-server.jaeger.grpc.collect.response.errors.count": 1,
+			},
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
@@ -88,6 +121,8 @@ func TestPostSpans(t *testing.T) {
 				assert.NotNil(t, resp)
 				assert.NoError(t, err)
 			}
+
+			expectMetrics(t, reader, tc.expectedMetrics)
 		})
 	}
 }
@@ -207,7 +242,10 @@ func newServer(t *testing.T, batchProcessor modelpb.BatchProcessor, agentcfgFetc
 		SecretToken: "abc123",
 	})
 	require.NoError(t, err)
-	srv := grpc.NewServer(grpc.UnaryInterceptor(interceptors.Auth(authenticator)))
+	srv := grpc.NewServer(grpc.ChainUnaryInterceptor(
+		interceptors.Auth(authenticator),
+		interceptors.NewMetricsUnaryServerInterceptor(map[string]string{}),
+	))
 	semaphore := semaphore.NewWeighted(1)
 
 	core, observedLogs := observer.New(zap.DebugLevel)
@@ -231,4 +269,32 @@ type fetchAgentConfigFunc func(context.Context, agentcfg.Query) (agentcfg.Result
 
 func (f fetchAgentConfigFunc) Fetch(ctx context.Context, query agentcfg.Query) (agentcfg.Result, error) {
 	return f(ctx, query)
+}
+
+func expectMetrics(t *testing.T, reader sdkmetric.Reader, expectedMetrics map[string]int64) {
+	t.Helper()
+
+	var rm metricdata.ResourceMetrics
+	assert.NoError(t, reader.Collect(context.Background(), &rm))
+
+	assert.NotEqual(t, 0, len(rm.ScopeMetrics))
+	foundMetrics := []string{}
+	for _, sm := range rm.ScopeMetrics {
+
+		for _, m := range sm.Metrics {
+			switch d := m.Data.(type) {
+			case metricdata.Sum[int64]:
+				assert.Equal(t, 1, len(d.DataPoints))
+				foundMetrics = append(foundMetrics, m.Name)
+
+				if v, ok := expectedMetrics[m.Name]; ok {
+					assert.Equal(t, v, d.DataPoints[0].Value, m.Name)
+				} else {
+					assert.Fail(t, "unexpected metric", m.Name)
+				}
+			}
+		}
+	}
+
+	assert.Equal(t, len(expectedMetrics), len(foundMetrics))
 }
