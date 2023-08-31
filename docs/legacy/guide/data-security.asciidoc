@@ -90,7 +90,7 @@ which means the list of sanitized fields can be updated without needing to redep
 * Go: {apm-go-ref-v}/configuration.html#config-capture-body[`ELASTIC_APM_CAPTURE_BODY`]
 * Java: {apm-java-ref-v}/config-core.html#config-sanitize-field-names[`capture_body`]
 * .NET: {apm-dotnet-ref-v}/config-http.html#config-capture-body[`CaptureBody`]
-* Node.js: {apm-node-ref-v}//configuration.html#capture-body[`captureBody`]
+* Node.js: {apm-node-ref-v}/configuration.html#capture-body[`captureBody`]
 // * PHP: {apm-php-ref-v}[``]
 * Python: {apm-py-ref-v}/configuration.html#config-capture-body[`capture_body`]
 * Ruby: {apm-ruby-ref-v}/configuration.html#config-capture-body[`capture_body`]
