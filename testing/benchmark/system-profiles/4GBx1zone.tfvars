@@ -8,3 +8,6 @@ elasticsearch_size = "32g"
 elasticsearch_zone_count = 2
 # APM server instance size
 apm_server_size = "4g"
+
+ess_region = "azure-eastus"
+deployment_template = "azure-cpu-optimized-v2"
