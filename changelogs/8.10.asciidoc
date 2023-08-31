@@ -19,6 +19,7 @@ https://github.com/elastic/apm-server/compare/8.9\...8.10[View commits]
 
 [float]
 ==== Bug fixes
+- Add back handling of `queue.*` config for libbeat outputs, such as logstash and kafka {pull}11534[11534]
 
 [float]
 ==== Intake API Changes
