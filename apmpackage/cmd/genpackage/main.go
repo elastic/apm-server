@@ -68,6 +68,15 @@ func generatePackage(pkgfs fs.FS, version, ecsVersion *version.V, ecsReference s
 				// work around a bug in fleet with more than 1 `.` in policy file name.
 				outputPath = strings.Replace(filepath.Join(*outputDir, p.Path), d.Name(), "default_policy.json", -1)
 			}
+
+			if p.Interval != "" && strings.HasPrefix(d.Name(), "lifecycle") && strings.HasSuffix(d.Name(), ".yml") {
+				if !strings.Contains(path, p.Interval) {
+					// Skip lifecycle that don't match the interval.
+					continue
+				}
+				// Use `lifecycle.json` instead of e.g. `lifecycle.1m.json`
+				outputPath = strings.Replace(filepath.Join(*outputDir, p.Path), d.Name(), "lifecycle.yml", -1)
+			}
 			err := renderFile(pkgfs, path, outputPath, version, ecsVersion, ecsReference, p.Interval)
 			if err != nil {
 				return err
