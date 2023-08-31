@@ -20,6 +20,8 @@ package telemetry
 import (
 	"go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
+
+	"github.com/elastic/apm-data/model/modelpb"
 )
 
 // Override default otel/prometheus boundaries, as we skip empty buckets and therefore able to use more accurate and higher range boundaries.
@@ -34,6 +36,7 @@ var customHistogramBoundaries = []float64{
 }
 
 type Config struct {
+	processor           modelpb.BatchProcessor
 	MetricFilter        []string
 	TemporalitySelector metric.TemporalitySelector
 	AggregationSelector metric.AggregationSelector

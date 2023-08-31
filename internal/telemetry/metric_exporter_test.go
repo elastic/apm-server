@@ -30,10 +30,18 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
+	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 	"google.golang.org/protobuf/testing/protocmp"
 
 	"github.com/elastic/apm-data/model/modelpb"
 )
+
+func TestMetricExporterWithNoBatchProcessor(t *testing.T) {
+	e := NewMetricExporter()
+	var rm metricdata.ResourceMetrics
+	err := e.Export(context.Background(), &rm)
+	assert.NoError(t, err)
+}
 
 func TestMetricExporter(t *testing.T) {
 	service := modelpb.Service{Name: "apm-server", Language: &modelpb.Language{Name: "go"}}
@@ -293,7 +301,8 @@ func TestMetricExporter(t *testing.T) {
 				batch = append(batch, (*b)...)
 				return nil
 			})
-			e := NewMetricExporter(p, tt.exporterConfig...)
+			e := NewMetricExporter(tt.exporterConfig...)
+			e.SetBatchProcessor(p)
 
 			provider := sdkmetric.NewMeterProvider(
 				sdkmetric.WithReader(sdkmetric.NewPeriodicReader(e)),
