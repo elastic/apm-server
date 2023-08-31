@@ -36,9 +36,9 @@ var (
 	grpcRegistryName    = "apm-server.otlp.grpc"
 	gRPCMetricsRegistry = monitoring.Default.NewRegistry(grpcRegistryName + ".metrics")
 
-	GRPCMetricsMetricsPrefix = "beats_stats.metrics." + grpcRegistryName + ".metrics"
-	GRPCTracesMetricsPrefix  = "beats_stats.metrics." + grpcRegistryName + ".traces"
-	GRPCLogsMetricsPrefix    = "beats_stats.metrics." + grpcRegistryName + ".logs"
+	GRPCMetricsMetricsPrefix = grpcRegistryName + ".metrics"
+	GRPCTracesMetricsPrefix  = grpcRegistryName + ".traces"
+	GRPCLogsMetricsPrefix    = grpcRegistryName + ".logs"
 
 	gRPCMonitoredConsumer monitoredConsumer
 )

@@ -40,9 +40,9 @@ var (
 	httpRegistryName    = "apm-server.otlp.http"
 	httpMetricsRegistry = monitoring.Default.NewRegistry(httpRegistryName + ".metrics")
 
-	HTTPMetricsMetricsPrefix = "beats_stats.metrics." + httpRegistryName + ".metrics"
-	HTTPTracesMetricsPrefix  = "beats_stats.metrics." + httpRegistryName + ".traces"
-	HTTPLogsMetricsPrefix    = "beats_stats.metrics." + httpRegistryName + ".logs"
+	HTTPMetricsMetricsPrefix = httpRegistryName + ".metrics"
+	HTTPTracesMetricsPrefix  = httpRegistryName + ".traces"
+	HTTPLogsMetricsPrefix    = httpRegistryName + ".logs"
 
 	httpMonitoredConsumer monitoredConsumer
 )

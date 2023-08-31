@@ -44,11 +44,8 @@ import (
 )
 
 var (
-	collectorRegistryName  = "apm-server.jaeger.grpc.collect"
-	collectorMetricsPrefix = "beats_stats.metrics." + collectorRegistryName
-
-	samplerRegistryName  = "apm-server.jaeger.grpc.sampling"
-	samplerMetricsPrefix = "beats_stats.metrics." + samplerRegistryName
+	collectorMetricsPrefix = "apm-server.jaeger.grpc.collect"
+	samplerMetricsPrefix   = "apm-server.jaeger.grpc.sampling"
 )
 
 const (

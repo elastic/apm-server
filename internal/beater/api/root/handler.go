@@ -30,7 +30,7 @@ import (
 
 var (
 	registryName  = "apm-server.root"
-	MetricsPrefix = "beats_stats.metrics." + registryName
+	MetricsPrefix = registryName
 	// MonitoringMap holds a mapping for request.IDs to monitoring counters
 	MonitoringMap = request.DefaultMonitoringMapForRegistry(registry)
 	registry      = monitoring.Default.NewRegistry(registryName)

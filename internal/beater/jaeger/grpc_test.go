@@ -68,10 +68,10 @@ func TestPostSpans(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, result)
 	expectMetrics(t, reader, map[string]int64{
-		"beats_stats.metrics.apm-server.jaeger.grpc.collect.event.received.count": 0,
-		"beats_stats.metrics.apm-server.jaeger.grpc.collect.request.count":        1,
-		"beats_stats.metrics.apm-server.jaeger.grpc.collect.response.count":       1,
-		"beats_stats.metrics.apm-server.jaeger.grpc.collect.response.valid.count": 1,
+		"apm-server.jaeger.grpc.collect.event.received.count": 0,
+		"apm-server.jaeger.grpc.collect.request.count":        1,
+		"apm-server.jaeger.grpc.collect.response.count":       1,
+		"apm-server.jaeger.grpc.collect.response.valid.count": 1,
 	})
 
 	type testcase struct {
@@ -87,20 +87,20 @@ func TestPostSpans(t *testing.T) {
 			request: &api_v2.PostSpansRequest{},
 
 			expectedMetrics: map[string]int64{
-				"beats_stats.metrics.apm-server.jaeger.grpc.collect.event.received.count": 0,
-				"beats_stats.metrics.apm-server.jaeger.grpc.collect.request.count":        1,
-				"beats_stats.metrics.apm-server.jaeger.grpc.collect.response.count":       1,
-				"beats_stats.metrics.apm-server.jaeger.grpc.collect.response.valid.count": 1,
+				"apm-server.jaeger.grpc.collect.event.received.count": 0,
+				"apm-server.jaeger.grpc.collect.request.count":        1,
+				"apm-server.jaeger.grpc.collect.response.count":       1,
+				"apm-server.jaeger.grpc.collect.response.valid.count": 1,
 			},
 		},
 		"successful request": {
 			request: newPostSpansRequest(t),
 
 			expectedMetrics: map[string]int64{
-				"beats_stats.metrics.apm-server.jaeger.grpc.collect.event.received.count": 2,
-				"beats_stats.metrics.apm-server.jaeger.grpc.collect.request.count":        1,
-				"beats_stats.metrics.apm-server.jaeger.grpc.collect.response.count":       1,
-				"beats_stats.metrics.apm-server.jaeger.grpc.collect.response.valid.count": 1,
+				"apm-server.jaeger.grpc.collect.event.received.count": 2,
+				"apm-server.jaeger.grpc.collect.request.count":        1,
+				"apm-server.jaeger.grpc.collect.response.count":       1,
+				"apm-server.jaeger.grpc.collect.response.valid.count": 1,
 			},
 		},
 		"failing request": {
@@ -109,10 +109,10 @@ func TestPostSpans(t *testing.T) {
 			expectedErr:  status.Error(codes.Unknown, "processor failed"),
 
 			expectedMetrics: map[string]int64{
-				"beats_stats.metrics.apm-server.jaeger.grpc.collect.event.received.count":  2,
-				"beats_stats.metrics.apm-server.jaeger.grpc.collect.request.count":         1,
-				"beats_stats.metrics.apm-server.jaeger.grpc.collect.response.count":        1,
-				"beats_stats.metrics.apm-server.jaeger.grpc.collect.response.errors.count": 1,
+				"apm-server.jaeger.grpc.collect.event.received.count":  2,
+				"apm-server.jaeger.grpc.collect.request.count":         1,
+				"apm-server.jaeger.grpc.collect.response.count":        1,
+				"apm-server.jaeger.grpc.collect.response.errors.count": 1,
 			},
 		},
 	} {
