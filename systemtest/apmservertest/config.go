@@ -238,11 +238,19 @@ type InstrumentationConfig struct {
 type OutputConfig struct {
 	Console       *ConsoleOutputConfig       `json:"console,omitempty"`
 	Elasticsearch *ElasticsearchOutputConfig `json:"elasticsearch,omitempty"`
+	Logstash      *LogstashOutputConfig      `json:"logstash,omitempty"`
 }
 
 // ConsoleOutputConfig holds APM Server libbeat console output configuration.
 type ConsoleOutputConfig struct {
 	Enabled bool `json:"enabled"`
+}
+
+// LogstashOutputConfig holds APM Server libbeat logstash output configuration.
+type LogstashOutputConfig struct {
+	Enabled     bool     `json:"enabled"`
+	Hosts       []string `json:"hosts,omitempty"`
+	BulkMaxSize int      `json:"bulk_max_size,omitempty"`
 }
 
 // ElasticsearchOutputConfig holds APM Server libbeat Elasticsearch output configuration.

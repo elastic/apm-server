@@ -6,6 +6,7 @@ require (
 	github.com/docker/docker v23.0.3+incompatible
 	github.com/docker/go-connections v0.4.0
 	github.com/elastic/go-elasticsearch/v8 v8.4.0
+	github.com/elastic/go-lumber v0.1.1
 	github.com/fatih/color v1.13.0
 	github.com/google/go-cmp v0.5.9
 	github.com/google/pprof v0.0.0-20210407192527-94a9f03dee38
@@ -37,7 +38,6 @@ require (
 	golang.org/x/sys v0.5.0
 	golang.org/x/time v0.0.0-20220210224613-90d013bbcef8
 	google.golang.org/grpc v1.48.0
-	google.golang.org/protobuf v1.28.1
 	gopkg.in/yaml.v3 v3.0.1
 )
 
@@ -97,6 +97,7 @@ require (
 	golang.org/x/text v0.7.0 // indirect
 	golang.org/x/tools v0.1.12 // indirect
 	google.golang.org/genproto v0.0.0-20220728213248-dd149ef739b9 // indirect
+	google.golang.org/protobuf v1.28.1 // indirect
 	howett.net/plist v1.0.0 // indirect
 )
 
