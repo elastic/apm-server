@@ -19,3 +19,4 @@ https://github.com/elastic/apm-server/compare/8.10\...main[View commits]
 
 [float]
 ==== Added
+- Support and define DLM data retention period in the apmpackage
