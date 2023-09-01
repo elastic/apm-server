@@ -20,6 +20,8 @@ package interceptors
 import (
 	"context"
 
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/metric"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -47,6 +49,77 @@ type UnaryRequestMetrics interface {
 	RequestMetrics(fullMethod string) map[request.ResultID]*monitoring.Int
 }
 
+type metricsInterceptor struct {
+	logger *logp.Logger
+	meter  metric.Meter
+
+	counters map[request.ResultID]metric.Int64Counter
+}
+
+func (m *metricsInterceptor) Interceptor() grpc.UnaryServerInterceptor {
+	return func(
+		ctx context.Context,
+		req interface{},
+		info *grpc.UnaryServerInfo,
+		handler grpc.UnaryHandler,
+	) (interface{}, error) {
+		var ints map[request.ResultID]*monitoring.Int
+		if requestMetrics, ok := info.Server.(UnaryRequestMetrics); ok {
+			ints = requestMetrics.RequestMetrics(info.FullMethod)
+		} else {
+			ints = methodUnaryRequestMetrics[info.FullMethod]
+		}
+		if ints == nil {
+			m.logger.With(
+				"grpc.request.method", info.FullMethod,
+			).Warn("metrics registry missing")
+			return handler(ctx, req)
+		}
+
+		m.getMetric(request.IDRequestCount).Add(ctx, 1)
+		defer m.getMetric(request.IDResponseCount).Add(ctx, 1)
+
+		ints[request.IDRequestCount].Inc()
+		defer ints[request.IDResponseCount].Inc()
+
+		resp, err := handler(ctx, req)
+
+		responseID := request.IDResponseValidCount
+		if err != nil {
+			responseID = request.IDResponseErrorsCount
+			if s, ok := status.FromError(err); ok {
+				switch s.Code() {
+				case codes.Unauthenticated:
+					m.getMetric(request.IDResponseErrorsUnauthorized).Add(ctx, 1)
+					ints[request.IDResponseErrorsUnauthorized].Inc()
+				case codes.DeadlineExceeded, codes.Canceled:
+					m.getMetric(request.IDResponseErrorsTimeout).Add(ctx, 1)
+					ints[request.IDResponseErrorsTimeout].Inc()
+				case codes.ResourceExhausted:
+					m.getMetric(request.IDResponseErrorsRateLimit).Add(ctx, 1)
+					ints[request.IDResponseErrorsRateLimit].Inc()
+				}
+			}
+		}
+
+		m.getMetric(responseID).Add(ctx, 1)
+		ints[responseID].Inc()
+
+		return resp, err
+	}
+}
+
+func (m *metricsInterceptor) getMetric(n request.ResultID) metric.Int64Counter {
+	name := "grpc." + n
+	if met, ok := m.counters[name]; ok {
+		return met
+	}
+
+	nm, _ := m.meter.Int64Counter(string(name))
+	m.counters[name] = nm
+	return nm
+}
+
 // Metrics returns a grpc.UnaryServerInterceptor that increments metrics
 // for gRPC method calls.
 //
@@ -57,48 +130,17 @@ type UnaryRequestMetrics interface {
 // then the registered UnaryRequestMetrics will be used instead. Finally,
 // if neither of these are available, a warning will be logged and no metrics
 // will be gathered.
-func Metrics(logger *logp.Logger) grpc.UnaryServerInterceptor {
-	return func(
-		ctx context.Context,
-		req interface{},
-		info *grpc.UnaryServerInfo,
-		handler grpc.UnaryHandler,
-	) (interface{}, error) {
-		var m map[request.ResultID]*monitoring.Int
-		if requestMetrics, ok := info.Server.(UnaryRequestMetrics); ok {
-			m = requestMetrics.RequestMetrics(info.FullMethod)
-		} else {
-			m = methodUnaryRequestMetrics[info.FullMethod]
-		}
-		if m == nil {
-			logger.With(
-				"grpc.request.method", info.FullMethod,
-			).Warn("metrics registry missing")
-			return handler(ctx, req)
-		}
-
-		m[request.IDRequestCount].Inc()
-		defer m[request.IDResponseCount].Inc()
-
-		resp, err := handler(ctx, req)
-
-		responseID := request.IDResponseValidCount
-		if err != nil {
-			responseID = request.IDResponseErrorsCount
-			if s, ok := status.FromError(err); ok {
-				switch s.Code() {
-				case codes.Unauthenticated:
-					m[request.IDResponseErrorsUnauthorized].Inc()
-				case codes.DeadlineExceeded, codes.Canceled:
-					m[request.IDResponseErrorsTimeout].Inc()
-				case codes.ResourceExhausted:
-					m[request.IDResponseErrorsRateLimit].Inc()
-				}
-			}
-		}
-
-		m[responseID].Inc()
-
-		return resp, err
+func Metrics(logger *logp.Logger, mp metric.MeterProvider) grpc.UnaryServerInterceptor {
+	if mp == nil {
+		mp = otel.GetMeterProvider()
 	}
+
+	i := &metricsInterceptor{
+		logger: logger,
+		meter:  mp.Meter("internal/beater/interceptors"),
+
+		counters: map[request.ResultID]metric.Int64Counter{},
+	}
+
+	return i.Interceptor()
 }

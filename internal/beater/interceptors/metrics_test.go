@@ -23,6 +23,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
+	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -41,13 +43,20 @@ var monitoringKeys = append(
 )
 
 func TestMetrics(t *testing.T) {
+	reader := sdkmetric.NewManualReader(sdkmetric.WithTemporalitySelector(
+		func(ik sdkmetric.InstrumentKind) metricdata.Temporality {
+			return metricdata.DeltaTemporality
+		},
+	))
+	mp := sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader))
+
 	registry := monitoring.NewRegistry()
 
 	monitoringMap := request.MonitoringMapForRegistry(registry, monitoringKeys)
 	methodName := "test_method_name"
 	logger := logp.NewLogger("interceptor.metrics.test")
 
-	interceptor := Metrics(logger)
+	interceptor := Metrics(logger, mp)
 
 	ctx := context.Background()
 	info := &grpc.UnaryServerInfo{
@@ -59,10 +68,13 @@ func TestMetrics(t *testing.T) {
 	}
 
 	for _, tc := range []struct {
+		name          string
 		f             func(ctx context.Context, req interface{}) (interface{}, error)
 		monitoringInt map[request.ResultID]int64
+		expectedOtel  map[string]int64
 	}{
 		{
+			name: "with an error",
 			f: func(ctx context.Context, req interface{}) (interface{}, error) {
 				return nil, errors.New("error")
 			},
@@ -76,8 +88,14 @@ func TestMetrics(t *testing.T) {
 				request.IDResponseErrorsTimeout:      0,
 				request.IDResponseErrorsUnauthorized: 0,
 			},
+			expectedOtel: map[string]int64{
+				"grpc." + string(request.IDRequestCount):        1,
+				"grpc." + string(request.IDResponseCount):       1,
+				"grpc." + string(request.IDResponseErrorsCount): 1,
+			},
 		},
 		{
+			name: "with an unauthenticated error",
 			f: func(ctx context.Context, req interface{}) (interface{}, error) {
 				return nil, status.Error(codes.Unauthenticated, "error")
 			},
@@ -91,8 +109,15 @@ func TestMetrics(t *testing.T) {
 				request.IDResponseErrorsTimeout:      0,
 				request.IDResponseErrorsUnauthorized: 1,
 			},
+			expectedOtel: map[string]int64{
+				"grpc." + string(request.IDRequestCount):               1,
+				"grpc." + string(request.IDResponseCount):              1,
+				"grpc." + string(request.IDResponseErrorsCount):        1,
+				"grpc." + string(request.IDResponseErrorsUnauthorized): 1,
+			},
 		},
 		{
+			name: "with a deadline exceeded error",
 			f: func(ctx context.Context, req interface{}) (interface{}, error) {
 				return nil, status.Error(codes.DeadlineExceeded, "request timed out")
 			},
@@ -106,8 +131,15 @@ func TestMetrics(t *testing.T) {
 				request.IDResponseErrorsTimeout:      1,
 				request.IDResponseErrorsUnauthorized: 0,
 			},
+			expectedOtel: map[string]int64{
+				"grpc." + string(request.IDRequestCount):          1,
+				"grpc." + string(request.IDResponseCount):         1,
+				"grpc." + string(request.IDResponseErrorsCount):   1,
+				"grpc." + string(request.IDResponseErrorsTimeout): 1,
+			},
 		},
 		{
+			name: "with a canceled error",
 			f: func(ctx context.Context, req interface{}) (interface{}, error) {
 				return nil, status.Error(codes.Canceled, "request timed out")
 			},
@@ -121,8 +153,15 @@ func TestMetrics(t *testing.T) {
 				request.IDResponseErrorsTimeout:      1,
 				request.IDResponseErrorsUnauthorized: 0,
 			},
+			expectedOtel: map[string]int64{
+				"grpc." + string(request.IDRequestCount):          1,
+				"grpc." + string(request.IDResponseCount):         1,
+				"grpc." + string(request.IDResponseErrorsCount):   1,
+				"grpc." + string(request.IDResponseErrorsTimeout): 1,
+			},
 		},
 		{
+			name: "with a resource exhausted error",
 			f: func(ctx context.Context, req interface{}) (interface{}, error) {
 				return nil, status.Error(codes.ResourceExhausted, "rate limit exceeded")
 			},
@@ -136,8 +175,15 @@ func TestMetrics(t *testing.T) {
 				request.IDResponseErrorsTimeout:      0,
 				request.IDResponseErrorsUnauthorized: 0,
 			},
+			expectedOtel: map[string]int64{
+				"grpc." + string(request.IDRequestCount):            1,
+				"grpc." + string(request.IDResponseCount):           1,
+				"grpc." + string(request.IDResponseErrorsCount):     1,
+				"grpc." + string(request.IDResponseErrorsRateLimit): 1,
+			},
 		},
 		{
+			name: "with a success",
 			f: func(ctx context.Context, req interface{}) (interface{}, error) {
 				return nil, nil
 			},
@@ -151,11 +197,19 @@ func TestMetrics(t *testing.T) {
 				request.IDResponseErrorsTimeout:      0,
 				request.IDResponseErrorsUnauthorized: 0,
 			},
+			expectedOtel: map[string]int64{
+				"grpc." + string(request.IDRequestCount):       1,
+				"grpc." + string(request.IDResponseCount):      1,
+				"grpc." + string(request.IDResponseValidCount): 1,
+			},
 		},
 	} {
-		interceptor(ctx, nil, info, tc.f)
-		assertMonitoring(t, tc.monitoringInt, monitoringMap)
-		monitoringtest.ClearRegistry(monitoringMap)
+		t.Run(tc.name, func(t *testing.T) {
+			interceptor(ctx, nil, info, tc.f)
+			assertMonitoring(t, tc.monitoringInt, monitoringMap)
+			monitoringtest.ClearRegistry(monitoringMap)
+			monitoringtest.ExpectOtelMetrics(t, reader, tc.expectedOtel)
+		})
 	}
 }
 

@@ -190,7 +190,7 @@ func newGRPCServer(t *testing.T, batchProcessor modelpb.BatchProcessor) *grpc.Cl
 	lis, err := net.Listen("tcp", "localhost:0")
 	require.NoError(t, err)
 	logger := logp.NewLogger("otlp.grpc.test")
-	srv := grpc.NewServer(grpc.UnaryInterceptor(interceptors.Metrics(logger)))
+	srv := grpc.NewServer(grpc.UnaryInterceptor(interceptors.Metrics(logger, nil)))
 	semaphore := semaphore.NewWeighted(1)
 	otlp.RegisterGRPCServices(srv, zap.NewNop(), batchProcessor, semaphore)
 
