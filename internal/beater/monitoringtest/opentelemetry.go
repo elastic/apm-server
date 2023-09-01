@@ -52,7 +52,7 @@ func ExpectOtelMetrics(t *testing.T, reader sdkmetric.Reader, expectedMetrics ma
 	}
 
 	expectedMetricsKeys := []string{}
-	for k, _ := range expectedMetrics {
+	for k := range expectedMetrics {
 		expectedMetricsKeys = append(expectedMetricsKeys, k)
 	}
 	assert.ElementsMatch(t, expectedMetricsKeys, foundMetrics)
