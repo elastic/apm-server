@@ -69,7 +69,7 @@ func (m *monitoringMiddleware) inc(id request.ResultID) {
 }
 
 func (m *monitoringMiddleware) getMetric(n request.ResultID) metric.Int64Counter {
-	name := "http." + n
+	name := "http.server." + n
 	if met, ok := m.counters[name]; ok {
 		return met
 	}

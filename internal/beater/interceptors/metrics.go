@@ -110,7 +110,7 @@ func (m *metricsInterceptor) Interceptor() grpc.UnaryServerInterceptor {
 }
 
 func (m *metricsInterceptor) getMetric(n request.ResultID) metric.Int64Counter {
-	name := "grpc." + n
+	name := "grpc.server." + n
 	if met, ok := m.counters[name]; ok {
 		return met
 	}

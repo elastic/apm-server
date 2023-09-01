@@ -69,10 +69,10 @@ func TestMonitoringHandler(t *testing.T) {
 				request.IDResponseErrorsForbidden: 1,
 			},
 			map[string]int64{
-				"http." + string(request.IDRequestCount):            1,
-				"http." + string(request.IDResponseCount):           1,
-				"http." + string(request.IDResponseErrorsCount):     1,
-				"http." + string(request.IDResponseErrorsForbidden): 1,
+				"http.server." + string(request.IDRequestCount):            1,
+				"http.server." + string(request.IDResponseCount):           1,
+				"http.server." + string(request.IDResponseErrorsCount):     1,
+				"http.server." + string(request.IDResponseErrorsForbidden): 1,
 			},
 			mockMonitoring,
 		)
@@ -88,10 +88,10 @@ func TestMonitoringHandler(t *testing.T) {
 				request.IDResponseValidAccepted: 1,
 			},
 			map[string]int64{
-				"http." + string(request.IDRequestCount):          1,
-				"http." + string(request.IDResponseCount):         1,
-				"http." + string(request.IDResponseValidCount):    1,
-				"http." + string(request.IDResponseValidAccepted): 1,
+				"http.server." + string(request.IDRequestCount):          1,
+				"http.server." + string(request.IDResponseCount):         1,
+				"http.server." + string(request.IDResponseValidCount):    1,
+				"http.server." + string(request.IDResponseValidAccepted): 1,
 			},
 			mockMonitoring,
 		)
@@ -107,10 +107,10 @@ func TestMonitoringHandler(t *testing.T) {
 				request.IDUnset:              1,
 			},
 			map[string]int64{
-				"http." + string(request.IDRequestCount):       1,
-				"http." + string(request.IDResponseCount):      1,
-				"http." + string(request.IDResponseValidCount): 1,
-				"http." + string(request.IDUnset):              1,
+				"http.server." + string(request.IDRequestCount):       1,
+				"http.server." + string(request.IDResponseCount):      1,
+				"http.server." + string(request.IDResponseValidCount): 1,
+				"http.server." + string(request.IDUnset):              1,
 			},
 			mockMonitoring,
 		)
@@ -126,10 +126,10 @@ func TestMonitoringHandler(t *testing.T) {
 				request.IDResponseErrorsInternal: 1,
 			},
 			map[string]int64{
-				"http." + string(request.IDRequestCount):           1,
-				"http." + string(request.IDResponseCount):          1,
-				"http." + string(request.IDResponseErrorsCount):    1,
-				"http." + string(request.IDResponseErrorsInternal): 1,
+				"http.server." + string(request.IDRequestCount):           1,
+				"http.server." + string(request.IDResponseCount):          1,
+				"http.server." + string(request.IDResponseErrorsCount):    1,
+				"http.server." + string(request.IDResponseErrorsInternal): 1,
 			},
 			mockMonitoring)
 	})
@@ -139,10 +139,10 @@ func TestMonitoringHandler(t *testing.T) {
 			HandlerIdle,
 			map[request.ResultID]int{},
 			map[string]int64{
-				"http." + string(request.IDRequestCount):       1,
-				"http." + string(request.IDResponseCount):      1,
-				"http." + string(request.IDResponseValidCount): 1,
-				"http." + string(request.IDUnset):              1,
+				"http.server." + string(request.IDRequestCount):       1,
+				"http.server." + string(request.IDResponseCount):      1,
+				"http.server." + string(request.IDResponseValidCount): 1,
+				"http.server." + string(request.IDUnset):              1,
 			},
 			mockMonitoringNil,
 		)

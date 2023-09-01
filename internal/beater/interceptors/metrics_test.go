@@ -89,9 +89,9 @@ func TestMetrics(t *testing.T) {
 				request.IDResponseErrorsUnauthorized: 0,
 			},
 			expectedOtel: map[string]int64{
-				"grpc." + string(request.IDRequestCount):        1,
-				"grpc." + string(request.IDResponseCount):       1,
-				"grpc." + string(request.IDResponseErrorsCount): 1,
+				"grpc.server." + string(request.IDRequestCount):        1,
+				"grpc.server." + string(request.IDResponseCount):       1,
+				"grpc.server." + string(request.IDResponseErrorsCount): 1,
 			},
 		},
 		{
@@ -110,10 +110,10 @@ func TestMetrics(t *testing.T) {
 				request.IDResponseErrorsUnauthorized: 1,
 			},
 			expectedOtel: map[string]int64{
-				"grpc." + string(request.IDRequestCount):               1,
-				"grpc." + string(request.IDResponseCount):              1,
-				"grpc." + string(request.IDResponseErrorsCount):        1,
-				"grpc." + string(request.IDResponseErrorsUnauthorized): 1,
+				"grpc.server." + string(request.IDRequestCount):               1,
+				"grpc.server." + string(request.IDResponseCount):              1,
+				"grpc.server." + string(request.IDResponseErrorsCount):        1,
+				"grpc.server." + string(request.IDResponseErrorsUnauthorized): 1,
 			},
 		},
 		{
@@ -132,10 +132,10 @@ func TestMetrics(t *testing.T) {
 				request.IDResponseErrorsUnauthorized: 0,
 			},
 			expectedOtel: map[string]int64{
-				"grpc." + string(request.IDRequestCount):          1,
-				"grpc." + string(request.IDResponseCount):         1,
-				"grpc." + string(request.IDResponseErrorsCount):   1,
-				"grpc." + string(request.IDResponseErrorsTimeout): 1,
+				"grpc.server." + string(request.IDRequestCount):          1,
+				"grpc.server." + string(request.IDResponseCount):         1,
+				"grpc.server." + string(request.IDResponseErrorsCount):   1,
+				"grpc.server." + string(request.IDResponseErrorsTimeout): 1,
 			},
 		},
 		{
@@ -154,10 +154,10 @@ func TestMetrics(t *testing.T) {
 				request.IDResponseErrorsUnauthorized: 0,
 			},
 			expectedOtel: map[string]int64{
-				"grpc." + string(request.IDRequestCount):          1,
-				"grpc." + string(request.IDResponseCount):         1,
-				"grpc." + string(request.IDResponseErrorsCount):   1,
-				"grpc." + string(request.IDResponseErrorsTimeout): 1,
+				"grpc.server." + string(request.IDRequestCount):          1,
+				"grpc.server." + string(request.IDResponseCount):         1,
+				"grpc.server." + string(request.IDResponseErrorsCount):   1,
+				"grpc.server." + string(request.IDResponseErrorsTimeout): 1,
 			},
 		},
 		{
@@ -176,10 +176,10 @@ func TestMetrics(t *testing.T) {
 				request.IDResponseErrorsUnauthorized: 0,
 			},
 			expectedOtel: map[string]int64{
-				"grpc." + string(request.IDRequestCount):            1,
-				"grpc." + string(request.IDResponseCount):           1,
-				"grpc." + string(request.IDResponseErrorsCount):     1,
-				"grpc." + string(request.IDResponseErrorsRateLimit): 1,
+				"grpc.server." + string(request.IDRequestCount):            1,
+				"grpc.server." + string(request.IDResponseCount):           1,
+				"grpc.server." + string(request.IDResponseErrorsCount):     1,
+				"grpc.server." + string(request.IDResponseErrorsRateLimit): 1,
 			},
 		},
 		{
@@ -198,9 +198,9 @@ func TestMetrics(t *testing.T) {
 				request.IDResponseErrorsUnauthorized: 0,
 			},
 			expectedOtel: map[string]int64{
-				"grpc." + string(request.IDRequestCount):       1,
-				"grpc." + string(request.IDResponseCount):      1,
-				"grpc." + string(request.IDResponseValidCount): 1,
+				"grpc.server." + string(request.IDRequestCount):       1,
+				"grpc.server." + string(request.IDResponseCount):      1,
+				"grpc.server." + string(request.IDResponseValidCount): 1,
 			},
 		},
 	} {
