@@ -1,5 +1,8 @@
 - version: generated
   changes:
+    - description: Define data retentions to support DLM
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/11539
     - description: Remove unused `processor.name` field
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/11437
