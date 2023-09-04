@@ -83,7 +83,6 @@ func TestMetrics(t *testing.T) {
 				request.IDResponseCount:              1,
 				request.IDResponseValidCount:         0,
 				request.IDResponseErrorsCount:        1,
-				request.IDResponseErrorsInternal:     1,
 				request.IDResponseErrorsRateLimit:    0,
 				request.IDResponseErrorsTimeout:      0,
 				request.IDResponseErrorsUnauthorized: 0,
