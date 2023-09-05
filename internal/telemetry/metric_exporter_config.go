@@ -79,6 +79,18 @@ func defaultAggregationSelector(ik metric.InstrumentKind) metric.Aggregation {
 	}
 }
 
+// WithBatchProcessor configures the batch processor that will be used by the
+// metric exporter.
+// Using this option is the equivalent of using `SetBatchProcessor`.
+//
+// Defaults to not running any batch processing.
+func WithBatchProcessor(b modelpb.BatchProcessor) ConfigOption {
+	return func(cfg Config) Config {
+		cfg.processor = b
+		return cfg
+	}
+}
+
 // WithMetricFilter configured the metrics filter. Any metric filtered here
 // will be the only ones to be exported. All other metrics will be ignored.
 //
