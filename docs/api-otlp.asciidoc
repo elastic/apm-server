@@ -6,10 +6,12 @@ https://opentelemetry.io/docs/specs/otlp/[OpenTelemetry Protocol (OTLP)].
 OTLP is the default transfer protocol for OpenTelemetry and is supported natively by APM Server.
 
 APM Server supports two OTLP communication protocols on the same port:
+
 * OTLP/HTTP (protobuf)
 * OTLP/gRPC
 
-**OTLP/gRPC paths**
+[discrete]
+=== OTLP/gRPC paths
 
 [options="header"]
 |====
@@ -19,7 +21,8 @@ APM Server supports two OTLP communication protocols on the same port:
 |OTLP logs intake |`/opentelemetry.proto.collector.logs.v1.LogsService/Export`
 |====
 
-**OTLP/HTTP paths**
+[discrete]
+==== OTLP/HTTP paths
 
 [options="header"]
 |====
