@@ -399,7 +399,7 @@ func (s *Runner) Run(ctx context.Context) error {
 		apmgrpc.NewUnaryServerInterceptor(apmgrpc.WithRecovery(), apmgrpc.WithTracer(tracer)),
 		interceptors.ClientMetadata(),
 		interceptors.Logging(gRPCLogger),
-		interceptors.Metrics(gRPCLogger),
+		interceptors.Metrics(gRPCLogger, nil),
 		interceptors.Timeout(),
 		interceptors.Auth(authenticator),
 		interceptors.AnonymousRateLimit(ratelimitStore),

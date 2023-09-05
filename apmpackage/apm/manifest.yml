@@ -1,8 +1,7 @@
-format_version: 1.0.0
+format_version: 2.10.0
 name: apm
 title: Elastic APM
 version: generated
-license: basic
 description: Monitor, detect, and diagnose complex application performance issues.
 type: integration
 categories: ["elastic_stack", "monitoring"]
