@@ -13,7 +13,9 @@ https://github.com/elastic/apm-server/compare/8.8\...8.9[View commits]
 
 https://github.com/elastic/apm-server/compare/v8.9.1\...v8.9.2[View commits]
 
-No significant changes.
+[float]
+==== Bug fixes
+- Add back handling of `queue.*` config for libbeat outputs, such as logstash and kafka {pull}11534[11534]
 
 [float]
 [[release-notes-8.9.1]]
