@@ -11,7 +11,7 @@ elasticsearch_dedicated_masters = true
 apm_server_size = "32g"
 # Benchmarks executor size executor
 worker_instance_type = "c6i.2xlarge"
-apm_shards = 4
+apm_shards = 8
 
 ess_region = "us-east-1"
 deployment_template = "aws-cpu-optimized-v5"
