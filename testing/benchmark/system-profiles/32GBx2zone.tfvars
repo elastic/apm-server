@@ -8,7 +8,7 @@ elasticsearch_size = "240g"
 elasticsearch_zone_count = 2
 elasticsearch_dedicated_masters = true
 # APM server instance size
-apm_server_size = "32g"
+apm_server_size = "30g"
 # Benchmarks executor size executor
 worker_instance_type = "c6i.2xlarge"
 apm_shards = 4
