@@ -1,0 +1,14 @@
+[[known-issues]]
+= Known issues
+
+APM has the following known issues:
+
+*Brief description* +
+_Versions: XX.XX.XX, YY.YY.YY, ZZ.ZZ.ZZ_
+
+Detailed description.
+
+// *Brief description* +
+// _Versions: XX.XX.XX, YY.YY.YY, ZZ.ZZ.ZZ_
+
+// Detailed description.

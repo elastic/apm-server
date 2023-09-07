@@ -91,4 +91,6 @@ include::upgrading.asciidoc[]
 
 include::release-notes.asciidoc[leveloffset=+1]
 
+include::known-issues.asciidoc[leveloffset=+1]
+
 include::{docdir}/redirects.asciidoc[]
