@@ -36,14 +36,15 @@ import (
 //	  - ...
 func getCommonPipeline(name string, version *version.V) []map[string]interface{} {
 	commonPipelines := map[string][]map[string]interface{}{
-		"observer_version": getObserverVersionPipeline(version),
-		"observer_ids":     observerIDsPipeline,
-		"ecs_version":      ecsVersionPipeline,
-		"user_agent":       userAgentPipeline,
-		"process_ppid":     processPpidPipeline,
-		"client_geoip":     clientGeoIPPipeline,
-		"event_duration":   eventDurationPipeline,
-		"set_metrics":      setMetricsPipeline,
+		"observer_version":      getObserverVersionPipeline(version),
+		"observer_ids":          observerIDsPipeline,
+		"ecs_version":           ecsVersionPipeline,
+		"user_agent":            userAgentPipeline,
+		"process_ppid":          processPpidPipeline,
+		"client_geoip":          clientGeoIPPipeline,
+		"event_duration":        eventDurationPipeline,
+		"set_metrics":           setMetricsPipeline,
+		"remove_event_received": removeEventReceivedPipeline,
 	}
 	return commonPipelines[name]
 }
@@ -141,6 +142,15 @@ var clientGeoIPPipeline = []map[string]interface{}{{
 				"ignore_failure": true,
 			},
 		}},
+	},
+}}
+
+var removeEventReceivedPipeline = []map[string]interface{}{{
+	"remove": map[string]interface{}{
+		"field":          "event.received",
+		"ignore_missing": true,
+		"ignore_failure": true,
+		"description":    "The field is used for internal statistics but does not need to be indexed.",
 	},
 }}
 
