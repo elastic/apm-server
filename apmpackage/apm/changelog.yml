@@ -12,6 +12,9 @@
     - description: Remove unused `processor.event` field from logs data streams
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/11494
+    - description: Remove `event.received` fields from logs, metrics and traces data streams
+      type: bugfix
+      link: 
 - version: "8.10.0"
   changes:
     - description: Add permissions to reroute to dedicated datasets for logs, metrics and traces
