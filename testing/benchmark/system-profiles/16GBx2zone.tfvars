@@ -10,7 +10,7 @@ elasticsearch_zone_count = 2
 apm_server_size = "16g"
 # Benchmarks executor size executor
 worker_instance_type = "c6i.2xlarge"
-apm_shards = 2
+apm_shards = 4
 
 ess_region = "us-east-1"
 deployment_template = "aws-cpu-optimized-v5"
