@@ -20,3 +20,14 @@ https://github.com/elastic/apm-server/compare/8.10\...main[View commits]
 [float]
 ==== Added
 - Support and define DLM data retention period in the apmpackage
+- Expose new metrics into the local batch processor {pull}11582[11582] :
+	- http.server.request.count
+	- http.server.response.valid.count
+	- http.server.response.errors.count
+	- http.server.errors.timeout
+	- http.server.errors.ratelimit
+	- grpc.server.request.count
+	- grpc.server.response.valid.count
+	- grpc.server.response.errors.count
+	- grpc.server.errors.timeout
+	- grpc.server.errors.ratelimit
