@@ -15,8 +15,5 @@ processors:
       name: client_geoip
   - pipeline:
       name: set_metrics
-  - remove:
-      field: event.received
-      ignore_missing: true
-      ignore_failure: true
-      description: The field is used for internal statistics but does not need to be indexed.
+  - pipeline:
+      name: remove_event_received

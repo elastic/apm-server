@@ -22,8 +22,5 @@ processors:
   - remove:
       field: _dynamic_templates
       ignore_missing: true
-  - remove:
-      field: event.received
-      ignore_missing: true
-      ignore_failure: true
-      description: The field is used for internal statistics but does not need to be indexed.
+  - pipeline:
+      name: remove_event_received
