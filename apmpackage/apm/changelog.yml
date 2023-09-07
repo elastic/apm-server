@@ -14,7 +14,7 @@
       link: https://github.com/elastic/apm-server/pull/11494
     - description: Remove `event.received` fields from logs, metrics and traces data streams
       type: bugfix
-      link: 
+      link: https://github.com/elastic/apm-server/pull/11602
 - version: "8.10.0"
   changes:
     - description: Add permissions to reroute to dedicated datasets for logs, metrics and traces
