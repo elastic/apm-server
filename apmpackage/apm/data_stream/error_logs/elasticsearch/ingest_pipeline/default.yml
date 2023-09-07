@@ -20,3 +20,8 @@ processors:
       if: ctx.error?.log?.message != null
       field: error.grouping_name
       copy_from: error.log.message
+  - remove:
+      field: event.received
+      ignore_missing: true
+      ignore_failure: true
+      description: The field is used for internal statistics but does not need to be indexed.
