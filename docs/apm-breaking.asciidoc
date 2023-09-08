@@ -7,6 +7,20 @@
 This section describes the breaking changes and deprecations introduced in this release
 and previous minor versions.
 
+// tag::810-bc[]
+[float]
+[[breaking-changes-8.10]]
+=== 8.10
+
+The following breaking changes are introduced in APM version 8.10.0:
+
+- Aggregated metrics now consider global labels to be part of a service's identity, and high cardinality global labels may cause services to be obscured.
+For more details, see https://github.com/elastic/apm-server/pull/11386[PR #11386].
+
+- Event protobuf encoding for tail-based sampling changed to a more efficient encoding for event timestamp and duration
+For more details, see https://github.com/elastic/apm-server/pull/11386[PR #11386].
+// end::810-bc[]
+
 // tag::87-bc[]
 [float]
 [[breaking-changes-8.7]]

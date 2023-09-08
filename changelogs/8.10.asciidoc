@@ -15,9 +15,6 @@ https://github.com/elastic/apm-server/compare/8.9\...8.10[View commits]
 - Event protobuf encoding for tail-based sampling changed (to a more efficient encoding) for event timestamp and duration {pull}11386[11386]
 
 [float]
-==== Deprecations
-
-[float]
 ==== Bug fixes
 - Add back handling of `queue.*` config for libbeat outputs, such as logstash and kafka {pull}11534[11534]
 - Fix panic on missing `transaction.dropped_spans_stats.duration` field {pull}11117[11117]
