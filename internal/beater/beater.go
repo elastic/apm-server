@@ -513,7 +513,7 @@ func (s *Runner) Run(ctx context.Context) error {
 
 		// Add a model processor that removes `event.received`, which is added by
 		// apm-data, but which we don't yet map.
-		modelpb.ProcessBatchFunc(removeEventReceivedBatchProcessor),
+		modelprocessor.RemoveEventReceived{},
 
 		// Pre-process events before they are sent to the final processors for
 		// aggregation, sampling, and indexing.
