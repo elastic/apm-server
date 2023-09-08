@@ -91,6 +91,8 @@ func TestMetrics(t *testing.T) {
 				"grpc.server." + string(request.IDRequestCount):        1,
 				"grpc.server." + string(request.IDResponseCount):       1,
 				"grpc.server." + string(request.IDResponseErrorsCount): 1,
+
+				"grpc.server.request.duration": 1,
 			},
 		},
 		{
@@ -113,6 +115,8 @@ func TestMetrics(t *testing.T) {
 				"grpc.server." + string(request.IDResponseCount):              1,
 				"grpc.server." + string(request.IDResponseErrorsCount):        1,
 				"grpc.server." + string(request.IDResponseErrorsUnauthorized): 1,
+
+				"grpc.server.request.duration": 1,
 			},
 		},
 		{
@@ -135,6 +139,8 @@ func TestMetrics(t *testing.T) {
 				"grpc.server." + string(request.IDResponseCount):         1,
 				"grpc.server." + string(request.IDResponseErrorsCount):   1,
 				"grpc.server." + string(request.IDResponseErrorsTimeout): 1,
+
+				"grpc.server.request.duration": 1,
 			},
 		},
 		{
@@ -157,6 +163,8 @@ func TestMetrics(t *testing.T) {
 				"grpc.server." + string(request.IDResponseCount):         1,
 				"grpc.server." + string(request.IDResponseErrorsCount):   1,
 				"grpc.server." + string(request.IDResponseErrorsTimeout): 1,
+
+				"grpc.server.request.duration": 1,
 			},
 		},
 		{
@@ -179,6 +187,8 @@ func TestMetrics(t *testing.T) {
 				"grpc.server." + string(request.IDResponseCount):           1,
 				"grpc.server." + string(request.IDResponseErrorsCount):     1,
 				"grpc.server." + string(request.IDResponseErrorsRateLimit): 1,
+
+				"grpc.server.request.duration": 1,
 			},
 		},
 		{
@@ -200,6 +210,8 @@ func TestMetrics(t *testing.T) {
 				"grpc.server." + string(request.IDRequestCount):       1,
 				"grpc.server." + string(request.IDResponseCount):      1,
 				"grpc.server." + string(request.IDResponseValidCount): 1,
+
+				"grpc.server.request.duration": 1,
 			},
 		},
 	} {
