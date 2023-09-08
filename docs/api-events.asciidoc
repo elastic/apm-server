@@ -1,5 +1,5 @@
 [[api-events]]
-=== Events intake API
+=== Elastic APM events intake API
 
 NOTE: Most users do not need to interact directly with the events intake API.
 
@@ -24,7 +24,21 @@ See the <<data-model,APM data model>> to learn more about the different types of
 
 [[api-events-endpoint]]
 [float]
-=== Endpoint
+=== Endpoints
+
+APM Server exposes the following endpoints for Elastic APM agent data intake:
+
+[options="header"]
+|====
+|Name |Endpoint
+|APM agent event intake |`/intake/v2/events`
+|RUM event intake (v2) |`/intake/v2/rum/events`
+|RUM event intake (v3) |`/intake/v3/rum/events`
+|====
+
+[[api-events-example]]
+[float]
+=== Request
 
 Send an `HTTP POST` request to the APM Server `intake/v2/events` endpoint:
 
@@ -49,11 +63,11 @@ Furthermore, asynchronous processing requests will only be scheduled if the APM 
 service the incoming request, requests that cannot be serviced will receive an internal error
 `503` "queue is full" error.
 
-For <<apm-rum,RUM>> send an `HTTP POST` request to the APM Server `intake/v2/rum/events` endpoint instead:
+For <<apm-rum,RUM>> send an `HTTP POST` request to the APM Server `intake/v3/rum/events` endpoint instead:
 
 [source,bash]
 ------------------------------------------------------------
-http(s)://{hostname}:{port}/intake/v2/rum/events
+http(s)://{hostname}:{port}/intake/v3/rum/events
 ------------------------------------------------------------
 
 [[api-events-response]]
