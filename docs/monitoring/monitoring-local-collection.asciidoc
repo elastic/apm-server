@@ -4,7 +4,7 @@
 <titleabbrev>Use local collection</titleabbrev>
 ++++
 
-In 8.10 and later, we emit a selected set of metrics directly to the monitoring
+In 8.11 and later, we emit a selected set of metrics directly to the monitoring
 cluster.
 The benefit of using local collection instead of internal collection is that
 the metrics are sent directly to your main monitoring index, making it easier
@@ -21,11 +21,13 @@ collection.
 Here is the list of every metrics we currently expose:
 
 * http.server.request.count
+* http.server.request.duration
 * http.server.response.valid.count
 * http.server.response.errors.count
 * http.server.errors.timeout
 * http.server.errors.ratelimit
 * grpc.server.request.count
+* grpc.server.request.duration
 * grpc.server.response.valid.count
 * grpc.server.response.errors.count
 * grpc.server.errors.timeout
