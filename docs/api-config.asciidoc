@@ -1,15 +1,22 @@
 [[api-config]]
-=== Agent configuration API
+=== Elastic APM agent configuration API
 
-APM Server exposes an API endpoint that allows agents to query the server for configuration changes.
+APM Server exposes API endpoints that allow Elastic APM agents to query the APM Server for configuration changes.
 More information on this feature is available in {kibana-ref}/agent-configuration.html[{apm-agent} configuration in {kib}].
 
 [float]
 [[api-config-endpoint]]
-=== Agent configuration endpoint
+=== Agent configuration endpoints
 
-The Agent configuration endpoint accepts both `HTTP GET` and `HTTP POST` requests.
-If <<api-key>> or a <<secret-token>> is configured, requests to this endpoint must be authenticated.
+[options="header"]
+|====
+|Name |Endpoint
+|Agent configuration intake |`/config/v1/agents`
+|RUM configuration intake |`/config/v1/rum/agents`
+|====
+
+The Agent configuration endpoints accepts both `HTTP GET` and `HTTP POST` requests.
+If an <<api-key>> or <<secret-token>> is configured, requests to this endpoint must be authenticated.
 
 [float]
 [[api-config-api-get]]

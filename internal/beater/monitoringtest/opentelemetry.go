@@ -26,7 +26,7 @@ import (
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 )
 
-func ExpectOtelMetrics(t *testing.T, reader sdkmetric.Reader, expectedMetrics map[string]int64) {
+func ExpectOtelMetrics(t *testing.T, reader sdkmetric.Reader, expectedMetrics map[string]interface{}) {
 	t.Helper()
 
 	var rm metricdata.ResourceMetrics
@@ -43,7 +43,24 @@ func ExpectOtelMetrics(t *testing.T, reader sdkmetric.Reader, expectedMetrics ma
 				foundMetrics = append(foundMetrics, m.Name)
 
 				if v, ok := expectedMetrics[m.Name]; ok {
-					assert.Equal(t, v, d.DataPoints[0].Value, m.Name)
+					if dp, ok := v.(int); ok {
+						assert.Equal(t, int64(dp), d.DataPoints[0].Value, m.Name)
+					} else {
+						assert.Fail(t, "expected an int value", m.Name)
+					}
+				} else {
+					assert.Fail(t, "unexpected metric", m.Name)
+				}
+			case metricdata.Histogram[int64]:
+				assert.Equal(t, 1, len(d.DataPoints))
+				foundMetrics = append(foundMetrics, m.Name)
+
+				if v, ok := expectedMetrics[m.Name]; ok {
+					if dp, ok := v.(int); ok {
+						assert.Equal(t, uint64(dp), d.DataPoints[0].Count, m.Name)
+					} else {
+						assert.Fail(t, "expected an int value", m.Name)
+					}
 				} else {
 					assert.Fail(t, "unexpected metric", m.Name)
 				}

@@ -315,12 +315,14 @@ func (s *Runner) Run(ctx context.Context) error {
 	localExporter := telemetry.NewMetricExporter(
 		telemetry.WithMetricFilter([]string{
 			"http.server." + string(request.IDRequestCount),
+			"http.server.request.duration",
 			"http.server." + string(request.IDResponseValidCount),
 			"http.server." + string(request.IDResponseErrorsCount),
 			"http.server." + string(request.IDResponseErrorsTimeout),
 			"http.server." + string(request.IDResponseErrorsRateLimit),
 
 			"grpc.server." + string(request.IDRequestCount),
+			"grpc.server.request.duration",
 			"grpc.server." + string(request.IDResponseValidCount),
 			"grpc.server." + string(request.IDResponseErrorsCount),
 			"grpc.server." + string(request.IDResponseErrorsTimeout),
