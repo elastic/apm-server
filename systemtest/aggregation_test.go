@@ -255,6 +255,35 @@ func TestServiceTransactionMetricsAggregation(t *testing.T) {
 	approvaltest.ApproveEvents(t, t.Name(), result.Hits.Hits)
 }
 
+func TestServiceInstanceTransactionMetricsAggregation(t *testing.T) {
+	systemtest.CleanupElasticsearch(t)
+	srv := apmservertest.NewServerTB(t)
+
+	timestamp, _ := time.Parse(time.RFC3339Nano, "2006-01-02T15:04:05.999999999Z") // should be truncated to 1s
+	tracer := srv.Tracer()
+	for _, txType := range []string{"type1", "type2"} {
+		for _, txName := range []string{"name1", "name2"} { // shouldn't affect aggregation
+			tx := tracer.StartTransactionOptions(txName, txType, apm.TransactionOptions{Start: timestamp})
+			tx.Duration = time.Second
+			tx.End()
+		}
+	}
+	tracer.Flush(nil)
+
+	// Wait for the transaction to be indexed, indicating that Elasticsearch
+	// indices have been setup and we should not risk triggering the shutdown
+	// timeout while waiting for the aggregated metrics to be indexed.
+	estest.ExpectMinDocs(t, systemtest.Elasticsearch, 2, "traces-apm*",
+		espoll.TermQuery{Field: "processor.event", Value: "transaction"},
+	)
+	// Stop server to ensure metrics are flushed on shutdown.
+	assert.NoError(t, srv.Close())
+	result := estest.ExpectMinDocs(t, systemtest.Elasticsearch, 2, "metrics-apm.service_instance_transaction*",
+		espoll.TermQuery{Field: "metricset.name", Value: "service_instance_transaction"},
+	)
+	approvaltest.ApproveEvents(t, t.Name(), result.Hits.Hits)
+}
+
 func TestServiceTransactionMetricsAggregationLabels(t *testing.T) {
 	t.Setenv("ELASTIC_APM_GLOBAL_LABELS", "department_name=apm,organization=observability,company=elastic")
 	systemtest.CleanupElasticsearch(t)
