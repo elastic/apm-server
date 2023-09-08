@@ -6,8 +6,8 @@ require (
 	github.com/cespare/xxhash/v2 v2.2.0
 	github.com/dgraph-io/badger/v2 v2.2007.3-0.20201012072640-f5a7e0a1c83b
 	github.com/dustin/go-humanize v1.0.1
-	github.com/elastic/apm-aggregation v0.0.0-20230815024520-e75a37d9ddd6
-	github.com/elastic/apm-data v0.1.1-0.20230815073233-455fb9f1280f
+	github.com/elastic/apm-aggregation v0.0.0-20230908121201-24da966116e3
+	github.com/elastic/apm-data v0.1.1-0.20230828075122-3d5c2a73763d
 	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230906094532-4cf4292be494
 	github.com/elastic/elastic-agent-client/v7 v7.3.0
 	github.com/elastic/elastic-agent-libs v0.3.13
@@ -49,9 +49,9 @@ require (
 	go.opentelemetry.io/otel/sdk/metric v0.40.0
 	go.uber.org/automaxprocs v1.5.2
 	go.uber.org/zap v1.25.0
-	golang.org/x/net v0.14.0
+	golang.org/x/net v0.15.0
 	golang.org/x/sync v0.3.0
-	golang.org/x/term v0.11.0
+	golang.org/x/term v0.12.0
 	golang.org/x/time v0.3.0
 	google.golang.org/grpc v1.56.1
 	google.golang.org/protobuf v1.31.0
@@ -155,12 +155,12 @@ require (
 	go.opentelemetry.io/otel/trace v1.17.0 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	golang.org/x/crypto v0.12.0 // indirect
+	golang.org/x/crypto v0.13.0 // indirect
 	golang.org/x/exp v0.0.0-20230713183714-613f0c0eb8a1 // indirect
 	golang.org/x/mod v0.12.0 // indirect
-	golang.org/x/sys v0.11.0 // indirect
-	golang.org/x/text v0.12.0 // indirect
-	golang.org/x/tools v0.12.0 // indirect
+	golang.org/x/sys v0.12.0 // indirect
+	golang.org/x/text v0.13.0 // indirect
+	golang.org/x/tools v0.13.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20230530153820-e85fd2cbaebc // indirect
 	gopkg.in/jcmturner/aescts.v1 v1.0.1 // indirect
 	gopkg.in/jcmturner/dnsutils.v1 v1.0.1 // indirect
