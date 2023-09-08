@@ -18,16 +18,10 @@
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
                 "outcome": "success",
+                "received": "dynamic",
                 "success_count": {
                     "sum": 1,
                     "value_count": 1
-                }
-            },
-            "host": {
-                "hostname": "beowulf",
-                "name": "beowulf",
-                "os": {
-                    "platform": "minix"
                 }
             },
             "metricset": {
@@ -48,9 +42,6 @@
                     "version": "2.0"
                 },
                 "name": "systemtest",
-                "node": {
-                    "name": "beowulf"
-                },
                 "runtime": {
                     "name": "gc",
                     "version": "2.0"
@@ -94,16 +85,10 @@
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
                 "outcome": "success",
+                "received": "dynamic",
                 "success_count": {
                     "sum": 1,
                     "value_count": 1
-                }
-            },
-            "host": {
-                "hostname": "beowulf",
-                "name": "beowulf",
-                "os": {
-                    "platform": "minix"
                 }
             },
             "metricset": {
@@ -124,9 +109,6 @@
                     "version": "2.0"
                 },
                 "name": "systemtest",
-                "node": {
-                    "name": "beowulf"
-                },
                 "runtime": {
                     "name": "gc",
                     "version": "2.0"
@@ -170,16 +152,10 @@
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
                 "outcome": "success",
+                "received": "dynamic",
                 "success_count": {
                     "sum": 1,
                     "value_count": 1
-                }
-            },
-            "host": {
-                "hostname": "beowulf",
-                "name": "beowulf",
-                "os": {
-                    "platform": "minix"
                 }
             },
             "metricset": {
@@ -200,9 +176,6 @@
                     "version": "2.0"
                 },
                 "name": "systemtest",
-                "node": {
-                    "name": "beowulf"
-                },
                 "runtime": {
                     "name": "gc",
                     "version": "2.0"

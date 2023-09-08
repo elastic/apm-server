@@ -18,16 +18,10 @@
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
                 "outcome": "success",
+                "received": "dynamic",
                 "success_count": {
                     "sum": 5,
                     "value_count": 5
-                }
-            },
-            "host": {
-                "hostname": "beowulf",
-                "name": "beowulf",
-                "os": {
-                    "platform": "minix"
                 }
             },
             "metricset": {
@@ -48,9 +42,6 @@
                     "version": "2.0"
                 },
                 "name": "systemtest",
-                "node": {
-                    "name": "beowulf"
-                },
                 "runtime": {
                     "name": "gc",
                     "version": "2.0"
@@ -94,16 +85,10 @@
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
                 "outcome": "success",
+                "received": "dynamic",
                 "success_count": {
                     "sum": 5,
                     "value_count": 5
-                }
-            },
-            "host": {
-                "hostname": "beowulf",
-                "name": "beowulf",
-                "os": {
-                    "platform": "minix"
                 }
             },
             "metricset": {
@@ -124,9 +109,6 @@
                     "version": "2.0"
                 },
                 "name": "systemtest",
-                "node": {
-                    "name": "beowulf"
-                },
                 "runtime": {
                     "name": "gc",
                     "version": "2.0"
@@ -170,16 +152,10 @@
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
                 "outcome": "success",
+                "received": "dynamic",
                 "success_count": {
                     "sum": 5,
                     "value_count": 5
-                }
-            },
-            "host": {
-                "hostname": "beowulf",
-                "name": "beowulf",
-                "os": {
-                    "platform": "minix"
                 }
             },
             "metricset": {
@@ -200,9 +176,6 @@
                     "version": "2.0"
                 },
                 "name": "systemtest",
-                "node": {
-                    "name": "beowulf"
-                },
                 "runtime": {
                     "name": "gc",
                     "version": "2.0"
@@ -246,16 +219,10 @@
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
                 "outcome": "success",
+                "received": "dynamic",
                 "success_count": {
                     "sum": 10,
                     "value_count": 10
-                }
-            },
-            "host": {
-                "hostname": "beowulf",
-                "name": "beowulf",
-                "os": {
-                    "platform": "minix"
                 }
             },
             "metricset": {
@@ -276,9 +243,6 @@
                     "version": "2.0"
                 },
                 "name": "systemtest",
-                "node": {
-                    "name": "beowulf"
-                },
                 "runtime": {
                     "name": "gc",
                     "version": "2.0"
@@ -322,16 +286,10 @@
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
                 "outcome": "success",
+                "received": "dynamic",
                 "success_count": {
                     "sum": 10,
                     "value_count": 10
-                }
-            },
-            "host": {
-                "hostname": "beowulf",
-                "name": "beowulf",
-                "os": {
-                    "platform": "minix"
                 }
             },
             "metricset": {
@@ -352,9 +310,6 @@
                     "version": "2.0"
                 },
                 "name": "systemtest",
-                "node": {
-                    "name": "beowulf"
-                },
                 "runtime": {
                     "name": "gc",
                     "version": "2.0"
@@ -398,16 +353,10 @@
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
                 "outcome": "success",
+                "received": "dynamic",
                 "success_count": {
                     "sum": 10,
                     "value_count": 10
-                }
-            },
-            "host": {
-                "hostname": "beowulf",
-                "name": "beowulf",
-                "os": {
-                    "platform": "minix"
                 }
             },
             "metricset": {
@@ -428,9 +377,6 @@
                     "version": "2.0"
                 },
                 "name": "systemtest",
-                "node": {
-                    "name": "beowulf"
-                },
                 "runtime": {
                     "name": "gc",
                     "version": "2.0"
@@ -462,28 +408,6 @@
             "agent": {
                 "name": "elastic-node"
             },
-            "cloud": {
-                "account": {
-                    "id": "account_id",
-                    "name": "account_name"
-                },
-                "availability_zone": "cloud_availability_zone",
-                "machine": {
-                    "type": "machine_type"
-                },
-                "project": {
-                    "id": "project_id",
-                    "name": "project_name"
-                },
-                "provider": "cloud_provider",
-                "region": "cloud_region",
-                "service": {
-                    "name": "lambda"
-                }
-            },
-            "container": {
-                "id": "container-id"
-            },
             "data_stream": {
                 "dataset": "apm.transaction.10m",
                 "namespace": "default",
@@ -495,24 +419,13 @@
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
-                "outcome": "unknown"
+                "outcome": "unknown",
+                "received": "dynamic"
             },
             "faas": {
                 "coldstart": false,
                 "trigger": {
                     "type": "http"
-                }
-            },
-            "host": {
-                "hostname": "node-name",
-                "name": "node-name",
-                "os": {
-                    "platform": "darwin"
-                }
-            },
-            "kubernetes": {
-                "pod": {
-                    "name": "pod-name"
                 }
             },
             "labels": {
@@ -540,9 +453,6 @@
                     "version": "8"
                 },
                 "name": "1234_service-12a3",
-                "node": {
-                    "name": "node-123"
-                },
                 "runtime": {
                     "name": "node",
                     "version": "8.0.0"
@@ -576,28 +486,6 @@
             "agent": {
                 "name": "elastic-node"
             },
-            "cloud": {
-                "account": {
-                    "id": "account_id",
-                    "name": "account_name"
-                },
-                "availability_zone": "cloud_availability_zone",
-                "machine": {
-                    "type": "machine_type"
-                },
-                "project": {
-                    "id": "project_id",
-                    "name": "project_name"
-                },
-                "provider": "cloud_provider",
-                "region": "cloud_region",
-                "service": {
-                    "name": "lambda"
-                }
-            },
-            "container": {
-                "id": "container-id"
-            },
             "data_stream": {
                 "dataset": "apm.transaction.1m",
                 "namespace": "default",
@@ -609,24 +497,13 @@
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
-                "outcome": "unknown"
+                "outcome": "unknown",
+                "received": "dynamic"
             },
             "faas": {
                 "coldstart": false,
                 "trigger": {
                     "type": "http"
-                }
-            },
-            "host": {
-                "hostname": "node-name",
-                "name": "node-name",
-                "os": {
-                    "platform": "darwin"
-                }
-            },
-            "kubernetes": {
-                "pod": {
-                    "name": "pod-name"
                 }
             },
             "labels": {
@@ -654,9 +531,6 @@
                     "version": "8"
                 },
                 "name": "1234_service-12a3",
-                "node": {
-                    "name": "node-123"
-                },
                 "runtime": {
                     "name": "node",
                     "version": "8.0.0"
@@ -690,28 +564,6 @@
             "agent": {
                 "name": "elastic-node"
             },
-            "cloud": {
-                "account": {
-                    "id": "account_id",
-                    "name": "account_name"
-                },
-                "availability_zone": "cloud_availability_zone",
-                "machine": {
-                    "type": "machine_type"
-                },
-                "project": {
-                    "id": "project_id",
-                    "name": "project_name"
-                },
-                "provider": "cloud_provider",
-                "region": "cloud_region",
-                "service": {
-                    "name": "lambda"
-                }
-            },
-            "container": {
-                "id": "container-id"
-            },
             "data_stream": {
                 "dataset": "apm.transaction.60m",
                 "namespace": "default",
@@ -723,24 +575,13 @@
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
-                "outcome": "unknown"
+                "outcome": "unknown",
+                "received": "dynamic"
             },
             "faas": {
                 "coldstart": false,
                 "trigger": {
                     "type": "http"
-                }
-            },
-            "host": {
-                "hostname": "node-name",
-                "name": "node-name",
-                "os": {
-                    "platform": "darwin"
-                }
-            },
-            "kubernetes": {
-                "pod": {
-                    "name": "pod-name"
                 }
             },
             "labels": {
@@ -768,9 +609,6 @@
                     "version": "8"
                 },
                 "name": "1234_service-12a3",
-                "node": {
-                    "name": "node-123"
-                },
                 "runtime": {
                     "name": "node",
                     "version": "8.0.0"
