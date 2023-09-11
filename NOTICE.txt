@@ -260,11 +260,11 @@ SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/apm-aggregation
-Version: v0.0.0-20230908121201-24da966116e3
+Version: v0.0.0-20230911024522-769a38deb249
 Licence type (autodetected): Elastic-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/apm-aggregation@v0.0.0-20230908121201-24da966116e3/LICENSE.txt:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/apm-aggregation@v0.0.0-20230911024522-769a38deb249/LICENSE.txt:
 
 Elastic License 2.0
 
