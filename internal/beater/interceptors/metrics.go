@@ -19,6 +19,7 @@ package interceptors
 
 import (
 	"context"
+	"time"
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/metric"
@@ -29,6 +30,10 @@ import (
 	"github.com/elastic/apm-server/internal/beater/request"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/monitoring"
+)
+
+const (
+	requestDurationHistogram = "request.duration"
 )
 
 var methodUnaryRequestMetrics = make(map[string]map[request.ResultID]*monitoring.Int)
@@ -53,7 +58,8 @@ type metricsInterceptor struct {
 	logger *logp.Logger
 	meter  metric.Meter
 
-	counters map[request.ResultID]metric.Int64Counter
+	counters   map[string]metric.Int64Counter
+	histograms map[string]metric.Int64Histogram
 }
 
 func (m *metricsInterceptor) Interceptor() grpc.UnaryServerInterceptor {
@@ -76,13 +82,16 @@ func (m *metricsInterceptor) Interceptor() grpc.UnaryServerInterceptor {
 			return handler(ctx, req)
 		}
 
-		m.getMetric(request.IDRequestCount).Add(ctx, 1)
-		defer m.getMetric(request.IDResponseCount).Add(ctx, 1)
+		m.getCounter(string(request.IDRequestCount)).Add(ctx, 1)
+		defer m.getCounter(string(request.IDResponseCount)).Add(ctx, 1)
 
 		ints[request.IDRequestCount].Inc()
 		defer ints[request.IDResponseCount].Inc()
 
+		start := time.Now()
 		resp, err := handler(ctx, req)
+		duration := time.Since(start)
+		m.getHistogram(requestDurationHistogram, metric.WithUnit("ms")).Record(ctx, duration.Milliseconds())
 
 		responseID := request.IDResponseValidCount
 		if err != nil {
@@ -90,33 +99,44 @@ func (m *metricsInterceptor) Interceptor() grpc.UnaryServerInterceptor {
 			if s, ok := status.FromError(err); ok {
 				switch s.Code() {
 				case codes.Unauthenticated:
-					m.getMetric(request.IDResponseErrorsUnauthorized).Add(ctx, 1)
+					m.getCounter(string(request.IDResponseErrorsUnauthorized)).Add(ctx, 1)
 					ints[request.IDResponseErrorsUnauthorized].Inc()
 				case codes.DeadlineExceeded, codes.Canceled:
-					m.getMetric(request.IDResponseErrorsTimeout).Add(ctx, 1)
+					m.getCounter(string(request.IDResponseErrorsTimeout)).Add(ctx, 1)
 					ints[request.IDResponseErrorsTimeout].Inc()
 				case codes.ResourceExhausted:
-					m.getMetric(request.IDResponseErrorsRateLimit).Add(ctx, 1)
+					m.getCounter(string(request.IDResponseErrorsRateLimit)).Add(ctx, 1)
 					ints[request.IDResponseErrorsRateLimit].Inc()
 				}
 			}
 		}
 
-		m.getMetric(responseID).Add(ctx, 1)
+		m.getCounter(string(responseID)).Add(ctx, 1)
 		ints[responseID].Inc()
 
 		return resp, err
 	}
 }
 
-func (m *metricsInterceptor) getMetric(n request.ResultID) metric.Int64Counter {
+func (m *metricsInterceptor) getCounter(n string) metric.Int64Counter {
 	name := "grpc.server." + n
 	if met, ok := m.counters[name]; ok {
 		return met
 	}
 
-	nm, _ := m.meter.Int64Counter(string(name))
+	nm, _ := m.meter.Int64Counter(name)
 	m.counters[name] = nm
+	return nm
+}
+
+func (m *metricsInterceptor) getHistogram(n string, opts ...metric.Int64HistogramOption) metric.Int64Histogram {
+	name := "grpc.server." + n
+	if met, ok := m.histograms[name]; ok {
+		return met
+	}
+
+	nm, _ := m.meter.Int64Histogram(name, opts...)
+	m.histograms[name] = nm
 	return nm
 }
 
@@ -139,7 +159,8 @@ func Metrics(logger *logp.Logger, mp metric.MeterProvider) grpc.UnaryServerInter
 		logger: logger,
 		meter:  mp.Meter("internal/beater/interceptors"),
 
-		counters: map[request.ResultID]metric.Int64Counter{},
+		counters:   map[string]metric.Int64Counter{},
+		histograms: map[string]metric.Int64Histogram{},
 	}
 
 	return i.Interceptor()
