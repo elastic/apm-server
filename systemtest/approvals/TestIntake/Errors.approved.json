@@ -229,10 +229,6 @@
                     ]
                 }
             },
-            "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic"
-            },
             "host": {
                 "architecture": "x64",
                 "hostname": "node-name",
@@ -418,10 +414,6 @@
                 "grouping_name": "Cannot read property 'baz' no defined",
                 "id": "cdefab0123456789"
             },
-            "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic"
-            },
             "host": {
                 "architecture": "x64",
                 "hostname": "node-name",
@@ -543,10 +535,6 @@
                     ]
                 }
             },
-            "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic"
-            },
             "host": {
                 "architecture": "x64",
                 "hostname": "node-name",
@@ -663,10 +651,6 @@
                 "grouping_key": "c3868d6704b923014eaffea034e70a3d",
                 "grouping_name": null,
                 "id": "cdefab0123456780"
-            },
-            "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic"
             },
             "host": {
                 "architecture": "x64",
@@ -788,10 +772,6 @@
                     "level": "custom log level",
                     "message": "Cannot read property 'baz' of undefined"
                 }
-            },
-            "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic"
             },
             "host": {
                 "architecture": "x64",

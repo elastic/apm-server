@@ -15,10 +15,6 @@
             "ecs": {
                 "version": "dynamic"
             },
-            "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic"
-            },
             "go": {
                 "memstats": {
                     "heap": {
@@ -80,10 +76,6 @@
             },
             "ecs": {
                 "version": "dynamic"
-            },
-            "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -153,10 +145,6 @@
             },
             "ecs": {
                 "version": "dynamic"
-            },
-            "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -241,10 +229,6 @@
             "ecs": {
                 "version": "dynamic"
             },
-            "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic"
-            },
             "host": {
                 "ip": "127.0.0.1"
             },
@@ -309,10 +293,6 @@
             },
             "ecs": {
                 "version": "dynamic"
-            },
-            "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic"
             },
             "faas": {
                 "billed_duration": 183,
@@ -383,10 +363,6 @@
             },
             "ecs": {
                 "version": "dynamic"
-            },
-            "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic"
             },
             "host": {
                 "ip": "127.0.0.1"
