@@ -39,12 +39,21 @@ docker pull {dockerimage}
 . Verify the Docker image:
 +
 ["source", "sh", subs="attributes"]
-------------------------------------------------
+----
 wget https://artifacts.elastic.co/cosign.pub
-cosign verify --key cosign.pub {dockerimage}:{version}
-------------------------------------------------
+cosign verify --key cosign.pub {dockerimage}
+----
 +
-For details about this step, refer to {ref}/docker.html#docker-verify-signature[Verify the {es} Docker image signature] in the {es} documentation.
+The `cosign` command prints the check results and the signature payload in JSON format:
++
+[source,sh,subs="attributes"]
+----
+Verification for {dockerimage} --
+The following checks were performed on each of these signatures:
+  - The cosign claims were validated
+  - Existence of the claims in the transparency log was verified offline
+  - The signatures were verified against the specified public key
+----
 
 endif::[]
 
