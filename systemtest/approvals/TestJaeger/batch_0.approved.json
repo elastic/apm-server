@@ -24,10 +24,7 @@
                     "message": "Retrying GetDriver after error"
                 }
             },
-            "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic"
-            },
+            "event": {},
             "host": {
                 "hostname": "host01",
                 "ip": [
@@ -92,10 +89,7 @@
                     "message": "Retrying GetDriver after error"
                 }
             },
-            "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic"
-            },
+            "event": {},
             "host": {
                 "hostname": "host01",
                 "ip": [
@@ -160,10 +154,7 @@
                     "message": "Retrying GetDriver after error"
                 }
             },
-            "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic"
-            },
+            "event": {},
             "host": {
                 "hostname": "host01",
                 "ip": [
@@ -217,8 +208,6 @@
                 "type": "logs"
             },
             "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic",
                 "kind": "event"
             },
             "host": {
@@ -272,8 +261,6 @@
                 "type": "logs"
             },
             "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic",
                 "kind": "event"
             },
             "host": {
@@ -325,8 +312,6 @@
                 "type": "logs"
             },
             "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic",
                 "kind": "event"
             },
             "host": {
@@ -378,8 +363,6 @@
                 "type": "traces"
             },
             "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic",
                 "outcome": "unknown"
             },
             "host": {
