@@ -151,10 +151,10 @@ github.com/eapache/go-xerial-snappy v0.0.0-20230111030713-bf00bc1b83b6/go.mod h1
 github.com/eapache/queue v1.1.0 h1:YOEu7KNc61ntiQlcEeUIoDTJ2o8mQznoNvUhiigpIqc=
 github.com/eapache/queue v1.1.0/go.mod h1:6eCeP0CKFpHLu8blIFXhExK/dRa7WDZfr6jVFPTqq+I=
 github.com/eknkc/amber v0.0.0-20171010120322-cdade1c07385/go.mod h1:0vRUJqYpeSZifjYj7uP3BG/gKcuzL9xWVV/Y+cK33KM=
-github.com/elastic/apm-aggregation v0.0.0-20230911024522-769a38deb249 h1:SRvvdp6ngAcw0wWN+jvftC099hbedkxcauueN5bPqiA=
-github.com/elastic/apm-aggregation v0.0.0-20230911024522-769a38deb249/go.mod h1:LmrhSIbqUnKn2LXU7rVt06sLx+c13louXm/S3r1KkMw=
-github.com/elastic/apm-data v0.1.1-0.20230908092227-4426f61e0c5c h1:THld+d7v6wEwM1v+gzI9j0kktOI/tZHRWJVIVUGHctc=
-github.com/elastic/apm-data v0.1.1-0.20230908092227-4426f61e0c5c/go.mod h1:lMTMoCWNadiDJih/tLechuMTtumEeedtKJlBOYAv030=
+github.com/elastic/apm-aggregation v0.0.0-20230912165253-fe64c41fc26e h1:W4j1KNJCZv7+Dwyj56SQ9S7KOo7WFegv5eUR/WDAU/8=
+github.com/elastic/apm-aggregation v0.0.0-20230912165253-fe64c41fc26e/go.mod h1:n9BSH4jHE+b4y+N7SnxGFmJbxIOx3u1MtrlJZ3V5Sr8=
+github.com/elastic/apm-data v0.1.1-0.20230912093325-9b626b8e27d7 h1:Xj1Lq0NwomWRLvZ80DqkP71uhhA6WcZ3E2w9nF8tvhg=
+github.com/elastic/apm-data v0.1.1-0.20230912093325-9b626b8e27d7/go.mod h1:lMTMoCWNadiDJih/tLechuMTtumEeedtKJlBOYAv030=
 github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230912134242-8e7e2065c73b h1:x9CuOkd0GrPIZEjqXWo4K1/IcELqOl3U88F6emjt3OU=
 github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230912134242-8e7e2065c73b/go.mod h1:srIutI4lvWid1a/qf+YhpA2BLw4//CQAF7gT0lHjXvE=
 github.com/elastic/elastic-agent-autodiscover v0.6.2 h1:7P3cbMBWXjbzA80rxitQjc+PiWyZ4I4F4LqrCYgYlNc=
