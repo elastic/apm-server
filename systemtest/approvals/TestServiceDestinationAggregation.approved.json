@@ -11,9 +11,6 @@
                 "namespace": "default",
                 "type": "metrics"
             },
-            "ecs": {
-                "version": "dynamic"
-            },
             "event": {
                 "outcome": "success"
             },
@@ -69,9 +66,6 @@
                 "namespace": "default",
                 "type": "metrics"
             },
-            "ecs": {
-                "version": "dynamic"
-            },
             "event": {
                 "outcome": "success"
             },
@@ -126,9 +120,6 @@
                 "dataset": "apm.service_destination.60m",
                 "namespace": "default",
                 "type": "metrics"
-            },
-            "ecs": {
-                "version": "dynamic"
             },
             "event": {
                 "outcome": "success"

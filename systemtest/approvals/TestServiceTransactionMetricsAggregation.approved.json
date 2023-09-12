@@ -11,9 +11,6 @@
                 "namespace": "default",
                 "type": "metrics"
             },
-            "ecs": {
-                "version": "dynamic"
-            },
             "event": {
                 "success_count": {
                     "sum": 2,
@@ -67,9 +64,6 @@
                 "namespace": "default",
                 "type": "metrics"
             },
-            "ecs": {
-                "version": "dynamic"
-            },
             "event": {
                 "success_count": {
                     "sum": 2,
@@ -122,9 +116,6 @@
                 "dataset": "apm.service_transaction.60m",
                 "namespace": "default",
                 "type": "metrics"
-            },
-            "ecs": {
-                "version": "dynamic"
             },
             "event": {
                 "success_count": {
@@ -179,9 +170,6 @@
                 "namespace": "default",
                 "type": "metrics"
             },
-            "ecs": {
-                "version": "dynamic"
-            },
             "event": {
                 "success_count": {
                     "sum": 2,
@@ -235,9 +223,6 @@
                 "namespace": "default",
                 "type": "metrics"
             },
-            "ecs": {
-                "version": "dynamic"
-            },
             "event": {
                 "success_count": {
                     "sum": 2,
@@ -290,9 +275,6 @@
                 "dataset": "apm.service_transaction.60m",
                 "namespace": "default",
                 "type": "metrics"
-            },
-            "ecs": {
-                "version": "dynamic"
             },
             "event": {
                 "success_count": {

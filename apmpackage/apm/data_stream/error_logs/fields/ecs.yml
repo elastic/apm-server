@@ -71,8 +71,6 @@
 - external: ecs
   name: device.manufacturer
 - external: ecs
-  name: ecs.version
-- external: ecs
   name: error.id
 - external: ecs
   name: error.stack_trace

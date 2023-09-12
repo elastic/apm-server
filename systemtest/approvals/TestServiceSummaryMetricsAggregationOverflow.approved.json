@@ -7,9 +7,6 @@
                 "namespace": "default",
                 "type": "metrics"
             },
-            "ecs": {
-                "version": "dynamic"
-            },
             "metricset": {
                 "interval": "10m",
                 "name": "service_summary"
@@ -38,9 +35,6 @@
                 "namespace": "default",
                 "type": "metrics"
             },
-            "ecs": {
-                "version": "dynamic"
-            },
             "metricset": {
                 "interval": "1m",
                 "name": "service_summary"
@@ -68,9 +62,6 @@
                 "dataset": "apm.service_summary.60m",
                 "namespace": "default",
                 "type": "metrics"
-            },
-            "ecs": {
-                "version": "dynamic"
             },
             "metricset": {
                 "interval": "60m",
@@ -103,9 +94,6 @@
                 "namespace": "default",
                 "type": "metrics"
             },
-            "ecs": {
-                "version": "dynamic"
-            },
             "metricset": {
                 "interval": "10m",
                 "name": "service_summary"
@@ -136,9 +124,6 @@
                 "namespace": "default",
                 "type": "metrics"
             },
-            "ecs": {
-                "version": "dynamic"
-            },
             "metricset": {
                 "interval": "1m",
                 "name": "service_summary"
@@ -168,9 +153,6 @@
                 "dataset": "apm.service_summary.60m",
                 "namespace": "default",
                 "type": "metrics"
-            },
-            "ecs": {
-                "version": "dynamic"
             },
             "metricset": {
                 "interval": "60m",
@@ -202,9 +184,6 @@
                 "namespace": "default",
                 "type": "metrics"
             },
-            "ecs": {
-                "version": "dynamic"
-            },
             "metricset": {
                 "interval": "10m",
                 "name": "service_summary"
@@ -235,9 +214,6 @@
                 "namespace": "default",
                 "type": "metrics"
             },
-            "ecs": {
-                "version": "dynamic"
-            },
             "metricset": {
                 "interval": "1m",
                 "name": "service_summary"
@@ -267,9 +243,6 @@
                 "dataset": "apm.service_summary.60m",
                 "namespace": "default",
                 "type": "metrics"
-            },
-            "ecs": {
-                "version": "dynamic"
             },
             "metricset": {
                 "interval": "60m",
