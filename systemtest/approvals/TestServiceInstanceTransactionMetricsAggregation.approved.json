@@ -1,7 +1,7 @@
 {
     "events": [
         {
-            "@timestamp": "2006-01-02T15:00:00.000Z",
+            "@timestamp": "dynamic",
             "_doc_count": 4,
             "agent": {
                 "name": "go"
@@ -17,7 +17,6 @@
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
-                "received": "dynamic",
                 "success_count": {
                     "sum": 4,
                     "value_count": 4
@@ -66,7 +65,7 @@
             }
         },
         {
-            "@timestamp": "2006-01-02T15:00:00.000Z",
+            "@timestamp": "dynamic",
             "_doc_count": 4,
             "agent": {
                 "name": "go"
@@ -82,7 +81,6 @@
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
-                "received": "dynamic",
                 "success_count": {
                     "sum": 4,
                     "value_count": 4
@@ -131,7 +129,7 @@
             }
         },
         {
-            "@timestamp": "2006-01-02T15:00:00.000Z",
+            "@timestamp": "dynamic",
             "_doc_count": 4,
             "agent": {
                 "name": "go"
@@ -147,7 +145,6 @@
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
-                "received": "dynamic",
                 "success_count": {
                     "sum": 4,
                     "value_count": 4

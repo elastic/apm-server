@@ -120,8 +120,7 @@
             },
             "event": {
                 "agent_id_status": "missing",
-                "ingested": "dynamic",
-                "received": "dynamic"
+                "ingested": "dynamic"
             },
             "metricset": {
                 "interval": "10m",
@@ -158,8 +157,7 @@
             },
             "event": {
                 "agent_id_status": "missing",
-                "ingested": "dynamic",
-                "received": "dynamic"
+                "ingested": "dynamic"
             },
             "metricset": {
                 "interval": "1m",
@@ -196,8 +194,7 @@
             },
             "event": {
                 "agent_id_status": "missing",
-                "ingested": "dynamic",
-                "received": "dynamic"
+                "ingested": "dynamic"
             },
             "metricset": {
                 "interval": "60m",
@@ -234,8 +231,7 @@
             },
             "event": {
                 "agent_id_status": "missing",
-                "ingested": "dynamic",
-                "received": "dynamic"
+                "ingested": "dynamic"
             },
             "metricset": {
                 "interval": "10m",
@@ -272,8 +268,7 @@
             },
             "event": {
                 "agent_id_status": "missing",
-                "ingested": "dynamic",
-                "received": "dynamic"
+                "ingested": "dynamic"
             },
             "metricset": {
                 "interval": "1m",
@@ -310,8 +305,7 @@
             },
             "event": {
                 "agent_id_status": "missing",
-                "ingested": "dynamic",
-                "received": "dynamic"
+                "ingested": "dynamic"
             },
             "metricset": {
                 "interval": "60m",

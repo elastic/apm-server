@@ -17,7 +17,6 @@
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
-                "received": "dynamic",
                 "success_count": {
                     "sum": 2,
                     "value_count": 2
@@ -76,7 +75,6 @@
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
-                "received": "dynamic",
                 "success_count": {
                     "sum": 2,
                     "value_count": 2
@@ -135,7 +133,6 @@
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
-                "received": "dynamic",
                 "success_count": {
                     "sum": 2,
                     "value_count": 2
@@ -194,7 +191,6 @@
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
-                "received": "dynamic",
                 "success_count": {
                     "sum": 2,
                     "value_count": 2
@@ -253,7 +249,6 @@
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
-                "received": "dynamic",
                 "success_count": {
                     "sum": 2,
                     "value_count": 2
@@ -312,7 +307,6 @@
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
-                "received": "dynamic",
                 "success_count": {
                     "sum": 2,
                     "value_count": 2

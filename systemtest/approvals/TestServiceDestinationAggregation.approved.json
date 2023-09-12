@@ -17,8 +17,7 @@
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
-                "outcome": "success",
-                "received": "dynamic"
+                "outcome": "success"
             },
             "labels": {
                 "company": "elastic",
@@ -78,8 +77,7 @@
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
-                "outcome": "success",
-                "received": "dynamic"
+                "outcome": "success"
             },
             "labels": {
                 "company": "elastic",
@@ -139,8 +137,7 @@
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
-                "outcome": "success",
-                "received": "dynamic"
+                "outcome": "success"
             },
             "labels": {
                 "company": "elastic",

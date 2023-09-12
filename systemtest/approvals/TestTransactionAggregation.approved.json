@@ -18,7 +18,6 @@
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
                 "outcome": "success",
-                "received": "dynamic",
                 "success_count": {
                     "sum": 5,
                     "value_count": 5
@@ -85,7 +84,6 @@
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
                 "outcome": "success",
-                "received": "dynamic",
                 "success_count": {
                     "sum": 5,
                     "value_count": 5
@@ -152,7 +150,6 @@
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
                 "outcome": "success",
-                "received": "dynamic",
                 "success_count": {
                     "sum": 5,
                     "value_count": 5
@@ -219,7 +216,6 @@
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
                 "outcome": "success",
-                "received": "dynamic",
                 "success_count": {
                     "sum": 10,
                     "value_count": 10
@@ -286,7 +282,6 @@
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
                 "outcome": "success",
-                "received": "dynamic",
                 "success_count": {
                     "sum": 10,
                     "value_count": 10
@@ -353,7 +348,6 @@
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
                 "outcome": "success",
-                "received": "dynamic",
                 "success_count": {
                     "sum": 10,
                     "value_count": 10
@@ -419,8 +413,7 @@
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
-                "outcome": "unknown",
-                "received": "dynamic"
+                "outcome": "unknown"
             },
             "faas": {
                 "coldstart": false,
@@ -497,8 +490,7 @@
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
-                "outcome": "unknown",
-                "received": "dynamic"
+                "outcome": "unknown"
             },
             "faas": {
                 "coldstart": false,
@@ -575,8 +567,7 @@
             "event": {
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
-                "outcome": "unknown",
-                "received": "dynamic"
+                "outcome": "unknown"
             },
             "faas": {
                 "coldstart": false,

@@ -18,7 +18,6 @@
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
                 "outcome": "success",
-                "received": "dynamic",
                 "success_count": {
                     "sum": 1,
                     "value_count": 1
@@ -85,7 +84,6 @@
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
                 "outcome": "success",
-                "received": "dynamic",
                 "success_count": {
                     "sum": 1,
                     "value_count": 1
@@ -152,7 +150,6 @@
                 "agent_id_status": "missing",
                 "ingested": "dynamic",
                 "outcome": "success",
-                "received": "dynamic",
                 "success_count": {
                     "sum": 1,
                     "value_count": 1
