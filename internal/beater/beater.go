@@ -447,6 +447,11 @@ func (s *Runner) Run(ctx context.Context) error {
 		modelprocessor.NewDropUnsampled(false /* don't drop RUM unsampled transactions*/, func(i int64) {
 			transactionsDroppedCounter.Add(i)
 		}),
+
+		// Add a model processor that removes `event.received`, which is added by
+		// apm-data, but which we don't yet map.
+		modelprocessor.RemoveEventReceived{},
+
 		finalBatchProcessor,
 	})
 	localExporter.SetBatchProcessor(batchProcessor)
@@ -510,10 +515,6 @@ func (s *Runner) Run(ctx context.Context) error {
 		// processor chain.
 		modelpb.ProcessBatchFunc(rateLimitBatchProcessor),
 		modelpb.ProcessBatchFunc(authorizeEventIngestProcessor),
-
-		// Add a model processor that removes `event.received`, which is added by
-		// apm-data, but which we don't yet map.
-		modelprocessor.RemoveEventReceived{},
 
 		// Pre-process events before they are sent to the final processors for
 		// aggregation, sampling, and indexing.
