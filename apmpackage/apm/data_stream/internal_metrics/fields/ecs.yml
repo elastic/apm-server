@@ -63,8 +63,6 @@
 - external: ecs
   name: destination.port
 - external: ecs
-  name: ecs.version
-- external: ecs
   name: event.outcome
 - external: ecs
   name: host.architecture

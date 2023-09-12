@@ -19,7 +19,10 @@ package interceptors
 
 import (
 	"context"
+	"time"
 
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/metric"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -27,6 +30,10 @@ import (
 	"github.com/elastic/apm-server/internal/beater/request"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/monitoring"
+)
+
+const (
+	requestDurationHistogram = "request.duration"
 )
 
 var methodUnaryRequestMetrics = make(map[string]map[request.ResultID]*monitoring.Int)
@@ -47,6 +54,92 @@ type UnaryRequestMetrics interface {
 	RequestMetrics(fullMethod string) map[request.ResultID]*monitoring.Int
 }
 
+type metricsInterceptor struct {
+	logger *logp.Logger
+	meter  metric.Meter
+
+	counters   map[string]metric.Int64Counter
+	histograms map[string]metric.Int64Histogram
+}
+
+func (m *metricsInterceptor) Interceptor() grpc.UnaryServerInterceptor {
+	return func(
+		ctx context.Context,
+		req interface{},
+		info *grpc.UnaryServerInfo,
+		handler grpc.UnaryHandler,
+	) (interface{}, error) {
+		var ints map[request.ResultID]*monitoring.Int
+		if requestMetrics, ok := info.Server.(UnaryRequestMetrics); ok {
+			ints = requestMetrics.RequestMetrics(info.FullMethod)
+		} else {
+			ints = methodUnaryRequestMetrics[info.FullMethod]
+		}
+		if ints == nil {
+			m.logger.With(
+				"grpc.request.method", info.FullMethod,
+			).Warn("metrics registry missing")
+			return handler(ctx, req)
+		}
+
+		m.getCounter(string(request.IDRequestCount)).Add(ctx, 1)
+		defer m.getCounter(string(request.IDResponseCount)).Add(ctx, 1)
+
+		ints[request.IDRequestCount].Inc()
+		defer ints[request.IDResponseCount].Inc()
+
+		start := time.Now()
+		resp, err := handler(ctx, req)
+		duration := time.Since(start)
+		m.getHistogram(requestDurationHistogram, metric.WithUnit("ms")).Record(ctx, duration.Milliseconds())
+
+		responseID := request.IDResponseValidCount
+		if err != nil {
+			responseID = request.IDResponseErrorsCount
+			if s, ok := status.FromError(err); ok {
+				switch s.Code() {
+				case codes.Unauthenticated:
+					m.getCounter(string(request.IDResponseErrorsUnauthorized)).Add(ctx, 1)
+					ints[request.IDResponseErrorsUnauthorized].Inc()
+				case codes.DeadlineExceeded, codes.Canceled:
+					m.getCounter(string(request.IDResponseErrorsTimeout)).Add(ctx, 1)
+					ints[request.IDResponseErrorsTimeout].Inc()
+				case codes.ResourceExhausted:
+					m.getCounter(string(request.IDResponseErrorsRateLimit)).Add(ctx, 1)
+					ints[request.IDResponseErrorsRateLimit].Inc()
+				}
+			}
+		}
+
+		m.getCounter(string(responseID)).Add(ctx, 1)
+		ints[responseID].Inc()
+
+		return resp, err
+	}
+}
+
+func (m *metricsInterceptor) getCounter(n string) metric.Int64Counter {
+	name := "grpc.server." + n
+	if met, ok := m.counters[name]; ok {
+		return met
+	}
+
+	nm, _ := m.meter.Int64Counter(name)
+	m.counters[name] = nm
+	return nm
+}
+
+func (m *metricsInterceptor) getHistogram(n string, opts ...metric.Int64HistogramOption) metric.Int64Histogram {
+	name := "grpc.server." + n
+	if met, ok := m.histograms[name]; ok {
+		return met
+	}
+
+	nm, _ := m.meter.Int64Histogram(name, opts...)
+	m.histograms[name] = nm
+	return nm
+}
+
 // Metrics returns a grpc.UnaryServerInterceptor that increments metrics
 // for gRPC method calls.
 //
@@ -57,48 +150,18 @@ type UnaryRequestMetrics interface {
 // then the registered UnaryRequestMetrics will be used instead. Finally,
 // if neither of these are available, a warning will be logged and no metrics
 // will be gathered.
-func Metrics(logger *logp.Logger) grpc.UnaryServerInterceptor {
-	return func(
-		ctx context.Context,
-		req interface{},
-		info *grpc.UnaryServerInfo,
-		handler grpc.UnaryHandler,
-	) (interface{}, error) {
-		var m map[request.ResultID]*monitoring.Int
-		if requestMetrics, ok := info.Server.(UnaryRequestMetrics); ok {
-			m = requestMetrics.RequestMetrics(info.FullMethod)
-		} else {
-			m = methodUnaryRequestMetrics[info.FullMethod]
-		}
-		if m == nil {
-			logger.With(
-				"grpc.request.method", info.FullMethod,
-			).Warn("metrics registry missing")
-			return handler(ctx, req)
-		}
-
-		m[request.IDRequestCount].Inc()
-		defer m[request.IDResponseCount].Inc()
-
-		resp, err := handler(ctx, req)
-
-		responseID := request.IDResponseValidCount
-		if err != nil {
-			responseID = request.IDResponseErrorsCount
-			if s, ok := status.FromError(err); ok {
-				switch s.Code() {
-				case codes.Unauthenticated:
-					m[request.IDResponseErrorsUnauthorized].Inc()
-				case codes.DeadlineExceeded, codes.Canceled:
-					m[request.IDResponseErrorsTimeout].Inc()
-				case codes.ResourceExhausted:
-					m[request.IDResponseErrorsRateLimit].Inc()
-				}
-			}
-		}
-
-		m[responseID].Inc()
-
-		return resp, err
+func Metrics(logger *logp.Logger, mp metric.MeterProvider) grpc.UnaryServerInterceptor {
+	if mp == nil {
+		mp = otel.GetMeterProvider()
 	}
+
+	i := &metricsInterceptor{
+		logger: logger,
+		meter:  mp.Meter("internal/beater/interceptors"),
+
+		counters:   map[string]metric.Int64Counter{},
+		histograms: map[string]metric.Int64Histogram{},
+	}
+
+	return i.Interceptor()
 }

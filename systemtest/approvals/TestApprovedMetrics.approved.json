@@ -12,13 +12,6 @@
                 "namespace": "default",
                 "type": "metrics"
             },
-            "ecs": {
-                "version": "dynamic"
-            },
-            "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic"
-            },
             "go": {
                 "memstats": {
                     "heap": {
@@ -77,13 +70,6 @@
                 "dataset": "apm.internal",
                 "namespace": "default",
                 "type": "metrics"
-            },
-            "ecs": {
-                "version": "dynamic"
-            },
-            "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -150,13 +136,6 @@
                 "dataset": "apm.app.1234_service_12a3",
                 "namespace": "default",
                 "type": "metrics"
-            },
-            "ecs": {
-                "version": "dynamic"
-            },
-            "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic"
             },
             "host": {
                 "ip": "127.0.0.1"
@@ -238,13 +217,6 @@
                 "namespace": "default",
                 "type": "metrics"
             },
-            "ecs": {
-                "version": "dynamic"
-            },
-            "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic"
-            },
             "host": {
                 "ip": "127.0.0.1"
             },
@@ -306,13 +278,6 @@
                 "dataset": "apm.internal",
                 "namespace": "default",
                 "type": "metrics"
-            },
-            "ecs": {
-                "version": "dynamic"
-            },
-            "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic"
             },
             "faas": {
                 "billed_duration": 183,
@@ -380,13 +345,6 @@
                 "dataset": "apm.internal",
                 "namespace": "default",
                 "type": "metrics"
-            },
-            "ecs": {
-                "version": "dynamic"
-            },
-            "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic"
             },
             "host": {
                 "ip": "127.0.0.1"

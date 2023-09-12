@@ -40,7 +40,7 @@ var (
 	ecsVersion   = flag.String("ecs", "", "ECS version (required)")
 )
 
-func generatePackage(pkgfs fs.FS, version, ecsVersion *version.V, ecsReference string) error {
+func generatePackage(pkgfs fs.FS, version *version.V, ecsReference string) error {
 	// Walk files, performing some APM-specific validations and transformations as we go.
 	//
 	// We assume the target destination does not yet exist.
@@ -68,7 +68,16 @@ func generatePackage(pkgfs fs.FS, version, ecsVersion *version.V, ecsReference s
 				// work around a bug in fleet with more than 1 `.` in policy file name.
 				outputPath = strings.Replace(filepath.Join(*outputDir, p.Path), d.Name(), "default_policy.json", -1)
 			}
-			err := renderFile(pkgfs, path, outputPath, version, ecsVersion, ecsReference, p.Interval)
+
+			if p.Interval != "" && strings.HasPrefix(d.Name(), "lifecycle") && strings.HasSuffix(d.Name(), ".yml") {
+				if !strings.Contains(path, p.Interval) {
+					// Skip lifecycle that don't match the interval.
+					continue
+				}
+				// Use `lifecycle.json` instead of e.g. `lifecycle.1m.json`
+				outputPath = strings.Replace(filepath.Join(*outputDir, p.Path), d.Name(), "lifecycle.yml", -1)
+			}
+			err := renderFile(pkgfs, path, outputPath, version, ecsReference, p.Interval)
 			if err != nil {
 				return err
 			}
@@ -77,7 +86,7 @@ func generatePackage(pkgfs fs.FS, version, ecsVersion *version.V, ecsReference s
 	})
 }
 
-func renderFile(pkgfs fs.FS, path, outputPath string, version, ecsVersion *version.V, ecsReference, interval string) error {
+func renderFile(pkgfs fs.FS, path, outputPath string, version *version.V, ecsReference, interval string) error {
 	content, err := fs.ReadFile(pkgfs, path)
 	if err != nil {
 		return err
@@ -102,7 +111,7 @@ func renderFile(pkgfs fs.FS, path, outputPath string, version, ecsVersion *versi
 		}
 		content = buf.Bytes()
 	}
-	content, err = transformFile(path, content, version, ecsVersion, ecsReference, interval)
+	content, err = transformFile(path, content, version, ecsReference, interval)
 	if err != nil {
 		return fmt.Errorf("error transforming %q: %w", path, err)
 	}
@@ -167,7 +176,6 @@ func main() {
 		*ecsReference = fmt.Sprintf("git@v%s", *ecsVersion)
 	}
 	pkgVersion := version.MustNew(*pkgVersion)
-	ecsVersion := version.MustNew(*ecsVersion)
 
 	// Locate the apmpackage/apm directory.
 	_, file, _, ok := runtime.Caller(0)
@@ -179,7 +187,7 @@ func main() {
 	// Generate a completely rendered _source_ package, which can then be fed to
 	// `elastic-agent build` to build the final package for inclusion in package-storage.
 	log.Printf("generating integration package v%s in %q", pkgVersion.String(), *outputDir)
-	if err := generatePackage(os.DirFS(pkgdir), pkgVersion, ecsVersion, *ecsReference); err != nil {
+	if err := generatePackage(os.DirFS(pkgdir), pkgVersion, *ecsReference); err != nil {
 		log.Fatal(err)
 	}
 }

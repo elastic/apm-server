@@ -33,7 +33,7 @@ const (
 	integrationName = "apm"
 )
 
-func transformFile(path string, content []byte, version, ecsVersion *version.V, ecsReference, interval string) ([]byte, error) {
+func transformFile(path string, content []byte, version *version.V, ecsReference, interval string) ([]byte, error) {
 	if path == "manifest.yml" {
 		return transformPackageManifest(content, version)
 	}
@@ -43,9 +43,6 @@ func transformFile(path string, content []byte, version, ecsVersion *version.V, 
 	if isIngestPipeline(path) {
 		return transformIngestPipeline(path, content, version)
 	}
-	if isECSFieldsYAML(path) {
-		return transformECSFieldsYAML(content, ecsVersion)
-	}
 	if path == "changelog.yml" {
 		return transformChangelog(content, version)
 	}
@@ -53,33 +50,6 @@ func transformFile(path string, content []byte, version, ecsVersion *version.V, 
 		return transformBuildDependencies(content, ecsReference)
 	}
 	return content, nil
-}
-
-func transformECSFieldsYAML(content []byte, ecsVersion *version.V) ([]byte, error) {
-	var doc yaml.Node
-	if err := yaml.Unmarshal(content, &doc); err != nil {
-		return nil, err
-	}
-
-	var found bool
-	for _, fieldNode := range doc.Content[0].Content {
-		if yamlMapLookup(fieldNode, "name").Value != "ecs.version" {
-			continue
-		}
-		fieldNode.Content = append(fieldNode.Content,
-			&yaml.Node{Kind: yaml.ScalarNode, Value: "type"},
-			&yaml.Node{Kind: yaml.ScalarNode, Value: "constant_keyword"},
-			&yaml.Node{Kind: yaml.ScalarNode, Value: "value"},
-			&yaml.Node{Kind: yaml.ScalarNode, Value: ecsVersion.String()},
-		)
-		found = true
-		break
-	}
-	if !found {
-		return content, nil
-	}
-
-	return marshalYAML(&doc)
 }
 
 func transformBuildDependencies(content []byte, ecsReference string) ([]byte, error) {
@@ -221,14 +191,6 @@ func isDataStreamManifest(path string) bool {
 	dir := filepath.Dir(path) // .../data_stream/<foo>
 	dir = filepath.Dir(dir)   // .../data_stream
 	return filepath.Base(dir) == "data_stream"
-}
-
-func isECSFieldsYAML(path string) bool {
-	dir, file := filepath.Split(path)
-	if file != "ecs.yml" {
-		return false
-	}
-	return filepath.Base(dir) == "fields"
 }
 
 func yamlMapLookup(n *yaml.Node, key ...string) *yaml.Node {
