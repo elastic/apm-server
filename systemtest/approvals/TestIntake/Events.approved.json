@@ -310,9 +310,6 @@
                 "namespace": "default",
                 "type": "metrics"
             },
-            "ecs": {
-                "version": "dynamic"
-            },
             "host": {
                 "architecture": "amd64",
                 "hostname": "node-name",

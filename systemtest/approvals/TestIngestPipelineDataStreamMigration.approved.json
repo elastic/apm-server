@@ -148,9 +148,6 @@
                 "namespace": "migrated",
                 "type": "metrics"
             },
-            "ecs": {
-                "version": "dynamic"
-            },
             "event": {
                 "ingested": "dynamic"
             },
@@ -267,9 +264,6 @@
                 "namespace": "migrated",
                 "type": "metrics"
             },
-            "ecs": {
-                "version": "dynamic"
-            },
             "event": {
                 "ingested": "dynamic",
                 "outcome": "failure"
@@ -317,9 +311,6 @@
                 "dataset": "apm.internal",
                 "namespace": "migrated",
                 "type": "metrics"
-            },
-            "ecs": {
-                "version": "dynamic"
             },
             "event": {
                 "ingested": "dynamic",
@@ -377,9 +368,6 @@
                 "dataset": "apm.internal",
                 "namespace": "migrated",
                 "type": "metrics"
-            },
-            "ecs": {
-                "version": "dynamic"
             },
             "event": {
                 "ingested": "dynamic"
@@ -455,9 +443,6 @@
                 "dataset": "apm.internal",
                 "namespace": "migrated",
                 "type": "metrics"
-            },
-            "ecs": {
-                "version": "dynamic"
             },
             "event": {
                 "ingested": "dynamic"

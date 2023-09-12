@@ -36,15 +36,15 @@ import (
 //	  - ...
 func getCommonPipeline(name string, version *version.V) []map[string]interface{} {
 	commonPipelines := map[string][]map[string]interface{}{
-		"observer_version": getObserverVersionPipeline(version),
-		"observer_ids":     observerIDsPipeline,
-		"ecs_version":      ecsVersionPipeline,
-		"user_agent":       userAgentPipeline,
-		"process_ppid":     processPpidPipeline,
-		"client_geoip":     clientGeoIPPipeline,
-		"event_duration":   eventDurationPipeline,
-		"set_metrics":      setMetricsPipeline,
-		"event_ingested":   eventIngestedPipeline,
+		"observer_version":   getObserverVersionPipeline(version),
+		"observer_ids":       observerIDsPipeline,
+		"remove_ecs_version": removeECSVersionPipeline,
+		"user_agent":         userAgentPipeline,
+		"process_ppid":       processPpidPipeline,
+		"client_geoip":       clientGeoIPPipeline,
+		"event_duration":     eventDurationPipeline,
+		"set_metrics":        setMetricsPipeline,
+		"event_ingested":     eventIngestedPipeline,
 	}
 	return commonPipelines[name]
 }
@@ -103,7 +103,7 @@ var observerIDsPipeline = []map[string]interface{}{{
 	},
 }}
 
-var ecsVersionPipeline = []map[string]interface{}{{
+var removeECSVersionPipeline = []map[string]interface{}{{
 	"remove": map[string]interface{}{
 		"field":          "ecs", // remove ecs.version
 		"ignore_missing": true,

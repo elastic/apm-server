@@ -126,9 +126,6 @@
                 "namespace": "default",
                 "type": "metrics"
             },
-            "ecs": {
-                "version": "dynamic"
-            },
             "host": {
                 "ip": "127.0.0.1"
             },
