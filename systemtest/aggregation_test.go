@@ -78,7 +78,7 @@ func TestTransactionAggregation(t *testing.T) {
 	result := estest.ExpectMinDocs(t, systemtest.Elasticsearch, 9, "metrics-apm.transaction*",
 		espoll.ExistsQuery{Field: "transaction.duration.histogram"},
 	)
-	approvaltest.ApproveEvents(t, t.Name(), result.Hits.Hits, "event.received")
+	approvaltest.ApproveEvents(t, t.Name(), result.Hits.Hits)
 
 	// Make sure the _doc_count field is added such that aggregations return
 	// the appropriate per-bucket doc_count values.
@@ -140,7 +140,7 @@ func TestTransactionAggregationShutdown(t *testing.T) {
 	result := estest.ExpectMinDocs(t, systemtest.Elasticsearch, 3, "metrics-apm.transaction*",
 		espoll.ExistsQuery{Field: "transaction.duration.histogram"},
 	)
-	approvaltest.ApproveEvents(t, t.Name(), result.Hits.Hits, "event.received")
+	approvaltest.ApproveEvents(t, t.Name(), result.Hits.Hits)
 }
 
 func TestServiceDestinationAggregation(t *testing.T) {
@@ -176,7 +176,7 @@ func TestServiceDestinationAggregation(t *testing.T) {
 	result := estest.ExpectDocs(t, systemtest.Elasticsearch, "metrics-apm.service_destination*",
 		espoll.ExistsQuery{Field: "span.destination.service.response_time.count"},
 	)
-	approvaltest.ApproveEvents(t, t.Name(), result.Hits.Hits, "event.received")
+	approvaltest.ApproveEvents(t, t.Name(), result.Hits.Hits)
 }
 
 func TestTransactionAggregationLabels(t *testing.T) {
@@ -252,7 +252,7 @@ func TestServiceTransactionMetricsAggregation(t *testing.T) {
 	result := estest.ExpectMinDocs(t, systemtest.Elasticsearch, 2, "metrics-apm.service_transaction*",
 		espoll.TermQuery{Field: "metricset.name", Value: "service_transaction"},
 	)
-	approvaltest.ApproveEvents(t, t.Name(), result.Hits.Hits, "event.received")
+	approvaltest.ApproveEvents(t, t.Name(), result.Hits.Hits)
 }
 
 func TestServiceInstanceTransactionMetricsAggregation(t *testing.T) {
@@ -281,7 +281,7 @@ func TestServiceInstanceTransactionMetricsAggregation(t *testing.T) {
 	result := estest.ExpectMinDocs(t, systemtest.Elasticsearch, 2, "metrics-apm.service_instance_transaction*",
 		espoll.TermQuery{Field: "metricset.name", Value: "service_instance_transaction"},
 	)
-	approvaltest.ApproveEvents(t, t.Name(), result.Hits.Hits, "event.received")
+	approvaltest.ApproveEvents(t, t.Name(), result.Hits.Hits, "@timestamp")
 }
 
 func TestServiceTransactionMetricsAggregationLabels(t *testing.T) {
@@ -400,7 +400,7 @@ func TestServiceSummaryMetricsAggregation(t *testing.T) {
 	result := estest.ExpectDocs(t, systemtest.Elasticsearch, "metrics-apm.service_summary*",
 		espoll.TermQuery{Field: "metricset.name", Value: "service_summary"},
 	)
-	approvaltest.ApproveEvents(t, t.Name(), result.Hits.Hits, "event.received")
+	approvaltest.ApproveEvents(t, t.Name(), result.Hits.Hits)
 }
 
 func TestServiceSummaryMetricsAggregationOverflow(t *testing.T) {
@@ -445,7 +445,7 @@ func TestServiceSummaryMetricsAggregationOverflow(t *testing.T) {
 		espoll.TermQuery{Field: "metricset.name", Value: "service_summary"},
 	)
 	// Ignore timestamp because overflow bucket uses time.Now()
-	approvaltest.ApproveEvents(t, t.Name(), result.Hits.Hits, "@timestamp", "event.received")
+	approvaltest.ApproveEvents(t, t.Name(), result.Hits.Hits, "@timestamp")
 }
 
 func TestNonDefaultRollupIntervalHiddenDataStream(t *testing.T) {
