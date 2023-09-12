@@ -24,10 +24,7 @@
                     "message": "redis timeout"
                 }
             },
-            "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic"
-            },
+            "event": {},
             "host": {
                 "hostname": "host01",
                 "ip": [
@@ -87,10 +84,7 @@
                     "message": "redis timeout"
                 }
             },
-            "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic"
-            },
+            "event": {},
             "host": {
                 "hostname": "host01",
                 "ip": [
@@ -150,10 +144,7 @@
                     "message": "redis timeout"
                 }
             },
-            "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic"
-            },
+            "event": {},
             "host": {
                 "hostname": "host01",
                 "ip": [
@@ -202,8 +193,6 @@
                 "type": "logs"
             },
             "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic",
                 "kind": "event"
             },
             "host": {
@@ -254,8 +243,6 @@
                 "type": "traces"
             },
             "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic",
                 "outcome": "failure",
                 "success_count": 0
             },
@@ -318,8 +305,6 @@
                 "type": "traces"
             },
             "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic",
                 "outcome": "unknown"
             },
             "host": {
@@ -381,8 +366,6 @@
                 "type": "traces"
             },
             "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic",
                 "outcome": "unknown"
             },
             "host": {
@@ -444,8 +427,6 @@
                 "type": "traces"
             },
             "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic",
                 "outcome": "unknown"
             },
             "host": {
@@ -507,8 +488,6 @@
                 "type": "traces"
             },
             "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic",
                 "outcome": "failure",
                 "success_count": 0
             },
@@ -571,8 +550,6 @@
                 "type": "traces"
             },
             "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic",
                 "outcome": "unknown"
             },
             "host": {
@@ -634,8 +611,6 @@
                 "type": "traces"
             },
             "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic",
                 "outcome": "failure",
                 "success_count": 0
             },
@@ -698,8 +673,6 @@
                 "type": "traces"
             },
             "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic",
                 "outcome": "unknown"
             },
             "host": {
@@ -761,8 +734,6 @@
                 "type": "traces"
             },
             "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic",
                 "outcome": "unknown"
             },
             "host": {
@@ -824,8 +795,6 @@
                 "type": "traces"
             },
             "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic",
                 "outcome": "unknown"
             },
             "host": {
@@ -887,8 +856,6 @@
                 "type": "traces"
             },
             "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic",
                 "outcome": "unknown"
             },
             "host": {
@@ -950,8 +917,6 @@
                 "type": "traces"
             },
             "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic",
                 "outcome": "unknown"
             },
             "host": {
@@ -1013,8 +978,6 @@
                 "type": "traces"
             },
             "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic",
                 "outcome": "unknown"
             },
             "host": {
@@ -1076,8 +1039,6 @@
                 "type": "traces"
             },
             "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic",
                 "outcome": "unknown"
             },
             "host": {

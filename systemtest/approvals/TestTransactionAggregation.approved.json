@@ -15,8 +15,6 @@
                 "version": "dynamic"
             },
             "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic",
                 "outcome": "success",
                 "success_count": {
                     "sum": 5,
@@ -81,8 +79,6 @@
                 "version": "dynamic"
             },
             "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic",
                 "outcome": "success",
                 "success_count": {
                     "sum": 5,
@@ -147,8 +143,6 @@
                 "version": "dynamic"
             },
             "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic",
                 "outcome": "success",
                 "success_count": {
                     "sum": 5,
@@ -213,8 +207,6 @@
                 "version": "dynamic"
             },
             "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic",
                 "outcome": "success",
                 "success_count": {
                     "sum": 10,
@@ -279,8 +271,6 @@
                 "version": "dynamic"
             },
             "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic",
                 "outcome": "success",
                 "success_count": {
                     "sum": 10,
@@ -345,8 +335,6 @@
                 "version": "dynamic"
             },
             "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic",
                 "outcome": "success",
                 "success_count": {
                     "sum": 10,
@@ -411,8 +399,6 @@
                 "version": "dynamic"
             },
             "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic",
                 "outcome": "unknown"
             },
             "faas": {
@@ -488,8 +474,6 @@
                 "version": "dynamic"
             },
             "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic",
                 "outcome": "unknown"
             },
             "faas": {
@@ -565,8 +549,6 @@
                 "version": "dynamic"
             },
             "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic",
                 "outcome": "unknown"
             },
             "faas": {

@@ -15,8 +15,6 @@
                 "version": "dynamic"
             },
             "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic",
                 "outcome": "success",
                 "success_count": {
                     "sum": 1,
@@ -81,8 +79,6 @@
                 "version": "dynamic"
             },
             "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic",
                 "outcome": "success",
                 "success_count": {
                     "sum": 1,
@@ -147,8 +143,6 @@
                 "version": "dynamic"
             },
             "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic",
                 "outcome": "success",
                 "success_count": {
                     "sum": 1,
