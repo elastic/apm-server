@@ -281,7 +281,7 @@ func TestServiceInstanceTransactionMetricsAggregation(t *testing.T) {
 	result := estest.ExpectMinDocs(t, systemtest.Elasticsearch, 2, "metrics-apm.service_instance_transaction*",
 		espoll.TermQuery{Field: "metricset.name", Value: "service_instance_transaction"},
 	)
-	approvaltest.ApproveEvents(t, t.Name(), result.Hits.Hits, "@timestamp")
+	approvaltest.ApproveEvents(t, t.Name(), result.Hits.Hits)
 }
 
 func TestServiceTransactionMetricsAggregationLabels(t *testing.T) {

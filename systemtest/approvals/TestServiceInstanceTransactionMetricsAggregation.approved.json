@@ -1,8 +1,8 @@
 {
     "events": [
         {
-            "@timestamp": "dynamic",
-            "_doc_count": 4,
+            "@timestamp": "2006-01-02T15:00:00.000Z",
+            "_doc_count": 2,
             "agent": {
                 "name": "go"
             },
@@ -13,8 +13,15 @@
             },
             "event": {
                 "success_count": {
-                    "sum": 4,
-                    "value_count": 4
+                    "sum": 2,
+                    "value_count": 2
+                }
+            },
+            "host": {
+                "hostname": "beowulf",
+                "name": "beowulf",
+                "os": {
+                    "platform": "minix"
                 }
             },
             "metricset": {
@@ -32,36 +39,39 @@
             },
             "service": {
                 "language": {
-                    "name": "go"
+                    "name": "go",
+                    "version": "2.0"
                 },
-                "name": "systemtest"
-            },
-            "service_instance_transaction": {
-                "aggregation": {
-                    "overflow_count": 2
+                "name": "systemtest",
+                "node": {
+                    "name": "beowulf"
+                },
+                "runtime": {
+                    "name": "gc",
+                    "version": "2.0"
                 }
             },
             "transaction": {
                 "duration": {
                     "histogram": {
                         "counts": [
-                            4
+                            2
                         ],
                         "values": [
                             1003519
                         ]
                     },
                     "summary": {
-                        "sum": 4014076,
-                        "value_count": 4
+                        "sum": 2007038,
+                        "value_count": 2
                     }
                 },
-                "type": "_other"
+                "type": "type1"
             }
         },
         {
-            "@timestamp": "dynamic",
-            "_doc_count": 4,
+            "@timestamp": "2006-01-02T15:04:00.000Z",
+            "_doc_count": 2,
             "agent": {
                 "name": "go"
             },
@@ -72,8 +82,15 @@
             },
             "event": {
                 "success_count": {
-                    "sum": 4,
-                    "value_count": 4
+                    "sum": 2,
+                    "value_count": 2
+                }
+            },
+            "host": {
+                "hostname": "beowulf",
+                "name": "beowulf",
+                "os": {
+                    "platform": "minix"
                 }
             },
             "metricset": {
@@ -91,36 +108,39 @@
             },
             "service": {
                 "language": {
-                    "name": "go"
+                    "name": "go",
+                    "version": "2.0"
                 },
-                "name": "systemtest"
-            },
-            "service_instance_transaction": {
-                "aggregation": {
-                    "overflow_count": 2
+                "name": "systemtest",
+                "node": {
+                    "name": "beowulf"
+                },
+                "runtime": {
+                    "name": "gc",
+                    "version": "2.0"
                 }
             },
             "transaction": {
                 "duration": {
                     "histogram": {
                         "counts": [
-                            4
+                            2
                         ],
                         "values": [
                             1003519
                         ]
                     },
                     "summary": {
-                        "sum": 4014076,
-                        "value_count": 4
+                        "sum": 2007038,
+                        "value_count": 2
                     }
                 },
-                "type": "_other"
+                "type": "type1"
             }
         },
         {
-            "@timestamp": "dynamic",
-            "_doc_count": 4,
+            "@timestamp": "2006-01-02T15:00:00.000Z",
+            "_doc_count": 2,
             "agent": {
                 "name": "go"
             },
@@ -131,8 +151,15 @@
             },
             "event": {
                 "success_count": {
-                    "sum": 4,
-                    "value_count": 4
+                    "sum": 2,
+                    "value_count": 2
+                }
+            },
+            "host": {
+                "hostname": "beowulf",
+                "name": "beowulf",
+                "os": {
+                    "platform": "minix"
                 }
             },
             "metricset": {
@@ -150,31 +177,241 @@
             },
             "service": {
                 "language": {
-                    "name": "go"
+                    "name": "go",
+                    "version": "2.0"
                 },
-                "name": "systemtest"
-            },
-            "service_instance_transaction": {
-                "aggregation": {
-                    "overflow_count": 2
+                "name": "systemtest",
+                "node": {
+                    "name": "beowulf"
+                },
+                "runtime": {
+                    "name": "gc",
+                    "version": "2.0"
                 }
             },
             "transaction": {
                 "duration": {
                     "histogram": {
                         "counts": [
-                            4
+                            2
                         ],
                         "values": [
                             1003519
                         ]
                     },
                     "summary": {
-                        "sum": 4014076,
-                        "value_count": 4
+                        "sum": 2007038,
+                        "value_count": 2
                     }
                 },
-                "type": "_other"
+                "type": "type1"
+            }
+        },
+        {
+            "@timestamp": "2006-01-02T15:00:00.000Z",
+            "_doc_count": 2,
+            "agent": {
+                "name": "go"
+            },
+            "data_stream": {
+                "dataset": "apm.service_instance_transaction.10m",
+                "namespace": "default",
+                "type": "metrics"
+            },
+            "event": {
+                "success_count": {
+                    "sum": 2,
+                    "value_count": 2
+                }
+            },
+            "host": {
+                "hostname": "beowulf",
+                "name": "beowulf",
+                "os": {
+                    "platform": "minix"
+                }
+            },
+            "metricset": {
+                "interval": "10m",
+                "name": "service_instance_transaction"
+            },
+            "observer": {
+                "hostname": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic"
+            },
+            "processor": {
+                "event": "metric",
+                "name": "metric"
+            },
+            "service": {
+                "language": {
+                    "name": "go",
+                    "version": "2.0"
+                },
+                "name": "systemtest",
+                "node": {
+                    "name": "beowulf"
+                },
+                "runtime": {
+                    "name": "gc",
+                    "version": "2.0"
+                }
+            },
+            "transaction": {
+                "duration": {
+                    "histogram": {
+                        "counts": [
+                            2
+                        ],
+                        "values": [
+                            1003519
+                        ]
+                    },
+                    "summary": {
+                        "sum": 2007038,
+                        "value_count": 2
+                    }
+                },
+                "type": "type2"
+            }
+        },
+        {
+            "@timestamp": "2006-01-02T15:04:00.000Z",
+            "_doc_count": 2,
+            "agent": {
+                "name": "go"
+            },
+            "data_stream": {
+                "dataset": "apm.service_instance_transaction.1m",
+                "namespace": "default",
+                "type": "metrics"
+            },
+            "event": {
+                "success_count": {
+                    "sum": 2,
+                    "value_count": 2
+                }
+            },
+            "host": {
+                "hostname": "beowulf",
+                "name": "beowulf",
+                "os": {
+                    "platform": "minix"
+                }
+            },
+            "metricset": {
+                "interval": "1m",
+                "name": "service_instance_transaction"
+            },
+            "observer": {
+                "hostname": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic"
+            },
+            "processor": {
+                "event": "metric",
+                "name": "metric"
+            },
+            "service": {
+                "language": {
+                    "name": "go",
+                    "version": "2.0"
+                },
+                "name": "systemtest",
+                "node": {
+                    "name": "beowulf"
+                },
+                "runtime": {
+                    "name": "gc",
+                    "version": "2.0"
+                }
+            },
+            "transaction": {
+                "duration": {
+                    "histogram": {
+                        "counts": [
+                            2
+                        ],
+                        "values": [
+                            1003519
+                        ]
+                    },
+                    "summary": {
+                        "sum": 2007038,
+                        "value_count": 2
+                    }
+                },
+                "type": "type2"
+            }
+        },
+        {
+            "@timestamp": "2006-01-02T15:00:00.000Z",
+            "_doc_count": 2,
+            "agent": {
+                "name": "go"
+            },
+            "data_stream": {
+                "dataset": "apm.service_instance_transaction.60m",
+                "namespace": "default",
+                "type": "metrics"
+            },
+            "event": {
+                "success_count": {
+                    "sum": 2,
+                    "value_count": 2
+                }
+            },
+            "host": {
+                "hostname": "beowulf",
+                "name": "beowulf",
+                "os": {
+                    "platform": "minix"
+                }
+            },
+            "metricset": {
+                "interval": "60m",
+                "name": "service_instance_transaction"
+            },
+            "observer": {
+                "hostname": "dynamic",
+                "type": "apm-server",
+                "version": "dynamic"
+            },
+            "processor": {
+                "event": "metric",
+                "name": "metric"
+            },
+            "service": {
+                "language": {
+                    "name": "go",
+                    "version": "2.0"
+                },
+                "name": "systemtest",
+                "node": {
+                    "name": "beowulf"
+                },
+                "runtime": {
+                    "name": "gc",
+                    "version": "2.0"
+                }
+            },
+            "transaction": {
+                "duration": {
+                    "histogram": {
+                        "counts": [
+                            2
+                        ],
+                        "values": [
+                            1003519
+                        ]
+                    },
+                    "summary": {
+                        "sum": 2007038,
+                        "value_count": 2
+                    }
+                },
+                "type": "type2"
             }
         }
     ]
