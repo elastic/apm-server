@@ -92,6 +92,21 @@ Each policy includes a rollover and delete definition:
 | 390 days
 | Aggregated transaction metrics powering the APM UI 
 
+| `metrics-apm.service_instance_transaction_1m`
+| 7 days / 50GB
+| 90 days
+| Aggregated transaction metrics powering the APM UI
+
+| `metrics-apm.service_instance_transaction_10m`
+| 14 days / 50GB
+| 180 days
+| Aggregated transaction metrics powering the APM UI
+
+| `metrics-apm.service_instance_transaction_60m`
+| 30 days / 50GB
+| 390 days
+| Aggregated transaction metrics powering the APM UI
+
 | `metrics-apm.service_transaction_1m`
 | 7 days / 50GB
 | 90 days
