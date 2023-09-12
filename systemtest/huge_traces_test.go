@@ -76,13 +76,13 @@ func TestTransactionDroppedSpansStats(t *testing.T) {
 	metricsResult := estest.ExpectMinDocs(t, systemtest.Elasticsearch, 6, "metrics-apm.service_destination*",
 		espoll.TermQuery{Field: "metricset.name", Value: "service_destination"},
 	)
-	approvaltest.ApproveEvents(t, t.Name()+"Metrics", metricsResult.Hits.Hits, "@timestamp", "event.received")
+	approvaltest.ApproveEvents(t, t.Name()+"Metrics", metricsResult.Hits.Hits, "@timestamp")
 
 	txResult := estest.ExpectDocs(t, systemtest.Elasticsearch, "traces-apm-*",
 		espoll.TermQuery{Field: "transaction.id", Value: tx.TraceContext().Span.String()},
 	)
 	approvaltest.ApproveEvents(t, t.Name()+"Transaction", txResult.Hits.Hits,
-		"@timestamp", "timestamp", "trace.id", "transaction.id", "span.id", "event.received",
+		"@timestamp", "timestamp", "trace.id", "transaction.id", "span.id"
 	)
 }
 
