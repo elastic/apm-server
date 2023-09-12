@@ -19,10 +19,6 @@
                     "message": "error log message"
                 }
             },
-            "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic"
-            },
             "host": {
                 "ip": [
                     "127.0.0.1"
@@ -61,10 +57,6 @@
                 "grouping_key": "3a1fb5609458fbb132b44d8fc7cde104",
                 "grouping_name": "error exception message",
                 "id": "abcdef0123456790"
-            },
-            "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic"
             },
             "host": {
                 "ip": [
@@ -105,10 +97,6 @@
                 "grouping_name": null,
                 "id": "abcdef0123456791"
             },
-            "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic"
-            },
             "host": {
                 "ip": [
                     "127.0.0.1"
@@ -141,10 +129,6 @@
             "ecs": {
                 "version": "dynamic"
             },
-            "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic"
-            },
             "host": {
                 "ip": "127.0.0.1"
             },
@@ -175,8 +159,6 @@
                 "type": "traces"
             },
             "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic",
                 "outcome": "unknown"
             },
             "host": {
@@ -226,8 +208,6 @@
                 "type": "traces"
             },
             "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic",
                 "outcome": "unknown"
             },
             "host": {
@@ -277,8 +257,6 @@
                 "type": "traces"
             },
             "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic",
                 "outcome": "unknown"
             },
             "host": {

@@ -48,10 +48,6 @@
                     "message": "Cannot read property 'baz' of undefined"
                 }
             },
-            "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic"
-            },
             "host": {
                 "architecture": "x64",
                 "hostname": "node-name",

@@ -5,6 +5,10 @@ telemetry.enabled: false
 xpack.security.encryptionKey: fhjskloppd678ehkdfdlliverpoolfcr
 xpack.encryptedSavedObjects.encryptionKey: fhjskloppd678ehkdfdlliverpoolfcr
 
+# Disable the Fleet agent ID verification pipeline,
+# which sets Fleet-specific fields that we don't want.
+xpack.fleet.agentIdVerificationEnabled: false
+
 xpack.fleet.packages:
   - name: fleet_server
     version: latest

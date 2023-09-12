@@ -73,7 +73,6 @@
                 "id": "b2da5288b2c3d7e79c42a636ca2fd99f"
             },
             "event": {
-                "agent_id_status": "missing",
                 "ingested": "dynamic"
             },
             "host": {
@@ -153,7 +152,6 @@
                 "version": "dynamic"
             },
             "event": {
-                "agent_id_status": "missing",
                 "ingested": "dynamic"
             },
             "golang": {
@@ -273,7 +271,6 @@
                 "version": "dynamic"
             },
             "event": {
-                "agent_id_status": "missing",
                 "ingested": "dynamic",
                 "outcome": "failure"
             },
@@ -325,7 +322,6 @@
                 "version": "dynamic"
             },
             "event": {
-                "agent_id_status": "missing",
                 "ingested": "dynamic",
                 "outcome": "failure"
             },
@@ -386,7 +382,6 @@
                 "version": "dynamic"
             },
             "event": {
-                "agent_id_status": "missing",
                 "ingested": "dynamic"
             },
             "host": {
@@ -465,7 +460,6 @@
                 "version": "dynamic"
             },
             "event": {
-                "agent_id_status": "missing",
                 "ingested": "dynamic"
             },
             "host": {
@@ -538,8 +532,6 @@
                 "type": "traces"
             },
             "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic",
                 "outcome": "failure"
             },
             "observer": {
@@ -652,7 +644,6 @@
                 "type": "traces"
             },
             "event": {
-                "agent_id_status": "missing",
                 "ingested": "dynamic",
                 "outcome": "failure"
             },

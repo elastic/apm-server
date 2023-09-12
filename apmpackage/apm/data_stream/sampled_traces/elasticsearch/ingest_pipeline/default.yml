@@ -5,3 +5,5 @@ processors:
       field: observer.id
       target_field: agent.ephemeral_id
       ignore_missing: true
+  - pipeline:
+      name: event_ingested
