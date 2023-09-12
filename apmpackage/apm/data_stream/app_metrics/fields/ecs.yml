@@ -71,8 +71,6 @@
 - external: ecs
   name: device.manufacturer
 - external: ecs
-  name: ecs.version
-- external: ecs
   name: event.outcome
 - external: ecs
   name: host.architecture

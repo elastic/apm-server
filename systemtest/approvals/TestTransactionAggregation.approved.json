@@ -11,9 +11,6 @@
                 "namespace": "default",
                 "type": "metrics"
             },
-            "ecs": {
-                "version": "dynamic"
-            },
             "event": {
                 "outcome": "success",
                 "success_count": {
@@ -75,9 +72,6 @@
                 "namespace": "default",
                 "type": "metrics"
             },
-            "ecs": {
-                "version": "dynamic"
-            },
             "event": {
                 "outcome": "success",
                 "success_count": {
@@ -138,9 +132,6 @@
                 "dataset": "apm.transaction.60m",
                 "namespace": "default",
                 "type": "metrics"
-            },
-            "ecs": {
-                "version": "dynamic"
             },
             "event": {
                 "outcome": "success",
@@ -203,9 +194,6 @@
                 "namespace": "default",
                 "type": "metrics"
             },
-            "ecs": {
-                "version": "dynamic"
-            },
             "event": {
                 "outcome": "success",
                 "success_count": {
@@ -267,9 +255,6 @@
                 "namespace": "default",
                 "type": "metrics"
             },
-            "ecs": {
-                "version": "dynamic"
-            },
             "event": {
                 "outcome": "success",
                 "success_count": {
@@ -330,9 +315,6 @@
                 "dataset": "apm.transaction.60m",
                 "namespace": "default",
                 "type": "metrics"
-            },
-            "ecs": {
-                "version": "dynamic"
             },
             "event": {
                 "outcome": "success",
@@ -394,9 +376,6 @@
                 "dataset": "apm.transaction.10m",
                 "namespace": "default",
                 "type": "metrics"
-            },
-            "ecs": {
-                "version": "dynamic"
             },
             "event": {
                 "outcome": "unknown"
@@ -470,9 +449,6 @@
                 "namespace": "default",
                 "type": "metrics"
             },
-            "ecs": {
-                "version": "dynamic"
-            },
             "event": {
                 "outcome": "unknown"
             },
@@ -544,9 +520,6 @@
                 "dataset": "apm.transaction.60m",
                 "namespace": "default",
                 "type": "metrics"
-            },
-            "ecs": {
-                "version": "dynamic"
             },
             "event": {
                 "outcome": "unknown"

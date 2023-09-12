@@ -5,6 +5,7 @@ https://github.com/elastic/apm-server/compare/8.10\...main[View commits]
 
 [float]
 ==== Breaking Changes
+- The `ecs.version` field has been removed from APM data streams {pull}11632[11632]
 
 [float]
 ==== Deprecations
