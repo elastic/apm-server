@@ -243,6 +243,13 @@ func (s *Runner) Run(ctx context.Context) error {
 		)
 	}
 
+	if s.config.Aggregation.ServiceInstanceTransactions.MaxGroups <= 0 {
+		s.config.Aggregation.ServiceInstanceTransactions.MaxGroups = maxGroupsForAggregation(memLimitGB)
+		s.logger.Infof("Aggregation.ServiceInstanceTransactions.MaxGroups for service aggregation set to %d based on %0.1fgb of memory",
+			s.config.Aggregation.ServiceInstanceTransactions.MaxGroups, memLimitGB,
+		)
+	}
+
 	if s.config.Aggregation.ServiceTransactions.MaxGroups <= 0 {
 		s.config.Aggregation.ServiceTransactions.MaxGroups = maxGroupsForAggregation(memLimitGB)
 		s.logger.Infof("Aggregation.ServiceTransactions.MaxGroups for service aggregation set to %d based on %0.1fgb of memory",

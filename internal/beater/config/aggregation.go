@@ -23,10 +23,11 @@ const (
 
 // AggregationConfig holds configuration related to various metrics aggregations.
 type AggregationConfig struct {
-	MaxServices         int                                 `config:"max_services"` // if <= 0 then will be set based on memory limits
-	Transactions        TransactionAggregationConfig        `config:"transactions"`
-	ServiceDestinations ServiceDestinationAggregationConfig `config:"service_destinations"`
-	ServiceTransactions ServiceTransactionAggregationConfig `config:"service_transactions"`
+	MaxServices                 int                                         `config:"max_services"` // if <= 0 then will be set based on memory limits
+	Transactions                TransactionAggregationConfig                `config:"transactions"`
+	ServiceDestinations         ServiceDestinationAggregationConfig         `config:"service_destinations"`
+	ServiceTransactions         ServiceTransactionAggregationConfig         `config:"service_transactions"`
+	ServiceInstanceTransactions ServiceInstanceTransactionAggregationConfig `config:"service_instance_transactions"`
 }
 
 // TransactionAggregationConfig holds configuration related to transaction metrics aggregation.
@@ -41,6 +42,11 @@ type ServiceDestinationAggregationConfig struct {
 
 // ServiceTransactionAggregationConfig holds configuration related to service transaction metrics aggregation.
 type ServiceTransactionAggregationConfig struct {
+	MaxGroups int `config:"max_groups"` // if <= 0 then will be set based on memory limits
+}
+
+// ServiceInstanceTransactionAggregationConfig holds configuration related to service instance transaction metrics aggregation.
+type ServiceInstanceTransactionAggregationConfig struct {
 	MaxGroups int `config:"max_groups"` // if <= 0 then will be set based on memory limits
 }
 

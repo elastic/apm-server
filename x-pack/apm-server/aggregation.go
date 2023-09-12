@@ -21,6 +21,7 @@ func newAggregationProcessors(args beater.ServerParams) ([]namedProcessor, error
 		args.Config.Aggregation.MaxServices,
 		args.Config.Aggregation.Transactions.MaxGroups,
 		args.Config.Aggregation.ServiceTransactions.MaxGroups,
+		args.Config.Aggregation.ServiceInstanceTransactions.MaxGroups,
 		args.Config.Aggregation.ServiceDestinations.MaxGroups,
 		args.BatchProcessor,
 		args.Logger,

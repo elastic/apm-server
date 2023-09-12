@@ -25,20 +25,22 @@ type Aggregator struct {
 
 // New returns a new Aggregator.
 func New(
-	maxSvcs, maxTxGroups, maxSvcTxGroups, maxSpanGroups int,
+	maxSvcs, maxTxGroups, maxSvcTxGroups, maxSvcInstTxGroups, maxSpanGroups int,
 	nextProcessor modelpb.BatchProcessor, logger *logp.Logger,
 ) (*Aggregator, error) {
 	zapLogger := zap.New(logger.Core(), zap.WithCaller(true)).Named("aggregator")
 
 	baseaggregator, err := aggregators.New(
 		aggregators.WithLimits(aggregators.Limits{
-			MaxSpanGroups:                         maxSpanGroups,
-			MaxSpanGroupsPerService:               max(maxSpanGroups/10, 1),
-			MaxTransactionGroups:                  maxTxGroups,
-			MaxTransactionGroupsPerService:        max(maxTxGroups/10, 1),
-			MaxServiceTransactionGroups:           maxSvcTxGroups,
-			MaxServiceTransactionGroupsPerService: max(maxSvcTxGroups/10, 1),
-			MaxServices:                           maxSvcs,
+			MaxSpanGroups:                                 maxSpanGroups,
+			MaxSpanGroupsPerService:                       max(maxSpanGroups/10, 1),
+			MaxTransactionGroups:                          maxTxGroups,
+			MaxTransactionGroupsPerService:                max(maxTxGroups/10, 1),
+			MaxServiceInstanceTransactionGroups:           maxSvcInstTxGroups,
+			MaxServiceInstanceTransactionGroupsPerService: max(maxSvcInstTxGroups/10, 1),
+			MaxServiceTransactionGroups:                   maxSvcTxGroups,
+			MaxServiceTransactionGroupsPerService:         max(maxSvcTxGroups/10, 1),
+			MaxServices:                                   maxSvcs,
 		}),
 		aggregators.WithProcessor(wrapNextProcessor(nextProcessor)),
 		aggregators.WithAggregationIntervals([]time.Duration{time.Minute, 10 * time.Minute, time.Hour}),
