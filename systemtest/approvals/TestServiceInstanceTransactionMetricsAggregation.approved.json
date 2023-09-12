@@ -11,9 +11,6 @@
                 "namespace": "default",
                 "type": "metrics"
             },
-            "ecs": {
-                "version": "dynamic"
-            },
             "event": {
                 "success_count": {
                     "sum": 4,
@@ -73,9 +70,6 @@
                 "namespace": "default",
                 "type": "metrics"
             },
-            "ecs": {
-                "version": "dynamic"
-            },
             "event": {
                 "success_count": {
                     "sum": 4,
@@ -134,9 +128,6 @@
                 "dataset": "apm.service_instance_transaction.60m",
                 "namespace": "default",
                 "type": "metrics"
-            },
-            "ecs": {
-                "version": "dynamic"
             },
             "event": {
                 "success_count": {
