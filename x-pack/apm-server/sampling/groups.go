@@ -211,7 +211,7 @@ func (g *traceGroup) finalizeSampledTraces(traceIDs []string, ingestRateDecayFac
 		g.ingestRate *= 1 - ingestRateDecayFactor
 		g.ingestRate += ingestRateDecayFactor * float64(g.total)
 	}
-	desiredTotal := int(math.Round(g.samplingFraction * float64(g.total)))
+	desiredTotal := int(math.Ceil(g.samplingFraction * float64(g.total)))
 	g.total = 0
 
 	for n := g.reservoir.Len(); n > desiredTotal; n-- {
