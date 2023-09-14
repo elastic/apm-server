@@ -156,123 +156,138 @@ func TestProcessAlreadyTailSampled(t *testing.T) {
 }
 
 func TestProcessLocalTailSampling(t *testing.T) {
-	config := newTempdirConfig(t)
-	config.Policies = []sampling.Policy{{SampleRate: 0.5}}
-	config.FlushInterval = 10 * time.Millisecond
-	published := make(chan string)
-	config.Elasticsearch = pubsubtest.Client(pubsubtest.PublisherChan(published), nil)
-
-	processor, err := sampling.NewProcessor(config)
-	require.NoError(t, err)
-
-	trace1 := modelpb.Trace{Id: "0102030405060708090a0b0c0d0e0f10"}
-	trace2 := modelpb.Trace{Id: "0102030405060708090a0b0c0d0e0f11"}
-	trace1Events := modelpb.Batch{{
-		Trace: &trace1,
-		Event: &modelpb.Event{Duration: uint64(123 * time.Millisecond)},
-		Transaction: &modelpb.Transaction{
-			Type:    "type",
-			Id:      "0102030405060708",
-			Sampled: true,
+	for _, tc := range []struct {
+		sampleRate float64
+	}{
+		{
+			sampleRate: 0.5,
 		},
-	}, {
-		Trace: &trace1,
-		Event: &modelpb.Event{Duration: uint64(123 * time.Millisecond)},
-		Span: &modelpb.Span{
-			Type: "type",
-			Id:   "0102030405060709",
+		{
+			// With 2 traces and 0.1 sample rate, ensure that we report 1 trace instead of 0 trace.
+			sampleRate: 0.1,
 		},
-	}}
-	trace2Events := modelpb.Batch{{
-		Trace: &trace2,
-		Event: &modelpb.Event{Duration: uint64(456 * time.Millisecond)},
-		Transaction: &modelpb.Transaction{
-			Type:    "type",
-			Id:      "0102030405060710",
-			Sampled: true,
-		},
-	}, {
-		Trace: &trace2,
-		Event: &modelpb.Event{Duration: uint64(456 * time.Millisecond)},
-		Span: &modelpb.Span{
-			Type: "type",
-			Id:   "0102030405060711",
-		},
-	}}
+	} {
+		t.Run(fmt.Sprintf("%f", tc.sampleRate), func(t *testing.T) {
+			config := newTempdirConfig(t)
+			config.Policies = []sampling.Policy{{SampleRate: tc.sampleRate}}
+			config.FlushInterval = 10 * time.Millisecond
+			published := make(chan string)
+			config.Elasticsearch = pubsubtest.Client(pubsubtest.PublisherChan(published), nil)
 
-	in := append(trace1Events[:], trace2Events...)
-	err = processor.ProcessBatch(context.Background(), &in)
-	require.NoError(t, err)
-	assert.Empty(t, in)
+			processor, err := sampling.NewProcessor(config)
+			require.NoError(t, err)
 
-	// Start periodic tail-sampling. We start the processor after processing
-	// events to ensure all events are processed before any local sampling
-	// decisions are made, such that we have a single tail-sampling decision
-	// to check.
-	go processor.Run()
-	defer processor.Stop(context.Background())
+			trace1 := modelpb.Trace{Id: "0102030405060708090a0b0c0d0e0f10"}
+			trace2 := modelpb.Trace{Id: "0102030405060708090a0b0c0d0e0f11"}
+			trace1Events := modelpb.Batch{{
+				Trace: &trace1,
+				Event: &modelpb.Event{Duration: uint64(123 * time.Millisecond)},
+				Transaction: &modelpb.Transaction{
+					Type:    "type",
+					Id:      "0102030405060708",
+					Sampled: true,
+				},
+			}, {
+				Trace: &trace1,
+				Event: &modelpb.Event{Duration: uint64(123 * time.Millisecond)},
+				Span: &modelpb.Span{
+					Type: "type",
+					Id:   "0102030405060709",
+				},
+			}}
+			trace2Events := modelpb.Batch{{
+				Trace: &trace2,
+				Event: &modelpb.Event{Duration: uint64(456 * time.Millisecond)},
+				Transaction: &modelpb.Transaction{
+					Type:    "type",
+					Id:      "0102030405060710",
+					Sampled: true,
+				},
+			}, {
+				Trace: &trace2,
+				Event: &modelpb.Event{Duration: uint64(456 * time.Millisecond)},
+				Span: &modelpb.Span{
+					Type: "type",
+					Id:   "0102030405060711",
+				},
+			}}
 
-	// We have configured 50% tail-sampling, so we expect a single trace ID
-	// to be published. Sampling is non-deterministic (weighted random), so
-	// we can't anticipate a specific trace ID.
+			in := append(trace1Events[:], trace2Events...)
+			err = processor.ProcessBatch(context.Background(), &in)
+			require.NoError(t, err)
+			assert.Empty(t, in)
 
-	var sampledTraceID string
-	select {
-	case sampledTraceID = <-published:
-	case <-time.After(10 * time.Second):
-		t.Fatal("timed out waiting for publication")
+			// Start periodic tail-sampling. We start the processor after processing
+			// events to ensure all events are processed before any local sampling
+			// decisions are made, such that we have a single tail-sampling decision
+			// to check.
+			go processor.Run()
+			defer processor.Stop(context.Background())
+
+			// We have configured 50% tail-sampling, so we expect a single trace ID
+			// to be published. Sampling is non-deterministic (weighted random), so
+			// we can't anticipate a specific trace ID.
+
+			var sampledTraceID string
+			select {
+			case sampledTraceID = <-published:
+			case <-time.After(10 * time.Second):
+				t.Fatal("timed out waiting for publication")
+			}
+			select {
+			case <-published:
+				t.Fatal("unexpected publication")
+			case <-time.After(50 * time.Millisecond):
+			}
+
+			unsampledTraceID := trace2.Id
+			sampledTraceEvents := trace1Events
+			unsampledTraceEvents := trace2Events
+			if sampledTraceID == trace2.Id {
+				unsampledTraceID = trace1.Id
+				unsampledTraceEvents = trace1Events
+				sampledTraceEvents = trace2Events
+			}
+
+			expectedMonitoring := monitoring.MakeFlatSnapshot()
+			expectedMonitoring.Ints["sampling.events.processed"] = 4
+			expectedMonitoring.Ints["sampling.events.stored"] = 4
+			expectedMonitoring.Ints["sampling.events.sampled"] = 2
+			expectedMonitoring.Ints["sampling.events.head_unsampled"] = 0
+			expectedMonitoring.Ints["sampling.events.dropped"] = 0
+			expectedMonitoring.Ints["sampling.events.failed_writes"] = 0
+			assertMonitoring(t, processor, expectedMonitoring, `sampling.events.*`)
+
+			// Stop the processor and flush global storage so we can access the database.
+			assert.NoError(t, processor.Stop(context.Background()))
+			assert.NoError(t, config.Storage.Flush(0))
+			storage := eventstorage.New(config.DB, eventstorage.ProtobufCodec{})
+			reader := storage.NewReadWriter()
+			defer reader.Close()
+
+			sampled, err := reader.IsTraceSampled(sampledTraceID)
+			assert.NoError(t, err)
+			assert.True(t, sampled)
+
+			sampled, err = reader.IsTraceSampled(unsampledTraceID)
+			assert.Equal(t, eventstorage.ErrNotFound, err)
+			assert.False(t, sampled)
+
+			var batch modelpb.Batch
+			err = reader.ReadTraceEvents(sampledTraceID, &batch)
+			assert.NoError(t, err)
+			assert.Empty(t, cmp.Diff(sampledTraceEvents, batch, protocmp.Transform()))
+
+			// Even though the trace is unsampled, the events will be
+			// available in storage until the TTL expires, as they're
+			// written there first.
+			batch = batch[:0]
+			err = reader.ReadTraceEvents(unsampledTraceID, &batch)
+			assert.NoError(t, err)
+			assert.Empty(t, cmp.Diff(unsampledTraceEvents, batch, protocmp.Transform()))
+		})
 	}
-	select {
-	case <-published:
-		t.Fatal("unexpected publication")
-	case <-time.After(50 * time.Millisecond):
-	}
 
-	unsampledTraceID := trace2.Id
-	sampledTraceEvents := trace1Events
-	unsampledTraceEvents := trace2Events
-	if sampledTraceID == trace2.Id {
-		unsampledTraceID = trace1.Id
-		unsampledTraceEvents = trace1Events
-		sampledTraceEvents = trace2Events
-	}
-
-	expectedMonitoring := monitoring.MakeFlatSnapshot()
-	expectedMonitoring.Ints["sampling.events.processed"] = 4
-	expectedMonitoring.Ints["sampling.events.stored"] = 4
-	expectedMonitoring.Ints["sampling.events.sampled"] = 2
-	expectedMonitoring.Ints["sampling.events.head_unsampled"] = 0
-	expectedMonitoring.Ints["sampling.events.dropped"] = 0
-	expectedMonitoring.Ints["sampling.events.failed_writes"] = 0
-	assertMonitoring(t, processor, expectedMonitoring, `sampling.events.*`)
-
-	// Stop the processor and flush global storage so we can access the database.
-	assert.NoError(t, processor.Stop(context.Background()))
-	assert.NoError(t, config.Storage.Flush(0))
-	storage := eventstorage.New(config.DB, eventstorage.ProtobufCodec{})
-	reader := storage.NewReadWriter()
-	defer reader.Close()
-
-	sampled, err := reader.IsTraceSampled(sampledTraceID)
-	assert.NoError(t, err)
-	assert.True(t, sampled)
-
-	sampled, err = reader.IsTraceSampled(unsampledTraceID)
-	assert.Equal(t, eventstorage.ErrNotFound, err)
-	assert.False(t, sampled)
-
-	var batch modelpb.Batch
-	err = reader.ReadTraceEvents(sampledTraceID, &batch)
-	assert.NoError(t, err)
-	assert.Empty(t, cmp.Diff(sampledTraceEvents, batch, protocmp.Transform()))
-
-	// Even though the trace is unsampled, the events will be
-	// available in storage until the TTL expires, as they're
-	// written there first.
-	batch = batch[:0]
-	err = reader.ReadTraceEvents(unsampledTraceID, &batch)
-	assert.NoError(t, err)
-	assert.Empty(t, cmp.Diff(unsampledTraceEvents, batch, protocmp.Transform()))
 }
 
 func TestProcessLocalTailSamplingUnsampled(t *testing.T) {
