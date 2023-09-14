@@ -211,7 +211,7 @@ func (g *traceGroup) finalizeSampledTraces(traceIDs []string, ingestRateDecayFac
 		g.ingestRate *= 1 - ingestRateDecayFactor
 		g.ingestRate += ingestRateDecayFactor * float64(g.total)
 	}
-	desiredTotal := int(math.Round(g.samplingFraction * float64(g.total)))
+	desiredTotal := int(math.Ceil(g.samplingFraction * float64(g.total)))
 	g.total = 0
 
 	for n := g.reservoir.Len(); n > desiredTotal; n-- {
@@ -224,7 +224,7 @@ func (g *traceGroup) finalizeSampledTraces(traceIDs []string, ingestRateDecayFac
 
 	// Resize the reservoir, so that it can hold the desired fraction of
 	// the observed ingest rate.
-	newReservoirSize := int(math.Round(g.samplingFraction * g.ingestRate))
+	newReservoirSize := int(math.Ceil(g.samplingFraction * g.ingestRate))
 	if newReservoirSize < minReservoirSize {
 		newReservoirSize = minReservoirSize
 	}
