@@ -18,6 +18,9 @@
     - description: Remove `ecs.version` from all data streams
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/11632
+    - description: always set {span,transaction}.duration in traces-*
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/11638
 - version: "8.10.0"
   changes:
     - description: Add permissions to reroute to dedicated datasets for logs, metrics and traces
