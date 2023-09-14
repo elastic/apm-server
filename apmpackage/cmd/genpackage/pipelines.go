@@ -155,11 +155,16 @@ var clientGeoIPPipeline = []map[string]interface{}{{
 // `event.duration`. See https://github.com/elastic/apm-server/issues/5999.
 var eventDurationPipeline = []map[string]interface{}{{
 	"script": map[string]interface{}{
-		"if": "ctx.processor?.event != null && ctx.get(ctx.processor.event) != null && ctx.get(ctx.processor.event)?.duration == null",
+		"if": "ctx.processor?.event != null && ctx.get(ctx.processor.event)?.duration == null",
 		"source": strings.TrimSpace(`
 def durationNanos = ctx.event?.duration ?: 0;
 def eventType = ctx.processor.event;
-ctx.get(ctx.processor.event).duration = ["us": (long)(durationNanos/1000)];
+def rootObject = ctx.get(eventType);
+if (rootObject == null) {
+  rootObject = [:];
+  ctx[eventType] = rootObject;
+}
+rootObject.duration = ["us": (long)(durationNanos/1000)];
 `),
 	},
 }, {
