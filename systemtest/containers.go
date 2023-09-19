@@ -359,7 +359,7 @@ func NewUnstartedElasticAgentContainer() (*ElasticAgentContainer, error) {
 		networks = append(networks, network)
 	}
 	containerCACertPath := "/etc/pki/tls/certs/fleet-ca.pem"
-	hostCACertPath, err := filepath.Abs("../testing/docker/fleet-server/ca.pem")
+	hostCACertPath, err := filepath.Abs("../testing/docker/fleet-server/certificate.pem") // self-signed
 	if err != nil {
 		return nil, err
 	}
