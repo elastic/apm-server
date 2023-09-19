@@ -359,7 +359,7 @@ func NewUnstartedElasticAgentContainer() (*ElasticAgentContainer, error) {
 		networks = append(networks, network)
 	}
 	containerCACertPath := "/etc/pki/tls/certs/fleet-ca.pem"
-	hostCACertPath, err := filepath.Abs("../testing/docker/fleet-server/ca.pem")
+	hostCACertPath, err := filepath.Abs("../testing/docker/fleet-server/certificate.pem") // self-signed
 	if err != nil {
 		return nil, err
 	}
@@ -374,17 +374,12 @@ func NewUnstartedElasticAgentContainer() (*ElasticAgentContainer, error) {
 	stackVersion := agentImageDetails.Config.Labels["org.label-schema.version"]
 	vcsRef := agentImageDetails.Config.Labels["org.label-schema.vcs-ref"]
 
-<<<<<<< HEAD
 	// Build a custom elastic-agent image with a locally built apm-server binary injected.
 	agentImage, err = buildElasticAgentImage(context.Background(), docker, stackVersion, agentImageVersion, vcsRef)
 	if err != nil {
 		return nil, err
 	}
 
-=======
-	containerCACertPath := "/etc/pki/tls/certs/fleet-ca.pem"
-	hostCACertPath := filepath.Join(systemtestDir, "../testing/docker/fleet-server/certificate.pem") // self-signed
->>>>>>> 2251cf8b3 (Create new dev/test certificate for fleet-server (#11621))
 	req := testcontainers.ContainerRequest{
 		Image:      agentImage,
 		AutoRemove: true,
