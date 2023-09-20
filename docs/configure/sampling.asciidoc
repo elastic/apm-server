@@ -65,6 +65,9 @@ This final policy is used to catch remaining trace events that don't match a str
 [id="sampling-tail-storage_limit-{input-type}"]
 == Storage limit
 The amount of storage space allocated for trace events matching tail sampling policies. Caution: Setting this limit higher than the allowed space may cause APM Server to become unhealthy.
+
+If the configured storage limit is insufficient, it logs "configured storage limit reached". The event will bypass sampling and will always be indexed when storage limit is reached.
+
 Default: `3GB`. (text)
 
 |====
