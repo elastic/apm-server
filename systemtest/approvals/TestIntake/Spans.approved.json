@@ -45,8 +45,6 @@
                 "port": 5432
             },
             "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic",
                 "outcome": "success",
                 "success_count": 1
             },
@@ -263,8 +261,6 @@
                 "type": "traces"
             },
             "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic",
                 "outcome": "unknown"
             },
             "host": {
@@ -397,8 +393,6 @@
                 "type": "traces"
             },
             "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic",
                 "outcome": "unknown"
             },
             "host": {
@@ -537,8 +531,6 @@
                 "type": "traces"
             },
             "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic",
                 "outcome": "unknown"
             },
             "host": {
@@ -671,8 +663,6 @@
                 "type": "traces"
             },
             "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic",
                 "outcome": "success",
                 "success_count": 1
             },
@@ -821,8 +811,6 @@
                 "port": 5432
             },
             "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic",
                 "outcome": "success",
                 "success_count": 1
             },
@@ -1043,8 +1031,6 @@
                 "ip": "0:0::0:1"
             },
             "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic",
                 "outcome": "unknown"
             },
             "host": {
@@ -1193,8 +1179,6 @@
                 "type": "traces"
             },
             "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic",
                 "outcome": "success",
                 "success_count": 1
             },
@@ -1335,8 +1319,6 @@
                 "port": 8080
             },
             "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic",
                 "outcome": "success",
                 "success_count": 1
             },
@@ -1489,8 +1471,6 @@
                 "port": 5432
             },
             "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic",
                 "outcome": "success",
                 "success_count": 1
             },

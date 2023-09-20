@@ -63,6 +63,7 @@ import (
 	"github.com/elastic/apm-server/internal/beater/interceptors"
 	javaattacher "github.com/elastic/apm-server/internal/beater/java_attacher"
 	"github.com/elastic/apm-server/internal/beater/ratelimit"
+	"github.com/elastic/apm-server/internal/beater/request"
 	"github.com/elastic/apm-server/internal/elasticsearch"
 	"github.com/elastic/apm-server/internal/idxmgmt"
 	"github.com/elastic/apm-server/internal/kibana"
@@ -307,6 +308,34 @@ func (s *Runner) Run(ctx context.Context) error {
 	}
 	otel.SetTracerProvider(tracerProvider)
 
+	exporter, err := apmotel.NewGatherer()
+	if err != nil {
+		return err
+	}
+	localExporter := telemetry.NewMetricExporter(
+		telemetry.WithMetricFilter([]string{
+			"http.server." + string(request.IDRequestCount),
+			"http.server.request.duration",
+			"http.server." + string(request.IDResponseValidCount),
+			"http.server." + string(request.IDResponseErrorsCount),
+			"http.server." + string(request.IDResponseErrorsTimeout),
+			"http.server." + string(request.IDResponseErrorsRateLimit),
+
+			"grpc.server." + string(request.IDRequestCount),
+			"grpc.server.request.duration",
+			"grpc.server." + string(request.IDResponseValidCount),
+			"grpc.server." + string(request.IDResponseErrorsCount),
+			"grpc.server." + string(request.IDResponseErrorsTimeout),
+			"grpc.server." + string(request.IDResponseErrorsRateLimit),
+		}),
+	)
+	meterProvider := metric.NewMeterProvider(
+		metric.WithReader(exporter),
+		metric.WithReader(metric.NewPeriodicReader(localExporter)),
+	)
+	otel.SetMeterProvider(meterProvider)
+	tracer.RegisterMetricsGatherer(exporter)
+
 	// Ensure the libbeat output and go-elasticsearch clients do not index
 	// any events to Elasticsearch before the integration is ready.
 	publishReady := make(chan struct{})
@@ -387,7 +416,7 @@ func (s *Runner) Run(ctx context.Context) error {
 		apmgrpc.NewUnaryServerInterceptor(apmgrpc.WithRecovery(), apmgrpc.WithTracer(tracer)),
 		interceptors.ClientMetadata(),
 		interceptors.Logging(gRPCLogger),
-		interceptors.Metrics(gRPCLogger),
+		interceptors.Metrics(gRPCLogger, nil),
 		interceptors.Timeout(),
 		interceptors.Auth(authenticator),
 		interceptors.AnonymousRateLimit(ratelimitStore),
@@ -420,18 +449,7 @@ func (s *Runner) Run(ctx context.Context) error {
 		}),
 		finalBatchProcessor,
 	})
-
-	exporter, err := apmotel.NewGatherer()
-	if err != nil {
-		return err
-	}
-	localExporter := telemetry.NewMetricExporter(batchProcessor)
-	meterProvider := metric.NewMeterProvider(
-		metric.WithReader(exporter),
-		metric.WithReader(metric.NewPeriodicReader(localExporter)),
-	)
-	otel.SetMeterProvider(meterProvider)
-	tracer.RegisterMetricsGatherer(exporter)
+	localExporter.SetBatchProcessor(batchProcessor)
 
 	agentConfigFetcher, fetcherRunFunc, err := newAgentConfigFetcher(
 		ctx,
@@ -495,7 +513,7 @@ func (s *Runner) Run(ctx context.Context) error {
 
 		// Add a model processor that removes `event.received`, which is added by
 		// apm-data, but which we don't yet map.
-		modelpb.ProcessBatchFunc(removeEventReceivedBatchProcessor),
+		modelprocessor.RemoveEventReceived{},
 
 		// Pre-process events before they are sent to the final processors for
 		// aggregation, sampling, and indexing.
@@ -844,7 +862,11 @@ func (s *Runner) newLibbeatFinalBatchProcessor(
 		output, err := outputs.Load(indexSupporter, beatInfo, stats, outputName, s.outputConfig.Config())
 		return outputName, output, err
 	}
-	pipeline, err := pipeline.Load(beatInfo, monitors, pipeline.Config{}, nopProcessingSupporter{}, outputFactory)
+	var pipelineConfig pipeline.Config
+	if err := s.rawConfig.Unpack(&pipelineConfig); err != nil {
+		return nil, nil, fmt.Errorf("failed to unpack libbeat pipeline config: %w", err)
+	}
+	pipeline, err := pipeline.Load(beatInfo, monitors, pipelineConfig, nopProcessingSupporter{}, outputFactory)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create libbeat output pipeline: %w", err)
 	}

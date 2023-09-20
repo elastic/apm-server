@@ -23,13 +23,6 @@
                 "namespace": "default",
                 "type": "metrics"
             },
-            "ecs": {
-                "version": "dynamic"
-            },
-            "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic"
-            },
             "metricset": {
                 "name": "span_breakdown"
             },
@@ -97,8 +90,6 @@
                 "type": "traces"
             },
             "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic",
                 "outcome": "unknown"
             },
             "observer": {

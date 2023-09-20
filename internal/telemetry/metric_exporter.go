@@ -34,12 +34,11 @@ import (
 // NewMetricExporter initializes a new MetricExporter
 // This export logic is heavily inspired from the OTLP input in apm-data.
 // https://github.com/elastic/apm-data/blob/main/input/otlp/metrics.go
-func NewMetricExporter(p modelpb.BatchProcessor, opts ...ConfigOption) *MetricExporter {
+func NewMetricExporter(opts ...ConfigOption) *MetricExporter {
 	cfg := newConfig(opts...)
 
 	return &MetricExporter{
-		processor: p,
-
+		processor:           cfg.processor,
 		metricFilter:        cfg.MetricFilter,
 		temporalitySelector: cfg.TemporalitySelector,
 		aggregationSelector: cfg.AggregationSelector,
@@ -56,6 +55,11 @@ type MetricExporter struct {
 	aggregationSelector metric.AggregationSelector
 }
 
+// SetBatchProcessor sets a batch processor on the exporter
+func (e *MetricExporter) SetBatchProcessor(p modelpb.BatchProcessor) {
+	e.processor = p
+}
+
 // Temporality returns the Temporality to use for an instrument kind.
 func (e *MetricExporter) Temporality(k metric.InstrumentKind) metricdata.Temporality {
 	return e.temporalitySelector(k)
@@ -67,6 +71,10 @@ func (e *MetricExporter) Aggregation(k metric.InstrumentKind) metric.Aggregation
 }
 
 func (e *MetricExporter) Export(ctx context.Context, rm *metricdata.ResourceMetrics) error {
+	if e.processor == nil {
+		return nil
+	}
+
 	batch := modelpb.Batch{}
 	now := time.Now()
 

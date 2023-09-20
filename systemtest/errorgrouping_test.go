@@ -22,7 +22,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/tidwall/gjson"
+	"github.com/stretchr/testify/require"
 	"go.elastic.co/apm/v2"
 
 	"github.com/elastic/apm-server/systemtest"
@@ -48,7 +48,9 @@ func TestErrorGroupingName(t *testing.T) {
 
 	var names []string
 	for _, hit := range result.Hits.Hits {
-		names = append(names, gjson.GetBytes(hit.RawSource, "error.grouping_name").String())
+		values := hit.Fields["error.grouping_name"]
+		require.Len(t, values, 1)
+		names = append(names, values[0].(string))
 	}
 
 	assert.ElementsMatch(t, []string{

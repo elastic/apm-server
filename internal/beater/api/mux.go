@@ -260,7 +260,7 @@ func apmMiddleware(m map[request.ResultID]*monitoring.Int) []middleware.Middlewa
 		middleware.LogMiddleware(),
 		middleware.TimeoutMiddleware(),
 		middleware.RecoverPanicMiddleware(),
-		middleware.MonitoringMiddleware(m),
+		middleware.MonitoringMiddleware(m, nil),
 	}
 }
 

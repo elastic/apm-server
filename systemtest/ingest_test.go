@@ -123,10 +123,11 @@ func TestIngestPipelineEventDuration(t *testing.T) {
 	}
 
 	tests := []test{{
-		// No transaction.* field, no update.
-		source: `{"@timestamp": "2022-02-15", "observer": {"version": "8.2.0"}, "processor": {"event": "transaction"}}`,
+		// No transaction.* field, no event.duration: set transaction.duration.us to zero.
+		source:                        `{"@timestamp": "2022-02-15", "observer": {"version": "8.2.0"}, "processor": {"event": "transaction"}}`,
+		expectedTransactionDurationUS: 0.0,
 	}, {
-		// Set transaction.duration.us to zero if event.duration not found.
+		// transaction exists without duration.us, no event.duration: set transaction.duration.us to zero.
 		source:                        `{"@timestamp": "2022-02-15", "observer": {"version": "8.2.0"}, "processor": {"event": "transaction"}, "transaction": {}}`,
 		expectedTransactionDurationUS: 0.0,
 	}, {
@@ -151,30 +152,31 @@ func TestIngestPipelineEventDuration(t *testing.T) {
 		}, &indexResponse)
 		require.NoError(t, err)
 
-		var doc struct {
-			Source json.RawMessage `json:"_source"`
-		}
-		_, err = systemtest.Elasticsearch.Do(context.Background(), esapi.GetRequest{
-			Index:      indexResponse.Index,
-			DocumentID: indexResponse.ID,
-		}, &doc)
-		require.NoError(t, err)
+		result := estest.ExpectDocs(t, systemtest.Elasticsearch, indexResponse.Index, espoll.TermQuery{
+			Field: "_id",
+			Value: indexResponse.ID,
+		})
+
+		require.Len(t, result.Hits.Hits, 1)
+		doc := result.Hits.Hits[0]
 
 		// event.duration should always be removed.
-		assert.False(t, gjson.GetBytes(doc.Source, "event.duration").Exists())
+		assert.NotContains(t, doc.Fields, "event.duration")
 
-		transactionDurationUS := gjson.GetBytes(doc.Source, "transaction.duration.us")
+		transactionDurationUS := doc.Fields["transaction.duration.us"]
 		if test.expectedTransactionDurationUS != nil {
-			assert.Equal(t, test.expectedTransactionDurationUS, transactionDurationUS.Value())
+			require.Len(t, transactionDurationUS, 1)
+			assert.Equal(t, test.expectedTransactionDurationUS, transactionDurationUS[0])
 		} else {
-			assert.False(t, transactionDurationUS.Exists())
+			assert.Nil(t, transactionDurationUS)
 		}
 
-		spanDurationUS := gjson.GetBytes(doc.Source, "span.duration.us")
+		spanDurationUS := doc.Fields["span.duration.us"]
 		if test.expectedSpanDurationUS != nil {
-			assert.Equal(t, test.expectedSpanDurationUS, spanDurationUS.Value())
+			require.Len(t, spanDurationUS, 1)
+			assert.Equal(t, test.expectedSpanDurationUS, spanDurationUS[0])
 		} else {
-			assert.False(t, spanDurationUS.Exists())
+			assert.Nil(t, spanDurationUS)
 		}
 	}
 }
@@ -210,23 +212,6 @@ func TestIngestPipelineDataStreamMigration(t *testing.T) {
 		len(testdata.Hits.Hits), "traces-apm*,logs-apm*,metrics-apm*", nil,
 	)
 	approvaltest.ApproveEvents(t, t.Name(), result.Hits.Hits)
-}
-
-func TestECSVersion(t *testing.T) {
-	systemtest.CleanupElasticsearch(t)
-	srv := apmservertest.NewServerTB(t)
-
-	tracer := srv.Tracer()
-	tx := tracer.StartTransaction("name", "type")
-	tx.End()
-	tracer.Flush(nil)
-
-	// ecs.version is defined as a constant_keyword field,
-	// and is not present in _source. The value is defined
-	// by the version of ECS we use to build the integration
-	// package.
-	result := estest.ExpectDocs(t, systemtest.Elasticsearch, "traces-apm*", nil)
-	assert.Equal(t, []interface{}{"8.6.0-dev"}, result.Hits.Hits[0].Fields["ecs.version"])
 }
 
 func TestIngestPipelineEventSuccessCount(t *testing.T) {

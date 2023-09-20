@@ -15,9 +15,13 @@ ifndef::serverless[]
 * <<monitoring-metricbeat-collection, {metricbeat} collection>> -
 {metricbeat} collects monitoring data from your {beatname_uc} instance
 and sends it directly to your monitoring cluster.
+* <<monitoring-local-collection, Local collection>> - Local collection sends
+select monitoring data directly to the standard indices of your monitoring
+cluster.
 endif::[]
 
 include::monitoring-internal-collection.asciidoc[]
+include::monitoring-local-collection.asciidoc[]
 
 ifndef::serverless[]
 include::monitoring-metricbeat.asciidoc[]

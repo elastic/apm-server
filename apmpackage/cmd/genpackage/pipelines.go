@@ -36,14 +36,15 @@ import (
 //	  - ...
 func getCommonPipeline(name string, version *version.V) []map[string]interface{} {
 	commonPipelines := map[string][]map[string]interface{}{
-		"observer_version": getObserverVersionPipeline(version),
-		"observer_ids":     observerIDsPipeline,
-		"ecs_version":      ecsVersionPipeline,
-		"user_agent":       userAgentPipeline,
-		"process_ppid":     processPpidPipeline,
-		"client_geoip":     clientGeoIPPipeline,
-		"event_duration":   eventDurationPipeline,
-		"set_metrics":      setMetricsPipeline,
+		"observer_version":   getObserverVersionPipeline(version),
+		"observer_ids":       observerIDsPipeline,
+		"remove_ecs_version": removeECSVersionPipeline,
+		"user_agent":         userAgentPipeline,
+		"process_ppid":       processPpidPipeline,
+		"client_geoip":       clientGeoIPPipeline,
+		"event_duration":     eventDurationPipeline,
+		"set_metrics":        setMetricsPipeline,
+		"event_ingested":     eventIngestedPipeline,
 	}
 	return commonPipelines[name]
 }
@@ -102,7 +103,7 @@ var observerIDsPipeline = []map[string]interface{}{{
 	},
 }}
 
-var ecsVersionPipeline = []map[string]interface{}{{
+var removeECSVersionPipeline = []map[string]interface{}{{
 	"remove": map[string]interface{}{
 		"field":          "ecs", // remove ecs.version
 		"ignore_missing": true,
@@ -154,11 +155,16 @@ var clientGeoIPPipeline = []map[string]interface{}{{
 // `event.duration`. See https://github.com/elastic/apm-server/issues/5999.
 var eventDurationPipeline = []map[string]interface{}{{
 	"script": map[string]interface{}{
-		"if": "ctx.processor?.event != null && ctx.get(ctx.processor.event) != null && ctx.get(ctx.processor.event)?.duration == null",
+		"if": "ctx.processor?.event != null && ctx.get(ctx.processor.event)?.duration == null",
 		"source": strings.TrimSpace(`
 def durationNanos = ctx.event?.duration ?: 0;
 def eventType = ctx.processor.event;
-ctx.get(ctx.processor.event).duration = ["us": (long)(durationNanos/1000)];
+def rootObject = ctx.get(eventType);
+if (rootObject == null) {
+  rootObject = [:];
+  ctx[eventType] = rootObject;
+}
+rootObject.duration = ["us": (long)(durationNanos/1000)];
 `),
 	},
 }, {
@@ -226,3 +232,15 @@ ctx.metricset.remove("samples");
 		},
 	},
 }
+
+// This pipeline sets `event.ingested` to the ingest timestamp, truncated
+// to seconds for storage efficiency.
+var eventIngestedPipeline = []map[string]interface{}{{
+	"date": map[string]interface{}{
+		"field":          "_ingest.timestamp",
+		"target_field":   "event.ingested",
+		"formats":        []interface{}{"ISO8601"},
+		"output_format":  "date_time_no_millis",
+		"ignore_failure": true,
+	},
+}}

@@ -20,6 +20,8 @@ package telemetry
 import (
 	"go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
+
+	"github.com/elastic/apm-data/model/modelpb"
 )
 
 // Override default otel/prometheus boundaries, as we skip empty buckets and therefore able to use more accurate and higher range boundaries.
@@ -34,6 +36,7 @@ var customHistogramBoundaries = []float64{
 }
 
 type Config struct {
+	processor           modelpb.BatchProcessor
 	MetricFilter        []string
 	TemporalitySelector metric.TemporalitySelector
 	AggregationSelector metric.AggregationSelector
@@ -73,6 +76,18 @@ func defaultAggregationSelector(ik metric.InstrumentKind) metric.Aggregation {
 		}
 	default:
 		return metric.DefaultAggregationSelector(ik)
+	}
+}
+
+// WithBatchProcessor configures the batch processor that will be used by the
+// metric exporter.
+// Using this option is the equivalent of using `SetBatchProcessor`.
+//
+// Defaults to not running any batch processing.
+func WithBatchProcessor(b modelpb.BatchProcessor) ConfigOption {
+	return func(cfg Config) Config {
+		cfg.processor = b
+		return cfg
 	}
 }
 

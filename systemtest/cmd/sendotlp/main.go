@@ -38,7 +38,6 @@ import (
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"go.opentelemetry.io/otel/metric"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
-	"go.opentelemetry.io/otel/sdk/metric/aggregation"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.8.0"
 	"go.opentelemetry.io/otel/trace"
@@ -149,7 +148,7 @@ func Main(ctx context.Context, logger *zap.SugaredLogger) (result error) {
 		sdkmetric.WithView(sdkmetric.NewView(
 			sdkmetric.Instrument{Name: "*"},
 			sdkmetric.Stream{
-				Aggregation: aggregation.ExplicitBucketHistogram{
+				Aggregation: sdkmetric.AggregationExplicitBucketHistogram{
 					Boundaries: []float64{1, 10, 100, 1000, 10000},
 				},
 			},
