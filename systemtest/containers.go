@@ -41,7 +41,6 @@ import (
 	"github.com/docker/go-connections/nat"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
-	"golang.org/x/sync/errgroup"
 )
 
 const (
@@ -77,13 +76,11 @@ func StartStackContainers() error {
 		return err
 	}
 
-	// Wait for up to 5 minutes for Kibana and Fleet Server to become healthy,
+	// Wait for up to 5 minutes for Kibana to become healthy,
 	// which implies Elasticsearch is healthy too.
 	ctx, cancel := context.WithTimeout(context.Background(), startContainersTimeout)
 	defer cancel()
-	g, ctx := errgroup.WithContext(ctx)
-	g.Go(func() error { return waitContainerHealthy(ctx, "kibana") })
-	return g.Wait()
+	return waitContainerHealthy(ctx, "kibana")
 }
 
 func waitContainerHealthy(ctx context.Context, serviceName string) error {
