@@ -69,7 +69,7 @@ func init() {
 func StartStackContainers() error {
 	cmd := exec.Command(
 		"docker-compose", "-f", "../docker-compose.yml",
-		"up", "-d", "elasticsearch", "kibana", "fleet-server",
+		"up", "-d", "elasticsearch", "kibana",
 	)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -83,7 +83,6 @@ func StartStackContainers() error {
 	defer cancel()
 	g, ctx := errgroup.WithContext(ctx)
 	g.Go(func() error { return waitContainerHealthy(ctx, "kibana") })
-	g.Go(func() error { return waitContainerHealthy(ctx, "fleet-server") })
 	return g.Wait()
 }
 
@@ -212,18 +211,11 @@ func NewUnstartedElasticAgentContainer(opts ContainerConfig) (*ElasticAgentConta
 	}
 	vcsRef := agentImageDetails.Config.Labels["org.label-schema.vcs-ref"]
 
-	containerCACertPath := "/etc/pki/tls/certs/fleet-ca.pem"
-	hostCACertPath := filepath.Join(systemtestDir, "../testing/docker/fleet-server/certificate.pem") // self-signed
 	req := testcontainers.ContainerRequest{
 		Name:       opts.Name,
 		Image:      agentImage,
 		AutoRemove: true,
 		Networks:   networks,
-		Mounts:     testcontainers.Mounts(testcontainers.BindMount(hostCACertPath, testcontainers.ContainerMountTarget(containerCACertPath))),
-		Env: map[string]string{
-			"FLEET_URL": "https://fleet-server:8220",
-			"FLEET_CA":  containerCACertPath,
-		},
 		SkipReaper: true, // we use our own reaping logic
 	}
 	return &ElasticAgentContainer{
