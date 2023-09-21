@@ -213,7 +213,7 @@ func NewUnstartedElasticAgentContainer(opts ContainerConfig) (*ElasticAgentConta
 	vcsRef := agentImageDetails.Config.Labels["org.label-schema.vcs-ref"]
 
 	containerCACertPath := "/etc/pki/tls/certs/fleet-ca.pem"
-	hostCACertPath := filepath.Join(systemtestDir, "../testing/docker/fleet-server/ca.pem")
+	hostCACertPath := filepath.Join(systemtestDir, "../testing/docker/fleet-server/certificate.pem") // self-signed
 	req := testcontainers.ContainerRequest{
 		Name:       opts.Name,
 		Image:      agentImage,
