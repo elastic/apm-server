@@ -2,7 +2,7 @@
 [![Smoke Tests](https://github.com/elastic/apm-server/actions/workflows/smoke-tests-schedule.yml/badge.svg)](https://github.com/elastic/apm-server/actions/workflows/smoke-tests-schedule.yml)
 [![Package status](https://badge.buildkite.com/fc4aa824ffecf245db871971507275aa3c35904e380fef449c.svg?branch=main)](https://buildkite.com/elastic/apm-server-package)
 
-# APM Server
+# APM Server2
 
 The APM Server receives data from Elastic APM agents and transforms it into Elasticsearch documents.
 Read more about Elastic APM at [elastic.co/apm](https://www.elastic.co/apm).
