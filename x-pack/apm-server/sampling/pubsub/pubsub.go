@@ -99,22 +99,23 @@ func (p *Pubsub) indexSampledTraceIDs(ctx context.Context, traceIDs <-chan strin
 				return nil
 			}
 			var w fastjson.Writer
-			doc := modelpb.APMEvent{
-				Timestamp: modelpb.FromTime(time.Now()),
-				DataStream: &modelpb.DataStream{
-					Type:      p.config.DataStream.Type,
-					Dataset:   p.config.DataStream.Dataset,
-					Namespace: p.config.DataStream.Namespace,
-				},
-				Agent: &modelpb.Agent{EphemeralId: p.config.ServerID},
-				Trace: &modelpb.Trace{Id: id},
-			}
-			err := modeljson.MarshalAPMEvent(&doc, &w)
+			doc := modelpb.APMEventFromVTPool()
+			doc.Timestamp = modelpb.FromTime(time.Now())
+			doc.DataStream = modelpb.DataStreamFromVTPool()
+			doc.DataStream.Type = p.config.DataStream.Type
+			doc.DataStream.Dataset = p.config.DataStream.Dataset
+			doc.DataStream.Namespace = p.config.DataStream.Namespace
+			doc.Agent = modelpb.AgentFromVTPool()
+			doc.Agent.EphemeralId = p.config.ServerID
+			doc.Trace = modelpb.TraceFromVTPool()
+			doc.Trace.Id = id
+			err := modeljson.MarshalAPMEvent(doc, &w)
 			if err != nil {
 				p.config.Logger.With(
 					logp.Error(err),
 					logp.Reflect("event", &doc),
 				).Debug("failed to encode sampled trace document")
+				doc.ReturnToVTPool()
 				return err
 			}
 			data := w.Bytes()
@@ -123,8 +124,10 @@ func (p *Pubsub) indexSampledTraceIDs(ctx context.Context, traceIDs <-chan strin
 					logp.Error(err),
 					logp.Reflect("event", &doc),
 				).Debug("failed to index sampled trace document")
+				doc.ReturnToVTPool()
 				return err
 			}
+			doc.ReturnToVTPool()
 		}
 	}
 }

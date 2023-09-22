@@ -84,16 +84,15 @@ func (r Reporter) Run(ctx context.Context) error {
 		}
 		batch := make(modelpb.Batch, 0, len(applied))
 		for etag := range applied {
-			batch = append(batch, &modelpb.APMEvent{
-				Timestamp: modelpb.FromTime(time.Now()),
-				Labels:    modelpb.Labels{"etag": {Value: etag}},
-				Metricset: &modelpb.Metricset{
-					Name: "agent_config",
-					Samples: []*modelpb.MetricsetSample{
-						{Name: "agent_config_applied", Value: 1},
-					},
-				},
-			})
+			event := modelpb.APMEventFromVTPool()
+			event.Timestamp = modelpb.FromTime(time.Now())
+			event.Labels = modelpb.Labels{"etag": {Value: etag}}
+			event.Metricset = modelpb.MetricsetFromVTPool()
+			event.Metricset.Name = "agent_config"
+			event.Metricset.Samples = []*modelpb.MetricsetSample{
+				{Name: "agent_config_applied", Value: 1},
+			}
+			batch = append(batch, event)
 		}
 		// Reset applied map, so that we report only configs applied
 		// during a given iteration.

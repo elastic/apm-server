@@ -107,7 +107,9 @@ func (e *MetricExporter) Export(ctx context.Context, rm *metricdata.ResourceMetr
 			for _, s := range ms.samples {
 				metrs = append(metrs, s)
 			}
-			event.Metricset = &modelpb.Metricset{Samples: metrs, Name: "app"}
+			event.Metricset = modelpb.MetricsetFromVTPool()
+			event.Metricset.Samples = metrs
+			event.Metricset.Name = "app"
 			if ms.attributes.Len() > 0 {
 				event.Labels = modelpb.Labels{}
 				event.NumericLabels = modelpb.NumericLabels{}
