@@ -8,19 +8,3 @@ xpack.encryptedSavedObjects.encryptionKey: fhjskloppd678ehkdfdlliverpoolfcr
 # Disable the Fleet agent ID verification pipeline,
 # which sets Fleet-specific fields that we don't want.
 xpack.fleet.agentIdVerificationEnabled: false
-
-xpack.fleet.packages:
-  - name: fleet_server
-    version: latest
-xpack.fleet.agentPolicies:
-  - name: Fleet Server (APM)
-    id: fleet-server-apm
-    is_default_fleet_server: true
-    is_managed: false
-    namespace: default
-    package_policies:
-      - name: fleet_server-apm
-        id: default-fleet-server
-        package:
-          name: fleet_server
-
