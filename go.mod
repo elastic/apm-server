@@ -1,6 +1,6 @@
 module github.com/elastic/apm-server
 
-go 1.20
+go 1.19
 
 require (
 	github.com/axiomhq/hyperloglog v0.0.0-20220105174342-98591331716a
