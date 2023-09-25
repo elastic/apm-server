@@ -9,14 +9,5 @@ processors:
       name: observer_ids
   - pipeline:
       name: remove_ecs_version
-  - geoip:
-      if: ctx.event?.category == 'device'
-      field: client.ip
-      target_field: client.geo
-      ignore_missing: true
-      database_file: GeoLite2-City.mmdb
-      on_failure:
-        - remove:
-            field: client.ip
-            ignore_failure: true
-            ignore_missing: true
+  - pipeline:
+      name: client_geoip
