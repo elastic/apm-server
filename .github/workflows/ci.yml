@@ -53,7 +53,7 @@ jobs:
           cache: true
       - env:
           CGO_ENABLED: "0"
-      - run: go test -v ./...
+        run: go test -v ./...
 
   system-test:
     runs-on: ubuntu-latest
