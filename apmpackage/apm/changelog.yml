@@ -1,6 +1,6 @@
 - version: generated
   changes:
-    - description: Adding client.geo* attrs to mobile events
+    - description: Adding client.geo* attrs to apm logs
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/11699
     - description: Define data retentions to support DLM
