@@ -1,6 +1,6 @@
 module github.com/elastic/apm-server/cmd/intake-receiver
 
-go 1.19
+go 1.20
 
 require (
 	github.com/stretchr/testify v1.6.1
