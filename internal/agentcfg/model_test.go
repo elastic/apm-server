@@ -46,7 +46,7 @@ func TestNewDoc(t *testing.T) {
 	})
 }
 
-func TestQueryMarshalingfoo(t *testing.T) {
+func TestQueryMarshaling(t *testing.T) {
 	for _, tc := range []struct {
 		name  string
 		input string
