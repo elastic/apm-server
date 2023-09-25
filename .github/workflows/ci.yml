@@ -51,6 +51,8 @@ jobs:
         with:
           go-version-file: go.mod
           cache: true
+      - env:
+          CGO_ENABLED: "0"
       - run: go test -v ./...
 
   system-test:
