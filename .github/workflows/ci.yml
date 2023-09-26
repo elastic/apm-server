@@ -36,7 +36,9 @@ jobs:
         with:
           go-version-file: .go-version
           cache: true
-      - run: go test -v ./...
+      - env:
+          CGO_ENABLED: "0"
+        run: go test -v ./...
 
   python-system-tests:
     runs-on: ubuntu-latest

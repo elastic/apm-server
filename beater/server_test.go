@@ -510,7 +510,10 @@ func TestServerConfigReload(t *testing.T) {
 		},
 	})}})
 	require.Error(t, err)
-	assert.Regexp(t, "listen tcp: lookup testing.invalid: .*", err.Error())
+	// The error message is slightly different depending if the test are run with CGO.
+	// without GCO: "listen tcp: lookup testing.invalid on 127.0.0.53:53: no such host"
+	// with CGO:    "listen tcp: lookup testing.invalid: no such host"
+	assert.Regexp(t, "listen tcp: lookup testing.invalid[:]? .*", err.Error())
 
 	inputConfig := common.MustNewConfigFrom(map[string]interface{}{
 		"apm-server": map[string]interface{}{
