@@ -454,7 +454,7 @@ func TestOTLPRateLimit(t *testing.T) {
 	assert.Equal(t, "traces export: rpc error: code = ResourceExhausted desc = rate limit exceeded", errStatus.Message())
 }
 
-func TestMobileLogsWithGeoLocation(t *testing.T) {
+func TestOTLPGRPCLogsClientIP(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
 	srv := apmservertest.NewUnstartedServerTB(t)
 	err := srv.Start()
