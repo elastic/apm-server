@@ -26,6 +26,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/tidwall/gjson"
+	"google.golang.org/grpc/metadata"
 
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/plog"
@@ -451,6 +452,63 @@ func TestOTLPRateLimit(t *testing.T) {
 	require.True(t, ok)
 	assert.Equal(t, codes.ResourceExhausted, errStatus.Code())
 	assert.Equal(t, "traces export: rpc error: code = ResourceExhausted desc = rate limit exceeded", errStatus.Message())
+}
+
+func TestMobileLogsWithGeoLocation(t *testing.T) {
+	systemtest.CleanupElasticsearch(t)
+	srv := apmservertest.NewUnstartedServerTB(t)
+	err := srv.Start()
+	require.NoError(t, err)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	// Override local IP address to be found in "GeoLite2-City.mmdb".
+	md := metadata.New(map[string]string{"X-Forwarded-For": "195.55.79.118"})
+	ctx = metadata.NewOutgoingContext(ctx, md)
+
+	conn, err := grpc.Dial(serverAddr(srv), grpc.WithInsecure(), grpc.WithBlock(), grpc.WithDefaultCallOptions(grpc.UseCompressor("gzip")))
+	require.NoError(t, err)
+	defer conn.Close()
+
+	logsClient := plogotlp.NewGRPCClient(conn)
+
+	logs := newMobileLogs("a log message")
+	_, err = logsClient.Export(ctx, plogotlp.NewExportRequestFromLogs(logs))
+	require.NoError(t, err)
+
+	result := estest.ExpectDocs(t, systemtest.Elasticsearch, "logs-apm*", nil)
+	approvaltest.ApproveEvents(t, t.Name(), result.Hits.Hits)
+}
+
+func newMobileLogs(body interface{}) plog.Logs {
+	logs := plog.NewLogs()
+	resourceLogs := logs.ResourceLogs().AppendEmpty()
+	resourceAttrs := logs.ResourceLogs().At(0).Resource().Attributes()
+	resourceAttrs.PutStr(semconv.AttributeTelemetrySDKLanguage, "java")
+	resourceAttrs.PutStr(semconv.AttributeTelemetrySDKName, "android")
+
+	scopeLogs := resourceLogs.ScopeLogs().AppendEmpty()
+	otelLog := scopeLogs.LogRecords().AppendEmpty()
+	otelLog.SetTraceID(pcommon.TraceID{1})
+	otelLog.SetSpanID(pcommon.SpanID{2})
+	otelLog.SetSeverityNumber(plog.SeverityNumberInfo)
+	otelLog.SetSeverityText("Info")
+	otelLog.SetTimestamp(pcommon.NewTimestampFromTime(time.Unix(1, 0)))
+	otelLog.Attributes().PutStr("key", "value")
+	otelLog.Attributes().PutDouble("numeric_key", 1234)
+
+	switch b := body.(type) {
+	case string:
+		otelLog.Body().SetStr(b)
+	case int:
+		otelLog.Body().SetInt(int64(b))
+	case float64:
+		otelLog.Body().SetDouble(float64(b))
+	case bool:
+		otelLog.Body().SetBool(b)
+	}
+	return logs
 }
 
 func newOTLPTraceExporter(t testing.TB, srv *apmservertest.Server, options ...otlptracegrpc.Option) *otlptrace.Exporter {
