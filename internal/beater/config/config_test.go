@@ -53,7 +53,10 @@ func TestUnpackConfig(t *testing.T) {
 	kibanaHeadersConfig := DefaultConfig()
 	kibanaHeadersConfig.Kibana.ClientConfig = defaultDecodedKibanaClientConfig
 	kibanaHeadersConfig.Kibana.Enabled = true
-	kibanaHeadersConfig.Kibana.Headers = map[string]string{"foo": "bar"}
+	kibanaHeadersConfig.Kibana.Headers = map[string]string{
+		"foo":                 "bar",
+		"Elastic-Api-Version": "2023-10-31",
+	}
 
 	responseHeadersConfig := DefaultConfig()
 	responseHeadersConfig.ResponseHeaders = map[string][]string{
