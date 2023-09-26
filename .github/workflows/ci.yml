@@ -50,7 +50,9 @@ jobs:
         with:
           go-version-file: go.mod
           cache: true
-      - run: go test -v ./...
+      - env:
+          CGO_ENABLED: "0"
+        run: go test -v ./...
 
   system-test:
     runs-on: ubuntu-latest
