@@ -72,6 +72,3 @@ This occurs because the user or API key set in either `apm-server.agent.config.e
 (if `apm-server.agent.config.elasticsearch` is not set) does not have adequate permissions to read source maps from {es}.
 
 To fix this error, ensure that {beatname_uc} has all the required privileges. See <<privileges-agent-central-config-server>> for more details.
-
-* `read` privileges on the `.apm-agent-configuration` index
-* `allow_restricted_indices: true`
