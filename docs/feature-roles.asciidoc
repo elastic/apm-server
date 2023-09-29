@@ -325,19 +325,19 @@ APM Server acts as a proxy between your APM agents and the {apm-app}.
 The {apm-app} communicates any changed settings to APM Server so that your agents only need to poll the Server
 to determine which central configuration settings have changed.
 
-To grant an APM Server user with the required privileges for managing central configuration,
+To grant an APM Server user with the required privileges for managing central configuration in {es} without {kib},
 assign the user the following privileges:
 
 [options="header"]
 |====
 |Type | Privilege | Purpose
 
-| Spaces
-|`Read` on {beat_kib_app}
-|Allow {beatname_uc} to manage central configurations via the {beat_kib_app}
+| Index
+|`read` on `.apm-agent-configuration` index
+|Allow {beatname_uc} to manage central configurations in {es}
 |====
 
-TIP: Looking for privileges and roles needed use central configuration from the {apm-app} or {apm-app} API?
+TIP: Looking for privileges and roles needed to use central configuration from the {apm-app} or {apm-app} API?
 See {kibana-ref}/apm-app-central-config-user.html[{apm-app} central configuration user].
 
 ////
