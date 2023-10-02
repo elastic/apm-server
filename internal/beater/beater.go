@@ -576,13 +576,13 @@ func maxConcurrentDecoders(memLimitGB float64) uint {
 }
 
 // linearScaledValue calculates linearly scaled value based on memory limit using
-// the formula y = (perGBIncrement * memLimitGB) + c
-func linearScaledValue(perGBIncrement, memLimitGB, c float64) int {
+// the formula y = (perGBIncrement * memLimitGB) + constant
+func linearScaledValue(perGBIncrement, memLimitGB, constant float64) int {
 	const maxMemGB = 64
 	if memLimitGB > maxMemGB {
 		memLimitGB = maxMemGB
 	}
-	return int(memLimitGB*perGBIncrement) + c
+	return int(memLimitGB*perGBIncrement + constant)
 }
 
 // waitReady waits until the server is ready to index events.
