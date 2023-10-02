@@ -230,23 +230,30 @@ func (s *Runner) Run(ctx context.Context) error {
 	}
 
 	if s.config.Aggregation.MaxServices <= 0 {
-		s.config.Aggregation.MaxServices = maxGroupsForAggregation(memLimitGB)
+		s.config.Aggregation.MaxServices = linearScaledValue(1_000, memLimitGB, 0)
 		s.logger.Infof("Aggregation.MaxServices set to %d based on %0.1fgb of memory",
 			s.config.Aggregation.MaxServices, memLimitGB,
 		)
 	}
 
+	if s.config.Aggregation.ServiceTransactions.MaxGroups <= 0 {
+		s.config.Aggregation.ServiceTransactions.MaxGroups = linearScaledValue(1_000, memLimitGB, 0)
+		s.logger.Infof("Aggregation.ServiceTransactions.MaxGroups for service aggregation set to %d based on %0.1fgb of memory",
+			s.config.Aggregation.ServiceTransactions.MaxGroups, memLimitGB,
+		)
+	}
+
 	if s.config.Aggregation.Transactions.MaxGroups <= 0 {
-		s.config.Aggregation.Transactions.MaxGroups = maxTxGroupsForAggregation(memLimitGB)
+		s.config.Aggregation.Transactions.MaxGroups = linearScaledValue(5_000, memLimitGB, 0)
 		s.logger.Infof("Aggregation.Transactions.MaxGroups set to %d based on %0.1fgb of memory",
 			s.config.Aggregation.Transactions.MaxGroups, memLimitGB,
 		)
 	}
 
-	if s.config.Aggregation.ServiceTransactions.MaxGroups <= 0 {
-		s.config.Aggregation.ServiceTransactions.MaxGroups = maxGroupsForAggregation(memLimitGB)
-		s.logger.Infof("Aggregation.ServiceTransactions.MaxGroups for service aggregation set to %d based on %0.1fgb of memory",
-			s.config.Aggregation.ServiceTransactions.MaxGroups, memLimitGB,
+	if s.config.Aggregation.ServiceDestinations.MaxGroups <= 0 {
+		s.config.Aggregation.ServiceDestinations.MaxGroups = linearScaledValue(5_000, memLimitGB, 5_000)
+		s.logger.Infof("Aggregation.ServiceDestinations.MaxGroups set to %d based on %0.1fgb of memory",
+			s.config.Aggregation.Transactions.MaxGroups, memLimitGB,
 		)
 	}
 
@@ -568,26 +575,14 @@ func maxConcurrentDecoders(memLimitGB float64) uint {
 	return decoders
 }
 
-// maxGroupsForAggregation calculates the maximum service groups that a
-// particular memory limit can have. This will be scaled linearly for bigger
-// instances.
-func maxGroupsForAggregation(memLimitGB float64) int {
+// linearScaledValue calculates linearly scaled value based on memory limit using
+// the formula y = (perGBIncrement * memLimitGB) + constant
+func linearScaledValue(perGBIncrement, memLimitGB, constant float64) int {
 	const maxMemGB = 64
 	if memLimitGB > maxMemGB {
 		memLimitGB = maxMemGB
 	}
-	return int(memLimitGB * 1_000)
-}
-
-// maxTxGroupsForAggregation calculates the maximum transaction groups that a
-// particular memory limit can have. This will be scaled linearly for bigger
-// instances.
-func maxTxGroupsForAggregation(memLimitGB float64) int {
-	const maxMemGB = 64
-	if memLimitGB > maxMemGB {
-		memLimitGB = maxMemGB
-	}
-	return int(memLimitGB * 5_000)
+	return int(memLimitGB*perGBIncrement + constant)
 }
 
 // waitReady waits until the server is ready to index events.
