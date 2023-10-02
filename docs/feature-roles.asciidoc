@@ -94,6 +94,8 @@ that has the following privileges:
 
 . Assign the *general writer role* to users who need to publish APM data.
 
+. If <<configuration-rum,real user monitoring>> is enabled, create a separate <<privileges-rum-source-mapping,RUM source mapping role>>.
+
 ////
 ***********************************  ***********************************
 ***********************************  ***********************************
