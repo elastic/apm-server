@@ -339,6 +339,13 @@ assign the user the following privileges:
 TIP: Looking for privileges and roles needed use central configuration from the {apm-app} or {apm-app} API?
 See {kibana-ref}/apm-app-central-config-user.html[{apm-app} central configuration user].
 
+[[privileges-rum-source-map]]
+=== Grant privileges and roles needed for reading source maps
+
+++++
+<titleabbrev>Create a _source map_ user</titleabbrev>
+++++
+
 [[privileges-rum-source-mapping]]
 ==== APM Server RUM source mapping
 
