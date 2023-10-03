@@ -86,7 +86,4 @@ rejecting fetch request: no valid elasticsearch config
 This occurs because the user or API key set in either `apm-server.agent.config.elasticsearch` or `output.elasticsearch`
 (if `apm-server.agent.config.elasticsearch` is not set) does not have adequate permissions to read source maps from {es}.
 
-To fix this error, add the following index-level privileges to the API key:
-
-* `read` privileges on the `.apm-agent-configuration` index
-* `allow_restricted_indices: true`
+To fix this error, ensure that {beatname_uc} has all the required privileges. See <<privileges-agent-central-config-server>> for more details.
