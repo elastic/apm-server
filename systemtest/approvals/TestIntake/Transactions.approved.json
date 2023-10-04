@@ -311,13 +311,16 @@
             },
             "client": {
                 "geo": {
+                    "city_name": "Sheridan",
                     "continent_name": "North America",
                     "country_iso_code": "US",
                     "country_name": "United States",
                     "location": {
-                        "lat": 37.751,
-                        "lon": -97.822
-                    }
+                        "lat": 40.1405,
+                        "lon": -86.2209
+                    },
+                    "region_iso_code": "US-IN",
+                    "region_name": "Indiana"
                 },
                 "ip": "12.53.12.1"
             },
