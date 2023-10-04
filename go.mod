@@ -8,10 +8,10 @@ require (
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/apm-aggregation v0.0.0-20230815024520-e75a37d9ddd6
 	github.com/elastic/apm-data v0.1.1-0.20230928144734-40b63726f3b7
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230928231718-49cc14d35d5e
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20231004143937-c1918b0509c8
 	github.com/elastic/elastic-agent-client/v7 v7.4.0
 	github.com/elastic/elastic-agent-libs v0.3.15-0.20230913212237-dbdaf18c898b
-	github.com/elastic/elastic-agent-system-metrics v0.6.1
+	github.com/elastic/elastic-agent-system-metrics v0.7.0
 	github.com/elastic/gmux v0.2.0
 	github.com/elastic/go-docappender v0.2.1-0.20230829163624-c69a1cf8ce35
 	github.com/elastic/go-elasticsearch/v8 v8.10.0
@@ -139,6 +139,7 @@ require (
 	github.com/shirou/gopsutil v3.21.11+incompatible // indirect
 	github.com/shirou/gopsutil/v3 v3.23.5 // indirect
 	github.com/shoenig/go-m1cpu v0.1.6 // indirect
+	github.com/stretchr/objx v0.5.0 // indirect
 	github.com/tklauser/go-sysconf v0.3.11 // indirect
 	github.com/tklauser/numcpus v0.6.0 // indirect
 	github.com/uber/jaeger-client-go v2.30.0+incompatible // indirect
