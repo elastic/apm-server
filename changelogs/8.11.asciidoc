@@ -31,4 +31,3 @@ https://github.com/elastic/apm-server/compare/8.10\...8.11[View commits]
 - Support and define DLM data retention period in the apmpackage {pull}11539[11539]
 - Expose new metrics into the local batch processor {pull}11582[11582]
 - Add geoip processing to app_logs ingest pipeline on `client.ip` {pull}11699[11699]
-
