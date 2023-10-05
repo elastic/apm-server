@@ -94,13 +94,9 @@ func TestTLSClientAuth(t *testing.T) {
 		return nil
 	}
 
-	err := attemptRequest(t, &tls.Config{
-		InsecureSkipVerify: true,
-		// TODO remove this and update the error message once we bump to go 1.21
-		MaxVersion: tls.VersionTLS12,
-	})
+	err := attemptRequest(t, &tls.Config{InsecureSkipVerify: true})
 	require.Error(t, err)
-	assert.Regexp(t, "tls: bad certificate", err.Error())
+	assert.Regexp(t, "tls: certificate required", err.Error())
 	logs := srv.Logs.Iterator()
 	defer logs.Close()
 	for entry := range logs.C() {

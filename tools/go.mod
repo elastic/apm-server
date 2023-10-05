@@ -1,6 +1,8 @@
 module github.com/elastic/apm-server/tools
 
-go 1.20
+go 1.21
+
+toolchain go1.21.1
 
 require (
 	github.com/elastic/apm-tools v0.0.0-20230828065051-3f799314cc8b
@@ -14,7 +16,7 @@ require (
 	github.com/terraform-docs/terraform-docs v0.16.0
 	go.elastic.co/go-licence-detector v0.5.0
 	gotest.tools/gotestsum v1.10.1
-	honnef.co/go/tools v0.4.3
+	honnef.co/go/tools v0.4.6
 )
 
 require (
@@ -232,7 +234,7 @@ require (
 	golang.org/x/term v0.11.0 // indirect
 	golang.org/x/text v0.12.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
-	golang.org/x/tools v0.12.0 // indirect
+	golang.org/x/tools v0.12.1-0.20230825192346-2191a27a6dc5 // indirect
 	golang.org/x/tools/go/vcs v0.1.0-deprecated // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	google.golang.org/api v0.114.0 // indirect
