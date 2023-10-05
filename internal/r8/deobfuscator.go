@@ -107,7 +107,7 @@ func resolveMappings(types map[string]StacktraceType, mapReader io.Reader) error
 				for _, frames := range stacktraceType.methods {
 					for _, frame := range frames {
 						if frame.Original == nil {
-							frame.Original = &modelpb.Original{}
+							frame.Original = modelpb.OriginalFromVTPool()
 						}
 						// Multiple frames might point to the same class, so we need to deobfuscate the class name for them all.
 						frame.Original.Classname = obfuscatedName
