@@ -1,6 +1,8 @@
 module github.com/elastic/apm-server/tools
 
-go 1.20
+go 1.21
+
+toolchain go1.21.1
 
 require (
 	github.com/elastic/elastic-package v0.72.0
@@ -12,8 +14,13 @@ require (
 	github.com/t-yuki/gocover-cobertura v0.0.0-20180217150009-aaee18c8195c
 	github.com/terraform-docs/terraform-docs v0.16.0
 	go.elastic.co/go-licence-detector v0.5.0
+<<<<<<< HEAD
 	gotest.tools/gotestsum v1.9.0
 	honnef.co/go/tools v0.4.2
+=======
+	gotest.tools/gotestsum v1.10.1
+	honnef.co/go/tools v0.4.6
+>>>>>>> aac0b695a (Update to Go 1.21 (#11654))
 )
 
 require (
@@ -223,7 +230,12 @@ require (
 	golang.org/x/term v0.5.0 // indirect
 	golang.org/x/text v0.7.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
+<<<<<<< HEAD
 	golang.org/x/tools v0.5.0 // indirect
+=======
+	golang.org/x/tools v0.12.1-0.20230825192346-2191a27a6dc5 // indirect
+	golang.org/x/tools/go/vcs v0.1.0-deprecated // indirect
+>>>>>>> aac0b695a (Update to Go 1.21 (#11654))
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	google.golang.org/api v0.107.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
