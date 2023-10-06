@@ -14,3 +14,4 @@ https://github.com/elastic/apm-server/compare/8.11\...main[View commits]
 
 [float]
 ==== Added
+- Update container base image to Ubuntu 22.04 {pull}11778[11778]
