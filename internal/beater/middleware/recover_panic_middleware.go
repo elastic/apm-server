@@ -48,7 +48,7 @@ func RecoverPanicMiddleware() Middleware {
 					// set the context's result and write response
 					var ok bool
 					var err error
-					if err, ok = r.(error); !ok {
+					if err, ok = r.(error); ok {
 						err = errors.Wrap(err, status.Keyword)
 					}
 					c.Result.Set(id, status.Code, status.Keyword, keywordPanic, err)
