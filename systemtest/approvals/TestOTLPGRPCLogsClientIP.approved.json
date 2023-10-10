@@ -8,13 +8,16 @@
             },
             "client": {
                 "geo": {
+                    "city_name": "dynamic",
                     "continent_name": "Europe",
                     "country_iso_code": "ES",
                     "country_name": "Spain",
                     "location": {
-                        "lat": 40.4172,
-                        "lon": -3.684
-                    }
+                        "lat": "dynamic",
+                        "lon": "dynamic"
+                    },
+                    "region_iso_code": "dynamic",
+                    "region_name": "dynamic"
                 },
                 "ip": "195.55.79.118"
             },
