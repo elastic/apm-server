@@ -2,7 +2,7 @@ module github.com/elastic/apm-server/systemtest
 
 go 1.21
 
-toolchain go1.21.1
+toolchain go1.21.3
 
 require (
 	github.com/docker/docker v23.0.3+incompatible
