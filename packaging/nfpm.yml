@@ -23,6 +23,7 @@ contents:
 
   - src: apm-server.yml
     dst: /etc/apm-server/apm-server.yml
+    type: config|noreplace
     file_info:
       mode: 0600
       owner: apm-server
