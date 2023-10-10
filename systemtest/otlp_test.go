@@ -478,7 +478,7 @@ func TestOTLPGRPCLogsClientIP(t *testing.T) {
 	require.NoError(t, err)
 
 	result := estest.ExpectDocs(t, systemtest.Elasticsearch, "logs-apm*", nil)
-	approvaltest.ApproveEvents(t, t.Name(), result.Hits.Hits)
+	approvaltest.ApproveEvents(t, t.Name(), result.Hits.Hits, "client.geo.city_name", "client.geo.location.lat", "client.geo.location.lon", "client.geo.region_iso_code", "client.geo.region_name")
 }
 
 func newMobileLogs(body interface{}) plog.Logs {
