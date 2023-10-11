@@ -29,7 +29,3 @@ elasticsearch:
                 - sum
                 - value_count
               default_metric: value_count
-        - double:
-            mapping:
-              type: double
-              index: false

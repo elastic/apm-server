@@ -65,3 +65,7 @@
   dynamic: true
   description: |
     Custom key/value pairs. Can be used to add meta information to events. Should not contain nested objects. All values are stored as scaled_float.
+- name: double
+  type: double
+  dynamic: true
+  index: false

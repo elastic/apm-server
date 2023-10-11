@@ -1,8 +1,8 @@
 - version: generated
   changes:
-    - description: Placeholder
+    - description: Migrate to package-spec v3
       type: enhancement
-      link: https://github.com/elastic/apm-server/pull/123
+      link: https://github.com/elastic/apm-server/pull/11822
 - version: 8.11.0
   changes:
     - description: Add geoip processing to add client.geo.* fields for app_logs
