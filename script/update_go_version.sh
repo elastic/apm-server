@@ -9,10 +9,13 @@ cd $SDIR/..
 
 # Use gimme to find the latest patch release for the major.minor
 # Go version defined in go.mod.
-GOMOD_VERSION=$(grep '^go' go.mod | cut -d' ' -f2)
+GOMOD_VERSION=$(grep '^go' go.mod | cut -d' ' -f2 | cut -d. -f1-2)
+
+# TODO(axw) arrange for Go 1.21+ to always be available, and stop using gimme.
 eval $(script/gimme/gimme $GOMOD_VERSION.x)
 GOVERSION=$(go env GOVERSION | sed 's/^go//')
 
+find -name go.mod -execdir go get toolchain@$GOVERSION \;
 echo $GOVERSION > .go-version
 sed -i "s/golang:[[:digit:]]\+\(\.[[:digit:]]\+\)\{1,2\}/golang:$GOVERSION/" packaging/docker/Dockerfile
 sed -i "s/^:go-version:.*/:go-version: $GOVERSION/" docs/version.asciidoc
