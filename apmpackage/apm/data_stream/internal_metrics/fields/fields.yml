@@ -166,3 +166,11 @@
   dynamic: true
   description: |
     Custom key/value pairs. Can be used to add meta information to events. Should not contain nested objects. All values are stored as scaled_float.
+- name: transaction.duration.summary
+  type: aggregate_metric_double
+  metrics: ["sum", "value_count"]
+  default_metric: "sum"
+- name: event.success_count
+  type: aggregate_metric_double
+  metrics: ["sum", "value_count"]
+  default_metric: "sum"

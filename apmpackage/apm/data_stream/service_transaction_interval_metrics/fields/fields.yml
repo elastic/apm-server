@@ -28,3 +28,11 @@
 - name: service_transaction.aggregation.overflow_count
   type: long
   description: Number of aggregation groups that overflowed for service transaction metrics aggregation.
+- name: transaction.duration.summary
+  type: aggregate_metric_double
+  metrics: ["sum", "value_count"]
+  default_metric: "sum"
+- name: event.success_count
+  type: aggregate_metric_double
+  metrics: ["sum", "value_count"]
+  default_metric: "sum"

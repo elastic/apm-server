@@ -4,18 +4,18 @@ dataset: apm.service_destination.{{ .Interval }}
 ilm_policy: metrics-apm.service_destination_{{ .Interval }}_metrics-default_policy
 elasticsearch:
   dynamic_namespace: true
+  # Individual measurements are typically uninteresting, so
+  # use synthetic source to reduce storage size.
+  source_mode: synthetic
   index_template:
     mappings:
       # We are in full control of the field names,
       # but do not block ingestion on unexpected fields.
       dynamic: runtime
-      # Individual measurements are typically uninteresting, so
-      # use synthetic source to reduce storage size.
-      _source:
-        mode: synthetic
     settings:
       index:
-        sort.field: "@timestamp"
-        sort.order: desc
+        sort:
+          field: "@timestamp"
+          order: desc
     data_stream:
-      hidden: {? {.Hidden: ''} : ''}
+      hidden: {{ .Hidden }}
