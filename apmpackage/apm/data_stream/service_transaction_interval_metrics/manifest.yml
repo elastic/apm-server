@@ -37,4 +37,4 @@ elasticsearch:
         sort.field: "@timestamp"
         sort.order: desc
     data_stream:
-      hidden: {{ .Hidden }}
+      hidden: {? {.Hidden: ''} : ''}
