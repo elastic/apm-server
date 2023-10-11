@@ -1,6 +1,12 @@
 module github.com/elastic/apm-server/tools
 
+<<<<<<< HEAD
 go 1.20
+=======
+go 1.21.0
+
+toolchain go1.21.3
+>>>>>>> d41192417 (build: bump go version to 1.21.3 (#11821))
 
 require (
 	github.com/elastic/apm-tools v0.0.0-20230828065051-3f799314cc8b

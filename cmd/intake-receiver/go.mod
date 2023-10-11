@@ -1,6 +1,12 @@
 module github.com/elastic/apm-server/cmd/intake-receiver
 
+<<<<<<< HEAD
 go 1.20
+=======
+go 1.21
+
+toolchain go1.21.3
+>>>>>>> d41192417 (build: bump go version to 1.21.3 (#11821))
 
 require (
 	github.com/stretchr/testify v1.6.1
