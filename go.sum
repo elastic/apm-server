@@ -61,43 +61,27 @@ github.com/armon/consul-api v0.0.0-20180202201655-eb2c6b5be1b6/go.mod h1:grANhF5
 github.com/armon/go-radix v1.0.0 h1:F4z6KzEeeQIMeLFa97iZU6vupzoecKdU5TX24SNppXI=
 github.com/armon/go-radix v1.0.0/go.mod h1:ufUuZ+zHj4x4TnLV4JWEpy2hxWSpsRywHrMgIH9cCH8=
 github.com/aws/aws-sdk-go-v2 v1.18.0 h1:882kkTpSFhdgYRKVZ/VCgf7sd0ru57p2JCxz4/oN5RY=
-<<<<<<< HEAD
-github.com/aws/aws-sdk-go-v2/config v1.15.12 h1:D4mdf0cOSmZRgJe0DDOd1Qm6tkwHJ7r5i1lz0asa+AA=
-github.com/aws/aws-sdk-go-v2/credentials v1.12.7 h1:e2DcCR0gP+T2zVj5eQPMQoRdxo+vd2p9BkpJ72BdyzA=
-github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.12.7 h1:8yi2ORCwXpXEPnj0vP3DjYhejwDQD/5klgBoxXcKOxY=
-=======
 github.com/aws/aws-sdk-go-v2 v1.18.0/go.mod h1:uzbQtefpm44goOPmdKyAlXSNcwlRgF3ePWVW6EtJvvw=
-github.com/aws/aws-sdk-go-v2/config v1.17.7 h1:odVM52tFHhpqZBKNjVW5h+Zt1tKHbhdTQRb+0WHrNtw=
-github.com/aws/aws-sdk-go-v2/config v1.17.7/go.mod h1:dN2gja/QXxFF15hQreyrqYhLBaQo1d9ZKe/v/uplQoI=
-github.com/aws/aws-sdk-go-v2/credentials v1.12.20 h1:9+ZhlDY7N9dPnUmf7CDfW9In4sW5Ff3bh7oy4DzS1IE=
-github.com/aws/aws-sdk-go-v2/credentials v1.12.20/go.mod h1:UKY5HyIux08bbNA7Blv4PcXQ8cTkGh7ghHMFklaviR4=
-github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.12.17 h1:r08j4sbZu/RVi+BNxkBJwPMUYY3P8mgSDuKkZ/ZN1lE=
-github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.12.17/go.mod h1:yIkQcCDYNsZfXpd5UX2Cy+sWA1jPgIhGTw9cOBzfVnQ=
->>>>>>> aac0b695a (Update to Go 1.21 (#11654))
+github.com/aws/aws-sdk-go-v2/config v1.15.12 h1:D4mdf0cOSmZRgJe0DDOd1Qm6tkwHJ7r5i1lz0asa+AA=
+github.com/aws/aws-sdk-go-v2/config v1.15.12/go.mod h1:oxRNnH11J580bxDEXyfTqfB3Auo2fxzhV052LD4HnyA=
+github.com/aws/aws-sdk-go-v2/credentials v1.12.7 h1:e2DcCR0gP+T2zVj5eQPMQoRdxo+vd2p9BkpJ72BdyzA=
+github.com/aws/aws-sdk-go-v2/credentials v1.12.7/go.mod h1:8b1nSHdDaKLho9VEK+K8WivifA/2K5pPm4sfI21NlQ8=
+github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.12.7 h1:8yi2ORCwXpXEPnj0vP3DjYhejwDQD/5klgBoxXcKOxY=
+github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.12.7/go.mod h1:81k6q0UUZj6AdQZ1E/VQ27cLrTUpJGraZR6/hVHRxjE=
 github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.33 h1:kG5eQilShqmJbv11XL1VpyDbaEJzWxd4zRiCG30GSn4=
 github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.33/go.mod h1:7i0PF1ME/2eUPFcjkVIwq+DOygHEoK92t5cDqNgYbIw=
 github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.27 h1:vFQlirhuM8lLlpI7imKOMsjdQLuN9CPi+k44F/OFVsk=
-<<<<<<< HEAD
-github.com/aws/aws-sdk-go-v2/internal/ini v1.3.14 h1:bJv4Y9QOiW0GZPStgLgpGrpdfRDSR3XM4V4M3YCQRZo=
-github.com/aws/aws-sdk-go-v2/service/ec2 v1.36.1 h1:FS8Ja6LuLDVHcX+rmoNpOXqYb52N2A5DwQy7Dgduq4Q=
-github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.7 h1:M7/BzQNsu0XXiJRe3gUn8UA8tExF6kLMAfvo5PT/KJY=
-github.com/aws/aws-sdk-go-v2/service/sso v1.11.10 h1:icon5WWg9Yg5nkB0pJF6bfKw6M0xozukeGKSNKtnqzw=
-github.com/aws/aws-sdk-go-v2/service/sts v1.16.8 h1:GLGfpqX+1bmjNvUJkwB1ZaDpNFXQwJ3z9RkQDA58OBY=
-=======
 github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.27/go.mod h1:UrHnn3QV/d0pBZ6QBAEQcqFLf8FAzLmoUfPVIueOvoM=
-github.com/aws/aws-sdk-go-v2/internal/ini v1.3.24 h1:wj5Rwc05hvUSvKuOF29IYb9QrCLjU+rHAy/x/o0DK2c=
-github.com/aws/aws-sdk-go-v2/internal/ini v1.3.24/go.mod h1:jULHjqqjDlbyTa7pfM7WICATnOv+iOhjletM3N0Xbu8=
+github.com/aws/aws-sdk-go-v2/internal/ini v1.3.14 h1:bJv4Y9QOiW0GZPStgLgpGrpdfRDSR3XM4V4M3YCQRZo=
+github.com/aws/aws-sdk-go-v2/internal/ini v1.3.14/go.mod h1:R1HF8ZDdcRFfAGF+13En4LSHi2IrrNuPQCaxgWCeGyY=
 github.com/aws/aws-sdk-go-v2/service/ec2 v1.36.1 h1:FS8Ja6LuLDVHcX+rmoNpOXqYb52N2A5DwQy7Dgduq4Q=
 github.com/aws/aws-sdk-go-v2/service/ec2 v1.36.1/go.mod h1:KOy1O7Fc2+GRgsbn/Kjr15vYDVXMEQALBaPRia3twSY=
-github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.17 h1:Jrd/oMh0PKQc6+BowB+pLEwLIgaQF29eYbe7E1Av9Ug=
-github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.17/go.mod h1:4nYOrY41Lrbk2170/BGkcJKBhws9Pfn8MG3aGqjjeFI=
-github.com/aws/aws-sdk-go-v2/service/sso v1.11.23 h1:pwvCchFUEnlceKIgPUouBJwK81aCkQ8UDMORfeFtW10=
-github.com/aws/aws-sdk-go-v2/service/sso v1.11.23/go.mod h1:/w0eg9IhFGjGyyncHIQrXtU8wvNsTJOP0R6PPj0wf80=
-github.com/aws/aws-sdk-go-v2/service/ssooidc v1.13.5 h1:GUnZ62TevLqIoDyHeiWj2P7EqaosgakBKVvWriIdLQY=
-github.com/aws/aws-sdk-go-v2/service/ssooidc v1.13.5/go.mod h1:csZuQY65DAdFBt1oIjO5hhBR49kQqop4+lcuCjf2arA=
-github.com/aws/aws-sdk-go-v2/service/sts v1.16.19 h1:9pPi0PsFNAGILFfPCk8Y0iyEBGc6lu6OQ97U7hmdesg=
-github.com/aws/aws-sdk-go-v2/service/sts v1.16.19/go.mod h1:h4J3oPZQbxLhzGnk+j9dfYHi5qIOVJ5kczZd658/ydM=
->>>>>>> aac0b695a (Update to Go 1.21 (#11654))
+github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.7 h1:M7/BzQNsu0XXiJRe3gUn8UA8tExF6kLMAfvo5PT/KJY=
+github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.7/go.mod h1:HvVdEh/x4jsPBsjNvDy+MH3CDCPy4gTZEzFe2r4uJY8=
+github.com/aws/aws-sdk-go-v2/service/sso v1.11.10 h1:icon5WWg9Yg5nkB0pJF6bfKw6M0xozukeGKSNKtnqzw=
+github.com/aws/aws-sdk-go-v2/service/sso v1.11.10/go.mod h1:UHxA35uPrCykRySBV5iSPZhZRlYnWSS2c/aaZVsoU94=
+github.com/aws/aws-sdk-go-v2/service/sts v1.16.8 h1:GLGfpqX+1bmjNvUJkwB1ZaDpNFXQwJ3z9RkQDA58OBY=
+github.com/aws/aws-sdk-go-v2/service/sts v1.16.8/go.mod h1:50YdFq1WIuxA0AGrygvYGucnNYrG24WYzu5fNp7lMgY=
 github.com/aws/smithy-go v1.13.5 h1:hgz0X/DX0dGqTYpGALqXJoRKRj5oQ7150i5FdTePzO8=
 github.com/aws/smithy-go v1.13.5/go.mod h1:Tg+OJXh4MB2R/uN61Ko2f6hTZwB/ZYGOtib8J3gBHzA=
 github.com/axiomhq/hyperloglog v0.0.0-20230201085229-3ddf4bad03dc h1:Keo7wQ7UODUaHcEi7ltENhbAK2VgZjfat6mLy03tQzo=
@@ -192,18 +176,11 @@ github.com/elastic/apm-data v0.1.1-0.20230814023104-48e4b20579f6/go.mod h1:lMTMo
 github.com/elastic/beats/v7 v7.0.0-alpha2.0.20231010145216-332917dbd4c8 h1:d2z7anpBsUJoOXdwRzM9GD7ZXc4D/cUBbwy3hBAsts0=
 github.com/elastic/beats/v7 v7.0.0-alpha2.0.20231010145216-332917dbd4c8/go.mod h1:2nT3y82JJxUsxfgGXueknmdDJ4hHBzfzv/+W3Ka3RL0=
 github.com/elastic/elastic-agent-autodiscover v0.6.2 h1:7P3cbMBWXjbzA80rxitQjc+PiWyZ4I4F4LqrCYgYlNc=
-<<<<<<< HEAD
+github.com/elastic/elastic-agent-autodiscover v0.6.2/go.mod h1:yXYKFAG+Py+TcE4CCR8EAbJiYb+6Dz9sCDoWgOveqtU=
 github.com/elastic/elastic-agent-client/v7 v7.3.0 h1:LugKtBXK7bp4SFL/uQqGU/f4Ppx12Jk5a36voGabLa0=
 github.com/elastic/elastic-agent-client/v7 v7.3.0/go.mod h1:9/amG2K2y2oqx39zURcc+hnqcX+nyJ1cZrLgzsgo5c0=
 github.com/elastic/elastic-agent-libs v0.3.13 h1:qFiBWeBfjsBId+i31rggyW2ZjzA9qBRz7wIiy+rkcvc=
 github.com/elastic/elastic-agent-libs v0.3.13/go.mod h1:mpSfrigixx8x+uMxWKl4LtdlrKIhZbA4yT2eIeIazUQ=
-=======
-github.com/elastic/elastic-agent-autodiscover v0.6.2/go.mod h1:yXYKFAG+Py+TcE4CCR8EAbJiYb+6Dz9sCDoWgOveqtU=
-github.com/elastic/elastic-agent-client/v7 v7.4.0 h1:h75oTkkvIjgiKVm61NpvTZP4cy6QbQ3zrIpXKGigyjo=
-github.com/elastic/elastic-agent-client/v7 v7.4.0/go.mod h1:9/amG2K2y2oqx39zURcc+hnqcX+nyJ1cZrLgzsgo5c0=
-github.com/elastic/elastic-agent-libs v0.3.15-0.20230913212237-dbdaf18c898b h1:a2iuOokwld+D7VhyFymVtsPoqxZ8fkkOCOOjeYU9CDM=
-github.com/elastic/elastic-agent-libs v0.3.15-0.20230913212237-dbdaf18c898b/go.mod h1:mpSfrigixx8x+uMxWKl4LtdlrKIhZbA4yT2eIeIazUQ=
->>>>>>> aac0b695a (Update to Go 1.21 (#11654))
 github.com/elastic/elastic-agent-shipper-client v0.5.1-0.20230228231646-f04347b666f3 h1:sb+25XJn/JcC9/VL8HX4r4QXSUq4uTNzGS2kxOE7u1U=
 github.com/elastic/elastic-agent-shipper-client v0.5.1-0.20230228231646-f04347b666f3/go.mod h1:rWarFM7qYxJKsi9WcV6ONcFjH/NA3niDNpTxO+8/GVI=
 github.com/elastic/elastic-agent-system-metrics v0.6.1 h1:LCN1lvQTkdUuU/rKlpKyVMDU/G/I8/iZWCaW6K+mo4o=
@@ -1093,11 +1070,8 @@ gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b/go.mod h1:K4uyk7z7BCEPqu6E+C
 gopkg.in/yaml.v3 v3.0.1 h1:fxVm/GzAzEWqLHuvctI91KS9hhNmmWOoWu0XTYJS7CA=
 gopkg.in/yaml.v3 v3.0.1/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=
 gotest.tools v2.2.0+incompatible h1:VsBPFP1AI068pPrMxtb/S8Zkgf9xEmTLJjfM+P5UIEo=
-<<<<<<< HEAD
-honnef.co/go/tools v0.0.0-20180728063816-88497007e858/go.mod h1:rf3lG4BRIbNafJWhAfAdb/ePZxsR/4RtNHQocxwk9r4=
-=======
 gotest.tools v2.2.0+incompatible/go.mod h1:DsYFclhRJ6vuDpmuTbkuFWG+y2sxOXAzmJt81HFBacw=
->>>>>>> aac0b695a (Update to Go 1.21 (#11654))
+honnef.co/go/tools v0.0.0-20180728063816-88497007e858/go.mod h1:rf3lG4BRIbNafJWhAfAdb/ePZxsR/4RtNHQocxwk9r4=
 honnef.co/go/tools v0.0.0-20190102054323-c2f93a96b099/go.mod h1:rf3lG4BRIbNafJWhAfAdb/ePZxsR/4RtNHQocxwk9r4=
 honnef.co/go/tools v0.0.0-20190106161140-3f1c8253044a/go.mod h1:rf3lG4BRIbNafJWhAfAdb/ePZxsR/4RtNHQocxwk9r4=
 honnef.co/go/tools v0.0.0-20190418001031-e561f6794a2a/go.mod h1:rf3lG4BRIbNafJWhAfAdb/ePZxsR/4RtNHQocxwk9r4=
