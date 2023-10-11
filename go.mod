@@ -1,6 +1,12 @@
 module github.com/elastic/apm-server
 
+<<<<<<< HEAD
 go 1.20
+=======
+go 1.21
+
+toolchain go1.21.3
+>>>>>>> d41192417 (build: bump go version to 1.21.3 (#11821))
 
 require (
 	github.com/axiomhq/hyperloglog v0.0.0-20230201085229-3ddf4bad03dc
@@ -8,6 +14,7 @@ require (
 	github.com/dgraph-io/badger/v2 v2.2007.3-0.20201012072640-f5a7e0a1c83b
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/apm-aggregation v0.0.0-20230815024520-e75a37d9ddd6
+<<<<<<< HEAD
 	github.com/elastic/apm-data v0.1.1-0.20230814023104-48e4b20579f6
 	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20231010145216-332917dbd4c8
 	github.com/elastic/elastic-agent-client/v7 v7.3.0
@@ -17,6 +24,16 @@ require (
 	github.com/elastic/go-docappender v0.2.1-0.20230724080315-b714d6181871
 	github.com/elastic/go-elasticsearch/v8 v8.9.0
 	github.com/elastic/go-hdrhistogram v0.1.0
+=======
+	github.com/elastic/apm-data v0.1.1-0.20230928144734-40b63726f3b7
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20231010125927-56195b1561a7
+	github.com/elastic/elastic-agent-client/v7 v7.4.0
+	github.com/elastic/elastic-agent-libs v0.3.15-0.20230913212237-dbdaf18c898b
+	github.com/elastic/elastic-agent-system-metrics v0.7.0
+	github.com/elastic/gmux v0.3.0
+	github.com/elastic/go-docappender v0.2.1-0.20230829163624-c69a1cf8ce35
+	github.com/elastic/go-elasticsearch/v8 v8.10.0
+>>>>>>> d41192417 (build: bump go version to 1.21.3 (#11821))
 	github.com/elastic/go-sysinfo v1.11.1
 	github.com/elastic/go-ucfg v0.8.6
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible
@@ -50,11 +67,11 @@ require (
 	go.opentelemetry.io/otel/sdk/metric v0.39.0
 	go.uber.org/automaxprocs v1.5.2
 	go.uber.org/zap v1.25.0
-	golang.org/x/net v0.14.0
-	golang.org/x/sync v0.3.0
-	golang.org/x/term v0.11.0
+	golang.org/x/net v0.17.0
+	golang.org/x/sync v0.4.0
+	golang.org/x/term v0.13.0
 	golang.org/x/time v0.3.0
-	google.golang.org/grpc v1.56.1
+	google.golang.org/grpc v1.58.2
 	google.golang.org/protobuf v1.31.0
 	gopkg.in/yaml.v3 v3.0.1
 )
@@ -87,7 +104,6 @@ require (
 	github.com/eapache/queue v1.1.0 // indirect
 	github.com/elastic/elastic-agent-shipper-client v0.5.1-0.20230228231646-f04347b666f3 // indirect
 	github.com/elastic/elastic-transport-go/v8 v8.3.0 // indirect
-	github.com/elastic/go-licenser v0.4.1 // indirect
 	github.com/elastic/go-lumber v0.1.2-0.20220819171948-335fde24ea0f // indirect
 	github.com/elastic/go-structform v0.0.10 // indirect
 	github.com/elastic/go-windows v1.0.1 // indirect
@@ -156,13 +172,18 @@ require (
 	go.opentelemetry.io/otel/trace v1.16.0 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	golang.org/x/crypto v0.12.0 // indirect
+	golang.org/x/crypto v0.14.0 // indirect
 	golang.org/x/exp v0.0.0-20230713183714-613f0c0eb8a1 // indirect
 	golang.org/x/mod v0.12.0 // indirect
+<<<<<<< HEAD
 	golang.org/x/sys v0.11.0 // indirect
 	golang.org/x/text v0.12.0 // indirect
+=======
+	golang.org/x/sys v0.13.0 // indirect
+	golang.org/x/text v0.13.0 // indirect
+>>>>>>> d41192417 (build: bump go version to 1.21.3 (#11821))
 	golang.org/x/tools v0.12.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20230530153820-e85fd2cbaebc // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20231002182017-d307bd883b97 // indirect
 	gopkg.in/jcmturner/aescts.v1 v1.0.1 // indirect
 	gopkg.in/jcmturner/dnsutils.v1 v1.0.1 // indirect
 	gopkg.in/jcmturner/goidentity.v3 v3.0.0 // indirect

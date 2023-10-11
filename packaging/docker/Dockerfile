@@ -2,7 +2,11 @@ ARG BASE_IMAGE=ubuntu:20.04
 
 # Build the apm-server binary. The golang image version is kept
 # up to date with go.mod by Makefile.
+<<<<<<< HEAD
 FROM golang:1.20.7 as builder
+=======
+FROM golang:1.21.3 as builder
+>>>>>>> d41192417 (build: bump go version to 1.21.3 (#11821))
 WORKDIR /src
 COPY go.mod go.sum /src/
 COPY internal/glog/go.mod /src/internal/glog/go.mod

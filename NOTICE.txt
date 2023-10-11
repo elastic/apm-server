@@ -1279,11 +1279,11 @@ Contents of probable licence file $GOMODCACHE/github.com/elastic/elastic-agent-s
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/gmux
-Version: v0.2.0
+Version: v0.3.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/gmux@v0.2.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/gmux@v0.3.0/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -6426,11 +6426,11 @@ THE SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/net
-Version: v0.14.0
+Version: v0.17.0
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/net@v0.14.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/net@v0.17.0/LICENSE:
 
 Copyright (c) 2009 The Go Authors. All rights reserved.
 
@@ -6463,11 +6463,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/sync
-Version: v0.3.0
+Version: v0.4.0
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/sync@v0.3.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/sync@v0.4.0/LICENSE:
 
 Copyright (c) 2009 The Go Authors. All rights reserved.
 
@@ -6500,11 +6500,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/term
-Version: v0.11.0
+Version: v0.13.0
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/term@v0.11.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/term@v0.13.0/LICENSE:
 
 Copyright (c) 2009 The Go Authors. All rights reserved.
 
@@ -6574,11 +6574,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : google.golang.org/grpc
-Version: v1.56.1
+Version: v1.58.2
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/google.golang.org/grpc@v1.56.1/LICENSE:
+Contents of probable licence file $GOMODCACHE/google.golang.org/grpc@v1.58.2/LICENSE:
 
 
                                  Apache License
@@ -18031,11 +18031,11 @@ THE SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/crypto
-Version: v0.12.0
+Version: v0.14.0
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/crypto@v0.12.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/crypto@v0.14.0/LICENSE:
 
 Copyright (c) 2009 The Go Authors. All rights reserved.
 
@@ -18105,11 +18105,19 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/sys
+<<<<<<< HEAD
 Version: v0.11.0
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
 Contents of probable licence file $GOMODCACHE/golang.org/x/sys@v0.11.0/LICENSE:
+=======
+Version: v0.13.0
+Licence type (autodetected): BSD-3-Clause
+--------------------------------------------------------------------------------
+
+Contents of probable licence file $GOMODCACHE/golang.org/x/sys@v0.13.0/LICENSE:
+>>>>>>> d41192417 (build: bump go version to 1.21.3 (#11821))
 
 Copyright (c) 2009 The Go Authors. All rights reserved.
 
@@ -18142,11 +18150,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/text
-Version: v0.12.0
+Version: v0.13.0
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/text@v0.12.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/text@v0.13.0/LICENSE:
 
 Copyright (c) 2009 The Go Authors. All rights reserved.
 
@@ -18179,11 +18187,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : google.golang.org/genproto/googleapis/rpc
-Version: v0.0.0-20230530153820-e85fd2cbaebc
+Version: v0.0.0-20231002182017-d307bd883b97
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/google.golang.org/genproto/googleapis/rpc@v0.0.0-20230530153820-e85fd2cbaebc/LICENSE:
+Contents of probable licence file $GOMODCACHE/google.golang.org/genproto/googleapis/rpc@v0.0.0-20231002182017-d307bd883b97/LICENSE:
 
 
                                  Apache License
