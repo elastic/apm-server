@@ -10,11 +10,14 @@ elasticsearch:
     # This data stream holds only non-sensitive information.
     indices: [auto_configure, create_doc, maintenance, monitor, read]
   index_template:
-    settings:
-      # Create a single shard per index, so we can use
-      # global checkpoints as a way of limiting search
-      # results.
-      number_of_shards: 1
+    # settings:
+    # Create a single shard per index, so we can use
+    # global checkpoints as a way of limiting search
+    # results.
+
+    # We are not setting this for now until the package-spec is updated
+    # to allow number_of_shards: https://github.com/elastic/package-spec/issues/644
+    # number_of_shards: 1
     mappings:
       # We are in full control of the field names,
       # but do not block ingestion on unexpected fields.
