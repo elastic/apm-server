@@ -56,6 +56,7 @@ func TestIntake(t *testing.T) {
 			result := estest.ExpectMinDocs(t, systemtest.Elasticsearch,
 				response.Accepted, "traces-apm*,metrics-apm*,logs-apm*", nil,
 			)
+			tc.dynamicFields = append(tc.dynamicFields, "client.geo.city_name", "client.geo.location.lat", "client.geo.location.lon", "client.geo.region_iso_code", "client.geo.region_name")
 			approvaltest.ApproveEvents(t, t.Name(), result.Hits.Hits, tc.dynamicFields...)
 		})
 	}
