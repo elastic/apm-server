@@ -58,6 +58,7 @@
     The lambda function version.
 - name: http.request.headers
   type: object
+  object_type: keyword
   description: |
     The canonical headers of the monitored HTTP request.
 - name: http.response.finished
@@ -66,6 +67,7 @@
     Used by the Node agent to indicate when in the response life cycle an error has occurred.
 - name: http.response.headers
   type: object
+  object_type: keyword
   description: |
     The canonical headers of the monitored HTTP response.
 - name: http.response.transfer_size
@@ -303,6 +305,7 @@
   description: The Total Blocking Time metric
 - name: transaction.marks
   type: object
+  object_type: long
   description: |
     A user-defined mapping of groups of marks in milliseconds.
   dynamic: true

@@ -5,6 +5,7 @@
     The way the agent is installed / used.
 - name: http.request.headers
   type: object
+  object_type: keyword
   description: |
     The canonical headers of the monitored HTTP request.
 - name: http.response.finished
@@ -13,6 +14,7 @@
     Used by the Node agent to indicate when in the response life cycle an error has occurred.
 - name: http.response.headers
   type: object
+  object_type: keyword
   description: |
     The canonical headers of the monitored HTTP response.
 - name: kubernetes.namespace

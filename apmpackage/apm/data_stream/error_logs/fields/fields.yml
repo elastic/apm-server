@@ -44,6 +44,7 @@
     A parametrized message. E.g. 'Could not connect to %s'. The property message is still required, and should be equal to the param_message, but with placeholders replaced. In some situations the param_message is used to group errors together.
 - name: http.request.headers
   type: object
+  object_type: keyword
   description: |
     The canonical headers of the monitored HTTP request.
 - name: http.response.finished
@@ -52,6 +53,7 @@
     Used by the Node agent to indicate when in the response life cycle an error has occurred.
 - name: http.response.headers
   type: object
+  object_type: keyword
   description: |
     The canonical headers of the monitored HTTP response.
 - name: kubernetes.namespace
