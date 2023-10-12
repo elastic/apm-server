@@ -1,6 +1,8 @@
 module github.com/elastic/apm-server/tools
 
-go 1.21.1
+go 1.21.0
+
+toolchain go1.21.3
 
 require (
 	github.com/elastic/apm-tools v0.0.0-20230828065051-3f799314cc8b
@@ -228,9 +230,9 @@ require (
 	golang.org/x/crypto v0.14.0 // indirect
 	golang.org/x/exp/typeparams v0.0.0-20221208152030-732eee02a75a // indirect
 	golang.org/x/mod v0.13.0 // indirect
-	golang.org/x/net v0.16.0 // indirect
-	golang.org/x/oauth2 v0.8.0 // indirect
 	golang.org/x/sync v0.4.0 // indirect
+	golang.org/x/net v0.17.0 // indirect
+	golang.org/x/oauth2 v0.8.0 // indirect
 	golang.org/x/sys v0.13.0 // indirect
 	golang.org/x/term v0.13.0 // indirect
 	golang.org/x/text v0.13.0 // indirect
