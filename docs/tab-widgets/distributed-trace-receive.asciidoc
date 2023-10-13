@@ -21,7 +21,7 @@ traceContext.State, _ = apmhttp.ParseTracestateHeader(r.Header["Tracestate"]...)
 opts := apm.TransactionOptions{
 	TraceContext: traceContext, <3>
 }
-transaction := apm.DefaultTracer.StartTransactionOptions("GET /", "request", opts) <4>
+transaction := apm.DefaultTracer().StartTransactionOptions("GET /", "request", opts) <4>
 ----
 <1> Parse the `TraceParent` header
 <2> Parse the `Tracestate` header
