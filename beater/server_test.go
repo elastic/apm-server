@@ -20,6 +20,7 @@ package beater
 import (
 	"bufio"
 	"bytes"
+	"compress/gzip"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -719,12 +720,15 @@ func TestServerElasticsearchDoesNotSupportDocCount(t *testing.T) {
 		var b struct {
 			DocCount int `json:"_doc_count"`
 		}
-		scanner := bufio.NewScanner(r.Body)
+		gzipReader, err := gzip.NewReader(r.Body)
+		require.NoError(t, err)
+		defer gzipReader.Close()
+		scanner := bufio.NewScanner(gzipReader)
 		scanner.Scan() // we want the second line of json
 		require.NoError(t, scanner.Err())
 		scanner.Scan()
 		require.NoError(t, scanner.Err())
-		err := json.Unmarshal(scanner.Bytes(), &b)
+		err = json.Unmarshal(scanner.Bytes(), &b)
 		require.NoError(t, err)
 		if b.DocCount == 0 {
 			select {
