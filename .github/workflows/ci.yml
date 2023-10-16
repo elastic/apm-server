@@ -44,6 +44,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      # As long as there are some disk space issues with the CI runners.
+      - name: Free Disk Space
+        continue-on-error: true
+        uses: jlumbroso/free-disk-space@f68fdb76e2ea636224182cfb7377ff9a1708f9b8
+        with:
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: true
+          tool-cache: false
       - uses: actions/setup-go@v3
         with:
           go-version-file: .go-version
