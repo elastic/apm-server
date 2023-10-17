@@ -1,6 +1,8 @@
 module github.com/elastic/apm-server
 
-go 1.20
+go 1.21
+
+toolchain go1.21.3
 
 require (
 	github.com/cespare/xxhash/v2 v2.2.0
@@ -8,11 +10,11 @@ require (
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/apm-aggregation v0.0.0-20230815024520-e75a37d9ddd6
 	github.com/elastic/apm-data v0.1.1-0.20230928144734-40b63726f3b7
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230928231718-49cc14d35d5e
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20231016132619-6be0d18448bb
 	github.com/elastic/elastic-agent-client/v7 v7.4.0
 	github.com/elastic/elastic-agent-libs v0.3.15-0.20230913212237-dbdaf18c898b
-	github.com/elastic/elastic-agent-system-metrics v0.6.1
-	github.com/elastic/gmux v0.2.0
+	github.com/elastic/elastic-agent-system-metrics v0.7.0
+	github.com/elastic/gmux v0.3.1
 	github.com/elastic/go-docappender v0.2.1-0.20230829163624-c69a1cf8ce35
 	github.com/elastic/go-elasticsearch/v8 v8.10.0
 	github.com/elastic/go-sysinfo v1.11.1
@@ -44,16 +46,16 @@ require (
 	go.elastic.co/fastjson v1.3.0
 	go.opentelemetry.io/collector/consumer v0.81.0
 	go.opentelemetry.io/collector/pdata v1.0.0-rcv0013
-	go.opentelemetry.io/otel v1.17.0
-	go.opentelemetry.io/otel/metric v1.17.0
+	go.opentelemetry.io/otel v1.19.0
+	go.opentelemetry.io/otel/metric v1.19.0
 	go.opentelemetry.io/otel/sdk/metric v0.40.0
 	go.uber.org/automaxprocs v1.5.2
 	go.uber.org/zap v1.25.0
-	golang.org/x/net v0.14.0
-	golang.org/x/sync v0.3.0
-	golang.org/x/term v0.11.0
+	golang.org/x/net v0.17.0
+	golang.org/x/sync v0.4.0
+	golang.org/x/term v0.13.0
 	golang.org/x/time v0.3.0
-	google.golang.org/grpc v1.56.1
+	google.golang.org/grpc v1.58.3
 	google.golang.org/protobuf v1.31.0
 	gopkg.in/yaml.v3 v3.0.1
 )
@@ -63,7 +65,7 @@ require (
 	github.com/Microsoft/go-winio v0.6.1 // indirect
 	github.com/OneOfOne/xxhash v1.2.8 // indirect
 	github.com/Shopify/sarama v1.38.1 // indirect
-	github.com/apache/thrift v0.18.1 // indirect
+	github.com/apache/thrift v0.19.0 // indirect
 	github.com/armon/go-radix v1.0.0 // indirect
 	github.com/axiomhq/hyperloglog v0.0.0-20230201085229-3ddf4bad03dc // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
@@ -87,7 +89,6 @@ require (
 	github.com/eapache/queue v1.1.0 // indirect
 	github.com/elastic/elastic-agent-shipper-client v0.5.1-0.20230228231646-f04347b666f3 // indirect
 	github.com/elastic/elastic-transport-go/v8 v8.3.0 // indirect
-	github.com/elastic/go-licenser v0.4.1 // indirect
 	github.com/elastic/go-lumber v0.1.2-0.20220819171948-335fde24ea0f // indirect
 	github.com/elastic/go-structform v0.0.10 // indirect
 	github.com/elastic/go-windows v1.0.1 // indirect
@@ -139,6 +140,7 @@ require (
 	github.com/shirou/gopsutil v3.21.11+incompatible // indirect
 	github.com/shirou/gopsutil/v3 v3.23.5 // indirect
 	github.com/shoenig/go-m1cpu v0.1.6 // indirect
+	github.com/stretchr/objx v0.5.0 // indirect
 	github.com/tklauser/go-sysconf v0.3.11 // indirect
 	github.com/tklauser/numcpus v0.6.0 // indirect
 	github.com/uber/jaeger-client-go v2.30.0+incompatible // indirect
@@ -152,16 +154,16 @@ require (
 	go.elastic.co/ecszap v1.0.1 // indirect
 	go.opentelemetry.io/collector/semconv v0.81.0 // indirect
 	go.opentelemetry.io/otel/sdk v1.17.0 // indirect
-	go.opentelemetry.io/otel/trace v1.17.0 // indirect
+	go.opentelemetry.io/otel/trace v1.19.0 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	golang.org/x/crypto v0.12.0 // indirect
+	golang.org/x/crypto v0.14.0 // indirect
 	golang.org/x/exp v0.0.0-20230713183714-613f0c0eb8a1 // indirect
 	golang.org/x/mod v0.12.0 // indirect
-	golang.org/x/sys v0.11.0 // indirect
-	golang.org/x/text v0.12.0 // indirect
+	golang.org/x/sys v0.13.0 // indirect
+	golang.org/x/text v0.13.0 // indirect
 	golang.org/x/tools v0.12.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20230530153820-e85fd2cbaebc // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20231002182017-d307bd883b97 // indirect
 	gopkg.in/jcmturner/aescts.v1 v1.0.1 // indirect
 	gopkg.in/jcmturner/dnsutils.v1 v1.0.1 // indirect
 	gopkg.in/jcmturner/goidentity.v3 v3.0.0 // indirect
