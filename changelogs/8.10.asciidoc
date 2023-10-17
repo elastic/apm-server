@@ -3,18 +3,11 @@
 
 https://github.com/elastic/apm-server/compare/8.9\...8.10[View commits]
 
-* <<release-notes-8.10.5>>
 * <<release-notes-8.10.4>>
 * <<release-notes-8.10.3>>
 * <<release-notes-8.10.2>>
 * <<release-notes-8.10.1>>
 * <<release-notes-8.10.0>>
-
-[float]
-[[release-notes-8.10.5]]
-=== APM version 8.10.5
-
-No significant changes.
 
 [float]
 [[release-notes-8.10.4]]
