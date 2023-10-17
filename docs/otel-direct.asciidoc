@@ -145,5 +145,4 @@ https://github.com/elastic/apm-server/blob/main/dev_docs/otel.md#muxing-grpc-and
 ==== Next steps
 
 * <<open-telemetry-collect-metrics>>
-* Add <<open-telemetry-resource-attributes>>
 * Learn about the <<open-telemetry-known-limitations,limitations of this integration>>
