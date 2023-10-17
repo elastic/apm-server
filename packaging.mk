@@ -115,7 +115,7 @@ DEBS += $(patsubst %, $(DISTDIR)/apm-server-$(APM_SERVER_VERSION)-SNAPSHOT-%.deb
 DEBS_AMD64 := $(filter %-amd64.deb, $(DEBS))
 DEBS_ARM64 := $(filter %-arm64.deb, $(DEBS))
 
-RPM_ARCH := i686 x86_64 aarch64
+RPM_ARCH := x86_64 aarch64
 RPMS := $(patsubst %, $(DISTDIR)/apm-server-$(APM_SERVER_VERSION)-%.rpm, $(RPM_ARCH))
 RPMS += $(patsubst %, $(DISTDIR)/apm-server-$(APM_SERVER_VERSION)-SNAPSHOT-%.rpm, $(RPM_ARCH))
 RPMS_AMD64 := $(filter %-x86_64.rpm, $(RPMS))
@@ -180,7 +180,6 @@ PACKAGE_SUFFIXES := \
 	amd64.deb \
 	arm64.deb \
 	x86_64.rpm \
-	i686.rpm \
 	aarch64.rpm
 
 build/dependencies-$(APM_SERVER_VERSION)-SNAPSHOT.csv: build/dependencies-$(APM_SERVER_VERSION).csv
