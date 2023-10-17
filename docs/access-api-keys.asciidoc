@@ -123,11 +123,15 @@ POST /_security/api_key
         {
           "names": ["{beat_default_index_prefix}-*"],
           "privileges": ["create_index", "create_doc"]
-        },
+        }
+      ]
+    },
+    "{beat_default_index_prefix}_sourcemap": {
+      "index": [
         {
-          "names": ["{beat_default_index_prefix}-*sourcemap"],
+          "names": [".{beat_default_index_prefix}-source-map"],
           "privileges": ["read"]
-        },
+        }
       ]
     }
   }
