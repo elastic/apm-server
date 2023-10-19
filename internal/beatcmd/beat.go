@@ -260,12 +260,6 @@ func (b *Beat) Run(ctx context.Context) error {
 	defer logp.Info("%s stopped.", b.Info.Beat)
 
 	logger := logp.NewLogger("")
-	if runtime.GOARCH == "386" {
-		logger.Warn("" +
-			"deprecation notice: support for 32-bit system target " +
-			"architecture will be removed in an upcoming version",
-		)
-	}
 
 	if runtime.GOOS == "darwin" {
 		if host, err := sysinfo.Host(); err != nil {
