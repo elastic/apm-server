@@ -40,7 +40,7 @@ In the role descriptors box, assign the appropriate privileges to the new API ke
     "{beat_default_index_prefix}_sourcemap": {
         "index": [
             {
-                "names": [".{beat_default_index_prefix}-source-map"],
+                "names": [".apm-source-map"],
                 "privileges": ["read"]
             }
         ]
@@ -133,7 +133,7 @@ POST /_security/api_key
     "{beat_default_index_prefix}_sourcemap": {
       "index": [
         {
-          "names": [".{beat_default_index_prefix}-source-map"],
+          "names": [".apm-source-map"],
           "privileges": ["read"]
         }
       ]
