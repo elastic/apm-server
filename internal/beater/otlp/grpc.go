@@ -95,8 +95,13 @@ func (s *tracesService) Export(ctx context.Context, req ptraceotlp.ExportRequest
 	if td.SpanCount() == 0 {
 		return ptraceotlp.NewExportResponse(), nil
 	}
-	err := s.consumer.ConsumeTraces(ctx, td)
-	return ptraceotlp.NewExportResponse(), err
+	resp := ptraceotlp.NewExportResponse()
+	result, err := s.consumer.ConsumeTracesWithResult(ctx, td)
+	if err == nil && result.RejectedSpans > 0 {
+		resp.PartialSuccess().SetRejectedSpans(result.RejectedSpans)
+		resp.PartialSuccess().SetErrorMessage(result.ErrorMessage)
+	}
+	return resp, err
 }
 
 type metricsService struct {
@@ -109,8 +114,13 @@ func (s *metricsService) Export(ctx context.Context, req pmetricotlp.ExportReque
 	if md.DataPointCount() == 0 {
 		return pmetricotlp.NewExportResponse(), nil
 	}
-	err := s.consumer.ConsumeMetrics(ctx, md)
-	return pmetricotlp.NewExportResponse(), err
+	resp := pmetricotlp.NewExportResponse()
+	result, err := s.consumer.ConsumeMetricsWithResult(ctx, md)
+	if err == nil && result.RejectedDataPoints > 0 {
+		resp.PartialSuccess().SetRejectedDataPoints(result.RejectedDataPoints)
+		resp.PartialSuccess().SetErrorMessage(result.ErrorMessage)
+	}
+	return resp, err
 }
 
 type logsService struct {
@@ -123,6 +133,11 @@ func (s *logsService) Export(ctx context.Context, req plogotlp.ExportRequest) (p
 	if ld.LogRecordCount() == 0 {
 		return plogotlp.NewExportResponse(), nil
 	}
-	err := s.consumer.ConsumeLogs(ctx, ld)
-	return plogotlp.NewExportResponse(), err
+	resp := plogotlp.NewExportResponse()
+	result, err := s.consumer.ConsumeLogsWithResult(ctx, ld)
+	if err == nil && result.RejectedLogRecords > 0 {
+		resp.PartialSuccess().SetRejectedLogRecords(result.RejectedLogRecords)
+		resp.PartialSuccess().SetErrorMessage(result.ErrorMessage)
+	}
+	return resp, err
 }
