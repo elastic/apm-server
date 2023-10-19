@@ -134,7 +134,7 @@ the options in this section are only supported by the APM Server binary.
 == `source_mapping.enabled`
 Used to enable/disable <<source-map-how-to,source mapping>> for RUM events.
 When enabled, the APM Server needs additional privileges to read source maps.
-See <<privileges-to-publish-events>> for more details.
+See <<privileges-rum-source-mapping>> for more details.
 
 Default: `true`
 
