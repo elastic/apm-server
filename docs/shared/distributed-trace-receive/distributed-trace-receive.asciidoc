@@ -2,9 +2,9 @@
 
 // Need help with this example
 
-1. Parse the incoming TraceContext with
-https://godoc.org/go.elastic.co/apm/module/apmhttp#ParseTraceparentHeader[`ParseTraceparentHeader`] or
-https://godoc.org/go.elastic.co/apm/module/apmhttp#ParseTracestateHeader[`ParseTracestateHeader`].
+1. Parse the incoming `TraceContext` with
+https://pkg.go.dev/go.elastic.co/apm/module/apmhttp/v2#ParseTraceparentHeader[`ParseTraceparentHeader`] or
+https://pkg.go.dev/go.elastic.co/apm/module/apmhttp/v2#ParseTracestateHeader[`ParseTracestateHeader`].
 
 2. Start a new transaction or span as a child of the incoming transaction with
 {apm-go-ref}/api.html#tracer-api-start-transaction-options[`StartTransactionOptions`] or
@@ -21,7 +21,7 @@ traceContext.State, _ = apmhttp.ParseTracestateHeader(r.Header["Tracestate"]...)
 opts := apm.TransactionOptions{
 	TraceContext: traceContext, <3>
 }
-transaction := apm.DefaultTracer.StartTransactionOptions("GET /", "request", opts) <4>
+transaction := apm.DefaultTracer().StartTransactionOptions("GET /", "request", opts) <4>
 ----
 <1> Parse the TraceParent header
 <2> Parse the tracestate header
