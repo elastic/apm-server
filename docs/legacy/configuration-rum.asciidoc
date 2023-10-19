@@ -53,132 +53,6 @@ Anonymous authentication is required as the RUM agent runs in the browser.
 ====
 
 [float]
-<<<<<<< HEAD:docs/legacy/configuration-rum.asciidoc
-=======
-[[rum-allow-origins]]
-== Allowed Origins
-A list of permitted origins for RUM support.
-User-agents send an Origin header that will be validated against this list.
-This is done automatically by modern browsers as part of the https://www.w3.org/TR/cors/[CORS specification].
-An origin is made of a protocol scheme, host and port, without the URL path.
-
-Default: `['*']` (allows everything). (text)
-
-|====
-| APM Server binary | `apm-server.rum.allow_origins`
-| Fleet-managed     | `Allowed Origins`
-|====
-
-[float]
-[[rum-allow-headers]]
-== Access-Control-Allow-Headers
-HTTP requests made from the RUM agent to the APM Server are limited in the HTTP headers they are allowed to have.
-If any other headers are added, the request will be rejected by the browser due to Cross-Origin Resource Sharing (CORS) restrictions.
-Use this setting to allow additional headers.
-The default list of allowed headers includes "Content-Type", "Content-Encoding", and "Accept";
-custom values configured here are appended to the default list and used as the value for the `Access-Control-Allow-Headers` header.
-
-Default: `[]`. (text)
-
-|====
-| APM Server binary | `apm-server.rum.allow_headers`
-| Fleet-managed     | `Access-Control-Allow-Headers`
-|====
-
-[float]
-[[rum-response-headers]]
-== Custom HTTP response headers
-Custom HTTP headers to add to RUM responses.
-This can be useful for security policy compliance.
-
-Values set for the same key will be concatenated.
-
-Default: none. (text)
-
-|====
-| APM Server binary | `apm-server.rum.response_headers`
-| Fleet-managed     | `Custom HTTP response headers`
-|====
-
-[float]
-[[rum-library-pattern]]
-== Library Frame Pattern
-RegExp to be matched against a stack trace frame's `file_name` and `abs_path` attributes.
-If the RegExp matches, the stack trace frame is considered to be a library frame.
-When source mapping is applied, the `error.culprit` is set to reflect the _function_ and the _filename_
-of the first non library frame.
-This aims to provide an entry point for identifying issues.
-
-Default: `"node_modules|bower_components|~"`. (text)
-
-|====
-| APM Server binary | `apm-server.rum.library_pattern`
-| Fleet-managed     | `Library Frame Pattern`
-|====
-
-[float]
-== Exclude from grouping
-RegExp to be matched against a stack trace frame's `file_name`.
-If the RegExp matches, the stack trace frame is excluded from being used for calculating error groups.
-
-Default: `"^/webpack"` (excludes stack trace frames that have a filename starting with `/webpack`). (text)
-
-|====
-| APM Server binary | `apm-server.rum.exclude_from_grouping`
-| Fleet-managed     | `Exclude from grouping`
-|====
-
-
-[float]
-[[rum-source-map]]
-= Source map configuration options
-
-****
-image:./binary-yes-fm-no.svg[supported deployment methods]
-
-Source maps are supported by all APM Server deployment methods, however,
-the options in this section are only supported by the APM Server binary.
-****
-
-[[config-sourcemapping-enabled]]
-[float]
-== `source_mapping.enabled`
-Used to enable/disable <<source-map-how-to,source mapping>> for RUM events.
-When enabled, the APM Server needs additional privileges to read source maps.
-See <<privileges-rum-source-mapping>> for more details.
-
-Default: `true`
-
-[[config-sourcemapping-elasticsearch]]
-[float]
-== `source_mapping.elasticsearch`
-Configure the {es} source map retrieval location, taking the same options as <<elasticsearch-output,output.elasticsearch>>.
-This must be set when using an output other than {es}, and that output is writing to {es}.
-Otherwise leave this section empty.
-
-[[rum-sourcemap-cache]]
-[float]
-== `source_mapping.cache.expiration`
-If a source map has been uploaded to the APM Server,
-<<source-map-how-to,source mapping>> is automatically applied to documents sent to the RUM endpoint.
-Source maps are fetched from {es} and then kept in an in-memory cache for the configured time.
-Values configured without a time unit are treated as seconds.
-
-Default: `5m` (5 minutes)
-
-[float]
-== `source_mapping.index_pattern`
-Previous versions of APM Server stored source maps in `apm-%{[observer.version]}-sourcemap` indices.
-Search source maps stored in an older version with this setting.
-
-Default: `"apm-*-sourcemap*"`
-
-[float]
-[[rum-deprecated]]
-= Deprecated configuration options
-
-[float]
->>>>>>> 00fb30eb6 (docs: Document privileges to read RUM source maps; Update examples (#11741)):docs/configure/rum.asciidoc
 [[event_rate.limit]]
 ==== `event_rate.limit`
 
@@ -265,7 +139,7 @@ Default: `"^/webpack"` (excludes stack trace frames that have a filename startin
 ==== `source_mapping.enabled`
 Used to enable/disable <<sourcemaps,source mapping>> for RUM events.
 When enabled, the APM Server needs additional privileges to read source maps.
-See <<privileges-to-publish-events>> for more details.
+See <<privileges-rum-source-mapping>> for more details.
 
 Default: `true`
 
