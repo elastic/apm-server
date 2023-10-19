@@ -12,11 +12,11 @@ Example:
 
 [source,go]
 ----
-transaction := apm.DefaultTracer.StartTransaction("GET /", "request") <1>
+transaction := apm.DefaultTracer().StartTransaction("GET /", "request") <1>
 traceContext := transaction.TraceContext() <2>
 
 // Send TraceContext to receiving service
-traceparent := apmhttp.FormatTraceparentHeader(traceContext)) <3>
+traceparent := apmhttp.FormatTraceparentHeader(traceContext) <3>
 tracestate := traceContext.State.String()
 ----
 <1> Start a transaction
