@@ -44,6 +44,14 @@ In the role descriptors box, assign the appropriate privileges to the new API ke
                 "privileges": ["read"]
             }
         ]
+    },
+    "{beat_default_index_prefix}_agentcfg": {
+        "index": [
+            {
+                "names": [".apm-agent-configuration"],
+                "privileges": ["read"]
+            }
+        ]
     }
 }
 ----
@@ -134,6 +142,14 @@ POST /_security/api_key
       "index": [
         {
           "names": [".apm-source-map"],
+          "privileges": ["read"]
+        }
+      ]
+    },
+    "{beat_default_index_prefix}_agentcfg": {
+      "index": [
+        {
+          "names": [".apm-agent-configuration"],
           "privileges": ["read"]
         }
       ]
