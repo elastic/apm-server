@@ -17,10 +17,6 @@
 
 package config
 
-const (
-	defaultServiceDestinationAggregationMaxGroups = 10000
-)
-
 // AggregationConfig holds configuration related to various metrics aggregations.
 type AggregationConfig struct {
 	MaxServices         int                                 `config:"max_services"` // if <= 0 then will be set based on memory limits
@@ -36,7 +32,7 @@ type TransactionAggregationConfig struct {
 
 // ServiceDestinationAggregationConfig holds configuration related to span metrics aggregation for service maps.
 type ServiceDestinationAggregationConfig struct {
-	MaxGroups int `config:"max_groups" validate:"min=1"`
+	MaxGroups int `config:"max_groups"` // if <= 0 then will be set based on memory limits
 }
 
 // ServiceTransactionAggregationConfig holds configuration related to service transaction metrics aggregation.
@@ -45,9 +41,5 @@ type ServiceTransactionAggregationConfig struct {
 }
 
 func defaultAggregationConfig() AggregationConfig {
-	return AggregationConfig{
-		ServiceDestinations: ServiceDestinationAggregationConfig{
-			MaxGroups: defaultServiceDestinationAggregationMaxGroups,
-		},
-	}
+	return AggregationConfig{}
 }
