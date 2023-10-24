@@ -139,7 +139,7 @@ Default: `"^/webpack"` (excludes stack trace frames that have a filename startin
 ==== `source_mapping.enabled`
 Used to enable/disable <<sourcemaps,source mapping>> for RUM events.
 When enabled, the APM Server needs additional privileges to read source maps.
-See <<privileges-to-publish-events>> for more details.
+See <<privileges-rum-source-mapping>> for more details.
 
 Default: `true`
 
