@@ -8,22 +8,56 @@ This lightweight endpoint is useful as a server up/down health check.
 [[api-info-endpoint]]
 === Server Information endpoint
 
-Send an `HTTP GET` request to the server information endpoint:
+This is the server information endpoint:
 
 [source,bash]
 ------------------------------------------------------------
 http(s)://{hostname}:{port}/
 ------------------------------------------------------------
 
-This endpoint always returns an HTTP 200.
+Sending an `HTTP GET` or `HTTP POST` request to the server information endpoint
+will return an HTTP 200, indicating that the server is up.
 
-If <<api-key>> or a <<secret-token>> is configured, requests to this endpoint must be authenticated.
+To configure authenticated access to the APM server,
+the instructions at <<api-key,APM API key>> or <<secret-token,APM Secret Token>>,
+must be followed to configure the correct permissions for APM access.
+
+If an <<api-key>> or a <<secret-token>> is passed along with
+the `HTTP GET` or `HTTP POST` request, in addition to an HTTP 200,
+the response payload will include some information about the APM server.
 
 [float]
-[[api-info-examples]]
-==== Example
+[[api-info-example-get-without-credentials]]
+==== Example: GET, without credentials
 
-Example APM Server information request:
+Example APM Server status request with GET, without credentials:
+
+["source","sh",subs="attributes"]
+---------------------------------------------------------------------------
+curl --verbose -X GET http://127.0.0.1:8200
+
+*   Trying 127.0.0.1:8200...
+* TCP_NODELAY set
+* Connected to 127.0.0.1 (10.244.3.40) port 8200 (#0)
+> GET / HTTP/1.1
+> Host: 127.0.0.1:8200
+> User-Agent: curl/7.68.0
+> Accept: */*
+>
+* Mark bundle as not supporting multiuse
+< HTTP/1.1 200 OK
+< X-Content-Type-Options: nosniff
+< Date: Tue, 17 Oct 2023 22:04:05 GMT
+< Content-Length: 0
+<
+* Connection #0 to host 127.0.0.1 left intact
+---------------------------------------------------------------------------
+
+[float]
+[[api-info-example-post-with-secret-token]]
+==== Example: POST, with secret token
+
+Example APM Server information request with POST, with a <<secret-token>>:
 
 ["source","sh",subs="attributes"]
 ---------------------------------------------------------------------------
