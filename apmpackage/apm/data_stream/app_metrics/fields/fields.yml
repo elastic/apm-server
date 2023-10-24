@@ -65,6 +65,14 @@
   dynamic: true
   description: |
     Custom key/value pairs. Can be used to add meta information to events. Should not contain nested objects. All values are stored as scaled_float.
+- name: histogram
+  type: histogram
+  dynamic: true
+- name: summary
+  type: aggregate_metric_double
+  metrics: ["sum", "value_count"]
+  default_metric: "value_count"
+  dynamic: true
 - name: double
   type: double
   dynamic: true
