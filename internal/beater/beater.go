@@ -253,7 +253,7 @@ func (s *Runner) Run(ctx context.Context) error {
 	if s.config.Aggregation.ServiceDestinations.MaxGroups <= 0 {
 		s.config.Aggregation.ServiceDestinations.MaxGroups = linearScaledValue(5_000, memLimitGB, 5_000)
 		s.logger.Infof("Aggregation.ServiceDestinations.MaxGroups set to %d based on %0.1fgb of memory",
-			s.config.Aggregation.Transactions.MaxGroups, memLimitGB,
+			s.config.Aggregation.ServiceDestinations.MaxGroups, memLimitGB,
 		)
 	}
 

@@ -37,9 +37,7 @@ CURRENT_DIR=$(shell dirname $(shell readlink -f $(firstword $(MAKEFILE_LIST))))
 
 APM_SERVER_BINARIES:= \
 	build/apm-server-linux-amd64 \
-	build/apm-server-linux-386 \
 	build/apm-server-linux-arm64 \
-	build/apm-server-windows-386.exe \
 	build/apm-server-windows-amd64.exe \
 	build/apm-server-darwin-amd64 \
 	build/apm-server-darwin-arm64
@@ -64,7 +62,6 @@ $(APM_SERVER_BINARIES):
 build/apm-server-linux-%: GOOS=linux
 build/apm-server-darwin-%: GOOS=darwin
 build/apm-server-windows-%: GOOS=windows
-build/apm-server-%-386 build/apm-server-%-386.exe: GOARCH=386
 build/apm-server-%-amd64 build/apm-server-%-amd64.exe: GOARCH=amd64
 build/apm-server-%-amd64 build/apm-server-%-amd64.exe: GOFLAGS+=-buildmode=pie
 build/apm-server-%-arm64 build/apm-server-%-arm64.exe: GOARCH=arm64
@@ -75,7 +72,6 @@ GOVERSIONINFO_FLAGS := \
 	-product-version "$(APM_SERVER_VERSION)" \
 	-comment "commit=$(GITCOMMIT)"
 
-build/apm-server-windows-386.exe: x-pack/apm-server/versioninfo_windows_386.syso
 build/apm-server-windows-amd64.exe: x-pack/apm-server/versioninfo_windows_amd64.syso
 x-pack/apm-server/versioninfo_windows_amd64.syso: GOVERSIONINFO_FLAGS+=-64
 x-pack/apm-server/versioninfo_%.syso: $(GOVERSIONINFO) $(GITREFFILE) packaging/versioninfo.json

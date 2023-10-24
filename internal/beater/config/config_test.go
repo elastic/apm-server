@@ -478,7 +478,7 @@ func TestUnpackConfig(t *testing.T) {
 						MaxGroups: 0, // Default value is set as per memory limit
 					},
 					ServiceDestinations: ServiceDestinationAggregationConfig{
-						MaxGroups: 10000,
+						MaxGroups: 0, // Default value is set as per memory limit
 					},
 					ServiceTransactions: ServiceTransactionAggregationConfig{
 						MaxGroups: 0, // Default value is set as per memory limit
