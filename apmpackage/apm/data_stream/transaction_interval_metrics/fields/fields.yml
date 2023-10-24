@@ -88,3 +88,5 @@
   type: aggregate_metric_double
   metrics: ["sum", "value_count"]
   default_metric: "sum"
+- name: labels
+  type: flattened

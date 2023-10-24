@@ -59,21 +59,19 @@
   index: false
   description: |
     Version of the runtime used.
-- name: numeric_labels.*
-  type: scaled_float
+- name: numeric_labels
+  type: object
+  object_type: scaled_float
   scaling_factor: 1000000
   dynamic: true
   description: |
     Custom key/value pairs. Can be used to add meta information to events. Should not contain nested objects. All values are stored as scaled_float.
-- name: histogram
-  type: histogram
-  dynamic: true
-- name: summary
-  type: aggregate_metric_double
-  metrics: ["sum", "value_count"]
-  default_metric: "value_count"
-  dynamic: true
 - name: double
-  type: double
+  type: object
+  object_type: double
   dynamic: true
   index: false
+  description: |
+    This is a temporary work-around until the spec support specifying index property in manifest.yml
+- name: labels
+  type: flattened

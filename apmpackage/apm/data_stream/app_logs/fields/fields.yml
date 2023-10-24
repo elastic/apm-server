@@ -94,9 +94,12 @@
   type: keyword
   description: |
     The lambda function version.
-- name: numeric_labels.*
-  type: scaled_float
+- name: numeric_labels
+  type: object
+  object_type: scaled_float
   dynamic: true
   scaling_factor: 1000000
   description: |
     Custom key/value pairs. Can be used to add meta information to events. Should not contain nested objects. All values are stored as scaled_float.
+- name: labels
+  type: flattened

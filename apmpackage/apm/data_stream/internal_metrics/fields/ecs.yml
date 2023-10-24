@@ -76,9 +76,6 @@
   name: host.os.platform
   index: false
 - external: ecs
-  name: labels
-  dynamic: true
-- external: ecs
   name: observer.hostname
 - external: ecs
   name: observer.name

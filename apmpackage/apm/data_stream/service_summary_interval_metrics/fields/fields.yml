@@ -21,3 +21,5 @@
 - name: service_summary.aggregation.overflow_count
   type: long
   description: Number of aggregation groups that overflowed for service summary metrics aggregation.
+- name: labels
+  type: flattened
