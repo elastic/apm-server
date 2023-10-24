@@ -28,13 +28,13 @@ DOCKER_BUILD_ARGS := \
 DOCKER_IMAGES := \
 	build/docker/apm-server-$(APM_SERVER_VERSION).txt \
 	build/docker/apm-server-$(APM_SERVER_VERSION)-SNAPSHOT.txt \
-	build/docker/apm-server-ubi8-$(APM_SERVER_VERSION).txt \
-	build/docker/apm-server-ubi8-$(APM_SERVER_VERSION)-SNAPSHOT.txt
+	build/docker/apm-server-ubi9-$(APM_SERVER_VERSION).txt \
+	build/docker/apm-server-ubi9-$(APM_SERVER_VERSION)-SNAPSHOT.txt
 
 build/docker/%.txt: DOCKER_IMAGE_TAG := docker.elastic.co/apm/apm-server:%
 build/docker/%.txt: VERSION := $(APM_SERVER_VERSION)
 build/docker/%-SNAPSHOT.txt: VERSION := $(APM_SERVER_VERSION)-SNAPSHOT
-build/docker/apm-server-ubi8-%.txt: DOCKER_BUILD_ARGS+=--build-arg BASE_IMAGE=docker.elastic.co/ubi8/ubi-minimal
+build/docker/apm-server-ubi9-%.txt: DOCKER_BUILD_ARGS+=--build-arg BASE_IMAGE=docker.elastic.co/ubi9/ubi-minimal
 
 .PHONY: $(DOCKER_IMAGES)
 $(DOCKER_IMAGES):
@@ -43,7 +43,7 @@ $(DOCKER_IMAGES):
 
 # Docker image tarballs. We distribute UBI8 Docker images only for AMD64.
 DOCKER_IMAGE_SUFFIX := docker-image$(if $(findstring arm64,$(GOARCH)),-arm64).tar.gz
-DOCKER_IMAGE_PREFIXES := apm-server $(if $(findstring amd64,$(GOARCH)), apm-server-ubi8)
+DOCKER_IMAGE_PREFIXES := apm-server $(if $(findstring amd64,$(GOARCH)), apm-server-ubi9)
 DOCKER_IMAGE_RELEASE_TARBALLS := $(patsubst %, $(DISTDIR)/%-$(APM_SERVER_VERSION)-$(DOCKER_IMAGE_SUFFIX), $(DOCKER_IMAGE_PREFIXES))
 DOCKER_IMAGE_SNAPSHOT_TARBALLS := $(patsubst %, $(DISTDIR)/%-$(APM_SERVER_VERSION)-SNAPSHOT-$(DOCKER_IMAGE_SUFFIX), $(DOCKER_IMAGE_PREFIXES))
 
