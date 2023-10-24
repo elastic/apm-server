@@ -20,3 +20,4 @@ https://github.com/elastic/apm-server/compare/8.11\...main[View commits]
 ==== Added
 - Update container base image to Ubuntu 22.04 {pull}11778[11778]
 - Add support for returning partial success response in OTLP input {pull}11883[11883]
+- Setting event timestamp from OTel observed timestamp when needed {pull}0[0]
