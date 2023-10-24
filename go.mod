@@ -10,11 +10,11 @@ require (
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/apm-aggregation v0.0.0-20230815024520-e75a37d9ddd6
 	github.com/elastic/apm-data v0.1.1-0.20230928144734-40b63726f3b7
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20231011091719-73303ae8c759
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20231018064857-d3c42ef75b93
 	github.com/elastic/elastic-agent-client/v7 v7.4.0
 	github.com/elastic/elastic-agent-libs v0.3.15-0.20230913212237-dbdaf18c898b
 	github.com/elastic/elastic-agent-system-metrics v0.7.0
-	github.com/elastic/gmux v0.3.0
+	github.com/elastic/gmux v0.3.1
 	github.com/elastic/go-docappender v0.2.1-0.20230829163624-c69a1cf8ce35
 	github.com/elastic/go-elasticsearch/v8 v8.10.0
 	github.com/elastic/go-sysinfo v1.11.1
@@ -55,7 +55,7 @@ require (
 	golang.org/x/sync v0.4.0
 	golang.org/x/term v0.13.0
 	golang.org/x/time v0.3.0
-	google.golang.org/grpc v1.58.2
+	google.golang.org/grpc v1.58.3
 	google.golang.org/protobuf v1.31.0
 	gopkg.in/yaml.v3 v3.0.1
 )
