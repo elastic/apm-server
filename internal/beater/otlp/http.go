@@ -78,11 +78,18 @@ func (h HTTPHandlers) HandleTraces(w http.ResponseWriter, r *http.Request) {
 		h.writeError(w, err, http.StatusBadRequest)
 		return
 	}
-	if err := h.consumer.ConsumeTraces(r.Context(), req.Traces()); err != nil {
+	var result otlp.ConsumeTracesResult
+	var err error
+	if result, err = h.consumer.ConsumeTracesWithResult(r.Context(), req.Traces()); err != nil {
 		h.writeError(w, err, http.StatusInternalServerError)
 		return
 	}
-	if err := h.writeResponse(w, ptraceotlp.NewExportResponse()); err != nil {
+	resp := ptraceotlp.NewExportResponse()
+	if result.RejectedSpans > 0 {
+		resp.PartialSuccess().SetRejectedSpans(result.RejectedSpans)
+		resp.PartialSuccess().SetErrorMessage(result.ErrorMessage)
+	}
+	if err := h.writeResponse(w, resp); err != nil {
 		h.writeError(w, err, http.StatusInternalServerError)
 		return
 	}
@@ -96,11 +103,18 @@ func (h HTTPHandlers) HandleMetrics(w http.ResponseWriter, r *http.Request) {
 		h.writeError(w, err, http.StatusBadRequest)
 		return
 	}
-	if err := h.consumer.ConsumeMetrics(r.Context(), req.Metrics()); err != nil {
+	var result otlp.ConsumeMetricsResult
+	var err error
+	if result, err = h.consumer.ConsumeMetricsWithResult(r.Context(), req.Metrics()); err != nil {
 		h.writeError(w, err, http.StatusInternalServerError)
 		return
 	}
-	if err := h.writeResponse(w, pmetricotlp.NewExportResponse()); err != nil {
+	resp := pmetricotlp.NewExportResponse()
+	if result.RejectedDataPoints > 0 {
+		resp.PartialSuccess().SetRejectedDataPoints(result.RejectedDataPoints)
+		resp.PartialSuccess().SetErrorMessage(result.ErrorMessage)
+	}
+	if err := h.writeResponse(w, resp); err != nil {
 		h.writeError(w, err, http.StatusInternalServerError)
 		return
 	}
@@ -114,11 +128,18 @@ func (h HTTPHandlers) HandleLogs(w http.ResponseWriter, r *http.Request) {
 		h.writeError(w, err, http.StatusBadRequest)
 		return
 	}
-	if err := h.consumer.ConsumeLogs(r.Context(), req.Logs()); err != nil {
+	var result otlp.ConsumeLogsResult
+	var err error
+	if result, err = h.consumer.ConsumeLogsWithResult(r.Context(), req.Logs()); err != nil {
 		h.writeError(w, err, http.StatusInternalServerError)
 		return
 	}
-	if err := h.writeResponse(w, plogotlp.NewExportResponse()); err != nil {
+	resp := plogotlp.NewExportResponse()
+	if result.RejectedLogRecords > 0 {
+		resp.PartialSuccess().SetRejectedLogRecords(result.RejectedLogRecords)
+		resp.PartialSuccess().SetErrorMessage(result.ErrorMessage)
+	}
+	if err := h.writeResponse(w, resp); err != nil {
 		h.writeError(w, err, http.StatusInternalServerError)
 		return
 	}
