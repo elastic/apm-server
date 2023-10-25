@@ -90,7 +90,7 @@ func makeNullOutput(
 	_ *agentconfig.C,
 ) (outputs.Group, error) {
 	client := nullOutput{observer: observer}
-	return outputs.Success(1, 0, client)
+	return outputs.Success(agentconfig.Namespace{}, 1, 0, client)
 }
 
 func (nullOutput) String() string {
