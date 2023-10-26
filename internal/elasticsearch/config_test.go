@@ -170,6 +170,7 @@ func TestBeatsConfigSynced(t *testing.T) {
 
 	knownUnhandled := []string{
 		"backoff", // we have our own version with its own type
+		"queue",
 		"bulk_max_size",
 		"escape_html",
 		// TODO Kerberos auth (https://github.com/elastic/apm-server/issues/3794)
