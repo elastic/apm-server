@@ -7,7 +7,7 @@ This section describes common problems you might encounter when using a Fleet-ma
 * <<common-response-codes>>
 * <<common-ssl-problems>>
 * <<io-timeout>>
-* <<field-limit-exceeded-legacy>>
+* <<field-limit-exceeded>>
 * <<tail-based-sampling-memory-disk-io>>
 
 [float]
@@ -18,7 +18,7 @@ If no data shows up in {es}, first make sure that your APM components are proper
 
 include::{tab-widget-dir}/no-data-indexed-widget.asciidoc[]
 
-[[data-indexed-no-apm-legacy]]
+[[data-indexed-no-apm]]
 [float]
 === Data is indexed but doesn't appear in the APM app
 
@@ -165,7 +165,7 @@ APM agent --> Load Balancer  --> APM Server
 The APM Server timeout can be configured by updating the
 <<read_timeout,maximum duration for reading an entire request>>.
 
-[[field-limit-exceeded-legacy]]
+[[field-limit-exceeded]]
 [float]
 === Field limit exceeded
 
