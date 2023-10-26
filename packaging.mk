@@ -28,13 +28,13 @@ DOCKER_BUILD_ARGS := \
 DOCKER_IMAGES := \
 	build/docker/apm-server-$(APM_SERVER_VERSION).txt \
 	build/docker/apm-server-$(APM_SERVER_VERSION)-SNAPSHOT.txt \
-	build/docker/apm-server-ubi8-$(APM_SERVER_VERSION).txt \
-	build/docker/apm-server-ubi8-$(APM_SERVER_VERSION)-SNAPSHOT.txt
+	build/docker/apm-server-ubi9-$(APM_SERVER_VERSION).txt \
+	build/docker/apm-server-ubi9-$(APM_SERVER_VERSION)-SNAPSHOT.txt
 
 build/docker/%.txt: DOCKER_IMAGE_TAG := docker.elastic.co/apm/apm-server:%
 build/docker/%.txt: VERSION := $(APM_SERVER_VERSION)
 build/docker/%-SNAPSHOT.txt: VERSION := $(APM_SERVER_VERSION)-SNAPSHOT
-build/docker/apm-server-ubi8-%.txt: DOCKER_BUILD_ARGS+=--build-arg BASE_IMAGE=docker.elastic.co/ubi8/ubi-minimal
+build/docker/apm-server-ubi9-%.txt: DOCKER_BUILD_ARGS+=--build-arg BASE_IMAGE=docker.elastic.co/ubi9/ubi-minimal
 
 .PHONY: $(DOCKER_IMAGES)
 $(DOCKER_IMAGES):
@@ -43,7 +43,7 @@ $(DOCKER_IMAGES):
 
 # Docker image tarballs. We distribute UBI8 Docker images only for AMD64.
 DOCKER_IMAGE_SUFFIX := docker-image$(if $(findstring arm64,$(GOARCH)),-arm64).tar.gz
-DOCKER_IMAGE_PREFIXES := apm-server $(if $(findstring amd64,$(GOARCH)), apm-server-ubi8)
+DOCKER_IMAGE_PREFIXES := apm-server $(if $(findstring amd64,$(GOARCH)), apm-server-ubi9)
 DOCKER_IMAGE_RELEASE_TARBALLS := $(patsubst %, $(DISTDIR)/%-$(APM_SERVER_VERSION)-$(DOCKER_IMAGE_SUFFIX), $(DOCKER_IMAGE_PREFIXES))
 DOCKER_IMAGE_SNAPSHOT_TARBALLS := $(patsubst %, $(DISTDIR)/%-$(APM_SERVER_VERSION)-SNAPSHOT-$(DOCKER_IMAGE_SUFFIX), $(DOCKER_IMAGE_PREFIXES))
 
@@ -106,25 +106,21 @@ WINDOWS_PACKAGE_FILES := \
 # so we need to create arch-specific nfpm configuration files.
 build/nfpm-amd64.yml: PACKAGE_GOARCH=amd64
 build/nfpm-arm64.yml: PACKAGE_GOARCH=arm64
-build/nfpm-386.yml: PACKAGE_GOARCH=386
 build/nfpm-%.yml: packaging/nfpm.yml
 	sed 's/$${GOARCH}/$(PACKAGE_GOARCH)/' $< | sed 's/$${APM_SERVER_VERSION}/${APM_SERVER_VERSION}/' > $@
 
-DEB_ARCH := i386 amd64 arm64
+DEB_ARCH := amd64 arm64
 DEBS := $(patsubst %, $(DISTDIR)/apm-server-$(APM_SERVER_VERSION)-%.deb, $(DEB_ARCH))
 DEBS += $(patsubst %, $(DISTDIR)/apm-server-$(APM_SERVER_VERSION)-SNAPSHOT-%.deb, $(DEB_ARCH))
-DEBS_386 := $(filter %-i386.deb, $(DEBS))
 DEBS_AMD64 := $(filter %-amd64.deb, $(DEBS))
 DEBS_ARM64 := $(filter %-arm64.deb, $(DEBS))
 
-RPM_ARCH := i686 x86_64 aarch64
+RPM_ARCH := x86_64 aarch64
 RPMS := $(patsubst %, $(DISTDIR)/apm-server-$(APM_SERVER_VERSION)-%.rpm, $(RPM_ARCH))
 RPMS += $(patsubst %, $(DISTDIR)/apm-server-$(APM_SERVER_VERSION)-SNAPSHOT-%.rpm, $(RPM_ARCH))
-RPMS_386 := $(filter %-i686.rpm, $(RPMS))
 RPMS_AMD64 := $(filter %-x86_64.rpm, $(RPMS))
 RPMS_ARM64 := $(filter %-aarch64.rpm, $(RPMS))
 
-$(DEBS_386) $(RPMS_386): $(NFPM) $(COMMON_PACKAGE_FILES) build/apm-server-linux-386 build/nfpm-386.yml
 $(DEBS_ARM64) $(RPMS_ARM64): $(NFPM) $(COMMON_PACKAGE_FILES) build/apm-server-linux-arm64 build/nfpm-arm64.yml
 $(DEBS_AMD64) $(RPMS_AMD64): $(NFPM) $(COMMON_PACKAGE_FILES) build/apm-server-linux-amd64 build/nfpm-amd64.yml
 
@@ -136,19 +132,16 @@ $(DEBS_AMD64) $(RPMS_AMD64): $(NFPM) $(COMMON_PACKAGE_FILES) build/apm-server-li
 #
 # ARCHIVES_DIR holds intermediate directories created for building tgz and zip.
 ARCHIVES_DIR := build/archives
-ARCHIVE_PLATFORMS := darwin-x86_64 linux-x86_64 linux-x86 linux-arm64 windows-x86_64
+ARCHIVE_PLATFORMS := darwin-x86_64 linux-x86_64 linux-arm64 windows-x86_64
 ARCHIVE_PREFIX := $(ARCHIVES_DIR)/apm-server-$(APM_SERVER_VERSION)
 ARCHIVES := $(addprefix $(ARCHIVE_PREFIX)-, $(ARCHIVE_PLATFORMS))
 ARCHIVES += $(addprefix $(ARCHIVE_PREFIX)-SNAPSHOT-, $(ARCHIVE_PLATFORMS))
 
 $(ARCHIVE_PREFIX)-darwin-x86_64 $(ARCHIVE_PREFIX)-SNAPSHOT-darwin-x86_64: build/apm-server-darwin-amd64 $(COMMON_PACKAGE_FILES)
 $(ARCHIVE_PREFIX)-linux-x86_64 $(ARCHIVE_PREFIX)-SNAPSHOT-linux-x86_64: build/apm-server-linux-amd64 $(COMMON_PACKAGE_FILES)
-$(ARCHIVE_PREFIX)-linux-x86 $(ARCHIVE_PREFIX)-SNAPSHOT-linux-x86: build/apm-server-linux-386 $(COMMON_PACKAGE_FILES)
 $(ARCHIVE_PREFIX)-linux-arm64 $(ARCHIVE_PREFIX)-SNAPSHOT-linux-arm64: build/apm-server-linux-arm64 $(COMMON_PACKAGE_FILES)
 $(ARCHIVE_PREFIX)-windows-x86_64 $(ARCHIVE_PREFIX)-SNAPSHOT-windows-x86_64: \
 	build/apm-server-windows-amd64.exe $(COMMON_PACKAGE_FILES) $(WINDOWS_PACKAGE_FILES)
-$(ARCHIVE_PREFIX)-windows-x86 $(ARCHIVE_PREFIX)-SNAPSHOT-windows-x86: \
-	build/apm-server-windows-386.exe $(COMMON_PACKAGE_FILES) $(WINDOWS_PACKAGE_FILES)
 
 $(ARCHIVE_PREFIX)-%:
 	@rm -fr $@ && mkdir -p $@
@@ -182,15 +175,11 @@ $(DISTDIR)/%-docker-build-context.tar.gz: $(ARCHIVES_DIR)/%-docker-build-context
 PACKAGE_SUFFIXES := \
 	darwin-x86_64.tar.gz \
 	linux-x86_64.tar.gz \
-	linux-x86.tar.gz \
 	linux-arm64.tar.gz \
 	windows-x86_64.zip \
-	windows-x86.zip \
 	amd64.deb \
-	i386.deb \
 	arm64.deb \
 	x86_64.rpm \
-	i686.rpm \
 	aarch64.rpm
 
 build/dependencies-$(APM_SERVER_VERSION)-SNAPSHOT.csv: build/dependencies-$(APM_SERVER_VERSION).csv

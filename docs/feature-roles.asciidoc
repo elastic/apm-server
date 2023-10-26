@@ -45,6 +45,7 @@ information, and another for viewing it.
 * <<privileges-api-key,API key role>>: To create and manage API keys.
 * <<privileges-agent-central-config,Central configuration management role>>: To view
 APM Agent central configurations.
+* <<privileges-rum-source-mapping,RUM source mapping role>>: To read RUM source maps.
 
 {es-security-features} provides {ref}/built-in-roles.html[built-in roles] that grant a
 subset of the privileges needed by APM users.
@@ -91,11 +92,9 @@ that has the following privileges:
 |Write events into {es}
 |====
 
-. If <<configuration-rum,real user monitoring>> is enabled, additional privileges are required to read source maps.
-See {kibana-ref}/rum-sourcemap-api.html[RUM source map API] for more details.
-Assign these extra privileges to the *general writer role*.
-
 . Assign the *general writer role* to users who need to publish APM data.
+
+. If <<configuration-rum,real user monitoring>> is enabled, create a separate <<privileges-rum-source-mapping,RUM source mapping role>>.
 
 ////
 ***********************************  ***********************************
@@ -353,6 +352,36 @@ which requires the following privileges:
 
 TIP: Looking for privileges and roles needed to use central configuration from the {apm-app} or {apm-app} API?
 See {kibana-ref}/apm-app-central-config-user.html[{apm-app} central configuration user].
+
+[[privileges-rum-source-map]]
+=== Grant privileges and roles needed for reading source maps
+
+++++
+<titleabbrev>Create a _source map_ user</titleabbrev>
+++++
+
+[[privileges-rum-source-mapping]]
+==== APM Server RUM source mapping
+
+If <<configuration-rum,real user monitoring>> is enabled, additional privileges are required to read source maps.
+
+To grant an APM Server user with the required privileges for reading RUM source maps from {es} directly without {kib},
+assign the user the following privileges:
+
+[options="header"]
+|====
+|Type | Privilege | Purpose
+
+|Index
+|`read` on `.apm-source-map` index
+|Allow {beatname_uc} to read RUM source maps from {es}
+|====
+
+The above privileges should be sufficient for RUM source mapping to work properly
+as long as {beatname_uc} communicates with {es} successfully.
+If it fails, it may fallback to read source maps via {kib} if configured,
+which requires additional {kib} privileges.
+See {kibana-ref}/rum-sourcemap-api.html[RUM source map API] for more details.
 
 ////
 ***********************************  ***********************************
