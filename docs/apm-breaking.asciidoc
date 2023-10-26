@@ -205,7 +205,7 @@ APM Server no longer supports installation via Homebrew.
 ==== All removed and changed settings
 
 Below is a list of all **removed settings** (in alphabetical order) for
-users upgrading a standalone (legacy) APM Server to {stack} version 8.0.
+users upgrading a standalone APM Server to {stack} version 8.0.
 
 [source,yml]
 ----
@@ -225,7 +225,7 @@ setup.*
 ----
 
 Below is a list of **renamed settings** (in alphabetical order) for
-users upgrading a standalone (legacy) APM Server to {stack} version 8.0.
+users upgrading a standalone APM Server to {stack} version 8.0.
 
 [source,yml]
 ----
@@ -242,7 +242,7 @@ apm-server.secret_token         --> apm-server.auth.secret_token
 ==== Supported {ecloud} settings
 
 Below is a list of all **supported settings** (in alphabetical order) for
-users upgrading an {ecloud} standalone (legacy) cluster to {stack} version 8.0.
+users upgrading an {ecloud} standalone cluster to {stack} version 8.0.
 Any previously supported settings not listed below will be removed when upgrading.
 
 [source,yml]
