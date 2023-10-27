@@ -1,0 +1,19 @@
+{{- if (.Values.deployment).enabled -}}
+kind: Service
+apiVersion: v1
+metadata:
+  name: {{ .Chart.Name }}
+spec:
+  selector:
+    app.kubernetes.io/name: {{ .Chart.Name }}
+  ports:
+  - port: 8200
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Chart.Name }}
+spec:
+  replicas: {{ default 1 (.Values.deployment).replicas }}
+  {{ include "pod_spec" . }}
+{{- end -}}
