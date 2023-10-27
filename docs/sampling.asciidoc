@@ -47,11 +47,20 @@ image::./images/dt-sampling-example-2.png[Distributed tracing and head based sam
 
 **OpenTelemetry with head-based sampling**
 
-Head-based sampling is implemented in the APM agents and SDKs, and
-requires the sample rate to be propagated between services and the APM Server.
-This functionality is not currently supported by OpenTelemetry,
-which results in inaccurate APM throughput, latency, and error metrics.
+Head-based sampling is implemented directly in the APM agents and SDKs.
+The sample rate must be propagated between services and the managed intake service in order to produce accurate metrics.
+
+OpenTelemetry offers multiple samplers. However, most samplers do not propagate the sample rate.
+This results in inaccurate span-based metrics, like APM throughput, latency, and error metrics.
+
+For accurate span-based metrics when using head-based sampling with OpenTelemetry, you must use 
+a [consistent probability sampler](https://opentelemetry.io/docs/specs/otel/trace/tracestate-probability-sampling/).
+These samplers propagate the sample rate between services and the managed intake service, resulting in accurate metrics.
+
+NOTE: At the time of this writing, OpenTelemetry does not offer consistent probability samplers in all languanges.
 OpenTelemetry users should consider using tail-based sampling instead.
++
+Refer to the documentation of your favorite OpenTelemetry agent or SDK for more information on the availability of consistent probability samplers.
 
 [float]
 [[tail-based-sampling]]
