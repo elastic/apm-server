@@ -57,7 +57,7 @@ For accurate span-based metrics when using head-based sampling with OpenTelemetr
 a [consistent probability sampler](https://opentelemetry.io/docs/specs/otel/trace/tracestate-probability-sampling/).
 These samplers propagate the sample rate between services and the managed intake service, resulting in accurate metrics.
 
-NOTE: At the time of this writing, OpenTelemetry does not offer consistent probability samplers in all languanges.
+NOTE: OpenTelemetry does not offer consistent probability samplers in all languanges.
 OpenTelemetry users should consider using tail-based sampling instead.
 +
 Refer to the documentation of your favorite OpenTelemetry agent or SDK for more information on the availability of consistent probability samplers.
