@@ -9,6 +9,7 @@ This section summarizes the changes in each release.
 
 **APM integration and APM Server**
 
+* <<release-notes-8.11>>
 * <<release-notes-8.10>>
 * <<release-notes-8.9>>
 * <<release-notes-8.8>>
