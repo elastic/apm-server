@@ -25,14 +25,13 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - uses: actions/setup-go@v3
+    - uses: actions/setup-go@v4
       with:
         go-version-file: go.mod
-        cache: true
         cache-dependency-path: |
           go.sum
           tools/go.sum
-    - uses: hashicorp/vault-action@v2.5.0
+    - uses: hashicorp/vault-action@v2.7.4
       with:
         url: ${{ inputs.vault-url }}
         roleId: ${{ inputs.vault-role-id }}
