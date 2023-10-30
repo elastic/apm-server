@@ -21,7 +21,7 @@ jobs:
       tests: ${{ steps.generate.outputs.tests }}
       date: ${{ steps.generate.outputs.date }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           ref: ${{ inputs.branch }}
       - id: generate
@@ -50,7 +50,7 @@ jobs:
           - '7.17'
           - 'latest'
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           ref: ${{ inputs.branch }}
       - name: Setup cluster env

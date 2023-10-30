@@ -33,6 +33,7 @@ runs:
     - id: generate
       name: Generate matrix and date
       run: |
-        echo "tests=$(make smoketest/discover)" >> "${GITHUB_OUTPUT}"
+        # remove the full path and use a relative path instead to be github runner agnostic
+        echo "tests=$(make smoketest/discover | sed "s#${GITHUB_WORKSPACE}/#./#g")" >> "${GITHUB_OUTPUT}"
         echo "date=$(date +%s)" >> "${GITHUB_OUTPUT}"
       shell: 'bash'
