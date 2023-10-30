@@ -13,6 +13,14 @@ inputs:
   vault-secret-id:
     description: 'Vault secret ID'
     required: true
+  ec-key-secret:
+    default: 'secret/observability-team/ci/elastic-cloud/observability-pro'
+    description: 'EC Key secret'
+    required: false
+  aws-account-secret:
+    default: 'secret/observability-team/ci/elastic-observability-aws-account-auth'
+    description: 'AWS account secret'
+    required: false
 
 runs:
   using: "composite"
@@ -25,18 +33,15 @@ runs:
           go.sum
           tools/go.sum
     - uses: hashicorp/vault-action@v2.5.0
-      env:
-        AWS_ACCOUNT_SECRET: 'secret/observability-team/ci/elastic-observability-aws-account-auth'
-        EC_KEY_SECRET: 'secret/observability-team/ci/elastic-cloud/observability-pro'
       with:
         url: ${{ inputs.vault-url }}
         roleId: ${{ inputs.vault-role-id }}
         secretId: ${{ inputs.vault-secret-id }}
         method: approle
         secrets: |
-          ${{ env.EC_KEY_SECRET }} apiKey | EC_API_KEY ;
-          ${{ env.AWS_ACCOUNT_SECRET }} user | AWS_PROFILE ;
-          ${{ env.AWS_ACCOUNT_SECRET }} csv | AWS_ACCOUNT_IMPORT
+          ${{ inputs.ec-key-secret }} apiKey | EC_API_KEY ;
+          ${{ inputs.aws-account-secret }} user | AWS_PROFILE ;
+          ${{ inputs.aws-account-secret }} csv | AWS_ACCOUNT_IMPORT
     - name: Configure AWS account
       run: |
         echo "${AWS_ACCOUNT_IMPORT}" > ${{ runner.temp }}/account.csv;
