@@ -171,7 +171,7 @@ require (
 	gopkg.in/jcmturner/rpc.v1 v1.1.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	howett.net/plist v1.0.0 // indirect
-	k8s.io/client-go v0.26.2 // indirect
+	k8s.io/client-go v0.28.3 // indirect
 )
 
 replace (
