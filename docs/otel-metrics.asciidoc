@@ -46,9 +46,9 @@ only OpenTelemetry metrics documents.
 [[open-telemetry-visualize]]
 ==== Visualize in {kib}
 
-TSVB within {kib} is the recommended visualization for OpenTelemetry metrics. TSVB is a time series data visualizer that allows you to use the
-{es} aggregation framework's full power. With TSVB, you can combine an infinite number of aggregations to display complex data.
+Use *Lens* to create visualizations for OpenTelemetry metrics. Lens enables you to build visualizations by dragging and dropping data fields. It makes smart visualization suggestions for your data, allowing you to switch between visualization types.
 
+<<<<<<< HEAD
 // lint ignore ecommerce
 In this example eCommerce OpenTelemetry dashboard, there are four visualizations: sales, order count, product cache, and system load. The dashboard provides us with business
 KPI metrics, along with performance-related metrics.
@@ -88,3 +88,6 @@ Both visualizations are now displayed on your custom dashboard.
 
 IMPORTANT: By default, Discover shows data for the last 15 minutes. If you have a time-based index
 and no data displays, you might need to increase the time range.
+=======
+For more information on using Lens, refer to the {kibana-ref}/lens.html[Lens documentation].
+>>>>>>> 691b5269e (docs: Clean up OpenTelemetry docs (#11882))
