@@ -33,10 +33,12 @@ APM Server does not yet support JSON Encoding for OTLP/HTTP.
 [[open-telemetry-collector-exporter]]
 ==== OpenTelemetry Collector exporter for Elastic
 
-The https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/elasticexporter#legacy-opentelemetry-collector-exporter-for-elastic[OpenTelemetry Collector exporter for Elastic]
-was deprecated in 7.13 and replaced by the native support of the OpenTelemetry Line Protocol in
-Elastic {observability} (OTLP). To learn more, see
-https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/elasticexporter#migration[migration].
+The https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.57.2/exporter/elasticexporter[OpenTelemetry Collector exporter for Elastic]
+has been deprecated and replaced by the native support of the OpenTelemetry Line Protocol in Elastic Observability (OTLP).
+// To learn more, see https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.57.2/exporter/elasticsearchexporter#migration[migration].
+
+The https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/elasticsearchexporter#elasticsearch-exporter[Elasticsearch exporter for the OpenTelemetry Collector]
+(which is different from the legacy exporter mentioned above) is not intended to be used with Elastic APM and Elastic Observability. Use <<open-telemetry-direct>> instead.
 
 [float]
 [[open-telemetry-tbs]]
