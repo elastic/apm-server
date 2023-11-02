@@ -15,7 +15,7 @@ These index templates are composed of multiple component templates--reusable bui
 that configure index mappings, settings, and aliases.
 
 The default APM index templates can be viewed in {kib}.
-Navigate to **{stack-manage-app}** > **Index Management** > **Index Templates**, and search for `apm`.
+Navigate to **{stack-manage-app}** -> **Index Management** -> **Index Templates**, and search for `apm`.
 Select any of the APM index templates to view their relevant component templates.
 
 [discrete]
@@ -30,21 +30,33 @@ When you install the APM integration, {fleet} creates a default `@custom` compon
 You can edit this `@custom` component template to customize your {es} indices.
 
 First, determine which <<apm-data-streams,data stream>> you'd like to edit.
-Then, open {kib} and navigate to **{stack-manage-app}** > **Index Management** > **Component Templates**.
+Then, open {kib} and navigate to **{stack-manage-app}** -> **Index Management** -> **Component Templates**.
 
 Custom component templates are named following this pattern: `<name_of_data_stream>@custom`.
 Search for the name of the data stream, like `traces-apm`, and select its custom component template.
 In this example, that'd be, `traces-apm@custom`.
-Then click **Manage** > **Edit**.
+Then click **Manage** -> **Edit**.
 
-Add any custom index settings, metadata, or mappings.
-For example, you may want to...
+Add any custom metadata, index settings, or mappings.
+// or aliases.
+
+// [discrete]
+// ==== Logistics
+
+// In the *Logistics* step, ...
+// For example, you could:
+
+[discrete]
+==== Index settings
+
+In the **Index settings** step, you can specify custom {ref}/index-modules.html#index-modules-settings[index settings].
+For example, you could:
 
 * Customize the index lifecycle policy applied to a data stream.
 See <<data-streams-custom-policy,custom index lifecycle policies>> for a walk-through.
 
 * Change the number of {ref}/scalability.html[shards] per index.
-Specify the number of primary shards in the **index settings**:
+Specify the number of primary shards:
 +
 [source,json]
 ----
@@ -56,7 +68,7 @@ Specify the number of primary shards in the **index settings**:
 ----
 
 * Change the number of {ref}/docs-replication.html[replicas] per index.
-Specify the number of replica shards in the **index settings**:
+Specify the number of replica shards:
 +
 [source,json]
 ----
@@ -66,6 +78,34 @@ Specify the number of replica shards in the **index settings**:
   }
 }
 ----
+
+[discrete]
+==== Mappings
+
+{ref}/mapping.html[Mapping] is the process of defining how a document, and the fields it contains, are stored and indexed.
+In the *Mappings* step, you can add custom field mappings.
+For example, you could:
+
+* Add custom field mappings that you can index on and search.
+In the *Mapped fields* tab, add a new field including the {ref}/mapping-types.html[field type]:
++
+image::images/custom-index-template-mapped-fields.png[Editing a component template to add a new mapped field]
+
+* Add a {ref}/runtime.html[runtime field] that is evaluated at query time.
+In the *Runtime fields* tab, click *Create runtime field* and provide a field name,
+type, and optionally a script:
++
+image::images/custom-index-template-runtime-fields.png[Editing a component template to add a new runtime field]
+
+// * {Do something.} In the *Dynamic templates* tab...
+
+// * {Do something.} In the *Advanced options* tab...
+
+// [discrete]
+// ==== Aliases
+
+// In the *Aliases* step, ...
+// For example, you could:
 
 Changes to component templates are not applied retroactively to existing indices.
 For changes to take effect, you must create a new write index for the data stream.
