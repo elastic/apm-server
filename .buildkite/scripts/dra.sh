@@ -23,12 +23,6 @@ echo "--- Changing permissions for the release manager"
 sudo chown -R :1000 build/
 ls -l build/distributions/
 
-# as long as elastic/beats uses ubi8, the filenames contain the ubi8 term
-echo "--- Changing ubi8 name for ubi9"
-pushd build/distributions
-for file in apm-server-ubi8* ; do  mv $file ${file//ubi8/ubi9} ; done
-popd
-
 if [[ "${BUILDKITE_PULL_REQUEST:-false}" == "true" ]]; then
   echo "--- :arrow_right: Release Manager does not run on PRs, skipping"
   exit 0
