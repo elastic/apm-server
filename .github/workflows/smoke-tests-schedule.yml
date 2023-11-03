@@ -1,0 +1,63 @@
+name: smoke-tests
+run-name: Smoke Tests
+
+on:
+  workflow_dispatch: ~
+  schedule:
+    - cron: '0 3 * * 1-5'
+
+# Limit the access of the generated GITHUB_TOKEN
+permissions:
+  contents: read
+
+jobs:
+  prepare-smoke-tests-os:
+    name: Generate smoke tests list
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.generate.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: generate
+        name: Generate matrix
+        uses: elastic/apm-pipeline-library/.github/actions/elastic-stack-snapshot-branches@current
+        with:
+          exclude-branches: '7.17'
+
+  smoke-tests-os:
+    name: Run smoke tests OS
+    needs: prepare-smoke-tests-os
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.prepare-smoke-tests-os.outputs.matrix) }}
+    uses: ./.github/workflows/smoke-tests-os.yml
+    with:
+      branch: ${{ matrix.branch }}
+    secrets: inherit
+
+  smoke-tests-ess:
+    name: Run smoke tests ESS
+    uses: ./.github/workflows/smoke-tests-ess.yml
+    with:
+      branch: 'main'
+    secrets: inherit
+
+  all-smoke-tests:
+    name: All Smoke Tests
+    if: always()
+    runs-on: ubuntu-latest
+    needs:
+      - smoke-tests-os
+      - smoke-tests-ess
+    steps:
+      - id: check
+        uses: elastic/apm-pipeline-library/.github/actions/check-dependent-jobs@current
+        with:
+          needs: ${{ toJSON(needs) }}
+      - uses: elastic/apm-pipeline-library/.github/actions/notify-build-status@current
+        with:
+          status: ${{ steps.check.outputs.status }}
+          vaultUrl: ${{ secrets.VAULT_ADDR }}
+          vaultRoleId: ${{ secrets.VAULT_ROLE_ID }}
+          vaultSecretId: ${{ secrets.VAULT_SECRET_ID }}
+          slackChannel: "#apm-server"
