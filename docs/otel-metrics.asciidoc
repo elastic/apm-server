@@ -46,45 +46,6 @@ only OpenTelemetry metrics documents.
 [[open-telemetry-visualize]]
 ==== Visualize in {kib}
 
-TSVB within {kib} is the recommended visualization for OpenTelemetry metrics. TSVB is a time series data visualizer that allows you to use the
-{es} aggregation framework's full power. With TSVB, you can combine an infinite number of aggregations to display complex data.
+Use *Lens* to create visualizations for OpenTelemetry metrics. Lens enables you to build visualizations by dragging and dropping data fields. It makes smart visualization suggestions for your data, allowing you to switch between visualization types.
 
-// lint ignore ecommerce
-In this example eCommerce OpenTelemetry dashboard, there are four visualizations: sales, order count, product cache, and system load. The dashboard provides us with business
-KPI metrics, along with performance-related metrics.
-
-
-[role="screenshot"]
-image::./images/ecommerce-dashboard.png[OpenTelemetry visualizations]
-
-Let's look at how this dashboard was created, specifically the Sales USD and System load visualizations.
-
-. Open the main menu, then click *Dashboard*.
-. Click *Create dashboard*.
-. Click *Save*, enter the name of your dashboard, and then click *Save* again.
-. Let’s add a Sales USD visualization. Click *Edit*.
-. Click *Create new* and then select *TSVB*.
-. For the label name, enter Sales USD, and then select the following:
-+
-* Aggregation: `Counter Rate`.
-* Field: `order_sum`.
-* Scale: `auto`.
-* Group by: `Everything`
-. Click *Save*, enter Sales USD as the visualization name, and then click *Save and return*.
-. Now let's create a visualization of load averages on the system. Click *Create new*.
-. Select *TSVB*.
-. Select the following:
-+
-* Aggregation: `Average`.
-* Field: `system.cpu.load_average.1m`.
-* Group by: `Terms`.
-* By: `host.ip`.
-* Top: `10`.
-* Order by: `Doc Count (default)`.
-* Direction: `Descending`.
-. Click *Save*, enter System load per host IP as the visualization name, and then click *Save and return*.
-+
-Both visualizations are now displayed on your custom dashboard.
-
-IMPORTANT: By default, Discover shows data for the last 15 minutes. If you have a time-based index
-and no data displays, you might need to increase the time range.
+For more information on using Lens, refer to the {kibana-ref}/lens.html[Lens documentation].
