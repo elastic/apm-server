@@ -114,6 +114,9 @@
 - external: ecs
   name: http.version
 - external: ecs
+  name: labels
+  dynamic: true
+- external: ecs
   name: log.level
 - external: ecs
   name: log.logger

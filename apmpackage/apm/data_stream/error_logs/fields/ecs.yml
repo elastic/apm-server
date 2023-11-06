@@ -112,6 +112,9 @@
 - external: ecs
   name: http.version
 - external: ecs
+  name: labels
+  dynamic: true
+- external: ecs
   name: message
 - external: ecs
   name: observer.hostname

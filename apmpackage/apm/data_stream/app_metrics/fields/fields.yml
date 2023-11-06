@@ -73,7 +73,4 @@
   index: false
   description: |
     This is a temporary work-around until the spec support specifying index property in manifest.yml
-- name: labels
-  type: object
-  object_type: keyword
-  dynamic: true
+
