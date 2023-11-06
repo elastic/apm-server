@@ -74,4 +74,6 @@
   description: |
     This is a temporary work-around until the spec support specifying index property in manifest.yml
 - name: labels
-  type: flattened
+  type: object
+  object_type: keyword
+  dynamic: true

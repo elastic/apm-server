@@ -22,4 +22,6 @@
   type: long
   description: Number of aggregation groups that overflowed for service summary metrics aggregation.
 - name: labels
-  type: flattened
+  type: object
+  object_type: keyword
+  dynamic: true

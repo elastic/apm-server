@@ -38,4 +38,6 @@
   metrics: ["sum", "value_count"]
   default_metric: "sum"
 - name: labels
-  type: flattened
+  type: object
+  object_type: keyword
+  dynamic: true
