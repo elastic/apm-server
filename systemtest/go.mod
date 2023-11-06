@@ -5,7 +5,7 @@ go 1.21
 toolchain go1.21.3
 
 require (
-	github.com/docker/docker v23.0.3+incompatible
+	github.com/docker/docker v24.0.7+incompatible
 	github.com/docker/go-connections v0.4.0
 	github.com/elastic/apm-perf v0.0.0-20230608162138-29920c01cfd6
 	github.com/elastic/apm-tools v0.0.0-20230828065051-3f799314cc8b
@@ -36,7 +36,7 @@ require (
 	golang.org/x/sync v0.3.0
 	golang.org/x/sys v0.13.0
 	golang.org/x/time v0.3.0
-	google.golang.org/grpc v1.57.0
+	google.golang.org/grpc v1.57.1
 	gopkg.in/yaml.v3 v3.0.1
 )
 

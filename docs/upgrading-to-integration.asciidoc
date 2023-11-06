@@ -137,10 +137,10 @@ no reconfiguration is required in your APM agents.
 
 [discrete]
 [[apm-integration-upgrade-5]]
-==== Stop the legacy APM Server
+==== Stop the APM Server
 
 Once data from upgraded APM agents is visible in the {apm-app},
-it's safe to stop the legacy APM Server process.
+it's safe to stop the APM Server process.
 
 Congratulations -- you now have the latest and greatest in Elastic APM!
 
