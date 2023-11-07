@@ -38,11 +38,7 @@ include::{tab-widget-dir}/open-kibana-widget.asciidoc[]
 
 . Open the main menu, then click *Discover*.
 . Select `apm-*` as your index pattern.
-<<<<<<< HEAD
-. Filter the data to only show documents with metrics: `processor.name :"metric"`
-=======
 . Filter the data to only show documents with metrics: `[data_stream][type]: "metrics"`
->>>>>>> 6174ffdf6 (docs: Remove references to `processor.event` (#12013))
 . Narrow your search with a known OpenTelemetry field. For example, if you have an `order_value` field, add `order_value: *` to your search to return
 only OpenTelemetry metrics documents.
 
