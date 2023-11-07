@@ -184,7 +184,7 @@ APM Server sends the following `@metadata` to {ls}:
 <2> The current version of APM Server.
 
 In addition to `@metadata`, APM Server provides other potentially useful fields, like the
-`processor.event` field and `data_stream` fields, which can be used to conditionally operate on
+`data_stream` field, which can be used to conditionally operate on
 {apm-guide-ref}/data-model.html[event types], namespaces, or datasets.
 
 As an example, you might want to use {ls} to route all `metric` events to the same custom metrics data stream,
@@ -194,7 +194,7 @@ rather than to service-specific data streams:
 ----
 output {
   if [@metadata][beat] == "apm-server" { <1>
-    if [processor][event] == "metric" { <2>
+    if [data_stream][type] == "metrics" { <2>
       elasticsearch {
         index => "%{[data_stream][type]}-custom-%{[data_stream][namespace]}" <3>
         action => "create" <4>
