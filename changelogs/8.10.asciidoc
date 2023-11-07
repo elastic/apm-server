@@ -47,6 +47,7 @@ Fix tail-based sampling discarding low throughput and low sample rate traces {pu
 - Aggregated metrics now consider global labels to be part of a service's identity, and high cardinality global labels may cause services to be obscured {pull}11386[11386]
 - Event protobuf encoding for tail-based sampling changed (to a more efficient encoding) for event timestamp and duration {pull}11386[11386]
 - Use object notation for data_stream fields {pull}11311[11311]
+- Removed `processor.event` and `processor.name` from the data model {pull}11028[11028]
 
 [float]
 ==== Bug fixes
