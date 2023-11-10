@@ -720,6 +720,7 @@ func (s *Runner) newFinalBatchProcessor(
 	if enabled := esConfig.Scaling.Enabled; enabled != nil {
 		scalingCfg.Disabled = !*enabled
 	}
+	esConfig.MaxIdleConnsPerHost = esConfig.MaxRequests
 	opts := docappender.Config{
 		CompressionLevel: esConfig.CompressionLevel,
 		FlushBytes:       flushBytes,
