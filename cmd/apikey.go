@@ -375,7 +375,7 @@ func getAPIKey(client es.Client, id, name *string, validOnly, asJSON bool) error
 		if validOnly && (apikey.Invalidated || expiry == "expired") {
 			continue
 		}
-		creation := time.Unix(apikey.Creation/1000, 0).Format("2006-01-02 15:04")
+		creation := time.Unix(apikey.Creation/1000, 0).Format("2006-02-01 15:04")
 		printText("Username ....... %s", apikey.Username)
 		printText("Api Key Name ... %s", apikey.Name)
 		printText("Id ............. %s", apikey.ID)
