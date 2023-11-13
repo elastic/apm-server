@@ -464,7 +464,7 @@ func TestOTLPGRPCLogsClientIP(t *testing.T) {
 	defer cancel()
 
 	// Override local IP address to be found in "GeoLite2-City.mmdb".
-	md := metadata.New(map[string]string{"X-Forwarded-For": "195.55.79.118"})
+	md := metadata.New(map[string]string{"X-Forwarded-For": "178.162.206.244"})
 	ctx = metadata.NewOutgoingContext(ctx, md)
 
 	conn, err := grpc.Dial(serverAddr(srv), grpc.WithInsecure(), grpc.WithBlock(), grpc.WithDefaultCallOptions(grpc.UseCompressor("gzip")))
@@ -478,7 +478,7 @@ func TestOTLPGRPCLogsClientIP(t *testing.T) {
 	require.NoError(t, err)
 
 	result := estest.ExpectDocs(t, systemtest.Elasticsearch, "logs-apm*", nil)
-	approvaltest.ApproveEvents(t, t.Name(), result.Hits.Hits, "client.geo.city_name", "client.geo.location.lat", "client.geo.location.lon", "client.geo.region_iso_code", "client.geo.region_name")
+	approvaltest.ApproveEvents(t, t.Name(), result.Hits.Hits, "client.geo.location.lat", "client.geo.location.lon")
 }
 
 func newMobileLogs(body interface{}) plog.Logs {
