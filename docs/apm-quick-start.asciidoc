@@ -20,4 +20,4 @@ simply spin-up your instance and point your *APM agents* towards it.
 [float]
 == What will I learn in this guide?
 
-include::{obs-repo-dir}/observability/ingest-traces.asciidoc[tag=apm-quick-start]
+include::{obs-repo-dir}/observability/traces-get-started.asciidoc[tag=apm-quick-start]
