@@ -463,6 +463,66 @@ func TestOTLPRateLimit(t *testing.T) {
 	assert.Equal(t, "traces export: rpc error: code = ResourceExhausted desc = rate limit exceeded", errStatus.Message())
 }
 
+<<<<<<< HEAD
+=======
+func TestOTLPGRPCLogsClientIP(t *testing.T) {
+	systemtest.CleanupElasticsearch(t)
+	srv := apmservertest.NewUnstartedServerTB(t)
+	err := srv.Start()
+	require.NoError(t, err)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	// Override local IP address to be found in "GeoLite2-City.mmdb".
+	md := metadata.New(map[string]string{"X-Forwarded-For": "178.162.206.244"})
+	ctx = metadata.NewOutgoingContext(ctx, md)
+
+	conn, err := grpc.Dial(serverAddr(srv), grpc.WithInsecure(), grpc.WithBlock(), grpc.WithDefaultCallOptions(grpc.UseCompressor("gzip")))
+	require.NoError(t, err)
+	defer conn.Close()
+
+	logsClient := plogotlp.NewGRPCClient(conn)
+
+	logs := newMobileLogs("a log message")
+	_, err = logsClient.Export(ctx, plogotlp.NewExportRequestFromLogs(logs))
+	require.NoError(t, err)
+
+	result := estest.ExpectDocs(t, systemtest.Elasticsearch, "logs-apm*", nil)
+	approvaltest.ApproveEvents(t, t.Name(), result.Hits.Hits, "client.geo.location.lat", "client.geo.location.lon")
+}
+
+func newMobileLogs(body interface{}) plog.Logs {
+	logs := plog.NewLogs()
+	resourceLogs := logs.ResourceLogs().AppendEmpty()
+	resourceAttrs := logs.ResourceLogs().At(0).Resource().Attributes()
+	resourceAttrs.PutStr(semconv.AttributeTelemetrySDKLanguage, "java")
+	resourceAttrs.PutStr(semconv.AttributeTelemetrySDKName, "android")
+
+	scopeLogs := resourceLogs.ScopeLogs().AppendEmpty()
+	otelLog := scopeLogs.LogRecords().AppendEmpty()
+	otelLog.SetTraceID(pcommon.TraceID{1})
+	otelLog.SetSpanID(pcommon.SpanID{2})
+	otelLog.SetSeverityNumber(plog.SeverityNumberInfo)
+	otelLog.SetSeverityText("Info")
+	otelLog.SetTimestamp(pcommon.NewTimestampFromTime(time.Unix(1, 0)))
+	otelLog.Attributes().PutStr("key", "value")
+	otelLog.Attributes().PutDouble("numeric_key", 1234)
+
+	switch b := body.(type) {
+	case string:
+		otelLog.Body().SetStr(b)
+	case int:
+		otelLog.Body().SetInt(int64(b))
+	case float64:
+		otelLog.Body().SetDouble(float64(b))
+	case bool:
+		otelLog.Body().SetBool(b)
+	}
+	return logs
+}
+
+>>>>>>> bd2a453b7 (test: use more stable ip in otlp grpc logs ip system test (#12037))
 func newOTLPTraceExporter(t testing.TB, srv *apmservertest.Server, options ...otlptracegrpc.Option) *otlptrace.Exporter {
 	options = append(options, otlptracegrpc.WithEndpoint(serverAddr(srv)), otlptracegrpc.WithInsecure())
 	exporter, err := otlptracegrpc.New(context.Background(), options...)
