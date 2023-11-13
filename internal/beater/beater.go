@@ -705,6 +705,10 @@ func (s *Runner) newFinalBatchProcessor(
 		return nil, nil, err
 	}
 
+	if esConfig.MaxRequests != 0 {
+		esConfig.MaxIdleConnsPerHost = esConfig.MaxRequests
+	}
+
 	var flushBytes int
 	if esConfig.FlushBytes != "" {
 		b, err := humanize.ParseBytes(esConfig.FlushBytes)
@@ -720,9 +724,6 @@ func (s *Runner) newFinalBatchProcessor(
 	var scalingCfg docappender.ScalingConfig
 	if enabled := esConfig.Scaling.Enabled; enabled != nil {
 		scalingCfg.Disabled = !*enabled
-	}
-	if esConfig.MaxRequests != 0 {
-		esConfig.MaxIdleConnsPerHost = esConfig.MaxRequests
 	}
 	opts := docappender.Config{
 		CompressionLevel: esConfig.CompressionLevel,
