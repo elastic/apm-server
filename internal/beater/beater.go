@@ -700,8 +700,13 @@ func (s *Runner) newFinalBatchProcessor(
 	}
 	esConfig.FlushInterval = time.Second
 	esConfig.Config = elasticsearch.DefaultConfig()
+	esConfig.MaxIdleConnsPerHost = 10
 	if err := s.elasticsearchOutputConfig.Unpack(&esConfig); err != nil {
 		return nil, nil, err
+	}
+
+	if esConfig.MaxRequests != 0 {
+		esConfig.MaxIdleConnsPerHost = esConfig.MaxRequests
 	}
 
 	var flushBytes int
