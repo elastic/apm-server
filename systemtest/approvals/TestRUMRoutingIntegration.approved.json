@@ -836,12 +836,8 @@
         "event.outcome": [
             "success"
         ],
-        "http.request.headers": [
-            {
-                "Accept": [
-                    "application/json"
-                ]
-            }
+        "http.request.headers.Accept": [
+            "application/json"
         ],
         "http.request.method": [
             "GET"
@@ -855,12 +851,8 @@
         "http.response.encoded_body_size": [
             690
         ],
-        "http.response.headers": [
-            {
-                "Content-Type": [
-                    "application/json"
-                ]
-            }
+        "http.response.headers.Content-Type": [
+            "application/json"
         ],
         "http.response.status_code": [
             200

@@ -189,37 +189,33 @@
                 "original": "HelloWorld"
             }
         ],
-        "http.request.cookies": [
-            {
-                "c1": "v1",
-                "c2": "v2"
-            }
+        "http.request.cookies.c1": [
+            "v1"
         ],
-        "http.request.env": [
-            {
-                "GATEWAY_INTERFACE": "CGI/1.1",
-                "SERVER_SOFTWARE": "nginx"
-            }
+        "http.request.cookies.c2": [
+            "v2"
         ],
-        "http.request.headers": [
-            {
-                "Content-Length": [
-                    "0"
-                ],
-                "Cookie": [
-                    "c1=v1",
-                    "c2=v2"
-                ],
-                "Elastic-Apm-Traceparent": [
-                    "00-8c21b4b556467a0b17ae5da959b5f388-31301f1fb2998121-01"
-                ],
-                "Forwarded": [
-                    "for=192.168.0.1"
-                ],
-                "Host": [
-                    "opbeans-java:3000"
-                ]
-            }
+        "http.request.env.GATEWAY_INTERFACE": [
+            "CGI/1.1"
+        ],
+        "http.request.env.SERVER_SOFTWARE": [
+            "nginx"
+        ],
+        "http.request.headers.Content-Length": [
+            "0"
+        ],
+        "http.request.headers.Cookie": [
+            "c1=v1",
+            "c2=v2"
+        ],
+        "http.request.headers.Elastic-Apm-Traceparent": [
+            "00-8c21b4b556467a0b17ae5da959b5f388-31301f1fb2998121-01"
+        ],
+        "http.request.headers.Forwarded": [
+            "for=192.168.0.1"
+        ],
+        "http.request.headers.Host": [
+            "opbeans-java:3000"
         ],
         "http.request.method": [
             "POST"
@@ -227,12 +223,8 @@
         "http.response.finished": [
             true
         ],
-        "http.response.headers": [
-            {
-                "Content-Type": [
-                    "application/json"
-                ]
-            }
+        "http.response.headers.Content-Type": [
+            "application/json"
         ],
         "http.response.headers_sent": [
             true
