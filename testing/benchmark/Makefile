@@ -79,6 +79,9 @@ apply:
 destroy:
 	@terraform destroy -auto-approve
 
+cp-cpuprof:
+	@[ "${BENCHMARK_CPU_OUT}" ] && scp $(SSH_OPTS) -i $(SSH_KEY) "$(SSH_USER)@$(WORKER_IP):./$(BENCHMARK_CPU_OUT)" $(BENCHMARK_CPU_OUT) || echo "skipping cpu out copy"
+
 .PHONY: log-benckmark-profile
 log-benckmark-profile:
 	@echo "Running benchmarks..."
@@ -93,7 +96,7 @@ log-benckmark-profile:
 run-benchmark: log-benckmark-profile
 	@ssh $(SSH_OPTS) -i $(SSH_KEY) $(SSH_USER)@$(WORKER_IP) ". .envrc && bin/apmbench -run='$(BENCHMARK_RUN)' \
 	-benchtime=$(BENCHMARK_TIME) -count=$(BENCHMARK_COUNT) -warmup-time=$(BENCHMARK_WARMUP_TIME) \
-	-agents=$(BENCHMARK_AGENTS) -detailed=$(BENCHMARK_DETAILED) -event-rate=$(BENCHMARK_EVENT_RATE)" 2>&1 | tee $(BENCHMARK_RESULT)
+	-agents=$(BENCHMARK_AGENTS) -detailed=$(BENCHMARK_DETAILED) -event-rate=$(BENCHMARK_EVENT_RATE) -cpuprofile=$(BENCHMARK_CPU_OUT)" 2>&1 | tee $(BENCHMARK_RESULT)
 
 .PHONY: run-benchmark-autotuned
 run-benchmark-autotuned:
