@@ -1,121 +1,175 @@
-{
-    "events": [
-        {
-            "@timestamp": "2022-09-08T05:47:29.000Z",
-            "agent": {
-                "activation_method": "some_activation_method",
-                "ephemeral_id": "e71be9ac-93b0-44b9-a997-5638f6ccfc36",
-                "name": "java",
-                "version": "1.10.0"
-            },
-            "container": {
-                "id": "8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"
-            },
-            "data_stream": {
-                "dataset": "apm.app.testsvc",
-                "namespace": "default",
-                "type": "logs"
-            },
-            "event": {
-                "dataset": "accesslog",
-                "kind": "event"
-            },
-            "faas": {
-                "coldstart": true,
-                "execution": "6f7f0961f83442118a7af6fe80b88d56",
-                "id": "arn:aws:lambda:us-east-2:123456789012:function:custom-runtime"
-            },
-            "host": {
-                "architecture": "amd64",
-                "hostname": "node-name",
-                "ip": [
-                    "127.0.0.1"
-                ],
-                "name": "host1",
-                "os": {
-                    "platform": "Linux"
-                }
-            },
-            "kubernetes": {
-                "namespace": "default",
-                "node": {
-                    "name": "node-name"
-                },
-                "pod": {
-                    "name": "instrumented-java-service",
-                    "uid": "b17f231da0ad128dc6c6c0b2e82f6f303d3893e3"
-                }
-            },
-            "labels": {
-                "ab_testing": "true",
-                "bool": "true",
-                "group": "experimental",
-                "str": "str"
-            },
-            "log": {
-                "level": "warn",
-                "logger": "testLogger",
-                "origin": {
-                    "file": {
-                        "line": 10,
-                        "name": "testFile"
-                    },
-                    "function": "testFunc"
-                }
-            },
-            "message": "test log message with override of flat ecs fields by nested ecs fields",
-            "numeric_labels": {
-                "float": 1.1,
-                "int": 1,
-                "segment": 5
-            },
-            "observer": {
-                "hostname": "dynamic",
-                "type": "apm-server",
-                "version": "dynamic"
-            },
-            "process": {
-                "args": [
-                    "-v"
-                ],
-                "parent": {
-                    "pid": 1
-                },
-                "pid": 1234,
-                "thread": {
-                    "name": "testThread"
-                },
-                "title": "/usr/lib/jvm/java-10-openjdk-amd64/bin/java"
-            },
-            "service": {
-                "environment": "prod",
-                "framework": {
-                    "name": "spring",
-                    "version": "5.0.0"
-                },
-                "language": {
-                    "name": "Java",
-                    "version": "10.0.2"
-                },
-                "name": "testSvc",
-                "node": {
-                    "name": "8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"
-                },
-                "runtime": {
-                    "name": "Java",
-                    "version": "10.0.2"
-                },
-                "version": "v1.0.0"
-            },
-            "span": {
-                "id": "txn-id"
-            },
-            "trace": {
-                "id": "trace-id"
-            },
-            "transaction": {
-                "id": "txn-id"
-            }
-        }
-    ]
-}
+[
+    {
+        "@timestamp": [
+            "2022-09-08T05:47:29.000Z"
+        ],
+        "agent.activation_method": [
+            "some_activation_method"
+        ],
+        "agent.ephemeral_id": [
+            "e71be9ac-93b0-44b9-a997-5638f6ccfc36"
+        ],
+        "agent.name": [
+            "java"
+        ],
+        "agent.version": [
+            "1.10.0"
+        ],
+        "container.id": [
+            "8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"
+        ],
+        "data_stream.dataset": [
+            "apm.app.testsvc"
+        ],
+        "data_stream.namespace": [
+            "default"
+        ],
+        "data_stream.type": [
+            "logs"
+        ],
+        "event.dataset": [
+            "accesslog"
+        ],
+        "event.kind": [
+            "event"
+        ],
+        "faas.coldstart": [
+            true
+        ],
+        "faas.execution": [
+            "6f7f0961f83442118a7af6fe80b88d56"
+        ],
+        "faas.id": [
+            "arn:aws:lambda:us-east-2:123456789012:function:custom-runtime"
+        ],
+        "host.architecture": [
+            "amd64"
+        ],
+        "host.hostname": [
+            "node-name"
+        ],
+        "host.ip": [
+            "127.0.0.1"
+        ],
+        "host.name": [
+            "host1"
+        ],
+        "host.os.platform": [
+            "Linux"
+        ],
+        "kubernetes.namespace": [
+            "default"
+        ],
+        "kubernetes.node.name": [
+            "node-name"
+        ],
+        "kubernetes.pod.name": [
+            "instrumented-java-service"
+        ],
+        "kubernetes.pod.uid": [
+            "b17f231da0ad128dc6c6c0b2e82f6f303d3893e3"
+        ],
+        "labels.ab_testing": [
+            "true"
+        ],
+        "labels.bool": [
+            "true"
+        ],
+        "labels.group": [
+            "experimental"
+        ],
+        "labels.str": [
+            "str"
+        ],
+        "log.level": [
+            "warn"
+        ],
+        "log.logger": [
+            "testLogger"
+        ],
+        "log.origin.file.line": [
+            10
+        ],
+        "log.origin.file.name": [
+            "testFile"
+        ],
+        "log.origin.function": [
+            "testFunc"
+        ],
+        "message": [
+            "test log message with override of flat ecs fields by nested ecs fields"
+        ],
+        "numeric_labels.float": [
+            1.1
+        ],
+        "numeric_labels.int": [
+            1
+        ],
+        "numeric_labels.segment": [
+            5
+        ],
+        "observer.hostname": [
+            "dynamic"
+        ],
+        "observer.type": [
+            "apm-server"
+        ],
+        "observer.version": [
+            "dynamic"
+        ],
+        "process.args": [
+            "-v"
+        ],
+        "process.parent.pid": [
+            1
+        ],
+        "process.pid": [
+            1234
+        ],
+        "process.thread.name": [
+            "testThread"
+        ],
+        "process.title": [
+            "/usr/lib/jvm/java-10-openjdk-amd64/bin/java"
+        ],
+        "service.environment": [
+            "prod"
+        ],
+        "service.framework.name": [
+            "spring"
+        ],
+        "service.framework.version": [
+            "5.0.0"
+        ],
+        "service.language.name": [
+            "Java"
+        ],
+        "service.language.version": [
+            "10.0.2"
+        ],
+        "service.name": [
+            "testSvc"
+        ],
+        "service.node.name": [
+            "8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"
+        ],
+        "service.runtime.name": [
+            "Java"
+        ],
+        "service.runtime.version": [
+            "10.0.2"
+        ],
+        "service.version": [
+            "v1.0.0"
+        ],
+        "span.id": [
+            "txn-id"
+        ],
+        "trace.id": [
+            "trace-id"
+        ],
+        "transaction.id": [
+            "txn-id"
+        ]
+    }
+]

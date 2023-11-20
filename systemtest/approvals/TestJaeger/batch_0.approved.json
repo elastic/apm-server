@@ -1,422 +1,571 @@
-{
-    "events": [
-        {
-            "@timestamp": "2019-12-20T07:41:45.007Z",
-            "agent": {
-                "ephemeral_id": "624386e9c81d2980",
-                "name": "Jaeger/Go",
-                "version": "2.20.1"
-            },
-            "data_stream": {
-                "dataset": "apm.error",
-                "namespace": "default",
-                "type": "logs"
-            },
-            "error": {
-                "exception": [
-                    {
-                        "message": "redis timeout"
-                    }
-                ],
-                "grouping_key": "dd09a7d0d9dde0adfcd694967c5a88de",
-                "grouping_name": "Retrying GetDriver after error",
-                "log": {
-                    "message": "Retrying GetDriver after error"
-                }
-            },
-            "event": {},
-            "host": {
-                "hostname": "host01",
-                "ip": [
-                    "10.0.0.13"
-                ],
-                "name": "host01"
-            },
-            "message": "Retrying GetDriver after error",
-            "observer": {
-                "hostname": "dynamic",
-                "type": "apm-server",
-                "version": "dynamic"
-            },
-            "parent": {
-                "id": "7be2fd98d0973be3"
-            },
-            "service": {
-                "language": {
-                    "name": "Go"
-                },
-                "name": "driver",
-                "node": {
-                    "name": "host01"
-                }
-            },
-            "span": {
-                "id": "7be2fd98d0973be3"
-            },
-            "timestamp": {
-                "us": 1576827705007552
-            },
-            "trace": {
-                "id": "00000000000000007be2fd98d0973be3"
-            },
-            "transaction": {
-                "id": "7be2fd98d0973be3",
-                "sampled": true,
-                "type": "unknown"
-            }
-        },
-        {
-            "@timestamp": "2019-12-20T07:41:45.089Z",
-            "agent": {
-                "ephemeral_id": "624386e9c81d2980",
-                "name": "Jaeger/Go",
-                "version": "2.20.1"
-            },
-            "data_stream": {
-                "dataset": "apm.error",
-                "namespace": "default",
-                "type": "logs"
-            },
-            "error": {
-                "exception": [
-                    {
-                        "message": "redis timeout"
-                    }
-                ],
-                "grouping_key": "dd09a7d0d9dde0adfcd694967c5a88de",
-                "grouping_name": "Retrying GetDriver after error",
-                "log": {
-                    "message": "Retrying GetDriver after error"
-                }
-            },
-            "event": {},
-            "host": {
-                "hostname": "host01",
-                "ip": [
-                    "10.0.0.13"
-                ],
-                "name": "host01"
-            },
-            "message": "Retrying GetDriver after error",
-            "observer": {
-                "hostname": "dynamic",
-                "type": "apm-server",
-                "version": "dynamic"
-            },
-            "parent": {
-                "id": "7be2fd98d0973be3"
-            },
-            "service": {
-                "language": {
-                    "name": "Go"
-                },
-                "name": "driver",
-                "node": {
-                    "name": "host01"
-                }
-            },
-            "span": {
-                "id": "7be2fd98d0973be3"
-            },
-            "timestamp": {
-                "us": 1576827705089431
-            },
-            "trace": {
-                "id": "00000000000000007be2fd98d0973be3"
-            },
-            "transaction": {
-                "id": "7be2fd98d0973be3",
-                "sampled": true,
-                "type": "unknown"
-            }
-        },
-        {
-            "@timestamp": "2019-12-20T07:41:45.172Z",
-            "agent": {
-                "ephemeral_id": "624386e9c81d2980",
-                "name": "Jaeger/Go",
-                "version": "2.20.1"
-            },
-            "data_stream": {
-                "dataset": "apm.error",
-                "namespace": "default",
-                "type": "logs"
-            },
-            "error": {
-                "exception": [
-                    {
-                        "message": "redis timeout"
-                    }
-                ],
-                "grouping_key": "dd09a7d0d9dde0adfcd694967c5a88de",
-                "grouping_name": "Retrying GetDriver after error",
-                "log": {
-                    "message": "Retrying GetDriver after error"
-                }
-            },
-            "event": {},
-            "host": {
-                "hostname": "host01",
-                "ip": [
-                    "10.0.0.13"
-                ],
-                "name": "host01"
-            },
-            "message": "Retrying GetDriver after error",
-            "observer": {
-                "hostname": "dynamic",
-                "type": "apm-server",
-                "version": "dynamic"
-            },
-            "parent": {
-                "id": "7be2fd98d0973be3"
-            },
-            "service": {
-                "language": {
-                    "name": "Go"
-                },
-                "name": "driver",
-                "node": {
-                    "name": "host01"
-                }
-            },
-            "span": {
-                "id": "7be2fd98d0973be3"
-            },
-            "timestamp": {
-                "us": 1576827705172530
-            },
-            "trace": {
-                "id": "00000000000000007be2fd98d0973be3"
-            },
-            "transaction": {
-                "id": "7be2fd98d0973be3",
-                "sampled": true,
-                "type": "unknown"
-            }
-        },
-        {
-            "@timestamp": "2019-12-20T07:41:45.197Z",
-            "agent": {
-                "ephemeral_id": "624386e9c81d2980",
-                "name": "Jaeger/Go",
-                "version": "2.20.1"
-            },
-            "data_stream": {
-                "dataset": "apm.app.driver",
-                "namespace": "default",
-                "type": "logs"
-            },
-            "event": {
-                "kind": "event"
-            },
-            "host": {
-                "hostname": "host01",
-                "ip": [
-                    "10.0.0.13"
-                ],
-                "name": "host01"
-            },
-            "labels": {
-                "level": "info"
-            },
-            "message": "Search successful",
-            "numeric_labels": {
-                "num_drivers": 10
-            },
-            "observer": {
-                "hostname": "dynamic",
-                "type": "apm-server",
-                "version": "dynamic"
-            },
-            "service": {
-                "language": {
-                    "name": "Go"
-                },
-                "name": "driver",
-                "node": {
-                    "name": "host01"
-                }
-            },
-            "span": {
-                "id": "7be2fd98d0973be3"
-            },
-            "trace": {
-                "id": "00000000000000007be2fd98d0973be3"
-            },
-            "transaction": {
-                "id": "7be2fd98d0973be3"
-            }
-        },
-        {
-            "@timestamp": "2019-12-20T07:41:44.954Z",
-            "agent": {
-                "ephemeral_id": "624386e9c81d2980",
-                "name": "Jaeger/Go",
-                "version": "2.20.1"
-            },
-            "data_stream": {
-                "dataset": "apm.app.driver",
-                "namespace": "default",
-                "type": "logs"
-            },
-            "event": {
-                "kind": "event"
-            },
-            "host": {
-                "hostname": "host01",
-                "ip": [
-                    "10.0.0.13"
-                ],
-                "name": "host01"
-            },
-            "labels": {
-                "level": "info",
-                "location": "728,326"
-            },
-            "message": "Searching for nearby drivers",
-            "observer": {
-                "hostname": "dynamic",
-                "type": "apm-server",
-                "version": "dynamic"
-            },
-            "service": {
-                "language": {
-                    "name": "Go"
-                },
-                "name": "driver",
-                "node": {
-                    "name": "host01"
-                }
-            },
-            "span": {
-                "id": "7be2fd98d0973be3"
-            },
-            "trace": {
-                "id": "00000000000000007be2fd98d0973be3"
-            },
-            "transaction": {
-                "id": "7be2fd98d0973be3"
-            }
-        },
-        {
-            "@timestamp": "2019-12-20T07:41:44.954Z",
-            "agent": {
-                "ephemeral_id": "624386e9c81d2980",
-                "name": "Jaeger/Go",
-                "version": "2.20.1"
-            },
-            "data_stream": {
-                "dataset": "apm.app.driver",
-                "namespace": "default",
-                "type": "logs"
-            },
-            "event": {
-                "kind": "event"
-            },
-            "host": {
-                "hostname": "host01",
-                "ip": [
-                    "10.0.0.13"
-                ],
-                "name": "host01"
-            },
-            "labels": {
-                "key": "customer",
-                "value": "Japanese Desserts"
-            },
-            "message": "baggage",
-            "observer": {
-                "hostname": "dynamic",
-                "type": "apm-server",
-                "version": "dynamic"
-            },
-            "service": {
-                "language": {
-                    "name": "Go"
-                },
-                "name": "driver",
-                "node": {
-                    "name": "host01"
-                }
-            },
-            "span": {
-                "id": "7be2fd98d0973be3"
-            },
-            "trace": {
-                "id": "00000000000000007be2fd98d0973be3"
-            },
-            "transaction": {
-                "id": "7be2fd98d0973be3"
-            }
-        },
-        {
-            "@timestamp": "2019-12-20T07:41:44.953Z",
-            "agent": {
-                "ephemeral_id": "624386e9c81d2980",
-                "name": "Jaeger/Go",
-                "version": "2.20.1"
-            },
-            "data_stream": {
-                "dataset": "apm",
-                "namespace": "default",
-                "type": "traces"
-            },
-            "event": {
-                "outcome": "unknown"
-            },
-            "host": {
-                "hostname": "host01",
-                "ip": [
-                    "10.0.0.13"
-                ],
-                "name": "host01"
-            },
-            "labels": {
-                "as": "thrift",
-                "peer_service": "driver-client",
-                "sampler_param": "true",
-                "sampler_type": "const"
-            },
-            "numeric_labels": {
-                "peer_ipv4": 2130706433,
-                "peer_port": 50535
-            },
-            "observer": {
-                "hostname": "dynamic",
-                "type": "apm-server",
-                "version": "dynamic"
-            },
-            "processor": {
-                "event": "transaction"
-            },
-            "service": {
-                "language": {
-                    "name": "Go"
-                },
-                "name": "driver",
-                "node": {
-                    "name": "host01"
-                }
-            },
-            "span": {
-                "id": "7be2fd98d0973be3"
-            },
-            "timestamp": {
-                "us": 1576827704953864
-            },
-            "trace": {
-                "id": "00000000000000007be2fd98d0973be3"
-            },
-            "transaction": {
-                "duration": {
-                    "us": 243417
-                },
-                "id": "7be2fd98d0973be3",
-                "name": "Driver::findNearest",
-                "sampled": true,
-                "type": "unknown"
-            }
-        }
-    ]
-}
+[
+    {
+        "@timestamp": [
+            "2019-12-20T07:41:45.007Z"
+        ],
+        "agent.ephemeral_id": [
+            "624386e9c81d2980"
+        ],
+        "agent.name": [
+            "Jaeger/Go"
+        ],
+        "agent.version": [
+            "2.20.1"
+        ],
+        "data_stream.dataset": [
+            "apm.error"
+        ],
+        "data_stream.namespace": [
+            "default"
+        ],
+        "data_stream.type": [
+            "logs"
+        ],
+        "error.exception.message": [
+            "redis timeout"
+        ],
+        "error.grouping_key": [
+            "dd09a7d0d9dde0adfcd694967c5a88de"
+        ],
+        "error.grouping_name": [
+            "Retrying GetDriver after error"
+        ],
+        "error.log.message": [
+            "Retrying GetDriver after error"
+        ],
+        "host.hostname": [
+            "host01"
+        ],
+        "host.ip": [
+            "10.0.0.13"
+        ],
+        "host.name": [
+            "host01"
+        ],
+        "message": [
+            "Retrying GetDriver after error"
+        ],
+        "observer.hostname": [
+            "dynamic"
+        ],
+        "observer.type": [
+            "apm-server"
+        ],
+        "observer.version": [
+            "dynamic"
+        ],
+        "parent.id": [
+            "7be2fd98d0973be3"
+        ],
+        "service.language.name": [
+            "Go"
+        ],
+        "service.name": [
+            "driver"
+        ],
+        "service.node.name": [
+            "host01"
+        ],
+        "span.id": [
+            "7be2fd98d0973be3"
+        ],
+        "timestamp.us": [
+            1576827705007552
+        ],
+        "trace.id": [
+            "00000000000000007be2fd98d0973be3"
+        ],
+        "transaction.id": [
+            "7be2fd98d0973be3"
+        ],
+        "transaction.sampled": [
+            true
+        ],
+        "transaction.type": [
+            "unknown"
+        ]
+    },
+    {
+        "@timestamp": [
+            "2019-12-20T07:41:45.089Z"
+        ],
+        "agent.ephemeral_id": [
+            "624386e9c81d2980"
+        ],
+        "agent.name": [
+            "Jaeger/Go"
+        ],
+        "agent.version": [
+            "2.20.1"
+        ],
+        "data_stream.dataset": [
+            "apm.error"
+        ],
+        "data_stream.namespace": [
+            "default"
+        ],
+        "data_stream.type": [
+            "logs"
+        ],
+        "error.exception.message": [
+            "redis timeout"
+        ],
+        "error.grouping_key": [
+            "dd09a7d0d9dde0adfcd694967c5a88de"
+        ],
+        "error.grouping_name": [
+            "Retrying GetDriver after error"
+        ],
+        "error.log.message": [
+            "Retrying GetDriver after error"
+        ],
+        "host.hostname": [
+            "host01"
+        ],
+        "host.ip": [
+            "10.0.0.13"
+        ],
+        "host.name": [
+            "host01"
+        ],
+        "message": [
+            "Retrying GetDriver after error"
+        ],
+        "observer.hostname": [
+            "dynamic"
+        ],
+        "observer.type": [
+            "apm-server"
+        ],
+        "observer.version": [
+            "dynamic"
+        ],
+        "parent.id": [
+            "7be2fd98d0973be3"
+        ],
+        "service.language.name": [
+            "Go"
+        ],
+        "service.name": [
+            "driver"
+        ],
+        "service.node.name": [
+            "host01"
+        ],
+        "span.id": [
+            "7be2fd98d0973be3"
+        ],
+        "timestamp.us": [
+            1576827705089431
+        ],
+        "trace.id": [
+            "00000000000000007be2fd98d0973be3"
+        ],
+        "transaction.id": [
+            "7be2fd98d0973be3"
+        ],
+        "transaction.sampled": [
+            true
+        ],
+        "transaction.type": [
+            "unknown"
+        ]
+    },
+    {
+        "@timestamp": [
+            "2019-12-20T07:41:45.172Z"
+        ],
+        "agent.ephemeral_id": [
+            "624386e9c81d2980"
+        ],
+        "agent.name": [
+            "Jaeger/Go"
+        ],
+        "agent.version": [
+            "2.20.1"
+        ],
+        "data_stream.dataset": [
+            "apm.error"
+        ],
+        "data_stream.namespace": [
+            "default"
+        ],
+        "data_stream.type": [
+            "logs"
+        ],
+        "error.exception.message": [
+            "redis timeout"
+        ],
+        "error.grouping_key": [
+            "dd09a7d0d9dde0adfcd694967c5a88de"
+        ],
+        "error.grouping_name": [
+            "Retrying GetDriver after error"
+        ],
+        "error.log.message": [
+            "Retrying GetDriver after error"
+        ],
+        "host.hostname": [
+            "host01"
+        ],
+        "host.ip": [
+            "10.0.0.13"
+        ],
+        "host.name": [
+            "host01"
+        ],
+        "message": [
+            "Retrying GetDriver after error"
+        ],
+        "observer.hostname": [
+            "dynamic"
+        ],
+        "observer.type": [
+            "apm-server"
+        ],
+        "observer.version": [
+            "dynamic"
+        ],
+        "parent.id": [
+            "7be2fd98d0973be3"
+        ],
+        "service.language.name": [
+            "Go"
+        ],
+        "service.name": [
+            "driver"
+        ],
+        "service.node.name": [
+            "host01"
+        ],
+        "span.id": [
+            "7be2fd98d0973be3"
+        ],
+        "timestamp.us": [
+            1576827705172530
+        ],
+        "trace.id": [
+            "00000000000000007be2fd98d0973be3"
+        ],
+        "transaction.id": [
+            "7be2fd98d0973be3"
+        ],
+        "transaction.sampled": [
+            true
+        ],
+        "transaction.type": [
+            "unknown"
+        ]
+    },
+    {
+        "@timestamp": [
+            "2019-12-20T07:41:45.197Z"
+        ],
+        "agent.ephemeral_id": [
+            "624386e9c81d2980"
+        ],
+        "agent.name": [
+            "Jaeger/Go"
+        ],
+        "agent.version": [
+            "2.20.1"
+        ],
+        "data_stream.dataset": [
+            "apm.app.driver"
+        ],
+        "data_stream.namespace": [
+            "default"
+        ],
+        "data_stream.type": [
+            "logs"
+        ],
+        "event.kind": [
+            "event"
+        ],
+        "host.hostname": [
+            "host01"
+        ],
+        "host.ip": [
+            "10.0.0.13"
+        ],
+        "host.name": [
+            "host01"
+        ],
+        "labels.level": [
+            "info"
+        ],
+        "message": [
+            "Search successful"
+        ],
+        "numeric_labels.num_drivers": [
+            10
+        ],
+        "observer.hostname": [
+            "dynamic"
+        ],
+        "observer.type": [
+            "apm-server"
+        ],
+        "observer.version": [
+            "dynamic"
+        ],
+        "service.language.name": [
+            "Go"
+        ],
+        "service.name": [
+            "driver"
+        ],
+        "service.node.name": [
+            "host01"
+        ],
+        "span.id": [
+            "7be2fd98d0973be3"
+        ],
+        "trace.id": [
+            "00000000000000007be2fd98d0973be3"
+        ],
+        "transaction.id": [
+            "7be2fd98d0973be3"
+        ]
+    },
+    {
+        "@timestamp": [
+            "2019-12-20T07:41:44.954Z"
+        ],
+        "agent.ephemeral_id": [
+            "624386e9c81d2980"
+        ],
+        "agent.name": [
+            "Jaeger/Go"
+        ],
+        "agent.version": [
+            "2.20.1"
+        ],
+        "data_stream.dataset": [
+            "apm.app.driver"
+        ],
+        "data_stream.namespace": [
+            "default"
+        ],
+        "data_stream.type": [
+            "logs"
+        ],
+        "event.kind": [
+            "event"
+        ],
+        "host.hostname": [
+            "host01"
+        ],
+        "host.ip": [
+            "10.0.0.13"
+        ],
+        "host.name": [
+            "host01"
+        ],
+        "labels.level": [
+            "info"
+        ],
+        "labels.location": [
+            "728,326"
+        ],
+        "message": [
+            "Searching for nearby drivers"
+        ],
+        "observer.hostname": [
+            "dynamic"
+        ],
+        "observer.type": [
+            "apm-server"
+        ],
+        "observer.version": [
+            "dynamic"
+        ],
+        "service.language.name": [
+            "Go"
+        ],
+        "service.name": [
+            "driver"
+        ],
+        "service.node.name": [
+            "host01"
+        ],
+        "span.id": [
+            "7be2fd98d0973be3"
+        ],
+        "trace.id": [
+            "00000000000000007be2fd98d0973be3"
+        ],
+        "transaction.id": [
+            "7be2fd98d0973be3"
+        ]
+    },
+    {
+        "@timestamp": [
+            "2019-12-20T07:41:44.954Z"
+        ],
+        "agent.ephemeral_id": [
+            "624386e9c81d2980"
+        ],
+        "agent.name": [
+            "Jaeger/Go"
+        ],
+        "agent.version": [
+            "2.20.1"
+        ],
+        "data_stream.dataset": [
+            "apm.app.driver"
+        ],
+        "data_stream.namespace": [
+            "default"
+        ],
+        "data_stream.type": [
+            "logs"
+        ],
+        "event.kind": [
+            "event"
+        ],
+        "host.hostname": [
+            "host01"
+        ],
+        "host.ip": [
+            "10.0.0.13"
+        ],
+        "host.name": [
+            "host01"
+        ],
+        "labels.key": [
+            "customer"
+        ],
+        "labels.value": [
+            "Japanese Desserts"
+        ],
+        "message": [
+            "baggage"
+        ],
+        "observer.hostname": [
+            "dynamic"
+        ],
+        "observer.type": [
+            "apm-server"
+        ],
+        "observer.version": [
+            "dynamic"
+        ],
+        "service.language.name": [
+            "Go"
+        ],
+        "service.name": [
+            "driver"
+        ],
+        "service.node.name": [
+            "host01"
+        ],
+        "span.id": [
+            "7be2fd98d0973be3"
+        ],
+        "trace.id": [
+            "00000000000000007be2fd98d0973be3"
+        ],
+        "transaction.id": [
+            "7be2fd98d0973be3"
+        ]
+    },
+    {
+        "@timestamp": [
+            "2019-12-20T07:41:44.953Z"
+        ],
+        "agent.ephemeral_id": [
+            "624386e9c81d2980"
+        ],
+        "agent.name": [
+            "Jaeger/Go"
+        ],
+        "agent.version": [
+            "2.20.1"
+        ],
+        "data_stream.dataset": [
+            "apm"
+        ],
+        "data_stream.namespace": [
+            "default"
+        ],
+        "data_stream.type": [
+            "traces"
+        ],
+        "event.outcome": [
+            "unknown"
+        ],
+        "host.hostname": [
+            "host01"
+        ],
+        "host.ip": [
+            "10.0.0.13"
+        ],
+        "host.name": [
+            "host01"
+        ],
+        "labels.as": [
+            "thrift"
+        ],
+        "labels.peer_service": [
+            "driver-client"
+        ],
+        "labels.sampler_param": [
+            "true"
+        ],
+        "labels.sampler_type": [
+            "const"
+        ],
+        "numeric_labels.peer_ipv4": [
+            2130706433
+        ],
+        "numeric_labels.peer_port": [
+            50535
+        ],
+        "observer.hostname": [
+            "dynamic"
+        ],
+        "observer.type": [
+            "apm-server"
+        ],
+        "observer.version": [
+            "dynamic"
+        ],
+        "processor.event": [
+            "transaction"
+        ],
+        "service.language.name": [
+            "Go"
+        ],
+        "service.name": [
+            "driver"
+        ],
+        "service.node.name": [
+            "host01"
+        ],
+        "span.id": [
+            "7be2fd98d0973be3"
+        ],
+        "timestamp.us": [
+            1576827704953864
+        ],
+        "trace.id": [
+            "00000000000000007be2fd98d0973be3"
+        ],
+        "transaction.duration.us": [
+            243417
+        ],
+        "transaction.id": [
+            "7be2fd98d0973be3"
+        ],
+        "transaction.name": [
+            "Driver::findNearest"
+        ],
+        "transaction.sampled": [
+            true
+        ],
+        "transaction.type": [
+            "unknown"
+        ]
+    }
+]

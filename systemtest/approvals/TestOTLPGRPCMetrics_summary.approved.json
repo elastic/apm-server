@@ -1,37 +1,49 @@
-{
-    "events": [
-        {
-            "@timestamp": "dynamic",
-            "agent": {
-                "name": "otlp",
-                "version": "unknown"
-            },
-            "data_stream": {
-                "dataset": "apm.app.unknown",
-                "namespace": "default",
-                "type": "metrics"
-            },
-            "metricset": {
-                "name": "app"
-            },
-            "observer": {
-                "hostname": "dynamic",
-                "type": "apm-server",
-                "version": "dynamic"
-            },
-            "processor": {
-                "event": "metric"
-            },
-            "service": {
-                "language": {
-                    "name": "unknown"
-                },
-                "name": "unknown"
-            },
-            "summary": {
-                "sum": 123.456,
-                "value_count": 10
-            }
-        }
-    ]
-}
+[
+    {
+        "@timestamp": [
+            "dynamic"
+        ],
+        "agent.name": [
+            "otlp"
+        ],
+        "agent.version": [
+            "unknown"
+        ],
+        "data_stream.dataset": [
+            "apm.app.unknown"
+        ],
+        "data_stream.namespace": [
+            "default"
+        ],
+        "data_stream.type": [
+            "metrics"
+        ],
+        "metricset.name": [
+            "app"
+        ],
+        "observer.hostname": [
+            "dynamic"
+        ],
+        "observer.type": [
+            "apm-server"
+        ],
+        "observer.version": [
+            "dynamic"
+        ],
+        "processor.event": [
+            "metric"
+        ],
+        "service.language.name": [
+            "unknown"
+        ],
+        "service.name": [
+            "unknown"
+        ],
+        "summary.sum": [
+            123.456
+        ],
+        "summary.value_count": [
+            10
+        ]
+    }
+]

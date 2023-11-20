@@ -1,169 +1,215 @@
-{
-    "events": [
-        {
-            "@timestamp": "2006-01-02T15:00:00.000Z",
-            "_doc_count": 5,
-            "agent": {
-                "name": "go"
-            },
-            "data_stream": {
-                "dataset": "apm.service_destination.10m",
-                "namespace": "default",
-                "type": "metrics"
-            },
-            "event": {
-                "outcome": "success"
-            },
-            "labels": {
-                "company": "elastic",
-                "department_name": "apm",
-                "organization": "observability"
-            },
-            "metricset": {
-                "interval": "10m",
-                "name": "service_destination"
-            },
-            "observer": {
-                "hostname": "dynamic",
-                "type": "apm-server",
-                "version": "dynamic"
-            },
-            "processor": {
-                "event": "metric"
-            },
-            "service": {
-                "language": {
-                    "name": "go"
-                },
-                "name": "systemtest",
-                "target": {
-                    "type": "resource"
-                }
-            },
-            "span": {
-                "destination": {
-                    "service": {
-                        "resource": "resource",
-                        "response_time": {
-                            "count": 5,
-                            "sum": {
-                                "us": 5000000
-                            }
-                        }
-                    }
-                },
-                "name": "name"
-            }
-        },
-        {
-            "@timestamp": "2006-01-02T15:04:00.000Z",
-            "_doc_count": 5,
-            "agent": {
-                "name": "go"
-            },
-            "data_stream": {
-                "dataset": "apm.service_destination.1m",
-                "namespace": "default",
-                "type": "metrics"
-            },
-            "event": {
-                "outcome": "success"
-            },
-            "labels": {
-                "company": "elastic",
-                "department_name": "apm",
-                "organization": "observability"
-            },
-            "metricset": {
-                "interval": "1m",
-                "name": "service_destination"
-            },
-            "observer": {
-                "hostname": "dynamic",
-                "type": "apm-server",
-                "version": "dynamic"
-            },
-            "processor": {
-                "event": "metric"
-            },
-            "service": {
-                "language": {
-                    "name": "go"
-                },
-                "name": "systemtest",
-                "target": {
-                    "type": "resource"
-                }
-            },
-            "span": {
-                "destination": {
-                    "service": {
-                        "resource": "resource",
-                        "response_time": {
-                            "count": 5,
-                            "sum": {
-                                "us": 5000000
-                            }
-                        }
-                    }
-                },
-                "name": "name"
-            }
-        },
-        {
-            "@timestamp": "2006-01-02T15:00:00.000Z",
-            "_doc_count": 5,
-            "agent": {
-                "name": "go"
-            },
-            "data_stream": {
-                "dataset": "apm.service_destination.60m",
-                "namespace": "default",
-                "type": "metrics"
-            },
-            "event": {
-                "outcome": "success"
-            },
-            "labels": {
-                "company": "elastic",
-                "department_name": "apm",
-                "organization": "observability"
-            },
-            "metricset": {
-                "interval": "60m",
-                "name": "service_destination"
-            },
-            "observer": {
-                "hostname": "dynamic",
-                "type": "apm-server",
-                "version": "dynamic"
-            },
-            "processor": {
-                "event": "metric"
-            },
-            "service": {
-                "language": {
-                    "name": "go"
-                },
-                "name": "systemtest",
-                "target": {
-                    "type": "resource"
-                }
-            },
-            "span": {
-                "destination": {
-                    "service": {
-                        "resource": "resource",
-                        "response_time": {
-                            "count": 5,
-                            "sum": {
-                                "us": 5000000
-                            }
-                        }
-                    }
-                },
-                "name": "name"
-            }
-        }
-    ]
-}
+[
+    {
+        "@timestamp": [
+            "2006-01-02T15:00:00.000Z"
+        ],
+        "_doc_count": [
+            5
+        ],
+        "agent.name": [
+            "go"
+        ],
+        "data_stream.dataset": [
+            "apm.service_destination.10m"
+        ],
+        "data_stream.namespace": [
+            "default"
+        ],
+        "data_stream.type": [
+            "metrics"
+        ],
+        "event.outcome": [
+            "success"
+        ],
+        "labels.company": [
+            "elastic"
+        ],
+        "labels.department_name": [
+            "apm"
+        ],
+        "labels.organization": [
+            "observability"
+        ],
+        "metricset.interval": [
+            "10m"
+        ],
+        "metricset.name": [
+            "service_destination"
+        ],
+        "observer.hostname": [
+            "dynamic"
+        ],
+        "observer.type": [
+            "apm-server"
+        ],
+        "observer.version": [
+            "dynamic"
+        ],
+        "processor.event": [
+            "metric"
+        ],
+        "service.language.name": [
+            "go"
+        ],
+        "service.name": [
+            "systemtest"
+        ],
+        "service.target.type": [
+            "resource"
+        ],
+        "span.destination.service.resource": [
+            "resource"
+        ],
+        "span.destination.service.response_time.count": [
+            5
+        ],
+        "span.destination.service.response_time.sum.us": [
+            5000000
+        ],
+        "span.name": [
+            "name"
+        ]
+    },
+    {
+        "@timestamp": [
+            "2006-01-02T15:04:00.000Z"
+        ],
+        "_doc_count": [
+            5
+        ],
+        "agent.name": [
+            "go"
+        ],
+        "data_stream.dataset": [
+            "apm.service_destination.1m"
+        ],
+        "data_stream.namespace": [
+            "default"
+        ],
+        "data_stream.type": [
+            "metrics"
+        ],
+        "event.outcome": [
+            "success"
+        ],
+        "labels.company": [
+            "elastic"
+        ],
+        "labels.department_name": [
+            "apm"
+        ],
+        "labels.organization": [
+            "observability"
+        ],
+        "metricset.interval": [
+            "1m"
+        ],
+        "metricset.name": [
+            "service_destination"
+        ],
+        "observer.hostname": [
+            "dynamic"
+        ],
+        "observer.type": [
+            "apm-server"
+        ],
+        "observer.version": [
+            "dynamic"
+        ],
+        "processor.event": [
+            "metric"
+        ],
+        "service.language.name": [
+            "go"
+        ],
+        "service.name": [
+            "systemtest"
+        ],
+        "service.target.type": [
+            "resource"
+        ],
+        "span.destination.service.resource": [
+            "resource"
+        ],
+        "span.destination.service.response_time.count": [
+            5
+        ],
+        "span.destination.service.response_time.sum.us": [
+            5000000
+        ],
+        "span.name": [
+            "name"
+        ]
+    },
+    {
+        "@timestamp": [
+            "2006-01-02T15:00:00.000Z"
+        ],
+        "_doc_count": [
+            5
+        ],
+        "agent.name": [
+            "go"
+        ],
+        "data_stream.dataset": [
+            "apm.service_destination.60m"
+        ],
+        "data_stream.namespace": [
+            "default"
+        ],
+        "data_stream.type": [
+            "metrics"
+        ],
+        "event.outcome": [
+            "success"
+        ],
+        "labels.company": [
+            "elastic"
+        ],
+        "labels.department_name": [
+            "apm"
+        ],
+        "labels.organization": [
+            "observability"
+        ],
+        "metricset.interval": [
+            "60m"
+        ],
+        "metricset.name": [
+            "service_destination"
+        ],
+        "observer.hostname": [
+            "dynamic"
+        ],
+        "observer.type": [
+            "apm-server"
+        ],
+        "observer.version": [
+            "dynamic"
+        ],
+        "processor.event": [
+            "metric"
+        ],
+        "service.language.name": [
+            "go"
+        ],
+        "service.name": [
+            "systemtest"
+        ],
+        "service.target.type": [
+            "resource"
+        ],
+        "span.destination.service.resource": [
+            "resource"
+        ],
+        "span.destination.service.response_time.count": [
+            5
+        ],
+        "span.destination.service.response_time.sum.us": [
+            5000000
+        ],
+        "span.name": [
+            "name"
+        ]
+    }
+]

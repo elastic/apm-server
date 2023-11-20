@@ -1,138 +1,192 @@
-{
-    "events": [
-        {
-            "@timestamp": "dynamic",
-            "agent": {
-                "name": "go",
-                "version": "0.0.0"
-            },
-            "data_stream": {
-                "dataset": "apm",
-                "namespace": "default",
-                "type": "traces"
-            },
-            "event": {
-                "outcome": "success",
-                "success_count": 1
-            },
-            "host": {
-                "architecture": "i386",
-                "hostname": "beowulf",
-                "ip": [
-                    "127.0.0.1"
-                ],
-                "name": "beowulf",
-                "os": {
-                    "platform": "minix"
-                }
-            },
-            "observer": {
-                "hostname": "dynamic",
-                "type": "apm-server",
-                "version": "dynamic"
-            },
-            "process": {
-                "pid": 1,
-                "title": "systemtest.test"
-            },
-            "processor": {
-                "event": "transaction"
-            },
-            "service": {
-                "language": {
-                    "name": "go",
-                    "version": "2.0"
-                },
-                "name": "systemtest",
-                "node": {
-                    "name": "beowulf"
-                },
-                "runtime": {
-                    "name": "gc",
-                    "version": "2.0"
-                }
-            },
-            "span": {
-                "id": "dynamic"
-            },
-            "trace": {
-                "id": "dynamic"
-            },
-            "transaction": {
-                "duration": {
-                    "us": 1000000
-                },
-                "id": "dynamic",
-                "name": "sampled",
-                "representative_count": 1,
-                "sampled": true,
-                "span_count": {
-                    "dropped": 0,
-                    "started": 0
-                },
-                "type": "TestDropUnsampled"
-            }
-        },
-        {
-            "@timestamp": "dynamic",
-            "agent": {
-                "name": "rum-js",
-                "version": "0.0.0"
-            },
-            "client": {
-                "ip": "127.0.0.1"
-            },
-            "data_stream": {
-                "dataset": "apm.rum",
-                "namespace": "default",
-                "type": "traces"
-            },
-            "event": {
-                "outcome": "unknown"
-            },
-            "observer": {
-                "hostname": "dynamic",
-                "type": "apm-server",
-                "version": "dynamic"
-            },
-            "processor": {
-                "event": "transaction"
-            },
-            "service": {
-                "name": "allowed"
-            },
-            "source": {
-                "ip": "127.0.0.1",
-                "port": "dynamic"
-            },
-            "span": {
-                "id": "dynamic"
-            },
-            "timestamp": {
-                "us": "dynamic"
-            },
-            "trace": {
-                "id": "dynamic"
-            },
-            "transaction": {
-                "duration": {
-                    "us": 0
-                },
-                "id": "dynamic",
-                "representative_count": 1,
-                "span_count": {
-                    "started": 1
-                },
-                "type": "TestDropUnsampled"
-            },
-            "user_agent": {
-                "device": {
-                    "name": "Other"
-                },
-                "name": "Go-http-client",
-                "original": "Go-http-client/1.1",
-                "version": "1.1"
-            }
-        }
-    ]
-}
+[
+    {
+        "@timestamp": [
+            "dynamic"
+        ],
+        "agent.name": [
+            "go"
+        ],
+        "agent.version": [
+            "0.0.0"
+        ],
+        "data_stream.dataset": [
+            "apm"
+        ],
+        "data_stream.namespace": [
+            "default"
+        ],
+        "data_stream.type": [
+            "traces"
+        ],
+        "event.outcome": [
+            "success"
+        ],
+        "event.success_count": [
+            1
+        ],
+        "host.architecture": [
+            "i386"
+        ],
+        "host.hostname": [
+            "beowulf"
+        ],
+        "host.ip": [
+            "127.0.0.1"
+        ],
+        "host.name": [
+            "beowulf"
+        ],
+        "host.os.platform": [
+            "minix"
+        ],
+        "observer.hostname": [
+            "dynamic"
+        ],
+        "observer.type": [
+            "apm-server"
+        ],
+        "observer.version": [
+            "dynamic"
+        ],
+        "process.pid": [
+            1
+        ],
+        "process.title": [
+            "systemtest.test"
+        ],
+        "processor.event": [
+            "transaction"
+        ],
+        "service.language.name": [
+            "go"
+        ],
+        "service.language.version": [
+            "2.0"
+        ],
+        "service.name": [
+            "systemtest"
+        ],
+        "service.node.name": [
+            "beowulf"
+        ],
+        "service.runtime.name": [
+            "gc"
+        ],
+        "service.runtime.version": [
+            "2.0"
+        ],
+        "span.id": [
+            "dynamic"
+        ],
+        "trace.id": [
+            "dynamic"
+        ],
+        "transaction.duration.us": [
+            1000000
+        ],
+        "transaction.id": [
+            "dynamic"
+        ],
+        "transaction.name": [
+            "sampled"
+        ],
+        "transaction.representative_count": [
+            1
+        ],
+        "transaction.sampled": [
+            true
+        ],
+        "transaction.span_count.dropped": [
+            0
+        ],
+        "transaction.span_count.started": [
+            0
+        ],
+        "transaction.type": [
+            "TestDropUnsampled"
+        ]
+    },
+    {
+        "@timestamp": [
+            "dynamic"
+        ],
+        "agent.name": [
+            "rum-js"
+        ],
+        "agent.version": [
+            "0.0.0"
+        ],
+        "client.ip": [
+            "127.0.0.1"
+        ],
+        "data_stream.dataset": [
+            "apm.rum"
+        ],
+        "data_stream.namespace": [
+            "default"
+        ],
+        "data_stream.type": [
+            "traces"
+        ],
+        "event.outcome": [
+            "unknown"
+        ],
+        "observer.hostname": [
+            "dynamic"
+        ],
+        "observer.type": [
+            "apm-server"
+        ],
+        "observer.version": [
+            "dynamic"
+        ],
+        "processor.event": [
+            "transaction"
+        ],
+        "service.name": [
+            "allowed"
+        ],
+        "source.ip": [
+            "127.0.0.1"
+        ],
+        "source.port": [
+            "dynamic"
+        ],
+        "span.id": [
+            "dynamic"
+        ],
+        "timestamp.us": [
+            "dynamic"
+        ],
+        "trace.id": [
+            "dynamic"
+        ],
+        "transaction.duration.us": [
+            0
+        ],
+        "transaction.id": [
+            "dynamic"
+        ],
+        "transaction.representative_count": [
+            1
+        ],
+        "transaction.span_count.started": [
+            1
+        ],
+        "transaction.type": [
+            "TestDropUnsampled"
+        ],
+        "user_agent.device.name": [
+            "Other"
+        ],
+        "user_agent.name": [
+            "Go-http-client"
+        ],
+        "user_agent.original": [
+            "Go-http-client/1.1"
+        ],
+        "user_agent.version": [
+            "1.1"
+        ]
+    }
+]

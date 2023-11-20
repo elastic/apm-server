@@ -1,143 +1,207 @@
-{
-    "events": [
-        {
-            "@timestamp": "dynamic",
-            "agent": {
-                "name": "rum-js",
-                "version": "5.5.0"
-            },
-            "client": {
-                "geo": {
-                    "city_name": "Perth",
-                    "continent_name": "Oceania",
-                    "country_iso_code": "AU",
-                    "country_name": "Australia",
-                    "location": "dynamic",
-                    "region_iso_code": "AU-WA",
-                    "region_name": "Western Australia"
-                },
-                "ip": "220.244.41.16"
-            },
-            "data_stream": {
-                "dataset": "apm.internal",
-                "namespace": "default",
-                "type": "metrics"
-            },
-            "metricset": {
-                "name": "span_breakdown"
-            },
-            "observer": {
-                "hostname": "dynamic",
-                "type": "apm-server",
-                "version": "dynamic"
-            },
-            "processor": {
-                "event": "metric"
-            },
-            "service": {
-                "name": "rum-js-test"
-            },
-            "source": {
-                "ip": "220.244.41.16",
-                "nat": {
-                    "ip": "127.0.0.1"
-                }
-            },
-            "span": {
-                "self_time": {
-                    "count": 1,
-                    "sum": {
-                        "us": 633
-                    }
-                },
-                "subtype": "http",
-                "type": "external"
-            },
-            "transaction": {
-                "name": "GET /",
-                "type": "request"
-            },
-            "user_agent": {
-                "device": {
-                    "name": "Other"
-                },
-                "name": "Go-http-client",
-                "original": "Go-http-client/1.1",
-                "version": "1.1"
-            }
-        },
-        {
-            "@timestamp": "dynamic",
-            "agent": {
-                "name": "rum-js",
-                "version": "5.5.0"
-            },
-            "client": {
-                "geo": {
-                    "city_name": "Perth",
-                    "continent_name": "Oceania",
-                    "country_iso_code": "AU",
-                    "country_name": "Australia",
-                    "location": "dynamic",
-                    "region_iso_code": "AU-WA",
-                    "region_name": "Western Australia"
-                },
-                "ip": "220.244.41.16"
-            },
-            "data_stream": {
-                "dataset": "apm.rum",
-                "namespace": "default",
-                "type": "traces"
-            },
-            "event": {
-                "outcome": "unknown"
-            },
-            "observer": {
-                "hostname": "dynamic",
-                "type": "apm-server",
-                "version": "dynamic"
-            },
-            "processor": {
-                "event": "transaction"
-            },
-            "service": {
-                "name": "rum-js-test"
-            },
-            "source": {
-                "ip": "220.244.41.16",
-                "nat": {
-                    "ip": "127.0.0.1"
-                }
-            },
-            "span": {
-                "id": "611f4fa950f04631"
-            },
-            "timestamp": {
-                "us": "dynamic"
-            },
-            "trace": {
-                "id": "611f4fa950f04631aaaaaaaaaaaaaaaa"
-            },
-            "transaction": {
-                "duration": {
-                    "us": 643000
-                },
-                "id": "611f4fa950f04631",
-                "representative_count": 1,
-                "sampled": true,
-                "span_count": {
-                    "started": 0
-                },
-                "type": "page-load"
-            },
-            "user_agent": {
-                "device": {
-                    "name": "Other"
-                },
-                "name": "Go-http-client",
-                "original": "Go-http-client/1.1",
-                "version": "1.1"
-            }
-        }
-    ]
-}
+[
+    {
+        "@timestamp": [
+            "dynamic"
+        ],
+        "agent.name": [
+            "rum-js"
+        ],
+        "agent.version": [
+            "5.5.0"
+        ],
+        "client.geo.city_name": [
+            "Perth"
+        ],
+        "client.geo.continent_name": [
+            "Oceania"
+        ],
+        "client.geo.country_iso_code": [
+            "AU"
+        ],
+        "client.geo.country_name": [
+            "Australia"
+        ],
+        "client.geo.location": [
+            "dynamic"
+        ],
+        "client.geo.region_iso_code": [
+            "AU-WA"
+        ],
+        "client.geo.region_name": [
+            "Western Australia"
+        ],
+        "client.ip": [
+            "220.244.41.16"
+        ],
+        "data_stream.dataset": [
+            "apm.internal"
+        ],
+        "data_stream.namespace": [
+            "default"
+        ],
+        "data_stream.type": [
+            "metrics"
+        ],
+        "metricset.name": [
+            "span_breakdown"
+        ],
+        "observer.hostname": [
+            "dynamic"
+        ],
+        "observer.type": [
+            "apm-server"
+        ],
+        "observer.version": [
+            "dynamic"
+        ],
+        "processor.event": [
+            "metric"
+        ],
+        "service.name": [
+            "rum-js-test"
+        ],
+        "source.ip": [
+            "220.244.41.16"
+        ],
+        "source.nat.ip": [
+            "127.0.0.1"
+        ],
+        "span.self_time.count": [
+            1
+        ],
+        "span.self_time.sum.us": [
+            633
+        ],
+        "span.subtype": [
+            "http"
+        ],
+        "span.type": [
+            "external"
+        ],
+        "transaction.name": [
+            "GET /"
+        ],
+        "transaction.type": [
+            "request"
+        ],
+        "user_agent.device.name": [
+            "Other"
+        ],
+        "user_agent.name": [
+            "Go-http-client"
+        ],
+        "user_agent.original": [
+            "Go-http-client/1.1"
+        ],
+        "user_agent.version": [
+            "1.1"
+        ]
+    },
+    {
+        "@timestamp": [
+            "dynamic"
+        ],
+        "agent.name": [
+            "rum-js"
+        ],
+        "agent.version": [
+            "5.5.0"
+        ],
+        "client.geo.city_name": [
+            "Perth"
+        ],
+        "client.geo.continent_name": [
+            "Oceania"
+        ],
+        "client.geo.country_iso_code": [
+            "AU"
+        ],
+        "client.geo.country_name": [
+            "Australia"
+        ],
+        "client.geo.location": [
+            "dynamic"
+        ],
+        "client.geo.region_iso_code": [
+            "AU-WA"
+        ],
+        "client.geo.region_name": [
+            "Western Australia"
+        ],
+        "client.ip": [
+            "220.244.41.16"
+        ],
+        "data_stream.dataset": [
+            "apm.rum"
+        ],
+        "data_stream.namespace": [
+            "default"
+        ],
+        "data_stream.type": [
+            "traces"
+        ],
+        "event.outcome": [
+            "unknown"
+        ],
+        "observer.hostname": [
+            "dynamic"
+        ],
+        "observer.type": [
+            "apm-server"
+        ],
+        "observer.version": [
+            "dynamic"
+        ],
+        "processor.event": [
+            "transaction"
+        ],
+        "service.name": [
+            "rum-js-test"
+        ],
+        "source.ip": [
+            "220.244.41.16"
+        ],
+        "source.nat.ip": [
+            "127.0.0.1"
+        ],
+        "span.id": [
+            "611f4fa950f04631"
+        ],
+        "timestamp.us": [
+            "dynamic"
+        ],
+        "trace.id": [
+            "611f4fa950f04631aaaaaaaaaaaaaaaa"
+        ],
+        "transaction.duration.us": [
+            643000
+        ],
+        "transaction.id": [
+            "611f4fa950f04631"
+        ],
+        "transaction.representative_count": [
+            1
+        ],
+        "transaction.sampled": [
+            true
+        ],
+        "transaction.span_count.started": [
+            0
+        ],
+        "transaction.type": [
+            "page-load"
+        ],
+        "user_agent.device.name": [
+            "Other"
+        ],
+        "user_agent.name": [
+            "Go-http-client"
+        ],
+        "user_agent.original": [
+            "Go-http-client/1.1"
+        ],
+        "user_agent.version": [
+            "1.1"
+        ]
+    }
+]

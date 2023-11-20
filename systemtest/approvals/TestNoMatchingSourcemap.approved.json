@@ -1,90 +1,110 @@
-{
-    "events": [
-        {
-            "@timestamp": "dynamic",
-            "agent": {
-                "name": "rum-js",
-                "version": "0.0.0"
-            },
-            "client": {
-                "ip": "127.0.0.1"
-            },
-            "data_stream": {
-                "dataset": "apm.rum",
-                "namespace": "default",
-                "type": "traces"
-            },
-            "event": {
-                "outcome": "unknown"
-            },
-            "observer": {
-                "hostname": "dynamic",
-                "type": "apm-server",
-                "version": "dynamic"
-            },
-            "parent": {
-                "id": "611f4fa950f04631"
-            },
-            "processor": {
-                "event": "span"
-            },
-            "service": {
-                "name": "apm-agent-js"
-            },
-            "source": {
-                "ip": "127.0.0.1",
-                "port": "dynamic"
-            },
-            "span": {
-                "duration": {
-                    "us": 643000
-                },
-                "id": "aaaaaaaaaaaaaaaa",
-                "name": "transaction",
-                "representative_count": 1,
-                "stacktrace": [
-                    {
-                        "abs_path": "http://subdomain1.localhost:8000/test/e2e/general-usecase/bundle.js.map",
-                        "exclude_from_grouping": false,
-                        "filename": "test/e2e/general-usecase/bundle.js.map",
-                        "function": "\u003canonymous\u003e",
-                        "line": {
-                            "column": 18,
-                            "number": 1
-                        },
-                        "sourcemap": {
-                            "error": "unable to find sourcemap.url for service.name=apm-agent-js service.version=1.0.0 bundle.path=http://subdomain1.localhost:8000/test/e2e/general-usecase/bundle.js.map"
-                        }
-                    },
-                    {
-                        "abs_path": "http://subdomain2.localhost:8000/test/e2e/general-usecase/bundle.js.map",
-                        "exclude_from_grouping": false,
-                        "filename": "~/test/e2e/general-usecase/bundle.js.map",
-                        "function": "\u003canonymous\u003e",
-                        "library_frame": true,
-                        "line": {
-                            "column": 18,
-                            "number": 1
-                        },
-                        "sourcemap": {
-                            "error": "unable to find sourcemap.url for service.name=apm-agent-js service.version=1.0.0 bundle.path=http://subdomain2.localhost:8000/test/e2e/general-usecase/bundle.js.map"
-                        }
-                    }
-                ],
-                "type": "transaction"
-            },
-            "timestamp": {
-                "us": "dynamic"
-            },
-            "trace": {
-                "id": "611f4fa950f04631aaaaaaaaaaaaaaaa"
-            },
-            "transaction": {
-                "id": "611f4fa950f04631"
-            },
-            "url": {
-                "original": "http://localhost:8000/test/e2e/general-usecase/span"
-            }
-        }
-    ]
-}
+[
+    {
+        "@timestamp": [
+            "dynamic"
+        ],
+        "agent.name": [
+            "rum-js"
+        ],
+        "agent.version": [
+            "0.0.0"
+        ],
+        "client.ip": [
+            "127.0.0.1"
+        ],
+        "data_stream.dataset": [
+            "apm.rum"
+        ],
+        "data_stream.namespace": [
+            "default"
+        ],
+        "data_stream.type": [
+            "traces"
+        ],
+        "event.outcome": [
+            "unknown"
+        ],
+        "observer.hostname": [
+            "dynamic"
+        ],
+        "observer.type": [
+            "apm-server"
+        ],
+        "observer.version": [
+            "dynamic"
+        ],
+        "parent.id": [
+            "611f4fa950f04631"
+        ],
+        "processor.event": [
+            "span"
+        ],
+        "service.name": [
+            "apm-agent-js"
+        ],
+        "source.ip": [
+            "127.0.0.1"
+        ],
+        "source.port": [
+            "dynamic"
+        ],
+        "span.duration.us": [
+            643000
+        ],
+        "span.id": [
+            "aaaaaaaaaaaaaaaa"
+        ],
+        "span.name": [
+            "transaction"
+        ],
+        "span.representative_count": [
+            1
+        ],
+        "span.stacktrace.abs_path": [
+            "http://subdomain1.localhost:8000/test/e2e/general-usecase/bundle.js.map",
+            "http://subdomain2.localhost:8000/test/e2e/general-usecase/bundle.js.map"
+        ],
+        "span.stacktrace.exclude_from_grouping": [
+            false,
+            false
+        ],
+        "span.stacktrace.filename": [
+            "test/e2e/general-usecase/bundle.js.map",
+            "~/test/e2e/general-usecase/bundle.js.map"
+        ],
+        "span.stacktrace.function": [
+            "\u003canonymous\u003e",
+            "\u003canonymous\u003e"
+        ],
+        "span.stacktrace.library_frame": [
+            true
+        ],
+        "span.stacktrace.line.column": [
+            18,
+            18
+        ],
+        "span.stacktrace.line.number": [
+            1,
+            1
+        ],
+        "span.stacktrace.sourcemap.error": [
+            "unable to find sourcemap.url for service.name=apm-agent-js service.version=1.0.0 bundle.path=http://subdomain1.localhost:8000/test/e2e/general-usecase/bundle.js.map",
+            "unable to find sourcemap.url for service.name=apm-agent-js service.version=1.0.0 bundle.path=http://subdomain2.localhost:8000/test/e2e/general-usecase/bundle.js.map"
+        ],
+        "span.type": [
+            "transaction"
+        ],
+        "timestamp.us": [
+            "dynamic"
+        ],
+        "trace.id": [
+            "611f4fa950f04631aaaaaaaaaaaaaaaa"
+        ],
+        "transaction.id": [
+            "611f4fa950f04631"
+        ],
+        "url.original": [
+            "http://localhost:8000/test/e2e/general-usecase/span"
+        ]
+    }
+]

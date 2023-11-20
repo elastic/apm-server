@@ -1,34 +1,46 @@
-{
-    "events": [
-        {
-            "@timestamp": "dynamic",
-            "agent": {
-                "name": "opentelemetry/go",
-                "version": "1.19.0"
-            },
-            "counter": 1,
-            "data_stream": {
-                "dataset": "apm.app.unknown_service_systemtest_test",
-                "namespace": "default",
-                "type": "metrics"
-            },
-            "metricset": {
-                "name": "app"
-            },
-            "observer": {
-                "hostname": "dynamic",
-                "type": "apm-server",
-                "version": "dynamic"
-            },
-            "processor": {
-                "event": "metric"
-            },
-            "service": {
-                "language": {
-                    "name": "go"
-                },
-                "name": "unknown_service_systemtest_test"
-            }
-        }
-    ]
-}
+[
+    {
+        "@timestamp": [
+            "dynamic"
+        ],
+        "agent.name": [
+            "opentelemetry/go"
+        ],
+        "agent.version": [
+            "1.19.0"
+        ],
+        "counter": [
+            1
+        ],
+        "data_stream.dataset": [
+            "apm.app.unknown_service_systemtest_test"
+        ],
+        "data_stream.namespace": [
+            "default"
+        ],
+        "data_stream.type": [
+            "metrics"
+        ],
+        "metricset.name": [
+            "app"
+        ],
+        "observer.hostname": [
+            "dynamic"
+        ],
+        "observer.type": [
+            "apm-server"
+        ],
+        "observer.version": [
+            "dynamic"
+        ],
+        "processor.event": [
+            "metric"
+        ],
+        "service.language.name": [
+            "go"
+        ],
+        "service.name": [
+            "unknown_service_systemtest_test"
+        ]
+    }
+]
