@@ -13,8 +13,13 @@ tags:
 # Build args passed to Dockerfile ARGs
 args:
   BASE_IMAGE: "redhat/ubi/ubi9"
+<<<<<<< HEAD:packaging/ironbank/hardening_manifest.yaml.tmpl
   BASE_TAG: "9.2"
   ELASTIC_STACK: "{{ beat_version }}"
+=======
+  BASE_TAG: "9.3"
+  ELASTIC_STACK: "${APM_SERVER_VERSION}"
+>>>>>>> f6a3cc03f (ironbank: use ubi:9.3 (#12077)):packaging/ironbank/hardening_manifest.yaml
   ELASTIC_PRODUCT: "apm-server"
 
 # Docker image labels
