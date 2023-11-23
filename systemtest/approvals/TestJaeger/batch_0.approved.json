@@ -57,6 +57,9 @@
         "parent.id": [
             "7be2fd98d0973be3"
         ],
+        "processor.event": [
+            "error"
+        ],
         "service.language.name": [
             "Go"
         ],
@@ -143,6 +146,9 @@
         "parent.id": [
             "7be2fd98d0973be3"
         ],
+        "processor.event": [
+            "error"
+        ],
         "service.language.name": [
             "Go"
         ],
@@ -228,6 +234,9 @@
         ],
         "parent.id": [
             "7be2fd98d0973be3"
+        ],
+        "processor.event": [
+            "error"
         ],
         "service.language.name": [
             "Go"
@@ -559,6 +568,9 @@
             "7be2fd98d0973be3"
         ],
         "transaction.name": [
+            "Driver::findNearest"
+        ],
+        "transaction.name.text": [
             "Driver::findNearest"
         ],
         "transaction.sampled": [

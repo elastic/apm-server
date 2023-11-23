@@ -3,9 +3,6 @@
         "@timestamp": [
             "2006-01-02T15:00:00.000Z"
         ],
-        "_doc_count": [
-            2
-        ],
         "agent.name": [
             "go"
         ],
@@ -18,11 +15,11 @@
         "data_stream.type": [
             "metrics"
         ],
-        "event.success_count.sum": [
-            2
-        ],
-        "event.success_count.value_count": [
-            2
+        "event.success_count": [
+            {
+                "sum": 2,
+                "value_count": 2
+            }
         ],
         "metricset.interval": [
             "10m"
@@ -48,17 +45,21 @@
         "service.name": [
             "systemtest"
         ],
-        "transaction.duration.histogram.counts": [
-            2
+        "transaction.duration.histogram": [
+            {
+                "counts": [
+                    2
+                ],
+                "values": [
+                    1003519
+                ]
+            }
         ],
-        "transaction.duration.histogram.values": [
-            1003519
-        ],
-        "transaction.duration.summary.sum": [
-            2007038
-        ],
-        "transaction.duration.summary.value_count": [
-            2
+        "transaction.duration.summary": [
+            {
+                "sum": 2007038,
+                "value_count": 2
+            }
         ],
         "transaction.type": [
             "type1"
@@ -67,9 +68,6 @@
     {
         "@timestamp": [
             "2006-01-02T15:04:00.000Z"
-        ],
-        "_doc_count": [
-            2
         ],
         "agent.name": [
             "go"
@@ -83,11 +81,11 @@
         "data_stream.type": [
             "metrics"
         ],
-        "event.success_count.sum": [
-            2
-        ],
-        "event.success_count.value_count": [
-            2
+        "event.success_count": [
+            {
+                "sum": 2,
+                "value_count": 2
+            }
         ],
         "metricset.interval": [
             "1m"
@@ -113,17 +111,21 @@
         "service.name": [
             "systemtest"
         ],
-        "transaction.duration.histogram.counts": [
-            2
+        "transaction.duration.histogram": [
+            {
+                "counts": [
+                    2
+                ],
+                "values": [
+                    1003519
+                ]
+            }
         ],
-        "transaction.duration.histogram.values": [
-            1003519
-        ],
-        "transaction.duration.summary.sum": [
-            2007038
-        ],
-        "transaction.duration.summary.value_count": [
-            2
+        "transaction.duration.summary": [
+            {
+                "sum": 2007038,
+                "value_count": 2
+            }
         ],
         "transaction.type": [
             "type1"
@@ -132,9 +134,6 @@
     {
         "@timestamp": [
             "2006-01-02T15:00:00.000Z"
-        ],
-        "_doc_count": [
-            2
         ],
         "agent.name": [
             "go"
@@ -148,11 +147,11 @@
         "data_stream.type": [
             "metrics"
         ],
-        "event.success_count.sum": [
-            2
-        ],
-        "event.success_count.value_count": [
-            2
+        "event.success_count": [
+            {
+                "sum": 2,
+                "value_count": 2
+            }
         ],
         "metricset.interval": [
             "60m"
@@ -178,17 +177,21 @@
         "service.name": [
             "systemtest"
         ],
-        "transaction.duration.histogram.counts": [
-            2
+        "transaction.duration.histogram": [
+            {
+                "counts": [
+                    2
+                ],
+                "values": [
+                    1003519
+                ]
+            }
         ],
-        "transaction.duration.histogram.values": [
-            1003519
-        ],
-        "transaction.duration.summary.sum": [
-            2007038
-        ],
-        "transaction.duration.summary.value_count": [
-            2
+        "transaction.duration.summary": [
+            {
+                "sum": 2007038,
+                "value_count": 2
+            }
         ],
         "transaction.type": [
             "type1"
@@ -197,9 +200,6 @@
     {
         "@timestamp": [
             "2006-01-02T15:00:00.000Z"
-        ],
-        "_doc_count": [
-            2
         ],
         "agent.name": [
             "go"
@@ -213,11 +213,11 @@
         "data_stream.type": [
             "metrics"
         ],
-        "event.success_count.sum": [
-            2
-        ],
-        "event.success_count.value_count": [
-            2
+        "event.success_count": [
+            {
+                "sum": 2,
+                "value_count": 2
+            }
         ],
         "metricset.interval": [
             "10m"
@@ -243,17 +243,21 @@
         "service.name": [
             "systemtest"
         ],
-        "transaction.duration.histogram.counts": [
-            2
+        "transaction.duration.histogram": [
+            {
+                "counts": [
+                    2
+                ],
+                "values": [
+                    1003519
+                ]
+            }
         ],
-        "transaction.duration.histogram.values": [
-            1003519
-        ],
-        "transaction.duration.summary.sum": [
-            2007038
-        ],
-        "transaction.duration.summary.value_count": [
-            2
+        "transaction.duration.summary": [
+            {
+                "sum": 2007038,
+                "value_count": 2
+            }
         ],
         "transaction.type": [
             "type2"
@@ -262,9 +266,6 @@
     {
         "@timestamp": [
             "2006-01-02T15:04:00.000Z"
-        ],
-        "_doc_count": [
-            2
         ],
         "agent.name": [
             "go"
@@ -278,11 +279,11 @@
         "data_stream.type": [
             "metrics"
         ],
-        "event.success_count.sum": [
-            2
-        ],
-        "event.success_count.value_count": [
-            2
+        "event.success_count": [
+            {
+                "sum": 2,
+                "value_count": 2
+            }
         ],
         "metricset.interval": [
             "1m"
@@ -308,17 +309,21 @@
         "service.name": [
             "systemtest"
         ],
-        "transaction.duration.histogram.counts": [
-            2
+        "transaction.duration.histogram": [
+            {
+                "counts": [
+                    2
+                ],
+                "values": [
+                    1003519
+                ]
+            }
         ],
-        "transaction.duration.histogram.values": [
-            1003519
-        ],
-        "transaction.duration.summary.sum": [
-            2007038
-        ],
-        "transaction.duration.summary.value_count": [
-            2
+        "transaction.duration.summary": [
+            {
+                "sum": 2007038,
+                "value_count": 2
+            }
         ],
         "transaction.type": [
             "type2"
@@ -327,9 +332,6 @@
     {
         "@timestamp": [
             "2006-01-02T15:00:00.000Z"
-        ],
-        "_doc_count": [
-            2
         ],
         "agent.name": [
             "go"
@@ -343,11 +345,11 @@
         "data_stream.type": [
             "metrics"
         ],
-        "event.success_count.sum": [
-            2
-        ],
-        "event.success_count.value_count": [
-            2
+        "event.success_count": [
+            {
+                "sum": 2,
+                "value_count": 2
+            }
         ],
         "metricset.interval": [
             "60m"
@@ -373,17 +375,21 @@
         "service.name": [
             "systemtest"
         ],
-        "transaction.duration.histogram.counts": [
-            2
+        "transaction.duration.histogram": [
+            {
+                "counts": [
+                    2
+                ],
+                "values": [
+                    1003519
+                ]
+            }
         ],
-        "transaction.duration.histogram.values": [
-            1003519
-        ],
-        "transaction.duration.summary.sum": [
-            2007038
-        ],
-        "transaction.duration.summary.value_count": [
-            2
+        "transaction.duration.summary": [
+            {
+                "sum": 2007038,
+                "value_count": 2
+            }
         ],
         "transaction.type": [
             "type2"

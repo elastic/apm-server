@@ -3,9 +3,6 @@
         "@timestamp": [
             "dynamic"
         ],
-        "_doc_count": [
-            4
-        ],
         "agent.name": [
             "go"
         ],
@@ -62,9 +59,6 @@
         "@timestamp": [
             "dynamic"
         ],
-        "_doc_count": [
-            4
-        ],
         "agent.name": [
             "go"
         ],
@@ -120,9 +114,6 @@
     {
         "@timestamp": [
             "dynamic"
-        ],
-        "_doc_count": [
-            4
         ],
         "agent.name": [
             "go"
@@ -180,9 +171,6 @@
         "@timestamp": [
             "dynamic"
         ],
-        "_doc_count": [
-            50
-        ],
         "agent.name": [
             "go"
         ],
@@ -239,9 +227,6 @@
         "@timestamp": [
             "dynamic"
         ],
-        "_doc_count": [
-            50
-        ],
         "agent.name": [
             "go"
         ],
@@ -297,9 +282,6 @@
     {
         "@timestamp": [
             "dynamic"
-        ],
-        "_doc_count": [
-            50
         ],
         "agent.name": [
             "go"

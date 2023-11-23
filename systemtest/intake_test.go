@@ -64,12 +64,11 @@ func TestIntake(t *testing.T) {
 			)
 			tc.dynamicFields = append(tc.dynamicFields,
 				"client.geo.city_name",
-				"client.geo.location.lat",
-				"client.geo.location.lon",
+				"client.geo.location",
 				"client.geo.region_iso_code",
 				"client.geo.region_name",
 			)
-			approvaltest.ApproveEvents(t, t.Name(), result.Hits.Hits, tc.dynamicFields...)
+			approvaltest.ApproveFields(t, t.Name(), result.Hits.Hits, tc.dynamicFields...)
 		})
 	}
 

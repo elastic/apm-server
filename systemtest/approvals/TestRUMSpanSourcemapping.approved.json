@@ -60,79 +60,79 @@
         "span.representative_count": [
             1
         ],
-        "span.stacktrace.abs_path": [
-            "http://subdomain1.localhost:8000/test/e2e/general-usecase/bundle.js.map",
-            "http://subdomain2.localhost:8000/test/e2e/general-usecase/bundle.js.map"
-        ],
-        "span.stacktrace.context.post": [
-            "",
-            " \t\t// Check if module is in cache",
-            " \t\tif(installedModules[moduleId])",
-            " \t\t\treturn installedModules[moduleId].exports;",
-            "",
-            "",
-            " \t\t// Check if module is in cache",
-            " \t\tif(installedModules[moduleId])",
-            " \t\t\treturn installedModules[moduleId].exports;",
-            ""
-        ],
-        "span.stacktrace.context.pre": [
-            " \t// The module cache",
-            " \tvar installedModules = {};",
-            "",
-            " \t// The require function",
-            " \t// The module cache",
-            " \tvar installedModules = {};",
-            "",
-            " \t// The require function"
-        ],
-        "span.stacktrace.exclude_from_grouping": [
-            false,
-            false
-        ],
-        "span.stacktrace.filename": [
-            "webpack:///webpack/bootstrap 6002740481c9666b0d38",
-            "webpack:///webpack/bootstrap 6002740481c9666b0d38"
-        ],
-        "span.stacktrace.function": [
-            "\u003cunknown\u003e",
-            "\u003canonymous\u003e"
-        ],
-        "span.stacktrace.line.column": [
-            0,
-            0
-        ],
-        "span.stacktrace.line.context": [
-            " \tfunction __webpack_require__(moduleId) {",
-            " \tfunction __webpack_require__(moduleId) {"
-        ],
-        "span.stacktrace.line.number": [
-            5,
-            5
-        ],
-        "span.stacktrace.original.abs_path": [
-            "http://subdomain1.localhost:8000/test/e2e/general-usecase/bundle.js.map",
-            "http://subdomain2.localhost:8000/test/e2e/general-usecase/bundle.js.map"
-        ],
-        "span.stacktrace.original.colno": [
-            18,
-            18
-        ],
-        "span.stacktrace.original.filename": [
-            "test/e2e/general-usecase/bundle.js.map",
-            "~/test/e2e/general-usecase/bundle.js.map"
-        ],
-        "span.stacktrace.original.function": [
-            "\u003canonymous\u003e",
-            "\u003canonymous\u003e"
-        ],
-        "span.stacktrace.original.lineno": [
-            1,
-            1
-        ],
-        "span.stacktrace.sourcemap.updated": [
-            true,
-            true
+        "span.stacktrace": [
+            {
+                "abs_path": "http://subdomain1.localhost:8000/test/e2e/general-usecase/bundle.js.map",
+                "context": {
+                    "post": [
+                        "",
+                        " \t\t// Check if module is in cache",
+                        " \t\tif(installedModules[moduleId])",
+                        " \t\t\treturn installedModules[moduleId].exports;",
+                        ""
+                    ],
+                    "pre": [
+                        " \t// The module cache",
+                        " \tvar installedModules = {};",
+                        "",
+                        " \t// The require function"
+                    ]
+                },
+                "exclude_from_grouping": false,
+                "filename": "webpack:///webpack/bootstrap 6002740481c9666b0d38",
+                "function": "\u003cunknown\u003e",
+                "line": {
+                    "column": 0,
+                    "context": " \tfunction __webpack_require__(moduleId) {",
+                    "number": 5
+                },
+                "original": {
+                    "abs_path": "http://subdomain1.localhost:8000/test/e2e/general-usecase/bundle.js.map",
+                    "colno": 18,
+                    "filename": "test/e2e/general-usecase/bundle.js.map",
+                    "function": "\u003canonymous\u003e",
+                    "lineno": 1
+                },
+                "sourcemap": {
+                    "updated": true
+                }
+            },
+            {
+                "abs_path": "http://subdomain2.localhost:8000/test/e2e/general-usecase/bundle.js.map",
+                "context": {
+                    "post": [
+                        "",
+                        " \t\t// Check if module is in cache",
+                        " \t\tif(installedModules[moduleId])",
+                        " \t\t\treturn installedModules[moduleId].exports;",
+                        ""
+                    ],
+                    "pre": [
+                        " \t// The module cache",
+                        " \tvar installedModules = {};",
+                        "",
+                        " \t// The require function"
+                    ]
+                },
+                "exclude_from_grouping": false,
+                "filename": "webpack:///webpack/bootstrap 6002740481c9666b0d38",
+                "function": "\u003canonymous\u003e",
+                "line": {
+                    "column": 0,
+                    "context": " \tfunction __webpack_require__(moduleId) {",
+                    "number": 5
+                },
+                "original": {
+                    "abs_path": "http://subdomain2.localhost:8000/test/e2e/general-usecase/bundle.js.map",
+                    "colno": 18,
+                    "filename": "~/test/e2e/general-usecase/bundle.js.map",
+                    "function": "\u003canonymous\u003e",
+                    "lineno": 1
+                },
+                "sourcemap": {
+                    "updated": true
+                }
+            }
         ],
         "span.type": [
             "transaction"
@@ -147,6 +147,9 @@
             "611f4fa950f04631"
         ],
         "url.original": [
+            "http://localhost:8000/test/e2e/general-usecase/span"
+        ],
+        "url.original.text": [
             "http://localhost:8000/test/e2e/general-usecase/span"
         ]
     }

@@ -3,9 +3,6 @@
         "@timestamp": [
             "2006-01-02T15:00:00.000Z"
         ],
-        "_doc_count": [
-            5
-        ],
         "agent.name": [
             "go"
         ],
@@ -21,11 +18,11 @@
         "event.outcome": [
             "success"
         ],
-        "event.success_count.sum": [
-            5
-        ],
-        "event.success_count.value_count": [
-            5
+        "event.success_count": [
+            {
+                "sum": 5,
+                "value_count": 5
+            }
         ],
         "host.hostname": [
             "beowulf"
@@ -72,17 +69,21 @@
         "service.runtime.version": [
             "2.0"
         ],
-        "transaction.duration.histogram.counts": [
-            5
+        "transaction.duration.histogram": [
+            {
+                "counts": [
+                    5
+                ],
+                "values": [
+                    1003519
+                ]
+            }
         ],
-        "transaction.duration.histogram.values": [
-            1003519
-        ],
-        "transaction.duration.summary.sum": [
-            5017595
-        ],
-        "transaction.duration.summary.value_count": [
-            5
+        "transaction.duration.summary": [
+            {
+                "sum": 5017595,
+                "value_count": 5
+            }
         ],
         "transaction.name": [
             "abc"
@@ -97,9 +98,6 @@
     {
         "@timestamp": [
             "2006-01-02T15:04:00.000Z"
-        ],
-        "_doc_count": [
-            5
         ],
         "agent.name": [
             "go"
@@ -116,11 +114,11 @@
         "event.outcome": [
             "success"
         ],
-        "event.success_count.sum": [
-            5
-        ],
-        "event.success_count.value_count": [
-            5
+        "event.success_count": [
+            {
+                "sum": 5,
+                "value_count": 5
+            }
         ],
         "host.hostname": [
             "beowulf"
@@ -167,17 +165,21 @@
         "service.runtime.version": [
             "2.0"
         ],
-        "transaction.duration.histogram.counts": [
-            5
+        "transaction.duration.histogram": [
+            {
+                "counts": [
+                    5
+                ],
+                "values": [
+                    1003519
+                ]
+            }
         ],
-        "transaction.duration.histogram.values": [
-            1003519
-        ],
-        "transaction.duration.summary.sum": [
-            5017595
-        ],
-        "transaction.duration.summary.value_count": [
-            5
+        "transaction.duration.summary": [
+            {
+                "sum": 5017595,
+                "value_count": 5
+            }
         ],
         "transaction.name": [
             "abc"
@@ -192,9 +194,6 @@
     {
         "@timestamp": [
             "2006-01-02T15:00:00.000Z"
-        ],
-        "_doc_count": [
-            5
         ],
         "agent.name": [
             "go"
@@ -211,11 +210,11 @@
         "event.outcome": [
             "success"
         ],
-        "event.success_count.sum": [
-            5
-        ],
-        "event.success_count.value_count": [
-            5
+        "event.success_count": [
+            {
+                "sum": 5,
+                "value_count": 5
+            }
         ],
         "host.hostname": [
             "beowulf"
@@ -262,17 +261,21 @@
         "service.runtime.version": [
             "2.0"
         ],
-        "transaction.duration.histogram.counts": [
-            5
+        "transaction.duration.histogram": [
+            {
+                "counts": [
+                    5
+                ],
+                "values": [
+                    1003519
+                ]
+            }
         ],
-        "transaction.duration.histogram.values": [
-            1003519
-        ],
-        "transaction.duration.summary.sum": [
-            5017595
-        ],
-        "transaction.duration.summary.value_count": [
-            5
+        "transaction.duration.summary": [
+            {
+                "sum": 5017595,
+                "value_count": 5
+            }
         ],
         "transaction.name": [
             "abc"
@@ -287,9 +290,6 @@
     {
         "@timestamp": [
             "2006-01-02T15:00:00.000Z"
-        ],
-        "_doc_count": [
-            10
         ],
         "agent.name": [
             "go"
@@ -306,11 +306,11 @@
         "event.outcome": [
             "success"
         ],
-        "event.success_count.sum": [
-            10
-        ],
-        "event.success_count.value_count": [
-            10
+        "event.success_count": [
+            {
+                "sum": 10,
+                "value_count": 10
+            }
         ],
         "host.hostname": [
             "beowulf"
@@ -357,17 +357,21 @@
         "service.runtime.version": [
             "2.0"
         ],
-        "transaction.duration.histogram.counts": [
-            10
+        "transaction.duration.histogram": [
+            {
+                "counts": [
+                    10
+                ],
+                "values": [
+                    1003519
+                ]
+            }
         ],
-        "transaction.duration.histogram.values": [
-            1003519
-        ],
-        "transaction.duration.summary.sum": [
-            10035190
-        ],
-        "transaction.duration.summary.value_count": [
-            10
+        "transaction.duration.summary": [
+            {
+                "sum": 10035190,
+                "value_count": 10
+            }
         ],
         "transaction.name": [
             "def"
@@ -382,9 +386,6 @@
     {
         "@timestamp": [
             "2006-01-02T15:04:00.000Z"
-        ],
-        "_doc_count": [
-            10
         ],
         "agent.name": [
             "go"
@@ -401,11 +402,11 @@
         "event.outcome": [
             "success"
         ],
-        "event.success_count.sum": [
-            10
-        ],
-        "event.success_count.value_count": [
-            10
+        "event.success_count": [
+            {
+                "sum": 10,
+                "value_count": 10
+            }
         ],
         "host.hostname": [
             "beowulf"
@@ -452,17 +453,21 @@
         "service.runtime.version": [
             "2.0"
         ],
-        "transaction.duration.histogram.counts": [
-            10
+        "transaction.duration.histogram": [
+            {
+                "counts": [
+                    10
+                ],
+                "values": [
+                    1003519
+                ]
+            }
         ],
-        "transaction.duration.histogram.values": [
-            1003519
-        ],
-        "transaction.duration.summary.sum": [
-            10035190
-        ],
-        "transaction.duration.summary.value_count": [
-            10
+        "transaction.duration.summary": [
+            {
+                "sum": 10035190,
+                "value_count": 10
+            }
         ],
         "transaction.name": [
             "def"
@@ -477,9 +482,6 @@
     {
         "@timestamp": [
             "2006-01-02T15:00:00.000Z"
-        ],
-        "_doc_count": [
-            10
         ],
         "agent.name": [
             "go"
@@ -496,11 +498,11 @@
         "event.outcome": [
             "success"
         ],
-        "event.success_count.sum": [
-            10
-        ],
-        "event.success_count.value_count": [
-            10
+        "event.success_count": [
+            {
+                "sum": 10,
+                "value_count": 10
+            }
         ],
         "host.hostname": [
             "beowulf"
@@ -547,17 +549,21 @@
         "service.runtime.version": [
             "2.0"
         ],
-        "transaction.duration.histogram.counts": [
-            10
+        "transaction.duration.histogram": [
+            {
+                "counts": [
+                    10
+                ],
+                "values": [
+                    1003519
+                ]
+            }
         ],
-        "transaction.duration.histogram.values": [
-            1003519
-        ],
-        "transaction.duration.summary.sum": [
-            10035190
-        ],
-        "transaction.duration.summary.value_count": [
-            10
+        "transaction.duration.summary": [
+            {
+                "sum": 10035190,
+                "value_count": 10
+            }
         ],
         "transaction.name": [
             "def"
@@ -572,9 +578,6 @@
     {
         "@timestamp": [
             "2021-09-15T20:10:00.000Z"
-        ],
-        "_doc_count": [
-            2
         ],
         "agent.name": [
             "elastic-node"
@@ -687,17 +690,21 @@
         "service.version": [
             "5.1.3"
         ],
-        "transaction.duration.histogram.counts": [
-            2
+        "transaction.duration.histogram": [
+            {
+                "counts": [
+                    2
+                ],
+                "values": [
+                    38911
+                ]
+            }
         ],
-        "transaction.duration.histogram.values": [
-            38911
-        ],
-        "transaction.duration.summary.sum": [
-            77822
-        ],
-        "transaction.duration.summary.value_count": [
-            2
+        "transaction.duration.summary": [
+            {
+                "sum": 77822,
+                "value_count": 2
+            }
         ],
         "transaction.name": [
             "faas"
@@ -716,9 +723,6 @@
         "@timestamp": [
             "2021-09-15T20:11:00.000Z"
         ],
-        "_doc_count": [
-            2
-        ],
         "agent.name": [
             "elastic-node"
         ],
@@ -830,17 +834,21 @@
         "service.version": [
             "5.1.3"
         ],
-        "transaction.duration.histogram.counts": [
-            2
+        "transaction.duration.histogram": [
+            {
+                "counts": [
+                    2
+                ],
+                "values": [
+                    38911
+                ]
+            }
         ],
-        "transaction.duration.histogram.values": [
-            38911
-        ],
-        "transaction.duration.summary.sum": [
-            77822
-        ],
-        "transaction.duration.summary.value_count": [
-            2
+        "transaction.duration.summary": [
+            {
+                "sum": 77822,
+                "value_count": 2
+            }
         ],
         "transaction.name": [
             "faas"
@@ -858,9 +866,6 @@
     {
         "@timestamp": [
             "2021-09-15T20:00:00.000Z"
-        ],
-        "_doc_count": [
-            2
         ],
         "agent.name": [
             "elastic-node"
@@ -973,17 +978,21 @@
         "service.version": [
             "5.1.3"
         ],
-        "transaction.duration.histogram.counts": [
-            2
+        "transaction.duration.histogram": [
+            {
+                "counts": [
+                    2
+                ],
+                "values": [
+                    38911
+                ]
+            }
         ],
-        "transaction.duration.histogram.values": [
-            38911
-        ],
-        "transaction.duration.summary.sum": [
-            77822
-        ],
-        "transaction.duration.summary.value_count": [
-            2
+        "transaction.duration.summary": [
+            {
+                "sum": 77822,
+                "value_count": 2
+            }
         ],
         "transaction.name": [
             "faas"

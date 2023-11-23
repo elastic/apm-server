@@ -21,10 +21,7 @@
         "client.geo.country_name": [
             "Germany"
         ],
-        "client.geo.location.lat": [
-            "dynamic"
-        ],
-        "client.geo.location.lon": [
+        "client.geo.location": [
             "dynamic"
         ],
         "client.geo.region_iso_code": [

@@ -39,6 +39,9 @@
         "error.stack_trace": [
             "not an actual real stack trace"
         ],
+        "error.stack_trace.text": [
+            "not an actual real stack trace"
+        ],
         "labels.resource_attribute_array": [
             "a",
             "b"
@@ -58,7 +61,7 @@
         ],
         "numeric_labels.resource_attribute_float_array": [
             123456.789,
-            987654321.1234568
+            987654321.123457
         ],
         "numeric_labels.resource_attribute_int": [
             123456
@@ -74,6 +77,9 @@
         ],
         "parent.id": [
             "b3ee9be3b687a611"
+        ],
+        "processor.event": [
+            "error"
         ],
         "service.framework.name": [
             "systemtest"
@@ -144,7 +150,7 @@
         ],
         "numeric_labels.resource_attribute_float_array": [
             123456.789,
-            987654321.1234568
+            987654321.123457
         ],
         "numeric_labels.resource_attribute_int": [
             123456
@@ -220,7 +226,7 @@
         ],
         "numeric_labels.resource_attribute_float_array": [
             123456.789,
-            987654321.1234568
+            987654321.123457
         ],
         "numeric_labels.resource_attribute_int": [
             123456
@@ -262,6 +268,9 @@
             "b3ee9be3b687a611"
         ],
         "transaction.name": [
+            "operation_name"
+        ],
+        "transaction.name.text": [
             "operation_name"
         ],
         "transaction.representative_count": [

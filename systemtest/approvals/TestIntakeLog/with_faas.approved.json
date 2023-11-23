@@ -99,6 +99,9 @@
         "process.title": [
             "/usr/lib/jvm/java-10-openjdk-amd64/bin/java"
         ],
+        "process.title.text": [
+            "/usr/lib/jvm/java-10-openjdk-amd64/bin/java"
+        ],
         "service.environment": [
             "production"
         ],

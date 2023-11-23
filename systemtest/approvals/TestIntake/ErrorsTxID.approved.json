@@ -30,18 +30,22 @@
         "error.culprit": [
             "opbeans.controllers.DTInterceptor.preHandle(DTInterceptor.java:73)"
         ],
-        "error.custom.and_objects.foo": [
-            "bar",
-            "baz"
+        "error.custom": [
+            {
+                "and_objects": {
+                    "foo": [
+                        "bar",
+                        "baz"
+                    ]
+                },
+                "my_key": 1,
+                "some_other_value": "foobar"
+            }
         ],
-        "error.custom.my_key": [
-            1
-        ],
-        "error.custom.some_other_value": [
-            "foobar"
-        ],
-        "error.exception.attributes.foo": [
-            "bar"
+        "error.exception.attributes": [
+            {
+                "foo": "bar"
+            }
         ],
         "error.exception.code": [
             "42"
@@ -58,51 +62,44 @@
         "error.exception.module": [
             "org.springframework.http.client"
         ],
-        "error.exception.parent": [
-            1
-        ],
-        "error.exception.stacktrace.abs_path": [
-            "/tmp/AbstractPlainSocketImpl.java"
-        ],
-        "error.exception.stacktrace.context.post": [
-            "line4",
-            "line5"
-        ],
-        "error.exception.stacktrace.context.pre": [
-            "line1",
-            "line2"
-        ],
-        "error.exception.stacktrace.exclude_from_grouping": [
-            false,
-            false
-        ],
-        "error.exception.stacktrace.filename": [
-            "AbstractPlainSocketImpl.java",
-            "AbstractClientHttpRequest.java"
-        ],
-        "error.exception.stacktrace.function": [
-            "connect",
-            "execute"
-        ],
-        "error.exception.stacktrace.library_frame": [
-            true
-        ],
-        "error.exception.stacktrace.line.column": [
-            4
-        ],
-        "error.exception.stacktrace.line.context": [
-            "3"
-        ],
-        "error.exception.stacktrace.line.number": [
-            3,
-            102
-        ],
-        "error.exception.stacktrace.module": [
-            "java.net"
-        ],
-        "error.exception.stacktrace.vars.key": [
-            "value",
-            "value"
+        "error.exception.stacktrace": [
+            {
+                "abs_path": "/tmp/AbstractPlainSocketImpl.java",
+                "context": {
+                    "post": [
+                        "line4",
+                        "line5"
+                    ],
+                    "pre": [
+                        "line1",
+                        "line2"
+                    ]
+                },
+                "exclude_from_grouping": false,
+                "filename": "AbstractPlainSocketImpl.java",
+                "function": "connect",
+                "library_frame": true,
+                "line": {
+                    "column": 4,
+                    "context": "3",
+                    "number": 3
+                },
+                "module": "java.net",
+                "vars": {
+                    "key": "value"
+                }
+            },
+            {
+                "exclude_from_grouping": false,
+                "filename": "AbstractClientHttpRequest.java",
+                "function": "execute",
+                "line": {
+                    "number": 102
+                },
+                "vars": {
+                    "key": "value"
+                }
+            }
         ],
         "error.exception.type": [
             "java.net.UnknownHostException",
@@ -131,52 +128,46 @@
         "error.log.param_message": [
             "Request method 'POST' /events/:event not supported"
         ],
-        "error.log.stacktrace.abs_path": [
-            "/tmp/Socket.java",
-            "/tmp/SimpleBufferingClientHttpRequest.java"
-        ],
-        "error.log.stacktrace.classname": [
-            "Request::Socket"
-        ],
-        "error.log.stacktrace.context.post": [
-            "line4",
-            "line5"
-        ],
-        "error.log.stacktrace.context.pre": [
-            "line1",
-            "line2"
-        ],
-        "error.log.stacktrace.exclude_from_grouping": [
-            false,
-            false
-        ],
-        "error.log.stacktrace.filename": [
-            "Socket.java",
-            "SimpleBufferingClientHttpRequest.java"
-        ],
-        "error.log.stacktrace.function": [
-            "connect",
-            "executeInternal"
-        ],
-        "error.log.stacktrace.library_frame": [
-            true
-        ],
-        "error.log.stacktrace.line.column": [
-            4
-        ],
-        "error.log.stacktrace.line.context": [
-            "line3"
-        ],
-        "error.log.stacktrace.line.number": [
-            3,
-            102
-        ],
-        "error.log.stacktrace.module": [
-            "java.net"
-        ],
-        "error.log.stacktrace.vars.key": [
-            "value",
-            "value"
+        "error.log.stacktrace": [
+            {
+                "abs_path": "/tmp/Socket.java",
+                "classname": "Request::Socket",
+                "context": {
+                    "post": [
+                        "line4",
+                        "line5"
+                    ],
+                    "pre": [
+                        "line1",
+                        "line2"
+                    ]
+                },
+                "exclude_from_grouping": false,
+                "filename": "Socket.java",
+                "function": "connect",
+                "library_frame": true,
+                "line": {
+                    "column": 4,
+                    "context": "line3",
+                    "number": 3
+                },
+                "module": "java.net",
+                "vars": {
+                    "key": "value"
+                }
+            },
+            {
+                "abs_path": "/tmp/SimpleBufferingClientHttpRequest.java",
+                "exclude_from_grouping": false,
+                "filename": "SimpleBufferingClientHttpRequest.java",
+                "function": "executeInternal",
+                "line": {
+                    "number": 102
+                },
+                "vars": {
+                    "key": "value"
+                }
+            }
         ],
         "host.architecture": [
             "amd64"
@@ -193,36 +184,42 @@
         "host.os.platform": [
             "Linux"
         ],
-        "http.request.body.original": [
-            "HelloWorld"
+        "http.request.body": [
+            {
+                "original": "HelloWorld"
+            }
         ],
-        "http.request.cookies.c1": [
-            "v1"
+        "http.request.cookies": [
+            {
+                "c1": "v1",
+                "c2": "v2"
+            }
         ],
-        "http.request.cookies.c2": [
-            "v2"
+        "http.request.env": [
+            {
+                "GATEWAY_INTERFACE": "CGI/1.1",
+                "SERVER_SOFTWARE": "nginx"
+            }
         ],
-        "http.request.env.GATEWAY_INTERFACE": [
-            "CGI/1.1"
-        ],
-        "http.request.env.SERVER_SOFTWARE": [
-            "nginx"
-        ],
-        "http.request.headers.Content-Length": [
-            "0"
-        ],
-        "http.request.headers.Cookie": [
-            "c1=v1",
-            "c2=v2"
-        ],
-        "http.request.headers.Elastic-Apm-Traceparent": [
-            "00-8c21b4b556467a0b17ae5da959b5f388-31301f1fb2998121-01"
-        ],
-        "http.request.headers.Forwarded": [
-            "for=192.168.0.1"
-        ],
-        "http.request.headers.Host": [
-            "opbeans-java:3000"
+        "http.request.headers": [
+            {
+                "Content-Length": [
+                    "0"
+                ],
+                "Cookie": [
+                    "c1=v1",
+                    "c2=v2"
+                ],
+                "Elastic-Apm-Traceparent": [
+                    "00-8c21b4b556467a0b17ae5da959b5f388-31301f1fb2998121-01"
+                ],
+                "Forwarded": [
+                    "for=192.168.0.1"
+                ],
+                "Host": [
+                    "opbeans-java:3000"
+                ]
+            }
         ],
         "http.request.method": [
             "POST"
@@ -230,8 +227,12 @@
         "http.response.finished": [
             true
         ],
-        "http.response.headers.Content-Type": [
-            "application/json"
+        "http.response.headers": [
+            {
+                "Content-Type": [
+                    "application/json"
+                ]
+            }
         ],
         "http.response.headers_sent": [
             true
@@ -293,6 +294,12 @@
         "process.title": [
             "/usr/lib/jvm/java-10-openjdk-amd64/bin/java"
         ],
+        "process.title.text": [
+            "/usr/lib/jvm/java-10-openjdk-amd64/bin/java"
+        ],
+        "processor.event": [
+            "error"
+        ],
         "service.environment": [
             "production"
         ],
@@ -347,7 +354,13 @@
         "url.full": [
             "https://www.example.com/p/a/t/h?query=string#hash"
         ],
+        "url.full.text": [
+            "https://www.example.com/p/a/t/h?query=string#hash"
+        ],
         "url.original": [
+            "/p/a/t/h?query=string#hash"
+        ],
+        "url.original.text": [
             "/p/a/t/h?query=string#hash"
         ],
         "url.path": [
@@ -369,6 +382,9 @@
             "99"
         ],
         "user.name": [
+            "foo"
+        ],
+        "user.name.text": [
             "foo"
         ]
     }

@@ -24,10 +24,7 @@
         "client.geo.country_name": [
             "United States"
         ],
-        "client.geo.location.lat": [
-            "dynamic"
-        ],
-        "client.geo.location.lon": [
+        "client.geo.location": [
             "dynamic"
         ],
         "client.ip": [
@@ -81,18 +78,22 @@
         "error.culprit": [
             "my.module.function_name"
         ],
-        "error.custom.and_objects.foo": [
-            "bar",
-            "baz"
+        "error.custom": [
+            {
+                "and_objects": {
+                    "foo": [
+                        "bar",
+                        "baz"
+                    ]
+                },
+                "my_key": 1,
+                "some_other_value": "foo bar"
+            }
         ],
-        "error.custom.my_key": [
-            1
-        ],
-        "error.custom.some_other_value": [
-            "foo bar"
-        ],
-        "error.exception.attributes.foo": [
-            "bar"
+        "error.exception.attributes": [
+            {
+                "foo": "bar"
+            }
         ],
         "error.exception.code": [
             "42"
@@ -109,72 +110,71 @@
         "error.exception.module": [
             "__builtins__"
         ],
-        "error.exception.parent": [
-            1
-        ],
-        "error.exception.stacktrace.abs_path": [
-            "/real/file/name.py",
-            "/Users/watson/code/node_modules/elastic/lib/instrumentation/index.js"
-        ],
-        "error.exception.stacktrace.classname": [
-            "BaseClass",
-            "RName"
-        ],
-        "error.exception.stacktrace.context.post": [
-            "line4",
-            "line5",
-            "    ins.currentTransaction = prev",
-            "    return result",
-            "}",
-            "}",
-            "",
-            "Instrumentation.prototype._recoverTransaction = function (trans) {",
-            "  if (this.currentTransaction === trans) return"
-        ],
-        "error.exception.stacktrace.context.pre": [
-            "line1",
-            "line2",
-            "  var trans = this.currentTransaction",
-            "",
-            "  return instrumented",
-            "",
-            "  function instrumented () {",
-            "    var prev = ins.currentTransaction",
-            "    ins.currentTransaction = trans"
-        ],
-        "error.exception.stacktrace.exclude_from_grouping": [
-            false,
-            false,
-            false
-        ],
-        "error.exception.stacktrace.filename": [
-            "file/name.py",
-            "lib/instrumentation/index.js"
-        ],
-        "error.exception.stacktrace.function": [
-            "foo",
-            "instrumented"
-        ],
-        "error.exception.stacktrace.library_frame": [
-            true
-        ],
-        "error.exception.stacktrace.line.column": [
-            4
-        ],
-        "error.exception.stacktrace.line.context": [
-            "line3",
-            "    var result = original.apply(this, arguments)"
-        ],
-        "error.exception.stacktrace.line.number": [
-            3,
-            102
-        ],
-        "error.exception.stacktrace.module": [
-            "App::MyModule"
-        ],
-        "error.exception.stacktrace.vars.key": [
-            "value",
-            "value"
+        "error.exception.stacktrace": [
+            {
+                "classname": "BaseClass",
+                "exclude_from_grouping": false
+            },
+            {
+                "abs_path": "/real/file/name.py",
+                "classname": "RName",
+                "context": {
+                    "post": [
+                        "line4",
+                        "line5"
+                    ],
+                    "pre": [
+                        "line1",
+                        "line2"
+                    ]
+                },
+                "exclude_from_grouping": false,
+                "filename": "file/name.py",
+                "function": "foo",
+                "library_frame": true,
+                "line": {
+                    "column": 4,
+                    "context": "line3",
+                    "number": 3
+                },
+                "module": "App::MyModule",
+                "vars": {
+                    "key": "value"
+                }
+            },
+            {
+                "abs_path": "/Users/watson/code/node_modules/elastic/lib/instrumentation/index.js",
+                "context": {
+                    "post": [
+                        "    ins.currentTransaction = prev",
+                        "    return result",
+                        "}",
+                        "}",
+                        "",
+                        "Instrumentation.prototype._recoverTransaction = function (trans) {",
+                        "  if (this.currentTransaction === trans) return"
+                    ],
+                    "pre": [
+                        "  var trans = this.currentTransaction",
+                        "",
+                        "  return instrumented",
+                        "",
+                        "  function instrumented () {",
+                        "    var prev = ins.currentTransaction",
+                        "    ins.currentTransaction = trans"
+                    ]
+                },
+                "exclude_from_grouping": false,
+                "filename": "lib/instrumentation/index.js",
+                "function": "instrumented",
+                "line": {
+                    "context": "    var result = original.apply(this, arguments)",
+                    "number": 102
+                },
+                "vars": {
+                    "key": "value"
+                }
+            }
         ],
         "error.exception.type": [
             "DbError",
@@ -203,66 +203,70 @@
         "error.log.param_message": [
             "My service could not talk to the database named %s"
         ],
-        "error.log.stacktrace.abs_path": [
-            "/real/file/name.py",
-            "/Users/watson/code/node_modules/elastic/lib/instrumentation/index.js"
-        ],
-        "error.log.stacktrace.classname": [
-            "User::Common",
-            "Webpack::File::Name"
-        ],
-        "error.log.stacktrace.context.post": [
-            "line4",
-            "line5",
-            "    ins.currentTransaction = prev",
-            "    return result",
-            "}",
-            "}",
-            "",
-            "Instrumentation.prototype._recoverTransaction = function (trans) {",
-            "  if (this.currentTransaction === trans) return"
-        ],
-        "error.log.stacktrace.context.pre": [
-            "line1",
-            "line2",
-            "  var trans = this.currentTransaction",
-            "",
-            "  return instrumented",
-            "",
-            "  function instrumented () {",
-            "    var prev = ins.currentTransaction",
-            "    ins.currentTransaction = trans"
-        ],
-        "error.log.stacktrace.exclude_from_grouping": [
-            false,
-            false,
-            false
-        ],
-        "error.log.stacktrace.filename": [
-            "/webpack/file/name.py",
-            "lib/instrumentation/index.js"
-        ],
-        "error.log.stacktrace.function": [
-            "foo",
-            "instrumented"
-        ],
-        "error.log.stacktrace.line.column": [
-            4
-        ],
-        "error.log.stacktrace.line.context": [
-            "line3",
-            "    var result = original.apply(this, arguments)"
-        ],
-        "error.log.stacktrace.line.number": [
-            3,
-            102
-        ],
-        "error.log.stacktrace.module": [
-            "App::MyModule"
-        ],
-        "error.log.stacktrace.vars.key": [
-            "value",
-            "value"
+        "error.log.stacktrace": [
+            {
+                "classname": "User::Common",
+                "exclude_from_grouping": false
+            },
+            {
+                "abs_path": "/real/file/name.py",
+                "classname": "Webpack::File::Name",
+                "context": {
+                    "post": [
+                        "line4",
+                        "line5"
+                    ],
+                    "pre": [
+                        "line1",
+                        "line2"
+                    ]
+                },
+                "exclude_from_grouping": false,
+                "filename": "/webpack/file/name.py",
+                "function": "foo",
+                "line": {
+                    "column": 4,
+                    "context": "line3",
+                    "number": 3
+                },
+                "module": "App::MyModule",
+                "vars": {
+                    "key": "value"
+                }
+            },
+            {
+                "abs_path": "/Users/watson/code/node_modules/elastic/lib/instrumentation/index.js",
+                "context": {
+                    "post": [
+                        "    ins.currentTransaction = prev",
+                        "    return result",
+                        "}",
+                        "}",
+                        "",
+                        "Instrumentation.prototype._recoverTransaction = function (trans) {",
+                        "  if (this.currentTransaction === trans) return"
+                    ],
+                    "pre": [
+                        "  var trans = this.currentTransaction",
+                        "",
+                        "  return instrumented",
+                        "",
+                        "  function instrumented () {",
+                        "    var prev = ins.currentTransaction",
+                        "    ins.currentTransaction = trans"
+                    ]
+                },
+                "exclude_from_grouping": false,
+                "filename": "lib/instrumentation/index.js",
+                "function": "instrumented",
+                "line": {
+                    "context": "    var result = original.apply(this, arguments)",
+                    "number": 102
+                },
+                "vars": {
+                    "key": "value"
+                }
+            }
         ],
         "host.architecture": [
             "x64"
@@ -279,37 +283,43 @@
         "host.os.platform": [
             "darwin"
         ],
-        "http.request.body.original": [
-            "Hello World"
+        "http.request.body": [
+            {
+                "original": "Hello World"
+            }
         ],
-        "http.request.cookies.c1": [
-            "v1"
+        "http.request.cookies": [
+            {
+                "c1": "v1",
+                "c2": "v2"
+            }
         ],
-        "http.request.cookies.c2": [
-            "v2"
+        "http.request.env": [
+            {
+                "GATEWAY_INTERFACE": "CGI/1.1",
+                "SERVER_SOFTWARE": "nginx"
+            }
         ],
-        "http.request.env.GATEWAY_INTERFACE": [
-            "CGI/1.1"
-        ],
-        "http.request.env.SERVER_SOFTWARE": [
-            "nginx"
-        ],
-        "http.request.headers.Array": [
-            "foo",
-            "bar",
-            "baz"
-        ],
-        "http.request.headers.Content-Type": [
-            "text/html"
-        ],
-        "http.request.headers.Cookie": [
-            "c1=v1,c2=v2"
-        ],
-        "http.request.headers.Some-Other-Header": [
-            "foo"
-        ],
-        "http.request.headers.User-Agent": [
-            "Mozilla Chrome Edge"
+        "http.request.headers": [
+            {
+                "Array": [
+                    "foo",
+                    "bar",
+                    "baz"
+                ],
+                "Content-Type": [
+                    "text/html"
+                ],
+                "Cookie": [
+                    "c1=v1,c2=v2"
+                ],
+                "Some-Other-Header": [
+                    "foo"
+                ],
+                "User-Agent": [
+                    "Mozilla Chrome Edge"
+                ]
+            }
         ],
         "http.request.method": [
             "POST"
@@ -320,8 +330,12 @@
         "http.response.finished": [
             true
         ],
-        "http.response.headers.Content-Type": [
-            "application/json"
+        "http.response.headers": [
+            {
+                "Content-Type": [
+                    "application/json"
+                ]
+            }
         ],
         "http.response.headers_sent": [
             true
@@ -372,6 +386,12 @@
         "process.title": [
             "node"
         ],
+        "process.title.text": [
+            "node"
+        ],
+        "processor.event": [
+            "error"
+        ],
         "service.environment": [
             "staging"
         ],
@@ -414,7 +434,13 @@
         "url.full": [
             "https://www.example.com/p/a/t/h?query=string#hash"
         ],
+        "url.full.text": [
+            "https://www.example.com/p/a/t/h?query=string#hash"
+        ],
         "url.original": [
+            "/p/a/t/h?query=string#hash"
+        ],
+        "url.original.text": [
             "/p/a/t/h?query=string#hash"
         ],
         "url.path": [
@@ -438,6 +464,9 @@
         "user.name": [
             "foo"
         ],
+        "user.name.text": [
+            "foo"
+        ],
         "user_agent.device.name": [
             "Other"
         ],
@@ -445,6 +474,9 @@
             "Other"
         ],
         "user_agent.original": [
+            "Mozilla Chrome Edge"
+        ],
+        "user_agent.original.text": [
             "Mozilla Chrome Edge"
         ]
     },
@@ -573,6 +605,12 @@
         "process.title": [
             "node"
         ],
+        "process.title.text": [
+            "node"
+        ],
+        "processor.event": [
+            "error"
+        ],
         "service.environment": [
             "staging"
         ],
@@ -616,6 +654,9 @@
             "123"
         ],
         "user.name": [
+            "bar"
+        ],
+        "user.name.text": [
             "bar"
         ]
     },
@@ -692,11 +733,11 @@
         "error.log.message": [
             "no user found"
         ],
-        "error.log.stacktrace.classname": [
-            "User::Special"
-        ],
-        "error.log.stacktrace.exclude_from_grouping": [
-            false
+        "error.log.stacktrace": [
+            {
+                "classname": "User::Special",
+                "exclude_from_grouping": false
+            }
         ],
         "host.architecture": [
             "x64"
@@ -750,6 +791,12 @@
         "process.title": [
             "node"
         ],
+        "process.title.text": [
+            "node"
+        ],
+        "processor.event": [
+            "error"
+        ],
         "service.environment": [
             "staging"
         ],
@@ -793,6 +840,9 @@
             "123"
         ],
         "user.name": [
+            "bar"
+        ],
+        "user.name.text": [
             "bar"
         ]
     },
@@ -863,9 +913,6 @@
         "error.grouping_key": [
             "c3868d6704b923014eaffea034e70a3d"
         ],
-        "error.grouping_name": [
-            null
-        ],
         "error.id": [
             "cdefab0123456780"
         ],
@@ -921,6 +968,12 @@
         "process.title": [
             "node"
         ],
+        "process.title.text": [
+            "node"
+        ],
+        "processor.event": [
+            "error"
+        ],
         "service.environment": [
             "testing"
         ],
@@ -967,6 +1020,9 @@
             "123"
         ],
         "user.name": [
+            "bar"
+        ],
+        "user.name.text": [
             "bar"
         ]
     },
@@ -1101,6 +1157,12 @@
         "process.title": [
             "node"
         ],
+        "process.title.text": [
+            "node"
+        ],
+        "processor.event": [
+            "error"
+        ],
         "service.environment": [
             "staging"
         ],
@@ -1162,6 +1224,9 @@
             "123"
         ],
         "user.name": [
+            "bar"
+        ],
+        "user.name.text": [
             "bar"
         ]
     }

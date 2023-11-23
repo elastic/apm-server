@@ -60,6 +60,9 @@
         "parent.id": [
             "333295bfb438ea03"
         ],
+        "processor.event": [
+            "error"
+        ],
         "service.language.name": [
             "Go"
         ],
@@ -136,6 +139,9 @@
         ],
         "parent.id": [
             "614811d6c498bfb0"
+        ],
+        "processor.event": [
+            "error"
         ],
         "service.language.name": [
             "Go"
@@ -214,6 +220,9 @@
         "parent.id": [
             "0242ee3774d9eab1"
         ],
+        "processor.event": [
+            "error"
+        ],
         "service.language.name": [
             "Go"
         ],
@@ -278,9 +287,6 @@
         ],
         "observer.version": [
             "dynamic"
-        ],
-        "parent.id": [
-            "7be2fd98d0973be3"
         ],
         "service.language.name": [
             "Go"

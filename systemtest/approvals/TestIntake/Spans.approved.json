@@ -64,7 +64,7 @@
             "0:0::0:1"
         ],
         "destination.ip": [
-            "0:0::0:1"
+            "::1"
         ],
         "destination.port": [
             5432
@@ -145,6 +145,9 @@
         "process.title": [
             "node"
         ],
+        "process.title.text": [
+            "node"
+        ],
         "processor.event": [
             "span"
         ],
@@ -223,54 +226,54 @@
         "span.representative_count": [
             1
         ],
-        "span.stacktrace.abs_path": [
-            "net.js"
-        ],
-        "span.stacktrace.classname": [
-            "Core.js"
-        ],
-        "span.stacktrace.context.post": [
-            "    ins.currentTransaction = prev",
-            "}",
-            "    ins.currentTransaction = prev",
-            "    return result"
-        ],
-        "span.stacktrace.context.pre": [
-            "  var trans = this.currentTransaction",
-            ""
-        ],
-        "span.stacktrace.exclude_from_grouping": [
-            false,
-            false,
-            false
-        ],
-        "span.stacktrace.filename": [
-            "net.js",
-            "file2.js",
-            "net.js"
-        ],
-        "span.stacktrace.function": [
-            "onread"
-        ],
-        "span.stacktrace.library_frame": [
-            true
-        ],
-        "span.stacktrace.line.column": [
-            4
-        ],
-        "span.stacktrace.line.context": [
-            "line3"
-        ],
-        "span.stacktrace.line.number": [
-            547,
-            12,
-            547
-        ],
-        "span.stacktrace.module": [
-            "some module"
-        ],
-        "span.stacktrace.vars.key": [
-            "value"
+        "span.stacktrace": [
+            {
+                "classname": "Core.js",
+                "exclude_from_grouping": false,
+                "filename": "net.js",
+                "line": {
+                    "number": 547
+                }
+            },
+            {
+                "context": {
+                    "post": [
+                        "    ins.currentTransaction = prev",
+                        "}"
+                    ]
+                },
+                "exclude_from_grouping": false,
+                "filename": "file2.js",
+                "line": {
+                    "number": 12
+                }
+            },
+            {
+                "abs_path": "net.js",
+                "context": {
+                    "post": [
+                        "    ins.currentTransaction = prev",
+                        "    return result"
+                    ],
+                    "pre": [
+                        "  var trans = this.currentTransaction",
+                        ""
+                    ]
+                },
+                "exclude_from_grouping": false,
+                "filename": "net.js",
+                "function": "onread",
+                "library_frame": true,
+                "line": {
+                    "column": 4,
+                    "context": "line3",
+                    "number": 547
+                },
+                "module": "some module",
+                "vars": {
+                    "key": "value"
+                }
+            }
         ],
         "span.subtype": [
             "postgresql"
@@ -290,6 +293,9 @@
         "url.original": [
             "http://localhost:8000"
         ],
+        "url.original.text": [
+            "http://localhost:8000"
+        ],
         "user.domain": [
             "ldap://abc"
         ],
@@ -300,6 +306,9 @@
             "123"
         ],
         "user.name": [
+            "john"
+        ],
+        "user.name.text": [
             "john"
         ]
     },
@@ -419,6 +428,9 @@
         "process.title": [
             "node"
         ],
+        "process.title.text": [
+            "node"
+        ],
         "processor.event": [
             "span"
         ],
@@ -492,6 +504,9 @@
             "123"
         ],
         "user.name": [
+            "john"
+        ],
+        "user.name.text": [
             "john"
         ]
     },
@@ -620,6 +635,9 @@
         "process.title": [
             "node"
         ],
+        "process.title.text": [
+            "node"
+        ],
         "processor.event": [
             "span"
         ],
@@ -690,6 +708,9 @@
             "123"
         ],
         "user.name": [
+            "john"
+        ],
+        "user.name.text": [
             "john"
         ]
     },
@@ -809,6 +830,9 @@
         "process.title": [
             "node"
         ],
+        "process.title.text": [
+            "node"
+        ],
         "processor.event": [
             "span"
         ],
@@ -876,6 +900,9 @@
             "123"
         ],
         "user.name": [
+            "john"
+        ],
+        "user.name.text": [
             "john"
         ]
     },
@@ -998,6 +1025,9 @@
         "process.title": [
             "node"
         ],
+        "process.title.text": [
+            "node"
+        ],
         "processor.event": [
             "span"
         ],
@@ -1081,6 +1111,9 @@
         ],
         "user.name": [
             "john"
+        ],
+        "user.name.text": [
+            "john"
         ]
     },
     {
@@ -1148,7 +1181,7 @@
             "0:0::0:1"
         ],
         "destination.ip": [
-            "0:0::0:1"
+            "::1"
         ],
         "destination.port": [
             5432
@@ -1229,6 +1262,9 @@
         "process.title": [
             "node"
         ],
+        "process.title.text": [
+            "node"
+        ],
         "processor.event": [
             "span"
         ],
@@ -1307,54 +1343,54 @@
         "span.representative_count": [
             1
         ],
-        "span.stacktrace.abs_path": [
-            "net.js"
-        ],
-        "span.stacktrace.classname": [
-            "Core.js"
-        ],
-        "span.stacktrace.context.post": [
-            "    ins.currentTransaction = prev",
-            "}",
-            "    ins.currentTransaction = prev",
-            "    return result"
-        ],
-        "span.stacktrace.context.pre": [
-            "  var trans = this.currentTransaction",
-            ""
-        ],
-        "span.stacktrace.exclude_from_grouping": [
-            false,
-            false,
-            false
-        ],
-        "span.stacktrace.filename": [
-            "net.js",
-            "file2.js",
-            "net.js"
-        ],
-        "span.stacktrace.function": [
-            "onread"
-        ],
-        "span.stacktrace.library_frame": [
-            true
-        ],
-        "span.stacktrace.line.column": [
-            4
-        ],
-        "span.stacktrace.line.context": [
-            "line3"
-        ],
-        "span.stacktrace.line.number": [
-            547,
-            12,
-            547
-        ],
-        "span.stacktrace.module": [
-            "some module"
-        ],
-        "span.stacktrace.vars.key": [
-            "value"
+        "span.stacktrace": [
+            {
+                "classname": "Core.js",
+                "exclude_from_grouping": false,
+                "filename": "net.js",
+                "line": {
+                    "number": 547
+                }
+            },
+            {
+                "context": {
+                    "post": [
+                        "    ins.currentTransaction = prev",
+                        "}"
+                    ]
+                },
+                "exclude_from_grouping": false,
+                "filename": "file2.js",
+                "line": {
+                    "number": 12
+                }
+            },
+            {
+                "abs_path": "net.js",
+                "context": {
+                    "post": [
+                        "    ins.currentTransaction = prev",
+                        "    return result"
+                    ],
+                    "pre": [
+                        "  var trans = this.currentTransaction",
+                        ""
+                    ]
+                },
+                "exclude_from_grouping": false,
+                "filename": "net.js",
+                "function": "onread",
+                "library_frame": true,
+                "line": {
+                    "column": 4,
+                    "context": "line3",
+                    "number": 547
+                },
+                "module": "some module",
+                "vars": {
+                    "key": "value"
+                }
+            }
         ],
         "span.subtype": [
             "postgresql"
@@ -1374,6 +1410,9 @@
         "url.original": [
             "http://localhost:8000"
         ],
+        "url.original.text": [
+            "http://localhost:8000"
+        ],
         "user.domain": [
             "ldap://abc"
         ],
@@ -1384,6 +1423,9 @@
             "123"
         ],
         "user.name": [
+            "john"
+        ],
+        "user.name.text": [
             "john"
         ]
     },
@@ -1449,7 +1491,7 @@
             "0:0::0:1"
         ],
         "destination.ip": [
-            "0:0::0:1"
+            "::1"
         ],
         "event.outcome": [
             "unknown"
@@ -1507,6 +1549,9 @@
             1234
         ],
         "process.title": [
+            "node"
+        ],
+        "process.title.text": [
             "node"
         ],
         "processor.event": [
@@ -1591,6 +1636,9 @@
             "123"
         ],
         "user.name": [
+            "john"
+        ],
+        "user.name.text": [
             "john"
         ]
     },
@@ -1716,6 +1764,9 @@
         "process.title": [
             "node"
         ],
+        "process.title.text": [
+            "node"
+        ],
         "processor.event": [
             "span"
         ],
@@ -1790,6 +1841,9 @@
         ],
         "user.name": [
             "john"
+        ],
+        "user.name.text": [
+            "john"
         ]
     },
     {
@@ -1854,7 +1908,7 @@
             "0:0::0:1"
         ],
         "destination.ip": [
-            "0:0::0:1"
+            "::1"
         ],
         "destination.port": [
             8080
@@ -1918,6 +1972,9 @@
             1234
         ],
         "process.title": [
+            "node"
+        ],
+        "process.title.text": [
             "node"
         ],
         "processor.event": [
@@ -2009,6 +2066,9 @@
         ],
         "user.name": [
             "john"
+        ],
+        "user.name.text": [
+            "john"
         ]
     },
     {
@@ -2076,7 +2136,7 @@
             "0:0::0:1"
         ],
         "destination.ip": [
-            "0:0::0:1"
+            "::1"
         ],
         "destination.port": [
             5432
@@ -2160,6 +2220,9 @@
         "process.title": [
             "node"
         ],
+        "process.title.text": [
+            "node"
+        ],
         "processor.event": [
             "span"
         ],
@@ -2235,54 +2298,54 @@
         "span.representative_count": [
             1
         ],
-        "span.stacktrace.abs_path": [
-            "net.js"
-        ],
-        "span.stacktrace.classname": [
-            "Core.js"
-        ],
-        "span.stacktrace.context.post": [
-            "    ins.currentTransaction = prev",
-            "}",
-            "    ins.currentTransaction = prev",
-            "    return result"
-        ],
-        "span.stacktrace.context.pre": [
-            "  var trans = this.currentTransaction",
-            ""
-        ],
-        "span.stacktrace.exclude_from_grouping": [
-            false,
-            false,
-            false
-        ],
-        "span.stacktrace.filename": [
-            "net.js",
-            "file2.js",
-            "net.js"
-        ],
-        "span.stacktrace.function": [
-            "onread"
-        ],
-        "span.stacktrace.library_frame": [
-            true
-        ],
-        "span.stacktrace.line.column": [
-            4
-        ],
-        "span.stacktrace.line.context": [
-            "line3"
-        ],
-        "span.stacktrace.line.number": [
-            547,
-            12,
-            547
-        ],
-        "span.stacktrace.module": [
-            "some module"
-        ],
-        "span.stacktrace.vars.key": [
-            "value"
+        "span.stacktrace": [
+            {
+                "classname": "Core.js",
+                "exclude_from_grouping": false,
+                "filename": "net.js",
+                "line": {
+                    "number": 547
+                }
+            },
+            {
+                "context": {
+                    "post": [
+                        "    ins.currentTransaction = prev",
+                        "}"
+                    ]
+                },
+                "exclude_from_grouping": false,
+                "filename": "file2.js",
+                "line": {
+                    "number": 12
+                }
+            },
+            {
+                "abs_path": "net.js",
+                "context": {
+                    "post": [
+                        "    ins.currentTransaction = prev",
+                        "    return result"
+                    ],
+                    "pre": [
+                        "  var trans = this.currentTransaction",
+                        ""
+                    ]
+                },
+                "exclude_from_grouping": false,
+                "filename": "net.js",
+                "function": "onread",
+                "library_frame": true,
+                "line": {
+                    "column": 4,
+                    "context": "line3",
+                    "number": 547
+                },
+                "module": "some module",
+                "vars": {
+                    "key": "value"
+                }
+            }
         ],
         "span.subtype": [
             "postgresql"
@@ -2302,6 +2365,9 @@
         "url.original": [
             "http://localhost:8000"
         ],
+        "url.original.text": [
+            "http://localhost:8000"
+        ],
         "user.domain": [
             "ldap://abc"
         ],
@@ -2312,6 +2378,9 @@
             "123"
         ],
         "user.name": [
+            "john"
+        ],
+        "user.name.text": [
             "john"
         ]
     }

@@ -118,6 +118,9 @@
         "process.title": [
             "node"
         ],
+        "process.title.text": [
+            "node"
+        ],
         "processor.event": [
             "transaction"
         ],
@@ -178,12 +181,16 @@
         "transaction.message.body": [
             "user created"
         ],
-        "transaction.message.headers.Involved_services": [
-            "user",
-            "auth"
-        ],
-        "transaction.message.headers.User_id": [
-            "1ax3"
+        "transaction.message.headers": [
+            {
+                "Involved_services": [
+                    "user",
+                    "auth"
+                ],
+                "User_id": [
+                    "1ax3"
+                ]
+            }
         ],
         "transaction.message.queue.name": [
             "new_users"
@@ -192,6 +199,9 @@
             "user-created-transaction"
         ],
         "transaction.name": [
+            "amqp receive"
+        ],
+        "transaction.name.text": [
             "amqp receive"
         ],
         "transaction.representative_count": [
@@ -213,6 +223,9 @@
             "123user"
         ],
         "user.name": [
+            "bar"
+        ],
+        "user.name.text": [
             "bar"
         ]
     },
@@ -335,6 +348,9 @@
         "process.title": [
             "node"
         ],
+        "process.title.text": [
+            "node"
+        ],
         "processor.event": [
             "transaction"
         ],
@@ -403,6 +419,9 @@
         ],
         "user.name": [
             "bar"
+        ],
+        "user.name.text": [
+            "bar"
         ]
     },
     {
@@ -427,10 +446,7 @@
         "client.geo.country_name": [
             "United States"
         ],
-        "client.geo.location.lat": [
-            "dynamic"
-        ],
-        "client.geo.location.lon": [
+        "client.geo.location": [
             "dynamic"
         ],
         "client.ip": [
@@ -502,44 +518,50 @@
         "host.os.platform": [
             "darwin"
         ],
-        "http.request.body.original.additional.bar": [
-            123
+        "http.request.body": [
+            {
+                "original": {
+                    "additional": {
+                        "bar": 123,
+                        "req": "additional information"
+                    },
+                    "str": "hello world"
+                }
+            }
         ],
-        "http.request.body.original.additional.req": [
-            "additional information"
+        "http.request.cookies": [
+            {
+                "c1": "v1",
+                "c2": "v2"
+            }
         ],
-        "http.request.body.original.str": [
-            "hello world"
+        "http.request.env": [
+            {
+                "GATEWAY_INTERFACE": "CGI/1.1",
+                "SERVER_SOFTWARE": "nginx"
+            }
         ],
-        "http.request.cookies.c1": [
-            "v1"
-        ],
-        "http.request.cookies.c2": [
-            "v2"
-        ],
-        "http.request.env.GATEWAY_INTERFACE": [
-            "CGI/1.1"
-        ],
-        "http.request.env.SERVER_SOFTWARE": [
-            "nginx"
-        ],
-        "http.request.headers.Array": [
-            "foo",
-            "bar",
-            "baz"
-        ],
-        "http.request.headers.Content-Type": [
-            "text/html"
-        ],
-        "http.request.headers.Cookie": [
-            "c1=v1, c2=v2"
-        ],
-        "http.request.headers.Some-Other-Header": [
-            "foo"
-        ],
-        "http.request.headers.User-Agent": [
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36",
-            "Mozilla Chrome Edge"
+        "http.request.headers": [
+            {
+                "Array": [
+                    "foo",
+                    "bar",
+                    "baz"
+                ],
+                "Content-Type": [
+                    "text/html"
+                ],
+                "Cookie": [
+                    "c1=v1, c2=v2"
+                ],
+                "Some-Other-Header": [
+                    "foo"
+                ],
+                "User-Agent": [
+                    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36",
+                    "Mozilla Chrome Edge"
+                ]
+            }
         ],
         "http.request.method": [
             "POST"
@@ -556,8 +578,12 @@
         "http.response.finished": [
             true
         ],
-        "http.response.headers.Content-Type": [
-            "application/json"
+        "http.response.headers": [
+            {
+                "Content-Type": [
+                    "application/json"
+                ]
+            }
         ],
         "http.response.headers_sent": [
             true
@@ -620,6 +646,9 @@
         "process.title": [
             "node"
         ],
+        "process.title.text": [
+            "node"
+        ],
         "processor.event": [
             "transaction"
         ],
@@ -665,18 +694,18 @@
         "trace.id": [
             "0acd456789abcdef0123456789abcdef"
         ],
-        "transaction.custom.(": [
-            "not a valid regex and that is fine"
-        ],
-        "transaction.custom.and_objects.foo": [
-            "bar",
-            "baz"
-        ],
-        "transaction.custom.my_key": [
-            1
-        ],
-        "transaction.custom.some_other_value": [
-            "foo bar"
+        "transaction.custom": [
+            {
+                "(": "not a valid regex and that is fine",
+                "and_objects": {
+                    "foo": [
+                        "bar",
+                        "baz"
+                    ]
+                },
+                "my_key": 1,
+                "some_other_value": "foo bar"
+            }
         ],
         "transaction.duration.us": [
             32592
@@ -685,6 +714,9 @@
             "4340a8e0df1906ecbfa9"
         ],
         "transaction.name": [
+            "GET /api/types"
+        ],
+        "transaction.name.text": [
             "GET /api/types"
         ],
         "transaction.representative_count": [
@@ -711,7 +743,13 @@
         "url.full": [
             "https://www.example.com/p/a/t/h?query=string#hash"
         ],
+        "url.full.text": [
+            "https://www.example.com/p/a/t/h?query=string#hash"
+        ],
         "url.original": [
+            "/p/a/t/h?query=string#hash"
+        ],
+        "url.original.text": [
             "/p/a/t/h?query=string#hash"
         ],
         "url.path": [
@@ -735,6 +773,9 @@
         "user.name": [
             "foo"
         ],
+        "user.name.text": [
+            "foo"
+        ],
         "user_agent.device.name": [
             "Mac"
         ],
@@ -744,10 +785,19 @@
         "user_agent.original": [
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36, Mozilla Chrome Edge"
         ],
+        "user_agent.original.text": [
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36, Mozilla Chrome Edge"
+        ],
         "user_agent.os.full": [
             "Mac OS X 10.10.5"
         ],
+        "user_agent.os.full.text": [
+            "Mac OS X 10.10.5"
+        ],
         "user_agent.os.name": [
+            "Mac OS X"
+        ],
+        "user_agent.os.name.text": [
             "Mac OS X"
         ],
         "user_agent.os.version": [
@@ -879,6 +929,9 @@
         "process.title": [
             "node"
         ],
+        "process.title.text": [
+            "node"
+        ],
         "processor.event": [
             "transaction"
         ],
@@ -952,7 +1005,7 @@
             10
         ],
         "transaction.marks.navigationTiming.appBeforeBootstrap": [
-            608.9300000000001
+            608.93
         ],
         "transaction.marks.navigationTiming.navigationStart": [
             -21
@@ -979,6 +1032,9 @@
             "123user"
         ],
         "user.name": [
+            "bar"
+        ],
+        "user.name.text": [
             "bar"
         ]
     },
@@ -1128,6 +1184,9 @@
         "process.title": [
             "node"
         ],
+        "process.title.text": [
+            "node"
+        ],
         "processor.event": [
             "transaction"
         ],
@@ -1188,6 +1247,9 @@
         "transaction.name": [
             "july-2021-delete-after-july-31"
         ],
+        "transaction.name.text": [
+            "july-2021-delete-after-july-31"
+        ],
         "transaction.representative_count": [
             1
         ],
@@ -1210,6 +1272,9 @@
             "123user"
         ],
         "user.name": [
+            "bar"
+        ],
+        "user.name.text": [
             "bar"
         ]
     }

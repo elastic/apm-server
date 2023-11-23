@@ -39,11 +39,11 @@
         "service.name": [
             "unknown"
         ],
-        "summary.sum": [
-            123.456
-        ],
-        "summary.value_count": [
-            10
+        "summary": [
+            {
+                "sum": 123.456,
+                "value_count": 10
+            }
         ]
     }
 ]

@@ -3,9 +3,6 @@
         "@timestamp": [
             "2006-01-02T15:00:00.000Z"
         ],
-        "_doc_count": [
-            1
-        ],
         "agent.name": [
             "go"
         ],
@@ -21,11 +18,11 @@
         "event.outcome": [
             "success"
         ],
-        "event.success_count.sum": [
-            1
-        ],
-        "event.success_count.value_count": [
-            1
+        "event.success_count": [
+            {
+                "sum": 1,
+                "value_count": 1
+            }
         ],
         "host.hostname": [
             "beowulf"
@@ -72,17 +69,21 @@
         "service.runtime.version": [
             "2.0"
         ],
-        "transaction.duration.histogram.counts": [
-            1
+        "transaction.duration.histogram": [
+            {
+                "counts": [
+                    1
+                ],
+                "values": [
+                    1003519
+                ]
+            }
         ],
-        "transaction.duration.histogram.values": [
-            1003519
-        ],
-        "transaction.duration.summary.sum": [
-            1003519
-        ],
-        "transaction.duration.summary.value_count": [
-            1
+        "transaction.duration.summary": [
+            {
+                "sum": 1003519,
+                "value_count": 1
+            }
         ],
         "transaction.name": [
             "name"
@@ -97,9 +98,6 @@
     {
         "@timestamp": [
             "2006-01-02T15:04:00.000Z"
-        ],
-        "_doc_count": [
-            1
         ],
         "agent.name": [
             "go"
@@ -116,11 +114,11 @@
         "event.outcome": [
             "success"
         ],
-        "event.success_count.sum": [
-            1
-        ],
-        "event.success_count.value_count": [
-            1
+        "event.success_count": [
+            {
+                "sum": 1,
+                "value_count": 1
+            }
         ],
         "host.hostname": [
             "beowulf"
@@ -167,17 +165,21 @@
         "service.runtime.version": [
             "2.0"
         ],
-        "transaction.duration.histogram.counts": [
-            1
+        "transaction.duration.histogram": [
+            {
+                "counts": [
+                    1
+                ],
+                "values": [
+                    1003519
+                ]
+            }
         ],
-        "transaction.duration.histogram.values": [
-            1003519
-        ],
-        "transaction.duration.summary.sum": [
-            1003519
-        ],
-        "transaction.duration.summary.value_count": [
-            1
+        "transaction.duration.summary": [
+            {
+                "sum": 1003519,
+                "value_count": 1
+            }
         ],
         "transaction.name": [
             "name"
@@ -192,9 +194,6 @@
     {
         "@timestamp": [
             "2006-01-02T15:00:00.000Z"
-        ],
-        "_doc_count": [
-            1
         ],
         "agent.name": [
             "go"
@@ -211,11 +210,11 @@
         "event.outcome": [
             "success"
         ],
-        "event.success_count.sum": [
-            1
-        ],
-        "event.success_count.value_count": [
-            1
+        "event.success_count": [
+            {
+                "sum": 1,
+                "value_count": 1
+            }
         ],
         "host.hostname": [
             "beowulf"
@@ -262,17 +261,21 @@
         "service.runtime.version": [
             "2.0"
         ],
-        "transaction.duration.histogram.counts": [
-            1
+        "transaction.duration.histogram": [
+            {
+                "counts": [
+                    1
+                ],
+                "values": [
+                    1003519
+                ]
+            }
         ],
-        "transaction.duration.histogram.values": [
-            1003519
-        ],
-        "transaction.duration.summary.sum": [
-            1003519
-        ],
-        "transaction.duration.summary.value_count": [
-            1
+        "transaction.duration.summary": [
+            {
+                "sum": 1003519,
+                "value_count": 1
+            }
         ],
         "transaction.name": [
             "name"

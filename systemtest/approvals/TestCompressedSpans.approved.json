@@ -57,6 +57,9 @@
         "process.title": [
             "systemtest.test"
         ],
+        "process.title.text": [
+            "systemtest.test"
+        ],
         "processor.event": [
             "span"
         ],
@@ -177,6 +180,9 @@
             1
         ],
         "process.title": [
+            "systemtest.test"
+        ],
+        "process.title.text": [
             "systemtest.test"
         ],
         "processor.event": [

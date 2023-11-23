@@ -45,6 +45,9 @@
         "observer.version": [
             "dynamic"
         ],
+        "processor.event": [
+            "error"
+        ],
         "service.name": [
             "1234_service-12a3"
         ],
@@ -98,6 +101,9 @@
         "observer.version": [
             "dynamic"
         ],
+        "processor.event": [
+            "error"
+        ],
         "service.name": [
             "1234_service-12a3"
         ],
@@ -130,9 +136,6 @@
         "error.grouping_key": [
             "fa405fa2bd848dab17207e7b544d9ad4"
         ],
-        "error.grouping_name": [
-            null
-        ],
         "error.id": [
             "abcdef0123456791"
         ],
@@ -147,6 +150,9 @@
         ],
         "observer.version": [
             "dynamic"
+        ],
+        "processor.event": [
+            "error"
         ],
         "service.name": [
             "1234_service-12a3"

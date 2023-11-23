@@ -130,6 +130,12 @@
         "process.title": [
             "node"
         ],
+        "process.title.text": [
+            "node"
+        ],
+        "processor.event": [
+            "error"
+        ],
         "service.environment": [
             "staging"
         ],
@@ -191,6 +197,9 @@
             "123"
         ],
         "user.name": [
+            "bar"
+        ],
+        "user.name.text": [
             "bar"
         ]
     }

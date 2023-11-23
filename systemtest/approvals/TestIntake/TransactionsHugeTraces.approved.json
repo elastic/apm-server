@@ -21,10 +21,7 @@
         "client.geo.country_name": [
             "United States"
         ],
-        "client.geo.location.lat": [
-            "dynamic"
-        ],
-        "client.geo.location.lon": [
+        "client.geo.location": [
             "dynamic"
         ],
         "client.ip": [
@@ -96,44 +93,50 @@
         "host.os.platform": [
             "darwin"
         ],
-        "http.request.body.original.additional.bar": [
-            123
+        "http.request.body": [
+            {
+                "original": {
+                    "additional": {
+                        "bar": 123,
+                        "req": "additional information"
+                    },
+                    "str": "hello world"
+                }
+            }
         ],
-        "http.request.body.original.additional.req": [
-            "additional information"
+        "http.request.cookies": [
+            {
+                "c1": "v1",
+                "c2": "v2"
+            }
         ],
-        "http.request.body.original.str": [
-            "hello world"
+        "http.request.env": [
+            {
+                "GATEWAY_INTERFACE": "CGI/1.1",
+                "SERVER_SOFTWARE": "nginx"
+            }
         ],
-        "http.request.cookies.c1": [
-            "v1"
-        ],
-        "http.request.cookies.c2": [
-            "v2"
-        ],
-        "http.request.env.GATEWAY_INTERFACE": [
-            "CGI/1.1"
-        ],
-        "http.request.env.SERVER_SOFTWARE": [
-            "nginx"
-        ],
-        "http.request.headers.Array": [
-            "foo",
-            "bar",
-            "baz"
-        ],
-        "http.request.headers.Content-Type": [
-            "text/html"
-        ],
-        "http.request.headers.Cookie": [
-            "c1=v1, c2=v2"
-        ],
-        "http.request.headers.Some-Other-Header": [
-            "foo"
-        ],
-        "http.request.headers.User-Agent": [
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36",
-            "Mozilla Chrome Edge"
+        "http.request.headers": [
+            {
+                "Array": [
+                    "foo",
+                    "bar",
+                    "baz"
+                ],
+                "Content-Type": [
+                    "text/html"
+                ],
+                "Cookie": [
+                    "c1=v1, c2=v2"
+                ],
+                "Some-Other-Header": [
+                    "foo"
+                ],
+                "User-Agent": [
+                    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36",
+                    "Mozilla Chrome Edge"
+                ]
+            }
         ],
         "http.request.method": [
             "POST"
@@ -150,8 +153,12 @@
         "http.response.finished": [
             true
         ],
-        "http.response.headers.Content-Type": [
-            "application/json"
+        "http.response.headers": [
+            {
+                "Content-Type": [
+                    "application/json"
+                ]
+            }
         ],
         "http.response.headers_sent": [
             true
@@ -214,6 +221,9 @@
         "process.title": [
             "node"
         ],
+        "process.title.text": [
+            "node"
+        ],
         "processor.event": [
             "transaction"
         ],
@@ -259,18 +269,18 @@
         "trace.id": [
             "646df3b8b5279e982cc12a2f1ac004f3"
         ],
-        "transaction.custom.(": [
-            "not a valid regex and that is fine"
-        ],
-        "transaction.custom.and_objects.foo": [
-            "bar",
-            "baz"
-        ],
-        "transaction.custom.my_key": [
-            1
-        ],
-        "transaction.custom.some_other_value": [
-            "foo bar"
+        "transaction.custom": [
+            {
+                "(": "not a valid regex and that is fine",
+                "and_objects": {
+                    "foo": [
+                        "bar",
+                        "baz"
+                    ]
+                },
+                "my_key": 1,
+                "some_other_value": "foo bar"
+            }
         ],
         "transaction.duration.us": [
             32592
@@ -279,6 +289,9 @@
             "ddf109a4c4aa5f2b6e984548ca57774c"
         ],
         "transaction.name": [
+            "GET /api/types"
+        ],
+        "transaction.name.text": [
             "GET /api/types"
         ],
         "transaction.representative_count": [
@@ -308,7 +321,13 @@
         "url.full": [
             "https://www.example.com/p/a/t/h?query=string#hash"
         ],
+        "url.full.text": [
+            "https://www.example.com/p/a/t/h?query=string#hash"
+        ],
         "url.original": [
+            "/p/a/t/h?query=string#hash"
+        ],
+        "url.original.text": [
             "/p/a/t/h?query=string#hash"
         ],
         "url.path": [
@@ -332,6 +351,9 @@
         "user.name": [
             "foo"
         ],
+        "user.name.text": [
+            "foo"
+        ],
         "user_agent.device.name": [
             "Mac"
         ],
@@ -341,10 +363,19 @@
         "user_agent.original": [
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36, Mozilla Chrome Edge"
         ],
+        "user_agent.original.text": [
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36, Mozilla Chrome Edge"
+        ],
         "user_agent.os.full": [
             "Mac OS X 10.10.5"
         ],
+        "user_agent.os.full.text": [
+            "Mac OS X 10.10.5"
+        ],
         "user_agent.os.name": [
+            "Mac OS X"
+        ],
+        "user_agent.os.name.text": [
             "Mac OS X"
         ],
         "user_agent.os.version": [

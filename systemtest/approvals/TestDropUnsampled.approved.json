@@ -54,6 +54,9 @@
         "process.title": [
             "systemtest.test"
         ],
+        "process.title.text": [
+            "systemtest.test"
+        ],
         "processor.event": [
             "transaction"
         ],
@@ -88,6 +91,9 @@
             "dynamic"
         ],
         "transaction.name": [
+            "sampled"
+        ],
+        "transaction.name.text": [
             "sampled"
         ],
         "transaction.representative_count": [
@@ -183,6 +189,9 @@
             "Go-http-client"
         ],
         "user_agent.original": [
+            "Go-http-client/1.1"
+        ],
+        "user_agent.original.text": [
             "Go-http-client/1.1"
         ],
         "user_agent.version": [

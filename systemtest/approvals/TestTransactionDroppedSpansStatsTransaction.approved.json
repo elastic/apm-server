@@ -54,6 +54,9 @@
         "process.title": [
             "systemtest.test"
         ],
+        "process.title.text": [
+            "systemtest.test"
+        ],
         "processor.event": [
             "transaction"
         ],
@@ -78,7 +81,7 @@
         "span.id": [
             "dynamic"
         ],
-        "timestamp": [
+        "timestamp.us": [
             "dynamic"
         ],
         "trace.id": [
@@ -91,6 +94,9 @@
             "dynamic"
         ],
         "transaction.name": [
+            "huge-traces"
+        ],
+        "transaction.name.text": [
             "huge-traces"
         ],
         "transaction.representative_count": [

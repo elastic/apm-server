@@ -68,6 +68,9 @@
         ],
         "user.name": [
             "logged-in-user"
+        ],
+        "user.name.text": [
+            "logged-in-user"
         ]
     },
     {
@@ -141,6 +144,9 @@
             "axb123hg"
         ],
         "user.name": [
+            "logged-in-user"
+        ],
+        "user.name.text": [
             "logged-in-user"
         ]
     },
@@ -234,6 +240,9 @@
         ],
         "user.name": [
             "logged-in-user"
+        ],
+        "user.name.text": [
+            "logged-in-user"
         ]
     },
     {
@@ -264,15 +273,19 @@
         "labels.tag1": [
             "one"
         ],
-        "latency_distribution.counts": [
-            1,
-            2,
-            3
-        ],
-        "latency_distribution.values": [
-            1.1,
-            2.2,
-            3.3
+        "latency_distribution": [
+            {
+                "counts": [
+                    1,
+                    2,
+                    3
+                ],
+                "values": [
+                    1.1,
+                    2.2,
+                    3.3
+                ]
+            }
         ],
         "metricset.name": [
             "app"
@@ -311,6 +324,9 @@
             "axb123hg"
         ],
         "user.name": [
+            "logged-in-user"
+        ],
+        "user.name.text": [
             "logged-in-user"
         ]
     },
@@ -407,6 +423,9 @@
         ],
         "user.name": [
             "logged-in-user"
+        ],
+        "user.name.text": [
+            "logged-in-user"
         ]
     },
     {
@@ -501,6 +520,9 @@
             "axb123hg"
         ],
         "user.name": [
+            "logged-in-user"
+        ],
+        "user.name.text": [
             "logged-in-user"
         ]
     }
