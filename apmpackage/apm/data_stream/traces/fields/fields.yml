@@ -275,7 +275,7 @@
   description: |
     The approximate number of spans represented, based on the inverse sampling rate.
     This will only be set when the sampling rate is known.
-- name: span.code.stacktrace
+- name: code.stacktrace
   type: text
   description: |
     OTel stack trace
