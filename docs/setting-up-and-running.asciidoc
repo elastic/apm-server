@@ -18,6 +18,8 @@ This section includes additional information on how to set up and run APM Server
 
 include::{docdir}/shared-directory-layout.asciidoc[]
 
+include::{docdir}/keystore.asciidoc[]
+
 include::{docdir}/command-reference.asciidoc[]
 
 include::{docdir}/data-ingestion.asciidoc[]
