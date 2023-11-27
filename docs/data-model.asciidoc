@@ -236,9 +236,7 @@ and {apm-go-ref-v}/metrics.html[Go runtime] metrics in the Go Agent.
 Infrastructure and application metrics are important sources of information when debugging production systems,
 which is why we've made it easy to filter metrics for specific hosts or containers in the {kib} {kibana-ref}/metrics.html[metrics overview].
 
-Metrics have the `processor.event` property set to `metric`.
-
-TIP: Most agents limit keyword fields (e.g. `processor.event`) to 1024 characters,
+TIP: Most agents limit keyword fields to 1024 characters,
 non-keyword fields (e.g. `system.memory.total`) to 10,000 characters.
 
 Metrics are stored in metric indices.

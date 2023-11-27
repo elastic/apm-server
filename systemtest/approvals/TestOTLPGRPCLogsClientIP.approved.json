@@ -8,18 +8,18 @@
             },
             "client": {
                 "geo": {
-                    "city_name": "dynamic",
+                    "city_name": "Berlin",
                     "continent_name": "Europe",
-                    "country_iso_code": "ES",
-                    "country_name": "Spain",
+                    "country_iso_code": "DE",
+                    "country_name": "Germany",
                     "location": {
                         "lat": "dynamic",
                         "lon": "dynamic"
                     },
-                    "region_iso_code": "dynamic",
-                    "region_name": "dynamic"
+                    "region_iso_code": "DE-BE",
+                    "region_name": "Land Berlin"
                 },
-                "ip": "195.55.79.118"
+                "ip": "178.162.206.244"
             },
             "data_stream": {
                 "dataset": "apm.app.unknown",
@@ -51,7 +51,7 @@
                 "name": "unknown"
             },
             "source": {
-                "ip": "195.55.79.118",
+                "ip": "178.162.206.244",
                 "nat": {
                     "ip": "127.0.0.1"
                 }

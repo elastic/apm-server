@@ -2,7 +2,7 @@ name: smoke-tests
 run-name: Smoke Tests
 
 on:
-  workflow_dispatch:
+  workflow_dispatch: ~
   schedule:
     - cron: '0 3 * * 1-5'
 
@@ -17,7 +17,7 @@ jobs:
     outputs:
       matrix: ${{ steps.generate.outputs.matrix }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - id: generate
         name: Generate matrix
         uses: elastic/apm-pipeline-library/.github/actions/elastic-stack-snapshot-branches@current
@@ -35,12 +35,20 @@ jobs:
       branch: ${{ matrix.branch }}
     secrets: inherit
 
-  all-smoke-tests-os:
-    name: All Smoke Tests OS
+  smoke-tests-ess:
+    name: Run smoke tests ESS
+    uses: ./.github/workflows/smoke-tests-ess.yml
+    with:
+      branch: 'main'
+    secrets: inherit
+
+  all-smoke-tests:
+    name: All Smoke Tests
     if: always()
     runs-on: ubuntu-latest
     needs:
       - smoke-tests-os
+      - smoke-tests-ess
     steps:
       - id: check
         uses: elastic/apm-pipeline-library/.github/actions/check-dependent-jobs@current
@@ -53,10 +61,3 @@ jobs:
           vaultRoleId: ${{ secrets.VAULT_ROLE_ID }}
           vaultSecretId: ${{ secrets.VAULT_SECRET_ID }}
           slackChannel: "#apm-server"
-
-  smoke-tests-ess:
-    name: Run smoke tests ESS
-    uses: ./.github/workflows/smoke-tests-ess.yml
-    with:
-      branch: 'main'
-    secrets: inherit

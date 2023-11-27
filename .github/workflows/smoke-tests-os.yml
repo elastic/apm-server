@@ -20,7 +20,7 @@ jobs:
       tests: ${{ steps.generate.outputs.tests }}
       date: ${{ steps.generate.outputs.date }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           ref: ${{ inputs.branch }}
       - id: generate
@@ -42,7 +42,7 @@ jobs:
       TF_VAR_REPO: ${{ github.repository }}
       TF_VAR_CREATED_DATE: ${{ needs.prepare.outputs.date }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           ref: ${{ inputs.branch }}
       - name: Get version
