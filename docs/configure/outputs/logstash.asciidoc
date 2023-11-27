@@ -54,7 +54,7 @@ include::../../shared-kibana-endpoint.asciidoc[tag=shared-kibana-config]
 === {ls} configuration pipeline
 
 Finally, you must create a {ls} configuration pipeline that listens for incoming
-APM Server connections, dedots the `data_stream.*` fields, and indexes received events into {es}.
+APM Server connections and indexes received events into {es}.
 
 . Use the {logstash-ref}/plugins-inputs-elastic_agent.html[Elastic Agent input plugin] to configure
 {ls} to receive events from the APM Server. A minimal `input` config might look like this:
@@ -67,54 +67,6 @@ input {
   }
 }
 ----
-
-. Use the {logstash-ref}/plugins-filters-mutate.html[Mutate filter plugin] to set up <<apm-data-streams,data streams>>.
-Because the {ls} {es} output doesn't understand dotted field notation, you must use this filter to
-dedot the default `data_stream.*` fields sent from APM Server to {ls}.
-+
-[source,conf]
-----
-filter {
-  mutate {
-    rename => {
-      "[data_stream.type]" => "[data_stream][type]"
-      "[data_stream.dataset]" => "[data_stream][dataset]"
-      "[data_stream.namespace]" => "[data_stream][namespace]"
-    }
-  }
-}
-----
-+
-.Expand to learn more
-[%collapsible]
-====
-****
-APM Server sends data stream information to {ls} in the following format:
-
-[source,json]
-----
-{
-  "data_stream.dataset": "apm",
-  "data_stream.type": "traces",
-  "data_stream.namespace": "default"
-}
-----
-
-{es} expects to receive data stream information in the following format:
-
-[source,json]
-----
-"data_stream" {
-  "dataset": "apm",
-  "type": "traces",
-  "dataset": "default"
-}
-----
-
-The mutation defined above transforms what APM Server sends to {ls} into a data format that {es} understands.
-This allows you to automatically route APM data to the appropriate data streams.
-****
-====
 
 . Use the {logstash-ref}/plugins-outputs-elasticsearch.html[{es} output plugin] to send
 events to {es} for indexing. A minimal `output` config might look like this:
@@ -139,16 +91,6 @@ Here's what your basic {ls} configuration file will look like when we put everyt
 input {
   elastic_agent {
     port => 5044
-  }
-}
-
-filter {
-  mutate {
-    rename => {
-      "[data_stream.type]" => "[data_stream][type]"
-      "[data_stream.dataset]" => "[data_stream][dataset]"
-      "[data_stream.namespace]" => "[data_stream][namespace]"
-    }
   }
 }
 
@@ -184,7 +126,7 @@ APM Server sends the following `@metadata` to {ls}:
 <2> The current version of APM Server.
 
 In addition to `@metadata`, APM Server provides other potentially useful fields, like the
-`processor.event` field and `data_stream` fields, which can be used to conditionally operate on
+`data_stream` field, which can be used to conditionally operate on
 {apm-guide-ref}/data-model.html[event types], namespaces, or datasets.
 
 As an example, you might want to use {ls} to route all `metric` events to the same custom metrics data stream,
@@ -194,7 +136,7 @@ rather than to service-specific data streams:
 ----
 output {
   if [@metadata][beat] == "apm-server" { <1>
-    if [processor][event] == "metric" { <2>
+    if [data_stream][type] == "metrics" { <2>
       elasticsearch {
         index => "%{[data_stream][type]}-custom-%{[data_stream][namespace]}" <3>
         action => "create" <4>

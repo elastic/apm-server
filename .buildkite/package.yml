@@ -1,6 +1,8 @@
 notify:
   - slack: "#apm-server"
     if: build.state == "failed"
+  - slack: "#observablt-bots"
+    if: "build.state != 'passed'"
 
 env:
   IMAGE_UBUNTU_X86_64: "family/core-ubuntu-2004"

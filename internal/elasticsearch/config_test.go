@@ -146,10 +146,11 @@ func TestBeatsConfigSynced(t *testing.T) {
 	// TODO(simitt): take a closer look at ES ouput changes in libbeat
 	// introduced with https://github.com/elastic/beats/pull/25219
 	localStructExceptions := map[string]interface{}{
-		"ssl":           nil,
-		"timeout":       nil,
-		"proxy_disable": nil,
-		"proxy_url":     nil,
+		"ssl":                 nil,
+		"timeout":             nil,
+		"proxy_disable":       nil,
+		"proxy_url":           nil,
+		"maxidleconnsperhost": nil,
 	}
 	for name, localStructField := range localStructFields {
 		if _, ok := localStructExceptions[name]; ok {
