@@ -483,18 +483,6 @@ TIP: If you prefer using a GUI, you can instead open {kib} and navigate to
 **Stack Management** -> **Ingest Pipelines** -> **Create pipeline**.
 Use the same naming convention explained previously to ensure your new pipeline matches the correct APM data stream.
 
-**Roll over the data stream (optional)**
-
-Pipeline changes are not applied retroactively to existing indices.
-For changes to take effect immediately, you must create a new write index for the data stream.
-This can be done with the {es} {ref}/indices-rollover-index.html[Rollover API].
-For example, to roll over the default application traces data stream, with a `namespace` of "default", run:
-
-[source,console]
-----
-POST /traces-apm-default/_rollover/
-----
-
 That's it! Passwords will now be redacted from your APM HTTP body data.
 
 To learn more about ingest pipelines, see <<custom-index-template>>.
