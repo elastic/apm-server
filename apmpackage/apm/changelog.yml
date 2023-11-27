@@ -1,5 +1,13 @@
 - version: generated
   changes:
+    - description: Placeholder
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/123
+- version: 8.11.0
+  changes:
+    - description: Add geoip processing to add client.geo.* fields for app_logs
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/11699
     - description: Define data retentions to support DLM
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/11539
@@ -12,6 +20,15 @@
     - description: Remove unused `processor.event` field from logs data streams
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/11494
+    - description: Explicitly set `event.ingested` in traces-apm.sampled
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/11623
+    - description: Remove `ecs.version` from all data streams
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/11632
+    - description: always set {span,transaction}.duration in traces-*
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/11638
 - version: "8.10.0"
   changes:
     - description: Add permissions to reroute to dedicated datasets for logs, metrics and traces

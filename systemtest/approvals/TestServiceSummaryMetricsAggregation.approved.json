@@ -10,13 +10,6 @@
                 "namespace": "default",
                 "type": "metrics"
             },
-            "ecs": {
-                "version": "dynamic"
-            },
-            "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic"
-            },
             "metricset": {
                 "interval": "10m",
                 "name": "service_summary"
@@ -46,13 +39,6 @@
                 "namespace": "default",
                 "type": "metrics"
             },
-            "ecs": {
-                "version": "dynamic"
-            },
-            "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic"
-            },
             "metricset": {
                 "interval": "1m",
                 "name": "service_summary"
@@ -81,13 +67,6 @@
                 "dataset": "apm.service_summary.60m",
                 "namespace": "default",
                 "type": "metrics"
-            },
-            "ecs": {
-                "version": "dynamic"
-            },
-            "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic"
             },
             "metricset": {
                 "interval": "60m",

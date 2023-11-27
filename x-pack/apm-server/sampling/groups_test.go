@@ -155,13 +155,14 @@ func TestTraceGroupReservoirResize(t *testing.T) {
 		3500, // 0.2 * (0.25*10000 + 0.75*20000)
 		3875, // 0.2 * (0.25*17500 + 0.75*20000)
 		3969, // etc.
-		3992,
-		3998,
+		3993,
+		3999,
 		4000,
 		4000,
 	} {
 		sendTransactions(20000)
-		assert.Len(t, groups.finalizeSampledTraces(nil), expected, fmt.Sprintf("iteration %d", i))
+		traces := groups.finalizeSampledTraces(nil)
+		assert.Len(t, traces, expected, "iteration %d expected len %d actual len %d", i, expected, len(traces))
 	}
 }
 

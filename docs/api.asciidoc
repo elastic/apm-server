@@ -3,10 +3,14 @@
 
 The APM Server exposes endpoints for:
 
-* <<api-events,Events intake>>
-* <<api-config,Agent configuration>>
-* <<api-info,Server information>>
+* <<api-info>>
+* <<api-events>>
+* <<api-config>>
+* <<api-otlp>>
+* <<api-jaeger>>
 
+include::./api-info.asciidoc[]
 include::./api-events.asciidoc[]
 include::./api-config.asciidoc[]
-include::./api-info.asciidoc[]
+include::./api-otlp.asciidoc[]
+include::./api-jaeger.asciidoc[]

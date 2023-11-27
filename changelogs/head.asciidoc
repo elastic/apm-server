@@ -1,33 +1,23 @@
 [[release-notes-head]]
 == APM version HEAD
 
-https://github.com/elastic/apm-server/compare/8.10\...main[View commits]
+https://github.com/elastic/apm-server/compare/8.11\...main[View commits]
 
 [float]
 ==== Breaking Changes
 
 [float]
-==== Deprecations
+==== Bug fixes
+- Switch built-in ILM rollover policies from max_size to max_primary_shard_size {pull}11729[11729].
 
 [float]
-==== Bug fixes
-- Add back gzip support for grpc otlp endpoint {pull}11434[11434]
-- Correctly mark jvm.memory.non_heap.pool.* and jvm.fd.* metrics as internal {pull}11303[11303]
+==== Deprecations
 
 [float]
 ==== Intake API Changes
 
 [float]
 ==== Added
-- Support and define DLM data retention period in the apmpackage
-- Expose new metrics into the local batch processor {pull}11582[11582] :
-	- http.server.request.count
-	- http.server.response.valid.count
-	- http.server.response.errors.count
-	- http.server.errors.timeout
-	- http.server.errors.ratelimit
-	- grpc.server.request.count
-	- grpc.server.response.valid.count
-	- grpc.server.response.errors.count
-	- grpc.server.errors.timeout
-	- grpc.server.errors.ratelimit
+- Update container base image to Ubuntu 22.04 {pull}11778[11778]
+- Add support for returning partial success response in OTLP input {pull}11883[11883]
+- Setting event timestamp from OTel observed timestamp when needed {pull}11935[11935]

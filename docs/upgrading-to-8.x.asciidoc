@@ -29,7 +29,7 @@ See the APM <<release-notes,release notes>>, <<apm-breaking,breaking changes>> f
 Starting in version 7.14, there are two ways to run Elastic APM.
 Determine which method you're using, then use the links below to find the correct upgrading guide.
 
-* **Standalone (legacy)**: Users in this mode run and configure the APM Server binary.
+* **Standalone**: Users in this mode run and configure the APM Server binary.
 This mode has been deprecated and will be removed in a future release.
 * **{fleet} and the APM integration**: Users in this mode run and configure {fleet} and the Elastic APM integration.
 
@@ -49,10 +49,10 @@ This mode has been deprecated and will be removed in a future release.
 ==== Upgrade a self-installation of APM Server standalone to {version}
 
 ++++
-<titleabbrev>Self-installation standalone (legacy)</titleabbrev>
+<titleabbrev>Self-installation standalone</titleabbrev>
 ++++
 
-This upgrade guide is for the standalone (legacy) method of running APM Server.
+This upgrade guide is for the standalone method of running APM Server.
 Only use this guide if both of the following are true:
 
 * You have a self-installation of the {stack}, i.e. you're not using {ecloud}.
@@ -182,10 +182,10 @@ For more details, or for bulk upgrade instructions, see
 ==== Upgrade {ecloud} APM Server standalone to {version}
 
 ++++
-<titleabbrev>{ecloud} standalone (legacy)</titleabbrev>
+<titleabbrev>{ecloud} standalone</titleabbrev>
 ++++
 
-This upgrade guide is for the standalone (legacy) method of running APM Server.
+This upgrade guide is for the standalone method of running APM Server.
 Only use this guide if both of the following are true:
 
 * You're using {ecloud}.

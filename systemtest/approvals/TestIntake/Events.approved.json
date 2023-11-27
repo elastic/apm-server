@@ -146,10 +146,6 @@
                     ]
                 }
             },
-            "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic"
-            },
             "host": {
                 "architecture": "amd64",
                 "hostname": "node-name",
@@ -314,13 +310,6 @@
                 "namespace": "default",
                 "type": "metrics"
             },
-            "ecs": {
-                "version": "dynamic"
-            },
-            "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic"
-            },
             "host": {
                 "architecture": "amd64",
                 "hostname": "node-name",
@@ -420,8 +409,6 @@
                 "type": "traces"
             },
             "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic",
                 "outcome": "success",
                 "success_count": 1
             },
@@ -582,8 +569,8 @@
                     "country_iso_code": "US",
                     "country_name": "United States",
                     "location": {
-                        "lat": 37.751,
-                        "lon": -97.822
+                        "lat": "dynamic",
+                        "lon": "dynamic"
                     }
                 },
                 "ip": "12.53.12.1"
@@ -597,8 +584,6 @@
                 "type": "traces"
             },
             "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic",
                 "outcome": "success",
                 "success_count": 1
             },

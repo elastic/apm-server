@@ -7,6 +7,32 @@
 This section describes the breaking changes and deprecations introduced in this release
 and previous minor versions.
 
+// tag::811-bc[]
+[float]
+[[breaking-changes-8.11]]
+=== 8.11
+
+The following breaking changes are introduced in APM version 8.11.0:
+
+- The `ecs.version` field has been removed from APM data streams.
+This change should not impact most users as this field is not used by the APM UI.
+For more details, see https://github.com/elastic/apm-server/pull/11632[PR #11632]
+// end::811-bc[]
+
+// tag::810-bc[]
+[float]
+[[breaking-changes-8.10]]
+=== 8.10
+
+The following breaking changes are introduced in APM version 8.10.0:
+
+- Aggregated metrics now consider global labels to be part of a service's identity, and high cardinality global labels may cause services to be obscured.
+For more details, see https://github.com/elastic/apm-server/pull/11386[PR #11386].
+
+- Event protobuf encoding for tail-based sampling changed to a more efficient encoding for event timestamp and duration
+For more details, see https://github.com/elastic/apm-server/pull/11386[PR #11386].
+// end::810-bc[]
+
 // tag::87-bc[]
 [float]
 [[breaking-changes-8.7]]
@@ -191,7 +217,7 @@ APM Server no longer supports installation via Homebrew.
 ==== All removed and changed settings
 
 Below is a list of all **removed settings** (in alphabetical order) for
-users upgrading a standalone (legacy) APM Server to {stack} version 8.0.
+users upgrading a standalone APM Server to {stack} version 8.0.
 
 [source,yml]
 ----
@@ -211,7 +237,7 @@ setup.*
 ----
 
 Below is a list of **renamed settings** (in alphabetical order) for
-users upgrading a standalone (legacy) APM Server to {stack} version 8.0.
+users upgrading a standalone APM Server to {stack} version 8.0.
 
 [source,yml]
 ----
@@ -228,7 +254,7 @@ apm-server.secret_token         --> apm-server.auth.secret_token
 ==== Supported {ecloud} settings
 
 Below is a list of all **supported settings** (in alphabetical order) for
-users upgrading an {ecloud} standalone (legacy) cluster to {stack} version 8.0.
+users upgrading an {ecloud} standalone cluster to {stack} version 8.0.
 Any previously supported settings not listed below will be removed when upgrading.
 
 [source,yml]

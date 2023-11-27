@@ -33,7 +33,26 @@ APM Server does not yet support JSON Encoding for OTLP/HTTP.
 [[open-telemetry-collector-exporter]]
 ==== OpenTelemetry Collector exporter for Elastic
 
-The https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/elasticexporter#legacy-opentelemetry-collector-exporter-for-elastic[OpenTelemetry Collector exporter for Elastic]
-was deprecated in 7.13 and replaced by the native support of the OpenTelemetry Line Protocol in
-Elastic {observability} (OTLP). To learn more, see
-https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/elasticexporter#migration[migration].
+The https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.57.2/exporter/elasticexporter[OpenTelemetry Collector exporter for Elastic]
+has been deprecated and replaced by the native support of the OpenTelemetry Line Protocol in Elastic Observability (OTLP).
+// To learn more, see https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.57.2/exporter/elasticsearchexporter#migration[migration].
+
+The https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/elasticsearchexporter#elasticsearch-exporter[Elasticsearch exporter for the OpenTelemetry Collector]
+(which is different from the legacy exporter mentioned above) is not intended to be used with Elastic APM and Elastic Observability. Use <<open-telemetry-direct>> instead.
+
+[float]
+[[open-telemetry-tbs]]
+==== OpenTelemetry's tail-based sampling
+
+Tail-based sampling allows to make sampling decisions after all spans of a trace have been completed.
+This allows for more powerful and informed sampling rules.
+
+When using OpenTelemetry with Elastic APM, there are two different implementations available for tail-based sampling:
+
+* Tail-based sampling using the https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/tailsamplingprocessor[tailsamplingprocessor] in the OpenTelemetry Collector
+* Native <<tail-based-sampling,tail-based sampling in the Elastic APM backend>>
+
+Using the https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/tailsamplingprocessor[tailsamplingprocessor] in the OpenTelemetry Collector comes with an important limitation. Elastic's APM backend calculates span and transaction metrics based on the incoming span events.
+These metrics are accurate for 100% sampling scenarios. In scenarios with probabilistic sampling, Elastic's APM backend is being informed about the sampling rate of spans and can extrapolate throughput metrics based on the incoming, partial data. However, with tail-based sampling there's no clear probability for sampling decisions as the rules can be more complex and the OpenTelemetry Collector does not provide sampling probability information to the Elastic backend that could be used for extrapolation of data. Therefore, there's no way for Elastic APM to properly extrapolate throughput and count metrics that are derived from span events that have been tail-based sampled in the OpenTelemetry Collector. In these scenarios, derived throughput and count metrics are likely to be inaccurate.
+
+Therefore, we recommend using Elastic's native tail-based smapling when integrating with OpenTelemetry. 

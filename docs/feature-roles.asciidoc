@@ -45,6 +45,7 @@ information, and another for viewing it.
 * <<privileges-api-key,API key role>>: To create and manage API keys.
 * <<privileges-agent-central-config,Central configuration management role>>: To view
 APM Agent central configurations.
+* <<privileges-rum-source-mapping,RUM source mapping role>>: To read RUM source maps.
 
 {es-security-features} provides {ref}/built-in-roles.html[built-in roles] that grant a
 subset of the privileges needed by APM users.
@@ -91,11 +92,9 @@ that has the following privileges:
 |Write events into {es}
 |====
 
-. If <<configuration-rum,real user monitoring>> is enabled, additional privileges are required to read source maps.
-See {kibana-ref}/rum-sourcemap-api.html[RUM source map API] for more details.
-Assign these extra privileges to the *general writer role*.
-
 . Assign the *general writer role* to users who need to publish APM data.
+
+. If <<configuration-rum,real user monitoring>> is enabled, create a separate <<privileges-rum-source-mapping,RUM source mapping role>>.
 
 ////
 ***********************************  ***********************************
@@ -319,14 +318,28 @@ PUT _security/role/apm_api_key <1>
 ++++
 
 [[privileges-agent-central-config-server]]
-==== APM Server central configuration management
+==== APM Server agent central configuration management
 
 APM Server acts as a proxy between your APM agents and the {apm-app}.
 The {apm-app} communicates any changed settings to APM Server so that your agents only need to poll the Server
 to determine which central configuration settings have changed.
 
-To grant an APM Server user with the required privileges for managing central configuration,
+To grant an APM Server user with the required privileges for managing central configuration in {es} without {kib},
 assign the user the following privileges:
+
+[options="header"]
+|====
+|Type | Privilege | Purpose
+
+| Index
+|`read` on `.apm-agent-configuration` index
+|Allow {beatname_uc} to manage central configurations in {es}
+|====
+
+The above privileges should be sufficient for APM agent central configuration to work properly
+as long as {beatname_uc} communicates with {es} successfully.
+If it fails, it may fallback to read agent central configuration via {kib} if configured,
+which requires the following privileges:
 
 [options="header"]
 |====
@@ -337,8 +350,38 @@ assign the user the following privileges:
 |Allow {beatname_uc} to manage central configurations via the {beat_kib_app}
 |====
 
-TIP: Looking for privileges and roles needed use central configuration from the {apm-app} or {apm-app} API?
+TIP: Looking for privileges and roles needed to use central configuration from the {apm-app} or {apm-app} API?
 See {kibana-ref}/apm-app-central-config-user.html[{apm-app} central configuration user].
+
+[[privileges-rum-source-map]]
+=== Grant privileges and roles needed for reading source maps
+
+++++
+<titleabbrev>Create a _source map_ user</titleabbrev>
+++++
+
+[[privileges-rum-source-mapping]]
+==== APM Server RUM source mapping
+
+If <<configuration-rum,real user monitoring>> is enabled, additional privileges are required to read source maps.
+
+To grant an APM Server user with the required privileges for reading RUM source maps from {es} directly without {kib},
+assign the user the following privileges:
+
+[options="header"]
+|====
+|Type | Privilege | Purpose
+
+|Index
+|`read` on `.apm-source-map` index
+|Allow {beatname_uc} to read RUM source maps from {es}
+|====
+
+The above privileges should be sufficient for RUM source mapping to work properly
+as long as {beatname_uc} communicates with {es} successfully.
+If it fails, it may fallback to read source maps via {kib} if configured,
+which requires additional {kib} privileges.
+See {kibana-ref}/rum-sourcemap-api.html[RUM source map API] for more details.
 
 ////
 ***********************************  ***********************************

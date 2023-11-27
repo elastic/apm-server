@@ -73,7 +73,6 @@
                 "id": "b2da5288b2c3d7e79c42a636ca2fd99f"
             },
             "event": {
-                "agent_id_status": "missing",
                 "ingested": "dynamic"
             },
             "host": {
@@ -149,11 +148,7 @@
                 "namespace": "migrated",
                 "type": "metrics"
             },
-            "ecs": {
-                "version": "dynamic"
-            },
             "event": {
-                "agent_id_status": "missing",
                 "ingested": "dynamic"
             },
             "golang": {
@@ -269,11 +264,7 @@
                 "namespace": "migrated",
                 "type": "metrics"
             },
-            "ecs": {
-                "version": "dynamic"
-            },
             "event": {
-                "agent_id_status": "missing",
                 "ingested": "dynamic",
                 "outcome": "failure"
             },
@@ -321,11 +312,7 @@
                 "namespace": "migrated",
                 "type": "metrics"
             },
-            "ecs": {
-                "version": "dynamic"
-            },
             "event": {
-                "agent_id_status": "missing",
                 "ingested": "dynamic",
                 "outcome": "failure"
             },
@@ -382,11 +369,7 @@
                 "namespace": "migrated",
                 "type": "metrics"
             },
-            "ecs": {
-                "version": "dynamic"
-            },
             "event": {
-                "agent_id_status": "missing",
                 "ingested": "dynamic"
             },
             "host": {
@@ -461,11 +444,7 @@
                 "namespace": "migrated",
                 "type": "metrics"
             },
-            "ecs": {
-                "version": "dynamic"
-            },
             "event": {
-                "agent_id_status": "missing",
                 "ingested": "dynamic"
             },
             "host": {
@@ -538,8 +517,6 @@
                 "type": "traces"
             },
             "event": {
-                "agent_id_status": "missing",
-                "ingested": "dynamic",
                 "outcome": "failure"
             },
             "observer": {
@@ -652,7 +629,6 @@
                 "type": "traces"
             },
             "event": {
-                "agent_id_status": "missing",
                 "ingested": "dynamic",
                 "outcome": "failure"
             },

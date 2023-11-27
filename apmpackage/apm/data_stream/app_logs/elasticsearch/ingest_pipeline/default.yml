@@ -8,4 +8,6 @@ processors:
   - pipeline:
       name: observer_ids
   - pipeline:
-      name: ecs_version
+      name: remove_ecs_version
+  - pipeline:
+      name: client_geoip

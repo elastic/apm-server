@@ -265,12 +265,12 @@ legacy_assert_ilm() {
     local ILM_HOT_PHASE_MAX_SIZE=$(echo ${ILM_HOT_PHASE} | jq -r '.actions.rollover.max_size')
     local ILM_HOT_PHASE_MAX_AGE=$(echo ${ILM_HOT_PHASE} | jq -r '.actions.rollover.max_age')
     if [[ "${ILM_HOT_PHASE_MAX_SIZE}" != "${EXPECTED_MAX_SIZE}" ]]; then
-        echo "-> Invalid ILM policy ${LEGACY_ILM_POLICY}; expected hot phase max_size ${EXPECTED_MAX_SIZE} got ${ILM_HOT_PHASE_MAX_SIZE}"
+        echo "-> Invalid ILM policy \"${LEGACY_ILM_POLICY}\"; expected hot phase \"max_age\" ${EXPECTED_MAX_SIZE} got ${ILM_HOT_PHASE_MAX_SIZE}"
         echo "${ILM_HOT_PHASE}"
         SUCCESS=false
     fi
     if [[ "${ILM_HOT_PHASE_MAX_AGE}" != "${EXPECTED_MAX_AGE}" ]]; then
-        echo "-> Invalid ILM policy ${LEGACY_ILM_POLICY}; expected hot phase max_size ${EXPECTED_MAX_AGE} got ${ILM_HOT_PHASE_MAX_AGE}"
+        echo "-> Invalid ILM policy \"${LEGACY_ILM_POLICY}\"; expected hot phase \"max_age\" ${EXPECTED_MAX_AGE} got ${ILM_HOT_PHASE_MAX_AGE}"
         echo "${ILM_HOT_PHASE}"
         SUCCESS=false
     fi

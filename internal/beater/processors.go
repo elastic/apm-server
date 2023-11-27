@@ -74,7 +74,7 @@ func newObserverBatchProcessor() modelpb.ProcessBatchFunc {
 	return func(ctx context.Context, b *modelpb.Batch) error {
 		for i := range *b {
 			if (*b)[i].Observer == nil {
-				(*b)[i].Observer = &modelpb.Observer{}
+				(*b)[i].Observer = modelpb.ObserverFromVTPool()
 			}
 			observer := (*b)[i].Observer
 			observer.Hostname = hostname
@@ -83,17 +83,6 @@ func newObserverBatchProcessor() modelpb.ProcessBatchFunc {
 		}
 		return nil
 	}
-}
-
-// TODO remove this once we have added `event.received` to the
-// data stream mappings, in 8.10.
-func removeEventReceivedBatchProcessor(ctx context.Context, batch *modelpb.Batch) error {
-	for _, event := range *batch {
-		if event.Event != nil {
-			event.Event.Received = 0
-		}
-	}
-	return nil
 }
 
 func newDocappenderBatchProcessor(a *docappender.Appender) modelpb.ProcessBatchFunc {

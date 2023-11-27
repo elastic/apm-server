@@ -2,7 +2,6 @@ include::./version.asciidoc[]
 include::{asciidoc-dir}/../../shared/attributes.asciidoc[]
 
 :apm-integration-docs:
-:apm-package-dir:        {docdir}/apm-package
 :obs-repo-dir:           {observability-docs-root}/docs/en
 :tab-widget-dir:         {docdir}/tab-widgets
 
@@ -14,9 +13,6 @@ endif::[]
 
 // OTHER ATTRS
 // TODO: Check that these are still relevant
-
-:libbeat-dir: {docdir}/legacy/copied-from-beats/docs
-:libbeat-outputs-dir: {docdir}/legacy/copied-from-beats/outputs
 :version: {apm_server_version}
 :beatname_lc: apm-server
 :beatname_uc: APM Server
@@ -50,7 +46,6 @@ endif::[]
 :docker_platform:
 :win_os:
 :linux_os:
-:apm-package-dir: {docdir}/legacy/apm-package
 
 :downloads: https://artifacts.elastic.co/downloads/apm-server
 

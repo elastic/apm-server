@@ -68,7 +68,7 @@ func (s SetLibraryFrame) processException(ctx context.Context, exception *modelp
 func (s SetLibraryFrame) processStacktraceFrames(ctx context.Context, frames ...*modelpb.StacktraceFrame) {
 	for _, frame := range frames {
 		if frame.Original == nil {
-			frame.Original = &modelpb.Original{}
+			frame.Original = modelpb.OriginalFromVTPool()
 		}
 		frame.Original.LibraryFrame = frame.LibraryFrame
 		frame.LibraryFrame = frame.Filename != "" && s.Pattern.MatchString(frame.Filename) ||

@@ -53,7 +53,10 @@ func TestUnpackConfig(t *testing.T) {
 	kibanaHeadersConfig := DefaultConfig()
 	kibanaHeadersConfig.Kibana.ClientConfig = defaultDecodedKibanaClientConfig
 	kibanaHeadersConfig.Kibana.Enabled = true
-	kibanaHeadersConfig.Kibana.Headers = map[string]string{"foo": "bar"}
+	kibanaHeadersConfig.Kibana.Headers = map[string]string{
+		"foo":                 "bar",
+		"Elastic-Api-Version": "2023-10-31",
+	}
 
 	responseHeadersConfig := DefaultConfig()
 	responseHeadersConfig.ResponseHeaders = map[string][]string{
@@ -475,7 +478,7 @@ func TestUnpackConfig(t *testing.T) {
 						MaxGroups: 0, // Default value is set as per memory limit
 					},
 					ServiceDestinations: ServiceDestinationAggregationConfig{
-						MaxGroups: 10000,
+						MaxGroups: 0, // Default value is set as per memory limit
 					},
 					ServiceTransactions: ServiceTransactionAggregationConfig{
 						MaxGroups: 0, // Default value is set as per memory limit

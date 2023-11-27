@@ -2,7 +2,7 @@
 ==== Run {beatname_uc} on Docker
 
 Docker images for {beatname_uc} are available from the Elastic Docker
-registry. The base image is https://hub.docker.com/_/centos/[centos:7].
+registry. The base image is https://hub.docker.com/_/ubuntu[ubuntu:22.04].
 
 A list of all published Docker images and tags is available at
 https://www.docker.elastic.co[www.docker.elastic.co].
@@ -39,12 +39,21 @@ docker pull {dockerimage}
 . Verify the Docker image:
 +
 ["source", "sh", subs="attributes"]
-------------------------------------------------
+----
 wget https://artifacts.elastic.co/cosign.pub
-cosign verify --key cosign.pub {dockerimage}:{version}
-------------------------------------------------
+cosign verify --key cosign.pub {dockerimage}
+----
 +
-For details about this step, refer to {ref}/docker.html#docker-verify-signature[Verify the {es} Docker image signature] in the {es} documentation.
+The `cosign` command prints the check results and the signature payload in JSON format:
++
+[source,sh,subs="attributes"]
+----
+Verification for {dockerimage} --
+The following checks were performed on each of these signatures:
+  - The cosign claims were validated
+  - Existence of the claims in the transparency log was verified offline
+  - The signatures were verified against the specified public key
+----
 
 endif::[]
 
