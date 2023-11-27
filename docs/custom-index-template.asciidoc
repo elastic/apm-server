@@ -15,7 +15,7 @@ These index templates are composed of multiple component templates--reusable bui
 that configure index mappings, settings, and aliases.
 
 The default APM index templates can be viewed in {kib}.
-Navigate to **{stack-manage-app}** -> **Index Management** -> **Index Templates**, and search for `apm`.
+Navigate to **{stack-manage-app}** → **Index Management** → **Index Templates**, and search for `apm`.
 Select any of the APM index templates to view their relevant component templates.
 
 [discrete]
@@ -30,23 +30,17 @@ When you install the APM integration, {fleet} creates a default `@custom` compon
 You can edit this `@custom` component template to customize your {es} indices.
 
 First, determine which <<apm-data-streams,data stream>> you'd like to edit.
-Then, open {kib} and navigate to **{stack-manage-app}** -> **Index Management** -> **Component Templates**.
+Then, open {kib} and navigate to **{stack-manage-app}** → **Index Management** → **Component Templates**.
 
 Custom component templates are named following this pattern: `<name_of_data_stream>@custom`.
 Search for the name of the data stream, like `traces-apm`, and select its custom component template.
 In this example, that'd be, `traces-apm@custom`.
-Then click **Manage** -> **Edit**.
+Then click **Manage** → **Edit**.
 
 Add any custom metadata, index settings, or mappings.
-// or aliases.
-
-// [discrete]
-// ==== Logistics
-
-// In the *Logistics* step, ...
-// For example, you could:
 
 [discrete]
+[[custom-index-template-index-settings]]
 ==== Index settings
 
 In the **Index settings** step, you can specify custom {ref}/index-modules.html#index-modules-settings[index settings].
@@ -80,6 +74,7 @@ Specify the number of replica shards:
 ----
 
 [discrete]
+[[custom-index-template-mappings]]
 ==== Mappings
 
 {ref}/mapping.html[Mapping] is the process of defining how a document, and the fields it contains, are stored and indexed.
@@ -97,15 +92,9 @@ type, and optionally a script:
 +
 image::images/custom-index-template-runtime-fields.png[Editing a component template to add a new runtime field]
 
-// * {Do something.} In the *Dynamic templates* tab...
-
-// * {Do something.} In the *Advanced options* tab...
-
-// [discrete]
-// ==== Aliases
-
-// In the *Aliases* step, ...
-// For example, you could:
+[discrete]
+[[custom-index-template-rollover]]
+=== Roll over the data stream
 
 Changes to component templates are not applied retroactively to existing indices.
 For changes to take effect, you must create a new write index for the data stream.
