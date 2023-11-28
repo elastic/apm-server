@@ -114,7 +114,7 @@ func TestOTLPGRPCTraces(t *testing.T) {
 
 	indices := "traces-apm*,logs-apm*"
 	result := estest.ExpectMinDocs(t, systemtest.Elasticsearch, 3, indices, nil)
-	approvaltest.ApproveEvents(t, t.Name(), result.Hits.Hits, "error.id")
+	approvaltest.ApproveFields(t, t.Name(), result.Hits.Hits, "error.id")
 }
 
 func TestOTLPGRPCTraceSpanLinks(t *testing.T) {
@@ -212,13 +212,13 @@ func TestOTLPGRPCMetrics(t *testing.T) {
 	metricsClient.Export(context.Background(), pmetricotlp.NewExportRequestFromMetrics(metrics))
 
 	result := estest.ExpectDocs(t, systemtest.Elasticsearch, "metrics-apm.app.*", espoll.ExistsQuery{Field: "counter"})
-	approvaltest.ApproveEvents(t, t.Name()+"_counter", result.Hits.Hits, "@timestamp")
+	approvaltest.ApproveFields(t, t.Name()+"_counter", result.Hits.Hits, "@timestamp")
 
 	result = estest.ExpectDocs(t, systemtest.Elasticsearch, "metrics-apm.app.*", espoll.ExistsQuery{Field: "summary"})
-	approvaltest.ApproveEvents(t, t.Name()+"_summary", result.Hits.Hits, "@timestamp")
+	approvaltest.ApproveFields(t, t.Name()+"_summary", result.Hits.Hits, "@timestamp")
 
 	result = estest.ExpectDocs(t, systemtest.Elasticsearch, "metrics-apm.app.*", espoll.ExistsQuery{Field: "histogram"})
-	approvaltest.ApproveEvents(t, t.Name()+"_histogram", result.Hits.Hits, "@timestamp")
+	approvaltest.ApproveFields(t, t.Name()+"_histogram", result.Hits.Hits, "@timestamp")
 
 	// Make sure we report monitoring for the metrics consumer. Metric values are unit tested.
 	doc := getBeatsMonitoringStats(t, srv, nil)
@@ -242,7 +242,7 @@ func TestOTLPGRPCLogs(t *testing.T) {
 	require.NoError(t, err)
 
 	result := estest.ExpectDocs(t, systemtest.Elasticsearch, "logs-apm*", nil)
-	approvaltest.ApproveEvents(t, t.Name(), result.Hits.Hits)
+	approvaltest.ApproveFields(t, t.Name(), result.Hits.Hits)
 }
 
 func TestOTLPGRPCAuth(t *testing.T) {
@@ -478,7 +478,7 @@ func TestOTLPGRPCLogsClientIP(t *testing.T) {
 	require.NoError(t, err)
 
 	result := estest.ExpectDocs(t, systemtest.Elasticsearch, "logs-apm*", nil)
-	approvaltest.ApproveEvents(t, t.Name(), result.Hits.Hits, "client.geo.location.lat", "client.geo.location.lon")
+	approvaltest.ApproveFields(t, t.Name(), result.Hits.Hits, "client.geo.location")
 }
 
 func newMobileLogs(body interface{}) plog.Logs {

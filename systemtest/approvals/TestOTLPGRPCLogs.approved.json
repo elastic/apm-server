@@ -1,46 +1,58 @@
-{
-    "events": [
-        {
-            "@timestamp": "1970-01-01T00:00:01.000Z",
-            "agent": {
-                "name": "otlp/go",
-                "version": "unknown"
-            },
-            "data_stream": {
-                "dataset": "apm.app.unknown",
-                "namespace": "default",
-                "type": "logs"
-            },
-            "event": {
-                "severity": 9
-            },
-            "labels": {
-                "key": "value"
-            },
-            "log": {
-                "level": "Info"
-            },
-            "message": "a log message",
-            "numeric_labels": {
-                "numeric_key": 1234
-            },
-            "observer": {
-                "hostname": "dynamic",
-                "type": "apm-server",
-                "version": "dynamic"
-            },
-            "service": {
-                "language": {
-                    "name": "go"
-                },
-                "name": "unknown"
-            },
-            "span": {
-                "id": "0200000000000000"
-            },
-            "trace": {
-                "id": "01000000000000000000000000000000"
-            }
-        }
-    ]
-}
+[
+    {
+        "@timestamp": [
+            "1970-01-01T00:00:01.000Z"
+        ],
+        "agent.name": [
+            "otlp/go"
+        ],
+        "agent.version": [
+            "unknown"
+        ],
+        "data_stream.dataset": [
+            "apm.app.unknown"
+        ],
+        "data_stream.namespace": [
+            "default"
+        ],
+        "data_stream.type": [
+            "logs"
+        ],
+        "event.severity": [
+            9
+        ],
+        "labels.key": [
+            "value"
+        ],
+        "log.level": [
+            "Info"
+        ],
+        "message": [
+            "a log message"
+        ],
+        "numeric_labels.numeric_key": [
+            1234
+        ],
+        "observer.hostname": [
+            "dynamic"
+        ],
+        "observer.type": [
+            "apm-server"
+        ],
+        "observer.version": [
+            "dynamic"
+        ],
+        "service.language.name": [
+            "go"
+        ],
+        "service.name": [
+            "unknown"
+        ],
+        "span.id": [
+            "0200000000000000"
+        ],
+        "trace.id": [
+            "01000000000000000000000000000000"
+        ]
+    }
+]
