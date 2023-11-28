@@ -1,5 +1,11 @@
 - version: generated
   changes:
+    - description: Add missing mappings for various fields
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/12102
+    - description: Remove unsupported 7.x data stream migration pipeline
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/12102
     - description: Add span.code.stacktrace
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/12096
