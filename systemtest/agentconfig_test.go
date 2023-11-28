@@ -139,7 +139,7 @@ func TestAgentConfig(t *testing.T) {
 	require.Len(t, result.Hits.Hits, 2)
 	etag := gjson.GetBytes(result.Hits.Hits[0].RawSource, "labels.etag")
 	assert.Equal(t, etag1, strconv.Quote(etag.String()))
-	approvaltest.ApproveEvents(t, t.Name(), result.Hits.Hits, "@timestamp", "labels.etag")
+	approvaltest.ApproveFields(t, t.Name(), result.Hits.Hits, "@timestamp", "labels.etag")
 }
 
 func queryAgentConfig(t testing.TB, serverURL, serviceName, serviceEnvironment, etag string) (map[string]string, *http.Response, map[string]interface{}) {
