@@ -1,91 +1,125 @@
-{
-    "events": [
-        {
-            "@timestamp": "2006-01-02T15:00:00.000Z",
-            "agent": {
-                "name": "go"
-            },
-            "data_stream": {
-                "dataset": "apm.service_summary.10m",
-                "namespace": "default",
-                "type": "metrics"
-            },
-            "metricset": {
-                "interval": "10m",
-                "name": "service_summary"
-            },
-            "observer": {
-                "hostname": "dynamic",
-                "type": "apm-server",
-                "version": "dynamic"
-            },
-            "processor": {
-                "event": "metric"
-            },
-            "service": {
-                "language": {
-                    "name": "go"
-                },
-                "name": "systemtest"
-            }
-        },
-        {
-            "@timestamp": "2006-01-02T15:04:00.000Z",
-            "agent": {
-                "name": "go"
-            },
-            "data_stream": {
-                "dataset": "apm.service_summary.1m",
-                "namespace": "default",
-                "type": "metrics"
-            },
-            "metricset": {
-                "interval": "1m",
-                "name": "service_summary"
-            },
-            "observer": {
-                "hostname": "dynamic",
-                "type": "apm-server",
-                "version": "dynamic"
-            },
-            "processor": {
-                "event": "metric"
-            },
-            "service": {
-                "language": {
-                    "name": "go"
-                },
-                "name": "systemtest"
-            }
-        },
-        {
-            "@timestamp": "2006-01-02T15:00:00.000Z",
-            "agent": {
-                "name": "go"
-            },
-            "data_stream": {
-                "dataset": "apm.service_summary.60m",
-                "namespace": "default",
-                "type": "metrics"
-            },
-            "metricset": {
-                "interval": "60m",
-                "name": "service_summary"
-            },
-            "observer": {
-                "hostname": "dynamic",
-                "type": "apm-server",
-                "version": "dynamic"
-            },
-            "processor": {
-                "event": "metric"
-            },
-            "service": {
-                "language": {
-                    "name": "go"
-                },
-                "name": "systemtest"
-            }
-        }
-    ]
-}
+[
+    {
+        "@timestamp": [
+            "2006-01-02T15:00:00.000Z"
+        ],
+        "agent.name": [
+            "go"
+        ],
+        "data_stream.dataset": [
+            "apm.service_summary.10m"
+        ],
+        "data_stream.namespace": [
+            "default"
+        ],
+        "data_stream.type": [
+            "metrics"
+        ],
+        "metricset.interval": [
+            "10m"
+        ],
+        "metricset.name": [
+            "service_summary"
+        ],
+        "observer.hostname": [
+            "dynamic"
+        ],
+        "observer.type": [
+            "apm-server"
+        ],
+        "observer.version": [
+            "dynamic"
+        ],
+        "processor.event": [
+            "metric"
+        ],
+        "service.language.name": [
+            "go"
+        ],
+        "service.name": [
+            "systemtest"
+        ]
+    },
+    {
+        "@timestamp": [
+            "2006-01-02T15:04:00.000Z"
+        ],
+        "agent.name": [
+            "go"
+        ],
+        "data_stream.dataset": [
+            "apm.service_summary.1m"
+        ],
+        "data_stream.namespace": [
+            "default"
+        ],
+        "data_stream.type": [
+            "metrics"
+        ],
+        "metricset.interval": [
+            "1m"
+        ],
+        "metricset.name": [
+            "service_summary"
+        ],
+        "observer.hostname": [
+            "dynamic"
+        ],
+        "observer.type": [
+            "apm-server"
+        ],
+        "observer.version": [
+            "dynamic"
+        ],
+        "processor.event": [
+            "metric"
+        ],
+        "service.language.name": [
+            "go"
+        ],
+        "service.name": [
+            "systemtest"
+        ]
+    },
+    {
+        "@timestamp": [
+            "2006-01-02T15:00:00.000Z"
+        ],
+        "agent.name": [
+            "go"
+        ],
+        "data_stream.dataset": [
+            "apm.service_summary.60m"
+        ],
+        "data_stream.namespace": [
+            "default"
+        ],
+        "data_stream.type": [
+            "metrics"
+        ],
+        "metricset.interval": [
+            "60m"
+        ],
+        "metricset.name": [
+            "service_summary"
+        ],
+        "observer.hostname": [
+            "dynamic"
+        ],
+        "observer.type": [
+            "apm-server"
+        ],
+        "observer.version": [
+            "dynamic"
+        ],
+        "processor.event": [
+            "metric"
+        ],
+        "service.language.name": [
+            "go"
+        ],
+        "service.name": [
+            "systemtest"
+        ]
+    }
+]

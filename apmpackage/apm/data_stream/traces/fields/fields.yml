@@ -56,8 +56,20 @@
   type: keyword
   description: |
     The lambda function version.
+- name: http.request.body
+  type: flattened
+  description: |
+    The original body of the monitored HTTP request.
+- name: http.request.env
+  type: flattened
+  description: |
+    The CGI-like environment variables of the monitored HTTP request.
+- name: http.request.cookies
+  type: flattened
+  description: |
+    The cookies of the monitored HTTP request.
 - name: http.request.headers
-  type: object
+  type: flattened
   description: |
     The canonical headers of the monitored HTTP request.
 - name: http.response.finished
@@ -65,9 +77,14 @@
   description: |
     Used by the Node agent to indicate when in the response life cycle an error has occurred.
 - name: http.response.headers
-  type: object
+  type: flattened
   description: |
     The canonical headers of the monitored HTTP response.
+- name: http.response.headers_sent
+  type: boolean
+  index: false
+  description: |
+    Used by the Node agent to indicate whether HTTP response headers were sent.
 - name: http.response.transfer_size
   type: long
   unit: byte
@@ -221,10 +238,26 @@
   type: long
   description: |
     Sum of the durations of the compressed spans, in microseconds.
+- name: span.db.instance
+  type: keyword
+  description: |
+    Database instance.
 - name: span.db.link
   type: keyword
   description: |
     Database link.
+- name: span.db.type
+  type: keyword
+  description: |
+    Database type.
+- name: span.db.user.name
+  type: keyword
+  description: |
+    Database username.
+- name: span.db.statement
+  type: keyword
+  description: |
+    Database statement.
 - name: span.db.rows_affected
   type: long
   description: |
@@ -245,6 +278,18 @@
   type: long
   description: |
     Duration of the span, in microseconds.
+- name: span.message.body
+  type: keyword
+  description: The message body
+  index: false
+- name: span.message.routing_key
+  type: keyword
+  description: The message routing key
+  index: false
+- name: span.message.headers
+  type: flattened
+  description: The message headers
+  index: false
 - name: span.message.age.ms
   type: long
   description: |
@@ -257,6 +302,10 @@
   type: keyword
   description: |
     Generic designation of a span in the scope of a transaction.
+- name: span.stacktrace
+  type: flattened
+  description: |
+    Stacktrace identifying the instrumented source code corresponding to the span.
 - name: span.subtype
   type: keyword
   description: |
@@ -279,6 +328,9 @@
   type: long
   description: |
     Timestamp of the event in microseconds since Unix epoch.
+- name: transaction.custom
+  type: flattened
+  description: Custom transaction context.
 - name: transaction.duration.us
   type: long
   description: |
@@ -306,6 +358,18 @@
   description: |
     A user-defined mapping of groups of marks in milliseconds.
   dynamic: true
+- name: transaction.message.body
+  type: keyword
+  description: The message body
+  index: false
+- name: transaction.message.routing_key
+  type: keyword
+  description: The message routing key
+  index: false
+- name: transaction.message.headers
+  type: flattened
+  description: The message headers
+  index: false
 - name: transaction.message.age.ms
   type: long
   description: |
@@ -332,6 +396,9 @@
 - name: transaction.span_count.dropped
   type: long
   description: The total amount of dropped spans for this transaction.
+- name: transaction.span_count.started
+  type: long
+  description: The total amount of started spans for this transaction.
 - name: transaction.type
   type: keyword
   description: |
