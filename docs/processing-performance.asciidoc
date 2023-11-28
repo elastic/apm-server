@@ -5,10 +5,6 @@ APM Server performance depends on a number of factors: memory and CPU available,
 network latency, transaction sizes, workload patterns,
 agent and server settings, versions, and protocol.
 
-// Assumptions
-// TBD
-
-// Method
 We tested several scenarios to help you understand how to size the APM Server so that it can keep up with the load that your Elastic APM agents are sending:
 
 * Using the default hardware template on AWS, GCP and Azure on {ecloud}.
@@ -18,8 +14,12 @@ We tested several scenarios to help you understand how to size the APM Server so
 <<data-model-transactions,transactions>> and
 <<data-model-spans,spans>>.
 
-// Results
-You can use the results of our tests to guide your sizing decisions, however, performance will vary based on factors unique to your use case like your specific setup, the size of APM event data, and the exact number of agents.
+NOTE: You will also need to scale up {es} accordingly, potentially with an increased number of shards configured.
+For more details on scaling {es}, refer to the {ref}/scalability.html[{es} documentation].
+
+The results below include numbers for a synthetic workload. You can use the results of our tests to guide
+your sizing decisions, however, *performance will vary based on factors unique to your use case* like your
+specific setup, the size of APM event data, and the exact number of agents.
 
 :hardbreaks-option:
 
@@ -29,29 +29,29 @@ You can use the results of our tests to guide your sizing decisions, however, pe
 
 | *1 GB*
 (10 agents)
-| 9,600
+| 9,000
 events/second
-| 6,400
+| 6,000
 events/second
-| 9,600
+| 9,000
 events/second
 
 | *4 GB*
 (30 agents)
-| 25,500
+| 25,000
 events/second
 | 18,000
 events/second
-| 17,800
+| 17,000
 events/second
 
 | *8 GB*
 (60 agents)
-| 40,500
+| 40,000
 events/second
 | 26,000
 events/second
-| 25,700
+| 25,000
 events/second
 
 | *16 GB*
@@ -60,7 +60,7 @@ events/second
 events/second
 | 51,000
 events/second
-| 45,300
+| 45,000
 events/second
 
 | *32 GB*
@@ -76,13 +76,11 @@ events/second
 
 :!hardbreaks-option:
 
-APM Server is CPU bound and larger instance types in {ecloud} come with much more computing power.
-
 Don't forget that the APM Server is stateless.
 Several instances running do not need to know about each other.
 This means that with a properly sized {es} instance, APM Server scales out linearly.
 
 NOTE: RUM deserves special consideration. The RUM agent runs in browsers, and there can be many thousands reporting to an APM Server with very variable network latency.
 
-If your APM Server cannot be scaled to support the load that you are expecting, consider
+Alternatively or in addition to scaling the APM Server, consider
 decreasing the ingestion volume. Read more in <<reduce-apm-storage>>.
