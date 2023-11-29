@@ -70,7 +70,7 @@ func TestRUMXForwardedFor(t *testing.T) {
 		Field:  "processor.event",
 		Values: []interface{}{"transaction", "metric"},
 	})
-	approvaltest.ApproveEvents(
+	approvaltest.ApproveFields(
 		t, t.Name(), result.Hits.Hits,
 		// RUM timestamps are set by the server based on the time the payload is received.
 		"@timestamp", "timestamp.us",
@@ -218,8 +218,8 @@ func TestRUMRoutingIntegration(t *testing.T) {
 		defer resp.Body.Close()
 	}
 	result := estest.ExpectSourcemapError(t, systemtest.Elasticsearch, "traces-apm.rum*", retry, nil, false)
-	approvaltest.ApproveEvents(
+	approvaltest.ApproveFields(
 		t, t.Name(), result.Hits.Hits, "@timestamp", "timestamp.us",
-		"source.port", "source.ip", "client",
+		"source.port", "source.ip", "client.ip",
 	)
 }

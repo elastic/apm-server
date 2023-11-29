@@ -52,7 +52,7 @@ func TestJaeger(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			systemtest.CleanupElasticsearch(t)
 			hits := sendJaegerBatch(t, srv, "../testdata/jaeger/"+name+".json", grpc.WithInsecure())
-			approvaltest.ApproveEvents(t, t.Name(), hits)
+			approvaltest.ApproveFields(t, t.Name(), hits)
 		})
 	}
 
