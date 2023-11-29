@@ -1,8 +1,11 @@
 - version: generated
   changes:
-    - description: Placeholder
+    - description: Add missing mappings for various fields
       type: enhancement
-      link: https://github.com/elastic/apm-server/pull/123
+      link: https://github.com/elastic/apm-server/pull/12102
+    - description: Remove unsupported 7.x data stream migration pipeline
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/12102
 - version: 8.11.0
   changes:
     - description: Add geoip processing to add client.geo.* fields for app_logs

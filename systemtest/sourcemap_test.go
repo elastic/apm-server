@@ -44,7 +44,7 @@ func TestRUMErrorSourcemapping(t *testing.T) {
 				systemtest.SendRUMEventsPayload(t, serverURL, "../testdata/intake-v2/errors_rum.ndjson")
 			}
 			result := estest.ExpectSourcemapError(t, systemtest.Elasticsearch, "logs-apm.error-*", retry, nil, true)
-			approvaltest.ApproveEvents(
+			approvaltest.ApproveFields(
 				t, t.Name(), result.Hits.Hits,
 				// RUM timestamps are set by the server based on the time the payload is received.
 				"@timestamp", "timestamp.us",
@@ -96,7 +96,7 @@ func TestRUMSpanSourcemapping(t *testing.T) {
 		Value: "span",
 	}, true)
 
-	approvaltest.ApproveEvents(
+	approvaltest.ApproveFields(
 		t, t.Name(), result.Hits.Hits,
 		// RUM timestamps are set by the server based on the time the payload is received.
 		"@timestamp", "timestamp.us",
@@ -129,7 +129,7 @@ func TestNoMatchingSourcemap(t *testing.T) {
 		Value: "span",
 	}, false)
 
-	approvaltest.ApproveEvents(
+	approvaltest.ApproveFields(
 		t, t.Name(), result.Hits.Hits,
 		// RUM timestamps are set by the server based on the time the payload is received.
 		"@timestamp", "timestamp.us",

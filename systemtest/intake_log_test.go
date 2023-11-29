@@ -91,7 +91,7 @@ func TestIntakeLog(t *testing.T) {
 				fmt.Sprintf("logs-apm.app.%s-*", test.ServiceName),
 				espoll.MatchPhraseQuery{Field: "message", Value: test.Message},
 			)
-			approvaltest.ApproveEvents(t, t.Name(), result.Hits.Hits, test.DynamicFields...)
+			approvaltest.ApproveFields(t, t.Name(), result.Hits.Hits, test.DynamicFields...)
 		})
 	}
 }
