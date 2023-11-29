@@ -1,0 +1,48 @@
+[[known-issues]]
+= Known issues
+
+APM has the following known issues:
+
+*Ingesting new JVM metrics in 8.9 and 8.10 breaks upgrade to 8.11 and stops ingestion* +
+_APM Server versions: 8.11.0, 8.11.1_ +
+_Elastic APM Java Agent versions: 1.39.0+_
+
+// Describe the conditions in which this issue occurs
+If you're using the Elastic APM Java Agent v1.39.0+ to send new JVM metrics to APM Server v8.9.x and v8.10.x,
+// Describe the behavior of the issue
+upgrading to 8.11.0 or 8.11.1 will silently fail and stop ingesting APM metrics.
+// Describe why it happens
+// This happens because...
+
+// Include exact error messages linked to this issue
+// so users searching for the error message end up here.
+After upgrading, you will see the following errors:
+
+* APM Server error logs:
++
+[source,txt]
+----
+failed to index document in 'metrics-apm.internal-default' (fail_processor_exception): Document produced by APM Server v8.11.1, which is newer than the installed APM integration (v8.10.3-preview-1695284222). The APM integration must be upgraded.
+----
+
+* Fleet error on integration package upgrade:
++
+[source,txt]
+----
+Failed installing package [apm] due to error: [ResponseError: mapper_parsing_exception
+	Root causes:
+		mapper_parsing_exception: Field [jvm.memory.non_heap.pool.committed] attempted to shadow a time_series_metric]
+----
+
+// Link to fix?
+A fix for this issue is in progress: https://github.com/elastic/kibana/pull/171712[elastic/kibana#171712].
+
+
+// TEMPLATE
+
+////
+*Brief description* +
+_Versions: XX.XX.XX, YY.YY.YY, ZZ.ZZ.ZZ_
+
+Detailed description.
+////
