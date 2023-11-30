@@ -97,7 +97,7 @@ module.exports = {
 [[source-map-rum-upload]]
 === Upload the source map
 
-TIP: Before uploading a source map, ensure that RUM support is enabled in the APM integration.
+TIP: When uploading a source map, ensure that RUM support is enabled in the APM integration.
 
 {kib} exposes a {kibana-ref}/rum-sourcemap-api.html[source map endpoint] for uploading source maps.
 Source maps can be uploaded as a string, or as a file upload.
@@ -172,9 +172,7 @@ request.post({url: 'http://localhost:5601/api/apm/sourcemaps',formData: formData
 [[source-map-next]]
 === What happens next
 
-Source maps are stored in {es}. When you upload a source map, a new {es} index is created
+Source maps are stored in {es}. When you upload a source map, a new {es} document is created
 containing the contents of the source map.
-
-Then APM Server will periodically poll those documents to maintain a map of in-memory metadata.
-When stack traces match the in-memory metadata, the corresponding source map is fetched,
-parsed, and cached on demand.
+When a RUM request comes in, APM Server will make use of these source map documents to apply the
+source map logic to the event's stack traces.
