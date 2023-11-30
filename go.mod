@@ -10,7 +10,7 @@ require (
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/apm-aggregation v0.0.0-20230815024520-e75a37d9ddd6
 	github.com/elastic/apm-data v0.1.1-0.20231019120308-82201b991ae5
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20231129135154-6f32513e5037
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20231130101026-d9139c95a0b0
 	github.com/elastic/elastic-agent-client/v7 v7.4.0
 	github.com/elastic/elastic-agent-libs v0.6.2
 	github.com/elastic/elastic-agent-system-metrics v0.8.2
@@ -118,7 +118,6 @@ require (
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/lufia/plan9stats v0.0.0-20211012122336-39d0f177ccd0 // indirect
-	github.com/magefile/mage v1.15.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.17 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
@@ -151,7 +150,7 @@ require (
 	github.com/youmark/pkcs8 v0.0.0-20201027041543-1326539a0a0a // indirect
 	github.com/yusufpapurcu/wmi v1.2.3 // indirect
 	go.elastic.co/apm/module/apmzap/v2 v2.4.4 // indirect
-	go.elastic.co/ecszap v1.0.1 // indirect
+	go.elastic.co/ecszap v1.0.2 // indirect
 	go.opentelemetry.io/collector/semconv v0.87.0 // indirect
 	go.opentelemetry.io/otel/sdk v1.19.0 // indirect
 	go.opentelemetry.io/otel/trace v1.19.0 // indirect
