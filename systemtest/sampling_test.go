@@ -74,7 +74,7 @@ func TestDropUnsampled(t *testing.T) {
 		Value: "TestDropUnsampled",
 	})
 	assert.Len(t, result.Hits.Hits, 2)
-	approvaltest.ApproveEvents(t, t.Name(), result.Hits.Hits,
+	approvaltest.ApproveFields(t, t.Name(), result.Hits.Hits,
 		// RUM timestamps are set by the server based on the time the payload is received.
 		"@timestamp", "timestamp.us",
 		// RUM events have the source port recorded, and in the tests it will be dynamic

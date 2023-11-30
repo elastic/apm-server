@@ -19,6 +19,8 @@ package systemtest_test
 
 import (
 	"bytes"
+	"errors"
+	"fmt"
 	"net/http"
 	"os"
 	"testing"
@@ -51,5 +53,35 @@ func TestErrorIngest(t *testing.T) {
 	result := estest.ExpectDocs(t, systemtest.Elasticsearch, "logs-apm.error*", espoll.ExistsQuery{
 		Field: "transaction.name",
 	})
-	approvaltest.ApproveEvents(t, t.Name(), result.Hits.Hits)
+	approvaltest.ApproveFields(t, t.Name(), result.Hits.Hits)
+}
+
+// TestErrorExceptionCause tests hierarchical exception causes,
+// which must be obtained from _source due to how the exception
+// tree is structured as an array of objects.
+func TestErrorExceptionCause(t *testing.T) {
+	systemtest.CleanupElasticsearch(t)
+	srv := apmservertest.NewServerTB(t)
+
+	tracer := srv.Tracer()
+	tracer.NewError(fmt.Errorf(
+		"parent: %w %w",
+		fmt.Errorf("child1: %w", errors.New("grandchild")),
+		errors.New("child2"),
+	)).Send()
+	tracer.Flush(nil)
+
+	result := estest.ExpectDocs(t, systemtest.Elasticsearch, "logs-apm.error*", nil)
+	errorObj := result.Hits.Hits[0].Source["error"].(map[string]any)
+	exceptions := errorObj["exception"].([]any)
+
+	require.Len(t, exceptions, 4)
+	assert.Equal(t, "parent: child1: grandchild child2", exceptions[0].(map[string]any)["message"])
+	assert.Equal(t, "child1: grandchild", exceptions[1].(map[string]any)["message"])
+	assert.Equal(t, "grandchild", exceptions[2].(map[string]any)["message"])
+	assert.Equal(t, "child2", exceptions[3].(map[string]any)["message"])
+	assert.NotContains(t, exceptions[0], "parent")
+	assert.NotContains(t, exceptions[1], "parent")
+	assert.NotContains(t, exceptions[2], "parent")
+	assert.Equal(t, float64(0), exceptions[3].(map[string]any)["parent"])
 }

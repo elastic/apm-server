@@ -24,6 +24,7 @@ import (
 	"github.com/elastic/apm-server/systemtest/apmservertest"
 	"github.com/elastic/apm-server/systemtest/estest"
 	"github.com/elastic/apm-tools/pkg/approvaltest"
+	"github.com/elastic/apm-tools/pkg/espoll"
 )
 
 func TestIntake(t *testing.T) {
@@ -51,13 +52,23 @@ func TestIntake(t *testing.T) {
 			srv := apmservertest.NewServerTB(t)
 			systemtest.CleanupElasticsearch(t)
 			response := systemtest.SendBackendEventsPayload(t, srv.URL, "../testdata/intake-v2/"+tc.filename)
-			// Since we are just waiting for traces/metrics/logs and that they should go through almost immediately,
-			// there shouldn't be any aggregated metrics.
 			result := estest.ExpectMinDocs(t, systemtest.Elasticsearch,
-				response.Accepted, "traces-apm*,metrics-apm*,logs-apm*", nil,
+				response.Accepted, "traces-apm*,metrics-apm*,logs-apm*",
+				// Exclude aggregated transaction/service_destination metrics.
+				// Aggregations are flushed on 1m/10m/60m boundaries, so even
+				// if the test is fast there's a possibility of aggregated
+				// metrics being returned.
+				espoll.BoolQuery{
+					MustNot: []any{espoll.ExistsQuery{Field: "metricset.interval"}},
+				},
 			)
-			tc.dynamicFields = append(tc.dynamicFields, "client.geo.city_name", "client.geo.location.lat", "client.geo.location.lon", "client.geo.region_iso_code", "client.geo.region_name")
-			approvaltest.ApproveEvents(t, t.Name(), result.Hits.Hits, tc.dynamicFields...)
+			tc.dynamicFields = append(tc.dynamicFields,
+				"client.geo.city_name",
+				"client.geo.location",
+				"client.geo.region_iso_code",
+				"client.geo.region_name",
+			)
+			approvaltest.ApproveFields(t, t.Name(), result.Hits.Hits, tc.dynamicFields...)
 		})
 	}
 

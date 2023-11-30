@@ -68,7 +68,7 @@ func TestApprovedMetrics(t *testing.T) {
 			espoll.TermQuery{Field: "metricset.name", Value: "transaction"},
 		},
 	})
-	approvaltest.ApproveEvents(t, t.Name(), result.Hits.Hits)
+	approvaltest.ApproveFields(t, t.Name(), result.Hits.Hits)
 
 	// Check dynamic mapping of histograms.
 	mappings := getFieldMappings(t, indices, []string{"latency_distribution"})

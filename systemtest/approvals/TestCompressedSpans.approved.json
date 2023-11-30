@@ -1,183 +1,255 @@
-{
-    "events": [
-        {
-            "@timestamp": "1970-01-01T00:00:00.000Z",
-            "agent": {
-                "name": "go",
-                "version": "0.0.0"
-            },
-            "data_stream": {
-                "dataset": "apm",
-                "namespace": "default",
-                "type": "traces"
-            },
-            "event": {
-                "outcome": "success",
-                "success_count": 1
-            },
-            "host": {
-                "architecture": "i386",
-                "hostname": "beowulf",
-                "ip": [
-                    "127.0.0.1"
-                ],
-                "name": "beowulf",
-                "os": {
-                    "platform": "minix"
-                }
-            },
-            "observer": {
-                "hostname": "dynamic",
-                "type": "apm-server",
-                "version": "dynamic"
-            },
-            "parent": {
-                "id": "0000000000000001"
-            },
-            "process": {
-                "pid": 1,
-                "title": "systemtest.test"
-            },
-            "processor": {
-                "event": "span"
-            },
-            "service": {
-                "language": {
-                    "name": "go",
-                    "version": "2.0"
-                },
-                "name": "systemtest",
-                "node": {
-                    "name": "beowulf"
-                },
-                "runtime": {
-                    "name": "gc",
-                    "version": "2.0"
-                },
-                "target": {
-                    "type": "redis"
-                }
-            },
-            "span": {
-                "composite": {
-                    "compression_strategy": "same_kind",
-                    "count": 50,
-                    "sum": {
-                        "us": 50000
-                    }
-                },
-                "destination": {
-                    "service": {
-                        "resource": "redis",
-                        "type": "db"
-                    }
-                },
-                "duration": {
-                    "us": 50000
-                },
-                "id": "0000000000000002",
-                "name": "Calls to redis",
-                "representative_count": 1,
-                "subtype": "redis",
-                "type": "db"
-            },
-            "trace": {
-                "id": "01000000000000000000000000000000"
-            },
-            "transaction": {
-                "id": "0000000000000001"
-            }
-        },
-        {
-            "@timestamp": "1970-01-01T00:00:00.050Z",
-            "agent": {
-                "name": "go",
-                "version": "0.0.0"
-            },
-            "data_stream": {
-                "dataset": "apm",
-                "namespace": "default",
-                "type": "traces"
-            },
-            "event": {
-                "outcome": "success",
-                "success_count": 1
-            },
-            "host": {
-                "architecture": "i386",
-                "hostname": "beowulf",
-                "ip": [
-                    "127.0.0.1"
-                ],
-                "name": "beowulf",
-                "os": {
-                    "platform": "minix"
-                }
-            },
-            "observer": {
-                "hostname": "dynamic",
-                "type": "apm-server",
-                "version": "dynamic"
-            },
-            "parent": {
-                "id": "0000000000000001"
-            },
-            "process": {
-                "pid": 1,
-                "title": "systemtest.test"
-            },
-            "processor": {
-                "event": "span"
-            },
-            "service": {
-                "language": {
-                    "name": "go",
-                    "version": "2.0"
-                },
-                "name": "systemtest",
-                "node": {
-                    "name": "beowulf"
-                },
-                "runtime": {
-                    "name": "gc",
-                    "version": "2.0"
-                },
-                "target": {
-                    "type": "elasticsearch"
-                }
-            },
-            "span": {
-                "composite": {
-                    "compression_strategy": "exact_match",
-                    "count": 5,
-                    "sum": {
-                        "us": 20000
-                    }
-                },
-                "destination": {
-                    "service": {
-                        "resource": "elasticsearch",
-                        "type": "db"
-                    }
-                },
-                "duration": {
-                    "us": 20000
-                },
-                "id": "0000000000000034",
-                "name": "_bulk",
-                "representative_count": 1,
-                "subtype": "elasticsearch",
-                "type": "db"
-            },
-            "timestamp": {
-                "us": 50000
-            },
-            "trace": {
-                "id": "01000000000000000000000000000000"
-            },
-            "transaction": {
-                "id": "0000000000000001"
-            }
-        }
-    ]
-}
+[
+    {
+        "@timestamp": [
+            "1970-01-01T00:00:00.000Z"
+        ],
+        "agent.name": [
+            "go"
+        ],
+        "agent.version": [
+            "0.0.0"
+        ],
+        "data_stream.dataset": [
+            "apm"
+        ],
+        "data_stream.namespace": [
+            "default"
+        ],
+        "data_stream.type": [
+            "traces"
+        ],
+        "event.outcome": [
+            "success"
+        ],
+        "event.success_count": [
+            1
+        ],
+        "host.architecture": [
+            "i386"
+        ],
+        "host.hostname": [
+            "beowulf"
+        ],
+        "host.ip": [
+            "127.0.0.1"
+        ],
+        "host.name": [
+            "beowulf"
+        ],
+        "host.os.platform": [
+            "minix"
+        ],
+        "observer.hostname": [
+            "dynamic"
+        ],
+        "observer.type": [
+            "apm-server"
+        ],
+        "observer.version": [
+            "dynamic"
+        ],
+        "parent.id": [
+            "0000000000000001"
+        ],
+        "process.pid": [
+            1
+        ],
+        "process.title": [
+            "systemtest.test"
+        ],
+        "process.title.text": [
+            "systemtest.test"
+        ],
+        "processor.event": [
+            "span"
+        ],
+        "service.language.name": [
+            "go"
+        ],
+        "service.language.version": [
+            "2.0"
+        ],
+        "service.name": [
+            "systemtest"
+        ],
+        "service.node.name": [
+            "beowulf"
+        ],
+        "service.runtime.name": [
+            "gc"
+        ],
+        "service.runtime.version": [
+            "2.0"
+        ],
+        "service.target.type": [
+            "redis"
+        ],
+        "span.composite.compression_strategy": [
+            "same_kind"
+        ],
+        "span.composite.count": [
+            50
+        ],
+        "span.composite.sum.us": [
+            50000
+        ],
+        "span.destination.service.resource": [
+            "redis"
+        ],
+        "span.destination.service.type": [
+            "db"
+        ],
+        "span.duration.us": [
+            50000
+        ],
+        "span.id": [
+            "0000000000000002"
+        ],
+        "span.name": [
+            "Calls to redis"
+        ],
+        "span.representative_count": [
+            1
+        ],
+        "span.subtype": [
+            "redis"
+        ],
+        "span.type": [
+            "db"
+        ],
+        "trace.id": [
+            "01000000000000000000000000000000"
+        ],
+        "transaction.id": [
+            "0000000000000001"
+        ]
+    },
+    {
+        "@timestamp": [
+            "1970-01-01T00:00:00.050Z"
+        ],
+        "agent.name": [
+            "go"
+        ],
+        "agent.version": [
+            "0.0.0"
+        ],
+        "data_stream.dataset": [
+            "apm"
+        ],
+        "data_stream.namespace": [
+            "default"
+        ],
+        "data_stream.type": [
+            "traces"
+        ],
+        "event.outcome": [
+            "success"
+        ],
+        "event.success_count": [
+            1
+        ],
+        "host.architecture": [
+            "i386"
+        ],
+        "host.hostname": [
+            "beowulf"
+        ],
+        "host.ip": [
+            "127.0.0.1"
+        ],
+        "host.name": [
+            "beowulf"
+        ],
+        "host.os.platform": [
+            "minix"
+        ],
+        "observer.hostname": [
+            "dynamic"
+        ],
+        "observer.type": [
+            "apm-server"
+        ],
+        "observer.version": [
+            "dynamic"
+        ],
+        "parent.id": [
+            "0000000000000001"
+        ],
+        "process.pid": [
+            1
+        ],
+        "process.title": [
+            "systemtest.test"
+        ],
+        "process.title.text": [
+            "systemtest.test"
+        ],
+        "processor.event": [
+            "span"
+        ],
+        "service.language.name": [
+            "go"
+        ],
+        "service.language.version": [
+            "2.0"
+        ],
+        "service.name": [
+            "systemtest"
+        ],
+        "service.node.name": [
+            "beowulf"
+        ],
+        "service.runtime.name": [
+            "gc"
+        ],
+        "service.runtime.version": [
+            "2.0"
+        ],
+        "service.target.type": [
+            "elasticsearch"
+        ],
+        "span.composite.compression_strategy": [
+            "exact_match"
+        ],
+        "span.composite.count": [
+            5
+        ],
+        "span.composite.sum.us": [
+            20000
+        ],
+        "span.destination.service.resource": [
+            "elasticsearch"
+        ],
+        "span.destination.service.type": [
+            "db"
+        ],
+        "span.duration.us": [
+            20000
+        ],
+        "span.id": [
+            "0000000000000034"
+        ],
+        "span.name": [
+            "_bulk"
+        ],
+        "span.representative_count": [
+            1
+        ],
+        "span.subtype": [
+            "elasticsearch"
+        ],
+        "span.type": [
+            "db"
+        ],
+        "timestamp.us": [
+            50000
+        ],
+        "trace.id": [
+            "01000000000000000000000000000000"
+        ],
+        "transaction.id": [
+            "0000000000000001"
+        ]
+    }
+]
