@@ -170,14 +170,10 @@ apm-server:
       # Note that values configured without a time unit will be interpreted as seconds.
       #cache.expiration: 5m
 
-      # Source maps may be fetched from Elasticsearch by using the output.elasticsearch configuration,
-      # and running apm-server standalone.
+      # Source map retrieval location.
       #
-      # Note: fetching source maps from Elasticsearch is not supported if apm-server is being managed by
-      # Fleet. This configuration is only applicable to standalone apm-servers, for backwards compatibility
-      # with source maps stored in Elasticsearch by older versions of apm-server. New source maps must now
-      # be uploaded via Kibana, and `apm-server.kibana` configured in standalone apm-servers for fetching
-      # them.
+      # If using an output other than Elasticsearch that is writing to Elasticsearch, you must
+      # set this option. If not set, the standard output elasticsearch configuration is used.
       #elasticsearch:
         # Array of hosts to connect to.
         # Scheme and port can be left out and will be set to the default (`http` and `9200`).
