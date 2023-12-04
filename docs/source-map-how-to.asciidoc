@@ -167,7 +167,6 @@ request.post({url: 'http://localhost:5601/api/apm/sourcemaps',formData: formData
 })
 ----
 
-// Not sure what to call this section...
 [float]
 [[source-map-next]]
 === What happens next
