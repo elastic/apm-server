@@ -6,6 +6,7 @@ https://github.com/elastic/apm-server/compare/8.11\...main[View commits]
 [float]
 ==== Breaking Changes
 - The unsupported apm_data_stream_migration ingest pipeline has been removed {pull}12102[12102].
+- "publish_ready" is always false in the "GET /" response until events are received by apm-server {pull}12150[12150]
 
 [float]
 ==== Bug fixes
@@ -23,3 +24,4 @@ https://github.com/elastic/apm-server/compare/8.11\...main[View commits]
 - Add support for returning partial success response in OTLP input {pull}11883[11883]
 - Setting event timestamp from OTel observed timestamp when needed {pull}11935[11935]
 - Field mappings have been added for various formerly unindexed fields {pull}12102[12102]
+- We now assert that index templates are installed by attempting to create data streams {pull}12150[12150]
