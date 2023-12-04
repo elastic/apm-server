@@ -142,7 +142,7 @@ Enabled by default. (bool)
 Sets the default service environment to associate with data and requests received from agents which have no service environment defined. Default: none. (text)
 
 |====
-| APM Server binary | `apm-serer.default_service_environment`
+| APM Server binary | `apm-server.default_service_environment`
 | Fleet-managed     | `Default Service Environment`
 |====
 
