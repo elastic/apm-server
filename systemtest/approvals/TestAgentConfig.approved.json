@@ -21,6 +21,9 @@
         "metricset.name": [
             "agent_config"
         ],
+        "metricset.name.text": [
+            "agent_config"
+        ],
         "observer.hostname": [
             "dynamic"
         ],
@@ -54,6 +57,9 @@
             "dynamic"
         ],
         "metricset.name": [
+            "agent_config"
+        ],
+        "metricset.name.text": [
             "agent_config"
         ],
         "observer.hostname": [

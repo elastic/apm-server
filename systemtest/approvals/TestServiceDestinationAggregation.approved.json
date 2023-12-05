@@ -6,6 +6,9 @@
         "agent.name": [
             "go"
         ],
+        "agent.name.text": [
+            "go"
+        ],
         "data_stream.dataset": [
             "apm.service_destination.10m"
         ],
@@ -48,7 +51,13 @@
         "service.language.name": [
             "go"
         ],
+        "service.language.name.text": [
+            "go"
+        ],
         "service.name": [
+            "systemtest"
+        ],
+        "service.name.text": [
             "systemtest"
         ],
         "service.target.type": [
@@ -65,6 +74,9 @@
         ],
         "span.name": [
             "name"
+        ],
+        "span.name.text": [
+            "name"
         ]
     },
     {
@@ -72,6 +84,9 @@
             "2006-01-02T15:04:00.000Z"
         ],
         "agent.name": [
+            "go"
+        ],
+        "agent.name.text": [
             "go"
         ],
         "data_stream.dataset": [
@@ -116,7 +131,13 @@
         "service.language.name": [
             "go"
         ],
+        "service.language.name.text": [
+            "go"
+        ],
         "service.name": [
+            "systemtest"
+        ],
+        "service.name.text": [
             "systemtest"
         ],
         "service.target.type": [
@@ -133,6 +154,9 @@
         ],
         "span.name": [
             "name"
+        ],
+        "span.name.text": [
+            "name"
         ]
     },
     {
@@ -140,6 +164,9 @@
             "2006-01-02T15:00:00.000Z"
         ],
         "agent.name": [
+            "go"
+        ],
+        "agent.name.text": [
             "go"
         ],
         "data_stream.dataset": [
@@ -184,7 +211,13 @@
         "service.language.name": [
             "go"
         ],
+        "service.language.name.text": [
+            "go"
+        ],
         "service.name": [
+            "systemtest"
+        ],
+        "service.name.text": [
             "systemtest"
         ],
         "service.target.type": [
@@ -200,6 +233,9 @@
             5000000
         ],
         "span.name": [
+            "name"
+        ],
+        "span.name.text": [
             "name"
         ]
     }
