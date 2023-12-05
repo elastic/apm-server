@@ -6,6 +6,9 @@
         "agent.name": [
             "opentelemetry/go"
         ],
+        "agent.name.text": [
+            "opentelemetry/go"
+        ],
         "agent.version": [
             "1.19.0"
         ],
@@ -24,6 +27,9 @@
         "metricset.name": [
             "app"
         ],
+        "metricset.name.text": [
+            "app"
+        ],
         "observer.hostname": [
             "dynamic"
         ],
@@ -39,7 +45,13 @@
         "service.language.name": [
             "go"
         ],
+        "service.language.name.text": [
+            "go"
+        ],
         "service.name": [
+            "unknown_service_systemtest_test"
+        ],
+        "service.name.text": [
             "unknown_service_systemtest_test"
         ]
     }

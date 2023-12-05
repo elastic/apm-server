@@ -6,6 +6,9 @@
         "agent.name": [
             "otlp/go"
         ],
+        "agent.name.text": [
+            "otlp/go"
+        ],
         "agent.version": [
             "unknown"
         ],
@@ -45,7 +48,13 @@
         "service.language.name": [
             "go"
         ],
+        "service.language.name.text": [
+            "go"
+        ],
         "service.name": [
+            "unknown"
+        ],
+        "service.name.text": [
             "unknown"
         ],
         "span.id": [

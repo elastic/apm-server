@@ -6,6 +6,9 @@
         "agent.name": [
             "elastic-node"
         ],
+        "agent.name.text": [
+            "elastic-node"
+        ],
         "agent.version": [
             "3.14.0"
         ],
@@ -51,6 +54,9 @@
         "service.name": [
             "1234_service-12a3"
         ],
+        "service.name.text": [
+            "1234_service-12a3"
+        ],
         "timestamp.us": [
             "dynamic"
         ]
@@ -60,6 +66,9 @@
             "dynamic"
         ],
         "agent.name": [
+            "elastic-node"
+        ],
+        "agent.name.text": [
             "elastic-node"
         ],
         "agent.version": [
@@ -107,6 +116,9 @@
         "service.name": [
             "1234_service-12a3"
         ],
+        "service.name.text": [
+            "1234_service-12a3"
+        ],
         "timestamp.us": [
             "dynamic"
         ]
@@ -116,6 +128,9 @@
             "dynamic"
         ],
         "agent.name": [
+            "elastic-node"
+        ],
+        "agent.name.text": [
             "elastic-node"
         ],
         "agent.version": [
@@ -157,6 +172,9 @@
         "service.name": [
             "1234_service-12a3"
         ],
+        "service.name.text": [
+            "1234_service-12a3"
+        ],
         "timestamp.us": [
             "dynamic"
         ]
@@ -169,6 +187,9 @@
             3.2
         ],
         "agent.name": [
+            "elastic-node"
+        ],
+        "agent.name.text": [
             "elastic-node"
         ],
         "agent.version": [
@@ -189,6 +210,9 @@
         "metricset.name": [
             "app"
         ],
+        "metricset.name.text": [
+            "app"
+        ],
         "observer.hostname": [
             "dynamic"
         ],
@@ -203,6 +227,9 @@
         ],
         "service.name": [
             "1234_service-12a3"
+        ],
+        "service.name.text": [
+            "1234_service-12a3"
         ]
     },
     {
@@ -210,6 +237,9 @@
             "dynamic"
         ],
         "agent.name": [
+            "elastic-node"
+        ],
+        "agent.name.text": [
             "elastic-node"
         ],
         "agent.version": [
@@ -248,6 +278,9 @@
         "service.name": [
             "1234_service-12a3"
         ],
+        "service.name.text": [
+            "1234_service-12a3"
+        ],
         "span.duration.us": [
             3564
         ],
@@ -255,6 +288,9 @@
             "0123456a89012345"
         ],
         "span.name": [
+            "GET /api/types"
+        ],
+        "span.name.text": [
             "GET /api/types"
         ],
         "span.representative_count": [
@@ -275,6 +311,9 @@
             "dynamic"
         ],
         "agent.name": [
+            "elastic-node"
+        ],
+        "agent.name.text": [
             "elastic-node"
         ],
         "agent.version": [
@@ -313,6 +352,9 @@
         "service.name": [
             "1234_service-12a3"
         ],
+        "service.name.text": [
+            "1234_service-12a3"
+        ],
         "span.duration.us": [
             3564
         ],
@@ -320,6 +362,9 @@
             "0123456a89012345"
         ],
         "span.name": [
+            "GET /api/types"
+        ],
+        "span.name.text": [
             "GET /api/types"
         ],
         "span.representative_count": [
@@ -340,6 +385,9 @@
             "dynamic"
         ],
         "agent.name": [
+            "elastic-node"
+        ],
+        "agent.name.text": [
             "elastic-node"
         ],
         "agent.version": [
@@ -373,6 +421,9 @@
             "transaction"
         ],
         "service.name": [
+            "1234_service-12a3"
+        ],
+        "service.name.text": [
             "1234_service-12a3"
         ],
         "span.id": [

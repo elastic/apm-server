@@ -6,172 +6,7 @@
         "agent.name": [
             "go"
         ],
-        "data_stream.dataset": [
-            "apm.service_destination.10m"
-        ],
-        "data_stream.namespace": [
-            "default"
-        ],
-        "data_stream.type": [
-            "metrics"
-        ],
-        "event.outcome": [
-            "success"
-        ],
-        "metricset.interval": [
-            "10m"
-        ],
-        "metricset.name": [
-            "service_destination"
-        ],
-        "observer.hostname": [
-            "dynamic"
-        ],
-        "observer.type": [
-            "apm-server"
-        ],
-        "observer.version": [
-            "dynamic"
-        ],
-        "processor.event": [
-            "metric"
-        ],
-        "service.language.name": [
-            "go"
-        ],
-        "service.name": [
-            "systemtest"
-        ],
-        "service.target.type": [
-            "elasticsearch"
-        ],
-        "span.destination.service.resource": [
-            "elasticsearch"
-        ],
-        "span.destination.service.response_time.count": [
-            4
-        ],
-        "span.destination.service.response_time.sum.us": [
-            3600
-        ]
-    },
-    {
-        "@timestamp": [
-            "dynamic"
-        ],
-        "agent.name": [
-            "go"
-        ],
-        "data_stream.dataset": [
-            "apm.service_destination.1m"
-        ],
-        "data_stream.namespace": [
-            "default"
-        ],
-        "data_stream.type": [
-            "metrics"
-        ],
-        "event.outcome": [
-            "success"
-        ],
-        "metricset.interval": [
-            "1m"
-        ],
-        "metricset.name": [
-            "service_destination"
-        ],
-        "observer.hostname": [
-            "dynamic"
-        ],
-        "observer.type": [
-            "apm-server"
-        ],
-        "observer.version": [
-            "dynamic"
-        ],
-        "processor.event": [
-            "metric"
-        ],
-        "service.language.name": [
-            "go"
-        ],
-        "service.name": [
-            "systemtest"
-        ],
-        "service.target.type": [
-            "elasticsearch"
-        ],
-        "span.destination.service.resource": [
-            "elasticsearch"
-        ],
-        "span.destination.service.response_time.count": [
-            4
-        ],
-        "span.destination.service.response_time.sum.us": [
-            3600
-        ]
-    },
-    {
-        "@timestamp": [
-            "dynamic"
-        ],
-        "agent.name": [
-            "go"
-        ],
-        "data_stream.dataset": [
-            "apm.service_destination.60m"
-        ],
-        "data_stream.namespace": [
-            "default"
-        ],
-        "data_stream.type": [
-            "metrics"
-        ],
-        "event.outcome": [
-            "success"
-        ],
-        "metricset.interval": [
-            "60m"
-        ],
-        "metricset.name": [
-            "service_destination"
-        ],
-        "observer.hostname": [
-            "dynamic"
-        ],
-        "observer.type": [
-            "apm-server"
-        ],
-        "observer.version": [
-            "dynamic"
-        ],
-        "processor.event": [
-            "metric"
-        ],
-        "service.language.name": [
-            "go"
-        ],
-        "service.name": [
-            "systemtest"
-        ],
-        "service.target.type": [
-            "elasticsearch"
-        ],
-        "span.destination.service.resource": [
-            "elasticsearch"
-        ],
-        "span.destination.service.response_time.count": [
-            4
-        ],
-        "span.destination.service.response_time.sum.us": [
-            3600
-        ]
-    },
-    {
-        "@timestamp": [
-            "dynamic"
-        ],
-        "agent.name": [
+        "agent.name.text": [
             "go"
         ],
         "data_stream.dataset": [
@@ -207,20 +42,26 @@
         "service.language.name": [
             "go"
         ],
+        "service.language.name.text": [
+            "go"
+        ],
         "service.name": [
             "systemtest"
         ],
+        "service.name.text": [
+            "systemtest"
+        ],
         "service.target.type": [
-            "redis"
+            "elasticsearch"
         ],
         "span.destination.service.resource": [
-            "redis"
+            "elasticsearch"
         ],
         "span.destination.service.response_time.count": [
-            50
+            4
         ],
         "span.destination.service.response_time.sum.us": [
-            5000
+            3600
         ]
     },
     {
@@ -228,6 +69,9 @@
             "dynamic"
         ],
         "agent.name": [
+            "go"
+        ],
+        "agent.name.text": [
             "go"
         ],
         "data_stream.dataset": [
@@ -263,20 +107,26 @@
         "service.language.name": [
             "go"
         ],
+        "service.language.name.text": [
+            "go"
+        ],
         "service.name": [
             "systemtest"
         ],
+        "service.name.text": [
+            "systemtest"
+        ],
         "service.target.type": [
-            "redis"
+            "elasticsearch"
         ],
         "span.destination.service.resource": [
-            "redis"
+            "elasticsearch"
         ],
         "span.destination.service.response_time.count": [
-            50
+            4
         ],
         "span.destination.service.response_time.sum.us": [
-            5000
+            3600
         ]
     },
     {
@@ -284,6 +134,9 @@
             "dynamic"
         ],
         "agent.name": [
+            "go"
+        ],
+        "agent.name.text": [
             "go"
         ],
         "data_stream.dataset": [
@@ -319,7 +172,208 @@
         "service.language.name": [
             "go"
         ],
+        "service.language.name.text": [
+            "go"
+        ],
         "service.name": [
+            "systemtest"
+        ],
+        "service.name.text": [
+            "systemtest"
+        ],
+        "service.target.type": [
+            "elasticsearch"
+        ],
+        "span.destination.service.resource": [
+            "elasticsearch"
+        ],
+        "span.destination.service.response_time.count": [
+            4
+        ],
+        "span.destination.service.response_time.sum.us": [
+            3600
+        ]
+    },
+    {
+        "@timestamp": [
+            "dynamic"
+        ],
+        "agent.name": [
+            "go"
+        ],
+        "agent.name.text": [
+            "go"
+        ],
+        "data_stream.dataset": [
+            "apm.service_destination.10m"
+        ],
+        "data_stream.namespace": [
+            "default"
+        ],
+        "data_stream.type": [
+            "metrics"
+        ],
+        "event.outcome": [
+            "success"
+        ],
+        "metricset.interval": [
+            "10m"
+        ],
+        "metricset.name": [
+            "service_destination"
+        ],
+        "observer.hostname": [
+            "dynamic"
+        ],
+        "observer.type": [
+            "apm-server"
+        ],
+        "observer.version": [
+            "dynamic"
+        ],
+        "processor.event": [
+            "metric"
+        ],
+        "service.language.name": [
+            "go"
+        ],
+        "service.language.name.text": [
+            "go"
+        ],
+        "service.name": [
+            "systemtest"
+        ],
+        "service.name.text": [
+            "systemtest"
+        ],
+        "service.target.type": [
+            "redis"
+        ],
+        "span.destination.service.resource": [
+            "redis"
+        ],
+        "span.destination.service.response_time.count": [
+            50
+        ],
+        "span.destination.service.response_time.sum.us": [
+            5000
+        ]
+    },
+    {
+        "@timestamp": [
+            "dynamic"
+        ],
+        "agent.name": [
+            "go"
+        ],
+        "agent.name.text": [
+            "go"
+        ],
+        "data_stream.dataset": [
+            "apm.service_destination.1m"
+        ],
+        "data_stream.namespace": [
+            "default"
+        ],
+        "data_stream.type": [
+            "metrics"
+        ],
+        "event.outcome": [
+            "success"
+        ],
+        "metricset.interval": [
+            "1m"
+        ],
+        "metricset.name": [
+            "service_destination"
+        ],
+        "observer.hostname": [
+            "dynamic"
+        ],
+        "observer.type": [
+            "apm-server"
+        ],
+        "observer.version": [
+            "dynamic"
+        ],
+        "processor.event": [
+            "metric"
+        ],
+        "service.language.name": [
+            "go"
+        ],
+        "service.language.name.text": [
+            "go"
+        ],
+        "service.name": [
+            "systemtest"
+        ],
+        "service.name.text": [
+            "systemtest"
+        ],
+        "service.target.type": [
+            "redis"
+        ],
+        "span.destination.service.resource": [
+            "redis"
+        ],
+        "span.destination.service.response_time.count": [
+            50
+        ],
+        "span.destination.service.response_time.sum.us": [
+            5000
+        ]
+    },
+    {
+        "@timestamp": [
+            "dynamic"
+        ],
+        "agent.name": [
+            "go"
+        ],
+        "agent.name.text": [
+            "go"
+        ],
+        "data_stream.dataset": [
+            "apm.service_destination.60m"
+        ],
+        "data_stream.namespace": [
+            "default"
+        ],
+        "data_stream.type": [
+            "metrics"
+        ],
+        "event.outcome": [
+            "success"
+        ],
+        "metricset.interval": [
+            "60m"
+        ],
+        "metricset.name": [
+            "service_destination"
+        ],
+        "observer.hostname": [
+            "dynamic"
+        ],
+        "observer.type": [
+            "apm-server"
+        ],
+        "observer.version": [
+            "dynamic"
+        ],
+        "processor.event": [
+            "metric"
+        ],
+        "service.language.name": [
+            "go"
+        ],
+        "service.language.name.text": [
+            "go"
+        ],
+        "service.name": [
+            "systemtest"
+        ],
+        "service.name.text": [
             "systemtest"
         ],
         "service.target.type": [
