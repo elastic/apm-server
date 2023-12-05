@@ -95,19 +95,21 @@ module.exports = {
 
 [float]
 [[source-map-rum-upload]]
-=== Upload the source map to {kib}
+=== Upload the source map
+
+TIP: When uploading a source map, ensure that RUM support is enabled in the APM integration.
 
 {kib} exposes a {kibana-ref}/rum-sourcemap-api.html[source map endpoint] for uploading source maps.
 Source maps can be uploaded as a string, or as a file upload.
-Before uploading a source map, ensure that RUM support is enabled in the APM integration
 
 Let's look at two different ways to upload a source map: curl and a custom application.
 Each example includes the four fields necessary for APM Server to later map minified code to its source:
 
-* `service_name` - Should match the `serviceName` from step one
-* `service_version` - Should match the `serviceVersion` from step one
-* `bundle_filepath` - The absolute path of the final bundle as used in the web application
-* `sourcemap` - The location of the source map.
+* `service_name`: Should match the `serviceName` from step one.
+* `service_version`: Should match the `serviceVersion` from step one.
+* `bundle_filepath`: The absolute path of the final bundle as used in the web application.
+* `sourcemap`: The location of the source map.
+
 If you have multiple source maps, you'll need to upload each individually.
 
 [float]
@@ -164,3 +166,12 @@ request.post({url: 'http://localhost:5601/api/apm/sourcemaps',formData: formData
   }
 })
 ----
+
+[float]
+[[source-map-next]]
+=== What happens next
+
+Source maps are stored in {es}. When you upload a source map, a new {es} document is created
+containing the contents of the source map.
+When a RUM request comes in, APM Server will make use of these source map documents to apply the
+source map logic to the event's stack traces.
