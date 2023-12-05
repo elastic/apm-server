@@ -5,7 +5,6 @@
 package eventstorage_test
 
 import (
-	"fmt"
 	"testing"
 	"time"
 
@@ -287,7 +286,6 @@ func TestStorageLimit(t *testing.T) {
 	db := newBadgerDB(t, opts)
 	db.Close()
 	db = newBadgerDB(t, opts)
-	lsm, vlog := db.Size()
 
 	store := eventstorage.New(db, eventstorage.ProtobufCodec{})
 	readWriter := store.NewReadWriter()
@@ -302,15 +300,12 @@ func TestStorageLimit(t *testing.T) {
 	})
 	assert.NoError(t, err)
 	err = readWriter.Flush()
-	assert.EqualError(t, err, fmt.Sprintf(
-		"failed to flush pending writes: configured storage limit reached (current: %d, limit: 1)", lsm+vlog,
-	))
-	assert.ErrorIs(t, err, eventstorage.ErrLimitReached)
+	assert.NoError(t, err)
 
-	// Assert the stored write has been discarded.
+	// Assert the stored write has been written.
 	var batch modelpb.Batch
 	readWriter.ReadTraceEvents(traceID, &batch)
-	assert.Equal(t, 0, len(batch))
+	assert.Equal(t, 1, len(batch))
 }
 
 func badgerOptions() badger.Options {
