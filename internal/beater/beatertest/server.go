@@ -108,7 +108,8 @@ func NewUnstartedServer(t testing.TB, opts ...option) *Server {
 	require.NoError(t, err)
 	if !outputConfig.Output.IsSet() {
 		err = cfg.Merge(map[string]any{
-			"output.null": map[string]any{},
+			"output.null":     map[string]any{},
+			"queue.mem.flush": map[string]any{"min_events": 1, "timeout": "1ns"},
 		})
 		require.NoError(t, err)
 	}

@@ -60,7 +60,6 @@ The process for creating a custom ingest pipeline is as follows:
 
 * Create a pipeline with processors specific to your use case
 * Add the newly created pipeline to an `@custom` pipeline that matches an APM data stream
-* Roll over your data stream
 
 If you prefer more guidance, see one of these tutorials:
 
