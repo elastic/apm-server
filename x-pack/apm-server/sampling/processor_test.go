@@ -69,21 +69,21 @@ func TestProcessAlreadyTailSampled(t *testing.T) {
 		StorageLimitInBytes: 0,
 	}
 	assert.NoError(t, writer.WriteTraceSampled(trace1.Id, true, wOpts))
-	assert.NoError(t, writer.Flush(wOpts.StorageLimitInBytes))
+	assert.NoError(t, writer.Flush())
 	writer.Close()
 
 	wOpts.TTL = -1 // expire immediately
 	storage = eventstorage.New(config.DB, eventstorage.ProtobufCodec{})
 	writer = storage.NewReadWriter()
 	assert.NoError(t, writer.WriteTraceSampled(trace2.Id, true, wOpts))
-	assert.NoError(t, writer.Flush(wOpts.StorageLimitInBytes))
+	assert.NoError(t, writer.Flush())
 	writer.Close()
 
 	// Badger transactions created globally before committing the above writes
 	// will not see them due to SSI (Serializable Snapshot Isolation). Flush
 	// the storage so that new transactions are created for the underlying
 	// writer shards that can list all the events committed so far.
-	require.NoError(t, config.Storage.Flush(0))
+	require.NoError(t, config.Storage.Flush())
 
 	processor, err := sampling.NewProcessor(config)
 	require.NoError(t, err)
@@ -141,7 +141,7 @@ func TestProcessAlreadyTailSampled(t *testing.T) {
 
 	// Stop the processor and flush global storage so we can access the database.
 	assert.NoError(t, processor.Stop(context.Background()))
-	assert.NoError(t, config.Storage.Flush(0))
+	assert.NoError(t, config.Storage.Flush())
 	reader := storage.NewReadWriter()
 	defer reader.Close()
 
@@ -260,7 +260,7 @@ func TestProcessLocalTailSampling(t *testing.T) {
 
 			// Stop the processor and flush global storage so we can access the database.
 			assert.NoError(t, processor.Stop(context.Background()))
-			assert.NoError(t, config.Storage.Flush(0))
+			assert.NoError(t, config.Storage.Flush())
 			storage := eventstorage.New(config.DB, eventstorage.ProtobufCodec{})
 			reader := storage.NewReadWriter()
 			defer reader.Close()
@@ -325,7 +325,7 @@ func TestProcessLocalTailSamplingUnsampled(t *testing.T) {
 
 	// Stop the processor so we can access the database.
 	assert.NoError(t, processor.Stop(context.Background()))
-	assert.NoError(t, config.Storage.Flush(0))
+	assert.NoError(t, config.Storage.Flush())
 	storage := eventstorage.New(config.DB, eventstorage.ProtobufCodec{})
 	reader := storage.NewReadWriter()
 	defer reader.Close()
@@ -479,7 +479,7 @@ func TestProcessRemoteTailSampling(t *testing.T) {
 
 	// Stop the processor and flush global storage so we can access the database.
 	assert.NoError(t, processor.Stop(context.Background()))
-	assert.NoError(t, config.Storage.Flush(0))
+	assert.NoError(t, config.Storage.Flush())
 	assert.Empty(t, published) // remote decisions don't get republished
 
 	expectedMonitoring := monitoring.MakeFlatSnapshot()
@@ -705,7 +705,7 @@ func TestStorageLimit(t *testing.T) {
 	// Write 5K span events and close the DB to persist to disk the storage
 	// size and assert that none are reported immediately.
 	writeBatch(5000, config, func(b modelpb.Batch) { assert.Empty(t, b) })
-	assert.NoError(t, config.Storage.Flush(0))
+	assert.NoError(t, config.Storage.Flush())
 	config.Storage.Close()
 	assert.NoError(t, config.DB.Close())
 
@@ -787,7 +787,7 @@ func TestGracefulShutdown(t *testing.T) {
 	assert.NoError(t, processor.ProcessBatch(context.Background(), &batch))
 	assert.Empty(t, batch)
 	assert.NoError(t, processor.Stop(context.Background()))
-	assert.NoError(t, config.Storage.Flush(0))
+	assert.NoError(t, config.Storage.Flush())
 
 	reader := eventstorage.New(config.DB, eventstorage.ProtobufCodec{}).NewReadWriter()
 

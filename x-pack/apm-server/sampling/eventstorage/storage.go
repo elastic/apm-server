@@ -107,6 +107,7 @@ type ReadWriter struct {
 	// be unmodified until the end of a transaction.
 	readKeyBuf    []byte
 	pendingWrites int
+	pendingSize   int64
 }
 
 // Close closes the writer. Any writes that have not been flushed may be lost.
@@ -126,12 +127,13 @@ func (rw *ReadWriter) Close() {
 // Flush returns ErrLimitReached, or an error that wraps it, when
 // the StorageLimiter reports that the combined size of LSM and Vlog
 // files exceeds the configured threshold.
-func (rw *ReadWriter) Flush(limit int64) error {
+func (rw *ReadWriter) Flush() error {
 	const flushErrFmt = "failed to flush pending writes: %w"
 	err := rw.txn.Commit()
 	rw.txn = rw.s.db.NewTransaction(true)
+	rw.s.pendingSize.Add(-rw.pendingSize)
 	rw.pendingWrites = 0
-	rw.s.pendingSize.Store(0)
+	rw.pendingSize = 0
 	if err != nil {
 		return fmt.Errorf(flushErrFmt, err)
 	}
@@ -181,8 +183,13 @@ func (rw *ReadWriter) writeEntry(e *badger.Entry, opts WriterOpts) error {
 	entrySize := int64(estimateSize(e)) + 10
 	lsm, vlog := rw.s.db.Size()
 
-	if rw.s.pendingSize.Load()+entrySize+lsm+vlog >= opts.StorageLimitInBytes {
-		if err := rw.Flush(opts.StorageLimitInBytes); err != nil {
+	// there are multiple ReadWriters writing to the same storage so add
+	// the entry size and consider the new value to avoid TOCTOU issues.
+	pendingSize := rw.s.pendingSize.Add(entrySize)
+	rw.pendingSize += entrySize
+
+	if pendingSize+entrySize+lsm+vlog >= opts.StorageLimitInBytes {
+		if err := rw.Flush(); err != nil {
 			return err
 		}
 	} else if rw.pendingWrites >= 200 {
@@ -192,11 +199,17 @@ func (rw *ReadWriter) writeEntry(e *badger.Entry, opts WriterOpts) error {
 		// of uncommitted writes.
 		// The 200 value yielded a good balance between read and write speed:
 		// https://github.com/elastic/apm-server/pull/8407#issuecomment-1162994643
-		if err := rw.Flush(opts.StorageLimitInBytes); err != nil {
+		if err := rw.Flush(); err != nil {
 			return err
 		}
 	}
 	err := rw.txn.SetEntry(e.WithTTL(opts.TTL))
+	// the current ReadWriter flushed the transaction and reset the pendingSize so add
+	// the entrySize again.
+	if rw.pendingSize == 0 {
+		rw.pendingSize += entrySize
+		rw.s.pendingSize.Add(entrySize)
+	}
 
 	// If the transaction is already too big to accommodate the new entry, flush
 	// the existing transaction and set the entry on a new one, otherwise,
@@ -204,9 +217,10 @@ func (rw *ReadWriter) writeEntry(e *badger.Entry, opts WriterOpts) error {
 	if err != badger.ErrTxnTooBig {
 		return err
 	}
-	if err := rw.Flush(opts.StorageLimitInBytes); err != nil {
+	if err := rw.Flush(); err != nil {
 		return err
 	}
+	rw.pendingSize += entrySize
 	rw.s.pendingSize.Add(entrySize)
 	return rw.txn.SetEntry(e)
 }

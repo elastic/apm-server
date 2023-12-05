@@ -77,7 +77,7 @@ func testWriteEvents(t *testing.T, numSpans int) {
 	)
 
 	// Flush in order for the writes to be visible to other readers.
-	assert.NoError(t, readWriter.Flush(wOpts.StorageLimitInBytes))
+	assert.NoError(t, readWriter.Flush())
 
 	var recorded modelpb.Batch
 	assert.NoError(t, db.View(func(txn *badger.Txn) error {
@@ -135,7 +135,7 @@ func TestWriteTraceSampled(t *testing.T) {
 	assert.True(t, isSampled)
 
 	// Flush in order for the writes to be visible to other readers.
-	assert.NoError(t, readWriter.Flush(wOpts.StorageLimitInBytes))
+	assert.NoError(t, readWriter.Flush())
 
 	sampled := make(map[string]bool)
 	assert.NoError(t, db.View(func(txn *badger.Txn) error {
@@ -301,7 +301,7 @@ func TestStorageLimit(t *testing.T) {
 		StorageLimitInBytes: 1, // ignored in the write, because there's no implicit flush
 	})
 	assert.NoError(t, err)
-	err = readWriter.Flush(1)
+	err = readWriter.Flush()
 	assert.EqualError(t, err, fmt.Sprintf(
 		"failed to flush pending writes: configured storage limit reached (current: %d, limit: 1)", lsm+vlog,
 	))
