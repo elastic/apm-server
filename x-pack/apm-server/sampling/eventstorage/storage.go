@@ -72,19 +72,6 @@ func (s *Storage) NewReadWriter() *ReadWriter {
 	}
 }
 
-func (s *Storage) limitReached(limit int64) (int64, bool) {
-	if limit == 0 {
-		return 0, false
-	}
-	// The badger database has an async size reconciliation, with a 1 minute
-	// ticker that keeps the lsm and vlog sizes updated in an in-memory map.
-	// It's OK to call call s.db.Size() on the hot path, since the memory
-	// lookup is cheap.
-	lsm, vlog := s.db.Size()
-	current := lsm + vlog
-	return current, current >= limit
-}
-
 // WriterOpts provides configuration options for writes to storage
 type WriterOpts struct {
 	TTL                 time.Duration
