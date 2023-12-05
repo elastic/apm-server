@@ -24,6 +24,7 @@ services:
       - "http.host=0.0.0.0"
       - "cluster.routing.allocation.disk.threshold_enabled=false"
       - "discovery.type=single-node"
+      - "xpack.apm_data.enabled=true"
       - "xpack.security.authc.anonymous.roles=remote_monitoring_collector"
       - "xpack.security.authc.realms.file.file1.order=0"
       - "xpack.security.authc.realms.native.native1.order=1"
