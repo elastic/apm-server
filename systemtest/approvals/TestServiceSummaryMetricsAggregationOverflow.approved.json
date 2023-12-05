@@ -33,6 +33,9 @@
         "service.name": [
             "_other"
         ],
+        "service.name.text": [
+            "_other"
+        ],
         "service_summary.aggregation.overflow_count": [
             2
         ]
@@ -69,6 +72,9 @@
             "metric"
         ],
         "service.name": [
+            "_other"
+        ],
+        "service.name.text": [
             "_other"
         ],
         "service_summary.aggregation.overflow_count": [
@@ -109,6 +115,9 @@
         "service.name": [
             "_other"
         ],
+        "service.name.text": [
+            "_other"
+        ],
         "service_summary.aggregation.overflow_count": [
             2
         ]
@@ -120,6 +129,9 @@
         "agent.name": [
             "go"
         ],
+        "agent.name.text": [
+            "go"
+        ],
         "data_stream.dataset": [
             "apm.service_summary.10m"
         ],
@@ -153,7 +165,13 @@
         "service.language.name": [
             "go"
         ],
+        "service.language.name.text": [
+            "go"
+        ],
         "service.name": [
+            "systemtest"
+        ],
+        "service.name.text": [
             "systemtest"
         ]
     },
@@ -162,6 +180,9 @@
             "dynamic"
         ],
         "agent.name": [
+            "go"
+        ],
+        "agent.name.text": [
             "go"
         ],
         "data_stream.dataset": [
@@ -197,7 +218,13 @@
         "service.language.name": [
             "go"
         ],
+        "service.language.name.text": [
+            "go"
+        ],
         "service.name": [
+            "systemtest"
+        ],
+        "service.name.text": [
             "systemtest"
         ]
     },
@@ -206,6 +233,9 @@
             "dynamic"
         ],
         "agent.name": [
+            "go"
+        ],
+        "agent.name.text": [
             "go"
         ],
         "data_stream.dataset": [
@@ -241,7 +271,13 @@
         "service.language.name": [
             "go"
         ],
+        "service.language.name.text": [
+            "go"
+        ],
         "service.name": [
+            "systemtest"
+        ],
+        "service.name.text": [
             "systemtest"
         ]
     },
@@ -250,6 +286,9 @@
             "dynamic"
         ],
         "agent.name": [
+            "go"
+        ],
+        "agent.name.text": [
             "go"
         ],
         "data_stream.dataset": [
@@ -285,7 +324,13 @@
         "service.language.name": [
             "go"
         ],
+        "service.language.name.text": [
+            "go"
+        ],
         "service.name": [
+            "systemtest"
+        ],
+        "service.name.text": [
             "systemtest"
         ]
     },
@@ -294,6 +339,9 @@
             "dynamic"
         ],
         "agent.name": [
+            "go"
+        ],
+        "agent.name.text": [
             "go"
         ],
         "data_stream.dataset": [
@@ -329,7 +377,13 @@
         "service.language.name": [
             "go"
         ],
+        "service.language.name.text": [
+            "go"
+        ],
         "service.name": [
+            "systemtest"
+        ],
+        "service.name.text": [
             "systemtest"
         ]
     },
@@ -338,6 +392,9 @@
             "dynamic"
         ],
         "agent.name": [
+            "go"
+        ],
+        "agent.name.text": [
             "go"
         ],
         "data_stream.dataset": [
@@ -373,7 +430,13 @@
         "service.language.name": [
             "go"
         ],
+        "service.language.name.text": [
+            "go"
+        ],
         "service.name": [
+            "systemtest"
+        ],
+        "service.name.text": [
             "systemtest"
         ]
     }
