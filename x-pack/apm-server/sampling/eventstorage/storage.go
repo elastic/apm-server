@@ -21,8 +21,6 @@ const (
 	entryMetaTraceSampled   = 's'
 	entryMetaTraceUnsampled = 'u'
 	entryMetaTraceEvent     = 'e'
-
-	defaultPendingSize = 1024
 )
 
 var (
@@ -51,9 +49,7 @@ type Codec interface {
 
 // New returns a new Storage using db and codec.
 func New(db *badger.DB, codec Codec) *Storage {
-	var pendingSize atomic.Int64
-	pendingSize.Add(defaultPendingSize)
-	return &Storage{db: db, pendingSize: &pendingSize, codec: codec}
+	return &Storage{db: db, pendingSize: &atomic.Int64{}, codec: codec}
 }
 
 // NewShardedReadWriter returns a new ShardedReadWriter, for sharded
@@ -135,7 +131,7 @@ func (rw *ReadWriter) Flush(limit int64) error {
 	err := rw.txn.Commit()
 	rw.txn = rw.s.db.NewTransaction(true)
 	rw.pendingWrites = 0
-	rw.s.pendingSize.Store(defaultPendingSize)
+	rw.s.pendingSize.Store(0)
 	if err != nil {
 		return fmt.Errorf(flushErrFmt, err)
 	}
