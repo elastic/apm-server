@@ -21,6 +21,10 @@ const (
 	entryMetaTraceSampled   = 's'
 	entryMetaTraceUnsampled = 'u'
 	entryMetaTraceEvent     = 'e'
+
+	// Initial transaction size
+	// len(txnKey) + 10
+	baseTransactionSize = 10 + 11
 )
 
 var (
@@ -66,9 +70,11 @@ func (s *Storage) NewShardedReadWriter() *ShardedReadWriter {
 //
 // The returned ReadWriter must be closed when it is no longer needed.
 func (s *Storage) NewReadWriter() *ReadWriter {
+	s.pendingSize.Add(baseTransactionSize)
 	return &ReadWriter{
-		s:   s,
-		txn: s.db.NewTransaction(true),
+		s:           s,
+		txn:         s.db.NewTransaction(true),
+		pendingSize: baseTransactionSize,
 	}
 }
 
@@ -120,7 +126,8 @@ func (rw *ReadWriter) Flush() error {
 	rw.txn = rw.s.db.NewTransaction(true)
 	rw.s.pendingSize.Add(-rw.pendingSize)
 	rw.pendingWrites = 0
-	rw.pendingSize = 0
+	rw.pendingSize = baseTransactionSize
+	rw.s.pendingSize.Add(baseTransactionSize)
 	if err != nil {
 		return fmt.Errorf(flushErrFmt, err)
 	}
@@ -167,7 +174,7 @@ func (rw *ReadWriter) WriteTraceEvent(traceID string, id string, event *modelpb.
 
 func (rw *ReadWriter) writeEntry(e *badger.Entry, opts WriterOpts) error {
 	rw.pendingWrites++
-	entrySize := int64(estimateSize(e)) + 10
+	entrySize := estimateSize(e)
 	lsm, vlog := rw.s.db.Size()
 
 	// there are multiple ReadWriters writing to the same storage so add
@@ -212,8 +219,19 @@ func (rw *ReadWriter) writeEntry(e *badger.Entry, opts WriterOpts) error {
 	return rw.txn.SetEntry(e)
 }
 
-func estimateSize(e *badger.Entry) int {
-	return len(e.Key) + len(e.Value) + 12 + 2
+func estimateSize(e *badger.Entry) int64 {
+	// See badger WithValueThreshold option
+	// An storage usage of an entry depends on its size
+	//
+	// if len(e.Value) < threshold {
+	// 	return len(e.Key) + len(e.Value) + 2 // Meta, UserMeta
+	// }
+	// return len(e.Key) + 12 + 2 // 12 for ValuePointer, 2 for metas.
+	//
+	// Make a good estimate by reserving more space
+	estimate := len(e.Key) + len(e.Value) + 12 + 2
+	// Extra bytes for the version in key.
+	return int64(estimate) + 10
 }
 
 // DeleteTraceEvent deletes the trace event from storage.
