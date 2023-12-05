@@ -1,295 +1,383 @@
-{
-    "events": [
-        {
-            "@timestamp": "2019-10-21T11:30:44.929Z",
-            "agent": {
-                "ephemeral_id": "e71be9ac-93b0-44b9-a997-5638f6ccfc36",
-                "name": "java",
-                "version": "1.10.0"
-            },
-            "client": {
-                "ip": "192.168.0.1"
-            },
-            "container": {
-                "id": "8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"
-            },
-            "data_stream": {
-                "dataset": "apm.error",
-                "namespace": "default",
-                "type": "logs"
-            },
-            "error": {
-                "culprit": "opbeans.controllers.DTInterceptor.preHandle(DTInterceptor.java:73)",
-                "custom": {
-                    "and_objects": {
-                        "foo": [
-                            "bar",
-                            "baz"
-                        ]
-                    },
-                    "my_key": 1,
-                    "some_other_value": "foobar"
-                },
-                "exception": [
-                    {
-                        "attributes": {
-                            "foo": "bar"
-                        },
-                        "code": "42",
-                        "handled": false,
-                        "message": "Theusernamerootisunknown",
-                        "module": "org.springframework.http.client",
-                        "stacktrace": [
-                            {
-                                "abs_path": "/tmp/AbstractPlainSocketImpl.java",
-                                "context": {
-                                    "post": [
-                                        "line4",
-                                        "line5"
-                                    ],
-                                    "pre": [
-                                        "line1",
-                                        "line2"
-                                    ]
-                                },
-                                "exclude_from_grouping": false,
-                                "filename": "AbstractPlainSocketImpl.java",
-                                "function": "connect",
-                                "library_frame": true,
-                                "line": {
-                                    "column": 4,
-                                    "context": "3",
-                                    "number": 3
-                                },
-                                "module": "java.net",
-                                "vars": {
-                                    "key": "value"
-                                }
-                            },
-                            {
-                                "exclude_from_grouping": false,
-                                "filename": "AbstractClientHttpRequest.java",
-                                "function": "execute",
-                                "line": {
-                                    "number": 102
-                                },
-                                "vars": {
-                                    "key": "value"
-                                }
-                            }
-                        ],
-                        "type": "java.net.UnknownHostException"
-                    },
-                    {
-                        "message": "something wrong writing a file",
-                        "type": "InternalDbError"
-                    },
-                    {
-                        "message": "disk spinning way too fast",
-                        "type": "VeryInternalDbError"
-                    },
-                    {
-                        "message": "on top of it,internet doesn't work",
-                        "parent": 1,
-                        "type": "ConnectionError"
-                    }
-                ],
-                "grouping_key": "9a4054e958afe722b5877e8fac578ff3",
-                "grouping_name": "Request method 'POST' not supported",
-                "id": "9876543210abcdeffedcba0123456789",
-                "log": {
-                    "level": "error",
-                    "logger_name": "http404",
-                    "message": "Request method 'POST' not supported",
-                    "param_message": "Request method 'POST' /events/:event not supported",
-                    "stacktrace": [
-                        {
-                            "abs_path": "/tmp/Socket.java",
-                            "classname": "Request::Socket",
-                            "context": {
-                                "post": [
-                                    "line4",
-                                    "line5"
-                                ],
-                                "pre": [
-                                    "line1",
-                                    "line2"
-                                ]
-                            },
-                            "exclude_from_grouping": false,
-                            "filename": "Socket.java",
-                            "function": "connect",
-                            "library_frame": true,
-                            "line": {
-                                "column": 4,
-                                "context": "line3",
-                                "number": 3
-                            },
-                            "module": "java.net",
-                            "vars": {
-                                "key": "value"
-                            }
-                        },
-                        {
-                            "abs_path": "/tmp/SimpleBufferingClientHttpRequest.java",
-                            "exclude_from_grouping": false,
-                            "filename": "SimpleBufferingClientHttpRequest.java",
-                            "function": "executeInternal",
-                            "line": {
-                                "number": 102
-                            },
-                            "vars": {
-                                "key": "value"
-                            }
-                        }
+[
+    {
+        "@timestamp": [
+            "2019-10-21T11:30:44.929Z"
+        ],
+        "agent.ephemeral_id": [
+            "e71be9ac-93b0-44b9-a997-5638f6ccfc36"
+        ],
+        "agent.name": [
+            "java"
+        ],
+        "agent.version": [
+            "1.10.0"
+        ],
+        "client.ip": [
+            "192.168.0.1"
+        ],
+        "container.id": [
+            "8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"
+        ],
+        "data_stream.dataset": [
+            "apm.error"
+        ],
+        "data_stream.namespace": [
+            "default"
+        ],
+        "data_stream.type": [
+            "logs"
+        ],
+        "error.culprit": [
+            "opbeans.controllers.DTInterceptor.preHandle(DTInterceptor.java:73)"
+        ],
+        "error.custom": [
+            {
+                "and_objects": {
+                    "foo": [
+                        "bar",
+                        "baz"
                     ]
-                }
-            },
-            "host": {
-                "architecture": "amd64",
-                "hostname": "node-name",
-                "ip": [
-                    "127.0.0.1"
-                ],
-                "name": "host1",
-                "os": {
-                    "platform": "Linux"
-                }
-            },
-            "http": {
-                "request": {
-                    "body": {
-                        "original": "HelloWorld"
-                    },
-                    "cookies": {
-                        "c1": "v1",
-                        "c2": "v2"
-                    },
-                    "env": {
-                        "GATEWAY_INTERFACE": "CGI/1.1",
-                        "SERVER_SOFTWARE": "nginx"
-                    },
-                    "headers": {
-                        "Content-Length": [
-                            "0"
-                        ],
-                        "Cookie": [
-                            "c1=v1",
-                            "c2=v2"
-                        ],
-                        "Elastic-Apm-Traceparent": [
-                            "00-8c21b4b556467a0b17ae5da959b5f388-31301f1fb2998121-01"
-                        ],
-                        "Forwarded": [
-                            "for=192.168.0.1"
-                        ],
-                        "Host": [
-                            "opbeans-java:3000"
-                        ]
-                    },
-                    "method": "POST"
                 },
-                "response": {
-                    "finished": true,
-                    "headers": {
-                        "Content-Type": [
-                            "application/json"
-                        ]
-                    },
-                    "headers_sent": true,
-                    "status_code": 200
-                },
-                "version": "1.1"
-            },
-            "kubernetes": {
-                "namespace": "default",
-                "node": {
-                    "name": "node-name"
-                },
-                "pod": {
-                    "name": "instrumented-java-service",
-                    "uid": "b17f231da0ad128dc6c6c0b2e82f6f303d3893e3"
-                }
-            },
-            "labels": {
-                "ab_testing": "true",
-                "group": "experimental",
-                "organization_uuid": "9f0e9d64-c185-4d21-a6f4-4673ed561ec8"
-            },
-            "message": "Request method 'POST' not supported",
-            "numeric_labels": {
-                "segment": 5
-            },
-            "observer": {
-                "hostname": "dynamic",
-                "type": "apm-server",
-                "version": "dynamic"
-            },
-            "parent": {
-                "id": "9632587410abcdef"
-            },
-            "process": {
-                "args": [
-                    "-v"
-                ],
-                "parent": {
-                    "pid": 1
-                },
-                "pid": 1234,
-                "title": "/usr/lib/jvm/java-10-openjdk-amd64/bin/java"
-            },
-            "service": {
-                "environment": "production",
-                "framework": {
-                    "name": "Node",
-                    "version": "1"
-                },
-                "language": {
-                    "name": "Java",
-                    "version": "1.2"
-                },
-                "name": "service1",
-                "node": {
-                    "name": "node-xyz"
-                },
-                "runtime": {
-                    "name": "Java",
-                    "version": "10.0.2"
-                }
-            },
-            "source": {
-                "ip": "192.168.0.1",
-                "nat": {
-                    "ip": "12.53.12.1"
-                }
-            },
-            "span": {
-                "id": "1234567890987654"
-            },
-            "timestamp": {
-                "us": 1571657444929001
-            },
-            "trace": {
-                "id": "0123456789abcdeffedcba0123456789"
-            },
-            "transaction": {
-                "id": "1234567890987654"
-            },
-            "url": {
-                "domain": "www.example.com",
-                "fragment": "#hash",
-                "full": "https://www.example.com/p/a/t/h?query=string#hash",
-                "original": "/p/a/t/h?query=string#hash",
-                "path": "/p/a/t/h",
-                "port": 8080,
-                "query": "?query=string",
-                "scheme": "https"
-            },
-            "user": {
-                "email": "user@foo.mail",
-                "id": "99",
-                "name": "foo"
+                "my_key": 1,
+                "some_other_value": "foobar"
             }
-        }
-    ]
-}
+        ],
+        "error.exception.attributes": [
+            {
+                "foo": "bar"
+            }
+        ],
+        "error.exception.code": [
+            "42"
+        ],
+        "error.exception.handled": [
+            false
+        ],
+        "error.exception.message": [
+            "Theusernamerootisunknown",
+            "something wrong writing a file",
+            "disk spinning way too fast",
+            "on top of it,internet doesn't work"
+        ],
+        "error.exception.module": [
+            "org.springframework.http.client"
+        ],
+        "error.exception.stacktrace": [
+            {
+                "abs_path": "/tmp/AbstractPlainSocketImpl.java",
+                "context": {
+                    "post": [
+                        "line4",
+                        "line5"
+                    ],
+                    "pre": [
+                        "line1",
+                        "line2"
+                    ]
+                },
+                "exclude_from_grouping": false,
+                "filename": "AbstractPlainSocketImpl.java",
+                "function": "connect",
+                "library_frame": true,
+                "line": {
+                    "column": 4,
+                    "context": "3",
+                    "number": 3
+                },
+                "module": "java.net",
+                "vars": {
+                    "key": "value"
+                }
+            },
+            {
+                "exclude_from_grouping": false,
+                "filename": "AbstractClientHttpRequest.java",
+                "function": "execute",
+                "line": {
+                    "number": 102
+                },
+                "vars": {
+                    "key": "value"
+                }
+            }
+        ],
+        "error.exception.type": [
+            "java.net.UnknownHostException",
+            "InternalDbError",
+            "VeryInternalDbError",
+            "ConnectionError"
+        ],
+        "error.grouping_key": [
+            "9a4054e958afe722b5877e8fac578ff3"
+        ],
+        "error.grouping_name": [
+            "Request method 'POST' not supported"
+        ],
+        "error.id": [
+            "9876543210abcdeffedcba0123456789"
+        ],
+        "error.log.level": [
+            "error"
+        ],
+        "error.log.logger_name": [
+            "http404"
+        ],
+        "error.log.message": [
+            "Request method 'POST' not supported"
+        ],
+        "error.log.param_message": [
+            "Request method 'POST' /events/:event not supported"
+        ],
+        "error.log.stacktrace": [
+            {
+                "abs_path": "/tmp/Socket.java",
+                "classname": "Request::Socket",
+                "context": {
+                    "post": [
+                        "line4",
+                        "line5"
+                    ],
+                    "pre": [
+                        "line1",
+                        "line2"
+                    ]
+                },
+                "exclude_from_grouping": false,
+                "filename": "Socket.java",
+                "function": "connect",
+                "library_frame": true,
+                "line": {
+                    "column": 4,
+                    "context": "line3",
+                    "number": 3
+                },
+                "module": "java.net",
+                "vars": {
+                    "key": "value"
+                }
+            },
+            {
+                "abs_path": "/tmp/SimpleBufferingClientHttpRequest.java",
+                "exclude_from_grouping": false,
+                "filename": "SimpleBufferingClientHttpRequest.java",
+                "function": "executeInternal",
+                "line": {
+                    "number": 102
+                },
+                "vars": {
+                    "key": "value"
+                }
+            }
+        ],
+        "host.architecture": [
+            "amd64"
+        ],
+        "host.hostname": [
+            "node-name"
+        ],
+        "host.ip": [
+            "127.0.0.1"
+        ],
+        "host.name": [
+            "host1"
+        ],
+        "host.os.platform": [
+            "Linux"
+        ],
+        "http.request.body": [
+            {
+                "original": "HelloWorld"
+            }
+        ],
+        "http.request.cookies.c1": [
+            "v1"
+        ],
+        "http.request.cookies.c2": [
+            "v2"
+        ],
+        "http.request.env.GATEWAY_INTERFACE": [
+            "CGI/1.1"
+        ],
+        "http.request.env.SERVER_SOFTWARE": [
+            "nginx"
+        ],
+        "http.request.headers.Content-Length": [
+            "0"
+        ],
+        "http.request.headers.Cookie": [
+            "c1=v1",
+            "c2=v2"
+        ],
+        "http.request.headers.Elastic-Apm-Traceparent": [
+            "00-8c21b4b556467a0b17ae5da959b5f388-31301f1fb2998121-01"
+        ],
+        "http.request.headers.Forwarded": [
+            "for=192.168.0.1"
+        ],
+        "http.request.headers.Host": [
+            "opbeans-java:3000"
+        ],
+        "http.request.method": [
+            "POST"
+        ],
+        "http.response.finished": [
+            true
+        ],
+        "http.response.headers.Content-Type": [
+            "application/json"
+        ],
+        "http.response.headers_sent": [
+            true
+        ],
+        "http.response.status_code": [
+            200
+        ],
+        "http.version": [
+            "1.1"
+        ],
+        "kubernetes.namespace": [
+            "default"
+        ],
+        "kubernetes.node.name": [
+            "node-name"
+        ],
+        "kubernetes.pod.name": [
+            "instrumented-java-service"
+        ],
+        "kubernetes.pod.uid": [
+            "b17f231da0ad128dc6c6c0b2e82f6f303d3893e3"
+        ],
+        "labels.ab_testing": [
+            "true"
+        ],
+        "labels.group": [
+            "experimental"
+        ],
+        "labels.organization_uuid": [
+            "9f0e9d64-c185-4d21-a6f4-4673ed561ec8"
+        ],
+        "message": [
+            "Request method 'POST' not supported"
+        ],
+        "numeric_labels.segment": [
+            5
+        ],
+        "observer.hostname": [
+            "dynamic"
+        ],
+        "observer.type": [
+            "apm-server"
+        ],
+        "observer.version": [
+            "dynamic"
+        ],
+        "parent.id": [
+            "9632587410abcdef"
+        ],
+        "process.args": [
+            "-v"
+        ],
+        "process.parent.pid": [
+            1
+        ],
+        "process.pid": [
+            1234
+        ],
+        "process.title": [
+            "/usr/lib/jvm/java-10-openjdk-amd64/bin/java"
+        ],
+        "process.title.text": [
+            "/usr/lib/jvm/java-10-openjdk-amd64/bin/java"
+        ],
+        "processor.event": [
+            "error"
+        ],
+        "service.environment": [
+            "production"
+        ],
+        "service.framework.name": [
+            "Node"
+        ],
+        "service.framework.version": [
+            "1"
+        ],
+        "service.language.name": [
+            "Java"
+        ],
+        "service.language.version": [
+            "1.2"
+        ],
+        "service.name": [
+            "service1"
+        ],
+        "service.node.name": [
+            "node-xyz"
+        ],
+        "service.runtime.name": [
+            "Java"
+        ],
+        "service.runtime.version": [
+            "10.0.2"
+        ],
+        "source.ip": [
+            "192.168.0.1"
+        ],
+        "source.nat.ip": [
+            "12.53.12.1"
+        ],
+        "span.id": [
+            "1234567890987654"
+        ],
+        "timestamp.us": [
+            1571657444929001
+        ],
+        "trace.id": [
+            "0123456789abcdeffedcba0123456789"
+        ],
+        "transaction.id": [
+            "1234567890987654"
+        ],
+        "url.domain": [
+            "www.example.com"
+        ],
+        "url.fragment": [
+            "#hash"
+        ],
+        "url.full": [
+            "https://www.example.com/p/a/t/h?query=string#hash"
+        ],
+        "url.full.text": [
+            "https://www.example.com/p/a/t/h?query=string#hash"
+        ],
+        "url.original": [
+            "/p/a/t/h?query=string#hash"
+        ],
+        "url.original.text": [
+            "/p/a/t/h?query=string#hash"
+        ],
+        "url.path": [
+            "/p/a/t/h"
+        ],
+        "url.port": [
+            8080
+        ],
+        "url.query": [
+            "?query=string"
+        ],
+        "url.scheme": [
+            "https"
+        ],
+        "user.email": [
+            "user@foo.mail"
+        ],
+        "user.id": [
+            "99"
+        ],
+        "user.name": [
+            "foo"
+        ],
+        "user.name.text": [
+            "foo"
+        ]
+    }
+]

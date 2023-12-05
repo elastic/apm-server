@@ -1,214 +1,286 @@
-{
-    "events": [
-        {
-            "@timestamp": "1970-01-01T00:02:03.002Z",
-            "agent": {
-                "name": "opentelemetry/go",
-                "version": "1.17.0"
-            },
-            "data_stream": {
-                "dataset": "apm.error",
-                "namespace": "default",
-                "type": "logs"
-            },
-            "error": {
-                "exception": [
-                    {
-                        "handled": true,
-                        "message": "kablamo",
-                        "type": "*errors.errorString"
-                    }
-                ],
-                "grouping_key": "14f4d08792a45fce53a46c93851e36e1",
-                "grouping_name": "kablamo",
-                "id": "dynamic",
-                "stack_trace": "not an actual real stack trace"
-            },
-            "event": {},
-            "labels": {
-                "resource_attribute_array": [
-                    "a",
-                    "b"
-                ],
-                "resource_attribute_bool": "true",
-                "resource_attribute_bool_array": [
-                    "true",
-                    "false"
-                ]
-            },
-            "message": "kablamo",
-            "numeric_labels": {
-                "resource_attribute_float": 123456.789,
-                "resource_attribute_float_array": [
-                    123456.789,
-                    987654321.1234568
-                ],
-                "resource_attribute_int": 123456
-            },
-            "observer": {
-                "hostname": "dynamic",
-                "type": "apm-server",
-                "version": "dynamic"
-            },
-            "parent": {
-                "id": "b3ee9be3b687a611"
-            },
-            "service": {
-                "framework": {
-                    "name": "systemtest"
-                },
-                "language": {
-                    "name": "go"
-                },
-                "name": "unknown_service_systemtest_test"
-            },
-            "span": {
-                "id": "b3ee9be3b687a611"
-            },
-            "timestamp": {
-                "us": 123002000
-            },
-            "trace": {
-                "id": "d2acbef8b37655e48548fd9d61ad6114"
-            },
-            "transaction": {
-                "id": "b3ee9be3b687a611",
-                "sampled": true,
-                "type": "unknown"
-            }
-        },
-        {
-            "@timestamp": "1970-01-01T00:02:03.001Z",
-            "agent": {
-                "name": "opentelemetry/go",
-                "version": "1.17.0"
-            },
-            "data_stream": {
-                "dataset": "apm.app.unknown_service_systemtest_test",
-                "namespace": "default",
-                "type": "logs"
-            },
-            "event": {
-                "kind": "event"
-            },
-            "labels": {
-                "resource_attribute_array": [
-                    "a",
-                    "b"
-                ],
-                "resource_attribute_bool": "true",
-                "resource_attribute_bool_array": [
-                    "true",
-                    "false"
-                ]
-            },
-            "message": "a_span_event",
-            "numeric_labels": {
-                "resource_attribute_float": 123456.789,
-                "resource_attribute_float_array": [
-                    123456.789,
-                    987654321.1234568
-                ],
-                "resource_attribute_int": 123456
-            },
-            "observer": {
-                "hostname": "dynamic",
-                "type": "apm-server",
-                "version": "dynamic"
-            },
-            "service": {
-                "framework": {
-                    "name": "systemtest"
-                },
-                "language": {
-                    "name": "go"
-                },
-                "name": "unknown_service_systemtest_test"
-            },
-            "span": {
-                "id": "b3ee9be3b687a611"
-            },
-            "trace": {
-                "id": "d2acbef8b37655e48548fd9d61ad6114"
-            },
-            "transaction": {
-                "id": "b3ee9be3b687a611"
-            }
-        },
-        {
-            "@timestamp": "1970-01-01T00:02:03.000Z",
-            "agent": {
-                "name": "opentelemetry/go",
-                "version": "1.17.0"
-            },
-            "data_stream": {
-                "dataset": "apm",
-                "namespace": "default",
-                "type": "traces"
-            },
-            "event": {
-                "outcome": "unknown"
-            },
-            "labels": {
-                "resource_attribute_array": [
-                    "a",
-                    "b"
-                ],
-                "resource_attribute_bool": "true",
-                "resource_attribute_bool_array": [
-                    "true",
-                    "false"
-                ],
-                "span_attribute_array": [
-                    "a",
-                    "b",
-                    "c"
-                ]
-            },
-            "numeric_labels": {
-                "resource_attribute_float": 123456.789,
-                "resource_attribute_float_array": [
-                    123456.789,
-                    987654321.1234568
-                ],
-                "resource_attribute_int": 123456
-            },
-            "observer": {
-                "hostname": "dynamic",
-                "type": "apm-server",
-                "version": "dynamic"
-            },
-            "processor": {
-                "event": "transaction"
-            },
-            "service": {
-                "framework": {
-                    "name": "systemtest"
-                },
-                "language": {
-                    "name": "go"
-                },
-                "name": "unknown_service_systemtest_test"
-            },
-            "span": {
-                "id": "b3ee9be3b687a611"
-            },
-            "timestamp": {
-                "us": 123000000
-            },
-            "trace": {
-                "id": "d2acbef8b37655e48548fd9d61ad6114"
-            },
-            "transaction": {
-                "duration": {
-                    "us": 31536000000000
-                },
-                "id": "b3ee9be3b687a611",
-                "name": "operation_name",
-                "representative_count": 1,
-                "sampled": true,
-                "type": "unknown"
-            }
-        }
-    ]
-}
+[
+    {
+        "@timestamp": [
+            "1970-01-01T00:02:03.002Z"
+        ],
+        "agent.name": [
+            "opentelemetry/go"
+        ],
+        "agent.version": [
+            "1.19.0"
+        ],
+        "data_stream.dataset": [
+            "apm.error"
+        ],
+        "data_stream.namespace": [
+            "default"
+        ],
+        "data_stream.type": [
+            "logs"
+        ],
+        "error.exception.handled": [
+            true
+        ],
+        "error.exception.message": [
+            "kablamo"
+        ],
+        "error.exception.type": [
+            "*errors.errorString"
+        ],
+        "error.grouping_key": [
+            "14f4d08792a45fce53a46c93851e36e1"
+        ],
+        "error.grouping_name": [
+            "kablamo"
+        ],
+        "error.id": [
+            "dynamic"
+        ],
+        "error.stack_trace": [
+            "not an actual real stack trace"
+        ],
+        "error.stack_trace.text": [
+            "not an actual real stack trace"
+        ],
+        "labels.resource_attribute_array": [
+            "a",
+            "b"
+        ],
+        "labels.resource_attribute_bool": [
+            "true"
+        ],
+        "labels.resource_attribute_bool_array": [
+            "true",
+            "false"
+        ],
+        "message": [
+            "kablamo"
+        ],
+        "numeric_labels.resource_attribute_float": [
+            123456.789
+        ],
+        "numeric_labels.resource_attribute_float_array": [
+            123456.789,
+            987654321.123457
+        ],
+        "numeric_labels.resource_attribute_int": [
+            123456
+        ],
+        "observer.hostname": [
+            "dynamic"
+        ],
+        "observer.type": [
+            "apm-server"
+        ],
+        "observer.version": [
+            "dynamic"
+        ],
+        "parent.id": [
+            "b3ee9be3b687a611"
+        ],
+        "processor.event": [
+            "error"
+        ],
+        "service.framework.name": [
+            "systemtest"
+        ],
+        "service.language.name": [
+            "go"
+        ],
+        "service.name": [
+            "unknown_service_systemtest_test"
+        ],
+        "span.id": [
+            "b3ee9be3b687a611"
+        ],
+        "timestamp.us": [
+            123002000
+        ],
+        "trace.id": [
+            "d2acbef8b37655e48548fd9d61ad6114"
+        ],
+        "transaction.id": [
+            "b3ee9be3b687a611"
+        ],
+        "transaction.sampled": [
+            true
+        ],
+        "transaction.type": [
+            "unknown"
+        ]
+    },
+    {
+        "@timestamp": [
+            "1970-01-01T00:02:03.001Z"
+        ],
+        "agent.name": [
+            "opentelemetry/go"
+        ],
+        "agent.version": [
+            "1.19.0"
+        ],
+        "data_stream.dataset": [
+            "apm.app.unknown_service_systemtest_test"
+        ],
+        "data_stream.namespace": [
+            "default"
+        ],
+        "data_stream.type": [
+            "logs"
+        ],
+        "event.kind": [
+            "event"
+        ],
+        "labels.resource_attribute_array": [
+            "a",
+            "b"
+        ],
+        "labels.resource_attribute_bool": [
+            "true"
+        ],
+        "labels.resource_attribute_bool_array": [
+            "true",
+            "false"
+        ],
+        "message": [
+            "a_span_event"
+        ],
+        "numeric_labels.resource_attribute_float": [
+            123456.789
+        ],
+        "numeric_labels.resource_attribute_float_array": [
+            123456.789,
+            987654321.123457
+        ],
+        "numeric_labels.resource_attribute_int": [
+            123456
+        ],
+        "observer.hostname": [
+            "dynamic"
+        ],
+        "observer.type": [
+            "apm-server"
+        ],
+        "observer.version": [
+            "dynamic"
+        ],
+        "service.framework.name": [
+            "systemtest"
+        ],
+        "service.language.name": [
+            "go"
+        ],
+        "service.name": [
+            "unknown_service_systemtest_test"
+        ],
+        "span.id": [
+            "b3ee9be3b687a611"
+        ],
+        "trace.id": [
+            "d2acbef8b37655e48548fd9d61ad6114"
+        ],
+        "transaction.id": [
+            "b3ee9be3b687a611"
+        ]
+    },
+    {
+        "@timestamp": [
+            "1970-01-01T00:02:03.000Z"
+        ],
+        "agent.name": [
+            "opentelemetry/go"
+        ],
+        "agent.version": [
+            "1.19.0"
+        ],
+        "data_stream.dataset": [
+            "apm"
+        ],
+        "data_stream.namespace": [
+            "default"
+        ],
+        "data_stream.type": [
+            "traces"
+        ],
+        "event.outcome": [
+            "unknown"
+        ],
+        "labels.resource_attribute_array": [
+            "a",
+            "b"
+        ],
+        "labels.resource_attribute_bool": [
+            "true"
+        ],
+        "labels.resource_attribute_bool_array": [
+            "true",
+            "false"
+        ],
+        "labels.span_attribute_array": [
+            "a",
+            "b",
+            "c"
+        ],
+        "numeric_labels.resource_attribute_float": [
+            123456.789
+        ],
+        "numeric_labels.resource_attribute_float_array": [
+            123456.789,
+            987654321.123457
+        ],
+        "numeric_labels.resource_attribute_int": [
+            123456
+        ],
+        "observer.hostname": [
+            "dynamic"
+        ],
+        "observer.type": [
+            "apm-server"
+        ],
+        "observer.version": [
+            "dynamic"
+        ],
+        "processor.event": [
+            "transaction"
+        ],
+        "service.framework.name": [
+            "systemtest"
+        ],
+        "service.language.name": [
+            "go"
+        ],
+        "service.name": [
+            "unknown_service_systemtest_test"
+        ],
+        "span.id": [
+            "b3ee9be3b687a611"
+        ],
+        "timestamp.us": [
+            123000000
+        ],
+        "trace.id": [
+            "d2acbef8b37655e48548fd9d61ad6114"
+        ],
+        "transaction.duration.us": [
+            31536000000000
+        ],
+        "transaction.id": [
+            "b3ee9be3b687a611"
+        ],
+        "transaction.name": [
+            "operation_name"
+        ],
+        "transaction.name.text": [
+            "operation_name"
+        ],
+        "transaction.representative_count": [
+            1
+        ],
+        "transaction.sampled": [
+            true
+        ],
+        "transaction.type": [
+            "unknown"
+        ]
+    }
+]

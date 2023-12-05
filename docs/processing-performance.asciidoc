@@ -5,40 +5,82 @@ APM Server performance depends on a number of factors: memory and CPU available,
 network latency, transaction sizes, workload patterns,
 agent and server settings, versions, and protocol.
 
-Let's look at a simple example that makes the following assumptions:
+We tested several scenarios to help you understand how to size the APM Server so that it can keep up with the load that your Elastic APM agents are sending:
 
-* The load is generated in the same region as where APM Server and {es} are deployed.
-* We're using the default settings in cloud.
-* A small number of agents are reporting.
-
-This leaves us with relevant variables like payload and instance sizes.
-See the table below for approximations.
-As a reminder, events are
+* Using the default hardware template on AWS, GCP and Azure on {ecloud}.
+* For each hardware template, testing with several sizes: 1 GB, 4 GB, 8 GB, and 32 GB.
+* For each size, using a fixed number of APM agents: 10 agents for 1 GB, 30 agents for 4 GB, 60 agents for 8 GB, and 240 agents for 32 GB.
+* In all scenarios, using medium sized events. Events include
 <<data-model-transactions,transactions>> and
 <<data-model-spans,spans>>.
 
+NOTE: You will also need to scale up {es} accordingly, potentially with an increased number of shards configured.
+For more details on scaling {es}, refer to the {ref}/scalability.html[{es} documentation].
+
+The results below include numbers for a synthetic workload. You can use the results of our tests to guide
+your sizing decisions, however, *performance will vary based on factors unique to your use case* like your
+specific setup, the size of APM event data, and the exact number of agents.
+
+:hardbreaks-option:
+
 [options="header"]
-|=======================================================================
-|Transaction/Instance |512 MB Instance |2 GB Instance |8 GB Instance
-|Small transactions
+|====
+| Profile / Cloud | AWS | Azure | GCP
 
-_5 spans with 5 stack frames each_ |600 events/second |1200 events/second |4800 events/second
-|Medium transactions
+| *1 GB*
+(10 agents)
+| 9,000
+events/second
+| 6,000
+events/second
+| 9,000
+events/second
 
-_15 spans with 15 stack frames each_ |300 events/second |600 events/second |2400 events/second
-|Large transactions
+| *4 GB*
+(30 agents)
+| 25,000
+events/second
+| 18,000
+events/second
+| 17,000
+events/second
 
-_30 spans with 30 stack frames each_ |150 events/second |300 events/second |1400 events/second
-|=======================================================================
+| *8 GB*
+(60 agents)
+| 40,000
+events/second
+| 26,000
+events/second
+| 25,000
+events/second
 
-In other words, a 512 MB instance can process \~3 MB per second,
-while an 8 GB instance can process ~20 MB per second.
+| *16 GB*
+(120 agents)
+| 72,000
+events/second
+| 51,000
+events/second
+| 45,000
+events/second
 
-APM Server is CPU bound, so it scales better from 2 GB to 8 GB than it does from 512 MB to 2 GB.
-This is because larger instance types in {ecloud} come with much more computing power.
+| *32 GB*
+(240 agents)
+| 135,000
+events/second
+| 95,000
+events/second
+| 95,000
+events/second
+
+|====
+
+:!hardbreaks-option:
 
 Don't forget that the APM Server is stateless.
 Several instances running do not need to know about each other.
 This means that with a properly sized {es} instance, APM Server scales out linearly.
 
 NOTE: RUM deserves special consideration. The RUM agent runs in browsers, and there can be many thousands reporting to an APM Server with very variable network latency.
+
+Alternatively or in addition to scaling the APM Server, consider
+decreasing the ingestion volume. Read more in <<reduce-apm-storage>>.
