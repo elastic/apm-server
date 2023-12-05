@@ -7,6 +7,7 @@ package eventstorage
 import (
 	"errors"
 	"fmt"
+	"sync/atomic"
 	"time"
 
 	"github.com/dgraph-io/badger/v2"
@@ -37,8 +38,9 @@ var (
 // Storage provides storage for sampled transactions and spans,
 // and for recording trace sampling decisions.
 type Storage struct {
-	db    *badger.DB
-	codec Codec
+	db          *badger.DB
+	pendingSize *atomic.Int64
+	codec       Codec
 }
 
 // Codec provides methods for encoding and decoding events.
@@ -49,7 +51,9 @@ type Codec interface {
 
 // New returns a new Storage using db and codec.
 func New(db *badger.DB, codec Codec) *Storage {
-	return &Storage{db: db, codec: codec}
+	var pendingSize atomic.Int64
+	pendingSize.Add(defaultPendingSize)
+	return &Storage{db: db, pendingSize: &pendingSize, codec: codec}
 }
 
 // NewShardedReadWriter returns a new ShardedReadWriter, for sharded
@@ -67,9 +71,8 @@ func (s *Storage) NewShardedReadWriter() *ShardedReadWriter {
 // The returned ReadWriter must be closed when it is no longer needed.
 func (s *Storage) NewReadWriter() *ReadWriter {
 	return &ReadWriter{
-		s:           s,
-		txn:         s.db.NewTransaction(true),
-		pendingSize: defaultPendingSize,
+		s:   s,
+		txn: s.db.NewTransaction(true),
 	}
 }
 
@@ -108,7 +111,6 @@ type ReadWriter struct {
 	// be unmodified until the end of a transaction.
 	readKeyBuf    []byte
 	pendingWrites int
-	pendingSize   int64
 }
 
 // Close closes the writer. Any writes that have not been flushed may be lost.
@@ -133,7 +135,7 @@ func (rw *ReadWriter) Flush(limit int64) error {
 	err := rw.txn.Commit()
 	rw.txn = rw.s.db.NewTransaction(true)
 	rw.pendingWrites = 0
-	rw.pendingSize = defaultPendingSize
+	rw.s.pendingSize.Store(defaultPendingSize)
 	if err != nil {
 		return fmt.Errorf(flushErrFmt, err)
 	}
@@ -183,7 +185,7 @@ func (rw *ReadWriter) writeEntry(e *badger.Entry, opts WriterOpts) error {
 	entrySize := int64(estimateSize(e)) + 10
 	lsm, vlog := rw.s.db.Size()
 
-	if rw.pendingSize+entrySize+lsm+vlog >= opts.StorageLimitInBytes {
+	if rw.s.pendingSize.Load()+entrySize+lsm+vlog >= opts.StorageLimitInBytes {
 		if err := rw.Flush(opts.StorageLimitInBytes); err != nil {
 			return err
 		}
@@ -209,7 +211,7 @@ func (rw *ReadWriter) writeEntry(e *badger.Entry, opts WriterOpts) error {
 	if err := rw.Flush(opts.StorageLimitInBytes); err != nil {
 		return err
 	}
-	rw.pendingSize += entrySize
+	rw.s.pendingSize.Add(entrySize)
 	return rw.txn.SetEntry(e)
 }
 
