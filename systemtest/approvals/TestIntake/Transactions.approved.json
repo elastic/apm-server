@@ -181,16 +181,12 @@
         "transaction.message.body": [
             "user created"
         ],
-        "transaction.message.headers": [
-            {
-                "Involved_services": [
-                    "user",
-                    "auth"
-                ],
-                "User_id": [
-                    "1ax3"
-                ]
-            }
+        "transaction.message.headers.Involved_services": [
+            "user",
+            "auth"
+        ],
+        "transaction.message.headers.User_id": [
+            "1ax3"
         ],
         "transaction.message.queue.name": [
             "new_users"
@@ -529,39 +525,35 @@
                 }
             }
         ],
-        "http.request.cookies": [
-            {
-                "c1": "v1",
-                "c2": "v2"
-            }
+        "http.request.cookies.c1": [
+            "v1"
         ],
-        "http.request.env": [
-            {
-                "GATEWAY_INTERFACE": "CGI/1.1",
-                "SERVER_SOFTWARE": "nginx"
-            }
+        "http.request.cookies.c2": [
+            "v2"
         ],
-        "http.request.headers": [
-            {
-                "Array": [
-                    "foo",
-                    "bar",
-                    "baz"
-                ],
-                "Content-Type": [
-                    "text/html"
-                ],
-                "Cookie": [
-                    "c1=v1, c2=v2"
-                ],
-                "Some-Other-Header": [
-                    "foo"
-                ],
-                "User-Agent": [
-                    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36",
-                    "Mozilla Chrome Edge"
-                ]
-            }
+        "http.request.env.GATEWAY_INTERFACE": [
+            "CGI/1.1"
+        ],
+        "http.request.env.SERVER_SOFTWARE": [
+            "nginx"
+        ],
+        "http.request.headers.Array": [
+            "foo",
+            "bar",
+            "baz"
+        ],
+        "http.request.headers.Content-Type": [
+            "text/html"
+        ],
+        "http.request.headers.Cookie": [
+            "c1=v1, c2=v2"
+        ],
+        "http.request.headers.Some-Other-Header": [
+            "foo"
+        ],
+        "http.request.headers.User-Agent": [
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36",
+            "Mozilla Chrome Edge"
         ],
         "http.request.method": [
             "POST"
@@ -578,12 +570,8 @@
         "http.response.finished": [
             true
         ],
-        "http.response.headers": [
-            {
-                "Content-Type": [
-                    "application/json"
-                ]
-            }
+        "http.response.headers.Content-Type": [
+            "application/json"
         ],
         "http.response.headers_sent": [
             true
