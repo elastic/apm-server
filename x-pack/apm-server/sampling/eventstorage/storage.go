@@ -31,10 +31,6 @@ var (
 	// ErrNotFound is returned by by the Storage.IsTraceSampled method,
 	// for non-existing trace IDs.
 	ErrNotFound = errors.New("key not found")
-
-	// ErrLimitReached is returned by the ReadWriter.Flush method when
-	// the configured StorageLimiter.Limit is true.
-	ErrLimitReached = errors.New("configured storage limit reached")
 )
 
 // Storage provides storage for sampled transactions and spans,
@@ -116,10 +112,6 @@ func (rw *ReadWriter) Close() {
 // Flush must be called to ensure writes are committed to storage.
 // If Flush is not called before the writer is closed, then writes
 // may be lost.
-//
-// Flush returns ErrLimitReached, or an error that wraps it, when
-// the StorageLimiter reports that the combined size of LSM and Vlog
-// files exceeds the configured threshold.
 func (rw *ReadWriter) Flush() error {
 	const flushErrFmt = "failed to flush pending writes: %w"
 	err := rw.txn.Commit()
