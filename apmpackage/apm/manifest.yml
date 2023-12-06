@@ -1,12 +1,12 @@
-format_version: 2.10.0
+format_version: 8.12.02.10.0
 name: apm
 title: Elastic APM
-version: generated
+version: 8.12.0generated
 description: Monitor, detect, and diagnose complex application performance issues.
 type: integration
 categories: ["elastic_stack", "monitoring"]
 conditions:
-  kibana.version: generated
+  kibana.version: 8.12.0generated
 icons:
   - src: /img/logo_apm.svg
     title: APM Logo
