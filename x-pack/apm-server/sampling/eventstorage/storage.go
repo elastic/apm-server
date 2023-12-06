@@ -174,7 +174,7 @@ func (rw *ReadWriter) writeEntry(e *badger.Entry, opts WriterOpts) error {
 	pendingSize := rw.s.pendingSize.Add(entrySize)
 	rw.pendingSize += entrySize
 
-	if pendingSize+entrySize+lsm+vlog >= opts.StorageLimitInBytes {
+	if pendingSize+lsm+vlog >= opts.StorageLimitInBytes {
 		if err := rw.Flush(); err != nil {
 			return err
 		}
