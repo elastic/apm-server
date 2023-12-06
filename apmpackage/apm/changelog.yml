@@ -32,7 +32,7 @@
     - description: always set {span,transaction}.duration in traces-*
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/11638
-- version: "8.12.08.10.0"
+- version: "8.10.0"
   changes:
     - description: Add permissions to reroute to dedicated datasets for logs, metrics and traces
       type: enhancement
@@ -43,7 +43,7 @@
     - description: set processor.* fields in mappings and ingest pipeline
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/11202
-- version: "8.12.08.9.0"
+- version: "8.9.0"
   changes:
     - description: Handle `metricset.samples` from apm-server
       type: enhancement
@@ -60,7 +60,7 @@
     - description: Use "dynamic runtime" instead of strict mapping for internal, TBS, and aggregation indices
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/10968
-- version: "8.12.08.8.0"
+- version: "8.8.0"
   changes:
     - description: Store app logs into service-specific data streams
       type: enhancement
@@ -71,12 +71,12 @@
     - description: Fix ILM policy name mismatch in rollup interval index templates
       type: bugfix
       link: https://github.com/elastic/apm-server/pull/10824
-- version: "8.12.08.7.1"
+- version: "8.7.1"
   changes:
     - description: Add missing `agent.activation_method` mapping to `logs-apm.app`, `metrics-apm.app`, `logs-apm.error` and `metrics-apm.internal`
       type: bugfix
       link: https://github.com/elastic/apm-server/pull/10552
-- version: "8.12.08.7.0"
+- version: "8.7.0"
   changes:
     - description: Introduce `metrics-apm.service-${interval}` data stream for service metrics (`1m`, `10m` and `60m`).
       type: enhancement
@@ -141,7 +141,7 @@
     - description: Update 10m,60m metrics delete phase to 180d, 390d
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/10422
-- version: "8.12.08.6.0"
+- version: "8.6.0"
   changes:
     - description: Change `ecs.version` to a `constant_keyword` field
       type: enhancement
@@ -164,7 +164,7 @@
     - description: Add mapping for `http.request.id` for traces data streams
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/9673
-- version: "8.12.08.5.0"
+- version: "8.5.0"
   changes:
     - description: Add package settings to enable the experimental collection of service metrics
       type: enhancement
@@ -175,7 +175,7 @@
     - description: Added observer/ppid translation to data stream migration pipeline
       type: bugfix
       link: https://github.com/elastic/apm-server/pull/9095
-- version: "8.12.08.4.0"
+- version: "8.4.0"
   changes:
     - description: Added support for dynamically mapping summary metrics
       type: enhancement
@@ -186,7 +186,7 @@
     - description: Added field mappings for Lambda metrics to internal metrics data stream
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/8400
-- version: "8.12.08.3.3"
+- version: "8.3.3"
   changes:
     - description: Support TLSv1.3 and remove TLSv1.0 in the default TLS supported protocols
       type: bugfix
@@ -197,7 +197,7 @@
     - description: Update APM integration screenshots
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/8669
-- version: "8.12.08.3.0"
+- version: "8.3.0"
   changes:
     - description: Field mapping for `target.name` and `target.type` added to traces data stream
       type: enhancement
@@ -214,7 +214,7 @@
     - description: Added tags field mapping to internal_metrics data stream
       type: bugfix
       link: https://github.com/elastic/apm-server/pull/8292
-- version: "8.12.08.2.0"
+- version: "8.2.0"
   changes:
     - description: Field mapping for `source.nat.ip` and `source.nat.port` added to data streams
       type: enhancement
@@ -237,7 +237,7 @@
     - description: added field mapping for `error.stack_trace` to error_logs
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/7706
-- version: "8.12.08.1.0"
+- version: "8.1.0"
   changes:
     - description: Added field mapping for `faas.coldstart` and `faas.trigger.type`
       type: enhancement
@@ -251,7 +251,7 @@
     - description: Added field mapping for `faas.id` to internal_metrics data stream
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/7361
-- version: "8.12.08.0.0"
+- version: "8.0.0"
   changes:
     - description: support setting `download-agent-version`
       type: enhancement
@@ -286,12 +286,12 @@
     - description: added `event.{outcome,severity}` and `log.level` to app_logs data stream
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/6791
-- version: "8.12.07.16.1"
+- version: "7.16.1"
   changes:
     - description: Added `agent_config_applied` mapping to `metrics-apm.internal` data stream.
       type: bugfix
       link: https://github.com/elastic/apm-server/issues/6767
-- version: "8.12.07.16.0"
+- version: "7.16.0"
   changes:
     - description: updated package version to align with stack version
       type: enhancement
@@ -311,7 +311,7 @@
     - description: added cluster privilege to package for stack monitoring
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/6373
-- version: "8.12.00.5.0"
+- version: "0.5.0"
   changes:
     - description: added index sorting for internal metrics
       type: enhancement
@@ -328,7 +328,7 @@
     - description: added tail-sampling config vars
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/6139
-- version: "8.12.00.4.0"
+- version: "0.4.0"
   changes:
     - description: added anonymous auth config, replace some RUM config
       type: breaking-change
@@ -336,7 +336,7 @@
     - description: updated to use new `apm-server.auth` config
       type: breaking-change
       link: https://github.com/elastic/apm-server/pull/5691
-- version: "8.12.00.3.0"
+- version: "0.3.0"
   changes:
     - description: added `apm-server.url` config
       type: enhancement
@@ -344,7 +344,7 @@
     - description: removed `apm-server.kibana.api_key` config
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/5380
-- version: "8.12.00.2.0"
+- version: "0.2.0"
   changes:
     - description: added support for `apm-server.rum.allow_service_names`
       type: enhancement
@@ -352,7 +352,7 @@
     - description: added support a configurable default service environment
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/4861
-- version: "8.12.00.1.0"
+- version: "0.1.0"
   changes:
     - description: initial release
       type: enhancement
