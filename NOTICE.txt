@@ -1462,11 +1462,11 @@ Contents of probable licence file $GOMODCACHE/github.com/elastic/gmux@v0.3.1/LIC
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/go-docappender
-Version: v0.2.1-0.20230829163624-c69a1cf8ce35
+Version: v0.2.1-0.20231207080152-44217001fa53
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/go-docappender@v0.2.1-0.20230829163624-c69a1cf8ce35/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/go-docappender@v0.2.1-0.20231207080152-44217001fa53/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -4227,11 +4227,11 @@ SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : go.elastic.co/apm/module/apmelasticsearch/v2
-Version: v2.4.4
+Version: v2.4.7
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.elastic.co/apm/module/apmelasticsearch/v2@v2.4.4/LICENSE:
+Contents of probable licence file $GOMODCACHE/go.elastic.co/apm/module/apmelasticsearch/v2@v2.4.7/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -4438,11 +4438,11 @@ Contents of probable licence file $GOMODCACHE/go.elastic.co/apm/module/apmelasti
 
 --------------------------------------------------------------------------------
 Dependency : go.elastic.co/apm/module/apmgorilla/v2
-Version: v2.4.4
+Version: v2.4.7
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.elastic.co/apm/module/apmgorilla/v2@v2.4.4/LICENSE:
+Contents of probable licence file $GOMODCACHE/go.elastic.co/apm/module/apmgorilla/v2@v2.4.7/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -4649,11 +4649,11 @@ Contents of probable licence file $GOMODCACHE/go.elastic.co/apm/module/apmgorill
 
 --------------------------------------------------------------------------------
 Dependency : go.elastic.co/apm/module/apmgrpc/v2
-Version: v2.4.4
+Version: v2.4.7
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.elastic.co/apm/module/apmgrpc/v2@v2.4.4/LICENSE:
+Contents of probable licence file $GOMODCACHE/go.elastic.co/apm/module/apmgrpc/v2@v2.4.7/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -4860,11 +4860,11 @@ Contents of probable licence file $GOMODCACHE/go.elastic.co/apm/module/apmgrpc/v
 
 --------------------------------------------------------------------------------
 Dependency : go.elastic.co/apm/module/apmhttp/v2
-Version: v2.4.4
+Version: v2.4.7
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.elastic.co/apm/module/apmhttp/v2@v2.4.4/LICENSE:
+Contents of probable licence file $GOMODCACHE/go.elastic.co/apm/module/apmhttp/v2@v2.4.7/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -5071,11 +5071,11 @@ Contents of probable licence file $GOMODCACHE/go.elastic.co/apm/module/apmhttp/v
 
 --------------------------------------------------------------------------------
 Dependency : go.elastic.co/apm/module/apmotel/v2
-Version: v2.4.4
+Version: v2.4.7
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.elastic.co/apm/module/apmotel/v2@v2.4.4/LICENSE:
+Contents of probable licence file $GOMODCACHE/go.elastic.co/apm/module/apmotel/v2@v2.4.7/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -5950,11 +5950,11 @@ Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/pdat
 
 --------------------------------------------------------------------------------
 Dependency : go.opentelemetry.io/otel
-Version: v1.19.0
+Version: v1.21.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/otel@v1.19.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/otel@v1.21.0/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -6161,11 +6161,11 @@ Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/otel@v1.19.0/L
 
 --------------------------------------------------------------------------------
 Dependency : go.opentelemetry.io/otel/metric
-Version: v1.19.0
+Version: v1.21.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/otel/metric@v1.19.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/otel/metric@v1.21.0/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -6372,11 +6372,11 @@ Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/otel/metric@v1
 
 --------------------------------------------------------------------------------
 Dependency : go.opentelemetry.io/otel/sdk/metric
-Version: v1.19.0
+Version: v1.21.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/otel/sdk/metric@v1.19.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/otel/sdk/metric@v1.21.0/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -6677,11 +6677,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/sync
-Version: v0.4.0
+Version: v0.5.0
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/sync@v0.4.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/sync@v0.5.0/LICENSE:
 
 Copyright (c) 2009 The Go Authors. All rights reserved.
 
@@ -10377,11 +10377,11 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/go-logr/logr
-Version: v1.2.4
+Version: v1.3.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/go-logr/logr@v1.2.4/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/go-logr/logr@v1.3.0/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -17218,11 +17218,11 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : go.elastic.co/apm/module/apmzap/v2
-Version: v2.4.4
+Version: v2.4.7
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.elastic.co/apm/module/apmzap/v2@v2.4.4/LICENSE:
+Contents of probable licence file $GOMODCACHE/go.elastic.co/apm/module/apmzap/v2@v2.4.7/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -17852,11 +17852,11 @@ Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/semc
 
 --------------------------------------------------------------------------------
 Dependency : go.opentelemetry.io/otel/sdk
-Version: v1.19.0
+Version: v1.21.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/otel/sdk@v1.19.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/otel/sdk@v1.21.0/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -18063,11 +18063,11 @@ Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/otel/sdk@v1.19
 
 --------------------------------------------------------------------------------
 Dependency : go.opentelemetry.io/otel/trace
-Version: v1.19.0
+Version: v1.21.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/otel/trace@v1.19.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/otel/trace@v1.21.0/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -18406,11 +18406,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/sys
-Version: v0.13.0
+Version: v0.14.0
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/sys@v0.13.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/sys@v0.14.0/LICENSE:
 
 Copyright (c) 2009 The Go Authors. All rights reserved.
 

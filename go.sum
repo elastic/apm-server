@@ -144,14 +144,24 @@ github.com/elastic/elastic-agent-libs v0.7.2 h1:yT0hF0UAxJCdQqhHh6SFpgYrcpB10oFz
 github.com/elastic/elastic-agent-libs v0.7.2/go.mod h1:pVBEElQJUO9mr4WStWNXuQGsJn54lcjAoYAHmsvBLBc=
 github.com/elastic/elastic-agent-shipper-client v0.5.1-0.20230228231646-f04347b666f3 h1:sb+25XJn/JcC9/VL8HX4r4QXSUq4uTNzGS2kxOE7u1U=
 github.com/elastic/elastic-agent-shipper-client v0.5.1-0.20230228231646-f04347b666f3/go.mod h1:rWarFM7qYxJKsi9WcV6ONcFjH/NA3niDNpTxO+8/GVI=
+<<<<<<< HEAD
 github.com/elastic/elastic-agent-system-metrics v0.9.1 h1:r0ofKHgPpl+W09ie7tzGcCDC0d4NZbQUv37rSgHf4FM=
 github.com/elastic/elastic-agent-system-metrics v0.9.1/go.mod h1:9C1UEfj0P687HAzZepHszN6zXA+2tN2Lx3Osvq1zby8=
+=======
+github.com/elastic/elastic-agent-system-metrics v0.9.0 h1:sA3pSk+awH4g45M8tjcwd9U6uVQvNzUpKS8ajS3DuUk=
+github.com/elastic/elastic-agent-system-metrics v0.9.0/go.mod h1:9C1UEfj0P687HAzZepHszN6zXA+2tN2Lx3Osvq1zby8=
+>>>>>>> 19c869099 (Update `go-docappender` dependency to latest (#12179))
 github.com/elastic/elastic-transport-go/v8 v8.3.0 h1:DJGxovyQLXGr62e9nDMPSxRyWION0Bh6d9eCFBriiHo=
 github.com/elastic/elastic-transport-go/v8 v8.3.0/go.mod h1:87Tcz8IVNe6rVSLdBux1o/PEItLtyabHU3naC7IoqKI=
 github.com/elastic/gmux v0.3.1 h1:ghT+5Y9jW5udQTBrhDeMOtQVdRBwk9Y2h1o+4Rb7mhE=
 github.com/elastic/gmux v0.3.1/go.mod h1:IBFLojLnACU9tsUnoSavOaMdhq63/HOH/Aeiiha36jA=
+<<<<<<< HEAD
 github.com/elastic/go-docappender v0.2.1-0.20230829163624-c69a1cf8ce35 h1:zBB2RqyEcPlJ16psSXIV6qhhbFB+Bf9RZrgcCk2vCiY=
 github.com/elastic/go-docappender v0.2.1-0.20230829163624-c69a1cf8ce35/go.mod h1:QddPogzCYGtzbR8ZFGRG2kvQ+vRG4A4JGMoH82G1dT8=
+=======
+github.com/elastic/go-docappender v0.2.1-0.20231207080152-44217001fa53 h1:3jOfdobdHlfwC4yeTpljD6Ul+IWmhHHGHoUtn/Cb/UY=
+github.com/elastic/go-docappender v0.2.1-0.20231207080152-44217001fa53/go.mod h1:v+pGb4IkluqgnVN4Qu3o9a2WC1jve91NCu19oKNK/tM=
+>>>>>>> 19c869099 (Update `go-docappender` dependency to latest (#12179))
 github.com/elastic/go-elasticsearch/v8 v8.11.1 h1:1VgTgUTbpqQZ4uE+cPjkOvy/8aw1ZvKcU0ZUE5Cn1mc=
 github.com/elastic/go-elasticsearch/v8 v8.11.1/go.mod h1:GU1BJHO7WeamP7UhuElYwzzHtvf9SDmeVpSSy9+o6Qg=
 github.com/elastic/go-lumber v0.1.2-0.20220819171948-335fde24ea0f h1:TsPpU5EAwlt7YZoupKlxZ093qTZYdGou3EhfTF1U0B4=
@@ -193,8 +203,8 @@ github.com/go-check/check v0.0.0-20180628173108-788fd7840127/go.mod h1:9ES+weclK
 github.com/go-errors/errors v1.0.1 h1:LUHzmkK3GUKUrL/1gfBUxAHzcev3apQlezX/+O7ma6w=
 github.com/go-errors/errors v1.0.1/go.mod h1:f4zRHt4oKfwPJE5k8C9vpYG+aDHdBFUsgrm6/TyX73Q=
 github.com/go-logr/logr v1.2.2/go.mod h1:jdQByPbusPIv2/zmleS9BjJVeZ6kBagPoEUsqbVz/1A=
-github.com/go-logr/logr v1.2.4 h1:g01GSCwiDw2xSZfjJ2/T9M+S6pFdcNtFYsp+Y43HYDQ=
-github.com/go-logr/logr v1.2.4/go.mod h1:jdQByPbusPIv2/zmleS9BjJVeZ6kBagPoEUsqbVz/1A=
+github.com/go-logr/logr v1.3.0 h1:2y3SDp0ZXuc6/cjLSZ+Q3ir+QB9T/iG5yYRXqsagWSY=
+github.com/go-logr/logr v1.3.0/go.mod h1:9T104GzyrTigFIr8wt5mBrctHMim0Nb2HLGrmQ40KvY=
 github.com/go-logr/stdr v1.2.2 h1:hSWxHoqTgW2S2qGc0LTAI563KZ5YKYRhT3MFKZMbjag=
 github.com/go-logr/stdr v1.2.2/go.mod h1:mMo/vtBO5dYbehREoey6XUKy/eSumjCCveDpRre4VKE=
 github.com/go-martini/martini v0.0.0-20170121215854-22fa46961aab/go.mod h1:/P9AEU963A2AYjv4d1V5eVL1CQbEJq6aCNHDDjibzu8=
@@ -529,18 +539,18 @@ github.com/yuin/goldmark v1.2.1/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9dec
 github.com/yuin/goldmark v1.3.5/go.mod h1:mwnBkeHKe2W/ZEtQ+71ViKU8L12m81fl3OWwC1Zlc8k=
 github.com/yusufpapurcu/wmi v1.2.3 h1:E1ctvB7uKFMOJw3fdOW32DwGE9I7t++CRUEMKvFoFiw=
 github.com/yusufpapurcu/wmi v1.2.3/go.mod h1:SBZ9tNy3G9/m5Oi98Zks0QjeHVDvuK0qfxQmPyzfmi0=
-go.elastic.co/apm/module/apmelasticsearch/v2 v2.4.4 h1:TVcEjy/gs/DVk3aaBYNGm6B7uOkC6BTlDFRzyvBkMlw=
-go.elastic.co/apm/module/apmelasticsearch/v2 v2.4.4/go.mod h1:xWKnT5lKqFwNgT3nkWumBCXCt597cHkSuyIWWMXpv78=
-go.elastic.co/apm/module/apmgorilla/v2 v2.4.4 h1:J/J5po3bdCJD6NhnJ+qjC6tvnVT3L/x2iun4RXSQjbc=
-go.elastic.co/apm/module/apmgorilla/v2 v2.4.4/go.mod h1:TFgGtb72KWjXDBuTkX+SWwSZipqHJYTQ5qIVlKvZkyg=
-go.elastic.co/apm/module/apmgrpc/v2 v2.4.4 h1:l4eMUb9H9Rj6CvQIbrVCDLnI0dkwEwTo6qeirBaBKus=
-go.elastic.co/apm/module/apmgrpc/v2 v2.4.4/go.mod h1:SSYfue+dyE7QKnXsvYhNu49U6vH+iG+R3cOYlkX9/og=
-go.elastic.co/apm/module/apmhttp/v2 v2.4.4 h1:BcJDLFztZByHiJRXXvAHY7bue9+vhzMLn2OBK5N8HDw=
-go.elastic.co/apm/module/apmhttp/v2 v2.4.4/go.mod h1:694qsHWRPVkfYqQ224ZSeRx9Dt2FS/xF1igNBGkHi6o=
-go.elastic.co/apm/module/apmotel/v2 v2.4.4 h1:DTIGTLiAZTjshCco2ljLnf35Q9m1MiWXBctCGKeQhzE=
-go.elastic.co/apm/module/apmotel/v2 v2.4.4/go.mod h1:F14e5+BF+fmKs7jUH5i6C0tjzRUVrK4AbaNGw0z3mWk=
-go.elastic.co/apm/module/apmzap/v2 v2.4.4 h1:t1Ml4R5KapIoCJzem3d/bEaG0X7Gij0QijFPuf8wba8=
-go.elastic.co/apm/module/apmzap/v2 v2.4.4/go.mod h1:iYOVJKZEIWYr+VdD3IO0zjhC8j6my+v5vZNePNSgmIY=
+go.elastic.co/apm/module/apmelasticsearch/v2 v2.4.7 h1:Gfp+wxPotE1s5X5ufn3W28zYaSunKEWE/x9Xo+5WzoI=
+go.elastic.co/apm/module/apmelasticsearch/v2 v2.4.7/go.mod h1:taxw6rHuZtTF0p0DAv1xAg0fkvGprVIJu92JvbcgifU=
+go.elastic.co/apm/module/apmgorilla/v2 v2.4.7 h1:KKVofZksT6fQ6SRd78t5B2Q0s7NXcQ2na99yFZ++QLw=
+go.elastic.co/apm/module/apmgorilla/v2 v2.4.7/go.mod h1:1f5MubV9IprFxjZ4Q+j/nUtomBNncE0pO43/fBkPcGo=
+go.elastic.co/apm/module/apmgrpc/v2 v2.4.7 h1:DfRlVWcp8gMMwhuZ6mb3ronGG/zr7xERLr4q3SaDqSQ=
+go.elastic.co/apm/module/apmgrpc/v2 v2.4.7/go.mod h1:619rUMohJOS56ugiQ3gzQN00m2+AdSW05Y5zwc+fXoA=
+go.elastic.co/apm/module/apmhttp/v2 v2.4.7 h1:IL+DRK8ODO791ai/l1g/8dk6E3VPomiV0jbRIxBWbqM=
+go.elastic.co/apm/module/apmhttp/v2 v2.4.7/go.mod h1:Itj4PGNVO33Tpp/9UPf4A6pCezTmADRRi/ytLAGms24=
+go.elastic.co/apm/module/apmotel/v2 v2.4.7 h1:Mg2AePM29uTutZzs+zySGUnzVuidadWX4icW/iPZQWs=
+go.elastic.co/apm/module/apmotel/v2 v2.4.7/go.mod h1:nKceke8YXubeEZMIKkKKAc8xomkTopKD/p2jHL+xnAM=
+go.elastic.co/apm/module/apmzap/v2 v2.4.7 h1:j96pvon+IhbFpzV4IflXwxOKD+l5rApyyN2ycarJG6Y=
+go.elastic.co/apm/module/apmzap/v2 v2.4.7/go.mod h1:bi0A6hYYwModJI70LJDB8IHqw7291Ub16LRdEXNcOcU=
 go.elastic.co/apm/v2 v2.4.7 h1:m5B2m59KgbiupuzFUkKqEvwHABIZxl2Ob0tCgc0XG9w=
 go.elastic.co/apm/v2 v2.4.7/go.mod h1:+CiBUdrrAGnGCL9TNx7tQz3BrfYV23L8Ljvotoc87so=
 go.elastic.co/ecszap v1.0.2 h1:iW5OGx8IiokiUzx/shD4AJCPFMC9uUtr7ycaiEIU++I=
@@ -553,16 +563,16 @@ go.opentelemetry.io/collector/pdata v1.0.0-rcv0016 h1:qCPXSQCoD3qeWFb1RuIks8fw9A
 go.opentelemetry.io/collector/pdata v1.0.0-rcv0016/go.mod h1:OdN0alYOlYhHXu6BDlGehrZWgtBuiDsz/rlNeJeXiNg=
 go.opentelemetry.io/collector/semconv v0.87.0 h1:BsG1jdLLRCBRlvUujk4QA86af7r/ZXnizczQpEs/gg8=
 go.opentelemetry.io/collector/semconv v0.87.0/go.mod h1:j/8THcqVxFna1FpvA2zYIsUperEtOaRaqoLYIN4doWw=
-go.opentelemetry.io/otel v1.19.0 h1:MuS/TNf4/j4IXsZuJegVzI1cwut7Qc00344rgH7p8bs=
-go.opentelemetry.io/otel v1.19.0/go.mod h1:i0QyjOq3UPoTzff0PJB2N66fb4S0+rSbSB15/oyH9fY=
-go.opentelemetry.io/otel/metric v1.19.0 h1:aTzpGtV0ar9wlV4Sna9sdJyII5jTVJEvKETPiOKwvpE=
-go.opentelemetry.io/otel/metric v1.19.0/go.mod h1:L5rUsV9kM1IxCj1MmSdS+JQAcVm319EUrDVLrt7jqt8=
-go.opentelemetry.io/otel/sdk v1.19.0 h1:6USY6zH+L8uMH8L3t1enZPR3WFEmSTADlqldyHtJi3o=
-go.opentelemetry.io/otel/sdk v1.19.0/go.mod h1:NedEbbS4w3C6zElbLdPJKOpJQOrGUJ+GfzpjUvI0v1A=
-go.opentelemetry.io/otel/sdk/metric v1.19.0 h1:EJoTO5qysMsYCa+w4UghwFV/ptQgqSL/8Ni+hx+8i1k=
-go.opentelemetry.io/otel/sdk/metric v1.19.0/go.mod h1:XjG0jQyFJrv2PbMvwND7LwCEhsJzCzV5210euduKcKY=
-go.opentelemetry.io/otel/trace v1.19.0 h1:DFVQmlVbfVeOuBRrwdtaehRrWiL1JoVs9CPIQ1Dzxpg=
-go.opentelemetry.io/otel/trace v1.19.0/go.mod h1:mfaSyvGyEJEI0nyV2I4qhNQnbBOUUmYZpYojqMnX2vo=
+go.opentelemetry.io/otel v1.21.0 h1:hzLeKBZEL7Okw2mGzZ0cc4k/A7Fta0uoPgaJCr8fsFc=
+go.opentelemetry.io/otel v1.21.0/go.mod h1:QZzNPQPm1zLX4gZK4cMi+71eaorMSGT3A4znnUvNNEo=
+go.opentelemetry.io/otel/metric v1.21.0 h1:tlYWfeo+Bocx5kLEloTjbcDwBuELRrIFxwdQ36PlJu4=
+go.opentelemetry.io/otel/metric v1.21.0/go.mod h1:o1p3CA8nNHW8j5yuQLdc1eeqEaPfzug24uvsyIEJRWM=
+go.opentelemetry.io/otel/sdk v1.21.0 h1:FTt8qirL1EysG6sTQRZ5TokkU8d0ugCj8htOgThZXQ8=
+go.opentelemetry.io/otel/sdk v1.21.0/go.mod h1:Nna6Yv7PWTdgJHVRD9hIYywQBRx7pbox6nwBnZIxl/E=
+go.opentelemetry.io/otel/sdk/metric v1.21.0 h1:smhI5oD714d6jHE6Tie36fPx4WDFIg+Y6RfAY4ICcR0=
+go.opentelemetry.io/otel/sdk/metric v1.21.0/go.mod h1:FJ8RAsoPGv/wYMgBdUJXOm+6pzFY3YdljnXtv1SBE8Q=
+go.opentelemetry.io/otel/trace v1.21.0 h1:WD9i5gzvoUPuXIXH24ZNBudiarZDKuekPqi/E8fpfLc=
+go.opentelemetry.io/otel/trace v1.21.0/go.mod h1:LGbsEB0f9LGjN+OZaQQ26sohbOmiMR+BaslueVtS/qQ=
 go.uber.org/atomic v1.7.0/go.mod h1:fEN4uk6kAWBTFdckzkM89CLk9XfWZrxpCo0nPH17wJc=
 go.uber.org/atomic v1.11.0 h1:ZvwS0R+56ePWxUNi+Atn9dWONBPp/AUETXlHW0DxSjE=
 go.uber.org/atomic v1.11.0/go.mod h1:LUxbIzbOniOlMKjJjyPfpl4v+PKK2cNJn91OQbhoJI0=
@@ -633,8 +643,8 @@ golang.org/x/sync v0.0.0-20190423024810-112230192c58/go.mod h1:RxMgew5VJxzue5/jJ
 golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
 golang.org/x/sync v0.0.0-20201020160332-67f06af15bc9/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
 golang.org/x/sync v0.0.0-20210220032951-036812b2e83c/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
-golang.org/x/sync v0.4.0 h1:zxkM55ReGkDlKSM+Fu41A+zmbZuaPVbGMzvvdUPznYQ=
-golang.org/x/sync v0.4.0/go.mod h1:FU7BRWz2tNW+3quACPkgCx/L+uEAv1htQ0V83Z9Rj+Y=
+golang.org/x/sync v0.5.0 h1:60k92dhOjHxJkrqnwsfl8KuaHbn/5dl0lUPUklKo3qE=
+golang.org/x/sync v0.5.0/go.mod h1:Czt+wKu1gCyEFDUtn0jG5QVvpJ6rzVqr5aXyt9drQfk=
 golang.org/x/sys v0.0.0-20180810173357-98c5dad5d1a0/go.mod h1:STP8DvDyc/dI5b8T5hshtkjS+E42TnysNCUPdjciGhY=
 golang.org/x/sys v0.0.0-20180830151530-49385e6e1522/go.mod h1:STP8DvDyc/dI5b8T5hshtkjS+E42TnysNCUPdjciGhY=
 golang.org/x/sys v0.0.0-20180909124046-d0be0721c37e/go.mod h1:STP8DvDyc/dI5b8T5hshtkjS+E42TnysNCUPdjciGhY=
@@ -663,8 +673,8 @@ golang.org/x/sys v0.0.0-20220811171246-fbc7d0a398ab/go.mod h1:oPkhp1MJrh7nUepCBc
 golang.org/x/sys v0.0.0-20221010170243-090e33056c14/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/sys v0.2.0/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/sys v0.8.0/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
-golang.org/x/sys v0.13.0 h1:Af8nKPmuFypiUBjVoU9V20FiaFXOcuZI21p0ycVYYGE=
-golang.org/x/sys v0.13.0/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
+golang.org/x/sys v0.14.0 h1:Vz7Qs629MkJkGyHxUlRHizWJRG2j8fbQKjELVSNhy7Q=
+golang.org/x/sys v0.14.0/go.mod h1:/VUhepiaJMQUp4+oa/7Zr1D23ma6VTLIYjOOTFZPUcA=
 golang.org/x/term v0.0.0-20201126162022-7de9c90e9dd1/go.mod h1:bj7SfCRtBDWHUb9snDiAeCFNEtKQo2Wmx5Cou7ajbmo=
 golang.org/x/term v0.0.0-20210927222741-03fcf44c2211/go.mod h1:jbD1KX2456YbFQfuXm/mYQcufACuNUgVhRMnK/tPxf8=
 golang.org/x/term v0.13.0 h1:bb+I9cTfFazGW51MZqBVmZy7+JEJMouUHTUSKVQLBek=

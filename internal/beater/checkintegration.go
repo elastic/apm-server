@@ -106,6 +106,7 @@ func checkIntegrationInstalledKibana(ctx context.Context, kibanaClient *kibana.C
 	return result.Response.Status == "installed", nil
 }
 
+<<<<<<< HEAD
 func checkIntegrationInstalledElasticsearch(ctx context.Context, esClient *elasticsearch.Client, _ *logp.Logger) (bool, error) {
 	// TODO(axw) generate the list of expected index templates.
 	templates := []string{
@@ -114,6 +115,24 @@ func checkIntegrationInstalledElasticsearch(ctx context.Context, esClient *elast
 		"metrics-apm.app",
 		"metrics-apm.internal",
 		"logs-apm.error",
+=======
+// checkCreateDataStream attempts to create a traces-apm-<namespace> data stream,
+// returning an error if it could not be created. This will fail if there is no
+// index template matching the pattern.
+func checkCreateDataStream(ctx context.Context, esClient *elasticsearch.Client, namespace string) (bool, error) {
+	if _, err := createdatastream.NewCreateDataStreamFunc(esClient)("traces-apm-" + namespace).Do(ctx); err != nil {
+		var esError *types.ElasticsearchError
+		if errors.As(err, &esError) {
+			cause := esError.ErrorCause
+			if cause.Type == "resource_already_exists_exception" {
+				return true, nil
+			}
+			if cause.Reason != nil && strings.HasPrefix(*cause.Reason, "no matching index template") {
+				return false, nil
+			}
+		}
+		return false, err
+>>>>>>> 19c869099 (Update `go-docappender` dependency to latest (#12179))
 	}
 	for _, intervals := range []string{"1m", "10m", "60m"} {
 		for _, ds := range []string{"metrics-apm.transaction", "metrics-apm.service_transaction", "metrics-apm.service_destination", "metrics-apm.service_summary"} {
