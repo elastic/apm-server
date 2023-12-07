@@ -5,6 +5,10 @@ https://github.com/elastic/apm-server/compare/8.12\...main[View commits]
 
 [float]
 ==== Breaking Changes
+- Reverts a breaking change that ignored the beat name. This is visible in Stack Monitoring {pull}12176[12176]
+
+[float]
+==== Bug fixes
 
 [float]
 ==== Deprecations
