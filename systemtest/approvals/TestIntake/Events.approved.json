@@ -791,6 +791,12 @@
         "client.geo.location": [
             "dynamic"
         ],
+        "client.geo.region_iso_code": [
+            "dynamic"
+        ],
+        "client.geo.region_name": [
+            "dynamic"
+        ],
         "client.ip": [
             "12.53.12.1"
         ],
