@@ -134,8 +134,8 @@ github.com/elastic/apm-aggregation v0.0.0-20230815024520-e75a37d9ddd6 h1:Js+C3HE
 github.com/elastic/apm-aggregation v0.0.0-20230815024520-e75a37d9ddd6/go.mod h1:ba3gaJCuhxXN/O5AuiI56xxd6DukQdVOK0NfpzBntNo=
 github.com/elastic/apm-data v0.1.1-0.20231019120308-82201b991ae5 h1:URlDi0TZetSAo8KAIbaMZQhM5EG8+SDgs0jTen7WvMg=
 github.com/elastic/apm-data v0.1.1-0.20231019120308-82201b991ae5/go.mod h1:z4iJVl8vyQa5v5o7UapWGHTsycBKsKfJfILuf2TZpYo=
-github.com/elastic/beats/v7 v7.0.0-alpha2.0.20231205220247-16b713b6f919 h1:1POUDyn4hfYDUCyZyszu0HB2QDedgw0wCtxLjcSbsLA=
-github.com/elastic/beats/v7 v7.0.0-alpha2.0.20231205220247-16b713b6f919/go.mod h1:869SjZnUYQGSMvXKi8bxRh0rEa+JQpXV3pUcfkaXnN4=
+github.com/elastic/beats/v7 v7.0.0-alpha2.0.20231207115803-a8d1567d9286 h1:/79e5uCVzY1UnKDqPIcbIHxUlJpTM2421p9ELpFVWRc=
+github.com/elastic/beats/v7 v7.0.0-alpha2.0.20231207115803-a8d1567d9286/go.mod h1:zIajez4sWf8X42M1x7PolW+jp1wlk/+FYwOJ5H5064U=
 github.com/elastic/elastic-agent-autodiscover v0.6.5 h1:5DeMpuNc8c/tN6HN0A4A2uOFTNFHSg7xrKApzfhvF1U=
 github.com/elastic/elastic-agent-autodiscover v0.6.5/go.mod h1:chulyCAyZb/njMHgzkhC/yWnt8v/Y6eCRUhmFVnsA5o=
 github.com/elastic/elastic-agent-client/v7 v7.5.0 h1:niI3WQ+01Lnp2r5LxK8SyNhrPJe13vBiOkqrDRK2oTA=
@@ -535,8 +535,8 @@ go.elastic.co/apm/module/apmgorilla/v2 v2.4.4 h1:J/J5po3bdCJD6NhnJ+qjC6tvnVT3L/x
 go.elastic.co/apm/module/apmgorilla/v2 v2.4.4/go.mod h1:TFgGtb72KWjXDBuTkX+SWwSZipqHJYTQ5qIVlKvZkyg=
 go.elastic.co/apm/module/apmgrpc/v2 v2.4.4 h1:l4eMUb9H9Rj6CvQIbrVCDLnI0dkwEwTo6qeirBaBKus=
 go.elastic.co/apm/module/apmgrpc/v2 v2.4.4/go.mod h1:SSYfue+dyE7QKnXsvYhNu49U6vH+iG+R3cOYlkX9/og=
-go.elastic.co/apm/module/apmhttp/v2 v2.4.4 h1:BcJDLFztZByHiJRXXvAHY7bue9+vhzMLn2OBK5N8HDw=
-go.elastic.co/apm/module/apmhttp/v2 v2.4.4/go.mod h1:694qsHWRPVkfYqQ224ZSeRx9Dt2FS/xF1igNBGkHi6o=
+go.elastic.co/apm/module/apmhttp/v2 v2.4.7 h1:IL+DRK8ODO791ai/l1g/8dk6E3VPomiV0jbRIxBWbqM=
+go.elastic.co/apm/module/apmhttp/v2 v2.4.7/go.mod h1:Itj4PGNVO33Tpp/9UPf4A6pCezTmADRRi/ytLAGms24=
 go.elastic.co/apm/module/apmotel/v2 v2.4.4 h1:DTIGTLiAZTjshCco2ljLnf35Q9m1MiWXBctCGKeQhzE=
 go.elastic.co/apm/module/apmotel/v2 v2.4.4/go.mod h1:F14e5+BF+fmKs7jUH5i6C0tjzRUVrK4AbaNGw0z3mWk=
 go.elastic.co/apm/module/apmzap/v2 v2.4.4 h1:t1Ml4R5KapIoCJzem3d/bEaG0X7Gij0QijFPuf8wba8=
