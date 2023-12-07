@@ -112,7 +112,7 @@ func checkIntegrationInstalled(ctx context.Context, kibanaClient *kibana.Client,
 // returning an error if it could not be created. This will fail if there is no
 // index template matching the pattern.
 func checkCreateDataStream(ctx context.Context, esClient *elasticsearch.Client, namespace string) (bool, error) {
-	if _, err := createdatastream.New(esClient).Name("traces-apm-" + namespace).Do(ctx); err != nil {
+	if _, err := createdatastream.NewCreateDataStreamFunc(esClient)("traces-apm-" + namespace).Do(ctx); err != nil {
 		var esError *types.ElasticsearchError
 		if errors.As(err, &esError) {
 			cause := esError.ErrorCause

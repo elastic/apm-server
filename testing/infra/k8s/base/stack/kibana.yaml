@@ -12,6 +12,15 @@ spec:
     tls:
       selfSignedCertificate:
         disabled: true
+  monitoring:
+    metrics:
+      elasticsearchRefs:
+        - name: elasticsearch
+          namespace: default
+    logs:
+      elasticsearchRefs:
+        - name: elasticsearch
+          namespace: default
   podTemplate:
     spec:
       containers:
