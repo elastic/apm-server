@@ -7,6 +7,7 @@ https://github.com/elastic/apm-server/compare/8.11\...main[View commits]
 ==== Breaking Changes
 - The unsupported apm_data_stream_migration ingest pipeline has been removed {pull}12102[12102].
 - "publish_ready" is always false in the "GET /" response until events are received by apm-server {pull}12150[12150]
+- Reverts a breaking change that ignored the beat name. This is visible in Stack Monitoring {pull}12176[12176]
 
 [float]
 ==== Bug fixes
