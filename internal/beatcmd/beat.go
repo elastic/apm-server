@@ -102,6 +102,10 @@ func NewBeat(args BeatParams) (*Beat, error) {
 		return nil, err
 	}
 
+	beatName := cfg.Name
+	if beatName == "" {
+		beatName = hostname
+	}
 	b := &Beat{
 		Beat: beat.Beat{
 			Info: beat.Info{
@@ -109,7 +113,7 @@ func NewBeat(args BeatParams) (*Beat, error) {
 				ElasticLicensed: args.ElasticLicensed,
 				IndexPrefix:     "apm-server",
 				Version:         version.Version,
-				Name:            hostname,
+				Name:            beatName,
 				Hostname:        hostname,
 				StartTime:       time.Now(),
 				EphemeralID:     metricreport.EphemeralID(),
