@@ -75,7 +75,7 @@ func TestRunMaxProcs(t *testing.T) {
 
 func TestRunnerParams(t *testing.T) {
 	calls := make(chan RunnerParams, 1)
-	b := newBeat(t, "output.console.enabled: true", func(args RunnerParams) (Runner, error) {
+	b := newBeat(t, "output.console.enabled: true\nname: my-custom-name", func(args RunnerParams) (Runner, error) {
 		calls <- args
 		return newNopRunner(args), nil
 	})
@@ -86,6 +86,7 @@ func TestRunnerParams(t *testing.T) {
 	assert.Equal(t, "apm-server", args.Info.Beat)
 	assert.Equal(t, version.Version, args.Info.Version)
 	assert.True(t, args.Info.ElasticLicensed)
+	assert.Equal(t, "my-custom-name", b.Beat.Info.Name)
 	assert.NotZero(t, args.Info.ID)
 	assert.NotZero(t, args.Info.EphemeralID)
 	assert.NotZero(t, args.Info.FirstStart)
@@ -100,6 +101,7 @@ func TestRunnerParams(t *testing.T) {
 	err := args.Config.Unpack(&m)
 	require.NoError(t, err)
 	assert.Equal(t, map[string]interface{}{
+		"name": "my-custom-name",
 		"output": map[string]interface{}{
 			"console": map[string]interface{}{
 				"enabled": true,
