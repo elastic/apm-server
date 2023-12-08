@@ -62,11 +62,13 @@
     The original body of the monitored HTTP request.
 - name: http.request.env
   type: object
+  object_type: keyword
   dynamic: true
   description: |
     The CGI-like environment variables of the monitored HTTP request.
 - name: http.request.cookies
   type: object
+  object_type: keyword
   dynamic: true
   description: |
     The cookies of the monitored HTTP request.
@@ -294,6 +296,7 @@
   index: false
 - name: span.message.headers
   type: object
+  object_type: keyword
   dynamic: true
   description: The message headers
 - name: span.message.age.ms
@@ -375,6 +378,7 @@
   index: false
 - name: transaction.message.headers
   type: object
+  object_type: keyword
   dynamic: true
   description: The message headers
 - name: transaction.message.age.ms

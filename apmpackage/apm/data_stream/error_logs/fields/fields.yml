@@ -62,11 +62,13 @@
     The original body of the monitored HTTP request.
 - name: http.request.env
   type: object
+  object_type: keyword
   dynamic: true
   description: |
     The CGI-like environment variables of the monitored HTTP request.
 - name: http.request.cookies
   type: object
+  object_type: keyword
   dynamic: true
   description: |
     The cookies of the monitored HTTP request.
