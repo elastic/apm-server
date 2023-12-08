@@ -25,6 +25,7 @@ import (
 	"net/http"
 	"os"
 	"runtime"
+	"sync"
 	"time"
 
 	"github.com/dustin/go-humanize"
@@ -42,11 +43,9 @@ import (
 	_ "google.golang.org/grpc/encoding/gzip"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
-	"github.com/elastic/beats/v7/libbeat/esleg/eslegclient"
 	"github.com/elastic/beats/v7/libbeat/instrumentation"
 	"github.com/elastic/beats/v7/libbeat/licenser"
 	"github.com/elastic/beats/v7/libbeat/outputs"
-	esoutput "github.com/elastic/beats/v7/libbeat/outputs/elasticsearch"
 	"github.com/elastic/beats/v7/libbeat/publisher/pipeline"
 	"github.com/elastic/beats/v7/libbeat/publisher/pipetool"
 	agentconfig "github.com/elastic/elastic-agent-libs/config"
@@ -347,7 +346,13 @@ func (s *Runner) Run(ctx context.Context) error {
 	// any events to Elasticsearch before the integration is ready.
 	publishReady := make(chan struct{})
 	drain := make(chan struct{})
+	startWaitReady := make(chan struct{})
+	var waitReadyOnce sync.Once
 	g.Go(func() error {
+		select {
+		case <-ctx.Done():
+		case <-startWaitReady:
+		}
 		if err := s.waitReady(ctx, kibanaClient, tracer); err != nil {
 			// One or more preconditions failed; drop events.
 			close(drain)
@@ -358,24 +363,25 @@ func (s *Runner) Run(ctx context.Context) error {
 		close(publishReady)
 		return nil
 	})
-	callbackUUID, err := esoutput.RegisterConnectCallback(func(*eslegclient.Connection) error {
+	prePublish := func(ctx context.Context) error {
+		waitReadyOnce.Do(func() {
+			close(startWaitReady)
+		})
 		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-drain:
+			return errServerShuttingDown
 		case <-publishReady:
-			return nil
-		default:
 		}
-		return errors.New("not ready for publishing events")
-	})
-	if err != nil {
-		return err
+		return nil
 	}
-	defer esoutput.DeregisterConnectCallback(callbackUUID)
 	newElasticsearchClient := func(cfg *elasticsearch.Config) (*elasticsearch.Client, error) {
 		httpTransport, err := elasticsearch.NewHTTPTransport(cfg)
 		if err != nil {
 			return nil, err
 		}
-		transport := &waitReadyRoundTripper{Transport: httpTransport, ready: publishReady, drain: drain}
+		transport := &waitReadyRoundTripper{Transport: httpTransport, onBulk: prePublish}
 		return elasticsearch.NewClientParams(elasticsearch.ClientParams{
 			Config:    cfg,
 			Transport: transport,
@@ -432,7 +438,7 @@ func (s *Runner) Run(ctx context.Context) error {
 	// Create the BatchProcessor chain that is used to process all events,
 	// including the metrics aggregated by APM Server.
 	finalBatchProcessor, closeFinalBatchProcessor, err := s.newFinalBatchProcessor(
-		tracer, newElasticsearchClient, memLimitGB,
+		tracer, newElasticsearchClient, memLimitGB, prePublish,
 	)
 	if err != nil {
 		return err
@@ -647,7 +653,9 @@ func (s *Runner) waitReady(
 			return errors.New("cannot wait for integration without either Kibana or Elasticsearch config")
 		}
 		preconditions = append(preconditions, func(ctx context.Context) error {
-			return checkIntegrationInstalled(ctx, kibanaClient, esOutputClient, s.logger)
+			return checkIndexTemplatesInstalled(
+				ctx, kibanaClient, esOutputClient, s.config.DataStreams.Namespace, s.logger,
+			)
 		})
 	}
 
@@ -672,12 +680,13 @@ func (s *Runner) newFinalBatchProcessor(
 	tracer *apm.Tracer,
 	newElasticsearchClient func(cfg *elasticsearch.Config) (*elasticsearch.Client, error),
 	memLimit float64,
+	prePublish func(context.Context) error,
 ) (modelpb.BatchProcessor, func(context.Context) error, error) {
 
 	monitoring.Default.Remove("libbeat")
 	libbeatMonitoringRegistry := monitoring.Default.NewRegistry("libbeat")
 	if s.elasticsearchOutputConfig == nil {
-		return s.newLibbeatFinalBatchProcessor(tracer, libbeatMonitoringRegistry)
+		return s.newLibbeatFinalBatchProcessor(tracer, prePublish, libbeatMonitoringRegistry)
 	}
 
 	stateRegistry := monitoring.GetNamespace("state").GetRegistry()
@@ -700,8 +709,13 @@ func (s *Runner) newFinalBatchProcessor(
 	}
 	esConfig.FlushInterval = time.Second
 	esConfig.Config = elasticsearch.DefaultConfig()
+	esConfig.MaxIdleConnsPerHost = 10
 	if err := s.elasticsearchOutputConfig.Unpack(&esConfig); err != nil {
 		return nil, nil, err
+	}
+
+	if esConfig.MaxRequests != 0 {
+		esConfig.MaxIdleConnsPerHost = esConfig.MaxRequests
 	}
 
 	var flushBytes int
@@ -824,6 +838,7 @@ func docappenderConfig(
 
 func (s *Runner) newLibbeatFinalBatchProcessor(
 	tracer *apm.Tracer,
+	prePublish func(context.Context) error,
 	libbeatMonitoringRegistry *monitoring.Registry,
 ) (modelpb.BatchProcessor, func(context.Context) error, error) {
 	// When the publisher stops cleanly it will close its pipeline client,
@@ -884,7 +899,13 @@ func (s *Runner) newLibbeatFinalBatchProcessor(
 		}
 		return acker.Wait(ctx)
 	}
-	return publisher, stop, nil
+	processor := modelprocessor.Chained{
+		modelpb.ProcessBatchFunc(func(ctx context.Context, batch *modelpb.Batch) error {
+			return prePublish(ctx)
+		}),
+		publisher,
+	}
+	return processor, stop, nil
 }
 
 const sourcemapIndex = ".apm-source-map"

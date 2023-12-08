@@ -6,6 +6,12 @@
 - name: error.culprit
   type: keyword
   description: Function call which was the primary perpetrator of this event.
+- name: error.custom
+  type: flattened
+  description: Custom error context.
+- name: error.exception.attributes
+  type: flattened
+  description: Arbitrary attributes associated with the exception.
 - name: error.exception.code
   type: keyword
   description: The error code set when the error happened, e.g. database error code.
@@ -18,6 +24,10 @@
 - name: error.exception.module
   type: keyword
   description: The module namespace of the original error.
+- name: error.exception.stacktrace
+  type: flattened
+  description: |
+    Stacktrace identifying the instrumented source code corresponding to the error.
 - name: error.exception.type
   type: keyword
   description: The type of the original error, e.g. the Java exception class name.
@@ -42,9 +52,28 @@
   type: keyword
   description: |
     A parametrized message. E.g. 'Could not connect to %s'. The property message is still required, and should be equal to the param_message, but with placeholders replaced. In some situations the param_message is used to group errors together.
+- name: error.log.stacktrace
+  type: flattened
+  description: |
+    Stacktrace identifying the instrumented source code corresponding to the error.
+- name: http.request.body
+  type: flattened
+  description: |
+    The original body of the monitored HTTP request.
+- name: http.request.env
+  type: object
+  dynamic: true
+  description: |
+    The CGI-like environment variables of the monitored HTTP request.
+- name: http.request.cookies
+  type: object
+  dynamic: true
+  description: |
+    The cookies of the monitored HTTP request.
 - name: http.request.headers
   type: object
   object_type: keyword
+  dynamic: true
   description: |
     The canonical headers of the monitored HTTP request.
 - name: http.response.finished
@@ -54,8 +83,13 @@
 - name: http.response.headers
   type: object
   object_type: keyword
+  dynamic: true
   description: |
     The canonical headers of the monitored HTTP response.
+- name: http.response.headers_sent
+  type: boolean
+  description: |
+    Used by the Node agent to indicate whether HTTP response headers were sent.
 - name: kubernetes.namespace
   type: keyword
   description: |

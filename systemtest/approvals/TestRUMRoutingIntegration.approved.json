@@ -1,771 +1,1094 @@
-{
-    "events": [
-        {
-            "@timestamp": "dynamic",
-            "agent": {
-                "name": "js-base",
-                "version": "4.8.1"
-            },
-            "client": "dynamic",
-            "data_stream": {
-                "dataset": "apm.rum",
-                "namespace": "default",
-                "type": "traces"
-            },
-            "destination": {
-                "address": "localhost",
-                "port": 8003
-            },
-            "event": {
-                "outcome": "success"
-            },
-            "http": {
-                "request": {
-                    "method": "POST"
+[
+    {
+        "@timestamp": [
+            "dynamic"
+        ],
+        "agent.name": [
+            "js-base"
+        ],
+        "agent.version": [
+            "4.8.1"
+        ],
+        "client.ip": [
+            "dynamic"
+        ],
+        "data_stream.dataset": [
+            "apm.rum"
+        ],
+        "data_stream.namespace": [
+            "default"
+        ],
+        "data_stream.type": [
+            "traces"
+        ],
+        "destination.address": [
+            "localhost"
+        ],
+        "destination.port": [
+            8003
+        ],
+        "event.outcome": [
+            "success"
+        ],
+        "http.request.method": [
+            "POST"
+        ],
+        "http.response.status_code": [
+            200
+        ],
+        "labels.testTagKey": [
+            "testTagValue"
+        ],
+        "network.connection.type": [
+            "5G"
+        ],
+        "observer.hostname": [
+            "dynamic"
+        ],
+        "observer.type": [
+            "apm-server"
+        ],
+        "observer.version": [
+            "dynamic"
+        ],
+        "parent.id": [
+            "ec2e280be8345240"
+        ],
+        "processor.event": [
+            "span"
+        ],
+        "service.environment": [
+            "prod"
+        ],
+        "service.name": [
+            "apm-a-rum-test-e2e-general-usecase"
+        ],
+        "source.ip": [
+            "dynamic"
+        ],
+        "source.port": [
+            "dynamic"
+        ],
+        "span.destination.service.name": [
+            "http://localhost:8003"
+        ],
+        "span.destination.service.resource": [
+            "localhost:8003"
+        ],
+        "span.destination.service.type": [
+            "external"
+        ],
+        "span.duration.us": [
+            11584
+        ],
+        "span.id": [
+            "27f45fd274f976d4"
+        ],
+        "span.name": [
+            "POST http://localhost:8003/data"
+        ],
+        "span.subtype": [
+            "h"
+        ],
+        "span.sync": [
+            true
+        ],
+        "span.type": [
+            "external"
+        ],
+        "timestamp.us": [
+            "dynamic"
+        ],
+        "trace.id": [
+            "286ac3ad697892c406528f13c82e0ce1"
+        ],
+        "transaction.id": [
+            "ec2e280be8345240"
+        ],
+        "url.original": [
+            "http://localhost:8003/data"
+        ],
+        "url.original.text": [
+            "http://localhost:8003/data"
+        ]
+    },
+    {
+        "@timestamp": [
+            "dynamic"
+        ],
+        "agent.name": [
+            "js-base"
+        ],
+        "agent.version": [
+            "4.8.1"
+        ],
+        "client.ip": [
+            "dynamic"
+        ],
+        "data_stream.dataset": [
+            "apm.rum"
+        ],
+        "data_stream.namespace": [
+            "default"
+        ],
+        "data_stream.type": [
+            "traces"
+        ],
+        "destination.address": [
+            "localhost"
+        ],
+        "destination.port": [
+            8000
+        ],
+        "event.outcome": [
+            "success"
+        ],
+        "http.request.method": [
+            "GET"
+        ],
+        "http.response.status_code": [
+            200
+        ],
+        "labels.testTagKey": [
+            "testTagValue"
+        ],
+        "network.connection.type": [
+            "5G"
+        ],
+        "observer.hostname": [
+            "dynamic"
+        ],
+        "observer.type": [
+            "apm-server"
+        ],
+        "observer.version": [
+            "dynamic"
+        ],
+        "parent.id": [
+            "ec2e280be8345240"
+        ],
+        "processor.event": [
+            "span"
+        ],
+        "service.environment": [
+            "prod"
+        ],
+        "service.name": [
+            "apm-a-rum-test-e2e-general-usecase"
+        ],
+        "source.ip": [
+            "dynamic"
+        ],
+        "source.port": [
+            "dynamic"
+        ],
+        "span.destination.service.name": [
+            "http://localhost:8000"
+        ],
+        "span.destination.service.resource": [
+            "localhost:8000"
+        ],
+        "span.destination.service.type": [
+            "external"
+        ],
+        "span.duration.us": [
+            6724
+        ],
+        "span.id": [
+            "5ecb8ee030749715"
+        ],
+        "span.name": [
+            "GET /test/e2e/common/data.json"
+        ],
+        "span.subtype": [
+            "h"
+        ],
+        "span.sync": [
+            true
+        ],
+        "span.type": [
+            "external"
+        ],
+        "timestamp.us": [
+            "dynamic"
+        ],
+        "trace.id": [
+            "286ac3ad697892c406528f13c82e0ce1"
+        ],
+        "transaction.id": [
+            "ec2e280be8345240"
+        ],
+        "url.original": [
+            "http://localhost:8000/test/e2e/common/data.json?test=hamid"
+        ],
+        "url.original.text": [
+            "http://localhost:8000/test/e2e/common/data.json?test=hamid"
+        ]
+    },
+    {
+        "@timestamp": [
+            "dynamic"
+        ],
+        "agent.name": [
+            "js-base"
+        ],
+        "agent.version": [
+            "4.8.1"
+        ],
+        "client.ip": [
+            "dynamic"
+        ],
+        "data_stream.dataset": [
+            "apm.rum"
+        ],
+        "data_stream.namespace": [
+            "default"
+        ],
+        "data_stream.type": [
+            "traces"
+        ],
+        "event.outcome": [
+            "unknown"
+        ],
+        "labels.testTagKey": [
+            "testTagValue"
+        ],
+        "network.connection.type": [
+            "5G"
+        ],
+        "observer.hostname": [
+            "dynamic"
+        ],
+        "observer.type": [
+            "apm-server"
+        ],
+        "observer.version": [
+            "dynamic"
+        ],
+        "parent.id": [
+            "ec2e280be8345240"
+        ],
+        "processor.event": [
+            "span"
+        ],
+        "service.environment": [
+            "prod"
+        ],
+        "service.name": [
+            "apm-a-rum-test-e2e-general-usecase"
+        ],
+        "source.ip": [
+            "dynamic"
+        ],
+        "source.port": [
+            "dynamic"
+        ],
+        "span.duration.us": [
+            198070
+        ],
+        "span.id": [
+            "9b80535c4403c9fb"
+        ],
+        "span.name": [
+            "OpenTracing y"
+        ],
+        "span.type": [
+            "cu"
+        ],
+        "timestamp.us": [
+            "dynamic"
+        ],
+        "trace.id": [
+            "286ac3ad697892c406528f13c82e0ce1"
+        ],
+        "transaction.id": [
+            "ec2e280be8345240"
+        ]
+    },
+    {
+        "@timestamp": [
+            "dynamic"
+        ],
+        "agent.name": [
+            "js-base"
+        ],
+        "agent.version": [
+            "4.8.1"
+        ],
+        "client.ip": [
+            "dynamic"
+        ],
+        "data_stream.dataset": [
+            "apm.rum"
+        ],
+        "data_stream.namespace": [
+            "default"
+        ],
+        "data_stream.type": [
+            "traces"
+        ],
+        "destination.address": [
+            "localhost"
+        ],
+        "destination.port": [
+            8003
+        ],
+        "event.outcome": [
+            "success"
+        ],
+        "http.request.method": [
+            "POST"
+        ],
+        "http.response.status_code": [
+            200
+        ],
+        "labels.testTagKey": [
+            "testTagValue"
+        ],
+        "network.connection.type": [
+            "5G"
+        ],
+        "observer.hostname": [
+            "dynamic"
+        ],
+        "observer.type": [
+            "apm-server"
+        ],
+        "observer.version": [
+            "dynamic"
+        ],
+        "parent.id": [
+            "bbd8bcc3be14d814"
+        ],
+        "processor.event": [
+            "span"
+        ],
+        "service.environment": [
+            "prod"
+        ],
+        "service.name": [
+            "apm-a-rum-test-e2e-general-usecase"
+        ],
+        "source.ip": [
+            "dynamic"
+        ],
+        "source.port": [
+            "dynamic"
+        ],
+        "span.action": [
+            "action"
+        ],
+        "span.destination.service.name": [
+            "http://localhost:8003"
+        ],
+        "span.destination.service.resource": [
+            "localhost:8003"
+        ],
+        "span.destination.service.type": [
+            "external"
+        ],
+        "span.duration.us": [
+            15949
+        ],
+        "span.id": [
+            "a3c043330bc2015e"
+        ],
+        "span.name": [
+            "POST http://localhost:8003/fetch"
+        ],
+        "span.subtype": [
+            "h"
+        ],
+        "span.sync": [
+            false
+        ],
+        "span.type": [
+            "external"
+        ],
+        "timestamp.us": [
+            "dynamic"
+        ],
+        "trace.id": [
+            "286ac3ad697892c406528f13c82e0ce1"
+        ],
+        "transaction.id": [
+            "ec2e280be8345240"
+        ],
+        "url.original": [
+            "http://localhost:8003/fetch"
+        ],
+        "url.original.text": [
+            "http://localhost:8003/fetch"
+        ]
+    },
+    {
+        "@timestamp": [
+            "dynamic"
+        ],
+        "agent.name": [
+            "js-base"
+        ],
+        "agent.version": [
+            "4.8.1"
+        ],
+        "client.ip": [
+            "dynamic"
+        ],
+        "data_stream.dataset": [
+            "apm.rum"
+        ],
+        "data_stream.namespace": [
+            "default"
+        ],
+        "data_stream.type": [
+            "traces"
+        ],
+        "event.outcome": [
+            "unknown"
+        ],
+        "labels.testTagKey": [
+            "testTagValue"
+        ],
+        "network.connection.type": [
+            "5G"
+        ],
+        "observer.hostname": [
+            "dynamic"
+        ],
+        "observer.type": [
+            "apm-server"
+        ],
+        "observer.version": [
+            "dynamic"
+        ],
+        "parent.id": [
+            "ec2e280be8345240"
+        ],
+        "processor.event": [
+            "span"
+        ],
+        "service.environment": [
+            "prod"
+        ],
+        "service.name": [
+            "apm-a-rum-test-e2e-general-usecase"
+        ],
+        "source.ip": [
+            "dynamic"
+        ],
+        "source.port": [
+            "dynamic"
+        ],
+        "span.duration.us": [
+            2000
+        ],
+        "span.id": [
+            "bbd8bcc3be14d814"
+        ],
+        "span.name": [
+            "Requesting and receiving the document"
+        ],
+        "span.subtype": [
+            "browser-timing"
+        ],
+        "span.type": [
+            "hard-navigation"
+        ],
+        "timestamp.us": [
+            "dynamic"
+        ],
+        "trace.id": [
+            "286ac3ad697892c406528f13c82e0ce1"
+        ],
+        "transaction.id": [
+            "ec2e280be8345240"
+        ]
+    },
+    {
+        "@timestamp": [
+            "dynamic"
+        ],
+        "agent.name": [
+            "js-base"
+        ],
+        "agent.version": [
+            "4.8.1"
+        ],
+        "client.ip": [
+            "dynamic"
+        ],
+        "data_stream.dataset": [
+            "apm.rum"
+        ],
+        "data_stream.namespace": [
+            "default"
+        ],
+        "data_stream.type": [
+            "traces"
+        ],
+        "event.outcome": [
+            "success"
+        ],
+        "labels.testTagKey": [
+            "testTagValue"
+        ],
+        "network.connection.type": [
+            "5G"
+        ],
+        "observer.hostname": [
+            "dynamic"
+        ],
+        "observer.type": [
+            "apm-server"
+        ],
+        "observer.version": [
+            "dynamic"
+        ],
+        "parent.id": [
+            "ec2e280be8345240"
+        ],
+        "processor.event": [
+            "span"
+        ],
+        "service.environment": [
+            "prod"
+        ],
+        "service.name": [
+            "apm-a-rum-test-e2e-general-usecase"
+        ],
+        "source.ip": [
+            "dynamic"
+        ],
+        "source.port": [
+            "dynamic"
+        ],
+        "span.duration.us": [
+            2000
+        ],
+        "span.id": [
+            "bc7665dc25629379"
+        ],
+        "span.name": [
+            "Fire \"DOMContentLoaded\" event"
+        ],
+        "span.stacktrace": [
+            {
+                "abs_path": "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.min.js?token=secret",
+                "exclude_from_grouping": false,
+                "filename": "test/e2e/general-usecase/app.e2e-bundle.min.js?token=secret",
+                "function": "generateError",
+                "line": {
+                    "column": 9,
+                    "number": 7662
                 },
-                "response": {
-                    "status_code": 200
+                "sourcemap": {
+                    "error": "unable to find sourcemap.url for service.name=apm-a-rum-test-e2e-general-usecase service.version=0.0.1 bundle.path=http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.min.js"
                 }
             },
-            "labels": {
-                "testTagKey": "testTagValue"
-            },
-            "network": {
-                "connection": {
-                    "type": "5G"
+            {
+                "abs_path": "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.min.js?token=secret",
+                "exclude_from_grouping": false,
+                "filename": "test/e2e/general-usecase/app.e2e-bundle.min.js?token=secret",
+                "function": "\u003canonymous\u003e",
+                "line": {
+                    "column": 3,
+                    "number": 7666
+                },
+                "sourcemap": {
+                    "error": "unable to find sourcemap.url for service.name=apm-a-rum-test-e2e-general-usecase service.version=0.0.1 bundle.path=http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.min.js"
                 }
-            },
-            "observer": {
-                "hostname": "dynamic",
-                "type": "apm-server",
-                "version": "dynamic"
-            },
-            "parent": {
-                "id": "ec2e280be8345240"
-            },
-            "processor": {
-                "event": "span"
-            },
-            "service": {
-                "environment": "prod",
-                "name": "apm-a-rum-test-e2e-general-usecase"
-            },
-            "source": {
-                "ip": "dynamic",
-                "port": "dynamic"
-            },
-            "span": {
-                "destination": {
-                    "service": {
-                        "name": "http://localhost:8003",
-                        "resource": "localhost:8003",
-                        "type": "external"
-                    }
-                },
-                "duration": {
-                    "us": 11584
-                },
-                "id": "27f45fd274f976d4",
-                "name": "POST http://localhost:8003/data",
-                "subtype": "h",
-                "sync": true,
-                "type": "external"
-            },
-            "timestamp": {
-                "us": "dynamic"
-            },
-            "trace": {
-                "id": "286ac3ad697892c406528f13c82e0ce1"
-            },
-            "transaction": {
-                "id": "ec2e280be8345240"
-            },
-            "url": {
-                "original": "http://localhost:8003/data"
             }
-        },
-        {
-            "@timestamp": "dynamic",
-            "agent": {
-                "name": "js-base",
-                "version": "4.8.1"
-            },
-            "client": "dynamic",
-            "data_stream": {
-                "dataset": "apm.rum",
-                "namespace": "default",
-                "type": "traces"
-            },
-            "destination": {
-                "address": "localhost",
-                "port": 8000
-            },
-            "event": {
-                "outcome": "success"
-            },
-            "http": {
-                "request": {
-                    "method": "GET"
-                },
-                "response": {
-                    "status_code": 200
-                }
-            },
-            "labels": {
-                "testTagKey": "testTagValue"
-            },
-            "network": {
-                "connection": {
-                    "type": "5G"
-                }
-            },
-            "observer": {
-                "hostname": "dynamic",
-                "type": "apm-server",
-                "version": "dynamic"
-            },
-            "parent": {
-                "id": "ec2e280be8345240"
-            },
-            "processor": {
-                "event": "span"
-            },
-            "service": {
-                "environment": "prod",
-                "name": "apm-a-rum-test-e2e-general-usecase"
-            },
-            "source": {
-                "ip": "dynamic",
-                "port": "dynamic"
-            },
-            "span": {
-                "destination": {
-                    "service": {
-                        "name": "http://localhost:8000",
-                        "resource": "localhost:8000",
-                        "type": "external"
-                    }
-                },
-                "duration": {
-                    "us": 6724
-                },
-                "id": "5ecb8ee030749715",
-                "name": "GET /test/e2e/common/data.json",
-                "subtype": "h",
-                "sync": true,
-                "type": "external"
-            },
-            "timestamp": {
-                "us": "dynamic"
-            },
-            "trace": {
-                "id": "286ac3ad697892c406528f13c82e0ce1"
-            },
-            "transaction": {
-                "id": "ec2e280be8345240"
-            },
-            "url": {
-                "original": "http://localhost:8000/test/e2e/common/data.json?test=hamid"
+        ],
+        "span.subtype": [
+            "browser-timing"
+        ],
+        "span.type": [
+            "hard-navigation"
+        ],
+        "timestamp.us": [
+            "dynamic"
+        ],
+        "trace.id": [
+            "286ac3ad697892c406528f13c82e0ce1"
+        ],
+        "transaction.id": [
+            "ec2e280be8345240"
+        ]
+    },
+    {
+        "@timestamp": [
+            "dynamic"
+        ],
+        "agent.name": [
+            "js-base"
+        ],
+        "agent.version": [
+            "4.8.1"
+        ],
+        "client.ip": [
+            "dynamic"
+        ],
+        "data_stream.dataset": [
+            "apm.rum"
+        ],
+        "data_stream.namespace": [
+            "default"
+        ],
+        "data_stream.type": [
+            "traces"
+        ],
+        "destination.address": [
+            "localhost"
+        ],
+        "destination.port": [
+            8000
+        ],
+        "event.outcome": [
+            "unknown"
+        ],
+        "http.response.decoded_body_size": [
+            676864
+        ],
+        "http.response.encoded_body_size": [
+            676864
+        ],
+        "http.response.transfer_size": [
+            677175
+        ],
+        "labels.testTagKey": [
+            "testTagValue"
+        ],
+        "network.connection.type": [
+            "5G"
+        ],
+        "observer.hostname": [
+            "dynamic"
+        ],
+        "observer.type": [
+            "apm-server"
+        ],
+        "observer.version": [
+            "dynamic"
+        ],
+        "parent.id": [
+            "ec2e280be8345240"
+        ],
+        "processor.event": [
+            "span"
+        ],
+        "service.environment": [
+            "prod"
+        ],
+        "service.name": [
+            "apm-a-rum-test-e2e-general-usecase"
+        ],
+        "source.ip": [
+            "dynamic"
+        ],
+        "source.port": [
+            "dynamic"
+        ],
+        "span.destination.service.name": [
+            "http://localhost:8000"
+        ],
+        "span.destination.service.resource": [
+            "localhost:8000"
+        ],
+        "span.destination.service.type": [
+            "rc"
+        ],
+        "span.duration.us": [
+            35060
+        ],
+        "span.id": [
+            "fb8f717930697299"
+        ],
+        "span.name": [
+            "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.min.js"
+        ],
+        "span.subtype": [
+            "script"
+        ],
+        "span.type": [
+            "rc"
+        ],
+        "timestamp.us": [
+            "dynamic"
+        ],
+        "trace.id": [
+            "286ac3ad697892c406528f13c82e0ce1"
+        ],
+        "transaction.id": [
+            "ec2e280be8345240"
+        ],
+        "url.original": [
+            "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.min.js?token=REDACTED"
+        ],
+        "url.original.text": [
+            "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.min.js?token=REDACTED"
+        ]
+    },
+    {
+        "@timestamp": [
+            "dynamic"
+        ],
+        "agent.name": [
+            "js-base"
+        ],
+        "agent.version": [
+            "4.8.1"
+        ],
+        "client.ip": [
+            "dynamic"
+        ],
+        "data_stream.dataset": [
+            "apm.rum"
+        ],
+        "data_stream.namespace": [
+            "default"
+        ],
+        "data_stream.type": [
+            "traces"
+        ],
+        "event.outcome": [
+            "unknown"
+        ],
+        "labels.testTagKey": [
+            "testTagValue"
+        ],
+        "network.connection.type": [
+            "5G"
+        ],
+        "observer.hostname": [
+            "dynamic"
+        ],
+        "observer.type": [
+            "apm-server"
+        ],
+        "observer.version": [
+            "dynamic"
+        ],
+        "parent.id": [
+            "ec2e280be8345240"
+        ],
+        "processor.event": [
+            "span"
+        ],
+        "service.environment": [
+            "prod"
+        ],
+        "service.name": [
+            "apm-a-rum-test-e2e-general-usecase"
+        ],
+        "source.ip": [
+            "dynamic"
+        ],
+        "source.port": [
+            "dynamic"
+        ],
+        "span.duration.us": [
+            106000
+        ],
+        "span.id": [
+            "fc546e87a90a774f"
+        ],
+        "span.name": [
+            "Parsing the document, executing sy. scripts"
+        ],
+        "span.subtype": [
+            "browser-timing"
+        ],
+        "span.type": [
+            "hard-navigation"
+        ],
+        "timestamp.us": [
+            "dynamic"
+        ],
+        "trace.id": [
+            "286ac3ad697892c406528f13c82e0ce1"
+        ],
+        "transaction.id": [
+            "ec2e280be8345240"
+        ]
+    },
+    {
+        "@timestamp": [
+            "dynamic"
+        ],
+        "agent.name": [
+            "js-base"
+        ],
+        "agent.version": [
+            "4.8.1"
+        ],
+        "client.ip": [
+            "dynamic"
+        ],
+        "data_stream.dataset": [
+            "apm.rum"
+        ],
+        "data_stream.namespace": [
+            "default"
+        ],
+        "data_stream.type": [
+            "traces"
+        ],
+        "event.outcome": [
+            "success"
+        ],
+        "http.request.headers.Accept": [
+            "application/json"
+        ],
+        "http.request.method": [
+            "GET"
+        ],
+        "http.request.referrer": [
+            "http://localhost:8000/test/e2e/"
+        ],
+        "http.response.decoded_body_size": [
+            690
+        ],
+        "http.response.encoded_body_size": [
+            690
+        ],
+        "http.response.headers.Content-Type": [
+            "application/json"
+        ],
+        "http.response.status_code": [
+            200
+        ],
+        "http.response.transfer_size": [
+            983
+        ],
+        "http.version": [
+            "1.1"
+        ],
+        "labels.testTagKey": [
+            "testTagValue"
+        ],
+        "network.connection.type": [
+            "5G"
+        ],
+        "observer.hostname": [
+            "dynamic"
+        ],
+        "observer.type": [
+            "apm-server"
+        ],
+        "observer.version": [
+            "dynamic"
+        ],
+        "parent.id": [
+            "1ef08ac234fca23b455d9e27c660f1ab"
+        ],
+        "processor.event": [
+            "transaction"
+        ],
+        "service.environment": [
+            "prod"
+        ],
+        "service.framework.name": [
+            "angular"
+        ],
+        "service.framework.version": [
+            "2"
+        ],
+        "service.language.name": [
+            "javascript"
+        ],
+        "service.language.version": [
+            "6"
+        ],
+        "service.name": [
+            "apm-a-rum-test-e2e-general-usecase"
+        ],
+        "service.runtime.name": [
+            "v8"
+        ],
+        "service.runtime.version": [
+            "8.0"
+        ],
+        "service.version": [
+            "0.0.1"
+        ],
+        "source.ip": [
+            "dynamic"
+        ],
+        "source.port": [
+            "dynamic"
+        ],
+        "timestamp.us": [
+            "dynamic"
+        ],
+        "trace.id": [
+            "286ac3ad697892c406528f13c82e0ce1"
+        ],
+        "transaction.custom": [
+            {
+                "testContext": "testContext"
             }
-        },
-        {
-            "@timestamp": "dynamic",
-            "agent": {
-                "name": "js-base",
-                "version": "4.8.1"
-            },
-            "client": "dynamic",
-            "data_stream": {
-                "dataset": "apm.rum",
-                "namespace": "default",
-                "type": "traces"
-            },
-            "event": {
-                "outcome": "unknown"
-            },
-            "labels": {
-                "testTagKey": "testTagValue"
-            },
-            "network": {
-                "connection": {
-                    "type": "5G"
-                }
-            },
-            "observer": {
-                "hostname": "dynamic",
-                "type": "apm-server",
-                "version": "dynamic"
-            },
-            "parent": {
-                "id": "ec2e280be8345240"
-            },
-            "processor": {
-                "event": "span"
-            },
-            "service": {
-                "environment": "prod",
-                "name": "apm-a-rum-test-e2e-general-usecase"
-            },
-            "source": {
-                "ip": "dynamic",
-                "port": "dynamic"
-            },
-            "span": {
-                "duration": {
-                    "us": 198070
-                },
-                "id": "9b80535c4403c9fb",
-                "name": "OpenTracing y",
-                "type": "cu"
-            },
-            "timestamp": {
-                "us": "dynamic"
-            },
-            "trace": {
-                "id": "286ac3ad697892c406528f13c82e0ce1"
-            },
-            "transaction": {
-                "id": "ec2e280be8345240"
-            }
-        },
-        {
-            "@timestamp": "dynamic",
-            "agent": {
-                "name": "js-base",
-                "version": "4.8.1"
-            },
-            "client": "dynamic",
-            "data_stream": {
-                "dataset": "apm.rum",
-                "namespace": "default",
-                "type": "traces"
-            },
-            "destination": {
-                "address": "localhost",
-                "port": 8003
-            },
-            "event": {
-                "outcome": "success"
-            },
-            "http": {
-                "request": {
-                    "method": "POST"
-                },
-                "response": {
-                    "status_code": 200
-                }
-            },
-            "labels": {
-                "testTagKey": "testTagValue"
-            },
-            "network": {
-                "connection": {
-                    "type": "5G"
-                }
-            },
-            "observer": {
-                "hostname": "dynamic",
-                "type": "apm-server",
-                "version": "dynamic"
-            },
-            "parent": {
-                "id": "bbd8bcc3be14d814"
-            },
-            "processor": {
-                "event": "span"
-            },
-            "service": {
-                "environment": "prod",
-                "name": "apm-a-rum-test-e2e-general-usecase"
-            },
-            "source": {
-                "ip": "dynamic",
-                "port": "dynamic"
-            },
-            "span": {
-                "action": "action",
-                "destination": {
-                    "service": {
-                        "name": "http://localhost:8003",
-                        "resource": "localhost:8003",
-                        "type": "external"
-                    }
-                },
-                "duration": {
-                    "us": 15949
-                },
-                "id": "a3c043330bc2015e",
-                "name": "POST http://localhost:8003/fetch",
-                "subtype": "h",
-                "sync": false,
-                "type": "external"
-            },
-            "timestamp": {
-                "us": "dynamic"
-            },
-            "trace": {
-                "id": "286ac3ad697892c406528f13c82e0ce1"
-            },
-            "transaction": {
-                "id": "ec2e280be8345240"
-            },
-            "url": {
-                "original": "http://localhost:8003/fetch"
-            }
-        },
-        {
-            "@timestamp": "dynamic",
-            "agent": {
-                "name": "js-base",
-                "version": "4.8.1"
-            },
-            "client": "dynamic",
-            "data_stream": {
-                "dataset": "apm.rum",
-                "namespace": "default",
-                "type": "traces"
-            },
-            "event": {
-                "outcome": "unknown"
-            },
-            "labels": {
-                "testTagKey": "testTagValue"
-            },
-            "network": {
-                "connection": {
-                    "type": "5G"
-                }
-            },
-            "observer": {
-                "hostname": "dynamic",
-                "type": "apm-server",
-                "version": "dynamic"
-            },
-            "parent": {
-                "id": "ec2e280be8345240"
-            },
-            "processor": {
-                "event": "span"
-            },
-            "service": {
-                "environment": "prod",
-                "name": "apm-a-rum-test-e2e-general-usecase"
-            },
-            "source": {
-                "ip": "dynamic",
-                "port": "dynamic"
-            },
-            "span": {
-                "duration": {
-                    "us": 2000
-                },
-                "id": "bbd8bcc3be14d814",
-                "name": "Requesting and receiving the document",
-                "subtype": "browser-timing",
-                "type": "hard-navigation"
-            },
-            "timestamp": {
-                "us": "dynamic"
-            },
-            "trace": {
-                "id": "286ac3ad697892c406528f13c82e0ce1"
-            },
-            "transaction": {
-                "id": "ec2e280be8345240"
-            }
-        },
-        {
-            "@timestamp": "dynamic",
-            "agent": {
-                "name": "js-base",
-                "version": "4.8.1"
-            },
-            "client": "dynamic",
-            "data_stream": {
-                "dataset": "apm.rum",
-                "namespace": "default",
-                "type": "traces"
-            },
-            "event": {
-                "outcome": "success"
-            },
-            "labels": {
-                "testTagKey": "testTagValue"
-            },
-            "network": {
-                "connection": {
-                    "type": "5G"
-                }
-            },
-            "observer": {
-                "hostname": "dynamic",
-                "type": "apm-server",
-                "version": "dynamic"
-            },
-            "parent": {
-                "id": "ec2e280be8345240"
-            },
-            "processor": {
-                "event": "span"
-            },
-            "service": {
-                "environment": "prod",
-                "name": "apm-a-rum-test-e2e-general-usecase"
-            },
-            "source": {
-                "ip": "dynamic",
-                "port": "dynamic"
-            },
-            "span": {
-                "duration": {
-                    "us": 2000
-                },
-                "id": "bc7665dc25629379",
-                "name": "Fire \"DOMContentLoaded\" event",
-                "stacktrace": [
-                    {
-                        "abs_path": "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.min.js?token=secret",
-                        "exclude_from_grouping": false,
-                        "filename": "test/e2e/general-usecase/app.e2e-bundle.min.js?token=secret",
-                        "function": "generateError",
-                        "line": {
-                            "column": 9,
-                            "number": 7662
-                        },
-                        "sourcemap": {
-                            "error": "unable to find sourcemap.url for service.name=apm-a-rum-test-e2e-general-usecase service.version=0.0.1 bundle.path=http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.min.js"
-                        }
-                    },
-                    {
-                        "abs_path": "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.min.js?token=secret",
-                        "exclude_from_grouping": false,
-                        "filename": "test/e2e/general-usecase/app.e2e-bundle.min.js?token=secret",
-                        "function": "\u003canonymous\u003e",
-                        "line": {
-                            "column": 3,
-                            "number": 7666
-                        },
-                        "sourcemap": {
-                            "error": "unable to find sourcemap.url for service.name=apm-a-rum-test-e2e-general-usecase service.version=0.0.1 bundle.path=http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.min.js"
-                        }
-                    }
-                ],
-                "subtype": "browser-timing",
-                "type": "hard-navigation"
-            },
-            "timestamp": {
-                "us": "dynamic"
-            },
-            "trace": {
-                "id": "286ac3ad697892c406528f13c82e0ce1"
-            },
-            "transaction": {
-                "id": "ec2e280be8345240"
-            }
-        },
-        {
-            "@timestamp": "dynamic",
-            "agent": {
-                "name": "js-base",
-                "version": "4.8.1"
-            },
-            "client": "dynamic",
-            "data_stream": {
-                "dataset": "apm.rum",
-                "namespace": "default",
-                "type": "traces"
-            },
-            "destination": {
-                "address": "localhost",
-                "port": 8000
-            },
-            "event": {
-                "outcome": "unknown"
-            },
-            "http": {
-                "response": {
-                    "decoded_body_size": 676864,
-                    "encoded_body_size": 676864,
-                    "transfer_size": 677175
-                }
-            },
-            "labels": {
-                "testTagKey": "testTagValue"
-            },
-            "network": {
-                "connection": {
-                    "type": "5G"
-                }
-            },
-            "observer": {
-                "hostname": "dynamic",
-                "type": "apm-server",
-                "version": "dynamic"
-            },
-            "parent": {
-                "id": "ec2e280be8345240"
-            },
-            "processor": {
-                "event": "span"
-            },
-            "service": {
-                "environment": "prod",
-                "name": "apm-a-rum-test-e2e-general-usecase"
-            },
-            "source": {
-                "ip": "dynamic",
-                "port": "dynamic"
-            },
-            "span": {
-                "destination": {
-                    "service": {
-                        "name": "http://localhost:8000",
-                        "resource": "localhost:8000",
-                        "type": "rc"
-                    }
-                },
-                "duration": {
-                    "us": 35060
-                },
-                "id": "fb8f717930697299",
-                "name": "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.min.js",
-                "subtype": "script",
-                "type": "rc"
-            },
-            "timestamp": {
-                "us": "dynamic"
-            },
-            "trace": {
-                "id": "286ac3ad697892c406528f13c82e0ce1"
-            },
-            "transaction": {
-                "id": "ec2e280be8345240"
-            },
-            "url": {
-                "original": "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.min.js?token=REDACTED"
-            }
-        },
-        {
-            "@timestamp": "dynamic",
-            "agent": {
-                "name": "js-base",
-                "version": "4.8.1"
-            },
-            "client": "dynamic",
-            "data_stream": {
-                "dataset": "apm.rum",
-                "namespace": "default",
-                "type": "traces"
-            },
-            "event": {
-                "outcome": "unknown"
-            },
-            "labels": {
-                "testTagKey": "testTagValue"
-            },
-            "network": {
-                "connection": {
-                    "type": "5G"
-                }
-            },
-            "observer": {
-                "hostname": "dynamic",
-                "type": "apm-server",
-                "version": "dynamic"
-            },
-            "parent": {
-                "id": "ec2e280be8345240"
-            },
-            "processor": {
-                "event": "span"
-            },
-            "service": {
-                "environment": "prod",
-                "name": "apm-a-rum-test-e2e-general-usecase"
-            },
-            "source": {
-                "ip": "dynamic",
-                "port": "dynamic"
-            },
-            "span": {
-                "duration": {
-                    "us": 106000
-                },
-                "id": "fc546e87a90a774f",
-                "name": "Parsing the document, executing sy. scripts",
-                "subtype": "browser-timing",
-                "type": "hard-navigation"
-            },
-            "timestamp": {
-                "us": "dynamic"
-            },
-            "trace": {
-                "id": "286ac3ad697892c406528f13c82e0ce1"
-            },
-            "transaction": {
-                "id": "ec2e280be8345240"
-            }
-        },
-        {
-            "@timestamp": "dynamic",
-            "agent": {
-                "name": "js-base",
-                "version": "4.8.1"
-            },
-            "client": "dynamic",
-            "data_stream": {
-                "dataset": "apm.rum",
-                "namespace": "default",
-                "type": "traces"
-            },
-            "event": {
-                "outcome": "success"
-            },
-            "http": {
-                "request": {
-                    "headers": {
-                        "Accept": [
-                            "application/json"
-                        ]
-                    },
-                    "method": "GET",
-                    "referrer": "http://localhost:8000/test/e2e/"
-                },
-                "response": {
-                    "decoded_body_size": 690,
-                    "encoded_body_size": 690,
-                    "headers": {
-                        "Content-Type": [
-                            "application/json"
-                        ]
-                    },
-                    "status_code": 200,
-                    "transfer_size": 983
-                },
-                "version": "1.1"
-            },
-            "labels": {
-                "testTagKey": "testTagValue"
-            },
-            "network": {
-                "connection": {
-                    "type": "5G"
-                }
-            },
-            "observer": {
-                "hostname": "dynamic",
-                "type": "apm-server",
-                "version": "dynamic"
-            },
-            "parent": {
-                "id": "1ef08ac234fca23b455d9e27c660f1ab"
-            },
-            "processor": {
-                "event": "transaction"
-            },
-            "service": {
-                "environment": "prod",
-                "framework": {
-                    "name": "angular",
-                    "version": "2"
-                },
-                "language": {
-                    "name": "javascript",
-                    "version": "6"
-                },
-                "name": "apm-a-rum-test-e2e-general-usecase",
-                "runtime": {
-                    "name": "v8",
-                    "version": "8.0"
-                },
-                "version": "0.0.1"
-            },
-            "source": {
-                "ip": "dynamic",
-                "port": "dynamic"
-            },
-            "timestamp": {
-                "us": "dynamic"
-            },
-            "trace": {
-                "id": "286ac3ad697892c406528f13c82e0ce1"
-            },
-            "transaction": {
-                "custom": {
-                    "testContext": "testContext"
-                },
-                "duration": {
-                    "us": 295000
-                },
-                "experience": {
-                    "cls": 1,
-                    "fid": 2,
-                    "longtask": {
-                        "count": 3,
-                        "max": 1,
-                        "sum": 2.5
-                    },
-                    "tbt": 3.4
-                },
-                "id": "ec2e280be8345240",
-                "marks": {
-                    "agent": {
-                        "domComplete": 138,
-                        "domContentLoadedEventEnd": 110,
-                        "domContentLoadedEventStart": 100,
-                        "domInteractive": 120,
-                        "firstContentfulPaint": 70.82500003930181,
-                        "largestContentfulPaint": 131.03000004775822,
-                        "timeToFirstByte": 5
-                    },
-                    "navigationTiming": {
-                        "connectEnd": 0,
-                        "connectStart": 0,
-                        "domComplete": 138,
-                        "domContentLoadedEventEnd": 122,
-                        "domContentLoadedEventStart": 120,
-                        "domInteractive": 120,
-                        "domLoading": 14,
-                        "domainLookupEnd": 0,
-                        "domainLookupStart": 0,
-                        "fetchStart": 0,
-                        "loadEventEnd": 138,
-                        "loadEventStart": 138,
-                        "requestStart": 4,
-                        "responseEnd": 6,
-                        "responseStart": 5
-                    }
-                },
-                "name": "general-usecase-initial-p-load",
-                "representative_count": 1,
-                "sampled": true,
-                "span_count": {
-                    "dropped": 1,
-                    "started": 8
-                },
-                "type": "p-load"
-            },
-            "url": {
-                "domain": "localhost",
-                "full": "http://localhost:8000/test/e2e/general-usecase/",
-                "original": "http://localhost:8000/test/e2e/general-usecase/",
-                "path": "/test/e2e/general-usecase/",
-                "port": 8000,
-                "scheme": "http"
-            },
-            "user": {
-                "email": "em",
-                "id": "uId",
-                "name": "un"
-            },
-            "user_agent": {
-                "device": {
-                    "name": "Other"
-                },
-                "name": "Go-http-client",
-                "original": "Go-http-client/1.1",
-                "version": "1.1"
-            }
-        }
-    ]
-}
+        ],
+        "transaction.duration.us": [
+            295000
+        ],
+        "transaction.experience.cls": [
+            1
+        ],
+        "transaction.experience.fid": [
+            2
+        ],
+        "transaction.experience.longtask.count": [
+            3
+        ],
+        "transaction.experience.longtask.max": [
+            1
+        ],
+        "transaction.experience.longtask.sum": [
+            2.5
+        ],
+        "transaction.experience.tbt": [
+            3.4
+        ],
+        "transaction.id": [
+            "ec2e280be8345240"
+        ],
+        "transaction.marks.agent.domComplete": [
+            138
+        ],
+        "transaction.marks.agent.domContentLoadedEventEnd": [
+            110
+        ],
+        "transaction.marks.agent.domContentLoadedEventStart": [
+            100
+        ],
+        "transaction.marks.agent.domInteractive": [
+            120
+        ],
+        "transaction.marks.agent.firstContentfulPaint": [
+            70.825
+        ],
+        "transaction.marks.agent.largestContentfulPaint": [
+            131.03
+        ],
+        "transaction.marks.agent.timeToFirstByte": [
+            5
+        ],
+        "transaction.marks.navigationTiming.connectEnd": [
+            0
+        ],
+        "transaction.marks.navigationTiming.connectStart": [
+            0
+        ],
+        "transaction.marks.navigationTiming.domComplete": [
+            138
+        ],
+        "transaction.marks.navigationTiming.domContentLoadedEventEnd": [
+            122
+        ],
+        "transaction.marks.navigationTiming.domContentLoadedEventStart": [
+            120
+        ],
+        "transaction.marks.navigationTiming.domInteractive": [
+            120
+        ],
+        "transaction.marks.navigationTiming.domLoading": [
+            14
+        ],
+        "transaction.marks.navigationTiming.domainLookupEnd": [
+            0
+        ],
+        "transaction.marks.navigationTiming.domainLookupStart": [
+            0
+        ],
+        "transaction.marks.navigationTiming.fetchStart": [
+            0
+        ],
+        "transaction.marks.navigationTiming.loadEventEnd": [
+            138
+        ],
+        "transaction.marks.navigationTiming.loadEventStart": [
+            138
+        ],
+        "transaction.marks.navigationTiming.requestStart": [
+            4
+        ],
+        "transaction.marks.navigationTiming.responseEnd": [
+            6
+        ],
+        "transaction.marks.navigationTiming.responseStart": [
+            5
+        ],
+        "transaction.name": [
+            "general-usecase-initial-p-load"
+        ],
+        "transaction.name.text": [
+            "general-usecase-initial-p-load"
+        ],
+        "transaction.representative_count": [
+            1
+        ],
+        "transaction.sampled": [
+            true
+        ],
+        "transaction.span_count.dropped": [
+            1
+        ],
+        "transaction.span_count.started": [
+            8
+        ],
+        "transaction.type": [
+            "p-load"
+        ],
+        "url.domain": [
+            "localhost"
+        ],
+        "url.full": [
+            "http://localhost:8000/test/e2e/general-usecase/"
+        ],
+        "url.full.text": [
+            "http://localhost:8000/test/e2e/general-usecase/"
+        ],
+        "url.original": [
+            "http://localhost:8000/test/e2e/general-usecase/"
+        ],
+        "url.original.text": [
+            "http://localhost:8000/test/e2e/general-usecase/"
+        ],
+        "url.path": [
+            "/test/e2e/general-usecase/"
+        ],
+        "url.port": [
+            8000
+        ],
+        "url.scheme": [
+            "http"
+        ],
+        "user.email": [
+            "em"
+        ],
+        "user.id": [
+            "uId"
+        ],
+        "user.name": [
+            "un"
+        ],
+        "user.name.text": [
+            "un"
+        ],
+        "user_agent.device.name": [
+            "Other"
+        ],
+        "user_agent.name": [
+            "Go-http-client"
+        ],
+        "user_agent.original": [
+            "Go-http-client/1.1"
+        ],
+        "user_agent.original.text": [
+            "Go-http-client/1.1"
+        ],
+        "user_agent.version": [
+            "1.1"
+        ]
+    }
+]

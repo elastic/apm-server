@@ -21,6 +21,7 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"path"
 	"time"
 
 	"go.elastic.co/apm/v2"
@@ -71,27 +72,21 @@ func waitReady(
 }
 
 // waitReadyRoundTripper wraps a *net/http.Transport, ensuring the server's
-// indexing preconditions have been satisfied by waiting for "ready" channel
-// to be signalled, prior to allowing any requests through.
-//
-// This is used to prevent elasticsearch clients from proceeding with requests
-// until the APM integration is installed to ensure we don't index any documents
-// prior to the data stream index templates being ready.
+// indexing preconditions have been satisfied prior to allowing any indexing
+// requests through. This is used to ensure we don't index any documents prior
+// to the data stream index templates being ready.
 type waitReadyRoundTripper struct {
 	*http.Transport
-	ready <-chan struct{}
-	drain <-chan struct{}
+	onBulk func(context.Context) error
 }
 
 var errServerShuttingDown = errors.New("server shutting down")
 
 func (c *waitReadyRoundTripper) RoundTrip(r *http.Request) (*http.Response, error) {
-	select {
-	case <-c.drain:
-		return nil, errServerShuttingDown
-	case <-c.ready:
-	case <-r.Context().Done():
-		return nil, r.Context().Err()
+	if path.Base(r.URL.Path) == "_bulk" {
+		if err := c.onBulk(r.Context()); err != nil {
+			return nil, err
+		}
 	}
 	return c.Transport.RoundTrip(r)
 }

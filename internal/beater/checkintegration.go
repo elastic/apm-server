@@ -24,23 +24,26 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 
 	"github.com/pkg/errors"
-	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/elastic-agent-libs/logp"
 
 	"github.com/elastic/apm-server/internal/elasticsearch"
 	"github.com/elastic/apm-server/internal/kibana"
-	"github.com/elastic/go-elasticsearch/v8/esapi"
+	"github.com/elastic/go-elasticsearch/v8/typedapi/indices/createdatastream"
+	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 )
 
-// checkIntegrationInstalled checks if the APM integration is installed by querying Kibana
-// and/or Elasticsearch, returning nil if and only if it is installed.
-func checkIntegrationInstalled(
+// checkIndexTemplatesInstalled checks if the APM index templates are installed by querying the
+// APM integration status via Kibana, or by attempting to create a data stream via Elasticsearch,
+// returning nil if and only if it is installed.
+func checkIndexTemplatesInstalled(
 	ctx context.Context,
 	kibanaClient *kibana.Client,
 	esClient *elasticsearch.Client,
+	namespace string,
 	logger *logp.Logger,
 ) (err error) {
 	defer func() {
@@ -53,29 +56,28 @@ func checkIntegrationInstalled(
 			}
 		}
 	}()
+	if esClient != nil {
+		installed, err := checkCreateDataStream(ctx, esClient, namespace)
+		if err != nil {
+			return fmt.Errorf("error checking Elasticsearch index template setup: %w", err)
+		}
+		if !installed {
+			return errors.New("index templates not installed")
+		}
+		return nil
+	}
 	if kibanaClient != nil {
-		installed, err := checkIntegrationInstalledKibana(ctx, kibanaClient, logger)
+		installed, err := checkIntegrationInstalled(ctx, kibanaClient, logger)
 		if err != nil {
 			// We only return the Kibana error if we have no Elasticsearch client,
 			// as we may not have sufficient privileges to query the Fleet API.
 			if esClient == nil {
 				return fmt.Errorf("error querying Kibana for integration package status: %w", err)
 			}
-		} else if !installed {
-			// We were able to query Kibana, but the package is not yet installed.
-			// We should continue querying the package status via Kibana, as it is
-			// more authoritative than checking for index template installation.
-			return errors.New("integration package not yet installed")
 		}
-		// Fall through and query Elasticsearch (if we have a client). Kibana may prematurely
-		// report packages as installed: https://github.com/elastic/kibana/issues/108649
-	}
-	if esClient != nil {
-		installed, err := checkIntegrationInstalledElasticsearch(ctx, esClient, logger)
-		if err != nil {
-			return fmt.Errorf("error querying Elasticsearch for integration index templates: %w", err)
-		} else if !installed {
-			return errors.New("integration index templates not installed")
+		if !installed {
+			// We were able to query Kibana, but the package is not yet installed.
+			return errors.New("integration package not yet installed")
 		}
 	}
 	return nil
@@ -83,7 +85,7 @@ func checkIntegrationInstalled(
 
 // checkIntegrationInstalledKibana checks if the APM integration package
 // is installed by querying Kibana.
-func checkIntegrationInstalledKibana(ctx context.Context, kibanaClient *kibana.Client, logger *logp.Logger) (bool, error) {
+func checkIntegrationInstalled(ctx context.Context, kibanaClient *kibana.Client, logger *logp.Logger) (bool, error) {
 	resp, err := kibanaClient.Send(ctx, "GET", "/api/fleet/epm/packages/apm", nil, nil, nil)
 	if err != nil {
 		return false, err
@@ -106,41 +108,22 @@ func checkIntegrationInstalledKibana(ctx context.Context, kibanaClient *kibana.C
 	return result.Response.Status == "installed", nil
 }
 
-func checkIntegrationInstalledElasticsearch(ctx context.Context, esClient *elasticsearch.Client, _ *logp.Logger) (bool, error) {
-	// TODO(axw) generate the list of expected index templates.
-	templates := []string{
-		"traces-apm",
-		"traces-apm.sampled",
-		"metrics-apm.app",
-		"metrics-apm.internal",
-		"logs-apm.error",
-	}
-	for _, intervals := range []string{"1m", "10m", "60m"} {
-		for _, ds := range []string{"metrics-apm.transaction", "metrics-apm.service_transaction", "metrics-apm.service_destination", "metrics-apm.service_summary"} {
-			templates = append(templates, fmt.Sprintf("%s.%s", ds, intervals))
+// checkCreateDataStream attempts to create a traces-apm-<namespace> data stream,
+// returning an error if it could not be created. This will fail if there is no
+// index template matching the pattern.
+func checkCreateDataStream(ctx context.Context, esClient *elasticsearch.Client, namespace string) (bool, error) {
+	if _, err := createdatastream.NewCreateDataStreamFunc(esClient)("traces-apm-" + namespace).Do(ctx); err != nil {
+		var esError *types.ElasticsearchError
+		if errors.As(err, &esError) {
+			cause := esError.ErrorCause
+			if cause.Type == "resource_already_exists_exception" {
+				return true, nil
+			}
+			if cause.Reason != nil && strings.HasPrefix(*cause.Reason, "no matching index template") {
+				return false, nil
+			}
 		}
+		return false, err
 	}
-	// IndicesGetIndexTemplateRequest accepts a slice of template names,
-	// but the REST API expects just one index template name. Query them
-	// in parallel.
-	g, ctx := errgroup.WithContext(ctx)
-	for _, template := range templates {
-		template := template // copy for closure
-		g.Go(func() error {
-			req := esapi.IndicesGetIndexTemplateRequest{Name: template}
-			resp, err := req.Do(ctx, esClient)
-			if err != nil {
-				return err
-			}
-			defer resp.Body.Close()
-
-			if resp.IsError() {
-				body, _ := io.ReadAll(resp.Body)
-				return fmt.Errorf("unexpected HTTP status: %s (%s)", resp.Status(), bytes.TrimSpace(body))
-			}
-			return nil
-		})
-	}
-	err := g.Wait()
-	return err == nil, err
+	return true, nil
 }

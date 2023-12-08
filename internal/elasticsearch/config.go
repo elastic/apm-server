@@ -44,18 +44,19 @@ var (
 
 // Config holds all configurable fields that are used to create a Client
 type Config struct {
-	Hosts        Hosts             `config:"hosts" validate:"required"`
-	Protocol     string            `config:"protocol"`
-	Path         string            `config:"path"`
-	ProxyURL     string            `config:"proxy_url"`
-	ProxyDisable bool              `config:"proxy_disable"`
-	Timeout      time.Duration     `config:"timeout"`
-	TLS          *tlscommon.Config `config:"ssl"`
-	Username     string            `config:"username"`
-	Password     string            `config:"password"`
-	APIKey       string            `config:"api_key"`
-	Headers      map[string]string `config:"headers"`
-	MaxRetries   int               `config:"max_retries"`
+	Hosts               Hosts             `config:"hosts" validate:"required"`
+	Protocol            string            `config:"protocol"`
+	Path                string            `config:"path"`
+	ProxyURL            string            `config:"proxy_url"`
+	ProxyDisable        bool              `config:"proxy_disable"`
+	Timeout             time.Duration     `config:"timeout"`
+	TLS                 *tlscommon.Config `config:"ssl"`
+	Username            string            `config:"username"`
+	Password            string            `config:"password"`
+	APIKey              string            `config:"api_key"`
+	Headers             map[string]string `config:"headers"`
+	MaxRetries          int               `config:"max_retries"`
+	MaxIdleConnsPerHost int               `config:",ignore"`
 
 	// CompressionLevel holds the gzip compression level used when bulk indexing
 	// with go-docappender; it is otherwise ignored.
@@ -145,9 +146,10 @@ func NewHTTPTransport(cfg *Config) (*http.Transport, error) {
 	dialer := transport.NetDialer(cfg.Timeout)
 	tlsDialer := transport.TLSDialer(dialer, tlsConfig, cfg.Timeout)
 	return &http.Transport{
-		Proxy:           proxy,
-		Dial:            dialer.Dial,
-		DialTLS:         tlsDialer.Dial,
-		TLSClientConfig: tlsConfig.ToConfig(),
+		Proxy:               proxy,
+		Dial:                dialer.Dial,
+		DialTLS:             tlsDialer.Dial,
+		TLSClientConfig:     tlsConfig.ToConfig(),
+		MaxIdleConnsPerHost: cfg.MaxIdleConnsPerHost,
 	}, nil
 }

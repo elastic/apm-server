@@ -1,64 +1,79 @@
-{
-    "events": [
-        {
-            "@timestamp": "1970-01-01T00:00:01.000Z",
-            "agent": {
-                "name": "android/java",
-                "version": "unknown"
-            },
-            "client": {
-                "geo": {
-                    "continent_name": "Europe",
-                    "country_iso_code": "DE",
-                    "country_name": "Germany",
-                    "location": {
-                        "lat": "dynamic",
-                        "lon": "dynamic"
-                    }
-                },
-                "ip": "178.162.206.244"
-            },
-            "data_stream": {
-                "dataset": "apm.app.unknown",
-                "namespace": "default",
-                "type": "logs"
-            },
-            "event": {
-                "severity": 9
-            },
-            "labels": {
-                "key": "value"
-            },
-            "log": {
-                "level": "Info"
-            },
-            "message": "a log message",
-            "numeric_labels": {
-                "numeric_key": 1234
-            },
-            "observer": {
-                "hostname": "dynamic",
-                "type": "apm-server",
-                "version": "dynamic"
-            },
-            "service": {
-                "language": {
-                    "name": "java"
-                },
-                "name": "unknown"
-            },
-            "source": {
-                "ip": "178.162.206.244",
-                "nat": {
-                    "ip": "127.0.0.1"
-                }
-            },
-            "span": {
-                "id": "0200000000000000"
-            },
-            "trace": {
-                "id": "01000000000000000000000000000000"
-            }
-        }
-    ]
-}
+[
+    {
+        "@timestamp": [
+            "1970-01-01T00:00:01.000Z"
+        ],
+        "agent.name": [
+            "android/java"
+        ],
+        "agent.version": [
+            "unknown"
+        ],
+        "client.geo.continent_name": [
+            "Europe"
+        ],
+        "client.geo.country_iso_code": [
+            "DE"
+        ],
+        "client.geo.country_name": [
+            "Germany"
+        ],
+        "client.geo.location": [
+            "dynamic"
+        ],
+        "client.ip": [
+            "178.162.206.244"
+        ],
+        "data_stream.dataset": [
+            "apm.app.unknown"
+        ],
+        "data_stream.namespace": [
+            "default"
+        ],
+        "data_stream.type": [
+            "logs"
+        ],
+        "event.severity": [
+            9
+        ],
+        "labels.key": [
+            "value"
+        ],
+        "log.level": [
+            "Info"
+        ],
+        "message": [
+            "a log message"
+        ],
+        "numeric_labels.numeric_key": [
+            1234
+        ],
+        "observer.hostname": [
+            "dynamic"
+        ],
+        "observer.type": [
+            "apm-server"
+        ],
+        "observer.version": [
+            "dynamic"
+        ],
+        "service.language.name": [
+            "java"
+        ],
+        "service.name": [
+            "unknown"
+        ],
+        "source.ip": [
+            "178.162.206.244"
+        ],
+        "source.nat.ip": [
+            "127.0.0.1"
+        ],
+        "span.id": [
+            "0200000000000000"
+        ],
+        "trace.id": [
+            "01000000000000000000000000000000"
+        ]
+    }
+]

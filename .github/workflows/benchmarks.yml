@@ -166,7 +166,7 @@ jobs:
         uses: elastic/apm-pipeline-library/.github/actions/notify-build-status@current
         with:
           message: |
-            Nightly benchmarks failed! SDH Duty assignee, please have a look and follow this <https://github.com/elastic/observability-dev/blob/main/docs/apm/apm-server/runbooks/benchmarks.md|Runbook>!
+            Nightly APM Server benchmarks failed! SDH Duty assignee, please have a look and follow this <https://github.com/elastic/observability-dev/blob/main/docs/apm/apm-server/runbooks/benchmarks.md|Runbook>!
           vaultUrl: ${{ secrets.VAULT_ADDR }}
           vaultRoleId: ${{ secrets.VAULT_ROLE_ID }}
           vaultSecretId: ${{ secrets.VAULT_SECRET_ID }}
@@ -187,7 +187,7 @@ jobs:
                         "type": "section",
                         "text": {
                             "type": "mrkdwn",
-                            "text": "${{ github.event_name == 'schedule' && 'Nightly succesfully executed!' || 'Benchmarks succesfully executed!' }}"
+                            "text": "${{ github.event_name == 'schedule' && 'Nightly' || '' }} APM Server benchmarks succesfully executed!"
                         },
                         "accessory": {
                             "type": "button",
