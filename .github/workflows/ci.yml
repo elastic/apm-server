@@ -14,8 +14,13 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
+<<<<<<< HEAD
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v3
+=======
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+>>>>>>> 08ba66979 (build(deps): bump the github-actions group with 1 update (#12194))
         with:
           go-version-file: .go-version
           cache: true
@@ -31,8 +36,13 @@ jobs:
         os: ['macos-latest', 'windows-latest', 'ubuntu-latest']
     runs-on: ${{ matrix.os }}
     steps:
+<<<<<<< HEAD
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v3
+=======
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+>>>>>>> 08ba66979 (build(deps): bump the github-actions group with 1 update (#12194))
         with:
           go-version-file: .go-version
           cache: true
@@ -43,11 +53,16 @@ jobs:
   python-system-tests:
     runs-on: ubuntu-latest
     steps:
+<<<<<<< HEAD
       - uses: actions/checkout@v3
       # As long as there are some disk space issues with the CI runners.
       - name: Free Disk Space
         continue-on-error: true
         uses: jlumbroso/free-disk-space@f68fdb76e2ea636224182cfb7377ff9a1708f9b8
+=======
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+>>>>>>> 08ba66979 (build(deps): bump the github-actions group with 1 update (#12194))
         with:
           android: true
           dotnet: true
