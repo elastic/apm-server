@@ -102,7 +102,7 @@ clean:
 ##############################################################################
 
 .PHONY: check-full
-check-full: update check staticcheck check-docker-compose
+check-full: update check staticcheck
 
 .PHONY: check-approvals
 check-approvals:
@@ -244,10 +244,6 @@ ifndef CHECK_HEADERS_DISABLED
 	@$(GOLICENSER) -d -exclude build -exclude x-pack
 	@$(GOLICENSER) -d -exclude build -license Elasticv2 x-pack
 endif
-
-.PHONY: check-docker-compose
-check-docker-compose:
-	./script/check_docker_compose.sh $(BEATS_VERSION)
 
 check-package: build-package $(ELASTICPACKAGE)
 	@(cd build/apmpackage && $(ELASTICPACKAGE) format --fail-fast && $(ELASTICPACKAGE) lint)
