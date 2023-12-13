@@ -8,16 +8,13 @@
             },
             "client": {
                 "geo": {
-                    "city_name": "Berlin",
                     "continent_name": "Europe",
                     "country_iso_code": "DE",
                     "country_name": "Germany",
                     "location": {
                         "lat": "dynamic",
                         "lon": "dynamic"
-                    },
-                    "region_iso_code": "DE-BE",
-                    "region_name": "Land Berlin"
+                    }
                 },
                 "ip": "178.162.206.244"
             },
