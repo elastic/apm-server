@@ -13,7 +13,7 @@
 * <<cross-cluster-search>>
 * <<span-compression>>
 * <<monitoring-aws-lambda>>
-* <<apm-mutating-admission-webhook>>
+* <<apm-k8s-attacher>>
 
 include::./apm-data-security.asciidoc[]
 
