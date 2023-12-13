@@ -1,5 +1,6 @@
 - name: metricset.interval
   type: constant_keyword
+  value: {{ .Interval }}
   description: Metricset aggregation interval.
 - name: faas.coldstart
   type: boolean
@@ -27,6 +28,7 @@
     Kubernetes pod name
 - name: metricset.name
   type: constant_keyword
+  value: transaction
   description: |
     Name of the set of metrics.
 - name: processor.event

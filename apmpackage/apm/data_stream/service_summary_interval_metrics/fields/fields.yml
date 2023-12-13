@@ -1,8 +1,10 @@
 - name: metricset.name
   type: constant_keyword
+  value: service_summary
   description: Name of the set of metrics.
 - name: metricset.interval
   type: constant_keyword
+  value: {{ .Interval }}
   description: Metricset aggregation interval.
 - name: processor.event
   type: constant_keyword
