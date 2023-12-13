@@ -1,7 +1,13 @@
-[[release-notes-head]]
-== APM version HEAD
+[[release-notes-8.12]]
+== APM version 8.12
 
-https://github.com/elastic/apm-server/compare/8.11\...main[View commits]
+https://github.com/elastic/apm-server/compare/8.11\...8.12[View commits]
+
+* <<release-notes-8.12.0>>
+
+[float]
+[[release-notes-8.12.0]]
+=== APM version 8.12.0
 
 [float]
 ==== Breaking Changes
@@ -11,12 +17,6 @@ https://github.com/elastic/apm-server/compare/8.11\...main[View commits]
 [float]
 ==== Bug fixes
 - Switch built-in ILM rollover policies from max_size to max_primary_shard_size {pull}11729[11729].
-
-[float]
-==== Deprecations
-
-[float]
-==== Intake API Changes
 
 [float]
 ==== Added
