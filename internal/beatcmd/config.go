@@ -35,6 +35,10 @@ type Config struct {
 	// APMServer holds apm-server.* configuration.
 	APMServer *config.C `config:"apm-server"`
 
+	// Allow overwriting beat.Info.Name. This is mainly for stack monitoring
+	// and reporting purposes.
+	Name string `config:"name"`
+
 	MaxProcs  int `config:"max_procs"`
 	GCPercent int `config:"gc_percent"`
 
