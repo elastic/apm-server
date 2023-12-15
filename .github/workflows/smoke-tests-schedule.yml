@@ -11,25 +11,12 @@ permissions:
   contents: read
 
 jobs:
-  prepare-smoke-tests-os:
-    name: Generate smoke tests list
-    runs-on: ubuntu-latest
-    outputs:
-      matrix: ${{ steps.generate.outputs.matrix }}
-    steps:
-      - uses: actions/checkout@v4
-      - id: generate
-        name: Generate matrix
-        uses: elastic/apm-pipeline-library/.github/actions/elastic-stack-snapshot-branches@current
-        with:
-          exclude-branches: '7.17'
-
   smoke-tests-os:
     name: Run smoke tests OS
-    needs: prepare-smoke-tests-os
     strategy:
       fail-fast: false
-      matrix: ${{ fromJSON(needs.prepare-smoke-tests-os.outputs.matrix) }}
+      matrix: 
+        branch: ["test/latest-version-smoke-tests"]
     uses: ./.github/workflows/smoke-tests-os.yml
     with:
       branch: ${{ matrix.branch }}
@@ -39,7 +26,7 @@ jobs:
     name: Run smoke tests ESS
     uses: ./.github/workflows/smoke-tests-ess.yml
     with:
-      branch: 'main'
+      branch: 'test/latest-version-smoke-tests'
     secrets: inherit
 
   all-smoke-tests:
