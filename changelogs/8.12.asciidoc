@@ -1,0 +1,27 @@
+[[release-notes-8.12]]
+== APM version 8.12
+
+https://github.com/elastic/apm-server/compare/8.11\...8.12[View commits]
+
+* <<release-notes-8.12.0>>
+
+[float]
+[[release-notes-8.12.0]]
+=== APM version 8.12.0
+
+[float]
+==== Breaking Changes
+- The unsupported apm_data_stream_migration ingest pipeline has been removed {pull}12102[12102].
+- "publish_ready" is always false in the "GET /" response until events are received by apm-server {pull}12150[12150]
+
+[float]
+==== Bug fixes
+- Switch built-in ILM rollover policies from max_size to max_primary_shard_size {pull}11729[11729].
+
+[float]
+==== Added
+- Update container base image to Ubuntu 22.04 {pull}11778[11778]
+- Add support for returning partial success response in OTLP input {pull}11883[11883]
+- Setting event timestamp from OTel observed timestamp when needed {pull}11935[11935]
+- Field mappings have been added for various formerly unindexed fields {pull}12102[12102]
+- We now assert that index templates are installed by attempting to create data streams {pull}12150[12150]
