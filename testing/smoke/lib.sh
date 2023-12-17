@@ -17,7 +17,8 @@ get_versions() {
     local RC=0
     RES=$(curl_fail -H "Authorization: ApiKey ${EC_API_KEY}" ${EC_VERSION_ENDPOINT}) || RC=$?
     if [ $RC -ne 0 ]; then echo "${RES}"; fi
-    VERSIONS=$(echo "${RES}" | jq -r -c '[.stacks[].version | select(. | contains("-") | not)] | sort')
+    # NOTE: jq with semver requires some numeric transformation with sort_by
+    VERSIONS=$(echo "${RES}" | jq -r -c '[.stacks[].version | select(. | contains("-") | not)] | sort_by(.| split(".") | map(tonumber))')
 }
 
 get_latest_patch() {
@@ -38,7 +39,9 @@ get_latest_snapshot() {
     local RC=0
     RES=$(curl_fail -H "Authorization: ApiKey ${EC_API_KEY}" ${EC_VERSION_ENDPOINT}) || RC=$?
     if [ $RC -ne 0 ]; then echo "${RES}"; fi
-    VERSIONS=$(echo "${RES}" | jq -r -c '[.stacks[].version | select(. | contains("-"))] | sort')
+    # NOTE: semver with SNAPSHOT is not working when using the sort_by function in jq,
+    #       that's the reason for transforming the SNAPSHOT in a semver 4 digits.
+    VERSIONS=$(echo "${RES}" | jq -r -c '[.stacks[].version | select(. | contains("-SNAPSHOT"))] | sort' | sed 's#-SNAPSHOT#.0#g' | jq -r -c ' sort_by(.| split(".") | map(tonumber))' | sed 's#.0"#-SNAPSHOT"#g' | jq -r -c .)
 }
 
 terraform_init() {
