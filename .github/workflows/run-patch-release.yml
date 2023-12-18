@@ -1,0 +1,39 @@
+---
+name: run-patch-release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'The version (semver format: major.minor.patch)'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+env:
+  SLACK_CHANNEL: "#apm-server"
+
+jobs:
+  run-patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - run: make patch-release
+        env:
+          NEXT_RELEASE: ${{ inputs.version }}
+
+      - uses: elastic/apm-pipeline-library/.github/actions/slack-message@current
+        with:
+          url: ${{ secrets.VAULT_ADDR }}
+          roleId: ${{ secrets.VAULT_ROLE_ID }}
+          secretId: ${{ secrets.VAULT_SECRET_ID }}
+          channel: ${{ env.SLACK_CHANNEL }}
+          message: |-
+            :wave:
+              Feature freeze for `apm-server@{{ env.NEXT_RELEASE }}` is Today. started.
+              And all the relevant PRs and issues have been created.
+        env:
+          NEXT_RELEASE: ${{ inputs.version }}
