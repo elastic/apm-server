@@ -19,6 +19,7 @@ jobs:
       release-branch: ${{ steps.generate.outputs.release-branch }}
       release-version: ${{ steps.generate.outputs.release-version }}
       slack-thread: ${{ steps.generate.outputs.threadTimestamp }}
+      slack-channel: ${{ steps.generate.outputs.slack-channel }}
     steps:
       - uses: actions/checkout@v4
       - id: generate
@@ -44,7 +45,7 @@ jobs:
           url: ${{ secrets.VAULT_ADDR }}
           roleId: ${{ secrets.VAULT_ROLE_ID }}
           secretId: ${{ secrets.VAULT_SECRET_ID }}
-          channel: ${{ env.SLACK_CHANNEL }}
+          channel: ${{ needs.prepare.outputs.slack-channel }}
           threadTimestamp: ${{ needs.prepare.outputs.slack-thread || '' }}
           message: |-
             Feature freeze for `${{ github.repository }}@${{ env.RELEASE_VERSION }}` just started.
@@ -57,7 +58,7 @@ jobs:
           url: ${{ secrets.VAULT_ADDR }}
           roleId: ${{ secrets.VAULT_ROLE_ID }}
           secretId: ${{ secrets.VAULT_SECRET_ID }}
-          channel: ${{ env.SLACK_CHANNEL }}
+          channel: ${{ needs.prepare.outputs.slack-channel }}
           threadTimestamp: ${{ needs.prepare.outputs.slack-thread || '' }}
           message: |-
             `${{ github.repository }}@${{ env.RELEASE_BRANCH }}` is now available.

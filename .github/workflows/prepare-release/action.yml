@@ -29,6 +29,9 @@ outputs:
   slack-thread:
     description: "Slack thread id"
     value: ${{ steps.slack-thread.outputs.threadTimestamp }}
+  slack-channel:
+    description: "Slack channel"
+    value: "#apm-server-test-release"
 
 runs:
   using: "composite"
