@@ -45,6 +45,9 @@ jobs:
       RELEASE_VERSION: ${{ needs.prepare.outputs.release-version }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          # 0 indicates all history for all branches and tags.
+          fetch-depth: 0
 
       - uses: elastic/apm-pipeline-library/.github/actions/slack-message@current
         with:

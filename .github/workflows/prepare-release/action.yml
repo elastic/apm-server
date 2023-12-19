@@ -54,15 +54,36 @@ runs:
         VERSION: ${{ inputs.version }}
       shell: 'bash'
 
-    - name: validate input (minor)
+    - name: validate version format (minor only)
       if: ${{ inputs.type == 'minor' && ! endsWith(inputs.version, '0') }}
       run: echo '::error::version is not a minor one but a patch (only support for <major>.<minor>.0)' ; exit 1
       shell: 'bash'
 
-    - name: validate input (patch)
+    - name: validate version format (patch only)
       if: ${{ inputs.type == 'patch' && endsWith(inputs.version, '0') }}
       run: echo '::error::version is not a patch one but a minor (only support for <major>.<minor>.[1-9]+[0-9]*)' ; exit 1
       shell: 'bash'
+
+    - name: validate if branch already exists (minor only)
+      if: ${{ inputs.type == 'minor' }}
+      run: |-
+        if git ls-remote --exit-code --heads https://github.com/${{ github.repository }}.git "$BRANCH" > /dev/null ; then
+          echo '::error::branch already exists. This is not a minor release'
+          exit 1
+        fi
+      shell: 'bash'
+      env:
+        BRANCH: ${{ steps.generate.outputs.release-branch }}
+
+    - name: validate if tag already exists
+      run: |-
+        if git ls-remote --exit-code https://github.com/${{ github.repository }}.git "$BRANCH" > /dev/null ; then
+          echo '::error::tag already exists.'
+          exit 1
+        fi
+      shell: 'bash'
+      env:
+        VERSION: 'refs/tags/v${{ steps.generate.outputs.release-version }}'
 
     - uses: elastic/apm-pipeline-library/.github/actions/slack-message@current
       if: failure()
