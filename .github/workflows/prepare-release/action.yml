@@ -56,20 +56,27 @@ runs:
 
     - name: validate version format (minor only)
       if: ${{ inputs.type == 'minor' && ! endsWith(inputs.version, '0') }}
-      run: echo '::error::version is not a minor one but a patch (only support for <major>.<minor>.0)' ; exit 1
+      run: |-
+        FAILURE_MESSAGE='version is not a minor one but a patch (only support for <major>.<minor>.0)'
+        echo "FAILURE_MESSAGE=${FAILURE_MESSAGE}" >> "$GITHUB_ENV"
+        echo "::error::${FAILURE_MESSAGE}" ; exit 1
       shell: 'bash'
 
     - name: validate version format (patch only)
       if: ${{ inputs.type == 'patch' && endsWith(inputs.version, '0') }}
-      run: echo '::error::version is not a patch one but a minor (only support for <major>.<minor>.[1-9]+[0-9]*)' ; exit 1
+      run: |-
+        FAILURE_MESSAGE='version is not a patch one but a minor (only support for <major>.<minor>.[1-9]+[0-9]*)'
+        echo "FAILURE_MESSAGE=${FAILURE_MESSAGE}" >> "$GITHUB_ENV"
+        echo "::error::${FAILURE_MESSAGE}" ; exit 1
       shell: 'bash'
 
     - name: validate if branch already exists (minor only)
       if: ${{ inputs.type == 'minor' }}
       run: |-
         if git ls-remote --exit-code --heads https://github.com/${{ github.repository }}.git "$BRANCH" > /dev/null ; then
-          echo '::error::branch already exists. This is not a minor release'
-          exit 1
+          FAILURE_MESSAGE='Branch already exists. This is not a minor release.'
+          echo "FAILURE_MESSAGE=${FAILURE_MESSAGE}" >> "$GITHUB_ENV"
+          echo "::error::${FAILURE_MESSAGE}" ; exit 1
         fi
       shell: 'bash'
       env:
@@ -78,8 +85,9 @@ runs:
     - name: validate if tag already exists
       run: |-
         if git ls-remote --exit-code https://github.com/${{ github.repository }}.git "$BRANCH" > /dev/null ; then
-          echo '::error::tag already exists.'
-          exit 1
+          FAILURE_MESSAGE='Tag already exists.'
+          echo "FAILURE_MESSAGE=${FAILURE_MESSAGE}" >> "$GITHUB_ENV"
+          echo "::error::${FAILURE_MESSAGE}" ; exit 1
         fi
       shell: 'bash'
       env:
@@ -93,6 +101,9 @@ runs:
         secretId: ${{ inputs.vault-secret-id }}
         channel: ${{ env.SLACK_CHANNEL }}
         threadTimestamp: ${{ steps.slack-thread.outputs.threadTimestamp || '' }}
-        message: ':fire: Something went wrong with the ${{ inputs.type }} release preparation. See <${{ env.JOB_URL }}|logs>'
+        message: |-
+          :fire: Something went wrong with the ${{ inputs.type }} release preparation.
+          ${{ env.FAILURE_MESSAGE }}
+          See <${{ env.JOB_URL }}|logs>
       env:
         JOB_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
