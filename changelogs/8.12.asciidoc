@@ -17,6 +17,7 @@ https://github.com/elastic/apm-server/compare/8.11\...8.12[View commits]
 [float]
 ==== Bug fixes
 - Switch built-in ILM rollover policies from max_size to max_primary_shard_size {pull}11729[11729].
+- Handle empty request bodies gracefully {pull}12242[12242].
 
 [float]
 ==== Added
