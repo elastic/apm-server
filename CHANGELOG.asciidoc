@@ -1,3 +1,33 @@
+// tag::list[]
+* <<release-notes-7.17>>
+* <<release-notes-7.16>>
+* <<release-notes-7.15>>
+* <<release-notes-7.14>>
+* <<release-notes-7.13>>
+* <<release-notes-7.12>>
+* <<release-notes-7.11>>
+* <<release-notes-7.10>>
+* <<release-notes-7.9>>
+* <<release-notes-7.8>>
+* <<release-notes-7.7>>
+* <<release-notes-7.6>>
+* <<release-notes-7.5>>
+* <<release-notes-7.4>>
+* <<release-notes-7.3>>
+* <<release-notes-7.2>>
+* <<release-notes-7.1>>
+* <<release-notes-7.0>>
+* <<release-notes-6.8>>
+* <<release-notes-6.7>>
+* <<release-notes-6.6>>
+* <<release-notes-6.5>>
+* <<release-notes-6.4>>
+* <<release-notes-6.3>>
+* <<release-notes-6.2>>
+* <<release-notes-6.1>>
+// end::list[]
+
+// tag::includes[]
 include::./changelogs/7.17.asciidoc[]
 include::./changelogs/7.16.asciidoc[]
 include::./changelogs/7.15.asciidoc[]
@@ -24,35 +54,4 @@ include::./changelogs/6.4.asciidoc[]
 include::./changelogs/6.3.asciidoc[]
 include::./changelogs/6.2.asciidoc[]
 include::./changelogs/6.1.asciidoc[]
-// tag::list[]
-* <<release-notes-8.12>>
-* <<release-notes-8.11>>
-* <<release-notes-8.10>>
-* <<release-notes-8.9>>
-* <<release-notes-8.8>>
-* <<release-notes-8.7>>
-* <<release-notes-8.6>>
-* <<release-notes-8.5>>
-* <<release-notes-8.4>>
-* <<release-notes-8.3>>
-* <<release-notes-8.2>>
-* <<release-notes-8.1>>
-* <<release-notes-8.0>>
-// end::list[]
-
-// tag::includes[]
-include::./changelogs/head.asciidoc[]
-include::./changelogs/8.12.asciidoc[]
-include::./changelogs/8.11.asciidoc[]
-include::./changelogs/8.10.asciidoc[]
-include::./changelogs/8.9.asciidoc[]
-include::./changelogs/8.8.asciidoc[]
-include::./changelogs/8.7.asciidoc[]
-include::./changelogs/8.6.asciidoc[]
-include::./changelogs/8.5.asciidoc[]
-include::./changelogs/8.4.asciidoc[]
-include::./changelogs/8.3.asciidoc[]
-include::./changelogs/8.2.asciidoc[]
-include::./changelogs/8.1.asciidoc[]
-include::./changelogs/8.0.asciidoc[]
 // end::includes[]
