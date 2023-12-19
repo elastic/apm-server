@@ -52,7 +52,7 @@ jobs:
           secretId: ${{ secrets.VAULT_SECRET_ID }}
           channel: ${{ env.SLACK_CHANNEL }}
           threadTimestamp: ${{ steps.slack-thread.outputs.threadTimestamp || '' }}
-          message: Something went wrong with the patch release preparation. See <${{ env.JOB_URL }}|logs>
+          message: ':fire: Something went wrong with the patch release preparation. See <${{ env.JOB_URL }}|logs>'
 
   run-patch:
     runs-on: ubuntu-latest
