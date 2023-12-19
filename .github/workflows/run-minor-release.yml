@@ -32,7 +32,7 @@ jobs:
           roleId: ${{ secrets.VAULT_ROLE_ID }}
           secretId: ${{ secrets.VAULT_SECRET_ID }}
           channel: ${{ env.SLACK_CHANNEL }}
-          message: ":wave: This is the thread for the patch release `${{ github.repository }}@${{ env.VERSION }}`. <${{ env.JOB_URL }}|workflow run>"
+          message: ":wave: This is the thread for the patch release `${{ github.repository }}@${{ env.VERSION }}`. (<${{ env.JOB_URL }}|workflow run>)"
         env:
           VERSION: ${{ inputs.version }}
 
