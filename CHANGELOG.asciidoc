@@ -1,5 +1,4 @@
 // tag::list[]
-* <<release-notes-8.12>>
 * <<release-notes-8.11>>
 * <<release-notes-8.10>>
 * <<release-notes-8.9>>
@@ -15,8 +14,6 @@
 // end::list[]
 
 // tag::includes[]
-include::./changelogs/head.asciidoc[]
-include::./changelogs/8.12.asciidoc[]
 include::./changelogs/8.11.asciidoc[]
 include::./changelogs/8.10.asciidoc[]
 include::./changelogs/8.9.asciidoc[]
