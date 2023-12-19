@@ -16,14 +16,24 @@ env:
   SLACK_CHANNEL: "#apm-server-test-release"
 
 jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      release-version: ${{ steps.generate.outputs.release-version }}
+    steps:
+      - id: generate
+        run: echo "release-version=${VERSION}" >> "${GITHUB_OUTPUT}"
+        env:
+          VERSION: ${{ inputs.version }}
   run-patch:
     runs-on: ubuntu-latest
+    needs: [ prepare ]
+    env:
+      RELEASE_VERSION: ${{ needs.prepare.outputs.release-version }}
     steps:
       - uses: actions/checkout@v4
 
       - run: make patch-release
-        env:
-          NEXT_RELEASE: ${{ inputs.version }}
 
       - uses: elastic/apm-pipeline-library/.github/actions/slack-message@current
         with:
@@ -33,7 +43,5 @@ jobs:
           channel: ${{ env.SLACK_CHANNEL }}
           message: |-
             :wave:
-              Feature freeze for `apm-server@{{ env.NEXT_RELEASE }}` is Today. started.
+              Feature freeze for `apm-server@{{ env.RELEASE_VERSION }}` is Today. started.
               And all the relevant PRs and issues have been created.
-        env:
-          NEXT_RELEASE: ${{ inputs.version }}
