@@ -48,17 +48,22 @@ runs:
 
     - id: generate
       run: |-
-        echo "release-branch=${VERSION}" >> "${GITHUB_OUTPUT}"
+        echo "release-branch=${VERSION%.*}" >> "${GITHUB_OUTPUT}"
         echo "release-version=${VERSION}" >> "${GITHUB_OUTPUT}"
       env:
         VERSION: ${{ inputs.version }}
+      shell: 'bash'
+
+    - name: validate input (minor)
+      if: ${{ inputs.type == 'minor' && ! endsWith(inputs.version, '0') }}
+      run: echo '::error::version is not a minor one but a patch (only support for <major>.<minor>.0)' ; exit 1
       shell: 'bash'
 
     - name: validate input (patch)
       if: ${{ inputs.type == 'patch' && endsWith(inputs.version, '0') }}
       run: echo '::error::version is not a patch one but a minor (only support for <major>.<minor>.[1-9]+[0-9]*)' ; exit 1
       shell: 'bash'
-    
+
     - uses: elastic/apm-pipeline-library/.github/actions/slack-message@current
       if: failure()
       with:
