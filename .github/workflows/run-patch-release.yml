@@ -12,47 +12,23 @@ on:
 permissions:
   contents: read
 
-env:
-  SLACK_CHANNEL: "#apm-server-test-release"
-  JOB_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-
 jobs:
   prepare:
     runs-on: ubuntu-latest
     outputs:
       release-version: ${{ steps.generate.outputs.release-version }}
-      slack-thread: ${{ steps.slack-thread.outputs.threadTimestamp }}
+      slack-thread: ${{ steps.generate.outputs.threadTimestamp }}
     steps:
-      - name: Send slack message when started
-        id: slack-thread
-        uses: elastic/apm-pipeline-library/.github/actions/slack-message@current
-        with:
-          url: ${{ secrets.VAULT_ADDR }}
-          roleId: ${{ secrets.VAULT_ROLE_ID }}
-          secretId: ${{ secrets.VAULT_SECRET_ID }}
-          channel: ${{ env.SLACK_CHANNEL }}
-          message: ":wave: This is the thread for the patch release `${{ github.repository }}@${{ env.VERSION }}`. (<${{ env.JOB_URL }}|workflow run>)"
-        env:
-          VERSION: ${{ inputs.version }}
+      - uses: actions/checkout@v4
 
       - id: generate
-        run: echo "release-version=${VERSION}" >> "${GITHUB_OUTPUT}"
-        env:
-          VERSION: ${{ inputs.version }}
-
-      - name: validate input
-        if: ${{ endsWith(inputs.version, '0') }}
-        run: echo '::error::version is not a patch one but a minor (only support for <major>.<minor>.[1-9]+[0-9]*)' ; exit 1
-
-      - uses: elastic/apm-pipeline-library/.github/actions/slack-message@current
-        if: failure()
+        uses: ./.github/workflows/prepare-release
         with:
-          url: ${{ secrets.VAULT_ADDR }}
-          roleId: ${{ secrets.VAULT_ROLE_ID }}
-          secretId: ${{ secrets.VAULT_SECRET_ID }}
-          channel: ${{ env.SLACK_CHANNEL }}
-          threadTimestamp: ${{ steps.slack-thread.outputs.threadTimestamp || '' }}
-          message: ':fire: Something went wrong with the patch release preparation. See <${{ env.JOB_URL }}|logs>'
+          vault-url: ${{ secrets.VAULT_ADDR }}
+          vault-role-id: ${{ secrets.VAULT_ROLE_ID }}
+          vault-secret-id: ${{ secrets.VAULT_SECRET_ID }}
+          version: ${{ inputs.version }}
+          type: 'patch'
 
   run-patch:
     runs-on: ubuntu-latest

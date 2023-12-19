@@ -3,36 +3,70 @@ name: prepare-release
 description: Common tasks for preparing minor and patch releases
 
 inputs:
+  type:
+    description: 'Release type (minor or patch)'
+    required: true
+  version:
+    description: 'The version'
+    required: true
   vault-url:
     description: 'Vault URL'
-    required: false
+    required: true
   vault-role-id:
     description: 'Vault role ID'
-    required: false
+    required: true
   vault-secret-id:
     description: 'Vault secret ID'
-    required: false
+    required: true
+
 outputs:
-  tests:
-    description: "List of smoke tests"
-    value: ${{ steps.generate.outputs.tests }}
-  date:
-    description: "Current date"
-    value: ${{ steps.generate.outputs.date }}
+  release-branch:
+    description: "Release branch (relevant for minor releases)"
+    value: ${{ steps.generate.outputs.release-branch }}
+  release-version:
+    description: "Release version"
+    value: ${{ steps.generate.outputs.release-version }}
+  slack-thread:
+    description: "Slack thread id"
+    value: ${{ steps.slack-thread.outputs.threadTimestamp }}
 
 runs:
   using: "composite"
   steps:
-    - name: Setup cluster env
-      uses: ./.github/workflows/setup-cluster-env
+    - name: Send slack message when started
+      id: slack-thread
+      uses: elastic/apm-pipeline-library/.github/actions/slack-message@current
       with:
-        vault-url: ${{ inputs.vault-url }}
-        vault-role-id: ${{ inputs.vault-role-id }}
-        vault-secret-id: ${{ inputs.vault-secret-id }}
+        url: ${{ inputs.vault-url }}
+        roleId: ${{ inputs.vault-role-id }}
+        secretId: ${{ inputs.vault-secret-id }}
+        channel: "#apm-server-test-release"
+        message: ":wave: This is the thread for the ${{ inputs.type }} release `${{ github.repository }}@${{ env.VERSION }}`. (<${{ env.JOB_URL }}|workflow run>)"
+      env:
+        VERSION: ${{ inputs.version }}
+        JOB_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
     - id: generate
-      name: Generate matrix and date
-      run: |
-        # remove the full path and use a relative path instead to be github runner agnostic
-        echo "tests=$(make smoketest/discover | sed "s#${GITHUB_WORKSPACE}/#./#g")" >> "${GITHUB_OUTPUT}"
-        echo "date=$(date +%s)" >> "${GITHUB_OUTPUT}"
+      run: |-
+        echo "release-branch=${VERSION}" >> "${GITHUB_OUTPUT}"
+        echo "release-version=${VERSION}" >> "${GITHUB_OUTPUT}"
+      env:
+        VERSION: ${{ inputs.version }}
       shell: 'bash'
+
+    - name: validate input (patch)
+      if: ${{ inputs.type == 'patch' && endsWith(inputs.version, '0') }}
+      run: echo '::error::version is not a patch one but a minor (only support for <major>.<minor>.[1-9]+[0-9]*)' ; exit 1
+      shell: 'bash'
+    
+    - uses: elastic/apm-pipeline-library/.github/actions/slack-message@current
+      if: failure()
+      with:
+        url: ${{ inputs.vault-url }}
+        roleId: ${{ inputs.vault-role-id }}
+        secretId: ${{ inputs.vault-secret-id }}
+        channel: "#apm-server-test-release"
+        threadTimestamp: ${{ steps.slack-thread.outputs.threadTimestamp || '' }}
+        message: ':fire: Something went wrong with the ${{ inputs.type }} release preparation. See <${{ env.JOB_URL }}|logs>'
+      env:
+        JOB_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
