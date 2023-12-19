@@ -12,13 +12,15 @@ on:
 permissions:
   contents: read
 
+env:
+  SLACK_CHANNEL: "#apm-server-test-release"
+
 jobs:
   prepare:
     runs-on: ubuntu-latest
     outputs:
       release-version: ${{ steps.generate.outputs.release-version }}
       slack-thread: ${{ steps.generate.outputs.threadTimestamp }}
-      slack-channel: ${{ steps.generate.outputs.slack-channel }}
     steps:
       - uses: actions/checkout@v4
 
@@ -46,7 +48,7 @@ jobs:
           url: ${{ secrets.VAULT_ADDR }}
           roleId: ${{ secrets.VAULT_ROLE_ID }}
           secretId: ${{ secrets.VAULT_SECRET_ID }}
-          channel: ${{ needs.prepare.outputs.slack-channel }}
+          channel: ${{ env.SLACK_CHANNEL }}
           threadTimestamp: ${{ needs.prepare.outputs.slack-thread || '' }}
           message: |-
             Feature freeze for `${{ github.repository }}@${{ env.RELEASE_VERSION }}` is Today.

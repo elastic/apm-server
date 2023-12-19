@@ -29,9 +29,6 @@ outputs:
   slack-thread:
     description: "Slack thread id"
     value: ${{ steps.slack-thread.outputs.threadTimestamp }}
-  slack-channel:
-    description: "Slack channel"
-    value: "#apm-server-test-release"
 
 runs:
   using: "composite"
@@ -43,7 +40,7 @@ runs:
         url: ${{ inputs.vault-url }}
         roleId: ${{ inputs.vault-role-id }}
         secretId: ${{ inputs.vault-secret-id }}
-        channel: "#apm-server-test-release"
+        channel: ${{ env.SLACK_CHANNEL }}
         message: ":wave: This is the thread for the ${{ inputs.type }} release `${{ github.repository }}@${{ env.VERSION }}`. (<${{ env.JOB_URL }}|workflow run>)"
       env:
         VERSION: ${{ inputs.version }}
@@ -73,7 +70,7 @@ runs:
         url: ${{ inputs.vault-url }}
         roleId: ${{ inputs.vault-role-id }}
         secretId: ${{ inputs.vault-secret-id }}
-        channel: "#apm-server-test-release"
+        channel: ${{ env.SLACK_CHANNEL }}
         threadTimestamp: ${{ steps.slack-thread.outputs.threadTimestamp || '' }}
         message: ':fire: Something went wrong with the ${{ inputs.type }} release preparation. See <${{ env.JOB_URL }}|logs>'
       env:
