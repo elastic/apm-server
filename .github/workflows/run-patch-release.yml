@@ -19,12 +19,12 @@ jobs:
   prepare:
     runs-on: ubuntu-latest
     outputs:
-      release-version: ${{ steps.generate.outputs.release-version }}
-      slack-thread: ${{ steps.generate.outputs.threadTimestamp }}
+      release-version: ${{ steps.prepare.outputs.release-version }}
+      slack-thread: ${{ steps.prepare.outputs.slack-thread }}
     steps:
       - uses: actions/checkout@v4
 
-      - id: generate
+      - id: prepare
         uses: ./.github/workflows/prepare-release
         with:
           vault-url: ${{ secrets.VAULT_ADDR }}
