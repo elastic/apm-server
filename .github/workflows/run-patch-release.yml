@@ -73,4 +73,4 @@ jobs:
           threadTimestamp: ${{ needs.prepare.outputs.slack-thread || '' }}
           message: |-
             Feature freeze for `${{ github.repository }}@${{ env.RELEASE_VERSION }}` is Today.
-            And all the relevant PRs and issues have been created.
+            All the relevant PRs and issues have been created.

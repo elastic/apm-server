@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'The version (semver format: major.minor.patch)'
+        description: 'The version (semver format: major.minor.0)'
         required: true
         type: string
 
@@ -76,7 +76,7 @@ jobs:
           threadTimestamp: ${{ needs.prepare.outputs.slack-thread || '' }}
           message: |-
             Feature freeze for `${{ github.repository }}@${{ env.RELEASE_VERSION }}` just started.
-            And `${{ github.repository }}@${{ env.RELEASE_BRANCH }}` will be created **Today**.
+            The `${{ github.repository }}@${{ env.RELEASE_BRANCH }}` branch will be created Today.
 
       - run: make minor-release
 
@@ -89,4 +89,4 @@ jobs:
           threadTimestamp: ${{ needs.prepare.outputs.slack-thread || '' }}
           message: |-
             `${{ github.repository }}@${{ env.RELEASE_BRANCH }}` is now available.
-            And the docs and other references are updated. You can start using it.
+            The docs and other references are updated. You can start using it.
