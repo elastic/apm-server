@@ -9,6 +9,10 @@ on:
         required: true
         type: string
 
+# Avoid concurrency so we can watch the releases correctly
+concurrency:
+  group: ${{ github.workflow }}
+
 permissions:
   contents: read
 
