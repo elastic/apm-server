@@ -26,6 +26,10 @@ jobs:
         run: |-
           echo "release-branch=${VERSION%.*}" >> "${GITHUB_OUTPUT}"
           echo "release-version=${VERSION}" >> "${GITHUB_OUTPUT}"
+          if [[ ! $VERSION =~ [0-9]+\.[0-9]+\.0 ]]; then
+            echo "::error::version is not a minor one but a patch: (only support <major>.<minor>.0)"
+            exit 1
+          fi
         env:
           VERSION: ${{ inputs.version }}
 
