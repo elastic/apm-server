@@ -14,24 +14,49 @@ permissions:
 
 env:
   SLACK_CHANNEL: "#apm-server-test-release"
-  
+  JOB_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
 jobs:
   prepare:
     runs-on: ubuntu-latest
     outputs:
       release-branch: ${{ steps.generate.outputs.release-branch }}
       release-version: ${{ steps.generate.outputs.release-version }}
+      slack-thread: ${{ steps.slack-thread.outputs.threadTimestamp }}
     steps:
-      - id: generate
+      - name: Send slack message when started
+        id: slack-thread
+        uses: elastic/apm-pipeline-library/.github/actions/slack-message@current
+        with:
+          url: ${{ secrets.VAULT_ADDR }}
+          roleId: ${{ secrets.VAULT_ROLE_ID }}
+          secretId: ${{ secrets.VAULT_SECRET_ID }}
+          channel: ${{ env.SLACK_CHANNEL }}
+          message: ":wave: This is the thread for the patch release `${{ github.repository }}@${{ env.VERSION }}`. <${{ env.JOB_URL }}|workflow run>"
+        env:
+          VERSION: ${{ inputs.version }}
+
+      - name: process input
+        id: generate
         run: |-
           echo "release-branch=${VERSION%.*}" >> "${GITHUB_OUTPUT}"
           echo "release-version=${VERSION}" >> "${GITHUB_OUTPUT}"
-          if [[ ! $VERSION =~ [0-9]+\.[0-9]+\.0 ]]; then
-            echo "::error::version is not a minor one but a patch: (only support for <major>.<minor>.0)"
-            exit 1
-          fi
         env:
           VERSION: ${{ inputs.version }}
+
+      - name: validate input
+        if: ${{ ! endsWith(inputs.version, '0') }}
+        run: echo '::error::version is not a minor one but a patch (only support for <major>.<minor>.0)' ; exit 1
+
+      - uses: elastic/apm-pipeline-library/.github/actions/slack-message@current
+        if: failure()
+        with:
+          url: ${{ secrets.VAULT_ADDR }}
+          roleId: ${{ secrets.VAULT_ROLE_ID }}
+          secretId: ${{ secrets.VAULT_SECRET_ID }}
+          channel: ${{ env.SLACK_CHANNEL }}
+          threadTimestamp: ${{ steps.slack-thread.outputs.threadTimestamp || '' }}
+          message: Something went wrong with the minor release preparation. See <${{ env.JOB_URL }}|logs>
 
   run-minor:
     runs-on: ubuntu-latest
@@ -48,10 +73,10 @@ jobs:
           roleId: ${{ secrets.VAULT_ROLE_ID }}
           secretId: ${{ secrets.VAULT_SECRET_ID }}
           channel: ${{ env.SLACK_CHANNEL }}
+          threadTimestamp: ${{ needs.prepare.outputs.slack-thread || '' }}
           message: |-
-            :wave:
-              Feature freeze for `${{ github.repository }}@${{ env.RELEASE_VERSION }}` just started.
-              And `${{ github.repository }}@${{ env.RELEASE_BRANCH }}` will be created **Today**.
+            Feature freeze for `${{ github.repository }}@${{ env.RELEASE_VERSION }}` just started.
+            And `${{ github.repository }}@${{ env.RELEASE_BRANCH }}` will be created **Today**.
 
       - run: make minor-release
 
@@ -61,7 +86,7 @@ jobs:
           roleId: ${{ secrets.VAULT_ROLE_ID }}
           secretId: ${{ secrets.VAULT_SECRET_ID }}
           channel: ${{ env.SLACK_CHANNEL }}
+          threadTimestamp: ${{ needs.prepare.outputs.slack-thread || '' }}
           message: |-
-            :wave:
-              `${{ github.repository }}@${{ env.RELEASE_BRANCH }}` is now available.
-              And the docs and other references are updated. You can start using it.
+            `${{ github.repository }}@${{ env.RELEASE_BRANCH }}` is now available.
+            And the docs and other references are updated. You can start using it.
