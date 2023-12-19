@@ -27,7 +27,7 @@ jobs:
           echo "release-branch=${VERSION%.*}" >> "${GITHUB_OUTPUT}"
           echo "release-version=${VERSION}" >> "${GITHUB_OUTPUT}"
           if [[ ! $VERSION =~ [0-9]+\.[0-9]+\.0 ]]; then
-            echo "::error::version is not a minor one but a patch: (only support <major>.<minor>.0)"
+            echo "::error::version is not a minor one but a patch: (only support for <major>.<minor>.0)"
             exit 1
           fi
         env:
@@ -50,8 +50,8 @@ jobs:
           channel: ${{ env.SLACK_CHANNEL }}
           message: |-
             :wave:
-              Feature freeze for `apm-server@{{ env.RELEASE_VERSION }}` just started.
-              And `apm-server@{{ env.RELEASE_BRANCH }}` will be created today.
+              Feature freeze for `${{ github.repository }}@${{ env.RELEASE_VERSION }}` just started.
+              And `${{ github.repository }}@${{ env.RELEASE_BRANCH }}` will be created **Today**.
 
       - run: make minor-release
 
@@ -63,5 +63,5 @@ jobs:
           channel: ${{ env.SLACK_CHANNEL }}
           message: |-
             :wave:
-              `apm-server@{{ env.RELEASE_BRANCH }}` is available.
+              `${{ github.repository }}@${{ env.RELEASE_BRANCH }}` is now available.
               And the docs and other references are updated. You can start using it.
