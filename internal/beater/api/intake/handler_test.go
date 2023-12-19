@@ -64,14 +64,14 @@ func TestIntakeHandler(t *testing.T) {
 			}(),
 			code: http.StatusBadRequest, id: request.IDResponseErrorsValidate,
 		},
-		"BodyReader": {
+		"EmptyBody": {
 			path: "errors.ndjson",
 			r: func() *http.Request {
 				req := httptest.NewRequest(http.MethodPost, "/", nil)
 				req.Header.Set(headers.ContentType, "application/x-ndjson")
 				return req
 			}(),
-			code: http.StatusBadRequest, id: request.IDResponseErrorsValidate,
+			code: http.StatusAccepted, id: request.IDResponseValidAccepted,
 		},
 		"CompressedBodyReaderDeflateInvalid": {
 			path: "errors.ndjson",
