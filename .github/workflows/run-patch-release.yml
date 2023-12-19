@@ -45,6 +45,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          # 0 indicates all history for all branches and tags.
           fetch-depth: 0
 
       - run: make patch-release
