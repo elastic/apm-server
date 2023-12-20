@@ -318,3 +318,59 @@ pull_request_rules:
         labels:
           - "backport"
         title: "[{{ destination_branch }}] {{ title }} (backport #{{ number }})"
+  - name: backport patches to 8.13 branch
+    conditions:
+      - merged
+      - base=main
+      - label=backport-8.13
+    actions:
+      backport:
+        assignees:
+          - "{{ author }}"
+        branches:
+          - "8.13"
+        labels:
+          - "backport"
+        title: "[{{ destination_branch }}] {{ title }} (backport #{{ number }})"
+  - name: backport patches to 8.13 branch
+    conditions:
+      - merged
+      - base=main
+      - label=backport-8.13
+    actions:
+      backport:
+        assignees:
+          - "{{ author }}"
+        branches:
+          - "8.13"
+        labels:
+          - "backport"
+        title: "[{{ destination_branch }}] {{ title }} (backport #{{ number }})"
+  - name: backport patches to 8.13 branch
+    conditions:
+      - merged
+      - base=main
+      - label=backport-8.13
+    actions:
+      backport:
+        assignees:
+          - "{{ author }}"
+        branches:
+          - "8.13"
+        labels:
+          - "backport"
+        title: "[{{ destination_branch }}] {{ title }} (backport #{{ number }})"
+  - name: backport patches to 8.13 branch
+    conditions:
+      - merged
+      - base=main
+      - label=backport-8.13
+    actions:
+      backport:
+        assignees:
+          - "{{ author }}"
+        branches:
+          - "8.13"
+        labels:
+          - "backport"
+        title: "[{{ destination_branch }}] {{ title }} (backport #{{ number }})"
