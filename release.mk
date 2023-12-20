@@ -243,5 +243,7 @@ create-pull-request:
 		--title "$(TITLE)" \
 		--body "Merge as soon as $(TARGET_BRANCH) branch is created." \
 		--base $(TARGET_BRANCH) \
+		--head $(BRANCH) \
+		--label 'release' \
 		--reviewer "$(PROJECT_REVIEWERS)" \
 		--repo $(PROJECT_OWNER)/apm-server || echo "There is no changes"
