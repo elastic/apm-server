@@ -19,7 +19,7 @@ ifeq ($(RELEASE_TYPE),patch)
 endif
 
 ifeq ($(OS),Darwin)
-	SED ?= sed -i ""
+	SED ?= sed -i ".bck"
 else
 	SED ?= sed -i
 endif
