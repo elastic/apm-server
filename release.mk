@@ -104,7 +104,7 @@ create-branch:
 export CHANGELOG_TMPL
 rename-changelog:
 	mv changelogs/head.asciidoc changelogs/$(PROJECT_MAJOR_VERSION).$(PROJECT_MINOR_VERSION).asciidoc
-    echo "$${CHANGELOG_TMPL}" > changelogs/head.asciidoc
+    #echo "$${CHANGELOG_TMPL}" > changelogs/head.asciidoc
 	awk "NR==2{print \"include::./changelogs/$(RELEASE_BRANCH).asciidoc[]\"}1" CHANGELOG.asciidoc > CHANGELOG.asciidoc.new
 	mv CHANGELOG.asciidoc.new CHANGELOG.asciidoc
 	awk "NR==12{print \"* <<release-notes-$(RELEASE_BRANCH)>>\"}1" docs/release-notes.asciidoc > docs/release-notes.asciidoc.new
@@ -168,22 +168,25 @@ git-diff:
 ## Update the references on .mergify.yml with the new minor release and bump the next release.
 .PHONY: update-mergify
 update-mergify:
-	{
-		echo '  - name: backport patches to $(PROJECT_MAJOR_VERSION).$(PROJECT_MINOR_VERSION) branch'
-		echo '    conditions:'
-		echo '      - merged'
-		echo '      - base=main'
-		echo '      - label=backport-$(PROJECT_MAJOR_VERSION).$(PROJECT_MINOR_VERSION)'
-		echo '    actions:'
-		echo '      backport:'
-		echo '        assignees:'
-		echo '          - "{{ author }}"'
-		echo '        branches:'
-		echo '          - "$(PROJECT_MAJOR_VERSION).$(PROJECT_MINOR_VERSION)"'
-		echo '        labels:'
-		echo '          - "backport"'
-		echo '        title: "[{{ destination_branch }}] {{ title }} (backport #{{ number }})"'
-	} >> .mergify.yml
+	@if ! grep -q 'backport-$(PROJECT_MAJOR_VERSION).$(PROJECT_MINOR_VERSION)' .mergify.yml ; then \
+		echo "Update mergify with backport-$(PROJECT_MAJOR_VERSION).$(PROJECT_MINOR_VERSION)" ; \
+		echo '  - name: backport patches to $(PROJECT_MAJOR_VERSION).$(PROJECT_MINOR_VERSION) branch' >> .mergify.yml ; \
+		echo '    conditions:'                                                                  >> .mergify.yml; \
+		echo '      - merged'                                                                   >> .mergify.yml; \
+		echo '      - base=main'                                                                >> .mergify.yml; \
+		echo '      - label=backport-$(PROJECT_MAJOR_VERSION).$(PROJECT_MINOR_VERSION)'         >> .mergify.yml; \
+		echo '    actions:'                                                                     >> .mergify.yml; \
+		echo '      backport:'                                                                  >> .mergify.yml; \
+		echo '        assignees:'                                                               >> .mergify.yml; \
+		echo '          - "{{ author }}"'                                                       >> .mergify.yml; \
+		echo '        branches:'                                                                >> .mergify.yml; \
+		echo '          - "$(PROJECT_MAJOR_VERSION).$(PROJECT_MINOR_VERSION)"'                  >> .mergify.yml; \
+		echo '        labels:'                                                                  >> .mergify.yml; \
+		echo '          - "backport"'                                                           >> .mergify.yml; \
+		echo '        title: "[{{ destination_branch }}] {{ title }} (backport #{{ number }})"' >> .mergify.yml; \
+	else \
+		echo "WARN: Mergify already contains backport-$(PROJECT_MAJOR_VERSION).$(PROJECT_MINOR_VERSION)"; \
+	fi
 
 ## Update project documentation.
 .PHONY: update-docs
