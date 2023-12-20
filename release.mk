@@ -88,7 +88,7 @@ minor-release:
 	$(MAKE) create-commit COMMIT_MESSAGE="[Release] update version $(RELEASE_VERSION)"
 
 	# Pull Request to update the base branch
-	$(MAKE) create-branch BASE_BRANCH=$(BASE_BRANCH) BRANCH_NAME=update-docs-backport-versions-$(RELEASE_VERSION)
+	$(MAKE) create-branch BASE_BRANCH=$(BASE_BRANCH) BRANCH_NAME=update-$(RELEASE_VERSION)
 	$(MAKE) update-mergify
 	$(MAKE) update-docs VERSION=$(CURRENT_RELEASE)
 	$(MAKE) update-version VERSION=$(NEXT_PROJECT_MINOR_VERSION)
@@ -97,13 +97,13 @@ minor-release:
 	$(MAKE) create-commit COMMIT_MESSAGE="docs: Update changelogs for $(RELEASE_BRANCH) release"
 
 	# Pull Request to update the release branch
-	$(MAKE) create-branch BASE_BRANCH=$(RELEASE_BRANCH) BRANCH_NAME=backport-changelog-$(RELEASE_BRANCH)
+	$(MAKE) create-branch BASE_BRANCH=$(RELEASE_BRANCH) BRANCH_NAME=changelog-$(RELEASE_BRANCH)
 	$(MAKE) rename-changelog
 	$(MAKE) create-commit COMMIT_MESSAGE="docs: Update changelogs for $(RELEASE_BRANCH) release"
 
 	git push origin $(RELEASE_BRANCH)
-	$(MAKE) create-pull-request BRANCH=update-docs-backport-versions-$(RELEASE_VERSION) TARGET_BRANCH=$(BASE_BRANCH) TITLE="$(RELEASE_BRANCH): update docs, mergify, versions and changelogs"
-	$(MAKE) create-pull-request BRANCH=backport-changelog-$(RELEASE_VERSION) TARGET_BRANCH=$(RELEASE_BRANCH) TITLE="$(RELEASE_BRANCH): update docs"
+	$(MAKE) create-pull-request BRANCH=update-$(RELEASE_VERSION) TARGET_BRANCH=$(BASE_BRANCH) TITLE="$(RELEASE_BRANCH): update docs, mergify, versions and changelogs"
+	$(MAKE) create-pull-request BRANCH=changelog-$(RELEASE_BRANCH) TARGET_BRANCH=$(RELEASE_BRANCH) TITLE="$(RELEASE_BRANCH): update docs"
 
 # This is the contract with the GitHub action .github/workflows/run-patch-release.yml
 # The GitHub action will provide the below environment variables:
@@ -244,5 +244,4 @@ create-pull-request:
 		--body "Merge as soon as $(TARGET_BRANCH) branch is created." \
 		--base $(TARGET_BRANCH) \
 		--reviewer "$(PROJECT_REVIEWERS)" \
-		--label 'release' \
 		--repo $(PROJECT_OWNER)/apm-server || echo "There is no changes"
