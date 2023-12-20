@@ -132,8 +132,8 @@ github.com/eapache/queue v1.1.0/go.mod h1:6eCeP0CKFpHLu8blIFXhExK/dRa7WDZfr6jVFP
 github.com/eknkc/amber v0.0.0-20171010120322-cdade1c07385/go.mod h1:0vRUJqYpeSZifjYj7uP3BG/gKcuzL9xWVV/Y+cK33KM=
 github.com/elastic/apm-aggregation v0.0.0-20230815024520-e75a37d9ddd6 h1:Js+C3HEE0a5BDFmhEmJV/Uo4uzj/paHjd7yl6+KYguw=
 github.com/elastic/apm-aggregation v0.0.0-20230815024520-e75a37d9ddd6/go.mod h1:ba3gaJCuhxXN/O5AuiI56xxd6DukQdVOK0NfpzBntNo=
-github.com/elastic/apm-data v0.1.1-0.20231019120308-82201b991ae5 h1:URlDi0TZetSAo8KAIbaMZQhM5EG8+SDgs0jTen7WvMg=
-github.com/elastic/apm-data v0.1.1-0.20231019120308-82201b991ae5/go.mod h1:z4iJVl8vyQa5v5o7UapWGHTsycBKsKfJfILuf2TZpYo=
+github.com/elastic/apm-data v0.1.1-0.20231120111210-bd8f3ecad5bb h1:mpfOadQBl6amJQzbXa0d9oy9GTvrlx0kqAb4R1soNoU=
+github.com/elastic/apm-data v0.1.1-0.20231120111210-bd8f3ecad5bb/go.mod h1:z4iJVl8vyQa5v5o7UapWGHTsycBKsKfJfILuf2TZpYo=
 github.com/elastic/beats/v7 v7.0.0-alpha2.0.20231204124921-be42a3369f94 h1:HGuZZvCTJHfw67Kv/3Dko1HRx2oWNc3ktz9xL7xRyu8=
 github.com/elastic/beats/v7 v7.0.0-alpha2.0.20231204124921-be42a3369f94/go.mod h1:C3d6os2PiO+aRDft33aQq94OwX0w83tut1R19QSWGB4=
 github.com/elastic/elastic-agent-autodiscover v0.6.4 h1:K+xC7OGgcy4fLXVuGgOGLs+eXCqRnRg2SQQinxP+KsA=
