@@ -81,24 +81,28 @@ endif
 #  - RELEASE_VERSION
 .PHONY: minor-release
 minor-release:
+	# create release branch
 	$(MAKE) create-branch BASE_BRANCH=$(BASE_BRANCH) BRANCH_NAME=$(RELEASE_BRANCH)
 	$(MAKE) update-version VERSION=$(RELEASE_VERSION)
 	$(MAKE) update-version-makefile VERSION=$(RELEASE_VERSION)
 	$(MAKE) create-commit COMMIT_MESSAGE="[Release] update version $(RELEASE_VERSION)"
+	git push origin $(RELEASE_BRANCH)
 
-	$(MAKE) create-branch BASE_BRANCH=$(BASE_BRANCH) BRANCH_NAME=add-backport-next-$(CURRENT_RELEASE)
+	# Pull Request to update the base branch
+	$(MAKE) create-branch BASE_BRANCH=$(BASE_BRANCH) BRANCH_NAME=update-docs-backport-versions-$(RELEASE_VERSION)
 	$(MAKE) update-mergify
 	$(MAKE) update-docs VERSION=$(CURRENT_RELEASE)
 	$(MAKE) update-version VERSION=$(NEXT_PROJECT_MINOR_VERSION)
 	$(MAKE) create-commit COMMIT_MESSAGE="[Release] update version $(NEXT_PROJECT_MINOR_VERSION)"
-
-	$(MAKE) create-branch BASE_BRANCH=$(BASE_BRANCH) BRANCH_NAME=changelog-$(RELEASE_BRANCH)
 	$(MAKE) rename-changelog
 	$(MAKE) create-commit COMMIT_MESSAGE="docs: Update changelogs for $(RELEASE_BRANCH) release"
+	$(MAKE) create-pull-request BRANCH=update-docs-backport-versions-$(RELEASE_VERSION) TARGET_BRANCH=$(BASE_BRANCH) TITLE="$(RELEASE_BRANCH): update docs, mergify, versions and changelogs"
 
+	# Pull Request to update the release branch
 	$(MAKE) create-branch BASE_BRANCH=$(RELEASE_BRANCH) BRANCH_NAME=backport-changelog-$(RELEASE_BRANCH)
 	$(MAKE) rename-changelog
 	$(MAKE) create-commit COMMIT_MESSAGE="docs: Update changelogs for $(RELEASE_BRANCH) release"
+	$(MAKE) create-pull-request BRANCH=backport-changelog-$(RELEASE_VERSION) TARGET_BRANCH=$(RELEASE_BRANCH) TITLE="$(RELEASE_BRANCH): update docs"
 
 	echo "Check the changes and run 'make create-branch-major-minor-release'"
 
@@ -218,7 +222,7 @@ update-mergify:
 ## Update project documentation.
 .PHONY: update-docs
 update-docs: VERSION=$${VERSION}
-update-docs:
+update-docs: setup-yq
 	$(YQ) e --inplace '.[] |= with_entries((select(.value == "generated") | .value) ="$(VERSION)")' ./apmpackage/apm/changelog.yml; \
 	$(YQ) e --inplace '[{"version": "generated", "changes":[{"description": "Placeholder", "type": "enhancement", "link": "https://github.com/elastic/apm-server/pull/123"}]}] + .' ./apmpackage/apm/changelog.yml;
 
@@ -231,16 +235,15 @@ setup-yq:
 		chmod +x $(CURDIR)/bin/$(YQ); \
 	fi
 
-
-## @help:setup-yq:Install yq in CURDIR/bin/yq.
-.PHONY: setup-yq
+## @help:create-pull-request:Create pull request
+.PHONY: create-pull-request
+create-pull-request: BRANCH=$${BRANCH} TITLE=$${TITLE} TARGET_BRANCH=$${TARGET_BRANCH}
 create-pull-request:
-	git checkout $(SOURCE_BRANCH)
-	git push origin $(SOURCE_BRANCH)
+	git push origin $(BRANCH)
 	gh pr create \
-		--title "backport: Add $(RELEASE_BRANCH) branch" \
-		--body "Merge as soon as $(RELEASE_BRANCH) branch was created. Auto-merge is not yet supported, see https://github.com/Mergifyio/mergify-engine/discussions/2821" \
-		--base $(BASE_BRANCH) \
+		--title "$(TITLE)" \
+		--body "Merge as soon as $(TARGET_BRANCH) branch is created." \
+		--base $(TARGET_BRANCH) \
 		--reviewer "$(PROJECT_REVIEWERS)" \
 		--label 'release' \
-		--repo $(PROJECT_OWNER)/apm-server || echo "There is no changes";
+		--repo $(PROJECT_OWNER)/apm-server || echo "There is no changes"
