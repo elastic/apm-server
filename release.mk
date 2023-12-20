@@ -25,6 +25,29 @@ YQ_VERSION ?= v4.13.2
 export PATH := $(CURDIR)/bin:$(PATH)
 
 #######################
+## Templates
+#######################
+## Changelog template
+define CHANGELOG_TMPL
+[[release-notes-head]]
+== APM version HEAD
+
+https://github.com/elastic/apm-server/compare/$(RELEASE_BRANCH)\...main[View commits]
+
+[float]
+==== Breaking Changes
+
+[float]
+==== Deprecations
+
+[float]
+==== Intake API Changes
+
+[float]
+==== Added
+endef
+
+#######################
 ## Properties
 #######################
 
@@ -34,8 +57,9 @@ PROJECT_PATCH_VERSION ?= $(shell echo $(RELEASE_VERSION) | cut -f3 -d.)
 PROJECT_OWNER ?= elastic
 RELEASE_TYPE ?= minor
 
+CURRENT_RELEASE ?= $(shell gh api repos/elastic/apm-server/releases/latest | jq -r .tag_name | sed 's#^v##g')
 NEXT_PROJECT_MINOR_VERSION ?= $(PROJECT_MAJOR_VERSION).$(shell expr $(PROJECT_MINOR_VERSION) + 1).0
-NEXT_RELEASE ?= $(PROJECT_MAJOR_VERSION).$(PROJECT_MINOR_VERSION).$(shell expr $(PROJECT_PATCH_VERSION) + 1)
+NEXT_RELEASE ?= $(RELEASE_BRANCH).$(shell expr $(PROJECT_PATCH_VERSION) + 1)
 
 # BASE_BRANCH select by release type (default patch)
 ifeq ($(RELEASE_TYPE),minor)
@@ -43,8 +67,8 @@ ifeq ($(RELEASE_TYPE),minor)
 endif
 
 ifeq ($(RELEASE_TYPE),patch)
-	BASE_BRANCH ?= $(PROJECT_MAJOR_VERSION).$(PROJECT_MINOR_VERSION)
-	LATEST_RELEASE ?= $(PROJECT_MAJOR_VERSION).$(PROJECT_MINOR_VERSION).$(shell expr $(PROJECT_PATCH_VERSION) - 1)
+	BASE_BRANCH ?= $(RELEASE_BRANCH)
+	LATEST_RELEASE ?= $(RELEASE_BRANCH).$(shell expr $(PROJECT_PATCH_VERSION) - 1)
 endif
 
 #######################
@@ -60,20 +84,22 @@ minor-release:
 	$(MAKE) create-branch BASE_BRANCH=$(BASE_BRANCH) BRANCH_NAME=$(RELEASE_BRANCH)
 	$(MAKE) update-version VERSION=$(RELEASE_VERSION)
 	$(MAKE) update-version-makefile VERSION=$(RELEASE_VERSION)
-	$(MAKE) git-diff
 	$(MAKE) create-commit COMMIT_MESSAGE="[Release] update version $(RELEASE_VERSION)"
 
 	$(MAKE) create-branch BASE_BRANCH=$(BASE_BRANCH) BRANCH_NAME=add-backport-next-$(CURRENT_RELEASE)
 	$(MAKE) update-mergify
 	$(MAKE) update-docs VERSION=$(CURRENT_RELEASE)
 	$(MAKE) update-version VERSION=$(NEXT_PROJECT_MINOR_VERSION)
-	$(MAKE) git-diff
 	$(MAKE) create-commit COMMIT_MESSAGE="[Release] update version $(NEXT_PROJECT_MINOR_VERSION)"
 
 	$(MAKE) create-branch BASE_BRANCH=$(BASE_BRANCH) BRANCH_NAME=changelog-$(RELEASE_BRANCH)
 	$(MAKE) rename-changelog
+	$(MAKE) create-commit COMMIT_MESSAGE="docs: Update changelogs for $(RELEASE_BRANCH) release"
+
 	$(MAKE) create-branch BASE_BRANCH=$(RELEASE_BRANCH) BRANCH_NAME=backport-changelog-$(RELEASE_BRANCH)
 	$(MAKE) rename-changelog
+	$(MAKE) create-commit COMMIT_MESSAGE="docs: Update changelogs for $(RELEASE_BRANCH) release"
+
 	echo "Check the changes and run 'make create-branch-major-minor-release'"
 
 # This is the contract with the GitHub action .github/workflows/run-patch-release.yml
@@ -103,8 +129,8 @@ create-branch:
 .PHONY: rename-changelog
 export CHANGELOG_TMPL
 rename-changelog:
-	mv changelogs/head.asciidoc changelogs/$(PROJECT_MAJOR_VERSION).$(PROJECT_MINOR_VERSION).asciidoc
-    #echo "$${CHANGELOG_TMPL}" > changelogs/head.asciidoc
+	mv changelogs/head.asciidoc changelogs/$(RELEASE_BRANCH).asciidoc
+    echo "$${CHANGELOG_TMPL}" > changelogs/head.asciidoc
 	awk "NR==2{print \"include::./changelogs/$(RELEASE_BRANCH).asciidoc[]\"}1" CHANGELOG.asciidoc > CHANGELOG.asciidoc.new
 	mv CHANGELOG.asciidoc.new CHANGELOG.asciidoc
 	awk "NR==12{print \"* <<release-notes-$(RELEASE_BRANCH)>>\"}1" docs/release-notes.asciidoc > docs/release-notes.asciidoc.new
@@ -150,6 +176,7 @@ update-version-legacy:
 ## Create a new commit only if there is a diff.
 .PHONY: create-commit
 create-commit:
+	$(MAKE) git-diff
 	@echo "::group::create-commit"
 	if [ ! -z "$$(git status -s)" ]; then \
 		git status -s; \
@@ -168,24 +195,24 @@ git-diff:
 ## Update the references on .mergify.yml with the new minor release and bump the next release.
 .PHONY: update-mergify
 update-mergify:
-	@if ! grep -q 'backport-$(PROJECT_MAJOR_VERSION).$(PROJECT_MINOR_VERSION)' .mergify.yml ; then \
-		echo "Update mergify with backport-$(PROJECT_MAJOR_VERSION).$(PROJECT_MINOR_VERSION)" ; \
-		echo '  - name: backport patches to $(PROJECT_MAJOR_VERSION).$(PROJECT_MINOR_VERSION) branch' >> .mergify.yml ; \
+	@if ! grep -q 'backport-$(RELEASE_BRANCH)' .mergify.yml ; then \
+		echo "Update mergify with backport-$(RELEASE_BRANCH)" ; \
+		echo '  - name: backport patches to $(RELEASE_BRANCH) branch'                           >> .mergify.yml ; \
 		echo '    conditions:'                                                                  >> .mergify.yml; \
 		echo '      - merged'                                                                   >> .mergify.yml; \
 		echo '      - base=main'                                                                >> .mergify.yml; \
-		echo '      - label=backport-$(PROJECT_MAJOR_VERSION).$(PROJECT_MINOR_VERSION)'         >> .mergify.yml; \
+		echo '      - label=backport-$(RELEASE_BRANCH)'                                         >> .mergify.yml; \
 		echo '    actions:'                                                                     >> .mergify.yml; \
 		echo '      backport:'                                                                  >> .mergify.yml; \
 		echo '        assignees:'                                                               >> .mergify.yml; \
 		echo '          - "{{ author }}"'                                                       >> .mergify.yml; \
 		echo '        branches:'                                                                >> .mergify.yml; \
-		echo '          - "$(PROJECT_MAJOR_VERSION).$(PROJECT_MINOR_VERSION)"'                  >> .mergify.yml; \
+		echo '          - "$(RELEASE_BRANCH)"'                                                  >> .mergify.yml; \
 		echo '        labels:'                                                                  >> .mergify.yml; \
 		echo '          - "backport"'                                                           >> .mergify.yml; \
 		echo '        title: "[{{ destination_branch }}] {{ title }} (backport #{{ number }})"' >> .mergify.yml; \
 	else \
-		echo "WARN: Mergify already contains backport-$(PROJECT_MAJOR_VERSION).$(PROJECT_MINOR_VERSION)"; \
+		echo "WARN: Mergify already contains backport-$(RELEASE_BRANCH)"; \
 	fi
 
 ## Update project documentation.
@@ -203,3 +230,17 @@ setup-yq:
 		curl -sSfL -o $(CURDIR)/bin/yq https://github.com/mikefarah/yq/releases/download/$(YQ_VERSION)/$(YQ_BINARY) ; \
 		chmod +x $(CURDIR)/bin/$(YQ); \
 	fi
+
+
+## @help:setup-yq:Install yq in CURDIR/bin/yq.
+.PHONY: setup-yq
+create-pull-request:
+	git checkout $(SOURCE_BRANCH)
+	git push origin $(SOURCE_BRANCH)
+	gh pr create \
+		--title "backport: Add $(RELEASE_BRANCH) branch" \
+		--body "Merge as soon as $(RELEASE_BRANCH) branch was created. Auto-merge is not yet supported, see https://github.com/Mergifyio/mergify-engine/discussions/2821" \
+		--base $(BASE_BRANCH) \
+		--reviewer "$(PROJECT_REVIEWERS)" \
+		--label 'release' \
+		--repo $(PROJECT_OWNER)/apm-server || echo "There is no changes";
