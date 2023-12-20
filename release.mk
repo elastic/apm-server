@@ -86,7 +86,6 @@ minor-release:
 	$(MAKE) update-version VERSION=$(RELEASE_VERSION)
 	$(MAKE) update-version-makefile VERSION=$(RELEASE_VERSION)
 	$(MAKE) create-commit COMMIT_MESSAGE="[Release] update version $(RELEASE_VERSION)"
-	git push origin $(RELEASE_BRANCH)
 
 	# Pull Request to update the base branch
 	$(MAKE) create-branch BASE_BRANCH=$(BASE_BRANCH) BRANCH_NAME=update-docs-backport-versions-$(RELEASE_VERSION)
@@ -96,15 +95,15 @@ minor-release:
 	$(MAKE) create-commit COMMIT_MESSAGE="[Release] update version $(NEXT_PROJECT_MINOR_VERSION)"
 	$(MAKE) rename-changelog
 	$(MAKE) create-commit COMMIT_MESSAGE="docs: Update changelogs for $(RELEASE_BRANCH) release"
-	$(MAKE) create-pull-request BRANCH=update-docs-backport-versions-$(RELEASE_VERSION) TARGET_BRANCH=$(BASE_BRANCH) TITLE="$(RELEASE_BRANCH): update docs, mergify, versions and changelogs"
 
 	# Pull Request to update the release branch
 	$(MAKE) create-branch BASE_BRANCH=$(RELEASE_BRANCH) BRANCH_NAME=backport-changelog-$(RELEASE_BRANCH)
 	$(MAKE) rename-changelog
 	$(MAKE) create-commit COMMIT_MESSAGE="docs: Update changelogs for $(RELEASE_BRANCH) release"
-	$(MAKE) create-pull-request BRANCH=backport-changelog-$(RELEASE_VERSION) TARGET_BRANCH=$(RELEASE_BRANCH) TITLE="$(RELEASE_BRANCH): update docs"
 
-	echo "Check the changes and run 'make create-branch-major-minor-release'"
+	git push origin $(RELEASE_BRANCH)
+	$(MAKE) create-pull-request BRANCH=update-docs-backport-versions-$(RELEASE_VERSION) TARGET_BRANCH=$(BASE_BRANCH) TITLE="$(RELEASE_BRANCH): update docs, mergify, versions and changelogs"
+	$(MAKE) create-pull-request BRANCH=backport-changelog-$(RELEASE_VERSION) TARGET_BRANCH=$(RELEASE_BRANCH) TITLE="$(RELEASE_BRANCH): update docs"
 
 # This is the contract with the GitHub action .github/workflows/run-patch-release.yml
 # The GitHub action will provide the below environment variables:
