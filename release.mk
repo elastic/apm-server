@@ -57,7 +57,7 @@ PROJECT_PATCH_VERSION ?= $(shell echo $(RELEASE_VERSION) | cut -f3 -d.)
 PROJECT_OWNER ?= elastic
 RELEASE_TYPE ?= minor
 
-CURRENT_RELEASE ?= $(shell gh api repos/elastic/apm-server/releases/latest | jq -r .tag_name | sed 's#^v##g')
+CURRENT_RELEASE ?= $(shell gh api repos/elastic/apm-server/releases/latest | jq -r '.tag_name|sub("v"; ""; "")')
 NEXT_PROJECT_MINOR_VERSION ?= $(PROJECT_MAJOR_VERSION).$(shell expr $(PROJECT_MINOR_VERSION) + 1).0
 NEXT_RELEASE ?= $(RELEASE_BRANCH).$(shell expr $(PROJECT_PATCH_VERSION) + 1)
 
@@ -130,7 +130,7 @@ create-branch:
 export CHANGELOG_TMPL
 rename-changelog:
 	mv changelogs/head.asciidoc changelogs/$(RELEASE_BRANCH).asciidoc
-    echo "$${CHANGELOG_TMPL}" > changelogs/head.asciidoc
+    #echo "$${CHANGELOG_TMPL}" > changelogs/head.asciidoc
 	awk "NR==2{print \"include::./changelogs/$(RELEASE_BRANCH).asciidoc[]\"}1" CHANGELOG.asciidoc > CHANGELOG.asciidoc.new
 	mv CHANGELOG.asciidoc.new CHANGELOG.asciidoc
 	awk "NR==12{print \"* <<release-notes-$(RELEASE_BRANCH)>>\"}1" docs/release-notes.asciidoc > docs/release-notes.asciidoc.new
