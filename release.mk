@@ -21,7 +21,7 @@ endif
 ifeq ($(OS),Darwin)
 	SED ?= sed -i ".bck"
 else
-	SED ?= sed -i
+	SED ?= sed -i ".bck"
 endif
 
 #######################
