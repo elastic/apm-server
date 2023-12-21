@@ -7,14 +7,14 @@ export PATH := $(CURDIR)/bin:$(PATH)
 #######################
 ## Tools
 #######################
-
+ARCH = $(shell uname -m)
+OS = $(shell uname)
 ifeq ($(OS),Darwin)
 	SED ?= sed -i ".bck"
 else
 	SED ?= sed -i
 endif
 
-ARCH = $(shell uname -m)
 ifeq ($(ARCH),x86_64)
 	YQ_ARCH ?= amd64
 else
