@@ -1,6 +1,7 @@
 .SILENT:
 .SHELLFLAGS = -euc
 SHELL = /bin/bash
+export PATH := $(CURDIR)/bin:$(PATH)
 
 #######################
 ## Tools
@@ -26,30 +27,6 @@ endif
 YQ ?= yq
 YQ_VERSION ?= v4.13.2
 
-export PATH := $(CURDIR)/bin:$(PATH)
-
-#######################
-## Templates
-#######################
-## Changelog template
-define CHANGELOG_TMPL
-[[release-notes-head]]
-== APM version HEAD
-
-https://github.com/elastic/apm-server/compare/$(RELEASE_BRANCH)\...main[View commits]
-
-[float]
-==== Breaking Changes
-
-[float]
-==== Deprecations
-
-[float]
-==== Intake API Changes
-
-[float]
-==== Added
-endef
 
 #######################
 ## Properties
@@ -74,6 +51,29 @@ ifeq ($(RELEASE_TYPE),patch)
 	BASE_BRANCH ?= $(RELEASE_BRANCH)
 	LATEST_RELEASE ?= $(RELEASE_BRANCH).$(shell expr $(PROJECT_PATCH_VERSION) - 1)
 endif
+
+#######################
+## Templates
+#######################
+## Changelog template
+define CHANGELOG_TMPL
+[[release-notes-head]]
+== APM version HEAD
+
+https://github.com/elastic/apm-server/compare/$(RELEASE_BRANCH)\...main[View commits]
+
+[float]
+==== Breaking Changes
+
+[float]
+==== Deprecations
+
+[float]
+==== Intake API Changes
+
+[float]
+==== Added
+endef
 
 #######################
 ## Public make goals
@@ -128,12 +128,14 @@ patch-release:
 export CHANGELOG_TMPL
 rename-changelog: VERSION=$${VERSION}
 rename-changelog:
+	@echo "::group::rename-changelog"
 	mv changelogs/head.asciidoc changelogs/$(VERSION).asciidoc
-    echo "$(CHANGELOG_TMPL)" > changelogs/head.asciidoc
+	echo "$(CHANGELOG_TMPL)" > changelogs/head.asciidoc
 	awk "NR==2{print \"include::./changelogs/$(VERSION).asciidoc[]\"}1" CHANGELOG.asciidoc > CHANGELOG.asciidoc.new
 	mv CHANGELOG.asciidoc.new CHANGELOG.asciidoc
 	awk "NR==12{print \"* <<release-notes-$(VERSION)>>\"}1" docs/release-notes.asciidoc > docs/release-notes.asciidoc.new
 	mv docs/release-notes.asciidoc.new docs/release-notes.asciidoc
+	@echo "::endgroup::"
 
 ## Update project documentation.
 .PHONY: update-docs
