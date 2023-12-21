@@ -76,23 +76,14 @@ https://github.com/elastic/apm-server/compare/$(RELEASE_BRANCH)\...main[View com
 ==== Added
 endef
 
-## Changelog template
-define CHANGELOG_PARTIAL_TMPL
-
-* <<release-notes-$(RELEASE_BRANCH).0>>
-[float]
-[[release-notes-$(RELEASE_BRANCH).0]]
-=== APM version $(RELEASE_BRANCH).0
-endef
-
 #######################
 ## Public make goals
 #######################
 
 # This is the contract with the GitHub action .github/workflows/run-minor-release.yml.
 # The GitHub action will provide the below environment variables:
-#  - RELEASE_BRANCH
 #  - RELEASE_VERSION
+#
 .PHONY: minor-release
 minor-release:
 	@echo "INFO: Create release branch and update new version $(RELEASE_VERSION)"
@@ -123,6 +114,7 @@ minor-release:
 # This is the contract with the GitHub action .github/workflows/run-patch-release.yml
 # The GitHub action will provide the below environment variables:
 #  - RELEASE_VERSION
+#
 .PHONY: patch-release
 patch-release:
 	@echo "VERSION: $${RELEASE_VERSION}"
@@ -139,7 +131,7 @@ export CHANGELOG_TMPL
 rename-changelog: VERSION=$${VERSION}
 rename-changelog:
 	$(MAKE) common-changelog
-	@echo "rename-changelog"
+	@echo ">> rename-changelog"
 	echo "$$CHANGELOG_TMPL" > changelogs/head.asciidoc
 	awk "NR==2{print \"include::./changelogs/$(VERSION).asciidoc[]\"}1" CHANGELOG.asciidoc > CHANGELOG.asciidoc.new
 	mv CHANGELOG.asciidoc.new CHANGELOG.asciidoc
@@ -151,7 +143,7 @@ rename-changelog:
 update-changelog: VERSION=$${VERSION}
 update-changelog:
 	$(MAKE) common-changelog
-	@echo "update-changelog"
+	@echo ">> update-changelog"
 	$(SED) 's#head#$(VERSION)#g' CHANGELOG.asciidoc
 
 # Common changelog file steps
@@ -159,7 +151,7 @@ update-changelog:
 .PHONY: common-changelog
 common-changelog: VERSION=$${VERSION}
 common-changelog:
-	@echo "common-changelog"
+	@echo ">> common-changelog"
 	mv changelogs/head.asciidoc changelogs/$(VERSION).asciidoc
 	$(SED) 's#head#$(VERSION)#gI' changelogs/$(VERSION).asciidoc
 	$(SED) -E -e 's#(\...)main#\1$(VERSION)#g' changelogs/$(VERSION).asciidoc
@@ -170,7 +162,7 @@ common-changelog:
 .PHONY: update-docs
 update-docs: VERSION=$${VERSION}
 update-docs: setup-yq
-	@echo "update-docs"
+	@echo ">> update-docs"
 	$(YQ) e --inplace '.[] |= with_entries((select(.value == "generated") | .value) ="$(VERSION)")' ./apmpackage/apm/changelog.yml; \
 	$(YQ) e --inplace '[{"version": "generated", "changes":[{"description": "Placeholder", "type": "enhancement", "link": "https://github.com/elastic/apm-server/pull/123"}]}] + .' ./apmpackage/apm/changelog.yml;
 
@@ -178,7 +170,7 @@ update-docs: setup-yq
 .PHONY: update-mergify
 update-mergify: VERSION=$${VERSION}
 update-mergify:
-	@echo "update-mergify"
+	@echo ">> update-mergify"
 	@if ! grep -q 'backport-$(VERSION)' .mergify.yml ; then \
 		echo "Update mergify with backport-$(VERSION)" ; \
 		echo '  - name: backport patches to $(VERSION) branch'                                  >> .mergify.yml ; \
@@ -203,7 +195,7 @@ update-mergify:
 .PHONY: update-version
 update-version: VERSION=$${VERSION}
 update-version:
-	@echo "update-version"
+	@echo ">> update-version"
 	if [ -f "cmd/intake-receiver/version.go" ]; then \
 		$(SED) -E -e 's#(version[[:blank:]]*)=[[:blank:]]*"[0-9]+\.[0-9]+\.[0-9]+#\1= "$(VERSION)#g' cmd/intake-receiver/version.go; \
 	fi
@@ -216,7 +208,7 @@ update-version:
 .PHONY: update-version-legacy
 update-version-legacy: VERSION=$${VERSION} PREVIOUS_VERSION=$${PREVIOUS_VERSION}
 update-version-legacy:
-	@echo "update-version-legacy"
+	@echo ">> update-version-legacy"
 	if [ -f "cmd/version.go" ]; then \
 		$(SED) -E -e 's#(defaultBeatVersion[[:blank:]]*)=[[:blank:]]*"[0-9]+\.[0-9]+\.[0-9]+#\1= "$(VERSION)#g' cmd/version.go; \
 	fi
@@ -231,7 +223,7 @@ update-version-legacy:
 .PHONY: update-version-makefile
 update-version-makefile: VERSION=$${VERSION}
 update-version-makefile:
-	@echo "update-version-makefile"
+	@echo ">> update-version-makefile"
 	$(SED) -E -e 's#BEATS_VERSION\s*\?=\s*(([0-9]+\.[0-9]+)|main)#BEATS_VERSION\?=$(VERSION)#g' Makefile
 
 ############################################
@@ -292,7 +284,7 @@ git-diff:
 .PHONY: setup-yq
 setup-yq:
 	if [ ! -x "$$(command -v $(YQ))" ] && [ ! -f "$(CURDIR)/bin/$(YQ)" ]; then \
-		echo "Downloading $(YQ) - $(YQ_VERSION)/$(YQ_BINARY)" ; \
+		echo ">> Downloading $(YQ) - $(YQ_VERSION)/$(YQ_BINARY)" ; \
 		curl -sSfL -o $(CURDIR)/bin/yq https://github.com/mikefarah/yq/releases/download/$(YQ_VERSION)/$(YQ_BINARY) ; \
 		chmod +x $(CURDIR)/bin/$(YQ); \
 	fi
