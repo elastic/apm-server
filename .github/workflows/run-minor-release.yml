@@ -18,9 +18,7 @@ permissions:
 
 env:
   JOB_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-  SLACK_CHANNEL: "#apm-server-test-release"
-  PROJECT_OWNER: 'v1v' # for testing purposes
-  BASE_BRANCH: feature/automate-release-process  # for testing purposes
+  SLACK_CHANNEL: "#apm-server"
 
 jobs:
   prepare:

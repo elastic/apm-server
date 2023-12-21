@@ -17,7 +17,8 @@ permissions:
   contents: read
 
 env:
-  SLACK_CHANNEL: "#apm-server-test-release"
+  JOB_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+  SLACK_CHANNEL: "#apm-server"
 
 jobs:
   prepare:
