@@ -139,6 +139,7 @@ rename-changelog: VERSION=$${VERSION}
 rename-changelog:
 	@echo "::group::rename-changelog"
 	mv changelogs/head.asciidoc changelogs/$(VERSION).asciidoc
+	$(SED) -E -e 's#(\...)main#\1$(VERSION)#g' changelogs/$(VERSION).asciidoc
 	echo "$$CHANGELOG_TMPL" > changelogs/head.asciidoc
 	awk "NR==2{print \"include::./changelogs/$(VERSION).asciidoc[]\"}1" CHANGELOG.asciidoc > CHANGELOG.asciidoc.new
 	mv CHANGELOG.asciidoc.new CHANGELOG.asciidoc
