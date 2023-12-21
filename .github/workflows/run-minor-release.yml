@@ -43,6 +43,8 @@ jobs:
     env:
       RELEASE_BRANCH: ${{ needs.prepare.outputs.release-branch }}
       RELEASE_VERSION: ${{ needs.prepare.outputs.release-version }}
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
         with:
@@ -61,6 +63,8 @@ jobs:
             The `${{ github.repository }}@${{ env.RELEASE_BRANCH }}` branch will be created Today.
 
       - run: make minor-release
+        env:
+          GH_TOKEN: ${{ github.token }}
 
       - uses: elastic/apm-pipeline-library/.github/actions/slack-message@current
         with:
