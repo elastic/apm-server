@@ -159,7 +159,7 @@ update-mergify:
 		echo '          - "backport"'                                                           >> .mergify.yml; \
 		echo '        title: "[{{ destination_branch }}] {{ title }} (backport #{{ number }})"' >> .mergify.yml; \
 	else \
-		echo "WARN: Mergify already contains backport-$(VERSION)"; \
+		echo "::warn::Mergify already contains backport-$(VERSION)"; \
 	fi
 
 ## Update the version in the different files with the hardcoded version.
