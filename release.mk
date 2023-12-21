@@ -145,8 +145,9 @@ update-changelog:
 	@echo "::group::update-changelog"
 	mv changelogs/head.asciidoc changelogs/$(VERSION).asciidoc
 	$(SED) 's#head#$(VERSION)#gI' changelogs/$(VERSION).asciidoc
-	compare/8.12\...main
 	$(SED) -E -e 's#(\...)main#\1$(VERSION)#g' changelogs/$(VERSION).asciidoc
+	awk "NR==5{print \"* <<release-notes-$(VERSION).0>>\"}1" changelogs/$(VERSION).asciidoc > changelogs/$(VERSION).asciidoc.new
+	mv changelogs/$(VERSION).asciidoc.new changelogs/$(VERSION).asciidoc
 	$(SED) 's#head#$(VERSION)#g'  CHANGELOG.asciidoc
 	@echo "::endgroup::"
 
