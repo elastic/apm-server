@@ -10,7 +10,7 @@ export PATH := $(CURDIR)/bin:$(PATH)
 ifeq ($(OS),Darwin)
 	SED ?= sed -i ".bck"
 else
-	SED ?= sed -i ".bck"
+	SED ?= sed -i
 endif
 
 ARCH = $(shell uname -m)
