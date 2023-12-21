@@ -332,7 +332,7 @@ func TestServerOTLPGRPC(t *testing.T) {
 
 func TestServerWaitForIntegrationKibana(t *testing.T) {
 	var requests int64
-	requestCh := make(chan struct{}, 3)
+	requestCh := make(chan struct{})
 	mux := http.NewServeMux()
 	mux.HandleFunc("/api/status", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(`{"version":{"number":"1.2.3"}}`))
@@ -363,14 +363,6 @@ func TestServerWaitForIntegrationKibana(t *testing.T) {
 		},
 	})))
 
-	// Send some events to the server. They should be accepted and enqueued.
-	req := makeTransactionRequest(t, srv.URL)
-	req.Header.Add("Content-Type", "application/x-ndjson")
-	resp, err := srv.Client.Do(req)
-	assert.NoError(t, err)
-	assert.Equal(t, http.StatusAccepted, resp.StatusCode)
-	resp.Body.Close()
-
 	timeout := time.After(10 * time.Second)
 	for i := 0; i < 3; i++ {
 		select {
@@ -395,8 +387,8 @@ func TestServerWaitForIntegrationKibana(t *testing.T) {
 
 func TestServerWaitForIntegrationElasticsearch(t *testing.T) {
 	var mu sync.Mutex
-	var createDataStreamRequests int
-	createDataStreamRequestsCh := make(chan int)
+	var tracesRequests int
+	tracesRequestsCh := make(chan int)
 	bulkCh := make(chan struct{}, 1)
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -405,24 +397,17 @@ func TestServerWaitForIntegrationElasticsearch(t *testing.T) {
 		// elasticsearch client to send bulk requests.
 		fmt.Fprintln(w, `{"version":{"number":"1.2.3"}}`)
 	})
-	mux.HandleFunc("/_data_stream/", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/_index_template/", func(w http.ResponseWriter, r *http.Request) {
 		mu.Lock()
 		defer mu.Unlock()
-		name := path.Base(r.URL.Path)
-		if name != "traces-apm-testing" {
-			panic("unexpected data stream name: " + name)
+		template := path.Base(r.URL.Path)
+		if template == "traces-apm" {
+			tracesRequests++
+			if tracesRequests == 1 {
+				w.WriteHeader(404)
+			}
+			tracesRequestsCh <- tracesRequests
 		}
-		createDataStreamRequests++
-		switch createDataStreamRequests {
-		case 1:
-			w.WriteHeader(500)
-		case 2:
-			w.WriteHeader(400)
-			w.Write([]byte(`{"error":{"root_cause":[{"type":"illegal_argument_exception","reason":"no matching index template found for data stream [traces-apm-testing]"}],"type":"illegal_argument_exception","reason":"no matching index template found for data stream [traces-apm-testing]"},"status":400}`))
-		case 3:
-			w.Write([]byte(`{"acknowledged":true}`))
-		}
-		createDataStreamRequestsCh <- createDataStreamRequests
 	})
 	mux.HandleFunc("/_bulk", func(w http.ResponseWriter, r *http.Request) {
 		select {
@@ -437,7 +422,6 @@ func TestServerWaitForIntegrationElasticsearch(t *testing.T) {
 		"apm-server": map[string]interface{}{
 			"wait_ready_interval":               "100ms",
 			"data_streams.wait_for_integration": true,
-			"data_streams.namespace":            "testing",
 		},
 		"output.elasticsearch": map[string]interface{}{
 			"hosts":       []string{elasticsearchServer.URL},
@@ -472,8 +456,8 @@ func TestServerWaitForIntegrationElasticsearch(t *testing.T) {
 	var done bool
 	for !done {
 		select {
-		case n := <-createDataStreamRequestsCh:
-			done = n == 3
+		case n := <-tracesRequestsCh:
+			done = n == 2
 		case <-timeout:
 			t.Fatal("timed out waiting for request")
 		}
@@ -487,7 +471,7 @@ func TestServerWaitForIntegrationElasticsearch(t *testing.T) {
 	}
 
 	logs := srv.Logs.FilterMessageSnippet("please install the apm integration")
-	assert.Len(t, logs.All(), 2, "couldn't find remediation message logs")
+	assert.Len(t, logs.All(), 1, "couldn't find remediation message logs")
 
 	// Healthcheck should now report that the server is publish-ready.
 	resp, err = srv.Client.Get(srv.URL + api.RootPath)
@@ -506,7 +490,7 @@ func TestServerFailedPreconditionDoesNotIndex(t *testing.T) {
 		// elasticsearch client to send bulk requests.
 		fmt.Fprintln(w, `{"version":{"number":"1.2.3"}}`)
 	})
-	mux.HandleFunc("/_data_stream/traces-apm-default", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/_index_template/", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(404)
 	})
 	mux.HandleFunc("/_bulk", func(w http.ResponseWriter, r *http.Request) {
