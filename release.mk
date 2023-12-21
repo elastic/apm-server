@@ -155,7 +155,7 @@ update-changelog:
 	mv changelogs/head.asciidoc changelogs/$(VERSION).asciidoc
 	$(SED) 's#head#$(VERSION)#gI' changelogs/$(VERSION).asciidoc
 	$(SED) -E -e 's#(\...)main#\1$(VERSION)#g' changelogs/$(VERSION).asciidoc
-	awk "NR==5{print \"$$CHANGELOG_PARTIAL_TMPL\"}1" changelogs/$(VERSION).asciidoc > changelogs/$(VERSION).asciidoc.new
+	awk "NR==5{print \"\n* <<release-notes-$(VERSION).0>>\n\n[float]\n[[release-notes-$(VERSION).0]]\n=== APM version $(VERSION).0\"}1" changelogs/$(VERSION).asciidoc > changelogs/$(VERSION).asciidoc.new
 	mv changelogs/$(VERSION).asciidoc.new changelogs/$(VERSION).asciidoc
 	$(SED) 's#head#$(VERSION)#g'  CHANGELOG.asciidoc
 	@echo "::endgroup::"
