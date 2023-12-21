@@ -1,4 +1,5 @@
 .SILENT:
+MAKEFLAGS += --no-print-directory
 .SHELLFLAGS = -euc
 SHELL = /bin/bash
 export PATH := $(CURDIR)/bin:$(PATH)
