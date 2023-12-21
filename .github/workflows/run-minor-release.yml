@@ -49,10 +49,6 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
-        with:
-          # 0 indicates all history for all branches and tags.
-          fetch-depth: 0
 
       - uses: elastic/apm-pipeline-library/.github/actions/slack-message@current
         with:
@@ -65,9 +61,31 @@ jobs:
             Feature freeze for `${{ github.repository }}@${{ env.RELEASE_VERSION }}` just started.
             The `${{ github.repository }}@${{ env.RELEASE_BRANCH }}` branch will be created Today.
 
+      - uses: actions/checkout@v4
+        with:
+          # 0 indicates all history for all branches and tags.
+          fetch-depth: 0
+
+      # Required to use a service account, otherwise PRs created by
+      # GitHub bot won't trigger any CI builds.
+      # See https://github.com/peter-evans/create-pull-request/issues/48#issuecomment-537478081
+      - name: Configure github token
+        uses: elastic/apm-pipeline-library/.github/actions/github-token@current
+        with:
+          url: ${{ secrets.VAULT_ADDR }}
+          roleId: ${{ secrets.VAULT_ROLE_ID }}
+          secretId: ${{ secrets.VAULT_SECRET_ID }}
+
+      - name: Configure git user
+        uses: elastic/apm-pipeline-library/.github/actions/setup-git@current
+        with:
+          username: ${{ env.GIT_USER }}
+          email: ${{ env.GIT_EMAIL }}
+          token: ${{ env.GITHUB_TOKEN }}
+
       - run: make minor-release
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ env.GITHUB_TOKEN }}
 
       - uses: elastic/apm-pipeline-library/.github/actions/slack-message@current
         if: success()
