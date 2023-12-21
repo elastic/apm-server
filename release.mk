@@ -50,7 +50,6 @@ endef
 #######################
 ## Properties
 #######################
-
 PROJECT_MAJOR_VERSION ?= $(shell echo $(RELEASE_VERSION) | cut -f1 -d.)
 PROJECT_MINOR_VERSION ?= $(shell echo $(RELEASE_VERSION) | cut -f2 -d.)
 PROJECT_PATCH_VERSION ?= $(shell echo $(RELEASE_VERSION) | cut -f3 -d.)
@@ -81,23 +80,20 @@ endif
 #  - RELEASE_VERSION
 .PHONY: minor-release
 minor-release:
-	# create release branch
-	$(MAKE) create-branch BASE_BRANCH=$(BASE_BRANCH) BRANCH_NAME=$(RELEASE_BRANCH)
+	$(MAKE) create-branch NAME=$(RELEASE_BRANCH) BASE=$(BASE_BRANCH)
 	$(MAKE) update-version VERSION=$(RELEASE_VERSION)
 	$(MAKE) update-version-makefile VERSION=$(RELEASE_VERSION)
 	$(MAKE) create-commit COMMIT_MESSAGE="[Release] update version $(RELEASE_VERSION)"
 
-	# Pull Request to update the base branch
-	$(MAKE) create-branch BASE_BRANCH=$(BASE_BRANCH) BRANCH_NAME=update-$(RELEASE_VERSION)
-	$(MAKE) update-mergify
+	$(MAKE) create-branch NAME=update-$(RELEASE_VERSION) BASE=$(BASE_BRANCH) 
+	$(MAKE) update-mergify VERSION=$(RELEASE_VERSION)
 	$(MAKE) update-docs VERSION=$(CURRENT_RELEASE)
 	$(MAKE) update-version VERSION=$(NEXT_PROJECT_MINOR_VERSION)
 	$(MAKE) create-commit COMMIT_MESSAGE="[Release] update version $(NEXT_PROJECT_MINOR_VERSION)"
 	$(MAKE) rename-changelog
 	$(MAKE) create-commit COMMIT_MESSAGE="docs: Update changelogs for $(RELEASE_BRANCH) release"
 
-	# Pull Request to update the release branch
-	$(MAKE) create-branch BASE_BRANCH=$(RELEASE_BRANCH) BRANCH_NAME=changelog-$(RELEASE_BRANCH)
+	$(MAKE) create-branch NAME=changelog-$(RELEASE_BRANCH) BASE=$(RELEASE_BRANCH)
 	$(MAKE) rename-changelog
 	$(MAKE) create-commit COMMIT_MESSAGE="docs: Update changelogs for $(RELEASE_BRANCH) release"
 
@@ -118,14 +114,15 @@ patch-release:
 ## Internal make goals
 #######################
 
-## Create a new branch using BASE_BRANCH with BRANCH_NAME.
+## Create a new branch
 ## It will delete the branch if it already exists before the creation.
 .PHONY: create-branch
+create-branch: NAME=$${NAME} BASE=$${BASE}
 create-branch:
-	@echo "::group::create-branch $(BRANCH_NAME)"
-	git checkout $(BASE_BRANCH)
-	git branch -D $(BRANCH_NAME) &>/dev/null || true
-	git checkout $(BASE_BRANCH) -b $(BRANCH_NAME)
+	@echo "::group::create-branch $(NAME)"
+	git checkout $(BASE)
+	git branch -D $(NAME) &>/dev/null || true
+	git checkout $(BASE) -b $(NAME)
 	@echo "::endgroup::"
 
 # Rename changelog file.
@@ -195,27 +192,28 @@ git-diff:
 	git --no-pager  diff || true
 	@echo "::endgroup::"
 
-## Update the references on .mergify.yml with the new minor release and bump the next release.
+## Update the references on .mergify.yml with the new minor release.
 .PHONY: update-mergify
+update-mergify: VERSION=$${VERSION}
 update-mergify:
-	@if ! grep -q 'backport-$(RELEASE_BRANCH)' .mergify.yml ; then \
-		echo "Update mergify with backport-$(RELEASE_BRANCH)" ; \
-		echo '  - name: backport patches to $(RELEASE_BRANCH) branch'                           >> .mergify.yml ; \
+	@if ! grep -q 'backport-$(VERSION)' .mergify.yml ; then \
+		echo "Update mergify with backport-$(VERSION)" ; \
+		echo '  - name: backport patches to $(VERSION) branch'                                  >> .mergify.yml ; \
 		echo '    conditions:'                                                                  >> .mergify.yml; \
 		echo '      - merged'                                                                   >> .mergify.yml; \
 		echo '      - base=main'                                                                >> .mergify.yml; \
-		echo '      - label=backport-$(RELEASE_BRANCH)'                                         >> .mergify.yml; \
+		echo '      - label=backport-$(VERSION)'                                                >> .mergify.yml; \
 		echo '    actions:'                                                                     >> .mergify.yml; \
 		echo '      backport:'                                                                  >> .mergify.yml; \
 		echo '        assignees:'                                                               >> .mergify.yml; \
 		echo '          - "{{ author }}"'                                                       >> .mergify.yml; \
 		echo '        branches:'                                                                >> .mergify.yml; \
-		echo '          - "$(RELEASE_BRANCH)"'                                                  >> .mergify.yml; \
+		echo '          - "$(VERSION)"'                                                         >> .mergify.yml; \
 		echo '        labels:'                                                                  >> .mergify.yml; \
 		echo '          - "backport"'                                                           >> .mergify.yml; \
 		echo '        title: "[{{ destination_branch }}] {{ title }} (backport #{{ number }})"' >> .mergify.yml; \
 	else \
-		echo "WARN: Mergify already contains backport-$(RELEASE_BRANCH)"; \
+		echo "WARN: Mergify already contains backport-$(VERSION)"; \
 	fi
 
 ## Update project documentation.
