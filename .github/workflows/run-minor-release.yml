@@ -17,8 +17,10 @@ permissions:
   contents: read
 
 env:
+  JOB_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
   SLACK_CHANNEL: "#apm-server-test-release"
   PROJECT_OWNER: 'v1v' # for testing purposes
+
 jobs:
   prepare:
     runs-on: ubuntu-latest
@@ -67,6 +69,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
 
       - uses: elastic/apm-pipeline-library/.github/actions/slack-message@current
+        if: success()
         with:
           url: ${{ secrets.VAULT_ADDR }}
           roleId: ${{ secrets.VAULT_ROLE_ID }}
@@ -76,3 +79,15 @@ jobs:
           message: |-
             `${{ github.repository }}@${{ env.RELEASE_BRANCH }}` is now available.
             The docs and other references are updated. You can start using it.
+
+      - uses: elastic/apm-pipeline-library/.github/actions/slack-message@current
+        if: failure()
+        with:
+          url: ${{ secrets.VAULT_ADDR }}
+          roleId: ${{ secrets.VAULT_ROLE_ID }}
+          secretId: ${{ secrets.VAULT_SECRET_ID }}
+          channel: ${{ env.SLACK_CHANNEL }}
+          threadTimestamp: ${{ needs.prepare.outputs.slack-thread || '' }}
+          message: |-
+            :fire: Something went wrong with the release.
+            See <${{ env.JOB_URL }}|logs>.
