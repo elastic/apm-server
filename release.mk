@@ -102,9 +102,9 @@ minor-release:
 	$(MAKE) create-commit COMMIT_MESSAGE="[Release] update changelogs for $(RELEASE_BRANCH) release"
 
 	@echo "INFO: Push changes to $(PROJECT_OWNER)/apm-server and create the relevant Pull Requests"
-	git push origin $(RELEASE_BRANCH)
-	$(MAKE) create-pull-request BRANCH=update-$(RELEASE_VERSION) TARGET_BRANCH=$(BASE_BRANCH) TITLE="$(RELEASE_BRANCH): update docs, mergify, versions and changelogs"
-	$(MAKE) create-pull-request BRANCH=changelog-$(RELEASE_BRANCH) TARGET_BRANCH=$(RELEASE_BRANCH) TITLE="$(RELEASE_BRANCH): update docs"
+	#git push origin $(RELEASE_BRANCH)
+	#$(MAKE) create-pull-request BRANCH=update-$(RELEASE_VERSION) TARGET_BRANCH=$(BASE_BRANCH) TITLE="$(RELEASE_BRANCH): update docs, mergify, versions and changelogs"
+	#$(MAKE) create-pull-request BRANCH=changelog-$(RELEASE_BRANCH) TARGET_BRANCH=$(RELEASE_BRANCH) TITLE="$(RELEASE_BRANCH): update docs"
 
 # This is the contract with the GitHub action .github/workflows/run-patch-release.yml
 # The GitHub action will provide the below environment variables:
@@ -125,7 +125,7 @@ export CHANGELOG_TMPL
 rename-changelog: VERSION=$${VERSION}
 rename-changelog:
 	mv changelogs/head.asciidoc changelogs/$(VERSION).asciidoc
-    #echo "$${CHANGELOG_TMPL}" > changelogs/head.asciidoc
+    echo "$${CHANGELOG_TMPL}" > changelogs/head.asciidoc
 	awk "NR==2{print \"include::./changelogs/$(VERSION).asciidoc[]\"}1" CHANGELOG.asciidoc > CHANGELOG.asciidoc.new
 	mv CHANGELOG.asciidoc.new CHANGELOG.asciidoc
 	awk "NR==12{print \"* <<release-notes-$(VERSION)>>\"}1" docs/release-notes.asciidoc > docs/release-notes.asciidoc.new
