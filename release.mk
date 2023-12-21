@@ -38,7 +38,6 @@ PROJECT_PATCH_VERSION ?= $(shell echo $(RELEASE_VERSION) | cut -f3 -d.)
 PROJECT_OWNER ?= elastic
 RELEASE_TYPE ?= minor
 
-CURRENT_RELEASE ?= $(shell gh api repos/elastic/apm-server/releases/latest | jq -r '.tag_name|sub("v"; ""; "")')
 RELEASE_BRANCH ?= $(PROJECT_MAJOR_VERSION).$(PROJECT_MINOR_VERSION)
 NEXT_PROJECT_MINOR_VERSION ?= $(PROJECT_MAJOR_VERSION).$(shell expr $(PROJECT_MINOR_VERSION) + 1).0
 NEXT_RELEASE ?= $(RELEASE_BRANCH).$(shell expr $(PROJECT_PATCH_VERSION) + 1)
@@ -99,7 +98,7 @@ minor-release:
 
 	@echo "INFO: Create feature branch and update the versions. Target branch $(BASE_BRANCH)"
 	$(MAKE) create-branch NAME=update-$(RELEASE_VERSION) BASE=$(BASE_BRANCH)
-	$(MAKE) update-docs VERSION=$(CURRENT_RELEASE)
+	$(MAKE) update-docs VERSION=$(RELEASE_VERSION)
 	$(MAKE) update-mergify VERSION=$(RELEASE_BRANCH)
 	$(MAKE) update-version VERSION=$(NEXT_PROJECT_MINOR_VERSION)
 	$(MAKE) create-commit COMMIT_MESSAGE="[Release] update version $(NEXT_PROJECT_MINOR_VERSION)"
