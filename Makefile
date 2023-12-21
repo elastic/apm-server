@@ -4,7 +4,6 @@
 
 include go.mk
 include packaging.mk
-include release.mk
 
 # By default we run tests with verbose output. This may be overridden, e.g.
 # scripts may set GOTESTFLAGS=-json to format test output for processing.
