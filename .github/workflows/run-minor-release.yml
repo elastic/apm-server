@@ -18,7 +18,7 @@ permissions:
 
 env:
   SLACK_CHANNEL: "#apm-server-test-release"
-
+  PROJECT_OWNER: 'v1v' # for testing purposes
 jobs:
   prepare:
     runs-on: ubuntu-latest
