@@ -208,7 +208,7 @@ update-mergify:
 .PHONY: update-version
 update-version: VERSION=$${VERSION}
 update-version:
-	@echo ">> update-version"
+	echo ">> update-version"
 	if [ -f "cmd/intake-receiver/version.go" ]; then \
 		$(SED) -E -e 's#(version[[:blank:]]*)=[[:blank:]]*"[0-9]+\.[0-9]+\.[0-9]+#\1= "$(VERSION)#g' cmd/intake-receiver/version.go; \
 	fi
