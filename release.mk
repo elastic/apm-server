@@ -137,9 +137,8 @@ patch-release:
 export CHANGELOG_TMPL
 rename-changelog: VERSION=$${VERSION}
 rename-changelog:
+	$(MAKE) common-changelog
 	@echo "::group::rename-changelog"
-	mv changelogs/head.asciidoc changelogs/$(VERSION).asciidoc
-	$(SED) -E -e 's#(\...)main#\1$(VERSION)#g' changelogs/$(VERSION).asciidoc
 	echo "$$CHANGELOG_TMPL" > changelogs/head.asciidoc
 	awk "NR==2{print \"include::./changelogs/$(VERSION).asciidoc[]\"}1" CHANGELOG.asciidoc > CHANGELOG.asciidoc.new
 	mv CHANGELOG.asciidoc.new CHANGELOG.asciidoc
@@ -149,16 +148,23 @@ rename-changelog:
 
 # Update changelog file to generate something similar to https://github.com/elastic/apm-server/pull/12220
 .PHONY: update-changelog
-export CHANGELOG_PARTIAL_TMPL
 update-changelog: VERSION=$${VERSION}
 update-changelog:
+	$(MAKE) common-changelog
 	@echo "::group::update-changelog"
+	$(SED) 's#head#$(VERSION)#g' CHANGELOG.asciidoc
+	@echo "::endgroup::"
+
+# Update changelog file to generate something similar to https://github.com/elastic/apm-server/pull/12220
+.PHONY: common-changelog
+common-changelog: VERSION=$${VERSION}
+common-changelog:
+	@echo "::group::common-changelog"
 	mv changelogs/head.asciidoc changelogs/$(VERSION).asciidoc
 	$(SED) 's#head#$(VERSION)#gI' changelogs/$(VERSION).asciidoc
 	$(SED) -E -e 's#(\...)main#\1$(VERSION)#g' changelogs/$(VERSION).asciidoc
 	awk "NR==5{print \"\n* <<release-notes-$(VERSION).0>>\n\n[float]\n[[release-notes-$(VERSION).0]]\n=== APM version $(VERSION).0\"}1" changelogs/$(VERSION).asciidoc > changelogs/$(VERSION).asciidoc.new
 	mv changelogs/$(VERSION).asciidoc.new changelogs/$(VERSION).asciidoc
-	$(SED) 's#head#$(VERSION)#g'  CHANGELOG.asciidoc
 	@echo "::endgroup::"
 
 ## Update project documentation.
