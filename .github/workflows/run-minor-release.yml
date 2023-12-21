@@ -108,5 +108,4 @@ jobs:
           channel: ${{ env.SLACK_CHANNEL }}
           threadTimestamp: ${{ needs.prepare.outputs.slack-thread || '' }}
           message: |-
-            :fire: Something went wrong with the release.
-            See <${{ env.JOB_URL }}|logs>.
+            :fire: Something went wrong with the release. See <${{ env.JOB_URL }}|logs>.

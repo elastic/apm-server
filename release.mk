@@ -139,40 +139,38 @@ export CHANGELOG_TMPL
 rename-changelog: VERSION=$${VERSION}
 rename-changelog:
 	$(MAKE) common-changelog
-	@echo "::group::rename-changelog"
+	@echo "rename-changelog"
 	echo "$$CHANGELOG_TMPL" > changelogs/head.asciidoc
 	awk "NR==2{print \"include::./changelogs/$(VERSION).asciidoc[]\"}1" CHANGELOG.asciidoc > CHANGELOG.asciidoc.new
 	mv CHANGELOG.asciidoc.new CHANGELOG.asciidoc
 	awk "NR==12{print \"* <<release-notes-$(VERSION)>>\"}1" docs/release-notes.asciidoc > docs/release-notes.asciidoc.new
 	mv docs/release-notes.asciidoc.new docs/release-notes.asciidoc
-	@echo "::endgroup::"
 
 # Update changelog file to generate something similar to https://github.com/elastic/apm-server/pull/12220
 .PHONY: update-changelog
 update-changelog: VERSION=$${VERSION}
 update-changelog:
 	$(MAKE) common-changelog
-	@echo "::group::update-changelog"
+	@echo "update-changelog"
 	$(SED) 's#head#$(VERSION)#g' CHANGELOG.asciidoc
-	@echo "::endgroup::"
 
 # Common changelog file steps
 # TODO: changelogs/$(VERSION).asciidoc requires further manipulation to remove empty entries.
 .PHONY: common-changelog
 common-changelog: VERSION=$${VERSION}
 common-changelog:
-	@echo "::group::common-changelog"
+	@echo "common-changelog"
 	mv changelogs/head.asciidoc changelogs/$(VERSION).asciidoc
 	$(SED) 's#head#$(VERSION)#gI' changelogs/$(VERSION).asciidoc
 	$(SED) -E -e 's#(\...)main#\1$(VERSION)#g' changelogs/$(VERSION).asciidoc
 	awk "NR==5{print \"\n* <<release-notes-$(VERSION).0>>\n\n[float]\n[[release-notes-$(VERSION).0]]\n=== APM version $(VERSION).0\"}1" changelogs/$(VERSION).asciidoc > changelogs/$(VERSION).asciidoc.new
 	mv changelogs/$(VERSION).asciidoc.new changelogs/$(VERSION).asciidoc
-	@echo "::endgroup::"
 
 ## Update project documentation.
 .PHONY: update-docs
 update-docs: VERSION=$${VERSION}
 update-docs: setup-yq
+	@echo "update-docs"
 	$(YQ) e --inplace '.[] |= with_entries((select(.value == "generated") | .value) ="$(VERSION)")' ./apmpackage/apm/changelog.yml; \
 	$(YQ) e --inplace '[{"version": "generated", "changes":[{"description": "Placeholder", "type": "enhancement", "link": "https://github.com/elastic/apm-server/pull/123"}]}] + .' ./apmpackage/apm/changelog.yml;
 
@@ -180,6 +178,7 @@ update-docs: setup-yq
 .PHONY: update-mergify
 update-mergify: VERSION=$${VERSION}
 update-mergify:
+	@echo "update-mergify"
 	@if ! grep -q 'backport-$(VERSION)' .mergify.yml ; then \
 		echo "Update mergify with backport-$(VERSION)" ; \
 		echo '  - name: backport patches to $(VERSION) branch'                                  >> .mergify.yml ; \
@@ -204,21 +203,20 @@ update-mergify:
 .PHONY: update-version
 update-version: VERSION=$${VERSION}
 update-version:
-	@echo "::group::update-version"
+	@echo "update-version"
 	if [ -f "cmd/intake-receiver/version.go" ]; then \
 		$(SED) -E -e 's#(version[[:blank:]]*)=[[:blank:]]*"[0-9]+\.[0-9]+\.[0-9]+#\1= "$(VERSION)#g' cmd/intake-receiver/version.go; \
 	fi
 	if [ -f "internal/version/version.go" ]; then \
 		$(SED) -E -e 's#(Version[[:blank:]]*)=[[:blank:]]*"[0-9]+\.[0-9]+\.[0-9]+#\1= "$(VERSION)#g' internal/version/version.go; \
 	fi
-	@echo "::endgroup::"
 
 ## Update the version in the different files with the hardcoded version. Legacy stuff
 ## @DEPRECATED: likely in the 7.17 branch
 .PHONY: update-version-legacy
 update-version-legacy: VERSION=$${VERSION} PREVIOUS_VERSION=$${PREVIOUS_VERSION}
 update-version-legacy:
-	@echo "::group::update-version-legacy"
+	@echo "update-version-legacy"
 	if [ -f "cmd/version.go" ]; then \
 		$(SED) -E -e 's#(defaultBeatVersion[[:blank:]]*)=[[:blank:]]*"[0-9]+\.[0-9]+\.[0-9]+#\1= "$(VERSION)#g' cmd/version.go; \
 	fi
@@ -228,15 +226,13 @@ update-version-legacy:
 	if [ -f "apmpackage/apm/manifest.yml" ]; then \
 		$(SED) -E -e 's#(version[[:blank:]]*):[[:blank:]]*$(PREVIOUS_VERSION)#\1: $(VERSION)#g' apmpackage/apm/manifest.yml; \
 	fi
-	@echo "::endgroup::"
 
 ## Update project version in the Makefile.
 .PHONY: update-version-makefile
 update-version-makefile: VERSION=$${VERSION}
 update-version-makefile:
-	@echo "::group::update-version-makefile"
+	@echo "update-version-makefile"
 	$(SED) -E -e 's#BEATS_VERSION\s*\?=\s*(([0-9]+\.[0-9]+)|main)#BEATS_VERSION\?=$(VERSION)#g' Makefile
-	@echo "::endgroup::"
 
 ############################################
 ## Internal make goals to interact with Git
@@ -269,6 +265,7 @@ create-commit:
 .PHONY: create-pull-request
 create-pull-request: BRANCH=$${BRANCH} TITLE=$${TITLE} TARGET_BRANCH=$${TARGET_BRANCH}
 create-pull-request:
+	@echo "::group::create-pull-request"
 	git push origin $(BRANCH)
 	gh pr create \
 		--title "$(TITLE)" \
@@ -278,6 +275,7 @@ create-pull-request:
 		--label 'release' \
 		--reviewer "$(PROJECT_REVIEWERS)" \
 		--repo $(PROJECT_OWNER)/apm-server || echo "There is no changes"
+	@echo "::endgroup::"
 
 ## Diff output
 .PHONY: git-diff
