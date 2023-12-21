@@ -3,13 +3,17 @@ name: OpenTelemetry Export Trace
 on:
   workflow_run:
     workflows:
+      - benchmarks
       - bump-elastic-stack-snapshot
       - bump-golang
       - ci
       - microbenchmark
-      - system-test-reporter
+      - run-minor-release
+      - run-patch-release
+      - smoke-tests
       - smoke-tests-os
       - smoke-tests-ess
+      - system-test-reporter
       - Terraform Format
       - update-beats
     types: [completed]
