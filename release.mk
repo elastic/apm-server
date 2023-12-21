@@ -132,7 +132,7 @@ patch-release:
 ## Internal make goals to bump versions
 ############################################
 
-# Rename changelog file.
+# Rename changelog file to generate something similar to https://github.com/elastic/apm-server/pull/12172
 .PHONY: rename-changelog
 export CHANGELOG_TMPL
 rename-changelog: VERSION=$${VERSION}
@@ -155,7 +155,8 @@ update-changelog:
 	$(SED) 's#head#$(VERSION)#g' CHANGELOG.asciidoc
 	@echo "::endgroup::"
 
-# Update changelog file to generate something similar to https://github.com/elastic/apm-server/pull/12220
+# Common changelog file steps
+# TODO: changelogs/$(VERSION).asciidoc requires further manipulation to remove empty entries.
 .PHONY: common-changelog
 common-changelog: VERSION=$${VERSION}
 common-changelog:
