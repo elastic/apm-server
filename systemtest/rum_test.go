@@ -110,7 +110,7 @@ func TestRUMAllowServiceNames(t *testing.T) {
 
 	respBody, _ := io.ReadAll(resp.Body)
 	assert.Equal(t, http.StatusForbidden, resp.StatusCode, string(respBody))
-	assert.Equal(t, `{"accepted":0,"errors":[{"message":"unauthorized: anonymous access not permitted for service \"disallowed\""}]}`+"\n", string(respBody))
+	assert.Equal(t, `{"accepted":0,"errors":[{"message":"cannot handle stream: cannot process batch: unauthorized: anonymous access not permitted for service \"disallowed\""}]}`+"\n", string(respBody))
 }
 
 func TestRUMRateLimit(t *testing.T) {

@@ -53,9 +53,6 @@ resources:
 
 # List of project maintainers
 maintainers:
-  - email: "nassim.kammah@elastic.co"
-    name: "Nassim Kammah"
-    username: "nassim.kammah"
   - email: "ivan.fernandez@elastic.co"
     name: "Ivan Fernandez Calvo"
     username: "ivan.fernandez"
