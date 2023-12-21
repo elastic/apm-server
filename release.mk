@@ -93,7 +93,7 @@ minor-release:
 
 	@echo "INFO: Create feature branch and update the versions. Target branch $(RELEASE_BRANCH)"
 	$(MAKE) create-branch NAME=changelog-$(RELEASE_BRANCH) BASE=$(RELEASE_BRANCH)
-	$(MAKE) rename-changelog VERSION=$(RELEASE_BRANCH)
+	$(MAKE) rename-changelog VERSION=$(RELEASE_BRANCH) CREATE_HEAD=false
 	$(MAKE) create-commit COMMIT_MESSAGE="docs: Update changelogs for $(RELEASE_BRANCH) release"
 
 	@echo "INFO: Create feature branch and update the versions. Target branch $(BASE_BRANCH)"
@@ -102,7 +102,7 @@ minor-release:
 	$(MAKE) update-mergify VERSION=$(RELEASE_VERSION)
 	$(MAKE) update-version VERSION=$(NEXT_PROJECT_MINOR_VERSION)
 	$(MAKE) create-commit COMMIT_MESSAGE="[Release] update version $(NEXT_PROJECT_MINOR_VERSION)"
-	$(MAKE) rename-changelog VERSION=$(RELEASE_BRANCH)
+	$(MAKE) rename-changelog VERSION=$(RELEASE_BRANCH) CREATE_HEAD=true
 	$(MAKE) create-commit COMMIT_MESSAGE="[Release] update changelogs for $(RELEASE_BRANCH) release"
 
 	@echo "INFO: Push changes to $(PROJECT_OWNER)/apm-server and create the relevant Pull Requests"
@@ -126,11 +126,13 @@ patch-release:
 # Rename changelog file.
 .PHONY: rename-changelog
 export CHANGELOG_TMPL
-rename-changelog: VERSION=$${VERSION}
+rename-changelog: VERSION=$${VERSION} CREATE_HEAD=$${CREATE_HEAD}
 rename-changelog:
 	@echo "::group::rename-changelog"
 	mv changelogs/head.asciidoc changelogs/$(VERSION).asciidoc
-	echo "$$CHANGELOG_TMPL" > changelogs/head.asciidoc
+	if [ "$(CREATE_HEAD)" = "true" ]; then \
+		echo "$$CHANGELOG_TMPL" > changelogs/head.asciidoc; \
+	fi
 	awk "NR==2{print \"include::./changelogs/$(VERSION).asciidoc[]\"}1" CHANGELOG.asciidoc > CHANGELOG.asciidoc.new
 	mv CHANGELOG.asciidoc.new CHANGELOG.asciidoc
 	awk "NR==12{print \"* <<release-notes-$(VERSION)>>\"}1" docs/release-notes.asciidoc > docs/release-notes.asciidoc.new
