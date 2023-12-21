@@ -75,6 +75,15 @@ https://github.com/elastic/apm-server/compare/$(RELEASE_BRANCH)\...main[View com
 ==== Added
 endef
 
+## Changelog template
+define CHANGELOG_PARTIAL_TMPL
+
+* <<release-notes-$(RELEASE_BRANCH).0>>
+[float]
+[[release-notes-$(RELEASE_BRANCH).0]]
+=== APM version $(RELEASE_BRANCH).0
+endef
+
 #######################
 ## Public make goals
 #######################
@@ -139,14 +148,14 @@ rename-changelog:
 
 # Update changelog file to generate something similar to https://github.com/elastic/apm-server/pull/12220
 .PHONY: update-changelog
-export CHANGELOG_TMPL
+export CHANGELOG_PARTIAL_TMPL
 update-changelog: VERSION=$${VERSION}
 update-changelog:
 	@echo "::group::update-changelog"
 	mv changelogs/head.asciidoc changelogs/$(VERSION).asciidoc
 	$(SED) 's#head#$(VERSION)#gI' changelogs/$(VERSION).asciidoc
 	$(SED) -E -e 's#(\...)main#\1$(VERSION)#g' changelogs/$(VERSION).asciidoc
-	awk "NR==5{print \"* <<release-notes-$(VERSION).0>>\"}1" changelogs/$(VERSION).asciidoc > changelogs/$(VERSION).asciidoc.new
+	awk "NR==5{print \"$$CHANGELOG_PARTIAL_TMPL\"}1" changelogs/$(VERSION).asciidoc > changelogs/$(VERSION).asciidoc.new
 	mv changelogs/$(VERSION).asciidoc.new changelogs/$(VERSION).asciidoc
 	$(SED) 's#head#$(VERSION)#g'  CHANGELOG.asciidoc
 	@echo "::endgroup::"
