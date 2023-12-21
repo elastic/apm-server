@@ -1,3 +1,7 @@
+.SILENT:
+.SHELLFLAGS = -euc
+SHELL = /bin/bash
+
 #######################
 ## Tools
 #######################
@@ -125,7 +129,7 @@ export CHANGELOG_TMPL
 rename-changelog: VERSION=$${VERSION}
 rename-changelog:
 	mv changelogs/head.asciidoc changelogs/$(VERSION).asciidoc
-    echo "$${CHANGELOG_TMPL}" > changelogs/head.asciidoc
+    echo "$(CHANGELOG_TMPL)" > changelogs/head.asciidoc
 	awk "NR==2{print \"include::./changelogs/$(VERSION).asciidoc[]\"}1" CHANGELOG.asciidoc > CHANGELOG.asciidoc.new
 	mv CHANGELOG.asciidoc.new CHANGELOG.asciidoc
 	awk "NR==12{print \"* <<release-notes-$(VERSION)>>\"}1" docs/release-notes.asciidoc > docs/release-notes.asciidoc.new
