@@ -132,10 +132,17 @@ rename-changelog:
 	$(MAKE) common-changelog
 	@echo ">> rename-changelog"
 	echo "$$CHANGELOG_TMPL" > changelogs/head.asciidoc
-	awk "NR==2{print \"include::./changelogs/$(VERSION).asciidoc[]\"}1" CHANGELOG.asciidoc > CHANGELOG.asciidoc.new
-	mv CHANGELOG.asciidoc.new CHANGELOG.asciidoc
-	awk "NR==12{print \"* <<release-notes-$(VERSION)>>\"}1" docs/release-notes.asciidoc > docs/release-notes.asciidoc.new
-	mv docs/release-notes.asciidoc.new docs/release-notes.asciidoc
+	@if ! grep -q 'release-notes-$(VERSION)' CHANGELOG.asciidoc ; then \
+		awk "NR==2{print \"* <<release-notes-$(VERSION)>>\"}1" CHANGELOG.asciidoc > CHANGELOG.asciidoc.new; \
+		mv CHANGELOG.asciidoc.new CHANGELOG.asciidoc ; \
+	fi
+	@if ! grep -q '$(VERSION).asciidoc' CHANGELOG.asciidoc ; then \
+		$(SED) -E -e 's#(head.asciidoc\[\])#\1\ninclude::.\/changelogs\/$(VERSION).asciidoc[]#g' CHANGELOG.asciidoc; \
+	fi
+	@if ! grep -q 'release-notes-$(VERSION)' docs/release-notes.asciidoc ; then \
+		awk "NR==12{print \"* <<release-notes-$(VERSION)>>\"}1" docs/release-notes.asciidoc > docs/release-notes.asciidoc.new ; \
+		mv docs/release-notes.asciidoc.new docs/release-notes.asciidoc ; \
+	fi
 
 # Update changelog file to generate something similar to https://github.com/elastic/apm-server/pull/12220
 .PHONY: update-changelog
