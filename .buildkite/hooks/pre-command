@@ -70,7 +70,7 @@ if command -v docker &>/dev/null; then
     DOCKER_USERNAME_SECRET=$(retry 5 vault kv get -field username "${DOCKER_REGISTRY_SECRET_PATH}")
     DOCKER_PASSWORD_SECRET=$(retry 5 vault kv get -field password "${DOCKER_REGISTRY_SECRET_PATH}")
     DOCKER_REGISTRY_SECRET=$(retry 5 vault kv get -field registry "${DOCKER_REGISTRY_SECRET_PATH}")
-    docker login -u "${DOCKER_USERNAME_SECRET}" -p "${DOCKER_PASSWORD_SECRET}" "${DOCKER_REGISTRY_SECRET}"
+    retry 4 docker login -u "${DOCKER_USERNAME_SECRET}" -p "${DOCKER_PASSWORD_SECRET}" "${DOCKER_REGISTRY_SECRET}"
     unset DOCKER_USERNAME_SECRET DOCKER_PASSWORD_SECRET
     export DOCKER_REGISTRY_SECRET
     retry 4 docker pull --quiet docker.elastic.co/infra/release-manager:latest
@@ -80,7 +80,7 @@ if command -v docker &>/dev/null; then
     DOCKER_USERNAME_SECRET=$(retry 5 vault kv get -field username "${DOCKER_REGISTRY_SECRET_PATH}")
     DOCKER_PASSWORD_SECRET=$(retry 5 vault kv get -field password "${DOCKER_REGISTRY_SECRET_PATH}")
     DOCKERHUB_REGISTRY_SECRET=$(retry 5 vault kv get -field registry "${DOCKER_REGISTRY_SECRET_PATH}")
-    docker login -u "${DOCKER_USERNAME_SECRET}" -p "${DOCKER_PASSWORD_SECRET}" "${DOCKERHUB_REGISTRY_SECRET}"
+    retry 4 docker login -u "${DOCKER_USERNAME_SECRET}" -p "${DOCKER_PASSWORD_SECRET}" "${DOCKERHUB_REGISTRY_SECRET}"
     unset DOCKER_USERNAME_SECRET DOCKER_PASSWORD_SECRET
 fi
 
