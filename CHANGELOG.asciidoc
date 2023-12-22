@@ -1,2 +1,9 @@
+// tag::list[]
+* <<release-notes-8.1>>
+* <<release-notes-8.0>>
+// end::list[]
+
+// tag::includes[]
 include::./changelogs/8.1.asciidoc[]
 include::./changelogs/8.0.asciidoc[]
+// end::includes[]
