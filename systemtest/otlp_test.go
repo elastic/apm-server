@@ -232,6 +232,39 @@ func TestOTLPGRPCMetrics(t *testing.T) {
 	assert.True(t, gjson.GetBytes(doc.RawSource, "beats_stats.metrics.apm-server.otlp.grpc.metrics.consumer").Exists())
 }
 
+func TestOTLPGRPCMetrics_partialSuccess(t *testing.T) {
+	systemtest.CleanupElasticsearch(t)
+	srv := apmservertest.NewUnstartedServerTB(t)
+	srv.Config.Monitoring = newFastMonitoringConfig()
+	err := srv.Start()
+	require.NoError(t, err)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	err = sendOTLPMetrics(t, ctx, srv, func(meter metric.Meter) {
+		float64Counter, err := meter.Float64Counter("counter")
+		require.NoError(t, err)
+		float64Counter.Add(context.Background(), 1)
+
+		int64Histogram, err := meter.Int64Histogram("histogram")
+		require.NoError(t, err)
+		int64Histogram.Record(context.Background(), 1)
+		int64Histogram.Record(context.Background(), 123)
+		int64Histogram.Record(context.Background(), 1024)
+		int64Histogram.Record(context.Background(), 20000)
+	}, sdkmetric.NewView(
+		sdkmetric.Instrument{Name: "*histogram"},
+		sdkmetric.Stream{
+			Aggregation: sdkmetric.AggregationBase2ExponentialHistogram{
+				MaxSize:  5,
+				MaxScale: -10,
+			},
+		},
+	))
+
+	require.ErrorContains(t, err, "OTLP partial success:")
+}
+
 func TestOTLPGRPCLogs(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
 	srv := apmservertest.NewServerTB(t)
