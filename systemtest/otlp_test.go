@@ -194,7 +194,14 @@ func TestOTLPGRPCMetrics(t *testing.T) {
 		int64Histogram.Record(context.Background(), 123)
 		int64Histogram.Record(context.Background(), 1024)
 		int64Histogram.Record(context.Background(), 20000)
-	})
+	}, sdkmetric.NewView(
+		sdkmetric.Instrument{Name: "*histogram"},
+		sdkmetric.Stream{
+			Aggregation: sdkmetric.AggregationExplicitBucketHistogram{
+				Boundaries: []float64{0, 1, 100, 1000, 10000},
+			},
+		},
+	))
 	require.NoError(t, err)
 
 	// opentelemetry-go does not support sending Summary metrics,
@@ -594,22 +601,14 @@ func sendOTLPMetrics(
 	ctx context.Context,
 	srv *apmservertest.Server,
 	recordMetrics func(metric.Meter),
+	mv sdkmetric.View,
 ) error {
 	exporter := newOTLPMetricExporter(t, srv)
 	meterProvider := sdkmetric.NewMeterProvider(
 		sdkmetric.WithReader(
 			sdkmetric.NewPeriodicReader(exporter, sdkmetric.WithInterval(time.Minute)),
 		),
-		sdkmetric.WithView(
-			sdkmetric.NewView(
-				sdkmetric.Instrument{Name: "*histogram"},
-				sdkmetric.Stream{
-					Aggregation: sdkmetric.AggregationExplicitBucketHistogram{
-						Boundaries: []float64{0, 1, 100, 1000, 10000},
-					},
-				},
-			),
-		),
+		sdkmetric.WithView(mv),
 	)
 	meter := meterProvider.Meter("test-meter")
 
