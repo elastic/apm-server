@@ -44,15 +44,14 @@ sources:
           captureindex: 1
 
 conditions:
-  is:
+  is-already-updated:
     name: Is version 'github.com/elastic/beats@{{ source "beats" }}' not updated in 'go.mod'?
-    kind: file
+    kind: shell
     disablesourceinput: true
     scmid: default
     spec:
-      file: go.mod
-      matchpattern: 'github\.com/elastic/beats.*-{{ source "beats" }}'
-    failwhen: true
+      command: grep {{ source "beats" }} go.mod && exit 1 || exit 0
+    failwhen: false
 
 targets:
   beats:
@@ -64,5 +63,4 @@ targets:
       command: .ci/scripts/update-beats.sh
       environments:
         - name: PATH
-        - name: GOPATH
         - name: HOME
