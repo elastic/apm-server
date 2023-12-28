@@ -420,3 +420,9 @@ Please see <<apm-overview>>.
 
 This page has been deleted.
 Please see <<apm-overview>>.
+
+[role="exclude",id="apm-mutating-admission-webhook"]
+==== APM Attacher
+
+This page has moved.
+Please see <<apm-k8s-attacher>>.
