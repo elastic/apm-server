@@ -2,7 +2,7 @@
     "accepted": 0,
     "errors": [
         {
-            "message": "queue is full"
+            "message": "cannot handle stream: cannot process batch: queue is full"
         }
     ]
 }

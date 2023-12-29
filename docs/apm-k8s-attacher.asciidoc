@@ -1,5 +1,5 @@
-[[apm-mutating-admission-webhook]]
-= APM Attacher
+[[apm-k8s-attacher]]
+= APM K8S Attacher
 
 preview::[]
 
