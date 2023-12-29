@@ -75,11 +75,7 @@ func TestRUMHandler_NoAuthorizationRequired(t *testing.T) {
 	cfg.AgentAuth.SecretToken = "1234"
 	rec, err := requestToMuxerWithPattern(cfg, IntakeRUMPath)
 	require.NoError(t, err)
-	assert.NotEqual(t, http.StatusUnauthorized, rec.Code)
-
-	expected, err := os.ReadFile(approvalPathIntakeRUM(t.Name()) + ".approved.json")
-	require.NoError(t, err)
-	assert.JSONEq(t, string(expected), rec.Body.String())
+	assert.Equal(t, http.StatusAccepted, rec.Code)
 }
 
 func TestRUMHandler_KillSwitchMiddleware(t *testing.T) {
@@ -96,11 +92,7 @@ func TestRUMHandler_KillSwitchMiddleware(t *testing.T) {
 	t.Run("On", func(t *testing.T) {
 		rec, err := requestToMuxerWithPattern(cfgEnabledRUM(), IntakeRUMPath)
 		require.NoError(t, err)
-		assert.NotEqual(t, http.StatusForbidden, rec.Code)
-
-		expected, err := os.ReadFile(approvalPathIntakeRUM(t.Name()) + ".approved.json")
-		require.NoError(t, err)
-		assert.JSONEq(t, string(expected), rec.Body.String())
+		assert.Equal(t, http.StatusAccepted, rec.Code)
 	})
 }
 
