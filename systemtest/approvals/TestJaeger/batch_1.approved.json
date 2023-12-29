@@ -413,7 +413,10 @@
             "traces"
         ],
         "event.outcome": [
-            "unknown"
+            "success"
+        ],
+        "event.success_count": [
+            1
         ],
         "host.hostname": [
             "host01"
@@ -496,7 +499,10 @@
             "traces"
         ],
         "event.outcome": [
-            "unknown"
+            "success"
+        ],
+        "event.success_count": [
+            1
         ],
         "host.hostname": [
             "host01"
@@ -579,7 +585,10 @@
             "traces"
         ],
         "event.outcome": [
-            "unknown"
+            "success"
+        ],
+        "event.success_count": [
+            1
         ],
         "host.hostname": [
             "host01"
@@ -748,7 +757,10 @@
             "traces"
         ],
         "event.outcome": [
-            "unknown"
+            "success"
+        ],
+        "event.success_count": [
+            1
         ],
         "host.hostname": [
             "host01"
@@ -917,7 +929,10 @@
             "traces"
         ],
         "event.outcome": [
-            "unknown"
+            "success"
+        ],
+        "event.success_count": [
+            1
         ],
         "host.hostname": [
             "host01"
@@ -1000,7 +1015,10 @@
             "traces"
         ],
         "event.outcome": [
-            "unknown"
+            "success"
+        ],
+        "event.success_count": [
+            1
         ],
         "host.hostname": [
             "host01"
@@ -1083,7 +1101,10 @@
             "traces"
         ],
         "event.outcome": [
-            "unknown"
+            "success"
+        ],
+        "event.success_count": [
+            1
         ],
         "host.hostname": [
             "host01"
@@ -1166,7 +1187,10 @@
             "traces"
         ],
         "event.outcome": [
-            "unknown"
+            "success"
+        ],
+        "event.success_count": [
+            1
         ],
         "host.hostname": [
             "host01"
@@ -1249,7 +1273,10 @@
             "traces"
         ],
         "event.outcome": [
-            "unknown"
+            "success"
+        ],
+        "event.success_count": [
+            1
         ],
         "host.hostname": [
             "host01"
@@ -1332,7 +1359,10 @@
             "traces"
         ],
         "event.outcome": [
-            "unknown"
+            "success"
+        ],
+        "event.success_count": [
+            1
         ],
         "host.hostname": [
             "host01"
@@ -1415,7 +1445,10 @@
             "traces"
         ],
         "event.outcome": [
-            "unknown"
+            "success"
+        ],
+        "event.success_count": [
+            1
         ],
         "host.hostname": [
             "host01"
