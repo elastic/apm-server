@@ -35,7 +35,7 @@ Failed installing package [apm] due to error: [ResponseError: mapper_parsing_exc
 ----
 
 // Link to fix?
-A fix for this issue is in progress: https://github.com/elastic/kibana/pull/171712[elastic/kibana#171712].
+A fix was released in 8.11.2: https://github.com/elastic/kibana/pull/171712[elastic/kibana#171712].
 
 
 // TEMPLATE
