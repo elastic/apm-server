@@ -203,7 +203,10 @@
             "traces"
         ],
         "event.outcome": [
-            "unknown"
+            "success"
+        ],
+        "event.success_count": [
+            1
         ],
         "labels.resource_attribute_array": [
             "a",
@@ -275,6 +278,9 @@
         ],
         "transaction.representative_count": [
             1
+        ],
+        "transaction.result": [
+            "Success"
         ],
         "transaction.sampled": [
             true
