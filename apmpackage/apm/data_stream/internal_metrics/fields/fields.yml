@@ -172,7 +172,11 @@
   type: aggregate_metric_double
   metrics: ["sum", "value_count"]
   default_metric: "sum"
+  description: |
+    Total duration of transactions. This field is used for efficient average aggregation on the field
 - name: event.success_count
   type: aggregate_metric_double
   metrics: ["sum", "value_count"]
   default_metric: "sum"
+  description: |
+    Transaction success counts. This field is used for efficient average aggregation on the field
