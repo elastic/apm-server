@@ -57,10 +57,10 @@ func (p BatchProcessor) ProcessBatch(ctx context.Context, batch *modelpb.Batch) 
 		if event.GetService().GetName() == "" || event.GetService().GetVersion() == "" {
 			continue
 		}
-		switch {
-		case event.Span != nil:
+		if event.Span != nil {
 			p.processStacktraceFrames(ctx, event.Service, event.Span.Stacktrace...)
-		case event.Error != nil:
+		}
+		if event.Error != nil {
 			if event.Error.Log != nil {
 				p.processStacktraceFrames(ctx, event.Service, event.Error.Log.Stacktrace...)
 			}
