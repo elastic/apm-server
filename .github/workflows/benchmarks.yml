@@ -50,7 +50,7 @@ jobs:
         with:
           go-version-file: 'go.mod'
 
-      - uses: rlespinasse/github-slug-action@00d4236bb38fcea6fc4aa6b1dacc7187fc8e38a0
+      - uses: rlespinasse/github-slug-action@87a6de197b52d26c277bf51ee838034ec3319a0e
 
       - name: Set up env
         run: |
@@ -134,7 +134,7 @@ jobs:
           $PNG_REPORT_FILE
 
       - name: Upload PNG
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: kibana-png-report
           path: ${{ env.WORKING_DIRECTORY }}/${{ env.PNG_REPORT_FILE }}
@@ -150,7 +150,7 @@ jobs:
           echo "png_report_url=https://elastic-apm-server-benchmark-reports.s3.amazonaws.com/${DEST_NAME}" >> "$GITHUB_OUTPUT"
 
       - name: Upload benchmark result
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: benchmark-result

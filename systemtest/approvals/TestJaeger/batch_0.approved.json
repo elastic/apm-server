@@ -502,7 +502,10 @@
             "traces"
         ],
         "event.outcome": [
-            "unknown"
+            "success"
+        ],
+        "event.success_count": [
+            1
         ],
         "host.hostname": [
             "host01"
@@ -572,6 +575,9 @@
         ],
         "transaction.name.text": [
             "Driver::findNearest"
+        ],
+        "transaction.result": [
+            "Success"
         ],
         "transaction.sampled": [
             true
