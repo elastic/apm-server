@@ -1,9 +1,0 @@
-A reference of all available <<configuration-ssl-landing,SSL configuration settings>> is also available.
-
-[float]
-[[security-overview]]
-== Security Overview
-
-APM Server exposes an HTTP endpoint, and as with anything that opens ports on your servers,
-you should be careful about who can connect to it.
-Firewall rules are recommended to ensure only authorized systems can connect.
