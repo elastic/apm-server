@@ -15,11 +15,7 @@ require (
 	github.com/elastic/elastic-agent-libs v0.7.2
 	github.com/elastic/elastic-agent-system-metrics v0.9.1
 	github.com/elastic/gmux v0.3.1
-<<<<<<< HEAD
-	github.com/elastic/go-docappender v0.2.1-0.20230829163624-c69a1cf8ce35
-=======
 	github.com/elastic/go-docappender v0.2.1-0.20231207080152-44217001fa53
->>>>>>> 19c869099 (Update `go-docappender` dependency to latest (#12179))
 	github.com/elastic/go-elasticsearch/v8 v8.11.1
 	github.com/elastic/go-sysinfo v1.11.1
 	github.com/elastic/go-ucfg v0.8.6
