@@ -9,7 +9,7 @@ For patch releases, only the version on the existing major and minor version bra
 
 ## Feature Freeze
 
-* For patch releases, ensure all relevant backport PRs are merged. 
+* For patch releases, ensure all relevant backport PRs are merged.
   We use backport labels on PRs and automation to ensure labels are set.
 
 * Update Changelog
@@ -30,9 +30,9 @@ For patch releases, only the version on the existing major and minor version bra
     Update versions and ensure that the `BEATS_VERSION` in the Makefile is updated,
     e.g. [#2803](https://github.com/elastic/apm-server/pull/2803/files).
     Trigger a new beats update, once the beats branch is also created.
-    Remove the [changelogs/head.asciidoc](https://github.com/elastic/apm-server/blob/main/changelogs/head.asciidoc) file from the release branch. 
+    Remove the [changelogs/head.asciidoc](https://github.com/elastic/apm-server/blob/main/changelogs/head.asciidoc) file from the release branch.
 
-  * Main branch: 
+  * Main branch:
     Update [.mergify.yml](https://github.com/elastic/apm-server/blob/main/.mergify.yml) with a new backport rule for the next version,
     and update versions to next minor version, e.g. [#2804](https://github.com/elastic/apm-server/pull/2804).
 
@@ -86,7 +86,7 @@ For patch releases, only the version on the existing major and minor version bra
 
 ## When compatibility between Agents & Server changes
 
-* Update the [agent/server compatibility matrix](https://github.com/elastic/apm-server/blob/main/docs/guide/agent-server-compatibility.asciidoc).
+* Update the [agent/server compatibility matrix](https://github.com/elastic/observability-docs/blob/main/docs/en/observability/apm/agent-server-compatibility.asciidoc) in the elastic/observability repo.
 
 ## Templates
 
