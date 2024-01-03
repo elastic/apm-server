@@ -12,7 +12,7 @@ Please take questions or feedback to the [Discuss forum](https://discuss.elastic
 
 ## Getting Started
 
-To get started with APM please see our [Getting Started Guide](https://www.elastic.co/guide/en/apm/get-started).
+To get started with APM, see our [Quick start guide](https://www.elastic.co/guide/en/apm/guide/current/apm-quick-start.html).
 
 ## APM Server Development
 
@@ -170,4 +170,13 @@ When building images for testing pre-release versions, we recommend setting `SNA
 
 ## Documentation
 
-The [Documentation](https://www.elastic.co/guide/en/apm/server/current/index.html) for the APM Server can be found in the `docs` folder.
+Documentation for the APM Server can be found in the [Observability guide's APM section](https://www.elastic.co/guide/en/observability/master/apm.html). Most documentation files live in the [elastic/observability-docs](https://github.com/elastic/observability-docs) repo's [`docs/en/observability/apm/` directory](https://github.com/elastic/observability-docs/tree/main/docs/en/observability/apm).
+
+However, the following content lives in this repo:
+
+* The **changelog** page listing all release notes is in [`CHANGELOG.asciidoc`](/CHANGELOG.asciidoc).
+* Each minor version's **release notes** are documented in individual files in the [`changelogs/`](/changelogs/) directory.
+* A list of all **breaking changes** are documented in [`changelogs/all-breaking-changes.asciidoc`](/changelogs/all-breaking-changes.asciidoc).
+* **Sample data sets** that are injected into the docs are in the [`docs/data/`](/docs/data/) directory.
+* **Specifications** that are injected into the docs are in the [`docs/spec/`](/docs/spec/) directory.
+
