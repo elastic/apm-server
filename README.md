@@ -11,7 +11,7 @@ For questions and feature requests, visit the [discussion forum](https://discuss
 
 ## Getting Started
 
-To get started with APM, see our [Quick start guide](https://www.elastic.co/guide/en/apm/get-started/current/install-and-run.html).
+To get started with APM, see our [Quick start guide](https://www.elastic.co/guide/en/apm/guide/current/apm-quick-start.html).
 
 ## APM Server Development
 
@@ -61,7 +61,7 @@ To run APM Server with debugging output enabled, run:
 ```
 
 APM Server expects index templates, ILM policies, and ingest pipelines to be set up externally.
-This should be done by [installing the APM integration](https://www.elastic.co/guide/en/fleet/current/fleet-quick-start-traces.html#add-apm-integration).
+This should be done by [installing the APM integration](https://www.elastic.co/guide/en/observability/current/traces-get-started.html#add-apm-integration).
 When running APM Server directly, it is only necessary to install the integration and not to run an Elastic Agent.
 
 #### Tilt
@@ -139,7 +139,7 @@ When complete, packages can be found in `build/distributions/`.
 
 ### Building docker packages
 
-To customize image configuration, see [the docs](https://www.elastic.co/guide/en/apm/server/current/running-on-docker.html).
+To customize image configuration, see [the docs](https://www.elastic.co/guide/en/apm/guide/current/running-on-docker.html).
 
 To build docker images from source, run:
 
