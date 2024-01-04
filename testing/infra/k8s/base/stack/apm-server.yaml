@@ -3,7 +3,7 @@ kind: ApmServer
 metadata:
   name: apm-server
 spec:
-  version: 8.12.0-33e8d7e1-SNAPSHOT
+  version: 8.13.0-4f8l51qr-SNAPSHOT
   count: 1
   http:
     tls:
@@ -17,6 +17,13 @@ spec:
         enabled: true
     logging:
       level: debug
+    monitoring:
+      enabled: true
+      elasticsearch:
+        username: admin
+        password: changeme
+        hosts: [http://elasticsearch-es-http.default.svc:9200]
+        protocol: "http"
     output:
       elasticsearch:
         username: admin

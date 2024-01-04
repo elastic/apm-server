@@ -9,15 +9,15 @@ require (
 	github.com/dgraph-io/badger/v2 v2.2007.3-0.20201012072640-f5a7e0a1c83b
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/apm-aggregation v0.0.0-20230815024520-e75a37d9ddd6
-	github.com/elastic/apm-data v0.1.1-0.20231019120308-82201b991ae5
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20231204124921-be42a3369f94
-	github.com/elastic/elastic-agent-client/v7 v7.5.0
+	github.com/elastic/apm-data v0.1.1-0.20231212041654-b2a4dabeb6e3
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20240102192505-6f192c01ef19
+	github.com/elastic/elastic-agent-client/v7 v7.6.0
 	github.com/elastic/elastic-agent-libs v0.7.2
-	github.com/elastic/elastic-agent-system-metrics v0.9.0
+	github.com/elastic/elastic-agent-system-metrics v0.9.1
 	github.com/elastic/gmux v0.3.1
-	github.com/elastic/go-docappender v0.2.1-0.20230829163624-c69a1cf8ce35
-	github.com/elastic/go-elasticsearch/v8 v8.10.0
-	github.com/elastic/go-sysinfo v1.11.1
+	github.com/elastic/go-docappender v0.2.1-0.20231207080152-44217001fa53
+	github.com/elastic/go-elasticsearch/v8 v8.11.1
+	github.com/elastic/go-sysinfo v1.11.2
 	github.com/elastic/go-ucfg v0.8.6
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible
 	github.com/gofrs/flock v0.8.1
@@ -37,23 +37,23 @@ require (
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.8.4
-	go.elastic.co/apm/module/apmelasticsearch/v2 v2.4.4
-	go.elastic.co/apm/module/apmgorilla/v2 v2.4.4
-	go.elastic.co/apm/module/apmgrpc/v2 v2.4.4
-	go.elastic.co/apm/module/apmhttp/v2 v2.4.4
-	go.elastic.co/apm/module/apmotel/v2 v2.4.4
+	go.elastic.co/apm/module/apmelasticsearch/v2 v2.4.7
+	go.elastic.co/apm/module/apmgorilla/v2 v2.4.7
+	go.elastic.co/apm/module/apmgrpc/v2 v2.4.7
+	go.elastic.co/apm/module/apmhttp/v2 v2.4.7
+	go.elastic.co/apm/module/apmotel/v2 v2.4.7
 	go.elastic.co/apm/v2 v2.4.7
 	go.elastic.co/fastjson v1.3.0
 	go.opentelemetry.io/collector/consumer v0.87.0
 	go.opentelemetry.io/collector/pdata v1.0.0-rcv0016
-	go.opentelemetry.io/otel v1.19.0
-	go.opentelemetry.io/otel/metric v1.19.0
-	go.opentelemetry.io/otel/sdk/metric v1.19.0
+	go.opentelemetry.io/otel v1.21.0
+	go.opentelemetry.io/otel/metric v1.21.0
+	go.opentelemetry.io/otel/sdk/metric v1.21.0
 	go.uber.org/automaxprocs v1.5.2
 	go.uber.org/zap v1.26.0
-	golang.org/x/net v0.17.0
-	golang.org/x/sync v0.4.0
-	golang.org/x/term v0.13.0
+	golang.org/x/net v0.19.0
+	golang.org/x/sync v0.5.0
+	golang.org/x/term v0.15.0
 	golang.org/x/time v0.3.0
 	google.golang.org/grpc v1.58.3
 	google.golang.org/protobuf v1.31.0
@@ -76,7 +76,7 @@ require (
 	github.com/cockroachdb/redact v1.0.8 // indirect
 	github.com/cockroachdb/sentry-go v0.6.1-cockroachdb.2 // indirect
 	github.com/cockroachdb/tokenbucket v0.0.0-20230613231145-182959a1fad6 // indirect
-	github.com/containerd/containerd v1.7.1 // indirect
+	github.com/containerd/containerd v1.7.11 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dgraph-io/ristretto v0.1.1 // indirect
 	github.com/dgryski/go-farm v0.0.0-20200201041132-a6ae2369ad13 // indirect
@@ -96,7 +96,7 @@ require (
 	github.com/elastic/gosigar v0.14.2 // indirect
 	github.com/fatih/color v1.14.1 // indirect
 	github.com/frankban/quicktest v1.14.0 // indirect
-	github.com/go-logr/logr v1.2.4 // indirect
+	github.com/go-logr/logr v1.3.0 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/gogo/googleapis v1.4.1 // indirect
@@ -140,6 +140,7 @@ require (
 	github.com/shirou/gopsutil v3.21.11+incompatible // indirect
 	github.com/shirou/gopsutil/v3 v3.23.5 // indirect
 	github.com/shoenig/go-m1cpu v0.1.6 // indirect
+	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/stretchr/objx v0.5.0 // indirect
 	github.com/tklauser/go-sysconf v0.3.11 // indirect
 	github.com/tklauser/numcpus v0.6.0 // indirect
@@ -150,19 +151,19 @@ require (
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
 	github.com/youmark/pkcs8 v0.0.0-20201027041543-1326539a0a0a // indirect
 	github.com/yusufpapurcu/wmi v1.2.3 // indirect
-	go.elastic.co/apm/module/apmzap/v2 v2.4.4 // indirect
+	go.elastic.co/apm/module/apmzap/v2 v2.4.7 // indirect
 	go.elastic.co/ecszap v1.0.2 // indirect
 	go.opentelemetry.io/collector/semconv v0.87.0 // indirect
-	go.opentelemetry.io/otel/sdk v1.19.0 // indirect
-	go.opentelemetry.io/otel/trace v1.19.0 // indirect
+	go.opentelemetry.io/otel/sdk v1.21.0 // indirect
+	go.opentelemetry.io/otel/trace v1.21.0 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	golang.org/x/crypto v0.14.0 // indirect
-	golang.org/x/exp v0.0.0-20230713183714-613f0c0eb8a1 // indirect
-	golang.org/x/mod v0.13.0 // indirect
-	golang.org/x/sys v0.13.0 // indirect
-	golang.org/x/text v0.13.0 // indirect
-	golang.org/x/tools v0.14.0 // indirect
+	golang.org/x/crypto v0.17.0 // indirect
+	golang.org/x/exp v0.0.0-20231127185646-65229373498e // indirect
+	golang.org/x/mod v0.14.0 // indirect
+	golang.org/x/sys v0.15.0 // indirect
+	golang.org/x/text v0.14.0 // indirect
+	golang.org/x/tools v0.16.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20231002182017-d307bd883b97 // indirect
 	gopkg.in/jcmturner/aescts.v1 v1.0.1 // indirect
 	gopkg.in/jcmturner/dnsutils.v1 v1.0.1 // indirect
