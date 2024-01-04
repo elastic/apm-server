@@ -98,7 +98,7 @@ type ReadWriter struct {
 	readKeyBuf    []byte
 	pendingWrites int
 	// pendingSize tracks the size of pending writes in the current ReadWriter
-	pendingSize   int64
+	pendingSize int64
 }
 
 // Close closes the writer. Any writes that have not been flushed may be lost.
