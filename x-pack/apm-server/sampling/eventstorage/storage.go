@@ -36,7 +36,8 @@ var (
 // Storage provides storage for sampled transactions and spans,
 // and for recording trace sampling decisions.
 type Storage struct {
-	db          *badger.DB
+	db *badger.DB
+	// pendingSize tracks the total size of pending writes across ReadWriters
 	pendingSize *atomic.Int64
 	codec       Codec
 }
@@ -96,6 +97,7 @@ type ReadWriter struct {
 	// be unmodified until the end of a transaction.
 	readKeyBuf    []byte
 	pendingWrites int
+	// pendingSize tracks the size of pending writes in the current ReadWriter
 	pendingSize   int64
 }
 
