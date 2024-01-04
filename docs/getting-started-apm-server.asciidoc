@@ -284,12 +284,12 @@ If you are running Windows XP, you may need to download and install PowerShell.
 [source,shell]
 ----------------------------------------------------------------------
 PS > cd 'C:\Program Files\APM-Server'
-PS C:\Program Files\APM-Server> .\install-service-apm-server.ps1
+PS C:\Program Files\APM-Server> .\install-service.ps1
 ----------------------------------------------------------------------
 
 NOTE: If script execution is disabled on your system,
 you need to set the execution policy for the current session to allow the script to run.
-For example: `PowerShell.exe -ExecutionPolicy UnRestricted -File .\install-service-apm-server.ps1`.
+For example: `PowerShell.exe -ExecutionPolicy UnRestricted -File .\install-service.ps1`.
 
 endif::[]
 
