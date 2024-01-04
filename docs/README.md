@@ -1,5 +1,5 @@
 > [!IMPORTANT]
-> As of 8.12, most documentation source files have moved to the [elastic/observability-docs](https://github.com/elastic/observability-docs) repo and been integrated into the Observability guide ([`docs/en/observability/apm/`](https://github.com/elastic/observability-docs/tree/main/docs/en/observability/apm)).
+> Most documentation source files have moved to the [elastic/observability-docs](https://github.com/elastic/observability-docs) repo ([`docs/en/apm-server/`](https://github.com/elastic/observability-docs/tree/8.9/docs/en/apm-server)).
 >
 > However, the following content still lives in this repo:
 >

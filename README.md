@@ -141,7 +141,7 @@ Building pre-release images can be done by running `make package-docker-snapshot
 
 ## Documentation
 
-Documentation for the APM Server can be found in the [Observability guide's APM section](https://www.elastic.co/guide/en/observability/master/apm.html). Most documentation files live in the [elastic/observability-docs](https://github.com/elastic/observability-docs) repo's [`docs/en/observability/apm/` directory](https://github.com/elastic/observability-docs/tree/main/docs/en/observability/apm).
+Documentation for the APM Server can be found in the [APM guide](https://www.elastic.co/guide/en/apm/guide/8.9/index.html). Most documentation files live in the [elastic/observability-docs](https://github.com/elastic/observability-docs) repo's [`docs/en/apm-server/` directory](https://github.com/elastic/observability-docs/tree/8.9/docs/en/apm-server).
 
 However, the following content lives in this repo:
 
