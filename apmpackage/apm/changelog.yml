@@ -1,8 +1,5 @@
 - version: generated
   changes:
-    - description: Placeholder
-      type: enhancement
-      link: https://github.com/elastic/apm-server/pull/123
     - description: Migrate to package-spec v3
       type: enhancement
       link: https://github.com/elastic/apm-server/pull/11822
