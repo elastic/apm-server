@@ -298,14 +298,12 @@ func TestStorageLimit(t *testing.T) {
 		TTL:                 time.Minute,
 		StorageLimitInBytes: 1, // ignored in the write, because there's no implicit flush
 	})
-	assert.NoError(t, err)
-	err = readWriter.Flush()
-	assert.NoError(t, err)
+	assert.ErrorIs(t, err, eventstorage.ErrLimitReached)
 
-	// Assert the stored write has been written.
+	// Assert the stored write has been discarded.
 	var batch modelpb.Batch
 	readWriter.ReadTraceEvents(traceID, &batch)
-	assert.Equal(t, 1, len(batch))
+	assert.Equal(t, 0, len(batch))
 }
 
 func badgerOptions() badger.Options {
