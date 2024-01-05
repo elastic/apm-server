@@ -180,7 +180,7 @@ func (rw *ReadWriter) writeEntry(e *badger.Entry, opts WriterOpts) error {
 	pendingSize := rw.s.pendingSize.Add(entrySize)
 	rw.pendingSize += entrySize
 
-	if current := pendingSize + lsm + vlog; current >= opts.StorageLimitInBytes {
+	if current := pendingSize + lsm + vlog; opts.StorageLimitInBytes != 0 && current >= opts.StorageLimitInBytes {
 		// Discard the txn and re-create it if the soft limit has been reached.
 		rw.txn.Discard()
 		rw.txn = rw.s.db.NewTransaction(true)
