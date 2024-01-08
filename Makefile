@@ -4,6 +4,7 @@
 
 # Enforce use of modules.
 export GO111MODULE=on
+include release.mk
 
 # Ensure the Go version in .go_version is installed and used.
 GOROOT?=$(shell ./script/run_with_go_ver go env GOROOT)
