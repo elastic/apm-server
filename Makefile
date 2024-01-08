@@ -2,8 +2,14 @@
 # Variables used for various build targets.
 ##############################################################################
 
+<<<<<<< HEAD
 # Enforce use of modules.
 export GO111MODULE=on
+=======
+include go.mk
+include packaging.mk
+include release.mk
+>>>>>>> 7f98e30ff (ci(release): automate release steps for the minor (#12233))
 
 # Ensure the Go version in .go_version is installed and used.
 GOROOT?=$(shell ./script/run_with_go_ver go env GOROOT)

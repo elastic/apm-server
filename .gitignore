@@ -39,3 +39,27 @@ html_docs
 docker-compose.yml.bck
 Dockerfile.bck
 version.asciidoc.bck
+<<<<<<< HEAD
+=======
+.imported-java-agent-pubkey
+/agent
+go.work
+testing/docker/metricbeat/apm-server.yml
+cmd/intake-receiver/intake-receiver
+cmd/intake-receiver/events
+.terraform
+.terraform.lock*
+.terraform.tfstate*
+terraform.tfstate
+terraform.tfstate.backup
+terraform.tfvars
+testing/smoke/**/tf.log
+testing/smoke/**/apm-server-*.ndjson
+testing/smoke/**/provisioner_key*
+testing/smoke/**/main.tf
+!testing/smoke/main.tf
+!testing/smoke/supported-os/main.tf
+!testing/smoke/managed/main.tf
+testing/rally-cloud/build
+.bck
+>>>>>>> 7f98e30ff (ci(release): automate release steps for the minor (#12233))
