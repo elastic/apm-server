@@ -9,6 +9,7 @@ export PATH := $(CURDIR)/bin:$(PATH)
 #######################
 ARCH = $(shell uname -m)
 OS = $(shell uname)
+
 ifeq ($(OS),Darwin)
 	SED ?= sed -i ".bck"
 else
@@ -208,7 +209,7 @@ update-mergify:
 .PHONY: update-version
 update-version: VERSION=$${VERSION}
 update-version:
-	echo ">> update-version"
+	@echo ">> update-version"
 	if [ -f "cmd/intake-receiver/version.go" ]; then \
 		$(SED) -E -e 's#(version[[:blank:]]*)=[[:blank:]]*"[0-9]+\.[0-9]+\.[0-9]+#\1= "$(VERSION)#g' cmd/intake-receiver/version.go; \
 	fi
@@ -269,6 +270,7 @@ create-commit:
 ## @help:create-pull-request:Create pull request
 .PHONY: create-pull-request
 create-pull-request: BRANCH=$${BRANCH} TITLE=$${TITLE} TARGET_BRANCH=$${TARGET_BRANCH} BODY=$${BODY} 
+
 create-pull-request:
 	@echo "::group::create-pull-request"
 	git push origin $(BRANCH)

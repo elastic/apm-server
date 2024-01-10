@@ -50,7 +50,7 @@ jobs:
         with:
           go-version-file: 'go.mod'
 
-      - uses: rlespinasse/github-slug-action@00d4236bb38fcea6fc4aa6b1dacc7187fc8e38a0
+      - uses: rlespinasse/github-slug-action@5ee5b39fa5c99792f9d15268f75694c7746408e5
 
       - name: Set up env
         run: |
