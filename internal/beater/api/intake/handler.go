@@ -194,8 +194,6 @@ func processStreamError(err error) (request.ResultID, jsonError) {
 			err = errServerShuttingDown
 		case errors.Is(err, publish.ErrFull):
 			errID = request.IDResponseErrorsFullQueue
-		case errors.Is(err, elasticapm.ErrQueueFull):
-			errID = request.IDResponseErrorsFullQueue
 		case errors.Is(err, errMethodNotAllowed):
 			errID = request.IDResponseErrorsMethodNotAllowed
 		case errors.Is(err, errInvalidContentType):

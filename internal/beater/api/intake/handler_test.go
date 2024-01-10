@@ -106,13 +106,6 @@ func TestIntakeHandler(t *testing.T) {
 				return publish.ErrChannelClosed
 			}),
 			code: http.StatusServiceUnavailable, id: request.IDResponseErrorsShuttingDown},
-		"FullQueue": {
-			path: "errors.ndjson",
-			batchProcessor: modelpb.ProcessBatchFunc(func(context.Context, *modelpb.Batch) error {
-				return elasticapm.ErrQueueFull
-			}),
-			code: http.StatusServiceUnavailable, id: request.IDResponseErrorsFullQueue,
-		},
 		"FullQueueLegacy": {
 			path: "errors.ndjson",
 			batchProcessor: modelpb.ProcessBatchFunc(func(context.Context, *modelpb.Batch) error {
