@@ -11,7 +11,7 @@ For questions and feature requests, visit the [discussion forum](https://discuss
 
 ## Getting Started
 
-To get started with APM, see our [Quick start guide](https://www.elastic.co/guide/en/apm/get-started/current/install-and-run.html).
+To get started with APM, see our [Quick start guide](https://www.elastic.co/guide/en/apm/guide/current/apm-quick-start.html).
 
 ## APM Server Development
 
@@ -61,7 +61,7 @@ To run APM Server with debugging output enabled, run:
 ```
 
 APM Server expects index templates, ILM policies, and ingest pipelines to be set up externally.
-This should be done by [installing the APM integration](https://www.elastic.co/guide/en/fleet/current/fleet-quick-start-traces.html#add-apm-integration).
+This should be done by [installing the APM integration](https://www.elastic.co/guide/en/observability/current/traces-get-started.html#add-apm-integration).
 When running APM Server directly, it is only necessary to install the integration and not to run an Elastic Agent.
 
 #### Tilt
@@ -139,7 +139,7 @@ When complete, packages can be found in `build/distributions/`.
 
 ### Building docker packages
 
-To customize image configuration, see [the docs](https://www.elastic.co/guide/en/apm/server/current/running-on-docker.html).
+To customize image configuration, see [the docs](https://www.elastic.co/guide/en/apm/guide/current/running-on-docker.html).
 
 To build docker images from source, run:
 
@@ -154,5 +154,13 @@ Building pre-release images can be done by running `make package-docker-snapshot
 
 ## Documentation
 
-[Documentation](https://www.elastic.co/guide/en/apm/server/current/index.html)
-for the APM Server can be found in the `docs` and `dev_docs` folders.
+Documentation for the APM Server can be found in the [Observability guide's APM section](https://www.elastic.co/guide/en/observability/master/apm.html). Most documentation files live in the [elastic/observability-docs](https://github.com/elastic/observability-docs) repo's [`docs/en/observability/apm/` directory](https://github.com/elastic/observability-docs/tree/main/docs/en/observability/apm).
+
+However, the following content lives in this repo:
+
+* The **changelog** page listing all release notes is in [`CHANGELOG.asciidoc`](/CHANGELOG.asciidoc).
+* Each minor version's **release notes** are documented in individual files in the [`changelogs/`](/changelogs/) directory.
+* A list of all **breaking changes** are documented in [`changelogs/all-breaking-changes.asciidoc`](/changelogs/all-breaking-changes.asciidoc).
+* **Sample data sets** that are injected into the docs are in the [`docs/data/`](/docs/data/) directory.
+* **Specifications** that are injected into the docs are in the [`docs/spec/`](/docs/spec/) directory.
+
