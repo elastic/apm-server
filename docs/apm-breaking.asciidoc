@@ -1,3 +1,0 @@
-// tag::notable-v8-breaking-changes[]
-include::../changelogs/all-breaking-changes.asciidoc[tag=notable-v8-breaking-changes]
-// end::notable-v8-breaking-changes[]
