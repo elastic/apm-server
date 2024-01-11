@@ -24,8 +24,6 @@ import (
 	"strconv"
 	"strings"
 
-	"go.elastic.co/apm/v2"
-
 	"github.com/elastic/elastic-agent-libs/monitoring"
 
 	"github.com/elastic/apm-data/input/elasticapm"
