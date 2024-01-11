@@ -181,13 +181,10 @@ func (rw *ReadWriter) writeEntry(e *badger.Entry, opts WriterOpts) error {
 	rw.pendingSize += entrySize
 
 	if current := pendingSize + lsm + vlog; opts.StorageLimitInBytes != 0 && current >= opts.StorageLimitInBytes {
-		// flush what we currently have
+		// flush what we currently have and discard the current entry
 		if err := rw.Flush(); err != nil {
 			return err
 		}
-		// Discard the txn and re-create it if the soft limit has been reached.
-		rw.txn.Discard()
-		rw.txn = rw.s.db.NewTransaction(true)
 		return fmt.Errorf("%w (current: %d, limit: %d)", ErrLimitReached, current, opts.StorageLimitInBytes)
 	} else if rw.pendingWrites >= 200 {
 		// Attempt to flush if there are 200 or more uncommitted writes.
