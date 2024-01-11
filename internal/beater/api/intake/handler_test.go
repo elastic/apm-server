@@ -169,7 +169,6 @@ func TestIntakeHandlerMonitoring(t *testing.T) {
 
 	streamHandler := streamHandlerFunc(func(
 		ctx context.Context,
-		async bool,
 		base *modelpb.APMEvent,
 		stream io.Reader,
 		batchSize int,
@@ -288,7 +287,6 @@ func emptyRequestMetadata(*request.Context) *modelpb.APMEvent {
 
 type streamHandlerFunc func(
 	ctx context.Context,
-	async bool,
 	base *modelpb.APMEvent,
 	stream io.Reader,
 	batchSize int,
@@ -298,12 +296,11 @@ type streamHandlerFunc func(
 
 func (f streamHandlerFunc) HandleStream(
 	ctx context.Context,
-	async bool,
 	base *modelpb.APMEvent,
 	stream io.Reader,
 	batchSize int,
 	processor modelpb.BatchProcessor,
 	out *elasticapm.Result,
 ) error {
-	return f(ctx, async, base, stream, batchSize, processor, out)
+	return f(ctx, base, stream, batchSize, processor, out)
 }
