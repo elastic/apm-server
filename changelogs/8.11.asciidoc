@@ -15,7 +15,9 @@ https://github.com/elastic/apm-server/compare/8.10\...8.11[View commits]
 
 https://github.com/elastic/apm-server/compare/v8.11.3\...v8.11.4[View commits]
 
-No significant changes.
+[float]
+==== Bug fixes
+- Fix source maps not being applied when an event contains both a span and an error {pull}12221[12221]
 
 [float]
 [[release-notes-8.11.3]]
