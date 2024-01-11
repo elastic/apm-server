@@ -573,11 +573,11 @@ Contents of probable licence file $GOMODCACHE/github.com/elastic/apm-data@v0.1.1
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/beats/v7
-Version: v7.0.0-alpha2.0.20240110133444-635b2861d608
+Version: v7.0.0-alpha2.0.20240110234330-fffe22873500
 Licence type (autodetected): Elastic
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20240110133444-635b2861d608/LICENSE.txt:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20240110234330-fffe22873500/LICENSE.txt:
 
 Source code in this repository is variously licensed under the Apache License
 Version 2.0, an Apache compatible license, or the Elastic License. Outside of
@@ -10347,11 +10347,11 @@ limitations under the License.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/fatih/color
-Version: v1.14.1
+Version: v1.15.0
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/fatih/color@v1.14.1/LICENSE.md:
+Contents of probable licence file $GOMODCACHE/github.com/fatih/color@v1.15.0/LICENSE.md:
 
 The MIT License (MIT)
 
@@ -13643,11 +13643,11 @@ SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/mattn/go-isatty
-Version: v0.0.17
+Version: v0.0.19
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/mattn/go-isatty@v0.0.17/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/mattn/go-isatty@v0.0.19/LICENSE:
 
 Copyright (c) Yasuhiro MATSUMOTO <mattn.jp@gmail.com>
 
@@ -14575,11 +14575,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/pierrec/lz4/v4
-Version: v4.1.17
+Version: v4.1.18
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/pierrec/lz4/v4@v4.1.17/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/pierrec/lz4/v4@v4.1.18/LICENSE:
 
 Copyright (c) 2015, Pierre Curto
 All rights reserved.
