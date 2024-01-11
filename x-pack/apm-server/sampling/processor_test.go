@@ -705,7 +705,7 @@ func TestStorageLimit(t *testing.T) {
 	// Write 5K span events and close the DB to persist to disk the storage
 	// size and assert that none are reported immediately.
 	writeBatch(5000, config, func(b modelpb.Batch) {
-		assert.Empty(t, b, fmt.Sprintf("expected empty but size if %d", len(b)))
+		assert.Empty(t, b, fmt.Sprintf("expected empty but size is %d", len(b)))
 	})
 	assert.NoError(t, config.Storage.Flush())
 	config.Storage.Close()
