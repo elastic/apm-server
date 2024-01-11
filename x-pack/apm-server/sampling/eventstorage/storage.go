@@ -186,7 +186,9 @@ func (rw *ReadWriter) writeEntry(e *badger.Entry, opts WriterOpts) error {
 			return err
 		}
 		return fmt.Errorf("%w (current: %d, limit: %d)", ErrLimitReached, current, opts.StorageLimitInBytes)
-	} else if rw.pendingWrites >= 200 {
+	}
+
+	if rw.pendingWrites >= 200 {
 		// Attempt to flush if there are 200 or more uncommitted writes.
 		// This ensures calls to ReadTraceEvents are not slowed down;
 		// ReadTraceEvents uses an iterator, which must sort all keys
@@ -196,14 +198,14 @@ func (rw *ReadWriter) writeEntry(e *badger.Entry, opts WriterOpts) error {
 		if err := rw.Flush(); err != nil {
 			return err
 		}
-	}
-	err := rw.txn.SetEntry(e.WithTTL(opts.TTL))
-	// the current ReadWriter flushed the transaction and reset the pendingSize so add
-	// the entrySize again.
-	if rw.pendingSize == 0 {
+
+		// the current ReadWriter flushed the transaction and reset the pendingSize so add
+		// the entrySize again.
 		rw.pendingSize += entrySize
 		rw.s.pendingSize.Add(entrySize)
 	}
+
+	err := rw.txn.SetEntry(e.WithTTL(opts.TTL))
 
 	// If the transaction is already too big to accommodate the new entry, flush
 	// the existing transaction and set the entry on a new one, otherwise,
