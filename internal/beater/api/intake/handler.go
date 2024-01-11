@@ -21,7 +21,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"strconv"
 	"strings"
 
 	"github.com/elastic/elastic-agent-libs/monitoring"
@@ -223,12 +222,4 @@ type jsonResult struct {
 type jsonError struct {
 	Message  string `json:"message"`
 	Document string `json:"document,omitempty"`
-}
-
-func asyncRequest(req *http.Request) bool {
-	var async bool
-	if asyncStr := req.URL.Query().Get("async"); asyncStr != "" {
-		async, _ = strconv.ParseBool(asyncStr)
-	}
-	return async
 }
