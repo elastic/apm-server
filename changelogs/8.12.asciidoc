@@ -20,6 +20,7 @@ https://github.com/elastic/apm-server/compare/8.11\...8.12[View commits]
 - Handle empty request bodies gracefully {pull}12242[12242].
 - Wrap processor errors to provide more details {pull}12242[12242].
 - Require only one of exception.{type,message} for log exceptions {pull}12242[12242].
+- Fix source maps not being applied when an event contains both a span and an error {pull}12221[12221]
 
 [float]
 ==== Added
