@@ -20,8 +20,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-<<<<<<< HEAD
-=======
         with:
           # 0 indicates all history for all branches and tags.
           fetch-depth: 0
@@ -69,4 +67,3 @@ jobs:
           threadTimestamp: ${{ needs.prepare.outputs.slack-thread || '' }}
           message: |-
             :fire: Something went wrong with the patch release. See <${{ env.JOB_URL }}|logs>.
->>>>>>> 1b3639226 (ci(release): automate release steps for the patch (#12273))
