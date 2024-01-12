@@ -73,9 +73,22 @@
     Keyword of specific relevance in the service's domain (eg. 'request', 'backgroundjob', etc)
 - name: numeric_labels
   type: object
+  object_type: scaled_float
   dynamic: true
   description: |
     Custom key/value pairs. Can be used to add meta information to events. Should not contain nested objects. All values are stored as scaled_float.
 - name: transaction.aggregation.overflow_count
   type: long
   description: Number of aggregation groups that overflowed for transaction metrics aggregation
+- name: transaction.duration.summary
+  type: aggregate_metric_double
+  metrics: ["sum", "value_count"]
+  default_metric: "sum"
+  description: |
+    Total duration of transactions. This can be used to efficiently aggregate the average duration
+- name: event.success_count
+  type: aggregate_metric_double
+  metrics: ["sum", "value_count"]
+  default_metric: "sum"
+  description: |
+    Transaction success counts. This field is used for efficient average aggregation on the field

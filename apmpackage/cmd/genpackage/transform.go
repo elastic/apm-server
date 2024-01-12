@@ -77,7 +77,8 @@ func transformPackageManifest(content []byte, version *version.V) ([]byte, error
 
 	// Set the minimum Kibana version to major.minor.0.
 	conditions := yamlMapLookup(doc.Content[0], "conditions")
-	yamlMapLookup(conditions, "kibana.version").Value = fmt.Sprintf("^%d.%d.0", version.Major, version.Minor)
+	kibana := yamlMapLookup(conditions, "kibana")
+	yamlMapLookup(kibana, "version").Value = fmt.Sprintf("^%d.%d.0", version.Major, version.Minor)
 
 	return marshalYAML(&doc)
 }
