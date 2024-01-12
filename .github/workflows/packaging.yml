@@ -1,0 +1,32 @@
+name: packaging
+
+on:
+  pull_request: ~ # TODO: Remove before merging
+  push:
+    branches:
+      - main
+      - 8.[0-9]+
+    paths:
+      - internal/version/*
+      - apmpackage/*
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+      - name: Set VERSION env var
+        run: |
+          VERSION=$(make get-version)
+          echo "VERSION=${VERSION}" >> "${GITHUB_ENV}"
+      - name: Build package snapshot
+        run: make build-package-snapshot
+      - uses: upload-artifact@v4
+        with:
+            name: package-snapshot
+            path: build/packages/*.zip
+            if-no-files-found: error
