@@ -25,8 +25,8 @@ jobs:
           echo "VERSION=${VERSION}" >> "${GITHUB_ENV}"
       - name: Build package snapshot
         run: make build-package-snapshot
-      - uses: upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
-            name: package-snapshot
-            path: build/packages/*.zip
-            if-no-files-found: error
+          name: package-snapshot
+          path: build/packages/*.zip
+          if-no-files-found: error
