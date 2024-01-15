@@ -21,10 +21,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"strconv"
 	"strings"
-
-	"go.elastic.co/apm/v2"
 
 	"github.com/elastic/elastic-agent-libs/monitoring"
 
@@ -69,27 +66,6 @@ func Handler(handler elasticapm.StreamHandler, requestMetadataFunc RequestMetada
 			return
 		}
 
-		// Async can be set by clients to request non-blocking event processing,
-		// returning immediately with an error `elasticapm.ErrQueueFull` when it
-		// can't be serviced.
-		//
-		// Async processing has weaker guarantees for the client since any
-		// errors while processing the batch cannot be communicated back to the
-		// client.
-		//
-		// Instead, errors are logged by the APM Server.
-		async := asyncRequest(c.Request)
-
-		// Create a new detached context when asynchronous processing is set,
-		// decoupling the context from its deadline, which will finish when
-		// the request is handled. The batch will probably be processed after
-		// the request has finished, and it would cause an error if the context
-		// is done.
-		ctx := c.Request.Context()
-		if async {
-			ctx = apm.DetachedContext(ctx)
-		}
-
 		// If there was an error decoding the body, then it Result.Err
 		// will already be set. Reformat the error response.
 		if c.Result.Err != nil {
@@ -99,8 +75,7 @@ func Handler(handler elasticapm.StreamHandler, requestMetadataFunc RequestMetada
 
 		var result elasticapm.Result
 		err := handler.HandleStream(
-			ctx,
-			async,
+			c.Request.Context(),
 			requestMetadataFunc(c),
 			c.Request.Body,
 			batchSize,
@@ -194,8 +169,6 @@ func processStreamError(err error) (request.ResultID, jsonError) {
 			err = errServerShuttingDown
 		case errors.Is(err, publish.ErrFull):
 			errID = request.IDResponseErrorsFullQueue
-		case errors.Is(err, elasticapm.ErrQueueFull):
-			errID = request.IDResponseErrorsFullQueue
 		case errors.Is(err, errMethodNotAllowed):
 			errID = request.IDResponseErrorsMethodNotAllowed
 		case errors.Is(err, errInvalidContentType):
@@ -249,12 +222,4 @@ type jsonResult struct {
 type jsonError struct {
 	Message  string `json:"message"`
 	Document string `json:"document,omitempty"`
-}
-
-func asyncRequest(req *http.Request) bool {
-	var async bool
-	if asyncStr := req.URL.Query().Get("async"); asyncStr != "" {
-		async, _ = strconv.ParseBool(asyncStr)
-	}
-	return async
 }
