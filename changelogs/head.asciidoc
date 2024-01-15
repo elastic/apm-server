@@ -19,3 +19,4 @@ https://github.com/elastic/apm-server/compare/8.12\...main[View commits]
 [float]
 ==== Added
 - map OTel's `span.Status: Unset` to `event.outcome: success` instead of `event.outcome: unknown`
+- Add support for Otel code.stacktrace {pull}12096[12096]
