@@ -32,7 +32,6 @@ Development instructions are available in the project [readme](README.md#apm-ser
 
 When submitting changes, add an entry to the [changelog](changelogs/head.asciidoc),
 describing the enhancement or fix that your PR is adding.
-If you also make code changes to the [apmpackage](apmpackage), you also need to update the apmpackage specific changelog.
 
 Please read our [pull request template](.github/pull_request_template.md), which includes the information we care about the most when submitting new changes.
 

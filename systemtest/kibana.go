@@ -27,12 +27,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/url"
-	"os"
-	"os/exec"
 	"path"
-	"path/filepath"
-	"runtime"
-	"strings"
 	"testing"
 	"time"
 
@@ -80,9 +75,9 @@ func init() {
 }
 
 // InitFleet ensures Fleet is set up, destroys any existing agent policies previously
-// created by the system tests and unenrolls the associated agents, uninstalls the
-// integration package if it is installed, and finally installs the integration pacakge.
-// After InitFleet returns successfully, the IntegrationPackage var will be initialised.
+// created by the system tests and unenrolls the associated agents. After InitFleet
+// returns successfully, the IntegrationPackage var will be initialised to the details
+// of the installed APM integration package.
 func InitFleet() error {
 	if err := Fleet.Setup(); err != nil {
 		log.Fatal(err)
@@ -101,51 +96,22 @@ func InitFleet() error {
 	return InitFleetPackage()
 }
 
-// InitFleetPackage (re)installs the APM integration package, and sets
-// IntegrationPackage to the installed package. InitFleetPackage assumes
-// that Fleet has been set up already.
+// InitFleetPackage and sets IntegrationPackage to the details of the installed
+// APM integration package. InitFleetPackage assumes that Fleet has been set up
+// already.
 func InitFleetPackage() error {
-	_, filename, _, ok := runtime.Caller(0)
-	if !ok {
-		return errors.New("could not locate systemtest directory")
-	}
-	systemtestDir := filepath.Dir(filename)
-	repoRoot := filepath.Join(systemtestDir, "..")
-
-	// Build the integration package.
-	log.Printf("Building package")
-	cmd := exec.Command("make", "build-package")
-	cmd.Dir = repoRoot
-	output, err := cmd.Output()
-
+	packages, err := Fleet.ListPackages()
 	if err != nil {
 		return err
 	}
-
-	// Locate the integration package zip.
-	cmd = exec.Command("make", "--no-print-directory", "get-version")
-	cmd.Dir = repoRoot
-	output, err = cmd.Output()
-	if err != nil {
-		return err
+	for _, pkg := range packages {
+		if pkg.Name != "apm" {
+			continue
+		}
+		IntegrationPackage = &pkg
+		return nil
 	}
-
-	packageVersion := strings.TrimSpace(string(output))
-	packagesBuildDir := filepath.Join(systemtestDir, "..", "build", "packages")
-	packageFilename := filepath.Join(packagesBuildDir, fmt.Sprintf("apm-%s.zip", packageVersion))
-
-	log.Printf("Installing package %s", packageFilename)
-	f, err := os.Open(packageFilename)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-
-	if err := Fleet.InstallPackageByUpload(f); err != nil {
-		return err
-	}
-	IntegrationPackage, err = Fleet.Package("apm", packageVersion)
-	return err
+	return errors.New("'apm' integration package not installed")
 }
 
 // CreateAgentPolicy creates an Agent policy with the given name and namespace,

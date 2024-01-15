@@ -12,11 +12,9 @@ GOARCH:=$(shell $(GO) env GOARCH)
 export PATH:=$(GOROOT)/bin:$(PATH)
 
 GOOSBUILD:=$(GITROOT)/build/$(shell $(GO) env GOOS)
-GENPACKAGE=$(GOOSBUILD)/genpackage
 GOIMPORTS=$(GOOSBUILD)/goimports
 GOLICENSER=$(GOOSBUILD)/go-licenser
 STATICCHECK=$(GOOSBUILD)/staticcheck
-ELASTICPACKAGE=$(GOOSBUILD)/elastic-package
 TERRAFORMDOCS=$(GOOSBUILD)/terraform-docs
 GOBENCH=$(GOOSBUILD)/gobench
 GOVERSIONINFO=$(GOOSBUILD)/goversioninfo
@@ -37,9 +35,6 @@ $(STATICCHECK): $(GITROOT)/tools/go.mod
 
 $(GOLICENSER): $(GITROOT)/tools/go.mod
 	$(GO) build -o $@ -modfile=$< github.com/elastic/go-licenser
-
-$(ELASTICPACKAGE): $(GITROOT)/tools/go.mod
-	$(GO) build -o $@ -modfile=$< -ldflags '-X github.com/elastic/elastic-package/internal/version.CommitHash=anything' github.com/elastic/elastic-package
 
 $(TERRAFORMDOCS): $(GITROOT)/tools/go.mod
 	$(GO) build -o $@ -modfile=$< github.com/terraform-docs/terraform-docs
