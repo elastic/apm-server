@@ -47,11 +47,6 @@ func SendBackendEventsPayload(t *testing.T, serverURL string, payloadFile string
 	return sendEventsPayload(t, serverURL, "/intake/v2/events", f)
 }
 
-func SendBackendEventsAsyncPayload(t *testing.T, serverURL string, payloadFile string) {
-	f := openFile(t, payloadFile)
-	sendEventsPayload(t, serverURL, "/intake/v2/events?async=true", f)
-}
-
 func SendBackendEventsAsyncPayloadError(t *testing.T, serverURL string, payloadFile string) {
 	f := openFile(t, payloadFile)
 
