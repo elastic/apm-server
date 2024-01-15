@@ -62,7 +62,7 @@
 
 ## When compatibility between Agents & Server changes
 
-* Update the [agent/server compatibility matrix](https://github.com/elastic/apm-server/blob/main/docs/guide/agent-server-compatibility.asciidoc).
+* Update the [agent/server compatibility matrix](https://github.com/elastic/observability-docs/blob/main/docs/en/observability/apm/agent-server-compatibility.asciidoc).
 
 ## Templates
 
