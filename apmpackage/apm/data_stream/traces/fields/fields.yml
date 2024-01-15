@@ -62,16 +62,19 @@
     The original body of the monitored HTTP request.
 - name: http.request.env
   type: object
+  object_type: keyword
   dynamic: true
   description: |
     The CGI-like environment variables of the monitored HTTP request.
 - name: http.request.cookies
   type: object
+  object_type: keyword
   dynamic: true
   description: |
     The cookies of the monitored HTTP request.
 - name: http.request.headers
   type: object
+  object_type: keyword
   dynamic: true
   description: |
     The canonical headers of the monitored HTTP request.
@@ -81,6 +84,7 @@
     Used by the Node agent to indicate when in the response life cycle an error has occurred.
 - name: http.response.headers
   type: object
+  object_type: keyword
   dynamic: true
   description: |
     The canonical headers of the monitored HTTP response.
@@ -292,6 +296,7 @@
   index: false
 - name: span.message.headers
   type: object
+  object_type: keyword
   dynamic: true
   description: The message headers
 - name: span.message.age.ms
@@ -328,6 +333,10 @@
   description: |
     The approximate number of spans represented, based on the inverse sampling rate.
     This will only be set when the sampling rate is known.
+- name: code.stacktrace
+  type: text
+  description: |
+    OTel stack trace
 - name: timestamp.us
   type: long
   description: |
@@ -359,6 +368,7 @@
   description: The Total Blocking Time metric
 - name: transaction.marks
   type: object
+  object_type: long
   description: |
     A user-defined mapping of groups of marks in milliseconds.
   dynamic: true
@@ -372,6 +382,7 @@
   index: false
 - name: transaction.message.headers
   type: object
+  object_type: keyword
   dynamic: true
   description: The message headers
 - name: transaction.message.age.ms
@@ -414,6 +425,8 @@
     The approximate number of transactions represented, based on the inverse sampling rate.
 - name: numeric_labels
   type: object
+  object_type: scaled_float
   dynamic: true
+  scaling_factor: 1000000
   description: |
     Custom key/value pairs. Can be used to add meta information to events. Should not contain nested objects. All values are stored as scaled_float.
