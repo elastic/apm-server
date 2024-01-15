@@ -333,6 +333,10 @@
   description: |
     The approximate number of spans represented, based on the inverse sampling rate.
     This will only be set when the sampling rate is known.
+- name: code.stacktrace
+  type: text
+  description: |
+    OTel stack trace
 - name: timestamp.us
   type: long
   description: |
