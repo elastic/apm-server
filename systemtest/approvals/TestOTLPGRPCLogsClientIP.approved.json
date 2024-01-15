@@ -10,7 +10,7 @@
             "unknown"
         ],
         "client.geo.city_name": [
-            "Berlin"
+            "dynamic"
         ],
         "client.geo.continent_name": [
             "Europe"
@@ -25,10 +25,10 @@
             "dynamic"
         ],
         "client.geo.region_iso_code": [
-            "DE-BE"
+            "dynamic"
         ],
         "client.geo.region_name": [
-            "Land Berlin"
+            "dynamic"
         ],
         "client.ip": [
             "178.162.206.244"

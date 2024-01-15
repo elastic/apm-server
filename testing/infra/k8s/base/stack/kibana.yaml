@@ -3,7 +3,7 @@ kind: Kibana
 metadata:
   name: kibana
 spec:
-  version: 8.12.0-9d443b17-SNAPSHOT
+  version: 8.13.0-8upz6ftd-SNAPSHOT
   count: 1
   elasticsearchRef:
     name: elasticsearch
@@ -12,6 +12,15 @@ spec:
     tls:
       selfSignedCertificate:
         disabled: true
+  monitoring:
+    metrics:
+      elasticsearchRefs:
+        - name: elasticsearch
+          namespace: default
+    logs:
+      elasticsearchRefs:
+        - name: elasticsearch
+          namespace: default
   podTemplate:
     spec:
       containers:

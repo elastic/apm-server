@@ -194,7 +194,14 @@ func TestOTLPGRPCMetrics(t *testing.T) {
 		int64Histogram.Record(context.Background(), 123)
 		int64Histogram.Record(context.Background(), 1024)
 		int64Histogram.Record(context.Background(), 20000)
-	})
+	}, sdkmetric.NewView(
+		sdkmetric.Instrument{Name: "*histogram"},
+		sdkmetric.Stream{
+			Aggregation: sdkmetric.AggregationExplicitBucketHistogram{
+				Boundaries: []float64{0, 1, 100, 1000, 10000},
+			},
+		},
+	))
 	require.NoError(t, err)
 
 	// opentelemetry-go does not support sending Summary metrics,
@@ -223,6 +230,39 @@ func TestOTLPGRPCMetrics(t *testing.T) {
 	// Make sure we report monitoring for the metrics consumer. Metric values are unit tested.
 	doc := getBeatsMonitoringStats(t, srv, nil)
 	assert.True(t, gjson.GetBytes(doc.RawSource, "beats_stats.metrics.apm-server.otlp.grpc.metrics.consumer").Exists())
+}
+
+func TestOTLPGRPCMetrics_partialSuccess(t *testing.T) {
+	systemtest.CleanupElasticsearch(t)
+	srv := apmservertest.NewUnstartedServerTB(t)
+	srv.Config.Monitoring = newFastMonitoringConfig()
+	err := srv.Start()
+	require.NoError(t, err)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	err = sendOTLPMetrics(t, ctx, srv, func(meter metric.Meter) {
+		float64Counter, err := meter.Float64Counter("counter")
+		require.NoError(t, err)
+		float64Counter.Add(context.Background(), 1)
+
+		int64Histogram, err := meter.Int64Histogram("histogram")
+		require.NoError(t, err)
+		int64Histogram.Record(context.Background(), 1)
+		int64Histogram.Record(context.Background(), 123)
+		int64Histogram.Record(context.Background(), 1024)
+		int64Histogram.Record(context.Background(), 20000)
+	}, sdkmetric.NewView(
+		sdkmetric.Instrument{Name: "*histogram"},
+		sdkmetric.Stream{
+			Aggregation: sdkmetric.AggregationBase2ExponentialHistogram{
+				MaxSize:  5,
+				MaxScale: -10,
+			},
+		},
+	))
+
+	require.ErrorContains(t, err, "OTLP partial success:")
 }
 
 func TestOTLPGRPCLogs(t *testing.T) {
@@ -478,7 +518,8 @@ func TestOTLPGRPCLogsClientIP(t *testing.T) {
 	require.NoError(t, err)
 
 	result := estest.ExpectDocs(t, systemtest.Elasticsearch, "logs-apm*", nil)
-	approvaltest.ApproveFields(t, t.Name(), result.Hits.Hits, "client.geo.location")
+	approvaltest.ApproveFields(t, t.Name(), result.Hits.Hits, "client.geo.city_name",
+		"client.geo.location", "client.geo.region_iso_code", "client.geo.region_name")
 }
 
 func newMobileLogs(body interface{}) plog.Logs {
@@ -594,22 +635,14 @@ func sendOTLPMetrics(
 	ctx context.Context,
 	srv *apmservertest.Server,
 	recordMetrics func(metric.Meter),
+	mv sdkmetric.View,
 ) error {
 	exporter := newOTLPMetricExporter(t, srv)
 	meterProvider := sdkmetric.NewMeterProvider(
 		sdkmetric.WithReader(
 			sdkmetric.NewPeriodicReader(exporter, sdkmetric.WithInterval(time.Minute)),
 		),
-		sdkmetric.WithView(
-			sdkmetric.NewView(
-				sdkmetric.Instrument{Name: "*histogram"},
-				sdkmetric.Stream{
-					Aggregation: sdkmetric.AggregationExplicitBucketHistogram{
-						Boundaries: []float64{0, 1, 100, 1000, 10000},
-					},
-				},
-			),
-		),
+		sdkmetric.WithView(mv),
 	)
 	meter := meterProvider.Meter("test-meter")
 
