@@ -1,4 +1,4 @@
-format_version: 2.10.0
+format_version: 3.0.1
 name: apm
 title: Elastic APM
 version: generated
@@ -6,7 +6,11 @@ description: Monitor, detect, and diagnose complex application performance issue
 type: integration
 categories: ["elastic_stack", "monitoring"]
 conditions:
-  kibana.version: generated
+  elastic:
+    capabilities:
+      - apm
+  kibana:
+    version: generated
 icons:
   - src: /img/logo_apm.svg
     title: APM Logo
@@ -164,4 +168,5 @@ policy_templates:
             default: "3GB"
         template_path: template.yml.hbs
 owner:
+  type: elastic
   github: elastic/apm-server

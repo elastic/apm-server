@@ -49,9 +49,29 @@ jobs:
           # 0 indicates all history for all branches and tags.
           fetch-depth: 0
 
+      # Required to use a service account, otherwise PRs created by
+      # GitHub bot won't trigger any CI builds.
+      # See https://github.com/peter-evans/create-pull-request/issues/48#issuecomment-537478081
+      - name: Configure github token
+        uses: elastic/apm-pipeline-library/.github/actions/github-token@current
+        with:
+          url: ${{ secrets.VAULT_ADDR }}
+          roleId: ${{ secrets.VAULT_ROLE_ID }}
+          secretId: ${{ secrets.VAULT_SECRET_ID }}
+
+      - name: Configure git user
+        uses: elastic/apm-pipeline-library/.github/actions/setup-git@current
+        with:
+          username: ${{ env.GIT_USER }}
+          email: ${{ env.GIT_EMAIL }}
+          token: ${{ env.GITHUB_TOKEN }}
+
       - run: make patch-release
+        env:
+          GH_TOKEN: ${{ env.GITHUB_TOKEN }}
 
       - uses: elastic/apm-pipeline-library/.github/actions/slack-message@current
+        if: success()
         with:
           url: ${{ secrets.VAULT_ADDR }}
           roleId: ${{ secrets.VAULT_ROLE_ID }}
@@ -61,3 +81,14 @@ jobs:
           message: |-
             Feature freeze for `${{ github.repository }}@${{ env.RELEASE_VERSION }}` is Today.
             All the relevant PRs and issues have been created.
+
+      - uses: elastic/apm-pipeline-library/.github/actions/slack-message@current
+        if: failure()
+        with:
+          url: ${{ secrets.VAULT_ADDR }}
+          roleId: ${{ secrets.VAULT_ROLE_ID }}
+          secretId: ${{ secrets.VAULT_SECRET_ID }}
+          channel: ${{ env.SLACK_CHANNEL }}
+          threadTimestamp: ${{ needs.prepare.outputs.slack-thread || '' }}
+          message: |-
+            :fire: Something went wrong with the patch release. See <${{ env.JOB_URL }}|logs>.

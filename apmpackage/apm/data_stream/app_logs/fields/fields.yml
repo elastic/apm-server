@@ -5,6 +5,7 @@
     The way the agent is installed / used.
 - name: http.request.headers
   type: object
+  object_type: keyword
   description: |
     The canonical headers of the monitored HTTP request.
 - name: http.response.finished
@@ -13,6 +14,7 @@
     Used by the Node agent to indicate when in the response life cycle an error has occurred.
 - name: http.response.headers
   type: object
+  object_type: keyword
   description: |
     The canonical headers of the monitored HTTP response.
 - name: kubernetes.namespace
@@ -94,6 +96,8 @@
     The lambda function version.
 - name: numeric_labels
   type: object
+  object_type: scaled_float
   dynamic: true
+  scaling_factor: 1000000
   description: |
     Custom key/value pairs. Can be used to add meta information to events. Should not contain nested objects. All values are stored as scaled_float.
