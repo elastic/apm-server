@@ -77,9 +77,10 @@ pipeline {
                 // Build a preview package which includes the Git commit timestamp, and upload it to package storage.
                 // Note, we intentionally do not sign or upload the "release" package, as it does not include a timestamp,
                 // and will break package storage's immutability requirement.
-                sh(label: 'make build-package-snapshot', script: 'make build-package-snapshot')
-                packageStoragePublish('build/packages', 'apm-*-preview-*.zip')
-                archiveArtifacts(allowEmptyArchive: false, artifacts: 'build/packages/*.zip')
+                // TODO remove the pipeline
+                //sh(label: 'make build-package-snapshot', script: 'make build-package-snapshot')
+                //packageStoragePublish('build/packages', 'apm-*-preview-*.zip')
+                //archiveArtifacts(allowEmptyArchive: false, artifacts: 'build/packages/*.zip')
               }
             }
           }

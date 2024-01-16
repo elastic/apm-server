@@ -171,14 +171,6 @@ common-changelog:
 	awk "NR==5{print \"\n* <<release-notes-$(VERSION).0>>\n\n[float]\n[[release-notes-$(VERSION).0]]\n=== APM version $(VERSION).0\"}1" changelogs/$(VERSION).asciidoc > changelogs/$(VERSION).asciidoc.new
 	mv changelogs/$(VERSION).asciidoc.new changelogs/$(VERSION).asciidoc
 
-## Update project documentation.
-.PHONY: update-docs
-update-docs: VERSION=$${VERSION}
-update-docs: setup-yq
-	@echo ">> update-docs"
-	$(YQ) e --inplace '.[] |= with_entries((select(.value == "generated") | .value) ="$(VERSION)")' ./apmpackage/apm/changelog.yml; \
-	$(YQ) e --inplace '[{"version": "generated", "changes":[{"description": "Placeholder", "type": "enhancement", "link": "https://github.com/elastic/apm-server/pull/123"}]}] + .' ./apmpackage/apm/changelog.yml;
-
 ## Update the references on .mergify.yml with the new minor release.
 .PHONY: update-mergify
 update-mergify: VERSION=$${VERSION}
@@ -224,12 +216,6 @@ update-version-legacy:
 	@echo ">> update-version-legacy"
 	if [ -f "cmd/version.go" ]; then \
 		$(SED) -E -e 's#(defaultBeatVersion[[:blank:]]*)=[[:blank:]]*"[0-9]+\.[0-9]+\.[0-9]+#\1= "$(VERSION)#g' cmd/version.go; \
-	fi
-	if [ -f "apmpackage/apm/changelog.yml" ]; then \
-		$(SED) -E -e 's#(version[[:blank:]]*):[[:blank:]]*"$(PREVIOUS_VERSION)#\1: "$(VERSION)#g' apmpackage/apm/changelog.yml; \
-	fi
-	if [ -f "apmpackage/apm/manifest.yml" ]; then \
-		$(SED) -E -e 's#(version[[:blank:]]*):[[:blank:]]*$(PREVIOUS_VERSION)#\1: $(VERSION)#g' apmpackage/apm/manifest.yml; \
 	fi
 
 ## Update project version in the Makefile.
@@ -289,17 +275,3 @@ git-diff:
 	@echo "::group::git-diff"
 	git --no-pager  diff || true
 	@echo "::endgroup::"
-
-############################################
-## Internal make goals to install tools
-############################################
-
-## @help:setup-yq:Install yq in CURDIR/bin/yq.
-.PHONY: setup-yq
-setup-yq:
-	if [ ! -x "$$(command -v $(YQ))" ] && [ ! -f "$(CURDIR)/bin/$(YQ)" ]; then \
-		echo ">> Downloading $(YQ) - $(YQ_VERSION)/$(YQ_BINARY)" ; \
-		curl -sSfL -o $(CURDIR)/bin/yq https://github.com/mikefarah/yq/releases/download/$(YQ_VERSION)/$(YQ_BINARY) ; \
-		chmod +x $(CURDIR)/bin/$(YQ); \
-	fi
-

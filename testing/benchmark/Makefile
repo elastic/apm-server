@@ -130,12 +130,11 @@ CUSTOM_IMAGE_TAG:=${IMAGE_TAG}-${USER_NAME}-$(shell date +%s)
 ELASTIC_AGENT_DOCKER_IMAGE?=docker.elastic.co/cloud-release/elastic-agent-cloud
 ELASTICSEARCH_DOCKER_IMAGE=docker.elastic.co/cloud-release/elasticsearch-cloud-ess
 KIBANA_DOCKER_IMAGE=docker.elastic.co/cloud-release/kibana-cloud
-CI_KIBANA_DOCKER_IMAGE=docker.elastic.co/observability-ci/kibana
 CI_ELASTIC_AGENT_DOCKER_IMAGE=docker.elastic.co/observability-ci/elastic-agent
 ELASTIC_AGENT_IMAGE_TAG?=${IMAGE_TAG}
 
 .PHONY: docker-override-committed-version
-docker-override-committed-version: docker_image.auto.tfvars kibana_docker_image elastic_agent_docker_image
+docker-override-committed-version: docker_image.auto.tfvars elastic_agent_docker_image
 	@echo '-> docker image override completed'
 
 .PHONY: cleanup-elasticsearch
@@ -153,26 +152,12 @@ cleanup-elasticsearch:
 ##############################################################################
 
 docker_image.auto.tfvars:
-	@echo 'docker_image_override={"elasticsearch":"${ELASTICSEARCH_DOCKER_IMAGE}","kibana":"${CI_KIBANA_DOCKER_IMAGE}","apm":"${CI_ELASTIC_AGENT_DOCKER_IMAGE}"}' > $@
-	@echo 'docker_image_tag_override={"elasticsearch":"${IMAGE_TAG}","kibana":"${CUSTOM_IMAGE_TAG}","apm":"${CUSTOM_IMAGE_TAG}"}' >> $@
+	@echo 'docker_image_override={"elasticsearch":"${ELASTICSEARCH_DOCKER_IMAGE}","kibana":"${KIBANA_DOCKER_IMAGE}","apm":"${CI_ELASTIC_AGENT_DOCKER_IMAGE}"}' > $@
+	@echo 'docker_image_tag_override={"elasticsearch":"${IMAGE_TAG}","kibana":"${IMAGE_TAG}","apm":"${CUSTOM_IMAGE_TAG}"}' >> $@
 
 ##############################################################################
-# Targets for building and pushing custom Kibana and Elastic Agent images.
+# Targets for building and pushing a custom Elastic Agent image.
 ##############################################################################
-
-# kibana_docker_image builds the Cloud Kibana image with the local
-# APM integration package injected. The image will be based off the
-# stack version defined in ${REPO_ROOT}/.env, unless overridden.
-.PHONY: build_kibana_docker_image
-kibana_docker_image: build_kibana_docker_image
-	docker push ${CI_KIBANA_DOCKER_IMAGE}:${CUSTOM_IMAGE_TAG}
-build_kibana_docker_image:
-	$(MAKE) -C ${REPO_ROOT} build-package
-	docker build -t ${CI_KIBANA_DOCKER_IMAGE}:${CUSTOM_IMAGE_TAG} \
-		-f "${REPO_ROOT}/testing/docker/kibana/Dockerfile-apmpackage" \
-		--build-arg KIBANA_IMAGE=${KIBANA_DOCKER_IMAGE}:${IMAGE_TAG} \
-		--platform linux/amd64 \
-		"${REPO_ROOT}/build/packages"
 
 # elastic_agent_docker_image builds the Cloud Elastic Agent image
 # with the local APM Server binary injected. The image will be based
