@@ -7,6 +7,8 @@ export PATH := $(CURDIR)/bin:$(PATH)
 #######################
 ## Tools
 #######################
+ARCH = $(shell uname -m)
+OS = $(shell uname)
 
 ifeq ($(OS),Darwin)
 	SED ?= sed -i ".bck"
@@ -14,7 +16,6 @@ else
 	SED ?= sed -i
 endif
 
-ARCH = $(shell uname -m)
 ifeq ($(ARCH),x86_64)
 	YQ_ARCH ?= amd64
 else
@@ -38,6 +39,7 @@ PROJECT_PATCH_VERSION ?= $(shell echo $(RELEASE_VERSION) | cut -f3 -d.)
 PROJECT_OWNER ?= elastic
 RELEASE_TYPE ?= minor
 
+CURRENT_RELEASE ?= $(shell gh api repos/elastic/apm-server/releases/latest | jq -r '.tag_name|sub("v"; ""; "")')
 RELEASE_BRANCH ?= $(PROJECT_MAJOR_VERSION).$(PROJECT_MINOR_VERSION)
 NEXT_PROJECT_MINOR_VERSION ?= $(PROJECT_MAJOR_VERSION).$(shell expr $(PROJECT_MINOR_VERSION) + 1).0
 NEXT_RELEASE ?= $(RELEASE_BRANCH).$(shell expr $(PROJECT_PATCH_VERSION) + 1)
@@ -107,8 +109,8 @@ minor-release:
 
 	@echo "INFO: Push changes to $(PROJECT_OWNER)/apm-server and create the relevant Pull Requests"
 	git push origin $(RELEASE_BRANCH)
-	$(MAKE) create-pull-request BRANCH=update-$(RELEASE_VERSION) TARGET_BRANCH=$(BASE_BRANCH) TITLE="$(RELEASE_BRANCH): update docs, mergify, versions and changelogs"
-	$(MAKE) create-pull-request BRANCH=changelog-$(RELEASE_BRANCH) TARGET_BRANCH=$(RELEASE_BRANCH) TITLE="$(RELEASE_BRANCH): update docs"
+	$(MAKE) create-pull-request BRANCH=update-$(RELEASE_VERSION) TARGET_BRANCH=$(BASE_BRANCH) TITLE="$(RELEASE_BRANCH): update docs, mergify, versions and changelogs" BODY="Merge as soon as the GitHub checks are green."
+	$(MAKE) create-pull-request BRANCH=changelog-$(RELEASE_BRANCH) TARGET_BRANCH=$(RELEASE_BRANCH) TITLE="$(RELEASE_BRANCH): update docs" BODY="Merge as soon as $(TARGET_BRANCH) branch is created and the GitHub checks are green."
 
 # This is the contract with the GitHub action .github/workflows/run-patch-release.yml
 # The GitHub action will provide the below environment variables:
@@ -116,9 +118,14 @@ minor-release:
 #
 .PHONY: patch-release
 patch-release:
-	@echo "VERSION: $${RELEASE_VERSION}"
-	@echo 'TODO: prepare-patch-release'
-	@echo 'TODO: create-prs-patch-release'
+	@echo "INFO: Create feature branch and update the versions. Target branch $(RELEASE_BRANCH)"
+	$(MAKE) create-branch NAME=update-$(NEXT_RELEASE) BASE=$(RELEASE_BRANCH)
+	$(MAKE) update-version VERSION=$(RELEASE_VERSION)
+	$(MAKE) update-version-makefile VERSION=$(PROJECT_MAJOR_VERSION)\.$(PROJECT_MINOR_VERSION)
+	$(MAKE) update-version-legacy VERSION=$(NEXT_RELEASE) PREVIOUS_VERSION=$(CURRENT_RELEASE)
+	$(MAKE) create-commit COMMIT_MESSAGE="docs: update docs versions to $(NEXT_RELEASE)"
+	@echo "INFO: Push changes to $(PROJECT_OWNER)/apm-server and create the relevant Pull Requests"
+	$(MAKE) create-pull-request BRANCH=update-$(NEXT_RELEASE) TARGET_BRANCH=$(RELEASE_BRANCH) TITLE="$(NEXT_RELEASE): update docs" BODY="Merge before the final Release build."
 
 ############################################
 ## Internal make goals to bump versions
@@ -163,14 +170,6 @@ common-changelog:
 	$(SED) -E -e 's#(\...)main#\1$(VERSION)#g' changelogs/$(VERSION).asciidoc
 	awk "NR==5{print \"\n* <<release-notes-$(VERSION).0>>\n\n[float]\n[[release-notes-$(VERSION).0]]\n=== APM version $(VERSION).0\"}1" changelogs/$(VERSION).asciidoc > changelogs/$(VERSION).asciidoc.new
 	mv changelogs/$(VERSION).asciidoc.new changelogs/$(VERSION).asciidoc
-
-## Update project documentation.
-.PHONY: update-docs
-update-docs: VERSION=$${VERSION}
-update-docs: setup-yq
-	@echo ">> update-docs"
-	$(YQ) e --inplace '.[] |= with_entries((select(.value == "generated") | .value) ="$(VERSION)")' ./apmpackage/apm/changelog.yml; \
-	$(YQ) e --inplace '[{"version": "generated", "changes":[{"description": "Placeholder", "type": "enhancement", "link": "https://github.com/elastic/apm-server/pull/123"}]}] + .' ./apmpackage/apm/changelog.yml;
 
 ## Update the references on .mergify.yml with the new minor release.
 .PHONY: update-mergify
@@ -218,12 +217,6 @@ update-version-legacy:
 	if [ -f "cmd/version.go" ]; then \
 		$(SED) -E -e 's#(defaultBeatVersion[[:blank:]]*)=[[:blank:]]*"[0-9]+\.[0-9]+\.[0-9]+#\1= "$(VERSION)#g' cmd/version.go; \
 	fi
-	if [ -f "apmpackage/apm/changelog.yml" ]; then \
-		$(SED) -E -e 's#(version[[:blank:]]*):[[:blank:]]*"$(PREVIOUS_VERSION)#\1: "$(VERSION)#g' apmpackage/apm/changelog.yml; \
-	fi
-	if [ -f "apmpackage/apm/manifest.yml" ]; then \
-		$(SED) -E -e 's#(version[[:blank:]]*):[[:blank:]]*$(PREVIOUS_VERSION)#\1: $(VERSION)#g' apmpackage/apm/manifest.yml; \
-	fi
 
 ## Update project version in the Makefile.
 .PHONY: update-version-makefile
@@ -261,13 +254,14 @@ create-commit:
 
 ## @help:create-pull-request:Create pull request
 .PHONY: create-pull-request
-create-pull-request: BRANCH=$${BRANCH} TITLE=$${TITLE} TARGET_BRANCH=$${TARGET_BRANCH}
+create-pull-request: BRANCH=$${BRANCH} TITLE=$${TITLE} TARGET_BRANCH=$${TARGET_BRANCH} BODY=$${BODY} 
+
 create-pull-request:
 	@echo "::group::create-pull-request"
 	git push origin $(BRANCH)
 	gh pr create \
 		--title "$(TITLE)" \
-		--body "Merge as soon as $(TARGET_BRANCH) branch is created." \
+		--body "$(BODY)" \
 		--base $(TARGET_BRANCH) \
 		--head $(BRANCH) \
 		--label 'release' \
@@ -281,17 +275,3 @@ git-diff:
 	@echo "::group::git-diff"
 	git --no-pager  diff || true
 	@echo "::endgroup::"
-
-############################################
-## Internal make goals to install tools
-############################################
-
-## @help:setup-yq:Install yq in CURDIR/bin/yq.
-.PHONY: setup-yq
-setup-yq:
-	if [ ! -x "$$(command -v $(YQ))" ] && [ ! -f "$(CURDIR)/bin/$(YQ)" ]; then \
-		echo ">> Downloading $(YQ) - $(YQ_VERSION)/$(YQ_BINARY)" ; \
-		curl -sSfL -o $(CURDIR)/bin/yq https://github.com/mikefarah/yq/releases/download/$(YQ_VERSION)/$(YQ_BINARY) ; \
-		chmod +x $(CURDIR)/bin/$(YQ); \
-	fi
-

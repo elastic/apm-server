@@ -82,8 +82,6 @@ For patch releases, only the version on the existing major and minor version bra
 
 * Bump the version in anticipation of the next release, e.g. [after 7.5.1 release](https://github.com/elastic/apm-server/pull/3045/files) bump to 7.5.2. Prepare this PR ahead of time, but only merge after release when pinged by the release manager.
 
-* Ensure that the `apmpackage` is released to production (supposed to change in `8.5`).
-
 ## When compatibility between Agents & Server changes
 
 * Update the [agent/server compatibility matrix](https://github.com/elastic/observability-docs/blob/main/docs/en/observability/apm/agent-server-compatibility.asciidoc) in the elastic/observability repo.

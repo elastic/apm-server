@@ -1,5 +1,0 @@
----
-- job:
-    name: apm-server
-    description: apm-server
-    project-type: folder
