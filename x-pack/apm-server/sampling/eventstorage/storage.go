@@ -173,6 +173,10 @@ func (rw *ReadWriter) WriteTraceEvent(traceID string, id string, event *modelpb.
 func (rw *ReadWriter) writeEntry(e *badger.Entry, opts WriterOpts) error {
 	rw.pendingWrites++
 	entrySize := estimateSize(e)
+	// The badger database has an async size reconciliation, with a 1 minute
+	// ticker that keeps the lsm and vlog sizes updated in an in-memory map.
+	// It's OK to call call s.db.Size() on the hot path, since the memory
+	// lookup is cheap.
 	lsm, vlog := rw.s.db.Size()
 
 	// there are multiple ReadWriters writing to the same storage so add
