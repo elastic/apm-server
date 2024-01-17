@@ -296,7 +296,7 @@ func TestStorageLimit(t *testing.T) {
 	transaction := modelpb.APMEvent{Transaction: &modelpb.Transaction{Id: transactionID}}
 	err := readWriter.WriteTraceEvent(traceID, transactionID, &transaction, eventstorage.WriterOpts{
 		TTL:                 time.Minute,
-		StorageLimitInBytes: 1, // ignored in the write, because there's no implicit flush
+		StorageLimitInBytes: 1,
 	})
 	assert.ErrorIs(t, err, eventstorage.ErrLimitReached)
 
