@@ -43,6 +43,8 @@ jobs:
     needs: [ prepare ]
     env:
       RELEASE_VERSION: ${{ needs.prepare.outputs.release-version }}
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
         with:
