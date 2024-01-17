@@ -2,8 +2,6 @@
 # Variables used for various build targets.
 ##############################################################################
 
-include release.mk
-
 # Enforce use of modules.
 export GO111MODULE=on
 
