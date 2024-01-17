@@ -18,7 +18,6 @@ GOVERSION=$(go env GOVERSION | sed 's/^go//')
 find -name go.mod -execdir go get toolchain@$GOVERSION \;
 echo $GOVERSION > .go-version
 sed -i "s/golang:[[:digit:]]\+\(\.[[:digit:]]\+\)\{1,2\}/golang:$GOVERSION/" packaging/docker/Dockerfile
-sed -i "s/^:go-version:.*/:go-version: $GOVERSION/" docs/version.asciidoc
 sed -i "s/\(\[Go\]\[golang-download\]\) [[:digit:]].*/\1 $GOMOD_VERSION.x/" README.md
 sed -i "s/toolchain go[[:digit:]]\+\(\.[[:digit:]]\+\)\{1,2\}/toolchain go$GOVERSION/" tools/go.mod
 sed -i "s/toolchain go[[:digit:]]\+\(\.[[:digit:]]\+\)\{1,2\}/toolchain go$GOVERSION/" internal/glog/go.mod
