@@ -31,6 +31,9 @@ PYTHON=$(PYTHON_BIN)/python
 # e.g. for setting "GOLINT_UPSTREAM".
 -include config.mk
 
+# Include release automation for minor and patch releases.
+include release.mk
+
 ##############################################################################
 # Rules for building and unit-testing apm-server.
 ##############################################################################
