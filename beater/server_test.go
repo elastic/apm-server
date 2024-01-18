@@ -1084,8 +1084,8 @@ var testData = func() []byte {
 	return b
 }()
 
-func makeTransactionRequest(t *testing.T, baseUrl string) *http.Request {
-	req, err := http.NewRequest(http.MethodPost, baseUrl+api.IntakePath, bytes.NewReader(testData))
+func makeTransactionRequest(t *testing.T, baseURL string) *http.Request {
+	req, err := http.NewRequest(http.MethodPost, baseURL+api.IntakePath, bytes.NewReader(testData))
 	if err != nil {
 		t.Fatalf("Failed to create test request object: %v", err)
 	}
