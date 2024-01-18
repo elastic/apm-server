@@ -5,7 +5,6 @@
 package eventstorage_test
 
 import (
-	"fmt"
 	"testing"
 	"time"
 
@@ -77,7 +76,7 @@ func testWriteEvents(t *testing.T, numSpans int) {
 	)
 
 	// Flush in order for the writes to be visible to other readers.
-	assert.NoError(t, readWriter.Flush(wOpts.StorageLimitInBytes))
+	assert.NoError(t, readWriter.Flush())
 
 	var recorded modelpb.Batch
 	assert.NoError(t, db.View(func(txn *badger.Txn) error {
@@ -135,7 +134,7 @@ func TestWriteTraceSampled(t *testing.T) {
 	assert.True(t, isSampled)
 
 	// Flush in order for the writes to be visible to other readers.
-	assert.NoError(t, readWriter.Flush(wOpts.StorageLimitInBytes))
+	assert.NoError(t, readWriter.Flush())
 
 	sampled := make(map[string]bool)
 	assert.NoError(t, db.View(func(txn *badger.Txn) error {
@@ -287,7 +286,6 @@ func TestStorageLimit(t *testing.T) {
 	db := newBadgerDB(t, opts)
 	db.Close()
 	db = newBadgerDB(t, opts)
-	lsm, vlog := db.Size()
 
 	store := eventstorage.New(db, eventstorage.ProtobufCodec{})
 	readWriter := store.NewReadWriter()
@@ -298,13 +296,8 @@ func TestStorageLimit(t *testing.T) {
 	transaction := modelpb.APMEvent{Transaction: &modelpb.Transaction{Id: transactionID}}
 	err := readWriter.WriteTraceEvent(traceID, transactionID, &transaction, eventstorage.WriterOpts{
 		TTL:                 time.Minute,
-		StorageLimitInBytes: 1, // ignored in the write, because there's no implicit flush
+		StorageLimitInBytes: 1,
 	})
-	assert.NoError(t, err)
-	err = readWriter.Flush(1)
-	assert.EqualError(t, err, fmt.Sprintf(
-		"failed to flush pending writes: configured storage limit reached (current: %d, limit: 1)", lsm+vlog,
-	))
 	assert.ErrorIs(t, err, eventstorage.ErrLimitReached)
 
 	// Assert the stored write has been discarded.

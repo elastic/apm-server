@@ -18,13 +18,9 @@
 package systemtest
 
 import (
-	"errors"
 	"fmt"
 	"log"
 	"os"
-	"os/exec"
-	"path/filepath"
-	"runtime"
 	"testing"
 
 	"golang.org/x/sync/errgroup"
@@ -38,15 +34,6 @@ func TestMain(m *testing.M) {
 		if err := StartStackContainers(); err != nil {
 			return fmt.Errorf("failed to start stack containers: %w", err)
 		}
-		return nil
-	})
-
-	errg.Go(func() error {
-		log.Println("INFO: building the integration package...")
-		if err := buildIntegrationPackage(); err != nil {
-			return fmt.Errorf("failed to build the integration package: %w", err)
-		}
-
 		return nil
 	})
 
@@ -78,23 +65,4 @@ func TestMain(m *testing.M) {
 
 	log.Println("INFO: running system tests...")
 	os.Exit(m.Run())
-}
-
-func buildIntegrationPackage() error {
-	// Build the integration package.
-	_, filename, _, ok := runtime.Caller(0)
-	if !ok {
-		return errors.New("could not locate systemtest directory")
-	}
-	systemtestDir := filepath.Dir(filename)
-	repoRoot := filepath.Join(systemtestDir, "..")
-	cmd := exec.Command("make", "build-package")
-	cmd.Dir = repoRoot
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	if err := cmd.Run(); err != nil {
-		return err
-	}
-
-	return nil
 }

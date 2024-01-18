@@ -19,6 +19,8 @@ package middleware
 
 import (
 	"net/http"
+	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -135,4 +137,21 @@ func TestLogMiddleware(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestLogMiddlewareRequestBodyBytes(t *testing.T) {
+	configure.Logging("APM Server test", agentconfig.MustNewConfigFrom(`{"ecs":true}`))
+	require.NoError(t, logp.DevelopmentSetup(logp.ToObserverOutput()))
+
+	c := request.NewContext()
+	c.Reset(
+		httptest.NewRecorder(),
+		httptest.NewRequest(http.MethodGet, "/", strings.NewReader("content")),
+	)
+	Apply(LogMiddleware(), HandlerIdle)(c)
+
+	entries := logp.ObserverLogs().TakeAll()
+	require.Equal(t, 1, len(entries))
+	field := entries[0].ContextMap()["http.request.body.bytes"]
+	assert.Equal(t, int64(len("content")), field)
 }

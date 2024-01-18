@@ -84,20 +84,6 @@ else:
   k8s_kind('Kibana')
   k8s_resource('kibana', port_forwards=default_kibana_port, resource_deps=['elasticsearch'])
     
-# Build and install the APM integration package whenever source under
-# "apmpackage" changes.
-run_with_go_ver = os.path.join(script_dir, 'run_with_go_ver')
-
-
-local_resource(
-  'apmpackage',
-  cmd = [os.path.join(script_dir, 'run_with_go_ver'), 'go', 'run', './cmd/runapm -init'],
-  dir = 'systemtest',
-  deps = ['apmpackage'],
-  resource_deps=['kibana'],
-  env={ "KIBANA_HOST": kibana_host, "KIBANA_BASE_PATH": kibana_base_path, "KIBANA_PORT": str(default_kibana_port) }
-)
-
 k8s_resource('elastic-operator', objects=['eck-trial-license:Secret:elastic-system'])
 k8s_resource('apm-server', port_forwards=8200)
 k8s_resource('elasticsearch', port_forwards=9200, objects=['elasticsearch-admin:Secret:default'])
@@ -111,8 +97,8 @@ if config.tilt_subcommand == "down":
   print(local("kubectl delete --ignore-not-found namespace/elastic-system"))
 
 # Add a button for sending trace events and metrics to APM Server.
+run_with_go_ver = os.path.join(script_dir, 'run_with_go_ver')
 load('ext://uibutton', 'cmd_button')
-
 cmd_button(
   'apm-server:sendotlp',
   argv=['sh', '-c', 'cd systemtest && %s go run ./cmd/sendotlp' % run_with_go_ver],

@@ -1,7 +1,6 @@
 USER_NAME?=$(USER)
 ROOT_DIR=$(shell git rev-parse --show-toplevel)
 APM_SERVER_VERSION=$(shell $(MAKE) -C $(ROOT_DIR) get-version)
-APM_INTEGRATION_PKG_PATH=$(ROOT_DIR)/build/packages/apm-$(APM_SERVER_VERSION).zip
 RALLY_GENCORPORA_REPLAY_COUNT?=10
 RALLY_BULK_CLIENTS?=10
 
@@ -20,18 +19,16 @@ plan:
 
 .PHONY: apply
 apply: rally/corpora
-	$(MAKE) -C $(ROOT_DIR) build-package
+	$(MAKE) -C $(ROOT_DIR)
 	@terraform apply -auto-approve \
 		-var 'rally_workers_resource_prefix=$(USER_NAME)' \
-		-var 'rally_bulk_clients=$(RALLY_BULK_CLIENTS)' \
-		-var 'custom_apm_integration_pkg_path=$(APM_INTEGRATION_PKG_PATH)'
+		-var 'rally_bulk_clients=$(RALLY_BULK_CLIENTS)'
 
 .PHONY: destroy
 destroy:
 	@terraform destroy -auto-approve \
 		-var 'rally_workers_resource_prefix=$(USER_NAME)' \
-		-var 'rally_bulk_clients=$(RALLY_BULK_CLIENTS)' \
-		-var 'custom_apm_integration_pkg_path=$(APM_INTEGRATION_PKG_PATH)'
+		-var 'rally_bulk_clients=$(RALLY_BULK_CLIENTS)'
 
 # Generate corpora to be used in cloud testing using rally-cloud tf script
 .PHONY: rally/corpora
