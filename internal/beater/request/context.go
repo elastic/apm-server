@@ -54,6 +54,7 @@ type Context struct {
 	// compressedRequestReadCloser will be initialised for requests
 	// with a non-zero ContentLength and empty Content-Encoding.
 	compressedRequestReadCloser compressedRequestReadCloser
+	countingReadCloser          countingReadCloser
 	gzipReader                  *gzip.Reader
 	zlibReader                  zlibReadCloseResetter
 
@@ -155,6 +156,13 @@ func (c *Context) setRequest(r *http.Request) {
 		c.SourceNATIP = c.ClientIP
 		c.SourceIP, c.ClientIP = ip, ip
 		c.SourcePort, c.ClientPort = int(port), int(port)
+	}
+
+	if c.Request.ContentLength != -1 {
+		c.countingReadCloser.n = c.Request.ContentLength
+	} else {
+		c.countingReadCloser.ReadCloser = c.Request.Body
+		c.Request.Body = &c.countingReadCloser
 	}
 
 	if err := c.decodeRequestBody(); err != nil {
@@ -316,6 +324,29 @@ func (c *Context) resetGzip(r io.Reader) (io.ReadCloser, error) {
 		err = c.gzipReader.Reset(r)
 	}
 	return c.gzipReader, err
+}
+
+// RequestBodyBytes returns the original c.Request.ContentLength if it
+// was not -1, otherwise it returns the number of bytes read from the
+// request body.
+//
+// RequestBodyBytes must not be called concurrently with
+// c.Request.Body.Read().
+func (c *Context) RequestBodyBytes() int64 {
+	return c.countingReadCloser.n
+}
+
+type countingReadCloser struct {
+	io.ReadCloser
+	n int64
+}
+
+func (r *countingReadCloser) Read(p []byte) (int, error) {
+	n, err := r.ReadCloser.Read(p)
+	if n > 0 {
+		r.n += int64(n)
+	}
+	return n, err
 }
 
 type compressedRequestReadCloser struct {

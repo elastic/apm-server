@@ -46,6 +46,7 @@ func LogMiddleware() Middleware {
 			}
 			h(c)
 			c.Logger = c.Logger.With("event.duration", time.Since(c.Timestamp))
+			c.Logger = c.Logger.With("http.request.body.bytes", c.RequestBodyBytes())
 			if c.MultipleWriteAttempts() {
 				c.Logger.Warn("multiple write attempts")
 			}
@@ -74,9 +75,6 @@ func loggerWithRequestContext(c *request.Context) *logp.Logger {
 	}
 	if c.ClientIP.IsValid() && c.ClientIP != c.SourceIP {
 		logger = logger.With("client.ip", c.ClientIP.String())
-	}
-	if c.Request.ContentLength != -1 {
-		logger = logger.With("http.request.body.bytes", c.Request.ContentLength)
 	}
 	return logger
 }
