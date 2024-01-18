@@ -7,6 +7,7 @@ package eventstorage
 import (
 	"errors"
 	"fmt"
+	"sync/atomic"
 	"time"
 
 	"github.com/dgraph-io/badger/v2"
@@ -20,6 +21,10 @@ const (
 	entryMetaTraceSampled   = 's'
 	entryMetaTraceUnsampled = 'u'
 	entryMetaTraceEvent     = 'e'
+
+	// Initial transaction size
+	// len(txnKey) + 10
+	baseTransactionSize = 10 + 11
 )
 
 var (
@@ -35,8 +40,10 @@ var (
 // Storage provides storage for sampled transactions and spans,
 // and for recording trace sampling decisions.
 type Storage struct {
-	db    *badger.DB
-	codec Codec
+	db *badger.DB
+	// pendingSize tracks the total size of pending writes across ReadWriters
+	pendingSize *atomic.Int64
+	codec       Codec
 }
 
 // Codec provides methods for encoding and decoding events.
@@ -47,7 +54,7 @@ type Codec interface {
 
 // New returns a new Storage using db and codec.
 func New(db *badger.DB, codec Codec) *Storage {
-	return &Storage{db: db, codec: codec}
+	return &Storage{db: db, pendingSize: &atomic.Int64{}, codec: codec}
 }
 
 // NewShardedReadWriter returns a new ShardedReadWriter, for sharded
@@ -64,23 +71,12 @@ func (s *Storage) NewShardedReadWriter() *ShardedReadWriter {
 //
 // The returned ReadWriter must be closed when it is no longer needed.
 func (s *Storage) NewReadWriter() *ReadWriter {
+	s.pendingSize.Add(baseTransactionSize)
 	return &ReadWriter{
-		s:   s,
-		txn: s.db.NewTransaction(true),
+		s:           s,
+		txn:         s.db.NewTransaction(true),
+		pendingSize: baseTransactionSize,
 	}
-}
-
-func (s *Storage) limitReached(limit int64) (int64, bool) {
-	if limit == 0 {
-		return 0, false
-	}
-	// The badger database has an async size reconciliation, with a 1 minute
-	// ticker that keeps the lsm and vlog sizes updated in an in-memory map.
-	// It's OK to call call s.db.Size() on the hot path, since the memory
-	// lookup is cheap.
-	lsm, vlog := s.db.Size()
-	current := lsm + vlog
-	return current, current >= limit
 }
 
 // WriterOpts provides configuration options for writes to storage
@@ -105,6 +101,8 @@ type ReadWriter struct {
 	// be unmodified until the end of a transaction.
 	readKeyBuf    []byte
 	pendingWrites int
+	// pendingSize tracks the size of pending writes in the current ReadWriter
+	pendingSize int64
 }
 
 // Close closes the writer. Any writes that have not been flushed may be lost.
@@ -120,25 +118,14 @@ func (rw *ReadWriter) Close() {
 // Flush must be called to ensure writes are committed to storage.
 // If Flush is not called before the writer is closed, then writes
 // may be lost.
-//
-// Flush returns ErrLimitReached, or an error that wraps it, when
-// the StorageLimiter reports that the combined size of LSM and Vlog
-// files exceeds the configured threshold.
-func (rw *ReadWriter) Flush(limit int64) error {
+func (rw *ReadWriter) Flush() error {
 	const flushErrFmt = "failed to flush pending writes: %w"
-	if current, limitReached := rw.s.limitReached(limit); limitReached {
-		// Discard the txn and re-create it if the soft limit has been reached.
-		rw.txn.Discard()
-		rw.txn = rw.s.db.NewTransaction(true)
-		rw.pendingWrites = 0
-		return fmt.Errorf(
-			flushErrFmt+" (current: %d, limit: %d)",
-			ErrLimitReached, current, limit,
-		)
-	}
 	err := rw.txn.Commit()
 	rw.txn = rw.s.db.NewTransaction(true)
+	rw.s.pendingSize.Add(-rw.pendingSize)
 	rw.pendingWrites = 0
+	rw.pendingSize = baseTransactionSize
+	rw.s.pendingSize.Add(baseTransactionSize)
 	if err != nil {
 		return fmt.Errorf(flushErrFmt, err)
 	}
@@ -185,28 +172,72 @@ func (rw *ReadWriter) WriteTraceEvent(traceID string, id string, event *modelpb.
 
 func (rw *ReadWriter) writeEntry(e *badger.Entry, opts WriterOpts) error {
 	rw.pendingWrites++
-	err := rw.txn.SetEntry(e.WithTTL(opts.TTL))
-	// Attempt to flush if there are 200 or more uncommitted writes.
-	// This ensures calls to ReadTraceEvents are not slowed down;
-	// ReadTraceEvents uses an iterator, which must sort all keys
-	// of uncommitted writes.
-	// The 200 value yielded a good balance between read and write speed:
-	// https://github.com/elastic/apm-server/pull/8407#issuecomment-1162994643
-	if rw.pendingWrites >= 200 {
-		if err := rw.Flush(opts.StorageLimitInBytes); err != nil {
+	entrySize := estimateSize(e)
+	// The badger database has an async size reconciliation, with a 1 minute
+	// ticker that keeps the lsm and vlog sizes updated in an in-memory map.
+	// It's OK to call call s.db.Size() on the hot path, since the memory
+	// lookup is cheap.
+	lsm, vlog := rw.s.db.Size()
+
+	// there are multiple ReadWriters writing to the same storage so add
+	// the entry size and consider the new value to avoid TOCTOU issues.
+	pendingSize := rw.s.pendingSize.Add(entrySize)
+	rw.pendingSize += entrySize
+
+	if current := pendingSize + lsm + vlog; opts.StorageLimitInBytes != 0 && current >= opts.StorageLimitInBytes {
+		// flush what we currently have and discard the current entry
+		if err := rw.Flush(); err != nil {
 			return err
 		}
+		return fmt.Errorf("%w (current: %d, limit: %d)", ErrLimitReached, current, opts.StorageLimitInBytes)
 	}
+
+	if rw.pendingWrites >= 200 {
+		// Attempt to flush if there are 200 or more uncommitted writes.
+		// This ensures calls to ReadTraceEvents are not slowed down;
+		// ReadTraceEvents uses an iterator, which must sort all keys
+		// of uncommitted writes.
+		// The 200 value yielded a good balance between read and write speed:
+		// https://github.com/elastic/apm-server/pull/8407#issuecomment-1162994643
+		if err := rw.Flush(); err != nil {
+			return err
+		}
+
+		// the current ReadWriter flushed the transaction and reset the pendingSize so add
+		// the entrySize again.
+		rw.pendingSize += entrySize
+		rw.s.pendingSize.Add(entrySize)
+	}
+
+	err := rw.txn.SetEntry(e.WithTTL(opts.TTL))
+
 	// If the transaction is already too big to accommodate the new entry, flush
 	// the existing transaction and set the entry on a new one, otherwise,
 	// returns early.
 	if err != badger.ErrTxnTooBig {
 		return err
 	}
-	if err := rw.Flush(opts.StorageLimitInBytes); err != nil {
+	if err := rw.Flush(); err != nil {
 		return err
 	}
+	rw.pendingSize += entrySize
+	rw.s.pendingSize.Add(entrySize)
 	return rw.txn.SetEntry(e)
+}
+
+func estimateSize(e *badger.Entry) int64 {
+	// See badger WithValueThreshold option
+	// An storage usage of an entry depends on its size
+	//
+	// if len(e.Value) < threshold {
+	// 	return len(e.Key) + len(e.Value) + 2 // Meta, UserMeta
+	// }
+	// return len(e.Key) + 12 + 2 // 12 for ValuePointer, 2 for metas.
+	//
+	// Make a good estimate by reserving more space
+	estimate := len(e.Key) + len(e.Value) + 12 + 2
+	// Extra bytes for the version in key.
+	return int64(estimate) + 10
 }
 
 // DeleteTraceEvent deletes the trace event from storage.
