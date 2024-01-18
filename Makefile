@@ -207,7 +207,11 @@ GOLINT_COMMAND=$(GOLINT) ${GOLINT_TARGETS} | grep -v "should have comment" | $(R
 
 .PHONY: golint
 golint: $(GOLINT) $(REVIEWDOG)
-	@output=$$($(GOLINT_COMMAND)); test -z "$$output" || (echo $$output && exit 1)
+	echo "$(GOLINT_COMMAND)"
+	echo "DEBUG: lint with grep"
+	$(GOLINT) ${GOLINT_TARGETS} | grep -v "should have comment"
+	echo "DEBUG: run the whole lint with reviewdog"
+	output=$$($(GOLINT_COMMAND)); test -z "$$output" || (echo $$output && exit 1)
 
 .PHONY: staticcheck
 staticcheck: $(STATICCHECK)
