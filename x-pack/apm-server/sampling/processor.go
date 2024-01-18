@@ -640,5 +640,5 @@ func (s *wrappedRW) DeleteTraceEvent(traceID, id string) error {
 
 // Flush calls ShardedReadWriter.Flush
 func (s *wrappedRW) Flush() error {
-	return s.rw.Flush(s.writerOpts.StorageLimitInBytes)
+	return s.rw.Flush()
 }
