@@ -117,7 +117,7 @@ func (p BatchProcessor) processStacktraceFrame(
 		return false, ""
 	}
 
-	path := utility.CleanUrlPath(frame.AbsPath)
+	path := utility.CleanURLPath(frame.AbsPath)
 	mapper, err := p.Store.Fetch(ctx, service.Name, service.Version, path)
 	if err != nil {
 		frame.SourcemapError = err.Error()

@@ -39,7 +39,7 @@ func TestCleanUrlPath(t *testing.T) {
 		{URL: "/../a/b/../././/c", CleanedURL: "/a/c"},
 	}
 	for idx, test := range testData {
-		CleanedURL := CleanUrlPath(test.URL)
+		CleanedURL := CleanURLPath(test.URL)
 		assert.Equal(t, test.CleanedURL, CleanedURL, fmt.Sprintf("(%v): Expected %s, got %s", idx, test.CleanedURL, CleanedURL))
 	}
 }

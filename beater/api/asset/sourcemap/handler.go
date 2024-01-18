@@ -134,7 +134,7 @@ func decode(req *http.Request, smap *sourcemapDoc) error {
 		return err
 	}
 	smap.Sourcemap = string(bytes)
-	smap.BundleFilepath = utility.CleanUrlPath(req.FormValue("bundle_filepath"))
+	smap.BundleFilepath = utility.CleanURLPath(req.FormValue("bundle_filepath"))
 	smap.ServiceName = req.FormValue("service_name")
 	smap.ServiceVersion = req.FormValue("service_version")
 	return nil

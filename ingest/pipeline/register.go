@@ -39,20 +39,20 @@ func RegisterPipelines(conn *eslegclient.Connection, overwrite bool, path string
 	var exists bool
 	for _, p := range pipelines {
 		if !overwrite {
-			exists, err = conn.PipelineExists(p.Id)
+			exists, err = conn.PipelineExists(p.ID)
 			if err != nil {
 				return err
 			}
 		}
 		if overwrite || !exists {
-			_, _, err := conn.CreatePipeline(p.Id, nil, p.Body)
+			_, _, err := conn.CreatePipeline(p.ID, nil, p.Body)
 			if err != nil {
-				logger.Errorf("Pipeline registration failed for %s.", p.Id)
+				logger.Errorf("Pipeline registration failed for %s.", p.ID)
 				return err
 			}
-			logger.Infof("Pipeline successfully registered: %s", p.Id)
+			logger.Infof("Pipeline successfully registered: %s", p.ID)
 		} else {
-			logger.Infof("Pipeline already registered: %s", p.Id)
+			logger.Infof("Pipeline already registered: %s", p.ID)
 		}
 	}
 	logger.Info("Registered Ingest Pipelines successfully.")
@@ -60,7 +60,7 @@ func RegisterPipelines(conn *eslegclient.Connection, overwrite bool, path string
 }
 
 type pipeline struct {
-	Id   string                 `json:"id"`
+	ID   string                 `json:"id"`
 	Body map[string]interface{} `json:"body"`
 }
 

@@ -55,7 +55,7 @@ func (pa *sourcemapDoc) Transform(ctx context.Context) []beat.Event {
 		Fields: common.MapStr{
 			"processor": sourcemapProcessorEntry,
 			sourcemapDocType: common.MapStr{
-				"bundle_filepath": utility.UrlPath(pa.BundleFilepath),
+				"bundle_filepath": utility.URLPath(pa.BundleFilepath),
 				"service":         common.MapStr{"name": pa.ServiceName, "version": pa.ServiceVersion},
 				"sourcemap":       pa.Sourcemap,
 			},

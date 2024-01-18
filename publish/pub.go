@@ -78,7 +78,7 @@ var (
 	ErrChannelClosed = errors.New("can't send batch, publisher is being stopped")
 )
 
-// newPublisher creates a new publisher instance.
+// NewPublisher creates a new publisher instance.
 //
 // GOMAXPROCS goroutines are started for forwarding events to libbeat.
 // Stop must be called to close the beat.Client and free resources.

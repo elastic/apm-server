@@ -151,7 +151,7 @@ func query(name, version, path string) map[string]interface{} {
 					should(
 						// prefer full URL match
 						boostedTerm("sourcemap.bundle_filepath", path, 2.0),
-						term("sourcemap.bundle_filepath", utility.UrlPath(path)),
+						term("sourcemap.bundle_filepath", utility.URLPath(path)),
 					),
 				),
 			),

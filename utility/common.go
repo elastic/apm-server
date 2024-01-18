@@ -25,7 +25,7 @@ import (
 	"strings"
 )
 
-func UrlPath(p string) string {
+func URLPath(p string) string {
 	url, err := url.Parse(p)
 	if err != nil {
 		return p
@@ -33,7 +33,7 @@ func UrlPath(p string) string {
 	return url.Path
 }
 
-func CleanUrlPath(p string) string {
+func CleanURLPath(p string) string {
 	url, err := url.Parse(p)
 	if err != nil {
 		return p
