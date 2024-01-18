@@ -222,7 +222,7 @@ func (rw *ReadWriter) writeEntry(e *badger.Entry, opts WriterOpts) error {
 	}
 	rw.pendingSize += entrySize
 	rw.s.pendingSize.Add(entrySize)
-	return rw.txn.SetEntry(e)
+	return rw.txn.SetEntry(e.WithTTL(opts.TTL))
 }
 
 func estimateSize(e *badger.Entry) int64 {
