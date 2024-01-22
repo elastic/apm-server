@@ -96,15 +96,6 @@ targets:
       content: '{{ source "latestGoVersion" }}'
       file: .go-version
       matchpattern: '\d+.\d+.\d+'
-  update-version-asciidoc:
-    name: 'Update version.asciidoc with Golang version {{ source "latestGoVersion" }}'
-    sourceid: latestGoVersion
-    scmid: default
-    kind: file
-    spec:
-      file: docs/version.asciidoc
-      matchpattern: '(:go-version:) \d+.\d+.\d+'
-      replacepattern: '$1 {{ source "latestGoVersion" }}'
   update-dockerfile:
     name: 'Update Dockerfile with Golang version {{ source "latestGoVersion" }}'
     sourceid: latestGoVersion

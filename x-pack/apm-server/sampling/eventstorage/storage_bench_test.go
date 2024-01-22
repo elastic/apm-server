@@ -48,7 +48,7 @@ func BenchmarkWriteTransaction(b *testing.B) {
 				b.Fatal(err)
 			}
 		}
-		assert.NoError(b, readWriter.Flush(wOpts.StorageLimitInBytes))
+		assert.NoError(b, readWriter.Flush())
 	}
 
 	type testCase struct {

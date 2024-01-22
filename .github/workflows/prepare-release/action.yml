@@ -1,0 +1,109 @@
+---
+name: prepare-release
+description: Common tasks for preparing minor and patch releases
+
+inputs:
+  type:
+    description: 'Release type (minor or patch)'
+    required: true
+  version:
+    description: 'The version'
+    required: true
+  vault-url:
+    description: 'Vault URL'
+    required: true
+  vault-role-id:
+    description: 'Vault role ID'
+    required: true
+  vault-secret-id:
+    description: 'Vault secret ID'
+    required: true
+
+outputs:
+  release-branch:
+    description: "Release branch (relevant for minor releases)"
+    value: ${{ steps.generate.outputs.release-branch }}
+  release-version:
+    description: "Release version"
+    value: ${{ steps.generate.outputs.release-version }}
+  slack-thread:
+    description: "Slack thread id"
+    value: ${{ steps.slack-thread.outputs.threadTimestamp }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Send slack message when started
+      id: slack-thread
+      uses: elastic/apm-pipeline-library/.github/actions/slack-message@current
+      with:
+        url: ${{ inputs.vault-url }}
+        roleId: ${{ inputs.vault-role-id }}
+        secretId: ${{ inputs.vault-secret-id }}
+        channel: ${{ env.SLACK_CHANNEL }}
+        message: ":wave: This is the thread for the ${{ inputs.type }} release `${{ github.repository }}@${{ env.VERSION }}`. (<${{ env.JOB_URL }}|workflow run>)"
+      env:
+        VERSION: ${{ inputs.version }}
+        JOB_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+    - id: generate
+      run: |-
+        echo "release-branch=${VERSION%.*}" >> "${GITHUB_OUTPUT}"
+        echo "release-version=${VERSION}" >> "${GITHUB_OUTPUT}"
+      env:
+        VERSION: ${{ inputs.version }}
+      shell: 'bash'
+
+    - name: validate version format (minor only)
+      if: ${{ inputs.type == 'minor' && ! endsWith(inputs.version, '0') }}
+      run: |-
+        FAILURE_MESSAGE='version is not a minor one but a patch (only support for <major>.<minor>.0)'
+        echo "FAILURE_MESSAGE=${FAILURE_MESSAGE}" >> "$GITHUB_ENV"
+        echo "::error::${FAILURE_MESSAGE}" ; exit 1
+      shell: 'bash'
+
+    - name: validate version format (patch only)
+      if: ${{ inputs.type == 'patch' && endsWith(inputs.version, '0') }}
+      run: |-
+        FAILURE_MESSAGE='version is not a patch one but a minor (only support for <major>.<minor>.[1-9]+[0-9]*)'
+        echo "FAILURE_MESSAGE=${FAILURE_MESSAGE}" >> "$GITHUB_ENV"
+        echo "::error::${FAILURE_MESSAGE}" ; exit 1
+      shell: 'bash'
+
+    - name: validate if branch already exists (minor only)
+      if: ${{ inputs.type == 'minor' }}
+      run: |-
+        if git ls-remote --exit-code --heads https://github.com/${{ github.repository }}.git "$BRANCH" > /dev/null ; then
+          FAILURE_MESSAGE='Branch already exists. This is not a minor release.'
+          echo "FAILURE_MESSAGE=${FAILURE_MESSAGE}" >> "$GITHUB_ENV"
+          echo "::error::${FAILURE_MESSAGE}" ; exit 1
+        fi
+      shell: 'bash'
+      env:
+        BRANCH: ${{ steps.generate.outputs.release-branch }}
+
+    - name: validate if tag already exists
+      run: |-
+        if git ls-remote --exit-code https://github.com/${{ github.repository }}.git "$TAG" > /dev/null ; then
+          FAILURE_MESSAGE='Tag already exists.'
+          echo "FAILURE_MESSAGE=${FAILURE_MESSAGE}" >> "$GITHUB_ENV"
+          echo "::error::${FAILURE_MESSAGE}" ; exit 1
+        fi
+      shell: 'bash'
+      env:
+        TAG: 'refs/tags/v${{ steps.generate.outputs.release-version }}'
+
+    - uses: elastic/apm-pipeline-library/.github/actions/slack-message@current
+      if: failure()
+      with:
+        url: ${{ inputs.vault-url }}
+        roleId: ${{ inputs.vault-role-id }}
+        secretId: ${{ inputs.vault-secret-id }}
+        channel: ${{ env.SLACK_CHANNEL }}
+        threadTimestamp: ${{ steps.slack-thread.outputs.threadTimestamp || '' }}
+        message: |-
+          :fire: Something went wrong with the ${{ inputs.type }} release preparation. It failed with the below error message:
+          `${{ env.FAILURE_MESSAGE }}`.
+          See <${{ env.JOB_URL }}|logs>.
+      env:
+        JOB_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
