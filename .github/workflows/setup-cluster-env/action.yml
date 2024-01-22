@@ -14,7 +14,7 @@ inputs:
     description: 'Vault secret ID'
     required: true
   ec-key-secret:
-    default: 'secret/observability-team/ci/elastic-cloud/observability-pro'
+    default: 'secret/observability-team/ci/elastic-cloud/observability-team-pro'
     description: 'EC Key secret'
     required: false
   aws-account-secret:
