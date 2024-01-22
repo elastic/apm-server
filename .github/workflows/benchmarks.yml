@@ -71,7 +71,7 @@ jobs:
         env:
           AWS_CREDENTIALS_PATH: secret/observability-team/ci/elastic-observability-aws-account-auth
           BENCHMARK_CLOUD_CREDENTIALS_PATH: secret/observability-team/ci/benchmark-cloud
-          EC_CREDENTIALS_PATH: secret/observability-team/ci/elastic-cloud/observability-pro
+          EC_CREDENTIALS_PATH: secret/observability-team/ci/elastic-cloud/observability-team-pro
           KIBANA_CREDENTIALS_PATH: secret/observability-team/ci/apm-benchmark-kibana
         with:
           url: ${{ secrets.VAULT_ADDR }}
