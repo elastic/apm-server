@@ -123,6 +123,8 @@ func TestContext_Reset(t *testing.T) {
 			assert.False(t, timestamp.Before(before))
 		case "compressedRequestReadCloser":
 			assert.Zero(t, c.compressedRequestReadCloser)
+		case "countingReadCloser":
+			assert.Zero(t, c.countingReadCloser)
 		case "zlibReader":
 			assert.Nil(t, c.zlibReader)
 		case "gzipReader":
@@ -249,6 +251,35 @@ func TestContextResetContentEncoding(t *testing.T) {
 	test("gzip_sniff", "", bytes.NewReader(gzipCompressed), "contents", "gzip")
 	test("deflate", "deflate", bytes.NewReader(deflateCompressed), "contents", "deflate")
 	test("deflate_sniff", "", bytes.NewReader(deflateCompressed), "contents", "deflate")
+}
+
+func TestContextRequestBodyBytes(t *testing.T) {
+	t.Run("no_body", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		r := httptest.NewRequest(http.MethodGet, "/", nil)
+		c := Context{Request: r, ResponseWriter: w}
+		c.Reset(w, r)
+		assert.Equal(t, int64(0), c.RequestBodyBytes())
+	})
+
+	t.Run("client_specified_content_length", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		r := httptest.NewRequest(http.MethodGet, "/", strings.NewReader("contents"))
+		c := Context{Request: r, ResponseWriter: w}
+		c.Reset(w, r)
+		assert.Equal(t, int64(len("contents")), c.RequestBodyBytes())
+	})
+
+	t.Run("unspecified_content_length", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		compressed := gzipCompressString("contents")
+		r := httptest.NewRequest(http.MethodGet, "/", bytes.NewReader(compressed))
+		r.ContentLength = -1
+		c := Context{Request: r, ResponseWriter: w}
+		c.Reset(w, r)
+		assertReaderContents(t, "contents", c.Request.Body)
+		assert.Equal(t, int64(len(compressed)), c.RequestBodyBytes())
+	})
 }
 
 func BenchmarkContextResetContentEncoding(b *testing.B) {

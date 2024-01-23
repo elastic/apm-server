@@ -60,11 +60,12 @@ func TestTimeoutMiddleware(t *testing.T) {
 			}
 		}()
 		test(t, request.Handler(func(c *request.Context) {
+			timeout := 1 * time.Nanosecond
 			ctx := c.Request.Context()
-			ctx, cancel = context.WithTimeout(ctx, time.Nanosecond)
+			ctx, cancel = context.WithTimeout(ctx, timeout)
 			r := c.Request.WithContext(ctx)
 			c.Request = r
-			time.Sleep(time.Second)
+			<-ctx.Done() // let the context expire
 		}))
 	})
 }

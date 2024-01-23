@@ -33,7 +33,6 @@ import (
 	"reflect"
 	"runtime"
 	"strings"
-	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -386,10 +385,9 @@ func TestServerWaitForIntegrationKibana(t *testing.T) {
 }
 
 func TestServerWaitForIntegrationElasticsearch(t *testing.T) {
-	var mu sync.Mutex
-	var tracesRequests int
-	tracesRequestsCh := make(chan int)
-	bulkCh := make(chan struct{}, 1)
+	var tracesRequests atomic.Int64
+	tracesRequestsCh := make(chan int, 2)
+	bulkCh := make(chan struct{}, 2)
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Elastic-Product", "Elasticsearch")
@@ -398,15 +396,13 @@ func TestServerWaitForIntegrationElasticsearch(t *testing.T) {
 		fmt.Fprintln(w, `{"version":{"number":"1.2.3"}}`)
 	})
 	mux.HandleFunc("/_index_template/", func(w http.ResponseWriter, r *http.Request) {
-		mu.Lock()
-		defer mu.Unlock()
 		template := path.Base(r.URL.Path)
 		if template == "traces-apm" {
-			tracesRequests++
-			if tracesRequests == 1 {
+			count := tracesRequests.Add(1)
+			if count == 1 {
 				w.WriteHeader(404)
 			}
-			tracesRequestsCh <- tracesRequests
+			tracesRequestsCh <- int(count)
 		}
 	})
 	mux.HandleFunc("/_bulk", func(w http.ResponseWriter, r *http.Request) {
@@ -424,9 +420,10 @@ func TestServerWaitForIntegrationElasticsearch(t *testing.T) {
 			"data_streams.wait_for_integration": true,
 		},
 		"output.elasticsearch": map[string]interface{}{
-			"hosts":       []string{elasticsearchServer.URL},
-			"backoff":     map[string]interface{}{"init": "10ms", "max": "10ms"},
-			"max_retries": 1000,
+			"hosts":          []string{elasticsearchServer.URL},
+			"backoff":        map[string]interface{}{"init": "10ms", "max": "10ms"},
+			"max_retries":    1000,
+			"flush_interval": "1ms",
 		},
 	})))
 
@@ -638,11 +635,11 @@ func TestServerElasticsearchOutput(t *testing.T) {
 
 	srv := beatertest.NewServer(t, beatertest.WithConfig(agentconfig.MustNewConfigFrom(map[string]interface{}{
 		"output.elasticsearch": map[string]interface{}{
-			"hosts":        []string{elasticsearchServer.URL},
-			"flush_bytes":  "1kb", // test data is >1kb
-			"backoff":      map[string]interface{}{"init": "1ms", "max": "1ms"},
-			"max_retries":  0,
-			"max_requests": 10,
+			"hosts":          []string{elasticsearchServer.URL},
+			"flush_interval": "1ms",
+			"backoff":        map[string]interface{}{"init": "1ms", "max": "1ms"},
+			"max_retries":    0,
+			"max_requests":   10,
 		},
 	})))
 
