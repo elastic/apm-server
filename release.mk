@@ -123,6 +123,7 @@ patch-release:
 	@echo "INFO: Create feature branch and update the versions. Target branch $(RELEASE_BRANCH)"
 	$(MAKE) create-branch NAME=$(BRANCH_PATCH) BASE=$(RELEASE_BRANCH)
 	$(MAKE) update-version VERSION=$(RELEASE_VERSION)
+	$(MAKE) update-docs VERSION=$(RELEASE_VERSION)
 	$(MAKE) update-version-makefile VERSION=$(PROJECT_MAJOR_VERSION)\.$(PROJECT_MINOR_VERSION)
 	$(MAKE) update-version-legacy VERSION=$(NEXT_RELEASE) PREVIOUS_VERSION=$(CURRENT_RELEASE)
 	$(MAKE) create-commit COMMIT_MESSAGE="docs: update docs versions to $(RELEASE_VERSION)"
@@ -178,8 +179,10 @@ common-changelog:
 update-docs: VERSION=$${VERSION}
 update-docs: setup-yq
 	@echo ">> update-docs"
-	$(YQ) e --inplace '.[] |= with_entries((select(.value == "generated") | .value) ="$(VERSION)")' ./apmpackage/apm/changelog.yml; \
-	$(YQ) e --inplace '[{"version": "generated", "changes":[{"description": "Placeholder", "type": "enhancement", "link": "https://github.com/elastic/apm-server/pull/123"}]}] + .' ./apmpackage/apm/changelog.yml;
+	if [ -f "./apmpackage/apm/changelog.yml" ]; then \
+		$(YQ) e --inplace '.[] |= with_entries((select(.value == "generated") | .value) ="$(VERSION)")' ./apmpackage/apm/changelog.yml; \
+		$(YQ) e --inplace '[{"version": "generated", "changes":[{"description": "Placeholder", "type": "enhancement", "link": "https://github.com/elastic/apm-server/pull/123"}]}] + .' ./apmpackage/apm/changelog.yml;
+	fi
 
 ## Update the references on .mergify.yml with the new minor release.
 .PHONY: update-mergify
