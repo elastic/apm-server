@@ -31,6 +31,9 @@ PYTHON=$(PYTHON_BIN)/python
 # e.g. for setting "GOLINT_UPSTREAM".
 -include config.mk
 
+# Include release automation for minor and patch releases.
+include release.mk
+
 ##############################################################################
 # Rules for building and unit-testing apm-server.
 ##############################################################################
@@ -197,14 +200,16 @@ update-beats-module:
 # Linting, style-checking, license header checks, etc.
 ##############################################################################
 
+GOLINT_OUTPUT=$(GOOSBUILD)/.lint.out
 GOLINT_TARGETS?=$(shell $(GO) list ./...)
 GOLINT_UPSTREAM?=origin/7.17
 REVIEWDOG_FLAGS?=-conf=reviewdog.yml -f=golint -diff="git diff $(GOLINT_UPSTREAM)"
-GOLINT_COMMAND=$(GOLINT) ${GOLINT_TARGETS} | grep -v "should have comment" | $(REVIEWDOG) $(REVIEWDOG_FLAGS)
+GOLINT_COMMAND=$(GOLINT) ${GOLINT_TARGETS} | grep -v "should have comment" | tee $(GOLINT_OUTPUT)
 
 .PHONY: golint
 golint: $(GOLINT) $(REVIEWDOG)
-	@output=$$($(GOLINT_COMMAND)); test -z "$$output" || (echo $$output && exit 1)
+	# run reviewdog if there are changes otherwise do nothing, grep will fail if no matches
+	[ $$($(GOLINT_COMMAND) | wc -l) -gt 0 ] && (output=$$(cat $(GOLINT_OUTPUT) | $(REVIEWDOG) $(REVIEWDOG_FLAGS)); test -z "$$output" || (echo $$output && exit 1)) || echo "no lint defects"
 
 .PHONY: staticcheck
 staticcheck: $(STATICCHECK)
