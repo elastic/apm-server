@@ -17,7 +17,6 @@ GOIMPORTS=$(GOOSBUILD)/goimports
 GOLICENSER=$(GOOSBUILD)/go-licenser
 GOLINT=$(GOOSBUILD)/golint
 MAGE=$(GOOSBUILD)/mage
-REVIEWDOG=$(GOOSBUILD)/reviewdog
 STATICCHECK=$(GOOSBUILD)/staticcheck
 ELASTICPACKAGE=$(GOOSBUILD)/elastic-package
 
@@ -202,15 +201,13 @@ update-beats-module:
 
 GOLINT_TARGETS?=$(shell $(GO) list ./...)
 GOLINT_UPSTREAM?=origin/7.17
-REVIEWDOG_FLAGS?=-conf=reviewdog.yml -f=golint -diff="git diff $(GOLINT_UPSTREAM)"
-GOLINT_COMMAND=$(GOLINT) ${GOLINT_TARGETS} | grep -v "should have comment" | $(REVIEWDOG) $(REVIEWDOG_FLAGS)
+GOLINT_COMMAND=$(GOLINT) ${GOLINT_TARGETS} | grep -v "should have comment"
 
 .PHONY: golint
-golint: $(GOLINT) $(REVIEWDOG)
-	echo "$(GOLINT_COMMAND)"
+golint: $(GOLINT)
 	echo "DEBUG: lint with grep"
 	$(GOLINT) ${GOLINT_TARGETS} | grep -v "should have comment"
-	echo "DEBUG: run the whole lint with reviewdog"
+	echo "DEBUG: run the whole lint"
 	output=$$($(GOLINT_COMMAND)); test -z "$$output" || (echo $$output && exit 1)
 
 .PHONY: staticcheck
@@ -280,9 +277,6 @@ $(STATICCHECK): tools/go.mod
 
 $(GOLICENSER): tools/go.mod
 	$(GO) build -o $@ -modfile=$< github.com/elastic/go-licenser
-
-$(REVIEWDOG): tools/go.mod
-	$(GO) build -o $@ -modfile=$< github.com/reviewdog/reviewdog/cmd/reviewdog
 
 $(ELASTICPACKAGE): tools/go.mod
 	$(GO) build -o $@ -modfile=$< github.com/elastic/elastic-package
