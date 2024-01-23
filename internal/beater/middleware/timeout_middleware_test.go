@@ -66,6 +66,7 @@ func TestTimeoutMiddleware(t *testing.T) {
 			r := c.Request.WithContext(ctx)
 			c.Request = r
 			time.Sleep(2 * timeout) // let the context expire
+			<-ctx.Done()
 		}))
 	})
 }
