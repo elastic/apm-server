@@ -181,7 +181,7 @@ update-docs: setup-yq
 	@echo ">> update-docs"
 	if [ -f "./apmpackage/apm/changelog.yml" ]; then \
 		$(YQ) e --inplace '.[] |= with_entries((select(.value == "generated") | .value) ="$(VERSION)")' ./apmpackage/apm/changelog.yml; \
-		$(YQ) e --inplace '[{"version": "generated", "changes":[{"description": "Placeholder", "type": "enhancement", "link": "https://github.com/elastic/apm-server/pull/123"}]}] + .' ./apmpackage/apm/changelog.yml;
+		$(YQ) e --inplace '[{"version": "generated", "changes":[{"description": "Placeholder", "type": "enhancement", "link": "https://github.com/elastic/apm-server/pull/123"}]}] + .' ./apmpackage/apm/changelog.yml; \
 	fi
 
 ## Update the references on .mergify.yml with the new minor release.
