@@ -39,7 +39,6 @@ PROJECT_PATCH_VERSION ?= $(shell echo $(RELEASE_VERSION) | cut -f3 -d.)
 PROJECT_OWNER ?= elastic
 RELEASE_TYPE ?= minor
 
-CURRENT_RELEASE ?= $(shell gh api repos/elastic/apm-server/releases/latest | jq -r '.tag_name|sub("v"; ""; "")')
 RELEASE_BRANCH ?= $(PROJECT_MAJOR_VERSION).$(PROJECT_MINOR_VERSION)
 NEXT_PROJECT_MINOR_VERSION ?= $(PROJECT_MAJOR_VERSION).$(shell expr $(PROJECT_MINOR_VERSION) + 1).0
 NEXT_RELEASE ?= $(RELEASE_BRANCH).$(shell expr $(PROJECT_PATCH_VERSION) + 1)
@@ -120,15 +119,15 @@ minor-release:
 #
 .PHONY: patch-release
 patch-release:
-	@echo "INFO: Create feature branch and update the versions. Target branch $(RELEASE_BRANCH)"
-	$(MAKE) create-branch NAME=$(BRANCH_PATCH) BASE=$(RELEASE_BRANCH)
+	@echo "INFO: Create feature branch and update the versions. Target branch $(BASE_BRANCH)."
+	$(MAKE) create-branch NAME=$(BRANCH_PATCH) BASE=$(BASE_BRANCH)
 	$(MAKE) update-version VERSION=$(RELEASE_VERSION)
 	$(MAKE) update-docs VERSION=$(RELEASE_VERSION)
 	$(MAKE) update-version-makefile VERSION=$(PROJECT_MAJOR_VERSION)\.$(PROJECT_MINOR_VERSION)
-	$(MAKE) update-version-legacy VERSION=$(NEXT_RELEASE) PREVIOUS_VERSION=$(CURRENT_RELEASE)
-	$(MAKE) create-commit COMMIT_MESSAGE="docs: update docs versions to $(RELEASE_VERSION)"
+	$(MAKE) update-version-legacy VERSION=$(NEXT_RELEASE) PREVIOUS_VERSION=$(RELEASE_VERSION)
+	$(MAKE) create-commit COMMIT_MESSAGE="docs: update docs versions to $(NEXT_RELEASE)"
 	@echo "INFO: Push changes to $(PROJECT_OWNER)/apm-server and create the relevant Pull Requests"
-	$(MAKE) create-pull-request BRANCH=$(BRANCH_PATCH) TARGET_BRANCH=$(RELEASE_BRANCH) TITLE="$(RELEASE_VERSION): update docs" BODY="Merge before the final Release build."
+	$(MAKE) create-pull-request BRANCH=$(BRANCH_PATCH) TARGET_BRANCH=$(BASE_BRANCH) TITLE="$(NEXT_RELEASE): update docs" BODY="Merge before the final Release build."
 
 ############################################
 ## Internal make goals to bump versions
