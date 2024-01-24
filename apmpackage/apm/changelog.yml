@@ -1,8 +1,8 @@
 - version: generated
   changes:
-    - description: Placeholder
-      type: enhancement
-      link: https://github.com/elastic/apm-server/pull/123
+    - description: Define value for all constant_keyword fields; Use ecs for sampled_traces
+      type: bugfix
+      link: https://github.com/elastic/apm-server/pull/12219
 - version: 8.12.0
   changes:
     - description: Add missing mappings for various fields
