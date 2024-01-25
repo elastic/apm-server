@@ -23,11 +23,15 @@ metadata:
   links:
     - title: Pipeline
       url: https://buildkite.com/elastic/apm-server-package
-
+  tags:
+    - buildkite
+    - dra
 spec:
   type: buildkite-pipeline
   owner: group:apm-server
   system: buildkite
+  consumesApis:
+    - active-branches
   implementation:
     apiVersion: buildkite.elastic.dev/v1
     kind: Pipeline
