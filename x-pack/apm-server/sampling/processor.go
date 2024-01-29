@@ -529,11 +529,11 @@ func (p *Processor) Run() error {
 						switch event.Type() {
 						case modelpb.TransactionEventType:
 							if err := p.eventStore.DeleteTraceEvent(event.Trace.Id, event.Transaction.Id); err != nil {
-								return errors.Wrap(err, "failed to delete transaction from local storage")
+								p.logger.With(logp.Error(err)).Warn("failed to delete transaction from local storage")
 							}
 						case modelpb.SpanEventType:
 							if err := p.eventStore.DeleteTraceEvent(event.Trace.Id, event.Span.Id); err != nil {
-								return errors.Wrap(err, "failed to delete span from local storage")
+								p.logger.With(logp.Error(err)).Warn("failed to delete span from local storage")
 							}
 						}
 					}
