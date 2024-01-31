@@ -30,6 +30,8 @@ https://github.com/elastic/apm-server/compare/v8.6.0\...v8.6.1[View commits]
 [[release-notes-8.6.0]]
 === APM version 8.6.0
 
+https://github.com/elastic/apm-server/compare/v8.5.3\...v8.6.0[View commits]
+
 [float]
 ==== Breaking Changes
 - `apm-server.decoder.*` stack monitoring metrics are no longer recorded {pull}9210[9210]

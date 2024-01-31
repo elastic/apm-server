@@ -1,8 +1,6 @@
 [[release-notes-8.10]]
 == APM version 8.10
 
-https://github.com/elastic/apm-server/compare/8.9\...8.10[View commits]
-
 * <<release-notes-8.10.4>>
 * <<release-notes-8.10.3>>
 * <<release-notes-8.10.2>>
@@ -13,6 +11,8 @@ https://github.com/elastic/apm-server/compare/8.9\...8.10[View commits]
 [[release-notes-8.10.4]]
 === APM version 8.10.4
 
+https://github.com/elastic/apm-server/compare/v8.10.3\...v8.10.4[View commits]
+
 [float]
 ==== Bug fixes
 
@@ -22,17 +22,23 @@ https://github.com/elastic/apm-server/compare/8.9\...8.10[View commits]
 [[release-notes-8.10.3]]
 === APM version 8.10.3
 
+https://github.com/elastic/apm-server/compare/v8.10.2\...v8.10.3[View commits]
+
 No significant changes.
 
 [float]
 [[release-notes-8.10.2]]
 === APM version 8.10.2
 
+https://github.com/elastic/apm-server/compare/v8.10.2\...v8.10.1[View commits]
+
 No significant changes.
 
 [float]
 [[release-notes-8.10.1]]
 === APM version 8.10.1
+
+https://github.com/elastic/apm-server/compare/v8.10.2\...v8.10.1[View commits]
 
 [float]
 ==== Bug fixes
@@ -41,6 +47,8 @@ Fix tail-based sampling discarding low throughput and low sample rate traces {pu
 [float]
 [[release-notes-8.10.0]]
 === APM version 8.10.0
+
+https://github.com/elastic/apm-server/compare/v8.9.2\...v8.10.0[View commits]
 
 [float]
 ==== Breaking Changes
