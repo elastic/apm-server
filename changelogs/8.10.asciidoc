@@ -30,7 +30,7 @@ No significant changes.
 [[release-notes-8.10.2]]
 === APM version 8.10.2
 
-https://github.com/elastic/apm-server/compare/v8.10.2\...v8.10.1[View commits]
+https://github.com/elastic/apm-server/compare/v8.10.1\...v8.10.2[View commits]
 
 No significant changes.
 
@@ -38,7 +38,7 @@ No significant changes.
 [[release-notes-8.10.1]]
 === APM version 8.10.1
 
-https://github.com/elastic/apm-server/compare/v8.10.2\...v8.10.1[View commits]
+https://github.com/elastic/apm-server/compare/v8.10.0\...v8.10.1[View commits]
 
 [float]
 ==== Bug fixes
