@@ -14,7 +14,7 @@ require (
 	github.com/reviewdog/reviewdog v0.14.1
 	github.com/t-yuki/gocover-cobertura v0.0.0-20180217150009-aaee18c8195c
 	github.com/terraform-docs/terraform-docs v0.17.0
-	go.elastic.co/go-licence-detector v0.5.0
+	go.elastic.co/go-licence-detector v0.6.0
 	gotest.tools/gotestsum v1.11.0
 	honnef.co/go/tools v0.4.6
 )
