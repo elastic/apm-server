@@ -4,7 +4,6 @@
 name: update-dependabot-pr
 
 on:
-  workflow_dispatch: ~ # This gives us the ability to run it for existing PRs where dependabot has already created a PR
   push:
     branches:
       - dependabot/go_modules/**
