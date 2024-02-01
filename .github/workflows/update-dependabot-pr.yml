@@ -30,7 +30,6 @@ jobs:
           token: ${{ env.GITHUB_TOKEN }}
       - uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.branch }}
           token: ${{ env.GITHUB_TOKEN }}
       - uses: actions/setup-go@v5
         with:
