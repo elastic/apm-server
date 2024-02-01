@@ -31,7 +31,7 @@ runs:
         cache-dependency-path: |
           go.sum
           tools/go.sum
-    - uses: hashicorp/vault-action@v2.7.4
+    - uses: hashicorp/vault-action@v2.7.5
       with:
         url: ${{ inputs.vault-url }}
         roleId: ${{ inputs.vault-role-id }}
