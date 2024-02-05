@@ -13,7 +13,7 @@ https://github.com/elastic/apm-server/compare/8.11\...8.12[View commits]
 ==== Breaking Changes
 - The unsupported apm_data_stream_migration ingest pipeline has been removed {pull}12102[12102].
 - "publish_ready" is always false in the "GET /" response until events are received by apm-server {pull}12150[12150]
-- (Known issue) `traces-apm@custom` ingest pipeline is now applied to data streams `traces-apm.sampled-*` and `traces-apm.rum.*` and applied twice for `traces-apm-*`. See Fleet changelog for details.
+- A bug has been introduced, so that `traces-apm@custom` ingest pipeline is now additionally applied to data streams `traces-apm.sampled-*` and `traces-apm.rum-*` and applied twice for `traces-apm-*`. See more details and information around a fix in the Known issue section.
 
 [float]
 ==== Bug fixes
