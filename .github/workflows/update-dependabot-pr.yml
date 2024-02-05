@@ -1,0 +1,33 @@
+---
+# Dependabot Pull Requests are not updating the NOTICE.txt file, which causes the lint job to fail.
+# This workflow will checkout the dependabot PR, update the NOTICE.txt file, and push the changes back to the PR.
+name: update-dependabot-pr
+
+on:
+  push:
+    branches:
+      - dependabot/go_modules/**
+    paths-ignore:
+      - NOTICE.txt
+
+permissions:
+  contents: read
+
+jobs:
+  update-dependabot-pr:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Update NOTICE.txt
+        run: make notice
+      - run: |
+          git config --global user.name 'dependabot[bot]'
+          git config --global user.email 'dependabot[bot]@users.noreply.github.com'
+          git diff --exit-code NOTICE.txt || (git add NOTICE.txt && git commit -am "Update NOTICE.txt")
+          git push
+          
