@@ -34,7 +34,7 @@ jobs:
         with:
           go-version-file: go.mod
       - name: Update NOTICE.txt
-        run: mkdir build && make notice
+        run: make notice
       - run: |
           git diff --exit-code NOTICE.txt || (git add NOTICE.txt && git commit -am "Update NOTICE.txt")
           git push

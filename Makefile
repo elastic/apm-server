@@ -237,6 +237,7 @@ MODULE_DEPS=$(sort $(shell \
 
 notice: NOTICE.txt
 NOTICE.txt build/dependencies-$(APM_SERVER_VERSION).csv: go.mod tools/go.mod
+	mkdir build/
 	$(GO) list -m -json $(MODULE_DEPS) | go run -modfile=tools/go.mod go.elastic.co/go-licence-detector \
 		-includeIndirect \
 		-overrides tools/notice/overrides.json \
