@@ -38,3 +38,4 @@ jobs:
         env:
           FILE_TO_COMMIT: NOTICE.txt
           REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
