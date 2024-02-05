@@ -25,10 +25,18 @@ jobs:
       fail-fast: false
       matrix: ${{ fromJson(needs.filter.outputs.matrix) }}
     steps:
+      # Checkout in a different path so it can configure go correctly
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ matrix.branch }}
+          path: "${{ matrix.branch }}"
       - uses: actions/setup-go@v5
         with:
-          go-version-file: go.mod
+          go-version-file: "./${{ matrix.branch }}/go.mod"
+      # Use default branch so we don't need to maintain the same updatecli pipeline
+      # in different branches but in main.
+      # This is handy as long as all the branches use the same implementation
+      - uses: actions/checkout@v4
       - uses: elastic/apm-pipeline-library/.github/actions/updatecli@current
         env:
           BRANCH_NAME: ${{ matrix.branch }}
