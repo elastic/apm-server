@@ -32,7 +32,7 @@ jobs:
           gh api --method PUT /repos/${REPO}/contents/$FILE_TO_COMMIT \
             --field message="Update $FILE_TO_COMMIT" \
             --field content="@<(base64 -i $FILE_TO_COMMIT)" \
-            --field sha="${SHA} \
+            --field sha="${SHA}" \
             --field branch="${BRANCH}"
         env:
           FILE_TO_COMMIT: NOTICE.txt
