@@ -1,8 +1,6 @@
 [[release-notes-8.9]]
 == APM version 8.9
 
-https://github.com/elastic/apm-server/compare/8.8\...8.9[View commits]
-
 * <<release-notes-8.9.2>>
 * <<release-notes-8.9.1>>
 * <<release-notes-8.9.0>>
@@ -28,6 +26,8 @@ No significant changes.
 [float]
 [[release-notes-8.9.0]]
 === APM version 8.9.0
+
+https://github.com/elastic/apm-server/compare/v8.8.2\...v8.9.0[View commits]
 
 [float]
 ==== Bug fixes
