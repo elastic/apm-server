@@ -25,6 +25,7 @@ jobs:
           go-version-file: go.mod
       - name: Update NOTICE.txt
         run: make notice
+      # inspired by https://gist.github.com/swinton/03e84635b45c78353b1f71e41007fc7c
       - name: Commit changes (signed)
         run: |
           export BRANCH=${GITHUB_REF#refs/heads/}
