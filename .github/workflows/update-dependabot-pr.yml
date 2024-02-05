@@ -27,8 +27,8 @@ jobs:
         run: make notice
       - name: Commit changes (signed)
         run: |
-          export SHA=$(git rev-parse $DESTINATION_BRANCH:$FILE_TO_COMMIT)
           export BRANCH=${GITHUB_REF#refs/heads/}
+          export SHA=$(git rev-parse $BRANCH:$FILE_TO_COMMIT)
           gh api --method PUT /repos/${REPO}/contents/$FILE_TO_COMMIT \
             --field message="Update $FILE_TO_COMMIT" \
             --field content="@<(base64 -i $FILE_TO_COMMIT)" \
