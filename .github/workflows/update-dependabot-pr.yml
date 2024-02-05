@@ -14,7 +14,7 @@ permissions:
   contents: read
 
 jobs:
-  update-dependbot-pr:
+  update-dependabot-pr:
     permissions:
       contents: write
     runs-on: ubuntu-latest
