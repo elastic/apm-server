@@ -1,8 +1,6 @@
 [[release-notes-8.6]]
 == APM version 8.6
 
-https://github.com/elastic/apm-server/compare/8.5\...8.6[View commits]
-
 * <<release-notes-8.6.2>>
 * <<release-notes-8.6.1>>
 * <<release-notes-8.6.0>>
@@ -29,6 +27,8 @@ https://github.com/elastic/apm-server/compare/v8.6.0\...v8.6.1[View commits]
 [float]
 [[release-notes-8.6.0]]
 === APM version 8.6.0
+
+https://github.com/elastic/apm-server/compare/v8.5.3\...v8.6.0[View commits]
 
 [float]
 ==== Breaking Changes
