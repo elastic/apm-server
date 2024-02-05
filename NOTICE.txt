@@ -573,11 +573,11 @@ Contents of probable licence file $GOMODCACHE/github.com/elastic/apm-data@v0.1.1
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/beats/v7
-Version: v7.0.0-alpha2.0.20240203011713-6d4f1e6e2e42
+Version: v7.0.0-alpha2.0.20240205135628-84502d287440
 Licence type (autodetected): Elastic
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20240203011713-6d4f1e6e2e42/LICENSE.txt:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20240205135628-84502d287440/LICENSE.txt:
 
 Source code in this repository is variously licensed under the Apache License
 Version 2.0, an Apache compatible license, or the Elastic License. Outside of
@@ -596,11 +596,11 @@ License Version 2.0.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/elastic-agent-client/v7
-Version: v7.6.0
+Version: v7.8.0
 Licence type (autodetected): Elastic
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/elastic-agent-client/v7@v7.6.0/LICENSE.txt:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/elastic-agent-client/v7@v7.8.0/LICENSE.txt:
 
 ELASTIC LICENSE AGREEMENT
 
@@ -7000,11 +7000,11 @@ Contents of probable licence file $GOMODCACHE/google.golang.org/grpc@v1.58.3/LIC
 
 --------------------------------------------------------------------------------
 Dependency : google.golang.org/protobuf
-Version: v1.31.0
+Version: v1.32.0
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/google.golang.org/protobuf@v1.31.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/google.golang.org/protobuf@v1.32.0/LICENSE:
 
 Copyright (c) 2018 The Go Authors. All rights reserved.
 
