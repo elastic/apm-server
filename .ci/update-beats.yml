@@ -1,6 +1,6 @@
 ---
 name: Bump beats
-pipelineid: 'update-beats-{{ requiredEnv "BRANCH_NAME" }}'
+pipelineid: 'updatecli-update-beats-{{ requiredEnv "BRANCH_NAME" }}'
 
 scms:
   default:
@@ -16,6 +16,7 @@ scms:
 
 actions:
   default:
+    title: '[updatecli] Update to elastic/beats@{{ source "beats" }}'
     kind: github/pullrequest
     scmid: default
     spec:
@@ -23,6 +24,12 @@ actions:
       labels:
         - automation
         - backport-skip
+      description: |-
+        ### What
+        `elastic/beats` automatic sync
+
+        *Changeset*
+        * https://github.com/elastic/beats/commit/{{ source "beats" }}
 
 sources:
   beats:
@@ -46,15 +53,6 @@ conditions:
       command: grep {{ source "beats" }} go.mod && exit 1 || exit 0
     failwhen: false
 
-
-conditions:
-  beats-version-check:
-    name: Check beats version
-    kind: shell
-    disablesourceinput: true
-    spec:
-      command: grep "BEATS_VERSION?={{ requiredEnv "BRANCH_NAME" }}" Makefile
-
 targets:
   beats:
     name: 'Update to elastic/beats@{{ source "beats" }}'
@@ -66,5 +64,3 @@ targets:
       environments:
         - name: PATH
         - name: HOME
-
-
