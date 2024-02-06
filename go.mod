@@ -6,7 +6,7 @@ toolchain go1.21.3
 
 require (
 	github.com/cespare/xxhash/v2 v2.2.0
-	github.com/dgraph-io/badger/v2 v2.2007.3-0.20201012072640-f5a7e0a1c83b
+	github.com/dgraph-io/badger/v2 v2.2007.4
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/apm-aggregation v0.0.0-20230815024520-e75a37d9ddd6
 	github.com/elastic/apm-data v0.1.1-0.20240128144153-31b0cd2b927c
