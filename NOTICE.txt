@@ -6583,11 +6583,11 @@ Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/otel/sdk/metri
 
 --------------------------------------------------------------------------------
 Dependency : go.uber.org/automaxprocs
-Version: v1.5.2
+Version: v1.5.3
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.uber.org/automaxprocs@v1.5.2/LICENSE:
+Contents of probable licence file $GOMODCACHE/go.uber.org/automaxprocs@v1.5.3/LICENSE:
 
 Copyright (c) 2017 Uber Technologies, Inc.
 
