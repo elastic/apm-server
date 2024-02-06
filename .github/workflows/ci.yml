@@ -5,6 +5,7 @@ on:
     branches:
       - 7.1*
   pull_request:
+  merge_group:
 
 # limit the access of the generated GITHUB_TOKEN
 permissions:
