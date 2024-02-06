@@ -42,10 +42,10 @@ func (s *ShardedReadWriter) Close() {
 }
 
 // Flush flushes all sharded storage readWriters.
-func (s *ShardedReadWriter) Flush(limit int64) error {
+func (s *ShardedReadWriter) Flush() error {
 	var result error
 	for i := range s.readWriters {
-		if err := s.readWriters[i].Flush(limit); err != nil {
+		if err := s.readWriters[i].Flush(); err != nil {
 			result = multierror.Append(result, err)
 		}
 	}
@@ -99,10 +99,10 @@ func (rw *lockedReadWriter) Close() {
 	rw.rw.Close()
 }
 
-func (rw *lockedReadWriter) Flush(limit int64) error {
+func (rw *lockedReadWriter) Flush() error {
 	rw.mu.Lock()
 	defer rw.mu.Unlock()
-	return rw.rw.Flush(limit)
+	return rw.rw.Flush()
 }
 
 func (rw *lockedReadWriter) ReadTraceEvents(traceID string, out *modelpb.Batch) error {
