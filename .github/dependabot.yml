@@ -3,6 +3,8 @@ updates:
   # go dependencies
   - package-ecosystem: "gomod"
     directory: "/"
+    ignore:
+      - dependency-name: "github.com/elastic/beats/v7"
     schedule:
       interval: "daily"
     groups:

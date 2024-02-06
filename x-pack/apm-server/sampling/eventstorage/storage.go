@@ -243,6 +243,17 @@ func estimateSize(e *badger.Entry) int64 {
 // DeleteTraceEvent deletes the trace event from storage.
 func (rw *ReadWriter) DeleteTraceEvent(traceID, id string) error {
 	key := append(append([]byte(traceID), ':'), id...)
+	err := rw.txn.Delete(key)
+	// If the transaction is already too big to accommodate the new entry, flush
+	// the existing transaction and set the entry on a new one, otherwise,
+	// returns early.
+	if err != badger.ErrTxnTooBig {
+		return err
+	}
+	if err := rw.Flush(); err != nil {
+		return err
+	}
+
 	return rw.txn.Delete(key)
 }
 
