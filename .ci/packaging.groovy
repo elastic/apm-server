@@ -65,10 +65,14 @@ pipeline {
         stage('apmpackage') {
           options { skipDefaultCheckout() }
           when {
-            allOf {
-              // The apmpackage stage gets triggered as described in https://github.com/elastic/apm-server/issues/6970
-              changeset pattern: '(internal/version/.*|apmpackage/.*)', comparator: 'REGEXP'
-              not { changeRequest() }
+            anyOf {
+              allOf {
+                // The apmpackage stage gets triggered as described in https://github.com/elastic/apm-server/issues/6970
+                changeset pattern: '(internal/version/.*|apmpackage/.*)', comparator: 'REGEXP'
+                not { changeRequest() }
+              }
+              // support for manually triggered in the UI
+              triggeredBy cause: 'UserIdCause'
             }
           }
           steps {
