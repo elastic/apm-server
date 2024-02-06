@@ -72,9 +72,7 @@ pipeline {
                 not { changeRequest() }
               }
               // support for manually triggered in the UI
-              expression {
-                return = isUserTrigger()
-              }
+              triggeredBy cause: 'UserIdCause'
             }
           }
           steps {
