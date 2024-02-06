@@ -43,11 +43,11 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/dgraph-io/badger/v2
-Version: v2.2007.3-0.20201012072640-f5a7e0a1c83b
+Version: v2.2007.4
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/dgraph-io/badger/v2@v2.2007.3-0.20201012072640-f5a7e0a1c83b/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/dgraph-io/badger/v2@v2.2007.4/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
