@@ -5526,11 +5526,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 --------------------------------------------------------------------------------
 Dependency : go.opentelemetry.io/collector/consumer
-Version: v0.87.0
+Version: v0.93.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/consumer@v0.87.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/consumer@v0.93.0/LICENSE:
 
 
                                  Apache License
@@ -5738,11 +5738,11 @@ Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/cons
 
 --------------------------------------------------------------------------------
 Dependency : go.opentelemetry.io/collector/pdata
-Version: v1.0.0-rcv0016
+Version: v1.0.1
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/pdata@v1.0.0-rcv0016/LICENSE:
+Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/pdata@v1.0.1/LICENSE:
 
 
                                  Apache License
@@ -6788,11 +6788,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : google.golang.org/grpc
-Version: v1.58.3
+Version: v1.60.1
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/google.golang.org/grpc@v1.58.3/LICENSE:
+Contents of probable licence file $GOMODCACHE/google.golang.org/grpc@v1.60.1/LICENSE:
 
 
                                  Apache License
@@ -11043,7 +11043,7 @@ Apache License
 
 --------------------------------------------------------------------------------
 Dependency : github.com/golang/glog
-Version: v1.1.0
+Version: v1.1.2
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
