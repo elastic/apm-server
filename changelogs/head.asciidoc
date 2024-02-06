@@ -5,7 +5,7 @@ https://github.com/elastic/apm-server/compare/8.12\...main[View commits]
 
 [float]
 ==== Breaking Changes
-- TODO
+- Add support for OTel data stream routing by parsing `data_stream.dataset` and `data_stream.namespace` from resource attributes, instrumentation scope attributes, and signal-level attributes (in increasing order of precedence). This is a breaking change only if the data_stream fields are currently used in OTel attributes, since they are now parsed for routing and no longer stored as labels. {pull}12578[12578]
 
 [float]
 ==== Bug fixes
