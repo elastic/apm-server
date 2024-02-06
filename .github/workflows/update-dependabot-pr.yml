@@ -14,28 +14,28 @@ permissions:
   contents: read
 
 jobs:
-  update-dependbot-pr:
+  update-dependabot-pr:
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
     steps:
-      - uses: elastic/apm-pipeline-library/.github/actions/github-token@current
-        with:
-          url: ${{ secrets.VAULT_ADDR }}
-          roleId: ${{ secrets.VAULT_ROLE_ID }}
-          secretId: ${{ secrets.VAULT_SECRET_ID }}
-      - uses: elastic/apm-pipeline-library/.github/actions/setup-git@current
-        with:
-          username: ${{ env.GIT_USER }}
-          email: ${{ env.GIT_EMAIL }}
-          token: ${{ env.GITHUB_TOKEN }}
       - uses: actions/checkout@v4
-        with:
-          token: ${{ env.GITHUB_TOKEN }}
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
       - name: Update NOTICE.txt
         run: make notice
-      - run: |
-          git diff --exit-code NOTICE.txt || (git add NOTICE.txt && git commit -am "Update NOTICE.txt")
-          git push
-          
+      # inspired by https://gist.github.com/swinton/03e84635b45c78353b1f71e41007fc7c
+      - name: Commit changes (signed)
+        run: |
+          export BRANCH=${GITHUB_REF#refs/heads/}
+          export SHA=$(git rev-parse "$BRANCH:$FILE_TO_COMMIT")
+          gh api --method PUT "/repos/${REPO}/contents/$FILE_TO_COMMIT" \
+            --field message="Update $FILE_TO_COMMIT" \
+            --field content=@<(base64 -i $FILE_TO_COMMIT) \
+            --field sha="${SHA}" \
+            --field branch="${BRANCH}"
+        env:
+          FILE_TO_COMMIT: NOTICE.txt
+          REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
