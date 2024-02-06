@@ -6583,11 +6583,11 @@ Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/otel/sdk/metri
 
 --------------------------------------------------------------------------------
 Dependency : go.uber.org/automaxprocs
-Version: v1.5.2
+Version: v1.5.3
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.uber.org/automaxprocs@v1.5.2/LICENSE:
+Contents of probable licence file $GOMODCACHE/go.uber.org/automaxprocs@v1.5.3/LICENSE:
 
 Copyright (c) 2017 Uber Technologies, Inc.
 
@@ -6677,11 +6677,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/sync
-Version: v0.5.0
+Version: v0.6.0
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/sync@v0.5.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/sync@v0.6.0/LICENSE:
 
 Copyright (c) 2009 The Go Authors. All rights reserved.
 
