@@ -5,6 +5,15 @@ on:
     branches:
       - 7.1*
   pull_request:
+<<<<<<< HEAD
+=======
+    paths-ignore: # When updating the list of expressions also update ci-docs.yml
+      - '**.md'
+      - '**.asciidoc'
+      - '**.png'
+      - '**.svg'
+  merge_group:
+>>>>>>> 4312fa73d (github-action: enable merge-queue (#12579))
 
 # limit the access of the generated GITHUB_TOKEN
 permissions:

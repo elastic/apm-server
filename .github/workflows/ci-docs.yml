@@ -1,0 +1,37 @@
+name: ci
+
+on:
+  pull_request:
+    # We use a negated paths-ignore expression since using 'paths' would trigger
+    # this workflow when code changes also contain docs changes:
+    # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#example-excluding-paths
+    paths-ignore: # This expression needs to match the paths ignored on ci.yml.
+      - '**' # Ignore all file changes, except for the below.
+      - '!**.md'
+      - '!**.asciidoc'
+      - '!**.png'
+      - '!**.svg'
+  merge_group:
+
+# limit the access of the generated GITHUB_TOKEN
+permissions:
+  contents: read
+
+jobs:
+  test:
+    strategy:
+      matrix:
+        os: ['macos-latest', 'windows-latest']
+    runs-on: ${{ matrix.os }}
+    steps:
+      - run: 'echo "No tests required to run"'
+
+  system-test:
+    runs-on: ubuntu-latest
+    steps:
+      - run: 'echo "No tests required to run"'
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - run: 'echo "No lint required to run"'
