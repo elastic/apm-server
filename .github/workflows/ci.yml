@@ -17,6 +17,7 @@ on:
       - '**.asciidoc'
       - '**.png'
       - '**.svg'
+  merge_group:
 
 # limit the access of the generated GITHUB_TOKEN
 permissions:
