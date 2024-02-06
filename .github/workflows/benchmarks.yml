@@ -50,7 +50,7 @@ jobs:
         with:
           go-version-file: 'go.mod'
 
-      - uses: rlespinasse/github-slug-action@5ee5b39fa5c99792f9d15268f75694c7746408e5
+      - uses: rlespinasse/github-slug-action@55f5982579285ce3138ca118a20247ee994619ee
 
       - name: Set up env
         run: |
@@ -67,7 +67,7 @@ jobs:
             echo "BENCHMARK_RUN=${{ inputs.benchmarkRun }}" >> "$GITHUB_ENV"
           fi
 
-      - uses: hashicorp/vault-action@v2.7.4
+      - uses: hashicorp/vault-action@v2.8.0
         env:
           AWS_CREDENTIALS_PATH: secret/observability-team/ci/elastic-observability-aws-account-auth
           BENCHMARK_CLOUD_CREDENTIALS_PATH: secret/observability-team/ci/benchmark-cloud

@@ -5,7 +5,6 @@ https://github.com/elastic/apm-server/compare/8.12\...main[View commits]
 
 [float]
 ==== Breaking Changes
-- Reverts a breaking change that ignored the beat name. This is visible in Stack Monitoring {pull}12176[12176]
 
 [float]
 ==== Bug fixes
@@ -21,3 +20,4 @@ https://github.com/elastic/apm-server/compare/8.12\...main[View commits]
 - map OTel's `span.Status: Unset` to `event.outcome: success` instead of `event.outcome: unknown`
 - Add support for Otel code.stacktrace {pull}12096[12096]
 - `http.request.body.bytes` now reports the bytes read from request body even if Content-Length is -1 {pull}12451[12451]
+- Use `messaging.system` and `messaging.operation` to detect OTel messaging span for transactions {pull}12506[12506]
