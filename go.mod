@@ -15,7 +15,7 @@ require (
 	github.com/elastic/elastic-agent-libs v0.7.5
 	github.com/elastic/elastic-agent-system-metrics v0.9.1
 	github.com/elastic/gmux v0.3.1
-	github.com/elastic/go-docappender v0.2.1-0.20231207080152-44217001fa53
+	github.com/elastic/go-docappender v1.0.0
 	github.com/elastic/go-elasticsearch/v8 v8.12.0
 	github.com/elastic/go-sysinfo v1.12.0
 	github.com/elastic/go-ucfg v0.8.6
@@ -146,7 +146,7 @@ require (
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
 	github.com/youmark/pkcs8 v0.0.0-20201027041543-1326539a0a0a // indirect
 	github.com/yusufpapurcu/wmi v1.2.3 // indirect
-	go.elastic.co/apm/module/apmzap/v2 v2.4.7 // indirect
+	go.elastic.co/apm/module/apmzap/v2 v2.4.8 // indirect
 	go.elastic.co/ecszap v1.0.2 // indirect
 	go.opentelemetry.io/collector/semconv v0.93.0 // indirect
 	go.opentelemetry.io/otel/sdk v1.23.0 // indirect

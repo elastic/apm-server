@@ -150,8 +150,8 @@ github.com/elastic/elastic-transport-go/v8 v8.4.0 h1:EKYiH8CHd33BmMna2Bos1rDNMM8
 github.com/elastic/elastic-transport-go/v8 v8.4.0/go.mod h1:YLHer5cj0csTzNFXoNQ8qhtGY1GTvSqPnKWKaqQE3Hk=
 github.com/elastic/gmux v0.3.1 h1:ghT+5Y9jW5udQTBrhDeMOtQVdRBwk9Y2h1o+4Rb7mhE=
 github.com/elastic/gmux v0.3.1/go.mod h1:IBFLojLnACU9tsUnoSavOaMdhq63/HOH/Aeiiha36jA=
-github.com/elastic/go-docappender v0.2.1-0.20231207080152-44217001fa53 h1:3jOfdobdHlfwC4yeTpljD6Ul+IWmhHHGHoUtn/Cb/UY=
-github.com/elastic/go-docappender v0.2.1-0.20231207080152-44217001fa53/go.mod h1:v+pGb4IkluqgnVN4Qu3o9a2WC1jve91NCu19oKNK/tM=
+github.com/elastic/go-docappender v1.0.0 h1:fXCOd5MEx+4qHIJjJqdtXODC2UNj0sxpO2K84N+/E7Y=
+github.com/elastic/go-docappender v1.0.0/go.mod h1:escVC67Qgu2xTKP92H30/tNW0F+VWty5JfkLzew3URI=
 github.com/elastic/go-elasticsearch/v8 v8.12.0 h1:krkiCf4peJa7bZwGegy01b5xWWaYpik78wvisTeRO1U=
 github.com/elastic/go-elasticsearch/v8 v8.12.0/go.mod h1:wSzJYrrKPZQ8qPuqAqc6KMR4HrBfHnZORvyL+FMFqq0=
 github.com/elastic/go-lumber v0.1.2-0.20220819171948-335fde24ea0f h1:TsPpU5EAwlt7YZoupKlxZ093qTZYdGou3EhfTF1U0B4=
@@ -533,8 +533,8 @@ go.elastic.co/apm/module/apmhttp/v2 v2.4.8 h1:C1piLq4wcFHFB7jpFW1WPEyEl6zbRpf9SA
 go.elastic.co/apm/module/apmhttp/v2 v2.4.8/go.mod h1:FzO5ptAs5oKB3xE1/hpxMA0a7mLIycp2RZdBtp4+uTA=
 go.elastic.co/apm/module/apmotel/v2 v2.4.8 h1:XprKEoUFjcDFwWrmS56Go7D7Ndxa8uy+DVA4k1tItnY=
 go.elastic.co/apm/module/apmotel/v2 v2.4.8/go.mod h1:NA3k4fTqsQhhZBlMOGJy8ol20tJKLafEDWAr5ELNpTg=
-go.elastic.co/apm/module/apmzap/v2 v2.4.7 h1:j96pvon+IhbFpzV4IflXwxOKD+l5rApyyN2ycarJG6Y=
-go.elastic.co/apm/module/apmzap/v2 v2.4.7/go.mod h1:bi0A6hYYwModJI70LJDB8IHqw7291Ub16LRdEXNcOcU=
+go.elastic.co/apm/module/apmzap/v2 v2.4.8 h1:bU1ESD6Pm2cx1Nmlos0YRQQrdQoFynbYP3imTfIxee4=
+go.elastic.co/apm/module/apmzap/v2 v2.4.8/go.mod h1:+pWYgTIT9utt48DVOiBesXQZ3rOVERsE1cS+q0wUafo=
 go.elastic.co/apm/v2 v2.4.8 h1:3RuqxDjhgumT1BYxJGnVPdGY12lCzF+KGyvtSTynCYo=
 go.elastic.co/apm/v2 v2.4.8/go.mod h1:+CiBUdrrAGnGCL9TNx7tQz3BrfYV23L8Ljvotoc87so=
 go.elastic.co/ecszap v1.0.2 h1:iW5OGx8IiokiUzx/shD4AJCPFMC9uUtr7ycaiEIU++I=
