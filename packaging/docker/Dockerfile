@@ -4,7 +4,6 @@ ARG BASE_IMAGE=ubuntu:22.04
 # up to date with go.mod by Makefile.
 FROM golang:1.21.6 as builder
 WORKDIR /src
-COPY ./apm-data /src/apm-data
 COPY go.mod go.sum /src/
 COPY internal/glog/go.mod /src/internal/glog/go.mod
 RUN --mount=type=cache,target=/go/pkg/mod go mod download
