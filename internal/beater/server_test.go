@@ -740,7 +740,7 @@ func TestWrapServer(t *testing.T) {
 	req := makeTransactionRequest(t, srv.URL)
 	req.Header.Add("Content-Type", "application/x-ndjson")
 	res, err := srv.Client.Do(req)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	res.Body.Close()
 
 	doc := <-docs
