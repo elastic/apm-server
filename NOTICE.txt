@@ -362,11 +362,11 @@ these terms.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/apm-data
-Version: v0.1.1-0.20240207135100-668fa4836cc3
+Version: v1.0.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/apm-data@v0.1.1-0.20240207135100-668fa4836cc3/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/apm-data@v1.0.0/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -1462,11 +1462,11 @@ Contents of probable licence file $GOMODCACHE/github.com/elastic/gmux@v0.3.1/LIC
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/go-docappender
-Version: v0.2.1-0.20231207080152-44217001fa53
+Version: v1.0.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/go-docappender@v0.2.1-0.20231207080152-44217001fa53/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/go-docappender@v1.0.0/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -16376,11 +16376,11 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : go.elastic.co/apm/module/apmzap/v2
-Version: v2.4.7
+Version: v2.4.8
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.elastic.co/apm/module/apmzap/v2@v2.4.7/LICENSE:
+Contents of probable licence file $GOMODCACHE/go.elastic.co/apm/module/apmzap/v2@v2.4.8/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004

@@ -696,6 +696,11 @@ func (s *Runner) newFinalBatchProcessor(
 		}
 		flushBytes = int(b)
 	}
+	minFlush := 24 * 1024
+	if esConfig.CompressionLevel != 0 && flushBytes < minFlush {
+		s.logger.Warnf("flush_bytes config value is too small (%d) and might be ignored by the indexer, increasing value to %d", flushBytes, minFlush)
+		flushBytes = minFlush
+	}
 	client, err := newElasticsearchClient(esConfig.Config)
 	if err != nil {
 		return nil, nil, err
