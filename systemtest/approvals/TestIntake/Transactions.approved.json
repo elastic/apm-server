@@ -284,7 +284,10 @@
             "traces"
         ],
         "event.outcome": [
-            "unknown"
+            "success"
+        ],
+        "event.success_count": [
+            1
         ],
         "host.architecture": [
             "x64"
@@ -383,6 +386,9 @@
         "span.id": [
             "945254c567a5417e"
         ],
+        "span.kind": [
+            "SERVER"
+        ],
         "timestamp.us": [
             1496170407154000
         ],
@@ -395,8 +401,16 @@
         "transaction.id": [
             "945254c567a5417e"
         ],
+        "transaction.profiler_stack_trace_ids": [
+            "foo",
+            "bar",
+            "foo"
+        ],
         "transaction.representative_count": [
             1
+        ],
+        "transaction.result": [
+            "Success"
         ],
         "transaction.sampled": [
             true

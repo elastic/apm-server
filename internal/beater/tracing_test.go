@@ -57,7 +57,7 @@ func TestServerTracingEnabled(t *testing.T) {
 			// Make an HTTP request to the server, which should be traced
 			// if instrumentation is enabled.
 			resp, err := srv.Client.Get(srv.URL + "/foo")
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			resp.Body.Close()
 
 			if enabled {
