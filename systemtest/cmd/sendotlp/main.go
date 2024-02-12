@@ -61,7 +61,13 @@ var (
 	secretToken = flag.String(
 		"secret-token",
 		"",
-		"Elastic APM secret token. Note: setting this overrides $OTEL_EXPORTER_OTLP_HEADERS",
+		"Elastic APM secret token. Recommended over $OTEL_EXPORTER_OTLP_HEADERS as logs exporter does not respect $OTEL_EXPORTER_OTLP_HEADERS. Note: setting this overrides $OTEL_EXPORTER_OTLP_HEADERS",
+	)
+
+	apiKey = flag.String(
+		"api-key",
+		"",
+		"Elastic APM API key. Recommended over $OTEL_EXPORTER_OTLP_HEADERS as logs exporter does not respect $OTEL_EXPORTER_OTLP_HEADERS. Note: setting this overrides $OTEL_EXPORTER_OTLP_HEADERS and -secretToken",
 	)
 
 	logLevel = zap.LevelFlag(
@@ -274,15 +280,20 @@ func newOTLPGRPCExporters(ctx context.Context, endpointURL *url.URL) (*otlpExpor
 
 	traceOptions := []otlptracegrpc.Option{otlptracegrpc.WithGRPCConn(grpcConn)}
 	metricOptions := []otlpmetricgrpc.Option{otlpmetricgrpc.WithGRPCConn(grpcConn)}
-	var logHeaders map[string]string
-
-	if *secretToken != "" {
+	var headers map[string]string
+	if *apiKey != "" {
+		// If -api-key is specified then we set headers explicitly,
+		// overriding anything set in $OTEL_EXPORTER_OTLP_HEADERS and -secret-token.
+		headers = map[string]string{"Authorization": "ApiKey " + *apiKey}
+	} else if *secretToken != "" {
 		// If -secret-token is specified then we set headers explicitly,
 		// overriding anything set in $OTEL_EXPORTER_OTLP_HEADERS.
-		headers := map[string]string{"Authorization": "Bearer " + *secretToken}
+		headers = map[string]string{"Authorization": "Bearer " + *secretToken}
+	}
+
+	if headers != nil {
 		traceOptions = append(traceOptions, otlptracegrpc.WithHeaders(headers))
 		metricOptions = append(metricOptions, otlpmetricgrpc.WithHeaders(headers))
-		logHeaders = headers
 	}
 
 	otlpTraceExporter, err := otlptracegrpc.New(ctx, traceOptions...)
@@ -303,7 +314,7 @@ func newOTLPGRPCExporters(ctx context.Context, endpointURL *url.URL) (*otlpExpor
 		metric:  otlpMetricExporter,
 		log: &otlploggrpcExporter{
 			client:  plogotlp.NewGRPCClient(grpcConn),
-			headers: logHeaders,
+			headers: headers, // logs exporter does not respect OTEL_EXPORTER_OTLP_HEADERS
 		},
 	}, nil
 }
