@@ -28,7 +28,7 @@ require (
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/golang-lru v1.0.2
 	github.com/jaegertracing/jaeger v1.53.0
-	github.com/libp2p/go-reuseport v0.0.2
+	github.com/libp2p/go-reuseport v0.4.0
 	github.com/modern-go/reflect2 v1.0.2
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger v0.93.0
 	github.com/patrickmn/go-cache v2.1.0+incompatible

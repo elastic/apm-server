@@ -3439,11 +3439,11 @@ Contents of probable licence file $GOMODCACHE/github.com/jaegertracing/jaeger@v1
 
 --------------------------------------------------------------------------------
 Dependency : github.com/libp2p/go-reuseport
-Version: v0.0.2
+Version: v0.4.0
 Licence type (autodetected): ISC
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/libp2p/go-reuseport@v0.0.2/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/libp2p/go-reuseport@v0.4.0/LICENSE:
 
 Copyright (c) 2013 Conformal Systems LLC.
 
