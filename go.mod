@@ -17,7 +17,7 @@ require (
 	github.com/elastic/gmux v0.3.1
 	github.com/elastic/go-docappender v1.0.0
 	github.com/elastic/go-elasticsearch/v8 v8.12.0
-	github.com/elastic/go-sysinfo v1.12.0
+	github.com/elastic/go-sysinfo v1.13.0
 	github.com/elastic/go-ucfg v0.8.6
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible
 	github.com/gofrs/flock v0.8.1
