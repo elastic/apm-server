@@ -77,11 +77,7 @@ SYSTEM_TEST_TARGET?=./tests/system
 PYTEST_OPTIONS?=--timeout=90 --durations=20 --junit-xml=build/TEST-system.xml
 
 .PHONY: check-full
-<<<<<<< HEAD
-check-full: update check golint staticcheck check-docker-compose
-=======
-check-full: update check staticcheck
->>>>>>> a831ed099 (ci: remove check-docker-compose from running on PRs and run make check-docker-compose weekly (#12637))
+check-full: update check golint staticcheck
 
 .PHONY: check-approvals
 check-approvals: $(APPROVALS)
