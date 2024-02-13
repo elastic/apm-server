@@ -2,8 +2,6 @@ module github.com/elastic/apm-server
 
 go 1.21
 
-toolchain go1.21.7
-
 require (
 	github.com/DataDog/zstd v1.4.4 // indirect
 	github.com/apache/thrift v0.16.0
