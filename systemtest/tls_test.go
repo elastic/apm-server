@@ -96,7 +96,7 @@ func TestTLSClientAuth(t *testing.T) {
 
 	err := attemptRequest(t, &tls.Config{InsecureSkipVerify: true})
 	require.Error(t, err)
-	assert.Regexp(t, "tls: bad certificate", err.Error())
+	assert.Regexp(t, "tls: certificate required", err.Error())
 	logs := srv.Logs.Iterator()
 	defer logs.Close()
 	for entry := range logs.C() {

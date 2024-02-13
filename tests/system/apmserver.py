@@ -533,7 +533,7 @@ class SubCommandTest(ServerBaseTest):
         self.command_output = log[:pos]
         for trimmed in log[pos:].strip().splitlines():
             # ensure only skipping expected lines
-            assert trimmed.split(None, 2)[1] in ("PASS", "coverage:"), trimmed
+            assert trimmed.split(None, 1)[0] in ("PASS", "coverage:"), trimmed
 
     def stop_proc(self):
         return
