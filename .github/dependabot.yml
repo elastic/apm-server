@@ -1,5 +1,34 @@
 version: 2
 updates:
+  # go dependencies
+  - package-ecosystem: "gomod"
+    directory: "/"
+    ignore:
+      - dependency-name: "github.com/elastic/beats/v7"
+    schedule:
+      interval: "daily"
+    groups:
+      otel:
+        patterns:
+        - "go.opentelemetry.io/*"
+      jaeger:
+        patterns:
+        - "github.com/jaegertracing/jaeger"
+        - "github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger"
+      spf13:
+        patterns:
+        - "github.com/spf13/*"
+      golang.org/x/:
+        patterns:
+        - "golang.org/x/*"
+      go-agent:
+        patterns:
+        - "go.elastic.co/apm*"
+  # go tools
+  - package-ecosystem: "gomod"
+    directory: "tools/"
+    schedule:
+      interval: "weekly"
 
   # GitHub actions
   - package-ecosystem: "github-actions"
