@@ -1,4 +1,4 @@
-name: check-full
+name: check-docker-compose
 
 on:
   workflow_dispatch:
@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 jobs:
-  lint:
+  check-docker-compose:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -21,9 +21,7 @@ jobs:
           cache-dependency-path: |
             go.sum
             tools/go.sum
-      - run: make check-full
-      - name: Ensure .go-version is up to date
-        run: make update-go-version
+      - run: make check-docker-compose
       - if: failure()
         uses: elastic/apm-pipeline-library/.github/actions/notify-build-status@current
         with:

@@ -94,11 +94,8 @@ clean:
 # Checks/tests.
 ##############################################################################
 
-.PHONY: check-mandatory
-check-mandatory: update check staticcheck
-
-.PHONY: check-mandatory
-check-full: check-pr check-docker-compose
+.PHONY: check-full
+check-full: update check staticcheck
 
 .PHONY: check-approvals
 check-approvals:
