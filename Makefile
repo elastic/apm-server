@@ -103,7 +103,7 @@ clean:
 ##############################################################################
 
 .PHONY: check-full
-check-full: update check staticcheck check-docker-compose
+check-full: update check staticcheck
 
 .PHONY: check-approvals
 check-approvals:
