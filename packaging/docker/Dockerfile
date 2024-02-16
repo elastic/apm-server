@@ -24,9 +24,6 @@ ARG BUILD_DATE
 ARG VERSION
 ARG VCS_REF
 
-# Add an init process.
-ADD --chmod=0755 packaging/docker/tini-${TARGETARCH}.tar.xz /usr/bin
-
 # Statically defined labels.
 LABEL \
   org.label-schema.schema-version="1.0" \
@@ -85,4 +82,4 @@ RUN chown -R 1000:1000 /usr/share/apm-server
 
 USER apm-server
 EXPOSE 8200
-ENTRYPOINT ["/usr/bin/tini", "--", "/usr/share/apm-server/apm-server", "--environment=container"]
+ENTRYPOINT ["/usr/share/apm-server/apm-server", "--environment=container"]
