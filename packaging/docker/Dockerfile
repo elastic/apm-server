@@ -69,7 +69,6 @@ ENV LIBBEAT_MONITORING_CGROUPS_HIERARCHY_OVERRIDE=/
 # running in Docker.
 ENV BEAT_STRICT_PERMS=false
 
-COPY --chmod=0755 packaging/docker/docker-entrypoint /usr/local/bin/docker-entrypoint
 COPY --chmod=0644 licenses/ELASTIC-LICENSE-2.0.txt NOTICE.txt /licenses/
 COPY --chmod=0644 packaging/docker/cacert.pem /etc/pki/tls/certs/ca-bundle.crt
 
@@ -86,4 +85,4 @@ RUN chown -R 1000:1000 /usr/share/apm-server
 
 USER apm-server
 EXPOSE 8200
-ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/docker-entrypoint"]
+ENTRYPOINT ["/usr/bin/tini", "--", "/usr/share/apm-server/apm-server", "--environment=container"]
