@@ -7,6 +7,10 @@ on:
     types:
       - completed
 
+permissions:
+  contents: read
+  actions: read
+
 jobs:
   system-test-results:
     runs-on: ubuntu-latest
