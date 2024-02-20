@@ -16,6 +16,7 @@ https://github.com/elastic/apm-server/compare/v8.12.0\...v8.12.1[View commits]
 - Tail-based sampling: Fix missing entry TTL in badger.ErrTxnTooBig handling {pull}12453[12453]
 - Tail-based sampling: Compute entry size before writing and flush to avoid losing events silently due to storage limit {pull}12120[12120]
 - APM instrumentation: Use UpDownCounter for docsActive and availableBulkIndexer {pull}12179[12179]
+- Remove field preview in error reason returned by Elasticsearch from logs. See https://discuss.elastic.co/t/apm-server-8-12-1-security-update-esa-2024-03/352688[Please see our security advisory for more details]. {pull}12179[12179]
 
 [float]
 ==== Added
