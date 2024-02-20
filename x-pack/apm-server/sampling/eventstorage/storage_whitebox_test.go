@@ -26,6 +26,7 @@ func newReadWriter(tb testing.TB) *ReadWriter {
 	if err != nil {
 		panic(err)
 	}
+	tb.Cleanup(func() { db.Close() })
 
 	store := New(db, ProtobufCodec{})
 	readWriter := store.NewReadWriter()
