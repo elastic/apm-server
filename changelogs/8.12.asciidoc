@@ -15,11 +15,12 @@ https://github.com/elastic/apm-server/compare/v8.12.0\...v8.12.1[View commits]
 - Define value for all constant_keyword fields in apmpackage to fix integration upgrade issues in rare cases {pull}12219[12219]
 - Tail-based sampling: Fix missing entry TTL in badger.ErrTxnTooBig handling {pull}12453[12453]
 - Tail-based sampling: Compute entry size before writing and flush to avoid losing events silently due to storage limit {pull}12120[12120]
-- TODO go-docappender
+- APM instrumentation: use UpDownCounter for docsActive and availableBulkIndexer {pull}12179[12179]
 
 [float]
 ==== Added
 - Disable default instrumentation metrics sending to batch processor by removing local exporter {pull}12228[12228]
+- Log a single consolidated line per unique error instead of per each failed document {pull}12179[12179]
 
 [float]
 [[release-notes-8.12.0]]
