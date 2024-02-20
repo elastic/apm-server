@@ -15,7 +15,7 @@ https://github.com/elastic/apm-server/compare/v8.12.0\...v8.12.1[View commits]
 - Define value for all constant_keyword fields in apmpackage to fix integration upgrade issues in rare cases {pull}12219[12219]
 - Tail-based sampling: Fix missing entry TTL in badger.ErrTxnTooBig handling {pull}12453[12453]
 - Tail-based sampling: Compute entry size before writing and flush to avoid losing events silently due to storage limit {pull}12120[12120]
-- APM instrumentation: use UpDownCounter for docsActive and availableBulkIndexer {pull}12179[12179]
+- APM instrumentation: Use UpDownCounter for docsActive and availableBulkIndexer {pull}12179[12179]
 
 [float]
 ==== Added
