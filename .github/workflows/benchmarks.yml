@@ -67,7 +67,7 @@ jobs:
             echo "BENCHMARK_RUN=${{ inputs.benchmarkRun }}" >> "$GITHUB_ENV"
           fi
 
-      - uses: hashicorp/vault-action@v2.8.0
+      - uses: hashicorp/vault-action@v3.0.0
         env:
           AWS_CREDENTIALS_PATH: secret/observability-team/ci/elastic-observability-aws-account-auth
           BENCHMARK_CLOUD_CREDENTIALS_PATH: secret/observability-team/ci/benchmark-cloud
