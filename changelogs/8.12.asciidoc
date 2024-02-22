@@ -1,8 +1,20 @@
 [[release-notes-8.12]]
 == APM version 8.12
 
+* <<release-notes-8.12.2>>
 * <<release-notes-8.12.1>>
 * <<release-notes-8.12.0>>
+
+[float]
+[[release-notes-8.12.2]]
+=== APM version 8.12.2
+
+https://github.com/elastic/apm-server/compare/v8.12.1\...v8.12.2[View commits]
+
+[float]
+==== Bug fixes
+- Tail-based sampling: do not stop sampling processor when failing to delete trace events {pull}12509[12509]
+- Define value for all constant_keyword fields in apmpackage to fix integration upgrade issues in rare cases {pull}12219[12219]
 
 [float]
 [[release-notes-8.12.1]]
