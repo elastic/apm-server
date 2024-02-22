@@ -6582,11 +6582,11 @@ THE SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : go.uber.org/zap
-Version: v1.26.0
+Version: v1.27.0
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.uber.org/zap@v1.26.0/LICENSE.txt:
+Contents of probable licence file $GOMODCACHE/go.uber.org/zap@v1.27.0/LICENSE:
 
 Copyright (c) 2016-2017 Uber Technologies, Inc.
 
