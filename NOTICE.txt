@@ -6759,11 +6759,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : google.golang.org/grpc
-Version: v1.61.1
+Version: v1.62.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/google.golang.org/grpc@v1.61.1/LICENSE:
+Contents of probable licence file $GOMODCACHE/google.golang.org/grpc@v1.62.0/LICENSE:
 
 
                                  Apache License
@@ -11014,7 +11014,7 @@ Apache License
 
 --------------------------------------------------------------------------------
 Dependency : github.com/golang/glog
-Version: v1.1.2
+Version: v1.2.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
@@ -17509,11 +17509,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : google.golang.org/genproto/googleapis/rpc
-Version: v0.0.0-20240102182953-50ed04b92917
+Version: v0.0.0-20240123012728-ef4313101c80
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/google.golang.org/genproto/googleapis/rpc@v0.0.0-20240102182953-50ed04b92917/LICENSE:
+Contents of probable licence file $GOMODCACHE/google.golang.org/genproto/googleapis/rpc@v0.0.0-20240123012728-ef4313101c80/LICENSE:
 
 
                                  Apache License
