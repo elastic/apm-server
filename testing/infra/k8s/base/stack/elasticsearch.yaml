@@ -3,7 +3,7 @@ kind: Elasticsearch
 metadata:
   name: elasticsearch
 spec:
-  version: 8.12.2-5482c56d-SNAPSHOT
+  version: 8.12.2-af81666c-SNAPSHOT
   auth:
     fileRealm:
       - secretName: elasticsearch-admin
