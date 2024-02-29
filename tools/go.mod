@@ -14,7 +14,7 @@ require (
 	github.com/terraform-docs/terraform-docs v0.17.0
 	go.elastic.co/go-licence-detector v0.6.0
 	gotest.tools/gotestsum v1.11.0
-	honnef.co/go/tools v0.4.6
+	honnef.co/go/tools v0.4.7
 )
 
 require (
