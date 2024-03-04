@@ -563,8 +563,9 @@ func readSubscriberPosition(logger *logp.Logger, storageDir string) (pubsub.Subs
 	err = json.Unmarshal(data, &pos)
 	if err != nil {
 		logger.With(logp.Error(err)).With(logp.ByteString("file", data)).Debug("failed to read subscriber position")
+		return pos, fmt.Errorf("error parsing subscriber position file: %w", err)
 	}
-	return pos, fmt.Errorf("error parsing subscriber position file: %w", err)
+	return pos, nil
 }
 
 func writeSubscriberPosition(storageDir string, pos pubsub.SubscriberPosition) error {
