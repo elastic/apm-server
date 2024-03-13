@@ -1,7 +1,38 @@
 [[release-notes-8.12]]
 == APM version 8.12
 
+* <<release-notes-8.12.2>>
+* <<release-notes-8.12.1>>
 * <<release-notes-8.12.0>>
+
+[float]
+[[release-notes-8.12.2]]
+=== APM version 8.12.2
+
+https://github.com/elastic/apm-server/compare/v8.12.1\...v8.12.2[View commits]
+
+[float]
+==== Bug fixes
+- Tail-based sampling: do not stop sampling processor when failing to delete trace events {pull}12509[12509]
+- Define value for all constant_keyword fields in apmpackage to fix integration upgrade issues in rare cases {pull}12219[12219]
+
+[float]
+[[release-notes-8.12.1]]
+=== APM version 8.12.1
+
+https://github.com/elastic/apm-server/compare/v8.12.0\...v8.12.1[View commits]
+
+[float]
+==== Bug fixes
+- Tail-based sampling: Fix missing entry TTL in badger.ErrTxnTooBig handling {pull}12453[12453]
+- Tail-based sampling: Compute entry size before writing and flush to avoid losing events silently due to storage limit {pull}12120[12120]
+- APM instrumentation: Use UpDownCounter for docsActive and availableBulkIndexer {pull}12179[12179]
+- Remove field preview in error reason returned by Elasticsearch from logs. https://discuss.elastic.co/t/apm-server-8-12-1-security-update-esa-2024-03/352688[Please see our security advisory for more details]. {pull}12179[12179]
+
+[float]
+==== Added
+- Disable default instrumentation metrics sending to batch processor by removing local exporter {pull}12228[12228]
+- Log a single consolidated line per unique error instead of per each failed document {pull}12179[12179]
 
 [float]
 [[release-notes-8.12.0]]
