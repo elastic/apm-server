@@ -109,7 +109,7 @@ jobs:
         run: make apmbench $SSH_KEY terraform.tfvars
 
       - name: Override docker committed version
-        if: ${{ !github.event.inputs.runOnStable }}
+        if: ${{ ! inputs.runOnStable }}
         run: make docker-override-committed-version
 
       - name: Spin up benchmark environment
@@ -121,11 +121,11 @@ jobs:
           echo "-> infra setup done"
 
       - name: Run benchmarks autotuned
-        if: ${{ github.event.inputs.benchmarkAgents == '' }}
+        if: ${{ inputs.benchmarkAgents == '' }}
         run: make run-benchmark-autotuned index-benchmark-results
 
       - name: Run benchmarks self tuned
-        if: ${{ github.event.inputs.benchmarkAgents != '' }}
+        if: ${{ inputs.benchmarkAgents != '' }}
         run: make run-benchmark index-benchmark-results
 
       - name: Download PNG
