@@ -38,13 +38,11 @@ func TestLogstashOutput(t *testing.T) {
 	require.NoError(t, err)
 	t.Cleanup(func() { assert.NoError(t, ls.Close()) })
 
-	waitForIntegration := false
 	srv := apmservertest.NewUnstartedServerTB(t,
 		"-E", "queue.mem.events=20000",
 		"-E", "queue.mem.flush.min_events=10000",
 		"-E", "queue.mem.flush.timeout=60s",
 	)
-	srv.Config.WaitForIntegration = &waitForIntegration
 	srv.Config.Output = apmservertest.OutputConfig{
 		Logstash: &apmservertest.LogstashOutputConfig{
 			Enabled:     true,

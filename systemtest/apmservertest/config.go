@@ -46,7 +46,6 @@ type Config struct {
 	Kibana                    *KibanaConfig   `json:"apm-server.kibana,omitempty"`
 	Sampling                  *SamplingConfig `json:"apm-server.sampling,omitempty"`
 	RUM                       *RUMConfig      `json:"apm-server.rum,omitempty"`
-	WaitForIntegration        *bool           `json:"apm-server.data_streams.wait_for_integration,omitempty"`
 	DefaultServiceEnvironment string          `json:"apm-server.default_service_environment,omitempty"`
 	AgentConfig               *AgentConfig    `json:"apm-server.agent.config,omitempty"`
 	TLS                       *TLSConfig      `json:"apm-server.ssl,omitempty"`
