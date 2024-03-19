@@ -18,7 +18,7 @@ require (
 	github.com/elastic/go-docappender v1.0.0
 	github.com/elastic/go-elasticsearch/v8 v8.12.1
 	github.com/elastic/go-sysinfo v1.13.1
-	github.com/elastic/go-ucfg v0.8.7
+	github.com/elastic/go-ucfg v0.8.8
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible
 	github.com/gofrs/flock v0.8.1
 	github.com/gofrs/uuid v4.4.0+incompatible
