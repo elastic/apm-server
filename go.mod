@@ -19,7 +19,7 @@ require (
 	github.com/elastic/go-elasticsearch/v8 v8.12.1
 	github.com/elastic/go-sysinfo v1.13.1
 	github.com/elastic/go-ucfg v0.8.8
-	github.com/go-sourcemap/sourcemap v2.1.3+incompatible
+	github.com/go-sourcemap/sourcemap v2.1.4+incompatible
 	github.com/gofrs/flock v0.8.1
 	github.com/gofrs/uuid v4.4.0+incompatible
 	github.com/gogo/protobuf v1.3.2
@@ -37,12 +37,12 @@ require (
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.9.0
-	go.elastic.co/apm/module/apmelasticsearch/v2 v2.4.8
-	go.elastic.co/apm/module/apmgorilla/v2 v2.4.8
-	go.elastic.co/apm/module/apmgrpc/v2 v2.4.8
-	go.elastic.co/apm/module/apmhttp/v2 v2.4.8
-	go.elastic.co/apm/module/apmotel/v2 v2.4.8
-	go.elastic.co/apm/v2 v2.4.8
+	go.elastic.co/apm/module/apmelasticsearch/v2 v2.5.0
+	go.elastic.co/apm/module/apmgorilla/v2 v2.5.0
+	go.elastic.co/apm/module/apmgrpc/v2 v2.5.0
+	go.elastic.co/apm/module/apmhttp/v2 v2.5.0
+	go.elastic.co/apm/module/apmotel/v2 v2.5.0
+	go.elastic.co/apm/v2 v2.5.0
 	go.elastic.co/fastjson v1.3.0
 	go.opentelemetry.io/collector/consumer v0.96.0
 	go.opentelemetry.io/collector/pdata v1.3.0
