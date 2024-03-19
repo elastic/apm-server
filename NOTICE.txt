@@ -2307,11 +2307,11 @@ Contents of probable licence file $GOMODCACHE/github.com/elastic/go-ucfg@v0.8.8/
 
 --------------------------------------------------------------------------------
 Dependency : github.com/go-sourcemap/sourcemap
-Version: v2.1.3+incompatible
+Version: v2.1.4+incompatible
 Licence type (autodetected): BSD-2-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/go-sourcemap/sourcemap@v2.1.3+incompatible/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/go-sourcemap/sourcemap@v2.1.4+incompatible/LICENSE:
 
 Copyright (c) 2016 The github.com/go-sourcemap/sourcemap Contributors.
 All rights reserved.
