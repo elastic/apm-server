@@ -1,12 +1,12 @@
-[[release-notes-8.9]]
+[[apm-release-notes-8.9]]
 == APM version 8.9
 
-* <<release-notes-8.9.2>>
-* <<release-notes-8.9.1>>
-* <<release-notes-8.9.0>>
+* <<apm-release-notes-8.9.2>>
+* <<apm-release-notes-8.9.1>>
+* <<apm-release-notes-8.9.0>>
 
 [float]
-[[release-notes-8.9.2]]
+[[apm-release-notes-8.9.2]]
 === APM version 8.9.2
 
 https://github.com/elastic/apm-server/compare/v8.9.1\...v8.9.2[View commits]
@@ -16,7 +16,7 @@ https://github.com/elastic/apm-server/compare/v8.9.1\...v8.9.2[View commits]
 - Add back handling of `queue.*` config for libbeat outputs, such as logstash and kafka {pull}11534[11534]
 
 [float]
-[[release-notes-8.9.1]]
+[[apm-release-notes-8.9.1]]
 === APM version 8.9.1
 
 https://github.com/elastic/apm-server/compare/v8.9.0\...v8.9.1[View commits]
@@ -24,7 +24,7 @@ https://github.com/elastic/apm-server/compare/v8.9.0\...v8.9.1[View commits]
 No significant changes.
 
 [float]
-[[release-notes-8.9.0]]
+[[apm-release-notes-8.9.0]]
 === APM version 8.9.0
 
 https://github.com/elastic/apm-server/compare/v8.8.2\...v8.9.0[View commits]
