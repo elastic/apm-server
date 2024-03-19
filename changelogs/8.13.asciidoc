@@ -1,12 +1,12 @@
-[[release-notes-8.13]]
+[[apm-release-notes-8.13]]
 == APM version 8.13
 
 https://github.com/elastic/apm-server/compare/8.12\...8.13[View commits]
 
-* <<release-notes-8.13.0>>
+* <<apm-release-notes-8.13.0>>
 
 [float]
-[[release-notes-8.13.0]]
+[[apm-release-notes-8.13.0]]
 === APM version 8.13.0
 
 [float]
