@@ -1,12 +1,12 @@
-[[release-notes-8.6]]
+[[apm-release-notes-8.6]]
 == APM version 8.6
 
-* <<release-notes-8.6.2>>
-* <<release-notes-8.6.1>>
-* <<release-notes-8.6.0>>
+* <<apm-release-notes-8.6.2>>
+* <<apm-release-notes-8.6.1>>
+* <<apm-release-notes-8.6.0>>
 
 [float]
-[[release-notes-8.6.2]]
+[[apm-release-notes-8.6.2]]
 === APM version 8.6.2
 
 https://github.com/elastic/apm-server/compare/v8.6.1\...v8.6.2[View commits]
@@ -14,7 +14,7 @@ https://github.com/elastic/apm-server/compare/v8.6.1\...v8.6.2[View commits]
 No significant changes.
 
 [float]
-[[release-notes-8.6.1]]
+[[apm-release-notes-8.6.1]]
 === APM version 8.6.1
 
 https://github.com/elastic/apm-server/compare/v8.6.0\...v8.6.1[View commits]
@@ -25,7 +25,7 @@ https://github.com/elastic/apm-server/compare/v8.6.0\...v8.6.1[View commits]
 - Fix internal traffic filter handling on Elastic Cloud when managed by Elastic Agent (Integrations Server)
 
 [float]
-[[release-notes-8.6.0]]
+[[apm-release-notes-8.6.0]]
 === APM version 8.6.0
 
 https://github.com/elastic/apm-server/compare/v8.5.3\...v8.6.0[View commits]

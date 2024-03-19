@@ -1,14 +1,14 @@
-[[release-notes-8.10]]
+[[apm-release-notes-8.10]]
 == APM version 8.10
 
-* <<release-notes-8.10.4>>
-* <<release-notes-8.10.3>>
-* <<release-notes-8.10.2>>
-* <<release-notes-8.10.1>>
-* <<release-notes-8.10.0>>
+* <<apm-release-notes-8.10.4>>
+* <<apm-release-notes-8.10.3>>
+* <<apm-release-notes-8.10.2>>
+* <<apm-release-notes-8.10.1>>
+* <<apm-release-notes-8.10.0>>
 
 [float]
-[[release-notes-8.10.4]]
+[[apm-release-notes-8.10.4]]
 === APM version 8.10.4
 
 https://github.com/elastic/apm-server/compare/v8.10.3\...v8.10.4[View commits]
@@ -19,7 +19,7 @@ https://github.com/elastic/apm-server/compare/v8.10.3\...v8.10.4[View commits]
 - RPM package upgrade no longer overwrites the apm-server.yml config {pull}11808[11808]
 
 [float]
-[[release-notes-8.10.3]]
+[[apm-release-notes-8.10.3]]
 === APM version 8.10.3
 
 https://github.com/elastic/apm-server/compare/v8.10.2\...v8.10.3[View commits]
@@ -27,7 +27,7 @@ https://github.com/elastic/apm-server/compare/v8.10.2\...v8.10.3[View commits]
 No significant changes.
 
 [float]
-[[release-notes-8.10.2]]
+[[apm-release-notes-8.10.2]]
 === APM version 8.10.2
 
 https://github.com/elastic/apm-server/compare/v8.10.1\...v8.10.2[View commits]
@@ -35,7 +35,7 @@ https://github.com/elastic/apm-server/compare/v8.10.1\...v8.10.2[View commits]
 No significant changes.
 
 [float]
-[[release-notes-8.10.1]]
+[[apm-release-notes-8.10.1]]
 === APM version 8.10.1
 
 https://github.com/elastic/apm-server/compare/v8.10.0\...v8.10.1[View commits]
@@ -45,7 +45,7 @@ https://github.com/elastic/apm-server/compare/v8.10.0\...v8.10.1[View commits]
 Fix tail-based sampling discarding low throughput and low sample rate traces {pull}11642[11642]
 
 [float]
-[[release-notes-8.10.0]]
+[[apm-release-notes-8.10.0]]
 === APM version 8.10.0
 
 https://github.com/elastic/apm-server/compare/v8.9.2\...v8.10.0[View commits]
