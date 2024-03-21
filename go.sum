@@ -145,8 +145,8 @@ github.com/elastic/apm-aggregation v0.0.0-20230815024520-e75a37d9ddd6 h1:Js+C3HE
 github.com/elastic/apm-aggregation v0.0.0-20230815024520-e75a37d9ddd6/go.mod h1:ba3gaJCuhxXN/O5AuiI56xxd6DukQdVOK0NfpzBntNo=
 github.com/elastic/apm-data v1.0.0 h1:23JEBSOq9bIKcocghV38so2mFZzdlFgst0Re+ApxuFo=
 github.com/elastic/apm-data v1.0.0/go.mod h1:QUZMN5IFWhqbNfSUQxvd7Tuj7tx/6NoVJpFLAXd8ScY=
-github.com/elastic/beats/v7 v7.0.0-alpha2.0.20240320143421-22af217d8121 h1:iatE8m3oKybJVkatcc6maCzB6DOpaa6XmfDi6yH4s/8=
-github.com/elastic/beats/v7 v7.0.0-alpha2.0.20240320143421-22af217d8121/go.mod h1:uabclBmAnlQQAB3Z0BMmMpU3QJXint135aQbUhHoicw=
+github.com/elastic/beats/v7 v7.0.0-alpha2.0.20240321121944-c91eaeecc669 h1:N1VOiOEZcySMfC3K+6kKseHjzg0cFomasIXB5itxU90=
+github.com/elastic/beats/v7 v7.0.0-alpha2.0.20240321121944-c91eaeecc669/go.mod h1:dRAtGY5CtNWxO5299Us2eLePBHZALhDSI5pbGjzjUwU=
 github.com/elastic/elastic-agent-autodiscover v0.6.7 h1:+KVjltN0rPsBrU8b156gV4lOTBgG/vt0efFCFARrf3g=
 github.com/elastic/elastic-agent-autodiscover v0.6.7/go.mod h1:hFeFqneS2r4jD0/QzGkrNk0YVdN0JGh7lCWdsH7zcI4=
 github.com/elastic/elastic-agent-client/v7 v7.8.1 h1:J9wZc/0mUvSEok0X5iR5+n60Jgb+AWooKddb3XgPWqM=
@@ -175,8 +175,8 @@ github.com/elastic/go-ucfg v0.8.8 h1:54KIF/2zFKfl0MzsSOCGOsZ3O2bnjFQJ0nDJcLhviyk
 github.com/elastic/go-ucfg v0.8.8/go.mod h1:4E8mPOLSUV9hQ7sgLEJ4bvt0KhMuDJa8joDT2QGAEKA=
 github.com/elastic/go-windows v1.0.1 h1:AlYZOldA+UJ0/2nBuqWdo90GFCgG9xuyw9SYzGUtJm0=
 github.com/elastic/go-windows v1.0.1/go.mod h1:FoVvqWSun28vaDQPbj2Elfc0JahhPB7WQEGa3c814Ss=
-github.com/elastic/gosigar v0.14.2 h1:Dg80n8cr90OZ7x+bAax/QjoW/XqTI11RmA79ZwIm9/4=
-github.com/elastic/gosigar v0.14.2/go.mod h1:iXRIGg2tLnu7LBdpqzyQfGDEidKCfWcCMS0WKyPWoMs=
+github.com/elastic/gosigar v0.14.3 h1:xwkKwPia+hSfg9GqrCUKYdId102m9qTJIIr7egmK/uo=
+github.com/elastic/gosigar v0.14.3/go.mod h1:iXRIGg2tLnu7LBdpqzyQfGDEidKCfWcCMS0WKyPWoMs=
 github.com/elastic/sarama v1.19.1-0.20210823122811-11c3ef800752 h1:5/RUNg7rkIvayjPhAIoI3v8p45NfWcfWs5DZSElycis=
 github.com/elastic/sarama v1.19.1-0.20210823122811-11c3ef800752/go.mod h1:mdtqvCSg8JOxk8PmpTNGyo6wzd4BMm4QXSfDnTXmgkE=
 github.com/emicklei/go-restful/v3 v3.10.1 h1:rc42Y5YTp7Am7CS630D7JmhRjq4UlEUuEKfrDac4bSQ=
