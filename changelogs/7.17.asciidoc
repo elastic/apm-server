@@ -1,7 +1,7 @@
 [[release-notes-7.17]]
 == APM version 7.17
 
-https://github.com/elastic/apm-server/compare/7.18\...7.19[View commits]
+https://github.com/elastic/apm-server/compare/7.16\...7.17[View commits]
 
 * <<release-notes-7.17.19>>
 * <<release-notes-7.17.18>>
