@@ -8,7 +8,7 @@ require (
 	github.com/cespare/xxhash/v2 v2.2.0
 	github.com/dgraph-io/badger/v2 v2.2007.4
 	github.com/dustin/go-humanize v1.0.1
-	github.com/elastic/apm-aggregation v0.0.0-20230815024520-e75a37d9ddd6
+	github.com/elastic/apm-aggregation v1.0.0
 	github.com/elastic/apm-data v1.0.0
 	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20240325141120-5750480ebf63
 	github.com/elastic/elastic-agent-client/v7 v7.8.1
@@ -72,10 +72,9 @@ require (
 	github.com/cespare/xxhash v1.1.0 // indirect
 	github.com/cockroachdb/errors v1.8.1 // indirect
 	github.com/cockroachdb/logtags v0.0.0-20190617123548-eb05cc24525f // indirect
-	github.com/cockroachdb/pebble v0.0.0-20230627193317-c807f60529a3 // indirect
+	github.com/cockroachdb/pebble v1.0.0 // indirect
 	github.com/cockroachdb/redact v1.0.8 // indirect
 	github.com/cockroachdb/sentry-go v0.6.1-cockroachdb.2 // indirect
-	github.com/cockroachdb/tokenbucket v0.0.0-20230613231145-182959a1fad6 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/dgraph-io/ristretto v0.1.1 // indirect
 	github.com/dgryski/go-farm v0.0.0-20200201041132-a6ae2369ad13 // indirect
