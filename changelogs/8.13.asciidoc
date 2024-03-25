@@ -9,6 +9,8 @@ https://github.com/elastic/apm-server/compare/8.12\...8.13[View commits]
 [[release-notes-8.13.0]]
 === APM version 8.13.0
 
+https://github.com/elastic/apm-server/compare/v8.12.2\...v8.13.0[View commits]
+
 [float]
 ==== Breaking Changes
 
@@ -23,7 +25,7 @@ https://github.com/elastic/apm-server/compare/8.12\...8.13[View commits]
 
 [float]
 ==== Added
-- map OTel's `span.Status: Unset` to `event.outcome: success` instead of `event.outcome: unknown`
+- map OTel's `span.Status: Unset` to `event.outcome: success` instead of `event.outcome: unknown` {pull}12199[12199]
 - Add support for Otel code.stacktrace {pull}12096[12096]
 - `http.request.body.bytes` now reports the bytes read from request body even if Content-Length is -1 {pull}12451[12451]
 - Use `messaging.system` and `messaging.operation` to detect OTel messaging span for transactions {pull}12506[12506]
