@@ -1,0 +1,80 @@
+openapi: 3.1.0
+info:
+  title: APM Server
+  description: OpenAPI schema for APM Server APIs
+  version: 8.13.0
+  license:
+    name: Elastic License 2.0
+    url: https://www.elastic.co/licensing/elastic-license
+  contact:
+    name: APM Team
+servers:
+  - url: /
+tags:
+  - name: server info
+    description: APIs that query general server information.
+    x-displayName: APM server information
+paths:
+  /:
+    get:
+      summary: Retrieve general server information.
+      description: |
+        This lightweight endpoint is useful as a server up/down health check.
+        To configure authenticated access to the APM server, the instructions at [APM API key](https://www.elastic.co/guide/en/observability/current/api-key.html) or [APM Secret Token](https://www.elastic.co/guide/en/observability/current/secret-token.html) must be followed to configure the correct permissions for APM access.
+      operationId: getServerHealth
+      tags:
+        - server info
+      responses:
+        '200':
+          $ref: '#/components/responses/200_server_info'
+    post:
+      summary: Retrieve general server information.
+      operationId: postServerHealth
+      tags:
+        - server info
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                build_date:
+                  type: string
+                  format: time-date
+                  example: '2021-12-18T19:59:06Z'
+                build_sha:
+                  type: string
+                  example: 24fe620eeff5a19e2133c940c7e5ce1ceddb1445
+                publish_ready:
+                  type: boolean
+                  example: true
+                version:
+                  type: string
+                  example: 8.12.1
+      responses:
+        '200':
+          $ref: '#/components/responses/200_server_info'
+
+components:
+  securitySchemes:
+    apiKeyAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: 'e.g. Authorization: ApiKey base64AccessApiKey'
+    secretToken:
+      type: http
+      scheme: bearer
+      bearerFormat: Secret token
+  responses:
+    200_server_info:
+      description: |
+        Indicates that the server is up.
+        If an API key or a secret token is passed along with the request, the response payload will include some information about the APM server.
+      content:
+        application/json:
+          schema:
+            type: object
+security:
+  - apiKeyAuth: [ ]
+  - secretToken: [ ]
