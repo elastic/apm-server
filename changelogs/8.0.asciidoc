@@ -1,16 +1,16 @@
-[[release-notes-8.0]]
+[[apm-release-notes-8.0]]
 == APM version 8.0
 
-* <<release-notes-8.0.1>>
-* <<release-notes-8.0.0>>
-* <<release-notes-8.0.0-rc2>>
-* <<release-notes-8.0.0-rc1>>
-* <<release-notes-8.0.0-beta1>>
-* <<release-notes-8.0.0-alpha2>>
-* <<release-notes-8.0.0-alpha1>>
+* <<apm-release-notes-8.0.1>>
+* <<apm-release-notes-8.0.0>>
+* <<apm-release-notes-8.0.0-rc2>>
+* <<apm-release-notes-8.0.0-rc1>>
+* <<apm-release-notes-8.0.0-beta1>>
+* <<apm-release-notes-8.0.0-alpha2>>
+* <<apm-release-notes-8.0.0-alpha1>>
 
 [float]
-[[release-notes-8.0.1]]
+[[apm-release-notes-8.0.1]]
 === APM version 8.0.1
 
 https://github.com/elastic/apm-server/compare/v8.0.0\...v8.0.1[View commits]
@@ -23,7 +23,7 @@ https://github.com/elastic/apm-server/compare/v8.0.0\...v8.0.1[View commits]
 - Fix waiting for events to be flushed when shutting down APM Server {pull}7352[7352]
 
 [float]
-[[release-notes-8.0.0]]
+[[apm-release-notes-8.0.0]]
 === APM version 8.0.0
 
 https://github.com/elastic/apm-server/compare/v7.16.3\...v8.0.0[View commits]
@@ -88,7 +88,7 @@ releases of 8.0.0.
 - Updated the `x-pack` source files license to the Elastic License 2.0 {pull}6524[6524]
 
 [float]
-[[release-notes-8.0.0-rc2]]
+[[apm-release-notes-8.0.0-rc2]]
 === APM version 8.0.0-rc2
 
 https://github.com/elastic/apm-server/compare/v8.0.0-rc1\...v8.0.0-rc2[View commits]
@@ -96,7 +96,7 @@ https://github.com/elastic/apm-server/compare/v8.0.0-rc1\...v8.0.0-rc2[View comm
 No significant changes.
 
 [float]
-[[release-notes-8.0.0-rc1]]
+[[apm-release-notes-8.0.0-rc1]]
 === APM version 8.0.0-rc1
 
 https://github.com/elastic/apm-server/compare/v8.0.0-beta1\...v8.0.0-rc1[View commits]
@@ -147,7 +147,7 @@ https://github.com/elastic/apm-server/compare/v8.0.0-beta1\...v8.0.0-rc1[View co
 - Updated the `x-pack` source files license to the Elastic License 2.0 {pull}6524[6524]
 
 [float]
-[[release-notes-8.0.0-beta1]]
+[[apm-release-notes-8.0.0-beta1]]
 === APM version 8.0.0-beta1
 
 https://github.com/elastic/apm-server/compare/v8.0.0-alpha2\...v8.0.0-beta1[View commits]
@@ -161,7 +161,7 @@ https://github.com/elastic/apm-server/compare/v8.0.0-alpha2\...v8.0.0-beta1[View
 - Allow to overwrite `service.name` and `service.version` for metricset objects  {pull}6407[6407]
 
 [float]
-[[release-notes-8.0.0-alpha2]]
+[[apm-release-notes-8.0.0-alpha2]]
 === APM version 8.0.0-alpha2
 
 https://github.com/elastic/apm-server/compare/v8.0.0-alpha1\...v8.0.0-alpha2[View commits]
@@ -169,7 +169,7 @@ https://github.com/elastic/apm-server/compare/v8.0.0-alpha1\...v8.0.0-alpha2[Vie
 No significant changes.
 
 [float]
-[[release-notes-8.0.0-alpha1]]
+[[apm-release-notes-8.0.0-alpha1]]
 === APM version 8.0.0-alpha1
 
 [float]

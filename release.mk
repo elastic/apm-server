@@ -147,10 +147,6 @@ rename-changelog:
 	@if ! grep -q '$(VERSION).asciidoc' CHANGELOG.asciidoc ; then \
 		$(SED) -E -e 's#(head.asciidoc\[\])#\1\ninclude::.\/changelogs\/$(VERSION).asciidoc[]#g' CHANGELOG.asciidoc; \
 	fi
-	@if ! grep -q 'release-notes-$(VERSION)' docs/release-notes.asciidoc ; then \
-		awk "NR==12{print \"* <<release-notes-$(VERSION)>>\"}1" docs/release-notes.asciidoc > docs/release-notes.asciidoc.new ; \
-		mv docs/release-notes.asciidoc.new docs/release-notes.asciidoc ; \
-	fi
 
 # Update changelog file to generate something similar to https://github.com/elastic/apm-server/pull/12220
 .PHONY: update-changelog

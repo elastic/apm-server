@@ -28,6 +28,9 @@ env:
   BENCHMARK_RESULT: benchmark-result.txt
   WORKING_DIRECTORY: testing/benchmark
 
+permissions:
+  contents: read
+
 jobs:
   benchmarks:
     runs-on: ubuntu-latest
@@ -67,7 +70,7 @@ jobs:
             echo "BENCHMARK_RUN=${{ inputs.benchmarkRun }}" >> "$GITHUB_ENV"
           fi
 
-      - uses: hashicorp/vault-action@v2.8.0
+      - uses: hashicorp/vault-action@v3.0.0
         env:
           AWS_CREDENTIALS_PATH: secret/observability-team/ci/elastic-observability-aws-account-auth
           BENCHMARK_CLOUD_CREDENTIALS_PATH: secret/observability-team/ci/benchmark-cloud
@@ -106,7 +109,7 @@ jobs:
         run: make apmbench $SSH_KEY terraform.tfvars
 
       - name: Override docker committed version
-        if: ${{ !github.event.inputs.runOnStable }}
+        if: ${{ ! inputs.runOnStable }}
         run: make docker-override-committed-version
 
       - name: Spin up benchmark environment
@@ -118,11 +121,11 @@ jobs:
           echo "-> infra setup done"
 
       - name: Run benchmarks autotuned
-        if: ${{ github.event.inputs.benchmarkAgents == '' }}
+        if: ${{ inputs.benchmarkAgents == '' }}
         run: make run-benchmark-autotuned index-benchmark-results
 
       - name: Run benchmarks self tuned
-        if: ${{ github.event.inputs.benchmarkAgents != '' }}
+        if: ${{ inputs.benchmarkAgents != '' }}
         run: make run-benchmark index-benchmark-results
 
       - name: Download PNG

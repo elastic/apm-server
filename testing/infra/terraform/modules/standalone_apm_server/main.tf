@@ -26,7 +26,7 @@ locals {
   ea_provision_commands = [
     "curl ${data.external.latest_elastic_agent.result.deb} -o elastic-agent.deb && curl ${data.external.latest_elastic_agent.result.rpm} -o elastic-agent.rpm",
     "sudo dpkg -i elastic-agent.deb || sudo yum -y install elastic-agent.rpm",
-    "sudo elastic-agent install -n",
+    "sudo elastic-agent install -n --unprivileged",
     "sudo cp ${local.conf_path} /etc/elastic-agent/elastic-agent.yml",
     "sudo systemctl start elastic-agent",
     "sleep 1",
