@@ -1,15 +1,13 @@
-[[release-notes-8.4]]
+[[apm-release-notes-8.4]]
 == APM version 8.4
 
-https://github.com/elastic/apm-server/compare/8.3\...8.4[View commits]
-
-* <<release-notes-8.4.3>>
-* <<release-notes-8.4.2>>
-* <<release-notes-8.4.1>>
-* <<release-notes-8.4.0>>
+* <<apm-release-notes-8.4.3>>
+* <<apm-release-notes-8.4.2>>
+* <<apm-release-notes-8.4.1>>
+* <<apm-release-notes-8.4.0>>
 
 [float]
-[[release-notes-8.4.3]]
+[[apm-release-notes-8.4.3]]
 === APM version 8.4.3
 
 https://github.com/elastic/apm-server/compare/v8.4.2\...v8.4.3[View commits]
@@ -17,7 +15,7 @@ https://github.com/elastic/apm-server/compare/v8.4.2\...v8.4.3[View commits]
 No significant changes.
 
 [float]
-[[release-notes-8.4.2]]
+[[apm-release-notes-8.4.2]]
 === APM version 8.4.2
 
 https://github.com/elastic/apm-server/compare/v8.4.1\...v8.4.2[View commits]
@@ -27,7 +25,7 @@ https://github.com/elastic/apm-server/compare/v8.4.1\...v8.4.2[View commits]
 - The data stream migration ingest pipeline now handles `observer.version_major` and `process.ppid` translation {pull}9095[9095]
 
 [float]
-[[release-notes-8.4.1]]
+[[apm-release-notes-8.4.1]]
 === APM version 8.4.1
 
 https://github.com/elastic/apm-server/compare/v8.4.0\...v8.4.1[View commits]
@@ -38,7 +36,7 @@ https://github.com/elastic/apm-server/compare/v8.4.0\...v8.4.1[View commits]
 - Fix sporadically missing custom libbeat metrics {pull}8900[8900]
 
 [float]
-[[release-notes-8.4.0]]
+[[apm-release-notes-8.4.0]]
 === APM version 8.4.0
 
 https://github.com/elastic/apm-server/compare/v8.3.3\...v8.4.0[View commits]

@@ -3,10 +3,19 @@ kind: Elasticsearch
 metadata:
   name: elasticsearch
 spec:
-  version: 8.12.0-35e3b343-SNAPSHOT
+  version: 8.14.0-4e9e4428-SNAPSHOT
   auth:
     fileRealm:
       - secretName: elasticsearch-admin
+  monitoring:
+    metrics:
+      elasticsearchRefs:
+        - name: elasticsearch
+          namespace: default
+    logs:
+      elasticsearchRefs:
+        - name: elasticsearch
+          namespace: default
   nodeSets:
   - name: default
     count: 1

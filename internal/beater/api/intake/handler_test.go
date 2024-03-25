@@ -64,14 +64,14 @@ func TestIntakeHandler(t *testing.T) {
 			}(),
 			code: http.StatusBadRequest, id: request.IDResponseErrorsValidate,
 		},
-		"BodyReader": {
+		"EmptyBody": {
 			path: "errors.ndjson",
 			r: func() *http.Request {
 				req := httptest.NewRequest(http.MethodPost, "/", nil)
 				req.Header.Set(headers.ContentType, "application/x-ndjson")
 				return req
 			}(),
-			code: http.StatusBadRequest, id: request.IDResponseErrorsValidate,
+			code: http.StatusAccepted, id: request.IDResponseValidAccepted,
 		},
 		"CompressedBodyReaderDeflateInvalid": {
 			path: "errors.ndjson",
@@ -106,13 +106,6 @@ func TestIntakeHandler(t *testing.T) {
 				return publish.ErrChannelClosed
 			}),
 			code: http.StatusServiceUnavailable, id: request.IDResponseErrorsShuttingDown},
-		"FullQueue": {
-			path: "errors.ndjson",
-			batchProcessor: modelpb.ProcessBatchFunc(func(context.Context, *modelpb.Batch) error {
-				return elasticapm.ErrQueueFull
-			}),
-			code: http.StatusServiceUnavailable, id: request.IDResponseErrorsFullQueue,
-		},
 		"FullQueueLegacy": {
 			path: "errors.ndjson",
 			batchProcessor: modelpb.ProcessBatchFunc(func(context.Context, *modelpb.Batch) error {
@@ -176,7 +169,6 @@ func TestIntakeHandlerMonitoring(t *testing.T) {
 
 	streamHandler := streamHandlerFunc(func(
 		ctx context.Context,
-		async bool,
 		base *modelpb.APMEvent,
 		stream io.Reader,
 		batchSize int,
@@ -295,7 +287,6 @@ func emptyRequestMetadata(*request.Context) *modelpb.APMEvent {
 
 type streamHandlerFunc func(
 	ctx context.Context,
-	async bool,
 	base *modelpb.APMEvent,
 	stream io.Reader,
 	batchSize int,
@@ -305,12 +296,11 @@ type streamHandlerFunc func(
 
 func (f streamHandlerFunc) HandleStream(
 	ctx context.Context,
-	async bool,
 	base *modelpb.APMEvent,
 	stream io.Reader,
 	batchSize int,
 	processor modelpb.BatchProcessor,
 	out *elasticapm.Result,
 ) error {
-	return f(ctx, async, base, stream, batchSize, processor, out)
+	return f(ctx, base, stream, batchSize, processor, out)
 }

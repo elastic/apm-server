@@ -1,50 +1,72 @@
-{
-    "events": [
-        {
-            "@timestamp": "dynamic",
-            "agent_config_applied": 1,
-            "data_stream": {
-                "dataset": "apm.internal",
-                "namespace": "default",
-                "type": "metrics"
-            },
-            "labels": {
-                "etag": "dynamic"
-            },
-            "metricset": {
-                "name": "agent_config"
-            },
-            "observer": {
-                "hostname": "dynamic",
-                "type": "apm-server",
-                "version": "dynamic"
-            },
-            "processor": {
-                "event": "metric"
-            }
-        },
-        {
-            "@timestamp": "dynamic",
-            "agent_config_applied": 1,
-            "data_stream": {
-                "dataset": "apm.internal",
-                "namespace": "default",
-                "type": "metrics"
-            },
-            "labels": {
-                "etag": "dynamic"
-            },
-            "metricset": {
-                "name": "agent_config"
-            },
-            "observer": {
-                "hostname": "dynamic",
-                "type": "apm-server",
-                "version": "dynamic"
-            },
-            "processor": {
-                "event": "metric"
-            }
-        }
-    ]
-}
+[
+    {
+        "@timestamp": [
+            "dynamic"
+        ],
+        "agent_config_applied": [
+            1
+        ],
+        "data_stream.dataset": [
+            "apm.internal"
+        ],
+        "data_stream.namespace": [
+            "default"
+        ],
+        "data_stream.type": [
+            "metrics"
+        ],
+        "labels.etag": [
+            "dynamic"
+        ],
+        "metricset.name": [
+            "agent_config"
+        ],
+        "observer.hostname": [
+            "dynamic"
+        ],
+        "observer.type": [
+            "apm-server"
+        ],
+        "observer.version": [
+            "dynamic"
+        ],
+        "processor.event": [
+            "metric"
+        ]
+    },
+    {
+        "@timestamp": [
+            "dynamic"
+        ],
+        "agent_config_applied": [
+            1
+        ],
+        "data_stream.dataset": [
+            "apm.internal"
+        ],
+        "data_stream.namespace": [
+            "default"
+        ],
+        "data_stream.type": [
+            "metrics"
+        ],
+        "labels.etag": [
+            "dynamic"
+        ],
+        "metricset.name": [
+            "agent_config"
+        ],
+        "observer.hostname": [
+            "dynamic"
+        ],
+        "observer.type": [
+            "apm-server"
+        ],
+        "observer.version": [
+            "dynamic"
+        ],
+        "processor.event": [
+            "metric"
+        ]
+    }
+]

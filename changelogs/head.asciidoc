@@ -1,14 +1,10 @@
 [[release-notes-head]]
 == APM version HEAD
 
-https://github.com/elastic/apm-server/compare/8.11\...main[View commits]
+https://github.com/elastic/apm-server/compare/8.13\...main[View commits]
 
 [float]
 ==== Breaking Changes
-
-[float]
-==== Bug fixes
-- Switch built-in ILM rollover policies from max_size to max_primary_shard_size {pull}11729[11729].
 
 [float]
 ==== Deprecations
@@ -18,6 +14,3 @@ https://github.com/elastic/apm-server/compare/8.11\...main[View commits]
 
 [float]
 ==== Added
-- Update container base image to Ubuntu 22.04 {pull}11778[11778]
-- Add support for returning partial success response in OTLP input {pull}11883[11883]
-- Setting event timestamp from OTel observed timestamp when needed {pull}11935[11935]

@@ -1,14 +1,12 @@
-[[release-notes-8.7]]
+[[apm-release-notes-8.7]]
 == APM version 8.7
 
-https://github.com/elastic/apm-server/compare/8.6\...8.7[View commits]
-
-* <<release-notes-8.7.2>>
-* <<release-notes-8.7.1>>
-* <<release-notes-8.7.0>>
+* <<apm-release-notes-8.7.2>>
+* <<apm-release-notes-8.7.1>>
+* <<apm-release-notes-8.7.0>>
 
 [float]
-[[release-notes-8.7.2]]
+[[apm-release-notes-8.7.2]]
 === APM version 8.7.2
 
 https://github.com/elastic/apm-server/compare/v8.7.1\...v8.7.2[View commits]
@@ -17,7 +15,7 @@ https://github.com/elastic/apm-server/compare/v8.7.1\...v8.7.2[View commits]
 ==== Bug fixes
 
 [float]
-[[release-notes-8.7.1]]
+[[apm-release-notes-8.7.1]]
 === APM version 8.7.1
 
 https://github.com/elastic/apm-server/compare/v8.7.0\...v8.7.1[View commits]
@@ -32,8 +30,10 @@ https://github.com/elastic/apm-server/compare/v8.7.0\...v8.7.1[View commits]
 - Remove redundant aggregation groups on `faas.coldstart` in transaction metrics {pull}10635[10635]
 
 [float]
-[[release-notes-8.7.0]]
+[[apm-release-notes-8.7.0]]
 === APM version 8.7.0
+
+https://github.com/elastic/apm-server/compare/v8.6.2\...v8.7.0[View commits]
 
 [float]
 ==== Breaking Changes

@@ -63,14 +63,12 @@ import (
 	"github.com/elastic/apm-server/internal/beater/interceptors"
 	javaattacher "github.com/elastic/apm-server/internal/beater/java_attacher"
 	"github.com/elastic/apm-server/internal/beater/ratelimit"
-	"github.com/elastic/apm-server/internal/beater/request"
 	"github.com/elastic/apm-server/internal/elasticsearch"
 	"github.com/elastic/apm-server/internal/idxmgmt"
 	"github.com/elastic/apm-server/internal/kibana"
 	srvmodelprocessor "github.com/elastic/apm-server/internal/model/modelprocessor"
 	"github.com/elastic/apm-server/internal/publish"
 	"github.com/elastic/apm-server/internal/sourcemap"
-	"github.com/elastic/apm-server/internal/telemetry"
 	"github.com/elastic/apm-server/internal/version"
 )
 
@@ -319,26 +317,8 @@ func (s *Runner) Run(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	localExporter := telemetry.NewMetricExporter(
-		telemetry.WithMetricFilter([]string{
-			"http.server." + string(request.IDRequestCount),
-			"http.server.request.duration",
-			"http.server." + string(request.IDResponseValidCount),
-			"http.server." + string(request.IDResponseErrorsCount),
-			"http.server." + string(request.IDResponseErrorsTimeout),
-			"http.server." + string(request.IDResponseErrorsRateLimit),
-
-			"grpc.server." + string(request.IDRequestCount),
-			"grpc.server.request.duration",
-			"grpc.server." + string(request.IDResponseValidCount),
-			"grpc.server." + string(request.IDResponseErrorsCount),
-			"grpc.server." + string(request.IDResponseErrorsTimeout),
-			"grpc.server." + string(request.IDResponseErrorsRateLimit),
-		}),
-	)
 	meterProvider := metric.NewMeterProvider(
 		metric.WithReader(exporter),
-		metric.WithReader(metric.NewPeriodicReader(localExporter)),
 	)
 	otel.SetMeterProvider(meterProvider)
 	tracer.RegisterMetricsGatherer(exporter)
@@ -456,7 +436,6 @@ func (s *Runner) Run(ctx context.Context) error {
 		}),
 		finalBatchProcessor,
 	})
-	localExporter.SetBatchProcessor(batchProcessor)
 
 	agentConfigFetcher, fetcherRunFunc, err := newAgentConfigFetcher(
 		ctx,
@@ -716,6 +695,11 @@ func (s *Runner) newFinalBatchProcessor(
 			return nil, nil, errors.Wrap(err, "failed to parse flush_bytes")
 		}
 		flushBytes = int(b)
+	}
+	minFlush := 24 * 1024
+	if esConfig.CompressionLevel != 0 && flushBytes < minFlush {
+		s.logger.Warnf("flush_bytes config value is too small (%d) and might be ignored by the indexer, increasing value to %d", flushBytes, minFlush)
+		flushBytes = minFlush
 	}
 	client, err := newElasticsearchClient(esConfig.Config)
 	if err != nil {

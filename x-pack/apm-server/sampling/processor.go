@@ -7,6 +7,7 @@ package sampling
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"sync"
@@ -529,11 +530,11 @@ func (p *Processor) Run() error {
 						switch event.Type() {
 						case modelpb.TransactionEventType:
 							if err := p.eventStore.DeleteTraceEvent(event.Trace.Id, event.Transaction.Id); err != nil {
-								return errors.Wrap(err, "failed to delete transaction from local storage")
+								p.logger.With(logp.Error(err)).Warn("failed to delete transaction from local storage")
 							}
 						case modelpb.SpanEventType:
 							if err := p.eventStore.DeleteTraceEvent(event.Trace.Id, event.Span.Id); err != nil {
-								return errors.Wrap(err, "failed to delete span from local storage")
+								p.logger.With(logp.Error(err)).Warn("failed to delete span from local storage")
 							}
 						}
 					}
@@ -557,13 +558,14 @@ func readSubscriberPosition(logger *logp.Logger, storageDir string) (pubsub.Subs
 	if errors.Is(err, os.ErrNotExist) {
 		return pos, nil
 	} else if err != nil {
-		return pos, err
+		return pos, fmt.Errorf("error reading subscriber position file: %w", err)
 	}
 	err = json.Unmarshal(data, &pos)
 	if err != nil {
 		logger.With(logp.Error(err)).With(logp.ByteString("file", data)).Debug("failed to read subscriber position")
+		return pos, fmt.Errorf("error parsing subscriber position file: %w", err)
 	}
-	return pos, err
+	return pos, nil
 }
 
 func writeSubscriberPosition(storageDir string, pos pubsub.SubscriberPosition) error {
@@ -640,5 +642,5 @@ func (s *wrappedRW) DeleteTraceEvent(traceID, id string) error {
 
 // Flush calls ShardedReadWriter.Flush
 func (s *wrappedRW) Flush() error {
-	return s.rw.Flush(s.writerOpts.StorageLimitInBytes)
+	return s.rw.Flush()
 }

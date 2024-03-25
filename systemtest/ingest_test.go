@@ -18,14 +18,10 @@
 package systemtest_test
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
-	"io"
 	"net/http"
 	"net/url"
-	"os"
 	"strings"
 	"testing"
 
@@ -36,7 +32,6 @@ import (
 	"github.com/elastic/apm-server/systemtest"
 	"github.com/elastic/apm-server/systemtest/apmservertest"
 	"github.com/elastic/apm-server/systemtest/estest"
-	"github.com/elastic/apm-tools/pkg/approvaltest"
 	"github.com/elastic/apm-tools/pkg/espoll"
 	"github.com/elastic/go-elasticsearch/v8/esapi"
 )
@@ -85,34 +80,6 @@ func TestIngestPipeline(t *testing.T) {
 	span2Doc := getDoc(espoll.TermQuery{Field: "span.id", Value: span2.TraceContext().Span.String()})
 	destinationIP = gjson.GetBytes(span2Doc.RawSource, "destination.ip")
 	assert.False(t, destinationIP.Exists()) // destination.address is not an IP
-}
-
-func TestIngestPipelineVersionEnforcement(t *testing.T) {
-	source := `{"observer": {"version": "100.200.300"}}` // apm-server version is too new
-	dataStreams := []string{
-		"traces-apm-default",
-		"traces-apm.rum-default",
-		"metrics-apm.internal-default",
-		"metrics-apm.app.service_name-default",
-		"logs-apm.error-default",
-	}
-
-	for _, dataStream := range dataStreams {
-		body := strings.NewReader(source)
-		resp, err := systemtest.Elasticsearch.Index(dataStream, body)
-		require.NoError(t, err)
-
-		respBody, err := io.ReadAll(resp.Body)
-		require.NoError(t, err)
-		resp.Body.Close()
-
-		if !assert.Equal(t, http.StatusInternalServerError, resp.StatusCode, "%s: %s", dataStream, respBody) {
-			continue
-		}
-		assert.Contains(t, string(respBody),
-			`Document produced by APM Server v100.200.300, which is newer than the installed APM integration`,
-		)
-	}
 }
 
 func TestIngestPipelineEventDuration(t *testing.T) {
@@ -179,39 +146,6 @@ func TestIngestPipelineEventDuration(t *testing.T) {
 			assert.Nil(t, spanDurationUS)
 		}
 	}
-}
-
-func TestIngestPipelineDataStreamMigration(t *testing.T) {
-	systemtest.CleanupElasticsearch(t)
-
-	var testdata struct {
-		Hits struct {
-			Hits []struct {
-				Source json.RawMessage `json:"_source"`
-			} `json:"hits`
-		} `json:"hits`
-	}
-
-	data, err := os.ReadFile("../testdata/ingest/7_17_docs.json")
-	require.NoError(t, err)
-	err = json.Unmarshal(data, &testdata)
-	require.NoError(t, err)
-
-	// Index documents using the data stream migration ingest pipeline.
-	pipeline := fmt.Sprintf("traces-apm-%s-apm_data_stream_migration", systemtest.IntegrationPackage.Version)
-	for _, doc := range testdata.Hits.Hits {
-		_, err := systemtest.Elasticsearch.Do(context.Background(), esapi.IndexRequest{
-			Index:    "traces-apm-foo", // should not be created; ingest pipeline should take over
-			Pipeline: pipeline,
-			Body:     bytes.NewReader(doc.Source),
-		}, nil)
-		require.NoError(t, err)
-	}
-
-	result := estest.ExpectMinDocs(t, systemtest.Elasticsearch,
-		len(testdata.Hits.Hits), "traces-apm*,logs-apm*,metrics-apm*", nil,
-	)
-	approvaltest.ApproveEvents(t, t.Name(), result.Hits.Hits)
 }
 
 func TestIngestPipelineEventSuccessCount(t *testing.T) {

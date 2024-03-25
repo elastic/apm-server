@@ -1,135 +1,156 @@
-{
-    "events": [
-        {
-            "@timestamp": "dynamic",
-            "agent": {
-                "name": "rum-js",
-                "version": "0.0.0"
-            },
-            "client": {
-                "ip": "127.0.0.1"
-            },
-            "data_stream": {
-                "dataset": "apm.rum",
-                "namespace": "default",
-                "type": "traces"
-            },
-            "event": {
-                "outcome": "unknown"
-            },
-            "observer": {
-                "hostname": "dynamic",
-                "type": "apm-server",
-                "version": "dynamic"
-            },
-            "parent": {
-                "id": "611f4fa950f04631"
-            },
-            "processor": {
-                "event": "span"
-            },
-            "service": {
-                "name": "apm-agent-js"
-            },
-            "source": {
-                "ip": "127.0.0.1",
-                "port": "dynamic"
-            },
-            "span": {
-                "duration": {
-                    "us": 643000
+[
+    {
+        "@timestamp": [
+            "dynamic"
+        ],
+        "agent.name": [
+            "rum-js"
+        ],
+        "agent.version": [
+            "0.0.0"
+        ],
+        "client.ip": [
+            "127.0.0.1"
+        ],
+        "data_stream.dataset": [
+            "apm.rum"
+        ],
+        "data_stream.namespace": [
+            "default"
+        ],
+        "data_stream.type": [
+            "traces"
+        ],
+        "event.outcome": [
+            "unknown"
+        ],
+        "observer.hostname": [
+            "dynamic"
+        ],
+        "observer.type": [
+            "apm-server"
+        ],
+        "observer.version": [
+            "dynamic"
+        ],
+        "parent.id": [
+            "611f4fa950f04631"
+        ],
+        "processor.event": [
+            "span"
+        ],
+        "service.name": [
+            "apm-agent-js"
+        ],
+        "source.ip": [
+            "127.0.0.1"
+        ],
+        "source.port": [
+            "dynamic"
+        ],
+        "span.duration.us": [
+            643000
+        ],
+        "span.id": [
+            "aaaaaaaaaaaaaaaa"
+        ],
+        "span.name": [
+            "transaction"
+        ],
+        "span.representative_count": [
+            1
+        ],
+        "span.stacktrace": [
+            {
+                "abs_path": "http://subdomain1.localhost:8000/test/e2e/general-usecase/bundle.js.map",
+                "context": {
+                    "post": [
+                        "",
+                        " \t\t// Check if module is in cache",
+                        " \t\tif(installedModules[moduleId])",
+                        " \t\t\treturn installedModules[moduleId].exports;",
+                        ""
+                    ],
+                    "pre": [
+                        " \t// The module cache",
+                        " \tvar installedModules = {};",
+                        "",
+                        " \t// The require function"
+                    ]
                 },
-                "id": "aaaaaaaaaaaaaaaa",
-                "name": "transaction",
-                "representative_count": 1,
-                "stacktrace": [
-                    {
-                        "abs_path": "http://subdomain1.localhost:8000/test/e2e/general-usecase/bundle.js.map",
-                        "context": {
-                            "post": [
-                                "",
-                                " \t\t// Check if module is in cache",
-                                " \t\tif(installedModules[moduleId])",
-                                " \t\t\treturn installedModules[moduleId].exports;",
-                                ""
-                            ],
-                            "pre": [
-                                " \t// The module cache",
-                                " \tvar installedModules = {};",
-                                "",
-                                " \t// The require function"
-                            ]
-                        },
-                        "exclude_from_grouping": false,
-                        "filename": "webpack:///webpack/bootstrap 6002740481c9666b0d38",
-                        "function": "\u003cunknown\u003e",
-                        "line": {
-                            "column": 0,
-                            "context": " \tfunction __webpack_require__(moduleId) {",
-                            "number": 5
-                        },
-                        "original": {
-                            "abs_path": "http://subdomain1.localhost:8000/test/e2e/general-usecase/bundle.js.map",
-                            "colno": 18,
-                            "filename": "test/e2e/general-usecase/bundle.js.map",
-                            "function": "\u003canonymous\u003e",
-                            "lineno": 1
-                        },
-                        "sourcemap": {
-                            "updated": true
-                        }
-                    },
-                    {
-                        "abs_path": "http://subdomain2.localhost:8000/test/e2e/general-usecase/bundle.js.map",
-                        "context": {
-                            "post": [
-                                "",
-                                " \t\t// Check if module is in cache",
-                                " \t\tif(installedModules[moduleId])",
-                                " \t\t\treturn installedModules[moduleId].exports;",
-                                ""
-                            ],
-                            "pre": [
-                                " \t// The module cache",
-                                " \tvar installedModules = {};",
-                                "",
-                                " \t// The require function"
-                            ]
-                        },
-                        "exclude_from_grouping": false,
-                        "filename": "webpack:///webpack/bootstrap 6002740481c9666b0d38",
-                        "function": "\u003canonymous\u003e",
-                        "line": {
-                            "column": 0,
-                            "context": " \tfunction __webpack_require__(moduleId) {",
-                            "number": 5
-                        },
-                        "original": {
-                            "abs_path": "http://subdomain2.localhost:8000/test/e2e/general-usecase/bundle.js.map",
-                            "colno": 18,
-                            "filename": "~/test/e2e/general-usecase/bundle.js.map",
-                            "function": "\u003canonymous\u003e",
-                            "lineno": 1
-                        },
-                        "sourcemap": {
-                            "updated": true
-                        }
-                    }
-                ],
-                "type": "transaction"
+                "exclude_from_grouping": false,
+                "filename": "webpack:///webpack/bootstrap 6002740481c9666b0d38",
+                "function": "\u003cunknown\u003e",
+                "line": {
+                    "column": 0,
+                    "context": " \tfunction __webpack_require__(moduleId) {",
+                    "number": 5
+                },
+                "original": {
+                    "abs_path": "http://subdomain1.localhost:8000/test/e2e/general-usecase/bundle.js.map",
+                    "colno": 18,
+                    "filename": "test/e2e/general-usecase/bundle.js.map",
+                    "function": "\u003canonymous\u003e",
+                    "lineno": 1
+                },
+                "sourcemap": {
+                    "updated": true
+                }
             },
-            "timestamp": {
-                "us": "dynamic"
-            },
-            "trace": {
-                "id": "611f4fa950f04631aaaaaaaaaaaaaaaa"
-            },
-            "transaction": {
-                "id": "611f4fa950f04631"
-            },
-            "url": {
-                "original": "http://localhost:8000/test/e2e/general-usecase/span"
+            {
+                "abs_path": "http://subdomain2.localhost:8000/test/e2e/general-usecase/bundle.js.map",
+                "context": {
+                    "post": [
+                        "",
+                        " \t\t// Check if module is in cache",
+                        " \t\tif(installedModules[moduleId])",
+                        " \t\t\treturn installedModules[moduleId].exports;",
+                        ""
+                    ],
+                    "pre": [
+                        " \t// The module cache",
+                        " \tvar installedModules = {};",
+                        "",
+                        " \t// The require function"
+                    ]
+                },
+                "exclude_from_grouping": false,
+                "filename": "webpack:///webpack/bootstrap 6002740481c9666b0d38",
+                "function": "\u003canonymous\u003e",
+                "line": {
+                    "column": 0,
+                    "context": " \tfunction __webpack_require__(moduleId) {",
+                    "number": 5
+                },
+                "original": {
+                    "abs_path": "http://subdomain2.localhost:8000/test/e2e/general-usecase/bundle.js.map",
+                    "colno": 18,
+                    "filename": "~/test/e2e/general-usecase/bundle.js.map",
+                    "function": "\u003canonymous\u003e",
+                    "lineno": 1
+                },
+                "sourcemap": {
+                    "updated": true
+                }
             }
-        }
-    ]
-}
+        ],
+        "span.type": [
+            "transaction"
+        ],
+        "timestamp.us": [
+            "dynamic"
+        ],
+        "trace.id": [
+            "611f4fa950f04631aaaaaaaaaaaaaaaa"
+        ],
+        "transaction.id": [
+            "611f4fa950f04631"
+        ],
+        "url.original": [
+            "http://localhost:8000/test/e2e/general-usecase/span"
+        ],
+        "url.original.text": [
+            "http://localhost:8000/test/e2e/general-usecase/span"
+        ]
+    }
+]

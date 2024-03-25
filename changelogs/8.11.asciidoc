@@ -1,13 +1,40 @@
-[[release-notes-8.11]]
+[[apm-release-notes-8.11]]
 == APM version 8.11
 
-https://github.com/elastic/apm-server/compare/8.10\...8.11[View commits]
-
-* <<release-notes-8.11.1>>
-* <<release-notes-8.11.0>>
+* <<apm-release-notes-8.11.4>>
+* <<apm-release-notes-8.11.3>>
+* <<apm-release-notes-8.11.2>>
+* <<apm-release-notes-8.11.1>>
+* <<apm-release-notes-8.11.0>>
 
 [float]
-[[release-notes-8.11.1]]
+[[apm-release-notes-8.11.4]]
+=== APM version 8.11.4
+
+https://github.com/elastic/apm-server/compare/v8.11.3\...v8.11.4[View commits]
+
+[float]
+==== Bug fixes
+- Fix source maps not being applied when an event contains both a span and an error {pull}12221[12221]
+
+[float]
+[[apm-release-notes-8.11.3]]
+=== APM version 8.11.3
+
+https://github.com/elastic/apm-server/compare/v8.11.2\...v8.11.3[View commits]
+
+No significant changes.
+
+[float]
+[[apm-release-notes-8.11.2]]
+=== APM version 8.11.2
+
+https://github.com/elastic/apm-server/compare/v8.11.1\...v8.11.2[View commits]
+
+No significant changes.
+
+[float]
+[[apm-release-notes-8.11.1]]
 === APM version 8.11.1
 
 https://github.com/elastic/apm-server/compare/v8.11.0\...v8.11.1[View commits]
@@ -15,8 +42,10 @@ https://github.com/elastic/apm-server/compare/v8.11.0\...v8.11.1[View commits]
 No significant changes.
 
 [float]
-[[release-notes-8.11.0]]
+[[apm-release-notes-8.11.0]]
 === APM version 8.11.0
+
+https://github.com/elastic/apm-server/compare/v8.10.4\...v8.11.0[View commits]
 
 [float]
 ==== Breaking Changes

@@ -1,15 +1,13 @@
-[[release-notes-8.3]]
+[[apm-release-notes-8.3]]
 == APM version 8.3
 
-https://github.com/elastic/apm-server/compare/8.2\...8.3[View commits]
-
-* <<release-notes-8.3.3>>
-* <<release-notes-8.3.2>>
-* <<release-notes-8.3.1>>
-* <<release-notes-8.3.0>>
+* <<apm-release-notes-8.3.3>>
+* <<apm-release-notes-8.3.2>>
+* <<apm-release-notes-8.3.1>>
+* <<apm-release-notes-8.3.0>>
 
 [float]
-[[release-notes-8.3.3]]
+[[apm-release-notes-8.3.3]]
 === APM version 8.3.3
 
 https://github.com/elastic/apm-server/compare/v8.3.2\...v8.3.3[View commits]
@@ -19,7 +17,7 @@ https://github.com/elastic/apm-server/compare/v8.3.2\...v8.3.3[View commits]
 - Update APM integration description {pull}8592[8592]
 
 [float]
-[[release-notes-8.3.2]]
+[[apm-release-notes-8.3.2]]
 === APM version 8.3.2
 
 https://github.com/elastic/apm-server/compare/v8.3.1\...v8.3.2[View commits]
@@ -29,7 +27,7 @@ https://github.com/elastic/apm-server/compare/v8.3.1\...v8.3.2[View commits]
 - When tail-based sampling is enabled, limit the local disk space for the feature to 3GB {pull}8407[8407]
 
 [float]
-[[release-notes-8.3.1]]
+[[apm-release-notes-8.3.1]]
 === APM version 8.3.1
 
 https://github.com/elastic/apm-server/compare/v8.3.0\...v8.3.1[View commits]
@@ -37,7 +35,7 @@ https://github.com/elastic/apm-server/compare/v8.3.0\...v8.3.1[View commits]
 No significant changes.
 
 [float]
-[[release-notes-8.3.0]]
+[[apm-release-notes-8.3.0]]
 === APM version 8.3.0
 
 https://github.com/elastic/apm-server/compare/v8.2.2\...v8.3.0[View commits]

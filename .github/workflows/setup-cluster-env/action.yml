@@ -14,7 +14,7 @@ inputs:
     description: 'Vault secret ID'
     required: true
   ec-key-secret:
-    default: 'secret/observability-team/ci/elastic-cloud/observability-pro'
+    default: 'secret/observability-team/ci/elastic-cloud/observability-team-pro'
     description: 'EC Key secret'
     required: false
   aws-account-secret:
@@ -25,13 +25,13 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - uses: actions/setup-go@v4
+    - uses: actions/setup-go@v5
       with:
         go-version-file: go.mod
         cache-dependency-path: |
           go.sum
           tools/go.sum
-    - uses: hashicorp/vault-action@v2.7.4
+    - uses: hashicorp/vault-action@v3.0.0
       with:
         url: ${{ inputs.vault-url }}
         roleId: ${{ inputs.vault-role-id }}

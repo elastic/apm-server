@@ -1,0 +1,20 @@
+name: Add new issues to the team project board
+
+on:
+  issues:
+    types:
+      - opened
+      - transferred
+
+permissions:
+  contents: read
+
+jobs:
+  add-to-project:
+    name: Add issue to project
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/add-to-project@v0.6.1
+        with:
+          project-url: https://github.com/orgs/elastic/projects/1286
+          github-token: ${{ secrets.APM_TECH_USER_TOKEN }}

@@ -1,217 +1,290 @@
-{
-    "events": [
-        {
-            "@timestamp": "2006-01-02T15:00:00.000Z",
-            "_doc_count": 1,
-            "agent": {
-                "name": "go"
-            },
-            "data_stream": {
-                "dataset": "apm.transaction.10m",
-                "namespace": "default",
-                "type": "metrics"
-            },
-            "event": {
-                "outcome": "success",
-                "success_count": {
-                    "sum": 1,
-                    "value_count": 1
-                }
-            },
-            "host": {
-                "hostname": "beowulf",
-                "name": "beowulf",
-                "os": {
-                    "platform": "minix"
-                }
-            },
-            "metricset": {
-                "interval": "10m",
-                "name": "transaction"
-            },
-            "observer": {
-                "hostname": "dynamic",
-                "type": "apm-server",
-                "version": "dynamic"
-            },
-            "processor": {
-                "event": "metric"
-            },
-            "service": {
-                "language": {
-                    "name": "go",
-                    "version": "2.0"
-                },
-                "name": "systemtest",
-                "node": {
-                    "name": "beowulf"
-                },
-                "runtime": {
-                    "name": "gc",
-                    "version": "2.0"
-                }
-            },
-            "transaction": {
-                "duration": {
-                    "histogram": {
-                        "counts": [
-                            1
-                        ],
-                        "values": [
-                            1003519
-                        ]
-                    },
-                    "summary": {
-                        "sum": 1003519,
-                        "value_count": 1
-                    }
-                },
-                "name": "name",
-                "root": true,
-                "type": "type"
+[
+    {
+        "@timestamp": [
+            "2006-01-02T15:00:00.000Z"
+        ],
+        "agent.name": [
+            "go"
+        ],
+        "data_stream.dataset": [
+            "apm.transaction.10m"
+        ],
+        "data_stream.namespace": [
+            "default"
+        ],
+        "data_stream.type": [
+            "metrics"
+        ],
+        "event.outcome": [
+            "success"
+        ],
+        "event.success_count": [
+            {
+                "sum": 1,
+                "value_count": 1
             }
-        },
-        {
-            "@timestamp": "2006-01-02T15:04:00.000Z",
-            "_doc_count": 1,
-            "agent": {
-                "name": "go"
-            },
-            "data_stream": {
-                "dataset": "apm.transaction.1m",
-                "namespace": "default",
-                "type": "metrics"
-            },
-            "event": {
-                "outcome": "success",
-                "success_count": {
-                    "sum": 1,
-                    "value_count": 1
-                }
-            },
-            "host": {
-                "hostname": "beowulf",
-                "name": "beowulf",
-                "os": {
-                    "platform": "minix"
-                }
-            },
-            "metricset": {
-                "interval": "1m",
-                "name": "transaction"
-            },
-            "observer": {
-                "hostname": "dynamic",
-                "type": "apm-server",
-                "version": "dynamic"
-            },
-            "processor": {
-                "event": "metric"
-            },
-            "service": {
-                "language": {
-                    "name": "go",
-                    "version": "2.0"
-                },
-                "name": "systemtest",
-                "node": {
-                    "name": "beowulf"
-                },
-                "runtime": {
-                    "name": "gc",
-                    "version": "2.0"
-                }
-            },
-            "transaction": {
-                "duration": {
-                    "histogram": {
-                        "counts": [
-                            1
-                        ],
-                        "values": [
-                            1003519
-                        ]
-                    },
-                    "summary": {
-                        "sum": 1003519,
-                        "value_count": 1
-                    }
-                },
-                "name": "name",
-                "root": true,
-                "type": "type"
+        ],
+        "host.hostname": [
+            "beowulf"
+        ],
+        "host.name": [
+            "beowulf"
+        ],
+        "host.os.platform": [
+            "minix"
+        ],
+        "metricset.interval": [
+            "10m"
+        ],
+        "metricset.name": [
+            "transaction"
+        ],
+        "observer.hostname": [
+            "dynamic"
+        ],
+        "observer.type": [
+            "apm-server"
+        ],
+        "observer.version": [
+            "dynamic"
+        ],
+        "processor.event": [
+            "metric"
+        ],
+        "service.language.name": [
+            "go"
+        ],
+        "service.language.version": [
+            "2.0"
+        ],
+        "service.name": [
+            "systemtest"
+        ],
+        "service.node.name": [
+            "beowulf"
+        ],
+        "service.runtime.name": [
+            "gc"
+        ],
+        "service.runtime.version": [
+            "2.0"
+        ],
+        "transaction.duration.histogram": [
+            {
+                "counts": [
+                    1
+                ],
+                "values": [
+                    1003519
+                ]
             }
-        },
-        {
-            "@timestamp": "2006-01-02T15:00:00.000Z",
-            "_doc_count": 1,
-            "agent": {
-                "name": "go"
-            },
-            "data_stream": {
-                "dataset": "apm.transaction.60m",
-                "namespace": "default",
-                "type": "metrics"
-            },
-            "event": {
-                "outcome": "success",
-                "success_count": {
-                    "sum": 1,
-                    "value_count": 1
-                }
-            },
-            "host": {
-                "hostname": "beowulf",
-                "name": "beowulf",
-                "os": {
-                    "platform": "minix"
-                }
-            },
-            "metricset": {
-                "interval": "60m",
-                "name": "transaction"
-            },
-            "observer": {
-                "hostname": "dynamic",
-                "type": "apm-server",
-                "version": "dynamic"
-            },
-            "processor": {
-                "event": "metric"
-            },
-            "service": {
-                "language": {
-                    "name": "go",
-                    "version": "2.0"
-                },
-                "name": "systemtest",
-                "node": {
-                    "name": "beowulf"
-                },
-                "runtime": {
-                    "name": "gc",
-                    "version": "2.0"
-                }
-            },
-            "transaction": {
-                "duration": {
-                    "histogram": {
-                        "counts": [
-                            1
-                        ],
-                        "values": [
-                            1003519
-                        ]
-                    },
-                    "summary": {
-                        "sum": 1003519,
-                        "value_count": 1
-                    }
-                },
-                "name": "name",
-                "root": true,
-                "type": "type"
+        ],
+        "transaction.duration.summary": [
+            {
+                "sum": 1003519,
+                "value_count": 1
             }
-        }
-    ]
-}
+        ],
+        "transaction.name": [
+            "name"
+        ],
+        "transaction.root": [
+            true
+        ],
+        "transaction.type": [
+            "type"
+        ]
+    },
+    {
+        "@timestamp": [
+            "2006-01-02T15:04:00.000Z"
+        ],
+        "agent.name": [
+            "go"
+        ],
+        "data_stream.dataset": [
+            "apm.transaction.1m"
+        ],
+        "data_stream.namespace": [
+            "default"
+        ],
+        "data_stream.type": [
+            "metrics"
+        ],
+        "event.outcome": [
+            "success"
+        ],
+        "event.success_count": [
+            {
+                "sum": 1,
+                "value_count": 1
+            }
+        ],
+        "host.hostname": [
+            "beowulf"
+        ],
+        "host.name": [
+            "beowulf"
+        ],
+        "host.os.platform": [
+            "minix"
+        ],
+        "metricset.interval": [
+            "1m"
+        ],
+        "metricset.name": [
+            "transaction"
+        ],
+        "observer.hostname": [
+            "dynamic"
+        ],
+        "observer.type": [
+            "apm-server"
+        ],
+        "observer.version": [
+            "dynamic"
+        ],
+        "processor.event": [
+            "metric"
+        ],
+        "service.language.name": [
+            "go"
+        ],
+        "service.language.version": [
+            "2.0"
+        ],
+        "service.name": [
+            "systemtest"
+        ],
+        "service.node.name": [
+            "beowulf"
+        ],
+        "service.runtime.name": [
+            "gc"
+        ],
+        "service.runtime.version": [
+            "2.0"
+        ],
+        "transaction.duration.histogram": [
+            {
+                "counts": [
+                    1
+                ],
+                "values": [
+                    1003519
+                ]
+            }
+        ],
+        "transaction.duration.summary": [
+            {
+                "sum": 1003519,
+                "value_count": 1
+            }
+        ],
+        "transaction.name": [
+            "name"
+        ],
+        "transaction.root": [
+            true
+        ],
+        "transaction.type": [
+            "type"
+        ]
+    },
+    {
+        "@timestamp": [
+            "2006-01-02T15:00:00.000Z"
+        ],
+        "agent.name": [
+            "go"
+        ],
+        "data_stream.dataset": [
+            "apm.transaction.60m"
+        ],
+        "data_stream.namespace": [
+            "default"
+        ],
+        "data_stream.type": [
+            "metrics"
+        ],
+        "event.outcome": [
+            "success"
+        ],
+        "event.success_count": [
+            {
+                "sum": 1,
+                "value_count": 1
+            }
+        ],
+        "host.hostname": [
+            "beowulf"
+        ],
+        "host.name": [
+            "beowulf"
+        ],
+        "host.os.platform": [
+            "minix"
+        ],
+        "metricset.interval": [
+            "60m"
+        ],
+        "metricset.name": [
+            "transaction"
+        ],
+        "observer.hostname": [
+            "dynamic"
+        ],
+        "observer.type": [
+            "apm-server"
+        ],
+        "observer.version": [
+            "dynamic"
+        ],
+        "processor.event": [
+            "metric"
+        ],
+        "service.language.name": [
+            "go"
+        ],
+        "service.language.version": [
+            "2.0"
+        ],
+        "service.name": [
+            "systemtest"
+        ],
+        "service.node.name": [
+            "beowulf"
+        ],
+        "service.runtime.name": [
+            "gc"
+        ],
+        "service.runtime.version": [
+            "2.0"
+        ],
+        "transaction.duration.histogram": [
+            {
+                "counts": [
+                    1
+                ],
+                "values": [
+                    1003519
+                ]
+            }
+        ],
+        "transaction.duration.summary": [
+            {
+                "sum": 1003519,
+                "value_count": 1
+            }
+        ],
+        "transaction.name": [
+            "name"
+        ],
+        "transaction.root": [
+            true
+        ],
+        "transaction.type": [
+            "type"
+        ]
+    }
+]

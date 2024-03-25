@@ -7,6 +7,10 @@ on:
   pull_request:
     paths:
       - '**.tf'
+  merge_group:
+
+permissions:
+  contents: read
 
 jobs:
   terraform-fmt:

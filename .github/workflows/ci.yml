@@ -17,6 +17,7 @@ on:
       - '**.asciidoc'
       - '**.png'
       - '**.svg'
+  merge_group:
 
 # limit the access of the generated GITHUB_TOKEN
 permissions:
@@ -27,7 +28,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-go@v4
+      - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
           cache: true
@@ -46,7 +47,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-go@v4
+      - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
           cache: true
@@ -58,7 +59,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-go@v4
+      - uses: actions/setup-go@v5
         with:
           go-version-file: systemtest/go.mod
           cache: true
@@ -71,7 +72,7 @@ jobs:
           go run -modfile=tools/go.mod gotest.tools/gotestsum \
           --no-color -f standard-quiet --jsonfile "$OUTPUT_JSON_FILE" --junitfile "$OUTPUT_JUNIT_FILE" \
           --raw-command -- make system-test
-      - uses: actions/upload-artifact@v3  # upload test results
+      - uses: actions/upload-artifact@v4  # upload test results
         if: ${{ always() }} # run this step even if previous step failed
         with:
           name: test-results

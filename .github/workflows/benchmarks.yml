@@ -28,6 +28,9 @@ env:
   BENCHMARK_RESULT: benchmark-result.txt
   WORKING_DIRECTORY: testing/benchmark
 
+permissions:
+  contents: read
+
 jobs:
   benchmarks:
     runs-on: ubuntu-latest
@@ -46,11 +49,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-go@v4
+      - uses: actions/setup-go@v5
         with:
           go-version-file: 'go.mod'
 
-      - uses: rlespinasse/github-slug-action@00d4236bb38fcea6fc4aa6b1dacc7187fc8e38a0
+      - uses: rlespinasse/github-slug-action@55f5982579285ce3138ca118a20247ee994619ee
 
       - name: Set up env
         run: |
@@ -67,11 +70,11 @@ jobs:
             echo "BENCHMARK_RUN=${{ inputs.benchmarkRun }}" >> "$GITHUB_ENV"
           fi
 
-      - uses: hashicorp/vault-action@v2.7.4
+      - uses: hashicorp/vault-action@v3.0.0
         env:
           AWS_CREDENTIALS_PATH: secret/observability-team/ci/elastic-observability-aws-account-auth
           BENCHMARK_CLOUD_CREDENTIALS_PATH: secret/observability-team/ci/benchmark-cloud
-          EC_CREDENTIALS_PATH: secret/observability-team/ci/elastic-cloud/observability-pro
+          EC_CREDENTIALS_PATH: secret/observability-team/ci/elastic-cloud/observability-team-pro
           KIBANA_CREDENTIALS_PATH: secret/observability-team/ci/apm-benchmark-kibana
         with:
           url: ${{ secrets.VAULT_ADDR }}
@@ -106,7 +109,7 @@ jobs:
         run: make apmbench $SSH_KEY terraform.tfvars
 
       - name: Override docker committed version
-        if: ${{ !github.event.inputs.runOnStable }}
+        if: ${{ ! inputs.runOnStable }}
         run: make docker-override-committed-version
 
       - name: Spin up benchmark environment
@@ -118,11 +121,11 @@ jobs:
           echo "-> infra setup done"
 
       - name: Run benchmarks autotuned
-        if: ${{ github.event.inputs.benchmarkAgents == '' }}
+        if: ${{ inputs.benchmarkAgents == '' }}
         run: make run-benchmark-autotuned index-benchmark-results
 
       - name: Run benchmarks self tuned
-        if: ${{ github.event.inputs.benchmarkAgents != '' }}
+        if: ${{ inputs.benchmarkAgents != '' }}
         run: make run-benchmark index-benchmark-results
 
       - name: Download PNG
@@ -134,7 +137,7 @@ jobs:
           $PNG_REPORT_FILE
 
       - name: Upload PNG
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: kibana-png-report
           path: ${{ env.WORKING_DIRECTORY }}/${{ env.PNG_REPORT_FILE }}
@@ -150,7 +153,7 @@ jobs:
           echo "png_report_url=https://elastic-apm-server-benchmark-reports.s3.amazonaws.com/${DEST_NAME}" >> "$GITHUB_OUTPUT"
 
       - name: Upload benchmark result
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: benchmark-result
@@ -166,7 +169,7 @@ jobs:
         uses: elastic/apm-pipeline-library/.github/actions/notify-build-status@current
         with:
           message: |
-            Nightly benchmarks failed! SDH Duty assignee, please have a look and follow this <https://github.com/elastic/observability-dev/blob/main/docs/apm/apm-server/runbooks/benchmarks.md|Runbook>!
+            Nightly APM Server benchmarks failed! SDH Duty assignee, please have a look and follow this <https://github.com/elastic/observability-dev/blob/main/docs/apm/apm-server/runbooks/benchmarks.md|Runbook>!
           vaultUrl: ${{ secrets.VAULT_ADDR }}
           vaultRoleId: ${{ secrets.VAULT_ROLE_ID }}
           vaultSecretId: ${{ secrets.VAULT_SECRET_ID }}
@@ -187,7 +190,7 @@ jobs:
                         "type": "section",
                         "text": {
                             "type": "mrkdwn",
-                            "text": "${{ github.event_name == 'schedule' && 'Nightly succesfully executed!' || 'Benchmarks succesfully executed!' }}"
+                            "text": "${{ github.event_name == 'schedule' && 'Nightly' || '' }} APM Server benchmarks succesfully executed!"
                         },
                         "accessory": {
                             "type": "button",

@@ -4,6 +4,7 @@
 
 include go.mk
 include packaging.mk
+include release.mk
 
 # By default we run tests with verbose output. This may be overridden, e.g.
 # scripts may set GOTESTFLAGS=-json to format test output for processing.
@@ -11,14 +12,6 @@ GOTESTFLAGS?=-v
 
 # Prevent unintended modifications of go.[mod|sum]
 GOMODFLAG?=-mod=readonly
-
-# Define the github.com/elastic/ecs ref used for the integration package for
-# resolving ECS fields. The top-level "value" file in the repo will be used
-# for populating the `ecs.version` field added to documents.
-#
-# TODO(axw) when the device.* fields we're using have been added to a release,
-# we should pin to a release tag here.
-ECS_REF?=266cf6aa62e46bff1965342a61191ce5ffe1b0d7
 
 PYTHON_ENV?=.
 PYTHON_VENV_DIR:=$(PYTHON_ENV)/build/ve/$(shell $(GO) env GOOS)
@@ -102,13 +95,13 @@ clean:
 ##############################################################################
 
 .PHONY: check-full
-check-full: update check staticcheck check-docker-compose
+check-full: update check staticcheck
 
 .PHONY: check-approvals
 check-approvals:
 	@$(GO) run -modfile=tools/go.mod github.com/elastic/apm-tools/cmd/check-approvals
 
-check: check-fmt check-headers check-git-diff check-package
+check: check-fmt check-headers check-git-diff
 
 .PHONY: check-git-diff
 check-git-diff:
@@ -127,7 +120,7 @@ bench:
 tidy:
 	@go mod tidy # make sure go.sum is complete
 
-update: tidy go-generate add-headers build-package notice apm-server.docker.yml docs/spec
+update: tidy go-generate add-headers notice apm-server.docker.yml docs/spec
 
 apm-server.docker.yml: apm-server.yml
 	sed -e 's/127.0.0.1:8200/0.0.0.0:8200/' -e 's/localhost:9200/elasticsearch:9200/' $< > $@
@@ -154,29 +147,6 @@ get-version:
 .PHONY: update-go-version
 update-go-version:
 	$(GITROOT)/script/update_go_version.sh
-
-##############################################################################
-# Integration package generation.
-##############################################################################
-
-ECS_REF_FILE:=build/ecs/$(ECS_REF).txt
-$(ECS_REF_FILE):
-	@mkdir -p $(@D)
-	@curl --fail --silent -o $@ https://raw.githubusercontent.com/elastic/ecs/$(ECS_REF)/version
-
-build-package: build/packages/apm-$(APM_SERVER_VERSION).zip
-build-package-snapshot: build/packages/apm-$(APM_SERVER_VERSION)-preview-$(GITCOMMITTIMESTAMPUNIX).zip
-build/packages/apm-$(APM_SERVER_VERSION).zip: build/apmpackage
-build/packages/apm-$(APM_SERVER_VERSION)-preview-$(GITCOMMITTIMESTAMPUNIX).zip: build/apmpackage-snapshot
-build/packages/apm-%.zip: $(ELASTICPACKAGE)
-	cd $(filter build/apmpackage%, $^) && $(ELASTICPACKAGE) build
-
-.PHONY: build/apmpackage build/apmpackage-snapshot
-build/apmpackage: PACKAGE_VERSION=$(APM_SERVER_VERSION)
-build/apmpackage-snapshot: PACKAGE_VERSION=$(APM_SERVER_VERSION)-preview-$(GITCOMMITTIMESTAMPUNIX)
-build/apmpackage build/apmpackage-snapshot: $(ECS_REF_FILE)
-	@mkdir -p $(@D) && rm -fr $@
-	@$(GO) run ./apmpackage/cmd/genpackage -o $@ -version=$(PACKAGE_VERSION) -ecs=$$(cat $(ECS_REF_FILE)) -ecsref=git@$(ECS_REF)
 
 ##############################################################################
 # Documentation.
@@ -249,10 +219,6 @@ endif
 check-docker-compose:
 	./script/check_docker_compose.sh $(BEATS_VERSION)
 
-check-package: build-package $(ELASTICPACKAGE)
-	@(cd build/apmpackage && $(ELASTICPACKAGE) format --fail-fast && $(ELASTICPACKAGE) lint)
-	@go run cmd/check-internal-metrics/main.go
-
 .PHONY: check-gofmt gofmt
 check-fmt: check-gofmt
 fmt: gofmt
@@ -271,6 +237,7 @@ MODULE_DEPS=$(sort $(shell \
 
 notice: NOTICE.txt
 NOTICE.txt build/dependencies-$(APM_SERVER_VERSION).csv: go.mod tools/go.mod
+	mkdir -p build/
 	$(GO) list -m -json $(MODULE_DEPS) | go run -modfile=tools/go.mod go.elastic.co/go-licence-detector \
 		-includeIndirect \
 		-overrides tools/notice/overrides.json \

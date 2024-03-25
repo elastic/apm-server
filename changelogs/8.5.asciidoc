@@ -1,23 +1,23 @@
-[[release-notes-8.5]]
+[[apm-release-notes-8.5]]
 == APM version 8.5
 
-https://github.com/elastic/apm-server/compare/8.4\...8.5[View commits]
-
-* <<release-notes-8.5.3>>
-* <<release-notes-8.5.2>>
-* <<release-notes-8.5.1>>
-* <<release-notes-8.5.0>>
+* <<apm-release-notes-8.5.3>>
+* <<apm-release-notes-8.5.2>>
+* <<apm-release-notes-8.5.1>>
+* <<apm-release-notes-8.5.0>>
 
 [float]
-[[release-notes-8.5.3]]
+[[apm-release-notes-8.5.3]]
 === APM version 8.5.3
+
+https://github.com/elastic/apm-server/compare/v8.5.2\...v8.5.3[View commits]
 
 [float]
 ==== Bug fixes
 - OpenTelemetry GRPC Spans from the Javascript API/SDK/Instrumentations are now correctly transformed into transactions with type=`request` {pull}9308[9308]
 
 [float]
-[[release-notes-8.5.2]]
+[[apm-release-notes-8.5.2]]
 === APM version 8.5.2
 
 This release includes an important APM Server bug fix.
@@ -31,7 +31,7 @@ https://github.com/elastic/apm-server/compare/v8.5.1\...v8.5.2[View commits]
 - Null APM agent configuration entries are now treated as empty, and will not cause the server to exit with an error {pull}9546[9546]
 
 [float]
-[[release-notes-8.5.1]]
+[[apm-release-notes-8.5.1]]
 === APM version 8.5.1
 
 https://github.com/elastic/apm-server/compare/v8.5.0\...v8.5.1[View commits]
@@ -42,7 +42,7 @@ https://github.com/elastic/apm-server/compare/v8.5.0\...v8.5.1[View commits]
 - Add an `apm-server` user to /etc/passwd in the Docker images {pull}9496[9496]
 
 [float]
-[[release-notes-8.5.0]]
+[[apm-release-notes-8.5.0]]
 === APM version 8.5.0
 
 https://github.com/elastic/apm-server/compare/v8.4.3\...v8.5.0[View commits]

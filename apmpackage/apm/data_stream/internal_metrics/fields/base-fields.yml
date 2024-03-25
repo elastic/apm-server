@@ -1,8 +1,0 @@
-- name: '@timestamp'
-  external: ecs
-- name: data_stream.type
-  external: ecs
-- name: data_stream.dataset
-  external: ecs
-- name: data_stream.namespace
-  external: ecs

@@ -26,7 +26,9 @@ jobs:
       matrix: ${{ fromJson(needs.filter.outputs.matrix) }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-go@v4
+        with:
+          ref: ${{ matrix.branch }}
+      - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
       - uses: elastic/apm-pipeline-library/.github/actions/updatecli@current
