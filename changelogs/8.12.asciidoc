@@ -1,12 +1,12 @@
-[[release-notes-8.12]]
+[[apm-release-notes-8.12]]
 == APM version 8.12
 
-* <<release-notes-8.12.2>>
-* <<release-notes-8.12.1>>
-* <<release-notes-8.12.0>>
+* <<apm-release-notes-8.12.2>>
+* <<apm-release-notes-8.12.1>>
+* <<apm-release-notes-8.12.0>>
 
 [float]
-[[release-notes-8.12.2]]
+[[apm-release-notes-8.12.2]]
 === APM version 8.12.2
 
 https://github.com/elastic/apm-server/compare/v8.12.1\...v8.12.2[View commits]
@@ -17,7 +17,7 @@ https://github.com/elastic/apm-server/compare/v8.12.1\...v8.12.2[View commits]
 - Define value for all constant_keyword fields in apmpackage to fix integration upgrade issues in rare cases {pull}12219[12219]
 
 [float]
-[[release-notes-8.12.1]]
+[[apm-release-notes-8.12.1]]
 === APM version 8.12.1
 
 https://github.com/elastic/apm-server/compare/v8.12.0\...v8.12.1[View commits]
@@ -35,7 +35,7 @@ https://github.com/elastic/apm-server/compare/v8.12.0\...v8.12.1[View commits]
 - Log a single consolidated line per unique error instead of per each failed document {pull}12179[12179]
 
 [float]
-[[release-notes-8.12.0]]
+[[apm-release-notes-8.12.0]]
 === APM version 8.12.0
 
 https://github.com/elastic/apm-server/compare/v8.11.4\...v8.12.0[View commits]

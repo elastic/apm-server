@@ -1,12 +1,12 @@
-[[release-notes-8.13]]
+[[apm-release-notes-8.13]]
 == APM version 8.13
 
 https://github.com/elastic/apm-server/compare/8.12\...8.13[View commits]
 
-* <<release-notes-8.13.0>>
+* <<apm-release-notes-8.13.0>>
 
 [float]
-[[release-notes-8.13.0]]
+[[apm-release-notes-8.13.0]]
 === APM version 8.13.0
 
 [float]
@@ -29,3 +29,4 @@ https://github.com/elastic/apm-server/compare/8.12\...8.13[View commits]
 - Use `messaging.system` and `messaging.operation` to detect OTel messaging span for transactions {pull}12506[12506]
 - Add support for OTel data stream routing by parsing `data_stream.dataset` and `data_stream.namespace` from: (from lowest to highest precedence) resource attributes, instrumentation scope attributes, and signal-level attributes. This is a breaking change only for users relying on the existing `data_stream` attributes being stored as labels. {pull}12578[12578]
 - Map OTel transaction `elastic.profiler_stack_trace_ids` attribute {pull}12493[12493]
+- Reduce go-docappender error logging verbosity. Groups all errors by groups and reports a new "document" field {pull}12604[12604]

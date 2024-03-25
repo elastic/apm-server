@@ -1,11 +1,11 @@
 module github.com/elastic/apm-server/systemtest
 
-go 1.21
+go 1.22
 
-toolchain go1.21.3
+toolchain go1.22.1
 
 require (
-	github.com/docker/docker v24.0.7+incompatible
+	github.com/docker/docker v24.0.9+incompatible
 	github.com/docker/go-connections v0.4.0
 	github.com/elastic/apm-perf v0.0.0-20230608162138-29920c01cfd6
 	github.com/elastic/apm-tools v0.0.0-20231123072934-d85ff07a8390
@@ -100,7 +100,7 @@ require (
 	golang.org/x/tools v0.12.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20231016165738-49dd2c1f3d0b // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20231016165738-49dd2c1f3d0b // indirect
-	google.golang.org/protobuf v1.31.0 // indirect
+	google.golang.org/protobuf v1.33.0 // indirect
 	howett.net/plist v1.0.0 // indirect
 )
 
