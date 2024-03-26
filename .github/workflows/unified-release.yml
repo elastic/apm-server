@@ -1,0 +1,78 @@
+---
+
+name: "Unified Release Manager"
+    
+on:
+  issues:
+    types:
+      - opened
+
+permissions:
+  contents: read
+  issues: write
+
+# Avoid running if there is already an on-going action running for the same
+# GitHub issue
+concurrency:
+  group: "${{ github.workflow }}-${{ github.event.issue.number }}"
+    
+env:
+  RUN_URL: "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+jobs:
+  parse-issue:
+    if: contains(github.event.issue.labels.*.name, 'unified-release')
+    runs-on: ubuntu-latest
+    outputs:
+      payload: ${{ steps.issue-parser.outputs.jsonString }}
+    steps:
+      - uses: actions/checkout@v4
+    
+      - uses: stefanbuck/github-issue-parser@v3
+        id: issue-parser
+        with:
+          template-path: .github/ISSUE_TEMPLATE/unified-release.yml
+
+  run-minor-release:
+    needs:
+      - parse-issue
+    if: fromJson(needs.parse-issue.outputs.payload).type == 'minor'
+    uses: ./.github/workflows/run-minor-release.yml
+    with:
+      version: ${{ fromJson(needs.parse-issue.outputs.payload).version }}
+  
+  run-patch-release:
+    needs:
+      - parse-issue
+    if: fromJson(needs.parse-issue.outputs.payload).type == 'patch'
+    uses: ./.github/workflows/run-patch-release.yml
+    with:
+      version: ${{ fromJson(needs.parse-issue.outputs.payload).version }}
+
+  notify:
+    runs-on: ubuntu-latest
+    if: always()
+    needs:
+      - run-minor-release
+      - run-patch-release
+    steps:
+      - id: check
+        uses: elastic/apm-pipeline-library/.github/actions/check-dependent-jobs@current
+        with:
+          needs: ${{ toJSON(needs) }}
+
+      - name: Notify - success
+        if: steps.check.outputs.status == 'success'
+        uses: peter-evans/close-issue@276d7966e389d888f011539a86c8920025ea0626
+    
+      - name: Notify - failed
+        if: steps.check.outputs.status == 'failure'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '💔 Something went wrong. @elastic/observablt-robots, can you please help? ([logs](${{ env.RUN_URL }}))'
+            })

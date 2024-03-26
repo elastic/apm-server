@@ -2,7 +2,7 @@
 name: run-patch-release
 
 on:
-  workflow_dispatch:
+  workflow_call:
     inputs:
       version:
         description: 'The version (semver format: major.minor.patch)'

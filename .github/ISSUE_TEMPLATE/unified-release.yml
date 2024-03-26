@@ -1,0 +1,47 @@
+---
+
+name: Unified Release Manager
+description: Test
+labels:
+  - unified-release
+
+title: Unified Release
+
+body:
+- type: markdown
+  attributes:
+    value: |
+      ## Unified Release Day
+
+      We are releasing a new version today.
+      Please make sure that the automation complete.
+
+- type: input
+  id: upstream
+  attributes:
+    label: Parent issue
+    description: Link to mission control upstream issue.
+    placeholder: https://github.com/elastic/dev/issues/xxx
+  validations:
+    required: true
+
+- type: input
+  id: version
+  attributes:
+    label: Version
+    description: Version to be released
+    placeholder: 8.13.0
+  validations:
+    required: true
+
+- type: dropdown
+  id: type
+  attributes:
+    label: Type
+    description: Choose type of release
+    options:
+      - patch
+      - minor
+    default: 0
+  validations:
+    required: true
