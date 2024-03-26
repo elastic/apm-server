@@ -32,29 +32,9 @@ paths:
       operationId: postServerHealth
       tags:
         - server info
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                build_date:
-                  type: string
-                  format: time-date
-                  example: '2021-12-18T19:59:06Z'
-                build_sha:
-                  type: string
-                  example: 24fe620eeff5a19e2133c940c7e5ce1ceddb1445
-                publish_ready:
-                  type: boolean
-                  example: true
-                version:
-                  type: string
-                  example: 8.12.1
       responses:
         '200':
           $ref: '#/components/responses/200_server_info'
-
 components:
   securitySchemes:
     apiKeyAuth:
@@ -66,15 +46,35 @@ components:
       type: http
       scheme: bearer
       bearerFormat: Secret token
+  schemas:
+    200_server_info_noauth:
+      description: Indicates that the server is up.
+    200_server_info_auth:
+      description: When an API key or a secret token is passed along with the request, the response payload includes some information about the APM server.
+      type: object
+      properties:
+        build_date:
+          type: string
+          format: time-date
+          example: '2021-12-18T19:59:06Z'
+        build_sha:
+          type: string
+          example: 24fe620eeff5a19e2133c940c7e5ce1ceddb1445
+        publish_ready:
+          type: boolean
+          example: true
+        version:
+          type: string
+          example: 8.12.1
   responses:
     200_server_info:
-      description: |
-        Indicates that the server is up.
-        If an API key or a secret token is passed along with the request, the response payload will include some information about the APM server.
+      description: A successful response.
       content:
         application/json:
           schema:
-            type: object
+            oneOf:
+              - $ref: '#/components/schemas/200_server_info_noauth'
+              - $ref: '#/components/schemas/200_server_info_auth'
 security:
   - apiKeyAuth: [ ]
   - secretToken: [ ]
