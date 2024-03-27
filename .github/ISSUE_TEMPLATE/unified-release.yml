@@ -1,7 +1,7 @@
 ---
 
 name: Unified Release Manager
-description: Test
+description: Automate the minor and patch releases for the Unified Release
 labels:
   - unified-release
 
@@ -11,9 +11,9 @@ body:
 - type: markdown
   attributes:
     value: |
-      ## Unified Release Day
+      ## Unified Release
 
-      We are releasing a new version today.
+      We are releasing a new version.
       Please make sure that the automation complete.
 
 - type: input
