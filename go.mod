@@ -10,7 +10,7 @@ require (
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/apm-aggregation v0.0.0-20230815024520-e75a37d9ddd6
 	github.com/elastic/apm-data v1.0.0
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20240325141120-5750480ebf63
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20240326143228-a1c292dc6514
 	github.com/elastic/elastic-agent-client/v7 v7.8.1
 	github.com/elastic/elastic-agent-libs v0.8.0
 	github.com/elastic/elastic-agent-system-metrics v0.9.2
@@ -44,8 +44,8 @@ require (
 	go.elastic.co/apm/module/apmotel/v2 v2.5.0
 	go.elastic.co/apm/v2 v2.5.0
 	go.elastic.co/fastjson v1.3.0
-	go.opentelemetry.io/collector/consumer v0.96.0
-	go.opentelemetry.io/collector/pdata v1.3.0
+	go.opentelemetry.io/collector/consumer v0.97.0
+	go.opentelemetry.io/collector/pdata v1.4.0
 	go.opentelemetry.io/otel v1.24.0
 	go.opentelemetry.io/otel/metric v1.24.0
 	go.opentelemetry.io/otel/sdk/metric v1.24.0
