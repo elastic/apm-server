@@ -28,7 +28,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
     
-      - uses: stefanbuck/github-issue-parser@v3
+      - uses: stefanbuck/github-issue-parser@1e5bdee70d4b3e066a33aa0669ab782943825f94
         id: issue-parser
         with:
           template-path: .github/ISSUE_TEMPLATE/unified-release.yml
