@@ -1,8 +1,6 @@
 [[apm-release-notes-8.13]]
 == APM version 8.13
 
-https://github.com/elastic/apm-server/compare/8.12\...8.13[View commits]
-
 * <<apm-release-notes-8.13.0>>
 
 [float]
@@ -10,18 +8,6 @@ https://github.com/elastic/apm-server/compare/8.12\...8.13[View commits]
 === APM version 8.13.0
 
 https://github.com/elastic/apm-server/compare/v8.12.2\...v8.13.0[View commits]
-
-[float]
-==== Breaking Changes
-
-[float]
-==== Bug fixes
-
-[float]
-==== Deprecations
-
-[float]
-==== Intake API Changes
 
 [float]
 ==== Added
