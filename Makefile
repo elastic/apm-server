@@ -56,9 +56,7 @@ build/apm-server-linux-%: GOOS=linux
 build/apm-server-darwin-%: GOOS=darwin
 build/apm-server-windows-%: GOOS=windows
 build/apm-server-%-amd64 build/apm-server-%-amd64.exe: GOARCH=amd64
-build/apm-server-%-amd64 build/apm-server-%-amd64.exe: GOFLAGS+=-buildmode=pie
 build/apm-server-%-arm64 build/apm-server-%-arm64.exe: GOARCH=arm64
-build/apm-server-%-arm64 build/apm-server-%-arm64.exe: GOFLAGS+=-buildmode=pie
 
 GOVERSIONINFO_FLAGS := \
 	-file-version "$(APM_SERVER_VERSION)" \
