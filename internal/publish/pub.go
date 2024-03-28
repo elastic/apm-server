@@ -25,7 +25,6 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	"go.elastic.co/apm/v2"
 	"go.elastic.co/fastjson"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
@@ -47,7 +46,6 @@ type Reporter func(context.Context, PendingReq) error
 // concurrent HTTP requests trying to publish at the same time is limited.
 type Publisher struct {
 	stopped chan struct{}
-	tracer  *apm.Tracer
 	client  beat.Client
 
 	mu              sync.RWMutex
@@ -73,10 +71,9 @@ var (
 //
 // GOMAXPROCS goroutines are started for forwarding events to libbeat.
 // Stop must be called to close the beat.Client and free resources.
-func NewPublisher(pipeline beat.Pipeline, tracer *apm.Tracer) (*Publisher, error) {
+func NewPublisher(pipeline beat.Pipeline) (*Publisher, error) {
 	processingCfg := beat.ProcessingConfig{}
 	p := &Publisher{
-		tracer:  tracer,
 		stopped: make(chan struct{}),
 
 		// One request will be actively processed by the

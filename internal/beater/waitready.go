@@ -25,6 +25,7 @@ import (
 
 	"go.elastic.co/apm/v2"
 
+	"github.com/elastic/apm-server/internal/instrumentation"
 	"github.com/elastic/elastic-agent-libs/logp"
 )
 
@@ -33,11 +34,12 @@ import (
 func waitReady(
 	ctx context.Context,
 	interval time.Duration,
-	tracer *apm.Tracer,
+	provider *instrumentation.Provider,
 	logger *logp.Logger,
 	check func(context.Context) error,
 ) error {
 	logger.Info("blocking ingestion until all preconditions are satisfied")
+	tracer := provider.Tracer()
 	tx := tracer.StartTransaction("wait_for_preconditions", "init")
 	defer tx.End()
 	ctx = apm.ContextWithTransaction(ctx, tx)
