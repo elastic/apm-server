@@ -16,7 +16,7 @@ require (
 	github.com/elastic/elastic-agent-system-metrics v0.9.2
 	github.com/elastic/gmux v0.3.1
 	github.com/elastic/go-docappender v1.1.0
-	github.com/elastic/go-elasticsearch/v8 v8.12.1
+	github.com/elastic/go-elasticsearch/v8 v8.13.0
 	github.com/elastic/go-sysinfo v1.13.1
 	github.com/elastic/go-ucfg v0.8.8
 	github.com/go-sourcemap/sourcemap v2.1.4+incompatible
@@ -88,7 +88,7 @@ require (
 	github.com/eapache/go-xerial-snappy v0.0.0-20230731223053-c322873962e3 // indirect
 	github.com/eapache/queue v1.1.0 // indirect
 	github.com/elastic/elastic-agent-shipper-client v0.5.1-0.20230228231646-f04347b666f3 // indirect
-	github.com/elastic/elastic-transport-go/v8 v8.4.0 // indirect
+	github.com/elastic/elastic-transport-go/v8 v8.5.0 // indirect
 	github.com/elastic/go-lumber v0.1.2-0.20220819171948-335fde24ea0f // indirect
 	github.com/elastic/go-structform v0.0.10 // indirect
 	github.com/elastic/go-windows v1.0.1 // indirect
