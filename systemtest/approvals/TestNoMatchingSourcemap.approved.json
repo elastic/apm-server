@@ -6,6 +6,9 @@
         "agent.name": [
             "rum-js"
         ],
+        "agent.name.text": [
+            "rum-js"
+        ],
         "agent.version": [
             "0.0.0"
         ],
@@ -42,6 +45,12 @@
         "service.name": [
             "apm-agent-js"
         ],
+        "service.name.text": [
+            "apm-agent-js"
+        ],
+        "service.version": [
+            "1.0.0"
+        ],
         "source.ip": [
             "127.0.0.1"
         ],
@@ -55,6 +64,9 @@
             "aaaaaaaaaaaaaaaa"
         ],
         "span.name": [
+            "transaction"
+        ],
+        "span.name.text": [
             "transaction"
         ],
         "span.representative_count": [
@@ -106,6 +118,27 @@
         ],
         "url.original.text": [
             "http://localhost:8000/test/e2e/general-usecase/span"
+        ],
+        "user_agent.device.name": [
+            "Other"
+        ],
+        "user_agent.device.name.text": [
+            "Other"
+        ],
+        "user_agent.name": [
+            "Go-http-client"
+        ],
+        "user_agent.name.text": [
+            "Go-http-client"
+        ],
+        "user_agent.original": [
+            "Go-http-client/1.1"
+        ],
+        "user_agent.original.text": [
+            "Go-http-client/1.1"
+        ],
+        "user_agent.version": [
+            "1.1"
         ]
     }
 ]

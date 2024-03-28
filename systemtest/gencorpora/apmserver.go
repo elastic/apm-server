@@ -38,8 +38,6 @@ type APMServer struct {
 // using the Elasticsearch output.
 func NewAPMServer(ctx context.Context, esHost string) *apmservertest.Server {
 	srv := apmservertest.NewUnstartedServer()
-	waitForIntegration := false
-	srv.Config.WaitForIntegration = &waitForIntegration
 	srv.Config.Output.Elasticsearch.Hosts = []string{esHost}
 	srv.Config.Kibana = nil
 	return srv

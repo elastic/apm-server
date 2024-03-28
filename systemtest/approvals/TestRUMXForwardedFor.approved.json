@@ -6,6 +6,9 @@
         "agent.name": [
             "rum-js"
         ],
+        "agent.name.text": [
+            "rum-js"
+        ],
         "agent.version": [
             "5.5.0"
         ],
@@ -45,6 +48,9 @@
         "metricset.name": [
             "span_breakdown"
         ],
+        "metricset.name.text": [
+            "span_breakdown"
+        ],
         "observer.hostname": [
             "dynamic"
         ],
@@ -58,6 +64,9 @@
             "metric"
         ],
         "service.name": [
+            "rum-js-test"
+        ],
+        "service.name.text": [
             "rum-js-test"
         ],
         "source.ip": [
@@ -81,13 +90,22 @@
         "transaction.name": [
             "GET /"
         ],
+        "transaction.name.text": [
+            "GET /"
+        ],
         "transaction.type": [
             "request"
         ],
         "user_agent.device.name": [
             "Other"
         ],
+        "user_agent.device.name.text": [
+            "Other"
+        ],
         "user_agent.name": [
+            "Go-http-client"
+        ],
+        "user_agent.name.text": [
             "Go-http-client"
         ],
         "user_agent.original": [
@@ -105,6 +123,9 @@
             "dynamic"
         ],
         "agent.name": [
+            "rum-js"
+        ],
+        "agent.name.text": [
             "rum-js"
         ],
         "agent.version": [
@@ -161,6 +182,9 @@
         "service.name": [
             "rum-js-test"
         ],
+        "service.name.text": [
+            "rum-js-test"
+        ],
         "source.ip": [
             "220.244.41.16"
         ],
@@ -197,7 +221,13 @@
         "user_agent.device.name": [
             "Other"
         ],
+        "user_agent.device.name.text": [
+            "Other"
+        ],
         "user_agent.name": [
+            "Go-http-client"
+        ],
+        "user_agent.name.text": [
             "Go-http-client"
         ],
         "user_agent.original": [

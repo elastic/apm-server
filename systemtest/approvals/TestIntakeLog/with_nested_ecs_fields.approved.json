@@ -12,6 +12,9 @@
         "agent.name": [
             "java"
         ],
+        "agent.name.text": [
+            "java"
+        ],
         "agent.version": [
             "1.10.0"
         ],
@@ -54,6 +57,9 @@
         "host.name": [
             "host1"
         ],
+        "host.name.text": [
+            "host1"
+        ],
         "host.os.platform": [
             "Linux"
         ],
@@ -63,7 +69,13 @@
         "kubernetes.node.name": [
             "node-name"
         ],
+        "kubernetes.node.name.text": [
+            "node-name"
+        ],
         "kubernetes.pod.name": [
+            "instrumented-java-service"
+        ],
+        "kubernetes.pod.name.text": [
             "instrumented-java-service"
         ],
         "kubernetes.pod.uid": [
@@ -91,6 +103,9 @@
             10
         ],
         "log.origin.file.name": [
+            "testFile"
+        ],
+        "log.origin.file.name.text": [
             "testFile"
         ],
         "log.origin.function": [
@@ -129,6 +144,9 @@
         "process.thread.name": [
             "testThread"
         ],
+        "process.thread.name.text": [
+            "testThread"
+        ],
         "process.title": [
             "/usr/lib/jvm/java-10-openjdk-amd64/bin/java"
         ],
@@ -141,10 +159,16 @@
         "service.framework.name": [
             "spring"
         ],
+        "service.framework.name.text": [
+            "spring"
+        ],
         "service.framework.version": [
             "5.0.0"
         ],
         "service.language.name": [
+            "Java"
+        ],
+        "service.language.name.text": [
             "Java"
         ],
         "service.language.version": [
@@ -153,10 +177,19 @@
         "service.name": [
             "testSvc"
         ],
+        "service.name.text": [
+            "testSvc"
+        ],
         "service.node.name": [
             "8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"
         ],
+        "service.node.name.text": [
+            "8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"
+        ],
         "service.runtime.name": [
+            "Java"
+        ],
+        "service.runtime.name.text": [
             "Java"
         ],
         "service.runtime.version": [

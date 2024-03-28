@@ -6,6 +6,9 @@
         "agent.name": [
             "opentelemetry/go"
         ],
+        "agent.name.text": [
+            "opentelemetry/go"
+        ],
         "agent.version": [
             "1.19.0"
         ],
@@ -84,10 +87,19 @@
         "service.framework.name": [
             "systemtest"
         ],
+        "service.framework.name.text": [
+            "systemtest"
+        ],
         "service.language.name": [
             "go"
         ],
+        "service.language.name.text": [
+            "go"
+        ],
         "service.name": [
+            "unknown_service_systemtest_test"
+        ],
+        "service.name.text": [
             "unknown_service_systemtest_test"
         ],
         "span.id": [
@@ -114,6 +126,9 @@
             "1970-01-01T00:02:03.001Z"
         ],
         "agent.name": [
+            "opentelemetry/go"
+        ],
+        "agent.name.text": [
             "opentelemetry/go"
         ],
         "agent.version": [
@@ -167,10 +182,19 @@
         "service.framework.name": [
             "systemtest"
         ],
+        "service.framework.name.text": [
+            "systemtest"
+        ],
         "service.language.name": [
             "go"
         ],
+        "service.language.name.text": [
+            "go"
+        ],
         "service.name": [
+            "unknown_service_systemtest_test"
+        ],
+        "service.name.text": [
             "unknown_service_systemtest_test"
         ],
         "span.id": [
@@ -188,6 +212,9 @@
             "1970-01-01T00:02:03.000Z"
         ],
         "agent.name": [
+            "opentelemetry/go"
+        ],
+        "agent.name.text": [
             "opentelemetry/go"
         ],
         "agent.version": [
@@ -249,10 +276,19 @@
         "service.framework.name": [
             "systemtest"
         ],
+        "service.framework.name.text": [
+            "systemtest"
+        ],
         "service.language.name": [
             "go"
         ],
+        "service.language.name.text": [
+            "go"
+        ],
         "service.name": [
+            "unknown_service_systemtest_test"
+        ],
+        "service.name.text": [
             "unknown_service_systemtest_test"
         ],
         "span.id": [

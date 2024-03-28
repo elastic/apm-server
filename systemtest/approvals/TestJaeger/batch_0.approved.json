@@ -9,6 +9,9 @@
         "agent.name": [
             "Jaeger/Go"
         ],
+        "agent.name.text": [
+            "Jaeger/Go"
+        ],
         "agent.version": [
             "2.20.1"
         ],
@@ -42,6 +45,9 @@
         "host.name": [
             "host01"
         ],
+        "host.name.text": [
+            "host01"
+        ],
         "message": [
             "Retrying GetDriver after error"
         ],
@@ -63,10 +69,19 @@
         "service.language.name": [
             "Go"
         ],
+        "service.language.name.text": [
+            "Go"
+        ],
         "service.name": [
             "driver"
         ],
+        "service.name.text": [
+            "driver"
+        ],
         "service.node.name": [
+            "host01"
+        ],
+        "service.node.name.text": [
             "host01"
         ],
         "span.id": [
@@ -98,6 +113,9 @@
         "agent.name": [
             "Jaeger/Go"
         ],
+        "agent.name.text": [
+            "Jaeger/Go"
+        ],
         "agent.version": [
             "2.20.1"
         ],
@@ -131,6 +149,9 @@
         "host.name": [
             "host01"
         ],
+        "host.name.text": [
+            "host01"
+        ],
         "message": [
             "Retrying GetDriver after error"
         ],
@@ -152,10 +173,19 @@
         "service.language.name": [
             "Go"
         ],
+        "service.language.name.text": [
+            "Go"
+        ],
         "service.name": [
             "driver"
         ],
+        "service.name.text": [
+            "driver"
+        ],
         "service.node.name": [
+            "host01"
+        ],
+        "service.node.name.text": [
             "host01"
         ],
         "span.id": [
@@ -187,6 +217,9 @@
         "agent.name": [
             "Jaeger/Go"
         ],
+        "agent.name.text": [
+            "Jaeger/Go"
+        ],
         "agent.version": [
             "2.20.1"
         ],
@@ -220,6 +253,9 @@
         "host.name": [
             "host01"
         ],
+        "host.name.text": [
+            "host01"
+        ],
         "message": [
             "Retrying GetDriver after error"
         ],
@@ -241,10 +277,19 @@
         "service.language.name": [
             "Go"
         ],
+        "service.language.name.text": [
+            "Go"
+        ],
         "service.name": [
             "driver"
         ],
+        "service.name.text": [
+            "driver"
+        ],
         "service.node.name": [
+            "host01"
+        ],
+        "service.node.name.text": [
             "host01"
         ],
         "span.id": [
@@ -276,6 +321,9 @@
         "agent.name": [
             "Jaeger/Go"
         ],
+        "agent.name.text": [
+            "Jaeger/Go"
+        ],
         "agent.version": [
             "2.20.1"
         ],
@@ -298,6 +346,9 @@
             "10.0.0.13"
         ],
         "host.name": [
+            "host01"
+        ],
+        "host.name.text": [
             "host01"
         ],
         "labels.level": [
@@ -321,10 +372,19 @@
         "service.language.name": [
             "Go"
         ],
+        "service.language.name.text": [
+            "Go"
+        ],
         "service.name": [
             "driver"
         ],
+        "service.name.text": [
+            "driver"
+        ],
         "service.node.name": [
+            "host01"
+        ],
+        "service.node.name.text": [
             "host01"
         ],
         "span.id": [
@@ -345,6 +405,9 @@
             "624386e9c81d2980"
         ],
         "agent.name": [
+            "Jaeger/Go"
+        ],
+        "agent.name.text": [
             "Jaeger/Go"
         ],
         "agent.version": [
@@ -369,6 +432,9 @@
             "10.0.0.13"
         ],
         "host.name": [
+            "host01"
+        ],
+        "host.name.text": [
             "host01"
         ],
         "labels.level": [
@@ -392,10 +458,19 @@
         "service.language.name": [
             "Go"
         ],
+        "service.language.name.text": [
+            "Go"
+        ],
         "service.name": [
             "driver"
         ],
+        "service.name.text": [
+            "driver"
+        ],
         "service.node.name": [
+            "host01"
+        ],
+        "service.node.name.text": [
             "host01"
         ],
         "span.id": [
@@ -416,6 +491,9 @@
             "624386e9c81d2980"
         ],
         "agent.name": [
+            "Jaeger/Go"
+        ],
+        "agent.name.text": [
             "Jaeger/Go"
         ],
         "agent.version": [
@@ -442,6 +520,9 @@
         "host.name": [
             "host01"
         ],
+        "host.name.text": [
+            "host01"
+        ],
         "labels.key": [
             "customer"
         ],
@@ -463,10 +544,19 @@
         "service.language.name": [
             "Go"
         ],
+        "service.language.name.text": [
+            "Go"
+        ],
         "service.name": [
             "driver"
         ],
+        "service.name.text": [
+            "driver"
+        ],
         "service.node.name": [
+            "host01"
+        ],
+        "service.node.name.text": [
             "host01"
         ],
         "span.id": [
@@ -487,6 +577,9 @@
             "624386e9c81d2980"
         ],
         "agent.name": [
+            "Jaeger/Go"
+        ],
+        "agent.name.text": [
             "Jaeger/Go"
         ],
         "agent.version": [
@@ -514,6 +607,9 @@
             "10.0.0.13"
         ],
         "host.name": [
+            "host01"
+        ],
+        "host.name.text": [
             "host01"
         ],
         "labels.as": [
@@ -549,10 +645,19 @@
         "service.language.name": [
             "Go"
         ],
+        "service.language.name.text": [
+            "Go"
+        ],
         "service.name": [
             "driver"
         ],
+        "service.name.text": [
+            "driver"
+        ],
         "service.node.name": [
+            "host01"
+        ],
+        "service.node.name.text": [
             "host01"
         ],
         "span.id": [

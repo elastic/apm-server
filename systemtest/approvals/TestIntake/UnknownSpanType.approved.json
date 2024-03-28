@@ -6,6 +6,9 @@
         "agent.name": [
             "elastic-node"
         ],
+        "agent.name.text": [
+            "elastic-node"
+        ],
         "agent.version": [
             "3.14.0"
         ],
@@ -46,6 +49,9 @@
             "namespace1"
         ],
         "kubernetes.pod.name": [
+            "pod-name"
+        ],
+        "kubernetes.pod.name.text": [
             "pod-name"
         ],
         "kubernetes.pod.uid": [
@@ -91,10 +97,16 @@
         "service.framework.name": [
             "Express"
         ],
+        "service.framework.name.text": [
+            "Express"
+        ],
         "service.framework.version": [
             "1.2.3"
         ],
         "service.language.name": [
+            "ecmascript"
+        ],
+        "service.language.name.text": [
             "ecmascript"
         ],
         "service.language.version": [
@@ -103,10 +115,19 @@
         "service.name": [
             "1234_service-12a3"
         ],
+        "service.name.text": [
+            "1234_service-12a3"
+        ],
         "service.node.name": [
             "container-id"
         ],
+        "service.node.name.text": [
+            "container-id"
+        ],
         "service.runtime.name": [
+            "node"
+        ],
+        "service.runtime.name.text": [
             "node"
         ],
         "service.runtime.version": [
@@ -127,6 +148,9 @@
         "span.db.user.name": [
             "readonly_user"
         ],
+        "span.db.user.name.text": [
+            "readonly_user"
+        ],
         "span.duration.us": [
             3781
         ],
@@ -134,6 +158,9 @@
             "0aaaaaaaaaaaaaaa"
         ],
         "span.name": [
+            "SELECT FROM product_types"
+        ],
+        "span.name.text": [
             "SELECT FROM product_types"
         ],
         "span.representative_count": [
@@ -216,6 +243,9 @@
         "agent.name": [
             "js-base"
         ],
+        "agent.name.text": [
+            "js-base"
+        ],
         "agent.version": [
             "1.3"
         ],
@@ -233,6 +263,9 @@
         ],
         "event.outcome": [
             "success"
+        ],
+        "event.success_count": [
+            1
         ],
         "host.architecture": [
             "x64"
@@ -310,6 +343,9 @@
         "kubernetes.pod.name": [
             "pod-name"
         ],
+        "kubernetes.pod.name.text": [
+            "pod-name"
+        ],
         "kubernetes.pod.uid": [
             "pod-uid"
         ],
@@ -356,10 +392,16 @@
         "service.framework.name": [
             "Express"
         ],
+        "service.framework.name.text": [
+            "Express"
+        ],
         "service.framework.version": [
             "1.2.3"
         ],
         "service.language.name": [
+            "ecmascript"
+        ],
+        "service.language.name.text": [
             "ecmascript"
         ],
         "service.language.version": [
@@ -368,10 +410,19 @@
         "service.name": [
             "serviceabc"
         ],
+        "service.name.text": [
+            "serviceabc"
+        ],
         "service.node.name": [
             "special-name"
         ],
+        "service.node.name.text": [
+            "special-name"
+        ],
         "service.runtime.name": [
+            "javascript"
+        ],
+        "service.runtime.name.text": [
             "javascript"
         ],
         "service.runtime.version": [
@@ -480,7 +531,13 @@
         "user_agent.device.name": [
             "Other"
         ],
+        "user_agent.device.name.text": [
+            "Other"
+        ],
         "user_agent.name": [
+            "Other"
+        ],
+        "user_agent.name.text": [
             "Other"
         ],
         "user_agent.original": [

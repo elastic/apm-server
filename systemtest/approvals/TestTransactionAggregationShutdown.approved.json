@@ -6,6 +6,9 @@
         "agent.name": [
             "go"
         ],
+        "agent.name.text": [
+            "go"
+        ],
         "data_stream.dataset": [
             "apm.transaction.10m"
         ],
@@ -28,6 +31,9 @@
             "beowulf"
         ],
         "host.name": [
+            "beowulf"
+        ],
+        "host.name.text": [
             "beowulf"
         ],
         "host.os.platform": [
@@ -54,16 +60,28 @@
         "service.language.name": [
             "go"
         ],
+        "service.language.name.text": [
+            "go"
+        ],
         "service.language.version": [
             "2.0"
         ],
         "service.name": [
             "systemtest"
         ],
+        "service.name.text": [
+            "systemtest"
+        ],
         "service.node.name": [
             "beowulf"
         ],
+        "service.node.name.text": [
+            "beowulf"
+        ],
         "service.runtime.name": [
+            "gc"
+        ],
+        "service.runtime.name.text": [
             "gc"
         ],
         "service.runtime.version": [
@@ -88,6 +106,9 @@
         "transaction.name": [
             "name"
         ],
+        "transaction.name.text": [
+            "name"
+        ],
         "transaction.root": [
             true
         ],
@@ -100,6 +121,9 @@
             "2006-01-02T15:04:00.000Z"
         ],
         "agent.name": [
+            "go"
+        ],
+        "agent.name.text": [
             "go"
         ],
         "data_stream.dataset": [
@@ -126,6 +150,9 @@
         "host.name": [
             "beowulf"
         ],
+        "host.name.text": [
+            "beowulf"
+        ],
         "host.os.platform": [
             "minix"
         ],
@@ -150,16 +177,28 @@
         "service.language.name": [
             "go"
         ],
+        "service.language.name.text": [
+            "go"
+        ],
         "service.language.version": [
             "2.0"
         ],
         "service.name": [
             "systemtest"
         ],
+        "service.name.text": [
+            "systemtest"
+        ],
         "service.node.name": [
             "beowulf"
         ],
+        "service.node.name.text": [
+            "beowulf"
+        ],
         "service.runtime.name": [
+            "gc"
+        ],
+        "service.runtime.name.text": [
             "gc"
         ],
         "service.runtime.version": [
@@ -184,6 +223,9 @@
         "transaction.name": [
             "name"
         ],
+        "transaction.name.text": [
+            "name"
+        ],
         "transaction.root": [
             true
         ],
@@ -196,6 +238,9 @@
             "2006-01-02T15:00:00.000Z"
         ],
         "agent.name": [
+            "go"
+        ],
+        "agent.name.text": [
             "go"
         ],
         "data_stream.dataset": [
@@ -222,6 +267,9 @@
         "host.name": [
             "beowulf"
         ],
+        "host.name.text": [
+            "beowulf"
+        ],
         "host.os.platform": [
             "minix"
         ],
@@ -246,16 +294,28 @@
         "service.language.name": [
             "go"
         ],
+        "service.language.name.text": [
+            "go"
+        ],
         "service.language.version": [
             "2.0"
         ],
         "service.name": [
             "systemtest"
         ],
+        "service.name.text": [
+            "systemtest"
+        ],
         "service.node.name": [
             "beowulf"
         ],
+        "service.node.name.text": [
+            "beowulf"
+        ],
         "service.runtime.name": [
+            "gc"
+        ],
+        "service.runtime.name.text": [
             "gc"
         ],
         "service.runtime.version": [
@@ -278,6 +338,9 @@
             }
         ],
         "transaction.name": [
+            "name"
+        ],
+        "transaction.name.text": [
             "name"
         ],
         "transaction.root": [

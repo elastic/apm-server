@@ -370,8 +370,7 @@ func TestUnpackConfig(t *testing.T) {
 				},
 				DefaultServiceEnvironment: "overridden",
 				DataStreams: DataStreamsConfig{
-					Namespace:          "default",
-					WaitForIntegration: true,
+					Namespace: "default",
 				},
 				WaitReadyInterval: 5 * time.Second,
 			},
@@ -419,8 +418,7 @@ func TestUnpackConfig(t *testing.T) {
 					"storage_limit":     "1GB",
 				},
 				"data_streams": map[string]interface{}{
-					"namespace":            "foo",
-					"wait_for_integration": false,
+					"namespace": "foo",
 				},
 			},
 			outCfg: &Config{
@@ -503,8 +501,7 @@ func TestUnpackConfig(t *testing.T) {
 					},
 				},
 				DataStreams: DataStreamsConfig{
-					Namespace:          "foo",
-					WaitForIntegration: false,
+					Namespace: "foo",
 				},
 				WaitReadyInterval: 5 * time.Second,
 			},

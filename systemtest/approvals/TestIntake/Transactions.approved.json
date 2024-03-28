@@ -9,6 +9,9 @@
         "agent.name": [
             "elastic-node"
         ],
+        "agent.name.text": [
+            "elastic-node"
+        ],
         "agent.version": [
             "3.14.0"
         ],
@@ -16,6 +19,9 @@
             "account_id"
         ],
         "cloud.account.name": [
+            "account_name"
+        ],
+        "cloud.account.name.text": [
             "account_name"
         ],
         "cloud.availability_zone": [
@@ -27,6 +33,9 @@
         "cloud.instance.name": [
             "instance_name"
         ],
+        "cloud.instance.name.text": [
+            "instance_name"
+        ],
         "cloud.machine.type": [
             "machine_type"
         ],
@@ -36,6 +45,9 @@
         "cloud.project.name": [
             "project_name"
         ],
+        "cloud.project.name.text": [
+            "project_name"
+        ],
         "cloud.provider": [
             "cloud_provider"
         ],
@@ -43,6 +55,9 @@
             "cloud_region"
         ],
         "cloud.service.name": [
+            "lambda"
+        ],
+        "cloud.service.name.text": [
             "lambda"
         ],
         "container.id": [
@@ -72,6 +87,9 @@
         "host.name": [
             "node-name"
         ],
+        "host.name.text": [
+            "node-name"
+        ],
         "host.os.platform": [
             "darwin"
         ],
@@ -81,7 +99,13 @@
         "kubernetes.node.name": [
             "node-name"
         ],
+        "kubernetes.node.name.text": [
+            "node-name"
+        ],
         "kubernetes.pod.name": [
+            "pod-name"
+        ],
+        "kubernetes.pod.name.text": [
             "pod-name"
         ],
         "kubernetes.pod.uid": [
@@ -130,10 +154,16 @@
         "service.framework.name": [
             "Express"
         ],
+        "service.framework.name.text": [
+            "Express"
+        ],
         "service.framework.version": [
             "1.2.3"
         ],
         "service.language.name": [
+            "ecmascript"
+        ],
+        "service.language.name.text": [
             "ecmascript"
         ],
         "service.language.version": [
@@ -142,10 +172,19 @@
         "service.name": [
             "1234_service-12a3"
         ],
+        "service.name.text": [
+            "1234_service-12a3"
+        ],
         "service.node.name": [
             "node-123"
         ],
+        "service.node.name.text": [
+            "node-123"
+        ],
         "service.runtime.name": [
+            "node"
+        ],
+        "service.runtime.name.text": [
             "node"
         ],
         "service.runtime.version": [
@@ -189,6 +228,9 @@
             "1ax3"
         ],
         "transaction.message.queue.name": [
+            "new_users"
+        ],
+        "transaction.message.queue.name.text": [
             "new_users"
         ],
         "transaction.message.routing_key": [
@@ -235,6 +277,9 @@
         "agent.name": [
             "elastic-node"
         ],
+        "agent.name.text": [
+            "elastic-node"
+        ],
         "agent.version": [
             "3.14.0"
         ],
@@ -242,6 +287,9 @@
             "account_id"
         ],
         "cloud.account.name": [
+            "account_name"
+        ],
+        "cloud.account.name.text": [
             "account_name"
         ],
         "cloud.availability_zone": [
@@ -253,6 +301,9 @@
         "cloud.instance.name": [
             "instance_name"
         ],
+        "cloud.instance.name.text": [
+            "instance_name"
+        ],
         "cloud.machine.type": [
             "machine_type"
         ],
@@ -262,6 +313,9 @@
         "cloud.project.name": [
             "project_name"
         ],
+        "cloud.project.name.text": [
+            "project_name"
+        ],
         "cloud.provider": [
             "cloud_provider"
         ],
@@ -269,6 +323,9 @@
             "cloud_region"
         ],
         "cloud.service.name": [
+            "lambda"
+        ],
+        "cloud.service.name.text": [
             "lambda"
         ],
         "container.id": [
@@ -301,6 +358,9 @@
         "host.name": [
             "node-name"
         ],
+        "host.name.text": [
+            "node-name"
+        ],
         "host.os.platform": [
             "darwin"
         ],
@@ -310,7 +370,13 @@
         "kubernetes.node.name": [
             "node-name"
         ],
+        "kubernetes.node.name.text": [
+            "node-name"
+        ],
         "kubernetes.pod.name": [
+            "pod-name"
+        ],
+        "kubernetes.pod.name.text": [
             "pod-name"
         ],
         "kubernetes.pod.uid": [
@@ -359,10 +425,16 @@
         "service.framework.name": [
             "Express"
         ],
+        "service.framework.name.text": [
+            "Express"
+        ],
         "service.framework.version": [
             "1.2.3"
         ],
         "service.language.name": [
+            "ecmascript"
+        ],
+        "service.language.name.text": [
             "ecmascript"
         ],
         "service.language.version": [
@@ -371,10 +443,19 @@
         "service.name": [
             "1234_service-12a3"
         ],
+        "service.name.text": [
+            "1234_service-12a3"
+        ],
         "service.node.name": [
             "node-123"
         ],
+        "service.node.name.text": [
+            "node-123"
+        ],
         "service.runtime.name": [
+            "node"
+        ],
+        "service.runtime.name.text": [
             "node"
         ],
         "service.runtime.version": [
@@ -444,6 +525,9 @@
         "agent.name": [
             "elastic-node"
         ],
+        "agent.name.text": [
+            "elastic-node"
+        ],
         "agent.version": [
             "3.14.0"
         ],
@@ -468,6 +552,9 @@
         "cloud.account.name": [
             "account_name"
         ],
+        "cloud.account.name.text": [
+            "account_name"
+        ],
         "cloud.availability_zone": [
             "cloud_availability_zone"
         ],
@@ -475,6 +562,9 @@
             "instance_id"
         ],
         "cloud.instance.name": [
+            "instance_name"
+        ],
+        "cloud.instance.name.text": [
             "instance_name"
         ],
         "cloud.machine.type": [
@@ -486,6 +576,9 @@
         "cloud.project.name": [
             "project_name"
         ],
+        "cloud.project.name.text": [
+            "project_name"
+        ],
         "cloud.provider": [
             "cloud_provider"
         ],
@@ -493,6 +586,9 @@
             "cloud_region"
         ],
         "cloud.service.name": [
+            "lambda"
+        ],
+        "cloud.service.name.text": [
             "lambda"
         ],
         "container.id": [
@@ -523,6 +619,9 @@
             "127.0.0.1"
         ],
         "host.name": [
+            "node-name"
+        ],
+        "host.name.text": [
             "node-name"
         ],
         "host.os.platform": [
@@ -605,7 +704,13 @@
         "kubernetes.node.name": [
             "node-name"
         ],
+        "kubernetes.node.name.text": [
+            "node-name"
+        ],
         "kubernetes.pod.name": [
+            "pod-name"
+        ],
+        "kubernetes.pod.name.text": [
             "pod-name"
         ],
         "kubernetes.pod.uid": [
@@ -660,10 +765,16 @@
         "service.framework.name": [
             "Express"
         ],
+        "service.framework.name.text": [
+            "Express"
+        ],
         "service.framework.version": [
             "1.2.3"
         ],
         "service.language.name": [
+            "ecmascript"
+        ],
+        "service.language.name.text": [
             "ecmascript"
         ],
         "service.language.version": [
@@ -672,10 +783,19 @@
         "service.name": [
             "1234_service-12a3"
         ],
+        "service.name.text": [
+            "1234_service-12a3"
+        ],
         "service.node.name": [
             "node-123"
         ],
+        "service.node.name.text": [
+            "node-123"
+        ],
         "service.runtime.name": [
+            "node"
+        ],
+        "service.runtime.name.text": [
             "node"
         ],
         "service.runtime.version": [
@@ -781,7 +901,13 @@
         "user_agent.device.name": [
             "Mac"
         ],
+        "user_agent.device.name.text": [
+            "Mac"
+        ],
         "user_agent.name": [
+            "Chrome"
+        ],
+        "user_agent.name.text": [
             "Chrome"
         ],
         "user_agent.original": [
@@ -822,6 +948,9 @@
         "agent.name": [
             "elastic-ruby"
         ],
+        "agent.name.text": [
+            "elastic-ruby"
+        ],
         "agent.version": [
             "2.2"
         ],
@@ -829,6 +958,9 @@
             "account_id"
         ],
         "cloud.account.name": [
+            "account_name"
+        ],
+        "cloud.account.name.text": [
             "account_name"
         ],
         "cloud.availability_zone": [
@@ -840,6 +972,9 @@
         "cloud.instance.name": [
             "instance_name"
         ],
+        "cloud.instance.name.text": [
+            "instance_name"
+        ],
         "cloud.machine.type": [
             "machine_type"
         ],
@@ -849,6 +984,9 @@
         "cloud.project.name": [
             "project_name"
         ],
+        "cloud.project.name.text": [
+            "project_name"
+        ],
         "cloud.provider": [
             "cloud_provider"
         ],
@@ -856,6 +994,9 @@
             "cloud_region"
         ],
         "cloud.service.name": [
+            "lambda"
+        ],
+        "cloud.service.name.text": [
             "lambda"
         ],
         "container.id": [
@@ -885,6 +1026,9 @@
         "host.name": [
             "node-name"
         ],
+        "host.name.text": [
+            "node-name"
+        ],
         "host.os.platform": [
             "darwin"
         ],
@@ -897,7 +1041,13 @@
         "kubernetes.node.name": [
             "node-name"
         ],
+        "kubernetes.node.name.text": [
+            "node-name"
+        ],
         "kubernetes.pod.name": [
+            "pod-name"
+        ],
+        "kubernetes.pod.name.text": [
             "pod-name"
         ],
         "kubernetes.pod.uid": [
@@ -943,10 +1093,16 @@
         "service.framework.name": [
             "Rails"
         ],
+        "service.framework.name.text": [
+            "Rails"
+        ],
         "service.framework.version": [
             "5.0"
         ],
         "service.language.name": [
+            "ruby"
+        ],
+        "service.language.name.text": [
             "ruby"
         ],
         "service.language.version": [
@@ -955,10 +1111,19 @@
         "service.name": [
             "service1"
         ],
+        "service.name.text": [
+            "service1"
+        ],
         "service.node.name": [
             "node-ABC"
         ],
+        "service.node.name.text": [
+            "node-ABC"
+        ],
         "service.runtime.name": [
+            "cruby"
+        ],
+        "service.runtime.name.text": [
             "cruby"
         ],
         "service.runtime.version": [
@@ -1050,6 +1215,9 @@
         "agent.name": [
             "elastic-node"
         ],
+        "agent.name.text": [
+            "elastic-node"
+        ],
         "agent.version": [
             "3.14.0"
         ],
@@ -1059,6 +1227,9 @@
         "cloud.account.name": [
             "account_name"
         ],
+        "cloud.account.name.text": [
+            "account_name"
+        ],
         "cloud.availability_zone": [
             "cloud_availability_zone"
         ],
@@ -1066,6 +1237,9 @@
             "instance_id"
         ],
         "cloud.instance.name": [
+            "instance_name"
+        ],
+        "cloud.instance.name.text": [
             "instance_name"
         ],
         "cloud.machine.type": [
@@ -1083,10 +1257,16 @@
         "cloud.origin.service.name": [
             "serviceName"
         ],
+        "cloud.origin.service.name.text": [
+            "serviceName"
+        ],
         "cloud.project.id": [
             "project_id"
         ],
         "cloud.project.name": [
+            "project_name"
+        ],
+        "cloud.project.name.text": [
             "project_name"
         ],
         "cloud.provider": [
@@ -1096,6 +1276,9 @@
             "cloud_region"
         ],
         "cloud.service.name": [
+            "lambda"
+        ],
+        "cloud.service.name.text": [
             "lambda"
         ],
         "container.id": [
@@ -1122,6 +1305,9 @@
         "faas.name": [
             "faasName"
         ],
+        "faas.name.text": [
+            "faasName"
+        ],
         "faas.trigger.request_id": [
             "FuH2Cir_vHcEMUA="
         ],
@@ -1143,6 +1329,9 @@
         "host.name": [
             "node-name"
         ],
+        "host.name.text": [
+            "node-name"
+        ],
         "host.os.platform": [
             "darwin"
         ],
@@ -1152,7 +1341,13 @@
         "kubernetes.node.name": [
             "node-name"
         ],
+        "kubernetes.node.name.text": [
+            "node-name"
+        ],
         "kubernetes.pod.name": [
+            "pod-name"
+        ],
+        "kubernetes.pod.name.text": [
             "pod-name"
         ],
         "kubernetes.pod.uid": [
@@ -1198,10 +1393,16 @@
         "service.framework.name": [
             "Express"
         ],
+        "service.framework.name.text": [
+            "Express"
+        ],
         "service.framework.version": [
             "1.2.3"
         ],
         "service.language.name": [
+            "ecmascript"
+        ],
+        "service.language.name.text": [
             "ecmascript"
         ],
         "service.language.version": [
@@ -1210,7 +1411,13 @@
         "service.name": [
             "1234_service-12a3"
         ],
+        "service.name.text": [
+            "1234_service-12a3"
+        ],
         "service.node.name": [
+            "node-123"
+        ],
+        "service.node.name.text": [
             "node-123"
         ],
         "service.origin.id": [
@@ -1219,10 +1426,16 @@
         "service.origin.name": [
             "service-name"
         ],
+        "service.origin.name.text": [
+            "service-name"
+        ],
         "service.origin.version": [
             "1.0"
         ],
         "service.runtime.name": [
+            "node"
+        ],
+        "service.runtime.name.text": [
             "node"
         ],
         "service.runtime.version": [

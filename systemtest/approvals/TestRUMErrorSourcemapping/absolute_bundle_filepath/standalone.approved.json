@@ -6,6 +6,9 @@
         "agent.name": [
             "rum-js"
         ],
+        "agent.name.text": [
+            "rum-js"
+        ],
         "agent.version": [
             "0.0.0"
         ],
@@ -287,6 +290,9 @@
         "service.name": [
             "apm-agent-js"
         ],
+        "service.name.text": [
+            "apm-agent-js"
+        ],
         "service.version": [
             "1.0.1"
         ],
@@ -326,7 +332,13 @@
         "user_agent.device.name": [
             "Other"
         ],
+        "user_agent.device.name.text": [
+            "Other"
+        ],
         "user_agent.name": [
+            "Go-http-client"
+        ],
+        "user_agent.name.text": [
             "Go-http-client"
         ],
         "user_agent.original": [

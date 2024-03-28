@@ -12,6 +12,9 @@
         "agent.name": [
             "java"
         ],
+        "agent.name.text": [
+            "java"
+        ],
         "agent.version": [
             "1.10.0"
         ],
@@ -64,6 +67,9 @@
         ],
         "error.exception.module": [
             "org.springframework.http.client"
+        ],
+        "error.exception.parent": [
+            1
         ],
         "error.exception.stacktrace": [
             {
@@ -184,6 +190,9 @@
         "host.name": [
             "host1"
         ],
+        "host.name.text": [
+            "host1"
+        ],
         "host.os.platform": [
             "Linux"
         ],
@@ -244,7 +253,13 @@
         "kubernetes.node.name": [
             "node-name"
         ],
+        "kubernetes.node.name.text": [
+            "node-name"
+        ],
         "kubernetes.pod.name": [
+            "instrumented-java-service"
+        ],
+        "kubernetes.pod.name.text": [
             "instrumented-java-service"
         ],
         "kubernetes.pod.uid": [
@@ -301,10 +316,16 @@
         "service.framework.name": [
             "Node"
         ],
+        "service.framework.name.text": [
+            "Node"
+        ],
         "service.framework.version": [
             "1"
         ],
         "service.language.name": [
+            "Java"
+        ],
+        "service.language.name.text": [
             "Java"
         ],
         "service.language.version": [
@@ -313,10 +334,19 @@
         "service.name": [
             "service1"
         ],
+        "service.name.text": [
+            "service1"
+        ],
         "service.node.name": [
             "node-xyz"
         ],
+        "service.node.name.text": [
+            "node-xyz"
+        ],
         "service.runtime.name": [
+            "Java"
+        ],
+        "service.runtime.name.text": [
             "Java"
         ],
         "service.runtime.version": [
@@ -402,6 +432,9 @@
         "agent.name": [
             "java"
         ],
+        "agent.name.text": [
+            "java"
+        ],
         "agent.version": [
             "1.10.0"
         ],
@@ -429,6 +462,9 @@
         "host.name": [
             "host1"
         ],
+        "host.name.text": [
+            "host1"
+        ],
         "host.os.platform": [
             "Linux"
         ],
@@ -438,7 +474,13 @@
         "kubernetes.node.name": [
             "node-name"
         ],
+        "kubernetes.node.name.text": [
+            "node-name"
+        ],
         "kubernetes.pod.name": [
+            "instrumented-java-service"
+        ],
+        "kubernetes.pod.name.text": [
             "instrumented-java-service"
         ],
         "kubernetes.pod.uid": [
@@ -454,6 +496,9 @@
             "true"
         ],
         "metricset.name": [
+            "span_breakdown"
+        ],
+        "metricset.name.text": [
             "span_breakdown"
         ],
         "numeric_labels.code": [
@@ -495,10 +540,16 @@
         "service.framework.name": [
             "spring"
         ],
+        "service.framework.name.text": [
+            "spring"
+        ],
         "service.framework.version": [
             "5.0.0"
         ],
         "service.language.name": [
+            "Java"
+        ],
+        "service.language.name.text": [
             "Java"
         ],
         "service.language.version": [
@@ -507,10 +558,19 @@
         "service.name": [
             "1234_service-12a3"
         ],
+        "service.name.text": [
+            "1234_service-12a3"
+        ],
         "service.node.name": [
             "8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"
         ],
+        "service.node.name.text": [
+            "8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"
+        ],
         "service.runtime.name": [
+            "Java"
+        ],
+        "service.runtime.name.text": [
             "Java"
         ],
         "service.runtime.version": [
@@ -534,6 +594,9 @@
         "transaction.name": [
             "GET/"
         ],
+        "transaction.name.text": [
+            "GET/"
+        ],
         "transaction.type": [
             "request"
         ]
@@ -549,6 +612,9 @@
             "e71be9ac-93b0-44b9-a997-5638f6ccfc36"
         ],
         "agent.name": [
+            "java"
+        ],
+        "agent.name.text": [
             "java"
         ],
         "agent.version": [
@@ -584,6 +650,9 @@
         "host.name": [
             "host1"
         ],
+        "host.name.text": [
+            "host1"
+        ],
         "host.os.platform": [
             "Linux"
         ],
@@ -611,7 +680,13 @@
         "kubernetes.node.name": [
             "node-name"
         ],
+        "kubernetes.node.name.text": [
+            "node-name"
+        ],
         "kubernetes.pod.name": [
+            "instrumented-java-service"
+        ],
+        "kubernetes.pod.name.text": [
             "instrumented-java-service"
         ],
         "kubernetes.pod.uid": [
@@ -662,10 +737,16 @@
         "service.framework.name": [
             "spring"
         ],
+        "service.framework.name.text": [
+            "spring"
+        ],
         "service.framework.version": [
             "5.0.0"
         ],
         "service.language.name": [
+            "Java"
+        ],
+        "service.language.name.text": [
             "Java"
         ],
         "service.language.version": [
@@ -674,10 +755,19 @@
         "service.name": [
             "opbeans-java-1"
         ],
+        "service.name.text": [
+            "opbeans-java-1"
+        ],
         "service.node.name": [
             "8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"
         ],
+        "service.node.name.text": [
+            "8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"
+        ],
         "service.runtime.name": [
+            "Java"
+        ],
+        "service.runtime.name.text": [
             "Java"
         ],
         "service.runtime.version": [
@@ -701,6 +791,9 @@
         "span.db.user.name": [
             "postgres"
         ],
+        "span.db.user.name.text": [
+            "postgres"
+        ],
         "span.duration.us": [
             3781
         ],
@@ -708,6 +801,9 @@
             "1234567890aaaade"
         ],
         "span.name": [
+            "GET users-authenticated"
+        ],
+        "span.name.text": [
             "GET users-authenticated"
         ],
         "span.representative_count": [
@@ -776,6 +872,9 @@
         "agent.name": [
             "java"
         ],
+        "agent.name.text": [
+            "java"
+        ],
         "agent.version": [
             "1.10.0-SNAPSHOT"
         ],
@@ -822,6 +921,9 @@
             "127.0.0.1"
         ],
         "host.name": [
+            "host1"
+        ],
+        "host.name.text": [
             "host1"
         ],
         "host.os.platform": [
@@ -896,7 +998,13 @@
         "kubernetes.node.name": [
             "node-name"
         ],
+        "kubernetes.node.name.text": [
+            "node-name"
+        ],
         "kubernetes.pod.name": [
+            "instrumented-java-service"
+        ],
+        "kubernetes.pod.name.text": [
             "instrumented-java-service"
         ],
         "kubernetes.pod.uid": [
@@ -950,10 +1058,16 @@
         "service.framework.name": [
             "spring"
         ],
+        "service.framework.name.text": [
+            "spring"
+        ],
         "service.framework.version": [
             "5.0.0"
         ],
         "service.language.name": [
+            "Java"
+        ],
+        "service.language.name.text": [
             "Java"
         ],
         "service.language.version": [
@@ -962,10 +1076,19 @@
         "service.name": [
             "experimental-java"
         ],
+        "service.name.text": [
+            "experimental-java"
+        ],
         "service.node.name": [
             "8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"
         ],
+        "service.node.name.text": [
+            "8ec7ceb990749e79b37f6dc6cd3628633618d6ce412553a552a0fa6b69419ad4"
+        ],
         "service.runtime.name": [
+            "Java"
+        ],
+        "service.runtime.name.text": [
             "Java"
         ],
         "service.runtime.version": [
@@ -1074,7 +1197,13 @@
         "user_agent.device.name": [
             "Other"
         ],
+        "user_agent.device.name.text": [
+            "Other"
+        ],
         "user_agent.name": [
+            "Chrome"
+        ],
+        "user_agent.name.text": [
             "Chrome"
         ],
         "user_agent.original": [

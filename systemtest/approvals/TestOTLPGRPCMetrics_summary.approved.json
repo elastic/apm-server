@@ -6,6 +6,9 @@
         "agent.name": [
             "otlp"
         ],
+        "agent.name.text": [
+            "otlp"
+        ],
         "agent.version": [
             "unknown"
         ],
@@ -19,6 +22,9 @@
             "metrics"
         ],
         "metricset.name": [
+            "app"
+        ],
+        "metricset.name.text": [
             "app"
         ],
         "observer.hostname": [
@@ -36,7 +42,13 @@
         "service.language.name": [
             "unknown"
         ],
+        "service.language.name.text": [
+            "unknown"
+        ],
         "service.name": [
+            "unknown"
+        ],
+        "service.name.text": [
             "unknown"
         ],
         "summary": [

@@ -6,6 +6,9 @@
         "agent.name": [
             "js-base"
         ],
+        "agent.name.text": [
+            "js-base"
+        ],
         "agent.version": [
             "4.8.1"
         ],
@@ -29,6 +32,9 @@
         ],
         "event.outcome": [
             "success"
+        ],
+        "event.success_count": [
+            1
         ],
         "http.request.method": [
             "POST"
@@ -60,8 +66,41 @@
         "service.environment": [
             "prod"
         ],
+        "service.framework.name": [
+            "angular"
+        ],
+        "service.framework.name.text": [
+            "angular"
+        ],
+        "service.framework.version": [
+            "2"
+        ],
+        "service.language.name": [
+            "javascript"
+        ],
+        "service.language.name.text": [
+            "javascript"
+        ],
+        "service.language.version": [
+            "6"
+        ],
         "service.name": [
             "apm-a-rum-test-e2e-general-usecase"
+        ],
+        "service.name.text": [
+            "apm-a-rum-test-e2e-general-usecase"
+        ],
+        "service.runtime.name": [
+            "v8"
+        ],
+        "service.runtime.name.text": [
+            "v8"
+        ],
+        "service.runtime.version": [
+            "8.0"
+        ],
+        "service.version": [
+            "0.0.1"
         ],
         "source.ip": [
             "dynamic"
@@ -70,6 +109,9 @@
             "dynamic"
         ],
         "span.destination.service.name": [
+            "http://localhost:8003"
+        ],
+        "span.destination.service.name.text": [
             "http://localhost:8003"
         ],
         "span.destination.service.resource": [
@@ -85,6 +127,9 @@
             "27f45fd274f976d4"
         ],
         "span.name": [
+            "POST http://localhost:8003/data"
+        ],
+        "span.name.text": [
             "POST http://localhost:8003/data"
         ],
         "span.subtype": [
@@ -110,6 +155,39 @@
         ],
         "url.original.text": [
             "http://localhost:8003/data"
+        ],
+        "user.email": [
+            "user@email.com"
+        ],
+        "user.id": [
+            "123"
+        ],
+        "user.name": [
+            "John Doe"
+        ],
+        "user.name.text": [
+            "John Doe"
+        ],
+        "user_agent.device.name": [
+            "Other"
+        ],
+        "user_agent.device.name.text": [
+            "Other"
+        ],
+        "user_agent.name": [
+            "Go-http-client"
+        ],
+        "user_agent.name.text": [
+            "Go-http-client"
+        ],
+        "user_agent.original": [
+            "Go-http-client/1.1"
+        ],
+        "user_agent.original.text": [
+            "Go-http-client/1.1"
+        ],
+        "user_agent.version": [
+            "1.1"
         ]
     },
     {
@@ -117,6 +195,9 @@
             "dynamic"
         ],
         "agent.name": [
+            "js-base"
+        ],
+        "agent.name.text": [
             "js-base"
         ],
         "agent.version": [
@@ -142,6 +223,9 @@
         ],
         "event.outcome": [
             "success"
+        ],
+        "event.success_count": [
+            1
         ],
         "http.request.method": [
             "GET"
@@ -173,8 +257,41 @@
         "service.environment": [
             "prod"
         ],
+        "service.framework.name": [
+            "angular"
+        ],
+        "service.framework.name.text": [
+            "angular"
+        ],
+        "service.framework.version": [
+            "2"
+        ],
+        "service.language.name": [
+            "javascript"
+        ],
+        "service.language.name.text": [
+            "javascript"
+        ],
+        "service.language.version": [
+            "6"
+        ],
         "service.name": [
             "apm-a-rum-test-e2e-general-usecase"
+        ],
+        "service.name.text": [
+            "apm-a-rum-test-e2e-general-usecase"
+        ],
+        "service.runtime.name": [
+            "v8"
+        ],
+        "service.runtime.name.text": [
+            "v8"
+        ],
+        "service.runtime.version": [
+            "8.0"
+        ],
+        "service.version": [
+            "0.0.1"
         ],
         "source.ip": [
             "dynamic"
@@ -183,6 +300,9 @@
             "dynamic"
         ],
         "span.destination.service.name": [
+            "http://localhost:8000"
+        ],
+        "span.destination.service.name.text": [
             "http://localhost:8000"
         ],
         "span.destination.service.resource": [
@@ -198,6 +318,9 @@
             "5ecb8ee030749715"
         ],
         "span.name": [
+            "GET /test/e2e/common/data.json"
+        ],
+        "span.name.text": [
             "GET /test/e2e/common/data.json"
         ],
         "span.subtype": [
@@ -223,6 +346,39 @@
         ],
         "url.original.text": [
             "http://localhost:8000/test/e2e/common/data.json?test=hamid"
+        ],
+        "user.email": [
+            "user@email.com"
+        ],
+        "user.id": [
+            "123"
+        ],
+        "user.name": [
+            "John Doe"
+        ],
+        "user.name.text": [
+            "John Doe"
+        ],
+        "user_agent.device.name": [
+            "Other"
+        ],
+        "user_agent.device.name.text": [
+            "Other"
+        ],
+        "user_agent.name": [
+            "Go-http-client"
+        ],
+        "user_agent.name.text": [
+            "Go-http-client"
+        ],
+        "user_agent.original": [
+            "Go-http-client/1.1"
+        ],
+        "user_agent.original.text": [
+            "Go-http-client/1.1"
+        ],
+        "user_agent.version": [
+            "1.1"
         ]
     },
     {
@@ -230,6 +386,9 @@
             "dynamic"
         ],
         "agent.name": [
+            "js-base"
+        ],
+        "agent.name.text": [
             "js-base"
         ],
         "agent.version": [
@@ -274,8 +433,41 @@
         "service.environment": [
             "prod"
         ],
+        "service.framework.name": [
+            "angular"
+        ],
+        "service.framework.name.text": [
+            "angular"
+        ],
+        "service.framework.version": [
+            "2"
+        ],
+        "service.language.name": [
+            "javascript"
+        ],
+        "service.language.name.text": [
+            "javascript"
+        ],
+        "service.language.version": [
+            "6"
+        ],
         "service.name": [
             "apm-a-rum-test-e2e-general-usecase"
+        ],
+        "service.name.text": [
+            "apm-a-rum-test-e2e-general-usecase"
+        ],
+        "service.runtime.name": [
+            "v8"
+        ],
+        "service.runtime.name.text": [
+            "v8"
+        ],
+        "service.runtime.version": [
+            "8.0"
+        ],
+        "service.version": [
+            "0.0.1"
         ],
         "source.ip": [
             "dynamic"
@@ -292,6 +484,9 @@
         "span.name": [
             "OpenTracing y"
         ],
+        "span.name.text": [
+            "OpenTracing y"
+        ],
         "span.type": [
             "cu"
         ],
@@ -303,6 +498,39 @@
         ],
         "transaction.id": [
             "ec2e280be8345240"
+        ],
+        "user.email": [
+            "user@email.com"
+        ],
+        "user.id": [
+            "123"
+        ],
+        "user.name": [
+            "John Doe"
+        ],
+        "user.name.text": [
+            "John Doe"
+        ],
+        "user_agent.device.name": [
+            "Other"
+        ],
+        "user_agent.device.name.text": [
+            "Other"
+        ],
+        "user_agent.name": [
+            "Go-http-client"
+        ],
+        "user_agent.name.text": [
+            "Go-http-client"
+        ],
+        "user_agent.original": [
+            "Go-http-client/1.1"
+        ],
+        "user_agent.original.text": [
+            "Go-http-client/1.1"
+        ],
+        "user_agent.version": [
+            "1.1"
         ]
     },
     {
@@ -310,6 +538,9 @@
             "dynamic"
         ],
         "agent.name": [
+            "js-base"
+        ],
+        "agent.name.text": [
             "js-base"
         ],
         "agent.version": [
@@ -335,6 +566,9 @@
         ],
         "event.outcome": [
             "success"
+        ],
+        "event.success_count": [
+            1
         ],
         "http.request.method": [
             "POST"
@@ -366,8 +600,41 @@
         "service.environment": [
             "prod"
         ],
+        "service.framework.name": [
+            "angular"
+        ],
+        "service.framework.name.text": [
+            "angular"
+        ],
+        "service.framework.version": [
+            "2"
+        ],
+        "service.language.name": [
+            "javascript"
+        ],
+        "service.language.name.text": [
+            "javascript"
+        ],
+        "service.language.version": [
+            "6"
+        ],
         "service.name": [
             "apm-a-rum-test-e2e-general-usecase"
+        ],
+        "service.name.text": [
+            "apm-a-rum-test-e2e-general-usecase"
+        ],
+        "service.runtime.name": [
+            "v8"
+        ],
+        "service.runtime.name.text": [
+            "v8"
+        ],
+        "service.runtime.version": [
+            "8.0"
+        ],
+        "service.version": [
+            "0.0.1"
         ],
         "source.ip": [
             "dynamic"
@@ -379,6 +646,9 @@
             "action"
         ],
         "span.destination.service.name": [
+            "http://localhost:8003"
+        ],
+        "span.destination.service.name.text": [
             "http://localhost:8003"
         ],
         "span.destination.service.resource": [
@@ -394,6 +664,9 @@
             "a3c043330bc2015e"
         ],
         "span.name": [
+            "POST http://localhost:8003/fetch"
+        ],
+        "span.name.text": [
             "POST http://localhost:8003/fetch"
         ],
         "span.subtype": [
@@ -419,6 +692,39 @@
         ],
         "url.original.text": [
             "http://localhost:8003/fetch"
+        ],
+        "user.email": [
+            "user@email.com"
+        ],
+        "user.id": [
+            "123"
+        ],
+        "user.name": [
+            "John Doe"
+        ],
+        "user.name.text": [
+            "John Doe"
+        ],
+        "user_agent.device.name": [
+            "Other"
+        ],
+        "user_agent.device.name.text": [
+            "Other"
+        ],
+        "user_agent.name": [
+            "Go-http-client"
+        ],
+        "user_agent.name.text": [
+            "Go-http-client"
+        ],
+        "user_agent.original": [
+            "Go-http-client/1.1"
+        ],
+        "user_agent.original.text": [
+            "Go-http-client/1.1"
+        ],
+        "user_agent.version": [
+            "1.1"
         ]
     },
     {
@@ -426,6 +732,9 @@
             "dynamic"
         ],
         "agent.name": [
+            "js-base"
+        ],
+        "agent.name.text": [
             "js-base"
         ],
         "agent.version": [
@@ -470,8 +779,41 @@
         "service.environment": [
             "prod"
         ],
+        "service.framework.name": [
+            "angular"
+        ],
+        "service.framework.name.text": [
+            "angular"
+        ],
+        "service.framework.version": [
+            "2"
+        ],
+        "service.language.name": [
+            "javascript"
+        ],
+        "service.language.name.text": [
+            "javascript"
+        ],
+        "service.language.version": [
+            "6"
+        ],
         "service.name": [
             "apm-a-rum-test-e2e-general-usecase"
+        ],
+        "service.name.text": [
+            "apm-a-rum-test-e2e-general-usecase"
+        ],
+        "service.runtime.name": [
+            "v8"
+        ],
+        "service.runtime.name.text": [
+            "v8"
+        ],
+        "service.runtime.version": [
+            "8.0"
+        ],
+        "service.version": [
+            "0.0.1"
         ],
         "source.ip": [
             "dynamic"
@@ -488,6 +830,9 @@
         "span.name": [
             "Requesting and receiving the document"
         ],
+        "span.name.text": [
+            "Requesting and receiving the document"
+        ],
         "span.subtype": [
             "browser-timing"
         ],
@@ -502,6 +847,39 @@
         ],
         "transaction.id": [
             "ec2e280be8345240"
+        ],
+        "user.email": [
+            "user@email.com"
+        ],
+        "user.id": [
+            "123"
+        ],
+        "user.name": [
+            "John Doe"
+        ],
+        "user.name.text": [
+            "John Doe"
+        ],
+        "user_agent.device.name": [
+            "Other"
+        ],
+        "user_agent.device.name.text": [
+            "Other"
+        ],
+        "user_agent.name": [
+            "Go-http-client"
+        ],
+        "user_agent.name.text": [
+            "Go-http-client"
+        ],
+        "user_agent.original": [
+            "Go-http-client/1.1"
+        ],
+        "user_agent.original.text": [
+            "Go-http-client/1.1"
+        ],
+        "user_agent.version": [
+            "1.1"
         ]
     },
     {
@@ -509,6 +887,9 @@
             "dynamic"
         ],
         "agent.name": [
+            "js-base"
+        ],
+        "agent.name.text": [
             "js-base"
         ],
         "agent.version": [
@@ -528,6 +909,9 @@
         ],
         "event.outcome": [
             "success"
+        ],
+        "event.success_count": [
+            1
         ],
         "labels.testTagKey": [
             "testTagValue"
@@ -553,8 +937,41 @@
         "service.environment": [
             "prod"
         ],
+        "service.framework.name": [
+            "angular"
+        ],
+        "service.framework.name.text": [
+            "angular"
+        ],
+        "service.framework.version": [
+            "2"
+        ],
+        "service.language.name": [
+            "javascript"
+        ],
+        "service.language.name.text": [
+            "javascript"
+        ],
+        "service.language.version": [
+            "6"
+        ],
         "service.name": [
             "apm-a-rum-test-e2e-general-usecase"
+        ],
+        "service.name.text": [
+            "apm-a-rum-test-e2e-general-usecase"
+        ],
+        "service.runtime.name": [
+            "v8"
+        ],
+        "service.runtime.name.text": [
+            "v8"
+        ],
+        "service.runtime.version": [
+            "8.0"
+        ],
+        "service.version": [
+            "0.0.1"
         ],
         "source.ip": [
             "dynamic"
@@ -569,6 +986,9 @@
             "bc7665dc25629379"
         ],
         "span.name": [
+            "Fire \"DOMContentLoaded\" event"
+        ],
+        "span.name.text": [
             "Fire \"DOMContentLoaded\" event"
         ],
         "span.stacktrace": [
@@ -613,6 +1033,39 @@
         ],
         "transaction.id": [
             "ec2e280be8345240"
+        ],
+        "user.email": [
+            "user@email.com"
+        ],
+        "user.id": [
+            "123"
+        ],
+        "user.name": [
+            "John Doe"
+        ],
+        "user.name.text": [
+            "John Doe"
+        ],
+        "user_agent.device.name": [
+            "Other"
+        ],
+        "user_agent.device.name.text": [
+            "Other"
+        ],
+        "user_agent.name": [
+            "Go-http-client"
+        ],
+        "user_agent.name.text": [
+            "Go-http-client"
+        ],
+        "user_agent.original": [
+            "Go-http-client/1.1"
+        ],
+        "user_agent.original.text": [
+            "Go-http-client/1.1"
+        ],
+        "user_agent.version": [
+            "1.1"
         ]
     },
     {
@@ -620,6 +1073,9 @@
             "dynamic"
         ],
         "agent.name": [
+            "js-base"
+        ],
+        "agent.name.text": [
             "js-base"
         ],
         "agent.version": [
@@ -679,8 +1135,41 @@
         "service.environment": [
             "prod"
         ],
+        "service.framework.name": [
+            "angular"
+        ],
+        "service.framework.name.text": [
+            "angular"
+        ],
+        "service.framework.version": [
+            "2"
+        ],
+        "service.language.name": [
+            "javascript"
+        ],
+        "service.language.name.text": [
+            "javascript"
+        ],
+        "service.language.version": [
+            "6"
+        ],
         "service.name": [
             "apm-a-rum-test-e2e-general-usecase"
+        ],
+        "service.name.text": [
+            "apm-a-rum-test-e2e-general-usecase"
+        ],
+        "service.runtime.name": [
+            "v8"
+        ],
+        "service.runtime.name.text": [
+            "v8"
+        ],
+        "service.runtime.version": [
+            "8.0"
+        ],
+        "service.version": [
+            "0.0.1"
         ],
         "source.ip": [
             "dynamic"
@@ -689,6 +1178,9 @@
             "dynamic"
         ],
         "span.destination.service.name": [
+            "http://localhost:8000"
+        ],
+        "span.destination.service.name.text": [
             "http://localhost:8000"
         ],
         "span.destination.service.resource": [
@@ -704,6 +1196,9 @@
             "fb8f717930697299"
         ],
         "span.name": [
+            "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.min.js"
+        ],
+        "span.name.text": [
             "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.min.js"
         ],
         "span.subtype": [
@@ -726,6 +1221,39 @@
         ],
         "url.original.text": [
             "http://localhost:8000/test/e2e/general-usecase/app.e2e-bundle.min.js?token=REDACTED"
+        ],
+        "user.email": [
+            "user@email.com"
+        ],
+        "user.id": [
+            "123"
+        ],
+        "user.name": [
+            "John Doe"
+        ],
+        "user.name.text": [
+            "John Doe"
+        ],
+        "user_agent.device.name": [
+            "Other"
+        ],
+        "user_agent.device.name.text": [
+            "Other"
+        ],
+        "user_agent.name": [
+            "Go-http-client"
+        ],
+        "user_agent.name.text": [
+            "Go-http-client"
+        ],
+        "user_agent.original": [
+            "Go-http-client/1.1"
+        ],
+        "user_agent.original.text": [
+            "Go-http-client/1.1"
+        ],
+        "user_agent.version": [
+            "1.1"
         ]
     },
     {
@@ -733,6 +1261,9 @@
             "dynamic"
         ],
         "agent.name": [
+            "js-base"
+        ],
+        "agent.name.text": [
             "js-base"
         ],
         "agent.version": [
@@ -777,8 +1308,41 @@
         "service.environment": [
             "prod"
         ],
+        "service.framework.name": [
+            "angular"
+        ],
+        "service.framework.name.text": [
+            "angular"
+        ],
+        "service.framework.version": [
+            "2"
+        ],
+        "service.language.name": [
+            "javascript"
+        ],
+        "service.language.name.text": [
+            "javascript"
+        ],
+        "service.language.version": [
+            "6"
+        ],
         "service.name": [
             "apm-a-rum-test-e2e-general-usecase"
+        ],
+        "service.name.text": [
+            "apm-a-rum-test-e2e-general-usecase"
+        ],
+        "service.runtime.name": [
+            "v8"
+        ],
+        "service.runtime.name.text": [
+            "v8"
+        ],
+        "service.runtime.version": [
+            "8.0"
+        ],
+        "service.version": [
+            "0.0.1"
         ],
         "source.ip": [
             "dynamic"
@@ -795,6 +1359,9 @@
         "span.name": [
             "Parsing the document, executing sy. scripts"
         ],
+        "span.name.text": [
+            "Parsing the document, executing sy. scripts"
+        ],
         "span.subtype": [
             "browser-timing"
         ],
@@ -809,6 +1376,39 @@
         ],
         "transaction.id": [
             "ec2e280be8345240"
+        ],
+        "user.email": [
+            "user@email.com"
+        ],
+        "user.id": [
+            "123"
+        ],
+        "user.name": [
+            "John Doe"
+        ],
+        "user.name.text": [
+            "John Doe"
+        ],
+        "user_agent.device.name": [
+            "Other"
+        ],
+        "user_agent.device.name.text": [
+            "Other"
+        ],
+        "user_agent.name": [
+            "Go-http-client"
+        ],
+        "user_agent.name.text": [
+            "Go-http-client"
+        ],
+        "user_agent.original": [
+            "Go-http-client/1.1"
+        ],
+        "user_agent.original.text": [
+            "Go-http-client/1.1"
+        ],
+        "user_agent.version": [
+            "1.1"
         ]
     },
     {
@@ -816,6 +1416,9 @@
             "dynamic"
         ],
         "agent.name": [
+            "js-base"
+        ],
+        "agent.name.text": [
             "js-base"
         ],
         "agent.version": [
@@ -835,6 +1438,9 @@
         ],
         "event.outcome": [
             "success"
+        ],
+        "event.success_count": [
+            1
         ],
         "http.request.headers.Accept": [
             "application/json"
@@ -890,10 +1496,16 @@
         "service.framework.name": [
             "angular"
         ],
+        "service.framework.name.text": [
+            "angular"
+        ],
         "service.framework.version": [
             "2"
         ],
         "service.language.name": [
+            "javascript"
+        ],
+        "service.language.name.text": [
             "javascript"
         ],
         "service.language.version": [
@@ -902,7 +1514,13 @@
         "service.name": [
             "apm-a-rum-test-e2e-general-usecase"
         ],
+        "service.name.text": [
+            "apm-a-rum-test-e2e-general-usecase"
+        ],
         "service.runtime.name": [
+            "v8"
+        ],
+        "service.runtime.name.text": [
             "v8"
         ],
         "service.runtime.version": [
@@ -1078,7 +1696,13 @@
         "user_agent.device.name": [
             "Other"
         ],
+        "user_agent.device.name.text": [
+            "Other"
+        ],
         "user_agent.name": [
+            "Go-http-client"
+        ],
+        "user_agent.name.text": [
             "Go-http-client"
         ],
         "user_agent.original": [
