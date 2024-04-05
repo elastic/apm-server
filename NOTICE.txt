@@ -11,11 +11,11 @@ Third party libraries used by the Elastic APM Server project:
 
 --------------------------------------------------------------------------------
 Dependency : github.com/cespare/xxhash/v2
-Version: v2.2.0
+Version: v2.3.0
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/cespare/xxhash/v2@v2.2.0/LICENSE.txt:
+Contents of probable licence file $GOMODCACHE/github.com/cespare/xxhash/v2@v2.3.0/LICENSE.txt:
 
 Copyright (c) 2016 Caleb Spare
 
