@@ -14,7 +14,7 @@ require (
 	github.com/elastic/elastic-agent-client/v7 v7.8.1
 	github.com/elastic/elastic-agent-libs v0.9.1
 	github.com/elastic/elastic-agent-system-metrics v0.9.2
-	github.com/elastic/gmux v0.3.1
+	github.com/elastic/gmux v0.3.2
 	github.com/elastic/go-docappender v1.1.0
 	github.com/elastic/go-elasticsearch/v8 v8.13.0
 	github.com/elastic/go-sysinfo v1.14.0

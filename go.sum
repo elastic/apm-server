@@ -159,8 +159,8 @@ github.com/elastic/elastic-agent-system-metrics v0.9.2 h1:/tvTKOt55EerU0WwGFoDhB
 github.com/elastic/elastic-agent-system-metrics v0.9.2/go.mod h1:VfJnKw4Jqrd9ddljXCwaGKJgN+7ADyyGk089NaXVsf0=
 github.com/elastic/elastic-transport-go/v8 v8.5.0 h1:v5membAl7lvQgBTexPRDBO/RdnlQX+FM9fUVDyXxvH0=
 github.com/elastic/elastic-transport-go/v8 v8.5.0/go.mod h1:YLHer5cj0csTzNFXoNQ8qhtGY1GTvSqPnKWKaqQE3Hk=
-github.com/elastic/gmux v0.3.1 h1:ghT+5Y9jW5udQTBrhDeMOtQVdRBwk9Y2h1o+4Rb7mhE=
-github.com/elastic/gmux v0.3.1/go.mod h1:IBFLojLnACU9tsUnoSavOaMdhq63/HOH/Aeiiha36jA=
+github.com/elastic/gmux v0.3.2 h1:cb721R+fe/rt/jVNyBP5HDQsEwLD2wSKfPD2Sk6adDk=
+github.com/elastic/gmux v0.3.2/go.mod h1:OD6oYrno+SV3pyl1ArdWCjlExZ+FJOfoSaFqnFeldBQ=
 github.com/elastic/go-docappender v1.1.0 h1:wuA3Im+Y0PuQQ/FzLZUb0+6eT64oLhGCqQV49OvR9EU=
 github.com/elastic/go-docappender v1.1.0/go.mod h1:u0hkrzDr9w81uNFWUxeOyM0IX9aZUag/gHlOnHyCrzA=
 github.com/elastic/go-elasticsearch/v8 v8.13.0 h1:YXPAWpvbYX0mWSNG9tnEpvs4h1stgMy5JUeKZECYYB8=
