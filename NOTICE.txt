@@ -1884,11 +1884,11 @@ Contents of probable licence file $GOMODCACHE/github.com/elastic/go-elasticsearc
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/go-sysinfo
-Version: v1.13.1
+Version: v1.14.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/go-sysinfo@v1.13.1/LICENSE.txt:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/go-sysinfo@v1.14.0/LICENSE.txt:
 
 
                                  Apache License
@@ -14795,11 +14795,11 @@ Contents of probable licence file $GOMODCACHE/github.com/prometheus/common@v0.51
 
 --------------------------------------------------------------------------------
 Dependency : github.com/prometheus/procfs
-Version: v0.12.0
+Version: v0.13.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/prometheus/procfs@v0.12.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/prometheus/procfs@v0.13.0/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -18987,11 +18987,11 @@ Contents of probable licence file $GOMODCACHE/gopkg.in/yaml.v2@v2.4.0/LICENSE:
 
 --------------------------------------------------------------------------------
 Dependency : howett.net/plist
-Version: v1.0.0
+Version: v1.0.1
 Licence type (autodetected): BSD-2-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/howett.net/plist@v1.0.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/howett.net/plist@v1.0.1/LICENSE:
 
 Copyright (c) 2013, Dustin L. Howett. All rights reserved.
 
