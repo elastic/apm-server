@@ -6759,11 +6759,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : google.golang.org/grpc
-Version: v1.62.1
+Version: v1.63.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/google.golang.org/grpc@v1.62.1/LICENSE:
+Contents of probable licence file $GOMODCACHE/google.golang.org/grpc@v1.63.0/LICENSE:
 
 
                                  Apache License
@@ -17509,11 +17509,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : google.golang.org/genproto/googleapis/rpc
-Version: v0.0.0-20240125205218-1f4bbc51befe
+Version: v0.0.0-20240227224415-6ceb2ff114de
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/google.golang.org/genproto/googleapis/rpc@v0.0.0-20240125205218-1f4bbc51befe/LICENSE:
+Contents of probable licence file $GOMODCACHE/google.golang.org/genproto/googleapis/rpc@v0.0.0-20240227224415-6ceb2ff114de/LICENSE:
 
 
                                  Apache License
