@@ -196,7 +196,7 @@ func newGRPCServer(t *testing.T, batchProcessor modelpb.BatchProcessor) *grpc.Cl
 
 	go srv.Serve(lis)
 	t.Cleanup(srv.GracefulStop)
-	conn, err := grpc.Dial(lis.Addr().String(), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.NewClient(lis.Addr().String(), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	require.NoError(t, err)
 	t.Cleanup(func() { conn.Close() })
 	return conn
