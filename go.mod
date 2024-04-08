@@ -9,7 +9,7 @@ require (
 	github.com/dgraph-io/badger/v2 v2.2007.4
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/apm-aggregation v0.0.0-20230815024520-e75a37d9ddd6
-	github.com/elastic/apm-data v1.0.0
+	github.com/elastic/apm-data v1.1.0
 	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20240405140018-65ca2de7efaf
 	github.com/elastic/elastic-agent-client/v7 v7.8.1
 	github.com/elastic/elastic-agent-libs v0.9.1
@@ -55,7 +55,7 @@ require (
 	golang.org/x/sync v0.7.0
 	golang.org/x/term v0.19.0
 	golang.org/x/time v0.5.0
-	google.golang.org/grpc v1.62.1
+	google.golang.org/grpc v1.63.0
 	google.golang.org/protobuf v1.33.0
 	gopkg.in/yaml.v3 v3.0.1
 )
@@ -156,8 +156,8 @@ require (
 	golang.org/x/mod v0.16.0 // indirect
 	golang.org/x/sys v0.19.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
-	golang.org/x/tools v0.17.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20240125205218-1f4bbc51befe // indirect
+	golang.org/x/tools v0.19.0 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240227224415-6ceb2ff114de // indirect
 	gopkg.in/jcmturner/aescts.v1 v1.0.1 // indirect
 	gopkg.in/jcmturner/dnsutils.v1 v1.0.1 // indirect
 	gopkg.in/jcmturner/goidentity.v3 v3.0.0 // indirect
