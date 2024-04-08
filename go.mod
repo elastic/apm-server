@@ -17,7 +17,7 @@ require (
 	github.com/elastic/gmux v0.3.1
 	github.com/elastic/go-docappender v1.1.0
 	github.com/elastic/go-elasticsearch/v8 v8.13.0
-	github.com/elastic/go-sysinfo v1.13.1
+	github.com/elastic/go-sysinfo v1.14.0
 	github.com/elastic/go-ucfg v0.8.8
 	github.com/go-sourcemap/sourcemap v2.1.4+incompatible
 	github.com/gofrs/flock v0.8.1
@@ -132,7 +132,7 @@ require (
 	github.com/prometheus/client_golang v1.19.0 // indirect
 	github.com/prometheus/client_model v0.6.0 // indirect
 	github.com/prometheus/common v0.51.1 // indirect
-	github.com/prometheus/procfs v0.12.0 // indirect
+	github.com/prometheus/procfs v0.13.0 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
 	github.com/rogpeppe/go-internal v1.11.0 // indirect
 	github.com/shirou/gopsutil v3.21.11+incompatible // indirect
@@ -164,7 +164,7 @@ require (
 	gopkg.in/jcmturner/gokrb5.v7 v7.5.0 // indirect
 	gopkg.in/jcmturner/rpc.v1 v1.1.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	howett.net/plist v1.0.0 // indirect
+	howett.net/plist v1.0.1 // indirect
 	k8s.io/client-go v0.26.2 // indirect
 	k8s.io/klog/v2 v2.90.1 // indirect
 	k8s.io/utils v0.0.0-20230220204549-a5ecb0141aa5 // indirect
