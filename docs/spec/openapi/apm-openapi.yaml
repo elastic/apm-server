@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: APM Server
   description: OpenAPI schema for APM Server APIs
-  version: 8.13.0
+  version: 8.13.2
   license:
     name: Elastic License 2.0
     url: https://www.elastic.co/licensing/elastic-license
@@ -11,13 +11,16 @@ info:
 servers:
   - url: /
 tags:
+  - name: agent config
+    description: APIs that query the APM Server for configuration changes.
+    x-displayName: APM agent configuration
   - name: server info
-    description: APIs that query general server information.
+    description: APIs that query general APM Server information.
     x-displayName: APM server information
 paths:
   /:
     get:
-      summary: Retrieve general server information.
+      summary: Get general server information
       description: |
         This lightweight endpoint is useful as a server up/down health check.
         To configure authenticated access to the APM server, the instructions at [APM API key](https://www.elastic.co/guide/en/observability/current/api-key.html) or [APM Secret Token](https://www.elastic.co/guide/en/observability/current/secret-token.html) must be followed to configure the correct permissions for APM access.
@@ -28,13 +31,95 @@ paths:
         '200':
           $ref: '#/components/responses/200_server_info'
     post:
-      summary: Retrieve general server information.
+      summary: Get general server information
       operationId: postServerHealth
       tags:
         - server info
       responses:
         '200':
           $ref: '#/components/responses/200_server_info'
+  /config/v1/agents:
+    get:
+      summary: Get agent configuration changes
+      description: >
+        To configure authenticated access to the APM server, the instructions at [APM API key](https://www.elastic.co/guide/en/observability/current/api-key.html) or [APM Secret Token](https://www.elastic.co/guide/en/observability/current/secret-token.html) must be followed to configure the correct permissions for APM access.
+      operationId: getAgentConfig
+      tags:
+        - agent config
+      parameters:
+        - in: query
+          name: service.name
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: A successful response. 
+          content:
+            application/json:
+              schema:
+                type: object
+    post:
+      summary: Get agent configuration changes
+      description: >
+        To configure authenticated access to the APM server, the instructions at [APM API key](https://www.elastic.co/guide/en/observability/current/api-key.html) or [APM Secret Token](https://www.elastic.co/guide/en/observability/current/secret-token.html) must be followed to configure the correct permissions for APM access.
+      operationId: postAgentConfig
+      tags:
+        - agent config
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - service
+              properties:
+                CAPTURE_BODY:
+                  type: string
+                  example: off
+                service:
+                  type: object
+                  required:
+                    - name
+                  properties:
+                    environment:
+                      type: string
+                      example: all
+                    name:
+                      type: string
+                      example: test-service
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  capture_body:
+                   type: string
+                   example: off
+                  transaction_max_spans:
+                    type: integer
+                    example: 500
+                  transaction_sample_rate:
+                    type: number
+                    example: 0.3
+        '403':
+          description: APM Server is configured to fetch agent configuration from Elasticsearch but the configuration is invalid.
+        '503':
+          description: APM Server is starting up or Elasticsearch is unreachable.
+  /config/v1/rum/agents:
+    get:
+      summary: Get RUM agent configuration changes
+      description: >
+        To configure authenticated access to the APM server, the instructions at [APM API key](https://www.elastic.co/guide/en/observability/current/api-key.html) or [APM Secret Token](https://www.elastic.co/guide/en/observability/current/secret-token.html) must be followed to configure the correct permissions for APM access.
+      operationId: getRumAgentConfig
+      tags:
+        - agent config
+      responses:
+        '200':
+          description: Successful response.
 components:
   securitySchemes:
     apiKeyAuth:
