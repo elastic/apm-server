@@ -92,6 +92,7 @@ paths:
                     name:
                       type: string
                       example: test-service
+              additionalProperties: true
       responses:
         '200':
           description: Successful response
