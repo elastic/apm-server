@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: APM Server
   description: OpenAPI schema for APM Server APIs
-  version: 8.13.2
+  version: "0.1"
   license:
     name: Elastic License 2.0
     url: https://www.elastic.co/licensing/elastic-license
