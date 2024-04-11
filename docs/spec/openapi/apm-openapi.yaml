@@ -103,13 +103,24 @@ paths:
                 properties:
                   capture_body:
                    type: string
+                   enum: [ off, errors, transactions, all ]
+                   description: >
+                    For transactions that are HTTP requests, the agent can optionally capture the request body (for example, POST variables).
+                    For transactions that are initiated by receiving a message from a message broker, the agent can capture the textual message body.
                    example: off
                   transaction_max_spans:
                     type: integer
+                    minimum: 0
+                    description: The maximum number of spans that are recorded per transaction.
                     example: 500
                   transaction_sample_rate:
                     type: number
+                    format: float
+                    minimum: 0.0
+                    maximum: 1.0
+                    description: The agent samples transactions at this rate.
                     example: 0.3
+                additionaProperties: true
         '403':
           description: APM Server is configured to fetch agent configuration from Elasticsearch but the configuration is invalid.
         '503':
