@@ -3,11 +3,7 @@ ARG GOLANG_VERSION
 
 # Build the apm-server binary. The golang image version is kept
 # up to date with go.mod by Makefile.
-<<<<<<< HEAD
-FROM golang:1.21.6 as builder
-=======
 FROM golang:${GOLANG_VERSION} as builder
->>>>>>> a7922d35a (package: honour `.go-version` content when creating docker images (#12970))
 WORKDIR /src
 COPY go.mod go.sum /src/
 COPY internal/glog/go.mod /src/internal/glog/go.mod
