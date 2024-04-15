@@ -77,3 +77,13 @@ jobs:
         with:
           name: test-results
           path: 'build/*.xml'
+
+  test-package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: false
+      - run: make package-snapshot
