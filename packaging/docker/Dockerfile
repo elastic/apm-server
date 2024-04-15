@@ -1,8 +1,9 @@
 ARG BASE_IMAGE=ubuntu:22.04
+ARG GOLANG_VERSION
 
 # Build the apm-server binary. The golang image version is kept
 # up to date with go.mod by Makefile.
-FROM golang:1.22.2 as builder
+FROM golang:${GOLANG_VERSION} as builder
 WORKDIR /src
 COPY go.mod go.sum /src/
 COPY internal/glog/go.mod /src/internal/glog/go.mod
