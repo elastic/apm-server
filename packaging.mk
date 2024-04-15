@@ -39,7 +39,7 @@ build/docker/apm-server-ubi-%.txt: DOCKER_BUILD_ARGS+=--build-arg BASE_IMAGE=doc
 .PHONY: $(DOCKER_IMAGES)
 $(DOCKER_IMAGES):
 	@mkdir -p $(@D)
-	docker build --iidfile="$(@)" --build-arg VERSION=$(VERSION) $(DOCKER_BUILD_ARGS) -f packaging/docker/Dockerfile .
+	docker build --iidfile="$(@)" --build-arg GOLANG_VERSION=$(GOLANG_VERSION) --build-arg VERSION=$(VERSION) $(DOCKER_BUILD_ARGS) -f packaging/docker/Dockerfile .
 
 # Docker image tarballs. We distribute UBI8 Docker images only for AMD64.
 DOCKER_IMAGE_SUFFIX := docker-image$(if $(findstring arm64,$(GOARCH)),-arm64).tar.gz
