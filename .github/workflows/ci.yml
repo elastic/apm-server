@@ -69,6 +69,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v3
         with:
+<<<<<<< HEAD
           go-version-file: .go-version
           cache: true
       - run: make apm-server
@@ -85,3 +86,17 @@ jobs:
         with:
           needs: ${{ toJSON(needs) }}
       - run: ${{ steps.check.outputs.isSuccess }}
+=======
+          name: test-results
+          path: 'build/*.xml'
+
+  test-package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: false
+      - run: make package-snapshot
+>>>>>>> a7922d35a (package: honour `.go-version` content when creating docker images (#12970))
