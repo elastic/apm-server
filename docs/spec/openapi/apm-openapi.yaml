@@ -239,6 +239,8 @@ components:
   schemas:
     ErrorEvent:
       type: object
+      description: >
+        Errors are events that occur in a monitored service and correspond to an error or a logged message captured by an agent.
       required:
         - error
       properties:
@@ -253,6 +255,15 @@ components:
           $ref: '../rumv3/error.json'
     MetadataEvent:
       type: object
+      description: >
+        Every new connection to the APM Server starts with a metadata stanza.
+        This provides general metadata concerning the other objects in the stream.
+        Rather than send this metadata information from the agent multiple times, the APM Server hangs on to this information and applies it to other objects in the stream as necessary.
+        TIP: Metadata is stored under context when viewing documents in Elasticsearch.
+        APM agents automatically read Kubernetes data and send it to the APM Server.
+        In most instances, agents are able to read this data from inside the container.
+        If this is not the case, or if you wish to override this data, you can set environment variables for the agents to read.
+        These environment variable are set via the Kubernetes Downward API. 
       required:
         - metadata
       properties:
@@ -267,6 +278,8 @@ components:
           $ref: '../rumv3/metadata.json'
     MetricSetEvent:
       type: object
+      description: >
+        Metric sets are events that contain application metric data captured by an APM agent. 
       required:
         - metricset
       properties:
@@ -274,6 +287,8 @@ components:
           $ref: '../v2/metricset.json'
     SpanEvent:
       type: object
+      description: >
+        Spans are events captured by an agent occurring in a monitored service.
       required:
         - span
       properties:
@@ -288,6 +303,8 @@ components:
           $ref: '../rumv3/span.json'
     TransactionEvent:
       type: object
+      description: >
+        Transactions are events corresponding to an incoming request or similar task occurring in a monitored service.
       required:
         - transaction
       properties:
