@@ -172,7 +172,7 @@ testing/infra/terraform/modules/%/README.md: .FORCE
 # and just keep the JSON Schema there.
 docs/spec: go.mod
 	@$(GO) mod download github.com/elastic/apm-data
-	rsync -v --delete --chmod=Du+rwx,go+rx --chmod=Fu+rw,go+r -r $$($(GO) list -m -f {{.Dir}} github.com/elastic/apm-data)/input/elasticapm/docs/spec ./docs
+	rsync -v --delete --filter='P spec/openapi/' --chmod=Du+rwx,go+rx --chmod=Fu+rw,go+r -r $$($(GO) list -m -f {{.Dir}} github.com/elastic/apm-data)/input/elasticapm/docs/spec ./docs
 
 ##############################################################################
 # Beats synchronisation.
@@ -188,11 +188,6 @@ update-beats: update-beats-module update
 .PHONY: update-beats-module
 update-beats-module:
 	$(GO) get -d $(BEATS_MODULE)@$(BEATS_VERSION) && $(GO) mod tidy
-
-.PHONY: update-beats-docs
-update-beats-docs:
-	$(GO) mod download $(BEATS_MODULE)
-	rsync -v -r --existing $$($(GO) list -m -f {{.Dir}} $(BEATS_MODULE))/libbeat/ ./docs/legacy/copied-from-beats
 
 ##############################################################################
 # Linting, style-checking, license header checks, etc.
