@@ -17,9 +17,9 @@ For patch releases, only the version on the existing major and minor version bra
   * Review existing [changelogs/head](https://github.com/elastic/apm-server/tree/main/changelogs/head.asciidoc) to ensure all relevant notes have been added.
   * Move changelog entries from _head_ to _release_version_:
     * Minor version:
-      Create new changelog file from [changelogs/head.asciidoc](https://github.com/elastic/apm-server/blob/main/changelogs/head.asciidoc)
-      If changes should not be backported, keep them in the _changelogs/head.asciidoc_ file.
-      Don't forget to `include` and link to the new file in [main changelog](https://github.com/elastic/apm-server/blob/main/CHANGELOG.asciidoc) and the [release notes](https://github.com/elastic/apm-server/blob/main/docs/release-notes.asciidoc) file. [(Sample PR)](https://github.com/elastic/apm-server/pull/7956/files)
+      Create new changelog file from [changelogs/head.asciidoc](https://github.com/elastic/apm-server/blob/main/changelogs/head.asciidoc).  
+      If changes should not be backported, keep them in the _changelogs/head.asciidoc_ file.  
+      Don't forget to `include` and link to the new file in [main changelog](https://github.com/elastic/apm-server/blob/main/CHANGELOG.asciidoc). [(Sample PR)](https://github.com/elastic/apm-server/pull/7956/files)
     * Patch version: Add a new section to existing release notes. ([Sample PR](https://github.com/elastic/apm-server/pull/8313/files))
   * Add `@elastic/obs-docs` as a reviewer.
 
