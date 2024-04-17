@@ -1,7 +1,7 @@
 [[release-notes-head]]
 == APM version HEAD
 
-https://github.com/elastic/apm-server/compare/8.13\...main[View commits]
+https://github.com/elastic/apm-server/compare/8.14\...main[View commits]
 
 [float]
 ==== Breaking Changes
@@ -14,5 +14,3 @@ https://github.com/elastic/apm-server/compare/8.13\...main[View commits]
 
 [float]
 ==== Added
-- OpenTelemetry Distro Name will now be used for `agent.name` and `agent.version` {pull}12940[12940]
-- Add support for setting the `host.id` via IntakeV2 {pull}12940[12940]
