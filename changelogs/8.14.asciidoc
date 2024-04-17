@@ -22,3 +22,4 @@ https://github.com/elastic/apm-server/compare/v8.13.2\...v8.14.0[View commits]
 ==== Added
 - OpenTelemetry Distro Name will now be used for `agent.name` and `agent.version` {pull}12940[12940]
 - Add support for setting the `host.id` via IntakeV2 {pull}12940[12940]
+- Improved error message when tail sampling processor fails {pull}12759[12759]
