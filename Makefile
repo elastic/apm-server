@@ -172,7 +172,7 @@ testing/infra/terraform/modules/%/README.md: .FORCE
 # and just keep the JSON Schema there.
 docs/spec: go.mod
 	@$(GO) mod download github.com/elastic/apm-data
-	rsync -v --delete --chmod=Du+rwx,go+rx --chmod=Fu+rw,go+r -r $$($(GO) list -m -f {{.Dir}} github.com/elastic/apm-data)/input/elasticapm/docs/spec ./docs
+	rsync -v --delete --filter='P spec/openapi/' --chmod=Du+rwx,go+rx --chmod=Fu+rw,go+r -r $$($(GO) list -m -f {{.Dir}} github.com/elastic/apm-data)/input/elasticapm/docs/spec ./docs
 
 ##############################################################################
 # Beats synchronisation.
