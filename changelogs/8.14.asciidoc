@@ -4,7 +4,7 @@
 * <<release-notes-8.14.0>>
 
 [float]
-[[release-notes-8.14.0]]
+[[apm-release-notes-8.14.0]]
 === APM version 8.14.0
 
 https://github.com/elastic/apm-server/compare/v8.13.2\...v8.14.0[View commits]
