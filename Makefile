@@ -189,11 +189,6 @@ update-beats: update-beats-module update
 update-beats-module:
 	$(GO) get -d $(BEATS_MODULE)@$(BEATS_VERSION) && $(GO) mod tidy
 
-.PHONY: update-beats-docs
-update-beats-docs:
-	$(GO) mod download $(BEATS_MODULE)
-	rsync -v -r --existing $$($(GO) list -m -f {{.Dir}} $(BEATS_MODULE))/libbeat/ ./docs/legacy/copied-from-beats
-
 ##############################################################################
 # Linting, style-checking, license header checks, etc.
 ##############################################################################
