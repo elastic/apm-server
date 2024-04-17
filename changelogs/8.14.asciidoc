@@ -1,0 +1,24 @@
+[[release-notes-8.14]]
+== APM version 8.14
+
+https://github.com/elastic/apm-server/compare/8.13\...8.14[View commits]
+
+* <<release-notes-8.14.0>>
+
+[float]
+[[release-notes-8.14.0]]
+=== APM version 8.14.0
+
+[float]
+==== Breaking Changes
+
+[float]
+==== Deprecations
+
+[float]
+==== Intake API Changes
+
+[float]
+==== Added
+- OpenTelemetry Distro Name will now be used for `agent.name` and `agent.version` {pull}12940[12940]
+- Add support for setting the `host.id` via IntakeV2 {pull}12940[12940]
