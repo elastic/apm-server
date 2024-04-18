@@ -14,7 +14,7 @@ permissions:
 
 env:
   SLACK_CHANNEL: "#apm-server-test-release"
-
+  
 jobs:
   run-minor:
     runs-on: ubuntu-latest
