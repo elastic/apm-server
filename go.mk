@@ -7,6 +7,7 @@ GITROOT ?= $(shell git rev-parse --show-toplevel)
 
 # Ensure the Go version in .go-version is installed and used.
 GOROOT?=$(shell $(GITROOT)/script/run_with_go_ver go env GOROOT)
+GOLANG_VERSION=$(shell cat $(GITROOT)/.go-version)
 GO:=$(GOROOT)/bin/go
 GOARCH:=$(shell $(GO) env GOARCH)
 export PATH:=$(GOROOT)/bin:$(PATH)
