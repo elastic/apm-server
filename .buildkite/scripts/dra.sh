@@ -28,15 +28,21 @@ if [[ "${BUILDKITE_PULL_REQUEST:-false}" == "true" ]]; then
   exit 0
 fi
 
-curl -s https://storage.googleapis.com/artifacts-api/snapshots/branches.json > active-branches.json
-if ! grep -q "\"$BUILDKITE_BRANCH\"" active-branches.json ; then
-  echo "--- :arrow_right: Release Manager only supports the current active branches, skipping"
-  echo "BUILDKITE_BRANCH=$BUILDKITE_BRANCH"
-  echo "BUILDKITE_COMMIT=$BUILDKITE_COMMIT"
-  echo "VERSION=$VERSION"
-  echo "Supported branches:"
-  cat active-branches.json
-  exit 0
+# If the source of the event is running the Buildkite pipeline through the UI
+# then no branch validation.
+# This is handy when the branch is not available in the Unified Release yet.
+# Normally that's caused during the FF windows and last a couple of days.
+if [[ "${BUILDKITE_SOURCE:-x}" != "ui" ]]; then
+  curl -s https://storage.googleapis.com/artifacts-api/snapshots/branches.json > active-branches.json
+  if ! grep -q "\"$BUILDKITE_BRANCH\"" active-branches.json ; then
+    echo "--- :arrow_right: Release Manager only supports the current active branches, skipping"
+    echo "BUILDKITE_BRANCH=$BUILDKITE_BRANCH"
+    echo "BUILDKITE_COMMIT=$BUILDKITE_COMMIT"
+    echo "VERSION=$VERSION"
+    echo "Supported branches:"
+    cat active-branches.json
+    exit 0
+  fi
 fi
 
 dra() {
