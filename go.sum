@@ -1,6 +1,6 @@
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 github.com/AndreasBriese/bbloom v0.0.0-20190306092124-e2d15f34fcf9/go.mod h1:bOvUY6CB00SOBii9/FifXqc0awNKxLFCL/+pkDPuyl8=
-github.com/Azure/azure-sdk-for-go v59.0.0+incompatible h1:I1ULJqny1qQhUBFy11yDXHhW3pLvbhwV0PTn7mjp9V0=
+github.com/Azure/azure-sdk-for-go v65.0.0+incompatible h1:HzKLt3kIwMm4KeJYTdx9EbjRYTySD/t8i1Ee/W5EGXw=
 github.com/Azure/azure-sdk-for-go/sdk/azcore v1.9.0 h1:fb8kj/Dh4CSwgsOzHeZY4Xh68cFVbzXx+ONXGMY//4w=
 github.com/Azure/azure-sdk-for-go/sdk/azcore v1.9.0/go.mod h1:uReU2sSxZExRPBAg3qKzmAucSi51+SP1OhohieR821Q=
 github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.4.0 h1:BMAjVKJM0U/CYF27gA0ZMmXGkOcvfFtD0oHVZ1TIPRI=
@@ -145,8 +145,8 @@ github.com/elastic/apm-aggregation v0.0.0-20230815024520-e75a37d9ddd6 h1:Js+C3HE
 github.com/elastic/apm-aggregation v0.0.0-20230815024520-e75a37d9ddd6/go.mod h1:ba3gaJCuhxXN/O5AuiI56xxd6DukQdVOK0NfpzBntNo=
 github.com/elastic/apm-data v1.1.0 h1:5ahaTQwWb6+OmrXrc1dzfD2wjvTG7yJRaldcsc9dIc4=
 github.com/elastic/apm-data v1.1.0/go.mod h1:TLHPd2H8wYlf3FIqriQ018NZzE1FLC6VtsQ6DN0vRmY=
-github.com/elastic/beats/v7 v7.0.0-alpha2.0.20240417171853-ab27a657e4f1 h1:d75NgiGosMpHbEY7cENmbQci2CO6E7SyKoCSrk0TOqM=
-github.com/elastic/beats/v7 v7.0.0-alpha2.0.20240417171853-ab27a657e4f1/go.mod h1:JCX9F/mkZ3NhDFcY2F5IQn/FDYJWzQW5asNWsE11h8w=
+github.com/elastic/beats/v7 v7.0.0-alpha2.0.20240418135020-b4ff53ce2b2d h1:unQ7BLxUmKbGsX1RFmeJWZ+ln/T2GJ4qnyXD1ltuIMg=
+github.com/elastic/beats/v7 v7.0.0-alpha2.0.20240418135020-b4ff53ce2b2d/go.mod h1:/JY27BlnmiLgbBaUh20k7XVWrUOng+ZZqaSOabyPaPw=
 github.com/elastic/elastic-agent-autodiscover v0.6.8 h1:BSXz+QwjZAEt08G+T3GDGl14Bh9a6zD8luNCvZut/b8=
 github.com/elastic/elastic-agent-autodiscover v0.6.8/go.mod h1:hFeFqneS2r4jD0/QzGkrNk0YVdN0JGh7lCWdsH7zcI4=
 github.com/elastic/elastic-agent-client/v7 v7.8.1 h1:J9wZc/0mUvSEok0X5iR5+n60Jgb+AWooKddb3XgPWqM=
