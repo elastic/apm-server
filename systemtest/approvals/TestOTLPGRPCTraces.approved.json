@@ -7,7 +7,7 @@
             "opentelemetry/go"
         ],
         "agent.version": [
-            "1.19.0"
+            "1.25.0"
         ],
         "data_stream.dataset": [
             "apm.error"
@@ -117,7 +117,7 @@
             "opentelemetry/go"
         ],
         "agent.version": [
-            "1.19.0"
+            "1.25.0"
         ],
         "data_stream.dataset": [
             "apm.app.unknown_service_systemtest_test"
@@ -191,7 +191,7 @@
             "opentelemetry/go"
         ],
         "agent.version": [
-            "1.19.0"
+            "1.25.0"
         ],
         "data_stream.dataset": [
             "apm"
