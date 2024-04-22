@@ -441,6 +441,14 @@
           ],
           "maxLength": 1024
         },
+        "host_id": {
+          "description": "The OpenTelemetry semantic conventions compliant \"host.id\" attribute, if available.",
+          "type": [
+            "null",
+            "string"
+          ],
+          "maxLength": 1024
+        },
         "hostname": {
           "description": "Deprecated: Use ConfiguredHostname and DetectedHostname instead. DeprecatedHostname is the host name of the system the service is running on. It does not distinguish between configured and detected hostname and therefore is deprecated and only used if no other hostname information is available.",
           "type": [

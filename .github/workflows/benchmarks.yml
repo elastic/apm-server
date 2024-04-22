@@ -28,6 +28,9 @@ env:
   BENCHMARK_RESULT: benchmark-result.txt
   WORKING_DIRECTORY: testing/benchmark
 
+permissions:
+  contents: read
+
 jobs:
   benchmarks:
     runs-on: ubuntu-latest

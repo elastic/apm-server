@@ -93,14 +93,14 @@ Templates for adding release notes, breaking changes, and highlights.
 <details><summary><code>/changelogs/*.asciidoc</code> template</summary>
 
 ```asciidoc
-[[release-notes-8.1]]
+[[apm-release-notes-8.1]]
 == APM Server version 8.1
 
 https://github.com/elastic/apm-server/compare/8.0\...8.1[View commits]
 
-* <<release-notes-8.1.0>>
+* <<apm-release-notes-8.1.0>>
 
-[[release-notes-8.1.0]]
+[[apm-release-notes-8.1.0]]
 === APM Server version 8.1.0
 
 https://github.com/elastic/apm-server/compare/v8.0.1\...v8.1.0[View commits]
