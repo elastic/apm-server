@@ -30,12 +30,12 @@ variable "apm_server_zone_count" {
   description = "Optional apm server zone count"
 }
 
-# TODO(axw) make it configurable
-#variable "use_elasticsearch_apmdata_plugin" {
-#  default     = false
-#  type        = bool
-#  description = "Enable the Elasticsearch apm-data plugin, and disable integration package index templates."
-#}
+# TODO(axw) disable by default
+variable "use_elasticsearch_apmdata_plugin" {
+  default     = true
+  type        = bool
+  description = "Enable the Elasticsearch apm-data plugin, and delete integration package index templates."
+}
 
 variable "elasticsearch_size" {
   default     = "8g"

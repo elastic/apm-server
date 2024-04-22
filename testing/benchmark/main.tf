@@ -61,9 +61,11 @@ module "ec_deployment" {
   apm_server_expvar     = true
   apm_server_pprof      = true
 
-  elasticsearch_size              = var.elasticsearch_size
-  elasticsearch_zone_count        = var.elasticsearch_zone_count
-  elasticsearch_dedicated_masters = var.elasticsearch_dedicated_masters
+  elasticsearch_size                 = var.elasticsearch_size
+  elasticsearch_zone_count           = var.elasticsearch_zone_count
+  elasticsearch_dedicated_masters    = var.elasticsearch_dedicated_masters
+  elasticsearch_user_settings_yaml   = var.use_elasticsearch_apmdata_plugin ? "xpack.apm_data.enabled: true" : ""
+  delete_integration_index_templates = var.use_elasticsearch_apmdata_plugin
 
   docker_image              = var.docker_image_override
   docker_image_tag_override = var.docker_image_tag_override

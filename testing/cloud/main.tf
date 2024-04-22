@@ -22,20 +22,16 @@ module "ec_deployment" {
   region        = var.ess_region
   stack_version = local.stack_version
 
-  # TODO(axw) make this optional
-  delete_integration_index_templates = true
-  elasticsearch_user_settings_yaml = <<EOF
-    xpack.apm_data.enabled: true
-  EOF
-
   deployment_template    = var.deployment_template
   deployment_name_prefix = "apm-server-testing"
 
   apm_server_size       = var.apm_server_size
   apm_server_zone_count = var.apm_server_zone_count
 
-  elasticsearch_size       = var.elasticsearch_size
-  elasticsearch_zone_count = var.elasticsearch_zone_count
+  elasticsearch_size                 = var.elasticsearch_size
+  elasticsearch_zone_count           = var.elasticsearch_zone_count
+  elasticsearch_user_settings_yaml   = var.use_elasticsearch_apmdata_plugin ? "xpack.apm_data.enabled: true" : ""
+  delete_integration_index_templates = var.use_elasticsearch_apmdata_plugin
 
   observability_deployment = var.observability_deployment
 
