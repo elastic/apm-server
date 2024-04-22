@@ -1,0 +1,31 @@
+#!/bin/bash
+
+index_templates=(
+  "logs-apm.app"
+  "logs-apm.error"
+  "metrics-apm.app"
+  "metrics-apm.internal"
+  "metrics-apm.service_destination.1m"
+  "metrics-apm.service_destination.10m"
+  "metrics-apm.service_destination.60m"
+  "metrics-apm.service_summary.1m"
+  "metrics-apm.service_summary.10m"
+  "metrics-apm.service_summary.60m"
+  "metrics-apm.service_transaction.1m"
+  "metrics-apm.service_transaction.10m"
+  "metrics-apm.service_transaction.60m"
+  "metrics-apm.transaction.1m"
+  "metrics-apm.transaction.10m"
+  "metrics-apm.transaction.60m"
+  "traces-apm"
+  "traces-apm.rum"
+  "traces-apm.sampled"
+)
+
+for tpl in $${index_templates[@]}; do
+  curl -s --fail -XDELETE -u ${elasticsearch_username}:${elasticsearch_password} "${elasticsearch_url}/_index_template/$${tpl}"
+  # TODO(axw) check exit code. curl exits with 22 on a status code >= 400.
+  # We want the operation to be idempotent, so we should not fail if the index template does not exist (404).
+  # We should fail on other errors though.
+done
+exit 0

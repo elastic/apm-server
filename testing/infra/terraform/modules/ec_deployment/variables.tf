@@ -68,6 +68,11 @@ variable "elasticsearch_size" {
   description = "Optional Elasticsearch instance size"
 }
 
+variable "elasticsearch_user_settings_yaml" {
+  type        = string
+  description = "Optional Elasticsearch user settings"
+}
+
 variable "elasticsearch_zone_count" {
   default     = 2
   type        = number
@@ -141,5 +146,11 @@ variable "custom_apm_integration_pkg_path" {
 variable "drop_pipeline" {
   default     = false
   description = "Whether or not to install an Elasticsearch ingest pipeline to drop all incoming APM documents. Defaults to false"
+  type        = bool
+}
+
+variable "delete_integration_index_templates" {
+  default     = false
+  description = "Whether or not to delete the APM integration Elasticsearch index templates after setup. Defaults to false"
   type        = bool
 }

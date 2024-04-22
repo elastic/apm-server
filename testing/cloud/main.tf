@@ -22,6 +22,12 @@ module "ec_deployment" {
   region        = var.ess_region
   stack_version = local.stack_version
 
+  # TODO(axw) make this optional
+  delete_integration_index_templates = true
+  elasticsearch_user_settings_yaml = <<EOF
+    xpack.apm_data.enabled: true
+  EOF
+
   deployment_template    = var.deployment_template
   deployment_name_prefix = "apm-server-testing"
 

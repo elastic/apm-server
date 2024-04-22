@@ -37,9 +37,12 @@ resource "ec_deployment" "deployment" {
       }
     }
     dynamic "config" {
+      # TODO(axw) fix the dynamic block to consider user_settings_yaml too
+      # or create multiple dynamic blocks and merge them?
       for_each = var.docker_image_tag_override["elasticsearch"] != "" ? [var.docker_image["elasticsearch"]] : []
       content {
         docker_image = "${config.value}:${var.docker_image_tag_override["elasticsearch"]}"
+        user_settings_yaml = var.elasticsearch_user_settings_yaml
       }
     }
   }
@@ -235,4 +238,27 @@ resource "local_file" "drop_pipeline" {
     elasticsearch_username = ec_deployment.deployment.elasticsearch_username,
   })
   filename = "${path.module}/scripts/drop_pipeline.sh"
+}
+
+resource "null_resource" "delete_integration_index_templates" {
+  count = var.delete_integration_index_templates ? 1 : 0
+  triggers = {
+    deployment_id = ec_deployment.deployment.id
+    shell_hash    = local_file.delete_integration_index_templates.0.id
+  }
+  provisioner "local-exec" {
+    command     = "scripts/delete_integration_index_templates.sh"
+    interpreter = ["/bin/bash", "-c"]
+    working_dir = path.module
+  }
+}
+
+resource "local_file" "delete_integration_index_templates" {
+  count = var.delete_integration_index_templates ? 1 : 0
+  content = templatefile("${path.module}/scripts/delete_integration_index_templates.tfpl", {
+    elasticsearch_url      = ec_deployment.deployment.elasticsearch.0.https_endpoint,
+    elasticsearch_password = ec_deployment.deployment.elasticsearch_password,
+    elasticsearch_username = ec_deployment.deployment.elasticsearch_username,
+  })
+  filename = "${path.module}/scripts/delete_integration_index_templates.sh"
 }
