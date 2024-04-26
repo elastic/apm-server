@@ -20,6 +20,12 @@ tags:
   - name: event intake
     description: The events intake API is the internal protocol that APM agents use to talk to the APM Server.
     x-displayName: APM event intake
+  - name: opentelemetry intake
+    description: >
+      The OpenTelemetry intake API uses the OpenTelemetry Protocol (OTLP) to send traces, metrics, and logs to APM Server.
+      OTLP is the default transfer protocol for OpenTelemetry and is supported natively by APM Server.
+      APM Server supports two OTLP communication protocols on the same port: OTLP/HTTP (protobuf) and OTLP/gRPC.
+    x-displayName: APM OpenTelemetry intake
   - name: server info
     description: APIs that query general APM Server information.
     x-displayName: APM server information
@@ -225,6 +231,108 @@ paths:
       responses:
         '202':
           description: Successful response; all events succeeded.
+  /opentelemetry.proto.collector.metrics.v1.MetricsService/Export:
+    post:
+      summary: Send OTLP metrics
+      description: >
+        APM Server supports receiving metrics over the OpenTelemetry Protocol (OTLP).
+        This API uses the OTLP/gRPC communication protocol.
+      operationId: postOtlpGrpcMetrics
+      tags:
+        - opentelemetry intake
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: OK
+  /opentelemetry.proto.collector.trace.v1.TraceService/Export:
+    post:
+      summary: Send OTLP traces
+      description: >
+        APM Server supports receiving traces over the OpenTelemetry Protocol (OTLP).
+        This API uses the OTLP/gRPC communication protocol.
+      operationId: postOtlpGrpcTraces
+      tags:
+        - opentelemetry intake
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: OK
+  /opentelemetry.proto.collector.logs.v1.LogsService/Export:
+    post:
+      summary: Send OTLP logs
+      description: >
+        APM Server supports receiving logs over the OpenTelemetry Protocol (OTLP).
+        This API uses the OTLP/gRPC communication protocol.
+      operationId: postOtlpGrpcLogs
+      tags:
+        - opentelemetry intake
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: OK
+  /v1/metrics:
+    post:
+      summary: Send OTLP metrics
+      description: >
+        APM Server supports receiving metrics over the OpenTelemetry Protocol (OTLP).
+        This API uses the OTLP/HTTP (protobuf) communication protocol.
+      operationId: postOtlpHttpMetrics
+      tags:
+        - opentelemetry intake
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: OK
+  /v1/traces:
+    post:
+      summary: Send OTLP traces
+      description: >
+        APM Server supports receiving traces over the OpenTelemetry Protocol (OTLP).
+        This API uses the OTLP/HTTP (protobuf) communication protocol.
+      operationId: postOtlpHttpTraces
+      tags:
+        - opentelemetry intake
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: OK
+  /v1/logs:
+    post:
+      summary: Send OTLP logs
+      description: >
+        APM Server supports receiving logs over the OpenTelemetry Protocol (OTLP).
+        This API uses the OTLP/HTTP (protobuf) communication protocol.
+      operationId: postOtlpHttpLogs
+      tags:
+        - opentelemetry intake
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: OK
 components:
   securitySchemes:
     apiKeyAuth:
