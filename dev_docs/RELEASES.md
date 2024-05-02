@@ -42,7 +42,8 @@ For patch releases, only the version on the existing major and minor version bra
   Create a github issue for testing the release branch ([use the GitHub issue `test plan` template](https://github.com/elastic/apm-server/issues/new?assignees=&labels=test-plan&projects=&template=test-plan.md)), It should contain:
   * A link to all PRs in the APM Server repository that need to be tested manually. Use the `test-plan` label and the version label (create it if it does not exist).
     to create an overview over the PRs that need testing. For example, [test plan link for 8.3.0](https://github.com/elastic/apm-server/issues?q=label%3Atest-plan+is%3Aclosed+label%3Av8.3.0).  
-    What we aim is to test all functional changes applied to the new version. Review any PR updating `elastic/go-docappener` and `elastic/apm-data` dependencies, as some functional changes happens through these dependencies.
+    What we aim for is testing all functional changes applied to the new version. Review any PR updating `elastic/go-docappener` and `elastic/apm-data` dependencies, as some functional changes happens through these dependencies.  
+   Any non-functional change or any change that is already covered by automated tests must not be included.
   * Add other test cases that require manual testing, such as test scenarios on ESS, that are not covered by automated tests or OS compatibility smoke tests for supporting new operating systems.
 
 ## Between feature freeze and release
