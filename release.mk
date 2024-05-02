@@ -245,7 +245,7 @@ create-commit:
 	if [ ! -z "$$(git status -s)" ]; then \
 		git status -s; \
 		git add --all; \
-		git commit -a -m "$(COMMIT_MESSAGE)"; \
+		git commit --gpg-sign -a -m "$(COMMIT_MESSAGE)"; \
 	fi
 	@echo "::endgroup::"
 
