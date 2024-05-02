@@ -64,7 +64,7 @@ define CHANGELOG_TMPL
 [[release-notes-head]]
 == APM version HEAD
 
-https://github.com/elastic/apm-server/compare/$(RELEASE_BRANCH)\...main[View commits]
+https://github.com/elastic/apm-server/compare/$(RELEASE_VERSION)\...main[View commits]
 
 [float]
 ==== Breaking Changes
@@ -140,8 +140,8 @@ rename-changelog:
 	$(MAKE) common-changelog
 	@echo ">> rename-changelog"
 	echo "$$CHANGELOG_TMPL" > changelogs/head.asciidoc
-	@if ! grep -q 'release-notes-$(VERSION)' CHANGELOG.asciidoc ; then \
-		awk "NR==2{print \"* <<release-notes-$(VERSION)>>\"}1" CHANGELOG.asciidoc > CHANGELOG.asciidoc.new; \
+	@if ! grep -q 'apm-release-notes-$(VERSION)' CHANGELOG.asciidoc ; then \
+		awk "NR==2{print \"* <<apm-release-notes-$(VERSION)>>\"}1" CHANGELOG.asciidoc > CHANGELOG.asciidoc.new; \
 		mv CHANGELOG.asciidoc.new CHANGELOG.asciidoc ; \
 	fi
 	@if ! grep -q '$(VERSION).asciidoc' CHANGELOG.asciidoc ; then \
