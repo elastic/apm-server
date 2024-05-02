@@ -79,6 +79,20 @@ https://github.com/elastic/apm-server/compare/$(RELEASE_BRANCH)\...main[View com
 ==== Added
 endef
 
+## Changelog template for new minors
+define CHANGELOG_MINOR_TMPL
+[[apm-release-notes-$(RELEASE_BRANCH)]]
+== APM version $(RELEASE_BRANCH)
+* <<apm-release-notes-$(RELEASE_BRANCH).0>>
+
+[float]
+[[apm-release-notes-$(RELEASE_BRANCH).0]]
+=== APM version $(RELEASE_BRANCH).0
+
+https://github.com/elastic/apm-server/compare/v$(CURRENT_RELEASE)\...v$(RELEASE_BRANCH).0[View commits]
+
+endef
+
 #######################
 ## Public make goals
 #######################
@@ -157,18 +171,13 @@ update-changelog:
 	$(SED) 's#head#$(VERSION)#g' CHANGELOG.asciidoc
 
 # Common changelog file steps
-# TODO: changelogs/$(VERSION).asciidoc requires further manipulation to remove empty entries.
 .PHONY: common-changelog
+export CHANGELOG_MINOR_TMPL
 common-changelog: VERSION=$${VERSION}
 common-changelog:
 	@echo ">> common-changelog"
-	mv changelogs/head.asciidoc changelogs/$(VERSION).asciidoc
-	$(SED) 's#head#$(VERSION)#gI' changelogs/$(VERSION).asciidoc
-	$(SED) -E -e 's#(\...)main#\1$(VERSION)#g' changelogs/$(VERSION).asciidoc
-	$(SED) 's#https://github.com/elastic/apm-server/compare/.*##gI' changelogs/$(VERSION).asciidoc
-	$(SED) 's#\[\[release-notes#\[\[apm-release-notes#gI' changelogs/$(VERSION).asciidoc
-	awk "NR==5{print \"\n* <<apm-release-notes-$(VERSION).0>>\n\n[float]\n[[apm-release-notes-$(VERSION).0]]\n=== APM version $(VERSION).0\n\nhttps://github.com/elastic/apm-server/compare/v$(CURRENT_RELEASE)\...v$(VERSION).0[View commits]\"}1" changelogs/$(VERSION).asciidoc > changelogs/$(VERSION).asciidoc.new
-	mv changelogs/$(VERSION).asciidoc.new changelogs/$(VERSION).asciidoc
+	echo "$$CHANGELOG_MINOR_TMPL" > changelogs/$(VERSION).asciidoc
+	tail -n +6 changelogs/head.asciidoc >> changelogs/$(VERSION).asciidoc
 
 ## Update the references on .mergify.yml with the new minor release.
 .PHONY: update-mergify
