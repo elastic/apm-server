@@ -1,0 +1,22 @@
+[[release-notes-8.15]]
+== APM version 8.15
+
+https://github.com/elastic/apm-server/compare/8.14\...8.15[View commits]
+
+* <<release-notes-8.15.0>>
+
+[float]
+[[release-notes-8.15.0]]
+=== APM version 8.15.0
+
+[float]
+==== Breaking Changes
+
+[float]
+==== Deprecations
+
+[float]
+==== Intake API Changes
+
+[float]
+==== Added
