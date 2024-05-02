@@ -32,9 +32,7 @@ https://github.com/elastic/apm-server/compare/7.16\...7.17[View commits]
 
 https://github.com/elastic/apm-server/compare/v7.17.20\...v7.17.21[View commits]
 
-[float]
-==== Bug fixes
-- Fix the <<known-issue-13031,known issue>> introduced in version `7.17.20` causing failure in APM-server startup due to failure to bootstrap the fleet-server.
+The <<known-issue-13031,known issue>> introduced in version `7.17.20` causing failure in APM-server startup due to failure to bootstrap the fleet-server has been resolved.
 
 [float]
 [[release-notes-7.17.20]]
