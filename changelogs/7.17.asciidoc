@@ -3,6 +3,7 @@
 
 https://github.com/elastic/apm-server/compare/7.16\...7.17[View commits]
 
+* <<release-notes-7.17.21>>
 * <<release-notes-7.17.20>>
 * <<release-notes-7.17.19>>
 * <<release-notes-7.17.18>>
@@ -26,12 +27,23 @@ https://github.com/elastic/apm-server/compare/7.16\...7.17[View commits]
 * <<release-notes-7.17.0>>
 
 [float]
+[[release-notes-7.17.21]]
+=== APM version 7.17.21
+
+https://github.com/elastic/apm-server/compare/v7.17.20\...v7.17.21[View commits]
+
+[float]
+==== Bug fixes
+- Fix the <<known-issue-13031,known issue>> introduced in version `7.17.20` causing failure in APM-server startup due to failure to bootstrap the fleet-server.
+
+[float]
 [[release-notes-7.17.20]]
 === APM version 7.17.20
 
 https://github.com/elastic/apm-server/compare/v7.17.19\...v7.17.20[View commits]
 
 [float]
+[[known-issue-13031]]
 ==== Known issue
 An issue with the failure to bootstrap fleet-server with self-signed certificates causes failures in APM-server startup. This is due to an update in beats dependencies where the certificate validation was completely rewritten.
 The issue also prevents bootstrapping fleet-server in ESS and thus causes failure in APM-server startup in ESS.
@@ -52,7 +64,6 @@ No significant changes.
 https://github.com/elastic/apm-server/compare/v7.17.17\...v7.17.18[View commits]
 
 No significant changes.
-
 
 [float]
 [[release-notes-7.17.17]]
