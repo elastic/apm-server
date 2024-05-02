@@ -33,19 +33,6 @@ outputs:
 runs:
   using: "composite"
   steps:
-    - name: Send slack message when started
-      id: slack-thread
-      uses: elastic/apm-pipeline-library/.github/actions/slack-message@current
-      with:
-        url: ${{ inputs.vault-url }}
-        roleId: ${{ inputs.vault-role-id }}
-        secretId: ${{ inputs.vault-secret-id }}
-        channel: ${{ env.SLACK_CHANNEL }}
-        message: ":wave: This is the thread for the ${{ inputs.type }} release `${{ github.repository }}@${{ env.VERSION }}`. (<${{ env.JOB_URL }}|workflow run>)"
-      env:
-        VERSION: ${{ inputs.version }}
-        JOB_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-
     - id: generate
       run: |-
         echo "release-branch=${VERSION%.*}" >> "${GITHUB_OUTPUT}"
@@ -92,18 +79,3 @@ runs:
       shell: 'bash'
       env:
         TAG: 'refs/tags/v${{ steps.generate.outputs.release-version }}'
-
-    - uses: elastic/apm-pipeline-library/.github/actions/slack-message@current
-      if: failure()
-      with:
-        url: ${{ inputs.vault-url }}
-        roleId: ${{ inputs.vault-role-id }}
-        secretId: ${{ inputs.vault-secret-id }}
-        channel: ${{ env.SLACK_CHANNEL }}
-        threadTimestamp: ${{ steps.slack-thread.outputs.threadTimestamp || '' }}
-        message: |-
-          :fire: Something went wrong with the ${{ inputs.type }} release preparation. It failed with the below error message:
-          `${{ env.FAILURE_MESSAGE }}`.
-          See <${{ env.JOB_URL }}|logs>.
-      env:
-        JOB_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
