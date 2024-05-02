@@ -48,18 +48,6 @@ jobs:
     permissions:
       contents: write
     steps:
-
-      - uses: elastic/apm-pipeline-library/.github/actions/slack-message@current
-        with:
-          url: ${{ secrets.VAULT_ADDR }}
-          roleId: ${{ secrets.VAULT_ROLE_ID }}
-          secretId: ${{ secrets.VAULT_SECRET_ID }}
-          channel: ${{ env.SLACK_CHANNEL }}
-          threadTimestamp: ${{ needs.prepare.outputs.slack-thread || '' }}
-          message: |-
-            Feature freeze for `${{ github.repository }}@${{ env.RELEASE_VERSION }}` just started.
-            The `${{ github.repository }}@${{ env.RELEASE_BRANCH }}` branch will be created Today.
-
       - uses: actions/checkout@v4
         with:
           # 0 indicates all history for all branches and tags.
