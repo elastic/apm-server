@@ -9,9 +9,6 @@
         "agent.version": [
             "unknown"
         ],
-        "client.geo.city_name": [
-            "dynamic"
-        ],
         "client.geo.continent_name": [
             "Europe"
         ],
@@ -22,12 +19,6 @@
             "Germany"
         ],
         "client.geo.location": [
-            "dynamic"
-        ],
-        "client.geo.region_iso_code": [
-            "dynamic"
-        ],
-        "client.geo.region_name": [
             "dynamic"
         ],
         "client.ip": [
