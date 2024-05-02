@@ -64,7 +64,7 @@ define CHANGELOG_TMPL
 [[release-notes-head]]
 == APM version HEAD
 
-https://github.com/elastic/apm-server/compare/$(RELEASE_VERSION)\...main[View commits]
+https://github.com/elastic/apm-server/compare/$(RELEASE_BRANCH)\...main[View commits]
 
 [float]
 ==== Breaking Changes
