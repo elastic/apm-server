@@ -52,7 +52,7 @@ runs:
         echo "release-version=${VERSION}" >> "${GITHUB_OUTPUT}"
       env:
         VERSION: ${{ inputs.version }}
-        shell: 'bash'
+      shell: 'bash'
 
     - name: validate version format (minor only)
       if: ${{ inputs.type == 'minor' && ! endsWith(inputs.version, '0') }}
