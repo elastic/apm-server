@@ -96,15 +96,6 @@ targets:
       content: '{{ source "latestGoVersion" }}'
       file: .go-version
       matchpattern: '\d+.\d+.\d+'
-  update-dockerfile:
-    name: 'Update Dockerfile with Golang version {{ source "latestGoVersion" }}'
-    sourceid: latestGoVersion
-    scmid: default
-    kind: file
-    spec:
-      file: packaging/docker/Dockerfile
-      matchpattern: '(FROM golang):\d+.\d+.\d+'
-      replacepattern: '$1:{{ source "latestGoVersion" }}'
   update-gomod:
     name: 'Update go.mod files with {{ source "gomod" }}'
     sourceid: gomod

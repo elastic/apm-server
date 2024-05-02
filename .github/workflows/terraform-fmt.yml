@@ -9,6 +9,9 @@ on:
       - '**.tf'
   merge_group:
 
+permissions:
+  contents: read
+
 jobs:
   terraform-fmt:
     runs-on: ubuntu-latest
