@@ -69,7 +69,6 @@ jobs:
           passphrase: ${{ secrets.APM_SERVER_RELEASE_PASSPHRASE }}
           git_user_signingkey: true
           git_commit_gpgsign: true
-          git_push_gpgsign: true
 
       - run: make patch-release
 
