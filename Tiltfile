@@ -11,6 +11,7 @@ script_dir = os.path.join(config.main_dir, 'script')
 default_kibana_port = 5601
 kibana_host = "localhost"
 kibana_base_path = ""
+golang_version = str(read_file('./.go-version')).strip()
 
 # checks whether (dev mode) kibana is already running at given port,
 # and returns the URL it is redirected to
@@ -41,7 +42,7 @@ def discover_kibana():
 
 custom_build(
   'apm-server',
-  'DOCKER_BUILDKIT=1 docker build -t $EXPECTED_REF -f packaging/docker/Dockerfile .',
+  'DOCKER_BUILDKIT=1 docker build -t $EXPECTED_REF --build-arg GOLANG_VERSION=%s -f packaging/docker/Dockerfile .' % golang_version,
   deps = ['.'],
   ignore = ['**/*_test.go', 'tools/**', 'systemtest/**', 'docs/**'],
 )
