@@ -36,5 +36,6 @@ jobs:
           vaultRoleId: ${{ secrets.VAULT_ROLE_ID }}
           vaultSecretId: ${{ secrets.VAULT_SECRET_ID }}
           pipeline: ./.ci/bump-elastic-stack-snapshot.yml
+          command: '--experimental apply'
         env:
           BRANCH: ${{ matrix.branch }}
