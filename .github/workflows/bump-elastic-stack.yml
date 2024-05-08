@@ -39,4 +39,3 @@ jobs:
           command: '--experimental apply'
         env:
           BRANCH: ${{ matrix.branch }}
-          GITHUB_ACTOR: ${{ github.actor }}
