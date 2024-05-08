@@ -1,0 +1,80 @@
+openapi: 3.1.0
+info:
+  title: APM Server
+  description: OpenAPI schema for APM Server APIs
+  version: '0.1'
+  license:
+    name: Elastic License 2.0
+    url: https://www.elastic.co/licensing/elastic-license
+  contact:
+    name: APM Team
+servers:
+  - url: /
+security:
+  - apiKeyAuth: []
+  - secretToken: []
+tags:
+  - name: agent config
+    description: APIs that query the APM Server for configuration changes.
+    x-displayName: APM agent configuration
+  - name: event intake
+    description: >-
+      The events intake API is the internal protocol that APM agents use to talk
+      to the APM Server.
+    x-displayName: APM event intake
+  - name: jaeger intake
+    description: >
+      Elastic APM natively supports Jaeger, an open-source, distributed tracing
+      system.
+    x-displayName: Jaeger event intake
+  - name: opentelemetry intake
+    description: >
+      The OpenTelemetry intake API uses the OpenTelemetry Protocol (OTLP) to
+      send traces, metrics, and logs to APM Server. OTLP is the default transfer
+      protocol for OpenTelemetry and is supported natively by APM Server. APM
+      Server supports two OTLP communication protocols on the same port:
+      OTLP/HTTP (protobuf) and OTLP/gRPC.
+    x-displayName: APM OpenTelemetry intake
+  - name: server info
+    description: APIs that query general APM Server information.
+    x-displayName: APM server information
+paths:
+  /:
+    $ref: paths/server_info.yaml
+  /config/v1/agents:
+    $ref: paths/config_v1_agents.yaml
+  /config/v1/rum/agents:
+    $ref: paths/config_v1_rum_agents.yaml
+  /intake/v2/events:
+    $ref: paths/intake_v2_events.yaml
+  /intake/v2/rum/events:
+    $ref: paths/intake_v2_rum_events.yaml
+  /intake/v3/rum/events:
+    $ref: paths/intake_v3_rum_events.yaml
+  /jaeger.api_v2.CollectorService/PostSpans:
+    $ref: paths/jaeger.api_v2.CollectorService_PostSpans.yaml
+  /jaeger.api_v2.SamplingManager/GetSamplingStrategy:
+    $ref: paths/jaeger.api_v2.SamplingManager_GetSamplingStrategy.yaml
+  /opentelemetry.proto.collector.metrics.v1.MetricsService/Export:
+    $ref: paths/opentelemetry.proto.collector.metrics.v1.MetricsService_Export.yaml
+  /opentelemetry.proto.collector.trace.v1.TraceService/Export:
+    $ref: paths/opentelemetry.proto.collector.trace.v1.TraceService_Export.yaml
+  /opentelemetry.proto.collector.logs.v1.LogsService/Export:
+    $ref: paths/opentelemetry.proto.collector.logs.v1.LogsService_Export.yaml
+  /v1/metrics:
+    $ref: paths/v1_metrics.yaml
+  /v1/traces:
+    $ref: paths/v1_traces.yaml
+  /v1/logs:
+    $ref: paths/v1_logs.yaml
+components:
+  securitySchemes:
+    apiKeyAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: 'e.g. Authorization: ApiKey base64AccessApiKey'
+    secretToken:
+      type: http
+      scheme: bearer
+      bearerFormat: Secret token

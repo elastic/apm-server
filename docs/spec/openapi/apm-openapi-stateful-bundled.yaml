@@ -367,80 +367,33 @@ components:
       type: http
       scheme: bearer
       bearerFormat: Secret token
+  responses:
+    200_server_info:
+      description: A successful response indicates that the server is up.
+      content:
+        application/json:
+          schema:
+            description: If an API key or a secret token is passed along with the request, the response payload includes some information about the APM server.
+            type: object
+            properties:
+              build_date:
+                type: string
+                format: time-date
+              build_sha:
+                type: string
+              publish_ready:
+                type: boolean
+              version:
+                type: string
+          examples:
+            getServerHealthAuthResponse:
+              summary: Example APM Server information request with a secret token
+              value:
+                build_date: '2021-12-18T19:59:06Z'
+                build_sha: 24fe620eeff5a19e2133c940c7e5ce1ceddb1445
+                publish_ready: true
+                version: 8.12.2
   schemas:
-    ErrorEvent:
-      type: object
-      description: |
-        Errors are events that occur in a monitored service and correspond to an error or a logged message captured by an agent.
-      required:
-        - error
-      properties:
-        error:
-          $ref: '#/components/schemas/error'
-    ErrorEventv3:
-      type: object
-      required:
-        - error
-      properties:
-        error:
-          $ref: '#/components/schemas/error-2'
-    MetadataEvent:
-      type: object
-      description: |
-        Every new connection to the APM Server starts with a metadata stanza. This provides general metadata concerning the other objects in the stream. Rather than send this metadata information from the agent multiple times, the APM Server hangs on to this information and applies it to other objects in the stream as necessary. TIP: Metadata is stored under context when viewing documents in Elasticsearch. APM agents automatically read Kubernetes data and send it to the APM Server. In most instances, agents are able to read this data from inside the container. If this is not the case, or if you wish to override this data, you can set environment variables for the agents to read. These environment variable are set via the Kubernetes Downward API. 
-      required:
-        - metadata
-      properties:
-        metadata:
-          $ref: '#/components/schemas/metadata'
-    MetadataEventv3:
-      type: object
-      required:
-        - metadata
-      properties:
-        metadata:
-          $ref: '#/components/schemas/metadata-2'
-    MetricSetEvent:
-      type: object
-      description: |
-        Metric sets are events that contain application metric data captured by an APM agent. 
-      required:
-        - metricset
-      properties:
-        metricset:
-          $ref: '#/components/schemas/metricset'
-    SpanEvent:
-      type: object
-      description: |
-        Spans are events captured by an agent occurring in a monitored service.
-      required:
-        - span
-      properties:
-        span:
-          $ref: '#/components/schemas/span'
-    SpanEventv3:
-      type: object
-      required:
-        - span
-      properties:
-        span:
-          $ref: '#/components/schemas/span-2'
-    TransactionEvent:
-      type: object
-      description: |
-        Transactions are events corresponding to an incoming request or similar task occurring in a monitored service.
-      required:
-        - transaction
-      properties:
-        transaction:
-          $ref: '#/components/schemas/transaction'
-    TransactionEventv3:
-      type: object
-      required:
-        - transaction
-      properties:
-        transaction:
-          $ref: '#/components/schemas/transaction-2'
     error:
       $id: docs/spec/v2/error
       description: errorEvent represents an error or a logged error message, captured by an APM agent in a monitored service.
@@ -1328,6 +1281,15 @@ components:
               type: object
           required:
             - log
+    ErrorEvent:
+      type: object
+      description: |
+        Errors are events that occur in a monitored service and correspond to an error or a logged message captured by an agent.
+      required:
+        - error
+      properties:
+        error:
+          $ref: '#/components/schemas/error'
     metadata:
       $id: docs/spec/v2/metadata
       type: object
@@ -1744,6 +1706,15 @@ components:
               maxLength: 1024
       required:
         - service
+    MetadataEvent:
+      type: object
+      description: |
+        Every new connection to the APM Server starts with a metadata stanza. This provides general metadata concerning the other objects in the stream. Rather than send this metadata information from the agent multiple times, the APM Server hangs on to this information and applies it to other objects in the stream as necessary. TIP: Metadata is stored under context when viewing documents in Elasticsearch. APM agents automatically read Kubernetes data and send it to the APM Server. In most instances, agents are able to read this data from inside the container. If this is not the case, or if you wish to override this data, you can set environment variables for the agents to read. These environment variable are set via the Kubernetes Downward API. 
+      required:
+        - metadata
+      properties:
+        metadata:
+          $ref: '#/components/schemas/metadata'
     metricset:
       $id: docs/spec/v2/metricset
       type: object
@@ -1946,6 +1917,15 @@ components:
               maxLength: 1024
       required:
         - samples
+    MetricSetEvent:
+      type: object
+      description: |
+        Metric sets are events that contain application metric data captured by an APM agent. 
+      required:
+        - metricset
+      properties:
+        metricset:
+          $ref: '#/components/schemas/metricset'
     span:
       $id: docs/spec/v2/span
       type: object
@@ -2582,6 +2562,15 @@ components:
               type: integer
           required:
             - timestamp
+    SpanEvent:
+      type: object
+      description: |
+        Spans are events captured by an agent occurring in a monitored service.
+      required:
+        - span
+      properties:
+        span:
+          $ref: '#/components/schemas/span'
     transaction:
       $id: docs/spec/v2/transaction
       type: object
@@ -3390,6 +3379,15 @@ components:
         - type
         - span_count
         - duration
+    TransactionEvent:
+      type: object
+      description: |
+        Transactions are events corresponding to an incoming request or similar task occurring in a monitored service.
+      required:
+        - transaction
+      properties:
+        transaction:
+          $ref: '#/components/schemas/transaction'
     error-2:
       $id: docs/spec/rumv3/error
       type: object
@@ -3974,6 +3972,13 @@ components:
               type: object
           required:
             - log
+    ErrorEventv3:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          $ref: '#/components/schemas/error-2'
     metadata-2:
       $id: docs/spec/rumv3/metadata
       type: object
@@ -4133,6 +4138,13 @@ components:
               maxLength: 1024
       required:
         - se
+    MetadataEventv3:
+      type: object
+      required:
+        - metadata
+      properties:
+        metadata:
+          $ref: '#/components/schemas/metadata-2'
     span-2:
       $id: docs/spec/rumv3/span
       type: object
@@ -4397,6 +4409,13 @@ components:
         - id
         - s
         - d
+    SpanEventv3:
+      type: object
+      required:
+        - span
+      properties:
+        span:
+          $ref: '#/components/schemas/span-2'
     transaction-2:
       $id: docs/spec/rumv3/transaction
       type: object
@@ -5119,32 +5138,13 @@ components:
         - id
         - yc
         - d
-  responses:
-    200_server_info:
-      description: A successful response indicates that the server is up.
-      content:
-        application/json:
-          schema:
-            description: If an API key or a secret token is passed along with the request, the response payload includes some information about the APM server.
-            type: object
-            properties:
-              build_date:
-                type: string
-                format: time-date
-              build_sha:
-                type: string
-              publish_ready:
-                type: boolean
-              version:
-                type: string
-          examples:
-            getServerHealthAuthResponse:
-              summary: Example APM Server information request with a secret token
-              value:
-                build_date: '2021-12-18T19:59:06Z'
-                build_sha: 24fe620eeff5a19e2133c940c7e5ce1ceddb1445
-                publish_ready: true
-                version: 8.12.2
+    TransactionEventv3:
+      type: object
+      required:
+        - transaction
+      properties:
+        transaction:
+          $ref: '#/components/schemas/transaction-2'
   examples:
     metadataEventIntakeRequestExample:
       summary: A request body example for the metadata event type.

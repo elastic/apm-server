@@ -1,0 +1,26 @@
+description: A successful response indicates that the server is up.
+content:
+  application/json:
+    schema:
+      description: >-
+        If an API key or a secret token is passed along with the request, the
+        response payload includes some information about the APM server.
+      type: object
+      properties:
+        build_date:
+          type: string
+          format: time-date
+        build_sha:
+          type: string
+        publish_ready:
+          type: boolean
+        version:
+          type: string
+    examples:
+      getServerHealthAuthResponse:
+        summary: Example APM Server information request with a secret token
+        value:
+          build_date: '2021-12-18T19:59:06Z'
+          build_sha: 24fe620eeff5a19e2133c940c7e5ce1ceddb1445
+          publish_ready: true
+          version: 8.12.2

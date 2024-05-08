@@ -12,7 +12,10 @@
 To generate the bundled files in the [`docs/spec/openapi`](/docs/spec/openapi) directory, use [redocly bundle](https://redocly.com/docs/cli/commands/bundle/). For example:
 
 ```
-npx @redocly/cli bundle apm-openapi.yaml --output bundled.yaml --ext yaml
-npx @redocly/cli bundle apm-openapi.yaml --output bundled.json --ext json
+npx @redocly/cli bundle apm-openapi-serverless.yaml --output apm-openapi-serverless-bundled.yaml --ext yaml
+npx @redocly/cli bundle apm-openapi-serverless.yaml --output apm-openapi-serverless-bundled.json --ext json
+
+npx @redocly/cli bundle apm-openapi-stateful.yaml --output apm-openapi-stateful-bundled.yaml --ext yaml
+npx @redocly/cli bundle apm-openapi-stateful.yaml --output apm-openapi-stateful-bundled.json --ext json
 ```
 

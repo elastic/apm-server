@@ -1,0 +1,105 @@
+get:
+  summary: Get agent configuration changes
+  description: >
+    To configure authenticated access to the APM server, the instructions at
+    [APM API
+    key](https://www.elastic.co/guide/en/observability/current/api-key.html) or
+    [APM Secret
+    Token](https://www.elastic.co/guide/en/observability/current/secret-token.html)
+    must be followed to configure the correct permissions for APM access.
+  operationId: getAgentConfig
+  tags:
+    - agent config
+  parameters:
+    - in: query
+      name: service.name
+      required: true
+      schema:
+        type: string
+    - in: query
+      name: service.environment
+      schema:
+        type: string
+  responses:
+    '200':
+      description: A successful response.
+      content:
+        application/json:
+          schema:
+            type: object
+post:
+  summary: Get agent configuration changes
+  description: >
+    To configure authenticated access to the APM server, the instructions at
+    [APM API
+    key](https://www.elastic.co/guide/en/observability/current/api-key.html) or
+    [APM Secret
+    Token](https://www.elastic.co/guide/en/observability/current/secret-token.html)
+    must be followed to configure the correct permissions for APM access.
+  operationId: postAgentConfig
+  tags:
+    - agent config
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          required:
+            - service
+          properties:
+            CAPTURE_BODY:
+              type: string
+              example: 'off'
+            service:
+              type: object
+              required:
+                - name
+              properties:
+                environment:
+                  type: string
+                  example: all
+                name:
+                  type: string
+                  example: test-service
+          additionalProperties: true
+  responses:
+    '200':
+      description: Successful response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              capture_body:
+                type: string
+                enum:
+                  - 'off'
+                  - errors
+                  - transactions
+                  - all
+                description: >
+                  For transactions that are HTTP requests, the agent can
+                  optionally capture the request body (for example, POST
+                  variables). For transactions that are initiated by receiving a
+                  message from a message broker, the agent can capture the
+                  textual message body.
+                example: 'off'
+              transaction_max_spans:
+                type: integer
+                minimum: 0
+                description: The maximum number of spans that are recorded per transaction.
+                example: 500
+              transaction_sample_rate:
+                type: number
+                format: float
+                minimum: 0
+                maximum: 1
+                description: The agent samples transactions at this rate.
+                example: 0.3
+            additionalProperties: true
+    '403':
+      description: >-
+        APM Server is configured to fetch agent configuration from Elasticsearch
+        but the configuration is invalid.
+    '503':
+      description: APM Server is starting up or Elasticsearch is unreachable.

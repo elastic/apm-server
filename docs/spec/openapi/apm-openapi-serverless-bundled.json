@@ -1,0 +1,264 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "APM Server Serverless",
+    "description": "OpenAPI schema for APM Server (Serverless) APIs",
+    "version": "0.1",
+    "license": {
+      "name": "Elastic License 2.0",
+      "url": "https://www.elastic.co/licensing/elastic-license"
+    },
+    "contact": {
+      "name": "APM Team"
+    }
+  },
+  "servers": [
+    {
+      "url": "/"
+    }
+  ],
+  "security": [
+    {
+      "apiKeyAuth": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "event intake",
+      "description": "The events intake API is the internal protocol that APM agents use to talk to the APM Server.",
+      "x-displayName": "APM event intake"
+    },
+    {
+      "name": "opentelemetry intake",
+      "description": "The OpenTelemetry intake API uses the OpenTelemetry Protocol (OTLP) to send traces, metrics, and logs to APM Server. OTLP is the default transfer protocol for OpenTelemetry and is supported natively by APM Server. APM Server supports two OTLP communication protocols on the same port: OTLP/HTTP (protobuf) and OTLP/gRPC.\n",
+      "x-displayName": "APM OpenTelemetry intake"
+    },
+    {
+      "name": "server info",
+      "description": "APIs that query general APM Server information.",
+      "x-displayName": "APM server information"
+    }
+  ],
+  "paths": {
+    "/": {
+      "get": {
+        "summary": "Get general server information",
+        "description": "This lightweight endpoint is useful as a server up/down health check.\nTo configure authenticated access to the APM server, the instructions at [APM API key](https://www.elastic.co/guide/en/observability/current/api-key.html) or [APM Secret Token](https://www.elastic.co/guide/en/observability/current/secret-token.html) must be followed to configure the correct permissions for APM access.\n",
+        "operationId": "getServerHealth",
+        "tags": [
+          "server info"
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/200_server_info"
+          }
+        }
+      },
+      "post": {
+        "summary": "Get general server information",
+        "operationId": "postServerHealth",
+        "tags": [
+          "server info"
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/200_server_info"
+          }
+        }
+      }
+    },
+    "/opentelemetry.proto.collector.metrics.v1.MetricsService/Export": {
+      "post": {
+        "summary": "Send OTLP metrics",
+        "description": "APM Server supports receiving metrics over the OpenTelemetry Protocol (OTLP). This API uses the OTLP/gRPC communication protocol.\n",
+        "operationId": "postOtlpGrpcMetrics",
+        "tags": [
+          "opentelemetry intake"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/opentelemetry.proto.collector.trace.v1.TraceService/Export": {
+      "post": {
+        "summary": "Send OTLP traces",
+        "description": "APM Server supports receiving traces over the OpenTelemetry Protocol (OTLP). This API uses the OTLP/gRPC communication protocol.\n",
+        "operationId": "postOtlpGrpcTraces",
+        "tags": [
+          "opentelemetry intake"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/opentelemetry.proto.collector.logs.v1.LogsService/Export": {
+      "post": {
+        "summary": "Send OTLP logs",
+        "description": "APM Server supports receiving logs over the OpenTelemetry Protocol (OTLP). This API uses the OTLP/gRPC communication protocol.\n",
+        "operationId": "postOtlpGrpcLogs",
+        "tags": [
+          "opentelemetry intake"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/v1/metrics": {
+      "post": {
+        "summary": "Send OTLP metrics",
+        "description": "APM Server supports receiving metrics over the OpenTelemetry Protocol (OTLP). This API uses the OTLP/HTTP (protobuf) communication protocol.\n",
+        "operationId": "postOtlpHttpMetrics",
+        "tags": [
+          "opentelemetry intake"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/v1/traces": {
+      "post": {
+        "summary": "Send OTLP traces",
+        "description": "APM Server supports receiving traces over the OpenTelemetry Protocol (OTLP). This API uses the OTLP/HTTP (protobuf) communication protocol.\n",
+        "operationId": "postOtlpHttpTraces",
+        "tags": [
+          "opentelemetry intake"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/v1/logs": {
+      "post": {
+        "summary": "Send OTLP logs",
+        "description": "APM Server supports receiving logs over the OpenTelemetry Protocol (OTLP). This API uses the OTLP/HTTP (protobuf) communication protocol.\n",
+        "operationId": "postOtlpHttpLogs",
+        "tags": [
+          "opentelemetry intake"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "apiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "Authorization",
+        "description": "e.g. Authorization: ApiKey base64AccessApiKey"
+      }
+    },
+    "responses": {
+      "200_server_info": {
+        "description": "A successful response indicates that the server is up.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "description": "If an API key or a secret token is passed along with the request, the response payload includes some information about the APM server.",
+              "type": "object",
+              "properties": {
+                "build_date": {
+                  "type": "string",
+                  "format": "time-date"
+                },
+                "build_sha": {
+                  "type": "string"
+                },
+                "publish_ready": {
+                  "type": "boolean"
+                },
+                "version": {
+                  "type": "string"
+                }
+              }
+            },
+            "examples": {
+              "getServerHealthAuthResponse": {
+                "summary": "Example APM Server information request with a secret token",
+                "value": {
+                  "build_date": "2021-12-18T19:59:06Z",
+                  "build_sha": "24fe620eeff5a19e2133c940c7e5ce1ceddb1445",
+                  "publish_ready": true,
+                  "version": "8.12.2"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
