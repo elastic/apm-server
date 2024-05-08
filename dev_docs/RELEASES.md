@@ -15,8 +15,7 @@ For patch releases, only the version on the existing major and minor version bra
 
 ## Day after Feature Freeze
 
-* Update Changelog
-  * This step is automated
+* Trigger release workflow manually
   * For **patch releases**: run the [`run-patch-release`](https://github.com/elastic/apm-server/actions/workflows/run-patch-release.yml) workflow.
   * For **minor releases**: run the [`run-minor-release`](https://github.com/elastic/apm-server/actions/workflows/run-minor-release.yml) workflow.  
     This workflow will: create the release branch; update the changelog for the release branch and open a PR targeting the release branch titled `<major>.<minor>: update docs`; create a PR on `main` titled `<major>.<minor>: update docs, mergify, versions and changelogs`. Before merging them compare commits between latest minor and the new minor versions and ensure all relevant PRs have been included in the Changelog. If not, amend it in both PRs. Request and wait a PR review from the team before merging.
@@ -42,7 +41,7 @@ For patch releases, only the version on the existing major and minor version bra
   Create a github issue for testing the release branch ([use the GitHub issue `test plan` template](https://github.com/elastic/apm-server/issues/new?assignees=&labels=test-plan&projects=&template=test-plan.md)), It should contain:
   * A link to all PRs in the APM Server repository that need to be tested manually. Use the `test-plan` label and the version label (create it if it does not exist).
     to create an overview over the PRs that need testing. For example, [test plan link for 8.3.0](https://github.com/elastic/apm-server/issues?q=label%3Atest-plan+is%3Aclosed+label%3Av8.3.0).  
-    What we aim for is testing all functional changes applied to the new version. Review any PR updating `elastic/go-docappener` and `elastic/apm-data` dependencies, as some functional changes happens through these dependencies.  
+    What we aim for is testing all functional changes applied to the new version. Review any PR updating `elastic/go-docappender` and `elastic/apm-data` dependencies, as some functional changes happens through these dependencies.  
    Any non-functional change or any change that is already covered by automated tests must not be included.
   * Add other test cases that require manual testing, such as test scenarios on ESS, that are not covered by automated tests or OS compatibility smoke tests for supporting new operating systems.
 
