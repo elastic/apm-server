@@ -22,5 +22,3 @@ jobs:
           vaultSecretId: ${{ secrets.VAULT_SECRET_ID }}
           pipeline: ./.ci/bump-golang.yml
           command: '--experimental apply'
-        env:
-          GITHUB_ACTOR: ${{ github.actor }}
