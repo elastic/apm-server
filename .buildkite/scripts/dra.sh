@@ -28,7 +28,8 @@ if [[ "${BUILDKITE_PULL_REQUEST:-false}" == "true" ]]; then
   exit 0
 fi
 
-curl -s https://storage.googleapis.com/artifacts-api/snapshots/branches.json > active-branches.json
+BRANCHES_URL=https://storage.googleapis.com/artifacts-api/snapshots/branches.json
+curl -s "${BRANCHES_URL}" > active-branches.json
 if ! grep -q "\"$BUILDKITE_BRANCH\"" active-branches.json ; then
   echo "--- :arrow_right: Release Manager only supports the current active branches, skipping"
   echo "BUILDKITE_BRANCH=$BUILDKITE_BRANCH"
@@ -36,7 +37,8 @@ if ! grep -q "\"$BUILDKITE_BRANCH\"" active-branches.json ; then
   echo "VERSION=$VERSION"
   echo "Supported branches:"
   cat active-branches.json
-  exit 0
+  buildkite-agent annotate "${BUILDKITE_BRANCH} is not supported yet. Look for the supported branches in ${BRANCHES_URL}" --style 'warning' --context 'ctx-warn'
+  exit 1
 fi
 
 dra() {
