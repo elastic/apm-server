@@ -504,7 +504,7 @@ func TestOTLPGRPCLogsClientIP(t *testing.T) {
 	defer cancel()
 
 	// Override local IP address to be found in "GeoLite2-City.mmdb".
-	md := metadata.New(map[string]string{"X-Forwarded-For": "178.162.206.244"})
+	md := metadata.New(map[string]string{"X-Forwarded-For": "89.160.20.128"})
 	ctx = metadata.NewOutgoingContext(ctx, md)
 
 	conn, err := grpc.Dial(serverAddr(srv), grpc.WithInsecure(), grpc.WithBlock(), grpc.WithDefaultCallOptions(grpc.UseCompressor("gzip")))
