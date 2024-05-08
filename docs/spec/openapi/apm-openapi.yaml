@@ -238,6 +238,7 @@ paths:
   /jaeger.api_v2.CollectorService/PostSpans:
     post:
       summary: Send Jaeger spans
+      deprecated: true
       description: >
         APM Server supports receiving Jaeger spans.
         This API uses the gRPC protocol.
@@ -255,6 +256,7 @@ paths:
   /jaeger.api_v2.SamplingManager/GetSamplingStrategy:
     get:
       summary: Get Jaeger sampling strategy
+      deprecated: true
       description: >
         This API polls the APM Server for the sampling rate.
       operationId: getJaegerSampling
