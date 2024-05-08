@@ -38,12 +38,8 @@ jobs:
           vaultRoleId: ${{ secrets.VAULT_ROLE_ID }}
           vaultSecretId: ${{ secrets.VAULT_SECRET_ID }}
           pipeline: ./.ci/update-beats.yml
-<<<<<<< HEAD
-      - if: always()
-=======
           command: '--experimental apply'
       - if: failure()
->>>>>>> 8182fb130 (updatecli: verify commits for golang and beats (#13107))
         uses: elastic/apm-pipeline-library/.github/actions/notify-build-status@current
         with:
           vaultUrl: ${{ secrets.VAULT_ADDR }}
