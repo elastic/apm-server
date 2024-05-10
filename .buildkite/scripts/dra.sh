@@ -28,6 +28,8 @@ if [[ "${BUILDKITE_PULL_REQUEST:-false}" == "true" ]]; then
   exit 0
 fi
 
+# by default it uses the buildkite branch
+DRA_BRANCH="$BUILDKITE_BRANCH"
 # by default it publishes the DRA artifacts, for such it uses the collect command.
 dra_command=collect
 BRANCHES_URL=https://storage.googleapis.com/artifacts-api/snapshots/branches.json
@@ -42,6 +44,20 @@ if ! grep -q "\"$BUILDKITE_BRANCH\"" active-branches.json ; then
   if [[ $BUILDKITE_BRANCH =~ "feature/" ]]; then
     buildkite-agent annotate "${BUILDKITE_BRANCH} will list DRA artifacts. Feature branches are not supported. Look for the supported branches in ${BRANCHES_URL}" --style 'warning' --context 'ctx-warn'
     dra_command=list
+
+    # use a different branch since DRA does not support feature branches but main/release branches
+    # for such we will use the VERSION and https://storage.googleapis.com/artifacts-api/snapshots/<major.minor>.json
+    # to know if the branch was branched out from.
+    MAJOR_MINOR=${VERSION%.*}
+    if curl -s "https://storage.googleapis.com/artifacts-api/snapshots/main.json" | grep -q "$VERSION" ; then
+      DRA_BRANCH=main
+    else
+      if curl -s "https://storage.googleapis.com/artifacts-api/snapshots/$MAJOR_MINOR.json" | grep -q "$VERSION" ; then
+        DRA_BRANCH="$MAJOR_MINOR"
+      else
+        exit 0
+      fi
+    fi
   else
     buildkite-agent annotate "${BUILDKITE_BRANCH} is not supported yet. Look for the supported branches in ${BRANCHES_URL}" --style 'warning' --context 'ctx-warn'
     exit 1
@@ -61,7 +77,7 @@ dra() {
     docker.elastic.co/infra/release-manager:latest \
       cli "$command" \
       --project apm-server \
-      --branch $BUILDKITE_BRANCH \
+      --branch $DRA_BRANCH \
       --commit $BUILDKITE_COMMIT \
       --workflow $workflow \
       --artifact-set main \
