@@ -78,7 +78,7 @@ jobs:
           name: test-results
           path: 'build/*.xml'
 
-  test-package:
+  test-package-snapshot:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -86,7 +86,19 @@ jobs:
         with:
           go-version-file: go.mod
           cache: false
+      - run: make package-snapshot
 
+  test-package-push:
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request' || github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false
+    env:
+      GENERATE_WOLFI_IMAGES: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: false
       - uses: elastic/apm-pipeline-library/.github/actions/docker-login@current
         with:
           registry: docker.elastic.co
@@ -94,21 +106,5 @@ jobs:
           url: ${{ secrets.VAULT_ADDR }}
           roleId: ${{ secrets.VAULT_ROLE_ID }}
           secretId: ${{ secrets.VAULT_SECRET_ID }}
-        if: |
-          github.event_name != 'pull_request'
-          || github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false
-
-      - run: echo "GENERATE_WOLFI_IMAGES=true" >> "$GITHUB_ENV"
-        if: |
-          github.event_name != 'pull_request'
-          || github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false
-
       - run: make package-snapshot
-        env:
-          GH_TOKEN: ${{ github.token }}
-
       - run: make publish-docker-images
-        continue-on-error: true
-        if: |
-          github.event_name != 'pull_request'
-          || github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false
