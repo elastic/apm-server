@@ -87,3 +87,19 @@ jobs:
           go-version-file: go.mod
           cache: false
       - run: make package-snapshot
+
+      - uses: elastic/apm-pipeline-library/.github/actions/docker-login@current
+        with:
+          registry: docker.elastic.co
+          secret: secret/observability-team/ci/docker-registry/prod
+          url: ${{ secrets.VAULT_ADDR }}
+          roleId: ${{ secrets.VAULT_ROLE_ID }}
+          secretId: ${{ secrets.VAULT_SECRET_ID }}
+        if: |
+          github.event_name != 'pull_request'
+          || github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false
+
+      - run: make publish-docker-images
+        if: |
+          github.event_name != 'pull_request'
+          || github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false

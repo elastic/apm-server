@@ -39,6 +39,8 @@ build/docker/%-SNAPSHOT.txt: VERSION := $(APM_SERVER_VERSION)-SNAPSHOT
 build/docker/apm-server-ubi-%.txt: DOCKER_BUILD_ARGS+=--build-arg BASE_IMAGE=docker.elastic.co/ubi9/ubi-minimal
 build/docker/apm-server-wolfi-%.txt: DOCKER_BUILD_ARGS+=--build-arg BASE_IMAGE=docker.elastic.co/wolfi/chainguard-base:20230214 --build-arg BASE_GOLANG_IMAGE=docker.elastic.co/wolfi/go
 
+INTERNAL_DOCKER_IMAGE := docker.elastic.co/observability-ci/apm-server-internal
+
 .PHONY: $(DOCKER_IMAGES)
 $(DOCKER_IMAGES):
 	@mkdir -p $(@D)
@@ -46,7 +48,7 @@ $(DOCKER_IMAGES):
 		--build-arg GOLANG_VERSION=$(GOLANG_VERSION) \
 		--build-arg VERSION=$(VERSION) \
 		$(DOCKER_BUILD_ARGS) \
-		--tag docker.elastic.co/observability-ci/apm-server:$(VERSION)$(if $(findstring arm64,$(GOARCH)),-arm64)$(if $(findstring wolfi,$(@)),-wolfi) \
+		--tag $(INTERNAL_DOCKER_IMAGE):$(VERSION)$(if $(findstring arm64,$(GOARCH)),-arm64)$(if $(findstring wolfi,$(@)),-wolfi) \
 		-f packaging/docker/Dockerfile .
 
 # Docker image tarballs. We distribute UBI Docker images only for AMD64.
@@ -211,3 +213,6 @@ package-snapshot: \
 	$(DOCKER_IMAGE_SNAPSHOT_TARBALLS) \
 	$(DISTDIR)/apm-server-ironbank-$(APM_SERVER_VERSION)-SNAPSHOT-docker-build-context.tar.gz \
 	build/dependencies-$(APM_SERVER_VERSION)-SNAPSHOT.csv
+
+publish-docker-images:
+	docker push --all-tags $(INTERNAL_DOCKER_IMAGE)
