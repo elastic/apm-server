@@ -5,7 +5,7 @@
 ##
 ##  It downloads the generated artifacts and run the DRA only if the branch is an active
 ##  branch, based on the Unified Release policy. Otherwise, it won't run the DRA but print
-##  some traces.
+##  some traces and fail unless it's a feature branch then it will list the DRA artifacts.
 ##
 
 set -eo pipefail
@@ -47,7 +47,7 @@ if ! grep -q "\"$BUILDKITE_BRANCH\"" active-branches.json ; then
 
     # use a different branch since DRA does not support feature branches but main/release branches
     # for such we will use the VERSION and https://storage.googleapis.com/artifacts-api/snapshots/<major.minor>.json
-    # to know if the branch was branched out from.
+    # to know if the branch was branched out from main or the release branches.
     MAJOR_MINOR=${VERSION%.*}
     if curl -s "https://storage.googleapis.com/artifacts-api/snapshots/main.json" | grep -q "$VERSION" ; then
       DRA_BRANCH=main
@@ -55,6 +55,7 @@ if ! grep -q "\"$BUILDKITE_BRANCH\"" active-branches.json ; then
       if curl -s "https://storage.googleapis.com/artifacts-api/snapshots/$MAJOR_MINOR.json" | grep -q "$VERSION" ; then
         DRA_BRANCH="$MAJOR_MINOR"
       else
+        echo "It was not possible to know what's the original base branch. Let's stop here"
         exit 0
       fi
     fi
@@ -67,7 +68,7 @@ fi
 dra() {
   local workflow=$1
   local command=$2
-  echo "--- Run release manager $workflow"
+  echo "--- Run release manager $workflow (DRA command: $command)"
   docker run --rm \
     --name release-manager \
     -e VAULT_ADDR="${VAULT_ADDR_SECRET}" \
@@ -85,6 +86,6 @@ dra() {
 }
 
 dra "snapshot" "$dra_command"
-if [[ "${BUILDKITE_BRANCH}" != "main" ]]; then
+if [[ "${DRA_BRANCH}" != "main" ]]; then
   dra "staging" "$dra_command"
 fi
