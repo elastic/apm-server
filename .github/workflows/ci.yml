@@ -98,6 +98,11 @@ jobs:
           github.event_name != 'pull_request'
           || github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false
 
+      - run: echo "GENERATE_WOLFI_IMAGES=true" >> "$GITHUB_ENV"
+        if: |
+          github.event_name != 'pull_request'
+          || github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false
+
       - run: make package-snapshot
         env:
           GH_TOKEN: ${{ github.token }}
