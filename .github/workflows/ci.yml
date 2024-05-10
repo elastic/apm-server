@@ -86,7 +86,6 @@ jobs:
         with:
           go-version-file: go.mod
           cache: false
-      - run: make package-snapshot
 
       - uses: elastic/apm-pipeline-library/.github/actions/docker-login@current
         with:
@@ -98,6 +97,10 @@ jobs:
         if: |
           github.event_name != 'pull_request'
           || github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false
+
+      - run: make package-snapshot
+        env:
+          GH_TOKEN: ${{ github.token }}
 
       - run: make publish-docker-images
         continue-on-error: true
