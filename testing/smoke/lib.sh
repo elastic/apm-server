@@ -44,6 +44,19 @@ get_latest_snapshot() {
     VERSIONS=$(echo "${RES}" | jq -r -c '[.stacks[].version | select(. | contains("-SNAPSHOT"))] | sort' | sed 's#-SNAPSHOT#.0#g' | jq -r -c ' sort_by(.| split(".") | map(tonumber))' | sed 's#.0"#-SNAPSHOT"#g' | jq -r -c .)
 }
 
+get_latest_snapshot_for_version() {
+    if [[ -z "${1}" ]]; then
+        echo "-> Version not set"
+        return 1
+    fi
+    local ENDPOINT="https://storage.googleapis.com/artifacts-api/snapshots/${1}.json"
+    local RES
+    local RC=0
+    RES=$(curl_fail "${ENDPOINT}") || RC=$?
+    if [ $RC -ne 0 ]; then echo "${RES}"; fi
+    LATEST_SNAPSHOT_VERSION=$(echo "${RES}" | jq -r -c '.version')
+}
+
 terraform_init() {
     if [[ ! -f main.tf ]]; then cp ../main.tf .; fi
     terraform init >> tf.log
