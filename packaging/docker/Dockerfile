@@ -1,11 +1,15 @@
 ARG BASE_IMAGE=ubuntu:22.04
+ARG BASE_GOLANG_IMAGE=golang
 ARG GOLANG_VERSION
 
+################################################################################
+# Build stage 0
 # Build the apm-server binary. The golang image version is kept
 # up to date with go.mod by Makefile.
-FROM golang:${GOLANG_VERSION} as builder
+################################################################################
+FROM ${BASE_GOLANG_IMAGE}:${GOLANG_VERSION} as builder
 WORKDIR /src
-COPY go.mod go.sum /src/
+COPY go.mod go.sum .go-version /src/
 COPY internal/glog/go.mod /src/internal/glog/go.mod
 RUN --mount=type=cache,target=/go/pkg/mod go mod download
 COPY Makefile *.mk /src
@@ -13,12 +17,16 @@ COPY cmd /src/cmd
 COPY internal /src/internal
 COPY x-pack /src/x-pack
 COPY .git /src/.git
+COPY script /src/script
 
-ENV GOROOT /usr/local/go
 RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
     make apm-server
 
+################################################################################
+# Build stage 1
+# Copy prepared files from the previous stage and complete the image.
+################################################################################
 FROM ${BASE_IMAGE}
 ARG TARGETARCH
 ARG BUILD_DATE
