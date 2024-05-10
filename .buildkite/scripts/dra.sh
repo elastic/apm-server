@@ -28,6 +28,8 @@ if [[ "${BUILDKITE_PULL_REQUEST:-false}" == "true" ]]; then
   exit 0
 fi
 
+# by default it publishes the DRA artifacts, for such it uses the collect command.
+dra_command=collect
 BRANCHES_URL=https://storage.googleapis.com/artifacts-api/snapshots/branches.json
 curl -s "${BRANCHES_URL}" > active-branches.json
 if ! grep -q "\"$BUILDKITE_BRANCH\"" active-branches.json ; then
@@ -37,12 +39,18 @@ if ! grep -q "\"$BUILDKITE_BRANCH\"" active-branches.json ; then
   echo "VERSION=$VERSION"
   echo "Supported branches:"
   cat active-branches.json
-  buildkite-agent annotate "${BUILDKITE_BRANCH} is not supported yet. Look for the supported branches in ${BRANCHES_URL}" --style 'warning' --context 'ctx-warn'
-  exit 1
+  if [[ $BUILDKITE_BRANCH =~ "feature/" ]]; then
+    buildkite-agent annotate "${BUILDKITE_BRANCH} will list DRA artifacts. Feature branches are not supported. Look for the supported branches in ${BRANCHES_URL}" --style 'warning' --context 'ctx-warn'
+    dra_command=list
+  else
+    buildkite-agent annotate "${BUILDKITE_BRANCH} is not supported yet. Look for the supported branches in ${BRANCHES_URL}" --style 'warning' --context 'ctx-warn'
+    exit 1
+  fi
 fi
 
 dra() {
   local workflow=$1
+  local command=$2
   echo "--- Run release manager $workflow"
   docker run --rm \
     --name release-manager \
@@ -51,7 +59,7 @@ dra() {
     -e VAULT_SECRET_ID="${VAULT_SECRET}" \
     --mount type=bind,readonly=false,src=$(pwd),target=/artifacts \
     docker.elastic.co/infra/release-manager:latest \
-      cli collect \
+      cli "$command" \
       --project apm-server \
       --branch $BUILDKITE_BRANCH \
       --commit $BUILDKITE_COMMIT \
@@ -60,7 +68,7 @@ dra() {
       --version $VERSION
 }
 
-dra "snapshot"
+dra "snapshot" "$dra_command"
 if [[ "${BUILDKITE_BRANCH}" != "main" ]]; then
-  dra "staging"
+  dra "staging" "$dra_command"
 fi
