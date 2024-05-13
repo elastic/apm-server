@@ -31,7 +31,7 @@ import (
 	"github.com/elastic/beats/v7/libbeat/publisher"
 	agentconfig "github.com/elastic/elastic-agent-libs/config"
 
-	"github.com/elastic/go-docappender/docappendertest"
+	"github.com/elastic/go-docappender/v2/docappendertest"
 )
 
 // ElasticsearchOutputConfig returns "output.elasticsearch" configuration

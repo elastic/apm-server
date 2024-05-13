@@ -161,8 +161,8 @@ github.com/elastic/elastic-transport-go/v8 v8.5.0 h1:v5membAl7lvQgBTexPRDBO/Rdnl
 github.com/elastic/elastic-transport-go/v8 v8.5.0/go.mod h1:YLHer5cj0csTzNFXoNQ8qhtGY1GTvSqPnKWKaqQE3Hk=
 github.com/elastic/gmux v0.3.2 h1:cb721R+fe/rt/jVNyBP5HDQsEwLD2wSKfPD2Sk6adDk=
 github.com/elastic/gmux v0.3.2/go.mod h1:OD6oYrno+SV3pyl1ArdWCjlExZ+FJOfoSaFqnFeldBQ=
-github.com/elastic/go-docappender v1.1.0 h1:wuA3Im+Y0PuQQ/FzLZUb0+6eT64oLhGCqQV49OvR9EU=
-github.com/elastic/go-docappender v1.1.0/go.mod h1:u0hkrzDr9w81uNFWUxeOyM0IX9aZUag/gHlOnHyCrzA=
+github.com/elastic/go-docappender/v2 v2.1.1 h1:iK/l6kpz80p6sUSQCJJtxIOMHrJ8WTvM7rcenDHKCfg=
+github.com/elastic/go-docappender/v2 v2.1.1/go.mod h1:oHi6MsHriWaG8W6T9iyJ/PkEo2+182HIzq+0RRAzzgA=
 github.com/elastic/go-elasticsearch/v8 v8.13.1 h1:du5F8IzUUyCkzxyHdrO9AtopcG95I/qwi2WK8Kf1xlg=
 github.com/elastic/go-elasticsearch/v8 v8.13.1/go.mod h1:DIn7HopJs4oZC/w0WoJR13uMUxtHeq92eI5bqv5CRfI=
 github.com/elastic/go-lumber v0.1.2-0.20220819171948-335fde24ea0f h1:TsPpU5EAwlt7YZoupKlxZ093qTZYdGou3EhfTF1U0B4=
@@ -554,8 +554,8 @@ go.elastic.co/apm/module/apmhttp/v2 v2.6.0 h1:s8UeNFQmVBCNd4eoz7KDD9rEFhQC0HeUFX
 go.elastic.co/apm/module/apmhttp/v2 v2.6.0/go.mod h1:D0GLppLuI0Ddwvtl595GUxRgn6Z8L5KaDFVMv2H3GK0=
 go.elastic.co/apm/module/apmotel/v2 v2.6.0 h1:5z1/kH2FD/K8Yacl04plBy2YVW6cDPTCMNmM6zG4FJk=
 go.elastic.co/apm/module/apmotel/v2 v2.6.0/go.mod h1:jU0+sy3GUHvM70Pf99BXbxgSZyHBFMaBiMWxiNwaxng=
-go.elastic.co/apm/module/apmzap/v2 v2.5.0 h1:COXqVte4i75XQmV+H4m4g+2JubK3Y1WRIzY/ppKa3bQ=
-go.elastic.co/apm/module/apmzap/v2 v2.5.0/go.mod h1:PHKFbSROQPFZ2+X3oZyaF8lie5DhK0gtcRMpz//S54g=
+go.elastic.co/apm/module/apmzap/v2 v2.6.0 h1:R/iVORzGu3F9uM43iEVHD0nwiRo59O0bIXdayKsgayQ=
+go.elastic.co/apm/module/apmzap/v2 v2.6.0/go.mod h1:B3i/8xRkqLgi6zNuV+Bp7Pt4cutaOObvrVSa7wUTAPw=
 go.elastic.co/apm/v2 v2.6.0 h1:VieBMLQFtXua2YxpYxaSdYGnmmxhLT46gosI5yErJgY=
 go.elastic.co/apm/v2 v2.6.0/go.mod h1:33rOXgtHwbgZcDgi6I/GtCSMZQqgxkHC0IQT3gudKvo=
 go.elastic.co/ecszap v1.0.2 h1:iW5OGx8IiokiUzx/shD4AJCPFMC9uUtr7ycaiEIU++I=
