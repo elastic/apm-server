@@ -1,0 +1,17 @@
+type: object
+description: >
+  Every new connection to the APM Server starts with a metadata stanza. This
+  provides general metadata concerning the other objects in the stream. Rather
+  than send this metadata information from the agent multiple times, the APM
+  Server hangs on to this information and applies it to other objects in the
+  stream as necessary. TIP: Metadata is stored under context when viewing
+  documents in Elasticsearch. APM agents automatically read Kubernetes data and
+  send it to the APM Server. In most instances, agents are able to read this
+  data from inside the container. If this is not the case, or if you wish to
+  override this data, you can set environment variables for the agents to read.
+  These environment variable are set via the Kubernetes Downward API. 
+required:
+  - metadata
+properties:
+  metadata:
+    $ref: ../../../v2/metadata.json

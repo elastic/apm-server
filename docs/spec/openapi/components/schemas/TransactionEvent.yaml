@@ -1,0 +1,9 @@
+type: object
+description: >
+  Transactions are events corresponding to an incoming request or similar task
+  occurring in a monitored service.
+required:
+  - transaction
+properties:
+  transaction:
+    $ref: ../../../v2/transaction.json

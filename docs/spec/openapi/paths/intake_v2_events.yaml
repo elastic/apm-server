@@ -1,0 +1,51 @@
+post:
+  summary: Send APM agent events
+  description: >
+    NOTE: Most users do not need to interact directly with the events intake
+    API. Agents communicate with the APM Server by sending events--captured
+    pieces of information--in an HTTP request. Events can be transactions,
+    spans, errors, or metrics. Each event is sent as its own line in the HTTP
+    request body, which is known as newline delimited JSON (NDJSON). With
+    NDJSON, agents can open an HTTP POST request and use chunked encoding to
+    stream events to the APM Server as soon as they are recorded in the agent.
+    This makes it simple for agents to serialize each event to a stream of
+    newline delimited JSON. The APM Server also treats the HTTP body as a
+    compressed stream and thus reads and handles each event independently. See
+    the [APM data
+    model](https://www.elastic.co/guide/en/observability/current/apm-data-model.html)
+    to learn more about the different types of events.
+  operationId: postEventIntake
+  tags:
+    - event intake
+  parameters:
+    - in: query
+      name: async
+      description: >
+        Indicates whether to use asynchronous processing, which is supported by
+        APM Server in 8.5.0 and later. NOTE: Since asynchronous processing
+        defers some of the event processing to the background and takes place
+        after the client has closed the request, some errors can't be
+        communicated back to the client and are logged by the APM Server.
+        Furthermore, asynchronous processing requests will only be scheduled if
+        the APM Server can service the incoming request; requests that cannot be
+        serviced will receive an internal error 503 "queue is full" error.
+      schema:
+        type: boolean
+  requestBody:
+    content:
+      application/ndjson:
+        schema:
+          anyOf:
+            - $ref: ../components/schemas/ErrorEvent.yaml
+            - $ref: ../components/schemas/MetadataEvent.yaml
+            - $ref: ../components/schemas/MetricSetEvent.yaml
+            - $ref: ../components/schemas/SpanEvent.yaml
+            - $ref: ../components/schemas/TransactionEvent.yaml
+        examples:
+          postMetadataEventIntakeExample:
+            $ref: ../components/examples/metadataEventIntakeRequestExample.yaml
+          postMetricSetEventIntakeExample:
+            $ref: ../components/examples/metricSetEventIntakeRequestExample.yaml
+  responses:
+    '202':
+      description: Successful response; all events succeeded.

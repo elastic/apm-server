@@ -1,0 +1,16 @@
+post:
+  summary: Send OTLP traces
+  description: >
+    APM Server supports receiving traces over the OpenTelemetry Protocol (OTLP).
+    This API uses the OTLP/gRPC communication protocol.
+  operationId: postOtlpGrpcTraces
+  tags:
+    - opentelemetry intake
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+  responses:
+    '200':
+      description: OK
