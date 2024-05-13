@@ -13,7 +13,7 @@ require (
 	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20240510094825-a878b4927e9d
 	github.com/elastic/elastic-agent-client/v7 v7.9.0
 	github.com/elastic/elastic-agent-libs v0.9.7
-	github.com/elastic/elastic-agent-system-metrics v0.9.3
+	github.com/elastic/elastic-agent-system-metrics v0.10.0
 	github.com/elastic/gmux v0.3.2
 	github.com/elastic/go-docappender v1.1.0
 	github.com/elastic/go-elasticsearch/v8 v8.13.1
@@ -157,7 +157,7 @@ require (
 	golang.org/x/sys v0.20.0 // indirect
 	golang.org/x/text v0.15.0 // indirect
 	golang.org/x/tools v0.19.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20240401170217-c3f982113cda // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240415180920-8c6c420018be // indirect
 	gopkg.in/jcmturner/aescts.v1 v1.0.1 // indirect
 	gopkg.in/jcmturner/dnsutils.v1 v1.0.1 // indirect
 	gopkg.in/jcmturner/goidentity.v3 v3.0.0 // indirect
