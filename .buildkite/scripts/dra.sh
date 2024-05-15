@@ -42,7 +42,7 @@ if ! grep -q "\"$BUILDKITE_BRANCH\"" active-branches.json ; then
   echo "Supported branches:"
   cat active-branches.json
   if [[ $BUILDKITE_BRANCH =~ "feature/" ]]; then
-    buildkite-agent annotate "${BUILDKITE_BRANCH} will list DRA artifacts. Feature branches are not supported. Look for the supported branches in ${BRANCHES_URL}" --style 'warning' --context 'ctx-warn'
+    buildkite-agent annotate "${BUILDKITE_BRANCH} will list DRA artifacts. Feature branches are not supported. Look for the supported branches in ${BRANCHES_URL}" --style 'info' --context 'ctx-info'
     dra_command=list
 
     # use a different branch since DRA does not support feature branches but main/release branches
@@ -55,7 +55,7 @@ if ! grep -q "\"$BUILDKITE_BRANCH\"" active-branches.json ; then
       if curl -s "https://storage.googleapis.com/artifacts-api/snapshots/$MAJOR_MINOR.json" | grep -q "$VERSION" ; then
         DRA_BRANCH="$MAJOR_MINOR"
       else
-        echo "It was not possible to know what's the original base branch. Let's stop here"
+        buildkite-agent annotate "It was not possible to know the original base branch for ${BUILDKITE_BRANCH}. This won't fail - this is a feature branch." --style 'info' --context 'ctx-info-feature-branch'
         exit 0
       fi
     fi
