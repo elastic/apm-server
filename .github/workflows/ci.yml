@@ -94,7 +94,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name != 'pull_request' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false)
     env:
-      GENERATE_WOLFI_IMAGES: true
+      GENERATE_CHAINGUARD_IMAGES: true
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5

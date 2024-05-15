@@ -31,18 +31,19 @@ DOCKER_IMAGES := \
 	build/docker/apm-server-ubi-$(APM_SERVER_VERSION).txt \
 	build/docker/apm-server-ubi-$(APM_SERVER_VERSION)-SNAPSHOT.txt
 
-# If GENERATE_WOLFI_IMAGES is set then generate wolfi docker images.
-ifdef GENERATE_WOLFI_IMAGES
+# If GENERATE_CHAINGUARD_IMAGES is set then generate chainguard docker images.
+ifdef GENERATE_CHAINGUARD_IMAGES
 DOCKER_IMAGES := $(DOCKER_IMAGES) \
-	build/docker/apm-server-wolfi-$(APM_SERVER_VERSION).txt \
-	build/docker/apm-server-wolfi-$(APM_SERVER_VERSION)-SNAPSHOT.txt
+	build/docker/apm-server-chainguard-$(APM_SERVER_VERSION).txt \
+	build/docker/apm-server-chainguard-$(APM_SERVER_VERSION)-SNAPSHOT.txt
 endif
 
 build/docker/%.txt: DOCKER_IMAGE_TAG := docker.elastic.co/apm/apm-server:%
 build/docker/%.txt: VERSION := $(APM_SERVER_VERSION)
+build/docker/%.txt: DOCKER_IMAGE := -f packaging/docker/Dockerfile
 build/docker/%-SNAPSHOT.txt: VERSION := $(APM_SERVER_VERSION)-SNAPSHOT
 build/docker/apm-server-ubi-%.txt: DOCKER_BUILD_ARGS+=--build-arg BASE_IMAGE=docker.elastic.co/ubi9/ubi-minimal
-build/docker/apm-server-wolfi-%.txt: DOCKER_BUILD_ARGS+=--build-arg BASE_IMAGE=docker.elastic.co/wolfi/chainguard-base:20230214 --build-arg BASE_GOLANG_IMAGE=docker.elastic.co/wolfi/go
+build/docker/apm-server-chainguard-%.txt: DOCKER_IMAGE := -f packaging/docker/Dockerfile.chainguard
 
 INTERNAL_DOCKER_IMAGE := docker.elastic.co/observability-ci/apm-server-internal
 
@@ -53,15 +54,16 @@ $(DOCKER_IMAGES):
 		--build-arg GOLANG_VERSION=$(GOLANG_VERSION) \
 		--build-arg VERSION=$(VERSION) \
 		$(DOCKER_BUILD_ARGS) \
-		--tag $(INTERNAL_DOCKER_IMAGE):$(VERSION)$(if $(findstring arm64,$(GOARCH)),-arm64)$(if $(findstring wolfi,$(@)),-wolfi) \
+		--file $(DOCKER_IMAGE) \
+		--tag $(INTERNAL_DOCKER_IMAGE):$(VERSION)$(if $(findstring arm64,$(GOARCH)),-arm64)$(if $(findstring chainguard,$(@)),-chainguard) \
 		-f packaging/docker/Dockerfile .
 
 # Docker image tarballs. We distribute UBI Docker images only for AMD64.
 DOCKER_IMAGE_SUFFIX := docker-image$(if $(findstring arm64,$(GOARCH)),-arm64).tar.gz
 DOCKER_IMAGE_PREFIXES := apm-server $(if $(findstring amd64,$(GOARCH)), apm-server-ubi)
-# If GENERATE_WOLFI_IMAGES is set then generate wolfi docker images.
-ifdef GENERATE_WOLFI_IMAGES
-DOCKER_IMAGE_PREFIXES := $(DOCKER_IMAGE_PREFIXES) apm-server-wolfi
+# If GENERATE_CHAINGUARD_IMAGES is set then generate chainguard docker images.
+ifdef GENERATE_CHAINGUARD_IMAGES
+DOCKER_IMAGE_PREFIXES := $(DOCKER_IMAGE_PREFIXES) apm-server-chainguard
 endif
 DOCKER_IMAGE_RELEASE_TARBALLS := $(patsubst %, $(DISTDIR)/%-$(APM_SERVER_VERSION)-$(DOCKER_IMAGE_SUFFIX), $(DOCKER_IMAGE_PREFIXES))
 DOCKER_IMAGE_SNAPSHOT_TARBALLS := $(patsubst %, $(DISTDIR)/%-$(APM_SERVER_VERSION)-SNAPSHOT-$(DOCKER_IMAGE_SUFFIX), $(DOCKER_IMAGE_PREFIXES))
