@@ -40,10 +40,10 @@ endif
 
 build/docker/%.txt: DOCKER_IMAGE_TAG := docker.elastic.co/apm/apm-server:%
 build/docker/%.txt: VERSION := $(APM_SERVER_VERSION)
-build/docker/%.txt: DOCKER_IMAGE := -f packaging/docker/Dockerfile
+build/docker/%.txt: DOCKER_FILE_ARGS := -f packaging/docker/Dockerfile
 build/docker/%-SNAPSHOT.txt: VERSION := $(APM_SERVER_VERSION)-SNAPSHOT
 build/docker/apm-server-ubi-%.txt: DOCKER_BUILD_ARGS+=--build-arg BASE_IMAGE=docker.elastic.co/ubi9/ubi-minimal
-build/docker/apm-server-chainguard-%.txt: DOCKER_IMAGE := -f packaging/docker/Dockerfile.chainguard
+build/docker/apm-server-chainguard-%.txt: DOCKER_FILE_ARGS := -f packaging/docker/Dockerfile.chainguard
 
 INTERNAL_DOCKER_IMAGE := docker.elastic.co/observability-ci/apm-server-internal
 
@@ -54,9 +54,8 @@ $(DOCKER_IMAGES):
 		--build-arg GOLANG_VERSION=$(GOLANG_VERSION) \
 		--build-arg VERSION=$(VERSION) \
 		$(DOCKER_BUILD_ARGS) \
-		--file $(DOCKER_IMAGE) \
 		--tag $(INTERNAL_DOCKER_IMAGE):$(VERSION)$(if $(findstring arm64,$(GOARCH)),-arm64)$(if $(findstring chainguard,$(@)),-chainguard) \
-		-f packaging/docker/Dockerfile .
+		$(DOCKER_FILE_ARGS) .
 
 # Docker image tarballs. We distribute UBI Docker images only for AMD64.
 DOCKER_IMAGE_SUFFIX := docker-image$(if $(findstring arm64,$(GOARCH)),-arm64).tar.gz
