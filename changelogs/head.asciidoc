@@ -4,6 +4,11 @@
 https://github.com/elastic/apm-server/compare/8.14\...main[View commits]
 
 [float]
+==== Bug fixes
+
+- Avoid data race due to reuse of `bytes.Buffer` in ES bulk requests {pull}13155[13155]
+
+[float]
 ==== Breaking Changes
 
 [float]
@@ -14,3 +19,5 @@ https://github.com/elastic/apm-server/compare/8.14\...main[View commits]
 
 [float]
 ==== Added
+
+- Add `elasticsearch.flushed.uncompressed.bytes` metric {pull}13155[13155]
