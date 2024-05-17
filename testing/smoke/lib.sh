@@ -116,7 +116,7 @@ assert_document() {
     RESULT=$(curl_fail -u ${AUTH} -XGET "${URL}" -H 'Content-Type: application/json' -d"{\"query\":{\"bool\":{\"must\":[{\"match\":{\"${FIELD}\":\"${VALUE}\"}},{\"match\":{\"observer.version\":\"${VERSION}\"}}]}}}") || RC=$?
     if [ $RC -ne 0 ]; then echo "${RESULT}"; fi
 
-    echo "-> Asserting ${INDEX} contains expected documents documents..."
+    echo "-> Asserting ${INDEX} contains expected documents..."
     assert_entry ${FIELD} ${VALUE} ${ENTRIES}
 }
 
