@@ -49,12 +49,8 @@ get_latest_snapshot_for_version() {
         echo "-> Version not set"
         return 1
     fi
-    local ENDPOINT="https://storage.googleapis.com/artifacts-api/snapshots/${1}.json"
-    local RES
-    local RC=0
-    RES=$(curl_fail "${ENDPOINT}") || RC=$?
-    if [ $RC -ne 0 ]; then echo "${RES}"; fi
-    LATEST_SNAPSHOT_VERSION=$(echo "${RES}" | jq -r -c '.version')
+    get_latest_snapshot
+    LATEST_SNAPSHOT_VERSION=$(echo "$VERSIONS" | jq -r -c "map(select(. | startswith(\"${1}\"))) | .[-1]")
 }
 
 terraform_init() {
