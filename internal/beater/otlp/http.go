@@ -57,9 +57,10 @@ func NewHTTPHandlers(logger *zap.Logger, processor modelpb.BatchProcessor, semap
 	// at any time, and instead aggregate metrics from consumers that are
 	// dynamically registered and unregistered.
 	consumer := otlp.NewConsumer(otlp.ConsumerConfig{
-		Processor: processor,
-		Logger:    logger,
-		Semaphore: semaphore,
+		Processor:        processor,
+		Logger:           logger,
+		Semaphore:        semaphore,
+		RemapOTelMetrics: true,
 	})
 	httpMonitoredConsumer.set(consumer)
 	return HTTPHandlers{consumer: consumer}
