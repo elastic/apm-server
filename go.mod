@@ -10,7 +10,7 @@ require (
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/apm-aggregation v0.0.0-20230815024520-e75a37d9ddd6
 	github.com/elastic/apm-data v1.1.0
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20240517071318-bf138189db06
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20240520140334-062cc9b191b5
 	github.com/elastic/elastic-agent-client/v7 v7.9.0
 	github.com/elastic/elastic-agent-libs v0.9.8
 	github.com/elastic/elastic-agent-system-metrics v0.10.1
@@ -87,7 +87,6 @@ require (
 	github.com/eapache/go-resiliency v1.6.0 // indirect
 	github.com/eapache/go-xerial-snappy v0.0.0-20230731223053-c322873962e3 // indirect
 	github.com/eapache/queue v1.1.0 // indirect
-	github.com/elastic/elastic-agent-shipper-client v0.5.1-0.20230228231646-f04347b666f3 // indirect
 	github.com/elastic/elastic-transport-go/v8 v8.5.0 // indirect
 	github.com/elastic/go-lumber v0.1.2-0.20220819171948-335fde24ea0f // indirect
 	github.com/elastic/go-structform v0.0.10 // indirect
