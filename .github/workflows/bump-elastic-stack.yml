@@ -30,12 +30,19 @@ jobs:
         with:
           ref: ${{ matrix.branch }}
 
-      - uses: elastic/apm-pipeline-library/.github/actions/updatecli@current
-        with:
-          vaultUrl: ${{ secrets.VAULT_ADDR }}
-          vaultRoleId: ${{ secrets.VAULT_ROLE_ID }}
-          vaultSecretId: ${{ secrets.VAULT_SECRET_ID }}
-          pipeline: ./.ci/bump-elastic-stack-snapshot.yml
-          command: '--experimental apply'
+      - name: Install Updatecli in the runner
+        uses: updatecli/updatecli-action@9a37c7e35598d7b37d8e7568b40ed9538112be01 # v0.76.1
+
+      - name: Run Updatecli in Apply mode
+        run: updatecli --experimental apply --config .ci/bump-elastic-stack-snapshot.yml
         env:
           BRANCH: ${{ matrix.branch }}
+          GITHUB_TOKEN: ${{ secrets.UPDATECLI_GH_TOKEN }}
+
+      - if: ${{ failure()  }}
+        uses: slackapi/slack-github-action@70cd7be8e40a46e8b0eced40b0de447bdb42f68e # v1.26.0
+        with:
+          channel-id: '#observablt-bots'
+          payload: ":traffic_cone: updatecli failed for `${{ github.repository }}@${{ github.ref_name }}`, @robots-ci please look what's going on <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|here>"
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
