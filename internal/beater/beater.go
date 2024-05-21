@@ -52,7 +52,7 @@ import (
 	agentconfig "github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/monitoring"
-	"github.com/elastic/go-docappender"
+	"github.com/elastic/go-docappender/v2"
 	"github.com/elastic/go-ucfg"
 
 	"github.com/elastic/apm-data/model/modelpb"
