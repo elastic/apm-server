@@ -28,12 +28,10 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"os"
-	"path"
 	"path/filepath"
 	"reflect"
 	"runtime"
 	"strings"
-	"sync/atomic"
 	"testing"
 	"time"
 
@@ -329,180 +327,18 @@ func TestServerOTLPGRPC(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestServerWaitForIntegrationKibana(t *testing.T) {
-	var requests int64
-	requestCh := make(chan struct{})
-	mux := http.NewServeMux()
-	mux.HandleFunc("/api/status", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte(`{"version":{"number":"1.2.3"}}`))
-	})
-	mux.HandleFunc("/api/fleet/epm/packages/apm", func(w http.ResponseWriter, r *http.Request) {
-		switch atomic.AddInt64(&requests, 1) {
-		case 1:
-			w.WriteHeader(500)
-		case 2:
-			fmt.Fprintln(w, `{"response":{"status":"not_installed"}}`)
-		case 3:
-			fmt.Fprintln(w, `{"response":{"status":"installed"}}`)
-		}
-		select {
-		case requestCh <- struct{}{}:
-		case <-r.Context().Done():
-		}
-	})
-	kibanaServer := httptest.NewServer(mux)
-	defer kibanaServer.Close()
-
-	srv := beatertest.NewServer(t, beatertest.WithConfig(agentconfig.MustNewConfigFrom(map[string]interface{}{
-		"apm-server": map[string]interface{}{
-			"wait_ready_interval":               "100ms",
-			"kibana.enabled":                    true,
-			"kibana.host":                       kibanaServer.URL,
-			"data_streams.wait_for_integration": true,
-		},
-	})))
-
-	timeout := time.After(10 * time.Second)
-	for i := 0; i < 3; i++ {
-		select {
-		case <-requestCh:
-		case <-timeout:
-			t.Fatal("timed out waiting for request")
-		}
-	}
-
-	// TODO(axw) there _should_ be just 2 logs, but there might be an initial
-	// log message due to the Kibana client connecting asynchronously. We should
-	// update internal/kibana to remove the async behaviour.
-	logs := srv.Logs.FilterMessageSnippet("please install the apm integration")
-	assert.NotZero(t, logs.Len())
-
-	select {
-	case <-requestCh:
-		t.Fatal("unexpected request")
-	case <-time.After(50 * time.Millisecond):
-	}
-}
-
-func TestServerWaitForIntegrationElasticsearch(t *testing.T) {
-	var tracesRequests atomic.Int64
-	tracesRequestsCh := make(chan int, 2)
-	bulkCh := make(chan struct{}, 2)
-	mux := http.NewServeMux()
-	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("X-Elastic-Product", "Elasticsearch")
-		// We must send a valid JSON response for the libbeat
-		// elasticsearch client to send bulk requests.
-		fmt.Fprintln(w, `{"version":{"number":"1.2.3"}}`)
-	})
-	mux.HandleFunc("/_index_template/", func(w http.ResponseWriter, r *http.Request) {
-		template := path.Base(r.URL.Path)
-		if template == "traces-apm" {
-			count := tracesRequests.Add(1)
-			if count == 1 {
-				w.WriteHeader(404)
-			}
-			tracesRequestsCh <- int(count)
-		}
-	})
-	mux.HandleFunc("/_bulk", func(w http.ResponseWriter, r *http.Request) {
-		select {
-		case bulkCh <- struct{}{}:
-		default:
-		}
-	})
-	elasticsearchServer := httptest.NewServer(mux)
-	defer elasticsearchServer.Close()
-
-	srv := beatertest.NewServer(t, beatertest.WithConfig(agentconfig.MustNewConfigFrom(map[string]interface{}{
-		"apm-server": map[string]interface{}{
-			"wait_ready_interval":               "100ms",
-			"data_streams.wait_for_integration": true,
-		},
-		"output.elasticsearch": map[string]interface{}{
-			"hosts":          []string{elasticsearchServer.URL},
-			"backoff":        map[string]interface{}{"init": "10ms", "max": "10ms"},
-			"max_retries":    1000,
-			"flush_interval": "1ms",
-		},
-	})))
-
-	// Send some events to the server. They should be accepted and enqueued.
-	req := makeTransactionRequest(t, srv.URL)
-	req.Header.Add("Content-Type", "application/x-ndjson")
-	resp, err := srv.Client.Do(req)
-	assert.NoError(t, err)
-	assert.Equal(t, http.StatusAccepted, resp.StatusCode)
-	resp.Body.Close()
-
-	// Healthcheck should report that the server is not publish-ready.
-	resp, err = srv.Client.Get(srv.URL + api.RootPath)
-	require.NoError(t, err)
-	out := decodeJSONMap(t, resp.Body)
-	resp.Body.Close()
-	assert.Equal(t, false, out["publish_ready"])
-
-	// Indexing should be blocked until we receive from tracesRequestsCh.
-	select {
-	case <-bulkCh:
-		t.Fatal("unexpected bulk request")
-	case <-time.After(50 * time.Millisecond):
-	}
-
-	timeout := time.After(10 * time.Second)
-	var done bool
-	for !done {
-		select {
-		case n := <-tracesRequestsCh:
-			done = n == 2
-		case <-timeout:
-			t.Fatal("timed out waiting for request")
-		}
-	}
-
-	// libbeat should keep retrying, and finally succeed now it is unblocked.
-	select {
-	case <-bulkCh:
-	case <-time.After(10 * time.Second):
-		t.Fatal("timed out waiting for bulk request")
-	}
-
-	logs := srv.Logs.FilterMessageSnippet("please install the apm integration")
-	assert.Len(t, logs.All(), 1, "couldn't find remediation message logs")
-
-	// Healthcheck should now report that the server is publish-ready.
-	resp, err = srv.Client.Get(srv.URL + api.RootPath)
-	require.NoError(t, err)
-	out = decodeJSONMap(t, resp.Body)
-	resp.Body.Close()
-	assert.Equal(t, true, out["publish_ready"])
-}
-
 func TestServerFailedPreconditionDoesNotIndex(t *testing.T) {
 	bulkCh := make(chan struct{}, 1)
-	mux := http.NewServeMux()
-	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("X-Elastic-Product", "Elasticsearch")
-		// We must send a valid JSON response for the libbeat
-		// elasticsearch client to send bulk requests.
-		fmt.Fprintln(w, `{"version":{"number":"1.2.3"}}`)
-	})
-	mux.HandleFunc("/_index_template/", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(404)
-	})
-	mux.HandleFunc("/_bulk", func(w http.ResponseWriter, r *http.Request) {
-		select {
-		case bulkCh <- struct{}{}:
-		default:
-		}
-	})
-	elasticsearchServer := httptest.NewServer(mux)
+	elasticsearchServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// When apm-server starts up it will request the Elasticsearch
+		// cluster UUID, and will not index anything until this is done.
+		http.Error(w, "server misbehaving", http.StatusInternalServerError)
+	}))
 	defer elasticsearchServer.Close()
 
 	srv := beatertest.NewServer(t, beatertest.WithConfig(agentconfig.MustNewConfigFrom(map[string]interface{}{
 		"apm-server": map[string]interface{}{
-			"wait_ready_interval":               "100ms",
-			"data_streams.wait_for_integration": true,
+			"wait_ready_interval": "100ms",
 		},
 		"output.elasticsearch.hosts": []string{elasticsearchServer.URL},
 	})))
