@@ -5921,11 +5921,11 @@ Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/pdat
 
 --------------------------------------------------------------------------------
 Dependency : go.opentelemetry.io/otel
-Version: v1.26.0
+Version: v1.27.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/otel@v1.26.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/otel@v1.27.0/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -6132,11 +6132,11 @@ Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/otel@v1.26.0/L
 
 --------------------------------------------------------------------------------
 Dependency : go.opentelemetry.io/otel/metric
-Version: v1.26.0
+Version: v1.27.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/otel/metric@v1.26.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/otel/metric@v1.27.0/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -6343,11 +6343,11 @@ Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/otel/metric@v1
 
 --------------------------------------------------------------------------------
 Dependency : go.opentelemetry.io/otel/sdk/metric
-Version: v1.26.0
+Version: v1.27.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/otel/sdk/metric@v1.26.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/otel/sdk/metric@v1.27.0/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -16807,11 +16807,11 @@ Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/semc
 
 --------------------------------------------------------------------------------
 Dependency : go.opentelemetry.io/otel/sdk
-Version: v1.26.0
+Version: v1.27.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/otel/sdk@v1.26.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/otel/sdk@v1.27.0/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -17018,11 +17018,11 @@ Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/otel/sdk@v1.26
 
 --------------------------------------------------------------------------------
 Dependency : go.opentelemetry.io/otel/trace
-Version: v1.26.0
+Version: v1.27.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/otel/trace@v1.26.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/otel/trace@v1.27.0/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
