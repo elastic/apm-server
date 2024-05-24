@@ -10,7 +10,7 @@ x-logging: &default-logging
     max-size: "1g"
 services:
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.15.0-177234da-SNAPSHOT
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.15.0-e7873a67-SNAPSHOT
     ports:
       - 9200:9200
     healthcheck:
@@ -24,6 +24,7 @@ services:
       - "http.host=0.0.0.0"
       - "cluster.routing.allocation.disk.threshold_enabled=false"
       - "discovery.type=single-node"
+      - "xpack.apm_data.enabled=true"
       - "xpack.security.authc.anonymous.roles=remote_monitoring_collector"
       - "xpack.security.authc.realms.file.file1.order=0"
       - "xpack.security.authc.realms.native.native1.order=1"
@@ -41,7 +42,7 @@ services:
     logging: *default-logging
 
   kibana:
-    image: docker.elastic.co/kibana/kibana:8.15.0-177234da-SNAPSHOT
+    image: docker.elastic.co/kibana/kibana:8.15.0-e7873a67-SNAPSHOT
     ports:
       - 5601:5601
     healthcheck:
@@ -60,7 +61,7 @@ services:
     logging: *default-logging
 
   metricbeat:
-    image: docker.elastic.co/beats/metricbeat:8.15.0-177234da-SNAPSHOT
+    image: docker.elastic.co/beats/metricbeat:8.15.0-e7873a67-SNAPSHOT
     environment:
       ELASTICSEARCH_HOSTS: '["http://elasticsearch:9200"]'
       ELASTICSEARCH_USERNAME: "${KIBANA_ES_USER:-admin}"

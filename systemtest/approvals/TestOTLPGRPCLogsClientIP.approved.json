@@ -6,6 +6,9 @@
         "agent.name": [
             "android/java"
         ],
+        "agent.name.text": [
+            "android/java"
+        ],
         "agent.version": [
             "unknown"
         ],
@@ -60,7 +63,13 @@
         "service.language.name": [
             "java"
         ],
+        "service.language.name.text": [
+            "java"
+        ],
         "service.name": [
+            "unknown"
+        ],
+        "service.name.text": [
             "unknown"
         ],
         "source.ip": [
