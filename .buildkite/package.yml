@@ -7,6 +7,7 @@ notify:
 env:
   IMAGE_UBUNTU_X86_64: "family/core-ubuntu-2004"
   IMAGE_UBUNTU_ARM_64: "core-ubuntu-2004-aarch64"
+  GENERATE_CHAINGUARD_IMAGES: true
 
 steps:
   - group: "Package"
