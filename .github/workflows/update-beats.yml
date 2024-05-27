@@ -28,31 +28,25 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ matrix.branch }}
+
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
 
-      - name: Install Updatecli in the runner
-        uses: updatecli/updatecli-action@9a37c7e35598d7b37d8e7568b40ed9538112be01 # v0.76.1
-
-      - name: Run Updatecli in Apply mode
-        run: updatecli --experimental apply --config .ci/update-beats.yml
+      - uses: elastic/oblt-actions/updatecli/run-and-notify@v1
+        with:
+          command: --experimental apply --config .ci/update-beats.yml
+          slack-bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
+          slack-channel-id: "#observablt-bots"
+          slack-message: ":traffic_cone: updatecli failed for `${{ github.repository }}@${{ github.ref_name }}`, @robots-ci please look what's going on <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|here>"
+          slack-send-when: 'failure'
         env:
           BRANCH_NAME: ${{ matrix.branch }}
           GITHUB_TOKEN: ${{ secrets.UPDATECLI_GH_TOKEN }}
 
       - if: ${{ failure()  }}
-        uses: slackapi/slack-github-action@70cd7be8e40a46e8b0eced40b0de447bdb42f68e # v1.26.0
-        with:
-          channel-id: '#observablt-bots'
-          payload: ":traffic_cone: updatecli failed for `${{ github.repository }}@${{ github.ref_name }}`, @robots-ci please look what's going on <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|here>"
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-
-      - if: ${{ failure()  }}
-        uses: slackapi/slack-github-action@70cd7be8e40a46e8b0eced40b0de447bdb42f68e # v1.26.0
+        uses: elastic/oblt-actions/slack/send@v1
         with:
           channel-id: '#apm-server'
-          payload: ":traffic_cone: updatecli failed for `${{ github.repository }}@${{ github.ref_name }}`, @robots-ci please look what's going on <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|here>"
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          message: ":traffic_cone: updatecli failed for `${{ github.repository }}@${{ github.ref_name }}`, @robots-ci has been already informed. <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|here>"
+          bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
