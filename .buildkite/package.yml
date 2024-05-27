@@ -7,7 +7,11 @@ notify:
 env:
   IMAGE_UBUNTU_X86_64: "family/core-ubuntu-2004"
   IMAGE_UBUNTU_ARM_64: "core-ubuntu-2004-aarch64"
+<<<<<<< HEAD
   BEAT_DOC_BRANCH: "7.x"
+=======
+  GENERATE_CHAINGUARD_IMAGES: true
+>>>>>>> f67c0460c (buildkite: create chainguard images (#13226))
 
 steps:
   - group: "Package"
