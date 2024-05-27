@@ -6,6 +6,9 @@
         "agent.name": [
             "go"
         ],
+        "agent.name.text": [
+            "go"
+        ],
         "data_stream.dataset": [
             "apm.service_summary.10m"
         ],
@@ -36,7 +39,13 @@
         "service.language.name": [
             "go"
         ],
+        "service.language.name.text": [
+            "go"
+        ],
         "service.name": [
+            "systemtest"
+        ],
+        "service.name.text": [
             "systemtest"
         ]
     },
@@ -45,6 +54,9 @@
             "2006-01-02T15:04:00.000Z"
         ],
         "agent.name": [
+            "go"
+        ],
+        "agent.name.text": [
             "go"
         ],
         "data_stream.dataset": [
@@ -77,7 +89,13 @@
         "service.language.name": [
             "go"
         ],
+        "service.language.name.text": [
+            "go"
+        ],
         "service.name": [
+            "systemtest"
+        ],
+        "service.name.text": [
             "systemtest"
         ]
     },
@@ -86,6 +104,9 @@
             "2006-01-02T15:00:00.000Z"
         ],
         "agent.name": [
+            "go"
+        ],
+        "agent.name.text": [
             "go"
         ],
         "data_stream.dataset": [
@@ -118,7 +139,13 @@
         "service.language.name": [
             "go"
         ],
+        "service.language.name.text": [
+            "go"
+        ],
         "service.name": [
+            "systemtest"
+        ],
+        "service.name.text": [
             "systemtest"
         ]
     }

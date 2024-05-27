@@ -32,7 +32,7 @@ import (
 	"github.com/elastic/apm-server/internal/beater/auth"
 	"github.com/elastic/apm-server/internal/beater/ratelimit"
 	"github.com/elastic/apm-server/internal/version"
-	"github.com/elastic/go-docappender"
+	"github.com/elastic/go-docappender/v2"
 )
 
 const (
