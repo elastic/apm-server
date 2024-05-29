@@ -1,11 +1,11 @@
-ARG GOLANG_IMAGE=docker.elastic.co/wolfi/go@sha256:fd5abcb518d757e393ab9a0a9836132aee1a9064cbf6e79639113269f68fc8f4
+ARG GOLANG_VERSION
 
 ################################################################################
 # Build stage 0
 # Build the apm-server binary. The golang image version is kept
 # up to date with go.mod by Makefile.
 ################################################################################
-FROM ${GOLANG_IMAGE} as builder
+FROM docker.elastic.co/wolfi/go:${GOLANG_VERSION} as builder
 WORKDIR /src
 COPY go.mod go.sum .go-version /src/
 COPY internal/glog/go.mod /src/internal/glog/go.mod
