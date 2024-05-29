@@ -16,12 +16,14 @@ jobs:
 
       - uses: actions/checkout@v4
 
-      - uses: elastic/oblt-actions/updatecli/run-and-notify@v1
+      - uses: elastic/oblt-actions/updatecli/run@v1.2.0
         with:
           command: --experimental apply --config .ci/bump-golang.yml
-          slack-bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
-          slack-channel-id: "#observablt-bots"
-          slack-message: ":traffic_cone: updatecli failed for `${{ github.repository }}@${{ github.ref_name }}`, @robots-ci please look what's going on <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|here>"
-          slack-send-when: 'failure'
         env:
           GITHUB_TOKEN: ${{ secrets.UPDATECLI_GH_TOKEN }}
+
+      - uses: elastic/oblt-actions/slack/send@v1.2.0
+        with:
+          bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
+          channel-id: "#apm-server"
+          message: ":traffic_cone: updatecli failed for `${{ github.repository }}@${{ github.ref_name }}`, @robots-ci please look what's going on <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|here>"
