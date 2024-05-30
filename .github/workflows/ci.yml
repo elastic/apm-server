@@ -87,3 +87,28 @@ jobs:
           go-version-file: go.mod
           cache: false
       - run: make package-snapshot
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+  test-package-and-push:
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false)
+    env:
+      GENERATE_CHAINGUARD_IMAGES: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: false
+      - uses: elastic/apm-pipeline-library/.github/actions/docker-login@current
+        with:
+          registry: docker.elastic.co
+          secret: secret/observability-team/ci/docker-registry/prod
+          url: ${{ secrets.VAULT_ADDR }}
+          roleId: ${{ secrets.VAULT_ROLE_ID }}
+          secretId: ${{ secrets.VAULT_SECRET_ID }}
+      - run: make package-snapshot
+        env:
+          GH_TOKEN: ${{ github.token }}
+      - run: make publish-docker-images

@@ -9,6 +9,9 @@
         "agent.name": [
             "java"
         ],
+        "agent.name.text": [
+            "java"
+        ],
         "agent.version": [
             "1.10.0"
         ],
@@ -30,23 +33,6 @@
         "error.culprit": [
             "opbeans.controllers.DTInterceptor.preHandle(DTInterceptor.java:73)"
         ],
-        "error.custom": [
-            {
-                "and_objects": {
-                    "foo": [
-                        "bar",
-                        "baz"
-                    ]
-                },
-                "my_key": 1,
-                "some_other_value": "foobar"
-            }
-        ],
-        "error.exception.attributes": [
-            {
-                "foo": "bar"
-            }
-        ],
         "error.exception.code": [
             "42"
         ],
@@ -62,44 +48,8 @@
         "error.exception.module": [
             "org.springframework.http.client"
         ],
-        "error.exception.stacktrace": [
-            {
-                "abs_path": "/tmp/AbstractPlainSocketImpl.java",
-                "context": {
-                    "post": [
-                        "line4",
-                        "line5"
-                    ],
-                    "pre": [
-                        "line1",
-                        "line2"
-                    ]
-                },
-                "exclude_from_grouping": false,
-                "filename": "AbstractPlainSocketImpl.java",
-                "function": "connect",
-                "library_frame": true,
-                "line": {
-                    "column": 4,
-                    "context": "3",
-                    "number": 3
-                },
-                "module": "java.net",
-                "vars": {
-                    "key": "value"
-                }
-            },
-            {
-                "exclude_from_grouping": false,
-                "filename": "AbstractClientHttpRequest.java",
-                "function": "execute",
-                "line": {
-                    "number": 102
-                },
-                "vars": {
-                    "key": "value"
-                }
-            }
+        "error.exception.parent": [
+            1
         ],
         "error.exception.type": [
             "java.net.UnknownHostException",
@@ -128,47 +78,6 @@
         "error.log.param_message": [
             "Request method 'POST' /events/:event not supported"
         ],
-        "error.log.stacktrace": [
-            {
-                "abs_path": "/tmp/Socket.java",
-                "classname": "Request::Socket",
-                "context": {
-                    "post": [
-                        "line4",
-                        "line5"
-                    ],
-                    "pre": [
-                        "line1",
-                        "line2"
-                    ]
-                },
-                "exclude_from_grouping": false,
-                "filename": "Socket.java",
-                "function": "connect",
-                "library_frame": true,
-                "line": {
-                    "column": 4,
-                    "context": "line3",
-                    "number": 3
-                },
-                "module": "java.net",
-                "vars": {
-                    "key": "value"
-                }
-            },
-            {
-                "abs_path": "/tmp/SimpleBufferingClientHttpRequest.java",
-                "exclude_from_grouping": false,
-                "filename": "SimpleBufferingClientHttpRequest.java",
-                "function": "executeInternal",
-                "line": {
-                    "number": 102
-                },
-                "vars": {
-                    "key": "value"
-                }
-            }
-        ],
         "host.architecture": [
             "amd64"
         ],
@@ -181,19 +90,11 @@
         "host.name": [
             "host1"
         ],
+        "host.name.text": [
+            "host1"
+        ],
         "host.os.platform": [
             "Linux"
-        ],
-        "http.request.body": [
-            {
-                "original": "HelloWorld"
-            }
-        ],
-        "http.request.cookies.c1": [
-            "v1"
-        ],
-        "http.request.cookies.c2": [
-            "v2"
         ],
         "http.request.env.GATEWAY_INTERFACE": [
             "CGI/1.1"
@@ -201,21 +102,25 @@
         "http.request.env.SERVER_SOFTWARE": [
             "nginx"
         ],
-        "http.request.headers.Content-Length": [
-            "0"
-        ],
-        "http.request.headers.Cookie": [
-            "c1=v1",
-            "c2=v2"
-        ],
-        "http.request.headers.Elastic-Apm-Traceparent": [
-            "00-8c21b4b556467a0b17ae5da959b5f388-31301f1fb2998121-01"
-        ],
-        "http.request.headers.Forwarded": [
-            "for=192.168.0.1"
-        ],
-        "http.request.headers.Host": [
-            "opbeans-java:3000"
+        "http.request.headers": [
+            {
+                "Content-Length": [
+                    "0"
+                ],
+                "Cookie": [
+                    "c1=v1",
+                    "c2=v2"
+                ],
+                "Elastic-Apm-Traceparent": [
+                    "00-8c21b4b556467a0b17ae5da959b5f388-31301f1fb2998121-01"
+                ],
+                "Forwarded": [
+                    "for=192.168.0.1"
+                ],
+                "Host": [
+                    "opbeans-java:3000"
+                ]
+            }
         ],
         "http.request.method": [
             "POST"
@@ -223,8 +128,12 @@
         "http.response.finished": [
             true
         ],
-        "http.response.headers.Content-Type": [
-            "application/json"
+        "http.response.headers": [
+            {
+                "Content-Type": [
+                    "application/json"
+                ]
+            }
         ],
         "http.response.headers_sent": [
             true
@@ -241,7 +150,13 @@
         "kubernetes.node.name": [
             "node-name"
         ],
+        "kubernetes.node.name.text": [
+            "node-name"
+        ],
         "kubernetes.pod.name": [
+            "instrumented-java-service"
+        ],
+        "kubernetes.pod.name.text": [
             "instrumented-java-service"
         ],
         "kubernetes.pod.uid": [
@@ -298,10 +213,16 @@
         "service.framework.name": [
             "Node"
         ],
+        "service.framework.name.text": [
+            "Node"
+        ],
         "service.framework.version": [
             "1"
         ],
         "service.language.name": [
+            "Java"
+        ],
+        "service.language.name.text": [
             "Java"
         ],
         "service.language.version": [
@@ -310,10 +231,19 @@
         "service.name": [
             "service1"
         ],
+        "service.name.text": [
+            "service1"
+        ],
         "service.node.name": [
             "node-xyz"
         ],
+        "service.node.name.text": [
+            "node-xyz"
+        ],
         "service.runtime.name": [
+            "Java"
+        ],
+        "service.runtime.name.text": [
             "Java"
         ],
         "service.runtime.version": [

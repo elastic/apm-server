@@ -6,6 +6,9 @@
         "agent.name": [
             "go"
         ],
+        "agent.name.text": [
+            "go"
+        ],
         "agent.version": [
             "0.0.0"
         ],
@@ -36,6 +39,9 @@
         "host.name": [
             "beowulf"
         ],
+        "host.name.text": [
+            "beowulf"
+        ],
         "host.os.platform": [
             "minix"
         ],
@@ -63,16 +69,28 @@
         "service.language.name": [
             "go"
         ],
+        "service.language.name.text": [
+            "go"
+        ],
         "service.language.version": [
             "2.0"
         ],
         "service.name": [
             "systemtest"
         ],
+        "service.name.text": [
+            "systemtest"
+        ],
         "service.node.name": [
             "beowulf"
         ],
+        "service.node.name.text": [
+            "beowulf"
+        ],
         "service.runtime.name": [
+            "gc"
+        ],
+        "service.runtime.name.text": [
             "gc"
         ],
         "service.runtime.version": [

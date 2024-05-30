@@ -52,7 +52,7 @@ import (
 	agentconfig "github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/monitoring"
-	"github.com/elastic/go-docappender"
+	"github.com/elastic/go-docappender/v2"
 	"github.com/elastic/go-ucfg"
 
 	"github.com/elastic/apm-data/model/modelpb"
@@ -85,7 +85,6 @@ type Runner struct {
 	rawConfig  *agentconfig.C
 
 	config                    *config.Config
-	fleetConfig               *config.Fleet
 	outputConfig              agentconfig.Namespace
 	elasticsearchOutputConfig *agentconfig.C
 
@@ -113,7 +112,6 @@ func NewRunner(args RunnerParams) (*Runner, error) {
 	var unpackedConfig struct {
 		APMServer  *agentconfig.C        `config:"apm-server"`
 		Output     agentconfig.Namespace `config:"output"`
-		Fleet      *config.Fleet         `config:"fleet"`
 		DataStream struct {
 			Namespace string `config:"namespace"`
 		} `config:"data_stream"`
@@ -147,7 +145,6 @@ func NewRunner(args RunnerParams) (*Runner, error) {
 		rawConfig:  args.Config,
 
 		config:                    cfg,
-		fleetConfig:               unpackedConfig.Fleet,
 		outputConfig:              unpackedConfig.Output,
 		elasticsearchOutputConfig: elasticsearchOutputConfig,
 
@@ -328,7 +325,7 @@ func (s *Runner) Run(ctx context.Context) error {
 	publishReady := make(chan struct{})
 	drain := make(chan struct{})
 	g.Go(func() error {
-		if err := s.waitReady(ctx, kibanaClient, tracer); err != nil {
+		if err := s.waitReady(ctx, tracer); err != nil {
 			// One or more preconditions failed; drop events.
 			close(drain)
 			return errors.Wrap(err, "error waiting for server to be ready")
@@ -567,7 +564,6 @@ func linearScaledValue(perGBIncrement, memLimitGB, constant float64) int {
 // waitReady waits until the server is ready to index events.
 func (s *Runner) waitReady(
 	ctx context.Context,
-	kibanaClient *kibana.Client,
 	tracer *apm.Tracer,
 ) error {
 	var preconditions []func(context.Context) error
@@ -615,18 +611,6 @@ func (s *Runner) waitReady(
 		}
 		preconditions = append(preconditions, func(ctx context.Context) error {
 			return queryClusterUUID(ctx, esOutputClient)
-		})
-	}
-
-	// When running standalone with data streams enabled, by default we will add
-	// a precondition that ensures the integration is installed.
-	fleetManaged := s.fleetConfig != nil
-	if !fleetManaged && s.config.DataStreams.WaitForIntegration {
-		if kibanaClient == nil && esOutputClient == nil {
-			return errors.New("cannot wait for integration without either Kibana or Elasticsearch config")
-		}
-		preconditions = append(preconditions, func(ctx context.Context) error {
-			return checkIntegrationInstalled(ctx, kibanaClient, esOutputClient, s.logger)
 		})
 	}
 
@@ -795,6 +779,9 @@ func docappenderConfig(
 		"docappender.DocumentBufferSize", opts.DocumentBufferSize, memLimit,
 	)
 	if opts.MaxRequests > 0 {
+		logger.Infof("docappender.MaxRequests set to %d based on config value",
+			opts.MaxRequests,
+		)
 		return opts
 	}
 	// This formula yields the following max requests for APM Server sized:

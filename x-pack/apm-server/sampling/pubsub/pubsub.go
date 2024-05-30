@@ -21,7 +21,7 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/elastic-agent-libs/logp"
-	"github.com/elastic/go-docappender"
+	"github.com/elastic/go-docappender/v2"
 	"github.com/elastic/go-elasticsearch/v8/esapi"
 	"github.com/elastic/go-elasticsearch/v8/esutil"
 
