@@ -22,7 +22,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.UPDATECLI_GH_TOKEN }}
 
-      - uses: elastic/oblt-actions/slack/send@v1.2.0
+      - if: ${{ failure() }}
+        uses: elastic/oblt-actions/slack/send@v1.2.0
         with:
           bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
           channel-id: "#apm-server"
