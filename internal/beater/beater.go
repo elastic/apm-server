@@ -779,6 +779,9 @@ func docappenderConfig(
 		"docappender.DocumentBufferSize", opts.DocumentBufferSize, memLimit,
 	)
 	if opts.MaxRequests > 0 {
+		logger.Infof("docappender.MaxRequests set to %d based on config value",
+			opts.MaxRequests,
+		)
 		return opts
 	}
 	// This formula yields the following max requests for APM Server sized:
