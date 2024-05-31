@@ -231,16 +231,6 @@
         "tags": [
           "event intake"
         ],
-        "parameters": [
-          {
-            "in": "query",
-            "name": "async",
-            "description": "Indicates whether to use asynchronous processing, which is supported by APM Server in 8.5.0 and later. NOTE: Since asynchronous processing defers some of the event processing to the background and takes place after the client has closed the request, some errors can't be communicated back to the client and are logged by the APM Server. Furthermore, asynchronous processing requests will only be scheduled if the APM Server can service the incoming request; requests that cannot be serviced will receive an internal error 503 \"queue is full\" error.\n",
-            "schema": {
-              "type": "boolean"
-            }
-          }
-        ],
         "requestBody": {
           "content": {
             "application/ndjson": {
