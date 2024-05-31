@@ -737,7 +737,7 @@ func TestStorageLimit(t *testing.T) {
 		t.Log(failedWrites)
 		// Ensure that there are some failed writes.
 
-		if failedWrites >=1 {
+		if failedWrites >= 1 {
 			return
 		}
 	}
