@@ -16,14 +16,14 @@ jobs:
 
       - uses: actions/checkout@v4
 
-      - uses: elastic/oblt-actions/updatecli/run@v1.2.0
+      - uses: elastic/oblt-actions/updatecli/run@v1.4.0
         with:
           command: --experimental apply --config .ci/bump-golang.yml
         env:
           GITHUB_TOKEN: ${{ secrets.UPDATECLI_GH_TOKEN }}
 
       - if: ${{ failure() }}
-        uses: elastic/oblt-actions/slack/send@v1.2.0
+        uses: elastic/oblt-actions/slack/send@v1.4.0
         with:
           bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
           channel-id: "#apm-server"
