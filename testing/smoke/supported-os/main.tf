@@ -29,12 +29,12 @@ module "ec_deployment" {
   source = "../../infra/terraform/modules/ec_deployment"
   region = var.region
 
-  deployment_template    = "gcp-compute-optimized-v3"
-  deployment_name_prefix = "smoke-upgrade"
+  deployment_template    = "gcp-vector-search-optimized"
+  deployment_name_prefix = "supported-os-standalone"
 
   apm_server_size = "1g"
 
-  elasticsearch_size       = "4g"
+  elasticsearch_size       = "1g"
   elasticsearch_zone_count = 1
 
   stack_version = var.stack_version
