@@ -1,0 +1,20 @@
+post:
+  summary: Send RUM events
+  description: >
+    NOTE: Most users do not need to interact directly with the events intake
+    API.
+  operationId: postRumEventIntakeV3
+  tags:
+    - event intake
+  requestBody:
+    content:
+      application/ndjson:
+        schema:
+          anyOf:
+            - $ref: ../components/schemas/ErrorEventv3.yaml
+            - $ref: ../components/schemas/MetadataEventv3.yaml
+            - $ref: ../components/schemas/SpanEventv3.yaml
+            - $ref: ../components/schemas/TransactionEventv3.yaml
+  responses:
+    '202':
+      description: Successful response; all events succeeded.
