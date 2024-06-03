@@ -19,6 +19,10 @@ https://github.com/elastic/apm-server/compare/v8.13.2\...v8.14.0[View commits]
 ==== Intake API Changes
 
 [float]
+==== Bug fixes
+- Remove error reason from logs when Elasticsearch returns unavailable_shards_exception {pull}13287[13287]
+
+[float]
 ==== Added
 - OpenTelemetry Distro Name will now be used for `agent.name` and `agent.version` {pull}12940[12940]
 - Add support for setting the `host.id` via IntakeV2 {pull}12940[12940]
