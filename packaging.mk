@@ -77,7 +77,7 @@ $(DISTDIR)/%-$(DOCKER_IMAGE_SUFFIX): build/docker/%.txt
 # Java agent attacher. Fetched from Maven and verified with the committed key.
 ##############################################################################
 
-JAVA_ATTACHER_VERSION:=1.33.0
+JAVA_ATTACHER_VERSION:=1.50.0
 JAVA_ATTACHER_JAR:=apm-agent-attach-cli-$(JAVA_ATTACHER_VERSION)-slim.jar
 JAVA_ATTACHER_SIG:=$(JAVA_ATTACHER_JAR).asc
 JAVA_ATTACHER_BASE_URL:=https://repo1.maven.org/maven2/co/elastic/apm/apm-agent-attach-cli
