@@ -13,7 +13,7 @@ require (
 	github.com/t-yuki/gocover-cobertura v0.0.0-20180217150009-aaee18c8195c
 	github.com/terraform-docs/terraform-docs v0.17.0
 	go.elastic.co/go-licence-detector v0.6.0
-	gotest.tools/gotestsum v1.11.0
+	gotest.tools/gotestsum v1.12.0
 	honnef.co/go/tools v0.4.7
 )
 
@@ -38,7 +38,7 @@ require (
 	github.com/akavel/rsrc v0.10.2 // indirect
 	github.com/apparentlymart/go-textseg/v15 v15.0.0 // indirect
 	github.com/bahlo/generic-list-go v0.2.0 // indirect
-	github.com/bitfield/gotestdox v0.2.1 // indirect
+	github.com/bitfield/gotestdox v0.2.2 // indirect
 	github.com/blakesmith/ar v0.0.0-20190502131153-809d4375e1fb // indirect
 	github.com/buger/jsonparser v1.1.1 // indirect
 	github.com/caarlos0/go-version v0.1.1 // indirect
@@ -130,13 +130,13 @@ require (
 	golang.org/x/crypto v0.23.0 // indirect
 	golang.org/x/exp v0.0.0-20231206192017-f3f8817b8deb // indirect
 	golang.org/x/exp/typeparams v0.0.0-20221208152030-732eee02a75a // indirect
-	golang.org/x/mod v0.14.0 // indirect
+	golang.org/x/mod v0.16.0 // indirect
 	golang.org/x/net v0.23.0 // indirect
 	golang.org/x/sync v0.6.0 // indirect
 	golang.org/x/sys v0.20.0 // indirect
 	golang.org/x/term v0.20.0 // indirect
 	golang.org/x/text v0.15.0 // indirect
-	golang.org/x/tools v0.17.0 // indirect
+	golang.org/x/tools v0.19.0 // indirect
 	golang.org/x/tools/go/vcs v0.1.0-deprecated // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20231127180814-3a041ad873d4 // indirect
 	google.golang.org/grpc v1.59.0 // indirect
