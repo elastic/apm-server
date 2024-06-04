@@ -1,0 +1,6 @@
+type: object
+required:
+  - transaction
+properties:
+  transaction:
+    $ref: ../../../rumv3/transaction.json

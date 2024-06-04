@@ -1,0 +1,6 @@
+type: object
+required:
+  - error
+properties:
+  error:
+    $ref: ../../../rumv3/error.json

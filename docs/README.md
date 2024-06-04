@@ -8,3 +8,11 @@
 > * A list of all **breaking changes** are documented in [`changelogs/all-breaking-changes.asciidoc`](/changelogs/all-breaking-changes.asciidoc).
 > * **Sample data sets** that are injected into the docs are in the [`docs/data/`](/docs/data/) directory.
 > * **Specifications** that are injected into the docs are in the [`docs/spec/`](/docs/spec/) directory.
+
+To generate the bundled files in the [`docs/spec/openapi`](/docs/spec/openapi) directory, use [redocly bundle](https://redocly.com/docs/cli/commands/bundle/). For example:
+
+```
+npx @redocly/cli bundle apm-openapi.yaml --output bundled.yaml --ext yaml
+npx @redocly/cli bundle apm-openapi.yaml --output bundled.json --ext json
+```
+

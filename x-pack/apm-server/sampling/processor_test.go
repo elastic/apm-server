@@ -727,14 +727,22 @@ func TestStorageLimit(t *testing.T) {
 	// Rather than setting a static threshold, use the runtime.NumCPU as a
 	// multiplier since the sharded writers use that variable and the more CPUs
 	// we have, the more sharded writes we'll have, resulting in a greater buffer.
-	processor := writeBatch(150_000*runtime.NumCPU(), config, func(b modelpb.Batch) {
-		assert.NotEmpty(t, b)
-	})
+	// To avoid huge test time on large systems do this incrementally
+	for i := 1; i < runtime.NumCPU(); i++ {
+		processor := writeBatch(150_000*i, config, func(b modelpb.Batch) {
+			assert.NotEmpty(t, b)
+		})
 
-	failedWrites := collectProcessorMetrics(processor).Ints["sampling.events.failed_writes"]
-	t.Log(failedWrites)
-	// Ensure that there are some failed writes.
-	assert.GreaterOrEqual(t, failedWrites, int64(1))
+		failedWrites := collectProcessorMetrics(processor).Ints["sampling.events.failed_writes"]
+		t.Log(failedWrites)
+		// Ensure that there are some failed writes.
+
+		if failedWrites >= 1 {
+			return
+		}
+	}
+
+	t.Fatal("badger error never thrown")
 }
 
 func TestProcessRemoteTailSamplingPersistence(t *testing.T) {
