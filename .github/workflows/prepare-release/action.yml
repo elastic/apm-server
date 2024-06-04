@@ -3,20 +3,14 @@ name: prepare-release
 description: Common tasks for preparing minor and patch releases
 
 inputs:
+  slack-bot-token:
+    description: 'The slack bot token'
+    required: true
   type:
     description: 'Release type (minor or patch)'
     required: true
   version:
     description: 'The version'
-    required: true
-  vault-url:
-    description: 'Vault URL'
-    required: true
-  vault-role-id:
-    description: 'Vault role ID'
-    required: true
-  vault-secret-id:
-    description: 'Vault secret ID'
     required: true
 
 outputs:
@@ -35,12 +29,10 @@ runs:
   steps:
     - name: Send slack message when started
       id: slack-thread
-      uses: elastic/apm-pipeline-library/.github/actions/slack-message@current
+      uses: elastic/oblt-actions/slack/send@v1.6.0
       with:
-        url: ${{ inputs.vault-url }}
-        roleId: ${{ inputs.vault-role-id }}
-        secretId: ${{ inputs.vault-secret-id }}
-        channel: ${{ env.SLACK_CHANNEL }}
+        bot-token: ${{ inputs.slack-bot-token }}
+        channel-id: ${{ env.SLACK_CHANNEL }}
         message: ":wave: This is the thread for the ${{ inputs.type }} release `${{ github.repository }}@${{ env.VERSION }}`. (<${{ env.JOB_URL }}|workflow run>)"
       env:
         VERSION: ${{ inputs.version }}
@@ -93,17 +85,15 @@ runs:
       env:
         TAG: 'refs/tags/v${{ steps.generate.outputs.release-version }}'
 
-    - uses: elastic/apm-pipeline-library/.github/actions/slack-message@current
-      if: failure()
+    - if: failure()
+      uses: elastic/oblt-actions/slack/send@v1.6.0
       with:
-        url: ${{ inputs.vault-url }}
-        roleId: ${{ inputs.vault-role-id }}
-        secretId: ${{ inputs.vault-secret-id }}
-        channel: ${{ env.SLACK_CHANNEL }}
-        threadTimestamp: ${{ steps.slack-thread.outputs.threadTimestamp || '' }}
+        bot-token: ${{ inputs.slack-bot-token }}
+        channel-id: ${{ env.SLACK_CHANNEL }}
         message: |-
           :fire: Something went wrong with the ${{ inputs.type }} release preparation. It failed with the below error message:
           `${{ env.FAILURE_MESSAGE }}`.
           See <${{ env.JOB_URL }}|logs>.
+        thread-timestamp: ${{ steps.slack-thread.outputs.threadTimestamp || '' }}
       env:
         JOB_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
