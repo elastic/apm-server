@@ -1,0 +1,15 @@
+get:
+  summary: Get RUM agent configuration changes
+  description: >
+    To configure authenticated access to the APM server, the instructions at
+    [APM API
+    key](https://www.elastic.co/guide/en/observability/current/api-key.html) or
+    [APM Secret
+    Token](https://www.elastic.co/guide/en/observability/current/secret-token.html)
+    must be followed to configure the correct permissions for APM access.
+  operationId: getRumAgentConfig
+  tags:
+    - agent config
+  responses:
+    '200':
+      description: Successful response.

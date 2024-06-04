@@ -44,6 +44,15 @@ get_latest_snapshot() {
     VERSIONS=$(echo "${RES}" | jq -r -c '[.stacks[].version | select(. | contains("-SNAPSHOT"))] | sort' | sed 's#-SNAPSHOT#.0#g' | jq -r -c ' sort_by(.| split(".") | map(tonumber))' | sed 's#.0"#-SNAPSHOT"#g' | jq -r -c .)
 }
 
+get_latest_snapshot_for_version() {
+    if [[ -z "${1}" ]]; then
+        echo "-> Version not set"
+        return 1
+    fi
+    get_latest_snapshot
+    LATEST_SNAPSHOT_VERSION=$(echo "$VERSIONS" | jq -r -c "map(select(. | startswith(\"${1}\"))) | .[-1]")
+}
+
 terraform_init() {
     if [[ ! -f main.tf ]]; then cp ../main.tf .; fi
     terraform init >> tf.log
@@ -103,7 +112,7 @@ assert_document() {
     RESULT=$(curl_fail -u ${AUTH} -XGET "${URL}" -H 'Content-Type: application/json' -d"{\"query\":{\"bool\":{\"must\":[{\"match\":{\"${FIELD}\":\"${VALUE}\"}},{\"match\":{\"observer.version\":\"${VERSION}\"}}]}}}") || RC=$?
     if [ $RC -ne 0 ]; then echo "${RESULT}"; fi
 
-    echo "-> Asserting ${INDEX} contains expected documents documents..."
+    echo "-> Asserting ${INDEX} contains expected documents..."
     assert_entry ${FIELD} ${VALUE} ${ENTRIES}
 }
 

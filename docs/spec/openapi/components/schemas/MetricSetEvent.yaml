@@ -1,0 +1,9 @@
+type: object
+description: >
+  Metric sets are events that contain application metric data captured by an APM
+  agent. 
+required:
+  - metricset
+properties:
+  metricset:
+    $ref: ../../../v2/metricset.json

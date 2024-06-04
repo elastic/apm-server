@@ -1,0 +1,9 @@
+type: object
+description: >
+  Errors are events that occur in a monitored service and correspond to an error
+  or a logged message captured by an agent.
+required:
+  - error
+properties:
+  error:
+    $ref: ../../../v2/error.json
