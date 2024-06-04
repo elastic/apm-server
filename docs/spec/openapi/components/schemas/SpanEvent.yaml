@@ -1,0 +1,8 @@
+type: object
+description: |
+  Spans are events captured by an agent occurring in a monitored service.
+required:
+  - span
+properties:
+  span:
+    $ref: ../../../v2/span.json
