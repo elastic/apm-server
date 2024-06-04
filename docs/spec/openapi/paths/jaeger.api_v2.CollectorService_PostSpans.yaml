@@ -1,0 +1,16 @@
+post:
+  summary: Send Jaeger spans
+  deprecated: true
+  description: |
+    APM Server supports receiving Jaeger spans. This API uses the gRPC protocol.
+  operationId: postJaegerSpans
+  tags:
+    - jaeger intake
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+  responses:
+    '200':
+      description: OK

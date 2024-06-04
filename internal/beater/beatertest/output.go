@@ -66,10 +66,10 @@ func ElasticsearchOutputConfig(t testing.TB) (*agentconfig.C, <-chan []byte) {
 
 	cfg := agentconfig.MustNewConfigFrom(map[string]interface{}{
 		"output.elasticsearch": map[string]interface{}{
-			"enabled":      true,
-			"hosts":        []string{srv.URL},
-			"flush_bytes":  "1", // no delay
-			"max_requests": "1", // only 1 concurrent request, for event ordering
+			"enabled":        true,
+			"hosts":          []string{srv.URL},
+			"flush_interval": "1ms", // no delay
+			"max_requests":   "1",   // only 1 concurrent request, for event ordering
 		},
 	})
 	return cfg, out
