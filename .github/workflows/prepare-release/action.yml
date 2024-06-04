@@ -22,7 +22,7 @@ outputs:
     value: ${{ steps.generate.outputs.release-version }}
   slack-thread:
     description: "Slack thread id"
-    value: ${{ steps.slack-thread.outputs.threadTimestamp }}
+    value: ${{ steps.slack-thread.outputs.thread-timestamp }}
 
 runs:
   using: "composite"
@@ -94,6 +94,6 @@ runs:
           :fire: Something went wrong with the ${{ inputs.type }} release preparation. It failed with the below error message:
           `${{ env.FAILURE_MESSAGE }}`.
           See <${{ env.JOB_URL }}|logs>.
-        thread-timestamp: ${{ steps.slack-thread.outputs.threadTimestamp || '' }}
+        thread-timestamp: ${{ steps.slack-thread.outputs.thread-timestamp || '' }}
       env:
         JOB_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
