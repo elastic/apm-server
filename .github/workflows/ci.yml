@@ -92,7 +92,8 @@ jobs:
 
   test-package-and-push:
     runs-on: ubuntu-latest
-    if: github.event_name != 'pull_request' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false)
+    # If no PR event or if a PR event that's caused by a non-fork and non dependabot actor
+    if: github.event_name != 'pull_request' || ( github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false && github.actor != 'dependabot[bot]' )
     env:
       GENERATE_CHAINGUARD_IMAGES: true
     steps:
