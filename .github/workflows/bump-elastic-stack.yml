@@ -30,7 +30,7 @@ jobs:
         with:
           ref: ${{ matrix.branch }}
 
-      - uses: elastic/oblt-actions/updatecli/run@v1.2.0
+      - uses: elastic/oblt-actions/updatecli/run@v1.7.0
         with:
           command: --experimental apply --config .ci/bump-elastic-stack-snapshot.yml
         env:
@@ -38,7 +38,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.UPDATECLI_GH_TOKEN }}
 
       - if: ${{ failure()  }}
-        uses: elastic/oblt-actions/slack/send@v1.2.0
+        uses: elastic/oblt-actions/slack/send@v1.7.0
         with:
           channel-id: '#apm-server'
           message: ":traffic_cone: updatecli failed for `${{ github.repository }}@${{ github.ref_name }}`, @robots-ci please look what's going on <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|here>"
