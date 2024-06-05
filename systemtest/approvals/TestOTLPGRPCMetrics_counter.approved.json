@@ -10,7 +10,7 @@
             "opentelemetry/go"
         ],
         "agent.version": [
-            "1.19.0"
+            "1.25.0"
         ],
         "counter": [
             1
