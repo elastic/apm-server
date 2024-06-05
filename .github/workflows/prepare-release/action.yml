@@ -29,7 +29,7 @@ runs:
   steps:
     - name: Send slack message when started
       id: slack-thread
-      uses: elastic/oblt-actions/slack/send@v1.6.0
+      uses: elastic/oblt-actions/slack/send@v1.8.0
       with:
         bot-token: ${{ inputs.slack-bot-token }}
         channel-id: ${{ env.SLACK_CHANNEL }}
@@ -86,7 +86,7 @@ runs:
         TAG: 'refs/tags/v${{ steps.generate.outputs.release-version }}'
 
     - if: failure()
-      uses: elastic/oblt-actions/slack/send@v1.6.0
+      uses: elastic/oblt-actions/slack/send@v1.8.0
       with:
         bot-token: ${{ inputs.slack-bot-token }}
         channel-id: ${{ env.SLACK_CHANNEL }}
