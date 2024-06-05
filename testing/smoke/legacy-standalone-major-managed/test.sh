@@ -27,6 +27,19 @@ else
     ASSERTION_NEXT_MAJOR_LATEST=${NEXT_MAJOR_LATEST}
 fi
 
+# temporary fix to use SNAPSHOT image as 7.17.22 is broken
+if [ $LATEST_VERSION == "7.17.22" ]; then 
+    echo "using 7.17.22-SNAPSHOT instead of 7.17.22 temporarily"
+    LATEST_VERSION="${LATEST_VERSION}-SNAPSHOT"
+fi
+
+# temporary fix to use SNAPSHOT image as 7.17.22 is broken
+if [ $NEXT_MAJOR_LATEST == "7.17.22" ]; then 
+    echo "using 7.17.22-SNAPSHOT instead of 7.17.22 temporarily"
+    NEXT_MAJOR_LATEST="${NEXT_MAJOR_LATEST}-SNAPSHOT"
+fi
+
+
 echo "-> Running ${LATEST_VERSION} standalone to ${NEXT_MAJOR_LATEST} to ${NEXT_MAJOR_LATEST} managed"
 
 if [[ -z ${SKIP_DESTROY} ]]; then

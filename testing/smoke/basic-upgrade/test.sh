@@ -45,6 +45,18 @@ fi
 
 echo "-> Running basic upgrade smoke test for version ${VERSION}"
 
+# temporary fix to use SNAPSHOT image as 7.17.22 is broken
+if [ $LATEST_VERSION == "7.17.22" ]; then 
+    echo "using 7.17.22-SNAPSHOT instead of 7.17.22 temporarily"
+    LATEST_VERSION="${LATEST_VERSION}-SNAPSHOT"
+fi
+
+# temporary fix to use SNAPSHOT image as 7.17.22 is broken
+if [ $PREV_LATEST_VERSION == "7.17.22" ]; then 
+    echo "using 7.17.22-SNAPSHOT instead of 7.17.22 temporarily"
+    PREV_LATEST_VERSION="${PREV_LATEST_VERSION}-SNAPSHOT"
+fi
+
 if [[ -z ${SKIP_DESTROY} ]]; then
     trap "terraform_destroy" EXIT
 fi

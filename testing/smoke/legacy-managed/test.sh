@@ -21,6 +21,12 @@ else
     ASSERTION_VERSION=${LATEST_VERSION}
 fi
 
+# temporary fix to use SNAPSHOT image as 7.17.22 is broken
+if [ $LATEST_VERSION == "7.17.22" ]; then 
+    echo "using 7.17.22-SNAPSHOT instead of 7.17.22 temporarily"
+    LATEST_VERSION="${LATEST_VERSION}-SNAPSHOT"
+fi
+
 echo "-> Running ${LATEST_VERSION} standalone to ${LATEST_VERSION} managed upgrade"
 
 if [[ -z ${SKIP_DESTROY} ]]; then
