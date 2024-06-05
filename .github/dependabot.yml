@@ -28,7 +28,7 @@ updates:
     schedule:
       interval: "weekly"
     groups:
-      github-actions:
+      dependencies:
         patterns:
           - "*"
   # go systemtest
@@ -37,7 +37,7 @@ updates:
     schedule:
       interval: "weekly"
     groups:
-      github-actions:
+      dependencies:
         patterns:
           - "*"
 
