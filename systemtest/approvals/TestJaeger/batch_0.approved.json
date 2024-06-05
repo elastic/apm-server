@@ -1,113 +1,6 @@
 [
     {
         "@timestamp": [
-            "2019-12-20T07:41:45.007Z"
-        ],
-        "agent.ephemeral_id": [
-            "624386e9c81d2980"
-        ],
-        "agent.name": [
-            "Jaeger/Go"
-        ],
-        "agent.name.text": [
-            "Jaeger/Go"
-        ],
-        "agent.version": [
-            "2.20.1"
-        ],
-        "data_stream.dataset": [
-            "apm.error"
-        ],
-        "data_stream.namespace": [
-            "default"
-        ],
-        "data_stream.type": [
-            "logs"
-        ],
-        "error.exception.message": [
-            "redis timeout"
-        ],
-        "error.grouping_key": [
-            "dd09a7d0d9dde0adfcd694967c5a88de"
-        ],
-        "error.grouping_name": [
-            "Retrying GetDriver after error"
-        ],
-        "error.id": [
-            "dynamic"
-        ],
-        "error.log.message": [
-            "Retrying GetDriver after error"
-        ],
-        "host.hostname": [
-            "host01"
-        ],
-        "host.ip": [
-            "10.0.0.13"
-        ],
-        "host.name": [
-            "host01"
-        ],
-        "host.name.text": [
-            "host01"
-        ],
-        "message": [
-            "Retrying GetDriver after error"
-        ],
-        "observer.hostname": [
-            "dynamic"
-        ],
-        "observer.type": [
-            "apm-server"
-        ],
-        "observer.version": [
-            "dynamic"
-        ],
-        "parent.id": [
-            "7be2fd98d0973be3"
-        ],
-        "processor.event": [
-            "error"
-        ],
-        "service.language.name": [
-            "Go"
-        ],
-        "service.language.name.text": [
-            "Go"
-        ],
-        "service.name": [
-            "driver"
-        ],
-        "service.name.text": [
-            "driver"
-        ],
-        "service.node.name": [
-            "host01"
-        ],
-        "service.node.name.text": [
-            "host01"
-        ],
-        "span.id": [
-            "7be2fd98d0973be3"
-        ],
-        "timestamp.us": [
-            1576827705007552
-        ],
-        "trace.id": [
-            "00000000000000007be2fd98d0973be3"
-        ],
-        "transaction.id": [
-            "7be2fd98d0973be3"
-        ],
-        "transaction.sampled": [
-            true
-        ],
-        "transaction.type": [
-            "unknown"
-        ]
-    },
-    {
-        "@timestamp": [
             "2019-12-20T07:41:45.089Z"
         ],
         "agent.ephemeral_id": [
@@ -306,6 +199,113 @@
         ],
         "timestamp.us": [
             1576827705172530
+        ],
+        "trace.id": [
+            "00000000000000007be2fd98d0973be3"
+        ],
+        "transaction.id": [
+            "7be2fd98d0973be3"
+        ],
+        "transaction.sampled": [
+            true
+        ],
+        "transaction.type": [
+            "unknown"
+        ]
+    },
+    {
+        "@timestamp": [
+            "2019-12-20T07:41:45.007Z"
+        ],
+        "agent.ephemeral_id": [
+            "624386e9c81d2980"
+        ],
+        "agent.name": [
+            "Jaeger/Go"
+        ],
+        "agent.name.text": [
+            "Jaeger/Go"
+        ],
+        "agent.version": [
+            "2.20.1"
+        ],
+        "data_stream.dataset": [
+            "apm.error"
+        ],
+        "data_stream.namespace": [
+            "default"
+        ],
+        "data_stream.type": [
+            "logs"
+        ],
+        "error.exception.message": [
+            "redis timeout"
+        ],
+        "error.grouping_key": [
+            "dd09a7d0d9dde0adfcd694967c5a88de"
+        ],
+        "error.grouping_name": [
+            "Retrying GetDriver after error"
+        ],
+        "error.id": [
+            "dynamic"
+        ],
+        "error.log.message": [
+            "Retrying GetDriver after error"
+        ],
+        "host.hostname": [
+            "host01"
+        ],
+        "host.ip": [
+            "10.0.0.13"
+        ],
+        "host.name": [
+            "host01"
+        ],
+        "host.name.text": [
+            "host01"
+        ],
+        "message": [
+            "Retrying GetDriver after error"
+        ],
+        "observer.hostname": [
+            "dynamic"
+        ],
+        "observer.type": [
+            "apm-server"
+        ],
+        "observer.version": [
+            "dynamic"
+        ],
+        "parent.id": [
+            "7be2fd98d0973be3"
+        ],
+        "processor.event": [
+            "error"
+        ],
+        "service.language.name": [
+            "Go"
+        ],
+        "service.language.name.text": [
+            "Go"
+        ],
+        "service.name": [
+            "driver"
+        ],
+        "service.name.text": [
+            "driver"
+        ],
+        "service.node.name": [
+            "host01"
+        ],
+        "service.node.name.text": [
+            "host01"
+        ],
+        "span.id": [
+            "7be2fd98d0973be3"
+        ],
+        "timestamp.us": [
+            1576827705007552
         ],
         "trace.id": [
             "00000000000000007be2fd98d0973be3"

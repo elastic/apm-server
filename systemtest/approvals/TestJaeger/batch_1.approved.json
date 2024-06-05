@@ -1,7 +1,7 @@
 [
     {
         "@timestamp": [
-            "2019-12-20T07:41:45.006Z"
+            "2019-12-20T07:41:45.172Z"
         ],
         "agent.ephemeral_id": [
             "2e3f8db3eb77fae0"
@@ -52,7 +52,7 @@
             "host01"
         ],
         "labels.driver_id": [
-            "T762465C"
+            "T752547C"
         ],
         "message": [
             "redis timeout"
@@ -67,7 +67,7 @@
             "dynamic"
         ],
         "parent.id": [
-            "333295bfb438ea03"
+            "0242ee3774d9eab1"
         ],
         "processor.event": [
             "error"
@@ -91,7 +91,7 @@
             "host01"
         ],
         "timestamp.us": [
-            1576827705006847
+            1576827705172347
         ],
         "trace.id": [
             "00000000000000007be2fd98d0973be3"
@@ -197,7 +197,7 @@
     },
     {
         "@timestamp": [
-            "2019-12-20T07:41:45.172Z"
+            "2019-12-20T07:41:45.006Z"
         ],
         "agent.ephemeral_id": [
             "2e3f8db3eb77fae0"
@@ -248,7 +248,7 @@
             "host01"
         ],
         "labels.driver_id": [
-            "T752547C"
+            "T762465C"
         ],
         "message": [
             "redis timeout"
@@ -263,7 +263,7 @@
             "dynamic"
         ],
         "parent.id": [
-            "0242ee3774d9eab1"
+            "333295bfb438ea03"
         ],
         "processor.event": [
             "error"
@@ -287,7 +287,7 @@
             "host01"
         ],
         "timestamp.us": [
-            1576827705172347
+            1576827705006847
         ],
         "trace.id": [
             "00000000000000007be2fd98d0973be3"
