@@ -87,3 +87,27 @@ jobs:
           go-version-file: go.mod
           cache: false
       - run: make package-snapshot
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+  test-package-and-push:
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false)
+    env:
+      GENERATE_CHAINGUARD_IMAGES: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: false
+      - name: Log in to the Elastic Container registry
+        uses: docker/login-action@0d4c9c5ea7693da7b068278f7b52bda2a190a446 # v3.2.0
+        with:
+          registry: ${{ secrets.ELASTIC_DOCKER_REGISTRY }}
+          username: ${{ secrets.ELASTIC_DOCKER_USERNAME }}
+          password: ${{ secrets.ELASTIC_DOCKER_PASSWORD }}
+      - run: make package-snapshot
+        env:
+          GH_TOKEN: ${{ github.token }}
+      - run: make publish-docker-images

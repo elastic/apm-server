@@ -15,17 +15,14 @@ Testing can be started when the first build candidate (BC) is available in the C
 Thanks to https://github.com/elastic/apm-server/issues/8303 further smoke tests are run automatically on ESS now.
 **Consider extending the smoke tests to include more test cases which we'd like to cover**
 
-## Go agent
+## go-docappender library
 
-<!-- Add any issues / PRs which were worked on during the milestone release https://github.com/elastic/apm-agent-go/pulls-->
+<!-- Add any issues / PRs which were worked on during the milestone release https://github.com/elastic/go-docappender/pulls-->
 
-## Lambda extension
+## apm-data library
 
-<!-- Add any issues / PRs which were worked on during the milestone release https://github.com/elastic/apm-aws-lambda/pulls-->
+<!-- Add any issues / PRs which were worked on during the milestone release https://github.com/elastic/apm-data/pulls-->
 
-## APM Kubernetes Attacher
-
-<!-- Add any issues / PRs which were worked on during the milestone release -->
 
 ## Test cases from the GitHub board
 
@@ -37,4 +34,4 @@ Add yourself as _assignee_ on the PR before you start testing.
 
 ## Regressions
 
-Link any regressions to this issue.
+<!-- Link any regressions to this issue. -->

@@ -9,34 +9,23 @@ For patch releases, only the version on the existing major and minor version bra
 
 ## Feature Freeze
 
-* For patch releases, ensure all relevant backport PRs are merged.
-  We use backport labels on PRs and automation to ensure labels are set.
+* For **patch releases**:
+  * ensure all relevant backport PRs are merged. We use backport labels on PRs and automation to ensure labels are set.
 
-* Update Changelog
-
-  * Review existing [changelogs/head](https://github.com/elastic/apm-server/tree/main/changelogs/head.asciidoc) to ensure all relevant notes have been added.
-  * Move changelog entries from _head_ to _release_version_:
-    * Minor version:
-      Create new changelog file from [changelogs/head.asciidoc](https://github.com/elastic/apm-server/blob/main/changelogs/head.asciidoc)
-      If changes should not be backported, keep them in the _changelogs/head.asciidoc_ file.
-      Don't forget to `include` and link to the new file in [main changelog](https://github.com/elastic/apm-server/blob/main/CHANGELOG.asciidoc) and the [release notes](https://github.com/elastic/apm-server/blob/main/docs/release-notes.asciidoc) file. [(Sample PR)](https://github.com/elastic/apm-server/pull/7956/files)
-    * Patch version: Add a new section to existing release notes. ([Sample PR](https://github.com/elastic/apm-server/pull/8313/files))
-  * Add `@elastic/obs-docs` as a reviewer.
 
 ## Day after Feature Freeze
 
-* For minor releases, cut a new release branch from `main` and update them.
-  * Release branch:
-    Update versions and ensure that the `BEATS_VERSION` in the Makefile is updated,
-    e.g. [#2803](https://github.com/elastic/apm-server/pull/2803/files).
-    Trigger a new beats update, once the beats branch is also created.
-    Remove the [changelogs/head.asciidoc](https://github.com/elastic/apm-server/blob/main/changelogs/head.asciidoc) file from the release branch.
-
-  * Main branch:
-    Update [.mergify.yml](https://github.com/elastic/apm-server/blob/main/.mergify.yml) with a new backport rule for the next version,
-    and update versions to next minor version, e.g. [#2804](https://github.com/elastic/apm-server/pull/2804).
-
-  The release manager will ping the teams, but you can already prepare this in advance on the day after Feature Freeze.
+* Trigger release workflow manually
+  * For **patch releases**: run the [`run-patch-release`](https://github.com/elastic/apm-server/actions/workflows/run-patch-release.yml) workflow.  
+    This workflow will: create the release branch; update version across codebase; commit and create PR targeting the release branch.
+    Release notes for patch releases must be manually added:
+    * Add a new section to the existing release notes file ([Sample PR](https://github.com/elastic/apm-server/pull/12680)).
+    * Review the [changelogs/head](https://github.com/elastic/apm-server/tree/main/changelogs/head.asciidoc) file and move relevant changelog entries from `head.asciidoc` to `release_version.asciidoc` if the change is backported to release_version. If changes do not apply to the version being released, keep them in the `head.asciidoc` file.
+    * Review the commits in the release to ensure all changes are reflected in the release notes.
+    * Add your PR to the documentation release issue ([Sample Issue](https://github.com/elastic/dev/issues/2485)).
+  * For **minor releases**: run the [`run-minor-release`](https://github.com/elastic/apm-server/actions/workflows/run-minor-release.yml) workflow.  
+    This workflow will: create the release branch; update the changelog for the release branch and open a PR targeting the release branch titled `<major>.<minor>: update docs`; create a PR on `main` titled `<major>.<minor>: update docs, mergify, versions and changelogs`. Before merging them compare commits between latest minor and the new minor versions and ensure all relevant PRs have been included in the Changelog. If not, amend it in both PRs. Request and wait a PR review from the team before merging.
+* The Release Manager will ping the team to align the release process
 
 * Update dependencies
 
@@ -55,11 +44,13 @@ For patch releases, only the version on the existing major and minor version bra
 
 * Test plan
 
-  Create a github issue for testing the release branch (follow the GitHub issue template for the test plan), It should contain:
-  * A link to all PRs in the APM Server repository that need to be tested manually. Use the `test-plan*` labels and the version labels
-    to create an overview over the PRs that need testing. For example, [test plan link for 8.3.0](https://github.com/elastic/apm-server/issues?q=label%3Atest-plan+is%3Aclosed+label%3Av8.3.0).
-  * Add other test cases that require manual testing, such as test scenarios on ESS, that are not covered by automated tests or
-    OS compatibility smoke tests for supporting new operating systems.
+  Create a github issue for testing the release branch ([use the GitHub issue `test plan` template](https://github.com/elastic/apm-server/issues/new?assignees=&labels=test-plan&projects=&template=test-plan.md)), It should contain:
+  * A link to all PRs in the APM Server repository that need to be tested manually to create an overview over the PRs that need testing.
+    Use the `test-plan` label and the version label (create it if it does not exist). For example, [this was 8.13.0 test plan](https://github.com/elastic/apm-server/issues/12822)
+    and here you can find [all previous test plans](https://github.com/elastic/apm-server/issues?q=label%3Atest-plan+is%3Aclosed).
+    What we aim for is testing all functional changes applied to the new version. Review any PR updating `elastic/go-docappender` and `elastic/apm-data` dependencies, as some functional changes happens through these dependencies.  
+   Any non-functional change or any change that is already covered by automated tests must not be included.
+  * Add other test cases that require manual testing, such as test scenarios on ESS, that are not covered by automated tests or OS compatibility smoke tests for supporting new operating systems.
 
 ## Between feature freeze and release
 

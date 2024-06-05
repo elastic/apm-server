@@ -1,0 +1,6 @@
+type: object
+required:
+  - span
+properties:
+  span:
+    $ref: ../../../rumv3/span.json

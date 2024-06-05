@@ -1,0 +1,15 @@
+get:
+  summary: Get Jaeger sampling strategy
+  deprecated: true
+  description: |
+    This API polls the APM Server for the sampling rate.
+  operationId: getJaegerSampling
+  tags:
+    - jaeger intake
+  responses:
+    '200':
+      description: A successful response
+      content:
+        application/json:
+          schema:
+            type: object

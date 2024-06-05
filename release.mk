@@ -39,7 +39,7 @@ PROJECT_PATCH_VERSION ?= $(shell echo $(RELEASE_VERSION) | cut -f3 -d.)
 PROJECT_OWNER ?= elastic
 RELEASE_TYPE ?= minor
 
-CURRENT_RELEASE ?= $(shell gh api repos/elastic/apm-server/releases/latest | jq -r '.tag_name|sub("v"; ""; "")')
+CURRENT_RELEASE ?= $(shell gh release list --exclude-drafts --exclude-pre-releases --limit 10 --json tagName --jq '.[].tagName|select(. | startswith("v$(PROJECT_MAJOR_VERSION)"))' | sed 's|v||g' | sort -r | head -n 1)
 RELEASE_BRANCH ?= $(PROJECT_MAJOR_VERSION).$(PROJECT_MINOR_VERSION)
 NEXT_PROJECT_MINOR_VERSION ?= $(PROJECT_MAJOR_VERSION).$(shell expr $(PROJECT_MINOR_VERSION) + 1).0
 NEXT_RELEASE ?= $(RELEASE_BRANCH).$(shell expr $(PROJECT_PATCH_VERSION) + 1)
@@ -77,6 +77,20 @@ https://github.com/elastic/apm-server/compare/$(RELEASE_BRANCH)\...main[View com
 
 [float]
 ==== Added
+endef
+
+## Changelog template for new minors
+define CHANGELOG_MINOR_TMPL
+[[apm-release-notes-$(RELEASE_BRANCH)]]
+== APM version $(RELEASE_BRANCH)
+* <<apm-release-notes-$(RELEASE_BRANCH).0>>
+
+[float]
+[[apm-release-notes-$(RELEASE_BRANCH).0]]
+=== APM version $(RELEASE_BRANCH).0
+
+https://github.com/elastic/apm-server/compare/v$(CURRENT_RELEASE)\...v$(RELEASE_BRANCH).0[View commits]
+
 endef
 
 #######################
@@ -140,8 +154,8 @@ rename-changelog:
 	$(MAKE) common-changelog
 	@echo ">> rename-changelog"
 	echo "$$CHANGELOG_TMPL" > changelogs/head.asciidoc
-	@if ! grep -q 'release-notes-$(VERSION)' CHANGELOG.asciidoc ; then \
-		awk "NR==2{print \"* <<release-notes-$(VERSION)>>\"}1" CHANGELOG.asciidoc > CHANGELOG.asciidoc.new; \
+	@if ! grep -q 'apm-release-notes-$(VERSION)' CHANGELOG.asciidoc ; then \
+		awk "NR==2{print \"* <<apm-release-notes-$(VERSION)>>\"}1" CHANGELOG.asciidoc > CHANGELOG.asciidoc.new; \
 		mv CHANGELOG.asciidoc.new CHANGELOG.asciidoc ; \
 	fi
 	@if ! grep -q '$(VERSION).asciidoc' CHANGELOG.asciidoc ; then \
@@ -157,16 +171,13 @@ update-changelog:
 	$(SED) 's#head#$(VERSION)#g' CHANGELOG.asciidoc
 
 # Common changelog file steps
-# TODO: changelogs/$(VERSION).asciidoc requires further manipulation to remove empty entries.
 .PHONY: common-changelog
+export CHANGELOG_MINOR_TMPL
 common-changelog: VERSION=$${VERSION}
 common-changelog:
 	@echo ">> common-changelog"
-	mv changelogs/head.asciidoc changelogs/$(VERSION).asciidoc
-	$(SED) 's#head#$(VERSION)#gI' changelogs/$(VERSION).asciidoc
-	$(SED) -E -e 's#(\...)main#\1$(VERSION)#g' changelogs/$(VERSION).asciidoc
-	awk "NR==5{print \"\n* <<release-notes-$(VERSION).0>>\n\n[float]\n[[release-notes-$(VERSION).0]]\n=== APM version $(VERSION).0\"}1" changelogs/$(VERSION).asciidoc > changelogs/$(VERSION).asciidoc.new
-	mv changelogs/$(VERSION).asciidoc.new changelogs/$(VERSION).asciidoc
+	echo "$$CHANGELOG_MINOR_TMPL" > changelogs/$(VERSION).asciidoc
+	tail -n +6 changelogs/head.asciidoc >> changelogs/$(VERSION).asciidoc
 
 ## Update the references on .mergify.yml with the new minor release.
 .PHONY: update-mergify
@@ -245,7 +256,7 @@ create-commit:
 	if [ ! -z "$$(git status -s)" ]; then \
 		git status -s; \
 		git add --all; \
-		git commit -a -m "$(COMMIT_MESSAGE)"; \
+		git commit --gpg-sign -a -m "$(COMMIT_MESSAGE)"; \
 	fi
 	@echo "::endgroup::"
 

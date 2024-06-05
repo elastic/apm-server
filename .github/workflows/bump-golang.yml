@@ -15,9 +15,16 @@ jobs:
     steps:
 
       - uses: actions/checkout@v4
-      - uses: elastic/apm-pipeline-library/.github/actions/updatecli@current
+
+      - uses: elastic/oblt-actions/updatecli/run@v1.2.0
         with:
-          vaultUrl: ${{ secrets.VAULT_ADDR }}
-          vaultRoleId: ${{ secrets.VAULT_ROLE_ID }}
-          vaultSecretId: ${{ secrets.VAULT_SECRET_ID }}
-          pipeline: ./.ci/bump-golang.yml
+          command: --experimental apply --config .ci/bump-golang.yml
+        env:
+          GITHUB_TOKEN: ${{ secrets.UPDATECLI_GH_TOKEN }}
+
+      - if: ${{ failure() }}
+        uses: elastic/oblt-actions/slack/send@v1.2.0
+        with:
+          bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
+          channel-id: "#apm-server"
+          message: ":traffic_cone: updatecli failed for `${{ github.repository }}@${{ github.ref_name }}`, @robots-ci please look what's going on <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|here>"
