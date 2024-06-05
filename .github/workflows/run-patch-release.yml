@@ -34,9 +34,7 @@ jobs:
       - id: prepare
         uses: ./.github/workflows/prepare-release
         with:
-          vault-url: ${{ secrets.VAULT_ADDR }}
-          vault-role-id: ${{ secrets.VAULT_ROLE_ID }}
-          vault-secret-id: ${{ secrets.VAULT_SECRET_ID }}
+          slack-bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
           version: ${{ inputs.version }}
           type: 'patch'
 
@@ -72,25 +70,25 @@ jobs:
 
       - run: make patch-release
 
-      - uses: elastic/apm-pipeline-library/.github/actions/slack-message@current
-        if: success()
+      - if: success()
+        uses: elastic/oblt-actions/slack/send@v1.8.0
         with:
-          url: ${{ secrets.VAULT_ADDR }}
-          roleId: ${{ secrets.VAULT_ROLE_ID }}
-          secretId: ${{ secrets.VAULT_SECRET_ID }}
-          channel: ${{ env.SLACK_CHANNEL }}
-          threadTimestamp: ${{ needs.prepare.outputs.slack-thread || '' }}
+          bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
+          channel-id: ${{ env.SLACK_CHANNEL }}
           message: |-
             Feature freeze for `${{ github.repository }}@${{ env.RELEASE_VERSION }}` is Today.
             All the relevant PRs and issues have been created.
+          thread-timestamp: ${{ needs.prepare.outputs.slack-thread || '' }}
 
-      - uses: elastic/apm-pipeline-library/.github/actions/slack-message@current
-        if: failure()
+      - if: failure()
+        uses: elastic/oblt-actions/slack/send@v1.8.0
         with:
-          url: ${{ secrets.VAULT_ADDR }}
-          roleId: ${{ secrets.VAULT_ROLE_ID }}
-          secretId: ${{ secrets.VAULT_SECRET_ID }}
-          channel: ${{ env.SLACK_CHANNEL }}
-          threadTimestamp: ${{ needs.prepare.outputs.slack-thread || '' }}
+          bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
+          channel-id: ${{ env.SLACK_CHANNEL }}
           message: |-
+<<<<<<< HEAD
             :fire: Something went wrong with the patch release. See <${{ env.JOB_URL }}|logs>.
+=======
+            :fire: Something went wrong with the patch release. See <${{ env.JOB_URL }}|logs>.
+          thread-timestamp: ${{ needs.prepare.outputs.slack-thread || '' }}
+>>>>>>> 055c3a56d (feat(slack): apm-server (#13307))
