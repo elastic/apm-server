@@ -86,9 +86,5 @@ jobs:
           bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
           channel-id: ${{ env.SLACK_CHANNEL }}
           message: |-
-<<<<<<< HEAD
-            :fire: Something went wrong with the patch release. See <${{ env.JOB_URL }}|logs>.
-=======
             :fire: Something went wrong with the patch release. See <${{ env.JOB_URL }}|logs>.
           thread-timestamp: ${{ needs.prepare.outputs.slack-thread || '' }}
->>>>>>> 055c3a56d (feat(slack): apm-server (#13307))
