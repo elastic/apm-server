@@ -10,8 +10,8 @@ require (
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/apm-aggregation v0.0.0-20230815024520-e75a37d9ddd6
 	github.com/elastic/apm-data v1.1.0
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20240604124742-217f5a626498
-	github.com/elastic/elastic-agent-client/v7 v7.10.0
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20240605144738-592ea5bb128d
+	github.com/elastic/elastic-agent-client/v7 v7.11.0
 	github.com/elastic/elastic-agent-libs v0.9.11
 	github.com/elastic/elastic-agent-system-metrics v0.10.2
 	github.com/elastic/gmux v0.3.2
@@ -44,7 +44,7 @@ require (
 	go.elastic.co/apm/module/apmotel/v2 v2.6.0
 	go.elastic.co/apm/v2 v2.6.0
 	go.elastic.co/fastjson v1.3.0
-	go.opentelemetry.io/collector/consumer v0.102.0
+	go.opentelemetry.io/collector/consumer v0.102.1
 	go.opentelemetry.io/collector/pdata v1.9.0
 	go.opentelemetry.io/otel v1.27.0
 	go.opentelemetry.io/otel/metric v1.27.0
@@ -93,7 +93,6 @@ require (
 	github.com/elastic/go-windows v1.0.1 // indirect
 	github.com/elastic/gosigar v0.14.3 // indirect
 	github.com/elastic/pkcs8 v1.0.0 // indirect
-	github.com/emicklei/go-restful/v3 v3.10.1 // indirect
 	github.com/fatih/color v1.15.0 // indirect
 	github.com/frankban/quicktest v1.14.0 // indirect
 	github.com/go-logr/logr v1.4.1 // indirect
@@ -164,9 +163,6 @@ require (
 	gopkg.in/jcmturner/rpc.v1 v1.1.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	howett.net/plist v1.0.1 // indirect
-	k8s.io/client-go v0.26.2 // indirect
-	k8s.io/klog/v2 v2.90.1 // indirect
-	k8s.io/utils v0.0.0-20230220204549-a5ecb0141aa5 // indirect
 )
 
 replace (
