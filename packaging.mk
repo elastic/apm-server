@@ -61,8 +61,9 @@ $(DOCKER_IMAGES):
 DOCKER_IMAGE_SUFFIX := docker-image$(if $(findstring arm64,$(GOARCH)),-arm64).tar.gz
 DOCKER_IMAGE_PREFIXES := apm-server $(if $(findstring amd64,$(GOARCH)), apm-server-ubi)
 # If GENERATE_CHAINGUARD_IMAGES is set then generate chainguard docker images.
+# but rename the image to apm-server-wolfi.
 ifdef GENERATE_CHAINGUARD_IMAGES
-DOCKER_IMAGE_PREFIXES := $(DOCKER_IMAGE_PREFIXES) apm-server-chainguard
+DOCKER_IMAGE_PREFIXES := $(DOCKER_IMAGE_PREFIXES) apm-server-wolfi
 endif
 DOCKER_IMAGE_RELEASE_TARBALLS := $(patsubst %, $(DISTDIR)/%-$(APM_SERVER_VERSION)-$(DOCKER_IMAGE_SUFFIX), $(DOCKER_IMAGE_PREFIXES))
 DOCKER_IMAGE_SNAPSHOT_TARBALLS := $(patsubst %, $(DISTDIR)/%-$(APM_SERVER_VERSION)-SNAPSHOT-$(DOCKER_IMAGE_SUFFIX), $(DOCKER_IMAGE_PREFIXES))
