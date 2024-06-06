@@ -82,7 +82,19 @@ dra() {
       --commit $BUILDKITE_COMMIT \
       --workflow $workflow \
       --artifact-set main \
-      --version $VERSION
+      --version $VERSION | tee rm-output.txt
+
+  # Create Buildkite annotation similarly done in Beats:
+  # https://github.com/elastic/beats/blob/90f9e8f6e48e76a83331f64f6c8c633ae6b31661/.buildkite/scripts/dra.sh#L74-L81
+  if [[ "$command" == "collect" ]]; then
+    # extract the summary URL from a release manager output line like:
+    # Report summary-18.22.0.html can be found at https://artifacts-staging.elastic.co/apm-server/18.22.0-ABCDEFGH/summary-18.22.0.html
+    SUMMARY_URL=$(grep -E '^Report summary-.* can be found at ' rm-output.txt | grep -oP 'https://\S+' | awk '{print $1}')
+    rm rm-output.txt
+
+    # and make it easily clickable as a Builkite annotation
+    printf "**${workflow} summary link:** [${SUMMARY_URL}](${SUMMARY_URL})\n" | buildkite-agent annotate --style=success --append
+  fi
 }
 
 dra "snapshot" "$dra_command"
