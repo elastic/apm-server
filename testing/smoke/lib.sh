@@ -181,7 +181,7 @@ healthcheck() {
     RES=$(curl_fail -H "${APM_AUTH_HEADER}" ${APM_SERVER_URL}) || RC=$?
     if [ $RC -ne 0 ]; then echo "${RES}"; fi
     local PUBLISH_READY=$(echo ${RES}| jq '.publish_ready')
-    if [[ ! ${PUBLISH_READY} ]]; then
+    if [[ ${PUBLISH_READY} != true ]]; then
         local MAX_RETRIES=10
         if [[ ${1} -gt 0 ]] && [[ ${1} -lt ${MAX_RETRIES} ]]; then
             echo "-> APM Server isn't ready to receive events, retrying (${1}/${MAX_RETRIES})..."
