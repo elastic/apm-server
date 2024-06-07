@@ -33,6 +33,9 @@
         "error.grouping_name": [
             "Retrying GetDriver after error"
         ],
+        "error.id": [
+            "dynamic"
+        ],
         "error.log.message": [
             "Retrying GetDriver after error"
         ],
@@ -137,6 +140,9 @@
         "error.grouping_name": [
             "Retrying GetDriver after error"
         ],
+        "error.id": [
+            "dynamic"
+        ],
         "error.log.message": [
             "Retrying GetDriver after error"
         ],
@@ -240,6 +246,9 @@
         ],
         "error.grouping_name": [
             "Retrying GetDriver after error"
+        ],
+        "error.id": [
+            "dynamic"
         ],
         "error.log.message": [
             "Retrying GetDriver after error"
