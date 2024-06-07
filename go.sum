@@ -179,6 +179,8 @@ github.com/elastic/gosigar v0.14.3 h1:xwkKwPia+hSfg9GqrCUKYdId102m9qTJIIr7egmK/u
 github.com/elastic/gosigar v0.14.3/go.mod h1:iXRIGg2tLnu7LBdpqzyQfGDEidKCfWcCMS0WKyPWoMs=
 github.com/elastic/opentelemetry-lib v0.0.0-20240604140721-08863a456d6c h1:gRCjiqyIH1RxEYAJr1z9Y3KdJITip45iPprj7DbL9Mk=
 github.com/elastic/opentelemetry-lib v0.0.0-20240604140721-08863a456d6c/go.mod h1:/kKvHbJLVo/NcKMPHI8/RZKL64fushmnRUzn+arQpjg=
+github.com/elastic/opentelemetry-lib v0.0.0-20240607090112-76a6d08387f0 h1:XQ1nGD+9tLc027YEg6E02QfbUPGdwmvv6kzCpsCPQBQ=
+github.com/elastic/opentelemetry-lib v0.0.0-20240607090112-76a6d08387f0/go.mod h1:/kKvHbJLVo/NcKMPHI8/RZKL64fushmnRUzn+arQpjg=
 github.com/elastic/pkcs8 v1.0.0 h1:HhitlUKxhN288kcNcYkjW6/ouvuwJWd9ioxpjnD9jVA=
 github.com/elastic/pkcs8 v1.0.0/go.mod h1:ipsZToJfq1MxclVTwpG7U/bgeDtf+0HkUiOxebk95+0=
 github.com/elastic/sarama v1.19.1-0.20210823122811-11c3ef800752 h1:5/RUNg7rkIvayjPhAIoI3v8p45NfWcfWs5DZSElycis=
