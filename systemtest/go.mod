@@ -5,7 +5,7 @@ go 1.22
 toolchain go1.22.1
 
 require (
-	github.com/docker/docker v26.0.1+incompatible
+	github.com/docker/docker v26.1.3+incompatible
 	github.com/docker/go-connections v0.5.0
 	github.com/elastic/apm-perf v0.0.0-20230608162138-29920c01cfd6
 	github.com/elastic/apm-tools v0.0.0-20240607105915-a4f490dc6959

@@ -24,4 +24,5 @@ https://github.com/elastic/apm-server/compare/8.14\...main[View commits]
 
 - Add `elasticsearch.flushed.uncompressed.bytes` metric {pull}13155[13155]
 - APM Server now relies on the Elasticsearch apm-data plugin's index templates, removing the requirement to install the APM integration package {pull}12066[12066]
+- Upgraded bundled APM Java agent attacher CLI to version 1.50.0 {pull}13326[13326]
 - Enable Kibana curated UIs to work with hostmetrics from OpenTelemetry's [hostmetricsreceiver](https://pkg.go.dev/go.opentelemetry.io/collector/receiver/hostmetricsreceiver) {pull}13196[13196]
