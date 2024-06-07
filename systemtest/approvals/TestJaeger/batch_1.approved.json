@@ -33,6 +33,9 @@
         "error.grouping_name": [
             "redis timeout"
         ],
+        "error.id": [
+            "dynamic"
+        ],
         "error.log.message": [
             "redis timeout"
         ],
@@ -128,6 +131,9 @@
         "error.grouping_name": [
             "redis timeout"
         ],
+        "error.id": [
+            "dynamic"
+        ],
         "error.log.message": [
             "redis timeout"
         ],
@@ -222,6 +228,9 @@
         ],
         "error.grouping_name": [
             "redis timeout"
+        ],
+        "error.id": [
+            "dynamic"
         ],
         "error.log.message": [
             "redis timeout"
