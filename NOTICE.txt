@@ -260,11 +260,11 @@ SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/apm-aggregation
-Version: v0.0.0-20230815024520-e75a37d9ddd6
+Version: v1.0.1
 Licence type (autodetected): Elastic-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/apm-aggregation@v0.0.0-20230815024520-e75a37d9ddd6/LICENSE.txt:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/apm-aggregation@v1.0.1/LICENSE.txt:
 
 Elastic License 2.0
 
@@ -7609,11 +7609,11 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/cockroachdb/errors
-Version: v1.8.1
+Version: v1.11.1
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/cockroachdb/errors@v1.8.1/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/cockroachdb/errors@v1.11.1/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -7820,11 +7820,11 @@ Contents of probable licence file $GOMODCACHE/github.com/cockroachdb/errors@v1.8
 
 --------------------------------------------------------------------------------
 Dependency : github.com/cockroachdb/logtags
-Version: v0.0.0-20190617123548-eb05cc24525f
+Version: v0.0.0-20230118201751-21c54148d20b
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/cockroachdb/logtags@v0.0.0-20190617123548-eb05cc24525f/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/cockroachdb/logtags@v0.0.0-20230118201751-21c54148d20b/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -8031,11 +8031,11 @@ Contents of probable licence file $GOMODCACHE/github.com/cockroachdb/logtags@v0.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/cockroachdb/pebble
-Version: v0.0.0-20230627193317-c807f60529a3
+Version: v1.1.0
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/cockroachdb/pebble@v0.0.0-20230627193317-c807f60529a3/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/cockroachdb/pebble@v1.1.0/LICENSE:
 
 Copyright (c) 2011 The LevelDB-Go Authors. All rights reserved.
 
@@ -8068,11 +8068,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/cockroachdb/redact
-Version: v1.0.8
+Version: v1.1.5
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/cockroachdb/redact@v1.0.8/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/cockroachdb/redact@v1.1.5/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -8278,31 +8278,12 @@ Contents of probable licence file $GOMODCACHE/github.com/cockroachdb/redact@v1.0
 
 
 --------------------------------------------------------------------------------
-Dependency : github.com/cockroachdb/sentry-go
-Version: v0.6.1-cockroachdb.2
-Licence type (autodetected): BSD-2-Clause
---------------------------------------------------------------------------------
-
-Contents of probable licence file $GOMODCACHE/github.com/cockroachdb/sentry-go@v0.6.1-cockroachdb.2/LICENSE:
-
-Copyright (c) 2019 Sentry (https://sentry.io) and individual contributors.
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
-
-* Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-* Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-
---------------------------------------------------------------------------------
 Dependency : github.com/cockroachdb/tokenbucket
-Version: v0.0.0-20230613231145-182959a1fad6
+Version: v0.0.0-20230807174530-cc333fc44b06
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/cockroachdb/tokenbucket@v0.0.0-20230613231145-182959a1fad6/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/cockroachdb/tokenbucket@v0.0.0-20230807174530-cc333fc44b06/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -10482,6 +10463,25 @@ FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
 COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
 IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+
+--------------------------------------------------------------------------------
+Dependency : github.com/getsentry/sentry-go
+Version: v0.18.0
+Licence type (autodetected): BSD-2-Clause
+--------------------------------------------------------------------------------
+
+Contents of probable licence file $GOMODCACHE/github.com/getsentry/sentry-go@v0.18.0/LICENSE:
+
+Copyright (c) 2019 Sentry (https://sentry.io) and individual contributors.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+
+* Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+* Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 --------------------------------------------------------------------------------
