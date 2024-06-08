@@ -20,6 +20,7 @@ package beater
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net"
 	"net/http"
@@ -28,8 +29,6 @@ import (
 	"time"
 
 	"github.com/dustin/go-humanize"
-	"github.com/hashicorp/go-multierror"
-	"github.com/pkg/errors"
 	"go.elastic.co/apm/module/apmgrpc/v2"
 	"go.elastic.co/apm/module/apmotel/v2"
 	"go.elastic.co/apm/v2"
@@ -328,7 +327,7 @@ func (s *Runner) Run(ctx context.Context) error {
 		if err := s.waitReady(ctx, tracer); err != nil {
 			// One or more preconditions failed; drop events.
 			close(drain)
-			return errors.Wrap(err, "error waiting for server to be ready")
+			return fmt.Errorf("error waiting for server to be ready: %w", err)
 		}
 		// All preconditions have been met; start indexing documents
 		// into elasticsearch.
@@ -534,10 +533,8 @@ func (s *Runner) Run(ctx context.Context) error {
 	}
 
 	result := g.Wait()
-	if err := closeFinalBatchProcessor(backgroundContext); err != nil {
-		result = multierror.Append(result, err)
-	}
-	return result
+	closeErr := closeFinalBatchProcessor(backgroundContext)
+	return errors.Join(result, closeErr)
 }
 
 func maxConcurrentDecoders(memLimitGB float64) uint {
@@ -595,7 +592,7 @@ func (s *Runner) waitReady(
 			preconditions = append(preconditions, func(ctx context.Context) error {
 				license, err := getElasticsearchLicense(ctx, esOutputClient)
 				if err != nil {
-					return errors.Wrap(err, "error getting Elasticsearch licensing information")
+					return fmt.Errorf("error getting Elasticsearch licensing information: %w", err)
 				}
 				if licenser.IsExpired(license) {
 					return errors.New("Elasticsearch license is expired")
@@ -676,7 +673,7 @@ func (s *Runner) newFinalBatchProcessor(
 	if esConfig.FlushBytes != "" {
 		b, err := humanize.ParseBytes(esConfig.FlushBytes)
 		if err != nil {
-			return nil, nil, errors.Wrap(err, "failed to parse flush_bytes")
+			return nil, nil, fmt.Errorf("failed to parse flush_bytes: %w", err)
 		}
 		flushBytes = int(b)
 	}
