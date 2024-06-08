@@ -595,7 +595,7 @@ func (s *Runner) waitReady(
 					return fmt.Errorf("error getting Elasticsearch licensing information: %w", err)
 				}
 				if licenser.IsExpired(license) {
-					return errors.New("Elasticsearch license is expired")
+					return errors.New("the Elasticsearch license is expired")
 				}
 				if license.Type == licenser.Trial || license.Cover(requiredLicenseLevel) {
 					return nil
