@@ -16,7 +16,35 @@ env:
   SLACK_CHANNEL: "#apm-server-test-release"
   
 jobs:
+<<<<<<< HEAD
   run-minor:
     runs-on: ubuntu-latest
+=======
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      release-branch: ${{ steps.prepare.outputs.release-branch }}
+      release-type: ${{ steps.prepare.outputs.release-type }}
+      release-version: ${{ steps.prepare.outputs.release-version }}
+      slack-thread: ${{ steps.prepare.outputs.slack-thread }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: prepare
+        uses: ./.github/workflows/prepare-release
+        with:
+          slack-bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
+          version: ${{ inputs.version }}
+          type: 'minor'
+
+  run-minor:
+    runs-on: ubuntu-latest
+    needs: [ prepare ]
+    env:
+      RELEASE_BRANCH: ${{ needs.prepare.outputs.release-branch }}
+      RELEASE_TYPE: ${{ needs.prepare.outputs.release-type }}
+      RELEASE_VERSION: ${{ needs.prepare.outputs.release-version }}
+    permissions:
+      contents: write
+>>>>>>> e0d180a37 (ci: fix type of release (#13382))
     steps:
       - uses: actions/checkout@v4

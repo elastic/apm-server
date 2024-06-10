@@ -26,6 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       release-branch: ${{ steps.prepare.outputs.release-branch }}
+      release-type: ${{ steps.prepare.outputs.release-type }}
       release-version: ${{ steps.prepare.outputs.release-version }}
       slack-thread: ${{ steps.prepare.outputs.slack-thread }}
     steps:
@@ -43,6 +44,7 @@ jobs:
     needs: [ prepare ]
     env:
       RELEASE_BRANCH: ${{ needs.prepare.outputs.release-branch }}
+      RELEASE_TYPE: ${{ needs.prepare.outputs.release-type }}
       RELEASE_VERSION: ${{ needs.prepare.outputs.release-version }}
     steps:
       - uses: actions/checkout@v4
