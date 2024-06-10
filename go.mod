@@ -10,7 +10,7 @@ require (
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/apm-aggregation v1.0.1
 	github.com/elastic/apm-data v1.2.0
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20240607204408-35f8d09c7936
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20240610152031-db9406b50514
 	github.com/elastic/elastic-agent-client/v7 v7.11.0
 	github.com/elastic/elastic-agent-libs v0.9.11
 	github.com/elastic/elastic-agent-system-metrics v0.10.2
@@ -164,7 +164,6 @@ require (
 	gopkg.in/jcmturner/gokrb5.v7 v7.5.0 // indirect
 	gopkg.in/jcmturner/rpc.v1 v1.1.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	gotest.tools/gotestsum v1.7.0 // indirect
 	howett.net/plist v1.0.1 // indirect
 )
 
