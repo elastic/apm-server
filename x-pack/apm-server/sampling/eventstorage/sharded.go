@@ -5,11 +5,11 @@
 package eventstorage
 
 import (
+	"errors"
 	"runtime"
 	"sync"
 
 	"github.com/cespare/xxhash/v2"
-	"github.com/hashicorp/go-multierror"
 
 	"github.com/elastic/apm-data/model/modelpb"
 )
@@ -43,13 +43,13 @@ func (s *ShardedReadWriter) Close() {
 
 // Flush flushes all sharded storage readWriters.
 func (s *ShardedReadWriter) Flush() error {
-	var result error
+	var errs []error
 	for i := range s.readWriters {
 		if err := s.readWriters[i].Flush(); err != nil {
-			result = multierror.Append(result, err)
+			errs = append(errs, err)
 		}
 	}
-	return result
+	return errors.Join(errs...)
 }
 
 // ReadTraceEvents calls Writer.ReadTraceEvents, using a sharded, locked, Writer.

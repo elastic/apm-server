@@ -15,6 +15,7 @@ import (
 	"github.com/elastic/apm-aggregation/aggregationpb"
 	"github.com/elastic/apm-aggregation/aggregators"
 	"github.com/elastic/apm-data/model/modelpb"
+	"github.com/elastic/apm-data/model/modelprocessor"
 	"github.com/elastic/elastic-agent-libs/logp"
 )
 
@@ -96,6 +97,7 @@ func wrapNextProcessor(processor modelpb.BatchProcessor) aggregators.Processor {
 		if err != nil {
 			return fmt.Errorf("failed to convert combined metrics to batch: %w", err)
 		}
+		modelprocessor.RemoveEventReceived{}.ProcessBatch(ctx, batch)
 		if err := processor.ProcessBatch(
 			ctx,
 			batch,
