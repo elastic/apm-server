@@ -127,8 +127,8 @@ github.com/elastic/apm-aggregation v1.0.1 h1:t4VKR6axu620Y9CtQE9kmZZcx+3BlfnqGyw
 github.com/elastic/apm-aggregation v1.0.1/go.mod h1:hmRuhkV01qMHk/Eu3xe9W/cNtBcRVf0DpFf9USVAE2Y=
 github.com/elastic/apm-data v1.2.0 h1:yRFbpDywG5uHEpFByPqpMilEBdcF+5xs5RkOjFJD1h8=
 github.com/elastic/apm-data v1.2.0/go.mod h1:DPI9Fup+vDWpVbGNRGtObCH9uikOc3jYNDJY+i0+e78=
-github.com/elastic/beats/v7 v7.0.0-alpha2.0.20240605182926-90f9e8f6e48e h1:VhKIR570nk/poPxmkg6E88OswEi/2b2ZXFd1yVr+heo=
-github.com/elastic/beats/v7 v7.0.0-alpha2.0.20240605182926-90f9e8f6e48e/go.mod h1:o3pu3RnCw8fCPlPuD7Z53gbyI+eXMrshqhY/sxbfR3E=
+github.com/elastic/beats/v7 v7.0.0-alpha2.0.20240610152031-db9406b50514 h1:40MnBoL0Er3hqgIzsHhH7OPllAdqlt9rra3DRfnngEg=
+github.com/elastic/beats/v7 v7.0.0-alpha2.0.20240610152031-db9406b50514/go.mod h1:/346OTSjd/J+zqZs1lDP8tYd5L0kJKr0zl9xssyAink=
 github.com/elastic/elastic-agent-autodiscover v0.7.0 h1:FCrHXh5AZGrPlpAx8kBu/s/guw9d/EXt+GKlFCnrgsc=
 github.com/elastic/elastic-agent-autodiscover v0.7.0/go.mod h1:zLf0SDdQXisVZxzXPxKXdj3Fa+H4bsu4HHbTEQImDz8=
 github.com/elastic/elastic-agent-client/v7 v7.11.0 h1:YpkFQyE3qPnVai2a2NiKTMpBXXmPcHRV86AtW7LdpA8=
@@ -200,7 +200,6 @@ github.com/gogo/googleapis v1.4.1 h1:1Yx4Myt7BxzvUr5ldGSbwYiZG6t9wGBZ+8/fX3Wvtq0
 github.com/gogo/googleapis v1.4.1/go.mod h1:2lpHqI5OcWCtVElxXnPt+s8oJvMpySlOyM6xDCrzib4=
 github.com/gogo/protobuf v1.3.2 h1:Ov1cvc58UF3b5XjBnZv7+opcTcQFZebYjWzi34vdm4Q=
 github.com/gogo/protobuf v1.3.2/go.mod h1:P1XiOD3dCwIKUDQYPy72D8LYyHL2YPYrpS2s69NZV8Q=
-github.com/golang-jwt/jwt v3.2.1+incompatible h1:73Z+4BJcrTC+KczS6WvTPvRGOp1WmfEP4Q1lOd9Z/+c=
 github.com/golang-jwt/jwt/v5 v5.0.0 h1:1n1XNM9hk7O9mnQoNBGolZvzebBQ7p93ULHRc28XJUE=
 github.com/golang-jwt/jwt/v5 v5.0.0/go.mod h1:pqrtFR0X4osieyHYxtmOUWsAWrfe1Q5UVIyoH402zdk=
 github.com/golang/protobuf v1.3.1/go.mod h1:6lQm79b+lXiMfvg/cZm0SGofjICqVBUtrP5yJMmIC1U=
