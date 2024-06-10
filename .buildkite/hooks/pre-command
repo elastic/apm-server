@@ -84,6 +84,14 @@ if command -v docker &>/dev/null; then
     unset DOCKER_USERNAME_SECRET DOCKER_PASSWORD_SECRET
 fi
 
+echo "--- Setting up the :github: environment..."
+# release.mk uses gh cli to know the current release tag. release.mk is used by the root Makefile
+# regardless is explicitly used, so it's loaded with the include directive.
+# this will avoid printing warnings about the missing gh cli configurations
+# VAULT_GITHUB_TOKEN is a primitive env variable created by the Buildkite automation.
+GH_TOKEN="${VAULT_GITHUB_TOKEN}"
+export GH_TOKEN
+
 echo "--- Setting up the :golang: environment..."
 GO_VERSION=$(cat .go-version)
 WORKSPACE=$(git rev-parse --show-toplevel)
