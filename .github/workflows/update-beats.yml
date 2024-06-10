@@ -33,7 +33,7 @@ jobs:
         with:
           go-version-file: go.mod
 
-      - uses: elastic/oblt-actions/updatecli/run@v1.8.1
+      - uses: elastic/oblt-actions/updatecli/run@v1.9.1
         with:
           command: --experimental apply --config .ci/update-beats.yml
         env:
@@ -41,7 +41,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.UPDATECLI_GH_TOKEN }}
 
       - if: ${{ failure()  }}
-        uses: elastic/oblt-actions/slack/send@v1.8.1
+        uses: elastic/oblt-actions/slack/send@v1.9.1
         with:
           channel-id: '#apm-server'
           message: ":traffic_cone: updatecli failed for `${{ github.repository }}@${{ github.ref_name }}`, @robots-ci please look what's going on <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|here>"

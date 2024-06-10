@@ -6,13 +6,13 @@ package main
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"os"
 	"sync"
 
 	"github.com/dgraph-io/badger/v2"
 	"github.com/gofrs/uuid"
-	"github.com/hashicorp/go-multierror"
-	"github.com/pkg/errors"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/beats/v7/libbeat/common/reload"
@@ -101,7 +101,7 @@ func newProcessors(args beater.ServerParams) ([]namedProcessor, error) {
 		const name = "tail sampler"
 		sampler, err := newTailSamplingProcessor(args)
 		if err != nil {
-			return nil, errors.Wrapf(err, "error creating %s", name)
+			return nil, fmt.Errorf("error creating %s: %w", name, err)
 		}
 		samplingMonitoringRegistry.Remove("tail")
 		monitoring.NewFunc(samplingMonitoringRegistry, "tail", sampler.CollectMonitoring, monitoring.Report)
@@ -114,13 +114,13 @@ func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, er
 	tailSamplingConfig := args.Config.Sampling.Tail
 	es, err := args.NewElasticsearchClient(tailSamplingConfig.ESConfig)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to create Elasticsearch client for tail-sampling")
+		return nil, fmt.Errorf("failed to create Elasticsearch client for tail-sampling: %w", err)
 	}
 
 	storageDir := paths.Resolve(paths.Data, tailSamplingStorageDir)
 	badgerDB, err = getBadgerDB(storageDir)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to get Badger database")
+		return nil, fmt.Errorf("failed to get Badger database: %w", err)
 	}
 	readWriters := getStorage(badgerDB)
 
@@ -267,14 +267,11 @@ func closeStorage() {
 	}
 }
 
-func cleanup() (result error) {
+func cleanup() error {
 	// Close the underlying storage, the storage will be flushed on processor stop.
 	closeStorage()
 
-	if err := closeBadger(); err != nil {
-		result = multierror.Append(result, err)
-	}
-	return result
+	return closeBadger()
 }
 
 func Main() error {
@@ -288,10 +285,8 @@ func Main() error {
 		},
 	)
 	result := rootCmd.Execute()
-	if err := cleanup(); err != nil {
-		result = multierror.Append(result, err)
-	}
-	return result
+	cleanupErr := cleanup()
+	return errors.Join(result, cleanupErr)
 }
 
 func main() {
