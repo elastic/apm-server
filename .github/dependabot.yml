@@ -40,6 +40,11 @@ updates:
       dependencies:
         patterns:
           - "*"
+  # docker
+  - package-ecosystem: "docker"
+    directory: "/packaging/docker/"
+    schedule:
+      interval: "weekly"
 
   # GitHub actions
   - package-ecosystem: "github-actions"
