@@ -17,6 +17,9 @@ outputs:
   release-branch:
     description: "Release branch (relevant for minor releases)"
     value: ${{ steps.generate.outputs.release-branch }}
+  release-type:
+    description: "Release type"
+    value: ${{ inputs.type }}
   release-version:
     description: "Release version"
     value: ${{ steps.generate.outputs.release-version }}
