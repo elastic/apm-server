@@ -54,7 +54,7 @@ jobs:
         uses: elastic/apm-pipeline-library/.github/actions/check-dependent-jobs@current
         with:
           needs: ${{ toJSON(needs) }}
-      - uses: elastic/oblt-actions/slack/notify-result@v1.8.1
+      - uses: elastic/oblt-actions/slack/notify-result@v1.9.1
         with:
           bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
           channel-id: "#apm-server"
