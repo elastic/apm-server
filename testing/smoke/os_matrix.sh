@@ -7,6 +7,7 @@ os_names=(
     "debian-10-arm64"
     "debian-11-arm64"
     "amzn2-ami-kernel-5.10"
+    "al2023-ami-2023"
     "RHEL-7"
     "RHEL-8"
     "RHEL-9"

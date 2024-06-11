@@ -166,7 +166,7 @@ jobs:
 
       # Notify failure to Slack only on schedule (nightly run)
       - if: failure() && github.event_name == 'schedule'
-        uses: elastic/oblt-actions/slack/notify-result@v1.8.1
+        uses: elastic/oblt-actions/slack/notify-result@v1.9.1
         with:
           bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
           channel-id: "#apm-server"
