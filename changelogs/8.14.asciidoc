@@ -1,10 +1,7 @@
 [[apm-release-notes-8.14]]
 == APM version 8.14
 
-<<<<<<< HEAD
-=======
 * <<apm-release-notes-8.14.1>>
->>>>>>> f96e7d0a1 (Create empty changelog for 8.14.1 (#13397))
 * <<apm-release-notes-8.14.0>>
 
 [float]
