@@ -6,32 +6,26 @@
         "agent.name": [
             "android/java"
         ],
+        "agent.name.text": [
+            "android/java"
+        ],
         "agent.version": [
             "unknown"
-        ],
-        "client.geo.city_name": [
-            "dynamic"
         ],
         "client.geo.continent_name": [
             "Europe"
         ],
         "client.geo.country_iso_code": [
-            "DE"
+            "SE"
         ],
         "client.geo.country_name": [
-            "Germany"
+            "Sweden"
         ],
         "client.geo.location": [
             "dynamic"
         ],
-        "client.geo.region_iso_code": [
-            "dynamic"
-        ],
-        "client.geo.region_name": [
-            "dynamic"
-        ],
         "client.ip": [
-            "178.162.206.244"
+            "89.160.20.128"
         ],
         "data_stream.dataset": [
             "apm.app.unknown"
@@ -69,11 +63,17 @@
         "service.language.name": [
             "java"
         ],
+        "service.language.name.text": [
+            "java"
+        ],
         "service.name": [
             "unknown"
         ],
+        "service.name.text": [
+            "unknown"
+        ],
         "source.ip": [
-            "178.162.206.244"
+            "89.160.20.128"
         ],
         "source.nat.ip": [
             "127.0.0.1"

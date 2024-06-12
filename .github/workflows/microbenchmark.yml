@@ -19,21 +19,14 @@ permissions:
 jobs:
   microbenchmark:
     runs-on: ubuntu-latest
-    # wait up to 1 hour
-    timeout-minutes: 60
+    timeout-minutes: 5
     steps:
-      - id: buildkite
-        name: Run buildkite pipeline
-        uses: elastic/apm-pipeline-library/.github/actions/buildkite@current
+      - name: Run buildkite pipeline
+        uses: elastic/oblt-actions/buildkite/run@v1.9.1
         with:
-          vaultUrl: ${{ secrets.VAULT_ADDR }}
-          vaultRoleId: ${{ secrets.VAULT_ROLE_ID }}
-          vaultSecretId: ${{ secrets.VAULT_SECRET_ID }}
+          token: ${{ secrets.BUILDKITE_TOKEN }}
           pipeline: apm-agent-microbenchmark
-          triggerMessage: "${{ github.repository }}@${{ github.ref_name }}"
-          waitFor: true
-          printBuildLogs: true
-          buildEnvVars: |
+          env-vars: |
             script=.ci/scripts/bench.sh
             repo=apm-server
             sha=${{ github.sha }}

@@ -1,43 +1,78 @@
 locals {
   image_owners = {
-    "ubuntu-bionic-18.04-amd64-server" = "099720109477" # canonical
-    "ubuntu-focal-20.04-amd64-server"  = "099720109477" # canonical
-    "ubuntu-jammy-22.04-amd64-server"  = "099720109477" # canonical
-    "debian-10-amd64"                  = "136693071363" # debian
-    "debian-11-amd64"                  = "136693071363" # debian
+    "ubuntu-bionic-18.04-arm64-server" = "099720109477" # canonical
+    "ubuntu-focal-20.04-arm64-server"  = "099720109477" # canonical
+    "ubuntu-jammy-22.04-arm64-server"  = "099720109477" # canonical
+    "debian-10-arm64"                  = "136693071363" # debian
+    "debian-11-arm64"                  = "136693071363" # debian
     "amzn2-ami-kernel-5.10"            = "137112412989" # amazon
+    "al2023-ami-2023"                  = "137112412989" # amazon
     "RHEL-7"                           = "309956199498" # Red Hat
     "RHEL-8"                           = "309956199498" # Red Hat
     "RHEL-9"                           = "309956199498" # Red Hat
   }
+  instance_types = {
+    "ubuntu-bionic-18.04-arm64-server" = "t4g.nano"
+    "ubuntu-focal-20.04-arm64-server"  = "t4g.nano"
+    "ubuntu-jammy-22.04-arm64-server"  = "t4g.nano"
+    "debian-10-arm64"                  = "t4g.nano"
+    "debian-11-arm64"                  = "t4g.nano"
+    "amzn2-ami-kernel-5.10"            = "t4g.nano"
+    "al2023-ami-2023"                  = "t4g.nano"
+    "RHEL-7"                           = "t3a.micro" # RHEL-7 doesn't support arm
+    "RHEL-8"                           = "t4g.micro" # RHEL doesn't support nano instances
+    "RHEL-9"                           = "t4g.micro" # RHEL doesn't support nano instances
+  }
+  instance_arch = {
+    "ubuntu-bionic-18.04-arm64-server" = "arm64"
+    "ubuntu-focal-20.04-arm64-server"  = "arm64"
+    "ubuntu-jammy-22.04-arm64-server"  = "arm64"
+    "debian-10-arm64"                  = "arm64"
+    "debian-11-arm64"                  = "arm64"
+    "amzn2-ami-kernel-5.10"            = "arm64"
+    "al2023-ami-2023"                  = "arm64"
+    "RHEL-7"                           = "x86_64" # RHEL-7 doesn't support arm
+    "RHEL-8"                           = "arm64"
+    "RHEL-9"                           = "arm64"
+  }
+  instance_ea_provision_cmd = {
+    "ubuntu-bionic-18.04-arm64-server" = "curl ${data.external.latest_elastic_agent.result.deb_arm} -o elastic-agent.deb && sudo dpkg -i elastic-agent.deb"
+    "ubuntu-focal-20.04-arm64-server"  = "curl ${data.external.latest_elastic_agent.result.deb_arm} -o elastic-agent.deb && sudo dpkg -i elastic-agent.deb"
+    "ubuntu-jammy-22.04-arm64-server"  = "curl ${data.external.latest_elastic_agent.result.deb_arm} -o elastic-agent.deb && sudo dpkg -i elastic-agent.deb"
+    "debian-10-arm64"                  = "curl ${data.external.latest_elastic_agent.result.deb_arm} -o elastic-agent.deb && sudo dpkg -i elastic-agent.deb"
+    "debian-11-arm64"                  = "curl ${data.external.latest_elastic_agent.result.deb_arm} -o elastic-agent.deb && sudo dpkg -i elastic-agent.deb"
+    "amzn2-ami-kernel-5.10"            = "curl ${data.external.latest_elastic_agent.result.rpm_arm} -o elastic-agent.rpm && sudo yum -y install elastic-agent.rpm"
+    "al2023-ami-2023"                  = "curl ${data.external.latest_elastic_agent.result.rpm_arm} -o elastic-agent.rpm && sudo yum -y install elastic-agent.rpm"
+    "RHEL-7"                           = "curl ${data.external.latest_elastic_agent.result.rpm_amd} -o elastic-agent.rpm && sudo yum -y install elastic-agent.rpm"
+    "RHEL-8"                           = "curl ${data.external.latest_elastic_agent.result.rpm_arm} -o elastic-agent.rpm && sudo yum -y install elastic-agent.rpm"
+    "RHEL-9"                           = "curl ${data.external.latest_elastic_agent.result.rpm_arm} -o elastic-agent.rpm && sudo yum -y install elastic-agent.rpm"
+  }
+  instance_standalone_provision_cmd = {
+    "ubuntu-bionic-18.04-arm64-server" = "curl ${data.external.latest_apm_server.result.deb_arm} -o apm-server.deb && sudo dpkg -i apm-server.deb"
+    "ubuntu-focal-20.04-arm64-server"  = "curl ${data.external.latest_apm_server.result.deb_arm} -o apm-server.deb && sudo dpkg -i apm-server.deb"
+    "ubuntu-jammy-22.04-arm64-server"  = "curl ${data.external.latest_apm_server.result.deb_arm} -o apm-server.deb && sudo dpkg -i apm-server.deb"
+    "debian-10-arm64"                  = "curl ${data.external.latest_apm_server.result.deb_arm} -o apm-server.deb && sudo dpkg -i apm-server.deb"
+    "debian-11-arm64"                  = "curl ${data.external.latest_apm_server.result.deb_arm} -o apm-server.deb && sudo dpkg -i apm-server.deb"
+    "amzn2-ami-kernel-5.10"            = "curl ${data.external.latest_apm_server.result.rpm_arm} -o apm-server.rpm && sudo yum -y install apm-server.rpm"
+    "al2023-ami-2023"                  = "curl ${data.external.latest_apm_server.result.rpm_arm} -o apm-server.rpm && sudo yum -y install apm-server.rpm"
+    "RHEL-7"                           = "curl ${data.external.latest_apm_server.result.rpm_amd} -o apm-server.rpm && sudo yum -y install apm-server.rpm"
+    "RHEL-8"                           = "curl ${data.external.latest_apm_server.result.rpm_arm} -o apm-server.rpm && sudo yum -y install apm-server.rpm"
+    "RHEL-9"                           = "curl ${data.external.latest_apm_server.result.rpm_arm} -o apm-server.rpm && sudo yum -y install apm-server.rpm"
+  }
   image_ssh_users = {
-    "ubuntu-bionic-18.04-amd64-server" = "ubuntu"
-    "ubuntu-focal-20.04-amd64-server"  = "ubuntu"
-    "ubuntu-jammy-22.04-amd64-server"  = "ubuntu"
-    "debian-10-amd64"                  = "admin"
-    "debian-11-amd64"                  = "admin"
+    "ubuntu-bionic-18.04-arm64-server" = "ubuntu"
+    "ubuntu-focal-20.04-arm64-server"  = "ubuntu"
+    "ubuntu-jammy-22.04-arm64-server"  = "ubuntu"
+    "debian-10-arm64"                  = "admin"
+    "debian-11-arm64"                  = "admin"
     "amzn2-ami-kernel-5.10"            = "ec2-user"
+    "al2023-ami-2023"                  = "ec2-user"
     "RHEL-7"                           = "ec2-user"
     "RHEL-8"                           = "ec2-user"
     "RHEL-9"                           = "ec2-user"
   }
   apm_port  = "8200"
   conf_path = "/tmp/local-apm-config.yml"
-  ea_provision_commands = [
-    "curl ${data.external.latest_elastic_agent.result.deb} -o elastic-agent.deb && curl ${data.external.latest_elastic_agent.result.rpm} -o elastic-agent.rpm",
-    "sudo dpkg -i elastic-agent.deb || sudo yum -y install elastic-agent.rpm",
-    "sudo elastic-agent install -n --unprivileged",
-    "sudo cp ${local.conf_path} /etc/elastic-agent/elastic-agent.yml",
-    "sudo systemctl start elastic-agent",
-    "sleep 1",
-  ]
-  standalone_provision_commands = [
-    "curl ${data.external.latest_apm_server.result.deb} -o apm-server.deb && curl ${data.external.latest_apm_server.result.rpm} -o apm-server.rpm",
-    "sudo dpkg -i apm-server.deb || sudo yum -y install apm-server.rpm",
-    "sudo cp ${local.conf_path} /etc/apm-server/apm-server.yml",
-    "sudo systemctl start apm-server",
-    "sleep 1",
-  ]
 }
 
 data "aws_ami" "os" {
@@ -50,7 +85,7 @@ data "aws_ami" "os" {
 
   filter {
     name   = "architecture"
-    values = ["x86_64"]
+    values = [local.instance_arch[var.aws_os]]
   }
 
   filter {
@@ -108,7 +143,7 @@ resource "aws_security_group" "main" {
 
 resource "aws_instance" "apm" {
   ami           = data.aws_ami.os.id
-  instance_type = "t3.micro"
+  instance_type = local.instance_types[var.aws_os]
   key_name      = aws_key_pair.provisioner_key.key_name
 
   connection {
@@ -131,10 +166,18 @@ resource "aws_instance" "apm" {
   }
 
   provisioner "remote-exec" {
-    inline = concat(
-      [for command in local.ea_provision_commands : command if var.ea_managed],
-      [for command in local.standalone_provision_commands : command if !var.ea_managed],
-    )
+    inline = var.ea_managed ? [
+      local.instance_ea_provision_cmd[var.aws_os],
+      "sudo elastic-agent install -n --unprivileged",
+      "sudo cp ${local.conf_path} /etc/elastic-agent/elastic-agent.yml",
+      "sudo systemctl start elastic-agent",
+      "sleep 1",
+      ] : [
+      local.instance_standalone_provision_cmd[var.aws_os],
+      "sudo cp ${local.conf_path} /etc/apm-server/apm-server.yml",
+      "sudo systemctl start apm-server",
+      "sleep 1",
+    ]
   }
 
   vpc_security_group_ids = [aws_security_group.main.id]

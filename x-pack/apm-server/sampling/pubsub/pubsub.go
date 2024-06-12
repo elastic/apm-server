@@ -8,20 +8,19 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"sync"
 	"time"
 
-	"github.com/hashicorp/go-multierror"
-	"github.com/pkg/errors"
 	"go.elastic.co/fastjson"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/elastic-agent-libs/logp"
-	"github.com/elastic/go-docappender"
+	"github.com/elastic/go-docappender/v2"
 	"github.com/elastic/go-elasticsearch/v8/esapi"
 	"github.com/elastic/go-elasticsearch/v8/esutil"
 
@@ -52,7 +51,7 @@ type Pubsub struct {
 // events older than a configured age.
 func New(config Config) (*Pubsub, error) {
 	if err := config.Validate(); err != nil {
-		return nil, errors.Wrap(err, "invalid pubsub config")
+		return nil, fmt.Errorf("invalid pubsub config: %w", err)
 	}
 	if config.Logger == nil {
 		config.Logger = logp.NewLogger(logs.Sampling)
@@ -79,10 +78,8 @@ func (p *Pubsub) PublishSampledTraceIDs(ctx context.Context, traceIDs <-chan str
 	result := p.indexSampledTraceIDs(ctx, traceIDs, appender)
 	ctx, cancel := context.WithTimeout(context.Background(), p.config.FlushInterval)
 	defer cancel()
-	if err := appender.Close(ctx); err != nil {
-		result = multierror.Append(result, err)
-	}
-	return result
+	closeErr := appender.Close(ctx)
+	return errors.Join(result, closeErr)
 }
 
 func (p *Pubsub) indexSampledTraceIDs(ctx context.Context, traceIDs <-chan string, appender *docappender.Appender) error {

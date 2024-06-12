@@ -86,10 +86,6 @@ func NewUnstartedServer(t testing.TB, opts ...option) *Server {
 		config: []*agentconfig.C{agentconfig.MustNewConfigFrom(map[string]interface{}{
 			"apm-server": map[string]interface{}{
 				"host": "localhost:0",
-
-				// Disable waiting for integration to be installed by default,
-				// to simplify tests. This feature is tested independently.
-				"data_streams.wait_for_integration": false,
 			},
 		})},
 	}
@@ -206,7 +202,6 @@ type option func(*options)
 //
 //	apm-server:
 //	  host: localhost:0
-//	  data_streams.wait_for_integration: false
 func WithConfig(cfg ...*agentconfig.C) option {
 	return func(opts *options) {
 		opts.config = append(opts.config, cfg...)

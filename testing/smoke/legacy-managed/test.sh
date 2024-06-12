@@ -2,7 +2,7 @@
 
 set -eo pipefail
 
-if [[ "${1}" != "7.17" ]]; then
+if [[ "${1}" != "7.17" && "${1}" != "latest" ]]; then
     echo "-> Skipping smoke test ['${1}' is not supported]..."
     exit 0
 fi
@@ -11,8 +11,15 @@ fi
 
 VERSION=7.17
 get_versions
-get_latest_patch ${VERSION}
-LATEST_VERSION=${VERSION}.${LATEST_PATCH}
+if [[ "${1}" == "latest" ]]; then
+    get_latest_snapshot_for_version ${VERSION}
+    LATEST_VERSION=${LATEST_SNAPSHOT_VERSION}
+    ASSERTION_VERSION=${LATEST_SNAPSHOT_VERSION%-*} # strip -SNAPSHOT suffix
+else
+    get_latest_patch ${VERSION}
+    LATEST_VERSION=${VERSION}.${LATEST_PATCH}
+    ASSERTION_VERSION=${LATEST_VERSION}
+fi
 
 echo "-> Running ${LATEST_VERSION} standalone to ${LATEST_VERSION} managed upgrade"
 
@@ -27,10 +34,10 @@ append_tfvar "integrations_server" ${INTEGRATIONS_SERVER}
 terraform_apply
 healthcheck 1
 send_events
-legacy_assertions ${LATEST_VERSION}
+legacy_assertions ${ASSERTION_VERSION}
 
 echo "-> Upgrading APM Server to managed mode"
 upgrade_managed ${LATEST_VERSION} ${INTEGRATIONS_SERVER}
 healthcheck 1
 send_events
-data_stream_assertions ${LATEST_VERSION}
+data_stream_assertions ${ASSERTION_VERSION}

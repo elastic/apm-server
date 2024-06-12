@@ -20,6 +20,7 @@ package beater
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net"
 	"net/http"
@@ -28,8 +29,6 @@ import (
 	"time"
 
 	"github.com/dustin/go-humanize"
-	"github.com/hashicorp/go-multierror"
-	"github.com/pkg/errors"
 	"go.elastic.co/apm/module/apmgrpc/v2"
 	"go.elastic.co/apm/module/apmotel/v2"
 	"go.elastic.co/apm/v2"
@@ -52,7 +51,7 @@ import (
 	agentconfig "github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/monitoring"
-	"github.com/elastic/go-docappender"
+	"github.com/elastic/go-docappender/v2"
 	"github.com/elastic/go-ucfg"
 
 	"github.com/elastic/apm-data/model/modelpb"
@@ -85,7 +84,6 @@ type Runner struct {
 	rawConfig  *agentconfig.C
 
 	config                    *config.Config
-	fleetConfig               *config.Fleet
 	outputConfig              agentconfig.Namespace
 	elasticsearchOutputConfig *agentconfig.C
 
@@ -113,7 +111,6 @@ func NewRunner(args RunnerParams) (*Runner, error) {
 	var unpackedConfig struct {
 		APMServer  *agentconfig.C        `config:"apm-server"`
 		Output     agentconfig.Namespace `config:"output"`
-		Fleet      *config.Fleet         `config:"fleet"`
 		DataStream struct {
 			Namespace string `config:"namespace"`
 		} `config:"data_stream"`
@@ -147,7 +144,6 @@ func NewRunner(args RunnerParams) (*Runner, error) {
 		rawConfig:  args.Config,
 
 		config:                    cfg,
-		fleetConfig:               unpackedConfig.Fleet,
 		outputConfig:              unpackedConfig.Output,
 		elasticsearchOutputConfig: elasticsearchOutputConfig,
 
@@ -328,10 +324,10 @@ func (s *Runner) Run(ctx context.Context) error {
 	publishReady := make(chan struct{})
 	drain := make(chan struct{})
 	g.Go(func() error {
-		if err := s.waitReady(ctx, kibanaClient, tracer); err != nil {
+		if err := s.waitReady(ctx, tracer); err != nil {
 			// One or more preconditions failed; drop events.
 			close(drain)
-			return errors.Wrap(err, "error waiting for server to be ready")
+			return fmt.Errorf("error waiting for server to be ready: %w", err)
 		}
 		// All preconditions have been met; start indexing documents
 		// into elasticsearch.
@@ -537,10 +533,8 @@ func (s *Runner) Run(ctx context.Context) error {
 	}
 
 	result := g.Wait()
-	if err := closeFinalBatchProcessor(backgroundContext); err != nil {
-		result = multierror.Append(result, err)
-	}
-	return result
+	closeErr := closeFinalBatchProcessor(backgroundContext)
+	return errors.Join(result, closeErr)
 }
 
 func maxConcurrentDecoders(memLimitGB float64) uint {
@@ -567,7 +561,6 @@ func linearScaledValue(perGBIncrement, memLimitGB, constant float64) int {
 // waitReady waits until the server is ready to index events.
 func (s *Runner) waitReady(
 	ctx context.Context,
-	kibanaClient *kibana.Client,
 	tracer *apm.Tracer,
 ) error {
 	var preconditions []func(context.Context) error
@@ -599,10 +592,10 @@ func (s *Runner) waitReady(
 			preconditions = append(preconditions, func(ctx context.Context) error {
 				license, err := getElasticsearchLicense(ctx, esOutputClient)
 				if err != nil {
-					return errors.Wrap(err, "error getting Elasticsearch licensing information")
+					return fmt.Errorf("error getting Elasticsearch licensing information: %w", err)
 				}
 				if licenser.IsExpired(license) {
-					return errors.New("Elasticsearch license is expired")
+					return errors.New("the Elasticsearch license is expired")
 				}
 				if license.Type == licenser.Trial || license.Cover(requiredLicenseLevel) {
 					return nil
@@ -615,18 +608,6 @@ func (s *Runner) waitReady(
 		}
 		preconditions = append(preconditions, func(ctx context.Context) error {
 			return queryClusterUUID(ctx, esOutputClient)
-		})
-	}
-
-	// When running standalone with data streams enabled, by default we will add
-	// a precondition that ensures the integration is installed.
-	fleetManaged := s.fleetConfig != nil
-	if !fleetManaged && s.config.DataStreams.WaitForIntegration {
-		if kibanaClient == nil && esOutputClient == nil {
-			return errors.New("cannot wait for integration without either Kibana or Elasticsearch config")
-		}
-		preconditions = append(preconditions, func(ctx context.Context) error {
-			return checkIntegrationInstalled(ctx, kibanaClient, esOutputClient, s.logger)
 		})
 	}
 
@@ -692,7 +673,7 @@ func (s *Runner) newFinalBatchProcessor(
 	if esConfig.FlushBytes != "" {
 		b, err := humanize.ParseBytes(esConfig.FlushBytes)
 		if err != nil {
-			return nil, nil, errors.Wrap(err, "failed to parse flush_bytes")
+			return nil, nil, fmt.Errorf("failed to parse flush_bytes: %w", err)
 		}
 		flushBytes = int(b)
 	}
@@ -710,13 +691,14 @@ func (s *Runner) newFinalBatchProcessor(
 		scalingCfg.Disabled = !*enabled
 	}
 	opts := docappender.Config{
-		CompressionLevel: esConfig.CompressionLevel,
-		FlushBytes:       flushBytes,
-		FlushInterval:    esConfig.FlushInterval,
-		Tracer:           tracer,
-		MaxRequests:      esConfig.MaxRequests,
-		Scaling:          scalingCfg,
-		Logger:           zap.New(s.logger.Core(), zap.WithCaller(true)),
+		CompressionLevel:  esConfig.CompressionLevel,
+		FlushBytes:        flushBytes,
+		FlushInterval:     esConfig.FlushInterval,
+		Tracer:            tracer,
+		MaxRequests:       esConfig.MaxRequests,
+		Scaling:           scalingCfg,
+		Logger:            zap.New(s.logger.Core(), zap.WithCaller(true)),
+		RequireDataStream: true,
 	}
 	opts = docappenderConfig(opts, memLimit, s.logger)
 	appender, err := docappender.New(client, opts)
@@ -795,6 +777,9 @@ func docappenderConfig(
 		"docappender.DocumentBufferSize", opts.DocumentBufferSize, memLimit,
 	)
 	if opts.MaxRequests > 0 {
+		logger.Infof("docappender.MaxRequests set to %d based on config value",
+			opts.MaxRequests,
+		)
 		return opts
 	}
 	// This formula yields the following max requests for APM Server sized:

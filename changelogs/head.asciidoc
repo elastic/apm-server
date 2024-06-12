@@ -4,6 +4,13 @@
 https://github.com/elastic/apm-server/compare/8.14\...main[View commits]
 
 [float]
+==== Bug fixes
+
+- Avoid data race due to reuse of `bytes.Buffer` in ES bulk requests {pull}13155[13155]
+- APM Server now relies on the Elasticsearch apm-data plugin's index templates, which reverts some unsafe uses of `flattened` field types {pull}12066[12066]
+- Add `error.id` to jaeger errors {pull}13196[13196]
+
+[float]
 ==== Breaking Changes
 
 [float]
@@ -14,3 +21,9 @@ https://github.com/elastic/apm-server/compare/8.14\...main[View commits]
 
 [float]
 ==== Added
+
+- Add `elasticsearch.flushed.uncompressed.bytes` metric {pull}13155[13155]
+- APM Server now relies on the Elasticsearch apm-data plugin's index templates, removing the requirement to install the APM integration package {pull}12066[12066]
+- Upgraded bundled APM Java agent attacher CLI to version 1.50.0 {pull}13326[13326]
+- Enable Kibana curated UIs to work with hostmetrics from OpenTelemetry's https://pkg.go.dev/go.opentelemetry.io/collector/receiver/hostmetricsreceiver[hostmetricsreceiver] {pull}13196[13196]
+- Add require data stream to bulk index requests {pull}13398[13398]

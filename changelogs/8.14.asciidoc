@@ -1,6 +1,16 @@
 [[apm-release-notes-8.14]]
 == APM version 8.14
+
+* <<apm-release-notes-8.14.1>>
 * <<apm-release-notes-8.14.0>>
+
+[float]
+[[apm-release-notes-8.14.1]]
+=== APM version 8.14.1
+
+https://github.com/elastic/apm-server/compare/v8.14.0\...v8.14.1[View commits]
+
+No significant changes.
 
 [float]
 [[apm-release-notes-8.14.0]]
@@ -16,6 +26,10 @@ https://github.com/elastic/apm-server/compare/v8.13.2\...v8.14.0[View commits]
 
 [float]
 ==== Intake API Changes
+
+[float]
+==== Bug fixes
+- Remove error reason from logs when Elasticsearch returns unavailable_shards_exception {pull}13287[13287]
 
 [float]
 ==== Added

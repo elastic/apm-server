@@ -9,6 +9,9 @@
         "agent.name": [
             "Jaeger/Go"
         ],
+        "agent.name.text": [
+            "Jaeger/Go"
+        ],
         "agent.version": [
             "2.20.1"
         ],
@@ -30,6 +33,9 @@
         "error.grouping_name": [
             "redis timeout"
         ],
+        "error.id": [
+            "dynamic"
+        ],
         "error.log.message": [
             "redis timeout"
         ],
@@ -40,6 +46,9 @@
             "10.0.0.13"
         ],
         "host.name": [
+            "host01"
+        ],
+        "host.name.text": [
             "host01"
         ],
         "labels.driver_id": [
@@ -66,10 +75,19 @@
         "service.language.name": [
             "Go"
         ],
+        "service.language.name.text": [
+            "Go"
+        ],
         "service.name": [
             "redis"
         ],
+        "service.name.text": [
+            "redis"
+        ],
         "service.node.name": [
+            "host01"
+        ],
+        "service.node.name.text": [
             "host01"
         ],
         "timestamp.us": [
@@ -87,6 +105,9 @@
             "2e3f8db3eb77fae0"
         ],
         "agent.name": [
+            "Jaeger/Go"
+        ],
+        "agent.name.text": [
             "Jaeger/Go"
         ],
         "agent.version": [
@@ -110,6 +131,9 @@
         "error.grouping_name": [
             "redis timeout"
         ],
+        "error.id": [
+            "dynamic"
+        ],
         "error.log.message": [
             "redis timeout"
         ],
@@ -120,6 +144,9 @@
             "10.0.0.13"
         ],
         "host.name": [
+            "host01"
+        ],
+        "host.name.text": [
             "host01"
         ],
         "labels.driver_id": [
@@ -146,10 +173,19 @@
         "service.language.name": [
             "Go"
         ],
+        "service.language.name.text": [
+            "Go"
+        ],
         "service.name": [
             "redis"
         ],
+        "service.name.text": [
+            "redis"
+        ],
         "service.node.name": [
+            "host01"
+        ],
+        "service.node.name.text": [
             "host01"
         ],
         "timestamp.us": [
@@ -167,6 +203,9 @@
             "2e3f8db3eb77fae0"
         ],
         "agent.name": [
+            "Jaeger/Go"
+        ],
+        "agent.name.text": [
             "Jaeger/Go"
         ],
         "agent.version": [
@@ -190,6 +229,9 @@
         "error.grouping_name": [
             "redis timeout"
         ],
+        "error.id": [
+            "dynamic"
+        ],
         "error.log.message": [
             "redis timeout"
         ],
@@ -200,6 +242,9 @@
             "10.0.0.13"
         ],
         "host.name": [
+            "host01"
+        ],
+        "host.name.text": [
             "host01"
         ],
         "labels.driver_id": [
@@ -226,10 +271,19 @@
         "service.language.name": [
             "Go"
         ],
+        "service.language.name.text": [
+            "Go"
+        ],
         "service.name": [
             "redis"
         ],
+        "service.name.text": [
+            "redis"
+        ],
         "service.node.name": [
+            "host01"
+        ],
+        "service.node.name.text": [
             "host01"
         ],
         "timestamp.us": [
@@ -247,6 +301,9 @@
             "2e3f8db3eb77fae0"
         ],
         "agent.name": [
+            "Jaeger/Go"
+        ],
+        "agent.name.text": [
             "Jaeger/Go"
         ],
         "agent.version": [
@@ -273,6 +330,9 @@
         "host.name": [
             "host01"
         ],
+        "host.name.text": [
+            "host01"
+        ],
         "labels.level": [
             "info"
         ],
@@ -288,13 +348,25 @@
         "observer.version": [
             "dynamic"
         ],
+        "parent.id": [
+            "7be2fd98d0973be3"
+        ],
         "service.language.name": [
+            "Go"
+        ],
+        "service.language.name.text": [
             "Go"
         ],
         "service.name": [
             "redis"
         ],
+        "service.name.text": [
+            "redis"
+        ],
         "service.node.name": [
+            "host01"
+        ],
+        "service.node.name.text": [
             "host01"
         ],
         "span.id": [
@@ -312,6 +384,9 @@
             "2e3f8db3eb77fae0"
         ],
         "agent.name": [
+            "Jaeger/Go"
+        ],
+        "agent.name.text": [
             "Jaeger/Go"
         ],
         "agent.version": [
@@ -341,6 +416,9 @@
         "host.name": [
             "host01"
         ],
+        "host.name.text": [
+            "host01"
+        ],
         "labels.param_driverID": [
             "T752547C"
         ],
@@ -362,10 +440,19 @@
         "service.language.name": [
             "Go"
         ],
+        "service.language.name.text": [
+            "Go"
+        ],
         "service.name": [
             "redis"
         ],
+        "service.name.text": [
+            "redis"
+        ],
         "service.node.name": [
+            "host01"
+        ],
+        "service.node.name.text": [
             "host01"
         ],
         "span.duration.us": [
@@ -375,6 +462,9 @@
             "0242ee3774d9eab1"
         ],
         "span.name": [
+            "GetDriver"
+        ],
+        "span.name.text": [
             "GetDriver"
         ],
         "span.representative_count": [
@@ -400,6 +490,9 @@
         "agent.name": [
             "Jaeger/Go"
         ],
+        "agent.name.text": [
+            "Jaeger/Go"
+        ],
         "agent.version": [
             "2.20.1"
         ],
@@ -427,6 +520,9 @@
         "host.name": [
             "host01"
         ],
+        "host.name.text": [
+            "host01"
+        ],
         "labels.param_driverID": [
             "T781861C"
         ],
@@ -448,10 +544,19 @@
         "service.language.name": [
             "Go"
         ],
+        "service.language.name.text": [
+            "Go"
+        ],
         "service.name": [
             "redis"
         ],
+        "service.name.text": [
+            "redis"
+        ],
         "service.node.name": [
+            "host01"
+        ],
+        "service.node.name.text": [
             "host01"
         ],
         "span.duration.us": [
@@ -461,6 +566,9 @@
             "231604559da84d61"
         ],
         "span.name": [
+            "GetDriver"
+        ],
+        "span.name.text": [
             "GetDriver"
         ],
         "span.representative_count": [
@@ -486,6 +594,9 @@
         "agent.name": [
             "Jaeger/Go"
         ],
+        "agent.name.text": [
+            "Jaeger/Go"
+        ],
         "agent.version": [
             "2.20.1"
         ],
@@ -513,6 +624,9 @@
         "host.name": [
             "host01"
         ],
+        "host.name.text": [
+            "host01"
+        ],
         "labels.param_driverID": [
             "T757338C"
         ],
@@ -534,10 +648,19 @@
         "service.language.name": [
             "Go"
         ],
+        "service.language.name.text": [
+            "Go"
+        ],
         "service.name": [
             "redis"
         ],
+        "service.name.text": [
+            "redis"
+        ],
         "service.node.name": [
+            "host01"
+        ],
+        "service.node.name.text": [
             "host01"
         ],
         "span.duration.us": [
@@ -547,6 +670,9 @@
             "2b4c28f02b272f17"
         ],
         "span.name": [
+            "GetDriver"
+        ],
+        "span.name.text": [
             "GetDriver"
         ],
         "span.representative_count": [
@@ -572,6 +698,9 @@
         "agent.name": [
             "Jaeger/Go"
         ],
+        "agent.name.text": [
+            "Jaeger/Go"
+        ],
         "agent.version": [
             "2.20.1"
         ],
@@ -599,6 +728,9 @@
         "host.name": [
             "host01"
         ],
+        "host.name.text": [
+            "host01"
+        ],
         "labels.param_driverID": [
             "T708771C"
         ],
@@ -620,10 +752,19 @@
         "service.language.name": [
             "Go"
         ],
+        "service.language.name.text": [
+            "Go"
+        ],
         "service.name": [
             "redis"
         ],
+        "service.name.text": [
+            "redis"
+        ],
         "service.node.name": [
+            "host01"
+        ],
+        "service.node.name.text": [
             "host01"
         ],
         "span.duration.us": [
@@ -633,6 +774,9 @@
             "2ef335bad24accc2"
         ],
         "span.name": [
+            "GetDriver"
+        ],
+        "span.name.text": [
             "GetDriver"
         ],
         "span.representative_count": [
@@ -658,6 +802,9 @@
         "agent.name": [
             "Jaeger/Go"
         ],
+        "agent.name.text": [
+            "Jaeger/Go"
+        ],
         "agent.version": [
             "2.20.1"
         ],
@@ -685,6 +832,9 @@
         "host.name": [
             "host01"
         ],
+        "host.name.text": [
+            "host01"
+        ],
         "labels.param_driverID": [
             "T762465C"
         ],
@@ -706,10 +856,19 @@
         "service.language.name": [
             "Go"
         ],
+        "service.language.name.text": [
+            "Go"
+        ],
         "service.name": [
             "redis"
         ],
+        "service.name.text": [
+            "redis"
+        ],
         "service.node.name": [
+            "host01"
+        ],
+        "service.node.name.text": [
             "host01"
         ],
         "span.duration.us": [
@@ -719,6 +878,9 @@
             "333295bfb438ea03"
         ],
         "span.name": [
+            "GetDriver"
+        ],
+        "span.name.text": [
             "GetDriver"
         ],
         "span.representative_count": [
@@ -744,6 +906,9 @@
         "agent.name": [
             "Jaeger/Go"
         ],
+        "agent.name.text": [
+            "Jaeger/Go"
+        ],
         "agent.version": [
             "2.20.1"
         ],
@@ -771,6 +936,9 @@
         "host.name": [
             "host01"
         ],
+        "host.name.text": [
+            "host01"
+        ],
         "labels.param_driverID": [
             "T710624C"
         ],
@@ -792,10 +960,19 @@
         "service.language.name": [
             "Go"
         ],
+        "service.language.name.text": [
+            "Go"
+        ],
         "service.name": [
             "redis"
         ],
+        "service.name.text": [
+            "redis"
+        ],
         "service.node.name": [
+            "host01"
+        ],
+        "service.node.name.text": [
             "host01"
         ],
         "span.duration.us": [
@@ -805,6 +982,9 @@
             "38ec645e7201224d"
         ],
         "span.name": [
+            "GetDriver"
+        ],
+        "span.name.text": [
             "GetDriver"
         ],
         "span.representative_count": [
@@ -828,6 +1008,9 @@
             "2e3f8db3eb77fae0"
         ],
         "agent.name": [
+            "Jaeger/Go"
+        ],
+        "agent.name.text": [
             "Jaeger/Go"
         ],
         "agent.version": [
@@ -857,6 +1040,9 @@
         "host.name": [
             "host01"
         ],
+        "host.name.text": [
+            "host01"
+        ],
         "labels.param_driverID": [
             "T781861C"
         ],
@@ -878,10 +1064,19 @@
         "service.language.name": [
             "Go"
         ],
+        "service.language.name.text": [
+            "Go"
+        ],
         "service.name": [
             "redis"
         ],
+        "service.name.text": [
+            "redis"
+        ],
         "service.node.name": [
+            "host01"
+        ],
+        "service.node.name.text": [
             "host01"
         ],
         "span.duration.us": [
@@ -891,6 +1086,9 @@
             "614811d6c498bfb0"
         ],
         "span.name": [
+            "GetDriver"
+        ],
+        "span.name.text": [
             "GetDriver"
         ],
         "span.representative_count": [
@@ -916,6 +1114,9 @@
         "agent.name": [
             "Jaeger/Go"
         ],
+        "agent.name.text": [
+            "Jaeger/Go"
+        ],
         "agent.version": [
             "2.20.1"
         ],
@@ -943,6 +1144,9 @@
         "host.name": [
             "host01"
         ],
+        "host.name.text": [
+            "host01"
+        ],
         "labels.param_driverID": [
             "T705860C"
         ],
@@ -964,10 +1168,19 @@
         "service.language.name": [
             "Go"
         ],
+        "service.language.name.text": [
+            "Go"
+        ],
         "service.name": [
             "redis"
         ],
+        "service.name.text": [
+            "redis"
+        ],
         "service.node.name": [
+            "host01"
+        ],
+        "service.node.name.text": [
             "host01"
         ],
         "span.duration.us": [
@@ -977,6 +1190,9 @@
             "61f7ecf24d13c36a"
         ],
         "span.name": [
+            "GetDriver"
+        ],
+        "span.name.text": [
             "GetDriver"
         ],
         "span.representative_count": [
@@ -1002,6 +1218,9 @@
         "agent.name": [
             "Jaeger/Go"
         ],
+        "agent.name.text": [
+            "Jaeger/Go"
+        ],
         "agent.version": [
             "2.20.1"
         ],
@@ -1029,6 +1248,9 @@
         "host.name": [
             "host01"
         ],
+        "host.name.text": [
+            "host01"
+        ],
         "labels.param_driverID": [
             "T762465C"
         ],
@@ -1050,10 +1272,19 @@
         "service.language.name": [
             "Go"
         ],
+        "service.language.name.text": [
+            "Go"
+        ],
         "service.name": [
             "redis"
         ],
+        "service.name.text": [
+            "redis"
+        ],
         "service.node.name": [
+            "host01"
+        ],
+        "service.node.name.text": [
             "host01"
         ],
         "span.duration.us": [
@@ -1063,6 +1294,9 @@
             "627c37a97e475c2f"
         ],
         "span.name": [
+            "GetDriver"
+        ],
+        "span.name.text": [
             "GetDriver"
         ],
         "span.representative_count": [
@@ -1088,6 +1322,9 @@
         "agent.name": [
             "Jaeger/Go"
         ],
+        "agent.name.text": [
+            "Jaeger/Go"
+        ],
         "agent.version": [
             "2.20.1"
         ],
@@ -1115,6 +1352,9 @@
         "host.name": [
             "host01"
         ],
+        "host.name.text": [
+            "host01"
+        ],
         "labels.param_driverID": [
             "T752547C"
         ],
@@ -1136,10 +1376,19 @@
         "service.language.name": [
             "Go"
         ],
+        "service.language.name.text": [
+            "Go"
+        ],
         "service.name": [
             "redis"
         ],
+        "service.name.text": [
+            "redis"
+        ],
         "service.node.name": [
+            "host01"
+        ],
+        "service.node.name.text": [
             "host01"
         ],
         "span.duration.us": [
@@ -1149,6 +1398,9 @@
             "6a63d1e81cfc7d95"
         ],
         "span.name": [
+            "GetDriver"
+        ],
+        "span.name.text": [
             "GetDriver"
         ],
         "span.representative_count": [
@@ -1174,6 +1426,9 @@
         "agent.name": [
             "Jaeger/Go"
         ],
+        "agent.name.text": [
+            "Jaeger/Go"
+        ],
         "agent.version": [
             "2.20.1"
         ],
@@ -1201,6 +1456,9 @@
         "host.name": [
             "host01"
         ],
+        "host.name.text": [
+            "host01"
+        ],
         "labels.param_driverID": [
             "T752110C"
         ],
@@ -1222,10 +1480,19 @@
         "service.language.name": [
             "Go"
         ],
+        "service.language.name.text": [
+            "Go"
+        ],
         "service.name": [
             "redis"
         ],
+        "service.name.text": [
+            "redis"
+        ],
         "service.node.name": [
+            "host01"
+        ],
+        "service.node.name.text": [
             "host01"
         ],
         "span.duration.us": [
@@ -1235,6 +1502,9 @@
             "6b4051dd2a5e2366"
         ],
         "span.name": [
+            "GetDriver"
+        ],
+        "span.name.text": [
             "GetDriver"
         ],
         "span.representative_count": [
@@ -1260,6 +1530,9 @@
         "agent.name": [
             "Jaeger/Go"
         ],
+        "agent.name.text": [
+            "Jaeger/Go"
+        ],
         "agent.version": [
             "2.20.1"
         ],
@@ -1287,6 +1560,9 @@
         "host.name": [
             "host01"
         ],
+        "host.name.text": [
+            "host01"
+        ],
         "labels.param_driverID": [
             "T757670C"
         ],
@@ -1308,10 +1584,19 @@
         "service.language.name": [
             "Go"
         ],
+        "service.language.name.text": [
+            "Go"
+        ],
         "service.name": [
             "redis"
         ],
+        "service.name.text": [
+            "redis"
+        ],
         "service.node.name": [
+            "host01"
+        ],
+        "service.node.name.text": [
             "host01"
         ],
         "span.duration.us": [
@@ -1321,6 +1606,9 @@
             "6df97a86b9b3451b"
         ],
         "span.name": [
+            "GetDriver"
+        ],
+        "span.name.text": [
             "GetDriver"
         ],
         "span.representative_count": [
@@ -1346,90 +1634,7 @@
         "agent.name": [
             "Jaeger/Go"
         ],
-        "agent.version": [
-            "2.20.1"
-        ],
-        "data_stream.dataset": [
-            "apm"
-        ],
-        "data_stream.namespace": [
-            "default"
-        ],
-        "data_stream.type": [
-            "traces"
-        ],
-        "event.outcome": [
-            "success"
-        ],
-        "event.success_count": [
-            1
-        ],
-        "host.hostname": [
-            "host01"
-        ],
-        "host.ip": [
-            "10.0.0.13"
-        ],
-        "host.name": [
-            "host01"
-        ],
-        "labels.param_location": [
-            "728,326"
-        ],
-        "observer.hostname": [
-            "dynamic"
-        ],
-        "observer.type": [
-            "apm-server"
-        ],
-        "observer.version": [
-            "dynamic"
-        ],
-        "parent.id": [
-            "7be2fd98d0973be3"
-        ],
-        "processor.event": [
-            "span"
-        ],
-        "service.language.name": [
-            "Go"
-        ],
-        "service.name": [
-            "redis"
-        ],
-        "service.node.name": [
-            "host01"
-        ],
-        "span.duration.us": [
-            19711
-        ],
-        "span.id": [
-            "6e09e8bcefd6b828"
-        ],
-        "span.name": [
-            "FindDriverIDs"
-        ],
-        "span.representative_count": [
-            1
-        ],
-        "span.type": [
-            "unknown"
-        ],
-        "timestamp.us": [
-            1576827704954062
-        ],
-        "trace.id": [
-            "00000000000000007be2fd98d0973be3"
-        ]
-    },
-    {
-        "@timestamp": [
-            "2019-12-20T07:41:45.016Z"
-        ],
-        "agent.ephemeral_id": [
-            "2e3f8db3eb77fae0"
-        ],
-        "agent.name": [
+        "agent.name.text": [
             "Jaeger/Go"
         ],
         "agent.version": [
@@ -1459,6 +1664,113 @@
         "host.name": [
             "host01"
         ],
+        "host.name.text": [
+            "host01"
+        ],
+        "labels.param_location": [
+            "728,326"
+        ],
+        "observer.hostname": [
+            "dynamic"
+        ],
+        "observer.type": [
+            "apm-server"
+        ],
+        "observer.version": [
+            "dynamic"
+        ],
+        "parent.id": [
+            "7be2fd98d0973be3"
+        ],
+        "processor.event": [
+            "span"
+        ],
+        "service.language.name": [
+            "Go"
+        ],
+        "service.language.name.text": [
+            "Go"
+        ],
+        "service.name": [
+            "redis"
+        ],
+        "service.name.text": [
+            "redis"
+        ],
+        "service.node.name": [
+            "host01"
+        ],
+        "service.node.name.text": [
+            "host01"
+        ],
+        "span.duration.us": [
+            19711
+        ],
+        "span.id": [
+            "6e09e8bcefd6b828"
+        ],
+        "span.name": [
+            "FindDriverIDs"
+        ],
+        "span.name.text": [
+            "FindDriverIDs"
+        ],
+        "span.representative_count": [
+            1
+        ],
+        "span.type": [
+            "unknown"
+        ],
+        "timestamp.us": [
+            1576827704954062
+        ],
+        "trace.id": [
+            "00000000000000007be2fd98d0973be3"
+        ]
+    },
+    {
+        "@timestamp": [
+            "2019-12-20T07:41:45.016Z"
+        ],
+        "agent.ephemeral_id": [
+            "2e3f8db3eb77fae0"
+        ],
+        "agent.name": [
+            "Jaeger/Go"
+        ],
+        "agent.name.text": [
+            "Jaeger/Go"
+        ],
+        "agent.version": [
+            "2.20.1"
+        ],
+        "data_stream.dataset": [
+            "apm"
+        ],
+        "data_stream.namespace": [
+            "default"
+        ],
+        "data_stream.type": [
+            "traces"
+        ],
+        "event.outcome": [
+            "success"
+        ],
+        "event.success_count": [
+            1
+        ],
+        "host.hostname": [
+            "host01"
+        ],
+        "host.ip": [
+            "10.0.0.13"
+        ],
+        "host.name": [
+            "host01"
+        ],
+        "host.name.text": [
+            "host01"
+        ],
         "labels.param_driverID": [
             "T712515C"
         ],
@@ -1480,10 +1792,19 @@
         "service.language.name": [
             "Go"
         ],
+        "service.language.name.text": [
+            "Go"
+        ],
         "service.name": [
             "redis"
         ],
+        "service.name.text": [
+            "redis"
+        ],
         "service.node.name": [
+            "host01"
+        ],
+        "service.node.name.text": [
             "host01"
         ],
         "span.duration.us": [
@@ -1493,6 +1814,9 @@
             "7bd7663d39c5a847"
         ],
         "span.name": [
+            "GetDriver"
+        ],
+        "span.name.text": [
             "GetDriver"
         ],
         "span.representative_count": [

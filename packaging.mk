@@ -31,19 +31,39 @@ DOCKER_IMAGES := \
 	build/docker/apm-server-ubi-$(APM_SERVER_VERSION).txt \
 	build/docker/apm-server-ubi-$(APM_SERVER_VERSION)-SNAPSHOT.txt
 
+# If GENERATE_WOLFI_IMAGES is set then generate wolfi docker images.
+ifdef GENERATE_WOLFI_IMAGES
+DOCKER_IMAGES := $(DOCKER_IMAGES) \
+	build/docker/apm-server-wolfi-$(APM_SERVER_VERSION).txt \
+	build/docker/apm-server-wolfi-$(APM_SERVER_VERSION)-SNAPSHOT.txt
+endif
+
 build/docker/%.txt: DOCKER_IMAGE_TAG := docker.elastic.co/apm/apm-server:%
 build/docker/%.txt: VERSION := $(APM_SERVER_VERSION)
+build/docker/%.txt: DOCKER_FILE_ARGS := -f packaging/docker/Dockerfile
 build/docker/%-SNAPSHOT.txt: VERSION := $(APM_SERVER_VERSION)-SNAPSHOT
 build/docker/apm-server-ubi-%.txt: DOCKER_BUILD_ARGS+=--build-arg BASE_IMAGE=docker.elastic.co/ubi9/ubi-minimal
+build/docker/apm-server-wolfi-%.txt: DOCKER_FILE_ARGS := -f packaging/docker/Dockerfile.wolfi
+
+INTERNAL_DOCKER_IMAGE := docker.elastic.co/observability-ci/apm-server-internal
 
 .PHONY: $(DOCKER_IMAGES)
 $(DOCKER_IMAGES):
 	@mkdir -p $(@D)
-	docker build --iidfile="$(@)" --build-arg GOLANG_VERSION=$(GOLANG_VERSION) --build-arg VERSION=$(VERSION) $(DOCKER_BUILD_ARGS) -f packaging/docker/Dockerfile .
+	docker build --iidfile="$(@)" \
+		--build-arg GOLANG_VERSION=$(GOLANG_VERSION) \
+		--build-arg VERSION=$(VERSION) \
+		$(DOCKER_BUILD_ARGS) \
+		--tag $(INTERNAL_DOCKER_IMAGE):$(VERSION)$(if $(findstring arm64,$(GOARCH)),-arm64)$(if $(findstring wolfi,$(@)),-wolfi) \
+		$(DOCKER_FILE_ARGS) .
 
-# Docker image tarballs. We distribute UBI8 Docker images only for AMD64.
+# Docker image tarballs. We distribute UBI Docker images only for AMD64.
 DOCKER_IMAGE_SUFFIX := docker-image$(if $(findstring arm64,$(GOARCH)),-arm64).tar.gz
 DOCKER_IMAGE_PREFIXES := apm-server $(if $(findstring amd64,$(GOARCH)), apm-server-ubi)
+# If GENERATE_WOLFI_IMAGES is set then generate wolfi docker images.
+ifdef GENERATE_WOLFI_IMAGES
+DOCKER_IMAGE_PREFIXES := $(DOCKER_IMAGE_PREFIXES) apm-server-wolfi
+endif
 DOCKER_IMAGE_RELEASE_TARBALLS := $(patsubst %, $(DISTDIR)/%-$(APM_SERVER_VERSION)-$(DOCKER_IMAGE_SUFFIX), $(DOCKER_IMAGE_PREFIXES))
 DOCKER_IMAGE_SNAPSHOT_TARBALLS := $(patsubst %, $(DISTDIR)/%-$(APM_SERVER_VERSION)-SNAPSHOT-$(DOCKER_IMAGE_SUFFIX), $(DOCKER_IMAGE_PREFIXES))
 
@@ -57,7 +77,7 @@ $(DISTDIR)/%-$(DOCKER_IMAGE_SUFFIX): build/docker/%.txt
 # Java agent attacher. Fetched from Maven and verified with the committed key.
 ##############################################################################
 
-JAVA_ATTACHER_VERSION:=1.33.0
+JAVA_ATTACHER_VERSION:=1.50.0
 JAVA_ATTACHER_JAR:=apm-agent-attach-cli-$(JAVA_ATTACHER_VERSION)-slim.jar
 JAVA_ATTACHER_SIG:=$(JAVA_ATTACHER_JAR).asc
 JAVA_ATTACHER_BASE_URL:=https://repo1.maven.org/maven2/co/elastic/apm/apm-agent-attach-cli
@@ -186,7 +206,10 @@ build/dependencies-$(APM_SERVER_VERSION)-SNAPSHOT.csv: build/dependencies-$(APM_
 	cp $< $@
 
 package-docker: $(DOCKER_IMAGE_RELEASE_TARBALLS)
+	@echo ">> $(DOCKER_IMAGE_RELEASE_TARBALLS)"
+
 package-docker-snapshot: $(DOCKER_IMAGE_SNAPSHOT_TARBALLS)
+	@echo ">> $(DOCKER_IMAGE_SNAPSHOT_TARBALLS)"
 
 package: \
 	package-docker \
@@ -200,3 +223,6 @@ package-snapshot: \
 	$(DOCKER_IMAGE_SNAPSHOT_TARBALLS) \
 	$(DISTDIR)/apm-server-ironbank-$(APM_SERVER_VERSION)-SNAPSHOT-docker-build-context.tar.gz \
 	build/dependencies-$(APM_SERVER_VERSION)-SNAPSHOT.csv
+
+publish-docker-images:
+	docker push --all-tags $(INTERNAL_DOCKER_IMAGE)

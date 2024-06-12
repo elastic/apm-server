@@ -23,13 +23,12 @@ scms:
   default:
     kind: github
     spec:
-      user: '{{ requiredEnv "GIT_USER" }}'
-      email: '{{ requiredEnv "GIT_EMAIL" }}'
+      user: '{{ requiredEnv "GITHUB_ACTOR" }}'
       owner: elastic
       repository: apm-server
       token: '{{ requiredEnv "GITHUB_TOKEN" }}'
-      username: '{{ requiredEnv "GIT_USER" }}'
       branch: main
+      commitusingapi: true
 
 sources:
   minor:
@@ -53,7 +52,7 @@ sources:
       owner: golang
       repository: go
       token: '{{ requiredEnv "GITHUB_TOKEN" }}'
-      username: '{{ requiredEnv "GIT_USER" }}'
+      username: '{{ requiredEnv "GITHUB_ACTOR" }}'
       versionfilter:
         kind: regex
         pattern: go1\.{{ source "minor" }}\.\d*$

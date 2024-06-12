@@ -35,6 +35,7 @@ import (
 	"time"
 
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/stdcopy"
@@ -123,7 +124,7 @@ func waitContainerHealthy(ctx context.Context, serviceName string) error {
 }
 
 func stackContainerInfo(ctx context.Context, docker *client.Client, name string) (*types.Container, error) {
-	containers, err := docker.ContainerList(ctx, types.ContainerListOptions{
+	containers, err := docker.ContainerList(ctx, container.ListOptions{
 		Filters: filters.NewArgs(
 			filters.Arg("label", "com.docker.compose.project=apm-server"),
 			filters.Arg("label", "com.docker.compose.service="+name),
@@ -350,7 +351,7 @@ func (c *ElasticAgentContainer) copyLogs(stdout, stderr io.Writer) error {
 	defer docker.Close()
 	docker.NegotiateAPIVersion(ctx)
 
-	options := types.ContainerLogsOptions{
+	options := container.LogsOptions{
 		ShowStdout: stdout != nil,
 		ShowStderr: stderr != nil,
 		Follow:     true,
