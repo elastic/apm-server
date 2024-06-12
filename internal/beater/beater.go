@@ -691,13 +691,14 @@ func (s *Runner) newFinalBatchProcessor(
 		scalingCfg.Disabled = !*enabled
 	}
 	opts := docappender.Config{
-		CompressionLevel: esConfig.CompressionLevel,
-		FlushBytes:       flushBytes,
-		FlushInterval:    esConfig.FlushInterval,
-		Tracer:           tracer,
-		MaxRequests:      esConfig.MaxRequests,
-		Scaling:          scalingCfg,
-		Logger:           zap.New(s.logger.Core(), zap.WithCaller(true)),
+		CompressionLevel:  esConfig.CompressionLevel,
+		FlushBytes:        flushBytes,
+		FlushInterval:     esConfig.FlushInterval,
+		Tracer:            tracer,
+		MaxRequests:       esConfig.MaxRequests,
+		Scaling:           scalingCfg,
+		Logger:            zap.New(s.logger.Core(), zap.WithCaller(true)),
+		RequireDataStream: true,
 	}
 	opts = docappenderConfig(opts, memLimit, s.logger)
 	appender, err := docappender.New(client, opts)
