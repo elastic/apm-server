@@ -104,7 +104,7 @@ func (nullOutput) Close() error {
 func (o nullOutput) Publish(_ context.Context, batch publisher.Batch) error {
 	events := batch.Events()
 	o.observer.NewBatch(len(events))
-	o.observer.Acked(len(events))
+	o.observer.AckedEvents(len(events))
 	batch.ACK()
 	return nil
 }
