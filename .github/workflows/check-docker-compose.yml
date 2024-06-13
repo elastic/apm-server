@@ -52,10 +52,8 @@ jobs:
           needs: ${{ toJSON(needs) }}
       - run: ${{ steps.check.outputs.isSuccess }}
       - if: failure()
-        uses: elastic/apm-pipeline-library/.github/actions/notify-build-status@current
+        uses: elastic/oblt-actions/slack/notify-result@v1
         with:
+          bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
+          channel-id: "#apm-server"
           status: ${{ steps.check.outputs.status }}
-          vaultUrl: ${{ secrets.VAULT_ADDR }}
-          vaultRoleId: ${{ secrets.VAULT_ROLE_ID }}
-          vaultSecretId: ${{ secrets.VAULT_SECRET_ID }}
-          slackChannel: "#apm-server"
