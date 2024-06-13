@@ -46,6 +46,9 @@ jobs:
       TF_VAR_ENVIRONMENT: ci
       TF_VAR_REPO: ${{ github.repository }}
       GOBENCH_TAGS: branch=${{ github.head_ref || github.ref }},commit=${{ github.sha }},target_branch=${{ github.base_ref }}
+      GOBENCH_PASSWORD: ${{ secrets.GOBENCH_PASSWORD }}
+      GOBENCH_USERNAME: ${{ secrets.GOBENCH_USERNAME }}
+      GOBENCH_HOST: ${{ secrets.GOBENCH_HOST }}
     steps:
       - uses: actions/checkout@v4
 
@@ -73,9 +76,7 @@ jobs:
       - uses: hashicorp/vault-action@v3.0.0
         env:
           AWS_CREDENTIALS_PATH: secret/observability-team/ci/elastic-observability-aws-account-auth
-          BENCHMARK_CLOUD_CREDENTIALS_PATH: secret/observability-team/ci/benchmark-cloud
           EC_CREDENTIALS_PATH: secret/observability-team/ci/elastic-cloud/observability-team-pro
-          KIBANA_CREDENTIALS_PATH: secret/observability-team/ci/apm-benchmark-kibana
         with:
           url: ${{ secrets.VAULT_ADDR }}
           roleId: ${{ secrets.VAULT_ROLE_ID }}
@@ -84,14 +85,7 @@ jobs:
           secrets: |
             ${{ env.AWS_CREDENTIALS_PATH }} access_key | AWS_ACCESS_KEY_ID ;
             ${{ env.AWS_CREDENTIALS_PATH }} secret_key | AWS_SECRET_ACCESS_KEY ;
-            ${{ env.BENCHMARK_CLOUD_CREDENTIALS_PATH }} user | GOBENCH_USERNAME ;
-            ${{ env.BENCHMARK_CLOUD_CREDENTIALS_PATH }} password | GOBENCH_PASSWORD ;
-            ${{ env.BENCHMARK_CLOUD_CREDENTIALS_PATH }} url | GOBENCH_HOST ;
             ${{ env.EC_CREDENTIALS_PATH }} apiKey | EC_API_KEY ;
-            ${{ env.KIBANA_CREDENTIALS_PATH }} user | KIBANA_USERNAME ;
-            ${{ env.KIBANA_CREDENTIALS_PATH }} password | KIBANA_PASSWORD ;
-            ${{ env.KIBANA_CREDENTIALS_PATH }} kibana_url | KIBANA_ENDPOINT ;
-            ${{ env.KIBANA_CREDENTIALS_PATH }} kibana_dashboard_url | KIBANA_DASHBOARD_URL ;
 
       - name: Log in to the Elastic Container registry
         uses: docker/login-action@0d4c9c5ea7693da7b068278f7b52bda2a190a446 # v3.2.0
@@ -131,9 +125,9 @@ jobs:
       - name: Download PNG
         run: >-
           ${{ github.workspace }}/.ci/scripts/download-png-from-kibana.sh
-          $KIBANA_ENDPOINT
-          $KIBANA_USERNAME
-          $KIBANA_PASSWORD
+          ${{ secrets.KIBANA_BENCH_ENDPOINT }}
+          ${{ secrets.KIBANA_BENCH_USERNAME }}
+          ${{ secrets.KIBANA_BENCH_PASSWORD }}
           $PNG_REPORT_FILE
 
       - name: Upload PNG
@@ -215,7 +209,7 @@ jobs:
                                     "type": "plain_text",
                                     "text": "Benchmarks dashboard"
                                 },
-                                "url": "${{ env.KIBANA_DASHBOARD_URL }}",
+                                "url": "${{ secrets.KIBANA_BENCH_DASHBOARD }}",
                                 "action_id": "kibana-dashboard-button"
                             },
                             {
