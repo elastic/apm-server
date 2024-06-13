@@ -46,6 +46,9 @@ jobs:
       TF_VAR_ENVIRONMENT: ci
       TF_VAR_REPO: ${{ github.repository }}
       GOBENCH_TAGS: branch=${{ github.head_ref || github.ref }},commit=${{ github.sha }},target_branch=${{ github.base_ref }}
+      GOBENCH_PASSWORD: ${{ secrets.GOBENCH_PASSWORD }}
+      GOBENCH_USERNAME: ${{ secrets.GOBENCH_USERNAME }}
+      GOBENCH_HOST: ${{ secrets.GOBENCH_HOST }}
     steps:
       - uses: actions/checkout@v4
 
@@ -73,9 +76,7 @@ jobs:
       - uses: hashicorp/vault-action@v3.0.0
         env:
           AWS_CREDENTIALS_PATH: secret/observability-team/ci/elastic-observability-aws-account-auth
-          BENCHMARK_CLOUD_CREDENTIALS_PATH: secret/observability-team/ci/benchmark-cloud
           EC_CREDENTIALS_PATH: secret/observability-team/ci/elastic-cloud/observability-team-pro
-          KIBANA_CREDENTIALS_PATH: secret/observability-team/ci/apm-benchmark-kibana
         with:
           url: ${{ secrets.VAULT_ADDR }}
           roleId: ${{ secrets.VAULT_ROLE_ID }}
@@ -84,9 +85,6 @@ jobs:
           secrets: |
             ${{ env.AWS_CREDENTIALS_PATH }} access_key | AWS_ACCESS_KEY_ID ;
             ${{ env.AWS_CREDENTIALS_PATH }} secret_key | AWS_SECRET_ACCESS_KEY ;
-            ${{ env.BENCHMARK_CLOUD_CREDENTIALS_PATH }} user | GOBENCH_USERNAME ;
-            ${{ env.BENCHMARK_CLOUD_CREDENTIALS_PATH }} password | GOBENCH_PASSWORD ;
-            ${{ env.BENCHMARK_CLOUD_CREDENTIALS_PATH }} url | GOBENCH_HOST ;
             ${{ env.EC_CREDENTIALS_PATH }} apiKey | EC_API_KEY ;
 
       - name: Log in to the Elastic Container registry
