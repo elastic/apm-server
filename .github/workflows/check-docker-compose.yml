@@ -25,13 +25,5 @@ jobs:
       - if: failure()
         uses: elastic/oblt-actions/slack/notify-result@v1
         with:
-<<<<<<< HEAD
-          vaultUrl: ${{ secrets.VAULT_ADDR }}
-          vaultRoleId: ${{ secrets.VAULT_ROLE_ID }}
-          vaultSecretId: ${{ secrets.VAULT_SECRET_ID }}
-          slackChannel: "#apm-server"
-=======
           bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
           channel-id: "#apm-server"
-          status: ${{ steps.check.outputs.status }}
->>>>>>> 85f0bbbea (github-actions: slack bot and kibana benchmark (#13408))
