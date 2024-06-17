@@ -141,12 +141,12 @@ RPMS += $(patsubst %, $(DISTDIR)/apm-server-$(APM_SERVER_VERSION)-SNAPSHOT-%.rpm
 RPMS_AMD64 := $(filter %-x86_64.rpm, $(RPMS))
 RPMS_ARM64 := $(filter %-aarch64.rpm, $(RPMS))
 
-$(DEBS_ARM64) $(RPMS_ARM64): $(NFPM) $(COMMON_PACKAGE_FILES) build/apm-server-linux-arm64 build/nfpm-arm64.yml
-$(DEBS_AMD64) $(RPMS_AMD64): $(NFPM) $(COMMON_PACKAGE_FILES) build/apm-server-linux-amd64 build/nfpm-amd64.yml
+$(DEBS_ARM64) $(RPMS_ARM64): $(COMMON_PACKAGE_FILES) build/apm-server-linux-arm64 build/nfpm-arm64.yml
+$(DEBS_AMD64) $(RPMS_AMD64): $(COMMON_PACKAGE_FILES) build/apm-server-linux-amd64 build/nfpm-amd64.yml
 
 %.deb %.rpm:
 	@mkdir -p $(DISTDIR)
-	@$(NFPM) package -f $(filter build/nfpm-%.yml, $^) -t $@
+	@go run -modfile=tools/go.mod github.com/goreleaser/nfpm/v2/cmd/nfpm package -f $(filter build/nfpm-%.yml, $^) -t $@
 
 # Archive directories. These are the contents of tarball and zip artifacts.
 #
