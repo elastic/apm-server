@@ -10,7 +10,7 @@ require (
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/apm-aggregation v1.0.1
 	github.com/elastic/apm-data v1.3.0
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20240613222619-823943486f13
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20240617144205-b398af8ccc99
 	github.com/elastic/elastic-agent-client/v7 v7.11.0
 	github.com/elastic/elastic-agent-libs v0.9.12
 	github.com/elastic/elastic-agent-system-metrics v0.10.2
@@ -33,7 +33,7 @@ require (
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pkg/errors v0.9.1
 	github.com/ryanuber/go-glob v1.0.0
-	github.com/spf13/cobra v1.8.0
+	github.com/spf13/cobra v1.8.1
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.9.0
 	go.elastic.co/apm/module/apmelasticsearch/v2 v2.6.0
