@@ -6,7 +6,7 @@ toolchain go1.22.1
 
 require (
 	github.com/elastic/apm-tools v0.0.0-20230828065051-3f799314cc8b
-	github.com/elastic/go-licenser v0.4.1
+	github.com/elastic/go-licenser v0.4.2
 	github.com/elastic/gobench v0.0.0-20220608141032-f30bc57e329c
 	github.com/goreleaser/nfpm/v2 v2.37.1
 	github.com/josephspurrier/goversioninfo v1.4.0
