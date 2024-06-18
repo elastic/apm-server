@@ -34,7 +34,7 @@ destroy:
 .PHONY: rally/corpora
 rally/corpora:
 	@rm -fr $(ROOT_DIR)/testing/rally/corpora && mkdir $(ROOT_DIR)/testing/rally/corpora
-	@cd ../../systemtest/cmd/gencorpora && $(GO) run . \
+	@cd ../../systemtest/cmd/gencorpora && go run . \
 		-write-dir $(ROOT_DIR)/testing/rally/corpora/ \
 		-replay-count $(RALLY_GENCORPORA_REPLAY_COUNT) \
 		-override-meta-source-rootdir /home/rally/rally/corpora
