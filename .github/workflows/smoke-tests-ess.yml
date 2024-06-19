@@ -28,9 +28,8 @@ jobs:
         name: Generate matrix and date
         uses: ./.github/workflows/generate-smoke-tests-list
         with:
-          vault-url: ${{ secrets.VAULT_ADDR }}
-          vault-role-id: ${{ secrets.VAULT_ROLE_ID }}
-          vault-secret-id: ${{ secrets.VAULT_SECRET_ID }}
+          aws-csv-file: ${{ secrets.OBSERVABILITY_AWS_PROFILE }}
+          aws-profile: ${{ secrets.OBSERVABILITY_AWS_PROFILE }}
 
   smoke-tests-ess:
     name: Run smoke tests ${{ matrix.test }} for ${{ matrix.version }}
@@ -58,10 +57,8 @@ jobs:
       - name: Setup cluster env
         uses: ./.github/workflows/setup-cluster-env
         with:
-          vault-url: ${{ secrets.VAULT_ADDR }}
-          vault-role-id: ${{ secrets.VAULT_ROLE_ID }}
-          vault-secret-id: ${{ secrets.VAULT_SECRET_ID }}
-          aws-account-secret: 'secret/observability-team/ci/elastic-observability-aws-account-auth'
+          aws-csv-file: ${{ secrets.OBSERVABILITY_CSV_FILE }}
+          aws-profile: ${{ secrets.OBSERVABILITY_AWS_PROFILE }}
       - name: Run smoke tests ${{ matrix.test }} for ${{ matrix.version }}
         run: make smoketest/run-version TEST_DIR=${{ matrix.test }} SMOKETEST_VERSION=${{ matrix.version }}
       - if: always()
