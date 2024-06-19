@@ -27,7 +27,7 @@ jobs:
         name: Generate matrix and date
         uses: ./.github/workflows/generate-smoke-tests-list
         with:
-          aws-csv-file: ${{ secrets.OBSERVABILITY_CSV_FILE }}
+          aws-csv-file: ${{ secrets.OBSERVABILITY_AWS_CSV_FILE }}
           aws-profile: ${{ secrets.OBSERVABILITY_AWS_PROFILE }}
 
   smoke-tests-os:
@@ -51,7 +51,7 @@ jobs:
       - name: Setup cluster env
         uses: ./.github/workflows/setup-cluster-env
         with:
-          aws-csv-file: ${{ secrets.OBSERVABILITY_CSV_FILE }}
+          aws-csv-file: ${{ secrets.OBSERVABILITY_AWS_CSV_FILE }}
           aws-profile: ${{ secrets.OBSERVABILITY_AWS_PROFILE }}
       - name: Run smoke tests OS
         working-directory: ${{ github.workspace }}/testing/smoke/supported-os
