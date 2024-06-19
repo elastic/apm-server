@@ -28,9 +28,8 @@ jobs:
         name: Generate matrix and date
         uses: ./.github/workflows/generate-smoke-tests-list
         with:
-          vault-url: ${{ secrets.VAULT_ADDR }}
-          vault-role-id: ${{ secrets.VAULT_ROLE_ID }}
-          vault-secret-id: ${{ secrets.VAULT_SECRET_ID }}
+          aws-csv-file: ${{ secrets.OBSERVABILITY_AWS_CSV_FILE }}
+          aws-profile: ${{ secrets.OBSERVABILITY_AWS_PROFILE }}
 
   smoke-tests-ess:
     name: Run smoke tests ${{ matrix.test }} for ${{ matrix.version }}
@@ -42,6 +41,8 @@ jobs:
       TF_VAR_BRANCH: ${{ github.ref_name }}
       TF_VAR_REPO: ${{ github.repository }}
       TF_VAR_CREATED_DATE: ${{ needs.prepare.outputs.date }}
+      # TODO: use keyless
+      EC_API_KEY: ${{ secrets.OBSERVABILITY_EC_API_KEY }}
     strategy:
       fail-fast: false
       matrix:
@@ -56,11 +57,8 @@ jobs:
       - name: Setup cluster env
         uses: ./.github/workflows/setup-cluster-env
         with:
-          vault-url: ${{ secrets.VAULT_ADDR }}
-          vault-role-id: ${{ secrets.VAULT_ROLE_ID }}
-          vault-secret-id: ${{ secrets.VAULT_SECRET_ID }}
-          ec-key-secret: 'secret/observability-team/ci/elastic-cloud/observability-team-pro'
-          aws-account-secret: 'secret/observability-team/ci/elastic-observability-aws-account-auth'
+          aws-csv-file: ${{ secrets.OBSERVABILITY_AWS_CSV_FILE }}
+          aws-profile: ${{ secrets.OBSERVABILITY_AWS_PROFILE }}
       - name: Run smoke tests ${{ matrix.test }} for ${{ matrix.version }}
         run: make smoketest/run-version TEST_DIR=${{ matrix.test }} SMOKETEST_VERSION=${{ matrix.version }}
       - if: always()
