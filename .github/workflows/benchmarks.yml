@@ -49,6 +49,10 @@ jobs:
       GOBENCH_PASSWORD: ${{ secrets.GOBENCH_PASSWORD }}
       GOBENCH_USERNAME: ${{ secrets.GOBENCH_USERNAME }}
       GOBENCH_HOST: ${{ secrets.GOBENCH_HOST }}
+      # TODO: use keyless
+      EC_API_KEY: ${{ secrets.OBSERVABILITY_EC_API_KEY }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.OBSERVABILITY_AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.OBSERVABILITY_AWS_SECRET_ACCESS_KEY }}
     steps:
       - uses: actions/checkout@v4
 
@@ -72,20 +76,6 @@ jobs:
           if [ ! -z "${{ inputs.benchmarkRun }}" ]; then
             echo "BENCHMARK_RUN=${{ inputs.benchmarkRun }}" >> "$GITHUB_ENV"
           fi
-
-      - uses: hashicorp/vault-action@v3.0.0
-        env:
-          AWS_CREDENTIALS_PATH: secret/observability-team/ci/elastic-observability-aws-account-auth
-          EC_CREDENTIALS_PATH: secret/observability-team/ci/elastic-cloud/observability-team-pro
-        with:
-          url: ${{ secrets.VAULT_ADDR }}
-          roleId: ${{ secrets.VAULT_ROLE_ID }}
-          secretId: ${{ secrets.VAULT_SECRET_ID }}
-          method: approle
-          secrets: |
-            ${{ env.AWS_CREDENTIALS_PATH }} access_key | AWS_ACCESS_KEY_ID ;
-            ${{ env.AWS_CREDENTIALS_PATH }} secret_key | AWS_SECRET_ACCESS_KEY ;
-            ${{ env.EC_CREDENTIALS_PATH }} apiKey | EC_API_KEY ;
 
       - name: Log in to the Elastic Container registry
         uses: docker/login-action@0d4c9c5ea7693da7b068278f7b52bda2a190a446 # v3.2.0
