@@ -41,6 +41,8 @@ jobs:
       TF_VAR_BRANCH: ${{ github.ref_name }}
       TF_VAR_REPO: ${{ github.repository }}
       TF_VAR_CREATED_DATE: ${{ needs.prepare.outputs.date }}
+      # TODO: use keyless
+      EC_API_KEY: ${{ secrets.OBSERVABILITY_EC_API_KEY }}
     steps:
       - uses: actions/checkout@v4
         with:

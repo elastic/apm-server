@@ -13,10 +13,6 @@ inputs:
   vault-secret-id:
     description: 'Vault secret ID'
     required: true
-  ec-key-secret:
-    default: 'secret/observability-team/ci/elastic-cloud/observability-team-pro'
-    description: 'EC Key secret'
-    required: false
   aws-account-secret:
     default: 'secret/observability-team/ci/elastic-observability-aws-account-auth'
     description: 'AWS account secret'
@@ -38,7 +34,6 @@ runs:
         secretId: ${{ inputs.vault-secret-id }}
         method: approle
         secrets: |
-          ${{ inputs.ec-key-secret }} apiKey | EC_API_KEY ;
           ${{ inputs.aws-account-secret }} user | AWS_PROFILE ;
           ${{ inputs.aws-account-secret }} csv | AWS_ACCOUNT_IMPORT
     - name: Configure AWS account
