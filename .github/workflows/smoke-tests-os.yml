@@ -2,6 +2,9 @@ name: smoke-tests-os
 run-name: Smoke Tests OS
 
 on:
+  push:
+    branches:
+      - test/reproduce-error
   workflow_call:
     inputs:
       branch:
@@ -21,8 +24,6 @@ jobs:
       date: ${{ steps.generate.outputs.date }}
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ inputs.branch }}
       - id: generate
         name: Generate matrix and date
         uses: ./.github/workflows/generate-smoke-tests-list
@@ -44,8 +45,6 @@ jobs:
       EC_API_KEY: ${{ secrets.OBSERVABILITY_EC_API_KEY }}
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ inputs.branch }}
       - name: Get version
         run: echo "VERSION=$(make get-version)" >> "${GITHUB_ENV}"
       - name: Setup cluster env

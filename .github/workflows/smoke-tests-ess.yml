@@ -2,6 +2,9 @@ name: smoke-tests-ess
 run-name: Smoke Tests ESS
 
 on:
+  push:
+    branches:
+      - test/reproduce-error
   workflow_call:
     inputs:
       branch:
@@ -22,8 +25,6 @@ jobs:
       date: ${{ steps.generate.outputs.date }}
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ inputs.branch }}
       - id: generate
         name: Generate matrix and date
         uses: ./.github/workflows/generate-smoke-tests-list
@@ -48,12 +49,9 @@ jobs:
       matrix:
         test: ${{ fromJSON(needs.prepare.outputs.tests) }}
         version:
-          - '7.17'
           - 'latest'
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ inputs.branch }}
       - name: Setup cluster env
         uses: ./.github/workflows/setup-cluster-env
         with:
@@ -64,3 +62,34 @@ jobs:
       - if: always()
         name: Teardown smoke test infra
         run: make smoketest/cleanup TEST_DIR=${{ matrix.test }}
+
+  test-aws:
+    runs-on: ubuntu-latest
+    needs: prepare
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup cluster env
+        uses: ./.github/workflows/setup-cluster-env
+        with:
+          aws-csv-file: ${{ secrets.OBSERVABILITY_AWS_CSV_FILE }}
+          aws-profile: ${{ secrets.OBSERVABILITY_AWS_PROFILE }}
+
+      - run: aws sts get-caller-identity
+        env:
+          AWS_REGION: us-west-2
+
+  test-aws1:
+    runs-on: ubuntu-latest
+    needs: prepare
+    env:
+      AWS_PROFILE: ${{ secrets.OBSERVABILITY_AWS_PROFILE }}
+      AWS_REGION: us-west-2
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup cluster env
+        uses: ./.github/workflows/setup-cluster-env
+        with:
+          aws-csv-file: ${{ secrets.OBSERVABILITY_AWS_CSV_FILE }}
+          aws-profile: ${{ secrets.OBSERVABILITY_AWS_PROFILE }}
+
+      - run: aws sts get-caller-identity
