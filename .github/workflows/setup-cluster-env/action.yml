@@ -25,7 +25,8 @@ runs:
         echo "${AWS_ACCOUNT_IMPORT}" > ${{ runner.temp }}/account.csv;
         sed -i 's/User name/User Name/g' ${{ runner.temp }}/account.csv;
         aws configure import --csv file://${{ runner.temp }}/account.csv;
-        echo 'AWS_ACCOUNT_IMPORT=' >> ${GITHUB_ENV};
+        echo 'AWS_ACCOUNT_IMPORT='        >> ${GITHUB_ENV};
+        echo "AWS_PROFILE=${AWS_PROFILE}" >> ${GITHUB_ENV}
         rm -f ${{ runner.temp }}/account.csv;
       shell: 'bash'
       env:
