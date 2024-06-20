@@ -76,13 +76,13 @@ jobs:
 
       - run: aws sts get-caller-identity
         env:
+          AWS_PROFILE: ${{ secrets.OBSERVABILITY_AWS_PROFILE }}
           AWS_REGION: us-west-2
 
   test-aws1:
     runs-on: ubuntu-latest
     needs: prepare
     env:
-      AWS_PROFILE: ${{ secrets.OBSERVABILITY_AWS_PROFILE }}
       AWS_REGION: us-west-2
     steps:
       - uses: actions/checkout@v4
