@@ -27,9 +27,8 @@ jobs:
         name: Generate matrix and date
         uses: ./.github/workflows/generate-smoke-tests-list
         with:
-          vault-url: ${{ secrets.VAULT_ADDR }}
-          vault-role-id: ${{ secrets.VAULT_ROLE_ID }}
-          vault-secret-id: ${{ secrets.VAULT_SECRET_ID }}
+          aws-csv-file: ${{ secrets.OBSERVABILITY_AWS_CSV_FILE }}
+          aws-profile: ${{ secrets.OBSERVABILITY_AWS_PROFILE }}
 
   smoke-tests-os:
     name: Run smoke tests OS
@@ -41,6 +40,8 @@ jobs:
       TF_VAR_BRANCH: ${{ github.ref_name }}
       TF_VAR_REPO: ${{ github.repository }}
       TF_VAR_CREATED_DATE: ${{ needs.prepare.outputs.date }}
+      # TODO: use keyless
+      EC_API_KEY: ${{ secrets.OBSERVABILITY_EC_API_KEY }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -50,9 +51,8 @@ jobs:
       - name: Setup cluster env
         uses: ./.github/workflows/setup-cluster-env
         with:
-          vault-url: ${{ secrets.VAULT_ADDR }}
-          vault-role-id: ${{ secrets.VAULT_ROLE_ID }}
-          vault-secret-id: ${{ secrets.VAULT_SECRET_ID }}
+          aws-csv-file: ${{ secrets.OBSERVABILITY_AWS_CSV_FILE }}
+          aws-profile: ${{ secrets.OBSERVABILITY_AWS_PROFILE }}
       - name: Run smoke tests OS
         working-directory: ${{ github.workspace }}/testing/smoke/supported-os
         run: ./test.sh ${VERSION}-SNAPSHOT

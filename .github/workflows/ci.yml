@@ -68,6 +68,7 @@ jobs:
           GOTESTFLAGS: "-v -json"
           OUTPUT_JSON_FILE: "build/TEST-go-system_tests.out.json"
           OUTPUT_JUNIT_FILE: "build/TEST-go-system_tests.xml"
+          GH_TOKEN: ${{ github.token }}
         run: |
           go run -modfile=tools/go.mod gotest.tools/gotestsum \
           --no-color -f standard-quiet --jsonfile "$OUTPUT_JSON_FILE" --junitfile "$OUTPUT_JUNIT_FILE" \
@@ -92,22 +93,22 @@ jobs:
 
   test-package-and-push:
     runs-on: ubuntu-latest
-    if: github.event_name != 'pull_request' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false)
+    # If no PR event or if a PR event that's caused by a non-fork and non dependabot actor
+    if: github.event_name != 'pull_request' || ( github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false && github.actor != 'dependabot[bot]' )
     env:
-      GENERATE_CHAINGUARD_IMAGES: true
+      GENERATE_WOLFI_IMAGES: true
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
           cache: false
-      - uses: elastic/apm-pipeline-library/.github/actions/docker-login@current
+      - name: Log in to the Elastic Container registry
+        uses: docker/login-action@0d4c9c5ea7693da7b068278f7b52bda2a190a446 # v3.2.0
         with:
-          registry: docker.elastic.co
-          secret: secret/observability-team/ci/docker-registry/prod
-          url: ${{ secrets.VAULT_ADDR }}
-          roleId: ${{ secrets.VAULT_ROLE_ID }}
-          secretId: ${{ secrets.VAULT_SECRET_ID }}
+          registry: ${{ secrets.ELASTIC_DOCKER_REGISTRY }}
+          username: ${{ secrets.ELASTIC_DOCKER_USERNAME }}
+          password: ${{ secrets.ELASTIC_DOCKER_PASSWORD }}
       - run: make package-snapshot
         env:
           GH_TOKEN: ${{ github.token }}

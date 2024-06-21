@@ -26,6 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       release-branch: ${{ steps.prepare.outputs.release-branch }}
+      release-type: ${{ steps.prepare.outputs.release-type }}
       release-version: ${{ steps.prepare.outputs.release-version }}
       slack-thread: ${{ steps.prepare.outputs.slack-thread }}
     steps:
@@ -33,9 +34,7 @@ jobs:
       - id: prepare
         uses: ./.github/workflows/prepare-release
         with:
-          vault-url: ${{ secrets.VAULT_ADDR }}
-          vault-role-id: ${{ secrets.VAULT_ROLE_ID }}
-          vault-secret-id: ${{ secrets.VAULT_SECRET_ID }}
+          slack-bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
           version: ${{ inputs.version }}
           type: 'minor'
 
@@ -44,21 +43,20 @@ jobs:
     needs: [ prepare ]
     env:
       RELEASE_BRANCH: ${{ needs.prepare.outputs.release-branch }}
+      RELEASE_TYPE: ${{ needs.prepare.outputs.release-type }}
       RELEASE_VERSION: ${{ needs.prepare.outputs.release-version }}
     permissions:
       contents: write
     steps:
 
-      - uses: elastic/apm-pipeline-library/.github/actions/slack-message@current
+      - uses: elastic/oblt-actions/slack/send@v1.9.1
         with:
-          url: ${{ secrets.VAULT_ADDR }}
-          roleId: ${{ secrets.VAULT_ROLE_ID }}
-          secretId: ${{ secrets.VAULT_SECRET_ID }}
-          channel: ${{ env.SLACK_CHANNEL }}
-          threadTimestamp: ${{ needs.prepare.outputs.slack-thread || '' }}
+          bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
+          channel-id: ${{ env.SLACK_CHANNEL }}
           message: |-
             Feature freeze for `${{ github.repository }}@${{ env.RELEASE_VERSION }}` just started.
             The `${{ github.repository }}@${{ env.RELEASE_BRANCH }}` branch will be created Today.
+          thread-timestamp: ${{ needs.prepare.outputs.slack-thread || '' }}
 
       - uses: actions/checkout@v4
         with:
@@ -83,25 +81,21 @@ jobs:
 
       - run: make minor-release
 
-      - uses: elastic/apm-pipeline-library/.github/actions/slack-message@current
-        if: success()
+      - if: success()
+        uses: elastic/oblt-actions/slack/send@v1.9.1
         with:
-          url: ${{ secrets.VAULT_ADDR }}
-          roleId: ${{ secrets.VAULT_ROLE_ID }}
-          secretId: ${{ secrets.VAULT_SECRET_ID }}
-          channel: ${{ env.SLACK_CHANNEL }}
-          threadTimestamp: ${{ needs.prepare.outputs.slack-thread || '' }}
+          bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
+          channel-id: ${{ env.SLACK_CHANNEL }}
           message: |-
             `${{ github.repository }}@${{ env.RELEASE_BRANCH }}` is now available.
             The docs and other references are updated. You can start using it.
+          thread-timestamp: ${{ needs.prepare.outputs.slack-thread || '' }}
 
-      - uses: elastic/apm-pipeline-library/.github/actions/slack-message@current
-        if: failure()
+      - if: failure()
+        uses: elastic/oblt-actions/slack/send@v1.9.1
         with:
-          url: ${{ secrets.VAULT_ADDR }}
-          roleId: ${{ secrets.VAULT_ROLE_ID }}
-          secretId: ${{ secrets.VAULT_SECRET_ID }}
-          channel: ${{ env.SLACK_CHANNEL }}
-          threadTimestamp: ${{ needs.prepare.outputs.slack-thread || '' }}
+          bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
+          channel-id: ${{ env.SLACK_CHANNEL }}
           message: |-
             :fire: Something went wrong with the release. See <${{ env.JOB_URL }}|logs>.
+          thread-timestamp: ${{ needs.prepare.outputs.slack-thread || '' }}

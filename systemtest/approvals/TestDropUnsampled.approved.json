@@ -4,6 +4,104 @@
             "dynamic"
         ],
         "agent.name": [
+            "rum-js"
+        ],
+        "agent.name.text": [
+            "rum-js"
+        ],
+        "agent.version": [
+            "0.0.0"
+        ],
+        "client.ip": [
+            "127.0.0.1"
+        ],
+        "data_stream.dataset": [
+            "apm.rum"
+        ],
+        "data_stream.namespace": [
+            "default"
+        ],
+        "data_stream.type": [
+            "traces"
+        ],
+        "event.outcome": [
+            "unknown"
+        ],
+        "observer.hostname": [
+            "dynamic"
+        ],
+        "observer.type": [
+            "apm-server"
+        ],
+        "observer.version": [
+            "dynamic"
+        ],
+        "processor.event": [
+            "transaction"
+        ],
+        "service.name": [
+            "allowed"
+        ],
+        "service.name.text": [
+            "allowed"
+        ],
+        "source.ip": [
+            "127.0.0.1"
+        ],
+        "source.port": [
+            "dynamic"
+        ],
+        "span.id": [
+            "dynamic"
+        ],
+        "timestamp.us": [
+            "dynamic"
+        ],
+        "trace.id": [
+            "dynamic"
+        ],
+        "transaction.duration.us": [
+            0
+        ],
+        "transaction.id": [
+            "dynamic"
+        ],
+        "transaction.representative_count": [
+            1
+        ],
+        "transaction.span_count.started": [
+            1
+        ],
+        "transaction.type": [
+            "TestDropUnsampled"
+        ],
+        "user_agent.device.name": [
+            "Other"
+        ],
+        "user_agent.device.name.text": [
+            "Other"
+        ],
+        "user_agent.name": [
+            "Go-http-client"
+        ],
+        "user_agent.name.text": [
+            "Go-http-client"
+        ],
+        "user_agent.original": [
+            "Go-http-client/1.1"
+        ],
+        "user_agent.original.text": [
+            "Go-http-client/1.1"
+        ],
+        "user_agent.version": [
+            "1.1"
+        ]
+    },
+    {
+        "@timestamp": [
+            "dynamic"
+        ],
+        "agent.name": [
             "go"
         ],
         "agent.name.text": [
@@ -128,104 +226,6 @@
         ],
         "transaction.type": [
             "TestDropUnsampled"
-        ]
-    },
-    {
-        "@timestamp": [
-            "dynamic"
-        ],
-        "agent.name": [
-            "rum-js"
-        ],
-        "agent.name.text": [
-            "rum-js"
-        ],
-        "agent.version": [
-            "0.0.0"
-        ],
-        "client.ip": [
-            "127.0.0.1"
-        ],
-        "data_stream.dataset": [
-            "apm.rum"
-        ],
-        "data_stream.namespace": [
-            "default"
-        ],
-        "data_stream.type": [
-            "traces"
-        ],
-        "event.outcome": [
-            "unknown"
-        ],
-        "observer.hostname": [
-            "dynamic"
-        ],
-        "observer.type": [
-            "apm-server"
-        ],
-        "observer.version": [
-            "dynamic"
-        ],
-        "processor.event": [
-            "transaction"
-        ],
-        "service.name": [
-            "allowed"
-        ],
-        "service.name.text": [
-            "allowed"
-        ],
-        "source.ip": [
-            "127.0.0.1"
-        ],
-        "source.port": [
-            "dynamic"
-        ],
-        "span.id": [
-            "dynamic"
-        ],
-        "timestamp.us": [
-            "dynamic"
-        ],
-        "trace.id": [
-            "dynamic"
-        ],
-        "transaction.duration.us": [
-            0
-        ],
-        "transaction.id": [
-            "dynamic"
-        ],
-        "transaction.representative_count": [
-            1
-        ],
-        "transaction.span_count.started": [
-            1
-        ],
-        "transaction.type": [
-            "TestDropUnsampled"
-        ],
-        "user_agent.device.name": [
-            "Other"
-        ],
-        "user_agent.device.name.text": [
-            "Other"
-        ],
-        "user_agent.name": [
-            "Go-http-client"
-        ],
-        "user_agent.name.text": [
-            "Go-http-client"
-        ],
-        "user_agent.original": [
-            "Go-http-client/1.1"
-        ],
-        "user_agent.original.text": [
-            "Go-http-client/1.1"
-        ],
-        "user_agent.version": [
-            "1.1"
         ]
     }
 ]

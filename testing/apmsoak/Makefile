@@ -19,7 +19,7 @@ use-production:
 .PHONY: apmsoak
 apmsoak:
 	@echo "-> Building apmsoak..."
-	@cd $(APMSOAK_PATH) && GOOS=$(APMSOAK_GOOS) GOARCH=$(APMSOAK_GOARCH) $(GO) build .
+	@cd $(APMSOAK_PATH) && GOOS=$(APMSOAK_GOOS) GOARCH=$(APMSOAK_GOARCH) go build .
 
 .PHONY: init
 init:

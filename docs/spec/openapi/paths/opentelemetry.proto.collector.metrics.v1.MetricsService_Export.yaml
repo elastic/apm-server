@@ -1,0 +1,16 @@
+post:
+  summary: Send OTLP metrics
+  description: >
+    APM Server supports receiving metrics over the OpenTelemetry Protocol
+    (OTLP). This API uses the OTLP/gRPC communication protocol.
+  operationId: postOtlpGrpcMetrics
+  tags:
+    - opentelemetry intake
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+  responses:
+    '200':
+      description: OK

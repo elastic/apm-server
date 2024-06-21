@@ -4,15 +4,12 @@ name: generate-smoke-tests-list
 description: Generate smoke tests list
 
 inputs:
-  vault-url:
-    description: 'Vault URL'
-    required: false
-  vault-role-id:
-    description: 'Vault role ID'
-    required: false
-  vault-secret-id:
-    description: 'Vault secret ID'
-    required: false
+  aws-csv-file:
+    description: 'Content with the AWS csv file'
+    required: true
+  aws-profile:
+    description: 'aws profile'
+    required: true
 outputs:
   tests:
     description: "List of smoke tests"
@@ -27,9 +24,8 @@ runs:
     - name: Setup cluster env
       uses: ./.github/workflows/setup-cluster-env
       with:
-        vault-url: ${{ inputs.vault-url }}
-        vault-role-id: ${{ inputs.vault-role-id }}
-        vault-secret-id: ${{ inputs.vault-secret-id }}
+        aws-csv-file: ${{ inputs.aws-csv-file }}
+        aws-profile: ${{ inputs.aws-profile }}
     - id: generate
       name: Generate matrix and date
       run: |

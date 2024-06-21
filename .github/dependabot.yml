@@ -11,8 +11,6 @@ updates:
       otel:
         patterns:
         - "go.opentelemetry.io/*"
-      jaeger:
-        patterns:
         - "github.com/jaegertracing/jaeger"
         - "github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger"
       spf13:
@@ -27,6 +25,24 @@ updates:
   # go tools
   - package-ecosystem: "gomod"
     directory: "tools/"
+    schedule:
+      interval: "weekly"
+    groups:
+      dependencies:
+        patterns:
+          - "*"
+  # go systemtest
+  - package-ecosystem: "gomod"
+    directory: "systemtest/"
+    schedule:
+      interval: "weekly"
+    groups:
+      dependencies:
+        patterns:
+          - "*"
+  # docker
+  - package-ecosystem: "docker"
+    directory: "/packaging/docker/"
     schedule:
       interval: "weekly"
 

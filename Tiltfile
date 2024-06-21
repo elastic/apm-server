@@ -98,11 +98,10 @@ if config.tilt_subcommand == "down":
   print(local("kubectl delete --ignore-not-found namespace/elastic-system"))
 
 # Add a button for sending trace events and metrics to APM Server.
-run_with_go_ver = os.path.join(script_dir, 'run_with_go_ver')
 load('ext://uibutton', 'cmd_button')
 cmd_button(
   'apm-server:sendotlp',
-  argv=['sh', '-c', 'cd systemtest && %s go run ./cmd/sendotlp' % run_with_go_ver],
+  argv=['sh', '-c', 'cd systemtest && go run ./cmd/sendotlp'],
   resource='apm-server',
   icon_name='input',
   text='Send OTLP data',

@@ -65,7 +65,7 @@ terraform.tfvars:
 .PHONY: apmbench
 apmbench:
 	@echo "-> Building apmbench..."
-	@cd $(APMBENCH_PATH) && CGO_ENABLED=0 GOOS=$(APMBENCH_GOOS) GOARCH=$(APMBENCH_GOARCH) $(GO) build .
+	@cd $(APMBENCH_PATH) && CGO_ENABLED=0 GOOS=$(APMBENCH_GOOS) GOARCH=$(APMBENCH_GOARCH) go build .
 
 .PHONY: init
 init:
@@ -104,8 +104,8 @@ run-benchmark-autotuned:
 	@ $(MAKE) run-benchmark BENCHMARK_AGENTS=$(shell echo $$(( $(BENCHMARK_AGENTS) * $(APM_SERVER_SIZE) )) )
 
 .PHONY: index-benchmark-results
-index-benchmark-results: $(GOBENCH) _default-gobench-vars
-	@cat $(BENCHMARK_RESULT) | $(GOBENCH) -es $(GOBENCH_HOST) -es-username $(GOBENCH_USERNAME) -es-password $(GOBENCH_PASSWORD) \
+index-benchmark-results: _default-gobench-vars
+	@cat $(BENCHMARK_RESULT) | go run -modfile=tools/go.mod github.com/elastic/gobench -es $(GOBENCH_HOST) -es-username $(GOBENCH_USERNAME) -es-password $(GOBENCH_PASSWORD) \
 	-index $(GOBENCH_INDEX) -tag "$(GOBENCH_DEFAULT_TAGS),$(GOBENCH_TAGS)"
 
 .PHONY: _default-gobench-vars

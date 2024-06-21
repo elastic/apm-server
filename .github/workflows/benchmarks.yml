@@ -46,6 +46,13 @@ jobs:
       TF_VAR_ENVIRONMENT: ci
       TF_VAR_REPO: ${{ github.repository }}
       GOBENCH_TAGS: branch=${{ github.head_ref || github.ref }},commit=${{ github.sha }},target_branch=${{ github.base_ref }}
+      GOBENCH_PASSWORD: ${{ secrets.GOBENCH_PASSWORD }}
+      GOBENCH_USERNAME: ${{ secrets.GOBENCH_USERNAME }}
+      GOBENCH_HOST: ${{ secrets.GOBENCH_HOST }}
+      # TODO: use keyless
+      EC_API_KEY: ${{ secrets.OBSERVABILITY_EC_API_KEY }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.OBSERVABILITY_AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.OBSERVABILITY_AWS_SECRET_ACCESS_KEY }}
     steps:
       - uses: actions/checkout@v4
 
@@ -70,36 +77,13 @@ jobs:
             echo "BENCHMARK_RUN=${{ inputs.benchmarkRun }}" >> "$GITHUB_ENV"
           fi
 
-      - uses: hashicorp/vault-action@v3.0.0
-        env:
-          AWS_CREDENTIALS_PATH: secret/observability-team/ci/elastic-observability-aws-account-auth
-          BENCHMARK_CLOUD_CREDENTIALS_PATH: secret/observability-team/ci/benchmark-cloud
-          EC_CREDENTIALS_PATH: secret/observability-team/ci/elastic-cloud/observability-team-pro
-          KIBANA_CREDENTIALS_PATH: secret/observability-team/ci/apm-benchmark-kibana
+      - name: Log in to the Elastic Container registry
+        uses: docker/login-action@0d4c9c5ea7693da7b068278f7b52bda2a190a446 # v3.2.0
         with:
-          url: ${{ secrets.VAULT_ADDR }}
-          roleId: ${{ secrets.VAULT_ROLE_ID }}
-          secretId: ${{ secrets.VAULT_SECRET_ID }}
-          method: approle
-          secrets: |
-            ${{ env.AWS_CREDENTIALS_PATH }} access_key | AWS_ACCESS_KEY_ID ;
-            ${{ env.AWS_CREDENTIALS_PATH }} secret_key | AWS_SECRET_ACCESS_KEY ;
-            ${{ env.BENCHMARK_CLOUD_CREDENTIALS_PATH }} user | GOBENCH_USERNAME ;
-            ${{ env.BENCHMARK_CLOUD_CREDENTIALS_PATH }} password | GOBENCH_PASSWORD ;
-            ${{ env.BENCHMARK_CLOUD_CREDENTIALS_PATH }} url | GOBENCH_HOST ;
-            ${{ env.EC_CREDENTIALS_PATH }} apiKey | EC_API_KEY ;
-            ${{ env.KIBANA_CREDENTIALS_PATH }} user | KIBANA_USERNAME ;
-            ${{ env.KIBANA_CREDENTIALS_PATH }} password | KIBANA_PASSWORD ;
-            ${{ env.KIBANA_CREDENTIALS_PATH }} kibana_url | KIBANA_ENDPOINT ;
-            ${{ env.KIBANA_CREDENTIALS_PATH }} kibana_dashboard_url | KIBANA_DASHBOARD_URL ;
+          registry: ${{ secrets.ELASTIC_DOCKER_REGISTRY }}
+          username: ${{ secrets.ELASTIC_DOCKER_USERNAME }}
+          password: ${{ secrets.ELASTIC_DOCKER_PASSWORD }}
 
-      - uses: elastic/apm-pipeline-library/.github/actions/docker-login@main
-        with:
-          registry: docker.elastic.co
-          secret: secret/observability-team/ci/docker-registry/prod
-          url: ${{ secrets.VAULT_ADDR }}
-          roleId: ${{ secrets.VAULT_ROLE_ID }}
-          secretId: ${{ secrets.VAULT_SECRET_ID }}
       - uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.3.7
@@ -131,9 +115,9 @@ jobs:
       - name: Download PNG
         run: >-
           ${{ github.workspace }}/.ci/scripts/download-png-from-kibana.sh
-          $KIBANA_ENDPOINT
-          $KIBANA_USERNAME
-          $KIBANA_PASSWORD
+          ${{ secrets.KIBANA_BENCH_ENDPOINT }}
+          ${{ secrets.KIBANA_BENCH_USERNAME }}
+          ${{ secrets.KIBANA_BENCH_PASSWORD }}
           $PNG_REPORT_FILE
 
       - name: Upload PNG
@@ -166,23 +150,20 @@ jobs:
 
       # Notify failure to Slack only on schedule (nightly run)
       - if: failure() && github.event_name == 'schedule'
-        uses: elastic/apm-pipeline-library/.github/actions/notify-build-status@current
+        uses: elastic/oblt-actions/slack/notify-result@v1.9.1
         with:
+          bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
+          channel-id: "#apm-server"
           message: |
             Nightly APM Server benchmarks failed! SDH Duty assignee, please have a look and follow this <https://github.com/elastic/observability-dev/blob/main/docs/apm/apm-server/runbooks/benchmarks.md|Runbook>!
-          vaultUrl: ${{ secrets.VAULT_ADDR }}
-          vaultRoleId: ${{ secrets.VAULT_ROLE_ID }}
-          vaultSecretId: ${{ secrets.VAULT_SECRET_ID }}
-          slackChannel: '#apm-server'
 
       # Notify result to Slack only on schedule (nightly run)
       - if: github.event_name == 'schedule'
-        uses: elastic/apm-pipeline-library/.github/actions/slack-message@current
+        uses: slackapi/slack-github-action@70cd7be8e40a46e8b0eced40b0de447bdb42f68e # v1.26.0
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
         with:
-          url: ${{ secrets.VAULT_ADDR }}
-          roleId: ${{ secrets.VAULT_ROLE_ID }}
-          secretId: ${{ secrets.VAULT_SECRET_ID }}
-          channel: '#apm-server'
+          channel-id: "#apm-server"
           payload: |
             {
                 "blocks": [
@@ -218,7 +199,7 @@ jobs:
                                     "type": "plain_text",
                                     "text": "Benchmarks dashboard"
                                 },
-                                "url": "${{ env.KIBANA_DASHBOARD_URL }}",
+                                "url": "${{ secrets.KIBANA_BENCH_DASHBOARD }}",
                                 "action_id": "kibana-dashboard-button"
                             },
                             {

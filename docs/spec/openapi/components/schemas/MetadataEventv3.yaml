@@ -1,0 +1,6 @@
+type: object
+required:
+  - metadata
+properties:
+  metadata:
+    $ref: ../../../rumv3/metadata.json

@@ -1,2 +1,0 @@
-FROM docker.elastic.co/wolfi/chainguard-base:20230214
-RUN echo 'TBC'
