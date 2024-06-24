@@ -13,14 +13,14 @@ require (
 	github.com/elastic/go-lumber v0.1.1
 	github.com/google/pprof v0.0.0-20210720184732-4bb14d4b1be1
 	github.com/hashicorp/go-multierror v1.1.1
-	github.com/jaegertracing/jaeger v1.58.0
+	github.com/jaegertracing/jaeger v1.58.1
 	github.com/stretchr/testify v1.9.0
 	github.com/testcontainers/testcontainers-go v0.31.0
 	github.com/tidwall/gjson v1.17.1
 	go.elastic.co/apm/v2 v2.6.0
 	go.elastic.co/fastjson v1.3.0
-	go.opentelemetry.io/collector/pdata v1.9.0
-	go.opentelemetry.io/collector/semconv v0.102.1
+	go.opentelemetry.io/collector/pdata v1.10.0
+	go.opentelemetry.io/collector/semconv v0.103.0
 	go.opentelemetry.io/otel v1.27.0
 	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc v1.27.0
 	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp v1.27.0
@@ -103,6 +103,6 @@ require (
 	golang.org/x/tools v0.21.1-0.20240508182429-e35e4ccd0d2d // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20240520151616-dc85e6b867a5 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240520151616-dc85e6b867a5 // indirect
-	google.golang.org/protobuf v1.34.1 // indirect
+	google.golang.org/protobuf v1.34.2 // indirect
 	howett.net/plist v1.0.0 // indirect
 )
