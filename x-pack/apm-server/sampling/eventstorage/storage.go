@@ -263,7 +263,23 @@ func (rw *ReadWriter) ReadTraceEvents(traceID string, out *modelpb.Batch) error 
 	rw.readKeyBuf = append(append(rw.readKeyBuf[:0], traceID...), ':')
 	opts.Prefix = rw.readKeyBuf
 
+	// 1st pass: check whether there exist keys matching the prefix.
+	// Do not prefetch values so that the check is done in-memory.
+	// This is to optimize for cases when it is a miss.
+	opts.PrefetchValues = false
 	iter := rw.txn.NewIterator(opts)
+	iter.Rewind()
+	if !iter.Valid() {
+		iter.Close()
+		return nil
+	}
+	iter.Close()
+
+	// 2nd pass: this is only done when there exist keys matching the prefix.
+	// Fetch the events with PrefetchValues for performance.
+	// This is to optimize for cases when it is a hit.
+	opts.PrefetchValues = true
+	iter = rw.txn.NewIterator(opts)
 	defer iter.Close()
 	for iter.Rewind(); iter.Valid(); iter.Next() {
 		item := iter.Item()
