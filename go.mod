@@ -26,7 +26,7 @@ require (
 	github.com/google/go-cmp v0.6.0
 	github.com/gorilla/mux v1.8.1
 	github.com/hashicorp/golang-lru v1.0.2
-	github.com/jaegertracing/jaeger v1.58.0
+	github.com/jaegertracing/jaeger v1.58.1
 	github.com/libp2p/go-reuseport v0.4.0
 	github.com/modern-go/reflect2 v1.0.2
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger v0.103.0
