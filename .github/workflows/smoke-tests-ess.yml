@@ -61,11 +61,14 @@ jobs:
           aws-csv-file: ${{ secrets.OBSERVABILITY_AWS_CSV_FILE }}
           aws-profile: ${{ secrets.OBSERVABILITY_AWS_PROFILE }}
 
+
+      - uses: elastic/oblt-actions/google/auth@v1
+
       - uses: google-github-actions/get-secretmanager-secrets@dc4a1392bad0fd60aee00bb2097e30ef07a1caae # v2.1.3
         with:
           export_to_environment: true
           secrets: |-
-            EC_API_KEY:elastic-observability/secrets/elastic-cloud-observability-team-pro-api-key
+            EC_API_KEY:elastic-observability/elastic-cloud-observability-team-pro-api-key
 
       - name: Run smoke tests ${{ matrix.test }} for ${{ matrix.version }}
         run: make smoketest/run-version TEST_DIR=${{ matrix.test }} SMOKETEST_VERSION=${{ matrix.version }}
