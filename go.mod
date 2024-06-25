@@ -9,10 +9,10 @@ require (
 	github.com/dgraph-io/badger/v2 v2.2007.4
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/apm-aggregation v1.0.1
-	github.com/elastic/apm-data v1.4.0
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20240620125253-ffdb3c91c700
-	github.com/elastic/elastic-agent-client/v7 v7.11.0
-	github.com/elastic/elastic-agent-libs v0.9.12
+	github.com/elastic/apm-data v1.5.0
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20240624075134-40bfa06b9d60
+	github.com/elastic/elastic-agent-client/v7 v7.13.0
+	github.com/elastic/elastic-agent-libs v0.9.13
 	github.com/elastic/elastic-agent-system-metrics v0.10.3
 	github.com/elastic/gmux v0.3.2
 	github.com/elastic/go-docappender/v2 v2.1.4
@@ -26,7 +26,7 @@ require (
 	github.com/google/go-cmp v0.6.0
 	github.com/gorilla/mux v1.8.1
 	github.com/hashicorp/golang-lru v1.0.2
-	github.com/jaegertracing/jaeger v1.58.0
+	github.com/jaegertracing/jaeger v1.58.1
 	github.com/libp2p/go-reuseport v0.4.0
 	github.com/modern-go/reflect2 v1.0.2
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger v0.103.0
@@ -104,8 +104,6 @@ require (
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/gomodule/redigo v1.8.9 // indirect
 	github.com/h2non/filetype v1.1.3 // indirect
-	github.com/hashicorp/errwrap v1.1.0 // indirect
-	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/hashicorp/go-uuid v1.0.3 // indirect
 	github.com/imdario/mergo v0.3.13 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
