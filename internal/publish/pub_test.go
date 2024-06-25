@@ -32,6 +32,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"go.elastic.co/apm/v2/apmtest"
+	"go.elastic.co/fastjson"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/idxmgmt"
@@ -97,6 +98,8 @@ func TestPublisherStopShutdownInactive(t *testing.T) {
 }
 
 func BenchmarkPublisher(b *testing.B) {
+	require.NoError(b, logp.DevelopmentSetup(logp.ToObserverOutput()))
+
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Elastic-Product", "Elasticsearch")
@@ -109,14 +112,30 @@ func BenchmarkPublisher(b *testing.B) {
 		assert.NoError(b, err)
 		defer gzr.Close()
 
+		var jsonw fastjson.Writer
+		jsonw.RawString(`{"items":[`)
+		first := true
+
 		scanner := bufio.NewScanner(gzr)
 		var n int64
-		for scanner.Scan() { // index
-			if scanner.Scan() { // actual event
-				n++
+
+		// stop if there's no more data or we bump into an empty line
+		// Prevent an issue with clients appending newlines to
+		// valid requests
+		for scanner.Scan() && len(scanner.Bytes()) != 0 { // index
+			require.True(b, scanner.Scan())
+
+			if first {
+				first = false
+			} else {
+				jsonw.RawByte(',')
 			}
+			jsonw.RawString(`{"create":{"status":201}}`)
+			n++
 		}
 		assert.NoError(b, scanner.Err())
+		jsonw.RawString(`]}`)
+		w.Write(jsonw.Bytes())
 		indexed.Add(n)
 	})
 	srv := httptest.NewServer(mux)
@@ -137,9 +156,12 @@ func BenchmarkPublisher(b *testing.B) {
 	namespace := config.Namespace{}
 	err = conf.Unpack(&namespace)
 	require.NoError(b, err)
+
 	pipeline, err := pipeline.New(
 		beat.Info{},
-		pipeline.Monitors{},
+		pipeline.Monitors{
+			Logger: logp.NewLogger("monitor"),
+		},
 		namespace,
 		outputGroup,
 		pipeline.Settings{
