@@ -161,12 +161,11 @@ jobs:
 
       # Notify failure to Slack only on schedule (nightly run)
       - if: failure() && github.event_name == 'schedule'
-        uses: elastic/oblt-actions/slack/notify-result@v1.9.1
+        uses: elastic/oblt-actions/slack/notify-result@v1
         with:
           bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
           channel-id: "#apm-server"
-          message: |
-            Nightly APM Server benchmarks failed! SDH Duty assignee, please have a look and follow this <https://github.com/elastic/observability-dev/blob/main/docs/apm/apm-server/runbooks/benchmarks.md|Runbook>!
+          message: Nightly APM Server benchmarks failed! SDH Duty assignee, please have a look and follow this <https://github.com/elastic/observability-dev/blob/main/docs/apm/apm-server/runbooks/benchmarks.md|Runbook>!
 
       # Notify result to Slack only on schedule (nightly run)
       - if: github.event_name == 'schedule'
