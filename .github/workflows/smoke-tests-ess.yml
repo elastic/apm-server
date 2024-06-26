@@ -27,9 +27,6 @@ jobs:
       - id: generate
         name: Generate matrix and date
         uses: ./.github/workflows/generate-smoke-tests-list
-        with:
-          aws-csv-file: ${{ secrets.OBSERVABILITY_AWS_CSV_FILE }}
-          aws-profile: ${{ secrets.OBSERVABILITY_AWS_PROFILE }}
 
   smoke-tests-ess:
     name: Run smoke tests ${{ matrix.test }} for ${{ matrix.version }}
