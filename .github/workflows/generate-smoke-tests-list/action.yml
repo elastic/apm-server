@@ -3,13 +3,6 @@
 name: generate-smoke-tests-list
 description: Generate smoke tests list
 
-inputs:
-  aws-csv-file:
-    description: 'Content with the AWS csv file'
-    required: true
-  aws-profile:
-    description: 'aws profile'
-    required: true
 outputs:
   tests:
     description: "List of smoke tests"
@@ -21,10 +14,6 @@ outputs:
 runs:
   using: "composite"
   steps:
-    - name: Setup cluster env
-      uses: ./.github/workflows/setup-cluster-env
-
-    - uses: elastic/oblt-actions/aws/auth@v1
     - id: generate
       name: Generate matrix and date
       run: |
