@@ -30,6 +30,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON(needs.prepare-smoke-tests-os.outputs.matrix) }}
+    permissions:
+      contents: read
+      id-token: write
     uses: ./.github/workflows/smoke-tests-os.yml
     with:
       branch: ${{ matrix.branch }}
@@ -37,6 +40,9 @@ jobs:
 
   smoke-tests-ess:
     name: Run smoke tests ESS
+    permissions:
+      contents: read
+      id-token: write
     uses: ./.github/workflows/smoke-tests-ess.yml
     with:
       branch: 'main'
