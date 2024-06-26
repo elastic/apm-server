@@ -23,9 +23,8 @@ runs:
   steps:
     - name: Setup cluster env
       uses: ./.github/workflows/setup-cluster-env
-      with:
-        aws-csv-file: ${{ inputs.aws-csv-file }}
-        aws-profile: ${{ inputs.aws-profile }}
+
+    - uses: elastic/oblt-actions/aws/auth@v1
     - id: generate
       name: Generate matrix and date
       run: |
