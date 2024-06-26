@@ -3,14 +3,6 @@
 name: setup-cluster-env
 description: Setup cluster env
 
-inputs:
-  aws-csv-file:
-    description: 'Content with the AWS csv file'
-    required: true
-  aws-profile:
-    description: 'aws profile'
-    required: true
-
 runs:
   using: "composite"
   steps:
@@ -20,15 +12,3 @@ runs:
         cache-dependency-path: |
           go.sum
           tools/go.sum
-    - name: Configure AWS account
-      run: |
-        echo "${AWS_ACCOUNT_IMPORT}" > ${{ runner.temp }}/account.csv;
-        sed -i 's/User name/User Name/g' ${{ runner.temp }}/account.csv;
-        aws configure import --csv file://${{ runner.temp }}/account.csv;
-        echo 'AWS_ACCOUNT_IMPORT='        >> ${GITHUB_ENV};
-        echo "AWS_PROFILE=${AWS_PROFILE}" >> ${GITHUB_ENV}
-        rm -f ${{ runner.temp }}/account.csv;
-      shell: 'bash'
-      env:
-        AWS_ACCOUNT_IMPORT: ${{ inputs.aws-csv-file }}
-        AWS_PROFILE: ${{ inputs.aws-profile }}
