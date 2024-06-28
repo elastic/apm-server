@@ -34,9 +34,6 @@ import (
 
 var retryableStatuses = []int{
 	http.StatusTooManyRequests,
-	http.StatusBadGateway,
-	http.StatusServiceUnavailable,
-	http.StatusGatewayTimeout,
 }
 
 var userAgent = fmt.Sprintf("Elastic-APM-Server/%s go-elasticsearch/%s", version.Version, esv8.Version)
