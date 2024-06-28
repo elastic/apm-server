@@ -576,11 +576,11 @@ SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/beats/v7
-Version: v7.17.23-0.20240626151442-9e2b30344b62
+Version: v7.17.23-0.20240628001259-d2f40a717dac
 Licence type (autodetected): Elastic
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.17.23-0.20240626151442-9e2b30344b62/LICENSE.txt:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.17.23-0.20240628001259-d2f40a717dac/LICENSE.txt:
 
 Source code in this repository is variously licensed under the Apache License
 Version 2.0, an Apache compatible license, or the Elastic License. Outside of
@@ -10501,11 +10501,11 @@ limitations under the License.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/fatih/color
-Version: v1.14.1
+Version: v1.16.0
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/fatih/color@v1.14.1/LICENSE.md:
+Contents of probable licence file $GOMODCACHE/github.com/fatih/color@v1.16.0/LICENSE.md:
 
 The MIT License (MIT)
 
@@ -15592,11 +15592,11 @@ SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/mattn/go-isatty
-Version: v0.0.17
+Version: v0.0.20
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/mattn/go-isatty@v0.0.17/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/mattn/go-isatty@v0.0.20/LICENSE:
 
 Copyright (c) Yasuhiro MATSUMOTO <mattn.jp@gmail.com>
 
@@ -20383,11 +20383,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/sys
-Version: v0.19.0
+Version: v0.20.0
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/sys@v0.19.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/sys@v0.20.0/LICENSE:
 
 Copyright (c) 2009 The Go Authors. All rights reserved.
 
