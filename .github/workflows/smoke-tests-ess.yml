@@ -27,15 +27,14 @@ jobs:
       - id: generate
         name: Generate matrix and date
         uses: ./.github/workflows/generate-smoke-tests-list
-        with:
-          vault-url: ${{ secrets.VAULT_ADDR }}
-          vault-role-id: ${{ secrets.VAULT_ROLE_ID }}
-          vault-secret-id: ${{ secrets.VAULT_SECRET_ID }}
 
   smoke-tests-ess:
     name: Run smoke tests ${{ matrix.test }} for ${{ matrix.version }}
     runs-on: ubuntu-latest
     needs: prepare
+    permissions:
+      contents: read
+      id-token: write
     env:
       TF_VAR_BUILD_ID: ${{ github.run_id }}
       TF_VAR_ENVIRONMENT: 'ci'
@@ -55,12 +54,17 @@ jobs:
           ref: ${{ inputs.branch }}
       - name: Setup cluster env
         uses: ./.github/workflows/setup-cluster-env
+
+      - uses: elastic/oblt-actions/aws/auth@v1
+
+      - uses: elastic/oblt-actions/google/auth@v1
+
+      - uses: google-github-actions/get-secretmanager-secrets@dc4a1392bad0fd60aee00bb2097e30ef07a1caae # v2.1.3
         with:
-          vault-url: ${{ secrets.VAULT_ADDR }}
-          vault-role-id: ${{ secrets.VAULT_ROLE_ID }}
-          vault-secret-id: ${{ secrets.VAULT_SECRET_ID }}
-          ec-key-secret: 'secret/observability-team/ci/elastic-cloud/observability-team-pro'
-          aws-account-secret: 'secret/observability-team/ci/elastic-observability-aws-account-auth'
+          export_to_environment: true
+          secrets: |-
+            EC_API_KEY:elastic-observability/elastic-cloud-observability-team-pro-api-key
+
       - name: Run smoke tests ${{ matrix.test }} for ${{ matrix.version }}
         run: make smoketest/run-version TEST_DIR=${{ matrix.test }} SMOKETEST_VERSION=${{ matrix.version }}
       - if: always()

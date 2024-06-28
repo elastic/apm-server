@@ -68,6 +68,7 @@ jobs:
           GOTESTFLAGS: "-v -json"
           OUTPUT_JSON_FILE: "build/TEST-go-system_tests.out.json"
           OUTPUT_JUNIT_FILE: "build/TEST-go-system_tests.xml"
+          GH_TOKEN: ${{ github.token }}
         run: |
           go run -modfile=tools/go.mod gotest.tools/gotestsum \
           --no-color -f standard-quiet --jsonfile "$OUTPUT_JSON_FILE" --junitfile "$OUTPUT_JUNIT_FILE" \
@@ -92,9 +93,10 @@ jobs:
 
   test-package-and-push:
     runs-on: ubuntu-latest
-    if: github.event_name != 'pull_request' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false)
+    # If no PR event or if a PR event that's caused by a non-fork and non dependabot actor
+    if: github.event_name != 'pull_request' || ( github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false && github.actor != 'dependabot[bot]' )
     env:
-      GENERATE_CHAINGUARD_IMAGES: true
+      GENERATE_WOLFI_IMAGES: true
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5

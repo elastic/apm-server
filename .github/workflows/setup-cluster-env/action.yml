@@ -3,25 +3,6 @@
 name: setup-cluster-env
 description: Setup cluster env
 
-inputs:
-  vault-url:
-    description: 'Vault URL'
-    required: true
-  vault-role-id:
-    description: 'Vault role ID'
-    required: true
-  vault-secret-id:
-    description: 'Vault secret ID'
-    required: true
-  ec-key-secret:
-    default: 'secret/observability-team/ci/elastic-cloud/observability-team-pro'
-    description: 'EC Key secret'
-    required: false
-  aws-account-secret:
-    default: 'secret/observability-team/ci/elastic-observability-aws-account-auth'
-    description: 'AWS account secret'
-    required: false
-
 runs:
   using: "composite"
   steps:
@@ -31,21 +12,3 @@ runs:
         cache-dependency-path: |
           go.sum
           tools/go.sum
-    - uses: hashicorp/vault-action@v3.0.0
-      with:
-        url: ${{ inputs.vault-url }}
-        roleId: ${{ inputs.vault-role-id }}
-        secretId: ${{ inputs.vault-secret-id }}
-        method: approle
-        secrets: |
-          ${{ inputs.ec-key-secret }} apiKey | EC_API_KEY ;
-          ${{ inputs.aws-account-secret }} user | AWS_PROFILE ;
-          ${{ inputs.aws-account-secret }} csv | AWS_ACCOUNT_IMPORT
-    - name: Configure AWS account
-      run: |
-        echo "${AWS_ACCOUNT_IMPORT}" > ${{ runner.temp }}/account.csv;
-        sed -i 's/User name/User Name/g' ${{ runner.temp }}/account.csv;
-        aws configure import --csv file://${{ runner.temp }}/account.csv;
-        echo 'AWS_ACCOUNT_IMPORT=' >> ${GITHUB_ENV};
-        rm -f ${{ runner.temp }}/account.csv;
-      shell: 'bash'

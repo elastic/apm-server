@@ -30,6 +30,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON(needs.prepare-smoke-tests-os.outputs.matrix) }}
+    permissions:
+      contents: read
+      id-token: write
     uses: ./.github/workflows/smoke-tests-os.yml
     with:
       branch: ${{ matrix.branch }}
@@ -37,6 +40,9 @@ jobs:
 
   smoke-tests-ess:
     name: Run smoke tests ESS
+    permissions:
+      contents: read
+      id-token: write
     uses: ./.github/workflows/smoke-tests-ess.yml
     with:
       branch: 'main'
@@ -54,10 +60,8 @@ jobs:
         uses: elastic/apm-pipeline-library/.github/actions/check-dependent-jobs@current
         with:
           needs: ${{ toJSON(needs) }}
-      - uses: elastic/apm-pipeline-library/.github/actions/notify-build-status@current
+      - uses: elastic/oblt-actions/slack/notify-result@v1.9.1
         with:
+          bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
+          channel-id: "#apm-server"
           status: ${{ steps.check.outputs.status }}
-          vaultUrl: ${{ secrets.VAULT_ADDR }}
-          vaultRoleId: ${{ secrets.VAULT_ROLE_ID }}
-          vaultSecretId: ${{ secrets.VAULT_SECRET_ID }}
-          slackChannel: "#apm-server"

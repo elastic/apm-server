@@ -14,7 +14,7 @@ GOTESTFLAGS?=-v
 GOMODFLAG?=-mod=readonly
 
 PYTHON_ENV?=.
-PYTHON_VENV_DIR:=$(PYTHON_ENV)/build/ve/$(shell $(GO) env GOOS)
+PYTHON_VENV_DIR:=$(PYTHON_ENV)/build/ve/$(shell go env GOOS)
 PYTHON_BIN:=$(PYTHON_VENV_DIR)/bin
 PYTHON=$(PYTHON_BIN)/python
 CURRENT_DIR=$(shell dirname $(shell readlink -f $(firstword $(MAKEFILE_LIST))))
@@ -50,7 +50,7 @@ LDFLAGS := \
 .PHONY: $(APM_SERVER_BINARIES)
 $(APM_SERVER_BINARIES):
 	env CGO_ENABLED=0 GOOS=$(GOOS) GOARCH=$(GOARCH) \
-	$(GO) build -o $@ -trimpath $(GOFLAGS) $(GOMODFLAG) -ldflags "$(LDFLAGS)" ./x-pack/apm-server
+	go build -o $@ -trimpath $(GOFLAGS) $(GOMODFLAG) -ldflags "$(LDFLAGS)" ./x-pack/apm-server
 
 build/apm-server-linux-%: GOOS=linux
 build/apm-server-darwin-%: GOOS=darwin
@@ -65,24 +65,24 @@ GOVERSIONINFO_FLAGS := \
 
 build/apm-server-windows-amd64.exe: x-pack/apm-server/versioninfo_windows_amd64.syso
 x-pack/apm-server/versioninfo_windows_amd64.syso: GOVERSIONINFO_FLAGS+=-64
-x-pack/apm-server/versioninfo_%.syso: $(GOVERSIONINFO) $(GITREFFILE) packaging/versioninfo.json
-	$(GOVERSIONINFO) -o $@ $(GOVERSIONINFO_FLAGS) packaging/versioninfo.json
+x-pack/apm-server/versioninfo_%.syso: $(GITREFFILE) packaging/versioninfo.json
+	go run -modfile=tools/go.mod github.com/josephspurrier/goversioninfo/cmd/goversioninfo -o $@ $(GOVERSIONINFO_FLAGS) packaging/versioninfo.json
 
 .PHONY: apm-server
-apm-server: build/apm-server-$(shell $(GO) env GOOS)-$(shell $(GO) env GOARCH)
+apm-server: build/apm-server-$(shell go env GOOS)-$(shell go env GOARCH)
 	@cp $^ $@
 
 .PHONY: apm-server-oss
 apm-server-oss:
-	@$(GO) build $(GOMODFLAG) -o $@ ./cmd/apm-server
+	@go build $(GOMODFLAG) -o $@ ./cmd/apm-server
 
 .PHONY: test
 test:
-	@$(GO) test $(GOMODFLAG) $(GOTESTFLAGS) ./...
+	@go test $(GOMODFLAG) $(GOTESTFLAGS) ./...
 
 .PHONY: system-test
 system-test:
-	@(cd systemtest; $(GO) test $(GOMODFLAG) $(GOTESTFLAGS) -timeout=20m ./...)
+	@(cd systemtest; go test $(GOMODFLAG) $(GOTESTFLAGS) -timeout=20m ./...)
 
 .PHONY:
 clean:
@@ -97,7 +97,7 @@ check-full: update check staticcheck
 
 .PHONY: check-approvals
 check-approvals:
-	@$(GO) run -modfile=tools/go.mod github.com/elastic/apm-tools/cmd/check-approvals
+	@go run -modfile=tools/go.mod github.com/elastic/apm-tools/cmd/check-approvals
 
 check: check-fmt check-headers check-git-diff
 
@@ -109,7 +109,7 @@ BENCH_BENCHTIME?=100ms
 BENCH_COUNT?=1
 .PHONY: bench
 bench:
-	@$(GO) test -count=$(BENCH_COUNT) -benchmem -run=XXX -benchtime=$(BENCH_BENCHTIME) -bench='.*' ./...
+	@go test -count=$(BENCH_COUNT) -benchmem -run=XXX -benchtime=$(BENCH_BENCHTIME) -bench='.*' ./...
 
 ##############################################################################
 # Rules for updating config files, etc.
@@ -125,13 +125,13 @@ apm-server.docker.yml: apm-server.yml
 
 .PHONY: go-generate
 go-generate:
-	@cd cmd/intake-receiver && APM_SERVER_VERSION=$(APM_SERVER_VERSION) $(GO) generate .
+	@cd cmd/intake-receiver && APM_SERVER_VERSION=$(APM_SERVER_VERSION) go generate .
 
 .PHONY: add-headers
-add-headers: $(GOLICENSER)
+add-headers:
 ifndef CHECK_HEADERS_DISABLED
-	@$(GOLICENSER) -exclude x-pack
-	@$(GOLICENSER) -license Elasticv2 x-pack
+	@go run -modfile=tools/go.mod github.com/elastic/go-licenser -exclude x-pack
+	@go run -modfile=tools/go.mod github.com/elastic/go-licenser -license Elasticv2 x-pack
 endif
 
 ## get-version : Get the apm server version
@@ -156,10 +156,10 @@ docs: tf-docs
 	sh script/build_apm_docs.sh apm-server docs/index.asciidoc build
 
 .PHONY: tf-docs
-tf-docs: $(TERRAFORMDOCS) $(addsuffix /README.md,$(wildcard testing/infra/terraform/modules/*))
+tf-docs: $(addsuffix /README.md,$(wildcard testing/infra/terraform/modules/*))
 
 testing/infra/terraform/modules/%/README.md: .FORCE
-	$(TERRAFORMDOCS) markdown --hide-empty --header-from header.md --output-file=README.md --output-mode replace $(subst README.md,,$@)
+	go run -modfile=tools/go.mod github.com/terraform-docs/terraform-docs markdown --hide-empty --header-from header.md --output-file=README.md --output-mode replace $(subst README.md,,$@)
 
 .PHONY: .FORCE
 .FORCE:
@@ -169,8 +169,8 @@ testing/infra/terraform/modules/%/README.md: .FORCE
 # TODO in the future we should probably trigger the updates from apm-data,
 # and just keep the JSON Schema there.
 docs/spec: go.mod
-	@$(GO) mod download github.com/elastic/apm-data
-	rsync -v --delete --filter='P spec/openapi/' --chmod=Du+rwx,go+rx --chmod=Fu+rw,go+r -r $$($(GO) list -m -f {{.Dir}} github.com/elastic/apm-data)/input/elasticapm/docs/spec ./docs
+	@go mod download github.com/elastic/apm-data
+	rsync -v --delete --filter='P spec/openapi/' --chmod=Du+rwx,go+rx --chmod=Fu+rw,go+r -r $$(go list -m -f {{.Dir}} github.com/elastic/apm-data)/input/elasticapm/docs/spec ./docs
 
 ##############################################################################
 # Beats synchronisation.
@@ -181,11 +181,11 @@ BEATS_MODULE:=github.com/elastic/beats/v7
 
 .PHONY: update-beats
 update-beats: update-beats-module update
-	@echo --- Use this commit message: Update to elastic/beats@$(shell $(GO) list -m -f {{.Version}} $(BEATS_MODULE) | cut -d- -f3)
+	@echo --- Use this commit message: Update to elastic/beats@$(shell go list -m -f {{.Version}} $(BEATS_MODULE) | cut -d- -f3)
 
 .PHONY: update-beats-module
 update-beats-module:
-	$(GO) get -d $(BEATS_MODULE)@$(BEATS_VERSION) && $(GO) mod tidy
+	go get -d $(BEATS_MODULE)@$(BEATS_VERSION) && go mod tidy
 
 ##############################################################################
 # Linting, style-checking, license header checks, etc.
@@ -198,14 +198,14 @@ update-beats-module:
 STATICCHECK_CHECKS?=all,-ST1000
 
 .PHONY: staticcheck
-staticcheck: $(STATICCHECK)
-	$(STATICCHECK) -checks=$(STATICCHECK_CHECKS) ./...
+staticcheck:
+	go run -modfile=tools/go.mod honnef.co/go/tools/cmd/staticcheck -checks=$(STATICCHECK_CHECKS) ./...
 
 .PHONY: check-headers
-check-headers: $(GOLICENSER)
+check-headers:
 ifndef CHECK_HEADERS_DISABLED
-	@$(GOLICENSER) -d -exclude build -exclude x-pack
-	@$(GOLICENSER) -d -exclude build -license Elasticv2 x-pack
+	@go run -modfile=tools/go.mod github.com/elastic/go-licenser -d -exclude build -exclude x-pack
+	@go run -modfile=tools/go.mod github.com/elastic/go-licenser -d -exclude build -license Elasticv2 x-pack
 endif
 
 .PHONY: check-docker-compose
@@ -215,23 +215,23 @@ check-docker-compose:
 .PHONY: check-gofmt gofmt
 check-fmt: check-gofmt
 fmt: gofmt
-check-gofmt: $(GOIMPORTS)
-	@PATH=$(GOOSBUILD):$(PATH) sh script/check_goimports.sh
-gofmt: $(GOIMPORTS) add-headers
+check-gofmt:
+	@sh script/check_goimports.sh
+gofmt: add-headers
 	@echo "fmt - goimports: Formatting Go code"
-	@PATH=$(GOOSBUILD):$(PATH) GOIMPORTSFLAGS=-w sh script/goimports.sh
+	@GOIMPORTSFLAGS=-w sh script/goimports.sh
 
 ##############################################################################
 # NOTICE.txt & dependencies.csv generation.
 ##############################################################################
 
 MODULE_DEPS=$(sort $(shell \
-  $(GO) list -deps -tags=darwin,linux,windows -f "{{with .Module}}{{if not .Main}}{{.Path}}{{end}}{{end}}" ./x-pack/apm-server))
+  go list -deps -tags=darwin,linux,windows -f "{{with .Module}}{{if not .Main}}{{.Path}}{{end}}{{end}}" ./x-pack/apm-server))
 
 notice: NOTICE.txt
 NOTICE.txt build/dependencies-$(APM_SERVER_VERSION).csv: go.mod tools/go.mod
 	mkdir -p build/
-	$(GO) list -m -json $(MODULE_DEPS) | go run -modfile=tools/go.mod go.elastic.co/go-licence-detector \
+	go list -m -json $(MODULE_DEPS) | go run -modfile=tools/go.mod go.elastic.co/go-licence-detector \
 		-includeIndirect \
 		-overrides tools/notice/overrides.json \
 		-rules tools/notice/rules.json \
@@ -281,7 +281,7 @@ $(PYTHON_BIN)/esrally: $(PYTHON_BIN)
 .PHONY: testing/rally/corpora
 testing/rally/corpora:
 	@rm -fr testing/rally/corpora && mkdir testing/rally/corpora
-	@cd systemtest/cmd/gencorpora && $(GO) run . -write-dir $(CURRENT_DIR)/testing/rally/corpora/ -replay-count $(RALLY_GENCORPORA_REPLAY_COUNT)
+	@cd systemtest/cmd/gencorpora && go run . -write-dir $(CURRENT_DIR)/testing/rally/corpora/ -replay-count $(RALLY_GENCORPORA_REPLAY_COUNT)
 
 ##############################################################################
 # Smoke tests -- Basic smoke tests for APM Server.
