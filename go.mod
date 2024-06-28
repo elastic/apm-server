@@ -14,7 +14,7 @@ require (
 	github.com/dop251/goja_nodejs v0.0.0-20230226152057-060fa99b809f // indirect
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/apm-server/approvaltest v0.0.0-00010101000000-000000000000
-	github.com/elastic/beats/v7 v7.17.23-0.20240626151442-9e2b30344b62
+	github.com/elastic/beats/v7 v7.17.23-0.20240628001259-d2f40a717dac
 	github.com/elastic/ecs v1.12.0
 	github.com/elastic/elastic-agent-client/v7 v7.8.1 // indirect
 	github.com/elastic/gmux v0.2.0
@@ -23,7 +23,7 @@ require (
 	github.com/elastic/go-hdrhistogram v0.1.0
 	github.com/elastic/go-sysinfo v1.9.0 // indirect
 	github.com/elastic/go-ucfg v0.8.6
-	github.com/fatih/color v1.14.1 // indirect
+	github.com/fatih/color v1.16.0 // indirect
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible
 	github.com/gofrs/uuid v4.4.0+incompatible
 	github.com/gogo/protobuf v1.3.2
@@ -66,7 +66,7 @@ require (
 	golang.org/x/mod v0.14.0 // indirect
 	golang.org/x/net v0.24.0
 	golang.org/x/sync v0.5.0
-	golang.org/x/sys v0.19.0 // indirect
+	golang.org/x/sys v0.20.0 // indirect
 	golang.org/x/time v0.3.0
 	golang.org/x/tools v0.16.0
 	google.golang.org/grpc v1.58.3
@@ -146,7 +146,7 @@ require (
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/klauspost/compress v1.15.9 // indirect
 	github.com/knadh/koanf v1.2.1 // indirect
-	github.com/mattn/go-isatty v0.0.17 // indirect
+	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/miekg/dns v1.1.41 // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
