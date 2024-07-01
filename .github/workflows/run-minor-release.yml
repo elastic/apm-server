@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'The new version to be set, normally the `minor +1` in the version in the main branch (semver format: major.minor.0)'
+        description: 'The new version to be set, normally the version in the main branch (semver format: major.minor.0)'
         required: true
         type: string
 
