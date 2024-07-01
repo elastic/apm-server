@@ -71,7 +71,7 @@ For patch releases, only the version on the existing major and minor version bra
 
 * A new [tag](https://github.com/elastic/apm-server/releases) will automatically be created on GitHub.
 
-* Bump the version in anticipation of the next release, e.g. [after 8.13.3 release](https://github.com/elastic/apm-server/pull/13066) bump to 8.13.4. **Prepare this PR ahead of time**, on release date the Release Manager will ping youbut only merge after release when pinged by the release manager.
+* Bump the version in anticipation of the next release, e.g. [after 8.13.3 release](https://github.com/elastic/apm-server/pull/13066) bump to 8.13.4. **Prepare this PR ahead of time** but only merge it once pinged by the Release Manager on release date.
 
 ## When compatibility between Agents & Server changes
 
