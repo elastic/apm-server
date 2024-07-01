@@ -473,6 +473,7 @@ func (p *Processor) Run() error {
 		}
 	})
 	g.Go(func() error {
+		var events modelpb.Batch
 		// TODO(axw) pace the publishing over the flush interval?
 		// Alternatively we can rely on backpressure from the reporter,
 		// removing the artificial one second timeout from publisher code
@@ -510,7 +511,8 @@ func (p *Processor) Run() error {
 					"received error writing sampled trace: %s", err,
 				)
 			}
-			var events modelpb.Batch
+
+			events = events[:0]
 			if err := p.eventStore.ReadTraceEvents(traceID, &events); err != nil {
 				p.rateLimitedLogger.Warnf(
 					"received error reading trace events: %s", err,
@@ -542,6 +544,11 @@ func (p *Processor) Run() error {
 				atomic.AddInt64(&p.eventMetrics.sampled, int64(len(events)))
 				if err := p.config.BatchProcessor.ProcessBatch(gracefulContext, &events); err != nil {
 					p.logger.With(logp.Error(err)).Warn("failed to report events")
+				}
+
+				for i := range events {
+					events[i].ReturnToVTPool()
+					events[i] = nil // not required but ensure that there is no ref to the freed event
 				}
 			}
 		}
