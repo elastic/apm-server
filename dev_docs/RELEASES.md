@@ -16,9 +16,9 @@ For patch releases, only the version on the existing major and minor version bra
 ## Day after Feature Freeze
 
 * Trigger release workflow manually
-  * For **patch releases**: run the [`run-patch-release`](https://github.com/elastic/apm-server/actions/workflows/run-patch-release.yml) workflow (In "Use workflow from", select `main` branch. Then in "The version", specify the patch release version the release is for).
+  * For **patch releases**: run the [`run-patch-release`](https://github.com/elastic/apm-server/actions/workflows/run-patch-release.yml) workflow (In "Use workflow from", select `main` branch. Then in "The version", specify the **next** patch release version - es: on `8.14.2` feature freeze you will use `8.14.3`).
     This workflow will: create the release branch; update version across codebase; commit and create PR targeting the release branch.
-    Release notes for patch releases must be manually added:
+    Release notes for patch releases **must be manually added**:
     * Add a new section to the existing release notes file ([Sample PR](https://github.com/elastic/apm-server/pull/12680)).
     * Review the [changelogs/head](https://github.com/elastic/apm-server/tree/main/changelogs/head.asciidoc) file and move relevant changelog entries from `head.asciidoc` to `release_version.asciidoc` if the change is backported to release_version. If changes do not apply to the version being released, keep them in the `head.asciidoc` file.
     * Review the commits in the release to ensure all changes are reflected in the release notes.
