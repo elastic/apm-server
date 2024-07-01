@@ -172,13 +172,21 @@ func TestReloaderNewRunnerParams(t *testing.T) {
 	reload.RegisterV2.GetInputList().Reload([]*reload.ConfigWithMeta{{
 		Config: config.MustNewConfigFrom(`{"revision": 1, "input": 123}`),
 	}})
+
+	// note(kyungeunni): reloader will wait until input and output are available.
+	// triggering APM reload before output reload will let the params to contain
+	// the apm tracing config too in this test setup
+	reload.RegisterV2.GetReloadableAPM().Reload(&reload.ConfigWithMeta{
+		Config: config.MustNewConfigFrom(`{"elastic.environment": "test"}`),
+	})
+
 	reload.RegisterV2.GetReloadableOutput().Reload(&reload.ConfigWithMeta{
 		Config: config.MustNewConfigFrom(`{"console.enabled": true}`),
 	})
 	args := <-calls
 	assert.NotNil(t, args.Logger)
 	assert.Equal(t, info, args.Info)
-	assert.Equal(t, config.MustNewConfigFrom(`{"revision": 1, "input": 123, "output.console.enabled": true}`), args.Config)
+	assert.Equal(t, config.MustNewConfigFrom(`{"revision": 1, "input": 123, "output.console.enabled": true, "instrumentation.environment":"test"}`), args.Config)
 }
 
 func expectNoEvent(t testing.TB, ch <-chan struct{}, message string) {

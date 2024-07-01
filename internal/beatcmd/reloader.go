@@ -155,7 +155,7 @@ func (r *Reloader) reloadAPMTracing(cfg *reload.ConfigWithMeta) error {
 	if err := r.reload(r.inputConfig, r.outputConfig, cfg.Config); err != nil {
 		return fmt.Errorf("failed to load apm tracing config: %w", err)
 	}
-	r.outputConfig = cfg.Config
+	r.apmTracingConfig = cfg.Config
 	r.logger.Info("loaded apm tracing config")
 	return nil
 }
@@ -169,6 +169,7 @@ func (r *Reloader) reload(inputConfig, outputConfig, apmTracingConfig *config.C)
 	}
 	if inputConfig == nil || !outputNamespace.IsSet() {
 		// Wait until both input and output have been received.
+		// apm tracing config is not mandatory so not waiting for it
 		return nil
 	}
 	select {
@@ -181,14 +182,25 @@ func (r *Reloader) reload(inputConfig, outputConfig, apmTracingConfig *config.C)
 	wrappedOutputConfig := config.MustNewConfigFrom(map[string]interface{}{
 		"output": outputConfig,
 	})
-	c, err := apmTracingConfig.Child("elastic", -1)
-	if err != nil {
-		return fmt.Errorf("APM tracing config for elastic not found")
+
+	var wrappedApmTracingConfig *config.C
+	// apmTracingConfig is nil when disabled
+	if apmTracingConfig != nil {
+		c, err := apmTracingConfig.Child("elastic", -1)
+		if err != nil {
+			return fmt.Errorf("APM tracing config for elastic not found")
+		}
+		// set enabled manually as APMConfig doesn't contain it
+		c.SetBool("enabled", -1, true)
+		wrappedApmTracingConfig = config.MustNewConfigFrom(map[string]interface{}{
+			"instrumentation": c,
+		})
+	} else {
+		wrappedApmTracingConfig = config.MustNewConfigFrom(map[string]interface{}{
+			"instrumentation.enabled": false,
+		})
 	}
-	mappedApmTracingConfig := config.MustNewConfigFrom(map[string]interface{}{
-		"instrumentation": c,
-	})
-	mergedConfig, err := config.MergeConfigs(inputConfig, wrappedOutputConfig, mappedApmTracingConfig)
+	mergedConfig, err := config.MergeConfigs(inputConfig, wrappedOutputConfig, wrappedApmTracingConfig)
 	if err != nil {
 		return err
 	}
