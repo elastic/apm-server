@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'The version (semver format: major.minor.0)'
+        description: 'The new version to be set, normally the version in the main branch (semver format: major.minor.0)'
         required: true
         type: string
 
@@ -67,9 +67,9 @@ jobs:
       # GitHub bot won't trigger any CI builds.
       # See https://github.com/peter-evans/create-pull-request/issues/48#issuecomment-537478081
       - name: Configure git user
-        uses: elastic/apm-pipeline-library/.github/actions/setup-git@current
+        uses: elastic/oblt-actions/git/setup@v1
         with:
-          token: ${{ env.GH_TOKEN }}
+          github-token: ${{ env.GH_TOKEN }}
 
       - name: Import GPG key
         uses: crazy-max/ghaction-import-gpg@01dd5d3ca463c7f10f7f4f7b4f177225ac661ee4  # v6.1.0

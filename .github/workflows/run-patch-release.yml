@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'The version (semver format: major.minor.patch)'
+        description: 'The current version to be released, normally the `FF version` (semver format: major.minor.patch)'
         required: true
         type: string
 
@@ -60,9 +60,9 @@ jobs:
       # GitHub bot won't trigger any CI builds.
       # See https://github.com/peter-evans/create-pull-request/issues/48#issuecomment-537478081
       - name: Configure git user
-        uses: elastic/apm-pipeline-library/.github/actions/setup-git@current
+        uses: elastic/oblt-actions/git/setup@v1
         with:
-          token: ${{ env.GH_TOKEN }}
+          github-token: ${{ env.GH_TOKEN }}
 
       - name: Import GPG key
         uses: crazy-max/ghaction-import-gpg@01dd5d3ca463c7f10f7f4f7b4f177225ac661ee4  # v6.1.0
@@ -75,7 +75,7 @@ jobs:
       - run: make patch-release
 
       - if: success()
-        uses: elastic/oblt-actions/slack/send@v1.8.0
+        uses: elastic/oblt-actions/slack/send@v1
         with:
           bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
           channel-id: ${{ env.SLACK_CHANNEL }}
@@ -85,7 +85,7 @@ jobs:
           thread-timestamp: ${{ needs.prepare.outputs.slack-thread || '' }}
 
       - if: failure()
-        uses: elastic/oblt-actions/slack/send@v1.8.0
+        uses: elastic/oblt-actions/slack/send@v1
         with:
           bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
           channel-id: ${{ env.SLACK_CHANNEL }}
