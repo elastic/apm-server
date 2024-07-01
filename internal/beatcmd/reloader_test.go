@@ -106,7 +106,7 @@ func TestReloader(t *testing.T) {
 
 	err = reload.RegisterV2.GetReloadableAPM().Reload(nil)
 	assert.NoError(t, err)
-	assertNoReload() // an instrumentation must be set
+	assertNoReload()
 
 	err = reload.RegisterV2.GetReloadableOutput().Reload(&reload.ConfigWithMeta{
 		Config: config.MustNewConfigFrom(`{"console.enabled": true}`),
