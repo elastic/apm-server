@@ -429,14 +429,10 @@ func TestProcessRemoteTailSampling(t *testing.T) {
 
 	reported := make(chan modelpb.Batch)
 	config.BatchProcessor = modelpb.ProcessBatchFunc(func(ctx context.Context, batch *modelpb.Batch) error {
-		batchCopy := make(modelpb.Batch, len(*batch))
-		for i := range *batch {
-			batchCopy[i] = (*batch)[i].CloneVT()
-		}
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
-		case reported <- batchCopy:
+		case reported <- batch.Clone():
 			return nil
 		}
 	})
