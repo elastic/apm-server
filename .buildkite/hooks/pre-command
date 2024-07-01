@@ -66,7 +66,7 @@ get_os_details() {
 
 if command -v docker &>/dev/null; then
     echo "--- Prepare Elastic docker context :docker:"
-    DOCKER_REGISTRY_SECRET_PATH="secret/ci/elastic-apm-server/docker-elastic-observability"
+    DOCKER_REGISTRY_SECRET_PATH="kv/ci-shared/observability-ci/docker-elastic-observability"
     DOCKER_USERNAME_SECRET=$(retry 5 vault kv get -field username "${DOCKER_REGISTRY_SECRET_PATH}")
     DOCKER_PASSWORD_SECRET=$(retry 5 vault kv get -field password "${DOCKER_REGISTRY_SECRET_PATH}")
     DOCKER_REGISTRY_SECRET=$(retry 5 vault kv get -field registry "${DOCKER_REGISTRY_SECRET_PATH}")
