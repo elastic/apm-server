@@ -25,7 +25,6 @@ For patch releases, only the version on the existing major and minor version bra
 
 ## Day after Feature Freeze
 
-<<<<<<< HEAD
 * For minor releases, cut a new release branch from `main` and update them.
   * Release branch:
     Update versions and ensure that the `BEATS_VERSION` in the Makefile is updated,
@@ -38,7 +37,6 @@ For patch releases, only the version on the existing major and minor version bra
     and update versions to next minor version, e.g. [#2804](https://github.com/elastic/apm-server/pull/2804).
 
   The release manager will ping the teams, but you can already prepare this in advance on the day after Feature Freeze.
-=======
 * Trigger release workflow manually
   * For **patch releases**: run the [`run-patch-release`](https://github.com/elastic/apm-server/actions/workflows/run-patch-release.yml) workflow (In "Use workflow from", select `main` branch. Then in "The version", specify the **upcoming** patch release version - es: on `8.14.2` feature freeze you will use `8.14.2`).
     This workflow will: create the release branch; update version across codebase; commit and create PR targeting the release branch.
@@ -50,7 +48,6 @@ For patch releases, only the version on the existing major and minor version bra
   * For **minor releases**: run the [`run-minor-release`](https://github.com/elastic/apm-server/actions/workflows/run-minor-release.yml) workflow (In "Use workflow from", select `main` branch. Then in "The version", specify the minor release version the release is for).  
     This workflow will: create the release branch; update the changelog for the release branch and open a PR targeting the release branch titled `<major>.<minor>: update docs`; create a PR on `main` titled `<major>.<minor>: update docs, mergify, versions and changelogs`. Before merging them compare commits between latest minor and the new minor versions and ensure all relevant PRs have been included in the Changelog. If not, amend it in both PRs. Request and wait a PR review from the team before merging.
 * The Release Manager will ping the team to align the release process
->>>>>>> daf2ef90d (ci(release): update descriptions and use oblt-actions@v1 (#13529))
 
 * Update dependencies
 

@@ -76,10 +76,7 @@ jobs:
 
       - if: success()
 <<<<<<< HEAD
-        uses: elastic/oblt-actions/slack/send@v1.8.0
-=======
         uses: elastic/oblt-actions/slack/send@v1
->>>>>>> daf2ef90d (ci(release): update descriptions and use oblt-actions@v1 (#13529))
         with:
           bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
           channel-id: ${{ env.SLACK_CHANNEL }}
@@ -89,11 +86,7 @@ jobs:
           thread-timestamp: ${{ needs.prepare.outputs.slack-thread || '' }}
 
       - if: failure()
-<<<<<<< HEAD
-        uses: elastic/oblt-actions/slack/send@v1.8.0
-=======
         uses: elastic/oblt-actions/slack/send@v1
->>>>>>> daf2ef90d (ci(release): update descriptions and use oblt-actions@v1 (#13529))
         with:
           bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
           channel-id: ${{ env.SLACK_CHANNEL }}
