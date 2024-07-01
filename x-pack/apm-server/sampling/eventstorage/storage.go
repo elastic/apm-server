@@ -5,6 +5,7 @@
 package eventstorage
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"sync/atomic"
@@ -162,12 +163,17 @@ func (rw *ReadWriter) IsTraceSampled(traceID string) (bool, error) {
 // WriteTraceEvent may return before the write is committed to storage.
 // Call Flush to ensure the write is committed.
 func (rw *ReadWriter) WriteTraceEvent(traceID string, id string, event *modelpb.APMEvent, opts WriterOpts) error {
-	key := append(append([]byte(traceID), ':'), id...)
 	data, err := rw.s.codec.EncodeEvent(event)
 	if err != nil {
 		return err
 	}
-	return rw.writeEntry(badger.NewEntry(key[:], data).WithMeta(entryMetaTraceEvent), opts)
+	var buf bytes.Buffer
+	buf.Grow(len(traceID) + 1 + len(id))
+	buf.WriteString(traceID)
+	buf.WriteByte(':')
+	buf.WriteString(id)
+	key := buf.Bytes()
+	return rw.writeEntry(badger.NewEntry(key, data).WithMeta(entryMetaTraceEvent), opts)
 }
 
 func (rw *ReadWriter) writeEntry(e *badger.Entry, opts WriterOpts) error {
