@@ -20,7 +20,7 @@ require (
 	github.com/elastic/go-sysinfo v1.14.0
 	github.com/elastic/go-ucfg v0.8.8
 	github.com/go-sourcemap/sourcemap v2.1.4+incompatible
-	github.com/gofrs/flock v0.9.0
+	github.com/gofrs/flock v0.11.0
 	github.com/gofrs/uuid v4.4.0+incompatible
 	github.com/gogo/protobuf v1.3.2
 	github.com/google/go-cmp v0.6.0
