@@ -432,7 +432,7 @@ func TestProcessRemoteTailSampling(t *testing.T) {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
-		case reported <- *batch:
+		case reported <- batch.Clone():
 			return nil
 		}
 	})
