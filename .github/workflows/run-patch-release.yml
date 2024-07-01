@@ -75,7 +75,6 @@ jobs:
       - run: make patch-release
 
       - if: success()
-<<<<<<< HEAD
         uses: elastic/oblt-actions/slack/send@v1
         with:
           bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
