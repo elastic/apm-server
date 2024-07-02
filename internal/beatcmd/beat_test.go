@@ -165,7 +165,7 @@ func TestRunManager(t *testing.T) {
 
 	expectRunnerParams(t, calls)
 	err = reload.RegisterV2.GetReloadableAPM().Reload(&reload.ConfigWithMeta{
-		Config: config.MustNewConfigFrom(`{"elastic.enabled": true, "elastic.tls.skip_verify":true}`),
+		Config: config.MustNewConfigFrom(`{"elastic.enabled": true, "elastic.environment": "testenv"}`),
 	})
 	assert.NoError(t, err)
 	args := expectRunnerParams(t, calls)
@@ -183,10 +183,8 @@ func TestRunManager(t *testing.T) {
 			},
 		},
 		"instrumentation": map[string]interface{}{
-			"enabled": true,
-			"tls": map[string]interface{}{
-				"skip_verify": true,
-			},
+			"enabled":     true,
+			"environment": "testenv",
 		},
 	}, m)
 

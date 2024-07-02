@@ -173,7 +173,7 @@ func TestReloaderNewRunnerParams(t *testing.T) {
 		Config: config.MustNewConfigFrom(`{"revision": 1, "input": 123}`),
 	}})
 
-	// note(kyungeunni): reloader will wait until input and output are available.
+	// reloader will wait until input and output are available.
 	// triggering APM reload before output reload will let the params to contain
 	// the apm tracing config too in this test setup
 	reload.RegisterV2.GetReloadableAPM().Reload(&reload.ConfigWithMeta{
