@@ -152,10 +152,14 @@ func (r *Reloader) reloadOutput(cfg *reload.ConfigWithMeta) error {
 func (r *Reloader) reloadAPMTracing(cfg *reload.ConfigWithMeta) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	if err := r.reload(r.inputConfig, r.outputConfig, cfg.Config); err != nil {
+	var c *config.C
+	if cfg != nil {
+		c = cfg.Config
+	}
+	if err := r.reload(r.inputConfig, r.outputConfig, c); err != nil {
 		return fmt.Errorf("failed to load apm tracing config: %w", err)
 	}
-	r.apmTracingConfig = cfg.Config
+	r.apmTracingConfig = c
 	r.logger.Info("loaded apm tracing config")
 	return nil
 }
@@ -196,9 +200,8 @@ func (r *Reloader) reload(inputConfig, outputConfig, apmTracingConfig *config.C)
 			"instrumentation": c,
 		})
 	} else {
-		wrappedApmTracingConfig = config.MustNewConfigFrom(map[string]interface{}{
-			"instrumentation.enabled": false,
-		})
+		// empty instrumentation config
+		wrappedApmTracingConfig = config.NewConfig()
 	}
 	mergedConfig, err := config.MergeConfigs(inputConfig, wrappedOutputConfig, wrappedApmTracingConfig)
 	if err != nil {

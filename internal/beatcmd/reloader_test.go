@@ -135,7 +135,7 @@ func TestReloader(t *testing.T) {
 	expectNoEvent(t, r2.stopped, "new runner should not have been stopped")
 
 	err = reload.RegisterV2.GetReloadableAPM().Reload(&reload.ConfigWithMeta{
-		Config: config.MustNewConfigFrom(`{"revision": "4"}`),
+		Config: config.MustNewConfigFrom(`{"elastic.enabled": true, "elastic.api_key": "boo"}`),
 	})
 	assert.NoError(t, err)
 	r3 := assertReload()
@@ -186,7 +186,7 @@ func TestReloaderNewRunnerParams(t *testing.T) {
 	args := <-calls
 	assert.NotNil(t, args.Logger)
 	assert.Equal(t, info, args.Info)
-	assert.Equal(t, config.MustNewConfigFrom(`{"revision": 1, "input": 123, "output.console.enabled": true, "instrumentation.environment":"test"}`), args.Config)
+	assert.Equal(t, config.MustNewConfigFrom(`{"revision": 1, "input": 123, "output.console.enabled": true, "instrumentation.enabled":true, "instrumentation.environment":"test"}`), args.Config)
 }
 
 func expectNoEvent(t testing.TB, ch <-chan struct{}, message string) {
