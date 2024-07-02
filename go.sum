@@ -192,8 +192,8 @@ github.com/go-openapi/swag v0.22.3 h1:yMBqmnQ0gyZvEb/+KzuWZOXgllrXT4SADYbvDaXHv/
 github.com/go-openapi/swag v0.22.3/go.mod h1:UzaqsxGiab7freDnrUUra0MwWfN/q7tE4j+VcZ0yl14=
 github.com/go-sourcemap/sourcemap v2.1.4+incompatible h1:a+iTbH5auLKxaNwQFg0B+TCYl6lbukKPc7b5x0n1s6Q=
 github.com/go-sourcemap/sourcemap v2.1.4+incompatible/go.mod h1:F8jJfvm2KbVjc5NqelyYJmf/v5J0dwNLS2mL4sNA1Jg=
-github.com/gofrs/flock v0.9.0 h1:QqEH0zKHPdEyY4YbJLleD9Il4ft7h6hn3gECO6Ss4rQ=
-github.com/gofrs/flock v0.9.0/go.mod h1:O+L78Axre/Bc0Ya3RlNiGP+Rt0tFHWjtHTQ+B2uPZw8=
+github.com/gofrs/flock v0.11.0 h1:AGFQxrpWd8ezw60AvLWIPbxMydNfF8564pwH3FCty0g=
+github.com/gofrs/flock v0.11.0/go.mod h1:FirDy1Ing0mI2+kB6wk+vyyAH+e6xiE+EYA0jnzV9jc=
 github.com/gofrs/uuid v4.4.0+incompatible h1:3qXRTX8/NbyulANqlc0lchS1gqAVxRgsuW1YrTJupqA=
 github.com/gofrs/uuid v4.4.0+incompatible/go.mod h1:b2aQJv3Z4Fp6yNu3cdSllBxTCLRxnplIgP/c0N/04lM=
 github.com/gogo/googleapis v1.4.1 h1:1Yx4Myt7BxzvUr5ldGSbwYiZG6t9wGBZ+8/fX3Wvtq0=
