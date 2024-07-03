@@ -26,8 +26,9 @@ jobs:
   bump-7:
     runs-on: ubuntu-latest
     steps:
-
       - uses: actions/checkout@v4
+        with:
+          ref: '7.17'
 
       - uses: elastic/oblt-actions/updatecli/run@v1.9.1
         with:
