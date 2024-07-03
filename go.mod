@@ -15,7 +15,7 @@ require (
 	github.com/elastic/elastic-agent-libs v0.9.13
 	github.com/elastic/elastic-agent-system-metrics v0.10.3
 	github.com/elastic/gmux v0.3.2
-	github.com/elastic/go-docappender/v2 v2.1.4
+	github.com/elastic/go-docappender/v2 v2.2.0
 	github.com/elastic/go-elasticsearch/v8 v8.14.0
 	github.com/elastic/go-sysinfo v1.14.0
 	github.com/elastic/go-ucfg v0.8.8
@@ -114,7 +114,7 @@ require (
 	github.com/jcmturner/rpc/v2 v2.0.3 // indirect
 	github.com/joeshaw/multierror v0.0.0-20140124173710-69b34d4ec901 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
-	github.com/klauspost/compress v1.17.8 // indirect
+	github.com/klauspost/compress v1.17.9 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/lufia/plan9stats v0.0.0-20220913051719-115f729f3c8c // indirect

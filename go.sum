@@ -141,8 +141,8 @@ github.com/elastic/elastic-transport-go/v8 v8.6.0 h1:Y2S/FBjx1LlCv5m6pWAF2kDJAHo
 github.com/elastic/elastic-transport-go/v8 v8.6.0/go.mod h1:YLHer5cj0csTzNFXoNQ8qhtGY1GTvSqPnKWKaqQE3Hk=
 github.com/elastic/gmux v0.3.2 h1:cb721R+fe/rt/jVNyBP5HDQsEwLD2wSKfPD2Sk6adDk=
 github.com/elastic/gmux v0.3.2/go.mod h1:OD6oYrno+SV3pyl1ArdWCjlExZ+FJOfoSaFqnFeldBQ=
-github.com/elastic/go-docappender/v2 v2.1.4 h1:R6TN4udeC5pap+uA7Lrb3pzeOm03vx6K3+yQdczviH0=
-github.com/elastic/go-docappender/v2 v2.1.4/go.mod h1:eixVwyxvjJJLMditD/9630jjPbN6nHtSkVjae8nqJsY=
+github.com/elastic/go-docappender/v2 v2.2.0 h1:Pq6w+R0ZbWlqZHoqzoujR2ElKBfaPUf3M/cJvPVSrfA=
+github.com/elastic/go-docappender/v2 v2.2.0/go.mod h1:efwvMZfrJ1dRr0SkfmZosXKmgmV/D+3E5G66rQL/B4A=
 github.com/elastic/go-elasticsearch/v8 v8.14.0 h1:1ywU8WFReLLcxE1WJqii3hTtbPUE2hc38ZK/j4mMFow=
 github.com/elastic/go-elasticsearch/v8 v8.14.0/go.mod h1:WRvnlGkSuZyp83M2U8El/LGXpCjYLrvlkSgkAH4O5I4=
 github.com/elastic/go-lumber v0.1.2-0.20220819171948-335fde24ea0f h1:TsPpU5EAwlt7YZoupKlxZ093qTZYdGou3EhfTF1U0B4=
@@ -272,8 +272,8 @@ github.com/kisielk/errcheck v1.5.0/go.mod h1:pFxgyoBC7bSaBwPgfKdkLd5X25qrDl4LWUI
 github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=
 github.com/klauspost/compress v1.12.2/go.mod h1:8dP1Hq4DHOhN9w426knH3Rhby4rFm6D8eO+e+Dq5Gzg=
 github.com/klauspost/compress v1.12.3/go.mod h1:8dP1Hq4DHOhN9w426knH3Rhby4rFm6D8eO+e+Dq5Gzg=
-github.com/klauspost/compress v1.17.8 h1:YcnTYrq7MikUT7k0Yb5eceMmALQPYBW/Xltxn0NAMnU=
-github.com/klauspost/compress v1.17.8/go.mod h1:Di0epgTjJY877eYKx5yC51cX2A2Vl2ibi7bDH9ttBbw=
+github.com/klauspost/compress v1.17.9 h1:6KIumPrER1LHsvBVuDa0r5xaG0Es51mhhB9BQB2qeMA=
+github.com/klauspost/compress v1.17.9/go.mod h1:Di0epgTjJY877eYKx5yC51cX2A2Vl2ibi7bDH9ttBbw=
 github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORNo=
 github.com/kr/pretty v0.2.1/go.mod h1:ipq/a2n7PKx3OHsz4KJII5eveXtPO4qwEXGdVfWzfnI=
 github.com/kr/pretty v0.3.0/go.mod h1:640gp4NfQd8pI5XOwp5fnNeVWj67G7CFk/SaSQn7NBk=
