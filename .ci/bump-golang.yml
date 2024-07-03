@@ -11,7 +11,7 @@ actions:
       labels:
         - automation
         - dependencies
-        - '{{ default env "GITHUB_LABELS" "backport-skip" }}'
+        - '{{ requiredEnv "GITHUB_LABELS"}}'
       description: |-
         ### What
         Bump go release version with the latest release.

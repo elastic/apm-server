@@ -60,6 +60,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.UPDATECLI_GH_TOKEN }}
           GITHUB_BRANCH: '7.17'
+          GITHUB_LABELS: 'backport-skip'
 
   notify:
     runs-on: ubuntu-latest
