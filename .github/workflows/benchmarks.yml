@@ -86,7 +86,7 @@ jobs:
 
       - uses: elastic/oblt-actions/google/auth@v1
 
-      - uses: elastic/oblt-actions/aws/auth@5859beeebfd4078da64dc73748d08dba3f61c3a0 # TODO: Use @v1 again when https://github.com/elastic/oblt-actions/pull/77 is merged and release
+      - uses: elastic/oblt-actions/aws/auth@v1
         with:
           role-duration-seconds: 14400 # 4 hours
 
