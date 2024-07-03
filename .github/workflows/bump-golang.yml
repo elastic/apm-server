@@ -28,9 +28,11 @@ jobs:
           BRANCHES: ${{ steps.generate.outputs.branches }}
         with:
           script: |
+            // We only support the latest minor version
             const branches = JSON.parse(process.env.BRANCHES)
-            const prefixedStrings = branches.map((str) => `backport-${str.trim()}`)
-            core.setOutput("backports", prefixedStrings.join(","))
+                          .sort((a, b) => parseFloat(b) - parseFloat(a));
+            const latest = branches[0]
+            core.setOutput("backports", `backport-${branches[0].trim()}`)
 
   bump:
     runs-on: ubuntu-latest
