@@ -21,8 +21,31 @@ jobs:
           command: --experimental apply --config .ci/bump-golang.yml
         env:
           GITHUB_TOKEN: ${{ secrets.UPDATECLI_GH_TOKEN }}
+          GITHUB_BRANCH: 'main'
 
-      - if: ${{ failure() }}
+  bump-7:
+    runs-on: ubuntu-latest
+    steps:
+
+      - uses: actions/checkout@v4
+
+      - uses: elastic/oblt-actions/updatecli/run@v1.9.1
+        with:
+          command: --experimental apply --config .ci/bump-golang.yml
+        env:
+          GITHUB_TOKEN: ${{ secrets.UPDATECLI_GH_TOKEN }}
+          GITHUB_BRANCH: '7.17'
+
+  notify:
+    runs-on: ubuntu-latest
+    needs: [bump, bump-7]
+    if: always()
+    steps:
+      - id: check
+        uses: elastic/apm-pipeline-library/.github/actions/check-dependent-jobs@current
+        with:
+          needs: ${{ toJSON(needs) }}
+      - if: ${{ steps.check.outputs.isSuccess == 'false' }}
         uses: elastic/oblt-actions/slack/send@v1.9.1
         with:
           bot-token: ${{ secrets.SLACK_BOT_TOKEN }}

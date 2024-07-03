@@ -27,7 +27,7 @@ scms:
       owner: elastic
       repository: apm-server
       token: '{{ requiredEnv "GITHUB_TOKEN" }}'
-      branch: main
+      branch: '{{ requiredEnv "GITHUB_BRANCH" }}'
       commitusingapi: true
 
 sources:
