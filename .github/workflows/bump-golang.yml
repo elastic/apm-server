@@ -23,10 +23,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.UPDATECLI_GH_TOKEN }}
           GITHUB_BRANCH: 'main'
 
-<<<<<<< HEAD
       - if: ${{ failure() }}
-        uses: elastic/oblt-actions/slack/send@v1.2.0
-=======
+        uses: elastic/oblt-actions/slack/send@v1
   bump-7:
     runs-on: ubuntu-latest
     steps:
@@ -52,7 +50,6 @@ jobs:
           needs: ${{ toJSON(needs) }}
       - if: ${{ steps.check.outputs.isSuccess == 'false' }}
         uses: elastic/oblt-actions/slack/send@v1.9.1
->>>>>>> 6e8f87116 (udpatecli: support bump golang for 7.17 (#13559))
         with:
           bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
           channel-id: "#apm-server"
