@@ -27,7 +27,12 @@ import (
 	"runtime"
 	"time"
 
+	"github.com/dustin/go-humanize"
+	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
+	"go.elastic.co/apm/module/apmgrpc"
+	"go.elastic.co/apm/module/apmotel/v2"
+	"go.elastic.co/apm/v2"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/sdk/metric"
 	"go.uber.org/zap"
@@ -50,6 +55,7 @@ import (
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/monitoring"
 	docappender "github.com/elastic/go-docappender"
+	"github.com/elastic/go-ucfg"
 
 	"github.com/elastic/apm-server/internal/agentcfg"
 	"github.com/elastic/apm-server/internal/beater/auth"
