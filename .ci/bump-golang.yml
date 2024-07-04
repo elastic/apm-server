@@ -1,6 +1,6 @@
 ---
 name: Bump golang-version to latest version
-pipelineid: 'updatecli-bump-golang-{{ requiredEnv "GITHUB_BRANCH" }}'
+pipelineid: 'feature/updatecli-bump-golang-{{ requiredEnv "GITHUB_BRANCH" }}'
 
 actions:
   default:
