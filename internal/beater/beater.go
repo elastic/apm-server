@@ -733,7 +733,7 @@ func (s *Runner) newDocappenderConfig(tracer *apm.Tracer, memLimit float64) (
 		} `config:"autoscaling"`
 	}
 	// Default to 1mib flushes, which is the default for go-docappender.
-	// esConfig.FlushBytes = "1 mib"
+	esConfig.FlushBytes = "1 mib"
 	esConfig.FlushInterval = time.Second
 	esConfig.Config = elasticsearch.DefaultConfig()
 	esConfig.MaxIdleConnsPerHost = 10
