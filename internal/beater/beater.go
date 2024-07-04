@@ -652,7 +652,6 @@ func (s *Runner) newFinalBatchProcessor(
 	newElasticsearchClient func(cfg *elasticsearch.Config) (*elasticsearch.Client, error),
 	memLimit float64,
 ) (modelpb.BatchProcessor, func(context.Context) error, error) {
-
 	monitoring.Default.Remove("libbeat")
 	libbeatMonitoringRegistry := monitoring.Default.NewRegistry("libbeat")
 	if s.elasticsearchOutputConfig == nil {
@@ -668,6 +667,7 @@ func (s *Runner) newFinalBatchProcessor(
 	}
 	monitoring.NewString(outputRegistry, "name").Set("elasticsearch")
 
+<<<<<<< HEAD
 	var esConfig struct {
 		*elasticsearch.Config `config:",inline"`
 		FlushBytes            string        `config:"flush_bytes"`
@@ -702,13 +702,18 @@ func (s *Runner) newFinalBatchProcessor(
 		flushBytes = minFlush
 	}
 	client, err := newElasticsearchClient(esConfig.Config)
+=======
+	// Create the docappender and Elasticsearch config
+	appenderCfg, esCfg, err := s.newDocappenderConfig(tracer, memLimit)
+>>>>>>> a453a8850 (fix: Update `FlushBytes` parsing/defaults (#13576))
 	if err != nil {
 		return nil, nil, err
 	}
-	var scalingCfg docappender.ScalingConfig
-	if enabled := esConfig.Scaling.Enabled; enabled != nil {
-		scalingCfg.Disabled = !*enabled
+	client, err := newElasticsearchClient(esCfg)
+	if err != nil {
+		return nil, nil, err
 	}
+<<<<<<< HEAD
 	opts := docappender.Config{
 		CompressionLevel: esConfig.CompressionLevel,
 		FlushBytes:       flushBytes,
@@ -720,6 +725,9 @@ func (s *Runner) newFinalBatchProcessor(
 	}
 	opts = docappenderConfig(opts, memLimit, s.logger)
 	appender, err := docappender.New(client, opts)
+=======
+	appender, err := docappender.New(client, appenderCfg)
+>>>>>>> a453a8850 (fix: Update `FlushBytes` parsing/defaults (#13576))
 	if err != nil {
 		return nil, nil, err
 	}
@@ -780,6 +788,62 @@ func (s *Runner) newFinalBatchProcessor(
 		v.OnInt(stats.IndexersDestroyed)
 	})
 	return newDocappenderBatchProcessor(appender), appender.Close, nil
+}
+
+func (s *Runner) newDocappenderConfig(tracer *apm.Tracer, memLimit float64) (
+	docappender.Config, *elasticsearch.Config, error,
+) {
+	var esConfig struct {
+		*elasticsearch.Config `config:",inline"`
+		FlushBytes            string        `config:"flush_bytes"`
+		FlushInterval         time.Duration `config:"flush_interval"`
+		MaxRequests           int           `config:"max_requests"`
+		Scaling               struct {
+			Enabled *bool `config:"enabled"`
+		} `config:"autoscaling"`
+	}
+	// Default to 1mib flushes, which is the default for go-docappender.
+	esConfig.FlushBytes = "1 mib"
+	esConfig.FlushInterval = time.Second
+	esConfig.Config = elasticsearch.DefaultConfig()
+	esConfig.MaxIdleConnsPerHost = 10
+
+	if err := s.elasticsearchOutputConfig.Unpack(&esConfig); err != nil {
+		return docappender.Config{}, nil, err
+	}
+
+	var flushBytes int
+	if esConfig.FlushBytes != "" {
+		b, err := humanize.ParseBytes(esConfig.FlushBytes)
+		if err != nil {
+			return docappender.Config{}, nil, fmt.Errorf("failed to parse flush_bytes: %w", err)
+		}
+		flushBytes = int(b)
+	}
+	minFlush := 24 * 1024
+	if esConfig.CompressionLevel != 0 && flushBytes < minFlush {
+		s.logger.Warnf("flush_bytes config value is too small (%d) and might be ignored by the indexer, increasing value to %d", flushBytes, minFlush)
+		flushBytes = minFlush
+	}
+	var scalingCfg docappender.ScalingConfig
+	if enabled := esConfig.Scaling.Enabled; enabled != nil {
+		scalingCfg.Disabled = !*enabled
+	}
+	cfg := docappenderConfig(docappender.Config{
+		CompressionLevel:  esConfig.CompressionLevel,
+		FlushBytes:        flushBytes,
+		FlushInterval:     esConfig.FlushInterval,
+		Tracer:            tracer,
+		MaxRequests:       esConfig.MaxRequests,
+		Scaling:           scalingCfg,
+		Logger:            zap.New(s.logger.Core(), zap.WithCaller(true)),
+		RequireDataStream: true,
+	}, memLimit, s.logger)
+	if cfg.MaxRequests != 0 {
+		esConfig.MaxIdleConnsPerHost = cfg.MaxRequests
+	}
+
+	return cfg, esConfig.Config, nil
 }
 
 func docappenderConfig(
