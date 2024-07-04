@@ -10,8 +10,33 @@ permissions:
   contents: read
 
 jobs:
+
+  labels:
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+    outputs:
+      backports: ${{ steps.labels.outputs.backports }}
+    steps:
+      - id: generate
+        name: Generate matrix
+        uses: elastic/apm-pipeline-library/.github/actions/elastic-stack-snapshot-branches@current
+        with:
+          exclude-branches: '7.17,main'
+      - uses: actions/github-script@v7
+        id: labels
+        env:
+          BRANCHES: ${{ steps.generate.outputs.branches }}
+        with:
+          script: |
+            // We only support the latest minor version
+            const branches = JSON.parse(process.env.BRANCHES)
+                          .sort((a, b) => parseFloat(b) - parseFloat(a));
+            const latest = branches[0]
+            core.setOutput("backports", `backport-${branches[0].trim()}`)
+
   bump:
     runs-on: ubuntu-latest
+    needs: [labels]
     steps:
 
       - uses: actions/checkout@v4
@@ -22,6 +47,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.UPDATECLI_GH_TOKEN }}
           GITHUB_BRANCH: 'main'
+          GITHUB_LABELS: ${{ needs.labels.outputs.backports }}
 
   bump-7:
     runs-on: ubuntu-latest
@@ -36,6 +62,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.UPDATECLI_GH_TOKEN }}
           GITHUB_BRANCH: '7.17'
+          GITHUB_LABELS: 'backport-skip'
 
   notify:
     runs-on: ubuntu-latest
