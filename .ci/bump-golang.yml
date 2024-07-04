@@ -1,6 +1,6 @@
 ---
 name: Bump golang-version to latest version
-pipelineid: 'updatecli-bump-golang-{{ requiredEnv "GITHUB_BRANCH" }}'
+pipelineid: 'feature/updatecli-bump-golang-{{ requiredEnv "GITHUB_BRANCH" }}'
 
 actions:
   default:
@@ -42,20 +42,20 @@ sources:
       command: cat .go-version
 
   latestGoVersion:
-    name: Get Latest Go Release
+    name: Get Latest Golang-crossbuild Release
     kind: githubrelease
     dependson:
       - minor
     transformers:
-      - trimprefix: go
+      - trimprefix: v
     spec:
-      owner: golang
-      repository: go
+      owner: elastic
+      repository: golang-crossbuild
       token: '{{ requiredEnv "GITHUB_TOKEN" }}'
       username: '{{ requiredEnv "GITHUB_ACTOR" }}'
       versionfilter:
         kind: regex
-        pattern: go1\.{{ source "minor" }}\.\d*$
+        pattern: v1\.{{ source "minor" }}\.\d*$
 
   gomod:
     dependson:
