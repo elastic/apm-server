@@ -31,12 +31,12 @@ import (
 	"go.elastic.co/apm/v2/apmtest"
 	"go.uber.org/zap"
 
-	"github.com/elastic/apm-server/internal/beater/config"
-	"github.com/elastic/apm-server/internal/elasticsearch"
 	agentconfig "github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/monitoring"
-	"github.com/elastic/go-docappender/v2"
+
+	"github.com/elastic/apm-server/internal/beater/config"
+	"github.com/elastic/apm-server/internal/elasticsearch"
 )
 
 func TestStoreUsesRUMElasticsearchConfig(t *testing.T) {

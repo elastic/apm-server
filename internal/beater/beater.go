@@ -27,12 +27,7 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/dustin/go-humanize"
-	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
-	"go.elastic.co/apm/module/apmgrpc/v2"
-	"go.elastic.co/apm/module/apmotel/v2"
-	"go.elastic.co/apm/v2"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/sdk/metric"
 	"go.uber.org/zap"
@@ -41,6 +36,8 @@ import (
 	"google.golang.org/grpc"
 	_ "google.golang.org/grpc/encoding/gzip"
 
+	"github.com/elastic/apm-data/model/modelpb"
+	"github.com/elastic/apm-data/model/modelprocessor"
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/esleg/eslegclient"
 	"github.com/elastic/beats/v7/libbeat/instrumentation"
@@ -52,11 +49,8 @@ import (
 	agentconfig "github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/monitoring"
-	"github.com/elastic/go-docappender"
-	"github.com/elastic/go-ucfg"
+	docappender "github.com/elastic/go-docappender"
 
-	"github.com/elastic/apm-data/model/modelpb"
-	"github.com/elastic/apm-data/model/modelprocessor"
 	"github.com/elastic/apm-server/internal/agentcfg"
 	"github.com/elastic/apm-server/internal/beater/auth"
 	"github.com/elastic/apm-server/internal/beater/config"
@@ -667,45 +661,8 @@ func (s *Runner) newFinalBatchProcessor(
 	}
 	monitoring.NewString(outputRegistry, "name").Set("elasticsearch")
 
-<<<<<<< HEAD
-	var esConfig struct {
-		*elasticsearch.Config `config:",inline"`
-		FlushBytes            string        `config:"flush_bytes"`
-		FlushInterval         time.Duration `config:"flush_interval"`
-		MaxRequests           int           `config:"max_requests"`
-		Scaling               struct {
-			Enabled *bool `config:"enabled"`
-		} `config:"autoscaling"`
-	}
-	esConfig.FlushInterval = time.Second
-	esConfig.Config = elasticsearch.DefaultConfig()
-	esConfig.MaxIdleConnsPerHost = 10
-	if err := s.elasticsearchOutputConfig.Unpack(&esConfig); err != nil {
-		return nil, nil, err
-	}
-
-	if esConfig.MaxRequests != 0 {
-		esConfig.MaxIdleConnsPerHost = esConfig.MaxRequests
-	}
-
-	var flushBytes int
-	if esConfig.FlushBytes != "" {
-		b, err := humanize.ParseBytes(esConfig.FlushBytes)
-		if err != nil {
-			return nil, nil, errors.Wrap(err, "failed to parse flush_bytes")
-		}
-		flushBytes = int(b)
-	}
-	minFlush := 24 * 1024
-	if esConfig.CompressionLevel != 0 && flushBytes < minFlush {
-		s.logger.Warnf("flush_bytes config value is too small (%d) and might be ignored by the indexer, increasing value to %d", flushBytes, minFlush)
-		flushBytes = minFlush
-	}
-	client, err := newElasticsearchClient(esConfig.Config)
-=======
 	// Create the docappender and Elasticsearch config
 	appenderCfg, esCfg, err := s.newDocappenderConfig(tracer, memLimit)
->>>>>>> a453a8850 (fix: Update `FlushBytes` parsing/defaults (#13576))
 	if err != nil {
 		return nil, nil, err
 	}
@@ -713,21 +670,7 @@ func (s *Runner) newFinalBatchProcessor(
 	if err != nil {
 		return nil, nil, err
 	}
-<<<<<<< HEAD
-	opts := docappender.Config{
-		CompressionLevel: esConfig.CompressionLevel,
-		FlushBytes:       flushBytes,
-		FlushInterval:    esConfig.FlushInterval,
-		Tracer:           tracer,
-		MaxRequests:      esConfig.MaxRequests,
-		Scaling:          scalingCfg,
-		Logger:           zap.New(s.logger.Core(), zap.WithCaller(true)),
-	}
-	opts = docappenderConfig(opts, memLimit, s.logger)
-	appender, err := docappender.New(client, opts)
-=======
 	appender, err := docappender.New(client, appenderCfg)
->>>>>>> a453a8850 (fix: Update `FlushBytes` parsing/defaults (#13576))
 	if err != nil {
 		return nil, nil, err
 	}
