@@ -4,6 +4,9 @@
 https://github.com/elastic/apm-server/compare/8.15\...main[View commits]
 
 [float]
+==== Bug fixes
+
+[float]
 ==== Breaking Changes
 
 [float]
