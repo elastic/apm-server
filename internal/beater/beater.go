@@ -779,14 +779,13 @@ func (s *Runner) newDocappenderConfig(tracer *apm.Tracer, memLimit float64) (
 		scalingCfg.Disabled = !*enabled
 	}
 	cfg := docappenderConfig(docappender.Config{
-		CompressionLevel:  esConfig.CompressionLevel,
-		FlushBytes:        flushBytes,
-		FlushInterval:     esConfig.FlushInterval,
-		Tracer:            tracer,
-		MaxRequests:       esConfig.MaxRequests,
-		Scaling:           scalingCfg,
-		Logger:            zap.New(s.logger.Core(), zap.WithCaller(true)),
-		RequireDataStream: true,
+		CompressionLevel: esConfig.CompressionLevel,
+		FlushBytes:       flushBytes,
+		FlushInterval:    esConfig.FlushInterval,
+		Tracer:           tracer,
+		MaxRequests:      esConfig.MaxRequests,
+		Scaling:          scalingCfg,
+		Logger:           zap.New(s.logger.Core(), zap.WithCaller(true)),
 	}, memLimit, s.logger)
 	if cfg.MaxRequests != 0 {
 		esConfig.MaxIdleConnsPerHost = cfg.MaxRequests

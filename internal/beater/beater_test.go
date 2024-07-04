@@ -180,7 +180,6 @@ func TestRunnerNewDocappenderConfig(t *testing.T) {
 			assert.Equal(t, docappender.Config{
 				Logger:             zap.New(r.logger.Core(), zap.WithCaller(true)),
 				CompressionLevel:   5,
-				RequireDataStream:  true,
 				FlushInterval:      time.Second,
 				FlushBytes:         1024 * 1024,
 				MaxRequests:        c.wantMaxRequests,
@@ -210,7 +209,6 @@ func TestRunnerNewDocappenderConfig(t *testing.T) {
 			assert.Equal(t, docappender.Config{
 				Logger:             zap.New(r.logger.Core(), zap.WithCaller(true)),
 				CompressionLevel:   5,
-				RequireDataStream:  true,
 				FlushInterval:      2 * time.Second,
 				FlushBytes:         500 * 1024,
 				MaxRequests:        50,
