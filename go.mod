@@ -9,8 +9,8 @@ require (
 	github.com/dgraph-io/badger/v2 v2.2007.4
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/apm-aggregation v1.0.1
-	github.com/elastic/apm-data v1.6.0
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20240703144114-48e4af47abf7
+	github.com/elastic/apm-data v1.7.0
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20240704144241-c111789e3c61
 	github.com/elastic/elastic-agent-client/v7 v7.13.0
 	github.com/elastic/elastic-agent-libs v0.9.13
 	github.com/elastic/elastic-agent-system-metrics v0.10.3
@@ -90,7 +90,7 @@ require (
 	github.com/elastic/go-structform v0.0.10 // indirect
 	github.com/elastic/go-windows v1.0.1 // indirect
 	github.com/elastic/gosigar v0.14.3 // indirect
-	github.com/elastic/opentelemetry-lib v0.4.0 // indirect
+	github.com/elastic/opentelemetry-lib v0.6.1 // indirect
 	github.com/elastic/pkcs8 v1.0.0 // indirect
 	github.com/fatih/color v1.16.0 // indirect
 	github.com/frankban/quicktest v1.14.0 // indirect
