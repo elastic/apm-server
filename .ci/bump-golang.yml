@@ -104,7 +104,7 @@ targets:
       content: 'go {{ source "gomod" }}'
       files:
         - go.mod
-        - cmd/intake-receiver/go.mod
+        - approvaltest/go.mod
         - internal/glog/go.mod
         - systemtest/go.mod
         - tools/go.mod
