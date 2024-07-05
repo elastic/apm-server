@@ -9,6 +9,7 @@ https://github.com/elastic/apm-server/compare/8.14\...main[View commits]
 - Avoid data race due to reuse of `bytes.Buffer` in ES bulk requests {pull}13155[13155]
 - APM Server now relies on the Elasticsearch apm-data plugin's index templates, which reverts some unsafe uses of `flattened` field types {pull}12066[12066]
 - Add `error.id` to jaeger errors {pull}13196[13196]
+- Fix a performance regression for apm servers which don't specify `output.elasticsearch.flush_bytes` {pull}13576[13576]
 
 [float]
 ==== Breaking Changes
