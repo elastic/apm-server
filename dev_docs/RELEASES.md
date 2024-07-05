@@ -18,11 +18,12 @@ For patch releases, only the version on the existing major and minor version bra
 * Trigger release workflow manually
   * For **patch releases**: run the [`run-patch-release`](https://github.com/elastic/apm-server/actions/workflows/run-patch-release.yml) workflow (In "Use workflow from", select `main` branch. Then in "The version", specify the **upcoming** patch release version - es: on `8.14.2` feature freeze you will use `8.14.2`).
     This workflow will: create the release branch; update version across codebase; commit and create PR targeting the release branch.
-    Release notes for patch releases **must be manually added**:
+    Release notes for patch releases **must be manually added** (PR should target `main` branch and backported to the release branch):
     * Add a new section to the existing release notes file ([Sample PR](https://github.com/elastic/apm-server/pull/12680)).
     * Review the [changelogs/head](https://github.com/elastic/apm-server/tree/main/changelogs/head.asciidoc) file and move relevant changelog entries from `head.asciidoc` to `release_version.asciidoc` if the change is backported to release_version. If changes do not apply to the version being released, keep them in the `head.asciidoc` file.
-    * Review the commits in the release to ensure all changes are reflected in the release notes.
+    * Review the commits in the release to ensure all changes are reflected in the release notes. Check for backported changes without release notes in `release_version.asciidoc`.
     * Add your PR to the documentation release issue ([Sample Issue](https://github.com/elastic/dev/issues/2485)).
+    * The PR should only be merged on release day.
   * For **minor releases**: run the [`run-minor-release`](https://github.com/elastic/apm-server/actions/workflows/run-minor-release.yml) workflow (In "Use workflow from", select `main` branch. Then in "The version", specify the minor release version the release is for).  
     This workflow will: create the release branch; update the changelog for the release branch and open a PR targeting the release branch titled `<major>.<minor>: update docs`; create a PR on `main` titled `<major>.<minor>: update docs, mergify, versions and changelogs`. Before merging them compare commits between latest minor and the new minor versions and ensure all relevant PRs have been included in the Changelog. If not, amend it in both PRs. Request and wait a PR review from the team before merging.
 * The Release Manager will ping the team to align the release process
