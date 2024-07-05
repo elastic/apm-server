@@ -1,10 +1,10 @@
 github.com/Azure/azure-sdk-for-go v65.0.0+incompatible h1:HzKLt3kIwMm4KeJYTdx9EbjRYTySD/t8i1Ee/W5EGXw=
-github.com/Azure/azure-sdk-for-go/sdk/azcore v1.11.1 h1:E+OJmp2tPvt1W+amx48v1eqbjDYsgN+RzP4q16yV5eM=
-github.com/Azure/azure-sdk-for-go/sdk/azcore v1.11.1/go.mod h1:a6xsAQUZg+VsS3TJ05SRp524Hs4pZ/AeFSr5ENf0Yjo=
-github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.5.2 h1:FDif4R1+UUR+00q6wquyX90K7A8dN+R5E8GEadoP7sU=
-github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.5.2/go.mod h1:aiYBYui4BJ/BJCAIKs92XiPyQfTaBWqvHujDwKb6CBU=
-github.com/Azure/azure-sdk-for-go/sdk/internal v1.7.0 h1:rTfKOCZGy5ViVrlA74ZPE99a+SgoEE2K/yg3RyW9dFA=
-github.com/Azure/azure-sdk-for-go/sdk/internal v1.7.0/go.mod h1:4OG6tQ9EOP/MT0NMjDlRzWoVFxfu9rN9B2X+tlSVktg=
+github.com/Azure/azure-sdk-for-go/sdk/azcore v1.12.0 h1:1nGuui+4POelzDwI7RG56yfQJHCnKvwfMoU7VsEp+Zg=
+github.com/Azure/azure-sdk-for-go/sdk/azcore v1.12.0/go.mod h1:99EvauvlcJ1U06amZiksfYz/3aFGyIhWGHVyiZXtBAI=
+github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.7.0 h1:tfLQ34V6F7tVSwoTf/4lH5sE0o6eCJuNDTmH09nDpbc=
+github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.7.0/go.mod h1:9kIvujWAA58nmPmWB1m23fyWic1kYZMxD9CxaWn4Qpg=
+github.com/Azure/azure-sdk-for-go/sdk/internal v1.9.1 h1:Xy/qV1DyOhhqsU/z0PyFMJfYCxnzna+vBEUtFW0ksQo=
+github.com/Azure/azure-sdk-for-go/sdk/internal v1.9.1/go.mod h1:oib6iWdC+sILvNUoJbbBn3xv7TXow7mEp/WRcsYvmow=
 github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/containerservice/armcontainerservice/v4 v4.6.0 h1:AAIdAyPkFff6XTct2lQCxOWN/+LnA41S7kIkzKaMbyE=
 github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/containerservice/armcontainerservice/v4 v4.6.0/go.mod h1:noQIdW75SiQFB3mSFJBr4iRRH83S9skaFiBv4C0uEs0=
 github.com/AzureAD/microsoft-authentication-library-for-go v1.2.2 h1:XHOnouVk1mxXfQidrMEnLlPk9UMeRtyBTnEFtxkV0kU=
@@ -127,8 +127,8 @@ github.com/elastic/apm-aggregation v1.0.1 h1:t4VKR6axu620Y9CtQE9kmZZcx+3BlfnqGyw
 github.com/elastic/apm-aggregation v1.0.1/go.mod h1:hmRuhkV01qMHk/Eu3xe9W/cNtBcRVf0DpFf9USVAE2Y=
 github.com/elastic/apm-data v1.8.0 h1:niNw08FQ3WGJDMGhub9q4pZTLg2xfCWo0j9aaPqm/o8=
 github.com/elastic/apm-data v1.8.0/go.mod h1:NE5PyUTnIADrV8yIRa5hRwOxlRI1hbnEVGb470veU8s=
-github.com/elastic/beats/v7 v7.0.0-alpha2.0.20240704144241-c111789e3c61 h1:nb5J8/BOvIQv73aLQxn2iiaJGgzQy63FZE42v9bLFPw=
-github.com/elastic/beats/v7 v7.0.0-alpha2.0.20240704144241-c111789e3c61/go.mod h1:2I8Zlyzdl1oYau3ojZP2VmzLOQkLVfpKMXzwLUbwd/k=
+github.com/elastic/beats/v7 v7.0.0-alpha2.0.20240705133828-31d3abd490ec h1:q4Z1I9wkvSzeMjd7RMDmoQnUSwEM7Ha4zmjMh/fRr5A=
+github.com/elastic/beats/v7 v7.0.0-alpha2.0.20240705133828-31d3abd490ec/go.mod h1:vAchuIp4ZXrNZwTEGAJsZZABtx+1T4m67lihG2eXyjI=
 github.com/elastic/elastic-agent-autodiscover v0.7.0 h1:FCrHXh5AZGrPlpAx8kBu/s/guw9d/EXt+GKlFCnrgsc=
 github.com/elastic/elastic-agent-autodiscover v0.7.0/go.mod h1:zLf0SDdQXisVZxzXPxKXdj3Fa+H4bsu4HHbTEQImDz8=
 github.com/elastic/elastic-agent-client/v7 v7.13.0 h1:ENCfV5XIMmjWo9/0J7t//5N7xgm43Ktg0SyIomupRcA=
