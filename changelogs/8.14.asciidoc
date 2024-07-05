@@ -14,7 +14,7 @@ https://github.com/elastic/apm-server/compare/v8.14.2\...v8.14.3[View commits]
 
 [float]
 ==== Bug fixes
-- Fix a performance regression for apm servers which don't specify `output.elasticsearch.flush_bytes` {pull}13576[13576]
+- Fix a performance regression if `output.elasticsearch.flush_bytes` is not specified {pull}13576[13576]
 
 [float]
 [[apm-release-notes-8.14.2]]
