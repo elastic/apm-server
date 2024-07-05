@@ -29,10 +29,15 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.elastic.co/apm/v2/apmtest"
+	"go.uber.org/zap"
+
+	agentconfig "github.com/elastic/elastic-agent-libs/config"
+	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/elastic-agent-libs/monitoring"
+	docappender "github.com/elastic/go-docappender"
 
 	"github.com/elastic/apm-server/internal/beater/config"
 	"github.com/elastic/apm-server/internal/elasticsearch"
-	"github.com/elastic/elastic-agent-libs/monitoring"
 )
 
 func TestStoreUsesRUMElasticsearchConfig(t *testing.T) {
@@ -151,4 +156,73 @@ func newMockClusterUUIDClient(t testing.TB, clusterUUID string) *elasticsearch.C
 	client, err := elasticsearch.NewClient(config)
 	require.NoError(t, err)
 	return client
+}
+
+func TestRunnerNewDocappenderConfig(t *testing.T) {
+	var tc = []struct {
+		memSize         float64
+		wantMaxRequests int
+		wantDocBufSize  int
+	}{
+		{memSize: 1, wantMaxRequests: 11, wantDocBufSize: 819},
+		{memSize: 2, wantMaxRequests: 13, wantDocBufSize: 1638},
+		{memSize: 4, wantMaxRequests: 16, wantDocBufSize: 3276},
+		{memSize: 8, wantMaxRequests: 22, wantDocBufSize: 6553},
+	}
+	for _, c := range tc {
+		t.Run(fmt.Sprintf("default/%vgb", c.memSize), func(t *testing.T) {
+			r := Runner{
+				elasticsearchOutputConfig: agentconfig.NewConfig(),
+				logger:                    logp.NewLogger("test"),
+			}
+			docCfg, esCfg, err := r.newDocappenderConfig(nil, c.memSize)
+			require.NoError(t, err)
+			assert.Equal(t, docappender.Config{
+				Logger:             zap.New(r.logger.Core(), zap.WithCaller(true)),
+				CompressionLevel:   5,
+				FlushInterval:      time.Second,
+				FlushBytes:         1024 * 1024,
+				MaxRequests:        c.wantMaxRequests,
+				DocumentBufferSize: c.wantDocBufSize,
+			}, docCfg)
+			assert.Equal(t, &elasticsearch.Config{
+				Hosts:               elasticsearch.Hosts{"localhost:9200"},
+				Backoff:             elasticsearch.DefaultBackoffConfig,
+				Protocol:            "http",
+				CompressionLevel:    5,
+				Timeout:             5 * time.Second,
+				MaxRetries:          3,
+				MaxIdleConnsPerHost: c.wantMaxRequests,
+			}, esCfg)
+		})
+		t.Run(fmt.Sprintf("override/%vgb", c.memSize), func(t *testing.T) {
+			r := Runner{
+				elasticsearchOutputConfig: agentconfig.MustNewConfigFrom(map[string]interface{}{
+					"flush_bytes":    "500 kib",
+					"flush_interval": "2s",
+					"max_requests":   50,
+				}),
+				logger: logp.NewLogger("test"),
+			}
+			docCfg, esCfg, err := r.newDocappenderConfig(nil, c.memSize)
+			require.NoError(t, err)
+			assert.Equal(t, docappender.Config{
+				Logger:             zap.New(r.logger.Core(), zap.WithCaller(true)),
+				CompressionLevel:   5,
+				FlushInterval:      2 * time.Second,
+				FlushBytes:         500 * 1024,
+				MaxRequests:        50,
+				DocumentBufferSize: c.wantDocBufSize,
+			}, docCfg)
+			assert.Equal(t, &elasticsearch.Config{
+				Hosts:               elasticsearch.Hosts{"localhost:9200"},
+				Backoff:             elasticsearch.DefaultBackoffConfig,
+				Protocol:            "http",
+				CompressionLevel:    5,
+				Timeout:             5 * time.Second,
+				MaxRetries:          3,
+				MaxIdleConnsPerHost: 50,
+			}, esCfg)
+		})
+	}
 }
