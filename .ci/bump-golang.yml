@@ -1,6 +1,6 @@
 ---
 name: Bump golang-version to latest version
-pipelineid: 'updatecli-bump-golang'
+pipelineid: 'updatecli-bump-golang-{{ requiredEnv "GITHUB_BRANCH" }}'
 
 actions:
   default:
@@ -10,8 +10,8 @@ actions:
     spec:
       labels:
         - automation
-        - backport-skip
         - dependencies
+        - '{{ requiredEnv "GITHUB_LABELS"}}'
       description: |-
         ### What
         Bump go release version with the latest release.
@@ -27,7 +27,7 @@ scms:
       owner: elastic
       repository: apm-server
       token: '{{ requiredEnv "GITHUB_TOKEN" }}'
-      branch: main
+      branch: '{{ requiredEnv "GITHUB_BRANCH" }}'
       commitusingapi: true
 
 sources:
