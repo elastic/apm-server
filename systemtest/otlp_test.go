@@ -114,7 +114,7 @@ func TestOTLPGRPCTraces(t *testing.T) {
 
 	indices := "traces-apm*,logs-apm*"
 	result := estest.ExpectMinDocs(t, systemtest.Elasticsearch, 3, indices, nil)
-	approvaltest.ApproveFields(t, t.Name(), result.Hits.Hits, "error.id")
+	approvaltest.ApproveFields(t, t.Name(), result.Hits.Hits, "error.id", "agent.version")
 }
 
 func TestOTLPGRPCTraceSpanLinks(t *testing.T) {
@@ -219,7 +219,7 @@ func TestOTLPGRPCMetrics(t *testing.T) {
 	metricsClient.Export(context.Background(), pmetricotlp.NewExportRequestFromMetrics(metrics))
 
 	result := estest.ExpectDocs(t, systemtest.Elasticsearch, "metrics-apm.app.*", espoll.ExistsQuery{Field: "counter"})
-	approvaltest.ApproveFields(t, t.Name()+"_counter", result.Hits.Hits, "@timestamp")
+	approvaltest.ApproveFields(t, t.Name()+"_counter", result.Hits.Hits, "@timestamp", "agent.version")
 
 	result = estest.ExpectDocs(t, systemtest.Elasticsearch, "metrics-apm.app.*", espoll.ExistsQuery{Field: "summary"})
 	approvaltest.ApproveFields(t, t.Name()+"_summary", result.Hits.Hits, "@timestamp")
