@@ -282,14 +282,19 @@ This script reads apm-server monitoring stats json (from apm-server:5066/stats) 
     for path_str in sys.argv[1:]:
         path = pathlib.Path(path_str)
         if path.name == 'monitoring-beats.json':
+            # https://github.com/elastic/elasticsearch/blob/main/x-pack/plugin/core/template-resources/src/main/resources/monitoring-beats.json
             modify_monitoring_beats(path, input_data)
         elif path.name == 'monitoring-beats-mb.json':
+            # https://github.com/elastic/elasticsearch/blob/main/x-pack/plugin/core/template-resources/src/main/resources/monitoring-beats-mb.json
             modify_monitoring_beats_mb(path, input_data)
         elif path.resolve().match('metricbeat/module/beat/stats/_meta/fields.yml'):
+            # https://github.com/elastic/beats/blob/main/metricbeat/module/beat/_meta/fields.yml
             modify_beat_stats_file(path, input_data)
         elif path.resolve().match('metricbeat/module/beat/_meta/fields.yml'):
+            # https://github.com/elastic/beats/blob/main/metricbeat/module/beat/stats/_meta/fields.yml
             modify_beat_root_file(path, input_data)
         elif path.resolve().match('elastic_agent/data_stream/apm_server_metrics/fields/beat-fields.yml'):
+            # https://github.com/elastic/integrations/blob/main/packages/elastic_agent/data_stream/apm_server_metrics/fields/beat-fields.yml
             modify_ea_fields_file(path, input_data)
         else:
             print('Error: path does not lead to any of the expected files', file=sys.stdout)
