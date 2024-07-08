@@ -723,7 +723,7 @@ func (s *Runner) newFinalBatchProcessor(
 func (s *Runner) newDocappenderConfig(tracer *apm.Tracer, memLimit float64) (
 	docappender.Config, *elasticsearch.Config, error,
 ) {
-	var esConfig struct {
+	esConfig := struct {
 		*elasticsearch.Config `config:",inline"`
 		FlushBytes            string        `config:"flush_bytes"`
 		FlushInterval         time.Duration `config:"flush_interval"`
@@ -731,11 +731,12 @@ func (s *Runner) newDocappenderConfig(tracer *apm.Tracer, memLimit float64) (
 		Scaling               struct {
 			Enabled *bool `config:"enabled"`
 		} `config:"autoscaling"`
+	}{
+		// Default to 1mib flushes, which is the default for go-docappender.
+		FlushBytes:    "1 mib",
+		FlushInterval: time.Second,
+		Config:        elasticsearch.DefaultConfig(),
 	}
-	// Default to 1mib flushes, which is the default for go-docappender.
-	esConfig.FlushBytes = "1 mib"
-	esConfig.FlushInterval = time.Second
-	esConfig.Config = elasticsearch.DefaultConfig()
 	esConfig.MaxIdleConnsPerHost = 10
 
 	if err := s.elasticsearchOutputConfig.Unpack(&esConfig); err != nil {
@@ -768,6 +769,10 @@ func (s *Runner) newDocappenderConfig(tracer *apm.Tracer, memLimit float64) (
 		Scaling:           scalingCfg,
 		Logger:            zap.New(s.logger.Core(), zap.WithCaller(true)),
 		RequireDataStream: true,
+		// Use the output's max_retries to configure the go-docappender's
+		// document level retries.
+		MaxDocumentRetries:    esConfig.MaxRetries,
+		RetryOnDocumentStatus: []int{429}, // Only retry "safe" 429 responses.
 	}, memLimit, s.logger)
 	if cfg.MaxRequests != 0 {
 		esConfig.MaxIdleConnsPerHost = cfg.MaxRequests
