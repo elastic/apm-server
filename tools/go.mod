@@ -8,7 +8,7 @@ require (
 	github.com/elastic/apm-tools v0.0.0-20230828065051-3f799314cc8b
 	github.com/elastic/go-licenser v0.4.2
 	github.com/elastic/gobench v0.0.0-20220608141032-f30bc57e329c
-	github.com/goreleaser/nfpm/v2 v2.37.1
+	github.com/goreleaser/nfpm/v2 v2.38.0
 	github.com/josephspurrier/goversioninfo v1.4.0
 	github.com/t-yuki/gocover-cobertura v0.0.0-20180217150009-aaee18c8195c
 	github.com/terraform-docs/terraform-docs v0.18.0
@@ -44,7 +44,7 @@ require (
 	github.com/caarlos0/go-version v0.1.1 // indirect
 	github.com/cavaliergopher/cpio v1.0.1 // indirect
 	github.com/cloudflare/circl v1.3.8 // indirect
-	github.com/cpuguy83/go-md2man/v2 v2.0.3 // indirect
+	github.com/cpuguy83/go-md2man/v2 v2.0.4 // indirect
 	github.com/cyphar/filepath-securejoin v0.2.5 // indirect
 	github.com/dnephin/pflag v1.0.7 // indirect
 	github.com/elastic/elastic-transport-go/v8 v8.3.0 // indirect
@@ -80,7 +80,7 @@ require (
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
 	github.com/karrick/godirwalk v1.17.0 // indirect
 	github.com/kevinburke/ssh_config v1.2.0 // indirect
-	github.com/klauspost/compress v1.17.8 // indirect
+	github.com/klauspost/compress v1.17.9 // indirect
 	github.com/klauspost/pgzip v1.2.6 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
@@ -112,7 +112,7 @@ require (
 	github.com/sourcegraph/conc v0.3.0 // indirect
 	github.com/spf13/afero v1.11.0 // indirect
 	github.com/spf13/cast v1.6.0 // indirect
-	github.com/spf13/cobra v1.8.0 // indirect
+	github.com/spf13/cobra v1.8.1 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/spf13/viper v1.18.2 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
