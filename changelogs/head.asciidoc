@@ -23,9 +23,13 @@ https://github.com/elastic/apm-server/compare/8.14\...main[View commits]
 [float]
 ==== Added
 
+<<<<<<< HEAD
 - Add `elasticsearch.flushed.uncompressed.bytes` metric {pull}13155[13155]
 - APM Server now relies on the Elasticsearch apm-data plugin's index templates, removing the requirement to install the APM integration package {pull}12066[12066]
 - Upgraded bundled APM Java agent attacher CLI to version 1.50.0 {pull}13326[13326]
 - Enable Kibana curated UIs to work with hostmetrics from OpenTelemetry's https://pkg.go.dev/go.opentelemetry.io/collector/receiver/hostmetricsreceiver[hostmetricsreceiver] {pull}13196[13196]
 - Add require data stream to bulk index requests {pull}13398[13398]
 - Support self-instrumentation when in managed mode by getting tracing configs via reloader {pull}13514[13514]
+=======
+- APM Server now automatically retries document-level 429s from Elasticsearch to avoid dropping data. `output.elasticsearch.max_retries` now controls both request-level and document-level retries, and defaults to `3`. {pull}13620[13620]
+>>>>>>> 28436dc03 (output: Retry document-level `429`s by default (#13620))
