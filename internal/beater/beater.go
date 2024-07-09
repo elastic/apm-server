@@ -292,7 +292,7 @@ func (s *Runner) Run(ctx context.Context) error {
 		}
 	}
 
-	instrumentation, err := instrumentation.New(s.rawConfig, "apm-server", version.Version)
+	instrumentation, err := newInstrumentation(s.rawConfig)
 	if err != nil {
 		return err
 	}
@@ -535,6 +535,50 @@ func (s *Runner) Run(ctx context.Context) error {
 	result := g.Wait()
 	closeErr := closeFinalBatchProcessor(backgroundContext)
 	return errors.Join(result, closeErr)
+}
+
+// newInstrumentation is a thin wrapper around libbeat instrumentation that
+// sets missing tracer configuration from elastic-agent.
+func newInstrumentation(rawConfig *agentconfig.C) (instrumentation.Instrumentation, error) {
+	var apmCfg struct {
+		GlobalLabels string `config:"globallabels"`
+		TLS          struct {
+			SkipVerify        bool   `config:"skipverify"`
+			ServerCertificate string `config:"servercert"`
+			ServerCA          string `config:"serverca"`
+		} `config:"tls"`
+	}
+	cfg, err := rawConfig.Child("instrumentation", -1)
+	if err != nil {
+		// Fallback to instrumentation.New if the configs are not present.
+		return instrumentation.New(rawConfig, "apm-server", version.Version)
+	}
+	if err := cfg.Unpack(&apmCfg); err != nil {
+		return nil, err
+	}
+	const (
+		envVerifyServerCert = "ELASTIC_APM_VERIFY_SERVER_CERT"
+		envServerCert       = "ELASTIC_APM_SERVER_CERT"
+		envCACert           = "ELASTIC_APM_SERVER_CA_CERT_FILE"
+		envGlobalLabels     = "ELASTIC_APM_GLOBAL_LABELS"
+	)
+	if apmCfg.TLS.SkipVerify {
+		os.Setenv(envVerifyServerCert, "false")
+		defer os.Unsetenv(envVerifyServerCert)
+	}
+	if apmCfg.TLS.ServerCertificate != "" {
+		os.Setenv(envServerCert, apmCfg.TLS.ServerCertificate)
+		defer os.Unsetenv(envServerCert)
+	}
+	if apmCfg.TLS.ServerCA != "" {
+		os.Setenv(envCACert, apmCfg.TLS.ServerCA)
+		defer os.Unsetenv(envCACert)
+	}
+	if len(apmCfg.GlobalLabels) > 0 {
+		os.Setenv(envGlobalLabels, apmCfg.GlobalLabels)
+		defer os.Unsetenv(envGlobalLabels)
+	}
+	return instrumentation.New(rawConfig, "apm-server", version.Version)
 }
 
 func maxConcurrentDecoders(memLimitGB float64) uint {
