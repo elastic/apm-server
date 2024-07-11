@@ -542,7 +542,7 @@ func (s *Runner) Run(ctx context.Context) error {
 func newInstrumentation(rawConfig *agentconfig.C) (instrumentation.Instrumentation, error) {
 	// This config struct contains missing fields from elastic agent APMConfig
 	// https://github.com/elastic/elastic-agent/blob/main/internal/pkg/core/monitoring/config/config.go#L127
-	// that are not directly handled by libbeat instrumentation bellow.
+	// that are not directly handled by libbeat instrumentation below.
 	//
 	// Note that original config keys were additionally marshalled by
 	// https://github.com/elastic/elastic-agent/blob/main/pkg/component/runtime/apm_config_mapper.go#L18
