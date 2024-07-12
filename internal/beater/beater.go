@@ -548,7 +548,7 @@ func newInstrumentation(rawConfig *agentconfig.C) (instrumentation.Instrumentati
 	// https://github.com/elastic/elastic-agent/blob/main/pkg/component/runtime/apm_config_mapper.go#L18
 	// that's why some keys are different from the original APMConfig struct including "api_key" and "secret_token".
 	var apmCfg struct {
-		ApiKey       string `config:"apikey"`
+		APIKey       string `config:"apikey"`
 		SecretToken  string `config:"secrettoken"`
 		GlobalLabels string `config:"globallabels"`
 		TLS          struct {
@@ -566,16 +566,16 @@ func newInstrumentation(rawConfig *agentconfig.C) (instrumentation.Instrumentati
 		return nil, err
 	}
 	const (
-		envApiKey           = "ELASTIC_APM_API_KEY"
+		envAPIKey           = "ELASTIC_APM_API_KEY"
 		envSecretToken      = "ELASTIC_APM_SECRET_TOKEN"
 		envVerifyServerCert = "ELASTIC_APM_VERIFY_SERVER_CERT"
 		envServerCert       = "ELASTIC_APM_SERVER_CERT"
 		envCACert           = "ELASTIC_APM_SERVER_CA_CERT_FILE"
 		envGlobalLabels     = "ELASTIC_APM_GLOBAL_LABELS"
 	)
-	if apmCfg.ApiKey != "" {
-		os.Setenv(envApiKey, apmCfg.ApiKey)
-		defer os.Unsetenv(envApiKey)
+	if apmCfg.APIKey != "" {
+		os.Setenv(envAPIKey, apmCfg.APIKey)
+		defer os.Unsetenv(envAPIKey)
 	}
 	if apmCfg.SecretToken != "" {
 		os.Setenv(envSecretToken, apmCfg.SecretToken)
