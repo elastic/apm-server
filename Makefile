@@ -326,3 +326,13 @@ smoketest/all/cleanup:
 		echo "-> Cleanup $${test_dir} smoke tests..."; \
 		$(MAKE) smoketest/cleanup TEST_DIR=$${test_dir}; \
 	done
+
+.PHONY: api-docs
+api-docs: ## Generate bundled OpenAPI documents
+	@npx @redocly/cli bundle "docs/spec/openapi/apm-openapi.yaml" --ext yaml --output "docs/spec/openapi/bundled.yaml"
+	@npx @redocly/cli bundle "docs/spec/openapi/apm-openapi.yaml" --ext json --output "docs/spec/openapi/bundled.json"
+
+.PHONY: api-docs-lint
+api-docs-lint: ## Run spectral API docs linter
+	@npx @stoplight/spectral-cli lint "docs/spec/openapi/bundled.yaml" --ruleset "docs/spec/openapi/.spectral.yaml"
+
