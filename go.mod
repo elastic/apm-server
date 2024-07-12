@@ -10,9 +10,9 @@ require (
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/apm-aggregation v1.0.1
 	github.com/elastic/apm-data v1.8.4
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20240709110723-032a4cfd5f3b
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20240711144606-a3fc591ac130
 	github.com/elastic/elastic-agent-client/v7 v7.13.0
-	github.com/elastic/elastic-agent-libs v0.9.13
+	github.com/elastic/elastic-agent-libs v0.9.14
 	github.com/elastic/elastic-agent-system-metrics v0.10.3
 	github.com/elastic/gmux v0.3.2
 	github.com/elastic/go-docappender/v2 v2.1.4
@@ -26,7 +26,7 @@ require (
 	github.com/google/go-cmp v0.6.0
 	github.com/gorilla/mux v1.8.1
 	github.com/hashicorp/golang-lru v1.0.2
-	github.com/jaegertracing/jaeger v1.58.1
+	github.com/jaegertracing/jaeger v1.59.0
 	github.com/libp2p/go-reuseport v0.4.0
 	github.com/modern-go/reflect2 v1.0.2
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger v0.104.0
@@ -115,7 +115,7 @@ require (
 	github.com/jcmturner/rpc/v2 v2.0.3 // indirect
 	github.com/joeshaw/multierror v0.0.0-20140124173710-69b34d4ec901 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
-	github.com/klauspost/compress v1.17.8 // indirect
+	github.com/klauspost/compress v1.17.9 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/lufia/plan9stats v0.0.0-20220913051719-115f729f3c8c // indirect
@@ -123,6 +123,7 @@ require (
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mitchellh/hashstructure v1.1.0 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
+	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal v0.104.0 // indirect
 	github.com/pierrec/lz4 v2.6.1+incompatible // indirect
 	github.com/pierrec/lz4/v4 v4.1.21 // indirect
@@ -131,8 +132,8 @@ require (
 	github.com/power-devops/perfstat v0.0.0-20220216144756-c35f1ee13d7c // indirect
 	github.com/prometheus/client_golang v1.19.1 // indirect
 	github.com/prometheus/client_model v0.6.1 // indirect
-	github.com/prometheus/common v0.54.0 // indirect
-	github.com/prometheus/procfs v0.15.0 // indirect
+	github.com/prometheus/common v0.55.0 // indirect
+	github.com/prometheus/procfs v0.15.1 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
 	github.com/rogpeppe/go-internal v1.12.0 // indirect
 	github.com/shirou/gopsutil/v3 v3.24.5 // indirect
@@ -156,7 +157,7 @@ require (
 	golang.org/x/sys v0.22.0 // indirect
 	golang.org/x/text v0.16.0 // indirect
 	golang.org/x/tools v0.23.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20240528184218-531527333157 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240701130421-f6361c86f094 // indirect
 	gopkg.in/jcmturner/aescts.v1 v1.0.1 // indirect
 	gopkg.in/jcmturner/dnsutils.v1 v1.0.1 // indirect
 	gopkg.in/jcmturner/goidentity.v3 v3.0.0 // indirect
