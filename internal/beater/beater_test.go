@@ -18,11 +18,15 @@
 package beater
 
 import (
+	"compress/zlib"
 	"context"
 	"encoding/json"
+	"encoding/pem"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -230,4 +234,44 @@ func TestRunnerNewDocappenderConfig(t *testing.T) {
 			}, esCfg)
 		})
 	}
+}
+
+func TestNewInstrumentation(t *testing.T) {
+	labels := make(chan map[string]string, 1)
+	defer close(labels)
+	s := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/intake/v2/events" {
+			var b struct {
+				Metadata struct {
+					Labels map[string]string `json:"labels"`
+				} `json:"metadata"`
+			}
+			zr, _ := zlib.NewReader(r.Body)
+			_ = json.NewDecoder(zr).Decode(&b)
+			labels <- b.Metadata.Labels
+		}
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer s.Close()
+	certPath := filepath.Join(t.TempDir(), "cert.pem")
+	f, err := os.Create(certPath)
+	assert.NoError(t, err)
+	err = pem.Encode(f, &pem.Block{Type: "CERTIFICATE", Bytes: s.Certificate().Raw})
+	assert.NoError(t, err)
+	cfg := agentconfig.MustNewConfigFrom(map[string]interface{}{
+		"instrumentation": map[string]interface{}{
+			"enabled": true,
+			"hosts":   []string{s.URL},
+			"tls": map[string]interface{}{
+				"servercert": certPath,
+			},
+			"globallabels": "k1=val,k2=new val",
+		},
+	})
+	i, err := newInstrumentation(cfg)
+	require.NoError(t, err)
+	tracer := i.Tracer()
+	tracer.StartTransaction("name", "type").End()
+	tracer.Flush(nil)
+	assert.Equal(t, map[string]string{"k1": "val", "k2": "new val"}, <-labels)
 }
