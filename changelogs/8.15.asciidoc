@@ -6,7 +6,7 @@
 [[apm-release-notes-8.15.0]]
 === APM version 8.15.0
 
-https://github.com/elastic/apm-server/compare/v8.14.2\...v8.15.0[View commits]
+https://github.com/elastic/apm-server/compare/v8.14.3\...v8.15.0[View commits]
 
 [float]
 ==== Bug fixes
