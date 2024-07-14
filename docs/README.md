@@ -9,10 +9,10 @@
 > * **Sample data sets** that are injected into the docs are in the [`docs/data/`](/docs/data/) directory.
 > * **Specifications** that are injected into the docs are in the [`docs/spec/`](/docs/spec/) directory.
 
-To generate the bundled files in the [`docs/spec/openapi`](/docs/spec/openapi) directory, use [redocly bundle](https://redocly.com/docs/cli/commands/bundle/). For example:
+To generate the bundled files in the [`docs/spec/openapi`](/docs/spec/openapi) directory, use the following make commands:
 
 ```
-npx @redocly/cli bundle apm-openapi.yaml --output bundled.yaml --ext yaml
-npx @redocly/cli bundle apm-openapi.yaml --output bundled.json --ext json
+make api-docs
+make api-docs-lint
 ```
 

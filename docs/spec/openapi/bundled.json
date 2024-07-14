@@ -1,8 +1,8 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "APM Server",
-    "description": "OpenAPI schema for APM Server APIs",
+    "title": "Observability Intake APIs",
+    "description": "OpenAPI schema for Observability Intake APIs",
     "version": "0.1",
     "license": {
       "name": "Elastic License 2.0",
