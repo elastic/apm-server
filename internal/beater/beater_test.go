@@ -181,13 +181,15 @@ func TestRunnerNewDocappenderConfig(t *testing.T) {
 			docCfg, esCfg, err := r.newDocappenderConfig(nil, c.memSize)
 			require.NoError(t, err)
 			assert.Equal(t, docappender.Config{
-				Logger:             zap.New(r.logger.Core(), zap.WithCaller(true)),
-				CompressionLevel:   5,
-				RequireDataStream:  true,
-				FlushInterval:      time.Second,
-				FlushBytes:         1024 * 1024,
-				MaxRequests:        c.wantMaxRequests,
-				DocumentBufferSize: c.wantDocBufSize,
+				Logger:                zap.New(r.logger.Core(), zap.WithCaller(true)),
+				CompressionLevel:      5,
+				RequireDataStream:     true,
+				FlushInterval:         time.Second,
+				FlushBytes:            1024 * 1024,
+				MaxRequests:           c.wantMaxRequests,
+				DocumentBufferSize:    c.wantDocBufSize,
+				MaxDocumentRetries:    3,
+				RetryOnDocumentStatus: []int{429},
 			}, docCfg)
 			assert.Equal(t, &elasticsearch.Config{
 				Hosts:               elasticsearch.Hosts{"localhost:9200"},
@@ -211,13 +213,15 @@ func TestRunnerNewDocappenderConfig(t *testing.T) {
 			docCfg, esCfg, err := r.newDocappenderConfig(nil, c.memSize)
 			require.NoError(t, err)
 			assert.Equal(t, docappender.Config{
-				Logger:             zap.New(r.logger.Core(), zap.WithCaller(true)),
-				CompressionLevel:   5,
-				RequireDataStream:  true,
-				FlushInterval:      2 * time.Second,
-				FlushBytes:         500 * 1024,
-				MaxRequests:        50,
-				DocumentBufferSize: c.wantDocBufSize,
+				Logger:                zap.New(r.logger.Core(), zap.WithCaller(true)),
+				CompressionLevel:      5,
+				RequireDataStream:     true,
+				FlushInterval:         2 * time.Second,
+				FlushBytes:            500 * 1024,
+				MaxRequests:           50,
+				DocumentBufferSize:    c.wantDocBufSize,
+				MaxDocumentRetries:    3,
+				RetryOnDocumentStatus: []int{429},
 			}, docCfg)
 			assert.Equal(t, &elasticsearch.Config{
 				Hosts:               elasticsearch.Hosts{"localhost:9200"},
