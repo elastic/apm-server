@@ -546,8 +546,10 @@ func newInstrumentation(rawConfig *agentconfig.C) (instrumentation.Instrumentati
 	//
 	// Note that original config keys were additionally marshalled by
 	// https://github.com/elastic/elastic-agent/blob/main/pkg/component/runtime/apm_config_mapper.go#L18
-	// that's why the keys are different from the original APMConfig struct.
+	// that's why some keys are different from the original APMConfig struct including "api_key" and "secret_token".
 	var apmCfg struct {
+		APIKey       string `config:"apikey"`
+		SecretToken  string `config:"secrettoken"`
 		GlobalLabels string `config:"globallabels"`
 		TLS          struct {
 			SkipVerify        bool   `config:"skipverify"`
@@ -556,19 +558,29 @@ func newInstrumentation(rawConfig *agentconfig.C) (instrumentation.Instrumentati
 		} `config:"tls"`
 	}
 	cfg, err := rawConfig.Child("instrumentation", -1)
-	if err != nil {
-		// Fallback to instrumentation.New if the configs are not present.
+	if err != nil || !cfg.Enabled() {
+		// Fallback to instrumentation.New if the configs are not present or disabled.
 		return instrumentation.New(rawConfig, "apm-server", version.Version)
 	}
 	if err := cfg.Unpack(&apmCfg); err != nil {
 		return nil, err
 	}
 	const (
+		envAPIKey           = "ELASTIC_APM_API_KEY"
+		envSecretToken      = "ELASTIC_APM_SECRET_TOKEN"
 		envVerifyServerCert = "ELASTIC_APM_VERIFY_SERVER_CERT"
 		envServerCert       = "ELASTIC_APM_SERVER_CERT"
 		envCACert           = "ELASTIC_APM_SERVER_CA_CERT_FILE"
 		envGlobalLabels     = "ELASTIC_APM_GLOBAL_LABELS"
 	)
+	if apmCfg.APIKey != "" {
+		os.Setenv(envAPIKey, apmCfg.APIKey)
+		defer os.Unsetenv(envAPIKey)
+	}
+	if apmCfg.SecretToken != "" {
+		os.Setenv(envSecretToken, apmCfg.SecretToken)
+		defer os.Unsetenv(envSecretToken)
+	}
 	if apmCfg.TLS.SkipVerify {
 		os.Setenv(envVerifyServerCert, "false")
 		defer os.Unsetenv(envVerifyServerCert)

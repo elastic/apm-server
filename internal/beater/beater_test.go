@@ -237,6 +237,7 @@ func TestRunnerNewDocappenderConfig(t *testing.T) {
 }
 
 func TestNewInstrumentation(t *testing.T) {
+	var auth string
 	labels := make(chan map[string]string, 1)
 	defer close(labels)
 	s := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -249,6 +250,7 @@ func TestNewInstrumentation(t *testing.T) {
 			zr, _ := zlib.NewReader(r.Body)
 			_ = json.NewDecoder(zr).Decode(&b)
 			labels <- b.Metadata.Labels
+			auth = r.Header.Get("Authorization")
 		}
 		w.WriteHeader(http.StatusOK)
 	}))
@@ -260,8 +262,9 @@ func TestNewInstrumentation(t *testing.T) {
 	assert.NoError(t, err)
 	cfg := agentconfig.MustNewConfigFrom(map[string]interface{}{
 		"instrumentation": map[string]interface{}{
-			"enabled": true,
-			"hosts":   []string{s.URL},
+			"enabled":     true,
+			"hosts":       []string{s.URL},
+			"secrettoken": "secret",
 			"tls": map[string]interface{}{
 				"servercert": certPath,
 			},
@@ -274,4 +277,5 @@ func TestNewInstrumentation(t *testing.T) {
 	tracer.StartTransaction("name", "type").End()
 	tracer.Flush(nil)
 	assert.Equal(t, map[string]string{"k1": "val", "k2": "new val"}, <-labels)
+	assert.Equal(t, "Bearer secret", auth)
 }
