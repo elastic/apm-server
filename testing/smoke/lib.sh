@@ -332,7 +332,15 @@ legacy_assertions() {
 data_stream_assertions() {
     local VERSION=${1}
     local ENTRIES=${2}
-    data_stream_assert_templates_ilm ${VERSION}
+
+    local MAJOR MINOR
+    MAJOR=$(echo $VERSION | cut -d. -f1)
+    MINOR=$(echo $VERSION | cut -d. -f2)
+
+    # Starting from 8.15 we use data stream lifecycle management.
+    if [ $MAJOR -eq 8 ] && [ $MINOR -lt 15 ] || [ $MAJOR -lt 8 ]; then
+        data_stream_assert_templates_ilm ${VERSION}
+    fi
     data_stream_assert_pipelines
     data_stream_assert_events ${VERSION} ${ENTRIES}
 }

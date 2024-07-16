@@ -163,6 +163,11 @@ func TestRunManager(t *testing.T) {
 	})
 	assert.NoError(t, err)
 
+	expectRunnerParams(t, calls)
+	err = reload.RegisterV2.GetReloadableAPM().Reload(&reload.ConfigWithMeta{
+		Config: config.MustNewConfigFrom(`{"elastic.enabled": true, "elastic.environment": "testenv"}`),
+	})
+	assert.NoError(t, err)
 	args := expectRunnerParams(t, calls)
 	var m map[string]interface{}
 	err = args.Config.Unpack(&m)
@@ -176,6 +181,10 @@ func TestRunManager(t *testing.T) {
 			"console": map[string]interface{}{
 				"enabled": true,
 			},
+		},
+		"instrumentation": map[string]interface{}{
+			"enabled":     true,
+			"environment": "testenv",
 		},
 	}, m)
 

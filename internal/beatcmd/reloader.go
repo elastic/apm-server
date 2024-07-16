@@ -71,6 +71,9 @@ func NewReloader(info beat.Info, newRunner NewRunnerFunc) (*Reloader, error) {
 	if err := reload.RegisterV2.Register(reload.OutputRegName, reload.ReloadableFunc(r.reloadOutput)); err != nil {
 		return nil, fmt.Errorf("failed to register output reloader: %w", err)
 	}
+	if err := reload.RegisterV2.Register(reload.APMRegName, reload.ReloadableFunc(r.reloadAPMTracing)); err != nil {
+		return nil, fmt.Errorf("failed to register apm tracing reloader: %w", err)
+	}
 	return r, nil
 }
 
@@ -84,10 +87,11 @@ type Reloader struct {
 	runner     Runner
 	stopRunner func() error
 
-	mu           sync.Mutex
-	inputConfig  *config.C
-	outputConfig *config.C
-	stopped      chan struct{}
+	mu               sync.Mutex
+	inputConfig      *config.C
+	outputConfig     *config.C
+	apmTracingConfig *config.C
+	stopped          chan struct{}
 }
 
 // Run runs the Reloader, blocking until ctx is cancelled or a fatal error occurs.
@@ -122,7 +126,7 @@ func (r *Reloader) reloadInputs(configs []*reload.ConfigWithMeta) error {
 		return fmt.Errorf("failed to extract input config revision: %w", err)
 	}
 
-	if err := r.reload(cfg, r.outputConfig); err != nil {
+	if err := r.reload(cfg, r.outputConfig, r.apmTracingConfig); err != nil {
 		return fmt.Errorf("failed to load input config: %w", err)
 	}
 	r.inputConfig = cfg
@@ -136,7 +140,7 @@ func (r *Reloader) reloadInputs(configs []*reload.ConfigWithMeta) error {
 func (r *Reloader) reloadOutput(cfg *reload.ConfigWithMeta) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	if err := r.reload(r.inputConfig, cfg.Config); err != nil {
+	if err := r.reload(r.inputConfig, cfg.Config, r.apmTracingConfig); err != nil {
 		return fmt.Errorf("failed to load output config: %w", err)
 	}
 	r.outputConfig = cfg.Config
@@ -144,7 +148,23 @@ func (r *Reloader) reloadOutput(cfg *reload.ConfigWithMeta) error {
 	return nil
 }
 
-func (r *Reloader) reload(inputConfig, outputConfig *config.C) error {
+// reloadAPMTracing (re)loads apm tracing configuration.
+func (r *Reloader) reloadAPMTracing(cfg *reload.ConfigWithMeta) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	var c *config.C
+	if cfg != nil {
+		c = cfg.Config
+	}
+	if err := r.reload(r.inputConfig, r.outputConfig, c); err != nil {
+		return fmt.Errorf("failed to load apm tracing config: %w", err)
+	}
+	r.apmTracingConfig = c
+	r.logger.Info("loaded apm tracing config")
+	return nil
+}
+
+func (r *Reloader) reload(inputConfig, outputConfig, apmTracingConfig *config.C) error {
 	var outputNamespace config.Namespace
 	if outputConfig != nil {
 		if err := outputConfig.Unpack(&outputNamespace); err != nil {
@@ -153,6 +173,7 @@ func (r *Reloader) reload(inputConfig, outputConfig *config.C) error {
 	}
 	if inputConfig == nil || !outputNamespace.IsSet() {
 		// Wait until both input and output have been received.
+		// apm tracing config is not mandatory so not waiting for it
 		return nil
 	}
 	select {
@@ -165,11 +186,27 @@ func (r *Reloader) reload(inputConfig, outputConfig *config.C) error {
 	wrappedOutputConfig := config.MustNewConfigFrom(map[string]interface{}{
 		"output": outputConfig,
 	})
-	mergedConfig, err := config.MergeConfigs(inputConfig, wrappedOutputConfig)
+
+	var wrappedApmTracingConfig *config.C
+	// apmTracingConfig is nil when disabled
+	if apmTracingConfig != nil {
+		c, err := apmTracingConfig.Child("elastic", -1)
+		if err != nil {
+			return fmt.Errorf("APM tracing config for elastic not found")
+		}
+		// set enabled manually as APMConfig doesn't contain it
+		c.SetBool("enabled", -1, true)
+		wrappedApmTracingConfig = config.MustNewConfigFrom(map[string]interface{}{
+			"instrumentation": c,
+		})
+	} else {
+		// empty instrumentation config
+		wrappedApmTracingConfig = config.NewConfig()
+	}
+	mergedConfig, err := config.MergeConfigs(inputConfig, wrappedOutputConfig, wrappedApmTracingConfig)
 	if err != nil {
 		return err
 	}
-
 	// Create a new runner. We separate creation from starting to
 	// allow the runner to perform initialisations that must run
 	// synchronously.

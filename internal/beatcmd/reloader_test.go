@@ -83,7 +83,7 @@ func TestReloader(t *testing.T) {
 	defer func() { assert.NoError(t, g.Wait()) }()
 	defer cancel()
 
-	// No reload until there's input and output configuration.
+	// No reload until there's input, output, apm tracing configuration.
 	assertNoReload()
 
 	err = reload.RegisterV2.GetInputList().Reload([]*reload.ConfigWithMeta{{
@@ -103,6 +103,10 @@ func TestReloader(t *testing.T) {
 	})
 	assert.NoError(t, err)
 	assertNoReload() // an output must be set
+
+	err = reload.RegisterV2.GetReloadableAPM().Reload(nil)
+	assert.NoError(t, err)
+	assertNoReload()
 
 	err = reload.RegisterV2.GetReloadableOutput().Reload(&reload.ConfigWithMeta{
 		Config: config.MustNewConfigFrom(`{"console.enabled": true}`),
@@ -130,8 +134,17 @@ func TestReloader(t *testing.T) {
 	expectEvent(t, r2.running, "new runner should have been started")
 	expectNoEvent(t, r2.stopped, "new runner should not have been stopped")
 
+	err = reload.RegisterV2.GetReloadableAPM().Reload(&reload.ConfigWithMeta{
+		Config: config.MustNewConfigFrom(`{"elastic.enabled": true, "elastic.api_key": "boo"}`),
+	})
+	assert.NoError(t, err)
+	r3 := assertReload()
+	expectEvent(t, r2.stopped, "old runner should have been stopped")
+	expectEvent(t, r3.running, "new runner should have been started")
+	expectNoEvent(t, r3.stopped, "new runner should not have been stopped")
+
 	cancel()
-	expectEvent(t, r2.stopped, "runner should have been stopped")
+	expectEvent(t, r3.stopped, "runner should have been stopped")
 }
 
 func TestReloaderNewRunnerParams(t *testing.T) {
@@ -159,13 +172,21 @@ func TestReloaderNewRunnerParams(t *testing.T) {
 	reload.RegisterV2.GetInputList().Reload([]*reload.ConfigWithMeta{{
 		Config: config.MustNewConfigFrom(`{"revision": 1, "input": 123}`),
 	}})
+
+	// reloader will wait until input and output are available.
+	// triggering APM reload before output reload will let the params to contain
+	// the apm tracing config too in this test setup
+	reload.RegisterV2.GetReloadableAPM().Reload(&reload.ConfigWithMeta{
+		Config: config.MustNewConfigFrom(`{"elastic.environment": "test"}`),
+	})
+
 	reload.RegisterV2.GetReloadableOutput().Reload(&reload.ConfigWithMeta{
 		Config: config.MustNewConfigFrom(`{"console.enabled": true}`),
 	})
 	args := <-calls
 	assert.NotNil(t, args.Logger)
 	assert.Equal(t, info, args.Info)
-	assert.Equal(t, config.MustNewConfigFrom(`{"revision": 1, "input": 123, "output.console.enabled": true}`), args.Config)
+	assert.Equal(t, config.MustNewConfigFrom(`{"revision": 1, "input": 123, "output.console.enabled": true, "instrumentation.enabled":true, "instrumentation.environment":"test"}`), args.Config)
 }
 
 func expectNoEvent(t testing.TB, ch <-chan struct{}, message string) {
