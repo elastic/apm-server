@@ -1,4 +1,5 @@
 // tag::list[]
+* <<apm-release-notes-8.15>>
 * <<apm-release-notes-8.14>>
 * <<apm-release-notes-8.13>>
 * <<apm-release-notes-8.12>>
@@ -18,6 +19,7 @@
 
 // tag::includes[]
 include::./changelogs/head.asciidoc[]
+include::./changelogs/8.15.asciidoc[]
 include::./changelogs/8.14.asciidoc[]
 include::./changelogs/8.13.asciidoc[]
 include::./changelogs/8.12.asciidoc[]

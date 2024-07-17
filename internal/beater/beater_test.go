@@ -18,21 +18,29 @@
 package beater
 
 import (
+	"compress/zlib"
 	"context"
 	"encoding/json"
+	"encoding/pem"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.elastic.co/apm/v2/apmtest"
+	"go.uber.org/zap"
 
 	"github.com/elastic/apm-server/internal/beater/config"
 	"github.com/elastic/apm-server/internal/elasticsearch"
+	agentconfig "github.com/elastic/elastic-agent-libs/config"
+	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/monitoring"
+	"github.com/elastic/go-docappender/v2"
 )
 
 func TestStoreUsesRUMElasticsearchConfig(t *testing.T) {
@@ -151,4 +159,123 @@ func newMockClusterUUIDClient(t testing.TB, clusterUUID string) *elasticsearch.C
 	client, err := elasticsearch.NewClient(config)
 	require.NoError(t, err)
 	return client
+}
+
+func TestRunnerNewDocappenderConfig(t *testing.T) {
+	var tc = []struct {
+		memSize         float64
+		wantMaxRequests int
+		wantDocBufSize  int
+	}{
+		{memSize: 1, wantMaxRequests: 11, wantDocBufSize: 819},
+		{memSize: 2, wantMaxRequests: 13, wantDocBufSize: 1638},
+		{memSize: 4, wantMaxRequests: 16, wantDocBufSize: 3276},
+		{memSize: 8, wantMaxRequests: 22, wantDocBufSize: 6553},
+	}
+	for _, c := range tc {
+		t.Run(fmt.Sprintf("default/%vgb", c.memSize), func(t *testing.T) {
+			r := Runner{
+				elasticsearchOutputConfig: agentconfig.NewConfig(),
+				logger:                    logp.NewLogger("test"),
+			}
+			docCfg, esCfg, err := r.newDocappenderConfig(nil, c.memSize)
+			require.NoError(t, err)
+			assert.Equal(t, docappender.Config{
+				Logger:                zap.New(r.logger.Core(), zap.WithCaller(true)),
+				CompressionLevel:      5,
+				RequireDataStream:     true,
+				FlushInterval:         time.Second,
+				FlushBytes:            1024 * 1024,
+				MaxRequests:           c.wantMaxRequests,
+				DocumentBufferSize:    c.wantDocBufSize,
+				MaxDocumentRetries:    3,
+				RetryOnDocumentStatus: []int{429},
+			}, docCfg)
+			assert.Equal(t, &elasticsearch.Config{
+				Hosts:               elasticsearch.Hosts{"localhost:9200"},
+				Backoff:             elasticsearch.DefaultBackoffConfig,
+				Protocol:            "http",
+				CompressionLevel:    5,
+				Timeout:             5 * time.Second,
+				MaxRetries:          3,
+				MaxIdleConnsPerHost: c.wantMaxRequests,
+			}, esCfg)
+		})
+		t.Run(fmt.Sprintf("override/%vgb", c.memSize), func(t *testing.T) {
+			r := Runner{
+				elasticsearchOutputConfig: agentconfig.MustNewConfigFrom(map[string]interface{}{
+					"flush_bytes":    "500 kib",
+					"flush_interval": "2s",
+					"max_requests":   50,
+				}),
+				logger: logp.NewLogger("test"),
+			}
+			docCfg, esCfg, err := r.newDocappenderConfig(nil, c.memSize)
+			require.NoError(t, err)
+			assert.Equal(t, docappender.Config{
+				Logger:                zap.New(r.logger.Core(), zap.WithCaller(true)),
+				CompressionLevel:      5,
+				RequireDataStream:     true,
+				FlushInterval:         2 * time.Second,
+				FlushBytes:            500 * 1024,
+				MaxRequests:           50,
+				DocumentBufferSize:    c.wantDocBufSize,
+				MaxDocumentRetries:    3,
+				RetryOnDocumentStatus: []int{429},
+			}, docCfg)
+			assert.Equal(t, &elasticsearch.Config{
+				Hosts:               elasticsearch.Hosts{"localhost:9200"},
+				Backoff:             elasticsearch.DefaultBackoffConfig,
+				Protocol:            "http",
+				CompressionLevel:    5,
+				Timeout:             5 * time.Second,
+				MaxRetries:          3,
+				MaxIdleConnsPerHost: 50,
+			}, esCfg)
+		})
+	}
+}
+
+func TestNewInstrumentation(t *testing.T) {
+	var auth string
+	labels := make(chan map[string]string, 1)
+	defer close(labels)
+	s := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/intake/v2/events" {
+			var b struct {
+				Metadata struct {
+					Labels map[string]string `json:"labels"`
+				} `json:"metadata"`
+			}
+			zr, _ := zlib.NewReader(r.Body)
+			_ = json.NewDecoder(zr).Decode(&b)
+			labels <- b.Metadata.Labels
+			auth = r.Header.Get("Authorization")
+		}
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer s.Close()
+	certPath := filepath.Join(t.TempDir(), "cert.pem")
+	f, err := os.Create(certPath)
+	assert.NoError(t, err)
+	err = pem.Encode(f, &pem.Block{Type: "CERTIFICATE", Bytes: s.Certificate().Raw})
+	assert.NoError(t, err)
+	cfg := agentconfig.MustNewConfigFrom(map[string]interface{}{
+		"instrumentation": map[string]interface{}{
+			"enabled":     true,
+			"hosts":       []string{s.URL},
+			"secrettoken": "secret",
+			"tls": map[string]interface{}{
+				"servercert": certPath,
+			},
+			"globallabels": "k1=val,k2=new val",
+		},
+	})
+	i, err := newInstrumentation(cfg)
+	require.NoError(t, err)
+	tracer := i.Tracer()
+	tracer.StartTransaction("name", "type").End()
+	tracer.Flush(nil)
+	assert.Equal(t, map[string]string{"k1": "val", "k2": "new val"}, <-labels)
+	assert.Equal(t, "Bearer secret", auth)
 }
