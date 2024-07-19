@@ -20,3 +20,5 @@ if [[ ${TYPE} == "snapshot" ]]; then
 fi
 
 make $MAKE_GOAL
+
+ls -l build/distributions/
