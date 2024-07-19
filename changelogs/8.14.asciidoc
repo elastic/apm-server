@@ -22,8 +22,6 @@ https://github.com/elastic/apm-server/compare/v8.14.2\...v8.14.3[View commits]
 
 https://github.com/elastic/apm-server/compare/v8.14.1\...v8.14.2[View commits]
 
-No significant changes.
-
 [float]
 ==== Added
 - Optimize memory usage and disk read IO for Tail Based Sampling {pull}13464[13464]
@@ -41,15 +39,6 @@ No significant changes.
 === APM version 8.14.0
 
 https://github.com/elastic/apm-server/compare/v8.13.2\...v8.14.0[View commits]
-
-[float]
-==== Breaking Changes
-
-[float]
-==== Deprecations
-
-[float]
-==== Intake API Changes
 
 [float]
 ==== Bug fixes
