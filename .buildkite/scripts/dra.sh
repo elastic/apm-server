@@ -21,6 +21,7 @@ cp build/dependencies*.csv build/distributions/
 
 echo "--- Changing permissions for the release manager"
 sudo chown -R :1000 build/
+sudo chmod -R 664 build/
 ls -l build/distributions/
 
 if [[ "${BUILDKITE_PULL_REQUEST:-false}" == "true" ]]; then
