@@ -20,6 +20,7 @@ buildkite-agent artifact download "build/dependencies*.csv" .
 cp build/dependencies*.csv build/distributions/
 
 echo "--- Changing permissions for the release manager"
+chmod -R a+r build/
 sudo chown -R :1000 build/
 ls -l build/distributions/
 
