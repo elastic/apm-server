@@ -21,8 +21,8 @@ cp build/dependencies*.csv build/distributions/
 
 echo "--- Changing permissions for the release manager"
 sudo chown -R :1000 build/
-chmod -R 664 build/
-ls -l build/distributions/
+sudo chmod -R 664 build/
+sudo ls -l build/distributions/
 
 if [[ "${BUILDKITE_PULL_REQUEST:-false}" == "true" ]]; then
   echo "--- :arrow_right: Release Manager does not run on PRs, skipping"
