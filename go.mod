@@ -12,7 +12,7 @@ require (
 	github.com/elastic/apm-data v1.9.0
 	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20240719122219-f3f772f6fe47
 	github.com/elastic/elastic-agent-client/v7 v7.15.0
-	github.com/elastic/elastic-agent-libs v0.9.14
+	github.com/elastic/elastic-agent-libs v0.9.15
 	github.com/elastic/elastic-agent-system-metrics v0.10.3
 	github.com/elastic/gmux v0.3.2
 	github.com/elastic/go-docappender/v2 v2.2.0
@@ -79,7 +79,6 @@ require (
 	github.com/dgryski/go-farm v0.0.0-20200201041132-a6ae2369ad13 // indirect
 	github.com/dgryski/go-metro v0.0.0-20180109044635-280f6062b5bc // indirect
 	github.com/dlclark/regexp2 v1.8.1 // indirect
-	github.com/docker/go-units v0.5.0 // indirect
 	github.com/dop251/goja v0.0.0-20230427124612-428fc442ff5f // indirect
 	github.com/dop251/goja_nodejs v0.0.0-20230322100729-2550c7b6c124 // indirect
 	github.com/eapache/go-resiliency v1.6.0 // indirect
