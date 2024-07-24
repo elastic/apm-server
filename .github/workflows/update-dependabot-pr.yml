@@ -25,8 +25,19 @@ jobs:
           go-version-file: go.mod
       - name: Update NOTICE.txt
         run: make notice
+      - name: Check if NOTICE.txt has changed
+        id: check-notice-diff
+        run: |
+          git diff --exit-code NOTICE.txt
+          result="$?"
+          if [[ "$result" -eq 0 ]]; then
+              echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+              echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
       # inspired by https://gist.github.com/swinton/03e84635b45c78353b1f71e41007fc7c
       - name: Commit changes (signed)
+        if: steps.check-notice-diff.outputs.changed
         run: |
           export BRANCH=${GITHUB_REF#refs/heads/}
           export SHA=$(git rev-parse "$BRANCH:$FILE_TO_COMMIT")
