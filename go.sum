@@ -127,8 +127,8 @@ github.com/elastic/apm-aggregation v1.0.1 h1:t4VKR6axu620Y9CtQE9kmZZcx+3BlfnqGyw
 github.com/elastic/apm-aggregation v1.0.1/go.mod h1:hmRuhkV01qMHk/Eu3xe9W/cNtBcRVf0DpFf9USVAE2Y=
 github.com/elastic/apm-data v1.9.0 h1:gdYoOJT4q01/o5mmNTWhFL0LwjqBA9GNe1nQ2HUD69A=
 github.com/elastic/apm-data v1.9.0/go.mod h1:zAJqL7eC+Qut/fvs5y0D1NvHBPJUP+LJKfqlL2/3/2Y=
-github.com/elastic/beats/v7 v7.0.0-alpha2.0.20240723142037-dd671a6bcefb h1:+1pmIphjkBJvI4Ec7Ja9fGTK3bpduV+2feBFndUC0ds=
-github.com/elastic/beats/v7 v7.0.0-alpha2.0.20240723142037-dd671a6bcefb/go.mod h1:wxWig5hwFHYubw/3J3juf1XlCdXGjaIK8/Z24Gyqu64=
+github.com/elastic/beats/v7 v7.0.0-alpha2.0.20240724135101-5195020df470 h1:GYGTYIa3IuWK05MYhlRAO70r3BjoUI6d3D86YIkvRvI=
+github.com/elastic/beats/v7 v7.0.0-alpha2.0.20240724135101-5195020df470/go.mod h1:r0nTuMfLVQbUIQA+UKB+M2WVMQhFYkt8tUNQ1C3nss8=
 github.com/elastic/elastic-agent-autodiscover v0.7.0 h1:FCrHXh5AZGrPlpAx8kBu/s/guw9d/EXt+GKlFCnrgsc=
 github.com/elastic/elastic-agent-autodiscover v0.7.0/go.mod h1:zLf0SDdQXisVZxzXPxKXdj3Fa+H4bsu4HHbTEQImDz8=
 github.com/elastic/elastic-agent-client/v7 v7.15.0 h1:nDB7v8TBoNuD6IIzC3z7Q0y+7bMgXoT2DsHfolO2CHE=
@@ -578,8 +578,8 @@ golang.org/x/xerrors v0.0.0-20190717185122-a985d3407aa7/go.mod h1:I/5z698sn9Ka8T
 golang.org/x/xerrors v0.0.0-20191011141410-1b5146add898/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
 golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
 golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
-google.golang.org/genproto/googleapis/rpc v0.0.0-20240701130421-f6361c86f094 h1:BwIjyKYGsK9dMCBOorzRri8MQwmi7mT9rGHsCEinZkA=
-google.golang.org/genproto/googleapis/rpc v0.0.0-20240701130421-f6361c86f094/go.mod h1:Ue6ibwXGpU+dqIcODieyLOcgj7z8+IcskoNIgZxtrFY=
+google.golang.org/genproto/googleapis/rpc v0.0.0-20240708141625-4ad9e859172b h1:04+jVzTs2XBnOZcPsLnmrTGqltqJbZQ1Ey26hjYdQQ0=
+google.golang.org/genproto/googleapis/rpc v0.0.0-20240708141625-4ad9e859172b/go.mod h1:Ue6ibwXGpU+dqIcODieyLOcgj7z8+IcskoNIgZxtrFY=
 google.golang.org/grpc v1.65.0 h1:bs/cUb4lp1G5iImFFd3u5ixQzweKizoZJAwBNLR42lc=
 google.golang.org/grpc v1.65.0/go.mod h1:WgYC2ypjlB0EiQi6wdKixMqukr6lBc0Vo+oOgjrM5ZQ=
 google.golang.org/grpc/examples v0.0.0-20231016154744-cb430bed4d27 h1:EB/3dtnYKOItaNPpOI/HmOCGbVZUiXcstRfiuxN+cFg=
