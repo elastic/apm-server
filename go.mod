@@ -1,8 +1,6 @@
 module github.com/elastic/apm-server
 
-go 1.22
-
-toolchain go1.22.1
+go 1.22.5
 
 require (
 	github.com/cespare/xxhash/v2 v2.3.0
@@ -10,7 +8,7 @@ require (
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/apm-aggregation v1.0.1
 	github.com/elastic/apm-data v1.9.0
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20240723142037-dd671a6bcefb
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20240724214231-5541971cc328
 	github.com/elastic/elastic-agent-client/v7 v7.15.0
 	github.com/elastic/elastic-agent-libs v0.9.15
 	github.com/elastic/elastic-agent-system-metrics v0.10.3
@@ -156,7 +154,7 @@ require (
 	golang.org/x/sys v0.22.0 // indirect
 	golang.org/x/text v0.16.0 // indirect
 	golang.org/x/tools v0.23.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20240701130421-f6361c86f094 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240708141625-4ad9e859172b // indirect
 	gopkg.in/jcmturner/aescts.v1 v1.0.1 // indirect
 	gopkg.in/jcmturner/dnsutils.v1 v1.0.1 // indirect
 	gopkg.in/jcmturner/goidentity.v3 v3.0.0 // indirect
