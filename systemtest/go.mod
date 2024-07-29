@@ -16,7 +16,7 @@ require (
 	github.com/jaegertracing/jaeger v1.59.0
 	github.com/stretchr/testify v1.9.0
 	github.com/testcontainers/testcontainers-go v0.32.0
-	github.com/tidwall/gjson v1.17.1
+	github.com/tidwall/gjson v1.17.2
 	go.elastic.co/apm/v2 v2.6.0
 	go.elastic.co/fastjson v1.3.0
 	go.opentelemetry.io/collector/pdata v1.12.0
