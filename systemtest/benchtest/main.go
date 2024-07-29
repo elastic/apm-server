@@ -35,6 +35,7 @@ import (
 	"time"
 
 	"go.elastic.co/apm/v2/stacktrace"
+	"go.uber.org/zap/zaptest"
 	"golang.org/x/time/rate"
 
 	"github.com/elastic/apm-perf/loadgen"
@@ -65,7 +66,7 @@ func runBenchmark(f BenchmarkFunc) (testing.BenchmarkResult, bool, bool, error) 
 		defer cancel()
 		var err error
 		server := loadgencfg.Config.ServerURL.String()
-		collector, err = expvar.StartNewCollector(ctx, server, 100*time.Millisecond)
+		collector, err = expvar.StartNewCollector(ctx, server, 100*time.Millisecond, zaptest.NewLogger(b))
 		if err != nil {
 			b.Error(err)
 			failed = b.Failed()

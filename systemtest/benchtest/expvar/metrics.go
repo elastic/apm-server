@@ -22,6 +22,8 @@ import (
 	"errors"
 	"sync"
 	"time"
+
+	"go.uber.org/zap"
 )
 
 type Metric int
@@ -71,15 +73,23 @@ type Collector struct {
 	metrics map[Metric]AggregateStats
 	watches map[Metric]watchItem
 	stopped bool
+
+	logger *zap.Logger
 }
 
 // StartNewCollector creates a new collector and starts
 // querying expvar endpoint at the specified interval.
-func StartNewCollector(ctx context.Context, serverURL string, period time.Duration) (*Collector, error) {
+func StartNewCollector(
+	ctx context.Context,
+	serverURL string,
+	period time.Duration,
+	logger *zap.Logger,
+) (*Collector, error) {
 	c := &Collector{
 		metrics: make(map[Metric]AggregateStats),
 		watches: make(map[Metric]watchItem),
 		stopped: false,
+		logger:  logger,
 	}
 	return c, c.start(ctx, serverURL, period)
 }
@@ -215,7 +225,8 @@ func (c *Collector) start(ctx context.Context, serverURL string, period time.Dur
 			select {
 			case <-ctx.Done():
 				return
-			case <-errChan:
+			case err := <-errChan:
+				c.logger.Warn("failed while querying expvar", zap.Error(err))
 				return
 			case m := <-outChan:
 				c.accumulate(m)

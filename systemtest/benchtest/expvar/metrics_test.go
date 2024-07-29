@@ -26,13 +26,14 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/zap/zaptest"
 )
 
 func TestStart(t *testing.T) {
 	serverURL := setupTestServer(t, 1, make(chan bool, 1))
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
-	c, err := StartNewCollector(ctx, serverURL, 10*time.Second)
+	c, err := StartNewCollector(ctx, serverURL, 10*time.Second, zaptest.NewLogger(t))
 	assert.NoError(t, err)
 	assert.Equal(t, int64(1), c.Get(Goroutines).samples)
 	assert.Equal(t, int64(1), c.Get(Goroutines).First)
@@ -45,7 +46,7 @@ func TestAggregate(t *testing.T) {
 	serverURL := setupTestServer(t, samples, done)
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
-	c, err := StartNewCollector(ctx, serverURL, 10*time.Millisecond)
+	c, err := StartNewCollector(ctx, serverURL, 10*time.Millisecond, zaptest.NewLogger(t))
 	assert.NoError(t, err)
 	assert.True(t, <-done)
 	stats := c.Get(Goroutines)
@@ -61,7 +62,7 @@ func TestWatchMetric(t *testing.T) {
 	serverURL := setupTestServer(t, 5, make(chan bool, 1))
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
-	c, err := StartNewCollector(ctx, serverURL, 10*time.Millisecond)
+	c, err := StartNewCollector(ctx, serverURL, 10*time.Millisecond, zaptest.NewLogger(t))
 	assert.NoError(t, err)
 	watcher, err := c.WatchMetric(Goroutines, int64(5))
 	assert.NoError(t, err)
@@ -77,7 +78,7 @@ func TestWatchMetric(t *testing.T) {
 func TestWatchMetricFail(t *testing.T) {
 	serverURL := setupTestServer(t, 1, make(chan bool, 1))
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	c, err := StartNewCollector(ctx, serverURL, 10*time.Millisecond)
+	c, err := StartNewCollector(ctx, serverURL, 10*time.Millisecond, zaptest.NewLogger(t))
 	assert.NoError(t, err)
 	cancel()
 	<-time.After(100 * time.Millisecond)
@@ -88,7 +89,7 @@ func TestWatchMetricFail(t *testing.T) {
 func TestWatchMetricFalse(t *testing.T) {
 	serverURL := setupTestServer(t, 1, make(chan bool, 1))
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	c, err := StartNewCollector(ctx, serverURL, 10*time.Millisecond)
+	c, err := StartNewCollector(ctx, serverURL, 10*time.Millisecond, zaptest.NewLogger(t))
 	assert.NoError(t, err)
 	watcher, err := c.WatchMetric(Goroutines, 20)
 	assert.NoError(t, err)
@@ -108,7 +109,7 @@ func TestWatchMetricNonBlocking(t *testing.T) {
 	timeout := 100 * time.Millisecond
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
-	c, err := StartNewCollector(ctx, serverURL, 10*time.Millisecond)
+	c, err := StartNewCollector(ctx, serverURL, 10*time.Millisecond, zaptest.NewLogger(t))
 	assert.NoError(t, err)
 	watcher, err := c.WatchMetric(Goroutines, int64(5))
 	assert.NoError(t, err)
