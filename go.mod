@@ -1,6 +1,6 @@
 module github.com/elastic/apm-server
 
-go 1.21
+go 1.22.5
 
 require (
 	github.com/DataDog/zstd v1.4.4 // indirect
@@ -14,7 +14,7 @@ require (
 	github.com/dop251/goja_nodejs v0.0.0-20230226152057-060fa99b809f // indirect
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/apm-server/approvaltest v0.0.0-00010101000000-000000000000
-	github.com/elastic/beats/v7 v7.17.23-0.20240725164349-786f4ad0b0fa
+	github.com/elastic/beats/v7 v7.17.23-0.20240729145833-4944196a346f
 	github.com/elastic/ecs v1.12.0
 	github.com/elastic/elastic-agent-client/v7 v7.8.1 // indirect
 	github.com/elastic/gmux v0.2.0
@@ -104,7 +104,7 @@ require (
 	github.com/eapache/queue v1.1.0 // indirect
 	github.com/elastic/elastic-agent-libs v0.7.2 // indirect
 	github.com/elastic/go-concert v0.2.0 // indirect
-	github.com/elastic/go-licenser v0.4.1 // indirect
+	github.com/elastic/go-licenser v0.4.2 // indirect
 	github.com/elastic/go-lumber v0.1.0 // indirect
 	github.com/elastic/go-seccomp-bpf v1.2.0 // indirect
 	github.com/elastic/go-structform v0.0.9 // indirect
