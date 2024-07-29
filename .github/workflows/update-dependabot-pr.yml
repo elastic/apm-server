@@ -28,11 +28,10 @@ jobs:
       - name: Check if NOTICE.txt has changed
         id: check-notice-diff
         run: |
-          result="$(git diff --exit-code NOTICE.txt)"
-          if [[ "$result" -eq 0 ]]; then
-              echo "changed=false" >> "$GITHUB_OUTPUT"
+          if git diff --quiet NOTICE.txt; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
           else
-              echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
       # inspired by https://gist.github.com/swinton/03e84635b45c78353b1f71e41007fc7c
       - name: Commit changes (signed)
