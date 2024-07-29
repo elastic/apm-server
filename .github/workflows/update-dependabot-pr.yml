@@ -28,8 +28,7 @@ jobs:
       - name: Check if NOTICE.txt has changed
         id: check-notice-diff
         run: |
-          git diff --exit-code NOTICE.txt
-          result="$?"
+          result="$(git diff --exit-code NOTICE.txt)"
           if [[ "$result" -eq 0 ]]; then
               echo "changed=false" >> "$GITHUB_OUTPUT"
           else
