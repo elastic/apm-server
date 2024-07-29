@@ -31,6 +31,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/zap/zaptest"
 
 	"github.com/elastic/apm-server/systemtest/benchtest/expvar"
 )
@@ -173,7 +174,7 @@ func TestAddExpvarMetrics(t *testing.T) {
 			server := getTestServer(t, tt.responseMetrics, tt.memstatsMetrics)
 			defer server.Close()
 			ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-			collector, err := expvar.StartNewCollector(ctx, server.URL, 10*time.Millisecond)
+			collector, err := expvar.StartNewCollector(ctx, server.URL, 10*time.Millisecond, zaptest.NewLogger(t))
 			assert.NoError(t, err)
 			<-time.After(100 * time.Millisecond)
 			cancel()
