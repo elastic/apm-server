@@ -1,4 +1,4 @@
-FROM golang:1.21.12
+FROM golang:1.22.5
 
 RUN set -x && \
     apt-get update && \
