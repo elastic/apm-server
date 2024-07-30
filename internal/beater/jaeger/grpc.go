@@ -58,6 +58,8 @@ const (
 	// elasticAuthTag is the name of the agent tag that will be used for auth.
 	// The tag value should be "Bearer <secret token" or "ApiKey <api key>".
 	elasticAuthTag = "elastic-apm-auth"
+
+	deprecationNotice = "deprecation notice: support for Jaeger will be removed in an upcoming version"
 )
 
 // RegisterGRPCServices registers Jaeger gRPC services with srv.
@@ -73,6 +75,9 @@ func RegisterGRPCServices(
 		Logger:    logger,
 		Semaphore: semaphore,
 	})
+
+	logger.Warn(deprecationNotice)
+
 	api_v2.RegisterCollectorServiceServer(srv, &grpcCollector{traceConsumer})
 	api_v2.RegisterSamplingManagerServer(srv, &grpcSampler{logger, fetcher})
 }
