@@ -183,7 +183,7 @@ func TestRunManager(t *testing.T) {
 			},
 		},
 		"instrumentation": map[string]interface{}{
-			"enabled":     true,
+			"enabled":     false,
 			"environment": "testenv",
 		},
 	}, m)

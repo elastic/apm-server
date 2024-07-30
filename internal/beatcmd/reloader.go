@@ -194,8 +194,9 @@ func (r *Reloader) reload(inputConfig, outputConfig, apmTracingConfig *config.C)
 		if err != nil {
 			return fmt.Errorf("APM tracing config for elastic not found")
 		}
-		// set enabled manually as APMConfig doesn't contain it
-		c.SetBool("enabled", -1, true)
+		// set enabled manually as APMConfig doesn't contain it.
+		// TODO set "enable" to true after the issue https://github.com/elastic/elastic-agent/issues/5211 gets resolved.
+		c.SetBool("enabled", -1, false)
 		wrappedApmTracingConfig = config.MustNewConfigFrom(map[string]interface{}{
 			"instrumentation": c,
 		})
