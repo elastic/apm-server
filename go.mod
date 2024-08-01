@@ -8,10 +8,10 @@ require (
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/apm-aggregation v1.0.1
 	github.com/elastic/apm-data v1.9.0
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20240731142910-4fbf1b13f40c
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20240801135034-03ad3bf11c4e
 	github.com/elastic/elastic-agent-client/v7 v7.15.0
 	github.com/elastic/elastic-agent-libs v0.9.15
-	github.com/elastic/elastic-agent-system-metrics v0.10.6
+	github.com/elastic/elastic-agent-system-metrics v0.10.8
 	github.com/elastic/gmux v0.3.2
 	github.com/elastic/go-docappender/v2 v2.2.0
 	github.com/elastic/go-elasticsearch/v8 v8.14.0
@@ -27,7 +27,7 @@ require (
 	github.com/jaegertracing/jaeger v1.59.0
 	github.com/libp2p/go-reuseport v0.4.0
 	github.com/modern-go/reflect2 v1.0.2
-	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger v0.106.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger v0.106.1
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pkg/errors v0.9.1
 	github.com/ryanuber/go-glob v1.0.0
@@ -41,7 +41,7 @@ require (
 	go.elastic.co/apm/module/apmotel/v2 v2.6.0
 	go.elastic.co/apm/v2 v2.6.0
 	go.elastic.co/fastjson v1.3.0
-	go.opentelemetry.io/collector/consumer v0.106.0
+	go.opentelemetry.io/collector/consumer v0.106.1
 	go.opentelemetry.io/collector/pdata v1.12.0
 	go.opentelemetry.io/otel v1.28.0
 	go.opentelemetry.io/otel/metric v1.28.0
@@ -59,7 +59,7 @@ require (
 
 require (
 	github.com/DataDog/zstd v1.4.5 // indirect
-	github.com/Microsoft/go-winio v0.6.1 // indirect
+	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/OneOfOne/xxhash v1.2.8 // indirect
 	github.com/Shopify/sarama v1.38.1 // indirect
 	github.com/apache/thrift v0.20.0 // indirect
@@ -72,11 +72,13 @@ require (
 	github.com/cockroachdb/pebble v1.1.0 // indirect
 	github.com/cockroachdb/redact v1.1.5 // indirect
 	github.com/cockroachdb/tokenbucket v0.0.0-20230807174530-cc333fc44b06 // indirect
+	github.com/containerd/errdefs v0.1.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/dgraph-io/ristretto v0.1.1 // indirect
 	github.com/dgryski/go-farm v0.0.0-20200201041132-a6ae2369ad13 // indirect
 	github.com/dgryski/go-metro v0.0.0-20180109044635-280f6062b5bc // indirect
 	github.com/dlclark/regexp2 v1.8.1 // indirect
+	github.com/docker/distribution v2.8.3+incompatible // indirect
 	github.com/dop251/goja v0.0.0-20230427124612-428fc442ff5f // indirect
 	github.com/dop251/goja_nodejs v0.0.0-20230322100729-2550c7b6c124 // indirect
 	github.com/eapache/go-resiliency v1.6.0 // indirect
@@ -122,7 +124,7 @@ require (
 	github.com/mitchellh/hashstructure v1.1.0 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
-	github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal v0.106.0 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal v0.106.1 // indirect
 	github.com/pierrec/lz4 v2.6.1+incompatible // indirect
 	github.com/pierrec/lz4/v4 v4.1.21 // indirect
 	github.com/planetscale/vtprotobuf v0.6.0 // indirect
@@ -145,16 +147,14 @@ require (
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	go.elastic.co/apm/module/apmzap/v2 v2.6.0 // indirect
 	go.elastic.co/ecszap v1.0.2 // indirect
-	go.opentelemetry.io/collector/semconv v0.106.0 // indirect
+	go.opentelemetry.io/collector/semconv v0.106.1 // indirect
 	go.opentelemetry.io/otel/sdk v1.28.0 // indirect
 	go.opentelemetry.io/otel/trace v1.28.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.25.0 // indirect
 	golang.org/x/exp v0.0.0-20240506185415-9bf2ced13842 // indirect
-	golang.org/x/mod v0.19.0 // indirect
 	golang.org/x/sys v0.22.0 // indirect
 	golang.org/x/text v0.16.0 // indirect
-	golang.org/x/tools v0.23.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240708141625-4ad9e859172b // indirect
 	gopkg.in/jcmturner/aescts.v1 v1.0.1 // indirect
 	gopkg.in/jcmturner/dnsutils.v1 v1.0.1 // indirect
