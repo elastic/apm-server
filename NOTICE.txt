@@ -573,11 +573,11 @@ Contents of probable licence file $GOMODCACHE/github.com/elastic/apm-data@v1.8.4
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/beats/v7
-Version: v7.0.0-alpha2.0.20240731101929-edf66a507cb2
+Version: v7.0.0-alpha2.0.20240801124525-a70fd7dd87ef
 Licence type (autodetected): Elastic
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20240731101929-edf66a507cb2/LICENSE.txt:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20240801124525-a70fd7dd87ef/LICENSE.txt:
 
 Source code in this repository is variously licensed under the Apache License
 Version 2.0, an Apache compatible license, or the Elastic License. Outside of
@@ -6749,11 +6749,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/Microsoft/go-winio
-Version: v0.6.1
+Version: v0.6.2
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/!microsoft/go-winio@v0.6.1/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/!microsoft/go-winio@v0.6.2/LICENSE:
 
 The MIT License (MIT)
 
