@@ -95,8 +95,13 @@ func initContainerReaper() {
 // development and testing. Use docker-compose to stop services as necessary.
 func StartStackContainers() error {
 	cmd := exec.Command(
+<<<<<<< HEAD
 		"docker-compose", "-f", "../docker-compose.yml",
 		"up", "-d", "elasticsearch", "kibana", "fleet-server",
+=======
+		"docker", "compose", "-f", "../docker-compose.yml",
+		"up", "-d", "elasticsearch", "kibana",
+>>>>>>> 7aeb1f5e4 (Migrate docker-compose to docker compose (#13823))
 	)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
