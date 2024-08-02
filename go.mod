@@ -6,19 +6,11 @@ require (
 	github.com/cespare/xxhash/v2 v2.3.0
 	github.com/dgraph-io/badger/v2 v2.2007.4
 	github.com/dustin/go-humanize v1.0.1
-<<<<<<< HEAD
-	github.com/elastic/apm-aggregation v1.0.1
+	github.com/elastic/apm-aggregation v1.0.2
 	github.com/elastic/apm-data v1.8.4
 	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20240801124525-a70fd7dd87ef
 	github.com/elastic/elastic-agent-client/v7 v7.13.0
 	github.com/elastic/elastic-agent-libs v0.9.13
-=======
-	github.com/elastic/apm-aggregation v1.0.2
-	github.com/elastic/apm-data v1.9.0
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20240724214231-5541971cc328
-	github.com/elastic/elastic-agent-client/v7 v7.15.0
-	github.com/elastic/elastic-agent-libs v0.9.15
->>>>>>> 9c7d46861 (build(deps): bump github.com/elastic/apm-aggregation from 1.0.1 to 1.0.2 (#13822))
 	github.com/elastic/elastic-agent-system-metrics v0.10.3
 	github.com/elastic/gmux v0.3.2
 	github.com/elastic/go-docappender/v2 v2.1.4
