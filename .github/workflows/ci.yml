@@ -63,7 +63,7 @@ jobs:
         with:
           go-version-file: systemtest/go.mod
           cache: true
-      - run: docker-compose up -d
+      - run: docker compose up -d
       - env:
           GOTESTFLAGS: "-v -json"
           OUTPUT_JSON_FILE: "build/TEST-go-system_tests.out.json"
