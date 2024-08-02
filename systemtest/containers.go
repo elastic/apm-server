@@ -68,7 +68,7 @@ func init() {
 // development and testing. Use docker-compose to stop services as necessary.
 func StartStackContainers() error {
 	cmd := exec.Command(
-		"docker compose", "-f", "../docker-compose.yml",
+		"docker", "compose", "-f", "../docker-compose.yml",
 		"up", "-d", "elasticsearch", "kibana",
 	)
 	cmd.Stdout = os.Stdout
