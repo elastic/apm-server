@@ -2866,11 +2866,11 @@ Exhibit B - "Incompatible With Secondary Licenses" Notice
 
 --------------------------------------------------------------------------------
 Dependency : github.com/jaegertracing/jaeger
-Version: v1.59.0
+Version: v1.60.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/jaegertracing/jaeger@v1.59.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/jaegertracing/jaeger@v1.60.0/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
