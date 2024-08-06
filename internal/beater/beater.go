@@ -181,23 +181,25 @@ func (s *Runner) Run(ctx context.Context) error {
 
 	// Obtain the memory limit for the APM Server process. Certain config
 	// values will be sized according to the maximum memory set for the server.
+	const gb = 1073741824
 	var memLimitGB float64
 	if cgroupReader := newCgroupReader(); cgroupReader != nil {
 		if limit, err := cgroupMemoryLimit(cgroupReader); err != nil {
 			s.logger.Warn(err)
 		} else {
-			memLimitGB = float64(limit) / 1024 / 1024 / 1024
+			memLimitGB = float64(limit) / gb
 		}
 	}
 	if limit, err := systemMemoryLimit(); err != nil {
 		s.logger.Warn(err)
 	} else {
+		limitGB := float64(limit) / gb
 		var fallback bool
 		if memLimitGB <= 0 {
 			s.logger.Info("no cgroups detected, falling back to total system memory")
 			fallback = true
 		}
-		if memLimitGB > float64(limit) {
+		if memLimitGB > limitGB {
 			s.logger.Info("cgroup memory limit exceed available memory, falling back to the total system memory")
 			fallback = true
 		}
@@ -206,7 +208,7 @@ func (s *Runner) Run(ctx context.Context) error {
 			// to have a margin of safety for other processes. The fraction value
 			// of 0.625 is used to keep the 80% of the total system memory limit
 			// to be 50% of the total for calculating the number of decoders.
-			memLimitGB = float64(limit) / 1024 / 1024 / 1024 * 0.625
+			memLimitGB = limitGB * 0.625
 		}
 	}
 	if memLimitGB <= 0 {
