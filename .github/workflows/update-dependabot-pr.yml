@@ -35,6 +35,9 @@ jobs:
           else
             echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
+      - name: Debug output
+        run: |-
+          echo 'changed: ${{ steps.check-notice-diff.outputs.changed }}'
       # inspired by https://gist.github.com/swinton/03e84635b45c78353b1f71e41007fc7c
       - name: Commit changes (signed)
         if: ${{ steps.check-notice-diff.outputs.changed == 'true' }}
