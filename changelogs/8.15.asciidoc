@@ -15,6 +15,7 @@ https://github.com/elastic/apm-server/compare/v8.14.3\...v8.15.0[View commits]
 - APM Server now relies on the Elasticsearch apm-data plugin's index templates, which reverts some unsafe uses of `flattened` field types {pull}12066[12066]
 - Add `error.id` to jaeger errors {pull}13196[13196]
 - Process `host.ip` resource attribute for OTel {pull}13614[13614]
+- Fix a bug where indexed OpenTelemetry events and their aggregated metrics may contain incorrect label values from other events when the affected OpenTelemetry event has resource attribute values that are slices. This bug may also cause a panic with a message like "panic: runtime error: slice bounds out of range [-4:]" from apm-aggregation library. {pull}13822[13822]
 
 [float]
 ==== Breaking Changes
