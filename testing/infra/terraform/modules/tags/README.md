@@ -8,6 +8,7 @@ This modules exports the default tags / labels to use on Cloud Service Providers
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | <a name="input_project"></a> [project](#input\_project) | The value to use for the project tag/label | `any` | n/a | yes |
+| <a name="input_build"></a> [build](#input\_build) | The value to use for the build tag/label, normally related to the CICD executions. | `any` | `unknown` | no |
 
 ## Outputs
 
