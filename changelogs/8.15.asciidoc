@@ -15,6 +15,7 @@ https://github.com/elastic/apm-server/compare/v8.14.3\...v8.15.0[View commits]
 - APM Server now relies on the Elasticsearch apm-data plugin's index templates, which reverts some unsafe uses of `flattened` field types {pull}12066[12066]
 - Add `error.id` to jaeger errors {pull}13196[13196]
 - Process `host.ip` resource attribute for OTel {pull}13614[13614]
+- Fix a bug where indexed OpenTelemetry events and their aggregated metrics may contain incorrect label values from other events when the affected OpenTelemetry event has resource attribute values that are slices. This bug may also cause a panic with a message like "panic: runtime error: slice bounds out of range [-4:]" from apm-aggregation library. {pull}13822[13822]
 
 [float]
 ==== Breaking Changes
@@ -35,3 +36,4 @@ https://github.com/elastic/apm-server/compare/v8.14.3\...v8.15.0[View commits]
 - Add require data stream to bulk index requests {pull}13398[13398]
 - Support self-instrumentation when in managed mode by getting tracing configs via reloader {pull}13514[13514] {pull}13653[13653] {pull}13691[13691] {pull}13790[13790]
 - Add mapping for OpenTelemetry attribute `messaging.destination.name` to derive `service.target` correctly {pull}13472[13472]
+- APM Server now automatically retries document-level 429s from Elasticsearch to avoid dropping data. `output.elasticsearch.max_retries` now controls both request-level and document-level retries, and defaults to `3`. {pull}13620[13620]

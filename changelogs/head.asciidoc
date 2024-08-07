@@ -20,5 +20,4 @@ https://github.com/elastic/apm-server/compare/8.15\...main[View commits]
 [float]
 ==== Added
 
-- APM Server now automatically retries document-level 429s from Elasticsearch to avoid dropping data. `output.elasticsearch.max_retries` now controls both request-level and document-level retries, and defaults to `3`. {pull}13620[13620]
 - APM Server will no longer retry an HTTP request that returned 502s, 503s, 504s. It will only retry 429s. {pull}13523[13523]
