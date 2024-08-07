@@ -26,14 +26,14 @@ jobs:
       - name: Update NOTICE.txt
         run: make notice
       - name: Debug diff
-        run: git diff-index HEAD -- NOTICE.txt
+        run: git status --porcelain
       - name: Check if NOTICE.txt has changed
         id: check-notice-diff
         run: |
-          if git diff-index --quiet HEAD -- NOTICE.txt; then
-            echo "changed=false" >> "$GITHUB_OUTPUT"
-          else
+          if git status --porcelain | grep -q 'NOTICE.txt'; then
             echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
           fi
       - name: Debug output
         run: |-
