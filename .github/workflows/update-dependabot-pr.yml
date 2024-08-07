@@ -25,6 +25,8 @@ jobs:
           go-version-file: go.mod
       - name: Update NOTICE.txt
         run: make notice
+      - name: Debug diff
+        run: git diff-index HEAD -- NOTICE.txt
       - name: Check if NOTICE.txt has changed
         id: check-notice-diff
         run: |
@@ -33,9 +35,12 @@ jobs:
           else
             echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
+      - name: Debug output
+        run: |-
+          echo 'changed: ${{ steps.check-notice-diff.outputs.changed }}'
       # inspired by https://gist.github.com/swinton/03e84635b45c78353b1f71e41007fc7c
       - name: Commit changes (signed)
-        if: steps.check-notice-diff.outputs.changed
+        if: ${{ steps.check-notice-diff.outputs.changed == 'true' }}
         run: |
           export BRANCH=${GITHUB_REF#refs/heads/}
           export SHA=$(git rev-parse "$BRANCH:$FILE_TO_COMMIT")
