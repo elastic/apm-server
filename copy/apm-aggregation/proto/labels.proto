@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package elastic.apm.v1;
+
+option go_package = "./aggregationpb";
+option optimize_for = SPEED;
+
+message GlobalLabels {
+  repeated Label labels = 1;
+  repeated NumericLabel numeric_labels = 2;
+}
+
+message Label {
+  string key = 1;
+  string value = 2;
+  repeated string values = 3;
+}
+
+message NumericLabel {
+  string key = 1;
+  double value = 2;
+  repeated double values = 3;
+}

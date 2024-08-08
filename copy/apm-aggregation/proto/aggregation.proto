@@ -1,0 +1,137 @@
+syntax = "proto3";
+
+package elastic.apm.v1;
+
+option go_package = "./aggregationpb";
+option optimize_for = SPEED;
+
+message CombinedMetrics {
+  repeated KeyedServiceMetrics service_metrics = 1;
+  Overflow overflow_services = 2;
+  bytes overflow_services_estimator = 3;
+  double events_total = 4;
+  uint64 youngest_event_timestamp = 5;
+}
+
+message KeyedServiceMetrics {
+  ServiceAggregationKey key = 1;
+  ServiceMetrics metrics = 2;
+}
+
+message ServiceAggregationKey {
+  uint64 timestamp = 1;
+  string service_name = 2;
+  string service_environment = 3;
+  string service_language_name = 4;
+  string agent_name = 5;
+  bytes global_labels_str = 6;
+}
+
+message ServiceMetrics {
+  Overflow overflow_groups = 1;
+  repeated KeyedTransactionMetrics transaction_metrics = 2;
+  repeated KeyedServiceTransactionMetrics service_transaction_metrics = 3;
+  repeated KeyedSpanMetrics span_metrics = 4;
+}
+
+message KeyedTransactionMetrics {
+  TransactionAggregationKey key = 1;
+  TransactionMetrics metrics = 2;
+}
+
+message TransactionAggregationKey {
+  bool trace_root = 1;
+  
+  string container_id = 2;
+  string kubernetes_pod_name = 3;
+
+  string service_version = 4;
+  string service_node_name = 5;
+
+  string service_runtime_name = 6;
+  string service_runtime_version = 7;
+  string service_language_version = 8;
+
+  string host_hostname = 9;
+  string host_name = 10;
+  string host_os_platform = 11;
+
+  string event_outcome = 12;
+
+  string transaction_name = 13;
+  string transaction_type = 14;
+  string transaction_result = 15;
+
+  uint32 faas_coldstart = 16;
+  string faas_id = 17;
+  string faas_name = 18;
+  string faas_version = 19;
+  string faas_trigger_type = 20;
+
+  string cloud_provider = 21;
+  string cloud_region = 22;
+  string cloud_availability_zone = 23;
+  string cloud_service_name = 24;
+  string cloud_account_id = 25;
+  string cloud_account_name = 26;
+  string cloud_machine_type = 27;
+  string cloud_project_id = 28;
+  string cloud_project_name = 29;
+}
+
+message TransactionMetrics {
+  HDRHistogram histogram = 1;
+}
+
+message KeyedServiceTransactionMetrics {
+  ServiceTransactionAggregationKey key = 1;
+  ServiceTransactionMetrics metrics = 2;
+}
+
+message ServiceTransactionAggregationKey {
+  string transaction_type = 1;
+}
+
+message ServiceTransactionMetrics {
+  HDRHistogram histogram = 1;
+  double failure_count = 2;
+  double success_count = 3;
+}
+
+message KeyedSpanMetrics {
+  SpanAggregationKey key = 1;
+  SpanMetrics metrics = 2;
+}
+
+message SpanAggregationKey {
+  string span_name = 1;
+  string outcome = 2;
+
+  string target_type = 3;
+  string target_name = 4;
+
+  string resource = 5;
+}
+
+message SpanMetrics {
+  double count = 1;
+  double sum = 2;
+}
+
+message Overflow {
+  TransactionMetrics overflow_transactions = 1;
+  ServiceTransactionMetrics overflow_service_transactions = 2;
+  SpanMetrics overflow_spans = 3;
+  bytes overflow_transactions_estimator = 4;
+  bytes overflow_service_transactions_estimator = 5;
+  bytes overflow_spans_estimator = 6;
+}
+
+message HDRHistogram {
+  int64 lowest_trackable_value = 1;
+  int64 highest_trackable_value = 2;
+  int64 significant_figures = 3;
+  repeated int64 counts = 4;
+  repeated int32 buckets = 5;
+}
+

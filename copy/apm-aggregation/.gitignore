@@ -1,0 +1,29 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+bin
+testbin/*
+__debug_bin
+
+# Test binary, build with `go test -c`
+*.test
+
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
+
+# editor and IDE paraphernalia
+.idea
+*.swp
+*.sw
+*.iml
+*~
+*.DS_Store
+
+build
+
+# git ignore ndjson testdata files to avoid duplication across repos
+# until we figure out a better way to do so
+/aggregators/testdata/*.ndjson
