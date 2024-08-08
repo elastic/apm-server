@@ -45,7 +45,7 @@ func SetClientMetadata(ctx context.Context, batch *modelpb.Batch) error {
 			if event.GetSource().GetIp() == nil {
 				if tcpAddr, ok := clientMetadata.SourceAddr.(*net.TCPAddr); ok {
 					if event.Source == nil {
-						event.Source = modelpb.SourceFromVTPool()
+						event.Source = &modelpb.Source{}
 					}
 					sourceAddrPort := tcpAddr.AddrPort()
 					event.Source.Ip = modelpb.Addr2IP(sourceAddrPort.Addr().Unmap())
@@ -54,12 +54,12 @@ func SetClientMetadata(ctx context.Context, batch *modelpb.Batch) error {
 			}
 			if event.GetClient().GetIp() == nil && clientMetadata.ClientIP.IsValid() {
 				if event.Client == nil {
-					event.Client = modelpb.ClientFromVTPool()
+					event.Client = &modelpb.Client{}
 				}
 				event.Client.Ip = modelpb.Addr2IP(clientMetadata.ClientIP)
 			}
 			if clientMetadata.SourceNATIP.IsValid() {
-				event.Source.Nat = modelpb.NATFromVTPool()
+				event.Source.Nat = &modelpb.NAT{}
 				event.Source.Nat.Ip = modelpb.Addr2IP(clientMetadata.SourceNATIP)
 			}
 		}
