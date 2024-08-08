@@ -545,11 +545,6 @@ func (p *Processor) Run() error {
 				if err := p.config.BatchProcessor.ProcessBatch(gracefulContext, &events); err != nil {
 					p.logger.With(logp.Error(err)).Warn("failed to report events")
 				}
-
-				for i := range events {
-					events[i].ReturnToVTPool()
-					events[i] = nil // not required but ensure that there is no ref to the freed event
-				}
 			}
 		}
 	})
