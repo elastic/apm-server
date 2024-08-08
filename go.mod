@@ -177,3 +177,4 @@ replace (
 )
 
 replace github.com/elastic/apm-data => ./copy/apm-data
+replace github.com/elastic/apm-aggregation => ./copy/apm-aggregation

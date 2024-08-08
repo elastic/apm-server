@@ -1,0 +1,35 @@
+name: ci
+on: ["push", "pull_request"]
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-go@v5
+      with:
+        go-version-file: go.mod
+        cache: true
+    - run: make lint
+    - run: make fmt
+    - name: Verify repo is up-to-date
+      run: |
+        if [ -n "$(git status --porcelain)" ]; then
+          echo 'Updates required:'
+          git status
+          exit 1
+        fi
+
+  run-tests:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-go@v5
+      with:
+        go-version-file: go.mod
+        cache: true
+    - name: Run tests
+      run: make test

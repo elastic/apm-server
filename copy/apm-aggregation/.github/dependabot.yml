@@ -1,0 +1,39 @@
+version: 2
+updates:
+  # Go dependencies
+  - package-ecosystem: "gomod"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    groups:
+      otel:
+        patterns:
+        - "go.opentelemetry.io/*"
+      golang.org/x/:
+        patterns:
+        - "golang.org/x/*"
+      go-agent:
+        patterns:
+        - "go.elastic.co/apm*"
+  # go tools
+  - package-ecosystem: "gomod"
+    directory: "tools/"
+    schedule:
+      interval: "weekly"
+    groups:
+      dependencies:
+        patterns:
+          - "*"
+  # GitHub actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    reviewers:
+      - "elastic/observablt-ci"
+    schedule:
+      interval: "weekly"
+      day: "sunday"
+      time: "22:00"
+    groups:
+      github-actions:
+        patterns:
+          - "*"

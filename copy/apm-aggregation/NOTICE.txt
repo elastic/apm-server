@@ -1,0 +1,2 @@
+Elastic APM Aggregation
+Copyright 2023-2023 Elasticsearch B.V.

@@ -1,0 +1,1462 @@
+[
+      {
+        "_index": ".ds-traces-apm-default-2024.07.24-000302",
+        "_id": "tBA65pABjLeaa6AkRvFa",
+        "_score": 16.245237,
+        "_source": {
+          "container": {
+            "id": "527074092"
+          },
+          "parent": {
+            "id": "11b52707342c8d61"
+          },
+          "agent": {
+            "name": "opentelemetry/java",
+            "version": "1.15.0"
+          },
+          "process": {
+            "pid": 393,
+            "command_line": "/usr/lib/jvm/java-11-openjdk-11.0.23.0.9-2.el7_9.x86_64:bin:java -Dio.opentelemetry.javaagent.slf4j.simpleLogger.log.io.opentelemetry.exporters.otlp.OtlpGrpcMetricExporter=error -javaagent:/target/codeguru-profiler-java-agent.jar=profilingGroupName:mcf-secure-message-consumer-webservice-external,region:us-west-2,heapSummaryEnabled:true -Xms768m -Xmx1024m -XX:MetaspaceSize=128m -XX:CompileThreshold=1000 -XX:InitialCodeCacheSize=56m -XX:ReservedCodeCacheSize=128m -Dfile.encoding=ISO8859-1 -Djava.awt.headless=true -XX:+UseCompressedOops -XX:+UseConcMarkSweepGC -XX:+CMSClassUnloadingEnabled -XX:+CMSScavengeBeforeRemark -XX:+CMSParallelRemarkEnabled -XX:+UseCMSInitiatingOccupancyOnly -XX:CMSInitiatingOccupancyFraction=70 -XX:SurvivorRatio=6 -XX:TargetSurvivorRatio=90 -verbose:gc -XX:+DisableExplicitGC -XX:+PrintGCDetails -XX:+PrintClassHistogram -XX:+PrintCommandLineFlags -XX:+HeapDumpOnOutOfMemoryError -XX:-UseBiasedLocking -Dsun.net.client.defaultReadTimeout=5000 -Dsun.net.client.defaultConnectTimeout=5000 -Dsun",
+            "executable": "/usr/lib/jvm/java-11-openjdk-11.0.23.0.9-2.el7_9.x86_64:bin:java"
+          },
+          "processor": {
+            "event": "span"
+          },
+          "labels": {
+            "service_ecs_pipeline_version": "1.3.606",
+            "aws_ecs_startedat": "2024-07-21T10:58:08.975968728Z",
+            "aws_ecs_cpu_model": "Intel(R)%20Xeon(R)%20Platinum%208259CL%20CPU",
+            "aws_ecs_task_arn": "arn:aws:ecs:us-west-2:698985542163:task/mcf-cluster-RETSMC-QKCUIVL-external-green/3421039365e3405cb3ec5697729247e4",
+            "aws_ecs_cpu_threads_per_core": "2",
+            "aws_ecs_cpu_cores": "1",
+            "aws_ecs_container_name": "app",
+            "otl_collector_version": "0.42.0",
+            "service_language": "java11",
+            "service_appprefix": "mcf",
+            "service_lob": "retail",
+            "service_support_email": "Message_A_Llama@vanguard.com",
+            "cloud_infrastructure_service": "AWS_ECS_FARGATE",
+            "otl_collector_url": "https://otelcollector.gtot.c1.vanguard.com",
+            "telemetry_auto_version": "1.15.0",
+            "otl_collector_ec2_instance": "i-0b803a442aebfdc5e",
+            "otl_collector_aws_region": "us-west-2",
+            "aws_ecs_task_family": "mcf-secure-message-consumer-webservice-external-v3-ecs-common-green-ApplicationEcsTask-T52lwD9MH8kr",
+            "thread_name": "http-nio-8080-exec-2",
+            "aws_ecs_limits_cpu": "1",
+            "aws_ecs_cpu_speed": "2.50GHz",
+            "service_runtime_environment": "test",
+            "aws_ecs_cpu_cache_size": "36608%20KB",
+            "otl_collector_distro": "opentelemetry-collector-contrib",
+            "otl_collector_aws_vgaccount": "vgi-gto-test",
+            "aws_ecs_cluster_arn": "arn:aws:ecs:us-west-2:698985542163:cluster/mcf-cluster-RETSMC-QKCUIVL-external-green",
+            "otl_collector_forwarded_to_version": "0.87.0",
+            "cloud_account_name": "vgi-retail-test",
+            "process_runtime_description": "Red Hat, Inc. OpenJDK 64-Bit Server VM 11.0.23+9-LTS",
+            "aws_ecs_bamboo_image": "RETSMC-QKCUIVL-317",
+            "otl_collector_forwarded_from_name": "GTO OpenTelemetry Collector - Rock",
+            "service_baseline": "green",
+            "otl_telemetry_type": "traces",
+            "otl_collector_forwarded_to_aws_region": "us-west-2",
+            "otl_collector_bamboo_buildresult": "GTODTR-VKJWCBT-122",
+            "service_instance": "7e3afdae-9e84-429c-adfe-9e51371362f2",
+            "otl_collector_platform": "EC2",
+            "aws_ecs_platformversion": "null",
+            "otl_loadbalancer": "ALB",
+            "service_family": "ConversationChannel",
+            "otl_collector_name": "GTO OpenTelemetry Collector - Rock",
+            "service_syslevel": "test",
+            "service_userlocation": "external",
+            "vg_otel_java_extension_version": "beta-2",
+            "aws_ecs_capacityprovidername": "FARGATE",
+            "otl_collector_ec2_hostname": "ip-10-157-215-223.us-west-2.gtot.c1.vanguard.com",
+            "aws_ecs_launchtype": "FARGATE",
+            "otl_collector_forwarded_to_name": "GTO OpenTelemetry Collector - Razor",
+            "app_costcenter": "1124",
+            "service_type": "ecs-v3",
+            "otl_collector_facing": "private",
+            "aws_ecs_limits_memory_mb": "2048",
+            "aws_ecs_cpu_siblings": "2"
+          },
+          "cloud": {
+            "provider": "aws",
+            "region": "us-west-2"
+          },
+          "observer": {
+            "hostname": "a7d1d585b175",
+            "type": "apm-server",
+            "version": "8.14.1"
+          },
+          "trace": {
+            "id": "66a153f2cd5d24fed0ffe99f2111c9ed"
+          },
+          "@timestamp": "2024-07-24T19:20:21.916Z",
+          "data_stream": {
+            "namespace": "default",
+            "type": "traces",
+            "dataset": "apm"
+          },
+          "numeric_labels": {
+            "vg_otel_java_extension_duration": 0,
+            "thread_id": 467,
+            "otl_collector_ingest_timestamp_razor": 1721848824
+          },
+          "service": {
+            "node": {
+              "name": "527074092"
+            },
+            "name": "MCF",
+            "runtime": {
+              "name": "OpenJDK Runtime Environment",
+              "version": "11.0.23+9-LTS"
+            },
+            "language": {
+              "name": "java"
+            },
+            "version": "RETSMC-QKCUIVL-317"
+          },
+          "host": {
+            "hostname": "ip-100-107-156-172.us-west-2.compute.internal",
+            "os": {
+              "type": "linux",
+              "platform": "linux",
+              "full": "Linux 5.10.219-208.866.amzn2.x86_64"
+            },
+            "name": "ip-100-107-156-172.us-west-2.compute.internal",
+            "architecture": "amd64"
+          },
+          "event": {
+            "agent_id_status": "missing",
+            "ingested": "2024-07-24T19:31:37Z",
+            "success_count": 1,
+            "outcome": "success"
+          },
+          "span": {
+            "duration": {
+              "us": 232
+            },
+            "representative_count": 1,
+            "subtype": "internal",
+            "name": "HealthcheckController.getHealthcheck",
+            "id": "ce0f38734f44659b",
+            "type": "app"
+          },
+          "timestamp": {
+            "us": 1721848821916996
+          }
+        }
+      },
+      {
+        "_index": ".ds-traces-apm-default-2024.07.24-000302",
+        "_id": "QQQ05pABjLeaa6AkfH_n",
+        "_score": 16.245237,
+        "_source": {
+          "container": {
+            "id": "527074092"
+          },
+          "parent": {
+            "id": "c016960134ce5eb4"
+          },
+          "agent": {
+            "name": "opentelemetry/java",
+            "version": "1.15.0"
+          },
+          "process": {
+            "pid": 393,
+            "command_line": "/usr/lib/jvm/java-11-openjdk-11.0.23.0.9-2.el7_9.x86_64:bin:java -Dio.opentelemetry.javaagent.slf4j.simpleLogger.log.io.opentelemetry.exporters.otlp.OtlpGrpcMetricExporter=error -javaagent:/target/codeguru-profiler-java-agent.jar=profilingGroupName:mcf-secure-message-consumer-webservice-external,region:us-west-2,heapSummaryEnabled:true -Xms768m -Xmx1024m -XX:MetaspaceSize=128m -XX:CompileThreshold=1000 -XX:InitialCodeCacheSize=56m -XX:ReservedCodeCacheSize=128m -Dfile.encoding=ISO8859-1 -Djava.awt.headless=true -XX:+UseCompressedOops -XX:+UseConcMarkSweepGC -XX:+CMSClassUnloadingEnabled -XX:+CMSScavengeBeforeRemark -XX:+CMSParallelRemarkEnabled -XX:+UseCMSInitiatingOccupancyOnly -XX:CMSInitiatingOccupancyFraction=70 -XX:SurvivorRatio=6 -XX:TargetSurvivorRatio=90 -verbose:gc -XX:+DisableExplicitGC -XX:+PrintGCDetails -XX:+PrintClassHistogram -XX:+PrintCommandLineFlags -XX:+HeapDumpOnOutOfMemoryError -XX:-UseBiasedLocking -Dsun.net.client.defaultReadTimeout=5000 -Dsun.net.client.defaultConnectTimeout=5000 -Dsun",
+            "executable": "/usr/lib/jvm/java-11-openjdk-11.0.23.0.9-2.el7_9.x86_64:bin:java"
+          },
+          "processor": {
+            "event": "span"
+          },
+          "labels": {
+            "service_ecs_pipeline_version": "1.3.606",
+            "aws_ecs_startedat": "2024-07-21T10:58:08.975968728Z",
+            "aws_ecs_cpu_model": "Intel(R)%20Xeon(R)%20Platinum%208259CL%20CPU",
+            "aws_ecs_task_arn": "arn:aws:ecs:us-west-2:698985542163:task/mcf-cluster-RETSMC-QKCUIVL-external-green/3421039365e3405cb3ec5697729247e4",
+            "aws_ecs_cpu_threads_per_core": "2",
+            "aws_ecs_cpu_cores": "1",
+            "aws_ecs_container_name": "app",
+            "otl_collector_version": "0.42.0",
+            "service_language": "java11",
+            "service_appprefix": "mcf",
+            "service_lob": "retail",
+            "service_support_email": "Message_A_Llama@vanguard.com",
+            "cloud_infrastructure_service": "AWS_ECS_FARGATE",
+            "otl_collector_url": "https://otelcollector.gtot.c1.vanguard.com",
+            "telemetry_auto_version": "1.15.0",
+            "otl_collector_ec2_instance": "i-0f9b58b1da2d6daba",
+            "otl_collector_aws_region": "us-west-2",
+            "aws_ecs_task_family": "mcf-secure-message-consumer-webservice-external-v3-ecs-common-green-ApplicationEcsTask-T52lwD9MH8kr",
+            "thread_name": "http-nio-8080-exec-7",
+            "aws_ecs_limits_cpu": "1",
+            "aws_ecs_cpu_speed": "2.50GHz",
+            "service_runtime_environment": "test",
+            "otl_collector_distro": "opentelemetry-collector-contrib",
+            "aws_ecs_cpu_cache_size": "36608%20KB",
+            "otl_collector_aws_vgaccount": "vgi-gto-test",
+            "aws_ecs_cluster_arn": "arn:aws:ecs:us-west-2:698985542163:cluster/mcf-cluster-RETSMC-QKCUIVL-external-green",
+            "otl_collector_forwarded_to_version": "0.87.0",
+            "cloud_account_name": "vgi-retail-test",
+            "process_runtime_description": "Red Hat, Inc. OpenJDK 64-Bit Server VM 11.0.23+9-LTS",
+            "aws_ecs_bamboo_image": "RETSMC-QKCUIVL-317",
+            "otl_collector_forwarded_from_name": "GTO OpenTelemetry Collector - Rock",
+            "service_baseline": "green",
+            "otl_collector_forwarded_to_aws_region": "us-west-2",
+            "otl_telemetry_type": "traces",
+            "otl_collector_bamboo_buildresult": "GTODTR-VKJWCBT-122",
+            "service_instance": "7e3afdae-9e84-429c-adfe-9e51371362f2",
+            "otl_collector_platform": "EC2",
+            "otl_loadbalancer": "ALB",
+            "aws_ecs_platformversion": "null",
+            "service_family": "ConversationChannel",
+            "otl_collector_name": "GTO OpenTelemetry Collector - Rock",
+            "service_syslevel": "test",
+            "service_userlocation": "external",
+            "vg_otel_java_extension_version": "beta-2",
+            "aws_ecs_capacityprovidername": "FARGATE",
+            "otl_collector_ec2_hostname": "ip-10-157-215-51.us-west-2.gtot.c1.vanguard.com",
+            "aws_ecs_launchtype": "FARGATE",
+            "service_type": "ecs-v3",
+            "otl_collector_forwarded_to_name": "GTO OpenTelemetry Collector - Razor",
+            "app_costcenter": "1124",
+            "otl_collector_facing": "private",
+            "aws_ecs_limits_memory_mb": "2048",
+            "aws_ecs_cpu_siblings": "2"
+          },
+          "cloud": {
+            "provider": "aws",
+            "region": "us-west-2"
+          },
+          "observer": {
+            "hostname": "a7d1d585b175",
+            "type": "apm-server",
+            "version": "8.14.1"
+          },
+          "trace": {
+            "id": "66a14cca3643b29e34a179ecabf1a21d"
+          },
+          "@timestamp": "2024-07-24T18:49:53.031Z",
+          "data_stream": {
+            "namespace": "default",
+            "type": "traces",
+            "dataset": "apm"
+          },
+          "numeric_labels": {
+            "vg_otel_java_extension_duration": 0,
+            "thread_id": 472,
+            "otl_collector_ingest_timestamp_razor": 1721846994
+          },
+          "service": {
+            "node": {
+              "name": "527074092"
+            },
+            "name": "MCF",
+            "runtime": {
+              "name": "OpenJDK Runtime Environment",
+              "version": "11.0.23+9-LTS"
+            },
+            "language": {
+              "name": "java"
+            },
+            "version": "RETSMC-QKCUIVL-317"
+          },
+          "host": {
+            "hostname": "ip-100-107-156-172.us-west-2.compute.internal",
+            "os": {
+              "type": "linux",
+              "platform": "linux",
+              "full": "Linux 5.10.219-208.866.amzn2.x86_64"
+            },
+            "name": "ip-100-107-156-172.us-west-2.compute.internal",
+            "architecture": "amd64"
+          },
+          "event": {
+            "agent_id_status": "missing",
+            "ingested": "2024-07-24T19:25:17Z",
+            "success_count": 1,
+            "outcome": "success"
+          },
+          "span": {
+            "duration": {
+              "us": 196
+            },
+            "representative_count": 1,
+            "subtype": "internal",
+            "name": "HealthcheckController.getHealthcheck",
+            "id": "40073a0bbc21b30c",
+            "type": "app"
+          },
+          "timestamp": {
+            "us": 1721846993031784
+          }
+        }
+      },
+      {
+        "_index": ".ds-traces-apm-default-2024.07.24-000302",
+        "_id": "bD0e5pAB1blyeZ3s5Lgi",
+        "_score": 16.245237,
+        "_source": {
+          "container": {
+            "id": "527074092"
+          },
+          "parent": {
+            "id": "c569c3655d9190ba"
+          },
+          "agent": {
+            "name": "opentelemetry/java",
+            "version": "1.15.0"
+          },
+          "process": {
+            "pid": 393,
+            "command_line": "/usr/lib/jvm/java-11-openjdk-11.0.23.0.9-2.el7_9.x86_64:bin:java -Dio.opentelemetry.javaagent.slf4j.simpleLogger.log.io.opentelemetry.exporters.otlp.OtlpGrpcMetricExporter=error -javaagent:/target/codeguru-profiler-java-agent.jar=profilingGroupName:mcf-secure-message-consumer-webservice-external,region:us-west-2,heapSummaryEnabled:true -Xms768m -Xmx1024m -XX:MetaspaceSize=128m -XX:CompileThreshold=1000 -XX:InitialCodeCacheSize=56m -XX:ReservedCodeCacheSize=128m -Dfile.encoding=ISO8859-1 -Djava.awt.headless=true -XX:+UseCompressedOops -XX:+UseConcMarkSweepGC -XX:+CMSClassUnloadingEnabled -XX:+CMSScavengeBeforeRemark -XX:+CMSParallelRemarkEnabled -XX:+UseCMSInitiatingOccupancyOnly -XX:CMSInitiatingOccupancyFraction=70 -XX:SurvivorRatio=6 -XX:TargetSurvivorRatio=90 -verbose:gc -XX:+DisableExplicitGC -XX:+PrintGCDetails -XX:+PrintClassHistogram -XX:+PrintCommandLineFlags -XX:+HeapDumpOnOutOfMemoryError -XX:-UseBiasedLocking -Dsun.net.client.defaultReadTimeout=5000 -Dsun.net.client.defaultConnectTimeout=5000 -Dsun",
+            "executable": "/usr/lib/jvm/java-11-openjdk-11.0.23.0.9-2.el7_9.x86_64:bin:java"
+          },
+          "processor": {
+            "event": "span"
+          },
+          "labels": {
+            "aws_ecs_startedat": "2024-07-21T10:58:08.975968728Z",
+            "service_ecs_pipeline_version": "1.3.606",
+            "aws_ecs_cpu_model": "Intel(R)%20Xeon(R)%20Platinum%208259CL%20CPU",
+            "aws_ecs_task_arn": "arn:aws:ecs:us-west-2:698985542163:task/mcf-cluster-RETSMC-QKCUIVL-external-green/3421039365e3405cb3ec5697729247e4",
+            "aws_ecs_cpu_threads_per_core": "2",
+            "aws_ecs_cpu_cores": "1",
+            "aws_ecs_container_name": "app",
+            "otl_collector_version": "0.42.0",
+            "service_language": "java11",
+            "service_appprefix": "mcf",
+            "service_lob": "retail",
+            "service_support_email": "Message_A_Llama@vanguard.com",
+            "cloud_infrastructure_service": "AWS_ECS_FARGATE",
+            "otl_collector_url": "https://otelcollector.gtot.c1.vanguard.com",
+            "telemetry_auto_version": "1.15.0",
+            "otl_collector_aws_region": "us-west-2",
+            "otl_collector_ec2_instance": "i-002c366ad028a3989",
+            "aws_ecs_task_family": "mcf-secure-message-consumer-webservice-external-v3-ecs-common-green-ApplicationEcsTask-T52lwD9MH8kr",
+            "thread_name": "http-nio-8080-exec-8",
+            "aws_ecs_limits_cpu": "1",
+            "aws_ecs_cpu_speed": "2.50GHz",
+            "service_runtime_environment": "test",
+            "otl_collector_distro": "opentelemetry-collector-contrib",
+            "aws_ecs_cpu_cache_size": "36608%20KB",
+            "otl_collector_aws_vgaccount": "vgi-gto-test",
+            "aws_ecs_cluster_arn": "arn:aws:ecs:us-west-2:698985542163:cluster/mcf-cluster-RETSMC-QKCUIVL-external-green",
+            "otl_collector_forwarded_to_version": "0.87.0",
+            "cloud_account_name": "vgi-retail-test",
+            "process_runtime_description": "Red Hat, Inc. OpenJDK 64-Bit Server VM 11.0.23+9-LTS",
+            "aws_ecs_bamboo_image": "RETSMC-QKCUIVL-317",
+            "otl_collector_forwarded_from_name": "GTO OpenTelemetry Collector - Rock",
+            "service_baseline": "green",
+            "otl_telemetry_type": "traces",
+            "otl_collector_forwarded_to_aws_region": "us-west-2",
+            "otl_collector_bamboo_buildresult": "GTODTR-VKJWCBT-122",
+            "service_instance": "7e3afdae-9e84-429c-adfe-9e51371362f2",
+            "otl_collector_platform": "EC2",
+            "aws_ecs_platformversion": "null",
+            "otl_loadbalancer": "ALB",
+            "service_family": "ConversationChannel",
+            "otl_collector_name": "GTO OpenTelemetry Collector - Rock",
+            "service_syslevel": "test",
+            "service_userlocation": "external",
+            "vg_otel_java_extension_version": "beta-2",
+            "aws_ecs_capacityprovidername": "FARGATE",
+            "otl_collector_ec2_hostname": "ip-10-157-214-134.us-west-2.gtot.c1.vanguard.com",
+            "aws_ecs_launchtype": "FARGATE",
+            "otl_collector_forwarded_to_name": "GTO OpenTelemetry Collector - Razor",
+            "service_type": "ecs-v3",
+            "app_costcenter": "1124",
+            "otl_collector_facing": "private",
+            "aws_ecs_cpu_siblings": "2",
+            "aws_ecs_limits_memory_mb": "2048"
+          },
+          "cloud": {
+            "provider": "aws",
+            "region": "us-west-2"
+          },
+          "observer": {
+            "hostname": "a7d1d585b175",
+            "type": "apm-server",
+            "version": "8.14.1"
+          },
+          "trace": {
+            "id": "51d94534d63d7b0b7bb1b19d9a62f5fa"
+          },
+          "@timestamp": "2024-07-24T18:33:45.940Z",
+          "data_stream": {
+            "namespace": "default",
+            "type": "traces",
+            "dataset": "apm"
+          },
+          "numeric_labels": {
+            "vg_otel_java_extension_duration": 0,
+            "thread_id": 473,
+            "otl_collector_ingest_timestamp_razor": 1721846028
+          },
+          "service": {
+            "node": {
+              "name": "527074092"
+            },
+            "name": "MCF",
+            "runtime": {
+              "name": "OpenJDK Runtime Environment",
+              "version": "11.0.23+9-LTS"
+            },
+            "language": {
+              "name": "java"
+            },
+            "version": "RETSMC-QKCUIVL-317"
+          },
+          "host": {
+            "hostname": "ip-100-107-156-172.us-west-2.compute.internal",
+            "os": {
+              "type": "linux",
+              "platform": "linux",
+              "full": "Linux 5.10.219-208.866.amzn2.x86_64"
+            },
+            "name": "ip-100-107-156-172.us-west-2.compute.internal",
+            "architecture": "amd64"
+          },
+          "event": {
+            "agent_id_status": "missing",
+            "ingested": "2024-07-24T19:01:42Z",
+            "success_count": 1,
+            "outcome": "success"
+          },
+          "span": {
+            "duration": {
+              "us": 208
+            },
+            "representative_count": 1,
+            "subtype": "internal",
+            "name": "HealthcheckController.getHealthcheck",
+            "id": "21484c045d12484c",
+            "type": "app"
+          },
+          "timestamp": {
+            "us": 1721846025940421
+          }
+        }
+      },
+      {
+        "_index": ".ds-traces-apm-default-2024.07.23-000276",
+        "_id": "dAL74JABIywE2VmNztG5",
+        "_score": 16.188189,
+        "_source": {
+          "container": {
+            "id": "527074092"
+          },
+          "parent": {
+            "id": "82d5e801ce3cc1b2"
+          },
+          "agent": {
+            "name": "opentelemetry/java",
+            "version": "1.15.0"
+          },
+          "process": {
+            "pid": 393,
+            "command_line": "/usr/lib/jvm/java-11-openjdk-11.0.23.0.9-2.el7_9.x86_64:bin:java -Dio.opentelemetry.javaagent.slf4j.simpleLogger.log.io.opentelemetry.exporters.otlp.OtlpGrpcMetricExporter=error -javaagent:/target/codeguru-profiler-java-agent.jar=profilingGroupName:mcf-secure-message-consumer-webservice-external,region:us-west-2,heapSummaryEnabled:true -Xms768m -Xmx1024m -XX:MetaspaceSize=128m -XX:CompileThreshold=1000 -XX:InitialCodeCacheSize=56m -XX:ReservedCodeCacheSize=128m -Dfile.encoding=ISO8859-1 -Djava.awt.headless=true -XX:+UseCompressedOops -XX:+UseConcMarkSweepGC -XX:+CMSClassUnloadingEnabled -XX:+CMSScavengeBeforeRemark -XX:+CMSParallelRemarkEnabled -XX:+UseCMSInitiatingOccupancyOnly -XX:CMSInitiatingOccupancyFraction=70 -XX:SurvivorRatio=6 -XX:TargetSurvivorRatio=90 -verbose:gc -XX:+DisableExplicitGC -XX:+PrintGCDetails -XX:+PrintClassHistogram -XX:+PrintCommandLineFlags -XX:+HeapDumpOnOutOfMemoryError -XX:-UseBiasedLocking -Dsun.net.client.defaultReadTimeout=5000 -Dsun.net.client.defaultConnectTimeout=5000 -Dsun",
+            "executable": "/usr/lib/jvm/java-11-openjdk-11.0.23.0.9-2.el7_9.x86_64:bin:java"
+          },
+          "processor": {
+            "event": "span"
+          },
+          "labels": {
+            "aws_ecs_startedat": "2024-07-21T10:58:08.975968728Z",
+            "service_ecs_pipeline_version": "1.3.606",
+            "aws_ecs_cpu_model": "Intel(R)%20Xeon(R)%20Platinum%208259CL%20CPU",
+            "aws_ecs_task_arn": "arn:aws:ecs:us-west-2:698985542163:task/mcf-cluster-RETSMC-QKCUIVL-external-green/3421039365e3405cb3ec5697729247e4",
+            "aws_ecs_cpu_threads_per_core": "2",
+            "aws_ecs_cpu_cores": "1",
+            "aws_ecs_container_name": "app",
+            "otl_collector_version": "0.42.0",
+            "service_language": "java11",
+            "service_appprefix": "mcf",
+            "service_lob": "retail",
+            "service_support_email": "Message_A_Llama@vanguard.com",
+            "cloud_infrastructure_service": "AWS_ECS_FARGATE",
+            "otl_collector_url": "https://otelcollector.gtot.c1.vanguard.com",
+            "telemetry_auto_version": "1.15.0",
+            "otl_collector_aws_region": "us-west-2",
+            "otl_collector_ec2_instance": "i-0d4aa1ec864450b24",
+            "aws_ecs_task_family": "mcf-secure-message-consumer-webservice-external-v3-ecs-common-green-ApplicationEcsTask-T52lwD9MH8kr",
+            "thread_name": "http-nio-8080-exec-3",
+            "aws_ecs_limits_cpu": "1",
+            "aws_ecs_cpu_speed": "2.50GHz",
+            "service_runtime_environment": "test",
+            "otl_collector_distro": "opentelemetry-collector-contrib",
+            "aws_ecs_cpu_cache_size": "36608%20KB",
+            "otl_collector_aws_vgaccount": "vgi-gto-test",
+            "aws_ecs_cluster_arn": "arn:aws:ecs:us-west-2:698985542163:cluster/mcf-cluster-RETSMC-QKCUIVL-external-green",
+            "otl_collector_forwarded_to_version": "0.87.0",
+            "cloud_account_name": "vgi-retail-test",
+            "process_runtime_description": "Red Hat, Inc. OpenJDK 64-Bit Server VM 11.0.23+9-LTS",
+            "aws_ecs_bamboo_image": "RETSMC-QKCUIVL-317",
+            "otl_collector_forwarded_from_name": "GTO OpenTelemetry Collector - Rock",
+            "service_baseline": "green",
+            "otl_collector_forwarded_to_aws_region": "us-west-2",
+            "otl_telemetry_type": "traces",
+            "otl_collector_bamboo_buildresult": "GTODTR-VKJWCBT-122",
+            "service_instance": "7e3afdae-9e84-429c-adfe-9e51371362f2",
+            "otl_collector_platform": "EC2",
+            "otl_loadbalancer": "ALB",
+            "aws_ecs_platformversion": "null",
+            "service_family": "ConversationChannel",
+            "otl_collector_name": "GTO OpenTelemetry Collector - Rock",
+            "service_syslevel": "test",
+            "service_userlocation": "external",
+            "vg_otel_java_extension_version": "beta-2",
+            "aws_ecs_capacityprovidername": "FARGATE",
+            "otl_collector_ec2_hostname": "ip-10-157-215-76.us-west-2.gtot.c1.vanguard.com",
+            "aws_ecs_launchtype": "FARGATE",
+            "otl_collector_forwarded_to_name": "GTO OpenTelemetry Collector - Razor",
+            "app_costcenter": "1124",
+            "service_type": "ecs-v3",
+            "otl_collector_facing": "private",
+            "aws_ecs_cpu_siblings": "2",
+            "aws_ecs_limits_memory_mb": "2048"
+          },
+          "cloud": {
+            "provider": "aws",
+            "region": "us-west-2"
+          },
+          "observer": {
+            "hostname": "a7d1d585b175",
+            "type": "apm-server",
+            "version": "8.14.1"
+          },
+          "trace": {
+            "id": "d1f3e6000c3a41b7ee2de63b14217953"
+          },
+          "@timestamp": "2024-07-23T18:15:15.871Z",
+          "data_stream": {
+            "namespace": "default",
+            "type": "traces",
+            "dataset": "apm"
+          },
+          "numeric_labels": {
+            "vg_otel_java_extension_duration": 0,
+            "thread_id": 468,
+            "otl_collector_ingest_timestamp_razor": 1721758517
+          },
+          "service": {
+            "node": {
+              "name": "527074092"
+            },
+            "name": "MCF",
+            "runtime": {
+              "name": "OpenJDK Runtime Environment",
+              "version": "11.0.23+9-LTS"
+            },
+            "language": {
+              "name": "java"
+            },
+            "version": "RETSMC-QKCUIVL-317"
+          },
+          "host": {
+            "hostname": "ip-100-107-156-172.us-west-2.compute.internal",
+            "os": {
+              "type": "linux",
+              "platform": "linux",
+              "full": "Linux 5.10.219-208.866.amzn2.x86_64"
+            },
+            "name": "ip-100-107-156-172.us-west-2.compute.internal",
+            "architecture": "amd64"
+          },
+          "event": {
+            "agent_id_status": "missing",
+            "ingested": "2024-07-23T19:05:17Z",
+            "success_count": 1,
+            "outcome": "success"
+          },
+          "span": {
+            "duration": {
+              "us": 190
+            },
+            "representative_count": 1,
+            "subtype": "internal",
+            "name": "HealthcheckController.getHealthcheck",
+            "id": "3241510eb23ee6b4",
+            "type": "app"
+          },
+          "timestamp": {
+            "us": 1721758515871026
+          }
+        }
+      },
+      {
+        "_index": ".ds-traces-apm-default-2024.07.23-000276",
+        "_id": "dQL74JABIywE2VmNztG5",
+        "_score": 16.188189,
+        "_source": {
+          "container": {
+            "id": "527074092"
+          },
+          "parent": {
+            "id": "66c07dd62eb18d60"
+          },
+          "agent": {
+            "name": "opentelemetry/java",
+            "version": "1.15.0"
+          },
+          "process": {
+            "pid": 393,
+            "command_line": "/usr/lib/jvm/java-11-openjdk-11.0.23.0.9-2.el7_9.x86_64:bin:java -Dio.opentelemetry.javaagent.slf4j.simpleLogger.log.io.opentelemetry.exporters.otlp.OtlpGrpcMetricExporter=error -javaagent:/target/codeguru-profiler-java-agent.jar=profilingGroupName:mcf-secure-message-consumer-webservice-external,region:us-west-2,heapSummaryEnabled:true -Xms768m -Xmx1024m -XX:MetaspaceSize=128m -XX:CompileThreshold=1000 -XX:InitialCodeCacheSize=56m -XX:ReservedCodeCacheSize=128m -Dfile.encoding=ISO8859-1 -Djava.awt.headless=true -XX:+UseCompressedOops -XX:+UseConcMarkSweepGC -XX:+CMSClassUnloadingEnabled -XX:+CMSScavengeBeforeRemark -XX:+CMSParallelRemarkEnabled -XX:+UseCMSInitiatingOccupancyOnly -XX:CMSInitiatingOccupancyFraction=70 -XX:SurvivorRatio=6 -XX:TargetSurvivorRatio=90 -verbose:gc -XX:+DisableExplicitGC -XX:+PrintGCDetails -XX:+PrintClassHistogram -XX:+PrintCommandLineFlags -XX:+HeapDumpOnOutOfMemoryError -XX:-UseBiasedLocking -Dsun.net.client.defaultReadTimeout=5000 -Dsun.net.client.defaultConnectTimeout=5000 -Dsun",
+            "executable": "/usr/lib/jvm/java-11-openjdk-11.0.23.0.9-2.el7_9.x86_64:bin:java"
+          },
+          "processor": {
+            "event": "span"
+          },
+          "labels": {
+            "aws_ecs_startedat": "2024-07-21T10:58:08.975968728Z",
+            "service_ecs_pipeline_version": "1.3.606",
+            "aws_ecs_cpu_model": "Intel(R)%20Xeon(R)%20Platinum%208259CL%20CPU",
+            "aws_ecs_task_arn": "arn:aws:ecs:us-west-2:698985542163:task/mcf-cluster-RETSMC-QKCUIVL-external-green/3421039365e3405cb3ec5697729247e4",
+            "aws_ecs_cpu_threads_per_core": "2",
+            "aws_ecs_cpu_cores": "1",
+            "aws_ecs_container_name": "app",
+            "otl_collector_version": "0.42.0",
+            "service_language": "java11",
+            "service_appprefix": "mcf",
+            "service_lob": "retail",
+            "service_support_email": "Message_A_Llama@vanguard.com",
+            "cloud_infrastructure_service": "AWS_ECS_FARGATE",
+            "otl_collector_url": "https://otelcollector.gtot.c1.vanguard.com",
+            "telemetry_auto_version": "1.15.0",
+            "otl_collector_ec2_instance": "i-0d4aa1ec864450b24",
+            "otl_collector_aws_region": "us-west-2",
+            "aws_ecs_task_family": "mcf-secure-message-consumer-webservice-external-v3-ecs-common-green-ApplicationEcsTask-T52lwD9MH8kr",
+            "thread_name": "http-nio-8080-exec-2",
+            "aws_ecs_limits_cpu": "1",
+            "aws_ecs_cpu_speed": "2.50GHz",
+            "service_runtime_environment": "test",
+            "aws_ecs_cpu_cache_size": "36608%20KB",
+            "otl_collector_distro": "opentelemetry-collector-contrib",
+            "otl_collector_aws_vgaccount": "vgi-gto-test",
+            "aws_ecs_cluster_arn": "arn:aws:ecs:us-west-2:698985542163:cluster/mcf-cluster-RETSMC-QKCUIVL-external-green",
+            "otl_collector_forwarded_to_version": "0.87.0",
+            "cloud_account_name": "vgi-retail-test",
+            "process_runtime_description": "Red Hat, Inc. OpenJDK 64-Bit Server VM 11.0.23+9-LTS",
+            "aws_ecs_bamboo_image": "RETSMC-QKCUIVL-317",
+            "otl_collector_forwarded_from_name": "GTO OpenTelemetry Collector - Rock",
+            "service_baseline": "green",
+            "otl_collector_forwarded_to_aws_region": "us-west-2",
+            "otl_telemetry_type": "traces",
+            "otl_collector_bamboo_buildresult": "GTODTR-VKJWCBT-122",
+            "service_instance": "7e3afdae-9e84-429c-adfe-9e51371362f2",
+            "otl_collector_platform": "EC2",
+            "otl_loadbalancer": "ALB",
+            "aws_ecs_platformversion": "null",
+            "service_family": "ConversationChannel",
+            "otl_collector_name": "GTO OpenTelemetry Collector - Rock",
+            "service_syslevel": "test",
+            "service_userlocation": "external",
+            "vg_otel_java_extension_version": "beta-2",
+            "aws_ecs_capacityprovidername": "FARGATE",
+            "otl_collector_ec2_hostname": "ip-10-157-215-76.us-west-2.gtot.c1.vanguard.com",
+            "aws_ecs_launchtype": "FARGATE",
+            "otl_collector_forwarded_to_name": "GTO OpenTelemetry Collector - Razor",
+            "app_costcenter": "1124",
+            "service_type": "ecs-v3",
+            "otl_collector_facing": "private",
+            "aws_ecs_limits_memory_mb": "2048",
+            "aws_ecs_cpu_siblings": "2"
+          },
+          "cloud": {
+            "provider": "aws",
+            "region": "us-west-2"
+          },
+          "observer": {
+            "hostname": "a7d1d585b175",
+            "type": "apm-server",
+            "version": "8.14.1"
+          },
+          "trace": {
+            "id": "a65288d22e95d63679b44e1892db8125"
+          },
+          "@timestamp": "2024-07-23T18:15:17.087Z",
+          "data_stream": {
+            "namespace": "default",
+            "type": "traces",
+            "dataset": "apm"
+          },
+          "numeric_labels": {
+            "vg_otel_java_extension_duration": 0,
+            "thread_id": 467,
+            "otl_collector_ingest_timestamp_razor": 1721758517
+          },
+          "service": {
+            "node": {
+              "name": "527074092"
+            },
+            "name": "MCF",
+            "runtime": {
+              "name": "OpenJDK Runtime Environment",
+              "version": "11.0.23+9-LTS"
+            },
+            "language": {
+              "name": "java"
+            },
+            "version": "RETSMC-QKCUIVL-317"
+          },
+          "host": {
+            "hostname": "ip-100-107-156-172.us-west-2.compute.internal",
+            "os": {
+              "type": "linux",
+              "platform": "linux",
+              "full": "Linux 5.10.219-208.866.amzn2.x86_64"
+            },
+            "name": "ip-100-107-156-172.us-west-2.compute.internal",
+            "architecture": "amd64"
+          },
+          "event": {
+            "agent_id_status": "missing",
+            "ingested": "2024-07-23T19:05:17Z",
+            "success_count": 1,
+            "outcome": "success"
+          },
+          "span": {
+            "duration": {
+              "us": 191
+            },
+            "representative_count": 1,
+            "subtype": "internal",
+            "name": "HealthcheckController.getHealthcheck",
+            "id": "2bb7b08098491fbc",
+            "type": "app"
+          },
+          "timestamp": {
+            "us": 1721758517087347
+          }
+        }
+      },
+      {
+        "_index": ".ds-traces-apm-default-2024.07.23-000276",
+        "_id": "1y3C4JABGciCfQtXyKfa",
+        "_score": 16.188189,
+        "_source": {
+          "container": {
+            "id": "527074092"
+          },
+          "parent": {
+            "id": "b74aa2f976068f5c"
+          },
+          "agent": {
+            "name": "opentelemetry/java",
+            "version": "1.15.0"
+          },
+          "process": {
+            "pid": 393,
+            "command_line": "/usr/lib/jvm/java-11-openjdk-11.0.23.0.9-2.el7_9.x86_64:bin:java -Dio.opentelemetry.javaagent.slf4j.simpleLogger.log.io.opentelemetry.exporters.otlp.OtlpGrpcMetricExporter=error -javaagent:/target/codeguru-profiler-java-agent.jar=profilingGroupName:mcf-secure-message-consumer-webservice-external,region:us-west-2,heapSummaryEnabled:true -Xms768m -Xmx1024m -XX:MetaspaceSize=128m -XX:CompileThreshold=1000 -XX:InitialCodeCacheSize=56m -XX:ReservedCodeCacheSize=128m -Dfile.encoding=ISO8859-1 -Djava.awt.headless=true -XX:+UseCompressedOops -XX:+UseConcMarkSweepGC -XX:+CMSClassUnloadingEnabled -XX:+CMSScavengeBeforeRemark -XX:+CMSParallelRemarkEnabled -XX:+UseCMSInitiatingOccupancyOnly -XX:CMSInitiatingOccupancyFraction=70 -XX:SurvivorRatio=6 -XX:TargetSurvivorRatio=90 -verbose:gc -XX:+DisableExplicitGC -XX:+PrintGCDetails -XX:+PrintClassHistogram -XX:+PrintCommandLineFlags -XX:+HeapDumpOnOutOfMemoryError -XX:-UseBiasedLocking -Dsun.net.client.defaultReadTimeout=5000 -Dsun.net.client.defaultConnectTimeout=5000 -Dsun",
+            "executable": "/usr/lib/jvm/java-11-openjdk-11.0.23.0.9-2.el7_9.x86_64:bin:java"
+          },
+          "processor": {
+            "event": "span"
+          },
+          "labels": {
+            "aws_ecs_startedat": "2024-07-21T10:58:08.975968728Z",
+            "service_ecs_pipeline_version": "1.3.606",
+            "aws_ecs_cpu_model": "Intel(R)%20Xeon(R)%20Platinum%208259CL%20CPU",
+            "aws_ecs_task_arn": "arn:aws:ecs:us-west-2:698985542163:task/mcf-cluster-RETSMC-QKCUIVL-external-green/3421039365e3405cb3ec5697729247e4",
+            "aws_ecs_cpu_threads_per_core": "2",
+            "aws_ecs_cpu_cores": "1",
+            "aws_ecs_container_name": "app",
+            "otl_collector_version": "0.42.0",
+            "service_language": "java11",
+            "service_appprefix": "mcf",
+            "service_lob": "retail",
+            "service_support_email": "Message_A_Llama@vanguard.com",
+            "cloud_infrastructure_service": "AWS_ECS_FARGATE",
+            "otl_collector_url": "https://otelcollector.gtot.c1.vanguard.com",
+            "telemetry_auto_version": "1.15.0",
+            "otl_collector_ec2_instance": "i-02e93a5768f12ee8e",
+            "otl_collector_aws_region": "us-west-2",
+            "aws_ecs_task_family": "mcf-secure-message-consumer-webservice-external-v3-ecs-common-green-ApplicationEcsTask-T52lwD9MH8kr",
+            "thread_name": "http-nio-8080-exec-7",
+            "aws_ecs_limits_cpu": "1",
+            "aws_ecs_cpu_speed": "2.50GHz",
+            "service_runtime_environment": "test",
+            "otl_collector_distro": "opentelemetry-collector-contrib",
+            "aws_ecs_cpu_cache_size": "36608%20KB",
+            "otl_collector_aws_vgaccount": "vgi-gto-test",
+            "aws_ecs_cluster_arn": "arn:aws:ecs:us-west-2:698985542163:cluster/mcf-cluster-RETSMC-QKCUIVL-external-green",
+            "otl_collector_forwarded_to_version": "0.87.0",
+            "cloud_account_name": "vgi-retail-test",
+            "process_runtime_description": "Red Hat, Inc. OpenJDK 64-Bit Server VM 11.0.23+9-LTS",
+            "aws_ecs_bamboo_image": "RETSMC-QKCUIVL-317",
+            "otl_collector_forwarded_from_name": "GTO OpenTelemetry Collector - Rock",
+            "service_baseline": "green",
+            "otl_telemetry_type": "traces",
+            "otl_collector_forwarded_to_aws_region": "us-west-2",
+            "otl_collector_bamboo_buildresult": "GTODTR-VKJWCBT-122",
+            "service_instance": "7e3afdae-9e84-429c-adfe-9e51371362f2",
+            "otl_collector_platform": "EC2",
+            "aws_ecs_platformversion": "null",
+            "otl_loadbalancer": "ALB",
+            "service_family": "ConversationChannel",
+            "otl_collector_name": "GTO OpenTelemetry Collector - Rock",
+            "service_syslevel": "test",
+            "service_userlocation": "external",
+            "vg_otel_java_extension_version": "beta-2",
+            "aws_ecs_capacityprovidername": "FARGATE",
+            "otl_collector_ec2_hostname": "ip-10-157-215-185.us-west-2.gtot.c1.vanguard.com",
+            "aws_ecs_launchtype": "FARGATE",
+            "app_costcenter": "1124",
+            "otl_collector_forwarded_to_name": "GTO OpenTelemetry Collector - Razor",
+            "service_type": "ecs-v3",
+            "otl_collector_facing": "private",
+            "aws_ecs_cpu_siblings": "2",
+            "aws_ecs_limits_memory_mb": "2048"
+          },
+          "cloud": {
+            "provider": "aws",
+            "region": "us-west-2"
+          },
+          "observer": {
+            "hostname": "a7d1d585b175",
+            "type": "apm-server",
+            "version": "8.14.1"
+          },
+          "trace": {
+            "id": "2cd1a569cf71300d4e095e98dc65fb9d"
+          },
+          "@timestamp": "2024-07-23T17:30:14.756Z",
+          "data_stream": {
+            "namespace": "default",
+            "type": "traces",
+            "dataset": "apm"
+          },
+          "numeric_labels": {
+            "vg_otel_java_extension_duration": 0,
+            "thread_id": 472,
+            "otl_collector_ingest_timestamp_razor": 1721755816
+          },
+          "service": {
+            "node": {
+              "name": "527074092"
+            },
+            "name": "MCF",
+            "runtime": {
+              "name": "OpenJDK Runtime Environment",
+              "version": "11.0.23+9-LTS"
+            },
+            "language": {
+              "name": "java"
+            },
+            "version": "RETSMC-QKCUIVL-317"
+          },
+          "host": {
+            "hostname": "ip-100-107-156-172.us-west-2.compute.internal",
+            "os": {
+              "type": "linux",
+              "platform": "linux",
+              "full": "Linux 5.10.219-208.866.amzn2.x86_64"
+            },
+            "name": "ip-100-107-156-172.us-west-2.compute.internal",
+            "architecture": "amd64"
+          },
+          "event": {
+            "agent_id_status": "missing",
+            "ingested": "2024-07-23T18:03:00Z",
+            "success_count": 1,
+            "outcome": "success"
+          },
+          "span": {
+            "duration": {
+              "us": 194
+            },
+            "representative_count": 1,
+            "subtype": "internal",
+            "name": "HealthcheckController.getHealthcheck",
+            "id": "21d72fd27ba5eb22",
+            "type": "app"
+          },
+          "timestamp": {
+            "us": 1721755814756742
+          }
+        }
+      },
+      {
+        "_index": ".ds-traces-apm-default-2024.07.23-000276",
+        "_id": "cuTN4JABZfF62MshPSg2",
+        "_score": 16.188189,
+        "_source": {
+          "container": {
+            "id": "527074092"
+          },
+          "parent": {
+            "id": "3f1b33aa77fd388b"
+          },
+          "agent": {
+            "name": "opentelemetry/java",
+            "version": "1.15.0"
+          },
+          "process": {
+            "pid": 393,
+            "command_line": "/usr/lib/jvm/java-11-openjdk-11.0.23.0.9-2.el7_9.x86_64:bin:java -Dio.opentelemetry.javaagent.slf4j.simpleLogger.log.io.opentelemetry.exporters.otlp.OtlpGrpcMetricExporter=error -javaagent:/target/codeguru-profiler-java-agent.jar=profilingGroupName:mcf-secure-message-consumer-webservice-external,region:us-west-2,heapSummaryEnabled:true -Xms768m -Xmx1024m -XX:MetaspaceSize=128m -XX:CompileThreshold=1000 -XX:InitialCodeCacheSize=56m -XX:ReservedCodeCacheSize=128m -Dfile.encoding=ISO8859-1 -Djava.awt.headless=true -XX:+UseCompressedOops -XX:+UseConcMarkSweepGC -XX:+CMSClassUnloadingEnabled -XX:+CMSScavengeBeforeRemark -XX:+CMSParallelRemarkEnabled -XX:+UseCMSInitiatingOccupancyOnly -XX:CMSInitiatingOccupancyFraction=70 -XX:SurvivorRatio=6 -XX:TargetSurvivorRatio=90 -verbose:gc -XX:+DisableExplicitGC -XX:+PrintGCDetails -XX:+PrintClassHistogram -XX:+PrintCommandLineFlags -XX:+HeapDumpOnOutOfMemoryError -XX:-UseBiasedLocking -Dsun.net.client.defaultReadTimeout=5000 -Dsun.net.client.defaultConnectTimeout=5000 -Dsun",
+            "executable": "/usr/lib/jvm/java-11-openjdk-11.0.23.0.9-2.el7_9.x86_64:bin:java"
+          },
+          "processor": {
+            "event": "span"
+          },
+          "labels": {
+            "aws_ecs_startedat": "2024-07-21T10:58:08.975968728Z",
+            "service_ecs_pipeline_version": "1.3.606",
+            "aws_ecs_cpu_model": "Intel(R)%20Xeon(R)%20Platinum%208259CL%20CPU",
+            "aws_ecs_task_arn": "arn:aws:ecs:us-west-2:698985542163:task/mcf-cluster-RETSMC-QKCUIVL-external-green/3421039365e3405cb3ec5697729247e4",
+            "aws_ecs_cpu_threads_per_core": "2",
+            "aws_ecs_cpu_cores": "1",
+            "aws_ecs_container_name": "app",
+            "otl_collector_version": "0.42.0",
+            "service_language": "java11",
+            "service_appprefix": "mcf",
+            "service_lob": "retail",
+            "cloud_infrastructure_service": "AWS_ECS_FARGATE",
+            "service_support_email": "Message_A_Llama@vanguard.com",
+            "otl_collector_url": "https://otelcollector.gtot.c1.vanguard.com",
+            "telemetry_auto_version": "1.15.0",
+            "otl_collector_ec2_instance": "i-0d5d75707ac4b88d4",
+            "otl_collector_aws_region": "us-west-2",
+            "aws_ecs_task_family": "mcf-secure-message-consumer-webservice-external-v3-ecs-common-green-ApplicationEcsTask-T52lwD9MH8kr",
+            "thread_name": "http-nio-8080-exec-1",
+            "aws_ecs_limits_cpu": "1",
+            "aws_ecs_cpu_speed": "2.50GHz",
+            "service_runtime_environment": "test",
+            "otl_collector_distro": "opentelemetry-collector-contrib",
+            "aws_ecs_cpu_cache_size": "36608%20KB",
+            "otl_collector_aws_vgaccount": "vgi-gto-test",
+            "aws_ecs_cluster_arn": "arn:aws:ecs:us-west-2:698985542163:cluster/mcf-cluster-RETSMC-QKCUIVL-external-green",
+            "otl_collector_forwarded_to_version": "0.87.0",
+            "cloud_account_name": "vgi-retail-test",
+            "process_runtime_description": "Red Hat, Inc. OpenJDK 64-Bit Server VM 11.0.23+9-LTS",
+            "aws_ecs_bamboo_image": "RETSMC-QKCUIVL-317",
+            "otl_collector_forwarded_from_name": "GTO OpenTelemetry Collector - Rock",
+            "service_baseline": "green",
+            "otl_collector_forwarded_to_aws_region": "us-west-2",
+            "otl_telemetry_type": "traces",
+            "otl_collector_bamboo_buildresult": "GTODTR-VKJWCBT-122",
+            "service_instance": "7e3afdae-9e84-429c-adfe-9e51371362f2",
+            "otl_collector_platform": "EC2",
+            "otl_loadbalancer": "ALB",
+            "aws_ecs_platformversion": "null",
+            "service_family": "ConversationChannel",
+            "otl_collector_name": "GTO OpenTelemetry Collector - Rock",
+            "service_syslevel": "test",
+            "service_userlocation": "external",
+            "vg_otel_java_extension_version": "beta-2",
+            "aws_ecs_capacityprovidername": "FARGATE",
+            "otl_collector_ec2_hostname": "ip-10-157-215-95.us-west-2.gtot.c1.vanguard.com",
+            "aws_ecs_launchtype": "FARGATE",
+            "otl_collector_forwarded_to_name": "GTO OpenTelemetry Collector - Razor",
+            "app_costcenter": "1124",
+            "service_type": "ecs-v3",
+            "otl_collector_facing": "private",
+            "aws_ecs_cpu_siblings": "2",
+            "aws_ecs_limits_memory_mb": "2048"
+          },
+          "cloud": {
+            "provider": "aws",
+            "region": "us-west-2"
+          },
+          "observer": {
+            "hostname": "a7d1d585b175",
+            "type": "apm-server",
+            "version": "8.14.1"
+          },
+          "trace": {
+            "id": "669fe982e5abe3a0fa8e330fffc8e57d"
+          },
+          "@timestamp": "2024-07-23T17:33:54.534Z",
+          "data_stream": {
+            "namespace": "default",
+            "type": "traces",
+            "dataset": "apm"
+          },
+          "numeric_labels": {
+            "vg_otel_java_extension_duration": 0,
+            "thread_id": 466,
+            "otl_collector_ingest_timestamp_razor": 1721756036
+          },
+          "service": {
+            "node": {
+              "name": "527074092"
+            },
+            "name": "MCF",
+            "runtime": {
+              "name": "OpenJDK Runtime Environment",
+              "version": "11.0.23+9-LTS"
+            },
+            "language": {
+              "name": "java"
+            },
+            "version": "RETSMC-QKCUIVL-317"
+          },
+          "host": {
+            "hostname": "ip-100-107-156-172.us-west-2.compute.internal",
+            "os": {
+              "type": "linux",
+              "platform": "linux",
+              "full": "Linux 5.10.219-208.866.amzn2.x86_64"
+            },
+            "name": "ip-100-107-156-172.us-west-2.compute.internal",
+            "architecture": "amd64"
+          },
+          "event": {
+            "agent_id_status": "missing",
+            "ingested": "2024-07-23T18:14:25Z",
+            "success_count": 1,
+            "outcome": "success"
+          },
+          "span": {
+            "duration": {
+              "us": 227
+            },
+            "representative_count": 1,
+            "subtype": "internal",
+            "name": "HealthcheckController.getHealthcheck",
+            "id": "175c95d59ee96075",
+            "type": "app"
+          },
+          "timestamp": {
+            "us": 1721756034534985
+          }
+        }
+      },
+      {
+        "_index": ".ds-traces-apm-default-2024.07.24-000297",
+        "_id": "LGs25ZABZfF62MshtH1t",
+        "_score": 15.296299,
+        "_source": {
+          "container": {
+            "id": "527074092"
+          },
+          "parent": {
+            "id": "2b5a296018ae70e4"
+          },
+          "agent": {
+            "name": "opentelemetry/java",
+            "version": "1.15.0"
+          },
+          "process": {
+            "pid": 393,
+            "command_line": "/usr/lib/jvm/java-11-openjdk-11.0.23.0.9-2.el7_9.x86_64:bin:java -Dio.opentelemetry.javaagent.slf4j.simpleLogger.log.io.opentelemetry.exporters.otlp.OtlpGrpcMetricExporter=error -javaagent:/target/codeguru-profiler-java-agent.jar=profilingGroupName:mcf-secure-message-consumer-webservice-external,region:us-west-2,heapSummaryEnabled:true -Xms768m -Xmx1024m -XX:MetaspaceSize=128m -XX:CompileThreshold=1000 -XX:InitialCodeCacheSize=56m -XX:ReservedCodeCacheSize=128m -Dfile.encoding=ISO8859-1 -Djava.awt.headless=true -XX:+UseCompressedOops -XX:+UseConcMarkSweepGC -XX:+CMSClassUnloadingEnabled -XX:+CMSScavengeBeforeRemark -XX:+CMSParallelRemarkEnabled -XX:+UseCMSInitiatingOccupancyOnly -XX:CMSInitiatingOccupancyFraction=70 -XX:SurvivorRatio=6 -XX:TargetSurvivorRatio=90 -verbose:gc -XX:+DisableExplicitGC -XX:+PrintGCDetails -XX:+PrintClassHistogram -XX:+PrintCommandLineFlags -XX:+HeapDumpOnOutOfMemoryError -XX:-UseBiasedLocking -Dsun.net.client.defaultReadTimeout=5000 -Dsun.net.client.defaultConnectTimeout=5000 -Dsun",
+            "executable": "/usr/lib/jvm/java-11-openjdk-11.0.23.0.9-2.el7_9.x86_64:bin:java"
+          },
+          "processor": {
+            "event": "span"
+          },
+          "labels": {
+            "aws_ecs_startedat": "2024-07-21T10:58:08.975968728Z",
+            "service_ecs_pipeline_version": "1.3.606",
+            "aws_ecs_cpu_model": "Intel(R)%20Xeon(R)%20Platinum%208259CL%20CPU",
+            "aws_ecs_task_arn": "arn:aws:ecs:us-west-2:698985542163:task/mcf-cluster-RETSMC-QKCUIVL-external-green/3421039365e3405cb3ec5697729247e4",
+            "aws_ecs_cpu_threads_per_core": "2",
+            "aws_ecs_cpu_cores": "1",
+            "aws_ecs_container_name": "app",
+            "otl_collector_version": "0.42.0",
+            "service_language": "java11",
+            "service_appprefix": "mcf",
+            "service_lob": "retail",
+            "service_support_email": "Message_A_Llama@vanguard.com",
+            "cloud_infrastructure_service": "AWS_ECS_FARGATE",
+            "otl_collector_url": "https://otelcollector.gtot.c1.vanguard.com",
+            "telemetry_auto_version": "1.15.0",
+            "otl_collector_ec2_instance": "i-02e93a5768f12ee8e",
+            "otl_collector_aws_region": "us-west-2",
+            "aws_ecs_task_family": "mcf-secure-message-consumer-webservice-external-v3-ecs-common-green-ApplicationEcsTask-T52lwD9MH8kr",
+            "thread_name": "http-nio-8080-exec-3",
+            "aws_ecs_limits_cpu": "1",
+            "aws_ecs_cpu_speed": "2.50GHz",
+            "service_runtime_environment": "test",
+            "otl_collector_distro": "opentelemetry-collector-contrib",
+            "aws_ecs_cpu_cache_size": "36608%20KB",
+            "otl_collector_aws_vgaccount": "vgi-gto-test",
+            "aws_ecs_cluster_arn": "arn:aws:ecs:us-west-2:698985542163:cluster/mcf-cluster-RETSMC-QKCUIVL-external-green",
+            "otl_collector_forwarded_to_version": "0.87.0",
+            "cloud_account_name": "vgi-retail-test",
+            "process_runtime_description": "Red Hat, Inc. OpenJDK 64-Bit Server VM 11.0.23+9-LTS",
+            "aws_ecs_bamboo_image": "RETSMC-QKCUIVL-317",
+            "otl_collector_forwarded_from_name": "GTO OpenTelemetry Collector - Rock",
+            "service_baseline": "green",
+            "otl_telemetry_type": "traces",
+            "otl_collector_forwarded_to_aws_region": "us-west-2",
+            "otl_collector_bamboo_buildresult": "GTODTR-VKJWCBT-122",
+            "service_instance": "7e3afdae-9e84-429c-adfe-9e51371362f2",
+            "otl_collector_platform": "EC2",
+            "aws_ecs_platformversion": "null",
+            "otl_loadbalancer": "ALB",
+            "service_family": "ConversationChannel",
+            "otl_collector_name": "GTO OpenTelemetry Collector - Rock",
+            "service_syslevel": "test",
+            "service_userlocation": "external",
+            "vg_otel_java_extension_version": "beta-2",
+            "aws_ecs_capacityprovidername": "FARGATE",
+            "otl_collector_ec2_hostname": "ip-10-157-215-185.us-west-2.gtot.c1.vanguard.com",
+            "aws_ecs_launchtype": "FARGATE",
+            "app_costcenter": "1124",
+            "service_type": "ecs-v3",
+            "otl_collector_forwarded_to_name": "GTO OpenTelemetry Collector - Razor",
+            "otl_collector_facing": "private",
+            "aws_ecs_limits_memory_mb": "2048",
+            "aws_ecs_cpu_siblings": "2"
+          },
+          "cloud": {
+            "provider": "aws",
+            "region": "us-west-2"
+          },
+          "observer": {
+            "hostname": "a7d1d585b175",
+            "type": "apm-server",
+            "version": "8.14.1"
+          },
+          "trace": {
+            "id": "66a10a1e83255af8d43c6bef2778ff08"
+          },
+          "@timestamp": "2024-07-24T14:05:24.369Z",
+          "data_stream": {
+            "namespace": "default",
+            "type": "traces",
+            "dataset": "apm"
+          },
+          "numeric_labels": {
+            "vg_otel_java_extension_duration": 0,
+            "thread_id": 468,
+            "otl_collector_ingest_timestamp_razor": 1721829926
+          },
+          "service": {
+            "node": {
+              "name": "527074092"
+            },
+            "name": "MCF",
+            "runtime": {
+              "name": "OpenJDK Runtime Environment",
+              "version": "11.0.23+9-LTS"
+            },
+            "language": {
+              "name": "java"
+            },
+            "version": "RETSMC-QKCUIVL-317"
+          },
+          "host": {
+            "hostname": "ip-100-107-156-172.us-west-2.compute.internal",
+            "os": {
+              "type": "linux",
+              "platform": "linux",
+              "full": "Linux 5.10.219-208.866.amzn2.x86_64"
+            },
+            "name": "ip-100-107-156-172.us-west-2.compute.internal",
+            "architecture": "amd64"
+          },
+          "event": {
+            "agent_id_status": "missing",
+            "ingested": "2024-07-24T14:48:05Z",
+            "success_count": 1,
+            "outcome": "success"
+          },
+          "span": {
+            "duration": {
+              "us": 201
+            },
+            "representative_count": 1,
+            "subtype": "internal",
+            "name": "HealthcheckController.getHealthcheck",
+            "id": "61d81656e6046845",
+            "type": "app"
+          },
+          "timestamp": {
+            "us": 1721829924369208
+          }
+        }
+      },
+      {
+        "_index": ".ds-traces-apm-default-2024.07.24-000297",
+        "_id": "G7M15ZABMRHP9fWBoCtX",
+        "_score": 15.296299,
+        "_source": {
+          "container": {
+            "id": "527074092"
+          },
+          "parent": {
+            "id": "d047c2fcb9a0140a"
+          },
+          "agent": {
+            "name": "opentelemetry/java",
+            "version": "1.15.0"
+          },
+          "process": {
+            "pid": 393,
+            "command_line": "/usr/lib/jvm/java-11-openjdk-11.0.23.0.9-2.el7_9.x86_64:bin:java -Dio.opentelemetry.javaagent.slf4j.simpleLogger.log.io.opentelemetry.exporters.otlp.OtlpGrpcMetricExporter=error -javaagent:/target/codeguru-profiler-java-agent.jar=profilingGroupName:mcf-secure-message-consumer-webservice-external,region:us-west-2,heapSummaryEnabled:true -Xms768m -Xmx1024m -XX:MetaspaceSize=128m -XX:CompileThreshold=1000 -XX:InitialCodeCacheSize=56m -XX:ReservedCodeCacheSize=128m -Dfile.encoding=ISO8859-1 -Djava.awt.headless=true -XX:+UseCompressedOops -XX:+UseConcMarkSweepGC -XX:+CMSClassUnloadingEnabled -XX:+CMSScavengeBeforeRemark -XX:+CMSParallelRemarkEnabled -XX:+UseCMSInitiatingOccupancyOnly -XX:CMSInitiatingOccupancyFraction=70 -XX:SurvivorRatio=6 -XX:TargetSurvivorRatio=90 -verbose:gc -XX:+DisableExplicitGC -XX:+PrintGCDetails -XX:+PrintClassHistogram -XX:+PrintCommandLineFlags -XX:+HeapDumpOnOutOfMemoryError -XX:-UseBiasedLocking -Dsun.net.client.defaultReadTimeout=5000 -Dsun.net.client.defaultConnectTimeout=5000 -Dsun",
+            "executable": "/usr/lib/jvm/java-11-openjdk-11.0.23.0.9-2.el7_9.x86_64:bin:java"
+          },
+          "processor": {
+            "event": "span"
+          },
+          "labels": {
+            "service_ecs_pipeline_version": "1.3.606",
+            "aws_ecs_startedat": "2024-07-21T10:58:08.975968728Z",
+            "aws_ecs_cpu_model": "Intel(R)%20Xeon(R)%20Platinum%208259CL%20CPU",
+            "aws_ecs_task_arn": "arn:aws:ecs:us-west-2:698985542163:task/mcf-cluster-RETSMC-QKCUIVL-external-green/3421039365e3405cb3ec5697729247e4",
+            "aws_ecs_cpu_threads_per_core": "2",
+            "aws_ecs_cpu_cores": "1",
+            "aws_ecs_container_name": "app",
+            "otl_collector_version": "0.42.0",
+            "service_language": "java11",
+            "service_appprefix": "mcf",
+            "service_lob": "retail",
+            "cloud_infrastructure_service": "AWS_ECS_FARGATE",
+            "service_support_email": "Message_A_Llama@vanguard.com",
+            "otl_collector_url": "https://otelcollector.gtot.c1.vanguard.com",
+            "telemetry_auto_version": "1.15.0",
+            "otl_collector_ec2_instance": "i-0536d9b9e7893ad58",
+            "otl_collector_aws_region": "us-west-2",
+            "aws_ecs_task_family": "mcf-secure-message-consumer-webservice-external-v3-ecs-common-green-ApplicationEcsTask-T52lwD9MH8kr",
+            "thread_name": "http-nio-8080-exec-9",
+            "aws_ecs_limits_cpu": "1",
+            "aws_ecs_cpu_speed": "2.50GHz",
+            "service_runtime_environment": "test",
+            "aws_ecs_cpu_cache_size": "36608%20KB",
+            "otl_collector_distro": "opentelemetry-collector-contrib",
+            "otl_collector_aws_vgaccount": "vgi-gto-test",
+            "aws_ecs_cluster_arn": "arn:aws:ecs:us-west-2:698985542163:cluster/mcf-cluster-RETSMC-QKCUIVL-external-green",
+            "otl_collector_forwarded_to_version": "0.87.0",
+            "cloud_account_name": "vgi-retail-test",
+            "process_runtime_description": "Red Hat, Inc. OpenJDK 64-Bit Server VM 11.0.23+9-LTS",
+            "aws_ecs_bamboo_image": "RETSMC-QKCUIVL-317",
+            "otl_collector_forwarded_from_name": "GTO OpenTelemetry Collector - Rock",
+            "service_baseline": "green",
+            "otl_telemetry_type": "traces",
+            "otl_collector_forwarded_to_aws_region": "us-west-2",
+            "otl_collector_bamboo_buildresult": "GTODTR-VKJWCBT-122",
+            "service_instance": "7e3afdae-9e84-429c-adfe-9e51371362f2",
+            "otl_collector_platform": "EC2",
+            "aws_ecs_platformversion": "null",
+            "otl_loadbalancer": "ALB",
+            "service_family": "ConversationChannel",
+            "otl_collector_name": "GTO OpenTelemetry Collector - Rock",
+            "service_syslevel": "test",
+            "service_userlocation": "external",
+            "vg_otel_java_extension_version": "beta-2",
+            "aws_ecs_capacityprovidername": "FARGATE",
+            "otl_collector_ec2_hostname": "ip-10-157-215-217.us-west-2.gtot.c1.vanguard.com",
+            "aws_ecs_launchtype": "FARGATE",
+            "otl_collector_forwarded_to_name": "GTO OpenTelemetry Collector - Razor",
+            "service_type": "ecs-v3",
+            "app_costcenter": "1124",
+            "otl_collector_facing": "private",
+            "aws_ecs_cpu_siblings": "2",
+            "aws_ecs_limits_memory_mb": "2048"
+          },
+          "cloud": {
+            "provider": "aws",
+            "region": "us-west-2"
+          },
+          "observer": {
+            "hostname": "6a6bb3a650cf",
+            "type": "apm-server",
+            "version": "8.14.1"
+          },
+          "trace": {
+            "id": "3916b64348ce998e9bc6789997d6f272"
+          },
+          "@timestamp": "2024-07-24T14:06:31.256Z",
+          "data_stream": {
+            "namespace": "default",
+            "type": "traces",
+            "dataset": "apm"
+          },
+          "numeric_labels": {
+            "vg_otel_java_extension_duration": 0,
+            "thread_id": 474,
+            "otl_collector_ingest_timestamp_razor": 1721829991
+          },
+          "service": {
+            "node": {
+              "name": "527074092"
+            },
+            "name": "MCF",
+            "runtime": {
+              "name": "OpenJDK Runtime Environment",
+              "version": "11.0.23+9-LTS"
+            },
+            "language": {
+              "name": "java"
+            },
+            "version": "RETSMC-QKCUIVL-317"
+          },
+          "host": {
+            "hostname": "ip-100-107-156-172.us-west-2.compute.internal",
+            "os": {
+              "type": "linux",
+              "platform": "linux",
+              "full": "Linux 5.10.219-208.866.amzn2.x86_64"
+            },
+            "name": "ip-100-107-156-172.us-west-2.compute.internal",
+            "architecture": "amd64"
+          },
+          "event": {
+            "agent_id_status": "missing",
+            "ingested": "2024-07-24T14:46:55Z",
+            "success_count": 1,
+            "outcome": "success"
+          },
+          "span": {
+            "duration": {
+              "us": 581
+            },
+            "representative_count": 1,
+            "subtype": "internal",
+            "name": "HealthcheckController.getHealthcheck",
+            "id": "ed199ddf8fc71793",
+            "type": "app"
+          },
+          "timestamp": {
+            "us": 1721829991256399
+          }
+        }
+      },
+      {
+        "_index": ".ds-traces-apm-default-2024.07.24-000297",
+        "_id": "t9Q05ZABjLeaa6AkaAVu",
+        "_score": 15.296299,
+        "_source": {
+          "container": {
+            "id": "527074092"
+          },
+          "parent": {
+            "id": "fa95d3099af0ed29"
+          },
+          "agent": {
+            "name": "opentelemetry/java",
+            "version": "1.15.0"
+          },
+          "process": {
+            "pid": 393,
+            "command_line": "/usr/lib/jvm/java-11-openjdk-11.0.23.0.9-2.el7_9.x86_64:bin:java -Dio.opentelemetry.javaagent.slf4j.simpleLogger.log.io.opentelemetry.exporters.otlp.OtlpGrpcMetricExporter=error -javaagent:/target/codeguru-profiler-java-agent.jar=profilingGroupName:mcf-secure-message-consumer-webservice-external,region:us-west-2,heapSummaryEnabled:true -Xms768m -Xmx1024m -XX:MetaspaceSize=128m -XX:CompileThreshold=1000 -XX:InitialCodeCacheSize=56m -XX:ReservedCodeCacheSize=128m -Dfile.encoding=ISO8859-1 -Djava.awt.headless=true -XX:+UseCompressedOops -XX:+UseConcMarkSweepGC -XX:+CMSClassUnloadingEnabled -XX:+CMSScavengeBeforeRemark -XX:+CMSParallelRemarkEnabled -XX:+UseCMSInitiatingOccupancyOnly -XX:CMSInitiatingOccupancyFraction=70 -XX:SurvivorRatio=6 -XX:TargetSurvivorRatio=90 -verbose:gc -XX:+DisableExplicitGC -XX:+PrintGCDetails -XX:+PrintClassHistogram -XX:+PrintCommandLineFlags -XX:+HeapDumpOnOutOfMemoryError -XX:-UseBiasedLocking -Dsun.net.client.defaultReadTimeout=5000 -Dsun.net.client.defaultConnectTimeout=5000 -Dsun",
+            "executable": "/usr/lib/jvm/java-11-openjdk-11.0.23.0.9-2.el7_9.x86_64:bin:java"
+          },
+          "processor": {
+            "event": "span"
+          },
+          "labels": {
+            "service_ecs_pipeline_version": "1.3.606",
+            "aws_ecs_startedat": "2024-07-21T10:58:08.975968728Z",
+            "aws_ecs_cpu_model": "Intel(R)%20Xeon(R)%20Platinum%208259CL%20CPU",
+            "aws_ecs_task_arn": "arn:aws:ecs:us-west-2:698985542163:task/mcf-cluster-RETSMC-QKCUIVL-external-green/3421039365e3405cb3ec5697729247e4",
+            "aws_ecs_cpu_threads_per_core": "2",
+            "aws_ecs_cpu_cores": "1",
+            "aws_ecs_container_name": "app",
+            "otl_collector_version": "0.42.0",
+            "service_language": "java11",
+            "service_appprefix": "mcf",
+            "service_lob": "retail",
+            "cloud_infrastructure_service": "AWS_ECS_FARGATE",
+            "service_support_email": "Message_A_Llama@vanguard.com",
+            "otl_collector_url": "https://otelcollector.gtot.c1.vanguard.com",
+            "telemetry_auto_version": "1.15.0",
+            "otl_collector_aws_region": "us-west-2",
+            "otl_collector_ec2_instance": "i-013023c31aa742a6e",
+            "aws_ecs_task_family": "mcf-secure-message-consumer-webservice-external-v3-ecs-common-green-ApplicationEcsTask-T52lwD9MH8kr",
+            "thread_name": "http-nio-8080-exec-5",
+            "aws_ecs_limits_cpu": "1",
+            "aws_ecs_cpu_speed": "2.50GHz",
+            "service_runtime_environment": "test",
+            "aws_ecs_cpu_cache_size": "36608%20KB",
+            "otl_collector_distro": "opentelemetry-collector-contrib",
+            "otl_collector_aws_vgaccount": "vgi-gto-test",
+            "aws_ecs_cluster_arn": "arn:aws:ecs:us-west-2:698985542163:cluster/mcf-cluster-RETSMC-QKCUIVL-external-green",
+            "otl_collector_forwarded_to_version": "0.87.0",
+            "cloud_account_name": "vgi-retail-test",
+            "process_runtime_description": "Red Hat, Inc. OpenJDK 64-Bit Server VM 11.0.23+9-LTS",
+            "aws_ecs_bamboo_image": "RETSMC-QKCUIVL-317",
+            "otl_collector_forwarded_from_name": "GTO OpenTelemetry Collector - Rock",
+            "service_baseline": "green",
+            "otl_collector_forwarded_to_aws_region": "us-west-2",
+            "otl_telemetry_type": "traces",
+            "otl_collector_bamboo_buildresult": "GTODTR-VKJWCBT-122",
+            "service_instance": "7e3afdae-9e84-429c-adfe-9e51371362f2",
+            "otl_collector_platform": "EC2",
+            "aws_ecs_platformversion": "null",
+            "otl_loadbalancer": "ALB",
+            "service_family": "ConversationChannel",
+            "otl_collector_name": "GTO OpenTelemetry Collector - Rock",
+            "service_syslevel": "test",
+            "service_userlocation": "external",
+            "vg_otel_java_extension_version": "beta-2",
+            "aws_ecs_capacityprovidername": "FARGATE",
+            "otl_collector_ec2_hostname": "ip-10-157-215-24.us-west-2.gtot.c1.vanguard.com",
+            "aws_ecs_launchtype": "FARGATE",
+            "app_costcenter": "1124",
+            "service_type": "ecs-v3",
+            "otl_collector_forwarded_to_name": "GTO OpenTelemetry Collector - Razor",
+            "otl_collector_facing": "private",
+            "aws_ecs_cpu_siblings": "2",
+            "aws_ecs_limits_memory_mb": "2048"
+          },
+          "cloud": {
+            "provider": "aws",
+            "region": "us-west-2"
+          },
+          "observer": {
+            "hostname": "a7d1d585b175",
+            "type": "apm-server",
+            "version": "8.14.1"
+          },
+          "trace": {
+            "id": "66a10b33434fe95aebb6b314ab4becb8"
+          },
+          "@timestamp": "2024-07-24T14:10:00.684Z",
+          "data_stream": {
+            "namespace": "default",
+            "type": "traces",
+            "dataset": "apm"
+          },
+          "numeric_labels": {
+            "vg_otel_java_extension_duration": 0,
+            "thread_id": 470,
+            "otl_collector_ingest_timestamp_razor": 1721830201
+          },
+          "service": {
+            "node": {
+              "name": "527074092"
+            },
+            "name": "MCF",
+            "runtime": {
+              "name": "OpenJDK Runtime Environment",
+              "version": "11.0.23+9-LTS"
+            },
+            "language": {
+              "name": "java"
+            },
+            "version": "RETSMC-QKCUIVL-317"
+          },
+          "host": {
+            "hostname": "ip-100-107-156-172.us-west-2.compute.internal",
+            "os": {
+              "type": "linux",
+              "platform": "linux",
+              "full": "Linux 5.10.219-208.866.amzn2.x86_64"
+            },
+            "name": "ip-100-107-156-172.us-west-2.compute.internal",
+            "architecture": "amd64"
+          },
+          "event": {
+            "agent_id_status": "missing",
+            "ingested": "2024-07-24T14:45:35Z",
+            "success_count": 1,
+            "outcome": "success"
+          },
+          "span": {
+            "duration": {
+              "us": 224
+            },
+            "representative_count": 1,
+            "subtype": "internal",
+            "name": "HealthcheckController.getHealthcheck",
+            "id": "bc44ecb85f7f6bb1",
+            "type": "app"
+          },
+          "timestamp": {
+            "us": 1721830200684157
+          }
+        }
+      }
+    ]
