@@ -17,15 +17,15 @@ For patch releases, only the version on the existing major and minor version bra
 
 * Trigger release workflow manually
   * For **patch releases**: run the [`run-patch-release`](https://github.com/elastic/apm-server/actions/workflows/run-patch-release.yml) workflow (In "Use workflow from", select `main` branch. Then in "The version", specify the **upcoming** patch release version - es: on `8.14.2` feature freeze you will use `8.14.2`).
-    This workflow will: create the release branch; update version across codebase; commit and create PR targeting the release branch.
-    Release notes for patch releases **must be manually added** (PR should target `main` branch and backported to the release branch):
+    This workflow will: create the `update-<VERSION>` branch, update version constants across the codebase and create a PR targeting the release branch. 
+    Release notes for patch releases **must be manually added** (PR should target `main` branch and should be backported to the release branch):
     * Add a new section to the existing release notes file ([Sample PR](https://github.com/elastic/apm-server/pull/12680)).
     * Review the [changelogs/head](https://github.com/elastic/apm-server/tree/main/changelogs/head.asciidoc) file and move relevant changelog entries from `head.asciidoc` to `release_version.asciidoc` if the change is backported to release_version. If changes do not apply to the version being released, keep them in the `head.asciidoc` file.
     * Review the commits in the release to ensure all changes are reflected in the release notes. Check for backported changes without release notes in `release_version.asciidoc`.
     * Add your PR to the documentation release issue ([Sample Issue](https://github.com/elastic/dev/issues/2485)).
     * The PR should be merged the day before release.
   * For **minor releases**: run the [`run-minor-release`](https://github.com/elastic/apm-server/actions/workflows/run-minor-release.yml) workflow (In "Use workflow from", select `main` branch. Then in "The version", specify the minor release version the release is for).  
-    This workflow will: create the release branch; update the changelog for the release branch and open a PR targeting the release branch titled `<major>.<minor>: update docs`; create a PR on `main` titled `<major>.<minor>: update docs, mergify, versions and changelogs`. Before merging them compare commits between latest minor and the new minor versions and ensure all relevant PRs have been included in the Changelog. If not, amend it in both PRs. Request and wait a PR review from the team before merging.
+    This workflow will: create a new release branch using the stack version (X.Y); update the changelog for the release branch and open a PR targeting the release branch titled `<major>.<minor>: update docs`; create a PR on `main` titled `<major>.<minor>: update docs, mergify, versions and changelogs`. Before merging them compare commits between latest minor and the new minor versions and ensure all relevant PRs have been included in the Changelog. If not, amend it in both PRs. Request and wait a PR review from the team before merging.
 * The Release Manager will ping the team to align the release process
 
 * Update dependencies
@@ -50,7 +50,7 @@ For patch releases, only the version on the existing major and minor version bra
     Use the `test-plan` label and the version label (create it if it does not exist). For example, [this was 8.13.0 test plan](https://github.com/elastic/apm-server/issues/12822)
     and here you can find [all previous test plans](https://github.com/elastic/apm-server/issues?q=label%3Atest-plan+is%3Aclosed).
     What we aim for is testing all functional changes applied to the new version. Review any PR updating `elastic/go-docappender` and `elastic/apm-data` dependencies, as some functional changes happens through these dependencies.  
-   Any non-functional change or any change that is already covered by automated tests must not be included.
+   Any non-functional change or any change already covered by automated tests must not be included.
   * Add other test cases that require manual testing, such as test scenarios on ESS, that are not covered by automated tests or OS compatibility smoke tests for supporting new operating systems.
 
 ## Between feature freeze and release
@@ -72,7 +72,9 @@ For patch releases, only the version on the existing major and minor version bra
 
 * A new [tag](https://github.com/elastic/apm-server/releases) will automatically be created on GitHub.
 
-* Bump the version in anticipation of the next release, e.g. [after 8.13.3 release](https://github.com/elastic/apm-server/pull/13066) bump to 8.13.4. **Prepare this PR ahead of time** but only merge it once pinged by the Release Manager on release date.
+* Merge the PRs created by the GitHub workflow ran as part of the steps in the ["Day after feature freeze"](#day-after-feature-freeze) section. 
+   > [!IMPORTANT]
+   > Only merge the PRs once pinged n Slack by the Release Manager on release date in the #mission-control channel
 
 ## When compatibility between Agents & Server changes
 
