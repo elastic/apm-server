@@ -73,8 +73,8 @@ For patch releases, only the version on the existing major and minor version bra
 * A new [tag](https://github.com/elastic/apm-server/releases) will automatically be created on GitHub.
 
 * Merge the PRs created by the GitHub workflow ran as part of the steps in the ["Day after feature freeze"](#day-after-feature-freeze) section. 
-   > [!IMPORTANT]
-   > Only merge the PRs once pinged n Slack by the Release Manager on release date in the #mission-control channel
+ > [!IMPORTANT]
+ > Only merge the PRs once pinged n Slack by the Release Manager on release date in the #mission-control channel
 
 ## When compatibility between Agents & Server changes
 
