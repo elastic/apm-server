@@ -300,16 +300,16 @@ func (rw *ReadWriter) ReadTraceEvents(traceID string, out *modelpb.Batch) error 
 		}
 		switch item.UserMeta() {
 		case entryMetaTraceEvent:
-			event := modelpb.APMEventFromVTPool()
+			event := modelpb.APMEvent{}
 			if err := item.Value(func(data []byte) error {
-				if err := rw.s.codec.DecodeEvent(data, event); err != nil {
+				if err := rw.s.codec.DecodeEvent(data, &event); err != nil {
 					return fmt.Errorf("codec failed to decode event: %w", err)
 				}
 				return nil
 			}); err != nil {
 				return err
 			}
-			*out = append(*out, event)
+			*out = append(*out, &event)
 		default:
 			// Unknown entry meta: ignore.
 			continue
