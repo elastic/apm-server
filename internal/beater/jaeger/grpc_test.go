@@ -173,9 +173,10 @@ func TestGRPCSampler_GetSamplingStrategy(t *testing.T) {
 				assert.Contains(t, err.Error(), tc.expectedErrMsg)
 				assert.Nil(t, resp)
 
-				require.Equal(t, 1, logs.Len())
-				log := logs.All()[0]
+				require.Equal(t, 2, logs.Len())
+				log := logs.All()[1]
 				assert.Contains(t, log.Message, tc.expectedLogMsg)
+
 				if tc.expectedLogError != "" {
 					assert.Equal(t, tc.expectedLogError, log.ContextMap()["error"])
 				}
