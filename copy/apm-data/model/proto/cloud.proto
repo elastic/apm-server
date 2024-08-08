@@ -1,0 +1,44 @@
+// Licensed to Elasticsearch B.V. under one or more contributor
+// license agreements. See the NOTICE file distributed with
+// this work for additional information regarding copyright
+// ownership. Elasticsearch B.V. licenses this file to you under
+// the Apache License, Version 2.0 (the "License"); you may
+// not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied.  See the License for the
+// specific language governing permissions and limitations
+// under the License.
+
+syntax = "proto3";
+
+package elastic.apm.v1;
+
+option go_package = "github.com/elastic/apm-data/model/modelpb";
+
+message Cloud {
+  CloudOrigin origin = 1;
+  string account_id = 2;
+  string account_name = 3;
+  string availability_zone = 4;
+  string instance_id = 5;
+  string instance_name = 6;
+  string machine_type = 7;
+  string project_id = 8;
+  string project_name = 9;
+  string provider = 10;
+  string region = 11;
+  string service_name = 12;
+}
+
+message CloudOrigin {
+  string account_id = 1;
+  string provider = 2;
+  string region = 3;
+  string service_name = 4;
+}

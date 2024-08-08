@@ -1,0 +1,138 @@
+{
+    "events": [
+        {
+            "@timestamp": "2019-12-16T12:46:58.000Z",
+            "agent": {
+                "name": "Jaeger",
+                "version": "unknown"
+            },
+            "event": {
+                "duration": 79000000000,
+                "outcome": "success"
+            },
+            "host": {
+                "hostname": "host-abc"
+            },
+            "service": {
+                "language": {
+                    "name": "unknown"
+                },
+                "name": "unknown"
+            },
+            "timestamp": {
+                "us": 1576500418000768
+            },
+            "transaction": {
+                "representative_count": 1.25,
+                "result": "Success",
+                "sampled": true,
+                "type": "unknown"
+            }
+        },
+        {
+            "@timestamp": "2019-12-16T12:46:58.000Z",
+            "agent": {
+                "name": "Jaeger",
+                "version": "unknown"
+            },
+            "event": {
+                "duration": 79000000000,
+                "outcome": "success"
+            },
+            "host": {
+                "hostname": "host-abc"
+            },
+            "parent": {
+                "id": "0000000000000001"
+            },
+            "service": {
+                "language": {
+                    "name": "unknown"
+                },
+                "name": "unknown"
+            },
+            "span": {
+                "representative_count": 2.5,
+                "type": "unknown"
+            },
+            "timestamp": {
+                "us": 1576500418000768
+            },
+            "trace": {
+                "id": "00000000000000010000000000000001"
+            }
+        },
+        {
+            "@timestamp": "2019-12-16T12:46:58.000Z",
+            "agent": {
+                "name": "Jaeger",
+                "version": "unknown"
+            },
+            "event": {
+                "duration": 79000000000,
+                "outcome": "success"
+            },
+            "host": {
+                "hostname": "host-abc"
+            },
+            "labels": {
+                "sampler_type": "ratelimiting"
+            },
+            "numeric_labels": {
+                "sampler_param": 2
+            },
+            "service": {
+                "language": {
+                    "name": "unknown"
+                },
+                "name": "unknown"
+            },
+            "timestamp": {
+                "us": 1576500418000768
+            },
+            "transaction": {
+                "sampled": true,
+                "result": "Success",
+                "type": "unknown"
+            }
+        },
+        {
+            "@timestamp": "2019-12-16T12:46:58.000Z",
+            "agent": {
+                "name": "Jaeger",
+                "version": "unknown"
+            },
+            "event": {
+                "duration": 79000000000,
+                "outcome": "success"
+            },
+            "host": {
+                "hostname": "host-abc"
+            },
+            "labels": {
+                "sampler_type": "const"
+            },
+            "numeric_labels": {
+                "sampler_param": 1
+            },
+            "parent": {
+                "id": "0000000000000001"
+            },
+            "service": {
+                "language": {
+                    "name": "unknown"
+                },
+                "name": "unknown"
+            },
+            "span": {
+                "type": "unknown"
+            },
+            "timestamp": {
+                "us": 1576500418000768
+            },
+            "trace": {
+                "id": "00000000000000010000000000000001"
+            }
+        }
+    ]
+}

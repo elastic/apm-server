@@ -1,0 +1,39 @@
+{
+    "Custom": null,
+    "Experimental": null,
+    "Http": {
+        "Request": {
+            "Body": null,
+            "Cookies": null,
+            "Env": null,
+            "Headers": {
+                "X-Forwarded-For": [
+                    "178.3.11.17"
+                ],
+                "X-Real-Ip": [
+                    "192.13.14.5"
+                ]
+            },
+            "Method": "post",
+            "Socket": {
+                "Encrypted": false,
+                "RemoteAddress": "10.1.23.5"
+            }
+        },
+        "Response": null,
+        "Version": null
+    },
+    "Labels": null,
+    "Message": null,
+    "Page": null,
+    "URL": {
+        "Domain": null,
+        "Fragment": null,
+        "Full": null,
+        "Original": null,
+        "Path": null,
+        "Port": null,
+        "Query": null,
+        "Scheme": null
+    }
+}

@@ -1,0 +1,3 @@
+{"metadata": {"user": null, "process": {"ppid": null, "pid": 1234, "argv": null, "title": null}, "system": null, "service": {"name": "1234_service-12a3", "language": {"version": null, "name":"ecmascript"}, "agent": {"version": "3.14.0", "name": "elastic-node"}, "environment": null, "framework": null,"version": null, "runtime": null}}}
+{ "transaction": { "id": 12345, "trace_id": "0123456789abcdef0123456789abcdef", "parent_id": "abcdefabcdef01234567", "type": "request", "duration": 32.592981, "span_count": { "started": 21 } } }   
+{"span": {"trace_id": "fdedef0123456789abcdef9876543210", "parent_id": "abcdef0123456789","id": "abcdef01234567", "transaction_id": "01af25874dec69dd", "name": "GET /api/types", "type": "request","start": 0, "duration": 141.581 }}

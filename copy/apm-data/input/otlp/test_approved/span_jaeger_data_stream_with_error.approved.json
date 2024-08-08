@@ -1,0 +1,82 @@
+{
+    "events": [
+        {
+            "@timestamp": "2019-12-16T12:46:58.000Z",
+            "agent": {
+                "name": "Jaeger",
+                "version": "unknown"
+            },
+            "data_stream": {
+                "dataset": "1",
+                "namespace": "2"
+            },
+            "event": {
+                "duration": 79000000000,
+                "outcome": "success"
+            },
+            "host": {
+                "hostname": "host-abc"
+            },
+            "parent": {
+                "id": "0000000058585858"
+            },
+            "service": {
+                "language": {
+                    "name": "unknown"
+                },
+                "name": "unknown"
+            },
+            "span": {
+                "id": "0000000041414646",
+                "representative_count": 1,
+                "type": "unknown"
+            },
+            "timestamp": {
+                "us": 1576500418000768
+            },
+            "trace": {
+                "id": "00000000000000000000000046467830"
+            }
+        },
+        {
+            "@timestamp": "2019-12-16T12:46:58.000Z",
+            "agent": {
+                "name": "Jaeger",
+                "version": "unknown"
+            },
+            "data_stream": {
+                "dataset": "3",
+                "namespace": "4"
+            },
+            "error": {
+                "id": "dynamic",
+                "exception": [
+                    {
+                        "message": "no connection established"
+                    }
+                ],
+                "log": {
+                    "message": "retrying connection"
+                }
+            },
+            "host": {
+                "hostname": "host-abc"
+            },
+            "parent": {
+                "id": "0000000041414646"
+            },
+            "service": {
+                "language": {
+                    "name": "unknown"
+                },
+                "name": "unknown"
+            },
+            "timestamp": {
+                "us": 1576500418000768
+            },
+            "trace": {
+                "id": "00000000000000000000000046467830"
+            }
+        }
+    ]
+}

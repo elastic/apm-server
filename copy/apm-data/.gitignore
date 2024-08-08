@@ -1,0 +1,7 @@
+# vim
+*.swp
+# IntelliJ module files (.idea folder, *.iml module files):
+.idea
+*.iml
+# project build
+tools/build

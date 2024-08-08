@@ -1,0 +1,81 @@
+{
+    "events": [
+        {
+            "@timestamp": "2339-03-21T22:18:14.838Z",
+            "agent": {
+                "name": "Jaeger",
+                "version": "unknown"
+            },
+            "data_stream": {
+                "dataset": "1",
+                "namespace": "2"
+            },
+            "event": {
+                "outcome": "success"
+            },
+            "host": {
+                "hostname": "host-abc"
+            },
+            "service": {
+                "language": {
+                    "name": "unknown"
+                },
+                "name": "unknown"
+            },
+            "timestamp": {
+                "us": 11651379494838206
+            },
+            "trace": {
+                "id": "00000000000000000000000046467830"
+            },
+            "transaction": {
+                "representative_count": 1,
+                "result": "Success",
+                "sampled": true,
+                "type": "unknown"
+            }
+        },
+        {
+            "@timestamp": "2019-12-16T12:46:58.000Z",
+            "agent": {
+                "name": "Jaeger",
+                "version": "unknown"
+            },
+            "data_stream": {
+                "dataset": "3",
+                "namespace": "4"
+            },
+            "error": {
+                "id": "dynamic",
+                "exception": [
+                    {
+                        "message": "no connection established"
+                    }
+                ],
+                "log": {
+                    "message": "retrying connection"
+                }
+            },
+            "host": {
+                "hostname": "host-abc"
+            },
+            "service": {
+                "language": {
+                    "name": "unknown"
+                },
+                "name": "unknown"
+            },
+            "span": {},
+            "timestamp": {
+                "us": 1576500418000768
+            },
+            "trace": {
+                "id": "00000000000000000000000046467830"
+            },
+            "transaction": {
+                "sampled": true,
+                "type": "unknown"
+            }
+        }
+    ]
+}

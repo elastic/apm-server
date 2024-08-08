@@ -1,0 +1,3 @@
+{"metadata": {"user": null}}
+{"metricset": { "samples": { "byte_counter": { "value": 1 }, "short_counter": { "value": 227 }, "integer_gauge": { "value": 42767 }, "long_gauge": { "value": 3147483648 }, "float_gauge": { "value": 9.16 }, "double_gauge": { "value": 3.141592653589793 }, "dotted.float.gauge": { "value": 6.12 }, "negative.d.o.t.t.e.d": { "value": -1022 } }, "tags": { "code": "200", "some": "abc" }, "timestamp": 1496170422281000 }}
+

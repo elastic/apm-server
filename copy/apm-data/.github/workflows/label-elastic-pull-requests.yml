@@ -1,0 +1,32 @@
+name: "label-elastic-pull-requests"
+
+on:
+  pull_request_target:
+    types: [opened]
+
+permissions:
+  contents: read
+
+jobs:
+  safe-to-test:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check team membership for user
+      uses: elastic/get-user-teams-membership@1.1.0
+      id: checkUserMember
+      with:
+        username: ${{ github.actor }}
+        team: 'apm'
+        GITHUB_TOKEN: ${{ secrets.APM_TECH_USER_TOKEN }}
+    - name: Add safe-to-test label
+      uses: actions/github-script@v7
+      if: steps.checkUserMember.outputs.isTeamMember == 'true'
+      with:
+        github-token: ${{ secrets.APM_TECH_USER_TOKEN }}
+        script: |
+          github.rest.issues.addLabels({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            labels: ["safe-to-test"]
+          })

@@ -1,0 +1,63 @@
+// Licensed to Elasticsearch B.V. under one or more contributor
+// license agreements. See the NOTICE file distributed with
+// this work for additional information regarding copyright
+// ownership. Elasticsearch B.V. licenses this file to you under
+// the Apache License, Version 2.0 (the "License"); you may
+// not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied.  See the License for the
+// specific language governing permissions and limitations
+// under the License.
+
+syntax = "proto3";
+
+package elastic.apm.v1;
+
+import "experience.proto";
+import "message.proto";
+import "metricset.proto";
+import "keyvalue.proto";
+
+option go_package = "github.com/elastic/apm-data/model/modelpb";
+
+message Transaction {
+  SpanCount span_count = 1;
+  UserExperience user_experience = 2;
+  repeated KeyValue custom = 3;
+  map<string, TransactionMark> marks = 4;
+  Message message = 5;
+  string type = 6;
+  string name = 7;
+  string result = 8;
+  string id = 9;
+  Histogram duration_histogram = 10;
+  repeated DroppedSpanStats dropped_spans_stats = 11;
+  SummaryMetric duration_summary = 12;
+  double representative_count = 13;
+  bool sampled = 14;
+  bool root = 15;
+  repeated string profiler_stack_trace_ids = 16;
+}
+
+message SpanCount {
+  optional uint32 dropped = 1;
+  optional uint32 started = 2;
+}
+
+message TransactionMark {
+  map<string, double> measurements = 1;
+}
+
+message DroppedSpanStats {
+  string destination_service_resource = 1;
+  string service_target_type = 2;
+  string service_target_name = 3;
+  string outcome = 4;
+  AggregatedDuration duration = 5;
+}

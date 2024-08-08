@@ -1,0 +1,77 @@
+// Licensed to Elasticsearch B.V. under one or more contributor
+// license agreements. See the NOTICE file distributed with
+// this work for additional information regarding copyright
+// ownership. Elasticsearch B.V. licenses this file to you under
+// the Apache License, Version 2.0 (the "License"); you may
+// not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied.  See the License for the
+// specific language governing permissions and limitations
+// under the License.
+
+syntax = "proto3";
+
+package elastic.apm.v1;
+
+import "message.proto";
+import "metricset.proto";
+import "stacktrace.proto";
+
+option go_package = "github.com/elastic/apm-data/model/modelpb";
+
+message Span {
+  Message message = 1;
+  Composite composite = 2;
+  DestinationService destination_service = 3;
+  DB db = 4;
+  optional bool sync = 5;
+  string kind = 6;
+  string action = 7;
+  string subtype = 8;
+  string id = 9;
+  string type = 10;
+  string name = 11;
+  repeated StacktraceFrame stacktrace = 12;
+  repeated SpanLink links = 13;
+  AggregatedDuration self_time = 14;
+  double representative_count = 15;
+}
+
+message DB {
+  optional uint32 rows_affected = 1;
+  string instance = 2;
+  string statement = 3;
+  string type = 4;
+  string user_name = 5;
+  string link = 6;
+}
+
+message DestinationService {
+  string type = 1;
+  string name = 2;
+  string resource = 3;
+  AggregatedDuration response_time = 4;
+}
+
+enum CompressionStrategy {
+  COMPRESSION_STRATEGY_UNSPECIFIED = 0;
+  COMPRESSION_STRATEGY_EXACT_MATCH = 1;
+  COMPRESSION_STRATEGY_SAME_KIND = 2;
+}
+
+message Composite {
+  CompressionStrategy compression_strategy = 1;
+  uint32 count = 2;
+  double sum = 3;
+}
+
+message SpanLink {
+  string trace_id = 1;
+  string span_id = 2;
+}

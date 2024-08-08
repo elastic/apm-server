@@ -1,0 +1,34 @@
+version: 2
+updates:
+  # Go dependencies
+  - package-ecosystem: "gomod"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    groups:
+      otel:
+        patterns:
+        - "go.opentelemetry.io/*"
+      jaeger:
+        patterns:
+        - "github.com/jaegertracing/jaeger"
+        - "github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger"
+      golang.org/x/:
+        patterns:
+        - "golang.org/x/*"
+      go-agent:
+        patterns:
+        - "go.elastic.co/apm*"
+  # GitHub actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    reviewers:
+      - "elastic/observablt-ci"
+    schedule:
+      interval: "weekly"
+      day: "sunday"
+      time: "22:00"
+    groups:
+      github-actions:
+        patterns:
+          - "*"

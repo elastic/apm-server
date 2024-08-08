@@ -1,0 +1,301 @@
+{
+  "$id": "docs/spec/v2/metricset",
+  "type": "object",
+  "properties": {
+    "faas": {
+      "description": "FAAS holds fields related to Function as a Service events.",
+      "type": [
+        "null",
+        "object"
+      ],
+      "properties": {
+        "coldstart": {
+          "description": "Indicates whether a function invocation was a cold start or not.",
+          "type": [
+            "null",
+            "boolean"
+          ]
+        },
+        "execution": {
+          "description": "The request id of the function invocation.",
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "id": {
+          "description": "A unique identifier of the invoked serverless function.",
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "name": {
+          "description": "The lambda function name.",
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "trigger": {
+          "description": "Trigger attributes.",
+          "type": [
+            "null",
+            "object"
+          ],
+          "properties": {
+            "request_id": {
+              "description": "The id of the origin trigger request.",
+              "type": [
+                "null",
+                "string"
+              ]
+            },
+            "type": {
+              "description": "The trigger type.",
+              "type": [
+                "null",
+                "string"
+              ]
+            }
+          }
+        },
+        "version": {
+          "description": "The lambda function version.",
+          "type": [
+            "null",
+            "string"
+          ]
+        }
+      }
+    },
+    "samples": {
+      "description": "Samples hold application metrics collected from the agent.",
+      "type": "object",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^[^*\"]*$": {
+          "type": [
+            "null",
+            "object"
+          ],
+          "properties": {
+            "counts": {
+              "description": "Counts holds the bucket counts for histogram metrics.  These numbers must be positive or zero.  If Counts is specified, then Values is expected to be specified with the same number of elements, and with the same order.",
+              "type": [
+                "null",
+                "array"
+              ],
+              "items": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "minItems": 0
+            },
+            "type": {
+              "description": "Type holds an optional metric type: gauge, counter, or histogram.  If Type is unknown, it will be ignored.",
+              "type": [
+                "null",
+                "string"
+              ]
+            },
+            "unit": {
+              "description": "Unit holds an optional unit for the metric.  - \"percent\" (value is in the range [0,1]) - \"byte\" - a time unit: \"nanos\", \"micros\", \"ms\", \"s\", \"m\", \"h\", \"d\"  If Unit is unknown, it will be ignored.",
+              "type": [
+                "null",
+                "string"
+              ]
+            },
+            "value": {
+              "description": "Value holds the value of a single metric sample.",
+              "type": [
+                "null",
+                "number"
+              ]
+            },
+            "values": {
+              "description": "Values holds the bucket values for histogram metrics.  Values must be provided in ascending order; failure to do so will result in the metric being discarded.",
+              "type": [
+                "null",
+                "array"
+              ],
+              "items": {
+                "type": "number"
+              },
+              "minItems": 0
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "counts": {
+                    "type": "array"
+                  }
+                },
+                "required": [
+                  "counts"
+                ]
+              },
+              "then": {
+                "properties": {
+                  "values": {
+                    "type": "array"
+                  }
+                },
+                "required": [
+                  "values"
+                ]
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "values": {
+                    "type": "array"
+                  }
+                },
+                "required": [
+                  "values"
+                ]
+              },
+              "then": {
+                "properties": {
+                  "counts": {
+                    "type": "array"
+                  }
+                },
+                "required": [
+                  "counts"
+                ]
+              }
+            }
+          ],
+          "anyOf": [
+            {
+              "properties": {
+                "value": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "value"
+              ]
+            },
+            {
+              "properties": {
+                "values": {
+                  "type": "array"
+                }
+              },
+              "required": [
+                "values"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "service": {
+      "description": "Service holds selected information about the correlated service.",
+      "type": [
+        "null",
+        "object"
+      ],
+      "properties": {
+        "name": {
+          "description": "Name of the correlated service.",
+          "type": [
+            "null",
+            "string"
+          ],
+          "maxLength": 1024
+        },
+        "version": {
+          "description": "Version of the correlated service.",
+          "type": [
+            "null",
+            "string"
+          ],
+          "maxLength": 1024
+        }
+      }
+    },
+    "span": {
+      "description": "Span holds selected information about the correlated transaction.",
+      "type": [
+        "null",
+        "object"
+      ],
+      "properties": {
+        "subtype": {
+          "description": "Subtype is a further sub-division of the type (e.g. postgresql, elasticsearch)",
+          "type": [
+            "null",
+            "string"
+          ],
+          "maxLength": 1024
+        },
+        "type": {
+          "description": "Type expresses the correlated span's type as keyword that has specific relevance within the service's domain, eg: 'request', 'backgroundjob'.",
+          "type": [
+            "null",
+            "string"
+          ],
+          "maxLength": 1024
+        }
+      }
+    },
+    "tags": {
+      "description": "Tags are a flat mapping of user-defined tags. On the agent side, tags are called labels. Allowed value types are string, boolean and number values. Tags are indexed and searchable.",
+      "type": [
+        "null",
+        "object"
+      ],
+      "additionalProperties": {
+        "type": [
+          "null",
+          "string",
+          "boolean",
+          "number"
+        ],
+        "maxLength": 1024
+      }
+    },
+    "timestamp": {
+      "description": "Timestamp holds the recorded time of the event, UTC based and formatted as microseconds since Unix epoch",
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+    "transaction": {
+      "description": "Transaction holds selected information about the correlated transaction.",
+      "type": [
+        "null",
+        "object"
+      ],
+      "properties": {
+        "name": {
+          "description": "Name of the correlated transaction.",
+          "type": [
+            "null",
+            "string"
+          ],
+          "maxLength": 1024
+        },
+        "type": {
+          "description": "Type expresses the correlated transaction's type as keyword that has specific relevance within the service's domain, eg: 'request', 'backgroundjob'.",
+          "type": [
+            "null",
+            "string"
+          ],
+          "maxLength": 1024
+        }
+      }
+    }
+  },
+  "required": [
+    "samples"
+  ]
+}

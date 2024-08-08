@@ -1,0 +1,85 @@
+{
+    "Custom": {
+        "a": "b"
+    },
+    "Experimental": {
+        "foo": "bar"
+    },
+    "Http": {
+        "Request": {
+            "Body": {
+                "k": {
+                    "b": "v"
+                }
+            },
+            "Cookies": {
+                "c1": "b",
+                "c2": "c"
+            },
+            "Env": {
+                "env": {
+                    "b": "v"
+                }
+            },
+            "Headers": {
+                "Host": [
+                    "a",
+                    "b"
+                ]
+            },
+            "Method": "post",
+            "Socket": {
+                "Encrypted": false,
+                "RemoteAddress": "10.1.23.5"
+            }
+        },
+        "Response": {
+            "DecodedBodySize": null,
+            "EncodedBodySize": null,
+            "Finished": false,
+            "Headers": {
+                "Content-Type": [
+                    "text/html"
+                ]
+            },
+            "HeadersSent": true,
+            "StatusCode": 202,
+            "TransferSize": null
+        },
+        "Version": "2.0"
+    },
+    "Labels": {
+        "ab": "c",
+        "status": 200,
+        "success": false
+    },
+    "Message": {
+        "AgeMillis": null,
+        "Body": null,
+        "Headers": null,
+        "QueueName": "order"
+    },
+    "Page": {
+        "Referer": "http://refer.example.com",
+        "URL": {
+            "Domain": "example.com",
+            "Fragment": null,
+            "Full": "https://example.com",
+            "Original": "https://example.com",
+            "Path": null,
+            "Port": null,
+            "Query": null,
+            "Scheme": "https"
+        }
+    },
+    "URL": {
+        "Domain": "example.com",
+        "Fragment": "x13ab",
+        "Full": "https://127.0.0.1",
+        "Original": "127.0.0.1",
+        "Path": "/search",
+        "Port": 8080,
+        "Query": "id=1",
+        "Scheme": "https"
+    }
+}

@@ -1,0 +1,38 @@
+name: ci
+on: ["push", "pull_request"]
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-go@v5
+      with:
+        go-version-file: go.mod
+        cache: true
+    - run: make all
+    - uses: dominikh/staticcheck-action@v1.3.1
+      with:
+        version: "2023.1.7"
+        install-go: false
+    - name: Verify repo is up-to-date
+      run: |
+        if [ -n "$(git status --porcelain)" ]; then
+          echo 'Updates required:'
+          git diff
+          exit 1
+        fi
+
+  run-tests:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-go@v5
+      with:
+        go-version-file: go.mod
+        cache: true
+    - name: Run tests
+      run: make test

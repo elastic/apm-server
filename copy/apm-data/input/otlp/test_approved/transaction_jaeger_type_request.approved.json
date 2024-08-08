@@ -1,0 +1,50 @@
+{
+    "events": [
+        {
+            "@timestamp": "2019-12-16T12:46:58.000Z",
+            "agent": {
+                "name": "Jaeger",
+                "version": "unknown"
+            },
+            "event": {
+                "outcome": "failure"
+            },
+            "host": {
+                "hostname": "host-abc"
+            },
+            "http": {
+                "response": {
+                    "status_code": 500
+                }
+            },
+            "labels": {
+                "http_protocol": "HTTP"
+            },
+            "parent": {
+                "id": "0000000061626364"
+            },
+            "service": {
+                "language": {
+                    "name": "unknown"
+                },
+                "name": "unknown"
+            },
+            "timestamp": {
+                "us": 1576500418000768
+            },
+            "transaction": {
+                "representative_count": 1,
+                "result": "HTTP 5xx",
+                "sampled": true,
+                "type": "request"
+            },
+            "url": {
+                "domain": "foo.bar.com",
+                "full": "http://foo.bar.com?a=12",
+                "original": "http://foo.bar.com?a=12",
+                "query": "a=12",
+                "scheme": "http"
+            }
+        }
+    ]
+}

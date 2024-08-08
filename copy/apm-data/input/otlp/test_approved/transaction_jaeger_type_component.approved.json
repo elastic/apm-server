@@ -1,0 +1,35 @@
+{
+    "events": [
+        {
+            "@timestamp": "2019-12-16T12:46:58.000Z",
+            "agent": {
+                "name": "Jaeger",
+                "version": "unknown"
+            },
+            "event": {
+                "outcome": "success"
+            },
+            "host": {
+                "hostname": "host-abc"
+            },
+            "labels": {
+                "component": "amqp"
+            },
+            "service": {
+                "language": {
+                    "name": "unknown"
+                },
+                "name": "unknown"
+            },
+            "timestamp": {
+                "us": 1576500418000768
+            },
+            "transaction": {
+                "representative_count": 1,
+                "sampled": true,
+                "result": "Success",
+                "type": "unknown"
+            }
+        }
+    ]
+}

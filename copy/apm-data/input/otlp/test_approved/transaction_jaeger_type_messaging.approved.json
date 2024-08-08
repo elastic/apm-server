@@ -1,0 +1,40 @@
+{
+    "events": [
+        {
+            "@timestamp": "2019-12-16T12:46:58.000Z",
+            "agent": {
+                "name": "Jaeger",
+                "version": "unknown"
+            },
+            "event": {
+                "outcome": "success"
+            },
+            "host": {
+                "hostname": "host-abc"
+            },
+            "parent": {
+                "id": "0000000061626364"
+            },
+            "service": {
+                "language": {
+                    "name": "unknown"
+                },
+                "name": "unknown"
+            },
+            "timestamp": {
+                "us": 1576500418000768
+            },
+            "transaction": {
+                "message": {
+                    "queue": {
+                        "name": "queue-abc"
+                    }
+                },
+                "representative_count": 1,
+                "result": "Success",
+                "sampled": true,
+                "type": "messaging"
+            }
+        }
+    ]
+}

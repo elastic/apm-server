@@ -1,0 +1,56 @@
+// Licensed to Elasticsearch B.V. under one or more contributor
+// license agreements. See the NOTICE file distributed with
+// this work for additional information regarding copyright
+// ownership. Elasticsearch B.V. licenses this file to you under
+// the Apache License, Version 2.0 (the "License"); you may
+// not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied.  See the License for the
+// specific language governing permissions and limitations
+// under the License.
+
+syntax = "proto3";
+
+package elastic.apm.v1;
+
+import "stacktrace.proto";
+import "keyvalue.proto";
+
+option go_package = "github.com/elastic/apm-data/model/modelpb";
+
+message Error {
+  repeated KeyValue custom = 1;
+  Exception exception = 2;
+  ErrorLog log = 3;
+  string id = 4;
+  string grouping_key = 5;
+  string culprit = 6;
+  string stack_trace = 7;
+  string message = 8;
+  string type = 9;
+}
+
+message Exception {
+  string message = 1;
+  string module = 2;
+  string code = 3;
+  repeated KeyValue attributes = 4;
+  repeated StacktraceFrame stacktrace = 5;
+  string type = 6;
+  optional bool handled = 7;
+  repeated Exception cause = 8;
+}
+
+message ErrorLog {
+  string message = 1;
+  string level = 2;
+  string param_message = 3;
+  string logger_name = 4;
+  repeated StacktraceFrame stacktrace = 5;
+}

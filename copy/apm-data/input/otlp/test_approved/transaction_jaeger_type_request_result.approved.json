@@ -1,0 +1,46 @@
+{
+    "events": [
+        {
+            "@timestamp": "2019-12-16T12:46:58.000Z",
+            "agent": {
+                "name": "Jaeger",
+                "version": "unknown"
+            },
+            "event": {
+                "outcome": "success"
+            },
+            "host": {
+                "hostname": "host-abc"
+            },
+            "http": {
+                "response": {
+                    "status_code": 200
+                }
+            },
+            "parent": {
+                "id": "0000000061626364"
+            },
+            "service": {
+                "language": {
+                    "name": "unknown"
+                },
+                "name": "unknown"
+            },
+            "timestamp": {
+                "us": 1576500418000768
+            },
+            "transaction": {
+                "representative_count": 1,
+                "result": "HTTP 2xx",
+                "sampled": true,
+                "type": "request"
+            },
+            "url": {
+                "domain": "host-abc",
+                "full": "localhost:8080",
+                "original": "localhost:8080",
+                "scheme": "localhost"
+            }
+        }
+    ]
+}

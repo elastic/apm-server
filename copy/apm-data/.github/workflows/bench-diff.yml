@@ -1,0 +1,56 @@
+name: bench-diff
+on:
+  push:
+  pull_request_target:
+    types: [labeled, synchronize]
+
+permissions:
+  contents: read
+
+jobs:
+  run-benchdiff:
+    runs-on: ubuntu-latest
+    # Support for branches, non-forked-prs or forked-prs with a label
+    if: |
+      contains(github.event.pull_request.labels.*.name, 'safe-to-test') ||
+      ! startsWith(github.event_name, 'pull_request') ||
+      (startsWith(github.event_name, 'pull_request') && github.event.pull_request.head.repo.fork == false)
+    permissions:
+      checks: write
+    steps:
+    - name: Get sha commit
+      id: event
+      run: |
+        echo "DEBUG: event type(${{ github.event_name }})"
+        ref="${{ github.sha }}"
+        if [ "${{ startsWith(github.event_name, 'pull_request') }}" = "true" ] ; then
+          ref="${{ github.event.pull_request.head.sha }}"
+        fi
+        echo "ref=${ref}" >> "$GITHUB_OUTPUT"
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        persist-credentials: false
+        ref: ${{ steps.event.outputs.ref }}
+    - uses: actions/setup-go@v5
+      with:
+        go-version-file: go.mod
+    # Version: https://github.com/WillAbides/benchdiff-action/releases/tag/v0.3.5
+    - uses: WillAbides/benchdiff-action@990b4c50b5420b485bf87e42c9f18234eba76fbc
+      id: benchdiff
+      with:
+        benchdiff_version: 0.9.1
+        status_sha: ${{ steps.event.outputs.ref }}
+        status_name: benchdiff-result
+        status_on_degraded: neutral
+        # See https://github.com/WillAbides/benchdiff
+        benchdiff_args: |
+          --base-ref=origin/main
+          --cpu=1,2
+          --count=5
+          --warmup-count=1
+          --warmup-time=10ms
+          --benchtime=100ms
+          --tolerance=20
+          --benchmem
+          --debug

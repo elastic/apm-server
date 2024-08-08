@@ -1,0 +1,36 @@
+{
+    "events": [
+        {
+            "@timestamp": "2019-12-16T12:46:58.000Z",
+            "agent": {
+                "name": "Jaeger",
+                "version": "unknown"
+            },
+            "data_stream": {
+                "dataset": "1",
+                "namespace": "2"
+            },
+            "event": {
+                "outcome": "success"
+            },
+            "host": {
+                "hostname": "host-abc"
+            },
+            "service": {
+                "language": {
+                    "name": "unknown"
+                },
+                "name": "unknown"
+            },
+            "timestamp": {
+                "us": 1576500418000768
+            },
+            "transaction": {
+                "representative_count": 1,
+                "result": "Success",
+                "sampled": true,
+                "type": "unknown"
+            }
+        }
+    ]
+}

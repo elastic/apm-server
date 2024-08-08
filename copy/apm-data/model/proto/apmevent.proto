@@ -1,0 +1,96 @@
+// Licensed to Elasticsearch B.V. under one or more contributor
+// license agreements. See the NOTICE file distributed with
+// this work for additional information regarding copyright
+// ownership. Elasticsearch B.V. licenses this file to you under
+// the Apache License, Version 2.0 (the "License"); you may
+// not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied.  See the License for the
+// specific language governing permissions and limitations
+// under the License.
+
+syntax = "proto3";
+
+package elastic.apm.v1;
+
+import "agent.proto";
+import "client.proto";
+import "cloud.proto";
+import "code.proto";
+import "container.proto";
+import "datastream.proto";
+import "destination.proto";
+import "device.proto";
+import "error.proto";
+import "event.proto";
+import "faas.proto";
+import "host.proto";
+import "http.proto";
+import "kubernetes.proto";
+import "labels.proto";
+import "log.proto";
+import "metricset.proto";
+import "network.proto";
+import "observer.proto";
+import "process.proto";
+import "service.proto";
+import "session.proto";
+import "source.proto";
+import "span.proto";
+import "system.proto";
+import "trace.proto";
+import "transaction.proto";
+import "url.proto";
+import "user.proto";
+import "useragent.proto";
+
+option go_package = "github.com/elastic/apm-data/model/modelpb";
+
+message APMEvent {
+  // nanoseconds since epoch
+  uint64 timestamp = 1;
+  Span span = 2;
+  map<string, NumericLabelValue> numeric_labels = 3;
+  map<string, LabelValue> labels = 4;
+  Transaction transaction = 5;
+  Metricset metricset = 6;
+  Error error = 7;
+  Cloud cloud = 8;
+  Service service = 9;
+  Faas faas = 10;
+  Network network = 11;
+  Container container = 12;
+  User user = 13;
+  Device device = 14;
+  Kubernetes kubernetes = 15;
+  Observer observer = 16;
+  DataStream data_stream = 17;
+  Agent agent = 18;
+  HTTP http = 19;
+  UserAgent user_agent = 20;
+  // parent_id holds an optional parent span/transaction ID.
+  string parent_id = 21;
+  string message = 22;
+  Trace trace = 23;
+  Host host = 24;
+  URL url = 25;
+  Log log = 26;
+  Source source = 27;
+  Client client = 28;
+  // child_ids holds an optional set of child span IDs. This is used for exotic
+  // use cases where the parent knows the child ID, but the child does not know
+  // the parent ID; namely for profiler-inferred spans.
+  repeated string child_ids = 29;
+  Destination destination = 30;
+  Session session = 31;
+  Process process = 32;
+  Event event = 33;
+  Code code = 34;
+  System system = 35;
+}
