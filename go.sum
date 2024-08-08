@@ -133,8 +133,8 @@ github.com/elastic/apm-aggregation v1.0.2 h1:nvplp5pUGHAvRf8M6G4+UAxx55i+TpEpIda
 github.com/elastic/apm-aggregation v1.0.2/go.mod h1:cprQyd9TAvUTmyqY/J1ZX4cwU88vbVP9uhNKdEC/dsg=
 github.com/elastic/apm-data v1.9.1 h1:X6LD3qgURX+78DMeUG2LazzuORWvzGwQWg9+/JUJHCg=
 github.com/elastic/apm-data v1.9.1/go.mod h1:zAJqL7eC+Qut/fvs5y0D1NvHBPJUP+LJKfqlL2/3/2Y=
-github.com/elastic/beats/v7 v7.0.0-alpha2.0.20240806170145-2060383cc21f h1:89V9U3Py4KCtG6onedl6I/M09x6B1ntYiuOp74O4cfc=
-github.com/elastic/beats/v7 v7.0.0-alpha2.0.20240806170145-2060383cc21f/go.mod h1:PFnYyJdRS0mP6lBnn4Zbrr4Fnx6vqaegpmFXloz45AI=
+github.com/elastic/beats/v7 v7.0.0-alpha2.0.20240808135538-98211ea143ee h1:rljkA5hbjANXzlD5FzSu4ywOtyiYuibwGDobg/Wp3e4=
+github.com/elastic/beats/v7 v7.0.0-alpha2.0.20240808135538-98211ea143ee/go.mod h1:xUVihU0rGnicSHIa7rDQtvoq+byfcJBPf1/U4qoIiPM=
 github.com/elastic/elastic-agent-autodiscover v0.8.1 h1:u6TWqh7wfevu6S4GUq4SIxYBRo4b/P5RZmx/rSvT10A=
 github.com/elastic/elastic-agent-autodiscover v0.8.1/go.mod h1:0gzGsaDCAqBfUZjuCqqWsSI60eaZ778A5tQZV72rPV0=
 github.com/elastic/elastic-agent-client/v7 v7.15.0 h1:nDB7v8TBoNuD6IIzC3z7Q0y+7bMgXoT2DsHfolO2CHE=
@@ -147,8 +147,8 @@ github.com/elastic/elastic-transport-go/v8 v8.6.0 h1:Y2S/FBjx1LlCv5m6pWAF2kDJAHo
 github.com/elastic/elastic-transport-go/v8 v8.6.0/go.mod h1:YLHer5cj0csTzNFXoNQ8qhtGY1GTvSqPnKWKaqQE3Hk=
 github.com/elastic/gmux v0.3.2 h1:cb721R+fe/rt/jVNyBP5HDQsEwLD2wSKfPD2Sk6adDk=
 github.com/elastic/gmux v0.3.2/go.mod h1:OD6oYrno+SV3pyl1ArdWCjlExZ+FJOfoSaFqnFeldBQ=
-github.com/elastic/go-docappender/v2 v2.2.0 h1:Pq6w+R0ZbWlqZHoqzoujR2ElKBfaPUf3M/cJvPVSrfA=
-github.com/elastic/go-docappender/v2 v2.2.0/go.mod h1:efwvMZfrJ1dRr0SkfmZosXKmgmV/D+3E5G66rQL/B4A=
+github.com/elastic/go-docappender/v2 v2.3.0 h1:Vr+l36jM+sE/LHp0JFxSIbHlWTSk8CpBblYWZZ/I1KA=
+github.com/elastic/go-docappender/v2 v2.3.0/go.mod h1:VNWgXUE9HX1G6W6ON8dOs/KdH8aCxXir/fxxcfrnov4=
 github.com/elastic/go-elasticsearch/v8 v8.14.0 h1:1ywU8WFReLLcxE1WJqii3hTtbPUE2hc38ZK/j4mMFow=
 github.com/elastic/go-elasticsearch/v8 v8.14.0/go.mod h1:WRvnlGkSuZyp83M2U8El/LGXpCjYLrvlkSgkAH4O5I4=
 github.com/elastic/go-lumber v0.1.2-0.20220819171948-335fde24ea0f h1:TsPpU5EAwlt7YZoupKlxZ093qTZYdGou3EhfTF1U0B4=
