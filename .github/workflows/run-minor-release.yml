@@ -2,7 +2,7 @@
 name: run-minor-release
 
 on:
-  workflow_dispatch:
+  workflow_call:
     inputs:
       version:
         description: 'The new version to be set, normally the version in the main branch (semver format: major.minor.0)'
