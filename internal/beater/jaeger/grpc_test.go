@@ -51,7 +51,7 @@ func TestPostSpans(t *testing.T) {
 	var processor modelpb.ProcessBatchFunc = func(ctx context.Context, batch *modelpb.Batch) error {
 		return processorErr
 	}
-	conn, _ := newServer(t, processor, nil)
+	conn, logs := newServer(t, processor, nil)
 
 	client := api_v2.NewCollectorServiceClient(conn)
 	result, err := client.PostSpans(context.Background(), &api_v2.PostSpansRequest{})
@@ -80,6 +80,17 @@ func TestPostSpans(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			processorErr = tc.processorErr
 			resp, err := client.PostSpans(context.Background(), tc.request)
+
+			// Deprecation log shown on server startup.
+			log := logs.All()[0]
+			assert.Equal(t, log.Level, zap.InfoLevel)
+			assert.Contains(t, log.Message, deprecationNotice)
+
+			// Deprecation log shown on first endpoint hit.
+			log = logs.All()[1]
+			assert.Equal(t, log.Level, zap.WarnLevel)
+			assert.Contains(t, log.Message, deprecationNotice)
+
 			if tc.expectedErr != nil {
 				assert.Nil(t, resp)
 				assert.Error(t, err)
@@ -167,14 +178,25 @@ func TestGRPCSampler_GetSamplingStrategy(t *testing.T) {
 			client := api_v2.NewSamplingManagerClient(conn)
 			resp, err := client.GetSamplingStrategy(context.Background(), tc.params)
 
+			// Deprecation log shown on server startup.
+			log := logs.All()[0]
+			assert.Equal(t, log.Level, zap.InfoLevel)
+			assert.Contains(t, log.Message, deprecationNotice)
+
+			// Deprecation log shown on first endpoint hit.
+			log = logs.All()[1]
+			assert.Equal(t, log.Level, zap.WarnLevel)
+			assert.Contains(t, log.Message, deprecationNotice)
+
 			// assert sampling response
 			if tc.expectedErrMsg != "" {
 				require.Error(t, err)
 				assert.Contains(t, err.Error(), tc.expectedErrMsg)
 				assert.Nil(t, resp)
 
-				require.Equal(t, 2, logs.Len())
-				log := logs.All()[1]
+				require.Equal(t, 3, logs.Len())
+
+				log = logs.All()[2]
 				assert.Contains(t, log.Message, tc.expectedLogMsg)
 
 				if tc.expectedLogError != "" {
