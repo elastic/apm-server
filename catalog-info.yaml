@@ -11,7 +11,7 @@ metadata:
 
 spec:
   type: tool
-  owner: group:apm-server
+  owner: group:obs-ds-intake-services
   lifecycle: production
 
 ---
@@ -26,7 +26,7 @@ metadata:
 
 spec:
   type: buildkite-pipeline
-  owner: group:apm-server
+  owner: group:obs-ds-intake-services
   system: buildkite
   implementation:
     apiVersion: buildkite.elastic.dev/v1
@@ -45,7 +45,7 @@ spec:
       cancel_intermediate_builds: false
       skip_intermediate_builds: false
       teams:
-        apm-server: {}
+        obs-ds-intake-services: {}
         observablt-robots: {}
         everyone:
           access_level: READ_ONLY
