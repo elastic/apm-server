@@ -101,7 +101,7 @@ run-benchmark: log-benckmark-profile
 .PHONY: run-benchmark-autotuned
 run-benchmark-autotuned:
 	$(eval APM_SERVER_SIZE:=$(shell echo var.apm_server_size | terraform console | tr -d '"'| tr -d 'g'))
-	@ $(MAKE) run-benchmark BENCHMARK_AGENTS=$(shell echo $$(( $(BENCHMARK_AGENTS) * $(APM_SERVER_SIZE) )) )
+	@ $(MAKE) run-benchmark BENCHMARK_AGENTS=$(shell echo $$(( $(BENCHMARK_AGENTS) * $(APM_SERVER_SIZE) / 2 )) )
 
 .PHONY: index-benchmark-results
 index-benchmark-results: _default-gobench-vars
