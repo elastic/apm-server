@@ -179,43 +179,12 @@ func (s *Runner) Run(ctx context.Context) error {
 		}
 	}
 
-	// Obtain the memory limit for the APM Server process. Certain config
-	// values will be sized according to the maximum memory set for the server.
-	var memLimitGB float64
-	if cgroupReader := newCgroupReader(); cgroupReader != nil {
-		if limit, err := cgroupMemoryLimit(cgroupReader); err != nil {
-			s.logger.Warn(err)
-		} else {
-			memLimitGB = float64(limit) / 1024 / 1024 / 1024
-		}
-	}
-	if limit, err := systemMemoryLimit(); err != nil {
-		s.logger.Warn(err)
-	} else {
-		var fallback bool
-		if memLimitGB <= 0 {
-			s.logger.Info("no cgroups detected, falling back to total system memory")
-			fallback = true
-		}
-		if memLimitGB > float64(limit) {
-			s.logger.Info("cgroup memory limit exceed available memory, falling back to the total system memory")
-			fallback = true
-		}
-		if fallback {
-			// If no cgroup limit is set, return a fraction of the total memory
-			// to have a margin of safety for other processes. The fraction value
-			// of 0.625 is used to keep the 80% of the total system memory limit
-			// to be 50% of the total for calculating the number of decoders.
-			memLimitGB = float64(limit) / 1024 / 1024 / 1024 * 0.625
-		}
-	}
-	if memLimitGB <= 0 {
-		memLimitGB = 1
-		s.logger.Infof(
-			"failed to discover memory limit, default to %0.1fgb of memory",
-			memLimitGB,
-		)
-	}
+	memLimitGB := processMemoryLimit(
+		newCgroupReader(),
+		sysMemoryReaderFunc(systemMemoryLimit),
+		s.logger,
+	)
+
 	if s.config.MaxConcurrentDecoders == 0 {
 		s.config.MaxConcurrentDecoders = maxConcurrentDecoders(memLimitGB)
 		s.logger.Infof("MaxConcurrentDecoders set to %d based on 80 percent of %0.1fgb of memory",
@@ -1033,6 +1002,49 @@ func queryClusterUUID(ctx context.Context, esClient *elasticsearch.Client) error
 
 	s.Set(response.ClusterUUID)
 	return nil
+}
+
+// processMemoryLimit obtains the memory limit for the APM Server process. Certain config
+// values will be sized according to the maximum memory set for the server.
+func processMemoryLimit(cgroups cgroupReader, sys sysMemoryReader, logger *logp.Logger) (memLimitGB float64) {
+	var memLimit uint64
+	if cgroups != nil {
+		if limit, err := cgroupMemoryLimit(cgroups); err != nil {
+			logger.Warn(err)
+		} else {
+			memLimit = limit
+		}
+	}
+	if limit, err := sys.Limit(); err != nil {
+		logger.Warn(err)
+	} else {
+		var fallback bool
+		if memLimit <= 0 {
+			logger.Info("no cgroups detected, falling back to total system memory")
+			fallback = true
+		}
+		if memLimit > limit {
+			logger.Info("cgroup memory limit exceed available memory, falling back to the total system memory")
+			fallback = true
+		}
+		if fallback {
+			// If no cgroup limit is set, return a fraction of the total memory
+			// to have a margin of safety for other processes. The fraction value
+			// of 0.625 is used to keep the 80% of the total system memory limit
+			// to be 50% of the total for calculating the number of decoders.
+			memLimit = uint64(float64(limit) * 0.625)
+		}
+	}
+	// Convert the memory limit to gigabytes to calculate the config values.
+	memLimitGB = float64(memLimit) / (1 << 30)
+	if memLimitGB <= 0 {
+		memLimitGB = 1
+		logger.Infof(
+			"failed to discover memory limit, default to %0.1fgb of memory",
+			memLimitGB,
+		)
+	}
+	return
 }
 
 type nopProcessingSupporter struct {
