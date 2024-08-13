@@ -115,15 +115,6 @@ func metadataExceptions(keys ...string) func(key string) bool {
 	}
 }
 
-func TestMetadataResetModelOnRelease(t *testing.T) {
-	inp := `{"m":{"se":{"n":"service-a"}}}`
-	m := fetchMetadataRoot()
-	require.NoError(t, decoder.NewJSONDecoder(strings.NewReader(inp)).Decode(m))
-	require.True(t, m.IsSet())
-	releaseMetadataRoot(m)
-	assert.False(t, m.IsSet())
-}
-
 func TestDecodeNestedMetadata(t *testing.T) {
 	t.Run("decode", func(t *testing.T) {
 		var out modelpb.APMEvent

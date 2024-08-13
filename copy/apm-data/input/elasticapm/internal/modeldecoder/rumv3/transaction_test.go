@@ -35,15 +35,6 @@ import (
 	"github.com/elastic/apm-data/model/modelpb"
 )
 
-func TestResetTransactionOnRelease(t *testing.T) {
-	inp := `{"x":{"n":"tr-a"}}`
-	tr := fetchTransactionRoot()
-	require.NoError(t, decoder.NewJSONDecoder(strings.NewReader(inp)).Decode(tr))
-	require.True(t, tr.IsSet())
-	releaseTransactionRoot(tr)
-	assert.False(t, tr.IsSet())
-}
-
 func TestDecodeNestedTransaction(t *testing.T) {
 	t.Run("decode", func(t *testing.T) {
 		now := modelpb.FromTime(time.Now())

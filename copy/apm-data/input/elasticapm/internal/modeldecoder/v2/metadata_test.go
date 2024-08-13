@@ -204,15 +204,6 @@ func initializedInputMetadata(values *modeldecodertest.Values) (metadata, *model
 	return input, &out
 }
 
-func TestResetMetadataOnRelease(t *testing.T) {
-	inp := `{"metadata":{"service":{"name":"service-a"}}}`
-	m := fetchMetadataRoot()
-	require.NoError(t, decoder.NewJSONDecoder(strings.NewReader(inp)).Decode(m))
-	require.True(t, m.IsSet())
-	releaseMetadataRoot(m)
-	assert.False(t, m.IsSet())
-}
-
 func TestDecodeMetadata(t *testing.T) {
 	for _, tc := range []struct {
 		name     string

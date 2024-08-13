@@ -23,7 +23,6 @@ import (
 	"net/http"
 	"net/textproto"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/elastic/apm-data/input/elasticapm/internal/decoder"
@@ -33,55 +32,9 @@ import (
 	"github.com/elastic/apm-data/model/modelpb"
 )
 
-var (
-	errorRootPool = sync.Pool{
-		New: func() interface{} {
-			return &errorRoot{}
-		},
-	}
-	metadataRootPool = sync.Pool{
-		New: func() interface{} {
-			return &metadataRoot{}
-		},
-	}
-	transactionRootPool = sync.Pool{
-		New: func() interface{} {
-			return &transactionRoot{}
-		},
-	}
-)
-
-func fetchErrorRoot() *errorRoot {
-	return errorRootPool.Get().(*errorRoot)
-}
-
-func releaseErrorRoot(root *errorRoot) {
-	root.Reset()
-	errorRootPool.Put(root)
-}
-
-func fetchMetadataRoot() *metadataRoot {
-	return metadataRootPool.Get().(*metadataRoot)
-}
-
-func releaseMetadataRoot(m *metadataRoot) {
-	m.Reset()
-	metadataRootPool.Put(m)
-}
-
-func fetchTransactionRoot() *transactionRoot {
-	return transactionRootPool.Get().(*transactionRoot)
-}
-
-func releaseTransactionRoot(m *transactionRoot) {
-	m.Reset()
-	transactionRootPool.Put(m)
-}
-
 // DecodeNestedMetadata decodes metadata from d, updating out.
 func DecodeNestedMetadata(d decoder.Decoder, out *modelpb.APMEvent) error {
-	root := fetchMetadataRoot()
-	defer releaseMetadataRoot(root)
+	root := &metadataRoot{}
 	if err := d.Decode(root); err != nil && err != io.EOF {
 		return modeldecoder.NewDecoderErrFromJSONIter(err)
 	}
@@ -96,8 +49,7 @@ func DecodeNestedMetadata(d decoder.Decoder, out *modelpb.APMEvent) error {
 //
 // DecodeNestedError should be used when the stream in the decoder contains the `error` key
 func DecodeNestedError(d decoder.Decoder, input *modeldecoder.Input, batch *modelpb.Batch) error {
-	root := fetchErrorRoot()
-	defer releaseErrorRoot(root)
+	root := &errorRoot{}
 	if err := d.Decode(root); err != nil && err != io.EOF {
 		return modeldecoder.NewDecoderErrFromJSONIter(err)
 	}
@@ -115,8 +67,7 @@ func DecodeNestedError(d decoder.Decoder, input *modeldecoder.Input, batch *mode
 //
 // DecodeNestedTransaction should be used when the decoder contains the `transaction` key
 func DecodeNestedTransaction(d decoder.Decoder, input *modeldecoder.Input, batch *modelpb.Batch) error {
-	root := fetchTransactionRoot()
-	defer releaseTransactionRoot(root)
+	root := &transactionRoot{}
 	if err := d.Decode(root); err != nil && err != io.EOF {
 		return modeldecoder.NewDecoderErrFromJSONIter(err)
 	}

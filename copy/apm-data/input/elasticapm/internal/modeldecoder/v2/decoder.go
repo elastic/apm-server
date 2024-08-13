@@ -26,7 +26,6 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/elastic/apm-data/input/elasticapm/internal/decoder"
@@ -39,39 +38,6 @@ import (
 
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/ptrace"
-)
-
-var (
-	errorRootPool = sync.Pool{
-		New: func() interface{} {
-			return &errorRoot{}
-		},
-	}
-	metadataRootPool = sync.Pool{
-		New: func() interface{} {
-			return &metadataRoot{}
-		},
-	}
-	metricsetRootPool = sync.Pool{
-		New: func() interface{} {
-			return &metricsetRoot{}
-		},
-	}
-	spanRootPool = sync.Pool{
-		New: func() interface{} {
-			return &spanRoot{}
-		},
-	}
-	transactionRootPool = sync.Pool{
-		New: func() interface{} {
-			return &transactionRoot{}
-		},
-	}
-	logRootPool = sync.Pool{
-		New: func() interface{} {
-			return &logRoot{}
-		},
-	}
 )
 
 var compressionStrategyText = map[string]modelpb.CompressionStrategy{
@@ -93,60 +59,6 @@ var (
 	reForServiceTargetExpr = regexp.MustCompile(`^([a-z0-9]+)(?:/(\w+))?$`)
 )
 
-func fetchErrorRoot() *errorRoot {
-	return errorRootPool.Get().(*errorRoot)
-}
-
-func releaseErrorRoot(root *errorRoot) {
-	root.Reset()
-	errorRootPool.Put(root)
-}
-
-func fetchMetadataRoot() *metadataRoot {
-	return metadataRootPool.Get().(*metadataRoot)
-}
-
-func releaseMetadataRoot(root *metadataRoot) {
-	root.Reset()
-	metadataRootPool.Put(root)
-}
-
-func fetchMetricsetRoot() *metricsetRoot {
-	return metricsetRootPool.Get().(*metricsetRoot)
-}
-
-func releaseMetricsetRoot(root *metricsetRoot) {
-	root.Reset()
-	metricsetRootPool.Put(root)
-}
-
-func fetchSpanRoot() *spanRoot {
-	return spanRootPool.Get().(*spanRoot)
-}
-
-func releaseSpanRoot(root *spanRoot) {
-	root.Reset()
-	spanRootPool.Put(root)
-}
-
-func fetchTransactionRoot() *transactionRoot {
-	return transactionRootPool.Get().(*transactionRoot)
-}
-
-func releaseTransactionRoot(root *transactionRoot) {
-	root.Reset()
-	transactionRootPool.Put(root)
-}
-
-func fetchLogRoot() *logRoot {
-	return logRootPool.Get().(*logRoot)
-}
-
-func releaseLogRoot(root *logRoot) {
-	root.Reset()
-	logRootPool.Put(root)
-}
-
 // DecodeMetadata decodes metadata from d, updating out.
 //
 // DecodeMetadata should be used when the the stream in the decoder does not contain the
@@ -166,8 +78,7 @@ func DecodeNestedMetadata(d decoder.Decoder, out *modelpb.APMEvent) error {
 //
 // DecodeNestedError should be used when the stream in the decoder contains the `error` key
 func DecodeNestedError(d decoder.Decoder, input *modeldecoder.Input, batch *modelpb.Batch) error {
-	root := fetchErrorRoot()
-	defer releaseErrorRoot(root)
+	root := &errorRoot{}
 	err := d.Decode(root)
 	if err != nil && err != io.EOF {
 		return modeldecoder.NewDecoderErrFromJSONIter(err)
@@ -185,8 +96,7 @@ func DecodeNestedError(d decoder.Decoder, input *modeldecoder.Input, batch *mode
 //
 // DecodeNestedMetricset should be used when the stream in the decoder contains the `metricset` key
 func DecodeNestedMetricset(d decoder.Decoder, input *modeldecoder.Input, batch *modelpb.Batch) error {
-	root := fetchMetricsetRoot()
-	defer releaseMetricsetRoot(root)
+	root := &metricsetRoot{}
 	var err error
 	if err = d.Decode(root); err != nil && err != io.EOF {
 		return modeldecoder.NewDecoderErrFromJSONIter(err)
@@ -205,8 +115,7 @@ func DecodeNestedMetricset(d decoder.Decoder, input *modeldecoder.Input, batch *
 //
 // DecodeNestedSpan should be used when the stream in the decoder contains the `span` key
 func DecodeNestedSpan(d decoder.Decoder, input *modeldecoder.Input, batch *modelpb.Batch) error {
-	root := fetchSpanRoot()
-	defer releaseSpanRoot(root)
+	root := &spanRoot{}
 	var err error
 	if err = d.Decode(root); err != nil && err != io.EOF {
 		return modeldecoder.NewDecoderErrFromJSONIter(err)
@@ -224,8 +133,7 @@ func DecodeNestedSpan(d decoder.Decoder, input *modeldecoder.Input, batch *model
 //
 // DecodeNestedTransaction should be used when the stream in the decoder contains the `transaction` key
 func DecodeNestedTransaction(d decoder.Decoder, input *modeldecoder.Input, batch *modelpb.Batch) error {
-	root := fetchTransactionRoot()
-	defer releaseTransactionRoot(root)
+	root := &transactionRoot{}
 	var err error
 	if err = d.Decode(root); err != nil && err != io.EOF {
 		return modeldecoder.NewDecoderErrFromJSONIter(err)
@@ -243,8 +151,7 @@ func DecodeNestedTransaction(d decoder.Decoder, input *modeldecoder.Input, batch
 //
 // DecodeNestedLog should be used when the stream in the decoder contains the `log` key
 func DecodeNestedLog(d decoder.Decoder, input *modeldecoder.Input, batch *modelpb.Batch) error {
-	root := fetchLogRoot()
-	defer releaseLogRoot(root)
+	root := &logRoot{}
 	var err error
 	if err = d.Decode(root); err != nil && err != io.EOF {
 		return modeldecoder.NewDecoderErrFromJSONIter(err)
@@ -263,8 +170,7 @@ func DecodeNestedLog(d decoder.Decoder, input *modeldecoder.Input, batch *modelp
 }
 
 func decodeMetadata(decFn func(d decoder.Decoder, m *metadataRoot) error, d decoder.Decoder, out *modelpb.APMEvent) error {
-	m := fetchMetadataRoot()
-	defer releaseMetadataRoot(m)
+	m := &metadataRoot{}
 	var err error
 	if err = decFn(d, m); err != nil && err != io.EOF {
 		return modeldecoder.NewDecoderErrFromJSONIter(err)

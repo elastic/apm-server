@@ -35,15 +35,6 @@ import (
 	"github.com/elastic/apm-data/model/modelpb"
 )
 
-func TestResetErrorOnRelease(t *testing.T) {
-	inp := `{"e":{"id":"tr-a"}}`
-	root := fetchErrorRoot()
-	require.NoError(t, decoder.NewJSONDecoder(strings.NewReader(inp)).Decode(root))
-	require.True(t, root.IsSet())
-	releaseErrorRoot(root)
-	assert.False(t, root.IsSet())
-}
-
 func TestDecodeNestedError(t *testing.T) {
 	t.Run("decode", func(t *testing.T) {
 		now := modelpb.FromTime(time.Now())

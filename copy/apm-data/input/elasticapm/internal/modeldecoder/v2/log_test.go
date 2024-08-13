@@ -30,15 +30,6 @@ import (
 	"github.com/elastic/apm-data/model/modelpb"
 )
 
-func TestResetLogOnRelease(t *testing.T) {
-	input := `{"log":{"message":"something happened"}}`
-	root := fetchLogRoot()
-	require.NoError(t, decoder.NewJSONDecoder(strings.NewReader(input)).Decode(root))
-	require.True(t, root.IsSet())
-	releaseLogRoot(root)
-	assert.False(t, root.IsSet())
-}
-
 func TestDecodeNestedLog(t *testing.T) {
 	t.Run("decode", func(t *testing.T) {
 		t.Run("withTimestamp", func(t *testing.T) {

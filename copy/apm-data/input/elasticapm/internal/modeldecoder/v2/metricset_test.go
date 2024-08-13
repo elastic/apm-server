@@ -34,15 +34,6 @@ import (
 	"github.com/elastic/apm-data/model/modelpb"
 )
 
-func TestResetMetricsetOnRelease(t *testing.T) {
-	inp := `{"metricset":{"samples":{"a.b.":{"value":2048}}}}`
-	root := fetchMetricsetRoot()
-	require.NoError(t, decoder.NewJSONDecoder(strings.NewReader(inp)).Decode(root))
-	require.True(t, root.IsSet())
-	releaseMetricsetRoot(root)
-	assert.False(t, root.IsSet())
-}
-
 func TestDecodeNestedMetricset(t *testing.T) {
 	t.Run("decode", func(t *testing.T) {
 		now := modelpb.FromTime(time.Now())
