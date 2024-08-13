@@ -22,6 +22,7 @@ import (
 	"context"
 	"encoding/json"
 	"encoding/pem"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -40,6 +41,10 @@ import (
 	agentconfig "github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/monitoring"
+	"github.com/elastic/elastic-agent-libs/opt"
+	"github.com/elastic/elastic-agent-system-metrics/metric/system/cgroup"
+	"github.com/elastic/elastic-agent-system-metrics/metric/system/cgroup/cgv1"
+	"github.com/elastic/elastic-agent-system-metrics/metric/system/cgroup/cgv2"
 	"github.com/elastic/go-docappender/v2"
 )
 
@@ -278,4 +283,91 @@ func TestNewInstrumentation(t *testing.T) {
 	tracer.Flush(nil)
 	assert.Equal(t, map[string]string{"k1": "val", "k2": "new val"}, <-labels)
 	assert.Equal(t, "Bearer secret", auth)
+}
+
+func TestProcessMemoryLimit(t *testing.T) {
+	l := logp.NewLogger("test")
+	const gb = 1 << 30
+	for name, testCase := range map[string]struct {
+		cgroups        cgroupReader
+		sys            sysMemoryReader
+		wantMemLimitGB float64
+	}{
+		"LimitErrShouldResultInDefaultLimit": {
+			sys: sysMemoryReaderFunc(func() (uint64, error) {
+				return 0, errors.New("test")
+			}),
+			wantMemLimitGB: 1,
+		},
+		"NilCgroupsShouldResultInScaledSysLimit": {
+			sys: sysMemoryReaderFunc(func() (uint64, error) {
+				return 10 * gb, nil
+			}),
+			wantMemLimitGB: 6.25,
+		},
+		"CgroupsErrShouldResultInScaledSysLimit": {
+			cgroups: mockCgroupReader{errv: errors.New("test")},
+			sys: sysMemoryReaderFunc(func() (uint64, error) {
+				return 10 * gb, nil
+			}),
+			wantMemLimitGB: 6.25,
+		},
+		"CgroupsV1OkLimitShouldResultInCgroupsV1OkLimit": {
+			cgroups: mockCgroupReader{v: cgroup.CgroupsV1, v1: &cgroup.StatsV1{
+				Memory: &cgv1.MemorySubsystem{
+					Mem: cgv1.MemoryData{
+						Limit: opt.Bytes{Bytes: gb},
+					},
+				},
+			}},
+			sys: sysMemoryReaderFunc(func() (uint64, error) {
+				return 10 * gb, nil
+			}),
+			wantMemLimitGB: 1,
+		},
+		"CgroupsV1OverMaxLimitShouldResultInScaledSysLimit": {
+			cgroups: mockCgroupReader{v: cgroup.CgroupsV1, v1: &cgroup.StatsV1{
+				Memory: &cgv1.MemorySubsystem{
+					Mem: cgv1.MemoryData{
+						Limit: opt.Bytes{Bytes: 15 * gb},
+					},
+				},
+			}},
+			sys: sysMemoryReaderFunc(func() (uint64, error) {
+				return 10 * gb, nil
+			}),
+			wantMemLimitGB: 6.25,
+		},
+		"CgroupsV2OkLimitShouldResultInCgroupsV1OkLimit": {
+			cgroups: mockCgroupReader{v: cgroup.CgroupsV2, v2: &cgroup.StatsV2{
+				Memory: &cgv2.MemorySubsystem{
+					Mem: cgv2.MemoryData{
+						Max: opt.BytesOpt{Bytes: opt.UintWith(gb)},
+					},
+				},
+			}},
+			sys: sysMemoryReaderFunc(func() (uint64, error) {
+				return 10 * gb, nil
+			}),
+			wantMemLimitGB: 1,
+		},
+		"CgroupsV2OverMaxLimitShouldResultInScaledSysLimit": {
+			cgroups: mockCgroupReader{v: cgroup.CgroupsV2, v2: &cgroup.StatsV2{
+				Memory: &cgv2.MemorySubsystem{
+					Mem: cgv2.MemoryData{
+						Max: opt.BytesOpt{Bytes: opt.UintWith(15 * gb)},
+					},
+				},
+			}},
+			sys: sysMemoryReaderFunc(func() (uint64, error) {
+				return 10 * gb, nil
+			}),
+			wantMemLimitGB: 6.25,
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			memLimitGB := processMemoryLimit(testCase.cgroups, testCase.sys, l)
+			assert.Equal(t, testCase.wantMemLimitGB, memLimitGB)
+		})
+	}
 }
