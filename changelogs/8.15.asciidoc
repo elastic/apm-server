@@ -1,19 +1,6 @@
 [[apm-release-notes-8.15]]
 == APM version 8.15
-
-* <<apm-release-notes-8.15.1>>
 * <<apm-release-notes-8.15.0>>
-
-[float]
-[[apm-release-notes-8.15.1]]
-=== APM version 8.15.1
-
-https://github.com/elastic/apm-server/compare/v8.15.0\...v8.15.1[View commits]
-
-[float]
-==== Bug fixes
-
-- Fix memory limit fallback check bytes to GB conversion {pull}13838[13838]
 
 [float]
 [[apm-release-notes-8.15.0]]
