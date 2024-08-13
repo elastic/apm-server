@@ -27,7 +27,16 @@ import (
 	"github.com/elastic/elastic-agent-system-metrics/metric/system/resolve"
 )
 
-func newCgroupReader() *cgroup.Reader {
+// cgroupReader defines a short interface useful for testing purposes
+// that provides a way to obtain cgroups process memory limit.
+// Implemented by github.com/elastic/elastic-agent-system-metrics/metric/system/cgroup Reader.
+type cgroupReader interface {
+	CgroupsVersion(int) (cgroup.CgroupsVersion, error)
+	GetV1StatsForProcess(int) (*cgroup.StatsV1, error)
+	GetV2StatsForProcess(int) (*cgroup.StatsV2, error)
+}
+
+func newCgroupReader() cgroupReader {
 	cgroupOpts := cgroup.ReaderOptions{
 		RootfsMountpoint:  resolve.NewTestResolver(""),
 		IgnoreRootCgroups: true,
@@ -37,13 +46,16 @@ func newCgroupReader() *cgroup.Reader {
 	if isset {
 		cgroupOpts.CgroupsHierarchyOverride = override
 	}
-	reader, _ := cgroup.NewReaderOptions(cgroupOpts)
+	reader, err := cgroup.NewReaderOptions(cgroupOpts)
+	if err != nil {
+		return nil
+	}
 	return reader
 }
 
 // Returns the cgroup maximum memory if running within a cgroup in GigaBytes,
 // otherwise, it returns 0 and an error.
-func cgroupMemoryLimit(rdr *cgroup.Reader) (uint64, error) {
+func cgroupMemoryLimit(rdr cgroupReader) (uint64, error) {
 	pid := os.Getpid()
 	vers, err := rdr.CgroupsVersion(pid)
 	if err != nil {

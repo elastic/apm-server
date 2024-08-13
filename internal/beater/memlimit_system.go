@@ -17,9 +17,20 @@
 
 package beater
 
-import (
-	"github.com/elastic/go-sysinfo"
-)
+import "github.com/elastic/go-sysinfo"
+
+// sysMemoryReader defines an interface useful for testing purposes
+// that provides a way to obtain the total system memory limit.
+type sysMemoryReader interface {
+	Limit() (uint64, error)
+}
+
+// sysMemoryReaderFunc func implementation of sysMemoryReader.
+type sysMemoryReaderFunc func() (uint64, error)
+
+func (f sysMemoryReaderFunc) Limit() (uint64, error) {
+	return f()
+}
 
 // systemMemoryLimit returns the total system memory.
 func systemMemoryLimit() (uint64, error) {
