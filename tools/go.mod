@@ -1,8 +1,6 @@
 module github.com/elastic/apm-server/tools
 
-go 1.22
-
-toolchain go1.22.1
+go 1.23.0
 
 require (
 	github.com/elastic/apm-tools v0.0.0-20230828065051-3f799314cc8b
