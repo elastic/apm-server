@@ -118,7 +118,7 @@ jobs:
   # validated
   validate-wolfi-docker-image:
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == true || github.actor == 'dependabot[bot]'
+    if: ( github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == true ) || github.actor == 'dependabot[bot]'
     steps:
       - uses: actions/checkout@v4
       - name: Get changed files
