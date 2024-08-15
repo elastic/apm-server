@@ -25,6 +25,7 @@ on:
 
 env:
   PNG_REPORT_FILE: out.png
+  BENCHMARK_CPU_OUT: default.pgo
   BENCHMARK_RESULT: benchmark-result.txt
   WORKING_DIRECTORY: testing/benchmark
 
@@ -155,6 +156,32 @@ jobs:
           name: benchmark-result
           path: ${{ env.WORKING_DIRECTORY }}/${{ env.BENCHMARK_RESULT }}
           if-no-files-found: error
+
+      # The next section injects CPU profile collected by apmbench into the build.
+      # By copying the profile, uploading it to the artifacts and pushing it
+      # via a PR to update default.pgo.
+
+      - name: Copy CPU profile
+        run: make cp-cpuprof
+      
+      - name: Upload CPU profile
+        uses: actions/upload-artifact@v4
+        with:
+          name: cpu-profile
+          path: ${{ env.WORKING_DIRECTORY }}/${{ env.BENCHMARK_CPU_OUT }}
+          if-no-files-found: error
+
+      - name: Open update PGO PR
+        run: |
+          git config user.username "apm-managed-service github actions"
+          git config user.email "obs-ds-intake-services-team@elastic.co"
+          BRANCH="update-pgo-$(date +%s)"
+          git checkout -b "$BRANCH"
+          git add default.pgo
+          git commit -m "PGO: Update default.pgo from benchmarks $WORKFLOW."
+          git push -u origin "$BRANCH"
+          gh auth status
+          gh pr create -B main -H "$BRANCH" -f -R elastic/apm-server
 
       - name: Tear down benchmark environment
         if: always()
