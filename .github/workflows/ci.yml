@@ -134,4 +134,6 @@ jobs:
           echo "Otherwise, this validation will run and fail the CI build."
           echo "Please validate the wolfi image is available by running the following command:"
           echo "::notice::docker pull docker.elastic.co/wolfi/go:$(cat .go-version)"
+          echo "If they are available you could skip this validation."
+          echo "However, we recommend to use an upstream branch to run the CI specialised steps for the packaging system."
           exit 1
