@@ -1,14 +1,12 @@
 [[apm-release-notes-8.14]]
 == APM version 8.14
 
-=======
 * <<apm-release-notes-8.14.3>>
 * <<apm-release-notes-8.14.2>>
 * <<apm-release-notes-8.14.1>>
 * <<apm-release-notes-8.14.0>>
 
 [float]
-=======
 [[apm-release-notes-8.14.3]]
 === APM version 8.14.3
 
