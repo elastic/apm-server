@@ -6,13 +6,13 @@ require (
 	github.com/elastic/apm-tools v0.0.0-20230828065051-3f799314cc8b
 	github.com/elastic/go-licenser v0.4.2
 	github.com/elastic/gobench v0.0.0-20220608141032-f30bc57e329c
-	github.com/goreleaser/nfpm/v2 v2.38.0
+	github.com/goreleaser/nfpm/v2 v2.39.0
 	github.com/josephspurrier/goversioninfo v1.4.0
 	github.com/t-yuki/gocover-cobertura v0.0.0-20180217150009-aaee18c8195c
 	github.com/terraform-docs/terraform-docs v0.18.0
 	go.elastic.co/go-licence-detector v0.6.1
 	gotest.tools/gotestsum v1.12.0
-	honnef.co/go/tools v0.5.0
+	honnef.co/go/tools v0.5.1
 )
 
 require (
