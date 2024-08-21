@@ -11,7 +11,7 @@ require (
 	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20240724214231-5541971cc328
 	github.com/elastic/elastic-agent-client/v7 v7.15.0
 	github.com/elastic/elastic-agent-libs v0.10.0
-	github.com/elastic/elastic-agent-system-metrics v0.10.3
+	github.com/elastic/elastic-agent-system-metrics v0.11.1
 	github.com/elastic/gmux v0.3.2
 	github.com/elastic/go-docappender/v2 v2.3.0
 	github.com/elastic/go-elasticsearch/v8 v8.14.0
@@ -96,6 +96,7 @@ require (
 	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
+	github.com/gofrs/uuid/v5 v5.2.0 // indirect
 	github.com/gogo/googleapis v1.4.1 // indirect
 	github.com/golang/glog v1.2.1 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
