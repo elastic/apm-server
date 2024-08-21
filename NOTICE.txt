@@ -5102,11 +5102,11 @@ Contents of probable licence file $GOMODCACHE/go.elastic.co/apm/v2@v2.6.0/LICENS
 
 --------------------------------------------------------------------------------
 Dependency : go.elastic.co/fastjson
-Version: v1.3.0
+Version: v1.4.0
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.elastic.co/fastjson@v1.3.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/go.elastic.co/fastjson@v1.4.0/LICENSE:
 
 Copyright 2018 Elasticsearch BV
 
