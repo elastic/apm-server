@@ -13,6 +13,7 @@ https://github.com/elastic/apm-server/compare/8.15\...main[View commits]
 
 [float]
 ==== Deprecations
+- Support for Jaeger is now deprecated, and will be removed in a future release {pull}13809[13809]
 
 [float]
 ==== Intake API Changes

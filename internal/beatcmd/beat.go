@@ -106,6 +106,8 @@ func NewBeat(args BeatParams) (*Beat, error) {
 	if beatName == "" {
 		beatName = hostname
 	}
+
+	eid := uuid.FromStringOrNil(metricreport.EphemeralID().String())
 	b := &Beat{
 		Beat: beat.Beat{
 			Info: beat.Info{
@@ -116,7 +118,7 @@ func NewBeat(args BeatParams) (*Beat, error) {
 				Name:            beatName,
 				Hostname:        hostname,
 				StartTime:       time.Now(),
-				EphemeralID:     metricreport.EphemeralID(),
+				EphemeralID:     eid,
 			},
 			Keystore:   keystore,
 			Config:     &beat.BeatConfig{Output: cfg.Output},
