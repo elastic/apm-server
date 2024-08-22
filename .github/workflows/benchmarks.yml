@@ -30,7 +30,8 @@ env:
   WORKING_DIRECTORY: testing/benchmark
 
 permissions:
-  contents: read
+  contents: write
+  pull-requests: write
 
 jobs:
   benchmarks:
@@ -39,8 +40,9 @@ jobs:
       run:
         working-directory: ${{ env.WORKING_DIRECTORY }}
     permissions:
-      contents: read
+      contents: write
       id-token: write
+      pull-requests: write
     env:
       SSH_KEY: ./id_rsa_terraform
       TF_VAR_private_key: ./id_rsa_terraform
@@ -185,14 +187,18 @@ jobs:
           cd ${{ github.workspace }}
           git config user.email "apm@elastic.co"
           git config user.name "APM Server"
+          git fetch origin main
+          git checkout main
           BRANCH="update-pgo-$(date +%s)"
           git checkout -b "$BRANCH"
           echo "test" > default.pgo
           git add default.pgo
           git commit -m "PGO: Update default.pgo from benchmarks $WORKFLOW."
           git push -u origin "$BRANCH"
-          gh auth status
           gh pr create -B main -H "$BRANCH" -f -R elastic/apm-server
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          WORKFLOW: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}
 
       # - name: Tear down benchmark environment
       #   if: always()
