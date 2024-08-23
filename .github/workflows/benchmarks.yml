@@ -183,7 +183,8 @@ jobs:
 
       - name: Open update PGO PR
         run: |
-          cd ${{ github.workspace }}
+          cd "${{ github.workspace }}"
+          mv "$PROFILE_PATH" default.pgo
           git config user.email "apm@elastic.co"
           git config user.name "APM Server"
           git fetch origin main
@@ -195,6 +196,7 @@ jobs:
           git push -u origin "$BRANCH"
           gh pr create -B main -H "$BRANCH" -f -R elastic/apm-server
         env:
+          PROFILE_PATH: ${{ env.WORKING_DIRECTORY }}/${{ env.BENCHMARK_CPU_OUT }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           WORKFLOW: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}
 
