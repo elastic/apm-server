@@ -1,0 +1,10 @@
+scm:
+  enabled: true
+  owner: elastic
+  repository: apm-server
+  branch: main
+  # begin update-compose policy values
+  user: obltmachine
+  email: obltmachine@users.noreply.github.com
+  commitusingapi: true
+  # end update-compose policy values
