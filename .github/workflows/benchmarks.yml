@@ -184,14 +184,15 @@ jobs:
       - name: Open update PGO PR
         run: |
           cd "${{ github.workspace }}"
-          mv "$PROFILE_PATH" default.pgo
+          cp "$PROFILE_PATH" x-pack/apm-server/default.pgo
+          cp "$PROFILE_PATH" cmd/apm-server/default.pgo
           git config user.email "apm@elastic.co"
           git config user.name "APM Server"
           git fetch origin main
           git checkout main
           BRANCH="update-pgo-$(date +%s)"
           git checkout -b "$BRANCH"
-          git add default.pgo
+          git add x-pack/apm-server/default.pgo cmd/apm-server/default.pgo
           git commit -m "PGO: Update default.pgo from benchmarks $WORKFLOW."
           git push -u origin "$BRANCH"
           gh pr create -B main -H "$BRANCH" -f -R elastic/apm-server
