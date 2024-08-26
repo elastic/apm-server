@@ -181,7 +181,7 @@ jobs:
           path: ${{ env.WORKING_DIRECTORY }}/${{ env.BENCHMARK_CPU_OUT }}
           if-no-files-found: error
 
-      - name: Open update PGO PR
+      - name: Open PGO PR
         run: |
           cd "${{ github.workspace }}"
           cp "$PROFILE_PATH" x-pack/apm-server/default.pgo
@@ -195,7 +195,7 @@ jobs:
           git add x-pack/apm-server/default.pgo cmd/apm-server/default.pgo
           git commit -m "PGO: Update default.pgo from benchmarks $WORKFLOW."
           git push -u origin "$BRANCH"
-          gh pr create -B main -H "$BRANCH" -f -R elastic/apm-server
+          gh pr create -B main -H "$BRANCH" --t "PGO: Update default.pgo" --b "Update default.pgo CPU profile from the benchmarks [workflow]($WORKFLOW)." -R elastic/apm-server
         env:
           PROFILE_PATH: ${{ env.WORKING_DIRECTORY }}/${{ env.BENCHMARK_CPU_OUT }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
