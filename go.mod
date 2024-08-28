@@ -11,7 +11,7 @@ require (
 	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20240823193033-af33fad4d50b
 	github.com/elastic/elastic-agent-client/v7 v7.15.0
 	github.com/elastic/elastic-agent-libs v0.10.0
-	github.com/elastic/elastic-agent-system-metrics v0.11.1
+	github.com/elastic/elastic-agent-system-metrics v0.11.2
 	github.com/elastic/gmux v0.3.2
 	github.com/elastic/go-docappender/v2 v2.3.0
 	github.com/elastic/go-elasticsearch/v8 v8.14.0
@@ -138,6 +138,7 @@ require (
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
 	github.com/rogpeppe/go-internal v1.12.0 // indirect
 	github.com/shirou/gopsutil/v3 v3.24.5 // indirect
+	github.com/shirou/gopsutil/v4 v4.24.7 // indirect
 	github.com/shoenig/go-m1cpu v0.1.6 // indirect
 	github.com/tklauser/go-sysconf v0.3.12 // indirect
 	github.com/tklauser/numcpus v0.6.1 // indirect
