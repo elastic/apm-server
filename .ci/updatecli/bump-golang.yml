@@ -24,8 +24,9 @@ scms:
     kind: github
     spec:
       user: '{{ requiredEnv "GITHUB_ACTOR" }}'
-      owner: elastic
-      repository: apm-server
+      username: '{{ requiredEnv "GITHUB_ACTOR" }}'
+      owner: '{{ .scm.owner }}'
+      repository: '{{ .scm.repository }}'
       token: '{{ requiredEnv "GITHUB_TOKEN" }}'
       branch: '{{ requiredEnv "GITHUB_BRANCH" }}'
       commitusingapi: true
