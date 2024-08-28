@@ -3,7 +3,19 @@ scm:
   owner: elastic
   repository: apm-server
   branch: main
+<<<<<<< HEAD
   commitusingapi: true
   # begin updatecli-compose policy values
   user: obltmachine
   # end updatecli-compose policy values
+=======
+  # begin updatecli-compose policy values
+  user: obltmachine
+  email: obltmachine@users.noreply.github.com
+  commitusingapi: true
+  # end updatecli-compose policy values
+
+# This will be moved to the scm section in the future and use
+# commitusingapi instead.
+signedcommit: true
+>>>>>>> 3351902f8 (updatecli: use updatecli policies (#13934))
