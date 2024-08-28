@@ -22,10 +22,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.UPDATECLI_GH_TOKEN }}
 
-<<<<<<< HEAD
-      - if: ${{ failure() }}
-        uses: elastic/oblt-actions/slack/send@v1.9.1
-=======
   bump-7:
     runs-on: ubuntu-latest
     steps:
@@ -52,7 +48,6 @@ jobs:
           needs: ${{ toJSON(needs) }}
       - if: ${{ steps.check.outputs.isSuccess == 'false' }}
         uses: elastic/oblt-actions/slack/send@v1
->>>>>>> 3351902f8 (updatecli: use updatecli policies (#13934))
         with:
           bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
           channel-id: "#apm-server"
