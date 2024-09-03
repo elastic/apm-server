@@ -31,7 +31,6 @@ https://github.com/elastic/apm-server/compare/v8.15.0\...v8.15.1[View commits]
 [float]
 ==== Added
 
-- Self-instrumentating distributed traces can be emitted in OpenTelemetry format, if configured to do so
 - Metrics for all status codes in Elasticsearch bulk responses are now tracked
 - Support OpenTelemetry Java agent inferred span links
 
