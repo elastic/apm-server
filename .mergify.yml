@@ -174,11 +174,20 @@ pull_request_rules:
           branches, such as:
           * `backport-7.17` is the label to automatically backport to the 7.17 branch.
           * `backport-8./d` is the label to automatically backport to the `8./d` branch. `/d` is the digit.
+          * `backport-8.x` is the label to automatically backport to the `8.x` branch.
 
           **NOTE**: `backport-skip` has been added to this pull request.
       label:
         add:
           - backport-skip
+  - name: add backport-8.x for the all the PRs targetting main
+    conditions:
+      - -label~=^backport-\d
+      - base=main
+    actions:
+      label:
+        add:
+          - backport-8.x
   - name: remove backport-skip label
     conditions:
       - label~=^backport-\d
