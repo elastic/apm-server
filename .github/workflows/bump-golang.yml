@@ -19,7 +19,7 @@ jobs:
     steps:
       - id: generate
         name: Generate matrix
-        uses: elastic/apm-pipeline-library/.github/actions/elastic-stack-snapshot-branches@current
+        uses: elastic/oblt-actions/elastic/active-branches@v1
         with:
           exclude-branches: '7.17,main'
       - uses: actions/github-script@v7
@@ -70,9 +70,9 @@ jobs:
     if: always()
     steps:
       - id: check
-        uses: elastic/apm-pipeline-library/.github/actions/check-dependent-jobs@current
+        uses: elastic/oblt-actions/check-dependent-jobs@v1
         with:
-          needs: ${{ toJSON(needs) }}
+          jobs: ${{ toJSON(needs) }}
       - if: ${{ steps.check.outputs.isSuccess == 'false' }}
         uses: elastic/oblt-actions/slack/send@v1
         with:
