@@ -42,7 +42,6 @@ services:
     logging: *default-logging
 
   kibana:
-    image: docker.elastic.co/kibana/kibana:8.16.0-a3caaa65-SNAPSHOT
     # TODO: replace with a pinned version such as 9.0.0-aaaaaaaa-SNAPSHOT
     image: docker.elastic.co/kibana/kibana:9.0.0-SNAPSHOT
     ports:
