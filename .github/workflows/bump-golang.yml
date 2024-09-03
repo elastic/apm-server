@@ -10,33 +10,6 @@ permissions:
   contents: read
 
 jobs:
-<<<<<<< HEAD
-=======
-
-  labels:
-    runs-on: ubuntu-latest
-    timeout-minutes: 1
-    outputs:
-      backports: ${{ steps.labels.outputs.backports }}
-    steps:
-      - id: generate
-        name: Generate matrix
-        uses: elastic/oblt-actions/elastic/active-branches@v1
-        with:
-          exclude-branches: '7.17,main'
-      - uses: actions/github-script@v7
-        id: labels
-        env:
-          BRANCHES: ${{ steps.generate.outputs.branches }}
-        with:
-          script: |
-            // We only support the latest minor version
-            const branches = JSON.parse(process.env.BRANCHES)
-                          .sort((a, b) => parseFloat(b) - parseFloat(a));
-            const latest = branches[0]
-            core.setOutput("backports", `backport-${branches[0].trim()}`)
-
->>>>>>> 3b4a9c2e5 (github-actions: replace apm-pipeline-library actions for oblt-actions (#13975))
   bump:
     runs-on: ubuntu-latest
     steps:
