@@ -43,9 +43,9 @@ jobs:
     if: always()
     steps:
       - id: check
-        uses: elastic/apm-pipeline-library/.github/actions/check-dependent-jobs@current
+        uses: elastic/oblt-actions/check-dependent-jobs@v1
         with:
-          needs: ${{ toJSON(needs) }}
+          jobs: ${{ toJSON(needs) }}
       - if: ${{ steps.check.outputs.isSuccess == 'false' }}
         uses: elastic/oblt-actions/slack/send@v1
         with:
