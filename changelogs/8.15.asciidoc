@@ -14,7 +14,7 @@ https://github.com/elastic/apm-server/compare/v8.15.0\...v8.15.1[View commits]
 ==== Bug fixes
 
 - Fix fallback memory limit check conversion from Bytes to Gigabytes {pull}13838[13838]
-- Fixes Elasticsearch apm-data plugin to fallback to ILM policy for datastreams using default APM integration and not explicitly migrated to Datastream Lifecycle (DSL). More details are available in the [APM known-issues page](https://www.elastic.co/guide/en/observability/current/apm-known-issues.html) {pull}13918[13918]
+- Fixes Elasticsearch apm-data plugin to fallback to ILM policy for data streams using default APM integration and not explicitly migrated to data stream lifecycle. More details are available in the [APM known-issues page](https://www.elastic.co/guide/en/observability/current/apm-known-issues.html) {pull}13918[13918]
 
 [float]
 ==== Breaking Changes
