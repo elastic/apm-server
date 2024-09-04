@@ -132,6 +132,7 @@ func BenchmarkPublisher(b *testing.B) {
 			}
 			jsonw.RawString(`{"create":{"status":201}}`)
 			n++
+			scanner.Scan() // skip document line
 		}
 		assert.NoError(b, scanner.Err())
 		jsonw.RawString(`]}`)
