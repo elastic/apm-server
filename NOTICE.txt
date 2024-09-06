@@ -362,19 +362,11 @@ these terms.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/apm-data
-<<<<<<< HEAD
-Version: v1.9.1
-Licence type (autodetected): Apache-2.0
---------------------------------------------------------------------------------
-
-Contents of probable licence file $GOMODCACHE/github.com/elastic/apm-data@v1.9.1/LICENSE:
-=======
 Version: v1.11.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
 Contents of probable licence file $GOMODCACHE/github.com/elastic/apm-data@v1.11.0/LICENSE:
->>>>>>> cf4a4b424 (build(deps): bump github.com/elastic/apm-data from 1.10.0 to 1.11.0 (#13950))
 
                                  Apache License
                            Version 2.0, January 2004
@@ -2874,11 +2866,11 @@ Exhibit B - "Incompatible With Secondary Licenses" Notice
 
 --------------------------------------------------------------------------------
 Dependency : github.com/jaegertracing/jaeger
-Version: v1.59.0
+Version: v1.60.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/jaegertracing/jaeger@v1.59.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/jaegertracing/jaeger@v1.60.0/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -3318,11 +3310,11 @@ Contents of probable licence file $GOMODCACHE/github.com/modern-go/reflect2@v1.0
 
 --------------------------------------------------------------------------------
 Dependency : github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger
-Version: v0.105.0
+Version: v0.107.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger@v0.105.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger@v0.107.0/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -5110,11 +5102,11 @@ Contents of probable licence file $GOMODCACHE/go.elastic.co/apm/v2@v2.6.0/LICENS
 
 --------------------------------------------------------------------------------
 Dependency : go.elastic.co/fastjson
-Version: v1.3.0
+Version: v1.4.0
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.elastic.co/fastjson@v1.3.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/go.elastic.co/fastjson@v1.4.0/LICENSE:
 
 Copyright 2018 Elasticsearch BV
 
@@ -5143,11 +5135,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 --------------------------------------------------------------------------------
 Dependency : go.opentelemetry.io/collector/consumer
-Version: v0.105.0
+Version: v0.107.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/consumer@v0.105.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/consumer@v0.107.0/LICENSE:
 
 
                                  Apache License
@@ -5355,11 +5347,11 @@ Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/cons
 
 --------------------------------------------------------------------------------
 Dependency : go.opentelemetry.io/collector/pdata
-Version: v1.12.0
+Version: v1.13.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/pdata@v1.12.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/pdata@v1.13.0/LICENSE:
 
 
                                  Apache License
@@ -5567,11 +5559,11 @@ Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/pdat
 
 --------------------------------------------------------------------------------
 Dependency : go.opentelemetry.io/otel
-Version: v1.28.0
+Version: v1.29.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/otel@v1.28.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/otel@v1.29.0/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -5778,11 +5770,11 @@ Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/otel@v1.28.0/L
 
 --------------------------------------------------------------------------------
 Dependency : go.opentelemetry.io/otel/metric
-Version: v1.28.0
+Version: v1.29.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/otel/metric@v1.28.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/otel/metric@v1.29.0/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -5989,11 +5981,11 @@ Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/otel/metric@v1
 
 --------------------------------------------------------------------------------
 Dependency : go.opentelemetry.io/otel/sdk/metric
-Version: v1.28.0
+Version: v1.29.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/otel/sdk/metric@v1.28.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/otel/sdk/metric@v1.29.0/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -6257,13 +6249,13 @@ THE SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/net
-Version: v0.27.0
+Version: v0.28.0
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/net@v0.27.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/net@v0.28.0/LICENSE:
 
-Copyright (c) 2009 The Go Authors. All rights reserved.
+Copyright 2009 The Go Authors.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are
@@ -6275,7 +6267,7 @@ notice, this list of conditions and the following disclaimer.
 copyright notice, this list of conditions and the following disclaimer
 in the documentation and/or other materials provided with the
 distribution.
-   * Neither the name of Google Inc. nor the names of its
+   * Neither the name of Google LLC nor the names of its
 contributors may be used to endorse or promote products derived from
 this software without specific prior written permission.
 
@@ -6331,13 +6323,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/term
-Version: v0.22.0
+Version: v0.23.0
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/term@v0.22.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/term@v0.23.0/LICENSE:
 
-Copyright (c) 2009 The Go Authors. All rights reserved.
+Copyright 2009 The Go Authors.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are
@@ -6349,7 +6341,7 @@ notice, this list of conditions and the following disclaimer.
 copyright notice, this list of conditions and the following disclaimer
 in the documentation and/or other materials provided with the
 distribution.
-   * Neither the name of Google Inc. nor the names of its
+   * Neither the name of Google LLC nor the names of its
 contributors may be used to endorse or promote products derived from
 this software without specific prior written permission.
 
@@ -10053,11 +10045,11 @@ limitations under the License.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/opentelemetry-lib
-Version: v0.7.3
+Version: v0.8.1
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/opentelemetry-lib@v0.7.3/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/opentelemetry-lib@v0.8.1/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -13596,11 +13588,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal
-Version: v0.105.0
+Version: v0.107.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal@v0.105.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal@v0.107.0/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -16543,11 +16535,11 @@ Contents of probable licence file $GOMODCACHE/go.elastic.co/ecszap@v1.0.2/LICENS
 
 --------------------------------------------------------------------------------
 Dependency : go.opentelemetry.io/collector/semconv
-Version: v0.105.0
+Version: v0.107.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/semconv@v0.105.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/semconv@v0.107.0/LICENSE:
 
 
                                  Apache License
@@ -16755,11 +16747,11 @@ Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/semc
 
 --------------------------------------------------------------------------------
 Dependency : go.opentelemetry.io/otel/sdk
-Version: v1.28.0
+Version: v1.29.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/otel/sdk@v1.28.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/otel/sdk@v1.29.0/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -16966,11 +16958,11 @@ Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/otel/sdk@v1.28
 
 --------------------------------------------------------------------------------
 Dependency : go.opentelemetry.io/otel/trace
-Version: v1.28.0
+Version: v1.29.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/otel/trace@v1.28.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/otel/trace@v1.29.0/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -17206,13 +17198,13 @@ THE SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/crypto
-Version: v0.25.0
+Version: v0.26.0
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/crypto@v0.25.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/crypto@v0.26.0/LICENSE:
 
-Copyright (c) 2009 The Go Authors. All rights reserved.
+Copyright 2009 The Go Authors.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are
@@ -17224,7 +17216,7 @@ notice, this list of conditions and the following disclaimer.
 copyright notice, this list of conditions and the following disclaimer
 in the documentation and/or other materials provided with the
 distribution.
-   * Neither the name of Google Inc. nor the names of its
+   * Neither the name of Google LLC nor the names of its
 contributors may be used to endorse or promote products derived from
 this software without specific prior written permission.
 
@@ -17280,11 +17272,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/sys
-Version: v0.23.0
+Version: v0.24.0
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/sys@v0.23.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/sys@v0.24.0/LICENSE:
 
 Copyright 2009 The Go Authors.
 
@@ -17317,13 +17309,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/text
-Version: v0.16.0
+Version: v0.17.0
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/text@v0.16.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/text@v0.17.0/LICENSE:
 
-Copyright (c) 2009 The Go Authors. All rights reserved.
+Copyright 2009 The Go Authors.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are
@@ -17335,7 +17327,7 @@ notice, this list of conditions and the following disclaimer.
 copyright notice, this list of conditions and the following disclaimer
 in the documentation and/or other materials provided with the
 distribution.
-   * Neither the name of Google Inc. nor the names of its
+   * Neither the name of Google LLC nor the names of its
 contributors may be used to endorse or promote products derived from
 this software without specific prior written permission.
 
