@@ -14,6 +14,11 @@ https://github.com/elastic/apm-server/compare/v8.15.0\...v8.15.1[View commits]
 ==== Bug fixes
 
 - Fix fallback memory limit check conversion from Bytes to Gigabytes {pull}13838[13838]
+- Fix Elasticsearch apm-data plugin to fallback to ILM policy for data streams using default APM integration and not explicitly migrated to data stream lifecycle. More details are available in the https://www.elastic.co/guide/en/observability/current/apm-known-issues.html[APM known issues page] {pull}13918[13918]
+- Remove from logs the error reason returned by Elasticsearch for `x_content_parse_exception` error {pull}13853[13853]
+- Fix ingestion failure when `ip` resource attribute has value `0.0.0.0` in OpenTelemetry events from Jaeger {pull}13852[13852]
+- Fix possible nil pointer dereference when parsing stacktraces in OpenTelemetry events {pull}13852[13852]
+- Fix missing tracking in instrumentation metrics for certain request-level status codes from Elasticsearch bulk responses {pull}13853[13853]
 
 [float]
 ==== Breaking Changes
@@ -26,6 +31,8 @@ https://github.com/elastic/apm-server/compare/v8.15.0\...v8.15.1[View commits]
 
 [float]
 ==== Added
+
+- Support OpenTelemetry Java agent inferred span links {pull}13852[13852]
 
 [float]
 [[apm-release-notes-8.15.0]]

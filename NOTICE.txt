@@ -260,11 +260,11 @@ SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/apm-aggregation
-Version: v1.0.2
+Version: v1.1.0
 Licence type (autodetected): Elastic-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/apm-aggregation@v1.0.2/LICENSE.txt:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/apm-aggregation@v1.1.0/LICENSE.txt:
 
 Elastic License 2.0
 
@@ -362,11 +362,11 @@ these terms.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/apm-data
-Version: v1.11.0
+Version: v1.13.1
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/apm-data@v1.11.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/apm-data@v1.13.1/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -829,11 +829,11 @@ SOFTWARE
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/elastic-agent-libs
-Version: v0.10.0
+Version: v0.10.1
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/elastic-agent-libs@v0.10.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/elastic-agent-libs@v0.10.1/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -6249,11 +6249,11 @@ THE SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/net
-Version: v0.28.0
+Version: v0.29.0
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/net@v0.28.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/net@v0.29.0/LICENSE:
 
 Copyright 2009 The Go Authors.
 
@@ -6323,11 +6323,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/term
-Version: v0.23.0
+Version: v0.24.0
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/term@v0.23.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/term@v0.24.0/LICENSE:
 
 Copyright 2009 The Go Authors.
 
@@ -7157,11 +7157,11 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/axiomhq/hyperloglog
-Version: v0.0.0-20230201085229-3ddf4bad03dc
+Version: v0.2.0
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/axiomhq/hyperloglog@v0.0.0-20230201085229-3ddf4bad03dc/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/axiomhq/hyperloglog@v0.2.0/LICENSE:
 
 Copyright (c) 2021, Axiom, Inc.
 
@@ -7880,11 +7880,11 @@ Contents of probable licence file $GOMODCACHE/github.com/cockroachdb/logtags@v0.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/cockroachdb/pebble
-Version: v1.1.1
+Version: v1.1.2
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/cockroachdb/pebble@v1.1.1/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/cockroachdb/pebble@v1.1.2/LICENSE:
 
 Copyright (c) 2011 The LevelDB-Go Authors. All rights reserved.
 
@@ -9844,11 +9844,11 @@ limitations under the License.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/opentelemetry-lib
-Version: v0.8.1
+Version: v0.9.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/opentelemetry-lib@v0.8.1/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/opentelemetry-lib@v0.9.0/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -17097,11 +17097,11 @@ THE SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/crypto
-Version: v0.26.0
+Version: v0.27.0
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/crypto@v0.26.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/crypto@v0.27.0/LICENSE:
 
 Copyright 2009 The Go Authors.
 
@@ -17171,11 +17171,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/sys
-Version: v0.24.0
+Version: v0.25.0
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/sys@v0.24.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/sys@v0.25.0/LICENSE:
 
 Copyright 2009 The Go Authors.
 
@@ -17208,11 +17208,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/text
-Version: v0.17.0
+Version: v0.18.0
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/text@v0.17.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/text@v0.18.0/LICENSE:
 
 Copyright 2009 The Go Authors.
 
