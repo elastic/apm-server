@@ -112,6 +112,7 @@ minor-release:
 	@echo "INFO: Create feature branch and update the versions. Target branch $(RELEASE_BRANCH)"
 	$(MAKE) create-branch NAME=changelog-$(RELEASE_BRANCH) BASE=$(RELEASE_BRANCH)
 	$(MAKE) update-changelog VERSION=$(RELEASE_BRANCH)
+	$(MAKE) rename-changelog VERSION=$(RELEASE_BRANCH)
 	$(MAKE) create-commit COMMIT_MESSAGE="docs: Update changelogs for $(RELEASE_BRANCH) release"
 
 	@echo "INFO: Create feature branch and update the versions. Target branch $(BASE_BRANCH)"
