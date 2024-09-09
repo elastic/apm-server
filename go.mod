@@ -6,7 +6,7 @@ require (
 	github.com/cespare/xxhash/v2 v2.3.0
 	github.com/dgraph-io/badger/v2 v2.2007.4
 	github.com/dustin/go-humanize v1.0.1
-	github.com/elastic/apm-aggregation v1.0.2
+	github.com/elastic/apm-aggregation v1.1.0
 	github.com/elastic/apm-data v1.13.1
 	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20240823193033-af33fad4d50b
 	github.com/elastic/elastic-agent-client/v7 v7.15.0
@@ -64,13 +64,13 @@ require (
 	github.com/Shopify/sarama v1.38.1 // indirect
 	github.com/apache/thrift v0.20.0 // indirect
 	github.com/armon/go-radix v1.0.0 // indirect
-	github.com/axiomhq/hyperloglog v0.0.0-20230201085229-3ddf4bad03dc // indirect
+	github.com/axiomhq/hyperloglog v0.2.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash v1.1.0 // indirect
 	github.com/cockroachdb/errors v1.11.3 // indirect
 	github.com/cockroachdb/fifo v0.0.0-20240606204812-0bbfbd93a7ce // indirect
 	github.com/cockroachdb/logtags v0.0.0-20230118201751-21c54148d20b // indirect
-	github.com/cockroachdb/pebble v1.1.1 // indirect
+	github.com/cockroachdb/pebble v1.1.2 // indirect
 	github.com/cockroachdb/redact v1.1.5 // indirect
 	github.com/cockroachdb/tokenbucket v0.0.0-20230807174530-cc333fc44b06 // indirect
 	github.com/containerd/errdefs v0.1.0 // indirect
