@@ -547,7 +547,6 @@ func (p *Processor) Run() error {
 				}
 
 				for i := range events {
-					events[i].ReturnToVTPool()
 					events[i] = nil // not required but ensure that there is no ref to the freed event
 				}
 			}
