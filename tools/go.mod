@@ -7,7 +7,7 @@ require (
 	github.com/elastic/go-licenser v0.4.2
 	github.com/elastic/gobench v0.0.0-20220608141032-f30bc57e329c
 	github.com/goreleaser/nfpm/v2 v2.39.0
-	github.com/josephspurrier/goversioninfo v1.4.0
+	github.com/josephspurrier/goversioninfo v1.4.1
 	github.com/t-yuki/gocover-cobertura v0.0.0-20180217150009-aaee18c8195c
 	github.com/terraform-docs/terraform-docs v0.18.0
 	go.elastic.co/go-licence-detector v0.6.1
