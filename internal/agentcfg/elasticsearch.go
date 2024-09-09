@@ -251,40 +251,38 @@ func (f *ElasticsearchFetcher) refreshCache(ctx context.Context) (err error) {
 
 func (f *ElasticsearchFetcher) singlePageRefresh(ctx context.Context, scrollID string) (cacheResult, error) {
 	var result cacheResult
+	var err error
+	var resp *esapi.Response
 
-	if scrollID == "" {
-		resp, err := esapi.SearchRequest{
+	switch scrollID {
+	case "":
+		resp, err = esapi.SearchRequest{
 			Index:  []string{ElasticsearchIndexName},
 			Size:   &f.searchSize,
 			Scroll: f.cacheDuration,
 		}.Do(ctx, f.client)
-		if err != nil {
-			return result, err
-		}
-		defer resp.Body.Close()
-
-		if resp.StatusCode >= http.StatusBadRequest {
-			// Elasticsearch returns 401 on unauthorized requests and 403 on insufficient permission
-			if resp.StatusCode == http.StatusUnauthorized || resp.StatusCode == http.StatusForbidden {
-				f.invalidESCfg.Store(true)
-			}
-			bodyBytes, err := io.ReadAll(resp.Body)
-			if err == nil {
-				f.logger.Debugf("refresh cache elasticsearch returned status %d: %s", resp.StatusCode, string(bodyBytes))
-			}
-			return result, fmt.Errorf("refresh cache elasticsearch returned status %d", resp.StatusCode)
-		}
-		return result, json.NewDecoder(resp.Body).Decode(&result)
+	default:
+		resp, err = esapi.ScrollRequest{
+			ScrollID: scrollID,
+			Scroll:   f.cacheDuration,
+		}.Do(ctx, f.client)
 	}
-
-	resp, err := esapi.ScrollRequest{
-		ScrollID: result.ScrollID,
-		Scroll:   f.cacheDuration,
-	}.Do(ctx, f.client)
 	if err != nil {
 		return result, err
 	}
 	defer resp.Body.Close()
+
+	if resp.StatusCode >= http.StatusBadRequest {
+		// Elasticsearch returns 401 on unauthorized requests and 403 on insufficient permission
+		if resp.StatusCode == http.StatusUnauthorized || resp.StatusCode == http.StatusForbidden {
+			f.invalidESCfg.Store(true)
+		}
+		bodyBytes, err := io.ReadAll(resp.Body)
+		if err == nil {
+			f.logger.Debugf("refresh cache elasticsearch returned status %d: %s", resp.StatusCode, string(bodyBytes))
+		}
+		return result, fmt.Errorf("refresh cache elasticsearch returned status %d", resp.StatusCode)
+	}
 	return result, json.NewDecoder(resp.Body).Decode(&result)
 }
 
