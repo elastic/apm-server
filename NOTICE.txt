@@ -260,11 +260,11 @@ SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/apm-aggregation
-Version: v1.0.2
+Version: v1.1.0
 Licence type (autodetected): Elastic-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/apm-aggregation@v1.0.2/LICENSE.txt:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/apm-aggregation@v1.1.0/LICENSE.txt:
 
 Elastic License 2.0
 
@@ -7157,11 +7157,11 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/axiomhq/hyperloglog
-Version: v0.0.0-20230201085229-3ddf4bad03dc
+Version: v0.2.0
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/axiomhq/hyperloglog@v0.0.0-20230201085229-3ddf4bad03dc/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/axiomhq/hyperloglog@v0.2.0/LICENSE:
 
 Copyright (c) 2021, Axiom, Inc.
 
@@ -7880,11 +7880,11 @@ Contents of probable licence file $GOMODCACHE/github.com/cockroachdb/logtags@v0.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/cockroachdb/pebble
-Version: v1.1.1
+Version: v1.1.2
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/cockroachdb/pebble@v1.1.1/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/cockroachdb/pebble@v1.1.2/LICENSE:
 
 Copyright (c) 2011 The LevelDB-Go Authors. All rights reserved.
 
