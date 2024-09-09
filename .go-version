@@ -1,1 +1,5 @@
+<<<<<<< HEAD
 1.22.6
+=======
+1.23.1
+>>>>>>> f4dcc3133 (chore: Update .go-version with Golang version 1.23.1 (#14008))
