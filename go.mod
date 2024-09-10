@@ -41,8 +41,8 @@ require (
 	go.elastic.co/apm/module/apmotel/v2 v2.6.2
 	go.elastic.co/apm/v2 v2.6.2
 	go.elastic.co/fastjson v1.4.0
-	go.opentelemetry.io/collector/consumer v0.108.1
-	go.opentelemetry.io/collector/pdata v1.14.1
+	go.opentelemetry.io/collector/consumer v0.109.0
+	go.opentelemetry.io/collector/pdata v1.15.0
 	go.opentelemetry.io/otel v1.29.0
 	go.opentelemetry.io/otel/metric v1.29.0
 	go.opentelemetry.io/otel/sdk/metric v1.29.0
@@ -52,7 +52,7 @@ require (
 	golang.org/x/sync v0.8.0
 	golang.org/x/term v0.24.0
 	golang.org/x/time v0.6.0
-	google.golang.org/grpc v1.66.0
+	google.golang.org/grpc v1.66.1
 	google.golang.org/protobuf v1.34.2
 	gopkg.in/yaml.v3 v3.0.1
 )
