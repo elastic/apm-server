@@ -54,6 +54,10 @@ jobs:
       GOBENCH_PASSWORD: ${{ secrets.GOBENCH_PASSWORD }}
       GOBENCH_USERNAME: ${{ secrets.GOBENCH_USERNAME }}
       GOBENCH_HOST: ${{ secrets.GOBENCH_HOST }}
+      # temporarily override to get faster feedback
+      BENCHMARK_WARMUP_TIME: 1m
+      BENCHMARK_COUNT: 2
+      BENCHMARK_TIME: 1m
     steps:
       - uses: actions/checkout@v4
 
@@ -184,18 +188,17 @@ jobs:
       - name: Open PGO PR
         run: |
           cd "${{ github.workspace }}"
-          cp "$PROFILE_PATH" x-pack/apm-server/default.pgo
-          cp "$PROFILE_PATH" cmd/apm-server/default.pgo
+          mv "$PROFILE_PATH" x-pack/apm-server/default.pgo
           git config user.email "apm@elastic.co"
           git config user.name "APM Server"
           git fetch origin main
           git checkout main
           BRANCH="update-pgo-$(date +%s)"
           git checkout -b "$BRANCH"
-          git add x-pack/apm-server/default.pgo cmd/apm-server/default.pgo
+          git add x-pack/apm-server/default.pgo
           git commit -m "PGO: Update default.pgo from benchmarks $WORKFLOW."
           git push -u origin "$BRANCH"
-          gh pr create -B main -H "$BRANCH" --t "PGO: Update default.pgo" --b "Update default.pgo CPU profile from the benchmarks [workflow]($WORKFLOW)." -R elastic/apm-server
+          gh pr create -B main -H "$BRANCH" -t "PGO: Update default.pgo" -b "Update default.pgo CPU profile from the benchmarks [workflow]($WORKFLOW)." -R elastic/apm-server
         env:
           PROFILE_PATH: ${{ env.WORKING_DIRECTORY }}/${{ env.BENCHMARK_CPU_OUT }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
