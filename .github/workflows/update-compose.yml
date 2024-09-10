@@ -1,40 +1,39 @@
 ---
-name: bump-elastic-stack-snapshot
+name: update-compose
 
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 15 * * 1-5'
+    - cron: '0 6 * * *'
 
 permissions:
   contents: read
 
 jobs:
-  filter:
+  compose:
     runs-on: ubuntu-latest
-    timeout-minutes: 1
-    outputs:
-      matrix: ${{ steps.generator.outputs.matrix }}
-    steps:
-      - id: generator
-        uses: elastic/oblt-actions/elastic/active-branches@v1
-
-  bump-elastic-stack:
-    runs-on: ubuntu-latest
-    needs: [filter]
-    strategy:
-      fail-fast: false
-      matrix: ${{ fromJson(needs.filter.outputs.matrix) }}
+    permissions:
+      contents: read
+      packages: read
     steps:
       - uses: actions/checkout@v4
+
+      - uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
         with:
-          ref: ${{ matrix.branch }}
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: elastic/oblt-actions/updatecli/run@v1
         with:
-          command: --experimental apply --config .ci/updatecli/bump-elastic-stack-snapshot.yml --values .ci/updatecli/values.d/scm.yml
+          command: --experimental compose diff
         env:
-          BRANCH: ${{ matrix.branch }}
+          GITHUB_TOKEN: ${{ secrets.UPDATECLI_GH_TOKEN }}
+
+      - uses: elastic/oblt-actions/updatecli/run@v1
+        with:
+          command: --experimental compose apply
+        env:
           GITHUB_TOKEN: ${{ secrets.UPDATECLI_GH_TOKEN }}
 
       - if: ${{ failure()  }}
