@@ -1,5 +1,6 @@
 queue_rules:
   - name: default
+    merge_method: squash
     conditions:
       - check-success=test (macos-latest)
       - check-success=test (windows-latest)
@@ -150,7 +151,6 @@ pull_request_rules:
       - -conflict
     actions:
       queue:
-        method: squash
         name: default
   - name: delete updatecli branch after merging/closing it
     conditions:
@@ -213,7 +213,6 @@ pull_request_rules:
       - -conflict
     actions:
       queue:
-        method: squash
         name: default
   - name: backport patches to 8.5 branch
     conditions:
