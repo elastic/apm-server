@@ -102,6 +102,7 @@ dra() {
 }
 
 dra "snapshot" "$dra_command"
-if [[ "${DRA_BRANCH}" != "main" ]]; then
+if [[ "${DRA_BRANCH}" != "main" && "${DRA_BRANCH}" != "8.x" ]]; then
+  echo "DRA_BRANCH is neither 'main' nor '8.x'"
   dra "staging" "$dra_command"
 fi
