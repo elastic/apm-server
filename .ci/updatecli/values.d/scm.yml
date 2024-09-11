@@ -6,5 +6,4 @@ scm:
   commitusingapi: true
   # begin updatecli-compose policy values
   user: obltmachine
-  email: obltmachine@users.noreply.github.com
   # end updatecli-compose policy values
