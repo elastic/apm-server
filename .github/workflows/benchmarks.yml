@@ -54,7 +54,7 @@ jobs:
       GOBENCH_HOST: ${{ secrets.GOBENCH_HOST }}
       # temporarily override to get faster feedback
       BENCHMARK_WARMUP_TIME: 1m
-      BENCHMARK_COUNT: 2
+      BENCHMARK_COUNT: 1
       BENCHMARK_TIME: 1m
     steps:
       - uses: actions/checkout@v4
