@@ -35,7 +35,10 @@ dra_command=collect
 BRANCHES_URL=https://storage.googleapis.com/artifacts-api/snapshots/branches.json
 curl -s "${BRANCHES_URL}" > active-branches.json
 # as long as `8.x` is not in the active branches, we will explicitly add the condition.
-if [ "$BUILDKITE_BRANCH" == "8.x" ] || ! grep -q "\"$BUILDKITE_BRANCH\"" active-branches.json ; then
+if [ "$BUILDKITE_BRANCH" == "8.x" ] || grep -q "\"$BUILDKITE_BRANCH\"" active-branches.json ; then
+  echo "--- :arrow_right: Release Manager only supports the current active branches and 8.x, running"
+else
+  # If no active branches are found, let's see if it is a feature branch.
   echo "--- :arrow_right: Release Manager only supports the current active branches, skipping"
   echo "BUILDKITE_BRANCH=$BUILDKITE_BRANCH"
   echo "BUILDKITE_COMMIT=$BUILDKITE_COMMIT"
@@ -52,9 +55,6 @@ if [ "$BUILDKITE_BRANCH" == "8.x" ] || ! grep -q "\"$BUILDKITE_BRANCH\"" active-
     MAJOR_MINOR=${VERSION%.*}
     if curl -s "https://storage.googleapis.com/artifacts-api/snapshots/main.json" | grep -q "$VERSION" ; then
       DRA_BRANCH=main
-    elif [ "$BUILDKITE_BRANCH" == "8.x" ] ; then
-      # as long as `8.x` is not in the active branches, we will explicitly add the condition.
-      DRA_BRANCH=8.x
     else
       if curl -s "https://storage.googleapis.com/artifacts-api/snapshots/$MAJOR_MINOR.json" | grep -q "$VERSION" ; then
         DRA_BRANCH="$MAJOR_MINOR"
