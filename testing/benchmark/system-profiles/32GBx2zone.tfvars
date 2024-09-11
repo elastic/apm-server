@@ -13,4 +13,4 @@ apm_server_size = "32g"
 # Number of shards for the ES indices
 apm_shards = 4
 # Benchmarks executor size executor
-worker_instance_type = "c6i.2xlarge"
+worker_instance_type = "c6i.4xlarge"
