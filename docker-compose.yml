@@ -10,7 +10,12 @@ x-logging: &default-logging
     max-size: "1g"
 services:
   elasticsearch:
+<<<<<<< HEAD
     image: docker.elastic.co/elasticsearch/elasticsearch:8.16.0-3a37a73c-SNAPSHOT
+=======
+    # TODO: replace with a pinned version such as 9.0.0-aaaaaaaa-SNAPSHOT
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.16.0-2156c99d-SNAPSHOT
+>>>>>>> 493b2c438 ([updatecli] Bump elastic stack version to 8.16.0-2156c99d (#14048))
     ports:
       - 9200:9200
     healthcheck:
@@ -41,7 +46,12 @@ services:
     logging: *default-logging
 
   kibana:
+<<<<<<< HEAD
     image: docker.elastic.co/kibana/kibana:8.16.0-3a37a73c-SNAPSHOT
+=======
+    # TODO: replace with a pinned version such as 9.0.0-aaaaaaaa-SNAPSHOT
+    image: docker.elastic.co/kibana/kibana:8.16.0-2156c99d-SNAPSHOT
+>>>>>>> 493b2c438 ([updatecli] Bump elastic stack version to 8.16.0-2156c99d (#14048))
     ports:
       - 5601:5601
     healthcheck:
@@ -60,7 +70,12 @@ services:
     logging: *default-logging
 
   metricbeat:
+<<<<<<< HEAD
     image: docker.elastic.co/beats/metricbeat:8.16.0-3a37a73c-SNAPSHOT
+=======
+    # TODO: replace with a pinned version such as 9.0.0-aaaaaaaa-SNAPSHOT
+    image: docker.elastic.co/beats/metricbeat:8.16.0-2156c99d-SNAPSHOT
+>>>>>>> 493b2c438 ([updatecli] Bump elastic stack version to 8.16.0-2156c99d (#14048))
     environment:
       ELASTICSEARCH_HOSTS: '["http://elasticsearch:9200"]'
       ELASTICSEARCH_USERNAME: "${KIBANA_ES_USER:-admin}"

@@ -3,7 +3,12 @@ kind: ApmServer
 metadata:
   name: apm-server
 spec:
+<<<<<<< HEAD
   version: 8.16.0-3a37a73c-SNAPSHOT
+=======
+  # TODO: replace with a pinned version such as 9.0.0-aaaaaaaa-SNAPSHOT
+  version: 8.16.0-2156c99d-SNAPSHOT
+>>>>>>> 493b2c438 ([updatecli] Bump elastic stack version to 8.16.0-2156c99d (#14048))
   count: 1
   http:
     tls:
