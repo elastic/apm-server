@@ -25,7 +25,6 @@ on:
 
 env:
   PNG_REPORT_FILE: out.png
-  BENCHMARK_CPU_OUT: default.pgo
   BENCHMARK_RESULT: benchmark-result.txt
   WORKING_DIRECTORY: testing/benchmark
 
@@ -39,9 +38,8 @@ jobs:
       run:
         working-directory: ${{ env.WORKING_DIRECTORY }}
     permissions:
-      contents: write
+      contents: read
       id-token: write
-      pull-requests: write
     env:
       SSH_KEY: ./id_rsa_terraform
       TF_VAR_private_key: ./id_rsa_terraform
@@ -54,10 +52,6 @@ jobs:
       GOBENCH_PASSWORD: ${{ secrets.GOBENCH_PASSWORD }}
       GOBENCH_USERNAME: ${{ secrets.GOBENCH_USERNAME }}
       GOBENCH_HOST: ${{ secrets.GOBENCH_HOST }}
-      # temporarily override to get faster feedback
-      BENCHMARK_WARMUP_TIME: 1m
-      BENCHMARK_COUNT: 2
-      BENCHMARK_TIME: 1m
     steps:
       - uses: actions/checkout@v4
 
@@ -130,8 +124,6 @@ jobs:
         if: ${{ inputs.benchmarkAgents != '' }}
         run: make run-benchmark
 
-      # Results are only indexed and uploaded if the run happens on the main branch.
-
       - name: Index benchmarks result
         if: github.ref == 'refs/heads/main'
         run: make index-benchmark-results
@@ -170,39 +162,6 @@ jobs:
           name: benchmark-result
           path: ${{ env.WORKING_DIRECTORY }}/${{ env.BENCHMARK_RESULT }}
           if-no-files-found: error
-
-      # The next section injects CPU profile collected by apmbench into the build.
-      # By copying the profile, uploading it to the artifacts and pushing it
-      # via a PR to update default.pgo.
-
-      - name: Copy CPU profile
-        run: make cp-cpuprof
-      
-      - name: Upload CPU profile
-        uses: actions/upload-artifact@v4
-        with:
-          name: cpu-profile
-          path: ${{ env.WORKING_DIRECTORY }}/${{ env.BENCHMARK_CPU_OUT }}
-          if-no-files-found: error
-
-      - name: Open PGO PR
-        run: |
-          cd "${{ github.workspace }}"
-          mv "$PROFILE_PATH" x-pack/apm-server/default.pgo
-          git config user.email "apm@elastic.co"
-          git config user.name "APM Server"
-          git fetch origin main
-          git checkout main
-          BRANCH="update-pgo-$(date +%s)"
-          git checkout -b "$BRANCH"
-          git add x-pack/apm-server/default.pgo
-          git commit -m "PGO: Update default.pgo from benchmarks $WORKFLOW."
-          git push -u origin "$BRANCH"
-          gh pr create -B main -H "$BRANCH" -t "PGO: Update default.pgo" -b "Update default.pgo CPU profile from the benchmarks [workflow]($WORKFLOW)." -R elastic/apm-server
-        env:
-          PROFILE_PATH: ${{ env.WORKING_DIRECTORY }}/${{ env.BENCHMARK_CPU_OUT }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          WORKFLOW: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}
 
       - name: Tear down benchmark environment
         if: always()

@@ -2,9 +2,9 @@ APMBENCH_PATH ?= ../../systemtest/cmd/apmbench
 APMBENCH_GOOS ?= linux
 APMBENCH_GOARCH ?= amd64
 
-APM_SERVER_PATH ?= ../../systemtest/cmd/apmbench
-APM_SERVER_GOOS ?= linux
-APM_SERVER_GOARCH ?= amd64
+MOXY_PATH ?= ../../systemtest/cmd/moxy
+MOXY_GOOS ?= linux
+MOXY_GOARCH ?= amd64
 
 BENCHMARK_WARMUP_TIME ?= 5m
 BENCHMARK_AGENTS ?= 64
@@ -61,13 +61,15 @@ init-aws-profile: ~/.aws/credentials
 	@mkdir -p ~/.aws
 	@touch $@
 
-terraform.tfvars:
-	@sed "s/USER/$(USER)/" $(TFVARS_SOURCE) > terraform.tfvars
-
 .PHONY: apmbench
 apmbench:
 	@echo "-> Building apmbench..."
 	@cd $(APMBENCH_PATH) && CGO_ENABLED=0 GOOS=$(APMBENCH_GOOS) GOARCH=$(APMBENCH_GOARCH) go build .
+
+.PHONY: moxy
+moxy:
+	@echo "-> Building moxy..."
+	@cd $(MOXY_PATH) && CGO_ENABLED=0 GOOS=$(MOXY_GOOS) GOARCH=$(MOXY_GOARCH) go build .
 
 .PHONY: init
 init:
