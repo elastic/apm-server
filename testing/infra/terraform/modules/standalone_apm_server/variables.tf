@@ -4,6 +4,12 @@ variable "aws_os" {
   type        = string
 }
 
+variable "apm_instance_type" {
+  default     = ""
+  type        = string
+  description = "Optional apm server instance type"
+}
+
 variable "aws_provisioner_key_name" {
   default     = ""
   description = "Optional ssh key name to create the aws key pair and remote provision the ec2 instance"
@@ -51,32 +57,14 @@ variable "ea_managed" {
   type        = bool
 }
 
+variable "apm_server_bin_path" {
+  default     = ""
+  type        = string
+  description = "Optionally use the apm-server binary from the specified path to the worker machine"
+}
+
 variable "tags" {
   type        = map(string)
   default     = {}
   description = "Optional set of tags to use for all deployments"
-}
-
-# CI variables
-variable "BRANCH" {
-  description = "Branch name or pull request for tagging purposes"
-  default     = "unknown"
-}
-
-variable "BUILD_ID" {
-  description = "Build ID in the CI for tagging purposes"
-  default     = "unknown"
-}
-
-variable "CREATED_DATE" {
-  description = "Creation date in epoch time for tagging purposes"
-  default     = "unknown"
-}
-
-variable "ENVIRONMENT" {
-  default = "unknown"
-}
-
-variable "REPO" {
-  default = "unknown"
 }

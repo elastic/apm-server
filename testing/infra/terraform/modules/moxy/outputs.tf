@@ -1,0 +1,4 @@
+output "moxy_url" {
+  value       = "${aws_instance.moxy.public_ip}:${local.moxy_port}"
+  description = "The Moxy Server URL"
+}

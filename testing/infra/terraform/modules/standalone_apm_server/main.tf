@@ -71,8 +71,10 @@ locals {
     "RHEL-8"                           = "ec2-user"
     "RHEL-9"                           = "ec2-user"
   }
+
   apm_port  = "8200"
   conf_path = "/tmp/local-apm-config.yml"
+  bin_path  = "/tmp/apm-server"
 }
 
 data "aws_ami" "os" {
@@ -143,7 +145,7 @@ resource "aws_security_group" "main" {
 
 resource "aws_instance" "apm" {
   ami           = data.aws_ami.os.id
-  instance_type = local.instance_types[var.aws_os]
+  instance_type = var.apm_instance_type == "" ? local.instance_types[var.aws_os] : var.apm_instance_type
   key_name      = aws_key_pair.provisioner_key.key_name
 
   connection {
@@ -151,6 +153,11 @@ resource "aws_instance" "apm" {
     user        = local.image_ssh_users[var.aws_os]
     host        = self.public_ip
     private_key = file("${var.aws_provisioner_key_name}")
+  }
+
+  provisioner "file" {
+    source      = var.apm_server_bin_path
+    destination = local.bin_path
   }
 
   provisioner "file" {
@@ -172,15 +179,24 @@ resource "aws_instance" "apm" {
       "sudo cp ${local.conf_path} /etc/elastic-agent/elastic-agent.yml",
       "sudo systemctl start elastic-agent",
       "sleep 1",
-      ] : [
-      local.instance_standalone_provision_cmd[var.aws_os],
-      "sudo cp ${local.conf_path} /etc/apm-server/apm-server.yml",
-      "sudo systemctl start apm-server",
-      "sleep 1",
-    ]
+      ] : (
+      var.apm_server_bin_path == "" ? [
+        local.instance_standalone_provision_cmd[var.aws_os],
+        "sudo cp ${local.conf_path} /etc/apm-server/apm-server.yml",
+        "sudo systemctl start apm-server",
+        "sleep 1",
+        ] : [
+        "sudo cp ${local.bin_path} apm-server",
+        "chmod +x apm-server",
+        "sudo cp ${local.conf_path} apm-server.yml",
+        "./apm-server"
+      ]
+    )
   }
 
   vpc_security_group_ids = [aws_security_group.main.id]
+
+  tags = var.tags
 }
 
 resource "null_resource" "apm_server_log" {
