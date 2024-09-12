@@ -189,7 +189,7 @@ resource "aws_instance" "apm" {
         "sudo cp ${local.bin_path} apm-server",
         "chmod +x apm-server",
         "sudo cp ${local.conf_path} apm-server.yml",
-        "./apm-server"
+        "./apm-server &"
       ]
     )
   }

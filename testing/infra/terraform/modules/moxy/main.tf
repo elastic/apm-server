@@ -74,7 +74,7 @@ resource "aws_instance" "moxy" {
     inline = [
       "sudo cp ${local.bin_path} moxy",
       "chmod +x moxy",
-      "./moxy"
+      "./moxy &"
     ]
   }
 
