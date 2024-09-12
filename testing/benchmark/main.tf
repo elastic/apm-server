@@ -107,7 +107,7 @@ module "standalone_apm_server" {
   count  = var.run_standalone ? 1 : 0
   source = "../infra/terraform/modules/standalone_apm_server"
 
-  aws_os              = "amzn2-ami-kernel-5.10"
+  aws_os              = "amzn2-ami-hvm-*-x86_64-ebs"
   ea_managed          = false
   apm_server_bin_path = var.apm_server_bin_path
   apm_instance_type   = var.worker_instance_type

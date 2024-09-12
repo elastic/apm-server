@@ -120,7 +120,7 @@ jobs:
         if: ${{ inputs.runStandalone }}
         run: |
           make moxy
-          cd ../.. && make build/apm-server-linux-arm64
+          cd ../.. && make build/apm-server-linux-amd64 && mv build/apm-server-linux-amd64 build/apm-server
 
       - name: Override docker committed version
         if: ${{ ! inputs.runOnStable && ! inputs.runStandalone}}

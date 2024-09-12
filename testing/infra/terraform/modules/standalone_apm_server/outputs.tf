@@ -5,6 +5,6 @@ output "apm_secret_token" {
 }
 
 output "apm_server_url" {
-  value       = "${aws_instance.apm.public_ip}:${local.apm_port}"
+  value       = "http://${aws_instance.apm.public_ip}:${local.apm_port}"
   description = "The APM Server URL"
 }

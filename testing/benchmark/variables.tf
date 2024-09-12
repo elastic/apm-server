@@ -93,7 +93,7 @@ variable "drop_pipeline" {
 }
 
 variable "apm_server_bin_path" {
-  default     = "../../build/apm-server-linux-amd64"
+  default     = "../../build"
   type        = string
   description = "Optional path to the apm-server binary"
 }

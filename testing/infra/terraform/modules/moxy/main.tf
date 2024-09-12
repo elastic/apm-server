@@ -67,7 +67,7 @@ resource "aws_instance" "moxy" {
   }
 
   provisioner "file" {
-    source      = var.moxy_bin_path
+    source      = "${var.moxy_bin_path}/moxy"
     destination = local.bin_path
   }
   provisioner "remote-exec" {
