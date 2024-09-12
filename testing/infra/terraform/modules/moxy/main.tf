@@ -84,6 +84,6 @@ resource "aws_instance" "moxy" {
 }
 
 resource "aws_key_pair" "provisioner_key" {
-  key_name   = var.aws_provisioner_key_name
   public_key = file("${var.aws_provisioner_key_name}.pub")
+  tags       = var.tags
 }
