@@ -1,9 +1,3 @@
-variable "worker_region" {
-  default     = "us-west-2"
-  description = "Optional AWS region where the workers will be created. Defaults to us-west-2 (AWS)"
-  type        = string
-}
-
 variable "instance_type" {
   type        = string
   description = "Moxy instance type"

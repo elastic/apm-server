@@ -46,7 +46,8 @@ locals {
 }
 
 module "ec_deployment" {
-  source = "../infra/terraform/modules/ec_deployment"
+  for_each = var.run_standalone ? [] : toset(["this"])
+  source   = "../infra/terraform/modules/ec_deployment"
 
   region        = var.ess_region
   stack_version = var.stack_version
@@ -73,8 +74,8 @@ module "ec_deployment" {
 
 module "benchmark_worker" {
   source = "../infra/terraform/modules/benchmark_executor"
-  region = var.worker_region
 
+  region    = var.worker_region
   user_name = var.user_name
 
   apm_server_url   = module.ec_deployment.apm_url
@@ -85,6 +86,37 @@ module "benchmark_worker" {
 
   public_key  = var.public_key
   private_key = var.private_key
+
+  tags = merge(local.ci_tags, module.tags.tags)
+}
+
+module "moxy" {
+  for_each = var.run_standalone ? toset(["this"]) : []
+  source   = "../infra/terraform/modules/moxy"
+
+  moxy_bin_path = var.moxy_bin_path
+  instance_type = var.worker_instance_type
+
+  aws_provisioner_key_name = var.private_key
+
+  tags = merge(local.ci_tags, module.tags.tags)
+}
+
+
+module "standalone_apm_server" {
+  for_each = var.run_standalone ? toset(["this"]) : []
+  source   = "../infra/terraform/modules/standalone_apm_server"
+
+  aws_os              = "amzn2-ami-kernel-5.10"
+  ea_managed          = false
+  apm_server_bin_path = var.apm_server_bin_path
+  apm_instance_type   = var.worker_instance_type
+
+  aws_provisioner_key_name = var.private_key
+
+  elasticsearch_url      = module.moxy.moxy_url
+  elasticsearch_username = ""
+  elasticsearch_password = ""
 
   tags = merge(local.ci_tags, module.tags.tags)
 }

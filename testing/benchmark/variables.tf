@@ -5,6 +5,12 @@ variable "user_name" {
   type        = string
 }
 
+variable "run_standalone" {
+  default     = false
+  description = "If set run benchmarks against standalone APM Server conneted to moxy"
+  type        = bool
+}
+
 ## Deployment configuration
 
 variable "ess_region" {
@@ -84,6 +90,18 @@ variable "drop_pipeline" {
   default     = false
   description = "Whether or not to install an Elasticsearch ingest pipeline to drop all incoming APM documents. Defaults to false"
   type        = bool
+}
+
+variable "apm_server_bin_path" {
+  default     = "../../build/apm-server-linux-amd64"
+  type        = string
+  description = "Optional path to the apm-server binary"
+}
+
+variable "moxy_bin_path" {
+  default     = "../../systemtest/cmd/moxy"
+  type        = string
+  description = "Optional path to the moxy binary"
 }
 
 ## Worker configuraiton

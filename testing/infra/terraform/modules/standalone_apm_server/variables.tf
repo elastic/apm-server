@@ -45,12 +45,6 @@ variable "region" {
   type        = string
 }
 
-variable "worker_region" {
-  default     = "us-west-2"
-  description = "Optional AWS region where the workers will be created. Defaults to us-west-2 (AWS)"
-  type        = string
-}
-
 variable "ea_managed" {
   default     = false
   description = "Whether or not install Elastic Agent managed APM Server"
