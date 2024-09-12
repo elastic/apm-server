@@ -46,8 +46,8 @@ locals {
 }
 
 module "ec_deployment" {
-  for_each = var.run_standalone ? [] : toset(["this"])
-  source   = "../infra/terraform/modules/ec_deployment"
+  count  = var.run_standalone ? 0 : 1
+  source = "../infra/terraform/modules/ec_deployment"
 
   region        = var.ess_region
   stack_version = var.stack_version
@@ -78,8 +78,8 @@ module "benchmark_worker" {
   region    = var.worker_region
   user_name = var.user_name
 
-  apm_server_url   = module.ec_deployment.apm_url
-  apm_secret_token = module.ec_deployment.apm_secret_token
+  apm_server_url   = var.run_standalone ? module.standalone_apm_server[0].apm_server_url : module.ec_deployment[0].apm_url
+  apm_secret_token = var.run_standalone ? module.standalone_apm_server[0].apm_secret_token : module.ec_deployment[0].apm_secret_token
 
   apmbench_bin_path = var.apmbench_bin_path
   instance_type     = var.worker_instance_type
@@ -91,8 +91,8 @@ module "benchmark_worker" {
 }
 
 module "moxy" {
-  for_each = var.run_standalone ? toset(["this"]) : []
-  source   = "../infra/terraform/modules/moxy"
+  count  = var.run_standalone ? 1 : 0
+  source = "../infra/terraform/modules/moxy"
 
   moxy_bin_path = var.moxy_bin_path
   instance_type = var.worker_instance_type
@@ -104,8 +104,8 @@ module "moxy" {
 
 
 module "standalone_apm_server" {
-  for_each = var.run_standalone ? toset(["this"]) : []
-  source   = "../infra/terraform/modules/standalone_apm_server"
+  count  = var.run_standalone ? 1 : 0
+  source = "../infra/terraform/modules/standalone_apm_server"
 
   aws_os              = "amzn2-ami-kernel-5.10"
   ea_managed          = false
@@ -114,7 +114,7 @@ module "standalone_apm_server" {
 
   aws_provisioner_key_name = var.private_key
 
-  elasticsearch_url      = module.moxy.moxy_url
+  elasticsearch_url      = module.moxy[0].moxy_url
   elasticsearch_username = ""
   elasticsearch_password = ""
 
