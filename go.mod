@@ -52,11 +52,7 @@ require (
 	golang.org/x/sync v0.8.0
 	golang.org/x/term v0.24.0
 	golang.org/x/time v0.6.0
-<<<<<<< HEAD
-	google.golang.org/grpc v1.66.0
-=======
 	google.golang.org/grpc v1.66.2
->>>>>>> 83c4e2e87 (build(deps): bump google.golang.org/grpc from 1.66.1 to 1.66.2 (#14072))
 	google.golang.org/protobuf v1.34.2
 	gopkg.in/yaml.v3 v3.0.1
 )
