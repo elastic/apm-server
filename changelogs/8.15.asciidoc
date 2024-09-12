@@ -43,7 +43,7 @@ https://github.com/elastic/apm-server/compare/v8.14.3\...v8.15.0[View commits]
 [float]
 ==== Breaking Changes
 
-- Integration custom ingest pipelines `logs-apm.integration@custom`, `metrics-apm.integration@custom`, and `traces-apm.integration@custom` are no longer supported as APM Server migrated from APM integration package to Elasticsearch apm-data plugin {pull}12066[12066]
+- Integration custom ingest pipelines `logs-apm.integration@custom`, `metrics-apm.integration@custom`, and `traces-apm.integration@custom` are no longer supported. Any existing pipelines above will need to be moved to the more fine-grained `\*-apm*@custom` ingest pipelines {pull}12066[12066]
 
 [float]
 ==== Added
