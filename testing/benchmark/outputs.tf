@@ -26,13 +26,13 @@ output "kibana_url" {
 }
 
 output "apm_secret_token" {
-  value       = var.run_standalone ? module.standalone_apm_server[0].apm_server_url : module.ec_deployment[0].apm_url
+  value       = var.run_standalone ? module.standalone_apm_server[0].apm_secret_token : module.ec_deployment[0].apm_secret_token
   description = "The APM Server secret token"
   sensitive   = true
 }
 
 output "apm_server_url" {
-  value       = var.run_standalone ? module.standalone_apm_server[0].apm_secret_token : module.ec_deployment[0].apm_secret_token
+  value       = var.run_standalone ? module.standalone_apm_server[0].apm_server_url : module.ec_deployment[0].apm_url
   description = "The APM Server URL"
   sensitive   = true
 }

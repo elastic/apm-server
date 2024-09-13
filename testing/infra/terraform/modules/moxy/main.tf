@@ -83,8 +83,9 @@ resource "aws_instance" "moxy" {
   provisioner "remote-exec" {
     inline = [
       "sudo cp ${local.bin_path} moxy",
-      "chmod +x moxy",
-      "./moxy &"
+      "sudo chmod +x moxy",
+      "screen -d -m ./moxy -password=${random_password.moxy_password.result}",
+      "sleep 1"
     ]
   }
 
@@ -94,4 +95,10 @@ resource "aws_instance" "moxy" {
 resource "aws_key_pair" "provisioner_key" {
   public_key = file("${var.aws_provisioner_key_name}.pub")
   tags       = var.tags
+}
+
+
+resource "random_password" "moxy_password" {
+  length  = 16
+  special = false
 }

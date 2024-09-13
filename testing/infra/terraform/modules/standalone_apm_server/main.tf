@@ -202,9 +202,11 @@ resource "aws_instance" "apm" {
         "sleep 1",
         ] : [
         "sudo cp ${local.bin_path} apm-server",
-        "chmod +x apm-server",
+        "sudo chmod +x apm-server",
         "sudo cp ${local.conf_path} apm-server.yml",
-        "./apm-server &"
+        "sudo mkdir -m 777 /var/log/apm-server",
+        "screen -d -m ./apm-server",
+        "sleep 1"
       ]
     )
   }

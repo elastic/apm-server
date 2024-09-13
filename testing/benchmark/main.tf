@@ -35,7 +35,9 @@ module "tags" {
   project = startswith(var.user_name, "benchci") ? "benchmarks" : var.user_name
 }
 
-provider "ec" {}
+provider "ec" {
+  apikey = "aaa"
+}
 
 provider "aws" {
   region = var.worker_region
@@ -127,7 +129,7 @@ module "benchmark_worker" {
   private_key = var.private_key
 
   tags       = merge(local.ci_tags, module.tags.tags)
-  depends_on = [module.vpc]
+  depends_on = [module.moxy, module.ec_deployment]
 }
 
 module "moxy" {
@@ -158,9 +160,9 @@ module "standalone_apm_server" {
   aws_provisioner_key_name = var.private_key
 
   elasticsearch_url      = module.moxy[0].moxy_url
-  elasticsearch_username = ""
-  elasticsearch_password = ""
+  elasticsearch_username = "elastic"
+  elasticsearch_password = module.moxy[0].moxy_password
 
   tags       = merge(local.ci_tags, module.tags.tags)
-  depends_on = [module.vpc]
+  depends_on = [module.moxy]
 }

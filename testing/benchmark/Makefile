@@ -6,6 +6,9 @@ MOXY_PATH ?= ../../systemtest/cmd/moxy
 MOXY_GOOS ?= linux
 MOXY_GOARCH ?= amd64
 
+APM_SERVER_GOOS ?= linux
+APM_SERVER_GOARCH ?= amd64
+
 TFVARS_SOURCE ?= terraform.tfvars.example
 
 BENCHMARK_WARMUP_TIME ?= 5m
@@ -75,6 +78,10 @@ apmbench:
 moxy:
 	@echo "-> Building moxy..."
 	@cd $(MOXY_PATH) && CGO_ENABLED=0 GOOS=$(MOXY_GOOS) GOARCH=$(MOXY_GOARCH) go build .
+
+.PHONY: apm-server
+apm-server:
+	@cd ../.. && make build/apm-server-$(APM_SERVER_GOOS)-$(APM_SERVER_GOARCH) && mv build/apm-server-$(APM_SERVER_GOOS)-$(APM_SERVER_GOARCH) build/apm-server
 
 .PHONY: init
 init:
