@@ -136,7 +136,7 @@ variable "apmbench_bin_path" {
 }
 
 variable "worker_instance_type" {
-  default     = "c6i.large"
+  default     = "c6i.2xlarge"
   type        = string
   description = "Optional instance type to use for the worker VM"
 }

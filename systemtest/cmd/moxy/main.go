@@ -8,12 +8,19 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"sync"
 
 	"github.com/klauspost/compress/gzip"
 	"github.com/klauspost/compress/zstd"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
+
+var memPool = sync.Pool{
+	New: func() interface{} {
+		return new(bytes.Buffer)
+	},
+}
 
 func main() {
 	logLevel := zap.LevelFlag(
@@ -49,18 +56,6 @@ func handler(logger *zap.Logger, username, password string) http.Handler {
 	expectedAuth := fmt.Sprintf("%s:%s", username, password)
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Elastic-Product", "Elasticsearch")
-		auth := r.Header.Get("Authorization")
-		actualAuth, err := base64.StdEncoding.DecodeString(auth)
-		if err != nil || string(actualAuth) != expectedAuth {
-			logger.Error(
-				"authentication failed",
-				zap.Error(err),
-				zap.String("actual", string(actualAuth)),
-				zap.String("expected", expectedAuth),
-			)
-			w.WriteHeader(http.StatusUnauthorized)
-			return
-		}
 		switch r.URL.Path {
 		case "/":
 			// MIS doesn't use this route, but apm-server checks for cluster_uuid
@@ -81,9 +76,22 @@ func handler(logger *zap.Logger, username, password string) http.Handler {
 			},
 			"tagline": "You Know, for Search"
 			}`))
+			return
 		case "/_security/user/_has_privileges":
 			w.Write([]byte(`{"username":"admin","has_all_requested":true,"cluster":{},"index":{},"application":{"apm":{"-":{"event:write":true}}}}`))
 		case "/_bulk":
+			auth := r.Header.Get("Authorization")
+			actualAuth, err := base64.StdEncoding.DecodeString(auth)
+			if err != nil || string(actualAuth) != expectedAuth {
+				logger.Error(
+					"authentication failed",
+					zap.Error(err),
+					zap.String("actual", string(actualAuth)),
+					zap.String("expected", expectedAuth),
+				)
+				w.WriteHeader(http.StatusUnauthorized)
+				return
+			}
 			first := true
 			var body io.Reader
 			switch r.Header.Get("Content-Encoding") {
@@ -109,7 +117,12 @@ func handler(logger *zap.Logger, username, password string) http.Handler {
 				body = r.Body
 			}
 
-			var jsonw bytes.Buffer
+			jsonw := memPool.Get().(*bytes.Buffer)
+			defer func() {
+				jsonw.Reset()
+				memPool.Put(jsonw)
+			}()
+
 			jsonw.Write([]byte(`{"items":[`))
 			scanner := bufio.NewScanner(body)
 			for scanner.Scan() {
