@@ -126,7 +126,8 @@ module "benchmark_worker" {
   public_key  = var.public_key
   private_key = var.private_key
 
-  tags = merge(local.ci_tags, module.tags.tags)
+  tags       = merge(local.ci_tags, module.tags.tags)
+  depends_on = [module.vpc]
 }
 
 module "moxy" {
@@ -139,7 +140,8 @@ module "moxy" {
 
   aws_provisioner_key_name = var.private_key
 
-  tags = merge(local.ci_tags, module.tags.tags)
+  tags       = merge(local.ci_tags, module.tags.tags)
+  depends_on = [module.vpc]
 }
 
 
@@ -159,5 +161,6 @@ module "standalone_apm_server" {
   elasticsearch_username = ""
   elasticsearch_password = ""
 
-  tags = merge(local.ci_tags, module.tags.tags)
+  tags       = merge(local.ci_tags, module.tags.tags)
+  depends_on = [module.vpc]
 }

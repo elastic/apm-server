@@ -158,7 +158,7 @@ resource "aws_security_group" "main" {
 resource "aws_instance" "apm" {
   ami                    = data.aws_ami.os.id
   instance_type          = var.apm_instance_type == "" ? local.instance_types[var.aws_os] : var.apm_instance_type
-  subnet_id              = data.aws_subnets.public_subnets.id
+  subnet_id              = data.aws_subnets.public_subnets.ids[0]
   vpc_security_group_ids = [aws_security_group.main.id]
   key_name               = aws_key_pair.provisioner_key.key_name
   monitoring             = false

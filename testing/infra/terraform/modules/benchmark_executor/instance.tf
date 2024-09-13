@@ -37,7 +37,7 @@ module "ec2_instance" {
   instance_type               = var.instance_type
   monitoring                  = false
   vpc_security_group_ids      = [data.aws_security_group.security_group.id]
-  subnet_id                   = data.aws_subnets.public_subnets.id
+  subnet_id                   = data.aws_subnets.public_subnets.ids[0]
   associate_public_ip_address = true
   key_name                    = aws_key_pair.worker.id
   tags                        = merge(var.tags, local.ec2_tags)
