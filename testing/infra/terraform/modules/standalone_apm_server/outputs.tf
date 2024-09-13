@@ -8,3 +8,8 @@ output "apm_server_url" {
   value       = "http://${aws_instance.apm.public_ip}:${local.apm_port}"
   description = "The APM Server URL"
 }
+
+output "apm_server_ip" {
+  value       = aws_instance.apm.public_ip
+  description = "The APM Server EC2 IP address"
+}

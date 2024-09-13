@@ -58,7 +58,7 @@ func handler(logger *zap.Logger, username, password string) http.Handler {
 				zap.String("actual", string(actualAuth)),
 				zap.String("expected", expectedAuth),
 			)
-			// w.WriteHeader(http.StatusUnauthorized)
+			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
 		switch r.URL.Path {

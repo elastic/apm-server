@@ -30,6 +30,7 @@ SSH_USER ?= ec2-user
 SSH_OPTS ?= -o LogLevel=ERROR -o StrictHostKeyChecking=no -o ServerAliveInterval=60 -o ServerAliveCountMax=10
 SSH_KEY ?= ~/.ssh/id_rsa_terraform
 WORKER_IP = $(shell terraform output -raw public_ip)
+APM_SERVER_IP = $(shell terraform output -raw apm_server_ip)
 
 SHELL = /bin/bash
 .SHELLFLAGS = -o pipefail -c
@@ -133,6 +134,10 @@ _default-gobench-vars:
 	$(eval GOBENCH_DEFAULT_TAGS = $(GOBENCH_DEFAULT_TAGS),apm_server_zone_count=$(shell echo var.apm_server_zone_count | terraform console | tr -d '"'))
 	$(eval GOBENCH_DEFAULT_TAGS = $(GOBENCH_DEFAULT_TAGS),elasticsearch_zone_count=$(shell echo var.elasticsearch_zone_count | terraform console | tr -d '"'))
 	$(eval GOBENCH_DEFAULT_TAGS = $(GOBENCH_DEFAULT_TAGS),build_sha=$(shell curl -sL -H "Authorization: Bearer $(shell terraform output -raw apm_secret_token )" $(shell terraform output -raw apm_server_url ) | jq -r '.build_sha'))
+
+.PHONY: cat-apm-server-logs
+cat-apm-server-logs:
+	@ssh $(SSH_OPTS) -i $(SSH_KEY) $(SSH_USER)@$(APM_SERVER_IP) "cat /var/log/apm-server/*"
 
 $(SSH_KEY):
 	@ssh-keygen -t rsa -b 4096 -C "$(USER)@elastic.co" -N "" -f $(SSH_KEY)

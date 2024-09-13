@@ -37,6 +37,12 @@ output "apm_server_url" {
   sensitive   = true
 }
 
+output "apm_server_ip" {
+  value       = var.run_standalone ? module.standalone_apm_server[0].apm_server_ip : ""
+  description = "The APM Server EC2 IP address"
+  sensitive   = true
+}
+
 output "admin_console_url" {
   value       = !var.run_standalone ? module.ec_deployment[0].admin_console_url : ""
   description = "The admin console URL"

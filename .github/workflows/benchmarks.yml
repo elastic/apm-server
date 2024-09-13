@@ -61,7 +61,7 @@ jobs:
       GOBENCH_USERNAME: ${{ secrets.GOBENCH_USERNAME }}
       GOBENCH_HOST: ${{ secrets.GOBENCH_HOST }}
       # temporarily override to get faster feedback
-      BENCHMARK_WARMUP_TIME: 5m
+      BENCHMARK_WARMUP_TIME: 1m
       BENCHMARK_COUNT: 2
       BENCHMARK_TIME: 1m
     steps:
@@ -141,6 +141,10 @@ jobs:
       - name: Run benchmarks self tuned
         if: ${{ inputs.benchmarkAgents != '' }}
         run: make run-benchmark
+
+      - name: Cat APM Server logs
+        if: failure()
+        run: make cat-apm-server-logs
 
       # Results are only indexed and uploaded if the run happens on the main branch.
 
