@@ -93,6 +93,8 @@ variable "drop_pipeline" {
   type        = bool
 }
 
+# Standalone
+
 variable "apm_server_bin_path" {
   default     = "../../build"
   type        = string
@@ -103,6 +105,18 @@ variable "moxy_bin_path" {
   default     = "../../systemtest/cmd/moxy"
   type        = string
   description = "Optional path to the moxy binary"
+}
+
+variable "standalone_apm_server_instance_size" {
+  default     = "c6i.2xlarge"
+  type        = string
+  description = "Optional instance type to use for the APM Server VM"
+}
+
+variable "standalone_moxy_instance_size" {
+  default     = "c6i.4xlarge"
+  type        = string
+  description = "Optional instance type to use for the Moxy VM"
 }
 
 ## VPC Network settings
@@ -136,7 +150,7 @@ variable "apmbench_bin_path" {
 }
 
 variable "worker_instance_type" {
-  default     = "c6i.2xlarge"
+  default     = "c6i.xlarge"
   type        = string
   description = "Optional instance type to use for the worker VM"
 }

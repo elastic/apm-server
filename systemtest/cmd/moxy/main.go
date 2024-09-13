@@ -92,6 +92,7 @@ func handler(logger *zap.Logger, username, password string) http.Handler {
 				w.WriteHeader(http.StatusUnauthorized)
 				return
 			}
+
 			first := true
 			var body io.Reader
 			switch r.Header.Get("Content-Encoding") {
@@ -146,6 +147,7 @@ func handler(logger *zap.Logger, username, password string) http.Handler {
 				jsonw.Write([]byte(`]}`))
 				w.Write(jsonw.Bytes())
 			}
+			// TODO additionally report events throughput metric here, to index into benchmarks.
 		default:
 			logger.Error("unknown path", zap.String("path", r.URL.Path))
 		}

@@ -137,7 +137,7 @@ module "moxy" {
   source = "../infra/terraform/modules/moxy"
 
   vpc_id        = module.vpc.vpc_id
-  instance_type = var.worker_instance_type
+  instance_type = var.standalone_moxy_instance_size
   moxy_bin_path = var.moxy_bin_path
 
   aws_provisioner_key_name = var.private_key
@@ -153,7 +153,7 @@ module "standalone_apm_server" {
 
   vpc_id              = module.vpc.vpc_id
   aws_os              = "amzn2-ami-hvm-*-x86_64-ebs"
-  apm_instance_type   = var.worker_instance_type
+  apm_instance_type   = var.standalone_apm_server_instance_size
   apm_server_bin_path = var.apm_server_bin_path
   ea_managed          = false
 
