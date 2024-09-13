@@ -1,18 +1,22 @@
 variable "aws_os" {
   default     = ""
-  description = "Optional aws ec2 instance OS"
+  description = "Optional aws EC2 instance OS"
   type        = string
 }
 
 variable "apm_instance_type" {
   default     = ""
   type        = string
-  description = "Optional apm server instance type"
+  description = "Optional apm server instance type overide"
+}
+
+variable "vpc_id" {
+  description = "VPC ID to provision the EC2 instance"
+  type        = string
 }
 
 variable "aws_provisioner_key_name" {
-  default     = ""
-  description = "Optional ssh key name to create the aws key pair and remote provision the ec2 instance"
+  description = "ssh key name to create the aws key pair and remote provision the EC2 instance"
   type        = string
 }
 
@@ -54,7 +58,7 @@ variable "ea_managed" {
 variable "apm_server_bin_path" {
   default     = ""
   type        = string
-  description = "Optionally use the apm-server binary from the specified path to the worker machine"
+  description = "Optionally use the apm-server binary from the specified path instead"
 }
 
 variable "tags" {

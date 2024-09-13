@@ -107,17 +107,15 @@ data "aws_ami" "os" {
   owners = [local.image_owners[var.aws_os]]
 }
 
-data "aws_ami" "worker_ami" {
-  owners      = ["amazon"]
-  most_recent = true
-
+data "aws_subnets" "public_subnets" {
   filter {
-    name   = "name"
-    values = ["amzn2-ami-hvm-*-x86_64-ebs"]
+    name   = "vpc-id"
+    values = [var.vpc_id]
   }
 }
 
 resource "aws_security_group" "main" {
+  vpc_id = var.vpc_id
   egress = [
     {
       cidr_blocks      = ["0.0.0.0/0", ]
@@ -158,9 +156,12 @@ resource "aws_security_group" "main" {
 }
 
 resource "aws_instance" "apm" {
-  ami           = data.aws_ami.os.id
-  instance_type = var.apm_instance_type == "" ? local.instance_types[var.aws_os] : var.apm_instance_type
-  key_name      = aws_key_pair.provisioner_key.key_name
+  ami                    = data.aws_ami.os.id
+  instance_type          = var.apm_instance_type == "" ? local.instance_types[var.aws_os] : var.apm_instance_type
+  subnet_id              = data.aws_subnets.public_subnets.id
+  vpc_security_group_ids = [aws_security_group.main.id]
+  key_name               = aws_key_pair.provisioner_key.key_name
+  monitoring             = false
 
   connection {
     type        = "ssh"
@@ -207,8 +208,6 @@ resource "aws_instance" "apm" {
       ]
     )
   }
-
-  vpc_security_group_ids = [aws_security_group.main.id]
 
   tags = var.tags
 }

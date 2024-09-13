@@ -45,6 +45,44 @@ locals {
   name_prefix = "${coalesce(var.user_name, "unknown-user")}-bench"
 }
 
+module "vpc" {
+  source  = "terraform-aws-modules/vpc/aws"
+  version = "3.14.0"
+
+  name = "${var.user_name}-worker"
+  cidr = var.vpc_cidr
+
+  azs                = [for letter in ["a", "b", "c"] : "${var.worker_region}${letter}"]
+  public_subnets     = var.public_cidr
+  enable_ipv6        = false
+  enable_nat_gateway = false
+  single_nat_gateway = false
+
+  manage_default_security_group = true
+  default_security_group_ingress = [
+    {
+      "from_port" : 0,
+      "to_port" : 0,
+      "protocol" : -1,
+      "self" : true,
+      "cidr_blocks" : "0.0.0.0/0",
+    }
+  ]
+  default_security_group_egress = [
+    {
+      "from_port" : 0,
+      "to_port" : 0,
+      "protocol" : -1,
+      "cidr_blocks" : "0.0.0.0/0",
+    }
+  ]
+
+  tags = merge(local.ci_tags, module.tags.tags)
+  vpc_tags = {
+    Name = "vpc-${var.user_name}-worker"
+  }
+}
+
 module "ec_deployment" {
   count  = var.run_standalone ? 0 : 1
   source = "../infra/terraform/modules/ec_deployment"
@@ -75,6 +113,7 @@ module "ec_deployment" {
 module "benchmark_worker" {
   source = "../infra/terraform/modules/benchmark_executor"
 
+  vpc_id    = module.vpc.vpc_id
   region    = var.worker_region
   user_name = var.user_name
 
@@ -94,8 +133,9 @@ module "moxy" {
   count  = var.run_standalone ? 1 : 0
   source = "../infra/terraform/modules/moxy"
 
-  moxy_bin_path = var.moxy_bin_path
+  vpc_id        = module.vpc.vpc_id
   instance_type = var.worker_instance_type
+  moxy_bin_path = var.moxy_bin_path
 
   aws_provisioner_key_name = var.private_key
 
@@ -107,10 +147,11 @@ module "standalone_apm_server" {
   count  = var.run_standalone ? 1 : 0
   source = "../infra/terraform/modules/standalone_apm_server"
 
+  vpc_id              = module.vpc.vpc_id
   aws_os              = "amzn2-ami-hvm-*-x86_64-ebs"
-  ea_managed          = false
-  apm_server_bin_path = var.apm_server_bin_path
   apm_instance_type   = var.worker_instance_type
+  apm_server_bin_path = var.apm_server_bin_path
+  ea_managed          = false
 
   aws_provisioner_key_name = var.private_key
 

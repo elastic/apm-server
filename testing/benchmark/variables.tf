@@ -104,6 +104,22 @@ variable "moxy_bin_path" {
   description = "Optional path to the moxy binary"
 }
 
+## VPC Network settings
+
+variable "vpc_cidr" {
+  default = "192.168.44.0/24"
+  type    = string
+}
+
+variable "public_cidr" {
+  default = [
+    "192.168.44.0/26",
+    "192.168.44.64/26",
+    "192.168.44.128/26",
+  ]
+  type = list(string)
+}
+
 ## Worker configuraiton
 
 variable "worker_region" {

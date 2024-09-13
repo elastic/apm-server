@@ -3,15 +3,19 @@ variable "instance_type" {
   description = "Moxy instance type"
 }
 
-variable "moxy_bin_path" {
+variable "vpc_id" {
+  description = "VPC ID to provision the EC2 instance"
   type        = string
-  description = "Optionally use the apm-server binary from the specified path to the worker machine"
 }
 
 variable "aws_provisioner_key_name" {
-  default     = ""
-  description = "Optional ssh key name to create the aws key pair and remote provision the ec2 instance"
+  description = "ssh key name to create the aws key pair and remote provision the EC2 instance"
   type        = string
+}
+
+variable "moxy_bin_path" {
+  type        = string
+  description = "Path to moxy binary from to copy to the worker machine"
 }
 
 variable "tags" {
