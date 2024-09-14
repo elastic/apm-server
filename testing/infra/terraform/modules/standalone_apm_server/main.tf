@@ -6,7 +6,7 @@ locals {
     "debian-10-arm64"                  = "136693071363" # debian
     "debian-11-arm64"                  = "136693071363" # debian
     "amzn2-ami-kernel-5.10"            = "137112412989" # amazon
-    "amzn2-ami-hvm-*-x86_64-ebs"       = "137112412989" #amazon
+    "amzn2-ami-hvm-*-x86_64-ebs"       = "137112412989" # amazon
     "al2023-ami-2023"                  = "137112412989" # amazon
     "RHEL-7"                           = "309956199498" # Red Hat
     "RHEL-8"                           = "309956199498" # Red Hat

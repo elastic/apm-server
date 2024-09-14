@@ -142,18 +142,18 @@ jobs:
         if: ${{ inputs.benchmarkAgents != '' }}
         run: make run-benchmark
 
-      - name: Cat APM Server logs
-        if: failure()
+      - name: Cat standalone server logs
+        if: ${{ inputs.runStandalone && failure() }}
         run: make cat-apm-server-logs
 
       # Results are only indexed and uploaded if the run happens on the main branch.
 
       - name: Index benchmarks result
-        if: github.ref == 'refs/heads/main'
+        # if: github.ref == 'refs/heads/main'
         run: make index-benchmark-results
 
       - name: Download PNG
-        if: github.ref == 'refs/heads/main'
+        # if: github.ref == 'refs/heads/main'
         run: >-
           ${{ github.workspace }}/.ci/scripts/download-png-from-kibana.sh
           ${{ secrets.KIBANA_BENCH_ENDPOINT }}
@@ -162,7 +162,7 @@ jobs:
           $PNG_REPORT_FILE
 
       - name: Upload PNG
-        if: github.ref == 'refs/heads/main'
+        # if: github.ref == 'refs/heads/main'
         uses: actions/upload-artifact@v4
         with:
           name: kibana-png-report
@@ -170,7 +170,7 @@ jobs:
           if-no-files-found: error
 
       - name: Upload PNG to AWS S3
-        if: github.ref == 'refs/heads/main'
+        # if: github.ref == 'refs/heads/main'
         id: s3-upload-png
         env:
           AWS_DEFAULT_REGION: us-east-1
@@ -180,7 +180,7 @@ jobs:
           echo "png_report_url=https://elastic-apm-server-benchmark-reports.s3.amazonaws.com/${DEST_NAME}" >> "$GITHUB_OUTPUT"
 
       - name: Upload benchmark result
-        if: github.ref == 'refs/heads/main'
+        # if: github.ref == 'refs/heads/main'
         uses: actions/upload-artifact@v4
         with:
           name: benchmark-result
@@ -225,7 +225,7 @@ jobs:
 
       - name: Tear down benchmark environment
         if: always()
-        run: make destroy
+        run: make init destroy
 
       # Notify failure to Slack only on schedule (nightly run)
       - if: failure() && github.event_name == 'schedule'

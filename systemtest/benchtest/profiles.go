@@ -88,12 +88,7 @@ func (p *profiles) recordCPU() error {
 	if benchConfig.CPUProfile == "" {
 		return nil
 	}
-	// Limit the CPU profile collection to static 1 minute interval per a benchmark.
-	// Otherwise the profile will be too heavy and over influenced by the "longest" benchmark.
-	duration := time.Minute
-	if duration > benchConfig.Benchtime {
-		duration = benchConfig.Benchtime
-	}
+	duration := benchConfig.Benchtime
 	profile, err := fetchProfile("/debug/pprof/profile", duration)
 	if err != nil {
 		return fmt.Errorf("failed to fetch CPU profile: %w", err)

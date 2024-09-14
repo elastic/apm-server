@@ -58,7 +58,6 @@ func handler(logger *zap.Logger, username, password string) http.Handler {
 		w.Header().Set("X-Elastic-Product", "Elasticsearch")
 		switch r.URL.Path {
 		case "/":
-			// MIS doesn't use this route, but apm-server checks for cluster_uuid
 			w.Write([]byte(`{
 			"name": "instance-0000000001",
 			"cluster_name": "eca3b3c3bbee4816bb92f82184e328dd",

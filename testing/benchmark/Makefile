@@ -9,6 +9,8 @@ MOXY_GOARCH ?= amd64
 APM_SERVER_GOOS ?= linux
 APM_SERVER_GOARCH ?= amd64
 
+RUN_STANDALONE ?= false
+
 TFVARS_SOURCE ?= terraform.tfvars.example
 
 BENCHMARK_WARMUP_TIME ?= 5m
@@ -127,6 +129,12 @@ index-benchmark-results: _default-gobench-vars
 
 .PHONY: _default-gobench-vars
 _default-gobench-vars:
+ifeq ($(RUN_STANDALONE),true)
+	$(eval GOBENCH_DEFAULT_TAGS = $(GOBENCH_DEFAULT_TAGS),apm_server_size=$(shell echo var.standalone_apm_server_instance_size | terraform console | tr -d '"'))
+	$(eval GOBENCH_DEFAULT_TAGS = $(GOBENCH_DEFAULT_TAGS),moxy_size=$(shell echo var.standalone_moxy_instance_size | terraform console | tr -d '"'))
+	$(eval GOBENCH_DEFAULT_TAGS = $(GOBENCH_DEFAULT_TAGS),build_sha=$(shell git rev-parse HEAD))
+	$(eval GOBENCH_DEFAULT_TAGS = $(GOBENCH_DEFAULT_TAGS),bench_mode=standalone)
+else
 # TODO(marclop) Update code below to use a foor loop, rather than copying the lines.
 	$(eval GOBENCH_DEFAULT_TAGS = $(GOBENCH_DEFAULT_TAGS),apm_server_size=$(shell echo var.apm_server_size | terraform console | tr -d '"'))
 	$(eval GOBENCH_DEFAULT_TAGS = $(GOBENCH_DEFAULT_TAGS),elasticsearch_size=$(shell echo var.elasticsearch_size | terraform console | tr -d '"'))
@@ -134,6 +142,8 @@ _default-gobench-vars:
 	$(eval GOBENCH_DEFAULT_TAGS = $(GOBENCH_DEFAULT_TAGS),apm_server_zone_count=$(shell echo var.apm_server_zone_count | terraform console | tr -d '"'))
 	$(eval GOBENCH_DEFAULT_TAGS = $(GOBENCH_DEFAULT_TAGS),elasticsearch_zone_count=$(shell echo var.elasticsearch_zone_count | terraform console | tr -d '"'))
 	$(eval GOBENCH_DEFAULT_TAGS = $(GOBENCH_DEFAULT_TAGS),build_sha=$(shell curl -sL -H "Authorization: Bearer $(shell terraform output -raw apm_secret_token )" $(shell terraform output -raw apm_server_url ) | jq -r '.build_sha'))
+	$(eval GOBENCH_DEFAULT_TAGS = $(GOBENCH_DEFAULT_TAGS),bench_mode=cloud)
+endif
 
 .PHONY: cat-apm-server-logs
 cat-apm-server-logs:

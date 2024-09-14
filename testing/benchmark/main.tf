@@ -35,9 +35,7 @@ module "tags" {
   project = startswith(var.user_name, "benchci") ? "benchmarks" : var.user_name
 }
 
-provider "ec" {
-  apikey = "aaa"
-}
+provider "ec" {}
 
 provider "aws" {
   region = var.worker_region

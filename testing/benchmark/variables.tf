@@ -1,13 +1,12 @@
 ## General configuration
 
 variable "user_name" {
-  default     = "test-kostya-vpc-bench-apm"
   description = "Required username to use for prefixes"
   type        = string
 }
 
 variable "run_standalone" {
-  default     = true
+  default     = false
   description = "If set run benchmarks against standalone APM Server conneted to moxy"
   type        = bool
 }
