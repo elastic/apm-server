@@ -192,11 +192,11 @@ jobs:
       # via a PR to update default.pgo.
 
       - name: Copy CPU profile
-        if: ${{ inputs.runStandalone }}
+        if: ${{ inputs.runStandalone && github.ref == 'refs/heads/main' }}
         run: make cp-cpuprof
       
       - name: Upload CPU profile
-        if: ${{ inputs.runStandalone }}
+        if: ${{ inputs.runStandalone && github.ref == 'refs/heads/main' }}
         uses: actions/upload-artifact@v4
         with:
           name: cpu-profile
@@ -204,7 +204,7 @@ jobs:
           if-no-files-found: error
 
       - name: Open PGO PR
-        if: ${{ inputs.runStandalone }}
+        if: ${{ inputs.runStandalone && github.ref == 'refs/heads/main' }}
         run: |
           cd "${{ github.workspace }}"
           mv "$PROFILE_PATH" x-pack/apm-server/default.pgo

@@ -9,8 +9,6 @@ MOXY_GOARCH ?= amd64
 APM_SERVER_GOOS ?= linux
 APM_SERVER_GOARCH ?= amd64
 
-RUN_STANDALONE ?= false
-
 TFVARS_SOURCE ?= terraform.tfvars.example
 
 BENCHMARK_WARMUP_TIME ?= 5m
@@ -33,6 +31,7 @@ SSH_OPTS ?= -o LogLevel=ERROR -o StrictHostKeyChecking=no -o ServerAliveInterval
 SSH_KEY ?= ~/.ssh/id_rsa_terraform
 WORKER_IP = $(shell terraform output -raw public_ip)
 APM_SERVER_IP = $(shell terraform output -raw apm_server_ip)
+RUN_STANDALONE = $(shell echo var.run_standalone | terraform console | tr -d '"')
 
 SHELL = /bin/bash
 .SHELLFLAGS = -o pipefail -c
