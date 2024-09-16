@@ -25,6 +25,10 @@ locals {
   }
 }
 
+data "aws_vpc" "default" {
+  default = true
+}
+
 module "ec_deployment" {
   source = "../../infra/terraform/modules/ec_deployment"
   region = var.region
@@ -44,7 +48,7 @@ module "ec_deployment" {
 module "standalone_apm_server" {
   source = "../../infra/terraform/modules/standalone_apm_server"
 
-  worker_region            = var.worker_region
+  vpc_id                   = aws_vpc.default.vpc_id
   aws_os                   = var.aws_os
   aws_provisioner_key_name = var.aws_provisioner_key_name
 
@@ -56,12 +60,6 @@ module "standalone_apm_server" {
 
   tags       = merge(local.ci_tags, module.tags.tags)
   ea_managed = false
-
-  BRANCH       = var.BRANCH
-  BUILD_ID     = var.BUILD_ID
-  CREATED_DATE = var.CREATED_DATE
-  ENVIRONMENT  = var.ENVIRONMENT
-  REPO         = var.REPO
 }
 
 variable "aws_os" {
@@ -85,12 +83,6 @@ variable "stack_version" {
 variable "region" {
   default     = "gcp-us-west2"
   description = "Optional ESS region where to run the smoke tests"
-  type        = string
-}
-
-variable "worker_region" {
-  default     = "us-west-2"
-  description = "Optional AWS region where the workers will be created. Defaults to us-west-2 (AWS)"
   type        = string
 }
 

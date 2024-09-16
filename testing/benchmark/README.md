@@ -89,7 +89,7 @@ overridden automatically, you need to remove it manually if present.
 #### Override docker image tag
 
 It is possible to override the tag of the docker image that is run in the remote ESS deployment. You can
-specify any of the avilable tags (such as `8.3.0-SNAPSHOT` or a more specific tag `8.3.0-c655cda8-SNAPSHOT`).
+specify any of the available tags (such as `8.3.0-SNAPSHOT` or a more specific tag `8.3.0-c655cda8-SNAPSHOT`).
 Alternatively, you can run `make docker-override-committed-version` in your shell, to have use the committed
 tags in the `docker-compose.yml` file in the repository root.
 

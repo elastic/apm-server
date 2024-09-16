@@ -15,7 +15,7 @@ variable "aws_provisioner_key_name" {
 
 variable "moxy_bin_path" {
   type        = string
-  description = "Path to moxy binary from to copy to the worker machine"
+  description = "Moxy path to binary to copy to the worker machine"
 }
 
 variable "tags" {

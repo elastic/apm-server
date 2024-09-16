@@ -1,3 +1,20 @@
+// Licensed to Elasticsearch B.V. under one or more contributor
+// license agreements. See the NOTICE file distributed with
+// this work for additional information regarding copyright
+// ownership. Elasticsearch B.V. licenses this file to you under
+// the Apache License, Version 2.0 (the "License"); you may
+// not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied.  See the License for the
+// specific language governing permissions and limitations
+// under the License.
+
 package main
 
 import (
@@ -29,6 +46,7 @@ func main() {
 	)
 	username := flag.String("username", "elastic", "authentication username to mimic ES")
 	password := flag.String("password", "", "authentication username to mimic ES")
+	port := flag.Int("port", 9200, "http port to listen on")
 	flag.Parse()
 	zapcfg := zap.NewProductionConfig()
 	zapcfg.EncoderConfig.EncodeTime = zapcore.RFC3339TimeEncoder
@@ -39,12 +57,12 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	defer logger.Sync()
 	if *username == "" || *password == "" {
 		logger.Fatal("both username and password are required")
 	}
-	defer logger.Sync()
 	s := http.Server{
-		Addr:    ":9200",
+		Addr:    fmt.Sprintf(":%d", *port),
 		Handler: handler(logger, *username, *password),
 	}
 	if err := s.ListenAndServe(); err != nil {
@@ -53,7 +71,7 @@ func main() {
 }
 
 func handler(logger *zap.Logger, username, password string) http.Handler {
-	expectedAuth := fmt.Sprintf("%s:%s", username, password)
+	expectedAuth := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", username, password)))
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Elastic-Product", "Elasticsearch")
 		switch r.URL.Path {
@@ -79,13 +97,11 @@ func handler(logger *zap.Logger, username, password string) http.Handler {
 		case "/_security/user/_has_privileges":
 			w.Write([]byte(`{"username":"admin","has_all_requested":true,"cluster":{},"index":{},"application":{"apm":{"-":{"event:write":true}}}}`))
 		case "/_bulk":
-			auth := r.Header.Get("Authorization")
-			actualAuth, err := base64.StdEncoding.DecodeString(auth)
-			if err != nil || string(actualAuth) != expectedAuth {
+			actualAuth := r.Header.Get("Authorization")
+			if string(actualAuth) != expectedAuth {
 				logger.Error(
 					"authentication failed",
-					zap.Error(err),
-					zap.String("actual", string(actualAuth)),
+					zap.String("actual", actualAuth),
 					zap.String("expected", expectedAuth),
 				)
 				w.WriteHeader(http.StatusUnauthorized)
@@ -146,7 +162,6 @@ func handler(logger *zap.Logger, username, password string) http.Handler {
 				jsonw.Write([]byte(`]}`))
 				w.Write(jsonw.Bytes())
 			}
-			// TODO additionally report events throughput metric here, to index into benchmarks.
 		default:
 			logger.Error("unknown path", zap.String("path", r.URL.Path))
 		}

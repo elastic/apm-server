@@ -84,7 +84,7 @@ resource "aws_instance" "moxy" {
     inline = [
       "sudo cp ${local.bin_path} moxy",
       "sudo chmod +x moxy",
-      "screen -d -m ./moxy -password=${random_password.moxy_password.result}",
+      "screen -d -m ./moxy -port=${local.moxy_port} -password=${random_password.moxy_password.result}",
       "sleep 1"
     ]
   }
@@ -96,7 +96,6 @@ resource "aws_key_pair" "provisioner_key" {
   public_key = file("${var.aws_provisioner_key_name}.pub")
   tags       = var.tags
 }
-
 
 resource "random_password" "moxy_password" {
   length  = 16
