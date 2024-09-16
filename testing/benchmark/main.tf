@@ -127,7 +127,7 @@ module "benchmark_worker" {
   private_key = var.private_key
 
   tags       = merge(local.ci_tags, module.tags.tags)
-  depends_on = [module.moxy, module.ec_deployment]
+  depends_on = [module.standalone_apm_server, module.ec_deployment]
 }
 
 module "moxy" {
