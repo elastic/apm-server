@@ -25,6 +25,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"sync"
 
 	"github.com/klauspost/compress/gzip"
@@ -72,14 +73,24 @@ func main() {
 
 func handler(logger *zap.Logger, username, password string) http.Handler {
 	expectedAuth := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", username, password)))
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		w.Header().Set("X-Elastic-Product", "Elasticsearch")
-		switch r.URL.Path {
+		actualAuth, _ := strings.CutPrefix(req.Header.Get("Authorization"), "Basic ")
+		if string(actualAuth) != expectedAuth {
+			logger.Error(
+				"authentication failed",
+				zap.String("actual", actualAuth),
+				zap.String("expected", expectedAuth),
+			)
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+		switch req.URL.Path {
 		case "/":
 			w.Write([]byte(`{
 			"name": "instance-0000000001",
 			"cluster_name": "eca3b3c3bbee4816bb92f82184e328dd",
-			"cluster_uuid": "cc49813b6b8e2138fbb8243ae2b3deed",
+			"cluster_uuid": "cc49813b-6b8e-2138-fbb8-243ae2b3deed",
 			"version": {
 				"number": "8.15.1",
 				"build_flavor": "default",
@@ -94,25 +105,15 @@ func handler(logger *zap.Logger, username, password string) http.Handler {
 			"tagline": "You Know, for Search"
 			}`))
 			return
-		case "/_security/user/_has_privileges":
-			w.Write([]byte(`{"username":"admin","has_all_requested":true,"cluster":{},"index":{},"application":{"apm":{"-":{"event:write":true}}}}`))
+		case "/_license":
+			w.Write([]byte(`{"license":{"uid":"cc49813b-6b8e-2138-fbb8-243ae2b3deed","type":"enterprise","status":"active"}}`))
+			return
 		case "/_bulk":
-			actualAuth := r.Header.Get("Authorization")
-			if string(actualAuth) != expectedAuth {
-				logger.Error(
-					"authentication failed",
-					zap.String("actual", actualAuth),
-					zap.String("expected", expectedAuth),
-				)
-				w.WriteHeader(http.StatusUnauthorized)
-				return
-			}
-
 			first := true
 			var body io.Reader
-			switch r.Header.Get("Content-Encoding") {
+			switch req.Header.Get("Content-Encoding") {
 			case "gzip":
-				r, err := gzip.NewReader(r.Body)
+				r, err := gzip.NewReader(req.Body)
 				if err != nil {
 					logger.Error("gzip reader err", zap.Error(err))
 					http.Error(w, fmt.Sprintf("reader error: %v", err), http.StatusInternalServerError)
@@ -121,7 +122,7 @@ func handler(logger *zap.Logger, username, password string) http.Handler {
 				defer r.Close()
 				body = r
 			case "zstd":
-				r, err := zstd.NewReader(r.Body)
+				r, err := zstd.NewReader(req.Body)
 				if err != nil {
 					logger.Error("zstd reader err", zap.Error(err))
 					http.Error(w, fmt.Sprintf("reader error: %v", err), http.StatusInternalServerError)
@@ -130,7 +131,7 @@ func handler(logger *zap.Logger, username, password string) http.Handler {
 				defer r.Close()
 				body = r
 			default:
-				body = r.Body
+				body = req.Body
 			}
 
 			jsonw := memPool.Get().(*bytes.Buffer)
@@ -163,7 +164,7 @@ func handler(logger *zap.Logger, username, password string) http.Handler {
 				w.Write(jsonw.Bytes())
 			}
 		default:
-			logger.Error("unknown path", zap.String("path", r.URL.Path))
+			logger.Error("unknown path", zap.String("path", req.URL.Path))
 		}
 	})
 }
