@@ -32,13 +32,9 @@ jobs:
         with:
           command: --experimental apply --config .ci/updatecli/bump-golang.yml --values .ci/updatecli/values.d/scm.yml
         env:
-<<<<<<< HEAD
-          GITHUB_TOKEN: ${{ secrets.UPDATECLI_GH_TOKEN }}
-=======
           GITHUB_TOKEN: ${{ steps.get_token.outputs.token }}
           GITHUB_BRANCH: 'main'
           GITHUB_LABELS: ${{ needs.labels.outputs.backports }}
->>>>>>> abb9a9b09 (github-action: use ephemeral tokens with the required permissions (#14010))
 
   bump-7:
     runs-on: ubuntu-latest
