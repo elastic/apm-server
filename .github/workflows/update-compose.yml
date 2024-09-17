@@ -18,9 +18,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-<<<<<<< HEAD
-      - uses: docker/login-action@0d4c9c5ea7693da7b068278f7b52bda2a190a446 # v3.2.0
-=======
       - name: Get token
         id: get_token
         uses: tibdex/github-app-token@3beb63f4bd073e61482598c45c71c1019b59b73a # v2.1.0
@@ -34,7 +31,6 @@ jobs:
             }
 
       - uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
->>>>>>> abb9a9b09 (github-action: use ephemeral tokens with the required permissions (#14010))
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
