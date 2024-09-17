@@ -3,7 +3,8 @@ kind: ApmServer
 metadata:
   name: apm-server
 spec:
-  version: 8.16.0-3c28b63b-SNAPSHOT
+  # TODO: replace with a pinned version such as 9.0.0-aaaaaaaa-SNAPSHOT
+  version: 9.0.0-d56464e5-SNAPSHOT
   count: 1
   http:
     tls:

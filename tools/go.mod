@@ -6,8 +6,8 @@ require (
 	github.com/elastic/apm-tools v0.0.0-20230828065051-3f799314cc8b
 	github.com/elastic/go-licenser v0.4.2
 	github.com/elastic/gobench v0.0.0-20220608141032-f30bc57e329c
-	github.com/goreleaser/nfpm/v2 v2.39.0
-	github.com/josephspurrier/goversioninfo v1.4.0
+	github.com/goreleaser/nfpm/v2 v2.40.0
+	github.com/josephspurrier/goversioninfo v1.4.1
 	github.com/t-yuki/gocover-cobertura v0.0.0-20180217150009-aaee18c8195c
 	github.com/terraform-docs/terraform-docs v0.18.0
 	go.elastic.co/go-licence-detector v0.6.1
@@ -23,11 +23,11 @@ require (
 )
 
 require (
-	dario.cat/mergo v1.0.0 // indirect
+	dario.cat/mergo v1.0.1 // indirect
 	github.com/AlekSi/pointer v1.2.0 // indirect
 	github.com/BurntSushi/toml v1.4.1-0.20240526193622-a339e1f7089c // indirect
 	github.com/Masterminds/goutils v1.1.1 // indirect
-	github.com/Masterminds/semver/v3 v3.2.1 // indirect
+	github.com/Masterminds/semver/v3 v3.3.0 // indirect
 	github.com/Masterminds/sprig/v3 v3.2.3 // indirect
 	github.com/Microsoft/go-winio v0.6.1 // indirect
 	github.com/ProtonMail/go-crypto v1.0.0 // indirect
