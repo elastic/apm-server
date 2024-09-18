@@ -101,7 +101,7 @@ variable "apm_server_bin_path" {
 }
 
 variable "moxy_bin_path" {
-  default     = "../../systemtest/cmd/moxy"
+  default     = "../../build"
   type        = string
   description = "Optional path to moxy binary"
 }

@@ -2,7 +2,6 @@ APMBENCH_PATH ?= ../../systemtest/cmd/apmbench
 APMBENCH_GOOS ?= linux
 APMBENCH_GOARCH ?= amd64
 
-MOXY_PATH ?= ../../systemtest/cmd/moxy
 MOXY_GOOS ?= linux
 MOXY_GOARCH ?= amd64
 
@@ -79,7 +78,7 @@ apmbench:
 .PHONY: moxy
 moxy:
 	@echo "-> Building moxy..."
-	@cd $(MOXY_PATH) && CGO_ENABLED=0 GOOS=$(MOXY_GOOS) GOARCH=$(MOXY_GOARCH) go build .
+	@cd ../../tools && CGO_ENABLED=0 GOOS=$(MOXY_GOOS) GOARCH=$(MOXY_GOARCH) go build -o "../build" github.com/elastic/apm-perf/cmd/moxy
 
 .PHONY: apm-server
 apm-server:
