@@ -46,9 +46,16 @@ NEXT_RELEASE ?= $(RELEASE_BRANCH).$(shell expr $(PROJECT_PATCH_VERSION) + 1)
 
 BRANCH_PATCH = update-$(NEXT_RELEASE)
 
+# for the view commits
+# as long as 8.x is the branch to run releases, then the base branch is 8.x
+# when 8.x is not available the we should use main as the base branch.
+CHANGELOG_BRANCH = 8.x
+
 # BASE_BRANCH select by release type (default patch)
 ifeq ($(RELEASE_TYPE),minor)
-	BASE_BRANCH ?= main
+# as long as 8.x is the branch to run releases, then the base branch is 8.x
+# when 8.x is not available the we should use main as the base branch.
+	BASE_BRANCH ?= 8.x
 endif
 
 ifeq ($(RELEASE_TYPE),patch)
@@ -64,7 +71,7 @@ define CHANGELOG_TMPL
 [[release-notes-head]]
 == APM version HEAD
 
-https://github.com/elastic/apm-server/compare/$(RELEASE_BRANCH)\...main[View commits]
+https://github.com/elastic/apm-server/compare/$(RELEASE_BRANCH)\...$(CHANGELOG_BRANCH)[View commits]
 
 [float]
 ==== Breaking Changes
@@ -190,7 +197,7 @@ update-mergify:
 		echo '  - name: backport patches to $(VERSION) branch'                                  >> .mergify.yml ; \
 		echo '    conditions:'                                                                  >> .mergify.yml; \
 		echo '      - merged'                                                                   >> .mergify.yml; \
-		echo '      - base=main'                                                                >> .mergify.yml; \
+		echo '      - base=8.x'                                                                 >> .mergify.yml; \
 		echo '      - label=backport-$(VERSION)'                                                >> .mergify.yml; \
 		echo '    actions:'                                                                     >> .mergify.yml; \
 		echo '      backport:'                                                                  >> .mergify.yml; \
