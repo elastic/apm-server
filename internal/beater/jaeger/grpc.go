@@ -22,6 +22,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"sync"
 
 	jaegermodel "github.com/jaegertracing/jaeger/model"
 	"github.com/jaegertracing/jaeger/proto-gen/api_v2"
@@ -58,6 +59,8 @@ const (
 	// elasticAuthTag is the name of the agent tag that will be used for auth.
 	// The tag value should be "Bearer <secret token" or "ApiKey <api key>".
 	elasticAuthTag = "elastic-apm-auth"
+
+	deprecationNotice = "deprecation notice: support for Jaeger will be removed in an upcoming version"
 )
 
 // RegisterGRPCServices registers Jaeger gRPC services with srv.
@@ -73,12 +76,18 @@ func RegisterGRPCServices(
 		Logger:    logger,
 		Semaphore: semaphore,
 	})
-	api_v2.RegisterCollectorServiceServer(srv, &grpcCollector{traceConsumer})
-	api_v2.RegisterSamplingManagerServer(srv, &grpcSampler{logger, fetcher})
+
+	logger.Info(deprecationNotice)
+
+	api_v2.RegisterCollectorServiceServer(srv, &grpcCollector{sync.Once{}, logger, traceConsumer})
+	api_v2.RegisterSamplingManagerServer(srv, &grpcSampler{sync.Once{}, logger, fetcher})
 }
 
 // grpcCollector implements Jaeger api_v2 protocol for receiving tracing data
 type grpcCollector struct {
+	// Use an atomic counter to ensure concurrent safety.
+	once     sync.Once
+	logger   *zap.Logger
 	consumer consumer.Traces
 }
 
@@ -120,6 +129,11 @@ func (c *grpcCollector) RequestMetrics(fullMethodName string) map[request.Result
 // The implementation of the protobuf contract is based on the open-telemetry implementation at
 // https://github.com/open-telemetry/opentelemetry-collector/tree/master/receiver/jaegerreceiver
 func (c *grpcCollector) PostSpans(ctx context.Context, r *api_v2.PostSpansRequest) (*api_v2.PostSpansResponse, error) {
+
+	c.once.Do(func() {
+		c.logger.Warn(deprecationNotice)
+	})
+
 	if err := c.postSpans(ctx, r.Batch); err != nil {
 		return nil, err
 	}
@@ -146,6 +160,8 @@ var (
 )
 
 type grpcSampler struct {
+	// Use an atomic counter to ensure concurrent safety.
+	once    sync.Once
 	logger  *zap.Logger
 	fetcher agentcfg.Fetcher
 }
@@ -156,6 +172,10 @@ type grpcSampler struct {
 func (s *grpcSampler) GetSamplingStrategy(
 	ctx context.Context,
 	params *api_v2.SamplingStrategyParameters) (*api_v2.SamplingStrategyResponse, error) {
+
+	s.once.Do(func() {
+		s.logger.Warn(deprecationNotice)
+	})
 
 	samplingRate, err := s.fetchSamplingRate(ctx, params.ServiceName)
 	if err != nil {

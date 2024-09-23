@@ -31,7 +31,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gofrs/uuid"
+	"github.com/gofrs/uuid/v5"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 
@@ -106,6 +106,8 @@ func NewBeat(args BeatParams) (*Beat, error) {
 	if beatName == "" {
 		beatName = hostname
 	}
+
+	eid := uuid.FromStringOrNil(metricreport.EphemeralID().String())
 	b := &Beat{
 		Beat: beat.Beat{
 			Info: beat.Info{
@@ -116,11 +118,12 @@ func NewBeat(args BeatParams) (*Beat, error) {
 				Name:            beatName,
 				Hostname:        hostname,
 				StartTime:       time.Now(),
-				EphemeralID:     metricreport.EphemeralID(),
+				EphemeralID:     eid,
 			},
 			Keystore:   keystore,
 			Config:     &beat.BeatConfig{Output: cfg.Output},
 			BeatConfig: cfg.APMServer,
+			Registry:   reload.NewRegistry(),
 		},
 		Config:    cfg,
 		newRunner: args.NewRunner,
@@ -150,7 +153,7 @@ func (b *Beat) init() error {
 	logp.Info("Beat ID: %v", b.Info.ID)
 
 	// Initialize central config manager.
-	manager, err := management.NewManager(b.Config.Management, reload.RegisterV2)
+	manager, err := management.NewManager(b.Config.Management, b.Registry)
 	if err != nil {
 		return err
 	}
@@ -364,7 +367,7 @@ func (b *Beat) Run(ctx context.Context) error {
 	}
 
 	if b.Manager.Enabled() {
-		reloader, err := NewReloader(b.Info, b.newRunner)
+		reloader, err := NewReloader(b.Info, b.Registry, b.newRunner)
 		if err != nil {
 			return err
 		}

@@ -74,7 +74,7 @@ func newObserverBatchProcessor() modelpb.ProcessBatchFunc {
 	return func(ctx context.Context, b *modelpb.Batch) error {
 		for i := range *b {
 			if (*b)[i].Observer == nil {
-				(*b)[i].Observer = modelpb.ObserverFromVTPool()
+				(*b)[i].Observer = &modelpb.Observer{}
 			}
 			observer := (*b)[i].Observer
 			observer.Hostname = hostname

@@ -16,7 +16,7 @@ jobs:
       matrix: ${{ steps.generator.outputs.matrix }}
     steps:
       - id: generator
-        uses: elastic/apm-pipeline-library/.github/actions/elastic-stack-snapshot-branches@current
+        uses: elastic/oblt-actions/elastic/active-branches@v1
   bump:
     needs:
       - filter
@@ -29,19 +29,31 @@ jobs:
         with:
           ref: ${{ matrix.branch }}
 
+      - name: Get token
+        id: get_token
+        uses: tibdex/github-app-token@3beb63f4bd073e61482598c45c71c1019b59b73a # v2.1.0
+        with:
+          app_id: ${{ secrets.OBS_AUTOMATION_APP_ID }}
+          private_key: ${{ secrets.OBS_AUTOMATION_APP_PEM }}
+          permissions: >-
+            {
+              "contents": "write",
+              "pull_requests": "write"
+            }
+
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
 
-      - uses: elastic/oblt-actions/updatecli/run@v1.9.1
+      - uses: elastic/oblt-actions/updatecli/run@v1
         with:
-          command: --experimental apply --config .ci/update-beats.yml
+          command: --experimental apply --config .ci/updatecli/update-beats.yml --values .ci/updatecli/values.d/scm.yml
         env:
           BRANCH_NAME: ${{ matrix.branch }}
-          GITHUB_TOKEN: ${{ secrets.UPDATECLI_GH_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.get_token.outputs.token }}
 
       - if: ${{ failure()  }}
-        uses: elastic/oblt-actions/slack/send@v1.9.1
+        uses: elastic/oblt-actions/slack/send@v1
         with:
           channel-id: '#apm-server'
           message: ":traffic_cone: updatecli failed for `${{ github.repository }}@${{ github.ref_name }}`, @robots-ci please look what's going on <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|here>"
