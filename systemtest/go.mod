@@ -3,7 +3,7 @@ module github.com/elastic/apm-server/systemtest
 go 1.23.0
 
 require (
-	github.com/docker/docker v27.2.1+incompatible
+	github.com/docker/docker v27.3.1+incompatible
 	github.com/docker/go-connections v0.5.0
 	github.com/elastic/apm-perf v0.0.0-20230608162138-29920c01cfd6
 	github.com/elastic/apm-tools v0.0.0-20240607105915-a4f490dc6959
@@ -33,7 +33,7 @@ require (
 	golang.org/x/sync v0.8.0
 	golang.org/x/sys v0.25.0
 	golang.org/x/time v0.6.0
-	google.golang.org/grpc v1.66.2
+	google.golang.org/grpc v1.67.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
