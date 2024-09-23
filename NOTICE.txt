@@ -2866,11 +2866,11 @@ Exhibit B - "Incompatible With Secondary Licenses" Notice
 
 --------------------------------------------------------------------------------
 Dependency : github.com/jaegertracing/jaeger
-Version: v1.60.0
+Version: v1.61.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/jaegertracing/jaeger@v1.60.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/jaegertracing/jaeger@v1.61.0/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -8364,11 +8364,11 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/dgraph-io/ristretto
-Version: v0.1.1
+Version: v0.1.2-0.20240116140435-c67e07994f91
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/dgraph-io/ristretto@v0.1.1/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/dgraph-io/ristretto@v0.1.2-0.20240116140435-c67e07994f91/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -8694,11 +8694,11 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 
 --------------------------------------------------------------------------------
 Dependency : github.com/eapache/go-resiliency
-Version: v1.6.0
+Version: v1.7.0
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/eapache/go-resiliency@v1.6.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/eapache/go-resiliency@v1.7.0/LICENSE:
 
 The MIT License (MIT)
 
@@ -10839,14 +10839,6 @@ Apache License
    limitations under the License.
 
 
-
---------------------------------------------------------------------------------
-Dependency : github.com/golang/glog
-Version: v1.2.2
-Licence type (autodetected): Apache-2.0
---------------------------------------------------------------------------------
-
-No licence file provided.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/golang/protobuf
@@ -13743,11 +13735,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/prometheus/client_golang
-Version: v1.20.2
+Version: v1.20.3
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/prometheus/client_golang@v1.20.2/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/prometheus/client_golang@v1.20.3/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -14165,11 +14157,11 @@ Contents of probable licence file $GOMODCACHE/github.com/prometheus/client_model
 
 --------------------------------------------------------------------------------
 Dependency : github.com/prometheus/common
-Version: v0.57.0
+Version: v0.59.1
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/prometheus/common@v0.57.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/prometheus/common@v0.59.1/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -14733,11 +14725,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/shirou/gopsutil/v4
-Version: v4.24.7
+Version: v4.24.8
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/shirou/gopsutil/v4@v4.24.7/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/shirou/gopsutil/v4@v4.24.8/LICENSE:
 
 gopsutil is distributed under BSD license reproduced below.
 
@@ -17245,11 +17237,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : google.golang.org/genproto/googleapis/rpc
-Version: v0.0.0-20240822170219-fc7c04adadcd
+Version: v0.0.0-20240903143218-8af14fe29dc1
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/google.golang.org/genproto/googleapis/rpc@v0.0.0-20240822170219-fc7c04adadcd/LICENSE:
+Contents of probable licence file $GOMODCACHE/google.golang.org/genproto/googleapis/rpc@v0.0.0-20240903143218-8af14fe29dc1/LICENSE:
 
 
                                  Apache License
