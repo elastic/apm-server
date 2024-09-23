@@ -31,7 +31,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gofrs/uuid"
+	"github.com/gofrs/uuid/v5"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 
