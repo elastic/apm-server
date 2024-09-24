@@ -41,7 +41,8 @@ get_latest_snapshot() {
     if [ $RC -ne 0 ]; then echo "${RES}"; fi
     # NOTE: semver with SNAPSHOT is not working when using the sort_by function in jq,
     #       that's the reason for transforming the SNAPSHOT in a semver 4 digits.
-    VERSIONS=$(echo "${RES}" | jq -r -c '[.stacks[].version | select(. | contains("-SNAPSHOT"))] | sort' | sed 's#-SNAPSHOT#.0#g' | jq -r -c ' sort_by(.| split(".") | map(tonumber))' | sed 's#.0"#-SNAPSHOT"#g' | jq -r -c .)
+    # Filter out 9.0.0 temporarily until it's ready.
+    VERSIONS=$(echo "${RES}" | jq -r -c '[.stacks[].version | select(. | startswith("9.0.0") | not) | select(. | contains("-SNAPSHOT"))] | sort' | sed 's#-SNAPSHOT#.0#g' | jq -r -c ' sort_by(.| split(".") | map(tonumber))' | sed 's#.0"#-SNAPSHOT"#g' | jq -r -c .)
 }
 
 get_latest_snapshot_for_version() {

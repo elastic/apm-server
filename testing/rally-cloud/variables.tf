@@ -11,9 +11,10 @@ variable "deployment_template" {
 }
 
 variable "stack_version" {
+  # Use the latest 8 version until 9 is ready.
+  default     = "8.?.?"
   type        = string
   description = "Optional stack version"
-  default     = "latest"
 }
 
 variable "elasticsearch_size" {

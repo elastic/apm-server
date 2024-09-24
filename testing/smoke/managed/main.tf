@@ -77,7 +77,8 @@ variable "aws_provisioner_key_name" {
 }
 
 variable "stack_version" {
-  default     = "latest"
+  # Use the latest 8 version until 9 is ready.
+  default     = "8.?.?"
   description = "Optional stack version"
   type        = string
 }
