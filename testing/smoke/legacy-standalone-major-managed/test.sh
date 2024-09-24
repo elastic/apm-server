@@ -17,7 +17,10 @@ if [[ "${1}" == "latest" ]]; then
     LATEST_VERSION=${LATEST_SNAPSHOT_VERSION}
     ASSERTION_VERSION=${LATEST_SNAPSHOT_VERSION%-*} # strip -SNAPSHOT suffix
     get_latest_snapshot
-    NEXT_MAJOR_LATEST=$(echo $VERSIONS | jq -r -c '.[-1]')
+    # NOTE(marclop) Temporarily avoid testing against 9.x, since we want to test that the
+    # upgrade for 7.17 to 8.latest works correctly.
+    # NEXT_MAJOR_LATEST=$(echo $VERSIONS | jq -r -c '.[-1]')
+    NEXT_MAJOR_LATEST=$(echo ${VERSIONS} | jq -r '[.[] | select(. | startswith("8"))] | last')
     ASSERTION_NEXT_MAJOR_LATEST=${NEXT_MAJOR_LATEST%-*} # strip -SNAPSHOT suffix
 else
     get_latest_patch ${VERSION}

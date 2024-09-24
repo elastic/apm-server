@@ -2,9 +2,10 @@
 
 set -eo pipefail
 
+IGNORE_VERSION=${IGNORE_VERSION:-9.0.0-SNAPSHOT}
 VERSION=${1}
 if [[ -z ${VERSION} ]] || [[ "${VERSION}" == "latest" ]]; then
-    VERSION=$(curl -s "https://artifacts-api.elastic.co/v1/versions" | jq -r '.versions[-1]')
+    VERSION=$(curl -s "https://artifacts-api.elastic.co/v1/versions" | jq -r --arg IGNORE_VERSION "$IGNORE_VERSION" '.versions | map(select(. != $IGNORE_VERSION))[-1]')
 fi
 LATEST_BUILD=$(curl -s "https://artifacts-api.elastic.co/v1/versions/${VERSION}/builds/" | jq -r '.builds[0]')
 
