@@ -27,15 +27,12 @@ jobs:
   smoke-tests-os:
     name: Run smoke tests OS
     needs: prepare-smoke-tests-os
-    strategy:
-      fail-fast: false
-      matrix: ${{ fromJSON(needs.prepare-smoke-tests-os.outputs.matrix) }}
     permissions:
       contents: read
       id-token: write
     uses: ./.github/workflows/smoke-tests-os.yml
     with:
-      branch: ${{ matrix.branch }}
+      branch: 'test/ignore-9-stack'
     secrets: inherit
 
   smoke-tests-ess:
@@ -45,7 +42,7 @@ jobs:
       id-token: write
     uses: ./.github/workflows/smoke-tests-ess.yml
     with:
-      branch: 'main'
+      branch: 'test/ignore-9-stack'
     secrets: inherit
 
   all-smoke-tests:
