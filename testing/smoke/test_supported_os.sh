@@ -14,7 +14,7 @@ get_latest_snapshot
 
 VERSION=${1}
 if [[ -z ${VERSION} ]] || [[ "${VERSION}" == "latest" ]]; then
-    VERSION=$(echo ${VERSIONS} | jq -r 'last')
+    VERSION=$(echo ${VERSIONS} | jq -r '[.[] | select(. | startswith("8"))] | last')
     echo "-> unspecified version, using $(echo ${VERSION} | cut -d '.' -f1-2)"
 fi
 MAJOR_VERSION=$(echo ${VERSION} | cut -d '.' -f1 )
