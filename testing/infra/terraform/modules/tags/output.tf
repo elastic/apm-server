@@ -4,6 +4,11 @@ locals {
     "org" : "obs"
     "team" : "apm-server"
     "project" : var.project
+<<<<<<< HEAD
+=======
+    "build" : var.build
+    "ephemeral" : "true"
+>>>>>>> 812d7dde3 (ci: add ephemeral tag (#14179))
   }
 }
 
