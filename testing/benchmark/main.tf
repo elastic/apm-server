@@ -52,7 +52,7 @@ module "vpc" {
   name = "${var.user_name}-worker"
   cidr = var.vpc_cidr
 
-  azs                = [for letter in ["a", "b", "c"] : "${var.worker_region}${letter}"]
+  azs                = ["${var.worker_region}a"]
   public_subnets     = var.public_cidr
   enable_ipv6        = false
   enable_nat_gateway = false
