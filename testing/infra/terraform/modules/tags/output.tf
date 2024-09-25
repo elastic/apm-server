@@ -4,6 +4,8 @@ locals {
     "org" : "obs"
     "team" : "apm-server"
     "project" : var.project
+    "build" : var.build
+    "ephemeral" : "true"
   }
 }
 
