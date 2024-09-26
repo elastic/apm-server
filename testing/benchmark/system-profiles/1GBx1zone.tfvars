@@ -1,6 +1,6 @@
 user_name = "USER"
 
-ess_region = "us-east-1"
+ess_region          = "us-east-1"
 deployment_template = "aws-cpu-optimized-v5"
 
 # The number of AZs the APM Server should span.
