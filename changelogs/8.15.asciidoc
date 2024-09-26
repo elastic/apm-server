@@ -15,6 +15,12 @@ https://github.com/elastic/apm-server/compare/v8.15.1\...v8.15.2[View commits]
 ==== Bug fixes
 
 - Fix broken APM Agents configuration cache when there are more than 100 agent config entries {pull}13958[13958]
+- Fix a panic in OTLP label setting when receiving on non-compliant attribute array values {pull}13950[13950]
+
+[float]
+==== Added
+
+- Map OpenTelemetry instrumentation scope to `Service.Framework.*` for all signal types. {pull}13903[13903]
 
 [float]
 [[apm-release-notes-8.15.1]]
