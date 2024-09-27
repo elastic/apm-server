@@ -33,6 +33,7 @@ module "tags" {
   # use the convention for team/shared owned resources if we are running in CI.
   # assume this is an individually owned resource otherwise.
   project = startswith(var.user_name, "benchci") ? "benchmarks" : var.user_name
+  build   = var.BUILD_ID
 }
 
 provider "ec" {}
