@@ -89,7 +89,7 @@ variable "drop_pipeline" {
 ## Worker configuraiton
 
 variable "worker_region" {
-  default     = "us-west-2"
+  default     = "us-west-1"
   description = "Optional ESS region where the deployment will be created. Defaults to us-west-2 (AWS)"
   type        = string
 }
