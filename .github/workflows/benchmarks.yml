@@ -111,6 +111,8 @@ jobs:
       - name: Spin up benchmark environment
         id: deploy
         run: |
+          AWS_REGION=${{ env.AWS_REGION }}
+          echo "TF_VAR_worker_region=$AWS_REGION" >> "$GITHUB_ENV"
           make init apply
           admin_console_url=$(terraform output -raw admin_console_url)
           echo "admin_console_url=$admin_console_url" >> "$GITHUB_OUTPUT"
