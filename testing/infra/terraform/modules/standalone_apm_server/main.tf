@@ -179,6 +179,7 @@ resource "aws_instance" "apm" {
   provisioner "file" {
     source      = "${var.apm_server_bin_path}/apm-server"
     destination = local.bin_path
+    on_failure  = continue
   }
 
   provisioner "file" {
