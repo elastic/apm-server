@@ -26,7 +26,8 @@ on:
         required: false
         type: string
   schedule:
-    - cron: '0 17 * * *'
+    - cron: '0 17 * * *' # Scheduled regular benchmarks.
+    - cron: '0 5 */5 * *' # Scheduled PGO benchmarks.
 
 env:
   PNG_REPORT_FILE: out.png
@@ -51,7 +52,7 @@ jobs:
       SSH_KEY: ./id_rsa_terraform
       TF_VAR_private_key: ./id_rsa_terraform
       TF_VAR_public_key: ./id_rsa_terraform.pub
-      TF_VAR_run_standalone: ${{ inputs.runStandalone }}
+      RUN_STANDALONE: ${{ inputs.runStandalone || github.event.schedule=='0 5 */5 * *' }}
       TFVARS_SOURCE: ${{ inputs.profile || 'system-profiles/8GBx1zone.tfvars' }} # // Default to use an 8gb profile
       TF_VAR_BUILD_ID: ${{ github.run_id }}
       TF_VAR_ENVIRONMENT: ci
@@ -109,23 +110,25 @@ jobs:
           terraform_version: 1.3.7
           terraform_wrapper: false
 
-      - name: Init TF module
+      - name: Init terraform module
         run: |
           AWS_REGION=${{ env.AWS_REGION }}
           echo "TF_VAR_worker_region=$AWS_REGION" >> "$GITHUB_ENV"
+          echo "TF_VAR_run_standalone=$RUN_STANDALONE" >> "$GITHUB_ENV"
           make init
 
       - name: Build apmbench
         run: make apmbench $SSH_KEY terraform.tfvars
 
       - name: Build APM Server and Moxy
-        if: ${{ inputs.runStandalone }}
         run: |
-          make apm-server
-          make moxy
+          if [ "$RUN_STANDALONE" = true ]; then
+            make apm-server
+            make moxy
+          fi
 
       - name: Override docker committed version
-        if: ${{ ! inputs.runOnStable && ! inputs.runStandalone}}
+        if: ${{ ! inputs.runOnStable }}
         run: make docker-override-committed-version
 
       - name: Spin up benchmark environment
@@ -145,8 +148,11 @@ jobs:
         run: make run-benchmark
 
       - name: Cat standalone server logs
-        if: ${{ inputs.runStandalone && failure() }}
-        run: make cat-apm-server-logs
+        if: ${{ failure() }}
+        run: |
+          if [ "$RUN_STANDALONE" = true ]; then
+            make cat-apm-server-logs
+          fi
 
       - name: Index benchmarks result
         run: make index-benchmark-results
@@ -187,11 +193,9 @@ jobs:
       # via a PR to update default.pgo.
 
       - name: Copy CPU profile
-        if: ${{ inputs.runStandalone && github.ref == 'refs/heads/main' }}
         run: make cp-cpuprof
       
       - name: Upload CPU profile
-        if: ${{ inputs.runStandalone && github.ref == 'refs/heads/main' }}
         uses: actions/upload-artifact@v4
         with:
           name: cpu-profile
@@ -199,20 +203,22 @@ jobs:
           if-no-files-found: error
 
       - name: Open PGO PR
-        if: ${{ inputs.runStandalone && github.ref == 'refs/heads/main' }}
+        if: ${{ github.ref == 'refs/heads/main' }}
         run: |
-          cd "${{ github.workspace }}"
-          git config user.email "apm@elastic.co"
-          git config user.name "APM Server"
-          git fetch origin main
-          git checkout main
-          BRANCH="update-pgo-$(date +%s)"
-          git checkout -b "$BRANCH"
-          mv "$PROFILE_PATH" x-pack/apm-server/default.pgo
-          git add x-pack/apm-server/default.pgo
-          git commit -m "PGO: Update default.pgo from benchmarks $WORKFLOW."
-          git push -u origin "$BRANCH"
-          gh pr create -B main -H "$BRANCH" -t "PGO: Update default.pgo" -b "Update default.pgo CPU profile from the benchmarks [workflow]($WORKFLOW)." -R elastic/apm-server
+          if [ "$RUN_STANDALONE" = true ]; then
+            cd "${{ github.workspace }}"
+            git config user.email "apm@elastic.co"
+            git config user.name "APM Server"
+            git fetch origin main
+            git checkout main
+            BRANCH="update-pgo-$(date +%s)"
+            git checkout -b "$BRANCH"
+            mv "$PROFILE_PATH" x-pack/apm-server/default.pgo
+            git add x-pack/apm-server/default.pgo
+            git commit -m "PGO: Update default.pgo from benchmarks $WORKFLOW."
+            git push -u origin "$BRANCH"
+            gh pr create -B main -H "$BRANCH" -t "PGO: Update default.pgo" -b "Update default.pgo CPU profile from the benchmarks [workflow]($WORKFLOW)." -R elastic/apm-server
+          fi
         env:
           PROFILE_PATH: ${{ env.WORKING_DIRECTORY }}/${{ env.BENCHMARK_CPU_OUT }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
