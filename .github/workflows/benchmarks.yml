@@ -110,7 +110,10 @@ jobs:
           terraform_wrapper: false
 
       - name: Init TF module
-        run: make init
+        run: |
+          AWS_REGION=${{ env.AWS_REGION }}
+          echo "TF_VAR_worker_region=$AWS_REGION" >> "$GITHUB_ENV"
+          make init
 
       - name: Build apmbench
         run: make apmbench $SSH_KEY terraform.tfvars
