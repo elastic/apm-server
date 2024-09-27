@@ -43,12 +43,6 @@ variable "stack_version" {
   type        = string
 }
 
-variable "region" {
-  default     = "gcp-us-west2"
-  description = "Optional ESS region where to run the smoke tests"
-  type        = string
-}
-
 variable "ea_managed" {
   default     = false
   description = "Whether or not install Elastic Agent managed APM Server"

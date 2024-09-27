@@ -22,6 +22,7 @@ This module can be used to create a standalone APM Server deployment against a s
 | [null_resource.apm_server_log](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
 | [random_password.apm_secret_token](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/password) | resource |
 | [aws_ami.os](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ami) | data source |
+| [aws_region.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/region) | data source |
 | [aws_subnets.public_subnets](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/subnets) | data source |
 | [external_external.latest_apm_server](https://registry.terraform.io/providers/hashicorp/external/latest/docs/data-sources/external) | data source |
 | [external_external.latest_elastic_agent](https://registry.terraform.io/providers/hashicorp/external/latest/docs/data-sources/external) | data source |
@@ -38,7 +39,6 @@ This module can be used to create a standalone APM Server deployment against a s
 | <a name="input_elasticsearch_password"></a> [elasticsearch\_password](#input\_elasticsearch\_password) | The Elasticsearch password | `string` | n/a | yes |
 | <a name="input_elasticsearch_url"></a> [elasticsearch\_url](#input\_elasticsearch\_url) | The secure Elasticsearch URL | `string` | n/a | yes |
 | <a name="input_elasticsearch_username"></a> [elasticsearch\_username](#input\_elasticsearch\_username) | The Elasticsearch username | `string` | n/a | yes |
-| <a name="input_region"></a> [region](#input\_region) | Optional ESS region where to run the smoke tests | `string` | `"gcp-us-west2"` | no |
 | <a name="input_stack_version"></a> [stack\_version](#input\_stack\_version) | Optional stack version | `string` | `"latest"` | no |
 | <a name="input_tags"></a> [tags](#input\_tags) | Optional set of tags to use for all deployments | `map(string)` | `{}` | no |
 | <a name="input_vpc_id"></a> [vpc\_id](#input\_vpc\_id) | VPC ID to provision the EC2 instance | `string` | n/a | yes |

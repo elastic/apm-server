@@ -57,7 +57,6 @@ module "standalone_apm_server" {
   elasticsearch_username = module.ec_deployment.elasticsearch_username
   elasticsearch_password = module.ec_deployment.elasticsearch_password
   stack_version          = var.stack_version
-  region                 = var.region
 
   tags       = merge(local.ci_tags, module.tags.tags)
   ea_managed = true
