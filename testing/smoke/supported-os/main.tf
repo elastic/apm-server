@@ -49,7 +49,7 @@ module "ec_deployment" {
 module "standalone_apm_server" {
   source = "../../infra/terraform/modules/standalone_apm_server"
 
-  vpc_id                   = aws_vpc.default.vpc_id
+  vpc_id                   = data.aws_vpc.default.id
   aws_os                   = var.aws_os
   aws_provisioner_key_name = var.aws_provisioner_key_name
 
