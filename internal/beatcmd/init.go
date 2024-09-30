@@ -19,6 +19,7 @@ package beatcmd
 
 import (
 	cryptorand "crypto/rand"
+	"flag"
 	"log"
 	"math"
 	"math/big"
@@ -62,6 +63,7 @@ func initFlags() {
 		}
 	}
 
+	flag.Parse()
 	if err := cfgfile.HandleFlags(); err != nil {
 		log.Fatal(err)
 	}
