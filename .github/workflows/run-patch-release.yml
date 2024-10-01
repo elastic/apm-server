@@ -19,7 +19,6 @@ permissions:
 env:
   JOB_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
   SLACK_CHANNEL: "#apm-server"
-  GH_TOKEN: ${{ secrets.APM_SERVER_RELEASE_TOKEN }}
 
 jobs:
   prepare:
@@ -56,13 +55,25 @@ jobs:
           # Use the makefile in the given release branch.
           ref: ${{ env.RELEASE_BRANCH }}
 
+      - name: Get token
+        id: get_token
+        uses: tibdex/github-app-token@3beb63f4bd073e61482598c45c71c1019b59b73a # v2.1.0
+        with:
+          app_id: ${{ secrets.OBS_AUTOMATION_APP_ID }}
+          private_key: ${{ secrets.OBS_AUTOMATION_APP_PEM }}
+          permissions: >-
+            {
+              "contents": "write",
+              "pull_requests": "write"
+            }
+
       # Required to use a service account, otherwise PRs created by
       # GitHub bot won't trigger any CI builds.
       # See https://github.com/peter-evans/create-pull-request/issues/48#issuecomment-537478081
       - name: Configure git user
         uses: elastic/oblt-actions/git/setup@v1
         with:
-          github-token: ${{ env.GH_TOKEN }}
+          github-token: ${{ steps.get_token.outputs.token }}
 
       - name: Import GPG key
         uses: crazy-max/ghaction-import-gpg@01dd5d3ca463c7f10f7f4f7b4f177225ac661ee4  # v6.1.0
@@ -73,6 +84,8 @@ jobs:
           git_commit_gpgsign: true
 
       - run: make patch-release
+        env:
+          GH_TOKEN: ${{ steps.get_token.outputs.token }}
 
       - if: success()
         uses: elastic/oblt-actions/slack/send@v1
