@@ -20,7 +20,7 @@ variable "deployment_template" {
 }
 
 variable "stack_version" {
-  default     = "8.15.2"
+  default     = "8.16"
   description = "Optional stack version"
   type        = string
 }
