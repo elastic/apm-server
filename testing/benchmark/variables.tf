@@ -57,9 +57,9 @@ variable "elasticsearch_dedicated_masters" {
 
 variable "docker_image_tag_override" {
   default = {
-    "elasticsearch" : "8.15.2-b04b6c02-SNAPSHOT",
-    "kibana" : "8.15.2-b04b6c02-SNAPSHOT",
-    "apm" : "8.15.2-b04b6c02-SNAPSHOT",
+    "elasticsearch" : "8.15.2-b04b6c02",
+    "kibana" : "8.15.2-b04b6c02",
+    "apm" : "8.15.2-b04b6c02",
   }
   description = "Optional docker image tag override"
   type        = map(string)
