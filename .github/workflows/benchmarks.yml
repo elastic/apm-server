@@ -111,33 +111,34 @@ jobs:
           terraform_wrapper: false
 
       - name: Init terraform module
+        id: init
         run: |
-          AWS_REGION=${{ env.AWS_REGION }}
-          echo "TF_VAR_worker_region=$AWS_REGION" >> "$GITHUB_ENV"
-          echo "TF_VAR_run_standalone=$RUN_STANDALONE" >> "$GITHUB_ENV"
           make init
+          echo "runStandalone=${{ env.AWS_REGION }}" >> $GITHUB_OUTPUT
 
       - name: Build apmbench
         run: make apmbench $SSH_KEY terraform.tfvars
 
       - name: Build APM Server and Moxy
+        if: ${{ steps.init.outputs.runStandalone }}
         run: |
-          if [ "$RUN_STANDALONE" = true ]; then
-            make apm-server
-            make moxy
-          fi
+          make apm-server
+          make moxy
 
       - name: Override docker committed version
-        if: ${{ ! inputs.runOnStable }}
+        if: ${{ ! inputs.runOnStable && ! steps.init.outputs.runStandalone }}
         run: make docker-override-committed-version
 
       - name: Spin up benchmark environment
         id: deploy
         run: |
-          make init apply
+          make apply
           admin_console_url=$(terraform output -raw admin_console_url)
           echo "admin_console_url=$admin_console_url" >> "$GITHUB_OUTPUT"
           echo "-> infra setup done"
+        env:
+          TF_VAR_worker_region: ${{ env.AWS_REGION }}
+          TF_VAR_run_standalone: ${{ env.RUN_STANDALONE }}
 
       - name: Run benchmarks autotuned
         if: ${{ inputs.benchmarkAgents == '' }}
@@ -148,11 +149,8 @@ jobs:
         run: make run-benchmark
 
       - name: Cat standalone server logs
-        if: ${{ failure() }}
-        run: |
-          if [ "$RUN_STANDALONE" = true ]; then
-            make cat-apm-server-logs
-          fi
+        if: ${{ steps.init.outputs.runStandalone && failure() }}
+        run: make cat-apm-server-logs
 
       - name: Index benchmarks result
         run: make index-benchmark-results
@@ -202,31 +200,46 @@ jobs:
           path: ${{ env.WORKING_DIRECTORY }}/${{ env.BENCHMARK_CPU_OUT }}
           if-no-files-found: error
 
+      - name: Get token
+        id: get_token
+        uses: tibdex/github-app-token@3beb63f4bd073e61482598c45c71c1019b59b73a # v2.1.0
+        with:
+          app_id: ${{ secrets.OBS_AUTOMATION_APP_ID }}
+          private_key: ${{ secrets.OBS_AUTOMATION_APP_PEM }}
+          permissions: >-
+            {
+              "contents": "write",
+              "pull_requests": "write"
+            }
+
+      # Required to use a service account, otherwise PRs created by
+      # GitHub bot won't trigger any CI builds.
+      # See https://github.com/peter-evans/create-pull-request/issues/48#issuecomment-537478081
+      - name: Configure git user
+        uses: elastic/oblt-actions/git/setup@v1
+        with:
+          github-token: ${{ steps.get_token.outputs.token }}
+
+      - name: Import GPG key
+        uses: crazy-max/ghaction-import-gpg@01dd5d3ca463c7f10f7f4f7b4f177225ac661ee4  # v6.1.0
+        with:
+          gpg_private_key: ${{ secrets.APM_SERVER_RELEASE_GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.APM_SERVER_RELEASE_PASSPHRASE }}
+          git_user_signingkey: true
+          git_commit_gpgsign: true
+
       - name: Open PGO PR
-        if: ${{ github.ref == 'refs/heads/main' }}
-        run: |
-          if [ "$RUN_STANDALONE" = true ]; then
-            cd "${{ github.workspace }}"
-            git config user.email "apm@elastic.co"
-            git config user.name "APM Server"
-            git fetch origin main
-            git checkout main
-            BRANCH="update-pgo-$(date +%s)"
-            git checkout -b "$BRANCH"
-            mv "$PROFILE_PATH" x-pack/apm-server/default.pgo
-            git add x-pack/apm-server/default.pgo
-            git commit -m "PGO: Update default.pgo from benchmarks $WORKFLOW."
-            git push -u origin "$BRANCH"
-            gh pr create -B main -H "$BRANCH" -t "PGO: Update default.pgo" -b "Update default.pgo CPU profile from the benchmarks [workflow]($WORKFLOW)." -R elastic/apm-server
-          fi
+        if: ${{ steps.init.outputs.runStandalone && github.ref == 'refs/heads/main' }}
+        run: make push-pgo-pr
         env:
+          WORKSPACE_PATH: ${{ github.workspace }}
           PROFILE_PATH: ${{ env.WORKING_DIRECTORY }}/${{ env.BENCHMARK_CPU_OUT }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.get_token.outputs.token }}
           WORKFLOW: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}
 
       - name: Tear down benchmark environment
         if: always()
-        run: make init destroy
+        run: make destroy
 
       # Notify failure to Slack only on schedule (nightly run)
       - if: failure() && github.event_name == 'schedule'
