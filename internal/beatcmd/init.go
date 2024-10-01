@@ -39,7 +39,7 @@ import (
 	_ "github.com/elastic/beats/v7/libbeat/publisher/queue/memqueue"
 )
 
-func init() {
+func InitBeatCmd() {
 	initRand()
 	initFlags()
 }

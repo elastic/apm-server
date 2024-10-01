@@ -13,6 +13,7 @@ import (
 )
 
 func TestSubCommands(t *testing.T) {
+	beatcmd.InitBeatCmd()
 	rootCmd := newXPackRootCommand(func(beatcmd.RunnerParams) (beatcmd.Runner, error) {
 		panic("unexpected call")
 	})
