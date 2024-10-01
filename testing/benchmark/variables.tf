@@ -20,7 +20,7 @@ variable "deployment_template" {
 }
 
 variable "stack_version" {
-  default     = "8.16.0"
+  default     = "8.15.2"
   description = "Optional stack version"
   type        = string
 }
@@ -57,9 +57,9 @@ variable "elasticsearch_dedicated_masters" {
 
 variable "docker_image_tag_override" {
   default = {
-    "elasticsearch" : "8.16.0-4b6c1c4e-SNAPSHOT",
-    "kibana" : "8.16.0-4b6c1c4e-SNAPSHOT",
-    "apm" : "8.16.0-4b6c1c4e-SNAPSHOT",
+    "elasticsearch" : "8.15.2-SNAPSHOT",
+    "kibana" : "8.15.2-SNAPSHOT",
+    "apm" : "8.15.2-SNAPSHOT",
   }
   description = "Optional docker image tag override"
   type        = map(string)
