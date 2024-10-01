@@ -19,6 +19,7 @@ package beatcmd
 
 import (
 	cryptorand "crypto/rand"
+	"flag"
 	"log"
 	"math"
 	"math/big"
@@ -38,7 +39,7 @@ import (
 	_ "github.com/elastic/beats/v7/libbeat/publisher/queue/memqueue"
 )
 
-func init() {
+func InitBeatCmd() {
 	initRand()
 	initFlags()
 }
@@ -62,6 +63,7 @@ func initFlags() {
 		}
 	}
 
+	flag.Parse()
 	if err := cfgfile.HandleFlags(); err != nil {
 		log.Fatal(err)
 	}

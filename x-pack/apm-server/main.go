@@ -275,6 +275,7 @@ func cleanup() error {
 }
 
 func Main() error {
+	beatcmd.InitBeatCmd()
 	rootCmd := newXPackRootCommand(
 		func(args beatcmd.RunnerParams) (beatcmd.Runner, error) {
 			return beater.NewRunner(beater.RunnerParams{
