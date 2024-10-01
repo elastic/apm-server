@@ -183,8 +183,6 @@ PGO_BRANCH = update-pgo-$(shell date +%s)
 .PHONY: push-pgo-pr
 push-pgo-pr:
 	@cd $(WORKSPACE_PATH); \
-	git config user.email "apm@elastic.co"; \
-	git config user.name "APM Server"; \
 	git fetch origin main; \
 	git checkout main; \
 	git checkout -b $(PGO_BRANCH); \
