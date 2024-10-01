@@ -11,7 +11,7 @@ x-logging: &default-logging
 services:
   elasticsearch:
     # TODO: replace with a pinned version such as 9.0.0-aaaaaaaa-SNAPSHOT
-    image: docker.elastic.co/elasticsearch/elasticsearch:9.0.0-9f6b098e-SNAPSHOT
+    image: docker.elastic.co/elasticsearch/elasticsearch:9.0.0-070836bc-SNAPSHOT
     ports:
       - 9200:9200
     healthcheck:
@@ -43,7 +43,7 @@ services:
 
   kibana:
     # TODO: replace with a pinned version such as 9.0.0-aaaaaaaa-SNAPSHOT
-    image: docker.elastic.co/kibana/kibana:9.0.0-9f6b098e-SNAPSHOT
+    image: docker.elastic.co/kibana/kibana:9.0.0-070836bc-SNAPSHOT
     ports:
       - 5601:5601
     healthcheck:
@@ -63,7 +63,7 @@ services:
 
   metricbeat:
     # TODO: replace with a pinned version such as 9.0.0-aaaaaaaa-SNAPSHOT
-    image: docker.elastic.co/beats/metricbeat:9.0.0-9f6b098e-SNAPSHOT
+    image: docker.elastic.co/beats/metricbeat:9.0.0-070836bc-SNAPSHOT
     environment:
       ELASTICSEARCH_HOSTS: '["http://elasticsearch:9200"]'
       ELASTICSEARCH_USERNAME: "${KIBANA_ES_USER:-admin}"
