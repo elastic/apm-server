@@ -133,7 +133,7 @@ CUSTOM_IMAGE_TAG:=${IMAGE_TAG}-${USER_NAME}-$(shell date +%s)
 ELASTIC_AGENT_DOCKER_IMAGE?=docker.elastic.co/cloud-release/elastic-agent-cloud
 ELASTICSEARCH_DOCKER_IMAGE=docker.elastic.co/cloud-release/elasticsearch-cloud-ess
 KIBANA_DOCKER_IMAGE=docker.elastic.co/cloud-release/kibana-cloud
-CI_ELASTIC_AGENT_DOCKER_IMAGE=docker.elastic.co/observability-ci/elastic-agent
+CI_ELASTIC_AGENT_DOCKER_IMAGE=docker.elastic.co/observability-ci/elastic-agent-cloud:8.16.0-4b6c1c4e
 ELASTIC_AGENT_IMAGE_TAG?=${IMAGE_TAG}
 
 .PHONY: docker-override-committed-version
