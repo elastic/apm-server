@@ -179,20 +179,20 @@ cleanup-elasticsearch:
 	@ curl -u $(ELASTICSEARCH_USER):$(ELASTICSEARCH_PASS) -XDELETE $(ELASTICSEARCH_URL)/_data_stream/$(APM_DATA_STREAMS)
 
 # This target is intended to be run from CI to create a PGO update PR.
+PGO_BRANCH = update-pgo-$(shell date +%s)
 .PHONY: push-pgo-pr
 push-pgo-pr:
-	@cd $(WORKSPACE_PATH)
-	@git config user.email "apm@elastic.co"
-	@git config user.name "APM Server"
-	@git fetch origin main
-	@git checkout main
-	@BRANCH="update-pgo-$(date +%s)"
-	@git checkout -b $(BRANCH)
-	@mv $(PROFILE_PATH) x-pack/apm-server/default.pgo
-	@git add x-pack/apm-server/default.pgo
-	@git commit -m "PGO: Update default.pgo from benchmarks $(WORKFLOW)."
-	@git push -u origin $(BRANCH)
-	@gh pr create -B main -H $(BRANCH) -t "PGO: Update default.pgo" -b "Update default.pgo CPU profile from the benchmarks [workflow]($(WORKFLOW))." -R elastic/apm-server
+	@cd $(WORKSPACE_PATH); \
+	git config user.email "apm@elastic.co"; \
+	git config user.name "APM Server"; \
+	git fetch origin main; \
+	git checkout main; \
+	git checkout -b $(PGO_BRANCH); \
+	mv $(PROFILE_PATH) x-pack/apm-server/default.pgo; \
+	git add x-pack/apm-server/default.pgo; \
+	git commit -m "PGO: Update default.pgo from benchmarks $(WORKFLOW)."; \
+	git push -u origin $(PGO_BRANCH); \
+	gh pr create -B main -H $(PGO_BRANCH) -t "PGO: Update default.pgo" -b "Update default.pgo CPU profile from the benchmarks [workflow]($(WORKFLOW))." -R elastic/apm-server
 
 ##############################################################################
 # Target for creating a .tfvars file, defining the custom Docker images to

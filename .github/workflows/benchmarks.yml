@@ -47,7 +47,6 @@ jobs:
     permissions:
       contents: write
       id-token: write
-      pull-requests: write
     env:
       SSH_KEY: ./id_rsa_terraform
       TF_VAR_private_key: ./id_rsa_terraform
@@ -112,21 +111,19 @@ jobs:
 
       - name: Init terraform module
         id: init
-        run: |
-          make init
-          echo "runStandalone=${{ env.AWS_REGION }}" >> $GITHUB_OUTPUT
+        run: make init
 
       - name: Build apmbench
         run: make apmbench $SSH_KEY terraform.tfvars
 
       - name: Build APM Server and Moxy
-        if: ${{ steps.init.outputs.runStandalone }}
+        if: ${{ env.RUN_STANDALONE == 'true' }}
         run: |
           make apm-server
           make moxy
 
       - name: Override docker committed version
-        if: ${{ ! inputs.runOnStable && ! steps.init.outputs.runStandalone }}
+        if: ${{ ! inputs.runOnStable && env.RUN_STANDALONE == 'false' }}
         run: make docker-override-committed-version
 
       - name: Spin up benchmark environment
@@ -149,7 +146,7 @@ jobs:
         run: make run-benchmark
 
       - name: Cat standalone server logs
-        if: ${{ steps.init.outputs.runStandalone && failure() }}
+        if: ${{ env.RUN_STANDALONE == 'true' && failure() }}
         run: make cat-apm-server-logs
 
       - name: Index benchmarks result
@@ -229,7 +226,7 @@ jobs:
           git_commit_gpgsign: true
 
       - name: Open PGO PR
-        if: ${{ steps.init.outputs.runStandalone && github.ref == 'refs/heads/main' }}
+        if: ${{ env.RUN_STANDALONE == 'true' && github.ref == 'refs/heads/main' }}
         run: make push-pgo-pr
         env:
           WORKSPACE_PATH: ${{ github.workspace }}
@@ -239,7 +236,7 @@ jobs:
 
       - name: Tear down benchmark environment
         if: always()
-        run: make destroy
+        run: make init destroy
 
       # Notify failure to Slack only on schedule (nightly run)
       - if: failure() && github.event_name == 'schedule'
