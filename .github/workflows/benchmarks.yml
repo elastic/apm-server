@@ -227,7 +227,7 @@ jobs:
 
       - name: Open PGO PR
         if: ${{ env.RUN_STANDALONE == 'true' && github.ref == 'refs/heads/main' }}
-        run: make push-pgo-pr
+        run: ${{ github.workspace }}/.ci/scripts/push-pgo-pr.sh
         env:
           WORKSPACE_PATH: ${{ github.workspace }}
           PROFILE_PATH: ${{ env.WORKING_DIRECTORY }}/${{ env.BENCHMARK_CPU_OUT }}

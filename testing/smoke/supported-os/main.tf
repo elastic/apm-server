@@ -13,7 +13,6 @@ provider "ec" {}
 module "tags" {
   source  = "../../infra/terraform/modules/tags"
   project = "smoke-test-supported-os"
-  build   = var.BUILD_ID
 }
 
 locals {

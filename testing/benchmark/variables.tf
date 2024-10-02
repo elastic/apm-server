@@ -7,7 +7,7 @@ variable "user_name" {
 
 variable "run_standalone" {
   default     = false
-  description = "If set run benchmarks against standalone APM Server conneted to moxy"
+  description = "If set run benchmarks against standalone APM Server connected to moxy"
   type        = bool
 }
 
