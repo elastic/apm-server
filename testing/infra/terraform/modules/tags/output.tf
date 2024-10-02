@@ -5,10 +5,7 @@ locals {
     "team" : "apm-server"
     "project" : var.project
     "build" : var.build
-<<<<<<< HEAD
     "ephemeral" : "true"
-=======
->>>>>>> b4c79b3ab (terraform: enable build tag (#13841))
   }
 }
 
