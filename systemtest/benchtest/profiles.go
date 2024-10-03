@@ -88,7 +88,7 @@ func (p *profiles) recordCPU() error {
 	if benchConfig.CPUProfile == "" {
 		return nil
 	}
-	duration := 2 * benchConfig.Benchtime
+	duration := benchConfig.Benchtime
 	profile, err := fetchProfile("/debug/pprof/profile", duration)
 	if err != nil {
 		return fmt.Errorf("failed to fetch CPU profile: %w", err)
