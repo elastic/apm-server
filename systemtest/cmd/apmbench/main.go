@@ -26,12 +26,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/elastic/go-sysinfo"
 	"go.elastic.co/apm/v2"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"golang.org/x/time/rate"
 
 	"github.com/elastic/apm-server/systemtest/benchtest"
+	"github.com/elastic/go-sysinfo"
 )
 
 func Benchmark1000Transactions(b *testing.B, l *rate.Limiter) {
