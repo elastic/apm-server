@@ -18,9 +18,11 @@
 package benchtest
 
 import (
+	"compress/gzip"
 	"context"
 	"fmt"
 	"io"
+	"math/rand/v2"
 	"net/http"
 	"os"
 	"strconv"
@@ -88,12 +90,30 @@ func (p *profiles) recordCPU() error {
 	if benchConfig.CPUProfile == "" {
 		return nil
 	}
-	duration := benchConfig.Benchtime
-	profile, err := fetchProfile("/debug/pprof/profile", duration)
-	if err != nil {
-		return fmt.Errorf("failed to fetch CPU profile: %w", err)
+	// Limit profiling time to random 5% of overall time.
+	// This should not seriously affect the profile quality,
+	// since we merge the final profile form multiple sources,
+	// but prevent profile size from swelling.
+	var done bool
+	const tickets = 20
+	duration := benchConfig.Benchtime / tickets
+	for i := range tickets {
+		if done || (rand.N(tickets-i)+i+1) < tickets {
+			time.Sleep(duration)
+			continue
+		}
+		profile, err := fetchProfile("/debug/pprof/profile", duration)
+		if err != nil {
+			return fmt.Errorf("failed to fetch CPU profile: %w", err)
+		}
+		// We don't need the address in the profile, so discard it to reduce the size.
+		if err := profile.Aggregate(true, true, true, true, false); err != nil {
+			return fmt.Errorf("failed to fetch CPU profile: %w", err)
+		}
+		profile = profile.Compact()
+		p.cpu = append(p.cpu, profile)
+		done = true
 	}
-	p.cpu = append(p.cpu, profile)
 	return nil
 }
 
@@ -168,14 +188,15 @@ func (p *profiles) writeDeltas(filename string, deltas []*profile.Profile) error
 		return err
 	}
 	defer f.Close()
-	return merged.Write(f)
+	w, err := gzip.NewWriterLevel(f, gzip.BestCompression)
+	if err != nil {
+		return err
+	}
+	defer w.Close()
+	return merged.WriteUncompressed(w)
 }
 
 func (p *profiles) mergeBenchmarkProfiles(profiles []*profile.Profile) (*profile.Profile, error) {
-	for i, profile := range profiles {
-		benchmarkName := p.benchmarkNames[i]
-		profile.SetLabel("benchmark", []string{benchmarkName})
-	}
 	merged, err := profile.Merge(profiles)
 	if err != nil {
 		return nil, fmt.Errorf("error merging profiles: %w", err)
