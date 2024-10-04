@@ -23,6 +23,10 @@ SSH_USER ?= ec2-user
 SSH_OPTS ?= -o LogLevel=ERROR -o StrictHostKeyChecking=no -o ServerAliveInterval=60 -o ServerAliveCountMax=10
 SSH_KEY ?= ~/.ssh/id_rsa_terraform
 WORKER_IP = $(shell terraform output -raw public_ip)
+<<<<<<< HEAD
+=======
+APM_SERVER_IP = $(shell terraform output -raw apm_server_ip)
+>>>>>>> 3833927f8 (PGO: optimize collected profile file size (#14256))
 
 SHELL = /bin/bash
 .SHELLFLAGS = -o pipefail -c
