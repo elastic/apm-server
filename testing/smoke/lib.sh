@@ -180,6 +180,7 @@ healthcheck() {
     local RC=0
     RES=$(curl_fail -H "${APM_AUTH_HEADER}" ${APM_SERVER_URL}) || RC=$?
     if [ $RC -ne 0 ]; then echo "${RES}"; fi
+    echo "healthcheck=${RES}"
     local PUBLISH_READY=$(echo ${RES}| jq '.publish_ready')
     if [[ "${PUBLISH_READY}" != "true" ]]; then
         local MAX_RETRIES=10
