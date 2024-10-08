@@ -2,7 +2,7 @@ user_name = "USER"
 
 # APM bench
 
-ess_region = "gcp-us-west1"
+ess_region = "gcp-us-west2"
 deployment_template = "gcp-cpu-optimized"
 worker_instance_type = "c6i.large"
 
