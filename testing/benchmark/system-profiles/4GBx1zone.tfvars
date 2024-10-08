@@ -6,7 +6,7 @@ ess_region = "gcp-us-west1"
 deployment_template = "gcp-cpu-optimized"
 worker_instance_type = "c6i.large"
 
-variable "docker_image_tag_override" {
+docker_image_tag_override = {
   default = {
     "elasticsearch" : "8.16-SNAPSHOT",
     "kibana" : "8.16-SNAPSHOT",
