@@ -2,15 +2,10 @@ user_name = "USER"
 
 # APM bench
 
+stack_version = "8.16.0-SNAPSHOT"
 ess_region = "gcp-us-west2"
 deployment_template = "gcp-cpu-optimized"
 worker_instance_type = "c6i.large"
-
-docker_image_tag_override = {
-  "elasticsearch" : "8.16-SNAPSHOT",
-  "kibana" : "8.16-SNAPSHOT",
-  "apm" : "8.16-1-SNAPSHOT",
-}
 
 # Elastic Cloud
 
