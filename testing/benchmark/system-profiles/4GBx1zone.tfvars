@@ -7,13 +7,9 @@ deployment_template = "gcp-cpu-optimized"
 worker_instance_type = "c6i.large"
 
 docker_image_tag_override = {
-  default = {
-    "elasticsearch" : "8.16-SNAPSHOT",
-    "kibana" : "8.16-SNAPSHOT",
-    "apm" : "8.16-SNAPSHOT",
-  }
-  description = "Optional docker image tag override"
-  type        = map(string)
+  "elasticsearch" : "8.16-SNAPSHOT",
+  "kibana" : "8.16-SNAPSHOT",
+  "apm" : "8.16-1-SNAPSHOT",
 }
 
 # Elastic Cloud
