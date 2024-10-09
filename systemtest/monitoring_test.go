@@ -141,7 +141,7 @@ func getBeatsMonitoring(t testing.TB, srv *apmservertest.Server, type_ string, o
 		espoll.TermQuery{Field: type_ + ".beat.uuid", Value: srv.BeatUUID},
 	).WithSort("timestamp:desc")
 	if _, err := req.Do(context.Background(), &result, espoll.WithCondition(result.Hits.MinHitsCondition(1))); err != nil {
-		t.Fatal(err)
+		t.Error(err)
 	}
 
 	var doc beatsMonitoringDoc
