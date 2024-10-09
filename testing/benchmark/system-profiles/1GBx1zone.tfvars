@@ -11,7 +11,7 @@ worker_instance_type = "c6i.large"
 
 apm_server_zone_count = 1
 elasticsearch_size = "128g"
-elasticsearch_zone_count = 3
+elasticsearch_zone_count = 1
 apm_server_size = "1g"
 
 # Standalone
