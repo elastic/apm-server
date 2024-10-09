@@ -279,7 +279,6 @@ func TestNewInstrumentation(t *testing.T) {
 	i, err := newInstrumentation(cfg)
 	require.NoError(t, err)
 	tracer := i.Tracer()
-	defer tracer.Close()
 	tracer.StartTransaction("name", "type").End()
 	tracer.Flush(nil)
 	assert.Equal(t, map[string]string{"k1": "val", "k2": "new val"}, <-labels)
