@@ -8,7 +8,7 @@ require (
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/apm-aggregation v1.1.0
 	github.com/elastic/apm-data v1.13.1
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20240924123012-ecc521545d94
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20240904154427-2b5384a9a142
 	github.com/elastic/elastic-agent-client/v7 v7.16.0
 	github.com/elastic/elastic-agent-libs v0.12.0
 	github.com/elastic/elastic-agent-system-metrics v0.11.3
@@ -98,6 +98,7 @@ require (
 	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
+	github.com/gofrs/uuid v4.4.0+incompatible // indirect
 	github.com/gogo/googleapis v1.4.1 // indirect
 	github.com/golang/glog v1.2.2 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
