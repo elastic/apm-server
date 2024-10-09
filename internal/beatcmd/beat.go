@@ -31,7 +31,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gofrs/uuid/v5"
+	"github.com/gofrs/uuid"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 
@@ -123,7 +123,6 @@ func NewBeat(args BeatParams) (*Beat, error) {
 			Keystore:   keystore,
 			Config:     &beat.BeatConfig{Output: cfg.Output},
 			BeatConfig: cfg.APMServer,
-			Registry:   reload.NewRegistry(),
 		},
 		Config:    cfg,
 		newRunner: args.NewRunner,
@@ -153,7 +152,7 @@ func (b *Beat) init() error {
 	logp.Info("Beat ID: %v", b.Info.ID)
 
 	// Initialize central config manager.
-	manager, err := management.NewManager(b.Config.Management, b.Registry)
+	manager, err := management.NewManager(b.Config.Management, reload.RegisterV2)
 	if err != nil {
 		return err
 	}
@@ -367,7 +366,7 @@ func (b *Beat) Run(ctx context.Context) error {
 	}
 
 	if b.Manager.Enabled() {
-		reloader, err := NewReloader(b.Info, b.Registry, b.newRunner)
+		reloader, err := NewReloader(b.Info, b.newRunner)
 		if err != nil {
 			return err
 		}
