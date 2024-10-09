@@ -25,7 +25,6 @@ import (
 )
 
 func main() {
-	beatcmd.InitBeatCmd()
 	rootCmd := beatcmd.NewRootCommand(beatcmd.BeatParams{
 		NewRunner: func(args beatcmd.RunnerParams) (beatcmd.Runner, error) {
 			return beater.NewRunner(beater.RunnerParams{
