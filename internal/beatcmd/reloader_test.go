@@ -33,6 +33,10 @@ import (
 )
 
 func TestReloader(t *testing.T) {
+	oldRegistry := reload.RegisterV2
+	defer func() { reload.RegisterV2 = oldRegistry }()
+	reload.RegisterV2 = reload.NewRegistry()
+
 	type runner struct {
 		running chan struct{}
 		stopped chan struct{}
@@ -55,9 +59,7 @@ func TestReloader(t *testing.T) {
 		panic("unreachable")
 	}
 
-	registry := reload.NewRegistry()
-
-	reloader, err := NewReloader(beat.Info{}, registry, func(args RunnerParams) (Runner, error) {
+	reloader, err := NewReloader(beat.Info{}, func(args RunnerParams) (Runner, error) {
 		if shouldError, _ := args.Config.Bool("error", -1); shouldError {
 			return nil, errors.New("no runner for you")
 		}
@@ -84,29 +86,29 @@ func TestReloader(t *testing.T) {
 	// No reload until there's input, output, apm tracing configuration.
 	assertNoReload()
 
-	err = registry.GetInputList().Reload([]*reload.ConfigWithMeta{{
+	err = reload.RegisterV2.GetInputList().Reload([]*reload.ConfigWithMeta{{
 		Config: config.MustNewConfigFrom(`{}`),
 	}})
 	assert.EqualError(t, err, "failed to extract input config revision: missing field accessing 'revision'")
 	assertNoReload()
 
-	err = registry.GetInputList().Reload([]*reload.ConfigWithMeta{{
+	err = reload.RegisterV2.GetInputList().Reload([]*reload.ConfigWithMeta{{
 		Config: config.MustNewConfigFrom(`{"revision": 1}`),
 	}})
 	assert.NoError(t, err)
 	assertNoReload()
 
-	err = registry.GetReloadableOutput().Reload(&reload.ConfigWithMeta{
+	err = reload.RegisterV2.GetReloadableOutput().Reload(&reload.ConfigWithMeta{
 		Config: config.MustNewConfigFrom(`{}`),
 	})
 	assert.NoError(t, err)
 	assertNoReload() // an output must be set
 
-	err = registry.GetReloadableAPM().Reload(nil)
+	err = reload.RegisterV2.GetReloadableAPM().Reload(nil)
 	assert.NoError(t, err)
 	assertNoReload()
 
-	err = registry.GetReloadableOutput().Reload(&reload.ConfigWithMeta{
+	err = reload.RegisterV2.GetReloadableOutput().Reload(&reload.ConfigWithMeta{
 		Config: config.MustNewConfigFrom(`{"console.enabled": true}`),
 	})
 	assert.NoError(t, err)
@@ -116,14 +118,14 @@ func TestReloader(t *testing.T) {
 	expectEvent(t, r1.running, "runner should have been started")
 	expectNoEvent(t, r1.stopped, "runner should not have been stopped")
 
-	err = registry.GetInputList().Reload([]*reload.ConfigWithMeta{{
+	err = reload.RegisterV2.GetInputList().Reload([]*reload.ConfigWithMeta{{
 		Config: config.MustNewConfigFrom(`{"revision": 2, "error": true}`),
 	}})
 	assert.EqualError(t, err, "failed to load input config: no runner for you")
 	assertNoReload() // error occurred during reload, nothing changes
 	expectNoEvent(t, r1.stopped, "runner should not have been stopped")
 
-	err = registry.GetInputList().Reload([]*reload.ConfigWithMeta{{
+	err = reload.RegisterV2.GetInputList().Reload([]*reload.ConfigWithMeta{{
 		Config: config.MustNewConfigFrom(`{"revision": 3}`),
 	}})
 	assert.NoError(t, err)
@@ -132,7 +134,7 @@ func TestReloader(t *testing.T) {
 	expectEvent(t, r2.running, "new runner should have been started")
 	expectNoEvent(t, r2.stopped, "new runner should not have been stopped")
 
-	err = registry.GetReloadableAPM().Reload(&reload.ConfigWithMeta{
+	err = reload.RegisterV2.GetReloadableAPM().Reload(&reload.ConfigWithMeta{
 		Config: config.MustNewConfigFrom(`{"elastic.enabled": true, "elastic.api_key": "boo"}`),
 	})
 	assert.NoError(t, err)
@@ -146,11 +148,13 @@ func TestReloader(t *testing.T) {
 }
 
 func TestReloaderNewRunnerParams(t *testing.T) {
-	registry := reload.NewRegistry()
+	oldRegistry := reload.RegisterV2
+	defer func() { reload.RegisterV2 = oldRegistry }()
+	reload.RegisterV2 = reload.NewRegistry()
 
 	calls := make(chan RunnerParams, 1)
 	info := beat.Info{Beat: "not-apm-server", Version: "0.0.1"}
-	reloader, err := NewReloader(info, registry, func(args RunnerParams) (Runner, error) {
+	reloader, err := NewReloader(info, func(args RunnerParams) (Runner, error) {
 		calls <- args
 		return runnerFunc(func(ctx context.Context) error {
 			<-ctx.Done()
@@ -165,18 +169,18 @@ func TestReloaderNewRunnerParams(t *testing.T) {
 	defer func() { assert.NoError(t, g.Wait()) }()
 	defer cancel()
 
-	registry.GetInputList().Reload([]*reload.ConfigWithMeta{{
+	reload.RegisterV2.GetInputList().Reload([]*reload.ConfigWithMeta{{
 		Config: config.MustNewConfigFrom(`{"revision": 1, "input": 123}`),
 	}})
 
 	// reloader will wait until input and output are available.
 	// triggering APM reload before output reload will let the params to contain
 	// the apm tracing config too in this test setup
-	registry.GetReloadableAPM().Reload(&reload.ConfigWithMeta{
+	reload.RegisterV2.GetReloadableAPM().Reload(&reload.ConfigWithMeta{
 		Config: config.MustNewConfigFrom(`{"elastic.environment": "test"}`),
 	})
 
-	registry.GetReloadableOutput().Reload(&reload.ConfigWithMeta{
+	reload.RegisterV2.GetReloadableOutput().Reload(&reload.ConfigWithMeta{
 		Config: config.MustNewConfigFrom(`{"console.enabled": true}`),
 	})
 	args := <-calls
