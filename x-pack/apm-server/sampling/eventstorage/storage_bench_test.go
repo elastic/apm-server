@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gofrs/uuid/v5"
+	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/elastic/apm-data/model/modelpb"
