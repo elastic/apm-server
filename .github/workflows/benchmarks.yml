@@ -34,6 +34,7 @@ env:
   BENCHMARK_CPU_OUT: default.pgo
   BENCHMARK_RESULT: benchmark-result.txt
   WORKING_DIRECTORY: testing/benchmark
+  RUN_STANDALONE: ${{ inputs.runStandalone || github.event.schedule=='0 5 */5 * *' }}
 
 permissions:
   contents: read
@@ -51,7 +52,8 @@ jobs:
       SSH_KEY: ./id_rsa_terraform
       TF_VAR_private_key: ./id_rsa_terraform
       TF_VAR_public_key: ./id_rsa_terraform.pub
-      RUN_STANDALONE: ${{ inputs.runStandalone || github.event.schedule=='0 5 */5 * *' }}
+      TF_VAR_run_standalone: ${{ env.RUN_STANDALONE }}
+
       TFVARS_SOURCE: ${{ inputs.profile || 'system-profiles/8GBx1zone.tfvars' }} # // Default to use an 8gb profile
       TF_VAR_BUILD_ID: ${{ github.run_id }}
       TF_VAR_ENVIRONMENT: ci
@@ -133,10 +135,6 @@ jobs:
           admin_console_url=$(terraform output -raw admin_console_url)
           echo "admin_console_url=$admin_console_url" >> "$GITHUB_OUTPUT"
           echo "-> infra setup done"
-        env:
-          TF_VAR_worker_region: ${{ env.AWS_REGION }}
-          TF_VAR_run_standalone: ${{ env.RUN_STANDALONE }}
-
 #      - name: Run benchmarks autotuned
 #        if: ${{ inputs.benchmarkAgents == '' }}
 #        run: make run-benchmark-autotuned
