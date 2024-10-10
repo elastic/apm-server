@@ -379,36 +379,33 @@ func (b *Beat) Run(ctx context.Context) error {
 		defer b.Manager.Stop()
 
 		g.Go(func() error {
-			ticker := time.NewTicker(5 * time.Second)
 			for {
-				select {
-				case <-ctx.Done():
-				case <-ticker.C:
-					in := config.MustNewConfigFrom(map[string]interface{}{
-						"apm-server": map[string]interface{}{
-							"rum.enabled": true,
-							"host":        "0.0.0.0:8200",
-							"sampling.tail": map[string]interface{}{
-								"enabled": true,
-								"policies": []map[string]interface{}{
-									{"sampling_rate": 0.1},
-								},
-								"storage_gc_interval": "2s",
+				in := config.MustNewConfigFrom(map[string]interface{}{
+					"apm-server": map[string]interface{}{
+						"rum.enabled": true,
+						"host":        "0.0.0.0:8200",
+						"sampling.tail": map[string]interface{}{
+							"enabled": true,
+							"policies": []map[string]interface{}{
+								{"sampling_rate": 0.1},
 							},
+							"storage_gc_interval": "2s",
 						},
-					})
-					out := config.MustNewConfigFrom(map[string]interface{}{
-						"elasticsearch": map[string]interface{}{
-							"host":     []string{"localhost:9200"},
-							"username": "admin",
-							"password": "changeme",
-						},
-					})
-					if err := reloader.reload(in, out, nil); err != nil {
-						logp.Err("reload error")
-					}
+					},
+				})
+				out := config.MustNewConfigFrom(map[string]interface{}{
+					"elasticsearch": map[string]interface{}{
+						"host":     []string{"localhost:9200"},
+						"username": "admin",
+						"password": "changeme",
+					},
+				})
+				if err := reloader.reload(in, out, nil); err != nil {
+					logp.Err("reload error")
 				}
+				time.Sleep(time.Minute)
 			}
+
 			return nil
 		})
 	} else {
