@@ -20,7 +20,6 @@ package middleware
 import (
 	"context"
 	"net/http"
-	"sync"
 	"time"
 
 	"go.opentelemetry.io/otel"
@@ -37,13 +36,9 @@ const (
 type monitoringMiddleware struct {
 	meter metric.Meter
 
-	ints map[request.ResultID]*monitoring.Int
-
-	counters        map[string]metric.Int64Counter
-	countersRWMutex sync.RWMutex
-
-	histograms        map[string]metric.Int64Histogram
-	histogramsRWMutex sync.RWMutex
+	ints       map[request.ResultID]*monitoring.Int
+	counters   map[string]metric.Int64Counter
+	histograms map[string]metric.Int64Histogram
 }
 
 func (m *monitoringMiddleware) Middleware() Middleware {
@@ -84,19 +79,10 @@ func (m *monitoringMiddleware) inc(id request.ResultID) {
 
 func (m *monitoringMiddleware) getCounter(n string) metric.Int64Counter {
 	name := "http.server." + n
-
-	m.countersRWMutex.RLock()
-	if met, ok := m.counters[name]; ok {
-		m.countersRWMutex.RUnlock()
-		return met
-	}
-
-	m.countersRWMutex.RUnlock()
-	m.countersRWMutex.Lock()
-	defer m.countersRWMutex.Unlock()
 	if met, ok := m.counters[name]; ok {
 		return met
 	}
+
 	nm, _ := m.meter.Int64Counter(name)
 	m.counters[name] = nm
 	return nm
@@ -104,20 +90,10 @@ func (m *monitoringMiddleware) getCounter(n string) metric.Int64Counter {
 
 func (m *monitoringMiddleware) getHistogram(n string, opts ...metric.Int64HistogramOption) metric.Int64Histogram {
 	name := "http.server." + n
-
-	m.histogramsRWMutex.RLock()
-	if met, ok := m.histograms[name]; ok {
-		m.histogramsRWMutex.RUnlock()
-		return met
-	}
-
-	m.histogramsRWMutex.RUnlock()
-	m.histogramsRWMutex.Lock()
-	defer m.histogramsRWMutex.Unlock()
-
 	if met, ok := m.histograms[name]; ok {
 		return met
 	}
+
 	nm, _ := m.meter.Int64Histogram(name, opts...)
 	m.histograms[name] = nm
 	return nm
