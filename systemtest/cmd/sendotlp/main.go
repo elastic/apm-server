@@ -170,16 +170,19 @@ func Main(ctx context.Context, logger *zap.SugaredLogger) (result error) {
 
 	logger.Infof("sending OTLP data to %s (%s)", endpointURL.String(), *protocol)
 
-	// Generate some data. Metrics are sent when the controller is stopped, traces and logs
-	// are sent immediately.
-	if err := generateMetrics(ctx, meterProvider.Meter("sendotlp")); err != nil {
-		return err
-	}
-	if err := generateSpans(ctx, tracerProvider.Tracer("sendotlp")); err != nil {
-		return err
-	}
-	if err := generateLogs(ctx, otlpExporters.log); err != nil {
-		return err
+	for {
+		// Generate some data. Metrics are sent when the controller is stopped, traces and logs
+		// are sent immediately.
+		if err := generateMetrics(ctx, meterProvider.Meter("sendotlp")); err != nil {
+			return err
+		}
+		if err := generateSpans(ctx, tracerProvider.Tracer("sendotlp")); err != nil {
+			return err
+		}
+		if err := generateLogs(ctx, otlpExporters.log); err != nil {
+			return err
+		}
+		time.Sleep(time.Second)
 	}
 	return nil
 }
