@@ -20,6 +20,7 @@ package middleware
 import (
 	"context"
 	"net/http"
+	"sync"
 	"time"
 
 	"go.opentelemetry.io/otel"
@@ -37,8 +38,8 @@ type monitoringMiddleware struct {
 	meter metric.Meter
 
 	ints       map[request.ResultID]*monitoring.Int
-	counters   map[string]metric.Int64Counter
-	histograms map[string]metric.Int64Histogram
+	counters   sync.Map
+	histograms sync.Map
 }
 
 func (m *monitoringMiddleware) Middleware() Middleware {
@@ -79,23 +80,23 @@ func (m *monitoringMiddleware) inc(id request.ResultID) {
 
 func (m *monitoringMiddleware) getCounter(n string) metric.Int64Counter {
 	name := "http.server." + n
-	if met, ok := m.counters[name]; ok {
-		return met
+	if met, ok := m.counters.Load(name); ok {
+		return met.(metric.Int64Counter)
 	}
 
 	nm, _ := m.meter.Int64Counter(name)
-	m.counters[name] = nm
+	m.counters.LoadOrStore(name, nm)
 	return nm
 }
 
 func (m *monitoringMiddleware) getHistogram(n string, opts ...metric.Int64HistogramOption) metric.Int64Histogram {
 	name := "http.server." + n
-	if met, ok := m.histograms[name]; ok {
-		return met
+	if met, ok := m.histograms.Load(name); ok {
+		return met.(metric.Int64Histogram)
 	}
 
 	nm, _ := m.meter.Int64Histogram(name, opts...)
-	m.histograms[name] = nm
+	m.histograms.LoadOrStore(name, nm)
 	return nm
 }
 
@@ -109,8 +110,8 @@ func MonitoringMiddleware(m map[request.ResultID]*monitoring.Int, mp metric.Mete
 	mid := &monitoringMiddleware{
 		meter:      mp.Meter("internal/beater/middleware"),
 		ints:       m,
-		counters:   map[string]metric.Int64Counter{},
-		histograms: map[string]metric.Int64Histogram{},
+		counters:   sync.Map{},
+		histograms: sync.Map{},
 	}
 
 	return mid.Middleware()
