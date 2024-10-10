@@ -21,6 +21,7 @@ import (
 	"context"
 	"net"
 	"net/http"
+	"time"
 
 	"go.elastic.co/apm/module/apmgorilla/v2"
 	"go.elastic.co/apm/v2"
@@ -227,6 +228,7 @@ func (s server) run(ctx context.Context) error {
 		// See https://github.com/elastic/gmux/issues/13
 		s.httpServer.stop()
 		s.grpcServer.GracefulStop()
+		time.Sleep(5 * time.Minute)
 		return nil
 	})
 	if err := g.Wait(); err != http.ErrServerClosed {
