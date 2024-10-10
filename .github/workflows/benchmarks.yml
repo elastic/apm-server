@@ -156,6 +156,71 @@ jobs:
           path: ${{ env.WORKING_DIRECTORY }}/${{ env.BENCHMARK_RESULT }}
           if-no-files-found: error
 
+<<<<<<< HEAD
+=======
+      # The next section injects CPU profile collected by apmbench into the build.
+      # By copying the profile, uploading it to the artifacts and pushing it
+      # via a PR to update default.pgo.
+
+      - name: Copy CPU profile
+        run: make cp-cpuprof
+      
+      - name: Upload CPU profile
+        uses: actions/upload-artifact@v4
+        with:
+          name: cpu-profile
+          path: ${{ env.WORKING_DIRECTORY }}/${{ env.BENCHMARK_CPU_OUT }}
+          if-no-files-found: error
+
+      - name: Get token
+        id: get_token
+        uses: tibdex/github-app-token@3beb63f4bd073e61482598c45c71c1019b59b73a # v2.1.0
+        with:
+          app_id: ${{ secrets.OBS_AUTOMATION_APP_ID }}
+          private_key: ${{ secrets.OBS_AUTOMATION_APP_PEM }}
+          permissions: >-
+            {
+              "contents": "write",
+              "pull_requests": "write"
+            }
+
+      # Required to use a service account, otherwise PRs created by
+      # GitHub bot won't trigger any CI builds.
+      # See https://github.com/peter-evans/create-pull-request/issues/48#issuecomment-537478081
+      - name: Configure git user
+        uses: elastic/oblt-actions/git/setup@v1
+        with:
+          github-token: ${{ steps.get_token.outputs.token }}
+
+      - name: Import GPG key
+        uses: crazy-max/ghaction-import-gpg@01dd5d3ca463c7f10f7f4f7b4f177225ac661ee4  # v6.1.0
+        with:
+          gpg_private_key: ${{ secrets.APM_SERVER_RELEASE_GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.APM_SERVER_RELEASE_PASSPHRASE }}
+          git_user_signingkey: true
+          git_commit_gpgsign: true
+
+      - name: Open PGO PR
+        if: ${{ env.RUN_STANDALONE == 'true' }}
+        run: ${{ github.workspace }}/.ci/scripts/push-pgo-pr.sh
+        env:
+          WORKSPACE_PATH: ${{ github.workspace }}
+          PROFILE_PATH: ${{ env.WORKING_DIRECTORY }}/${{ env.BENCHMARK_CPU_OUT }}
+          GITHUB_TOKEN: ${{ steps.get_token.outputs.token }}
+          WORKFLOW: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}
+
+      # Secrets are rotated daily, if the benchmarks run between the rotation window, then
+      # there is a high chance things will stop working
+      # This is trying to reduce the chances of that happening.
+      # See https://github.com/elastic/observability-test-environments/actions/workflows/cluster-rotate-api-keys.yml
+      - uses: google-github-actions/get-secretmanager-secrets@95a0b09b8348ef3d02c68c6ba5662a037e78d713 # v2.1.4
+        if: always()
+        with:
+          export_to_environment: true
+          secrets: |-
+            EC_API_KEY:elastic-observability/elastic-cloud-observability-team-pro-api-key
+
+>>>>>>> f5dcbf870 (ci(benchmarks): read secrets for running the tear-down immediately after (#14323))
       - name: Tear down benchmark environment
         if: always()
         run: make destroy
