@@ -394,8 +394,10 @@ func (p *Processor) Run() error {
 		for {
 			select {
 			case <-p.stopping:
+				p.logger.Error("gc stopping")
 				return nil
 			case <-ticker.C:
+				p.logger.Error("gc tick")
 				const discardRatio = 0.5
 				var err error
 				for err == nil {

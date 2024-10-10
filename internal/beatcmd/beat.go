@@ -365,7 +365,7 @@ func (b *Beat) Run(ctx context.Context) error {
 		return err
 	}
 
-	if b.Manager.Enabled() {
+	if b.Manager.Enabled() || true {
 		reloader, err := NewReloader(b.Info, b.newRunner)
 		if err != nil {
 			return err
@@ -377,6 +377,40 @@ func (b *Beat) Run(ctx context.Context) error {
 			return fmt.Errorf("failed to start manager: %w", err)
 		}
 		defer b.Manager.Stop()
+
+		g.Go(func() error {
+			ticker := time.NewTicker(5 * time.Second)
+			for {
+				select {
+				case <-ctx.Done():
+				case <-ticker.C:
+					in := config.MustNewConfigFrom(map[string]interface{}{
+						"apm-server": map[string]interface{}{
+							"rum.enabled": true,
+							"host":        "0.0.0.0:8200",
+							"sampling.tail": map[string]interface{}{
+								"enabled": true,
+								"policies": []map[string]interface{}{
+									{"sampling_rate": 0.1},
+								},
+								"storage_gc_interval": "2s",
+							},
+						},
+					})
+					out := config.MustNewConfigFrom(map[string]interface{}{
+						"elasticsearch": map[string]interface{}{
+							"host":     []string{"localhost:9200"},
+							"username": "admin",
+							"password": "changeme",
+						},
+					})
+					if err := reloader.reload(in, out, nil); err != nil {
+						logp.Err("reload error")
+					}
+				}
+			}
+			return nil
+		})
 	} else {
 		if !b.Config.Output.IsSet() {
 			return errors.New("no output defined, please define one under the output section")
