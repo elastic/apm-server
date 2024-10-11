@@ -222,10 +222,11 @@ func (s server) run(ctx context.Context) error {
 	})
 	g.Go(func() error {
 		<-ctx.Done()
-		// httpServer should stop before grpcServer to avoid a panic caused by placing a new connection into
-		// a closed grpc connection channel during shutdown.
-		// See https://github.com/elastic/gmux/issues/13
-		s.httpServer.stop()
+		stopctx, cancel := context.WithTimeout(context.Background(), s.cfg.ShutdownTimeout)
+		defer cancel()
+		s.httpServer.stop(stopctx)
+		// FIXME: will httpServer.stop terminate the grpc connections, making grpcServer.GracefulStop a no-op?
+		// Will it be better to grpcServer.GracefulStop first as the gmux panic is fixed, so that GOAWAY is sent?
 		s.grpcServer.GracefulStop()
 		return nil
 	})
