@@ -222,12 +222,10 @@ func (s server) run(ctx context.Context) error {
 	})
 	g.Go(func() error {
 		<-ctx.Done()
+		s.grpcServer.GracefulStop()
 		stopctx, cancel := context.WithTimeout(context.Background(), s.cfg.ShutdownTimeout)
 		defer cancel()
 		s.httpServer.stop(stopctx)
-		// FIXME: will httpServer.stop terminate the grpc connections, making grpcServer.GracefulStop a no-op?
-		// Will it be better to grpcServer.GracefulStop first as the gmux panic is fixed, so that GOAWAY is sent?
-		s.grpcServer.GracefulStop()
 		return nil
 	})
 	if err := g.Wait(); err != http.ErrServerClosed {
