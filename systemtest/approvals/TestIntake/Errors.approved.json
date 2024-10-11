@@ -169,18 +169,10 @@
                     "bar",
                     "baz"
                 ],
-                "Content-Type": [
-                    "text/html"
-                ],
-                "Cookie": [
-                    "c1=v1,c2=v2"
-                ],
-                "Some-Other-Header": [
-                    "foo"
-                ],
-                "User-Agent": [
-                    "Mozilla Chrome Edge"
-                ]
+                "Content-Type": "text/html",
+                "Cookie": "c1=v1,c2=v2",
+                "Some-Other-Header": "foo",
+                "User-Agent": "Mozilla Chrome Edge"
             }
         ],
         "http.request.method": [
@@ -194,9 +186,7 @@
         ],
         "http.response.headers": [
             {
-                "Content-Type": [
-                    "application/json"
-                ]
+                "Content-Type": "application/json"
             }
         ],
         "http.response.headers_sent": [
