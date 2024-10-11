@@ -104,22 +104,14 @@
         ],
         "http.request.headers": [
             {
-                "Content-Length": [
-                    "0"
-                ],
+                "Content-Length": "0",
                 "Cookie": [
                     "c1=v1",
                     "c2=v2"
                 ],
-                "Elastic-Apm-Traceparent": [
-                    "00-8c21b4b556467a0b17ae5da959b5f388-31301f1fb2998121-01"
-                ],
-                "Forwarded": [
-                    "for=192.168.0.1"
-                ],
-                "Host": [
-                    "opbeans-java:3000"
-                ]
+                "Elastic-Apm-Traceparent": "00-8c21b4b556467a0b17ae5da959b5f388-31301f1fb2998121-01",
+                "Forwarded": "for=192.168.0.1",
+                "Host": "opbeans-java:3000"
             }
         ],
         "http.request.method": [
@@ -130,9 +122,7 @@
         ],
         "http.response.headers": [
             {
-                "Content-Type": [
-                    "application/json"
-                ]
+                "Content-Type": "application/json"
             }
         ],
         "http.response.headers_sent": [

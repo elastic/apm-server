@@ -8,9 +8,9 @@ require (
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/apm-aggregation v1.1.0
 	github.com/elastic/apm-data v1.13.1
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20240927142811-d130d84e0c8c
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20240823193033-af33fad4d50b
 	github.com/elastic/elastic-agent-client/v7 v7.16.0
-	github.com/elastic/elastic-agent-libs v0.12.0
+	github.com/elastic/elastic-agent-libs v0.12.1
 	github.com/elastic/elastic-agent-system-metrics v0.11.3
 	github.com/elastic/gmux v0.3.2
 	github.com/elastic/go-docappender/v2 v2.3.0
@@ -19,7 +19,7 @@ require (
 	github.com/elastic/go-ucfg v0.8.8
 	github.com/go-sourcemap/sourcemap v2.1.4+incompatible
 	github.com/gofrs/flock v0.12.1
-	github.com/gofrs/uuid/v5 v5.3.0
+	github.com/gofrs/uuid v4.4.0+incompatible
 	github.com/gogo/protobuf v1.3.2
 	github.com/google/go-cmp v0.6.0
 	github.com/gorilla/mux v1.8.1
@@ -53,7 +53,7 @@ require (
 	golang.org/x/term v0.25.0
 	golang.org/x/time v0.7.0
 	google.golang.org/grpc v1.67.1
-	google.golang.org/protobuf v1.34.2
+	google.golang.org/protobuf v1.35.1
 	gopkg.in/yaml.v3 v3.0.1
 )
 
@@ -98,6 +98,7 @@ require (
 	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
+	github.com/gofrs/uuid/v5 v5.2.0 // indirect
 	github.com/gogo/googleapis v1.4.1 // indirect
 	github.com/golang/glog v1.2.2 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
