@@ -1416,9 +1416,7 @@
         ],
         "http.request.headers": [
             {
-                "Accept": [
-                    "application/json"
-                ]
+                "Accept": "application/json"
             }
         ],
         "http.request.method": [
@@ -1435,9 +1433,7 @@
         ],
         "http.response.headers": [
             {
-                "Content-Type": [
-                    "application/json"
-                ]
+                "Content-Type": "application/json"
             }
         ],
         "http.response.status_code": [

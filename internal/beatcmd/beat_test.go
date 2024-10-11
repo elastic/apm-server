@@ -125,6 +125,10 @@ func TestUnmanagedOutputRequired(t *testing.T) {
 }
 
 func TestRunManager(t *testing.T) {
+	oldRegistry := reload.RegisterV2
+	defer func() { reload.RegisterV2 = oldRegistry }()
+	reload.RegisterV2 = reload.NewRegistry()
+
 	// Register our own mock management implementation.
 	manager := newMockManager()
 	management.SetManagerFactory(func(cfg *config.C, registry *reload.Registry) (management.Manager, error) {
@@ -147,20 +151,20 @@ func TestRunManager(t *testing.T) {
 	expectEvent(t, manager.started, "manager should have been started")
 	expectNoEvent(t, manager.stopped, "manager should not have been stopped")
 
-	err := b.Registry.GetInputList().Reload([]*reload.ConfigWithMeta{{
+	err := reload.RegisterV2.GetInputList().Reload([]*reload.ConfigWithMeta{{
 		Config: config.MustNewConfigFrom(`{
 			"revision": 1,
 			"apm-server.host": "localhost:1234"
 		}`),
 	}})
 	assert.NoError(t, err)
-	err = b.Registry.GetReloadableOutput().Reload(&reload.ConfigWithMeta{
+	err = reload.RegisterV2.GetReloadableOutput().Reload(&reload.ConfigWithMeta{
 		Config: config.MustNewConfigFrom(`{"console.enabled": true}`),
 	})
 	assert.NoError(t, err)
 
 	expectRunnerParams(t, calls)
-	err = b.Registry.GetReloadableAPM().Reload(&reload.ConfigWithMeta{
+	err = reload.RegisterV2.GetReloadableAPM().Reload(&reload.ConfigWithMeta{
 		Config: config.MustNewConfigFrom(`{"elastic.enabled": true, "elastic.environment": "testenv"}`),
 	})
 	assert.NoError(t, err)
@@ -232,6 +236,9 @@ func resetGlobals() {
 			registry.Clear()
 		}
 	}
+
+	// Create a new reload registry, as the Beat.Run method will register with it.
+	reload.RegisterV2 = reload.NewRegistry()
 }
 
 type runnerFunc func(ctx context.Context) error
