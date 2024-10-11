@@ -223,7 +223,7 @@ jobs:
           git_commit_gpgsign: true
 
       - name: Open PGO PR
-        if: ${{ env.RUN_STANDALONE == 'true' && github.ref == 'refs/heads/main' }}
+        if: ${{ env.RUN_STANDALONE == 'true' }}
         run: ${{ github.workspace }}/.ci/scripts/push-pgo-pr.sh
         env:
           WORKSPACE_PATH: ${{ github.workspace }}
