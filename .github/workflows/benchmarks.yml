@@ -51,6 +51,7 @@ jobs:
       SSH_KEY: ./id_rsa_terraform
       TF_VAR_private_key: ./id_rsa_terraform
       TF_VAR_public_key: ./id_rsa_terraform.pub
+      TF_VAR_run_standalone: ${{ inputs.runStandalone || github.event.schedule=='0 5 */5 * *' }}
       RUN_STANDALONE: ${{ inputs.runStandalone || github.event.schedule=='0 5 */5 * *' }}
       TFVARS_SOURCE: ${{ inputs.profile || 'system-profiles/8GBx1zone.tfvars' }} # // Default to use an 8gb profile
       TF_VAR_BUILD_ID: ${{ github.run_id }}
@@ -133,10 +134,6 @@ jobs:
           admin_console_url=$(terraform output -raw admin_console_url)
           echo "admin_console_url=$admin_console_url" >> "$GITHUB_OUTPUT"
           echo "-> infra setup done"
-        env:
-          TF_VAR_worker_region: ${{ env.AWS_REGION }}
-          TF_VAR_run_standalone: ${{ env.RUN_STANDALONE }}
-
       - name: Run benchmarks autotuned
         if: ${{ inputs.benchmarkAgents == '' }}
         run: make run-benchmark-autotuned
@@ -189,7 +186,7 @@ jobs:
 
       - name: Copy CPU profile
         run: make cp-cpuprof
-      
+
       - name: Upload CPU profile
         uses: actions/upload-artifact@v4
         with:
@@ -226,7 +223,7 @@ jobs:
           git_commit_gpgsign: true
 
       - name: Open PGO PR
-        if: ${{ env.RUN_STANDALONE == 'true' && github.ref == 'refs/heads/main' }}
+        if: ${{ env.RUN_STANDALONE == 'true' }}
         run: ${{ github.workspace }}/.ci/scripts/push-pgo-pr.sh
         env:
           WORKSPACE_PATH: ${{ github.workspace }}
