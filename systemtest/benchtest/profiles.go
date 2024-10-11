@@ -90,12 +90,6 @@ func (p *profiles) recordCPU() error {
 	if benchConfig.CPUProfile == "" {
 		return nil
 	}
-<<<<<<< HEAD
-	duration := 2 * benchConfig.Benchtime
-	profile, err := fetchProfile("/debug/pprof/profile", duration)
-	if err != nil {
-		return fmt.Errorf("failed to fetch CPU profile: %w", err)
-=======
 	// Limit profiling time to random 5% of overall time.
 	// This should not seriously affect the profile quality,
 	// since we merge the final profile form multiple sources,
@@ -119,7 +113,6 @@ func (p *profiles) recordCPU() error {
 		profile = profile.Compact()
 		p.cpu = append(p.cpu, profile)
 		done = true
->>>>>>> 3833927f8 (PGO: optimize collected profile file size (#14256))
 	}
 	return nil
 }

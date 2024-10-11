@@ -3,6 +3,11 @@ name: benchmarks
 on:
   workflow_dispatch:
     inputs:
+      runStandalone:
+        description: 'Run the benchmarks against standalone APM Server with Moxy'
+        required: false
+        type: boolean
+        default: false
       profile:
         description: 'The system profile used to run the benchmarks'
         required: false
@@ -21,10 +26,12 @@ on:
         required: false
         type: string
   schedule:
-    - cron: '0 17 * * *'
+    - cron: '0 17 * * *' # Scheduled regular benchmarks.
+    - cron: '0 5 */5 * *' # Scheduled PGO benchmarks.
 
 env:
   PNG_REPORT_FILE: out.png
+  BENCHMARK_CPU_OUT: default.pgo
   BENCHMARK_RESULT: benchmark-result.txt
   WORKING_DIRECTORY: testing/benchmark
 
@@ -38,12 +45,13 @@ jobs:
       run:
         working-directory: ${{ env.WORKING_DIRECTORY }}
     permissions:
-      contents: read
+      contents: write
       id-token: write
     env:
       SSH_KEY: ./id_rsa_terraform
       TF_VAR_private_key: ./id_rsa_terraform
       TF_VAR_public_key: ./id_rsa_terraform.pub
+      RUN_STANDALONE: ${{ inputs.runStandalone || github.event.schedule=='0 5 */5 * *' }}
       TFVARS_SOURCE: ${{ inputs.profile || 'system-profiles/8GBx1zone.tfvars' }} # // Default to use an 8gb profile
       TF_VAR_BUILD_ID: ${{ github.run_id }}
       TF_VAR_ENVIRONMENT: ci
@@ -101,28 +109,48 @@ jobs:
           terraform_version: 1.3.7
           terraform_wrapper: false
 
+      - name: Init terraform module
+        id: init
+        run: make init
+
       - name: Build apmbench
         run: make apmbench $SSH_KEY terraform.tfvars
 
+      - name: Build APM Server and Moxy
+        if: ${{ env.RUN_STANDALONE == 'true' }}
+        run: |
+          make apm-server
+          make moxy
+
       - name: Override docker committed version
-        if: ${{ ! inputs.runOnStable }}
+        if: ${{ ! inputs.runOnStable && env.RUN_STANDALONE == 'false' }}
         run: make docker-override-committed-version
 
       - name: Spin up benchmark environment
         id: deploy
         run: |
-          make init apply
+          make apply
           admin_console_url=$(terraform output -raw admin_console_url)
           echo "admin_console_url=$admin_console_url" >> "$GITHUB_OUTPUT"
           echo "-> infra setup done"
+        env:
+          TF_VAR_worker_region: ${{ env.AWS_REGION }}
+          TF_VAR_run_standalone: ${{ env.RUN_STANDALONE }}
 
       - name: Run benchmarks autotuned
         if: ${{ inputs.benchmarkAgents == '' }}
-        run: make run-benchmark-autotuned index-benchmark-results
+        run: make run-benchmark-autotuned
 
       - name: Run benchmarks self tuned
         if: ${{ inputs.benchmarkAgents != '' }}
-        run: make run-benchmark index-benchmark-results
+        run: make run-benchmark
+
+      - name: Cat standalone server logs
+        if: ${{ env.RUN_STANDALONE == 'true' && failure() }}
+        run: make cat-apm-server-logs
+
+      - name: Index benchmarks result
+        run: make index-benchmark-results
 
       - name: Download PNG
         run: >-
@@ -150,14 +178,11 @@ jobs:
 
       - name: Upload benchmark result
         uses: actions/upload-artifact@v4
-        if: always()
         with:
           name: benchmark-result
           path: ${{ env.WORKING_DIRECTORY }}/${{ env.BENCHMARK_RESULT }}
           if-no-files-found: error
 
-<<<<<<< HEAD
-=======
       # The next section injects CPU profile collected by apmbench into the build.
       # By copying the profile, uploading it to the artifacts and pushing it
       # via a PR to update default.pgo.
@@ -209,10 +234,9 @@ jobs:
           GITHUB_TOKEN: ${{ steps.get_token.outputs.token }}
           WORKFLOW: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}
 
->>>>>>> 3833927f8 (PGO: optimize collected profile file size (#14256))
       - name: Tear down benchmark environment
         if: always()
-        run: make destroy
+        run: make init destroy
 
       # Notify failure to Slack only on schedule (nightly run)
       - if: failure() && github.event_name == 'schedule'

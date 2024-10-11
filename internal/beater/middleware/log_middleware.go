@@ -20,7 +20,7 @@ package middleware
 import (
 	"time"
 
-	"github.com/gofrs/uuid/v5"
+	"github.com/gofrs/uuid"
 
 	"go.elastic.co/apm/v2"
 

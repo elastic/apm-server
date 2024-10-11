@@ -5,6 +5,12 @@ variable "user_name" {
   type        = string
 }
 
+variable "run_standalone" {
+  default     = false
+  description = "If set run benchmarks against standalone APM Server connected to moxy"
+  type        = bool
+}
+
 ## Deployment configuration
 
 variable "ess_region" {
@@ -86,7 +92,49 @@ variable "drop_pipeline" {
   type        = bool
 }
 
-## Worker configuraiton
+# Standalone
+
+variable "apm_server_bin_path" {
+  default     = "../../build"
+  type        = string
+  description = "Optional path to APM Server binary"
+}
+
+variable "moxy_bin_path" {
+  default     = "../../build"
+  type        = string
+  description = "Optional path to moxy binary"
+}
+
+variable "standalone_apm_server_instance_size" {
+  default     = "c6i.2xlarge"
+  type        = string
+  description = "Optional instance type to use for APM Server VM"
+}
+
+variable "standalone_moxy_instance_size" {
+  default     = "c6i.4xlarge"
+  type        = string
+  description = "Optional instance type to use for moxy VM"
+}
+
+## VPC Network settings
+
+variable "vpc_cidr" {
+  default = "192.168.44.0/24"
+  type    = string
+}
+
+variable "public_cidr" {
+  default = [
+    "192.168.44.0/26",
+    "192.168.44.64/26",
+    "192.168.44.128/26",
+  ]
+  type = list(string)
+}
+
+## Worker configuration
 
 variable "worker_region" {
   default     = "us-west-2"

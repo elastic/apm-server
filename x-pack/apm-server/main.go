@@ -12,7 +12,7 @@ import (
 	"sync"
 
 	"github.com/dgraph-io/badger/v2"
-	"github.com/gofrs/uuid/v5"
+	"github.com/gofrs/uuid"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/beats/v7/libbeat/common/reload"
@@ -275,7 +275,6 @@ func cleanup() error {
 }
 
 func Main() error {
-	beatcmd.InitBeatCmd()
 	rootCmd := newXPackRootCommand(
 		func(args beatcmd.RunnerParams) (beatcmd.Runner, error) {
 			return beater.NewRunner(beater.RunnerParams{
