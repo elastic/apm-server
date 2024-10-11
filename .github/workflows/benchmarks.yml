@@ -231,6 +231,17 @@ jobs:
           GITHUB_TOKEN: ${{ steps.get_token.outputs.token }}
           WORKFLOW: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}
 
+      # Secrets are rotated daily, if the benchmarks run between the rotation window, then
+      # there is a high chance things will stop working
+      # This is trying to reduce the chances of that happening.
+      # See https://github.com/elastic/observability-test-environments/actions/workflows/cluster-rotate-api-keys.yml
+      - uses: google-github-actions/get-secretmanager-secrets@95a0b09b8348ef3d02c68c6ba5662a037e78d713 # v2.1.4
+        if: always()
+        with:
+          export_to_environment: true
+          secrets: |-
+            EC_API_KEY:elastic-observability/elastic-cloud-observability-team-pro-api-key
+
       - name: Tear down benchmark environment
         if: always()
         run: make init destroy
