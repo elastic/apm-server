@@ -40,7 +40,10 @@ const (
 	shutdownGracePeriod = 5 * time.Second
 )
 
-var gcMutex sync.Mutex // global mutex to protect gc from running concurrently in a hot reload
+var (
+	// gcMutex is a global mutex to protect gc from running concurrently when 2 TBS processors are active during a hot reload
+	gcMutex sync.Mutex
+)
 
 // Processor is a tail-sampling event processor.
 type Processor struct {
