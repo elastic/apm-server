@@ -40,6 +40,8 @@ const (
 	shutdownGracePeriod = 5 * time.Second
 )
 
+var gcMutex sync.Mutex // global mutex to protect gc from running concurrently in a hot reload
+
 // Processor is a tail-sampling event processor.
 type Processor struct {
 	config            Config
@@ -386,6 +388,8 @@ func (p *Processor) Run() error {
 		}
 	})
 	g.Go(func() error {
+		gcMutex.Lock()
+		defer gcMutex.Unlock()
 		// This goroutine is responsible for periodically garbage
 		// collecting the Badger value log, using the recommended
 		// discard ratio of 0.5.
