@@ -67,3 +67,9 @@ user_name = "USER"
 # Override the default shard settings for APM indices. Defaults to 0, which doesn't
 # change the default shard settings.
 # apm_shards = 12
+
+# Override the default APM Server VM size in standalone bench mode.
+# standalone_apm_server_instance_size = "c6i.2xlarge"
+
+# Override the default Moxy VM size in standalone bench mode.
+# standalone_moxy_instance_size = "c6i.4xlarge"
