@@ -9,12 +9,29 @@ worker_instance_type = "c6i.large"
 
 # Elastic Cloud
 
-apm_server_zone_count = 1
-elasticsearch_size = "128g"
-elasticsearch_zone_count = 1
 apm_server_size = "1g"
+apm_server_zone_count = 1
+
+elasticsearch_size = "16g"
+elasticsearch_zone_count = 2
+elasticsearch_dedicated_masters = true
+
+# Docker Images
+
+docker_image_tag_override = {
+  "elasticsearch" : "8.2.0-SNAPSHOT",
+  "kibana" : "8.2.0-SNAPSHOT",
+  "apm" : "8.16.0-SNAPSHOT-rubenvanstaden-1728505208",
+}
+
+docker_image_override = {
+   "elasticsearch" : "docker.elastic.co/cloud-release/elasticsearch-cloud-ess",
+   "kibana" : "docker.elastic.co/cloud-release/kibana-cloud",
+   "apm" : "docker.elastic.co/observability-ci/elastic-agent-cloud",
+}
 
 # Standalone
 
 standalone_apm_server_instance_size = "c6i.large"
 standalone_moxy_instance_size       = "c6i.xlarge"
+
