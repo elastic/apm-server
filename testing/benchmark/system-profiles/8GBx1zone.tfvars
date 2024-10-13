@@ -14,7 +14,6 @@ apm_server_zone_count = 1
 
 elasticsearch_size = "64g"
 elasticsearch_zone_count = 2
-elasticsearch_dedicated_masters = true
 
 # Docker Images
 
