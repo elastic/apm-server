@@ -43,6 +43,6 @@ output "apm_server_ip" {
 }
 
 output "admin_console_url" {
-  value       = var.run_standalone ? "" : module.ec_deployment[0].admin_console_url
+  value       = var.run_standalone ? "https://cloud.elastic.co/deployments" : module.ec_deployment[0].admin_console_url
   description = "The admin console URL"
 }

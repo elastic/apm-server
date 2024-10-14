@@ -51,6 +51,7 @@ jobs:
       SSH_KEY: ./id_rsa_terraform
       TF_VAR_private_key: ./id_rsa_terraform
       TF_VAR_public_key: ./id_rsa_terraform.pub
+      TF_VAR_run_standalone: ${{ inputs.runStandalone || github.event.schedule=='0 5 */5 * *' }}
       RUN_STANDALONE: ${{ inputs.runStandalone || github.event.schedule=='0 5 */5 * *' }}
       TFVARS_SOURCE: ${{ inputs.profile || 'system-profiles/8GBx1zone.tfvars' }} # // Default to use an 8gb profile
       TF_VAR_BUILD_ID: ${{ github.run_id }}
@@ -133,10 +134,6 @@ jobs:
           admin_console_url=$(terraform output -raw admin_console_url)
           echo "admin_console_url=$admin_console_url" >> "$GITHUB_OUTPUT"
           echo "-> infra setup done"
-        env:
-          TF_VAR_worker_region: ${{ env.AWS_REGION }}
-          TF_VAR_run_standalone: ${{ env.RUN_STANDALONE }}
-
       - name: Run benchmarks autotuned
         if: ${{ inputs.benchmarkAgents == '' }}
         run: make run-benchmark-autotuned
@@ -189,7 +186,7 @@ jobs:
 
       - name: Copy CPU profile
         run: make cp-cpuprof
-      
+
       - name: Upload CPU profile
         uses: actions/upload-artifact@v4
         with:
@@ -233,6 +230,17 @@ jobs:
           PROFILE_PATH: ${{ env.WORKING_DIRECTORY }}/${{ env.BENCHMARK_CPU_OUT }}
           GITHUB_TOKEN: ${{ steps.get_token.outputs.token }}
           WORKFLOW: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}
+
+      # Secrets are rotated daily, if the benchmarks run between the rotation window, then
+      # there is a high chance things will stop working
+      # This is trying to reduce the chances of that happening.
+      # See https://github.com/elastic/observability-test-environments/actions/workflows/cluster-rotate-api-keys.yml
+      - uses: google-github-actions/get-secretmanager-secrets@95a0b09b8348ef3d02c68c6ba5662a037e78d713 # v2.1.4
+        if: always()
+        with:
+          export_to_environment: true
+          secrets: |-
+            EC_API_KEY:elastic-observability/elastic-cloud-observability-team-pro-api-key
 
       - name: Tear down benchmark environment
         if: always()
