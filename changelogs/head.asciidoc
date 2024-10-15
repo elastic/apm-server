@@ -8,6 +8,7 @@ https://github.com/elastic/apm-server/compare/8.15\...main[View commits]
 
 - Track all bulk request response status codes {pull}13574[13574]
 - Fix a concurrent map write panic in monitoring middleware {pull}14335[14335]
+- Apply shutdown timeout to http server {pull}14339[14339]
 
 [float]
 ==== Breaking Changes
