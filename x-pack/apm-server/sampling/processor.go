@@ -41,8 +41,8 @@ const (
 )
 
 var (
-	// gcMutex is a global mutex to protect gc from running concurrently when 2 TBS processors are active during a hot reload
-	gcMutex sync.Mutex
+	// gcCh works like a global mutex to protect gc from running concurrently when 2 TBS processors are active during a hot reload
+	gcCh = make(chan struct{}, 1)
 )
 
 // Processor is a tail-sampling event processor.
@@ -391,8 +391,16 @@ func (p *Processor) Run() error {
 		}
 	})
 	g.Go(func() error {
-		gcMutex.Lock()
-		defer gcMutex.Unlock()
+		// Protect this goroutine from running concurrently when 2 TBS processors are active
+		// as badger GC is not concurrent safe.
+		select {
+		case <-p.stopping:
+			return nil
+		case gcCh <- struct{}{}:
+		}
+		defer func() {
+			<-gcCh
+		}()
 		// This goroutine is responsible for periodically garbage
 		// collecting the Badger value log, using the recommended
 		// discard ratio of 0.5.
