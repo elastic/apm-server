@@ -12,7 +12,10 @@
 
 https://github.com/elastic/apm-server/compare/v8.15.2\...v8.15.3[View commits]
 
-No significant changes.
+[float]
+==== Bug fixes
+
+- Fix a panic in OTLP data with invalid format of data in arrays {pull}13703[13703]
 
 [float]
 [[apm-release-notes-8.15.2]]
