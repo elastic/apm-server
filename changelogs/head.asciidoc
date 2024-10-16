@@ -7,6 +7,8 @@ https://github.com/elastic/apm-server/compare/8.15\...main[View commits]
 ==== Bug fixes
 
 - Track all bulk request response status codes {pull}13574[13574]
+- Fix a concurrent map write panic in monitoring middleware {pull}14335[14335]
+- Apply shutdown timeout to http server {pull}14339[14339]
 - Tail-based sampling: Fix rare gc thread failure after EA hot reload causing storage not reclaimed and stuck with "storage limit reached" {pull}13574[13574]
 
 [float]
