@@ -1,5 +1,9 @@
 user_name = "USER"
 
+ess_region = "gcp-us-west2"
+deployment_template = "gcp-cpu-optimized"
+stack_version = "8.16.0-SNAPSHOT"
+
 # APM bench
 
 worker_instance_type = "c6i.xlarge"
