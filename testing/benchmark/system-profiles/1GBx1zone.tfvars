@@ -1,19 +1,21 @@
 user_name = "USER"
 
+ess_region = "gcp-us-west2"
+deployment_template = "gcp-cpu-optimized"
+stack_version = "8.15.2"
+
 # APM bench
 
 worker_instance_type = "c6i.large"
+worker_region = "us-west-2"
 
 # Elastic Cloud
 
-# The number of AZs the APM Server should span.
-apm_server_zone_count = 1
-# The Elasticsearch cluster node size.
-elasticsearch_size = "16g"
-# The number of AZs the Elasticsearch cluster should have.
-elasticsearch_zone_count = 2
-# APM server instance size
 apm_server_size = "1g"
+apm_server_zone_count = 1
+
+elasticsearch_size = "16g"
+elasticsearch_zone_count = 2
 
 # Standalone
 
