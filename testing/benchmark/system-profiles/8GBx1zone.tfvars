@@ -7,6 +7,7 @@ stack_version = "8.16.0-SNAPSHOT"
 # APM bench
 
 worker_instance_type = "c6i.xlarge"
+worker_region = "us-west-2"
 
 # Elastic Cloud
 
