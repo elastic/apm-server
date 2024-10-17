@@ -186,7 +186,7 @@ func TestReloaderNewRunnerParams(t *testing.T) {
 	args := <-calls
 	assert.NotNil(t, args.Logger)
 	assert.Equal(t, info, args.Info)
-	assert.Equal(t, config.MustNewConfigFrom(`{"revision": 1, "input": 123, "output.console.enabled": true, "instrumentation.enabled":false, "instrumentation.environment":"test"}`), args.Config)
+	assert.Equal(t, config.MustNewConfigFrom(`{"revision": 1, "input": 123, "output.console.enabled": true, "instrumentation.enabled":true, "instrumentation.environment":"test"}`), args.Config)
 }
 
 func expectNoEvent(t testing.TB, ch <-chan struct{}, message string) {
