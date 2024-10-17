@@ -22,6 +22,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/sync/errgroup"
 	"google.golang.org/protobuf/testing/protocmp"
 
 	"github.com/elastic/apm-data/model/modelpb"
@@ -666,6 +667,31 @@ func TestStorageGC(t *testing.T) {
 		time.Sleep(10 * time.Millisecond)
 	}
 	t.Fatal("timed out waiting for value log garbage collection")
+}
+
+func TestStorageGCConcurrency(t *testing.T) {
+	// This test ensures that TBS processor does not return an error
+	// even when run concurrently e.g. in hot reload
+	if testing.Short() {
+		t.Skip("skipping slow test")
+	}
+
+	config := newTempdirConfig(t)
+	config.TTL = 10 * time.Millisecond
+	config.FlushInterval = 10 * time.Millisecond
+	config.StorageGCInterval = 10 * time.Millisecond
+
+	g := errgroup.Group{}
+	for i := 0; i < 2; i++ {
+		processor, err := sampling.NewProcessor(config)
+		require.NoError(t, err)
+		g.Go(processor.Run)
+		go func() {
+			time.Sleep(time.Second)
+			assert.NoError(t, processor.Stop(context.Background()))
+		}()
+	}
+	assert.NoError(t, g.Wait())
 }
 
 func TestStorageLimit(t *testing.T) {
