@@ -47,14 +47,14 @@ NEXT_RELEASE ?= $(RELEASE_BRANCH).$(shell expr $(PROJECT_PATCH_VERSION) + 1)
 BRANCH_PATCH = update-$(NEXT_RELEASE)
 
 # for the view commits
-# as long as 8.x is the branch to run releases, then the base branch is 8.x
-# when 8.x is not available the we should use main as the base branch.
+# NOTE: as long as 8.x is the branch to run releases, then we use base branch 8.x
+# when 8.x is not available then we use the main base branch.
 CHANGELOG_BRANCH = 8.x
 
 # BASE_BRANCH select by release type (default patch)
 ifeq ($(RELEASE_TYPE),minor)
-# as long as 8.x is the branch to run releases, then the base branch is 8.x
-# when 8.x is not available the we should use main as the base branch.
+# NOTE: as long as 8.x is the branch to run releases, then we use base branch 8.x
+# when 8.x is not available then we use the main base branch.
 	BASE_BRANCH ?= 8.x
 endif
 
@@ -117,14 +117,27 @@ minor-release:
 	$(MAKE) create-commit COMMIT_MESSAGE="[Release] update version $(RELEASE_VERSION)"
 
 	@echo "INFO: Create feature branch and update the versions. Target branch $(RELEASE_BRANCH)"
-	$(MAKE) create-branch NAME=changelog-$(RELEASE_BRANCH) BASE=$(RELEASE_BRANCH)
+# NOTE: as long as 8.x is the branch to run releases, then the base branch is 8.x
+# when 8.x is not available the we should use main as the base branch.
+# BASE=$(RELEASE_BRANCH)
+# Target main and use the backport strategy
+	$(MAKE) create-branch NAME=changelog-$(RELEASE_BRANCH) BASE=main
 	$(MAKE) update-changelog VERSION=$(RELEASE_BRANCH)
 	$(MAKE) rename-changelog VERSION=$(RELEASE_BRANCH)
+# NOTE: as long as 8.x is the branch to run releases, then we update mergify
+# when 8.x is not available then this conditional and the update-mergify should be removed..
+ifeq ($(BASE_BRANCH),8.x)
+	$(MAKE) update-mergify VERSION=$(RELEASE_BRANCH)
+endif
 	$(MAKE) create-commit COMMIT_MESSAGE="docs: Update changelogs for $(RELEASE_BRANCH) release"
 
 	@echo "INFO: Create feature branch and update the versions. Target branch $(BASE_BRANCH)"
 	$(MAKE) create-branch NAME=update-$(RELEASE_VERSION) BASE=$(BASE_BRANCH)
+# NOTE: as long as main is the branch to run releases, then we update mergify
+# when 8.x is not available then this conditional should be removed and the update-mergify should be kept.
+ifeq ($(BASE_BRANCH),main)
 	$(MAKE) update-mergify VERSION=$(RELEASE_BRANCH)
+endif
 	$(MAKE) update-version VERSION=$(NEXT_PROJECT_MINOR_VERSION)
 	$(MAKE) create-commit COMMIT_MESSAGE="[Release] update version $(NEXT_PROJECT_MINOR_VERSION)"
 	$(MAKE) rename-changelog VERSION=$(RELEASE_BRANCH)
@@ -132,8 +145,10 @@ minor-release:
 
 	@echo "INFO: Push changes to $(PROJECT_OWNER)/apm-server and create the relevant Pull Requests"
 	git push origin $(RELEASE_BRANCH)
-	$(MAKE) create-pull-request BRANCH=update-$(RELEASE_VERSION) TARGET_BRANCH=$(BASE_BRANCH) TITLE="$(RELEASE_BRANCH): update docs, mergify, versions and changelogs" BODY="Merge as soon as the GitHub checks are green."
-	$(MAKE) create-pull-request BRANCH=changelog-$(RELEASE_BRANCH) TARGET_BRANCH=$(RELEASE_BRANCH) TITLE="$(RELEASE_BRANCH): update docs" BODY="Merge as soon as $(TARGET_BRANCH) branch is created and the GitHub checks are green."
+	$(MAKE) create-pull-request BRANCH=update-$(RELEASE_VERSION) TARGET_BRANCH=$(BASE_BRANCH) TITLE="$(RELEASE_BRANCH): update docs, mergify, versions and changelogs" BODY="Merge as soon as the GitHub checks are green." BACKPORT_LABEL=backport-skip
+# NOTE: as long as 8.x is the branch to run releases, then we use main as target with the backport label.
+# when 8.x is not available then we use TARGET_BRANCH=$(RELEASE_BRANCH)
+	$(MAKE) create-pull-request BRANCH=changelog-$(RELEASE_BRANCH) TARGET_BRANCH=main TITLE="$(RELEASE_BRANCH): update docs" BODY="Merge as soon as $(TARGET_BRANCH) branch is created and the GitHub checks are green." BACKPORT_LABEL=backport-$(RELEASE_BRANCH)
 
 # This is the contract with the GitHub action .github/workflows/run-patch-release.yml
 # The GitHub action will provide the below environment variables:
@@ -148,7 +163,7 @@ patch-release:
 	$(MAKE) update-version-legacy VERSION=$(NEXT_RELEASE) PREVIOUS_VERSION=$(CURRENT_RELEASE)
 	$(MAKE) create-commit COMMIT_MESSAGE="$(RELEASE_BRANCH): update versions to $(RELEASE_VERSION)"
 	@echo "INFO: Push changes to $(PROJECT_OWNER)/apm-server and create the relevant Pull Requests"
-	$(MAKE) create-pull-request BRANCH=$(BRANCH_PATCH) TARGET_BRANCH=$(RELEASE_BRANCH) TITLE="$(RELEASE_VERSION): update versions" BODY="Merge on request by the Release Manager."
+	$(MAKE) create-pull-request BRANCH=$(BRANCH_PATCH) TARGET_BRANCH=$(RELEASE_BRANCH) TITLE="$(RELEASE_VERSION): update versions" BODY="Merge on request by the Release Manager." BACKPORT_LABEL=backport-skip
 
 ############################################
 ## Internal make goals to bump versions
@@ -270,7 +285,7 @@ create-commit:
 
 ## @help:create-pull-request:Create pull request
 .PHONY: create-pull-request
-create-pull-request: BRANCH=$${BRANCH} TITLE=$${TITLE} TARGET_BRANCH=$${TARGET_BRANCH} BODY=$${BODY} 
+create-pull-request: BRANCH=$${BRANCH} TITLE=$${TITLE} TARGET_BRANCH=$${TARGET_BRANCH} BODY=$${BODY} BACKPORT_LABEL=$${BACKPORT_LABEL}
 
 create-pull-request:
 	@echo "::group::create-pull-request"
@@ -281,6 +296,7 @@ create-pull-request:
 		--base $(TARGET_BRANCH) \
 		--head $(BRANCH) \
 		--label 'release' \
+		--label "$(BACKPORT_LABEL)" \
 		--reviewer "$(PROJECT_REVIEWERS)" \
 		--repo $(PROJECT_OWNER)/apm-server || echo "There is no changes"
 	@echo "::endgroup::"
