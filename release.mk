@@ -124,12 +124,16 @@ minor-release:
 	$(MAKE) create-branch NAME=changelog-$(RELEASE_BRANCH) BASE=main
 	$(MAKE) update-changelog VERSION=$(RELEASE_BRANCH)
 	$(MAKE) rename-changelog VERSION=$(RELEASE_BRANCH)
+	$(MAKE) create-commit COMMIT_MESSAGE="docs: Update changelogs for $(RELEASE_BRANCH) release"
+
 # NOTE: as long as 8.x is the branch to run releases, then we update mergify
 # when 8.x is not available then this conditional and the update-mergify should be removed..
 ifeq ($(BASE_BRANCH),8.x)
+	@echo "INFO: Create feature branch for mergify changes. Target branch $(RELEASE_BRANCH)"
+	$(MAKE) create-branch NAME=mergify-$(RELEASE_BRANCH) BASE=main
 	$(MAKE) update-mergify VERSION=$(RELEASE_BRANCH)
+	$(MAKE) create-commit COMMIT_MESSAGE="mergify: update backports for $(RELEASE_BRANCH)"
 endif
-	$(MAKE) create-commit COMMIT_MESSAGE="docs: Update changelogs for $(RELEASE_BRANCH) release"
 
 	@echo "INFO: Create feature branch and update the versions. Target branch $(BASE_BRANCH)"
 	$(MAKE) create-branch NAME=update-$(RELEASE_VERSION) BASE=$(BASE_BRANCH)
@@ -145,10 +149,15 @@ endif
 
 	@echo "INFO: Push changes to $(PROJECT_OWNER)/apm-server and create the relevant Pull Requests"
 	git push origin $(RELEASE_BRANCH)
-	$(MAKE) create-pull-request BRANCH=update-$(RELEASE_VERSION) TARGET_BRANCH=$(BASE_BRANCH) TITLE="$(RELEASE_BRANCH): update docs, mergify, versions and changelogs" BODY="Merge as soon as the GitHub checks are green." BACKPORT_LABEL=backport-skip
+# NOTE: as long as 8.x is the branch to run releases, then we update mergify
+# when 8.x is not available then this conditional and its content should be removed.
+ifeq ($(BASE_BRANCH),8.x)
+	$(MAKE) create-pull-request BRANCH=mergify-$(RELEASE_BRANCH) TARGET_BRANCH=main TITLE="$(RELEASE_BRANCH): mergify" BODY="Merge as soon as the GitHub checks are green." BACKPORT_LABEL=backport-skip
+endif
+	$(MAKE) create-pull-request BRANCH=update-$(RELEASE_VERSION) TARGET_BRANCH=$(BASE_BRANCH) TITLE="$(RELEASE_BRANCH): update docs, mergify, versions and changelogs" BODY="Merge as soon as the GitHub checks are green" BACKPORT_LABEL=backport-skip
 # NOTE: as long as 8.x is the branch to run releases, then we use main as target with the backport label.
 # when 8.x is not available then we use TARGET_BRANCH=$(RELEASE_BRANCH)
-	$(MAKE) create-pull-request BRANCH=changelog-$(RELEASE_BRANCH) TARGET_BRANCH=main TITLE="$(RELEASE_BRANCH): update docs" BODY="Merge as soon as $(TARGET_BRANCH) branch is created and the GitHub checks are green." BACKPORT_LABEL=backport-$(RELEASE_BRANCH)
+	$(MAKE) create-pull-request BRANCH=changelog-$(RELEASE_BRANCH) TARGET_BRANCH=main TITLE="$(RELEASE_BRANCH): update docs" BODY="Merge as soon as $(TARGET_BRANCH) branch is created and the GitHub checks are green. And the PR in main for the Mergify changes has been merged." BACKPORT_LABEL=backport-$(RELEASE_BRANCH)
 
 # This is the contract with the GitHub action .github/workflows/run-patch-release.yml
 # The GitHub action will provide the below environment variables:
