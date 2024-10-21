@@ -2,6 +2,12 @@ APMBENCH_PATH ?= ../../systemtest/cmd/apmbench
 APMBENCH_GOOS ?= linux
 APMBENCH_GOARCH ?= amd64
 
+MOXY_GOOS ?= linux
+MOXY_GOARCH ?= amd64
+
+APM_SERVER_GOOS ?= linux
+APM_SERVER_GOARCH ?= amd64
+
 TFVARS_SOURCE ?= terraform.tfvars.example
 
 BENCHMARK_WARMUP_TIME ?= 5m
@@ -23,6 +29,7 @@ SSH_USER ?= ec2-user
 SSH_OPTS ?= -o LogLevel=ERROR -o StrictHostKeyChecking=no -o ServerAliveInterval=60 -o ServerAliveCountMax=10
 SSH_KEY ?= ~/.ssh/id_rsa_terraform
 WORKER_IP = $(shell terraform output -raw public_ip)
+APM_SERVER_IP = $(shell terraform output -raw apm_server_ip)
 
 SHELL = /bin/bash
 .SHELLFLAGS = -o pipefail -c
@@ -67,6 +74,15 @@ apmbench:
 	@echo "-> Building apmbench..."
 	@cd $(APMBENCH_PATH) && CGO_ENABLED=0 GOOS=$(APMBENCH_GOOS) GOARCH=$(APMBENCH_GOARCH) go build .
 
+.PHONY: moxy
+moxy:
+	@echo "-> Building moxy..."
+	@cd ../../tools && CGO_ENABLED=0 GOOS=$(MOXY_GOOS) GOARCH=$(MOXY_GOARCH) go build -o "../build" github.com/elastic/apm-perf/cmd/moxy
+
+.PHONY: apm-server
+apm-server:
+	@cd ../.. && make build/apm-server-$(APM_SERVER_GOOS)-$(APM_SERVER_GOARCH) && mv build/apm-server-$(APM_SERVER_GOOS)-$(APM_SERVER_GOARCH) build/apm-server
+
 .PHONY: init
 init:
 	@terraform init
@@ -110,6 +126,12 @@ index-benchmark-results: _default-gobench-vars
 
 .PHONY: _default-gobench-vars
 _default-gobench-vars:
+ifeq ($(RUN_STANDALONE),true)
+	$(eval GOBENCH_DEFAULT_TAGS = $(GOBENCH_DEFAULT_TAGS),apm_server_size=$(shell echo var.standalone_apm_server_instance_size | terraform console | tr -d '"'))
+	$(eval GOBENCH_DEFAULT_TAGS = $(GOBENCH_DEFAULT_TAGS),moxy_size=$(shell echo var.standalone_moxy_instance_size | terraform console | tr -d '"'))
+	$(eval GOBENCH_DEFAULT_TAGS = $(GOBENCH_DEFAULT_TAGS),build_sha=$(shell git rev-parse HEAD))
+	$(eval GOBENCH_DEFAULT_TAGS = $(GOBENCH_DEFAULT_TAGS),bench_mode=standalone)
+else
 # TODO(marclop) Update code below to use a foor loop, rather than copying the lines.
 	$(eval GOBENCH_DEFAULT_TAGS = $(GOBENCH_DEFAULT_TAGS),apm_server_size=$(shell echo var.apm_server_size | terraform console | tr -d '"'))
 	$(eval GOBENCH_DEFAULT_TAGS = $(GOBENCH_DEFAULT_TAGS),elasticsearch_size=$(shell echo var.elasticsearch_size | terraform console | tr -d '"'))
@@ -117,6 +139,12 @@ _default-gobench-vars:
 	$(eval GOBENCH_DEFAULT_TAGS = $(GOBENCH_DEFAULT_TAGS),apm_server_zone_count=$(shell echo var.apm_server_zone_count | terraform console | tr -d '"'))
 	$(eval GOBENCH_DEFAULT_TAGS = $(GOBENCH_DEFAULT_TAGS),elasticsearch_zone_count=$(shell echo var.elasticsearch_zone_count | terraform console | tr -d '"'))
 	$(eval GOBENCH_DEFAULT_TAGS = $(GOBENCH_DEFAULT_TAGS),build_sha=$(shell curl -sL -H "Authorization: Bearer $(shell terraform output -raw apm_secret_token )" $(shell terraform output -raw apm_server_url ) | jq -r '.build_sha'))
+	$(eval GOBENCH_DEFAULT_TAGS = $(GOBENCH_DEFAULT_TAGS),bench_mode=cloud)
+endif
+
+.PHONY: cat-apm-server-logs
+cat-apm-server-logs:
+	@ssh $(SSH_OPTS) -i $(SSH_KEY) $(SSH_USER)@$(APM_SERVER_IP) "cat /var/log/apm-server/*"
 
 $(SSH_KEY):
 	@ssh-keygen -t rsa -b 4096 -C "$(USER)@elastic.co" -N "" -f $(SSH_KEY)

@@ -7,7 +7,12 @@ on:
       branch:
         required: true
         type: string
-
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'The branch to checkout'
+        required: true
+        type: string
 
 # limit the access of the generated GITHUB_TOKEN
 permissions:
@@ -67,6 +72,18 @@ jobs:
 
       - name: Run smoke tests ${{ matrix.test }} for ${{ matrix.version }}
         run: make smoketest/run-version TEST_DIR=${{ matrix.test }} SMOKETEST_VERSION=${{ matrix.version }}
+
+      # Secrets are rotated daily, if the benchmarks run between the rotation window, then
+      # there is a high chance things will stop working
+      # This is trying to reduce the chances of that happening.
+      # See https://github.com/elastic/observability-test-environments/actions/workflows/cluster-rotate-api-keys.yml
+      - uses: google-github-actions/get-secretmanager-secrets@95a0b09b8348ef3d02c68c6ba5662a037e78d713 # v2.1.4
+        if: always()
+        with:
+          export_to_environment: true
+          secrets: |-
+            EC_API_KEY:elastic-observability/elastic-cloud-observability-team-pro-api-key
+
       - if: always()
         name: Teardown smoke test infra
         run: make smoketest/cleanup TEST_DIR=${{ matrix.test }}

@@ -1,0 +1,32 @@
+[[apm-release-notes-8.16]]
+== APM version 8.16
+* <<apm-release-notes-8.16.0>>
+
+[float]
+[[apm-release-notes-8.16.0]]
+=== APM version 8.16.0
+
+https://github.com/elastic/apm-server/compare/v8.15.2\...v8.16.0[View commits]
+
+[float]
+==== Bug fixes
+
+- Track all bulk request response status codes {pull}13574[13574]
+- Fix a concurrent map write panic in monitoring middleware {pull}14335[14335]
+- Apply shutdown timeout to http server {pull}14339[14339]
+- Tail-based sampling: Fix rare gc thread failure after EA hot reload causing storage not reclaimed and stuck with "storage limit reached" {pull}13574[13574]
+
+[float]
+==== Breaking Changes
+
+[float]
+==== Deprecations
+- Support for Jaeger is now deprecated, and will be removed in a future release {pull}13809[13809]
+
+[float]
+==== Intake API Changes
+
+[float]
+==== Added
+
+- APM Server will no longer retry an HTTP request that returned 502s, 503s, 504s. It will only retry 429s. {pull}13523[13523]
