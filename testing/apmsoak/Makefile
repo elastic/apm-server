@@ -14,7 +14,7 @@ terraform.tfvars:
 
 .PHONY: use-production
 use-production:
-	@terraform workspace select production || terraform worksapce new production
+	@terraform workspace select production || terraform workspace new production
 
 .PHONY: apmsoak
 apmsoak:
