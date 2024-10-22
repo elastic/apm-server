@@ -30,3 +30,4 @@ https://github.com/elastic/apm-server/compare/v8.15.2\...v8.16.0[View commits]
 ==== Added
 
 - APM Server will no longer retry an HTTP request that returned 502s, 503s, 504s. It will only retry 429s. {pull}13523[13523]
+- APM Server now supports emitting distributed tracing for its own operation when running under Elastic Agent, and adds support for configuring a sampling rate {pull}14231[14231]
