@@ -834,7 +834,7 @@ func docappenderConfig(
 	// This formula yields the following max requests for APM Server sized:
 	// 1	2 	4	8	15	30
 	// 10	12	14	19	28	46
-	maxRequests := int(float64(10) + memLimit*1.5)
+	maxRequests := int(float64(10) + memLimit * 8.0)
 	if maxRequests > 60 {
 		maxRequests = 60
 	}
