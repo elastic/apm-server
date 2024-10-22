@@ -26,6 +26,7 @@ import (
 	"net/http"
 	"os"
 	"runtime"
+	"strconv"
 	"time"
 
 	"github.com/dustin/go-humanize"
@@ -525,6 +526,7 @@ func newInstrumentation(rawConfig *agentconfig.C) (instrumentation.Instrumentati
 			ServerCertificate string `config:"servercert"`
 			ServerCA          string `config:"serverca"`
 		} `config:"tls"`
+		SamplingRate *float32 `config:"samplingrate"`
 	}
 	cfg, err := rawConfig.Child("instrumentation", -1)
 	if err != nil || !cfg.Enabled() {
@@ -541,6 +543,7 @@ func newInstrumentation(rawConfig *agentconfig.C) (instrumentation.Instrumentati
 		envServerCert       = "ELASTIC_APM_SERVER_CERT"
 		envCACert           = "ELASTIC_APM_SERVER_CA_CERT_FILE"
 		envGlobalLabels     = "ELASTIC_APM_GLOBAL_LABELS"
+		envSamplingRate     = "ELASTIC_APM_TRANSACTION_SAMPLE_RATE"
 	)
 	if apmCfg.APIKey != "" {
 		os.Setenv(envAPIKey, apmCfg.APIKey)
@@ -565,6 +568,11 @@ func newInstrumentation(rawConfig *agentconfig.C) (instrumentation.Instrumentati
 	if len(apmCfg.GlobalLabels) > 0 {
 		os.Setenv(envGlobalLabels, apmCfg.GlobalLabels)
 		defer os.Unsetenv(envGlobalLabels)
+	}
+	if apmCfg.SamplingRate != nil {
+		r := max(min(*apmCfg.SamplingRate, 1.0), 0.0)
+		os.Setenv(envSamplingRate, strconv.FormatFloat(float64(r), 'f', -1, 32))
+		defer os.Unsetenv(envSamplingRate)
 	}
 	return instrumentation.New(rawConfig, "apm-server", version.Version)
 }
