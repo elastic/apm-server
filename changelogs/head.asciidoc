@@ -1,27 +1,16 @@
 [[release-notes-head]]
 == APM version HEAD
 
-https://github.com/elastic/apm-server/compare/8.15\...main[View commits]
-
-[float]
-==== Bug fixes
-
-- Track all bulk request response status codes {pull}13574[13574]
-- Fix a concurrent map write panic in monitoring middleware {pull}14335[14335]
-- Apply shutdown timeout to http server {pull}14339[14339]
+https://github.com/elastic/apm-server/compare/8.16\...8.x[View commits]
 
 [float]
 ==== Breaking Changes
 
 [float]
 ==== Deprecations
-- Support for Jaeger is now deprecated, and will be removed in a future release {pull}13809[13809]
 
 [float]
 ==== Intake API Changes
 
 [float]
 ==== Added
-
-- APM Server will no longer retry an HTTP request that returned 502s, 503s, 504s. It will only retry 429s. {pull}13523[13523]
-- APM Server now supports emitting distributed tracing for its own operation when running under Elastic Agent, and adds support for configuring a sampling rate {pull}14231[14231]
