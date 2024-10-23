@@ -7,7 +7,7 @@ package sampling
 import (
 	"time"
 
-	"github.com/dgraph-io/badger/v2"
+	"github.com/dgraph-io/badger/v4"
 	"github.com/pkg/errors"
 
 	"github.com/elastic/apm-data/model/modelpb"

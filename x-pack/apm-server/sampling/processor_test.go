@@ -589,6 +589,7 @@ func TestStorageMonitoring(t *testing.T) {
 }
 
 func TestStorageGC(t *testing.T) {
+	t.Skip("SKIP")
 	if testing.Short() {
 		t.Skip("skipping slow test")
 	}

@@ -4,7 +4,7 @@ go 1.23.0
 
 require (
 	github.com/cespare/xxhash/v2 v2.3.0
-	github.com/dgraph-io/badger/v2 v2.2007.4
+	github.com/dgraph-io/badger/v4 v4.3.1
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/apm-aggregation v1.1.0
 	github.com/elastic/apm-data v1.13.1
@@ -60,13 +60,11 @@ require (
 require (
 	github.com/DataDog/zstd v1.4.5 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
-	github.com/OneOfOne/xxhash v1.2.8 // indirect
 	github.com/Shopify/sarama v1.38.1 // indirect
 	github.com/apache/thrift v0.20.0 // indirect
 	github.com/armon/go-radix v1.0.0 // indirect
 	github.com/axiomhq/hyperloglog v0.2.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
-	github.com/cespare/xxhash v1.1.0 // indirect
 	github.com/cockroachdb/errors v1.11.3 // indirect
 	github.com/cockroachdb/fifo v0.0.0-20240606204812-0bbfbd93a7ce // indirect
 	github.com/cockroachdb/logtags v0.0.0-20230118201751-21c54148d20b // indirect
@@ -75,8 +73,7 @@ require (
 	github.com/cockroachdb/tokenbucket v0.0.0-20230807174530-cc333fc44b06 // indirect
 	github.com/containerd/errdefs v0.1.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
-	github.com/dgraph-io/ristretto v0.1.1 // indirect
-	github.com/dgryski/go-farm v0.0.0-20200201041132-a6ae2369ad13 // indirect
+	github.com/dgraph-io/ristretto v1.0.0 // indirect
 	github.com/dgryski/go-metro v0.0.0-20180109044635-280f6062b5bc // indirect
 	github.com/dlclark/regexp2 v1.8.1 // indirect
 	github.com/docker/distribution v2.8.3+incompatible // indirect
@@ -100,10 +97,11 @@ require (
 	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/gofrs/uuid/v5 v5.2.0 // indirect
 	github.com/gogo/googleapis v1.4.1 // indirect
-	github.com/golang/glog v1.2.2 // indirect
+	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/gomodule/redigo v1.8.9 // indirect
+	github.com/google/flatbuffers v24.3.25+incompatible // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/h2non/filetype v1.1.3 // indirect
 	github.com/hashicorp/go-uuid v1.0.3 // indirect
@@ -116,7 +114,7 @@ require (
 	github.com/jcmturner/rpc/v2 v2.0.3 // indirect
 	github.com/joeshaw/multierror v0.0.0-20140124173710-69b34d4ec901 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
-	github.com/klauspost/compress v1.17.9 // indirect
+	github.com/klauspost/compress v1.17.10 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/lufia/plan9stats v0.0.0-20220913051719-115f729f3c8c // indirect
@@ -149,6 +147,7 @@ require (
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	go.elastic.co/apm/module/apmzap/v2 v2.6.0 // indirect
 	go.elastic.co/ecszap v1.0.2 // indirect
+	go.opencensus.io v0.24.0 // indirect
 	go.opentelemetry.io/collector/semconv v0.109.0 // indirect
 	go.opentelemetry.io/otel/sdk v1.30.0 // indirect
 	go.opentelemetry.io/otel/trace v1.30.0 // indirect
