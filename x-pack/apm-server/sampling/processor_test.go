@@ -597,12 +597,6 @@ func TestStorageGC(t *testing.T) {
 	config.TTL = 10 * time.Millisecond
 	config.FlushInterval = 10 * time.Millisecond
 
-	// Create a new badger DB with smaller value log files so we can test GC.
-	config.DB.Close()
-	badgerDB, err := eventstorage.OpenBadger(config.StorageDir, 1024*1024)
-	require.NoError(t, err)
-	t.Cleanup(func() { badgerDB.Close() })
-	config.DB = badgerDB
 	config.Storage = eventstorage.
 		New(config.DB, eventstorage.ProtobufCodec{}).
 		NewShardedReadWriter()
@@ -622,6 +616,8 @@ func TestStorageGC(t *testing.T) {
 				Span: &modelpb.Span{
 					Type: "type",
 					Id:   traceID,
+					// inflate the size of the span so the entry is written to the vlog
+					Name: strings.Repeat("foo", 1024*1024),
 				},
 			}}
 			err := processor.ProcessBatch(context.Background(), &batch)

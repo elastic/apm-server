@@ -5,7 +5,7 @@
 package eventstorage
 
 import (
-	"github.com/dgraph-io/badger/v2"
+	"github.com/dgraph-io/badger/v4"
 
 	"github.com/elastic/apm-server/internal/logs"
 	"github.com/elastic/elastic-agent-libs/logp"
@@ -34,11 +34,10 @@ func OpenBadger(storageDir string, valueLogFileSize int64) (*badger.DB, error) {
 	const tableLimit = 4
 	badgerOpts := badger.DefaultOptions(storageDir).
 		WithLogger(&LogpAdaptor{Logger: logger}).
-		WithTruncate(true).                          // Truncate unreadable files which cannot be read.
 		WithNumMemtables(tableLimit).                // in-memory tables.
 		WithNumLevelZeroTables(tableLimit).          // L0 tables.
 		WithNumLevelZeroTablesStall(tableLimit * 3). // Maintain the default 1-to-3 ratio before stalling.
-		WithMaxTableSize(int64(16 << 20)).           // Max LSM table or file size.
+		WithBaseTableSize(int64(16 << 20)).          // Max LSM table or file size.
 		WithValueLogFileSize(valueLogFileSize)       // vlog file size.
 
 	return badger.Open(badgerOpts)
