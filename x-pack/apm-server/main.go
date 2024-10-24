@@ -119,7 +119,8 @@ func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, er
 		return nil, fmt.Errorf("failed to create Elasticsearch client for tail-sampling: %w", err)
 	}
 
-	if entries, err := os.ReadDir(oldTailSamplingStorageDir); err == nil {
+	oldStorageDir := paths.Resolve(paths.Data, oldTailSamplingStorageDir)
+	if entries, err := os.ReadDir(oldStorageDir); err == nil {
 		var newest time.Time
 		for _, de := range entries {
 			if i, err := de.Info(); err == nil {
@@ -130,7 +131,7 @@ func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, er
 		}
 
 		if newest.IsZero() || time.Since(newest) > tailSamplingConfig.TTL {
-			if err := os.RemoveAll(oldTailSamplingStorageDir); err != nil {
+			if err := os.RemoveAll(oldStorageDir); err != nil {
 				args.Logger.Warnf("failed to remove old tail sampling storage dir: %v", err)
 			}
 		}

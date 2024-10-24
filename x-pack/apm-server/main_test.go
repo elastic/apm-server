@@ -8,6 +8,7 @@ package main
 
 import (
 	"context"
+	"os"
 	"testing"
 
 	"github.com/pkg/errors"
@@ -66,4 +67,25 @@ func TestMonitoring(t *testing.T) {
 		assert.Equal(t, runServerError, err)
 		assert.NotEqual(t, monitoring.MakeFlatSnapshot(), tailSamplingMonitoringSnapshot)
 	}
+}
+
+func TestSamplingOldDir(t *testing.T) {
+	home := t.TempDir()
+	err := paths.InitPaths(&paths.Path{Home: home})
+	require.NoError(t, err)
+
+	oldDir := paths.Resolve(paths.Data, oldTailSamplingStorageDir)
+	os.Mkdir(oldDir, 0600)
+
+	cfg := config.DefaultConfig()
+	cfg.Sampling.Tail.Policies = []config.TailSamplingPolicy{{SampleRate: 0.1}}
+	_, err = newTailSamplingProcessor(beater.ServerParams{
+		Config:                 cfg,
+		NewElasticsearchClient: elasticsearch.NewClient,
+		BatchProcessor:         modelpb.ProcessBatchFunc(func(context.Context, *modelpb.Batch) error { return nil }),
+		Namespace:              "default",
+	})
+	require.NoError(t, err)
+
+	require.NoDirExists(t, oldDir)
 }
