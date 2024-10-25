@@ -3,7 +3,12 @@ kind: Elasticsearch
 metadata:
   name: elasticsearch
 spec:
+<<<<<<< HEAD
   version: 8.16.0-8a018bf0-SNAPSHOT
+=======
+  # TODO: replace with a pinned version such as 9.0.0-aaaaaaaa-SNAPSHOT
+  version: 9.0.0-862b23c2-SNAPSHOT
+>>>>>>> 21e1276f3 ([updatecli] Bump elastic stack version to 9.0.0-862b23c2 (#14447))
   auth:
     fileRealm:
       - secretName: elasticsearch-admin
