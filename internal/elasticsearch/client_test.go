@@ -89,22 +89,18 @@ func TestClientCustomUserAgent(t *testing.T) {
 	}
 }
 
-type esMock struct {
-	responder   http.HandlerFunc
-	ClusterUUID string
-	UUID        string
-}
+func esMockHandler(responder http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("X-Elastic-Product", "Elasticsearch")
 
-func (h *esMock) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("X-Elastic-Product", "Elasticsearch")
-
-	switch {
-	case r.Method == http.MethodPost && r.URL.Path == "/_bulk":
-		h.responder(w, r)
-		return
-	default:
-		http.Error(w, "unsupported request", 419) // Signal unexpected error
-		return
+		switch {
+		case r.Method == http.MethodPost && r.URL.Path == "/_bulk":
+			responder(w, r)
+			return
+		default:
+			http.Error(w, "unsupported request", 419) // Signal unexpected error
+			return
+		}
 	}
 }
 
@@ -155,7 +151,7 @@ func TestClientRetryableStatuses(t *testing.T) {
 				w.WriteHeader(http.StatusOK)
 			})
 
-			es := esMock{responder: handler, ClusterUUID: "8f8d1c95-dde0-4c11-bf27-063e2a819a4c", UUID: "b97b91b3-16e0-49e2-a635-000c97059b46"}
+			es := esMockHandler(handler)
 			srv := httptest.NewServer(&es)
 			defer srv.Close()
 
