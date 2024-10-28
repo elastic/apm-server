@@ -99,7 +99,7 @@ jobs:
         with:
           role-duration-seconds: 18000 # 5 hours
 
-      - uses: google-github-actions/get-secretmanager-secrets@95a0b09b8348ef3d02c68c6ba5662a037e78d713 # v2.1.4
+      - uses: google-github-actions/get-secretmanager-secrets@0eee3cd066acdd9427a820bd68231cdea7c66a8d # v2.2.1
         with:
           export_to_environment: true
           secrets: |-
@@ -215,7 +215,7 @@ jobs:
           github-token: ${{ steps.get_token.outputs.token }}
 
       - name: Import GPG key
-        uses: crazy-max/ghaction-import-gpg@01dd5d3ca463c7f10f7f4f7b4f177225ac661ee4  # v6.1.0
+        uses: crazy-max/ghaction-import-gpg@cb9bde2e2525e640591a934b1fd28eef1dcaf5e5  # v6.2.0
         with:
           gpg_private_key: ${{ secrets.APM_SERVER_RELEASE_GPG_PRIVATE_KEY }}
           passphrase: ${{ secrets.APM_SERVER_RELEASE_PASSPHRASE }}
@@ -235,7 +235,7 @@ jobs:
       # there is a high chance things will stop working
       # This is trying to reduce the chances of that happening.
       # See https://github.com/elastic/observability-test-environments/actions/workflows/cluster-rotate-api-keys.yml
-      - uses: google-github-actions/get-secretmanager-secrets@95a0b09b8348ef3d02c68c6ba5662a037e78d713 # v2.1.4
+      - uses: google-github-actions/get-secretmanager-secrets@0eee3cd066acdd9427a820bd68231cdea7c66a8d # v2.2.1
         if: always()
         with:
           export_to_environment: true
