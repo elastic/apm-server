@@ -99,18 +99,8 @@ func (h *esMock) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("X-Elastic-Product", "Elasticsearch")
 
 	switch {
-	case r.Method == http.MethodGet && r.URL.Path == "/":
-		root := fmt.Sprintf("{\"name\" : \"mock\", \"cluster_uuid\" : \"%s\", \"version\" : { \"number\" : \"%s\", \"build_flavor\" : \"default\"}}", h.ClusterUUID, "runningtest")
-		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(root))
-		return
 	case r.Method == http.MethodPost && r.URL.Path == "/_bulk":
 		h.responder(w, r)
-		return
-	case r.Method == http.MethodGet && r.URL.Path == "/_license":
-		license := fmt.Sprintf("{\"license\" : {\"status\" : \"active\", \"uid\" : \"%s\", \"type\" : \"trial\", \"expiry_date_in_millis\" : %d}}", h.UUID, time.Now().Add(1*time.Hour).Unix())
-		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(license))
 		return
 	default:
 		http.Error(w, "unsupported request", 419) // Signal unexpected error
