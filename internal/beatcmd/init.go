@@ -24,6 +24,7 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/elastic/beats/v7/libbeat/cfgfile"
 	_ "github.com/elastic/beats/v7/libbeat/monitoring/report/elasticsearch" // register default monitoring reporting
 	_ "github.com/elastic/beats/v7/libbeat/outputs/codec/json"
 	_ "github.com/elastic/beats/v7/libbeat/outputs/console"
@@ -36,6 +37,7 @@ import (
 
 func init() {
 	initRand()
+	initFlags()
 }
 
 func initRand() {
@@ -47,4 +49,10 @@ func initRand() {
 		seed = n.Int64()
 	}
 	rand.Seed(seed) //lint:ignore SA1019 libbeat uses deprecated math/rand functions prolifically
+}
+
+func initFlags() {
+	// For backwards compatibility, initialize and convert -flags to --flags.
+	cfgfile.Initialize()
+	cfgfile.ConvertFlagsForBackwardsCompatibility()
 }
