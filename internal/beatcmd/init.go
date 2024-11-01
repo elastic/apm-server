@@ -19,15 +19,11 @@ package beatcmd
 
 import (
 	cryptorand "crypto/rand"
-	"log"
 	"math"
 	"math/big"
 	"math/rand"
-	"os"
-	"strings"
 	"time"
 
-	"github.com/elastic/beats/v7/libbeat/cfgfile"
 	_ "github.com/elastic/beats/v7/libbeat/monitoring/report/elasticsearch" // register default monitoring reporting
 	_ "github.com/elastic/beats/v7/libbeat/outputs/codec/json"
 	_ "github.com/elastic/beats/v7/libbeat/outputs/console"
@@ -40,7 +36,6 @@ import (
 
 func init() {
 	initRand()
-	initFlags()
 }
 
 func initRand() {
@@ -52,17 +47,4 @@ func initRand() {
 		seed = n.Int64()
 	}
 	rand.Seed(seed) //lint:ignore SA1019 libbeat uses deprecated math/rand functions prolifically
-}
-
-func initFlags() {
-	// For backwards compatibility, convert -flags to --flags.
-	for i, arg := range os.Args[1:] {
-		if strings.HasPrefix(arg, "-") && !strings.HasPrefix(arg, "--") && len(arg) > 2 {
-			os.Args[1+i] = "-" + arg
-		}
-	}
-
-	if err := cfgfile.HandleFlags(); err != nil {
-		log.Fatal(err)
-	}
 }
