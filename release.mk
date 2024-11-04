@@ -39,12 +39,14 @@ PROJECT_PATCH_VERSION ?= $(shell echo $(RELEASE_VERSION) | cut -f3 -d.)
 PROJECT_OWNER ?= elastic
 RELEASE_TYPE ?= minor
 
+# if gh is installed only
+ifneq ($(shell command -v gh 2>/dev/null),)
 CURRENT_RELEASE ?= $(shell gh release list --exclude-drafts --exclude-pre-releases --repo elastic/apm-server --limit 10 --json tagName --jq '.[].tagName|select(. | startswith("v$(PROJECT_MAJOR_VERSION)"))' | sed 's|v||g' | sort -r | head -n 1)
 RELEASE_BRANCH ?= $(PROJECT_MAJOR_VERSION).$(PROJECT_MINOR_VERSION)
 NEXT_PROJECT_MINOR_VERSION ?= $(PROJECT_MAJOR_VERSION).$(shell expr $(PROJECT_MINOR_VERSION) + 1).0
 NEXT_RELEASE ?= $(RELEASE_BRANCH).$(shell expr $(PROJECT_PATCH_VERSION) + 1)
-
 BRANCH_PATCH = update-$(NEXT_RELEASE)
+endif
 
 # for the view commits
 # as long as 8.x is the branch to run releases, then the base branch is 8.x
