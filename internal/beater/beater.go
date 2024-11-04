@@ -356,7 +356,7 @@ func (s *Runner) Run(ctx context.Context) error {
 	ratelimitStore, err := ratelimit.NewStore(
 		s.config.AgentAuth.Anonymous.RateLimit.IPLimit,
 		s.config.AgentAuth.Anonymous.RateLimit.EventLimit,
-		3, // burst mulitiplier
+		3, // burst multiplier
 	)
 	if err != nil {
 		return err
