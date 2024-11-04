@@ -9,7 +9,7 @@ require (
 	github.com/elastic/apm-tools v0.0.0-20240607105915-a4f490dc6959
 	github.com/elastic/go-elasticsearch/v8 v8.15.0
 	github.com/elastic/go-lumber v0.1.1
-	github.com/elastic/go-sysinfo v1.14.2
+	github.com/elastic/go-sysinfo v1.15.0
 	github.com/google/pprof v0.0.0-20210720184732-4bb14d4b1be1
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/jaegertracing/jaeger v1.62.0
