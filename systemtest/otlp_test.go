@@ -34,7 +34,6 @@ import (
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.opentelemetry.io/collector/pdata/pmetric/pmetricotlp"
 	semconv "go.opentelemetry.io/collector/semconv/v1.5.0"
-	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
@@ -59,19 +58,6 @@ import (
 )
 
 var otelErrors = make(chan error, 1)
-
-func init() {
-	// otel.SetErrorHandler can only be called once per process.
-	otel.SetErrorHandler(otel.ErrorHandlerFunc(func(err error) {
-		if err == nil {
-			return
-		}
-		select {
-		case otelErrors <- err:
-		default:
-		}
-	}))
-}
 
 func TestOTLPGRPCTraces(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)

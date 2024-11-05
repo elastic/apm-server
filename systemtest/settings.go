@@ -23,7 +23,7 @@ import (
 	"strings"
 )
 
-func init() {
+func initSettings() {
 	// Proactively test with more strict
 	// "ignore_malformed" mode by default.
 	for _, t := range []string{
