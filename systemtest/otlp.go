@@ -19,7 +19,7 @@ package systemtest
 
 import "go.opentelemetry.io/otel"
 
-var otelErrors = make(chan error, 1)
+var OtelErrors = make(chan error, 1)
 
 func initOTEL() {
 	// otel.SetErrorHandler can only be called once per process.
@@ -28,7 +28,7 @@ func initOTEL() {
 			return
 		}
 		select {
-		case otelErrors <- err:
+		case OtelErrors <- err:
 		default:
 		}
 	}))

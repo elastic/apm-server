@@ -31,8 +31,8 @@ func TestMain(m *testing.M) {
 	}
 	initElasticSearch()
 	initKibana()
-	initOTEL()
 	initSettings()
+	initOTEL()
 	log.Println("INFO: running system tests...")
 	os.Exit(m.Run())
 }

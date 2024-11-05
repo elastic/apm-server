@@ -57,8 +57,6 @@ import (
 	"github.com/elastic/apm-tools/pkg/espoll"
 )
 
-var otelErrors = make(chan error, 1)
-
 func TestOTLPGRPCTraces(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
 	srv := apmservertest.NewServerTB(t)
@@ -609,7 +607,7 @@ func flushTracerProvider(ctx context.Context, tracerProvider *sdktrace.TracerPro
 		return err
 	}
 	select {
-	case err := <-otelErrors:
+	case err := <-systemtest.OtelErrors:
 		return err
 	default:
 		return nil
@@ -639,7 +637,7 @@ func sendOTLPMetrics(
 		return err
 	}
 	select {
-	case err := <-otelErrors:
+	case err := <-systemtest.OtelErrors:
 		return err
 	default:
 		return nil
