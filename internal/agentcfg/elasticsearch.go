@@ -240,6 +240,8 @@ func (f *ElasticsearchFetcher) refreshCache(ctx context.Context) (err error) {
 		}
 	}
 
+	f.clearScroll(ctx, scrollID)
+
 	f.mu.Lock()
 	f.cache = buffer
 	f.mu.Unlock()
@@ -247,6 +249,18 @@ func (f *ElasticsearchFetcher) refreshCache(ctx context.Context) (err error) {
 	f.metrics.cacheEntriesCount.Store(int64(len(f.cache)))
 	f.last = time.Now()
 	return nil
+}
+
+func (f *ElasticsearchFetcher) clearScroll(ctx context.Context, scrollID string) {
+	resp, err := esapi.ClearScrollRequest{
+		ScrollID: []string{scrollID},
+	}.Do(ctx, f.client)
+	if err != nil {
+		f.logger.Warnf("failed to clear scroll: %v", err)
+		return
+	}
+
+	defer resp.Body.Close()
 }
 
 func (f *ElasticsearchFetcher) singlePageRefresh(ctx context.Context, scrollID string) (cacheResult, error) {

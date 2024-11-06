@@ -179,8 +179,22 @@ func (s *MetadataESFetcher) sync(ctx context.Context) error {
 		}
 	}
 
+	s.clearScroll(ctx, scrollID)
+
 	s.update(ctx, sourcemaps)
 	return nil
+}
+
+func (f *MetadataESFetcher) clearScroll(ctx context.Context, scrollID string) {
+	resp, err := esapi.ClearScrollRequest{
+		ScrollID: []string{scrollID},
+	}.Do(ctx, f.esClient)
+	if err != nil {
+		f.logger.Warnf("failed to clear scroll: %v", err)
+		return
+	}
+
+	defer resp.Body.Close()
 }
 
 func (s *MetadataESFetcher) update(ctx context.Context, sourcemaps map[identifier]string) {
