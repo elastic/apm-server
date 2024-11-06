@@ -185,12 +185,12 @@ func (s *MetadataESFetcher) sync(ctx context.Context) error {
 	return nil
 }
 
-func (f *MetadataESFetcher) clearScroll(ctx context.Context, scrollID string) {
+func (s *MetadataESFetcher) clearScroll(ctx context.Context, scrollID string) {
 	resp, err := esapi.ClearScrollRequest{
 		ScrollID: []string{scrollID},
-	}.Do(ctx, f.esClient)
+	}.Do(ctx, s.esClient)
 	if err != nil {
-		f.logger.Warnf("failed to clear scroll: %v", err)
+		s.logger.Warnf("failed to clear scroll: %v", err)
 		return
 	}
 
