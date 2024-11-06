@@ -7,13 +7,8 @@ require (
 	github.com/dgraph-io/badger/v2 v2.2007.4
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/apm-aggregation v1.1.0
-<<<<<<< HEAD
-	github.com/elastic/apm-data v1.13.1
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20241105124048-701c8f4582d5
-=======
 	github.com/elastic/apm-data v1.14.1
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20241105110521-38dfc52434ed
->>>>>>> ae2798c20 (build(deps): bump github.com/elastic/apm-data from 1.13.1 to 1.14.1 (#14501))
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20241105124048-701c8f4582d5
 	github.com/elastic/elastic-agent-client/v7 v7.16.0
 	github.com/elastic/elastic-agent-libs v0.17.1
 	github.com/elastic/elastic-agent-system-metrics v0.11.3
