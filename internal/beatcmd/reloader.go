@@ -58,20 +58,20 @@ type Runner interface {
 
 // NewReloader returns a new Reloader which creates Runners using the provided
 // beat.Info and NewRunnerFunc.
-func NewReloader(info beat.Info, newRunner NewRunnerFunc) (*Reloader, error) {
+func NewReloader(info beat.Info, registry *reload.Registry, newRunner NewRunnerFunc) (*Reloader, error) {
 	r := &Reloader{
 		info:      info,
 		logger:    logp.NewLogger(""),
 		newRunner: newRunner,
 		stopped:   make(chan struct{}),
 	}
-	if err := reload.RegisterV2.RegisterList(reload.InputRegName, reloadableListFunc(r.reloadInputs)); err != nil {
+	if err := registry.RegisterList(reload.InputRegName, reloadableListFunc(r.reloadInputs)); err != nil {
 		return nil, fmt.Errorf("failed to register inputs reloader: %w", err)
 	}
-	if err := reload.RegisterV2.Register(reload.OutputRegName, reload.ReloadableFunc(r.reloadOutput)); err != nil {
+	if err := registry.Register(reload.OutputRegName, reload.ReloadableFunc(r.reloadOutput)); err != nil {
 		return nil, fmt.Errorf("failed to register output reloader: %w", err)
 	}
-	if err := reload.RegisterV2.Register(reload.APMRegName, reload.ReloadableFunc(r.reloadAPMTracing)); err != nil {
+	if err := registry.Register(reload.APMRegName, reload.ReloadableFunc(r.reloadAPMTracing)); err != nil {
 		return nil, fmt.Errorf("failed to register apm tracing reloader: %w", err)
 	}
 	return r, nil
@@ -195,8 +195,7 @@ func (r *Reloader) reload(inputConfig, outputConfig, apmTracingConfig *config.C)
 			return fmt.Errorf("APM tracing config for elastic not found")
 		}
 		// set enabled manually as APMConfig doesn't contain it.
-		// TODO set "enable" to true after the issue https://github.com/elastic/elastic-agent/issues/5211 gets resolved.
-		c.SetBool("enabled", -1, false)
+		c.SetBool("enabled", -1, true)
 		wrappedApmTracingConfig = config.MustNewConfigFrom(map[string]interface{}{
 			"instrumentation": c,
 		})

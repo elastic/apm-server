@@ -24,10 +24,12 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -283,6 +285,46 @@ func TestNewInstrumentation(t *testing.T) {
 	tracer.Flush(nil)
 	assert.Equal(t, map[string]string{"k1": "val", "k2": "new val"}, <-labels)
 	assert.Equal(t, "Bearer secret", auth)
+}
+
+func TestNewInstrumentationWithSampling(t *testing.T) {
+	runSampled := func(rate float32) {
+		var events int
+		s := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if r.URL.Path == "/intake/v2/events" {
+				zr, _ := zlib.NewReader(r.Body)
+				b, _ := io.ReadAll(zr)
+				// Skip metadata and transaction keys, only count span.
+				events = strings.Count(string(b), "\n") - 2
+			}
+			w.WriteHeader(http.StatusOK)
+		}))
+		defer s.Close()
+		cfg := agentconfig.MustNewConfigFrom(map[string]interface{}{
+			"instrumentation": map[string]interface{}{
+				"enabled": true,
+				"hosts":   []string{s.URL},
+				"tls": map[string]interface{}{
+					"skipverify": true,
+				},
+				"samplingrate": fmt.Sprintf("%f", rate),
+			},
+		})
+		i, err := newInstrumentation(cfg)
+		require.NoError(t, err)
+		tracer := i.Tracer()
+		tr := tracer.StartTransaction("name", "type")
+		tr.StartSpan("span", "type", nil).End()
+		tr.End()
+		tracer.Flush(nil)
+		assert.Equal(t, int(rate), events)
+	}
+	t.Run("100% sampling", func(t *testing.T) {
+		runSampled(1.0)
+	})
+	t.Run("0% sampling", func(t *testing.T) {
+		runSampled(0.0)
+	})
 }
 
 func TestProcessMemoryLimit(t *testing.T) {
