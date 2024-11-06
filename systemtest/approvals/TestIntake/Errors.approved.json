@@ -663,6 +663,9 @@
         "error.id": [
             "xFoaabb123FFFFFF"
         ],
+        "error.log.level": [
+            "error"
+        ],
         "error.log.message": [
             "no user found"
         ],
