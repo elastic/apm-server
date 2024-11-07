@@ -44,7 +44,7 @@ var (
 	Elasticsearch *espoll.Client
 )
 
-func init() {
+func initElasticSearch() {
 	cfg := newElasticsearchConfig()
 	cfg.Username = adminElasticsearchUser
 	cfg.Password = adminElasticsearchPass
