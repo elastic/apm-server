@@ -54,7 +54,7 @@ var (
 	systemtestDir string
 )
 
-func init() {
+func initContainers() {
 	_, filename, _, ok := runtime.Caller(0)
 	if !ok {
 		panic("could not locate systemtest directory")
