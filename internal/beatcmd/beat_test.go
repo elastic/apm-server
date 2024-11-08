@@ -19,6 +19,7 @@ package beatcmd
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"strconv"
@@ -28,10 +29,17 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/sync/errgroup"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/elastic/apm-server/internal/version"
+	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common/reload"
 	"github.com/elastic/beats/v7/libbeat/management"
+	"github.com/elastic/beats/v7/libbeat/tests/integration"
+	xpacklbmanagement "github.com/elastic/beats/v7/x-pack/libbeat/management"
+	"github.com/elastic/elastic-agent-client/v7/pkg/client"
+	"github.com/elastic/elastic-agent-client/v7/pkg/proto"
 	"github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/monitoring"
@@ -188,6 +196,95 @@ func TestRunManager(t *testing.T) {
 	manager.stopCallback()
 	assert.NoError(t, g.Wait())
 	expectEvent(t, manager.stopped, "manager should have been stopped")
+}
+
+func TestRunManager_Reloader_newRunnerError(t *testing.T) {
+	// This test asserts that any errors when creating runner, e.g. config parsing error,
+	// will cause the unit to fail.
+
+	inputFailedMsg := make(chan string)
+
+	registry := reload.NewRegistry()
+
+	_, err := NewReloader(beat.Info{}, registry, func(_ RunnerParams) (Runner, error) {
+		return nil, errors.New("newRunner error")
+	})
+	require.NoError(t, err)
+
+	onObserved := func(observed *proto.CheckinObserved, currentIdx int) {
+		for _, unit := range observed.GetUnits() {
+			if unit.GetId() == "input-unit-1" && unit.GetState() == proto.State_FAILED {
+				inputFailedMsg <- unit.GetMessage()
+			}
+		}
+	}
+	agentInfo := &proto.AgentInfo{
+		Id:       "elastic-agent-id",
+		Version:  version.Version,
+		Snapshot: true,
+	}
+	srv := integration.NewMockServer([]*proto.CheckinExpected{
+		{
+			AgentInfo: agentInfo,
+			Units: []*proto.UnitExpected{
+				{
+					Id:             "output-unit",
+					Type:           proto.UnitType_OUTPUT,
+					ConfigStateIdx: 1,
+					Config: &proto.UnitExpectedConfig{
+						Id:   "default",
+						Type: "elasticsearch",
+						Name: "elasticsearch",
+					},
+					State:    proto.State_HEALTHY,
+					LogLevel: proto.UnitLogLevel_INFO,
+				},
+				{
+					Id:             "input-unit-1",
+					Type:           proto.UnitType_INPUT,
+					ConfigStateIdx: 1,
+					Config: &proto.UnitExpectedConfig{
+						Id:   "elastic-apm",
+						Type: "apm",
+						Name: "Elastic APM",
+						Streams: []*proto.Stream{
+							{
+								Id: "elastic-apm",
+								Source: integration.RequireNewStruct(t, map[string]interface{}{
+									"revision": 1,
+								}),
+							},
+						},
+					},
+					State:    proto.State_HEALTHY,
+					LogLevel: proto.UnitLogLevel_INFO,
+				},
+			},
+			Features:    nil,
+			FeaturesIdx: 1,
+		},
+	},
+		onObserved,
+		500*time.Millisecond,
+	)
+	require.NoError(t, srv.Start())
+	defer srv.Stop()
+
+	client := client.NewV2(
+		fmt.Sprintf(":%d", srv.Port),
+		"",
+		client.VersionInfo{},
+		client.WithGRPCDialOptions(grpc.WithTransportCredentials(insecure.NewCredentials())))
+	manager, err := xpacklbmanagement.NewV2AgentManagerWithClient(&xpacklbmanagement.Config{
+		Enabled: true,
+	}, registry, client)
+	require.NoError(t, err)
+
+	err = manager.Start()
+	require.NoError(t, err)
+	defer manager.Stop()
+
+	assert.Equal(t, "failed to load input config: newRunner error", <-inputFailedMsg)
 }
 
 func runBeat(t testing.TB, beat *Beat) (stop func() error) {
