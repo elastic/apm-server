@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -198,8 +199,155 @@ func TestRunManager(t *testing.T) {
 	expectEvent(t, manager.stopped, "manager should have been stopped")
 }
 
+func TestRunManager_Reloader(t *testing.T) {
+	// This test asserts that unit changes are reloaded correctly.
+
+	finish := make(chan struct{})
+	runCount := atomic.Int64{}
+	stopCount := atomic.Int64{}
+
+	registry := reload.NewRegistry()
+
+	reloader, err := NewReloader(beat.Info{}, registry, func(_ RunnerParams) (Runner, error) {
+		return runnerFunc(func(ctx context.Context) error {
+			runCount.Add(1)
+			<-ctx.Done()
+			stopCount.Add(1)
+			return nil
+		}), nil
+	})
+	require.NoError(t, err)
+
+	onObserved := func(observed *proto.CheckinObserved, currentIdx int) {
+		if currentIdx == 1 {
+			allHealthy := true
+			for _, unit := range observed.GetUnits() {
+				if unit.GetState() != proto.State_HEALTHY {
+					allHealthy = false
+				}
+			}
+			if allHealthy {
+				close(finish)
+			}
+		}
+	}
+	agentInfo := &proto.AgentInfo{
+		Id:       "elastic-agent-id",
+		Version:  version.Version,
+		Snapshot: true,
+	}
+	srv := integration.NewMockServer([]*proto.CheckinExpected{
+		{
+			AgentInfo: agentInfo,
+			Units: []*proto.UnitExpected{
+				{
+					Id:             "output-unit",
+					Type:           proto.UnitType_OUTPUT,
+					ConfigStateIdx: 1,
+					Config: &proto.UnitExpectedConfig{
+						Id:   "default",
+						Type: "elasticsearch",
+						Name: "elasticsearch",
+					},
+					State:    proto.State_HEALTHY,
+					LogLevel: proto.UnitLogLevel_INFO,
+				},
+				{
+					Id:             "input-unit-1",
+					Type:           proto.UnitType_INPUT,
+					ConfigStateIdx: 1,
+					Config: &proto.UnitExpectedConfig{
+						Id:   "elastic-apm",
+						Type: "apm",
+						Name: "Elastic APM",
+						Streams: []*proto.Stream{
+							{
+								Id: "elastic-apm",
+								Source: integration.RequireNewStruct(t, map[string]interface{}{
+									"revision": 1,
+								}),
+							},
+						},
+					},
+					State:    proto.State_HEALTHY,
+					LogLevel: proto.UnitLogLevel_INFO,
+				},
+			},
+			Features:    nil,
+			FeaturesIdx: 1,
+		},
+		{
+			AgentInfo: agentInfo,
+			Units: []*proto.UnitExpected{
+				{
+					Id:             "output-unit",
+					Type:           proto.UnitType_OUTPUT,
+					ConfigStateIdx: 1,
+					State:          proto.State_HEALTHY,
+					LogLevel:       proto.UnitLogLevel_INFO,
+				},
+				{
+					Id:             "elastic-apm",
+					Type:           proto.UnitType_INPUT,
+					ConfigStateIdx: 2,
+					Config: &proto.UnitExpectedConfig{
+						Id:   "elastic-apm",
+						Type: "apm",
+						Name: "Elastic APM",
+						Streams: []*proto.Stream{
+							{
+								Id: "elastic-apm",
+								Source: integration.RequireNewStruct(t, map[string]interface{}{
+									"revision": 2,
+								}),
+							},
+						},
+					},
+					State:    proto.State_HEALTHY,
+					LogLevel: proto.UnitLogLevel_INFO,
+				},
+			},
+			Features:    nil,
+			FeaturesIdx: 1,
+		},
+	},
+		onObserved,
+		500*time.Millisecond,
+	)
+	require.NoError(t, srv.Start())
+	defer srv.Stop()
+
+	client := client.NewV2(
+		fmt.Sprintf(":%d", srv.Port),
+		"",
+		client.VersionInfo{},
+		client.WithGRPCDialOptions(grpc.WithTransportCredentials(insecure.NewCredentials())))
+	manager, err := xpacklbmanagement.NewV2AgentManagerWithClient(&xpacklbmanagement.Config{
+		Enabled: true,
+	}, registry, client)
+	require.NoError(t, err)
+
+	err = manager.Start()
+	require.NoError(t, err)
+	defer manager.Stop()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	go func() {
+		<-finish
+		cancel()
+	}()
+	err = reloader.Run(ctx)
+	require.NoError(t, err)
+
+	assert.Eventually(t, func() bool {
+		// TODO(carsonip): there seems to be a EA bug causing excessive reloads even if apm tracing config did not change
+		//return runCount.Load() == 2 && stopCount.Load() == 2
+		return runCount.Load() == 3 && stopCount.Load() == 3
+	}, 2*time.Second, 50*time.Millisecond)
+}
+
 func TestRunManager_Reloader_newRunnerError(t *testing.T) {
-	// This test asserts that any errors when creating runner, e.g. config parsing error,
+	// This test asserts that any errors when creating runner inside reloader, e.g. config parsing error,
 	// will cause the unit to fail.
 
 	inputFailedMsg := make(chan string)
