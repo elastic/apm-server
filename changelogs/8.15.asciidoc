@@ -8,15 +8,15 @@
 * <<apm-release-notes-8.15.0>>
 
 [float]
-[[apm-release-notes-8.15.3]]
-=== APM version 8.15.3
+[[apm-release-notes-8.15.4]]
+=== APM version 8.15.4
 
 https://github.com/elastic/apm-server/compare/v8.15.3\...v8.15.4[View commits]
 
 [float]
 ==== Bug fixes
 
-TODO
+- Rollover for all APM data streams is now executing correctly in Elasticsearch 8.15.4, fixing a https://www.elastic.co/guide/en/observability/current/apm-known-issues.html#_upgrading_to_v8_15_x_may_cause_ingestion_to_fail[known issue] present in all patch versions of this minor release.
 
 [float]
 [[apm-release-notes-8.15.3]]
