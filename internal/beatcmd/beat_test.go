@@ -227,7 +227,11 @@ func TestRunManager_Reloader(t *testing.T) {
 				}
 			}
 			if allHealthy {
-				close(finish)
+				select {
+				case <-finish:
+				default:
+					close(finish)
+				}
 			}
 		}
 	}
