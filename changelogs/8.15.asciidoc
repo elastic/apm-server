@@ -16,7 +16,7 @@ https://github.com/elastic/apm-server/compare/v8.15.3\...v8.15.4[View commits]
 [float]
 ==== Bug fixes
 
-- Rollover for all APM data streams is now executing correctly in Elasticsearch 8.15.4, fixing a https://www.elastic.co/guide/en/observability/current/apm-known-issues.html#_upgrading_to_v8_15_x_may_cause_ingestion_to_fail[known issue] present in all patch versions of this minor release.
+- Rollover for all APM data streams is now executing correctly in Elasticsearch 8.15.4, fixing a https://www.elastic.co/guide/en/observability/current/apm-known-issues.html#_upgrading_to_v8_15_x_may_cause_ingestion_to_fail[known issue] present in 8.15.0, 8.15.1, 8.15.2 and 8.15.3.
 
 [float]
 [[apm-release-notes-8.15.3]]
