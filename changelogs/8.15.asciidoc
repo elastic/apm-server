@@ -1,9 +1,39 @@
 [[apm-release-notes-8.15]]
 == APM version 8.15
 
+* <<apm-release-notes-8.15.4>>
+* <<apm-release-notes-8.15.3>>
 * <<apm-release-notes-8.15.2>>
 * <<apm-release-notes-8.15.1>>
 * <<apm-release-notes-8.15.0>>
+
+[float]
+[[apm-release-notes-8.15.4]]
+=== APM version 8.15.4
+
+https://github.com/elastic/apm-server/compare/v8.15.3\...v8.15.4[View commits]
+
+[float]
+==== Bug fixes
+
+- Rollover for all APM data streams is now executing correctly in Elasticsearch 8.15.4, fixing a https://www.elastic.co/guide/en/observability/current/apm-known-issues.html#_upgrading_to_v8_15_x_may_cause_ingestion_to_fail[known issue] present in 8.15.0, 8.15.1, 8.15.2 and 8.15.3.
+  The fix is applied through https://github.com/elastic/elasticsearch/pull/116219[elasticsearch#116219].
+
+[float]
+[[apm-release-notes-8.15.3]]
+=== APM version 8.15.3
+
+https://github.com/elastic/apm-server/compare/v8.15.2\...v8.15.3[View commits]
+
+[float]
+==== Bug fixes
+
+- Fix a panic in OTLP label setting when receiving on non-compliant attribute array values {pull}13950[13950]
+
+[float]
+==== Added
+
+- Map OpenTelemetry instrumentation scope to `Service.Framework.*` for all signal types. {pull}13903[13903]
 
 [float]
 [[apm-release-notes-8.15.2]]
@@ -15,12 +45,6 @@ https://github.com/elastic/apm-server/compare/v8.15.1\...v8.15.2[View commits]
 ==== Bug fixes
 
 - Fix broken APM Agents configuration cache when there are more than 100 agent config entries {pull}13958[13958]
-- Fix a panic in OTLP label setting when receiving on non-compliant attribute array values {pull}13950[13950]
-
-[float]
-==== Added
-
-- Map OpenTelemetry instrumentation scope to `Service.Framework.*` for all signal types. {pull}13903[13903]
 
 [float]
 [[apm-release-notes-8.15.1]]
