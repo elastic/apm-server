@@ -261,6 +261,10 @@ func (f *ElasticsearchFetcher) clearScroll(ctx context.Context, scrollID string)
 		return
 	}
 
+	if resp.IsError() {
+		f.logger.Warn("clearscroll request returned error: %s", resp.Status())
+	}
+
 	defer resp.Body.Close()
 }
 
