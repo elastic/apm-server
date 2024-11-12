@@ -81,6 +81,8 @@ func newElasticsearchFetcher(
 
 	fetcher := NewElasticsearchFetcher(newMockElasticsearchClient(t, func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodDelete && strings.HasPrefix(r.URL.Path, "/_search/scroll") {
+			scrollID := strings.TrimPrefix(r.URL.Path, "/_search/scroll/")
+			assert.Equal(t, respTmpl["_scroll_id"], scrollID)
 			return
 		}
 		switch r.URL.Path {
