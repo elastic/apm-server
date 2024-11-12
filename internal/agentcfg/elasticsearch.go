@@ -222,6 +222,7 @@ func (f *ElasticsearchFetcher) refreshCache(ctx context.Context) (err error) {
 	for {
 		result, err := f.singlePageRefresh(ctx, scrollID)
 		if err != nil {
+			f.clearScroll(ctx, scrollID)
 			return err
 		}
 

@@ -159,6 +159,7 @@ func (s *MetadataESFetcher) sync(ctx context.Context) error {
 	for {
 		result, err = s.scrollsearch(ctx, scrollID, sourcemaps)
 		if err != nil {
+			s.clearScroll(ctx, scrollID)
 			if e := apm.CaptureError(ctx, err); e != nil {
 				e.Send()
 			}
