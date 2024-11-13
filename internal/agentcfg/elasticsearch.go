@@ -265,7 +265,7 @@ func (f *ElasticsearchFetcher) clearScroll(ctx context.Context, scrollID string)
 		f.logger.Warn("clearscroll request returned error: %s", resp.Status())
 	}
 
-	defer resp.Body.Close()
+	resp.Body.Close()
 }
 
 func (f *ElasticsearchFetcher) singlePageRefresh(ctx context.Context, scrollID string) (cacheResult, error) {
