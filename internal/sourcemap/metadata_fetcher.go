@@ -199,7 +199,7 @@ func (s *MetadataESFetcher) clearScroll(ctx context.Context, scrollID string) {
 		s.logger.Warn("clearscroll request returned error: %s", resp.Status())
 	}
 
-	defer resp.Body.Close()
+	resp.Body.Close()
 }
 
 func (s *MetadataESFetcher) update(ctx context.Context, sourcemaps map[identifier]string) {
