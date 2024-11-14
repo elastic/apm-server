@@ -103,6 +103,12 @@ func TestMetadataFetcher(t *testing.T) {
 					require.NotNil(t, tc.searchReponse, "nil searchReponse, possible unexpected request")
 					// search request from the metadata fetcher
 					tc.searchReponse(w, r)
+				case "/_search/scroll":
+					scrollIDValue := r.URL.Query().Get("scroll_id")
+					assert.Equal(t, scrollID, scrollIDValue)
+					w.Write([]byte(`{}`))
+				case "/_search/scroll/" + scrollID:
+					assert.Equal(t, r.Method, http.MethodDelete)
 				default:
 					w.WriteHeader(http.StatusTeapot)
 					t.Fatalf("unhandled request path: %s", r.URL.Path)
@@ -234,6 +240,12 @@ func TestInvalidation(t *testing.T) {
 				case "/.apm-source-map/_search":
 					// search request from the metadata fetcher
 					tc.searchReponse(w, r)
+				case "/_search/scroll":
+					scrollIDValue := r.URL.Query().Get("scroll_id")
+					assert.Equal(t, scrollID, scrollIDValue)
+					w.Write([]byte(`{}`))
+				case "/_search/scroll/" + scrollID:
+					assert.Equal(t, r.Method, http.MethodDelete)
 				default:
 					w.WriteHeader(http.StatusTeapot)
 					t.Fatalf("unhandled request path: %s", r.URL.Path)
@@ -294,6 +306,8 @@ func TestInvalidation(t *testing.T) {
 	}
 }
 
+const scrollID = "FGluY2x1ZGVfY29udGV4dF91dWlkDXF1ZXJ5QW5kRmV0Y2gBFkJUT0Z5bFUtUXRXM3NTYno0dkM2MlEAAAAAAABnRBY5OUxYalAwUFFoS1NfLV9lWjlSYTRn"
+
 func sourcemapSearchResponseBody(ids []metadata) []byte {
 	m := make([]map[string]interface{}, 0, len(ids))
 	for _, id := range ids {
@@ -318,6 +332,7 @@ func sourcemapSearchResponseBody(ids []metadata) []byte {
 			},
 			"hits": m,
 		},
+		"_scroll_id": scrollID,
 	}
 
 	data, err := json.Marshal(result)
