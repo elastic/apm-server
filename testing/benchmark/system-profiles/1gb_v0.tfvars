@@ -14,7 +14,7 @@ worker_region = "us-west-2"
 apm_server_size = "1g"
 apm_server_zone_count = 1
 
-elasticsearch_size = "16g"
+elasticsearch_size = "15360"
 elasticsearch_zone_count = 2
 
 # Standalone
