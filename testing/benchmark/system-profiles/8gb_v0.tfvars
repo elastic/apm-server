@@ -1,7 +1,7 @@
 user_name = "USER"
 
 ess_region = "us-west-2"
-deployment_template = "gcp-cpu-optimized"
+deployment_template = "aws-cpu-optimized"
 stack_version = "8.16.0"
 
 # APM bench
