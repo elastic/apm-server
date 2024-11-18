@@ -8,13 +8,13 @@ require (
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/apm-aggregation v1.1.0
 	github.com/elastic/apm-data v1.14.1
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20241114193923-04272dd134a9
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20241118142755-d1e9e8e994da
 	github.com/elastic/elastic-agent-client/v7 v7.16.0
 	github.com/elastic/elastic-agent-libs v0.17.3
 	github.com/elastic/elastic-agent-system-metrics v0.11.4
 	github.com/elastic/gmux v0.3.2
-	github.com/elastic/go-docappender/v2 v2.3.0
-	github.com/elastic/go-elasticsearch/v8 v8.15.0
+	github.com/elastic/go-docappender/v2 v2.3.1
+	github.com/elastic/go-elasticsearch/v8 v8.16.0
 	github.com/elastic/go-sysinfo v1.15.0
 	github.com/elastic/go-ucfg v0.8.8
 	github.com/go-sourcemap/sourcemap v2.1.4+incompatible
@@ -43,9 +43,9 @@ require (
 	go.elastic.co/fastjson v1.4.0
 	go.opentelemetry.io/collector/consumer v0.111.0
 	go.opentelemetry.io/collector/pdata v1.17.0
-	go.opentelemetry.io/otel v1.31.0
-	go.opentelemetry.io/otel/metric v1.31.0
-	go.opentelemetry.io/otel/sdk/metric v1.31.0
+	go.opentelemetry.io/otel v1.32.0
+	go.opentelemetry.io/otel/metric v1.32.0
+	go.opentelemetry.io/otel/sdk/metric v1.32.0
 	go.uber.org/automaxprocs v1.6.0
 	go.uber.org/zap v1.27.0
 	golang.org/x/net v0.31.0
@@ -113,7 +113,7 @@ require (
 	github.com/jcmturner/rpc/v2 v2.0.3 // indirect
 	github.com/joeshaw/multierror v0.0.0-20140124173710-69b34d4ec901 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
-	github.com/klauspost/compress v1.17.10 // indirect
+	github.com/klauspost/compress v1.17.11 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/lufia/plan9stats v0.0.0-20220913051719-115f729f3c8c // indirect
@@ -144,11 +144,11 @@ require (
 	github.com/xdg-go/stringprep v1.0.4 // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
-	go.elastic.co/apm/module/apmzap/v2 v2.6.0 // indirect
+	go.elastic.co/apm/module/apmzap/v2 v2.6.2 // indirect
 	go.elastic.co/ecszap v1.0.2 // indirect
 	go.opentelemetry.io/collector/semconv v0.111.0 // indirect
-	go.opentelemetry.io/otel/sdk v1.31.0 // indirect
-	go.opentelemetry.io/otel/trace v1.31.0 // indirect
+	go.opentelemetry.io/otel/sdk v1.32.0 // indirect
+	go.opentelemetry.io/otel/trace v1.32.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.29.0 // indirect
 	golang.org/x/exp v0.0.0-20240506185415-9bf2ced13842 // indirect
