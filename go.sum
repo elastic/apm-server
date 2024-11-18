@@ -144,10 +144,10 @@ github.com/elastic/elastic-transport-go/v8 v8.6.0 h1:Y2S/FBjx1LlCv5m6pWAF2kDJAHo
 github.com/elastic/elastic-transport-go/v8 v8.6.0/go.mod h1:YLHer5cj0csTzNFXoNQ8qhtGY1GTvSqPnKWKaqQE3Hk=
 github.com/elastic/gmux v0.3.2 h1:cb721R+fe/rt/jVNyBP5HDQsEwLD2wSKfPD2Sk6adDk=
 github.com/elastic/gmux v0.3.2/go.mod h1:OD6oYrno+SV3pyl1ArdWCjlExZ+FJOfoSaFqnFeldBQ=
-github.com/elastic/go-docappender/v2 v2.3.0 h1:Vr+l36jM+sE/LHp0JFxSIbHlWTSk8CpBblYWZZ/I1KA=
-github.com/elastic/go-docappender/v2 v2.3.0/go.mod h1:VNWgXUE9HX1G6W6ON8dOs/KdH8aCxXir/fxxcfrnov4=
-github.com/elastic/go-elasticsearch/v8 v8.15.0 h1:IZyJhe7t7WI3NEFdcHnf6IJXqpRf+8S8QWLtZYYyBYk=
-github.com/elastic/go-elasticsearch/v8 v8.15.0/go.mod h1:HCON3zj4btpqs2N1jjsAy4a/fiAul+YBP00mBH4xik8=
+github.com/elastic/go-docappender/v2 v2.3.1 h1:aDbXvjMrzxsiFnYvAQhJxsvgzgGnPKR9GDmXWTwkBUI=
+github.com/elastic/go-docappender/v2 v2.3.1/go.mod h1:QxOoeU4ud7KzY3uh3pMdRcuDsun/t+HtNZDyjH2gByM=
+github.com/elastic/go-elasticsearch/v8 v8.16.0 h1:f7bR+iBz8GTAVhwyFO3hm4ixsz2eMaEy0QroYnXV3jE=
+github.com/elastic/go-elasticsearch/v8 v8.16.0/go.mod h1:lGMlgKIbYoRvay3xWBeKahAiJOgmFDsjZC39nmO3H64=
 github.com/elastic/go-lumber v0.1.2-0.20220819171948-335fde24ea0f h1:TsPpU5EAwlt7YZoupKlxZ093qTZYdGou3EhfTF1U0B4=
 github.com/elastic/go-lumber v0.1.2-0.20220819171948-335fde24ea0f/go.mod h1:HHaWnZamYKWsR9/eZNHqRHob8iQDKnchHmmskT/SKko=
 github.com/elastic/go-structform v0.0.10 h1:oy08o/Ih2hHTkNcRY/1HhaYvIp5z6t8si8gnCJPDo1w=
@@ -273,8 +273,13 @@ github.com/kisielk/errcheck v1.5.0/go.mod h1:pFxgyoBC7bSaBwPgfKdkLd5X25qrDl4LWUI
 github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=
 github.com/klauspost/compress v1.12.2/go.mod h1:8dP1Hq4DHOhN9w426knH3Rhby4rFm6D8eO+e+Dq5Gzg=
 github.com/klauspost/compress v1.12.3/go.mod h1:8dP1Hq4DHOhN9w426knH3Rhby4rFm6D8eO+e+Dq5Gzg=
+<<<<<<< HEAD
 github.com/klauspost/compress v1.17.9 h1:6KIumPrER1LHsvBVuDa0r5xaG0Es51mhhB9BQB2qeMA=
 github.com/klauspost/compress v1.17.9/go.mod h1:Di0epgTjJY877eYKx5yC51cX2A2Vl2ibi7bDH9ttBbw=
+=======
+github.com/klauspost/compress v1.17.11 h1:In6xLpyWOi1+C7tXUUWv2ot1QvBjxevKAaI6IXrJmUc=
+github.com/klauspost/compress v1.17.11/go.mod h1:pMDklpSncoRMuLFrf1W9Ss9KT+0rH90U12bZKk7uwG0=
+>>>>>>> 5f3c1fd2b (build(deps): bump github.com/elastic/go-docappender/v2 from 2.3.0 to 2.3.1 (#14664))
 github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORNo=
 github.com/kr/pretty v0.2.1/go.mod h1:ipq/a2n7PKx3OHsz4KJII5eveXtPO4qwEXGdVfWzfnI=
 github.com/kr/pretty v0.3.0/go.mod h1:640gp4NfQd8pI5XOwp5fnNeVWj67G7CFk/SaSQn7NBk=
@@ -435,14 +440,15 @@ go.elastic.co/apm/module/apmhttp/v2 v2.6.2 h1:+aYtP1Lnrsm+XtEs87RWG2PAyU6LHDDnYn
 go.elastic.co/apm/module/apmhttp/v2 v2.6.2/go.mod h1:vlH+vXHaEijKK4pk605LOK+lbLDKwcByhlq4J24PeXw=
 go.elastic.co/apm/module/apmotel/v2 v2.6.2 h1:48hxUEPRwwcHpsDSde5P5a05ut6gTkq3oO1c6HrTjMI=
 go.elastic.co/apm/module/apmotel/v2 v2.6.2/go.mod h1:ZvyYDHJi49W42XhxmAYyDVtJhiEIaeB+RBgoHgzigM4=
-go.elastic.co/apm/module/apmzap/v2 v2.6.0 h1:R/iVORzGu3F9uM43iEVHD0nwiRo59O0bIXdayKsgayQ=
-go.elastic.co/apm/module/apmzap/v2 v2.6.0/go.mod h1:B3i/8xRkqLgi6zNuV+Bp7Pt4cutaOObvrVSa7wUTAPw=
+go.elastic.co/apm/module/apmzap/v2 v2.6.2 h1:MPpoAPkz9c3E0oflwzyrXnND/4zv9nXf/wEU0aAVWWc=
+go.elastic.co/apm/module/apmzap/v2 v2.6.2/go.mod h1:10Xugf8PdrDjmyQYqSgJ/JUhKFMgpivQkTRVV9dUUeI=
 go.elastic.co/apm/v2 v2.6.2 h1:VBplAxgbOgTv+Giw/FS91xJpHYw/q8fz/XKPvqC+7/o=
 go.elastic.co/apm/v2 v2.6.2/go.mod h1:33rOXgtHwbgZcDgi6I/GtCSMZQqgxkHC0IQT3gudKvo=
 go.elastic.co/ecszap v1.0.2 h1:iW5OGx8IiokiUzx/shD4AJCPFMC9uUtr7ycaiEIU++I=
 go.elastic.co/ecszap v1.0.2/go.mod h1:dJkSlK3BTiwG/qXhCwe50Mz/jwu854vSip8sIeQhNZg=
 go.elastic.co/fastjson v1.4.0 h1:a4BXUKXZHAzjVOPrqtEx2FDsIRBCMek01vCnrtyutWs=
 go.elastic.co/fastjson v1.4.0/go.mod h1:ZD5um63l0/8TIdddZbL2znD83FAr2IckYa3KR7VcdNA=
+<<<<<<< HEAD
 go.opentelemetry.io/collector/consumer v0.109.0 h1:fdXlJi5Rat/poHPiznM2mLiXjcv1gPy3fyqqeirri58=
 go.opentelemetry.io/collector/consumer v0.109.0/go.mod h1:E7PZHnVe1DY9hYy37toNxr9/hnsO7+LmnsixW8akLQI=
 go.opentelemetry.io/collector/pdata v1.15.0 h1:q/T1sFpRKJnjDrUsHdJ6mq4uSqViR/f92yvGwDby/gY=
@@ -459,6 +465,24 @@ go.opentelemetry.io/otel/sdk/metric v1.30.0 h1:QJLT8Pe11jyHBHfSAgYH7kEmT24eX792j
 go.opentelemetry.io/otel/sdk/metric v1.30.0/go.mod h1:waS6P3YqFNzeP01kuo/MBBYqaoBJl7efRQHOaydhy1Y=
 go.opentelemetry.io/otel/trace v1.30.0 h1:7UBkkYzeg3C7kQX8VAidWh2biiQbtAKjyIML8dQ9wmc=
 go.opentelemetry.io/otel/trace v1.30.0/go.mod h1:5EyKqTzzmyqB9bwtCCq6pDLktPK6fmGf/Dph+8VI02o=
+=======
+go.opentelemetry.io/collector/consumer v0.111.0 h1:d2kRTDnu+p0q4D5fTU+Pk59KRm5F2JRYrk30Ep5j0xI=
+go.opentelemetry.io/collector/consumer v0.111.0/go.mod h1:FjY9bPbVkFZLKKxnNbGsIqaz3lcFDKGf+7wxA1uCugs=
+go.opentelemetry.io/collector/pdata v1.17.0 h1:z8cjjT2FThAehWu5fbF48OnZyK5q8xd1UhC4XszDo0w=
+go.opentelemetry.io/collector/pdata v1.17.0/go.mod h1:yZaQ9KZAm/qie96LTygRKxOXMq0/54h8OW7330ycuvQ=
+go.opentelemetry.io/collector/semconv v0.111.0 h1:ELleMtLBzeZ3xhfhYPmFcLc0hJMqRxhOB0eY60WLivw=
+go.opentelemetry.io/collector/semconv v0.111.0/go.mod h1:zCJ5njhWpejR+A40kiEoeFm1xq1uzyZwMnRNX6/D82A=
+go.opentelemetry.io/otel v1.32.0 h1:WnBN+Xjcteh0zdk01SVqV55d/m62NJLJdIyb4y/WO5U=
+go.opentelemetry.io/otel v1.32.0/go.mod h1:00DCVSB0RQcnzlwyTfqtxSm+DRr9hpYrHjNGiBHVQIg=
+go.opentelemetry.io/otel/metric v1.32.0 h1:xV2umtmNcThh2/a/aCP+h64Xx5wsj8qqnkYZktzNa0M=
+go.opentelemetry.io/otel/metric v1.32.0/go.mod h1:jH7CIbbK6SH2V2wE16W05BHCtIDzauciCRLoc/SyMv8=
+go.opentelemetry.io/otel/sdk v1.32.0 h1:RNxepc9vK59A8XsgZQouW8ue8Gkb4jpWtJm9ge5lEG4=
+go.opentelemetry.io/otel/sdk v1.32.0/go.mod h1:LqgegDBjKMmb2GC6/PrTnteJG39I8/vJCAP9LlJXEjU=
+go.opentelemetry.io/otel/sdk/metric v1.32.0 h1:rZvFnvmvawYb0alrYkjraqJq0Z4ZUJAiyYCU9snn1CU=
+go.opentelemetry.io/otel/sdk/metric v1.32.0/go.mod h1:PWeZlq0zt9YkYAp3gjKZ0eicRYvOh1Gd+X99x6GHpCQ=
+go.opentelemetry.io/otel/trace v1.32.0 h1:WIC9mYrXf8TmY/EXuULKc8hR17vE+Hjv2cssQDe03fM=
+go.opentelemetry.io/otel/trace v1.32.0/go.mod h1:+i4rkvCraA+tG6AzwloGaCtkx53Fa+L+V8e9a7YvhT8=
+>>>>>>> 5f3c1fd2b (build(deps): bump github.com/elastic/go-docappender/v2 from 2.3.0 to 2.3.1 (#14664))
 go.uber.org/atomic v1.7.0/go.mod h1:fEN4uk6kAWBTFdckzkM89CLk9XfWZrxpCo0nPH17wJc=
 go.uber.org/automaxprocs v1.6.0 h1:O3y2/QNTOdbF+e/dpXNNW7Rx2hZ4sTIPyybbxyNqTUs=
 go.uber.org/automaxprocs v1.6.0/go.mod h1:ifeIMSnPZuznNm6jmdzmU3/bfk01Fe2fotchwEFJ8r8=
