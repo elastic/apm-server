@@ -1884,11 +1884,11 @@ Contents of probable licence file $GOMODCACHE/github.com/elastic/go-elasticsearc
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/go-sysinfo
-Version: v1.14.2
+Version: v1.15.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/go-sysinfo@v1.14.2/LICENSE.txt:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/go-sysinfo@v1.15.0/LICENSE.txt:
 
 
                                  Apache License
@@ -5135,11 +5135,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 --------------------------------------------------------------------------------
 Dependency : go.opentelemetry.io/collector/consumer
-Version: v0.109.0
+Version: v0.111.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/consumer@v0.109.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/consumer@v0.111.0/LICENSE:
 
 
                                  Apache License
@@ -5347,11 +5347,11 @@ Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/cons
 
 --------------------------------------------------------------------------------
 Dependency : go.opentelemetry.io/collector/pdata
-Version: v1.15.0
+Version: v1.17.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/pdata@v1.15.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/pdata@v1.17.0/LICENSE:
 
 
                                  Apache License
@@ -5559,19 +5559,11 @@ Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/pdat
 
 --------------------------------------------------------------------------------
 Dependency : go.opentelemetry.io/otel
-<<<<<<< HEAD
-Version: v1.30.0
-Licence type (autodetected): Apache-2.0
---------------------------------------------------------------------------------
-
-Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/otel@v1.30.0/LICENSE:
-=======
 Version: v1.32.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
 Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/otel@v1.32.0/LICENSE:
->>>>>>> 5f3c1fd2b (build(deps): bump github.com/elastic/go-docappender/v2 from 2.3.0 to 2.3.1 (#14664))
 
                                  Apache License
                            Version 2.0, January 2004
@@ -5778,19 +5770,11 @@ Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/otel@v1.32.0/L
 
 --------------------------------------------------------------------------------
 Dependency : go.opentelemetry.io/otel/metric
-<<<<<<< HEAD
-Version: v1.30.0
-Licence type (autodetected): Apache-2.0
---------------------------------------------------------------------------------
-
-Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/otel/metric@v1.30.0/LICENSE:
-=======
 Version: v1.32.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
 Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/otel/metric@v1.32.0/LICENSE:
->>>>>>> 5f3c1fd2b (build(deps): bump github.com/elastic/go-docappender/v2 from 2.3.0 to 2.3.1 (#14664))
 
                                  Apache License
                            Version 2.0, January 2004
@@ -5997,19 +5981,11 @@ Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/otel/metric@v1
 
 --------------------------------------------------------------------------------
 Dependency : go.opentelemetry.io/otel/sdk/metric
-<<<<<<< HEAD
-Version: v1.30.0
-Licence type (autodetected): Apache-2.0
---------------------------------------------------------------------------------
-
-Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/otel/sdk/metric@v1.30.0/LICENSE:
-=======
 Version: v1.32.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
 Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/otel/sdk/metric@v1.32.0/LICENSE:
->>>>>>> 5f3c1fd2b (build(deps): bump github.com/elastic/go-docappender/v2 from 2.3.0 to 2.3.1 (#14664))
 
                                  Apache License
                            Version 2.0, January 2004
@@ -6310,11 +6286,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/sync
-Version: v0.8.0
+Version: v0.9.0
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/sync@v0.8.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/sync@v0.9.0/LICENSE:
 
 Copyright 2009 The Go Authors.
 
@@ -12698,19 +12674,11 @@ SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/klauspost/compress
-<<<<<<< HEAD
-Version: v1.17.9
-Licence type (autodetected): Apache-2.0
---------------------------------------------------------------------------------
-
-Contents of probable licence file $GOMODCACHE/github.com/klauspost/compress@v1.17.9/LICENSE:
-=======
 Version: v1.17.11
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
 Contents of probable licence file $GOMODCACHE/github.com/klauspost/compress@v1.17.11/LICENSE:
->>>>>>> 5f3c1fd2b (build(deps): bump github.com/elastic/go-docappender/v2 from 2.3.0 to 2.3.1 (#14664))
 
 Copyright (c) 2012 The Go Authors. All rights reserved.
 Copyright (c) 2019 Klaus Post. All rights reserved.
@@ -16428,11 +16396,11 @@ Contents of probable licence file $GOMODCACHE/go.elastic.co/ecszap@v1.0.2/LICENS
 
 --------------------------------------------------------------------------------
 Dependency : go.opentelemetry.io/collector/semconv
-Version: v0.109.0
+Version: v0.111.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/semconv@v0.109.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/semconv@v0.111.0/LICENSE:
 
 
                                  Apache License
@@ -16640,19 +16608,11 @@ Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/collector/semc
 
 --------------------------------------------------------------------------------
 Dependency : go.opentelemetry.io/otel/sdk
-<<<<<<< HEAD
-Version: v1.30.0
-Licence type (autodetected): Apache-2.0
---------------------------------------------------------------------------------
-
-Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/otel/sdk@v1.30.0/LICENSE:
-=======
 Version: v1.32.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
 Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/otel/sdk@v1.32.0/LICENSE:
->>>>>>> 5f3c1fd2b (build(deps): bump github.com/elastic/go-docappender/v2 from 2.3.0 to 2.3.1 (#14664))
 
                                  Apache License
                            Version 2.0, January 2004
@@ -16859,19 +16819,11 @@ Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/otel/sdk@v1.32
 
 --------------------------------------------------------------------------------
 Dependency : go.opentelemetry.io/otel/trace
-<<<<<<< HEAD
-Version: v1.30.0
-Licence type (autodetected): Apache-2.0
---------------------------------------------------------------------------------
-
-Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/otel/trace@v1.30.0/LICENSE:
-=======
 Version: v1.32.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
 Contents of probable licence file $GOMODCACHE/go.opentelemetry.io/otel/trace@v1.32.0/LICENSE:
->>>>>>> 5f3c1fd2b (build(deps): bump github.com/elastic/go-docappender/v2 from 2.3.0 to 2.3.1 (#14664))
 
                                  Apache License
                            Version 2.0, January 2004
@@ -17181,11 +17133,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : golang.org/x/sys
-Version: v0.26.0
+Version: v0.27.0
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/golang.org/x/sys@v0.26.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/golang.org/x/sys@v0.27.0/LICENSE:
 
 Copyright 2009 The Go Authors.
 
