@@ -347,8 +347,8 @@ func TestRunManager_Reloader(t *testing.T) {
 		// TODO(carsonip): There's a bug in EA manager causing an extra reload even if apm tracing config did not change
 		// see https://github.com/elastic/apm-server/issues/14580.
 		//return runCount.Load() == 2 && stopCount.Load() == 2
-		return runCount.Load() >= 2 && stopCount.Load() >= 2
-	}, 2*time.Second, 50*time.Millisecond)
+		return runCount.Load() == 2 && stopCount.Load() == 2
+	}, 4*time.Second, 50*time.Millisecond)
 }
 
 func TestRunManager_Reloader_newRunnerError(t *testing.T) {
