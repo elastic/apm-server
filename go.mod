@@ -8,7 +8,7 @@ require (
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/apm-aggregation v1.1.0
 	github.com/elastic/apm-data v1.14.1
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20241119130527-b4311eacb0b5
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20241122123832-6b9febd478cd
 	github.com/elastic/elastic-agent-client/v7 v7.16.0
 	github.com/elastic/elastic-agent-libs v0.17.3
 	github.com/elastic/elastic-agent-system-metrics v0.11.4
@@ -134,9 +134,7 @@ require (
 	github.com/prometheus/procfs v0.15.1 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
 	github.com/rogpeppe/go-internal v1.12.0 // indirect
-	github.com/shirou/gopsutil/v3 v3.24.5 // indirect
 	github.com/shirou/gopsutil/v4 v4.24.9 // indirect
-	github.com/shoenig/go-m1cpu v0.1.6 // indirect
 	github.com/tklauser/go-sysconf v0.3.12 // indirect
 	github.com/tklauser/numcpus v0.6.1 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
