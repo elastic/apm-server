@@ -79,6 +79,9 @@ https://github.com/elastic/apm-server/compare/$(RELEASE_BRANCH)\...$(CHANGELOG_B
 ==== Breaking Changes
 
 [float]
+==== Bug fixes
+
+[float]
 ==== Deprecations
 
 [float]
