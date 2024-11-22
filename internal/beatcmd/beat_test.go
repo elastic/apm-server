@@ -208,8 +208,13 @@ func TestRunManager_Reloader(t *testing.T) {
 
 	registry := reload.NewRegistry()
 
-	reloader, err := NewReloader(beat.Info{}, registry, func(_ RunnerParams) (Runner, error) {
+	reloader, err := NewReloader(beat.Info{}, registry, func(p RunnerParams) (Runner, error) {
 		return runnerFunc(func(ctx context.Context) error {
+			revision, err := p.Config.Int("revision", -1)
+			require.NoError(t, err)
+			if revision == 2 {
+				close(finish)
+			}
 			runCount.Add(1)
 			<-ctx.Done()
 			stopCount.Add(1)
@@ -218,23 +223,6 @@ func TestRunManager_Reloader(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	onObserved := func(observed *proto.CheckinObserved, currentIdx int) {
-		if currentIdx == 1 {
-			allHealthy := true
-			for _, unit := range observed.GetUnits() {
-				if unit.GetState() != proto.State_HEALTHY {
-					allHealthy = false
-				}
-			}
-			if allHealthy {
-				select {
-				case <-finish:
-				default:
-					close(finish)
-				}
-			}
-		}
-	}
 	agentInfo := &proto.AgentInfo{
 		Id:       "elastic-agent-id",
 		Version:  version.Version,
@@ -315,7 +303,7 @@ func TestRunManager_Reloader(t *testing.T) {
 			FeaturesIdx: 1,
 		},
 	},
-		onObserved,
+		nil,
 		500*time.Millisecond,
 	)
 	require.NoError(t, srv.Start())
@@ -348,7 +336,7 @@ func TestRunManager_Reloader(t *testing.T) {
 		// see https://github.com/elastic/apm-server/issues/14580.
 		//return runCount.Load() == 2 && stopCount.Load() == 2
 		return runCount.Load() == 3 && stopCount.Load() == 3
-	}, 4*time.Second, 50*time.Millisecond)
+	}, 2*time.Second, 50*time.Millisecond)
 }
 
 func TestRunManager_Reloader_newRunnerError(t *testing.T) {
