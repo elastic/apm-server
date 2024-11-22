@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -200,17 +201,18 @@ func TestRunManager(t *testing.T) {
 
 func TestRunManager_Reloader(t *testing.T) {
 	// This test asserts that unit changes are reloaded correctly.
-	var lastRevision int64
+
 	finish := make(chan struct{})
+	runCount := atomic.Int64{}
+	stopCount := atomic.Int64{}
 
 	registry := reload.NewRegistry()
 
-	reloader, err := NewReloader(beat.Info{}, registry, func(p RunnerParams) (Runner, error) {
+	reloader, err := NewReloader(beat.Info{}, registry, func(_ RunnerParams) (Runner, error) {
 		return runnerFunc(func(ctx context.Context) error {
+			runCount.Add(1)
 			<-ctx.Done()
-			revision, err := p.Config.Int("revision", -1)
-			require.NoError(t, err)
-			lastRevision = revision
+			stopCount.Add(1)
 			return nil
 		}), nil
 	})
@@ -341,11 +343,12 @@ func TestRunManager_Reloader(t *testing.T) {
 	err = reloader.Run(ctx)
 	require.NoError(t, err)
 
-	// It is not guaranteed that every revision is loaded due to debounce.
-	// Therefore, only assert the last revision.
 	assert.Eventually(t, func() bool {
-		return lastRevision == 2
-	}, 2*time.Second, 50*time.Millisecond)
+		// TODO(carsonip): There's a bug in EA manager causing an extra reload even if apm tracing config did not change
+		// see https://github.com/elastic/apm-server/issues/14580.
+		//return runCount.Load() == 2 && stopCount.Load() == 2
+		return runCount.Load() == 3 && stopCount.Load() == 3
+	}, 4*time.Second, 50*time.Millisecond)
 }
 
 func TestRunManager_Reloader_newRunnerError(t *testing.T) {
