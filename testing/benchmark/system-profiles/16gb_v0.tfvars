@@ -11,7 +11,7 @@ worker_region = "us-west-2"
 
 # Elastic Cloud
 
-apm_server_size = "16g"
+apm_server_size = "15g"
 apm_server_zone_count = 1
 apm_shards = 4
 
