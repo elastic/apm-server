@@ -24,12 +24,8 @@ require (
 	github.com/google/go-cmp v0.6.0
 	github.com/gorilla/mux v1.8.1
 	github.com/hashicorp/golang-lru v1.0.2
-<<<<<<< HEAD
 	github.com/jaegertracing/jaeger v1.60.0
-=======
-	github.com/jaegertracing/jaeger v1.62.0
 	github.com/joeshaw/multierror v0.0.0-20140124173710-69b34d4ec901
->>>>>>> 1b21d1dbf (Surface config parsing error under EA managed mode (#14574))
 	github.com/libp2p/go-reuseport v0.4.0
 	github.com/modern-go/reflect2 v1.0.2
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger v0.109.0
