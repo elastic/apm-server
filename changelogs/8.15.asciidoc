@@ -1,11 +1,20 @@
 [[apm-release-notes-8.15]]
 == APM version 8.15
 
+* <<apm-release-notes-8.15.5>>
 * <<apm-release-notes-8.15.4>>
 * <<apm-release-notes-8.15.3>>
 * <<apm-release-notes-8.15.2>>
 * <<apm-release-notes-8.15.1>>
 * <<apm-release-notes-8.15.0>>
+
+[float]
+[[apm-release-notes-8.15.5]]
+=== APM version 8.15.5
+
+https://github.com/elastic/apm-server/compare/v8.15.4\...v8.15.5[View commits]
+
+No significant changes.
 
 [float]
 [[apm-release-notes-8.15.4]]
