@@ -22,6 +22,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -79,6 +80,11 @@ func newElasticsearchFetcher(
 	i := 0
 
 	fetcher := NewElasticsearchFetcher(newMockElasticsearchClient(t, func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodDelete && strings.HasPrefix(r.URL.Path, "/_search/scroll") {
+			scrollID := strings.TrimPrefix(r.URL.Path, "/_search/scroll/")
+			assert.Equal(t, respTmpl["_scroll_id"], scrollID)
+			return
+		}
 		switch r.URL.Path {
 		case "/_search/scroll":
 			scrollID := r.URL.Query().Get("scroll_id")
@@ -117,14 +123,15 @@ func TestRun(t *testing.T) {
 	assert.Eventually(t, func() bool {
 		rt.Tracer.Flush(nil)
 		payloads := rt.Payloads()
-		return len(payloads.Transactions) == 1 && len(payloads.Spans) == 3
+		return len(payloads.Transactions) == 1 && len(payloads.Spans) == 4
 	}, 10*time.Second, 10*time.Millisecond)
 
 	payloads := rt.Payloads()
 	assert.Equal(t, "ElasticsearchFetcher.refresh", payloads.Transactions[0].Name)
 	assert.Equal(t, "Elasticsearch: POST .apm-agent-configuration/_search", payloads.Spans[0].Name)
 	assert.Equal(t, "Elasticsearch: POST _search/scroll", payloads.Spans[1].Name)
-	assert.Equal(t, "ElasticsearchFetcher.refreshCache", payloads.Spans[2].Name)
+	assert.Equal(t, "Elasticsearch: DELETE _search/scroll/", payloads.Spans[2].Name[:37]) // trim scrollID
+	assert.Equal(t, "ElasticsearchFetcher.refreshCache", payloads.Spans[3].Name)
 }
 
 func TestFetch(t *testing.T) {
