@@ -389,7 +389,7 @@ func (tc *testcase) setup(t *testing.T) {
 	}
 
 	if tc.cfg.JaegerConfig.GRPC.Enabled {
-		client, err := grpc.Dial(tc.server.grpc.listener.Addr().String(), tc.grpcDialOpts...)
+		client, err := grpc.NewClient(tc.server.grpc.listener.Addr().String(), tc.grpcDialOpts...)
 		if tc.grpcDialShouldFail {
 			require.Error(t, err)
 		} else {
