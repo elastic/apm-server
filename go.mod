@@ -173,4 +173,4 @@ replace (
 	github.com/golang/glog => ./internal/glog
 )
 
-replace github.com/dgraph-io/ristretto v0.1.2-0.20240116140435-c67e07994f91 => github.com/dgraph-io/ristretto v0.2.0
+replace github.com/dgraph-io/ristretto v1.0.0 => github.com/dgraph-io/ristretto v0.2.0
