@@ -14,7 +14,12 @@ get_latest_snapshot
 
 VERSION=${1}
 if [[ -z ${VERSION} ]] || [[ "${VERSION}" == "latest" ]]; then
-    VERSION=$(echo ${VERSIONS} | jq -r 'last')
+    # NOTE(marclop) Temporarily avoid testing against 9.x, since we want to test that the
+    # upgrade for 7.17 to 8.latest works correctly.
+    # Uncomment the line below when we are ready to test against 9.x and delete the line
+    # after the next one.
+    # VERSION=$(echo ${VERSIONS} | jq -r 'last')
+    VERSION=$(echo ${VERSIONS} | jq -r '[.[] | select(. | startswith("8"))] | last')
     echo "-> unspecified version, using $(echo ${VERSION} | cut -d '.' -f1-2)"
 fi
 MAJOR_VERSION=$(echo ${VERSION} | cut -d '.' -f1 )

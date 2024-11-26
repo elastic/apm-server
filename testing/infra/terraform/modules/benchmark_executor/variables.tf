@@ -18,6 +18,11 @@ variable "instance_type" {
   description = "Optional instance type to use for the worker VM"
 }
 
+variable "vpc_id" {
+  description = "VPC ID to provision the EC2 instance"
+  type        = string
+}
+
 variable "apm_secret_token" {
   default = ""
   type    = string
@@ -37,22 +42,6 @@ variable "tags" {
   type        = map(string)
   default     = {}
   description = "Optional set of tags to use for all resources"
-}
-
-## VPC Network settings
-
-variable "vpc_cidr" {
-  default = "192.168.44.0/24"
-  type    = string
-}
-
-variable "public_cidr" {
-  default = [
-    "192.168.44.0/26",
-    "192.168.44.64/26",
-    "192.168.44.128/26",
-  ]
-  type = list(string)
 }
 
 variable "region" {

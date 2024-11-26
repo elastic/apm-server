@@ -106,9 +106,9 @@ func (h *httpServer) start() error {
 	return h.Serve(h.httpListener)
 }
 
-func (h *httpServer) stop() {
+func (h *httpServer) stop(ctx context.Context) {
 	h.logger.Infof("Stop listening on: %s", h.Server.Addr)
-	if err := h.Shutdown(context.Background()); err != nil {
+	if err := h.Shutdown(ctx); err != nil {
 		h.logger.Errorf("error stopping http server: %s", err.Error())
 		if err := h.Close(); err != nil {
 			h.logger.Errorf("error closing http server: %s", err.Error())

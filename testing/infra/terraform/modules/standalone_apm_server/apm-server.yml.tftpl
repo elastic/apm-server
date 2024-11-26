@@ -6,6 +6,11 @@ apm-server:
     secret_token: ${apm_secret_token}
   rum:
     enabled: true
+  expvar:
+    enabled: true
+  pprof:
+    enabled: true
+  
 output:
   elasticsearch:
     hosts: [ ${elasticsearch_url} ]

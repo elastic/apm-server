@@ -87,7 +87,7 @@ func TestReloader(t *testing.T) {
 	err = registry.GetInputList().Reload([]*reload.ConfigWithMeta{{
 		Config: config.MustNewConfigFrom(`{}`),
 	}})
-	assert.EqualError(t, err, "failed to extract input config revision: missing field accessing 'revision'")
+	assert.EqualError(t, err, "1 error: failed to extract input config revision: missing field accessing 'revision'")
 	assertNoReload()
 
 	err = registry.GetInputList().Reload([]*reload.ConfigWithMeta{{
@@ -119,7 +119,7 @@ func TestReloader(t *testing.T) {
 	err = registry.GetInputList().Reload([]*reload.ConfigWithMeta{{
 		Config: config.MustNewConfigFrom(`{"revision": 2, "error": true}`),
 	}})
-	assert.EqualError(t, err, "failed to load input config: no runner for you")
+	assert.EqualError(t, err, "1 error: failed to load input config: no runner for you")
 	assertNoReload() // error occurred during reload, nothing changes
 	expectNoEvent(t, r1.stopped, "runner should not have been stopped")
 
@@ -182,7 +182,7 @@ func TestReloaderNewRunnerParams(t *testing.T) {
 	args := <-calls
 	assert.NotNil(t, args.Logger)
 	assert.Equal(t, info, args.Info)
-	assert.Equal(t, config.MustNewConfigFrom(`{"revision": 1, "input": 123, "output.console.enabled": true, "instrumentation.enabled":false, "instrumentation.environment":"test"}`), args.Config)
+	assert.Equal(t, config.MustNewConfigFrom(`{"revision": 1, "input": 123, "output.console.enabled": true, "instrumentation.enabled":true, "instrumentation.environment":"test"}`), args.Config)
 }
 
 func expectNoEvent(t testing.TB, ch <-chan struct{}, message string) {

@@ -22,6 +22,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"runtime/debug"
 	"testing"
 	"time"
 
@@ -30,6 +31,7 @@ import (
 	"golang.org/x/time/rate"
 
 	"github.com/elastic/apm-server/systemtest/benchtest"
+	"github.com/elastic/go-sysinfo"
 )
 
 func Benchmark1000Transactions(b *testing.B, l *rate.Limiter) {
@@ -138,6 +140,11 @@ func Benchmark10000AggregationGroups(b *testing.B, l *rate.Limiter) {
 
 func main() {
 	flag.Parse()
+	bytes, err := sysMemory()
+	if err != nil {
+		log.Fatal(err)
+	}
+	debug.SetMemoryLimit(int64(float64(bytes) * 0.9))
 	if err := benchtest.Run(
 		Benchmark1000Transactions,
 		BenchmarkOTLPTraces,
@@ -150,4 +157,16 @@ func main() {
 	); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func sysMemory() (uint64, error) {
+	host, err := sysinfo.Host()
+	if err != nil {
+		return 0, err
+	}
+	mem, err := host.Memory()
+	if err != nil {
+		return 0, err
+	}
+	return mem.Total, nil
 }

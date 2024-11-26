@@ -38,4 +38,6 @@ import (
 
 	_ "github.com/elastic/go-licenser" // go.mod/go.sum
 	_ "github.com/elastic/gobench"     // go.mod/go.sum
+
+	_ "github.com/elastic/apm-perf/cmd/moxy" // go.mod/go.sum
 )

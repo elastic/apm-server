@@ -1,5 +1,11 @@
 user_name = "USER"
 
+# APM bench
+
+worker_instance_type = "c6i.xlarge"
+
+# Elastic Cloud
+
 # The number of AZs the APM Server should span.
 apm_server_zone_count = 1
 # The Elasticsearch cluster node size.
@@ -8,5 +14,8 @@ elasticsearch_size = "64g"
 elasticsearch_zone_count = 2
 # APM server instance size
 apm_server_size = "8g"
-# Benchmarks executor size executor
-worker_instance_type = "c6i.2xlarge"
+
+# Standalone
+
+standalone_apm_server_instance_size = "c6i.xlarge"
+standalone_moxy_instance_size       = "c6i.2xlarge"

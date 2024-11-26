@@ -17,7 +17,6 @@ so that `apmbench` can be run against a configured APM Server.
 | Name | Source | Version |
 |------|--------|---------|
 | <a name="module_ec2_instance"></a> [ec2\_instance](#module\_ec2\_instance) | terraform-aws-modules/ec2-instance/aws | 3.5.0 |
-| <a name="module_vpc"></a> [vpc](#module\_vpc) | terraform-aws-modules/vpc/aws | 3.14.0 |
 
 ## Resources
 
@@ -28,6 +27,8 @@ so that `apmbench` can be run against a configured APM Server.
 | [null_resource.apmbench](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
 | [null_resource.envrc](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
 | [aws_ami.worker_ami](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ami) | data source |
+| [aws_security_group.security_group](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/security_group) | data source |
+| [aws_subnets.public_subnets](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/subnets) | data source |
 
 ## Inputs
 
@@ -38,12 +39,11 @@ so that `apmbench` can be run against a configured APM Server.
 | <a name="input_apmbench_bin_path"></a> [apmbench\_bin\_path](#input\_apmbench\_bin\_path) | Optionally upload the apmbench binary from the specified path to the worker machine | `string` | `""` | no |
 | <a name="input_instance_type"></a> [instance\_type](#input\_instance\_type) | Optional instance type to use for the worker VM | `string` | `"c6i.large"` | no |
 | <a name="input_private_key"></a> [private\_key](#input\_private\_key) | n/a | `string` | `"~/.ssh/id_rsa_terraform"` | no |
-| <a name="input_public_cidr"></a> [public\_cidr](#input\_public\_cidr) | n/a | `list(string)` | <pre>[<br>  "192.168.44.0/26",<br>  "192.168.44.64/26",<br>  "192.168.44.128/26"<br>]</pre> | no |
 | <a name="input_public_key"></a> [public\_key](#input\_public\_key) | n/a | `string` | `"~/.ssh/id_rsa_terraform.pub"` | no |
 | <a name="input_region"></a> [region](#input\_region) | n/a | `string` | `"us-west2"` | no |
 | <a name="input_tags"></a> [tags](#input\_tags) | Optional set of tags to use for all resources | `map(string)` | `{}` | no |
 | <a name="input_user_name"></a> [user\_name](#input\_user\_name) | Required username to use for resource name prefixes | `string` | n/a | yes |
-| <a name="input_vpc_cidr"></a> [vpc\_cidr](#input\_vpc\_cidr) | n/a | `string` | `"192.168.44.0/24"` | no |
+| <a name="input_vpc_id"></a> [vpc\_id](#input\_vpc\_id) | VPC ID to provision the EC2 instance | `string` | n/a | yes |
 
 ## Outputs
 
