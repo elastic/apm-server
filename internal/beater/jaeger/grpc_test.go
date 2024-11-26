@@ -114,8 +114,7 @@ func newPostSpansRequest(t *testing.T) *api_v2.PostSpansRequest {
 	span1.SetTraceID(pcommon.TraceID{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00})
 	span1.SetSpanID(pcommon.SpanID{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF})
 
-	batches, err := jaegertranslator.ProtoFromTraces(traces)
-	require.NoError(t, err)
+	batches := jaegertranslator.ProtoFromTraces(traces)
 	require.Len(t, batches, 1)
 	return &api_v2.PostSpansRequest{Batch: *batches[0]}
 }
