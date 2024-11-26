@@ -408,7 +408,7 @@ func TestServerJaegerGRPC(t *testing.T) {
 	baseURL, err := url.Parse(server.baseURL)
 	require.NoError(t, err)
 
-	conn, err := grpc.Dial(baseURL.Host, grpc.WithTransportCredentials(
+	conn, err := grpc.NewClient(baseURL.Host, grpc.WithTransportCredentials(
 		insecure.NewCredentials(),
 	))
 	require.NoError(t, err)
@@ -440,7 +440,7 @@ func TestServerOTLPGRPC(t *testing.T) {
 		return conn.Invoke(ctx, "/opentelemetry.proto.collector.trace.v1.TraceService/Export", request, response)
 	}
 
-	conn, err := grpc.Dial(baseURL.Host, grpc.WithTransportCredentials(
+	conn, err := grpc.NewClient(baseURL.Host, grpc.WithTransportCredentials(
 		insecure.NewCredentials(),
 	))
 	require.NoError(t, err)
