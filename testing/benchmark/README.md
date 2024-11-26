@@ -76,43 +76,34 @@ The main commands are:
 Helper commands
 
 - `~/.ssh/id_rsa_terraform`: Generates a new SSH key without passphrase for the worker VMs.
-- `terraform.tfvars`: Copies the examples tfvars and sets the `user_name` var with to `$USER`.
+- `terraform.tfvars`:
+    - Set `TFVARS_SOURCE` to use an explicit profile
+    - Otherwise the `terraform.tfvars.example` file is used
+    - Sets the `USER_NAME` var to `$USER`.
 - `apmbench`: Compiles the `apmbench` binary from the provided location (`APMBENCH_PATH`).
 
-### Override the docker image  and image tag
+### Override Docker Image
 
-Running `make docker-override-committed-version` will create new docker images for `kibana` and `elastic-agent`
-with local `apm` package and `apm-server` and a Terraform variable file. The file named 
-`docker_image.auto.tfvars` contains Terraform Docker image Terraform variables overrides. This file is not 
-overridden automatically, you need to remove it manually if present.
+There are two ways to override the docker images (or tags) that Terraform will provision:
 
-#### Override docker image tag
+1. **Manual**: To use an already existing container, change the values of the `docker_image_override` (or `docker_image_tag_override`) field in the profile defined by `TFVARS_SOURCE` (default is `terraform.tfvars`).
 
-It is possible to override the tag of the docker image that is run in the remote ESS deployment. You can
-specify any of the available tags (such as `8.3.0-SNAPSHOT` or a more specific tag `8.3.0-c655cda8-SNAPSHOT`).
-Alternatively, you can run `make docker-override-committed-version` in your shell, to have use the committed
-tags in the `docker-compose.yml` file in the repository root.
-
-#### Override the docker image
-
-It is also possible to override the docker image to one that is allowed to run in ESS. For more information
-on which repositories can be used, please refer to our internal docs. To override the docker image, you'll need
-to specify the full object of images that is defined in `variables.tf`: `docker_image_override`.
-Alternatively, you can run `make docker-override-committed-version` in your shell, to have use the committed
-tags in the `docker-compose.yml` file in the repository root.
+2. **Automatic**: To encode local changes in `apm-server`, run `make docker-override-committed-version`.
+    - This will build and push a new set of docker images to the internal docker registery.
+    - If `IMAGE_TAG` is not set, the committed tags will be used as defined in `docker-compose.yml` in the repository root.
+    - The file `docker_image.auto.tfvars` contains the Terraform variable overrides for the defined docker images. No need to override them manualy.
+    - This file is not overridden automatically, you need to remove it manually if present.
 
 ### Set APM index shards
 
-By default, the APM indices ship with `number_of_shards` set to `1`. To override this behavior, you can modify the
-`apm_shards` variable and individually set the setting for each of the component templates. See an example of how to
-do that in `terraform.tfvars.example`.
+By default, the APM indices ship with `number_of_shards` set to `1`. To override this behavior, you can modify the `apm_shards` variable and individually set the setting for each of the component templates. See an example of how to do that in `terraform.tfvars.example`.
 
 ### Delete all the APM data streams
 
-`make cleanup-elasticsearch` will delete all the APM data streams. This may be useful in case you'd like to re-run
-the benchmarks without destroying the deployment.
+`make cleanup-elasticsearch` will delete all the APM data streams. This may be useful in case you'd like to re-run the benchmarks without destroying the deployment.
 
 ### Slack reporting
+
 Reporting data is taken from the https://`<replace-with-kibana-benchmark-url>`/app/dashboards#/view/a5bc8390-2f8e-11ed-a369-052d8245fa04?_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:now-30d,to:now))
 It's possible to add or modify any metric.
 

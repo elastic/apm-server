@@ -47,8 +47,11 @@ func NewRootCommand(beatParams BeatParams) *cobra.Command {
 	// root command is an alias for "run"
 	runCommand := genRunCmd(beatParams)
 	rootCommand := &cobra.Command{
-		Use:  "apm-server",
-		RunE: runCommand.RunE,
+		Use: "apm-server",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cfgfile.HandleFlags()
+			return runCommand.RunE(cmd, args)
+		},
 		CompletionOptions: cobra.CompletionOptions{
 			DisableDefaultCmd: true,
 		},

@@ -30,6 +30,9 @@
         "error.id": [
             "abcdef0123456789"
         ],
+        "error.log.level": [
+            "error"
+        ],
         "error.log.message": [
             "error log message"
         ],
