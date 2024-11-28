@@ -2,7 +2,7 @@ user_name = "USER"
 
 ess_region = "azure-westus2"
 deployment_template = "azure-cpu-optimized"
-stack_version = "8.16.0"
+stack_version = "8.15.2"
 
 # APM bench
 
