@@ -20,7 +20,6 @@ package beatcmd
 import (
 	"flag"
 	"fmt"
-	"os"
 
 	"github.com/spf13/cobra"
 
