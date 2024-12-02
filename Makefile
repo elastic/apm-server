@@ -185,7 +185,6 @@ update-beats: update-beats-module update
 
 .PHONY: update-beats-module
 update-beats-module:
-	echo go get $(BEATS_MODULE)@$(BEATS_VERSION) && go mod tidy
 	go get $(BEATS_MODULE)@$(BEATS_VERSION) && go mod tidy
 
 ##############################################################################
