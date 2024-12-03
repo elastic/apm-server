@@ -19,6 +19,8 @@ package systemtest
 
 import (
 	"context"
+	"encoding/json"
+	"io"
 	"net/url"
 	"testing"
 	"time"
@@ -53,18 +55,6 @@ func initElasticSearch() {
 		panic(err)
 	}
 	Elasticsearch = &espoll.Client{Client: client}
-}
-
-// NewElasticsearchClientWithAPIKey returns a new espoll.Client,
-// configured to use apiKey for authentication.
-func NewElasticsearchClientWithAPIKey(apiKey string) *espoll.Client {
-	cfg := newElasticsearchConfig()
-	cfg.APIKey = apiKey
-	client, err := elasticsearch.NewClient(cfg)
-	if err != nil {
-		panic(err)
-	}
-	return &espoll.Client{Client: client}
 }
 
 func newElasticsearchConfig() elasticsearch.Config {
@@ -115,22 +105,49 @@ func ChangeUserPassword(t testing.TB, username, password string) {
 	}
 }
 
+func CreateAPIKey(t testing.TB, name string, privileges []string) string {
+	req := esapi.SecurityCreateAPIKeyRequest{
+		Body: esutil.NewJSONReader(map[string]any{
+			"name": name,
+			"role_descriptors": map[string]any{
+				"apm": map[string]any{
+					"applications": []map[string]any{
+						{
+							"application": "apm",
+							"privileges":  privileges,
+							"resources":   []string{"*"},
+						},
+					},
+				},
+			},
+			"metadata": map[string]any{"application": "apm"},
+		}),
+	}
+
+	res, err := Elasticsearch.Do(context.Background(), req, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	b, err := io.ReadAll(res.Body)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	m := make(map[string]any)
+	if err := json.Unmarshal(b, &m); err != nil {
+		t.Fatal(err)
+	}
+
+	return m["encoded"].(string)
+}
+
 // InvalidateAPIKeys invalidates all API Keys for the apm-server user.
 func InvalidateAPIKeys(t testing.TB) {
 	req := esapi.SecurityInvalidateAPIKeyRequest{
 		Body: esutil.NewJSONReader(map[string]interface{}{
 			"username": apmservertest.DefaultConfig().Output.Elasticsearch.Username,
 		}),
-	}
-	if _, err := Elasticsearch.Do(context.Background(), req, nil); err != nil {
-		t.Fatal(err)
-	}
-}
-
-// InvalidateAPIKey invalidates the API Key with the given ID.
-func InvalidateAPIKey(t testing.TB, id string) {
-	req := esapi.SecurityInvalidateAPIKeyRequest{
-		Body: esutil.NewJSONReader(map[string]interface{}{"id": id}),
 	}
 	if _, err := Elasticsearch.Do(context.Background(), req, nil); err != nil {
 		t.Fatal(err)
