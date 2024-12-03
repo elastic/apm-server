@@ -124,15 +124,9 @@
                     "bar",
                     "baz"
                 ],
-                "Content-Type": [
-                    "text/html"
-                ],
-                "Cookie": [
-                    "c1=v1, c2=v2"
-                ],
-                "Some-Other-Header": [
-                    "foo"
-                ],
+                "Content-Type": "text/html",
+                "Cookie": "c1=v1, c2=v2",
+                "Some-Other-Header": "foo",
                 "User-Agent": [
                     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36",
                     "Mozilla Chrome Edge"
@@ -156,9 +150,7 @@
         ],
         "http.response.headers": [
             {
-                "Content-Type": [
-                    "application/json"
-                ]
+                "Content-Type": "application/json"
             }
         ],
         "http.response.headers_sent": [

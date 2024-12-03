@@ -6,6 +6,7 @@ locals {
     "debian-10-arm64"                  = "136693071363" # debian
     "debian-11-arm64"                  = "136693071363" # debian
     "amzn2-ami-kernel-5.10"            = "137112412989" # amazon
+    "amzn2-ami-hvm-*-x86_64-ebs"       = "137112412989" # amazon
     "al2023-ami-2023"                  = "137112412989" # amazon
     "RHEL-7"                           = "309956199498" # Red Hat
     "RHEL-8"                           = "309956199498" # Red Hat
@@ -18,6 +19,7 @@ locals {
     "debian-10-arm64"                  = "t4g.nano"
     "debian-11-arm64"                  = "t4g.nano"
     "amzn2-ami-kernel-5.10"            = "t4g.nano"
+    "amzn2-ami-hvm-*-x86_64-ebs"       = "t4g.nano"
     "al2023-ami-2023"                  = "t4g.nano"
     "RHEL-7"                           = "t3a.micro" # RHEL-7 doesn't support arm
     "RHEL-8"                           = "t4g.micro" # RHEL doesn't support nano instances
@@ -30,6 +32,7 @@ locals {
     "debian-10-arm64"                  = "arm64"
     "debian-11-arm64"                  = "arm64"
     "amzn2-ami-kernel-5.10"            = "arm64"
+    "amzn2-ami-hvm-*-x86_64-ebs"       = "x86_64"
     "al2023-ami-2023"                  = "arm64"
     "RHEL-7"                           = "x86_64" # RHEL-7 doesn't support arm
     "RHEL-8"                           = "arm64"
@@ -66,13 +69,16 @@ locals {
     "debian-10-arm64"                  = "admin"
     "debian-11-arm64"                  = "admin"
     "amzn2-ami-kernel-5.10"            = "ec2-user"
+    "amzn2-ami-hvm-*-x86_64-ebs"       = "ec2-user"
     "al2023-ami-2023"                  = "ec2-user"
     "RHEL-7"                           = "ec2-user"
     "RHEL-8"                           = "ec2-user"
     "RHEL-9"                           = "ec2-user"
   }
+
   apm_port  = "8200"
   conf_path = "/tmp/local-apm-config.yml"
+  bin_path  = "/tmp/apm-server"
 }
 
 data "aws_ami" "os" {
@@ -101,10 +107,24 @@ data "aws_ami" "os" {
   owners = [local.image_owners[var.aws_os]]
 }
 
+data "aws_region" "current" {}
+
+data "aws_subnets" "public_subnets" {
+  filter {
+    name   = "vpc-id"
+    values = [var.vpc_id]
+  }
+  filter {
+    name   = "availability-zone"
+    values = ["${data.aws_region.current.name}a"]
+  }
+}
+
 resource "aws_security_group" "main" {
+  vpc_id = var.vpc_id
   egress = [
     {
-      cidr_blocks      = ["0.0.0.0/0", ]
+      cidr_blocks      = ["0.0.0.0/0"]
       description      = ""
       from_port        = 0
       ipv6_cidr_blocks = []
@@ -117,7 +137,7 @@ resource "aws_security_group" "main" {
   ]
   ingress = [
     {
-      cidr_blocks      = ["0.0.0.0/0", ]
+      cidr_blocks      = ["0.0.0.0/0"]
       description      = ""
       from_port        = 22
       ipv6_cidr_blocks = []
@@ -128,7 +148,7 @@ resource "aws_security_group" "main" {
       to_port          = 22
     },
     {
-      cidr_blocks      = ["0.0.0.0/0", ]
+      cidr_blocks      = ["0.0.0.0/0"]
       description      = ""
       from_port        = local.apm_port
       ipv6_cidr_blocks = []
@@ -142,15 +162,24 @@ resource "aws_security_group" "main" {
 }
 
 resource "aws_instance" "apm" {
-  ami           = data.aws_ami.os.id
-  instance_type = local.instance_types[var.aws_os]
-  key_name      = aws_key_pair.provisioner_key.key_name
+  ami                    = data.aws_ami.os.id
+  instance_type          = var.apm_instance_type == "" ? local.instance_types[var.aws_os] : var.apm_instance_type
+  subnet_id              = data.aws_subnets.public_subnets.ids[0]
+  vpc_security_group_ids = [aws_security_group.main.id]
+  key_name               = aws_key_pair.provisioner_key.key_name
+  monitoring             = false
 
   connection {
     type        = "ssh"
     user        = local.image_ssh_users[var.aws_os]
     host        = self.public_ip
     private_key = file("${var.aws_provisioner_key_name}")
+  }
+
+  provisioner "file" {
+    source      = "${var.apm_server_bin_path}/apm-server"
+    destination = local.bin_path
+    on_failure  = continue
   }
 
   provisioner "file" {
@@ -172,15 +201,24 @@ resource "aws_instance" "apm" {
       "sudo cp ${local.conf_path} /etc/elastic-agent/elastic-agent.yml",
       "sudo systemctl start elastic-agent",
       "sleep 1",
-      ] : [
-      local.instance_standalone_provision_cmd[var.aws_os],
-      "sudo cp ${local.conf_path} /etc/apm-server/apm-server.yml",
-      "sudo systemctl start apm-server",
-      "sleep 1",
-    ]
+      ] : (
+      var.apm_server_bin_path == "" ? [
+        local.instance_standalone_provision_cmd[var.aws_os],
+        "sudo cp ${local.conf_path} /etc/apm-server/apm-server.yml",
+        "sudo systemctl start apm-server",
+        "sleep 1",
+        ] : [
+        "sudo cp ${local.bin_path} apm-server",
+        "sudo chmod +x apm-server",
+        "sudo cp ${local.conf_path} apm-server.yml",
+        "sudo mkdir -m 777 /var/log/apm-server",
+        "screen -d -m ./apm-server",
+        "sleep 1"
+      ]
+    )
   }
 
-  vpc_security_group_ids = [aws_security_group.main.id]
+  tags = var.tags
 }
 
 resource "null_resource" "apm_server_log" {
@@ -208,8 +246,8 @@ data "external" "latest_apm_server" {
 }
 
 resource "aws_key_pair" "provisioner_key" {
-  key_name   = var.aws_provisioner_key_name
   public_key = file("${var.aws_provisioner_key_name}.pub")
+  tags       = var.tags
 }
 
 resource "random_password" "apm_secret_token" {

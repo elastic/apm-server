@@ -42,6 +42,12 @@
         "processor.event": [
             "metric"
         ],
+        "service.framework.name": [
+            "test-meter"
+        ],
+        "service.framework.name.text": [
+            "test-meter"
+        ],
         "service.language.name": [
             "go"
         ],

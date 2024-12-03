@@ -159,6 +159,7 @@ func (s *MetadataESFetcher) sync(ctx context.Context) error {
 	for {
 		result, err = s.scrollsearch(ctx, scrollID, sourcemaps)
 		if err != nil {
+			s.clearScroll(ctx, scrollID)
 			if e := apm.CaptureError(ctx, err); e != nil {
 				e.Send()
 			}
@@ -179,8 +180,26 @@ func (s *MetadataESFetcher) sync(ctx context.Context) error {
 		}
 	}
 
+	s.clearScroll(ctx, scrollID)
+
 	s.update(ctx, sourcemaps)
 	return nil
+}
+
+func (s *MetadataESFetcher) clearScroll(ctx context.Context, scrollID string) {
+	resp, err := esapi.ClearScrollRequest{
+		ScrollID: []string{scrollID},
+	}.Do(ctx, s.esClient)
+	if err != nil {
+		s.logger.Warnf("failed to clear scroll: %v", err)
+		return
+	}
+
+	if resp.IsError() {
+		s.logger.Warn("clearscroll request returned error: %s", resp.Status())
+	}
+
+	resp.Body.Close()
 }
 
 func (s *MetadataESFetcher) update(ctx context.Context, sourcemaps map[identifier]string) {

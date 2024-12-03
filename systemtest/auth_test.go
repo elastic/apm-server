@@ -54,10 +54,10 @@ func TestAuth(t *testing.T) {
 	err := srv.Start()
 	require.NoError(t, err)
 
-	apiKey := createAPIKey(t, t.Name()+":all")
-	apiKeySourcemap := createAPIKey(t, t.Name()+":sourcemap", "--sourcemap")
-	apiKeyIngest := createAPIKey(t, t.Name()+":ingest", "--ingest")
-	apiKeyAgentConfig := createAPIKey(t, t.Name()+":agentconfig", "--agent-config")
+	apiKey := systemtest.CreateAPIKey(t, t.Name()+":all", []string{"config_agent:read", "sourcemap:write", "event:write"})
+	apiKeySourcemap := systemtest.CreateAPIKey(t, t.Name()+":sourcemap", []string{"sourcemap:write"})
+	apiKeyIngest := systemtest.CreateAPIKey(t, t.Name()+":ingest", []string{"event:write"})
+	apiKeyAgentConfig := systemtest.CreateAPIKey(t, t.Name()+":agentconfig", []string{"config_agent:read"})
 
 	runWithMethods := func(t *testing.T, name string, f func(t *testing.T, apiKey string, headers http.Header)) {
 		t.Run(name, func(t *testing.T) {
@@ -188,13 +188,4 @@ func copyHeaders(to, from http.Header) {
 			to.Add(k, v)
 		}
 	}
-}
-
-func createAPIKey(t *testing.T, name string, args ...string) string {
-	args = append([]string{"--name", name, "--json"}, args...)
-	cmd := apiKeyCommand("create", args...)
-	out, err := cmd.CombinedOutput()
-	require.NoError(t, err)
-	attrs := decodeJSONMap(t, bytes.NewReader(out))
-	return attrs["credentials"].(string)
 }

@@ -18,6 +18,7 @@
 package middleware
 
 import (
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -156,5 +157,34 @@ func TestMonitoringHandler(t *testing.T) {
 			},
 			mockMonitoringNil,
 		)
+	})
+
+	t.Run("Parallel", func(t *testing.T) {
+		const i = 3
+		reader := sdkmetric.NewManualReader(sdkmetric.WithTemporalitySelector(
+			func(ik sdkmetric.InstrumentKind) metricdata.Temporality {
+				return metricdata.DeltaTemporality
+			},
+		))
+		mp := sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader))
+		m := MonitoringMiddleware(mockMonitoringNil, mp)
+		c, _ := DefaultContextWithResponseRecorder()
+		var wg sync.WaitGroup
+		for range i {
+			wg.Add(1)
+			go func() {
+				Apply(m, HandlerIdle)(c)
+				wg.Done()
+			}()
+		}
+		wg.Wait()
+		monitoringtest.ExpectOtelMetrics(t, reader, map[string]interface{}{
+			"http.server." + string(request.IDRequestCount):       i,
+			"http.server." + string(request.IDResponseCount):      i,
+			"http.server." + string(request.IDResponseValidCount): i,
+			"http.server." + string(request.IDUnset):              i,
+
+			"http.server.request.duration": i,
+		})
 	})
 }

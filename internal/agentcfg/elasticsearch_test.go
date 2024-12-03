@@ -20,9 +20,9 @@ package agentcfg
 import (
 	"context"
 	"encoding/json"
-	"io"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -39,11 +39,10 @@ var sampleHits = []map[string]interface{}{
 	{"_id": "hvKmzYQBfJ4l0GgqXgJt", "_index": ".apm-agent-configuration", "_score": 1, "_source": map[string]interface{}{"@timestamp": 1.669897543277e+12, "applied_by_agent": false, "etag": "2da2f86251165ccced5c5e41100a216b0c880db4", "service": map[string]interface{}{"name": "second"}, "settings": map[string]interface{}{"sanitize_field_names": "foo,bar,baz", "transaction_sample_rate": "0.1"}}},
 }
 
-func newMockElasticsearchClient(t testing.TB, statusCode int, responseFunc func(io.Writer)) *elasticsearch.Client {
+func newMockElasticsearchClient(t testing.TB, handler func(http.ResponseWriter, *http.Request)) *elasticsearch.Client {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Elastic-Product", "Elasticsearch")
-		w.WriteHeader(statusCode)
-		responseFunc(w)
+		handler(w, r)
 	}))
 	t.Cleanup(srv.Close)
 	config := elasticsearch.DefaultConfig()
@@ -80,7 +79,20 @@ func newElasticsearchFetcher(
 
 	i := 0
 
-	fetcher := NewElasticsearchFetcher(newMockElasticsearchClient(t, 200, func(w io.Writer) {
+	fetcher := NewElasticsearchFetcher(newMockElasticsearchClient(t, func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodDelete && strings.HasPrefix(r.URL.Path, "/_search/scroll") {
+			scrollID := strings.TrimPrefix(r.URL.Path, "/_search/scroll/")
+			assert.Equal(t, respTmpl["_scroll_id"], scrollID)
+			return
+		}
+		switch r.URL.Path {
+		case "/_search/scroll":
+			scrollID := r.URL.Query().Get("scroll_id")
+			assert.Equal(t, respTmpl["_scroll_id"], scrollID)
+		case "/.apm-agent-configuration/_search":
+		default:
+			assert.Failf(t, "unexpected path", "path: %s", r.URL.Path)
+		}
 		if i < len(hits) {
 			respTmpl["hits"].(map[string]interface{})["hits"] = hits[i : i+searchSize]
 		} else {
@@ -89,6 +101,7 @@ func newElasticsearchFetcher(
 
 		b, err := json.Marshal(respTmpl)
 		require.NoError(t, err)
+		w.WriteHeader(200)
 		w.Write(b)
 		i += searchSize
 	}), time.Second, nil, rt)
@@ -110,14 +123,15 @@ func TestRun(t *testing.T) {
 	assert.Eventually(t, func() bool {
 		rt.Tracer.Flush(nil)
 		payloads := rt.Payloads()
-		return len(payloads.Transactions) == 1 && len(payloads.Spans) == 3
+		return len(payloads.Transactions) == 1 && len(payloads.Spans) == 4
 	}, 10*time.Second, 10*time.Millisecond)
 
 	payloads := rt.Payloads()
 	assert.Equal(t, "ElasticsearchFetcher.refresh", payloads.Transactions[0].Name)
 	assert.Equal(t, "Elasticsearch: POST .apm-agent-configuration/_search", payloads.Spans[0].Name)
 	assert.Equal(t, "Elasticsearch: POST _search/scroll", payloads.Spans[1].Name)
-	assert.Equal(t, "ElasticsearchFetcher.refreshCache", payloads.Spans[2].Name)
+	assert.Equal(t, "Elasticsearch: DELETE _search/scroll/", payloads.Spans[2].Name[:37]) // trim scrollID
+	assert.Equal(t, "ElasticsearchFetcher.refreshCache", payloads.Spans[3].Name)
 }
 
 func TestFetch(t *testing.T) {
@@ -173,7 +187,9 @@ func TestFetchUseFallback(t *testing.T) {
 		return Result{}, nil
 	})
 	fetcher := NewElasticsearchFetcher(
-		newMockElasticsearchClient(t, 404, func(w io.Writer) {}),
+		newMockElasticsearchClient(t, func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(404)
+		}),
 		time.Second,
 		fallbackFetcher,
 		apmtest.NewRecordingTracer().Tracer,
@@ -186,7 +202,9 @@ func TestFetchUseFallback(t *testing.T) {
 
 func TestFetchNoFallbackInvalidESCfg(t *testing.T) {
 	fetcher := NewElasticsearchFetcher(
-		newMockElasticsearchClient(t, 401, func(w io.Writer) {}),
+		newMockElasticsearchClient(t, func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(401)
+		}),
 		time.Second,
 		nil,
 		apmtest.NewRecordingTracer().Tracer,
@@ -200,7 +218,9 @@ func TestFetchNoFallbackInvalidESCfg(t *testing.T) {
 
 func TestFetchNoFallback(t *testing.T) {
 	fetcher := NewElasticsearchFetcher(
-		newMockElasticsearchClient(t, 500, func(w io.Writer) {}),
+		newMockElasticsearchClient(t, func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(500)
+		}),
 		time.Second,
 		nil,
 		apmtest.NewRecordingTracer().Tracer,

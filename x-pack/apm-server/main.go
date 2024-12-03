@@ -12,7 +12,7 @@ import (
 	"sync"
 
 	"github.com/dgraph-io/badger/v2"
-	"github.com/gofrs/uuid"
+	"github.com/gofrs/uuid/v5"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/beats/v7/libbeat/common/reload"

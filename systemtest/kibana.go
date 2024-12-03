@@ -63,7 +63,7 @@ var (
 	IntegrationPackage *fleettest.Package
 )
 
-func init() {
+func initKibana() {
 	kibanaConfig := apmservertest.DefaultConfig().Kibana
 	u, err := url.Parse(kibanaConfig.Host)
 	if err != nil {

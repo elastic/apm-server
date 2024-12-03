@@ -135,7 +135,7 @@ func (p BatchProcessor) processStacktraceFrame(
 	}
 
 	if frame.Original == nil {
-		frame.Original = modelpb.OriginalFromVTPool()
+		frame.Original = &modelpb.Original{}
 	}
 
 	// Store original source information.

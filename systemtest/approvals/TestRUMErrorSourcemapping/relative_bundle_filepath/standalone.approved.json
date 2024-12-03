@@ -42,6 +42,9 @@
         "error.id": [
             "aba2688e033848ce9c4e4005f1caa534"
         ],
+        "error.log.level": [
+            "error"
+        ],
         "error.log.message": [
             "Uncaught Error: log timeout test error"
         ],

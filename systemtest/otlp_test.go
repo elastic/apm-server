@@ -34,7 +34,6 @@ import (
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.opentelemetry.io/collector/pdata/pmetric/pmetricotlp"
 	semconv "go.opentelemetry.io/collector/semconv/v1.5.0"
-	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
@@ -57,21 +56,6 @@ import (
 	"github.com/elastic/apm-tools/pkg/approvaltest"
 	"github.com/elastic/apm-tools/pkg/espoll"
 )
-
-var otelErrors = make(chan error, 1)
-
-func init() {
-	// otel.SetErrorHandler can only be called once per process.
-	otel.SetErrorHandler(otel.ErrorHandlerFunc(func(err error) {
-		if err == nil {
-			return
-		}
-		select {
-		case otelErrors <- err:
-		default:
-		}
-	}))
-}
 
 func TestOTLPGRPCTraces(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
@@ -623,7 +607,7 @@ func flushTracerProvider(ctx context.Context, tracerProvider *sdktrace.TracerPro
 		return err
 	}
 	select {
-	case err := <-otelErrors:
+	case err := <-systemtest.OtelErrors:
 		return err
 	default:
 		return nil
@@ -653,7 +637,7 @@ func sendOTLPMetrics(
 		return err
 	}
 	select {
-	case err := <-otelErrors:
+	case err := <-systemtest.OtelErrors:
 		return err
 	default:
 		return nil

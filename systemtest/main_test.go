@@ -25,10 +25,14 @@ import (
 
 func TestMain(m *testing.M) {
 	log.Println("INFO: starting stack containers...")
+	initContainers()
 	if err := StartStackContainers(); err != nil {
 		log.Fatalf("failed to start stack containers: %v", err)
 	}
-
+	initElasticSearch()
+	initKibana()
+	initSettings()
+	initOTEL()
 	log.Println("INFO: running system tests...")
 	os.Exit(m.Run())
 }

@@ -17,7 +17,7 @@ jobs:
       matrix: ${{ steps.generator.outputs.matrix }}
     steps:
       - id: generator
-        uses: elastic/apm-pipeline-library/.github/actions/elastic-stack-snapshot-branches@current
+        uses: elastic/oblt-actions/elastic/active-branches@v1
 
   check-docker-compose:
     needs:
@@ -47,9 +47,9 @@ jobs:
       - check-docker-compose
     steps:
       - id: check
-        uses: elastic/apm-pipeline-library/.github/actions/check-dependent-jobs@current
+        uses: elastic/oblt-actions/check-dependent-jobs@v1
         with:
-          needs: ${{ toJSON(needs) }}
+          jobs: ${{ toJSON(needs) }}
       - run: ${{ steps.check.outputs.isSuccess }}
       - if: failure()
         uses: elastic/oblt-actions/slack/notify-result@v1

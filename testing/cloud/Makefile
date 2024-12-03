@@ -27,9 +27,9 @@ USER_KIBANA_DOCKER_IMAGE=docker.elastic.co/observability-ci/${USER_NAME}-kibana
 # use in the deployment.
 ##############################################################################
 
-docker_image.auto.tfvars: kibana_docker_image elastic_agent_docker_image
+docker_image.auto.tfvars: elastic_agent_docker_image
 	@echo 'docker_image_override={"elasticsearch":"${ELASTICSEARCH_DOCKER_IMAGE}","kibana":"${KIBANA_DOCKER_IMAGE}","apm":"${CI_ELASTIC_AGENT_DOCKER_IMAGE}"}' > $@
-	@echo 'docker_image_tag_override={"elasticsearch":"${IMAGE_TAG}","kibana":"${CUSTOM_IMAGE_TAG}","apm":"${CUSTOM_IMAGE_TAG}"}' >> $@
+	@echo 'docker_image_tag_override={"elasticsearch":"${IMAGE_TAG}","kibana":"${IMAGE_TAG}","apm":"${CUSTOM_IMAGE_TAG}"}' >> $@
 
 ##############################################################################
 # Terraform shortcut rules.

@@ -7,7 +7,7 @@ variable "ess_region" {
 variable "deployment_template" {
   type        = string
   description = "Optional deployment template. Defaults to the CPU optimized template for GCP"
-  default     = "gcp-compute-optimized-v3"
+  default     = "gcp-cpu-optimized"
 }
 
 variable "stack_version" {

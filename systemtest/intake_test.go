@@ -18,7 +18,12 @@
 package systemtest_test
 
 import (
+	"context"
+	"strings"
 	"testing"
+	"time"
+
+	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/apm-server/systemtest"
 	"github.com/elastic/apm-server/systemtest/apmservertest"
@@ -72,4 +77,29 @@ func TestIntake(t *testing.T) {
 		})
 	}
 
+}
+
+func TestIntakeMalformed(t *testing.T) {
+	// Setup a custom ingest pipeline to test a malformed data ingestion.
+	r, err := systemtest.Elasticsearch.Ingest.PutPipeline(
+		"traces-apm@custom",
+		strings.NewReader(`{"processors":[{"set":{"field":"span.duration.us","value":"poison"}}]}`),
+	)
+	require.NoError(t, err)
+	require.False(t, r.IsError())
+	defer systemtest.Elasticsearch.Ingest.DeletePipeline("traces-apm@custom")
+	// Test malformed intake data.
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	srv := apmservertest.NewServerTB(t)
+	systemtest.CleanupElasticsearch(t)
+	response := systemtest.SendBackendEventsPayload(t, srv.URL, "../testdata/intake-v2/spans.ndjson")
+	_, err = systemtest.Elasticsearch.SearchIndexMinDocs(
+		ctx,
+		response.Accepted,
+		"traces-apm*",
+		nil,
+		espoll.WithTimeout(10*time.Second),
+	)
+	require.Error(t, err, "No traces should be indexed due to traces-apm@custom pipeline")
 }
