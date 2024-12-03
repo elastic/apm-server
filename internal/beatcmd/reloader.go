@@ -23,9 +23,11 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/joeshaw/multierror"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
+	"github.com/elastic/beats/v7/libbeat/cfgfile"
 	"github.com/elastic/beats/v7/libbeat/common/reload"
 	"github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
@@ -109,11 +111,21 @@ func (r *Reloader) Run(ctx context.Context) error {
 }
 
 // reloadInput (re)loads input configuration.
+// It returns a *multierror.MultiError as libbeat manager error handling is tightly coupled
+// with its own reloadable list implementation in libbeat/cfgfile/list.go.
 //
 // Note: reloadInputs may be called before the Reloader is running.
 func (r *Reloader) reloadInputs(configs []*reload.ConfigWithMeta) error {
 	if n := len(configs); n != 1 {
-		return fmt.Errorf("only 1 input supported, got %d", n)
+		var errs multierror.Errors
+		for _, cfg := range configs {
+			unitErr := cfgfile.UnitError{
+				Err:    fmt.Errorf("only 1 input supported, got %d", n),
+				UnitID: cfg.InputUnitID,
+			}
+			errs = append(errs, unitErr)
+		}
+		return errs.Err()
 	}
 	r.mu.Lock()
 	defer r.mu.Unlock()
@@ -123,11 +135,21 @@ func (r *Reloader) reloadInputs(configs []*reload.ConfigWithMeta) error {
 	// increasing revision number.
 	revision, err := cfg.Int("revision", -1)
 	if err != nil {
-		return fmt.Errorf("failed to extract input config revision: %w", err)
+		return multierror.Errors{
+			cfgfile.UnitError{
+				Err:    fmt.Errorf("failed to extract input config revision: %w", err),
+				UnitID: configs[0].InputUnitID,
+			},
+		}.Err()
 	}
 
 	if err := r.reload(cfg, r.outputConfig, r.apmTracingConfig); err != nil {
-		return fmt.Errorf("failed to load input config: %w", err)
+		return multierror.Errors{
+			cfgfile.UnitError{
+				Err:    fmt.Errorf("failed to load input config: %w", err),
+				UnitID: configs[0].InputUnitID,
+			},
+		}.Err()
 	}
 	r.inputConfig = cfg
 	r.logger.With(logp.Int64("revision", revision)).Info("loaded input config")
