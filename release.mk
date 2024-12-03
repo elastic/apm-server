@@ -308,7 +308,7 @@ create-github-label:
 	@echo "::group::create-github-label $(NAME)"
 	gh label create $(NAME) \
 		--description "Automated backport with mergify" \
-		--color 0052cc
+		--color 0052cc \
 		--repo $(PROJECT_OWNER)/apm-server \
 		--force
 	@echo "::endgroup::"
