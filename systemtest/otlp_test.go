@@ -27,6 +27,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/tidwall/gjson"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
 
 	"go.opentelemetry.io/collector/pdata/pcommon"
@@ -191,7 +192,7 @@ func TestOTLPGRPCMetrics(t *testing.T) {
 
 	// opentelemetry-go does not support sending Summary metrics,
 	// so we send them using the lower level OTLP/gRPC client.
-	conn, err := grpc.Dial(serverAddr(t, srv), grpc.WithInsecure(), grpc.WithBlock(), grpc.WithDefaultCallOptions(grpc.UseCompressor("gzip")))
+	conn, err := grpc.NewClient(serverAddr(t, srv), grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithDefaultCallOptions(grpc.UseCompressor("gzip")))
 	require.NoError(t, err)
 	defer conn.Close()
 	metricsClient := pmetricotlp.NewGRPCClient(conn)
@@ -256,7 +257,7 @@ func TestOTLPGRPCLogs(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	conn, err := grpc.Dial(serverAddr(t, srv), grpc.WithInsecure(), grpc.WithBlock(), grpc.WithDefaultCallOptions(grpc.UseCompressor("gzip")))
+	conn, err := grpc.NewClient(serverAddr(t, srv), grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithDefaultCallOptions(grpc.UseCompressor("gzip")))
 	require.NoError(t, err)
 	defer conn.Close()
 
@@ -492,7 +493,7 @@ func TestOTLPGRPCLogsClientIP(t *testing.T) {
 	md := metadata.New(map[string]string{"X-Forwarded-For": "89.160.20.128"})
 	ctx = metadata.NewOutgoingContext(ctx, md)
 
-	conn, err := grpc.Dial(serverAddr(t, srv), grpc.WithInsecure(), grpc.WithBlock(), grpc.WithDefaultCallOptions(grpc.UseCompressor("gzip")))
+	conn, err := grpc.NewClient(serverAddr(t, srv), grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithDefaultCallOptions(grpc.UseCompressor("gzip")))
 	require.NoError(t, err)
 	defer conn.Close()
 
