@@ -20,12 +20,10 @@ package beatcmd
 import (
 	"flag"
 	"fmt"
-	"os"
 
 	"github.com/spf13/cobra"
 
 	"github.com/elastic/beats/v7/libbeat/cfgfile"
-	"github.com/elastic/beats/v7/libbeat/cmd/platformcheck"
 	"github.com/elastic/elastic-agent-libs/logp"
 )
 
@@ -34,11 +32,6 @@ import (
 // NewRootCommand takes a BeatParams, which will be passed to
 // commands that must create an instance of APM Server.
 func NewRootCommand(beatParams BeatParams) *cobra.Command {
-	if err := platformcheck.CheckNativePlatformCompat(); err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to initialize: %v\n", err)
-		os.Exit(1)
-	}
-
 	err := cfgfile.ChangeDefaultCfgfileFlag("apm-server")
 	if err != nil {
 		panic(fmt.Errorf("failed to set default config file path: %v", err))
@@ -84,7 +77,6 @@ func NewRootCommand(beatParams BeatParams) *cobra.Command {
 	rootCommand.AddCommand(keystoreCommand)
 	rootCommand.AddCommand(versionCommand)
 	rootCommand.AddCommand(genTestCmd(beatParams))
-	rootCommand.AddCommand(genApikeyCmd())
 
 	return rootCommand
 }
