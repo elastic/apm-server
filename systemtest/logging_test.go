@@ -22,10 +22,10 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"strings"
 	"testing"
 
-	"github.com/jaegertracing/jaeger/proto-gen/api_v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.elastic.co/apm/v2/apmtest"
@@ -41,16 +41,11 @@ import (
 func TestAPMServerGRPCRequestLoggingValid(t *testing.T) {
 	systemtest.CleanupElasticsearch(t)
 	srv := apmservertest.NewServerTB(t)
-	addr := serverAddr(srv)
-	conn, err := grpc.Dial(addr, grpc.WithInsecure())
+	addr, err := url.Parse(srv.URL)
+	require.NoError(t, err)
+	conn, err := grpc.NewClient(addr.Host)
 	require.NoError(t, err)
 	defer conn.Close()
-
-	client := api_v2.NewCollectorServiceClient(conn)
-	request, err := decodeJaegerPostSpansRequest("../testdata/jaeger/batch_0.json")
-	require.NoError(t, err)
-	_, err = client.PostSpans(context.Background(), request)
-	require.NoError(t, err)
 
 	tracerProvider := newOTLPTracerProvider(newOTLPTraceExporter(t, srv, otlptracegrpc.WithHeaders(
 		map[string]string{"Authorization": "Bearer abc123"},
@@ -60,14 +55,10 @@ func TestAPMServerGRPCRequestLoggingValid(t *testing.T) {
 
 	srv.Close()
 
-	var foundGRPC, foundJaeger bool
+	var foundGRPC bool
 	for _, entry := range srv.Logs.All() {
 		if entry.Logger == "beater.grpc" {
 			switch entry.Fields["grpc.request.method"] {
-			case "/jaeger.api_v2.CollectorService/PostSpans":
-				require.Equal(t, "beater.grpc", entry.Logger)
-				require.Equal(t, "OK", entry.Fields["grpc.response.status_code"])
-				foundJaeger = true
 			case "/opentelemetry.proto.collector.trace.v1.TraceService/Export":
 				require.Equal(t, "beater.grpc", entry.Logger)
 				require.Equal(t, "OK", entry.Fields["grpc.response.status_code"])
@@ -76,7 +67,6 @@ func TestAPMServerGRPCRequestLoggingValid(t *testing.T) {
 		}
 	}
 	require.True(t, foundGRPC)
-	require.True(t, foundJaeger)
 }
 
 func TestAPMServerRequestLoggingValid(t *testing.T) {

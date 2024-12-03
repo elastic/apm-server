@@ -36,7 +36,6 @@ import (
 	"time"
 
 	"github.com/gogo/protobuf/proto"
-	"github.com/jaegertracing/jaeger/proto-gen/api_v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
@@ -279,20 +278,6 @@ func TestServerNoContentType(t *testing.T) {
 	require.NoError(t, err)
 	defer rsp.Body.Close()
 	assert.Equal(t, http.StatusAccepted, rsp.StatusCode)
-}
-
-func TestServerJaegerGRPC(t *testing.T) {
-	srv := beatertest.NewServer(t)
-	baseURL, err := url.Parse(srv.URL)
-	require.NoError(t, err)
-	conn, err := grpc.NewClient(baseURL.Host, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	require.NoError(t, err)
-	defer conn.Close()
-
-	client := api_v2.NewCollectorServiceClient(conn)
-	result, err := client.PostSpans(context.Background(), &api_v2.PostSpansRequest{})
-	assert.NoError(t, err)
-	assert.NotNil(t, result)
 }
 
 func TestServerOTLPGRPC(t *testing.T) {

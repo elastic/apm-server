@@ -20,6 +20,7 @@ package systemtest_test
 import (
 	"context"
 	"errors"
+	"net/url"
 	"testing"
 	"time"
 
@@ -190,7 +191,7 @@ func TestOTLPGRPCMetrics(t *testing.T) {
 
 	// opentelemetry-go does not support sending Summary metrics,
 	// so we send them using the lower level OTLP/gRPC client.
-	conn, err := grpc.Dial(serverAddr(srv), grpc.WithInsecure(), grpc.WithBlock(), grpc.WithDefaultCallOptions(grpc.UseCompressor("gzip")))
+	conn, err := grpc.Dial(serverAddr(t, srv), grpc.WithInsecure(), grpc.WithBlock(), grpc.WithDefaultCallOptions(grpc.UseCompressor("gzip")))
 	require.NoError(t, err)
 	defer conn.Close()
 	metricsClient := pmetricotlp.NewGRPCClient(conn)
@@ -255,7 +256,7 @@ func TestOTLPGRPCLogs(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	conn, err := grpc.Dial(serverAddr(srv), grpc.WithInsecure(), grpc.WithBlock(), grpc.WithDefaultCallOptions(grpc.UseCompressor("gzip")))
+	conn, err := grpc.Dial(serverAddr(t, srv), grpc.WithInsecure(), grpc.WithBlock(), grpc.WithDefaultCallOptions(grpc.UseCompressor("gzip")))
 	require.NoError(t, err)
 	defer conn.Close()
 
@@ -491,7 +492,7 @@ func TestOTLPGRPCLogsClientIP(t *testing.T) {
 	md := metadata.New(map[string]string{"X-Forwarded-For": "89.160.20.128"})
 	ctx = metadata.NewOutgoingContext(ctx, md)
 
-	conn, err := grpc.Dial(serverAddr(srv), grpc.WithInsecure(), grpc.WithBlock(), grpc.WithDefaultCallOptions(grpc.UseCompressor("gzip")))
+	conn, err := grpc.Dial(serverAddr(t, srv), grpc.WithInsecure(), grpc.WithBlock(), grpc.WithDefaultCallOptions(grpc.UseCompressor("gzip")))
 	require.NoError(t, err)
 	defer conn.Close()
 
@@ -537,7 +538,7 @@ func newMobileLogs(body interface{}) plog.Logs {
 }
 
 func newOTLPTraceExporter(t testing.TB, srv *apmservertest.Server, options ...otlptracegrpc.Option) *otlptrace.Exporter {
-	options = append(options, otlptracegrpc.WithEndpoint(serverAddr(srv)), otlptracegrpc.WithInsecure())
+	options = append(options, otlptracegrpc.WithEndpoint(serverAddr(t, srv)), otlptracegrpc.WithInsecure())
 	exporter, err := otlptracegrpc.New(context.Background(), options...)
 	require.NoError(t, err)
 	t.Cleanup(func() {
@@ -547,7 +548,7 @@ func newOTLPTraceExporter(t testing.TB, srv *apmservertest.Server, options ...ot
 }
 
 func newOTLPHTTPTraceExporter(t testing.TB, srv *apmservertest.Server, options ...otlptracehttp.Option) *otlptrace.Exporter {
-	options = append(options, otlptracehttp.WithEndpoint(serverAddr(srv)), otlptracehttp.WithInsecure())
+	options = append(options, otlptracehttp.WithEndpoint(serverAddr(t, srv)), otlptracehttp.WithInsecure())
 	exporter, err := otlptracehttp.New(context.Background(), options...)
 	require.NoError(t, err)
 	t.Cleanup(func() {
@@ -557,7 +558,7 @@ func newOTLPHTTPTraceExporter(t testing.TB, srv *apmservertest.Server, options .
 }
 
 func newOTLPMetricExporter(t testing.TB, srv *apmservertest.Server, options ...otlpmetricgrpc.Option) sdkmetric.Exporter {
-	options = append(options, otlpmetricgrpc.WithEndpoint(serverAddr(srv)), otlpmetricgrpc.WithInsecure())
+	options = append(options, otlpmetricgrpc.WithEndpoint(serverAddr(t, srv)), otlpmetricgrpc.WithInsecure())
 	exporter, err := otlpmetricgrpc.New(context.Background(), options...)
 	require.NoError(t, err)
 	t.Cleanup(func() {
@@ -612,6 +613,13 @@ func flushTracerProvider(ctx context.Context, tracerProvider *sdktrace.TracerPro
 	default:
 		return nil
 	}
+}
+
+func serverAddr(t testing.TB, srv *apmservertest.Server) string {
+	t.Helper()
+	url, err := url.Parse(srv.URL)
+	require.NoError(t, err)
+	return url.Host
 }
 
 func sendOTLPMetrics(

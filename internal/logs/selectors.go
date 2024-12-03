@@ -24,7 +24,6 @@ const (
 	Handler                   = "handler"
 	Ilm                       = "ilm"
 	IndexManagement           = "index-management"
-	Jaeger                    = "jaeger"
 	Kibana                    = "kibana"
 	Otel                      = "otel"
 	Pipelines                 = "pipelines"
