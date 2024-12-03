@@ -226,7 +226,7 @@ update-mergify:
 		echo '  - name: backport patches to $(VERSION) branch'                                  >> .mergify.yml ; \
 		echo '    conditions:'                                                                  >> .mergify.yml; \
 		echo '      - merged'                                                                   >> .mergify.yml; \
-		echo '      - base=8.x'                                                                 >> .mergify.yml; \
+		echo '      - base=main'                                                                >> .mergify.yml; \
 		echo '      - label=backport-$(VERSION)'                                                >> .mergify.yml; \
 		echo '    actions:'                                                                     >> .mergify.yml; \
 		echo '      backport:'                                                                  >> .mergify.yml; \
