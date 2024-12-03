@@ -115,6 +115,9 @@ endef
 #
 .PHONY: minor-release
 minor-release:
+	@echo "INFO: Create GitHub label backport for the version $(RELEASE_VERSION)"
+	$(MAKE) create-github-label NAME=backport-$(RELEASE_BRANCH)
+
 	@echo "INFO: Create release branch and update new version $(RELEASE_VERSION)"
 	$(MAKE) create-branch NAME=$(RELEASE_BRANCH) BASE=$(BASE_BRANCH)
 	$(MAKE) update-version VERSION=$(RELEASE_VERSION)
@@ -295,6 +298,19 @@ create-commit:
 		git add --all; \
 		git commit --gpg-sign -a -m "$(COMMIT_MESSAGE)"; \
 	fi
+	@echo "::endgroup::"
+
+
+## Create a github label
+.PHONY: create-github-label
+create-github-label: NAME=$${NAME}
+create-github-label:
+	@echo "::group::create-github-label $(NAME)"
+	gh label create $(NAME) \
+		--description "Automated backport with mergify" \
+		--color 0052cc
+		--repo $(PROJECT_OWNER)/apm-server \
+		--force
 	@echo "::endgroup::"
 
 ## @help:create-pull-request:Create pull request
