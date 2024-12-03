@@ -6,7 +6,7 @@
   changes:
     - description: Placeholder
       type: enhancement
-      link: https://github.com/elastic/apm-server/pull/123
+      link: https://github.com/elastic/apm-server/pull/1234
 - version: "7.17.26"
   changes:
     - description: Placeholder
