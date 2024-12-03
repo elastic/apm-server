@@ -17,22 +17,19 @@
 
 package systemtest
 
-import (
-	"log"
-	"os"
-	"testing"
-)
+import "go.opentelemetry.io/otel"
 
-func TestMain(m *testing.M) {
-	log.Println("INFO: starting stack containers...")
-	initContainers()
-	if err := StartStackContainers(); err != nil {
-		log.Fatalf("failed to start stack containers: %v", err)
-	}
-	initElasticSearch()
-	initKibana()
-	initSettings()
-	initOTEL()
-	log.Println("INFO: running system tests...")
-	os.Exit(m.Run())
+var OtelErrors = make(chan error, 1)
+
+func initOTEL() {
+	// otel.SetErrorHandler can only be called once per process.
+	otel.SetErrorHandler(otel.ErrorHandlerFunc(func(err error) {
+		if err == nil {
+			return
+		}
+		select {
+		case OtelErrors <- err:
+		default:
+		}
+	}))
 }

@@ -68,7 +68,7 @@ jobs:
         with:
           go-version-file: 'go.mod'
 
-      - uses: rlespinasse/github-slug-action@797d68864753cbceedc271349d402da4590e6302
+      - uses: rlespinasse/github-slug-action@aba9f8db6ef36e0733227a62673d6592b1f430ea
 
       - name: Set up env
         run: |
@@ -99,7 +99,7 @@ jobs:
         with:
           role-duration-seconds: 18000 # 5 hours
 
-      - uses: google-github-actions/get-secretmanager-secrets@95a0b09b8348ef3d02c68c6ba5662a037e78d713 # v2.1.4
+      - uses: google-github-actions/get-secretmanager-secrets@e5bb06c2ca53b244f978d33348d18317a7f263ce # v2.2.2
         with:
           export_to_environment: true
           secrets: |-
@@ -215,7 +215,7 @@ jobs:
           github-token: ${{ steps.get_token.outputs.token }}
 
       - name: Import GPG key
-        uses: crazy-max/ghaction-import-gpg@01dd5d3ca463c7f10f7f4f7b4f177225ac661ee4  # v6.1.0
+        uses: crazy-max/ghaction-import-gpg@cb9bde2e2525e640591a934b1fd28eef1dcaf5e5  # v6.2.0
         with:
           gpg_private_key: ${{ secrets.APM_SERVER_RELEASE_GPG_PRIVATE_KEY }}
           passphrase: ${{ secrets.APM_SERVER_RELEASE_PASSPHRASE }}
@@ -235,7 +235,7 @@ jobs:
       # there is a high chance things will stop working
       # This is trying to reduce the chances of that happening.
       # See https://github.com/elastic/observability-test-environments/actions/workflows/cluster-rotate-api-keys.yml
-      - uses: google-github-actions/get-secretmanager-secrets@95a0b09b8348ef3d02c68c6ba5662a037e78d713 # v2.1.4
+      - uses: google-github-actions/get-secretmanager-secrets@e5bb06c2ca53b244f978d33348d18317a7f263ce # v2.2.2
         if: always()
         with:
           export_to_environment: true
@@ -256,13 +256,14 @@ jobs:
 
       # Notify result to Slack only on schedule (nightly run)
       - if: github.event_name == 'schedule'
-        uses: slackapi/slack-github-action@37ebaef184d7626c5f204ab8d3baff4262dd30f0 # v1.27.0
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+        uses: slackapi/slack-github-action@485a9d42d3a73031f12ec201c457e2162c45d02d # v2.0.0
         with:
-          channel-id: "#apm-server"
+          method: chat.postMessage
+          token: ${{ secrets.SLACK_BOT_TOKEN }}
           payload: |
             {
+                "channel":  "#apm-server",
+                "text": "${{ github.event_name == 'schedule' && 'Nightly' || '' }} APM Server benchmarks succesfully executed!",
                 "blocks": [
                     {
                         "type": "section",

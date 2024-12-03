@@ -19,12 +19,9 @@ package beatcmd
 
 import (
 	cryptorand "crypto/rand"
-	"log"
 	"math"
 	"math/big"
 	"math/rand"
-	"os"
-	"strings"
 	"time"
 
 	"github.com/elastic/beats/v7/libbeat/cfgfile"
@@ -55,14 +52,11 @@ func initRand() {
 }
 
 func initFlags() {
-	// For backwards compatibility, convert -flags to --flags.
-	for i, arg := range os.Args[1:] {
-		if strings.HasPrefix(arg, "-") && !strings.HasPrefix(arg, "--") && len(arg) > 2 {
-			os.Args[1+i] = "-" + arg
-		}
-	}
-
-	if err := cfgfile.HandleFlags(); err != nil {
-		log.Fatal(err)
-	}
+	// For backwards compatibility, initialize and convert known -flags to --flags.
+	cfgfile.Initialize()
+	cfgfile.AddAllowedBackwardsCompatibleFlag("v")
+	cfgfile.AddAllowedBackwardsCompatibleFlag("e")
+	cfgfile.AddAllowedBackwardsCompatibleFlag("d")
+	cfgfile.AddAllowedBackwardsCompatibleFlag("environment")
+	cfgfile.ConvertFlagsForBackwardsCompatibility()
 }
