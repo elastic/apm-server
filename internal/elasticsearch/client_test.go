@@ -19,7 +19,6 @@ package elasticsearch
 
 import (
 	"bytes"
-	"context"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -50,9 +49,11 @@ func TestClient(t *testing.T) {
 }
 
 func TestClientCustomHeaders(t *testing.T) {
-	var requestHeaders http.Header
+	wait := make(chan struct{})
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		requestHeaders = r.Header
+		w.Header().Set("X-Elastic-Product", "Elasticsearch")
+		assert.Equal(t, "header", r.Header.Get("custom"))
+		close(wait)
 	}))
 	defer srv.Close()
 
@@ -63,13 +64,20 @@ func TestClientCustomHeaders(t *testing.T) {
 	client, err := NewClient(&cfg)
 	require.NoError(t, err)
 
-	CreateAPIKey(context.Background(), client, CreateAPIKeyRequest{})
-	assert.Equal(t, "header", requestHeaders.Get("custom"))
+	_, err = client.Bulk(bytes.NewReader([]byte("{}")))
+	require.NoError(t, err)
+	select {
+	case <-wait:
+	case <-time.After(1 * time.Second):
+		t.Fatal("timed out while waiting for request")
+	}
+
 }
 
 func TestClientCustomUserAgent(t *testing.T) {
 	wait := make(chan struct{})
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("X-Elastic-Product", "Elasticsearch")
 		assert.Equal(t, fmt.Sprintf("Elastic-APM-Server/%s go-elasticsearch/%s", apmVersion.Version, esv8.Version), r.Header.Get("User-Agent"))
 		close(wait)
 	}))
@@ -81,7 +89,8 @@ func TestClientCustomUserAgent(t *testing.T) {
 	client, err := NewClient(&cfg)
 	require.NoError(t, err)
 
-	CreateAPIKey(context.Background(), client, CreateAPIKeyRequest{})
+	_, err = client.Bulk(bytes.NewReader([]byte("{}")))
+	require.NoError(t, err)
 	select {
 	case <-wait:
 	case <-time.After(1 * time.Second):

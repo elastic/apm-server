@@ -28,6 +28,9 @@ steps:
         artifact_paths:
           - "build/distributions/**/*"
           - "build/dependencies*.csv"
+        retry:
+          automatic:
+            - limit: 1
 
       - label: "Package aarch64"
         key: "package-arm"
@@ -43,6 +46,9 @@ steps:
             - "staging"
         artifact_paths:
           - "build/distributions/**/*"
+        retry:
+          automatic:
+            - limit: 1
 
   - label: "DRA"
     key: "dra"
