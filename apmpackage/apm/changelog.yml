@@ -1,6 +1,12 @@
 # newer versions go on top
 #
 # change type can be one of: enhancement, bugfix, breaking-change
+# 
+- version: "7.17.27"
+  changes:
+    - description: Placeholder
+      type: enhancement
+      link: https://github.com/elastic/apm-server/pull/1234
 - version: "7.17.26"
   changes:
     - description: Placeholder
