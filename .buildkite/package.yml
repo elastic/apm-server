@@ -5,15 +5,15 @@ notify:
     if: "build.state != 'passed'"
 
 env:
-  IMAGE_UBUNTU_X86_64: "family/core-ubuntu-2004"
-  IMAGE_UBUNTU_ARM_64: "core-ubuntu-2004-aarch64"
+  IMAGE_UBUNTU_X86_64: "family/core-ubuntu-2404"
+  IMAGE_UBUNTU_ARM_64: "core-ubuntu-2404-aarch64"
   GENERATE_WOLFI_IMAGES: true
 
 steps:
   - group: "Package"
     key: "package"
     steps:
-      - label: "Package Ubuntu-20 x86_64"
+      - label: "Package x86_64"
         key: "package-x86-64"
         command: ".buildkite/scripts/package.sh {{matrix.type}}"
         agents:
@@ -32,7 +32,7 @@ steps:
           automatic:
             - limit: 1
 
-      - label: "Package Ubuntu-20 aarch64"
+      - label: "Package aarch64"
         key: "package-arm"
         command: ".buildkite/scripts/package.sh {{matrix.type}}"
         agents:
