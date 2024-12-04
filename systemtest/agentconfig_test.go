@@ -249,7 +249,7 @@ func TestAgentConfigForbiddenOnInvalidConfig(t *testing.T) {
 			systemtest.InvalidateAPIKeyByName(t, apiKeyName)
 		})
 		// Create an API Key without agent config read privileges
-		apiKeyBase64 := createAPIKey(t, apiKeyName, "--sourcemap")
+		apiKeyBase64 := systemtest.CreateAPIKey(t, apiKeyName, []string{"sourcemap:write"})
 		apiKeyBytes, err := base64.StdEncoding.DecodeString(apiKeyBase64)
 		require.NoError(t, err)
 		srv := apmservertest.NewUnstartedServerTB(t)

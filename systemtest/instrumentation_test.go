@@ -18,7 +18,6 @@
 package systemtest_test
 
 import (
-	"bytes"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -138,11 +137,7 @@ func TestAPMServerInstrumentationAuth(t *testing.T) {
 			systemtest.InvalidateAPIKeys(t)
 			defer systemtest.InvalidateAPIKeys(t)
 
-			cmd := apiKeyCommand("create", "--name", t.Name(), "--json")
-			out, err := cmd.CombinedOutput()
-			require.NoError(t, err)
-			attrs := decodeJSONMap(t, bytes.NewReader(out))
-			srv.Config.Instrumentation.APIKey = attrs["credentials"].(string)
+			srv.Config.Instrumentation.APIKey = systemtest.CreateAPIKey(t, t.Name(), []string{"config_agent:read", "sourcemap:write", "event:write"})
 		}
 
 		err := srv.Start()

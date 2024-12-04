@@ -77,7 +77,6 @@ func NewRootCommand(beatParams BeatParams) *cobra.Command {
 	rootCommand.AddCommand(keystoreCommand)
 	rootCommand.AddCommand(versionCommand)
 	rootCommand.AddCommand(genTestCmd(beatParams))
-	rootCommand.AddCommand(genApikeyCmd())
 
 	return rootCommand
 }
