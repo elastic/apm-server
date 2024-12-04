@@ -22,11 +22,6 @@ tags:
       The events intake API is the internal protocol that APM agents use to talk
       to the APM Server.
     x-displayName: APM event intake
-  - name: jaeger intake
-    description: >
-      Elastic APM natively supports Jaeger, an open-source, distributed tracing
-      system.
-    x-displayName: Jaeger event intake
   - name: opentelemetry intake
     description: >
       The OpenTelemetry intake API uses the OpenTelemetry Protocol (OTLP) to
@@ -51,10 +46,6 @@ paths:
     $ref: paths/intake_v2_rum_events.yaml
   /intake/v3/rum/events:
     $ref: paths/intake_v3_rum_events.yaml
-  /jaeger.api_v2.CollectorService/PostSpans:
-    $ref: paths/jaeger.api_v2.CollectorService_PostSpans.yaml
-  /jaeger.api_v2.SamplingManager/GetSamplingStrategy:
-    $ref: paths/jaeger.api_v2.SamplingManager_GetSamplingStrategy.yaml
   /opentelemetry.proto.collector.metrics.v1.MetricsService/Export:
     $ref: paths/opentelemetry.proto.collector.metrics.v1.MetricsService_Export.yaml
   /opentelemetry.proto.collector.trace.v1.TraceService/Export:

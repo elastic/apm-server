@@ -39,7 +39,6 @@ import (
 	"github.com/elastic/apm-server/internal/beater/api"
 	"github.com/elastic/apm-server/internal/beater/auth"
 	"github.com/elastic/apm-server/internal/beater/config"
-	"github.com/elastic/apm-server/internal/beater/jaeger"
 	"github.com/elastic/apm-server/internal/beater/otlp"
 	"github.com/elastic/apm-server/internal/beater/ratelimit"
 	"github.com/elastic/apm-server/internal/elasticsearch"
@@ -201,7 +200,6 @@ func newServer(args ServerParams, listener net.Listener) (server, error) {
 	}
 	zapLogger := zap.New(args.Logger.Core(), zap.WithCaller(true))
 	otlp.RegisterGRPCServices(args.GRPCServer, zapLogger, otlpBatchProcessor, args.Semaphore)
-	jaeger.RegisterGRPCServices(args.GRPCServer, zapLogger, args.BatchProcessor, args.AgentConfig, args.Semaphore)
 
 	return server{
 		logger:     args.Logger,
