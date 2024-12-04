@@ -7,8 +7,13 @@ require (
 	github.com/dgraph-io/badger/v2 v2.2007.4
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/apm-aggregation v1.1.0
+<<<<<<< HEAD
 	github.com/elastic/apm-data v1.14.1
 	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20241202095246-e61e0c695d55
+=======
+	github.com/elastic/apm-data v1.14.2
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20241204073101-3f51793e33da
+>>>>>>> b6263a2f7 (build(deps): bump github.com/elastic/apm-data from 1.14.1 to 1.14.2 (#14826))
 	github.com/elastic/elastic-agent-client/v7 v7.17.0
 	github.com/elastic/elastic-agent-libs v0.17.3
 	github.com/elastic/elastic-agent-system-metrics v0.11.4
@@ -92,7 +97,7 @@ require (
 	github.com/elastic/go-structform v0.0.10 // indirect
 	github.com/elastic/go-windows v1.0.2 // indirect
 	github.com/elastic/gosigar v0.14.3 // indirect
-	github.com/elastic/opentelemetry-lib v0.12.0 // indirect
+	github.com/elastic/opentelemetry-lib v0.13.0 // indirect
 	github.com/elastic/pkcs8 v1.0.0 // indirect
 	github.com/fatih/color v1.16.0 // indirect
 	github.com/frankban/quicktest v1.14.0 // indirect
@@ -125,8 +130,11 @@ require (
 	github.com/mitchellh/hashstructure v1.1.0 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
+<<<<<<< HEAD
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal v0.114.0 // indirect
 	github.com/pierrec/lz4 v2.6.1+incompatible // indirect
+=======
+>>>>>>> b6263a2f7 (build(deps): bump github.com/elastic/apm-data from 1.14.1 to 1.14.2 (#14826))
 	github.com/pierrec/lz4/v4 v4.1.21 // indirect
 	github.com/planetscale/vtprotobuf v0.6.1-0.20240319094008-0393e58bdf10 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
