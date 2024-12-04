@@ -23,43 +23,34 @@ import (
 	"go.opentelemetry.io/collector/pdata/plog/plogotlp"
 	"go.opentelemetry.io/collector/pdata/pmetric/pmetricotlp"
 	"go.opentelemetry.io/collector/pdata/ptrace/ptraceotlp"
+	"go.opentelemetry.io/otel/metric"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
-
-	"github.com/elastic/elastic-agent-libs/monitoring"
 
 	"github.com/elastic/apm-data/input"
 	"github.com/elastic/apm-data/input/otlp"
 	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/internal/beater/interceptors"
-	"github.com/elastic/apm-server/internal/beater/request"
 )
 
 var (
-	gRPCMetricsRegistry      = monitoring.Default.NewRegistry("apm-server.otlp.grpc.metrics")
-	gRPCMetricsMonitoringMap = request.MonitoringMapForRegistry(gRPCMetricsRegistry, monitoringKeys)
-	gRPCTracesRegistry       = monitoring.Default.NewRegistry("apm-server.otlp.grpc.traces")
-	gRPCTracesMonitoringMap  = request.MonitoringMapForRegistry(gRPCTracesRegistry, monitoringKeys)
-	gRPCLogsRegistry         = monitoring.Default.NewRegistry("apm-server.otlp.grpc.logs")
-	gRPCLogsMonitoringMap    = request.MonitoringMapForRegistry(gRPCLogsRegistry, monitoringKeys)
-
-	gRPCMonitoredConsumer monitoredConsumer
+	grpcMetricsConsumerUnsupportedDropped, _ = meter.Int64ObservableCounter(
+		"apm-server.otlp.grpc.metrics.consumer.unsupported_dropped",
+	)
 )
 
 func init() {
-	monitoring.NewFunc(gRPCMetricsRegistry, "consumer", gRPCMonitoredConsumer.collect, monitoring.Report)
-
 	interceptors.RegisterMethodUnaryRequestMetrics(
 		"/opentelemetry.proto.collector.metrics.v1.MetricsService/Export",
-		gRPCMetricsMonitoringMap,
+		"apm-server.otlp.grpc.metrics.",
 	)
 	interceptors.RegisterMethodUnaryRequestMetrics(
 		"/opentelemetry.proto.collector.trace.v1.TraceService/Export",
-		gRPCTracesMonitoringMap,
+		"apm-server.otlp.grpc.traces.",
 	)
 	interceptors.RegisterMethodUnaryRequestMetrics(
 		"/opentelemetry.proto.collector.logs.v1.LogsService/Export",
-		gRPCLogsMonitoringMap,
+		"apm-server.otlp.grpc.logs.",
 	)
 }
 
@@ -79,7 +70,17 @@ func RegisterGRPCServices(
 		Semaphore:        semaphore,
 		RemapOTelMetrics: true,
 	})
-	gRPCMonitoredConsumer.set(consumer)
+
+	// FIXME we should add an otel counter metric directly in the
+	// apm-data consumer, then we could get rid of the callback.
+	// Otherwise callbacks will accumulate every time we reload.
+	meter.RegisterCallback(func(ctx context.Context, o metric.Observer) error {
+		stats := consumer.Stats()
+		if stats.UnsupportedMetricsDropped > 0 {
+			o.ObserveInt64(grpcMetricsConsumerUnsupportedDropped, stats.UnsupportedMetricsDropped)
+		}
+		return nil
+	}, grpcMetricsConsumerUnsupportedDropped)
 
 	ptraceotlp.RegisterGRPCServer(grpcServer, &tracesService{consumer: consumer})
 	pmetricotlp.RegisterGRPCServer(grpcServer, &metricsService{consumer: consumer})

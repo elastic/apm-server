@@ -20,7 +20,7 @@ package request
 import (
 	"net/http"
 
-	"github.com/elastic/elastic-agent-libs/monitoring"
+	"go.opentelemetry.io/otel"
 
 	"github.com/pkg/errors"
 )
@@ -81,6 +81,8 @@ const (
 )
 
 var (
+	meter = otel.Meter("github.com/elastic/apm-server/internal/beater/request")
+
 	// MapResultIDToStatus takes a ResultID and maps it to a status
 	MapResultIDToStatus = map[ResultID]Status{
 		IDResponseValidOK:                  {Code: http.StatusOK, Keyword: "request ok"},
@@ -123,27 +125,6 @@ type Result struct {
 	Body       interface{}
 	Err        error
 	Stacktrace string
-}
-
-// DefaultMonitoringMapForRegistry returns map matching resultIDs to monitoring counters for given registry.
-func DefaultMonitoringMapForRegistry(r *monitoring.Registry) map[ResultID]*monitoring.Int {
-	ids := append(DefaultResultIDs, IDUnset)
-	for id := range MapResultIDToStatus {
-		ids = append(ids, id)
-	}
-	return MonitoringMapForRegistry(r, ids)
-}
-
-// MonitoringMapForRegistry returns map matching resultIDs to monitoring counters for given registry and keys
-func MonitoringMapForRegistry(r *monitoring.Registry, ids []ResultID) map[ResultID]*monitoring.Int {
-	m := map[ResultID]*monitoring.Int{}
-	counter := func(s ResultID) *monitoring.Int {
-		return monitoring.NewInt(r, string(s))
-	}
-	for _, id := range ids {
-		m[id] = counter(id)
-	}
-	return m
 }
 
 // Reset sets result to it's empty values

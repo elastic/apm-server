@@ -13,6 +13,8 @@ import (
 
 	"github.com/dgraph-io/badger/v2"
 	"github.com/gofrs/uuid/v5"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/metric"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/beats/v7/libbeat/common/reload"
@@ -21,7 +23,6 @@ import (
 	"github.com/elastic/elastic-agent-client/v7/pkg/proto"
 	"github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
-	"github.com/elastic/elastic-agent-libs/monitoring"
 	"github.com/elastic/elastic-agent-libs/paths"
 
 	"github.com/elastic/apm-data/model/modelpb"
@@ -37,13 +38,14 @@ const (
 )
 
 var (
-	// Note: this registry is created in github.com/elastic/apm-server/sampling. That package
-	// will hopefully disappear in the future, when agents no longer send unsampled transactions.
-	samplingMonitoringRegistry = monitoring.Default.GetRegistry("apm-server.sampling")
+	meter                = otel.Meter("github.com/elastic/apm-server/x-pack/apm-server")
+	lsmSizeGauge, _      = meter.Int64ObservableGauge("apm-server.sampling.tail.storage.lsm_size")
+	valueLogSizeGauge, _ = meter.Int64ObservableGauge("apm-server.sampling.tail.storage.value_log_size")
 
 	// badgerDB holds the badger database to use when tail-based sampling is configured.
-	badgerMu sync.Mutex
-	badgerDB *badger.DB
+	badgerMu                   sync.Mutex
+	badgerDB                   *badger.DB
+	badgerDBMetricRegistration metric.Registration
 
 	storageMu sync.Mutex
 	storage   *eventstorage.ShardedReadWriter
@@ -103,8 +105,6 @@ func newProcessors(args beater.ServerParams) ([]namedProcessor, error) {
 		if err != nil {
 			return nil, fmt.Errorf("error creating %s: %w", name, err)
 		}
-		samplingMonitoringRegistry.Remove("tail")
-		monitoring.NewFunc(samplingMonitoringRegistry, "tail", sampler.CollectMonitoring, monitoring.Report)
 		processors = append(processors, namedProcessor{name: name, processor: sampler})
 	}
 	return processors, nil
@@ -175,6 +175,13 @@ func getBadgerDB(storageDir string) (*badger.DB, error) {
 			return nil, err
 		}
 		badgerDB = db
+
+		badgerDBMetricRegistration, _ = meter.RegisterCallback(func(ctx context.Context, o metric.Observer) error {
+			lsmSize, valueLogSize := db.Size()
+			o.ObserveInt64(lsmSizeGauge, lsmSize)
+			o.ObserveInt64(valueLogSizeGauge, valueLogSize)
+			return nil
+		}, lsmSizeGauge, valueLogSizeGauge)
 	}
 	return badgerDB, nil
 }
@@ -255,6 +262,9 @@ func wrapServer(args beater.ServerParams, runServer beater.RunServerFunc) (beate
 // called concurrently with opening badger.DB/accessing the badgerDB global,
 // so it does not need to hold badgerMu.
 func closeBadger() error {
+	if badgerDBMetricRegistration != nil {
+		badgerDBMetricRegistration.Unregister()
+	}
 	if badgerDB != nil {
 		return badgerDB.Close()
 	}

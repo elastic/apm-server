@@ -18,12 +18,13 @@
 package intake
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
 	"strings"
 
-	"github.com/elastic/elastic-agent-libs/monitoring"
+	"go.opentelemetry.io/otel"
 
 	"github.com/elastic/apm-data/input/elasticapm"
 	"github.com/elastic/apm-data/model/modelpb"
@@ -39,15 +40,6 @@ const (
 )
 
 var (
-	// MonitoringMap holds a mapping for request.IDs to monitoring counters
-	MonitoringMap = request.DefaultMonitoringMapForRegistry(registry)
-	registry      = monitoring.Default.NewRegistry("apm-server.server")
-
-	streamRegistry = monitoring.Default.NewRegistry("apm-server.processor.stream")
-	eventsAccepted = monitoring.NewInt(streamRegistry, "accepted")
-	eventsInvalid  = monitoring.NewInt(streamRegistry, "errors.invalid")
-	eventsTooLarge = monitoring.NewInt(streamRegistry, "errors.toolarge")
-
 	errMethodNotAllowed   = errors.New("only POST requests are supported")
 	errServerShuttingDown = errors.New("server is shutting down")
 	errInvalidContentType = errors.New("invalid content type")
@@ -60,6 +52,11 @@ type RequestMetadataFunc func(*request.Context) *modelpb.APMEvent
 
 // Handler returns a request.Handler for managing intake requests for backend and rum events.
 func Handler(handler elasticapm.StreamHandler, requestMetadataFunc RequestMetadataFunc, batchProcessor modelpb.BatchProcessor) request.Handler {
+	meter := otel.Meter("github.com/elastic/apm-server/internal/beater/api/intake")
+	eventsAccepted, _ := meter.Int64Counter("apm-server.processor.stream.accepted")
+	eventsInvalid, _ := meter.Int64Counter("apm-server.processor.stream.errors.invalid")
+	eventsTooLarge, _ := meter.Int64Counter("apm-server.processor.stream.errors.toolarge")
+
 	return func(c *request.Context) {
 		if err := validateRequest(c); err != nil {
 			writeError(c, err)
@@ -82,9 +79,9 @@ func Handler(handler elasticapm.StreamHandler, requestMetadataFunc RequestMetada
 			batchProcessor,
 			&result,
 		)
-		eventsAccepted.Add(int64(result.Accepted))
-		eventsInvalid.Add(int64(result.Invalid))
-		eventsTooLarge.Add(int64(result.TooLarge))
+		eventsAccepted.Add(context.Background(), int64(result.Accepted))
+		eventsInvalid.Add(context.Background(), int64(result.Invalid))
+		eventsTooLarge.Add(context.Background(), int64(result.TooLarge))
 		writeStreamResult(c, result, err)
 	}
 }

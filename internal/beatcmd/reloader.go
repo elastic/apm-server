@@ -24,6 +24,8 @@ import (
 	"sync"
 
 	"github.com/joeshaw/multierror"
+	"go.opentelemetry.io/otel/metric"
+	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
@@ -50,6 +52,19 @@ type RunnerParams struct {
 
 	// Logger holds a logger to use for logging throughout the APM Server.
 	Logger *logp.Logger
+
+	// MeterProvider holds a metric.MeterProvider that can be used for
+	// creating metrics. The same MeterProvider is execpted to be used
+	// for each instance of the Runner, to ensure counter metrics are
+	// not reset.
+	//
+	// NOTE(axw) metrics registered through this provider are used for
+	// feeding into both Elastic APM (if enabled) and the libbeat
+	// monitoring framework. For the latter, only gauge and counter
+	// metrics are supported, and attributes (dimensions) are ignored.
+	MeterProvider metric.MeterProvider
+
+	MetricReader *sdkmetric.ManualReader
 }
 
 // Runner is an interface returned by NewRunnerFunc.

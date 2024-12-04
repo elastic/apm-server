@@ -18,43 +18,16 @@
 package otlp
 
 import (
-	"sync"
-
-	"github.com/elastic/apm-data/input/otlp"
 	"github.com/elastic/apm-server/internal/beater/request"
-	"github.com/elastic/elastic-agent-libs/monitoring"
+	"go.opentelemetry.io/otel"
 )
 
 var (
+	meter = otel.Meter("github.com/elastic/apm-server/internal/beater/otlp")
+
 	monitoringKeys = append(request.DefaultResultIDs,
 		request.IDResponseErrorsRateLimit,
 		request.IDResponseErrorsTimeout,
 		request.IDResponseErrorsUnauthorized,
 	)
 )
-
-type monitoredConsumer struct {
-	mu       sync.RWMutex
-	consumer *otlp.Consumer
-}
-
-func (m *monitoredConsumer) set(c *otlp.Consumer) {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-	m.consumer = c
-}
-
-func (m *monitoredConsumer) collect(mode monitoring.Mode, V monitoring.Visitor) {
-	V.OnRegistryStart()
-	defer V.OnRegistryFinished()
-
-	m.mu.RLock()
-	c := m.consumer
-	m.mu.RUnlock()
-	if c == nil {
-		return
-	}
-
-	stats := c.Stats()
-	monitoring.ReportInt(V, "unsupported_dropped", stats.UnsupportedMetricsDropped)
-}
