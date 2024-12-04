@@ -71,7 +71,7 @@ require (
 	github.com/cockroachdb/tokenbucket v0.0.0-20230807174530-cc333fc44b06 // indirect
 	github.com/containerd/containerd v1.7.24 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
-	github.com/dgraph-io/ristretto v1.0.0 // indirect
+	github.com/dgraph-io/ristretto v0.2.0 // indirect
 	github.com/dgryski/go-farm v0.0.0-20200201041132-a6ae2369ad13 // indirect
 	github.com/dgryski/go-metro v0.0.0-20180109044635-280f6062b5bc // indirect
 	github.com/dlclark/regexp2 v1.8.1 // indirect
@@ -165,5 +165,3 @@ replace (
 	// command line flags and conflicting with command line flags added by libbeat.
 	github.com/golang/glog => ./internal/glog
 )
-
-replace github.com/dgraph-io/ristretto v1.0.0 => github.com/dgraph-io/ristretto v0.2.0
