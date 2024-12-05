@@ -43,7 +43,7 @@ require (
 	go.elastic.co/apm/v2 v2.6.2
 	go.elastic.co/fastjson v1.4.0
 	go.opentelemetry.io/collector/consumer v0.114.0
-	go.opentelemetry.io/collector/pdata v1.20.0
+	go.opentelemetry.io/collector/pdata v1.21.0
 	go.opentelemetry.io/otel v1.32.0
 	go.opentelemetry.io/otel/metric v1.32.0
 	go.opentelemetry.io/otel/sdk/metric v1.32.0
