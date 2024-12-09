@@ -125,6 +125,28 @@ function buildkite::download_last_artifact {
   BUILDKITE_DOWNLOAD_URL="${download_url}" buildkite::req_download_artifact
 }
 
+#######################################
+# Retry n number of times the given command
+function retry() {
+    local retries=$1
+    shift
+
+    local count=0
+    until "$@"; do
+        exit=$?
+        wait=$((2 ** count))
+        count=$((count + 1))
+        if [ $count -lt "$retries" ]; then
+            >&2 echo "Retry $count/$retries exited $exit, retrying in $wait seconds..."
+            sleep $wait
+        else
+            >&2 echo "Retry $count/$retries exited $exit, no more retries left."
+            return $exit
+        fi
+    done
+    return 0
+}
+
 ## Buildkite specific configuration
 if [ "${CI}" == "true" ] ; then
   # If HOME is not set then use the Buildkite workspace
@@ -147,16 +169,19 @@ if [ "${CI}" == "true" ] ; then
   [ -z "${REPO}" ] && echo "Environment variable 'REPO' must be defined" && exit 1;
   export BUILDKITE_TOKEN="${BUILDKITE_TOKEN_SECRET}"
 
+  echo "--- Setting up the :golang: environment..."
+  GO_VERSION=$(cat .go-version)
+  OS_NAME=linux
+  OS_ARCH=amd64
+  retry 5 curl -sL -o "${BASE_PROJECT}"/gvm "https://github.com/andrewkroh/gvm/releases/download/v0.5.2/gvm-${OS_NAME}-${OS_ARCH}"
+  chmod +x "${BASE_PROJECT}"/gvm
+  retry 5 "${BASE_PROJECT}"/gvm install "$GO_VERSION"
+  eval "$("${BASE_PROJECT}"/gvm use "$GO_VERSION")"
+  echo "Golang version:"
+  go version
+  GOPATH=$(command go env GOPATH)
   # Redirect go env to current dir
-  export GOROOT="${BASE_PROJECT}/.go"
-  export GOPATH="${BASE_PROJECT}/go"
   export PATH="${GOPATH}/bin:${PATH}"
-
-  # Install g (go version manager)
-  curl -sSL https://git.io/g-install | bash -s -- -y
-
-  # Install specific version
-  g install $(cat .go-version)
 
   # Make sure gomod can be deleted automatically as part of the CI
   function teardown {
