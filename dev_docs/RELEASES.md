@@ -74,8 +74,8 @@ For patch releases, only the version on the existing major and minor version bra
 
 * For **patch releases**: if there is an open PR that bumps the version, merge the PR (it may have been created by the GitHub workflow as part of the steps in the ["Day after feature freeze"](#day-after-feature-freeze) section).
   If there is no PR, create one.
-  > [!IMPORTANT]
-  > Only merge the PRs once pinged on Slack by the Release Manager on release date in the #mission-control channel
+ > [!IMPORTANT]
+ > Only merge the PRs once pinged on Slack by the Release Manager on release date in the #mission-control channel
 
 * A new [tag](https://github.com/elastic/apm-server/releases) will automatically be created on GitHub.
 
