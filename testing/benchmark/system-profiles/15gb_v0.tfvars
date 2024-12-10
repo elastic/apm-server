@@ -15,9 +15,8 @@ apm_server_size = "15g"
 apm_server_zone_count = 1
 apm_shards = 4
 
-elasticsearch_size = "180g"
+elasticsearch_size = "120g"
 elasticsearch_zone_count = 2
-elasticsearch_dedicated_masters = true
 
 # Standalone
 
