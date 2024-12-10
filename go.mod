@@ -3,6 +3,7 @@ module github.com/elastic/apm-server
 go 1.23.0
 
 require (
+	github.com/KimMachineGun/automemlimit v0.7.0-pre.3
 	github.com/cespare/xxhash/v2 v2.3.0
 	github.com/dgraph-io/badger/v2 v2.2007.4
 	github.com/dustin/go-humanize v1.0.1
@@ -46,6 +47,7 @@ require (
 	go.opentelemetry.io/otel/sdk/metric v1.32.0
 	go.uber.org/automaxprocs v1.6.0
 	go.uber.org/zap v1.27.0
+	go.uber.org/zap/exp v0.3.0
 	golang.org/x/net v0.32.0
 	golang.org/x/sync v0.10.0
 	golang.org/x/term v0.27.0
@@ -122,6 +124,7 @@ require (
 	github.com/mitchellh/hashstructure v1.1.0 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
+	github.com/pbnjay/memory v0.0.0-20210728143218-7b4eea64cf58 // indirect
 	github.com/pierrec/lz4/v4 v4.1.21 // indirect
 	github.com/planetscale/vtprotobuf v0.6.1-0.20240319094008-0393e58bdf10 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
