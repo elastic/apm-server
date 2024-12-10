@@ -78,11 +78,11 @@ apm-server-oss:
 
 .PHONY: test
 test:
-	@go test $(GOMODFLAG) $(GOTESTFLAGS) ./...
+	@go test $(GOMODFLAG) $(GOTESTFLAGS) -race ./...
 
 .PHONY: system-test
 system-test:
-	@(cd systemtest; go test $(GOMODFLAG) $(GOTESTFLAGS) -timeout=20m ./...)
+	@(cd systemtest; go test $(GOMODFLAG) $(GOTESTFLAGS) -race -timeout=20m ./...)
 
 .PHONY:
 clean:
