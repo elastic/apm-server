@@ -25,5 +25,6 @@ https://github.com/elastic/apm-server/compare/v8.16.0\...v8.17.0[View commits]
 [float]
 ==== Added
 
+- Surface config parsing error under EA managed mode. {pull}14574[14574]
 - The mappings are updated to disable date_detection for all APM data streams.
   The change is applied through https://github.com/elastic/elasticsearch/pull/116995[elasticsearch#116995].
