@@ -12,6 +12,9 @@ https://github.com/elastic/apm-server/compare/v8.16.0\...v8.17.0[View commits]
 ==== Bug fixes
 
 - Clear scroll after completing scroll requests {pull}14551[14551]
+- Surface config parsing error under EA managed mode by logging and marking EA input unit as failed {pull}14574[14574]
+- The mappings are updated to disable date_detection for all APM data streams.
+  The change is applied through https://github.com/elastic/elasticsearch/pull/116995[elasticsearch#116995]
 
 [float]
 ==== Breaking Changes
@@ -24,6 +27,3 @@ https://github.com/elastic/apm-server/compare/v8.16.0\...v8.17.0[View commits]
 
 [float]
 ==== Added
-
-- The mappings are updated to disable date_detection for all APM data streams.
-  The change is applied through https://github.com/elastic/elasticsearch/pull/116995[elasticsearch#116995].
