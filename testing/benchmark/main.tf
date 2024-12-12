@@ -26,13 +26,14 @@ locals {
     build        = var.BUILD_ID
     created_date = coalesce(var.CREATED_DATE, time_static.created_date.unix)
   }
+  project = "apm-server-benchmarks"
 }
 
 module "tags" {
   source = "../infra/terraform/modules/tags"
   # use the convention for team/shared owned resources if we are running in CI.
   # assume this is an individually owned resource otherwise.
-  project = startswith(var.user_name, "benchci") ? "benchmarks" : var.user_name
+  project = startswith(var.user_name, "benchci") ? local.project : "${local.project}-${var.user_name}"
 }
 
 provider "ec" {}
