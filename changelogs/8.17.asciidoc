@@ -1,0 +1,35 @@
+[[apm-release-notes-8.17]]
+== APM version 8.17
+* <<apm-release-notes-8.17.0>>
+
+[float]
+[[apm-release-notes-8.17.0]]
+=== APM version 8.17.0
+
+https://github.com/elastic/apm-server/compare/v8.16.0\...v8.17.0[View commits]
+
+[float]
+==== Bug fixes
+
+- Clear scroll after completing scroll requests {pull}14551[14551]
+- Surface config parsing error under EA managed mode by logging and marking EA input unit as failed {pull}14574[14574]
+- Remove unnecessary hot reload under EA managed mode when apm tracing config is nil {pull}14865[14865]
+- The mappings are updated to disable date_detection for all APM data streams.
+  The change is applied through https://github.com/elastic/elasticsearch/pull/116995[elasticsearch#116995]
+
+[float]
+==== Breaking Changes
+
+[float]
+==== Deprecations
+
+[float]
+==== Intake API Changes
+
+[float]
+==== Added
+
+- In 8.15 the default lifecycle management was switched to leverage DSL instead of ILM.
+  This change was potentially interruptive for several use cases, and therefore is reverted in 8.17.
+  From 8.17 onwards ILM is again the default lifecycle management configuration for the apm data management setup.
+  The change is applied through https://github.com/elastic/elasticsearch/pull/115687[elasticsearch#115687]

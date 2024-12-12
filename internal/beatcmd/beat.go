@@ -23,6 +23,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"os"
 	"os/user"
 	"runtime"
@@ -33,6 +34,7 @@ import (
 
 	"github.com/gofrs/uuid/v5"
 	"go.uber.org/zap"
+	"go.uber.org/zap/exp/zapslog"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/beats/v7/libbeat/api"
@@ -347,6 +349,11 @@ func (b *Beat) Run(ctx context.Context) error {
 	g.Go(func() error {
 		return adjustMaxProcs(ctx, 30*time.Second, logger)
 	})
+
+	slogger := slog.New(zapslog.NewHandler(logger.Core()))
+	if err := adjustMemlimit(1*time.Second, slogger); err != nil {
+		return err
+	}
 
 	logSystemInfo(b.Info)
 
