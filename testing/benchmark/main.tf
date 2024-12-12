@@ -40,6 +40,9 @@ provider "ec" {}
 
 provider "aws" {
   region = var.worker_region
+  default_tags {
+    tags = merge(local.ci_tags, module.tags.labels)
+  }
 }
 
 locals {
