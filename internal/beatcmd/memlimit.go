@@ -27,6 +27,12 @@ import (
 
 func adjustMemlimit(d time.Duration, logger *slog.Logger) error {
 	if _, err := memlimit.SetGoMemLimitWithOpts(
+		memlimit.WithProvider(
+			memlimit.ApplyFallback(
+				memlimit.FromCgroup,
+				memlimit.FromSystem,
+			),
+		),
 		memlimit.WithLogger(logger),
 		memlimit.WithRefreshInterval(d),
 		memlimit.WithRatio(0.9),
