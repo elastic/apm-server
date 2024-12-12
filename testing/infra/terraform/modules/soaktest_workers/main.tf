@@ -72,10 +72,6 @@ resource "google_compute_instance" "worker" {
     access_config {}
   }
 
-  labels = merge(module.tags.labels, {
-    workspace = terraform.workspace
-  })
-
   metadata = {
     ssh-keys = "${local.ssh_user_name}:${data.tls_public_key.worker_login.public_key_openssh}"
   }
