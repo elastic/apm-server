@@ -19,6 +19,7 @@ package functionaltests
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"net/url"
 	"testing"
@@ -35,6 +36,8 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
 )
+
+var cleanupOnFailure *bool = flag.Bool("cleanup-on-failure", true, "Whether to run cleanup even if the test failed.")
 
 const testRegion = "aws-eu-west-1"
 
@@ -156,8 +159,13 @@ func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
 
 	// cleanup
 	t.Log("cleanup")
-	require.NoError(t, tf.Apply(context.Background(),
-		name, version, tfexec.Destroy(true)))
+	if !t.Failed() {
+		require.NoError(t, tf.Apply(ctx, name, version, tfexec.Destroy(true)))
+	} else if t.Failed() && *cleanupOnFailure {
+		require.NoError(t, tf.Apply(ctx, name, version, tfexec.Destroy(true)))
+	} else {
+		t.Log("test failed and cleanup-on-failure is false, skipping cleanup")
+	}
 }
 
 // assertDocCount asserts that count and datastream names in each ApmDocCount slice are equal.
