@@ -73,6 +73,16 @@ func (t *Runner) Apply(ctx context.Context, vars ...tfexec.ApplyOption) error {
 	return nil
 }
 
+func (t *Runner) Destroy(ctx context.Context, vars ...tfexec.DestroyOption) error {
+	if !t.initialized {
+		if err := t.init(); err != nil {
+			return fmt.Errorf("cannot init before apply: %w", err)
+		}
+	}
+
+	return t.tf.Destroy(ctx, vars...)
+}
+
 func (t *Runner) Output(name string, res any) error {
 	o := t.outputs[name]
 	if err := json.Unmarshal(o.Value, res); err != nil {
