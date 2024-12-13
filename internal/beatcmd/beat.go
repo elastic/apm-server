@@ -348,6 +348,14 @@ func (b *Beat) Run(ctx context.Context) error {
 		return adjustMaxProcs(ctx, 30*time.Second, logger)
 	})
 
+<<<<<<< HEAD
+=======
+	slogger := slog.New(zapslog.NewHandler(logger.Core()))
+	if err := adjustMemlimit(30*time.Second, slogger); err != nil {
+		return err
+	}
+
+>>>>>>> 23d9531d (fix: bump memlimit check to 30s interval (#14939))
 	logSystemInfo(b.Info)
 
 	cleanup, err := b.registerElasticsearchVersionCheck()
