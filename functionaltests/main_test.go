@@ -103,7 +103,7 @@ func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
 	// In the tests I noticed that the datastream check could fail due to only
 	// 4 APM data streams being reported. Manual inspection revealed the
 	// correct number of data streams.
-	time.Sleep(20 * time.Second)
+	time.Sleep(30 * time.Second)
 
 	oldCount, err := ac.ApmDocCount(ctx)
 	require.NoError(t, err)
