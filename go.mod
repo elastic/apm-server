@@ -7,13 +7,8 @@ require (
 	github.com/dgraph-io/badger/v2 v2.2007.4
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/apm-aggregation v1.1.0
-<<<<<<< HEAD
-	github.com/elastic/apm-data v1.14.3
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20241210105910-57966ef5606f
-=======
 	github.com/elastic/apm-data v1.14.4
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20241212135446-8daf34822990
->>>>>>> 8777d915 (build(deps): bump github.com/elastic/apm-data from 1.14.3 to 1.14.4 (#14952))
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20241210105910-57966ef5606f
 	github.com/elastic/elastic-agent-client/v7 v7.17.0
 	github.com/elastic/elastic-agent-libs v0.17.4
 	github.com/elastic/elastic-agent-system-metrics v0.11.5
@@ -152,17 +147,11 @@ require (
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	go.elastic.co/apm/module/apmzap/v2 v2.6.2 // indirect
 	go.elastic.co/ecszap v1.0.2 // indirect
-<<<<<<< HEAD
-	go.opentelemetry.io/collector/semconv v0.114.0 // indirect
-	go.opentelemetry.io/otel/sdk v1.32.0 // indirect
-	go.opentelemetry.io/otel/trace v1.32.0 // indirect
-=======
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
 	go.opentelemetry.io/collector/consumer v1.21.0 // indirect
 	go.opentelemetry.io/collector/semconv v0.115.0 // indirect
 	go.opentelemetry.io/otel/sdk v1.33.0 // indirect
 	go.opentelemetry.io/otel/trace v1.33.0 // indirect
->>>>>>> 8777d915 (build(deps): bump github.com/elastic/apm-data from 1.14.3 to 1.14.4 (#14952))
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.31.0 // indirect
 	golang.org/x/exp v0.0.0-20240506185415-9bf2ced13842 // indirect
