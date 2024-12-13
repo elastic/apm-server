@@ -59,6 +59,18 @@ func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
 	name := tfexec.Var(fmt.Sprintf("name=%s", t.Name()))
 	require.NoError(t, tf.Apply(ctx, version, name))
 
+	t.Cleanup(func() {
+		// cleanup
+		t.Log("cleanup terraform resources")
+		if !t.Failed() {
+			require.NoError(t, tf.Apply(ctx, name, version, tfexec.Destroy(true)))
+		} else if t.Failed() && *cleanupOnFailure {
+			require.NoError(t, tf.Apply(ctx, name, version, tfexec.Destroy(true)))
+		} else {
+			t.Log("test failed and cleanup-on-failure is false, skipping cleanup")
+		}
+	})
+
 	var deploymentID string
 	var escfg esclient.Config
 	tf.Output("deployment_id", &deploymentID)
@@ -157,15 +169,6 @@ func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
 	// check ES logs, there should be no errors
 	// TODO: how to get these from Elastic Cloud? Is it possible?
 
-	// cleanup
-	t.Log("cleanup")
-	if !t.Failed() {
-		require.NoError(t, tf.Apply(ctx, name, version, tfexec.Destroy(true)))
-	} else if t.Failed() && *cleanupOnFailure {
-		require.NoError(t, tf.Apply(ctx, name, version, tfexec.Destroy(true)))
-	} else {
-		t.Log("test failed and cleanup-on-failure is false, skipping cleanup")
-	}
 }
 
 // assertDocCount asserts that count and datastream names in each ApmDocCount slice are equal.
