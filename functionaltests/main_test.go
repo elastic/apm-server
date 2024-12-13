@@ -20,7 +20,6 @@ package functionaltests
 import (
 	"context"
 	"flag"
-	"fmt"
 	"net/url"
 	"testing"
 	"time"
@@ -77,7 +76,6 @@ func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
 	tf.Output("kb_url", &escfg.KibanaURL)
 
 	t.Logf("created deployment %s", deploymentID)
-	fmt.Printf("%+v\n", escfg)
 
 	// Create APM Key
 	t.Log("creating API key")
