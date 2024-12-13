@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"net/url"
 	"testing"
+	"time"
 
 	"github.com/elastic/apm-perf/pkg/telemetrygen"
 	"github.com/elastic/apm-server/functionaltests/internal/esclient"
@@ -82,6 +83,12 @@ func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
 	// This is actually using an extracted telemetrygen as Go package.
 	// See https://github.com/elastic/apm-perf/pull/197
 	ingest(t, escfg.APMServerURL, apikey)
+
+	// Wait few seconds before proceeding to ensure ES indexed all our documents.
+	// In the tests I noticed that the datastream check could fail due to only
+	// 4 APM data streams being reported. Manual inspection revealed the
+	// correct number of data streams.
+	time.Sleep(20 * time.Second)
 
 	oldCount, err := ac.ApmDocCount(ctx)
 	require.NoError(t, err)
