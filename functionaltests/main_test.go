@@ -61,11 +61,9 @@ func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
 
 	t.Cleanup(func() {
 		// cleanup
-		t.Log("cleanup terraform resources")
-		if !t.Failed() {
-			require.NoError(t, tf.Apply(ctx, name, version, tfexec.Destroy(true)))
-		} else if t.Failed() && *cleanupOnFailure {
-			require.NoError(t, tf.Apply(ctx, name, version, tfexec.Destroy(true)))
+		if !t.Failed() || (t.Failed() && *cleanupOnFailure) {
+			t.Log("cleanup terraform resources")
+			require.NoError(t, tf.Destroy(ctx, name, version))
 		} else {
 			t.Log("test failed and cleanup-on-failure is false, skipping cleanup")
 		}
