@@ -59,6 +59,18 @@ func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
 	name := tfexec.Var(fmt.Sprintf("name=%s", t.Name()))
 	require.NoError(t, tf.Apply(ctx, version, name))
 
+	t.Cleanup(func() {
+		// cleanup
+		t.Log("cleanup terraform resources")
+		if !t.Failed() {
+			require.NoError(t, tf.Apply(ctx, name, version, tfexec.Destroy(true)))
+		} else if t.Failed() && *cleanupOnFailure {
+			require.NoError(t, tf.Apply(ctx, name, version, tfexec.Destroy(true)))
+		} else {
+			t.Log("test failed and cleanup-on-failure is false, skipping cleanup")
+		}
+	})
+
 	var deploymentID string
 	var escfg esclient.Config
 	tf.Output("deployment_id", &deploymentID)
@@ -91,7 +103,7 @@ func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
 	// In the tests I noticed that the datastream check could fail due to only
 	// 4 APM data streams being reported. Manual inspection revealed the
 	// correct number of data streams.
-	time.Sleep(20 * time.Second)
+	time.Sleep(30 * time.Second)
 
 	oldCount, err := ac.ApmDocCount(ctx)
 	require.NoError(t, err)
@@ -157,15 +169,6 @@ func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
 	// check ES logs, there should be no errors
 	// TODO: how to get these from Elastic Cloud? Is it possible?
 
-	// cleanup
-	t.Log("cleanup")
-	if !t.Failed() {
-		require.NoError(t, tf.Apply(ctx, name, version, tfexec.Destroy(true)))
-	} else if t.Failed() && *cleanupOnFailure {
-		require.NoError(t, tf.Apply(ctx, name, version, tfexec.Destroy(true)))
-	} else {
-		t.Log("test failed and cleanup-on-failure is false, skipping cleanup")
-	}
 }
 
 // assertDocCount asserts that count and datastream names in each ApmDocCount slice are equal.
