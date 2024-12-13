@@ -52,7 +52,8 @@ func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
 	tf, err := terraform.New(t, t.Name())
 	require.NoError(t, err)
 	version := tfexec.Var(fmt.Sprintf("stack_version=%s", "8.15.4"))
-	require.NoError(t, tf.Apply(ctx, version))
+	name := tfexec.Var(fmt.Sprintf("name=%s", t.Name()))
+	require.NoError(t, tf.Apply(ctx, version, name))
 
 	var deploymentID string
 	var escfg esclient.Config
@@ -104,7 +105,8 @@ func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
 	// Upgrade to 8.16.0
 	// FIXME: the update failed because it took more than 10m
 	t.Log("upgrade to 8.16.0")
-	require.NoError(t, tf.Apply(context.Background(),
+	require.NoError(t, tf.Apply(ctx,
+		name,
 		tfexec.Var(fmt.Sprintf("stack_version=%s", "8.16.0"))))
 
 	// check data
@@ -156,7 +158,7 @@ func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
 	// cleanup
 	t.Log("cleanup")
 	require.NoError(t, tf.Apply(context.Background(),
-		version, tfexec.Destroy(true)))
+		name, version, tfexec.Destroy(true)))
 }
 
 // assertDocCount asserts that count and datastream names in each ApmDocCount slice are equal.

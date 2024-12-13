@@ -9,10 +9,10 @@ terraform {
   }
 }
 
-# variable "name" {
-#   type        = string
-#   description = "The deployment name"
-# }
+variable "name" {
+  type        = string
+  description = "The deployment name"
+}
 
 variable "stack_version" {
   type        = string
@@ -24,7 +24,7 @@ provider "ec" {
 }
 
 resource "ec_deployment" "example_minimal" {
-  name = "my_example_deployment"
+  name = var.name
 
   region                 = "aws-eu-west-1"
   version                = var.stack_version
