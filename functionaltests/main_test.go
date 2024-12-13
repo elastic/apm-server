@@ -30,7 +30,6 @@ import (
 	"github.com/elastic/apm-server/functionaltests/internal/terraform"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 
-	"github.com/hashicorp/terraform-exec/tfexec"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
@@ -55,8 +54,8 @@ func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
 	t.Log("creating deploment with terraform")
 	tf, err := terraform.New(t, t.Name())
 	require.NoError(t, err)
-	version := tfexec.Var(fmt.Sprintf("stack_version=%s", "8.15.4"))
-	name := tfexec.Var(fmt.Sprintf("name=%s", t.Name()))
+	version := terraform.Var("stack_version", "8.15.4")
+	name := terraform.Var("name", t.Name())
 	require.NoError(t, tf.Apply(ctx, version, name))
 
 	t.Cleanup(func() {
@@ -123,9 +122,7 @@ func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
 	// Upgrade to 8.16.0
 	// FIXME: the update failed because it took more than 10m
 	t.Log("upgrade to 8.16.0")
-	require.NoError(t, tf.Apply(ctx,
-		name,
-		tfexec.Var(fmt.Sprintf("stack_version=%s", "8.16.0"))))
+	require.NoError(t, tf.Apply(ctx, name, terraform.Var("stack_version", "8.16.0")))
 
 	// check data
 	newCount, err := ac.ApmDocCount(ctx)
