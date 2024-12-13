@@ -1,3 +1,12 @@
+variable "ec_target" {
+  type        = string
+  description = "The Elastic Cloud environment to target"
+  validation {
+    condition     = contains(["qa", "production", "item3"], var.ec_target)
+    error_message = "Valid values are (qa, production)."
+  }
+}
+
 variable "name" {
   type        = string
   description = "The deployment name"
