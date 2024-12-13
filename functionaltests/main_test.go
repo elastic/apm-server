@@ -184,7 +184,7 @@ func ingest(t *testing.T, apmURL string, apikey string) {
 
 	cfg.EventRate.Set("1000/s")
 	g, err := telemetrygen.New(cfg)
-	g.Logger = zaptest.NewLogger(t)
+	g.Logger = zaptest.NewLogger(t, zaptest.Level(zap.InfoLevel))
 	require.NoError(t, err)
 
 	err = g.RunBlocking(context.Background())
