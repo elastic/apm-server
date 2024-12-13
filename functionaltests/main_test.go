@@ -44,6 +44,7 @@ const testRegion = "aws-eu-west-1"
 func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
 	require.NoError(t, ecAPICheck(t))
 
+	start := time.Now()
 	ctx := context.Background()
 
 	// create Elastic Cloud Deployment at version 8.15.4
@@ -54,6 +55,7 @@ func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
 	version := terraform.Var("stack_version", "8.15.4")
 	name := terraform.Var("name", t.Name())
 	require.NoError(t, tf.Apply(ctx, ecTarget, version, name))
+	t.Logf("time elapsed: %s", time.Now().Sub(start))
 
 	t.Cleanup(func() {
 		// cleanup
@@ -115,11 +117,13 @@ func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
 		IndicesPerDs:     1,
 		IndicesManagedBy: []string{"Data stream lifecycle"},
 	}, dss)
+	t.Logf("time elapsed: %s", time.Now().Sub(start))
 
 	// Upgrade to 8.16.0
 	// FIXME: the update failed because it took more than 10m
 	t.Log("upgrade to 8.16.0")
 	require.NoError(t, tf.Apply(ctx, ecTarget, name, terraform.Var("stack_version", "8.16.0")))
+	t.Logf("time elapsed: %s", time.Now().Sub(start))
 
 	// check data
 	newCount, err := ac.ApmDocCount(ctx)
@@ -157,10 +161,10 @@ func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
 		IndicesPerDs:     2,
 		IndicesManagedBy: []string{"Data stream lifecycle", "Data stream lifecycle"},
 	}, dss)
+	t.Logf("time elapsed: %s", time.Now().Sub(start))
 
 	// check ES logs, there should be no errors
 	// TODO: how to get these from Elastic Cloud? Is it possible?
-
 }
 
 // assertDocCount asserts that count and datastream names in each ApmDocCount slice are equal.
