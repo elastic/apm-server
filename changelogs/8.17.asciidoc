@@ -29,7 +29,7 @@ https://github.com/elastic/apm-server/compare/v8.16.0\...v8.17.0[View commits]
 [float]
 ==== Added
 
-- In 8.15 the default lifecycle management was switched to leverage DSL instead of ILM.
-  This change was potentially interruptive for several use cases, and therefore is reverted in 8.17.
-  From 8.17 onwards ILM is again the default lifecycle management configuration for the apm data management setup.
+- The default data lifecycle management mechanism is getting reverted from Data Stream Lifecycle (DSL) to Index Lifecycle Management (ILM), as originally used prior to the introduction of the APM data plugin in release 8.15.0.
+  No action is required from users for this change.
+  However, any custom DSL settings will not be preserved during the migration.
   The change is applied through https://github.com/elastic/elasticsearch/pull/115687[elasticsearch#115687]
