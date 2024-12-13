@@ -37,13 +37,9 @@ import (
 )
 
 var cleanupOnFailure *bool = flag.Bool("cleanup-on-failure", true, "Whether to run cleanup even if the test failed.")
+var target *string = flag.String("target", "production", "The target environment where to run tests againts.")
 
 const testRegion = "aws-eu-west-1"
-
-const (
-	ecAPIEndpoint   = "api.elastic-cloud.com"
-	ecAPIEndpointQA = "https://public-api.qa.cld.elstc.co"
-)
 
 func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
 	require.NoError(t, ecAPICheck(t))
@@ -54,15 +50,16 @@ func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
 	t.Log("creating deploment with terraform")
 	tf, err := terraform.New(t, t.Name())
 	require.NoError(t, err)
+	ecTarget := terraform.Var("ec_target", *target)
 	version := terraform.Var("stack_version", "8.15.4")
 	name := terraform.Var("name", t.Name())
-	require.NoError(t, tf.Apply(ctx, version, name))
+	require.NoError(t, tf.Apply(ctx, ecTarget, version, name))
 
 	t.Cleanup(func() {
 		// cleanup
 		if !t.Failed() || (t.Failed() && *cleanupOnFailure) {
 			t.Log("cleanup terraform resources")
-			require.NoError(t, tf.Destroy(ctx, name, version))
+			require.NoError(t, tf.Destroy(ctx, ecTarget, name, version))
 		} else {
 			t.Log("test failed and cleanup-on-failure is false, skipping cleanup")
 		}
@@ -122,7 +119,7 @@ func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
 	// Upgrade to 8.16.0
 	// FIXME: the update failed because it took more than 10m
 	t.Log("upgrade to 8.16.0")
-	require.NoError(t, tf.Apply(ctx, name, terraform.Var("stack_version", "8.16.0")))
+	require.NoError(t, tf.Apply(ctx, ecTarget, name, terraform.Var("stack_version", "8.16.0")))
 
 	// check data
 	newCount, err := ac.ApmDocCount(ctx)

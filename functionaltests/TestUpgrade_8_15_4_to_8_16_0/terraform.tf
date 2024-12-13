@@ -9,6 +9,13 @@ terraform {
   }
 }
 
+locals {
+  api_endpoints = {
+    qa         = "https://public-api.qa.cld.elstc.co"
+    production = "https://api.elastic-cloud.com"
+  }
+}
+
 provider "ec" {
-  endpoint = "https://public-api.qa.cld.elstc.co"
+  endpoint = local.api_endpoints[var.ec_target]
 }
