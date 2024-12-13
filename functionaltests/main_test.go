@@ -32,6 +32,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zaptest"
 )
 
 const testRegion = "aws-eu-west-1"
@@ -181,7 +182,7 @@ func ingest(t *testing.T, apmURL string, apikey string) {
 
 	cfg.EventRate.Set("1000/s")
 	g, err := telemetrygen.New(cfg)
-	g.Logger = zap.Must(zap.NewDevelopment())
+	g.Logger = zaptest.NewLogger(t)
 	require.NoError(t, err)
 
 	err = g.RunBlocking(context.Background())
