@@ -11,8 +11,8 @@ terraform {
 
 locals {
   api_endpoints = {
-    qa         = "https://public-api.qa.cld.elstc.co"
-    production = "https://api.elastic-cloud.com"
+    qa  = "https://public-api.qa.cld.elstc.co"
+    pro = "https://api.elastic-cloud.com"
   }
 }
 

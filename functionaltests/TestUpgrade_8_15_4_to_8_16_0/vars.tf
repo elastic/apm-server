@@ -2,8 +2,8 @@ variable "ec_target" {
   type        = string
   description = "The Elastic Cloud environment to target"
   validation {
-    condition     = contains(["qa", "production", "item3"], var.ec_target)
-    error_message = "Valid values are (qa, production)."
+    condition     = contains(["qa", "pro"], var.ec_target)
+    error_message = "Valid values are (qa, pro)."
   }
 }
 
