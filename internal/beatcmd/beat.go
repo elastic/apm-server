@@ -351,7 +351,7 @@ func (b *Beat) Run(ctx context.Context) error {
 	})
 
 	slogger := slog.New(zapslog.NewHandler(logger.Core()))
-	if err := adjustMemlimit(1*time.Second, slogger); err != nil {
+	if err := adjustMemlimit(30*time.Second, slogger); err != nil {
 		return err
 	}
 
