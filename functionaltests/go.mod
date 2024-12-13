@@ -2,8 +2,9 @@ module github.com/elastic/apm-server/functionaltests
 
 go 1.23.2
 
+// FIXME: use apm-perf from main after https://github.com/elastic/apm-perf/pull/197 is merged
 require (
-	github.com/elastic/apm-perf v0.0.0-20241205133854-c5983a7ff908
+	github.com/elastic/apm-perf v0.0.0-20241213094810-d1d7602614f5
 	github.com/elastic/go-elasticsearch/v8 v8.16.0
 	github.com/hashicorp/terraform-exec v0.21.0
 	github.com/stretchr/testify v1.10.0
@@ -39,6 +40,3 @@ require (
 	golang.org/x/time v0.8.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
-
-// FIXME: remove this when https://github.com/elastic/apm-perf/pull/197 is merged
-replace github.com/elastic/apm-perf => ../../apm-perf
