@@ -120,7 +120,6 @@ func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
 	t.Logf("time elapsed: %s", time.Now().Sub(start))
 
 	// Upgrade to 8.16.0
-	// FIXME: the update failed because it took more than 10m
 	t.Log("upgrade to 8.16.0")
 	require.NoError(t, tf.Apply(ctx, ecTarget, name, terraform.Var("stack_version", "8.16.0")))
 	t.Logf("time elapsed: %s", time.Now().Sub(start))
