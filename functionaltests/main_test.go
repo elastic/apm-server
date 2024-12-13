@@ -99,15 +99,13 @@ func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
 	// GET _data_stream/*apm*
 	dss, err = ac.GetDataStream(ctx, "*apm*")
 	require.NoError(t, err)
-
-	require.Len(t, dss, 8)
-	for _, v := range dss {
-		assert.False(t, v.PreferIlm)
-		assert.Equal(t, "Data stream lifecycle", v.NextGenerationManagedBy.Name)
-
-		assert.Len(t, v.Indices, 1)
-		assert.Equal(t, "Data stream lifecycle", v.Indices[0].ManagedBy.Name)
-	}
+	checkDatastreams(t, checkDatastreamWant{
+		Quantity:         8,
+		PreferIlm:        false,
+		DSManagedBy:      "Data stream lifecycle",
+		IndicesPerDs:     1,
+		IndicesManagedBy: []string{"Data stream lifecycle"},
+	}, dss)
 
 	// Upgrade to 8.16.0
 	// FIXME: the update failed because it took more than 10m
@@ -119,24 +117,20 @@ func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
 	// check data
 	newCount, err := ac.ApmDocCount(ctx)
 	require.NoError(t, err)
-
-	fmt.Printf("%+v\n", newCount)
 	assertDocCount(t, oldCount, newCount)
 
 	// check rollover happened
-	t.Log("check data streams")
+	t.Log("check data streams after upgrade")
 	dss, err = ac.GetDataStream(ctx, "*apm*")
 	require.NoError(t, err)
-
-	require.Len(t, dss, 8)
-	for _, v := range dss {
-		assert.False(t, v.PreferIlm)
-		assert.Equal(t, "Data stream lifecycle", v.NextGenerationManagedBy.Name)
-
-		// NO rollover here, expected?
-		// assert.Len(t, v.Indices, 2)
-		assert.Equal(t, "Data stream lifecycle", v.Indices[0].ManagedBy.Name)
-	}
+	// NO rollover here, expected? yes with lazy rollover
+	checkDatastreams(t, checkDatastreamWant{
+		Quantity:         8,
+		PreferIlm:        false,
+		DSManagedBy:      "Data stream lifecycle",
+		IndicesPerDs:     1,
+		IndicesManagedBy: []string{"Data stream lifecycle"},
+	}, dss)
 
 	// ingest more
 	t.Log("ingest more")
@@ -146,18 +140,16 @@ func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
 	// Confirm datastreams are
 	// v managed by DSL if created after 8.15.0
 	// x managed by ILM if created before 8.15.0
-	t.Log("check data streams")
+	t.Log("check data streams and verity lazy rollover happened")
 	dss, err = ac.GetDataStream(ctx, "*apm*")
 	require.NoError(t, err)
-
-	require.Len(t, dss, 8)
-	for _, v := range dss {
-		assert.False(t, v.PreferIlm)
-		assert.Equal(t, "Data stream lifecycle", v.NextGenerationManagedBy.Name)
-
-		assert.Len(t, v.Indices, 2)
-		assert.Equal(t, "Data stream lifecycle", v.Indices[0].ManagedBy.Name)
-	}
+	checkDatastreams(t, checkDatastreamWant{
+		Quantity:         8,
+		PreferIlm:        false,
+		DSManagedBy:      "Data stream lifecycle",
+		IndicesPerDs:     2,
+		IndicesManagedBy: []string{"Data stream lifecycle", "Data stream lifecycle"},
+	}, dss)
 
 	// check ES logs, there should be no errors
 	// TODO: how to get these from Elastic Cloud? Is it possible?
@@ -195,4 +187,32 @@ func ingest(t *testing.T, apmURL string, apikey string) {
 	require.NoError(t, err)
 
 	err = g.RunBlocking(context.Background())
+}
+
+type checkDatastreamWant struct {
+	Quantity         int
+	DSManagedBy      string
+	IndicesPerDs     int
+	PreferIlm        bool
+	IndicesManagedBy []string
+}
+
+func checkDatastreams(t *testing.T, expected checkDatastreamWant, actual []types.DataStream) {
+	t.Helper()
+
+	require.Len(t, actual, expected.Quantity, "number of APM datastream differs from expectations")
+	for _, v := range actual {
+		if expected.PreferIlm {
+			assert.True(t, v.PreferIlm)
+		} else {
+			assert.False(t, v.PreferIlm)
+		}
+		assert.Equal(t, expected.DSManagedBy, v.NextGenerationManagedBy.Name)
+		assert.Len(t, v.Indices, expected.IndicesPerDs)
+
+		for i, index := range v.Indices {
+			assert.Equal(t, expected.IndicesManagedBy[i], index.ManagedBy.Name)
+		}
+	}
+
 }
