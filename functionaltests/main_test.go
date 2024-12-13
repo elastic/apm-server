@@ -49,7 +49,7 @@ func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
 
 	// create Elastic Cloud Deployment at version 8.15.4
 	t.Log("creating deploment with terraform")
-	tf, err := terraform.New(t.Name())
+	tf, err := terraform.New(t, t.Name())
 	require.NoError(t, err)
 	version := tfexec.Var(fmt.Sprintf("stack_version=%s", "8.15.4"))
 	require.NoError(t, tf.Apply(ctx, version))

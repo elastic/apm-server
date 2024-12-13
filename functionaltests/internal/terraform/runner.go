@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"testing"
 
 	"github.com/hashicorp/terraform-exec/tfexec"
 )
@@ -14,21 +15,22 @@ type Runner struct {
 	tf          *tfexec.Terraform
 }
 
-func New(workingDir string) (*Runner, error) {
-	t := Runner{}
+func New(t *testing.T, workingDir string) (*Runner, error) {
+	tr := Runner{}
 
 	tf, err := tfexec.NewTerraform(workingDir, "terraform")
 	if err != nil {
-		return &t, fmt.Errorf("error instantiating terraform runner: %w", err)
+		return &tr, fmt.Errorf("error instantiating terraform runner: %w", err)
 	}
-	t.tf = tf
-	if err := t.init(); err != nil {
-		return &t, fmt.Errorf("cannot run terraform init: %w", err)
+	tf.SetLogger(&tfLoggerv2{t})
+	tr.tf = tf
+	if err := tr.init(); err != nil {
+		return &tr, fmt.Errorf("cannot run terraform init: %w", err)
 	} else {
-		t.initialized = true
+		tr.initialized = true
 	}
 
-	return &t, nil
+	return &tr, nil
 }
 
 func (t *Runner) init() error {
