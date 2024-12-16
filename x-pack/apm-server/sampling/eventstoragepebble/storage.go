@@ -22,6 +22,8 @@ const (
 	entryMetaTraceSampled   byte = 's'
 	entryMetaTraceUnsampled byte = 'u'
 	entryMetaTraceEvent     byte = 'e'
+
+	flushThreshold = 5 * 1024 * 1024
 )
 
 // Storage provides storage for sampled transactions and spans,
@@ -160,7 +162,7 @@ func (rw *ReadWriter) writeEntry(key, data []byte) error {
 		return err
 	}
 
-	if rw.batch.Len() > 1<<20 {
+	if rw.batch.Len() > flushThreshold {
 		if err := rw.Flush(); err != nil {
 			return err
 		}
@@ -200,7 +202,7 @@ func (rw *ReadWriter) DeleteTraceEvent(traceID, id string) error {
 	if err != nil {
 		return err
 	}
-	if rw.batch.Len() > 1<<20 {
+	if rw.batch.Len() > flushThreshold {
 		if err := rw.Flush(); err != nil {
 			return err
 		}
