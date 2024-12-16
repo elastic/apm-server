@@ -27,9 +27,7 @@ DOCKER_BUILD_ARGS := \
 
 DOCKER_IMAGES := \
 	build/docker/apm-server-$(APM_SERVER_VERSION).txt \
-	build/docker/apm-server-$(APM_SERVER_VERSION)-SNAPSHOT.txt \
-	build/docker/apm-server-ubi-$(APM_SERVER_VERSION).txt \
-	build/docker/apm-server-ubi-$(APM_SERVER_VERSION)-SNAPSHOT.txt
+	build/docker/apm-server-$(APM_SERVER_VERSION)-SNAPSHOT.txt
 
 # If GENERATE_WOLFI_IMAGES is set then generate wolfi docker images.
 ifdef GENERATE_WOLFI_IMAGES
@@ -42,7 +40,6 @@ build/docker/%.txt: DOCKER_IMAGE_TAG := docker.elastic.co/apm/apm-server:%
 build/docker/%.txt: VERSION := $(APM_SERVER_VERSION)
 build/docker/%.txt: DOCKER_FILE_ARGS := -f packaging/docker/Dockerfile
 build/docker/%-SNAPSHOT.txt: VERSION := $(APM_SERVER_VERSION)-SNAPSHOT
-build/docker/apm-server-ubi-%.txt: DOCKER_BUILD_ARGS+=--build-arg BASE_IMAGE=docker.elastic.co/ubi9/ubi-minimal
 build/docker/apm-server-wolfi-%.txt: DOCKER_FILE_ARGS := -f packaging/docker/Dockerfile.wolfi
 
 INTERNAL_DOCKER_IMAGE := docker.elastic.co/observability-ci/apm-server-internal
@@ -59,7 +56,7 @@ $(DOCKER_IMAGES):
 
 # Docker image tarballs. We distribute UBI Docker images only for AMD64.
 DOCKER_IMAGE_SUFFIX := docker-image$(if $(findstring arm64,$(GOARCH)),-arm64).tar.gz
-DOCKER_IMAGE_PREFIXES := apm-server $(if $(findstring amd64,$(GOARCH)), apm-server-ubi)
+DOCKER_IMAGE_PREFIXES := apm-server
 # If GENERATE_WOLFI_IMAGES is set then generate wolfi docker images.
 ifdef GENERATE_WOLFI_IMAGES
 DOCKER_IMAGE_PREFIXES := $(DOCKER_IMAGE_PREFIXES) apm-server-wolfi
