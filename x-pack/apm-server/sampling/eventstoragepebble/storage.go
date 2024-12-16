@@ -159,7 +159,7 @@ func (rw *ReadWriter) writeEntry(key, data []byte) error {
 		return err
 	}
 
-	if rw.batch.Len() > 2000 {
+	if rw.batch.Len() > 1<<20 {
 		if err := rw.Flush(); err != nil {
 			return err
 		}
@@ -185,25 +185,25 @@ func (rw *ReadWriter) writeEntry(key, data []byte) error {
 
 // DeleteTraceEvent deletes the trace event from storage.
 func (rw *ReadWriter) DeleteTraceEvent(traceID, id string) error {
-	//var buf bytes.Buffer
-	//buf.Grow(len(traceID) + 1 + len(id))
-	//buf.WriteString(traceID)
-	//buf.WriteByte(':')
-	//buf.WriteString(id)
-	//key := buf.Bytes()
-	//
-	//err := rw.txn.Delete(key)
-	//// If the transaction is already too big to accommodate the new entry, flush
-	//// the existing transaction and set the entry on a new one, otherwise,
-	//// returns early.
-	//if err != badger.ErrTxnTooBig {
-	//	return err
-	//}
-	//if err := rw.Flush(); err != nil {
-	//	return err
-	//}
-	//
-	//return rw.txn.Delete(key)
+	rw.mu.Lock()
+	defer rw.mu.Unlock()
+	//FIXME: use delete range
+	var buf bytes.Buffer
+	buf.Grow(len(traceID) + 1 + len(id))
+	buf.WriteString(traceID)
+	buf.WriteByte(':')
+	buf.WriteString(id)
+	key := buf.Bytes()
+
+	err := rw.batch.Delete(key, pebble.NoSync)
+	if err != nil {
+		return err
+	}
+	if rw.batch.Len() > 1<<20 {
+		if err := rw.Flush(); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
