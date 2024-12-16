@@ -11,6 +11,10 @@ import (
 	"os"
 	"sync"
 
+	"github.com/cockroachdb/pebble"
+
+	"github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstoragepebble"
+
 	"github.com/dgraph-io/badger/v2"
 	"github.com/gofrs/uuid/v5"
 	"golang.org/x/sync/errgroup"
@@ -46,7 +50,7 @@ var (
 	badgerDB *badger.DB
 
 	storageMu sync.Mutex
-	storage   *eventstorage.ShardedReadWriter
+	storage   sampling.RW
 
 	// samplerUUID is a UUID used to identify sampled trace ID documents
 	// published by this process.
@@ -179,12 +183,26 @@ func getBadgerDB(storageDir string) (*badger.DB, error) {
 	return badgerDB, nil
 }
 
-func getStorage(db *badger.DB) *eventstorage.ShardedReadWriter {
+func getStorage(db *badger.DB) sampling.RW {
 	storageMu.Lock()
 	defer storageMu.Unlock()
 	if storage == nil {
 		eventCodec := eventstorage.ProtobufCodec{}
 		storage = eventstorage.New(db, eventCodec).NewShardedReadWriter()
+	}
+	return storage
+}
+
+func getPebbleDB(storageDir string) (*pebble.DB, error) {
+	return pebble.Open(storageDir, &pebble.Options{})
+}
+
+func getPebbleStorage(db *pebble.DB) sampling.RW {
+	storageMu.Lock()
+	defer storageMu.Unlock()
+	if storage == nil {
+		eventCodec := eventstoragepebble.ProtobufCodec{}
+		storage = eventstoragepebble.New(db, eventCodec).NewReadWriter()
 	}
 	return storage
 }

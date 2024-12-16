@@ -623,9 +623,19 @@ const (
 	storageLimitThreshold = 0.90 // Allow 90% of the quota to be used.
 )
 
+type RW interface {
+	Close()
+	Flush() error
+	WriteTraceSampled(traceID string, sampled bool, opts eventstorage.WriterOpts) error
+	IsTraceSampled(traceID string) (bool, error)
+	WriteTraceEvent(traceID string, id string, event *modelpb.APMEvent, opts eventstorage.WriterOpts) error
+	DeleteTraceEvent(traceID, id string) error
+	ReadTraceEvents(traceID string, out *modelpb.Batch) error
+}
+
 // wrappedRW wraps configurable write options for global ShardedReadWriter
 type wrappedRW struct {
-	rw         *eventstorage.ShardedReadWriter
+	rw         RW
 	writerOpts eventstorage.WriterOpts
 }
 
@@ -634,7 +644,7 @@ type wrappedRW struct {
 // limit value greater than zero. The hard limit on storage is set to 90% of
 // the limit to account for delay in the size reporting by badger.
 // https://github.com/dgraph-io/badger/blob/82b00f27e3827022082225221ae05c03f0d37620/db.go#L1302-L1319.
-func newWrappedRW(rw *eventstorage.ShardedReadWriter, ttl time.Duration, limit int64) *wrappedRW {
+func newWrappedRW(rw RW, ttl time.Duration, limit int64) *wrappedRW {
 	if limit > 1 {
 		limit = int64(float64(limit) * storageLimitThreshold)
 	}

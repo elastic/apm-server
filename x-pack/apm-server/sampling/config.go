@@ -11,7 +11,6 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/elastic/apm-data/model/modelpb"
-	"github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/pubsub"
 	"github.com/elastic/go-elasticsearch/v8"
 )
@@ -105,7 +104,7 @@ type StorageConfig struct {
 	//
 	// Storage lives outside processor lifecycle and will not be closed when processor
 	// is closed
-	Storage *eventstorage.ShardedReadWriter
+	Storage RW
 
 	// StorageDir holds the directory in which event storage will be maintained.
 	StorageDir string
