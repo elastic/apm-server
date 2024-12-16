@@ -234,9 +234,9 @@ func (config DataStreamConfig) validate() error {
 }
 
 func (config StorageConfig) validate() error {
-	if config.DB == nil {
-		return errors.New("DB unspecified")
-	}
+	//if config.DB == nil {
+	//	return errors.New("DB unspecified")
+	//}
 	if config.Storage == nil {
 		return errors.New("Storage unspecified")
 	}

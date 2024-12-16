@@ -14,7 +14,6 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/dgraph-io/badger/v2"
 	"github.com/pkg/errors"
 	"golang.org/x/sync/errgroup"
 
@@ -117,11 +116,11 @@ func (p *Processor) CollectMonitoring(_ monitoring.Mode, V monitoring.Visitor) {
 	p.groups.mu.RUnlock()
 	monitoring.ReportInt(V, "dynamic_service_groups", int64(numDynamicGroups))
 
-	monitoring.ReportNamespace(V, "storage", func() {
-		lsmSize, valueLogSize := p.config.DB.Size()
-		monitoring.ReportInt(V, "lsm_size", int64(lsmSize))
-		monitoring.ReportInt(V, "value_log_size", int64(valueLogSize))
-	})
+	//monitoring.ReportNamespace(V, "storage", func() {
+	//	lsmSize, valueLogSize := p.config.DB.Size()
+	//	monitoring.ReportInt(V, "lsm_size", int64(lsmSize))
+	//	monitoring.ReportInt(V, "value_log_size", int64(valueLogSize))
+	//})
 	monitoring.ReportNamespace(V, "events", func() {
 		monitoring.ReportInt(V, "processed", atomic.LoadInt64(&p.eventMetrics.processed))
 		monitoring.ReportInt(V, "dropped", atomic.LoadInt64(&p.eventMetrics.dropped))
@@ -390,40 +389,40 @@ func (p *Processor) Run() error {
 			}
 		}
 	})
-	g.Go(func() error {
-		// Protect this goroutine from running concurrently when 2 TBS processors are active
-		// as badger GC is not concurrent safe.
-		select {
-		case <-p.stopping:
-			return nil
-		case gcCh <- struct{}{}:
-		}
-		defer func() {
-			<-gcCh
-		}()
-		// This goroutine is responsible for periodically garbage
-		// collecting the Badger value log, using the recommended
-		// discard ratio of 0.5.
-		ticker := time.NewTicker(p.config.StorageGCInterval)
-		defer ticker.Stop()
-		for {
-			select {
-			case <-p.stopping:
-				return nil
-			case <-ticker.C:
-				const discardRatio = 0.5
-				var err error
-				for err == nil {
-					// Keep garbage collecting until there are no more rewrites,
-					// or garbage collection fails.
-					err = p.config.DB.RunValueLogGC(discardRatio)
-				}
-				if err != nil && err != badger.ErrNoRewrite {
-					return err
-				}
-			}
-		}
-	})
+	//g.Go(func() error {
+	//	// Protect this goroutine from running concurrently when 2 TBS processors are active
+	//	// as badger GC is not concurrent safe.
+	//	select {
+	//	case <-p.stopping:
+	//		return nil
+	//	case gcCh <- struct{}{}:
+	//	}
+	//	defer func() {
+	//		<-gcCh
+	//	}()
+	//	// This goroutine is responsible for periodically garbage
+	//	// collecting the Badger value log, using the recommended
+	//	// discard ratio of 0.5.
+	//	ticker := time.NewTicker(p.config.StorageGCInterval)
+	//	defer ticker.Stop()
+	//	for {
+	//		select {
+	//		case <-p.stopping:
+	//			return nil
+	//		case <-ticker.C:
+	//			const discardRatio = 0.5
+	//			var err error
+	//			for err == nil {
+	//				// Keep garbage collecting until there are no more rewrites,
+	//				// or garbage collection fails.
+	//				err = p.config.DB.RunValueLogGC(discardRatio)
+	//			}
+	//			if err != nil && err != badger.ErrNoRewrite {
+	//				return err
+	//			}
+	//		}
+	//	}
+	//})
 	g.Go(func() error {
 		// Subscribe to remotely sampled trace IDs. This is cancelled immediately when
 		// Stop is called. But it is possible that both old and new subscriber goroutines

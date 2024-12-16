@@ -122,11 +122,11 @@ func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, er
 	}
 
 	storageDir := paths.Resolve(paths.Data, tailSamplingStorageDir)
-	badgerDB, err = getBadgerDB(storageDir)
+	db, err := getPebbleDB(storageDir)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get Badger database: %w", err)
 	}
-	readWriters := getStorage(badgerDB)
+	readWriters := getPebbleStorage(db)
 
 	policies := make([]sampling.Policy, len(tailSamplingConfig.Policies))
 	for i, in := range tailSamplingConfig.Policies {

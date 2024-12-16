@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"github.com/cockroachdb/pebble"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage"
+	"sync"
 	"sync/atomic"
 	"time"
 
@@ -90,6 +91,9 @@ type ReadWriter struct {
 	// This must not be used in write operations, as keys are expected to
 	// be unmodified until the end of a transaction.
 	readKeyBuf []byte
+
+	mu    sync.Mutex
+	batch *pebble.Batch
 }
 
 // Close closes the writer. Any writes that have not been flushed may be lost.
@@ -143,7 +147,7 @@ func (rw *ReadWriter) IsTraceSampled(traceID string) (bool, error) {
 	//	return false, err
 	//}
 	//return item.UserMeta() == entryMetaTraceSampled, nil
-	return false, nil
+	return false, eventstorage.ErrNotFound
 }
 
 // WriteTraceEvent writes a trace event to storage.
@@ -161,64 +165,84 @@ func (rw *ReadWriter) WriteTraceEvent(traceID string, id string, event *modelpb.
 	buf.WriteByte(':')
 	buf.WriteString(id)
 	key := buf.Bytes()
-	return rw.s.db.Set(key, data, pebble.NoSync)
-	//rw.writeEntry(badger.NewEntry(key, data).WithMeta(entryMetaTraceEvent), opts)
+
+	//return rw.s.db.Set(key, data, pebble.NoSync)
+	return rw.writeEntry(key, data)
 }
 
-//func (rw *ReadWriter) writeEntry(e *badger.Entry, opts WriterOpts) error {
-//	rw.pendingWrites++
-//	entrySize := estimateSize(e)
-//	// The badger database has an async size reconciliation, with a 1 minute
-//	// ticker that keeps the lsm and vlog sizes updated in an in-memory map.
-//	// It's OK to call call s.db.Size() on the hot path, since the memory
-//	// lookup is cheap.
-//	lsm, vlog := rw.s.db.Size()
-//
-//	// there are multiple ReadWriters writing to the same storage so add
-//	// the entry size and consider the new value to avoid TOCTOU issues.
-//	pendingSize := rw.s.pendingSize.Add(entrySize)
-//	rw.pendingSize += entrySize
-//
-//	if current := pendingSize + lsm + vlog; opts.StorageLimitInBytes != 0 && current >= opts.StorageLimitInBytes {
-//		// flush what we currently have and discard the current entry
-//		if err := rw.Flush(); err != nil {
-//			return err
-//		}
-//		return fmt.Errorf("%w (current: %d, limit: %d)", ErrLimitReached, current, opts.StorageLimitInBytes)
-//	}
-//
-//	if rw.pendingWrites >= 200 {
-//		// Attempt to flush if there are 200 or more uncommitted writes.
-//		// This ensures calls to ReadTraceEvents are not slowed down;
-//		// ReadTraceEvents uses an iterator, which must sort all keys
-//		// of uncommitted writes.
-//		// The 200 value yielded a good balance between read and write speed:
-//		// https://github.com/elastic/apm-server/pull/8407#issuecomment-1162994643
-//		if err := rw.Flush(); err != nil {
-//			return err
-//		}
-//
-//		// the current ReadWriter flushed the transaction and reset the pendingSize so add
-//		// the entrySize again.
-//		rw.pendingSize += entrySize
-//		rw.s.pendingSize.Add(entrySize)
-//	}
-//
-//	err := rw.txn.SetEntry(e.WithTTL(opts.TTL))
-//
-//	// If the transaction is already too big to accommodate the new entry, flush
-//	// the existing transaction and set the entry on a new one, otherwise,
-//	// returns early.
-//	if err != badger.ErrTxnTooBig {
-//		return err
-//	}
-//	if err := rw.Flush(); err != nil {
-//		return err
-//	}
-//	rw.pendingSize += entrySize
-//	rw.s.pendingSize.Add(entrySize)
-//	return rw.txn.SetEntry(e.WithTTL(opts.TTL))
-//}
+func (rw *ReadWriter) writeEntry(key, data []byte) error {
+	rw.mu.Lock()
+	defer rw.mu.Unlock()
+	if rw.batch == nil {
+		rw.batch = rw.s.db.NewIndexedBatch()
+	}
+	if err := rw.batch.Set(key, data, pebble.NoSync); err != nil {
+		return err
+	}
+
+	if rw.batch.Len() > 2000 {
+		err := rw.batch.Commit(pebble.Sync)
+		rw.batch.Close()
+		rw.batch = nil
+		return err
+	}
+	return nil
+
+	//
+	//rw.pendingWrites++
+	//entrySize := estimateSize(e)
+	//// The badger database has an async size reconciliation, with a 1 minute
+	//// ticker that keeps the lsm and vlog sizes updated in an in-memory map.
+	//// It's OK to call call s.db.Size() on the hot path, since the memory
+	//// lookup is cheap.
+	//lsm, vlog := rw.s.db.Size()
+	//
+	//// there are multiple ReadWriters writing to the same storage so add
+	//// the entry size and consider the new value to avoid TOCTOU issues.
+	//pendingSize := rw.s.pendingSize.Add(entrySize)
+	//rw.pendingSize += entrySize
+	//
+	//if current := pendingSize + lsm + vlog; opts.StorageLimitInBytes != 0 && current >= opts.StorageLimitInBytes {
+	//	// flush what we currently have and discard the current entry
+	//	if err := rw.Flush(); err != nil {
+	//		return err
+	//	}
+	//	return fmt.Errorf("%w (current: %d, limit: %d)", ErrLimitReached, current, opts.StorageLimitInBytes)
+	//}
+	//
+	//if rw.pendingWrites >= 200 {
+	//	// Attempt to flush if there are 200 or more uncommitted writes.
+	//	// This ensures calls to ReadTraceEvents are not slowed down;
+	//	// ReadTraceEvents uses an iterator, which must sort all keys
+	//	// of uncommitted writes.
+	//	// The 200 value yielded a good balance between read and write speed:
+	//	// https://github.com/elastic/apm-server/pull/8407#issuecomment-1162994643
+	//	if err := rw.Flush(); err != nil {
+	//		return err
+	//	}
+	//
+	//	// the current ReadWriter flushed the transaction and reset the pendingSize so add
+	//	// the entrySize again.
+	//	rw.pendingSize += entrySize
+	//	rw.s.pendingSize.Add(entrySize)
+	//}
+	//
+	//err := rw.txn.SetEntry(e.WithTTL(opts.TTL))
+	//
+	//// If the transaction is already too big to accommodate the new entry, flush
+	//// the existing transaction and set the entry on a new one, otherwise,
+	//// returns early.
+	//if err != badger.ErrTxnTooBig {
+	//	return err
+	//}
+	//if err := rw.Flush(); err != nil {
+	//	return err
+	//}
+	//rw.pendingSize += entrySize
+	//rw.s.pendingSize.Add(entrySize)
+	//return rw.txn.SetEntry(e.WithTTL(opts.TTL))
+}
+
 //
 //func estimateSize(e *badger.Entry) int64 {
 //	// See badger WithValueThreshold option
@@ -261,7 +285,12 @@ func (rw *ReadWriter) DeleteTraceEvent(traceID, id string) error {
 
 // ReadTraceEvents reads trace events with the given trace ID from storage into out.
 func (rw *ReadWriter) ReadTraceEvents(traceID string, out *modelpb.Batch) error {
-	iter, err := rw.s.db.NewIter(&pebble.IterOptions{
+	rw.mu.Lock()
+	defer rw.mu.Unlock()
+	if rw.batch == nil {
+		rw.batch = rw.s.db.NewIndexedBatch()
+	}
+	iter, err := rw.batch.NewIter(&pebble.IterOptions{
 		LowerBound: append([]byte(traceID), ':'),
 		UpperBound: append([]byte(traceID), ';'),
 	})
