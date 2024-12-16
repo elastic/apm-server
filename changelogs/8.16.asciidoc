@@ -29,7 +29,7 @@ https://github.com/elastic/apm-server/compare/v8.16.1\...v8.16.2[View commits]
 [float]
 ==== Added
 
-- In this release we've introduced an image based on the hardened https://wolfi.dev/[Wolfi] image to provide secure containers to our self-managed customers, help with compliance regulations, and improve our supply chain security posture.
+- In this release we've introduced an image based on the hardened https://wolfi.dev/[Wolfi] image to provide additional security to our self-managed customers, and improve our supply chain security posture.
 
 [float]
 [[apm-release-notes-8.16.1]]
