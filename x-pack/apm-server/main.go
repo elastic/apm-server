@@ -202,7 +202,7 @@ func getPebbleStorage(db *pebble.DB) sampling.RW {
 	defer storageMu.Unlock()
 	if storage == nil {
 		eventCodec := eventstoragepebble.ProtobufCodec{}
-		storage = eventstoragepebble.New(db, eventCodec).NewReadWriter()
+		storage = eventstoragepebble.New(db, eventCodec).NewShardedReadWriter()
 	}
 	return storage
 }

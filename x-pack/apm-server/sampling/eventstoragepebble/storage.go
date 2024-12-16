@@ -9,13 +9,11 @@ import (
 	"fmt"
 	"sync"
 	"sync/atomic"
-	"time"
 
 	"github.com/cockroachdb/pebble"
+	"github.com/elastic/apm-data/model/modelpb"
 
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage"
-
-	"github.com/elastic/apm-data/model/modelpb"
 )
 
 const (
@@ -46,6 +44,15 @@ func New(db *pebble.DB, codec Codec) *Storage {
 	return &Storage{db: db, pendingSize: &atomic.Int64{}, codec: codec}
 }
 
+// NewShardedReadWriter returns a new ShardedReadWriter, for sharded
+// reading and writing.
+//
+// The returned ShardedReadWriter must be closed when it is no longer
+// needed.
+func (s *Storage) NewShardedReadWriter() *ShardedReadWriter {
+	return newShardedReadWriter(s)
+}
+
 // NewReadWriter returns a new ReadWriter for reading events from and
 // writing events to storage.
 //
@@ -57,12 +64,6 @@ func (s *Storage) NewReadWriter() *ReadWriter {
 		batch: s.db.NewIndexedBatch(),
 		//pendingSize: baseTransactionSize,
 	}
-}
-
-// WriterOpts provides configuration options for writes to storage
-type WriterOpts struct {
-	TTL                 time.Duration
-	StorageLimitInBytes int64
 }
 
 // ReadWriter provides a means of reading events from storage, and batched
