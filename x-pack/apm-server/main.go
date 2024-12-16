@@ -11,7 +11,7 @@ import (
 	"os"
 	"sync"
 
-	"github.com/dgraph-io/badger/v2"
+	"github.com/dgraph-io/badger/v4"
 	"github.com/gofrs/uuid/v5"
 	"golang.org/x/sync/errgroup"
 
