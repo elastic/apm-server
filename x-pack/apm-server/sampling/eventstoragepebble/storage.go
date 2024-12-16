@@ -98,7 +98,7 @@ func (rw *ReadWriter) Close() {
 // If Flush is not called before the writer is closed, then writes
 // may be lost.
 func (rw *ReadWriter) Flush() error {
-	err := rw.batch.Commit(pebble.Sync)
+	err := rw.batch.Commit(pebble.NoSync)
 	rw.batch.Close()
 	rw.batch = rw.s.db.NewIndexedBatch()
 	const flushErrFmt = "failed to flush pending writes: %w"
@@ -110,6 +110,8 @@ func (rw *ReadWriter) Flush() error {
 
 // WriteTraceSampled records the tail-sampling decision for the given trace ID.
 func (rw *ReadWriter) WriteTraceSampled(traceID string, sampled bool, opts eventstorage.WriterOpts) error {
+	rw.mu.Lock()
+	defer rw.mu.Unlock()
 	key := []byte(traceID)
 	meta := entryMetaTraceUnsampled
 	if sampled {
@@ -122,6 +124,8 @@ func (rw *ReadWriter) WriteTraceSampled(traceID string, sampled bool, opts event
 // or unsampled. If no sampling decision has been recorded, IsTraceSampled
 // returns ErrNotFound.
 func (rw *ReadWriter) IsTraceSampled(traceID string) (bool, error) {
+	rw.mu.Lock()
+	defer rw.mu.Unlock()
 	item, closer, err := rw.batch.Get([]byte(traceID))
 	if err == pebble.ErrNotFound {
 		return false, eventstorage.ErrNotFound
