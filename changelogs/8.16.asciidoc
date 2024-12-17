@@ -1,10 +1,5 @@
 [[apm-release-notes-8.16]]
 == APM version 8.16
-<<<<<<< HEAD
-* <<apm-release-notes-8.16.0>>
-
-[float]
-=======
 
 * <<apm-release-notes-8.16.2>>
 * <<apm-release-notes-8.16.1>>
@@ -58,7 +53,6 @@ https://github.com/elastic/apm-server/compare/v8.16.0\...v8.16.1[View commits]
 ==== Added
 
 [float]
->>>>>>> 5c59c962 (changelog: add entry for 8.16.2 release notes (#14912))
 [[apm-release-notes-8.16.0]]
 === APM version 8.16.0
 
