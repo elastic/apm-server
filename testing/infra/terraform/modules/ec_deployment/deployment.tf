@@ -119,7 +119,7 @@ resource "local_file" "enable_features" {
     elastic_password = ec_deployment.deployment.elasticsearch_password,
     enable_expvar    = var.apm_server_expvar
     enable_pprof     = var.apm_server_pprof
-    enable_tbs       = var.apm_server_tbs
+    enable_tail_sampling       = var.apm_server_tail_sampling
   })
   filename = "${path.module}/scripts/enable_features.sh"
 }

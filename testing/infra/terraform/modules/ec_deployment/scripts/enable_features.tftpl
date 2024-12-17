@@ -17,7 +17,7 @@ fi
 # Abort early if features are already set as desired
 echo $${POLICY} | jq -e '.item | select(.inputs[].policy_template == "apmserver").inputs[].vars.expvar_enabled.value == ${enable_expvar}' &&
  echo $${POLICY} | jq -e '.item | select(.inputs[].policy_template == "apmserver").inputs[].vars.pprof_enabled.value == ${enable_pprof}' &&
- echo $${POLICY} | jq -e '.item | select(.inputs[].policy_template == "apmserver").inputs[].vars.tail_sampling_enabled.value == ${enable_tbs}' &&
+ echo $${POLICY} | jq -e '.item | select(.inputs[].policy_template == "apmserver").inputs[].vars.tail_sampling_enabled.value == ${enable_tail_sampling}' &&
  echo "Features already set as desired" && exit 0
 
 # Download and modify the APM policy
@@ -27,7 +27,7 @@ echo $${POLICY} | jq '.item' | \
     jq 'select(.inputs[].policy_template == "apmserver").inputs[].vars.expvar_enabled = {type: "bool", value: ${enable_expvar}}' |\
     jq 'select(.inputs[].policy_template == "apmserver").inputs[].vars.pprof_enabled = {type: "bool", value: ${enable_pprof}}' |\
     jq 'select(.inputs[].policy_template == "apmserver").inputs[].vars.tail_sampling_storage_limit = {"value":"10GB","type":"text"}' |\  # set TBS storage limit to 10GB by default
-    jq 'select(.inputs[].policy_template == "apmserver").inputs[].vars.tail_sampling_enabled = {type: "bool", value: ${enable_tbs}}' > policy.json
+    jq 'select(.inputs[].policy_template == "apmserver").inputs[].vars.tail_sampling_enabled = {type: "bool", value: ${enable_tail_sampling}}' > policy.json
 
 # Update the policy
 curl -s -H 'content-type: application/json' -H 'kbn-xsrf: true' -X PUT -k -d@policy.json -u $${KIBANA_AUTH} $${KIBANA_ENDPOINT}

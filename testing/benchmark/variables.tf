@@ -92,7 +92,7 @@ variable "drop_pipeline" {
   type        = bool
 }
 
-variable "apm_server_tbs" {
+variable "apm_server_tail_sampling" {
   default     = false
   description = "Whether or not to enable APM Server tail-based sampling. Defaults to false"
   type        = bool
