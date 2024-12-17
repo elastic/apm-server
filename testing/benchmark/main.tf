@@ -103,6 +103,7 @@ module "ec_deployment" {
   drop_pipeline         = var.drop_pipeline
   apm_server_expvar     = true
   apm_server_pprof      = true
+  apm_server_tbs        = var.apm_server_tbs
 
   elasticsearch_size              = var.elasticsearch_size
   elasticsearch_zone_count        = var.elasticsearch_zone_count

@@ -124,7 +124,7 @@ variable "apm_server_pprof" {
 
 variable "apm_server_tbs" {
   default     = false
-  description = "Whether or not to enable APM Server TBS. Defaults to false"
+  description = "Whether or not to enable APM Server tail-based sampling. Defaults to false"
   type        = bool
 }
 
