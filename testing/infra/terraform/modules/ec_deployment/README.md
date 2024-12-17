@@ -47,7 +47,8 @@ used to configure the module, please refer to the [EC Provider docs](https://reg
 | <a name="input_apm_server_expvar"></a> [apm\_server\_expvar](#input\_apm\_server\_expvar) | Whether or not to enable APM Server's expvar endpoint. Defaults to false | `bool` | `false` | no |
 | <a name="input_apm_server_pprof"></a> [apm\_server\_pprof](#input\_apm\_server\_pprof) | Whether or not to enable APM Server's pprof endpoint. Defaults to false | `bool` | `false` | no |
 | <a name="input_apm_server_size"></a> [apm\_server\_size](#input\_apm\_server\_size) | Optional apm server instance size | `string` | `"1g"` | no |
-| <a name="input_apm_server_tail_sampling"></a> [apm\_server\_tbs](#input\_apm\_server\_tbs) | Whether or not to enable APM Server tail-based sampling. Defaults to false | `bool` | `false` | no |
+| <a name="input_apm_server_tail_sampling"></a> [apm\_server\_tail\_sampling](#input\_apm\_server\_tail\_sampling) | Whether or not to enable APM Server tail-based sampling. Defaults to false | `bool` | `false` | no |
+| <a name="input_apm_server_tail_sampling_storage_limit"></a> [apm\_server\_tail\_sampling\_storage\_limit](#input\_apm\_server\_tail\_sampling\_storage\_limit) | Storage size limit of APM Server tail-based sampling. Defaults to 10GB | `string` | `"10GB"` | no |
 | <a name="input_apm_server_zone_count"></a> [apm\_server\_zone\_count](#input\_apm\_server\_zone\_count) | Optional apm server zone count | `number` | `1` | no |
 | <a name="input_custom_apm_integration_pkg_path"></a> [custom\_apm\_integration\_pkg\_path](#input\_custom\_apm\_integration\_pkg\_path) | Path to the zipped custom APM integration package, if empty custom apm integration pkg is not installed | `string` | `""` | no |
 | <a name="input_deployment_name_prefix"></a> [deployment\_name\_prefix](#input\_deployment\_name\_prefix) | Optional ESS or ECE region. Defaults to GCP US West 2 (Los Angeles) | `string` | `"apmserver"` | no |
