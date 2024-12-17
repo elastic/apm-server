@@ -14,8 +14,9 @@ if [[ "$${POLICY}" == *"$${NOT_FOUND_MSG}"* ]]; then
     exit 0
 fi
 
-echo $${POLICY} | grep '"expvar_enabled":{"type":"bool","value":true}' > /dev/null 2>&1 && EXPVAR_ENABLED=true
-echo $${POLICY} | grep '"pprof_enabled":{"type":"bool","value":true}' > /dev/null 2>&1 && PPROF_ENABLED=true
+# grep inside "compiled_input"
+echo $${POLICY} | grep '"expvar.enabled": true' > /dev/null 2>&1 && EXPVAR_ENABLED=true
+echo $${POLICY} | grep '"pprof.enabled": true' > /dev/null 2>&1 && PPROF_ENABLED=true
 if [[ $${EXPVAR_ENABLED} || $${PPROF_ENABLED} ]] ; then
     echo "expvar or pprof already enabled"
     exit 0
