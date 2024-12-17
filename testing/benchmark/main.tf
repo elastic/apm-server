@@ -97,12 +97,14 @@ module "ec_deployment" {
   deployment_template    = var.deployment_template
   deployment_name_prefix = local.name_prefix
 
-  apm_server_size       = var.apm_server_size
-  apm_server_zone_count = var.apm_server_zone_count
-  apm_index_shards      = var.apm_shards
-  drop_pipeline         = var.drop_pipeline
-  apm_server_expvar     = true
-  apm_server_pprof      = true
+  apm_server_size                        = var.apm_server_size
+  apm_server_zone_count                  = var.apm_server_zone_count
+  apm_index_shards                       = var.apm_shards
+  drop_pipeline                          = var.drop_pipeline
+  apm_server_expvar                      = true
+  apm_server_pprof                       = true
+  apm_server_tail_sampling               = var.apm_server_tail_sampling
+  apm_server_tail_sampling_storage_limit = var.apm_server_tail_sampling_storage_limit
 
   elasticsearch_size              = var.elasticsearch_size
   elasticsearch_zone_count        = var.elasticsearch_zone_count
