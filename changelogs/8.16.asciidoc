@@ -1,6 +1,56 @@
 [[apm-release-notes-8.16]]
 == APM version 8.16
+
+* <<apm-release-notes-8.16.2>>
+* <<apm-release-notes-8.16.1>>
 * <<apm-release-notes-8.16.0>>
+
+[float]
+[[apm-release-notes-8.16.2]]
+=== APM version 8.16.2
+
+https://github.com/elastic/apm-server/compare/v8.16.1\...v8.16.2[View commits]
+
+[float]
+==== Bug fixes
+
+- Surface config parsing error under EA managed mode by logging and marking EA input unit as failed {pull}14574[14574]
+- Remove unnecessary hot reload under EA managed mode when apm tracing config is nil {pull}14865[14865]
+
+[float]
+==== Breaking Changes
+
+[float]
+==== Deprecations
+
+[float]
+==== Intake API Changes
+
+[float]
+==== Added
+
+- In this release we've introduced an image based on the hardened https://wolfi.dev/[Wolfi] image to provide additional security to our self-managed customers, and improve our supply chain security posture.
+
+[float]
+[[apm-release-notes-8.16.1]]
+=== APM version 8.16.1
+
+https://github.com/elastic/apm-server/compare/v8.16.0\...v8.16.1[View commits]
+
+[float]
+==== Bug fixes
+
+[float]
+==== Breaking Changes
+
+[float]
+==== Deprecations
+
+[float]
+==== Intake API Changes
+
+[float]
+==== Added
 
 [float]
 [[apm-release-notes-8.16.0]]
