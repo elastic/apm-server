@@ -128,6 +128,12 @@ variable "apm_server_tail_sampling" {
   type        = bool
 }
 
+variable "apm_server_tail_sampling_storage_limit" {
+  default     = "10GB"
+  description = "Storage size limit of APM Server tail-based sampling. Defaults to 10GB"
+  type        = string
+}
+
 variable "apm_index_shards" {
   default     = 0
   description = "The number of shards to set for APM Indices"

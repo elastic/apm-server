@@ -98,6 +98,12 @@ variable "apm_server_tail_sampling" {
   type        = bool
 }
 
+variable "apm_server_tail_sampling_storage_limit" {
+  default     = "10GB"
+  description = "Storage size limit of APM Server tail-based sampling. Defaults to 10GB"
+  type        = string
+}
+
 # Standalone
 
 variable "apm_server_bin_path" {
