@@ -14,14 +14,11 @@ if [[ "$${POLICY}" == *"$${NOT_FOUND_MSG}"* ]]; then
     exit 0
 fi
 
-# grep inside "compiled_input"
-echo $${POLICY} | grep '"expvar.enabled":true' > /dev/null 2>&1 && EXPVAR_ENABLED=true
-echo $${POLICY} | grep '"pprof.enabled":true' > /dev/null 2>&1 && PPROF_ENABLED=true
-echo $${POLICY} | grep '"sampling":{"tail":{"enabled":true' > /dev/null 2>&1 && TBS_ENABLED=true
-if [[ $${EXPVAR_ENABLED} == ${enable_expvar} && $${PPROF_ENABLED} == ${enable_pprof} && $${TBS_ENABLED} == ${enable_tbs} ]] ; then
-    echo "expvar and pprof and TBS already enabled"
-    exit 0
-fi
+# Abort early if features are already set as desired
+echo $${POLICY} | jq -e '.item | select(.inputs[].policy_template == "apmserver").inputs[].vars.expvar_enabled.value == ${enable_expvar}' &&
+ echo $${POLICY} | jq -e '.item | select(.inputs[].policy_template == "apmserver").inputs[].vars.pprof_enabled.value == ${enable_pprof}' &&
+ echo $${POLICY} | jq -e '.item | select(.inputs[].policy_template == "apmserver").inputs[].vars.tail_sampling_enabled.value == ${enable_tbs}' &&
+ echo "Features already set as desired" && exit 0
 
 # Download and modify the APM policy
 echo $${POLICY} | jq '.item' | \
