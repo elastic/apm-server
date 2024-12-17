@@ -113,14 +113,15 @@ resource "ec_deployment" "dedicated_observability_deployment" {
   kibana {}
 }
 
-resource "local_file" "enable_expvar" {
-  content = templatefile("${path.module}/scripts/enable_expvar.tftpl", {
+resource "local_file" "enable_features" {
+  content = templatefile("${path.module}/scripts/enable_features.tftpl", {
     kibana_url       = ec_deployment.deployment.kibana.0.https_endpoint,
     elastic_password = ec_deployment.deployment.elasticsearch_password,
     enable_expvar    = var.apm_server_expvar
     enable_pprof     = var.apm_server_pprof
+    enable_tbs       = var.apm_server_tbs
   })
-  filename = "${path.module}/scripts/enable_expvar.sh"
+  filename = "${path.module}/scripts/enable_features.sh"
 }
 
 resource "local_file" "secret_token" {
@@ -153,13 +154,13 @@ resource "local_file" "custom_apm_integration_pkg" {
   filename = "${path.module}/scripts/custom-apm-integration-pkg.sh"
 }
 
-resource "null_resource" "enable_expvar" {
+resource "null_resource" "enable_features" {
   triggers = {
-    shell_hash          = local_file.enable_expvar.id
+    shell_hash          = local_file.enable_features.id
     integrations_server = var.integrations_server
   }
   provisioner "local-exec" {
-    command     = "scripts/enable_expvar.sh"
+    command     = "scripts/enable_features.sh"
     interpreter = ["/bin/bash", "-c"]
     working_dir = path.module
   }

@@ -15,10 +15,11 @@ if [[ "$${POLICY}" == *"$${NOT_FOUND_MSG}"* ]]; then
 fi
 
 # grep inside "compiled_input"
-echo $${POLICY} | grep '"expvar.enabled": true' > /dev/null 2>&1 && EXPVAR_ENABLED=true
-echo $${POLICY} | grep '"pprof.enabled": true' > /dev/null 2>&1 && PPROF_ENABLED=true
-if [[ $${EXPVAR_ENABLED} || $${PPROF_ENABLED} ]] ; then
-    echo "expvar or pprof already enabled"
+echo $${POLICY} | grep '"expvar.enabled":true' > /dev/null 2>&1 && EXPVAR_ENABLED=true
+echo $${POLICY} | grep '"pprof.enabled":true' > /dev/null 2>&1 && PPROF_ENABLED=true
+echo $${POLICY} | grep '"sampling":{"tail":{"enabled":true' > /dev/null 2>&1 && TBS_ENABLED=true
+if [[ $${EXPVAR_ENABLED} == ${enable_expvar} && $${PPROF_ENABLED} == ${enable_pprof} && $${TBS_ENABLED} == ${enable_tbs} ]] ; then
+    echo "expvar and pprof and TBS already enabled"
     exit 0
 fi
 
@@ -27,7 +28,8 @@ echo $${POLICY} | jq '.item' | \
     jq 'del(.id)' | jq 'del(.elasticsearch)'| jq 'del(.inputs[].compiled_input)' | jq 'del(.revision)' |\
     jq 'del(.created_at)' | jq 'del(.created_by)' | jq 'del(.updated_at)' | jq 'del(.updated_by)' |\
     jq 'select(.inputs[].policy_template == "apmserver").inputs[].vars.expvar_enabled = {type: "bool", value: ${enable_expvar}}' |\
-    jq 'select(.inputs[].policy_template == "apmserver").inputs[].vars.pprof_enabled = {type: "bool", value: ${enable_pprof}}' > policy.json
+    jq 'select(.inputs[].policy_template == "apmserver").inputs[].vars.pprof_enabled = {type: "bool", value: ${enable_pprof}}' |\
+    jq 'select(.inputs[].policy_template == "apmserver").inputs[].vars.tail_sampling_enabled = {type: "bool", value: ${enable_tbs}}' > policy.json
 
 # Update the policy
 curl -s -H 'content-type: application/json' -H 'kbn-xsrf: true' -X PUT -k -d@policy.json -u $${KIBANA_AUTH} $${KIBANA_ENDPOINT}

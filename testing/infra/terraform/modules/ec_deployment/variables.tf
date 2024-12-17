@@ -108,7 +108,7 @@ variable "docker_image" {
   description = "Optional docker image overrides. The full map needs to be specified"
 }
 
-# Enable APM Server's expvar
+# Enable APM Server's features
 
 variable "apm_server_expvar" {
   default     = false
@@ -119,6 +119,12 @@ variable "apm_server_expvar" {
 variable "apm_server_pprof" {
   default     = false
   description = "Whether or not to enable APM Server's pprof endpoint. Defaults to false"
+  type        = bool
+}
+
+variable "apm_server_tbs" {
+  default     = false
+  description = "Whether or not to enable APM Server TBS. Defaults to false"
   type        = bool
 }
 
