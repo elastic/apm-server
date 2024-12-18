@@ -23,6 +23,7 @@ import (
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/monitoring"
 	"github.com/elastic/elastic-agent-libs/paths"
+	"github.com/elastic/elastic-agent-libs/transport/tlscommon"
 
 	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-data/model/modelprocessor"
@@ -54,6 +55,8 @@ var (
 )
 
 func init() {
+	tlscommon.SetInsecureDefaults()
+
 	management.ConfigTransform.SetTransform(
 		func(unit *proto.UnitExpectedConfig, agentInfo *client.AgentInfo) ([]*reload.ConfigWithMeta, error) {
 			// NOTE(axw) we intentionally do not log the entire config here,

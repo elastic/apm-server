@@ -22,7 +22,12 @@ import (
 
 	"github.com/elastic/apm-server/internal/beatcmd"
 	"github.com/elastic/apm-server/internal/beater"
+	"github.com/elastic/elastic-agent-libs/transport/tlscommon"
 )
+
+func init() {
+	tlscommon.SetInsecureDefaults()
+}
 
 func main() {
 	rootCmd := beatcmd.NewRootCommand(beatcmd.BeatParams{
