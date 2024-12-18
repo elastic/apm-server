@@ -28,12 +28,12 @@ used to configure the module, please refer to the [EC Provider docs](https://reg
 | [ec_deployment.deployment](https://registry.terraform.io/providers/elastic/ec/0.5.1/docs/resources/deployment) | resource |
 | [local_file.custom_apm_integration_pkg](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
 | [local_file.drop_pipeline](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
-| [local_file.enable_expvar](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
+| [local_file.enable_features](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
 | [local_file.secret_token](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
 | [local_file.shard_settings](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
 | [null_resource.custom_apm_integration_pkg](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
 | [null_resource.drop_pipeline](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
-| [null_resource.enable_expvar](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
+| [null_resource.enable_features](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
 | [null_resource.secret_token](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
 | [null_resource.shard_settings](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
 | [ec_stack.deployment_version](https://registry.terraform.io/providers/elastic/ec/0.5.1/docs/data-sources/stack) | data source |
@@ -47,12 +47,14 @@ used to configure the module, please refer to the [EC Provider docs](https://reg
 | <a name="input_apm_server_expvar"></a> [apm\_server\_expvar](#input\_apm\_server\_expvar) | Whether or not to enable APM Server's expvar endpoint. Defaults to false | `bool` | `false` | no |
 | <a name="input_apm_server_pprof"></a> [apm\_server\_pprof](#input\_apm\_server\_pprof) | Whether or not to enable APM Server's pprof endpoint. Defaults to false | `bool` | `false` | no |
 | <a name="input_apm_server_size"></a> [apm\_server\_size](#input\_apm\_server\_size) | Optional apm server instance size | `string` | `"1g"` | no |
+| <a name="input_apm_server_tail_sampling"></a> [apm\_server\_tail\_sampling](#input\_apm\_server\_tail\_sampling) | Whether or not to enable APM Server tail-based sampling. Defaults to false | `bool` | `false` | no |
+| <a name="input_apm_server_tail_sampling_storage_limit"></a> [apm\_server\_tail\_sampling\_storage\_limit](#input\_apm\_server\_tail\_sampling\_storage\_limit) | Storage size limit of APM Server tail-based sampling. Defaults to 10GB | `string` | `"10GB"` | no |
 | <a name="input_apm_server_zone_count"></a> [apm\_server\_zone\_count](#input\_apm\_server\_zone\_count) | Optional apm server zone count | `number` | `1` | no |
 | <a name="input_custom_apm_integration_pkg_path"></a> [custom\_apm\_integration\_pkg\_path](#input\_custom\_apm\_integration\_pkg\_path) | Path to the zipped custom APM integration package, if empty custom apm integration pkg is not installed | `string` | `""` | no |
 | <a name="input_deployment_name_prefix"></a> [deployment\_name\_prefix](#input\_deployment\_name\_prefix) | Optional ESS or ECE region. Defaults to GCP US West 2 (Los Angeles) | `string` | `"apmserver"` | no |
 | <a name="input_deployment_template"></a> [deployment\_template](#input\_deployment\_template) | Optional deployment template. Defaults to the CPU optimized template for GCP | `string` | `"gcp-cpu-optimized"` | no |
-| <a name="input_docker_image"></a> [docker\_image](#input\_docker\_image) | Optional docker image overrides. The full map needs to be specified | `map(string)` | <pre>{<br>  "apm": "docker.elastic.co/cloud-release/elastic-agent-cloud",<br>  "elasticsearch": "docker.elastic.co/cloud-release/elasticsearch-cloud-ess",<br>  "kibana": "docker.elastic.co/cloud-release/kibana-cloud"<br>}</pre> | no |
-| <a name="input_docker_image_tag_override"></a> [docker\_image\_tag\_override](#input\_docker\_image\_tag\_override) | Optional docker image tag overrides, The full map needs to be specified | `map(string)` | <pre>{<br>  "apm": "",<br>  "elasticsearch": "",<br>  "kibana": ""<br>}</pre> | no |
+| <a name="input_docker_image"></a> [docker\_image](#input\_docker\_image) | Optional docker image overrides. The full map needs to be specified | `map(string)` | <pre>{<br/>  "apm": "docker.elastic.co/cloud-release/elastic-agent-cloud",<br/>  "elasticsearch": "docker.elastic.co/cloud-release/elasticsearch-cloud-ess",<br/>  "kibana": "docker.elastic.co/cloud-release/kibana-cloud"<br/>}</pre> | no |
+| <a name="input_docker_image_tag_override"></a> [docker\_image\_tag\_override](#input\_docker\_image\_tag\_override) | Optional docker image tag overrides, The full map needs to be specified | `map(string)` | <pre>{<br/>  "apm": "",<br/>  "elasticsearch": "",<br/>  "kibana": ""<br/>}</pre> | no |
 | <a name="input_drop_pipeline"></a> [drop\_pipeline](#input\_drop\_pipeline) | Whether or not to install an Elasticsearch ingest pipeline to drop all incoming APM documents. Defaults to false | `bool` | `false` | no |
 | <a name="input_elasticsearch_autoscale"></a> [elasticsearch\_autoscale](#input\_elasticsearch\_autoscale) | Optional autoscale the Elasticsearch cluster | `bool` | `false` | no |
 | <a name="input_elasticsearch_dedicated_masters"></a> [elasticsearch\_dedicated\_masters](#input\_elasticsearch\_dedicated\_masters) | Optionally use dedicated masters for the Elasticsearch cluster | `bool` | `false` | no |
