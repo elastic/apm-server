@@ -13,7 +13,7 @@
             "5.5.0"
         ],
         "client.geo.city_name": [
-            "Perth"
+            "dynamic"
         ],
         "client.geo.continent_name": [
             "Oceania"
@@ -28,10 +28,10 @@
             "dynamic"
         ],
         "client.geo.region_iso_code": [
-            "AU-WA"
+            "dynamic"
         ],
         "client.geo.region_name": [
-            "Western Australia"
+            "dynamic"
         ],
         "client.ip": [
             "220.244.41.16"
@@ -132,7 +132,7 @@
             "5.5.0"
         ],
         "client.geo.city_name": [
-            "Perth"
+            "dynamic"
         ],
         "client.geo.continent_name": [
             "Oceania"
@@ -147,10 +147,10 @@
             "dynamic"
         ],
         "client.geo.region_iso_code": [
-            "AU-WA"
+            "dynamic"
         ],
         "client.geo.region_name": [
-            "Western Australia"
+            "dynamic"
         ],
         "client.ip": [
             "220.244.41.16"
