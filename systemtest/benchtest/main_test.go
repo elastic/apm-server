@@ -141,6 +141,8 @@ func TestAddExpvarMetrics(t *testing.T) {
 				`"apm-server.processor.span.transformations": 5`,
 				`"apm-server.processor.metric.transformations": 9`,
 				`"apm-server.processor.error.transformations": 3`,
+				`"apm-server.sampling.tail.storage.lsm_size": 10`,
+				`"apm-server.sampling.tail.storage.value_log_size": 11`,
 				`"beat.runtime.goroutines": 4`,
 				`"beat.memstats.rss": 1048576`,
 				`"output.elasticsearch.bulk_requests.available": 0`,
@@ -165,6 +167,8 @@ func TestAddExpvarMetrics(t *testing.T) {
 				"max_heap_objects":        102,
 				"mean_available_indexers": 0,
 				"error_responses/sec":     1,
+				"tbs_lsm_size":            10,
+				"tbs_vlog_size":           11,
 			},
 		},
 	}
