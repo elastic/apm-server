@@ -36,6 +36,7 @@ type expvar struct {
 	LibbeatStats
 	ElasticResponseStats
 	OTLPResponseStats
+	TailSamplingStats
 
 	// UncompressedBytes holds the number of bytes of uncompressed
 	// data that the server has read from the Elastic APM events
@@ -70,6 +71,11 @@ type LibbeatStats struct {
 	TotalEvents    int64 `json:"libbeat.output.events.total"`
 	Goroutines     int64 `json:"beat.runtime.goroutines"`
 	RSSMemoryBytes int64 `json:"beat.memstats.rss"`
+}
+
+type TailSamplingStats struct {
+	TBSLsmSize  int64 `json:"apm-server.sampling.tail.storage.lsm_size"`
+	TBSVlogSize int64 `json:"apm-server.sampling.tail.storage.value_log_size"`
 }
 
 func queryExpvar(ctx context.Context, out *expvar, srv string) error {
@@ -113,6 +119,7 @@ func queryExpvar(ctx context.Context, out *expvar, srv string) error {
 		aggregateResponseStats(s.ElasticResponseStats, &result.ElasticResponseStats)
 		aggregateOTLPResponseStats(s.OTLPResponseStats, &result.OTLPResponseStats)
 		aggregateLibbeatStats(s.LibbeatStats, &result.LibbeatStats)
+		aggregateTailSamplingStats(s.TailSamplingStats, &result.TailSamplingStats)
 		result.UncompressedBytes += s.UncompressedBytes
 		result.AvailableBulkRequests += s.AvailableBulkRequests
 	}
@@ -204,4 +211,9 @@ func aggregateOTLPResponseStats(from OTLPResponseStats, to *OTLPResponseStats) {
 	to.TotalOTLPTracesResponses += from.TotalOTLPTracesResponses
 	to.ErrorOTLPTracesResponses += from.ErrorOTLPTracesResponses
 	to.ErrorOTLPMetricsResponses += from.ErrorOTLPMetricsResponses
+}
+
+func aggregateTailSamplingStats(from TailSamplingStats, to *TailSamplingStats) {
+	to.TBSLsmSize += from.TBSLsmSize
+	to.TBSVlogSize += from.TBSVlogSize
 }
