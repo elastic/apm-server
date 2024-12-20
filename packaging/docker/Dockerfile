@@ -26,7 +26,11 @@ RUN --mount=type=cache,target=/go/pkg/mod \
 # Build stage 1
 # Copy prepared files from the previous stage and complete the image.
 ################################################################################
+<<<<<<< HEAD
 FROM ${BASE_IMAGE}
+=======
+FROM registry.access.redhat.com/ubi9/ubi-micro:latest@sha256:a22fffe0256af00176c8b4f22eec5d8ecb1cb1684d811c33b1f2832fd573260f
+>>>>>>> a261e209 (build(deps): bump ubi9/ubi-micro in /packaging/docker (#14966))
 ARG TARGETARCH
 ARG BUILD_DATE
 ARG VERSION
