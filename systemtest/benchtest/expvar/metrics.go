@@ -47,6 +47,8 @@ const (
 	ErrorElasticResponses
 	ErrorOTLPTracesResponses
 	ErrorOTLPMetricsResponses
+	TBSLsmSize
+	TBSVlogSize
 )
 
 type AggregateStats struct {
@@ -164,6 +166,8 @@ func (c *Collector) accumulate(e expvar) {
 	c.processMetric(MemBytes, int64(e.TotalAlloc))
 	c.processMetric(HeapAlloc, int64(e.HeapAlloc))
 	c.processMetric(HeapObjects, int64(e.HeapObjects))
+	c.processMetric(TBSLsmSize, e.TBSLsmSize)
+	c.processMetric(TBSVlogSize, e.TBSVlogSize)
 }
 
 func (c *Collector) processMetric(m Metric, val int64) {
