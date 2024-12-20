@@ -21,6 +21,9 @@
         "data_stream.type": [
             "traces"
         ],
+        "event.ingested": [
+            "dynamic"
+        ],
         "event.outcome": [
             "success"
         ],
@@ -166,6 +169,9 @@
         ],
         "data_stream.type": [
             "traces"
+        ],
+        "event.ingested": [
+            "dynamic"
         ],
         "event.outcome": [
             "success"

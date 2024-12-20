@@ -24,6 +24,9 @@
         "data_stream.type": [
             "metrics"
         ],
+        "event.ingested": [
+            "dynamic"
+        ],
         "go.memstats.heap.sys.bytes": [
             6520832
         ],
@@ -112,6 +115,9 @@
         ],
         "data_stream.type": [
             "metrics"
+        ],
+        "event.ingested": [
+            "dynamic"
         ],
         "host.ip": [
             "127.0.0.1"
@@ -204,6 +210,9 @@
         ],
         "data_stream.type": [
             "metrics"
+        ],
+        "event.ingested": [
+            "dynamic"
         ],
         "host.ip": [
             "127.0.0.1"
@@ -315,6 +324,9 @@
         "data_stream.type": [
             "metrics"
         ],
+        "event.ingested": [
+            "dynamic"
+        ],
         "host.ip": [
             "127.0.0.1"
         ],
@@ -414,6 +426,9 @@
         ],
         "data_stream.type": [
             "metrics"
+        ],
+        "event.ingested": [
+            "dynamic"
         ],
         "faas.billed_duration": [
             183
@@ -527,6 +542,9 @@
         ],
         "data_stream.type": [
             "metrics"
+        ],
+        "event.ingested": [
+            "dynamic"
         ],
         "host.ip": [
             "127.0.0.1"

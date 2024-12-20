@@ -81,6 +81,9 @@
         "error.log.param_message": [
             "Request method 'POST' /events/:event not supported"
         ],
+        "event.ingested": [
+            "dynamic"
+        ],
         "host.architecture": [
             "amd64"
         ],
@@ -340,6 +343,9 @@
         "data_stream.type": [
             "metrics"
         ],
+        "event.ingested": [
+            "dynamic"
+        ],
         "host.architecture": [
             "amd64"
         ],
@@ -521,6 +527,9 @@
         ],
         "data_stream.type": [
             "traces"
+        ],
+        "event.ingested": [
+            "dynamic"
         ],
         "event.outcome": [
             "success"
@@ -771,6 +780,9 @@
         ],
         "data_stream.type": [
             "traces"
+        ],
+        "event.ingested": [
+            "dynamic"
         ],
         "event.outcome": [
             "success"

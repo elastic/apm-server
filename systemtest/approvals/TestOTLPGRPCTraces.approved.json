@@ -45,6 +45,9 @@
         "error.stack_trace.text": [
             "not an actual real stack trace"
         ],
+        "event.ingested": [
+            "dynamic"
+        ],
         "labels.resource_attribute_array": [
             "a",
             "b"
@@ -143,6 +146,9 @@
         "data_stream.type": [
             "logs"
         ],
+        "event.ingested": [
+            "dynamic"
+        ],
         "event.kind": [
             "event"
         ],
@@ -228,6 +234,9 @@
         ],
         "data_stream.type": [
             "traces"
+        ],
+        "event.ingested": [
+            "dynamic"
         ],
         "event.outcome": [
             "success"
