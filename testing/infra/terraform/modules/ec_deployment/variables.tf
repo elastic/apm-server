@@ -108,7 +108,7 @@ variable "docker_image" {
   description = "Optional docker image overrides. The full map needs to be specified"
 }
 
-# Enable APM Server's expvar
+# Enable APM Server's features
 
 variable "apm_server_expvar" {
   default     = false
@@ -120,6 +120,18 @@ variable "apm_server_pprof" {
   default     = false
   description = "Whether or not to enable APM Server's pprof endpoint. Defaults to false"
   type        = bool
+}
+
+variable "apm_server_tail_sampling" {
+  default     = false
+  description = "Whether or not to enable APM Server tail-based sampling. Defaults to false"
+  type        = bool
+}
+
+variable "apm_server_tail_sampling_storage_limit" {
+  default     = "10GB"
+  description = "Storage size limit of APM Server tail-based sampling. Defaults to 10GB"
+  type        = string
 }
 
 variable "apm_index_shards" {
