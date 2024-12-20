@@ -18,6 +18,9 @@
         "data_stream.type": [
             "metrics"
         ],
+        "event.ingested": [
+            "dynamic"
+        ],
         "event.outcome": [
             "success"
         ],
@@ -83,6 +86,9 @@
         "data_stream.type": [
             "metrics"
         ],
+        "event.ingested": [
+            "dynamic"
+        ],
         "event.outcome": [
             "success"
         ],
@@ -147,6 +153,9 @@
         ],
         "data_stream.type": [
             "metrics"
+        ],
+        "event.ingested": [
+            "dynamic"
         ],
         "event.outcome": [
             "success"
@@ -213,6 +222,9 @@
         "data_stream.type": [
             "metrics"
         ],
+        "event.ingested": [
+            "dynamic"
+        ],
         "event.outcome": [
             "success"
         ],
@@ -278,6 +290,9 @@
         "data_stream.type": [
             "metrics"
         ],
+        "event.ingested": [
+            "dynamic"
+        ],
         "event.outcome": [
             "success"
         ],
@@ -342,6 +357,9 @@
         ],
         "data_stream.type": [
             "metrics"
+        ],
+        "event.ingested": [
+            "dynamic"
         ],
         "event.outcome": [
             "success"

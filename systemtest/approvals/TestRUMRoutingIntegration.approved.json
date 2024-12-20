@@ -30,6 +30,9 @@
         "destination.port": [
             8003
         ],
+        "event.ingested": [
+            "dynamic"
+        ],
         "event.outcome": [
             "success"
         ],
@@ -221,6 +224,9 @@
         "destination.port": [
             8000
         ],
+        "event.ingested": [
+            "dynamic"
+        ],
         "event.outcome": [
             "success"
         ],
@@ -406,6 +412,9 @@
         "data_stream.type": [
             "traces"
         ],
+        "event.ingested": [
+            "dynamic"
+        ],
         "event.outcome": [
             "unknown"
         ],
@@ -563,6 +572,9 @@
         ],
         "destination.port": [
             8003
+        ],
+        "event.ingested": [
+            "dynamic"
         ],
         "event.outcome": [
             "success"
@@ -752,6 +764,9 @@
         "data_stream.type": [
             "traces"
         ],
+        "event.ingested": [
+            "dynamic"
+        ],
         "event.outcome": [
             "unknown"
         ],
@@ -906,6 +921,9 @@
         ],
         "data_stream.type": [
             "traces"
+        ],
+        "event.ingested": [
+            "dynamic"
         ],
         "event.outcome": [
             "success"
@@ -1070,6 +1088,9 @@
         ],
         "destination.port": [
             8000
+        ],
+        "event.ingested": [
+            "dynamic"
         ],
         "event.outcome": [
             "unknown"
@@ -1253,6 +1274,9 @@
         "data_stream.type": [
             "traces"
         ],
+        "event.ingested": [
+            "dynamic"
+        ],
         "event.outcome": [
             "unknown"
         ],
@@ -1407,6 +1431,9 @@
         ],
         "data_stream.type": [
             "traces"
+        ],
+        "event.ingested": [
+            "dynamic"
         ],
         "event.outcome": [
             "success"

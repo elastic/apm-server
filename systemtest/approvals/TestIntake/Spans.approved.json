@@ -84,6 +84,9 @@
         "destination.port": [
             5432
         ],
+        "event.ingested": [
+            "dynamic"
+        ],
         "event.outcome": [
             "success"
         ],
@@ -387,6 +390,9 @@
         "data_stream.type": [
             "traces"
         ],
+        "event.ingested": [
+            "dynamic"
+        ],
         "event.outcome": [
             "unknown"
         ],
@@ -626,6 +632,9 @@
         ],
         "data_stream.type": [
             "traces"
+        ],
+        "event.ingested": [
+            "dynamic"
         ],
         "event.outcome": [
             "unknown"
@@ -873,6 +882,9 @@
         "data_stream.type": [
             "traces"
         ],
+        "event.ingested": [
+            "dynamic"
+        ],
         "event.outcome": [
             "unknown"
         ],
@@ -1106,6 +1118,9 @@
         ],
         "data_stream.type": [
             "traces"
+        ],
+        "event.ingested": [
+            "dynamic"
         ],
         "event.outcome": [
             "success"
@@ -1370,6 +1385,9 @@
         ],
         "destination.port": [
             5432
+        ],
+        "event.ingested": [
+            "dynamic"
         ],
         "event.outcome": [
             "success"
@@ -1680,6 +1698,9 @@
         "destination.ip": [
             "::1"
         ],
+        "event.ingested": [
+            "dynamic"
+        ],
         "event.outcome": [
             "unknown"
         ],
@@ -1935,6 +1956,9 @@
         "data_stream.type": [
             "traces"
         ],
+        "event.ingested": [
+            "dynamic"
+        ],
         "event.outcome": [
             "success"
         ],
@@ -2186,6 +2210,9 @@
         ],
         "destination.port": [
             8080
+        ],
+        "event.ingested": [
+            "dynamic"
         ],
         "event.outcome": [
             "success"
@@ -2462,6 +2489,9 @@
         ],
         "destination.port": [
             5432
+        ],
+        "event.ingested": [
+            "dynamic"
         ],
         "event.outcome": [
             "success"
