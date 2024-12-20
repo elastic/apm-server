@@ -76,7 +76,10 @@ func testRUMXForwardedFor(t *testing.T, srv *apmservertest.Server) {
 		"source.port",
 		// Do not assert the exact contents of the location field since they may change
 		// slightly depending on the IP lookup.
+		"client.geo.city_name",
 		"client.geo.location",
+		"client.geo.region_iso_code",
+		"client.geo.region_name",
 	)
 }
 
