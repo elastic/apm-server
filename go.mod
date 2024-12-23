@@ -74,15 +74,13 @@ require (
 	github.com/cockroachdb/pebble v1.1.2 // indirect
 	github.com/cockroachdb/redact v1.1.5 // indirect
 	github.com/cockroachdb/tokenbucket v0.0.0-20230807174530-cc333fc44b06 // indirect
-	github.com/containerd/containerd v1.7.24 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
-	github.com/dgraph-io/ristretto v1.0.0 // indirect
+	github.com/dgraph-io/ristretto v0.2.0 // indirect
 	github.com/dgryski/go-farm v0.0.0-20200201041132-a6ae2369ad13 // indirect
 	github.com/dgryski/go-metro v0.0.0-20180109044635-280f6062b5bc // indirect
 	github.com/dlclark/regexp2 v1.8.1 // indirect
-	github.com/docker/distribution v2.8.3+incompatible // indirect
 	github.com/dop251/goja v0.0.0-20230427124612-428fc442ff5f // indirect
-	github.com/dop251/goja_nodejs v0.0.0-20230322100729-2550c7b6c124 // indirect
+	github.com/dop251/goja_nodejs v0.0.0-20171011081505-adff31b136e6 // indirect
 	github.com/eapache/go-resiliency v1.7.0 // indirect
 	github.com/eapache/go-xerial-snappy v0.0.0-20230731223053-c322873962e3 // indirect
 	github.com/eapache/queue v1.1.0 // indirect
@@ -162,14 +160,6 @@ require (
 )
 
 replace (
-	github.com/Shopify/sarama => github.com/elastic/sarama v1.19.1-0.20210823122811-11c3ef800752
-	github.com/docker/docker => github.com/docker/engine v0.0.0-20191113042239-ea84732a7725
-	github.com/docker/go-plugins-helpers => github.com/elastic/go-plugins-helpers v0.0.0-20200207104224-bdf17607b79f
-	github.com/dop251/goja => github.com/andrewkroh/goja v0.0.0-20190128172624-dd2ac4456e20
-	github.com/dop251/goja_nodejs => github.com/dop251/goja_nodejs v0.0.0-20171011081505-adff31b136e6 // pin to version used by beats
-	// We replace golang/glog, which is used by ristretto, to avoid polluting the
-	// command line flags and conflicting with command line flags added by libbeat.
-	github.com/golang/glog => ./internal/glog
+	github.com/Shopify/sarama => github.com/elastic/sarama v1.19.1-0.20220310193331-ebc2b0d8eef3
+	github.com/dop251/goja => github.com/elastic/goja v0.0.0-20190128172624-dd2ac4456e20
 )
-
-replace github.com/dgraph-io/ristretto v1.0.0 => github.com/dgraph-io/ristretto v0.2.0

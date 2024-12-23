@@ -6812,11 +6812,11 @@ SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/sarama
-Version: v1.19.1-0.20210823122811-11c3ef800752
+Version: v1.19.1-0.20220310193331-ebc2b0d8eef3
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/sarama@v1.19.1-0.20210823122811-11c3ef800752/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/sarama@v1.19.1-0.20220310193331-ebc2b0d8eef3/LICENSE:
 
 Copyright (c) 2013 Shopify
 
@@ -8676,12 +8676,12 @@ SOFTWARE.
 
 
 --------------------------------------------------------------------------------
-Dependency : github.com/andrewkroh/goja
+Dependency : github.com/elastic/goja
 Version: v0.0.0-20190128172624-dd2ac4456e20
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/andrewkroh/goja@v0.0.0-20190128172624-dd2ac4456e20/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/goja@v0.0.0-20190128172624-dd2ac4456e20/LICENSE:
 
 Copyright (c) 2016 Dmitry Panov
 
