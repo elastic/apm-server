@@ -18,6 +18,9 @@
         "data_stream.type": [
             "metrics"
         ],
+        "event.ingested": [
+            "dynamic"
+        ],
         "event.success_count": [
             {
                 "sum": 2,
@@ -93,6 +96,9 @@
         "data_stream.type": [
             "metrics"
         ],
+        "event.ingested": [
+            "dynamic"
+        ],
         "event.success_count": [
             {
                 "sum": 2,
@@ -167,6 +173,9 @@
         ],
         "data_stream.type": [
             "metrics"
+        ],
+        "event.ingested": [
+            "dynamic"
         ],
         "event.success_count": [
             {
@@ -243,6 +252,9 @@
         "data_stream.type": [
             "metrics"
         ],
+        "event.ingested": [
+            "dynamic"
+        ],
         "event.success_count": [
             {
                 "sum": 2,
@@ -318,6 +330,9 @@
         "data_stream.type": [
             "metrics"
         ],
+        "event.ingested": [
+            "dynamic"
+        ],
         "event.success_count": [
             {
                 "sum": 2,
@@ -392,6 +407,9 @@
         ],
         "data_stream.type": [
             "metrics"
+        ],
+        "event.ingested": [
+            "dynamic"
         ],
         "event.success_count": [
             {

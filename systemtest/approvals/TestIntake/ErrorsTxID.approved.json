@@ -78,6 +78,9 @@
         "error.log.param_message": [
             "Request method 'POST' /events/:event not supported"
         ],
+        "event.ingested": [
+            "dynamic"
+        ],
         "host.architecture": [
             "amd64"
         ],

@@ -18,6 +18,9 @@
         "data_stream.type": [
             "metrics"
         ],
+        "event.ingested": [
+            "dynamic"
+        ],
         "metricset.interval": [
             "10m"
         ],
@@ -68,6 +71,9 @@
         "data_stream.type": [
             "metrics"
         ],
+        "event.ingested": [
+            "dynamic"
+        ],
         "metricset.interval": [
             "1m"
         ],
@@ -117,6 +123,9 @@
         ],
         "data_stream.type": [
             "metrics"
+        ],
+        "event.ingested": [
+            "dynamic"
         ],
         "metricset.interval": [
             "60m"

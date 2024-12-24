@@ -15,6 +15,9 @@
         "data_stream.type": [
             "metrics"
         ],
+        "event.ingested": [
+            "dynamic"
+        ],
         "labels.etag": [
             "dynamic"
         ],
@@ -52,6 +55,9 @@
         ],
         "data_stream.type": [
             "metrics"
+        ],
+        "event.ingested": [
+            "dynamic"
         ],
         "labels.etag": [
             "dynamic"

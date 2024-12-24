@@ -21,6 +21,9 @@
         "data_stream.type": [
             "logs"
         ],
+        "event.ingested": [
+            "dynamic"
+        ],
         "event.severity": [
             9
         ],
