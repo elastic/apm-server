@@ -39,6 +39,9 @@
         "error.log.message": [
             "redis timeout"
         ],
+        "event.ingested": [
+            "dynamic"
+        ],
         "host.hostname": [
             "host01"
         ],
@@ -136,6 +139,9 @@
         ],
         "error.log.message": [
             "redis timeout"
+        ],
+        "event.ingested": [
+            "dynamic"
         ],
         "host.hostname": [
             "host01"
@@ -235,6 +241,9 @@
         "error.log.message": [
             "redis timeout"
         ],
+        "event.ingested": [
+            "dynamic"
+        ],
         "host.hostname": [
             "host01"
         ],
@@ -318,6 +327,9 @@
         "data_stream.type": [
             "logs"
         ],
+        "event.ingested": [
+            "dynamic"
+        ],
         "event.kind": [
             "event"
         ],
@@ -397,6 +409,9 @@
         ],
         "data_stream.type": [
             "traces"
+        ],
+        "event.ingested": [
+            "dynamic"
         ],
         "event.outcome": [
             "failure"
@@ -502,6 +517,9 @@
         "data_stream.type": [
             "traces"
         ],
+        "event.ingested": [
+            "dynamic"
+        ],
         "event.outcome": [
             "success"
         ],
@@ -605,6 +623,9 @@
         ],
         "data_stream.type": [
             "traces"
+        ],
+        "event.ingested": [
+            "dynamic"
         ],
         "event.outcome": [
             "success"
@@ -710,6 +731,9 @@
         "data_stream.type": [
             "traces"
         ],
+        "event.ingested": [
+            "dynamic"
+        ],
         "event.outcome": [
             "success"
         ],
@@ -813,6 +837,9 @@
         ],
         "data_stream.type": [
             "traces"
+        ],
+        "event.ingested": [
+            "dynamic"
         ],
         "event.outcome": [
             "failure"
@@ -918,6 +945,9 @@
         "data_stream.type": [
             "traces"
         ],
+        "event.ingested": [
+            "dynamic"
+        ],
         "event.outcome": [
             "success"
         ],
@@ -1021,6 +1051,9 @@
         ],
         "data_stream.type": [
             "traces"
+        ],
+        "event.ingested": [
+            "dynamic"
         ],
         "event.outcome": [
             "failure"
@@ -1126,6 +1159,9 @@
         "data_stream.type": [
             "traces"
         ],
+        "event.ingested": [
+            "dynamic"
+        ],
         "event.outcome": [
             "success"
         ],
@@ -1229,6 +1265,9 @@
         ],
         "data_stream.type": [
             "traces"
+        ],
+        "event.ingested": [
+            "dynamic"
         ],
         "event.outcome": [
             "success"
@@ -1334,6 +1373,9 @@
         "data_stream.type": [
             "traces"
         ],
+        "event.ingested": [
+            "dynamic"
+        ],
         "event.outcome": [
             "success"
         ],
@@ -1437,6 +1479,9 @@
         ],
         "data_stream.type": [
             "traces"
+        ],
+        "event.ingested": [
+            "dynamic"
         ],
         "event.outcome": [
             "success"
@@ -1542,6 +1587,9 @@
         "data_stream.type": [
             "traces"
         ],
+        "event.ingested": [
+            "dynamic"
+        ],
         "event.outcome": [
             "success"
         ],
@@ -1646,6 +1694,9 @@
         "data_stream.type": [
             "traces"
         ],
+        "event.ingested": [
+            "dynamic"
+        ],
         "event.outcome": [
             "success"
         ],
@@ -1749,6 +1800,9 @@
         ],
         "data_stream.type": [
             "traces"
+        ],
+        "event.ingested": [
+            "dynamic"
         ],
         "event.outcome": [
             "success"
