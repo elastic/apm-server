@@ -24,6 +24,9 @@
         "data_stream.type": [
             "metrics"
         ],
+        "event.ingested": [
+            "dynamic"
+        ],
         "metricset.name": [
             "app"
         ],

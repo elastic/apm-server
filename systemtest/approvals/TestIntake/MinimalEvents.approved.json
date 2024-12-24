@@ -33,6 +33,9 @@
         "error.log.message": [
             "error log message"
         ],
+        "event.ingested": [
+            "dynamic"
+        ],
         "host.ip": [
             "127.0.0.1"
         ],
@@ -95,6 +98,9 @@
         "error.id": [
             "abcdef0123456790"
         ],
+        "event.ingested": [
+            "dynamic"
+        ],
         "host.ip": [
             "127.0.0.1"
         ],
@@ -154,6 +160,9 @@
         "error.id": [
             "abcdef0123456791"
         ],
+        "event.ingested": [
+            "dynamic"
+        ],
         "host.ip": [
             "127.0.0.1"
         ],
@@ -203,6 +212,9 @@
         ],
         "data_stream.type": [
             "metrics"
+        ],
+        "event.ingested": [
+            "dynamic"
         ],
         "host.ip": [
             "127.0.0.1"
@@ -254,6 +266,9 @@
         "data_stream.type": [
             "traces"
         ],
+        "event.ingested": [
+            "dynamic"
+        ],
         "event.outcome": [
             "unknown"
         ],
@@ -328,6 +343,9 @@
         "data_stream.type": [
             "traces"
         ],
+        "event.ingested": [
+            "dynamic"
+        ],
         "event.outcome": [
             "unknown"
         ],
@@ -401,6 +419,9 @@
         ],
         "data_stream.type": [
             "traces"
+        ],
+        "event.ingested": [
+            "dynamic"
         ],
         "event.outcome": [
             "unknown"
