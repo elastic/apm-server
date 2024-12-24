@@ -45,6 +45,9 @@
         "error.log.message": [
             "Uncaught Error: log timeout test error"
         ],
+        "event.ingested": [
+            "dynamic"
+        ],
         "http.request.referrer": [
             "http://localhost:8000/test/e2e/"
         ],

@@ -30,6 +30,9 @@
         "data_stream.type": [
             "logs"
         ],
+        "event.ingested": [
+            "dynamic"
+        ],
         "event.kind": [
             "event"
         ],
