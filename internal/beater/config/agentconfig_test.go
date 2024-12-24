@@ -47,18 +47,3 @@ func TestAgentConfig(t *testing.T) {
 		assert.Equal(t, time.Second*123, cfg.AgentConfig.Cache.Expiration)
 	})
 }
-
-func TestAgentConfigs(t *testing.T) {
-	cfg, err := NewConfig(config.MustNewConfigFrom(`{"agent_config":[{"service.environment":"production","config":{"transaction_sample_rate":0.5}}]}`), nil)
-	require.NoError(t, err)
-	assert.NotNil(t, cfg)
-	assert.Len(t, cfg.FleetAgentConfigs, 1)
-	assert.NotEmpty(t, cfg.FleetAgentConfigs[0].Etag)
-
-	// The "config" attribute may come through as `null` when no config attributes are defined.
-	cfg, err = NewConfig(config.MustNewConfigFrom(`{"agent_config":[{"service.environment":"production","config":null}]}`), nil)
-	require.NoError(t, err)
-	assert.NotNil(t, cfg)
-	assert.Len(t, cfg.FleetAgentConfigs, 1)
-	assert.NotEmpty(t, cfg.FleetAgentConfigs[0].Etag)
-}
