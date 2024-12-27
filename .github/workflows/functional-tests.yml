@@ -34,7 +34,7 @@ jobs:
           secrets: |-
             EC_API_KEY:elastic-observability/elastic-cloud-observability-team-${{ matrix.environment }}-api-key
 
-      - run: cd functionaltests && go test -v ./
+      - run: cd functionaltests && go test -v -timeout=20m -target "${{ matrix.environment }}" ./
 
   notify:
     if: always()
