@@ -93,12 +93,8 @@ require (
 	github.com/elastic/opentelemetry-lib v0.13.0 // indirect
 	github.com/elastic/pkcs8 v1.0.0 // indirect
 	github.com/fatih/color v1.16.0 // indirect
-<<<<<<< HEAD
 	github.com/frankban/quicktest v1.14.0 // indirect
-	github.com/getsentry/sentry-go v0.27.0 // indirect
-=======
 	github.com/getsentry/sentry-go v0.29.1 // indirect
->>>>>>> d367e643 (build(deps): bump github.com/elastic/apm-aggregation from 1.1.0 to 1.2.0 (#15056))
 	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
