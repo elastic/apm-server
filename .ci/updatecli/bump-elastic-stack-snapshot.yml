@@ -41,5 +41,5 @@ targets:
     scmid: default
     spec:
       file: docker-compose.yml
-      matchpattern: '(.*):\d+.\d+.\d+-.*-SNAPSHOT'
-      replacepattern: '$1:{{ source "latestVersion" }}-SNAPSHOT'
+      matchpattern: '(.*):\d+.\d+.\d+-.*-SNAPSHOT(-amd64)?'
+      replacepattern: '$1:{{ source "latestVersion" }}-SNAPSHOT-amd64'
