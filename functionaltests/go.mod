@@ -2,7 +2,6 @@ module github.com/elastic/apm-server/functionaltests
 
 go 1.23.2
 
-// FIXME: use apm-perf from main after https://github.com/elastic/apm-perf/pull/197 is merged
 require (
 	github.com/elastic/apm-perf v0.0.0-20241230130730-2ad47482b731
 	github.com/elastic/go-elasticsearch/v8 v8.16.0
