@@ -41,7 +41,8 @@ func OpenBadger(storageDir string, valueLogFileSize int64) (*badger.DB, error) {
 		WithBaseTableSize(int64(16 << 20)).          // Max LSM table or file size.
 		WithValueLogFileSize(valueLogFileSize).      // vlog file size.
 		WithBlockCacheSize(0).
-		WithCompression(options.None)
+		WithCompression(options.None).
+		WithValueThreshold(1024)
 
 	return badger.Open(badgerOpts)
 }
