@@ -146,7 +146,7 @@ func newServer(t *testing.T, batchProcessor model.BatchProcessor) *grpc.ClientCo
 
 	go srv.Serve(lis)
 	t.Cleanup(srv.GracefulStop)
-	conn, err := grpc.Dial(lis.Addr().String(), grpc.WithTransportCredentials(
+	conn, err := grpc.NewClient(lis.Addr().String(), grpc.WithTransportCredentials(
 		insecure.NewCredentials(),
 	))
 	require.NoError(t, err)

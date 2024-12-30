@@ -39,16 +39,25 @@ PROJECT_PATCH_VERSION ?= $(shell echo $(RELEASE_VERSION) | cut -f3 -d.)
 PROJECT_OWNER ?= elastic
 RELEASE_TYPE ?= minor
 
+# if gh is installed only
+ifneq ($(shell command -v gh 2>/dev/null),)
 CURRENT_RELEASE ?= $(shell gh release list --exclude-drafts --exclude-pre-releases --repo elastic/apm-server --limit 10 --json tagName --jq '.[].tagName|select(. | startswith("v$(PROJECT_MAJOR_VERSION)"))' | sed 's|v||g' | sort -r | head -n 1)
 RELEASE_BRANCH ?= $(PROJECT_MAJOR_VERSION).$(PROJECT_MINOR_VERSION)
 NEXT_PROJECT_MINOR_VERSION ?= $(PROJECT_MAJOR_VERSION).$(shell expr $(PROJECT_MINOR_VERSION) + 1).0
 NEXT_RELEASE ?= $(RELEASE_BRANCH).$(shell expr $(PROJECT_PATCH_VERSION) + 1)
-
 BRANCH_PATCH = update-$(NEXT_RELEASE)
+endif
+
+# for the view commits
+# as long as 8.x is the branch to run releases, then the base branch is 8.x
+# when 8.x is not available the we should use main as the base branch.
+CHANGELOG_BRANCH = 8.x
 
 # BASE_BRANCH select by release type (default patch)
 ifeq ($(RELEASE_TYPE),minor)
-	BASE_BRANCH ?= main
+# as long as 8.x is the branch to run releases, then the base branch is 8.x
+# when 8.x is not available the we should use main as the base branch.
+	BASE_BRANCH ?= 8.x
 endif
 
 ifeq ($(RELEASE_TYPE),patch)
@@ -64,7 +73,7 @@ define CHANGELOG_TMPL
 [[release-notes-head]]
 == APM version HEAD
 
-https://github.com/elastic/apm-server/compare/$(RELEASE_BRANCH)\...main[View commits]
+https://github.com/elastic/apm-server/compare/$(RELEASE_BRANCH)\...$(CHANGELOG_BRANCH)[View commits]
 
 [float]
 ==== Breaking Changes
@@ -112,6 +121,7 @@ minor-release:
 	@echo "INFO: Create feature branch and update the versions. Target branch $(RELEASE_BRANCH)"
 	$(MAKE) create-branch NAME=changelog-$(RELEASE_BRANCH) BASE=$(RELEASE_BRANCH)
 	$(MAKE) update-changelog VERSION=$(RELEASE_BRANCH)
+	$(MAKE) rename-changelog VERSION=$(RELEASE_BRANCH)
 	$(MAKE) create-commit COMMIT_MESSAGE="docs: Update changelogs for $(RELEASE_BRANCH) release"
 
 	@echo "INFO: Create feature branch and update the versions. Target branch $(BASE_BRANCH)"
@@ -201,7 +211,7 @@ update-mergify:
 		echo '  - name: backport patches to $(VERSION) branch'                                  >> .mergify.yml ; \
 		echo '    conditions:'                                                                  >> .mergify.yml; \
 		echo '      - merged'                                                                   >> .mergify.yml; \
-		echo '      - base=main'                                                                >> .mergify.yml; \
+		echo '      - base=8.x'                                                                 >> .mergify.yml; \
 		echo '      - label=backport-$(VERSION)'                                                >> .mergify.yml; \
 		echo '    actions:'                                                                     >> .mergify.yml; \
 		echo '      backport:'                                                                  >> .mergify.yml; \

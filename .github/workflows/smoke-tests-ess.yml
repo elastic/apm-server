@@ -7,7 +7,12 @@ on:
       branch:
         required: true
         type: string
-
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'The branch to checkout'
+        required: true
+        type: string
 
 # limit the access of the generated GITHUB_TOKEN
 permissions:
