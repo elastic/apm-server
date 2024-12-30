@@ -43,6 +43,7 @@ func OpenBadger(storageDir string, valueLogFileSize int64) (*badger.DB, error) {
 		WithBlockCacheSize(0).
 		WithCompression(options.None).
 		WithValueThreshold(1024)
+	badgerOpts.LmaxCompaction = true
 
 	return badger.Open(badgerOpts)
 }
