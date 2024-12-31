@@ -7,6 +7,11 @@ variable "ec_target" {
   }
 }
 
+variable "ec_region" {
+  type        = string
+  description = "The Elastic Cloud region to target"
+}
+
 variable "name" {
   type        = string
   description = "The deployment name"
