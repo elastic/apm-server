@@ -115,7 +115,7 @@ func regionFrom(target string) string {
 	switch target {
 	case "qa":
 		return testRegionQA
-	case "production":
+	case "pro":
 		return testRegionProduction
 	default:
 		panic("target value is not accepted")
