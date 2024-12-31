@@ -409,10 +409,13 @@ func (p *Processor) Run() error {
 				return nil
 			case <-ticker.C:
 				if p.eventStore.storageLimitTracker.isStuck() {
+					p.logger.Warn("all writes are failing due to storage limit, trying to flatten db to release storage space")
 					p.eventStore.storageLimitTracker.flattenMu.Lock()
 					err = p.config.DB.Flatten(3)
 					if err != nil {
 						p.logger.With(logp.Error(err)).Warnf("fail to flatten db")
+					} else {
+						p.logger.Warn("flatten successful")
 					}
 					p.eventStore.storageLimitTracker.flattenMu.Unlock()
 				}
