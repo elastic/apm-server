@@ -24,11 +24,11 @@ const (
 func OpenBadger(storageDir string, valueLogFileSize int64) (*badger.DB, error) {
 	logger := logp.NewLogger(logs.Sampling)
 	// Tunable memory options:
-	//  - NumMemtables - default 5 in-mem tables (MaxTableSize default)
+	//  - NumMemtables - default 5 in-mem tables (MemTableSize default)
 	//  - NumLevelZeroTables - default 5 - number of L0 tables before compaction starts.
 	//  - NumLevelZeroTablesStall - number of L0 tables before writing stalls (waiting for compaction).
 	//  - IndexCacheSize - default all in mem, Each table has its own bloom filter and each bloom filter is approximately of 5 MB.
-	//  - MaxTableSize - Default 64MB
+	//  - BaseTableSize - default 2MB, and is different across levels by TableSizeMultiplier
 	if valueLogFileSize <= 0 {
 		valueLogFileSize = defaultValueLogFileSize
 	}
@@ -38,12 +38,11 @@ func OpenBadger(storageDir string, valueLogFileSize int64) (*badger.DB, error) {
 		WithNumMemtables(tableLimit).                // in-memory tables.
 		WithNumLevelZeroTables(tableLimit).          // L0 tables.
 		WithNumLevelZeroTablesStall(tableLimit * 3). // Maintain the default 1-to-3 ratio before stalling.
-		WithBaseTableSize(int64(16 << 20)).          // Max LSM table or file size.
+		WithBaseTableSize(int64(2 << 20)).           // Max LSM table or file size.
 		WithValueLogFileSize(valueLogFileSize).      // vlog file size.
 		WithBlockCacheSize(0).
 		WithCompression(options.None).
 		WithValueThreshold(1024)
-	badgerOpts.LmaxCompaction = true
 
 	return badger.Open(badgerOpts)
 }
