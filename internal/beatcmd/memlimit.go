@@ -15,14 +15,29 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package glog
+package beatcmd
 
-import "log"
+import (
+	"fmt"
+	"log/slog"
+	"time"
 
-func Fatal(args ...interface{}) {
-	log.Fatal(args...)
-}
+	"github.com/KimMachineGun/automemlimit/memlimit"
+)
 
-func Fatalf(format string, args ...interface{}) {
-	log.Fatalf(format, args...)
+func adjustMemlimit(d time.Duration, logger *slog.Logger) error {
+	if _, err := memlimit.SetGoMemLimitWithOpts(
+		memlimit.WithProvider(
+			memlimit.ApplyFallback(
+				memlimit.FromCgroup,
+				memlimit.FromSystem,
+			),
+		),
+		memlimit.WithLogger(logger),
+		memlimit.WithRefreshInterval(d),
+		memlimit.WithRatio(0.9),
+	); err != nil {
+		return fmt.Errorf("failed to set go memlimit: %w", err)
+	}
+	return nil
 }
