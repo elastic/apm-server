@@ -8,7 +8,7 @@ require (
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/apm-aggregation v1.1.0
 	github.com/elastic/apm-data v1.14.1
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20241230063435-e9a656591cf6
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20241230161003-d09fc22cd181
 	github.com/elastic/elastic-agent-client/v7 v7.16.0
 	github.com/elastic/elastic-agent-libs v0.17.5
 	github.com/elastic/elastic-agent-system-metrics v0.11.6
@@ -49,7 +49,7 @@ require (
 	go.opentelemetry.io/otel/sdk/metric v1.32.0
 	go.uber.org/automaxprocs v1.6.0
 	go.uber.org/zap v1.27.0
-	golang.org/x/net v0.31.0
+	golang.org/x/net v0.33.0
 	golang.org/x/sync v0.10.0
 	golang.org/x/term v0.27.0
 	golang.org/x/time v0.8.0
