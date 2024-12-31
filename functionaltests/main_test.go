@@ -36,8 +36,9 @@ import (
 var cleanupOnFailure *bool = flag.Bool("cleanup-on-failure", true, "Whether to run cleanup even if the test failed.")
 var target *string = flag.String("target", "production", "The target environment where to run tests againts. Valid values are: qa, production")
 
+// https://www.elastic.co/guide/en/cloud/current/ec-regions-templates-instances.html
 const testRegionQA = "aws-eu-west-1"
-const testRegionProduction = "europe-west1"
+const testRegionProduction = "eu-west-1"
 
 // assertDocCountEqual asserts that document counts in each data stream are equal.
 func assertDocCountEqual(t *testing.T, want []esclient.ApmDocCount, actual []esclient.ApmDocCount) {
