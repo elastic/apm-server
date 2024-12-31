@@ -34,7 +34,10 @@ import (
 )
 
 var cleanupOnFailure *bool = flag.Bool("cleanup-on-failure", true, "Whether to run cleanup even if the test failed.")
-var target *string = flag.String("target", "production", "The target environment where to run tests againts. Valid values are: qa, production")
+
+// target is the Elastic Cloud environment to target with these test.
+// We use 'pro' for production as that is the key used to retrieve EC_API_KEY from secret storage.
+var target *string = flag.String("target", "pro", "The target environment where to run tests againts. Valid values are: qa, pro")
 
 // https://www.elastic.co/guide/en/cloud/current/ec-regions-templates-instances.html
 const testRegionQA = "aws-eu-west-1"
