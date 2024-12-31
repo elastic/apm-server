@@ -1,27 +1,14 @@
-resource "ec_deployment" "example_minimal" {
-  name = var.name
+module "ec_deployment" {
+  source = "../../testing/infra/terraform/modules/ec_deployment"
+  region = var.ec_region
 
-  region                 = var.ec_region
-  version                = var.stack_version
-  deployment_template_id = "aws-storage-optimized"
+  deployment_template    = "aws-storage-optimized"
+  deployment_name_prefix = var.name
 
-  elasticsearch = {
-    hot = {
-      autoscaling = {}
-    }
+  apm_server_size = "1g"
 
-    ml = {
-      autoscaling = {
-        autoscale = true
-      }
-    }
-  }
+  elasticsearch_size       = "4g"
+  elasticsearch_zone_count = 1
 
-  kibana = {
-    topology = {}
-  }
-
-  integrations_server = {}
-
-  tags = merge(local.ci_tags, module.tags.tags)
+  stack_version = var.stack_version
 }
