@@ -1,7 +1,7 @@
 resource "ec_deployment" "example_minimal" {
   name = var.name
 
-  region                 = "aws-eu-west-1"
+  region                 = var.ec_region
   version                = var.stack_version
   deployment_template_id = "aws-storage-optimized"
 

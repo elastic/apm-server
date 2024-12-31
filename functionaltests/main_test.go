@@ -36,7 +36,8 @@ import (
 var cleanupOnFailure *bool = flag.Bool("cleanup-on-failure", true, "Whether to run cleanup even if the test failed.")
 var target *string = flag.String("target", "production", "The target environment where to run tests againts. Valid values are: qa, production")
 
-const testRegion = "aws-eu-west-1"
+const testRegionQA = "aws-eu-west-1"
+const testRegionProduction = "europe-west1"
 
 // assertDocCountEqual asserts that document counts in each data stream are equal.
 func assertDocCountEqual(t *testing.T, want []esclient.ApmDocCount, actual []esclient.ApmDocCount) {
@@ -106,4 +107,17 @@ func assertDatastreams(t *testing.T, expected checkDatastreamWant, actual []type
 		}
 	}
 
+}
+
+// regionFrom returns the appropriate region to run test
+// againts based on specified target.
+func regionFrom(target string) string {
+	switch target {
+	case "qa":
+		return testRegionQA
+	case "production":
+		return testRegionProduction
+	default:
+		panic("target value is not accepted")
+	}
 }
