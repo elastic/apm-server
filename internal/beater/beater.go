@@ -69,6 +69,7 @@ import (
 	srvmodelprocessor "github.com/elastic/apm-server/internal/model/modelprocessor"
 	"github.com/elastic/apm-server/internal/publish"
 	"github.com/elastic/apm-server/internal/sourcemap"
+	"github.com/elastic/apm-server/internal/telemetry"
 	"github.com/elastic/apm-server/internal/version"
 )
 
@@ -83,8 +84,9 @@ type Runner struct {
 	outputConfig              agentconfig.Namespace
 	elasticsearchOutputConfig *agentconfig.C
 
-	metricReader *sdkmetric.ManualReader
-	listener     net.Listener
+	metricReader   *sdkmetric.ManualReader
+	metricExporter *telemetry.MetricExporter
+	listener       net.Listener
 }
 
 // RunnerParams holds parameters for NewRunner.
@@ -96,7 +98,8 @@ type RunnerParams struct {
 	// Logger holds a logger to use for logging throughout the APM Server.
 	Logger *logp.Logger
 
-	MetricReader *sdkmetric.ManualReader
+	MetricReader   *sdkmetric.ManualReader
+	MetricExporter *telemetry.MetricExporter
 
 	// WrapServer holds an optional WrapServerFunc, for wrapping the
 	// ServerParams and RunServerFunc used to run the APM Server.
@@ -146,8 +149,9 @@ func NewRunner(args RunnerParams) (*Runner, error) {
 		outputConfig:              unpackedConfig.Output,
 		elasticsearchOutputConfig: elasticsearchOutputConfig,
 
-		metricReader: args.MetricReader,
-		listener:     listener,
+		metricReader:   args.MetricReader,
+		metricExporter: args.MetricExporter,
+		listener:       listener,
 	}, nil
 }
 
@@ -399,6 +403,7 @@ func (s *Runner) Run(ctx context.Context) error {
 		}),
 		finalBatchProcessor,
 	})
+	s.metricExporter.SetBatchProcessor(batchProcessor)
 
 	agentConfigFetcher, fetcherRunFunc, err := newAgentConfigFetcher(
 		ctx,
