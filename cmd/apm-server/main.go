@@ -28,9 +28,8 @@ func main() {
 	rootCmd := beatcmd.NewRootCommand(beatcmd.BeatParams{
 		NewRunner: func(args beatcmd.RunnerParams) (beatcmd.Runner, error) {
 			return beater.NewRunner(beater.RunnerParams{
-				Config:         args.Config,
-				Logger:         args.Logger,
-				MetricExporter: args.MetricExporter,
+				Config: args.Config,
+				Logger: args.Logger,
 			})
 		},
 	})

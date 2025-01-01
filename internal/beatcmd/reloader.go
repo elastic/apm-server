@@ -28,7 +28,6 @@ import (
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/elastic/apm-server/internal/telemetry"
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/cfgfile"
 	"github.com/elastic/beats/v7/libbeat/common/reload"
@@ -66,8 +65,6 @@ type RunnerParams struct {
 	MeterProvider metric.MeterProvider
 
 	MetricReader *sdkmetric.ManualReader
-
-	MetricExporter *telemetry.MetricExporter
 }
 
 // Runner is an interface returned by NewRunnerFunc.

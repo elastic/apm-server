@@ -65,7 +65,6 @@ import (
 	sysinfo "github.com/elastic/go-sysinfo"
 	"github.com/elastic/go-sysinfo/types"
 
-	"github.com/elastic/apm-server/internal/telemetry"
 	"github.com/elastic/apm-server/internal/version"
 )
 
@@ -79,11 +78,10 @@ type Beat struct {
 
 	Config *Config
 
-	rawConfig      *config.C
-	newRunner      NewRunnerFunc
-	metricReader   *sdkmetric.ManualReader
-	meterProvider  *sdkmetric.MeterProvider
-	metricExporter *telemetry.MetricExporter
+	rawConfig     *config.C
+	newRunner     NewRunnerFunc
+	metricReader  *sdkmetric.ManualReader
+	meterProvider *sdkmetric.MeterProvider
 	//TODO metricGatherer apmotel.Gatherer
 }
 
@@ -118,14 +116,12 @@ func NewBeat(args BeatParams) (*Beat, error) {
 		beatName = hostname
 	}
 
-	localExporter := telemetry.NewMetricExporter()
 	metricReader := sdkmetric.NewManualReader()
 	meterProvider := sdkmetric.NewMeterProvider(
 		// TODO(axw) register an apmotel gatherer,
 		// pass it into the runner so it can be
 		// registered with tracers.
 		sdkmetric.WithReader(metricReader),
-		sdkmetric.WithReader(sdkmetric.NewPeriodicReader(localExporter)),
 	)
 	otel.SetMeterProvider(meterProvider)
 
@@ -147,12 +143,11 @@ func NewBeat(args BeatParams) (*Beat, error) {
 			BeatConfig: cfg.APMServer,
 			Registry:   reload.NewRegistry(),
 		},
-		Config:         cfg,
-		newRunner:      args.NewRunner,
-		rawConfig:      rawConfig,
-		metricReader:   metricReader,
-		meterProvider:  meterProvider,
-		metricExporter: localExporter,
+		Config:        cfg,
+		newRunner:     args.NewRunner,
+		rawConfig:     rawConfig,
+		metricReader:  metricReader,
+		meterProvider: meterProvider,
 	}
 
 	if err := b.init(); err != nil {
@@ -414,12 +409,11 @@ func (b *Beat) Run(ctx context.Context) error {
 			return errors.New("no output defined, please define one under the output section")
 		}
 		runner, err := b.newRunner(RunnerParams{
-			Config:         b.rawConfig,
-			Info:           b.Info,
-			Logger:         logp.NewLogger(""),
-			MeterProvider:  b.meterProvider,
-			MetricReader:   b.metricReader,
-			MetricExporter: b.metricExporter,
+			Config:        b.rawConfig,
+			Info:          b.Info,
+			Logger:        logp.NewLogger(""),
+			MeterProvider: b.meterProvider,
+			MetricReader:  b.metricReader,
 		})
 		if err != nil {
 			return err
