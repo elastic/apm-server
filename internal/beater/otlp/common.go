@@ -18,8 +18,9 @@
 package otlp
 
 import (
-	"github.com/elastic/apm-server/internal/beater/request"
 	"go.opentelemetry.io/otel"
+
+	"github.com/elastic/apm-server/internal/beater/request"
 )
 
 var (

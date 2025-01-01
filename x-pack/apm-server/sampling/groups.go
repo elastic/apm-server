@@ -12,8 +12,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/elastic/apm-data/model/modelpb"
 	"go.opentelemetry.io/otel/metric"
+
+	"github.com/elastic/apm-data/model/modelpb"
 )
 
 const minReservoirSize = 1000
