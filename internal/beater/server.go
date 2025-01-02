@@ -30,7 +30,6 @@ import (
 
 	"github.com/elastic/beats/v7/libbeat/version"
 	"github.com/elastic/elastic-agent-libs/logp"
-	"github.com/elastic/elastic-agent-libs/monitoring"
 
 	"github.com/elastic/apm-data/input"
 	"github.com/elastic/apm-data/model/modelpb"
@@ -44,10 +43,6 @@ import (
 	"github.com/elastic/apm-server/internal/elasticsearch"
 	"github.com/elastic/apm-server/internal/kibana"
 	"github.com/elastic/apm-server/internal/sourcemap"
-)
-
-var (
-	agentcfgMonitoringRegistry = monitoring.Default.NewRegistry("apm-server.agentcfg")
 )
 
 // WrapServerFunc is a function for injecting behaviour into ServerParams
@@ -267,7 +262,5 @@ func newAgentConfigFetcher(
 		return nil, nil, err
 	}
 	esFetcher := agentcfg.NewElasticsearchFetcher(esClient, cfg.AgentConfig.Cache.Expiration, fallbackFetcher, tracer)
-	agentcfgMonitoringRegistry.Remove("elasticsearch")
-	monitoring.NewFunc(agentcfgMonitoringRegistry, "elasticsearch", esFetcher.CollectMonitoring, monitoring.Report)
 	return agentcfg.SanitizingFetcher{Fetcher: esFetcher}, esFetcher.Run, nil
 }

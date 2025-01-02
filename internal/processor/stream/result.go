@@ -18,9 +18,10 @@
 package stream
 
 import (
+	"context"
 	"errors"
 
-	"github.com/elastic/elastic-agent-libs/monitoring"
+	"go.opentelemetry.io/otel"
 )
 
 const (
@@ -28,10 +29,10 @@ const (
 )
 
 var (
-	m         = monitoring.Default.NewRegistry("apm-server.processor.stream")
-	mAccepted = monitoring.NewInt(m, "accepted")
-	mInvalid  = monitoring.NewInt(m, "errors.invalid")
-	mTooLarge = monitoring.NewInt(m, "errors.toolarge")
+	meter        = otel.Meter("github.com/elastic/apm-server/internal/processor/stream")
+	mAccepted, _ = meter.Int64Counter("apm-server.processor.stream.accepted")
+	mInvalid, _  = meter.Int64Counter("apm-server.processor.stream.errors.invalid")
+	mTooLarge, _ = meter.Int64Counter("apm-server.processor.stream.errors.toolarge")
 )
 
 type Result struct {
@@ -49,16 +50,16 @@ func (r *Result) Add(err error) {
 
 func (r *Result) AddAccepted(ct int) {
 	r.Accepted += ct
-	mAccepted.Add(int64(ct))
+	mAccepted.Add(context.Background(), int64(ct))
 }
 
 func (r *Result) add(err error, add bool) {
 	var invalid *InvalidInputError
 	if errors.As(err, &invalid) {
 		if invalid.TooLarge {
-			mTooLarge.Inc()
+			mTooLarge.Add(context.Background(), 1)
 		} else {
-			mInvalid.Inc()
+			mInvalid.Add(context.Background(), 1)
 		}
 	}
 	if add {
