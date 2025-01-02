@@ -54,9 +54,3 @@ variable "apm_server_bin_path" {
   type        = string
   description = "Optionally use the apm-server binary from the specified path instead"
 }
-
-variable "tags" {
-  type        = map(string)
-  default     = {}
-  description = "Optional set of tags to use for all deployments"
-}
