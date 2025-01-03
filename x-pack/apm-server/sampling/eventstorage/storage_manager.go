@@ -49,11 +49,23 @@ func NewStorageManager(storageDir string) (*StorageManager, error) {
 		gcLoopCh:   make(chan struct{}, 1),
 		logger:     logp.NewLogger(logs.Sampling),
 	}
-	err := sm.Reset()
+	err := sm.reset()
 	if err != nil {
 		return nil, err
 	}
 	return sm, nil
+}
+
+// reset initializes db, storage, and rw.
+func (s *StorageManager) reset() error {
+	db, err := OpenBadger(s.storageDir, -1)
+	if err != nil {
+		return err
+	}
+	s.db = db
+	s.storage = New(db, ProtobufCodec{})
+	s.rw = s.storage.NewShardedReadWriter()
+	return nil
 }
 
 // RunGCLoop runs a loop that calls badger DB RunValueLogGC every gcInterval.
@@ -91,30 +103,18 @@ func (s *StorageManager) RunGCLoop(stopping <-chan struct{}, gcInterval time.Dur
 	}
 }
 
+func (s *StorageManager) runValueLogGC(discardRatio float64) error {
+	return s.db.RunValueLogGC(discardRatio)
+}
+
 func (s *StorageManager) Close() error {
 	s.rw.Close()
 	return s.db.Close()
 }
 
-// Reset initializes db, storage, and rw.
-func (s *StorageManager) Reset() error {
-	db, err := OpenBadger(s.storageDir, -1)
-	if err != nil {
-		return err
-	}
-	s.db = db
-	s.storage = New(db, ProtobufCodec{})
-	s.rw = s.storage.NewShardedReadWriter()
-	return nil
-}
-
 // Size returns the db size
 func (s *StorageManager) Size() (lsm, vlog int64) {
 	return s.db.Size()
-}
-
-func (s *StorageManager) runValueLogGC(discardRatio float64) error {
-	return s.db.RunValueLogGC(discardRatio)
 }
 
 func (s *StorageManager) ReadSubscriberPosition() ([]byte, error) {
