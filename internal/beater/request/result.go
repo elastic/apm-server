@@ -123,6 +123,8 @@ type Result struct {
 	Body       interface{}
 	Err        error
 	Stacktrace string
+	Context    *Context
+	Chained    *Result
 }
 
 // DefaultMonitoringMapForRegistry returns map matching resultIDs to monitoring counters for given registry.
@@ -154,6 +156,10 @@ func (r *Result) Reset() {
 	r.Body = nil
 	r.Err = nil
 	r.Stacktrace = ""
+	r.Context = nil
+	for r := r.Chained; r != nil; r = r.Chained {
+		r.Reset()
+	}
 }
 
 // Failure returns a bool indicating whether it is describing a successful result or not
@@ -162,27 +168,46 @@ func (r *Result) Failure() bool {
 }
 
 // SetDefault derives information about the result solely from the ID.
-func (r *Result) SetDefault(id ResultID) {
-	r.set(id, nil, nil)
+func (r *Result) SetDefault(id ResultID) *Result {
+	return r.set(id, nil, nil)
 }
 
 // SetWithError derives information about the result from the given ID and the error.
 // The body is derived from the error in case the result describes a failure.
-func (r *Result) SetWithError(id ResultID, err error) {
-	r.set(id, nil, err)
+func (r *Result) SetWithError(id ResultID, err error) *Result {
+	return r.set(id, nil, err)
 }
 
 // SetWithBody derives information about the result from the given ID. The body is set to the passed value.
-func (r *Result) SetWithBody(id ResultID, body interface{}) {
-	r.set(id, body, nil)
+func (r *Result) SetWithBody(id ResultID, body interface{}) *Result {
+	return r.set(id, body, nil)
 }
 
 // Set allows for the most flexibility in setting a result's properties.
 // The error and body information are derived from the given parameters.
-func (r *Result) Set(id ResultID, statusCode int, keyword string, body interface{}, err error) {
+func (r *Result) Set(id ResultID, statusCode int, keyword string, body interface{}, err error) *Result {
 	if r == nil {
-		return
+		return nil
 	}
+
+	// Check that the response hasn't been written before.
+	// If it already has then chain error results for logger.
+	if r.Context != nil && r.Context.writeAttempts >= 1 {
+		rr := new(Result)
+		rr.Set(id, statusCode, keyword, body, err)
+		rr.Context = r.Context
+		if rr.Failure() {
+			for ; r.Chained != nil; r = r.Chained {
+			}
+			r.Chained = rr
+			return rr
+		}
+		if r.Context.Logger != nil {
+			r.Context.Logger.Error("superfluous request.Result Set call")
+		}
+		return nil
+	}
+
 	r.ID = id
 	r.StatusCode = statusCode
 	r.Keyword = keyword
@@ -197,11 +222,12 @@ func (r *Result) Set(id ResultID, statusCode int, keyword string, body interface
 			r.Body = r.Err.Error()
 		}
 	}
+	return r
 }
 
-func (r *Result) set(id ResultID, body interface{}, err error) {
+func (r *Result) set(id ResultID, body interface{}, err error) *Result {
 	if r == nil {
-		return
+		return nil
 	}
 
 	var statusCode int
@@ -214,5 +240,5 @@ func (r *Result) set(id ResultID, body interface{}, err error) {
 		keyword = MapResultIDToStatus[IDResponseErrorsInternal].Keyword
 	}
 	err = errors.Wrap(err, keyword)
-	r.Set(id, statusCode, keyword, body, err)
+	return r.Set(id, statusCode, keyword, body, err)
 }

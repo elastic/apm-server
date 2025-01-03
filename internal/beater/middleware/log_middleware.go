@@ -50,16 +50,18 @@ func LogMiddleware() Middleware {
 			if c.MultipleWriteAttempts() {
 				c.Logger.Warn("multiple write attempts")
 			}
-			keyword := c.Result.Keyword
-			if keyword == "" {
-				keyword = "handled request"
+			for r := &c.Result; r != nil; r = r.Chained {
+				keyword := r.Keyword
+				if keyword == "" {
+					keyword = "handled request"
+				}
+				logger := loggerWithResult(c, r)
+				if r.Failure() {
+					logger.Error(keyword)
+					continue
+				}
+				logger.Info(keyword)
 			}
-			c.Logger = loggerWithResult(c)
-			if c.Result.Failure() {
-				c.Logger.Error(keyword)
-				return
-			}
-			c.Logger.Info(keyword)
 		}, nil
 	}
 }
@@ -98,14 +100,15 @@ func loggerWithTraceContext(c *request.Context) (*logp.Logger, error) {
 	), nil
 }
 
-func loggerWithResult(c *request.Context) *logp.Logger {
+func loggerWithResult(c *request.Context, r *request.Result) *logp.Logger {
+	// Always keep original result status code to avoid confusion.
 	logger := c.Logger.With(
 		"http.response.status_code", c.Result.StatusCode)
-	if c.Result.Err != nil {
-		logger = logger.With("error.message", c.Result.Err.Error())
+	if r.Err != nil {
+		logger = logger.With("error.message", r.Err.Error())
 	}
-	if c.Result.Stacktrace != "" {
-		logger = logger.With("error.stack_trace", c.Result.Stacktrace)
+	if r.Stacktrace != "" {
+		logger = logger.With("error.stack_trace", r.Stacktrace)
 	}
 	return logger
 }
