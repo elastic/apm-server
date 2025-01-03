@@ -582,7 +582,7 @@ type rw interface {
 	Flush() error
 }
 
-// wrappedRW wraps configurable write options for global ShardedReadWriter
+// wrappedRW wraps configurable write options for global rw
 type wrappedRW struct {
 	rw         rw
 	writerOpts eventstorage.WriterOpts
@@ -606,32 +606,32 @@ func newWrappedRW(rw rw, ttl time.Duration, limit int64) *wrappedRW {
 	}
 }
 
-// ReadTraceEvents calls ShardedReadWriter.ReadTraceEvents
+// ReadTraceEvents calls rw.ReadTraceEvents
 func (s *wrappedRW) ReadTraceEvents(traceID string, out *modelpb.Batch) error {
 	return s.rw.ReadTraceEvents(traceID, out)
 }
 
-// WriteTraceEvents calls ShardedReadWriter.WriteTraceEvents using the configured WriterOpts
+// WriteTraceEvent calls rw.WriteTraceEvent using the configured WriterOpts
 func (s *wrappedRW) WriteTraceEvent(traceID, id string, event *modelpb.APMEvent) error {
 	return s.rw.WriteTraceEvent(traceID, id, event, s.writerOpts)
 }
 
-// WriteTraceSampled calls ShardedReadWriter.WriteTraceSampled using the configured WriterOpts
+// WriteTraceSampled calls rw.WriteTraceSampled using the configured WriterOpts
 func (s *wrappedRW) WriteTraceSampled(traceID string, sampled bool) error {
 	return s.rw.WriteTraceSampled(traceID, sampled, s.writerOpts)
 }
 
-// IsTraceSampled calls ShardedReadWriter.IsTraceSampled
+// IsTraceSampled calls rw.IsTraceSampled
 func (s *wrappedRW) IsTraceSampled(traceID string) (bool, error) {
 	return s.rw.IsTraceSampled(traceID)
 }
 
-// DeleteTraceEvent calls ShardedReadWriter.DeleteTraceEvent
+// DeleteTraceEvent calls rw.DeleteTraceEvent
 func (s *wrappedRW) DeleteTraceEvent(traceID, id string) error {
 	return s.rw.DeleteTraceEvent(traceID, id)
 }
 
-// Flush calls ShardedReadWriter.Flush
+// Flush calls rw.Flush
 func (s *wrappedRW) Flush() error {
 	return s.rw.Flush()
 }
