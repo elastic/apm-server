@@ -148,7 +148,7 @@ func (s *StorageManager) RunDropLoop(stopping <-chan struct{}, ttl time.Duration
 				}
 				if now.Sub(firstExceeded) >= ttl {
 					s.logger.Warnf("badger db size has exceeded storage limit for over TTL, please consider increasing sampling.tail.storage_size; dropping and recreating badger db to recover")
-					s.DropAndRecreate()
+					s.dropAndRecreate()
 					s.logger.Info("badger db dropped and recreated")
 				}
 			} else {
@@ -184,8 +184,8 @@ func (s *StorageManager) Size() (lsm, vlog int64) {
 	return s.db.Size()
 }
 
-// DropAndRecreate deletes the underlying badger DB at a file system level, and replaces it with a new badger DB.
-func (s *StorageManager) DropAndRecreate() {
+// dropAndRecreate deletes the underlying badger DB at a file system level, and replaces it with a new badger DB.
+func (s *StorageManager) dropAndRecreate() {
 	backupPath := filepath.Join(filepath.Dir(s.storageDir), filepath.Base(s.storageDir)+".old")
 	if err := os.RemoveAll(backupPath); err != nil && !errors.Is(err, os.ErrNotExist) {
 		s.logger.With(logp.Error(err)).Error("error removing existing backup dir during drop and recreate")
