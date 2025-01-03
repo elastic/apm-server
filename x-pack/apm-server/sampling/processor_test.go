@@ -63,8 +63,7 @@ func TestProcessAlreadyTailSampled(t *testing.T) {
 	// subsequent events in the trace will be reported immediately.
 	trace1 := modelpb.Trace{Id: "0102030405060708090a0b0c0d0e0f10"}
 	trace2 := modelpb.Trace{Id: "0102030405060708090a0b0c0d0e0f11"}
-	storage := eventstorage.New(config.DB, eventstorage.ProtobufCodec{})
-	writer := storage.NewReadWriter()
+	writer := config.DB.NewBypassReadWriter()
 	wOpts := eventstorage.WriterOpts{
 		TTL:                 time.Minute,
 		StorageLimitInBytes: 0,
@@ -74,8 +73,7 @@ func TestProcessAlreadyTailSampled(t *testing.T) {
 	writer.Close()
 
 	wOpts.TTL = -1 // expire immediately
-	storage = eventstorage.New(config.DB, eventstorage.ProtobufCodec{})
-	writer = storage.NewReadWriter()
+	writer = config.DB.NewBypassReadWriter()
 	assert.NoError(t, writer.WriteTraceSampled(trace2.Id, true, wOpts))
 	assert.NoError(t, writer.Flush())
 	writer.Close()
@@ -143,7 +141,7 @@ func TestProcessAlreadyTailSampled(t *testing.T) {
 	// Stop the processor and flush global storage so we can access the database.
 	assert.NoError(t, processor.Stop(context.Background()))
 	assert.NoError(t, config.Storage.Flush())
-	reader := storage.NewReadWriter()
+	reader := config.DB.NewBypassReadWriter()
 	defer reader.Close()
 
 	batch = nil
@@ -262,8 +260,7 @@ func TestProcessLocalTailSampling(t *testing.T) {
 			// Stop the processor and flush global storage so we can access the database.
 			assert.NoError(t, processor.Stop(context.Background()))
 			assert.NoError(t, config.Storage.Flush())
-			storage := eventstorage.New(config.DB, eventstorage.ProtobufCodec{})
-			reader := storage.NewReadWriter()
+			reader := config.DB.NewBypassReadWriter()
 			defer reader.Close()
 
 			sampled, err := reader.IsTraceSampled(sampledTraceID)
@@ -327,8 +324,7 @@ func TestProcessLocalTailSamplingUnsampled(t *testing.T) {
 	// Stop the processor so we can access the database.
 	assert.NoError(t, processor.Stop(context.Background()))
 	assert.NoError(t, config.Storage.Flush())
-	storage := eventstorage.New(config.DB, eventstorage.ProtobufCodec{})
-	reader := storage.NewReadWriter()
+	reader := config.DB.NewBypassReadWriter()
 	defer reader.Close()
 
 	var anyUnsampled bool
@@ -494,8 +490,7 @@ func TestProcessRemoteTailSampling(t *testing.T) {
 
 	assert.Empty(t, cmp.Diff(trace1Events, events, protocmp.Transform()))
 
-	storage := eventstorage.New(config.DB, eventstorage.ProtobufCodec{})
-	reader := storage.NewReadWriter()
+	reader := config.DB.NewBypassReadWriter()
 	defer reader.Close()
 
 	sampled, err := reader.IsTraceSampled(traceID1)
@@ -597,31 +592,23 @@ func TestStorageGC(t *testing.T) {
 	config.TTL = 10 * time.Millisecond
 	config.FlushInterval = 10 * time.Millisecond
 
-	// Create a new badger DB with smaller value log files so we can test GC.
-	config.DB.Close()
-	badgerDB, err := eventstorage.OpenBadger(config.StorageDir, 1024*1024)
-	require.NoError(t, err)
-	t.Cleanup(func() { badgerDB.Close() })
-	config.DB = badgerDB
-	config.Storage = eventstorage.
-		New(config.DB, eventstorage.ProtobufCodec{}).
-		NewShardedReadWriter()
-	t.Cleanup(func() { config.Storage.Close() })
-
 	writeBatch := func(n int) {
-		config.StorageGCInterval = time.Minute // effectively disable
+		config.StorageGCInterval = time.Hour // effectively disable
 		processor, err := sampling.NewProcessor(config)
 		require.NoError(t, err)
 		go processor.Run()
 		defer processor.Stop(context.Background())
 		for i := 0; i < n; i++ {
 			traceID := uuid.Must(uuid.NewV4()).String()
+			// Create a larger event to fill up the vlog faster, especially when it is above ValueThreshold
 			batch := modelpb.Batch{{
 				Trace: &modelpb.Trace{Id: traceID},
 				Event: &modelpb.Event{Duration: uint64(123 * time.Millisecond)},
 				Span: &modelpb.Span{
-					Type: "type",
-					Id:   traceID,
+					Type:    strings.Repeat("a", 1000),
+					Subtype: strings.Repeat("b", 1000),
+					Id:      traceID,
+					Name:    strings.Repeat("c", 1000),
 				},
 			}}
 			err := processor.ProcessBatch(context.Background(), &batch)
@@ -647,7 +634,7 @@ func TestStorageGC(t *testing.T) {
 	// Process spans until value log files have been created.
 	// Garbage collection is disabled at this time.
 	for len(vlogFilenames()) < 3 {
-		writeBatch(500)
+		writeBatch(2000)
 	}
 
 	config.StorageGCInterval = 10 * time.Millisecond
@@ -657,16 +644,11 @@ func TestStorageGC(t *testing.T) {
 	defer processor.Stop(context.Background())
 
 	// Wait for the first value log file to be garbage collected.
-	deadline := time.Now().Add(10 * time.Second)
-	for time.Now().Before(deadline) {
-		vlogs := vlogFilenames()
-		if len(vlogs) == 0 || vlogs[0] != "000000.vlog" {
-			// garbage collected
-			return
-		}
-		time.Sleep(10 * time.Millisecond)
-	}
-	t.Fatal("timed out waiting for value log garbage collection")
+	var vlogs []string
+	assert.Eventually(t, func() bool {
+		vlogs = vlogFilenames()
+		return len(vlogs) == 0 || vlogs[0] != "000000.vlog"
+	}, 10*time.Second, 100*time.Millisecond, vlogs)
 }
 
 func TestStorageGCConcurrency(t *testing.T) {
@@ -734,12 +716,11 @@ func TestStorageLimit(t *testing.T) {
 		assert.Empty(t, b, fmt.Sprintf("expected empty but size is %d", len(b)))
 	})
 	assert.NoError(t, config.Storage.Flush())
-	config.Storage.Close()
 	assert.NoError(t, config.DB.Close())
 
 	// Open a new instance of the badgerDB and check the size.
 	var err error
-	config.DB, err = eventstorage.OpenBadger(config.StorageDir, 1024*1024)
+	config.DB, err = eventstorage.NewStorageManager(config.StorageDir)
 	require.NoError(t, err)
 	t.Cleanup(func() { config.DB.Close() })
 
@@ -825,7 +806,8 @@ func TestGracefulShutdown(t *testing.T) {
 	assert.NoError(t, processor.Stop(context.Background()))
 	assert.NoError(t, config.Storage.Flush())
 
-	reader := eventstorage.New(config.DB, eventstorage.ProtobufCodec{}).NewReadWriter()
+	reader := config.DB.NewBypassReadWriter()
+	defer reader.Close()
 
 	var count int
 	for i := 0; i < totalTraces; i++ {
@@ -841,13 +823,11 @@ func newTempdirConfig(tb testing.TB) sampling.Config {
 	require.NoError(tb, err)
 	tb.Cleanup(func() { os.RemoveAll(tempdir) })
 
-	badgerDB, err := eventstorage.OpenBadger(tempdir, 0)
+	badgerDB, err := eventstorage.NewStorageManager(tempdir)
 	require.NoError(tb, err)
 	tb.Cleanup(func() { badgerDB.Close() })
 
-	eventCodec := eventstorage.ProtobufCodec{}
-	storage := eventstorage.New(badgerDB, eventCodec).NewShardedReadWriter()
-	tb.Cleanup(func() { storage.Close() })
+	storage := badgerDB.NewReadWriter()
 
 	return sampling.Config{
 		BatchProcessor: modelpb.ProcessBatchFunc(func(context.Context, *modelpb.Batch) error { return nil }),
