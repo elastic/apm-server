@@ -776,6 +776,128 @@ func TestProcessRemoteTailSamplingPersistence(t *testing.T) {
 	assert.Equal(t, `{"index_name":1}`, string(data))
 }
 
+func TestDropAndRecreate(t *testing.T) {
+	// This test ensures that if badger is stuck at storage limit for TTL,
+	// DB is dropped and recreated.
+	if testing.Short() {
+		t.Skip("skipping slow test")
+	}
+
+	writeBatch := func(t *testing.T, n int, c sampling.Config, assertBatch func(b modelpb.Batch)) *sampling.Processor {
+		processor, err := sampling.NewProcessor(c)
+		require.NoError(t, err)
+		go processor.Run()
+		defer processor.Stop(context.Background())
+		batch := make(modelpb.Batch, 0, n)
+		for i := 0; i < n; i++ {
+			traceID := uuid.Must(uuid.NewV4()).String()
+			batch = append(batch, &modelpb.APMEvent{
+				Trace: &modelpb.Trace{Id: traceID},
+				Event: &modelpb.Event{Duration: uint64(123 * time.Millisecond)},
+				Span: &modelpb.Span{
+					Type: "type",
+					Id:   traceID,
+				},
+			})
+		}
+		err = processor.ProcessBatch(context.Background(), &batch)
+		require.NoError(t, err)
+		assertBatch(batch)
+		return processor
+	}
+
+	for _, tc := range []struct {
+		name                string
+		subscriberPosExists bool
+	}{
+		{
+			name:                "subscriber_position_not_exist",
+			subscriberPosExists: false,
+		},
+		{
+			name:                "subscriber_position_exists",
+			subscriberPosExists: true,
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			config := newTempdirConfig(t)
+			config.StorageGCInterval = time.Hour // effectively disable GC
+
+			config.FlushInterval = 10 * time.Millisecond
+			subscriberChan := make(chan string)
+			subscriber := pubsubtest.SubscriberChan(subscriberChan)
+			config.Elasticsearch = pubsubtest.Client(nil, subscriber)
+			subscriberPositionFile := filepath.Join(config.StorageDir, "subscriber_position.json")
+
+			// Write 5K span events and close the DB to persist to disk the storage
+			// size and assert that none are reported immediately.
+			writeBatch(t, 5000, config, func(b modelpb.Batch) {
+				assert.Empty(t, b, fmt.Sprintf("expected empty but size is %d", len(b)))
+
+				subscriberChan <- "0102030405060708090a0b0c0d0e0f10"
+				assert.Eventually(t, func() bool {
+					b, err := os.ReadFile(subscriberPositionFile)
+					return err == nil && string(b) == `{"index_name":1}`
+				}, time.Second, 100*time.Millisecond)
+			})
+			assert.NoError(t, config.Storage.Flush())
+			assert.NoError(t, config.DB.Close())
+
+			if !tc.subscriberPosExists {
+				err := os.Remove(subscriberPositionFile)
+				assert.NoError(t, err)
+			}
+
+			// Open a new instance of the badgerDB and check the size.
+			var err error
+			config.DB, err = eventstorage.NewStorageManager(config.StorageDir)
+			require.NoError(t, err)
+			t.Cleanup(func() { config.DB.Close() })
+
+			lsm, vlog := config.DB.Size()
+			assert.GreaterOrEqual(t, lsm+vlog, int64(1024))
+
+			sstFilenames := func() []string {
+				entries, _ := os.ReadDir(config.StorageDir)
+
+				var ssts []string
+				for _, entry := range entries {
+					name := entry.Name()
+					if strings.HasSuffix(name, ".sst") {
+						ssts = append(ssts, name)
+					}
+				}
+				sort.Strings(ssts)
+				return ssts
+			}
+			assert.NotEqual(t, "000000.sst", sstFilenames()[0])
+
+			config.Elasticsearch = pubsubtest.Client(nil, nil)
+
+			config.StorageLimit = uint64(lsm) - 100
+			config.TTL = time.Second
+			processor, err := sampling.NewProcessor(config)
+			require.NoError(t, err)
+			go processor.Run()
+			defer processor.Stop(context.Background())
+
+			var filenames []string
+			assert.Eventually(t, func() bool {
+				filenames = sstFilenames()
+				return len(filenames) == 0
+			}, 10*time.Second, 500*time.Millisecond, filenames)
+
+			b, err := os.ReadFile(subscriberPositionFile)
+			assert.NoError(t, err)
+			if tc.subscriberPosExists {
+				assert.Equal(t, `{"index_name":1}`, string(b))
+			} else {
+				assert.Equal(t, "{}", string(b))
+			}
+		})
+	}
+}
+
 func TestGracefulShutdown(t *testing.T) {
 	config := newTempdirConfig(t)
 	sampleRate := 0.5

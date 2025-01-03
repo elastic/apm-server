@@ -5,6 +5,7 @@
 package eventstorage
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"sync"
@@ -34,9 +35,14 @@ type StorageManager struct {
 	storage *Storage
 	rw      *ShardedReadWriter
 
+	// mu guards db, storage, and rw swaps.
+	mu sync.RWMutex
 	// subscriberPosMu protects the subscriber file from concurrent RW.
 	subscriberPosMu sync.Mutex
 
+	// dropLoopCh acts as a mutex to ensure that there is only 1 active RunDropLoop per StorageManager,
+	// as it is possible that 2 separate RunDropLoop are created by 2 TBS processors during a hot reload.
+	dropLoopCh chan struct{}
 	// gcLoopCh acts as a mutex to ensure only 1 gc loop is running per StorageManager.
 	// as it is possible that 2 separate RunGCLoop are created by 2 TBS processors during a hot reload.
 	gcLoopCh chan struct{}
@@ -46,6 +52,7 @@ type StorageManager struct {
 func NewStorageManager(storageDir string) (*StorageManager, error) {
 	sm := &StorageManager{
 		storageDir: storageDir,
+		dropLoopCh: make(chan struct{}, 1),
 		gcLoopCh:   make(chan struct{}, 1),
 		logger:     logp.NewLogger(logs.Sampling),
 	}
@@ -107,14 +114,123 @@ func (s *StorageManager) runValueLogGC(discardRatio float64) error {
 	return s.db.RunValueLogGC(discardRatio)
 }
 
+// RunDropLoop runs a loop that detects if storage limit has been exceeded for at least ttl.
+// If so, it drops and recreates the underlying badger DB.
+// The loop stops when it receives from stopping.
+func (s *StorageManager) RunDropLoop(stopping <-chan struct{}, ttl time.Duration, storageLimitInBytes uint64) error {
+	select {
+	case <-stopping:
+		return nil
+	case s.dropLoopCh <- struct{}{}:
+	}
+	defer func() {
+		<-s.dropLoopCh
+	}()
+
+	if storageLimitInBytes == 0 {
+		<-stopping
+		return nil
+	}
+
+	timer := time.NewTicker(min(time.Minute, ttl)) // Eval db size every minute as badger reports them with 1m lag, but use min to facilitate testing
+	defer timer.Stop()
+	var firstExceeded time.Time
+	for {
+		select {
+		case <-stopping:
+			return nil
+		case <-timer.C:
+			lsm, vlog := s.Size()
+			if uint64(lsm+vlog) >= storageLimitInBytes { //FIXME: Add a bit of buffer? Is s.storage.pendingSize reliable enough?
+				now := time.Now()
+				if firstExceeded.IsZero() {
+					firstExceeded = now
+				}
+				if now.Sub(firstExceeded) >= ttl {
+					s.logger.Warnf("badger db size has exceeded storage limit for over TTL, please consider increasing sampling.tail.storage_size; dropping and recreating badger db to recover")
+					s.DropAndRecreate()
+					s.logger.Info("badger db dropped and recreated")
+				}
+			} else {
+				firstExceeded = time.Time{}
+			}
+		}
+	}
+}
+
 func (s *StorageManager) Close() error {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
 	s.rw.Close()
 	return s.db.Close()
 }
 
+// Reset initializes db, storage, and rw.
+func (s *StorageManager) Reset() error {
+	db, err := OpenBadger(s.storageDir, -1)
+	if err != nil {
+		return err
+	}
+	s.db = db
+	s.storage = New(db, ProtobufCodec{})
+	s.rw = s.storage.NewShardedReadWriter()
+	return nil
+}
+
 // Size returns the db size
+//
+// Caller should either be main Run loop or should be holding RLock already
 func (s *StorageManager) Size() (lsm, vlog int64) {
 	return s.db.Size()
+}
+
+// DropAndRecreate deletes the underlying badger DB at a file system level, and replaces it with a new badger DB.
+func (s *StorageManager) DropAndRecreate() {
+	s.mu.Lock()
+	s.rw.Close()
+	err := s.db.Close()
+	if err != nil {
+		s.logger.With(logp.Error(err)).Error("error closing badger db during drop and recreate")
+	}
+
+	s.subscriberPosMu.Lock()
+	backupPath := filepath.Join(filepath.Dir(s.storageDir), filepath.Base(s.storageDir)+".old")
+	// FIXME: what if backupPath already exists?
+	err = os.Rename(s.storageDir, backupPath)
+	if err != nil {
+		s.logger.With(logp.Error(err)).Error("error renaming old badger db during drop and recreate")
+	}
+
+	// Since subscriber position file lives in the same tail sampling directory as badger DB,
+	// Create tail sampling dir, move back subscriber position file, as it is not a part of the DB.
+	var mode os.FileMode
+	stat, err := os.Stat(backupPath)
+	if err != nil {
+		mode = 0700
+		s.logger.With(logp.Error(err)).Error("error stat backup path during drop and recreate")
+	} else {
+		mode = stat.Mode()
+	}
+	err = os.Mkdir(s.storageDir, mode)
+	if err != nil {
+		s.logger.With(logp.Error(err)).Error("error mkdir storage dir during drop and recreate")
+	}
+	err = os.Rename(filepath.Join(backupPath, subscriberPositionFile), filepath.Join(s.storageDir, subscriberPositionFile))
+	if err != nil && !errors.Is(err, os.ErrNotExist) {
+		s.logger.With(logp.Error(err)).Error("error copying subscriber position file during drop and recreate")
+	}
+
+	err = s.Reset() //FIXME: this is likely fatal. Return error to crash the processor
+	if err != nil {
+		s.logger.With(logp.Error(err)).Error("error creating new badger db during drop and recreate")
+	}
+	s.subscriberPosMu.Unlock()
+	s.mu.Unlock()
+
+	err = os.RemoveAll(backupPath)
+	if err != nil {
+		s.logger.With(logp.Error(err)).Error("error removing old badger db during drop and recreate")
+	}
 }
 
 func (s *StorageManager) ReadSubscriberPosition() ([]byte, error) {
@@ -142,26 +258,38 @@ type ManagedReadWriter struct {
 }
 
 func (s *ManagedReadWriter) ReadTraceEvents(traceID string, out *modelpb.Batch) error {
+	s.sm.mu.RLock()
+	defer s.sm.mu.RUnlock()
 	return s.sm.rw.ReadTraceEvents(traceID, out)
 }
 
 func (s *ManagedReadWriter) WriteTraceEvent(traceID, id string, event *modelpb.APMEvent, opts WriterOpts) error {
+	s.sm.mu.RLock()
+	defer s.sm.mu.RUnlock()
 	return s.sm.rw.WriteTraceEvent(traceID, id, event, opts)
 }
 
 func (s *ManagedReadWriter) WriteTraceSampled(traceID string, sampled bool, opts WriterOpts) error {
+	s.sm.mu.RLock()
+	defer s.sm.mu.RUnlock()
 	return s.sm.rw.WriteTraceSampled(traceID, sampled, opts)
 }
 
 func (s *ManagedReadWriter) IsTraceSampled(traceID string) (bool, error) {
+	s.sm.mu.RLock()
+	defer s.sm.mu.RUnlock()
 	return s.sm.rw.IsTraceSampled(traceID)
 }
 
 func (s *ManagedReadWriter) DeleteTraceEvent(traceID, id string) error {
+	s.sm.mu.RLock()
+	defer s.sm.mu.RUnlock()
 	return s.sm.rw.DeleteTraceEvent(traceID, id)
 }
 
 func (s *ManagedReadWriter) Flush() error {
+	s.sm.mu.RLock()
+	defer s.sm.mu.RUnlock()
 	return s.sm.rw.Flush()
 }
 

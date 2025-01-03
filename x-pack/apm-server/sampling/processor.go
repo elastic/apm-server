@@ -383,6 +383,9 @@ func (p *Processor) Run() error {
 		return p.config.DB.RunGCLoop(p.stopping, p.config.StorageGCInterval)
 	})
 	g.Go(func() error {
+		return p.config.DB.RunDropLoop(p.stopping, p.config.TTL, p.config.StorageLimit)
+	})
+	g.Go(func() error {
 		// Subscribe to remotely sampled trace IDs. This is cancelled immediately when
 		// Stop is called. But it is possible that both old and new subscriber goroutines
 		// run concurrently, before the old one eventually receives the Stop call.
