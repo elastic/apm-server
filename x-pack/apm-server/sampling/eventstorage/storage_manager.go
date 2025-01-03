@@ -23,7 +23,7 @@ const (
 	subscriberPositionFile = "subscriber_position.json"
 )
 
-// StorageManager is an abstraction of badger.DB.
+// StorageManager encapsulates badger.DB.
 // It is to provide file system access, simplify synchronization and enable underlying db swaps.
 // It assumes exclusive access to badger DB at storageDir.
 type StorageManager struct {
@@ -109,8 +109,6 @@ func (s *StorageManager) Reset() error {
 }
 
 // Size returns the db size
-//
-// Caller should either be main Run loop or should be holding RLock already
 func (s *StorageManager) Size() (lsm, vlog int64) {
 	return s.db.Size()
 }
@@ -137,7 +135,8 @@ func (s *StorageManager) NewReadWriter() *ManagedReadWriter {
 	}
 }
 
-// ManagedReadWriter is a read writer that is transparent to underlying badger DB swaps done by StorageManager
+// ManagedReadWriter is a read writer that is transparent to badger DB changes done by StorageManager.
+// It is a wrapper of the ShardedReadWriter under StorageManager.
 type ManagedReadWriter struct {
 	sm *StorageManager
 }
@@ -166,6 +165,6 @@ func (s *ManagedReadWriter) Flush() error {
 	return s.sm.rw.Flush()
 }
 
+// Close is a no-op as the underlying read writer has the same lifetime as the underlying badger DB.
 func (s *ManagedReadWriter) Close() {
-	// No-op as managed read writer should never be closed
 }
