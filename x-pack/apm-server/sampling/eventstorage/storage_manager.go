@@ -25,6 +25,7 @@ const (
 
 // StorageManager is an abstraction of badger.DB.
 // It is to provide file system access, simplify synchronization and enable underlying db swaps.
+// It assumes exclusive access to badger DB at storageDir.
 type StorageManager struct {
 	storageDir string
 	logger     *logp.Logger
