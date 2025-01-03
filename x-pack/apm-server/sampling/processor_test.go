@@ -776,7 +776,7 @@ func TestProcessRemoteTailSamplingPersistence(t *testing.T) {
 	assert.Equal(t, `{"index_name":1}`, string(data))
 }
 
-func TestDropAndRecreate(t *testing.T) {
+func TestDropLoop(t *testing.T) {
 	// This test ensures that if badger is stuck at storage limit for TTL,
 	// DB is dropped and recreated.
 	if testing.Short() {

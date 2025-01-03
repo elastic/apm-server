@@ -6,6 +6,7 @@ package eventstorage
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"sync"
@@ -148,7 +149,10 @@ func (s *StorageManager) RunDropLoop(stopping <-chan struct{}, ttl time.Duration
 				}
 				if now.Sub(firstExceeded) >= ttl {
 					s.logger.Warnf("badger db size has exceeded storage limit for over TTL, please consider increasing sampling.tail.storage_limit; dropping and recreating badger db to recover")
-					s.dropAndRecreate()
+					err := s.dropAndRecreate()
+					if err != nil {
+						return fmt.Errorf("error dropping and recreating badger db to recover storage space: %w", err)
+					}
 					s.logger.Info("badger db dropped and recreated")
 				}
 			} else {
@@ -184,24 +188,28 @@ func (s *StorageManager) Size() (lsm, vlog int64) {
 	return s.db.Size()
 }
 
+func getBackupPath(path string) string {
+	return filepath.Join(filepath.Dir(path), filepath.Base(path)+".old")
+}
+
 // dropAndRecreate deletes the underlying badger DB at a file system level, and replaces it with a new badger DB.
-func (s *StorageManager) dropAndRecreate() {
-	backupPath := filepath.Join(filepath.Dir(s.storageDir), filepath.Base(s.storageDir)+".old")
+func (s *StorageManager) dropAndRecreate() error {
+	backupPath := getBackupPath(s.storageDir)
 	if err := os.RemoveAll(backupPath); err != nil && !errors.Is(err, os.ErrNotExist) {
-		s.logger.With(logp.Error(err)).Error("error removing existing backup dir during drop and recreate")
+		return fmt.Errorf("error removing existing backup dir: %w", err)
 	}
 
 	s.mu.Lock()
 	s.rw.Close()
 	err := s.db.Close()
 	if err != nil {
-		s.logger.With(logp.Error(err)).Error("error closing badger db during drop and recreate")
+		return fmt.Errorf("error closing badger db: %w", err)
 	}
 
 	s.subscriberPosMu.Lock()
 	err = os.Rename(s.storageDir, backupPath)
 	if err != nil {
-		s.logger.With(logp.Error(err)).Error("error renaming old badger db during drop and recreate")
+		return fmt.Errorf("error backing up existing badger db: %w", err)
 	}
 
 	// Since subscriber position file lives in the same tail sampling directory as badger DB,
@@ -210,24 +218,26 @@ func (s *StorageManager) dropAndRecreate() {
 	// Use mode 0700 as hardcoded in badger: https://github.com/dgraph-io/badger/blob/c5b434a643bbea0c0075d9b7336b496403d0f399/db.go#L1778
 	err = os.Mkdir(s.storageDir, 0700)
 	if err != nil {
-		s.logger.With(logp.Error(err)).Error("error mkdir storage dir during drop and recreate")
+		return fmt.Errorf("error creating storage directory: %w", err)
 	}
 	err = os.Rename(filepath.Join(backupPath, subscriberPositionFile), filepath.Join(s.storageDir, subscriberPositionFile))
 	if err != nil && !errors.Is(err, os.ErrNotExist) {
-		s.logger.With(logp.Error(err)).Error("error copying subscriber position file during drop and recreate")
+		return fmt.Errorf("error copying subscriber position file: %w", err)
 	}
 
-	err = s.Reset() //FIXME: this is likely fatal. Return error to crash the processor
+	err = s.Reset()
 	if err != nil {
-		s.logger.With(logp.Error(err)).Error("error creating new badger db during drop and recreate")
+		return fmt.Errorf("error creating new badger db: %w", err)
 	}
 	s.subscriberPosMu.Unlock()
 	s.mu.Unlock()
 
 	err = os.RemoveAll(backupPath)
 	if err != nil {
-		s.logger.With(logp.Error(err)).Error("error removing old badger db during drop and recreate")
+		return fmt.Errorf("error removing old badger db: %w", err)
 	}
+
+	return nil
 }
 
 func (s *StorageManager) ReadSubscriberPosition() ([]byte, error) {
