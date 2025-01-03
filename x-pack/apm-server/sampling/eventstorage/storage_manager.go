@@ -165,7 +165,8 @@ func (s *ManagedReadWriter) Flush() error {
 	return s.sm.rw.Flush()
 }
 
-// NewBypassReadWriter returns a ReadWriter directly reading the database, bypassing ShardedReadWriter.
+// NewBypassReadWriter returns a ReadWriter directly reading and writing to the database,
+// bypassing any wrapper e.g. ShardedReadWriter.
 // This should be used for testing only, useful to check if data is actually persisted to the DB.
 func (s *StorageManager) NewBypassReadWriter() *ReadWriter {
 	return s.storage.NewReadWriter()
