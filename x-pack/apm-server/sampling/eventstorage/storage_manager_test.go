@@ -17,6 +17,7 @@ func TestDropAndRecreate_backupPathExists(t *testing.T) {
 	tempDir := t.TempDir()
 	sm, err := NewStorageManager(tempDir)
 	require.NoError(t, err)
+	defer sm.Close()
 
 	backupPath := getBackupPath(tempDir)
 	err = os.Mkdir(backupPath, 0700)
@@ -30,6 +31,7 @@ func TestDropAndRecreate_directoryRecreated(t *testing.T) {
 	tempDir := t.TempDir()
 	sm, err := NewStorageManager(tempDir)
 	require.NoError(t, err)
+	defer sm.Close()
 
 	stat, err := os.Stat(tempDir)
 	assert.NoError(t, err)
@@ -54,6 +56,7 @@ func TestDropAndRecreate_subscriberPositionFile(t *testing.T) {
 			tempDir := t.TempDir()
 			sm, err := NewStorageManager(tempDir)
 			require.NoError(t, err)
+			defer sm.Close()
 
 			if exists {
 				err := sm.WriteSubscriberPosition([]byte("{}"))
