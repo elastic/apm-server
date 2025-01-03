@@ -572,6 +572,58 @@ func TestWrapServer(t *testing.T) {
 	require.Equal(t, "true", out["labels"].(map[string]any)["wrapped_reporter"])
 }
 
+func TestWrapServerAPMInstrumentationTimeout(t *testing.T) {
+	// Enable self instrumentation, simulate a client disconnecting when sending intakev2 request
+	// Check that tracer records the correct http status code
+	found := make(chan struct{})
+	reqCtx, reqCancel := context.WithCancel(context.Background())
+
+	escfg, _ := beatertest.ElasticsearchOutputConfig(t)
+	srv := beatertest.NewServer(t, beatertest.WithConfig(escfg, agentconfig.MustNewConfigFrom(
+		map[string]interface{}{
+			"instrumentation.enabled": true,
+		})), beatertest.WithWrapServer(
+		func(args beater.ServerParams, runServer beater.RunServerFunc) (beater.ServerParams, beater.RunServerFunc, error) {
+			args.BatchProcessor = modelpb.ProcessBatchFunc(func(ctx context.Context, batch *modelpb.Batch) error {
+				// The service name is set to "1234_service-12a3" in the testData file
+				if len(*batch) > 0 && (*batch)[0].Service.Name == "1234_service-12a3" {
+					// Simulate a client disconnecting by cancelling the context
+					reqCancel()
+					// Wait for the client disconnection to be acknowledged by http server
+					<-ctx.Done()
+					assert.ErrorIs(t, ctx.Err(), context.Canceled)
+					return ctx.Err()
+				}
+				for _, i := range *batch {
+					t.Logf("%v\n", i)
+					// Perform assertions on the event sent by the apmgorilla tracer
+					if i.Transaction.Name == "POST /intake/v2/events" {
+						assert.Equal(t, "HTTP 5xx", i.Transaction.Result)
+						assert.Equal(t, 503, int(i.Http.Response.StatusCode))
+						close(found)
+					}
+				}
+				return nil
+			})
+			return args, runServer, nil
+		},
+	))
+
+	req, err := http.NewRequestWithContext(reqCtx, http.MethodPost, srv.URL+api.IntakePath, bytes.NewReader(testData))
+	require.NoError(t, err)
+	req.Header.Add("Content-Type", "application/x-ndjson")
+	resp, err := srv.Client.Do(req)
+	require.ErrorIs(t, err, context.Canceled)
+	require.Nil(t, resp)
+
+	select {
+	case <-time.After(20 * time.Second): // go apm agent takes time to send trace events
+		assert.Fail(t, "timeout waiting for trace doc")
+	case <-found:
+
+	}
+}
+
 var testData = func() []byte {
 	b, err := os.ReadFile("../../testdata/intake-v2/transactions.ndjson")
 	if err != nil {
