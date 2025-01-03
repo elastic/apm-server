@@ -600,12 +600,15 @@ func TestStorageGC(t *testing.T) {
 		defer processor.Stop(context.Background())
 		for i := 0; i < n; i++ {
 			traceID := uuid.Must(uuid.NewV4()).String()
+			// Create a larger event to fill up the vlog faster, especially when it is above ValueThreshold
 			batch := modelpb.Batch{{
 				Trace: &modelpb.Trace{Id: traceID},
 				Event: &modelpb.Event{Duration: uint64(123 * time.Millisecond)},
 				Span: &modelpb.Span{
-					Type: "type",
-					Id:   traceID,
+					Type:    strings.Repeat("a", 1000),
+					Subtype: strings.Repeat("b", 1000),
+					Id:      traceID,
+					Name:    strings.Repeat("c", 1000),
 				},
 			}}
 			err := processor.ProcessBatch(context.Background(), &batch)
@@ -631,7 +634,7 @@ func TestStorageGC(t *testing.T) {
 	// Process spans until value log files have been created.
 	// Garbage collection is disabled at this time.
 	for len(vlogFilenames()) < 3 {
-		writeBatch(5000)
+		writeBatch(2000)
 	}
 
 	config.StorageGCInterval = 10 * time.Millisecond
