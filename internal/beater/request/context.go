@@ -20,7 +20,9 @@ package request
 import (
 	"compress/gzip"
 	"compress/zlib"
+	"context"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"net/netip"
@@ -42,6 +44,7 @@ const (
 
 var (
 	mimeTypesJSON = []string{mimeTypeAny, mimeTypeApplicationJSON}
+	timeoutErr    = errors.New("request timed out")
 )
 
 type zlibReadCloseResetter interface {
@@ -188,6 +191,14 @@ func (c *Context) WriteResult() {
 		return
 	}
 	c.writeAttempts++
+
+	// Before writing the result check for client timeout.
+	// In case it happened override the result with timeout error.
+	if err := c.Request.Context().Err(); errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+		c.Result.SetDefault(IDResponseErrorsTimeout)
+		c.Result.Err = timeoutErr
+		c.Result.Body = timeoutErr.Error()
+	}
 
 	c.ResponseWriter.Header().Set(headers.XContentTypeOptions, "nosniff")
 

@@ -21,6 +21,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -38,6 +39,8 @@ import (
 	"github.com/gogo/protobuf/proto"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap/zapcore"
+	"go.uber.org/zap/zaptest/observer"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
@@ -47,6 +50,7 @@ import (
 	_ "github.com/elastic/beats/v7/libbeat/outputs/console"
 	_ "github.com/elastic/beats/v7/libbeat/publisher/queue/memqueue"
 	agentconfig "github.com/elastic/elastic-agent-libs/config"
+	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/monitoring"
 
 	"github.com/elastic/apm-data/model/modelpb"
@@ -573,12 +577,17 @@ func TestWrapServer(t *testing.T) {
 }
 
 func TestWrapServerAPMInstrumentationTimeout(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping slow test")
+	}
+
 	// Enable self instrumentation, simulate a client disconnecting when sending intakev2 request
 	// Check that tracer records the correct http status code
 	found := make(chan struct{})
 	reqCtx, reqCancel := context.WithCancel(context.Background())
 
 	escfg, _ := beatertest.ElasticsearchOutputConfig(t)
+	_ = logp.DevelopmentSetup(logp.ToObserverOutput())
 	srv := beatertest.NewServer(t, beatertest.WithConfig(escfg, agentconfig.MustNewConfigFrom(
 		map[string]interface{}{
 			"instrumentation.enabled": true,
@@ -592,14 +601,13 @@ func TestWrapServerAPMInstrumentationTimeout(t *testing.T) {
 					// Wait for the client disconnection to be acknowledged by http server
 					<-ctx.Done()
 					assert.ErrorIs(t, ctx.Err(), context.Canceled)
-					return ctx.Err()
+					return errors.New("foobar")
 				}
 				for _, i := range *batch {
-					t.Logf("%v\n", i)
 					// Perform assertions on the event sent by the apmgorilla tracer
 					if i.Transaction.Name == "POST /intake/v2/events" {
 						assert.Equal(t, "HTTP 5xx", i.Transaction.Result)
-						assert.Equal(t, 503, int(i.Http.Response.StatusCode))
+						assert.Equal(t, http.StatusServiceUnavailable, int(i.Http.Response.StatusCode))
 						close(found)
 					}
 				}
@@ -620,7 +628,23 @@ func TestWrapServerAPMInstrumentationTimeout(t *testing.T) {
 	case <-time.After(20 * time.Second): // go apm agent takes time to send trace events
 		assert.Fail(t, "timeout waiting for trace doc")
 	case <-found:
+	}
 
+	// Assert that logs contain expected values:
+	// - Original error with the status code.
+	// - Request timeout is logged separately with the the original error status code.
+	logs := logp.ObserverLogs().Filter(func(l observer.LoggedEntry) bool {
+		return l.Level == zapcore.ErrorLevel
+	}).AllUntimed()
+	assert.Len(t, logs, 1)
+	assert.Equal(t, logs[0].Message, "request timed out")
+	for _, f := range logs[0].Context {
+		switch f.Key {
+		case "http.response.status_code":
+			assert.Equal(t, int(f.Integer), http.StatusServiceUnavailable)
+		case "error.message":
+			assert.Equal(t, f.String, "request timed out")
+		}
 	}
 }
 
