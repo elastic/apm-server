@@ -186,6 +186,11 @@ func (s *StorageManager) Size() (lsm, vlog int64) {
 
 // DropAndRecreate deletes the underlying badger DB at a file system level, and replaces it with a new badger DB.
 func (s *StorageManager) DropAndRecreate() {
+	backupPath := filepath.Join(filepath.Dir(s.storageDir), filepath.Base(s.storageDir)+".old")
+	if err := os.RemoveAll(backupPath); err != nil && !errors.Is(err, os.ErrNotExist) {
+		s.logger.With(logp.Error(err)).Error("error removing existing backup dir during drop and recreate")
+	}
+
 	s.mu.Lock()
 	s.rw.Close()
 	err := s.db.Close()
@@ -194,8 +199,6 @@ func (s *StorageManager) DropAndRecreate() {
 	}
 
 	s.subscriberPosMu.Lock()
-	backupPath := filepath.Join(filepath.Dir(s.storageDir), filepath.Base(s.storageDir)+".old")
-	// FIXME: what if backupPath already exists?
 	err = os.Rename(s.storageDir, backupPath)
 	if err != nil {
 		s.logger.With(logp.Error(err)).Error("error renaming old badger db during drop and recreate")
