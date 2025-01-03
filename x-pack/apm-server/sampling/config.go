@@ -7,7 +7,6 @@ package sampling
 import (
 	"time"
 
-	"github.com/dgraph-io/badger/v2"
 	"github.com/pkg/errors"
 
 	"github.com/elastic/apm-data/model/modelpb"
@@ -99,13 +98,13 @@ type StorageConfig struct {
 	// DB holds the badger database in which event storage will be maintained.
 	//
 	// DB will not be closed when the processor is closed.
-	DB *badger.DB
+	DB *eventstorage.StorageManager
 
 	// Storage holds the read writers which provide sharded, locked access to storage.
 	//
 	// Storage lives outside processor lifecycle and will not be closed when processor
 	// is closed
-	Storage *eventstorage.ShardedReadWriter
+	Storage *eventstorage.ManagedReadWriter
 
 	// StorageDir holds the directory in which event storage will be maintained.
 	StorageDir string
