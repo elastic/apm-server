@@ -169,18 +169,6 @@ func (s *StorageManager) Close() error {
 	return s.db.Close()
 }
 
-// Reset initializes db, storage, and rw.
-func (s *StorageManager) Reset() error {
-	db, err := OpenBadger(s.storageDir, -1)
-	if err != nil {
-		return err
-	}
-	s.db = db
-	s.storage = New(db, ProtobufCodec{})
-	s.rw = s.storage.NewShardedReadWriter()
-	return nil
-}
-
 // Size returns the db size
 //
 // Caller should either be main Run loop or should be holding RLock already
@@ -225,7 +213,7 @@ func (s *StorageManager) dropAndRecreate() error {
 		return fmt.Errorf("error copying subscriber position file: %w", err)
 	}
 
-	err = s.Reset()
+	err = s.reset()
 	if err != nil {
 		return fmt.Errorf("error creating new badger db: %w", err)
 	}
