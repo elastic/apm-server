@@ -259,6 +259,7 @@ func TestProcessLocalTailSampling(t *testing.T) {
 
 			// Stop the processor and flush global storage so we can access the database.
 			assert.NoError(t, processor.Stop(context.Background()))
+			assert.NoError(t, config.Storage.Flush())
 			reader := config.DB.NewBypassReadWriter()
 			defer reader.Close()
 
