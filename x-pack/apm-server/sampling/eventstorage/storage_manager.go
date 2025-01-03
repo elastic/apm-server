@@ -165,6 +165,8 @@ func (s *ManagedReadWriter) Flush() error {
 	return s.sm.rw.Flush()
 }
 
-// Close is a no-op as the underlying read writer has the same lifetime as the underlying badger DB.
-func (s *ManagedReadWriter) Close() {
+// NewBypassReadWriter returns a ReadWriter directly reading the database, bypassing ShardedReadWriter.
+// This should be used for testing only, useful to check if data is actually persisted to the DB.
+func (s *StorageManager) NewBypassReadWriter() *ReadWriter {
+	return s.storage.NewReadWriter()
 }
