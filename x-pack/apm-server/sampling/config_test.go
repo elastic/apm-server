@@ -7,7 +7,6 @@ package sampling_test
 import (
 	"testing"
 
-	"github.com/dgraph-io/badger/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -72,10 +71,10 @@ func TestNewProcessorConfigInvalid(t *testing.T) {
 	config.UUID = "server"
 
 	assertInvalidConfigError("invalid storage config: DB unspecified")
-	config.DB = &badger.DB{}
+	config.DB = &eventstorage.StorageManager{}
 
 	assertInvalidConfigError("invalid storage config: Storage unspecified")
-	config.Storage = &eventstorage.ShardedReadWriter{}
+	config.Storage = &eventstorage.ManagedReadWriter{}
 
 	assertInvalidConfigError("invalid storage config: StorageDir unspecified")
 	config.StorageDir = "tbs"
