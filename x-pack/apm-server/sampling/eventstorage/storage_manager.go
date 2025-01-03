@@ -203,15 +203,9 @@ func (s *StorageManager) DropAndRecreate() {
 
 	// Since subscriber position file lives in the same tail sampling directory as badger DB,
 	// Create tail sampling dir, move back subscriber position file, as it is not a part of the DB.
-	var mode os.FileMode
-	stat, err := os.Stat(backupPath)
-	if err != nil {
-		mode = 0700
-		s.logger.With(logp.Error(err)).Error("error stat backup path during drop and recreate")
-	} else {
-		mode = stat.Mode()
-	}
-	err = os.Mkdir(s.storageDir, mode)
+
+	// Use mode 0700 as hardcoded in badger: https://github.com/dgraph-io/badger/blob/c5b434a643bbea0c0075d9b7336b496403d0f399/db.go#L1778
+	err = os.Mkdir(s.storageDir, 0700)
 	if err != nil {
 		s.logger.With(logp.Error(err)).Error("error mkdir storage dir during drop and recreate")
 	}
