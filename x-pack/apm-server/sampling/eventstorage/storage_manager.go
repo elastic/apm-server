@@ -37,9 +37,6 @@ type StorageManager struct {
 	// subscriberPosMu protects the subscriber file from concurrent RW.
 	subscriberPosMu sync.Mutex
 
-	// dropLoopCh acts as a mutex to ensure that there is only 1 active RunDropLoop per StorageManager,
-	// as it is possible that 2 separate RunDropLoop are created by 2 TBS processors during a hot reload.
-	dropLoopCh chan struct{}
 	// gcLoopCh acts as a mutex to ensure only 1 gc loop is running per StorageManager.
 	// as it is possible that 2 separate RunGCLoop are created by 2 TBS processors during a hot reload.
 	gcLoopCh chan struct{}
@@ -49,7 +46,6 @@ type StorageManager struct {
 func NewStorageManager(storageDir string) (*StorageManager, error) {
 	sm := &StorageManager{
 		storageDir: storageDir,
-		dropLoopCh: make(chan struct{}, 1),
 		gcLoopCh:   make(chan struct{}, 1),
 		logger:     logp.NewLogger(logs.Sampling),
 	}
