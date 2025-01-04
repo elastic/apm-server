@@ -607,7 +607,7 @@ func TestWrapServerAPMInstrumentationTimeout(t *testing.T) {
 					// Perform assertions on the event sent by the apmgorilla tracer
 					if i.Transaction.Name == "POST /intake/v2/events" {
 						assert.Equal(t, "HTTP 5xx", i.Transaction.Result)
-						assert.Equal(t, 500, int(i.Http.Response.StatusCode))
+						assert.Equal(t, http.StatusInternalServerError, int(i.Http.Response.StatusCode))
 						close(found)
 					}
 				}
