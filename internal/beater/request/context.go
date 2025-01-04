@@ -138,6 +138,7 @@ func (c *Context) Reset(w http.ResponseWriter, r *http.Request) {
 		zlibReader: c.zlibReader,
 	}
 	c.Result.Reset()
+	c.Result.Context = c
 
 	if r != nil {
 		c.setRequest(r)
@@ -184,16 +185,16 @@ func (c *Context) MultipleWriteAttempts() bool {
 // Only first call with write to http response.
 // This function wraps c.ResponseWriter.Write() - only one or the other should be used.
 func (c *Context) WriteResult() {
-	if c.MultipleWriteAttempts() {
+	if c.writeAttempts >= 1 {
 		return
 	}
-	c.writeAttempts++
 
 	c.ResponseWriter.Header().Set(headers.XContentTypeOptions, "nosniff")
 
 	body := c.Result.Body
 	if body == nil {
 		c.ResponseWriter.WriteHeader(c.Result.StatusCode)
+		c.writeAttempts++
 		return
 	}
 
@@ -214,6 +215,7 @@ func (c *Context) WriteResult() {
 		c.ResponseWriter.WriteHeader(c.Result.StatusCode)
 		err = c.writePlain(body)
 	}
+	c.writeAttempts++
 	if err != nil {
 		c.errOnWrite(err)
 	}

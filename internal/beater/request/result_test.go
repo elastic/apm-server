@@ -29,7 +29,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func assertResultIsEmpty(t *testing.T, r Result) {
+func assertResultIsEmpty(t *testing.T, c *Context, r Result) {
 	cType := reflect.TypeOf(r)
 	cVal := reflect.ValueOf(r)
 	for i := 0; i < cVal.NumField(); i++ {
@@ -39,6 +39,8 @@ func assertResultIsEmpty(t *testing.T, r Result) {
 			assert.Equal(t, IDUnset, val)
 		case "StatusCode":
 			assert.Equal(t, http.StatusOK, val)
+		case "Context":
+			assert.Equal(t, c, r.Context)
 		default:
 			assert.Empty(t, val)
 		}
@@ -55,7 +57,7 @@ func TestResult_Reset(t *testing.T) {
 		Stacktrace: "bar",
 	}
 	r.Reset()
-	assertResultIsEmpty(t, r)
+	assertResultIsEmpty(t, nil, r)
 }
 
 func TestResult_Set(t *testing.T) {

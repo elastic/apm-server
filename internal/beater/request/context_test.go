@@ -105,7 +105,7 @@ func TestContext_Reset(t *testing.T) {
 		case "writeAttempts":
 			assert.Equal(t, 0, c.writeAttempts)
 		case "Result":
-			assertResultIsEmpty(t, cVal.Field(i).Interface().(Result))
+			assertResultIsEmpty(t, &c, cVal.Field(i).Interface().(Result))
 		case "SourceIP":
 			assert.Equal(t, netip.MustParseAddr("192.168.0.1"), cVal.Field(i).Interface())
 		case "SourcePort":

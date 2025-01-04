@@ -19,7 +19,6 @@ package middleware
 
 import (
 	"context"
-	"net/http"
 	"sync"
 	"time"
 
@@ -57,7 +56,7 @@ func (m *monitoringMiddleware) Middleware() Middleware {
 
 			m.getCounter(string(request.IDResponseCount)).Add(ctx, 1)
 			m.inc(request.IDResponseCount)
-			if c.Result.StatusCode >= http.StatusBadRequest {
+			if c.Result.Failure() {
 				m.getCounter(string(request.IDResponseErrorsCount)).Add(ctx, 1)
 				m.inc(request.IDResponseErrorsCount)
 			} else {
