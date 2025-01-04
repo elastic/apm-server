@@ -157,9 +157,10 @@ func (r *Result) Reset() {
 	r.Err = nil
 	r.Stacktrace = ""
 	r.Context = nil
-	for r := r.Chained; r != nil; r = r.Chained {
-		r.Reset()
+	if r.Chained != nil {
+		r.Chained.Reset()
 	}
+	r.Chained = nil
 }
 
 // Failure returns a bool indicating whether it is describing a successful result or not
