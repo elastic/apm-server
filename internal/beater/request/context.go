@@ -44,7 +44,7 @@ const (
 
 var (
 	mimeTypesJSON = []string{mimeTypeAny, mimeTypeApplicationJSON}
-	timeoutErr    = errors.New("request timed out")
+	errTimeout    = errors.New("request timed out")
 )
 
 type zlibReadCloseResetter interface {
@@ -196,8 +196,8 @@ func (c *Context) WriteResult() {
 	// In case it happened override the result with timeout error.
 	if err := c.Request.Context().Err(); errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
 		c.Result.SetDefault(IDResponseErrorsTimeout)
-		c.Result.Err = timeoutErr
-		c.Result.Body = timeoutErr.Error()
+		c.Result.Err = errTimeout
+		c.Result.Body = errTimeout.Error()
 	}
 
 	c.ResponseWriter.Header().Set(headers.XContentTypeOptions, "nosniff")
