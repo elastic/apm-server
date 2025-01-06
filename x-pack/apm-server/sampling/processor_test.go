@@ -812,6 +812,7 @@ func TestDropLoop(t *testing.T) {
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			config := newTempdirConfig(t)
 			config.StorageGCInterval = time.Hour // effectively disable GC
 
@@ -860,12 +861,13 @@ func TestDropLoop(t *testing.T) {
 				go processor.Run()
 				defer processor.Stop(context.Background())
 
+				// wait for up to 1 minute for dropAndRecreate to kick in
 				// no SST files after dropping DB and before first write
 				var filenames []string
 				assert.Eventually(t, func() bool {
 					filenames = sstFilenames(config.StorageDir)
 					return len(filenames) == 0
-				}, 10*time.Second, 100*time.Millisecond, filenames)
+				}, 90*time.Second, 200*time.Millisecond, filenames)
 
 				data, err := config.DB.ReadSubscriberPosition()
 				assert.NoError(t, err)

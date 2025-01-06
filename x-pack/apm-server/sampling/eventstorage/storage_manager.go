@@ -154,34 +154,43 @@ func (s *StorageManager) runDropLoop(stopping <-chan struct{}, ttl time.Duration
 		return nil
 	}
 
-	timer := time.NewTicker(min(time.Minute, ttl)) // Eval db size every minute as badger reports them with 1m lag, but use min to facilitate testing
-	defer timer.Stop()
 	var firstExceeded time.Time
+	checkAndFix := func() error {
+		lsm, vlog := s.Size()
+		// add buffer to avoid edge case storageLimitInBytes-lsm-vlog < buffer, when writes are still always rejected
+		buffer := int64(baseTransactionSize * len(s.rw.readWriters))
+		if uint64(lsm+vlog+buffer) >= storageLimitInBytes {
+			now := time.Now()
+			if firstExceeded.IsZero() {
+				firstExceeded = now
+				s.logger.Warnf("badger db size (%d+%d=%d) has exceeded storage limit (%d); db will be dropped and recreated if problem persists for `sampling.tail.ttl` (%s)", lsm, vlog, lsm+vlog, storageLimitInBytes, ttl.String())
+			}
+			if now.Sub(firstExceeded) >= ttl {
+				s.logger.Warnf("badger db size has exceeded storage limit for over `sampling.tail.ttl` (%s), please consider increasing `sampling.tail.storage_limit`; dropping and recreating badger db to recover", ttl.String())
+				err := s.dropAndRecreate()
+				if err != nil {
+					return fmt.Errorf("error dropping and recreating badger db to recover storage space: %w", err)
+				}
+				s.logger.Info("badger db dropped and recreated")
+			}
+		} else {
+			firstExceeded = time.Time{}
+		}
+		return nil
+	}
+
+	timer := time.NewTicker(time.Minute) // Eval db size every minute as badger reports them with 1m lag
+	defer timer.Stop()
 	for {
+		if err := checkAndFix(); err != nil {
+			return err
+		}
+
 		select {
 		case <-stopping:
 			return nil
 		case <-timer.C:
-			lsm, vlog := s.Size()
-			// add buffer to avoid edge case storageLimitInBytes-lsm-vlog < buffer, when writes are still always rejected
-			buffer := int64(baseTransactionSize * len(s.rw.readWriters))
-			if uint64(lsm+vlog+buffer) >= storageLimitInBytes {
-				now := time.Now()
-				if firstExceeded.IsZero() {
-					firstExceeded = now
-					s.logger.Warnf("badger db size (%d+%d=%d) has exceeded storage limit (%d); db will be dropped and recreated if problem persists for `sampling.tail.ttl` (%s)", lsm, vlog, lsm+vlog, storageLimitInBytes, ttl.String())
-				}
-				if now.Sub(firstExceeded) >= ttl {
-					s.logger.Warnf("badger db size has exceeded storage limit for over `sampling.tail.ttl` (%s), please consider increasing `sampling.tail.storage_limit`; dropping and recreating badger db to recover", ttl.String())
-					err := s.dropAndRecreate()
-					if err != nil {
-						return fmt.Errorf("error dropping and recreating badger db to recover storage space: %w", err)
-					}
-					s.logger.Info("badger db dropped and recreated")
-				}
-			} else {
-				firstExceeded = time.Time{}
-			}
+			continue
 		}
 	}
 }
