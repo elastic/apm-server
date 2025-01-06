@@ -56,8 +56,11 @@ import (
 	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/internal/beater"
 	"github.com/elastic/apm-server/internal/beater/api"
+	"github.com/elastic/apm-server/internal/beater/api/intake"
 	"github.com/elastic/apm-server/internal/beater/beatertest"
 	"github.com/elastic/apm-server/internal/beater/config"
+	"github.com/elastic/apm-server/internal/beater/monitoringtest"
+	"github.com/elastic/apm-server/internal/beater/request"
 )
 
 func TestServerOk(t *testing.T) {
@@ -605,7 +608,7 @@ func TestWrapServerAPMInstrumentationTimeout(t *testing.T) {
 				}
 				for _, i := range *batch {
 					// Perform assertions on the event sent by the apmgorilla tracer
-					if i.Transaction.Name == "POST /intake/v2/events" {
+					if i.Transaction.Id != "" && i.Transaction.Name == "POST /intake/v2/events" {
 						assert.Equal(t, "HTTP 5xx", i.Transaction.Result)
 						assert.Equal(t, http.StatusServiceUnavailable, int(i.Http.Response.StatusCode))
 						close(found)
@@ -616,6 +619,8 @@ func TestWrapServerAPMInstrumentationTimeout(t *testing.T) {
 			return args, runServer, nil
 		},
 	))
+
+	monitoringtest.ClearRegistry(intake.MonitoringMap)
 
 	req, err := http.NewRequestWithContext(reqCtx, http.MethodPost, srv.URL+api.IntakePath, bytes.NewReader(testData))
 	require.NoError(t, err)
@@ -628,6 +633,8 @@ func TestWrapServerAPMInstrumentationTimeout(t *testing.T) {
 	case <-time.After(20 * time.Second): // go apm agent takes time to send trace events
 		assert.Fail(t, "timeout waiting for trace doc")
 	case <-found:
+		// Have to wait a bit here to avoid racing on the order of metrics middleware and the batch processor from above.
+		time.Sleep(time.Second)
 	}
 
 	// Assert that logs contain expected values:
@@ -646,6 +653,16 @@ func TestWrapServerAPMInstrumentationTimeout(t *testing.T) {
 			assert.Equal(t, f.String, "request timed out")
 		}
 	}
+	// Assert that metrics have expected response values reported.
+	equal, result := monitoringtest.CompareMonitoringInt(map[request.ResultID]int{
+		request.IDRequestCount:          2,
+		request.IDResponseCount:         2,
+		request.IDResponseErrorsCount:   1,
+		request.IDResponseValidCount:    1,
+		request.IDResponseErrorsTimeout: 1, // test data POST /intake/v2/events
+		request.IDResponseValidAccepted: 1, // self-instrumentation
+	}, intake.MonitoringMap)
+	assert.True(t, equal, result)
 }
 
 var testData = func() []byte {
