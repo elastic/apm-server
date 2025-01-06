@@ -61,6 +61,7 @@ func CompareMonitoringInt(
 // allRequestResultIDs returns all registered request.ResultIDs (needs to be manually maintained)
 func allRequestResultIDs() []request.ResultID {
 	var ids []request.ResultID
+	ids = append(ids, request.DefaultResultIDs...)
 	for k := range request.MapResultIDToStatus {
 		ids = append(ids, k)
 	}
