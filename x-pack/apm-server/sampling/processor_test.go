@@ -617,23 +617,9 @@ func TestStorageGC(t *testing.T) {
 		}
 	}
 
-	vlogFilenames := func() []string {
-		entries, _ := os.ReadDir(config.StorageDir)
-
-		var vlogs []string
-		for _, entry := range entries {
-			name := entry.Name()
-			if strings.HasSuffix(name, ".vlog") {
-				vlogs = append(vlogs, name)
-			}
-		}
-		sort.Strings(vlogs)
-		return vlogs
-	}
-
 	// Process spans until value log files have been created.
 	// Garbage collection is disabled at this time.
-	for len(vlogFilenames()) < 3 {
+	for len(vlogFilenames(config.StorageDir)) < 3 {
 		writeBatch(2000)
 	}
 
@@ -646,7 +632,7 @@ func TestStorageGC(t *testing.T) {
 	// Wait for the first value log file to be garbage collected.
 	var vlogs []string
 	assert.Eventually(t, func() bool {
-		vlogs = vlogFilenames()
+		vlogs = vlogFilenames(config.StorageDir)
 		return len(vlogs) == 0 || vlogs[0] != "000000.vlog"
 	}, 10*time.Second, 100*time.Millisecond, vlogs)
 }
@@ -723,6 +709,7 @@ func TestStorageLimit(t *testing.T) {
 	config.DB, err = eventstorage.NewStorageManager(config.StorageDir)
 	require.NoError(t, err)
 	t.Cleanup(func() { config.DB.Close() })
+	config.Storage = config.DB.NewReadWriter()
 
 	lsm, vlog := config.DB.Size()
 	assert.GreaterOrEqual(t, lsm+vlog, int64(1024))
@@ -783,11 +770,7 @@ func TestDropLoop(t *testing.T) {
 		t.Skip("skipping slow test")
 	}
 
-	writeBatch := func(t *testing.T, n int, c sampling.Config, assertBatch func(b modelpb.Batch)) *sampling.Processor {
-		processor, err := sampling.NewProcessor(c)
-		require.NoError(t, err)
-		go processor.Run()
-		defer processor.Stop(context.Background())
+	makeBatch := func(n int) modelpb.Batch {
 		batch := make(modelpb.Batch, 0, n)
 		for i := 0; i < n; i++ {
 			traceID := uuid.Must(uuid.NewV4()).String()
@@ -800,6 +783,15 @@ func TestDropLoop(t *testing.T) {
 				},
 			})
 		}
+		return batch
+	}
+
+	writeBatch := func(t *testing.T, n int, c sampling.Config, assertBatch func(b modelpb.Batch)) *sampling.Processor {
+		processor, err := sampling.NewProcessor(c)
+		require.NoError(t, err)
+		go processor.Run()
+		defer processor.Stop(context.Background())
+		batch := makeBatch(n)
 		err = processor.ProcessBatch(context.Background(), &batch)
 		require.NoError(t, err)
 		assertBatch(batch)
@@ -848,52 +840,48 @@ func TestDropLoop(t *testing.T) {
 				assert.NoError(t, err)
 			}
 
-			// Open a new instance of the badgerDB and check the size.
-			var err error
-			config.DB, err = eventstorage.NewStorageManager(config.StorageDir)
-			require.NoError(t, err)
-			t.Cleanup(func() { config.DB.Close() })
+			func() {
+				// Open a new instance of the badgerDB and check the size.
+				var err error
+				config.DB, err = eventstorage.NewStorageManager(config.StorageDir)
+				require.NoError(t, err)
+				t.Cleanup(func() { config.DB.Close() })
+				config.Storage = config.DB.NewReadWriter()
 
-			lsm, vlog := config.DB.Size()
-			assert.GreaterOrEqual(t, lsm+vlog, int64(1024))
+				lsm, vlog := config.DB.Size()
+				assert.Greater(t, lsm+vlog, int64(1024*1024))
 
-			sstFilenames := func() []string {
-				entries, _ := os.ReadDir(config.StorageDir)
+				config.Elasticsearch = pubsubtest.Client(nil, nil) // disable pubsub
 
-				var ssts []string
-				for _, entry := range entries {
-					name := entry.Name()
-					if strings.HasSuffix(name, ".sst") {
-						ssts = append(ssts, name)
-					}
+				config.StorageLimit = 100 * 1024 // lower limit to trigger storage limit error
+				config.TTL = time.Second
+				processor, err := sampling.NewProcessor(config)
+				require.NoError(t, err)
+				go processor.Run()
+				defer processor.Stop(context.Background())
+
+				// no SST files after dropping DB and before first write
+				var filenames []string
+				assert.Eventually(t, func() bool {
+					filenames = sstFilenames(config.StorageDir)
+					return len(filenames) == 0
+				}, 10*time.Second, 100*time.Millisecond, filenames)
+
+				data, err := config.DB.ReadSubscriberPosition()
+				assert.NoError(t, err)
+				if tc.subscriberPosExists {
+					assert.Equal(t, `{"index_name":1}`, string(data))
+				} else {
+					assert.Equal(t, "{}", string(data))
 				}
-				sort.Strings(ssts)
-				return ssts
-			}
-			assert.NotEqual(t, "000000.sst", sstFilenames()[0])
 
-			config.Elasticsearch = pubsubtest.Client(nil, nil)
-
-			config.StorageLimit = uint64(lsm) - 100
-			config.TTL = time.Second
-			processor, err := sampling.NewProcessor(config)
-			require.NoError(t, err)
-			go processor.Run()
-			defer processor.Stop(context.Background())
-
-			var filenames []string
-			assert.Eventually(t, func() bool {
-				filenames = sstFilenames()
-				return len(filenames) == 0
-			}, 10*time.Second, 500*time.Millisecond, filenames)
-
-			data, err := config.DB.ReadSubscriberPosition()
-			assert.NoError(t, err)
-			if tc.subscriberPosExists {
-				assert.Equal(t, `{"index_name":1}`, string(data))
-			} else {
-				assert.Equal(t, "{}", string(data))
-			}
+				// try to write to new DB
+				batch := makeBatch(10)
+				err = processor.ProcessBatch(context.Background(), &batch)
+				require.NoError(t, err)
+			}()
+			assert.NoError(t, config.DB.Close())
+			assert.Greater(t, len(sstFilenames(config.StorageDir)), 0)
 		})
 	}
 }
@@ -1067,4 +1055,32 @@ func waitFileModified(tb testing.TB, filename string, after time.Time) ([]byte, 
 			tb.Fatalf("timed out waiting for %q to be modified", filename)
 		}
 	}
+}
+
+func vlogFilenames(storageDir string) []string {
+	entries, _ := os.ReadDir(storageDir)
+
+	var vlogs []string
+	for _, entry := range entries {
+		name := entry.Name()
+		if strings.HasSuffix(name, ".vlog") {
+			vlogs = append(vlogs, name)
+		}
+	}
+	sort.Strings(vlogs)
+	return vlogs
+}
+
+func sstFilenames(storageDir string) []string {
+	entries, _ := os.ReadDir(storageDir)
+
+	var ssts []string
+	for _, entry := range entries {
+		name := entry.Name()
+		if strings.HasSuffix(name, ".sst") {
+			ssts = append(ssts, name)
+		}
+	}
+	sort.Strings(ssts)
+	return ssts
 }
