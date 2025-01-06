@@ -188,6 +188,7 @@ func (s *StorageManager) dropAndRecreate() error {
 		return fmt.Errorf("error removing existing backup dir: %w", err)
 	}
 
+	// FIXME: defer lock release as errors are now returned
 	s.mu.Lock()
 	s.rw.Close()
 	err := s.db.Close()
