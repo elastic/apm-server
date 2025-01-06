@@ -167,7 +167,7 @@ func (s *StorageManager) runDropLoop(stopping <-chan struct{}, ttl time.Duration
 				now := time.Now()
 				if firstExceeded.IsZero() {
 					firstExceeded = now
-					s.logger.Warnf("badger db size has exceeded storage limit; db will be dropped and recreated if problem persists for `sampling.tail.ttl` (%s)", ttl.String())
+					s.logger.Warnf("badger db size (%d + %d) has exceeded storage limit (%d); db will be dropped and recreated if problem persists for `sampling.tail.ttl` (%s)", lsm, vlog, storageLimitInBytes, ttl.String())
 				}
 				if now.Sub(firstExceeded) >= ttl {
 					s.logger.Warnf("badger db size has exceeded storage limit for over `sampling.tail.ttl` (%s), please consider increasing `sampling.tail.storage_limit`; dropping and recreating badger db to recover", ttl.String())
