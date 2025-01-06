@@ -38,10 +38,16 @@ var (
 	ErrLimitReached = errors.New("configured storage limit reached")
 )
 
+type db interface {
+	NewTransaction(update bool) *badger.Txn
+	Size() (lsm, vlog int64)
+	Close() error
+}
+
 // Storage provides storage for sampled transactions and spans,
 // and for recording trace sampling decisions.
 type Storage struct {
-	db *badger.DB
+	db db
 	// pendingSize tracks the total size of pending writes across ReadWriters
 	pendingSize *atomic.Int64
 	codec       Codec
@@ -54,7 +60,7 @@ type Codec interface {
 }
 
 // New returns a new Storage using db and codec.
-func New(db *badger.DB, codec Codec) *Storage {
+func New(db db, codec Codec) *Storage {
 	return &Storage{db: db, pendingSize: &atomic.Int64{}, codec: codec}
 }
 

@@ -71,9 +71,30 @@ func (s *StorageManager) reset() error {
 		return err
 	}
 	s.db = db
-	s.storage = New(db, ProtobufCodec{})
+	s.storage = New(s, ProtobufCodec{})
 	s.rw = s.storage.NewShardedReadWriter()
 	return nil
+}
+
+// Close closes StorageManager's underlying ShardedReadWriter and badger DB
+func (s *StorageManager) Close() error {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	s.rw.Close()
+	return s.db.Close()
+}
+
+// Size returns the db size
+func (s *StorageManager) Size() (lsm, vlog int64) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.db.Size()
+}
+
+func (s *StorageManager) NewTransaction(update bool) *badger.Txn {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.db.NewTransaction(update)
 }
 
 // RunGCLoop runs a loop that calls badger DB RunValueLogGC every gcInterval.
@@ -161,20 +182,6 @@ func (s *StorageManager) RunDropLoop(stopping <-chan struct{}, ttl time.Duration
 			}
 		}
 	}
-}
-
-func (s *StorageManager) Close() error {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-	s.rw.Close()
-	return s.db.Close()
-}
-
-// Size returns the db size
-//
-// Caller should either be main Run loop or should be holding RLock already
-func (s *StorageManager) Size() (lsm, vlog int64) {
-	return s.db.Size()
 }
 
 func getBackupPath(path string) string {
