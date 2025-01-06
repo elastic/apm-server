@@ -836,8 +836,8 @@ func TestDropLoop(t *testing.T) {
 
 				subscriberChan <- "0102030405060708090a0b0c0d0e0f10"
 				assert.Eventually(t, func() bool {
-					b, err := os.ReadFile(subscriberPositionFile)
-					return err == nil && string(b) == `{"index_name":1}`
+					data, err := config.DB.ReadSubscriberPosition()
+					return err == nil && string(data) == `{"index_name":1}`
 				}, time.Second, 100*time.Millisecond)
 			})
 			assert.NoError(t, config.Storage.Flush())
@@ -887,12 +887,12 @@ func TestDropLoop(t *testing.T) {
 				return len(filenames) == 0
 			}, 10*time.Second, 500*time.Millisecond, filenames)
 
-			b, err := os.ReadFile(subscriberPositionFile)
+			data, err := config.DB.ReadSubscriberPosition()
 			assert.NoError(t, err)
 			if tc.subscriberPosExists {
-				assert.Equal(t, `{"index_name":1}`, string(b))
+				assert.Equal(t, `{"index_name":1}`, string(data))
 			} else {
-				assert.Equal(t, "{}", string(b))
+				assert.Equal(t, "{}", string(data))
 			}
 		})
 	}
