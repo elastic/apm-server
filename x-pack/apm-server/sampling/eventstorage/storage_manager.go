@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/dgraph-io/badger/v2"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/internal/logs"
@@ -41,20 +42,16 @@ type StorageManager struct {
 	// subscriberPosMu protects the subscriber file from concurrent RW.
 	subscriberPosMu sync.Mutex
 
-	// dropLoopCh acts as a mutex to ensure that there is only 1 active RunDropLoop per StorageManager,
-	// as it is possible that 2 separate RunDropLoop are created by 2 TBS processors during a hot reload.
-	dropLoopCh chan struct{}
-	// gcLoopCh acts as a mutex to ensure only 1 gc loop is running per StorageManager.
-	// as it is possible that 2 separate RunGCLoop are created by 2 TBS processors during a hot reload.
-	gcLoopCh chan struct{}
+	// runCh acts as a mutex to ensure only 1 Run is actively running per StorageManager.
+	// as it is possible that 2 separate Run are created by 2 TBS processors during a hot reload.
+	runCh chan struct{}
 }
 
 // NewStorageManager returns a new StorageManager with badger DB at storageDir.
 func NewStorageManager(storageDir string) (*StorageManager, error) {
 	sm := &StorageManager{
 		storageDir: storageDir,
-		dropLoopCh: make(chan struct{}, 1),
-		gcLoopCh:   make(chan struct{}, 1),
+		runCh:      make(chan struct{}, 1),
 		logger:     logp.NewLogger(logs.Sampling),
 	}
 	err := sm.reset()
@@ -97,18 +94,29 @@ func (s *StorageManager) NewTransaction(update bool) *badger.Txn {
 	return s.db.NewTransaction(update)
 }
 
-// RunGCLoop runs a loop that calls badger DB RunValueLogGC every gcInterval.
-// The loop stops when it receives from stopping.
-// RunGCLoop has the same lifecycle as the TBS processor as opposed to StorageManager to facilitate EA hot reload.
-func (s *StorageManager) RunGCLoop(stopping <-chan struct{}, gcInterval time.Duration) error {
+// Run has the same lifecycle as the TBS processor as opposed to StorageManager to facilitate EA hot reload.
+func (s *StorageManager) Run(stopping <-chan struct{}, gcInterval time.Duration, ttl time.Duration, storageLimit uint64) error {
 	select {
 	case <-stopping:
 		return nil
-	case s.gcLoopCh <- struct{}{}:
+	case s.runCh <- struct{}{}:
 	}
 	defer func() {
-		<-s.gcLoopCh
+		<-s.runCh
 	}()
+
+	g := errgroup.Group{}
+	g.Go(func() error {
+		return s.runGCLoop(stopping, gcInterval)
+	})
+	g.Go(func() error {
+		return s.runDropLoop(stopping, ttl, storageLimit)
+	})
+	return g.Wait()
+}
+
+// runGCLoop runs a loop that calls badger DB RunValueLogGC every gcInterval.
+func (s *StorageManager) runGCLoop(stopping <-chan struct{}, gcInterval time.Duration) error {
 	// This goroutine is responsible for periodically garbage
 	// collecting the Badger value log, using the recommended
 	// discard ratio of 0.5.
@@ -137,22 +145,10 @@ func (s *StorageManager) runValueLogGC(discardRatio float64) error {
 	return s.db.RunValueLogGC(discardRatio)
 }
 
-// RunDropLoop runs a loop that detects if storage limit has been exceeded for at least ttl.
+// runDropLoop runs a loop that detects if storage limit has been exceeded for at least ttl.
 // If so, it drops and recreates the underlying badger DB.
-// The loop stops when it receives from stopping.
-// RunDropLoop has the same lifecycle as the TBS processor as opposed to StorageManager to facilitate EA hot reload.
-func (s *StorageManager) RunDropLoop(stopping <-chan struct{}, ttl time.Duration, storageLimitInBytes uint64) error {
-	select {
-	case <-stopping:
-		return nil
-	case s.dropLoopCh <- struct{}{}:
-	}
-	defer func() {
-		<-s.dropLoopCh
-	}()
-
+func (s *StorageManager) runDropLoop(stopping <-chan struct{}, ttl time.Duration, storageLimitInBytes uint64) error {
 	if storageLimitInBytes == 0 {
-		<-stopping
 		return nil
 	}
 
