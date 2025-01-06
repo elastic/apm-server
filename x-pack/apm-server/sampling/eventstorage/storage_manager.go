@@ -189,14 +189,23 @@ func getBackupPath(path string) string {
 }
 
 // dropAndRecreate deletes the underlying badger DB at a file system level, and replaces it with a new badger DB.
-func (s *StorageManager) dropAndRecreate() error {
+func (s *StorageManager) dropAndRecreate() (retErr error) {
 	backupPath := getBackupPath(s.storageDir)
 	if err := os.RemoveAll(backupPath); err != nil && !errors.Is(err, os.ErrNotExist) {
 		return fmt.Errorf("error removing existing backup dir: %w", err)
 	}
 
-	// FIXME: defer lock release as errors are now returned
+	defer func() {
+		if retErr == nil {
+			if err := os.RemoveAll(backupPath); err != nil {
+				retErr = fmt.Errorf("error removing old badger db: %w", err)
+			}
+		}
+	}()
+
 	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	s.rw.Close()
 	err := s.db.Close()
 	if err != nil {
@@ -204,6 +213,8 @@ func (s *StorageManager) dropAndRecreate() error {
 	}
 
 	s.subscriberPosMu.Lock()
+	defer s.subscriberPosMu.Unlock()
+
 	err = os.Rename(s.storageDir, backupPath)
 	if err != nil {
 		return fmt.Errorf("error backing up existing badger db: %w", err)
@@ -226,14 +237,6 @@ func (s *StorageManager) dropAndRecreate() error {
 	if err != nil {
 		return fmt.Errorf("error creating new badger db: %w", err)
 	}
-	s.subscriberPosMu.Unlock()
-	s.mu.Unlock()
-
-	err = os.RemoveAll(backupPath)
-	if err != nil {
-		return fmt.Errorf("error removing old badger db: %w", err)
-	}
-
 	return nil
 }
 
