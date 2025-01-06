@@ -142,6 +142,8 @@ func (s *StorageManager) runGCLoop(stopping <-chan struct{}, gcInterval time.Dur
 }
 
 func (s *StorageManager) runValueLogGC(discardRatio float64) error {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
 	return s.db.RunValueLogGC(discardRatio)
 }
 
