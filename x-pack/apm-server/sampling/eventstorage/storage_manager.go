@@ -99,6 +99,7 @@ func (s *StorageManager) NewTransaction(update bool) *badger.Txn {
 
 // RunGCLoop runs a loop that calls badger DB RunValueLogGC every gcInterval.
 // The loop stops when it receives from stopping.
+// RunGCLoop has the same lifecycle as the TBS processor as opposed to StorageManager to facilitate EA hot reload.
 func (s *StorageManager) RunGCLoop(stopping <-chan struct{}, gcInterval time.Duration) error {
 	select {
 	case <-stopping:
@@ -139,6 +140,7 @@ func (s *StorageManager) runValueLogGC(discardRatio float64) error {
 // RunDropLoop runs a loop that detects if storage limit has been exceeded for at least ttl.
 // If so, it drops and recreates the underlying badger DB.
 // The loop stops when it receives from stopping.
+// RunDropLoop has the same lifecycle as the TBS processor as opposed to StorageManager to facilitate EA hot reload.
 func (s *StorageManager) RunDropLoop(stopping <-chan struct{}, ttl time.Duration, storageLimitInBytes uint64) error {
 	select {
 	case <-stopping:
