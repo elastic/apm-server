@@ -204,6 +204,7 @@ func (s *StorageManager) dropAndRecreate() (retErr error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
+	// Intentionally not flush rw, as storage is full.
 	s.rw.Close()
 	err := s.db.Close()
 	if err != nil {
