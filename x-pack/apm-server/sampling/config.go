@@ -104,7 +104,7 @@ type StorageConfig struct {
 	//
 	// Storage lives outside processor lifecycle and will not be closed when processor
 	// is closed
-	Storage *eventstorage.ManagedReadWriter
+	Storage rw
 
 	// StorageDir holds the directory in which event storage will be maintained.
 	StorageDir string

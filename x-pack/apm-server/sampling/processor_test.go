@@ -512,6 +512,69 @@ func TestProcessRemoteTailSampling(t *testing.T) {
 	assert.Empty(t, batch)
 }
 
+type errorRW struct {
+	err error
+}
+
+func (m errorRW) ReadTraceEvents(traceID string, out *modelpb.Batch) error {
+	return m.err
+}
+
+func (m errorRW) WriteTraceEvent(traceID, id string, event *modelpb.APMEvent, opts eventstorage.WriterOpts) error {
+	return m.err
+}
+
+func (m errorRW) WriteTraceSampled(traceID string, sampled bool, opts eventstorage.WriterOpts) error {
+	return m.err
+}
+
+func (m errorRW) IsTraceSampled(traceID string) (bool, error) {
+	return false, eventstorage.ErrNotFound
+}
+
+func (m errorRW) DeleteTraceEvent(traceID, id string) error {
+	return m.err
+}
+
+func (m errorRW) Flush() error {
+	return m.err
+}
+
+func TestProcessDiscardOnWriteFailure(t *testing.T) {
+	for _, discard := range []bool{true, false} {
+		t.Run(fmt.Sprintf("discard=%v", discard), func(t *testing.T) {
+			config := newTempdirConfig(t)
+			config.DiscardOnWriteFailure = discard
+			config.Storage = errorRW{err: errors.New("boom")}
+			processor, err := sampling.NewProcessor(config)
+			require.NoError(t, err)
+			go processor.Run()
+			defer processor.Stop(context.Background())
+
+			in := modelpb.Batch{{
+				Trace: &modelpb.Trace{
+					Id: "0102030405060708090a0b0c0d0e0f10",
+				},
+				Span: &modelpb.Span{
+					Type: "type",
+					Id:   "0102030405060708",
+				},
+			}}
+			out := in[:]
+			err = processor.ProcessBatch(context.Background(), &out)
+			require.NoError(t, err)
+
+			if discard {
+				// Discarding by default
+				assert.Empty(t, out)
+			} else {
+				// Indexing by default
+				assert.NotEmpty(t, out)
+			}
+		})
+	}
+}
+
 func TestGroupsMonitoring(t *testing.T) {
 	config := newTempdirConfig(t)
 	config.MaxDynamicServices = 5
