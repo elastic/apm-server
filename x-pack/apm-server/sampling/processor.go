@@ -147,12 +147,12 @@ func (p *Processor) ProcessBatch(ctx context.Context, batch *modelpb.Batch) erro
 		if err != nil {
 			failed = true
 			stored = false
-			if p.config.IndexOnWriteFailure {
-				report = true
-				p.rateLimitedLogger.Info("processing trace failed, indexing by default")
-			} else {
+			if p.config.DiscardOnWriteFailure {
 				report = false
 				p.rateLimitedLogger.Info("processing trace failed, discarding by default")
+			} else {
+				report = true
+				p.rateLimitedLogger.Info("processing trace failed, indexing by default")
 			}
 		}
 

@@ -119,10 +119,10 @@ type StorageConfig struct {
 	// are expired from local storage.
 	TTL time.Duration
 
-	// IndexOnWriteFailure defines indexing behavior when event storage write fails, e.g. when storage limit is reached.
-	// When set to true, TBS indexes all traces, and may significantly increase indexing load.
-	// When set to false, there will be data loss, resulting in broken traces.
-	IndexOnWriteFailure bool
+	// DiscardOnWriteFailure defines indexing behavior when event storage write fails, e.g. when storage limit is reached.
+	// When set to false, TBS indexes all traces, and may significantly increase indexing load.
+	// When set to true, there will be data loss, resulting in broken traces.
+	DiscardOnWriteFailure bool
 }
 
 // Policy holds a tail-sampling policy: criteria for matching root transactions,
