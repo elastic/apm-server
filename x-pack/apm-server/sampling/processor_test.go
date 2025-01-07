@@ -569,7 +569,7 @@ func TestProcessDiscardOnWriteFailure(t *testing.T) {
 				assert.Empty(t, out)
 			} else {
 				// Indexing by default
-				assert.NotEmpty(t, out)
+				assert.Equal(t, in, out)
 			}
 		})
 	}
