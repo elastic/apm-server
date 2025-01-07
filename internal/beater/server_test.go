@@ -580,9 +580,9 @@ func TestWrapServer(t *testing.T) {
 }
 
 func TestWrapServerAPMInstrumentationTimeout(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping slow test")
-	}
+	// Override ELASTIC_APM_API_REQUEST_TIME to 10ms instead of
+	// the default 10s to speed up this test time.
+	t.Setenv("ELASTIC_APM_API_REQUEST_TIME", "10ms")
 
 	// Enable self instrumentation, simulate a client disconnecting when sending intakev2 request
 	// Check that tracer records the correct http status code
@@ -630,11 +630,11 @@ func TestWrapServerAPMInstrumentationTimeout(t *testing.T) {
 	require.Nil(t, resp)
 
 	select {
-	case <-time.After(20 * time.Second): // go apm agent takes time to send trace events
+	case <-time.After(time.Second): // go apm agent takes time to send trace events
 		assert.Fail(t, "timeout waiting for trace doc")
 	case <-found:
 		// Have to wait a bit here to avoid racing on the order of metrics middleware and the batch processor from above.
-		time.Sleep(time.Second)
+		time.Sleep(10 * time.Millisecond)
 	}
 
 	// Assert that logs contain expected values:
