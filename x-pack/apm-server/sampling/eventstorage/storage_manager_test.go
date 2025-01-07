@@ -7,47 +7,40 @@ package eventstorage
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func TestDropAndRecreate_backupPathExists(t *testing.T) {
-	tempDir := t.TempDir()
-	sm, err := NewStorageManager(tempDir)
-	require.NoError(t, err)
-	defer sm.Close()
-
-	backupPath := getBackupPath(tempDir)
-	err = os.Mkdir(backupPath, 0700)
-	require.NoError(t, err)
-
-	err = sm.dropAndRecreate()
-	assert.NoError(t, err)
+func badgerModTime(dir string) time.Time {
+	oldest := time.Now()
+	filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+		ext := filepath.Ext(path)
+		if (ext == ".vlog" || ext == ".sst") && info.ModTime().Before(oldest) {
+			oldest = info.ModTime()
+		}
+		return nil
+	})
+	return oldest
 }
 
-func TestDropAndRecreate_directoryRecreated(t *testing.T) {
+func TestDropAndRecreate_filesRecreated(t *testing.T) {
 	tempDir := t.TempDir()
 	sm, err := NewStorageManager(tempDir)
 	require.NoError(t, err)
 	defer sm.Close()
 
-	stat, err := os.Stat(tempDir)
-	assert.NoError(t, err)
-	assert.True(t, stat.IsDir())
+	oldModTime := badgerModTime(tempDir)
 
 	err = sm.dropAndRecreate()
 	assert.NoError(t, err)
 
-	newStat, err := os.Stat(tempDir)
-	assert.NoError(t, err)
-	assert.True(t, newStat.IsDir())
-	assert.Greater(t, newStat.ModTime(), stat.ModTime())
+	newModTime := badgerModTime(tempDir)
 
-	backupPath := getBackupPath(tempDir)
-	_, err = os.Stat(backupPath)
-	assert.ErrorIs(t, err, os.ErrNotExist)
+	assert.Greater(t, newModTime, oldModTime)
 }
 
 func TestDropAndRecreate_subscriberPositionFile(t *testing.T) {
@@ -68,7 +61,7 @@ func TestDropAndRecreate_subscriberPositionFile(t *testing.T) {
 
 			data, err := sm.ReadSubscriberPosition()
 			if exists {
-				assert.Equal(t, data, []byte("{}"))
+				assert.Equal(t, "{}", string(data))
 			} else {
 				assert.ErrorIs(t, err, os.ErrNotExist)
 			}

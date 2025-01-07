@@ -5,8 +5,8 @@
 package eventstorage
 
 import (
-	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"sync"
@@ -195,25 +195,8 @@ func (s *StorageManager) runDropLoop(stopping <-chan struct{}, ttl time.Duration
 	}
 }
 
-func getBackupPath(path string) string {
-	return filepath.Join(filepath.Dir(path), filepath.Base(path)+".old")
-}
-
-// dropAndRecreate deletes the underlying badger DB at a file system level, and replaces it with a new badger DB.
+// dropAndRecreate deletes the underlying badger DB files at the file system level, and replaces it with a new badger DB.
 func (s *StorageManager) dropAndRecreate() (retErr error) {
-	backupPath := getBackupPath(s.storageDir)
-	if err := os.RemoveAll(backupPath); err != nil && !errors.Is(err, os.ErrNotExist) {
-		return fmt.Errorf("error removing existing backup dir: %w", err)
-	}
-
-	defer func() {
-		if retErr == nil {
-			if err := os.RemoveAll(backupPath); err != nil {
-				retErr = fmt.Errorf("error removing old badger db: %w", err)
-			}
-		}
-	}()
-
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -224,25 +207,9 @@ func (s *StorageManager) dropAndRecreate() (retErr error) {
 		return fmt.Errorf("error closing badger db: %w", err)
 	}
 
-	s.subscriberPosMu.Lock()
-	defer s.subscriberPosMu.Unlock()
-
-	err = os.Rename(s.storageDir, backupPath)
+	err = s.deleteBadgerFiles()
 	if err != nil {
-		return fmt.Errorf("error backing up existing badger db: %w", err)
-	}
-
-	// Since subscriber position file lives in the same tail sampling directory as badger DB,
-	// Create tail sampling dir, move back subscriber position file, as it is not a part of the DB.
-
-	// Use mode 0700 as hardcoded in badger: https://github.com/dgraph-io/badger/blob/c5b434a643bbea0c0075d9b7336b496403d0f399/db.go#L1778
-	err = os.Mkdir(s.storageDir, 0700)
-	if err != nil {
-		return fmt.Errorf("error creating storage directory: %w", err)
-	}
-	err = os.Rename(filepath.Join(backupPath, subscriberPositionFile), filepath.Join(s.storageDir, subscriberPositionFile))
-	if err != nil && !errors.Is(err, os.ErrNotExist) {
-		return fmt.Errorf("error copying subscriber position file: %w", err)
+		return fmt.Errorf("error deleting badger db files: %w", err)
 	}
 
 	err = s.reset()
@@ -250,6 +217,22 @@ func (s *StorageManager) dropAndRecreate() (retErr error) {
 		return fmt.Errorf("error creating new badger db: %w", err)
 	}
 	return nil
+}
+
+func (s *StorageManager) deleteBadgerFiles() error {
+	// Although removing the files in place can be slower, it is less error-prone than rename-and-delete.
+	// Delete every file except subscriber position file
+	var rootVisited bool
+	return filepath.WalkDir(s.storageDir, func(path string, d fs.DirEntry, _ error) error {
+		if !rootVisited {
+			rootVisited = true
+			return nil
+		}
+		if filepath.Base(path) == subscriberPositionFile {
+			return nil
+		}
+		return os.RemoveAll(path)
+	})
 }
 
 func (s *StorageManager) ReadSubscriberPosition() ([]byte, error) {
