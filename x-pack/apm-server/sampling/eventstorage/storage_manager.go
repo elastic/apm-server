@@ -27,6 +27,10 @@ const (
 	subscriberPositionFile = "subscriber_position.json"
 )
 
+var (
+	errDropAndRecreateInProgress = errors.New("db drop and recreate in progress")
+)
+
 // StorageManager encapsulates badger.DB.
 // It is to provide file system access, simplify synchronization and enable underlying db swaps.
 // It assumes exclusive access to badger DB at storageDir.
@@ -273,13 +277,19 @@ func (s *ManagedReadWriter) ReadTraceEvents(traceID string, out *modelpb.Batch) 
 }
 
 func (s *ManagedReadWriter) WriteTraceEvent(traceID, id string, event *modelpb.APMEvent, opts WriterOpts) error {
-	s.sm.mu.RLock()
+	ok := s.sm.mu.TryRLock()
+	if !ok {
+		return errDropAndRecreateInProgress
+	}
 	defer s.sm.mu.RUnlock()
 	return s.sm.rw.WriteTraceEvent(traceID, id, event, opts)
 }
 
 func (s *ManagedReadWriter) WriteTraceSampled(traceID string, sampled bool, opts WriterOpts) error {
-	s.sm.mu.RLock()
+	ok := s.sm.mu.TryRLock()
+	if !ok {
+		return errDropAndRecreateInProgress
+	}
 	defer s.sm.mu.RUnlock()
 	return s.sm.rw.WriteTraceSampled(traceID, sampled, opts)
 }
