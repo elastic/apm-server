@@ -32,6 +32,7 @@ func newReadWriter(tb testing.TB) *ReadWriter {
 	readWriter := store.NewReadWriter()
 	tb.Cleanup(func() { readWriter.Close() })
 
+	readWriter.lazyInit()
 	return readWriter
 }
 
