@@ -154,6 +154,7 @@ func (s *StorageManager) runValueLogGC(discardRatio float64) error {
 
 // runDropLoop runs a loop that detects if storage limit has been exceeded for at least ttl.
 // If so, it drops and recreates the underlying badger DB.
+// This is a mitigation for issue https://github.com/elastic/apm-server/issues/14923
 func (s *StorageManager) runDropLoop(stopping <-chan struct{}, ttl time.Duration, storageLimitInBytes uint64, storageLimitThreshold float64) error {
 	if storageLimitInBytes == 0 {
 		return nil
