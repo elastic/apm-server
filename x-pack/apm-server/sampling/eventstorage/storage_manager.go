@@ -100,7 +100,7 @@ func (s *StorageManager) NewTransaction(update bool) *badger.Txn {
 }
 
 // Run has the same lifecycle as the TBS processor as opposed to StorageManager to facilitate EA hot reload.
-func (s *StorageManager) Run(stopping <-chan struct{}, gcInterval time.Duration, ttl time.Duration, storageLimit uint64) error {
+func (s *StorageManager) Run(stopping <-chan struct{}, gcInterval time.Duration, ttl time.Duration, storageLimit uint64, storageLimitThreshold float64) error {
 	select {
 	case <-stopping:
 		return nil
@@ -115,7 +115,7 @@ func (s *StorageManager) Run(stopping <-chan struct{}, gcInterval time.Duration,
 		return s.runGCLoop(stopping, gcInterval)
 	})
 	g.Go(func() error {
-		return s.runDropLoop(stopping, ttl, storageLimit)
+		return s.runDropLoop(stopping, ttl, storageLimit, storageLimitThreshold)
 	})
 	return g.Wait()
 }
@@ -154,7 +154,7 @@ func (s *StorageManager) runValueLogGC(discardRatio float64) error {
 
 // runDropLoop runs a loop that detects if storage limit has been exceeded for at least ttl.
 // If so, it drops and recreates the underlying badger DB.
-func (s *StorageManager) runDropLoop(stopping <-chan struct{}, ttl time.Duration, storageLimitInBytes uint64) error {
+func (s *StorageManager) runDropLoop(stopping <-chan struct{}, ttl time.Duration, storageLimitInBytes uint64, storageLimitThreshold float64) error {
 	if storageLimitInBytes == 0 {
 		return nil
 	}
@@ -168,7 +168,9 @@ func (s *StorageManager) runDropLoop(stopping <-chan struct{}, ttl time.Duration
 			now := time.Now()
 			if firstExceeded.IsZero() {
 				firstExceeded = now
-				s.logger.Warnf("badger db size (%d+%d=%d) has exceeded storage limit (%d); db will be dropped and recreated if problem persists for `sampling.tail.ttl` (%s)", lsm, vlog, lsm+vlog, storageLimitInBytes, ttl.String())
+				s.logger.Warnf(
+					"badger db size (%d+%d=%d) has exceeded storage limit (%d*%f=%d); db will be dropped and recreated if problem persists for `sampling.tail.ttl` (%s)",
+					lsm, vlog, lsm+vlog, storageLimitInBytes, storageLimitThreshold, int64(float64(storageLimitInBytes)*storageLimitThreshold), ttl.String())
 			}
 			if now.Sub(firstExceeded) >= ttl {
 				s.logger.Warnf("badger db size has exceeded storage limit for over `sampling.tail.ttl` (%s), please consider increasing `sampling.tail.storage_limit`; dropping and recreating badger db to recover", ttl.String())
