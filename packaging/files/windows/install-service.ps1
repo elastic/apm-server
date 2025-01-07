@@ -10,7 +10,7 @@ $workdir = Split-Path $MyInvocation.MyCommand.Path
 
 # Create the new service.
 New-Service -name apm-server `
-  -displayName {{.BeatName | title}} `
+  -displayName apm-server`
   -binaryPathName "`"$workdir\apm-server.exe`" --environment=windows_service -c `"$workdir\apm-server.yml`" --path.home `"$workdir`" --path.data `"$env:PROGRAMFILES\apm-server`" --path.logs `"$env:PROGRAMFILES\apm-server\logs`" -E logging.files.redirect_stderr=true"
 
 # Attempt to set the service to delayed start using sc config.
