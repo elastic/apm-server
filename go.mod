@@ -49,12 +49,7 @@ require (
 	go.opentelemetry.io/otel/sdk/metric v1.33.0
 	go.uber.org/automaxprocs v1.6.0
 	go.uber.org/zap v1.27.0
-<<<<<<< HEAD
-	golang.org/x/net v0.33.0
-=======
-	go.uber.org/zap/exp v0.3.0
 	golang.org/x/net v0.34.0
->>>>>>> acc58f09 (build(deps): bump the golang-org-x group with 3 updates (#15137))
 	golang.org/x/sync v0.10.0
 	golang.org/x/term v0.28.0
 	golang.org/x/time v0.9.0
