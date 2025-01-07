@@ -38,10 +38,16 @@ var (
 	ErrLimitReached = errors.New("configured storage limit reached")
 )
 
+type db interface {
+	NewTransaction(update bool) *badger.Txn
+	Size() (lsm, vlog int64)
+	Close() error
+}
+
 // Storage provides storage for sampled transactions and spans,
 // and for recording trace sampling decisions.
 type Storage struct {
-	db *badger.DB
+	db db
 	// pendingSize tracks the total size of pending writes across ReadWriters
 	pendingSize *atomic.Int64
 	codec       Codec
@@ -54,7 +60,7 @@ type Codec interface {
 }
 
 // New returns a new Storage using db and codec.
-func New(db *badger.DB, codec Codec) *Storage {
+func New(db db, codec Codec) *Storage {
 	return &Storage{db: db, pendingSize: &atomic.Int64{}, codec: codec}
 }
 
@@ -75,7 +81,7 @@ func (s *Storage) NewReadWriter() *ReadWriter {
 	s.pendingSize.Add(baseTransactionSize)
 	return &ReadWriter{
 		s:           s,
-		txn:         s.db.NewTransaction(true),
+		txn:         nil, // lazy init to avoid deadlock in storage manager
 		pendingSize: baseTransactionSize,
 	}
 }
@@ -106,12 +112,20 @@ type ReadWriter struct {
 	pendingSize int64
 }
 
+func (rw *ReadWriter) lazyInit() {
+	if rw.txn == nil {
+		rw.txn = rw.s.db.NewTransaction(true)
+	}
+}
+
 // Close closes the writer. Any writes that have not been flushed may be lost.
 //
 // This must be called when the writer is no longer needed, in order to reclaim
 // resources.
 func (rw *ReadWriter) Close() {
-	rw.txn.Discard()
+	if rw.txn != nil {
+		rw.txn.Discard()
+	}
 }
 
 // Flush waits for preceding writes to be committed to storage.
@@ -120,6 +134,8 @@ func (rw *ReadWriter) Close() {
 // If Flush is not called before the writer is closed, then writes
 // may be lost.
 func (rw *ReadWriter) Flush() error {
+	rw.lazyInit()
+
 	const flushErrFmt = "failed to flush pending writes: %w"
 	err := rw.txn.Commit()
 	rw.txn = rw.s.db.NewTransaction(true)
@@ -135,6 +151,8 @@ func (rw *ReadWriter) Flush() error {
 
 // WriteTraceSampled records the tail-sampling decision for the given trace ID.
 func (rw *ReadWriter) WriteTraceSampled(traceID string, sampled bool, opts WriterOpts) error {
+	rw.lazyInit()
+
 	key := []byte(traceID)
 	var meta uint8 = entryMetaTraceUnsampled
 	if sampled {
@@ -147,6 +165,8 @@ func (rw *ReadWriter) WriteTraceSampled(traceID string, sampled bool, opts Write
 // or unsampled. If no sampling decision has been recorded, IsTraceSampled
 // returns ErrNotFound.
 func (rw *ReadWriter) IsTraceSampled(traceID string) (bool, error) {
+	rw.lazyInit()
+
 	rw.readKeyBuf = append(rw.readKeyBuf[:0], traceID...)
 	item, err := rw.txn.Get(rw.readKeyBuf)
 	if err != nil {
@@ -163,6 +183,8 @@ func (rw *ReadWriter) IsTraceSampled(traceID string) (bool, error) {
 // WriteTraceEvent may return before the write is committed to storage.
 // Call Flush to ensure the write is committed.
 func (rw *ReadWriter) WriteTraceEvent(traceID string, id string, event *modelpb.APMEvent, opts WriterOpts) error {
+	rw.lazyInit()
+
 	data, err := rw.s.codec.EncodeEvent(event)
 	if err != nil {
 		return err
@@ -248,6 +270,8 @@ func estimateSize(e *badger.Entry) int64 {
 
 // DeleteTraceEvent deletes the trace event from storage.
 func (rw *ReadWriter) DeleteTraceEvent(traceID, id string) error {
+	rw.lazyInit()
+
 	var buf bytes.Buffer
 	buf.Grow(len(traceID) + 1 + len(id))
 	buf.WriteString(traceID)
@@ -271,6 +295,8 @@ func (rw *ReadWriter) DeleteTraceEvent(traceID, id string) error {
 
 // ReadTraceEvents reads trace events with the given trace ID from storage into out.
 func (rw *ReadWriter) ReadTraceEvents(traceID string, out *modelpb.Batch) error {
+	rw.lazyInit()
+
 	opts := badger.DefaultIteratorOptions
 	rw.readKeyBuf = append(append(rw.readKeyBuf[:0], traceID...), ':')
 	opts.Prefix = rw.readKeyBuf
