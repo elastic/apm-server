@@ -21,6 +21,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -38,6 +39,8 @@ import (
 	"github.com/gogo/protobuf/proto"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap/zapcore"
+	"go.uber.org/zap/zaptest/observer"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
@@ -47,13 +50,17 @@ import (
 	_ "github.com/elastic/beats/v7/libbeat/outputs/console"
 	_ "github.com/elastic/beats/v7/libbeat/publisher/queue/memqueue"
 	agentconfig "github.com/elastic/elastic-agent-libs/config"
+	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/monitoring"
 
 	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/internal/beater"
 	"github.com/elastic/apm-server/internal/beater/api"
+	"github.com/elastic/apm-server/internal/beater/api/intake"
 	"github.com/elastic/apm-server/internal/beater/beatertest"
 	"github.com/elastic/apm-server/internal/beater/config"
+	"github.com/elastic/apm-server/internal/beater/monitoringtest"
+	"github.com/elastic/apm-server/internal/beater/request"
 )
 
 func TestServerOk(t *testing.T) {
@@ -570,6 +577,92 @@ func TestWrapServer(t *testing.T) {
 	require.Contains(t, out, "labels")
 	require.Contains(t, out["labels"], "wrapped_reporter")
 	require.Equal(t, "true", out["labels"].(map[string]any)["wrapped_reporter"])
+}
+
+func TestWrapServerAPMInstrumentationTimeout(t *testing.T) {
+	// Override ELASTIC_APM_API_REQUEST_TIME to 10ms instead of
+	// the default 10s to speed up this test time.
+	t.Setenv("ELASTIC_APM_API_REQUEST_TIME", "10ms")
+
+	// Enable self instrumentation, simulate a client disconnecting when sending intakev2 request
+	// Check that tracer records the correct http status code
+	found := make(chan struct{})
+	reqCtx, reqCancel := context.WithCancel(context.Background())
+
+	escfg, _ := beatertest.ElasticsearchOutputConfig(t)
+	_ = logp.DevelopmentSetup(logp.ToObserverOutput())
+	srv := beatertest.NewServer(t, beatertest.WithConfig(escfg, agentconfig.MustNewConfigFrom(
+		map[string]interface{}{
+			"instrumentation.enabled": true,
+		})), beatertest.WithWrapServer(
+		func(args beater.ServerParams, runServer beater.RunServerFunc) (beater.ServerParams, beater.RunServerFunc, error) {
+			args.BatchProcessor = modelpb.ProcessBatchFunc(func(ctx context.Context, batch *modelpb.Batch) error {
+				// The service name is set to "1234_service-12a3" in the testData file
+				if len(*batch) > 0 && (*batch)[0].Service.Name == "1234_service-12a3" {
+					// Simulate a client disconnecting by cancelling the context
+					reqCancel()
+					// Wait for the client disconnection to be acknowledged by http server
+					<-ctx.Done()
+					assert.ErrorIs(t, ctx.Err(), context.Canceled)
+					return errors.New("foobar")
+				}
+				for _, i := range *batch {
+					// Perform assertions on the event sent by the apmgorilla tracer
+					if i.Transaction.Id != "" && i.Transaction.Name == "POST /intake/v2/events" {
+						assert.Equal(t, "HTTP 5xx", i.Transaction.Result)
+						assert.Equal(t, http.StatusServiceUnavailable, int(i.Http.Response.StatusCode))
+						close(found)
+					}
+				}
+				return nil
+			})
+			return args, runServer, nil
+		},
+	))
+
+	monitoringtest.ClearRegistry(intake.MonitoringMap)
+
+	req, err := http.NewRequestWithContext(reqCtx, http.MethodPost, srv.URL+api.IntakePath, bytes.NewReader(testData))
+	require.NoError(t, err)
+	req.Header.Add("Content-Type", "application/x-ndjson")
+	resp, err := srv.Client.Do(req)
+	require.ErrorIs(t, err, context.Canceled)
+	require.Nil(t, resp)
+
+	select {
+	case <-time.After(time.Second): // go apm agent takes time to send trace events
+		assert.Fail(t, "timeout waiting for trace doc")
+	case <-found:
+		// Have to wait a bit here to avoid racing on the order of metrics middleware and the batch processor from above.
+		time.Sleep(10 * time.Millisecond)
+	}
+
+	// Assert that logs contain expected values:
+	// - Original error with the status code.
+	// - Request timeout is logged separately with the the original error status code.
+	logs := logp.ObserverLogs().Filter(func(l observer.LoggedEntry) bool {
+		return l.Level == zapcore.ErrorLevel
+	}).AllUntimed()
+	assert.Len(t, logs, 1)
+	assert.Equal(t, logs[0].Message, "request timed out")
+	for _, f := range logs[0].Context {
+		switch f.Key {
+		case "http.response.status_code":
+			assert.Equal(t, int(f.Integer), http.StatusServiceUnavailable)
+		case "error.message":
+			assert.Equal(t, f.String, "request timed out")
+		}
+	}
+	// Assert that metrics have expected response values reported.
+	equal, result := monitoringtest.CompareMonitoringInt(map[request.ResultID]int{
+		request.IDRequestCount:          2,
+		request.IDResponseCount:         2,
+		request.IDResponseErrorsCount:   1,
+		request.IDResponseValidCount:    1,
+		request.IDResponseErrorsTimeout: 1, // test data POST /intake/v2/events
+		request.IDResponseValidAccepted: 1, // self-instrumentation
+	}, intake.MonitoringMap)
+	assert.True(t, equal, result)
 }
 
 var testData = func() []byte {
