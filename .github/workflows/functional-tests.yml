@@ -10,6 +10,12 @@ permissions:
   contents: read
   id-token: write
 
+env:
+    TF_VAR_BRANCH: ${{ github.ref_name }}
+    TF_VAR_BUILD_ID: ${{ github.run_id }}
+    TF_VAR_ENVIRONMENT: 'ci'
+    TF_VAR_REPO: ${{ github.repository }}
+
 jobs:
   run:
     runs-on: ubuntu-latest
@@ -34,7 +40,9 @@ jobs:
           secrets: |-
             EC_API_KEY:elastic-observability/elastic-cloud-observability-team-${{ matrix.environment }}-api-key
 
-      - run: cd functionaltests && go test -v -timeout=20m -target "${{ matrix.environment }}" ./
+      - run: |
+          export TF_VAR_CREATED_DATE=$(date +%s)
+          cd functionaltests && go test -v -timeout=20m -target "${{ matrix.environment }}" ./
 
   notify:
     if: always()
