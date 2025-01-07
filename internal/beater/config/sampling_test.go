@@ -51,37 +51,4 @@ func TestSamplingPoliciesValidation(t *testing.T) {
 		assert.NoError(t, err)
 		assert.False(t, c.Sampling.Tail.Enabled)
 	})
-	t.Run("IndexOnWriteFailure", func(t *testing.T) {
-		for _, tc := range []struct {
-			name        string
-			inputConfig map[string]interface{}
-			want        bool
-		}{
-			{
-				name:        "default",
-				inputConfig: map[string]interface{}{},
-				want:        true,
-			},
-			{
-				name: "true",
-				inputConfig: map[string]interface{}{
-					"sampling.tail.index_on_write_failure": true,
-				},
-				want: true,
-			},
-			{
-				name: "false",
-				inputConfig: map[string]interface{}{
-					"sampling.tail.index_on_write_failure": false,
-				},
-				want: false,
-			},
-		} {
-			t.Run(tc.name, func(t *testing.T) {
-				c, err := NewConfig(config.MustNewConfigFrom(tc.inputConfig), nil)
-				assert.NoError(t, err)
-				assert.Equal(t, tc.want, c.Sampling.Tail.IndexOnWriteFailure)
-			})
-		}
-	})
 }
