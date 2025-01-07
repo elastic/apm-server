@@ -10,6 +10,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
@@ -236,17 +237,33 @@ func (s *StorageManager) dropAndRecreate() (retErr error) {
 func (s *StorageManager) deleteBadgerFiles() error {
 	// Although removing the files in place can be slower, it is less error-prone than rename-and-delete.
 	// Delete every file except subscriber position file
-	var rootVisited bool
-	return filepath.WalkDir(s.storageDir, func(path string, d fs.DirEntry, _ error) error {
+	var (
+		rootVisited         bool
+		sstFiles, vlogFiles int
+		otherFilenames      []string
+	)
+	err := filepath.WalkDir(s.storageDir, func(path string, d fs.DirEntry, _ error) error {
 		if !rootVisited {
 			rootVisited = true
 			return nil
 		}
-		if filepath.Base(path) == subscriberPositionFile {
+		filename := filepath.Base(path)
+		if filename == subscriberPositionFile {
 			return nil
+		}
+		switch ext := filepath.Ext(filename); ext {
+		case ".sst":
+			sstFiles++
+		case ".vlog":
+			vlogFiles++
+		default:
+			otherFilenames = append(otherFilenames, filename)
 		}
 		return os.RemoveAll(path)
 	})
+	s.logger.Infof("deleted badger files: %d SST files, %d VLOG files, %d other files: [%s]",
+		sstFiles, vlogFiles, len(otherFilenames), strings.Join(otherFilenames, ", "))
+	return err
 }
 
 func (s *StorageManager) ReadSubscriberPosition() ([]byte, error) {
