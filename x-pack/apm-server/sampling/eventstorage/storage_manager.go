@@ -5,6 +5,7 @@
 package eventstorage
 
 import (
+	"errors"
 	"fmt"
 	"io/fs"
 	"os"
@@ -169,9 +170,11 @@ func (s *StorageManager) runDropLoop(stopping <-chan struct{}, ttl time.Duration
 				s.logger.Warnf("badger db size has exceeded storage limit for over `sampling.tail.ttl` (%s), please consider increasing `sampling.tail.storage_limit`; dropping and recreating badger db to recover", ttl.String())
 				err := s.dropAndRecreate()
 				if err != nil {
-					return fmt.Errorf("error dropping and recreating badger db to recover storage space: %w", err)
+					s.logger.With(logp.Error(err)).Error("error dropping and recreating badger db to recover storage space")
+				} else {
+					s.logger.Info("badger db dropped and recreated")
 				}
-				s.logger.Info("badger db dropped and recreated")
+				firstExceeded = time.Time{}
 			}
 		} else {
 			firstExceeded = time.Time{}
@@ -200,6 +203,14 @@ func (s *StorageManager) dropAndRecreate() (retErr error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
+	defer func() {
+		// In any case (errors or not), reset StorageManager while lock is held
+		err := s.reset()
+		if err != nil {
+			retErr = errors.Join(retErr, fmt.Errorf("error reopening badger db: %w", err))
+		}
+	}()
+
 	// Intentionally not flush rw, as storage is full.
 	s.rw.Close()
 	err := s.db.Close()
@@ -212,10 +223,6 @@ func (s *StorageManager) dropAndRecreate() (retErr error) {
 		return fmt.Errorf("error deleting badger db files: %w", err)
 	}
 
-	err = s.reset()
-	if err != nil {
-		return fmt.Errorf("error creating new badger db: %w", err)
-	}
 	return nil
 }
 
