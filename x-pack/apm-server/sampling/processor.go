@@ -373,7 +373,7 @@ func (p *Processor) Run() error {
 		}
 	})
 	g.Go(func() error {
-		return p.config.DB.RunGCLoop(p.stopping, p.config.StorageGCInterval)
+		return p.config.DB.Run(p.stopping, p.config.StorageGCInterval, p.config.TTL, p.config.StorageLimit, storageLimitThreshold)
 	})
 	g.Go(func() error {
 		// Subscribe to remotely sampled trace IDs. This is cancelled immediately when
