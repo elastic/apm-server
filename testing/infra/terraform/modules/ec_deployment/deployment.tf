@@ -157,7 +157,7 @@ resource "local_sensitive_file" "custom_apm_integration_pkg" {
 
 resource "null_resource" "enable_features" {
   triggers = {
-    shell_hash          = local_file.enable_features.id
+    shell_hash          = local_sensitive_file.enable_features.id
     integrations_server = var.integrations_server
   }
   provisioner "local-exec" {
@@ -171,7 +171,7 @@ resource "null_resource" "secret_token" {
   count = var.integrations_server ? 1 : 0
   triggers = {
     deployment_id = ec_deployment.deployment.id
-    shell_hash    = local_file.secret_token.0.id
+    shell_hash    = local_sensitive_file.secret_token.0.id
   }
   provisioner "local-exec" {
     command     = "scripts/secret_token.sh"
@@ -184,7 +184,7 @@ resource "null_resource" "shard_settings" {
   count = var.apm_index_shards > 0 ? 1 : 0
   triggers = {
     deployment_id = ec_deployment.deployment.id
-    shell_hash    = local_file.shard_settings.0.id
+    shell_hash    = local_sensitive_file.shard_settings.0.id
   }
   provisioner "local-exec" {
     command     = "scripts/index_shards.sh"
@@ -211,7 +211,7 @@ resource "null_resource" "custom_apm_integration_pkg" {
 # as {"value":"SECRET_TOKEN"}.
 data "external" "secret_token" {
   count       = var.integrations_server ? 1 : 0
-  depends_on  = [local_file.secret_token]
+  depends_on  = [local_sensitive_file.secret_token]
   program     = ["/bin/bash", "-c", "scripts/secret_token.sh"]
   working_dir = path.module
 }
@@ -220,7 +220,7 @@ resource "null_resource" "drop_pipeline" {
   count = var.drop_pipeline ? 1 : 0
   triggers = {
     deployment_id = ec_deployment.deployment.id
-    shell_hash    = local_file.drop_pipeline.0.id
+    shell_hash    = local_sensitive_file.drop_pipeline.0.id
   }
   provisioner "local-exec" {
     command     = "scripts/drop_pipeline.sh"
