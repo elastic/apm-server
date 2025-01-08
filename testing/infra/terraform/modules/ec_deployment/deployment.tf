@@ -113,7 +113,7 @@ resource "ec_deployment" "dedicated_observability_deployment" {
   kibana {}
 }
 
-resource "local_file" "enable_features" {
+resource "local_sensitive_file" "enable_features" {
   content = templatefile("${path.module}/scripts/enable_features.tftpl", {
     kibana_url                  = ec_deployment.deployment.kibana.0.https_endpoint,
     elastic_password            = ec_deployment.deployment.elasticsearch_password,
@@ -125,7 +125,7 @@ resource "local_file" "enable_features" {
   filename = "${path.module}/scripts/enable_features.sh"
 }
 
-resource "local_file" "secret_token" {
+resource "local_sensitive_file" "secret_token" {
   count = var.integrations_server ? 1 : 0
   content = templatefile("${path.module}/scripts/secret_token.tftpl", {
     kibana_url       = ec_deployment.deployment.kibana.0.https_endpoint,
@@ -134,7 +134,7 @@ resource "local_file" "secret_token" {
   filename = "${path.module}/scripts/secret_token.sh"
 }
 
-resource "local_file" "shard_settings" {
+resource "local_sensitive_file" "shard_settings" {
   count = var.apm_index_shards > 0 ? 1 : 0
   content = templatefile("${path.module}/scripts/index_shards.tftpl", {
     elasticsearch_url      = ec_deployment.deployment.elasticsearch.0.https_endpoint,
@@ -145,7 +145,7 @@ resource "local_file" "shard_settings" {
   filename = "${path.module}/scripts/index_shards.sh"
 }
 
-resource "local_file" "custom_apm_integration_pkg" {
+resource "local_sensitive_file" "custom_apm_integration_pkg" {
   count = var.custom_apm_integration_pkg_path != "" ? 1 : 0
   content = templatefile("${path.module}/scripts/custom-apm-integration-pkg.tftpl", {
     kibana_url                      = ec_deployment.deployment.kibana.0.https_endpoint,
@@ -229,7 +229,7 @@ resource "null_resource" "drop_pipeline" {
   }
 }
 
-resource "local_file" "drop_pipeline" {
+resource "local_sensitive_file" "drop_pipeline" {
   count = var.drop_pipeline ? 1 : 0
   content = templatefile("${path.module}/scripts/drop_pipeline.tftpl", {
     elasticsearch_url      = ec_deployment.deployment.elasticsearch.0.https_endpoint,

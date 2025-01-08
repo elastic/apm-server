@@ -26,11 +26,11 @@ used to configure the module, please refer to the [EC Provider docs](https://reg
 |------|------|
 | [ec_deployment.dedicated_observability_deployment](https://registry.terraform.io/providers/elastic/ec/0.5.1/docs/resources/deployment) | resource |
 | [ec_deployment.deployment](https://registry.terraform.io/providers/elastic/ec/0.5.1/docs/resources/deployment) | resource |
-| [local_file.custom_apm_integration_pkg](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
-| [local_file.drop_pipeline](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
-| [local_file.enable_features](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
-| [local_file.secret_token](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
-| [local_file.shard_settings](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
+| [local_sensitive_file.custom_apm_integration_pkg](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/sensitive_file) | resource |
+| [local_sensitive_file.drop_pipeline](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/sensitive_file) | resource |
+| [local_sensitive_file.enable_features](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/sensitive_file) | resource |
+| [local_sensitive_file.secret_token](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/sensitive_file) | resource |
+| [local_sensitive_file.shard_settings](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/sensitive_file) | resource |
 | [null_resource.custom_apm_integration_pkg](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
 | [null_resource.drop_pipeline](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
 | [null_resource.enable_features](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
