@@ -65,7 +65,7 @@ func assertDocCountGreaterThan(t *testing.T, want []esclient.ApmDocCount, actual
 
 // ingest creates and run a telemetrygen that replays multiple APM agents events to the cluster
 // a single time.
-func ingest(t *testing.T, apmURL string, apikey string) {
+func ingest(t *testing.T, apmURL string, apikey string) error {
 	t.Helper()
 
 	t.Log("ingest data")
@@ -81,7 +81,7 @@ func ingest(t *testing.T, apmURL string, apikey string) {
 	g.Logger = zaptest.NewLogger(t, zaptest.Level(zap.InfoLevel))
 	require.NoError(t, err)
 
-	err = g.RunBlocking(context.Background())
+	return g.RunBlocking(context.Background())
 }
 
 type checkDatastreamWant struct {
