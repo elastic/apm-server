@@ -3,6 +3,10 @@ module github.com/elastic/apm-server
 go 1.23.0
 
 require (
+<<<<<<< HEAD
+=======
+	github.com/KimMachineGun/automemlimit v0.7.0
+>>>>>>> 4d8d13cf (build(deps): bump github.com/KimMachineGun/automemlimit from 0.7.0-pre.3 to 0.7.0 (#15157))
 	github.com/cespare/xxhash/v2 v2.3.0
 	github.com/dgraph-io/badger/v2 v2.2007.4
 	github.com/dustin/go-humanize v1.0.1
