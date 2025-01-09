@@ -90,15 +90,22 @@ func assertDatastreams(t *testing.T, expected checkDatastreamWant, actual []type
 	require.Len(t, actual, expected.Quantity, "number of APM datastream differs from expectations")
 	for _, v := range actual {
 		if expected.PreferIlm {
-			assert.True(t, v.PreferIlm)
+			assert.True(t, v.PreferIlm, "datastream %s should prefer ILM", v.Name)
 		} else {
-			assert.False(t, v.PreferIlm)
+			assert.False(t, v.PreferIlm, "datastream %s should not prefer ILM", v.Name)
 		}
-		assert.Equal(t, expected.DSManagedBy, v.NextGenerationManagedBy.Name)
-		assert.Len(t, v.Indices, expected.IndicesPerDs)
 
+		assert.Equal(t, expected.DSManagedBy, v.NextGenerationManagedBy.Name,
+			`datastream %s should be managed by "%s"`, v.Name, expected.DSManagedBy,
+		)
+		assert.Len(t, v.Indices, expected.IndicesPerDs,
+			"datastream %s should have %d indices", v.Name, expected.IndicesPerDs,
+		)
 		for i, index := range v.Indices {
-			assert.Equal(t, expected.IndicesManagedBy[i], index.ManagedBy.Name)
+			assert.Equal(t, expected.IndicesManagedBy[i], index.ManagedBy.Name,
+				`index %s should be managed by "%s"`, index.IndexName,
+				expected.IndicesManagedBy[i],
+			)
 		}
 	}
 
