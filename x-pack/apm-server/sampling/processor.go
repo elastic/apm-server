@@ -47,8 +47,6 @@ type Processor struct {
 	stopMu   sync.Mutex
 	stopping chan struct{}
 	stopped  chan struct{}
-
-	indexOnWriteFailure bool
 }
 
 type eventMetrics struct {
@@ -76,11 +74,6 @@ func NewProcessor(config Config) (*Processor, error) {
 		eventMetrics:      &eventMetrics{},
 		stopping:          make(chan struct{}),
 		stopped:           make(chan struct{}),
-		// NOTE(marclop) This behavior should be configurable so users who
-		// rely on tail sampling for cost cutting, can discard events once
-		// the disk is full.
-		// Index all traces when the storage limit is reached.
-		indexOnWriteFailure: true,
 	}
 	return p, nil
 }
@@ -154,12 +147,12 @@ func (p *Processor) ProcessBatch(ctx context.Context, batch *modelpb.Batch) erro
 		if err != nil {
 			failed = true
 			stored = false
-			if p.indexOnWriteFailure {
-				report = true
-				p.rateLimitedLogger.Info("processing trace failed, indexing by default")
-			} else {
+			if p.config.DiscardOnWriteFailure {
 				report = false
 				p.rateLimitedLogger.Info("processing trace failed, discarding by default")
+			} else {
+				report = true
+				p.rateLimitedLogger.Info("processing trace failed, indexing by default")
 			}
 		}
 
@@ -380,7 +373,7 @@ func (p *Processor) Run() error {
 		}
 	})
 	g.Go(func() error {
-		return p.config.DB.RunGCLoop(p.stopping, p.config.StorageGCInterval)
+		return p.config.DB.Run(p.stopping, p.config.StorageGCInterval, p.config.TTL, p.config.StorageLimit, storageLimitThreshold)
 	})
 	g.Go(func() error {
 		// Subscribe to remotely sampled trace IDs. This is cancelled immediately when
