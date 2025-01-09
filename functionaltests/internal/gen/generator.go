@@ -86,17 +86,6 @@ func (g *Generator) RunBlockingWait(ctx context.Context, ecc *esclient.Client, e
 		}
 		return equal
 	}
-	getDocsCount := func() (map[string]int, error) {
-		res := map[string]int{}
-		docCounts, err := ecc.ApmDocCount(ctx)
-		if err != nil {
-			return res, fmt.Errorf("cannot retrieve APM doc count: %w", err)
-		}
-		for _, dc := range docCounts {
-			res[dc.Datastream] = dc.Count
-		}
-		return res, nil
-	}
 
 	ticker := time.NewTicker(5 * time.Second)
 	defer ticker.Stop()
@@ -107,9 +96,9 @@ func (g *Generator) RunBlockingWait(ctx context.Context, ecc *esclient.Client, e
 		case <-tctx.Done():
 			return nil
 		case <-ticker.C:
-			docsCount, err := getDocsCount()
+			docsCount, err := ecc.ApmDocCount(ctx)
 			if err != nil {
-				return err
+				return fmt.Errorf("cannot retrieve APM doc count: %w", err)
 			}
 			if checkDocsCount(docsCount) {
 				return nil
