@@ -23,9 +23,10 @@ import (
 	"net/url"
 	"time"
 
+	"go.uber.org/zap"
+
 	"github.com/elastic/apm-perf/pkg/telemetrygen"
 	"github.com/elastic/apm-server/functionaltests/internal/esclient"
-	"go.uber.org/zap"
 )
 
 type Generator struct {
