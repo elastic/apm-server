@@ -23,8 +23,11 @@ import (
 	"time"
 
 	"github.com/elastic/apm-server/functionaltests/internal/esclient"
+	"github.com/elastic/apm-server/functionaltests/internal/gen"
 	"github.com/elastic/apm-server/functionaltests/internal/terraform"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zaptest"
 
 	"github.com/stretchr/testify/require"
 )
@@ -72,16 +75,17 @@ func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
 	apikey, err := ac.CreateAPMAPIKey(ctx, t.Name())
 	require.NoError(t, err)
 
-	ingest(t, escfg.APMServerURL, apikey)
+	g := gen.New(escfg.APMServerURL, apikey)
+	g.Logger = zaptest.NewLogger(t, zaptest.Level(zap.InfoLevel))
 
-	// Wait few seconds before proceeding to ensure ES indexed all our documents.
-	// Manual tests had failures due to only 4 data streams being reported
-	// when no delay was used. Manual inspection always revealed the correct
-	// number of data streams.
-	time.Sleep(1 * time.Minute)
-
-	oldCount, err := ac.ApmDocCount(ctx)
+	previous, err := getDocsCountPerDS(t, ctx, ac)
 	require.NoError(t, err)
+
+	g.RunBlockingWait(ctx, ac, expectedIngestForASingleRun(), previous, 1*time.Minute)
+
+	beforeUpgradeCount, err := getDocsCountPerDS(t, ctx, ac)
+	require.NoError(t, err)
+	assertDocCount(t, beforeUpgradeCount, previous, expectedIngestForASingleRun())
 
 	t.Log("check data streams")
 	var dss []types.DataStream
@@ -100,10 +104,14 @@ func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
 	require.NoError(t, tf.Apply(ctx, ecTarget, ecRegion, name, terraform.Var("stack_version", "8.16.0")))
 	t.Logf("time elapsed: %s", time.Now().Sub(start))
 
-	t.Log("check number of documents")
-	newCount, err := ac.ApmDocCount(ctx)
+	t.Log("check number of documents after upgrade")
+	afterUpgradeCount, err := getDocsCountPerDS(t, ctx, ac)
 	require.NoError(t, err)
-	assertDocCountEqual(t, oldCount, newCount)
+	// We assert that no changes happened in the number of documents after upgrade
+	// to ensure the state didn't change before running the next ingestion round
+	// and further assertions.
+	// We don't expect any change here unless something broke during the upgrade.
+	assertDocCount(t, afterUpgradeCount, esclient.APMDataStreamsDocCount{}, beforeUpgradeCount)
 
 	t.Log("check data streams after upgrade, no rollover expected")
 	dss, err = ac.GetDataStream(ctx, "*apm*")
@@ -116,13 +124,12 @@ func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
 		IndicesManagedBy: []string{"Data stream lifecycle"},
 	}, dss)
 
-	ingest(t, escfg.APMServerURL, apikey)
-	time.Sleep(1 * time.Minute)
+	g.RunBlockingWait(ctx, ac, expectedIngestForASingleRun(), previous, 1*time.Minute)
 
 	t.Log("check number of documents")
-	newCount2, err := ac.ApmDocCount(ctx)
+	afterUpgradeIngestionCount, err := getDocsCountPerDS(t, ctx, ac)
 	require.NoError(t, err)
-	assertDocCountGreaterThan(t, oldCount, newCount2)
+	assertDocCount(t, afterUpgradeIngestionCount, afterUpgradeCount, expectedIngestForASingleRun())
 
 	// Confirm datastreams are
 	// v managed by DSL if created after 8.15.0

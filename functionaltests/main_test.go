@@ -20,17 +20,14 @@ package functionaltests
 import (
 	"context"
 	"flag"
-	"net/url"
+	"fmt"
 	"testing"
 
-	"github.com/elastic/apm-perf/pkg/telemetrygen"
 	"github.com/elastic/apm-server/functionaltests/internal/esclient"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zaptest"
 )
 
 var cleanupOnFailure *bool = flag.Bool("cleanup-on-failure", true, "Whether to run cleanup even if the test failed.")
@@ -43,45 +40,39 @@ var target *string = flag.String("target", "pro", "The target environment where 
 const testRegionQA = "aws-eu-west-1"
 const testRegionProduction = "eu-west-1"
 
-// assertDocCountEqual asserts that document counts in each data stream are equal.
-func assertDocCountEqual(t *testing.T, want []esclient.ApmDocCount, actual []esclient.ApmDocCount) {
-	t.Helper()
-
-	assert.Len(t, want, len(actual))
-	for i, v := range actual {
-		assert.Equal(t, v.Count, want[i].Count, "expected doc count in %s to be equal to previous value", v.Datastream)
+// expectedIngestForASingleRun() represent the expected number of ingested document after a
+// single run of ingest().
+// Only non aggregation data streams are included, as aggregation ones differs on different
+// runs.
+func expectedIngestForASingleRun() esclient.APMDataStreamsDocCount {
+	return map[string]int{
+		"traces-apm-default":                     15013,
+		"metrics-apm.app.opbeans_python-default": 1437,
+		"metrics-apm.internal-default":           1351,
+		"logs-apm.error-default":                 364,
 	}
 }
 
-// assertDocCountGreaterThan verifies if document count in datastreams is greated than expected.
-func assertDocCountGreaterThan(t *testing.T, want []esclient.ApmDocCount, actual []esclient.ApmDocCount) {
-	t.Helper()
+// docsPerDatastream is a utility type to map esclient.ApmDocCount to a format
+// easier to perform assertions on.
+type docsPerDatastream map[string]int
 
-	assert.Len(t, want, len(actual))
-	for i, v := range actual {
-		assert.Greater(t, v.Count, want[i].Count, "expected doc count in %s to be greater than previous value", v.Datastream)
-	}
+// getDocsCountPerDS retrieves document count.
+func getDocsCountPerDS(t *testing.T, ctx context.Context, ecc *esclient.Client) (esclient.APMDataStreamsDocCount, error) {
+	t.Helper()
+	return ecc.ApmDocCount(ctx)
 }
 
-// ingest creates and run a telemetrygen that replays multiple APM agents events to the cluster
-// a single time.
-func ingest(t *testing.T, apmURL string, apikey string) error {
+// assertDocCount check if specified document count is equal to expected minus
+// documents count from a previous state.
+func assertDocCount(t *testing.T, docsCount, previous, expected esclient.APMDataStreamsDocCount) {
 	t.Helper()
-
-	t.Log("ingest data")
-	cfg := telemetrygen.DefaultConfig()
-	cfg.APIKey = apikey
-
-	u, err := url.Parse(apmURL)
-	require.NoError(t, err)
-	cfg.ServerURL = u
-
-	cfg.EventRate.Set("1000/s")
-	g, err := telemetrygen.New(cfg)
-	g.Logger = zaptest.NewLogger(t, zaptest.Level(zap.InfoLevel))
-	require.NoError(t, err)
-
-	return g.RunBlocking(context.Background())
+	for ds, v := range docsCount {
+		if e, ok := expected[ds]; ok {
+			assert.Equal(t, e, v-previous[ds],
+				fmt.Sprintf("wrong document count for %s", ds))
+		}
+	}
 }
 
 type checkDatastreamWant struct {
