@@ -76,6 +76,8 @@ func (g *Generator) RunBlockingWait(ctx context.Context, ecc *esclient.Client, e
 		return fmt.Errorf("cannot run generator: %w", err)
 	}
 
+	// this function checks that expected docs count is reached,
+	// accounting for any previous state.
 	checkDocsCount := func(docsCount map[string]int) bool {
 		equal := false
 		for ds, c := range docsCount {
@@ -85,6 +87,23 @@ func (g *Generator) RunBlockingWait(ctx context.Context, ecc *esclient.Client, e
 			}
 		}
 		return equal
+	}
+	prevdocs := map[string]int{}
+	equaltoprevdocs := 0
+	// this function checks that all returned data streams doc counts
+	// stay still for some iterations. This forces a 15 seconds longer wait
+	// but ensures that aggredation data streams have stabilized before
+	// allowing the code to proceed. This should prevent situation where
+	// aggregation are still running when expected data streams reached
+	// their expected doc count.
+	checkAggregationDocs := func(prevdocs, docsCount map[string]int) bool {
+		if equaltoprevdocs == 3 {
+			return true
+		}
+		if fmt.Sprint(prevdocs) == fmt.Sprint(docsCount) {
+			equaltoprevdocs += 1
+		}
+		return false
 	}
 
 	ticker := time.NewTicker(5 * time.Second)
@@ -100,9 +119,10 @@ func (g *Generator) RunBlockingWait(ctx context.Context, ecc *esclient.Client, e
 			if err != nil {
 				return fmt.Errorf("cannot retrieve APM doc count: %w", err)
 			}
-			if checkDocsCount(docsCount) {
+			if checkDocsCount(docsCount) && checkAggregationDocs(prevdocs, docsCount) {
 				return nil
 			}
+			prevdocs = docsCount
 		}
 	}
 }
