@@ -18,9 +18,10 @@
 package functionaltests
 
 import (
-	"fmt"
 	"os"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 // ecAPICheck verifies if EC_API_KEY env var is set.
@@ -30,11 +31,7 @@ import (
 // Functional tests are expected to run Terraform code to operate
 // on infrastructure required for each tests and to query Elastic
 // Cloud APIs. In both cases a valid API key is required.
-func ecAPICheck(t *testing.T) error {
+func ecAPICheck(t *testing.T) {
 	t.Helper()
-	apiKey := os.Getenv("EC_API_KEY")
-	if apiKey == "" {
-		return fmt.Errorf("unable to obtain value from EC_API_KEY environment variable")
-	}
-	return nil
+	require.NotEmpty(t, os.Getenv("EC_API_KEY"), "EC_API_KEY env var not set")
 }

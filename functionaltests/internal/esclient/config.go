@@ -52,9 +52,3 @@ type Config struct {
 	// Any value different from "" is considered true.
 	TLSSkipVerify bool
 }
-
-// NewConfig returns a Config intialised from environment variables.
-// func NewConfig() (Config, error) {
-// 	cfg := Config{}
-// 	return cfg, err
-// }
