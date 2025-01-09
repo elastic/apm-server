@@ -42,8 +42,12 @@ require (
 	go.elastic.co/apm/module/apmotel/v2 v2.6.2
 	go.elastic.co/apm/v2 v2.6.2
 	go.elastic.co/fastjson v1.4.0
+<<<<<<< HEAD
 	go.opentelemetry.io/collector/consumer v1.22.0
 	go.opentelemetry.io/collector/pdata v1.22.0
+=======
+	go.opentelemetry.io/collector/pdata v1.23.0
+>>>>>>> 436b785d (build(deps): bump go.opentelemetry.io/collector/pdata from 1.22.0 to 1.23.0 in the otel group (#15185))
 	go.opentelemetry.io/otel v1.33.0
 	go.opentelemetry.io/otel/metric v1.33.0
 	go.opentelemetry.io/otel/sdk/metric v1.33.0
@@ -54,7 +58,7 @@ require (
 	golang.org/x/term v0.28.0
 	golang.org/x/time v0.9.0
 	google.golang.org/grpc v1.69.2
-	google.golang.org/protobuf v1.36.1
+	google.golang.org/protobuf v1.36.2
 	gopkg.in/yaml.v3 v3.0.1
 )
 
