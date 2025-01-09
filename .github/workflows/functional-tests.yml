@@ -11,10 +11,11 @@ permissions:
   id-token: write
 
 env:
-    TF_VAR_BRANCH: ${{ github.ref_name }}
-    TF_VAR_BUILD_ID: ${{ github.run_id }}
-    TF_VAR_ENVIRONMENT: 'ci'
-    TF_VAR_REPO: ${{ github.repository }}
+  TF_VAR_BRANCH: ${{ github.ref_name }}
+  TF_VAR_BUILD_ID: ${{ github.run_id }}
+  TF_VAR_ENVIRONMENT: 'ci'
+  TF_VAR_REPO: ${{ github.repository }}
+  TERRAFORM_VERSION: 1.10.2
 
 jobs:
   run:
@@ -27,6 +28,10 @@ jobs:
           - 'pro'
     steps:
       - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
+        with:
+          terraform_version: "${{ env.TERRAFORM_VERSION }}"
 
       - uses: actions/setup-go@v5
         with:
