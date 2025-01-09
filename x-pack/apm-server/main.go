@@ -90,11 +90,11 @@ type processor interface {
 func newProcessors(args beater.ServerParams) ([]namedProcessor, error) {
 	var processors []namedProcessor
 
-	aggregationProcessors, err := newAggregationProcessors(args)
+	aggregationProcessor, err := newAggregationProcessor(args)
 	if err != nil {
 		return nil, err
 	}
-	processors = append(processors, aggregationProcessors...)
+	processors = append(processors, aggregationProcessor)
 
 	if args.Config.Sampling.Tail.Enabled {
 		const name = "tail sampler"
@@ -155,12 +155,13 @@ func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, er
 			UUID: samplerUUID.String(),
 		},
 		StorageConfig: sampling.StorageConfig{
-			DB:                badgerDB,
-			Storage:           readWriter,
-			StorageDir:        storageDir,
-			StorageGCInterval: tailSamplingConfig.StorageGCInterval,
-			StorageLimit:      tailSamplingConfig.StorageLimitParsed,
-			TTL:               tailSamplingConfig.TTL,
+			DB:                    badgerDB,
+			Storage:               readWriter,
+			StorageDir:            storageDir,
+			StorageGCInterval:     tailSamplingConfig.StorageGCInterval,
+			StorageLimit:          tailSamplingConfig.StorageLimitParsed,
+			TTL:                   tailSamplingConfig.TTL,
+			DiscardOnWriteFailure: tailSamplingConfig.DiscardOnWriteFailure,
 		},
 	})
 }

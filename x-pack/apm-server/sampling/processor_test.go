@@ -512,6 +512,69 @@ func TestProcessRemoteTailSampling(t *testing.T) {
 	assert.Empty(t, batch)
 }
 
+type errorRW struct {
+	err error
+}
+
+func (m errorRW) ReadTraceEvents(traceID string, out *modelpb.Batch) error {
+	return m.err
+}
+
+func (m errorRW) WriteTraceEvent(traceID, id string, event *modelpb.APMEvent, opts eventstorage.WriterOpts) error {
+	return m.err
+}
+
+func (m errorRW) WriteTraceSampled(traceID string, sampled bool, opts eventstorage.WriterOpts) error {
+	return m.err
+}
+
+func (m errorRW) IsTraceSampled(traceID string) (bool, error) {
+	return false, eventstorage.ErrNotFound
+}
+
+func (m errorRW) DeleteTraceEvent(traceID, id string) error {
+	return m.err
+}
+
+func (m errorRW) Flush() error {
+	return m.err
+}
+
+func TestProcessDiscardOnWriteFailure(t *testing.T) {
+	for _, discard := range []bool{true, false} {
+		t.Run(fmt.Sprintf("discard=%v", discard), func(t *testing.T) {
+			config := newTempdirConfig(t)
+			config.DiscardOnWriteFailure = discard
+			config.Storage = errorRW{err: errors.New("boom")}
+			processor, err := sampling.NewProcessor(config)
+			require.NoError(t, err)
+			go processor.Run()
+			defer processor.Stop(context.Background())
+
+			in := modelpb.Batch{{
+				Trace: &modelpb.Trace{
+					Id: "0102030405060708090a0b0c0d0e0f10",
+				},
+				Span: &modelpb.Span{
+					Type: "type",
+					Id:   "0102030405060708",
+				},
+			}}
+			out := in[:]
+			err = processor.ProcessBatch(context.Background(), &out)
+			require.NoError(t, err)
+
+			if discard {
+				// Discarding by default
+				assert.Empty(t, out)
+			} else {
+				// Indexing by default
+				assert.Equal(t, in, out)
+			}
+		})
+	}
+}
+
 func TestGroupsMonitoring(t *testing.T) {
 	config := newTempdirConfig(t)
 	config.MaxDynamicServices = 5
@@ -617,23 +680,9 @@ func TestStorageGC(t *testing.T) {
 		}
 	}
 
-	vlogFilenames := func() []string {
-		entries, _ := os.ReadDir(config.StorageDir)
-
-		var vlogs []string
-		for _, entry := range entries {
-			name := entry.Name()
-			if strings.HasSuffix(name, ".vlog") {
-				vlogs = append(vlogs, name)
-			}
-		}
-		sort.Strings(vlogs)
-		return vlogs
-	}
-
 	// Process spans until value log files have been created.
 	// Garbage collection is disabled at this time.
-	for len(vlogFilenames()) < 3 {
+	for len(vlogFilenames(config.StorageDir)) < 3 {
 		writeBatch(2000)
 	}
 
@@ -646,7 +695,7 @@ func TestStorageGC(t *testing.T) {
 	// Wait for the first value log file to be garbage collected.
 	var vlogs []string
 	assert.Eventually(t, func() bool {
-		vlogs = vlogFilenames()
+		vlogs = vlogFilenames(config.StorageDir)
 		return len(vlogs) == 0 || vlogs[0] != "000000.vlog"
 	}, 10*time.Second, 100*time.Millisecond, vlogs)
 }
@@ -723,6 +772,7 @@ func TestStorageLimit(t *testing.T) {
 	config.DB, err = eventstorage.NewStorageManager(config.StorageDir)
 	require.NoError(t, err)
 	t.Cleanup(func() { config.DB.Close() })
+	config.Storage = config.DB.NewReadWriter()
 
 	lsm, vlog := config.DB.Size()
 	assert.GreaterOrEqual(t, lsm+vlog, int64(1024))
@@ -774,6 +824,131 @@ func TestProcessRemoteTailSamplingPersistence(t *testing.T) {
 	subscriberChan <- "0102030405060708090a0b0c0d0e0f10"
 	data, _ = waitFileModified(t, subscriberPositionFile, info.ModTime())
 	assert.Equal(t, `{"index_name":1}`, string(data))
+}
+
+func TestDropLoop(t *testing.T) {
+	// This test ensures that if badger is stuck at storage limit for TTL,
+	// DB is dropped and recreated.
+	if testing.Short() {
+		t.Skip("skipping slow test")
+	}
+
+	makeBatch := func(n int) modelpb.Batch {
+		batch := make(modelpb.Batch, 0, n)
+		for i := 0; i < n; i++ {
+			traceID := uuid.Must(uuid.NewV4()).String()
+			batch = append(batch, &modelpb.APMEvent{
+				Trace: &modelpb.Trace{Id: traceID},
+				Event: &modelpb.Event{Duration: uint64(123 * time.Millisecond)},
+				Span: &modelpb.Span{
+					Type: "type",
+					Id:   traceID,
+				},
+			})
+		}
+		return batch
+	}
+
+	writeBatch := func(t *testing.T, n int, c sampling.Config, assertBatch func(b modelpb.Batch)) *sampling.Processor {
+		processor, err := sampling.NewProcessor(c)
+		require.NoError(t, err)
+		go processor.Run()
+		defer processor.Stop(context.Background())
+		batch := makeBatch(n)
+		err = processor.ProcessBatch(context.Background(), &batch)
+		require.NoError(t, err)
+		assertBatch(batch)
+		return processor
+	}
+
+	for _, tc := range []struct {
+		name                string
+		subscriberPosExists bool
+	}{
+		{
+			name:                "subscriber_position_not_exist",
+			subscriberPosExists: false,
+		},
+		{
+			name:                "subscriber_position_exists",
+			subscriberPosExists: true,
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			config := newTempdirConfig(t)
+			config.StorageGCInterval = time.Hour // effectively disable GC
+
+			config.FlushInterval = 10 * time.Millisecond
+			subscriberChan := make(chan string)
+			subscriber := pubsubtest.SubscriberChan(subscriberChan)
+			config.Elasticsearch = pubsubtest.Client(nil, subscriber)
+			subscriberPositionFile := filepath.Join(config.StorageDir, "subscriber_position.json")
+
+			// Write 5K span events and close the DB to persist to disk the storage
+			// size and assert that none are reported immediately.
+			writeBatch(t, 5000, config, func(b modelpb.Batch) {
+				assert.Empty(t, b, fmt.Sprintf("expected empty but size is %d", len(b)))
+
+				subscriberChan <- "0102030405060708090a0b0c0d0e0f10"
+				assert.Eventually(t, func() bool {
+					data, err := config.DB.ReadSubscriberPosition()
+					return err == nil && string(data) == `{"index_name":1}`
+				}, time.Second, 100*time.Millisecond)
+			})
+			assert.NoError(t, config.Storage.Flush())
+			assert.NoError(t, config.DB.Close())
+
+			if !tc.subscriberPosExists {
+				err := os.Remove(subscriberPositionFile)
+				assert.NoError(t, err)
+			}
+
+			func() {
+				// Open a new instance of the badgerDB and check the size.
+				var err error
+				config.DB, err = eventstorage.NewStorageManager(config.StorageDir)
+				require.NoError(t, err)
+				t.Cleanup(func() { config.DB.Close() })
+				config.Storage = config.DB.NewReadWriter()
+
+				lsm, vlog := config.DB.Size()
+				assert.Greater(t, lsm+vlog, int64(1024*1024))
+
+				config.Elasticsearch = pubsubtest.Client(nil, nil) // disable pubsub
+
+				config.StorageLimit = 100 * 1024 // lower limit to trigger storage limit error
+				config.TTL = time.Second
+				processor, err := sampling.NewProcessor(config)
+				require.NoError(t, err)
+				go processor.Run()
+				defer processor.Stop(context.Background())
+
+				// wait for up to 1 minute for dropAndRecreate to kick in
+				// no SST files after dropping DB and before first write
+				var filenames []string
+				assert.Eventually(t, func() bool {
+					filenames = sstFilenames(config.StorageDir)
+					return len(filenames) == 0
+				}, 90*time.Second, 200*time.Millisecond, filenames)
+
+				data, err := config.DB.ReadSubscriberPosition()
+				assert.NoError(t, err)
+				if tc.subscriberPosExists {
+					assert.Equal(t, `{"index_name":1}`, string(data))
+				} else {
+					assert.Equal(t, "{}", string(data))
+				}
+
+				// try to write to new DB
+				batch := makeBatch(10)
+				err = processor.ProcessBatch(context.Background(), &batch)
+				require.NoError(t, err)
+			}()
+			assert.NoError(t, config.DB.Close())
+			assert.Greater(t, len(sstFilenames(config.StorageDir)), 0)
+		})
+	}
 }
 
 func TestGracefulShutdown(t *testing.T) {
@@ -945,4 +1120,32 @@ func waitFileModified(tb testing.TB, filename string, after time.Time) ([]byte, 
 			tb.Fatalf("timed out waiting for %q to be modified", filename)
 		}
 	}
+}
+
+func vlogFilenames(storageDir string) []string {
+	entries, _ := os.ReadDir(storageDir)
+
+	var vlogs []string
+	for _, entry := range entries {
+		name := entry.Name()
+		if strings.HasSuffix(name, ".vlog") {
+			vlogs = append(vlogs, name)
+		}
+	}
+	sort.Strings(vlogs)
+	return vlogs
+}
+
+func sstFilenames(storageDir string) []string {
+	entries, _ := os.ReadDir(storageDir)
+
+	var ssts []string
+	for _, entry := range entries {
+		name := entry.Name()
+		if strings.HasSuffix(name, ".sst") {
+			ssts = append(ssts, name)
+		}
+	}
+	sort.Strings(ssts)
+	return ssts
 }
