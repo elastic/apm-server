@@ -19,6 +19,7 @@ package beater
 
 import (
 	"context"
+	"crypto/md5"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -471,7 +472,9 @@ func (s *Runner) Run(ctx context.Context) error {
 		// aggregation, sampling, and indexing.
 		modelprocessor.SetHostHostname{},
 		modelprocessor.SetServiceNodeName{},
-		modelprocessor.SetGroupingKey{},
+		modelprocessor.SetGroupingKey{
+			NewHash: md5.New,
+		},
 		modelprocessor.SetErrorMessage{},
 	}
 	if s.config.DefaultServiceEnvironment != "" {

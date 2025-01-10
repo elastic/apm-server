@@ -130,8 +130,8 @@ github.com/ebitengine/purego v0.8.1 h1:sdRKd6plj7KYW33EH5As6YKfe8m9zbN9JMrOjNVF/
 github.com/ebitengine/purego v0.8.1/go.mod h1:iIjxzd6CiRiOG0UyXP+V1+jWqUXVjPKLAI0mRfJZTmQ=
 github.com/elastic/apm-aggregation v1.2.0 h1:UndqG3ccBTjyxTqHujBVjcbVLb9qG1clxRcrp9JRelI=
 github.com/elastic/apm-aggregation v1.2.0/go.mod h1:YllYwPYVV27pbuPfjRtQAKo6eSSrh13PZr38RKYd810=
-github.com/elastic/apm-data v1.15.0 h1:19qq8+OC+eyylUMtd2TrW1YVGrOgXb4d2OJQoqfmqow=
-github.com/elastic/apm-data v1.15.0/go.mod h1:PAkbYNARxvd4nhR+HjCskGv/ev30zZi7jglf8EmWtXc=
+github.com/elastic/apm-data v1.16.0 h1:LkJFoNkadIyqXNo3EMm98J38j9HWDMWUe6F74GaXtJ4=
+github.com/elastic/apm-data v1.16.0/go.mod h1:ST2P1yshhN2U3IbBYyn+Ni3VOFTifavNzMfh7E9zLHY=
 github.com/elastic/beats/v7 v7.0.0-alpha2.0.20250102181502-1f91ed31767d h1:f7HWnj35BO90r0gWRz3DFhLL/y8bTQhHASDgY+AAd+4=
 github.com/elastic/beats/v7 v7.0.0-alpha2.0.20250102181502-1f91ed31767d/go.mod h1:KCqU8Vg/PRlBpjFS0vT6EMLzI16+85md82k/glDEVQ8=
 github.com/elastic/elastic-agent-autodiscover v0.9.0 h1:+iWIKh0u3e8I+CJa3FfWe9h0JojNasPgYIA47gpuuns=
