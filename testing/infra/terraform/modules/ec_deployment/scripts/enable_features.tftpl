@@ -23,7 +23,10 @@ echo $${POLICY} | jq '.item' | \
     jq 'select(.inputs[].policy_template == "apmserver").inputs[].vars.tail_sampling_storage_limit = {"value":"${tail_sampling_storage_limit}","type":"text"}' |\
     jq 'select(.inputs[].policy_template == "apmserver").inputs[].vars.tail_sampling_enabled = {type: "bool", value: ${enable_tail_sampling}}' > policy.json
 
-# Update the policy
-curl -s -H 'content-type: application/json' -H 'kbn-xsrf: true' -X PUT -k -d@policy.json -u $${KIBANA_AUTH} $${KIBANA_ENDPOINT}
+# Update the policy, hide output to prevent secret leakage.
+if ! curl -s -o response.txt -H 'content-type: application/json' -H 'kbn-xsrf: true' -X PUT -k -d@policy.json -u $${KIBANA_AUTH} $${KIBANA_ENDPOINT}; then
+  # If command failed print output to aid troubleshooting.
+  cat response.txt
+fi
 
 rm -f policy.json
