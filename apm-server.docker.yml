@@ -113,7 +113,7 @@ apm-server:
     #key_passphrase: ''
 
     # List of supported/valid protocol versions. By default TLS versions 1.1 up to 1.3 are enabled.
-    #supported_protocols: [TLSv1.1, TLSv1.2, TLSv1.3]
+    #supported_protocols: [TLSv1.2, TLSv1.2, TLSv1.3]
 
     # Configure cipher suites to be used for SSL connections.
     # Note that cipher suites are not configurable for TLS 1.3.
@@ -261,9 +261,9 @@ apm-server:
     # production environments is strongly discouraged.
     #ssl.verification_mode: full
 
-    # List of supported/valid TLS versions. By default all TLS versions 1.0 up to
-    # 1.2 are enabled.
-    #ssl.supported_protocols: [TLSv1.0, TLSv1.1, TLSv1.2]
+    # List of supported/valid TLS versions. By default all TLS versions 1.2 up to
+    # 1.3 are enabled.
+    #ssl.supported_protocols: [TLSv1.2, TLSv1.3]
 
     # List of root certificates for HTTPS server verifications.
     #ssl.certificate_authorities: ["/etc/pki/root/ca.pem"]
@@ -397,9 +397,9 @@ output.elasticsearch:
   # production environments is strongly discouraged.
   #ssl.verification_mode: full
 
-  # List of supported/valid TLS versions. By default all TLS versions 1.0 up to
-  # 1.2 are enabled.
-  #ssl.supported_protocols: [TLSv1.0, TLSv1.1, TLSv1.2]
+  # List of supported/valid TLS versions. By default all TLS versions 1.2 up to
+  # 1.3 are enabled.
+  #ssl.supported_protocols: [TLSv1.2, TLSv1.3]
 
   # List of root certificates for HTTPS server verifications.
   #ssl.certificate_authorities: ["/etc/pki/root/ca.pem"]
@@ -517,9 +517,9 @@ output.elasticsearch:
   # production environments is strongly discouraged.
   #ssl.verification_mode: full
 
-  # List of supported/valid TLS versions. By default all TLS versions 1.0 up to
-  # 1.2 are enabled.
-  #ssl.supported_protocols: [TLSv1.0, TLSv1.1, TLSv1.2]
+  # List of supported/valid TLS versions. By default all TLS versions 1.2 up to
+  # 1.3 are enabled.
+  #ssl.supported_protocols: [TLSv1.2, TLSv1.3]
 
   # List of root certificates for HTTPS server verifications.
   #ssl.certificate_authorities: ["/etc/pki/root/ca.pem"]
@@ -676,9 +676,9 @@ output.elasticsearch:
   # production environments is strongly discouraged.
   #ssl.verification_mode: full
 
-  # List of supported/valid TLS versions. By default all TLS versions 1.0 up to
-  # 1.2 are enabled.
-  #ssl.supported_protocols: [TLSv1.0, TLSv1.1, TLSv1.2]
+  # List of supported/valid TLS versions. By default all TLS versions 1.2 up to
+  # 1.3 are enabled.
+  #ssl.supported_protocols: [TLSv1.2, TLSv1.3]
 
   # List of root certificates for HTTPS server verifications.
   #ssl.certificate_authorities: ["/etc/pki/root/ca.pem"]
@@ -924,9 +924,9 @@ output.elasticsearch:
   # production environments is strongly discouraged.
   #ssl.verification_mode: full
 
-  # List of supported/valid TLS versions. By default all TLS versions 1.0 up to
-  # 1.2 are enabled.
-  #ssl.supported_protocols: [TLSv1.0, TLSv1.1, TLSv1.2]
+  # List of supported/valid TLS versions. By default all TLS versions 1.2 up to
+  # 1.3 are enabled.
+  #ssl.supported_protocols: [TLSv1.2, TLSv1.3]
 
   # List of root certificates for HTTPS server verifications.
   #ssl.certificate_authorities: ["/etc/pki/root/ca.pem"]
