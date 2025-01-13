@@ -63,7 +63,7 @@ func (c *AgentConfig) Unpack(in *config.C) error {
 }
 
 func (c *AgentConfig) setup(log *logp.Logger, outputESCfg *config.C) error {
-	if float64(int(c.Cache.Expiration.Seconds())) != c.Cache.Expiration.Seconds() {
+	if c.Cache.Expiration%time.Second != 0 {
 		return errors.New(msgInvalidConfigAgentCfg)
 	}
 	if outputESCfg != nil {
