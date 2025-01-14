@@ -646,85 +646,6 @@ func TestStorageMonitoring(t *testing.T) {
 	assert.NotZero(t, metrics.Ints, "sampling.storage.value_log_size")
 }
 
-func TestStorageGC(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping slow test")
-	}
-
-	config := newTempdirConfig(t)
-	config.TTL = 10 * time.Millisecond
-	config.FlushInterval = 10 * time.Millisecond
-
-	writeBatch := func(n int) {
-		config.StorageGCInterval = time.Hour // effectively disable
-		processor, err := sampling.NewProcessor(config)
-		require.NoError(t, err)
-		go processor.Run()
-		defer processor.Stop(context.Background())
-		for i := 0; i < n; i++ {
-			traceID := uuid.Must(uuid.NewV4()).String()
-			// Create a larger event to fill up the vlog faster, especially when it is above ValueThreshold
-			batch := modelpb.Batch{{
-				Trace: &modelpb.Trace{Id: traceID},
-				Event: &modelpb.Event{Duration: uint64(123 * time.Millisecond)},
-				Span: &modelpb.Span{
-					Type:    strings.Repeat("a", 1000),
-					Subtype: strings.Repeat("b", 1000),
-					Id:      traceID,
-					Name:    strings.Repeat("c", 1000),
-				},
-			}}
-			err := processor.ProcessBatch(context.Background(), &batch)
-			require.NoError(t, err)
-			assert.Empty(t, batch)
-		}
-	}
-
-	// Process spans until value log files have been created.
-	// Garbage collection is disabled at this time.
-	for len(vlogFilenames(config.StorageDir)) < 3 {
-		writeBatch(2000)
-	}
-
-	config.StorageGCInterval = 10 * time.Millisecond
-	processor, err := sampling.NewProcessor(config)
-	require.NoError(t, err)
-	go processor.Run()
-	defer processor.Stop(context.Background())
-
-	// Wait for the first value log file to be garbage collected.
-	var vlogs []string
-	assert.Eventually(t, func() bool {
-		vlogs = vlogFilenames(config.StorageDir)
-		return len(vlogs) == 0 || vlogs[0] != "000000.vlog"
-	}, 10*time.Second, 100*time.Millisecond, vlogs)
-}
-
-func TestStorageGCConcurrency(t *testing.T) {
-	// This test ensures that TBS processor does not return an error
-	// even when run concurrently e.g. in hot reload
-	if testing.Short() {
-		t.Skip("skipping slow test")
-	}
-
-	config := newTempdirConfig(t)
-	config.TTL = 10 * time.Millisecond
-	config.FlushInterval = 10 * time.Millisecond
-	config.StorageGCInterval = 10 * time.Millisecond
-
-	g := errgroup.Group{}
-	for i := 0; i < 2; i++ {
-		processor, err := sampling.NewProcessor(config)
-		require.NoError(t, err)
-		g.Go(processor.Run)
-		go func() {
-			time.Sleep(time.Second)
-			assert.NoError(t, processor.Stop(context.Background()))
-		}()
-	}
-	assert.NoError(t, g.Wait())
-}
-
 func TestStorageLimit(t *testing.T) {
 	// This test ensures that when tail sampling is configured with a hard
 	// storage limit, the limit is respected once the size is available.
@@ -998,11 +919,11 @@ func newTempdirConfig(tb testing.TB) sampling.Config {
 	require.NoError(tb, err)
 	tb.Cleanup(func() { os.RemoveAll(tempdir) })
 
-	badgerDB, err := eventstorage.NewStorageManager(tempdir)
+	db, err := eventstorage.NewStorageManager(tempdir)
 	require.NoError(tb, err)
-	tb.Cleanup(func() { badgerDB.Close() })
+	tb.Cleanup(func() { db.Close() })
 
-	storage := badgerDB.NewReadWriter()
+	storage := db.NewReadWriter()
 
 	return sampling.Config{
 		BatchProcessor: modelpb.ProcessBatchFunc(func(context.Context, *modelpb.Batch) error { return nil }),
@@ -1024,7 +945,7 @@ func newTempdirConfig(tb testing.TB) sampling.Config {
 			UUID: "local-apm-server",
 		},
 		StorageConfig: sampling.StorageConfig{
-			DB:                badgerDB,
+			DB:                db,
 			Storage:           storage,
 			StorageDir:        tempdir,
 			StorageGCInterval: time.Second,

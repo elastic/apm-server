@@ -136,7 +136,7 @@ func (rw *ReadWriter) Flush() error {
 	const flushErrFmt = "failed to flush pending writes: %w"
 	err := rw.batch.Commit(pebble.NoSync)
 	rw.batch.Close()
-	//rw.txn = rw.s.db.NewTransaction(true)
+	rw.batch = rw.s.db.NewIndexedBatch()
 	//rw.s.pendingSize.Add(-rw.pendingSize)
 	//rw.pendingWrites = 0
 	//rw.pendingSize = baseTransactionSize
