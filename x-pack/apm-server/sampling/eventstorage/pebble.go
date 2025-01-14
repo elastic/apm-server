@@ -45,5 +45,10 @@ func OpenPebble(storageDir string) (*pebble.DB, error) {
 	return pebble.Open(storageDir, &pebble.Options{
 		Logger:       logp.NewLogger(logs.Sampling),
 		MemTableSize: pebbleMemTableSize,
+		Levels: []pebble.LevelOptions{
+			{
+				Compression: pebble.NoCompression,
+			},
+		},
 	})
 }
