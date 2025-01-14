@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/cockroachdb/pebble"
+
 	"github.com/elastic/apm-data/model/modelpb"
 )
 
