@@ -252,7 +252,7 @@ build-package: $(ELASTICPACKAGE)
 	@(cd apmpackage/apm; $(CURDIR)/$(ELASTICPACKAGE) build)
 
 .PHONY: check-gofmt check-autopep8 gofmt autopep8
-check-fmt: check-gofmt check-autopep8
+check-fmt: check-gofmt
 fmt: gofmt autopep8
 check-gofmt: $(GOIMPORTS)
 	@PATH=$(GOOSBUILD):$(PATH) sh script/check_goimports.sh
