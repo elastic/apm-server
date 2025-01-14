@@ -6,18 +6,12 @@ package eventstorage
 
 import (
 	"errors"
-	"fmt"
-	"io/fs"
 	"os"
 	"path/filepath"
-	"strings"
 	"sync"
 	"time"
 
 	"github.com/cockroachdb/pebble"
-	"github.com/dgraph-io/badger/v2"
-	"golang.org/x/sync/errgroup"
-
 	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/internal/logs"
 	"github.com/elastic/elastic-agent-libs/logp"
@@ -104,168 +98,7 @@ func (s *StorageManager) NewIndexedBatch() *pebble.Batch {
 
 // Run has the same lifecycle as the TBS processor as opposed to StorageManager to facilitate EA hot reload.
 func (s *StorageManager) Run(stopping <-chan struct{}, gcInterval time.Duration, ttl time.Duration, storageLimit uint64, storageLimitThreshold float64) error {
-	select {
-	case <-stopping:
-		return nil
-	case s.runCh <- struct{}{}:
-	}
-	defer func() {
-		<-s.runCh
-	}()
-
-	g := errgroup.Group{}
-	g.Go(func() error {
-		return s.runGCLoop(stopping, gcInterval)
-	})
-	g.Go(func() error {
-		return s.runDropLoop(stopping, ttl, storageLimit, storageLimitThreshold)
-	})
-	return g.Wait()
-}
-
-// runGCLoop runs a loop that calls badger DB RunValueLogGC every gcInterval.
-func (s *StorageManager) runGCLoop(stopping <-chan struct{}, gcInterval time.Duration) error {
-	// This goroutine is responsible for periodically garbage
-	// collecting the Badger value log, using the recommended
-	// discard ratio of 0.5.
-	ticker := time.NewTicker(gcInterval)
-	defer ticker.Stop()
-	for {
-		select {
-		case <-stopping:
-			return nil
-		case <-ticker.C:
-			const discardRatio = 0.5
-			var err error
-			for err == nil {
-				// Keep garbage collecting until there are no more rewrites,
-				// or garbage collection fails.
-				err = s.runValueLogGC(discardRatio)
-			}
-			if err != nil && err != badger.ErrNoRewrite {
-				return err
-			}
-		}
-	}
-}
-
-func (s *StorageManager) runValueLogGC(discardRatio float64) error {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-	return s.db.RunValueLogGC(discardRatio)
-}
-
-// runDropLoop runs a loop that detects if storage limit has been exceeded for at least ttl.
-// If so, it drops and recreates the underlying badger DB.
-// This is a mitigation for issue https://github.com/elastic/apm-server/issues/14923
-func (s *StorageManager) runDropLoop(stopping <-chan struct{}, ttl time.Duration, storageLimitInBytes uint64, storageLimitThreshold float64) error {
-	if storageLimitInBytes == 0 {
-		return nil
-	}
-
-	var firstExceeded time.Time
-	checkAndFix := func() error {
-		lsm, vlog := s.Size()
-		// add buffer to avoid edge case storageLimitInBytes-lsm-vlog < buffer, when writes are still always rejected
-		buffer := int64(baseTransactionSize * len(s.rw.readWriters))
-		if uint64(lsm+vlog+buffer) >= storageLimitInBytes {
-			now := time.Now()
-			if firstExceeded.IsZero() {
-				firstExceeded = now
-				s.logger.Warnf(
-					"badger db size (%d+%d=%d) has exceeded storage limit (%d*%.1f=%d); db will be dropped and recreated if problem persists for `sampling.tail.ttl` (%s)",
-					lsm, vlog, lsm+vlog, storageLimitInBytes, storageLimitThreshold, int64(float64(storageLimitInBytes)*storageLimitThreshold), ttl.String())
-			}
-			if now.Sub(firstExceeded) >= ttl {
-				s.logger.Warnf("badger db size has exceeded storage limit for over `sampling.tail.ttl` (%s), please consider increasing `sampling.tail.storage_limit`; dropping and recreating badger db to recover", ttl.String())
-				err := s.dropAndRecreate()
-				if err != nil {
-					s.logger.With(logp.Error(err)).Error("error dropping and recreating badger db to recover storage space")
-				} else {
-					s.logger.Info("badger db dropped and recreated")
-				}
-				firstExceeded = time.Time{}
-			}
-		} else {
-			firstExceeded = time.Time{}
-		}
-		return nil
-	}
-
-	timer := time.NewTicker(time.Minute) // Eval db size every minute as badger reports them with 1m lag
-	defer timer.Stop()
-	for {
-		if err := checkAndFix(); err != nil {
-			return err
-		}
-
-		select {
-		case <-stopping:
-			return nil
-		case <-timer.C:
-			continue
-		}
-	}
-}
-
-// dropAndRecreate deletes the underlying badger DB files at the file system level, and replaces it with a new badger DB.
-func (s *StorageManager) dropAndRecreate() (retErr error) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	defer func() {
-		// In any case (errors or not), reset StorageManager while lock is held
-		err := s.reset()
-		if err != nil {
-			retErr = errors.Join(retErr, fmt.Errorf("error reopening badger db: %w", err))
-		}
-	}()
-
-	// Intentionally not flush rw, as storage is full.
-	s.rw.Close()
-	err := s.db.Close()
-	if err != nil {
-		return fmt.Errorf("error closing badger db: %w", err)
-	}
-
-	err = s.deleteBadgerFiles()
-	if err != nil {
-		return fmt.Errorf("error deleting badger db files: %w", err)
-	}
-
 	return nil
-}
-
-func (s *StorageManager) deleteBadgerFiles() error {
-	// Although removing the files in place can be slower, it is less error-prone than rename-and-delete.
-	// Delete every file except subscriber position file
-	var (
-		rootVisited         bool
-		sstFiles, vlogFiles int
-		otherFilenames      []string
-	)
-	err := filepath.WalkDir(s.storageDir, func(path string, d fs.DirEntry, _ error) error {
-		if !rootVisited {
-			rootVisited = true
-			return nil
-		}
-		filename := filepath.Base(path)
-		if filename == subscriberPositionFile {
-			return nil
-		}
-		switch ext := filepath.Ext(filename); ext {
-		case ".sst":
-			sstFiles++
-		case ".vlog":
-			vlogFiles++
-		default:
-			otherFilenames = append(otherFilenames, filename)
-		}
-		return os.RemoveAll(path)
-	})
-	s.logger.Infof("deleted badger files: %d SST files, %d VLOG files, %d other files: [%s]",
-		sstFiles, vlogFiles, len(otherFilenames), strings.Join(otherFilenames, ", "))
-	return err
 }
 
 func (s *StorageManager) ReadSubscriberPosition() ([]byte, error) {
