@@ -22,7 +22,7 @@ const (
 	entryMetaTraceUnsampled byte = 'u'
 	entryMetaTraceEvent     byte = 'e'
 
-	flushThreshold = 5 * 1024 * 1024
+	//flushThreshold = 5 * 1024 * 1024
 )
 
 var (
@@ -138,7 +138,7 @@ func (rw *ReadWriter) Flush() error {
 	rw.batch.Close()
 	rw.batch = rw.s.db.NewIndexedBatch()
 	//rw.s.pendingSize.Add(-rw.pendingSize)
-	//rw.pendingWrites = 0
+	rw.pendingWrites = 0
 	//rw.pendingSize = baseTransactionSize
 	//rw.s.pendingSize.Add(baseTransactionSize)
 	if err != nil {
@@ -194,12 +194,13 @@ func (rw *ReadWriter) WriteTraceEvent(traceID string, id string, event *modelpb.
 }
 
 func (rw *ReadWriter) writeEntry(key, data []byte) error {
+	rw.pendingWrites++
 	// FIXME: possibly change key structure, because the append is going to be expensive
 	if err := rw.batch.Set(key, append([]byte{entryMetaTraceEvent}, data...), pebble.NoSync); err != nil {
 		return err
 	}
 
-	if rw.batch.Len() > flushThreshold {
+	if rw.pendingWrites >= 200 {
 		if err := rw.Flush(); err != nil {
 			return err
 		}
@@ -222,11 +223,11 @@ func (rw *ReadWriter) DeleteTraceEvent(traceID, id string) error {
 	if err != nil {
 		return err
 	}
-	if rw.batch.Len() > flushThreshold {
-		if err := rw.Flush(); err != nil {
-			return err
-		}
-	}
+	//if rw.batch.Len() > flushThreshold {
+	//	if err := rw.Flush(); err != nil {
+	//		return err
+	//	}
+	//}
 	return nil
 }
 
