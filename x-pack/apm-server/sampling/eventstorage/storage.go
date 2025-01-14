@@ -194,6 +194,7 @@ func (rw *ReadWriter) WriteTraceEvent(traceID string, id string, event *modelpb.
 }
 
 func (rw *ReadWriter) writeEntry(key, data []byte) error {
+	// FIXME: possibly change key structure, because the append is going to be expensive
 	if err := rw.batch.Set(key, append([]byte{entryMetaTraceEvent}, data...), pebble.NoSync); err != nil {
 		return err
 	}
@@ -235,7 +236,7 @@ func (rw *ReadWriter) ReadTraceEvents(traceID string, out *modelpb.Batch) error 
 
 	iter, err := rw.batch.NewIter(&pebble.IterOptions{
 		LowerBound: append([]byte(traceID), ':'),
-		UpperBound: append([]byte(traceID), ';'),
+		UpperBound: append([]byte(traceID), ';'), // This is a hack to stop before next ID
 	})
 	if err != nil {
 		return err
