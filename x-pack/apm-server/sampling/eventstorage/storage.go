@@ -168,6 +168,10 @@ func (rw *ReadWriter) WriteTraceSampled(traceID string, sampled bool, opts Write
 func (rw *ReadWriter) IsTraceSampled(traceID string) (bool, error) {
 	rw.lazyInit()
 
+	// FIXME: this needs to be fast, as it is in the hot path
+	// It should minimize disk IO on miss due to
+	// 1. (pubsub) remote sampling decision
+	// 2. (hot path) sampling decision not made yet
 	item, closer, err := rw.batch.Get([]byte(traceID))
 	if err == pebble.ErrNotFound {
 		return false, ErrNotFound
