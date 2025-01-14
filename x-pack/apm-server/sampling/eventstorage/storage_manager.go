@@ -14,6 +14,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/cockroachdb/pebble"
 	"github.com/dgraph-io/badger/v2"
 	"golang.org/x/sync/errgroup"
 
@@ -32,14 +33,14 @@ var (
 	errDropAndRecreateInProgress = errors.New("db drop and recreate in progress")
 )
 
-// StorageManager encapsulates badger.DB.
+// StorageManager encapsulates pebble.DB.
 // It is to provide file system access, simplify synchronization and enable underlying db swaps.
-// It assumes exclusive access to badger DB at storageDir.
+// It assumes exclusive access to pebble DB at storageDir.
 type StorageManager struct {
 	storageDir string
 	logger     *logp.Logger
 
-	db      *badger.DB
+	db      *pebble.DB
 	storage *Storage
 	rw      *ShardedReadWriter
 
@@ -53,7 +54,7 @@ type StorageManager struct {
 	runCh chan struct{}
 }
 
-// NewStorageManager returns a new StorageManager with badger DB at storageDir.
+// NewStorageManager returns a new StorageManager with pebble DB at storageDir.
 func NewStorageManager(storageDir string) (*StorageManager, error) {
 	sm := &StorageManager{
 		storageDir: storageDir,
@@ -69,7 +70,7 @@ func NewStorageManager(storageDir string) (*StorageManager, error) {
 
 // reset initializes db, storage, and rw.
 func (s *StorageManager) reset() error {
-	db, err := OpenBadger(s.storageDir, -1)
+	db, err := OpenPebble(s.storageDir)
 	if err != nil {
 		return err
 	}
@@ -91,13 +92,14 @@ func (s *StorageManager) Close() error {
 func (s *StorageManager) Size() (lsm, vlog int64) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	return s.db.Size()
+	return 0, 0
+	//return s.db.Size()
 }
 
-func (s *StorageManager) NewTransaction(update bool) *badger.Txn {
+func (s *StorageManager) NewIndexedBatch() *pebble.Batch {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	return s.db.NewTransaction(update)
+	return s.db.NewIndexedBatch()
 }
 
 // Run has the same lifecycle as the TBS processor as opposed to StorageManager to facilitate EA hot reload.

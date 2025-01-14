@@ -10,6 +10,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/elastic/apm-data/model/modelpb"
+	"github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/pubsub"
 	"github.com/elastic/go-elasticsearch/v8"
 )
@@ -238,9 +239,9 @@ func (config DataStreamConfig) validate() error {
 }
 
 func (config StorageConfig) validate() error {
-	//if config.DB == nil {
-	//	return errors.New("DB unspecified")
-	//}
+	if config.DB == nil {
+		return errors.New("DB unspecified")
+	}
 	if config.Storage == nil {
 		return errors.New("Storage unspecified")
 	}

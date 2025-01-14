@@ -11,21 +11,18 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/dgraph-io/badger/v2"
-
+	"github.com/cockroachdb/pebble"
 	"github.com/elastic/apm-data/model/modelpb"
 )
 
 const (
 	// NOTE(axw) these values (and their meanings) must remain stable
 	// over time, to avoid misinterpreting historical data.
-	entryMetaTraceSampled   = 's'
-	entryMetaTraceUnsampled = 'u'
-	entryMetaTraceEvent     = 'e'
+	entryMetaTraceSampled   byte = 's'
+	entryMetaTraceUnsampled byte = 'u'
+	entryMetaTraceEvent     byte = 'e'
 
-	// Initial transaction size
-	// len(txnKey) + 10
-	baseTransactionSize = 10 + 11
+	flushThreshold = 5 * 1024 * 1024
 )
 
 var (
@@ -39,7 +36,7 @@ var (
 )
 
 type db interface {
-	NewTransaction(update bool) *badger.Txn
+	NewIndexedBatch() *pebble.Batch
 	Size() (lsm, vlog int64)
 	Close() error
 }
@@ -78,11 +75,11 @@ func (s *Storage) NewShardedReadWriter() *ShardedReadWriter {
 //
 // The returned ReadWriter must be closed when it is no longer needed.
 func (s *Storage) NewReadWriter() *ReadWriter {
-	s.pendingSize.Add(baseTransactionSize)
+	//s.pendingSize.Add(baseTransactionSize)
 	return &ReadWriter{
-		s:           s,
-		txn:         nil, // lazy init to avoid deadlock in storage manager
-		pendingSize: baseTransactionSize,
+		s: s,
+		//txn:         nil, // lazy init to avoid deadlock in storage manager
+		//pendingSize: baseTransactionSize,
 	}
 }
 
@@ -100,8 +97,8 @@ type WriterOpts struct {
 // avoid conflicts, e.g. by using consistent hashing to distribute to one of
 // a set of ReadWriters, such as implemented by ShardedReadWriter.
 type ReadWriter struct {
-	s   *Storage
-	txn *badger.Txn
+	s     *Storage
+	batch *pebble.Batch
 
 	// readKeyBuf is a reusable buffer for keys used in read operations.
 	// This must not be used in write operations, as keys are expected to
@@ -113,8 +110,8 @@ type ReadWriter struct {
 }
 
 func (rw *ReadWriter) lazyInit() {
-	if rw.txn == nil {
-		rw.txn = rw.s.db.NewTransaction(true)
+	if rw.batch == nil {
+		rw.batch = rw.s.db.NewIndexedBatch()
 	}
 }
 
@@ -123,8 +120,8 @@ func (rw *ReadWriter) lazyInit() {
 // This must be called when the writer is no longer needed, in order to reclaim
 // resources.
 func (rw *ReadWriter) Close() {
-	if rw.txn != nil {
-		rw.txn.Discard()
+	if rw.batch != nil {
+		rw.batch.Close()
 	}
 }
 
@@ -137,12 +134,13 @@ func (rw *ReadWriter) Flush() error {
 	rw.lazyInit()
 
 	const flushErrFmt = "failed to flush pending writes: %w"
-	err := rw.txn.Commit()
-	rw.txn = rw.s.db.NewTransaction(true)
-	rw.s.pendingSize.Add(-rw.pendingSize)
-	rw.pendingWrites = 0
-	rw.pendingSize = baseTransactionSize
-	rw.s.pendingSize.Add(baseTransactionSize)
+	err := rw.batch.Commit(pebble.NoSync)
+	rw.batch.Close()
+	//rw.txn = rw.s.db.NewTransaction(true)
+	//rw.s.pendingSize.Add(-rw.pendingSize)
+	//rw.pendingWrites = 0
+	//rw.pendingSize = baseTransactionSize
+	//rw.s.pendingSize.Add(baseTransactionSize)
 	if err != nil {
 		return fmt.Errorf(flushErrFmt, err)
 	}
@@ -154,11 +152,11 @@ func (rw *ReadWriter) WriteTraceSampled(traceID string, sampled bool, opts Write
 	rw.lazyInit()
 
 	key := []byte(traceID)
-	var meta uint8 = entryMetaTraceUnsampled
+	meta := entryMetaTraceUnsampled
 	if sampled {
 		meta = entryMetaTraceSampled
 	}
-	return rw.writeEntry(badger.NewEntry(key[:], nil).WithMeta(meta), opts)
+	return rw.batch.Set(key, []byte{meta}, pebble.NoSync)
 }
 
 // IsTraceSampled reports whether traceID belongs to a trace that is sampled
@@ -167,15 +165,12 @@ func (rw *ReadWriter) WriteTraceSampled(traceID string, sampled bool, opts Write
 func (rw *ReadWriter) IsTraceSampled(traceID string) (bool, error) {
 	rw.lazyInit()
 
-	rw.readKeyBuf = append(rw.readKeyBuf[:0], traceID...)
-	item, err := rw.txn.Get(rw.readKeyBuf)
-	if err != nil {
-		if err == badger.ErrKeyNotFound {
-			return false, ErrNotFound
-		}
-		return false, err
+	item, closer, err := rw.batch.Get([]byte(traceID))
+	if err == pebble.ErrNotFound {
+		return false, ErrNotFound
 	}
-	return item.UserMeta() == entryMetaTraceSampled, nil
+	defer closer.Close()
+	return item[0] == entryMetaTraceSampled, nil
 }
 
 // WriteTraceEvent writes a trace event to storage.
@@ -195,77 +190,20 @@ func (rw *ReadWriter) WriteTraceEvent(traceID string, id string, event *modelpb.
 	buf.WriteByte(':')
 	buf.WriteString(id)
 	key := buf.Bytes()
-	return rw.writeEntry(badger.NewEntry(key, data).WithMeta(entryMetaTraceEvent), opts)
+	return rw.writeEntry(key, data)
 }
 
-func (rw *ReadWriter) writeEntry(e *badger.Entry, opts WriterOpts) error {
-	rw.pendingWrites++
-	entrySize := estimateSize(e)
-	// The badger database has an async size reconciliation, with a 1 minute
-	// ticker that keeps the lsm and vlog sizes updated in an in-memory map.
-	// It's OK to call call s.db.Size() on the hot path, since the memory
-	// lookup is cheap.
-	lsm, vlog := rw.s.db.Size()
+func (rw *ReadWriter) writeEntry(key, data []byte) error {
+	if err := rw.batch.Set(key, append([]byte{entryMetaTraceEvent}, data...), pebble.NoSync); err != nil {
+		return err
+	}
 
-	// there are multiple ReadWriters writing to the same storage so add
-	// the entry size and consider the new value to avoid TOCTOU issues.
-	pendingSize := rw.s.pendingSize.Add(entrySize)
-	rw.pendingSize += entrySize
-
-	if current := pendingSize + lsm + vlog; opts.StorageLimitInBytes != 0 && current >= opts.StorageLimitInBytes {
-		// flush what we currently have and discard the current entry
+	if rw.batch.Len() > flushThreshold {
 		if err := rw.Flush(); err != nil {
 			return err
 		}
-		return fmt.Errorf("%w (current: %d, limit: %d)", ErrLimitReached, current, opts.StorageLimitInBytes)
 	}
-
-	if rw.pendingWrites >= 200 {
-		// Attempt to flush if there are 200 or more uncommitted writes.
-		// This ensures calls to ReadTraceEvents are not slowed down;
-		// ReadTraceEvents uses an iterator, which must sort all keys
-		// of uncommitted writes.
-		// The 200 value yielded a good balance between read and write speed:
-		// https://github.com/elastic/apm-server/pull/8407#issuecomment-1162994643
-		if err := rw.Flush(); err != nil {
-			return err
-		}
-
-		// the current ReadWriter flushed the transaction and reset the pendingSize so add
-		// the entrySize again.
-		rw.pendingSize += entrySize
-		rw.s.pendingSize.Add(entrySize)
-	}
-
-	err := rw.txn.SetEntry(e.WithTTL(opts.TTL))
-
-	// If the transaction is already too big to accommodate the new entry, flush
-	// the existing transaction and set the entry on a new one, otherwise,
-	// returns early.
-	if err != badger.ErrTxnTooBig {
-		return err
-	}
-	if err := rw.Flush(); err != nil {
-		return err
-	}
-	rw.pendingSize += entrySize
-	rw.s.pendingSize.Add(entrySize)
-	return rw.txn.SetEntry(e.WithTTL(opts.TTL))
-}
-
-func estimateSize(e *badger.Entry) int64 {
-	// See badger WithValueThreshold option
-	// An storage usage of an entry depends on its size
-	//
-	// if len(e.Value) < threshold {
-	// 	return len(e.Key) + len(e.Value) + 2 // Meta, UserMeta
-	// }
-	// return len(e.Key) + 12 + 2 // 12 for ValuePointer, 2 for metas.
-	//
-	// Make a good estimate by reserving more space
-	estimate := len(e.Key) + len(e.Value) + 12 + 2
-	// Extra bytes for the version in key.
-	return int64(estimate) + 10
+	return nil
 }
 
 // DeleteTraceEvent deletes the trace event from storage.
@@ -279,67 +217,40 @@ func (rw *ReadWriter) DeleteTraceEvent(traceID, id string) error {
 	buf.WriteString(id)
 	key := buf.Bytes()
 
-	err := rw.txn.Delete(key)
-	// If the transaction is already too big to accommodate the new entry, flush
-	// the existing transaction and set the entry on a new one, otherwise,
-	// returns early.
-	if err != badger.ErrTxnTooBig {
+	err := rw.batch.Delete(key, pebble.NoSync)
+	if err != nil {
 		return err
 	}
-	if err := rw.Flush(); err != nil {
-		return err
+	if rw.batch.Len() > flushThreshold {
+		if err := rw.Flush(); err != nil {
+			return err
+		}
 	}
-
-	return rw.txn.Delete(key)
+	return nil
 }
 
 // ReadTraceEvents reads trace events with the given trace ID from storage into out.
 func (rw *ReadWriter) ReadTraceEvents(traceID string, out *modelpb.Batch) error {
 	rw.lazyInit()
 
-	opts := badger.DefaultIteratorOptions
-	rw.readKeyBuf = append(append(rw.readKeyBuf[:0], traceID...), ':')
-	opts.Prefix = rw.readKeyBuf
-
-	// 1st pass: check whether there exist keys matching the prefix.
-	// Do not prefetch values so that the check is done in-memory.
-	// This is to optimize for cases when it is a miss.
-	opts.PrefetchValues = false
-	iter := rw.txn.NewIterator(opts)
-	iter.Rewind()
-	if !iter.Valid() {
-		iter.Close()
-		return nil
+	iter, err := rw.batch.NewIter(&pebble.IterOptions{
+		LowerBound: append([]byte(traceID), ':'),
+		UpperBound: append([]byte(traceID), ';'),
+	})
+	if err != nil {
+		return err
 	}
-	iter.Close()
-
-	// 2nd pass: this is only done when there exist keys matching the prefix.
-	// Fetch the events with PrefetchValues for performance.
-	// This is to optimize for cases when it is a hit.
-	opts.PrefetchValues = true
-	iter = rw.txn.NewIterator(opts)
 	defer iter.Close()
-	for iter.Rewind(); iter.Valid(); iter.Next() {
-		item := iter.Item()
-		if item.IsDeletedOrExpired() {
-			continue
+	for iter.First(); iter.Valid(); iter.Next() {
+		event := &modelpb.APMEvent{}
+		data, err := iter.ValueAndErr()
+		if err != nil {
+			return err
 		}
-		switch item.UserMeta() {
-		case entryMetaTraceEvent:
-			event := &modelpb.APMEvent{}
-			if err := item.Value(func(data []byte) error {
-				if err := rw.s.codec.DecodeEvent(data, event); err != nil {
-					return fmt.Errorf("codec failed to decode event: %w", err)
-				}
-				return nil
-			}); err != nil {
-				return err
-			}
-			*out = append(*out, event)
-		default:
-			// Unknown entry meta: ignore.
-			continue
+		if err := rw.s.codec.DecodeEvent(data[1:], event); err != nil {
+			return fmt.Errorf("codec failed to decode event: %w", err)
 		}
+		*out = append(*out, event)
 	}
 	return nil
 }
