@@ -1,6 +1,11 @@
 package eventstorage
 
-import "github.com/cockroachdb/pebble"
+import (
+	"github.com/cockroachdb/pebble"
+
+	"github.com/elastic/apm-server/internal/logs"
+	"github.com/elastic/elastic-agent-libs/logp"
+)
 
 const (
 	// Batch grows in multiples of 2 based on the initial size. For
@@ -38,6 +43,7 @@ const (
 
 func OpenPebble(storageDir string) (*pebble.DB, error) {
 	return pebble.Open(storageDir, &pebble.Options{
+		Logger:       logp.NewLogger(logs.Sampling),
 		MemTableSize: pebbleMemTableSize,
 	})
 }
