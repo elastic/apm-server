@@ -47,10 +47,10 @@ var (
 
 	// badgerDB holds the badger database to use when tail-based sampling is configured.
 	badgerMu sync.Mutex
-	badgerDB *badger.DB
+	badgerDB *eventstorage.StorageManager
 
 	storageMu sync.Mutex
-	storage   sampling.RW
+	storage   *eventstorage.ManagedReadWriter
 
 	// samplerUUID is a UUID used to identify sampled trace ID documents
 	// published by this process.
@@ -126,7 +126,7 @@ func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, er
 	if err != nil {
 		return nil, fmt.Errorf("failed to get Badger database: %w", err)
 	}
-	readWriters := getPebbleStorage(db)
+	readWriter := getPebbleStorage(db)
 
 	policies := make([]sampling.Policy, len(tailSamplingConfig.Policies))
 	for i, in := range tailSamplingConfig.Policies {
@@ -160,35 +160,35 @@ func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, er
 			UUID: samplerUUID.String(),
 		},
 		StorageConfig: sampling.StorageConfig{
-			DB:                badgerDB,
-			Storage:           readWriters,
-			StorageDir:        storageDir,
-			StorageGCInterval: tailSamplingConfig.StorageGCInterval,
-			StorageLimit:      tailSamplingConfig.StorageLimitParsed,
-			TTL:               tailSamplingConfig.TTL,
+			DB:                    badgerDB,
+			Storage:               readWriter,
+			StorageDir:            storageDir,
+			StorageGCInterval:     tailSamplingConfig.StorageGCInterval,
+			StorageLimit:          tailSamplingConfig.StorageLimitParsed,
+			TTL:                   tailSamplingConfig.TTL,
+			DiscardOnWriteFailure: tailSamplingConfig.DiscardOnWriteFailure,
 		},
 	})
 }
 
-func getBadgerDB(storageDir string) (*badger.DB, error) {
+func getBadgerDB(storageDir string) (*eventstorage.StorageManager, error) {
 	badgerMu.Lock()
 	defer badgerMu.Unlock()
 	if badgerDB == nil {
-		db, err := eventstorage.OpenBadger(storageDir, -1)
+		sm, err := eventstorage.NewStorageManager(storageDir)
 		if err != nil {
 			return nil, err
 		}
-		badgerDB = db
+		badgerDB = sm
 	}
 	return badgerDB, nil
 }
 
-func getStorage(db *badger.DB) sampling.RW {
+func getStorage(sm *eventstorage.StorageManager) *eventstorage.ManagedReadWriter {
 	storageMu.Lock()
 	defer storageMu.Unlock()
 	if storage == nil {
-		eventCodec := eventstorage.ProtobufCodec{}
-		storage = eventstorage.New(db, eventCodec).NewShardedReadWriter()
+		storage = sm.NewReadWriter()
 	}
 	return storage
 }
@@ -279,16 +279,7 @@ func closeBadger() error {
 	return nil
 }
 
-func closeStorage() {
-	if storage != nil {
-		storage.Close()
-	}
-}
-
 func cleanup() error {
-	// Close the underlying storage, the storage will be flushed on processor stop.
-	closeStorage()
-
 	return closeBadger()
 }
 
