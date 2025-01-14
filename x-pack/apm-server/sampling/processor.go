@@ -99,11 +99,11 @@ func (p *Processor) CollectMonitoring(_ monitoring.Mode, V monitoring.Visitor) {
 	p.groups.mu.RUnlock()
 	monitoring.ReportInt(V, "dynamic_service_groups", int64(numDynamicGroups))
 
-	//monitoring.ReportNamespace(V, "storage", func() {
-	//	lsmSize, valueLogSize := p.config.DB.Size()
-	//	monitoring.ReportInt(V, "lsm_size", int64(lsmSize))
-	//	monitoring.ReportInt(V, "value_log_size", int64(valueLogSize))
-	//})
+	monitoring.ReportNamespace(V, "storage", func() {
+		lsmSize, valueLogSize := p.config.DB.Size()
+		monitoring.ReportInt(V, "lsm_size", int64(lsmSize))
+		monitoring.ReportInt(V, "value_log_size", int64(valueLogSize))
+	})
 	monitoring.ReportNamespace(V, "events", func() {
 		monitoring.ReportInt(V, "processed", atomic.LoadInt64(&p.eventMetrics.processed))
 		monitoring.ReportInt(V, "dropped", atomic.LoadInt64(&p.eventMetrics.dropped))
