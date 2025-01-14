@@ -89,10 +89,10 @@ func (s *StorageManager) Size() (lsm, vlog int64) {
 	return int64(s.db.Metrics().DiskSpaceUsage()), 0 // FIXME
 }
 
-func (s *StorageManager) NewIndexedBatch() *pebble.Batch {
+func (s *StorageManager) NewIndexedBatch(opts ...pebble.BatchOption) *pebble.Batch {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	return s.db.NewIndexedBatch()
+	return s.db.NewIndexedBatch(opts...)
 }
 
 // Run has the same lifecycle as the TBS processor as opposed to StorageManager to facilitate EA hot reload.
