@@ -55,6 +55,8 @@ func TestProcessUnsampled(t *testing.T) {
 }
 
 func TestProcessAlreadyTailSampled(t *testing.T) {
+	t.FailNow() // Expected to fail as TTL is not handled as strictly in pebble
+
 	config := newTempdirConfig(t)
 
 	// Seed event storage with a tail-sampling decisions, to show that
