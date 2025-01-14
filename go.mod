@@ -8,7 +8,7 @@ require (
 	github.com/dgraph-io/badger/v2 v2.2007.4
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/apm-aggregation v1.2.0
-	github.com/elastic/apm-data v1.15.0
+	github.com/elastic/apm-data v1.16.0
 	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20241231140711-7806f1a2cb26
 	github.com/elastic/elastic-agent-client/v7 v7.17.0
 	github.com/elastic/elastic-agent-libs v0.18.1
@@ -34,12 +34,12 @@ require (
 	github.com/spf13/cobra v1.8.1
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.10.0
-	go.elastic.co/apm/module/apmelasticsearch/v2 v2.6.2
-	go.elastic.co/apm/module/apmgorilla/v2 v2.6.2
-	go.elastic.co/apm/module/apmgrpc/v2 v2.6.2
-	go.elastic.co/apm/module/apmhttp/v2 v2.6.2
-	go.elastic.co/apm/module/apmotel/v2 v2.6.2
-	go.elastic.co/apm/v2 v2.6.2
+	go.elastic.co/apm/module/apmelasticsearch/v2 v2.6.3
+	go.elastic.co/apm/module/apmgorilla/v2 v2.6.3
+	go.elastic.co/apm/module/apmgrpc/v2 v2.6.3
+	go.elastic.co/apm/module/apmhttp/v2 v2.6.3
+	go.elastic.co/apm/module/apmotel/v2 v2.6.3
+	go.elastic.co/apm/v2 v2.6.3
 	go.elastic.co/fastjson v1.4.0
 	go.opentelemetry.io/collector/pdata v1.23.0
 	go.opentelemetry.io/otel v1.33.0
@@ -52,7 +52,7 @@ require (
 	golang.org/x/sync v0.10.0
 	golang.org/x/term v0.28.0
 	golang.org/x/time v0.9.0
-	google.golang.org/grpc v1.69.2
+	google.golang.org/grpc v1.69.4
 	google.golang.org/protobuf v1.36.2
 	gopkg.in/yaml.v3 v3.0.1
 )
