@@ -38,8 +38,6 @@ const (
 
 func OpenPebble(storageDir string) (*pebble.DB, error) {
 	return pebble.Open(storageDir, &pebble.Options{
-		BatchInitialSize:     initialPebbleBatchSize,
-		BatchMaxRetainedSize: maxRetainedPebbleBatchSize,
-		MemTableSize:         pebbleMemTableSize,
+		MemTableSize: pebbleMemTableSize,
 	})
 }

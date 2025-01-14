@@ -34,7 +34,7 @@ var (
 )
 
 type db interface {
-	NewIndexedBatch() *pebble.Batch
+	NewIndexedBatch(opts ...pebble.BatchOption) *pebble.Batch
 	Size() (lsm, vlog int64)
 	Close() error
 }
@@ -109,7 +109,10 @@ type ReadWriter struct {
 
 func (rw *ReadWriter) lazyInit() {
 	if rw.batch == nil {
-		rw.batch = rw.s.db.NewIndexedBatch()
+		rw.batch = rw.s.db.NewIndexedBatch(
+			pebble.WithInitialSizeBytes(initialPebbleBatchSize),
+			pebble.WithMaxRetainedSizeBytes(maxRetainedPebbleBatchSize),
+		)
 	}
 }
 
@@ -134,7 +137,8 @@ func (rw *ReadWriter) Flush() error {
 	const flushErrFmt = "failed to flush pending writes: %w"
 	err := rw.batch.Commit(pebble.NoSync)
 	rw.batch.Close()
-	rw.batch = rw.s.db.NewIndexedBatch()
+	rw.batch = nil
+	rw.lazyInit()
 	//rw.s.pendingSize.Add(-rw.pendingSize)
 	rw.pendingWrites = 0
 	//rw.pendingSize = baseTransactionSize
