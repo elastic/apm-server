@@ -1,22 +1,7 @@
-- version: generated
-  changes:
-    - description: Placeholder
-      type: enhancement
-      link: https://github.com/elastic/apm-server/pull/123
 - version: "7.17.28"
   changes:
     - description: Placeholder
       type: enhancement
-      link: https://github.com/elastic/apm-server/pull/1234
-- version: "7.17.26"
-  changes:
-    - description: Placeholder
-      type: bugfix
-      link: https://github.com/elastic/apm-server/pull/1234
-- version: "7.17.25"
-  changes:
-    - description: Placeholder
-      type: bugfix
       link: https://github.com/elastic/apm-server/pull/1234
 - version: "7.17.11"
   changes:
