@@ -86,8 +86,7 @@ func (s *StorageManager) Close() error {
 func (s *StorageManager) Size() (lsm, vlog int64) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	return 0, 0
-	//return s.db.Size()
+	return int64(s.db.Metrics().DiskSpaceUsage()), 0 // FIXME
 }
 
 func (s *StorageManager) NewIndexedBatch() *pebble.Batch {
