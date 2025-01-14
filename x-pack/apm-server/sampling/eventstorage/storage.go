@@ -21,8 +21,6 @@ const (
 	entryMetaTraceSampled   byte = 's'
 	entryMetaTraceUnsampled byte = 'u'
 	entryMetaTraceEvent     byte = 'e'
-
-	//flushThreshold = 5 * 1024 * 1024
 )
 
 var (
@@ -200,7 +198,7 @@ func (rw *ReadWriter) writeEntry(key, data []byte) error {
 		return err
 	}
 
-	if rw.pendingWrites >= 200 {
+	if rw.batch.Len() >= dbCommitThresholdBytes {
 		if err := rw.Flush(); err != nil {
 			return err
 		}

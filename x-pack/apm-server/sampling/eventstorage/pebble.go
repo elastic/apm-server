@@ -27,6 +27,13 @@ const (
 	// classification uses the memtable size that a batch will occupy
 	// rather than the length of data slice backing the batch.
 	pebbleMemTableSize = 32 << 20 // 32MB
+
+	// dbCommitThresholdBytes is a soft limit and the batch is committed
+	// to the DB as soon as it crosses this threshold. To make sure that
+	// the commit threshold plays will with the max retained batch size
+	// the threshold should be kept smaller than the sum of max retained
+	// batch size and encoded size of aggregated data to be committed.
+	dbCommitThresholdBytes = 8000 << 10 // 8000KB
 )
 
 func OpenPebble(storageDir string) (*pebble.DB, error) {
