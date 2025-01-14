@@ -138,7 +138,7 @@ func (rw *ReadWriter) Flush() error {
 	err := rw.batch.Commit(pebble.NoSync)
 	rw.batch.Close()
 	rw.batch = nil
-	rw.lazyInit()
+	rw.lazyInit() // FIXME: this shouldn't be needed
 	//rw.s.pendingSize.Add(-rw.pendingSize)
 	rw.pendingWrites = 0
 	//rw.pendingSize = baseTransactionSize
