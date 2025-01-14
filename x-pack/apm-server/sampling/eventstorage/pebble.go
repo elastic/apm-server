@@ -1,12 +1,9 @@
 package eventstorage
 
-import (
-	"github.com/cockroachdb/pebble"
-	"github.com/cockroachdb/pebble/vfs"
-)
+import "github.com/cockroachdb/pebble"
 
 func OpenPebble(storageDir string) (*pebble.DB, error) {
 	return pebble.Open(storageDir, &pebble.Options{
-		FS: vfs.NewMem(),
+		DisableWAL: true,
 	})
 }
