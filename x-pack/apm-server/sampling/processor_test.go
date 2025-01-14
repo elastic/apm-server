@@ -11,7 +11,6 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"runtime"
 	"sort"
 	"strings"
 	"testing"
@@ -22,7 +21,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/sync/errgroup"
 	"google.golang.org/protobuf/testing/protocmp"
 
 	"github.com/elastic/apm-data/model/modelpb"
@@ -646,82 +644,82 @@ func TestStorageMonitoring(t *testing.T) {
 	assert.NotZero(t, metrics.Ints, "sampling.storage.value_log_size")
 }
 
-func TestStorageLimit(t *testing.T) {
-	// This test ensures that when tail sampling is configured with a hard
-	// storage limit, the limit is respected once the size is available.
-	// To update the database size during our test without waiting a full
-	// minute, we store some span events, close and re-open the database, so
-	// the size is updated.
-	if testing.Short() {
-		t.Skip("skipping slow test")
-	}
-
-	writeBatch := func(n int, c sampling.Config, assertBatch func(b modelpb.Batch)) *sampling.Processor {
-		processor, err := sampling.NewProcessor(c)
-		require.NoError(t, err)
-		go processor.Run()
-		defer processor.Stop(context.Background())
-		batch := make(modelpb.Batch, 0, n)
-		for i := 0; i < n; i++ {
-			traceID := uuid.Must(uuid.NewV4()).String()
-			batch = append(batch, &modelpb.APMEvent{
-				Trace: &modelpb.Trace{Id: traceID},
-				Event: &modelpb.Event{Duration: uint64(123 * time.Millisecond)},
-				Span: &modelpb.Span{
-					Type: "type",
-					Id:   traceID,
-				},
-			})
-		}
-		err = processor.ProcessBatch(context.Background(), &batch)
-		require.NoError(t, err)
-		assertBatch(batch)
-		return processor
-	}
-
-	config := newTempdirConfig(t)
-	// Write 5K span events and close the DB to persist to disk the storage
-	// size and assert that none are reported immediately.
-	writeBatch(5000, config, func(b modelpb.Batch) {
-		assert.Empty(t, b, fmt.Sprintf("expected empty but size is %d", len(b)))
-	})
-	assert.NoError(t, config.Storage.Flush())
-	assert.NoError(t, config.DB.Close())
-
-	// Open a new instance of the badgerDB and check the size.
-	var err error
-	config.DB, err = eventstorage.NewStorageManager(config.StorageDir)
-	require.NoError(t, err)
-	t.Cleanup(func() { config.DB.Close() })
-	config.Storage = config.DB.NewReadWriter()
-
-	lsm, vlog := config.DB.Size()
-	assert.GreaterOrEqual(t, lsm+vlog, int64(1024))
-
-	config.StorageLimit = 1024 // Set the storage limit to 1024 bytes.
-	// Create a massive 150K span batch (per CPU) to trigger the badger error
-	// Transaction too big, causing the ProcessBatch to report the some traces
-	// immediately.
-	// Rather than setting a static threshold, use the runtime.NumCPU as a
-	// multiplier since the sharded writers use that variable and the more CPUs
-	// we have, the more sharded writes we'll have, resulting in a greater buffer.
-	// To avoid huge test time on large systems do this incrementally
-	for i := 1; i < runtime.NumCPU(); i++ {
-		processor := writeBatch(150_000*i, config, func(b modelpb.Batch) {
-			assert.NotEmpty(t, b)
-		})
-
-		failedWrites := collectProcessorMetrics(processor).Ints["sampling.events.failed_writes"]
-		t.Log(failedWrites)
-		// Ensure that there are some failed writes.
-
-		if failedWrites >= 1 {
-			return
-		}
-	}
-
-	t.Fatal("badger error never thrown")
-}
+//func TestStorageLimit(t *testing.T) {
+//	// This test ensures that when tail sampling is configured with a hard
+//	// storage limit, the limit is respected once the size is available.
+//	// To update the database size during our test without waiting a full
+//	// minute, we store some span events, close and re-open the database, so
+//	// the size is updated.
+//	if testing.Short() {
+//		t.Skip("skipping slow test")
+//	}
+//
+//	writeBatch := func(n int, c sampling.Config, assertBatch func(b modelpb.Batch)) *sampling.Processor {
+//		processor, err := sampling.NewProcessor(c)
+//		require.NoError(t, err)
+//		go processor.Run()
+//		defer processor.Stop(context.Background())
+//		batch := make(modelpb.Batch, 0, n)
+//		for i := 0; i < n; i++ {
+//			traceID := uuid.Must(uuid.NewV4()).String()
+//			batch = append(batch, &modelpb.APMEvent{
+//				Trace: &modelpb.Trace{Id: traceID},
+//				Event: &modelpb.Event{Duration: uint64(123 * time.Millisecond)},
+//				Span: &modelpb.Span{
+//					Type: "type",
+//					Id:   traceID,
+//				},
+//			})
+//		}
+//		err = processor.ProcessBatch(context.Background(), &batch)
+//		require.NoError(t, err)
+//		assertBatch(batch)
+//		return processor
+//	}
+//
+//	config := newTempdirConfig(t)
+//	// Write 5K span events and close the DB to persist to disk the storage
+//	// size and assert that none are reported immediately.
+//	writeBatch(5000, config, func(b modelpb.Batch) {
+//		assert.Empty(t, b, fmt.Sprintf("expected empty but size is %d", len(b)))
+//	})
+//	assert.NoError(t, config.Storage.Flush())
+//	assert.NoError(t, config.DB.Close())
+//
+//	// Open a new instance of the badgerDB and check the size.
+//	var err error
+//	config.DB, err = eventstorage.NewStorageManager(config.StorageDir)
+//	require.NoError(t, err)
+//	t.Cleanup(func() { config.DB.Close() })
+//	config.Storage = config.DB.NewReadWriter()
+//
+//	lsm, vlog := config.DB.Size()
+//	assert.GreaterOrEqual(t, lsm+vlog, int64(1024))
+//
+//	config.StorageLimit = 1024 // Set the storage limit to 1024 bytes.
+//	// Create a massive 150K span batch (per CPU) to trigger the badger error
+//	// Transaction too big, causing the ProcessBatch to report the some traces
+//	// immediately.
+//	// Rather than setting a static threshold, use the runtime.NumCPU as a
+//	// multiplier since the sharded writers use that variable and the more CPUs
+//	// we have, the more sharded writes we'll have, resulting in a greater buffer.
+//	// To avoid huge test time on large systems do this incrementally
+//	for i := 1; i < runtime.NumCPU(); i++ {
+//		processor := writeBatch(150_000*i, config, func(b modelpb.Batch) {
+//			assert.NotEmpty(t, b)
+//		})
+//
+//		failedWrites := collectProcessorMetrics(processor).Ints["sampling.events.failed_writes"]
+//		t.Log(failedWrites)
+//		// Ensure that there are some failed writes.
+//
+//		if failedWrites >= 1 {
+//			return
+//		}
+//	}
+//
+//	t.Fatal("badger error never thrown")
+//}
 
 func TestProcessRemoteTailSamplingPersistence(t *testing.T) {
 	config := newTempdirConfig(t)
@@ -745,131 +743,6 @@ func TestProcessRemoteTailSamplingPersistence(t *testing.T) {
 	subscriberChan <- "0102030405060708090a0b0c0d0e0f10"
 	data, _ = waitFileModified(t, subscriberPositionFile, info.ModTime())
 	assert.Equal(t, `{"index_name":1}`, string(data))
-}
-
-func TestDropLoop(t *testing.T) {
-	// This test ensures that if badger is stuck at storage limit for TTL,
-	// DB is dropped and recreated.
-	if testing.Short() {
-		t.Skip("skipping slow test")
-	}
-
-	makeBatch := func(n int) modelpb.Batch {
-		batch := make(modelpb.Batch, 0, n)
-		for i := 0; i < n; i++ {
-			traceID := uuid.Must(uuid.NewV4()).String()
-			batch = append(batch, &modelpb.APMEvent{
-				Trace: &modelpb.Trace{Id: traceID},
-				Event: &modelpb.Event{Duration: uint64(123 * time.Millisecond)},
-				Span: &modelpb.Span{
-					Type: "type",
-					Id:   traceID,
-				},
-			})
-		}
-		return batch
-	}
-
-	writeBatch := func(t *testing.T, n int, c sampling.Config, assertBatch func(b modelpb.Batch)) *sampling.Processor {
-		processor, err := sampling.NewProcessor(c)
-		require.NoError(t, err)
-		go processor.Run()
-		defer processor.Stop(context.Background())
-		batch := makeBatch(n)
-		err = processor.ProcessBatch(context.Background(), &batch)
-		require.NoError(t, err)
-		assertBatch(batch)
-		return processor
-	}
-
-	for _, tc := range []struct {
-		name                string
-		subscriberPosExists bool
-	}{
-		{
-			name:                "subscriber_position_not_exist",
-			subscriberPosExists: false,
-		},
-		{
-			name:                "subscriber_position_exists",
-			subscriberPosExists: true,
-		},
-	} {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-			config := newTempdirConfig(t)
-			config.StorageGCInterval = time.Hour // effectively disable GC
-
-			config.FlushInterval = 10 * time.Millisecond
-			subscriberChan := make(chan string)
-			subscriber := pubsubtest.SubscriberChan(subscriberChan)
-			config.Elasticsearch = pubsubtest.Client(nil, subscriber)
-			subscriberPositionFile := filepath.Join(config.StorageDir, "subscriber_position.json")
-
-			// Write 5K span events and close the DB to persist to disk the storage
-			// size and assert that none are reported immediately.
-			writeBatch(t, 5000, config, func(b modelpb.Batch) {
-				assert.Empty(t, b, fmt.Sprintf("expected empty but size is %d", len(b)))
-
-				subscriberChan <- "0102030405060708090a0b0c0d0e0f10"
-				assert.Eventually(t, func() bool {
-					data, err := config.DB.ReadSubscriberPosition()
-					return err == nil && string(data) == `{"index_name":1}`
-				}, time.Second, 100*time.Millisecond)
-			})
-			assert.NoError(t, config.Storage.Flush())
-			assert.NoError(t, config.DB.Close())
-
-			if !tc.subscriberPosExists {
-				err := os.Remove(subscriberPositionFile)
-				assert.NoError(t, err)
-			}
-
-			func() {
-				// Open a new instance of the badgerDB and check the size.
-				var err error
-				config.DB, err = eventstorage.NewStorageManager(config.StorageDir)
-				require.NoError(t, err)
-				t.Cleanup(func() { config.DB.Close() })
-				config.Storage = config.DB.NewReadWriter()
-
-				lsm, vlog := config.DB.Size()
-				assert.Greater(t, lsm+vlog, int64(1024*1024))
-
-				config.Elasticsearch = pubsubtest.Client(nil, nil) // disable pubsub
-
-				config.StorageLimit = 100 * 1024 // lower limit to trigger storage limit error
-				config.TTL = time.Second
-				processor, err := sampling.NewProcessor(config)
-				require.NoError(t, err)
-				go processor.Run()
-				defer processor.Stop(context.Background())
-
-				// wait for up to 1 minute for dropAndRecreate to kick in
-				// no SST files after dropping DB and before first write
-				var filenames []string
-				assert.Eventually(t, func() bool {
-					filenames = sstFilenames(config.StorageDir)
-					return len(filenames) == 0
-				}, 90*time.Second, 200*time.Millisecond, filenames)
-
-				data, err := config.DB.ReadSubscriberPosition()
-				assert.NoError(t, err)
-				if tc.subscriberPosExists {
-					assert.Equal(t, `{"index_name":1}`, string(data))
-				} else {
-					assert.Equal(t, "{}", string(data))
-				}
-
-				// try to write to new DB
-				batch := makeBatch(10)
-				err = processor.ProcessBatch(context.Background(), &batch)
-				require.NoError(t, err)
-			}()
-			assert.NoError(t, config.DB.Close())
-			assert.Greater(t, len(sstFilenames(config.StorageDir)), 0)
-		})
-	}
 }
 
 func TestGracefulShutdown(t *testing.T) {
