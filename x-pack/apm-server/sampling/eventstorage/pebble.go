@@ -2,6 +2,7 @@ package eventstorage
 
 import (
 	"github.com/cockroachdb/pebble"
+	"github.com/cockroachdb/pebble/bloom"
 
 	"github.com/elastic/apm-server/internal/logs"
 	"github.com/elastic/elastic-agent-libs/logp"
@@ -47,7 +48,9 @@ func OpenPebble(storageDir string) (*pebble.DB, error) {
 		MemTableSize: pebbleMemTableSize,
 		Levels: []pebble.LevelOptions{
 			{
-				Compression: pebble.NoCompression,
+				Compression:  pebble.NoCompression,
+				FilterPolicy: bloom.FilterPolicy(10),
+				FilterType:   pebble.TableFilter,
 			},
 		},
 	})
