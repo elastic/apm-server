@@ -139,9 +139,21 @@ apm-server.yml apm-server.docker.yml: $(MAGE) magefile.go _meta/beat.yml
 go-generate:
 	@$(GO) generate . ./ingest/pipeline
 
+MODULE_DEPS=$(sort $(shell \
+  go list -deps -tags=darwin,linux,windows -f "{{with .Module}}{{if not .Main}}{{.Path}}{{end}}{{end}}" ./x-pack/apm-server))
+
 notice: NOTICE.txt
-NOTICE.txt: $(PYTHON) go.mod tools/go.mod
-	@$(PYTHON) script/generate_notice.py . ./x-pack/apm-server
+NOTICE.txt build/dependencies-$(APM_SERVER_VERSION).csv: go.mod tools/go.mod
+	mkdir -p build/
+	go list -m -json $(MODULE_DEPS) | go run -modfile=tools/go.mod go.elastic.co/go-licence-detector \
+		-includeIndirect \
+		-overrides tools/notice/overrides.json \
+		-rules tools/notice/rules.json \
+		-noticeTemplate tools/notice/NOTICE.txt.tmpl \
+		-noticeOut NOTICE.txt \
+		-depsTemplate tools/notice/dependencies.csv.tmpl \
+		-depsOut build/dependencies-$(APM_SERVER_VERSION).csv
+
 
 .PHONY: add-headers
 add-headers: $(GOLICENSER)
@@ -313,6 +325,3 @@ release: $(MAGE) build/dependencies.csv
 	$(GO) mod download all
 	$(MAGE) package
 	@$(MAGE) ironbank
-
-build/dependencies.csv: go.mod
-	python3 script/generate_notice.py ./x-pack/apm-server --csv $@
