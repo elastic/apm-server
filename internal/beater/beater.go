@@ -22,6 +22,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"hash"
 	"net"
 	"net/http"
 	"os"
@@ -29,6 +30,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/cespare/xxhash/v2"
 	"github.com/dustin/go-humanize"
 	"go.elastic.co/apm/module/apmgrpc/v2"
 	"go.elastic.co/apm/module/apmotel/v2"
@@ -471,7 +473,11 @@ func (s *Runner) Run(ctx context.Context) error {
 		// aggregation, sampling, and indexing.
 		modelprocessor.SetHostHostname{},
 		modelprocessor.SetServiceNodeName{},
-		modelprocessor.SetGroupingKey{},
+		modelprocessor.SetGroupingKey{
+			NewHash: func() hash.Hash {
+				return xxhash.New()
+			},
+		},
 		modelprocessor.SetErrorMessage{},
 	}
 	if s.config.DefaultServiceEnvironment != "" {

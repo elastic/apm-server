@@ -118,7 +118,7 @@
             "ConnectionError"
         ],
         "error.grouping_key": [
-            "d72b25a26fde3f3aaad1c86950acd070"
+            "637be2ded470655b"
         ],
         "error.grouping_name": [
             "My service could not talk to the database named foobar"
@@ -439,7 +439,7 @@
             "Cannot read property 'baz' no defined"
         ],
         "error.grouping_key": [
-            "ae0232fed4cb40e7ebc62a585a421d60"
+            "89f9636ef3381842"
         ],
         "error.grouping_name": [
             "Cannot read property 'baz' no defined"
@@ -655,7 +655,7 @@
             "logs"
         ],
         "error.grouping_key": [
-            "dc8dd667f7036ec5f0bae87bf2188243"
+            "256d70df2f0019ed"
         ],
         "error.grouping_name": [
             "no user found"
@@ -880,7 +880,7 @@
             "DbError"
         ],
         "error.grouping_key": [
-            "c3868d6704b923014eaffea034e70a3d"
+            "60b29d2f9dafe754"
         ],
         "error.id": [
             "cdefab0123456780"
@@ -1096,7 +1096,7 @@
             "logs"
         ],
         "error.grouping_key": [
-            "d6b3f958dfea98dc9ed2b57d5f0c48bb"
+            "5be7ecce1b964f32"
         ],
         "error.grouping_name": [
             "Cannot read property 'baz' of undefined"
