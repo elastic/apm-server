@@ -1,7 +1,7 @@
 Elastic APM Server
 Copyright 2014-2025 Elasticsearch BV
 
-This product includes software developed by The Apache Software 
+This product includes software developed by The Apache Software
 Foundation (http://www.apache.org/).
 
 ================================================================================
@@ -13253,11 +13253,11 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/hashicorp/cronexpr
-Version: v1.1.0
+Version: v1.1.2
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/hashicorp/cronexpr@v1.1.0/APLv2:
+Contents of probable licence file $GOMODCACHE/github.com/hashicorp/cronexpr@v1.1.2/LICENSE:
 
 
                                  Apache License
