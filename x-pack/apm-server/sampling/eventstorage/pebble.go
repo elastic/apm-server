@@ -48,7 +48,7 @@ func OpenPebble(storageDir string) (*pebble.DB, error) {
 		MemTableSize: pebbleMemTableSize,
 		Levels: []pebble.LevelOptions{
 			{
-				Compression:  pebble.NoCompression,
+				Compression:  pebble.SnappyCompression,
 				FilterPolicy: bloom.FilterPolicy(10),
 				FilterType:   pebble.TableFilter,
 			},
