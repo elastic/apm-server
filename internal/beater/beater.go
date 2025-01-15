@@ -410,6 +410,7 @@ func (s *Runner) Run(ctx context.Context) error {
 		kibanaClient,
 		newElasticsearchClient,
 		tracer,
+		s.logger,
 	)
 	if err != nil {
 		return err

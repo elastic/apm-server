@@ -37,6 +37,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.elastic.co/apm/v2/apmtest"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
+	"go.uber.org/zap/zaptest/observer"
 
 	"github.com/elastic/apm-server/internal/beater/config"
 	"github.com/elastic/apm-server/internal/elasticsearch"
@@ -241,6 +243,28 @@ func TestRunnerNewDocappenderConfig(t *testing.T) {
 			}, esCfg)
 		})
 	}
+}
+
+func TestAgentConfigFetcherDeprecation(t *testing.T) {
+	core, observed := observer.New(zapcore.DebugLevel)
+	logger := logp.NewLogger("bo", zap.WrapCore(func(in zapcore.Core) zapcore.Core {
+		return zapcore.NewTee(in, core)
+	}))
+
+	_, _, err := newAgentConfigFetcher(context.Background(), &config.Config{
+		FleetAgentConfigs: []config.FleetAgentConfig{
+			{
+				AgentName: "foo",
+			},
+		},
+	}, nil, func(c *elasticsearch.Config) (*elasticsearch.Client, error) { return nil, nil }, nil, logger)
+	require.NoError(t, err)
+
+	all := observed.All()
+	assert.Len(t, all, 1)
+	record := all[0]
+	assert.Equal(t, zapcore.WarnLevel, record.Level, record.Message)
+	assert.Equal(t, agentcfgDeprecationNotice, record.Message)
 }
 
 func TestNewInstrumentation(t *testing.T) {
