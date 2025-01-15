@@ -9,11 +9,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"path/filepath"
 	"sync"
 	"time"
 
-	"github.com/dgraph-io/badger/v2"
 	"github.com/pkg/errors"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/metric"
@@ -27,10 +25,6 @@ import (
 )
 
 const (
-	// subscriberPositionFile holds the file name used for persisting
-	// the subscriber position across server restarts.
-	subscriberPositionFile = "subscriber_position.json"
-
 	// loggerRateLimit is the maximum frequency at which "too many groups" and
 	// "write failure" log messages are logged.
 	loggerRateLimit = time.Minute
@@ -42,9 +36,6 @@ const (
 
 var (
 	meter = otel.Meter("github.com/elastic/apm-server/x-pack/apm-server/sampling")
-
-	// gcCh works like a global mutex to protect gc from running concurrently when 2 TBS processors are active during a hot reload
-	gcCh = make(chan struct{}, 1)
 )
 
 // Processor is a tail-sampling event processor.
@@ -60,8 +51,6 @@ type Processor struct {
 	stopMu   sync.Mutex
 	stopping chan struct{}
 	stopped  chan struct{}
-
-	indexOnWriteFailure bool
 }
 
 type eventMetrics struct {
@@ -88,11 +77,6 @@ func NewProcessor(config Config) (*Processor, error) {
 		eventStore:        newWrappedRW(config.Storage, config.TTL, int64(config.StorageLimit)),
 		stopping:          make(chan struct{}),
 		stopped:           make(chan struct{}),
-		// NOTE(marclop) This behavior should be configurable so users who
-		// rely on tail sampling for cost cutting, can discard events once
-		// the disk is full.
-		// Index all traces when the storage limit is reached.
-		indexOnWriteFailure: true,
 	}
 
 	p.eventMetrics.processed, _ = meter.Int64Counter("apm-server.sampling.tail.events.processed")
@@ -138,12 +122,12 @@ func (p *Processor) ProcessBatch(ctx context.Context, batch *modelpb.Batch) erro
 		if err != nil {
 			failed = true
 			stored = false
-			if p.indexOnWriteFailure {
-				report = true
-				p.rateLimitedLogger.Info("processing trace failed, indexing by default")
-			} else {
+			if p.config.DiscardOnWriteFailure {
 				report = false
 				p.rateLimitedLogger.Info("processing trace failed, discarding by default")
+			} else {
+				report = true
+				p.rateLimitedLogger.Info("processing trace failed, indexing by default")
 			}
 		}
 
@@ -316,7 +300,7 @@ func (p *Processor) Run() error {
 		bulkIndexerFlushInterval = p.config.FlushInterval
 	}
 
-	initialSubscriberPosition, err := readSubscriberPosition(p.logger, p.config.StorageDir)
+	initialSubscriberPosition, err := readSubscriberPosition(p.logger, p.config.DB)
 	if err != nil {
 		return err
 	}
@@ -355,7 +339,7 @@ func (p *Processor) Run() error {
 				time.AfterFunc(shutdownGracePeriod, cancelGracefulContext)
 				return context.Canceled
 			case pos := <-subscriberPositions:
-				if err := writeSubscriberPosition(p.config.StorageDir, pos); err != nil {
+				if err := writeSubscriberPosition(p.config.DB, pos); err != nil {
 					p.rateLimitedLogger.With(logp.Error(err)).With(logp.Reflect("position", pos)).Warn(
 						"failed to write subscriber position: %s", err,
 					)
@@ -364,38 +348,7 @@ func (p *Processor) Run() error {
 		}
 	})
 	g.Go(func() error {
-		// Protect this goroutine from running concurrently when 2 TBS processors are active
-		// as badger GC is not concurrent safe.
-		select {
-		case <-p.stopping:
-			return nil
-		case gcCh <- struct{}{}:
-		}
-		defer func() {
-			<-gcCh
-		}()
-		// This goroutine is responsible for periodically garbage
-		// collecting the Badger value log, using the recommended
-		// discard ratio of 0.5.
-		ticker := time.NewTicker(p.config.StorageGCInterval)
-		defer ticker.Stop()
-		for {
-			select {
-			case <-p.stopping:
-				return nil
-			case <-ticker.C:
-				const discardRatio = 0.5
-				var err error
-				for err == nil {
-					// Keep garbage collecting until there are no more rewrites,
-					// or garbage collection fails.
-					err = p.config.DB.RunValueLogGC(discardRatio)
-				}
-				if err != nil && err != badger.ErrNoRewrite {
-					return err
-				}
-			}
-		}
+		return p.config.DB.Run(p.stopping, p.config.StorageGCInterval, p.config.TTL, p.config.StorageLimit, storageLimitThreshold)
 	})
 	g.Go(func() error {
 		// Subscribe to remotely sampled trace IDs. This is cancelled immediately when
@@ -548,15 +501,9 @@ func (p *Processor) Run() error {
 	return nil
 }
 
-// subscriberPositionFileMutex protects the subscriber file from concurrent RW, in case of hot reload.
-var subscriberPositionFileMutex sync.Mutex
-
-func readSubscriberPosition(logger *logp.Logger, storageDir string) (pubsub.SubscriberPosition, error) {
-	subscriberPositionFileMutex.Lock()
-	defer subscriberPositionFileMutex.Unlock()
-
+func readSubscriberPosition(logger *logp.Logger, s *eventstorage.StorageManager) (pubsub.SubscriberPosition, error) {
 	var pos pubsub.SubscriberPosition
-	data, err := os.ReadFile(filepath.Join(storageDir, subscriberPositionFile))
+	data, err := s.ReadSubscriberPosition()
 	if errors.Is(err, os.ErrNotExist) {
 		return pos, nil
 	} else if err != nil {
@@ -570,15 +517,13 @@ func readSubscriberPosition(logger *logp.Logger, storageDir string) (pubsub.Subs
 	return pos, nil
 }
 
-func writeSubscriberPosition(storageDir string, pos pubsub.SubscriberPosition) error {
+func writeSubscriberPosition(s *eventstorage.StorageManager, pos pubsub.SubscriberPosition) error {
 	data, err := json.Marshal(pos)
 	if err != nil {
 		return err
 	}
 
-	subscriberPositionFileMutex.Lock()
-	defer subscriberPositionFileMutex.Unlock()
-	return os.WriteFile(filepath.Join(storageDir, subscriberPositionFile), data, 0644)
+	return s.WriteSubscriberPosition(data)
 }
 
 func sendTraceIDs(ctx context.Context, out chan<- string, traceIDs []string) error {
@@ -596,9 +541,18 @@ const (
 	storageLimitThreshold = 0.90 // Allow 90% of the quota to be used.
 )
 
-// wrappedRW wraps configurable write options for global ShardedReadWriter
+type rw interface {
+	ReadTraceEvents(traceID string, out *modelpb.Batch) error
+	WriteTraceEvent(traceID, id string, event *modelpb.APMEvent, opts eventstorage.WriterOpts) error
+	WriteTraceSampled(traceID string, sampled bool, opts eventstorage.WriterOpts) error
+	IsTraceSampled(traceID string) (bool, error)
+	DeleteTraceEvent(traceID, id string) error
+	Flush() error
+}
+
+// wrappedRW wraps configurable write options for global rw
 type wrappedRW struct {
-	rw         *eventstorage.ShardedReadWriter
+	rw         rw
 	writerOpts eventstorage.WriterOpts
 }
 
@@ -607,7 +561,7 @@ type wrappedRW struct {
 // limit value greater than zero. The hard limit on storage is set to 90% of
 // the limit to account for delay in the size reporting by badger.
 // https://github.com/dgraph-io/badger/blob/82b00f27e3827022082225221ae05c03f0d37620/db.go#L1302-L1319.
-func newWrappedRW(rw *eventstorage.ShardedReadWriter, ttl time.Duration, limit int64) *wrappedRW {
+func newWrappedRW(rw rw, ttl time.Duration, limit int64) *wrappedRW {
 	if limit > 1 {
 		limit = int64(float64(limit) * storageLimitThreshold)
 	}
@@ -620,32 +574,32 @@ func newWrappedRW(rw *eventstorage.ShardedReadWriter, ttl time.Duration, limit i
 	}
 }
 
-// ReadTraceEvents calls ShardedReadWriter.ReadTraceEvents
+// ReadTraceEvents calls rw.ReadTraceEvents
 func (s *wrappedRW) ReadTraceEvents(traceID string, out *modelpb.Batch) error {
 	return s.rw.ReadTraceEvents(traceID, out)
 }
 
-// WriteTraceEvents calls ShardedReadWriter.WriteTraceEvents using the configured WriterOpts
+// WriteTraceEvent calls rw.WriteTraceEvent using the configured WriterOpts
 func (s *wrappedRW) WriteTraceEvent(traceID, id string, event *modelpb.APMEvent) error {
 	return s.rw.WriteTraceEvent(traceID, id, event, s.writerOpts)
 }
 
-// WriteTraceSampled calls ShardedReadWriter.WriteTraceSampled using the configured WriterOpts
+// WriteTraceSampled calls rw.WriteTraceSampled using the configured WriterOpts
 func (s *wrappedRW) WriteTraceSampled(traceID string, sampled bool) error {
 	return s.rw.WriteTraceSampled(traceID, sampled, s.writerOpts)
 }
 
-// IsTraceSampled calls ShardedReadWriter.IsTraceSampled
+// IsTraceSampled calls rw.IsTraceSampled
 func (s *wrappedRW) IsTraceSampled(traceID string) (bool, error) {
 	return s.rw.IsTraceSampled(traceID)
 }
 
-// DeleteTraceEvent calls ShardedReadWriter.DeleteTraceEvent
+// DeleteTraceEvent calls rw.DeleteTraceEvent
 func (s *wrappedRW) DeleteTraceEvent(traceID, id string) error {
 	return s.rw.DeleteTraceEvent(traceID, id)
 }
 
-// Flush calls ShardedReadWriter.Flush
+// Flush calls rw.Flush
 func (s *wrappedRW) Flush() error {
 	return s.rw.Flush()
 }

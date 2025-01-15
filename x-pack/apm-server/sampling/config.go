@@ -7,7 +7,6 @@ package sampling
 import (
 	"time"
 
-	"github.com/dgraph-io/badger/v2"
 	"github.com/pkg/errors"
 
 	"github.com/elastic/apm-data/model/modelpb"
@@ -99,13 +98,13 @@ type StorageConfig struct {
 	// DB holds the badger database in which event storage will be maintained.
 	//
 	// DB will not be closed when the processor is closed.
-	DB *badger.DB
+	DB *eventstorage.StorageManager
 
 	// Storage holds the read writers which provide sharded, locked access to storage.
 	//
 	// Storage lives outside processor lifecycle and will not be closed when processor
 	// is closed
-	Storage *eventstorage.ShardedReadWriter
+	Storage rw
 
 	// StorageDir holds the directory in which event storage will be maintained.
 	StorageDir string
@@ -119,6 +118,11 @@ type StorageConfig struct {
 	// TTL holds the amount of time before events and sampling decisions
 	// are expired from local storage.
 	TTL time.Duration
+
+	// DiscardOnWriteFailure defines indexing behavior when event storage write fails, e.g. when storage limit is reached.
+	// When set to false, TBS indexes all traces, and may significantly increase indexing load.
+	// When set to true, there will be data loss, resulting in broken traces.
+	DiscardOnWriteFailure bool
 }
 
 // Policy holds a tail-sampling policy: criteria for matching root transactions,
