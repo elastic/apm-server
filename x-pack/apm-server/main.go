@@ -43,7 +43,7 @@ var (
 
 	// badgerDB holds the badger database to use when tail-based sampling is configured.
 	badgerMu                   sync.Mutex
-	badgerDB *eventstorage.StorageManager
+	badgerDB                   *eventstorage.StorageManager
 	badgerDBMetricRegistration metric.Registration
 
 	storageMu sync.Mutex
