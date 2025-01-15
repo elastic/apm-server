@@ -61,7 +61,7 @@ func VCSModified() bool {
 	return vcsModified
 }
 
-// VersionWithSuffix returns the version and the qualifier.
+// VersionWithQualifier returns the version and the qualifier.
 func VersionWithQualifier() string {
 	if qualifier == "" {
 		return Version
