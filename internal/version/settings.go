@@ -18,6 +18,8 @@
 package version
 
 import (
+	"fmt"
+	"os"
 	"runtime/debug"
 	"time"
 )
@@ -26,6 +28,7 @@ var (
 	vcsRevision string
 	vcsTime     time.Time
 	vcsModified bool
+	qualifier   string
 )
 
 func init() {
@@ -40,6 +43,11 @@ func init() {
 				vcsRevision = setting.Value
 			}
 		}
+	}
+
+	// DRA supports --qualifier, let's use it to set the qualifier
+	if envQualifier := os.Getenv("QUALIFIER"); envQualifier != "" {
+		qualifier = envQualifier
 	}
 }
 
@@ -57,4 +65,9 @@ func CommitTime() time.Time {
 // was modified/dirty at build time.
 func VCSModified() bool {
 	return vcsModified
+}
+
+// VersionWithSuffix returns the version and the qualifier.
+func VersionWithQualifier() string {
+	return fmt.Sprintf("%s%s", Version, qualifier)
 }
