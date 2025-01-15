@@ -190,7 +190,7 @@ func newHTTPServer(t *testing.T, batchProcessor modelpb.BatchProcessor) string {
 		cfg,
 		batchProcessor,
 		auth,
-		agentcfg.NewDirectFetcher(nil),
+		agentcfg.NewEmptyFetcher(),
 		ratelimitStore,
 		nil,
 		func() bool { return true },
