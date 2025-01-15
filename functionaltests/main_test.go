@@ -36,10 +36,6 @@ var cleanupOnFailure *bool = flag.Bool("cleanup-on-failure", true, "Whether to r
 // We use 'pro' for production as that is the key used to retrieve EC_API_KEY from secret storage.
 var target *string = flag.String("target", "pro", "The target environment where to run tests againts. Valid values are: qa, pro")
 
-// https://www.elastic.co/guide/en/cloud/current/ec-regions-templates-instances.html
-const testRegionQA = "aws-eu-west-1"
-const testRegionProduction = "eu-west-1"
-
 // expectedIngestForASingleRun() represent the expected number of ingested document after a
 // single run of ingest().
 // Only non aggregation data streams are included, as aggregation ones differs on different
@@ -113,12 +109,13 @@ func assertDatastreams(t *testing.T, expected checkDatastreamWant, actual []type
 
 // regionFrom returns the appropriate region to run test
 // againts based on specified target.
+// https://www.elastic.co/guide/en/cloud/current/ec-regions-templates-instances.html
 func regionFrom(target string) string {
 	switch target {
 	case "qa":
-		return testRegionQA
+		return "aws-eu-west-1"
 	case "pro":
-		return testRegionProduction
+		return "eu-west-1"
 	default:
 		panic("target value is not accepted")
 	}
