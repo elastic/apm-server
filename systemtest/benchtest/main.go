@@ -122,6 +122,8 @@ func addExpvarMetrics(result *testing.BenchmarkResult, collector *expvar.Collect
 		result.Extra["max_heap_alloc"] = float64(collector.Get(expvar.HeapAlloc).Max)
 		result.Extra["max_heap_objects"] = float64(collector.Get(expvar.HeapObjects).Max)
 		result.Extra["mean_available_indexers"] = float64(collector.Get(expvar.AvailableBulkRequests).Mean)
+		result.Extra["tbs_lsm_size"] = float64(collector.Get(expvar.TBSLsmSize).Max)
+		result.Extra["tbs_vlog_size"] = float64(collector.Get(expvar.TBSVlogSize).Max)
 	}
 
 	// Record the number of error responses returned by the server: lower is better.

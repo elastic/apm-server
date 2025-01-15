@@ -63,8 +63,7 @@ func TestProcessAlreadyTailSampled(t *testing.T) {
 	// subsequent events in the trace will be reported immediately.
 	trace1 := modelpb.Trace{Id: "0102030405060708090a0b0c0d0e0f10"}
 	trace2 := modelpb.Trace{Id: "0102030405060708090a0b0c0d0e0f11"}
-	storage := eventstorage.New(config.DB, eventstorage.ProtobufCodec{})
-	writer := storage.NewReadWriter()
+	writer := config.DB.NewBypassReadWriter()
 	wOpts := eventstorage.WriterOpts{
 		TTL:                 time.Minute,
 		StorageLimitInBytes: 0,
@@ -74,8 +73,7 @@ func TestProcessAlreadyTailSampled(t *testing.T) {
 	writer.Close()
 
 	wOpts.TTL = -1 // expire immediately
-	storage = eventstorage.New(config.DB, eventstorage.ProtobufCodec{})
-	writer = storage.NewReadWriter()
+	writer = config.DB.NewBypassReadWriter()
 	assert.NoError(t, writer.WriteTraceSampled(trace2.Id, true, wOpts))
 	assert.NoError(t, writer.Flush())
 	writer.Close()
@@ -143,7 +141,7 @@ func TestProcessAlreadyTailSampled(t *testing.T) {
 	// Stop the processor and flush global storage so we can access the database.
 	assert.NoError(t, processor.Stop(context.Background()))
 	assert.NoError(t, config.Storage.Flush())
-	reader := storage.NewReadWriter()
+	reader := config.DB.NewBypassReadWriter()
 	defer reader.Close()
 
 	batch = nil
@@ -262,8 +260,7 @@ func TestProcessLocalTailSampling(t *testing.T) {
 			// Stop the processor and flush global storage so we can access the database.
 			assert.NoError(t, processor.Stop(context.Background()))
 			assert.NoError(t, config.Storage.Flush())
-			storage := eventstorage.New(config.DB, eventstorage.ProtobufCodec{})
-			reader := storage.NewReadWriter()
+			reader := config.DB.NewBypassReadWriter()
 			defer reader.Close()
 
 			sampled, err := reader.IsTraceSampled(sampledTraceID)
@@ -327,8 +324,7 @@ func TestProcessLocalTailSamplingUnsampled(t *testing.T) {
 	// Stop the processor so we can access the database.
 	assert.NoError(t, processor.Stop(context.Background()))
 	assert.NoError(t, config.Storage.Flush())
-	storage := eventstorage.New(config.DB, eventstorage.ProtobufCodec{})
-	reader := storage.NewReadWriter()
+	reader := config.DB.NewBypassReadWriter()
 	defer reader.Close()
 
 	var anyUnsampled bool
@@ -494,8 +490,7 @@ func TestProcessRemoteTailSampling(t *testing.T) {
 
 	assert.Empty(t, cmp.Diff(trace1Events, events, protocmp.Transform()))
 
-	storage := eventstorage.New(config.DB, eventstorage.ProtobufCodec{})
-	reader := storage.NewReadWriter()
+	reader := config.DB.NewBypassReadWriter()
 	defer reader.Close()
 
 	sampled, err := reader.IsTraceSampled(traceID1)
@@ -515,6 +510,69 @@ func TestProcessRemoteTailSampling(t *testing.T) {
 	err = reader.ReadTraceEvents(traceID2, &batch)
 	assert.NoError(t, err)
 	assert.Empty(t, batch)
+}
+
+type errorRW struct {
+	err error
+}
+
+func (m errorRW) ReadTraceEvents(traceID string, out *modelpb.Batch) error {
+	return m.err
+}
+
+func (m errorRW) WriteTraceEvent(traceID, id string, event *modelpb.APMEvent, opts eventstorage.WriterOpts) error {
+	return m.err
+}
+
+func (m errorRW) WriteTraceSampled(traceID string, sampled bool, opts eventstorage.WriterOpts) error {
+	return m.err
+}
+
+func (m errorRW) IsTraceSampled(traceID string) (bool, error) {
+	return false, eventstorage.ErrNotFound
+}
+
+func (m errorRW) DeleteTraceEvent(traceID, id string) error {
+	return m.err
+}
+
+func (m errorRW) Flush() error {
+	return m.err
+}
+
+func TestProcessDiscardOnWriteFailure(t *testing.T) {
+	for _, discard := range []bool{true, false} {
+		t.Run(fmt.Sprintf("discard=%v", discard), func(t *testing.T) {
+			config := newTempdirConfig(t)
+			config.DiscardOnWriteFailure = discard
+			config.Storage = errorRW{err: errors.New("boom")}
+			processor, err := sampling.NewProcessor(config)
+			require.NoError(t, err)
+			go processor.Run()
+			defer processor.Stop(context.Background())
+
+			in := modelpb.Batch{{
+				Trace: &modelpb.Trace{
+					Id: "0102030405060708090a0b0c0d0e0f10",
+				},
+				Span: &modelpb.Span{
+					Type: "type",
+					Id:   "0102030405060708",
+				},
+			}}
+			out := in[:]
+			err = processor.ProcessBatch(context.Background(), &out)
+			require.NoError(t, err)
+
+			if discard {
+				// Discarding by default
+				assert.Empty(t, out)
+			} else {
+				// Indexing by default
+				assert.Equal(t, in, out)
+			}
+		})
+	}
 }
 
 func TestGroupsMonitoring(t *testing.T) {
@@ -597,31 +655,23 @@ func TestStorageGC(t *testing.T) {
 	config.TTL = 10 * time.Millisecond
 	config.FlushInterval = 10 * time.Millisecond
 
-	// Create a new badger DB with smaller value log files so we can test GC.
-	config.DB.Close()
-	badgerDB, err := eventstorage.OpenBadger(config.StorageDir, 1024*1024)
-	require.NoError(t, err)
-	t.Cleanup(func() { badgerDB.Close() })
-	config.DB = badgerDB
-	config.Storage = eventstorage.
-		New(config.DB, eventstorage.ProtobufCodec{}).
-		NewShardedReadWriter()
-	t.Cleanup(func() { config.Storage.Close() })
-
 	writeBatch := func(n int) {
-		config.StorageGCInterval = time.Minute // effectively disable
+		config.StorageGCInterval = time.Hour // effectively disable
 		processor, err := sampling.NewProcessor(config)
 		require.NoError(t, err)
 		go processor.Run()
 		defer processor.Stop(context.Background())
 		for i := 0; i < n; i++ {
 			traceID := uuid.Must(uuid.NewV4()).String()
+			// Create a larger event to fill up the vlog faster, especially when it is above ValueThreshold
 			batch := modelpb.Batch{{
 				Trace: &modelpb.Trace{Id: traceID},
 				Event: &modelpb.Event{Duration: uint64(123 * time.Millisecond)},
 				Span: &modelpb.Span{
-					Type: "type",
-					Id:   traceID,
+					Type:    strings.Repeat("a", 1000),
+					Subtype: strings.Repeat("b", 1000),
+					Id:      traceID,
+					Name:    strings.Repeat("c", 1000),
 				},
 			}}
 			err := processor.ProcessBatch(context.Background(), &batch)
@@ -630,24 +680,10 @@ func TestStorageGC(t *testing.T) {
 		}
 	}
 
-	vlogFilenames := func() []string {
-		entries, _ := os.ReadDir(config.StorageDir)
-
-		var vlogs []string
-		for _, entry := range entries {
-			name := entry.Name()
-			if strings.HasSuffix(name, ".vlog") {
-				vlogs = append(vlogs, name)
-			}
-		}
-		sort.Strings(vlogs)
-		return vlogs
-	}
-
 	// Process spans until value log files have been created.
 	// Garbage collection is disabled at this time.
-	for len(vlogFilenames()) < 3 {
-		writeBatch(500)
+	for len(vlogFilenames(config.StorageDir)) < 3 {
+		writeBatch(2000)
 	}
 
 	config.StorageGCInterval = 10 * time.Millisecond
@@ -657,16 +693,11 @@ func TestStorageGC(t *testing.T) {
 	defer processor.Stop(context.Background())
 
 	// Wait for the first value log file to be garbage collected.
-	deadline := time.Now().Add(10 * time.Second)
-	for time.Now().Before(deadline) {
-		vlogs := vlogFilenames()
-		if len(vlogs) == 0 || vlogs[0] != "000000.vlog" {
-			// garbage collected
-			return
-		}
-		time.Sleep(10 * time.Millisecond)
-	}
-	t.Fatal("timed out waiting for value log garbage collection")
+	var vlogs []string
+	assert.Eventually(t, func() bool {
+		vlogs = vlogFilenames(config.StorageDir)
+		return len(vlogs) == 0 || vlogs[0] != "000000.vlog"
+	}, 10*time.Second, 100*time.Millisecond, vlogs)
 }
 
 func TestStorageGCConcurrency(t *testing.T) {
@@ -734,14 +765,14 @@ func TestStorageLimit(t *testing.T) {
 		assert.Empty(t, b, fmt.Sprintf("expected empty but size is %d", len(b)))
 	})
 	assert.NoError(t, config.Storage.Flush())
-	config.Storage.Close()
 	assert.NoError(t, config.DB.Close())
 
 	// Open a new instance of the badgerDB and check the size.
 	var err error
-	config.DB, err = eventstorage.OpenBadger(config.StorageDir, 1024*1024)
+	config.DB, err = eventstorage.NewStorageManager(config.StorageDir)
 	require.NoError(t, err)
 	t.Cleanup(func() { config.DB.Close() })
+	config.Storage = config.DB.NewReadWriter()
 
 	lsm, vlog := config.DB.Size()
 	assert.GreaterOrEqual(t, lsm+vlog, int64(1024))
@@ -795,6 +826,131 @@ func TestProcessRemoteTailSamplingPersistence(t *testing.T) {
 	assert.Equal(t, `{"index_name":1}`, string(data))
 }
 
+func TestDropLoop(t *testing.T) {
+	// This test ensures that if badger is stuck at storage limit for TTL,
+	// DB is dropped and recreated.
+	if testing.Short() {
+		t.Skip("skipping slow test")
+	}
+
+	makeBatch := func(n int) modelpb.Batch {
+		batch := make(modelpb.Batch, 0, n)
+		for i := 0; i < n; i++ {
+			traceID := uuid.Must(uuid.NewV4()).String()
+			batch = append(batch, &modelpb.APMEvent{
+				Trace: &modelpb.Trace{Id: traceID},
+				Event: &modelpb.Event{Duration: uint64(123 * time.Millisecond)},
+				Span: &modelpb.Span{
+					Type: "type",
+					Id:   traceID,
+				},
+			})
+		}
+		return batch
+	}
+
+	writeBatch := func(t *testing.T, n int, c sampling.Config, assertBatch func(b modelpb.Batch)) *sampling.Processor {
+		processor, err := sampling.NewProcessor(c)
+		require.NoError(t, err)
+		go processor.Run()
+		defer processor.Stop(context.Background())
+		batch := makeBatch(n)
+		err = processor.ProcessBatch(context.Background(), &batch)
+		require.NoError(t, err)
+		assertBatch(batch)
+		return processor
+	}
+
+	for _, tc := range []struct {
+		name                string
+		subscriberPosExists bool
+	}{
+		{
+			name:                "subscriber_position_not_exist",
+			subscriberPosExists: false,
+		},
+		{
+			name:                "subscriber_position_exists",
+			subscriberPosExists: true,
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			config := newTempdirConfig(t)
+			config.StorageGCInterval = time.Hour // effectively disable GC
+
+			config.FlushInterval = 10 * time.Millisecond
+			subscriberChan := make(chan string)
+			subscriber := pubsubtest.SubscriberChan(subscriberChan)
+			config.Elasticsearch = pubsubtest.Client(nil, subscriber)
+			subscriberPositionFile := filepath.Join(config.StorageDir, "subscriber_position.json")
+
+			// Write 5K span events and close the DB to persist to disk the storage
+			// size and assert that none are reported immediately.
+			writeBatch(t, 5000, config, func(b modelpb.Batch) {
+				assert.Empty(t, b, fmt.Sprintf("expected empty but size is %d", len(b)))
+
+				subscriberChan <- "0102030405060708090a0b0c0d0e0f10"
+				assert.Eventually(t, func() bool {
+					data, err := config.DB.ReadSubscriberPosition()
+					return err == nil && string(data) == `{"index_name":1}`
+				}, time.Second, 100*time.Millisecond)
+			})
+			assert.NoError(t, config.Storage.Flush())
+			assert.NoError(t, config.DB.Close())
+
+			if !tc.subscriberPosExists {
+				err := os.Remove(subscriberPositionFile)
+				assert.NoError(t, err)
+			}
+
+			func() {
+				// Open a new instance of the badgerDB and check the size.
+				var err error
+				config.DB, err = eventstorage.NewStorageManager(config.StorageDir)
+				require.NoError(t, err)
+				t.Cleanup(func() { config.DB.Close() })
+				config.Storage = config.DB.NewReadWriter()
+
+				lsm, vlog := config.DB.Size()
+				assert.Greater(t, lsm+vlog, int64(1024*1024))
+
+				config.Elasticsearch = pubsubtest.Client(nil, nil) // disable pubsub
+
+				config.StorageLimit = 100 * 1024 // lower limit to trigger storage limit error
+				config.TTL = time.Second
+				processor, err := sampling.NewProcessor(config)
+				require.NoError(t, err)
+				go processor.Run()
+				defer processor.Stop(context.Background())
+
+				// wait for up to 1 minute for dropAndRecreate to kick in
+				// no SST files after dropping DB and before first write
+				var filenames []string
+				assert.Eventually(t, func() bool {
+					filenames = sstFilenames(config.StorageDir)
+					return len(filenames) == 0
+				}, 90*time.Second, 200*time.Millisecond, filenames)
+
+				data, err := config.DB.ReadSubscriberPosition()
+				assert.NoError(t, err)
+				if tc.subscriberPosExists {
+					assert.Equal(t, `{"index_name":1}`, string(data))
+				} else {
+					assert.Equal(t, "{}", string(data))
+				}
+
+				// try to write to new DB
+				batch := makeBatch(10)
+				err = processor.ProcessBatch(context.Background(), &batch)
+				require.NoError(t, err)
+			}()
+			assert.NoError(t, config.DB.Close())
+			assert.Greater(t, len(sstFilenames(config.StorageDir)), 0)
+		})
+	}
+}
+
 func TestGracefulShutdown(t *testing.T) {
 	config := newTempdirConfig(t)
 	sampleRate := 0.5
@@ -825,7 +981,8 @@ func TestGracefulShutdown(t *testing.T) {
 	assert.NoError(t, processor.Stop(context.Background()))
 	assert.NoError(t, config.Storage.Flush())
 
-	reader := eventstorage.New(config.DB, eventstorage.ProtobufCodec{}).NewReadWriter()
+	reader := config.DB.NewBypassReadWriter()
+	defer reader.Close()
 
 	var count int
 	for i := 0; i < totalTraces; i++ {
@@ -841,13 +998,11 @@ func newTempdirConfig(tb testing.TB) sampling.Config {
 	require.NoError(tb, err)
 	tb.Cleanup(func() { os.RemoveAll(tempdir) })
 
-	badgerDB, err := eventstorage.OpenBadger(tempdir, 0)
+	badgerDB, err := eventstorage.NewStorageManager(tempdir)
 	require.NoError(tb, err)
 	tb.Cleanup(func() { badgerDB.Close() })
 
-	eventCodec := eventstorage.ProtobufCodec{}
-	storage := eventstorage.New(badgerDB, eventCodec).NewShardedReadWriter()
-	tb.Cleanup(func() { storage.Close() })
+	storage := badgerDB.NewReadWriter()
 
 	return sampling.Config{
 		BatchProcessor: modelpb.ProcessBatchFunc(func(context.Context, *modelpb.Batch) error { return nil }),
@@ -965,4 +1120,32 @@ func waitFileModified(tb testing.TB, filename string, after time.Time) ([]byte, 
 			tb.Fatalf("timed out waiting for %q to be modified", filename)
 		}
 	}
+}
+
+func vlogFilenames(storageDir string) []string {
+	entries, _ := os.ReadDir(storageDir)
+
+	var vlogs []string
+	for _, entry := range entries {
+		name := entry.Name()
+		if strings.HasSuffix(name, ".vlog") {
+			vlogs = append(vlogs, name)
+		}
+	}
+	sort.Strings(vlogs)
+	return vlogs
+}
+
+func sstFilenames(storageDir string) []string {
+	entries, _ := os.ReadDir(storageDir)
+
+	var ssts []string
+	for _, entry := range entries {
+		name := entry.Name()
+		if strings.HasSuffix(name, ".sst") {
+			ssts = append(ssts, name)
+		}
+	}
+	sort.Strings(ssts)
+	return ssts
 }
