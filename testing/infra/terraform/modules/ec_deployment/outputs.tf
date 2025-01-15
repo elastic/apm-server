@@ -9,7 +9,7 @@ output "apm_url" {
 }
 
 output "apm_secret_token" {
-  value       = var.integrations_server ? data.external.secret_token.0.result.value : ec_deployment.deployment.apm_secret_token
+  value       = var.integrations_server ? data.local_sensitive_file.secret_token.content : ec_deployment.deployment.apm_secret_token
   sensitive   = true
   description = "The APM Secret token"
 }
