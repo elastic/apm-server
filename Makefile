@@ -143,7 +143,7 @@ MODULE_DEPS=$(sort $(shell \
   go list -deps -tags=darwin,linux,windows -f "{{with .Module}}{{if not .Main}}{{.Path}}{{end}}{{end}}" ./x-pack/apm-server))
 
 notice: NOTICE.txt
-NOTICE.txt build/dependencies-$(APM_SERVER_VERSION).csv: go.mod tools/go.mod
+NOTICE.txt build/dependencies.csv: go.mod tools/go.mod
 	mkdir -p build/
 	go list -m -json $(MODULE_DEPS) | go run -modfile=tools/go.mod go.elastic.co/go-licence-detector \
 		-includeIndirect \
@@ -152,7 +152,7 @@ NOTICE.txt build/dependencies-$(APM_SERVER_VERSION).csv: go.mod tools/go.mod
 		-noticeTemplate tools/notice/NOTICE.txt.tmpl \
 		-noticeOut NOTICE.txt \
 		-depsTemplate tools/notice/dependencies.csv.tmpl \
-		-depsOut build/dependencies-$(APM_SERVER_VERSION).csv
+		-depsOut build/dependencies.csv
 
 
 .PHONY: add-headers
