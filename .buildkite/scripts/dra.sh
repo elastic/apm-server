@@ -72,6 +72,7 @@ fi
 dra() {
   local workflow=$1
   local command=$2
+  local qualifier=${3:-""}
   echo "--- Run release manager $workflow (DRA command: $command)"
   docker run --rm \
     --name release-manager \
@@ -86,6 +87,7 @@ dra() {
       --commit $BUILDKITE_COMMIT \
       --workflow $workflow \
       --artifact-set main \
+      --qualifier "$qualifier" \
       --version $VERSION | tee rm-output.txt
 
   # Create Buildkite annotation similarly done in Beats:
@@ -105,4 +107,10 @@ dra "snapshot" "$dra_command"
 if [[ "${DRA_BRANCH}" != "main" && "${DRA_BRANCH}" != "8.x" ]]; then
   echo "DRA_BRANCH is neither 'main' nor '8.x'"
   dra "staging" "$dra_command"
+fi
+
+## Exception for main branch as requested by the Release Team.
+if [[ "${DRA_BRANCH}" == "main" ]]; then
+  echo "Exception form main branch with the qualifier alpha1"
+  dra "staging" "$dra_command" "alpha1"
 fi
