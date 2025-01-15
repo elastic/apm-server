@@ -19,7 +19,6 @@ package version
 
 import (
 	"fmt"
-	"os"
 	"runtime/debug"
 	"time"
 )
@@ -44,11 +43,6 @@ func init() {
 			}
 		}
 	}
-
-	// DRA supports --qualifier, let's use it to set the qualifier
-	if envQualifier := os.Getenv("QUALIFIER"); envQualifier != "" {
-		qualifier = envQualifier
-	}
 }
 
 // CommitHash returns the hash of the git commit used for the build.
@@ -69,5 +63,8 @@ func VCSModified() bool {
 
 // VersionWithSuffix returns the version and the qualifier.
 func VersionWithQualifier() string {
-	return fmt.Sprintf("%s%s", Version, qualifier)
+	if qualifier == "" {
+		return Version
+	}
+	return fmt.Sprintf("%s-%s", Version, qualifier)
 }

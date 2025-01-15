@@ -10,11 +10,6 @@ set -eo pipefail
 TYPE="$1"
 PLATFORM_TYPE=$(uname -m)
 
-if [ -z ${ELASTIC_QUALIFIER+x} ]; then
-  QUALIFIER="${ELASTIC_QUALIFIER}"
-  export QUALIFIER
-fi
-
 MAKE_GOAL=package
 if [[ ${PLATFORM_TYPE} == "arm" || ${PLATFORM_TYPE} == "aarch64" ]]; then
   MAKE_GOAL=package-docker

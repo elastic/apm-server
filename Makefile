@@ -19,6 +19,9 @@ PYTHON_BIN:=$(PYTHON_VENV_DIR)/bin
 PYTHON=$(PYTHON_BIN)/python
 CURRENT_DIR=$(shell dirname $(shell readlink -f $(firstword $(MAKEFILE_LIST))))
 
+# Support DRA qualifier with the following environment variable.
+ELASTIC_QUALIFIER?=
+
 # Create a local config.mk file to override configuration.
 -include config.mk
 
@@ -38,7 +41,8 @@ APM_SERVER_BINARIES:= \
 # Strip binary and inject the Git commit hash and timestamp.
 LDFLAGS := \
 	-s \
-	-X github.com/elastic/beats/v7/libbeat/version.commit=$(GITCOMMIT) \
+	-X github.com/elastic/apm-server/internal/version.qualifier=$(ELASTIC_QUALIFIER) \
+	-X github.com/elastic/beats/v7/libbeat/version.commit=$(ELASTIC_QUALIFIER) \
 	-X github.com/elastic/beats/v7/libbeat/version.buildTime=$(GITCOMMITTIMESTAMP)
 
 # Rule to build apm-server binaries, using Go's native cross-compilation.
