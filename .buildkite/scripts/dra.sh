@@ -72,7 +72,7 @@ fi
 dra() {
   local workflow=$1
   local command=$2
-  local qualifier=${3:-""}
+  local qualifier=${ELASTIC_QUALIFIER:-""}
   echo "--- Run release manager $workflow (DRA command: $command)"
   docker run --rm \
     --name release-manager \
@@ -112,5 +112,5 @@ fi
 ## Exception for main branch as requested by the Release Team.
 if [[ "${DRA_BRANCH}" == "main" ]]; then
   echo "Exception form main branch with the qualifier alpha1"
-  dra "staging" "$dra_command" "${ELASTIC_QUALIFIER}"
+  dra "staging" "$dra_command"
 fi
