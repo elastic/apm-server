@@ -93,7 +93,7 @@ func TestRunnerParams(t *testing.T) {
 	assert.NoError(t, stop())
 
 	assert.Equal(t, "apm-server", args.Info.Beat)
-	assert.Equal(t, version.VersionWithQualifier, args.Info.Version)
+	assert.Equal(t, version.VersionWithQualifier(), args.Info.Version)
 	assert.True(t, args.Info.ElasticLicensed)
 	assert.Equal(t, "my-custom-name", b.Beat.Info.Name)
 	assert.NotZero(t, args.Info.ID)
