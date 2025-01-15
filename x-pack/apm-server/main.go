@@ -40,9 +40,9 @@ var (
 	// will hopefully disappear in the future, when agents no longer send unsampled transactions.
 	samplingMonitoringRegistry = monitoring.Default.GetRegistry("apm-server.sampling")
 
-	// badgerDB holds the badger database to use when tail-based sampling is configured.
-	badgerMu sync.Mutex
-	badgerDB *eventstorage.StorageManager
+	// db holds the database to use when tail-based sampling is configured.
+	dbMu sync.Mutex
+	db   *eventstorage.StorageManager
 
 	storageMu sync.Mutex
 	storage   *eventstorage.ManagedReadWriter
@@ -117,11 +117,11 @@ func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, er
 	}
 
 	storageDir := paths.Resolve(paths.Data, tailSamplingStorageDir)
-	badgerDB, err = getBadgerDB(storageDir)
+	db, err := getDB(storageDir)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get Badger database: %w", err)
 	}
-	readWriter := getStorage(badgerDB)
+	readWriter := getStorage(db)
 
 	policies := make([]sampling.Policy, len(tailSamplingConfig.Policies))
 	for i, in := range tailSamplingConfig.Policies {
@@ -155,7 +155,7 @@ func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, er
 			UUID: samplerUUID.String(),
 		},
 		StorageConfig: sampling.StorageConfig{
-			DB:                    badgerDB,
+			DB:                    db,
 			Storage:               readWriter,
 			StorageDir:            storageDir,
 			StorageGCInterval:     tailSamplingConfig.StorageGCInterval,
@@ -166,17 +166,17 @@ func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, er
 	})
 }
 
-func getBadgerDB(storageDir string) (*eventstorage.StorageManager, error) {
-	badgerMu.Lock()
-	defer badgerMu.Unlock()
-	if badgerDB == nil {
+func getDB(storageDir string) (*eventstorage.StorageManager, error) {
+	dbMu.Lock()
+	defer dbMu.Unlock()
+	if db == nil {
 		sm, err := eventstorage.NewStorageManager(storageDir)
 		if err != nil {
 			return nil, err
 		}
-		badgerDB = sm
+		db = sm
 	}
-	return badgerDB, nil
+	return db, nil
 }
 
 func getStorage(sm *eventstorage.StorageManager) *eventstorage.ManagedReadWriter {
@@ -251,11 +251,11 @@ func wrapServer(args beater.ServerParams, runServer beater.RunServerFunc) (beate
 
 // closeBadger is called at process exit time to close the badger.DB opened
 // by the tail-based sampling processor constructor, if any. This is never
-// called concurrently with opening badger.DB/accessing the badgerDB global,
-// so it does not need to hold badgerMu.
+// called concurrently with opening badger.DB/accessing the db global,
+// so it does not need to hold dbMu.
 func closeBadger() error {
-	if badgerDB != nil {
-		return badgerDB.Close()
+	if db != nil {
+		return db.Close()
 	}
 	return nil
 }
