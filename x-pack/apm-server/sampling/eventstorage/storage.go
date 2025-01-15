@@ -17,6 +17,7 @@ import (
 )
 
 const (
+	prefixSamplingDecision string = "!"
 	// NOTE(axw) these values (and their meanings) must remain stable
 	// over time, to avoid misinterpreting historical data.
 	entryMetaTraceSampled   byte = 's'
@@ -154,7 +155,7 @@ func (rw *ReadWriter) Flush() error {
 func (rw *ReadWriter) WriteTraceSampled(traceID string, sampled bool, opts WriterOpts) error {
 	rw.lazyInit()
 
-	key := []byte(traceID)
+	key := []byte(prefixSamplingDecision + traceID)
 	meta := entryMetaTraceUnsampled
 	if sampled {
 		meta = entryMetaTraceSampled
@@ -172,7 +173,7 @@ func (rw *ReadWriter) IsTraceSampled(traceID string) (bool, error) {
 	// It should minimize disk IO on miss due to
 	// 1. (pubsub) remote sampling decision
 	// 2. (hot path) sampling decision not made yet
-	item, closer, err := rw.batch.Get([]byte(traceID))
+	item, closer, err := rw.batch.Get([]byte(prefixSamplingDecision + traceID))
 	if err == pebble.ErrNotFound {
 		return false, ErrNotFound
 	}
@@ -203,7 +204,7 @@ func (rw *ReadWriter) WriteTraceEvent(traceID string, id string, event *modelpb.
 func (rw *ReadWriter) writeEntry(key, data []byte) error {
 	rw.pendingWrites++
 	// FIXME: possibly change key structure, because the append is going to be expensive
-	if err := rw.batch.Set(key, append([]byte{entryMetaTraceEvent}, data...), pebble.NoSync); err != nil {
+	if err := rw.batch.Set(key, data, pebble.NoSync); err != nil {
 		return err
 	}
 
@@ -256,7 +257,7 @@ func (rw *ReadWriter) ReadTraceEvents(traceID string, out *modelpb.Batch) error 
 		if err != nil {
 			return err
 		}
-		if err := rw.s.codec.DecodeEvent(data[1:], event); err != nil {
+		if err := rw.s.codec.DecodeEvent(data, event); err != nil {
 			return fmt.Errorf("codec failed to decode event: %w", err)
 		}
 		*out = append(*out, event)
