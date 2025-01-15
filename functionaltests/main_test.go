@@ -49,10 +49,6 @@ func expectedIngestForASingleRun() esclient.APMDataStreamsDocCount {
 	}
 }
 
-// docsPerDatastream is a utility type to map esclient.ApmDocCount to a format
-// easier to perform assertions on.
-type docsPerDatastream map[string]int
-
 // getDocsCountPerDS retrieves document count.
 func getDocsCountPerDS(t *testing.T, ctx context.Context, ecc *esclient.Client) (esclient.APMDataStreamsDocCount, error) {
 	t.Helper()
