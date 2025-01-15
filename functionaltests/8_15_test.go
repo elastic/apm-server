@@ -67,28 +67,28 @@ func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
 
 	t.Logf("created deployment %s", escfg.KibanaURL)
 
-	ac, err := esclient.New(escfg)
+	ecc, err := esclient.New(escfg)
 	require.NoError(t, err)
 
 	t.Log("creating APM API key")
-	apikey, err := ac.CreateAPMAPIKey(ctx, t.Name())
+	apikey, err := ecc.CreateAPMAPIKey(ctx, t.Name())
 	require.NoError(t, err)
 
 	g := gen.New(escfg.APMServerURL, apikey)
 	g.Logger = zaptest.NewLogger(t, zaptest.Level(zap.InfoLevel))
 
-	previous, err := getDocsCountPerDS(t, ctx, ac)
+	previous, err := getDocsCountPerDS(t, ctx, ecc)
 	require.NoError(t, err)
 
-	g.RunBlockingWait(ctx, ac, expectedIngestForASingleRun(), previous, 1*time.Minute)
+	g.RunBlockingWait(ctx, ecc, expectedIngestForASingleRun(), previous, 1*time.Minute)
 
-	beforeUpgradeCount, err := getDocsCountPerDS(t, ctx, ac)
+	beforeUpgradeCount, err := getDocsCountPerDS(t, ctx, ecc)
 	require.NoError(t, err)
 	assertDocCount(t, beforeUpgradeCount, previous, expectedIngestForASingleRun())
 
 	t.Log("check data streams")
 	var dss []types.DataStream
-	dss, err = ac.GetDataStream(ctx, "*apm*")
+	dss, err = ecc.GetDataStream(ctx, "*apm*")
 	require.NoError(t, err)
 	assertDatastreams(t, checkDatastreamWant{
 		Quantity:         8,
@@ -104,7 +104,7 @@ func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
 	t.Logf("time elapsed: %s", time.Now().Sub(start))
 
 	t.Log("check number of documents after upgrade")
-	afterUpgradeCount, err := getDocsCountPerDS(t, ctx, ac)
+	afterUpgradeCount, err := getDocsCountPerDS(t, ctx, ecc)
 	require.NoError(t, err)
 	// We assert that no changes happened in the number of documents after upgrade
 	// to ensure the state didn't change before running the next ingestion round
@@ -113,7 +113,7 @@ func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
 	assertDocCount(t, afterUpgradeCount, esclient.APMDataStreamsDocCount{}, beforeUpgradeCount)
 
 	t.Log("check data streams after upgrade, no rollover expected")
-	dss, err = ac.GetDataStream(ctx, "*apm*")
+	dss, err = ecc.GetDataStream(ctx, "*apm*")
 	require.NoError(t, err)
 	assertDatastreams(t, checkDatastreamWant{
 		Quantity:         8,
@@ -123,10 +123,10 @@ func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
 		IndicesManagedBy: []string{"Data stream lifecycle"},
 	}, dss)
 
-	g.RunBlockingWait(ctx, ac, expectedIngestForASingleRun(), previous, 1*time.Minute)
+	g.RunBlockingWait(ctx, ecc, expectedIngestForASingleRun(), previous, 1*time.Minute)
 
 	t.Log("check number of documents")
-	afterUpgradeIngestionCount, err := getDocsCountPerDS(t, ctx, ac)
+	afterUpgradeIngestionCount, err := getDocsCountPerDS(t, ctx, ecc)
 	require.NoError(t, err)
 	assertDocCount(t, afterUpgradeIngestionCount, afterUpgradeCount, expectedIngestForASingleRun())
 
@@ -134,7 +134,7 @@ func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
 	// v managed by DSL if created after 8.15.0
 	// x managed by ILM if created before 8.15.0
 	t.Log("check data streams and verify lazy rollover happened")
-	dss2, err := ac.GetDataStream(ctx, "*apm*")
+	dss2, err := ecc.GetDataStream(ctx, "*apm*")
 	require.NoError(t, err)
 	assertDatastreams(t, checkDatastreamWant{
 		Quantity:         8,
