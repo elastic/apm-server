@@ -44,8 +44,10 @@ const (
 
 func OpenPebble(storageDir string) (*pebble.DB, error) {
 	return pebble.Open(storageDir, &pebble.Options{
-		Logger:       logp.NewLogger(logs.Sampling),
-		MemTableSize: pebbleMemTableSize,
+		// FIXME: Specify FormatMajorVersion to use value blocks?
+		FormatMajorVersion: pebble.FormatNewest,
+		Logger:             logp.NewLogger(logs.Sampling),
+		MemTableSize:       pebbleMemTableSize,
 		Levels: []pebble.LevelOptions{
 			{
 				BlockSize:    16 << 10,
