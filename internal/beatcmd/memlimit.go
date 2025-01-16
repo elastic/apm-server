@@ -15,31 +15,29 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package middleware
+package beatcmd
 
 import (
-	"context"
+	"fmt"
+	"log/slog"
+	"time"
 
-	"github.com/pkg/errors"
-
-	"github.com/elastic/apm-server/internal/beater/request"
+	"github.com/KimMachineGun/automemlimit/memlimit"
 )
 
-// TimeoutMiddleware assumes that a context.Canceled error indicates a timed out
-// request. This could be caused by a either a client timeout or server timeout.
-// The middleware sets the Context.Result.
-func TimeoutMiddleware() Middleware {
-	tErr := errors.New("request timed out")
-	return func(h request.Handler) (request.Handler, error) {
-		return func(c *request.Context) {
-			h(c)
-
-			err := c.Request.Context().Err()
-			if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
-				c.Result.SetDefault(request.IDResponseErrorsTimeout)
-				c.Result.Err = tErr
-				c.Result.Body = tErr.Error()
-			}
-		}, nil
+func adjustMemlimit(d time.Duration, logger *slog.Logger) error {
+	if _, err := memlimit.SetGoMemLimitWithOpts(
+		memlimit.WithProvider(
+			memlimit.ApplyFallback(
+				memlimit.FromCgroup,
+				memlimit.FromSystem,
+			),
+		),
+		memlimit.WithLogger(logger),
+		memlimit.WithRefreshInterval(d),
+		memlimit.WithRatio(0.9),
+	); err != nil {
+		return fmt.Errorf("failed to set go memlimit: %w", err)
 	}
+	return nil
 }

@@ -14,21 +14,19 @@ if [[ "$${POLICY}" == *"$${NOT_FOUND_MSG}"* ]]; then
     exit 0
 fi
 
-echo $${POLICY} | grep '"expvar_enabled":{"type":"bool","value":true}' > /dev/null 2>&1 && EXPVAR_ENABLED=true
-echo $${POLICY} | grep '"pprof_enabled":{"type":"bool","value":true}' > /dev/null 2>&1 && PPROF_ENABLED=true
-if [[ $${EXPVAR_ENABLED} || $${PPROF_ENABLED} ]] ; then
-    echo "expvar or pprof already enabled"
-    exit 0
-fi
-
 # Download and modify the APM policy
 echo $${POLICY} | jq '.item' | \
     jq 'del(.id)' | jq 'del(.elasticsearch)'| jq 'del(.inputs[].compiled_input)' | jq 'del(.revision)' |\
     jq 'del(.created_at)' | jq 'del(.created_by)' | jq 'del(.updated_at)' | jq 'del(.updated_by)' |\
     jq 'select(.inputs[].policy_template == "apmserver").inputs[].vars.expvar_enabled = {type: "bool", value: ${enable_expvar}}' |\
-    jq 'select(.inputs[].policy_template == "apmserver").inputs[].vars.pprof_enabled = {type: "bool", value: ${enable_pprof}}' > policy.json
+    jq 'select(.inputs[].policy_template == "apmserver").inputs[].vars.pprof_enabled = {type: "bool", value: ${enable_pprof}}' |\
+    jq 'select(.inputs[].policy_template == "apmserver").inputs[].vars.tail_sampling_storage_limit = {"value":"${tail_sampling_storage_limit}","type":"text"}' |\
+    jq 'select(.inputs[].policy_template == "apmserver").inputs[].vars.tail_sampling_enabled = {type: "bool", value: ${enable_tail_sampling}}' > policy.json
 
-# Update the policy
-curl -s -H 'content-type: application/json' -H 'kbn-xsrf: true' -X PUT -k -d@policy.json -u $${KIBANA_AUTH} $${KIBANA_ENDPOINT}
+# Update the policy, hide output to prevent secret leakage.
+if ! curl -s -o response.txt -H 'content-type: application/json' -H 'kbn-xsrf: true' -X PUT -k -d@policy.json -u $${KIBANA_AUTH} $${KIBANA_ENDPOINT}; then
+  # If command failed print output to aid troubleshooting.
+  cat response.txt
+fi
 
 rm -f policy.json

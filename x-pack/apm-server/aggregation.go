@@ -11,9 +11,7 @@ import (
 	"github.com/elastic/apm-server/x-pack/apm-server/aggregation"
 )
 
-func newAggregationProcessors(args beater.ServerParams) ([]namedProcessor, error) {
-	var processors []namedProcessor
-
+func newAggregationProcessor(args beater.ServerParams) (namedProcessor, error) {
 	name := "LSM aggregator"
 	agg, err := aggregation.New(
 		args.Config.Aggregation.MaxServices,
@@ -24,9 +22,7 @@ func newAggregationProcessors(args beater.ServerParams) ([]namedProcessor, error
 		args.Logger,
 	)
 	if err != nil {
-		return nil, errors.Wrapf(err, "error creating %s", name)
+		return namedProcessor{}, errors.Wrapf(err, "error creating %s", name)
 	}
-	processors = append(processors, namedProcessor{name: name, processor: agg})
-
-	return processors, nil
+	return namedProcessor{name: name, processor: agg}, nil
 }
