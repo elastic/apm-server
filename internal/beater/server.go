@@ -49,6 +49,8 @@ import (
 
 var (
 	agentcfgMonitoringRegistry = monitoring.Default.NewRegistry("apm-server.agentcfg")
+
+	agentcfgDeprecationNotice = "deprecation notice: support for passing fleet agent configs will be removed in an upcoming version"
 )
 
 // WrapServerFunc is a function for injecting behaviour into ServerParams
@@ -240,6 +242,7 @@ func newAgentConfigFetcher(
 	kibanaClient *kibana.Client,
 	newElasticsearchClient func(*elasticsearch.Config) (*elasticsearch.Client, error),
 	tracer *apm.Tracer,
+	logger *logp.Logger,
 ) (agentcfg.Fetcher, func(context.Context) error, error) {
 	// Always use ElasticsearchFetcher, and as a fallback, use:
 	// 1. no fallback if Elasticsearch is explicitly configured
@@ -252,6 +255,7 @@ func newAgentConfigFetcher(
 	case cfg.AgentConfig.ESOverrideConfigured:
 		// Disable fallback because agent config Elasticsearch is explicitly configured.
 	case cfg.FleetAgentConfigs != nil:
+		logger.Warn(agentcfgDeprecationNotice)
 		agentConfigurations := agentcfg.ConvertAgentConfigs(cfg.FleetAgentConfigs)
 		fallbackFetcher = agentcfg.NewDirectFetcher(agentConfigurations)
 	case kibanaClient != nil:
