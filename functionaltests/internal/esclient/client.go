@@ -27,6 +27,7 @@ import (
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v8"
+	"github.com/elastic/go-elasticsearch/v8/typedapi/core/search"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/esql/query"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/security/createapikey"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
@@ -154,6 +155,39 @@ line 1:1: Unknown index [traces-apm*,apm-*,traces-*.otel-*,logs-apm*,apm-*,logs-
 	for _, dc := range resp {
 		res[dc.Datastream] = dc.Count
 	}
+
+	return res, nil
+}
+
+// GetESErrorLogs retrieves Elasticsearch error logs.
+// The search query is on the Index used by Elasticsearch monitoring to store logs.
+func (c *Client) GetESErrorLogs(ctx context.Context) (*search.Response, error) {
+	res, err := c.es.Search().
+		Index("elastic-cloud-logs-8").
+		Request(&search.Request{
+			Query: &types.Query{
+				Bool: &types.BoolQuery{
+					Must: []types.Query{
+						{
+							Match: map[string]types.MatchQuery{
+								"service.type": {Query: "elasticsearch"},
+							},
+						},
+						{
+							Match: map[string]types.MatchQuery{
+								"log.level": {Query: "ERROR"},
+							},
+						},
+					},
+				},
+			},
+		}).Do(ctx)
+	if err != nil {
+		return search.NewResponse(), fmt.Errorf("cannot run search query: %w", err)
+	}
+
+	fmt.Printf("%+v\n", res)
+	fmt.Println(res.Hits.Total.Value)
 
 	return res, nil
 }

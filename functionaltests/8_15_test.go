@@ -30,6 +30,7 @@ import (
 	"github.com/elastic/apm-server/functionaltests/internal/terraform"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -145,6 +146,7 @@ func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
 	}, dss2)
 	t.Logf("time elapsed: %s", time.Now().Sub(start))
 
-	// check ES logs, there should be no errors
-	// TODO: how to get these from Elastic Cloud? Is it possible?
+	res, err := ecc.GetESErrorLogs(ctx)
+	require.NoError(t, err)
+	assert.Zero(t, res.Hits.Total.Value)
 }
