@@ -50,7 +50,7 @@ import (
 var (
 	agentcfgMonitoringRegistry = monitoring.Default.NewRegistry("apm-server.agentcfg")
 
-	agentcfgDeprecationNotice = "deprecation notice: support for manually passing fleet agent configs will be remove in an upcoming version"
+	agentcfgDeprecationNotice = "deprecation notice: support for passing fleet agent configs will be removed in an upcoming version"
 )
 
 // WrapServerFunc is a function for injecting behaviour into ServerParams
