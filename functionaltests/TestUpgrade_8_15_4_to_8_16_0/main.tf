@@ -5,6 +5,10 @@ module "ec_deployment" {
   deployment_template    = "aws-storage-optimized"
   deployment_name_prefix = var.name
 
+  // self monitoring is enabled so we can inspect Elasticsearch
+  // logs from tests.
+  observability_deployment = "self"
+
   apm_server_size = "1g"
 
   elasticsearch_size       = "4g"
