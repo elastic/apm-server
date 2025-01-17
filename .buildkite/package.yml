@@ -15,16 +15,14 @@ steps:
     steps:
       - label: "Package x86_64"
         key: "package-x86-64"
-        command: ".buildkite/scripts/package.sh {{matrix.type}}"
+        command: ".buildkite/scripts/package.sh {{matrix}}"
         agents:
           provider: "gcp"
           image: "${IMAGE_UBUNTU_X86_64}"
           machineType: "c2-standard-16"
         matrix:
-          setup:
-            type:
-            - "snapshot"
-            - "staging"
+          - "snapshot"
+          - "staging"
         artifact_paths:
           - "build/distributions/**/*"
           - "build/dependencies*.csv"
@@ -34,16 +32,14 @@ steps:
 
       - label: "Package aarch64"
         key: "package-arm"
-        command: ".buildkite/scripts/package.sh {{matrix.type}}"
+        command: ".buildkite/scripts/package.sh {{matrix}}"
         agents:
           provider: "aws"
           imagePrefix: "${IMAGE_UBUNTU_ARM_64}"
           instanceType: "t4g.2xlarge"
         matrix:
-          setup:
-            type:
-            - "snapshot"
-            - "staging"
+          - "snapshot"
+          - "staging"
         artifact_paths:
           - "build/distributions/**/*"
         retry:
@@ -52,11 +48,14 @@ steps:
 
   - label: "DRA"
     key: "dra"
-    command: ".buildkite/scripts/dra.sh"
+    command: ".buildkite/scripts/dra.sh {{matrix}}"
     agents:
       provider: "gcp"
       image: "${IMAGE_UBUNTU_X86_64}"
       machineType: "c2-standard-16"
+    matrix:
+      - "snapshot"
+      - "staging"
     depends_on:
       - step: "package"
         allow_failure: false
