@@ -114,5 +114,5 @@ if [[ "${TYPE}" == "staging" ]]; then
   fi
 else
   # NOTE: qualifier is not needed for snapshots, let's unset it.
-  dra "${TYPE}" "$dra_command" ""
+  dra "snapshot" "$dra_command" ""
 fi
