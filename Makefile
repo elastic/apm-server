@@ -143,7 +143,7 @@ endif
 get-version:
 	@echo $(APM_SERVER_VERSION)
 
-## get-version : Get the apm server version without the qualifier
+## get-version-only : Get the apm server version without the qualifier
 .PHONY: get-version-only
 get-version-only:
 	@echo $(APM_SERVER_ONLY_VERSION)
