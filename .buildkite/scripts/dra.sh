@@ -10,6 +10,9 @@
 
 set -eo pipefail
 
+# Either staging or snapshot
+TYPE="$1"
+
 ## Read current version.
 VERSION=$(make get-version)
 
@@ -103,14 +106,15 @@ dra() {
   fi
 }
 
-dra "snapshot" "$dra_command"
-if [[ "${DRA_BRANCH}" != "main" && "${DRA_BRANCH}" != "8.x" ]]; then
-  echo "DRA_BRANCH is neither 'main' nor '8.x'"
-  dra "staging" "$dra_command"
-fi
-
-## Exception for main branch as requested by the Release Team.
-if [[ "${DRA_BRANCH}" == "main" ]]; then
-  echo "Exception form main branch with the qualifier alpha1"
-  dra "staging" "$dra_command"
+if [[ "${TYPE}" == "snapshot" ]]; then
+  # qualifier is not needed for snapshots, let's unset it.
+  dra "${TYPE}" "$dra_command" ""
+else
+  ## Exception for main branch as requested by the Release Team.
+  #if [[ "${DRA_BRANCH}" != "main" && "${DRA_BRANCH}" != "8.x" ]]; then
+  if [[ "${DRA_BRANCH}" != "8.x" ]]; then
+    #echo "DRA_BRANCH is neither 'main' nor '8.x'"
+    echo "DRA_BRANCH is not '8.x'"
+    dra "${TYPE}" "$dra_command"
+  fi
 fi
