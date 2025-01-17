@@ -80,9 +80,9 @@ dra() {
   set -x
   docker run --rm \
     --name release-manager \
-    -e VAULT_ADDR \
-    -e VAULT_ROLE_ID \
-    -e VAULT_SECRET_ID \
+    -e VAULT_ADDR="${VAULT_ADDR_SECRET}" \
+    -e VAULT_ROLE_ID="${VAULT_ROLE_ID_SECRET}" \
+    -e VAULT_SECRET_ID="${VAULT_SECRET}" \
     --mount type=bind,readonly=false,src=$(pwd),target=/artifacts \
     docker.elastic.co/infra/release-manager:latest \
       cli "$command" \
