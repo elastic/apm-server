@@ -107,15 +107,12 @@ dra() {
   fi
 }
 
-if [[ "${TYPE}" == "snapshot" ]]; then
-  # qualifier is not needed for snapshots, let's unset it.
-  dra "${TYPE}" "$dra_command" ""
-else
-  ## Exception for main branch as requested by the Release Team.
-  #if [[ "${DRA_BRANCH}" != "main" && "${DRA_BRANCH}" != "8.x" ]]; then
+if [[ "${TYPE}" == "staging" ]]; then
   if [[ "${DRA_BRANCH}" != "8.x" ]]; then
-    #echo "DRA_BRANCH is neither 'main' nor '8.x'"
-    echo "DRA_BRANCH is not '8.x'"
+    echo "${DRA_BRANCH} is not '8.x'"
     dra "${TYPE}" "$dra_command"
   fi
+else
+  # NOTE: qualifier is not needed for snapshots, let's unset it.
+  dra "${TYPE}" "$dra_command" ""
 fi
