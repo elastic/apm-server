@@ -143,6 +143,11 @@ endif
 get-version:
 	@echo $(APM_SERVER_VERSION)
 
+## get-version : Get the apm server version without the qualifier
+.PHONY: get-version-only
+get-version-only:
+	@echo $(APM_SERVER_ONLY_VERSION)
+
 # update-go-version updates .go-version, documentation, and build files
 # to use the most recent patch version for the major.minor Go version
 # defined in go.mod.

@@ -13,8 +13,8 @@ set -eo pipefail
 # Either staging or snapshot
 TYPE="$1"
 
-## Read current version.
-VERSION=$(make get-version)
+## Read current version without the qualifier
+VERSION=$(make get-version-only)
 
 echo "--- Restoring Artifacts"
 buildkite-agent artifact download "build/**/*" .
