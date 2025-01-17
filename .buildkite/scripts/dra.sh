@@ -77,11 +77,12 @@ dra() {
   local command=$2
   local qualifier=${ELASTIC_QUALIFIER:-""}
   echo "--- Run release manager $workflow (DRA command: $command)"
+  set -x
   docker run --rm \
     --name release-manager \
-    -e VAULT_ADDR="${VAULT_ADDR_SECRET}" \
-    -e VAULT_ROLE_ID="${VAULT_ROLE_ID_SECRET}" \
-    -e VAULT_SECRET_ID="${VAULT_SECRET}" \
+    -e VAULT_ADDR \
+    -e VAULT_ROLE_ID \
+    -e VAULT_SECRET_ID \
     --mount type=bind,readonly=false,src=$(pwd),target=/artifacts \
     docker.elastic.co/infra/release-manager:latest \
       cli "$command" \
@@ -92,7 +93,7 @@ dra() {
       --artifact-set main \
       --qualifier "$qualifier" \
       --version $VERSION | tee rm-output.txt
-
+  set +x
   # Create Buildkite annotation similarly done in Beats:
   # https://github.com/elastic/beats/blob/90f9e8f6e48e76a83331f64f6c8c633ae6b31661/.buildkite/scripts/dra.sh#L74-L81
   if [[ "$command" == "collect" ]]; then
