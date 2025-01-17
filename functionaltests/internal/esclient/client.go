@@ -186,8 +186,5 @@ func (c *Client) GetESErrorLogs(ctx context.Context) (*search.Response, error) {
 		return search.NewResponse(), fmt.Errorf("cannot run search query: %w", err)
 	}
 
-	fmt.Printf("%+v\n", res)
-	fmt.Println(res.Hits.Total.Value)
-
 	return res, nil
 }
