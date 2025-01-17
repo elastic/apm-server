@@ -55,7 +55,7 @@ func TestRootHandler_AuthorizationMiddleware(t *testing.T) {
 		}
 		err = json.Unmarshal(rec.Body.Bytes(), &result)
 		require.NoError(t, err)
-		assert.Equal(t, version.Version, result.Version)
+		assert.Equal(t, version.VersionWithQualifier(), result.Version)
 	})
 }
 

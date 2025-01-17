@@ -222,7 +222,7 @@ func (r *routeBuilder) rumIntakeHandler() func() (request.Handler, error) {
 func (r *routeBuilder) rootHandler(publishReady func() bool) func() (request.Handler, error) {
 	return func() (request.Handler, error) {
 		h := root.Handler(root.HandlerConfig{
-			Version:      version.Version,
+			Version:      version.VersionWithQualifier(),
 			PublishReady: publishReady,
 		})
 		return middleware.Wrap(h, rootMiddleware(r.cfg, r.authenticator)...)

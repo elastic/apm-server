@@ -79,7 +79,7 @@ func newObserverBatchProcessor() modelpb.ProcessBatchFunc {
 			observer := (*b)[i].Observer
 			observer.Hostname = hostname
 			observer.Type = "apm-server"
-			observer.Version = version.Version
+			observer.Version = version.VersionWithQualifier()
 		}
 		return nil
 	}
