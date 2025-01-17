@@ -17,9 +17,3 @@ variable "moxy_bin_path" {
   type        = string
   description = "Moxy path to binary to copy to the worker machine"
 }
-
-variable "tags" {
-  type        = map(string)
-  default     = {}
-  description = "Optional set of tags to use for all resources"
-}

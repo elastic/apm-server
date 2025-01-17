@@ -22,6 +22,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"hash"
 	"net"
 	"net/http"
 	"os"
@@ -29,6 +30,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/cespare/xxhash/v2"
 	"github.com/dustin/go-humanize"
 	"go.elastic.co/apm/module/apmgrpc/v2"
 	"go.elastic.co/apm/module/apmotel/v2"
@@ -471,7 +473,11 @@ func (s *Runner) Run(ctx context.Context) error {
 		// aggregation, sampling, and indexing.
 		modelprocessor.SetHostHostname{},
 		modelprocessor.SetServiceNodeName{},
-		modelprocessor.SetGroupingKey{},
+		modelprocessor.SetGroupingKey{
+			NewHash: func() hash.Hash {
+				return xxhash.New()
+			},
+		},
 		modelprocessor.SetErrorMessage{},
 	}
 	if s.config.DefaultServiceEnvironment != "" {
@@ -531,7 +537,7 @@ func newInstrumentation(rawConfig *agentconfig.C) (instrumentation.Instrumentati
 	cfg, err := rawConfig.Child("instrumentation", -1)
 	if err != nil || !cfg.Enabled() {
 		// Fallback to instrumentation.New if the configs are not present or disabled.
-		return instrumentation.New(rawConfig, "apm-server", version.Version)
+		return instrumentation.New(rawConfig, "apm-server", version.VersionWithQualifier())
 	}
 	if err := cfg.Unpack(&apmCfg); err != nil {
 		return nil, err
@@ -574,7 +580,7 @@ func newInstrumentation(rawConfig *agentconfig.C) (instrumentation.Instrumentati
 		os.Setenv(envSamplingRate, strconv.FormatFloat(float64(r), 'f', -1, 32))
 		defer os.Unsetenv(envSamplingRate)
 	}
-	return instrumentation.New(rawConfig, "apm-server", version.Version)
+	return instrumentation.New(rawConfig, "apm-server", version.VersionWithQualifier())
 }
 
 func maxConcurrentDecoders(memLimitGB float64) uint {
@@ -866,7 +872,7 @@ func (s *Runner) newLibbeatFinalBatchProcessor(
 	beatInfo := beat.Info{
 		Beat:        "apm-server",
 		IndexPrefix: "apm-server",
-		Version:     version.Version,
+		Version:     version.VersionWithQualifier(),
 		Hostname:    hostname,
 		Name:        hostname,
 	}

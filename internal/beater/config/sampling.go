@@ -52,6 +52,7 @@ type TailSamplingConfig struct {
 	TTL                   time.Duration         `config:"ttl" validate:"min=1s"`
 	StorageLimit          string                `config:"storage_limit"`
 	StorageLimitParsed    uint64
+	DiscardOnWriteFailure bool `config:"discard_on_write_failure"`
 
 	esConfigured bool
 }
@@ -153,6 +154,7 @@ func defaultTailSamplingConfig() TailSamplingConfig {
 		StorageGCInterval:     5 * time.Minute,
 		TTL:                   30 * time.Minute,
 		StorageLimit:          "3GB",
+		DiscardOnWriteFailure: false,
 	}
 	parsed, err := humanize.ParseBytes(cfg.StorageLimit)
 	if err != nil {
