@@ -18,6 +18,7 @@
 package version
 
 import (
+	"fmt"
 	"runtime/debug"
 	"time"
 )
@@ -26,6 +27,7 @@ var (
 	vcsRevision string
 	vcsTime     time.Time
 	vcsModified bool
+	qualifier   string
 )
 
 func init() {
@@ -57,4 +59,12 @@ func CommitTime() time.Time {
 // was modified/dirty at build time.
 func VCSModified() bool {
 	return vcsModified
+}
+
+// VersionWithQualifier returns the version and the qualifier.
+func VersionWithQualifier() string {
+	if qualifier == "" {
+		return Version
+	}
+	return fmt.Sprintf("%s-%s", Version, qualifier)
 }

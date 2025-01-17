@@ -93,7 +93,7 @@ func TestRunnerParams(t *testing.T) {
 	assert.NoError(t, stop())
 
 	assert.Equal(t, "apm-server", args.Info.Beat)
-	assert.Equal(t, version.Version, args.Info.Version)
+	assert.Equal(t, version.VersionWithQualifier(), args.Info.Version)
 	assert.True(t, args.Info.ElasticLicensed)
 	assert.Equal(t, "my-custom-name", b.Beat.Info.Name)
 	assert.NotZero(t, args.Info.ID)
@@ -225,7 +225,7 @@ func TestRunManager_Reloader(t *testing.T) {
 
 	agentInfo := &proto.AgentInfo{
 		Id:       "elastic-agent-id",
-		Version:  version.Version,
+		Version:  version.VersionWithQualifier(),
 		Snapshot: true,
 	}
 	srv := integration.NewMockServer([]*proto.CheckinExpected{
@@ -358,7 +358,7 @@ func TestRunManager_Reloader_newRunnerError(t *testing.T) {
 	}
 	agentInfo := &proto.AgentInfo{
 		Id:       "elastic-agent-id",
-		Version:  version.Version,
+		Version:  version.VersionWithQualifier(),
 		Snapshot: true,
 	}
 	srv := integration.NewMockServer([]*proto.CheckinExpected{
