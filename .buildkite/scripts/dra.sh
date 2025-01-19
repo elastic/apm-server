@@ -111,11 +111,10 @@ if [[ "${TYPE}" == "staging" ]]; then
   if [[ "${DRA_BRANCH}" != "8.x" ]]; then
     echo "${DRA_BRANCH} is not '8.x'"
     if [[ "${DRA_BRANCH}" == "main" ]]; then
-      # NOTE: qualifier is needed for alpha1 releases for main/staging at the moment.
-      #       Change this value when the Release Team decides to change the qualifier.
-      dra "${TYPE}" "$dra_command" "alpha1"
-    else
-      dra "${TYPE}" "$dra_command"
+      # NOTE: qualifier is needed for main/staging at the moment. Skip builds if no ELASTIC_QUALIFIER
+      if [[ "${DRA_BRANCH}" == "main" ]] || [[ -n "${ELASTIC_QUALIFIER}" ]]; then
+        dra "${TYPE}" "$dra_command"
+      fi
     fi
   fi
 else
