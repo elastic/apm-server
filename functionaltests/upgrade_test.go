@@ -35,7 +35,7 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 )
 
-type additionalFn func(*esclient.Client, esclient.Config) error
+type additionalFn func(ecc *esclient.Client, kbc *kbclient.Client, escfg esclient.Config) error
 
 type essUpgradeTestCase struct {
 	from string
@@ -102,7 +102,7 @@ func runESSUpgradeTest(t *testing.T, tc essUpgradeTestCase) {
 
 	// execute additional setup code
 	if tc.setupFn != nil {
-		err := tc.setupFn(ecc, escfg)
+		err := tc.setupFn(ecc, kbc, escfg)
 		require.NoError(t, err, "error executing custom setup logic")
 	}
 
@@ -136,7 +136,7 @@ func runESSUpgradeTest(t *testing.T, tc essUpgradeTestCase) {
 
 	// execute additional setup code
 	if tc.afterUpgrade != nil {
-		err := tc.afterUpgrade(ecc, escfg)
+		err := tc.afterUpgrade(ecc, kbc, escfg)
 		require.NoError(t, err, "error executing after upgrade custom logic")
 	}
 
