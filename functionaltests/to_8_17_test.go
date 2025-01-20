@@ -19,6 +19,7 @@ package functionaltests
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/elastic/apm-server/functionaltests/internal/esclient"
@@ -100,6 +101,54 @@ func TestUpgradeTo8170_reroute(t *testing.T) {
 			IndicesPerDs: 2,
 			IndicesManagedBy: []checkDatastreamIndex{
 				{ManagedBy: lifecycleDSL, PreferIlm: false},
+				{ManagedBy: lifecycleILM, PreferIlm: true},
+			},
+		},
+	})
+}
+
+func TestUpgradeTo8170_withAPMIntegration(t *testing.T) {
+	ecAPICheck(t)
+
+	runESSUpgradeTest(t, essUpgradeTestCase{
+		from: "8.14.3",
+		to:   "8.17.0",
+		// APM integration is always enabled through the Elastic Agent Cloud Policy,
+		// no further setup is necessary.
+		afterUpgrade: func(_ *esclient.Client, kbc *kbclient.Client, _ esclient.Config) error {
+			policies, err := kbc.AgentPolicies(context.Background())
+			if err != nil {
+				return fmt.Errorf("cannot retrieve agent policies: %w", err)
+			}
+
+			assertElasticAPMEnabled(t, policies)
+			return nil
+		},
+		beforeUpgradeAfterIngest: checkDatastreamWant{
+			Quantity:     8,
+			PreferIlm:    true,
+			DSManagedBy:  lifecycleILM,
+			IndicesPerDs: 1,
+			IndicesManagedBy: []checkDatastreamIndex{
+				{ManagedBy: lifecycleILM, PreferIlm: true},
+			},
+		},
+		afterUpgradeBeforeIngest: checkDatastreamWant{
+			Quantity:     8,
+			PreferIlm:    true,
+			DSManagedBy:  lifecycleILM,
+			IndicesPerDs: 1,
+			IndicesManagedBy: []checkDatastreamIndex{
+				{ManagedBy: lifecycleILM, PreferIlm: true},
+			},
+		},
+		afterUpgradeAfterIngest: checkDatastreamWant{
+			Quantity:     8,
+			PreferIlm:    true,
+			DSManagedBy:  lifecycleILM,
+			IndicesPerDs: 2,
+			IndicesManagedBy: []checkDatastreamIndex{
+				{ManagedBy: lifecycleILM, PreferIlm: true},
 				{ManagedBy: lifecycleILM, PreferIlm: true},
 			},
 		},
