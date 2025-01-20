@@ -44,6 +44,10 @@ type essUpgradeTestCase struct {
 	// setupFn allows to specify custom logic to happen after test cluster
 	// boostrap and before any ingestion happens.
 	setupFn additionalFn
+	// afterUpgrade allows to specify custom logic to happen after test cluster
+	// has been upgraded to `to` version and before any further check or ingestion
+	// happens.
+	afterUpgrade additionalFn
 
 	beforeUpgradeAfterIngest checkDatastreamWant
 	afterUpgradeBeforeIngest checkDatastreamWant
@@ -129,6 +133,12 @@ func runESSUpgradeTest(t *testing.T, tc essUpgradeTestCase) {
 	t.Log("upgrade to 8.16.0")
 	require.NoError(t, tf.Apply(ctx, ecTarget, ecRegion, name, terraform.Var("stack_version", tc.to)))
 	t.Logf("time elapsed: %s", time.Now().Sub(start))
+
+	// execute additional setup code
+	if tc.afterUpgrade != nil {
+		err := tc.afterUpgrade(ecc, escfg)
+		require.NoError(t, err, "error executing after upgrade custom logic")
+	}
 
 	t.Log("check number of documents after upgrade")
 	afterUpgradeCount, err := getDocsCountPerDS(t, ctx, ecc)
