@@ -72,7 +72,12 @@ type checkDatastreamWant struct {
 	DSManagedBy      string
 	IndicesPerDs     int
 	PreferIlm        bool
-	IndicesManagedBy []string
+	IndicesManagedBy []checkDatastreamIndex
+}
+
+type checkDatastreamIndex struct {
+	ManagedBy string
+	PreferIlm bool
 }
 
 // assertDatastreams assert expected values on specific data streams in a cluster.
@@ -94,10 +99,16 @@ func assertDatastreams(t *testing.T, expected checkDatastreamWant, actual []type
 			"datastream %s should have %d indices", v.Name, expected.IndicesPerDs,
 		)
 		for i, index := range v.Indices {
-			assert.Equal(t, expected.IndicesManagedBy[i], index.ManagedBy.Name,
-				`index %s should be managed by "%s"`, index.IndexName,
-				expected.IndicesManagedBy[i],
+			assert.Equal(t, expected.IndicesManagedBy[i].ManagedBy, index.ManagedBy.Name,
+				`index %s should be managed by "%s"`, index.IndexName, expected.IndicesManagedBy[i].ManagedBy,
 			)
+			if expected.IndicesManagedBy[i].PreferIlm {
+				assert.True(t, *index.PreferIlm,
+					fmt.Sprintf("index %s should prefer ILM", index.IndexName))
+			} else {
+				assert.False(t, *index.PreferIlm,
+					fmt.Sprintf("index %s should not prefer ILM", index.IndexName))
+			}
 		}
 	}
 

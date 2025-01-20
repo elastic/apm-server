@@ -99,11 +99,13 @@ func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
 	dss, err = ecc.GetDataStream(ctx, "*apm*")
 	require.NoError(t, err)
 	assertDatastreams(t, checkDatastreamWant{
-		Quantity:         8,
-		PreferIlm:        false,
-		DSManagedBy:      "Data stream lifecycle",
-		IndicesPerDs:     1,
-		IndicesManagedBy: []string{"Data stream lifecycle"},
+		Quantity:     8,
+		PreferIlm:    false,
+		DSManagedBy:  "Data stream lifecycle",
+		IndicesPerDs: 1,
+		IndicesManagedBy: []checkDatastreamIndex{
+			{ManagedBy: "Data stream lifecycle"},
+		},
 	}, dss)
 	t.Logf("time elapsed: %s", time.Now().Sub(start))
 
@@ -124,11 +126,13 @@ func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
 	dss, err = ecc.GetDataStream(ctx, "*apm*")
 	require.NoError(t, err)
 	assertDatastreams(t, checkDatastreamWant{
-		Quantity:         8,
-		PreferIlm:        false,
-		DSManagedBy:      "Data stream lifecycle",
-		IndicesPerDs:     1,
-		IndicesManagedBy: []string{"Data stream lifecycle"},
+		Quantity:     8,
+		PreferIlm:    false,
+		DSManagedBy:  "Data stream lifecycle",
+		IndicesPerDs: 1,
+		IndicesManagedBy: []checkDatastreamIndex{
+			{ManagedBy: "Data stream lifecycle"},
+		},
 	}, dss)
 
 	require.NoError(t, g.RunBlockingWait(ctx, c, deploymentID))
@@ -146,11 +150,14 @@ func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
 	dss2, err := ecc.GetDataStream(ctx, "*apm*")
 	require.NoError(t, err)
 	assertDatastreams(t, checkDatastreamWant{
-		Quantity:         8,
-		PreferIlm:        false,
-		DSManagedBy:      "Data stream lifecycle",
-		IndicesPerDs:     2,
-		IndicesManagedBy: []string{"Data stream lifecycle", "Data stream lifecycle"},
+		Quantity:     8,
+		PreferIlm:    false,
+		DSManagedBy:  "Data stream lifecycle",
+		IndicesPerDs: 2,
+		IndicesManagedBy: []checkDatastreamIndex{
+			{ManagedBy: "Data stream lifecycle"},
+			{ManagedBy: "Data stream lifecycle"},
+		},
 	}, dss2)
 	t.Logf("time elapsed: %s", time.Now().Sub(start))
 
