@@ -33,15 +33,22 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 )
 
+type additionalFn func(*esclient.Client, esclient.Config) error
+
 type essUpgradeTestCase struct {
 	from string
 	to   string
+
+	// setupFn allows to specify custom logic to happen after test cluster
+	// boostrap and before any ingestion happens.
+	setupFn additionalFn
 
 	beforeUpgradeAfterIngest checkDatastreamWant
 	afterUpgradeBeforeIngest checkDatastreamWant
 	afterUpgradeAfterIngest  checkDatastreamWant
 }
 
+// runESSUpgradeTest runs a ESS upgrade test.
 func runESSUpgradeTest(t *testing.T, tc essUpgradeTestCase) {
 	start := time.Now()
 	ctx := context.Background()
@@ -76,6 +83,12 @@ func runESSUpgradeTest(t *testing.T, tc essUpgradeTestCase) {
 
 	ecc, err := esclient.New(escfg)
 	require.NoError(t, err)
+
+	// execute additional setup code
+	if tc.setupFn != nil {
+		err := tc.setupFn(ecc, escfg)
+		require.NoError(t, err, "error executing custom setup logic")
+	}
 
 	t.Log("creating APM API key")
 	apikey, err := ecc.CreateAPMAPIKey(ctx, t.Name())
