@@ -1,6 +1,7 @@
 package eventstorage
 
 import (
+	"bytes"
 	"path/filepath"
 
 	"github.com/cockroachdb/pebble"
@@ -44,6 +45,15 @@ const (
 	dbCommitThresholdBytes = 8000 << 10 // 8000KB
 )
 
+func eventComparer() *pebble.Comparer {
+	comparer := *pebble.DefaultComparer
+	// Required for prefix bloom filter
+	comparer.Split = func(k []byte) int {
+		return bytes.IndexByte(k, ':')
+	}
+	return &comparer
+}
+
 func OpenPebble(storageDir string) (*pebble.DB, error) {
 	return pebble.Open(filepath.Join(storageDir, "event"), &pebble.Options{
 		// FIXME: Specify FormatMajorVersion to use value blocks?
@@ -58,6 +68,7 @@ func OpenPebble(storageDir string) (*pebble.DB, error) {
 				FilterType:   pebble.TableFilter,
 			},
 		},
+		Comparer: eventComparer(),
 	})
 }
 

@@ -273,7 +273,11 @@ func (rw *ReadWriter) ReadTraceEvents(traceID string, out *modelpb.Batch) error 
 		return err
 	}
 	defer iter.Close()
-	for iter.First(); iter.Valid(); iter.Next() {
+	// SeekPrefixGE uses the prefix bloom filter, so that a miss will be much faster
+	if valid := iter.SeekPrefixGE(append([]byte(traceID), ':')); !valid {
+		return nil
+	}
+	for ; iter.Valid(); iter.Next() {
 		event := &modelpb.APMEvent{}
 		data, err := iter.ValueAndErr()
 		if err != nil {
