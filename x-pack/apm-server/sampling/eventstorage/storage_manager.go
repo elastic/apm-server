@@ -109,7 +109,7 @@ func (s *StorageManager) reset() error {
 		return err
 	}
 	s.decisionDB = decisionDB
-	s.storage = New(&wrappedDB{sm: s, db: s.db}, &wrappedDB{sm: s, db: s.decisionDB}, ProtobufCodec{})
+	s.storage = New(&wrappedDB{sm: s, db: s.db}, &wrappedDB{sm: s, db: s.decisionDB}, s.codec)
 	s.rw = s.storage.NewShardedReadWriter()
 	return nil
 }
