@@ -36,6 +36,13 @@ var cleanupOnFailure *bool = flag.Bool("cleanup-on-failure", true, "Whether to r
 // We use 'pro' for production as that is the key used to retrieve EC_API_KEY from secret storage.
 var target *string = flag.String("target", "pro", "The target environment where to run tests againts. Valid values are: qa, pro")
 
+const (
+	// lifecycleDSL is the string used in Elasticsearch responses to indicate a Data stream or Index managed by DSL.
+	lifecycleDSL = "Data stream lifecycle"
+	// lifecycleILM  is the string used in Elasticsearch responses to indicate a Data stream or Index managed by ILM.
+	lifecycleILM = "Index Lifecycle Management"
+)
+
 // expectedIngestForASingleRun() represent the expected number of ingested document after a
 // single run of ingest().
 // Only non aggregation data streams are included, as aggregation ones differs on different
