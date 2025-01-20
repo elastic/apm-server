@@ -30,6 +30,7 @@ import (
 	"github.com/elastic/apm-server/functionaltests/internal/ecclient"
 	"github.com/elastic/apm-server/functionaltests/internal/esclient"
 	"github.com/elastic/apm-server/functionaltests/internal/gen"
+	"github.com/elastic/apm-server/functionaltests/internal/kbclient"
 	"github.com/elastic/apm-server/functionaltests/internal/terraform"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 )
@@ -89,6 +90,11 @@ func runESSUpgradeTest(t *testing.T, tc essUpgradeTestCase) {
 
 	ecc, err := esclient.New(escfg)
 	require.NoError(t, err)
+
+	t.Log("create API key for Kibana")
+	kbApikey, err := ecc.CreateAPIKey(ctx, t.Name(), 0, map[string]types.RoleDescriptor{})
+	require.NoError(t, err)
+	kbc := kbclient.New(escfg.KibanaURL, kbApikey)
 
 	// execute additional setup code
 	if tc.setupFn != nil {
