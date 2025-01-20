@@ -123,10 +123,26 @@ func (s *StorageManager) Size() (lsm, vlog int64) {
 func (s *StorageManager) Close() error {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
+	return s.close()
+}
+
+func (s *StorageManager) close() error {
 	s.rw.Close()
 	_ = s.db.Close()         // FIXME
 	_ = s.decisionDB.Close() // FIXME
 	return nil
+}
+
+// Reload flushes out pending disk writes to disk by reloading the database.
+// It does not flush uncommitted writes.
+// For testing only.
+func (s *StorageManager) Reload() error {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	if err := s.close(); err != nil {
+		return err
+	}
+	return s.reset()
 }
 
 // Run has the same lifecycle as the TBS processor as opposed to StorageManager to facilitate EA hot reload.

@@ -165,7 +165,7 @@ func BenchmarkReadEventsHit(b *testing.B) {
 	// And causes next iteration setup to take a very long time.
 	const txnCountInTrace = 5
 
-	test := func(b *testing.B, bigTX bool) {
+	test := func(b *testing.B, bigTX bool, reloadDB bool) {
 		for _, hit := range []bool{false, true} {
 			b.Run(fmt.Sprintf("hit=%v", hit), func(b *testing.B) {
 				sm := newStorageManager(b)
@@ -202,6 +202,17 @@ func BenchmarkReadEventsHit(b *testing.B) {
 					b.Fatal(err)
 				}
 
+				readWriter.Close()
+
+				if reloadDB {
+					if err := sm.Reload(); err != nil {
+						b.Fatal(err)
+					}
+				}
+
+				readWriter = sm.NewBypassReadWriter()
+				defer readWriter.Close()
+
 				b.ResetTimer()
 				var batch modelpb.Batch
 				for i := 0; i < b.N; i++ {
@@ -221,9 +232,13 @@ func BenchmarkReadEventsHit(b *testing.B) {
 		}
 	}
 
-	for _, bigTX := range []bool{true, false} {
-		b.Run(fmt.Sprintf("bigTX=%v", bigTX), func(b *testing.B) {
-			test(b, bigTX)
+	for _, reloadDB := range []bool{false, true} {
+		b.Run(fmt.Sprintf("reloadDB=%v", reloadDB), func(b *testing.B) {
+			for _, bigTX := range []bool{true, false} {
+				b.Run(fmt.Sprintf("bigTX=%v", bigTX), func(b *testing.B) {
+					test(b, bigTX, reloadDB)
+				})
+			}
 		})
 	}
 }
