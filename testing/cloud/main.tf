@@ -8,6 +8,11 @@ terraform {
   }
 }
 
+module "tags" {
+  source = "../infra/terraform/modules/tags"
+  project = "cloud"
+}
+
 provider "ec" {}
 
 locals {
@@ -39,4 +44,6 @@ module "ec_deployment" {
     "kibana" : coalesce(var.docker_image_tag_override["kibana"], local.docker_image_tag),
     "apm" : coalesce(var.docker_image_tag_override["apm"], local.docker_image_tag)
   }
+
+  tags = module.tags.tags
 }
