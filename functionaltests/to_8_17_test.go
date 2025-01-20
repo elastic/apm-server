@@ -18,7 +18,10 @@
 package functionaltests
 
 import (
+	"context"
 	"testing"
+
+	"github.com/elastic/apm-server/functionaltests/internal/esclient"
 )
 
 func TestUpgradeTo8170_plain(t *testing.T) {
@@ -27,6 +30,50 @@ func TestUpgradeTo8170_plain(t *testing.T) {
 	runESSUpgradeTest(t, essUpgradeTestCase{
 		from: "8.16.1",
 		to:   "8.17.0",
+		beforeUpgradeAfterIngest: checkDatastreamWant{
+			Quantity:     8,
+			PreferIlm:    false,
+			DSManagedBy:  lifecycleDSL,
+			IndicesPerDs: 1,
+			IndicesManagedBy: []checkDatastreamIndex{
+				{ManagedBy: lifecycleDSL},
+			},
+		},
+		afterUpgradeBeforeIngest: checkDatastreamWant{
+			Quantity:     8,
+			PreferIlm:    true,
+			DSManagedBy:  lifecycleILM,
+			IndicesPerDs: 1,
+			IndicesManagedBy: []checkDatastreamIndex{
+				{ManagedBy: lifecycleDSL},
+			},
+		},
+		afterUpgradeAfterIngest: checkDatastreamWant{
+			Quantity:     8,
+			PreferIlm:    true,
+			DSManagedBy:  lifecycleILM,
+			IndicesPerDs: 2,
+			IndicesManagedBy: []checkDatastreamIndex{
+				{ManagedBy: lifecycleDSL, PreferIlm: false},
+				{ManagedBy: lifecycleILM, PreferIlm: true},
+			},
+		},
+	})
+}
+
+// TestUpgradeTo8170_reroute checks for regressions in upgrades when
+// using an ingest pipeline with a reroute processor.
+func TestUpgradeTo8170_reroute(t *testing.T) {
+	ecAPICheck(t)
+
+	runESSUpgradeTest(t, essUpgradeTestCase{
+		from: "8.16.1",
+		to:   "8.17.0",
+
+		setupFn: func(c1 *esclient.Client, c2 esclient.Config) error {
+			return createRerouteIngestPipelines(t, context.Background(), c1)
+		},
+
 		beforeUpgradeAfterIngest: checkDatastreamWant{
 			Quantity:     8,
 			PreferIlm:    false,

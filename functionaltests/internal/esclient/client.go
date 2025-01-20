@@ -188,3 +188,13 @@ func (c *Client) GetESErrorLogs(ctx context.Context) (*search.Response, error) {
 
 	return res, nil
 }
+
+func (c *Client) CreateIngestPipeline(ctx context.Context, id string, processors types.ProcessorContainer) error {
+	_, err := c.es.Ingest.PutPipeline(id).
+		Processors(processors).
+		Do(ctx)
+	if err != nil {
+		return fmt.Errorf("cannot create ingest pipeline: %w", err)
+	}
+	return nil
+}
