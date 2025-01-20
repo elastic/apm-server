@@ -37,6 +37,7 @@ const (
 	// rather than the length of data slice backing the batch.
 	pebbleMemTableSize = 32 << 20 // 32MB
 
+	// FIXME: fix comment
 	// dbCommitThresholdBytes is a soft limit and the batch is committed
 	// to the DB as soon as it crosses this threshold. To make sure that
 	// the commit threshold plays will with the max retained batch size

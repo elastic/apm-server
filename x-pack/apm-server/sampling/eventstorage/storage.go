@@ -127,7 +127,10 @@ func (rw *ReadWriter) lazyInit() {
 
 func (rw *ReadWriter) decisionLazyInit() {
 	if rw.decisionBatch == nil {
-		rw.decisionBatch = rw.s.decisionDB.NewIndexedBatch() //FIXME: tuning
+		rw.decisionBatch = rw.s.decisionDB.NewIndexedBatch(
+			pebble.WithInitialSizeBytes(initialPebbleBatchSize),
+			pebble.WithMaxRetainedSizeBytes(maxRetainedPebbleBatchSize),
+		) //FIXME: tuning
 	}
 }
 
@@ -151,18 +154,7 @@ func (rw *ReadWriter) Close() {
 // may be lost.
 func (rw *ReadWriter) Flush() error {
 	const flushErrFmt = "failed to flush pending writes: %w"
-	var err error
-	if rw.batch != nil {
-		err = rw.batch.Commit(pebble.NoSync)
-		rw.batch.Close()
-		rw.batch = nil
-	}
-
-	if rw.decisionBatch != nil {
-		err = errors.Join(err, rw.decisionBatch.Commit(pebble.NoSync))
-		rw.decisionBatch.Close()
-		rw.decisionBatch = nil
-	}
+	err := errors.Join(rw.flushBatch(), rw.flushDecisionBatch())
 
 	//rw.s.pendingSize.Add(-rw.pendingSize)
 	rw.pendingWrites = 0
@@ -174,6 +166,24 @@ func (rw *ReadWriter) Flush() error {
 	return nil
 }
 
+func (rw *ReadWriter) flushBatch() (err error) {
+	if rw.batch != nil {
+		err = rw.batch.Commit(pebble.NoSync)
+		rw.batch.Close()
+		rw.batch = nil
+	}
+	return
+}
+
+func (rw *ReadWriter) flushDecisionBatch() (err error) {
+	if rw.decisionBatch != nil {
+		err = rw.decisionBatch.Commit(pebble.NoSync)
+		rw.decisionBatch.Close()
+		rw.decisionBatch = nil
+	}
+	return
+}
+
 // WriteTraceSampled records the tail-sampling decision for the given trace ID.
 func (rw *ReadWriter) WriteTraceSampled(traceID string, sampled bool, opts WriterOpts) error {
 	rw.decisionLazyInit()
@@ -182,7 +192,14 @@ func (rw *ReadWriter) WriteTraceSampled(traceID string, sampled bool, opts Write
 	if sampled {
 		meta = entryMetaTraceSampled
 	}
-	return rw.decisionBatch.Set([]byte(traceID), []byte{meta}, pebble.NoSync)
+	err := rw.decisionBatch.Set([]byte(traceID), []byte{meta}, pebble.NoSync)
+	if err != nil {
+		return err
+	}
+	if rw.decisionBatch.Len() >= dbCommitThresholdBytes {
+		return rw.flushDecisionBatch()
+	}
+	return nil
 }
 
 // IsTraceSampled reports whether traceID belongs to a trace that is sampled
@@ -231,9 +248,7 @@ func (rw *ReadWriter) writeEntry(key, data []byte) error {
 	}
 
 	if rw.batch.Len() >= dbCommitThresholdBytes {
-		if err := rw.Flush(); err != nil {
-			return err
-		}
+		return rw.flushBatch()
 	}
 	return nil
 }
