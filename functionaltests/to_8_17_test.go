@@ -22,6 +22,7 @@ import (
 	"testing"
 
 	"github.com/elastic/apm-server/functionaltests/internal/esclient"
+	"github.com/elastic/apm-server/functionaltests/internal/kbclient"
 )
 
 func TestUpgradeTo8170_plain(t *testing.T) {
@@ -70,8 +71,8 @@ func TestUpgradeTo8170_reroute(t *testing.T) {
 		from: "8.16.1",
 		to:   "8.17.0",
 
-		setupFn: func(c1 *esclient.Client, c2 esclient.Config) error {
-			return createRerouteIngestPipelines(t, context.Background(), c1)
+		setupFn: func(ecc *esclient.Client, _ *kbclient.Client, _ esclient.Config) error {
+			return createRerouteIngestPipelines(t, context.Background(), ecc)
 		},
 
 		beforeUpgradeAfterIngest: checkDatastreamWant{
