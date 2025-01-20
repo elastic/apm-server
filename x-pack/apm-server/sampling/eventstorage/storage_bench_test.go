@@ -19,9 +19,8 @@ import (
 
 func BenchmarkWriteTransaction(b *testing.B) {
 	test := func(b *testing.B, codec eventstorage.Codec, bigTX bool) {
-		db := newBadgerDB(b, badgerOptions)
-		store := eventstorage.New(db, codec)
-		readWriter := store.NewReadWriter()
+		sm := newStorageManager(b, eventstorage.WithCodec(codec))
+		readWriter := sm.NewBypassReadWriter()
 		defer readWriter.Close()
 
 		traceID := hex.EncodeToString([]byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16})
@@ -87,9 +86,8 @@ func BenchmarkReadEvents(b *testing.B) {
 		counts := []int{0, 1, 10, 100, 199, 399, 1000}
 		for _, count := range counts {
 			b.Run(fmt.Sprintf("%d events", count), func(b *testing.B) {
-				db := newBadgerDB(b, badgerOptions)
-				store := eventstorage.New(db, codec)
-				readWriter := store.NewReadWriter()
+				sm := newStorageManager(b, eventstorage.WithCodec(codec))
+				readWriter := sm.NewBypassReadWriter()
 				defer readWriter.Close()
 				wOpts := eventstorage.WriterOpts{
 					TTL:                 time.Minute,
@@ -167,12 +165,11 @@ func BenchmarkReadEventsHit(b *testing.B) {
 	// And causes next iteration setup to take a very long time.
 	const txnCountInTrace = 5
 
-	test := func(b *testing.B, codec eventstorage.Codec, bigTX bool) {
+	test := func(b *testing.B, bigTX bool) {
 		for _, hit := range []bool{false, true} {
 			b.Run(fmt.Sprintf("hit=%v", hit), func(b *testing.B) {
-				db := newBadgerDB(b, badgerOptions)
-				store := eventstorage.New(db, codec)
-				readWriter := store.NewReadWriter()
+				sm := newStorageManager(b)
+				readWriter := sm.NewBypassReadWriter()
 				defer readWriter.Close()
 				wOpts := eventstorage.WriterOpts{
 					TTL:                 time.Hour,
@@ -226,7 +223,7 @@ func BenchmarkReadEventsHit(b *testing.B) {
 
 	for _, bigTX := range []bool{true, false} {
 		b.Run(fmt.Sprintf("bigTX=%v", bigTX), func(b *testing.B) {
-			test(b, eventstorage.ProtobufCodec{}, bigTX)
+			test(b, bigTX)
 		})
 	}
 }
@@ -237,9 +234,8 @@ func BenchmarkIsTraceSampled(b *testing.B) {
 	unknownTraceUUID := uuid.Must(uuid.NewV4())
 
 	// Test with varying numbers of events in the trace.
-	db := newBadgerDB(b, badgerOptions)
-	store := eventstorage.New(db, eventstorage.ProtobufCodec{})
-	readWriter := store.NewReadWriter()
+	sm := newStorageManager(b)
+	readWriter := sm.NewBypassReadWriter()
 	defer readWriter.Close()
 	wOpts := eventstorage.WriterOpts{
 		TTL:                 time.Minute,

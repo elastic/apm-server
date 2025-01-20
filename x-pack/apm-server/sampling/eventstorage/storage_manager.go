@@ -47,6 +47,14 @@ func (w *wrappedDB) NewIndexedBatch(opts ...pebble.BatchOption) *pebble.Batch {
 	return w.db.NewIndexedBatch(opts...)
 }
 
+type StorageManagerOptions func(*StorageManager)
+
+func WithCodec(codec Codec) StorageManagerOptions {
+	return func(sm *StorageManager) {
+		sm.codec = codec
+	}
+}
+
 // StorageManager encapsulates pebble.DB.
 // It is to provide file system access, simplify synchronization and enable underlying db swaps.
 // It assumes exclusive access to pebble DB at storageDir.
@@ -59,6 +67,8 @@ type StorageManager struct {
 	storage    *Storage
 	rw         *ShardedReadWriter
 
+	codec Codec
+
 	// mu guards db, storage, and rw swaps.
 	mu sync.RWMutex
 	// subscriberPosMu protects the subscriber file from concurrent RW.
@@ -70,11 +80,15 @@ type StorageManager struct {
 }
 
 // NewStorageManager returns a new StorageManager with pebble DB at storageDir.
-func NewStorageManager(storageDir string) (*StorageManager, error) {
+func NewStorageManager(storageDir string, opts ...StorageManagerOptions) (*StorageManager, error) {
 	sm := &StorageManager{
 		storageDir: storageDir,
 		runCh:      make(chan struct{}, 1),
 		logger:     logp.NewLogger(logs.Sampling),
+		codec:      ProtobufCodec{},
+	}
+	for _, opt := range opts {
+		opt(sm)
 	}
 	err := sm.reset()
 	if err != nil {
