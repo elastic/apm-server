@@ -110,7 +110,14 @@ dra() {
 if [[ "${TYPE}" == "staging" ]]; then
   if [[ "${DRA_BRANCH}" != "8.x" ]]; then
     echo "${DRA_BRANCH} is not '8.x'"
-    dra "${TYPE}" "$dra_command"
+    if [[ "${DRA_BRANCH}" == "main" ]] ; then
+      # NOTE: qualifier is needed for main/staging at the moment. Skip builds if no ELASTIC_QUALIFIER
+      if [[ -n "${ELASTIC_QUALIFIER}" ]]; then
+        dra "${TYPE}" "$dra_command"
+      fi
+    else
+      dra "${TYPE}" "$dra_command"
+    fi
   fi
 else
   # NOTE: qualifier is not needed for snapshots, let's unset it.
