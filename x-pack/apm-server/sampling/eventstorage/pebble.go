@@ -81,7 +81,7 @@ func OpenSamplingDecisionPebble(storageDir string) (*pebble.DB, error) {
 		//MemTableSize:       pebbleMemTableSize,
 		Levels: []pebble.LevelOptions{
 			{
-				//BlockSize:    16 << 10,
+				BlockSize:    2 << 10,
 				Compression:  pebble.NoCompression,
 				FilterPolicy: bloom.FilterPolicy(10),
 				FilterType:   pebble.TableFilter,
