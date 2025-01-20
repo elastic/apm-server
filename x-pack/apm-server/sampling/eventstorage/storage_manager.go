@@ -28,6 +28,25 @@ var (
 	errDropAndRecreateInProgress = errors.New("db drop and recreate in progress")
 )
 
+type wrappedDB struct {
+	sm *StorageManager
+	db *pebble.DB
+}
+
+// Size returns the db size
+func (w *wrappedDB) Size() (lsm, vlog int64) {
+	// FIXME: we may want it to report the sum of 2 dbs
+	w.sm.mu.RLock()
+	defer w.sm.mu.RUnlock()
+	return int64(w.db.Metrics().DiskSpaceUsage()), 0 // FIXME
+}
+
+func (w *wrappedDB) NewIndexedBatch(opts ...pebble.BatchOption) *pebble.Batch {
+	w.sm.mu.RLock()
+	defer w.sm.mu.RUnlock()
+	return w.db.NewIndexedBatch(opts...)
+}
+
 // StorageManager encapsulates pebble.DB.
 // It is to provide file system access, simplify synchronization and enable underlying db swaps.
 // It assumes exclusive access to pebble DB at storageDir.
@@ -35,9 +54,10 @@ type StorageManager struct {
 	storageDir string
 	logger     *logp.Logger
 
-	db      *pebble.DB
-	storage *Storage
-	rw      *ShardedReadWriter
+	db         *pebble.DB
+	decisionDB *pebble.DB
+	storage    *Storage
+	rw         *ShardedReadWriter
 
 	// mu guards db, storage, and rw swaps.
 	mu sync.RWMutex
@@ -70,30 +90,29 @@ func (s *StorageManager) reset() error {
 		return err
 	}
 	s.db = db
-	s.storage = New(s, ProtobufCodec{})
+	decisionDB, err := OpenSamplingDecisionPebble(s.storageDir)
+	if err != nil {
+		return err
+	}
+	s.decisionDB = decisionDB
+	s.storage = New(&wrappedDB{sm: s, db: s.db}, &wrappedDB{sm: s, db: s.decisionDB}, ProtobufCodec{})
 	s.rw = s.storage.NewShardedReadWriter()
 	return nil
 }
 
-// Close closes StorageManager's underlying ShardedReadWriter and badger DB
+func (s *StorageManager) Size() (lsm, vlog int64) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return int64(s.db.Metrics().DiskSpaceUsage() + s.decisionDB.Metrics().DiskSpaceUsage()), 0
+}
+
 func (s *StorageManager) Close() error {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	s.rw.Close()
-	return s.db.Close()
-}
-
-// Size returns the db size
-func (s *StorageManager) Size() (lsm, vlog int64) {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-	return int64(s.db.Metrics().DiskSpaceUsage()), 0 // FIXME
-}
-
-func (s *StorageManager) NewIndexedBatch(opts ...pebble.BatchOption) *pebble.Batch {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-	return s.db.NewIndexedBatch(opts...)
+	_ = s.db.Close()         // FIXME
+	_ = s.decisionDB.Close() // FIXME
+	return nil
 }
 
 // Run has the same lifecycle as the TBS processor as opposed to StorageManager to facilitate EA hot reload.

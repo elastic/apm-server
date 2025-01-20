@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	prefixSamplingDecision string = "!"
+	//prefixSamplingDecision string = "!"
 	// NOTE(axw) these values (and their meanings) must remain stable
 	// over time, to avoid misinterpreting historical data.
 	entryMetaTraceSampled   byte = 's'
@@ -38,13 +38,14 @@ var (
 type db interface {
 	NewIndexedBatch(opts ...pebble.BatchOption) *pebble.Batch
 	Size() (lsm, vlog int64)
-	Close() error
+	//Close() error
 }
 
 // Storage provides storage for sampled transactions and spans,
 // and for recording trace sampling decisions.
 type Storage struct {
-	db db
+	db         db
+	decisionDB db
 	// pendingSize tracks the total size of pending writes across ReadWriters
 	pendingSize *atomic.Int64
 	codec       Codec
@@ -56,9 +57,14 @@ type Codec interface {
 	EncodeEvent(*modelpb.APMEvent) ([]byte, error)
 }
 
-// New returns a new Storage using db and codec.
-func New(db db, codec Codec) *Storage {
-	return &Storage{db: db, pendingSize: &atomic.Int64{}, codec: codec}
+// New returns a new Storage using db, decisionDB and codec.
+func New(db db, decisionDB db, codec Codec) *Storage {
+	return &Storage{
+		db:          db,
+		decisionDB:  decisionDB,
+		pendingSize: &atomic.Int64{},
+		codec:       codec,
+	}
 }
 
 // NewShardedReadWriter returns a new ShardedReadWriter, for sharded
@@ -97,8 +103,9 @@ type WriterOpts struct {
 // avoid conflicts, e.g. by using consistent hashing to distribute to one of
 // a set of ReadWriters, such as implemented by ShardedReadWriter.
 type ReadWriter struct {
-	s     *Storage
-	batch *pebble.Batch
+	s             *Storage
+	batch         *pebble.Batch
+	decisionBatch *pebble.Batch
 
 	// readKeyBuf is a reusable buffer for keys used in read operations.
 	// This must not be used in write operations, as keys are expected to
@@ -118,6 +125,12 @@ func (rw *ReadWriter) lazyInit() {
 	}
 }
 
+func (rw *ReadWriter) decisionLazyInit() {
+	if rw.decisionBatch == nil {
+		rw.decisionBatch = rw.s.decisionDB.NewIndexedBatch() //FIXME: tuning
+	}
+}
+
 // Close closes the writer. Any writes that have not been flushed may be lost.
 //
 // This must be called when the writer is no longer needed, in order to reclaim
@@ -125,6 +138,9 @@ func (rw *ReadWriter) lazyInit() {
 func (rw *ReadWriter) Close() {
 	if rw.batch != nil {
 		rw.batch.Close()
+	}
+	if rw.decisionBatch != nil {
+		rw.decisionBatch.Close()
 	}
 }
 
@@ -134,13 +150,20 @@ func (rw *ReadWriter) Close() {
 // If Flush is not called before the writer is closed, then writes
 // may be lost.
 func (rw *ReadWriter) Flush() error {
-	rw.lazyInit()
-
 	const flushErrFmt = "failed to flush pending writes: %w"
-	err := rw.batch.Commit(pebble.NoSync)
-	rw.batch.Close()
-	rw.batch = nil
-	rw.lazyInit() // FIXME: this shouldn't be needed
+	var err error
+	if rw.batch != nil {
+		err = rw.batch.Commit(pebble.NoSync)
+		rw.batch.Close()
+		rw.batch = nil
+	}
+
+	if rw.decisionBatch != nil {
+		err = errors.Join(err, rw.decisionBatch.Commit(pebble.NoSync))
+		rw.decisionBatch.Close()
+		rw.decisionBatch = nil
+	}
+
 	//rw.s.pendingSize.Add(-rw.pendingSize)
 	rw.pendingWrites = 0
 	//rw.pendingSize = baseTransactionSize
@@ -153,27 +176,26 @@ func (rw *ReadWriter) Flush() error {
 
 // WriteTraceSampled records the tail-sampling decision for the given trace ID.
 func (rw *ReadWriter) WriteTraceSampled(traceID string, sampled bool, opts WriterOpts) error {
-	rw.lazyInit()
+	rw.decisionLazyInit()
 
-	key := []byte(prefixSamplingDecision + traceID)
 	meta := entryMetaTraceUnsampled
 	if sampled {
 		meta = entryMetaTraceSampled
 	}
-	return rw.batch.Set(key, []byte{meta}, pebble.NoSync)
+	return rw.decisionBatch.Set([]byte(traceID), []byte{meta}, pebble.NoSync)
 }
 
 // IsTraceSampled reports whether traceID belongs to a trace that is sampled
 // or unsampled. If no sampling decision has been recorded, IsTraceSampled
 // returns ErrNotFound.
 func (rw *ReadWriter) IsTraceSampled(traceID string) (bool, error) {
-	rw.lazyInit()
+	rw.decisionLazyInit()
 
 	// FIXME: this needs to be fast, as it is in the hot path
 	// It should minimize disk IO on miss due to
 	// 1. (pubsub) remote sampling decision
 	// 2. (hot path) sampling decision not made yet
-	item, closer, err := rw.batch.Get([]byte(prefixSamplingDecision + traceID))
+	item, closer, err := rw.decisionBatch.Get([]byte(traceID))
 	if err == pebble.ErrNotFound {
 		return false, ErrNotFound
 	}

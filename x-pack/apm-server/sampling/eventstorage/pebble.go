@@ -1,6 +1,8 @@
 package eventstorage
 
 import (
+	"path/filepath"
+
 	"github.com/cockroachdb/pebble"
 	"github.com/cockroachdb/pebble/bloom"
 
@@ -43,7 +45,7 @@ const (
 )
 
 func OpenPebble(storageDir string) (*pebble.DB, error) {
-	return pebble.Open(storageDir, &pebble.Options{
+	return pebble.Open(filepath.Join(storageDir, "event"), &pebble.Options{
 		// FIXME: Specify FormatMajorVersion to use value blocks?
 		FormatMajorVersion: pebble.FormatNewest,
 		Logger:             logp.NewLogger(logs.Sampling),
@@ -52,6 +54,23 @@ func OpenPebble(storageDir string) (*pebble.DB, error) {
 			{
 				BlockSize:    16 << 10,
 				Compression:  pebble.SnappyCompression,
+				FilterPolicy: bloom.FilterPolicy(10),
+				FilterType:   pebble.TableFilter,
+			},
+		},
+	})
+}
+
+func OpenSamplingDecisionPebble(storageDir string) (*pebble.DB, error) {
+	return pebble.Open(filepath.Join(storageDir, "decision"), &pebble.Options{
+		// FIXME: Specify FormatMajorVersion to use value blocks?
+		FormatMajorVersion: pebble.FormatNewest,
+		Logger:             logp.NewLogger(logs.Sampling),
+		//MemTableSize:       pebbleMemTableSize,
+		Levels: []pebble.LevelOptions{
+			{
+				//BlockSize:    16 << 10,
+				Compression:  pebble.NoCompression,
 				FilterPolicy: bloom.FilterPolicy(10),
 				FilterType:   pebble.TableFilter,
 			},
