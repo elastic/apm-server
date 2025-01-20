@@ -68,6 +68,14 @@ For patch releases, only the version on the existing major and minor version bra
 
 * Collaborate with the docs team on any release highlights or breaking changes that should be included in the APM Server guide.
 
+* Run DRA for a given qualifier. The Release Team will say what qualifier to use in the the #mission-control channel.
+  * Go to https://buildkite.com/elastic/apm-server-package
+  * Click on `New Build`.
+  * Choose the `Branch` where the release should come from (either `main`, `8.x` or `[0-9].[0-9]+)`_
+  * Click on `options`
+  * Add `ELASTIC_QUALIFIER=<qualifier>` (`<qualifier` should be replaced with the given qualifier)
+  * Click on `Create Build`.
+
 ## On release day
 
 * For **minor releases**: new branches need to be added to `conf.yml` in the `elastic/docs` repo. [Example](https://github.com/elastic/docs/pull/893/files#diff-4a701a5adb4359c6abf9b8e1cb38819fR925). **This is handled by the docs release manager.**
