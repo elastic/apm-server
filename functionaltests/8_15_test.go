@@ -27,6 +27,7 @@ func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
 	runESSUpgradeTest(t, essUpgradeTestCase{
 		from: "8.15.4",
 		to:   "8.16.0",
+
 		beforeUpgradeAfterIngest: checkDatastreamWant{
 			Quantity:     8,
 			PreferIlm:    false,

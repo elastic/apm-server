@@ -33,6 +33,7 @@ func TestUpgradeTo8170_plain(t *testing.T) {
 	runESSUpgradeTest(t, essUpgradeTestCase{
 		from: "8.16.1",
 		to:   "8.17.0",
+
 		beforeUpgradeAfterIngest: checkDatastreamWant{
 			Quantity:     8,
 			PreferIlm:    false,
@@ -73,6 +74,8 @@ func TestUpgradeTo8170_reroute(t *testing.T) {
 	runESSUpgradeTest(t, essUpgradeTestCase{
 		from: "8.16.1",
 		to:   "8.17.0",
+
+		expectedDsDocCountForAIngestRun: expectedIngestForASingleRun("rerouted"),
 
 		setupFn: func(ecc *esclient.Client, _ *kbclient.Client, _ esclient.Config) error {
 			return createRerouteIngestPipelines(t, context.Background(), ecc)
@@ -116,6 +119,7 @@ func TestUpgradeTo8170_withAPMIntegration(t *testing.T) {
 	runESSUpgradeTest(t, essUpgradeTestCase{
 		from: "8.14.3",
 		to:   "8.17.0",
+
 		// APM integration is always enabled through the Elastic Agent Cloud Policy,
 		// no further setup is necessary.
 		afterUpgrade: func(_ *esclient.Client, kbc *kbclient.Client, _ esclient.Config) error {
