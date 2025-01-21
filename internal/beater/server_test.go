@@ -654,6 +654,7 @@ func TestWrapServerAPMInstrumentationTimeout(t *testing.T) {
 	expectedMetrics["apm-server.processor.stream.errors.toolarge"] = 0
 	expectedMetrics["http.server.request.duration"] = 1
 	expectedMetrics["elasticsearch.bulk_requests.available"] = 1
+	expectedMetrics["apm-server.agentcfg.elasticsearch.cache.refresh.successes"] = 1
 	// Assert that metrics have expected response values reported.
 	// TODO broken one request missing
 	monitoringtest.ExpectOtelMetrics(t, reader, expectedMetrics)
