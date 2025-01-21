@@ -127,6 +127,5 @@ func (rw PrefixReadWriter) DeleteTraceEvent(traceID, id string) error {
 }
 
 func (rw PrefixReadWriter) Flush() error {
-	//TODO implement me
-	panic("implement me")
+	return nil
 }
