@@ -52,7 +52,7 @@ func TestTTLReadWriter_WriteTraceSampled(t *testing.T) {
 	} {
 		t.Run(fmt.Sprintf("sampled=%v,missing=%v", tc.sampled, tc.missing), func(t *testing.T) {
 			db := newPebble(t)
-			rw := eventstorage.NewPartitionedReadWriter(testPartitionDB{DB: db}, 1, nopCodec{})
+			rw := eventstorage.NewPrefixReadWriter(testPartitionDB{DB: db}, 1, nopCodec{})
 			traceID := uuid.Must(uuid.NewV4()).String()
 			if !tc.missing {
 				err := rw.WriteTraceSampled(traceID, tc.sampled, eventstorage.WriterOpts{})

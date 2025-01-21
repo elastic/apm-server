@@ -9,21 +9,20 @@ import (
 	"github.com/elastic/apm-data/model/modelpb"
 )
 
-func NewPartitionedReadWriter(db db, partitionID int32, codec Codec) PartitionedReadWriter {
-	return PartitionedReadWriter{db: db, partitionID: partitionID, codec: codec}
+func NewPrefixReadWriter(db db, prefix byte, codec Codec) PrefixReadWriter {
+	return PrefixReadWriter{db: db, prefix: prefix, codec: codec}
 }
 
-type PartitionedReadWriter struct {
-	db          db
-	partitionID int32
-	codec       Codec
+type PrefixReadWriter struct {
+	db     db
+	prefix byte
+	codec  Codec
 }
 
-func (rw PartitionedReadWriter) ReadTraceEvents(traceID string, out *modelpb.Batch) error {
+func (rw PrefixReadWriter) ReadTraceEvents(traceID string, out *modelpb.Batch) error {
 	var lb bytes.Buffer
-	lb.Grow(1 + 1 + len(traceID) + 1)
-	lb.WriteByte(byte(rw.partitionID))
-	lb.WriteByte('@')
+	lb.Grow(1 + len(traceID) + 1)
+	lb.WriteByte(rw.prefix)
 	lb.WriteString(traceID)
 	lb.WriteByte(':')
 
@@ -58,15 +57,14 @@ func (rw PartitionedReadWriter) ReadTraceEvents(traceID string, out *modelpb.Bat
 	return nil
 }
 
-func (rw PartitionedReadWriter) WriteTraceEvent(traceID, id string, event *modelpb.APMEvent, opts WriterOpts) error {
+func (rw PrefixReadWriter) WriteTraceEvent(traceID, id string, event *modelpb.APMEvent, opts WriterOpts) error {
 	data, err := rw.codec.EncodeEvent(event)
 	if err != nil {
 		return err
 	}
 	var b bytes.Buffer
-	b.Grow(1 + 1 + len(traceID) + 1 + len(id))
-	b.WriteByte(byte(rw.partitionID))
-	b.WriteByte('@')
+	b.Grow(1 + len(traceID) + 1 + len(id))
+	b.WriteByte(rw.prefix)
 	b.WriteString(traceID)
 	b.WriteByte(':')
 	b.WriteString(id)
@@ -74,18 +72,17 @@ func (rw PartitionedReadWriter) WriteTraceEvent(traceID, id string, event *model
 	return rw.writeEntry(key, data)
 }
 
-func (rw *PartitionedReadWriter) writeEntry(key, data []byte) error {
+func (rw *PrefixReadWriter) writeEntry(key, data []byte) error {
 	if err := rw.db.Set(key, data, pebble.NoSync); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (rw PartitionedReadWriter) WriteTraceSampled(traceID string, sampled bool, opts WriterOpts) error {
+func (rw PrefixReadWriter) WriteTraceSampled(traceID string, sampled bool, opts WriterOpts) error {
 	var b bytes.Buffer
-	b.Grow(1 + 1 + len(traceID))
-	b.WriteByte(byte(rw.partitionID))
-	b.WriteByte('@')
+	b.Grow(1 + len(traceID))
+	b.WriteByte(rw.prefix)
 	b.WriteString(traceID)
 
 	meta := entryMetaTraceUnsampled
@@ -99,11 +96,10 @@ func (rw PartitionedReadWriter) WriteTraceSampled(traceID string, sampled bool, 
 	return nil
 }
 
-func (rw PartitionedReadWriter) IsTraceSampled(traceID string) (bool, error) {
+func (rw PrefixReadWriter) IsTraceSampled(traceID string) (bool, error) {
 	var b bytes.Buffer
-	b.Grow(1 + 1 + len(traceID))
-	b.WriteByte(byte(rw.partitionID))
-	b.WriteByte('@')
+	b.Grow(1 + len(traceID))
+	b.WriteByte(rw.prefix)
 	b.WriteString(traceID)
 
 	item, closer, err := rw.db.Get(b.Bytes())
@@ -114,11 +110,10 @@ func (rw PartitionedReadWriter) IsTraceSampled(traceID string) (bool, error) {
 	return item[0] == entryMetaTraceSampled, nil
 }
 
-func (rw PartitionedReadWriter) DeleteTraceEvent(traceID, id string) error {
+func (rw PrefixReadWriter) DeleteTraceEvent(traceID, id string) error {
 	var b bytes.Buffer
-	b.Grow(1 + 1 + len(traceID) + 1 + len(id))
-	b.WriteByte(byte(rw.partitionID))
-	b.WriteByte('@')
+	b.Grow(1 + len(traceID) + 1 + len(id))
+	b.WriteByte(rw.prefix)
 	b.WriteString(traceID)
 	b.WriteByte(':')
 	b.WriteString(id)
@@ -131,7 +126,7 @@ func (rw PartitionedReadWriter) DeleteTraceEvent(traceID, id string) error {
 	return nil
 }
 
-func (rw PartitionedReadWriter) Flush() error {
+func (rw PrefixReadWriter) Flush() error {
 	//TODO implement me
 	panic("implement me")
 }
