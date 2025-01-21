@@ -7,7 +7,6 @@ package eventstorage
 import (
 	"errors"
 	"io"
-	"time"
 
 	"github.com/cockroachdb/pebble"
 
@@ -19,7 +18,6 @@ const (
 	// over time, to avoid misinterpreting historical data.
 	entryMetaTraceSampled   byte = 's'
 	entryMetaTraceUnsampled byte = 'u'
-	entryMetaTraceEvent     byte = 'e'
 )
 
 var (
@@ -87,7 +85,6 @@ func (s *Storage) NewReadWriter() *ReadWriter {
 
 // WriterOpts provides configuration options for writes to storage
 type WriterOpts struct {
-	TTL                 time.Duration
 	StorageLimitInBytes int64
 }
 
