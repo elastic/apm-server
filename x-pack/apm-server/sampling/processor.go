@@ -584,7 +584,6 @@ func newWrappedRW(rw eventstorage.RW, ttl time.Duration, limit int64) *wrappedRW
 	return &wrappedRW{
 		rw: rw,
 		writerOpts: eventstorage.WriterOpts{
-			TTL:                 ttl,
 			StorageLimitInBytes: limit,
 		},
 	}

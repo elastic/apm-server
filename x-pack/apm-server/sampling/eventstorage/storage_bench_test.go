@@ -8,7 +8,6 @@ import (
 	"encoding/hex"
 	"fmt"
 	"testing"
-	"time"
 
 	"github.com/gofrs/uuid/v5"
 	"github.com/stretchr/testify/assert"
@@ -39,7 +38,6 @@ func BenchmarkWriteTransaction(b *testing.B) {
 		b.ResetTimer()
 
 		wOpts := eventstorage.WriterOpts{
-			TTL:                 time.Minute,
 			StorageLimitInBytes: 0,
 		}
 		for i := 0; i < b.N; i++ {
@@ -90,7 +88,6 @@ func BenchmarkReadEvents(b *testing.B) {
 				readWriter := sm.NewBypassReadWriter()
 				defer readWriter.Close()
 				wOpts := eventstorage.WriterOpts{
-					TTL:                 time.Minute,
 					StorageLimitInBytes: 0,
 				}
 
@@ -172,7 +169,6 @@ func BenchmarkReadEventsHit(b *testing.B) {
 				readWriter := sm.NewBypassReadWriter()
 				defer readWriter.Close()
 				wOpts := eventstorage.WriterOpts{
-					TTL:                 time.Hour,
 					StorageLimitInBytes: 0,
 				}
 
@@ -253,7 +249,6 @@ func BenchmarkIsTraceSampled(b *testing.B) {
 	readWriter := sm.NewBypassReadWriter()
 	defer readWriter.Close()
 	wOpts := eventstorage.WriterOpts{
-		TTL:                 time.Minute,
 		StorageLimitInBytes: 0,
 	}
 

@@ -63,7 +63,6 @@ func TestProcessAlreadyTailSampled(t *testing.T) {
 	trace2 := modelpb.Trace{Id: "0102030405060708090a0b0c0d0e0f11"}
 	writer := config.DB.NewBypassReadWriter()
 	wOpts := eventstorage.WriterOpts{
-		TTL:                 time.Hour,
 		StorageLimitInBytes: 0,
 	}
 	assert.NoError(t, writer.WriteTraceSampled(trace2.Id, true, wOpts))
