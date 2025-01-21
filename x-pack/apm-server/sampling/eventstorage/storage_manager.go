@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/cockroachdb/pebble"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/internal/logs"
@@ -163,15 +164,35 @@ func (s *StorageManager) Reload() error {
 
 // Run has the same lifecycle as the TBS processor as opposed to StorageManager to facilitate EA hot reload.
 func (s *StorageManager) Run(stopping <-chan struct{}, gcInterval time.Duration, ttl time.Duration, storageLimit uint64, storageLimitThreshold float64) error {
-	ttlTick := time.NewTicker(ttl)
-	defer ttlTick.Stop()
 	select {
 	case <-stopping:
 		return nil
-	case <-ttlTick.C:
-		_ = s.IncrementPartition()
+	case s.runCh <- struct{}{}:
 	}
-	return nil
+	defer func() {
+		<-s.runCh
+	}()
+
+	g := errgroup.Group{}
+	g.Go(func() error {
+		return s.runTTLLoop(stopping, gcInterval)
+	})
+	return g.Wait()
+}
+
+func (s *StorageManager) runTTLLoop(stopping <-chan struct{}, ttl time.Duration) error {
+	ticker := time.NewTicker(ttl)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-stopping:
+			return nil
+		case <-ticker.C:
+			if err := s.IncrementPartition(); err != nil {
+				s.logger.With(logp.Error(err)).Error("failed to increment partition")
+			}
+		}
+	}
 }
 
 func (s *StorageManager) IncrementPartition() error {
