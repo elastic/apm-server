@@ -6,6 +6,7 @@ package eventstorage
 
 import (
 	"errors"
+	"io"
 	"os"
 	"path/filepath"
 	"sync"
@@ -33,18 +34,28 @@ type wrappedDB struct {
 	db *pebble.DB
 }
 
+func (w *wrappedDB) Get(key []byte) ([]byte, io.Closer, error) {
+	return w.db.Get(key)
+}
+
+func (w *wrappedDB) Set(key, value []byte, opts *pebble.WriteOptions) error {
+	return w.db.Set(key, value, opts)
+}
+
+func (w *wrappedDB) Delete(key []byte, opts *pebble.WriteOptions) error {
+	return w.db.Delete(key, opts)
+}
+
+func (w *wrappedDB) NewIter(o *pebble.IterOptions) (*pebble.Iterator, error) {
+	return w.db.NewIter(o)
+}
+
 // Size returns the db size
 func (w *wrappedDB) Size() (lsm, vlog int64) {
 	// FIXME: we may want it to report the sum of 2 dbs
 	w.sm.mu.RLock()
 	defer w.sm.mu.RUnlock()
 	return int64(w.db.Metrics().DiskSpaceUsage()), 0 // FIXME
-}
-
-func (w *wrappedDB) NewIndexedBatch(opts ...pebble.BatchOption) *pebble.Batch {
-	w.sm.mu.RLock()
-	defer w.sm.mu.RUnlock()
-	return w.db.NewIndexedBatch(opts...)
 }
 
 type StorageManagerOptions func(*StorageManager)

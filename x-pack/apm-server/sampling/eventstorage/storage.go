@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"io"
 	"sync/atomic"
 	"time"
 
@@ -36,9 +37,11 @@ var (
 )
 
 type db interface {
-	NewIndexedBatch(opts ...pebble.BatchOption) *pebble.Batch
 	Size() (lsm, vlog int64)
-	//Close() error
+	Get(key []byte) ([]byte, io.Closer, error)
+	Set(key, value []byte, opts *pebble.WriteOptions) error
+	Delete(key []byte, opts *pebble.WriteOptions) error
+	NewIter(o *pebble.IterOptions) (*pebble.Iterator, error)
 }
 
 // Storage provides storage for sampled transactions and spans,
@@ -84,7 +87,6 @@ func (s *Storage) NewReadWriter() *ReadWriter {
 	//s.pendingSize.Add(baseTransactionSize)
 	return &ReadWriter{
 		s: s,
-		//txn:         nil, // lazy init to avoid deadlock in storage manager
 		//pendingSize: baseTransactionSize,
 	}
 }
@@ -116,36 +118,11 @@ type ReadWriter struct {
 	pendingSize int64
 }
 
-func (rw *ReadWriter) lazyInit() {
-	if rw.batch == nil {
-		//rw.batch = rw.s.db.NewIndexedBatch(
-		//	pebble.WithInitialSizeBytes(initialPebbleBatchSize),
-		//	pebble.WithMaxRetainedSizeBytes(maxRetainedPebbleBatchSize),
-		//)
-	}
-}
-
-func (rw *ReadWriter) decisionLazyInit() {
-	if rw.decisionBatch == nil {
-		//rw.decisionBatch = rw.s.decisionDB.NewIndexedBatch(
-		//	pebble.WithInitialSizeBytes(initialPebbleBatchSize),
-		//	pebble.WithMaxRetainedSizeBytes(maxRetainedPebbleBatchSize),
-		//) //FIXME: tuning
-	}
-}
-
 // Close closes the writer. Any writes that have not been flushed may be lost.
 //
 // This must be called when the writer is no longer needed, in order to reclaim
 // resources.
-func (rw *ReadWriter) Close() {
-	if rw.batch != nil {
-		rw.batch.Close()
-	}
-	if rw.decisionBatch != nil {
-		rw.decisionBatch.Close()
-	}
-}
+func (rw *ReadWriter) Close() {}
 
 // Flush waits for preceding writes to be committed to storage.
 //
@@ -153,54 +130,19 @@ func (rw *ReadWriter) Close() {
 // If Flush is not called before the writer is closed, then writes
 // may be lost.
 func (rw *ReadWriter) Flush() error {
-	const flushErrFmt = "failed to flush pending writes: %w"
-	err := errors.Join(rw.flushBatch(), rw.flushDecisionBatch())
-
-	//rw.s.pendingSize.Add(-rw.pendingSize)
-	rw.pendingWrites = 0
-	//rw.pendingSize = baseTransactionSize
-	//rw.s.pendingSize.Add(baseTransactionSize)
-	if err != nil {
-		return fmt.Errorf(flushErrFmt, err)
-	}
 	return nil
-}
-
-func (rw *ReadWriter) flushBatch() (err error) {
-	if rw.batch != nil {
-		//err = rw.batch.Commit(pebble.NoSync)
-		//rw.batch.Close()
-		//rw.batch = nil
-	}
-	return
-}
-
-func (rw *ReadWriter) flushDecisionBatch() (err error) {
-	if rw.decisionBatch != nil {
-		//err = rw.decisionBatch.Commit(pebble.NoSync)
-		//rw.decisionBatch.Close()
-		//rw.decisionBatch = nil
-	}
-	return
 }
 
 // WriteTraceSampled records the tail-sampling decision for the given trace ID.
 func (rw *ReadWriter) WriteTraceSampled(traceID string, sampled bool, opts WriterOpts) error {
-	rw.decisionLazyInit()
-
 	meta := entryMetaTraceUnsampled
 	if sampled {
 		meta = entryMetaTraceSampled
 	}
-	//FIXME not using batch
-	//err := rw.decisionBatch.Set([]byte(traceID), []byte{meta}, pebble.NoSync)
-	err := rw.s.decisionDB.(*wrappedDB).db.Set([]byte(traceID), []byte{meta}, pebble.NoSync)
+	err := rw.s.decisionDB.Set([]byte(traceID), []byte{meta}, pebble.NoSync)
 	if err != nil {
 		return err
 	}
-	//if rw.decisionBatch.Len() >= 2<<20 { // FIXME: magic number
-	//	return rw.flushDecisionBatch()
-	//}
 	return nil
 }
 
@@ -208,16 +150,12 @@ func (rw *ReadWriter) WriteTraceSampled(traceID string, sampled bool, opts Write
 // or unsampled. If no sampling decision has been recorded, IsTraceSampled
 // returns ErrNotFound.
 func (rw *ReadWriter) IsTraceSampled(traceID string) (bool, error) {
-	rw.decisionLazyInit()
-
 	// FIXME: this needs to be fast, as it is in the hot path
 	// It should minimize disk IO on miss due to
 	// 1. (pubsub) remote sampling decision
 	// 2. (hot path) sampling decision not made yet
 
-	//FIXME not using batch
-	//item, closer, err := rw.decisionBatch.Get([]byte(traceID))
-	item, closer, err := rw.s.decisionDB.(*wrappedDB).db.Get([]byte(traceID))
+	item, closer, err := rw.s.decisionDB.Get([]byte(traceID))
 	if err == pebble.ErrNotFound {
 		return false, ErrNotFound
 	}
@@ -228,10 +166,7 @@ func (rw *ReadWriter) IsTraceSampled(traceID string) (bool, error) {
 // WriteTraceEvent writes a trace event to storage.
 //
 // WriteTraceEvent may return before the write is committed to storage.
-// Call Flush to ensure the write is committed.
 func (rw *ReadWriter) WriteTraceEvent(traceID string, id string, event *modelpb.APMEvent, opts WriterOpts) error {
-	rw.lazyInit()
-
 	data, err := rw.s.codec.EncodeEvent(event)
 	if err != nil {
 		return err
@@ -248,24 +183,14 @@ func (rw *ReadWriter) WriteTraceEvent(traceID string, id string, event *modelpb.
 func (rw *ReadWriter) writeEntry(key, data []byte) error {
 	rw.pendingWrites++
 
-	// FIXME: disabled batch
-	if err := rw.s.db.(*wrappedDB).db.Set(key, data, pebble.NoSync); err != nil {
+	if err := rw.s.db.Set(key, data, pebble.NoSync); err != nil {
 		return err
 	}
-	//if err := rw.batch.Set(key, data, pebble.NoSync); err != nil {
-	//	return err
-	//}
-	//
-	//if rw.batch.Len() >= dbCommitThresholdBytes {
-	//	return rw.flushBatch()
-	//}
 	return nil
 }
 
 // DeleteTraceEvent deletes the trace event from storage.
 func (rw *ReadWriter) DeleteTraceEvent(traceID, id string) error {
-	rw.lazyInit()
-
 	var buf bytes.Buffer
 	buf.Grow(len(traceID) + 1 + len(id))
 	buf.WriteString(traceID)
@@ -273,33 +198,16 @@ func (rw *ReadWriter) DeleteTraceEvent(traceID, id string) error {
 	buf.WriteString(id)
 	key := buf.Bytes()
 
-	// FIXME: disabled batch
-	//err := rw.batch.Delete(key, pebble.NoSync)
-	//if err != nil {
-	//	return err
-	//}
-	err := rw.s.db.(*wrappedDB).db.Delete(key, pebble.NoSync)
+	err := rw.s.db.Delete(key, pebble.NoSync)
 	if err != nil {
 		return err
 	}
-	//if rw.batch.Len() > flushThreshold {
-	//	if err := rw.Flush(); err != nil {
-	//		return err
-	//	}
-	//}
 	return nil
 }
 
 // ReadTraceEvents reads trace events with the given trace ID from storage into out.
 func (rw *ReadWriter) ReadTraceEvents(traceID string, out *modelpb.Batch) error {
-	rw.lazyInit()
-
-	// FIXME: disabled batch
-	//iter, err := rw.batch.NewIter(&pebble.IterOptions{
-	//	LowerBound: append([]byte(traceID), ':'),
-	//	UpperBound: append([]byte(traceID), ';'), // This is a hack to stop before next ID
-	//})
-	iter, err := rw.s.db.(*wrappedDB).db.NewIter(&pebble.IterOptions{
+	iter, err := rw.s.db.NewIter(&pebble.IterOptions{
 		LowerBound: append([]byte(traceID), ':'),
 		UpperBound: append([]byte(traceID), ';'), // This is a hack to stop before next ID
 	})
