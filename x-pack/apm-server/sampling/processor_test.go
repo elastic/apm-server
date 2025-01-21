@@ -71,8 +71,8 @@ func TestProcessAlreadyTailSampled(t *testing.T) {
 	writer.Close()
 
 	// simulate 2 TTL
-	config.DB.IncrementPartition()
-	config.DB.IncrementPartition()
+	assert.NoError(t, config.DB.IncrementPartition())
+	assert.NoError(t, config.DB.IncrementPartition())
 
 	writer = config.DB.NewBypassReadWriter()
 	assert.NoError(t, writer.WriteTraceSampled(trace1.Id, true, wOpts))

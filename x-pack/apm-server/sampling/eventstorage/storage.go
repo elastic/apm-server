@@ -5,9 +5,7 @@
 package eventstorage
 
 import (
-	"bytes"
 	"errors"
-	"fmt"
 	"io"
 	"sync/atomic"
 	"time"
@@ -137,7 +135,7 @@ func (rw *ReadWriter) Flush() error {
 
 // WriteTraceSampled records the tail-sampling decision for the given trace ID.
 func (rw *ReadWriter) WriteTraceSampled(traceID string, sampled bool, opts WriterOpts) error {
-	return NewPartitionedReadWriter(rw.s.decisionDB, rw.s.decisionDB.PartitionID()).WriteTraceSampled(traceID, sampled, opts)
+	return NewPartitionedReadWriter(rw.s.decisionDB, rw.s.decisionDB.PartitionID(), rw.s.codec).WriteTraceSampled(traceID, sampled, opts)
 }
 
 // IsTraceSampled reports whether traceID belongs to a trace that is sampled
@@ -150,12 +148,12 @@ func (rw *ReadWriter) IsTraceSampled(traceID string) (bool, error) {
 	// It should minimize disk IO on miss due to
 	// 1. (pubsub) remote sampling decision
 	// 2. (hot path) sampling decision not made yet
-	sampled, err := NewPartitionedReadWriter(rw.s.decisionDB, currentPID).IsTraceSampled(traceID)
+	sampled, err := NewPartitionedReadWriter(rw.s.decisionDB, currentPID, rw.s.codec).IsTraceSampled(traceID)
 	if err == nil {
 		return sampled, nil
 	}
 
-	sampled, err = NewPartitionedReadWriter(rw.s.decisionDB, prevPID).IsTraceSampled(traceID)
+	sampled, err = NewPartitionedReadWriter(rw.s.decisionDB, prevPID, rw.s.codec).IsTraceSampled(traceID)
 	if err == nil {
 		return sampled, nil
 	}
@@ -167,75 +165,26 @@ func (rw *ReadWriter) IsTraceSampled(traceID string) (bool, error) {
 //
 // WriteTraceEvent may return before the write is committed to storage.
 func (rw *ReadWriter) WriteTraceEvent(traceID string, id string, event *modelpb.APMEvent, opts WriterOpts) error {
-	data, err := rw.s.codec.EncodeEvent(event)
-	if err != nil {
-		return err
-	}
-	var buf bytes.Buffer
-	buf.Grow(len(traceID) + 1 + len(id))
-	buf.WriteString(traceID)
-	buf.WriteByte(':')
-	buf.WriteString(id)
-	key := buf.Bytes()
-	return rw.writeEntry(key, data)
-}
-
-func (rw *ReadWriter) writeEntry(key, data []byte) error {
-	rw.pendingWrites++
-
-	if err := rw.s.db.Set(key, data, pebble.NoSync); err != nil {
-		return err
-	}
-	return nil
+	return NewPartitionedReadWriter(rw.s.db, rw.s.db.PartitionID(), rw.s.codec).WriteTraceEvent(traceID, id, event, opts)
 }
 
 // DeleteTraceEvent deletes the trace event from storage.
 func (rw *ReadWriter) DeleteTraceEvent(traceID, id string) error {
 	// FIXME: use range delete
-	var buf bytes.Buffer
-	buf.Grow(len(traceID) + 1 + len(id))
-	buf.WriteString(traceID)
-	buf.WriteByte(':')
-	buf.WriteString(id)
-	key := buf.Bytes()
-
-	err := rw.s.db.Delete(key, pebble.NoSync)
-	if err != nil {
-		return err
-	}
-	return nil
+	currentPID := rw.s.db.PartitionID()
+	prevPID := (currentPID - 1) % rw.s.db.PartitionCount()
+	return errors.Join(
+		NewPartitionedReadWriter(rw.s.db, currentPID, rw.s.codec).DeleteTraceEvent(traceID, id),
+		NewPartitionedReadWriter(rw.s.db, prevPID, rw.s.codec).DeleteTraceEvent(traceID, id),
+	)
 }
 
 // ReadTraceEvents reads trace events with the given trace ID from storage into out.
 func (rw *ReadWriter) ReadTraceEvents(traceID string, out *modelpb.Batch) error {
-	iter, err := rw.s.db.NewIter(&pebble.IterOptions{
-		LowerBound: append([]byte(traceID), ':'),
-		UpperBound: append([]byte(traceID), ';'), // This is a hack to stop before next ID
-	})
-	if err != nil {
-		return err
-	}
-	defer iter.Close()
-	// SeekPrefixGE uses the prefix bloom filter, so that a miss will be much faster
-	if valid := iter.SeekPrefixGE(append([]byte(traceID), ':')); !valid {
-		return nil
-	}
-	for ; iter.Valid(); iter.Next() {
-		event := &modelpb.APMEvent{}
-		data, err := iter.ValueAndErr()
-		if err != nil {
-			return err
-		}
-		if err := rw.s.codec.DecodeEvent(data, event); err != nil {
-			return fmt.Errorf("codec failed to decode event: %w", err)
-		}
-		*out = append(*out, event)
-	}
-	return nil
-}
-
-func timePrefix(t time.Time) string {
-	// FIXME: use TTL
-	// FIXME: convert int to bytes
-	return fmt.Sprintf("%d", t.Unix())
+	currentPID := rw.s.db.PartitionID()
+	prevPID := (currentPID - 1) % rw.s.db.PartitionCount()
+	return errors.Join(
+		NewPartitionedReadWriter(rw.s.db, currentPID, rw.s.codec).ReadTraceEvents(traceID, out),
+		NewPartitionedReadWriter(rw.s.db, prevPID, rw.s.codec).ReadTraceEvents(traceID, out),
+	)
 }

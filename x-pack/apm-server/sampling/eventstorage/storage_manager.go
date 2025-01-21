@@ -177,13 +177,20 @@ func (s *StorageManager) Run(stopping <-chan struct{}, gcInterval time.Duration,
 	case <-stopping:
 		return nil
 	case <-ttlTick.C:
-		s.IncrementPartition()
+		_ = s.IncrementPartition()
 	}
 	return nil
 }
 
-func (s *StorageManager) IncrementPartition() {
-	s.partitionID.Store((s.partitionID.Load() + 1) % s.partitionCount)
+func (s *StorageManager) IncrementPartition() error {
+	oldPID := s.partitionID.Load()
+	s.partitionID.Store((oldPID + 1) % s.partitionCount)
+
+	pidToDelete := (oldPID - 1) % s.partitionCount
+	return errors.Join(
+		s.db.DeleteRange([]byte{byte(pidToDelete)}, []byte{byte(oldPID)}, pebble.NoSync),
+		s.decisionDB.DeleteRange([]byte{byte(pidToDelete)}, []byte{byte(oldPID)}, pebble.NoSync),
+	)
 }
 
 func (s *StorageManager) ReadSubscriberPosition() ([]byte, error) {
