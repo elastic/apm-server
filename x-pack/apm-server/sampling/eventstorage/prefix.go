@@ -72,7 +72,7 @@ func (rw PrefixReadWriter) WriteTraceEvent(traceID, id string, event *modelpb.AP
 	return rw.writeEntry(key, data)
 }
 
-func (rw *PrefixReadWriter) writeEntry(key, data []byte) error {
+func (rw PrefixReadWriter) writeEntry(key, data []byte) error {
 	if err := rw.db.Set(key, data, pebble.NoSync); err != nil {
 		return err
 	}
