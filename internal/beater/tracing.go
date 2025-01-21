@@ -21,9 +21,10 @@ import (
 	"net"
 	"net/http"
 
-	"github.com/elastic/elastic-agent-libs/logp"
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/metric/noop"
+
+	"github.com/elastic/elastic-agent-libs/logp"
 
 	"github.com/elastic/apm-data/input"
 	"github.com/elastic/apm-data/model/modelpb"
