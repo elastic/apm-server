@@ -151,7 +151,7 @@ func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
 	if !assert.Zero(t, res.Hits.Total.Value, "expected no error logs, but found some") {
 		t.Log("found error logs:")
 		for _, h := range res.Hits.Hits {
-			t.Log(h.Source_)
+			t.Log(string(h.Source_))
 		}
 	}
 }
