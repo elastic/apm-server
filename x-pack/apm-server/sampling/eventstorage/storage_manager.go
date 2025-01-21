@@ -65,13 +65,12 @@ func WithCodec(codec Codec) StorageManagerOptions {
 }
 
 // StorageManager encapsulates pebble.DB.
-// It is to provide file system access, simplify synchronization and enable underlying db swaps.
 // It assumes exclusive access to pebble DB at storageDir.
 type StorageManager struct {
 	storageDir string
 	logger     *logp.Logger
 
-	db              *pebble.DB
+	eventDB         *pebble.DB
 	decisionDB      *pebble.DB
 	eventStorage    *Storage
 	decisionStorage *Storage
@@ -110,65 +109,65 @@ func NewStorageManager(storageDir string, opts ...StorageManagerOptions) (*Stora
 }
 
 // reset initializes db, storage, and rw.
-func (s *StorageManager) reset() error {
-	db, err := OpenPebble(s.storageDir)
+func (sm *StorageManager) reset() error {
+	db, err := OpenPebble(sm.storageDir)
 	if err != nil {
 		return err
 	}
-	s.db = db
-	s.eventStorage = New(&wrappedDB{sm: s, db: s.db}, s.codec)
+	sm.eventDB = db
+	sm.eventStorage = New(&wrappedDB{sm: sm, db: sm.eventDB}, sm.codec)
 
-	decisionDB, err := OpenSamplingDecisionPebble(s.storageDir)
+	decisionDB, err := OpenSamplingDecisionPebble(sm.storageDir)
 	if err != nil {
 		return err
 	}
-	s.decisionDB = decisionDB
-	s.decisionStorage = New(&wrappedDB{sm: s, db: s.decisionDB}, s.codec)
+	sm.decisionDB = decisionDB
+	sm.decisionStorage = New(&wrappedDB{sm: sm, db: sm.decisionDB}, sm.codec)
 
 	return nil
 }
 
-func (s *StorageManager) Size() (lsm, vlog int64) {
-	return int64(s.db.Metrics().DiskSpaceUsage() + s.decisionDB.Metrics().DiskSpaceUsage()), 0
+func (sm *StorageManager) Size() (lsm, vlog int64) {
+	return int64(sm.eventDB.Metrics().DiskSpaceUsage() + sm.decisionDB.Metrics().DiskSpaceUsage()), 0
 }
 
-func (s *StorageManager) Close() error {
-	return s.close()
+func (sm *StorageManager) Close() error {
+	return sm.close()
 }
 
-func (s *StorageManager) close() error {
-	return errors.Join(s.db.Close(), s.decisionDB.Close())
+func (sm *StorageManager) close() error {
+	return errors.Join(sm.eventDB.Close(), sm.decisionDB.Close())
 }
 
 // Reload flushes out pending disk writes to disk by reloading the database.
 // It does not flush uncommitted writes.
 // For testing only.
-func (s *StorageManager) Reload() error {
-	if err := s.close(); err != nil {
+func (sm *StorageManager) Reload() error {
+	if err := sm.close(); err != nil {
 		return err
 	}
-	return s.reset()
+	return sm.reset()
 }
 
 // Run has the same lifecycle as the TBS processor as opposed to StorageManager to facilitate EA hot reload.
-func (s *StorageManager) Run(stopping <-chan struct{}, gcInterval time.Duration, ttl time.Duration, storageLimit uint64, storageLimitThreshold float64) error {
+func (sm *StorageManager) Run(stopping <-chan struct{}, gcInterval time.Duration, ttl time.Duration, storageLimit uint64, storageLimitThreshold float64) error {
 	select {
 	case <-stopping:
 		return nil
-	case s.runCh <- struct{}{}:
+	case sm.runCh <- struct{}{}:
 	}
 	defer func() {
-		<-s.runCh
+		<-sm.runCh
 	}()
 
 	g := errgroup.Group{}
 	g.Go(func() error {
-		return s.runTTLLoop(stopping, gcInterval)
+		return sm.runTTLLoop(stopping, gcInterval)
 	})
 	return g.Wait()
 }
 
-func (s *StorageManager) runTTLLoop(stopping <-chan struct{}, ttl time.Duration) error {
+func (sm *StorageManager) runTTLLoop(stopping <-chan struct{}, ttl time.Duration) error {
 	ticker := time.NewTicker(ttl)
 	defer ticker.Stop()
 	for {
@@ -176,54 +175,54 @@ func (s *StorageManager) runTTLLoop(stopping <-chan struct{}, ttl time.Duration)
 		case <-stopping:
 			return nil
 		case <-ticker.C:
-			if err := s.IncrementPartition(); err != nil {
-				s.logger.With(logp.Error(err)).Error("failed to increment partition")
+			if err := sm.IncrementPartition(); err != nil {
+				sm.logger.With(logp.Error(err)).Error("failed to increment partition")
 			}
 		}
 	}
 }
 
-func (s *StorageManager) IncrementPartition() error {
-	oldPID := s.partitionID.Load()
-	s.partitionID.Store((oldPID + 1) % s.partitionCount)
+func (sm *StorageManager) IncrementPartition() error {
+	oldPID := sm.partitionID.Load()
+	sm.partitionID.Store((oldPID + 1) % sm.partitionCount)
 
-	pidToDelete := (oldPID + s.partitionCount - 1) % s.partitionCount
+	pidToDelete := (oldPID + sm.partitionCount - 1) % sm.partitionCount
 	lbPrefix := byte(pidToDelete)
 	ubPrefix := lbPrefix + 1 // Do not use % here as it MUST BE greater than lb
 	return errors.Join(
-		s.db.DeleteRange([]byte{lbPrefix}, []byte{ubPrefix}, pebble.NoSync),
-		s.decisionDB.DeleteRange([]byte{lbPrefix}, []byte{ubPrefix}, pebble.NoSync),
-		s.db.Compact([]byte{lbPrefix}, []byte{ubPrefix}, false),
-		s.decisionDB.Compact([]byte{lbPrefix}, []byte{ubPrefix}, false),
+		sm.eventDB.DeleteRange([]byte{lbPrefix}, []byte{ubPrefix}, pebble.NoSync),
+		sm.decisionDB.DeleteRange([]byte{lbPrefix}, []byte{ubPrefix}, pebble.NoSync),
+		sm.eventDB.Compact([]byte{lbPrefix}, []byte{ubPrefix}, false),
+		sm.decisionDB.Compact([]byte{lbPrefix}, []byte{ubPrefix}, false),
 	)
 }
 
-func (s *StorageManager) ReadSubscriberPosition() ([]byte, error) {
-	s.subscriberPosMu.Lock()
-	defer s.subscriberPosMu.Unlock()
-	return os.ReadFile(filepath.Join(s.storageDir, subscriberPositionFile))
+func (sm *StorageManager) ReadSubscriberPosition() ([]byte, error) {
+	sm.subscriberPosMu.Lock()
+	defer sm.subscriberPosMu.Unlock()
+	return os.ReadFile(filepath.Join(sm.storageDir, subscriberPositionFile))
 }
 
-func (s *StorageManager) WriteSubscriberPosition(data []byte) error {
-	s.subscriberPosMu.Lock()
-	defer s.subscriberPosMu.Unlock()
-	return os.WriteFile(filepath.Join(s.storageDir, subscriberPositionFile), data, 0644)
+func (sm *StorageManager) WriteSubscriberPosition(data []byte) error {
+	sm.subscriberPosMu.Lock()
+	defer sm.subscriberPosMu.Unlock()
+	return os.WriteFile(filepath.Join(sm.storageDir, subscriberPositionFile), data, 0644)
 }
 
-func (s *StorageManager) NewReadWriter() SplitReadWriter {
+func (sm *StorageManager) NewReadWriter() SplitReadWriter {
 	return SplitReadWriter{
-		eventRW:    s.eventStorage.NewShardedReadWriter(),
-		decisionRW: s.decisionStorage.NewShardedReadWriter(),
+		eventRW:    sm.eventStorage.NewShardedReadWriter(),
+		decisionRW: sm.decisionStorage.NewShardedReadWriter(),
 	}
 }
 
 // NewBypassReadWriter returns a SplitReadWriter directly reading and writing to the database,
 // bypassing any wrapper e.g. ShardedReadWriter.
 // This should be used for testing only, useful to check if data is actually persisted to the DB.
-func (s *StorageManager) NewBypassReadWriter() SplitReadWriter {
+func (sm *StorageManager) NewBypassReadWriter() SplitReadWriter {
 	return SplitReadWriter{
-		eventRW:    s.eventStorage.NewReadWriter(),
-		decisionRW: s.decisionStorage.NewReadWriter(),
+		eventRW:    sm.eventStorage.NewReadWriter(),
+		decisionRW: sm.decisionStorage.NewReadWriter(),
 	}
 }
 
