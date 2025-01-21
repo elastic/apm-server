@@ -33,13 +33,6 @@ import (
 	"github.com/elastic/elastic-agent-libs/logp"
 )
 
-var monitoringKeys = append(
-	request.DefaultResultIDs,
-	request.IDResponseErrorsRateLimit,
-	request.IDResponseErrorsTimeout,
-	request.IDResponseErrorsUnauthorized,
-)
-
 func TestMetrics(t *testing.T) {
 	for _, metrics := range []struct {
 		methodName string
