@@ -161,7 +161,7 @@ func (sm *StorageManager) Run(stopping <-chan struct{}, gcInterval time.Duration
 
 	g := errgroup.Group{}
 	g.Go(func() error {
-		return sm.runTTLLoop(stopping, gcInterval)
+		return sm.runTTLLoop(stopping, ttl)
 	})
 	return g.Wait()
 }
