@@ -66,6 +66,11 @@ func getDocsCountPerDS(t *testing.T, ctx context.Context, ecc *esclient.Client) 
 // documents count from a previous state.
 func assertDocCount(t *testing.T, docsCount, previous, expected esclient.APMDataStreamsDocCount) {
 	t.Helper()
+
+	for k := range expected {
+		assert.Contains(t, docsCount, k)
+	}
+
 	for ds, v := range docsCount {
 		if e, ok := expected[ds]; ok {
 			assert.Equal(t, e, v-previous[ds],
