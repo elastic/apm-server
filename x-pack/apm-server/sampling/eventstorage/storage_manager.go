@@ -190,6 +190,8 @@ func (s *StorageManager) IncrementPartition() error {
 	return errors.Join(
 		s.db.DeleteRange([]byte{byte(pidToDelete)}, []byte{byte(oldPID)}, pebble.NoSync),
 		s.decisionDB.DeleteRange([]byte{byte(pidToDelete)}, []byte{byte(oldPID)}, pebble.NoSync),
+		s.db.Compact([]byte{byte(pidToDelete)}, []byte{byte(oldPID)}, false),
+		s.decisionDB.Compact([]byte{byte(pidToDelete)}, []byte{byte(oldPID)}, false),
 	)
 }
 
