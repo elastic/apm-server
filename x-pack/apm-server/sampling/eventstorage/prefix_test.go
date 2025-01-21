@@ -25,7 +25,7 @@ func newPebble(t *testing.T) *pebble.DB {
 	return db
 }
 
-func TestTTLReadWriter_WriteTraceSampled(t *testing.T) {
+func TestPrefixReadWriter_samplingDecision(t *testing.T) {
 	for _, tc := range []struct {
 		sampled bool
 		missing bool
