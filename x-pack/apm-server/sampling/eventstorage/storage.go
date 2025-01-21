@@ -127,10 +127,10 @@ func (rw *ReadWriter) lazyInit() {
 
 func (rw *ReadWriter) decisionLazyInit() {
 	if rw.decisionBatch == nil {
-		rw.decisionBatch = rw.s.decisionDB.NewIndexedBatch(
-			pebble.WithInitialSizeBytes(initialPebbleBatchSize),
-			pebble.WithMaxRetainedSizeBytes(maxRetainedPebbleBatchSize),
-		) //FIXME: tuning
+		//rw.decisionBatch = rw.s.decisionDB.NewIndexedBatch(
+		//	pebble.WithInitialSizeBytes(initialPebbleBatchSize),
+		//	pebble.WithMaxRetainedSizeBytes(maxRetainedPebbleBatchSize),
+		//) //FIXME: tuning
 	}
 }
 
@@ -177,9 +177,9 @@ func (rw *ReadWriter) flushBatch() (err error) {
 
 func (rw *ReadWriter) flushDecisionBatch() (err error) {
 	if rw.decisionBatch != nil {
-		err = rw.decisionBatch.Commit(pebble.NoSync)
-		rw.decisionBatch.Close()
-		rw.decisionBatch = nil
+		//err = rw.decisionBatch.Commit(pebble.NoSync)
+		//rw.decisionBatch.Close()
+		//rw.decisionBatch = nil
 	}
 	return
 }
@@ -192,13 +192,15 @@ func (rw *ReadWriter) WriteTraceSampled(traceID string, sampled bool, opts Write
 	if sampled {
 		meta = entryMetaTraceSampled
 	}
-	err := rw.decisionBatch.Set([]byte(traceID), []byte{meta}, pebble.NoSync)
+	//FIXME not using batch
+	//err := rw.decisionBatch.Set([]byte(traceID), []byte{meta}, pebble.NoSync)
+	err := rw.s.decisionDB.(*wrappedDB).db.Set([]byte(traceID), []byte{meta}, pebble.NoSync)
 	if err != nil {
 		return err
 	}
-	if rw.decisionBatch.Len() >= 2<<20 { // FIXME: magic number
-		return rw.flushDecisionBatch()
-	}
+	//if rw.decisionBatch.Len() >= 2<<20 { // FIXME: magic number
+	//	return rw.flushDecisionBatch()
+	//}
 	return nil
 }
 
@@ -212,7 +214,10 @@ func (rw *ReadWriter) IsTraceSampled(traceID string) (bool, error) {
 	// It should minimize disk IO on miss due to
 	// 1. (pubsub) remote sampling decision
 	// 2. (hot path) sampling decision not made yet
-	item, closer, err := rw.decisionBatch.Get([]byte(traceID))
+
+	//FIXME not using batch
+	//item, closer, err := rw.decisionBatch.Get([]byte(traceID))
+	item, closer, err := rw.s.decisionDB.(*wrappedDB).db.Get([]byte(traceID))
 	if err == pebble.ErrNotFound {
 		return false, ErrNotFound
 	}
