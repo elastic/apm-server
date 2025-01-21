@@ -145,9 +145,7 @@ func (s *StorageManager) Close() error {
 
 func (s *StorageManager) close() error {
 	s.rw.Close()
-	_ = s.db.Close()         // FIXME
-	_ = s.decisionDB.Close() // FIXME
-	return nil
+	return errors.Join(s.db.Close(), s.decisionDB.Close())
 }
 
 // Reload flushes out pending disk writes to disk by reloading the database.
