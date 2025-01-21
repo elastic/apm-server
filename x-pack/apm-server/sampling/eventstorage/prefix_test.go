@@ -13,20 +13,6 @@ import (
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage"
 )
 
-type testPartitionDB struct {
-	*pebble.DB
-	partitionID    int32
-	partitionCount int32
-}
-
-func (t testPartitionDB) PartitionID() int32 {
-	return t.partitionID
-}
-
-func (t testPartitionDB) PartitionCount() int32 {
-	return t.partitionCount
-}
-
 func newPebble(t *testing.T) *pebble.DB {
 	db, err := pebble.Open("", &pebble.Options{
 		FS: vfs.NewMem(),
@@ -52,7 +38,7 @@ func TestTTLReadWriter_WriteTraceSampled(t *testing.T) {
 	} {
 		t.Run(fmt.Sprintf("sampled=%v,missing=%v", tc.sampled, tc.missing), func(t *testing.T) {
 			db := newPebble(t)
-			rw := eventstorage.NewPrefixReadWriter(testPartitionDB{DB: db}, 1, nopCodec{})
+			rw := eventstorage.NewPrefixReadWriter(db, 1, nopCodec{})
 			traceID := uuid.Must(uuid.NewV4()).String()
 			if !tc.missing {
 				err := rw.WriteTraceSampled(traceID, tc.sampled, eventstorage.WriterOpts{})

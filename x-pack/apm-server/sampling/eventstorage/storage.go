@@ -37,6 +37,10 @@ type db interface {
 	Set(key, value []byte, opts *pebble.WriteOptions) error
 	Delete(key []byte, opts *pebble.WriteOptions) error
 	NewIter(o *pebble.IterOptions) (*pebble.Iterator, error)
+}
+
+type partitionedDB interface {
+	db
 	PartitionID() int32
 	PartitionCount() int32
 }
@@ -44,8 +48,8 @@ type db interface {
 // Storage provides storage for sampled transactions and spans,
 // and for recording trace sampling decisions.
 type Storage struct {
-	db         db
-	decisionDB db
+	db         partitionedDB
+	decisionDB partitionedDB
 	codec      Codec
 }
 
@@ -56,7 +60,7 @@ type Codec interface {
 }
 
 // New returns a new Storage using db, decisionDB and codec.
-func New(db db, decisionDB db, codec Codec) *Storage {
+func New(db partitionedDB, decisionDB partitionedDB, codec Codec) *Storage {
 	return &Storage{
 		db:         db,
 		decisionDB: decisionDB,
