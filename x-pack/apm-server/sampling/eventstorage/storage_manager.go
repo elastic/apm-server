@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/cockroachdb/pebble"
@@ -58,6 +59,14 @@ func (w *wrappedDB) Size() (lsm, vlog int64) {
 	return int64(w.db.Metrics().DiskSpaceUsage()), 0 // FIXME
 }
 
+func (w *wrappedDB) PartitionID() int32 {
+	return w.sm.partitionID.Load()
+}
+
+func (w *wrappedDB) PartitionCount() int32 {
+	return w.sm.partitionCount
+}
+
 type StorageManagerOptions func(*StorageManager)
 
 func WithCodec(codec Codec) StorageManagerOptions {
@@ -78,6 +87,9 @@ type StorageManager struct {
 	storage    *Storage
 	rw         *ShardedReadWriter
 
+	partitionID    atomic.Int32
+	partitionCount int32
+
 	codec Codec
 
 	// mu guards db, storage, and rw swaps.
@@ -93,10 +105,11 @@ type StorageManager struct {
 // NewStorageManager returns a new StorageManager with pebble DB at storageDir.
 func NewStorageManager(storageDir string, opts ...StorageManagerOptions) (*StorageManager, error) {
 	sm := &StorageManager{
-		storageDir: storageDir,
-		runCh:      make(chan struct{}, 1),
-		logger:     logp.NewLogger(logs.Sampling),
-		codec:      ProtobufCodec{},
+		storageDir:     storageDir,
+		runCh:          make(chan struct{}, 1),
+		logger:         logp.NewLogger(logs.Sampling),
+		codec:          ProtobufCodec{},
+		partitionCount: 3,
 	}
 	for _, opt := range opts {
 		opt(sm)
@@ -158,7 +171,19 @@ func (s *StorageManager) Reload() error {
 
 // Run has the same lifecycle as the TBS processor as opposed to StorageManager to facilitate EA hot reload.
 func (s *StorageManager) Run(stopping <-chan struct{}, gcInterval time.Duration, ttl time.Duration, storageLimit uint64, storageLimitThreshold float64) error {
+	ttlTick := time.NewTicker(ttl)
+	defer ttlTick.Stop()
+	select {
+	case <-stopping:
+		return nil
+	case <-ttlTick.C:
+		s.IncrementPartition()
+	}
 	return nil
+}
+
+func (s *StorageManager) IncrementPartition() {
+	s.partitionID.Store((s.partitionID.Load() + 1) % s.partitionCount)
 }
 
 func (s *StorageManager) ReadSubscriberPosition() ([]byte, error) {

@@ -63,17 +63,19 @@ func TestProcessAlreadyTailSampled(t *testing.T) {
 	trace2 := modelpb.Trace{Id: "0102030405060708090a0b0c0d0e0f11"}
 	writer := config.DB.NewBypassReadWriter()
 	wOpts := eventstorage.WriterOpts{
-		TimeNow:             time.Now,
-		TTL:                 time.Minute,
+		TTL:                 time.Hour,
 		StorageLimitInBytes: 0,
 	}
-	assert.NoError(t, writer.WriteTraceSampled(trace1.Id, true, wOpts))
+	assert.NoError(t, writer.WriteTraceSampled(trace2.Id, true, wOpts))
 	assert.NoError(t, writer.Flush())
 	writer.Close()
 
-	wOpts.TimeNow = func() time.Time { return time.Now().Add(-2 * wOpts.TTL) }
+	// simulate 2 TTL
+	config.DB.IncrementPartition()
+	config.DB.IncrementPartition()
+
 	writer = config.DB.NewBypassReadWriter()
-	assert.NoError(t, writer.WriteTraceSampled(trace2.Id, true, wOpts))
+	assert.NoError(t, writer.WriteTraceSampled(trace1.Id, true, wOpts))
 	assert.NoError(t, writer.Flush())
 	writer.Close()
 

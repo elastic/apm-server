@@ -3,7 +3,6 @@ package eventstorage_test
 import (
 	"fmt"
 	"testing"
-	"time"
 
 	"github.com/cockroachdb/pebble"
 	"github.com/cockroachdb/pebble/vfs"
@@ -13,6 +12,20 @@ import (
 
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage"
 )
+
+type testPartitionDB struct {
+	*pebble.DB
+	partitionID    int32
+	partitionCount int32
+}
+
+func (t testPartitionDB) PartitionID() int32 {
+	return t.partitionID
+}
+
+func (t testPartitionDB) PartitionCount() int32 {
+	return t.partitionCount
+}
 
 func newPebble(t *testing.T) *pebble.DB {
 	db, err := pebble.Open("", &pebble.Options{
@@ -38,9 +51,8 @@ func TestTTLReadWriter_WriteTraceSampled(t *testing.T) {
 		},
 	} {
 		t.Run(fmt.Sprintf("sampled=%v,missing=%v", tc.sampled, tc.missing), func(t *testing.T) {
-			tt := time.Unix(3600, 0)
 			db := newPebble(t)
-			rw := eventstorage.NewTTLReadWriter(tt, db)
+			rw := eventstorage.NewPartitionedReadWriter(testPartitionDB{DB: db}, 1)
 			traceID := uuid.Must(uuid.NewV4()).String()
 			if !tc.missing {
 				err := rw.WriteTraceSampled(traceID, tc.sampled, eventstorage.WriterOpts{})

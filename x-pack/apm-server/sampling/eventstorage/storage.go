@@ -42,6 +42,8 @@ type db interface {
 	Set(key, value []byte, opts *pebble.WriteOptions) error
 	Delete(key []byte, opts *pebble.WriteOptions) error
 	NewIter(o *pebble.IterOptions) (*pebble.Iterator, error)
+	PartitionID() int32
+	PartitionCount() int32
 }
 
 // Storage provides storage for sampled transactions and spans,
@@ -93,7 +95,6 @@ func (s *Storage) NewReadWriter() *ReadWriter {
 
 // WriterOpts provides configuration options for writes to storage
 type WriterOpts struct {
-	TimeNow             func() time.Time
 	TTL                 time.Duration
 	StorageLimitInBytes int64
 }
@@ -136,32 +137,25 @@ func (rw *ReadWriter) Flush() error {
 
 // WriteTraceSampled records the tail-sampling decision for the given trace ID.
 func (rw *ReadWriter) WriteTraceSampled(traceID string, sampled bool, opts WriterOpts) error {
-	var now time.Time
-	if opts.TimeNow != nil {
-		now = opts.TimeNow()
-	} else {
-		now = time.Now()
-	}
-
-	return TTLReadWriter{truncatedTime: now.Truncate(opts.TTL), db: rw.s.decisionDB}.WriteTraceSampled(traceID, sampled, opts)
+	return NewPartitionedReadWriter(rw.s.decisionDB, rw.s.decisionDB.PartitionID()).WriteTraceSampled(traceID, sampled, opts)
 }
 
 // IsTraceSampled reports whether traceID belongs to a trace that is sampled
 // or unsampled. If no sampling decision has been recorded, IsTraceSampled
 // returns ErrNotFound.
 func (rw *ReadWriter) IsTraceSampled(traceID string) (bool, error) {
+	currentPID := rw.s.decisionDB.PartitionID()
+	prevPID := (currentPID - 1) % rw.s.decisionDB.PartitionCount()
 	// FIXME: this needs to be fast, as it is in the hot path
 	// It should minimize disk IO on miss due to
 	// 1. (pubsub) remote sampling decision
 	// 2. (hot path) sampling decision not made yet
-	now := time.Now()
-	ttl := time.Minute
-	sampled, err := TTLReadWriter{truncatedTime: now.Truncate(ttl), db: rw.s.decisionDB}.IsTraceSampled(traceID)
+	sampled, err := NewPartitionedReadWriter(rw.s.decisionDB, currentPID).IsTraceSampled(traceID)
 	if err == nil {
 		return sampled, nil
 	}
 
-	sampled, err = TTLReadWriter{truncatedTime: now.Add(-ttl).Truncate(ttl), db: rw.s.decisionDB}.IsTraceSampled(traceID)
+	sampled, err = NewPartitionedReadWriter(rw.s.decisionDB, prevPID).IsTraceSampled(traceID)
 	if err == nil {
 		return sampled, nil
 	}
