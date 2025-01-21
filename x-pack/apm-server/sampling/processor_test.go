@@ -55,8 +55,6 @@ func TestProcessUnsampled(t *testing.T) {
 }
 
 func TestProcessAlreadyTailSampled(t *testing.T) {
-	t.FailNow() // Expected to fail as TTL is not handled as strictly in pebble
-
 	config := newTempdirConfig(t)
 
 	// Seed event storage with a tail-sampling decisions, to show that
@@ -65,6 +63,7 @@ func TestProcessAlreadyTailSampled(t *testing.T) {
 	trace2 := modelpb.Trace{Id: "0102030405060708090a0b0c0d0e0f11"}
 	writer := config.DB.NewBypassReadWriter()
 	wOpts := eventstorage.WriterOpts{
+		TimeNow:             time.Now,
 		TTL:                 time.Minute,
 		StorageLimitInBytes: 0,
 	}
@@ -72,7 +71,7 @@ func TestProcessAlreadyTailSampled(t *testing.T) {
 	assert.NoError(t, writer.Flush())
 	writer.Close()
 
-	wOpts.TTL = -1 // expire immediately
+	wOpts.TimeNow = func() time.Time { return time.Now().Add(-2 * wOpts.TTL) }
 	writer = config.DB.NewBypassReadWriter()
 	assert.NoError(t, writer.WriteTraceSampled(trace2.Id, true, wOpts))
 	assert.NoError(t, writer.Flush())

@@ -37,7 +37,7 @@ var (
 )
 
 type db interface {
-	Size() (lsm, vlog int64)
+	//Size() (lsm, vlog int64)
 	Get(key []byte) ([]byte, io.Closer, error)
 	Set(key, value []byte, opts *pebble.WriteOptions) error
 	Delete(key []byte, opts *pebble.WriteOptions) error
@@ -93,6 +93,7 @@ func (s *Storage) NewReadWriter() *ReadWriter {
 
 // WriterOpts provides configuration options for writes to storage
 type WriterOpts struct {
+	TimeNow             func() time.Time
 	TTL                 time.Duration
 	StorageLimitInBytes int64
 }
@@ -135,15 +136,14 @@ func (rw *ReadWriter) Flush() error {
 
 // WriteTraceSampled records the tail-sampling decision for the given trace ID.
 func (rw *ReadWriter) WriteTraceSampled(traceID string, sampled bool, opts WriterOpts) error {
-	meta := entryMetaTraceUnsampled
-	if sampled {
-		meta = entryMetaTraceSampled
+	var now time.Time
+	if opts.TimeNow != nil {
+		now = opts.TimeNow()
+	} else {
+		now = time.Now()
 	}
-	err := rw.s.decisionDB.Set([]byte(traceID), []byte{meta}, pebble.NoSync)
-	if err != nil {
-		return err
-	}
-	return nil
+
+	return TTLReadWriter{truncatedTime: now.Truncate(opts.TTL), db: rw.s.decisionDB}.WriteTraceSampled(traceID, sampled, opts)
 }
 
 // IsTraceSampled reports whether traceID belongs to a trace that is sampled
@@ -154,13 +154,19 @@ func (rw *ReadWriter) IsTraceSampled(traceID string) (bool, error) {
 	// It should minimize disk IO on miss due to
 	// 1. (pubsub) remote sampling decision
 	// 2. (hot path) sampling decision not made yet
-
-	item, closer, err := rw.s.decisionDB.Get([]byte(traceID))
-	if err == pebble.ErrNotFound {
-		return false, ErrNotFound
+	now := time.Now()
+	ttl := time.Minute
+	sampled, err := TTLReadWriter{truncatedTime: now.Truncate(ttl), db: rw.s.decisionDB}.IsTraceSampled(traceID)
+	if err == nil {
+		return sampled, nil
 	}
-	defer closer.Close()
-	return item[0] == entryMetaTraceSampled, nil
+
+	sampled, err = TTLReadWriter{truncatedTime: now.Add(-ttl).Truncate(ttl), db: rw.s.decisionDB}.IsTraceSampled(traceID)
+	if err == nil {
+		return sampled, nil
+	}
+
+	return false, err
 }
 
 // WriteTraceEvent writes a trace event to storage.
@@ -232,4 +238,10 @@ func (rw *ReadWriter) ReadTraceEvents(traceID string, out *modelpb.Batch) error 
 		*out = append(*out, event)
 	}
 	return nil
+}
+
+func timePrefix(t time.Time) string {
+	// FIXME: use TTL
+	// FIXME: convert int to bytes
+	return fmt.Sprintf("%d", t.Unix())
 }
