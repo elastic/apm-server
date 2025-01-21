@@ -25,7 +25,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/apm-server/internal/beater/api/intake"
 	"github.com/elastic/apm-server/internal/beater/config"
 	"github.com/elastic/apm-server/internal/beater/headers"
 	"github.com/elastic/apm-server/internal/beater/request"
@@ -65,13 +64,15 @@ func TestIntakeBackendHandler_PanicMiddleware(t *testing.T) {
 }
 
 func TestIntakeBackendHandler_MonitoringMiddleware(t *testing.T) {
-	// send GET request resulting in 405 MethodNotAllowed error
-	testMonitoringMiddleware(t, "/intake/v2/events", intake.MonitoringMap, map[request.ResultID]int{
-		request.IDRequestCount:                   1,
-		request.IDResponseCount:                  1,
-		request.IDResponseErrorsCount:            1,
-		request.IDResponseErrorsMethodNotAllowed: 1,
+	expectedMetric := getMetrics("apm-server.server.", map[string]any{
+		string(request.IDRequestCount):                   1,
+		string(request.IDResponseCount):                  1,
+		string(request.IDResponseErrorsCount):            1,
+		string(request.IDResponseErrorsMethodNotAllowed): 1,
 	})
+	expectedMetric["http.server.request.duration"] = 1
+	// send GET request resulting in 405 MethodNotAllowed error
+	testMonitoringMiddleware(t, "/intake/v2/events", expectedMetric)
 }
 
 func approvalPathIntakeBackend(f string) string {

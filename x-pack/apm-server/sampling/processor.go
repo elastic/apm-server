@@ -13,7 +13,6 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/metric"
 	"golang.org/x/sync/errgroup"
 
@@ -32,10 +31,6 @@ const (
 	// shutdownGracePeriod is the time that the processor has to gracefully
 	// terminate after the stop method is called.
 	shutdownGracePeriod = 5 * time.Second
-)
-
-var (
-	meter = otel.Meter("github.com/elastic/apm-server/x-pack/apm-server/sampling")
 )
 
 // Processor is a tail-sampling event processor.
@@ -68,12 +63,14 @@ func NewProcessor(config Config) (*Processor, error) {
 		return nil, errors.Wrap(err, "invalid tail-sampling config")
 	}
 
+	meter := config.MeterProvider.Meter("github.com/elastic/apm-server/x-pack/apm-server/sampling")
+
 	logger := logp.NewLogger(logs.Sampling)
 	p := &Processor{
 		config:            config,
 		logger:            logger,
 		rateLimitedLogger: logger.WithOptions(logs.WithRateLimit(loggerRateLimit)),
-		groups:            newTraceGroups(config.Policies, config.MaxDynamicServices, config.IngestRateDecayFactor),
+		groups:            newTraceGroups(meter, config.Policies, config.MaxDynamicServices, config.IngestRateDecayFactor),
 		eventStore:        newWrappedRW(config.Storage, config.TTL, int64(config.StorageLimit)),
 		stopping:          make(chan struct{}),
 		stopped:           make(chan struct{}),

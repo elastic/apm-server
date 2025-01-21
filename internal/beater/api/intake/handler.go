@@ -24,7 +24,7 @@ import (
 	"net/http"
 	"strings"
 
-	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/metric"
 
 	"github.com/elastic/apm-data/input/elasticapm"
 	"github.com/elastic/apm-data/model/modelpb"
@@ -51,8 +51,8 @@ var (
 type RequestMetadataFunc func(*request.Context) *modelpb.APMEvent
 
 // Handler returns a request.Handler for managing intake requests for backend and rum events.
-func Handler(handler elasticapm.StreamHandler, requestMetadataFunc RequestMetadataFunc, batchProcessor modelpb.BatchProcessor) request.Handler {
-	meter := otel.Meter("github.com/elastic/apm-server/internal/beater/api/intake")
+func Handler(mp metric.MeterProvider, handler elasticapm.StreamHandler, requestMetadataFunc RequestMetadataFunc, batchProcessor modelpb.BatchProcessor) request.Handler {
+	meter := mp.Meter("github.com/elastic/apm-server/internal/beater/api/intake")
 	eventsAccepted, _ := meter.Int64Counter("apm-server.processor.stream.accepted")
 	eventsInvalid, _ := meter.Int64Counter("apm-server.processor.stream.errors.invalid")
 	eventsTooLarge, _ := meter.Int64Counter("apm-server.processor.stream.errors.toolarge")

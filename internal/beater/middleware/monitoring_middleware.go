@@ -23,7 +23,6 @@ import (
 	"sync"
 	"time"
 
-	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/metric"
 
 	"github.com/elastic/apm-server/internal/beater/request"
@@ -94,10 +93,6 @@ func (m *monitoringMiddleware) getHistogram(n string, opts ...metric.Int64Histog
 // MonitoringMiddleware returns a middleware that increases monitoring counters for collecting metrics
 // about request processing. As input parameter it takes a map capable of mapping a request.ResultID to a counter.
 func MonitoringMiddleware(legacyMetricsPrefix string, mp metric.MeterProvider) Middleware {
-	if mp == nil {
-		mp = otel.GetMeterProvider()
-	}
-
 	mid := &monitoringMiddleware{
 		meter:               mp.Meter("github.com/elastic/apm-server/internal/beater/middleware"),
 		legacyMetricsPrefix: legacyMetricsPrefix,

@@ -67,6 +67,7 @@ func (g *policyGroup) match(transactionEvent *modelpb.APMEvent) bool {
 }
 
 func newTraceGroups(
+	meter metric.Meter,
 	policies []Policy,
 	maxDynamicServiceGroups int,
 	ingestRateDecayFactor float64,

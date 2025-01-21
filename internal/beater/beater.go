@@ -36,6 +36,7 @@ import (
 	"go.elastic.co/apm/module/apmotel/v2"
 	"go.elastic.co/apm/v2"
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/metric"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
@@ -85,8 +86,9 @@ type Runner struct {
 	outputConfig              agentconfig.Namespace
 	elasticsearchOutputConfig *agentconfig.C
 
-	metricReader *sdkmetric.ManualReader
-	listener     net.Listener
+	metricReader  *sdkmetric.ManualReader
+	meterProvider metric.MeterProvider
+	listener      net.Listener
 }
 
 // RunnerParams holds parameters for NewRunner.
@@ -99,6 +101,8 @@ type RunnerParams struct {
 	Logger *logp.Logger
 
 	MetricReader *sdkmetric.ManualReader
+
+	MeterProvider metric.MeterProvider
 
 	// WrapServer holds an optional WrapServerFunc, for wrapping the
 	// ServerParams and RunServerFunc used to run the APM Server.
@@ -148,8 +152,9 @@ func NewRunner(args RunnerParams) (*Runner, error) {
 		outputConfig:              unpackedConfig.Output,
 		elasticsearchOutputConfig: elasticsearchOutputConfig,
 
-		metricReader: args.MetricReader,
-		listener:     listener,
+		metricReader:  args.MetricReader,
+		meterProvider: args.MeterProvider,
+		listener:      listener,
 	}, nil
 }
 
@@ -157,7 +162,7 @@ func NewRunner(args RunnerParams) (*Runner, error) {
 func (s *Runner) Run(ctx context.Context) error {
 	defer s.listener.Close()
 	g, ctx := errgroup.WithContext(ctx)
-	meter := otel.Meter("github.com/elastic/apm-server/internal/beater")
+	meter := s.meterProvider.Meter("github.com/elastic/apm-server/internal/beater")
 
 	// backgroundContext is a context to use in operations that should
 	// block until shutdown, and will be cancelled after the shutdown
@@ -364,7 +369,7 @@ func (s *Runner) Run(ctx context.Context) error {
 		apmgrpc.NewUnaryServerInterceptor(apmgrpc.WithRecovery(), apmgrpc.WithTracer(tracer)),
 		interceptors.ClientMetadata(),
 		interceptors.Logging(gRPCLogger),
-		interceptors.Metrics(gRPCLogger, nil),
+		interceptors.Metrics(gRPCLogger, s.meterProvider),
 		interceptors.Timeout(),
 		interceptors.Auth(authenticator),
 		interceptors.AnonymousRateLimit(ratelimitStore),
@@ -388,7 +393,7 @@ func (s *Runner) Run(ctx context.Context) error {
 		// aggregated metrics are also processed.
 		newObserverBatchProcessor(),
 		&modelprocessor.SetDataStream{Namespace: s.config.DataStreams.Namespace},
-		srvmodelprocessor.NewEventCounter(otel.GetMeterProvider()),
+		srvmodelprocessor.NewEventCounter(s.meterProvider),
 
 		// The server always drops non-RUM unsampled transactions. We store RUM unsampled
 		// transactions as they are needed by the User Experience app, which performs
@@ -433,6 +438,7 @@ func (s *Runner) Run(ctx context.Context) error {
 		Namespace:              s.config.DataStreams.Namespace,
 		Logger:                 s.logger,
 		Tracer:                 tracer,
+		MeterProvider:          s.meterProvider,
 		Authenticator:          authenticator,
 		RateLimitStore:         ratelimitStore,
 		BatchProcessor:         batchProcessor,
@@ -489,7 +495,7 @@ func (s *Runner) Run(ctx context.Context) error {
 		return runServer(ctx, serverParams)
 	})
 	if tracerServerListener != nil {
-		tracerServer, err := newTracerServer(s.config, tracerServerListener, s.logger, serverParams.BatchProcessor, serverParams.Semaphore)
+		tracerServer, err := newTracerServer(s.config, tracerServerListener, s.logger, serverParams.BatchProcessor, serverParams.Semaphore, serverParams.MeterProvider)
 		if err != nil {
 			return fmt.Errorf("failed to create self-instrumentation server: %w", err)
 		}
@@ -692,7 +698,7 @@ func (s *Runner) newFinalBatchProcessor(
 	monitoring.NewString(outputRegistry, "name").Set("elasticsearch")
 
 	// Create the docappender and Elasticsearch config
-	appenderCfg, esCfg, err := s.newDocappenderConfig(tracer, memLimit)
+	appenderCfg, esCfg, err := s.newDocappenderConfig(tracer, s.meterProvider, memLimit)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -707,7 +713,7 @@ func (s *Runner) newFinalBatchProcessor(
 	return newDocappenderBatchProcessor(appender), appender.Close, nil
 }
 
-func (s *Runner) newDocappenderConfig(tracer *apm.Tracer, memLimit float64) (
+func (s *Runner) newDocappenderConfig(tracer *apm.Tracer, mp metric.MeterProvider, memLimit float64) (
 	docappender.Config, *elasticsearch.Config, error,
 ) {
 	esConfig := struct {
@@ -752,6 +758,7 @@ func (s *Runner) newDocappenderConfig(tracer *apm.Tracer, memLimit float64) (
 		FlushBytes:        flushBytes,
 		FlushInterval:     esConfig.FlushInterval,
 		Tracer:            tracer,
+		MeterProvider:     mp,
 		MaxRequests:       esConfig.MaxRequests,
 		Scaling:           scalingCfg,
 		Logger:            zap.New(s.logger.Core(), zap.WithCaller(true)),

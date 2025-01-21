@@ -22,7 +22,6 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 	"google.golang.org/grpc"
@@ -32,7 +31,6 @@ import (
 	"github.com/elastic/apm-server/internal/beater/monitoringtest"
 	"github.com/elastic/apm-server/internal/beater/request"
 	"github.com/elastic/elastic-agent-libs/logp"
-	"github.com/elastic/elastic-agent-libs/monitoring"
 )
 
 var monitoringKeys = append(
@@ -43,199 +41,145 @@ var monitoringKeys = append(
 )
 
 func TestMetrics(t *testing.T) {
-	reader := sdkmetric.NewManualReader(sdkmetric.WithTemporalitySelector(
-		func(ik sdkmetric.InstrumentKind) metricdata.Temporality {
-			return metricdata.DeltaTemporality
-		},
-	))
-	mp := sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader))
-
-	registry := monitoring.NewRegistry()
-
-	monitoringMap := request.MonitoringMapForRegistry(registry, monitoringKeys)
-	methodName := "test_method_name"
-	logger := logp.NewLogger("interceptor.metrics.test")
-
-	interceptor := Metrics(logger, mp)
-
-	ctx := context.Background()
-	info := &grpc.UnaryServerInfo{
-		FullMethod: methodName,
-		Server: requestMetricsFunc(func(fullMethod string) map[request.ResultID]*monitoring.Int {
-			assert.Equal(t, methodName, fullMethod)
-			return monitoringMap
-		}),
-	}
-
-	for _, tc := range []struct {
-		name          string
-		f             func(ctx context.Context, req interface{}) (interface{}, error)
-		monitoringInt map[request.ResultID]int64
-		expectedOtel  map[string]interface{}
+	for _, metrics := range []struct {
+		methodName string
+		prefix     string
 	}{
 		{
-			name: "with an error",
-			f: func(ctx context.Context, req interface{}) (interface{}, error) {
-				return nil, errors.New("error")
-			},
-			monitoringInt: map[request.ResultID]int64{
-				request.IDRequestCount:               1,
-				request.IDResponseCount:              1,
-				request.IDResponseValidCount:         0,
-				request.IDResponseErrorsCount:        1,
-				request.IDResponseErrorsRateLimit:    0,
-				request.IDResponseErrorsTimeout:      0,
-				request.IDResponseErrorsUnauthorized: 0,
-			},
-			expectedOtel: map[string]interface{}{
-				"grpc.server." + string(request.IDRequestCount):        1,
-				"grpc.server." + string(request.IDResponseCount):       1,
-				"grpc.server." + string(request.IDResponseErrorsCount): 1,
-
-				"grpc.server.request.duration": 1,
-			},
+			methodName: "/opentelemetry.proto.collector.metrics.v1.MetricsService/Export",
+			prefix:     "apm-server.otlp.grpc.metrics.",
 		},
 		{
-			name: "with an unauthenticated error",
-			f: func(ctx context.Context, req interface{}) (interface{}, error) {
-				return nil, status.Error(codes.Unauthenticated, "error")
-			},
-			monitoringInt: map[request.ResultID]int64{
-				request.IDRequestCount:               1,
-				request.IDResponseCount:              1,
-				request.IDResponseValidCount:         0,
-				request.IDResponseErrorsCount:        1,
-				request.IDResponseErrorsInternal:     0,
-				request.IDResponseErrorsRateLimit:    0,
-				request.IDResponseErrorsTimeout:      0,
-				request.IDResponseErrorsUnauthorized: 1,
-			},
-			expectedOtel: map[string]interface{}{
-				"grpc.server." + string(request.IDRequestCount):               1,
-				"grpc.server." + string(request.IDResponseCount):              1,
-				"grpc.server." + string(request.IDResponseErrorsCount):        1,
-				"grpc.server." + string(request.IDResponseErrorsUnauthorized): 1,
-
-				"grpc.server.request.duration": 1,
-			},
+			methodName: "/opentelemetry.proto.collector.trace.v1.TraceService/Export",
+			prefix:     "apm-server.otlp.grpc.traces.",
 		},
 		{
-			name: "with a deadline exceeded error",
-			f: func(ctx context.Context, req interface{}) (interface{}, error) {
-				return nil, status.Error(codes.DeadlineExceeded, "request timed out")
-			},
-			monitoringInt: map[request.ResultID]int64{
-				request.IDRequestCount:               1,
-				request.IDResponseCount:              1,
-				request.IDResponseValidCount:         0,
-				request.IDResponseErrorsCount:        1,
-				request.IDResponseErrorsInternal:     0,
-				request.IDResponseErrorsRateLimit:    0,
-				request.IDResponseErrorsTimeout:      1,
-				request.IDResponseErrorsUnauthorized: 0,
-			},
-			expectedOtel: map[string]interface{}{
-				"grpc.server." + string(request.IDRequestCount):          1,
-				"grpc.server." + string(request.IDResponseCount):         1,
-				"grpc.server." + string(request.IDResponseErrorsCount):   1,
-				"grpc.server." + string(request.IDResponseErrorsTimeout): 1,
-
-				"grpc.server.request.duration": 1,
-			},
-		},
-		{
-			name: "with a canceled error",
-			f: func(ctx context.Context, req interface{}) (interface{}, error) {
-				return nil, status.Error(codes.Canceled, "request timed out")
-			},
-			monitoringInt: map[request.ResultID]int64{
-				request.IDRequestCount:               1,
-				request.IDResponseCount:              1,
-				request.IDResponseValidCount:         0,
-				request.IDResponseErrorsCount:        1,
-				request.IDResponseErrorsInternal:     0,
-				request.IDResponseErrorsRateLimit:    0,
-				request.IDResponseErrorsTimeout:      1,
-				request.IDResponseErrorsUnauthorized: 0,
-			},
-			expectedOtel: map[string]interface{}{
-				"grpc.server." + string(request.IDRequestCount):          1,
-				"grpc.server." + string(request.IDResponseCount):         1,
-				"grpc.server." + string(request.IDResponseErrorsCount):   1,
-				"grpc.server." + string(request.IDResponseErrorsTimeout): 1,
-
-				"grpc.server.request.duration": 1,
-			},
-		},
-		{
-			name: "with a resource exhausted error",
-			f: func(ctx context.Context, req interface{}) (interface{}, error) {
-				return nil, status.Error(codes.ResourceExhausted, "rate limit exceeded")
-			},
-			monitoringInt: map[request.ResultID]int64{
-				request.IDRequestCount:               1,
-				request.IDResponseCount:              1,
-				request.IDResponseValidCount:         0,
-				request.IDResponseErrorsCount:        1,
-				request.IDResponseErrorsInternal:     0,
-				request.IDResponseErrorsRateLimit:    1,
-				request.IDResponseErrorsTimeout:      0,
-				request.IDResponseErrorsUnauthorized: 0,
-			},
-			expectedOtel: map[string]interface{}{
-				"grpc.server." + string(request.IDRequestCount):            1,
-				"grpc.server." + string(request.IDResponseCount):           1,
-				"grpc.server." + string(request.IDResponseErrorsCount):     1,
-				"grpc.server." + string(request.IDResponseErrorsRateLimit): 1,
-
-				"grpc.server.request.duration": 1,
-			},
-		},
-		{
-			name: "with a success",
-			f: func(ctx context.Context, req interface{}) (interface{}, error) {
-				return nil, nil
-			},
-			monitoringInt: map[request.ResultID]int64{
-				request.IDRequestCount:               1,
-				request.IDResponseCount:              1,
-				request.IDResponseValidCount:         1,
-				request.IDResponseErrorsCount:        0,
-				request.IDResponseErrorsInternal:     0,
-				request.IDResponseErrorsRateLimit:    0,
-				request.IDResponseErrorsTimeout:      0,
-				request.IDResponseErrorsUnauthorized: 0,
-			},
-			expectedOtel: map[string]interface{}{
-				"grpc.server." + string(request.IDRequestCount):       1,
-				"grpc.server." + string(request.IDResponseCount):      1,
-				"grpc.server." + string(request.IDResponseValidCount): 1,
-
-				"grpc.server.request.duration": 1,
-			},
+			methodName: "/opentelemetry.proto.collector.logs.v1.LogsService/Export",
+			prefix:     "apm-server.otlp.grpc.logs.",
 		},
 	} {
-		t.Run(tc.name, func(t *testing.T) {
-			interceptor(ctx, nil, info, tc.f)
-			assertMonitoring(t, tc.monitoringInt, monitoringMap)
-			monitoringtest.ClearRegistry(monitoringMap)
-			monitoringtest.ExpectOtelMetrics(t, reader, tc.expectedOtel)
-		})
-	}
-}
+		reader := sdkmetric.NewManualReader(sdkmetric.WithTemporalitySelector(
+			func(ik sdkmetric.InstrumentKind) metricdata.Temporality {
+				return metricdata.DeltaTemporality
+			},
+		))
+		mp := sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader))
 
-func assertMonitoring(t *testing.T, expected map[request.ResultID]int64, actual map[request.ResultID]*monitoring.Int) {
-	for _, k := range monitoringKeys {
-		if val, ok := expected[k]; ok {
-			assert.Equalf(t, val, actual[k].Get(), "%s mismatch", k)
-		} else {
-			assert.Zerof(t, actual[k].Get(), "%s mismatch", k)
+		logger := logp.NewLogger("interceptor.metrics.test")
+
+		interceptor := Metrics(logger, mp)
+
+		ctx := context.Background()
+		info := &grpc.UnaryServerInfo{
+			FullMethod: metrics.methodName,
+		}
+
+		for _, tc := range []struct {
+			name          string
+			f             func(ctx context.Context, req interface{}) (interface{}, error)
+			monitoringInt map[request.ResultID]int64
+			expectedOtel  map[string]interface{}
+		}{
+			{
+				name: "with an error",
+				f: func(ctx context.Context, req interface{}) (interface{}, error) {
+					return nil, errors.New("error")
+				},
+				expectedOtel: map[string]interface{}{
+					string(request.IDRequestCount):        1,
+					string(request.IDResponseCount):       1,
+					string(request.IDResponseErrorsCount): 1,
+
+					"request.duration": 1,
+				},
+			},
+			{
+				name: "with an unauthenticated error",
+				f: func(ctx context.Context, req interface{}) (interface{}, error) {
+					return nil, status.Error(codes.Unauthenticated, "error")
+				},
+				expectedOtel: map[string]interface{}{
+					string(request.IDRequestCount):               1,
+					string(request.IDResponseCount):              1,
+					string(request.IDResponseErrorsCount):        1,
+					string(request.IDResponseErrorsUnauthorized): 1,
+
+					"request.duration": 1,
+				},
+			},
+			{
+				name: "with a deadline exceeded error",
+				f: func(ctx context.Context, req interface{}) (interface{}, error) {
+					return nil, status.Error(codes.DeadlineExceeded, "request timed out")
+				},
+				expectedOtel: map[string]interface{}{
+					string(request.IDRequestCount):          1,
+					string(request.IDResponseCount):         1,
+					string(request.IDResponseErrorsCount):   1,
+					string(request.IDResponseErrorsTimeout): 1,
+
+					"request.duration": 1,
+				},
+			},
+			{
+				name: "with a canceled error",
+				f: func(ctx context.Context, req interface{}) (interface{}, error) {
+					return nil, status.Error(codes.Canceled, "request timed out")
+				},
+				expectedOtel: map[string]interface{}{
+					string(request.IDRequestCount):          1,
+					string(request.IDResponseCount):         1,
+					string(request.IDResponseErrorsCount):   1,
+					string(request.IDResponseErrorsTimeout): 1,
+
+					"request.duration": 1,
+				},
+			},
+			{
+				name: "with a resource exhausted error",
+				f: func(ctx context.Context, req interface{}) (interface{}, error) {
+					return nil, status.Error(codes.ResourceExhausted, "rate limit exceeded")
+				},
+				expectedOtel: map[string]interface{}{
+					string(request.IDRequestCount):            1,
+					string(request.IDResponseCount):           1,
+					string(request.IDResponseErrorsCount):     1,
+					string(request.IDResponseErrorsRateLimit): 1,
+
+					"request.duration": 1,
+				},
+			},
+			{
+				name: "with a success",
+				f: func(ctx context.Context, req interface{}) (interface{}, error) {
+					return nil, nil
+				},
+				expectedOtel: map[string]interface{}{
+					string(request.IDRequestCount):       1,
+					string(request.IDResponseCount):      1,
+					string(request.IDResponseValidCount): 1,
+
+					"request.duration": 1,
+				},
+			},
+		} {
+			t.Run(tc.name, func(t *testing.T) {
+				interceptor(ctx, nil, info, tc.f)
+
+				expectedMetrics := make(map[string]any, 2*len(tc.expectedOtel))
+
+				for k, v := range tc.expectedOtel {
+					// add otel metrics
+					expectedMetrics["grpc.server."+k] = v
+
+					if k != "request.duration" {
+						// add legacy metrics
+						expectedMetrics[metrics.prefix+k] = v
+					}
+				}
+
+				monitoringtest.ExpectOtelMetrics(t, reader, expectedMetrics)
+			})
 		}
 	}
-}
-
-type requestMetricsFunc func(fullMethod string) map[request.ResultID]*monitoring.Int
-
-func (f requestMetricsFunc) RequestMetrics(fullMethod string) map[request.ResultID]*monitoring.Int {
-	return f(fullMethod)
 }

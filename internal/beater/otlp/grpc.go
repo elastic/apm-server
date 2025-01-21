@@ -30,7 +30,6 @@ import (
 	"github.com/elastic/apm-data/input"
 	"github.com/elastic/apm-data/input/otlp"
 	"github.com/elastic/apm-data/model/modelpb"
-	"github.com/elastic/apm-server/internal/beater/interceptors"
 )
 
 var (
@@ -38,21 +37,6 @@ var (
 		"apm-server.otlp.grpc.metrics.consumer.unsupported_dropped",
 	)
 )
-
-func init() {
-	interceptors.RegisterMethodUnaryRequestMetrics(
-		"/opentelemetry.proto.collector.metrics.v1.MetricsService/Export",
-		"apm-server.otlp.grpc.metrics.",
-	)
-	interceptors.RegisterMethodUnaryRequestMetrics(
-		"/opentelemetry.proto.collector.trace.v1.TraceService/Export",
-		"apm-server.otlp.grpc.traces.",
-	)
-	interceptors.RegisterMethodUnaryRequestMetrics(
-		"/opentelemetry.proto.collector.logs.v1.LogsService/Export",
-		"apm-server.otlp.grpc.logs.",
-	)
-}
 
 // RegisterGRPCServices registers OTLP consumer services with the given gRPC server.
 func RegisterGRPCServices(

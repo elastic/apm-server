@@ -32,12 +32,16 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/otel/metric/noop"
+	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
+	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 	"golang.org/x/sync/semaphore"
 
 	"github.com/elastic/apm-data/input/elasticapm"
 	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/internal/beater/config"
 	"github.com/elastic/apm-server/internal/beater/headers"
+	"github.com/elastic/apm-server/internal/beater/monitoringtest"
 	"github.com/elastic/apm-server/internal/beater/request"
 	"github.com/elastic/apm-server/internal/model/modelprocessor"
 	"github.com/elastic/apm-server/internal/publish"
@@ -136,12 +140,11 @@ func TestIntakeHandler(t *testing.T) {
 			code: http.StatusAccepted, id: request.IDResponseValidAccepted},
 	} {
 		t.Run(name, func(t *testing.T) {
-
 			// setup
 			tc.setup(t)
 
 			// call handler
-			h := Handler(tc.processor, emptyRequestMetadata, tc.batchProcessor)
+			h := Handler(noop.NewMeterProvider(), tc.processor, emptyRequestMetadata, tc.batchProcessor)
 			h(tc.c)
 
 			require.Equal(t, string(tc.id), string(tc.c.Result.ID))
@@ -163,10 +166,6 @@ func TestIntakeHandler(t *testing.T) {
 }
 
 func TestIntakeHandlerMonitoring(t *testing.T) {
-	eventsAccepted.Set(1)
-	eventsInvalid.Set(2)
-	eventsTooLarge.Set(3)
-
 	streamHandler := streamHandlerFunc(func(
 		ctx context.Context,
 		base *modelpb.APMEvent,
@@ -181,15 +180,24 @@ func TestIntakeHandlerMonitoring(t *testing.T) {
 		return errors.New("something bad happened at the end")
 	})
 
-	h := Handler(streamHandler, emptyRequestMetadata, modelprocessor.Nop{})
+	reader := sdkmetric.NewManualReader(sdkmetric.WithTemporalitySelector(
+		func(ik sdkmetric.InstrumentKind) metricdata.Temporality {
+			return metricdata.DeltaTemporality
+		},
+	))
+	mp := sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader))
+
+	h := Handler(mp, streamHandler, emptyRequestMetadata, modelprocessor.Nop{})
 	req := httptest.NewRequest("POST", "/", nil)
 	c := request.NewContext()
 	c.Reset(httptest.NewRecorder(), req)
 	h(c)
 
-	assert.Equal(t, int64(11), eventsAccepted.Get())
-	assert.Equal(t, int64(102), eventsInvalid.Get())
-	assert.Equal(t, int64(1003), eventsTooLarge.Get())
+	monitoringtest.ExpectOtelMetrics(t, reader, map[string]any{
+		"apm-server.processor.stream.accepted":        10,
+		"apm-server.processor.stream.errors.invalid":  100,
+		"apm-server.processor.stream.errors.toolarge": 1000,
+	})
 }
 
 func TestIntakeHandlerContentType(t *testing.T) {
@@ -206,7 +214,7 @@ func TestIntakeHandlerContentType(t *testing.T) {
 		}
 
 		tc.setup(t)
-		h := Handler(tc.processor, emptyRequestMetadata, tc.batchProcessor)
+		h := Handler(noop.NewMeterProvider(), tc.processor, emptyRequestMetadata, tc.batchProcessor)
 		h(tc.c)
 		assert.Equal(t, tc.code, tc.w.Code, tc.c.Result.Err)
 	}

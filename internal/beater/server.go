@@ -24,6 +24,7 @@ import (
 
 	"go.elastic.co/apm/module/apmgorilla/v2"
 	"go.elastic.co/apm/v2"
+	"go.opentelemetry.io/otel/metric"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
@@ -79,6 +80,9 @@ type ServerParams struct {
 	// Tracer is an apm.Tracer that the APM Server may use
 	// for self-instrumentation.
 	Tracer *apm.Tracer
+
+	// MeterProvider is the MeterProvider
+	MeterProvider metric.MeterProvider
 
 	// Authenticator holds an authenticator that can be used for
 	// authenticating clients, and obtaining authentication details
@@ -175,6 +179,7 @@ func newServer(args ServerParams, listener net.Listener) (server, error) {
 		args.SourcemapFetcher,
 		publishReady,
 		args.Semaphore,
+		args.MeterProvider,
 	)
 	if err != nil {
 		return server{}, err

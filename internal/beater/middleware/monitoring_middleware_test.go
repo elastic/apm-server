@@ -21,7 +21,6 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 
@@ -34,15 +33,12 @@ import (
 var (
 	mockMonitoringRegistry = monitoring.Default.NewRegistry("mock.monitoring")
 	mockMonitoringNil      = map[request.ResultID]*monitoring.Int{}
-	mockMonitoring         = request.DefaultMonitoringMapForRegistry(mockMonitoringRegistry)
 )
 
 func TestMonitoringHandler(t *testing.T) {
 	checkMonitoring := func(t *testing.T,
 		h func(*request.Context),
-		expected map[request.ResultID]int,
 		expectedOtel map[string]interface{},
-		m map[request.ResultID]*monitoring.Int,
 	) {
 		reader := sdkmetric.NewManualReader(sdkmetric.WithTemporalitySelector(
 			func(ik sdkmetric.InstrumentKind) metricdata.Temporality {
@@ -51,11 +47,8 @@ func TestMonitoringHandler(t *testing.T) {
 		))
 		mp := sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader))
 
-		monitoringtest.ClearRegistry(m)
 		c, _ := DefaultContextWithResponseRecorder()
-		Apply(MonitoringMiddleware(m, mp), h)(c)
-		equal, result := monitoringtest.CompareMonitoringInt(expected, m)
-		assert.True(t, equal, result)
+		Apply(MonitoringMiddleware("", mp), h)(c)
 
 		monitoringtest.ExpectOtelMetrics(t, reader, expectedOtel)
 	}
@@ -63,99 +56,90 @@ func TestMonitoringHandler(t *testing.T) {
 	t.Run("Error", func(t *testing.T) {
 		checkMonitoring(t,
 			Handler403,
-			map[request.ResultID]int{
-				request.IDRequestCount:            1,
-				request.IDResponseCount:           1,
-				request.IDResponseErrorsCount:     1,
-				request.IDResponseErrorsForbidden: 1,
-			},
 			map[string]interface{}{
 				"http.server." + string(request.IDRequestCount):            1,
 				"http.server." + string(request.IDResponseCount):           1,
 				"http.server." + string(request.IDResponseErrorsCount):     1,
 				"http.server." + string(request.IDResponseErrorsForbidden): 1,
+				string(request.IDRequestCount):                             1,
+				string(request.IDResponseCount):                            1,
+				string(request.IDResponseErrorsCount):                      1,
+				string(request.IDResponseErrorsForbidden):                  1,
 
 				"http.server.request.duration": 1,
 			},
-			mockMonitoring,
 		)
 	})
 
 	t.Run("Accepted", func(t *testing.T) {
 		checkMonitoring(t,
 			Handler202,
-			map[request.ResultID]int{
-				request.IDRequestCount:          1,
-				request.IDResponseCount:         1,
-				request.IDResponseValidCount:    1,
-				request.IDResponseValidAccepted: 1,
-			},
 			map[string]interface{}{
 				"http.server." + string(request.IDRequestCount):          1,
 				"http.server." + string(request.IDResponseCount):         1,
 				"http.server." + string(request.IDResponseValidCount):    1,
 				"http.server." + string(request.IDResponseValidAccepted): 1,
+				string(request.IDRequestCount):                           1,
+				string(request.IDResponseCount):                          1,
+				string(request.IDResponseValidCount):                     1,
+				string(request.IDResponseValidAccepted):                  1,
 
 				"http.server.request.duration": 1,
 			},
-			mockMonitoring,
 		)
 	})
 
 	t.Run("Idle", func(t *testing.T) {
 		checkMonitoring(t,
 			HandlerIdle,
-			map[request.ResultID]int{
-				request.IDRequestCount:       1,
-				request.IDResponseCount:      1,
-				request.IDResponseValidCount: 1,
-				request.IDUnset:              1,
-			},
 			map[string]interface{}{
 				"http.server." + string(request.IDRequestCount):       1,
 				"http.server." + string(request.IDResponseCount):      1,
 				"http.server." + string(request.IDResponseValidCount): 1,
 				"http.server." + string(request.IDUnset):              1,
+				string(request.IDRequestCount):                        1,
+				string(request.IDResponseCount):                       1,
+				string(request.IDResponseValidCount):                  1,
+				string(request.IDUnset):                               1,
 
 				"http.server.request.duration": 1,
 			},
-			mockMonitoring,
 		)
 	})
 
 	t.Run("Panic", func(t *testing.T) {
 		checkMonitoring(t,
 			Apply(RecoverPanicMiddleware(), HandlerPanic),
-			map[request.ResultID]int{
-				request.IDRequestCount:           1,
-				request.IDResponseCount:          1,
-				request.IDResponseErrorsCount:    1,
-				request.IDResponseErrorsInternal: 1,
-			},
 			map[string]interface{}{
 				"http.server." + string(request.IDRequestCount):           1,
 				"http.server." + string(request.IDResponseCount):          1,
 				"http.server." + string(request.IDResponseErrorsCount):    1,
 				"http.server." + string(request.IDResponseErrorsInternal): 1,
+				string(request.IDRequestCount):                            1,
+				string(request.IDResponseCount):                           1,
+				string(request.IDResponseErrorsCount):                     1,
+				string(request.IDResponseErrorsInternal):                  1,
 
 				"http.server.request.duration": 1,
 			},
-			mockMonitoring)
+		)
 	})
 
 	t.Run("Nil", func(t *testing.T) {
 		checkMonitoring(t,
 			HandlerIdle,
-			map[request.ResultID]int{},
 			map[string]interface{}{
 				"http.server." + string(request.IDRequestCount):       1,
 				"http.server." + string(request.IDResponseCount):      1,
 				"http.server." + string(request.IDResponseValidCount): 1,
 				"http.server." + string(request.IDUnset):              1,
+				string(request.IDRequestCount):                        1,
+				string(request.IDResponseCount):                       1,
+				string(request.IDResponseValidCount):                  1,
+				string(request.IDUnset):                               1,
 
 				"http.server.request.duration": 1,
 			},
-			mockMonitoringNil,
 		)
 	})
 
@@ -167,7 +151,7 @@ func TestMonitoringHandler(t *testing.T) {
 			},
 		))
 		mp := sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader))
-		m := MonitoringMiddleware(mockMonitoringNil, mp)
+		m := MonitoringMiddleware("", mp)
 		c, _ := DefaultContextWithResponseRecorder()
 		var wg sync.WaitGroup
 		for range i {
@@ -183,6 +167,10 @@ func TestMonitoringHandler(t *testing.T) {
 			"http.server." + string(request.IDResponseCount):      i,
 			"http.server." + string(request.IDResponseValidCount): i,
 			"http.server." + string(request.IDUnset):              i,
+			string(request.IDRequestCount):                        i,
+			string(request.IDResponseCount):                       i,
+			string(request.IDResponseValidCount):                  i,
+			string(request.IDUnset):                               i,
 
 			"http.server.request.duration": i,
 		})

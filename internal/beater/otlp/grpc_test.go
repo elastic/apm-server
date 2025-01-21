@@ -31,6 +31,9 @@ import (
 	"go.opentelemetry.io/collector/pdata/pmetric/pmetricotlp"
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	"go.opentelemetry.io/collector/pdata/ptrace/ptraceotlp"
+	"go.opentelemetry.io/otel/metric"
+	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
+	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 	"go.uber.org/zap"
 	"golang.org/x/sync/semaphore"
 	"google.golang.org/grpc"
@@ -39,9 +42,9 @@ import (
 
 	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/internal/beater/interceptors"
+	"github.com/elastic/apm-server/internal/beater/monitoringtest"
 	"github.com/elastic/apm-server/internal/beater/otlp"
 	"github.com/elastic/elastic-agent-libs/logp"
-	"github.com/elastic/elastic-agent-libs/monitoring"
 )
 
 func TestConsumeTracesGRPC(t *testing.T) {
@@ -52,7 +55,14 @@ func TestConsumeTracesGRPC(t *testing.T) {
 		return reportError
 	}
 
-	conn := newGRPCServer(t, batchProcessor)
+	reader := sdkmetric.NewManualReader(sdkmetric.WithTemporalitySelector(
+		func(ik sdkmetric.InstrumentKind) metricdata.Temporality {
+			return metricdata.DeltaTemporality
+		},
+	))
+	mp := sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader))
+
+	conn := newGRPCServer(t, batchProcessor, mp)
 	client := ptraceotlp.NewGRPCClient(conn)
 
 	// Send a minimal trace to verify that everything is connected properly.
@@ -77,19 +87,17 @@ func TestConsumeTracesGRPC(t *testing.T) {
 	assert.Len(t, batches[0], 1)
 	assert.Len(t, batches[1], 1)
 
-	actual := map[string]interface{}{}
-	monitoring.GetRegistry("apm-server.otlp.grpc.traces").Do(monitoring.Full, func(key string, value interface{}) {
-		actual[key] = value
+	monitoringtest.ExpectOtelMetrics(t, reader, map[string]any{
+		"grpc.server.request.duration":                      2,
+		"grpc.server.request.count":                         2,
+		"grpc.server.response.count":                        2,
+		"grpc.server.response.errors.count":                 1,
+		"grpc.server.response.valid.count":                  1,
+		"apm-server.otlp.grpc.traces.request.count":         2,
+		"apm-server.otlp.grpc.traces.response.count":        2,
+		"apm-server.otlp.grpc.traces.response.errors.count": 1,
+		"apm-server.otlp.grpc.traces.response.valid.count":  1,
 	})
-	assert.Equal(t, map[string]interface{}{
-		"request.count":                int64(2),
-		"response.count":               int64(2),
-		"response.errors.count":        int64(1),
-		"response.valid.count":         int64(1),
-		"response.errors.ratelimit":    int64(0),
-		"response.errors.timeout":      int64(0),
-		"response.errors.unauthorized": int64(0),
-	}, actual)
 }
 
 func TestConsumeMetricsGRPC(t *testing.T) {
@@ -98,7 +106,14 @@ func TestConsumeMetricsGRPC(t *testing.T) {
 		return reportError
 	}
 
-	conn := newGRPCServer(t, batchProcessor)
+	reader := sdkmetric.NewManualReader(sdkmetric.WithTemporalitySelector(
+		func(ik sdkmetric.InstrumentKind) metricdata.Temporality {
+			return metricdata.DeltaTemporality
+		},
+	))
+	mp := sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader))
+
+	conn := newGRPCServer(t, batchProcessor, mp)
 	client := pmetricotlp.NewGRPCClient(conn)
 
 	// Send a minimal metric to verify that everything is connected properly.
@@ -122,21 +137,17 @@ func TestConsumeMetricsGRPC(t *testing.T) {
 	errStatus := status.Convert(err)
 	assert.Equal(t, "failed to publish events", errStatus.Message())
 
-	actual := map[string]interface{}{}
-	monitoring.GetRegistry("apm-server.otlp.grpc.metrics").Do(monitoring.Full, func(key string, value interface{}) {
-		actual[key] = value
+	monitoringtest.ExpectOtelMetrics(t, reader, map[string]any{
+		"grpc.server.request.duration":                       2,
+		"grpc.server.request.count":                          2,
+		"grpc.server.response.count":                         2,
+		"grpc.server.response.errors.count":                  1,
+		"grpc.server.response.valid.count":                   1,
+		"apm-server.otlp.grpc.metrics.request.count":         2,
+		"apm-server.otlp.grpc.metrics.response.count":        2,
+		"apm-server.otlp.grpc.metrics.response.errors.count": 1,
+		"apm-server.otlp.grpc.metrics.response.valid.count":  1,
 	})
-	assert.Equal(t, map[string]interface{}{
-		"consumer.unsupported_dropped": int64(0),
-
-		"request.count":                int64(2),
-		"response.count":               int64(2),
-		"response.errors.count":        int64(1),
-		"response.valid.count":         int64(1),
-		"response.errors.ratelimit":    int64(0),
-		"response.errors.timeout":      int64(0),
-		"response.errors.unauthorized": int64(0),
-	}, actual)
 }
 
 func TestConsumeLogsGRPC(t *testing.T) {
@@ -147,7 +158,14 @@ func TestConsumeLogsGRPC(t *testing.T) {
 		return reportError
 	}
 
-	conn := newGRPCServer(t, batchProcessor)
+	reader := sdkmetric.NewManualReader(sdkmetric.WithTemporalitySelector(
+		func(ik sdkmetric.InstrumentKind) metricdata.Temporality {
+			return metricdata.DeltaTemporality
+		},
+	))
+	mp := sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader))
+
+	conn := newGRPCServer(t, batchProcessor, mp)
 	client := plogotlp.NewGRPCClient(conn)
 
 	// Send a minimal log record to verify that everything is connected properly.
@@ -171,26 +189,24 @@ func TestConsumeLogsGRPC(t *testing.T) {
 	assert.Len(t, batches[0], 1)
 	assert.Len(t, batches[1], 1)
 
-	actual := map[string]interface{}{}
-	monitoring.GetRegistry("apm-server.otlp.grpc.logs").Do(monitoring.Full, func(key string, value interface{}) {
-		actual[key] = value
+	monitoringtest.ExpectOtelMetrics(t, reader, map[string]any{
+		"grpc.server.request.count":                       2,
+		"grpc.server.request.duration":                    2,
+		"grpc.server.response.valid.count":                1,
+		"grpc.server.response.count":                      2,
+		"grpc.server.response.errors.count":               1,
+		"apm-server.otlp.grpc.logs.request.count":         2,
+		"apm-server.otlp.grpc.logs.response.count":        2,
+		"apm-server.otlp.grpc.logs.response.errors.count": 1,
+		"apm-server.otlp.grpc.logs.response.valid.count":  1,
 	})
-	assert.Equal(t, map[string]interface{}{
-		"request.count":                int64(2),
-		"response.count":               int64(2),
-		"response.errors.count":        int64(1),
-		"response.valid.count":         int64(1),
-		"response.errors.ratelimit":    int64(0),
-		"response.errors.timeout":      int64(0),
-		"response.errors.unauthorized": int64(0),
-	}, actual)
 }
 
-func newGRPCServer(t *testing.T, batchProcessor modelpb.BatchProcessor) *grpc.ClientConn {
+func newGRPCServer(t *testing.T, batchProcessor modelpb.BatchProcessor, mp metric.MeterProvider) *grpc.ClientConn {
 	lis, err := net.Listen("tcp", "localhost:0")
 	require.NoError(t, err)
 	logger := logp.NewLogger("otlp.grpc.test")
-	srv := grpc.NewServer(grpc.UnaryInterceptor(interceptors.Metrics(logger, nil)))
+	srv := grpc.NewServer(grpc.UnaryInterceptor(interceptors.Metrics(logger, mp)))
 	semaphore := semaphore.NewWeighted(1)
 	otlp.RegisterGRPCServices(srv, zap.NewNop(), batchProcessor, semaphore)
 

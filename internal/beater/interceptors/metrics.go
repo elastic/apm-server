@@ -21,7 +21,6 @@ import (
 	"context"
 	"time"
 
-	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/metric"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -34,18 +33,6 @@ import (
 const (
 	requestDurationHistogram = "request.duration"
 )
-
-var methodUnaryRequestMetrics = make(map[string]string)
-
-// RegisterMethodUnaryRequestMetrics registers a UnaryRequestMetrics for the
-// given full method name. This can be used when the gRPC service implementation
-// is not exensible, such as in the case of the OTLP services.
-//
-// This function must only be called from package init functions; it is not safe
-// for concurrent access.
-func RegisterMethodUnaryRequestMetrics(fullMethod, legacyMetricsPrefix string) {
-	methodUnaryRequestMetrics[fullMethod] = legacyMetricsPrefix
-}
 
 type metricsInterceptor struct {
 	logger *logp.Logger
@@ -62,8 +49,16 @@ func (m *metricsInterceptor) Interceptor() grpc.UnaryServerInterceptor {
 		info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler,
 	) (interface{}, error) {
-		legacyMetricsPrefix, ok := methodUnaryRequestMetrics[info.FullMethod]
-		if !ok {
+		var legacyMetricsPrefix string
+
+		switch info.FullMethod {
+		case "/opentelemetry.proto.collector.metrics.v1.MetricsService/Export":
+			legacyMetricsPrefix = "apm-server.otlp.grpc.metrics."
+		case "/opentelemetry.proto.collector.trace.v1.TraceService/Export":
+			legacyMetricsPrefix = "apm-server.otlp.grpc.traces."
+		case "/opentelemetry.proto.collector.logs.v1.LogsService/Export":
+			legacyMetricsPrefix = "apm-server.otlp.grpc.logs."
+		default:
 			m.logger.With(
 				"grpc.request.method", info.FullMethod,
 			).Warn("metrics registry missing")
@@ -134,10 +129,6 @@ func (m *metricsInterceptor) getHistogram(n string, opts ...metric.Int64Histogra
 // if neither of these are available, a warning will be logged and no metrics
 // will be gathered.
 func Metrics(logger *logp.Logger, mp metric.MeterProvider) grpc.UnaryServerInterceptor {
-	if mp == nil {
-		mp = otel.GetMeterProvider()
-	}
-
 	i := &metricsInterceptor{
 		logger: logger,
 		meter:  mp.Meter("internal/beater/interceptors"),

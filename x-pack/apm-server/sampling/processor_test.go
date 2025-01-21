@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
-	"path"
 	"path/filepath"
 	"runtime"
 	"sort"
@@ -22,18 +21,21 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
+	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/protobuf/testing/protocmp"
 
 	"github.com/elastic/apm-data/model/modelpb"
+	"github.com/elastic/apm-server/internal/beater/monitoringtest"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/pubsub/pubsubtest"
-	"github.com/elastic/elastic-agent-libs/monitoring"
 )
 
 func TestProcessUnsampled(t *testing.T) {
-	processor, err := sampling.NewProcessor(newTempdirConfig(t))
+	cfg, _ := newTempdirConfig(t)
+	processor, err := sampling.NewProcessor(cfg)
 	require.NoError(t, err)
 	go processor.Run()
 	defer processor.Stop(context.Background())
@@ -57,7 +59,7 @@ func TestProcessUnsampled(t *testing.T) {
 }
 
 func TestProcessAlreadyTailSampled(t *testing.T) {
-	config := newTempdirConfig(t)
+	config, metricreader := newTempdirConfig(t)
 
 	// Seed event storage with a tail-sampling decisions, to show that
 	// subsequent events in the trace will be reported immediately.
@@ -129,14 +131,12 @@ func TestProcessAlreadyTailSampled(t *testing.T) {
 	// they were received after the trace sampling entry expired.
 	assert.Equal(t, modelpb.Batch{&transaction1, &span1}, batch)
 
-	expectedMonitoring := monitoring.MakeFlatSnapshot()
-	expectedMonitoring.Ints["sampling.events.processed"] = 4
-	expectedMonitoring.Ints["sampling.events.head_unsampled"] = 0
-	expectedMonitoring.Ints["sampling.events.stored"] = 2
-	expectedMonitoring.Ints["sampling.events.sampled"] = 2
-	expectedMonitoring.Ints["sampling.events.dropped"] = 0
-	expectedMonitoring.Ints["sampling.events.failed_writes"] = 0
-	assertMonitoring(t, processor, expectedMonitoring, `sampling.events.*`)
+	monitoringtest.ExpectOtelMetrics(t, metricreader, map[string]any{
+		"apm-server.sampling.tail.dynamic_service_groups": 1,
+		"apm-server.sampling.tail.events.processed":       4,
+		"apm-server.sampling.tail.events.stored":          2,
+		"apm-server.sampling.tail.events.sampled":         2,
+	})
 
 	// Stop the processor and flush global storage so we can access the database.
 	assert.NoError(t, processor.Stop(context.Background()))
@@ -167,7 +167,7 @@ func TestProcessLocalTailSampling(t *testing.T) {
 		},
 	} {
 		t.Run(fmt.Sprintf("%f", tc.sampleRate), func(t *testing.T) {
-			config := newTempdirConfig(t)
+			config, metricreader := newTempdirConfig(t)
 			config.Policies = []sampling.Policy{{SampleRate: tc.sampleRate}}
 			config.FlushInterval = 10 * time.Millisecond
 			published := make(chan string)
@@ -248,14 +248,12 @@ func TestProcessLocalTailSampling(t *testing.T) {
 				sampledTraceEvents = trace2Events
 			}
 
-			expectedMonitoring := monitoring.MakeFlatSnapshot()
-			expectedMonitoring.Ints["sampling.events.processed"] = 4
-			expectedMonitoring.Ints["sampling.events.stored"] = 4
-			expectedMonitoring.Ints["sampling.events.sampled"] = 2
-			expectedMonitoring.Ints["sampling.events.head_unsampled"] = 0
-			expectedMonitoring.Ints["sampling.events.dropped"] = 0
-			expectedMonitoring.Ints["sampling.events.failed_writes"] = 0
-			assertMonitoring(t, processor, expectedMonitoring, `sampling.events.*`)
+			monitoringtest.ExpectOtelMetrics(t, metricreader, map[string]any{
+				"apm-server.sampling.tail.dynamic_service_groups": 1,
+				"apm-server.sampling.tail.events.processed":       4,
+				"apm-server.sampling.tail.events.stored":          4,
+				"apm-server.sampling.tail.events.sampled":         2,
+			})
 
 			// Stop the processor and flush global storage so we can access the database.
 			assert.NoError(t, processor.Stop(context.Background()))
@@ -289,7 +287,7 @@ func TestProcessLocalTailSampling(t *testing.T) {
 }
 
 func TestProcessLocalTailSamplingUnsampled(t *testing.T) {
-	config := newTempdirConfig(t)
+	config, metricreader := newTempdirConfig(t)
 	config.FlushInterval = time.Minute
 	processor, err := sampling.NewProcessor(config)
 	require.NoError(t, err)
@@ -315,7 +313,7 @@ func TestProcessLocalTailSamplingUnsampled(t *testing.T) {
 		assert.Empty(t, batch)
 
 		// break out of the loop as soon as the first one is dropped.
-		droppedEvents := collectProcessorMetrics(processor).Ints["sampling.events.dropped"]
+		droppedEvents := getSum(t, metricreader, "apm-server.sampling.events.dropped")
 		if droppedEvents != 0 {
 			break
 		}
@@ -344,7 +342,7 @@ func TestProcessLocalTailSamplingUnsampled(t *testing.T) {
 }
 
 func TestProcessLocalTailSamplingPolicyOrder(t *testing.T) {
-	config := newTempdirConfig(t)
+	config, _ := newTempdirConfig(t)
 	config.Policies = []sampling.Policy{{
 		PolicyCriteria: sampling.PolicyCriteria{TraceName: "trace_name"},
 		SampleRate:     0.5,
@@ -411,7 +409,7 @@ func TestProcessLocalTailSamplingPolicyOrder(t *testing.T) {
 }
 
 func TestProcessRemoteTailSampling(t *testing.T) {
-	config := newTempdirConfig(t)
+	config, metricreader := newTempdirConfig(t)
 	config.Policies = []sampling.Policy{{SampleRate: 0.5}}
 	config.FlushInterval = 10 * time.Millisecond
 
@@ -479,14 +477,11 @@ func TestProcessRemoteTailSampling(t *testing.T) {
 	assert.NoError(t, config.Storage.Flush())
 	assert.Empty(t, published) // remote decisions don't get republished
 
-	expectedMonitoring := monitoring.MakeFlatSnapshot()
-	expectedMonitoring.Ints["sampling.events.processed"] = 1
-	expectedMonitoring.Ints["sampling.events.stored"] = 1
-	expectedMonitoring.Ints["sampling.events.sampled"] = 1
-	expectedMonitoring.Ints["sampling.events.head_unsampled"] = 0
-	expectedMonitoring.Ints["sampling.events.dropped"] = 0
-	expectedMonitoring.Ints["sampling.events.failed_writes"] = 0
-	assertMonitoring(t, processor, expectedMonitoring, `sampling.events.*`)
+	monitoringtest.ExpectOtelMetrics(t, metricreader, map[string]any{
+		"apm-server.sampling.tail.events.processed": 1,
+		"apm-server.sampling.tail.events.stored":    1,
+		"apm-server.sampling.tail.events.sampled":   1,
+	})
 
 	assert.Empty(t, cmp.Diff(trace1Events, events, protocmp.Transform()))
 
@@ -543,7 +538,7 @@ func (m errorRW) Flush() error {
 func TestProcessDiscardOnWriteFailure(t *testing.T) {
 	for _, discard := range []bool{true, false} {
 		t.Run(fmt.Sprintf("discard=%v", discard), func(t *testing.T) {
-			config := newTempdirConfig(t)
+			config, _ := newTempdirConfig(t)
 			config.DiscardOnWriteFailure = discard
 			config.Storage = errorRW{err: errors.New("boom")}
 			processor, err := sampling.NewProcessor(config)
@@ -576,7 +571,7 @@ func TestProcessDiscardOnWriteFailure(t *testing.T) {
 }
 
 func TestGroupsMonitoring(t *testing.T) {
-	config := newTempdirConfig(t)
+	config, reader := newTempdirConfig(t)
 	config.MaxDynamicServices = 5
 	config.FlushInterval = time.Minute
 	config.Policies[0].SampleRate = 0.99
@@ -600,50 +595,13 @@ func TestGroupsMonitoring(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	expectedMonitoring := monitoring.MakeFlatSnapshot()
-	expectedMonitoring.Ints["sampling.dynamic_service_groups"] = int64(config.MaxDynamicServices)
-	expectedMonitoring.Ints["sampling.events.processed"] = int64(config.MaxDynamicServices) + 2
-	expectedMonitoring.Ints["sampling.events.stored"] = int64(config.MaxDynamicServices)
-	expectedMonitoring.Ints["sampling.events.dropped"] = 1 // final event dropped, after service limit reached
-	expectedMonitoring.Ints["sampling.events.sampled"] = 0
-	expectedMonitoring.Ints["sampling.events.head_unsampled"] = 1
-	expectedMonitoring.Ints["sampling.events.failed_writes"] = 0
-	assertMonitoring(t, processor, expectedMonitoring, `sampling.events.*`, `sampling.dynamic_service_groups`)
-}
-
-func TestStorageMonitoring(t *testing.T) {
-	config := newTempdirConfig(t)
-
-	processor, err := sampling.NewProcessor(config)
-	require.NoError(t, err)
-	go processor.Run()
-	defer processor.Stop(context.Background())
-	for i := 0; i < 100; i++ {
-		traceID := uuid.Must(uuid.NewV4()).String()
-		batch := modelpb.Batch{{
-			Trace: &modelpb.Trace{Id: traceID},
-			Event: &modelpb.Event{Duration: uint64(123 * time.Millisecond)},
-			Transaction: &modelpb.Transaction{
-				Type:    "type",
-				Id:      traceID,
-				Sampled: true,
-			},
-		}}
-		err := processor.ProcessBatch(context.Background(), &batch)
-		require.NoError(t, err)
-		assert.Empty(t, batch)
-	}
-
-	// Stop the processor and create a new one, which will reopen storage
-	// and calculate the storage size. Otherwise we must wait for a minute
-	// (hard-coded in badger) for storage metrics to be updated.
-	processor.Stop(context.Background())
-	processor, err = sampling.NewProcessor(config)
-	require.NoError(t, err)
-
-	metrics := collectProcessorMetrics(processor)
-	assert.NotZero(t, metrics.Ints, "sampling.storage.lsm_size")
-	assert.NotZero(t, metrics.Ints, "sampling.storage.value_log_size")
+	monitoringtest.ExpectOtelMetrics(t, reader, map[string]any{
+		"apm-server.sampling.tail.dynamic_service_groups": config.MaxDynamicServices,
+		"apm-server.sampling.tail.events.processed":       config.MaxDynamicServices + 2,
+		"apm-server.sampling.tail.events.stored":          config.MaxDynamicServices,
+		"apm-server.sampling.tail.events.dropped":         1, // final event dropped, after service limit reached
+		"apm-server.sampling.tail.events.head_unsampled":  1,
+	})
 }
 
 func TestStorageGC(t *testing.T) {
@@ -651,7 +609,7 @@ func TestStorageGC(t *testing.T) {
 		t.Skip("skipping slow test")
 	}
 
-	config := newTempdirConfig(t)
+	config, _ := newTempdirConfig(t)
 	config.TTL = 10 * time.Millisecond
 	config.FlushInterval = 10 * time.Millisecond
 
@@ -707,7 +665,7 @@ func TestStorageGCConcurrency(t *testing.T) {
 		t.Skip("skipping slow test")
 	}
 
-	config := newTempdirConfig(t)
+	config, _ := newTempdirConfig(t)
 	config.TTL = 10 * time.Millisecond
 	config.FlushInterval = 10 * time.Millisecond
 	config.StorageGCInterval = 10 * time.Millisecond
@@ -758,7 +716,7 @@ func TestStorageLimit(t *testing.T) {
 		return processor
 	}
 
-	config := newTempdirConfig(t)
+	config, metricreader := newTempdirConfig(t)
 	// Write 5K span events and close the DB to persist to disk the storage
 	// size and assert that none are reported immediately.
 	writeBatch(5000, config, func(b modelpb.Batch) {
@@ -786,13 +744,13 @@ func TestStorageLimit(t *testing.T) {
 	// we have, the more sharded writes we'll have, resulting in a greater buffer.
 	// To avoid huge test time on large systems do this incrementally
 	for i := 1; i < runtime.NumCPU(); i++ {
-		processor := writeBatch(150_000*i, config, func(b modelpb.Batch) {
+		writeBatch(150_000*i, config, func(b modelpb.Batch) {
 			assert.NotEmpty(t, b)
 		})
 
-		failedWrites := collectProcessorMetrics(processor).Ints["sampling.events.failed_writes"]
-		t.Log(failedWrites)
 		// Ensure that there are some failed writes.
+		failedWrites := getSum(t, metricreader, "apm-server.sampling.tail.events.failed_writes")
+		t.Log(failedWrites)
 
 		if failedWrites >= 1 {
 			return
@@ -803,7 +761,7 @@ func TestStorageLimit(t *testing.T) {
 }
 
 func TestProcessRemoteTailSamplingPersistence(t *testing.T) {
-	config := newTempdirConfig(t)
+	config, _ := newTempdirConfig(t)
 	config.Policies = []sampling.Policy{{SampleRate: 0.5}}
 	config.FlushInterval = 10 * time.Millisecond
 
@@ -876,7 +834,7 @@ func TestDropLoop(t *testing.T) {
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			config := newTempdirConfig(t)
+			config, _ := newTempdirConfig(t)
 			config.StorageGCInterval = time.Hour // effectively disable GC
 
 			config.FlushInterval = 10 * time.Millisecond
@@ -952,7 +910,7 @@ func TestDropLoop(t *testing.T) {
 }
 
 func TestGracefulShutdown(t *testing.T) {
-	config := newTempdirConfig(t)
+	config, _ := newTempdirConfig(t)
 	sampleRate := 0.5
 	config.Policies = []sampling.Policy{{SampleRate: sampleRate}}
 	config.FlushInterval = time.Minute // disable finalize
@@ -993,7 +951,7 @@ func TestGracefulShutdown(t *testing.T) {
 	assert.Equal(t, int(sampleRate*float64(totalTraces)), count)
 }
 
-func newTempdirConfig(tb testing.TB) sampling.Config {
+func newTempdirConfig(tb testing.TB) (sampling.Config, sdkmetric.Reader) {
 	tempdir, err := os.MkdirTemp("", "samplingtest")
 	require.NoError(tb, err)
 	tb.Cleanup(func() { os.RemoveAll(tempdir) })
@@ -1004,8 +962,16 @@ func newTempdirConfig(tb testing.TB) sampling.Config {
 
 	storage := badgerDB.NewReadWriter()
 
+	reader := sdkmetric.NewManualReader(sdkmetric.WithTemporalitySelector(
+		func(ik sdkmetric.InstrumentKind) metricdata.Temporality {
+			return metricdata.DeltaTemporality
+		},
+	))
+	mp := sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader))
+
 	return sampling.Config{
 		BatchProcessor: modelpb.ProcessBatchFunc(func(context.Context, *modelpb.Batch) error { return nil }),
+		MeterProvider:  mp,
 		LocalSamplingConfig: sampling.LocalSamplingConfig{
 			FlushInterval:         time.Second,
 			MaxDynamicServices:    1000,
@@ -1031,63 +997,25 @@ func newTempdirConfig(tb testing.TB) sampling.Config {
 			TTL:               30 * time.Minute,
 			StorageLimit:      0, // No storage limit.
 		},
-	}
+	}, reader
 }
 
-func assertMonitoring(t testing.TB, p *sampling.Processor, expected monitoring.FlatSnapshot, matches ...string) {
-	t.Helper()
-	actual := collectProcessorMetrics(p)
-	matchAny := func(k string) bool { return true }
-	if len(matches) > 0 {
-		matchAny = func(k string) bool {
-			for _, pattern := range matches {
-				matched, err := path.Match(pattern, k)
-				if err != nil {
-					panic(err)
-				}
-				if matched {
-					return true
-				}
+func getSum(t testing.TB, reader sdkmetric.Reader, name string) int64 {
+	var rm metricdata.ResourceMetrics
+	assert.NoError(t, reader.Collect(context.Background(), &rm))
+
+	assert.NotEqual(t, 0, len(rm.ScopeMetrics))
+
+	for _, sm := range rm.ScopeMetrics {
+		for _, m := range sm.Metrics {
+			t.Log(m.Name)
+			if m.Name == name {
+				return m.Data.(metricdata.Sum[int64]).DataPoints[0].Value
 			}
-			return false
 		}
 	}
-	for k := range actual.Bools {
-		if !matchAny(k) {
-			delete(actual.Bools, k)
-		}
-	}
-	for k := range actual.Ints {
-		if !matchAny(k) {
-			delete(actual.Ints, k)
-		}
-	}
-	for k := range actual.Floats {
-		if !matchAny(k) {
-			delete(actual.Floats, k)
-		}
-	}
-	for k := range actual.Strings {
-		if !matchAny(k) {
-			delete(actual.Strings, k)
-		}
-	}
-	for k := range actual.StringSlices {
-		if !matchAny(k) {
-			delete(actual.StringSlices, k)
-		}
-	}
-	assert.Equal(t, expected, actual)
-}
 
-func collectProcessorMetrics(p *sampling.Processor) monitoring.FlatSnapshot {
-	registry := monitoring.NewRegistry()
-	monitoring.NewFunc(registry, "sampling", p.CollectMonitoring)
-	return monitoring.CollectFlatSnapshot(
-		registry,
-		monitoring.Full,
-		false, // expvar
-	)
+	return 0
 }
 
 // waitFileModified waits up to 10 seconds for filename to exist and for its

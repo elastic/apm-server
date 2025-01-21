@@ -29,6 +29,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
+	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 	"golang.org/x/sync/semaphore"
 
 	"github.com/elastic/apm-data/model/modelpb"
@@ -39,7 +41,6 @@ import (
 	"github.com/elastic/apm-server/internal/beater/ratelimit"
 	"github.com/elastic/apm-server/internal/beater/request"
 	"github.com/elastic/apm-server/internal/sourcemap"
-	"github.com/elastic/elastic-agent-libs/monitoring"
 )
 
 func TestBackendRequestMetadata(t *testing.T) {
@@ -113,7 +114,7 @@ func requestToMuxerWithHeaderAndQueryString(
 }
 
 func requestToMuxer(cfg *config.Config, r *http.Request) (*httptest.ResponseRecorder, error) {
-	mux, err := muxBuilder{}.build(cfg)
+	_, mux, err := muxBuilder{}.build(cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -123,7 +124,7 @@ func requestToMuxer(cfg *config.Config, r *http.Request) (*httptest.ResponseReco
 }
 
 func testPanicMiddleware(t *testing.T, urlPath string) {
-	h := newTestMux(t, config.DefaultConfig())
+	h, _ := newTestMux(t, config.DefaultConfig())
 	req := httptest.NewRequest(http.MethodGet, urlPath, nil)
 
 	var rec WriterPanicOnce
@@ -133,21 +134,29 @@ func testPanicMiddleware(t *testing.T, urlPath string) {
 	assert.JSONEq(t, `{"error":"panic handling request"}`, rec.Body.String())
 }
 
-func testMonitoringMiddleware(t *testing.T, urlPath string, monitoringMap map[request.ResultID]*monitoring.Int, expected map[request.ResultID]int) {
-	monitoringtest.ClearRegistry(monitoringMap)
-
-	h := newTestMux(t, config.DefaultConfig())
+func testMonitoringMiddleware(t *testing.T, urlPath string, expectedMetrics map[string]any) {
+	h, reader := newTestMux(t, config.DefaultConfig())
 	req := httptest.NewRequest(http.MethodGet, urlPath, nil)
 	h.ServeHTTP(httptest.NewRecorder(), req)
 
-	equal, result := monitoringtest.CompareMonitoringInt(expected, monitoringMap)
-	assert.True(t, equal, result)
+	monitoringtest.ExpectOtelMetrics(t, reader, expectedMetrics)
 }
 
-func newTestMux(t *testing.T, cfg *config.Config) http.Handler {
-	mux, err := muxBuilder{}.build(cfg)
+func getMetrics(prefix string, expected map[string]any) map[string]any {
+	m := make(map[string]any, 2*len(expected))
+
+	for k, v := range expected {
+		m["http.server."+k] = v
+		m[prefix+k] = v
+	}
+
+	return m
+}
+
+func newTestMux(t *testing.T, cfg *config.Config) (http.Handler, sdkmetric.Reader) {
+	reader, mux, err := muxBuilder{}.build(cfg)
 	require.NoError(t, err)
-	return mux
+	return mux, reader
 }
 
 type muxBuilder struct {
@@ -155,11 +164,18 @@ type muxBuilder struct {
 	Managed          bool
 }
 
-func (m muxBuilder) build(cfg *config.Config) (http.Handler, error) {
+func (m muxBuilder) build(cfg *config.Config) (sdkmetric.Reader, http.Handler, error) {
+	reader := sdkmetric.NewManualReader(sdkmetric.WithTemporalitySelector(
+		func(ik sdkmetric.InstrumentKind) metricdata.Temporality {
+			return metricdata.DeltaTemporality
+		},
+	))
+	mp := sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader))
+
 	nopBatchProcessor := modelpb.ProcessBatchFunc(func(context.Context, *modelpb.Batch) error { return nil })
 	ratelimitStore, _ := ratelimit.NewStore(1000, 1000, 1000)
 	authenticator, _ := auth.NewAuthenticator(cfg.AgentAuth)
-	return NewMux(
+	r, err := NewMux(
 		cfg,
 		nopBatchProcessor,
 		authenticator,
@@ -168,7 +184,9 @@ func (m muxBuilder) build(cfg *config.Config) (http.Handler, error) {
 		m.SourcemapFetcher,
 		func() bool { return true },
 		semaphore.NewWeighted(1),
+		mp,
 	)
+	return reader, r, err
 }
 
 // WriterPanicOnce implements the http.ResponseWriter interface

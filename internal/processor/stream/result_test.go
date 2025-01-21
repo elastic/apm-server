@@ -20,7 +20,6 @@ package stream
 import (
 	"testing"
 
-	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -45,24 +44,4 @@ func TestResultAdd(t *testing.T) {
 
 	assert.Len(t, result.Errors, 6)
 	assert.Equal(t, []error{err1, err2, err3, err4, err5, err7}, result.Errors)
-}
-
-func TestMonitoring(t *testing.T) {
-	initialAccepted := mAccepted.Get()
-	initialInvalid := mInvalid.Get()
-	initialTooLarge := mTooLarge.Get()
-
-	var result Result
-	result.AddAccepted(9)
-	result.AddAccepted(3)
-	for i := 0; i < 10; i++ {
-		result.LimitedAdd(&InvalidInputError{TooLarge: false})
-	}
-	result.LimitedAdd(&InvalidInputError{TooLarge: true})
-	result.Add(&InvalidInputError{TooLarge: true})
-	result.Add(errors.New("error"))
-
-	assert.Equal(t, int64(12), mAccepted.Get()-initialAccepted)
-	assert.Equal(t, int64(10), mInvalid.Get()-initialInvalid)
-	assert.Equal(t, int64(2), mTooLarge.Get()-initialTooLarge)
 }

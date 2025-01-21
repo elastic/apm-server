@@ -25,7 +25,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/apm-server/internal/beater/api/root"
 	"github.com/elastic/apm-server/internal/beater/config"
 	"github.com/elastic/apm-server/internal/beater/headers"
 	"github.com/elastic/apm-server/internal/beater/request"
@@ -64,10 +63,12 @@ func TestRootHandler_PanicMiddleware(t *testing.T) {
 }
 
 func TestRootHandler_MonitoringMiddleware(t *testing.T) {
-	testMonitoringMiddleware(t, "/", root.MonitoringMap, map[request.ResultID]int{
-		request.IDRequestCount:       1,
-		request.IDResponseCount:      1,
-		request.IDResponseValidCount: 1,
-		request.IDResponseValidOK:    1,
+	expectedMetric := getMetrics("apm-server.root.", map[string]any{
+		string(request.IDRequestCount):       1,
+		string(request.IDResponseCount):      1,
+		string(request.IDResponseValidCount): 1,
+		string(request.IDResponseValidOK):    1,
 	})
+	expectedMetric["http.server.request.duration"] = 1
+	testMonitoringMiddleware(t, "/", expectedMetric)
 }

@@ -33,6 +33,8 @@ import (
 	"go.opentelemetry.io/collector/pdata/pmetric/pmetricotlp"
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	"go.opentelemetry.io/collector/pdata/ptrace/ptraceotlp"
+	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
+	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 	"golang.org/x/sync/semaphore"
 
 	"github.com/elastic/apm-data/model/modelpb"
@@ -40,8 +42,8 @@ import (
 	"github.com/elastic/apm-server/internal/beater/api"
 	"github.com/elastic/apm-server/internal/beater/auth"
 	"github.com/elastic/apm-server/internal/beater/config"
+	"github.com/elastic/apm-server/internal/beater/monitoringtest"
 	"github.com/elastic/apm-server/internal/beater/ratelimit"
-	"github.com/elastic/elastic-agent-libs/monitoring"
 )
 
 func TestConsumeTracesHTTP(t *testing.T) {
@@ -52,7 +54,7 @@ func TestConsumeTracesHTTP(t *testing.T) {
 		return reportError
 	}
 
-	addr := newHTTPServer(t, batchProcessor)
+	addr, reader := newHTTPServer(t, batchProcessor)
 
 	// Send a minimal trace to verify that everything is connected properly.
 	//
@@ -75,19 +77,15 @@ func TestConsumeTracesHTTP(t *testing.T) {
 	require.Len(t, batches, 1)
 	assert.Len(t, batches[0], 1)
 
-	actual := map[string]interface{}{}
-	monitoring.GetRegistry("apm-server.otlp.http.traces").Do(monitoring.Full, func(key string, value interface{}) {
-		actual[key] = value
+	expectedMetrics := getMetrics("apm-server.otlp.http.traces.", map[string]any{
+		"unset":                1,
+		"request.count":        1,
+		"response.count":       1,
+		"response.valid.count": 1,
 	})
-	assert.Equal(t, map[string]interface{}{
-		"request.count":                int64(1),
-		"response.count":               int64(1),
-		"response.errors.count":        int64(0),
-		"response.valid.count":         int64(1),
-		"response.errors.ratelimit":    int64(0),
-		"response.errors.timeout":      int64(0),
-		"response.errors.unauthorized": int64(0),
-	}, actual)
+	expectedMetrics["http.server.request.duration"] = 1
+	monitoringtest.ExpectOtelMetrics(t, reader, expectedMetrics)
+
 }
 
 func TestConsumeMetricsHTTP(t *testing.T) {
@@ -96,7 +94,7 @@ func TestConsumeMetricsHTTP(t *testing.T) {
 		return reportError
 	}
 
-	addr := newHTTPServer(t, batchProcessor)
+	addr, reader := newHTTPServer(t, batchProcessor)
 
 	// Send a minimal metric to verify that everything is connected properly.
 	//
@@ -119,21 +117,14 @@ func TestConsumeMetricsHTTP(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NoError(t, rsp.Body.Close())
 
-	actual := map[string]interface{}{}
-	monitoring.GetRegistry("apm-server.otlp.http.metrics").Do(monitoring.Full, func(key string, value interface{}) {
-		actual[key] = value
+	expectedMetrics := getMetrics("apm-server.otlp.http.metrics.", map[string]any{
+		"unset":                1,
+		"request.count":        1,
+		"response.count":       1,
+		"response.valid.count": 1,
 	})
-	assert.Equal(t, map[string]interface{}{
-		"consumer.unsupported_dropped": int64(0),
-
-		"request.count":                int64(1),
-		"response.count":               int64(1),
-		"response.errors.count":        int64(0),
-		"response.valid.count":         int64(1),
-		"response.errors.ratelimit":    int64(0),
-		"response.errors.timeout":      int64(0),
-		"response.errors.unauthorized": int64(0),
-	}, actual)
+	expectedMetrics["http.server.request.duration"] = 1
+	monitoringtest.ExpectOtelMetrics(t, reader, expectedMetrics)
 }
 
 func TestConsumeLogsHTTP(t *testing.T) {
@@ -144,7 +135,7 @@ func TestConsumeLogsHTTP(t *testing.T) {
 		return reportError
 	}
 
-	addr := newHTTPServer(t, batchProcessor)
+	addr, reader := newHTTPServer(t, batchProcessor)
 
 	// Send a minimal log record to verify that everything is connected properly.
 	//
@@ -165,24 +156,25 @@ func TestConsumeLogsHTTP(t *testing.T) {
 	assert.NoError(t, rsp.Body.Close())
 	require.Len(t, batches, 1)
 
-	actual := map[string]interface{}{}
-	monitoring.GetRegistry("apm-server.otlp.http.logs").Do(monitoring.Full, func(key string, value interface{}) {
-		actual[key] = value
+	expectedMetrics := getMetrics("apm-server.otlp.http.logs.", map[string]any{
+		"unset":                1,
+		"request.count":        1,
+		"response.count":       1,
+		"response.valid.count": 1,
 	})
-	assert.Equal(t, map[string]interface{}{
-		"request.count":                int64(1),
-		"response.count":               int64(1),
-		"response.errors.count":        int64(0),
-		"response.valid.count":         int64(1),
-		"response.errors.ratelimit":    int64(0),
-		"response.errors.timeout":      int64(0),
-		"response.errors.unauthorized": int64(0),
-	}, actual)
+	expectedMetrics["http.server.request.duration"] = 1
+	monitoringtest.ExpectOtelMetrics(t, reader, expectedMetrics)
 }
 
-func newHTTPServer(t *testing.T, batchProcessor modelpb.BatchProcessor) string {
+func newHTTPServer(t *testing.T, batchProcessor modelpb.BatchProcessor) (string, sdkmetric.Reader) {
 	lis, err := net.Listen("tcp", "localhost:0")
 	require.NoError(t, err)
+	reader := sdkmetric.NewManualReader(sdkmetric.WithTemporalitySelector(
+		func(ik sdkmetric.InstrumentKind) metricdata.Temporality {
+			return metricdata.DeltaTemporality
+		},
+	))
+	mp := sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader))
 	cfg := &config.Config{}
 	auth, _ := auth.NewAuthenticator(cfg.AgentAuth)
 	ratelimitStore, _ := ratelimit.NewStore(1000, 1000, 1000)
@@ -195,6 +187,7 @@ func newHTTPServer(t *testing.T, batchProcessor modelpb.BatchProcessor) string {
 		nil,
 		func() bool { return true },
 		semaphore.NewWeighted(1),
+		mp,
 	)
 	require.NoError(t, err)
 	srv := http.Server{Handler: router}
@@ -202,5 +195,16 @@ func newHTTPServer(t *testing.T, batchProcessor modelpb.BatchProcessor) string {
 		require.NoError(t, srv.Close())
 	})
 	go srv.Serve(lis)
-	return lis.Addr().String()
+	return lis.Addr().String(), reader
+}
+
+func getMetrics(prefix string, baseMetrics map[string]any) map[string]any {
+	m := make(map[string]any, 2*len(baseMetrics))
+
+	for k, v := range baseMetrics {
+		m["http.server."+k] = v
+		m[prefix+k] = v
+	}
+
+	return m
 }

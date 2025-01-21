@@ -22,6 +22,8 @@ import (
 	"net/http"
 
 	"github.com/elastic/elastic-agent-libs/logp"
+	"go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/metric/noop"
 
 	"github.com/elastic/apm-data/input"
 	"github.com/elastic/apm-data/model/modelpb"
@@ -32,7 +34,7 @@ import (
 	"github.com/elastic/apm-server/internal/beater/ratelimit"
 )
 
-func newTracerServer(cfg *config.Config, listener net.Listener, logger *logp.Logger, batchProcessor modelpb.BatchProcessor, semaphore input.Semaphore) (*http.Server, error) {
+func newTracerServer(cfg *config.Config, listener net.Listener, logger *logp.Logger, batchProcessor modelpb.BatchProcessor, semaphore input.Semaphore, mp metric.MeterProvider) (*http.Server, error) {
 	ratelimitStore, err := ratelimit.NewStore(1, 1, 1) // unused, arbitrary params
 	if err != nil {
 		return nil, err
@@ -51,6 +53,7 @@ func newTracerServer(cfg *config.Config, listener net.Listener, logger *logp.Log
 		nil,                         // no sourcemap store
 		func() bool { return true }, // ready for publishing
 		semaphore,
+		noop.NewMeterProvider(),
 	)
 	if err != nil {
 		return nil, err
