@@ -104,12 +104,11 @@ jobs:
           username: ${{ secrets.ELASTIC_DOCKER_USERNAME }}
           password: ${{ secrets.ELASTIC_DOCKER_PASSWORD }}
 
-
       - uses: elastic/oblt-actions/google/auth@v1
 
       - uses: elastic/oblt-actions/aws/auth@v1
         with:
-          role-duration-seconds: 18000 # 5 hours
+          role-duration-seconds: 21600 # 6 hours
 
       - uses: google-github-actions/get-secretmanager-secrets@e5bb06c2ca53b244f978d33348d18317a7f263ce # v2.2.2
         with:
