@@ -75,7 +75,7 @@ type StorageManager struct {
 	eventStorage    *Storage
 	decisionStorage *Storage
 
-	partitionID    atomic.Int32
+	partitionID    atomic.Int32 // FIXME: load the correct partition ID on restart
 	partitionCount int32
 
 	codec Codec
