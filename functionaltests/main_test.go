@@ -47,13 +47,20 @@ const (
 // single run of ingest().
 // Only non aggregation data streams are included, as aggregation ones differs on different
 // runs.
-func expectedIngestForASingleRun() esclient.APMDataStreamsDocCount {
-	return map[string]int{
-		"traces-apm-default":                     15013,
-		"metrics-apm.app.opbeans_python-default": 1437,
-		"metrics-apm.internal-default":           1351,
-		"logs-apm.error-default":                 364,
+func expectedIngestForASingleRun(namespace string) esclient.APMDataStreamsDocCount {
+	res := esclient.APMDataStreamsDocCount{}
+	for k, v := range map[string]int{
+		// Add here data stream names without namespace, it will be added automatically
+		// in the next lines.
+		"traces-apm":                     15013,
+		"metrics-apm.app.opbeans_python": 1437,
+		"metrics-apm.internal":           1351,
+		"logs-apm.error":                 364,
+	} {
+		k := fmt.Sprintf("%s-%s", k, namespace)
+		res[k] = v
 	}
+	return res
 }
 
 // getDocsCountPerDS retrieves document count.

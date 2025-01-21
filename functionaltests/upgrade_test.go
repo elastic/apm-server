@@ -41,6 +41,12 @@ type essUpgradeTestCase struct {
 	from string
 	to   string
 
+	// expectedDsDocCountForAIngestRunis the expect document count for each
+	// data stream that the test should observe after a single ingestion run
+	// of the test data. APM data stream don't usually change but we want to
+	// run tests where we use, for example, a dedicated namespace.
+	expectedDsDocCountForAIngestRun esclient.APMDataStreamsDocCount
+
 	// setupFn allows to specify custom logic to happen after test cluster
 	// boostrap and before any ingestion happens.
 	setupFn additionalFn
@@ -58,6 +64,12 @@ type essUpgradeTestCase struct {
 func runESSUpgradeTest(t *testing.T, tc essUpgradeTestCase) {
 	start := time.Now()
 	ctx := context.Background()
+
+	// Initialize the empty value to a sane default to avoid repeating
+	// the default value in each test.
+	if len(tc.expectedDsDocCountForAIngestRun) == 0 {
+		tc.expectedDsDocCountForAIngestRun = expectedIngestForASingleRun("default")
+	}
 
 	t.Log("creating deploment with terraform")
 	tf, err := terraform.New(t, t.Name())
@@ -121,7 +133,7 @@ func runESSUpgradeTest(t *testing.T, tc essUpgradeTestCase) {
 
 	beforeUpgradeCount, err := getDocsCountPerDS(t, ctx, ecc)
 	require.NoError(t, err)
-	assertDocCount(t, beforeUpgradeCount, previous, expectedIngestForASingleRun())
+	assertDocCount(t, beforeUpgradeCount, previous, tc.expectedDsDocCountForAIngestRun)
 
 	t.Log("check data streams")
 	var dss []types.DataStream
@@ -160,7 +172,7 @@ func runESSUpgradeTest(t *testing.T, tc essUpgradeTestCase) {
 	t.Log("check number of documents")
 	afterUpgradeIngestionCount, err := getDocsCountPerDS(t, ctx, ecc)
 	require.NoError(t, err)
-	assertDocCount(t, afterUpgradeIngestionCount, afterUpgradeCount, expectedIngestForASingleRun())
+	assertDocCount(t, afterUpgradeIngestionCount, afterUpgradeCount, tc.expectedDsDocCountForAIngestRun)
 
 	t.Log("check data streams and verify lazy rollover happened")
 	dss2, err := ecc.GetDataStream(ctx, "*apm*")
