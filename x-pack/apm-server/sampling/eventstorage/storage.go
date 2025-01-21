@@ -118,10 +118,10 @@ type ReadWriter struct {
 
 func (rw *ReadWriter) lazyInit() {
 	if rw.batch == nil {
-		rw.batch = rw.s.db.NewIndexedBatch(
-			pebble.WithInitialSizeBytes(initialPebbleBatchSize),
-			pebble.WithMaxRetainedSizeBytes(maxRetainedPebbleBatchSize),
-		)
+		//rw.batch = rw.s.db.NewIndexedBatch(
+		//	pebble.WithInitialSizeBytes(initialPebbleBatchSize),
+		//	pebble.WithMaxRetainedSizeBytes(maxRetainedPebbleBatchSize),
+		//)
 	}
 }
 
@@ -168,9 +168,9 @@ func (rw *ReadWriter) Flush() error {
 
 func (rw *ReadWriter) flushBatch() (err error) {
 	if rw.batch != nil {
-		err = rw.batch.Commit(pebble.NoSync)
-		rw.batch.Close()
-		rw.batch = nil
+		//err = rw.batch.Commit(pebble.NoSync)
+		//rw.batch.Close()
+		//rw.batch = nil
 	}
 	return
 }
@@ -247,14 +247,18 @@ func (rw *ReadWriter) WriteTraceEvent(traceID string, id string, event *modelpb.
 
 func (rw *ReadWriter) writeEntry(key, data []byte) error {
 	rw.pendingWrites++
-	// FIXME: possibly change key structure, because the append is going to be expensive
-	if err := rw.batch.Set(key, data, pebble.NoSync); err != nil {
+
+	// FIXME: disabled batch
+	if err := rw.s.db.(*wrappedDB).db.Set(key, data, pebble.NoSync); err != nil {
 		return err
 	}
-
-	if rw.batch.Len() >= dbCommitThresholdBytes {
-		return rw.flushBatch()
-	}
+	//if err := rw.batch.Set(key, data, pebble.NoSync); err != nil {
+	//	return err
+	//}
+	//
+	//if rw.batch.Len() >= dbCommitThresholdBytes {
+	//	return rw.flushBatch()
+	//}
 	return nil
 }
 
@@ -269,7 +273,12 @@ func (rw *ReadWriter) DeleteTraceEvent(traceID, id string) error {
 	buf.WriteString(id)
 	key := buf.Bytes()
 
-	err := rw.batch.Delete(key, pebble.NoSync)
+	// FIXME: disabled batch
+	//err := rw.batch.Delete(key, pebble.NoSync)
+	//if err != nil {
+	//	return err
+	//}
+	err := rw.s.db.(*wrappedDB).db.Delete(key, pebble.NoSync)
 	if err != nil {
 		return err
 	}
@@ -285,7 +294,12 @@ func (rw *ReadWriter) DeleteTraceEvent(traceID, id string) error {
 func (rw *ReadWriter) ReadTraceEvents(traceID string, out *modelpb.Batch) error {
 	rw.lazyInit()
 
-	iter, err := rw.batch.NewIter(&pebble.IterOptions{
+	// FIXME: disabled batch
+	//iter, err := rw.batch.NewIter(&pebble.IterOptions{
+	//	LowerBound: append([]byte(traceID), ':'),
+	//	UpperBound: append([]byte(traceID), ';'), // This is a hack to stop before next ID
+	//})
+	iter, err := rw.s.db.(*wrappedDB).db.NewIter(&pebble.IterOptions{
 		LowerBound: append([]byte(traceID), ':'),
 		UpperBound: append([]byte(traceID), ';'), // This is a hack to stop before next ID
 	})
