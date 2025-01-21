@@ -45,7 +45,7 @@ var (
 	db   *eventstorage.StorageManager
 
 	storageMu sync.Mutex
-	storage   *eventstorage.ShardedReadWriter
+	storage   eventstorage.RW
 
 	// samplerUUID is a UUID used to identify sampled trace ID documents
 	// published by this process.
@@ -179,7 +179,7 @@ func getDB(storageDir string) (*eventstorage.StorageManager, error) {
 	return db, nil
 }
 
-func getStorage(sm *eventstorage.StorageManager) *eventstorage.ShardedReadWriter {
+func getStorage(sm *eventstorage.StorageManager) eventstorage.RW {
 	storageMu.Lock()
 	defer storageMu.Unlock()
 	if storage == nil {

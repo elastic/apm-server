@@ -48,9 +48,8 @@ type partitionedDB interface {
 // Storage provides storage for sampled transactions and spans,
 // and for recording trace sampling decisions.
 type Storage struct {
-	db         partitionedDB
-	decisionDB partitionedDB
-	codec      Codec
+	db    partitionedDB
+	codec Codec
 }
 
 // Codec provides methods for encoding and decoding events.
@@ -59,12 +58,11 @@ type Codec interface {
 	EncodeEvent(*modelpb.APMEvent) ([]byte, error)
 }
 
-// New returns a new Storage using db, decisionDB and codec.
-func New(db partitionedDB, decisionDB partitionedDB, codec Codec) *Storage {
+// New returns a new Storage using db and codec.
+func New(db partitionedDB, codec Codec) *Storage {
 	return &Storage{
-		db:         db,
-		decisionDB: decisionDB,
-		codec:      codec,
+		db:    db,
+		codec: codec,
 	}
 }
 
@@ -121,26 +119,26 @@ func (rw *ReadWriter) Flush() error {
 
 // WriteTraceSampled records the tail-sampling decision for the given trace ID.
 func (rw *ReadWriter) WriteTraceSampled(traceID string, sampled bool, opts WriterOpts) error {
-	pid := rw.s.decisionDB.PartitionID()
-	return NewPrefixReadWriter(rw.s.decisionDB, byte(pid), rw.s.codec).WriteTraceSampled(traceID, sampled, opts)
+	pid := rw.s.db.PartitionID()
+	return NewPrefixReadWriter(rw.s.db, byte(pid), rw.s.codec).WriteTraceSampled(traceID, sampled, opts)
 }
 
 // IsTraceSampled reports whether traceID belongs to a trace that is sampled
 // or unsampled. If no sampling decision has been recorded, IsTraceSampled
 // returns ErrNotFound.
 func (rw *ReadWriter) IsTraceSampled(traceID string) (bool, error) {
-	currentPID := rw.s.decisionDB.PartitionID()
-	prevPID := (currentPID + rw.s.db.PartitionCount() - 1) % rw.s.decisionDB.PartitionCount()
+	currentPID := rw.s.db.PartitionID()
+	prevPID := (currentPID + rw.s.db.PartitionCount() - 1) % rw.s.db.PartitionCount()
 	// FIXME: this needs to be fast, as it is in the hot path
 	// It should minimize disk IO on miss due to
 	// 1. (pubsub) remote sampling decision
 	// 2. (hot path) sampling decision not made yet
-	sampled, err := NewPrefixReadWriter(rw.s.decisionDB, byte(currentPID), rw.s.codec).IsTraceSampled(traceID)
+	sampled, err := NewPrefixReadWriter(rw.s.db, byte(currentPID), rw.s.codec).IsTraceSampled(traceID)
 	if err == nil {
 		return sampled, nil
 	}
 
-	sampled, err = NewPrefixReadWriter(rw.s.decisionDB, byte(prevPID), rw.s.codec).IsTraceSampled(traceID)
+	sampled, err = NewPrefixReadWriter(rw.s.db, byte(prevPID), rw.s.codec).IsTraceSampled(traceID)
 	if err == nil {
 		return sampled, nil
 	}

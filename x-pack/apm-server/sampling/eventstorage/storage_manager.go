@@ -16,6 +16,7 @@ import (
 	"github.com/cockroachdb/pebble"
 	"golang.org/x/sync/errgroup"
 
+	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/internal/logs"
 	"github.com/elastic/elastic-agent-libs/logp"
 )
@@ -70,10 +71,11 @@ type StorageManager struct {
 	storageDir string
 	logger     *logp.Logger
 
-	db         *pebble.DB
-	decisionDB *pebble.DB
-	storage    *Storage
-	rw         *ShardedReadWriter
+	db              *pebble.DB
+	decisionDB      *pebble.DB
+	eventStorage    *Storage
+	decisionStorage *Storage
+	rw              *ShardedReadWriter
 
 	partitionID    atomic.Int32
 	partitionCount int32
@@ -114,13 +116,15 @@ func (s *StorageManager) reset() error {
 		return err
 	}
 	s.db = db
+	s.eventStorage = New(&wrappedDB{sm: s, db: s.db}, s.codec)
+
 	decisionDB, err := OpenSamplingDecisionPebble(s.storageDir)
 	if err != nil {
 		return err
 	}
 	s.decisionDB = decisionDB
-	s.storage = New(&wrappedDB{sm: s, db: s.db}, &wrappedDB{sm: s, db: s.decisionDB}, s.codec)
-	s.rw = s.storage.NewShardedReadWriter()
+	s.decisionStorage = New(&wrappedDB{sm: s, db: s.decisionDB}, s.codec)
+
 	return nil
 }
 
@@ -133,7 +137,6 @@ func (s *StorageManager) Close() error {
 }
 
 func (s *StorageManager) close() error {
-	s.rw.Close()
 	return errors.Join(s.db.Close(), s.decisionDB.Close())
 }
 
@@ -207,13 +210,51 @@ func (s *StorageManager) WriteSubscriberPosition(data []byte) error {
 	return os.WriteFile(filepath.Join(s.storageDir, subscriberPositionFile), data, 0644)
 }
 
-func (s *StorageManager) NewReadWriter() *ShardedReadWriter {
-	return s.rw
+func (s *StorageManager) NewReadWriter() SplitReadWriter {
+	return SplitReadWriter{
+		eventRW:    s.eventStorage.NewShardedReadWriter(),
+		decisionRW: s.decisionStorage.NewShardedReadWriter(),
+	}
 }
 
-// NewBypassReadWriter returns a ReadWriter directly reading and writing to the database,
+// NewBypassReadWriter returns a SplitReadWriter directly reading and writing to the database,
 // bypassing any wrapper e.g. ShardedReadWriter.
 // This should be used for testing only, useful to check if data is actually persisted to the DB.
-func (s *StorageManager) NewBypassReadWriter() *ReadWriter {
-	return s.storage.NewReadWriter()
+func (s *StorageManager) NewBypassReadWriter() SplitReadWriter {
+	return SplitReadWriter{
+		eventRW:    s.eventStorage.NewReadWriter(),
+		decisionRW: s.decisionStorage.NewReadWriter(),
+	}
+}
+
+type SplitReadWriter struct {
+	eventRW, decisionRW RW
+}
+
+func (s SplitReadWriter) ReadTraceEvents(traceID string, out *modelpb.Batch) error {
+	return s.eventRW.ReadTraceEvents(traceID, out)
+}
+
+func (s SplitReadWriter) WriteTraceEvent(traceID, id string, event *modelpb.APMEvent, opts WriterOpts) error {
+	return s.eventRW.WriteTraceEvent(traceID, id, event, opts)
+}
+
+func (s SplitReadWriter) WriteTraceSampled(traceID string, sampled bool, opts WriterOpts) error {
+	return s.decisionRW.WriteTraceSampled(traceID, sampled, opts)
+}
+
+func (s SplitReadWriter) IsTraceSampled(traceID string) (bool, error) {
+	return s.decisionRW.IsTraceSampled(traceID)
+}
+
+func (s SplitReadWriter) DeleteTraceEvent(traceID, id string) error {
+	return s.eventRW.DeleteTraceEvent(traceID, id)
+}
+
+func (s SplitReadWriter) Flush() error {
+	return nil
+}
+
+func (s SplitReadWriter) Close() error {
+	return nil
 }
