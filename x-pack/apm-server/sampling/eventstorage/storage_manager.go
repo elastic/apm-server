@@ -185,6 +185,8 @@ func (sm *StorageManager) IncrementPartition() error {
 	oldPID := sm.partitionID.Load()
 	sm.partitionID.Store((oldPID + 1) % sm.partitionCount)
 
+	// FIXME: potential race, wait for a bit before deleting?
+
 	pidToDelete := (oldPID + sm.partitionCount - 1) % sm.partitionCount
 	lbPrefix := byte(pidToDelete)
 	ubPrefix := lbPrefix + 1 // Do not use % here as it MUST BE greater than lb
