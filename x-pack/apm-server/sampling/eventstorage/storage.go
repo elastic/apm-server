@@ -126,7 +126,7 @@ func (rw *ReadWriter) WriteTraceSampled(traceID string, sampled bool, opts Write
 // returns ErrNotFound.
 func (rw *ReadWriter) IsTraceSampled(traceID string) (bool, error) {
 	currentPID := rw.s.decisionDB.PartitionID()
-	prevPID := (currentPID - 1) % rw.s.decisionDB.PartitionCount()
+	prevPID := (currentPID + rw.s.db.PartitionCount() - 1) % rw.s.decisionDB.PartitionCount()
 	// FIXME: this needs to be fast, as it is in the hot path
 	// It should minimize disk IO on miss due to
 	// 1. (pubsub) remote sampling decision
@@ -155,7 +155,7 @@ func (rw *ReadWriter) WriteTraceEvent(traceID string, id string, event *modelpb.
 func (rw *ReadWriter) DeleteTraceEvent(traceID, id string) error {
 	// FIXME: use range delete
 	currentPID := rw.s.db.PartitionID()
-	prevPID := (currentPID - 1) % rw.s.db.PartitionCount()
+	prevPID := (currentPID + rw.s.db.PartitionCount() - 1) % rw.s.db.PartitionCount()
 	return errors.Join(
 		NewPartitionedReadWriter(rw.s.db, currentPID, rw.s.codec).DeleteTraceEvent(traceID, id),
 		NewPartitionedReadWriter(rw.s.db, prevPID, rw.s.codec).DeleteTraceEvent(traceID, id),
@@ -165,7 +165,7 @@ func (rw *ReadWriter) DeleteTraceEvent(traceID, id string) error {
 // ReadTraceEvents reads trace events with the given trace ID from storage into out.
 func (rw *ReadWriter) ReadTraceEvents(traceID string, out *modelpb.Batch) error {
 	currentPID := rw.s.db.PartitionID()
-	prevPID := (currentPID - 1) % rw.s.db.PartitionCount()
+	prevPID := (currentPID + rw.s.db.PartitionCount() - 1) % rw.s.db.PartitionCount()
 	return errors.Join(
 		NewPartitionedReadWriter(rw.s.db, currentPID, rw.s.codec).ReadTraceEvents(traceID, out),
 		NewPartitionedReadWriter(rw.s.db, prevPID, rw.s.codec).ReadTraceEvents(traceID, out),

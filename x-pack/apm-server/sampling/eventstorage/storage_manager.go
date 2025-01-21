@@ -184,12 +184,14 @@ func (s *StorageManager) IncrementPartition() error {
 	oldPID := s.partitionID.Load()
 	s.partitionID.Store((oldPID + 1) % s.partitionCount)
 
-	pidToDelete := (oldPID - 1) % s.partitionCount
+	pidToDelete := (oldPID + s.partitionCount - 1) % s.partitionCount
+	lbPrefix := byte(pidToDelete)
+	ubPrefix := lbPrefix + 1 // Do not use % here as it MUST BE greater than lb
 	return errors.Join(
-		s.db.DeleteRange([]byte{byte(pidToDelete)}, []byte{byte(oldPID)}, pebble.NoSync),
-		s.decisionDB.DeleteRange([]byte{byte(pidToDelete)}, []byte{byte(oldPID)}, pebble.NoSync),
-		s.db.Compact([]byte{byte(pidToDelete)}, []byte{byte(oldPID)}, false),
-		s.decisionDB.Compact([]byte{byte(pidToDelete)}, []byte{byte(oldPID)}, false),
+		s.db.DeleteRange([]byte{lbPrefix}, []byte{ubPrefix}, pebble.NoSync),
+		s.decisionDB.DeleteRange([]byte{lbPrefix}, []byte{ubPrefix}, pebble.NoSync),
+		s.db.Compact([]byte{lbPrefix}, []byte{ubPrefix}, false),
+		s.decisionDB.Compact([]byte{lbPrefix}, []byte{ubPrefix}, false),
 	)
 }
 
