@@ -38,7 +38,7 @@ func eventComparer() *pebble.Comparer {
 	return &comparer
 }
 
-func OpenPebble(storageDir string) (*pebble.DB, error) {
+func OpenEventPebble(storageDir string) (*pebble.DB, error) {
 	return pebble.Open(filepath.Join(storageDir, "event"), &pebble.Options{
 		// FIXME: Specify FormatMajorVersion to use value blocks?
 		FormatMajorVersion: pebble.FormatNewest,
@@ -56,7 +56,7 @@ func OpenPebble(storageDir string) (*pebble.DB, error) {
 	})
 }
 
-func OpenSamplingDecisionPebble(storageDir string) (*pebble.DB, error) {
+func OpenDecisionPebble(storageDir string) (*pebble.DB, error) {
 	return pebble.Open(filepath.Join(storageDir, "decision"), &pebble.Options{
 		// FIXME: Specify FormatMajorVersion to use value blocks?
 		FormatMajorVersion: pebble.FormatNewest,

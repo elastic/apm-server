@@ -74,7 +74,6 @@ type StorageManager struct {
 	decisionDB      *pebble.DB
 	eventStorage    *Storage
 	decisionStorage *Storage
-	rw              *ShardedReadWriter
 
 	partitionID    atomic.Int32
 	partitionCount int32
@@ -108,16 +107,16 @@ func NewStorageManager(storageDir string, opts ...StorageManagerOptions) (*Stora
 	return sm, nil
 }
 
-// reset initializes db, storage, and rw.
+// reset initializes db and storage.
 func (sm *StorageManager) reset() error {
-	db, err := OpenPebble(sm.storageDir)
+	eventDB, err := OpenEventPebble(sm.storageDir)
 	if err != nil {
 		return err
 	}
-	sm.eventDB = db
+	sm.eventDB = eventDB
 	sm.eventStorage = New(&wrappedDB{sm: sm, db: sm.eventDB}, sm.codec)
 
-	decisionDB, err := OpenSamplingDecisionPebble(sm.storageDir)
+	decisionDB, err := OpenDecisionPebble(sm.storageDir)
 	if err != nil {
 		return err
 	}
