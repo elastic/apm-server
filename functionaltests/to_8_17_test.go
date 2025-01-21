@@ -27,6 +27,7 @@ import (
 )
 
 func TestUpgradeTo8170_plain(t *testing.T) {
+	t.Parallel()
 	ecAPICheck(t)
 
 	runESSUpgradeTest(t, essUpgradeTestCase{
@@ -66,6 +67,7 @@ func TestUpgradeTo8170_plain(t *testing.T) {
 // TestUpgradeTo8170_reroute checks for regressions in upgrades when
 // using an ingest pipeline with a reroute processor.
 func TestUpgradeTo8170_reroute(t *testing.T) {
+	t.Parallel()
 	ecAPICheck(t)
 
 	runESSUpgradeTest(t, essUpgradeTestCase{
@@ -108,6 +110,7 @@ func TestUpgradeTo8170_reroute(t *testing.T) {
 }
 
 func TestUpgradeTo8170_withAPMIntegration(t *testing.T) {
+	t.Parallel()
 	ecAPICheck(t)
 
 	runESSUpgradeTest(t, essUpgradeTestCase{
