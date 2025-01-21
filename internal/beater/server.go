@@ -238,6 +238,7 @@ func newAgentConfigFetcher(
 	kibanaClient *kibana.Client,
 	newElasticsearchClient func(*elasticsearch.Config) (*elasticsearch.Client, error),
 	tracer *apm.Tracer,
+	mp metric.MeterProvider,
 ) (agentcfg.Fetcher, func(context.Context) error, error) {
 	// Always use ElasticsearchFetcher, and as a fallback, use:
 	// 1. no fallback if Elasticsearch is explicitly configured
@@ -262,6 +263,6 @@ func newAgentConfigFetcher(
 	if err != nil {
 		return nil, nil, err
 	}
-	esFetcher := agentcfg.NewElasticsearchFetcher(esClient, cfg.AgentConfig.Cache.Expiration, fallbackFetcher, tracer)
+	esFetcher := agentcfg.NewElasticsearchFetcher(esClient, cfg.AgentConfig.Cache.Expiration, fallbackFetcher, tracer, mp)
 	return agentcfg.SanitizingFetcher{Fetcher: esFetcher}, esFetcher.Run, nil
 }

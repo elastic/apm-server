@@ -413,6 +413,7 @@ func (s *Runner) Run(ctx context.Context) error {
 		kibanaClient,
 		newElasticsearchClient,
 		tracer,
+		s.meterProvider,
 	)
 	if err != nil {
 		return err

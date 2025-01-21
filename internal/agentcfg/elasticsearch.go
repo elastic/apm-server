@@ -29,7 +29,7 @@ import (
 
 	"github.com/pkg/errors"
 	"go.elastic.co/apm/v2"
-	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/metric"
 
 	"github.com/elastic/apm-server/internal/elasticsearch"
 	"github.com/elastic/apm-server/internal/logs"
@@ -55,18 +55,6 @@ const (
 	loggerRateLimit     = time.Minute
 )
 
-var (
-	meter = otel.Meter("github.com/elastic/apm-server/internal/agentcfg")
-
-	esCacheEntriesCount, _     = meter.Int64Gauge("apm-server.agentcfg.elasticsearch.cache.entries.count")
-	esFetchCount, _            = meter.Int64Counter("apm-server.agentcfg.elasticsearch.fetch.es")
-	esFetchFallbackCount, _    = meter.Int64Counter("apm-server.agentcfg.elasticsearch.fetch.fallback")
-	esFetchUnavailableCount, _ = meter.Int64Counter("apm-server.agentcfg.elasticsearch.fetch.unavailable")
-	esFetchInvalidCount, _     = meter.Int64Counter("apm-server.agentcfg.elasticsearch.fetch.invalid")
-	esCacheRefreshSuccesses, _ = meter.Int64Counter("apm-server.agentcfg.elasticsearch.cache.refresh.successes")
-	esCacheRefreshFailures, _  = meter.Int64Counter("apm-server.agentcfg.elasticsearch.cache.refresh.failures")
-)
-
 type ElasticsearchFetcher struct {
 	client          *elasticsearch.Client
 	cacheDuration   time.Duration
@@ -84,6 +72,14 @@ type ElasticsearchFetcher struct {
 	logger, rateLimitedLogger *logp.Logger
 
 	tracer *apm.Tracer
+
+	esCacheEntriesCount     metric.Int64Gauge
+	esFetchCount            metric.Int64Counter
+	esFetchFallbackCount    metric.Int64Counter
+	esFetchUnavailableCount metric.Int64Counter
+	esFetchInvalidCount     metric.Int64Counter
+	esCacheRefreshSuccesses metric.Int64Counter
+	esCacheRefreshFailures  metric.Int64Counter
 }
 
 func NewElasticsearchFetcher(
@@ -91,7 +87,18 @@ func NewElasticsearchFetcher(
 	cacheDuration time.Duration,
 	fetcher Fetcher,
 	tracer *apm.Tracer,
+	mp metric.MeterProvider,
 ) *ElasticsearchFetcher {
+	meter := mp.Meter("github.com/elastic/apm-server/internal/agentcfg")
+
+	esCacheEntriesCount, _ := meter.Int64Gauge("apm-server.agentcfg.elasticsearch.cache.entries.count")
+	esFetchCount, _ := meter.Int64Counter("apm-server.agentcfg.elasticsearch.fetch.es")
+	esFetchFallbackCount, _ := meter.Int64Counter("apm-server.agentcfg.elasticsearch.fetch.fallback")
+	esFetchUnavailableCount, _ := meter.Int64Counter("apm-server.agentcfg.elasticsearch.fetch.unavailable")
+	esFetchInvalidCount, _ := meter.Int64Counter("apm-server.agentcfg.elasticsearch.fetch.invalid")
+	esCacheRefreshSuccesses, _ := meter.Int64Counter("apm-server.agentcfg.elasticsearch.cache.refresh.successes")
+	esCacheRefreshFailures, _ := meter.Int64Counter("apm-server.agentcfg.elasticsearch.cache.refresh.failures")
+
 	logger := logp.NewLogger("agentcfg")
 	return &ElasticsearchFetcher{
 		client:            client,
@@ -101,6 +108,14 @@ func NewElasticsearchFetcher(
 		logger:            logger,
 		rateLimitedLogger: logger.WithOptions(logs.WithRateLimit(loggerRateLimit)),
 		tracer:            tracer,
+
+		esCacheEntriesCount:     esCacheEntriesCount,
+		esFetchCount:            esFetchCount,
+		esFetchFallbackCount:    esFetchFallbackCount,
+		esFetchUnavailableCount: esFetchUnavailableCount,
+		esFetchInvalidCount:     esFetchInvalidCount,
+		esCacheRefreshSuccesses: esCacheRefreshSuccesses,
+		esCacheRefreshFailures:  esCacheRefreshFailures,
 	}
 }
 
@@ -110,22 +125,22 @@ func (f *ElasticsearchFetcher) Fetch(ctx context.Context, query Query) (Result, 
 		// Happy path: serve fetch requests using an initialized cache.
 		f.mu.RLock()
 		defer f.mu.RUnlock()
-		esFetchCount.Add(ctx, 1)
+		f.esFetchCount.Add(ctx, 1)
 		return matchAgentConfig(query, f.cache), nil
 	}
 
 	if f.fallbackFetcher != nil {
-		esFetchFallbackCount.Add(ctx, 1)
+		f.esFetchFallbackCount.Add(ctx, 1)
 		return f.fallbackFetcher.Fetch(ctx, query)
 	}
 
 	if f.invalidESCfg.Load() {
-		esFetchInvalidCount.Add(ctx, 1)
+		f.esFetchInvalidCount.Add(ctx, 1)
 		f.rateLimitedLogger.Errorf("rejecting fetch request: no valid elasticsearch config")
 		return Result{}, errors.New(ErrNoValidElasticsearchConfig)
 	}
 
-	esFetchUnavailableCount.Add(ctx, 1)
+	f.esFetchUnavailableCount.Add(ctx, 1)
 	f.rateLimitedLogger.Warnf("rejecting fetch request: infrastructure is not ready")
 	return Result{}, errors.New(ErrInfrastructureNotReady)
 }
@@ -218,9 +233,9 @@ func (f *ElasticsearchFetcher) refreshCache(ctx context.Context) (err error) {
 
 	defer func() {
 		if err != nil {
-			esCacheRefreshFailures.Add(ctx, 1)
+			f.esCacheRefreshFailures.Add(ctx, 1)
 		} else {
-			esCacheRefreshSuccesses.Add(ctx, 1)
+			f.esCacheRefreshSuccesses.Add(ctx, 1)
 		}
 	}()
 
@@ -252,7 +267,7 @@ func (f *ElasticsearchFetcher) refreshCache(ctx context.Context) (err error) {
 	f.cache = buffer
 	f.mu.Unlock()
 	f.cacheInitialized.Store(true)
-	esCacheEntriesCount.Record(ctx, int64(len(f.cache)))
+	f.esCacheEntriesCount.Record(ctx, int64(len(f.cache)))
 	f.last = time.Now()
 	return nil
 }
