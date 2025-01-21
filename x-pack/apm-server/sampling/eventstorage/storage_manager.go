@@ -210,8 +210,8 @@ func (sm *StorageManager) WriteSubscriberPosition(data []byte) error {
 
 func (sm *StorageManager) NewReadWriter() SplitReadWriter {
 	return SplitReadWriter{
-		eventRW:    sm.eventStorage.NewShardedReadWriter(),
-		decisionRW: sm.decisionStorage.NewShardedReadWriter(),
+		eventRW:    sm.eventStorage.NewReadWriter(),
+		decisionRW: sm.decisionStorage.NewReadWriter(),
 	}
 }
 
