@@ -20,8 +20,6 @@ package request
 import (
 	"net/http"
 
-	"go.opentelemetry.io/otel"
-
 	"github.com/pkg/errors"
 )
 
@@ -81,8 +79,6 @@ const (
 )
 
 var (
-	meter = otel.Meter("github.com/elastic/apm-server/internal/beater/request")
-
 	// MapResultIDToStatus takes a ResultID and maps it to a status
 	MapResultIDToStatus = map[ResultID]Status{
 		IDResponseValidOK:                  {Code: http.StatusOK, Keyword: "request ok"},
@@ -103,9 +99,6 @@ var (
 		IDResponseErrorsServiceUnavailable: {Code: http.StatusServiceUnavailable, Keyword: "service unavailable"},
 		IDResponseErrorsInternal:           {Code: http.StatusInternalServerError, Keyword: "internal error"},
 	}
-
-	// DefaultResultIDs is a list of the default result IDs used by the package.
-	DefaultResultIDs = []ResultID{IDRequestCount, IDResponseCount, IDResponseErrorsCount, IDResponseValidCount}
 )
 
 // ResultID unique string identifying a requests Result

@@ -19,16 +19,8 @@ package otlp
 
 import (
 	"go.opentelemetry.io/otel"
-
-	"github.com/elastic/apm-server/internal/beater/request"
 )
 
 var (
 	meter = otel.Meter("github.com/elastic/apm-server/internal/beater/otlp")
-
-	monitoringKeys = append(request.DefaultResultIDs,
-		request.IDResponseErrorsRateLimit,
-		request.IDResponseErrorsTimeout,
-		request.IDResponseErrorsUnauthorized,
-	)
 )
