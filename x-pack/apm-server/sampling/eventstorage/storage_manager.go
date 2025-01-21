@@ -16,7 +16,6 @@ import (
 	"github.com/cockroachdb/pebble"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/internal/logs"
 	"github.com/elastic/elastic-agent-libs/logp"
 )
@@ -25,10 +24,6 @@ const (
 	// subscriberPositionFile holds the file name used for persisting
 	// the subscriber position across server restarts.
 	subscriberPositionFile = "subscriber_position.json"
-)
-
-var (
-	errDropAndRecreateInProgress = errors.New("db drop and recreate in progress")
 )
 
 type wrappedDB struct {
@@ -85,8 +80,6 @@ type StorageManager struct {
 
 	codec Codec
 
-	// mu guards db, storage, and rw swaps.
-	mu sync.RWMutex
 	// subscriberPosMu protects the subscriber file from concurrent RW.
 	subscriberPosMu sync.Mutex
 
@@ -132,14 +125,10 @@ func (s *StorageManager) reset() error {
 }
 
 func (s *StorageManager) Size() (lsm, vlog int64) {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
 	return int64(s.db.Metrics().DiskSpaceUsage() + s.decisionDB.Metrics().DiskSpaceUsage()), 0
 }
 
 func (s *StorageManager) Close() error {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
 	return s.close()
 }
 
@@ -152,8 +141,6 @@ func (s *StorageManager) close() error {
 // It does not flush uncommitted writes.
 // For testing only.
 func (s *StorageManager) Reload() error {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
 	if err := s.close(); err != nil {
 		return err
 	}
@@ -218,58 +205,8 @@ func (s *StorageManager) WriteSubscriberPosition(data []byte) error {
 	return os.WriteFile(filepath.Join(s.storageDir, subscriberPositionFile), data, 0644)
 }
 
-func (s *StorageManager) NewReadWriter() *ManagedReadWriter {
-	return &ManagedReadWriter{
-		sm: s,
-	}
-}
-
-// ManagedReadWriter is a read writer that is transparent to badger DB changes done by StorageManager.
-// It is a wrapper of the ShardedReadWriter under StorageManager.
-type ManagedReadWriter struct {
-	sm *StorageManager
-}
-
-func (s *ManagedReadWriter) ReadTraceEvents(traceID string, out *modelpb.Batch) error {
-	s.sm.mu.RLock()
-	defer s.sm.mu.RUnlock()
-	return s.sm.rw.ReadTraceEvents(traceID, out)
-}
-
-func (s *ManagedReadWriter) WriteTraceEvent(traceID, id string, event *modelpb.APMEvent, opts WriterOpts) error {
-	ok := s.sm.mu.TryRLock()
-	if !ok {
-		return errDropAndRecreateInProgress
-	}
-	defer s.sm.mu.RUnlock()
-	return s.sm.rw.WriteTraceEvent(traceID, id, event, opts)
-}
-
-func (s *ManagedReadWriter) WriteTraceSampled(traceID string, sampled bool, opts WriterOpts) error {
-	ok := s.sm.mu.TryRLock()
-	if !ok {
-		return errDropAndRecreateInProgress
-	}
-	defer s.sm.mu.RUnlock()
-	return s.sm.rw.WriteTraceSampled(traceID, sampled, opts)
-}
-
-func (s *ManagedReadWriter) IsTraceSampled(traceID string) (bool, error) {
-	s.sm.mu.RLock()
-	defer s.sm.mu.RUnlock()
-	return s.sm.rw.IsTraceSampled(traceID)
-}
-
-func (s *ManagedReadWriter) DeleteTraceEvent(traceID, id string) error {
-	s.sm.mu.RLock()
-	defer s.sm.mu.RUnlock()
-	return s.sm.rw.DeleteTraceEvent(traceID, id)
-}
-
-func (s *ManagedReadWriter) Flush() error {
-	s.sm.mu.RLock()
-	defer s.sm.mu.RUnlock()
-	return s.sm.rw.Flush()
+func (s *StorageManager) NewReadWriter() *ShardedReadWriter {
+	return s.rw
 }
 
 // NewBypassReadWriter returns a ReadWriter directly reading and writing to the database,
