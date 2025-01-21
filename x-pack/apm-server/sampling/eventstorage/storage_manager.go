@@ -76,7 +76,7 @@ type StorageManager struct {
 	db         *pebble.DB
 	decisionDB *pebble.DB
 	storage    *Storage
-	rw         *ReadWriter
+	rw         *ShardedReadWriter
 
 	codec Codec
 
@@ -121,7 +121,7 @@ func (s *StorageManager) reset() error {
 	}
 	s.decisionDB = decisionDB
 	s.storage = New(&wrappedDB{sm: s, db: s.db}, &wrappedDB{sm: s, db: s.decisionDB}, s.codec)
-	s.rw = s.storage.NewReadWriter()
+	s.rw = s.storage.NewShardedReadWriter()
 	return nil
 }
 
