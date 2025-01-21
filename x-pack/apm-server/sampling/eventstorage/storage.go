@@ -196,7 +196,7 @@ func (rw *ReadWriter) WriteTraceSampled(traceID string, sampled bool, opts Write
 	if err != nil {
 		return err
 	}
-	if rw.decisionBatch.Len() >= dbCommitThresholdBytes {
+	if rw.decisionBatch.Len() >= 2<<20 { // FIXME: magic number
 		return rw.flushDecisionBatch()
 	}
 	return nil
