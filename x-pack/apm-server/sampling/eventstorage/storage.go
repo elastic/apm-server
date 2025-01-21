@@ -191,6 +191,7 @@ func (rw *ReadWriter) writeEntry(key, data []byte) error {
 
 // DeleteTraceEvent deletes the trace event from storage.
 func (rw *ReadWriter) DeleteTraceEvent(traceID, id string) error {
+	// FIXME: use range delete
 	var buf bytes.Buffer
 	buf.Grow(len(traceID) + 1 + len(id))
 	buf.WriteString(traceID)
