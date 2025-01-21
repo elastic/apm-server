@@ -41,7 +41,7 @@ var versionCommand = &cobra.Command{
 
 		fmt.Fprintf(cmd.OutOrStdout(),
 			"apm-server version %s (%s/%s) [%s]\n",
-			version.Version, runtime.GOOS, runtime.GOARCH,
+			version.VersionWithQualifier(), runtime.GOOS, runtime.GOARCH,
 			buf.String(),
 		)
 		return nil

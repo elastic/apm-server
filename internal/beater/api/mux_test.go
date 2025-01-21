@@ -179,7 +179,7 @@ func (m muxBuilder) build(cfg *config.Config) (sdkmetric.Reader, http.Handler, e
 		cfg,
 		nopBatchProcessor,
 		authenticator,
-		agentcfg.NewDirectFetcher(nil),
+		agentcfg.NewEmptyFetcher(),
 		ratelimitStore,
 		m.SourcemapFetcher,
 		func() bool { return true },

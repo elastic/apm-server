@@ -43,12 +43,11 @@ func newTracerServer(cfg *config.Config, listener net.Listener, logger *logp.Log
 	if err != nil {
 		return nil, err
 	}
-	agentConfigFetcher := agentcfg.SanitizingFetcher{Fetcher: agentcfg.NewDirectFetcher(agentcfg.ConvertAgentConfigs(cfg.FleetAgentConfigs))}
 	mux, err := api.NewMux(
 		cfg,
 		batchProcessor,
 		authenticator,
-		agentConfigFetcher,
+		agentcfg.NewEmptyFetcher(),
 		ratelimitStore,
 		nil,                         // no sourcemap store
 		func() bool { return true }, // ready for publishing

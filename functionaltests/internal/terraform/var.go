@@ -15,24 +15,15 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package agentcfg
+package terraform
 
 import (
-	"testing"
-	"time"
+	"fmt"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/hashicorp/terraform-exec/tfexec"
 )
 
-var (
-	testExpiration = time.Nanosecond
-)
-
-func TestCustomJSON(t *testing.T) {
-	expected := Result{Source: Source{
-		Etag:     "123",
-		Settings: map[string]string{"transaction_sampling_rate": "0.3"}}}
-	input := `{"_id": "1", "_source":{"etag":"123", "settings":{"transaction_sampling_rate": 0.3}}}`
-	actual, _ := newResult([]byte(input), nil)
-	assert.Equal(t, expected, actual)
+// Var is a helper to simplify creating Terraform vars to pass to terraform-exec.
+func Var(name, value string) *tfexec.VarOption {
+	return tfexec.Var(fmt.Sprintf("%s=%s", name, value))
 }

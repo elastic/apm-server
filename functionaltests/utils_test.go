@@ -15,24 +15,23 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package agentcfg
+package functionaltests
 
 import (
+	"os"
 	"testing"
-	"time"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-var (
-	testExpiration = time.Nanosecond
-)
-
-func TestCustomJSON(t *testing.T) {
-	expected := Result{Source: Source{
-		Etag:     "123",
-		Settings: map[string]string{"transaction_sampling_rate": "0.3"}}}
-	input := `{"_id": "1", "_source":{"etag":"123", "settings":{"transaction_sampling_rate": 0.3}}}`
-	actual, _ := newResult([]byte(input), nil)
-	assert.Equal(t, expected, actual)
+// ecAPICheck verifies if EC_API_KEY env var is set.
+// This is a simple check to alert users if this necessary env var
+// is not available.
+//
+// Functional tests are expected to run Terraform code to operate
+// on infrastructure required for each tests and to query Elastic
+// Cloud APIs. In both cases a valid API key is required.
+func ecAPICheck(t *testing.T) {
+	t.Helper()
+	require.NotEmpty(t, os.Getenv("EC_API_KEY"), "EC_API_KEY env var not set")
 }

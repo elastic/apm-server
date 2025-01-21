@@ -43,7 +43,7 @@ func NewClient(cfg ClientConfig) (*Client, error) {
 	cfg.IgnoreVersion = true
 	client, err := kibana.NewClientWithConfig(
 		&cfg, "apm-server",
-		version.Version,
+		version.VersionWithQualifier(),
 		version.CommitHash(),
 		version.CommitTime().String(),
 	)

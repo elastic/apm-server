@@ -15,24 +15,19 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package agentcfg
+package terraform
 
 import (
 	"testing"
-	"time"
-
-	"github.com/stretchr/testify/assert"
 )
 
-var (
-	testExpiration = time.Nanosecond
-)
+// tfLoggerv2 wraps a testing.TB to implement the printfer interface
+// required by terraform-exec logger.
+type tfLoggerv2 struct {
+	testing.TB
+}
 
-func TestCustomJSON(t *testing.T) {
-	expected := Result{Source: Source{
-		Etag:     "123",
-		Settings: map[string]string{"transaction_sampling_rate": "0.3"}}}
-	input := `{"_id": "1", "_source":{"etag":"123", "settings":{"transaction_sampling_rate": 0.3}}}`
-	actual, _ := newResult([]byte(input), nil)
-	assert.Equal(t, expected, actual)
+// Printf implements terraform-exec.printfer interface
+func (l *tfLoggerv2) Printf(format string, v ...interface{}) {
+	l.Logf(format, v...)
 }

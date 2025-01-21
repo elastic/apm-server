@@ -132,7 +132,7 @@ func NewBeat(args BeatParams) (*Beat, error) {
 				Beat:            "apm-server",
 				ElasticLicensed: args.ElasticLicensed,
 				IndexPrefix:     "apm-server",
-				Version:         version.Version,
+				Version:         version.VersionWithQualifier(),
 				Name:            beatName,
 				Hostname:        hostname,
 				StartTime:       time.Now(),
