@@ -71,6 +71,8 @@ func (g *Generator) RunBlocking(ctx context.Context) error {
 // document count retrieved through ecc matches expected or timeout. It supports
 // specifying previous document count to offset the expectation based on a previous state.
 // expected and previous must be maps of <datastream name, document count>.
+// A document count value lower than 0 will signal this function to only check for
+// data stream presence ignoring the document count.
 func (g *Generator) RunBlockingWait(ctx context.Context, ecc *esclient.Client, expected, previous map[string]int, timeout time.Duration) error {
 	if err := g.RunBlocking(ctx); err != nil {
 		return fmt.Errorf("cannot run generator: %w", err)
@@ -81,12 +83,25 @@ func (g *Generator) RunBlockingWait(ctx context.Context, ecc *esclient.Client, e
 	checkDocsCount := func(docsCount map[string]int) bool {
 		equal := false
 		for ds, c := range docsCount {
-			if e, ok := expected[ds]; ok {
+			if e, ok := expected[ds]; ok && e >= 0 {
 				got := c - previous[ds]
 				equal = (e == got)
 			}
 		}
 		return equal
+	}
+	// this function checks that all expected data streams are
+	// present in the returned response, ignoring the doc counts.
+	checkDSPresence := func(docsCount map[string]int) bool {
+		present := false
+		for ds := range docsCount {
+			if _, ok := expected[ds]; ok {
+				present = true
+			} else {
+				present = false
+			}
+		}
+		return present
 	}
 	prevdocs := map[string]int{}
 	equaltoprevdocs := 0
@@ -119,7 +134,13 @@ func (g *Generator) RunBlockingWait(ctx context.Context, ecc *esclient.Client, e
 			if err != nil {
 				return fmt.Errorf("cannot retrieve APM doc count: %w", err)
 			}
-			if checkDocsCount(docsCount) && checkAggregationDocs(prevdocs, docsCount) {
+			// to confirm ingestion was correctly completed we:
+			// - wait until docs counts reach the expected values
+			// - wait until all expected data streams are present, ignoring the doc counts
+			// - wait for ingestion in all data stream to stabilize for 15s
+			if checkDocsCount(docsCount) &&
+				checkDSPresence(docsCount) &&
+				checkAggregationDocs(prevdocs, docsCount) {
 				return nil
 			}
 			prevdocs = docsCount
