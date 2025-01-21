@@ -38,14 +38,18 @@ var target *string = flag.String("target", "pro", "The target environment where 
 
 // expectedIngestForASingleRun() represent the expected number of ingested document after a
 // single run of ingest().
-// Only non aggregation data streams are included, as aggregation ones differs on different
-// runs.
+// Only non aggregation data streams have a defined expected doc count, as aggregation ones
+// differs on different runs.
 func expectedIngestForASingleRun() esclient.APMDataStreamsDocCount {
 	return map[string]int{
 		"traces-apm-default":                     15013,
 		"metrics-apm.app.opbeans_python-default": 1437,
 		"metrics-apm.internal-default":           1351,
 		"logs-apm.error-default":                 364,
+		// data streams with variable doc count, only check presence.
+		"metrics-apm.service_destination.1m-default": -1,
+		"metrics-apm.service_transaction.1m-default": -1,
+		"metrics-apm.service_summary.1m-default":     -1,
 	}
 }
 
@@ -60,7 +64,7 @@ func getDocsCountPerDS(t *testing.T, ctx context.Context, ecc *esclient.Client) 
 func assertDocCount(t *testing.T, docsCount, previous, expected esclient.APMDataStreamsDocCount) {
 	t.Helper()
 	for ds, v := range docsCount {
-		if e, ok := expected[ds]; ok {
+		if e, ok := expected[ds]; ok && e >= 0 {
 			assert.Equal(t, e, v-previous[ds],
 				fmt.Sprintf("wrong document count for %s", ds))
 		}
