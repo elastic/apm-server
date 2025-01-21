@@ -7,7 +7,6 @@ package eventstorage
 import (
 	"errors"
 	"io"
-	"sync/atomic"
 	"time"
 
 	"github.com/cockroachdb/pebble"
@@ -35,7 +34,6 @@ var (
 )
 
 type db interface {
-	//Size() (lsm, vlog int64)
 	Get(key []byte) ([]byte, io.Closer, error)
 	Set(key, value []byte, opts *pebble.WriteOptions) error
 	Delete(key []byte, opts *pebble.WriteOptions) error
@@ -49,9 +47,7 @@ type db interface {
 type Storage struct {
 	db         db
 	decisionDB db
-	// pendingSize tracks the total size of pending writes across ReadWriters
-	pendingSize *atomic.Int64
-	codec       Codec
+	codec      Codec
 }
 
 // Codec provides methods for encoding and decoding events.
@@ -63,10 +59,9 @@ type Codec interface {
 // New returns a new Storage using db, decisionDB and codec.
 func New(db db, decisionDB db, codec Codec) *Storage {
 	return &Storage{
-		db:          db,
-		decisionDB:  decisionDB,
-		pendingSize: &atomic.Int64{},
-		codec:       codec,
+		db:         db,
+		decisionDB: decisionDB,
+		codec:      codec,
 	}
 }
 
@@ -84,10 +79,8 @@ func (s *Storage) NewShardedReadWriter() *ShardedReadWriter {
 //
 // The returned ReadWriter must be closed when it is no longer needed.
 func (s *Storage) NewReadWriter() *ReadWriter {
-	//s.pendingSize.Add(baseTransactionSize)
 	return &ReadWriter{
 		s: s,
-		//pendingSize: baseTransactionSize,
 	}
 }
 
@@ -105,17 +98,7 @@ type WriterOpts struct {
 // avoid conflicts, e.g. by using consistent hashing to distribute to one of
 // a set of ReadWriters, such as implemented by ShardedReadWriter.
 type ReadWriter struct {
-	s             *Storage
-	batch         *pebble.Batch
-	decisionBatch *pebble.Batch
-
-	// readKeyBuf is a reusable buffer for keys used in read operations.
-	// This must not be used in write operations, as keys are expected to
-	// be unmodified until the end of a transaction.
-	readKeyBuf    []byte
-	pendingWrites int
-	// pendingSize tracks the size of pending writes in the current ReadWriter
-	pendingSize int64
+	s *Storage
 }
 
 // Close closes the writer. Any writes that have not been flushed may be lost.

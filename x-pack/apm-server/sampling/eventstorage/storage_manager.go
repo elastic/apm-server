@@ -51,14 +51,6 @@ func (w *wrappedDB) NewIter(o *pebble.IterOptions) (*pebble.Iterator, error) {
 	return w.db.NewIter(o)
 }
 
-// Size returns the db size
-func (w *wrappedDB) Size() (lsm, vlog int64) {
-	// FIXME: we may want it to report the sum of 2 dbs
-	w.sm.mu.RLock()
-	defer w.sm.mu.RUnlock()
-	return int64(w.db.Metrics().DiskSpaceUsage()), 0 // FIXME
-}
-
 func (w *wrappedDB) PartitionID() int32 {
 	return w.sm.partitionID.Load()
 }
