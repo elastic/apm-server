@@ -80,9 +80,6 @@ func TestMonitoring(t *testing.T) {
 		return acked.Int() == N
 	}, 10*time.Second, 10*time.Millisecond)
 
-	t.Log(string(metrics.Output))
-	t.Log(string(metrics.Libbeat))
-
 	// Assert the presence of output.write.bytes, and that it is non-zero;
 	// the exact value may change over time, and that is not relevant to this test.
 	outputWriteBytes := gjson.GetBytes(metrics.Libbeat, "output.write\\.bytes")
