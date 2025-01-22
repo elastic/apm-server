@@ -641,13 +641,13 @@ func addDocappenderOutputElasticsearchMetrics(ctx context.Context, v monitoring.
 			if value, ok := getScalarInt64(m.Data); ok {
 				monitoring.ReportInt(v, "bulk_requests.available", value)
 			}
-		case "elasticsearch.indexer.created":
+		case "elasticsearch.indexers.created":
 			if value, ok := getScalarInt64(m.Data); ok {
-				monitoring.ReportInt(v, "indexer.created", value)
+				monitoring.ReportInt(v, "indexers.created", value)
 			}
-		case "elasticsearch.indexer.destroyed":
+		case "elasticsearch.indexers.destroyed":
 			if value, ok := getScalarInt64(m.Data); ok {
-				monitoring.ReportInt(v, "indexer.destroyed", value)
+				monitoring.ReportInt(v, "indexers.destroyed", value)
 			}
 			// TODO output.elasticsearch.indexers.active (created - destroyed?)
 		}
