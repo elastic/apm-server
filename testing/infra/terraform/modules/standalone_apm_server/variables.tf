@@ -54,3 +54,15 @@ variable "apm_server_bin_path" {
   type        = string
   description = "Optionally use the apm-server binary from the specified path instead"
 }
+
+variable "apm_server_tail_sampling" {
+  default     = false
+  description = "Whether or not to enable APM Server tail-based sampling. Defaults to false"
+  type        = bool
+}
+
+variable "apm_server_tail_sampling_storage_limit" {
+  default     = "10GB"
+  description = "Storage size limit of APM Server tail-based sampling. Defaults to 10GB"
+  type        = string
+}

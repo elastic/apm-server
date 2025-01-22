@@ -185,12 +185,14 @@ resource "aws_instance" "apm" {
   provisioner "file" {
     destination = local.conf_path
     content = templatefile(var.ea_managed ? "${path.module}/elastic-agent.yml.tftpl" : "${path.module}/apm-server.yml.tftpl", {
-      elasticsearch_url      = "${var.elasticsearch_url}",
-      elasticsearch_username = "${var.elasticsearch_username}",
-      elasticsearch_password = "${var.elasticsearch_password}",
-      apm_version            = "${var.stack_version}"
-      apm_secret_token       = "${random_password.apm_secret_token.result}"
-      apm_port               = "${local.apm_port}"
+      elasticsearch_url                      = "${var.elasticsearch_url}",
+      elasticsearch_username                 = "${var.elasticsearch_username}",
+      elasticsearch_password                 = "${var.elasticsearch_password}",
+      apm_version                            = "${var.stack_version}"
+      apm_secret_token                       = "${random_password.apm_secret_token.result}"
+      apm_port                               = "${local.apm_port}"
+      apm_server_tail_sampling               = "${var.apm_server_tail_sampling}"
+      apm_server_tail_sampling_storage_limit = "${var.apm_server_tail_sampling_storage_limit}"
     })
   }
 

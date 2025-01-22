@@ -160,6 +160,9 @@ module "standalone_apm_server" {
   apm_server_bin_path = var.apm_server_bin_path
   ea_managed          = false
 
+  apm_server_tail_sampling               = var.apm_server_tail_sampling
+  apm_server_tail_sampling_storage_limit = var.apm_server_tail_sampling_storage_limit
+
   aws_provisioner_key_name = var.private_key
 
   elasticsearch_url      = module.moxy[0].moxy_url

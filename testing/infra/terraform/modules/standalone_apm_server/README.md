@@ -33,6 +33,8 @@ This module can be used to create a standalone APM Server deployment against a s
 |------|-------------|------|---------|:--------:|
 | <a name="input_apm_instance_type"></a> [apm\_instance\_type](#input\_apm\_instance\_type) | Optional apm server instance type overide | `string` | `""` | no |
 | <a name="input_apm_server_bin_path"></a> [apm\_server\_bin\_path](#input\_apm\_server\_bin\_path) | Optionally use the apm-server binary from the specified path instead | `string` | `""` | no |
+| <a name="input_apm_server_tail_sampling"></a> [apm\_server\_tail\_sampling](#input\_apm\_server\_tail\_sampling) | Whether or not to enable APM Server tail-based sampling. Defaults to false | `bool` | `false` | no |
+| <a name="input_apm_server_tail_sampling_storage_limit"></a> [apm\_server\_tail\_sampling\_storage\_limit](#input\_apm\_server\_tail\_sampling\_storage\_limit) | Storage size limit of APM Server tail-based sampling. Defaults to 10GB | `string` | `"10GB"` | no |
 | <a name="input_aws_os"></a> [aws\_os](#input\_aws\_os) | Optional aws EC2 instance OS | `string` | `""` | no |
 | <a name="input_aws_provisioner_key_name"></a> [aws\_provisioner\_key\_name](#input\_aws\_provisioner\_key\_name) | ssh key name to create the aws key pair and remote provision the EC2 instance | `string` | n/a | yes |
 | <a name="input_ea_managed"></a> [ea\_managed](#input\_ea\_managed) | Whether or not install Elastic Agent managed APM Server | `bool` | `false` | no |
@@ -40,7 +42,6 @@ This module can be used to create a standalone APM Server deployment against a s
 | <a name="input_elasticsearch_url"></a> [elasticsearch\_url](#input\_elasticsearch\_url) | The secure Elasticsearch URL | `string` | n/a | yes |
 | <a name="input_elasticsearch_username"></a> [elasticsearch\_username](#input\_elasticsearch\_username) | The Elasticsearch username | `string` | n/a | yes |
 | <a name="input_stack_version"></a> [stack\_version](#input\_stack\_version) | Optional stack version | `string` | `"latest"` | no |
-| <a name="input_tags"></a> [tags](#input\_tags) | Optional set of tags to use for all deployments | `map(string)` | `{}` | no |
 | <a name="input_vpc_id"></a> [vpc\_id](#input\_vpc\_id) | VPC ID to provision the EC2 instance | `string` | n/a | yes |
 
 ## Outputs

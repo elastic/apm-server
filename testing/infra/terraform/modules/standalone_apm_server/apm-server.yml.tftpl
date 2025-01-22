@@ -10,7 +10,10 @@ apm-server:
     enabled: true
   pprof:
     enabled: true
-  
+  sampling:
+    tail:
+      enabled: ${apm_server_tail_sampling}
+      storage_limit: ${apm_server_tail_sampling_storage_limit}
 output:
   elasticsearch:
     hosts: [ ${elasticsearch_url} ]
