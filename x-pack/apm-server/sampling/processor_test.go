@@ -1008,7 +1008,6 @@ func getSum(t testing.TB, reader sdkmetric.Reader, name string) int64 {
 
 	for _, sm := range rm.ScopeMetrics {
 		for _, m := range sm.Metrics {
-			t.Log(m.Name)
 			if m.Name == name {
 				return m.Data.(metricdata.Sum[int64]).DataPoints[0].Value
 			}
