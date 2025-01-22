@@ -507,6 +507,7 @@ func TestServerElasticsearchOutput(t *testing.T) {
 		"http.server.response.valid.accepted":                       1,
 		"apm-server.server.response.valid.accepted":                 1,
 		"apm-server.agentcfg.elasticsearch.cache.refresh.successes": 1,
+		"apm-server.agentcfg.elasticsearch.cache.entries.count":     0,
 	})
 }
 
@@ -642,12 +643,10 @@ func TestWrapServerAPMInstrumentationTimeout(t *testing.T) {
 		}
 	}
 	expectedMetrics := getMetrics("http.server.", map[string]any{
-		string(request.IDRequestCount):        2,
-		string(request.IDResponseCount):       2,
-		string(request.IDResponseErrorsCount): 1,
-		//string(request.IDResponseValidCount):    1,
+		string(request.IDRequestCount):          1,
+		string(request.IDResponseCount):         1,
+		string(request.IDResponseErrorsCount):   1,
 		string(request.IDResponseErrorsTimeout): 1, // test data POST /intake/v2/events
-		//string(request.IDResponseValidAccepted): 1, // self-instrumentation
 	})
 	expectedMetrics["apm-server.processor.stream.accepted"] = 0
 	expectedMetrics["apm-server.processor.stream.errors.invalid"] = 0
@@ -655,8 +654,8 @@ func TestWrapServerAPMInstrumentationTimeout(t *testing.T) {
 	expectedMetrics["http.server.request.duration"] = 1
 	expectedMetrics["elasticsearch.bulk_requests.available"] = 1
 	expectedMetrics["apm-server.agentcfg.elasticsearch.cache.refresh.successes"] = 1
+	expectedMetrics["apm-server.agentcfg.elasticsearch.cache.entries.count"] = 0
 	// Assert that metrics have expected response values reported.
-	// TODO broken one request missing
 	monitoringtest.ExpectOtelMetrics(t, reader, expectedMetrics)
 }
 
