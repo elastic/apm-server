@@ -131,7 +131,7 @@ func (m *metricsInterceptor) getHistogram(n string, opts ...metric.Int64Histogra
 func Metrics(logger *logp.Logger, mp metric.MeterProvider) grpc.UnaryServerInterceptor {
 	i := &metricsInterceptor{
 		logger: logger,
-		meter:  mp.Meter("internal/beater/interceptors"),
+		meter:  mp.Meter("github.com/elastic/apm-server/internal/beater/interceptors"),
 
 		counters:   map[string]metric.Int64Counter{},
 		histograms: map[string]metric.Int64Histogram{},
