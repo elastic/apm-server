@@ -84,7 +84,7 @@ func TestDropUnsampled(t *testing.T) {
 	)
 
 	doc := getBeatsMonitoringStats(t, srv, nil)
-	transactionsDropped := gjson.GetBytes(doc.RawSource, "beats_stats.metrics.apm-server.sampling.transactions_dropped")
+	transactionsDropped := gjson.GetBytes(doc.RawSource, "beats_stats.metrics.apm-server.sampling\\.transactions_dropped")
 	assert.Equal(t, int64(1), transactionsDropped.Int())
 }
 
@@ -168,7 +168,7 @@ func TestTailSampling(t *testing.T) {
 
 	// Make sure apm-server.sampling.tail metrics are published. Metric values are unit tested.
 	doc := getBeatsMonitoringStats(t, srv1, nil)
-	assert.True(t, gjson.GetBytes(doc.RawSource, "beats_stats.metrics.apm-server.sampling.tail").Exists(), string(doc.RawSource))
+	assert.True(t, gjson.GetBytes(doc.RawSource, "beats_stats.metrics.apm-server.sampling\\.tail\\.events\\.stored").Exists(), string(doc.RawSource))
 
 	// Check tail-sampling config is reported in telemetry.
 	var state struct {
@@ -181,7 +181,7 @@ func TestTailSampling(t *testing.T) {
 			}
 		} `json:"apm-server"`
 	}
-	getBeatsMonitoringState(t, srv1, &state)
+	doc = getBeatsMonitoringState(t, srv1, &state)
 	assert.True(t, state.APMServer.Sampling.Tail.Enabled)
 	assert.Equal(t, 1, state.APMServer.Sampling.Tail.Policies)
 }
