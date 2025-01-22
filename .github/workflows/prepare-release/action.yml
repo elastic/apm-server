@@ -73,7 +73,7 @@ runs:
         echo "::error::${FAILURE_MESSAGE}" ; exit 1
       shell: 'bash'
 
-    - name: validate if branch already exists (minor only)
+    - name: validate if branch already exists (major only)
       if: ${{ inputs.type == 'major' }}
       run: |-
         if git ls-remote --exit-code --heads https://github.com/${{ github.repository }}.git "$BRANCH" > /dev/null ; then
