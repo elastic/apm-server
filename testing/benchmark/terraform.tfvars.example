@@ -22,6 +22,10 @@ user_name = "USER"
 # The number of AZs the APM Server should span.
 # apm_server_zone_count = 2
 
+# Tail-based sampling settings of the APM Server.
+# apm_server_tail_sampling = false
+# apm_server_tail_sampling_storage_limit = "10GB"
+
 # The Elasticsearch cluster node size.
 # elasticsearch_size = "1g"
 
@@ -70,6 +74,10 @@ user_name = "USER"
 
 # Override the default APM Server VM size in standalone bench mode.
 # standalone_apm_server_instance_size = "c6i.2xlarge"
+
+# Override the default APM Server VM volume settings in standalone bench mode
+# standalone_apm_server_volume_type = "gp2"
+# standalone_apm_server_volume_size = 8
 
 # Override the default Moxy VM size in standalone bench mode.
 # standalone_moxy_instance_size = "c6i.4xlarge"
