@@ -711,7 +711,7 @@ func (s *Runner) newFinalBatchProcessor(
 	if err != nil {
 		return nil, nil, err
 	}
-	outputType := monitoring.NewString(libbeatMonitoringRegistry.GetRegistry("output"), "type")
+	outputType := monitoring.NewString(outputRegistry, "type")
 	outputType.Set("elasticsearch")
 	return newDocappenderBatchProcessor(appender), appender.Close, nil
 }
