@@ -265,7 +265,9 @@ func closeBadger() error {
 		badgerDBMetricRegistration.Unregister()
 	}
 	if badgerDB != nil {
-		return badgerDB.Close()
+		db := badgerDB
+		badgerDB = nil
+		return db.Close()
 	}
 	return nil
 }

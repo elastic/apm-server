@@ -8,7 +8,7 @@ package main
 
 import (
 	"context"
-	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -73,14 +73,14 @@ func TestMonitoring(t *testing.T) {
 
 		err = runServer(context.Background(), serverParams)
 		assert.Equal(t, runServerError, err)
-		// TODO broken: should not be empty
-		monitoringtest.ExpectOtelMetrics(t, reader, map[string]any{})
+		monitoringtest.ExpectOtelMetrics(t, reader, map[string]any{
+			"apm-server.sampling.tail.storage.lsm_size":       0,
+			"apm-server.sampling.tail.storage.value_log_size": 0,
+		})
 	}
 }
 
 func TestStorageMonitoring(t *testing.T) {
-	badgerDB = nil
-	t.Cleanup(func() { badgerDB = nil })
 	config, reader := newTempdirConfig(t)
 
 	processor, err := sampling.NewProcessor(config)
@@ -103,25 +103,24 @@ func TestStorageMonitoring(t *testing.T) {
 		assert.Empty(t, batch)
 	}
 
-	// Stop the processor and create a new one, which will reopen storage
-	// and calculate the storage size. Otherwise we must wait for a minute
-	// (hard-coded in badger) for storage metrics to be updated.
-	processor.Stop(context.Background())
-	processor, err = sampling.NewProcessor(config)
+	// Stop the processor, flushing pending writes, and reopen storage.
+	// Reopening storage is necessary to immediately recalculate the
+	// storage size, otherwise we must wait for a minute (hard-coded in
+	// badger) for storage metrics to be updated.
+	err = processor.Stop(context.Background())
+	require.NoError(t, err)
+	require.NoError(t, closeBadger())
+	badgerDB, err = getBadgerDB(config.StorageDir, config.MeterProvider)
 	require.NoError(t, err)
 
-	// TODO broken: should not be zero
-	lsmSize := getSum(t, reader, "apm-server.sampling.tail.storage.lsm_size")
+	lsmSize := getGauge(t, reader, "apm-server.sampling.tail.storage.lsm_size")
 	assert.NotZero(t, lsmSize)
-	vlogSize := getSum(t, reader, "apm-server.sampling.tail.storage.value_log_size")
+	vlogSize := getGauge(t, reader, "apm-server.sampling.tail.storage.value_log_size")
 	assert.NotZero(t, vlogSize)
 }
 
 func newTempdirConfig(tb testing.TB) (sampling.Config, sdkmetric.Reader) {
-	tempdir, err := os.MkdirTemp("", "samplingtest")
-	require.NoError(tb, err)
-	tb.Cleanup(func() { os.RemoveAll(tempdir) })
-
+	tempdir := filepath.Join(tb.TempDir(), "samplingtest")
 	reader := sdkmetric.NewManualReader(sdkmetric.WithTemporalitySelector(
 		func(ik sdkmetric.InstrumentKind) metricdata.Temporality {
 			return metricdata.DeltaTemporality
@@ -129,9 +128,10 @@ func newTempdirConfig(tb testing.TB) (sampling.Config, sdkmetric.Reader) {
 	))
 	mp := sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader))
 
+	closeBadger()
 	badgerDB, err := getBadgerDB(tempdir, mp)
 	require.NoError(tb, err)
-	tb.Cleanup(func() { badgerDB.Close() })
+	tb.Cleanup(func() { closeBadger() })
 
 	storage := badgerDB.NewReadWriter()
 
@@ -167,6 +167,23 @@ func newTempdirConfig(tb testing.TB) (sampling.Config, sdkmetric.Reader) {
 }
 
 func getSum(t testing.TB, reader sdkmetric.Reader, name string) int64 {
+	var rm metricdata.ResourceMetrics
+	assert.NoError(t, reader.Collect(context.Background(), &rm))
+
+	assert.NotEqual(t, 0, len(rm.ScopeMetrics))
+
+	for _, sm := range rm.ScopeMetrics {
+		for _, m := range sm.Metrics {
+			if m.Name == name {
+				return m.Data.(metricdata.Sum[int64]).DataPoints[0].Value
+			}
+		}
+	}
+
+	return 0
+}
+
+func getGauge(t testing.TB, reader sdkmetric.Reader, name string) int64 {
 	var rm metricdata.ResourceMetrics
 	assert.NoError(t, reader.Collect(context.Background(), &rm))
 

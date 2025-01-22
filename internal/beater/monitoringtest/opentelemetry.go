@@ -38,6 +38,19 @@ func ExpectOtelMetrics(t *testing.T, reader sdkmetric.Reader, expectedMetrics ma
 
 		for _, m := range sm.Metrics {
 			switch d := m.Data.(type) {
+			case metricdata.Gauge[int64]:
+				assert.Equal(t, 1, len(d.DataPoints))
+				foundMetrics = append(foundMetrics, m.Name)
+
+				if v, ok := expectedMetrics[m.Name]; ok {
+					if dp, ok := v.(int); ok {
+						assert.Equal(t, int64(dp), d.DataPoints[0].Value, m.Name)
+					} else {
+						assert.Fail(t, "expected an int value", m.Name)
+					}
+				} else {
+					assert.Fail(t, "unexpected metric", m.Name)
+				}
 			case metricdata.Sum[int64]:
 				assert.Equal(t, 1, len(d.DataPoints))
 				foundMetrics = append(foundMetrics, m.Name)
