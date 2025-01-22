@@ -131,11 +131,13 @@ variable "standalone_moxy_instance_size" {
 }
 
 variable "standalone_apm_server_volume_type" {
+  default     = null
   type        = string
   description = "Optional volume type to use for APM Server VM"
 }
 
 variable "standalone_apm_server_volume_size" {
+  default     = null
   type        = number
   description = "Optional volume size in GB to use for APM Server VM"
 }

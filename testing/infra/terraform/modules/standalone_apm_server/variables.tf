@@ -11,11 +11,13 @@ variable "apm_instance_type" {
 }
 
 variable "apm_volume_type" {
+  default     = null
   type        = string
   description = "Optional apm server volume type override"
 }
 
 variable "apm_volume_size" {
+  default     = null
   type        = number
   description = "Optional apm server volume size in GB override"
 }
