@@ -7,7 +7,17 @@ variable "aws_os" {
 variable "apm_instance_type" {
   default     = ""
   type        = string
-  description = "Optional apm server instance type overide"
+  description = "Optional apm server instance type override"
+}
+
+variable "apm_volume_type" {
+  type        = string
+  description = "Optional apm server volume type override"
+}
+
+variable "apm_volume_size" {
+  type        = number
+  description = "Optional apm server volume size in GB override"
 }
 
 variable "vpc_id" {

@@ -169,6 +169,11 @@ resource "aws_instance" "apm" {
   key_name               = aws_key_pair.provisioner_key.key_name
   monitoring             = false
 
+  root_block_device {
+    volume_type = var.apm_volume_type
+    volume_size = var.apm_volume_size
+  }
+
   connection {
     type        = "ssh"
     user        = local.image_ssh_users[var.aws_os]

@@ -157,6 +157,8 @@ module "standalone_apm_server" {
   vpc_id              = module.vpc.vpc_id
   aws_os              = "amzn2-ami-hvm-*-x86_64-ebs"
   apm_instance_type   = var.standalone_apm_server_instance_size
+  apm_volume_type     = var.standalone_apm_server_volume_type
+  apm_volume_size     = var.standalone_apm_server_volume_size
   apm_server_bin_path = var.apm_server_bin_path
   ea_managed          = false
 
