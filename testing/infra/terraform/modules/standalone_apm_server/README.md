@@ -35,8 +35,8 @@ This module can be used to create a standalone APM Server deployment against a s
 | <a name="input_apm_server_bin_path"></a> [apm\_server\_bin\_path](#input\_apm\_server\_bin\_path) | Optionally use the apm-server binary from the specified path instead | `string` | `""` | no |
 | <a name="input_apm_server_tail_sampling"></a> [apm\_server\_tail\_sampling](#input\_apm\_server\_tail\_sampling) | Whether or not to enable APM Server tail-based sampling. Defaults to false | `bool` | `false` | no |
 | <a name="input_apm_server_tail_sampling_storage_limit"></a> [apm\_server\_tail\_sampling\_storage\_limit](#input\_apm\_server\_tail\_sampling\_storage\_limit) | Storage size limit of APM Server tail-based sampling. Defaults to 10GB | `string` | `"10GB"` | no |
-| <a name="input_apm_volume_size"></a> [apm\_volume\_size](#input\_apm\_volume\_size) | Optional apm server volume size in GB override | `number` | n/a | yes |
-| <a name="input_apm_volume_type"></a> [apm\_volume\_type](#input\_apm\_volume\_type) | Optional apm server volume type override | `string` | n/a | yes |
+| <a name="input_apm_volume_size"></a> [apm\_volume\_size](#input\_apm\_volume\_size) | Optional apm server volume size in GB override | `number` | `null` | no |
+| <a name="input_apm_volume_type"></a> [apm\_volume\_type](#input\_apm\_volume\_type) | Optional apm server volume type override | `string` | `null` | no |
 | <a name="input_aws_os"></a> [aws\_os](#input\_aws\_os) | Optional aws EC2 instance OS | `string` | `""` | no |
 | <a name="input_aws_provisioner_key_name"></a> [aws\_provisioner\_key\_name](#input\_aws\_provisioner\_key\_name) | ssh key name to create the aws key pair and remote provision the EC2 instance | `string` | n/a | yes |
 | <a name="input_ea_managed"></a> [ea\_managed](#input\_ea\_managed) | Whether or not install Elastic Agent managed APM Server | `bool` | `false` | no |
