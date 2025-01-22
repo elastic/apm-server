@@ -683,9 +683,9 @@ func (s *Runner) newFinalBatchProcessor(
 	newElasticsearchClient func(cfg *elasticsearch.Config) (*elasticsearch.Client, error),
 	memLimit float64,
 ) (modelpb.BatchProcessor, func(context.Context) error, error) {
+	monitoring.Default.Remove("libbeat")
+	libbeatMonitoringRegistry := monitoring.Default.NewRegistry("libbeat")
 	if s.elasticsearchOutputConfig == nil {
-		monitoring.Default.Remove("libbeat")
-		libbeatMonitoringRegistry := monitoring.Default.NewRegistry("libbeat")
 		return s.newLibbeatFinalBatchProcessor(tracer, libbeatMonitoringRegistry)
 	}
 
@@ -711,6 +711,8 @@ func (s *Runner) newFinalBatchProcessor(
 	if err != nil {
 		return nil, nil, err
 	}
+	outputType := monitoring.NewString(libbeatMonitoringRegistry.GetRegistry("output"), "type")
+	outputType.Set("elasticsearch")
 	return newDocappenderBatchProcessor(appender), appender.Close, nil
 }
 
