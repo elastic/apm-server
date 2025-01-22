@@ -166,23 +166,6 @@ func newTempdirConfig(tb testing.TB) (sampling.Config, sdkmetric.Reader) {
 	}, reader
 }
 
-func getSum(t testing.TB, reader sdkmetric.Reader, name string) int64 {
-	var rm metricdata.ResourceMetrics
-	assert.NoError(t, reader.Collect(context.Background(), &rm))
-
-	assert.NotEqual(t, 0, len(rm.ScopeMetrics))
-
-	for _, sm := range rm.ScopeMetrics {
-		for _, m := range sm.Metrics {
-			if m.Name == name {
-				return m.Data.(metricdata.Sum[int64]).DataPoints[0].Value
-			}
-		}
-	}
-
-	return 0
-}
-
 func getGauge(t testing.TB, reader sdkmetric.Reader, name string) int64 {
 	var rm metricdata.ResourceMetrics
 	assert.NoError(t, reader.Collect(context.Background(), &rm))

@@ -24,15 +24,8 @@ import (
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 
-	"github.com/elastic/elastic-agent-libs/monitoring"
-
 	"github.com/elastic/apm-server/internal/beater/monitoringtest"
 	"github.com/elastic/apm-server/internal/beater/request"
-)
-
-var (
-	mockMonitoringRegistry = monitoring.Default.NewRegistry("mock.monitoring")
-	mockMonitoringNil      = map[request.ResultID]*monitoring.Int{}
 )
 
 func TestMonitoringHandler(t *testing.T) {
