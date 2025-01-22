@@ -8,7 +8,7 @@ import (
 	"errors"
 	"io"
 
-	"github.com/cockroachdb/pebble"
+	"github.com/cockroachdb/pebble/v2"
 
 	"github.com/elastic/apm-data/model/modelpb"
 )

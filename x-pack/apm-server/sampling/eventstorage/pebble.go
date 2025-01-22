@@ -8,8 +8,8 @@ import (
 	"bytes"
 	"path/filepath"
 
-	"github.com/cockroachdb/pebble"
-	"github.com/cockroachdb/pebble/bloom"
+	"github.com/cockroachdb/pebble/v2"
+	"github.com/cockroachdb/pebble/v2/bloom"
 
 	"github.com/elastic/apm-server/internal/logs"
 	"github.com/elastic/elastic-agent-libs/logp"
@@ -51,7 +51,7 @@ func OpenEventPebble(storageDir string) (*pebble.DB, error) {
 		Levels: []pebble.LevelOptions{
 			{
 				BlockSize:    16 << 10,
-				Compression:  pebble.SnappyCompression,
+				Compression:  func() pebble.Compression { return pebble.SnappyCompression },
 				FilterPolicy: bloom.FilterPolicy(10),
 				FilterType:   pebble.TableFilter,
 			},
@@ -68,7 +68,7 @@ func OpenDecisionPebble(storageDir string) (*pebble.DB, error) {
 		Levels: []pebble.LevelOptions{
 			{
 				BlockSize:    2 << 10,
-				Compression:  pebble.NoCompression,
+				Compression:  func() pebble.Compression { return pebble.NoCompression },
 				FilterPolicy: bloom.FilterPolicy(10),
 				FilterType:   pebble.TableFilter,
 			},

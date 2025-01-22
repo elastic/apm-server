@@ -13,7 +13,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/cockroachdb/pebble"
+	"github.com/cockroachdb/pebble/v2"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/apm-data/model/modelpb"
