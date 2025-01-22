@@ -81,7 +81,12 @@ func (a *Aggregator) Stop(ctx context.Context) error {
 // so that aggregator can consume events from intake.
 func (a *Aggregator) ProcessBatch(ctx context.Context, b *modelpb.Batch) error {
 	for _, e := range *b {
-		removeRUMGlobalLabels(e)
+		// Remove global labels for RUM services to avoid explosion of metric groups
+		// to track for servicetxmetrics.
+		// For consistency, this will remove labels for other aggregated metrics as well.
+		if isRumAgent(e.Agent.GetName()) {
+			removeGlobalLabels(e)
+		}
 	}
 	return a.baseaggregator.AggregateBatch(ctx, [16]byte{}, b)
 }
@@ -108,17 +113,17 @@ func wrapNextProcessor(processor modelpb.BatchProcessor) aggregators.Processor {
 	}
 }
 
-func removeRUMGlobalLabels(event *modelpb.APMEvent) {
-	// Remove global labels for RUM services to avoid explosion of metric groups
-	// to track for servicetxmetrics.
-	// For consistency, this will remove labels for other aggregated metrics as well.
-	switch event.GetAgent().GetName() {
+// Check Elastic Agent belongs to rum-services
+func isRumAgent(name string) bool {
+	switch name {
 	case "rum-js", "js-base", "android/java", "iOS/swift":
-	default:
-		return
+		return true
 	}
+	return false
+}
 
-	// Setting the labels to non-global so that they are ignored by the aggregator.
+// Setting the labels to non-global so that they are ignored by the aggregator.
+func removeGlobalLabels(event *modelpb.APMEvent) {
 	for _, v := range event.Labels {
 		v.Global = false
 	}
