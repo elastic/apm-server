@@ -29,6 +29,8 @@ inputs:
         tail:
           enabled: ${apm_server_tail_sampling}
           storage_limit: ${apm_server_tail_sampling_storage_limit}
+          policies:
+            - sampling_rate: 0.1
     logging.level: debug
     logging.to_files: true
     logging.files:
