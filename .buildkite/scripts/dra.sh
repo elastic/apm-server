@@ -75,7 +75,7 @@ fi
 dra() {
   local workflow=$1
   local command=$2
-  local qualifier=${ELASTIC_QUALIFIER:-""}
+  local qualifier=${3:-""}
   echo "--- Run release manager $workflow (DRA command: $command)"
   set -x
   docker run --rm \
@@ -107,19 +107,27 @@ dra() {
   fi
 }
 
-if [[ "${TYPE}" == "staging" ]]; then
-  if [[ "${DRA_BRANCH}" != "8.x" ]]; then
-    echo "${DRA_BRANCH} is not '8.x'"
-    if [[ "${DRA_BRANCH}" == "main" ]] ; then
-      # NOTE: qualifier is needed for main/staging at the moment. Skip builds if no ELASTIC_QUALIFIER
-      if [[ -n "${ELASTIC_QUALIFIER}" ]]; then
-        dra "${TYPE}" "$dra_command"
-      fi
-    else
-      dra "${TYPE}" "$dra_command"
-    fi
+# An opinionated approach to manage the Elatic Qualifier for the DRA in a Google Bucket
+# Instead of using the ELASTIC_QUALIFIER env variable.
+fetch_elastic_qualifier() {
+  local branch=$1
+  qualifier=""
+  if curl -sf -o /dev/null "https://storage.googleapis.com/artifacts-api/test/$branch" ; then
+    qualifier=$(curl -s "https://storage.googleapis.com/artifacts-api/test/$branch")
   fi
-else
+  echo "$qualifier"
+}
+
+if [[ "${TYPE}" == "staging" ]]; then
+  qualifier=$(fetch_elastic_qualifier "$DRA_BRANCH")
+  # TODO: main and 8.x are not needed to run the DRA for staging
+  #       but main is needed until we do alpha1 releases of 9.0.0
+  if [[ "${DRA_BRANCH}" != "8.x" ]]; then
+    dra "${TYPE}" "$dra_command" "${qualifier}"
+  fi
+fi
+
+if [[ "${TYPE}" == "snapshot" ]]; then
   # NOTE: qualifier is not needed for snapshots, let's unset it.
-  dra "snapshot" "$dra_command" ""
+  dra "${TYPE}" "$dra_command" ""
 fi
