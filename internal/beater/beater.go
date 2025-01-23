@@ -102,6 +102,8 @@ type RunnerParams struct {
 
 	MetricReader *sdkmetric.ManualReader
 
+	// MeterProvider holds a metric.MeterProvider that can be used for
+	// creating metrics.
 	MeterProvider metric.MeterProvider
 
 	// WrapServer holds an optional WrapServerFunc, for wrapping the
