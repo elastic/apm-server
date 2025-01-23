@@ -7,7 +7,19 @@ variable "aws_os" {
 variable "apm_instance_type" {
   default     = ""
   type        = string
-  description = "Optional apm server instance type overide"
+  description = "Optional apm server instance type override"
+}
+
+variable "apm_volume_type" {
+  default     = null
+  type        = string
+  description = "Optional apm server volume type override"
+}
+
+variable "apm_volume_size" {
+  default     = null
+  type        = number
+  description = "Optional apm server volume size in GB override"
 }
 
 variable "vpc_id" {
@@ -53,4 +65,16 @@ variable "apm_server_bin_path" {
   default     = ""
   type        = string
   description = "Optionally use the apm-server binary from the specified path instead"
+}
+
+variable "apm_server_tail_sampling" {
+  default     = false
+  description = "Whether or not to enable APM Server tail-based sampling. Defaults to false"
+  type        = bool
+}
+
+variable "apm_server_tail_sampling_storage_limit" {
+  default     = "10GB"
+  description = "Storage size limit of APM Server tail-based sampling. Defaults to 10GB"
+  type        = string
 }

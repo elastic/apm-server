@@ -189,6 +189,8 @@ resource "null_resource" "secret_token" {
 # to extract it from there.
 # Load it from secret_token_file as a sensitive variable.
 data "local_sensitive_file" "secret_token" {
+  count = var.integrations_server ? 1 : 0
+
   filename   = local.secret_token_file
   depends_on = [null_resource.secret_token]
 }
