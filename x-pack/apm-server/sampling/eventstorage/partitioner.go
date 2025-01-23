@@ -6,11 +6,21 @@ package eventstorage
 
 import "sync/atomic"
 
+// Partitioner is a partitioned ring with `total` number of partitions.
+// 1 of them is inactive while all the others are active.
+// `current` points at the rightmost active partition.
+//
+// Example for total=4:
+// (A: active, I: inactive)
+// A-I-A-A
+// ^
+// current
 type Partitioner struct {
 	total   int // length of the ring
 	current atomic.Int32
 }
 
+// NewPartitioner returns a partitioner with `actives` number of active partitions.
 func NewPartitioner(actives int) *Partitioner {
 	return &Partitioner{total: actives + 1} // actives + 1 inactive
 }
@@ -43,6 +53,14 @@ func (p *Partitioner) Current() PartitionIterator {
 	}
 }
 
+// PartitionIterator is for iterating on partition results.
+// In theory Partitioner could have returned a slice of partition IDs,
+// but returning an iterator should avoid allocs.
+//
+// Example usage:
+// for it := rw.s.db.ReadPartitions(); it.Valid(); it = it.Prev() {
+// // do something with it.ID()
+// }
 type PartitionIterator struct {
 	id        int
 	total     int // length of the ring
