@@ -175,10 +175,12 @@ func (sm *StorageManager) Size() (lsm, vlog int64) { // FIXME: stop calling it v
 	return int64(sm.eventDB.Metrics().DiskSpaceUsage() + sm.decisionDB.Metrics().DiskSpaceUsage()), 0
 }
 
-func (sm *StorageManager) StorageLimitReached() bool {
-	limit := sm.storageLimit.Load()
-	lsm, vlog := sm.Size() // FIXME: what's the overhead?
-	return limit != 0 && uint64(lsm+vlog) > limit
+func (sm *StorageManager) DiskUsage() uint64 {
+	return sm.eventDB.Metrics().DiskSpaceUsage() + sm.decisionDB.Metrics().DiskSpaceUsage()
+}
+
+func (sm *StorageManager) StorageLimit() uint64 {
+	return sm.storageLimit.Load()
 }
 
 func (sm *StorageManager) Flush() error {

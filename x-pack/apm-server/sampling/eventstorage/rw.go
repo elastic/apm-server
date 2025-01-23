@@ -5,6 +5,8 @@
 package eventstorage
 
 import (
+	"fmt"
+
 	"github.com/elastic/apm-data/model/modelpb"
 )
 
@@ -50,7 +52,8 @@ func (s SplitReadWriter) Close() error {
 }
 
 type storageLimitChecker interface {
-	StorageLimitReached() bool
+	DiskUsage() uint64
+	StorageLimit() uint64
 }
 
 type StorageLimitReadWriter struct {
@@ -58,20 +61,29 @@ type StorageLimitReadWriter struct {
 	nextRW  RW
 }
 
+func (s StorageLimitReadWriter) checkStorageLimit() error {
+	usage := s.checker.DiskUsage()
+	limit := s.checker.StorageLimit()
+	if limit != 0 && usage >= limit {
+		return fmt.Errorf("%w (current: %d, limit %d)", ErrLimitReached, usage, limit)
+	}
+	return nil
+}
+
 func (s StorageLimitReadWriter) ReadTraceEvents(traceID string, out *modelpb.Batch) error {
 	return s.nextRW.ReadTraceEvents(traceID, out)
 }
 
 func (s StorageLimitReadWriter) WriteTraceEvent(traceID, id string, event *modelpb.APMEvent) error {
-	if s.checker.StorageLimitReached() {
-		return ErrLimitReached // FIXME: return a more helpful error message
+	if err := s.checkStorageLimit(); err != nil {
+		return err
 	}
 	return s.nextRW.WriteTraceEvent(traceID, id, event)
 }
 
 func (s StorageLimitReadWriter) WriteTraceSampled(traceID string, sampled bool) error {
-	if s.checker.StorageLimitReached() {
-		return ErrLimitReached // FIXME: return a more helpful error message
+	if err := s.checkStorageLimit(); err != nil {
+		return err
 	}
 	return s.nextRW.WriteTraceSampled(traceID, sampled)
 }
