@@ -5,7 +5,9 @@
 package eventstorage
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -115,8 +117,10 @@ func NewStorageManager(storageDir string, opts ...StorageManagerOptions) (*Stora
 		return nil, err
 	}
 
-	if err := sm.loadCurrentPartitionID(); err != nil {
-		return nil, err
+	if pid, err := sm.loadPartitionID(); err != nil {
+		sm.logger.With(logp.Error(err)).Warn("failed to load partition ID")
+	} else {
+		sm.partitioner.SetCurrentID(pid)
 	}
 
 	return sm, nil
@@ -141,28 +145,29 @@ func (sm *StorageManager) reset() error {
 	return nil
 }
 
-const partitionIDKey = "!partition_id"
+const partitionIDKey = "!partitioner"
 
-// loadCurrentPartitionID loads the last saved partition ID from database,
+// loadPartitionID loads the last saved partition ID from database,
 // such that partitioner resumes from where it left off before an apm-server restart.
-func (sm *StorageManager) loadCurrentPartitionID() error {
+func (sm *StorageManager) loadPartitionID() (int, error) {
 	item, closer, err := sm.decisionDB.Get([]byte(partitionIDKey))
 	if errors.Is(err, pebble.ErrNotFound) {
-		return nil
+		return 0, nil
 	} else if err != nil {
-		return err
+		return 0, err
 	}
 	defer closer.Close()
-	sm.partitioner.SetCurrentID(int(item[0]))
-	return nil
+	var pid struct {
+		ID int `json:"id"`
+	}
+	err = json.Unmarshal(item, &pid)
+	return pid.ID, err
 }
 
-// saveCurrentPartitionID persists the current partition ID to disk for later.
-func (sm *StorageManager) saveCurrentPartitionID() error {
-	// FIXME: Use either JSON or Protobuf
+// savePartitionID saves the partition ID to database to be loaded by loadPartitionID later.
+func (sm *StorageManager) savePartitionID(pid int) error {
 	// FIXME: Add a timestamp to avoid using a very old database?
-	pid := sm.partitioner.Current().ID()
-	return sm.decisionDB.Set([]byte(partitionIDKey), []byte{byte(pid)}, pebble.NoSync)
+	return sm.decisionDB.Set([]byte(partitionIDKey), []byte(fmt.Sprintf(`{"id":%d}`, pid)), pebble.NoSync)
 }
 
 func (sm *StorageManager) Size() (lsm, vlog int64) { // FIXME: stop calling it vlog
@@ -239,7 +244,7 @@ func (sm *StorageManager) runTTLGCLoop(stopping <-chan struct{}, ttl time.Durati
 func (sm *StorageManager) RotatePartitions() error {
 	sm.partitioner.Rotate()
 
-	if err := sm.saveCurrentPartitionID(); err != nil {
+	if err := sm.savePartitionID(sm.partitioner.Current().ID()); err != nil {
 		return err
 	}
 
