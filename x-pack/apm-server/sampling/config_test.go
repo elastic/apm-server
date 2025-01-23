@@ -74,7 +74,7 @@ func TestNewProcessorConfigInvalid(t *testing.T) {
 	config.DB = &eventstorage.StorageManager{}
 
 	assertInvalidConfigError("invalid storage config: Storage unspecified")
-	config.Storage = &eventstorage.ReadWriter{}
+	config.Storage = &eventstorage.PartitionReadWriter{}
 
 	assertInvalidConfigError("invalid storage config: StorageDir unspecified")
 	config.StorageDir = "tbs"

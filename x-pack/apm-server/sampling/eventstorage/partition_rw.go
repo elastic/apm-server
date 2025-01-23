@@ -10,9 +10,9 @@ import (
 	"github.com/elastic/apm-data/model/modelpb"
 )
 
-// ReadWriter provides a means of reading events from storage, and batched
+// PartitionReadWriter provides a means of reading events from storage, and batched
 // writing of events to storage.
-type ReadWriter struct {
+type PartitionReadWriter struct {
 	s *Storage
 }
 
@@ -20,19 +20,19 @@ type ReadWriter struct {
 //
 // This must be called when the writer is no longer needed, in order to reclaim
 // resources.
-func (rw *ReadWriter) Close() {}
+func (rw *PartitionReadWriter) Close() {}
 
 // Flush waits for preceding writes to be committed to storage.
 //
 // Flush must be called to ensure writes are committed to storage.
 // If Flush is not called before the writer is closed, then writes
 // may be lost.
-func (rw *ReadWriter) Flush() error {
+func (rw *PartitionReadWriter) Flush() error {
 	return nil
 }
 
 // WriteTraceSampled records the tail-sampling decision for the given trace ID.
-func (rw *ReadWriter) WriteTraceSampled(traceID string, sampled bool, opts WriterOpts) error {
+func (rw *PartitionReadWriter) WriteTraceSampled(traceID string, sampled bool, opts WriterOpts) error {
 	pid := rw.s.db.WritePartition().ID()
 	return NewPrefixReadWriter(rw.s.db, byte(pid), rw.s.codec).WriteTraceSampled(traceID, sampled, opts)
 }
@@ -40,7 +40,7 @@ func (rw *ReadWriter) WriteTraceSampled(traceID string, sampled bool, opts Write
 // IsTraceSampled reports whether traceID belongs to a trace that is sampled
 // or unsampled. If no sampling decision has been recorded, IsTraceSampled
 // returns ErrNotFound.
-func (rw *ReadWriter) IsTraceSampled(traceID string) (bool, error) {
+func (rw *PartitionReadWriter) IsTraceSampled(traceID string) (bool, error) {
 	// FIXME: this needs to be fast, as it is in the hot path
 	// It should minimize disk IO on miss due to
 	// 1. (pubsub) remote sampling decision
@@ -63,13 +63,13 @@ func (rw *ReadWriter) IsTraceSampled(traceID string) (bool, error) {
 // WriteTraceEvent writes a trace event to storage.
 //
 // WriteTraceEvent may return before the write is committed to storage.
-func (rw *ReadWriter) WriteTraceEvent(traceID string, id string, event *modelpb.APMEvent, opts WriterOpts) error {
+func (rw *PartitionReadWriter) WriteTraceEvent(traceID string, id string, event *modelpb.APMEvent, opts WriterOpts) error {
 	pid := rw.s.db.WritePartition().ID()
 	return NewPrefixReadWriter(rw.s.db, byte(pid), rw.s.codec).WriteTraceEvent(traceID, id, event, opts)
 }
 
 // DeleteTraceEvent deletes the trace event from storage.
-func (rw *ReadWriter) DeleteTraceEvent(traceID, id string) error {
+func (rw *PartitionReadWriter) DeleteTraceEvent(traceID, id string) error {
 	// FIXME: use range delete
 	var errs []error
 	for it := rw.s.db.ReadPartitions(); it.Valid(); it = it.Prev() {
@@ -82,7 +82,7 @@ func (rw *ReadWriter) DeleteTraceEvent(traceID, id string) error {
 }
 
 // ReadTraceEvents reads trace events with the given trace ID from storage into out.
-func (rw *ReadWriter) ReadTraceEvents(traceID string, out *modelpb.Batch) error {
+func (rw *PartitionReadWriter) ReadTraceEvents(traceID string, out *modelpb.Batch) error {
 	var errs []error
 	for it := rw.s.db.ReadPartitions(); it.Valid(); it = it.Prev() {
 		err := NewPrefixReadWriter(rw.s.db, byte(it.ID()), rw.s.codec).ReadTraceEvents(traceID, out)

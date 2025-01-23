@@ -64,12 +64,12 @@ func New(db partitionedDB, codec Codec) *Storage {
 	}
 }
 
-// NewReadWriter returns a new ReadWriter for reading events from and
+// NewReadWriter returns a new PartitionReadWriter for reading events from and
 // writing events to storage.
 //
-// The returned ReadWriter must be closed when it is no longer needed.
-func (s *Storage) NewReadWriter() *ReadWriter {
-	return &ReadWriter{
+// The returned PartitionReadWriter must be closed when it is no longer needed.
+func (s *Storage) NewReadWriter() *PartitionReadWriter {
+	return &PartitionReadWriter{
 		s: s,
 	}
 }
