@@ -107,7 +107,7 @@ func (p *Processor) CollectMonitoring(_ monitoring.Mode, V monitoring.Visitor) {
 	monitoring.ReportNamespace(V, "storage", func() {
 		lsmSize, valueLogSize := p.config.DB.Size()
 		monitoring.ReportInt(V, "lsm_size", int64(lsmSize))
-		monitoring.ReportInt(V, "value_log_size", int64(valueLogSize))
+		monitoring.ReportInt(V, "value_log_size", int64(valueLogSize)) // FIXME: either report everything under lsm_size, or report with new fine-grained metrics, e.g. wal_size
 	})
 	monitoring.ReportNamespace(V, "events", func() {
 		monitoring.ReportInt(V, "processed", atomic.LoadInt64(&p.eventMetrics.processed))
