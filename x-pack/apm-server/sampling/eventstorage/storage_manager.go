@@ -35,6 +35,9 @@ const (
 	// This means storage requirement is 2 * TTL, and it needs to read 2 keys per trace ID read.
 	// If partitionPerTTL=2, storage requirement is 1.5 * TTL at the expense of 3 reads per trace ID read.
 	partitionsPerTTL = 1
+
+	// partitionerMetaKey is the key used to store partitioner metadata, e.g. last partition ID, in decision DB.
+	partitionerMetaKey = "~partitioner"
 )
 
 type StorageManagerOptions func(*StorageManager)
@@ -56,7 +59,7 @@ type StorageManager struct {
 	eventStorage    *Storage
 	decisionStorage *Storage
 
-	partitioner *Partitioner // FIXME: load the correct partition ID on restart
+	partitioner *Partitioner
 
 	storageLimit atomic.Uint64
 
@@ -115,12 +118,10 @@ func (sm *StorageManager) reset() error {
 	return nil
 }
 
-const partitionIDKey = "!partitioner"
-
 // loadPartitionID loads the last saved partition ID from database,
 // such that partitioner resumes from where it left off before an apm-server restart.
 func (sm *StorageManager) loadPartitionID() (int, error) {
-	item, closer, err := sm.decisionDB.Get([]byte(partitionIDKey))
+	item, closer, err := sm.decisionDB.Get([]byte(partitionerMetaKey))
 	if errors.Is(err, pebble.ErrNotFound) {
 		return 0, nil
 	} else if err != nil {
@@ -136,8 +137,7 @@ func (sm *StorageManager) loadPartitionID() (int, error) {
 
 // savePartitionID saves the partition ID to database to be loaded by loadPartitionID later.
 func (sm *StorageManager) savePartitionID(pid int) error {
-	// FIXME: Add a timestamp to avoid using a very old database?
-	return sm.decisionDB.Set([]byte(partitionIDKey), []byte(fmt.Sprintf(`{"id":%d}`, pid)), pebble.NoSync)
+	return sm.decisionDB.Set([]byte(partitionerMetaKey), []byte(fmt.Sprintf(`{"id":%d}`, pid)), pebble.NoSync)
 }
 
 func (sm *StorageManager) Size() (lsm, vlog int64) { // FIXME: stop calling it vlog
