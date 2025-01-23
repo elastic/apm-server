@@ -11,8 +11,6 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"sort"
-	"strings"
 	"testing"
 	"time"
 
@@ -887,32 +885,4 @@ func waitFileModified(tb testing.TB, filename string, after time.Time) ([]byte, 
 			tb.Fatalf("timed out waiting for %q to be modified", filename)
 		}
 	}
-}
-
-func vlogFilenames(storageDir string) []string {
-	entries, _ := os.ReadDir(storageDir)
-
-	var vlogs []string
-	for _, entry := range entries {
-		name := entry.Name()
-		if strings.HasSuffix(name, ".vlog") {
-			vlogs = append(vlogs, name)
-		}
-	}
-	sort.Strings(vlogs)
-	return vlogs
-}
-
-func sstFilenames(storageDir string) []string {
-	entries, _ := os.ReadDir(storageDir)
-
-	var ssts []string
-	for _, entry := range entries {
-		name := entry.Name()
-		if strings.HasSuffix(name, ".sst") {
-			ssts = append(ssts, name)
-		}
-	}
-	sort.Strings(ssts)
-	return ssts
 }
