@@ -43,7 +43,9 @@ func (rw PrefixReadWriter) ReadTraceEvents(traceID string, out *modelpb.Batch) e
 		return err
 	}
 	defer iter.Close()
-	// SeekPrefixGE uses the prefix bloom filter, so that a miss will be much faster
+	// SeekPrefixGE uses prefix bloom filter for on disk tables.
+	// These bloom filters are cached in memory, and a "miss" on bloom filter avoids disk IO to check the actual table.
+	// Memtables still need to be scanned as pebble has no bloom filter on memtables.
 	if valid := iter.SeekPrefixGE(lb.Bytes()); !valid {
 		return nil
 	}
