@@ -34,7 +34,7 @@ func TestStorageManager_samplingDecisionTTL(t *testing.T) {
 	assert.True(t, sampled)
 
 	// after 1 TTL
-	err = sm.IncrementPartition()
+	err = sm.RotatePartitions()
 	assert.NoError(t, err)
 
 	sampled, err = rw.IsTraceSampled(traceID)
@@ -42,14 +42,14 @@ func TestStorageManager_samplingDecisionTTL(t *testing.T) {
 	assert.True(t, sampled)
 
 	// after 2 TTL
-	err = sm.IncrementPartition()
+	err = sm.RotatePartitions()
 	assert.NoError(t, err)
 
 	_, err = rw.IsTraceSampled(traceID)
 	assert.ErrorIs(t, err, eventstorage.ErrNotFound)
 
 	// after 3 TTL
-	err = sm.IncrementPartition()
+	err = sm.RotatePartitions()
 	assert.NoError(t, err)
 
 	_, err = rw.IsTraceSampled(traceID)
@@ -71,7 +71,7 @@ func TestStorageManager_eventTTL(t *testing.T) {
 	assert.Len(t, out, 1)
 
 	// after 1 TTL
-	err = sm.IncrementPartition()
+	err = sm.RotatePartitions()
 	assert.NoError(t, err)
 
 	out = nil
@@ -80,7 +80,7 @@ func TestStorageManager_eventTTL(t *testing.T) {
 	assert.Len(t, out, 1)
 
 	// after 2 TTL
-	err = sm.IncrementPartition()
+	err = sm.RotatePartitions()
 	assert.NoError(t, err)
 
 	out = nil
@@ -89,7 +89,7 @@ func TestStorageManager_eventTTL(t *testing.T) {
 	assert.Len(t, out, 0)
 
 	// after 3 TTL
-	err = sm.IncrementPartition()
+	err = sm.RotatePartitions()
 	assert.NoError(t, err)
 
 	out = nil

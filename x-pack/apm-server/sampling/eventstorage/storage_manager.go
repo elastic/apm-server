@@ -196,14 +196,15 @@ func (sm *StorageManager) runTTLGCLoop(stopping <-chan struct{}, ttl time.Durati
 		case <-stopping:
 			return nil
 		case <-ticker.C:
-			if err := sm.IncrementPartition(); err != nil {
-				sm.logger.With(logp.Error(err)).Error("failed to increment partition")
+			if err := sm.RotatePartitions(); err != nil {
+				sm.logger.With(logp.Error(err)).Error("failed to rotate partition")
 			}
 		}
 	}
 }
 
-func (sm *StorageManager) IncrementPartition() error {
+// RotatePartitions rotates the partitions to clean up TTL-expired entries.
+func (sm *StorageManager) RotatePartitions() error {
 	sm.partitioner.Rotate()
 	// FIXME: potential race, wait for a bit before deleting?
 	pidToDelete := sm.partitioner.Inactive().ID()
