@@ -127,6 +127,7 @@ func (sm *StorageManager) reset() error {
 }
 
 func (sm *StorageManager) Size() (lsm, vlog int64) {
+	// FIXME: separate WAL usage?
 	return int64(sm.eventDB.Metrics().DiskSpaceUsage() + sm.decisionDB.Metrics().DiskSpaceUsage()), 0
 }
 
