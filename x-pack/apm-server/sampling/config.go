@@ -100,7 +100,7 @@ type StorageConfig struct {
 	// DB will not be closed when the processor is closed.
 	DB *eventstorage.StorageManager
 
-	// Storage holds the read writers which provide sharded, locked access to storage.
+	// Storage holds the read writers which provide access to storage.
 	//
 	// Storage lives outside processor lifecycle and will not be closed when processor
 	// is closed

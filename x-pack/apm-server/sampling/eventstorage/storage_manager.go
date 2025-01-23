@@ -213,14 +213,13 @@ func (sm *StorageManager) WriteSubscriberPosition(data []byte) error {
 
 func (sm *StorageManager) NewReadWriter() SplitReadWriter {
 	return SplitReadWriter{
-		// FIXME: use sharded?
 		eventRW:    sm.eventStorage.NewReadWriter(),
 		decisionRW: sm.decisionStorage.NewReadWriter(),
 	}
 }
 
 // NewBypassReadWriter returns a SplitReadWriter directly reading and writing to the database,
-// bypassing any wrapper e.g. ShardedReadWriter.
+// bypassing any wrappers.
 // This should be used for testing only, useful to check if data is actually persisted to the DB.
 func (sm *StorageManager) NewBypassReadWriter() SplitReadWriter {
 	return SplitReadWriter{

@@ -12,11 +12,6 @@ import (
 
 // ReadWriter provides a means of reading events from storage, and batched
 // writing of events to storage.
-//
-// ReadWriter is not safe for concurrent access. All operations that involve
-// a given trace ID should be performed with the same ReadWriter in order to
-// avoid conflicts, e.g. by using consistent hashing to distribute to one of
-// a set of ReadWriters, such as implemented by ShardedReadWriter.
 type ReadWriter struct {
 	s *Storage
 }

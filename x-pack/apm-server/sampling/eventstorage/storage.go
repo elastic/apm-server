@@ -64,15 +64,6 @@ func New(db partitionedDB, codec Codec) *Storage {
 	}
 }
 
-// NewShardedReadWriter returns a new ShardedReadWriter, for sharded
-// reading and writing.
-//
-// The returned ShardedReadWriter must be closed when it is no longer
-// needed.
-func (s *Storage) NewShardedReadWriter() *ShardedReadWriter {
-	return newShardedReadWriter(s)
-}
-
 // NewReadWriter returns a new ReadWriter for reading events from and
 // writing events to storage.
 //
