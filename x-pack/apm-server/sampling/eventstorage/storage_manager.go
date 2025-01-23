@@ -114,6 +114,11 @@ func NewStorageManager(storageDir string, opts ...StorageManagerOptions) (*Stora
 	if err != nil {
 		return nil, err
 	}
+
+	if err := sm.loadCurrentPartitionID(); err != nil {
+		return nil, err
+	}
+
 	return sm, nil
 }
 
@@ -134,6 +139,30 @@ func (sm *StorageManager) reset() error {
 	sm.decisionStorage = New(&wrappedDB{partitioner: sm.partitioner, db: sm.decisionDB}, sm.codec)
 
 	return nil
+}
+
+const partitionIDKey = "!partition_id"
+
+// loadCurrentPartitionID loads the last saved partition ID from database,
+// such that partitioner resumes from where it left off before an apm-server restart.
+func (sm *StorageManager) loadCurrentPartitionID() error {
+	item, closer, err := sm.decisionDB.Get([]byte(partitionIDKey))
+	if errors.Is(err, pebble.ErrNotFound) {
+		return nil
+	} else if err != nil {
+		return err
+	}
+	defer closer.Close()
+	sm.partitioner.SetCurrentID(int(item[0]))
+	return nil
+}
+
+// saveCurrentPartitionID persists the current partition ID to disk for later.
+func (sm *StorageManager) saveCurrentPartitionID() error {
+	// FIXME: Use either JSON or Protobuf
+	// FIXME: Add a timestamp to avoid using a very old database?
+	pid := sm.partitioner.Current().ID()
+	return sm.decisionDB.Set([]byte(partitionIDKey), []byte{byte(pid)}, pebble.NoSync)
 }
 
 func (sm *StorageManager) Size() (lsm, vlog int64) { // FIXME: stop calling it vlog
@@ -209,6 +238,11 @@ func (sm *StorageManager) runTTLGCLoop(stopping <-chan struct{}, ttl time.Durati
 // RotatePartitions rotates the partitions to clean up TTL-expired entries.
 func (sm *StorageManager) RotatePartitions() error {
 	sm.partitioner.Rotate()
+
+	if err := sm.saveCurrentPartitionID(); err != nil {
+		return err
+	}
+
 	// FIXME: potential race, wait for a bit before deleting?
 	pidToDelete := sm.partitioner.Inactive().ID()
 	lbPrefix := byte(pidToDelete)

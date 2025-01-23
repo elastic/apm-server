@@ -15,11 +15,16 @@ import (
 )
 
 func newStorageManager(tb testing.TB, opts ...eventstorage.StorageManagerOptions) *eventstorage.StorageManager {
-	sm, err := eventstorage.NewStorageManager(tb.TempDir(), opts...)
-	if err != nil {
-		panic(err)
-	}
+	sm := newStorageManagerManual(tb, tb.TempDir(), opts...)
 	tb.Cleanup(func() { sm.Close() })
+	return sm
+}
+
+func newStorageManagerManual(tb testing.TB, path string, opts ...eventstorage.StorageManagerOptions) *eventstorage.StorageManager {
+	sm, err := eventstorage.NewStorageManager(path, opts...)
+	if err != nil {
+		tb.Fatal(err)
+	}
 	return sm
 }
 
@@ -96,4 +101,26 @@ func TestStorageManager_eventTTL(t *testing.T) {
 	err = rw.ReadTraceEvents(traceID, &out)
 	assert.NoError(t, err)
 	assert.Len(t, out, 0)
+}
+
+func TestStorageManager_partitionID(t *testing.T) {
+	const traceID = "foo"
+	tmpDir := t.TempDir()
+	sm := newStorageManagerManual(t, tmpDir)
+
+	// 0 -> 1
+	assert.NoError(t, sm.RotatePartitions())
+
+	// write to partition 1
+	err := sm.NewReadWriter().WriteTraceSampled(traceID, true)
+	assert.NoError(t, err)
+
+	assert.NoError(t, sm.Close())
+
+	// it should read directly from partition 1 on startup instead of 0
+	sm = newStorageManagerManual(t, tmpDir)
+	defer sm.Close()
+	sampled, err := sm.NewReadWriter().IsTraceSampled(traceID)
+	assert.NoError(t, err)
+	assert.True(t, sampled)
 }

@@ -25,6 +25,10 @@ func NewPartitioner(actives int) *Partitioner {
 	return &Partitioner{total: actives + 1} // actives + 1 inactive
 }
 
+func (p *Partitioner) SetCurrentID(current int) {
+	p.current.Store(int32(current))
+}
+
 func (p *Partitioner) Rotate() {
 	p.current.Store(int32((int(p.current.Load()) + 1) % p.total))
 }
