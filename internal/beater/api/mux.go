@@ -117,7 +117,7 @@ func NewMux(
 		handlerFn func() (request.Handler, error)
 	}
 
-	otlpHandlers := otlp.NewHTTPHandlers(zapLogger, batchProcessor, semaphore)
+	otlpHandlers := otlp.NewHTTPHandlers(zapLogger, batchProcessor, semaphore, meterProvider)
 	rumIntakeHandler := builder.rumIntakeHandler(meterProvider)
 	routeMap := []route{
 		{RootPath, builder.rootHandler(publishReady, meterProvider)},

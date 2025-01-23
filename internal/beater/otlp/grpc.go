@@ -32,18 +32,13 @@ import (
 	"github.com/elastic/apm-data/model/modelpb"
 )
 
-var (
-	grpcMetricsConsumerUnsupportedDropped, _ = meter.Int64ObservableCounter(
-		"apm-server.otlp.grpc.metrics.consumer.unsupported_dropped",
-	)
-)
-
 // RegisterGRPCServices registers OTLP consumer services with the given gRPC server.
 func RegisterGRPCServices(
 	grpcServer *grpc.Server,
 	logger *zap.Logger,
 	processor modelpb.BatchProcessor,
 	semaphore input.Semaphore,
+	mp metric.MeterProvider,
 ) {
 	// TODO(axw) stop assuming we have only one OTLP gRPC service running
 	// at any time, and instead aggregate metrics from consumers that are
@@ -54,6 +49,11 @@ func RegisterGRPCServices(
 		Semaphore:        semaphore,
 		RemapOTelMetrics: true,
 	})
+
+	meter := mp.Meter("github.com/elastic/apm-server/internal/beater/otlp")
+	grpcMetricsConsumerUnsupportedDropped, _ := meter.Int64ObservableCounter(
+		"apm-server.otlp.grpc.metrics.consumer.unsupported_dropped",
+	)
 
 	// FIXME we should add an otel counter metric directly in the
 	// apm-data consumer, then we could get rid of the callback.

@@ -37,13 +37,7 @@ import (
 	"github.com/elastic/apm-data/model/modelpb"
 )
 
-var (
-	httpMetricsConsumerUnsupportedDropped, _ = meter.Int64ObservableCounter(
-		"apm-server.otlp.http.metrics.consumer.unsupported_dropped",
-	)
-)
-
-func NewHTTPHandlers(logger *zap.Logger, processor modelpb.BatchProcessor, semaphore input.Semaphore) HTTPHandlers {
+func NewHTTPHandlers(logger *zap.Logger, processor modelpb.BatchProcessor, semaphore input.Semaphore, mp metric.MeterProvider) HTTPHandlers {
 	// TODO(axw) stop assuming we have only one OTLP HTTP consumer running
 	// at any time, and instead aggregate metrics from consumers that are
 	// dynamically registered and unregistered.
@@ -53,6 +47,11 @@ func NewHTTPHandlers(logger *zap.Logger, processor modelpb.BatchProcessor, semap
 		Semaphore:        semaphore,
 		RemapOTelMetrics: true,
 	})
+
+	meter := mp.Meter("github.com/elastic/apm-server/internal/beater/otlp")
+	httpMetricsConsumerUnsupportedDropped, _ := meter.Int64ObservableCounter(
+		"apm-server.otlp.http.metrics.consumer.unsupported_dropped",
+	)
 
 	// FIXME we should add an otel counter metric directly in the
 	// apm-data consumer, then we could get rid of the callback.
