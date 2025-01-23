@@ -14,6 +14,15 @@ import (
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage"
 )
 
+func newStorageManager(tb testing.TB, opts ...eventstorage.StorageManagerOptions) *eventstorage.StorageManager {
+	sm, err := eventstorage.NewStorageManager(tb.TempDir(), opts...)
+	if err != nil {
+		panic(err)
+	}
+	tb.Cleanup(func() { sm.Close() })
+	return sm
+}
+
 func TestStorageManager_samplingDecisionTTL(t *testing.T) {
 	sm := newStorageManager(t)
 	rw := sm.NewBypassReadWriter()

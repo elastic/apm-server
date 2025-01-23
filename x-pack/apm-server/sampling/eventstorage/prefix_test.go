@@ -9,23 +9,112 @@ import (
 	"testing"
 
 	"github.com/cockroachdb/pebble/v2"
-	"github.com/cockroachdb/pebble/v2/vfs"
 	"github.com/gofrs/uuid/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage"
 )
 
-func newPebble(t *testing.T) *pebble.DB {
-	db, err := pebble.Open("", &pebble.Options{
-		FS: vfs.NewMem(),
-	})
+func newEventPebble(t *testing.T) *pebble.DB {
+	db, err := eventstorage.OpenEventPebble(t.TempDir())
 	require.NoError(t, err)
 	return db
 }
 
-func TestPrefixReadWriter_samplingDecision(t *testing.T) {
+func newDecisionPebble(t *testing.T) *pebble.DB {
+	db, err := eventstorage.OpenDecisionPebble(t.TempDir())
+	require.NoError(t, err)
+	return db
+}
+
+func TestPrefixReadWriter_WriteTraceEvent(t *testing.T) {
+	codec := eventstorage.ProtobufCodec{}
+	db := newEventPebble(t)
+	traceID := "foo"
+	txnID := "bar"
+	txn := makeTransaction(txnID, traceID)
+	rw := eventstorage.NewPrefixReadWriter(db, 1, codec)
+	err := rw.WriteTraceEvent(traceID, txnID, txn, eventstorage.WriterOpts{})
+	assert.NoError(t, err)
+	item, closer, err := db.Get(append([]byte{1}, []byte("foo:bar")...))
+	assert.NoError(t, err)
+	defer closer.Close()
+	var actual modelpb.APMEvent
+	err = codec.DecodeEvent(item, &actual)
+	assert.NoError(t, err)
+	assert.Equal(t, *txn, actual)
+}
+
+func TestPrefixReadWriter_ReadTraceEvents(t *testing.T) {
+	codec := eventstorage.ProtobufCodec{}
+	db := newEventPebble(t)
+	rw := eventstorage.NewPrefixReadWriter(db, 1, codec)
+
+	traceID := "foo"
+	for _, txnID := range []string{"bar", "baz"} {
+		txn := makeTransaction(txnID, traceID)
+		err := rw.WriteTraceEvent(traceID, txnID, txn, eventstorage.WriterOpts{})
+		require.NoError(t, err)
+	}
+
+	var out modelpb.Batch
+	err := rw.ReadTraceEvents(traceID, &out)
+	assert.NoError(t, err)
+	assert.Equal(t, modelpb.Batch{
+		makeTransaction("bar", traceID),
+		makeTransaction("baz", traceID),
+	}, out)
+}
+
+func TestPrefixReadWriter_DeleteTraceEvent(t *testing.T) {
+	codec := eventstorage.ProtobufCodec{}
+	db := newEventPebble(t)
+	traceID := "foo"
+	txnID := "bar"
+	txn := makeTransaction(txnID, traceID)
+	rw := eventstorage.NewPrefixReadWriter(db, 1, codec)
+	err := rw.WriteTraceEvent(traceID, txnID, txn, eventstorage.WriterOpts{})
+	require.NoError(t, err)
+
+	key := append([]byte{1}, []byte("foo:bar")...)
+
+	_, closer, err := db.Get(key)
+	assert.NoError(t, err)
+	err = closer.Close()
+	assert.NoError(t, err)
+
+	err = rw.DeleteTraceEvent(traceID, txnID)
+	assert.NoError(t, err)
+
+	_, _, err = db.Get(key)
+	assert.ErrorIs(t, err, pebble.ErrNotFound)
+}
+
+func TestPrefixReadWriter_WriteTraceSampled(t *testing.T) {
+	for _, sampled := range []bool{true, false} {
+		t.Run(fmt.Sprintf("sampled=%v", sampled), func(t *testing.T) {
+			codec := eventstorage.ProtobufCodec{}
+			db := newDecisionPebble(t)
+			traceID := "foo"
+			rw := eventstorage.NewPrefixReadWriter(db, 1, codec)
+			err := rw.WriteTraceSampled(traceID, sampled, eventstorage.WriterOpts{})
+			assert.NoError(t, err)
+			item, closer, err := db.Get(append([]byte{1}, []byte("foo")...))
+			assert.NoError(t, err)
+			defer closer.Close()
+			assert.NoError(t, err)
+			if sampled {
+				assert.Equal(t, []byte{'s'}, item)
+			} else {
+				assert.Equal(t, []byte{'u'}, item)
+			}
+		})
+	}
+}
+
+func TestPrefixReadWriter_IsTraceSampled(t *testing.T) {
 	for _, tc := range []struct {
 		sampled bool
 		missing bool
@@ -41,7 +130,7 @@ func TestPrefixReadWriter_samplingDecision(t *testing.T) {
 		},
 	} {
 		t.Run(fmt.Sprintf("sampled=%v,missing=%v", tc.sampled, tc.missing), func(t *testing.T) {
-			db := newPebble(t)
+			db := newDecisionPebble(t)
 			rw := eventstorage.NewPrefixReadWriter(db, 1, nopCodec{})
 			traceID := uuid.Must(uuid.NewV4()).String()
 			if !tc.missing {
