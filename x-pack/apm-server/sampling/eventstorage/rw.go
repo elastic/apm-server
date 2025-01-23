@@ -10,8 +10,8 @@ import (
 
 type RW interface {
 	ReadTraceEvents(traceID string, out *modelpb.Batch) error
-	WriteTraceEvent(traceID, id string, event *modelpb.APMEvent, opts WriterOpts) error
-	WriteTraceSampled(traceID string, sampled bool, opts WriterOpts) error
+	WriteTraceEvent(traceID, id string, event *modelpb.APMEvent) error
+	WriteTraceSampled(traceID string, sampled bool) error
 	IsTraceSampled(traceID string) (bool, error)
 	DeleteTraceEvent(traceID, id string) error
 	Flush() error
@@ -25,12 +25,12 @@ func (s SplitReadWriter) ReadTraceEvents(traceID string, out *modelpb.Batch) err
 	return s.eventRW.ReadTraceEvents(traceID, out)
 }
 
-func (s SplitReadWriter) WriteTraceEvent(traceID, id string, event *modelpb.APMEvent, opts WriterOpts) error {
-	return s.eventRW.WriteTraceEvent(traceID, id, event, opts)
+func (s SplitReadWriter) WriteTraceEvent(traceID, id string, event *modelpb.APMEvent) error {
+	return s.eventRW.WriteTraceEvent(traceID, id, event)
 }
 
-func (s SplitReadWriter) WriteTraceSampled(traceID string, sampled bool, opts WriterOpts) error {
-	return s.decisionRW.WriteTraceSampled(traceID, sampled, opts)
+func (s SplitReadWriter) WriteTraceSampled(traceID string, sampled bool) error {
+	return s.decisionRW.WriteTraceSampled(traceID, sampled)
 }
 
 func (s SplitReadWriter) IsTraceSampled(traceID string) (bool, error) {
@@ -62,18 +62,18 @@ func (s StorageLimitReadWriter) ReadTraceEvents(traceID string, out *modelpb.Bat
 	return s.nextRW.ReadTraceEvents(traceID, out)
 }
 
-func (s StorageLimitReadWriter) WriteTraceEvent(traceID, id string, event *modelpb.APMEvent, opts WriterOpts) error {
+func (s StorageLimitReadWriter) WriteTraceEvent(traceID, id string, event *modelpb.APMEvent) error {
 	if s.checker.StorageLimitReached() {
 		return ErrLimitReached
 	}
-	return s.nextRW.WriteTraceEvent(traceID, id, event, opts)
+	return s.nextRW.WriteTraceEvent(traceID, id, event)
 }
 
-func (s StorageLimitReadWriter) WriteTraceSampled(traceID string, sampled bool, opts WriterOpts) error {
+func (s StorageLimitReadWriter) WriteTraceSampled(traceID string, sampled bool) error {
 	if s.checker.StorageLimitReached() {
 		return ErrLimitReached
 	}
-	return s.nextRW.WriteTraceSampled(traceID, sampled, opts)
+	return s.nextRW.WriteTraceSampled(traceID, sampled)
 }
 
 func (s StorageLimitReadWriter) IsTraceSampled(traceID string) (bool, error) {

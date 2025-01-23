@@ -61,7 +61,7 @@ func (rw PrefixReadWriter) ReadTraceEvents(traceID string, out *modelpb.Batch) e
 	return nil
 }
 
-func (rw PrefixReadWriter) WriteTraceEvent(traceID, id string, event *modelpb.APMEvent, opts WriterOpts) error {
+func (rw PrefixReadWriter) WriteTraceEvent(traceID, id string, event *modelpb.APMEvent) error {
 	data, err := rw.codec.EncodeEvent(event)
 	if err != nil {
 		return err
@@ -83,7 +83,7 @@ func (rw PrefixReadWriter) writeEntry(key, data []byte) error {
 	return nil
 }
 
-func (rw PrefixReadWriter) WriteTraceSampled(traceID string, sampled bool, opts WriterOpts) error {
+func (rw PrefixReadWriter) WriteTraceSampled(traceID string, sampled bool) error {
 	var b bytes.Buffer
 	b.Grow(1 + len(traceID))
 	b.WriteByte(rw.prefix)

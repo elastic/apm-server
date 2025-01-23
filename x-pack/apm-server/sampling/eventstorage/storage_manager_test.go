@@ -27,7 +27,7 @@ func TestStorageManager_samplingDecisionTTL(t *testing.T) {
 	sm := newStorageManager(t)
 	rw := sm.NewBypassReadWriter()
 	traceID := uuid.Must(uuid.NewV4()).String()
-	err := rw.WriteTraceSampled(traceID, true, eventstorage.WriterOpts{})
+	err := rw.WriteTraceSampled(traceID, true)
 	assert.NoError(t, err)
 	sampled, err := rw.IsTraceSampled(traceID)
 	assert.NoError(t, err)
@@ -62,7 +62,7 @@ func TestStorageManager_eventTTL(t *testing.T) {
 	traceID := uuid.Must(uuid.NewV4()).String()
 	txnID := uuid.Must(uuid.NewV4()).String()
 	transaction := makeTransaction(txnID, traceID)
-	err := rw.WriteTraceEvent(traceID, txnID, transaction, eventstorage.WriterOpts{})
+	err := rw.WriteTraceEvent(traceID, txnID, transaction)
 	assert.NoError(t, err)
 
 	var out modelpb.Batch

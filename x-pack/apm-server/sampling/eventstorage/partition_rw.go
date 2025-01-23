@@ -32,9 +32,9 @@ func (rw *PartitionReadWriter) Flush() error {
 }
 
 // WriteTraceSampled records the tail-sampling decision for the given trace ID.
-func (rw *PartitionReadWriter) WriteTraceSampled(traceID string, sampled bool, opts WriterOpts) error {
+func (rw *PartitionReadWriter) WriteTraceSampled(traceID string, sampled bool) error {
 	pid := rw.s.db.WritePartition().ID()
-	return NewPrefixReadWriter(rw.s.db, byte(pid), rw.s.codec).WriteTraceSampled(traceID, sampled, opts)
+	return NewPrefixReadWriter(rw.s.db, byte(pid), rw.s.codec).WriteTraceSampled(traceID, sampled)
 }
 
 // IsTraceSampled reports whether traceID belongs to a trace that is sampled
@@ -63,9 +63,9 @@ func (rw *PartitionReadWriter) IsTraceSampled(traceID string) (bool, error) {
 // WriteTraceEvent writes a trace event to storage.
 //
 // WriteTraceEvent may return before the write is committed to storage.
-func (rw *PartitionReadWriter) WriteTraceEvent(traceID string, id string, event *modelpb.APMEvent, opts WriterOpts) error {
+func (rw *PartitionReadWriter) WriteTraceEvent(traceID, id string, event *modelpb.APMEvent) error {
 	pid := rw.s.db.WritePartition().ID()
-	return NewPrefixReadWriter(rw.s.db, byte(pid), rw.s.codec).WriteTraceEvent(traceID, id, event, opts)
+	return NewPrefixReadWriter(rw.s.db, byte(pid), rw.s.codec).WriteTraceEvent(traceID, id, event)
 }
 
 // DeleteTraceEvent deletes the trace event from storage.

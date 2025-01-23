@@ -73,8 +73,3 @@ func (s *Storage) NewReadWriter() *PartitionReadWriter {
 		s: s,
 	}
 }
-
-// WriterOpts provides configuration options for writes to storage
-type WriterOpts struct {
-	StorageLimitInBytes int64
-}

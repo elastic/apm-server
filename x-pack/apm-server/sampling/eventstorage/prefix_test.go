@@ -36,7 +36,7 @@ func TestPrefixReadWriter_WriteTraceEvent(t *testing.T) {
 	txnID := "bar"
 	txn := makeTransaction(txnID, traceID)
 	rw := eventstorage.NewPrefixReadWriter(db, 1, codec)
-	err := rw.WriteTraceEvent(traceID, txnID, txn, eventstorage.WriterOpts{})
+	err := rw.WriteTraceEvent(traceID, txnID, txn)
 	assert.NoError(t, err)
 	item, closer, err := db.Get(append([]byte{1}, []byte("foo:bar")...))
 	assert.NoError(t, err)
@@ -55,7 +55,7 @@ func TestPrefixReadWriter_ReadTraceEvents(t *testing.T) {
 	traceID := "foo"
 	for _, txnID := range []string{"bar", "baz"} {
 		txn := makeTransaction(txnID, traceID)
-		err := rw.WriteTraceEvent(traceID, txnID, txn, eventstorage.WriterOpts{})
+		err := rw.WriteTraceEvent(traceID, txnID, txn)
 		require.NoError(t, err)
 	}
 
@@ -75,7 +75,7 @@ func TestPrefixReadWriter_DeleteTraceEvent(t *testing.T) {
 	txnID := "bar"
 	txn := makeTransaction(txnID, traceID)
 	rw := eventstorage.NewPrefixReadWriter(db, 1, codec)
-	err := rw.WriteTraceEvent(traceID, txnID, txn, eventstorage.WriterOpts{})
+	err := rw.WriteTraceEvent(traceID, txnID, txn)
 	require.NoError(t, err)
 
 	key := append([]byte{1}, []byte("foo:bar")...)
@@ -99,7 +99,7 @@ func TestPrefixReadWriter_WriteTraceSampled(t *testing.T) {
 			db := newDecisionPebble(t)
 			traceID := "foo"
 			rw := eventstorage.NewPrefixReadWriter(db, 1, codec)
-			err := rw.WriteTraceSampled(traceID, sampled, eventstorage.WriterOpts{})
+			err := rw.WriteTraceSampled(traceID, sampled)
 			assert.NoError(t, err)
 			item, closer, err := db.Get(append([]byte{1}, []byte("foo")...))
 			assert.NoError(t, err)
@@ -134,7 +134,7 @@ func TestPrefixReadWriter_IsTraceSampled(t *testing.T) {
 			rw := eventstorage.NewPrefixReadWriter(db, 1, nopCodec{})
 			traceID := uuid.Must(uuid.NewV4()).String()
 			if !tc.missing {
-				err := rw.WriteTraceSampled(traceID, tc.sampled, eventstorage.WriterOpts{})
+				err := rw.WriteTraceSampled(traceID, tc.sampled)
 				require.NoError(t, err)
 			}
 			sampled, err := rw.IsTraceSampled(traceID)

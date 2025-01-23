@@ -37,11 +37,8 @@ func BenchmarkWriteTransaction(b *testing.B) {
 
 		b.ResetTimer()
 
-		wOpts := eventstorage.WriterOpts{
-			StorageLimitInBytes: 0,
-		}
 		for i := 0; i < b.N; i++ {
-			if err := readWriter.WriteTraceEvent(traceID, transactionID, transaction, wOpts); err != nil {
+			if err := readWriter.WriteTraceEvent(traceID, transactionID, transaction); err != nil {
 				b.Fatal(err)
 			}
 		}
@@ -87,9 +84,6 @@ func BenchmarkReadEvents(b *testing.B) {
 				sm := newStorageManager(b, eventstorage.WithCodec(codec))
 				readWriter := sm.NewBypassReadWriter()
 				defer readWriter.Close()
-				wOpts := eventstorage.WriterOpts{
-					StorageLimitInBytes: 0,
-				}
 
 				for i := 0; i < count; i++ {
 					transactionID := uuid.Must(uuid.NewV4()).String()
@@ -103,7 +97,7 @@ func BenchmarkReadEvents(b *testing.B) {
 							},
 						}
 					}
-					if err := readWriter.WriteTraceEvent(traceID, transactionID, transaction, wOpts); err != nil {
+					if err := readWriter.WriteTraceEvent(traceID, transactionID, transaction); err != nil {
 						b.Fatal(err)
 					}
 				}
@@ -166,9 +160,6 @@ func BenchmarkReadEventsHit(b *testing.B) {
 				sm := newStorageManager(b)
 				readWriter := sm.NewBypassReadWriter()
 				defer readWriter.Close()
-				wOpts := eventstorage.WriterOpts{
-					StorageLimitInBytes: 0,
-				}
 
 				traceIDs := make([]string, b.N)
 
@@ -187,7 +178,7 @@ func BenchmarkReadEventsHit(b *testing.B) {
 								},
 							}
 						}
-						if err := readWriter.WriteTraceEvent(traceID, transactionID, transaction, wOpts); err != nil {
+						if err := readWriter.WriteTraceEvent(traceID, transactionID, transaction); err != nil {
 							b.Fatal(err)
 						}
 					}
@@ -246,14 +237,11 @@ func BenchmarkIsTraceSampled(b *testing.B) {
 	sm := newStorageManager(b)
 	readWriter := sm.NewBypassReadWriter()
 	defer readWriter.Close()
-	wOpts := eventstorage.WriterOpts{
-		StorageLimitInBytes: 0,
-	}
 
-	if err := readWriter.WriteTraceSampled(sampledTraceUUID.String(), true, wOpts); err != nil {
+	if err := readWriter.WriteTraceSampled(sampledTraceUUID.String(), true); err != nil {
 		b.Fatal(err)
 	}
-	if err := readWriter.WriteTraceSampled(unsampledTraceUUID.String(), false, wOpts); err != nil {
+	if err := readWriter.WriteTraceSampled(unsampledTraceUUID.String(), false); err != nil {
 		b.Fatal(err)
 	}
 

@@ -60,10 +60,7 @@ func TestProcessAlreadyTailSampled(t *testing.T) {
 	trace1 := modelpb.Trace{Id: "0102030405060708090a0b0c0d0e0f10"}
 	trace2 := modelpb.Trace{Id: "0102030405060708090a0b0c0d0e0f11"}
 	writer := config.DB.NewBypassReadWriter()
-	wOpts := eventstorage.WriterOpts{
-		StorageLimitInBytes: 0,
-	}
-	assert.NoError(t, writer.WriteTraceSampled(trace2.Id, true, wOpts))
+	assert.NoError(t, writer.WriteTraceSampled(trace2.Id, true))
 	assert.NoError(t, writer.Flush())
 	writer.Close()
 
@@ -72,7 +69,7 @@ func TestProcessAlreadyTailSampled(t *testing.T) {
 	assert.NoError(t, config.DB.IncrementPartition())
 
 	writer = config.DB.NewBypassReadWriter()
-	assert.NoError(t, writer.WriteTraceSampled(trace1.Id, true, wOpts))
+	assert.NoError(t, writer.WriteTraceSampled(trace1.Id, true))
 	assert.NoError(t, writer.Flush())
 	writer.Close()
 
@@ -514,11 +511,11 @@ func (m errorRW) ReadTraceEvents(traceID string, out *modelpb.Batch) error {
 	return m.err
 }
 
-func (m errorRW) WriteTraceEvent(traceID, id string, event *modelpb.APMEvent, opts eventstorage.WriterOpts) error {
+func (m errorRW) WriteTraceEvent(traceID, id string, event *modelpb.APMEvent) error {
 	return m.err
 }
 
-func (m errorRW) WriteTraceSampled(traceID string, sampled bool, opts eventstorage.WriterOpts) error {
+func (m errorRW) WriteTraceSampled(traceID string, sampled bool) error {
 	return m.err
 }
 

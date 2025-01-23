@@ -41,7 +41,7 @@ type Processor struct {
 	rateLimitedLogger *logp.Logger
 	groups            *traceGroups
 
-	eventStore   *wrappedRW
+	eventStore   eventstorage.RW
 	eventMetrics *eventMetrics // heap-allocated for 64-bit alignment
 
 	stopMu   sync.Mutex
@@ -75,7 +75,7 @@ func NewProcessor(config Config) (*Processor, error) {
 		logger:            logger,
 		rateLimitedLogger: logger.WithOptions(logs.WithRateLimit(loggerRateLimit)),
 		groups:            newTraceGroups(config.Policies, config.MaxDynamicServices, config.IngestRateDecayFactor),
-		eventStore:        newWrappedRW(rw, config.TTL, int64(config.StorageLimit)),
+		eventStore:        rw,
 		eventMetrics:      &eventMetrics{},
 		stopping:          make(chan struct{}),
 		stopped:           make(chan struct{}),
@@ -570,56 +570,3 @@ func sendTraceIDs(ctx context.Context, out chan<- string, traceIDs []string) err
 const (
 	storageLimitThreshold = 0.90 // Allow 90% of the quota to be used.
 )
-
-// wrappedRW wraps configurable write options for global rw
-type wrappedRW struct {
-	rw         eventstorage.RW
-	writerOpts eventstorage.WriterOpts
-}
-
-// Stored entries expire after ttl.
-// The amount of storage that can be consumed can be limited by passing in a
-// limit value greater than zero. The hard limit on storage is set to 90% of
-// the limit to account for delay in the size reporting by badger.
-// https://github.com/dgraph-io/badger/blob/82b00f27e3827022082225221ae05c03f0d37620/db.go#L1302-L1319.
-func newWrappedRW(rw eventstorage.RW, ttl time.Duration, limit int64) *wrappedRW {
-	if limit > 1 {
-		limit = int64(float64(limit) * storageLimitThreshold)
-	}
-	return &wrappedRW{
-		rw: rw,
-		writerOpts: eventstorage.WriterOpts{
-			StorageLimitInBytes: limit,
-		},
-	}
-}
-
-// ReadTraceEvents calls rw.ReadTraceEvents
-func (s *wrappedRW) ReadTraceEvents(traceID string, out *modelpb.Batch) error {
-	return s.rw.ReadTraceEvents(traceID, out)
-}
-
-// WriteTraceEvent calls rw.WriteTraceEvent using the configured WriterOpts
-func (s *wrappedRW) WriteTraceEvent(traceID, id string, event *modelpb.APMEvent) error {
-	return s.rw.WriteTraceEvent(traceID, id, event, s.writerOpts)
-}
-
-// WriteTraceSampled calls rw.WriteTraceSampled using the configured WriterOpts
-func (s *wrappedRW) WriteTraceSampled(traceID string, sampled bool) error {
-	return s.rw.WriteTraceSampled(traceID, sampled, s.writerOpts)
-}
-
-// IsTraceSampled calls rw.IsTraceSampled
-func (s *wrappedRW) IsTraceSampled(traceID string) (bool, error) {
-	return s.rw.IsTraceSampled(traceID)
-}
-
-// DeleteTraceEvent calls rw.DeleteTraceEvent
-func (s *wrappedRW) DeleteTraceEvent(traceID, id string) error {
-	return s.rw.DeleteTraceEvent(traceID, id)
-}
-
-// Flush calls rw.Flush
-func (s *wrappedRW) Flush() error {
-	return s.rw.Flush()
-}
