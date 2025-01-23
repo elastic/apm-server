@@ -54,7 +54,7 @@ type RunnerParams struct {
 	Logger *logp.Logger
 
 	// MeterProvider holds a metric.MeterProvider that can be used for
-	// creating metrics. The same MeterProvider is execpted to be used
+	// creating metrics. The same MeterProvider is expected to be used
 	// for each instance of the Runner, to ensure counter metrics are
 	// not reset.
 	//
