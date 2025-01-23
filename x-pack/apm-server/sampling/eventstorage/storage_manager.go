@@ -275,13 +275,10 @@ func (sm *StorageManager) WriteSubscriberPosition(data []byte) error {
 }
 
 func (sm *StorageManager) NewReadWriter() StorageLimitReadWriter {
-	return StorageLimitReadWriter{
-		checker: sm,
-		nextRW: SplitReadWriter{
-			eventRW:    sm.eventStorage.NewReadWriter(),
-			decisionRW: sm.decisionStorage.NewReadWriter(),
-		},
-	}
+	return NewStorageLimitReadWriter(sm, SplitReadWriter{
+		eventRW:    sm.eventStorage.NewReadWriter(),
+		decisionRW: sm.decisionStorage.NewReadWriter(),
+	})
 }
 
 // NewBypassReadWriter returns a SplitReadWriter directly reading and writing to the database,

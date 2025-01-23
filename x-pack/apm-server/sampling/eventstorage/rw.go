@@ -61,6 +61,13 @@ type StorageLimitReadWriter struct {
 	nextRW  RW
 }
 
+func NewStorageLimitReadWriter(checker storageLimitChecker, nextRW RW) StorageLimitReadWriter {
+	return StorageLimitReadWriter{
+		checker: checker,
+		nextRW:  nextRW,
+	}
+}
+
 func (s StorageLimitReadWriter) checkStorageLimit() error {
 	usage := s.checker.DiskUsage()
 	limit := s.checker.StorageLimit()
