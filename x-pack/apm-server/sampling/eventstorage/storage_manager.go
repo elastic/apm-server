@@ -175,7 +175,7 @@ func (sm *StorageManager) Reload() error {
 }
 
 // Run has the same lifecycle as the TBS processor as opposed to StorageManager to facilitate EA hot reload.
-func (sm *StorageManager) Run(stopping <-chan struct{}, ttl time.Duration, storageLimit uint64, storageLimitThreshold float64) error {
+func (sm *StorageManager) Run(stopping <-chan struct{}, ttl time.Duration, storageLimit uint64) error {
 	select {
 	case <-stopping:
 		return nil

@@ -378,7 +378,7 @@ func (p *Processor) Run() error {
 		}
 	})
 	g.Go(func() error {
-		return p.config.DB.Run(p.stopping, p.config.TTL, p.config.StorageLimit, storageLimitThreshold)
+		return p.config.DB.Run(p.stopping, p.config.TTL, p.config.StorageLimit)
 	})
 	g.Go(func() error {
 		// Subscribe to remotely sampled trace IDs. This is cancelled immediately when
@@ -566,7 +566,3 @@ func sendTraceIDs(ctx context.Context, out chan<- string, traceIDs []string) err
 	}
 	return nil
 }
-
-const (
-	storageLimitThreshold = 0.90 // Allow 90% of the quota to be used.
-)
