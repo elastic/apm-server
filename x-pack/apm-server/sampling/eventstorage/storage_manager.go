@@ -151,11 +151,10 @@ func (sm *StorageManager) Close() error {
 }
 
 func (sm *StorageManager) close() error {
-	return errors.Join(sm.eventDB.Close(), sm.decisionDB.Close())
+	return errors.Join(sm.eventDB.Flush(), sm.decisionDB.Flush(), sm.eventDB.Close(), sm.decisionDB.Close())
 }
 
 // Reload flushes out pending disk writes to disk by reloading the database.
-// It does not flush uncommitted writes.
 // For testing only.
 func (sm *StorageManager) Reload() error {
 	if err := sm.close(); err != nil {
