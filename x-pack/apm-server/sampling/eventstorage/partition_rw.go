@@ -17,16 +17,9 @@ type PartitionReadWriter struct {
 }
 
 // Close closes the writer. Any writes that have not been flushed may be lost.
-//
-// This must be called when the writer is no longer needed, in order to reclaim
-// resources.
 func (rw *PartitionReadWriter) Close() {}
 
 // Flush waits for preceding writes to be committed to storage.
-//
-// Flush must be called to ensure writes are committed to storage.
-// If Flush is not called before the writer is closed, then writes
-// may be lost.
 func (rw *PartitionReadWriter) Flush() error {
 	return nil
 }
@@ -61,8 +54,6 @@ func (rw *PartitionReadWriter) IsTraceSampled(traceID string) (bool, error) {
 }
 
 // WriteTraceEvent writes a trace event to storage.
-//
-// WriteTraceEvent may return before the write is committed to storage.
 func (rw *PartitionReadWriter) WriteTraceEvent(traceID, id string, event *modelpb.APMEvent) error {
 	pid := rw.s.db.WritePartition().ID()
 	return NewPrefixReadWriter(rw.s.db, byte(pid), rw.s.codec).WriteTraceEvent(traceID, id, event)

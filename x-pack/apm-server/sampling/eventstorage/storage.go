@@ -21,12 +21,12 @@ const (
 )
 
 var (
-	// ErrNotFound is returned by by the Storage.IsTraceSampled method,
+	// ErrNotFound is returned by the RW.IsTraceSampled method,
 	// for non-existing trace IDs.
 	ErrNotFound = errors.New("key not found")
 
-	// ErrLimitReached is returned by the ReadWriter.Flush method when
-	// the configured StorageLimiter.Limit is true.
+	// ErrLimitReached is returned by RW methods when storage usage
+	// is greater than configured limit.
 	ErrLimitReached = errors.New("configured storage limit reached")
 )
 
@@ -66,8 +66,6 @@ func New(db partitionedDB, codec Codec) *Storage {
 
 // NewReadWriter returns a new PartitionReadWriter for reading events from and
 // writing events to storage.
-//
-// The returned PartitionReadWriter must be closed when it is no longer needed.
 func (s *Storage) NewReadWriter() *PartitionReadWriter {
 	return &PartitionReadWriter{
 		s: s,
