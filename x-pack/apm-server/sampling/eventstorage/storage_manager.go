@@ -10,7 +10,6 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
-	"sync/atomic"
 	"time"
 
 	"github.com/cockroachdb/pebble/v2"
@@ -28,8 +27,8 @@ const (
 )
 
 type wrappedDB struct {
-	sm *StorageManager
-	db *pebble.DB
+	partitioner *Partitioner
+	db          *pebble.DB
 }
 
 func (w *wrappedDB) Get(key []byte) ([]byte, io.Closer, error) {
@@ -48,12 +47,12 @@ func (w *wrappedDB) NewIter(o *pebble.IterOptions) (*pebble.Iterator, error) {
 	return w.db.NewIter(o)
 }
 
-func (w *wrappedDB) PartitionID() int32 {
-	return w.sm.partitionID.Load()
+func (w *wrappedDB) ReadPartitions() PartitionIterator {
+	return w.partitioner.Actives()
 }
 
-func (w *wrappedDB) PartitionCount() int32 {
-	return w.sm.partitionCount
+func (w *wrappedDB) WritePartition() PartitionIterator {
+	return w.partitioner.Current()
 }
 
 type StorageManagerOptions func(*StorageManager)
@@ -75,8 +74,7 @@ type StorageManager struct {
 	eventStorage    *Storage
 	decisionStorage *Storage
 
-	partitionID    atomic.Int32 // FIXME: load the correct partition ID on restart
-	partitionCount int32
+	partitioner *Partitioner // FIXME: load the correct partition ID on restart
 
 	codec Codec
 
@@ -91,11 +89,11 @@ type StorageManager struct {
 // NewStorageManager returns a new StorageManager with pebble DB at storageDir.
 func NewStorageManager(storageDir string, opts ...StorageManagerOptions) (*StorageManager, error) {
 	sm := &StorageManager{
-		storageDir:     storageDir,
-		runCh:          make(chan struct{}, 1),
-		logger:         logp.NewLogger(logs.Sampling),
-		codec:          ProtobufCodec{},
-		partitionCount: 3,
+		storageDir:  storageDir,
+		runCh:       make(chan struct{}, 1),
+		logger:      logp.NewLogger(logs.Sampling),
+		codec:       ProtobufCodec{},
+		partitioner: NewPartitioner(2),
 	}
 	for _, opt := range opts {
 		opt(sm)
@@ -114,14 +112,14 @@ func (sm *StorageManager) reset() error {
 		return err
 	}
 	sm.eventDB = eventDB
-	sm.eventStorage = New(&wrappedDB{sm: sm, db: sm.eventDB}, sm.codec)
+	sm.eventStorage = New(&wrappedDB{partitioner: sm.partitioner, db: sm.eventDB}, sm.codec)
 
 	decisionDB, err := OpenDecisionPebble(sm.storageDir)
 	if err != nil {
 		return err
 	}
 	sm.decisionDB = decisionDB
-	sm.decisionStorage = New(&wrappedDB{sm: sm, db: sm.decisionDB}, sm.codec)
+	sm.decisionStorage = New(&wrappedDB{partitioner: sm.partitioner, db: sm.decisionDB}, sm.codec)
 
 	return nil
 }
@@ -183,12 +181,9 @@ func (sm *StorageManager) runTTLLoop(stopping <-chan struct{}, ttl time.Duration
 }
 
 func (sm *StorageManager) IncrementPartition() error {
-	oldPID := sm.partitionID.Load()
-	sm.partitionID.Store((oldPID + 1) % sm.partitionCount)
-
+	sm.partitioner.Rotate()
 	// FIXME: potential race, wait for a bit before deleting?
-
-	pidToDelete := (oldPID + sm.partitionCount - 1) % sm.partitionCount
+	pidToDelete := sm.partitioner.Inactive().ID()
 	lbPrefix := byte(pidToDelete)
 	ubPrefix := lbPrefix + 1 // Do not use % here as it MUST BE greater than lb
 	return errors.Join(

@@ -26,6 +26,15 @@ func (p *Partitioner) Actives() PartitionIterator {
 		total:     p.total,
 	}
 }
+
+func (p *Partitioner) Inactive() PartitionIterator {
+	return PartitionIterator{
+		id:        (int(p.current.Load()) + 1) % p.total,
+		remaining: 0,
+		total:     p.total,
+	}
+}
+
 func (p *Partitioner) Current() PartitionIterator {
 	return PartitionIterator{
 		id:        int(p.current.Load()),

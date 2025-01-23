@@ -39,8 +39,8 @@ type db interface {
 
 type partitionedDB interface {
 	db
-	PartitionID() int32
-	PartitionCount() int32
+	ReadPartitions() PartitionIterator
+	WritePartition() PartitionIterator
 }
 
 // Storage provides storage for sampled transactions and spans,

@@ -15,6 +15,10 @@ func TestPartitioner(t *testing.T) {
 	assert.True(t, cur.Valid())
 	assert.Equal(t, 0, cur.ID())
 
+	inactive := p.Inactive()
+	assert.True(t, inactive.Valid())
+	assert.Equal(t, 1, inactive.ID())
+
 	active := p.Actives()
 	assert.True(t, active.Valid())
 	assert.Equal(t, 0, active.ID())
@@ -29,6 +33,10 @@ func TestPartitioner(t *testing.T) {
 	cur = p.Current()
 	assert.True(t, cur.Valid())
 	assert.Equal(t, 1, cur.ID())
+
+	inactive = p.Inactive()
+	assert.True(t, inactive.Valid())
+	assert.Equal(t, 2, inactive.ID())
 
 	active = p.Actives()
 	assert.True(t, active.Valid())
@@ -45,6 +53,10 @@ func TestPartitioner(t *testing.T) {
 	assert.True(t, cur.Valid())
 	assert.Equal(t, 2, cur.ID())
 
+	inactive = p.Inactive()
+	assert.True(t, inactive.Valid())
+	assert.Equal(t, 0, inactive.ID())
+
 	active = p.Actives()
 	assert.True(t, active.Valid())
 	assert.Equal(t, 2, active.ID())
@@ -59,6 +71,10 @@ func TestPartitioner(t *testing.T) {
 	cur = p.Current()
 	assert.True(t, cur.Valid())
 	assert.Equal(t, 0, cur.ID())
+
+	inactive = p.Inactive()
+	assert.True(t, inactive.Valid())
+	assert.Equal(t, 1, inactive.ID())
 
 	active = p.Actives()
 	assert.True(t, active.Valid())

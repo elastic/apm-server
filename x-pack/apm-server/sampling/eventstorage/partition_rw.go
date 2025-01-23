@@ -38,7 +38,7 @@ func (rw *ReadWriter) Flush() error {
 
 // WriteTraceSampled records the tail-sampling decision for the given trace ID.
 func (rw *ReadWriter) WriteTraceSampled(traceID string, sampled bool, opts WriterOpts) error {
-	pid := rw.s.db.PartitionID()
+	pid := rw.s.db.WritePartition().ID()
 	return NewPrefixReadWriter(rw.s.db, byte(pid), rw.s.codec).WriteTraceSampled(traceID, sampled, opts)
 }
 
@@ -46,50 +46,54 @@ func (rw *ReadWriter) WriteTraceSampled(traceID string, sampled bool, opts Write
 // or unsampled. If no sampling decision has been recorded, IsTraceSampled
 // returns ErrNotFound.
 func (rw *ReadWriter) IsTraceSampled(traceID string) (bool, error) {
-	currentPID := rw.s.db.PartitionID()
-	prevPID := (currentPID + rw.s.db.PartitionCount() - 1) % rw.s.db.PartitionCount()
 	// FIXME: this needs to be fast, as it is in the hot path
 	// It should minimize disk IO on miss due to
 	// 1. (pubsub) remote sampling decision
 	// 2. (hot path) sampling decision not made yet
-	sampled, err := NewPrefixReadWriter(rw.s.db, byte(currentPID), rw.s.codec).IsTraceSampled(traceID)
-	if err == nil {
-		return sampled, nil
+	var errs []error
+	for it := rw.s.db.ReadPartitions(); it.Valid(); it = it.Prev() {
+		sampled, err := NewPrefixReadWriter(rw.s.db, byte(it.ID()), rw.s.codec).IsTraceSampled(traceID)
+		if err == nil {
+			return sampled, nil
+		} else if err != ErrNotFound {
+			errs = append(errs, err)
+		}
 	}
-
-	sampled, err = NewPrefixReadWriter(rw.s.db, byte(prevPID), rw.s.codec).IsTraceSampled(traceID)
-	if err == nil {
-		return sampled, nil
+	if len(errs) > 0 {
+		return false, errors.Join(errs...)
 	}
-
-	return false, err
+	return false, ErrNotFound
 }
 
 // WriteTraceEvent writes a trace event to storage.
 //
 // WriteTraceEvent may return before the write is committed to storage.
 func (rw *ReadWriter) WriteTraceEvent(traceID string, id string, event *modelpb.APMEvent, opts WriterOpts) error {
-	pid := rw.s.db.PartitionID()
+	pid := rw.s.db.WritePartition().ID()
 	return NewPrefixReadWriter(rw.s.db, byte(pid), rw.s.codec).WriteTraceEvent(traceID, id, event, opts)
 }
 
 // DeleteTraceEvent deletes the trace event from storage.
 func (rw *ReadWriter) DeleteTraceEvent(traceID, id string) error {
 	// FIXME: use range delete
-	currentPID := rw.s.db.PartitionID()
-	prevPID := (currentPID + rw.s.db.PartitionCount() - 1) % rw.s.db.PartitionCount()
-	return errors.Join(
-		NewPrefixReadWriter(rw.s.db, byte(currentPID), rw.s.codec).DeleteTraceEvent(traceID, id),
-		NewPrefixReadWriter(rw.s.db, byte(prevPID), rw.s.codec).DeleteTraceEvent(traceID, id),
-	)
+	var errs []error
+	for it := rw.s.db.ReadPartitions(); it.Valid(); it = it.Prev() {
+		err := NewPrefixReadWriter(rw.s.db, byte(it.ID()), rw.s.codec).DeleteTraceEvent(traceID, id)
+		if err != nil {
+			errs = append(errs, err)
+		}
+	}
+	return errors.Join(errs...)
 }
 
 // ReadTraceEvents reads trace events with the given trace ID from storage into out.
 func (rw *ReadWriter) ReadTraceEvents(traceID string, out *modelpb.Batch) error {
-	currentPID := rw.s.db.PartitionID()
-	prevPID := (currentPID + rw.s.db.PartitionCount() - 1) % rw.s.db.PartitionCount()
-	return errors.Join(
-		NewPrefixReadWriter(rw.s.db, byte(currentPID), rw.s.codec).ReadTraceEvents(traceID, out),
-		NewPrefixReadWriter(rw.s.db, byte(prevPID), rw.s.codec).ReadTraceEvents(traceID, out),
-	)
+	var errs []error
+	for it := rw.s.db.ReadPartitions(); it.Valid(); it = it.Prev() {
+		err := NewPrefixReadWriter(rw.s.db, byte(it.ID()), rw.s.codec).ReadTraceEvents(traceID, out)
+		if err != nil {
+			errs = append(errs, err)
+		}
+	}
+	return errors.Join(errs...)
 }
