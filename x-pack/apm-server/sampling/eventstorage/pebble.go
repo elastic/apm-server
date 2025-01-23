@@ -38,7 +38,6 @@ func OpenEventPebble(storageDir string) (*pebble.DB, error) {
 			},
 		},
 		Comparer: eventComparer(),
-		// FIXME: configure merger
 	})
 }
 

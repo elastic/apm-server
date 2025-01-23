@@ -36,15 +36,23 @@ func TestPrefixReadWriter_WriteTraceEvent(t *testing.T) {
 	txnID := "bar"
 	txn := makeTransaction(txnID, traceID)
 	rw := eventstorage.NewPrefixReadWriter(db, 1, codec)
-	err := rw.WriteTraceEvent(traceID, txnID, txn)
-	assert.NoError(t, err)
-	item, closer, err := db.Get(append([]byte{1}, []byte("foo:bar")...))
-	assert.NoError(t, err)
-	defer closer.Close()
-	var actual modelpb.APMEvent
-	err = codec.DecodeEvent(item, &actual)
-	assert.NoError(t, err)
-	assert.Equal(t, *txn, actual)
+
+	check := func() {
+		err := rw.WriteTraceEvent(traceID, txnID, txn)
+		assert.NoError(t, err)
+		item, closer, err := db.Get(append([]byte{1}, []byte("foo:bar")...))
+		assert.NoError(t, err)
+		defer closer.Close()
+		var actual modelpb.APMEvent
+		err = codec.DecodeEvent(item, &actual)
+		assert.NoError(t, err)
+		assert.Equal(t, *txn, actual)
+	}
+
+	check()
+
+	// Try writing to the same key again to simulate misbehaving agent / race condition
+	check()
 }
 
 func TestPrefixReadWriter_ReadTraceEvents(t *testing.T) {
@@ -99,17 +107,25 @@ func TestPrefixReadWriter_WriteTraceSampled(t *testing.T) {
 			db := newDecisionPebble(t)
 			traceID := "foo"
 			rw := eventstorage.NewPrefixReadWriter(db, 1, codec)
-			err := rw.WriteTraceSampled(traceID, sampled)
-			assert.NoError(t, err)
-			item, closer, err := db.Get(append([]byte{1}, []byte("foo")...))
-			assert.NoError(t, err)
-			defer closer.Close()
-			assert.NoError(t, err)
-			if sampled {
-				assert.Equal(t, []byte{'s'}, item)
-			} else {
-				assert.Equal(t, []byte{'u'}, item)
+
+			check := func() {
+				err := rw.WriteTraceSampled(traceID, sampled)
+				assert.NoError(t, err)
+				item, closer, err := db.Get(append([]byte{1}, []byte("foo")...))
+				assert.NoError(t, err)
+				defer closer.Close()
+				assert.NoError(t, err)
+				if sampled {
+					assert.Equal(t, []byte{'s'}, item)
+				} else {
+					assert.Equal(t, []byte{'u'}, item)
+				}
 			}
+
+			check()
+
+			// Try writing to the same key again to simulate misbehaving agent / race condition
+			check()
 		})
 	}
 }
