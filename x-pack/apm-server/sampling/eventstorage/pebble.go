@@ -25,7 +25,7 @@ func eventComparer() *pebble.Comparer {
 }
 
 func OpenEventPebble(storageDir string) (*pebble.DB, error) {
-	return pebble.Open(filepath.Join(storageDir, "event"), &pebble.Options{
+	opts := &pebble.Options{
 		FormatMajorVersion: pebble.FormatColumnarBlocks,
 		Logger:             logp.NewLogger(logs.Sampling),
 		MemTableSize:       16 << 20,
@@ -38,7 +38,9 @@ func OpenEventPebble(storageDir string) (*pebble.DB, error) {
 			},
 		},
 		Comparer: eventComparer(),
-	})
+	}
+	opts.Experimental.MaxWriterConcurrency = 1 // >0 enables parallel writers, the actual value doesn't matter
+	return pebble.Open(filepath.Join(storageDir, "event"), opts)
 }
 
 func OpenDecisionPebble(storageDir string) (*pebble.DB, error) {
