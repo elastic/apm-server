@@ -25,6 +25,7 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
 
+	"github.com/elastic/apm-server/functionaltests/internal/ecclient"
 	"github.com/elastic/apm-server/functionaltests/internal/esclient"
 	"github.com/elastic/apm-server/functionaltests/internal/gen"
 	"github.com/elastic/apm-server/functionaltests/internal/terraform"
@@ -59,6 +60,9 @@ func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
 		}
 	})
 
+	var deploymentID string
+	err = tf.Output("deployment_id", &deploymentID)
+	require.NoError(t, err)
 	var escfg esclient.Config
 	tf.Output("apm_url", &escfg.APMServerURL)
 	tf.Output("es_url", &escfg.ElasticsearchURL)
@@ -67,6 +71,9 @@ func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
 	tf.Output("kb_url", &escfg.KibanaURL)
 
 	t.Logf("created deployment %s", escfg.KibanaURL)
+
+	c, err := ecclient.New(endpointFrom(*target))
+	require.NoError(t, err)
 
 	ecc, err := esclient.New(escfg)
 	require.NoError(t, err)
@@ -82,6 +89,13 @@ func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
 	require.NoError(t, err)
 
 	g.RunBlockingWait(ctx, ecc, expectedIngestForASingleRun(), previous, 1*time.Minute)
+	t.Logf("time elapsed: %s", time.Now().Sub(start))
+
+	t.Log("restarting integrations server to flush apm server data")
+	// this is slow, may take up to ~6 minutes
+	err = c.RestartIntegrationServer(ctx, deploymentID)
+	require.NoError(t, err)
+	t.Logf("time elapsed: %s", time.Now().Sub(start))
 
 	beforeUpgradeCount, err := getDocsCountPerDS(t, ctx, ecc)
 	require.NoError(t, err)
@@ -125,6 +139,11 @@ func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
 	}, dss)
 
 	g.RunBlockingWait(ctx, ecc, expectedIngestForASingleRun(), previous, 1*time.Minute)
+
+	t.Log("restarting integrations server to flush apm server data")
+	// this is slow, may take up to ~6 minutes
+	err = c.RestartIntegrationServer(ctx, deploymentID)
+	require.NoError(t, err)
 
 	t.Log("check number of documents")
 	afterUpgradeIngestionCount, err := getDocsCountPerDS(t, ctx, ecc)

@@ -116,3 +116,14 @@ func regionFrom(target string) string {
 		panic("target value is not accepted")
 	}
 }
+
+func endpointFrom(target string) string {
+	switch target {
+	case "qa":
+		return "https://public-api.qa.cld.elstc.co"
+	case "production":
+		return "https://api.elastic-cloud.com"
+	default:
+		panic("target value is not accepted")
+	}
+}
