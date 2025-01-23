@@ -28,6 +28,11 @@ const (
 	// partitionsPerTTL holds the number of partitions that events in 1 TTL should be stored over.
 	// Increasing partitionsPerTTL increases read amplification, but decreases storage overhead,
 	// as TTL GC can be performed sooner.
+	//
+	// For example, partitionPerTTL=1 means we need to keep 2 partitions active,
+	// such that the last entry in the previous partition is also kept for a full TTL.
+	// This means storage requirement is 2 * TTL, and it needs to read 2 keys per trace ID read.
+	// If partitionPerTTL=2, storage requirement is 1.5 * TTL at the expense of 3 reads per trace ID read.
 	partitionsPerTTL = 1
 )
 
