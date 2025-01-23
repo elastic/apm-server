@@ -516,7 +516,8 @@ func (b *Beat) registerStatsMetrics() {
 		v.OnRegistryStart()
 		defer v.OnRegistryFinished()
 		for _, sm := range rm.ScopeMetrics {
-			if sm.Scope.Name == "github.com/elastic/go-docappender" {
+			switch {
+			case sm.Scope.Name == "github.com/elastic/go-docappender":
 				addDocappenderLibbeatPipelineMetrics(context.Background(), v, sm)
 			}
 		}
@@ -543,17 +544,11 @@ func (b *Beat) registerStatsMetrics() {
 		v.OnRegistryStart()
 		defer v.OnRegistryFinished()
 		for _, sm := range rm.ScopeMetrics {
-			if !strings.HasPrefix(sm.Scope.Name, "github.com/elastic/apm-server") {
-				continue
-			}
-			// All simple scalar metrics that begin with the name "apm-server."
-			// in github.com/elastic/apm-server/... scopes are mapped directly.
-			for _, m := range sm.Metrics {
-				if suffix, ok := strings.CutPrefix(m.Name, "apm-server."); ok {
-					if value, ok := getScalarInt64(m.Data); ok {
-						monitoring.ReportInt(v, suffix, value)
-					}
-				}
+			switch {
+			case strings.HasPrefix(sm.Scope.Name, "github.com/elastic/apm-server"):
+				// All simple scalar metrics that begin with the name "apm-server."
+				// in github.com/elastic/apm-server/... scopes are mapped directly.
+				addAPMServerMetrics(v, sm)
 			}
 		}
 	})
@@ -576,6 +571,16 @@ func getScalarInt64(data metricdata.Aggregation) (int64, bool) {
 		return data.DataPoints[0].Value, true
 	}
 	return 0, false
+}
+
+func addAPMServerMetrics(v monitoring.Visitor, sm metricdata.ScopeMetrics) {
+	for _, m := range sm.Metrics {
+		if suffix, ok := strings.CutPrefix(m.Name, "apm-server."); ok {
+			if value, ok := getScalarInt64(m.Data); ok {
+				monitoring.ReportInt(v, suffix, value)
+			}
+		}
+	}
 }
 
 // Adapt go-docappender's OTel metrics to beats stack monitoring metrics,
