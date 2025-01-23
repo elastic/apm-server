@@ -1,5 +1,5 @@
 output "deployment_id" {
-  value = ec_deployment.deployment.id
+  value       = ec_deployment.deployment.id
   description = "The deployment ID for the created cluster"
 }
 

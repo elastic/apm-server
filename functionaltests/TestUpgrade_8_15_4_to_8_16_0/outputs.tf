@@ -19,5 +19,5 @@ output "kb_url" {
 }
 
 output "deployment_id" {
-   value = module.ec_deployment.deployment_id
+  value = module.ec_deployment.deployment_id
 }
