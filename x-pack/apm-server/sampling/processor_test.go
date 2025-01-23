@@ -749,6 +749,8 @@ func TestGracefulShutdown(t *testing.T) {
 	assert.Empty(t, batch)
 	assert.NoError(t, processor.Stop(context.Background()))
 
+	config.DB.Flush() // FIXME: pebble BUG? flush blocks indefinitely for totalTraces < 2000
+
 	reader := config.DB.NewBypassReadWriter()
 	defer reader.Close()
 
