@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 	"sync"
@@ -37,35 +36,6 @@ const (
 	// If partitionPerTTL=2, storage requirement is 1.5 * TTL at the expense of 3 reads per trace ID read.
 	partitionsPerTTL = 1
 )
-
-type wrappedDB struct {
-	partitioner *Partitioner
-	db          *pebble.DB
-}
-
-func (w *wrappedDB) Get(key []byte) ([]byte, io.Closer, error) {
-	return w.db.Get(key)
-}
-
-func (w *wrappedDB) Set(key, value []byte, opts *pebble.WriteOptions) error {
-	return w.db.Set(key, value, opts)
-}
-
-func (w *wrappedDB) Delete(key []byte, opts *pebble.WriteOptions) error {
-	return w.db.Delete(key, opts)
-}
-
-func (w *wrappedDB) NewIter(o *pebble.IterOptions) (*pebble.Iterator, error) {
-	return w.db.NewIter(o)
-}
-
-func (w *wrappedDB) ReadPartitions() PartitionIterator {
-	return w.partitioner.Actives()
-}
-
-func (w *wrappedDB) WritePartition() PartitionIterator {
-	return w.partitioner.Current()
-}
 
 type StorageManagerOptions func(*StorageManager)
 
@@ -283,7 +253,7 @@ func (sm *StorageManager) NewReadWriter() StorageLimitReadWriter {
 
 // NewBypassReadWriter returns a SplitReadWriter directly reading and writing to the database,
 // bypassing any wrappers.
-// This should be used for testing only, useful to check if data is actually persisted to the DB.
+// For testing only. Useful for checking if data is actually persisted to the DB.
 func (sm *StorageManager) NewBypassReadWriter() SplitReadWriter {
 	return SplitReadWriter{
 		eventRW:    sm.eventStorage.NewReadWriter(),

@@ -6,11 +6,25 @@ package eventstorage
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 
 	"github.com/cockroachdb/pebble/v2"
 
 	"github.com/elastic/apm-data/model/modelpb"
+)
+
+const (
+	// NOTE(axw) these values (and their meanings) must remain stable
+	// over time, to avoid misinterpreting historical data.
+	entryMetaTraceSampled   byte = 's'
+	entryMetaTraceUnsampled byte = 'u'
+)
+
+var (
+	// ErrNotFound is returned by the RW.IsTraceSampled method,
+	// for non-existing trace IDs.
+	ErrNotFound = errors.New("key not found")
 )
 
 func NewPrefixReadWriter(db db, prefix byte, codec Codec) PrefixReadWriter {

@@ -5,9 +5,16 @@
 package eventstorage
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/elastic/apm-data/model/modelpb"
+)
+
+var (
+	// ErrLimitReached is returned by RW methods when storage usage
+	// is greater than configured limit.
+	ErrLimitReached = errors.New("configured storage limit reached")
 )
 
 type RW interface {
@@ -106,8 +113,4 @@ func (s StorageLimitReadWriter) DeleteTraceEvent(traceID, id string) error {
 
 func (s StorageLimitReadWriter) Flush() error {
 	return s.nextRW.Flush()
-}
-
-func (s StorageLimitReadWriter) Close() error {
-	return nil
 }

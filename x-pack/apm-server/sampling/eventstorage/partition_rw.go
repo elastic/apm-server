@@ -10,14 +10,10 @@ import (
 	"github.com/elastic/apm-data/model/modelpb"
 )
 
-// PartitionReadWriter provides a means of reading events from storage, and batched
-// writing of events to storage.
+// PartitionReadWriter reads from and writes to storage across partitions.
 type PartitionReadWriter struct {
 	s *Storage
 }
-
-// Close closes the writer. Any writes that have not been flushed may be lost.
-func (rw *PartitionReadWriter) Close() {}
 
 // Flush waits for preceding writes to be committed to storage.
 func (rw *PartitionReadWriter) Flush() error {

@@ -5,29 +5,11 @@
 package eventstorage
 
 import (
-	"errors"
 	"io"
 
 	"github.com/cockroachdb/pebble/v2"
 
 	"github.com/elastic/apm-data/model/modelpb"
-)
-
-const (
-	// NOTE(axw) these values (and their meanings) must remain stable
-	// over time, to avoid misinterpreting historical data.
-	entryMetaTraceSampled   byte = 's'
-	entryMetaTraceUnsampled byte = 'u'
-)
-
-var (
-	// ErrNotFound is returned by the RW.IsTraceSampled method,
-	// for non-existing trace IDs.
-	ErrNotFound = errors.New("key not found")
-
-	// ErrLimitReached is returned by RW methods when storage usage
-	// is greater than configured limit.
-	ErrLimitReached = errors.New("configured storage limit reached")
 )
 
 type db interface {
@@ -41,6 +23,35 @@ type partitionedDB interface {
 	db
 	ReadPartitions() PartitionIterator
 	WritePartition() PartitionIterator
+}
+
+type wrappedDB struct {
+	partitioner *Partitioner
+	db          *pebble.DB
+}
+
+func (w *wrappedDB) Get(key []byte) ([]byte, io.Closer, error) {
+	return w.db.Get(key)
+}
+
+func (w *wrappedDB) Set(key, value []byte, opts *pebble.WriteOptions) error {
+	return w.db.Set(key, value, opts)
+}
+
+func (w *wrappedDB) Delete(key []byte, opts *pebble.WriteOptions) error {
+	return w.db.Delete(key, opts)
+}
+
+func (w *wrappedDB) NewIter(o *pebble.IterOptions) (*pebble.Iterator, error) {
+	return w.db.NewIter(o)
+}
+
+func (w *wrappedDB) ReadPartitions() PartitionIterator {
+	return w.partitioner.Actives()
+}
+
+func (w *wrappedDB) WritePartition() PartitionIterator {
+	return w.partitioner.Current()
 }
 
 // Storage provides storage for sampled transactions and spans,
