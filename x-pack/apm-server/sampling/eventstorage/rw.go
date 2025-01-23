@@ -64,14 +64,14 @@ func (s StorageLimitReadWriter) ReadTraceEvents(traceID string, out *modelpb.Bat
 
 func (s StorageLimitReadWriter) WriteTraceEvent(traceID, id string, event *modelpb.APMEvent) error {
 	if s.checker.StorageLimitReached() {
-		return ErrLimitReached
+		return ErrLimitReached // FIXME: return a more helpful error message
 	}
 	return s.nextRW.WriteTraceEvent(traceID, id, event)
 }
 
 func (s StorageLimitReadWriter) WriteTraceSampled(traceID string, sampled bool) error {
 	if s.checker.StorageLimitReached() {
-		return ErrLimitReached
+		return ErrLimitReached // FIXME: return a more helpful error message
 	}
 	return s.nextRW.WriteTraceSampled(traceID, sampled)
 }
