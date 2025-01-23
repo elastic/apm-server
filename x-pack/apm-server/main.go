@@ -280,10 +280,11 @@ func Main() error {
 	rootCmd := newXPackRootCommand(
 		func(args beatcmd.RunnerParams) (beatcmd.Runner, error) {
 			return beater.NewRunner(beater.RunnerParams{
-				Config:        args.Config,
-				Logger:        args.Logger,
-				WrapServer:    wrapServer,
-				MeterProvider: args.MeterProvider,
+				Config:          args.Config,
+				Logger:          args.Logger,
+				WrapServer:      wrapServer,
+				MeterProvider:   args.MeterProvider,
+				MetricsGatherer: args.MetricsGatherer,
 			})
 		},
 	)

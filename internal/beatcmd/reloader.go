@@ -24,6 +24,7 @@ import (
 	"sync"
 
 	"github.com/joeshaw/multierror"
+	"go.elastic.co/apm/module/apmotel/v2"
 	"go.opentelemetry.io/otel/metric"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"golang.org/x/sync/errgroup"
@@ -64,6 +65,8 @@ type RunnerParams struct {
 	// metrics are supported, and attributes (dimensions) are ignored.
 	MeterProvider metric.MeterProvider
 
+	MetricsGatherer *apmotel.Gatherer
+
 	MetricReader *sdkmetric.ManualReader
 }
 
@@ -75,14 +78,16 @@ type Runner interface {
 
 // NewReloader returns a new Reloader which creates Runners using the provided
 // beat.Info and NewRunnerFunc.
-func NewReloader(info beat.Info, registry *reload.Registry, newRunner NewRunnerFunc, meterProvider metric.MeterProvider, metricReader *sdkmetric.ManualReader) (*Reloader, error) {
+func NewReloader(info beat.Info, registry *reload.Registry, newRunner NewRunnerFunc, meterProvider metric.MeterProvider, metricReader *sdkmetric.ManualReader, metricGatherer *apmotel.Gatherer) (*Reloader, error) {
 	r := &Reloader{
-		info:          info,
-		logger:        logp.NewLogger(""),
-		meterProvider: meterProvider,
-		metricReader:  metricReader,
-		newRunner:     newRunner,
-		stopped:       make(chan struct{}),
+		info:           info,
+		logger:         logp.NewLogger(""),
+		meterProvider:  meterProvider,
+		metricReader:   metricReader,
+		metricGatherer: metricGatherer,
+
+		newRunner: newRunner,
+		stopped:   make(chan struct{}),
 	}
 	if err := registry.RegisterList(reload.InputRegName, reloadableListFunc(r.reloadInputs)); err != nil {
 		return nil, fmt.Errorf("failed to register inputs reloader: %w", err)
@@ -99,11 +104,12 @@ func NewReloader(info beat.Info, registry *reload.Registry, newRunner NewRunnerF
 // Reloader responds to libbeat configuration changes by calling the given
 // NewRunnerFunc to create a new Runner, and then stopping any existing one.
 type Reloader struct {
-	info          beat.Info
-	logger        *logp.Logger
-	meterProvider metric.MeterProvider
-	metricReader  *sdkmetric.ManualReader
-	newRunner     NewRunnerFunc
+	info           beat.Info
+	logger         *logp.Logger
+	meterProvider  metric.MeterProvider
+	metricReader   *sdkmetric.ManualReader
+	metricGatherer *apmotel.Gatherer
+	newRunner      NewRunnerFunc
 
 	runner     Runner
 	stopRunner func() error
@@ -252,11 +258,12 @@ func (r *Reloader) reload(inputConfig, outputConfig, apmTracingConfig *config.C)
 	// allow the runner to perform initialisations that must run
 	// synchronously.
 	newRunner, err := r.newRunner(RunnerParams{
-		Config:        mergedConfig,
-		Info:          r.info,
-		Logger:        r.logger,
-		MeterProvider: r.meterProvider,
-		MetricReader:  r.metricReader,
+		Config:          mergedConfig,
+		Info:            r.info,
+		Logger:          r.logger,
+		MeterProvider:   r.meterProvider,
+		MetricsGatherer: r.metricGatherer,
+		MetricReader:    r.metricReader,
 	})
 	if err != nil {
 		return err

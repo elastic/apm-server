@@ -86,9 +86,10 @@ type Runner struct {
 	outputConfig              agentconfig.Namespace
 	elasticsearchOutputConfig *agentconfig.C
 
-	metricReader  *sdkmetric.ManualReader
-	meterProvider metric.MeterProvider
-	listener      net.Listener
+	metricReader   *sdkmetric.ManualReader
+	meterProvider  metric.MeterProvider
+	metricGatherer *apmotel.Gatherer
+	listener       net.Listener
 }
 
 // RunnerParams holds parameters for NewRunner.
@@ -105,6 +106,9 @@ type RunnerParams struct {
 	// MeterProvider holds a metric.MeterProvider that can be used for
 	// creating metrics.
 	MeterProvider metric.MeterProvider
+
+	// MetricsGatherer holds an apmotel.Gatherer
+	MetricsGatherer *apmotel.Gatherer
 
 	// WrapServer holds an optional WrapServerFunc, for wrapping the
 	// ServerParams and RunServerFunc used to run the APM Server.
@@ -154,9 +158,10 @@ func NewRunner(args RunnerParams) (*Runner, error) {
 		outputConfig:              unpackedConfig.Output,
 		elasticsearchOutputConfig: elasticsearchOutputConfig,
 
-		metricReader:  args.MetricReader,
-		meterProvider: args.MeterProvider,
-		listener:      listener,
+		metricReader:   args.MetricReader,
+		meterProvider:  args.MeterProvider,
+		metricGatherer: args.MetricsGatherer,
+		listener:       listener,
 	}, nil
 }
 
@@ -288,8 +293,7 @@ func (s *Runner) Run(ctx context.Context) error {
 	}
 	otel.SetTracerProvider(tracerProvider)
 
-	// TODO(axw) register apmotel gatherer when we pass it in from beatcmd.
-	//tracer.RegisterMetricsGatherer(exporter)
+	tracer.RegisterMetricsGatherer(s.metricGatherer)
 
 	// Ensure the libbeat output and go-elasticsearch clients do not index
 	// any events to Elasticsearch before the integration is ready.

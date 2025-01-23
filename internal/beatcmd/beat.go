@@ -33,6 +33,7 @@ import (
 	"time"
 
 	"github.com/gofrs/uuid/v5"
+	"go.elastic.co/apm/module/apmotel/v2"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
@@ -78,11 +79,11 @@ type Beat struct {
 
 	Config *Config
 
-	rawConfig     *config.C
-	newRunner     NewRunnerFunc
-	metricReader  *sdkmetric.ManualReader
-	meterProvider *sdkmetric.MeterProvider
-	//TODO metricGatherer apmotel.Gatherer
+	rawConfig      *config.C
+	newRunner      NewRunnerFunc
+	metricReader   *sdkmetric.ManualReader
+	meterProvider  *sdkmetric.MeterProvider
+	metricGatherer *apmotel.Gatherer
 }
 
 // BeatParams holds parameters for NewBeat.
@@ -116,11 +117,14 @@ func NewBeat(args BeatParams) (*Beat, error) {
 		beatName = hostname
 	}
 
+	exporter, err := apmotel.NewGatherer()
+	if err != nil {
+		return nil, err
+	}
+
 	metricReader := sdkmetric.NewManualReader()
 	meterProvider := sdkmetric.NewMeterProvider(
-		// TODO(axw) register an apmotel gatherer,
-		// pass it into the runner so it can be
-		// registered with tracers.
+		sdkmetric.WithReader(exporter),
 		sdkmetric.WithReader(metricReader),
 	)
 	otel.SetMeterProvider(meterProvider)
@@ -143,11 +147,12 @@ func NewBeat(args BeatParams) (*Beat, error) {
 			BeatConfig: cfg.APMServer,
 			Registry:   reload.NewRegistry(),
 		},
-		Config:        cfg,
-		newRunner:     args.NewRunner,
-		rawConfig:     rawConfig,
-		metricReader:  metricReader,
-		meterProvider: meterProvider,
+		Config:         cfg,
+		newRunner:      args.NewRunner,
+		rawConfig:      rawConfig,
+		metricReader:   metricReader,
+		meterProvider:  meterProvider,
+		metricGatherer: &exporter,
 	}
 
 	if err := b.init(); err != nil {
@@ -392,7 +397,7 @@ func (b *Beat) Run(ctx context.Context) error {
 	}
 
 	if b.Manager.Enabled() {
-		reloader, err := NewReloader(b.Info, b.Registry, b.newRunner, b.meterProvider, b.metricReader)
+		reloader, err := NewReloader(b.Info, b.Registry, b.newRunner, b.meterProvider, b.metricReader, b.metricGatherer)
 		if err != nil {
 			return err
 		}
@@ -408,11 +413,12 @@ func (b *Beat) Run(ctx context.Context) error {
 			return errors.New("no output defined, please define one under the output section")
 		}
 		runner, err := b.newRunner(RunnerParams{
-			Config:        b.rawConfig,
-			Info:          b.Info,
-			Logger:        logp.NewLogger(""),
-			MeterProvider: b.meterProvider,
-			MetricReader:  b.metricReader,
+			Config:          b.rawConfig,
+			Info:            b.Info,
+			Logger:          logp.NewLogger(""),
+			MeterProvider:   b.meterProvider,
+			MetricReader:    b.metricReader,
+			MetricsGatherer: b.metricGatherer,
 		})
 		if err != nil {
 			return err
