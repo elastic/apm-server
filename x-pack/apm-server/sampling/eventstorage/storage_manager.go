@@ -212,6 +212,7 @@ func (sm *StorageManager) WriteSubscriberPosition(data []byte) error {
 
 func (sm *StorageManager) NewReadWriter() SplitReadWriter {
 	return SplitReadWriter{
+		// FIXME: use sharded?
 		eventRW:    sm.eventStorage.NewReadWriter(),
 		decisionRW: sm.decisionStorage.NewReadWriter(),
 	}
