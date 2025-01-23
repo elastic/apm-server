@@ -189,16 +189,19 @@ func (sm *StorageManager) Run(stopping <-chan struct{}, ttl time.Duration, stora
 }
 
 func (sm *StorageManager) runTTLGCLoop(stopping <-chan struct{}, ttl time.Duration) error {
-	ticker := time.NewTicker(ttl / partitionsPerTTL)
+	ttlGCInterval := ttl / partitionsPerTTL
+	ticker := time.NewTicker(ttlGCInterval)
 	defer ticker.Stop()
 	for {
 		select {
 		case <-stopping:
 			return nil
 		case <-ticker.C:
+			sm.logger.Info("running TTL GC to clean up expired entries")
 			if err := sm.RotatePartitions(); err != nil {
 				sm.logger.With(logp.Error(err)).Error("failed to rotate partition")
 			}
+			sm.logger.Info("finished running TTL GC")
 		}
 	}
 }
