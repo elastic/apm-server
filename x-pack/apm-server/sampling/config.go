@@ -100,10 +100,8 @@ type StorageConfig struct {
 	// DB will not be closed when the processor is closed.
 	DB *eventstorage.StorageManager
 
-	// Storage holds the read writers which provide access to storage.
-	//
-	// Storage lives outside processor lifecycle and will not be closed when processor
-	// is closed
+	// Storage overrides the default DB storage RW.
+	// For testing only.
 	Storage eventstorage.RW
 
 	// StorageDir holds the directory in which event storage will be maintained.
@@ -241,9 +239,6 @@ func (config DataStreamConfig) validate() error {
 func (config StorageConfig) validate() error {
 	if config.DB == nil {
 		return errors.New("DB unspecified")
-	}
-	if config.Storage == nil {
-		return errors.New("Storage unspecified")
 	}
 	if config.StorageDir == "" {
 		return errors.New("StorageDir unspecified")

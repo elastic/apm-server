@@ -142,6 +142,10 @@ func (sm *StorageManager) StorageLimitReached() bool {
 	return limit != 0 && uint64(lsm+vlog) > limit
 }
 
+func (sm *StorageManager) Flush() error {
+	return errors.Join(sm.eventDB.Flush(), sm.decisionDB.Flush())
+}
+
 func (sm *StorageManager) Close() error {
 	return sm.close()
 }

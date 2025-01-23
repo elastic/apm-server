@@ -78,11 +78,7 @@ func TestProcessAlreadyTailSampled(t *testing.T) {
 	assert.NoError(t, writer.Flush())
 	writer.Close()
 
-	// Badger transactions created globally before committing the above writes
-	// will not see them due to SSI (Serializable Snapshot Isolation). Flush
-	// the storage so that new transactions are created for the underlying
-	// writer shards that can list all the events committed so far.
-	require.NoError(t, config.Storage.Flush())
+	require.NoError(t, config.DB.Flush())
 
 	processor, err := sampling.NewProcessor(config)
 	require.NoError(t, err)
@@ -140,7 +136,7 @@ func TestProcessAlreadyTailSampled(t *testing.T) {
 
 	// Stop the processor and flush global storage so we can access the database.
 	assert.NoError(t, processor.Stop(context.Background()))
-	assert.NoError(t, config.Storage.Flush())
+	assert.NoError(t, config.DB.Flush())
 	reader := config.DB.NewBypassReadWriter()
 	defer reader.Close()
 
@@ -259,7 +255,7 @@ func TestProcessLocalTailSampling(t *testing.T) {
 
 			// Stop the processor and flush global storage so we can access the database.
 			assert.NoError(t, processor.Stop(context.Background()))
-			assert.NoError(t, config.Storage.Flush())
+			assert.NoError(t, config.DB.Flush())
 			reader := config.DB.NewBypassReadWriter()
 			defer reader.Close()
 
@@ -323,7 +319,7 @@ func TestProcessLocalTailSamplingUnsampled(t *testing.T) {
 
 	// Stop the processor so we can access the database.
 	assert.NoError(t, processor.Stop(context.Background()))
-	assert.NoError(t, config.Storage.Flush())
+	assert.NoError(t, config.DB.Flush())
 	reader := config.DB.NewBypassReadWriter()
 	defer reader.Close()
 
@@ -476,7 +472,7 @@ func TestProcessRemoteTailSampling(t *testing.T) {
 
 	// Stop the processor and flush global storage so we can access the database.
 	assert.NoError(t, processor.Stop(context.Background()))
-	assert.NoError(t, config.Storage.Flush())
+	assert.NoError(t, config.DB.Flush())
 	assert.Empty(t, published) // remote decisions don't get republished
 
 	expectedMonitoring := monitoring.MakeFlatSnapshot()
@@ -757,7 +753,6 @@ func TestGracefulShutdown(t *testing.T) {
 	assert.NoError(t, processor.ProcessBatch(context.Background(), &batch))
 	assert.Empty(t, batch)
 	assert.NoError(t, processor.Stop(context.Background()))
-	assert.NoError(t, config.Storage.Flush())
 
 	reader := config.DB.NewBypassReadWriter()
 	defer reader.Close()
@@ -780,8 +775,6 @@ func newTempdirConfig(tb testing.TB) sampling.Config {
 	require.NoError(tb, err)
 	tb.Cleanup(func() { db.Close() })
 
-	storage := db.NewReadWriter()
-
 	return sampling.Config{
 		BatchProcessor: modelpb.ProcessBatchFunc(func(context.Context, *modelpb.Batch) error { return nil }),
 		LocalSamplingConfig: sampling.LocalSamplingConfig{
@@ -803,7 +796,6 @@ func newTempdirConfig(tb testing.TB) sampling.Config {
 		},
 		StorageConfig: sampling.StorageConfig{
 			DB:                db,
-			Storage:           storage,
 			StorageDir:        tempdir,
 			StorageGCInterval: time.Second,
 			TTL:               30 * time.Minute,

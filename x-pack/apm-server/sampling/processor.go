@@ -64,13 +64,18 @@ func NewProcessor(config Config) (*Processor, error) {
 		return nil, errors.Wrap(err, "invalid tail-sampling config")
 	}
 
+	rw := config.Storage
+	if rw == nil {
+		rw = config.DB.NewReadWriter()
+	}
+
 	logger := logp.NewLogger(logs.Sampling)
 	p := &Processor{
 		config:            config,
 		logger:            logger,
 		rateLimitedLogger: logger.WithOptions(logs.WithRateLimit(loggerRateLimit)),
 		groups:            newTraceGroups(config.Policies, config.MaxDynamicServices, config.IngestRateDecayFactor),
-		eventStore:        newWrappedRW(config.Storage, config.TTL, int64(config.StorageLimit)),
+		eventStore:        newWrappedRW(rw, config.TTL, int64(config.StorageLimit)),
 		eventMetrics:      &eventMetrics{},
 		stopping:          make(chan struct{}),
 		stopped:           make(chan struct{}),

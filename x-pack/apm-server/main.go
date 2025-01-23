@@ -44,9 +44,6 @@ var (
 	dbMu sync.Mutex
 	db   *eventstorage.StorageManager
 
-	storageMu sync.Mutex
-	storage   eventstorage.RW
-
 	// samplerUUID is a UUID used to identify sampled trace ID documents
 	// published by this process.
 	samplerUUID = uuid.Must(uuid.NewV4())
@@ -119,9 +116,8 @@ func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, er
 	storageDir := paths.Resolve(paths.Data, tailSamplingStorageDir)
 	db, err := getDB(storageDir)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get Badger database: %w", err)
+		return nil, fmt.Errorf("failed to get TBS database: %w", err)
 	}
-	readWriter := getStorage(db)
 
 	policies := make([]sampling.Policy, len(tailSamplingConfig.Policies))
 	for i, in := range tailSamplingConfig.Policies {
@@ -156,7 +152,6 @@ func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, er
 		},
 		StorageConfig: sampling.StorageConfig{
 			DB:                    db,
-			Storage:               readWriter,
 			StorageDir:            storageDir,
 			StorageGCInterval:     tailSamplingConfig.StorageGCInterval,
 			StorageLimit:          tailSamplingConfig.StorageLimitParsed,
@@ -177,15 +172,6 @@ func getDB(storageDir string) (*eventstorage.StorageManager, error) {
 		db = sm
 	}
 	return db, nil
-}
-
-func getStorage(sm *eventstorage.StorageManager) eventstorage.RW {
-	storageMu.Lock()
-	defer storageMu.Unlock()
-	if storage == nil {
-		storage = sm.NewReadWriter()
-	}
-	return storage
 }
 
 // runServerWithProcessors runs the APM Server and the given list of processors.
