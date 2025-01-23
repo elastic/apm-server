@@ -88,7 +88,7 @@ func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
 	previous, err := getDocsCountPerDS(t, ctx, ecc)
 	require.NoError(t, err)
 
-	g.RunBlockingWait(ctx, ecc, expectedIngestForASingleRun(), previous, 1*time.Minute)
+	require.NoError(t, g.RunBlocking(ctx))
 	t.Logf("time elapsed: %s", time.Now().Sub(start))
 
 	t.Log("restarting integrations server to flush apm server data")
@@ -138,12 +138,14 @@ func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
 		IndicesManagedBy: []string{"Data stream lifecycle"},
 	}, dss)
 
-	g.RunBlockingWait(ctx, ecc, expectedIngestForASingleRun(), previous, 1*time.Minute)
+	require.NoError(t, g.RunBlocking(ctx))
+	t.Logf("time elapsed: %s", time.Now().Sub(start))
 
 	t.Log("restarting integrations server to flush apm server data")
 	// this is slow, may take up to ~6 minutes
 	err = c.RestartIntegrationServer(ctx, deploymentID)
 	require.NoError(t, err)
+	t.Logf("time elapsed: %s", time.Now().Sub(start))
 
 	t.Log("check number of documents")
 	afterUpgradeIngestionCount, err := getDocsCountPerDS(t, ctx, ecc)
