@@ -153,7 +153,6 @@ func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, er
 		StorageConfig: sampling.StorageConfig{
 			DB:                    db,
 			StorageDir:            storageDir,
-			StorageGCInterval:     tailSamplingConfig.StorageGCInterval,
 			StorageLimit:          tailSamplingConfig.StorageLimitParsed,
 			TTL:                   tailSamplingConfig.TTL,
 			DiscardOnWriteFailure: tailSamplingConfig.DiscardOnWriteFailure,

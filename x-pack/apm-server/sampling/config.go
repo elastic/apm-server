@@ -107,9 +107,6 @@ type StorageConfig struct {
 	// StorageDir holds the directory in which event storage will be maintained.
 	StorageDir string
 
-	// StorageGCInterval holds the amount of time between storage garbage collections.
-	StorageGCInterval time.Duration
-
 	// StorageLimit for the TBS database, in bytes.
 	StorageLimit uint64
 
@@ -242,9 +239,6 @@ func (config StorageConfig) validate() error {
 	}
 	if config.StorageDir == "" {
 		return errors.New("StorageDir unspecified")
-	}
-	if config.StorageGCInterval <= 0 {
-		return errors.New("StorageGCInterval unspecified or negative")
 	}
 	if config.TTL <= 0 {
 		return errors.New("TTL unspecified or negative")

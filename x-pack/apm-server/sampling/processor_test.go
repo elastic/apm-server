@@ -787,11 +787,10 @@ func newTempdirConfig(tb testing.TB) sampling.Config {
 			UUID: "local-apm-server",
 		},
 		StorageConfig: sampling.StorageConfig{
-			DB:                db,
-			StorageDir:        tempdir,
-			StorageGCInterval: time.Second,
-			TTL:               30 * time.Minute,
-			StorageLimit:      0, // No storage limit.
+			DB:           db,
+			StorageDir:   tempdir,
+			TTL:          30 * time.Minute,
+			StorageLimit: 0, // No storage limit.
 		},
 	}
 }
