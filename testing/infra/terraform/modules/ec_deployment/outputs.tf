@@ -1,3 +1,8 @@
+output "deployment_id" {
+  value = ec_deployment.deployment.id
+  description = "The deployment ID for the created cluster"
+}
+
 output "kibana_url" {
   value       = ec_deployment.deployment.kibana.0.https_endpoint
   description = "The secure Kibana URL"
