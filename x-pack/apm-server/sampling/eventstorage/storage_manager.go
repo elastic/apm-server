@@ -24,6 +24,11 @@ const (
 	// subscriberPositionFile holds the file name used for persisting
 	// the subscriber position across server restarts.
 	subscriberPositionFile = "subscriber_position.json"
+
+	// partitionsPerTTL holds the number of partitions that events in 1 TTL should be stored over.
+	// Increasing partitionsPerTTL increases read amplification, but decreases storage overhead,
+	// as TTL GC can be performed sooner.
+	partitionsPerTTL = 1
 )
 
 type wrappedDB struct {
@@ -93,7 +98,7 @@ func NewStorageManager(storageDir string, opts ...StorageManagerOptions) (*Stora
 		runCh:       make(chan struct{}, 1),
 		logger:      logp.NewLogger(logs.Sampling),
 		codec:       ProtobufCodec{},
-		partitioner: NewPartitioner(2),
+		partitioner: NewPartitioner(partitionsPerTTL + 1),
 	}
 	for _, opt := range opts {
 		opt(sm)
@@ -160,13 +165,13 @@ func (sm *StorageManager) Run(stopping <-chan struct{}, gcInterval time.Duration
 
 	g := errgroup.Group{}
 	g.Go(func() error {
-		return sm.runTTLLoop(stopping, ttl)
+		return sm.runTTLGCLoop(stopping, ttl)
 	})
 	return g.Wait()
 }
 
-func (sm *StorageManager) runTTLLoop(stopping <-chan struct{}, ttl time.Duration) error {
-	ticker := time.NewTicker(ttl)
+func (sm *StorageManager) runTTLGCLoop(stopping <-chan struct{}, ttl time.Duration) error {
+	ticker := time.NewTicker(ttl / partitionsPerTTL)
 	defer ticker.Stop()
 	for {
 		select {
