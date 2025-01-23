@@ -44,13 +44,9 @@ func NewEventCounter(mp metric.MeterProvider) *EventCounter {
 	c := &EventCounter{}
 	for i := range c.eventCounters {
 		eventType := modelpb.APMEventType(i)
-		counter, err := meter.Int64Counter(
+		counter, _ := meter.Int64Counter(
 			fmt.Sprintf("apm-server.processor.%s.transformations", eventType),
 		)
-		if err != nil {
-			// TODO(axw) return err
-			panic(err)
-		}
 		c.eventCounters[i] = counter
 	}
 	return c
