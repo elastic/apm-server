@@ -107,17 +107,6 @@ dra() {
   fi
 }
 
-# An opinionated approach to manage the Elatic Qualifier for the DRA in a Google Bucket
-# Instead of using the ELASTIC_QUALIFIER env variable.
-fetch_elastic_qualifier() {
-  local branch=$1
-  qualifier=""
-  if curl -sf -o /dev/null "https://storage.googleapis.com/artifacts-api/test/$branch" ; then
-    qualifier=$(curl -s "https://storage.googleapis.com/artifacts-api/test/$branch")
-  fi
-  echo "$qualifier"
-}
-
 if [[ "${TYPE}" == "staging" ]]; then
   qualifier=$(fetch_elastic_qualifier "$DRA_BRANCH")
   # TODO: main and 8.x are not needed to run the DRA for staging

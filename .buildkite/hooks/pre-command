@@ -10,25 +10,8 @@
 
 set -eo pipefail
 
-retry() {
-    local retries=$1
-    shift
-
-    local count=0
-    until "$@"; do
-        exit=$?
-        wait=$((2 ** count))
-        count=$((count + 1))
-        if [ $count -lt "$retries" ]; then
-            >&2 echo "Retry $count/$retries exited $exit, retrying in $wait seconds..."
-            sleep $wait
-        else
-            >&2 echo "Retry $count/$retries exited $exit, no more retries left."
-            return $exit
-        fi
-    done
-    return 0
-}
+# shellcheck disable=SC1091
+source .buildkite/scripts/utils.sh
 
 get_os_details() {
     case $(uname | tr '[:upper:]' '[:lower:]') in
@@ -113,3 +96,7 @@ VAULT_ADDR_SECRET=$(echo ${DRA_CREDS_SECRET} | jq -r '.vault_addr')
 VAULT_ROLE_ID_SECRET=$(echo ${DRA_CREDS_SECRET} | jq -r '.role_id')
 VAULT_SECRET=$(echo ${DRA_CREDS_SECRET} | jq -r '.secret_id')
 export VAULT_ADDR_SECRET VAULT_ROLE_ID_SECRET VAULT_SECRET
+
+echo "--- Prepare the Elastic Qualifier"
+ELASTIC_QUALIFIER=$(fetch_elastic_qualifier "$BUILDKITE_BRANCH")
+export ELASTIC_QUALIFIER
