@@ -197,7 +197,7 @@ func (sm *StorageManager) runTTLGCLoop(stopping <-chan struct{}, ttl time.Durati
 		case <-stopping:
 			return nil
 		case <-ticker.C:
-			sm.logger.Info("running TTL GC to clean up expired entries")
+			sm.logger.Info("running TTL GC to clear expired entries and reclaim disk space")
 			if err := sm.RotatePartitions(); err != nil {
 				sm.logger.With(logp.Error(err)).Error("failed to rotate partition")
 			}
