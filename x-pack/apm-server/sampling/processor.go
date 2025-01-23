@@ -279,7 +279,7 @@ func (p *Processor) processSpan(event *modelpb.APMEvent) (report, stored bool, _
 }
 
 // Stop stops the processor, flushing event storage. Note that the underlying
-// badger.DB must be closed independently to ensure writes are synced to disk.
+// StorageManager must be closed independently to ensure writes are synced to disk.
 func (p *Processor) Stop(ctx context.Context) error {
 	p.stopMu.Lock()
 	select {

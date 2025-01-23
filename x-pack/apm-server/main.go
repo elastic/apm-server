@@ -235,11 +235,11 @@ func wrapServer(args beater.ServerParams, runServer beater.RunServerFunc) (beate
 	return args, wrappedRunServer, nil
 }
 
-// closeBadger is called at process exit time to close the badger.DB opened
+// closeDB is called at process exit time to close the StorageManager opened
 // by the tail-based sampling processor constructor, if any. This is never
-// called concurrently with opening badger.DB/accessing the db global,
+// called concurrently with opening DB/accessing the db global,
 // so it does not need to hold dbMu.
-func closeBadger() error {
+func closeDB() error {
 	if db != nil {
 		return db.Close()
 	}
@@ -247,7 +247,7 @@ func closeBadger() error {
 }
 
 func cleanup() error {
-	return closeBadger()
+	return closeDB()
 }
 
 func Main() error {

@@ -630,12 +630,7 @@ func TestStorageMonitoring(t *testing.T) {
 		assert.Empty(t, batch)
 	}
 
-	// Stop the processor and create a new one, which will reopen storage
-	// and calculate the storage size. Otherwise we must wait for a minute
-	// (hard-coded in badger) for storage metrics to be updated.
 	processor.Stop(context.Background())
-	processor, err = sampling.NewProcessor(config)
-	require.NoError(t, err)
 
 	metrics := collectProcessorMetrics(processor)
 	assert.NotZero(t, metrics.Ints, "sampling.storage.lsm_size")
