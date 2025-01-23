@@ -10,12 +10,12 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/cockroachdb/pebble/v2"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/internal/logs"
 	"github.com/elastic/elastic-agent-libs/logp"
 )
@@ -81,6 +81,8 @@ type StorageManager struct {
 
 	partitioner *Partitioner // FIXME: load the correct partition ID on restart
 
+	storageLimit atomic.Uint64
+
 	codec Codec
 
 	// subscriberPosMu protects the subscriber file from concurrent RW.
@@ -129,9 +131,15 @@ func (sm *StorageManager) reset() error {
 	return nil
 }
 
-func (sm *StorageManager) Size() (lsm, vlog int64) {
+func (sm *StorageManager) Size() (lsm, vlog int64) { // FIXME: stop calling it vlog
 	// FIXME: separate WAL usage?
 	return int64(sm.eventDB.Metrics().DiskSpaceUsage() + sm.decisionDB.Metrics().DiskSpaceUsage()), 0
+}
+
+func (sm *StorageManager) StorageLimitReached() bool {
+	limit := sm.storageLimit.Load()
+	lsm, vlog := sm.Size() // FIXME: what's the overhead?
+	return limit != 0 && uint64(lsm+vlog) > limit
 }
 
 func (sm *StorageManager) Close() error {
@@ -162,6 +170,8 @@ func (sm *StorageManager) Run(stopping <-chan struct{}, gcInterval time.Duration
 	defer func() {
 		<-sm.runCh
 	}()
+
+	sm.storageLimit.Store(storageLimit)
 
 	g := errgroup.Group{}
 	g.Go(func() error {
@@ -211,10 +221,13 @@ func (sm *StorageManager) WriteSubscriberPosition(data []byte) error {
 	return os.WriteFile(filepath.Join(sm.storageDir, subscriberPositionFile), data, 0644)
 }
 
-func (sm *StorageManager) NewReadWriter() SplitReadWriter {
-	return SplitReadWriter{
-		eventRW:    sm.eventStorage.NewReadWriter(),
-		decisionRW: sm.decisionStorage.NewReadWriter(),
+func (sm *StorageManager) NewReadWriter() StorageLimitReadWriter {
+	return StorageLimitReadWriter{
+		checker: sm,
+		nextRW: SplitReadWriter{
+			eventRW:    sm.eventStorage.NewReadWriter(),
+			decisionRW: sm.decisionStorage.NewReadWriter(),
+		},
 	}
 }
 
@@ -226,36 +239,4 @@ func (sm *StorageManager) NewBypassReadWriter() SplitReadWriter {
 		eventRW:    sm.eventStorage.NewReadWriter(),
 		decisionRW: sm.decisionStorage.NewReadWriter(),
 	}
-}
-
-type SplitReadWriter struct {
-	eventRW, decisionRW RW
-}
-
-func (s SplitReadWriter) ReadTraceEvents(traceID string, out *modelpb.Batch) error {
-	return s.eventRW.ReadTraceEvents(traceID, out)
-}
-
-func (s SplitReadWriter) WriteTraceEvent(traceID, id string, event *modelpb.APMEvent, opts WriterOpts) error {
-	return s.eventRW.WriteTraceEvent(traceID, id, event, opts)
-}
-
-func (s SplitReadWriter) WriteTraceSampled(traceID string, sampled bool, opts WriterOpts) error {
-	return s.decisionRW.WriteTraceSampled(traceID, sampled, opts)
-}
-
-func (s SplitReadWriter) IsTraceSampled(traceID string) (bool, error) {
-	return s.decisionRW.IsTraceSampled(traceID)
-}
-
-func (s SplitReadWriter) DeleteTraceEvent(traceID, id string) error {
-	return s.eventRW.DeleteTraceEvent(traceID, id)
-}
-
-func (s SplitReadWriter) Flush() error {
-	return nil
-}
-
-func (s SplitReadWriter) Close() error {
-	return nil
 }
