@@ -50,7 +50,7 @@ runs:
       shell: 'bash'
 
     - name: validate version format (major only)
-      if: ${{ inputs.type == 'major' && ! endsWith(inputs.version, '0.0') }}
+      if: ${{ inputs.type == 'major' && ! endsWith(inputs.version, '.0.0') }}
       run: |-
         FAILURE_MESSAGE='version is not a major one but a patch (only support for <major>.0.0)'
         echo "FAILURE_MESSAGE=${FAILURE_MESSAGE}" >> "$GITHUB_ENV"
@@ -76,14 +76,14 @@ runs:
     - name: validate if branch already exists (major only)
       if: ${{ inputs.type == 'major' }}
       run: |-
-        if git ls-remote --exit-code --heads https://github.com/${{ github.repository }}.git "$BRANCH" > /dev/null ; then
-          FAILURE_MESSAGE='Branch already exists. This is not a major release.'
+        if git ls-remote --exit-code --heads "https://github.com/${GITHUB_REPOSITORY}.git" "$BRANCH" > /dev/null ; then
           echo "FAILURE_MESSAGE=${FAILURE_MESSAGE}" >> "$GITHUB_ENV"
           echo "::error::${FAILURE_MESSAGE}" ; exit 1
         fi
       shell: 'bash'
       env:
         BRANCH: ${{ steps.generate.outputs.release-branch }}
+        FAILURE_MESSAGE: Branch already exists. This is not a major release.
 
     - name: validate if branch already exists (minor only)
       if: ${{ inputs.type == 'minor' }}
