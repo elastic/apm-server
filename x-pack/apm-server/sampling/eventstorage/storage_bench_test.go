@@ -108,8 +108,6 @@ func BenchmarkReadEvents(b *testing.B) {
 					}
 				}
 
-				// NOTE(marclop) We want to check how badly the read performance is affected with
-				// by having uncommitted events in the badger TX.
 				b.ResetTimer()
 				var batch modelpb.Batch
 				for i := 0; i < b.N; i++ {

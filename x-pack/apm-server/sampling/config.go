@@ -95,7 +95,7 @@ type DataStreamConfig struct {
 
 // StorageConfig holds Processor configuration related to event storage.
 type StorageConfig struct {
-	// DB holds the badger database in which event storage will be maintained.
+	// DB holds the StorageManager in which event storage will be maintained.
 	//
 	// DB will not be closed when the processor is closed.
 	DB *eventstorage.StorageManager
@@ -110,7 +110,7 @@ type StorageConfig struct {
 	// StorageGCInterval holds the amount of time between storage garbage collections.
 	StorageGCInterval time.Duration
 
-	// StorageLimit for the badger database, in bytes.
+	// StorageLimit for the TBS database, in bytes.
 	StorageLimit uint64
 
 	// TTL holds the amount of time before events and sampling decisions
