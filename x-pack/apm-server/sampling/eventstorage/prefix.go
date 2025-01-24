@@ -44,22 +44,17 @@ func (rw PrefixReadWriter) ReadTraceEvents(traceID string, out *modelpb.Batch) e
 	lb.WriteString(traceID)
 	lb.WriteByte(':')
 
-	var ub bytes.Buffer
-	ub.Grow(lb.Len())
-	ub.Write(lb.Bytes()[:lb.Len()-1])
-	ub.WriteByte(';') // This is a hack to stop before next ID
-
-	iter, err := rw.db.NewIter(&pebble.IterOptions{
-		LowerBound: lb.Bytes(),
-		UpperBound: ub.Bytes(),
-	})
+	iter, err := rw.db.NewIter(&pebble.IterOptions{})
 	if err != nil {
 		return err
 	}
 	defer iter.Close()
+
 	// SeekPrefixGE uses prefix bloom filter for on disk tables.
 	// These bloom filters are cached in memory, and a "miss" on bloom filter avoids disk IO to check the actual table.
 	// Memtables still need to be scanned as pebble has no bloom filter on memtables.
+	//
+	// SeekPrefixGE ensures the prefix is present and does not require lower bound and upper bound to be set on iterator.
 	if valid := iter.SeekPrefixGE(lb.Bytes()); !valid {
 		return nil
 	}

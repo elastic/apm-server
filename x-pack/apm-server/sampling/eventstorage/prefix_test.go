@@ -60,15 +60,20 @@ func TestPrefixReadWriter_ReadTraceEvents(t *testing.T) {
 	db := newEventPebble(t)
 	rw := eventstorage.NewPrefixReadWriter(db, 1, codec)
 
-	traceID := "foo"
+	traceID := "foo1"
 	for _, txnID := range []string{"bar", "baz"} {
 		txn := makeTransaction(txnID, traceID)
 		err := rw.WriteTraceEvent(traceID, txnID, txn)
 		require.NoError(t, err)
 	}
 
+	// Create a transaction with a similar trace ID to ensure that iterator upper bound is enforced
+	txn := makeTransaction("bar", "foo2")
+	err := rw.WriteTraceEvent("foo2", "bar", txn)
+	require.NoError(t, err)
+
 	var out modelpb.Batch
-	err := rw.ReadTraceEvents(traceID, &out)
+	err = rw.ReadTraceEvents(traceID, &out)
 	assert.NoError(t, err)
 	assert.Equal(t, modelpb.Batch{
 		makeTransaction("bar", traceID),
