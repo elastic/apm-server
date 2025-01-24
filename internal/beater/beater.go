@@ -37,7 +37,6 @@ import (
 	"go.elastic.co/apm/v2"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/metric"
-	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 	"golang.org/x/sync/semaphore"
@@ -91,7 +90,6 @@ type Runner struct {
 	outputConfig              agentconfig.Namespace
 	elasticsearchOutputConfig *agentconfig.C
 
-	metricReader   *sdkmetric.ManualReader
 	meterProvider  metric.MeterProvider
 	metricGatherer *apmotel.Gatherer
 	listener       net.Listener
@@ -105,8 +103,6 @@ type RunnerParams struct {
 
 	// Logger holds a logger to use for logging throughout the APM Server.
 	Logger *logp.Logger
-
-	MetricReader *sdkmetric.ManualReader
 
 	// MeterProvider holds a metric.MeterProvider that can be used for
 	// creating metrics.
@@ -163,7 +159,6 @@ func NewRunner(args RunnerParams) (*Runner, error) {
 		outputConfig:              unpackedConfig.Output,
 		elasticsearchOutputConfig: elasticsearchOutputConfig,
 
-		metricReader:   args.MetricReader,
 		meterProvider:  args.MeterProvider,
 		metricGatherer: args.MetricsGatherer,
 		listener:       listener,

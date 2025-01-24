@@ -398,7 +398,7 @@ func (b *Beat) Run(ctx context.Context) error {
 	}
 
 	if b.Manager.Enabled() {
-		reloader, err := NewReloader(b.Info, b.Registry, b.newRunner, b.meterProvider, b.metricReader, b.metricGatherer)
+		reloader, err := NewReloader(b.Info, b.Registry, b.newRunner, b.meterProvider, b.metricGatherer)
 		if err != nil {
 			return err
 		}
@@ -418,7 +418,6 @@ func (b *Beat) Run(ctx context.Context) error {
 			Info:            b.Info,
 			Logger:          logp.NewLogger(""),
 			MeterProvider:   b.meterProvider,
-			MetricReader:    b.metricReader,
 			MetricsGatherer: b.metricGatherer,
 		})
 		if err != nil {

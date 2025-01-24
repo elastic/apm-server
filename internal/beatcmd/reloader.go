@@ -26,7 +26,6 @@ import (
 	"github.com/joeshaw/multierror"
 	"go.elastic.co/apm/module/apmotel/v2"
 	"go.opentelemetry.io/otel/metric"
-	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
@@ -66,8 +65,6 @@ type RunnerParams struct {
 	MeterProvider metric.MeterProvider
 
 	MetricsGatherer *apmotel.Gatherer
-
-	MetricReader *sdkmetric.ManualReader
 }
 
 // Runner is an interface returned by NewRunnerFunc.
@@ -78,7 +75,7 @@ type Runner interface {
 
 // NewReloader returns a new Reloader which creates Runners using the provided
 // beat.Info and NewRunnerFunc.
-func NewReloader(info beat.Info, registry *reload.Registry, newRunner NewRunnerFunc, meterProvider metric.MeterProvider, metricReader *sdkmetric.ManualReader, metricGatherer *apmotel.Gatherer) (*Reloader, error) {
+func NewReloader(info beat.Info, registry *reload.Registry, newRunner NewRunnerFunc, meterProvider metric.MeterProvider, metricGatherer *apmotel.Gatherer) (*Reloader, error) {
 	r := &Reloader{
 		info:      info,
 		logger:    logp.NewLogger(""),
@@ -86,7 +83,6 @@ func NewReloader(info beat.Info, registry *reload.Registry, newRunner NewRunnerF
 		stopped:   make(chan struct{}),
 
 		meterProvider:  meterProvider,
-		metricReader:   metricReader,
 		metricGatherer: metricGatherer,
 	}
 	if err := registry.RegisterList(reload.InputRegName, reloadableListFunc(r.reloadInputs)); err != nil {
@@ -109,7 +105,6 @@ type Reloader struct {
 	newRunner NewRunnerFunc
 
 	meterProvider  metric.MeterProvider
-	metricReader   *sdkmetric.ManualReader
 	metricGatherer *apmotel.Gatherer
 
 	runner     Runner
