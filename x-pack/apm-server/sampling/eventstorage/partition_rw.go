@@ -15,11 +15,6 @@ type PartitionReadWriter struct {
 	s *Storage
 }
 
-// Flush waits for preceding writes to be committed to storage.
-func (rw *PartitionReadWriter) Flush() error {
-	return nil
-}
-
 // WriteTraceSampled records the tail-sampling decision for the given trace ID.
 func (rw *PartitionReadWriter) WriteTraceSampled(traceID string, sampled bool) error {
 	pid := rw.s.db.WritePartition()

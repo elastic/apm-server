@@ -23,7 +23,6 @@ type RW interface {
 	WriteTraceSampled(traceID string, sampled bool) error
 	IsTraceSampled(traceID string) (bool, error)
 	DeleteTraceEvent(traceID, id string) error
-	Flush() error
 }
 
 type SplitReadWriter struct {
@@ -48,10 +47,6 @@ func (s SplitReadWriter) IsTraceSampled(traceID string) (bool, error) {
 
 func (s SplitReadWriter) DeleteTraceEvent(traceID, id string) error {
 	return s.eventRW.DeleteTraceEvent(traceID, id)
-}
-
-func (s SplitReadWriter) Flush() error {
-	return nil
 }
 
 func (s SplitReadWriter) Close() error {
@@ -109,8 +104,4 @@ func (s StorageLimitReadWriter) IsTraceSampled(traceID string) (bool, error) {
 func (s StorageLimitReadWriter) DeleteTraceEvent(traceID, id string) error {
 	// Technically DeleteTraceEvent writes, but it should have a net effect of reducing disk usage
 	return s.nextRW.DeleteTraceEvent(traceID, id)
-}
-
-func (s StorageLimitReadWriter) Flush() error {
-	return s.nextRW.Flush()
 }

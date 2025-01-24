@@ -10,7 +10,6 @@ import (
 	"testing"
 
 	"github.com/gofrs/uuid/v5"
-	"github.com/stretchr/testify/assert"
 
 	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage"
@@ -42,7 +41,6 @@ func BenchmarkWriteTransaction(b *testing.B) {
 				b.Fatal(err)
 			}
 		}
-		assert.NoError(b, readWriter.Flush())
 	}
 
 	type testCase struct {
@@ -182,9 +180,6 @@ func BenchmarkReadEventsHit(b *testing.B) {
 							b.Fatal(err)
 						}
 					}
-				}
-				if err := readWriter.Flush(); err != nil {
-					b.Fatal(err)
 				}
 
 				readWriter.Close()

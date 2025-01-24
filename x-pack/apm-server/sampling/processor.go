@@ -278,8 +278,9 @@ func (p *Processor) processSpan(event *modelpb.APMEvent) (report, stored bool, _
 	return traceSampled, false, nil
 }
 
-// Stop stops the processor, flushing event storage. Note that the underlying
-// StorageManager must be closed independently to ensure writes are synced to disk.
+// Stop stops the processor.
+// Note that the underlying StorageManager must be closed independently
+// to ensure writes are synced to disk.
 func (p *Processor) Stop(ctx context.Context) error {
 	p.stopMu.Lock()
 	select {
@@ -298,8 +299,7 @@ func (p *Processor) Stop(ctx context.Context) error {
 	case <-p.stopped:
 	}
 
-	// Flush event store and the underlying read writers
-	return p.eventStore.Flush()
+	return nil
 }
 
 // Run runs the tail-sampling processor. This method is responsible for:

@@ -133,7 +133,3 @@ func (rw PrefixReadWriter) DeleteTraceEvent(traceID, id string) error {
 	}
 	return nil
 }
-
-func (rw PrefixReadWriter) Flush() error {
-	return nil
-}

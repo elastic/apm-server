@@ -61,7 +61,6 @@ func TestProcessAlreadyTailSampled(t *testing.T) {
 	trace2 := modelpb.Trace{Id: "0102030405060708090a0b0c0d0e0f11"}
 	writer := config.DB.NewBypassReadWriter()
 	assert.NoError(t, writer.WriteTraceSampled(trace2.Id, true))
-	assert.NoError(t, writer.Flush())
 	writer.Close()
 
 	// simulate 2 TTL
@@ -70,7 +69,6 @@ func TestProcessAlreadyTailSampled(t *testing.T) {
 
 	writer = config.DB.NewBypassReadWriter()
 	assert.NoError(t, writer.WriteTraceSampled(trace1.Id, true))
-	assert.NoError(t, writer.Flush())
 	writer.Close()
 
 	require.NoError(t, config.DB.Flush())
