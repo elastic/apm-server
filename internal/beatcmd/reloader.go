@@ -77,11 +77,8 @@ type Runner interface {
 // beat.Info and NewRunnerFunc.
 func NewReloader(info beat.Info, registry *reload.Registry, newRunner NewRunnerFunc, meterProvider metric.MeterProvider, metricGatherer *apmotel.Gatherer) (*Reloader, error) {
 	r := &Reloader{
-		info:           info,
-		logger:         logp.NewLogger(""),
-		meterProvider:  meterProvider,
-		metricReader:   metricReader,
-		metricGatherer: metricGatherer,
+		info:   info,
+		logger: logp.NewLogger(""),
 
 		newRunner: newRunner,
 		stopped:   make(chan struct{}),
@@ -104,12 +101,9 @@ func NewReloader(info beat.Info, registry *reload.Registry, newRunner NewRunnerF
 // Reloader responds to libbeat configuration changes by calling the given
 // NewRunnerFunc to create a new Runner, and then stopping any existing one.
 type Reloader struct {
-	info           beat.Info
-	logger         *logp.Logger
-	meterProvider  metric.MeterProvider
-	metricReader   *sdkmetric.ManualReader
-	metricGatherer *apmotel.Gatherer
-	newRunner      NewRunnerFunc
+	info      beat.Info
+	logger    *logp.Logger
+	newRunner NewRunnerFunc
 
 	meterProvider  metric.MeterProvider
 	metricGatherer *apmotel.Gatherer
@@ -266,7 +260,6 @@ func (r *Reloader) reload(inputConfig, outputConfig, apmTracingConfig *config.C)
 		Logger:          r.logger,
 		MeterProvider:   r.meterProvider,
 		MetricsGatherer: r.metricGatherer,
-		MetricReader:    r.metricReader,
 	})
 	if err != nil {
 		return err

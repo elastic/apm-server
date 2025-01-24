@@ -27,6 +27,14 @@ import (
 )
 
 func ExpectOtelMetrics(t *testing.T, reader sdkmetric.Reader, expectedMetrics map[string]interface{}) {
+	assertOtelMetrics(t, reader, expectedMetrics, true)
+}
+
+func ExpectContainOtelMetrics(t *testing.T, reader sdkmetric.Reader, expectedMetrics map[string]interface{}) {
+	assertOtelMetrics(t, reader, expectedMetrics, false)
+}
+
+func assertOtelMetrics(t *testing.T, reader sdkmetric.Reader, expectedMetrics map[string]interface{}, match bool) {
 	t.Helper()
 
 	var rm metricdata.ResourceMetrics
@@ -48,7 +56,7 @@ func ExpectOtelMetrics(t *testing.T, reader sdkmetric.Reader, expectedMetrics ma
 					} else {
 						assert.Fail(t, "expected an int value", m.Name)
 					}
-				} else {
+				} else if match {
 					assert.Fail(t, "unexpected metric", m.Name)
 				}
 			case metricdata.Sum[int64]:
@@ -61,7 +69,7 @@ func ExpectOtelMetrics(t *testing.T, reader sdkmetric.Reader, expectedMetrics ma
 					} else {
 						assert.Fail(t, "expected an int value", m.Name)
 					}
-				} else {
+				} else if match {
 					assert.Fail(t, "unexpected metric", m.Name)
 				}
 			case metricdata.Histogram[int64]:
@@ -74,7 +82,7 @@ func ExpectOtelMetrics(t *testing.T, reader sdkmetric.Reader, expectedMetrics ma
 					} else {
 						assert.Fail(t, "expected an int value", m.Name)
 					}
-				} else {
+				} else if match {
 					assert.Fail(t, "unexpected metric", m.Name)
 				}
 			}
@@ -85,5 +93,9 @@ func ExpectOtelMetrics(t *testing.T, reader sdkmetric.Reader, expectedMetrics ma
 	for k := range expectedMetrics {
 		expectedMetricsKeys = append(expectedMetricsKeys, k)
 	}
-	assert.ElementsMatch(t, expectedMetricsKeys, foundMetrics)
+	if match {
+		assert.ElementsMatch(t, expectedMetricsKeys, foundMetrics)
+	} else {
+		assert.Subset(t, foundMetrics, expectedMetricsKeys)
+	}
 }

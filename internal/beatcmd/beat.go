@@ -580,7 +580,15 @@ func addAPMServerMetrics(v monitoring.Visitor, sm metricdata.ScopeMetrics) {
 	for _, m := range sm.Metrics {
 		if suffix, ok := strings.CutPrefix(m.Name, "apm-server."); ok {
 			if value, ok := getScalarInt64(m.Data); ok {
-				monitoring.ReportInt(v, suffix, value)
+				keys := strings.Split(suffix, ".")
+				for i := 0; i < len(keys)-1; i++ {
+					v.OnRegistryStart()
+					v.OnKey(keys[i])
+				}
+				monitoring.ReportInt(v, keys[len(keys)-1], value)
+				for i := 0; i < len(keys)-1; i++ {
+					v.OnRegistryFinished()
+				}
 			}
 		}
 	}
