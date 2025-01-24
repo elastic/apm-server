@@ -132,9 +132,9 @@ func TestProcessAlreadyTailSampled(t *testing.T) {
 	assert.Equal(t, modelpb.Batch{&transaction1, &span1}, batch)
 
 	monitoringtest.ExpectContainOtelMetrics(t, metricreader, map[string]any{
-		"apm-server.sampling.tail.events.processed":       4,
-		"apm-server.sampling.tail.events.stored":          2,
-		"apm-server.sampling.tail.events.sampled":         2,
+		"apm-server.sampling.tail.events.processed": 4,
+		"apm-server.sampling.tail.events.stored":    2,
+		"apm-server.sampling.tail.events.sampled":   2,
 	})
 
 	// Stop the processor and flush global storage so we can access the database.
@@ -248,9 +248,9 @@ func TestProcessLocalTailSampling(t *testing.T) {
 			}
 
 			monitoringtest.ExpectContainOtelMetrics(t, metricreader, map[string]any{
-				"apm-server.sampling.tail.events.processed":       4,
-				"apm-server.sampling.tail.events.stored":          4,
-				"apm-server.sampling.tail.events.sampled":         2,
+				"apm-server.sampling.tail.events.processed": 4,
+				"apm-server.sampling.tail.events.stored":    4,
+				"apm-server.sampling.tail.events.sampled":   2,
 			})
 
 			// Stop the processor and flush global storage so we can access the database.
