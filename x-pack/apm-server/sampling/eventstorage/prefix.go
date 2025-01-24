@@ -19,6 +19,10 @@ const (
 	// over time, to avoid misinterpreting historical data.
 	entryMetaTraceSampled   byte = 's'
 	entryMetaTraceUnsampled byte = 'u'
+
+	// traceIDSeparator is the separator between trace ID and transaction / span ID
+	// It has to be smaller than characters that can be part of trace ID for pebble DeleteRange to work effectively.
+	traceIDSeparator byte = '!'
 )
 
 var (
@@ -42,7 +46,7 @@ func (rw PrefixReadWriter) ReadTraceEvents(traceID string, out *modelpb.Batch) e
 	b.Grow(1 + len(traceID) + 1)
 	b.WriteByte(rw.prefix)
 	b.WriteString(traceID)
-	b.WriteByte(':')
+	b.WriteByte(traceIDSeparator)
 
 	iter, err := rw.db.NewIter(&pebble.IterOptions{})
 	if err != nil {
@@ -81,7 +85,7 @@ func (rw PrefixReadWriter) WriteTraceEvent(traceID, id string, event *modelpb.AP
 	b.Grow(1 + len(traceID) + 1 + len(id))
 	b.WriteByte(rw.prefix)
 	b.WriteString(traceID)
-	b.WriteByte(':')
+	b.WriteByte(traceIDSeparator)
 	b.WriteString(id)
 	key := b.Bytes()
 	return rw.db.Set(key, data, pebble.NoSync)
@@ -121,7 +125,7 @@ func (rw PrefixReadWriter) DeleteTraceEvent(traceID, id string) error {
 	b.Grow(1 + len(traceID) + 1 + len(id))
 	b.WriteByte(rw.prefix)
 	b.WriteString(traceID)
-	b.WriteByte(':')
+	b.WriteByte(traceIDSeparator)
 	b.WriteString(id)
 	key := b.Bytes()
 

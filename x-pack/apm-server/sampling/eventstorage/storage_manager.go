@@ -228,12 +228,19 @@ func (sm *StorageManager) RotatePartitions() error {
 	// FIXME: potential race, wait for a bit before deleting?
 	pidToDelete := sm.partitioner.Inactive()
 	lbPrefix := byte(pidToDelete)
-	ubPrefix := lbPrefix + 1 // Do not use % here as it MUST BE greater than lb
+
+	decisionLb := []byte{lbPrefix}
+	decisionUb := []byte{lbPrefix + 1} // Do not use % here as ub MUST BE greater than lb
+
+	// Requires the trace ID separator due to how eventComparer works
+	eventLb := []byte{lbPrefix, traceIDSeparator}
+	eventUb := []byte{lbPrefix + 1, traceIDSeparator} // Do not use % here as ub MUST BE greater than lb
+
 	return errors.Join(
-		sm.eventDB.DeleteRange([]byte{lbPrefix}, []byte{ubPrefix}, pebble.NoSync),
-		sm.decisionDB.DeleteRange([]byte{lbPrefix}, []byte{ubPrefix}, pebble.NoSync),
-		sm.eventDB.Compact([]byte{lbPrefix}, []byte{ubPrefix}, false),
-		sm.decisionDB.Compact([]byte{lbPrefix}, []byte{ubPrefix}, false),
+		sm.eventDB.DeleteRange(eventLb, eventUb, pebble.NoSync),
+		sm.decisionDB.DeleteRange(decisionLb, decisionUb, pebble.NoSync),
+		sm.eventDB.Compact(eventLb, eventUb, false),
+		sm.decisionDB.Compact(decisionLb, decisionUb, false),
 	)
 }
 

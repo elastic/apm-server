@@ -13,9 +13,10 @@ const (
 	// maxTotalPartitions is the maximum number of total partitions.
 	// It is used for a sanity check specific to how we use it as a byte prefix in database keys.
 	// It MUST be less than 256 to be contained in a byte.
-	// It has an additional (arbitrary) limitation to be less than reservedKeyPrefix
-	// to avoid accidentally overwriting reserved keys down the line.
-	maxTotalPartitions = int(reservedKeyPrefix) - 1
+	// It has additional (arbitrary) limitations:
+	// - MUST be less than reservedKeyPrefix to avoid accidentally overwriting reserved keys down the line.
+	// - MUST be less than traceIDSeparator to avoid being misinterpreted as the separator during pebble internal key comparisons
+	maxTotalPartitions = int(min(reservedKeyPrefix, traceIDSeparator)) - 1
 )
 
 // Partitioner is a partitioned ring with `total` number of partitions.

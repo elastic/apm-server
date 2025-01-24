@@ -46,7 +46,7 @@ func TestPrefixReadWriter_WriteTraceEvent(t *testing.T) {
 	check := func() {
 		err := rw.WriteTraceEvent(traceID, txnID, txn)
 		assert.NoError(t, err)
-		item, closer, err := db.Get(append([]byte{1}, []byte("foo:bar")...))
+		item, closer, err := db.Get(append([]byte{1}, []byte("foo!bar")...))
 		assert.NoError(t, err)
 		defer closer.Close()
 		var actual modelpb.APMEvent
@@ -101,7 +101,7 @@ func TestPrefixReadWriter_DeleteTraceEvent(t *testing.T) {
 	err := rw.WriteTraceEvent(traceID, txnID, txn)
 	require.NoError(t, err)
 
-	key := append([]byte{1}, []byte("foo:bar")...)
+	key := append([]byte{1}, []byte("foo!bar")...)
 
 	_, closer, err := db.Get(key)
 	assert.NoError(t, err)
