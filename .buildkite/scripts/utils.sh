@@ -3,8 +3,9 @@
 fetch_elastic_qualifier() {
   local branch=$1
   qualifier=""
-  if curl -sf -o /dev/null "https://storage.googleapis.com/artifacts-api/test/$branch" ; then
-    qualifier=$(curl -s "https://storage.googleapis.com/artifacts-api/test/$branch")
+  URL="https://storage.googleapis.com/dra-qualifier/$branch"
+  if curl -sf -o /dev/null "$URL" ; then
+    qualifier=$(curl -s "$URL")
   fi
   echo "$qualifier"
 }
@@ -15,16 +16,16 @@ retry() {
 
   local count=0
   until "$@"; do
-      exit=$?
-      wait=$((2 ** count))
-      count=$((count + 1))
-      if [ $count -lt "$retries" ]; then
-          >&2 echo "Retry $count/$retries exited $exit, retrying in $wait seconds..."
-          sleep $wait
-      else
-          >&2 echo "Retry $count/$retries exited $exit, no more retries left."
-          return $exit
-      fi
+    exit=$?
+    wait=$((2 ** count))
+    count=$((count + 1))
+    if [ $count -lt "$retries" ]; then
+      >&2 echo "Retry $count/$retries exited $exit, retrying in $wait seconds..."
+      sleep $wait
+    else
+      >&2 echo "Retry $count/$retries exited $exit, no more retries left."
+      return $exit
+    fi
   done
   return 0
 }
