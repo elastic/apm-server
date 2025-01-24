@@ -60,16 +60,11 @@ func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
 	})
 
 	var escfg esclient.Config
-	err = tf.Output("apm_url", &escfg.APMServerURL)
-	require.NoError(t, err)
-	err = tf.Output("es_url", &escfg.ElasticsearchURL)
-	require.NoError(t, err)
-	err = tf.Output("username", &escfg.Username)
-	require.NoError(t, err)
-	err = tf.Output("password", &escfg.Password)
-	require.NoError(t, err)
-	err = tf.Output("kb_url", &escfg.KibanaURL)
-	require.NoError(t, err)
+	require.NoError(t, tf.Output("apm_url", &escfg.APMServerURL))
+	require.NoError(t, tf.Output("es_url", &escfg.ElasticsearchURL))
+	require.NoError(t, tf.Output("username", &escfg.Username))
+	require.NoError(t, tf.Output("password", &escfg.Password))
+	require.NoError(t, tf.Output("kb_url", &escfg.KibanaURL))
 
 	t.Logf("created deployment %s", escfg.KibanaURL)
 
