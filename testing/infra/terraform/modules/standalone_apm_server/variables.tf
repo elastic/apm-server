@@ -78,3 +78,9 @@ variable "apm_server_tail_sampling_storage_limit" {
   description = "Storage size limit of APM Server tail-based sampling. Defaults to 10GB"
   type        = string
 }
+
+variable "tags" {
+  type        = map(string)
+  default     = {}
+  description = "Optional set of tags to use for all deployments"
+}
