@@ -96,7 +96,3 @@ VAULT_ADDR_SECRET=$(echo ${DRA_CREDS_SECRET} | jq -r '.vault_addr')
 VAULT_ROLE_ID_SECRET=$(echo ${DRA_CREDS_SECRET} | jq -r '.role_id')
 VAULT_SECRET=$(echo ${DRA_CREDS_SECRET} | jq -r '.secret_id')
 export VAULT_ADDR_SECRET VAULT_ROLE_ID_SECRET VAULT_SECRET
-
-echo "--- Prepare the Elastic Qualifier"
-ELASTIC_QUALIFIER=$(fetch_elastic_qualifier "$BUILDKITE_BRANCH")
-export ELASTIC_QUALIFIER

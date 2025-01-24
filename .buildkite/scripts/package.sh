@@ -19,6 +19,12 @@ if [[ ${TYPE} == "snapshot" ]]; then
   MAKE_GOAL="${MAKE_GOAL}-snapshot"
 fi
 
+echo "--- Prepare the Elastic Qualifier"
+dra_process_other_branches
+ELASTIC_QUALIFIER=$(fetch_elastic_qualifier "$DRA_BRANCH")
+export ELASTIC_QUALIFIER
+
+echo "--- Prepare the Elastic Qualifier"
 make $MAKE_GOAL
 
 ls -l build/distributions/
