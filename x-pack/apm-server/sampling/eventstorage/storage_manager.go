@@ -221,7 +221,7 @@ func (sm *StorageManager) RotatePartitions() error {
 	}
 
 	// FIXME: potential race, wait for a bit before deleting?
-	pidToDelete := sm.partitioner.Inactive().ID()
+	pidToDelete := sm.partitioner.Inactive()
 	lbPrefix := byte(pidToDelete)
 	ubPrefix := lbPrefix + 1 // Do not use % here as it MUST BE greater than lb
 	return errors.Join(
