@@ -6,6 +6,7 @@ locals {
     "project" : var.project
     "build" : var.build
     "ephemeral" : "true"
+    "expiration_date" : formatdate("YYYY-MM-DD", timeadd(timestamp(), "24h"))
   }
 }
 
