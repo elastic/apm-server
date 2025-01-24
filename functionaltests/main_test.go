@@ -103,14 +103,21 @@ func assertDatastreams(t *testing.T, expected checkDatastreamWant, actual []type
 
 }
 
+const (
+	targetQA = "qa"
+	// we use 'pro' because is the target passed by the Buildkite pipeline running
+	// these tests.
+	targetProd = "pro"
+)
+
 // regionFrom returns the appropriate region to run test
 // againts based on specified target.
 // https://www.elastic.co/guide/en/cloud/current/ec-regions-templates-instances.html
 func regionFrom(target string) string {
 	switch target {
-	case "qa":
+	case targetQA:
 		return "aws-eu-west-1"
-	case "pro":
+	case targetProd:
 		return "eu-west-1"
 	default:
 		panic("target value is not accepted")
@@ -119,9 +126,9 @@ func regionFrom(target string) string {
 
 func endpointFrom(target string) string {
 	switch target {
-	case "qa":
+	case targetQA:
 		return "https://public-api.qa.cld.elstc.co"
-	case "production":
+	case targetProd:
 		return "https://api.elastic-cloud.com"
 	default:
 		panic("target value is not accepted")
