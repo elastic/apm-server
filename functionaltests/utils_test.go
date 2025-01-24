@@ -18,10 +18,15 @@
 package functionaltests
 
 import (
+	"context"
+	"fmt"
 	"os"
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
+	"github.com/elastic/apm-server/functionaltests/internal/esclient"
+	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 )
 
 // ecAPICheck verifies if EC_API_KEY env var is set.
@@ -34,4 +39,39 @@ import (
 func ecAPICheck(t *testing.T) {
 	t.Helper()
 	require.NotEmpty(t, os.Getenv("EC_API_KEY"), "EC_API_KEY env var not set")
+}
+
+// createRerouteIngestPipelines create APM related ingest pipelines to reroute
+// logs, metrics and traces to different datastreams.
+func createRerouteIngestPipelines(t *testing.T, ctx context.Context, ec *esclient.Client) error {
+	t.Helper()
+
+	err := ec.CreateIngestPipeline(ctx, "logs@custom", types.ProcessorContainer{
+		Reroute: &types.RerouteProcessor{
+			Namespace: []string{"rerouted"},
+		},
+	})
+	if err != nil {
+		return fmt.Errorf("failed creating ingest pipeline logs@custom: %w", err)
+	}
+
+	err = ec.CreateIngestPipeline(ctx, "metrics@custom", types.ProcessorContainer{
+		Reroute: &types.RerouteProcessor{
+			Namespace: []string{"rerouted"},
+		},
+	})
+	if err != nil {
+		return fmt.Errorf("failed creating ingest pipeline metrics@custom: %w", err)
+	}
+
+	err = ec.CreateIngestPipeline(ctx, "traces@custom", types.ProcessorContainer{
+		Reroute: &types.RerouteProcessor{
+			Namespace: []string{"rerouted"},
+		},
+	})
+	if err != nil {
+		return fmt.Errorf("failed creating ingest pipeline traces@custom: %w", err)
+	}
+
+	return nil
 }

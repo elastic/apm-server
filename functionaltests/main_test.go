@@ -36,17 +36,31 @@ var cleanupOnFailure *bool = flag.Bool("cleanup-on-failure", true, "Whether to r
 // We use 'pro' for production as that is the key used to retrieve EC_API_KEY from secret storage.
 var target *string = flag.String("target", "pro", "The target environment where to run tests againts. Valid values are: qa, pro")
 
+const (
+	// lifecycleDSL is the string used in Elasticsearch responses to indicate a Data stream or Index managed by DSL.
+	lifecycleDSL = "Data stream lifecycle"
+	// lifecycleILM  is the string used in Elasticsearch responses to indicate a Data stream or Index managed by ILM.
+	lifecycleILM = "Index Lifecycle Management"
+)
+
 // expectedIngestForASingleRun() represent the expected number of ingested document after a
 // single run of ingest().
 // Only non aggregation data streams are included, as aggregation ones differs on different
 // runs.
-func expectedIngestForASingleRun() esclient.APMDataStreamsDocCount {
-	return map[string]int{
-		"traces-apm-default":                     15013,
-		"metrics-apm.app.opbeans_python-default": 1437,
-		"metrics-apm.internal-default":           1351,
-		"logs-apm.error-default":                 364,
+func expectedIngestForASingleRun(namespace string) esclient.APMDataStreamsDocCount {
+	res := esclient.APMDataStreamsDocCount{}
+	for k, v := range map[string]int{
+		// Add here data stream names without namespace, it will be added automatically
+		// in the next lines.
+		"traces-apm":                     15013,
+		"metrics-apm.app.opbeans_python": 1437,
+		"metrics-apm.internal":           1351,
+		"logs-apm.error":                 364,
+	} {
+		k := fmt.Sprintf("%s-%s", k, namespace)
+		res[k] = v
 	}
+	return res
 }
 
 // getDocsCountPerDS retrieves document count.
@@ -59,6 +73,11 @@ func getDocsCountPerDS(t *testing.T, ctx context.Context, ecc *esclient.Client) 
 // documents count from a previous state.
 func assertDocCount(t *testing.T, docsCount, previous, expected esclient.APMDataStreamsDocCount) {
 	t.Helper()
+
+	for k := range expected {
+		assert.Contains(t, docsCount, k)
+	}
+
 	for ds, v := range docsCount {
 		if e, ok := expected[ds]; ok {
 			assert.Equal(t, e, v-previous[ds],
@@ -72,7 +91,12 @@ type checkDatastreamWant struct {
 	DSManagedBy      string
 	IndicesPerDs     int
 	PreferIlm        bool
-	IndicesManagedBy []string
+	IndicesManagedBy []checkDatastreamIndex
+}
+
+type checkDatastreamIndex struct {
+	ManagedBy string
+	PreferIlm bool
 }
 
 // assertDatastreams assert expected values on specific data streams in a cluster.
@@ -94,10 +118,16 @@ func assertDatastreams(t *testing.T, expected checkDatastreamWant, actual []type
 			"datastream %s should have %d indices", v.Name, expected.IndicesPerDs,
 		)
 		for i, index := range v.Indices {
-			assert.Equal(t, expected.IndicesManagedBy[i], index.ManagedBy.Name,
-				`index %s should be managed by "%s"`, index.IndexName,
-				expected.IndicesManagedBy[i],
+			assert.Equal(t, expected.IndicesManagedBy[i].ManagedBy, index.ManagedBy.Name,
+				`index %s should be managed by "%s"`, index.IndexName, expected.IndicesManagedBy[i].ManagedBy,
 			)
+			if expected.IndicesManagedBy[i].PreferIlm {
+				assert.True(t, *index.PreferIlm,
+					fmt.Sprintf("index %s should prefer ILM", index.IndexName))
+			} else {
+				assert.False(t, *index.PreferIlm,
+					fmt.Sprintf("index %s should not prefer ILM", index.IndexName))
+			}
 		}
 	}
 
