@@ -77,12 +77,18 @@ type StorageManager struct {
 
 // NewStorageManager returns a new StorageManager with pebble DB at storageDir.
 func NewStorageManager(storageDir string, opts ...StorageManagerOptions) (*StorageManager, error) {
+	// We need to keep an extra partition as buffer to respect the TTL,
+	// as the moving window needs to cover at least TTL at all times,
+	// where the moving window is defined as:
+	// all active partitions excluding current partition + duration since the start of current partition
+	activePartitions := partitionsPerTTL + 1
+
 	sm := &StorageManager{
 		storageDir:  storageDir,
 		runCh:       make(chan struct{}, 1),
 		logger:      logp.NewLogger(logs.Sampling),
 		codec:       ProtobufCodec{},
-		partitioner: NewPartitioner(partitionsPerTTL + 1),
+		partitioner: NewPartitioner(activePartitions),
 	}
 	for _, opt := range opts {
 		opt(sm)
