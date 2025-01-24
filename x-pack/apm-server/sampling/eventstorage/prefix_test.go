@@ -20,12 +20,18 @@ import (
 func newEventPebble(t *testing.T) *pebble.DB {
 	db, err := eventstorage.OpenEventPebble(t.TempDir())
 	require.NoError(t, err)
+	t.Cleanup(func() {
+		db.Close()
+	})
 	return db
 }
 
 func newDecisionPebble(t *testing.T) *pebble.DB {
 	db, err := eventstorage.OpenDecisionPebble(t.TempDir())
 	require.NoError(t, err)
+	t.Cleanup(func() {
+		db.Close()
+	})
 	return db
 }
 
