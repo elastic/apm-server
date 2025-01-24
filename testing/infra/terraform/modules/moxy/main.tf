@@ -88,10 +88,13 @@ resource "aws_instance" "moxy" {
       "sleep 1"
     ]
   }
+
+  tags = var.tags
 }
 
 resource "aws_key_pair" "provisioner_key" {
   public_key = file("${var.aws_provisioner_key_name}.pub")
+  tags       = var.tags
 }
 
 resource "random_password" "moxy_password" {

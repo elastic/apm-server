@@ -490,24 +490,9 @@ func TestServerElasticsearchOutput(t *testing.T) {
 	}
 
 	monitoringtest.ExpectOtelMetrics(t, reader, map[string]any{
-		"elasticsearch.events.count":                                5,
-		"elasticsearch.events.queued":                               5,
-		"elasticsearch.bulk_requests.available":                     9,
-		"apm-server.processor.transaction.transformations":          5,
-		"apm-server.processor.stream.accepted":                      5,
-		"apm-server.processor.stream.errors.invalid":                0,
-		"apm-server.processor.stream.errors.toolarge":               0,
-		"http.server.request.count":                                 1,
-		"apm-server.server.request.count":                           1,
-		"http.server.request.duration":                              1,
-		"http.server.response.count":                                1,
-		"apm-server.server.response.count":                          1,
-		"http.server.response.valid.count":                          1,
-		"apm-server.server.response.valid.count":                    1,
-		"http.server.response.valid.accepted":                       1,
-		"apm-server.server.response.valid.accepted":                 1,
-		"apm-server.agentcfg.elasticsearch.cache.refresh.successes": 1,
-		"apm-server.agentcfg.elasticsearch.cache.entries.count":     0,
+		"elasticsearch.events.count":            5,
+		"elasticsearch.events.queued":           5,
+		"elasticsearch.bulk_requests.available": 9,
 	})
 }
 

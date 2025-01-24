@@ -19,10 +19,13 @@ package beatcmd
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -45,6 +48,9 @@ import (
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/monitoring"
 	"github.com/elastic/elastic-agent-libs/paths"
+	"github.com/elastic/go-docappender/v2"
+	"github.com/elastic/go-docappender/v2/docappendertest"
+	"github.com/elastic/go-elasticsearch/v8/esutil"
 )
 
 // TestRunMaxProcs ensures Beat.Run calls the GOMAXPROCS adjustment code by looking for log messages.
@@ -123,6 +129,142 @@ func TestRunnerParams(t *testing.T) {
 			"home":   paths.Paths.Home,
 		},
 	}, m)
+}
+
+// TestLibbeatMetrics tests the mapping of go-docappender OTel
+// metrics to legacy libbeat monitoring metrics.
+func TestLibbeatMetrics(t *testing.T) {
+	runnerParamsChan := make(chan RunnerParams, 1)
+	beat := newBeat(t, "output.elasticsearch.enabled: true", func(args RunnerParams) (Runner, error) {
+		runnerParamsChan <- args
+		return runnerFunc(func(ctx context.Context) error {
+			<-ctx.Done()
+			return ctx.Err()
+		}), nil
+	})
+	stop := runBeat(t, beat)
+	defer func() { assert.NoError(t, stop()) }()
+	args := <-runnerParamsChan
+
+	var requestIndex int
+	requestsChan := make(chan chan struct{})
+	defer close(requestsChan)
+	esClient := docappendertest.NewMockElasticsearchClient(t, func(w http.ResponseWriter, r *http.Request) {
+		select {
+		case <-r.Context().Done():
+			return
+		case ch := <-requestsChan:
+			select {
+			case <-r.Context().Done():
+				return
+			case <-ch:
+			}
+		}
+		_, result := docappendertest.DecodeBulkRequest(r)
+		switch requestIndex {
+		case 1:
+			result.HasErrors = true
+			result.Items[0]["create"] = esutil.BulkIndexerResponseItem{Status: 400}
+		case 3:
+			result.HasErrors = true
+			result.Items[0]["create"] = esutil.BulkIndexerResponseItem{Status: 429}
+		default:
+			// success
+		}
+		requestIndex++
+		json.NewEncoder(w).Encode(result)
+	})
+	appender, err := docappender.New(esClient, docappender.Config{
+		MeterProvider: args.MeterProvider,
+		FlushBytes:    1,
+		Scaling: docappender.ScalingConfig{
+			ActiveRatio:  10,
+			IdleInterval: 100 * time.Millisecond,
+			ScaleUp: docappender.ScaleActionConfig{
+				Threshold: 1,
+				CoolDown:  time.Minute,
+			},
+		},
+	})
+	require.NoError(t, err)
+	defer func() {
+		assert.NoError(t, appender.Close(context.Background()))
+	}()
+
+	require.NoError(t, appender.Add(context.Background(), "index", strings.NewReader("{}")))
+	require.NoError(t, appender.Add(context.Background(), "index", strings.NewReader("{}")))
+	require.NoError(t, appender.Add(context.Background(), "index", strings.NewReader("{}")))
+	require.NoError(t, appender.Add(context.Background(), "index", strings.NewReader("{}")))
+
+	libbeatRegistry := monitoring.Default.GetRegistry("libbeat")
+	snapshot := monitoring.CollectStructSnapshot(libbeatRegistry, monitoring.Full, false)
+	assert.Equal(t, map[string]any{
+		"output": map[string]any{
+			"type": "elasticsearch",
+			"events": map[string]any{
+				"active": int64(4),
+				"total":  int64(4),
+			},
+		},
+		"pipeline": map[string]any{
+			"events": map[string]any{
+				"total": int64(4),
+			},
+		},
+	}, snapshot)
+
+	assert.Eventually(t, func() bool {
+		return appender.Stats().IndexersActive > 1
+	}, 10*time.Second, 50*time.Millisecond)
+
+	for i := 0; i < 4; i++ {
+		unblockRequest := make(chan struct{})
+		requestsChan <- unblockRequest
+		unblockRequest <- struct{}{}
+	}
+
+	assert.Eventually(t, func() bool {
+		snapshot = monitoring.CollectStructSnapshot(libbeatRegistry, monitoring.Full, false)
+		output := snapshot["output"].(map[string]any)
+		events := output["events"].(map[string]any)
+		return events["active"] == int64(0)
+	}, 10*time.Second, 100*time.Millisecond)
+	assert.Equal(t, map[string]any{
+		"output": map[string]any{
+			"type": "elasticsearch",
+			"events": map[string]any{
+				"acked":   int64(2),
+				"failed":  int64(2),
+				"toomany": int64(1),
+				"active":  int64(0),
+				"total":   int64(4),
+				"batches": int64(4),
+			},
+			"write": map[string]any{
+				"bytes": int64(132),
+			},
+		},
+		"pipeline": map[string]any{
+			"events": map[string]any{
+				"total": int64(4),
+			},
+		},
+	}, snapshot)
+
+	snapshot = monitoring.CollectStructSnapshot(monitoring.Default.GetRegistry("output"), monitoring.Full, false)
+	assert.Equal(t, map[string]any{
+		"elasticsearch": map[string]any{
+			"bulk_requests": map[string]any{
+				"available": int64(10),
+				"completed": int64(4),
+			},
+			"indexers": map[string]any{
+				"active":    int64(2),
+				"created":   int64(1),
+				"destroyed": int64(0),
+			},
+		},
+	}, snapshot)
 }
 
 func TestUnmanagedOutputRequired(t *testing.T) {
@@ -220,7 +362,7 @@ func TestRunManager_Reloader(t *testing.T) {
 			stopCount.Add(1)
 			return nil
 		}), nil
-	}, nil, nil, nil)
+	}, nil, nil)
 	require.NoError(t, err)
 
 	agentInfo := &proto.AgentInfo{
@@ -346,7 +488,7 @@ func TestRunManager_Reloader_newRunnerError(t *testing.T) {
 
 	_, err := NewReloader(beat.Info{}, registry, func(_ RunnerParams) (Runner, error) {
 		return nil, errors.New("newRunner error")
-	}, nil, nil, nil)
+	}, nil, nil)
 	require.NoError(t, err)
 
 	onObserved := func(observed *proto.CheckinObserved, currentIdx int) {

@@ -224,6 +224,8 @@ resource "aws_instance" "apm" {
       ]
     )
   }
+
+  tags = var.tags
 }
 
 resource "null_resource" "apm_server_log" {
@@ -252,6 +254,7 @@ data "external" "latest_apm_server" {
 
 resource "aws_key_pair" "provisioner_key" {
   public_key = file("${var.aws_provisioner_key_name}.pub")
+  tags       = var.tags
 }
 
 resource "random_password" "apm_secret_token" {

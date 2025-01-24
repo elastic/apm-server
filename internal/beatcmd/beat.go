@@ -79,8 +79,9 @@ type Beat struct {
 
 	Config *Config
 
-	rawConfig      *config.C
-	newRunner      NewRunnerFunc
+	rawConfig *config.C
+	newRunner NewRunnerFunc
+
 	metricReader   *sdkmetric.ManualReader
 	meterProvider  *sdkmetric.MeterProvider
 	metricGatherer *apmotel.Gatherer
@@ -397,7 +398,7 @@ func (b *Beat) Run(ctx context.Context) error {
 	}
 
 	if b.Manager.Enabled() {
-		reloader, err := NewReloader(b.Info, b.Registry, b.newRunner, b.meterProvider, b.metricReader, b.metricGatherer)
+		reloader, err := NewReloader(b.Info, b.Registry, b.newRunner, b.meterProvider, b.metricGatherer)
 		if err != nil {
 			return err
 		}
@@ -417,7 +418,6 @@ func (b *Beat) Run(ctx context.Context) error {
 			Info:            b.Info,
 			Logger:          logp.NewLogger(""),
 			MeterProvider:   b.meterProvider,
-			MetricReader:    b.metricReader,
 			MetricsGatherer: b.metricGatherer,
 		})
 		if err != nil {
@@ -491,8 +491,10 @@ func (b *Beat) registerStateMetrics() {
 }
 
 func (b *Beat) registerStatsMetrics() {
-	// TODO: we should ensure all metrics are produced in the expected JSON
-	// hierarchy for _source compatibility.
+	if b.Config.Output.Name() != "elasticsearch" {
+		return
+	}
+
 	libbeatRegistry := monitoring.Default.GetRegistry("libbeat")
 	monitoring.NewFunc(libbeatRegistry, "output", func(_ monitoring.Mode, v monitoring.Visitor) {
 		var rm metricdata.ResourceMetrics
@@ -587,6 +589,10 @@ func addAPMServerMetrics(v monitoring.Visitor, sm metricdata.ScopeMetrics) {
 // Adapt go-docappender's OTel metrics to beats stack monitoring metrics,
 // with a mixture of libbeat-specific and apm-server specific metric names.
 func addDocappenderLibbeatOutputMetrics(ctx context.Context, v monitoring.Visitor, sm metricdata.ScopeMetrics) {
+	var writeBytes int64
+
+	v.OnRegistryStart()
+	v.OnKey("events")
 	for _, m := range sm.Metrics {
 		switch m.Name {
 		case "elasticsearch.events.processed":
@@ -599,43 +605,55 @@ func addDocappenderLibbeatOutputMetrics(ctx context.Context, v monitoring.Visito
 				}
 				switch status.AsString() {
 				case "Success":
-					acked++
+					acked += dp.Value
 				case "TooMany":
-					toomany++
+					toomany += dp.Value
 					fallthrough
 				default:
-					failed++
+					failed += dp.Value
 				}
 			}
-			monitoring.ReportInt(v, "events.acked", acked)
-			monitoring.ReportInt(v, "events.failed", failed)
-			monitoring.ReportInt(v, "events.toomany", toomany)
+			monitoring.ReportInt(v, "acked", acked)
+			monitoring.ReportInt(v, "failed", failed)
+			monitoring.ReportInt(v, "toomany", toomany)
 		case "elasticsearch.events.count":
 			if value, ok := getScalarInt64(m.Data); ok {
-				monitoring.ReportInt(v, "events.total", value)
+				monitoring.ReportInt(v, "total", value)
 			}
 		case "elasticsearch.events.queued":
 			if value, ok := getScalarInt64(m.Data); ok {
-				monitoring.ReportInt(v, "events.active", value)
+				monitoring.ReportInt(v, "active", value)
 			}
 		case "elasticsearch.flushed.bytes":
 			if value, ok := getScalarInt64(m.Data); ok {
-				monitoring.ReportInt(v, "write.bytes", value)
+				writeBytes = value
 			}
 		case "elasticsearch.bulk_requests.count":
 			if value, ok := getScalarInt64(m.Data); ok {
-				monitoring.ReportInt(v, "events.batches", value)
+				monitoring.ReportInt(v, "batches", value)
 			}
 		}
+	}
+	v.OnRegistryFinished()
+
+	if writeBytes > 0 {
+		v.OnRegistryStart()
+		v.OnKey("write")
+		monitoring.ReportInt(v, "bytes", writeBytes)
+		v.OnRegistryFinished()
 	}
 }
 
 func addDocappenderLibbeatPipelineMetrics(ctx context.Context, v monitoring.Visitor, sm metricdata.ScopeMetrics) {
+	v.OnRegistryStart()
+	defer v.OnRegistryFinished()
+	v.OnKey("events")
+
 	for _, m := range sm.Metrics {
 		switch m.Name {
 		case "elasticsearch.events.count":
 			if value, ok := getScalarInt64(m.Data); ok {
-				monitoring.ReportInt(v, "events.total", value)
+				monitoring.ReportInt(v, "total", value)
 			}
 		}
 	}
@@ -643,27 +661,41 @@ func addDocappenderLibbeatPipelineMetrics(ctx context.Context, v monitoring.Visi
 
 // Add non-libbeat Elasticsearch output metrics under "output.elasticsearch".
 func addDocappenderOutputElasticsearchMetrics(ctx context.Context, v monitoring.Visitor, sm metricdata.ScopeMetrics) {
+	var bulkRequestsCount, bulkRequestsAvailable int64
+	var indexersCreated, indexersDestroyed int64
 	for _, m := range sm.Metrics {
 		switch m.Name {
 		case "elasticsearch.bulk_requests.count":
 			if value, ok := getScalarInt64(m.Data); ok {
-				monitoring.ReportInt(v, "bulk_requests.completed", value)
+				bulkRequestsCount = value
 			}
 		case "elasticsearch.bulk_requests.available":
 			if value, ok := getScalarInt64(m.Data); ok {
-				monitoring.ReportInt(v, "bulk_requests.available", value)
+				bulkRequestsAvailable = value
 			}
-		case "elasticsearch.indexers.created":
+		case "elasticsearch.indexer.created":
 			if value, ok := getScalarInt64(m.Data); ok {
-				monitoring.ReportInt(v, "indexers.created", value)
+				indexersCreated = value
 			}
-		case "elasticsearch.indexers.destroyed":
+		case "elasticsearch.indexer.destroyed":
 			if value, ok := getScalarInt64(m.Data); ok {
-				monitoring.ReportInt(v, "indexers.destroyed", value)
+				indexersDestroyed = value
 			}
-			// TODO output.elasticsearch.indexers.active (created - destroyed?)
 		}
 	}
+
+	v.OnRegistryStart()
+	v.OnKey("bulk_requests")
+	monitoring.ReportInt(v, "completed", bulkRequestsCount)
+	monitoring.ReportInt(v, "available", bulkRequestsAvailable)
+	v.OnRegistryFinished()
+
+	v.OnRegistryStart()
+	v.OnKey("indexers")
+	monitoring.ReportInt(v, "created", indexersCreated)
+	monitoring.ReportInt(v, "destroyed", indexersDestroyed)
+	monitoring.ReportInt(v, "active", indexersCreated-indexersDestroyed+1)
+	v.OnRegistryFinished()
 }
 
 // registerElasticsearchVerfication registers a global callback to make sure
