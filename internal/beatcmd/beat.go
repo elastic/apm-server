@@ -559,16 +559,6 @@ func getScalarInt64(data metricdata.Aggregation) (int64, bool) {
 	return 0, false
 }
 
-func addAPMServerMetrics(v monitoring.Visitor, sm metricdata.ScopeMetrics) {
-	for _, m := range sm.Metrics {
-		if suffix, ok := strings.CutPrefix(m.Name, "apm-server."); ok {
-			if value, ok := getScalarInt64(m.Data); ok {
-				monitoring.ReportInt(v, suffix, value)
-			}
-		}
-	}
-}
-
 // Adapt go-docappender's OTel metrics to beats stack monitoring metrics,
 // with a mixture of libbeat-specific and apm-server specific metric names.
 func addDocappenderLibbeatOutputMetrics(ctx context.Context, v monitoring.Visitor, sm metricdata.ScopeMetrics) {
