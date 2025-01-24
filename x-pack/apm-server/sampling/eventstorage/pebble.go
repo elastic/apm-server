@@ -19,7 +19,15 @@ func eventComparer() *pebble.Comparer {
 	comparer := *pebble.DefaultComparer
 	// Required for prefix bloom filter
 	comparer.Split = func(k []byte) int {
-		return bytes.IndexByte(k, ':')
+		return bytes.IndexByte(k, ':') + 1
+	}
+	comparer.Compare = func(a, b []byte) int {
+		ap := comparer.Split(a) // a prefix length
+		bp := comparer.Split(b) // b prefix length
+		if prefixCmp := bytes.Compare(a[:ap], b[:bp]); prefixCmp != 0 {
+			return prefixCmp
+		}
+		return comparer.ComparePointSuffixes(a[ap:], b[bp:])
 	}
 	return &comparer
 }
