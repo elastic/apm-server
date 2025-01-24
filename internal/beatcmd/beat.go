@@ -501,6 +501,7 @@ func (b *Beat) registerStatsMetrics() {
 		}
 		v.OnRegistryStart()
 		defer v.OnRegistryFinished()
+		monitoring.ReportString(v, "type", "elasticsearch")
 		for _, sm := range rm.ScopeMetrics {
 			switch {
 			case sm.Scope.Name == "github.com/elastic/go-docappender":
