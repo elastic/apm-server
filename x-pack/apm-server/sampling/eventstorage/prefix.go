@@ -38,11 +38,11 @@ type PrefixReadWriter struct {
 }
 
 func (rw PrefixReadWriter) ReadTraceEvents(traceID string, out *modelpb.Batch) error {
-	var lb bytes.Buffer
-	lb.Grow(1 + len(traceID) + 1)
-	lb.WriteByte(rw.prefix)
-	lb.WriteString(traceID)
-	lb.WriteByte(':')
+	var b bytes.Buffer
+	b.Grow(1 + len(traceID) + 1)
+	b.WriteByte(rw.prefix)
+	b.WriteString(traceID)
+	b.WriteByte(':')
 
 	iter, err := rw.db.NewIter(&pebble.IterOptions{})
 	if err != nil {
@@ -55,7 +55,7 @@ func (rw PrefixReadWriter) ReadTraceEvents(traceID string, out *modelpb.Batch) e
 	// Memtables still need to be scanned as pebble has no bloom filter on memtables.
 	//
 	// SeekPrefixGE ensures the prefix is present and does not require lower bound and upper bound to be set on iterator.
-	if valid := iter.SeekPrefixGE(lb.Bytes()); !valid {
+	if valid := iter.SeekPrefixGE(b.Bytes()); !valid {
 		return nil
 	}
 	for ; iter.Valid(); iter.Next() {
