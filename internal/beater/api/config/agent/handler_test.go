@@ -231,23 +231,6 @@ func TestAgentConfigHandlerAuthorizedForService(t *testing.T) {
 	assert.False(t, called)
 }
 
-func TestConfigAgentHandler_DirectConfiguration(t *testing.T) {
-	fetcher := agentcfg.NewDirectFetcher([]agentcfg.AgentConfig{{
-		ServiceName: "service1",
-		Config:      map[string]string{"key1": "val1"},
-		Etag:        "abc123",
-	}})
-	h := NewHandler(fetcher, time.Nanosecond, "", nil)
-
-	w := sendRequest(h, httptest.NewRequest(http.MethodPost, "/config", jsonReader(map[string]interface{}{
-		"service": map[string]interface{}{
-			"name": "service1",
-		},
-	})))
-	assert.Equal(t, http.StatusOK, w.Code, w.Body.String())
-	assert.JSONEq(t, `{"key1":"val1"}`, w.Body.String())
-}
-
 func TestAgentConfigHandler_PostOk(t *testing.T) {
 	f := newSanitizingKibanaFetcher(t, func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintln(w, `{"_id": "1", "_source": {"settings": {"sampling_rate": 0.5}}}`)

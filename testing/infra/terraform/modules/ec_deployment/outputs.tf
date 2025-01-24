@@ -1,3 +1,8 @@
+output "deployment_id" {
+  value       = ec_deployment.deployment.id
+  description = "The deployment ID for the created cluster"
+}
+
 output "kibana_url" {
   value       = ec_deployment.deployment.kibana.0.https_endpoint
   description = "The secure Kibana URL"
@@ -9,7 +14,7 @@ output "apm_url" {
 }
 
 output "apm_secret_token" {
-  value       = var.integrations_server ? data.external.secret_token.0.result.value : ec_deployment.deployment.apm_secret_token
+  value       = var.integrations_server ? chomp(data.local_sensitive_file.secret_token[0].content) : ec_deployment.deployment.apm_secret_token
   sensitive   = true
   description = "The APM Secret token"
 }

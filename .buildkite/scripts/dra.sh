@@ -10,8 +10,11 @@
 
 set -eo pipefail
 
-## Read current version.
-VERSION=$(make get-version)
+# Either staging or snapshot
+TYPE="$1"
+
+## Read current version without the qualifier
+VERSION=$(make get-version-only)
 
 echo "--- Restoring Artifacts"
 buildkite-agent artifact download "build/**/*" .
@@ -72,7 +75,9 @@ fi
 dra() {
   local workflow=$1
   local command=$2
+  local qualifier=${ELASTIC_QUALIFIER:-""}
   echo "--- Run release manager $workflow (DRA command: $command)"
+  set -x
   docker run --rm \
     --name release-manager \
     -e VAULT_ADDR="${VAULT_ADDR_SECRET}" \
@@ -86,8 +91,9 @@ dra() {
       --commit $BUILDKITE_COMMIT \
       --workflow $workflow \
       --artifact-set main \
+      --qualifier "$qualifier" \
       --version $VERSION | tee rm-output.txt
-
+  set +x
   # Create Buildkite annotation similarly done in Beats:
   # https://github.com/elastic/beats/blob/90f9e8f6e48e76a83331f64f6c8c633ae6b31661/.buildkite/scripts/dra.sh#L74-L81
   if [[ "$command" == "collect" ]]; then
@@ -101,8 +107,19 @@ dra() {
   fi
 }
 
-dra "snapshot" "$dra_command"
-if [[ "${DRA_BRANCH}" != "main" && "${DRA_BRANCH}" != "8.x" ]]; then
-  echo "DRA_BRANCH is neither 'main' nor '8.x'"
-  dra "staging" "$dra_command"
+if [[ "${TYPE}" == "staging" ]]; then
+  if [[ "${DRA_BRANCH}" != "8.x" ]]; then
+    echo "${DRA_BRANCH} is not '8.x'"
+    if [[ "${DRA_BRANCH}" == "main" ]] ; then
+      # NOTE: qualifier is needed for main/staging at the moment. Skip builds if no ELASTIC_QUALIFIER
+      if [[ -n "${ELASTIC_QUALIFIER}" ]]; then
+        dra "${TYPE}" "$dra_command"
+      fi
+    else
+      dra "${TYPE}" "$dra_command"
+    fi
+  fi
+else
+  # NOTE: qualifier is not needed for snapshots, let's unset it.
+  dra "snapshot" "$dra_command" ""
 fi

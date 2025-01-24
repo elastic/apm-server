@@ -87,11 +87,11 @@ type processor interface {
 func newProcessors(args beater.ServerParams) ([]namedProcessor, error) {
 	var processors []namedProcessor
 
-	aggregationProcessors, err := newAggregationProcessors(args)
+	aggregationProcessor, err := newAggregationProcessor(args)
 	if err != nil {
 		return nil, err
 	}
-	processors = append(processors, aggregationProcessors...)
+	processors = append(processors, aggregationProcessor)
 
 	if args.Config.Sampling.Tail.Enabled {
 		const name = "tail sampler"
@@ -255,6 +255,9 @@ func Main() error {
 				Config:     args.Config,
 				Logger:     args.Logger,
 				WrapServer: wrapServer,
+
+				MeterProvider:   args.MeterProvider,
+				MetricsGatherer: args.MetricsGatherer,
 			})
 		},
 	)

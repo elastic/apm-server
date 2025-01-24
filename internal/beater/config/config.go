@@ -65,8 +65,6 @@ type Config struct {
 	DefaultServiceEnvironment string                  `config:"default_service_environment"`
 	JavaAttacherConfig        JavaAttacherConfig      `config:"java_attacher"`
 
-	FleetAgentConfigs []FleetAgentConfig `config:"agent_config"`
-
 	// WaitReadyInterval holds the interval for checks when waiting for
 	// the integration package to be installed, and for checking the
 	// Elasticsearch license level.
@@ -87,12 +85,6 @@ func NewConfig(ucfg *config.C, outputESCfg *config.C) (*Config, error) {
 	c := DefaultConfig()
 	if err := ucfg.Unpack(c); err != nil {
 		return nil, errors.Wrap(err, "Error processing configuration")
-	}
-
-	for i := range c.FleetAgentConfigs {
-		if err := c.FleetAgentConfigs[i].setup(); err != nil {
-			return nil, err
-		}
 	}
 
 	if err := c.AgentConfig.setup(logger, outputESCfg); err != nil {
