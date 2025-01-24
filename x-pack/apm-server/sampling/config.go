@@ -104,9 +104,6 @@ type StorageConfig struct {
 	// For testing only.
 	Storage eventstorage.RW
 
-	// StorageDir holds the directory in which event storage will be maintained.
-	StorageDir string
-
 	// StorageLimit for the TBS database, in bytes.
 	StorageLimit uint64
 
@@ -236,9 +233,6 @@ func (config DataStreamConfig) validate() error {
 func (config StorageConfig) validate() error {
 	if config.DB == nil {
 		return errors.New("DB unspecified")
-	}
-	if config.StorageDir == "" {
-		return errors.New("StorageDir unspecified")
 	}
 	if config.TTL <= 0 {
 		return errors.New("TTL unspecified or negative")

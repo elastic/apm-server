@@ -29,7 +29,7 @@ import (
 )
 
 func TestProcessUnsampled(t *testing.T) {
-	processor, err := sampling.NewProcessor(newTempdirConfig(t))
+	processor, err := sampling.NewProcessor(newTempdirConfig(t).Config)
 	require.NoError(t, err)
 	go processor.Run()
 	defer processor.Stop(context.Background())
@@ -53,7 +53,7 @@ func TestProcessUnsampled(t *testing.T) {
 }
 
 func TestProcessAlreadyTailSampled(t *testing.T) {
-	config := newTempdirConfig(t)
+	config := newTempdirConfig(t).Config
 
 	// Seed event storage with a tail-sampling decisions, to show that
 	// subsequent events in the trace will be reported immediately.
@@ -158,7 +158,7 @@ func TestProcessLocalTailSampling(t *testing.T) {
 		},
 	} {
 		t.Run(fmt.Sprintf("%f", tc.sampleRate), func(t *testing.T) {
-			config := newTempdirConfig(t)
+			config := newTempdirConfig(t).Config
 			config.Policies = []sampling.Policy{{SampleRate: tc.sampleRate}}
 			config.FlushInterval = 10 * time.Millisecond
 			published := make(chan string)
@@ -280,7 +280,7 @@ func TestProcessLocalTailSampling(t *testing.T) {
 }
 
 func TestProcessLocalTailSamplingUnsampled(t *testing.T) {
-	config := newTempdirConfig(t)
+	config := newTempdirConfig(t).Config
 	config.FlushInterval = time.Minute
 	processor, err := sampling.NewProcessor(config)
 	require.NoError(t, err)
@@ -335,7 +335,7 @@ func TestProcessLocalTailSamplingUnsampled(t *testing.T) {
 }
 
 func TestProcessLocalTailSamplingPolicyOrder(t *testing.T) {
-	config := newTempdirConfig(t)
+	config := newTempdirConfig(t).Config
 	config.Policies = []sampling.Policy{{
 		PolicyCriteria: sampling.PolicyCriteria{TraceName: "trace_name"},
 		SampleRate:     0.5,
@@ -402,7 +402,7 @@ func TestProcessLocalTailSamplingPolicyOrder(t *testing.T) {
 }
 
 func TestProcessRemoteTailSampling(t *testing.T) {
-	config := newTempdirConfig(t)
+	config := newTempdirConfig(t).Config
 	config.Policies = []sampling.Policy{{SampleRate: 0.5}}
 	config.FlushInterval = 10 * time.Millisecond
 
@@ -534,7 +534,7 @@ func (m errorRW) Flush() error {
 func TestProcessDiscardOnWriteFailure(t *testing.T) {
 	for _, discard := range []bool{true, false} {
 		t.Run(fmt.Sprintf("discard=%v", discard), func(t *testing.T) {
-			config := newTempdirConfig(t)
+			config := newTempdirConfig(t).Config
 			config.DiscardOnWriteFailure = discard
 			config.Storage = errorRW{err: errors.New("boom")}
 			processor, err := sampling.NewProcessor(config)
@@ -567,7 +567,7 @@ func TestProcessDiscardOnWriteFailure(t *testing.T) {
 }
 
 func TestGroupsMonitoring(t *testing.T) {
-	config := newTempdirConfig(t)
+	config := newTempdirConfig(t).Config
 	config.MaxDynamicServices = 5
 	config.FlushInterval = time.Minute
 	config.Policies[0].SampleRate = 0.99
@@ -603,7 +603,7 @@ func TestGroupsMonitoring(t *testing.T) {
 }
 
 func TestStorageMonitoring(t *testing.T) {
-	config := newTempdirConfig(t)
+	config := newTempdirConfig(t).Config
 
 	processor, err := sampling.NewProcessor(config)
 	require.NoError(t, err)
@@ -661,7 +661,7 @@ func TestStorageLimit(t *testing.T) {
 		return processor
 	}
 
-	config := newTempdirConfig(t)
+	config := newTempdirConfig(t).Config
 	config.TTL = time.Hour
 	// Write 5K span events and close the DB to persist to disk the storage
 	// size and assert that none are reported immediately.
@@ -692,7 +692,8 @@ func TestStorageLimit(t *testing.T) {
 }
 
 func TestProcessRemoteTailSamplingPersistence(t *testing.T) {
-	config := newTempdirConfig(t)
+	tempdirConfig := newTempdirConfig(t)
+	config := tempdirConfig.Config
 	config.Policies = []sampling.Policy{{SampleRate: 0.5}}
 	config.FlushInterval = 10 * time.Millisecond
 
@@ -706,7 +707,7 @@ func TestProcessRemoteTailSamplingPersistence(t *testing.T) {
 	defer processor.Stop(context.Background())
 
 	// Wait for subscriber_position.json to be written to the storage directory.
-	subscriberPositionFile := filepath.Join(config.StorageDir, "subscriber_position.json")
+	subscriberPositionFile := filepath.Join(tempdirConfig.tempDir, "subscriber_position.json")
 	data, info := waitFileModified(t, subscriberPositionFile, time.Time{})
 	assert.Equal(t, "{}", string(data))
 
@@ -716,7 +717,7 @@ func TestProcessRemoteTailSamplingPersistence(t *testing.T) {
 }
 
 func TestGracefulShutdown(t *testing.T) {
-	config := newTempdirConfig(t)
+	config := newTempdirConfig(t).Config
 	sampleRate := 0.5
 	config.Policies = []sampling.Policy{{SampleRate: sampleRate}}
 	config.FlushInterval = time.Minute // disable finalize
@@ -758,7 +759,12 @@ func TestGracefulShutdown(t *testing.T) {
 	assert.Equal(t, int(sampleRate*float64(totalTraces)), count)
 }
 
-func newTempdirConfig(tb testing.TB) sampling.Config {
+type testConfig struct {
+	sampling.Config
+	tempDir string
+}
+
+func newTempdirConfig(tb testing.TB) testConfig {
 	tempdir, err := os.MkdirTemp("", "samplingtest")
 	require.NoError(tb, err)
 	tb.Cleanup(func() { os.RemoveAll(tempdir) })
@@ -767,30 +773,32 @@ func newTempdirConfig(tb testing.TB) sampling.Config {
 	require.NoError(tb, err)
 	tb.Cleanup(func() { db.Close() })
 
-	return sampling.Config{
-		BatchProcessor: modelpb.ProcessBatchFunc(func(context.Context, *modelpb.Batch) error { return nil }),
-		LocalSamplingConfig: sampling.LocalSamplingConfig{
-			FlushInterval:         time.Second,
-			MaxDynamicServices:    1000,
-			IngestRateDecayFactor: 0.9,
-			Policies: []sampling.Policy{
-				{SampleRate: 0.1},
+	return testConfig{
+		tempDir: tempdir,
+		Config: sampling.Config{
+			BatchProcessor: modelpb.ProcessBatchFunc(func(context.Context, *modelpb.Batch) error { return nil }),
+			LocalSamplingConfig: sampling.LocalSamplingConfig{
+				FlushInterval:         time.Second,
+				MaxDynamicServices:    1000,
+				IngestRateDecayFactor: 0.9,
+				Policies: []sampling.Policy{
+					{SampleRate: 0.1},
+				},
 			},
-		},
-		RemoteSamplingConfig: sampling.RemoteSamplingConfig{
-			Elasticsearch: pubsubtest.Client(nil, nil),
-			SampledTracesDataStream: sampling.DataStreamConfig{
-				Type:      "traces",
-				Dataset:   "sampled",
-				Namespace: "testing",
+			RemoteSamplingConfig: sampling.RemoteSamplingConfig{
+				Elasticsearch: pubsubtest.Client(nil, nil),
+				SampledTracesDataStream: sampling.DataStreamConfig{
+					Type:      "traces",
+					Dataset:   "sampled",
+					Namespace: "testing",
+				},
+				UUID: "local-apm-server",
 			},
-			UUID: "local-apm-server",
-		},
-		StorageConfig: sampling.StorageConfig{
-			DB:           db,
-			StorageDir:   tempdir,
-			TTL:          30 * time.Minute,
-			StorageLimit: 0, // No storage limit.
+			StorageConfig: sampling.StorageConfig{
+				DB:           db,
+				TTL:          30 * time.Minute,
+				StorageLimit: 0, // No storage limit.
+			},
 		},
 	}
 }
