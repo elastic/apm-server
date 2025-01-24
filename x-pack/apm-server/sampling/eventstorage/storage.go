@@ -47,10 +47,14 @@ func (w *wrappedDB) NewIter(o *pebble.IterOptions) (*pebble.Iterator, error) {
 	return w.db.NewIter(o)
 }
 
+// ReadPartitions returns ID of the partitions that all reads should read from.
+// Reads should consider all active partitions as database entries may be written at
+// any point of time in the past.
 func (w *wrappedDB) ReadPartitions() iter.Seq[int] {
 	return w.partitioner.Actives()
 }
 
+// WritePartition returns ID of the partition that current writes should write to.
 func (w *wrappedDB) WritePartition() int {
 	return w.partitioner.Current()
 }
