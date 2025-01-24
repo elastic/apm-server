@@ -22,7 +22,7 @@ func (rw *PartitionReadWriter) Flush() error {
 
 // WriteTraceSampled records the tail-sampling decision for the given trace ID.
 func (rw *PartitionReadWriter) WriteTraceSampled(traceID string, sampled bool) error {
-	pid := rw.s.db.WritePartition().ID()
+	pid := rw.s.db.WritePartition()
 	return NewPrefixReadWriter(rw.s.db, byte(pid), rw.s.codec).WriteTraceSampled(traceID, sampled)
 }
 
@@ -51,7 +51,7 @@ func (rw *PartitionReadWriter) IsTraceSampled(traceID string) (bool, error) {
 
 // WriteTraceEvent writes a trace event to storage.
 func (rw *PartitionReadWriter) WriteTraceEvent(traceID, id string, event *modelpb.APMEvent) error {
-	pid := rw.s.db.WritePartition().ID()
+	pid := rw.s.db.WritePartition()
 	return NewPrefixReadWriter(rw.s.db, byte(pid), rw.s.codec).WriteTraceEvent(traceID, id, event)
 }
 

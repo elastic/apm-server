@@ -30,7 +30,8 @@ func (p *Partitioner) SetCurrentID(current int) {
 	p.current.Store(int32(current))
 }
 
-// Rotate rotates partitions to the right by 1 position.
+// Rotate rotates partitions to the right by 1 position and
+// returns the ID of the new current active entry.
 //
 // Example for total=4:
 // (A: active, I: inactive, ^ points at the current active entry)
@@ -40,8 +41,10 @@ func (p *Partitioner) SetCurrentID(current int) {
 // After Rotate:
 // A-A-I-A
 // ..^....
-func (p *Partitioner) Rotate() {
-	p.current.Store(int32((int(p.current.Load()) + 1) % p.total))
+func (p *Partitioner) Rotate() int {
+	newCurrent := (int(p.current.Load()) + 1) % p.total
+	p.current.Store(int32(newCurrent))
+	return newCurrent
 }
 
 // Actives returns a PartitionIterator containing all active partitions.
@@ -64,14 +67,9 @@ func (p *Partitioner) Inactive() PartitionIterator {
 	}
 }
 
-// Current returns a PartitionIterator pointing to the current partition (rightmost active).
-// It contains only 1 partition.
-func (p *Partitioner) Current() PartitionIterator {
-	return PartitionIterator{
-		id:        int(p.current.Load()),
-		remaining: 0,
-		total:     p.total,
-	}
+// Current returns the ID of the current partition (rightmost active).
+func (p *Partitioner) Current() int {
+	return int(p.current.Load())
 }
 
 // PartitionIterator is for iterating on partition results.

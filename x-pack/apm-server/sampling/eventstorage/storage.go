@@ -22,7 +22,7 @@ type db interface {
 type partitionedDB interface {
 	db
 	ReadPartitions() PartitionIterator
-	WritePartition() PartitionIterator
+	WritePartition() int
 }
 
 type wrappedDB struct {
@@ -50,7 +50,7 @@ func (w *wrappedDB) ReadPartitions() PartitionIterator {
 	return w.partitioner.Actives()
 }
 
-func (w *wrappedDB) WritePartition() PartitionIterator {
+func (w *wrappedDB) WritePartition() int {
 	return w.partitioner.Current()
 }
 
