@@ -142,9 +142,10 @@ func (sm *StorageManager) savePartitionID(pid int) error {
 	return sm.decisionDB.Set([]byte(partitionerMetaKey), []byte(fmt.Sprintf(`{"id":%d}`, pid)), pebble.NoSync)
 }
 
-func (sm *StorageManager) Size() (lsm, vlog int64) { // FIXME: stop calling it vlog
+func (sm *StorageManager) Size() (lsm, vlog int64) {
+	// FIXME: stop calling it vlog
 	// FIXME: separate WAL usage?
-	return int64(sm.eventDB.Metrics().DiskSpaceUsage() + sm.decisionDB.Metrics().DiskSpaceUsage()), 0
+	return int64(sm.DiskUsage()), 0
 }
 
 func (sm *StorageManager) DiskUsage() uint64 {
