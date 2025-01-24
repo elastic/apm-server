@@ -35,8 +35,11 @@ const (
 	// If partitionPerTTL=2, storage requirement is 1.5 * TTL at the expense of 3 reads per trace ID read.
 	partitionsPerTTL = 1
 
+	// reservedKeyPrefix is the prefix of internal keys used by StorageManager
+	reservedKeyPrefix byte = '~'
+
 	// partitionerMetaKey is the key used to store partitioner metadata, e.g. last partition ID, in decision DB.
-	partitionerMetaKey = "~partitioner"
+	partitionerMetaKey = string(reservedKeyPrefix) + "partitioner"
 )
 
 type StorageManagerOptions func(*StorageManager)

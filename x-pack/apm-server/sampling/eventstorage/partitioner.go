@@ -6,6 +6,15 @@ package eventstorage
 
 import "sync/atomic"
 
+const (
+	// maxTotalPartitions is the maximum number of total partitions.
+	// It is used for a sanity check specific to how we use it as a byte prefix in database keys.
+	// It MUST be less than 256 to be contained in a byte.
+	// It has an additional (arbitrary) limitation to be less than reservedKeyPrefix
+	// to avoid accidentally overwriting reserved keys down the line.
+	maxTotalPartitions = int(reservedKeyPrefix) - 1
+)
+
 // Partitioner is a partitioned ring with `total` number of partitions.
 // 1 of them is inactive while all the others are active.
 // `current` points at the rightmost active partition.
@@ -22,7 +31,11 @@ type Partitioner struct {
 
 // NewPartitioner returns a partitioner with `actives` number of active partitions.
 func NewPartitioner(actives int) *Partitioner {
-	return &Partitioner{total: actives + 1} // actives + 1 inactive
+	total := actives + 1 // actives + 1 inactive
+	if total >= maxTotalPartitions {
+		panic("too many partitions")
+	}
+	return &Partitioner{total: total}
 }
 
 // SetCurrentID sets the input partition ID as current partition.
