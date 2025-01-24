@@ -15,7 +15,6 @@ import (
 	"time"
 
 	"github.com/cockroachdb/pebble/v2"
-	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/apm-server/internal/logs"
 	"github.com/elastic/elastic-agent-libs/logp"
@@ -187,11 +186,7 @@ func (sm *StorageManager) Run(stopping <-chan struct{}, ttl time.Duration, stora
 
 	sm.storageLimit.Store(storageLimit)
 
-	g := errgroup.Group{}
-	g.Go(func() error {
-		return sm.runTTLGCLoop(stopping, ttl)
-	})
-	return g.Wait()
+	return sm.runTTLGCLoop(stopping, ttl)
 }
 
 func (sm *StorageManager) runTTLGCLoop(stopping <-chan struct{}, ttl time.Duration) error {
