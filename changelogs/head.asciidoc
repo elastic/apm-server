@@ -5,7 +5,7 @@ https://github.com/elastic/apm-server/compare/8.16\...8.x[View commits]
 
 [float]
 ==== Breaking Changes
-- Elasticsearch `apm_user` role has been removed. After this change additional permissions are required for Tail Based Sampling.
+- Elasticsearch `apm_user` role has been removed. After this change if you are relying on `apm_user` you will need to specify its permissions manually.
 For more details, see https://github.com/elastic/apm-server/pull/14876[PR #14876]
 
 [float]
