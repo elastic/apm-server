@@ -109,6 +109,8 @@ func (rw PrefixReadWriter) IsTraceSampled(traceID string) (bool, error) {
 	item, closer, err := rw.db.Get(b.Bytes())
 	if err == pebble.ErrNotFound {
 		return false, ErrNotFound
+	} else if err != nil {
+		return false, err
 	}
 	defer closer.Close()
 	return item[0] == entryMetaTraceSampled, nil
