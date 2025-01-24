@@ -21,12 +21,11 @@ import (
 	"context"
 	"fmt"
 	"net/url"
-	"time"
 
 	"go.uber.org/zap"
 
 	"github.com/elastic/apm-perf/pkg/telemetrygen"
-	"github.com/elastic/apm-server/functionaltests/internal/esclient"
+	"github.com/elastic/apm-server/functionaltests/internal/ecclient"
 )
 
 type Generator struct {
@@ -68,61 +67,18 @@ func (g *Generator) RunBlocking(ctx context.Context) error {
 }
 
 // RunBlockingWait runs the underlying generator in blocking mode and waits until the
-// document count retrieved through ecc matches expected or timeout. It supports
-// specifying previous document count to offset the expectation based on a previous state.
-// expected and previous must be maps of <datastream name, document count>.
-func (g *Generator) RunBlockingWait(ctx context.Context, ecc *esclient.Client, expected, previous map[string]int, timeout time.Duration) error {
+// cluster Integrations Server has been restarted.
+// Restarting APM Server ensures all data, including aggregations, in flushed before
+// shutdown, ensuring ingestion and 1m aggregations to be completed.
+func (g *Generator) RunBlockingWait(ctx context.Context, c *ecclient.Client, deploymentID string) error {
 	if err := g.RunBlocking(ctx); err != nil {
 		return fmt.Errorf("cannot run generator: %w", err)
 	}
 
-	// this function checks that expected docs count is reached,
-	// accounting for any previous state.
-	checkDocsCount := func(docsCount map[string]int) bool {
-		equal := false
-		for ds, c := range docsCount {
-			if e, ok := expected[ds]; ok {
-				got := c - previous[ds]
-				equal = (e == got)
-			}
-		}
-		return equal
-	}
-	prevdocs := map[string]int{}
-	equaltoprevdocs := 0
-	// this function checks that all returned data streams doc counts
-	// stay still for some iterations. This forces a 15 seconds longer wait
-	// but ensures that aggredation data streams have stabilized before
-	// allowing the code to proceed. This should prevent situation where
-	// aggregation are still running when expected data streams reached
-	// their expected doc count.
-	checkAggregationDocs := func(prevdocs, docsCount map[string]int) bool {
-		if equaltoprevdocs == 3 {
-			return true
-		}
-		if fmt.Sprint(prevdocs) == fmt.Sprint(docsCount) {
-			equaltoprevdocs += 1
-		}
-		return false
+	g.Logger.Info("restarting integrations server to flush apm server data")
+	if err := c.RestartIntegrationServer(ctx, deploymentID); err != nil {
+		return fmt.Errorf("cannot restart integrations server: %w", err)
 	}
 
-	ticker := time.NewTicker(5 * time.Second)
-	defer ticker.Stop()
-	tctx, cancel := context.WithTimeout(ctx, timeout)
-	defer cancel()
-	for {
-		select {
-		case <-tctx.Done():
-			return nil
-		case <-ticker.C:
-			docsCount, err := ecc.ApmDocCount(ctx)
-			if err != nil {
-				return fmt.Errorf("cannot retrieve APM doc count: %w", err)
-			}
-			if checkDocsCount(docsCount) && checkAggregationDocs(prevdocs, docsCount) {
-				return nil
-			}
-			prevdocs = docsCount
-		}
-	}
+	return nil
 }
