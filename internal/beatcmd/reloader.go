@@ -24,6 +24,9 @@ import (
 	"sync"
 
 	"github.com/joeshaw/multierror"
+	"go.elastic.co/apm/module/apmotel/v2"
+	"go.opentelemetry.io/otel/metric"
+	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
@@ -50,6 +53,21 @@ type RunnerParams struct {
 
 	// Logger holds a logger to use for logging throughout the APM Server.
 	Logger *logp.Logger
+
+	// MeterProvider holds a metric.MeterProvider that can be used for
+	// creating metrics. The same MeterProvider is expected to be used
+	// for each instance of the Runner, to ensure counter metrics are
+	// not reset.
+	//
+	// NOTE(axw) metrics registered through this provider are used for
+	// feeding into both Elastic APM (if enabled) and the libbeat
+	// monitoring framework. For the latter, only gauge and counter
+	// metrics are supported, and attributes (dimensions) are ignored.
+	MeterProvider metric.MeterProvider
+
+	MetricsGatherer *apmotel.Gatherer
+
+	MetricReader *sdkmetric.ManualReader
 }
 
 // Runner is an interface returned by NewRunnerFunc.
@@ -60,12 +78,16 @@ type Runner interface {
 
 // NewReloader returns a new Reloader which creates Runners using the provided
 // beat.Info and NewRunnerFunc.
-func NewReloader(info beat.Info, registry *reload.Registry, newRunner NewRunnerFunc) (*Reloader, error) {
+func NewReloader(info beat.Info, registry *reload.Registry, newRunner NewRunnerFunc, meterProvider metric.MeterProvider, metricReader *sdkmetric.ManualReader, metricGatherer *apmotel.Gatherer) (*Reloader, error) {
 	r := &Reloader{
 		info:      info,
 		logger:    logp.NewLogger(""),
 		newRunner: newRunner,
 		stopped:   make(chan struct{}),
+
+		meterProvider:  meterProvider,
+		metricReader:   metricReader,
+		metricGatherer: metricGatherer,
 	}
 	if err := registry.RegisterList(reload.InputRegName, reloadableListFunc(r.reloadInputs)); err != nil {
 		return nil, fmt.Errorf("failed to register inputs reloader: %w", err)
@@ -85,6 +107,10 @@ type Reloader struct {
 	info      beat.Info
 	logger    *logp.Logger
 	newRunner NewRunnerFunc
+
+	meterProvider  metric.MeterProvider
+	metricReader   *sdkmetric.ManualReader
+	metricGatherer *apmotel.Gatherer
 
 	runner     Runner
 	stopRunner func() error

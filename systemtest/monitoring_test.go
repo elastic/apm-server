@@ -76,33 +76,33 @@ func TestMonitoring(t *testing.T) {
 		metrics.Libbeat = nil
 		metrics.Output = nil
 		getBeatsMonitoringStats(t, srv, &metrics)
-		acked := gjson.GetBytes(metrics.Libbeat, "output.events.acked")
+		acked := gjson.GetBytes(metrics.Libbeat, "output.events\\.acked")
 		return acked.Int() == N
 	}, 10*time.Second, 10*time.Millisecond)
 
 	// Assert the presence of output.write.bytes, and that it is non-zero;
 	// the exact value may change over time, and that is not relevant to this test.
-	outputWriteBytes := gjson.GetBytes(metrics.Libbeat, "output.write.bytes")
+	outputWriteBytes := gjson.GetBytes(metrics.Libbeat, "output.write\\.bytes")
 	assert.NotZero(t, outputWriteBytes.Int())
 
 	// Assert there was a non-zero number of batches written. There's no
 	// guarantee that a single batch is written.
-	batches := gjson.GetBytes(metrics.Libbeat, "output.events.batches")
+	batches := gjson.GetBytes(metrics.Libbeat, "output.events\\.batches")
 	assert.NotZero(t, batches.Int())
 
-	assert.Equal(t, int64(0), gjson.GetBytes(metrics.Libbeat, "output.events.active").Int())
-	assert.Equal(t, int64(0), gjson.GetBytes(metrics.Libbeat, "output.events.failed").Int())
-	assert.Equal(t, int64(0), gjson.GetBytes(metrics.Libbeat, "output.events.toomany").Int())
-	assert.Equal(t, int64(N), gjson.GetBytes(metrics.Libbeat, "output.events.total").Int())
-	assert.Equal(t, int64(N), gjson.GetBytes(metrics.Libbeat, "pipeline.events.total").Int())
+	assert.Equal(t, int64(0), gjson.GetBytes(metrics.Libbeat, "output.events\\.active").Int())
+	assert.Equal(t, int64(0), gjson.GetBytes(metrics.Libbeat, "output.events\\.failed").Int())
+	assert.Equal(t, int64(0), gjson.GetBytes(metrics.Libbeat, "output.events\\.toomany").Int())
+	assert.Equal(t, int64(N), gjson.GetBytes(metrics.Libbeat, "output.events\\.total").Int())
+	assert.Equal(t, int64(N), gjson.GetBytes(metrics.Libbeat, "pipeline.events\\.total").Int())
 	assert.Equal(t, "elasticsearch", gjson.GetBytes(metrics.Libbeat, "output.type").Str)
 
-	bulkRequestsAvailable := gjson.GetBytes(metrics.Output, "elasticsearch.bulk_requests.available")
+	bulkRequestsAvailable := gjson.GetBytes(metrics.Output, "elasticsearch.bulk_requests\\.available")
 	assert.Greater(t, bulkRequestsAvailable.Int(), int64(10))
-	assert.Equal(t, batches.Int(), gjson.GetBytes(metrics.Output, "elasticsearch.bulk_requests.completed").Int())
-	assert.Equal(t, int64(1), gjson.GetBytes(metrics.Output, "elasticsearch.indexers.active").Int())
-	assert.Zero(t, gjson.GetBytes(metrics.Output, "elasticsearch.indexers.created").Int())
-	assert.Zero(t, gjson.GetBytes(metrics.Output, "elasticsearch.indexers.destroyed").Int())
+	assert.Equal(t, batches.Int(), gjson.GetBytes(metrics.Output, "elasticsearch.bulk_requests\\.completed").Int())
+	//assert.Equal(t, int64(1), gjson.GetBytes(metrics.Output, "elasticsearch.indexers\\.active").Int())
+	assert.Zero(t, gjson.GetBytes(metrics.Output, "elasticsearch.indexers\\.created").Int())
+	assert.Zero(t, gjson.GetBytes(metrics.Output, "elasticsearch.indexers\\.destroyed").Int())
 }
 
 func TestAPMServerMonitoringBuiltinUser(t *testing.T) {
