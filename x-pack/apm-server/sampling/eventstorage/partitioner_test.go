@@ -16,8 +16,7 @@ func TestPartitioner(t *testing.T) {
 	p := eventstorage.NewPartitioner(2) // partition id 0, 1, 2
 
 	cur := p.Current()
-	assert.True(t, cur.Valid())
-	assert.Equal(t, 0, cur.ID())
+	assert.Equal(t, 0, cur)
 
 	inactive := p.Inactive()
 	assert.True(t, inactive.Valid())
@@ -35,8 +34,7 @@ func TestPartitioner(t *testing.T) {
 	p.Rotate()
 
 	cur = p.Current()
-	assert.True(t, cur.Valid())
-	assert.Equal(t, 1, cur.ID())
+	assert.Equal(t, 1, cur)
 
 	inactive = p.Inactive()
 	assert.True(t, inactive.Valid())
@@ -54,8 +52,7 @@ func TestPartitioner(t *testing.T) {
 	p.Rotate()
 
 	cur = p.Current()
-	assert.True(t, cur.Valid())
-	assert.Equal(t, 2, cur.ID())
+	assert.Equal(t, 2, cur)
 
 	inactive = p.Inactive()
 	assert.True(t, inactive.Valid())
@@ -73,8 +70,7 @@ func TestPartitioner(t *testing.T) {
 	p.Rotate()
 
 	cur = p.Current()
-	assert.True(t, cur.Valid())
-	assert.Equal(t, 0, cur.ID())
+	assert.Equal(t, 0, cur)
 
 	inactive = p.Inactive()
 	assert.True(t, inactive.Valid())
