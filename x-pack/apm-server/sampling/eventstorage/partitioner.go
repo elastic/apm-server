@@ -11,9 +11,9 @@ import "sync/atomic"
 // `current` points at the rightmost active partition.
 //
 // Example for total=4:
-// (A: active, I: inactive)
+// (A: active, I: inactive, ^ points at the current active entry)
 // A-I-A-A
-// ^
+// ^......
 // current
 type Partitioner struct {
 	total   int // length of the ring
@@ -25,14 +25,27 @@ func NewPartitioner(actives int) *Partitioner {
 	return &Partitioner{total: actives + 1} // actives + 1 inactive
 }
 
+// SetCurrentID sets the input partition ID as current partition.
 func (p *Partitioner) SetCurrentID(current int) {
 	p.current.Store(int32(current))
 }
 
+// Rotate rotates partitions to the right by 1 position.
+//
+// Example for total=4:
+// (A: active, I: inactive, ^ points at the current active entry)
+// A-I-A-A
+// ^......
+//
+// After Rotate:
+// A-A-I-A
+// ..^....
 func (p *Partitioner) Rotate() {
 	p.current.Store(int32((int(p.current.Load()) + 1) % p.total))
 }
 
+// Actives returns a PartitionIterator containing all active partitions.
+// It contains total - 1 partitions.
 func (p *Partitioner) Actives() PartitionIterator {
 	return PartitionIterator{
 		id:        int(p.current.Load()),
@@ -41,6 +54,8 @@ func (p *Partitioner) Actives() PartitionIterator {
 	}
 }
 
+// Inactive returns a PartitionIterator pointing to the inactive partition.
+// It contains only 1 partition.
 func (p *Partitioner) Inactive() PartitionIterator {
 	return PartitionIterator{
 		id:        (int(p.current.Load()) + 1) % p.total,
@@ -49,6 +64,8 @@ func (p *Partitioner) Inactive() PartitionIterator {
 	}
 }
 
+// Current returns a PartitionIterator pointing to the current partition (rightmost active).
+// It contains only 1 partition.
 func (p *Partitioner) Current() PartitionIterator {
 	return PartitionIterator{
 		id:        int(p.current.Load()),
