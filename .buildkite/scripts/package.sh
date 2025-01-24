@@ -20,11 +20,14 @@ if [[ ${TYPE} == "snapshot" ]]; then
 fi
 
 echo "--- Prepare the Elastic Qualifier"
+# NOTE: load the shared functions
+# shellcheck disable=SC1091
+source .buildkite/scripts/utils.sh
 dra_process_other_branches
 ELASTIC_QUALIFIER=$(fetch_elastic_qualifier "$DRA_BRANCH")
 export ELASTIC_QUALIFIER
 
-echo "--- Prepare the Elastic Qualifier"
+echo "--- Run $MAKE_GOAL for $DRA_BRANCH"
 make $MAKE_GOAL
 
 ls -l build/distributions/
