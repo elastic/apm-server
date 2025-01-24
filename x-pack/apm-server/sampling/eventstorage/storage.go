@@ -6,6 +6,7 @@ package eventstorage
 
 import (
 	"io"
+	"iter"
 
 	"github.com/cockroachdb/pebble/v2"
 
@@ -21,7 +22,7 @@ type db interface {
 
 type partitionedDB interface {
 	db
-	ReadPartitions() PartitionIterator
+	ReadPartitions() iter.Seq[int]
 	WritePartition() int
 }
 
@@ -46,7 +47,7 @@ func (w *wrappedDB) NewIter(o *pebble.IterOptions) (*pebble.Iterator, error) {
 	return w.db.NewIter(o)
 }
 
-func (w *wrappedDB) ReadPartitions() PartitionIterator {
+func (w *wrappedDB) ReadPartitions() iter.Seq[int] {
 	return w.partitioner.Actives()
 }
 

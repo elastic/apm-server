@@ -5,6 +5,7 @@
 package eventstorage_test
 
 import (
+	"iter"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -13,75 +14,37 @@ import (
 )
 
 func TestPartitioner(t *testing.T) {
+	iterToSlice := func(it iter.Seq[int]) (s []int) {
+		for i := range it {
+			s = append(s, i)
+		}
+		return
+	}
+
 	p := eventstorage.NewPartitioner(2) // partition id 0, 1, 2
 
-	cur := p.Current()
-	assert.Equal(t, 0, cur)
+	assert.Equal(t, 0, p.Current())
+	assert.Equal(t, 1, p.Inactive())
+	assert.Equal(t, []int{0, 2}, iterToSlice(p.Actives()))
 
-	inactive := p.Inactive()
-	assert.True(t, inactive.Valid())
-	assert.Equal(t, 1, inactive.ID())
-
-	active := p.Actives()
-	assert.True(t, active.Valid())
-	assert.Equal(t, 0, active.ID())
-	active = active.Prev()
-	assert.True(t, active.Valid())
-	assert.Equal(t, 2, active.ID())
-	active = active.Prev()
-	assert.False(t, active.Valid())
-
+	// 0 -> 1
 	p.Rotate()
 
-	cur = p.Current()
-	assert.Equal(t, 1, cur)
+	assert.Equal(t, 1, p.Current())
+	assert.Equal(t, 2, p.Inactive())
+	assert.Equal(t, []int{1, 0}, iterToSlice(p.Actives()))
 
-	inactive = p.Inactive()
-	assert.True(t, inactive.Valid())
-	assert.Equal(t, 2, inactive.ID())
-
-	active = p.Actives()
-	assert.True(t, active.Valid())
-	assert.Equal(t, 1, active.ID())
-	active = active.Prev()
-	assert.True(t, active.Valid())
-	assert.Equal(t, 0, active.ID())
-	active = active.Prev()
-	assert.False(t, active.Valid())
-
+	// 1 -> 2
 	p.Rotate()
 
-	cur = p.Current()
-	assert.Equal(t, 2, cur)
+	assert.Equal(t, 2, p.Current())
+	assert.Equal(t, 0, p.Inactive())
+	assert.Equal(t, []int{2, 1}, iterToSlice(p.Actives()))
 
-	inactive = p.Inactive()
-	assert.True(t, inactive.Valid())
-	assert.Equal(t, 0, inactive.ID())
-
-	active = p.Actives()
-	assert.True(t, active.Valid())
-	assert.Equal(t, 2, active.ID())
-	active = active.Prev()
-	assert.True(t, active.Valid())
-	assert.Equal(t, 1, active.ID())
-	active = active.Prev()
-	assert.False(t, active.Valid())
-
+	// 2 -> 0
 	p.Rotate()
 
-	cur = p.Current()
-	assert.Equal(t, 0, cur)
-
-	inactive = p.Inactive()
-	assert.True(t, inactive.Valid())
-	assert.Equal(t, 1, inactive.ID())
-
-	active = p.Actives()
-	assert.True(t, active.Valid())
-	assert.Equal(t, 0, active.ID())
-	active = active.Prev()
-	assert.True(t, active.Valid())
-	assert.Equal(t, 2, active.ID())
-	active = active.Prev()
-	assert.False(t, active.Valid())
+	assert.Equal(t, 0, p.Current())
+	assert.Equal(t, 1, p.Inactive())
+	assert.Equal(t, []int{0, 2}, iterToSlice(p.Actives()))
 }

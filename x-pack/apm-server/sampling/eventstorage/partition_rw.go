@@ -30,8 +30,8 @@ func (rw *PartitionReadWriter) IsTraceSampled(traceID string) (bool, error) {
 	// 1. (pubsub) remote sampling decision
 	// 2. (hot path) sampling decision not made yet
 	var errs []error
-	for it := rw.s.db.ReadPartitions(); it.Valid(); it = it.Prev() {
-		sampled, err := NewPrefixReadWriter(rw.s.db, byte(it.ID()), rw.s.codec).IsTraceSampled(traceID)
+	for pid := range rw.s.db.ReadPartitions() {
+		sampled, err := NewPrefixReadWriter(rw.s.db, byte(pid), rw.s.codec).IsTraceSampled(traceID)
 		if err == nil {
 			return sampled, nil
 		} else if err != ErrNotFound {
@@ -54,8 +54,8 @@ func (rw *PartitionReadWriter) WriteTraceEvent(traceID, id string, event *modelp
 func (rw *PartitionReadWriter) DeleteTraceEvent(traceID, id string) error {
 	// FIXME: use range delete
 	var errs []error
-	for it := rw.s.db.ReadPartitions(); it.Valid(); it = it.Prev() {
-		err := NewPrefixReadWriter(rw.s.db, byte(it.ID()), rw.s.codec).DeleteTraceEvent(traceID, id)
+	for pid := range rw.s.db.ReadPartitions() {
+		err := NewPrefixReadWriter(rw.s.db, byte(pid), rw.s.codec).DeleteTraceEvent(traceID, id)
 		if err != nil {
 			errs = append(errs, err)
 		}
@@ -66,8 +66,8 @@ func (rw *PartitionReadWriter) DeleteTraceEvent(traceID, id string) error {
 // ReadTraceEvents reads trace events with the given trace ID from storage into out.
 func (rw *PartitionReadWriter) ReadTraceEvents(traceID string, out *modelpb.Batch) error {
 	var errs []error
-	for it := rw.s.db.ReadPartitions(); it.Valid(); it = it.Prev() {
-		err := NewPrefixReadWriter(rw.s.db, byte(it.ID()), rw.s.codec).ReadTraceEvents(traceID, out)
+	for pid := range rw.s.db.ReadPartitions() {
+		err := NewPrefixReadWriter(rw.s.db, byte(pid), rw.s.codec).ReadTraceEvents(traceID, out)
 		if err != nil {
 			errs = append(errs, err)
 		}

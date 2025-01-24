@@ -4,7 +4,10 @@
 
 package eventstorage
 
-import "sync/atomic"
+import (
+	"iter"
+	"sync/atomic"
+)
 
 const (
 	// maxTotalPartitions is the maximum number of total partitions.
@@ -60,57 +63,25 @@ func (p *Partitioner) Rotate() int {
 	return newCurrent
 }
 
-// Actives returns a PartitionIterator containing all active partitions.
+// Actives returns an iterator containing all active partitions.
 // It contains total - 1 partitions.
-func (p *Partitioner) Actives() PartitionIterator {
-	return PartitionIterator{
-		id:        int(p.current.Load()),
-		remaining: p.total - 1 - 1,
-		total:     p.total,
+func (p *Partitioner) Actives() iter.Seq[int] {
+	cur := int(p.current.Load())
+	return func(yield func(int) bool) {
+		for i := 0; i < p.total-1; i++ {
+			if !yield((cur + p.total - i) % p.total) {
+				return
+			}
+		}
 	}
 }
 
-// Inactive returns a PartitionIterator pointing to the inactive partition.
-// It contains only 1 partition.
-func (p *Partitioner) Inactive() PartitionIterator {
-	return PartitionIterator{
-		id:        (int(p.current.Load()) + 1) % p.total,
-		remaining: 0,
-		total:     p.total,
-	}
+// Inactive returns the ID of the inactive partition.
+func (p *Partitioner) Inactive() int {
+	return (int(p.current.Load()) + 1) % p.total
 }
 
 // Current returns the ID of the current partition (rightmost active).
 func (p *Partitioner) Current() int {
 	return int(p.current.Load())
-}
-
-// PartitionIterator is for iterating on partition results.
-// In theory Partitioner could have returned a slice of partition IDs,
-// but returning an iterator should avoid allocs.
-//
-// Example usage:
-// for it := rw.s.db.ReadPartitions(); it.Valid(); it = it.Prev() {
-// // do something with it.ID()
-// }
-type PartitionIterator struct {
-	id        int
-	total     int // length of the ring
-	remaining int
-}
-
-func (it PartitionIterator) Prev() PartitionIterator {
-	return PartitionIterator{
-		id:        (it.id + it.total - 1) % it.total,
-		remaining: it.remaining - 1,
-		total:     it.total,
-	}
-}
-
-func (it PartitionIterator) Valid() bool {
-	return it.remaining >= 0
-}
-
-func (it PartitionIterator) ID() int {
-	return it.id
 }
