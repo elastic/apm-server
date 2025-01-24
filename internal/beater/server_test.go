@@ -39,6 +39,8 @@ import (
 	"github.com/gogo/protobuf/proto"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
+	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zaptest/observer"
 	"google.golang.org/grpc"
@@ -461,7 +463,14 @@ func TestServerElasticsearchOutput(t *testing.T) {
 	monitoring.Default.Remove("libbeat.whatever")
 	monitoring.NewInt(monitoring.Default, "libbeat.whatever")
 
-	srv := beatertest.NewServer(t, beatertest.WithConfig(agentconfig.MustNewConfigFrom(map[string]interface{}{
+	reader := sdkmetric.NewManualReader(sdkmetric.WithTemporalitySelector(
+		func(ik sdkmetric.InstrumentKind) metricdata.Temporality {
+			return metricdata.DeltaTemporality
+		},
+	))
+	mp := sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader))
+
+	srv := beatertest.NewServer(t, beatertest.WithMeterProvider(mp), beatertest.WithConfig(agentconfig.MustNewConfigFrom(map[string]interface{}{
 		"output.elasticsearch": map[string]interface{}{
 			"hosts":          []string{elasticsearchServer.URL},
 			"flush_interval": "1ms",
@@ -487,44 +496,11 @@ func TestServerElasticsearchOutput(t *testing.T) {
 		t.Fatal("timed out waiting for bulk request")
 	}
 
-	snapshot := monitoring.CollectStructSnapshot(monitoring.Default.GetRegistry("libbeat"), monitoring.Full, false)
-	assert.Equal(t, map[string]interface{}{
-		"output": map[string]interface{}{
-			"events": map[string]interface{}{
-				"acked":   int64(0),
-				"active":  int64(5),
-				"batches": int64(0),
-				"failed":  int64(0),
-				"toomany": int64(0),
-				"total":   int64(5),
-			},
-			"type": "elasticsearch",
-			"write": map[string]interface{}{
-				// _bulk requests haven't completed, so bytes flushed won't have been updated.
-				"bytes": int64(0),
-			},
-		},
-		"pipeline": map[string]interface{}{
-			"events": map[string]interface{}{
-				"total": int64(5),
-			},
-		},
-	}, snapshot)
-
-	snapshot = monitoring.CollectStructSnapshot(monitoring.Default.GetRegistry("output"), monitoring.Full, false)
-	assert.Equal(t, map[string]interface{}{
-		"elasticsearch": map[string]interface{}{
-			"bulk_requests": map[string]interface{}{
-				"available": int64(9),
-				"completed": int64(0),
-			},
-			"indexers": map[string]interface{}{
-				"active":    int64(1),
-				"destroyed": int64(0),
-				"created":   int64(0),
-			},
-		},
-	}, snapshot)
+	monitoringtest.ExpectOtelMetrics(t, reader, map[string]any{
+		"elasticsearch.events.count":            5,
+		"elasticsearch.events.queued":           5,
+		"elasticsearch.bulk_requests.available": 9,
+	})
 }
 
 func TestServerPProf(t *testing.T) {
