@@ -77,9 +77,8 @@ type Runner interface {
 // beat.Info and NewRunnerFunc.
 func NewReloader(info beat.Info, registry *reload.Registry, newRunner NewRunnerFunc, meterProvider metric.MeterProvider, metricGatherer *apmotel.Gatherer) (*Reloader, error) {
 	r := &Reloader{
-		info:   info,
-		logger: logp.NewLogger(""),
-
+		info:      info,
+		logger:    logp.NewLogger(""),
 		newRunner: newRunner,
 		stopped:   make(chan struct{}),
 

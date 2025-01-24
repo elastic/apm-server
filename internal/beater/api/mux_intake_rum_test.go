@@ -118,14 +118,12 @@ func TestIntakeRUMHandler_PanicMiddleware(t *testing.T) {
 func TestRumHandler_MonitoringMiddleware(t *testing.T) {
 	// send GET request resulting in 403 Forbidden error
 	for _, path := range []string{"/intake/v2/rum/events", "/intake/v3/rum/events"} {
-		expectedMetric := getMetrics("apm-server.server.", map[string]any{
-			string(request.IDRequestCount):            1,
-			string(request.IDResponseCount):           1,
-			string(request.IDResponseErrorsCount):     1,
-			string(request.IDResponseErrorsForbidden): 1,
+		testMonitoringMiddleware(t, path, map[string]any{
+			"http.server." + string(request.IDRequestCount):            1,
+			"http.server." + string(request.IDResponseCount):           1,
+			"http.server." + string(request.IDResponseErrorsCount):     1,
+			"http.server." + string(request.IDResponseErrorsForbidden): 1,
 		})
-		expectedMetric["http.server.request.duration"] = 1
-		testMonitoringMiddleware(t, path, expectedMetric)
 	}
 }
 

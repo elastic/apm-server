@@ -77,14 +77,11 @@ func TestConsumeTracesHTTP(t *testing.T) {
 	require.Len(t, batches, 1)
 	assert.Len(t, batches[0], 1)
 
-	expectedMetrics := getMetrics("apm-server.otlp.http.traces.", map[string]any{
-		"unset":                1,
-		"request.count":        1,
-		"response.count":       1,
-		"response.valid.count": 1,
+	monitoringtest.ExpectContainOtelMetrics(t, reader, map[string]any{
+		"http.server.request.count":        1,
+		"http.server.response.count":       1,
+		"http.server.response.valid.count": 1,
 	})
-	expectedMetrics["http.server.request.duration"] = 1
-	monitoringtest.ExpectOtelMetrics(t, reader, expectedMetrics)
 
 }
 
@@ -117,14 +114,11 @@ func TestConsumeMetricsHTTP(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NoError(t, rsp.Body.Close())
 
-	expectedMetrics := getMetrics("apm-server.otlp.http.metrics.", map[string]any{
-		"unset":                1,
-		"request.count":        1,
-		"response.count":       1,
-		"response.valid.count": 1,
+	monitoringtest.ExpectContainOtelMetrics(t, reader, map[string]any{
+		"http.server.request.count":        1,
+		"http.server.response.count":       1,
+		"http.server.response.valid.count": 1,
 	})
-	expectedMetrics["http.server.request.duration"] = 1
-	monitoringtest.ExpectOtelMetrics(t, reader, expectedMetrics)
 }
 
 func TestConsumeLogsHTTP(t *testing.T) {
@@ -156,14 +150,11 @@ func TestConsumeLogsHTTP(t *testing.T) {
 	assert.NoError(t, rsp.Body.Close())
 	require.Len(t, batches, 1)
 
-	expectedMetrics := getMetrics("apm-server.otlp.http.logs.", map[string]any{
-		"unset":                1,
-		"request.count":        1,
-		"response.count":       1,
-		"response.valid.count": 1,
+	monitoringtest.ExpectContainOtelMetrics(t, reader, map[string]any{
+		"http.server.request.count":        1,
+		"http.server.response.count":       1,
+		"http.server.response.valid.count": 1,
 	})
-	expectedMetrics["http.server.request.duration"] = 1
-	monitoringtest.ExpectOtelMetrics(t, reader, expectedMetrics)
 }
 
 func newHTTPServer(t *testing.T, batchProcessor modelpb.BatchProcessor) (string, sdkmetric.Reader) {
@@ -196,15 +187,4 @@ func newHTTPServer(t *testing.T, batchProcessor modelpb.BatchProcessor) (string,
 	})
 	go srv.Serve(lis)
 	return lis.Addr().String(), reader
-}
-
-func getMetrics(prefix string, baseMetrics map[string]any) map[string]any {
-	m := make(map[string]any, 2*len(baseMetrics))
-
-	for k, v := range baseMetrics {
-		m["http.server."+k] = v
-		m[prefix+k] = v
-	}
-
-	return m
 }

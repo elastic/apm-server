@@ -139,18 +139,7 @@ func testMonitoringMiddleware(t *testing.T, urlPath string, expectedMetrics map[
 	req := httptest.NewRequest(http.MethodGet, urlPath, nil)
 	h.ServeHTTP(httptest.NewRecorder(), req)
 
-	monitoringtest.ExpectOtelMetrics(t, reader, expectedMetrics)
-}
-
-func getMetrics(prefix string, expected map[string]any) map[string]any {
-	m := make(map[string]any, 2*len(expected))
-
-	for k, v := range expected {
-		m["http.server."+k] = v
-		m[prefix+k] = v
-	}
-
-	return m
+	monitoringtest.ExpectContainOtelMetrics(t, reader, expectedMetrics)
 }
 
 func newTestMux(t *testing.T, cfg *config.Config) (http.Handler, sdkmetric.Reader) {

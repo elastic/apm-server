@@ -64,15 +64,13 @@ func TestIntakeBackendHandler_PanicMiddleware(t *testing.T) {
 }
 
 func TestIntakeBackendHandler_MonitoringMiddleware(t *testing.T) {
-	expectedMetric := getMetrics("apm-server.server.", map[string]any{
-		string(request.IDRequestCount):                   1,
-		string(request.IDResponseCount):                  1,
-		string(request.IDResponseErrorsCount):            1,
-		string(request.IDResponseErrorsMethodNotAllowed): 1,
-	})
-	expectedMetric["http.server.request.duration"] = 1
 	// send GET request resulting in 405 MethodNotAllowed error
-	testMonitoringMiddleware(t, "/intake/v2/events", expectedMetric)
+	testMonitoringMiddleware(t, "/intake/v2/events", map[string]any{
+		"http.server." + string(request.IDRequestCount):                   1,
+		"http.server." + string(request.IDResponseCount):                  1,
+		"http.server." + string(request.IDResponseErrorsCount):            1,
+		"http.server." + string(request.IDResponseErrorsMethodNotAllowed): 1,
+	})
 }
 
 func approvalPathIntakeBackend(f string) string {

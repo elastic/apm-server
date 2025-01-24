@@ -140,6 +140,7 @@ func TestIntakeHandler(t *testing.T) {
 			code: http.StatusAccepted, id: request.IDResponseValidAccepted},
 	} {
 		t.Run(name, func(t *testing.T) {
+
 			// setup
 			tc.setup(t)
 

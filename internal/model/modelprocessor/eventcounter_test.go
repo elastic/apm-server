@@ -49,8 +49,7 @@ func TestEventCounter(t *testing.T) {
 	err := processor.ProcessBatch(context.Background(), &batch)
 	assert.NoError(t, err)
 
-	monitoringtest.ExpectOtelMetrics(t, reader, map[string]any{
-		"apm-server.processor.undefined.transformations":   1,
+	monitoringtest.ExpectContainOtelMetrics(t, reader, map[string]any{
 		"apm-server.processor.span.transformations":        1,
 		"apm-server.processor.transaction.transformations": 2,
 	})

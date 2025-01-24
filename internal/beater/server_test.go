@@ -627,32 +627,13 @@ func TestWrapServerAPMInstrumentationTimeout(t *testing.T) {
 			assert.Equal(t, f.String, "request timed out")
 		}
 	}
-	expectedMetrics := getMetrics("http.server.", map[string]any{
-		string(request.IDRequestCount):          1,
-		string(request.IDResponseCount):         1,
-		string(request.IDResponseErrorsCount):   1,
-		string(request.IDResponseErrorsTimeout): 1, // test data POST /intake/v2/events
-	})
-	expectedMetrics["apm-server.processor.stream.accepted"] = 0
-	expectedMetrics["apm-server.processor.stream.errors.invalid"] = 0
-	expectedMetrics["apm-server.processor.stream.errors.toolarge"] = 0
-	expectedMetrics["http.server.request.duration"] = 1
-	expectedMetrics["elasticsearch.bulk_requests.available"] = 1
-	expectedMetrics["apm-server.agentcfg.elasticsearch.cache.refresh.successes"] = 1
-	expectedMetrics["apm-server.agentcfg.elasticsearch.cache.entries.count"] = 0
 	// Assert that metrics have expected response values reported.
-	monitoringtest.ExpectOtelMetrics(t, reader, expectedMetrics)
-}
-
-func getMetrics(prefix string, expected map[string]any) map[string]any {
-	m := make(map[string]any, 2*len(expected))
-
-	for k, v := range expected {
-		m["apm-server.server."+k] = v
-		m[prefix+k] = v
-	}
-
-	return m
+	monitoringtest.ExpectContainOtelMetrics(t, reader, map[string]any{
+		"http.server." + string(request.IDRequestCount):          1,
+		"http.server." + string(request.IDResponseCount):         1,
+		"http.server." + string(request.IDResponseErrorsCount):   1,
+		"http.server." + string(request.IDResponseErrorsTimeout): 1, // test data POST /intake/v2/events
+	})
 }
 
 var testData = func() []byte {

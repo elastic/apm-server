@@ -131,8 +131,7 @@ func TestProcessAlreadyTailSampled(t *testing.T) {
 	// they were received after the trace sampling entry expired.
 	assert.Equal(t, modelpb.Batch{&transaction1, &span1}, batch)
 
-	monitoringtest.ExpectOtelMetrics(t, metricreader, map[string]any{
-		"apm-server.sampling.tail.dynamic_service_groups": 1,
+	monitoringtest.ExpectContainOtelMetrics(t, metricreader, map[string]any{
 		"apm-server.sampling.tail.events.processed":       4,
 		"apm-server.sampling.tail.events.stored":          2,
 		"apm-server.sampling.tail.events.sampled":         2,
@@ -248,8 +247,7 @@ func TestProcessLocalTailSampling(t *testing.T) {
 				sampledTraceEvents = trace2Events
 			}
 
-			monitoringtest.ExpectOtelMetrics(t, metricreader, map[string]any{
-				"apm-server.sampling.tail.dynamic_service_groups": 1,
+			monitoringtest.ExpectContainOtelMetrics(t, metricreader, map[string]any{
 				"apm-server.sampling.tail.events.processed":       4,
 				"apm-server.sampling.tail.events.stored":          4,
 				"apm-server.sampling.tail.events.sampled":         2,

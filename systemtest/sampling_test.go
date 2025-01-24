@@ -181,7 +181,7 @@ func TestTailSampling(t *testing.T) {
 			}
 		} `json:"apm-server"`
 	}
-	doc = getBeatsMonitoringState(t, srv1, &state)
+	getBeatsMonitoringState(t, srv1, &state)
 	assert.True(t, state.APMServer.Sampling.Tail.Enabled)
 	assert.Equal(t, 1, state.APMServer.Sampling.Tail.Policies)
 }

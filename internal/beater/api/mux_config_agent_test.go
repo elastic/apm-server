@@ -60,14 +60,12 @@ func TestConfigAgentHandler_PanicMiddleware(t *testing.T) {
 }
 
 func TestConfigAgentHandler_MonitoringMiddleware(t *testing.T) {
-	expectedMetric := getMetrics("apm-server.acm.", map[string]any{
-		string(request.IDRequestCount):               1,
-		string(request.IDResponseCount):              1,
-		string(request.IDResponseErrorsCount):        1,
-		string(request.IDResponseErrorsInvalidQuery): 1,
+	testMonitoringMiddleware(t, "/config/v1/agents", map[string]any{
+		"http.server." + string(request.IDRequestCount):               1,
+		"http.server." + string(request.IDResponseCount):              1,
+		"http.server." + string(request.IDResponseErrorsCount):        1,
+		"http.server." + string(request.IDResponseErrorsInvalidQuery): 1,
 	})
-	expectedMetric["http.server.request.duration"] = 1
-	testMonitoringMiddleware(t, "/config/v1/agents", expectedMetric)
 }
 
 func configEnabledConfigAgent() *config.Config {

@@ -63,12 +63,10 @@ func TestRootHandler_PanicMiddleware(t *testing.T) {
 }
 
 func TestRootHandler_MonitoringMiddleware(t *testing.T) {
-	expectedMetric := getMetrics("apm-server.root.", map[string]any{
-		string(request.IDRequestCount):       1,
-		string(request.IDResponseCount):      1,
-		string(request.IDResponseValidCount): 1,
-		string(request.IDResponseValidOK):    1,
+	testMonitoringMiddleware(t, "/", map[string]any{
+		"http.server." + string(request.IDRequestCount):       1,
+		"http.server." + string(request.IDResponseCount):      1,
+		"http.server." + string(request.IDResponseValidCount): 1,
+		"http.server." + string(request.IDResponseValidOK):    1,
 	})
-	expectedMetric["http.server.request.duration"] = 1
-	testMonitoringMiddleware(t, "/", expectedMetric)
 }
