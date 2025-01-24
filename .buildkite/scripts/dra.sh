@@ -108,6 +108,9 @@ dra() {
 }
 
 if [[ "${TYPE}" == "staging" ]]; then
+  # NOTE: load the shared functions
+  # shellcheck disable=SC1091
+  source .buildkite/scripts/utils.sh
   qualifier=$(fetch_elastic_qualifier "$DRA_BRANCH")
   # TODO: main and 8.x are not needed to run the DRA for staging
   #       but main is needed until we do alpha1 releases of 9.0.0
