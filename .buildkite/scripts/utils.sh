@@ -29,8 +29,13 @@ retry() {
   return 0
 }
 
+#
 # An opinionated approach to detect if unsupported Unified Release branches
 # can be used, this is handy for testing feature branches in dry-run mode
+# It produces the below environment variables:
+# - VERSION
+# - DRA_COMMAND
+# - DRA_BRANCH
 dra_process_other_branches() {
   ## Read current version without the qualifier
   VERSION=$(make get-version-only)
