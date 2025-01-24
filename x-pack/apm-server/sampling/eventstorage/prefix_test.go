@@ -67,9 +67,13 @@ func TestPrefixReadWriter_ReadTraceEvents(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	// Create a transaction with a similar trace ID to ensure that iterator upper bound is enforced
+	// Create transactions with similar trace IDs to ensure that iterator upper bound is enforced
 	txn := makeTransaction("bar", "foo2")
 	err := rw.WriteTraceEvent("foo2", "bar", txn)
+	require.NoError(t, err)
+
+	txn = makeTransaction("bar", "foo12")
+	err = rw.WriteTraceEvent("foo12", "bar", txn)
 	require.NoError(t, err)
 
 	var out modelpb.Batch

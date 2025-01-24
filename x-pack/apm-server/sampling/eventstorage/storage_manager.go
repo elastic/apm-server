@@ -171,9 +171,7 @@ func (sm *StorageManager) Close() error {
 }
 
 func (sm *StorageManager) close() error {
-	return errors.Join(sm.eventDB.Close(), sm.decisionDB.Close())
-	// FIXME: there seems to be an error with pebble Flush hanging indefinitely
-	//return errors.Join(sm.eventDB.Flush(), sm.decisionDB.Flush(), sm.eventDB.Close(), sm.decisionDB.Close())
+	return errors.Join(sm.eventDB.Flush(), sm.decisionDB.Flush(), sm.eventDB.Close(), sm.decisionDB.Close())
 }
 
 // Reload flushes out pending disk writes to disk by reloading the database.

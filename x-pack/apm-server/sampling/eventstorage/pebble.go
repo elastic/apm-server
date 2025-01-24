@@ -26,7 +26,8 @@ func eventComparer() *pebble.Comparer {
 
 func OpenEventPebble(storageDir string) (*pebble.DB, error) {
 	opts := &pebble.Options{
-		FormatMajorVersion: pebble.FormatColumnarBlocks,
+		// TODO(carsonip): update version when upstream fixes issue https://github.com/cockroachdb/pebble/issues/4287
+		FormatMajorVersion: pebble.FormatPrePebblev1MarkedCompacted,
 		Logger:             logp.NewLogger(logs.Sampling),
 		MemTableSize:       16 << 20,
 		Levels: []pebble.LevelOptions{
@@ -45,7 +46,8 @@ func OpenEventPebble(storageDir string) (*pebble.DB, error) {
 
 func OpenDecisionPebble(storageDir string) (*pebble.DB, error) {
 	return pebble.Open(filepath.Join(storageDir, "decision"), &pebble.Options{
-		FormatMajorVersion: pebble.FormatColumnarBlocks,
+		// TODO(carsonip): update version when upstream fixes issue https://github.com/cockroachdb/pebble/issues/4287
+		FormatMajorVersion: pebble.FormatPrePebblev1MarkedCompacted,
 		Logger:             logp.NewLogger(logs.Sampling),
 		MemTableSize:       2 << 20,
 		Levels: []pebble.LevelOptions{
