@@ -89,14 +89,7 @@ func (rw PrefixReadWriter) WriteTraceEvent(traceID, id string, event *modelpb.AP
 	b.WriteByte(':')
 	b.WriteString(id)
 	key := b.Bytes()
-	return rw.writeEntry(key, data)
-}
-
-func (rw PrefixReadWriter) writeEntry(key, data []byte) error {
-	if err := rw.db.Set(key, data, pebble.NoSync); err != nil {
-		return err
-	}
-	return nil
+	return rw.db.Set(key, data, pebble.NoSync)
 }
 
 func (rw PrefixReadWriter) WriteTraceSampled(traceID string, sampled bool) error {
