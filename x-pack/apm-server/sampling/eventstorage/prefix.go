@@ -97,11 +97,7 @@ func (rw PrefixReadWriter) WriteTraceSampled(traceID string, sampled bool) error
 	if sampled {
 		meta = entryMetaTraceSampled
 	}
-	err := rw.db.Set(b.Bytes(), []byte{meta}, pebble.NoSync)
-	if err != nil {
-		return err
-	}
-	return nil
+	return rw.db.Set(b.Bytes(), []byte{meta}, pebble.NoSync)
 }
 
 func (rw PrefixReadWriter) IsTraceSampled(traceID string) (bool, error) {
@@ -127,9 +123,5 @@ func (rw PrefixReadWriter) DeleteTraceEvent(traceID, id string) error {
 	b.WriteString(id)
 	key := b.Bytes()
 
-	err := rw.db.Delete(key, pebble.NoSync)
-	if err != nil {
-		return err
-	}
-	return nil
+	return rw.db.Delete(key, pebble.NoSync)
 }
