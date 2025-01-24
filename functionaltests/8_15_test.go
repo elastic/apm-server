@@ -61,8 +61,7 @@ func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
 	})
 
 	var deploymentID string
-	err = tf.Output("deployment_id", &deploymentID)
-	require.NoError(t, err)
+	require.NoError(t, tf.Output("deployment_id", &deploymentID))
 	var escfg esclient.Config
 	tf.Output("apm_url", &escfg.APMServerURL)
 	tf.Output("es_url", &escfg.ElasticsearchURL)
