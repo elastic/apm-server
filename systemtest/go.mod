@@ -5,7 +5,7 @@ go 1.23.0
 require (
 	github.com/docker/docker v27.5.0+incompatible
 	github.com/docker/go-connections v0.5.0
-	github.com/elastic/apm-perf v0.0.0-20230608162138-29920c01cfd6
+	github.com/elastic/apm-perf v0.0.0-20250124090952-ba05ff8ed827
 	github.com/elastic/apm-tools v0.0.0-20240607105915-a4f490dc6959
 	github.com/elastic/go-elasticsearch/v8 v8.17.0
 	github.com/elastic/go-lumber v0.1.1
@@ -17,8 +17,8 @@ require (
 	github.com/tidwall/gjson v1.18.0
 	go.elastic.co/apm/v2 v2.6.3
 	go.elastic.co/fastjson v1.4.0
-	go.opentelemetry.io/collector/pdata v1.23.0
-	go.opentelemetry.io/collector/semconv v0.117.0
+	go.opentelemetry.io/collector/pdata v1.24.0
+	go.opentelemetry.io/collector/semconv v0.118.0
 	go.opentelemetry.io/otel v1.34.0
 	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc v1.34.0
 	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp v1.34.0
