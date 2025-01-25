@@ -21,8 +21,7 @@ const (
 	entryMetaTraceUnsampled byte = 'u'
 
 	// traceIDSeparator is the separator between trace ID and transaction / span ID
-	// It has to be smaller than characters that can be part of trace ID for pebble DeleteRange to work effectively.
-	traceIDSeparator byte = '!'
+	traceIDSeparator byte = ':'
 )
 
 var (
