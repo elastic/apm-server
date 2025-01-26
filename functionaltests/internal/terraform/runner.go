@@ -84,7 +84,10 @@ func (t *Runner) Destroy(ctx context.Context, vars ...tfexec.DestroyOption) erro
 }
 
 func (t *Runner) Output(name string, res any) error {
-	o := t.outputs[name]
+	o, ok := t.outputs[name]
+	if !ok {
+		return fmt.Errorf("output named %s not found", name)
+	}
 	if err := json.Unmarshal(o.Value, res); err != nil {
 		return fmt.Errorf("cannot unmarshal output: %w", err)
 	}

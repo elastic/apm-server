@@ -41,7 +41,7 @@ func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
 	start := time.Now()
 	ctx := context.Background()
 
-	t.Log("creating deploment with terraform")
+	t.Log("creating deployment with terraform")
 	tf, err := terraform.New(t, t.Name())
 	require.NoError(t, err)
 	ecTarget := terraform.Var("ec_target", *target)
@@ -63,11 +63,11 @@ func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
 	var deploymentID string
 	require.NoError(t, tf.Output("deployment_id", &deploymentID))
 	var escfg esclient.Config
-	tf.Output("apm_url", &escfg.APMServerURL)
-	tf.Output("es_url", &escfg.ElasticsearchURL)
-	tf.Output("username", &escfg.Username)
-	tf.Output("password", &escfg.Password)
-	tf.Output("kb_url", &escfg.KibanaURL)
+	require.NoError(t, tf.Output("apm_url", &escfg.APMServerURL))
+	require.NoError(t, tf.Output("es_url", &escfg.ElasticsearchURL))
+	require.NoError(t, tf.Output("username", &escfg.Username))
+	require.NoError(t, tf.Output("password", &escfg.Password))
+	require.NoError(t, tf.Output("kb_url", &escfg.KibanaURL))
 
 	t.Logf("created deployment %s", escfg.KibanaURL)
 
