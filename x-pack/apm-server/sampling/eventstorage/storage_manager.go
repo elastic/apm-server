@@ -151,12 +151,14 @@ func (sm *StorageManager) savePartitionID(pid int) error {
 }
 
 func (sm *StorageManager) Size() (lsm, vlog int64) {
-	// FIXME: stop calling it vlog
-	// FIXME: separate WAL usage?
+	// TODO(carsonip): this is reporting lsm and vlog for legacy reasons.
+	// vlog is always 0 because pebble does not have a vlog.
+	// Update this to report a more helpful size to monitoring.
 	return int64(sm.DiskUsage()), 0
 }
 
 func (sm *StorageManager) DiskUsage() uint64 {
+	// FIXME: measure overhead
 	return sm.eventDB.Metrics().DiskSpaceUsage() + sm.decisionDB.Metrics().DiskSpaceUsage()
 }
 

@@ -73,6 +73,7 @@ func NewStorageLimitReadWriter(checker storageLimitChecker, nextRW RW) StorageLi
 func (s StorageLimitReadWriter) checkStorageLimit() error {
 	usage := s.checker.DiskUsage()
 	limit := s.checker.StorageLimit()
+	// FIXME: if limit is 0, skip DiskUsage call
 	if limit != 0 && usage >= limit {
 		return fmt.Errorf("%w (current: %d, limit %d)", ErrLimitReached, usage, limit)
 	}
