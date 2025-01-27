@@ -34,6 +34,9 @@ const (
 	MemBytes
 	ActiveEvents
 	TotalEvents
+	IntakeEventsAccepted
+	IntakeEventsErrorsInvalid
+	IntakeEventsErrorsTooLarge
 	TransactionsProcessed
 	SpansProcessed
 	MetricsProcessed
@@ -154,6 +157,9 @@ func (c *Collector) accumulate(e expvar) {
 	c.processMetric(ActiveEvents, e.ActiveEvents)
 	c.processMetric(RSSMemoryBytes, e.RSSMemoryBytes)
 	c.processMetric(AvailableBulkRequests, e.AvailableBulkRequests)
+	c.processMetric(IntakeEventsAccepted, e.IntakeEventsAccepted)
+	c.processMetric(IntakeEventsErrorsInvalid, e.IntakeEventsErrorsInvalid)
+	c.processMetric(IntakeEventsErrorsTooLarge, e.IntakeEventsErrorsTooLarge)
 	c.processMetric(TransactionsProcessed, e.TransactionsProcessed)
 	c.processMetric(SpansProcessed, e.SpansProcessed)
 	c.processMetric(MetricsProcessed, e.MetricsProcessed)
