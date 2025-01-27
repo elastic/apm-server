@@ -77,18 +77,11 @@ type StorageManager struct {
 
 // NewStorageManager returns a new StorageManager with pebble DB at storageDir.
 func NewStorageManager(storageDir string, opts ...StorageManagerOptions) (*StorageManager, error) {
-	// We need to keep an extra partition as buffer to respect the TTL,
-	// as the moving window needs to cover at least TTL at all times,
-	// where the moving window is defined as:
-	// all active partitions excluding current partition + duration since the start of current partition
-	activePartitions := partitionsPerTTL + 1
-
 	sm := &StorageManager{
-		storageDir:  storageDir,
-		runCh:       make(chan struct{}, 1),
-		logger:      logp.NewLogger(logs.Sampling),
-		codec:       ProtobufCodec{},
-		partitioner: NewPartitioner(activePartitions),
+		storageDir: storageDir,
+		runCh:      make(chan struct{}, 1),
+		logger:     logp.NewLogger(logs.Sampling),
+		codec:      ProtobufCodec{},
 	}
 	for _, opt := range opts {
 		opt(sm)
@@ -96,12 +89,6 @@ func NewStorageManager(storageDir string, opts ...StorageManagerOptions) (*Stora
 	err := sm.reset()
 	if err != nil {
 		return nil, err
-	}
-
-	if pid, err := sm.loadPartitionID(); err != nil {
-		sm.logger.With(logp.Error(err)).Warn("failed to load partition ID")
-	} else {
-		sm.partitioner.SetCurrentID(pid)
 	}
 
 	return sm, nil
@@ -114,14 +101,29 @@ func (sm *StorageManager) reset() error {
 		return err
 	}
 	sm.eventDB = eventDB
-	sm.eventStorage = New(&wrappedDB{partitioner: sm.partitioner, db: sm.eventDB}, sm.codec)
 
 	decisionDB, err := OpenDecisionPebble(sm.storageDir)
 	if err != nil {
 		return err
 	}
 	sm.decisionDB = decisionDB
-	sm.decisionStorage = New(&wrappedDB{partitioner: sm.partitioner, db: sm.decisionDB}, sm.codec)
+
+	// Only recreate partitioner on initial create
+	if sm.partitioner == nil {
+		var currentPID int
+		if currentPID, err = sm.loadPartitionID(); err != nil {
+			sm.logger.With(logp.Error(err)).Warn("failed to load partition ID")
+		}
+		// We need to keep an extra partition as buffer to respect the TTL,
+		// as the moving window needs to cover at least TTL at all times,
+		// where the moving window is defined as:
+		// all active partitions excluding current partition + duration since the start of current partition
+		activePartitions := partitionsPerTTL + 1
+		sm.partitioner = NewPartitioner(activePartitions, currentPID)
+	}
+
+	sm.eventStorage = New(sm.eventDB, sm.partitioner, sm.codec)
+	sm.decisionStorage = New(sm.decisionDB, sm.partitioner, sm.codec)
 
 	return nil
 }
@@ -225,7 +227,7 @@ func (sm *StorageManager) RotatePartitions() error {
 		return err
 	}
 
-	// FIXME: potential race, wait for a bit before deleting?
+	// No lock is needed here as the only writer to sm.partitioner is exactly this function.
 	pidToDelete := sm.partitioner.Inactive()
 	lbPrefix := byte(pidToDelete)
 

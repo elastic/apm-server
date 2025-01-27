@@ -13,15 +13,15 @@ import (
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage"
 )
 
-func TestPartitioner(t *testing.T) {
-	iterToSlice := func(it iter.Seq[int]) (s []int) {
-		for i := range it {
-			s = append(s, i)
-		}
-		return
+func iterToSlice[T any](it iter.Seq[T]) (s []T) {
+	for i := range it {
+		s = append(s, i)
 	}
+	return
+}
 
-	p := eventstorage.NewPartitioner(2) // partition id 0, 1, 2
+func TestPartitioner(t *testing.T) {
+	p := eventstorage.NewPartitioner(2, 0) // partition id 0, 1, 2
 
 	assert.Equal(t, 0, p.Current())
 	assert.Equal(t, 1, p.Inactive())
@@ -47,4 +47,12 @@ func TestPartitioner(t *testing.T) {
 	assert.Equal(t, 0, p.Current())
 	assert.Equal(t, 1, p.Inactive())
 	assert.Equal(t, []int{0, 2}, iterToSlice(p.Actives()))
+}
+
+func TestPartitionerCurrentID(t *testing.T) {
+	p := eventstorage.NewPartitioner(2, 1)
+
+	assert.Equal(t, 1, p.Current())
+	assert.Equal(t, 2, p.Inactive())
+	assert.Equal(t, []int{1, 0}, iterToSlice(p.Actives()))
 }

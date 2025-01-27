@@ -6,7 +6,7 @@ package eventstorage
 
 import (
 	"iter"
-	"sync/atomic"
+	"sync"
 )
 
 const (
@@ -30,21 +30,17 @@ const (
 // current
 type Partitioner struct {
 	total   int // length of the ring
-	current atomic.Int32
+	current int
+	mu      sync.RWMutex
 }
 
 // NewPartitioner returns a partitioner with `actives` number of active partitions.
-func NewPartitioner(actives int) *Partitioner {
+func NewPartitioner(actives, currentID int) *Partitioner {
 	total := actives + 1 // actives + 1 inactive
 	if total >= maxTotalPartitions {
 		panic("too many partitions")
 	}
-	return &Partitioner{total: total}
-}
-
-// SetCurrentID sets the input partition ID as current partition.
-func (p *Partitioner) SetCurrentID(current int) {
-	p.current.Store(int32(current))
+	return &Partitioner{total: total, current: currentID}
 }
 
 // Rotate rotates partitions to the right by 1 position and
@@ -59,15 +55,17 @@ func (p *Partitioner) SetCurrentID(current int) {
 // A-A-I-A
 // ..^....
 func (p *Partitioner) Rotate() int {
-	newCurrent := (int(p.current.Load()) + 1) % p.total
-	p.current.Store(int32(newCurrent))
-	return newCurrent
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	p.current = (p.current + 1) % p.total
+	return p.current
 }
 
 // Actives returns an iterator containing all active partitions.
 // It contains total - 1 partitions.
+// Callers should obtain p.mu.RLock when using the returned PIDs.
 func (p *Partitioner) Actives() iter.Seq[int] {
-	cur := int(p.current.Load())
+	cur := p.current
 	return func(yield func(int) bool) {
 		for i := 0; i < p.total-1; i++ {
 			if !yield((cur + p.total - i) % p.total) {
@@ -78,11 +76,13 @@ func (p *Partitioner) Actives() iter.Seq[int] {
 }
 
 // Inactive returns the ID of the inactive partition.
+// Callers should obtain p.mu.RLock when using the returned PID.
 func (p *Partitioner) Inactive() int {
-	return (int(p.current.Load()) + 1) % p.total
+	return (p.current + 1) % p.total
 }
 
 // Current returns the ID of the current partition (rightmost active).
+// Callers should obtain p.mu.RLock when using the returned PID.
 func (p *Partitioner) Current() int {
-	return int(p.current.Load())
+	return p.current
 }

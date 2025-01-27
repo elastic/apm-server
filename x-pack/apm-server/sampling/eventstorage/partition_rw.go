@@ -17,7 +17,9 @@ type PartitionReadWriter struct {
 
 // WriteTraceSampled records the tail-sampling decision for the given trace ID.
 func (rw *PartitionReadWriter) WriteTraceSampled(traceID string, sampled bool) error {
-	pid := rw.s.db.WritePartition()
+	rw.s.partitioner.mu.RLock()
+	defer rw.s.partitioner.mu.RUnlock()
+	pid := rw.s.partitioner.Current()
 	return NewPrefixReadWriter(rw.s.db, byte(pid), rw.s.codec).WriteTraceSampled(traceID, sampled)
 }
 
@@ -30,8 +32,10 @@ func (rw *PartitionReadWriter) WriteTraceSampled(traceID string, sampled bool) e
 // 1. when a remote sampling decision is received from pubsub
 // 2. (hot path) when a transaction / span comes in, check if a sampling decision has already been made
 func (rw *PartitionReadWriter) IsTraceSampled(traceID string) (bool, error) {
+	rw.s.partitioner.mu.RLock()
+	defer rw.s.partitioner.mu.RUnlock()
 	var errs []error
-	for pid := range rw.s.db.ReadPartitions() {
+	for pid := range rw.s.partitioner.Actives() {
 		sampled, err := NewPrefixReadWriter(rw.s.db, byte(pid), rw.s.codec).IsTraceSampled(traceID)
 		if err == nil {
 			return sampled, nil
@@ -47,15 +51,19 @@ func (rw *PartitionReadWriter) IsTraceSampled(traceID string) (bool, error) {
 
 // WriteTraceEvent writes a trace event to storage.
 func (rw *PartitionReadWriter) WriteTraceEvent(traceID, id string, event *modelpb.APMEvent) error {
-	pid := rw.s.db.WritePartition()
+	rw.s.partitioner.mu.RLock()
+	defer rw.s.partitioner.mu.RUnlock()
+	pid := rw.s.partitioner.Current()
 	return NewPrefixReadWriter(rw.s.db, byte(pid), rw.s.codec).WriteTraceEvent(traceID, id, event)
 }
 
 // DeleteTraceEvent deletes the trace event from storage.
 func (rw *PartitionReadWriter) DeleteTraceEvent(traceID, id string) error {
+	rw.s.partitioner.mu.RLock()
+	defer rw.s.partitioner.mu.RUnlock()
 	// FIXME: use range delete
 	var errs []error
-	for pid := range rw.s.db.ReadPartitions() {
+	for pid := range rw.s.partitioner.Actives() {
 		err := NewPrefixReadWriter(rw.s.db, byte(pid), rw.s.codec).DeleteTraceEvent(traceID, id)
 		if err != nil {
 			errs = append(errs, err)
@@ -66,8 +74,10 @@ func (rw *PartitionReadWriter) DeleteTraceEvent(traceID, id string) error {
 
 // ReadTraceEvents reads trace events with the given trace ID from storage into out.
 func (rw *PartitionReadWriter) ReadTraceEvents(traceID string, out *modelpb.Batch) error {
+	rw.s.partitioner.mu.RLock()
+	defer rw.s.partitioner.mu.RUnlock()
 	var errs []error
-	for pid := range rw.s.db.ReadPartitions() {
+	for pid := range rw.s.partitioner.Actives() {
 		err := NewPrefixReadWriter(rw.s.db, byte(pid), rw.s.codec).ReadTraceEvents(traceID, out)
 		if err != nil {
 			errs = append(errs, err)
