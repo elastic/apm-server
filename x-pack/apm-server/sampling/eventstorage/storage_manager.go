@@ -258,13 +258,3 @@ func (sm *StorageManager) NewReadWriter() StorageLimitReadWriter {
 		decisionRW: sm.decisionStorage.NewReadWriter(),
 	})
 }
-
-// NewBypassReadWriter returns a SplitReadWriter directly reading and writing to the database,
-// bypassing any wrappers.
-// For testing only. Useful for checking if data is actually persisted to the DB.
-func (sm *StorageManager) NewBypassReadWriter() SplitReadWriter {
-	return SplitReadWriter{
-		eventRW:    sm.eventStorage.NewReadWriter(),
-		decisionRW: sm.decisionStorage.NewReadWriter(),
-	}
-}

@@ -18,8 +18,7 @@ import (
 func BenchmarkWriteTransaction(b *testing.B) {
 	test := func(b *testing.B, codec eventstorage.Codec, bigTX bool) {
 		sm := newStorageManager(b, eventstorage.WithCodec(codec))
-		readWriter := sm.NewBypassReadWriter()
-		defer readWriter.Close()
+		readWriter := sm.NewReadWriter()
 
 		traceID := hex.EncodeToString([]byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16})
 		transactionID := hex.EncodeToString([]byte{1, 2, 3, 4, 5, 6, 7, 8})
@@ -80,8 +79,7 @@ func BenchmarkReadEvents(b *testing.B) {
 		for _, count := range counts {
 			b.Run(fmt.Sprintf("%d events", count), func(b *testing.B) {
 				sm := newStorageManager(b, eventstorage.WithCodec(codec))
-				readWriter := sm.NewBypassReadWriter()
-				defer readWriter.Close()
+				readWriter := sm.NewReadWriter()
 
 				for i := 0; i < count; i++ {
 					transactionID := uuid.Must(uuid.NewV4()).String()
@@ -156,8 +154,7 @@ func BenchmarkReadEventsHit(b *testing.B) {
 		for _, hit := range []bool{false, true} {
 			b.Run(fmt.Sprintf("hit=%v", hit), func(b *testing.B) {
 				sm := newStorageManager(b)
-				readWriter := sm.NewBypassReadWriter()
-				defer readWriter.Close()
+				readWriter := sm.NewReadWriter()
 
 				traceIDs := make([]string, b.N)
 
@@ -182,16 +179,13 @@ func BenchmarkReadEventsHit(b *testing.B) {
 					}
 				}
 
-				readWriter.Close()
-
 				if reloadDB {
 					if err := sm.Reload(); err != nil {
 						b.Fatal(err)
 					}
 				}
 
-				readWriter = sm.NewBypassReadWriter()
-				defer readWriter.Close()
+				readWriter = sm.NewReadWriter()
 
 				b.ResetTimer()
 				var batch modelpb.Batch
@@ -230,8 +224,7 @@ func BenchmarkIsTraceSampled(b *testing.B) {
 
 	// Test with varying numbers of events in the trace.
 	sm := newStorageManager(b)
-	readWriter := sm.NewBypassReadWriter()
-	defer readWriter.Close()
+	readWriter := sm.NewReadWriter()
 
 	if err := readWriter.WriteTraceSampled(sampledTraceUUID.String(), true); err != nil {
 		b.Fatal(err)

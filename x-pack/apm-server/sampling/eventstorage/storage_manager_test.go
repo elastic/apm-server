@@ -30,7 +30,7 @@ func newStorageManagerNoCleanup(tb testing.TB, path string, opts ...eventstorage
 
 func TestStorageManager_samplingDecisionTTL(t *testing.T) {
 	sm := newStorageManager(t)
-	rw := sm.NewBypassReadWriter()
+	rw := sm.NewReadWriter()
 	traceID := uuid.Must(uuid.NewV4()).String()
 	err := rw.WriteTraceSampled(traceID, true)
 	assert.NoError(t, err)
@@ -63,7 +63,7 @@ func TestStorageManager_samplingDecisionTTL(t *testing.T) {
 
 func TestStorageManager_eventTTL(t *testing.T) {
 	sm := newStorageManager(t)
-	rw := sm.NewBypassReadWriter()
+	rw := sm.NewReadWriter()
 	traceID := uuid.Must(uuid.NewV4()).String()
 	txnID := uuid.Must(uuid.NewV4()).String()
 	transaction := makeTransaction(txnID, traceID)

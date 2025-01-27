@@ -59,17 +59,15 @@ func TestProcessAlreadyTailSampled(t *testing.T) {
 	// subsequent events in the trace will be reported immediately.
 	trace1 := modelpb.Trace{Id: "0102030405060708090a0b0c0d0e0f10"}
 	trace2 := modelpb.Trace{Id: "0102030405060708090a0b0c0d0e0f11"}
-	writer := config.DB.NewBypassReadWriter()
+	writer := config.DB.NewReadWriter()
 	assert.NoError(t, writer.WriteTraceSampled(trace2.Id, true))
-	writer.Close()
 
 	// simulate 2 TTL
 	assert.NoError(t, config.DB.RotatePartitions())
 	assert.NoError(t, config.DB.RotatePartitions())
 
-	writer = config.DB.NewBypassReadWriter()
+	writer = config.DB.NewReadWriter()
 	assert.NoError(t, writer.WriteTraceSampled(trace1.Id, true))
-	writer.Close()
 
 	require.NoError(t, config.DB.Flush())
 
@@ -130,8 +128,7 @@ func TestProcessAlreadyTailSampled(t *testing.T) {
 	// Stop the processor and flush global storage so we can access the database.
 	assert.NoError(t, processor.Stop(context.Background()))
 	assert.NoError(t, config.DB.Flush())
-	reader := config.DB.NewBypassReadWriter()
-	defer reader.Close()
+	reader := config.DB.NewReadWriter()
 
 	batch = nil
 	err = reader.ReadTraceEvents(trace1.Id, &batch)
@@ -249,8 +246,7 @@ func TestProcessLocalTailSampling(t *testing.T) {
 			// Stop the processor and flush global storage so we can access the database.
 			assert.NoError(t, processor.Stop(context.Background()))
 			assert.NoError(t, config.DB.Flush())
-			reader := config.DB.NewBypassReadWriter()
-			defer reader.Close()
+			reader := config.DB.NewReadWriter()
 
 			sampled, err := reader.IsTraceSampled(sampledTraceID)
 			assert.NoError(t, err)
@@ -313,8 +309,7 @@ func TestProcessLocalTailSamplingUnsampled(t *testing.T) {
 	// Stop the processor so we can access the database.
 	assert.NoError(t, processor.Stop(context.Background()))
 	assert.NoError(t, config.DB.Flush())
-	reader := config.DB.NewBypassReadWriter()
-	defer reader.Close()
+	reader := config.DB.NewReadWriter()
 
 	var anyUnsampled bool
 	for _, traceID := range traceIDs {
@@ -479,8 +474,7 @@ func TestProcessRemoteTailSampling(t *testing.T) {
 
 	assert.Empty(t, cmp.Diff(trace1Events, events, protocmp.Transform()))
 
-	reader := config.DB.NewBypassReadWriter()
-	defer reader.Close()
+	reader := config.DB.NewReadWriter()
 
 	sampled, err := reader.IsTraceSampled(traceID1)
 	assert.NoError(t, err)
@@ -743,8 +737,7 @@ func TestGracefulShutdown(t *testing.T) {
 	assert.Empty(t, batch)
 	assert.NoError(t, processor.Stop(context.Background()))
 
-	reader := config.DB.NewBypassReadWriter()
-	defer reader.Close()
+	reader := config.DB.NewReadWriter()
 
 	var count int
 	for i := 0; i < totalTraces; i++ {
