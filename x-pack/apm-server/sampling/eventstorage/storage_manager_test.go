@@ -6,9 +6,11 @@ package eventstorage_test
 
 import (
 	"testing"
+	"time"
 
 	"github.com/gofrs/uuid/v5"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage"
@@ -128,4 +130,34 @@ func TestStorageManager_partitionID(t *testing.T) {
 	sampled, err := sm.NewReadWriter().IsTraceSampled(traceID)
 	assert.NoError(t, err)
 	assert.True(t, sampled)
+}
+
+func TestStorageManager_DiskUsage(t *testing.T) {
+	stopping := make(chan struct{})
+	defer close(stopping)
+	sm := newStorageManager(t)
+	go sm.Run(stopping, time.Second, 0)
+	old := sm.DiskUsage()
+
+	err := sm.NewReadWriter().WriteTraceSampled("foo", true)
+	require.NoError(t, err)
+
+	err = sm.Flush()
+	require.NoError(t, err)
+
+	assert.Eventually(t, func() bool {
+		return sm.DiskUsage() > old
+	}, 10*time.Second, 100*time.Millisecond)
+
+	old = sm.DiskUsage()
+
+	err = sm.NewReadWriter().WriteTraceEvent("foo", "bar", makeTransaction("bar", "foo"))
+	require.NoError(t, err)
+
+	err = sm.Flush()
+	require.NoError(t, err)
+
+	assert.Eventually(t, func() bool {
+		return sm.DiskUsage() > old
+	}, 10*time.Second, 100*time.Millisecond)
 }

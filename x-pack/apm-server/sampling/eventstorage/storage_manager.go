@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/cockroachdb/pebble/v2"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/apm-server/internal/logs"
 	"github.com/elastic/elastic-agent-libs/logp"
@@ -40,6 +41,9 @@ const (
 
 	// partitionerMetaKey is the key used to store partitioner metadata, e.g. last partition ID, in decision DB.
 	partitionerMetaKey = string(reservedKeyPrefix) + "partitioner"
+
+	// diskUsageFetchInterval is how often disk usage is fetched which is equivalent to how long disk usage is cached.
+	diskUsageFetchInterval = 1 * time.Second
 )
 
 type StorageManagerOptions func(*StorageManager)
@@ -69,6 +73,9 @@ type StorageManager struct {
 
 	// subscriberPosMu protects the subscriber file from concurrent RW.
 	subscriberPosMu sync.Mutex
+
+	// cachedDiskUsage is a cached result of DiskUsage
+	cachedDiskUsage atomic.Uint64
 
 	// runCh acts as a mutex to ensure only 1 Run is actively running per StorageManager.
 	// as it is possible that 2 separate Run are created by 2 TBS processors during a hot reload.
@@ -125,6 +132,8 @@ func (sm *StorageManager) reset() error {
 	sm.eventStorage = New(sm.eventDB, sm.partitioner, sm.codec)
 	sm.decisionStorage = New(sm.decisionDB, sm.partitioner, sm.codec)
 
+	sm.updateDiskUsage()
+
 	return nil
 }
 
@@ -164,9 +173,28 @@ func (sm *StorageManager) Size() (lsm, vlog int64) {
 	return int64(sm.DiskUsage()), 0
 }
 
+// DiskUsage returns the disk usage of databases in bytes.
 func (sm *StorageManager) DiskUsage() uint64 {
-	// FIXME: measure overhead
-	return sm.eventDB.Metrics().DiskSpaceUsage() + sm.decisionDB.Metrics().DiskSpaceUsage()
+	// pebble DiskSpaceUsage overhead is not high, but it adds up when performed per-event.
+	return sm.cachedDiskUsage.Load()
+}
+
+func (sm *StorageManager) updateDiskUsage() {
+	sm.cachedDiskUsage.Store(sm.eventDB.Metrics().DiskSpaceUsage() + sm.decisionDB.Metrics().DiskSpaceUsage())
+}
+
+// runDiskUsageLoop runs a loop that updates cached disk usage regularly.
+func (sm *StorageManager) runDiskUsageLoop(stopping <-chan struct{}) error {
+	ticker := time.NewTicker(diskUsageFetchInterval)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-stopping:
+			return nil
+		case <-ticker.C:
+			sm.updateDiskUsage()
+		}
+	}
 }
 
 func (sm *StorageManager) StorageLimit() uint64 {
@@ -207,7 +235,15 @@ func (sm *StorageManager) Run(stopping <-chan struct{}, ttl time.Duration, stora
 
 	sm.storageLimit.Store(storageLimit)
 
-	return sm.runTTLGCLoop(stopping, ttl)
+	g := errgroup.Group{}
+	g.Go(func() error {
+		return sm.runTTLGCLoop(stopping, ttl)
+	})
+	g.Go(func() error {
+		return sm.runDiskUsageLoop(stopping)
+	})
+
+	return g.Wait()
 }
 
 // runTTLGCLoop runs the TTL GC loop.

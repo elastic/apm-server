@@ -6,13 +6,17 @@ package eventstorage_test
 
 import (
 	"testing"
+	"time"
 
 	"github.com/gofrs/uuid/v5"
 	"github.com/stretchr/testify/require"
 )
 
 func BenchmarkStorageManager_DiskUsage(b *testing.B) {
+	stopping := make(chan struct{})
+	defer close(stopping)
 	sm := newStorageManager(b)
+	go sm.Run(stopping, time.Second, 0)
 	rw := sm.NewReadWriter()
 	for i := 0; i < 1000; i++ {
 		traceID := uuid.Must(uuid.NewV4()).String()
@@ -27,4 +31,5 @@ func BenchmarkStorageManager_DiskUsage(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		_ = sm.DiskUsage()
 	}
+	b.StopTimer()
 }
