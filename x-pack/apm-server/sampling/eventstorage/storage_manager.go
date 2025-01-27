@@ -33,7 +33,7 @@ const (
 	// such that the last entry in the previous partition is also kept for a full TTL.
 	// This means storage requirement is 2 * TTL, and it needs to read 2 keys per trace ID read.
 	// If partitionPerTTL=2, storage requirement is 1.5 * TTL at the expense of 3 reads per trace ID read.
-	partitionsPerTTL = 3
+	partitionsPerTTL = 1
 
 	// reservedKeyPrefix is the prefix of internal keys used by StorageManager
 	reservedKeyPrefix byte = '~'
