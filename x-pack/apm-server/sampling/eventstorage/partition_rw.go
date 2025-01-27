@@ -24,11 +24,12 @@ func (rw *PartitionReadWriter) WriteTraceSampled(traceID string, sampled bool) e
 // IsTraceSampled reports whether traceID belongs to a trace that is sampled
 // or unsampled. If no sampling decision has been recorded, IsTraceSampled
 // returns ErrNotFound.
+//
+// The performance of IsTraceSampled is crucial since it is in the hot path.
+// It is called
+// 1. when a remote sampling decision is received from pubsub
+// 2. (hot path) when a transaction / span comes in, check if a sampling decision has already been made
 func (rw *PartitionReadWriter) IsTraceSampled(traceID string) (bool, error) {
-	// FIXME: this needs to be fast, as it is in the hot path
-	// It should minimize disk IO on miss due to
-	// 1. (pubsub) remote sampling decision
-	// 2. (hot path) sampling decision not made yet
 	var errs []error
 	for pid := range rw.s.db.ReadPartitions() {
 		sampled, err := NewPrefixReadWriter(rw.s.db, byte(pid), rw.s.codec).IsTraceSampled(traceID)
