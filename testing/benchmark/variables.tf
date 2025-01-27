@@ -131,7 +131,7 @@ variable "standalone_moxy_instance_size" {
 }
 
 variable "standalone_apm_server_volume_type" {
-  default     = null
+  default     = "gp3"
   type        = string
   description = "Optional volume type to use for APM Server VM"
 }
