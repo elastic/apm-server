@@ -112,6 +112,8 @@ func addExpvarMetrics(result *testing.BenchmarkResult, collector *expvar.Collect
 	result.MemBytes = uint64(collector.Delta(expvar.MemBytes))
 	result.Extra["events/sec"] = float64(collector.Delta(expvar.TotalEvents)) / result.T.Seconds()
 	if detailed {
+		result.Extra["intake_events_accepted/sec"] = float64(collector.Delta(expvar.IntakeEventsAccepted)) / result.T.Seconds()
+		result.Extra["intake_events_errors/sec"] = float64(collector.Delta(expvar.IntakeEventsErrorsInvalid)+collector.Delta(expvar.IntakeEventsErrorsTooLarge)) / result.T.Seconds()
 		result.Extra["txs/sec"] = float64(collector.Delta(expvar.TransactionsProcessed)) / result.T.Seconds()
 		result.Extra["spans/sec"] = float64(collector.Delta(expvar.SpansProcessed)) / result.T.Seconds()
 		result.Extra["metrics/sec"] = float64(collector.Delta(expvar.MetricsProcessed)) / result.T.Seconds()
