@@ -32,6 +32,8 @@ import (
 	"github.com/elastic/apm-data/model/modelpb"
 )
 
+var unsupportedGRPCMetricRegistration metric.Registration
+
 // RegisterGRPCServices registers OTLP consumer services with the given gRPC server.
 func RegisterGRPCServices(
 	grpcServer *grpc.Server,
@@ -55,10 +57,12 @@ func RegisterGRPCServices(
 		"apm-server.otlp.grpc.metrics.consumer.unsupported_dropped",
 	)
 
-	// FIXME we should add an otel counter metric directly in the
+	// TODO we should add an otel counter metric directly in the
 	// apm-data consumer, then we could get rid of the callback.
-	// Otherwise callbacks will accumulate every time we reload.
-	meter.RegisterCallback(func(ctx context.Context, o metric.Observer) error {
+	if unsupportedGRPCMetricRegistration != nil {
+		unsupportedGRPCMetricRegistration.Unregister()
+	}
+	unsupportedGRPCMetricRegistration, _ = meter.RegisterCallback(func(ctx context.Context, o metric.Observer) error {
 		stats := consumer.Stats()
 		if stats.UnsupportedMetricsDropped > 0 {
 			o.ObserveInt64(grpcMetricsConsumerUnsupportedDropped, stats.UnsupportedMetricsDropped)

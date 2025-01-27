@@ -37,6 +37,8 @@ import (
 	"github.com/elastic/apm-data/model/modelpb"
 )
 
+var unsupportedHTTPMetricRegistration metric.Registration
+
 func NewHTTPHandlers(logger *zap.Logger, processor modelpb.BatchProcessor, semaphore input.Semaphore, mp metric.MeterProvider) HTTPHandlers {
 	// TODO(axw) stop assuming we have only one OTLP HTTP consumer running
 	// at any time, and instead aggregate metrics from consumers that are
@@ -53,10 +55,12 @@ func NewHTTPHandlers(logger *zap.Logger, processor modelpb.BatchProcessor, semap
 		"apm-server.otlp.http.metrics.consumer.unsupported_dropped",
 	)
 
-	// FIXME we should add an otel counter metric directly in the
+	// TODO we should add an otel counter metric directly in the
 	// apm-data consumer, then we could get rid of the callback.
-	// Otherwise callbacks will accumulate every time we reload.
-	meter.RegisterCallback(func(ctx context.Context, o metric.Observer) error {
+	if unsupportedHTTPMetricRegistration != nil {
+		unsupportedHTTPMetricRegistration.Unregister()
+	}
+	unsupportedHTTPMetricRegistration, _ = meter.RegisterCallback(func(ctx context.Context, o metric.Observer) error {
 		stats := consumer.Stats()
 		if stats.UnsupportedMetricsDropped > 0 {
 			o.ObserveInt64(httpMetricsConsumerUnsupportedDropped, stats.UnsupportedMetricsDropped)
