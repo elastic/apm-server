@@ -137,7 +137,7 @@ variable "standalone_apm_server_volume_type" {
 }
 
 variable "standalone_apm_server_volume_size" {
-  default     = null
+  default     = 60
   type        = number
   description = "Optional volume size in GB to use for APM Server VM"
 }
