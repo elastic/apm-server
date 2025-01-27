@@ -201,6 +201,8 @@ func (sm *StorageManager) Run(stopping <-chan struct{}, ttl time.Duration, stora
 	return sm.runTTLGCLoop(stopping, ttl)
 }
 
+// runTTLGCLoop runs the TTL GC loop.
+// The loop triggers a rotation on partitions at an interval based on ttl and partitionsPerTTL.
 func (sm *StorageManager) runTTLGCLoop(stopping <-chan struct{}, ttl time.Duration) error {
 	ttlGCInterval := ttl / partitionsPerTTL
 	ticker := time.NewTicker(ttlGCInterval)
