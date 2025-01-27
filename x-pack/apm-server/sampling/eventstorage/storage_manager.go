@@ -93,9 +93,9 @@ func NewStorageManager(storageDir string, opts ...StorageManagerOptions) (*Stora
 	for _, opt := range opts {
 		opt(sm)
 	}
-	err := sm.reset()
-	if err != nil {
-		return nil, err
+
+	if err := sm.reset(); err != nil {
+		return nil, fmt.Errorf("storage manager reset error: %w", err)
 	}
 
 	return sm, nil
@@ -105,13 +105,13 @@ func NewStorageManager(storageDir string, opts ...StorageManagerOptions) (*Stora
 func (sm *StorageManager) reset() error {
 	eventDB, err := OpenEventPebble(sm.storageDir)
 	if err != nil {
-		return err
+		return fmt.Errorf("open event db error: %w", err)
 	}
 	sm.eventDB = eventDB
 
 	decisionDB, err := OpenDecisionPebble(sm.storageDir)
 	if err != nil {
-		return err
+		return fmt.Errorf("open decision db error: %w", err)
 	}
 	sm.decisionDB = decisionDB
 
@@ -119,7 +119,7 @@ func (sm *StorageManager) reset() error {
 	if sm.partitioner == nil {
 		var currentPID int
 		if currentPID, err = sm.loadPartitionID(); err != nil {
-			sm.logger.With(logp.Error(err)).Warn("failed to load partition ID")
+			sm.logger.With(logp.Error(err)).Warn("failed to load partition ID, using 0 instead")
 		}
 		// We need to keep an extra partition as buffer to respect the TTL,
 		// as the moving window needs to cover at least TTL at all times,
@@ -202,7 +202,10 @@ func (sm *StorageManager) StorageLimit() uint64 {
 }
 
 func (sm *StorageManager) Flush() error {
-	return errors.Join(sm.eventDB.Flush(), sm.decisionDB.Flush())
+	return errors.Join(
+		wrapNonNilErr("event db flush error: %w", sm.eventDB.Flush()),
+		wrapNonNilErr("decision db flush error: %w", sm.decisionDB.Flush()),
+	)
 }
 
 func (sm *StorageManager) Close() error {
@@ -210,7 +213,12 @@ func (sm *StorageManager) Close() error {
 }
 
 func (sm *StorageManager) close() error {
-	return errors.Join(sm.eventDB.Flush(), sm.decisionDB.Flush(), sm.eventDB.Close(), sm.decisionDB.Close())
+	return errors.Join(
+		wrapNonNilErr("event db flush error: %w", sm.eventDB.Flush()),
+		wrapNonNilErr("decision db flush error: %w", sm.decisionDB.Flush()),
+		wrapNonNilErr("event db close error: %w", sm.eventDB.Close()),
+		wrapNonNilErr("decision db close error: %w", sm.decisionDB.Close()),
+	)
 }
 
 // Reload flushes out pending disk writes to disk by reloading the database.
@@ -282,10 +290,10 @@ func (sm *StorageManager) RotatePartitions() error {
 	ub := []byte{lbPrefix + 1} // Do not use % here as ub MUST BE greater than lb
 
 	return errors.Join(
-		sm.eventDB.DeleteRange(lb, ub, pebble.NoSync),
-		sm.decisionDB.DeleteRange(lb, ub, pebble.NoSync),
-		sm.eventDB.Compact(lb, ub, false),
-		sm.decisionDB.Compact(lb, ub, false),
+		wrapNonNilErr("event db delete range error: %w", sm.eventDB.DeleteRange(lb, ub, pebble.NoSync)),
+		wrapNonNilErr("decision db delete range error: %w", sm.decisionDB.DeleteRange(lb, ub, pebble.NoSync)),
+		wrapNonNilErr("event db compact error: %w", sm.eventDB.Compact(lb, ub, false)),
+		wrapNonNilErr("decision db compact error: %w", sm.decisionDB.Compact(lb, ub, false)),
 	)
 }
 
@@ -306,4 +314,12 @@ func (sm *StorageManager) NewReadWriter() StorageLimitReadWriter {
 		eventRW:    sm.eventStorage.NewReadWriter(),
 		decisionRW: sm.decisionStorage.NewReadWriter(),
 	})
+}
+
+// wrapNonNilErr only wraps an error with format if the error is not nil.
+func wrapNonNilErr(format string, err error) error {
+	if err == nil {
+		return nil
+	}
+	return fmt.Errorf(format, err)
 }
