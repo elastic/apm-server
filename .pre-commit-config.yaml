@@ -4,5 +4,6 @@ repos:
     hooks:
     -   id: check-executables-have-shebangs
     -   id: check-shebang-scripts-are-executable
+        exclude: (.*/.*.(tmpl|tftpl)$)
     -   id: check-merge-conflict
         args: ['--assume-in-merge']
