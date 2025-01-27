@@ -22,7 +22,21 @@ fi
 cp -rf . ../apm-server
 cd ../apm-server
 
+<<<<<<< HEAD
 PLATFORMS=$PLATFORMS PACKAGES=$PACKAGES \
+=======
+if [[ ${TYPE} == "staging" ]]; then
+  echo "--- Prepare the Elastic Qualifier"
+  # NOTE: load the shared functions
+  # shellcheck disable=SC1091
+  source .buildkite/scripts/utils.sh
+  dra_process_other_branches
+  ELASTIC_QUALIFIER=$(fetch_elastic_qualifier "$DRA_BRANCH")
+  export ELASTIC_QUALIFIER
+fi
+
+echo "--- Run $MAKE_GOAL for $DRA_BRANCH"
+>>>>>>> ffba995e (dra: use a google bucket that contains the elastic qualifier (#15350))
 make $MAKE_GOAL
 
 # Context switch back to the previous workspace
