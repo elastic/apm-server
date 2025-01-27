@@ -263,6 +263,7 @@ func wrapServer(args beater.ServerParams, runServer beater.RunServerFunc) (beate
 func closeBadger() error {
 	if badgerDBMetricRegistration != nil {
 		badgerDBMetricRegistration.Unregister()
+		badgerDBMetricRegistration = nil
 	}
 	if badgerDB != nil {
 		db := badgerDB
