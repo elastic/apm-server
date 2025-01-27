@@ -173,7 +173,7 @@ func (c *Collector) accumulate(e expvar) {
 	c.processMetric(HeapAlloc, int64(e.HeapAlloc))
 	c.processMetric(HeapObjects, int64(e.HeapObjects))
 	c.processMetric(TBSLsmSize, e.TBSLsmSize)
-	c.processMetric(TBSVlogSize, e.TBSVlogSize) // FIXME: update to use new metrics
+	c.processMetric(TBSVlogSize, e.TBSVlogSize)
 }
 
 func (c *Collector) processMetric(m Metric, val int64) {

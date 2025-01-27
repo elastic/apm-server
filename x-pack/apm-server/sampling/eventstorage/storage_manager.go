@@ -151,9 +151,16 @@ func (sm *StorageManager) savePartitionID(pid int) error {
 }
 
 func (sm *StorageManager) Size() (lsm, vlog int64) {
-	// TODO(carsonip): this is reporting lsm and vlog for legacy reasons.
+	// This is reporting lsm and vlog for legacy reasons.
 	// vlog is always 0 because pebble does not have a vlog.
-	// Update this to report a more helpful size to monitoring.
+	// Keeping this legacy structure such that the metrics are comparable across versions,
+	// and we don't need to update the tooling, e.g. kibana dashboards.
+	//
+	// TODO(carsonip): Update this to report a more helpful size to monitoring,
+	// maybe broken down into event DB vs decision DB, and LSM tree vs WAL vs misc.
+	// Also remember to update
+	// - x-pack/apm-server/sampling/processor.go:CollectMonitoring
+	// - systemtest/benchtest/expvar/metrics.go
 	return int64(sm.DiskUsage()), 0
 }
 
