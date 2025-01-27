@@ -61,7 +61,6 @@ func (rw *PartitionReadWriter) WriteTraceEvent(traceID, id string, event *modelp
 func (rw *PartitionReadWriter) DeleteTraceEvent(traceID, id string) error {
 	rw.s.partitioner.mu.RLock()
 	defer rw.s.partitioner.mu.RUnlock()
-	// FIXME: use range delete
 	var errs []error
 	for pid := range rw.s.partitioner.Actives() {
 		err := NewPrefixReadWriter(rw.s.db, byte(pid), rw.s.codec).DeleteTraceEvent(traceID, id)

@@ -501,6 +501,10 @@ func (p *Processor) Run() error {
 					// deleted. We delete events from local storage so
 					// we don't publish duplicates; delivery is therefore
 					// at-most-once, not guaranteed.
+					//
+					// TODO(carsonip): pebble supports range deletes and may be better than
+					// deleting events separately, but as we do not use transactions, it is
+					// possible to race and delete something that is not read.
 					for _, event := range events {
 						switch event.Type() {
 						case modelpb.TransactionEventType:
