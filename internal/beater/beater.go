@@ -36,7 +36,7 @@ import (
 	"go.elastic.co/apm/module/apmotel/v2"
 	"go.elastic.co/apm/v2"
 	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/sdk/metric"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 	"golang.org/x/sync/semaphore"
@@ -90,9 +90,7 @@ type Runner struct {
 	outputConfig              agentconfig.Namespace
 	elasticsearchOutputConfig *agentconfig.C
 
-	meterProvider  metric.MeterProvider
-	metricGatherer *apmotel.Gatherer
-	listener       net.Listener
+	listener net.Listener
 }
 
 // RunnerParams holds parameters for NewRunner.
@@ -103,13 +101,6 @@ type RunnerParams struct {
 
 	// Logger holds a logger to use for logging throughout the APM Server.
 	Logger *logp.Logger
-
-	// MeterProvider holds a metric.MeterProvider that can be used for
-	// creating metrics.
-	MeterProvider metric.MeterProvider
-
-	// MetricsGatherer holds an apmotel.Gatherer
-	MetricsGatherer *apmotel.Gatherer
 
 	// WrapServer holds an optional WrapServerFunc, for wrapping the
 	// ServerParams and RunServerFunc used to run the APM Server.
@@ -159,9 +150,7 @@ func NewRunner(args RunnerParams) (*Runner, error) {
 		outputConfig:              unpackedConfig.Output,
 		elasticsearchOutputConfig: elasticsearchOutputConfig,
 
-		meterProvider:  args.MeterProvider,
-		metricGatherer: args.MetricsGatherer,
-		listener:       listener,
+		listener: listener,
 	}, nil
 }
 
@@ -292,7 +281,15 @@ func (s *Runner) Run(ctx context.Context) error {
 	}
 	otel.SetTracerProvider(tracerProvider)
 
-	tracer.RegisterMetricsGatherer(s.metricGatherer)
+	exporter, err := apmotel.NewGatherer()
+	if err != nil {
+		return err
+	}
+	meterProvider := metric.NewMeterProvider(
+		metric.WithReader(exporter),
+	)
+	otel.SetMeterProvider(meterProvider)
+	tracer.RegisterMetricsGatherer(exporter)
 
 	// Ensure the libbeat output and go-elasticsearch clients do not index
 	// any events to Elasticsearch before the integration is ready.
@@ -374,7 +371,7 @@ func (s *Runner) Run(ctx context.Context) error {
 		apmgrpc.NewUnaryServerInterceptor(apmgrpc.WithRecovery(), apmgrpc.WithTracer(tracer)),
 		interceptors.ClientMetadata(),
 		interceptors.Logging(gRPCLogger),
-		interceptors.Metrics(gRPCLogger, s.meterProvider),
+		interceptors.Metrics(gRPCLogger, nil),
 		interceptors.Timeout(),
 		interceptors.Auth(authenticator),
 		interceptors.AnonymousRateLimit(ratelimitStore),
@@ -682,9 +679,9 @@ func (s *Runner) newFinalBatchProcessor(
 	newElasticsearchClient func(cfg *elasticsearch.Config) (*elasticsearch.Client, error),
 	memLimit float64,
 ) (modelpb.BatchProcessor, func(context.Context) error, error) {
+	monitoring.Default.Remove("libbeat")
+	libbeatMonitoringRegistry := monitoring.Default.NewRegistry("libbeat")
 	if s.elasticsearchOutputConfig == nil {
-		monitoring.Default.Remove("libbeat")
-		libbeatMonitoringRegistry := monitoring.Default.GetRegistry("libbeat")
 		return s.newLibbeatFinalBatchProcessor(tracer, libbeatMonitoringRegistry)
 	}
 
@@ -698,7 +695,7 @@ func (s *Runner) newFinalBatchProcessor(
 	monitoring.NewString(outputRegistry, "name").Set("elasticsearch")
 
 	// Create the docappender and Elasticsearch config
-	appenderCfg, esCfg, err := s.newDocappenderConfig(tracer, s.meterProvider, memLimit)
+	appenderCfg, esCfg, err := s.newDocappenderConfig(tracer, memLimit)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -711,10 +708,65 @@ func (s *Runner) newFinalBatchProcessor(
 		return nil, nil, err
 	}
 
+	// Install our own libbeat-compatible metrics callback which uses the docappender stats.
+	// All the metrics below are required to be reported to be able to display all relevant
+	// fields in the Stack Monitoring UI.
+	monitoring.NewFunc(libbeatMonitoringRegistry, "output.write", func(_ monitoring.Mode, v monitoring.Visitor) {
+		v.OnRegistryStart()
+		defer v.OnRegistryFinished()
+		v.OnKey("bytes")
+		v.OnInt(appender.Stats().BytesTotal)
+	})
+	outputType := monitoring.NewString(libbeatMonitoringRegistry.GetRegistry("output"), "type")
+	outputType.Set("elasticsearch")
+	monitoring.NewFunc(libbeatMonitoringRegistry, "output.events", func(_ monitoring.Mode, v monitoring.Visitor) {
+		v.OnRegistryStart()
+		defer v.OnRegistryFinished()
+		stats := appender.Stats()
+		v.OnKey("acked")
+		v.OnInt(stats.Indexed)
+		v.OnKey("active")
+		v.OnInt(stats.Active)
+		v.OnKey("batches")
+		v.OnInt(stats.BulkRequests)
+		v.OnKey("failed")
+		v.OnInt(stats.Failed)
+		v.OnKey("toomany")
+		v.OnInt(stats.TooManyRequests)
+		v.OnKey("total")
+		v.OnInt(stats.Added)
+	})
+	monitoring.NewFunc(libbeatMonitoringRegistry, "pipeline.events", func(_ monitoring.Mode, v monitoring.Visitor) {
+		v.OnRegistryStart()
+		defer v.OnRegistryFinished()
+		v.OnKey("total")
+		v.OnInt(appender.Stats().Added)
+	})
+	monitoring.Default.Remove("output")
+	monitoring.NewFunc(monitoring.Default, "output.elasticsearch.bulk_requests", func(_ monitoring.Mode, v monitoring.Visitor) {
+		v.OnRegistryStart()
+		defer v.OnRegistryFinished()
+		stats := appender.Stats()
+		v.OnKey("available")
+		v.OnInt(stats.AvailableBulkRequests)
+		v.OnKey("completed")
+		v.OnInt(stats.BulkRequests)
+	})
+	monitoring.NewFunc(monitoring.Default, "output.elasticsearch.indexers", func(_ monitoring.Mode, v monitoring.Visitor) {
+		v.OnRegistryStart()
+		defer v.OnRegistryFinished()
+		stats := appender.Stats()
+		v.OnKey("active")
+		v.OnInt(stats.IndexersActive)
+		v.OnKey("created")
+		v.OnInt(stats.IndexersCreated)
+		v.OnKey("destroyed")
+		v.OnInt(stats.IndexersDestroyed)
+	})
 	return newDocappenderBatchProcessor(appender), appender.Close, nil
 }
 
-func (s *Runner) newDocappenderConfig(tracer *apm.Tracer, mp metric.MeterProvider, memLimit float64) (
+func (s *Runner) newDocappenderConfig(tracer *apm.Tracer, memLimit float64) (
 	docappender.Config, *elasticsearch.Config, error,
 ) {
 	esConfig := struct {
@@ -759,7 +811,6 @@ func (s *Runner) newDocappenderConfig(tracer *apm.Tracer, mp metric.MeterProvide
 		FlushBytes:        flushBytes,
 		FlushInterval:     esConfig.FlushInterval,
 		Tracer:            tracer,
-		MeterProvider:     mp,
 		MaxRequests:       esConfig.MaxRequests,
 		Scaling:           scalingCfg,
 		Logger:            zap.New(s.logger.Core(), zap.WithCaller(true)),

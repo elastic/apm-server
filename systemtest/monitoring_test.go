@@ -77,9 +77,7 @@ func TestMonitoring(t *testing.T) {
 		metrics.Output = nil
 		getBeatsMonitoringStats(t, srv, &metrics)
 		acked := gjson.GetBytes(metrics.Libbeat, "output.events.acked")
-		// There may be additional pre-aggregated metrics indexed,
-		// hence we check >= rather than ==.
-		return acked.Int() >= N
+		return acked.Int() == N
 	}, 10*time.Second, 10*time.Millisecond)
 
 	// Assert the presence of output.write.bytes, and that it is non-zero;
@@ -95,8 +93,8 @@ func TestMonitoring(t *testing.T) {
 	assert.Equal(t, int64(0), gjson.GetBytes(metrics.Libbeat, "output.events.active").Int())
 	assert.Equal(t, int64(0), gjson.GetBytes(metrics.Libbeat, "output.events.failed").Int())
 	assert.Equal(t, int64(0), gjson.GetBytes(metrics.Libbeat, "output.events.toomany").Int())
-	assert.GreaterOrEqual(t, int64(N), gjson.GetBytes(metrics.Libbeat, "output.events.total").Int())
-	assert.GreaterOrEqual(t, int64(N), gjson.GetBytes(metrics.Libbeat, "pipeline.events.total").Int())
+	assert.Equal(t, int64(N), gjson.GetBytes(metrics.Libbeat, "output.events.total").Int())
+	assert.Equal(t, int64(N), gjson.GetBytes(metrics.Libbeat, "pipeline.events.total").Int())
 	assert.Equal(t, "elasticsearch", gjson.GetBytes(metrics.Libbeat, "output.type").Str)
 
 	bulkRequestsAvailable := gjson.GetBytes(metrics.Output, "elasticsearch.bulk_requests.available")
