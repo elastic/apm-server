@@ -65,9 +65,9 @@ func TestStorageManager_eventTTL(t *testing.T) {
 	sm := newStorageManager(t)
 	rw := sm.NewReadWriter()
 	traceID := uuid.Must(uuid.NewV4()).String()
-	txnID := uuid.Must(uuid.NewV4()).String()
-	transaction := makeTransaction(txnID, traceID)
-	err := rw.WriteTraceEvent(traceID, txnID, transaction)
+	txnID1 := uuid.Must(uuid.NewV4()).String()
+	txn1 := makeTransaction(txnID1, traceID)
+	err := rw.WriteTraceEvent(traceID, txnID1, txn1)
 	assert.NoError(t, err)
 
 	var out modelpb.Batch
@@ -79,10 +79,15 @@ func TestStorageManager_eventTTL(t *testing.T) {
 	err = sm.RotatePartitions()
 	assert.NoError(t, err)
 
+	txnID2 := uuid.Must(uuid.NewV4()).String()
+	txn2 := makeTransaction(txnID2, traceID)
+	err = rw.WriteTraceEvent(traceID, txnID2, txn2)
+	assert.NoError(t, err)
+
 	out = nil
 	err = rw.ReadTraceEvents(traceID, &out)
 	assert.NoError(t, err)
-	assert.Len(t, out, 1)
+	assert.Equal(t, modelpb.Batch{txn2, txn1}, out)
 
 	// after 2 TTL
 	err = sm.RotatePartitions()
@@ -91,7 +96,7 @@ func TestStorageManager_eventTTL(t *testing.T) {
 	out = nil
 	err = rw.ReadTraceEvents(traceID, &out)
 	assert.NoError(t, err)
-	assert.Len(t, out, 0)
+	assert.Equal(t, modelpb.Batch{txn2}, out)
 
 	// after 3 TTL
 	err = sm.RotatePartitions()
