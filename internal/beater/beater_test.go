@@ -185,7 +185,7 @@ func TestRunnerNewDocappenderConfig(t *testing.T) {
 				elasticsearchOutputConfig: agentconfig.NewConfig(),
 				logger:                    logp.NewLogger("test"),
 			}
-			docCfg, esCfg, err := r.newDocappenderConfig(nil, c.memSize)
+			docCfg, esCfg, err := r.newDocappenderConfig(nil, nil, c.memSize)
 			require.NoError(t, err)
 			assert.Equal(t, docappender.Config{
 				Logger:                zap.New(r.logger.Core(), zap.WithCaller(true)),
@@ -217,7 +217,7 @@ func TestRunnerNewDocappenderConfig(t *testing.T) {
 				}),
 				logger: logp.NewLogger("test"),
 			}
-			docCfg, esCfg, err := r.newDocappenderConfig(nil, c.memSize)
+			docCfg, esCfg, err := r.newDocappenderConfig(nil, nil, c.memSize)
 			require.NoError(t, err)
 			assert.Equal(t, docappender.Config{
 				Logger:                zap.New(r.logger.Core(), zap.WithCaller(true)),
