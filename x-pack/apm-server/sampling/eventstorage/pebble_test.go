@@ -13,14 +13,12 @@ import (
 
 func TestEventComparer(t *testing.T) {
 	err := pebble.CheckComparer(eventComparer(), [][]byte{
-		nil,
 		[]byte("12:"),
 		[]byte("123:"),
 		[]byte("foo1:"),
 		[]byte("foo12:"),
 		[]byte("foo2:"),
 	}, [][]byte{
-		nil,
 		[]byte("12"),
 		[]byte("123"),
 		[]byte("bar1"),

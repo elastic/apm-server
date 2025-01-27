@@ -19,7 +19,12 @@ func eventComparer() *pebble.Comparer {
 	comparer := *pebble.DefaultComparer
 	// Required for prefix bloom filter
 	comparer.Split = func(k []byte) int {
-		return bytes.IndexByte(k, traceIDSeparator) + 1
+		if idx := bytes.IndexByte(k, traceIDSeparator); idx != -1 {
+			return idx + 1
+		}
+		// If traceID separator does not exist, consider the entire key as prefix.
+		// This is required for deletes like DeleteRange([]byte{0}, []byte{1}) to work without specifying the separator.
+		return len(k)
 	}
 	comparer.Compare = func(a, b []byte) int {
 		ap := comparer.Split(a) // a prefix length

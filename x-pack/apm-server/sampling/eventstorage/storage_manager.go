@@ -229,20 +229,14 @@ func (sm *StorageManager) RotatePartitions() error {
 	pidToDelete := sm.partitioner.Inactive()
 	lbPrefix := byte(pidToDelete)
 
-	decisionLb := []byte{lbPrefix}
-	decisionUb := []byte{lbPrefix + 1} // Do not use % here as ub MUST BE greater than lb
-
-	// Add a 0 between traceID separator and prefix, as it will be theoretically the smallest valid prefix for the partition ID.
-	// Counter example: Imagine an eventLb without the 0, and a trace ID that has the first byte smaller than trace ID separator,
-	// then that entry will be smaller than eventLb and will not be deleted by DeleteRange.
-	eventLb := []byte{lbPrefix, 0, traceIDSeparator}
-	eventUb := []byte{lbPrefix + 1, 0, traceIDSeparator} // Do not use % here as ub MUST BE greater than lb
+	lb := []byte{lbPrefix}
+	ub := []byte{lbPrefix + 1} // Do not use % here as ub MUST BE greater than lb
 
 	return errors.Join(
-		sm.eventDB.DeleteRange(eventLb, eventUb, pebble.NoSync),
-		sm.decisionDB.DeleteRange(decisionLb, decisionUb, pebble.NoSync),
-		sm.eventDB.Compact(eventLb, eventUb, false),
-		sm.decisionDB.Compact(decisionLb, decisionUb, false),
+		sm.eventDB.DeleteRange(lb, ub, pebble.NoSync),
+		sm.decisionDB.DeleteRange(lb, ub, pebble.NoSync),
+		sm.eventDB.Compact(lb, ub, false),
+		sm.decisionDB.Compact(lb, ub, false),
 	)
 }
 
