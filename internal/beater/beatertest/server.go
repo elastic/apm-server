@@ -28,8 +28,6 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/otel/metric"
-	"go.opentelemetry.io/otel/metric/noop"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zaptest/observer"
@@ -90,7 +88,6 @@ func NewUnstartedServer(t testing.TB, opts ...option) *Server {
 				"host": "localhost:0",
 			},
 		})},
-		meterProvider: noop.NewMeterProvider(),
 	}
 	for _, o := range opts {
 		o(&options)
@@ -114,10 +111,9 @@ func NewUnstartedServer(t testing.TB, opts ...option) *Server {
 	}
 
 	runner, err := beater.NewRunner(beater.RunnerParams{
-		Config:        cfg,
-		Logger:        logger,
-		WrapServer:    options.wrapServer,
-		MeterProvider: options.meterProvider,
+		Config:     cfg,
+		Logger:     logger,
+		WrapServer: options.wrapServer,
 	})
 	require.NoError(t, err)
 
@@ -194,9 +190,8 @@ func (s *Server) Close() error {
 }
 
 type options struct {
-	config        []*agentconfig.C
-	wrapServer    beater.WrapServerFunc
-	meterProvider metric.MeterProvider
+	config     []*agentconfig.C
+	wrapServer beater.WrapServerFunc
 }
 
 type option func(*options)
@@ -217,12 +212,5 @@ func WithConfig(cfg ...*agentconfig.C) option {
 func WithWrapServer(wrapServer beater.WrapServerFunc) option {
 	return func(opts *options) {
 		opts.wrapServer = wrapServer
-	}
-}
-
-// WithMeterProvider is an option for setting a MeterProvider
-func WithMeterProvider(mp metric.MeterProvider) option {
-	return func(opts *options) {
-		opts.meterProvider = mp
 	}
 }

@@ -255,9 +255,6 @@ func Main() error {
 				Config:     args.Config,
 				Logger:     args.Logger,
 				WrapServer: wrapServer,
-
-				MeterProvider:   args.MeterProvider,
-				MetricsGatherer: args.MetricsGatherer,
 			})
 		},
 	)
