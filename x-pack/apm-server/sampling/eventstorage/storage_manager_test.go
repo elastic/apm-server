@@ -161,3 +161,15 @@ func TestStorageManager_DiskUsage(t *testing.T) {
 		return sm.DiskUsage() > old
 	}, 10*time.Second, 100*time.Millisecond)
 }
+
+func TestStorageManager_Run(t *testing.T) {
+	done := make(chan struct{})
+	stopping := make(chan struct{})
+	sm := newStorageManager(t)
+	go func() {
+		assert.NoError(t, sm.Run(stopping, time.Second, 0))
+		close(done)
+	}()
+	close(stopping)
+	<-done
+}
