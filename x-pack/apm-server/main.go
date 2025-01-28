@@ -116,7 +116,7 @@ func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, er
 	storageDir := paths.Resolve(paths.Data, tailSamplingStorageDir)
 	db, err := getDB(storageDir)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get TBS database: %w", err)
+		return nil, fmt.Errorf("failed to get tail-sampling database: %w", err)
 	}
 
 	policies := make([]sampling.Policy, len(tailSamplingConfig.Policies))
