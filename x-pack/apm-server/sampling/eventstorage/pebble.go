@@ -70,5 +70,6 @@ func OpenDecisionPebble(storageDir string) (*pebble.DB, error) {
 				FilterType:   pebble.TableFilter,
 			},
 		},
+		Cache: pebble.NewCache(16 << 20), //FIXME: need to clean up
 	})
 }
