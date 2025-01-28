@@ -52,11 +52,5 @@ func initRand() {
 }
 
 func initFlags() {
-	// For backwards compatibility, initialize and convert known -flags to --flags.
 	cfgfile.Initialize()
-	cfgfile.AddAllowedBackwardsCompatibleFlag("v")
-	cfgfile.AddAllowedBackwardsCompatibleFlag("e")
-	cfgfile.AddAllowedBackwardsCompatibleFlag("d")
-	cfgfile.AddAllowedBackwardsCompatibleFlag("environment")
-	cfgfile.ConvertFlagsForBackwardsCompatibility()
 }

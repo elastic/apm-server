@@ -24,7 +24,7 @@ import (
 )
 
 func TestAPMServerEnvironment(t *testing.T) {
-	// Check that apm-server starts up cleanly with the "-environment" flag.
+	// Check that apm-server starts up cleanly with the "--environment" flag.
 	for _, env := range []string{
 		"container",
 		"systemd",
@@ -35,7 +35,7 @@ func TestAPMServerEnvironment(t *testing.T) {
 		t.Run(env, func(t *testing.T) {
 			t.Parallel()
 			// NewServer adds a cleanup to close the server.
-			apmservertest.NewServerTB(t, "-environment", env)
+			apmservertest.NewServerTB(t, "--environment", env)
 		})
 	}
 }
