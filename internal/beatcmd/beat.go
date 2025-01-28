@@ -491,8 +491,7 @@ func (b *Beat) registerStateMetrics() {
 }
 
 func (b *Beat) registerStatsMetrics() {
-	monitoring.Default.Remove("libbeat")
-	libbeatRegistry := monitoring.Default.NewRegistry("libbeat")
+	libbeatRegistry := monitoring.Default.GetRegistry("libbeat")
 	monitoring.NewFunc(libbeatRegistry, "output", func(_ monitoring.Mode, v monitoring.Visitor) {
 		var rm metricdata.ResourceMetrics
 		if err := b.metricReader.Collect(context.Background(), &rm); err != nil {
@@ -500,10 +499,10 @@ func (b *Beat) registerStatsMetrics() {
 		}
 		v.OnRegistryStart()
 		defer v.OnRegistryFinished()
-		monitoring.ReportString(v, "type", "elasticsearch")
 		for _, sm := range rm.ScopeMetrics {
 			switch {
 			case sm.Scope.Name == "github.com/elastic/go-docappender":
+				monitoring.ReportString(v, "type", "elasticsearch")
 				addDocappenderLibbeatOutputMetrics(context.Background(), v, sm)
 			}
 		}
