@@ -14,37 +14,47 @@ import (
 func TestPartitioner(t *testing.T) {
 	p := NewPartitioner(2, 0) // partition id 0, 1, 2
 
-	assert.Equal(t, 0, p.currentID())
-	assert.Equal(t, []int{0, 2}, slices.Collect(p.activeIDs()))
+	p.CurrentIDFunc(func(pid int) {
+		assert.Equal(t, 0, pid)
+	})
+	assert.Equal(t, []int{0, 2}, slices.Collect(p.ActiveIDs()))
 
 	// 0 -> 1
 	newCurrent, newInactive := p.Rotate()
 
 	assert.Equal(t, 1, newCurrent)
-	assert.Equal(t, 1, p.currentID())
+	p.CurrentIDFunc(func(pid int) {
+		assert.Equal(t, 1, pid)
+	})
 	assert.Equal(t, 2, newInactive)
-	assert.Equal(t, []int{1, 0}, slices.Collect(p.activeIDs()))
+	assert.Equal(t, []int{1, 0}, slices.Collect(p.ActiveIDs()))
 
 	// 1 -> 2
 	newCurrent, newInactive = p.Rotate()
 
 	assert.Equal(t, 2, newCurrent)
-	assert.Equal(t, 2, p.currentID())
+	p.CurrentIDFunc(func(pid int) {
+		assert.Equal(t, 2, pid)
+	})
 	assert.Equal(t, 0, newInactive)
-	assert.Equal(t, []int{2, 1}, slices.Collect(p.activeIDs()))
+	assert.Equal(t, []int{2, 1}, slices.Collect(p.ActiveIDs()))
 
 	// 2 -> 0
 	newCurrent, newInactive = p.Rotate()
 
 	assert.Equal(t, 0, newCurrent)
-	assert.Equal(t, 0, p.currentID())
+	p.CurrentIDFunc(func(pid int) {
+		assert.Equal(t, 0, pid)
+	})
 	assert.Equal(t, 1, newInactive)
-	assert.Equal(t, []int{0, 2}, slices.Collect(p.activeIDs()))
+	assert.Equal(t, []int{0, 2}, slices.Collect(p.ActiveIDs()))
 }
 
 func TestPartitionerCurrentID(t *testing.T) {
 	p := NewPartitioner(2, 1)
 
-	assert.Equal(t, 1, p.currentID())
-	assert.Equal(t, []int{1, 0}, slices.Collect(p.activeIDs()))
+	p.CurrentIDFunc(func(pid int) {
+		assert.Equal(t, 1, pid)
+	})
+	assert.Equal(t, []int{1, 0}, slices.Collect(p.ActiveIDs()))
 }

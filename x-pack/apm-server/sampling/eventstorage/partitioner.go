@@ -61,10 +61,13 @@ func (p *Partitioner) Rotate() (newCurrent, newInactive int) {
 	return p.current, (p.current + 1) % p.total
 }
 
-// activeIDs returns an iterator containing all active partitions.
+// ActiveIDs returns an iterator containing all active partitions.
 // It contains total - 1 partitions.
-// Rotate should never be called within activeIDs as activeIDs holds RLock internally.
-func (p *Partitioner) activeIDs() iter.Seq[int] {
+//
+// As ActiveIDs holds RLock internally,
+// - Rotate should never be called within ActiveIDs
+// - the returned partition IDs may be outdated if used outside `range`
+func (p *Partitioner) ActiveIDs() iter.Seq[int] {
 	return func(yield func(int) bool) {
 		p.mu.RLock()
 		defer p.mu.RUnlock()
@@ -76,8 +79,13 @@ func (p *Partitioner) activeIDs() iter.Seq[int] {
 	}
 }
 
-// currentID returns the ID of the current partition (rightmost active).
-// Callers should obtain p.mu.RLock when using the returned PID.
-func (p *Partitioner) currentID() int {
-	return p.current
+// CurrentIDFunc calls function f which accepts the ID of the current partition (rightmost active).
+//
+// As CurrentIDFunc holds RLock internally,
+// - Rotate should never be called within CurrentIDFunc
+// - the returned partition ID may be outdated if used outside f
+func (p *Partitioner) CurrentIDFunc(f func(int)) {
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+	f(p.current)
 }
