@@ -11,7 +11,7 @@ require (
 	github.com/elastic/apm-data v1.16.0
 	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20241231140711-7806f1a2cb26
 	github.com/elastic/elastic-agent-client/v7 v7.17.0
-	github.com/elastic/elastic-agent-libs v0.18.1
+	github.com/elastic/elastic-agent-libs v0.18.2
 	github.com/elastic/elastic-agent-system-metrics v0.11.7
 	github.com/elastic/gmux v0.3.2
 	github.com/elastic/go-docappender/v2 v2.3.3
@@ -52,8 +52,8 @@ require (
 	golang.org/x/sync v0.10.0
 	golang.org/x/term v0.28.0
 	golang.org/x/time v0.9.0
-	google.golang.org/grpc v1.69.4
-	google.golang.org/protobuf v1.36.3
+	google.golang.org/grpc v1.70.0
+	google.golang.org/protobuf v1.36.4
 	gopkg.in/yaml.v3 v3.0.1
 )
 

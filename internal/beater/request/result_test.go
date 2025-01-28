@@ -24,8 +24,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/elastic/elastic-agent-libs/monitoring"
-
 	"github.com/pkg/errors"
 )
 
@@ -187,23 +185,4 @@ func TestResult_Failure(t *testing.T) {
 	assert.False(t, (&Result{StatusCode: http.StatusPermanentRedirect}).Failure())
 	assert.True(t, (&Result{StatusCode: http.StatusBadRequest}).Failure())
 	assert.True(t, (&Result{StatusCode: http.StatusServiceUnavailable}).Failure())
-}
-
-func TestDefaultMonitoringMapForRegistry(t *testing.T) {
-	mockRegistry := monitoring.NewRegistry().NewRegistry("mock-default")
-	m := DefaultMonitoringMapForRegistry(mockRegistry)
-	assert.Equal(t, 22, len(m))
-	for id := range m {
-		assert.Equal(t, int64(0), m[id].Get())
-	}
-}
-
-func TestMonitoringMapForRegistry(t *testing.T) {
-	keys := []ResultID{IDEventDroppedCount, IDResponseErrorsServiceUnavailable}
-	mockRegistry := monitoring.NewRegistry().NewRegistry("mock-with-keys")
-	m := MonitoringMapForRegistry(mockRegistry, keys)
-	assert.Equal(t, 2, len(m))
-	for id := range m {
-		assert.Equal(t, int64(0), m[id].Get())
-	}
 }
