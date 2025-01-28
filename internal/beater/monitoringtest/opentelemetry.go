@@ -27,6 +27,14 @@ import (
 )
 
 func ExpectOtelMetrics(t *testing.T, reader sdkmetric.Reader, expectedMetrics map[string]interface{}) {
+	assertOtelMetrics(t, reader, expectedMetrics, true)
+}
+
+func ExpectContainOtelMetrics(t *testing.T, reader sdkmetric.Reader, expectedMetrics map[string]interface{}) {
+	assertOtelMetrics(t, reader, expectedMetrics, false)
+}
+
+func assertOtelMetrics(t *testing.T, reader sdkmetric.Reader, expectedMetrics map[string]interface{}, match bool) {
 	t.Helper()
 
 	var rm metricdata.ResourceMetrics
@@ -38,6 +46,19 @@ func ExpectOtelMetrics(t *testing.T, reader sdkmetric.Reader, expectedMetrics ma
 
 		for _, m := range sm.Metrics {
 			switch d := m.Data.(type) {
+			case metricdata.Gauge[int64]:
+				assert.Equal(t, 1, len(d.DataPoints))
+				foundMetrics = append(foundMetrics, m.Name)
+
+				if v, ok := expectedMetrics[m.Name]; ok {
+					if dp, ok := v.(int); ok {
+						assert.Equal(t, int64(dp), d.DataPoints[0].Value, m.Name)
+					} else {
+						assert.Fail(t, "expected an int value", m.Name)
+					}
+				} else if match {
+					assert.Fail(t, "unexpected metric", m.Name)
+				}
 			case metricdata.Sum[int64]:
 				assert.Equal(t, 1, len(d.DataPoints))
 				foundMetrics = append(foundMetrics, m.Name)
@@ -48,7 +69,7 @@ func ExpectOtelMetrics(t *testing.T, reader sdkmetric.Reader, expectedMetrics ma
 					} else {
 						assert.Fail(t, "expected an int value", m.Name)
 					}
-				} else {
+				} else if match {
 					assert.Fail(t, "unexpected metric", m.Name)
 				}
 			case metricdata.Histogram[int64]:
@@ -61,7 +82,7 @@ func ExpectOtelMetrics(t *testing.T, reader sdkmetric.Reader, expectedMetrics ma
 					} else {
 						assert.Fail(t, "expected an int value", m.Name)
 					}
-				} else {
+				} else if match {
 					assert.Fail(t, "unexpected metric", m.Name)
 				}
 			}
@@ -72,5 +93,9 @@ func ExpectOtelMetrics(t *testing.T, reader sdkmetric.Reader, expectedMetrics ma
 	for k := range expectedMetrics {
 		expectedMetricsKeys = append(expectedMetricsKeys, k)
 	}
-	assert.ElementsMatch(t, expectedMetricsKeys, foundMetrics)
+	if match {
+		assert.ElementsMatch(t, expectedMetricsKeys, foundMetrics)
+	} else {
+		assert.Subset(t, foundMetrics, expectedMetricsKeys)
+	}
 }
