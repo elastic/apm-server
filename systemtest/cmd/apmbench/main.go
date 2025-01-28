@@ -19,6 +19,7 @@ package main
 
 import (
 	"context"
+	"embed"
 	"flag"
 	"fmt"
 	"log"
@@ -107,6 +108,22 @@ func benchmarkAgent(b *testing.B, l *rate.Limiter, expr string) {
 	})
 }
 
+// events contains custom events that are not in apm-perf.
+//
+//go:embed events/*.ndjson
+var events embed.FS
+
+// BenchmarkTracesAgentNodeJS benchmarks with an ndjson with traces only, and without unsampled transactions.
+// This is useful to benchmark TBS.
+func BenchmarkTracesAgentNodeJS(b *testing.B, l *rate.Limiter) {
+	h := benchtest.NewFSEventHandler(b, "apm-nodejs-traces*", l, events)
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			h.SendBatches(context.Background())
+		}
+	})
+}
+
 func Benchmark10000AggregationGroups(b *testing.B, l *rate.Limiter) {
 	// Benchmark memory usage on aggregating high cardinality data.
 	// This should generate a lot of groups for service transaction metrics,
@@ -154,6 +171,7 @@ func main() {
 		BenchmarkAgentPython,
 		BenchmarkAgentRuby,
 		Benchmark10000AggregationGroups,
+		BenchmarkTracesAgentNodeJS,
 	); err != nil {
 		log.Fatal(err)
 	}
