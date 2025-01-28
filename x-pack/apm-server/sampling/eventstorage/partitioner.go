@@ -63,12 +63,13 @@ func (p *Partitioner) Rotate() (newCurrent, newInactive int) {
 
 // activeIDs returns an iterator containing all active partitions.
 // It contains total - 1 partitions.
-// Callers should obtain p.mu.RLock when using the returned PIDs.
+// Rotate should never be called within activeIDs as activeIDs holds RLock internally.
 func (p *Partitioner) activeIDs() iter.Seq[int] {
-	cur := p.current
 	return func(yield func(int) bool) {
+		p.mu.RLock()
+		defer p.mu.RUnlock()
 		for i := 0; i < p.total-1; i++ {
-			if !yield((cur + p.total - i) % p.total) {
+			if !yield((p.current + p.total - i) % p.total) {
 				return
 			}
 		}

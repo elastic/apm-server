@@ -32,8 +32,6 @@ func (rw *PartitionReadWriter) WriteTraceSampled(traceID string, sampled bool) e
 // 1. when a remote sampling decision is received from pubsub
 // 2. (hot path) when a transaction / span comes in, check if a sampling decision has already been made
 func (rw *PartitionReadWriter) IsTraceSampled(traceID string) (bool, error) {
-	rw.s.partitioner.mu.RLock()
-	defer rw.s.partitioner.mu.RUnlock()
 	var errs []error
 	for pid := range rw.s.partitioner.activeIDs() {
 		sampled, err := NewPrefixReadWriter(rw.s.db, byte(pid), rw.s.codec).IsTraceSampled(traceID)
@@ -59,8 +57,6 @@ func (rw *PartitionReadWriter) WriteTraceEvent(traceID, id string, event *modelp
 
 // DeleteTraceEvent deletes the trace event from storage.
 func (rw *PartitionReadWriter) DeleteTraceEvent(traceID, id string) error {
-	rw.s.partitioner.mu.RLock()
-	defer rw.s.partitioner.mu.RUnlock()
 	var errs []error
 	for pid := range rw.s.partitioner.activeIDs() {
 		err := NewPrefixReadWriter(rw.s.db, byte(pid), rw.s.codec).DeleteTraceEvent(traceID, id)
@@ -73,8 +69,6 @@ func (rw *PartitionReadWriter) DeleteTraceEvent(traceID, id string) error {
 
 // ReadTraceEvents reads trace events with the given trace ID from storage into out.
 func (rw *PartitionReadWriter) ReadTraceEvents(traceID string, out *modelpb.Batch) error {
-	rw.s.partitioner.mu.RLock()
-	defer rw.s.partitioner.mu.RUnlock()
 	var errs []error
 	for pid := range rw.s.partitioner.activeIDs() {
 		err := NewPrefixReadWriter(rw.s.db, byte(pid), rw.s.codec).ReadTraceEvents(traceID, out)
