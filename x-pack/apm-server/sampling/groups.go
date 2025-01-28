@@ -5,11 +5,14 @@
 package sampling
 
 import (
+	"context"
 	"errors"
 	"math"
 	"math/rand"
 	"sync"
 	"time"
+
+	"go.opentelemetry.io/otel/metric"
 
 	"github.com/elastic/apm-data/model/modelpb"
 )
@@ -31,6 +34,10 @@ type traceGroups struct {
 	// to maintain. Once this is reached, no new dynamic service groups will
 	// be created, and events may be dropped.
 	maxDynamicServiceGroups int
+
+	// numDynamicServiceGroupsCounter is used for reporting the current number
+	// of dynamic service groups.
+	numDynamicServiceGroupsCounter metric.Int64UpDownCounter
 
 	mu                      sync.RWMutex
 	policyGroups            []policyGroup
@@ -60,14 +67,17 @@ func (g *policyGroup) match(transactionEvent *modelpb.APMEvent) bool {
 }
 
 func newTraceGroups(
+	meter metric.Meter,
 	policies []Policy,
 	maxDynamicServiceGroups int,
 	ingestRateDecayFactor float64,
 ) *traceGroups {
+	numDynamicServiceGroupsCounter, _ := meter.Int64UpDownCounter("apm-server.sampling.tail.dynamic_service_groups")
 	groups := &traceGroups{
-		ingestRateDecayFactor:   ingestRateDecayFactor,
-		maxDynamicServiceGroups: maxDynamicServiceGroups,
-		policyGroups:            make([]policyGroup, len(policies)),
+		ingestRateDecayFactor:          ingestRateDecayFactor,
+		maxDynamicServiceGroups:        maxDynamicServiceGroups,
+		numDynamicServiceGroupsCounter: numDynamicServiceGroupsCounter,
+		policyGroups:                   make([]policyGroup, len(policies)),
 	}
 	for i, policy := range policies {
 		pg := policyGroup{policy: policy}
@@ -150,6 +160,7 @@ func (g *traceGroups) getTraceGroup(transactionEvent *modelpb.APMEvent) (*traceG
 			return nil, errTooManyTraceGroups
 		}
 		g.numDynamicServiceGroups++
+		g.numDynamicServiceGroupsCounter.Add(context.Background(), 1)
 		group = newTraceGroup(pg.policy.SampleRate)
 		pg.dynamic[transactionEvent.GetService().GetName()] = group
 	}

@@ -491,10 +491,6 @@ func (b *Beat) registerStateMetrics() {
 }
 
 func (b *Beat) registerStatsMetrics() {
-	if b.Config.Output.Name() != "elasticsearch" {
-		return
-	}
-
 	libbeatRegistry := monitoring.Default.GetRegistry("libbeat")
 	monitoring.NewFunc(libbeatRegistry, "output", func(_ monitoring.Mode, v monitoring.Visitor) {
 		var rm metricdata.ResourceMetrics
@@ -503,10 +499,10 @@ func (b *Beat) registerStatsMetrics() {
 		}
 		v.OnRegistryStart()
 		defer v.OnRegistryFinished()
-		monitoring.ReportString(v, "type", "elasticsearch")
 		for _, sm := range rm.ScopeMetrics {
 			switch {
 			case sm.Scope.Name == "github.com/elastic/go-docappender":
+				monitoring.ReportString(v, "type", "elasticsearch")
 				addDocappenderLibbeatOutputMetrics(context.Background(), v, sm)
 			}
 		}
@@ -539,6 +535,22 @@ func (b *Beat) registerStatsMetrics() {
 			}
 		}
 	})
+	monitoring.NewFunc(monitoring.Default, "apm-server", func(_ monitoring.Mode, v monitoring.Visitor) {
+		var rm metricdata.ResourceMetrics
+		if err := b.metricReader.Collect(context.Background(), &rm); err != nil {
+			return
+		}
+		v.OnRegistryStart()
+		defer v.OnRegistryFinished()
+		for _, sm := range rm.ScopeMetrics {
+			switch {
+			case strings.HasPrefix(sm.Scope.Name, "github.com/elastic/apm-server"):
+				// All simple scalar metrics that begin with the name "apm-server."
+				// in github.com/elastic/apm-server/... scopes are mapped directly.
+				addAPMServerMetrics(v, sm)
+			}
+		}
+	})
 }
 
 // getScalarInt64 returns a single-value, dimensionless
@@ -558,6 +570,24 @@ func getScalarInt64(data metricdata.Aggregation) (int64, bool) {
 		return data.DataPoints[0].Value, true
 	}
 	return 0, false
+}
+
+func addAPMServerMetrics(v monitoring.Visitor, sm metricdata.ScopeMetrics) {
+	for _, m := range sm.Metrics {
+		if suffix, ok := strings.CutPrefix(m.Name, "apm-server."); ok {
+			if value, ok := getScalarInt64(m.Data); ok {
+				keys := strings.Split(suffix, ".")
+				for i := 0; i < len(keys)-1; i++ {
+					v.OnRegistryStart()
+					v.OnKey(keys[i])
+				}
+				monitoring.ReportInt(v, keys[len(keys)-1], value)
+				for i := 0; i < len(keys)-1; i++ {
+					v.OnRegistryFinished()
+				}
+			}
+		}
+	}
 }
 
 // Adapt go-docappender's OTel metrics to beats stack monitoring metrics,

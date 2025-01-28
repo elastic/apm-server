@@ -26,8 +26,6 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/elastic/elastic-agent-libs/monitoring"
-
 	"github.com/elastic/apm-server/internal/agentcfg"
 	"github.com/elastic/apm-server/internal/beater/auth"
 	"github.com/elastic/apm-server/internal/beater/headers"
@@ -43,10 +41,6 @@ const (
 )
 
 var (
-	// MonitoringMap holds a mapping for request.IDs to monitoring counters
-	MonitoringMap = request.DefaultMonitoringMapForRegistry(registry)
-	registry      = monitoring.Default.NewRegistry("apm-server.acm")
-
 	errCacheControl = fmt.Sprintf("max-age=%v, must-revalidate", errMaxAgeDuration.Seconds())
 )
 
