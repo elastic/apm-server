@@ -52,6 +52,7 @@ type TailSamplingConfig struct {
 	TTL                   time.Duration         `config:"ttl" validate:"min=1s"`
 	StorageLimit          string                `config:"storage_limit"`
 	StorageLimitParsed    uint64
+	StorageLimitAuto      bool
 	DiscardOnWriteFailure bool `config:"discard_on_write_failure"`
 
 	esConfigured bool
@@ -91,15 +92,17 @@ func (c *TailSamplingConfig) Unpack(in *config.C) error {
 		err = errors.Wrap(err, "error unpacking config")
 		return nil
 	}
-	limit, err := humanize.ParseBytes(cfg.StorageLimit)
-	if err != nil {
-		return err
+	if cfg.StorageLimit != "" {
+		cfg.StorageLimitAuto = false
+		limit, err := humanize.ParseBytes(cfg.StorageLimit)
+		if err != nil {
+			return err
+		}
+		cfg.StorageLimitParsed = limit
 	}
-	cfg.StorageLimitParsed = limit
 	cfg.Enabled = in.Enabled()
 	*c = TailSamplingConfig(cfg)
 	c.esConfigured = in.HasField("elasticsearch")
-	c.StorageLimitParsed = limit
 	err = errors.Wrap(c.Validate(), "invalid config")
 	return nil
 }
@@ -153,13 +156,9 @@ func defaultTailSamplingConfig() TailSamplingConfig {
 		IngestRateDecayFactor: 0.25,
 		StorageGCInterval:     5 * time.Minute,
 		TTL:                   30 * time.Minute,
-		StorageLimit:          "3GB",
+		StorageLimit:          "",
+		StorageLimitAuto:      true,
 		DiscardOnWriteFailure: false,
 	}
-	parsed, err := humanize.ParseBytes(cfg.StorageLimit)
-	if err != nil {
-		panic(err)
-	}
-	cfg.StorageLimitParsed = parsed
 	return cfg
 }

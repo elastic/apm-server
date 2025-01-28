@@ -11,6 +11,7 @@ import (
 	"os"
 	"sync"
 
+	"github.com/cockroachdb/pebble/v2/vfs"
 	"github.com/gofrs/uuid/v5"
 	"go.opentelemetry.io/otel/metric"
 	"golang.org/x/sync/errgroup"
@@ -117,6 +118,33 @@ func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, er
 		return nil, fmt.Errorf("failed to get Badger database: %w", err)
 	}
 	readWriter := getStorage(badgerDB)
+
+	if tailSamplingConfig.StorageLimitAuto {
+		const (
+			// fallbackDefault is the default TBS storage limit if disk space detection fails.
+			fallbackDefault = 3 << 30
+
+			// maxDiskUsageRatio is the percentage of available disk space to be used as TBS storage limit.
+			maxDiskUsageRatio = 0.7
+		)
+		usage, err := vfs.Default.GetDiskUsage(storageDir)
+		if err != nil {
+			tailSamplingConfig.StorageLimitParsed = fallbackDefault
+			args.Logger.With(logp.Error(err)).Warnf("failed to detect available disk space, Sampling.Tail.StorageLimit falls back to default %.1fgb", float64(fallbackDefault)/(1<<30))
+		} else {
+			// As avail bytes decreases as db grows,
+			// add db disk usage to it so that they are similar across restarts.
+			available := usage.AvailBytes + db.DiskUsage()
+			if available < usage.AvailBytes {
+				// handle uint overflow, however unlikely.
+				available = usage.AvailBytes
+			}
+			tailSamplingConfig.StorageLimitParsed = uint64(float64(available) * maxDiskUsageRatio)
+			args.Logger.Infof("Sampling.Tail.StorageLimit set to %.1fgb based on %d%% of available disk space",
+				float64(tailSamplingConfig.StorageLimitParsed)/(1<<30),
+				int(maxDiskUsageRatio*100))
+		}
+	}
 
 	policies := make([]sampling.Policy, len(tailSamplingConfig.Policies))
 	for i, in := range tailSamplingConfig.Policies {

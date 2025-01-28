@@ -9,6 +9,7 @@ package main
 import (
 	"context"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -181,4 +182,43 @@ func getGauge(t testing.TB, reader sdkmetric.Reader, name string) int64 {
 	}
 
 	return 0
+}
+
+func TestSamplingStorageLimitDetection(t *testing.T) {
+	err := logp.DevelopmentSetup(logp.ToObserverOutput())
+	require.NoError(t, err)
+
+	home := t.TempDir()
+	err = paths.InitPaths(&paths.Path{Home: home})
+	require.NoError(t, err)
+	defer cleanup()
+
+	cfg := config.DefaultConfig()
+	cfg.Sampling.Tail.Enabled = true
+	cfg.Sampling.Tail.Policies = []config.TailSamplingPolicy{{SampleRate: 0.1}}
+
+	runServerError := errors.New("runServer")
+	serverParams, runServer, err := wrapServer(beater.ServerParams{
+		Config:                 cfg,
+		Logger:                 logp.NewLogger(""),
+		Tracer:                 apmtest.DiscardTracer,
+		BatchProcessor:         modelpb.ProcessBatchFunc(func(ctx context.Context, b *modelpb.Batch) error { return nil }),
+		Namespace:              "default",
+		NewElasticsearchClient: elasticsearch.NewClient,
+	}, func(ctx context.Context, args beater.ServerParams) error {
+		return runServerError
+	})
+	require.NoError(t, err)
+
+	err = runServer(context.Background(), serverParams)
+	require.Equal(t, runServerError, err)
+
+	var found bool
+	logs := logp.ObserverLogs()
+	for _, log := range logs.All() {
+		if strings.Contains(log.Message, "Sampling.Tail.StorageLimit set to") {
+			found = true
+		}
+	}
+	assert.True(t, found)
 }
