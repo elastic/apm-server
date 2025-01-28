@@ -113,10 +113,29 @@ func benchmarkAgent(b *testing.B, l *rate.Limiter, expr string) {
 //go:embed events/*.ndjson
 var events embed.FS
 
-// BenchmarkTracesAgentNodeJS benchmarks with an ndjson with traces only, and without unsampled transactions.
-// This is useful to benchmark TBS.
+func BenchmarkTracesAgentAll(b *testing.B, l *rate.Limiter) {
+	benchmarkTracesAgent(b, l, `apm-*.ndjson`)
+}
+
+func BenchmarkTracesAgentGo(b *testing.B, l *rate.Limiter) {
+	benchmarkTracesAgent(b, l, `apm-go*.ndjson`)
+}
+
 func BenchmarkTracesAgentNodeJS(b *testing.B, l *rate.Limiter) {
-	h := benchtest.NewFSEventHandler(b, "apm-nodejs-traces*", l, events)
+	benchmarkTracesAgent(b, l, `apm-nodejs*.ndjson`)
+}
+
+func BenchmarkTracesAgentPython(b *testing.B, l *rate.Limiter) {
+	benchmarkTracesAgent(b, l, `apm-python*.ndjson`)
+}
+
+func BenchmarkTracesAgentRuby(b *testing.B, l *rate.Limiter) {
+	benchmarkTracesAgent(b, l, `apm-ruby*.ndjson`)
+}
+
+// benchmarks with ndjson with traces only. Useful to benchmark TBS.
+func benchmarkTracesAgent(b *testing.B, l *rate.Limiter, expr string) {
+	h := benchtest.NewFSEventHandler(b, expr, l, events)
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
 			h.SendBatches(context.Background())
@@ -171,7 +190,11 @@ func main() {
 		BenchmarkAgentPython,
 		BenchmarkAgentRuby,
 		Benchmark10000AggregationGroups,
+		BenchmarkTracesAgentAll,
+		BenchmarkTracesAgentGo,
 		BenchmarkTracesAgentNodeJS,
+		BenchmarkTracesAgentPython,
+		BenchmarkTracesAgentRuby,
 	); err != nil {
 		log.Fatal(err)
 	}
