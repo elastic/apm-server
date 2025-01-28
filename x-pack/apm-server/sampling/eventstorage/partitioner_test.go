@@ -6,6 +6,7 @@ package eventstorage
 
 import (
 	"slices"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -57,4 +58,47 @@ func TestPartitionerCurrentID(t *testing.T) {
 		assert.Equal(t, 1, pid)
 	})
 	assert.Equal(t, []int{1, 0}, slices.Collect(p.ActiveIDs()))
+}
+
+func TestPartitioner_ActiveIDs_Concurrent(t *testing.T) {
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+	p := NewPartitioner(2, 0)
+	rotate := make(chan struct{})
+	go func() {
+		<-rotate
+		newCurrent, newInactive := p.Rotate()
+		assert.Equal(t, 1, newCurrent)
+		assert.Equal(t, 2, newInactive)
+		wg.Done()
+	}()
+	var activeIDs []int
+	for pid := range p.ActiveIDs() {
+		if rotate != nil {
+			rotate <- struct{}{} // blocks
+		}
+		rotate = nil
+		activeIDs = append(activeIDs, pid)
+	}
+	assert.Equal(t, []int{0, 2}, activeIDs)
+	wg.Wait()
+}
+
+func TestPartitioner_CurrentIDFunc_Concurrent(t *testing.T) {
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+	p := NewPartitioner(2, 0)
+	rotate := make(chan struct{})
+	go func() {
+		<-rotate
+		newCurrent, newInactive := p.Rotate()
+		assert.Equal(t, 1, newCurrent)
+		assert.Equal(t, 2, newInactive)
+		wg.Done()
+	}()
+	p.CurrentIDFunc(func(pid int) {
+		rotate <- struct{}{} // blocks
+		assert.Equal(t, 0, pid)
+	})
+	wg.Wait()
 }
