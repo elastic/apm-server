@@ -602,7 +602,7 @@ func resetGlobals() {
 	// Clear monitoring registries to allow the new Beat to populate them.
 	monitoring.GetNamespace("info").SetRegistry(nil)
 	monitoring.GetNamespace("state").SetRegistry(nil)
-	for _, name := range []string{"system", "beat", "libbeat"} {
+	for _, name := range []string{"system", "beat", "libbeat", "apm-server", "output"} {
 		registry := monitoring.Default.GetRegistry(name)
 		if registry != nil {
 			registry.Clear()
