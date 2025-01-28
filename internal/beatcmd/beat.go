@@ -491,10 +491,6 @@ func (b *Beat) registerStateMetrics() {
 }
 
 func (b *Beat) registerStatsMetrics() {
-	if b.Config.Output.Name() != "elasticsearch" {
-		return
-	}
-
 	monitoring.Default.Remove("libbeat")
 	libbeatRegistry := monitoring.Default.NewRegistry("libbeat")
 	monitoring.NewFunc(libbeatRegistry, "output", func(_ monitoring.Mode, v monitoring.Visitor) {
