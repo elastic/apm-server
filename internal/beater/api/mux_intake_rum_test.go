@@ -25,8 +25,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/otel/metric/noop"
 
-	"github.com/elastic/apm-server/internal/beater/api/intake"
 	"github.com/elastic/apm-server/internal/beater/auth"
 	"github.com/elastic/apm-server/internal/beater/config"
 	"github.com/elastic/apm-server/internal/beater/headers"
@@ -49,7 +49,7 @@ func TestOPTIONS(t *testing.T) {
 			requestTaken <- struct{}{}
 			<-done
 		},
-		rumMiddleware(cfg, authenticator, ratelimitStore, intake.MonitoringMap)...)
+		rumMiddleware(cfg, authenticator, ratelimitStore, "", noop.NewMeterProvider())...)
 
 	// use this to block the single allowed concurrent requests
 	go func() {
@@ -99,7 +99,7 @@ func TestRUMHandler_KillSwitchMiddleware(t *testing.T) {
 func TestRUMHandler_CORSMiddleware(t *testing.T) {
 	cfg := cfgEnabledRUM()
 	cfg.RumConfig.AllowOrigins = []string{"foo"}
-	h := newTestMux(t, cfg)
+	h, _ := newTestMux(t, cfg)
 
 	for _, path := range []string{"/intake/v2/rum/events", "/intake/v3/rum/events"} {
 		req := httptest.NewRequest(http.MethodPost, path, nil)
@@ -118,11 +118,11 @@ func TestIntakeRUMHandler_PanicMiddleware(t *testing.T) {
 func TestRumHandler_MonitoringMiddleware(t *testing.T) {
 	// send GET request resulting in 403 Forbidden error
 	for _, path := range []string{"/intake/v2/rum/events", "/intake/v3/rum/events"} {
-		testMonitoringMiddleware(t, path, intake.MonitoringMap, map[request.ResultID]int{
-			request.IDRequestCount:            1,
-			request.IDResponseCount:           1,
-			request.IDResponseErrorsCount:     1,
-			request.IDResponseErrorsForbidden: 1,
+		testMonitoringMiddleware(t, path, map[string]any{
+			"http.server." + string(request.IDRequestCount):            1,
+			"http.server." + string(request.IDResponseCount):           1,
+			"http.server." + string(request.IDResponseErrorsCount):     1,
+			"http.server." + string(request.IDResponseErrorsForbidden): 1,
 		})
 	}
 }

@@ -23,11 +23,9 @@ import (
 	"sync"
 	"time"
 
-	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/metric"
 
 	"github.com/elastic/apm-server/internal/beater/request"
-	"github.com/elastic/elastic-agent-libs/monitoring"
 )
 
 const (
@@ -35,9 +33,9 @@ const (
 )
 
 type monitoringMiddleware struct {
-	meter metric.Meter
+	meter               metric.Meter
+	legacyMetricsPrefix string
 
-	ints       map[request.ResultID]*monitoring.Int
 	counters   sync.Map
 	histograms sync.Map
 }
@@ -47,43 +45,35 @@ func (m *monitoringMiddleware) Middleware() Middleware {
 		return func(c *request.Context) {
 			ctx := context.Background()
 
-			m.getCounter(string(request.IDRequestCount)).Add(ctx, 1)
-			m.inc(request.IDRequestCount)
+			m.inc(ctx, request.IDRequestCount)
 
 			start := time.Now()
 			h(c)
 			duration := time.Since(start)
 			m.getHistogram(requestDurationHistogram, metric.WithUnit("ms")).Record(ctx, duration.Milliseconds())
 
-			m.getCounter(string(request.IDResponseCount)).Add(ctx, 1)
-			m.inc(request.IDResponseCount)
+			m.inc(ctx, request.IDResponseCount)
 			if c.Result.StatusCode >= http.StatusBadRequest {
-				m.getCounter(string(request.IDResponseErrorsCount)).Add(ctx, 1)
-				m.inc(request.IDResponseErrorsCount)
+				m.inc(ctx, request.IDResponseErrorsCount)
 			} else {
-				m.getCounter(string(request.IDResponseValidCount)).Add(ctx, 1)
-				m.inc(request.IDResponseValidCount)
+				m.inc(ctx, request.IDResponseValidCount)
 			}
-
-			m.getCounter(string(c.Result.ID)).Add(ctx, 1)
-			m.inc(c.Result.ID)
+			m.inc(ctx, c.Result.ID)
 		}, nil
 
 	}
 }
 
-func (m *monitoringMiddleware) inc(id request.ResultID) {
-	if counter, ok := m.ints[id]; ok {
-		counter.Inc()
-	}
+func (m *monitoringMiddleware) inc(ctx context.Context, id request.ResultID) {
+	m.getCounter("http.server.", string(id)).Add(ctx, 1)
+	m.getCounter(m.legacyMetricsPrefix, string(id)).Add(ctx, 1)
 }
 
-func (m *monitoringMiddleware) getCounter(n string) metric.Int64Counter {
-	name := "http.server." + n
+func (m *monitoringMiddleware) getCounter(prefix, name string) metric.Int64Counter {
+	name = prefix + name
 	if met, ok := m.counters.Load(name); ok {
 		return met.(metric.Int64Counter)
 	}
-
 	nm, _ := m.meter.Int64Counter(name)
 	m.counters.LoadOrStore(name, nm)
 	return nm
@@ -102,16 +92,12 @@ func (m *monitoringMiddleware) getHistogram(n string, opts ...metric.Int64Histog
 
 // MonitoringMiddleware returns a middleware that increases monitoring counters for collecting metrics
 // about request processing. As input parameter it takes a map capable of mapping a request.ResultID to a counter.
-func MonitoringMiddleware(m map[request.ResultID]*monitoring.Int, mp metric.MeterProvider) Middleware {
-	if mp == nil {
-		mp = otel.GetMeterProvider()
-	}
-
+func MonitoringMiddleware(legacyMetricsPrefix string, mp metric.MeterProvider) Middleware {
 	mid := &monitoringMiddleware{
-		meter:      mp.Meter("internal/beater/middleware"),
-		ints:       m,
-		counters:   sync.Map{},
-		histograms: sync.Map{},
+		meter:               mp.Meter("github.com/elastic/apm-server/internal/beater/middleware"),
+		legacyMetricsPrefix: legacyMetricsPrefix,
+		counters:            sync.Map{},
+		histograms:          sync.Map{},
 	}
 
 	return mid.Middleware()

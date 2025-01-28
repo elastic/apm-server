@@ -12,6 +12,7 @@ import (
 	"sync"
 
 	"github.com/gofrs/uuid/v5"
+	"go.opentelemetry.io/otel/metric"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/beats/v7/libbeat/common/reload"
@@ -20,7 +21,6 @@ import (
 	"github.com/elastic/elastic-agent-client/v7/pkg/proto"
 	"github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
-	"github.com/elastic/elastic-agent-libs/monitoring"
 	"github.com/elastic/elastic-agent-libs/paths"
 
 	"github.com/elastic/apm-data/model/modelpb"
@@ -36,13 +36,10 @@ const (
 )
 
 var (
-	// Note: this registry is created in github.com/elastic/apm-server/sampling. That package
-	// will hopefully disappear in the future, when agents no longer send unsampled transactions.
-	samplingMonitoringRegistry = monitoring.Default.GetRegistry("apm-server.sampling")
-
 	// badgerDB holds the badger database to use when tail-based sampling is configured.
-	badgerMu sync.Mutex
-	badgerDB *eventstorage.StorageManager
+	badgerMu                   sync.Mutex
+	badgerDB                   *eventstorage.StorageManager
+	badgerDBMetricRegistration metric.Registration
 
 	storageMu sync.Mutex
 	storage   *eventstorage.ManagedReadWriter
@@ -102,8 +99,6 @@ func newProcessors(args beater.ServerParams) ([]namedProcessor, error) {
 		if err != nil {
 			return nil, fmt.Errorf("error creating %s: %w", name, err)
 		}
-		samplingMonitoringRegistry.Remove("tail")
-		monitoring.NewFunc(samplingMonitoringRegistry, "tail", sampler.CollectMonitoring, monitoring.Report)
 		processors = append(processors, namedProcessor{name: name, processor: sampler})
 	}
 	return processors, nil
@@ -117,7 +112,7 @@ func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, er
 	}
 
 	storageDir := paths.Resolve(paths.Data, tailSamplingStorageDir)
-	badgerDB, err = getBadgerDB(storageDir)
+	badgerDB, err = getBadgerDB(storageDir, args.MeterProvider)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get Badger database: %w", err)
 	}
@@ -138,6 +133,7 @@ func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, er
 
 	return sampling.NewProcessor(sampling.Config{
 		BatchProcessor: args.BatchProcessor,
+		MeterProvider:  args.MeterProvider,
 		LocalSamplingConfig: sampling.LocalSamplingConfig{
 			FlushInterval:         tailSamplingConfig.Interval,
 			MaxDynamicServices:    1000,
@@ -166,7 +162,7 @@ func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, er
 	})
 }
 
-func getBadgerDB(storageDir string) (*eventstorage.StorageManager, error) {
+func getBadgerDB(storageDir string, mp metric.MeterProvider) (*eventstorage.StorageManager, error) {
 	badgerMu.Lock()
 	defer badgerMu.Unlock()
 	if badgerDB == nil {
@@ -175,6 +171,17 @@ func getBadgerDB(storageDir string) (*eventstorage.StorageManager, error) {
 			return nil, err
 		}
 		badgerDB = sm
+
+		meter := mp.Meter("github.com/elastic/apm-server/x-pack/apm-server")
+		lsmSizeGauge, _ := meter.Int64ObservableGauge("apm-server.sampling.tail.storage.lsm_size")
+		valueLogSizeGauge, _ := meter.Int64ObservableGauge("apm-server.sampling.tail.storage.value_log_size")
+
+		badgerDBMetricRegistration, _ = meter.RegisterCallback(func(ctx context.Context, o metric.Observer) error {
+			lsmSize, valueLogSize := sm.Size()
+			o.ObserveInt64(lsmSizeGauge, lsmSize)
+			o.ObserveInt64(valueLogSizeGauge, valueLogSize)
+			return nil
+		}, lsmSizeGauge, valueLogSizeGauge)
 	}
 	return badgerDB, nil
 }
@@ -254,8 +261,14 @@ func wrapServer(args beater.ServerParams, runServer beater.RunServerFunc) (beate
 // called concurrently with opening badger.DB/accessing the badgerDB global,
 // so it does not need to hold badgerMu.
 func closeBadger() error {
+	if badgerDBMetricRegistration != nil {
+		badgerDBMetricRegistration.Unregister()
+		badgerDBMetricRegistration = nil
+	}
 	if badgerDB != nil {
-		return badgerDB.Close()
+		db := badgerDB
+		badgerDB = nil
+		return db.Close()
 	}
 	return nil
 }
