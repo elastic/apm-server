@@ -146,7 +146,7 @@ func TestLibbeatMetrics(t *testing.T) {
 	defer func() { assert.NoError(t, stop()) }()
 	args := <-runnerParamsChan
 
-	var requestIndex int
+	var requestIndex atomic.Int64
 	requestsChan := make(chan chan struct{})
 	defer close(requestsChan)
 	esClient := docappendertest.NewMockElasticsearchClient(t, func(w http.ResponseWriter, r *http.Request) {
@@ -161,17 +161,16 @@ func TestLibbeatMetrics(t *testing.T) {
 			}
 		}
 		_, result := docappendertest.DecodeBulkRequest(r)
-		switch requestIndex {
-		case 1:
+		switch requestIndex.Add(1) {
+		case 2:
 			result.HasErrors = true
 			result.Items[0]["create"] = esutil.BulkIndexerResponseItem{Status: 400}
-		case 3:
+		case 4:
 			result.HasErrors = true
 			result.Items[0]["create"] = esutil.BulkIndexerResponseItem{Status: 429}
 		default:
 			// success
 		}
-		requestIndex++
 		json.NewEncoder(w).Encode(result)
 	})
 	appender, err := docappender.New(esClient, docappender.Config{
