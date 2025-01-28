@@ -35,9 +35,14 @@ on:
         description: 'Set the expression that matches the benchmark scenarios to run'
         required: false
         type: string
+      pgoExport:
+        description: 'Run the benchmarks with PGO export'
+        required: false
+        type: boolean
+        default: false
   schedule:
     - cron: '0 17 * * *' # Scheduled regular benchmarks.
-    - cron: '0 5 */5 * *' # Scheduled PGO benchmarks.
+    - cron: '0 0 1 * *' # Scheduled PGO benchmarks.
 
 env:
   PNG_REPORT_FILE: out.png
@@ -61,10 +66,11 @@ jobs:
       SSH_KEY: ./id_rsa_terraform
       TF_VAR_private_key: ./id_rsa_terraform
       TF_VAR_public_key: ./id_rsa_terraform.pub
-      TF_VAR_run_standalone: ${{ inputs.runStandalone || github.event.schedule=='0 5 */5 * *' }}
+      TF_VAR_run_standalone: ${{ inputs.runStandalone || github.event.schedule=='0 0 1 * *' }}
       TF_VAR_apm_server_tail_sampling: ${{ inputs.enableTailSampling || 'false' }} # set the default again otherwise schedules won't work
       TF_VAR_apm_server_tail_sampling_storage_limit: ${{ inputs.tailSamplingStorageLimit || '10GB' }} # set the default again otherwise schedules won't work
-      RUN_STANDALONE: ${{ inputs.runStandalone || github.event.schedule=='0 5 */5 * *' }}
+      RUN_STANDALONE: ${{ inputs.runStandalone || github.event.schedule=='0 0 1 * *' }}
+      PGO_EXPORT: ${{ inputs.pgoExport || github.event.schedule=='0 0 1 * *' }}
       TFVARS_SOURCE: ${{ inputs.profile || 'system-profiles/8GBx1zone.tfvars' }} # // Default to use an 8gb profile
       TF_VAR_BUILD_ID: ${{ github.run_id }}
       TF_VAR_ENVIRONMENT: ci
@@ -234,7 +240,7 @@ jobs:
           git_commit_gpgsign: true
 
       - name: Open PGO PR
-        if: ${{ env.RUN_STANDALONE == 'true' }}
+        if: ${{ env.PGO_EXPORT == 'true' }}
         run: ${{ github.workspace }}/.ci/scripts/push-pgo-pr.sh
         env:
           WORKSPACE_PATH: ${{ github.workspace }}
