@@ -10,10 +10,10 @@ import (
 	"fmt"
 	"os"
 	"sync"
-	"sync/atomic"
 	"time"
 
 	"github.com/pkg/errors"
+	"go.opentelemetry.io/otel/metric"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/apm-data/model/modelpb"
@@ -21,7 +21,6 @@ import (
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/pubsub"
 	"github.com/elastic/elastic-agent-libs/logp"
-	"github.com/elastic/elastic-agent-libs/monitoring"
 )
 
 const (
@@ -42,7 +41,7 @@ type Processor struct {
 	groups            *traceGroups
 
 	eventStore   *wrappedRW
-	eventMetrics *eventMetrics // heap-allocated for 64-bit alignment
+	eventMetrics eventMetrics
 
 	stopMu   sync.Mutex
 	stopping chan struct{}
@@ -50,12 +49,12 @@ type Processor struct {
 }
 
 type eventMetrics struct {
-	processed     int64
-	dropped       int64
-	stored        int64
-	sampled       int64
-	headUnsampled int64
-	failedWrites  int64
+	processed     metric.Int64Counter
+	dropped       metric.Int64Counter
+	stored        metric.Int64Counter
+	sampled       metric.Int64Counter
+	headUnsampled metric.Int64Counter
+	failedWrites  metric.Int64Counter
 }
 
 // NewProcessor returns a new Processor, for tail-sampling trace events.
@@ -64,54 +63,27 @@ func NewProcessor(config Config) (*Processor, error) {
 		return nil, errors.Wrap(err, "invalid tail-sampling config")
 	}
 
+	meter := config.MeterProvider.Meter("github.com/elastic/apm-server/x-pack/apm-server/sampling")
+
 	logger := logp.NewLogger(logs.Sampling)
 	p := &Processor{
 		config:            config,
 		logger:            logger,
 		rateLimitedLogger: logger.WithOptions(logs.WithRateLimit(loggerRateLimit)),
-		groups:            newTraceGroups(config.Policies, config.MaxDynamicServices, config.IngestRateDecayFactor),
+		groups:            newTraceGroups(meter, config.Policies, config.MaxDynamicServices, config.IngestRateDecayFactor),
 		eventStore:        newWrappedRW(config.Storage, config.TTL, int64(config.StorageLimit)),
-		eventMetrics:      &eventMetrics{},
 		stopping:          make(chan struct{}),
 		stopped:           make(chan struct{}),
 	}
+
+	p.eventMetrics.processed, _ = meter.Int64Counter("apm-server.sampling.tail.events.processed")
+	p.eventMetrics.dropped, _ = meter.Int64Counter("apm-server.sampling.tail.events.dropped")
+	p.eventMetrics.stored, _ = meter.Int64Counter("apm-server.sampling.tail.events.stored")
+	p.eventMetrics.sampled, _ = meter.Int64Counter("apm-server.sampling.tail.events.sampled")
+	p.eventMetrics.headUnsampled, _ = meter.Int64Counter("apm-server.sampling.tail.events.head_unsampled")
+	p.eventMetrics.failedWrites, _ = meter.Int64Counter("apm-server.sampling.tail.events.failed_writes")
+
 	return p, nil
-}
-
-// CollectMonitoring may be called to collect monitoring metrics related to
-// tail-sampling. It is intended to be used with libbeat/monitoring.NewFunc.
-//
-// The metrics should be added to the "apm-server.sampling.tail" registry.
-func (p *Processor) CollectMonitoring(_ monitoring.Mode, V monitoring.Visitor) {
-	V.OnRegistryStart()
-	defer V.OnRegistryFinished()
-
-	// TODO(axw) it might be nice to also report some metrics about:
-	//
-	//   - The time between receiving events and when they are indexed.
-	//     This could be accomplished by recording the time when the
-	//     payload was received in the ECS field `event.created`. The
-	//     final metric would ideally be a distribution, which is not
-	//     currently an option in libbeat/monitoring.
-
-	p.groups.mu.RLock()
-	numDynamicGroups := p.groups.numDynamicServiceGroups
-	p.groups.mu.RUnlock()
-	monitoring.ReportInt(V, "dynamic_service_groups", int64(numDynamicGroups))
-
-	monitoring.ReportNamespace(V, "storage", func() {
-		lsmSize, valueLogSize := p.config.DB.Size()
-		monitoring.ReportInt(V, "lsm_size", int64(lsmSize))
-		monitoring.ReportInt(V, "value_log_size", int64(valueLogSize))
-	})
-	monitoring.ReportNamespace(V, "events", func() {
-		monitoring.ReportInt(V, "processed", atomic.LoadInt64(&p.eventMetrics.processed))
-		monitoring.ReportInt(V, "dropped", atomic.LoadInt64(&p.eventMetrics.dropped))
-		monitoring.ReportInt(V, "stored", atomic.LoadInt64(&p.eventMetrics.stored))
-		monitoring.ReportInt(V, "sampled", atomic.LoadInt64(&p.eventMetrics.sampled))
-		monitoring.ReportInt(V, "head_unsampled", atomic.LoadInt64(&p.eventMetrics.headUnsampled))
-		monitoring.ReportInt(V, "failed_writes", atomic.LoadInt64(&p.eventMetrics.failedWrites))
-	})
 }
 
 // ProcessBatch tail-samples transactions and spans.
@@ -133,11 +105,11 @@ func (p *Processor) ProcessBatch(ctx context.Context, batch *modelpb.Batch) erro
 		var err error
 		switch event.Type() {
 		case modelpb.TransactionEventType:
-			atomic.AddInt64(&p.eventMetrics.processed, 1)
-			report, stored, err = p.processTransaction(event)
+			p.eventMetrics.processed.Add(ctx, 1)
+			report, stored, err = p.processTransaction(ctx, event)
 		case modelpb.SpanEventType:
-			atomic.AddInt64(&p.eventMetrics.processed, 1)
-			report, stored, err = p.processSpan(event)
+			p.eventMetrics.processed.Add(ctx, 1)
+			report, stored, err = p.processSpan(ctx, event)
 		default:
 			continue
 		}
@@ -164,18 +136,18 @@ func (p *Processor) ProcessBatch(ctx context.Context, batch *modelpb.Batch) erro
 			i--
 		}
 
-		p.updateProcessorMetrics(report, stored, failed)
+		p.updateProcessorMetrics(ctx, report, stored, failed)
 	}
 	*batch = events
 	return nil
 }
 
-func (p *Processor) updateProcessorMetrics(report, stored, failedWrite bool) {
+func (p *Processor) updateProcessorMetrics(ctx context.Context, report, stored, failedWrite bool) {
 	if failedWrite {
-		atomic.AddInt64(&p.eventMetrics.failedWrites, 1)
+		p.eventMetrics.failedWrites.Add(ctx, 1)
 	}
 	if stored {
-		atomic.AddInt64(&p.eventMetrics.stored, 1)
+		p.eventMetrics.stored.Add(ctx, 1)
 	} else if !report {
 		// We only increment the "dropped" counter if
 		// we neither reported nor stored the event, so
@@ -186,15 +158,15 @@ func (p *Processor) updateProcessorMetrics(report, stored, failedWrite bool) {
 		// The counter does not include events that are
 		// implicitly dropped, i.e. stored and never
 		// indexed.
-		atomic.AddInt64(&p.eventMetrics.dropped, 1)
+		p.eventMetrics.dropped.Add(ctx, 1)
 	}
 }
 
-func (p *Processor) processTransaction(event *modelpb.APMEvent) (report, stored bool, _ error) {
+func (p *Processor) processTransaction(ctx context.Context, event *modelpb.APMEvent) (report, stored bool, _ error) {
 	if !event.Transaction.Sampled {
 		// (Head-based) unsampled transactions are passed through
 		// by the tail sampler.
-		atomic.AddInt64(&p.eventMetrics.headUnsampled, 1)
+		p.eventMetrics.headUnsampled.Add(ctx, 1)
 		return true, false, nil
 	}
 
@@ -205,7 +177,7 @@ func (p *Processor) processTransaction(event *modelpb.APMEvent) (report, stored 
 		// if it was sampled.
 		report := traceSampled
 		if report {
-			atomic.AddInt64(&p.eventMetrics.sampled, 1)
+			p.eventMetrics.sampled.Add(ctx, 1)
 		}
 		return report, false, nil
 	case eventstorage.ErrNotFound:
@@ -257,7 +229,7 @@ sampling policies without service name specified.
 	return false, true, p.eventStore.WriteTraceEvent(event.Trace.Id, event.Transaction.Id, event)
 }
 
-func (p *Processor) processSpan(event *modelpb.APMEvent) (report, stored bool, _ error) {
+func (p *Processor) processSpan(ctx context.Context, event *modelpb.APMEvent) (report, stored bool, _ error) {
 	traceSampled, err := p.eventStore.IsTraceSampled(event.Trace.Id)
 	if err != nil {
 		if err == eventstorage.ErrNotFound {
@@ -268,7 +240,7 @@ func (p *Processor) processSpan(event *modelpb.APMEvent) (report, stored bool, _
 	}
 	// Tail-sampling decision has been made, report or drop the event.
 	if traceSampled {
-		atomic.AddInt64(&p.eventMetrics.sampled, 1)
+		p.eventMetrics.sampled.Add(ctx, 1)
 	}
 	return traceSampled, false, nil
 }
@@ -509,7 +481,7 @@ func (p *Processor) Run() error {
 						}
 					}
 				}
-				atomic.AddInt64(&p.eventMetrics.sampled, int64(len(events)))
+				p.eventMetrics.sampled.Add(gracefulContext, int64(len(events)))
 				if err := p.config.BatchProcessor.ProcessBatch(gracefulContext, &events); err != nil {
 					p.logger.With(logp.Error(err)).Warn("failed to report events")
 				}

@@ -18,6 +18,7 @@
 package otlp
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"net/http"
@@ -25,6 +26,7 @@ import (
 	"go.opentelemetry.io/collector/pdata/plog/plogotlp"
 	"go.opentelemetry.io/collector/pdata/pmetric/pmetricotlp"
 	"go.opentelemetry.io/collector/pdata/ptrace/ptraceotlp"
+	"go.opentelemetry.io/otel/metric"
 	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -33,26 +35,11 @@ import (
 	"github.com/elastic/apm-data/input"
 	"github.com/elastic/apm-data/input/otlp"
 	"github.com/elastic/apm-data/model/modelpb"
-	"github.com/elastic/apm-server/internal/beater/request"
-	"github.com/elastic/elastic-agent-libs/monitoring"
 )
 
-var (
-	httpMetricsRegistry      = monitoring.Default.NewRegistry("apm-server.otlp.http.metrics")
-	HTTPMetricsMonitoringMap = request.MonitoringMapForRegistry(httpMetricsRegistry, monitoringKeys)
-	httpTracesRegistry       = monitoring.Default.NewRegistry("apm-server.otlp.http.traces")
-	HTTPTracesMonitoringMap  = request.MonitoringMapForRegistry(httpTracesRegistry, monitoringKeys)
-	httpLogsRegistry         = monitoring.Default.NewRegistry("apm-server.otlp.http.logs")
-	HTTPLogsMonitoringMap    = request.MonitoringMapForRegistry(httpLogsRegistry, monitoringKeys)
+var unsupportedHTTPMetricRegistration metric.Registration
 
-	httpMonitoredConsumer monitoredConsumer
-)
-
-func init() {
-	monitoring.NewFunc(httpMetricsRegistry, "consumer", httpMonitoredConsumer.collect, monitoring.Report)
-}
-
-func NewHTTPHandlers(logger *zap.Logger, processor modelpb.BatchProcessor, semaphore input.Semaphore) HTTPHandlers {
+func NewHTTPHandlers(logger *zap.Logger, processor modelpb.BatchProcessor, semaphore input.Semaphore, mp metric.MeterProvider) HTTPHandlers {
 	// TODO(axw) stop assuming we have only one OTLP HTTP consumer running
 	// at any time, and instead aggregate metrics from consumers that are
 	// dynamically registered and unregistered.
@@ -62,7 +49,25 @@ func NewHTTPHandlers(logger *zap.Logger, processor modelpb.BatchProcessor, semap
 		Semaphore:        semaphore,
 		RemapOTelMetrics: true,
 	})
-	httpMonitoredConsumer.set(consumer)
+
+	meter := mp.Meter("github.com/elastic/apm-server/internal/beater/otlp")
+	httpMetricsConsumerUnsupportedDropped, _ := meter.Int64ObservableCounter(
+		"apm-server.otlp.http.metrics.consumer.unsupported_dropped",
+	)
+
+	// TODO we should add an otel counter metric directly in the
+	// apm-data consumer, then we could get rid of the callback.
+	if unsupportedHTTPMetricRegistration != nil {
+		unsupportedHTTPMetricRegistration.Unregister()
+	}
+	unsupportedHTTPMetricRegistration, _ = meter.RegisterCallback(func(ctx context.Context, o metric.Observer) error {
+		stats := consumer.Stats()
+		if stats.UnsupportedMetricsDropped > 0 {
+			o.ObserveInt64(httpMetricsConsumerUnsupportedDropped, stats.UnsupportedMetricsDropped)
+		}
+		return nil
+	}, httpMetricsConsumerUnsupportedDropped)
+
 	return HTTPHandlers{consumer: consumer}
 }
 

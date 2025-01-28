@@ -52,12 +52,10 @@ import (
 	_ "github.com/elastic/beats/v7/libbeat/publisher/queue/memqueue"
 	agentconfig "github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
-	"github.com/elastic/elastic-agent-libs/monitoring"
 
 	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/internal/beater"
 	"github.com/elastic/apm-server/internal/beater/api"
-	"github.com/elastic/apm-server/internal/beater/api/intake"
 	"github.com/elastic/apm-server/internal/beater/beatertest"
 	"github.com/elastic/apm-server/internal/beater/config"
 	"github.com/elastic/apm-server/internal/beater/monitoringtest"
@@ -471,12 +469,23 @@ func TestServerElasticsearchOutput(t *testing.T) {
 	defer elasticsearchServer.Close()
 	defer close(done)
 
+<<<<<<< HEAD
 	// Pre-create the libbeat registry with some variables that should not
 	// be reported, as we define our own libbeat metrics registry.
 	monitoring.Default.Remove("libbeat.whatever")
 	monitoring.NewInt(monitoring.Default, "libbeat.whatever")
 
 	srv := beatertest.NewServer(t, beatertest.WithConfig(agentconfig.MustNewConfigFrom(map[string]interface{}{
+=======
+	reader := sdkmetric.NewManualReader(sdkmetric.WithTemporalitySelector(
+		func(ik sdkmetric.InstrumentKind) metricdata.Temporality {
+			return metricdata.DeltaTemporality
+		},
+	))
+	mp := sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader))
+
+	srv := beatertest.NewServer(t, beatertest.WithMeterProvider(mp), beatertest.WithConfig(agentconfig.MustNewConfigFrom(map[string]interface{}{
+>>>>>>> 378b60c2 ( Translate otel metrics to libbeat monitoring  (#15094))
 		"output.elasticsearch": map[string]interface{}{
 			"hosts":          []string{elasticsearchServer.URL},
 			"flush_interval": "1ms",
@@ -502,6 +511,7 @@ func TestServerElasticsearchOutput(t *testing.T) {
 		t.Fatal("timed out waiting for bulk request")
 	}
 
+<<<<<<< HEAD
 	snapshot := monitoring.CollectStructSnapshot(monitoring.Default.GetRegistry("libbeat"), monitoring.Full, false)
 	assert.Equal(t, map[string]interface{}{
 		"output": map[string]interface{}{
@@ -540,6 +550,13 @@ func TestServerElasticsearchOutput(t *testing.T) {
 			},
 		},
 	}, snapshot)
+=======
+	monitoringtest.ExpectContainOtelMetrics(t, reader, map[string]any{
+		"elasticsearch.events.count":            5,
+		"elasticsearch.events.queued":           5,
+		"elasticsearch.bulk_requests.available": 9,
+	})
+>>>>>>> 378b60c2 ( Translate otel metrics to libbeat monitoring  (#15094))
 }
 
 func TestServerPProf(t *testing.T) {
@@ -604,9 +621,16 @@ func TestWrapServerAPMInstrumentationTimeout(t *testing.T) {
 	found := make(chan struct{})
 	reqCtx, reqCancel := context.WithCancel(context.Background())
 
+	reader := sdkmetric.NewManualReader(sdkmetric.WithTemporalitySelector(
+		func(ik sdkmetric.InstrumentKind) metricdata.Temporality {
+			return metricdata.DeltaTemporality
+		},
+	))
+	mp := sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader))
+
 	escfg, _ := beatertest.ElasticsearchOutputConfig(t)
 	_ = logp.DevelopmentSetup(logp.ToObserverOutput())
-	srv := beatertest.NewServer(t, beatertest.WithConfig(escfg, agentconfig.MustNewConfigFrom(
+	srv := beatertest.NewServer(t, beatertest.WithMeterProvider(mp), beatertest.WithConfig(escfg, agentconfig.MustNewConfigFrom(
 		map[string]interface{}{
 			"instrumentation.enabled": true,
 		})), beatertest.WithWrapServer(
@@ -634,8 +658,6 @@ func TestWrapServerAPMInstrumentationTimeout(t *testing.T) {
 			return args, runServer, nil
 		},
 	))
-
-	monitoringtest.ClearRegistry(intake.MonitoringMap)
 
 	req, err := http.NewRequestWithContext(reqCtx, http.MethodPost, srv.URL+api.IntakePath, bytes.NewReader(testData))
 	require.NoError(t, err)
@@ -669,15 +691,12 @@ func TestWrapServerAPMInstrumentationTimeout(t *testing.T) {
 		}
 	}
 	// Assert that metrics have expected response values reported.
-	equal, result := monitoringtest.CompareMonitoringInt(map[request.ResultID]int{
-		request.IDRequestCount:          2,
-		request.IDResponseCount:         2,
-		request.IDResponseErrorsCount:   1,
-		request.IDResponseValidCount:    1,
-		request.IDResponseErrorsTimeout: 1, // test data POST /intake/v2/events
-		request.IDResponseValidAccepted: 1, // self-instrumentation
-	}, intake.MonitoringMap)
-	assert.True(t, equal, result)
+	monitoringtest.ExpectContainOtelMetrics(t, reader, map[string]any{
+		"http.server." + string(request.IDRequestCount):          1,
+		"http.server." + string(request.IDResponseCount):         1,
+		"http.server." + string(request.IDResponseErrorsCount):   1,
+		"http.server." + string(request.IDResponseErrorsTimeout): 1, // test data POST /intake/v2/events
+	})
 }
 
 var testData = func() []byte {

@@ -22,16 +22,9 @@ import (
 
 	"github.com/elastic/beats/v7/libbeat/version"
 	"github.com/elastic/elastic-agent-libs/mapstr"
-	"github.com/elastic/elastic-agent-libs/monitoring"
 
 	"github.com/elastic/apm-server/internal/beater/auth"
 	"github.com/elastic/apm-server/internal/beater/request"
-)
-
-var (
-	// MonitoringMap holds a mapping for request.IDs to monitoring counters
-	MonitoringMap = request.DefaultMonitoringMapForRegistry(registry)
-	registry      = monitoring.Default.NewRegistry("apm-server.root")
 )
 
 // HandlerConfig holds configuration for Handler.

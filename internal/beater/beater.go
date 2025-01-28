@@ -73,11 +73,6 @@ import (
 	"github.com/elastic/apm-server/internal/version"
 )
 
-var (
-	monitoringRegistry         = monitoring.Default.NewRegistry("apm-server.sampling")
-	transactionsDroppedCounter = monitoring.NewInt(monitoringRegistry, "transactions_dropped")
-)
-
 // Runner initialises and runs and orchestrates the APM Server
 // HTTP and gRPC servers, event processing pipeline, and output.
 type Runner struct {
@@ -157,6 +152,7 @@ func NewRunner(args RunnerParams) (*Runner, error) {
 func (s *Runner) Run(ctx context.Context) error {
 	defer s.listener.Close()
 	g, ctx := errgroup.WithContext(ctx)
+	meter := s.meterProvider.Meter("github.com/elastic/apm-server/internal/beater")
 
 	// backgroundContext is a context to use in operations that should
 	// block until shutdown, and will be cancelled after the shutdown
@@ -384,13 +380,17 @@ func (s *Runner) Run(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+	transactionsDroppedCounter, err := meter.Int64Counter("apm-server.sampling.transactions_dropped")
+	if err != nil {
+		return err
+	}
 	batchProcessor := srvmodelprocessor.NewTracer("beater.ProcessBatch", modelprocessor.Chained{
 		// Ensure all events have observer.*, ecs.*, and data_stream.* fields added,
 		// and are counted in metrics. This is done in the final processors to ensure
 		// aggregated metrics are also processed.
 		newObserverBatchProcessor(),
 		&modelprocessor.SetDataStream{Namespace: s.config.DataStreams.Namespace},
-		srvmodelprocessor.NewEventCounter(monitoring.Default.GetRegistry("apm-server")),
+		srvmodelprocessor.NewEventCounter(s.meterProvider),
 
 		// The server always drops non-RUM unsampled transactions. We store RUM unsampled
 		// transactions as they are needed by the User Experience app, which performs
@@ -399,7 +399,7 @@ func (s *Runner) Run(ctx context.Context) error {
 		// It is important that this is done just before calling the publisher to
 		// avoid affecting aggregations.
 		modelprocessor.NewDropUnsampled(false /* don't drop RUM unsampled transactions*/, func(i int64) {
-			transactionsDroppedCounter.Add(i)
+			transactionsDroppedCounter.Add(context.Background(), i)
 		}),
 		finalBatchProcessor,
 	})
@@ -410,7 +410,11 @@ func (s *Runner) Run(ctx context.Context) error {
 		kibanaClient,
 		newElasticsearchClient,
 		tracer,
+<<<<<<< HEAD
 		s.logger,
+=======
+		s.meterProvider,
+>>>>>>> 378b60c2 ( Translate otel metrics to libbeat monitoring  (#15094))
 	)
 	if err != nil {
 		return err
@@ -436,6 +440,7 @@ func (s *Runner) Run(ctx context.Context) error {
 		Namespace:              s.config.DataStreams.Namespace,
 		Logger:                 s.logger,
 		Tracer:                 tracer,
+		MeterProvider:          s.meterProvider,
 		Authenticator:          authenticator,
 		RateLimitStore:         ratelimitStore,
 		BatchProcessor:         batchProcessor,
@@ -490,7 +495,7 @@ func (s *Runner) Run(ctx context.Context) error {
 		return runServer(ctx, serverParams)
 	})
 	if tracerServerListener != nil {
-		tracerServer, err := newTracerServer(s.config, tracerServerListener, s.logger, serverParams.BatchProcessor, serverParams.Semaphore)
+		tracerServer, err := newTracerServer(s.config, tracerServerListener, s.logger, serverParams.BatchProcessor, serverParams.Semaphore, serverParams.MeterProvider)
 		if err != nil {
 			return fmt.Errorf("failed to create self-instrumentation server: %w", err)
 		}
@@ -680,6 +685,11 @@ func (s *Runner) newFinalBatchProcessor(
 	monitoring.Default.Remove("libbeat")
 	libbeatMonitoringRegistry := monitoring.Default.NewRegistry("libbeat")
 	if s.elasticsearchOutputConfig == nil {
+<<<<<<< HEAD
+=======
+		monitoring.Default.Remove("libbeat")
+		libbeatMonitoringRegistry := monitoring.Default.NewRegistry("libbeat")
+>>>>>>> 378b60c2 ( Translate otel metrics to libbeat monitoring  (#15094))
 		return s.newLibbeatFinalBatchProcessor(tracer, libbeatMonitoringRegistry)
 	}
 
