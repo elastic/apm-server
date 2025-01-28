@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	"go.opentelemetry.io/otel/metric"
 
 	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage"
@@ -20,6 +21,10 @@ type Config struct {
 	// BatchProcessor holds the model.BatchProcessor, for asynchronously processing
 	// tail-sampled trace events.
 	BatchProcessor modelpb.BatchProcessor
+
+	// MeterProvider holds a metric.MeterProvider that can be used for
+	// creating metrics.
+	MeterProvider metric.MeterProvider
 
 	LocalSamplingConfig
 	RemoteSamplingConfig
