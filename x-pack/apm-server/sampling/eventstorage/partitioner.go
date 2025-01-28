@@ -54,11 +54,11 @@ func NewPartitioner(actives, currentID int) *Partitioner {
 // After Rotate:
 // A-A-I-A
 // ..^....
-func (p *Partitioner) Rotate() int {
+func (p *Partitioner) Rotate() (newCurrent, newInactive int) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	p.current = (p.current + 1) % p.total
-	return p.current
+	return p.current, (p.current + 1) % p.total
 }
 
 // activeIDs returns an iterator containing all active partitions.
@@ -73,12 +73,6 @@ func (p *Partitioner) activeIDs() iter.Seq[int] {
 			}
 		}
 	}
-}
-
-// inactiveID returns the ID of the inactive partition.
-// Callers should obtain p.mu.RLock when using the returned PID.
-func (p *Partitioner) inactiveID() int {
-	return (p.current + 1) % p.total
 }
 
 // currentID returns the ID of the current partition (rightmost active).

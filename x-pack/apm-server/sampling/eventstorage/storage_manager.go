@@ -276,15 +276,14 @@ func (sm *StorageManager) runTTLGCLoop(stopping <-chan struct{}, ttl time.Durati
 
 // RotatePartitions rotates the partitions to clean up TTL-expired entries.
 func (sm *StorageManager) RotatePartitions() error {
-	newCurrentPID := sm.partitioner.Rotate()
+	newCurrentPID, newInactivePID := sm.partitioner.Rotate()
 
 	if err := sm.savePartitionID(newCurrentPID); err != nil {
 		return err
 	}
 
 	// No lock is needed here as the only writer to sm.partitioner is exactly this function.
-	pidToDelete := sm.partitioner.inactiveID()
-	lbPrefix := byte(pidToDelete)
+	lbPrefix := byte(newInactivePID)
 
 	lb := []byte{lbPrefix}
 	ub := []byte{lbPrefix + 1} // Do not use % here as ub MUST BE greater than lb
