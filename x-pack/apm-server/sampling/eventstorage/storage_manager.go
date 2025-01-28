@@ -283,7 +283,7 @@ func (sm *StorageManager) RotatePartitions() error {
 	}
 
 	// No lock is needed here as the only writer to sm.partitioner is exactly this function.
-	pidToDelete := sm.partitioner.Inactive()
+	pidToDelete := sm.partitioner.inactiveID()
 	lbPrefix := byte(pidToDelete)
 
 	lb := []byte{lbPrefix}

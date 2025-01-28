@@ -61,10 +61,10 @@ func (p *Partitioner) Rotate() int {
 	return p.current
 }
 
-// Actives returns an iterator containing all active partitions.
+// activeIDs returns an iterator containing all active partitions.
 // It contains total - 1 partitions.
 // Callers should obtain p.mu.RLock when using the returned PIDs.
-func (p *Partitioner) Actives() iter.Seq[int] {
+func (p *Partitioner) activeIDs() iter.Seq[int] {
 	cur := p.current
 	return func(yield func(int) bool) {
 		for i := 0; i < p.total-1; i++ {
@@ -75,14 +75,14 @@ func (p *Partitioner) Actives() iter.Seq[int] {
 	}
 }
 
-// Inactive returns the ID of the inactive partition.
+// inactiveID returns the ID of the inactive partition.
 // Callers should obtain p.mu.RLock when using the returned PID.
-func (p *Partitioner) Inactive() int {
+func (p *Partitioner) inactiveID() int {
 	return (p.current + 1) % p.total
 }
 
-// Current returns the ID of the current partition (rightmost active).
+// currentID returns the ID of the current partition (rightmost active).
 // Callers should obtain p.mu.RLock when using the returned PID.
-func (p *Partitioner) Current() int {
+func (p *Partitioner) currentID() int {
 	return p.current
 }

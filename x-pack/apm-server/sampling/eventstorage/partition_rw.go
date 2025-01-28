@@ -19,7 +19,7 @@ type PartitionReadWriter struct {
 func (rw *PartitionReadWriter) WriteTraceSampled(traceID string, sampled bool) error {
 	rw.s.partitioner.mu.RLock()
 	defer rw.s.partitioner.mu.RUnlock()
-	pid := rw.s.partitioner.Current()
+	pid := rw.s.partitioner.currentID()
 	return NewPrefixReadWriter(rw.s.db, byte(pid), rw.s.codec).WriteTraceSampled(traceID, sampled)
 }
 
@@ -35,7 +35,7 @@ func (rw *PartitionReadWriter) IsTraceSampled(traceID string) (bool, error) {
 	rw.s.partitioner.mu.RLock()
 	defer rw.s.partitioner.mu.RUnlock()
 	var errs []error
-	for pid := range rw.s.partitioner.Actives() {
+	for pid := range rw.s.partitioner.activeIDs() {
 		sampled, err := NewPrefixReadWriter(rw.s.db, byte(pid), rw.s.codec).IsTraceSampled(traceID)
 		if err == nil {
 			return sampled, nil
@@ -53,7 +53,7 @@ func (rw *PartitionReadWriter) IsTraceSampled(traceID string) (bool, error) {
 func (rw *PartitionReadWriter) WriteTraceEvent(traceID, id string, event *modelpb.APMEvent) error {
 	rw.s.partitioner.mu.RLock()
 	defer rw.s.partitioner.mu.RUnlock()
-	pid := rw.s.partitioner.Current()
+	pid := rw.s.partitioner.currentID()
 	return NewPrefixReadWriter(rw.s.db, byte(pid), rw.s.codec).WriteTraceEvent(traceID, id, event)
 }
 
@@ -62,7 +62,7 @@ func (rw *PartitionReadWriter) DeleteTraceEvent(traceID, id string) error {
 	rw.s.partitioner.mu.RLock()
 	defer rw.s.partitioner.mu.RUnlock()
 	var errs []error
-	for pid := range rw.s.partitioner.Actives() {
+	for pid := range rw.s.partitioner.activeIDs() {
 		err := NewPrefixReadWriter(rw.s.db, byte(pid), rw.s.codec).DeleteTraceEvent(traceID, id)
 		if err != nil {
 			errs = append(errs, err)
@@ -76,7 +76,7 @@ func (rw *PartitionReadWriter) ReadTraceEvents(traceID string, out *modelpb.Batc
 	rw.s.partitioner.mu.RLock()
 	defer rw.s.partitioner.mu.RUnlock()
 	var errs []error
-	for pid := range rw.s.partitioner.Actives() {
+	for pid := range rw.s.partitioner.activeIDs() {
 		err := NewPrefixReadWriter(rw.s.db, byte(pid), rw.s.codec).ReadTraceEvents(traceID, out)
 		if err != nil {
 			errs = append(errs, err)
