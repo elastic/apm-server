@@ -133,7 +133,7 @@ func BenchmarkTracesAgentRuby(b *testing.B, l *rate.Limiter) {
 	benchmarkTracesAgent(b, l, `apm-ruby*.ndjson`)
 }
 
-// benchmarks with ndjson with traces only. Useful to benchmark TBS.
+// benchmarkTracesAgent benchmarks with traces only. Useful to benchmark TBS.
 func benchmarkTracesAgent(b *testing.B, l *rate.Limiter, expr string) {
 	h := benchtest.NewFSEventHandler(b, expr, l, events)
 	b.RunParallel(func(pb *testing.PB) {
