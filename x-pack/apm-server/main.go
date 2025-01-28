@@ -12,6 +12,7 @@ import (
 	"sync"
 
 	"github.com/gofrs/uuid/v5"
+	"go.opentelemetry.io/otel/metric"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/beats/v7/libbeat/common/reload"
@@ -20,7 +21,6 @@ import (
 	"github.com/elastic/elastic-agent-client/v7/pkg/proto"
 	"github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
-	"github.com/elastic/elastic-agent-libs/monitoring"
 	"github.com/elastic/elastic-agent-libs/paths"
 
 	"github.com/elastic/apm-data/model/modelpb"
@@ -36,13 +36,10 @@ const (
 )
 
 var (
-	// Note: this registry is created in github.com/elastic/apm-server/sampling. That package
-	// will hopefully disappear in the future, when agents no longer send unsampled transactions.
-	samplingMonitoringRegistry = monitoring.Default.GetRegistry("apm-server.sampling")
-
 	// db holds the database to use when tail-based sampling is configured.
 	dbMu sync.Mutex
 	db   *eventstorage.StorageManager
+	dbMetricRegistration metric.Registration
 
 	// samplerUUID is a UUID used to identify sampled trace ID documents
 	// published by this process.
@@ -99,8 +96,6 @@ func newProcessors(args beater.ServerParams) ([]namedProcessor, error) {
 		if err != nil {
 			return nil, fmt.Errorf("error creating %s: %w", name, err)
 		}
-		samplingMonitoringRegistry.Remove("tail")
-		monitoring.NewFunc(samplingMonitoringRegistry, "tail", sampler.CollectMonitoring, monitoring.Report)
 		processors = append(processors, namedProcessor{name: name, processor: sampler})
 	}
 	return processors, nil
@@ -114,7 +109,7 @@ func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, er
 	}
 
 	storageDir := paths.Resolve(paths.Data, tailSamplingStorageDir)
-	db, err := getDB(storageDir)
+	db, err := getDB(storageDir, args.MeterProvider)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get tail-sampling database: %w", err)
 	}
@@ -134,6 +129,7 @@ func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, er
 
 	return sampling.NewProcessor(sampling.Config{
 		BatchProcessor: args.BatchProcessor,
+		MeterProvider:  args.MeterProvider,
 		LocalSamplingConfig: sampling.LocalSamplingConfig{
 			FlushInterval:         tailSamplingConfig.Interval,
 			MaxDynamicServices:    1000,
@@ -159,7 +155,7 @@ func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, er
 	})
 }
 
-func getDB(storageDir string) (*eventstorage.StorageManager, error) {
+func getDB(storageDir string, mp metric.MeterProvider) (*eventstorage.StorageManager, error) {
 	dbMu.Lock()
 	defer dbMu.Unlock()
 	if db == nil {
@@ -168,6 +164,17 @@ func getDB(storageDir string) (*eventstorage.StorageManager, error) {
 			return nil, err
 		}
 		db = sm
+
+		meter := mp.Meter("github.com/elastic/apm-server/x-pack/apm-server")
+		lsmSizeGauge, _ := meter.Int64ObservableGauge("apm-server.sampling.tail.storage.lsm_size")
+		valueLogSizeGauge, _ := meter.Int64ObservableGauge("apm-server.sampling.tail.storage.value_log_size")
+
+		dbMetricRegistration, _ = meter.RegisterCallback(func(ctx context.Context, o metric.Observer) error {
+			lsmSize, valueLogSize := sm.Size()
+			o.ObserveInt64(lsmSizeGauge, lsmSize)
+			o.ObserveInt64(valueLogSizeGauge, valueLogSize)
+			return nil
+		}, lsmSizeGauge, valueLogSizeGauge)
 	}
 	return db, nil
 }
@@ -238,6 +245,10 @@ func wrapServer(args beater.ServerParams, runServer beater.RunServerFunc) (beate
 // called concurrently with opening DB/accessing the db global,
 // so it does not need to hold dbMu.
 func closeDB() error {
+	if dbMetricRegistration != nil {
+		dbMetricRegistration.Unregister()
+		dbMetricRegistration = nil
+	}
 	if db != nil {
 		return db.Close()
 	}

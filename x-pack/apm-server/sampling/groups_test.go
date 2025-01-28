@@ -12,6 +12,7 @@ import (
 	"github.com/gofrs/uuid/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/otel/metric/noop"
 
 	"github.com/elastic/apm-data/model/modelpb"
 )
@@ -63,7 +64,7 @@ func TestTraceGroupsPolicies(t *testing.T) {
 		policy.ServiceName = ""
 		policies = append(policies, policy)
 	}
-	groups := newTraceGroups(policies, 1000, 1.0)
+	groups := newTraceGroups(noop.Meter{}, policies, 1000, 1.0)
 
 	assertSampleRate := func(sampleRate float64, serviceName, serviceEnvironment, traceOutcome, traceName string) {
 		tx := makeTransaction(serviceName, serviceEnvironment, traceOutcome, traceName)
@@ -91,7 +92,7 @@ func TestTraceGroupsMax(t *testing.T) {
 		ingestRateCoefficient = 1.0
 	)
 	policies := []Policy{{SampleRate: 1.0}}
-	groups := newTraceGroups(policies, maxDynamicServices, ingestRateCoefficient)
+	groups := newTraceGroups(noop.Meter{}, policies, maxDynamicServices, ingestRateCoefficient)
 
 	for i := 0; i < maxDynamicServices; i++ {
 		serviceName := fmt.Sprintf("service_group_%d", i)
@@ -130,7 +131,7 @@ func TestTraceGroupReservoirResize(t *testing.T) {
 		ingestRateCoefficient = 0.75
 	)
 	policies := []Policy{{SampleRate: 0.2}}
-	groups := newTraceGroups(policies, maxDynamicServices, ingestRateCoefficient)
+	groups := newTraceGroups(noop.Meter{}, policies, maxDynamicServices, ingestRateCoefficient)
 
 	sendTransactions := func(n int) {
 		for i := 0; i < n; i++ {
@@ -172,7 +173,7 @@ func TestTraceGroupReservoirResizeMinimum(t *testing.T) {
 		ingestRateCoefficient = 1.0
 	)
 	policies := []Policy{{SampleRate: 0.1}}
-	groups := newTraceGroups(policies, maxDynamicServices, ingestRateCoefficient)
+	groups := newTraceGroups(noop.Meter{}, policies, maxDynamicServices, ingestRateCoefficient)
 
 	sendTransactions := func(n int) {
 		for i := 0; i < n; i++ {
@@ -208,7 +209,7 @@ func TestTraceGroupsRemoval(t *testing.T) {
 		{SampleRate: 0.5},
 		{PolicyCriteria: PolicyCriteria{ServiceName: "defined_later"}, SampleRate: 0.5},
 	}
-	groups := newTraceGroups(policies, maxDynamicServices, ingestRateCoefficient)
+	groups := newTraceGroups(noop.Meter{}, policies, maxDynamicServices, ingestRateCoefficient)
 
 	for i := 0; i < 10000; i++ {
 		_, err := groups.sampleTrace(&modelpb.APMEvent{
@@ -263,7 +264,7 @@ func BenchmarkTraceGroups(b *testing.B) {
 		ingestRateCoefficient = 1.0
 	)
 	policies := []Policy{{SampleRate: 1.0}}
-	groups := newTraceGroups(policies, maxDynamicServices, ingestRateCoefficient)
+	groups := newTraceGroups(noop.Meter{}, policies, maxDynamicServices, ingestRateCoefficient)
 
 	b.RunParallel(func(pb *testing.PB) {
 		// Transaction identifiers are different for each goroutine, simulating

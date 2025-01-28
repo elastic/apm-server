@@ -24,7 +24,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/apm-server/internal/beater/api/config/agent"
 	"github.com/elastic/apm-server/internal/beater/config"
 	"github.com/elastic/apm-server/internal/beater/headers"
 	"github.com/elastic/apm-server/internal/beater/request"
@@ -61,11 +60,11 @@ func TestConfigAgentHandler_PanicMiddleware(t *testing.T) {
 }
 
 func TestConfigAgentHandler_MonitoringMiddleware(t *testing.T) {
-	testMonitoringMiddleware(t, "/config/v1/agents", agent.MonitoringMap, map[request.ResultID]int{
-		request.IDRequestCount:               1,
-		request.IDResponseCount:              1,
-		request.IDResponseErrorsCount:        1,
-		request.IDResponseErrorsInvalidQuery: 1,
+	testMonitoringMiddleware(t, "/config/v1/agents", map[string]any{
+		"http.server." + string(request.IDRequestCount):               1,
+		"http.server." + string(request.IDResponseCount):              1,
+		"http.server." + string(request.IDResponseErrorsCount):        1,
+		"http.server." + string(request.IDResponseErrorsInvalidQuery): 1,
 	})
 }
 
