@@ -495,7 +495,8 @@ func (b *Beat) registerStatsMetrics() {
 		return
 	}
 
-	libbeatRegistry := monitoring.Default.GetRegistry("libbeat")
+	monitoring.Default.Remove("libbeat")
+	libbeatRegistry := monitoring.Default.NewRegistry("libbeat")
 	monitoring.NewFunc(libbeatRegistry, "output", func(_ monitoring.Mode, v monitoring.Visitor) {
 		var rm metricdata.ResourceMetrics
 		if err := b.metricReader.Collect(context.Background(), &rm); err != nil {
