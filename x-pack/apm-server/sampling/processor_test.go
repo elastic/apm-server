@@ -640,7 +640,7 @@ func TestStorageLimit(t *testing.T) {
 	})
 
 	// Ensure that there are some failed writes.
-		failedWrites := getSum(t, tempDirConfig.metricReader, "apm-server.sampling.tail.events.failed_writes")
+	failedWrites := getSum(t, tempDirConfig.metricReader, "apm-server.sampling.tail.events.failed_writes")
 	t.Log(failedWrites)
 
 	if failedWrites >= 1 {
@@ -717,7 +717,7 @@ func TestGracefulShutdown(t *testing.T) {
 
 type testConfig struct {
 	sampling.Config
-	tempDir string
+	tempDir      string
 	metricReader sdkmetric.Reader
 }
 
@@ -738,7 +738,7 @@ func newTempdirConfig(tb testing.TB) testConfig {
 	mp := sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader))
 
 	return testConfig{
-		tempDir: tempdir,
+		tempDir:      tempdir,
 		metricReader: reader,
 		Config: sampling.Config{
 			BatchProcessor: modelpb.ProcessBatchFunc(func(context.Context, *modelpb.Batch) error { return nil }),
