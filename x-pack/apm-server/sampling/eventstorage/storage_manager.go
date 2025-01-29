@@ -108,7 +108,7 @@ func NewStorageManager(storageDir string, opts ...StorageManagerOptions) (*Stora
 	}
 
 	if sm.meterProvider != nil {
-		meter := sm.meterProvider.Meter("github.com/elastic/apm-server/x-pack/apm-server")
+		meter := sm.meterProvider.Meter("github.com/elastic/apm-server/sampling/eventstorage")
 		lsmSizeGauge, _ := meter.Int64ObservableGauge("apm-server.sampling.tail.storage.lsm_size")
 		valueLogSizeGauge, _ := meter.Int64ObservableGauge("apm-server.sampling.tail.storage.value_log_size")
 
