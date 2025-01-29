@@ -100,24 +100,15 @@ type DataStreamConfig struct {
 
 // StorageConfig holds Processor configuration related to event storage.
 type StorageConfig struct {
-	// DB holds the badger database in which event storage will be maintained.
+	// DB holds the StorageManager in which event storage will be maintained.
 	//
 	// DB will not be closed when the processor is closed.
 	DB *eventstorage.StorageManager
 
-	// Storage holds the read writers which provide sharded, locked access to storage.
-	//
-	// Storage lives outside processor lifecycle and will not be closed when processor
-	// is closed
-	Storage rw
+	// Storage is the read writer to DB.
+	Storage eventstorage.RW
 
-	// StorageDir holds the directory in which event storage will be maintained.
-	StorageDir string
-
-	// StorageGCInterval holds the amount of time between storage garbage collections.
-	StorageGCInterval time.Duration
-
-	// StorageLimit for the badger database, in bytes.
+	// StorageLimit for the TBS database, in bytes.
 	StorageLimit uint64
 
 	// TTL holds the amount of time before events and sampling decisions
@@ -246,15 +237,6 @@ func (config DataStreamConfig) validate() error {
 func (config StorageConfig) validate() error {
 	if config.DB == nil {
 		return errors.New("DB unspecified")
-	}
-	if config.Storage == nil {
-		return errors.New("Storage unspecified")
-	}
-	if config.StorageDir == "" {
-		return errors.New("StorageDir unspecified")
-	}
-	if config.StorageGCInterval <= 0 {
-		return errors.New("StorageGCInterval unspecified or negative")
 	}
 	if config.TTL <= 0 {
 		return errors.New("TTL unspecified or negative")
