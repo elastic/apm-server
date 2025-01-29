@@ -11,9 +11,6 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"runtime"
-	"sort"
-	"strings"
 	"testing"
 	"time"
 
@@ -22,7 +19,12 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+<<<<<<< HEAD
 	"golang.org/x/sync/errgroup"
+=======
+	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
+	"go.opentelemetry.io/otel/sdk/metric/metricdata"
+>>>>>>> 0ca58b8c (TBS: Replace badger with pebble (#15235))
 	"google.golang.org/protobuf/testing/protocmp"
 
 	"github.com/elastic/apm-data/model/modelpb"
@@ -33,7 +35,11 @@ import (
 )
 
 func TestProcessUnsampled(t *testing.T) {
+<<<<<<< HEAD
 	processor, err := sampling.NewProcessor(newTempdirConfig(t))
+=======
+	processor, err := sampling.NewProcessor(newTempdirConfig(t).Config)
+>>>>>>> 0ca58b8c (TBS: Replace badger with pebble (#15235))
 	require.NoError(t, err)
 	go processor.Run()
 	defer processor.Stop(context.Background())
@@ -57,32 +63,28 @@ func TestProcessUnsampled(t *testing.T) {
 }
 
 func TestProcessAlreadyTailSampled(t *testing.T) {
+<<<<<<< HEAD
 	config := newTempdirConfig(t)
+=======
+	tempdirConfig := newTempdirConfig(t)
+	config := tempdirConfig.Config
+>>>>>>> 0ca58b8c (TBS: Replace badger with pebble (#15235))
 
 	// Seed event storage with a tail-sampling decisions, to show that
 	// subsequent events in the trace will be reported immediately.
 	trace1 := modelpb.Trace{Id: "0102030405060708090a0b0c0d0e0f10"}
 	trace2 := modelpb.Trace{Id: "0102030405060708090a0b0c0d0e0f11"}
-	writer := config.DB.NewBypassReadWriter()
-	wOpts := eventstorage.WriterOpts{
-		TTL:                 time.Minute,
-		StorageLimitInBytes: 0,
-	}
-	assert.NoError(t, writer.WriteTraceSampled(trace1.Id, true, wOpts))
-	assert.NoError(t, writer.Flush())
-	writer.Close()
+	writer := config.DB.NewReadWriter()
+	assert.NoError(t, writer.WriteTraceSampled(trace2.Id, true))
 
-	wOpts.TTL = -1 // expire immediately
-	writer = config.DB.NewBypassReadWriter()
-	assert.NoError(t, writer.WriteTraceSampled(trace2.Id, true, wOpts))
-	assert.NoError(t, writer.Flush())
-	writer.Close()
+	// simulate 2 TTL
+	assert.NoError(t, config.DB.RotatePartitions())
+	assert.NoError(t, config.DB.RotatePartitions())
 
-	// Badger transactions created globally before committing the above writes
-	// will not see them due to SSI (Serializable Snapshot Isolation). Flush
-	// the storage so that new transactions are created for the underlying
-	// writer shards that can list all the events committed so far.
-	require.NoError(t, config.Storage.Flush())
+	writer = config.DB.NewReadWriter()
+	assert.NoError(t, writer.WriteTraceSampled(trace1.Id, true))
+
+	require.NoError(t, config.DB.Flush())
 
 	processor, err := sampling.NewProcessor(config)
 	require.NoError(t, err)
@@ -129,6 +131,7 @@ func TestProcessAlreadyTailSampled(t *testing.T) {
 	// they were received after the trace sampling entry expired.
 	assert.Equal(t, modelpb.Batch{&transaction1, &span1}, batch)
 
+<<<<<<< HEAD
 	expectedMonitoring := monitoring.MakeFlatSnapshot()
 	expectedMonitoring.Ints["sampling.events.processed"] = 4
 	expectedMonitoring.Ints["sampling.events.head_unsampled"] = 0
@@ -137,12 +140,18 @@ func TestProcessAlreadyTailSampled(t *testing.T) {
 	expectedMonitoring.Ints["sampling.events.dropped"] = 0
 	expectedMonitoring.Ints["sampling.events.failed_writes"] = 0
 	assertMonitoring(t, processor, expectedMonitoring, `sampling.events.*`)
+=======
+	monitoringtest.ExpectContainOtelMetrics(t, tempdirConfig.metricReader, map[string]any{
+		"apm-server.sampling.tail.events.processed": 4,
+		"apm-server.sampling.tail.events.stored":    2,
+		"apm-server.sampling.tail.events.sampled":   2,
+	})
+>>>>>>> 0ca58b8c (TBS: Replace badger with pebble (#15235))
 
 	// Stop the processor and flush global storage so we can access the database.
 	assert.NoError(t, processor.Stop(context.Background()))
-	assert.NoError(t, config.Storage.Flush())
-	reader := config.DB.NewBypassReadWriter()
-	defer reader.Close()
+	assert.NoError(t, config.DB.Flush())
+	reader := config.DB.NewReadWriter()
 
 	batch = nil
 	err = reader.ReadTraceEvents(trace1.Id, &batch)
@@ -167,7 +176,12 @@ func TestProcessLocalTailSampling(t *testing.T) {
 		},
 	} {
 		t.Run(fmt.Sprintf("%f", tc.sampleRate), func(t *testing.T) {
+<<<<<<< HEAD
 			config := newTempdirConfig(t)
+=======
+			tempdirConfig := newTempdirConfig(t)
+			config := tempdirConfig.Config
+>>>>>>> 0ca58b8c (TBS: Replace badger with pebble (#15235))
 			config.Policies = []sampling.Policy{{SampleRate: tc.sampleRate}}
 			config.FlushInterval = 10 * time.Millisecond
 			published := make(chan string)
@@ -248,6 +262,7 @@ func TestProcessLocalTailSampling(t *testing.T) {
 				sampledTraceEvents = trace2Events
 			}
 
+<<<<<<< HEAD
 			expectedMonitoring := monitoring.MakeFlatSnapshot()
 			expectedMonitoring.Ints["sampling.events.processed"] = 4
 			expectedMonitoring.Ints["sampling.events.stored"] = 4
@@ -256,12 +271,18 @@ func TestProcessLocalTailSampling(t *testing.T) {
 			expectedMonitoring.Ints["sampling.events.dropped"] = 0
 			expectedMonitoring.Ints["sampling.events.failed_writes"] = 0
 			assertMonitoring(t, processor, expectedMonitoring, `sampling.events.*`)
+=======
+			monitoringtest.ExpectContainOtelMetrics(t, tempdirConfig.metricReader, map[string]any{
+				"apm-server.sampling.tail.events.processed": 4,
+				"apm-server.sampling.tail.events.stored":    4,
+				"apm-server.sampling.tail.events.sampled":   2,
+			})
+>>>>>>> 0ca58b8c (TBS: Replace badger with pebble (#15235))
 
 			// Stop the processor and flush global storage so we can access the database.
 			assert.NoError(t, processor.Stop(context.Background()))
-			assert.NoError(t, config.Storage.Flush())
-			reader := config.DB.NewBypassReadWriter()
-			defer reader.Close()
+			assert.NoError(t, config.DB.Flush())
+			reader := config.DB.NewReadWriter()
 
 			sampled, err := reader.IsTraceSampled(sampledTraceID)
 			assert.NoError(t, err)
@@ -289,7 +310,12 @@ func TestProcessLocalTailSampling(t *testing.T) {
 }
 
 func TestProcessLocalTailSamplingUnsampled(t *testing.T) {
+<<<<<<< HEAD
 	config := newTempdirConfig(t)
+=======
+	tempdirConfig := newTempdirConfig(t)
+	config := tempdirConfig.Config
+>>>>>>> 0ca58b8c (TBS: Replace badger with pebble (#15235))
 	config.FlushInterval = time.Minute
 	processor, err := sampling.NewProcessor(config)
 	require.NoError(t, err)
@@ -315,7 +341,11 @@ func TestProcessLocalTailSamplingUnsampled(t *testing.T) {
 		assert.Empty(t, batch)
 
 		// break out of the loop as soon as the first one is dropped.
+<<<<<<< HEAD
 		droppedEvents := collectProcessorMetrics(processor).Ints["sampling.events.dropped"]
+=======
+		droppedEvents := getSum(t, tempdirConfig.metricReader, "apm-server.sampling.events.dropped")
+>>>>>>> 0ca58b8c (TBS: Replace badger with pebble (#15235))
 		if droppedEvents != 0 {
 			break
 		}
@@ -323,9 +353,8 @@ func TestProcessLocalTailSamplingUnsampled(t *testing.T) {
 
 	// Stop the processor so we can access the database.
 	assert.NoError(t, processor.Stop(context.Background()))
-	assert.NoError(t, config.Storage.Flush())
-	reader := config.DB.NewBypassReadWriter()
-	defer reader.Close()
+	assert.NoError(t, config.DB.Flush())
+	reader := config.DB.NewReadWriter()
 
 	var anyUnsampled bool
 	for _, traceID := range traceIDs {
@@ -344,7 +373,11 @@ func TestProcessLocalTailSamplingUnsampled(t *testing.T) {
 }
 
 func TestProcessLocalTailSamplingPolicyOrder(t *testing.T) {
+<<<<<<< HEAD
 	config := newTempdirConfig(t)
+=======
+	config := newTempdirConfig(t).Config
+>>>>>>> 0ca58b8c (TBS: Replace badger with pebble (#15235))
 	config.Policies = []sampling.Policy{{
 		PolicyCriteria: sampling.PolicyCriteria{TraceName: "trace_name"},
 		SampleRate:     0.5,
@@ -411,7 +444,12 @@ func TestProcessLocalTailSamplingPolicyOrder(t *testing.T) {
 }
 
 func TestProcessRemoteTailSampling(t *testing.T) {
+<<<<<<< HEAD
 	config := newTempdirConfig(t)
+=======
+	tempdirConfig := newTempdirConfig(t)
+	config := tempdirConfig.Config
+>>>>>>> 0ca58b8c (TBS: Replace badger with pebble (#15235))
 	config.Policies = []sampling.Policy{{SampleRate: 0.5}}
 	config.FlushInterval = 10 * time.Millisecond
 
@@ -476,9 +514,10 @@ func TestProcessRemoteTailSampling(t *testing.T) {
 
 	// Stop the processor and flush global storage so we can access the database.
 	assert.NoError(t, processor.Stop(context.Background()))
-	assert.NoError(t, config.Storage.Flush())
+	assert.NoError(t, config.DB.Flush())
 	assert.Empty(t, published) // remote decisions don't get republished
 
+<<<<<<< HEAD
 	expectedMonitoring := monitoring.MakeFlatSnapshot()
 	expectedMonitoring.Ints["sampling.events.processed"] = 1
 	expectedMonitoring.Ints["sampling.events.stored"] = 1
@@ -487,11 +526,17 @@ func TestProcessRemoteTailSampling(t *testing.T) {
 	expectedMonitoring.Ints["sampling.events.dropped"] = 0
 	expectedMonitoring.Ints["sampling.events.failed_writes"] = 0
 	assertMonitoring(t, processor, expectedMonitoring, `sampling.events.*`)
+=======
+	monitoringtest.ExpectContainOtelMetrics(t, tempdirConfig.metricReader, map[string]any{
+		"apm-server.sampling.tail.events.processed": 1,
+		"apm-server.sampling.tail.events.stored":    1,
+		"apm-server.sampling.tail.events.sampled":   1,
+	})
+>>>>>>> 0ca58b8c (TBS: Replace badger with pebble (#15235))
 
 	assert.Empty(t, cmp.Diff(trace1Events, events, protocmp.Transform()))
 
-	reader := config.DB.NewBypassReadWriter()
-	defer reader.Close()
+	reader := config.DB.NewReadWriter()
 
 	sampled, err := reader.IsTraceSampled(traceID1)
 	assert.NoError(t, err)
@@ -520,11 +565,11 @@ func (m errorRW) ReadTraceEvents(traceID string, out *modelpb.Batch) error {
 	return m.err
 }
 
-func (m errorRW) WriteTraceEvent(traceID, id string, event *modelpb.APMEvent, opts eventstorage.WriterOpts) error {
+func (m errorRW) WriteTraceEvent(traceID, id string, event *modelpb.APMEvent) error {
 	return m.err
 }
 
-func (m errorRW) WriteTraceSampled(traceID string, sampled bool, opts eventstorage.WriterOpts) error {
+func (m errorRW) WriteTraceSampled(traceID string, sampled bool) error {
 	return m.err
 }
 
@@ -543,7 +588,11 @@ func (m errorRW) Flush() error {
 func TestProcessDiscardOnWriteFailure(t *testing.T) {
 	for _, discard := range []bool{true, false} {
 		t.Run(fmt.Sprintf("discard=%v", discard), func(t *testing.T) {
+<<<<<<< HEAD
 			config := newTempdirConfig(t)
+=======
+			config := newTempdirConfig(t).Config
+>>>>>>> 0ca58b8c (TBS: Replace badger with pebble (#15235))
 			config.DiscardOnWriteFailure = discard
 			config.Storage = errorRW{err: errors.New("boom")}
 			processor, err := sampling.NewProcessor(config)
@@ -576,7 +625,12 @@ func TestProcessDiscardOnWriteFailure(t *testing.T) {
 }
 
 func TestGroupsMonitoring(t *testing.T) {
+<<<<<<< HEAD
 	config := newTempdirConfig(t)
+=======
+	tempdirConfig := newTempdirConfig(t)
+	config := tempdirConfig.Config
+>>>>>>> 0ca58b8c (TBS: Replace badger with pebble (#15235))
 	config.MaxDynamicServices = 5
 	config.FlushInterval = time.Minute
 	config.Policies[0].SampleRate = 0.99
@@ -600,6 +654,7 @@ func TestGroupsMonitoring(t *testing.T) {
 		require.NoError(t, err)
 	}
 
+<<<<<<< HEAD
 	expectedMonitoring := monitoring.MakeFlatSnapshot()
 	expectedMonitoring.Ints["sampling.dynamic_service_groups"] = int64(config.MaxDynamicServices)
 	expectedMonitoring.Ints["sampling.events.processed"] = int64(config.MaxDynamicServices) + 2
@@ -644,52 +699,48 @@ func TestStorageMonitoring(t *testing.T) {
 	metrics := collectProcessorMetrics(processor)
 	assert.NotZero(t, metrics.Ints, "sampling.storage.lsm_size")
 	assert.NotZero(t, metrics.Ints, "sampling.storage.value_log_size")
+=======
+	monitoringtest.ExpectContainOtelMetrics(t, tempdirConfig.metricReader, map[string]any{
+		"apm-server.sampling.tail.dynamic_service_groups": config.MaxDynamicServices,
+		"apm-server.sampling.tail.events.processed":       config.MaxDynamicServices + 2,
+		"apm-server.sampling.tail.events.stored":          config.MaxDynamicServices,
+		"apm-server.sampling.tail.events.dropped":         1, // final event dropped, after service limit reached
+		"apm-server.sampling.tail.events.head_unsampled":  1,
+	})
+>>>>>>> 0ca58b8c (TBS: Replace badger with pebble (#15235))
 }
 
-func TestStorageGC(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping slow test")
-	}
+func getGauge(t testing.TB, reader sdkmetric.Reader, name string) int64 {
+	var rm metricdata.ResourceMetrics
+	assert.NoError(t, reader.Collect(context.Background(), &rm))
 
+<<<<<<< HEAD
 	config := newTempdirConfig(t)
 	config.TTL = 10 * time.Millisecond
 	config.FlushInterval = 10 * time.Millisecond
+=======
+	assert.NotEqual(t, 0, len(rm.ScopeMetrics))
+>>>>>>> 0ca58b8c (TBS: Replace badger with pebble (#15235))
 
-	writeBatch := func(n int) {
-		config.StorageGCInterval = time.Hour // effectively disable
-		processor, err := sampling.NewProcessor(config)
-		require.NoError(t, err)
-		go processor.Run()
-		defer processor.Stop(context.Background())
-		for i := 0; i < n; i++ {
-			traceID := uuid.Must(uuid.NewV4()).String()
-			// Create a larger event to fill up the vlog faster, especially when it is above ValueThreshold
-			batch := modelpb.Batch{{
-				Trace: &modelpb.Trace{Id: traceID},
-				Event: &modelpb.Event{Duration: uint64(123 * time.Millisecond)},
-				Span: &modelpb.Span{
-					Type:    strings.Repeat("a", 1000),
-					Subtype: strings.Repeat("b", 1000),
-					Id:      traceID,
-					Name:    strings.Repeat("c", 1000),
-				},
-			}}
-			err := processor.ProcessBatch(context.Background(), &batch)
-			require.NoError(t, err)
-			assert.Empty(t, batch)
+	for _, sm := range rm.ScopeMetrics {
+		for _, m := range sm.Metrics {
+			if m.Name == name {
+				return m.Data.(metricdata.Gauge[int64]).DataPoints[0].Value
+			}
 		}
 	}
 
-	// Process spans until value log files have been created.
-	// Garbage collection is disabled at this time.
-	for len(vlogFilenames(config.StorageDir)) < 3 {
-		writeBatch(2000)
-	}
+	return 0
+}
 
-	config.StorageGCInterval = 10 * time.Millisecond
+func TestStorageMonitoring(t *testing.T) {
+	tempdirConfig := newTempdirConfig(t)
+	config := tempdirConfig.Config
+
 	processor, err := sampling.NewProcessor(config)
 	require.NoError(t, err)
 	go processor.Run()
+<<<<<<< HEAD
 	defer processor.Stop(context.Background())
 
 	// Wait for the first value log file to be garbage collected.
@@ -715,14 +766,34 @@ func TestStorageGCConcurrency(t *testing.T) {
 	g := errgroup.Group{}
 	for i := 0; i < 2; i++ {
 		processor, err := sampling.NewProcessor(config)
+=======
+	for i := 0; i < 100; i++ {
+		traceID := uuid.Must(uuid.NewV4()).String()
+		batch := modelpb.Batch{{
+			Trace: &modelpb.Trace{Id: traceID},
+			Event: &modelpb.Event{Duration: uint64(123 * time.Millisecond)},
+			Transaction: &modelpb.Transaction{
+				Type:    "type",
+				Id:      traceID,
+				Sampled: true,
+			},
+		}}
+		err := processor.ProcessBatch(context.Background(), &batch)
+>>>>>>> 0ca58b8c (TBS: Replace badger with pebble (#15235))
 		require.NoError(t, err)
-		g.Go(processor.Run)
-		go func() {
-			time.Sleep(time.Second)
-			assert.NoError(t, processor.Stop(context.Background()))
-		}()
+		assert.Empty(t, batch)
 	}
-	assert.NoError(t, g.Wait())
+
+	// Stop the processor, flushing pending writes.
+	err = processor.Stop(context.Background())
+	require.NoError(t, err)
+
+	require.NoError(t, config.DB.Flush())
+
+	lsmSize := getGauge(t, tempdirConfig.metricReader, "apm-server.sampling.tail.storage.lsm_size")
+	assert.NotZero(t, lsmSize)
+	vlogSize := getGauge(t, tempdirConfig.metricReader, "apm-server.sampling.tail.storage.value_log_size")
+	assert.Zero(t, vlogSize)
 }
 
 func TestStorageLimit(t *testing.T) {
@@ -731,10 +802,6 @@ func TestStorageLimit(t *testing.T) {
 	// To update the database size during our test without waiting a full
 	// minute, we store some span events, close and re-open the database, so
 	// the size is updated.
-	if testing.Short() {
-		t.Skip("skipping slow test")
-	}
-
 	writeBatch := func(n int, c sampling.Config, assertBatch func(b modelpb.Batch)) *sampling.Processor {
 		processor, err := sampling.NewProcessor(c)
 		require.NoError(t, err)
@@ -758,25 +825,28 @@ func TestStorageLimit(t *testing.T) {
 		return processor
 	}
 
+<<<<<<< HEAD
 	config := newTempdirConfig(t)
+=======
+	tempdirConfig := newTempdirConfig(t)
+	config := tempdirConfig.Config
+	config.TTL = time.Hour
+>>>>>>> 0ca58b8c (TBS: Replace badger with pebble (#15235))
 	// Write 5K span events and close the DB to persist to disk the storage
 	// size and assert that none are reported immediately.
 	writeBatch(5000, config, func(b modelpb.Batch) {
 		assert.Empty(t, b, fmt.Sprintf("expected empty but size is %d", len(b)))
 	})
-	assert.NoError(t, config.Storage.Flush())
-	assert.NoError(t, config.DB.Close())
 
-	// Open a new instance of the badgerDB and check the size.
-	var err error
-	config.DB, err = eventstorage.NewStorageManager(config.StorageDir)
-	require.NoError(t, err)
-	t.Cleanup(func() { config.DB.Close() })
+	err := config.DB.Reload()
+	assert.NoError(t, err)
+
 	config.Storage = config.DB.NewReadWriter()
 
 	lsm, vlog := config.DB.Size()
-	assert.GreaterOrEqual(t, lsm+vlog, int64(1024))
+	assert.Greater(t, lsm+vlog, int64(10<<10))
 
+<<<<<<< HEAD
 	config.StorageLimit = 1024 // Set the storage limit to 1024 bytes.
 	// Create a massive 150K span batch (per CPU) to trigger the badger error
 	// Transaction too big, causing the ProcessBatch to report the some traces
@@ -793,17 +863,32 @@ func TestStorageLimit(t *testing.T) {
 		failedWrites := collectProcessorMetrics(processor).Ints["sampling.events.failed_writes"]
 		t.Log(failedWrites)
 		// Ensure that there are some failed writes.
+=======
+	config.StorageLimit = 10 << 10 // Set the storage limit to smaller than existing storage
 
-		if failedWrites >= 1 {
-			return
-		}
+	writeBatch(1000, config, func(b modelpb.Batch) {
+		assert.Len(t, b, 1000)
+	})
+>>>>>>> 0ca58b8c (TBS: Replace badger with pebble (#15235))
+
+	// Ensure that there are some failed writes.
+	failedWrites := getSum(t, tempdirConfig.metricReader, "apm-server.sampling.tail.events.failed_writes")
+	t.Log(failedWrites)
+
+	if failedWrites >= 1 {
+		return
 	}
 
-	t.Fatal("badger error never thrown")
+	t.Fatal("storage limit error never thrown")
 }
 
 func TestProcessRemoteTailSamplingPersistence(t *testing.T) {
+<<<<<<< HEAD
 	config := newTempdirConfig(t)
+=======
+	tempdirConfig := newTempdirConfig(t)
+	config := tempdirConfig.Config
+>>>>>>> 0ca58b8c (TBS: Replace badger with pebble (#15235))
 	config.Policies = []sampling.Policy{{SampleRate: 0.5}}
 	config.FlushInterval = 10 * time.Millisecond
 
@@ -817,7 +902,7 @@ func TestProcessRemoteTailSamplingPersistence(t *testing.T) {
 	defer processor.Stop(context.Background())
 
 	// Wait for subscriber_position.json to be written to the storage directory.
-	subscriberPositionFile := filepath.Join(config.StorageDir, "subscriber_position.json")
+	subscriberPositionFile := filepath.Join(tempdirConfig.tempDir, "subscriber_position.json")
 	data, info := waitFileModified(t, subscriberPositionFile, time.Time{})
 	assert.Equal(t, "{}", string(data))
 
@@ -826,6 +911,7 @@ func TestProcessRemoteTailSamplingPersistence(t *testing.T) {
 	assert.Equal(t, `{"index_name":1}`, string(data))
 }
 
+<<<<<<< HEAD
 func TestDropLoop(t *testing.T) {
 	// This test ensures that if badger is stuck at storage limit for TTL,
 	// DB is dropped and recreated.
@@ -953,6 +1039,10 @@ func TestDropLoop(t *testing.T) {
 
 func TestGracefulShutdown(t *testing.T) {
 	config := newTempdirConfig(t)
+=======
+func TestGracefulShutdown(t *testing.T) {
+	config := newTempdirConfig(t).Config
+>>>>>>> 0ca58b8c (TBS: Replace badger with pebble (#15235))
 	sampleRate := 0.5
 	config.Policies = []sampling.Policy{{SampleRate: sampleRate}}
 	config.FlushInterval = time.Minute // disable finalize
@@ -979,10 +1069,8 @@ func TestGracefulShutdown(t *testing.T) {
 	assert.NoError(t, processor.ProcessBatch(context.Background(), &batch))
 	assert.Empty(t, batch)
 	assert.NoError(t, processor.Stop(context.Background()))
-	assert.NoError(t, config.Storage.Flush())
 
-	reader := config.DB.NewBypassReadWriter()
-	defer reader.Close()
+	reader := config.DB.NewReadWriter()
 
 	var count int
 	for i := 0; i < totalTraces; i++ {
@@ -993,11 +1081,22 @@ func TestGracefulShutdown(t *testing.T) {
 	assert.Equal(t, int(sampleRate*float64(totalTraces)), count)
 }
 
+<<<<<<< HEAD
 func newTempdirConfig(tb testing.TB) sampling.Config {
+=======
+type testConfig struct {
+	sampling.Config
+	tempDir      string
+	metricReader sdkmetric.Reader
+}
+
+func newTempdirConfig(tb testing.TB) testConfig {
+>>>>>>> 0ca58b8c (TBS: Replace badger with pebble (#15235))
 	tempdir, err := os.MkdirTemp("", "samplingtest")
 	require.NoError(tb, err)
 	tb.Cleanup(func() { os.RemoveAll(tempdir) })
 
+<<<<<<< HEAD
 	badgerDB, err := eventstorage.NewStorageManager(tempdir)
 	require.NoError(tb, err)
 	tb.Cleanup(func() { badgerDB.Close() })
@@ -1031,6 +1130,49 @@ func newTempdirConfig(tb testing.TB) sampling.Config {
 			TTL:               30 * time.Minute,
 			StorageLimit:      0, // No storage limit.
 		},
+=======
+	reader := sdkmetric.NewManualReader(sdkmetric.WithTemporalitySelector(
+		func(ik sdkmetric.InstrumentKind) metricdata.Temporality {
+			return metricdata.DeltaTemporality
+		},
+	))
+	mp := sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader))
+
+	db, err := eventstorage.NewStorageManager(tempdir, eventstorage.WithMeterProvider(mp))
+	require.NoError(tb, err)
+	tb.Cleanup(func() { db.Close() })
+
+	return testConfig{
+		tempDir:      tempdir,
+		metricReader: reader,
+		Config: sampling.Config{
+			BatchProcessor: modelpb.ProcessBatchFunc(func(context.Context, *modelpb.Batch) error { return nil }),
+			MeterProvider:  mp,
+			LocalSamplingConfig: sampling.LocalSamplingConfig{
+				FlushInterval:         time.Second,
+				MaxDynamicServices:    1000,
+				IngestRateDecayFactor: 0.9,
+				Policies: []sampling.Policy{
+					{SampleRate: 0.1},
+				},
+			},
+			RemoteSamplingConfig: sampling.RemoteSamplingConfig{
+				Elasticsearch: pubsubtest.Client(nil, nil),
+				SampledTracesDataStream: sampling.DataStreamConfig{
+					Type:      "traces",
+					Dataset:   "sampled",
+					Namespace: "testing",
+				},
+				UUID: "local-apm-server",
+			},
+			StorageConfig: sampling.StorageConfig{
+				DB:           db,
+				Storage:      db.NewReadWriter(),
+				TTL:          30 * time.Minute,
+				StorageLimit: 0, // No storage limit.
+			},
+		},
+>>>>>>> 0ca58b8c (TBS: Replace badger with pebble (#15235))
 	}
 }
 
@@ -1120,32 +1262,4 @@ func waitFileModified(tb testing.TB, filename string, after time.Time) ([]byte, 
 			tb.Fatalf("timed out waiting for %q to be modified", filename)
 		}
 	}
-}
-
-func vlogFilenames(storageDir string) []string {
-	entries, _ := os.ReadDir(storageDir)
-
-	var vlogs []string
-	for _, entry := range entries {
-		name := entry.Name()
-		if strings.HasSuffix(name, ".vlog") {
-			vlogs = append(vlogs, name)
-		}
-	}
-	sort.Strings(vlogs)
-	return vlogs
-}
-
-func sstFilenames(storageDir string) []string {
-	entries, _ := os.ReadDir(storageDir)
-
-	var ssts []string
-	for _, entry := range entries {
-		name := entry.Name()
-		if strings.HasSuffix(name, ".sst") {
-			ssts = append(ssts, name)
-		}
-	}
-	sort.Strings(ssts)
-	return ssts
 }

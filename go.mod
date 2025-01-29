@@ -5,7 +5,7 @@ go 1.23.0
 require (
 	github.com/KimMachineGun/automemlimit v0.7.0
 	github.com/cespare/xxhash/v2 v2.3.0
-	github.com/dgraph-io/badger/v2 v2.2007.4
+	github.com/cockroachdb/pebble/v2 v2.0.2
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/apm-aggregation v1.2.0
 	github.com/elastic/apm-data v1.16.0
@@ -63,22 +63,24 @@ require (
 require (
 	github.com/DataDog/zstd v1.5.6 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
+<<<<<<< HEAD
 	github.com/OneOfOne/xxhash v1.2.8 // indirect
 	github.com/Shopify/sarama v1.38.1 // indirect
 	github.com/apache/thrift v0.21.0 // indirect
+=======
+>>>>>>> 0ca58b8c (TBS: Replace badger with pebble (#15235))
 	github.com/armon/go-radix v1.0.0 // indirect
 	github.com/axiomhq/hyperloglog v0.2.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
-	github.com/cespare/xxhash v1.1.0 // indirect
+	github.com/cockroachdb/crlib v0.0.0-20241015224233-894974b3ad94 // indirect
 	github.com/cockroachdb/errors v1.11.3 // indirect
 	github.com/cockroachdb/fifo v0.0.0-20240816210425-c5d0cb0b6fc0 // indirect
 	github.com/cockroachdb/logtags v0.0.0-20230118201751-21c54148d20b // indirect
 	github.com/cockroachdb/pebble v1.1.2 // indirect
 	github.com/cockroachdb/redact v1.1.5 // indirect
+	github.com/cockroachdb/swiss v0.0.0-20240612210725-f4de07ae6964 // indirect
 	github.com/cockroachdb/tokenbucket v0.0.0-20230807174530-cc333fc44b06 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
-	github.com/dgraph-io/ristretto v0.2.0 // indirect
-	github.com/dgryski/go-farm v0.0.0-20200201041132-a6ae2369ad13 // indirect
 	github.com/dgryski/go-metro v0.0.0-20211217172704-adc40b04c140 // indirect
 	github.com/dlclark/regexp2 v1.8.1 // indirect
 	github.com/dop251/goja v0.0.0-20230427124612-428fc442ff5f // indirect
@@ -102,7 +104,7 @@ require (
 	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/gogo/googleapis v1.4.1 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
-	github.com/golang/snappy v0.0.4 // indirect
+	github.com/golang/snappy v0.0.5-0.20231225225746-43d5d4cd4e0e // indirect
 	github.com/gomodule/redigo v1.8.9 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0 // indirect

@@ -33,7 +33,7 @@ func TestMonitoring(t *testing.T) {
 	home := t.TempDir()
 	err := paths.InitPaths(&paths.Path{Home: home})
 	require.NoError(t, err)
-	defer closeBadger() // close badger.DB so data dir can be deleted on Windows
+	defer closeDB() // close DB so data dir can be deleted on Windows
 
 	cfg := config.DefaultConfig()
 	cfg.Sampling.Tail.Enabled = true
@@ -64,6 +64,13 @@ func TestMonitoring(t *testing.T) {
 
 		err = runServer(context.Background(), serverParams)
 		assert.Equal(t, runServerError, err)
+<<<<<<< HEAD
 		assert.NotEqual(t, monitoring.MakeFlatSnapshot(), tailSamplingMonitoringSnapshot)
+=======
+		monitoringtest.ExpectContainOtelMetricsKeys(t, reader, []string{
+			"apm-server.sampling.tail.storage.lsm_size",
+			"apm-server.sampling.tail.storage.value_log_size",
+		})
+>>>>>>> 0ca58b8c (TBS: Replace badger with pebble (#15235))
 	}
 }
