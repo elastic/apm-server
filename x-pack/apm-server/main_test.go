@@ -68,9 +68,9 @@ func TestMonitoring(t *testing.T) {
 
 		err = runServer(context.Background(), serverParams)
 		assert.Equal(t, runServerError, err)
-		monitoringtest.ExpectOtelMetrics(t, reader, map[string]any{
-			"apm-server.sampling.tail.storage.lsm_size":       0,
-			"apm-server.sampling.tail.storage.value_log_size": 0,
+		monitoringtest.ExpectContainOtelMetricsKeys(t, reader, []string{
+			"apm-server.sampling.tail.storage.lsm_size",
+			"apm-server.sampling.tail.storage.value_log_size",
 		})
 	}
 }

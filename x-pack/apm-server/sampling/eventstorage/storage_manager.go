@@ -5,6 +5,7 @@
 package eventstorage
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -15,6 +16,7 @@ import (
 	"time"
 
 	"github.com/cockroachdb/pebble/v2"
+	"go.opentelemetry.io/otel/metric"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/apm-server/internal/logs"
@@ -54,6 +56,12 @@ func WithCodec(codec Codec) StorageManagerOptions {
 	}
 }
 
+func WithMeterProvider(mp metric.MeterProvider) StorageManagerOptions {
+	return func(sm *StorageManager) {
+		sm.meterProvider = mp
+	}
+}
+
 // StorageManager encapsulates pebble.DB.
 // It assumes exclusive access to pebble DB at storageDir.
 type StorageManager struct {
@@ -80,6 +88,11 @@ type StorageManager struct {
 	// runCh acts as a mutex to ensure only 1 Run is actively running per StorageManager.
 	// as it is possible that 2 separate Run are created by 2 TBS processors during a hot reload.
 	runCh chan struct{}
+
+	// meterProvider is the OTel meter provider
+	meterProvider metric.MeterProvider
+
+	metricRegistration metric.Registration
 }
 
 // NewStorageManager returns a new StorageManager with pebble DB at storageDir.
@@ -92,6 +105,19 @@ func NewStorageManager(storageDir string, opts ...StorageManagerOptions) (*Stora
 	}
 	for _, opt := range opts {
 		opt(sm)
+	}
+
+	if sm.meterProvider != nil {
+		meter := sm.meterProvider.Meter("github.com/elastic/apm-server/x-pack/apm-server")
+		lsmSizeGauge, _ := meter.Int64ObservableGauge("apm-server.sampling.tail.storage.lsm_size")
+		valueLogSizeGauge, _ := meter.Int64ObservableGauge("apm-server.sampling.tail.storage.value_log_size")
+
+		sm.metricRegistration, _ = meter.RegisterCallback(func(ctx context.Context, o metric.Observer) error {
+			lsmSize, valueLogSize := sm.Size()
+			o.ObserveInt64(lsmSizeGauge, lsmSize)
+			o.ObserveInt64(valueLogSizeGauge, valueLogSize)
+			return nil
+		}, lsmSizeGauge, valueLogSizeGauge)
 	}
 
 	if err := sm.reset(); err != nil {
@@ -219,6 +245,11 @@ func (sm *StorageManager) Close() error {
 }
 
 func (sm *StorageManager) close() error {
+	if sm.metricRegistration != nil {
+		if err := sm.metricRegistration.Unregister(); err != nil {
+			sm.logger.With(logp.Error(err)).Error("failed to unregister metric")
+		}
+	}
 	return errors.Join(
 		wrapNonNilErr("event db flush error: %w", sm.eventDB.Flush()),
 		wrapNonNilErr("decision db flush error: %w", sm.decisionDB.Flush()),

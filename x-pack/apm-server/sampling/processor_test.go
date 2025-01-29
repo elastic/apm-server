@@ -462,7 +462,7 @@ func TestProcessRemoteTailSampling(t *testing.T) {
 	assert.NoError(t, config.DB.Flush())
 	assert.Empty(t, published) // remote decisions don't get republished
 
-	monitoringtest.ExpectOtelMetrics(t, tempdirConfig.metricReader, map[string]any{
+	monitoringtest.ExpectContainOtelMetrics(t, tempdirConfig.metricReader, map[string]any{
 		"apm-server.sampling.tail.events.processed": 1,
 		"apm-server.sampling.tail.events.stored":    1,
 		"apm-server.sampling.tail.events.sampled":   1,
@@ -580,7 +580,7 @@ func TestGroupsMonitoring(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	monitoringtest.ExpectOtelMetrics(t, tempdirConfig.metricReader, map[string]any{
+	monitoringtest.ExpectContainOtelMetrics(t, tempdirConfig.metricReader, map[string]any{
 		"apm-server.sampling.tail.dynamic_service_groups": config.MaxDynamicServices,
 		"apm-server.sampling.tail.events.processed":       config.MaxDynamicServices + 2,
 		"apm-server.sampling.tail.events.stored":          config.MaxDynamicServices,
@@ -613,7 +613,6 @@ func TestStorageMonitoring(t *testing.T) {
 	processor, err := sampling.NewProcessor(config)
 	require.NoError(t, err)
 	go processor.Run()
-	defer processor.Stop(context.Background())
 	for i := 0; i < 100; i++ {
 		traceID := uuid.Must(uuid.NewV4()).String()
 		batch := modelpb.Batch{{
@@ -630,16 +629,16 @@ func TestStorageMonitoring(t *testing.T) {
 		assert.Empty(t, batch)
 	}
 
-	// Stop the processor, flushing pending writes, and reopen storage.
+	// Stop the processor, flushing pending writes.
 	err = processor.Stop(context.Background())
 	require.NoError(t, err)
 
-	require.NoError(t, config.DB.Reload())
+	require.NoError(t, config.DB.Flush())
 
 	lsmSize := getGauge(t, tempdirConfig.metricReader, "apm-server.sampling.tail.storage.lsm_size")
 	assert.NotZero(t, lsmSize)
 	vlogSize := getGauge(t, tempdirConfig.metricReader, "apm-server.sampling.tail.storage.value_log_size")
-	assert.NotZero(t, vlogSize)
+	assert.Zero(t, vlogSize)
 }
 
 func TestStorageLimit(t *testing.T) {
@@ -779,16 +778,16 @@ func newTempdirConfig(tb testing.TB) testConfig {
 	require.NoError(tb, err)
 	tb.Cleanup(func() { os.RemoveAll(tempdir) })
 
-	db, err := eventstorage.NewStorageManager(tempdir)
-	require.NoError(tb, err)
-	tb.Cleanup(func() { db.Close() })
-
 	reader := sdkmetric.NewManualReader(sdkmetric.WithTemporalitySelector(
 		func(ik sdkmetric.InstrumentKind) metricdata.Temporality {
 			return metricdata.DeltaTemporality
 		},
 	))
 	mp := sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader))
+
+	db, err := eventstorage.NewStorageManager(tempdir, eventstorage.WithMeterProvider(mp))
+	require.NoError(tb, err)
+	tb.Cleanup(func() { db.Close() })
 
 	return testConfig{
 		tempDir:      tempdir,

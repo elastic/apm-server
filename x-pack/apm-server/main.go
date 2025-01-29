@@ -159,22 +159,15 @@ func getDB(storageDir string, mp metric.MeterProvider) (*eventstorage.StorageMan
 	dbMu.Lock()
 	defer dbMu.Unlock()
 	if db == nil {
-		sm, err := eventstorage.NewStorageManager(storageDir)
+		var opts []eventstorage.StorageManagerOptions
+		if mp != nil {
+			opts = append(opts, eventstorage.WithMeterProvider(mp))
+		}
+		sm, err := eventstorage.NewStorageManager(storageDir, opts...)
 		if err != nil {
 			return nil, err
 		}
 		db = sm
-
-		meter := mp.Meter("github.com/elastic/apm-server/x-pack/apm-server")
-		lsmSizeGauge, _ := meter.Int64ObservableGauge("apm-server.sampling.tail.storage.lsm_size")
-		valueLogSizeGauge, _ := meter.Int64ObservableGauge("apm-server.sampling.tail.storage.value_log_size")
-
-		dbMetricRegistration, _ = meter.RegisterCallback(func(ctx context.Context, o metric.Observer) error {
-			lsmSize, valueLogSize := sm.Size()
-			o.ObserveInt64(lsmSizeGauge, lsmSize)
-			o.ObserveInt64(valueLogSizeGauge, valueLogSize)
-			return nil
-		}, lsmSizeGauge, valueLogSizeGauge)
 	}
 	return db, nil
 }
@@ -245,10 +238,6 @@ func wrapServer(args beater.ServerParams, runServer beater.RunServerFunc) (beate
 // called concurrently with opening DB/accessing the db global,
 // so it does not need to hold dbMu.
 func closeDB() error {
-	if dbMetricRegistration != nil {
-		dbMetricRegistration.Unregister()
-		dbMetricRegistration = nil
-	}
 	if db != nil {
 		return db.Close()
 	}
