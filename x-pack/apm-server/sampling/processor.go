@@ -41,13 +41,8 @@ type Processor struct {
 	rateLimitedLogger *logp.Logger
 	groups            *traceGroups
 
-<<<<<<< HEAD
-	eventStore   *wrappedRW
-	eventMetrics *eventMetrics // heap-allocated for 64-bit alignment
-=======
 	eventStore   eventstorage.RW
-	eventMetrics eventMetrics
->>>>>>> 0ca58b8c (TBS: Replace badger with pebble (#15235))
+	eventMetrics *eventMetrics
 
 	stopMu   sync.Mutex
 	stopping chan struct{}
@@ -74,14 +69,9 @@ func NewProcessor(config Config) (*Processor, error) {
 		config:            config,
 		logger:            logger,
 		rateLimitedLogger: logger.WithOptions(logs.WithRateLimit(loggerRateLimit)),
-<<<<<<< HEAD
 		groups:            newTraceGroups(config.Policies, config.MaxDynamicServices, config.IngestRateDecayFactor),
-		eventStore:        newWrappedRW(config.Storage, config.TTL, int64(config.StorageLimit)),
-		eventMetrics:      &eventMetrics{},
-=======
-		groups:            newTraceGroups(meter, config.Policies, config.MaxDynamicServices, config.IngestRateDecayFactor),
 		eventStore:        config.Storage,
->>>>>>> 0ca58b8c (TBS: Replace badger with pebble (#15235))
+		eventMetrics:      &eventMetrics{},
 		stopping:          make(chan struct{}),
 		stopped:           make(chan struct{}),
 	}
