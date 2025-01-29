@@ -137,6 +137,10 @@ func (sm *StorageManager) reset() error {
 	return nil
 }
 
+type partitionerMeta struct {
+	ID int `json:"id"`
+}
+
 // loadPartitionID loads the last saved partition ID from database,
 // such that partitioner resumes from where it left off before an apm-server restart.
 func (sm *StorageManager) loadPartitionID() (int, error) {
@@ -147,16 +151,18 @@ func (sm *StorageManager) loadPartitionID() (int, error) {
 		return 0, err
 	}
 	defer closer.Close()
-	var pid struct {
-		ID int `json:"id"`
-	}
+	var pid partitionerMeta
 	err = json.Unmarshal(item, &pid)
 	return pid.ID, err
 }
 
 // savePartitionID saves the partition ID to database to be loaded by loadPartitionID later.
 func (sm *StorageManager) savePartitionID(pid int) error {
-	return sm.decisionDB.Set([]byte(partitionerMetaKey), []byte(fmt.Sprintf(`{"id":%d}`, pid)), pebble.NoSync)
+	b, err := json.Marshal(partitionerMeta{ID: pid})
+	if err != nil {
+		return fmt.Errorf("error marshaling partition ID: %w", err)
+	}
+	return sm.decisionDB.Set([]byte(partitionerMetaKey), b, pebble.NoSync)
 }
 
 func (sm *StorageManager) Size() (lsm, vlog int64) {
