@@ -28,6 +28,10 @@ var (
 	// ErrNotFound is returned by the RW.IsTraceSampled method,
 	// for non-existing trace IDs.
 	ErrNotFound = errors.New("key not found")
+
+	// Reuse sampling decision value byte slices for performance
+	traceSampledVal   = []byte{entryMetaTraceSampled}
+	traceUnsampledVal = []byte{entryMetaTraceUnsampled}
 )
 
 func NewPrefixReadWriter(db db, prefix byte, codec Codec) PrefixReadWriter {
@@ -96,11 +100,11 @@ func (rw PrefixReadWriter) WriteTraceSampled(traceID string, sampled bool) error
 	b.WriteByte(rw.prefix)
 	b.WriteString(traceID)
 
-	meta := entryMetaTraceUnsampled
+	val := traceUnsampledVal
 	if sampled {
-		meta = entryMetaTraceSampled
+		val = traceSampledVal
 	}
-	return rw.db.Set(b.Bytes(), []byte{meta}, pebble.NoSync)
+	return rw.db.Set(b.Bytes(), val, pebble.NoSync)
 }
 
 func (rw PrefixReadWriter) IsTraceSampled(traceID string) (bool, error) {
