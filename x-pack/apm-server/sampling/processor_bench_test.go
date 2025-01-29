@@ -20,11 +20,7 @@ import (
 )
 
 func BenchmarkProcess(b *testing.B) {
-<<<<<<< HEAD
-	processor, err := sampling.NewProcessor(newTempdirConfig(b))
-=======
 	processor, err := sampling.NewProcessor(newTempdirConfig(b).Config)
->>>>>>> 0ca58b8c (TBS: Replace badger with pebble (#15235))
 	require.NoError(b, err)
 	go processor.Run()
 	b.Cleanup(func() { processor.Stop(context.Background()) })

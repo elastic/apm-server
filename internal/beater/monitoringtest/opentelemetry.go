@@ -26,62 +26,21 @@ import (
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 )
 
-<<<<<<< HEAD
 func ExpectOtelMetrics(t *testing.T, reader sdkmetric.Reader, expectedMetrics map[string]interface{}) {
-=======
-func ExpectOtelMetrics(t *testing.T, reader sdkmetric.Reader, expectedMetrics map[string]any) {
-	assertOtelMetrics(t, reader, expectedMetrics, true, true)
-}
-
-func ExpectContainOtelMetrics(t *testing.T, reader sdkmetric.Reader, expectedMetrics map[string]any) {
-	assertOtelMetrics(t, reader, expectedMetrics, false, true)
-}
-
-func ExpectContainOtelMetricsKeys(t *testing.T, reader sdkmetric.Reader, expectedMetricsKeys []string) {
-	expectedMetrics := make(map[string]any)
-	for _, metricKey := range expectedMetricsKeys {
-		expectedMetrics[metricKey] = nil
-	}
-	assertOtelMetrics(t, reader, expectedMetrics, false, false)
-}
-
-func assertOtelMetrics(t *testing.T, reader sdkmetric.Reader, expectedMetrics map[string]any, match, matchVal bool) {
->>>>>>> 0ca58b8c (TBS: Replace badger with pebble (#15235))
 	t.Helper()
 
 	var rm metricdata.ResourceMetrics
 	assert.NoError(t, reader.Collect(context.Background(), &rm))
 
 	assert.NotEqual(t, 0, len(rm.ScopeMetrics))
-	var foundMetrics []string
+	foundMetrics := []string{}
 	for _, sm := range rm.ScopeMetrics {
+
 		for _, m := range sm.Metrics {
 			switch d := m.Data.(type) {
-<<<<<<< HEAD
-=======
-			case metricdata.Gauge[int64]:
-				assert.Equal(t, 1, len(d.DataPoints))
-				foundMetrics = append(foundMetrics, m.Name)
-				if !matchVal {
-					continue
-				}
-
-				if v, ok := expectedMetrics[m.Name]; ok {
-					if dp, ok := v.(int); ok {
-						assert.Equal(t, int64(dp), d.DataPoints[0].Value, m.Name)
-					} else {
-						assert.Fail(t, "expected an int value", m.Name)
-					}
-				} else if match {
-					assert.Fail(t, "unexpected metric", m.Name)
-				}
->>>>>>> 0ca58b8c (TBS: Replace badger with pebble (#15235))
 			case metricdata.Sum[int64]:
 				assert.Equal(t, 1, len(d.DataPoints))
 				foundMetrics = append(foundMetrics, m.Name)
-				if !matchVal {
-					continue
-				}
 
 				if v, ok := expectedMetrics[m.Name]; ok {
 					if dp, ok := v.(int); ok {
@@ -95,9 +54,6 @@ func assertOtelMetrics(t *testing.T, reader sdkmetric.Reader, expectedMetrics ma
 			case metricdata.Histogram[int64]:
 				assert.Equal(t, 1, len(d.DataPoints))
 				foundMetrics = append(foundMetrics, m.Name)
-				if !matchVal {
-					continue
-				}
 
 				if v, ok := expectedMetrics[m.Name]; ok {
 					if dp, ok := v.(int); ok {
@@ -112,7 +68,7 @@ func assertOtelMetrics(t *testing.T, reader sdkmetric.Reader, expectedMetrics ma
 		}
 	}
 
-	var expectedMetricsKeys []string
+	expectedMetricsKeys := []string{}
 	for k := range expectedMetrics {
 		expectedMetricsKeys = append(expectedMetricsKeys, k)
 	}
