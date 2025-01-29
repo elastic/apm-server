@@ -37,22 +37,13 @@ const (
 )
 
 var (
-<<<<<<< HEAD
 	// Note: this registry is created in github.com/elastic/apm-server/sampling. That package
 	// will hopefully disappear in the future, when agents no longer send unsampled transactions.
 	samplingMonitoringRegistry = monitoring.Default.GetRegistry("apm-server.sampling")
 
-	// badgerDB holds the badger database to use when tail-based sampling is configured.
-	badgerMu sync.Mutex
-	badgerDB *eventstorage.StorageManager
-
-	storageMu sync.Mutex
-	storage   *eventstorage.ManagedReadWriter
-=======
 	// db holds the database to use when tail-based sampling is configured.
 	dbMu sync.Mutex
 	db   *eventstorage.StorageManager
->>>>>>> 0ca58b8c (TBS: Replace badger with pebble (#15235))
 
 	// samplerUUID is a UUID used to identify sampled trace ID documents
 	// published by this process.
@@ -126,11 +117,7 @@ func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, er
 	}
 
 	storageDir := paths.Resolve(paths.Data, tailSamplingStorageDir)
-<<<<<<< HEAD
-	badgerDB, err = getBadgerDB(storageDir)
-=======
-	db, err := getDB(storageDir, args.MeterProvider)
->>>>>>> 0ca58b8c (TBS: Replace badger with pebble (#15235))
+	db, err := getDB(storageDir)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get tail-sampling database: %w", err)
 	}
@@ -176,31 +163,15 @@ func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, er
 	})
 }
 
-<<<<<<< HEAD
-func getBadgerDB(storageDir string) (*eventstorage.StorageManager, error) {
-	badgerMu.Lock()
-	defer badgerMu.Unlock()
-	if badgerDB == nil {
+func getDB(storageDir string) (*eventstorage.StorageManager, error) {
+	dbMu.Lock()
+	defer dbMu.Unlock()
+	if db == nil {
 		sm, err := eventstorage.NewStorageManager(storageDir)
 		if err != nil {
 			return nil, err
 		}
-		badgerDB = sm
-=======
-func getDB(storageDir string, mp metric.MeterProvider) (*eventstorage.StorageManager, error) {
-	dbMu.Lock()
-	defer dbMu.Unlock()
-	if db == nil {
-		var opts []eventstorage.StorageManagerOptions
-		if mp != nil {
-			opts = append(opts, eventstorage.WithMeterProvider(mp))
-		}
-		sm, err := eventstorage.NewStorageManager(storageDir, opts...)
-		if err != nil {
-			return nil, err
-		}
 		db = sm
->>>>>>> 0ca58b8c (TBS: Replace badger with pebble (#15235))
 	}
 	return db, nil
 }
@@ -268,13 +239,6 @@ func wrapServer(args beater.ServerParams, runServer beater.RunServerFunc) (beate
 
 // closeDB is called at process exit time to close the StorageManager opened
 // by the tail-based sampling processor constructor, if any. This is never
-<<<<<<< HEAD
-// called concurrently with opening badger.DB/accessing the badgerDB global,
-// so it does not need to hold badgerMu.
-func closeBadger() error {
-	if badgerDB != nil {
-		return badgerDB.Close()
-=======
 // called concurrently with opening DB/accessing the db global,
 // so it does not need to hold dbMu.
 func closeDB() error {
@@ -282,7 +246,6 @@ func closeDB() error {
 		err := db.Close()
 		db = nil
 		return err
->>>>>>> 0ca58b8c (TBS: Replace badger with pebble (#15235))
 	}
 	return nil
 }
