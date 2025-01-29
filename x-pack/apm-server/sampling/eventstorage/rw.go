@@ -25,6 +25,9 @@ type RW interface {
 	DeleteTraceEvent(traceID, id string) error
 }
 
+// SplitReadWriter is a RW that splits method calls to eventRW and decisionRW.
+// - *TraceEvent* method calls are passed through to eventRW.
+// - *TraceSampled method calls are passed through to decisionRW.
 type SplitReadWriter struct {
 	eventRW, decisionRW RW
 }
@@ -58,6 +61,8 @@ type storageLimitChecker interface {
 	StorageLimit() uint64
 }
 
+// StorageLimitReadWriter is a RW that forbids Write* method calls based on disk usage and limit from storageLimitChecker.
+// If there is no limit or limit is not reached, method calls are passed through to nextRW.
 type StorageLimitReadWriter struct {
 	checker storageLimitChecker
 	nextRW  RW
@@ -72,7 +77,7 @@ func NewStorageLimitReadWriter(checker storageLimitChecker, nextRW RW) StorageLi
 
 func (s StorageLimitReadWriter) checkStorageLimit() error {
 	limit := s.checker.StorageLimit()
-	if limit != 0 {
+	if limit != 0 { // unlimited storage
 		usage := s.checker.DiskUsage()
 		if usage >= limit {
 			return fmt.Errorf("%w (current: %d, limit %d)", ErrLimitReached, usage, limit)
@@ -81,10 +86,12 @@ func (s StorageLimitReadWriter) checkStorageLimit() error {
 	return nil
 }
 
+// ReadTraceEvents passes through to s.nextRW.ReadTraceEvents.
 func (s StorageLimitReadWriter) ReadTraceEvents(traceID string, out *modelpb.Batch) error {
 	return s.nextRW.ReadTraceEvents(traceID, out)
 }
 
+// WriteTraceEvent passes through to s.nextRW.WriteTraceEvent only if storage limit is not reached.
 func (s StorageLimitReadWriter) WriteTraceEvent(traceID, id string, event *modelpb.APMEvent) error {
 	if err := s.checkStorageLimit(); err != nil {
 		return err
@@ -92,6 +99,7 @@ func (s StorageLimitReadWriter) WriteTraceEvent(traceID, id string, event *model
 	return s.nextRW.WriteTraceEvent(traceID, id, event)
 }
 
+// WriteTraceSampled passes through to s.nextRW.WriteTraceSampled only if storage limit is not reached.
 func (s StorageLimitReadWriter) WriteTraceSampled(traceID string, sampled bool) error {
 	if err := s.checkStorageLimit(); err != nil {
 		return err
@@ -99,10 +107,12 @@ func (s StorageLimitReadWriter) WriteTraceSampled(traceID string, sampled bool) 
 	return s.nextRW.WriteTraceSampled(traceID, sampled)
 }
 
+// IsTraceSampled passes through to s.nextRW.IsTraceSampled.
 func (s StorageLimitReadWriter) IsTraceSampled(traceID string) (bool, error) {
 	return s.nextRW.IsTraceSampled(traceID)
 }
 
+// DeleteTraceEvent passes through to s.nextRW.DeleteTraceEvent.
 func (s StorageLimitReadWriter) DeleteTraceEvent(traceID, id string) error {
 	// Technically DeleteTraceEvent writes, but it should have a net effect of reducing disk usage
 	return s.nextRW.DeleteTraceEvent(traceID, id)

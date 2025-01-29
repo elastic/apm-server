@@ -38,7 +38,7 @@ func NewPrefixReadWriter(db db, prefix byte, codec Codec) PrefixReadWriter {
 	return PrefixReadWriter{db: db, prefix: prefix, codec: codec}
 }
 
-// PrefixReadWriter is a helper read writer that reads from and writes to db with a prefix byte in key.
+// PrefixReadWriter is a helper RW that reads from and writes to db with a prefix byte in key.
 type PrefixReadWriter struct {
 	db     db
 	prefix byte
