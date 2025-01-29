@@ -94,6 +94,7 @@ func TestSamplingStorageLimitDetection(t *testing.T) {
 		Config:                 cfg,
 		Logger:                 logp.NewLogger(""),
 		Tracer:                 apmtest.DiscardTracer,
+		MeterProvider:          sdkmetric.NewMeterProvider(),
 		BatchProcessor:         modelpb.ProcessBatchFunc(func(ctx context.Context, b *modelpb.Batch) error { return nil }),
 		Namespace:              "default",
 		NewElasticsearchClient: elasticsearch.NewClient,
