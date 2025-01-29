@@ -38,12 +38,14 @@ func NewPrefixReadWriter(db db, prefix byte, codec Codec) PrefixReadWriter {
 	return PrefixReadWriter{db: db, prefix: prefix, codec: codec}
 }
 
+// PrefixReadWriter is a helper read writer that reads from and writes to db with a prefix byte in key.
 type PrefixReadWriter struct {
 	db     db
 	prefix byte
 	codec  Codec
 }
 
+// ReadTraceEvents reads rw.db using a key consisting of rw.prefix and traceID, and appends results to out.
 func (rw PrefixReadWriter) ReadTraceEvents(traceID string, out *modelpb.Batch) error {
 	var b bytes.Buffer
 	b.Grow(1 + len(traceID) + 1)
@@ -79,6 +81,7 @@ func (rw PrefixReadWriter) ReadTraceEvents(traceID string, out *modelpb.Batch) e
 	return nil
 }
 
+// WriteTraceEvent writes encoded event as value to rw.db with key consisting of rw.prefix, traceID and id.
 func (rw PrefixReadWriter) WriteTraceEvent(traceID, id string, event *modelpb.APMEvent) error {
 	data, err := rw.codec.EncodeEvent(event)
 	if err != nil {
@@ -94,6 +97,7 @@ func (rw PrefixReadWriter) WriteTraceEvent(traceID, id string, event *modelpb.AP
 	return rw.db.Set(key, data, pebble.NoSync)
 }
 
+// WriteTraceSampled writes sampling decision sampled to rw.db with key consisting of rw.prefix and traceID.
 func (rw PrefixReadWriter) WriteTraceSampled(traceID string, sampled bool) error {
 	var b bytes.Buffer
 	b.Grow(1 + len(traceID))
@@ -107,6 +111,8 @@ func (rw PrefixReadWriter) WriteTraceSampled(traceID string, sampled bool) error
 	return rw.db.Set(b.Bytes(), val, pebble.NoSync)
 }
 
+// IsTraceSampled reads sampling decision from rw.db using a key consisting of rw.prefix and traceID.
+// Returns ErrNotFound if trace sampling decision is not found.
 func (rw PrefixReadWriter) IsTraceSampled(traceID string) (bool, error) {
 	var b bytes.Buffer
 	b.Grow(1 + len(traceID))
@@ -123,6 +129,7 @@ func (rw PrefixReadWriter) IsTraceSampled(traceID string) (bool, error) {
 	return item[0] == entryMetaTraceSampled, nil
 }
 
+// DeleteTraceEvent deletes event associated with key consisting of rw.prefix, traceID and id from rw.db.
 func (rw PrefixReadWriter) DeleteTraceEvent(traceID, id string) error {
 	var b bytes.Buffer
 	b.Grow(1 + len(traceID) + 1 + len(id))
