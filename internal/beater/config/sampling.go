@@ -52,6 +52,8 @@ type TailSamplingConfig struct {
 	TTL                   time.Duration         `config:"ttl" validate:"min=1s"`
 	StorageLimit          string                `config:"storage_limit"`
 	StorageLimitParsed    uint64
+	// StorageLimitAuto is a flag to denote that the processor should
+	// pick an appropriate storage limit automatically instead of using StorageLimitParsed.
 	StorageLimitAuto      bool
 	DiscardOnWriteFailure bool `config:"discard_on_write_failure"`
 
