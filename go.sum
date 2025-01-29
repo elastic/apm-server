@@ -133,8 +133,8 @@ github.com/elastic/elastic-transport-go/v8 v8.6.0 h1:Y2S/FBjx1LlCv5m6pWAF2kDJAHo
 github.com/elastic/elastic-transport-go/v8 v8.6.0/go.mod h1:YLHer5cj0csTzNFXoNQ8qhtGY1GTvSqPnKWKaqQE3Hk=
 github.com/elastic/gmux v0.3.2 h1:cb721R+fe/rt/jVNyBP5HDQsEwLD2wSKfPD2Sk6adDk=
 github.com/elastic/gmux v0.3.2/go.mod h1:OD6oYrno+SV3pyl1ArdWCjlExZ+FJOfoSaFqnFeldBQ=
-github.com/elastic/go-docappender/v2 v2.3.3 h1:9/p9dTiO7AZYIxIfaSOdZ1PYFYmORqaK/p9RcMRN7cc=
-github.com/elastic/go-docappender/v2 v2.3.3/go.mod h1:uUf4Fg5TXW63SEpzqJT9v5/IQ6ktLrEkgrfyqZY4Wxo=
+github.com/elastic/go-docappender/v2 v2.4.0 h1:3ouOEB7V4IDgjZ0YAggzDgMK63QFfQ9HcJWSyAZGRzY=
+github.com/elastic/go-docappender/v2 v2.4.0/go.mod h1:Zm0mndWB4sS/9pgjMKdP0vOPJ1Cvkjy56B2D9DnGLgQ=
 github.com/elastic/go-elasticsearch/v8 v8.17.0 h1:e9cWksE/Fr7urDRmGPGp47Nsp4/mvNOrU8As1l2HQQ0=
 github.com/elastic/go-elasticsearch/v8 v8.17.0/go.mod h1:lGMlgKIbYoRvay3xWBeKahAiJOgmFDsjZC39nmO3H64=
 github.com/elastic/go-lumber v0.1.2-0.20220819171948-335fde24ea0f h1:TsPpU5EAwlt7YZoupKlxZ093qTZYdGou3EhfTF1U0B4=
@@ -409,8 +409,8 @@ go.elastic.co/apm/module/apmhttp/v2 v2.6.3 h1:jwFovJZkccySKCyy2oE9ZKvUry/a4gdQHF
 go.elastic.co/apm/module/apmhttp/v2 v2.6.3/go.mod h1:w94Gkk6uzI/K+eJYKDLB66tvWC5uK0fSHyWcyX2jPlQ=
 go.elastic.co/apm/module/apmotel/v2 v2.6.3 h1:E0LybEjMe0ikj9Q/Z5Ag4qzMXKwvsoWwEQRjf7CCUes=
 go.elastic.co/apm/module/apmotel/v2 v2.6.3/go.mod h1:8Kk5SLyr6mHZRxmM02FqS/9SYu2w6EnKImYx8KW6L+Q=
-go.elastic.co/apm/module/apmzap/v2 v2.6.2 h1:MPpoAPkz9c3E0oflwzyrXnND/4zv9nXf/wEU0aAVWWc=
-go.elastic.co/apm/module/apmzap/v2 v2.6.2/go.mod h1:10Xugf8PdrDjmyQYqSgJ/JUhKFMgpivQkTRVV9dUUeI=
+go.elastic.co/apm/module/apmzap/v2 v2.6.3 h1:QxszhmFs2qD42sHSd6qnZUv5xMPV7cVSIt1qU/o4nwA=
+go.elastic.co/apm/module/apmzap/v2 v2.6.3/go.mod h1:gOs+EJgXDCyg1pK4pcxN6fL9hKNC+s/Hj20e9RvGeJg=
 go.elastic.co/apm/v2 v2.6.3 h1:yVKFPLnmHOxpzLMGd3aexcik20ziXmRHqgcn9NZn/VU=
 go.elastic.co/apm/v2 v2.6.3/go.mod h1:33rOXgtHwbgZcDgi6I/GtCSMZQqgxkHC0IQT3gudKvo=
 go.elastic.co/ecszap v1.0.2 h1:iW5OGx8IiokiUzx/shD4AJCPFMC9uUtr7ycaiEIU++I=
