@@ -37,9 +37,8 @@ const (
 
 var (
 	// db holds the database to use when tail-based sampling is configured.
-	dbMu                 sync.Mutex
-	db                   *eventstorage.StorageManager
-	dbMetricRegistration metric.Registration
+	dbMu sync.Mutex
+	db   *eventstorage.StorageManager
 
 	// samplerUUID is a UUID used to identify sampled trace ID documents
 	// published by this process.
