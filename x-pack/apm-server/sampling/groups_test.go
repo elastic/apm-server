@@ -272,6 +272,7 @@ func TestTraceGroupsRemovalConcurrent(t *testing.T) {
 
 	wg := sync.WaitGroup{}
 	wg.Add(2)
+	// create a dynamic group first
 	_, err := groups.sampleTrace(&modelpb.APMEvent{
 		Service:     &modelpb.Service{Name: "many"},
 		Transaction: &modelpb.Transaction{Type: "type"},
