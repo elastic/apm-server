@@ -17,6 +17,7 @@ var (
 	ErrLimitReached = errors.New("configured storage limit reached")
 )
 
+// RW is a read writer interface that has methods to read and write trace event and sampling decisions.
 type RW interface {
 	ReadTraceEvents(traceID string, out *modelpb.Batch) error
 	WriteTraceEvent(traceID, id string, event *modelpb.APMEvent) error

@@ -12,6 +12,7 @@ import (
 	"github.com/elastic/apm-data/model/modelpb"
 )
 
+// db is a key value database interface.
 type db interface {
 	Get(key []byte) ([]byte, io.Closer, error)
 	Set(key, value []byte, opts *pebble.WriteOptions) error
