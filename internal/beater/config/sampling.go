@@ -48,7 +48,6 @@ type TailSamplingConfig struct {
 	ESConfig              *elasticsearch.Config `config:"elasticsearch"`
 	Interval              time.Duration         `config:"interval" validate:"min=1s"`
 	IngestRateDecayFactor float64               `config:"ingest_rate_decay" validate:"min=0, max=1"`
-	StorageGCInterval     time.Duration         `config:"storage_gc_interval" validate:"min=1s"`
 	TTL                   time.Duration         `config:"ttl" validate:"min=1s"`
 	StorageLimit          string                `config:"storage_limit"`
 	StorageLimitParsed    uint64
@@ -156,7 +155,6 @@ func defaultTailSamplingConfig() TailSamplingConfig {
 		ESConfig:              elasticsearch.DefaultConfig(),
 		Interval:              1 * time.Minute,
 		IngestRateDecayFactor: 0.25,
-		StorageGCInterval:     5 * time.Minute,
 		TTL:                   30 * time.Minute,
 		StorageLimit:          "",
 		StorageLimitAuto:      true,

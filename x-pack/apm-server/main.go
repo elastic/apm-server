@@ -37,13 +37,9 @@ const (
 )
 
 var (
-	// badgerDB holds the badger database to use when tail-based sampling is configured.
-	badgerMu                   sync.Mutex
-	badgerDB                   *eventstorage.StorageManager
-	badgerDBMetricRegistration metric.Registration
-
-	storageMu sync.Mutex
-	storage   *eventstorage.ManagedReadWriter
+	// db holds the database to use when tail-based sampling is configured.
+	dbMu sync.Mutex
+	db   *eventstorage.StorageManager
 
 	// samplerUUID is a UUID used to identify sampled trace ID documents
 	// published by this process.
@@ -113,11 +109,10 @@ func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, er
 	}
 
 	storageDir := paths.Resolve(paths.Data, tailSamplingStorageDir)
-	badgerDB, err = getBadgerDB(storageDir, args.MeterProvider)
+	db, err := getDB(storageDir, args.MeterProvider)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get Badger database: %w", err)
+		return nil, fmt.Errorf("failed to get tail-sampling database: %w", err)
 	}
-	readWriter := getStorage(badgerDB)
 
 	if tailSamplingConfig.StorageLimitAuto {
 		const (
@@ -179,10 +174,8 @@ func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, er
 			UUID: samplerUUID.String(),
 		},
 		StorageConfig: sampling.StorageConfig{
-			DB:                    badgerDB,
-			Storage:               readWriter,
-			StorageDir:            storageDir,
-			StorageGCInterval:     tailSamplingConfig.StorageGCInterval,
+			DB:                    db,
+			Storage:               db.NewReadWriter(),
 			StorageLimit:          tailSamplingConfig.StorageLimitParsed,
 			TTL:                   tailSamplingConfig.TTL,
 			DiscardOnWriteFailure: tailSamplingConfig.DiscardOnWriteFailure,
@@ -190,37 +183,21 @@ func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, er
 	})
 }
 
-func getBadgerDB(storageDir string, mp metric.MeterProvider) (*eventstorage.StorageManager, error) {
-	badgerMu.Lock()
-	defer badgerMu.Unlock()
-	if badgerDB == nil {
-		sm, err := eventstorage.NewStorageManager(storageDir)
+func getDB(storageDir string, mp metric.MeterProvider) (*eventstorage.StorageManager, error) {
+	dbMu.Lock()
+	defer dbMu.Unlock()
+	if db == nil {
+		var opts []eventstorage.StorageManagerOptions
+		if mp != nil {
+			opts = append(opts, eventstorage.WithMeterProvider(mp))
+		}
+		sm, err := eventstorage.NewStorageManager(storageDir, opts...)
 		if err != nil {
 			return nil, err
 		}
-		badgerDB = sm
-
-		meter := mp.Meter("github.com/elastic/apm-server/x-pack/apm-server")
-		lsmSizeGauge, _ := meter.Int64ObservableGauge("apm-server.sampling.tail.storage.lsm_size")
-		valueLogSizeGauge, _ := meter.Int64ObservableGauge("apm-server.sampling.tail.storage.value_log_size")
-
-		badgerDBMetricRegistration, _ = meter.RegisterCallback(func(ctx context.Context, o metric.Observer) error {
-			lsmSize, valueLogSize := sm.Size()
-			o.ObserveInt64(lsmSizeGauge, lsmSize)
-			o.ObserveInt64(valueLogSizeGauge, valueLogSize)
-			return nil
-		}, lsmSizeGauge, valueLogSizeGauge)
+		db = sm
 	}
-	return badgerDB, nil
-}
-
-func getStorage(sm *eventstorage.StorageManager) *eventstorage.ManagedReadWriter {
-	storageMu.Lock()
-	defer storageMu.Unlock()
-	if storage == nil {
-		storage = sm.NewReadWriter()
-	}
-	return storage
+	return db, nil
 }
 
 // runServerWithProcessors runs the APM Server and the given list of processors.
@@ -284,25 +261,21 @@ func wrapServer(args beater.ServerParams, runServer beater.RunServerFunc) (beate
 	return args, wrappedRunServer, nil
 }
 
-// closeBadger is called at process exit time to close the badger.DB opened
+// closeDB is called at process exit time to close the StorageManager opened
 // by the tail-based sampling processor constructor, if any. This is never
-// called concurrently with opening badger.DB/accessing the badgerDB global,
-// so it does not need to hold badgerMu.
-func closeBadger() error {
-	if badgerDBMetricRegistration != nil {
-		badgerDBMetricRegistration.Unregister()
-		badgerDBMetricRegistration = nil
-	}
-	if badgerDB != nil {
-		db := badgerDB
-		badgerDB = nil
-		return db.Close()
+// called concurrently with opening DB/accessing the db global,
+// so it does not need to hold dbMu.
+func closeDB() error {
+	if db != nil {
+		err := db.Close()
+		db = nil
+		return err
 	}
 	return nil
 }
 
 func cleanup() error {
-	return closeBadger()
+	return closeDB()
 }
 
 func Main() error {
