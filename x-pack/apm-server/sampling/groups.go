@@ -194,12 +194,12 @@ func (g *traceGroups) finalizeSampledTraces(traceIDs []string) []string {
 	maxDynamicServiceGroupsReached := g.numDynamicServiceGroups == g.maxDynamicServiceGroups
 	for _, pg := range g.policyGroups {
 		if pg.g != nil {
-			traceIDs = pg.g.finalizeSampledTraces(traceIDs, g.ingestRateDecayFactor)
+			_, traceIDs = pg.g.finalizeSampledTraces(traceIDs, g.ingestRateDecayFactor)
 			continue
 		}
 		for serviceName, group := range pg.dynamic {
-			total := group.total
-			traceIDs = group.finalizeSampledTraces(traceIDs, g.ingestRateDecayFactor)
+			var total int
+			total, traceIDs = group.finalizeSampledTraces(traceIDs, g.ingestRateDecayFactor)
 			if (maxDynamicServiceGroupsReached || total == 0) && group.reservoir.Size() == minReservoirSize {
 				g.numDynamicServiceGroups--
 				delete(pg.dynamic, serviceName)
@@ -210,11 +210,13 @@ func (g *traceGroups) finalizeSampledTraces(traceIDs []string) []string {
 }
 
 // finalizeSampledTraces appends the group's current trace IDs to traceIDs, and
-// returns the extended slice. On return the groups' sampling reservoirs will be
-// reset.
-func (g *traceGroup) finalizeSampledTraces(traceIDs []string, ingestRateDecayFactor float64) []string {
+// returns total of the group and the extended slice.
+// On return the groups' sampling reservoirs will be reset.
+func (g *traceGroup) finalizeSampledTraces(traceIDs []string, ingestRateDecayFactor float64) (int, []string) {
 	g.mu.Lock()
 	defer g.mu.Unlock()
+
+	oldTotal := g.total
 
 	if g.ingestRate == 0 {
 		g.ingestRate = float64(g.total)
@@ -241,5 +243,5 @@ func (g *traceGroup) finalizeSampledTraces(traceIDs []string, ingestRateDecayFac
 	}
 	g.reservoir.Reset()
 	g.reservoir.Resize(newReservoirSize)
-	return traceIDs
+	return oldTotal, traceIDs
 }

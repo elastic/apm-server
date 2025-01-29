@@ -6,6 +6,7 @@ package sampling
 
 import (
 	"fmt"
+	"sync"
 	"testing"
 	"time"
 
@@ -256,6 +257,42 @@ func TestTraceGroupsRemoval(t *testing.T) {
 		Transaction: &modelpb.Transaction{Type: "type"},
 	})
 	assert.NoError(t, err)
+}
+
+func TestTraceGroupsRemovalConcurrent(t *testing.T) {
+	// Ensure that trace groups removal does not race with sampleTrace
+	const (
+		maxDynamicServices    = 2
+		ingestRateCoefficient = 1.0
+	)
+	policies := []Policy{
+		{SampleRate: 1},
+	}
+	groups := newTraceGroups(noop.Meter{}, policies, maxDynamicServices, ingestRateCoefficient)
+
+	wg := sync.WaitGroup{}
+	wg.Add(2)
+	// create a dynamic group first
+	_, err := groups.sampleTrace(&modelpb.APMEvent{
+		Service:     &modelpb.Service{Name: "many"},
+		Transaction: &modelpb.Transaction{Type: "type"},
+	})
+	assert.NoError(t, err)
+	go func() {
+		for i := 0; i < 10; i++ {
+			_, err := groups.sampleTrace(&modelpb.APMEvent{
+				Service:     &modelpb.Service{Name: "many"},
+				Transaction: &modelpb.Transaction{Type: "type"},
+			})
+			assert.NoError(t, err)
+		}
+		wg.Done()
+	}()
+	go func() {
+		groups.finalizeSampledTraces(nil)
+		wg.Done()
+	}()
+	wg.Wait()
 }
 
 func BenchmarkTraceGroups(b *testing.B) {
