@@ -239,7 +239,9 @@ func wrapServer(args beater.ServerParams, runServer beater.RunServerFunc) (beate
 // so it does not need to hold dbMu.
 func closeDB() error {
 	if db != nil {
-		return db.Close()
+		err := db.Close()
+		db = nil
+		return err
 	}
 	return nil
 }
