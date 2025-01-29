@@ -8,11 +8,8 @@ package main
 
 import (
 	"context"
-	"path/filepath"
 	"testing"
-	"time"
 
-	"github.com/gofrs/uuid/v5"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -28,8 +25,6 @@ import (
 	"github.com/elastic/apm-server/internal/beater/config"
 	"github.com/elastic/apm-server/internal/beater/monitoringtest"
 	"github.com/elastic/apm-server/internal/elasticsearch"
-	"github.com/elastic/apm-server/x-pack/apm-server/sampling"
-	"github.com/elastic/apm-server/x-pack/apm-server/sampling/pubsub/pubsubtest"
 )
 
 func TestMonitoring(t *testing.T) {
@@ -78,107 +73,4 @@ func TestMonitoring(t *testing.T) {
 			"apm-server.sampling.tail.storage.value_log_size": 0,
 		})
 	}
-}
-
-func TestStorageMonitoring(t *testing.T) {
-	config, reader := newTempdirConfig(t)
-
-	processor, err := sampling.NewProcessor(config)
-	require.NoError(t, err)
-	go processor.Run()
-	defer processor.Stop(context.Background())
-	for i := 0; i < 100; i++ {
-		traceID := uuid.Must(uuid.NewV4()).String()
-		batch := modelpb.Batch{{
-			Trace: &modelpb.Trace{Id: traceID},
-			Event: &modelpb.Event{Duration: uint64(123 * time.Millisecond)},
-			Transaction: &modelpb.Transaction{
-				Type:    "type",
-				Id:      traceID,
-				Sampled: true,
-			},
-		}}
-		err := processor.ProcessBatch(context.Background(), &batch)
-		require.NoError(t, err)
-		assert.Empty(t, batch)
-	}
-
-	// Stop the processor, flushing pending writes, and reopen storage.
-	// Reopening storage is necessary to immediately recalculate the
-	// storage size, otherwise we must wait for a minute (hard-coded in
-	// badger) for storage metrics to be updated.
-	err = processor.Stop(context.Background())
-	require.NoError(t, err)
-	require.NoError(t, closeBadger())
-	badgerDB, err = getBadgerDB(config.StorageDir, config.MeterProvider)
-	require.NoError(t, err)
-
-	lsmSize := getGauge(t, reader, "apm-server.sampling.tail.storage.lsm_size")
-	assert.NotZero(t, lsmSize)
-	vlogSize := getGauge(t, reader, "apm-server.sampling.tail.storage.value_log_size")
-	assert.NotZero(t, vlogSize)
-}
-
-func newTempdirConfig(tb testing.TB) (sampling.Config, sdkmetric.Reader) {
-	tempdir := filepath.Join(tb.TempDir(), "samplingtest")
-	reader := sdkmetric.NewManualReader(sdkmetric.WithTemporalitySelector(
-		func(ik sdkmetric.InstrumentKind) metricdata.Temporality {
-			return metricdata.DeltaTemporality
-		},
-	))
-	mp := sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader))
-
-	closeBadger()
-	badgerDB, err := getBadgerDB(tempdir, mp)
-	require.NoError(tb, err)
-	tb.Cleanup(func() { closeBadger() })
-
-	storage := badgerDB.NewReadWriter()
-
-	return sampling.Config{
-		BatchProcessor: modelpb.ProcessBatchFunc(func(context.Context, *modelpb.Batch) error { return nil }),
-		MeterProvider:  mp,
-		LocalSamplingConfig: sampling.LocalSamplingConfig{
-			FlushInterval:         time.Second,
-			MaxDynamicServices:    1000,
-			IngestRateDecayFactor: 0.9,
-			Policies: []sampling.Policy{
-				{SampleRate: 0.1},
-			},
-		},
-		RemoteSamplingConfig: sampling.RemoteSamplingConfig{
-			Elasticsearch: pubsubtest.Client(nil, nil),
-			SampledTracesDataStream: sampling.DataStreamConfig{
-				Type:      "traces",
-				Dataset:   "sampled",
-				Namespace: "testing",
-			},
-			UUID: "local-apm-server",
-		},
-		StorageConfig: sampling.StorageConfig{
-			DB:                badgerDB,
-			Storage:           storage,
-			StorageDir:        tempdir,
-			StorageGCInterval: time.Second,
-			TTL:               30 * time.Minute,
-			StorageLimit:      0, // No storage limit.
-		},
-	}, reader
-}
-
-func getGauge(t testing.TB, reader sdkmetric.Reader, name string) int64 {
-	var rm metricdata.ResourceMetrics
-	assert.NoError(t, reader.Collect(context.Background(), &rm))
-
-	assert.NotEqual(t, 0, len(rm.ScopeMetrics))
-
-	for _, sm := range rm.ScopeMetrics {
-		for _, m := range sm.Metrics {
-			if m.Name == name {
-				return m.Data.(metricdata.Gauge[int64]).DataPoints[0].Value
-			}
-		}
-	}
-
-	return 0
 }
