@@ -105,8 +105,7 @@ type StorageConfig struct {
 	// DB will not be closed when the processor is closed.
 	DB *eventstorage.StorageManager
 
-	// Storage overrides the default DB storage RW.
-	// For testing only.
+	// Storage is the read writer to DB.
 	Storage eventstorage.RW
 
 	// StorageLimit for the TBS database, in bytes.

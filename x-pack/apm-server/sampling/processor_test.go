@@ -682,6 +682,8 @@ func TestStorageLimit(t *testing.T) {
 	err := config.DB.Reload()
 	assert.NoError(t, err)
 
+	config.Storage = config.DB.NewReadWriter()
+
 	lsm, vlog := config.DB.Size()
 	assert.Greater(t, lsm+vlog, int64(10<<10))
 
@@ -814,6 +816,7 @@ func newTempdirConfig(tb testing.TB) testConfig {
 			},
 			StorageConfig: sampling.StorageConfig{
 				DB:           db,
+				Storage:      db.NewReadWriter(),
 				TTL:          30 * time.Minute,
 				StorageLimit: 0, // No storage limit.
 			},

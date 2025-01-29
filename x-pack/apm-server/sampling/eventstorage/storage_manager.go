@@ -260,6 +260,7 @@ func (sm *StorageManager) close() error {
 
 // Reload flushes out pending disk writes to disk by reloading the database.
 // For testing only.
+// Read writers created prior to Reload cannot be used and will need to be recreated via NewReadWriter.
 func (sm *StorageManager) Reload() error {
 	if err := sm.close(); err != nil {
 		return err

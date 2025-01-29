@@ -65,18 +65,13 @@ func NewProcessor(config Config) (*Processor, error) {
 
 	meter := config.MeterProvider.Meter("github.com/elastic/apm-server/x-pack/apm-server/sampling")
 
-	rw := config.Storage
-	if rw == nil {
-		rw = config.DB.NewReadWriter()
-	}
-
 	logger := logp.NewLogger(logs.Sampling)
 	p := &Processor{
 		config:            config,
 		logger:            logger,
 		rateLimitedLogger: logger.WithOptions(logs.WithRateLimit(loggerRateLimit)),
 		groups:            newTraceGroups(meter, config.Policies, config.MaxDynamicServices, config.IngestRateDecayFactor),
-		eventStore:        rw,
+		eventStore:        config.Storage,
 		stopping:          make(chan struct{}),
 		stopped:           make(chan struct{}),
 	}
