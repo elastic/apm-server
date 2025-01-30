@@ -384,9 +384,9 @@ func (sm *StorageManager) NewReadWriter() StorageLimitReadWriter {
 		eventRW:    sm.eventStorage.NewReadWriter(),
 		decisionRW: sm.decisionStorage.NewReadWriter(),
 	}
-	storageLimitRW := NewStorageLimitReadWriter(sm, splitRW)
-	diskThresholdChecker := NewStorageLimitCheckerFunc(sm.diskUsed, sm.diskThreshold) // FIXME: need better error message in RW
-	diskThresholdRW := NewStorageLimitReadWriter(diskThresholdChecker, storageLimitRW)
+	storageLimitRW := NewStorageLimitReadWriter("storage_limit", sm, splitRW)
+	diskThresholdChecker := NewStorageLimitCheckerFunc(sm.diskUsed, sm.diskThreshold)
+	diskThresholdRW := NewStorageLimitReadWriter("disk_threshold", diskThresholdChecker, storageLimitRW)
 	return diskThresholdRW
 }
 
