@@ -233,15 +233,12 @@ func (sm *StorageManager) updateDiskUsage() {
 	}
 	usage, err := vfs.Default.GetDiskUsage(sm.storageDir)
 	if err != nil {
-		// setting total to 0 will effectively make the threshold 0 and
-		// seen as unlimited by StorageLimitReadWriter.checkStorageLimit,
-		// but this is probably superfluous as total should be 0 anyway if GetDiskUsage never succeeded.
-		sm.diskStat.total.Store(0)
+		sm.logger.With(logp.Error(err)).Warn("failed to get disk usage")
 		sm.diskStatFailed.Store(true)
-	} else {
-		sm.diskStat.used.Store(usage.UsedBytes)
-		sm.diskStat.total.Store(usage.TotalBytes)
+		return
 	}
+	sm.diskStat.used.Store(usage.UsedBytes)
+	sm.diskStat.total.Store(usage.TotalBytes)
 }
 
 // diskUsed returns the actual used disk space in bytes.
@@ -381,7 +378,7 @@ func (sm *StorageManager) NewUnlimitedReadWriter() StorageLimitReadWriter {
 	return sm.NewReadWriter(0, 1)
 }
 
-// NewReadWriter returns a read writer with storage limit and disk threshold.
+// NewReadWriter returns a read writer configured with storage limit and disk threshold ratio.
 func (sm *StorageManager) NewReadWriter(storageLimit uint64, diskThresholdRatio float64) StorageLimitReadWriter {
 	splitRW := SplitReadWriter{
 		eventRW:    sm.eventStorage.NewReadWriter(),
@@ -411,8 +408,17 @@ func (sm *StorageManager) NewReadWriter(storageLimit uint64, diskThresholdRatio 
 
 	// diskThreshold returns max used disk space in bytes.
 	// After which, writes should be rejected.
-	diskThreshold := func() uint64 {
-		return uint64(float64(sm.diskStat.total.Load()) * diskThresholdRatio)
+	var diskThreshold func() uint64
+	if sm.diskStatFailed.Load() {
+		diskThreshold = func() uint64 {
+			return 0 // unlimited
+		}
+		sm.logger.Warnf("failed to get disk usage; disabling disk threshold check")
+	} else {
+		diskThreshold = func() uint64 {
+			return uint64(float64(sm.diskStat.total.Load()) * diskThresholdRatio)
+		}
+		sm.logger.Infof("setting disk threshold ratio to %.2f", diskThresholdRatio)
 	}
 
 	// To limit actual disk usage percentage to diskThresholdRatio
