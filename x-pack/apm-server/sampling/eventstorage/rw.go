@@ -84,16 +84,16 @@ func (f storageLimitCheckerFunc) StorageLimit() uint64 {
 // StorageLimitReadWriter is a RW that forbids Write* method calls based on disk usage and limit from storageLimitChecker.
 // If there is no limit or limit is not reached, method calls are passed through to nextRW.
 type StorageLimitReadWriter struct {
-	limitName string
-	checker   storageLimitChecker
-	nextRW    RW
+	name    string
+	checker storageLimitChecker
+	nextRW  RW
 }
 
-func NewStorageLimitReadWriter(limitName string, checker storageLimitChecker, nextRW RW) StorageLimitReadWriter {
+func NewStorageLimitReadWriter(name string, checker storageLimitChecker, nextRW RW) StorageLimitReadWriter {
 	return StorageLimitReadWriter{
-		limitName: limitName,
-		checker:   checker,
-		nextRW:    nextRW,
+		name:    name,
+		checker: checker,
+		nextRW:  nextRW,
 	}
 }
 
@@ -102,7 +102,7 @@ func (s StorageLimitReadWriter) checkStorageLimit() error {
 	if limit != 0 { // unlimited storage
 		usage := s.checker.DiskUsage()
 		if usage >= limit {
-			return fmt.Errorf("%s: %w (current: %d, limit %d)", s.limitName, ErrLimitReached, usage, limit)
+			return fmt.Errorf("%s: %w (current: %d, limit %d)", s.name, ErrLimitReached, usage, limit)
 		}
 	}
 	return nil
