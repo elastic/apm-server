@@ -48,9 +48,9 @@ const (
 	// diskUsageFetchInterval is how often disk usage is fetched which is equivalent to how long disk usage is cached.
 	diskUsageFetchInterval = 1 * time.Second
 
-	// diskThreshold controls the proportion of the disk to be filled at max, irrespective of db size.
+	// diskThresholdRatio controls the proportion of the disk to be filled at max, irrespective of db size.
 	// e.g. 0.9 means the last 10% of disk should not be written to.
-	diskThreshold = 0.9
+	diskThresholdRatio = 0.9
 
 	loggerRateLimit = time.Minute
 )
@@ -245,14 +245,16 @@ func (sm *StorageManager) updateDiskUsage() {
 	}
 }
 
-// diskUsed returns the disk used in bytes.
+// diskUsed returns the actual used disk space in bytes.
+// Not to be confused with dbSize which is specific to database.
 func (sm *StorageManager) diskUsed() uint64 {
 	return sm.diskStat.used.Load()
 }
 
-// diskThreshold returns the size in bytes of used disk space when writes to disk should be stopped.
+// diskThreshold returns max used disk space in bytes.
+// After which, writes should be rejected.
 func (sm *StorageManager) diskThreshold() uint64 {
-	return uint64(float64(sm.diskStat.total.Load()) * diskThreshold)
+	return uint64(float64(sm.diskStat.total.Load()) * diskThresholdRatio)
 }
 
 // runDiskUsageLoop runs a loop that updates cached disk usage regularly.
