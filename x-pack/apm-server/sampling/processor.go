@@ -373,7 +373,11 @@ func (p *Processor) Run() error {
 		}
 	})
 	g.Go(func() error {
+<<<<<<< HEAD
 		return p.config.DB.Run(p.stopping, p.config.StorageGCInterval, p.config.TTL, p.config.StorageLimit, storageLimitThreshold)
+=======
+		return p.config.DB.Run(p.stopping, p.config.TTL)
+>>>>>>> dcb08ac9 (TBS: make storage_limit follow processor lifecycle; update TBS processor config (#15488))
 	})
 	g.Go(func() error {
 		// Subscribe to remotely sampled trace IDs. This is cancelled immediately when

@@ -158,11 +158,16 @@ func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, er
 			UUID: samplerUUID.String(),
 		},
 		StorageConfig: sampling.StorageConfig{
+<<<<<<< HEAD
 			DB:                    badgerDB,
 			Storage:               readWriter,
 			StorageDir:            storageDir,
 			StorageGCInterval:     tailSamplingConfig.StorageGCInterval,
 			StorageLimit:          tailSamplingConfig.StorageLimitParsed,
+=======
+			DB:                    db,
+			Storage:               db.NewReadWriter(tailSamplingConfig.StorageLimitParsed),
+>>>>>>> dcb08ac9 (TBS: make storage_limit follow processor lifecycle; update TBS processor config (#15488))
 			TTL:                   tailSamplingConfig.TTL,
 			DiscardOnWriteFailure: tailSamplingConfig.DiscardOnWriteFailure,
 		},

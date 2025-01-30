@@ -106,6 +106,7 @@ type StorageConfig struct {
 	// is closed
 	Storage rw
 
+<<<<<<< HEAD
 	// StorageDir holds the directory in which event storage will be maintained.
 	StorageDir string
 
@@ -115,6 +116,8 @@ type StorageConfig struct {
 	// StorageLimit for the badger database, in bytes.
 	StorageLimit uint64
 
+=======
+>>>>>>> dcb08ac9 (TBS: make storage_limit follow processor lifecycle; update TBS processor config (#15488))
 	// TTL holds the amount of time before events and sampling decisions
 	// are expired from local storage.
 	TTL time.Duration
@@ -245,12 +248,15 @@ func (config StorageConfig) validate() error {
 	if config.Storage == nil {
 		return errors.New("Storage unspecified")
 	}
+<<<<<<< HEAD
 	if config.StorageDir == "" {
 		return errors.New("StorageDir unspecified")
 	}
 	if config.StorageGCInterval <= 0 {
 		return errors.New("StorageGCInterval unspecified or negative")
 	}
+=======
+>>>>>>> dcb08ac9 (TBS: make storage_limit follow processor lifecycle; update TBS processor config (#15488))
 	if config.TTL <= 0 {
 		return errors.New("TTL unspecified or negative")
 	}

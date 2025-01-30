@@ -63,6 +63,7 @@ func TestProcessAlreadyTailSampled(t *testing.T) {
 	// subsequent events in the trace will be reported immediately.
 	trace1 := modelpb.Trace{Id: "0102030405060708090a0b0c0d0e0f10"}
 	trace2 := modelpb.Trace{Id: "0102030405060708090a0b0c0d0e0f11"}
+<<<<<<< HEAD
 	writer := config.DB.NewBypassReadWriter()
 	wOpts := eventstorage.WriterOpts{
 		TTL:                 time.Minute,
@@ -71,6 +72,10 @@ func TestProcessAlreadyTailSampled(t *testing.T) {
 	assert.NoError(t, writer.WriteTraceSampled(trace1.Id, true, wOpts))
 	assert.NoError(t, writer.Flush())
 	writer.Close()
+=======
+	writer := config.DB.NewUnlimitedReadWriter()
+	assert.NoError(t, writer.WriteTraceSampled(trace2.Id, true))
+>>>>>>> dcb08ac9 (TBS: make storage_limit follow processor lifecycle; update TBS processor config (#15488))
 
 	wOpts.TTL = -1 // expire immediately
 	writer = config.DB.NewBypassReadWriter()
@@ -78,11 +83,18 @@ func TestProcessAlreadyTailSampled(t *testing.T) {
 	assert.NoError(t, writer.Flush())
 	writer.Close()
 
+<<<<<<< HEAD
 	// Badger transactions created globally before committing the above writes
 	// will not see them due to SSI (Serializable Snapshot Isolation). Flush
 	// the storage so that new transactions are created for the underlying
 	// writer shards that can list all the events committed so far.
 	require.NoError(t, config.Storage.Flush())
+=======
+	writer = config.DB.NewUnlimitedReadWriter()
+	assert.NoError(t, writer.WriteTraceSampled(trace1.Id, true))
+
+	require.NoError(t, config.DB.Flush())
+>>>>>>> dcb08ac9 (TBS: make storage_limit follow processor lifecycle; update TBS processor config (#15488))
 
 	processor, err := sampling.NewProcessor(config)
 	require.NoError(t, err)
@@ -140,9 +152,14 @@ func TestProcessAlreadyTailSampled(t *testing.T) {
 
 	// Stop the processor and flush global storage so we can access the database.
 	assert.NoError(t, processor.Stop(context.Background()))
+<<<<<<< HEAD
 	assert.NoError(t, config.Storage.Flush())
 	reader := config.DB.NewBypassReadWriter()
 	defer reader.Close()
+=======
+	assert.NoError(t, config.DB.Flush())
+	reader := config.DB.NewUnlimitedReadWriter()
+>>>>>>> dcb08ac9 (TBS: make storage_limit follow processor lifecycle; update TBS processor config (#15488))
 
 	batch = nil
 	err = reader.ReadTraceEvents(trace1.Id, &batch)
@@ -259,9 +276,14 @@ func TestProcessLocalTailSampling(t *testing.T) {
 
 			// Stop the processor and flush global storage so we can access the database.
 			assert.NoError(t, processor.Stop(context.Background()))
+<<<<<<< HEAD
 			assert.NoError(t, config.Storage.Flush())
 			reader := config.DB.NewBypassReadWriter()
 			defer reader.Close()
+=======
+			assert.NoError(t, config.DB.Flush())
+			reader := config.DB.NewUnlimitedReadWriter()
+>>>>>>> dcb08ac9 (TBS: make storage_limit follow processor lifecycle; update TBS processor config (#15488))
 
 			sampled, err := reader.IsTraceSampled(sampledTraceID)
 			assert.NoError(t, err)
@@ -323,9 +345,14 @@ func TestProcessLocalTailSamplingUnsampled(t *testing.T) {
 
 	// Stop the processor so we can access the database.
 	assert.NoError(t, processor.Stop(context.Background()))
+<<<<<<< HEAD
 	assert.NoError(t, config.Storage.Flush())
 	reader := config.DB.NewBypassReadWriter()
 	defer reader.Close()
+=======
+	assert.NoError(t, config.DB.Flush())
+	reader := config.DB.NewUnlimitedReadWriter()
+>>>>>>> dcb08ac9 (TBS: make storage_limit follow processor lifecycle; update TBS processor config (#15488))
 
 	var anyUnsampled bool
 	for _, traceID := range traceIDs {
@@ -490,8 +517,12 @@ func TestProcessRemoteTailSampling(t *testing.T) {
 
 	assert.Empty(t, cmp.Diff(trace1Events, events, protocmp.Transform()))
 
+<<<<<<< HEAD
 	reader := config.DB.NewBypassReadWriter()
 	defer reader.Close()
+=======
+	reader := config.DB.NewUnlimitedReadWriter()
+>>>>>>> dcb08ac9 (TBS: make storage_limit follow processor lifecycle; update TBS processor config (#15488))
 
 	sampled, err := reader.IsTraceSampled(traceID1)
 	assert.NoError(t, err)
@@ -767,16 +798,22 @@ func TestStorageLimit(t *testing.T) {
 	assert.NoError(t, config.Storage.Flush())
 	assert.NoError(t, config.DB.Close())
 
+<<<<<<< HEAD
 	// Open a new instance of the badgerDB and check the size.
 	var err error
 	config.DB, err = eventstorage.NewStorageManager(config.StorageDir)
 	require.NoError(t, err)
 	t.Cleanup(func() { config.DB.Close() })
 	config.Storage = config.DB.NewReadWriter()
+=======
+	err := config.DB.Reload()
+	assert.NoError(t, err)
+>>>>>>> dcb08ac9 (TBS: make storage_limit follow processor lifecycle; update TBS processor config (#15488))
 
 	lsm, vlog := config.DB.Size()
 	assert.GreaterOrEqual(t, lsm+vlog, int64(1024))
 
+<<<<<<< HEAD
 	config.StorageLimit = 1024 // Set the storage limit to 1024 bytes.
 	// Create a massive 150K span batch (per CPU) to trigger the badger error
 	// Transaction too big, causing the ProcessBatch to report the some traces
@@ -789,6 +826,9 @@ func TestStorageLimit(t *testing.T) {
 		processor := writeBatch(150_000*i, config, func(b modelpb.Batch) {
 			assert.NotEmpty(t, b)
 		})
+=======
+	config.Storage = config.DB.NewReadWriter(10 << 10) // Set the storage limit to smaller than existing storage
+>>>>>>> dcb08ac9 (TBS: make storage_limit follow processor lifecycle; update TBS processor config (#15488))
 
 		failedWrites := collectProcessorMetrics(processor).Ints["sampling.events.failed_writes"]
 		t.Log(failedWrites)
@@ -981,8 +1021,12 @@ func TestGracefulShutdown(t *testing.T) {
 	assert.NoError(t, processor.Stop(context.Background()))
 	assert.NoError(t, config.Storage.Flush())
 
+<<<<<<< HEAD
 	reader := config.DB.NewBypassReadWriter()
 	defer reader.Close()
+=======
+	reader := config.DB.NewUnlimitedReadWriter()
+>>>>>>> dcb08ac9 (TBS: make storage_limit follow processor lifecycle; update TBS processor config (#15488))
 
 	var count int
 	for i := 0; i < totalTraces; i++ {
@@ -1013,6 +1057,7 @@ func newTempdirConfig(tb testing.TB) sampling.Config {
 			Policies: []sampling.Policy{
 				{SampleRate: 0.1},
 			},
+<<<<<<< HEAD
 		},
 		RemoteSamplingConfig: sampling.RemoteSamplingConfig{
 			Elasticsearch: pubsubtest.Client(nil, nil),
@@ -1020,6 +1065,21 @@ func newTempdirConfig(tb testing.TB) sampling.Config {
 				Type:      "traces",
 				Dataset:   "sampled",
 				Namespace: "testing",
+=======
+			RemoteSamplingConfig: sampling.RemoteSamplingConfig{
+				Elasticsearch: pubsubtest.Client(nil, nil),
+				SampledTracesDataStream: sampling.DataStreamConfig{
+					Type:      "traces",
+					Dataset:   "sampled",
+					Namespace: "testing",
+				},
+				UUID: "local-apm-server",
+			},
+			StorageConfig: sampling.StorageConfig{
+				DB:      db,
+				Storage: db.NewUnlimitedReadWriter(),
+				TTL:     30 * time.Minute,
+>>>>>>> dcb08ac9 (TBS: make storage_limit follow processor lifecycle; update TBS processor config (#15488))
 			},
 			UUID: "local-apm-server",
 		},
