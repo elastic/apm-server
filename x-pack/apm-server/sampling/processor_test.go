@@ -685,8 +685,7 @@ func TestStorageLimit(t *testing.T) {
 	lsm, vlog := config.DB.Size()
 	assert.Greater(t, lsm+vlog, int64(10<<10))
 
-	config.StorageLimit = 10 << 10 // Set the storage limit to smaller than existing storage
-	config.Storage = config.DB.NewStorageLimitReadWriter(config.StorageLimit)
+	config.Storage = config.DB.NewStorageLimitReadWriter(10 << 10) // Set the storage limit to smaller than existing storage
 
 	writeBatch(1000, config, func(b modelpb.Batch) {
 		assert.Len(t, b, 1000)
@@ -814,10 +813,9 @@ func newTempdirConfig(tb testing.TB) testConfig {
 				UUID: "local-apm-server",
 			},
 			StorageConfig: sampling.StorageConfig{
-				DB:           db,
-				Storage:      db.NewUnlimitedReadWriter(),
-				TTL:          30 * time.Minute,
-				StorageLimit: 0, // No storage limit.
+				DB:      db,
+				Storage: db.NewUnlimitedReadWriter(),
+				TTL:     30 * time.Minute,
 			},
 		},
 	}

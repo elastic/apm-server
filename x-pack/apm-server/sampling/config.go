@@ -108,9 +108,6 @@ type StorageConfig struct {
 	// Storage is the read writer to DB.
 	Storage eventstorage.RW
 
-	// StorageLimit for the TBS database, in bytes.
-	StorageLimit uint64
-
 	// TTL holds the amount of time before events and sampling decisions
 	// are expired from local storage.
 	TTL time.Duration
