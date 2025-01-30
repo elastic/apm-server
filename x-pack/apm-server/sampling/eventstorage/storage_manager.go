@@ -102,7 +102,8 @@ type StorageManager struct {
 	cachedDBSize atomic.Uint64
 
 	// diskStat is disk usage statistics about the disk only, not related to the databases.
-	diskStat diskStat
+	diskStat       diskStat
+	diskStatFailed bool
 
 	// runCh acts as a mutex to ensure only 1 Run is actively running per StorageManager.
 	// as it is possible that 2 separate Run are created by 2 TBS processors during a hot reload.
@@ -240,17 +241,27 @@ func (sm *StorageManager) dbStorageLimit() uint64 {
 func (sm *StorageManager) updateDiskUsage() {
 	sm.cachedDBSize.Store(sm.eventDB.Metrics().DiskSpaceUsage() + sm.decisionDB.Metrics().DiskSpaceUsage())
 
+	if sm.diskStatFailed {
+		// Skip GetDiskUsage under the assumption that
+		// it will always get the same error if GetDiskUsage ever returns one,
+		// such that it does not keep logging GetDiskUsage errors.
+		return
+	}
 	usage, err := vfs.Default.GetDiskUsage(sm.storageDir)
 	if err != nil {
-		if sm.dbStorageLimit() == 0 { // FIXME: this is not correct if Run is not called yet
-			sm.logger.With(logp.Error(err)).Warnf("failed to get disk usage; setting storage_limit to fallback default %.1fgb and disabling disk_threshold check", float64(dbStorageLimitFallback))
-			sm.storageLimit.Store(dbStorageLimitFallback)
-		} else {
-			sm.logger.With(logp.Error(err)).Warnf("failed to get disk usage; disabling disk_threshold check")
-		}
+		// TODO(carsonip): the logic and order of execution is not strictly correct here.
+		// This code is called on NewStorageManager, when sm.storageLimit is not set yet,
+		// as storageLimit is passed in Run.
+		// Therefore, the following line of log can be inaccurate,
+		// as a user-configured storage limit will overwrite the fallback again,
+		// making this a confusing log line.
+		sm.logger.With(logp.Error(err)).Warnf("failed to get disk usage; setting storage_limit to fallback default %.1fgb and disabling disk_threshold check", float64(dbStorageLimitFallback))
+		sm.storageLimit.Store(dbStorageLimitFallback)
 		// setting total to 0 will effectively make the threshold 0 and
-		// seen as unlimited by StorageLimitReadWriter.checkStorageLimit.
+		// seen as unlimited by StorageLimitReadWriter.checkStorageLimit,
+		// but this is probably superfluous as total should be 0 anyway if GetDiskUsage never succeeded.
 		sm.diskStat.total.Store(0)
+		sm.diskStatFailed = true
 	} else {
 		sm.diskStat.used.Store(usage.UsedBytes)
 		sm.diskStat.total.Store(usage.TotalBytes)
@@ -331,6 +342,7 @@ func (sm *StorageManager) Run(stopping <-chan struct{}, ttl time.Duration, stora
 
 	if storageLimit != 0 {
 		// avoid overwriting a fallback storage limit value to unlimited
+		sm.logger.Infof("setting storage_limit to %.1fgb", float64(storageLimit))
 		sm.storageLimit.Store(storageLimit)
 	}
 
