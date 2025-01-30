@@ -355,14 +355,14 @@ func (sm *StorageManager) NewStorageLimitReadWriter(storageLimit uint64) Storage
 		return storageLimit
 	}
 	if storageLimit == 0 {
-		sm.logger.Infof("setting storage_limit to unlimited")
+		sm.logger.Infof("setting database storage limit to unlimited")
 	} else {
-		sm.logger.Infof("setting storage_limit to %.1fgb", float64(storageLimit))
+		sm.logger.Infof("setting database storage limit to %.1fgb", float64(storageLimit))
 	}
 
 	// To limit db size to storage_limit
 	dbStorageLimitChecker := NewStorageLimitCheckerFunc(sm.dbSize, dbStorageLimit)
-	dbStorageLimitRW := NewStorageLimitReadWriter("storage_limit", dbStorageLimitChecker, splitRW)
+	dbStorageLimitRW := NewStorageLimitReadWriter("database storage limit", dbStorageLimitChecker, splitRW)
 
 	return dbStorageLimitRW
 }
