@@ -50,6 +50,8 @@ const (
 
 	// diskThreshold controls how much of the disk should be filled at max, irrespective of db size.
 	diskThreshold = 0.9
+
+	loggerRateLimit = time.Minute
 )
 
 type StorageManagerOptions func(*StorageManager)
@@ -73,8 +75,9 @@ type diskStat struct {
 // StorageManager encapsulates pebble.DB.
 // It assumes exclusive access to pebble DB at storageDir.
 type StorageManager struct {
-	storageDir string
-	logger     *logp.Logger
+	storageDir        string
+	logger            *logp.Logger
+	rateLimitedLogger *logp.Logger
 
 	eventDB         *pebble.DB
 	decisionDB      *pebble.DB
@@ -108,11 +111,13 @@ type StorageManager struct {
 
 // NewStorageManager returns a new StorageManager with pebble DB at storageDir.
 func NewStorageManager(storageDir string, opts ...StorageManagerOptions) (*StorageManager, error) {
+	logger := logp.NewLogger(logs.Sampling)
 	sm := &StorageManager{
-		storageDir: storageDir,
-		runCh:      make(chan struct{}, 1),
-		logger:     logp.NewLogger(logs.Sampling),
-		codec:      ProtobufCodec{},
+		storageDir:        storageDir,
+		runCh:             make(chan struct{}, 1),
+		logger:            logger,
+		rateLimitedLogger: logger.WithOptions(logs.WithRateLimit(loggerRateLimit)),
+		codec:             ProtobufCodec{},
 	}
 	for _, opt := range opts {
 		opt(sm)
@@ -227,7 +232,7 @@ func (sm *StorageManager) updateDiskUsage() {
 
 	usage, err := vfs.Default.GetDiskUsage(sm.storageDir)
 	if err != nil {
-		sm.logger.With(logp.Error(err)).Warn("failed to get disk usage")
+		sm.rateLimitedLogger.With(logp.Error(err)).Warn("failed to get disk usage")
 	} else {
 		sm.diskStat.used.Store(usage.UsedBytes)
 		sm.diskStat.total.Store(usage.TotalBytes)
