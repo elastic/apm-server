@@ -91,8 +91,6 @@ type StorageManager struct {
 
 	partitioner *Partitioner
 
-	storageLimit atomic.Uint64
-
 	codec Codec
 
 	// subscriberPosMu protects the subscriber file from concurrent RW.
@@ -232,25 +230,12 @@ func (sm *StorageManager) dbSize() uint64 {
 	return sm.cachedDBSize.Load()
 }
 
-// dbStorageLimit returns the configured limit of the database size in bytes.
-func (sm *StorageManager) dbStorageLimit() uint64 {
-	return sm.storageLimit.Load()
-}
-
 func (sm *StorageManager) updateDiskUsage() {
 	sm.cachedDBSize.Store(sm.eventDB.Metrics().DiskSpaceUsage() + sm.decisionDB.Metrics().DiskSpaceUsage())
 
 	usage, err := vfs.Default.GetDiskUsage(sm.storageDir)
 	if err != nil {
-		if sm.dbStorageLimit() == 0 { // FIXME: this is not correct if Run is not called yet
-			sm.logger.With(logp.Error(err)).Warnf("failed to get disk usage; setting storage_limit to fallback default %.1fgb and disabling disk_threshold check", float64(dbStorageLimitFallback))
-			sm.storageLimit.Store(dbStorageLimitFallback)
-		} else {
-			sm.logger.With(logp.Error(err)).Warnf("failed to get disk usage; disabling disk_threshold check")
-		}
-		// setting total to 0 will effectively make the threshold 0 and
-		// seen as unlimited by StorageLimitReadWriter.checkStorageLimit.
-		sm.diskStat.total.Store(0)
+		sm.rateLimitedLogger.With(logp.Error(err)).Warnf("failed to get disk usage")
 	} else {
 		sm.diskStat.used.Store(usage.UsedBytes)
 		sm.diskStat.total.Store(usage.TotalBytes)
@@ -319,7 +304,7 @@ func (sm *StorageManager) Reload() error {
 }
 
 // Run has the same lifecycle as the TBS processor as opposed to StorageManager to facilitate EA hot reload.
-func (sm *StorageManager) Run(stopping <-chan struct{}, ttl time.Duration, storageLimit uint64) error {
+func (sm *StorageManager) Run(stopping <-chan struct{}, ttl time.Duration) error {
 	select {
 	case <-stopping:
 		return nil
@@ -328,11 +313,6 @@ func (sm *StorageManager) Run(stopping <-chan struct{}, ttl time.Duration, stora
 	defer func() {
 		<-sm.runCh
 	}()
-
-	if storageLimit != 0 {
-		// avoid overwriting a fallback storage limit value to unlimited
-		sm.storageLimit.Store(storageLimit)
-	}
 
 	g := errgroup.Group{}
 	g.Go(func() error {
@@ -400,13 +380,28 @@ func (sm *StorageManager) WriteSubscriberPosition(data []byte) error {
 }
 
 func (sm *StorageManager) NewReadWriter() StorageLimitReadWriter {
+	return sm.NewStorageLimitReadWriter(0)
+}
+
+func (sm *StorageManager) NewStorageLimitReadWriter(storageLimit uint64) StorageLimitReadWriter {
 	splitRW := SplitReadWriter{
 		eventRW:    sm.eventStorage.NewReadWriter(),
 		decisionRW: sm.decisionStorage.NewReadWriter(),
 	}
 
+	dbStorageLimit := func() uint64 {
+		return storageLimit
+	}
+	if storageLimit == 0 && sm.diskStat.total.Load() == 0 {
+		// Even when disk usage cannot be obtained, only overwrite storage_limit to fallback if it is not specified.
+		sm.logger.Warnf("failed to get disk usage; setting storage_limit to fallback default %.1fgb", float64(dbStorageLimitFallback))
+		dbStorageLimit = func() uint64 {
+			return dbStorageLimitFallback
+		}
+	}
+
 	// To limit db size to storage_limit
-	dbStorageLimitChecker := NewStorageLimitCheckerFunc(sm.dbSize, sm.dbStorageLimit)
+	dbStorageLimitChecker := NewStorageLimitCheckerFunc(sm.dbSize, dbStorageLimit)
 	dbStorageLimitRW := NewStorageLimitReadWriter("storage_limit", dbStorageLimitChecker, splitRW)
 
 	// To limit actual disk usage percentage to diskThresholdRatio
