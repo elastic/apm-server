@@ -414,7 +414,7 @@ func (sm *StorageManager) NewReadWriter(storageLimit uint64, diskThresholdRatio 
 		dbStorageLimit = func() uint64 {
 			return dbStorageLimitFallback
 		}
-		sm.logger.Warnf("failed to get disk usage; overriding database storage limit to fallback default %0.1fgb", float64(dbStorageLimitFallback)/gb)
+		sm.logger.Warnf("failed to get disk usage; overriding database storage limit to fallback default of %0.1fgb", float64(dbStorageLimitFallback)/gb)
 	} else {
 		dbStorageLimit = func() uint64 {
 			return storageLimit
