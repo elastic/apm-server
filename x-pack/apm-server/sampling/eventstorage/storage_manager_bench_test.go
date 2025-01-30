@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func BenchmarkStorageManager_DiskUsage(b *testing.B) {
+func BenchmarkStorageManager_Size(b *testing.B) {
 	stopping := make(chan struct{})
 	defer close(stopping)
 	sm := newStorageManager(b)
@@ -29,7 +29,7 @@ func BenchmarkStorageManager_DiskUsage(b *testing.B) {
 	}
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_ = sm.dbSize()
+		_, _ = sm.Size()
 	}
 	b.StopTimer()
 }
