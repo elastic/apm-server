@@ -101,7 +101,7 @@ type StorageManager struct {
 
 	// diskStat is disk usage statistics about the disk only, not related to the databases.
 	diskStat       diskStat
-	diskStatFailed bool
+	diskStatFailed bool // FIXME: might race
 
 	// runCh acts as a mutex to ensure only 1 Run is actively running per StorageManager.
 	// as it is possible that 2 separate Run are created by 2 TBS processors during a hot reload.
@@ -242,14 +242,6 @@ func (sm *StorageManager) updateDiskUsage() {
 	}
 	usage, err := vfs.Default.GetDiskUsage(sm.storageDir)
 	if err != nil {
-		// TODO(carsonip): the logic and order of execution is not strictly correct here.
-		// This code is called on NewStorageManager, when sm.storageLimit is not set yet,
-		// as storageLimit is passed in Run.
-		// Therefore, the following line of log can be inaccurate,
-		// as a user-configured storage limit will overwrite the fallback again,
-		// making this a confusing log line.
-		sm.logger.With(logp.Error(err)).Warnf("failed to get disk usage; setting storage_limit to fallback default %.1fgb and disabling disk_threshold check", float64(dbStorageLimitFallback))
-		sm.storageLimit.Store(dbStorageLimitFallback)
 		// setting total to 0 will effectively make the threshold 0 and
 		// seen as unlimited by StorageLimitReadWriter.checkStorageLimit,
 		// but this is probably superfluous as total should be 0 anyway if GetDiskUsage never succeeded.
@@ -411,13 +403,21 @@ func (sm *StorageManager) NewReadWriter(storageLimit uint64) StorageLimitReadWri
 		decisionRW: sm.decisionStorage.NewReadWriter(),
 	}
 
-	dbStorageLimit := func() uint64 {
-		return storageLimit
-	}
-	if storageLimit == 0 {
-		sm.logger.Infof("setting database storage limit to unlimited")
+	var dbStorageLimit func() uint64
+	if sm.diskStatFailed && storageLimit == 0 { //FIXME: what if the user configures 0?
+		dbStorageLimit = func() uint64 {
+			return dbStorageLimitFallback
+		}
+		sm.logger.Warnf("failed to get disk usage; overriding storage_limit to fallback default %.1fgb", float64(dbStorageLimitFallback))
 	} else {
-		sm.logger.Infof("setting database storage limit to %.1fgb", float64(storageLimit))
+		dbStorageLimit = func() uint64 {
+			return storageLimit
+		}
+		if storageLimit == 0 {
+			sm.logger.Infof("setting database storage limit to unlimited")
+		} else {
+			sm.logger.Infof("setting database storage limit to %.1fgb", float64(storageLimit))
+		}
 	}
 
 	// To limit db size to storage_limit
