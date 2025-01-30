@@ -347,10 +347,13 @@ func (sm *StorageManager) WriteSubscriberPosition(data []byte) error {
 }
 
 func (sm *StorageManager) NewReadWriter() StorageLimitReadWriter {
-	return NewStorageLimitReadWriter(sm, SplitReadWriter{
+	splitRW := SplitReadWriter{
 		eventRW:    sm.eventStorage.NewReadWriter(),
 		decisionRW: sm.decisionStorage.NewReadWriter(),
-	})
+	}
+	storageLimitRW := NewStorageLimitReadWriter(sm, splitRW)
+	diskThresholdRW := NewStorageLimitReadWriter(NewDiskThresholdChecker(sm.storageDir, 0.9), storageLimitRW)
+	return diskThresholdRW
 }
 
 // wrapNonNilErr only wraps an error with format if the error is not nil.
