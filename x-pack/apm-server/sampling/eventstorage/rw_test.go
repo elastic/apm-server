@@ -79,7 +79,7 @@ func TestStorageLimitReadWriter(t *testing.T) {
 		t.Run(fmt.Sprintf("limit=%d,usage=%d", tt.limit, tt.usage), func(t *testing.T) {
 			checker := mockChecker{limit: tt.limit, usage: tt.usage}
 			var callCount int
-			rw := eventstorage.NewStorageLimitReadWriter(checker, mockRW{
+			rw := eventstorage.NewStorageLimitReadWriter("foo_storage_limiter", checker, mockRW{
 				callback: func() {
 					callCount++
 				},
