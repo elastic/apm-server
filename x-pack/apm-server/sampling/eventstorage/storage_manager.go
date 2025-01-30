@@ -48,7 +48,8 @@ const (
 	// diskUsageFetchInterval is how often disk usage is fetched which is equivalent to how long disk usage is cached.
 	diskUsageFetchInterval = 1 * time.Second
 
-	// diskThreshold controls how much of the disk should be filled at max, irrespective of db size.
+	// diskThreshold controls the proportion of the disk to be filled at max, irrespective of db size.
+	// e.g. 0.9 means the last 10% of disk should not be written to.
 	diskThreshold = 0.9
 
 	loggerRateLimit = time.Minute
