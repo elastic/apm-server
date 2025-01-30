@@ -151,13 +151,8 @@ func defaultTailSamplingConfig() TailSamplingConfig {
 		Interval:              1 * time.Minute,
 		IngestRateDecayFactor: 0.25,
 		TTL:                   30 * time.Minute,
-		StorageLimit:          "3GB",
+		StorageLimit:          "",
 		DiscardOnWriteFailure: false,
 	}
-	parsed, err := humanize.ParseBytes(cfg.StorageLimit)
-	if err != nil {
-		panic(err)
-	}
-	cfg.StorageLimitParsed = parsed
 	return cfg
 }
