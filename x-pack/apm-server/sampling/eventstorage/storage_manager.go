@@ -394,7 +394,7 @@ func (sm *StorageManager) WriteSubscriberPosition(data []byte) error {
 // NewUnlimitedReadWriter returns a read writer with no storage limit.
 // For testing only.
 func (sm *StorageManager) NewUnlimitedReadWriter() StorageLimitReadWriter {
-	return sm.NewReadWriter(0, 1)
+	return sm.NewReadWriter(0, 0)
 }
 
 // NewReadWriter returns a read writer configured with storage limit and disk threshold ratio.
