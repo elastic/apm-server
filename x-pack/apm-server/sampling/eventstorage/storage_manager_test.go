@@ -136,7 +136,7 @@ func TestStorageManager_DiskUsage(t *testing.T) {
 	stopping := make(chan struct{})
 	defer close(stopping)
 	sm := newStorageManager(t)
-	go sm.Run(stopping, time.Second, 0)
+	go sm.Run(stopping, time.Second)
 
 	lsm, vlog := sm.Size()
 	oldSize := lsm + vlog
@@ -174,9 +174,35 @@ func TestStorageManager_Run(t *testing.T) {
 	stopping := make(chan struct{})
 	sm := newStorageManager(t)
 	go func() {
-		assert.NoError(t, sm.Run(stopping, time.Second, 0))
+		assert.NoError(t, sm.Run(stopping, time.Second))
 		close(done)
 	}()
+	close(stopping)
+	<-done
+}
+
+func TestStorageManager_StorageLimit(t *testing.T) {
+	done := make(chan struct{})
+	stopping := make(chan struct{})
+	sm := newStorageManager(t)
+	go func() {
+		assert.NoError(t, sm.Run(stopping, time.Second))
+		close(done)
+	}()
+	require.NoError(t, sm.Flush())
+	lsm, _ := sm.Size()
+	assert.Greater(t, lsm, int64(1))
+
+	traceID := uuid.Must(uuid.NewV4()).String()
+	txnID := uuid.Must(uuid.NewV4()).String()
+	txn := makeTransaction(txnID, traceID)
+
+	small := sm.NewStorageLimitReadWriter(1)
+	assert.ErrorIs(t, small.WriteTraceEvent(traceID, txnID, txn), eventstorage.ErrLimitReached)
+
+	big := sm.NewStorageLimitReadWriter(10 << 10)
+	assert.NoError(t, big.WriteTraceEvent(traceID, txnID, txn))
+
 	close(stopping)
 	<-done
 }
