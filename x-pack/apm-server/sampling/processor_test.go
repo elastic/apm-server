@@ -685,7 +685,7 @@ func TestStorageLimit(t *testing.T) {
 	lsm, vlog := config.DB.Size()
 	assert.Greater(t, lsm+vlog, int64(10<<10))
 
-	config.Storage = config.DB.NewStorageLimitReadWriter(10 << 10) // Set the storage limit to smaller than existing storage
+	config.Storage = config.DB.NewReadWriter(10 << 10) // Set the storage limit to smaller than existing storage
 
 	writeBatch(1000, config, func(b modelpb.Batch) {
 		assert.Len(t, b, 1000)

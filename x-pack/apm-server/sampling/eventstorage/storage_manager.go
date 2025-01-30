@@ -341,11 +341,11 @@ func (sm *StorageManager) WriteSubscriberPosition(data []byte) error {
 // NewUnlimitedReadWriter returns a read writer with no storage limit.
 // For testing only.
 func (sm *StorageManager) NewUnlimitedReadWriter() StorageLimitReadWriter {
-	return sm.NewStorageLimitReadWriter(0)
+	return sm.NewReadWriter(0)
 }
 
-// NewStorageLimitReadWriter returns a read writer with storage limit.
-func (sm *StorageManager) NewStorageLimitReadWriter(storageLimit uint64) StorageLimitReadWriter {
+// NewReadWriter returns a read writer with storage limit.
+func (sm *StorageManager) NewReadWriter(storageLimit uint64) StorageLimitReadWriter {
 	splitRW := SplitReadWriter{
 		eventRW:    sm.eventStorage.NewReadWriter(),
 		decisionRW: sm.decisionStorage.NewReadWriter(),
