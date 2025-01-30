@@ -438,7 +438,8 @@ func (sm *StorageManager) NewReadWriter(storageLimit uint64, diskThresholdRatio 
 		diskThreshold = func() uint64 {
 			return uint64(float64(sm.diskStat.total.Load()) * diskThresholdRatio)
 		}
-		sm.logger.Infof("setting disk threshold ratio to %.2f", diskThresholdRatio)
+		// the total disk space could change in runtime, but it is still useful to print it out in logs.
+		sm.logger.Infof("setting disk threshold ratio to %.2f of total disk space of %.1fgb", diskThresholdRatio, float64(sm.diskStat.total.Load()))
 	}
 
 	// To limit actual disk usage percentage to diskThresholdRatio
