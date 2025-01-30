@@ -137,7 +137,9 @@ func TestStorageManager_DiskUsage(t *testing.T) {
 	defer close(stopping)
 	sm := newStorageManager(t)
 	go sm.Run(stopping, time.Second, 0)
-	old := sm.DiskUsage()
+
+	lsm, vlog := sm.Size()
+	oldSize := lsm + vlog
 
 	err := sm.NewReadWriter().WriteTraceSampled("foo", true)
 	require.NoError(t, err)
@@ -146,10 +148,13 @@ func TestStorageManager_DiskUsage(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Eventually(t, func() bool {
-		return sm.DiskUsage() > old
+		lsm, vlog := sm.Size()
+		newSize := lsm + vlog
+		return newSize > oldSize
 	}, 10*time.Second, 100*time.Millisecond)
 
-	old = sm.DiskUsage()
+	lsm, vlog = sm.Size()
+	oldSize = lsm + vlog
 
 	err = sm.NewReadWriter().WriteTraceEvent("foo", "bar", makeTransaction("bar", "foo"))
 	require.NoError(t, err)
@@ -158,7 +163,9 @@ func TestStorageManager_DiskUsage(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Eventually(t, func() bool {
-		return sm.DiskUsage() > old
+		lsm, vlog := sm.Size()
+		newSize := lsm + vlog
+		return newSize > oldSize
 	}, 10*time.Second, 100*time.Millisecond)
 }
 

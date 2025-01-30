@@ -94,8 +94,8 @@ type StorageManager struct {
 	// subscriberPosMu protects the subscriber file from concurrent RW.
 	subscriberPosMu sync.Mutex
 
-	// cachedDiskUsage is a cached result of DiskUsage
-	cachedDiskUsage atomic.Uint64
+	// cachedDBSize is a cached result of dbSize
+	cachedDBSize atomic.Uint64
 
 	// diskStat is disk usage statistics about the disk only, not related to the databases.
 	diskStat diskStat
@@ -219,17 +219,22 @@ func (sm *StorageManager) Size() (lsm, vlog int64) {
 	// Also remember to update
 	// - x-pack/apm-server/sampling/processor.go:CollectMonitoring
 	// - systemtest/benchtest/expvar/metrics.go
-	return int64(sm.DiskUsage()), 0
+	return int64(sm.dbSize()), 0
 }
 
-// DiskUsage returns the disk usage of databases in bytes.
-func (sm *StorageManager) DiskUsage() uint64 {
+// dbSize returns the disk usage of databases in bytes.
+func (sm *StorageManager) dbSize() uint64 {
 	// pebble DiskSpaceUsage overhead is not high, but it adds up when performed per-event.
-	return sm.cachedDiskUsage.Load()
+	return sm.cachedDBSize.Load()
+}
+
+// dbStorageLimit returns the configured limit of the database size in bytes.
+func (sm *StorageManager) dbStorageLimit() uint64 {
+	return sm.storageLimit.Load()
 }
 
 func (sm *StorageManager) updateDiskUsage() {
-	sm.cachedDiskUsage.Store(sm.eventDB.Metrics().DiskSpaceUsage() + sm.decisionDB.Metrics().DiskSpaceUsage())
+	sm.cachedDBSize.Store(sm.eventDB.Metrics().DiskSpaceUsage() + sm.decisionDB.Metrics().DiskSpaceUsage())
 
 	usage, err := vfs.Default.GetDiskUsage(sm.storageDir)
 	if err != nil {
@@ -240,10 +245,12 @@ func (sm *StorageManager) updateDiskUsage() {
 	}
 }
 
+// diskUsed returns the disk used in bytes.
 func (sm *StorageManager) diskUsed() uint64 {
 	return sm.diskStat.used.Load()
 }
 
+// diskThreshold returns the size in bytes of used disk space when writes to disk should be stopped.
 func (sm *StorageManager) diskThreshold() uint64 {
 	return uint64(float64(sm.diskStat.total.Load()) * diskThreshold)
 }
@@ -260,10 +267,6 @@ func (sm *StorageManager) runDiskUsageLoop(stopping <-chan struct{}) error {
 			sm.updateDiskUsage()
 		}
 	}
-}
-
-func (sm *StorageManager) StorageLimit() uint64 {
-	return sm.storageLimit.Load()
 }
 
 func (sm *StorageManager) Flush() error {
@@ -384,9 +387,13 @@ func (sm *StorageManager) NewReadWriter() StorageLimitReadWriter {
 		eventRW:    sm.eventStorage.NewReadWriter(),
 		decisionRW: sm.decisionStorage.NewReadWriter(),
 	}
-	storageLimitRW := NewStorageLimitReadWriter("storage_limit", sm, splitRW)
+
+	dbStorageLimitChecker := NewStorageLimitCheckerFunc(sm.dbSize, sm.dbStorageLimit)
+	dbStorageLimitRW := NewStorageLimitReadWriter("storage_limit", dbStorageLimitChecker, splitRW)
+
 	diskThresholdChecker := NewStorageLimitCheckerFunc(sm.diskUsed, sm.diskThreshold)
-	diskThresholdRW := NewStorageLimitReadWriter("disk_threshold", diskThresholdChecker, storageLimitRW)
+	diskThresholdRW := NewStorageLimitReadWriter("disk_threshold", diskThresholdChecker, dbStorageLimitRW)
+
 	return diskThresholdRW
 }
 

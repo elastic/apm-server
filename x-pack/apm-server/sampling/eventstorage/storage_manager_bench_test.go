@@ -29,7 +29,7 @@ func BenchmarkStorageManager_DiskUsage(b *testing.B) {
 	}
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_ = sm.DiskUsage()
+		_ = sm.dbSize()
 	}
 	b.StopTimer()
 }
