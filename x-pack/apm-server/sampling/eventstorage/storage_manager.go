@@ -405,6 +405,8 @@ func (sm *StorageManager) NewReadWriter(storageLimit uint64, diskThresholdRatio 
 		decisionRW: sm.decisionStorage.NewReadWriter(),
 	}
 
+	// dbStorageLimit returns max size of db in bytes.
+	// If size of db exceeds dbStorageLimit, writes should be rejected.
 	var dbStorageLimit func() uint64
 	if sm.diskStatFailed.Load() && storageLimit == 0 && diskThresholdRatio > 0 {
 		dbStorageLimit = func() uint64 {
@@ -427,7 +429,7 @@ func (sm *StorageManager) NewReadWriter(storageLimit uint64, diskThresholdRatio 
 	dbStorageLimitRW := NewStorageLimitReadWriter("database storage limit", dbStorageLimitChecker, splitRW)
 
 	// diskThreshold returns max used disk space in bytes.
-	// After which, writes should be rejected.
+	// If size of used disk space exceeds diskThreshold, writes should be rejected.
 	var diskThreshold func() uint64
 	if sm.diskStatFailed.Load() {
 		diskThreshold = func() uint64 {
