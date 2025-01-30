@@ -381,7 +381,7 @@ func (sm *StorageManager) NewUnlimitedReadWriter() StorageLimitReadWriter {
 	return sm.NewReadWriter(0, 1)
 }
 
-// NewReadWriter returns a read writer with storage limit.
+// NewReadWriter returns a read writer with storage limit and disk threshold.
 func (sm *StorageManager) NewReadWriter(storageLimit uint64, diskThresholdRatio float64) StorageLimitReadWriter {
 	splitRW := SplitReadWriter{
 		eventRW:    sm.eventStorage.NewReadWriter(),
@@ -417,7 +417,7 @@ func (sm *StorageManager) NewReadWriter(storageLimit uint64, diskThresholdRatio 
 
 	// To limit actual disk usage percentage to diskThresholdRatio
 	diskThresholdChecker := NewStorageLimitCheckerFunc(sm.diskUsed, diskThreshold)
-	diskThresholdRW := NewStorageLimitReadWriter("disk_threshold", diskThresholdChecker, dbStorageLimitRW)
+	diskThresholdRW := NewStorageLimitReadWriter("disk threshold", diskThresholdChecker, dbStorageLimitRW)
 
 	return diskThresholdRW
 }
