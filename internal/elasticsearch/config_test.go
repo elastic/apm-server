@@ -26,10 +26,8 @@ import (
 	"strings"
 	"testing"
 
-	// Imported to ensure the type data is available for reflection.
-	_ "github.com/elastic/beats/v7/libbeat/outputs/elasticsearch"
+	libbeates "github.com/elastic/beats/v7/libbeat/outputs/elasticsearch"
 
-	"github.com/modern-go/reflect2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -101,31 +99,22 @@ func TestAddresses(t *testing.T) {
 // TestBeatsConfigSynced helps ensure that our elasticsearch.Config struct is
 // kept in sync with the config defined in libbeat/outputs/elasticsearch.
 func TestBeatsConfigSynced(t *testing.T) {
-	libbeatType, _ := reflect2.TypeByPackageName(
-		"github.com/elastic/beats/v7/libbeat/outputs/elasticsearch",
-		"elasticsearchConfig",
-	).(reflect2.StructType)
-	require.NotNil(t, libbeatType)
-
-	localType, _ := reflect2.TypeByPackageName(
-		"github.com/elastic/apm-server/internal/elasticsearch",
-		"Config",
-	).(reflect2.StructType)
-	require.NotNil(t, localType)
+	libbeatType := reflect.TypeOf(libbeates.ElasticsearchConfig{})
+	localType := reflect.TypeOf(Config{})
 
 	type structField struct {
-		reflect2.StructField
+		reflect.StructField
 		structTag reflect.StructTag
 	}
-	getStructFields := func(typ reflect2.StructType) map[string]structField {
+	getStructFields := func(typ reflect.Type) map[string]structField {
 		out := make(map[string]structField)
 		for i := typ.NumField() - 1; i >= 0; i-- {
 			field := structField{StructField: typ.Field(i)}
-			field.structTag = field.Tag()
+			field.structTag = field.Tag
 			configTag := strings.Split(field.structTag.Get("config"), ",")
 			configName := configTag[0]
 			if configName == "" {
-				configName = strings.ToLower(field.Name())
+				configName = strings.ToLower(field.Name)
 			}
 			out[configName] = field
 		}
@@ -160,10 +149,10 @@ func TestBeatsConfigSynced(t *testing.T) {
 		libbeatStructField := libbeatStructFields[name]
 		assert.Equal(t, localStructField.structTag, libbeatStructField.structTag)
 		assert.Equal(t,
-			localStructField.Type(),
-			libbeatStructField.Type(),
+			localStructField.Type,
+			libbeatStructField.Type,
 			fmt.Sprintf("expected type %s for config field %q, got %s",
-				libbeatStructField.Type(), name, localStructField.Type(),
+				libbeatStructField.Type, name, localStructField.Type,
 			),
 		)
 		delete(libbeatStructFields, name)
