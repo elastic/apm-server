@@ -108,9 +108,6 @@ type StorageConfig struct {
 	// Storage is the read writer to DB.
 	Storage eventstorage.RW
 
-	// StorageLimit for the TBS database, in bytes.
-	StorageLimit uint64
-
 	// TTL holds the amount of time before events and sampling decisions
 	// are expired from local storage.
 	TTL time.Duration
@@ -237,6 +234,9 @@ func (config DataStreamConfig) validate() error {
 func (config StorageConfig) validate() error {
 	if config.DB == nil {
 		return errors.New("DB unspecified")
+	}
+	if config.Storage == nil {
+		return errors.New("Storage unspecified")
 	}
 	if config.TTL <= 0 {
 		return errors.New("TTL unspecified or negative")
