@@ -242,7 +242,7 @@ func (sm *StorageManager) updateDiskUsage() {
 
 	usage, err := vfs.Default.GetDiskUsage(sm.storageDir)
 	if err != nil {
-		if sm.dbStorageLimit() == 0 {
+		if sm.dbStorageLimit() == 0 { // FIXME: this is not correct if Run is not called yet
 			sm.logger.With(logp.Error(err)).Warnf("failed to get disk usage; setting storage_limit to fallback default %.1fgb and disabling disk_threshold check", float64(dbStorageLimitFallback))
 			sm.storageLimit.Store(dbStorageLimitFallback)
 		} else {
