@@ -54,7 +54,10 @@ type TailSamplingConfig struct {
 
 	// DiskThresholdRatio controls the proportion of the disk to be filled at max, irrespective of db size.
 	// e.g. 0.9 means the last 10% of disk should not be written to.
-	// Both 0 and 1 means unlimited.
+	// If StorageLimit is 0 and any error occurs when getting filesystem stats,
+	// a fallback StorageLimit will be applied.
+	// To disable the fallback to allow unlimited db size and disk threshold in all circumstances,
+	// set both StorageLimit and DiskThresholdRatio to 0.
 	DiskThresholdRatio float64 `config:"disk_threshold_ratio"  validate:"min=0, max=1"`
 
 	DiscardOnWriteFailure bool `config:"discard_on_write_failure"`

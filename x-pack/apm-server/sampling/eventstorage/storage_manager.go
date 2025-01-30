@@ -389,7 +389,7 @@ func (sm *StorageManager) NewReadWriter(storageLimit uint64, diskThresholdRatio 
 	}
 
 	var dbStorageLimit func() uint64
-	if sm.diskStatFailed.Load() && storageLimit == 0 { //FIXME: what if the user configures 0?
+	if sm.diskStatFailed.Load() && storageLimit == 0 && diskThresholdRatio > 0 {
 		dbStorageLimit = func() uint64 {
 			return dbStorageLimitFallback
 		}
