@@ -90,15 +90,16 @@ func (c *TailSamplingConfig) Unpack(in *config.C) error {
 		err = errors.Wrap(err, "error unpacking config")
 		return nil
 	}
-	limit, err := humanize.ParseBytes(cfg.StorageLimit)
-	if err != nil {
-		return err
+	if cfg.StorageLimit != "" {
+		limit, err := humanize.ParseBytes(cfg.StorageLimit)
+		if err != nil {
+			return err
+		}
+		cfg.StorageLimitParsed = limit
 	}
-	cfg.StorageLimitParsed = limit
 	cfg.Enabled = in.Enabled()
 	*c = TailSamplingConfig(cfg)
 	c.esConfigured = in.HasField("elasticsearch")
-	c.StorageLimitParsed = limit
 	err = errors.Wrap(c.Validate(), "invalid config")
 	return nil
 }
