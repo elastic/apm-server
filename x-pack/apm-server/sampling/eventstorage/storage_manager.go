@@ -52,6 +52,10 @@ const (
 	// e.g. 0.9 means the last 10% of disk should not be written to.
 	diskThresholdRatio = 0.9
 
+	// dbStorageLimitFallback is the default fallback storage limit in bytes
+	// that applies when disk threshold cannot be enforced due to an error.
+	dbStorageLimitFallback = 5 << 30
+
 	loggerRateLimit = time.Minute
 )
 
@@ -238,7 +242,12 @@ func (sm *StorageManager) updateDiskUsage() {
 
 	usage, err := vfs.Default.GetDiskUsage(sm.storageDir)
 	if err != nil {
-		sm.rateLimitedLogger.With(logp.Error(err)).Warn("failed to get disk usage")
+		if sm.dbStorageLimit() == 0 {
+			sm.logger.With(logp.Error(err)).Warnf("failed to get disk usage; setting storage_limit to fallback default %.1fgb", float64(dbStorageLimitFallback))
+			sm.storageLimit.Store(dbStorageLimitFallback)
+		} else {
+			sm.rateLimitedLogger.With(logp.Error(err)).Warnf("failed to get disk usage")
+		}
 	} else {
 		sm.diskStat.used.Store(usage.UsedBytes)
 		sm.diskStat.total.Store(usage.TotalBytes)
@@ -317,7 +326,10 @@ func (sm *StorageManager) Run(stopping <-chan struct{}, ttl time.Duration, stora
 		<-sm.runCh
 	}()
 
-	sm.storageLimit.Store(storageLimit)
+	if storageLimit != 0 {
+		// avoid overwriting a fallback storage limit value to unlimited
+		sm.storageLimit.Store(storageLimit)
+	}
 
 	g := errgroup.Group{}
 	g.Go(func() error {
