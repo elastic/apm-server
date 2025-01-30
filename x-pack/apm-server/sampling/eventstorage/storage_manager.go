@@ -243,11 +243,14 @@ func (sm *StorageManager) updateDiskUsage() {
 	usage, err := vfs.Default.GetDiskUsage(sm.storageDir)
 	if err != nil {
 		if sm.dbStorageLimit() == 0 {
-			sm.logger.With(logp.Error(err)).Warnf("failed to get disk usage; setting storage_limit to fallback default %.1fgb", float64(dbStorageLimitFallback))
+			sm.logger.With(logp.Error(err)).Warnf("failed to get disk usage; setting storage_limit to fallback default %.1fgb and disabling disk_threshold check", float64(dbStorageLimitFallback))
 			sm.storageLimit.Store(dbStorageLimitFallback)
 		} else {
-			sm.rateLimitedLogger.With(logp.Error(err)).Warnf("failed to get disk usage")
+			sm.logger.With(logp.Error(err)).Warnf("failed to get disk usage; disabling disk_threshold check")
 		}
+		// setting total to 0 will effectively make the threshold 0 and
+		// seen as unlimited by StorageLimitReadWriter.checkStorageLimit.
+		sm.diskStat.total.Store(0)
 	} else {
 		sm.diskStat.used.Store(usage.UsedBytes)
 		sm.diskStat.total.Store(usage.TotalBytes)
