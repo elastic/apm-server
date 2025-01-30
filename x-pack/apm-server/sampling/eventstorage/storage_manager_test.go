@@ -5,6 +5,7 @@
 package eventstorage_test
 
 import (
+	"errors"
 	"testing"
 	"time"
 
@@ -205,4 +206,104 @@ func TestStorageManager_StorageLimit(t *testing.T) {
 
 	close(stopping)
 	<-done
+}
+
+func TestStorageManager_DiskThreshold(t *testing.T) {
+	for _, tc := range []struct {
+		name               string
+		storageLimit       uint64
+		diskUsage          eventstorage.DiskUsage
+		getDiskUsageErr    error
+		diskThresholdRatio float64
+		wantErr            error
+	}{
+		{
+			name: "under threshold",
+			diskUsage: eventstorage.DiskUsage{
+				UsedBytes:  1,
+				TotalBytes: 10,
+			},
+			diskThresholdRatio: 0.9,
+			wantErr:            nil,
+		},
+		{
+			name: "above threshold",
+			diskUsage: eventstorage.DiskUsage{
+				UsedBytes:  9,
+				TotalBytes: 10,
+			},
+			diskThresholdRatio: 0.8,
+			wantErr:            eventstorage.ErrLimitReached,
+		},
+		{
+			name: "unlimited 1",
+			diskUsage: eventstorage.DiskUsage{
+				UsedBytes:  9,
+				TotalBytes: 10,
+			},
+			diskThresholdRatio: 1,
+			wantErr:            nil,
+		},
+		{
+			name: "unlimited 0",
+			diskUsage: eventstorage.DiskUsage{
+				UsedBytes:  9,
+				TotalBytes: 10,
+			},
+			diskThresholdRatio: 0,
+			wantErr:            nil,
+		},
+		{
+			name:               "err with non-0 storage limit",
+			getDiskUsageErr:    errors.New("boom"),
+			diskThresholdRatio: 0.8,
+			storageLimit:       1,
+			wantErr:            eventstorage.ErrLimitReached,
+		},
+		{
+			name:               "err with 0 storage limit non-0 disk threshold ratio",
+			getDiskUsageErr:    errors.New("boom"),
+			diskThresholdRatio: 0.8,
+			storageLimit:       0,
+			wantErr:            nil, // overwrite storage limit to a fallback default
+		},
+		{
+			name:               "err with 0 storage limit 0 disk threshold ratio",
+			getDiskUsageErr:    errors.New("boom"),
+			diskThresholdRatio: 0,
+			storageLimit:       0,
+			wantErr:            nil, // should not fallback, unlimited in both storage limit and disk threshold
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			mockGetDiskUsage := func() (eventstorage.DiskUsage, error) {
+				return tc.diskUsage, tc.getDiskUsageErr
+			}
+			done := make(chan struct{})
+			stopping := make(chan struct{})
+			sm := newStorageManager(t, eventstorage.WithGetDiskUsage(mockGetDiskUsage))
+			go func() {
+				assert.NoError(t, sm.Run(stopping, time.Second))
+				close(done)
+			}()
+			require.NoError(t, sm.Flush())
+			lsm, _ := sm.Size()
+			assert.Greater(t, lsm, int64(1))
+
+			traceID := uuid.Must(uuid.NewV4()).String()
+			txnID := uuid.Must(uuid.NewV4()).String()
+			txn := makeTransaction(txnID, traceID)
+
+			rw := sm.NewReadWriter(tc.storageLimit, tc.diskThresholdRatio)
+			err := rw.WriteTraceEvent(traceID, txnID, txn)
+			if tc.wantErr != nil {
+				assert.ErrorIs(t, err, eventstorage.ErrLimitReached)
+			} else {
+				assert.NoError(t, err)
+			}
+
+			close(stopping)
+			<-done
+		})
+	}
 }

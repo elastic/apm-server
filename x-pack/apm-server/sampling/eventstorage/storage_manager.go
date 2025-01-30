@@ -67,8 +67,17 @@ func WithMeterProvider(mp metric.MeterProvider) StorageManagerOptions {
 	}
 }
 
-type diskStat struct {
-	used, total atomic.Uint64
+// WithGetDiskUsage configures getDiskUsage function used by StorageManager.
+// For testing only.
+func WithGetDiskUsage(getDiskUsage func() (DiskUsage, error)) StorageManagerOptions {
+	return func(sm *StorageManager) {
+		sm.getDiskUsage = getDiskUsage
+	}
+}
+
+// DiskUsage is the struct returned by getDiskUsage.
+type DiskUsage struct {
+	UsedBytes, TotalBytes uint64
 }
 
 // StorageManager encapsulates pebble.DB.
@@ -92,8 +101,11 @@ type StorageManager struct {
 	// cachedDBSize is a cached result of db size.
 	cachedDBSize atomic.Uint64
 
+	getDiskUsage func() (DiskUsage, error)
 	// diskStat is disk usage statistics about the disk only, not related to the databases.
-	diskStat       diskStat
+	diskStat struct {
+		used, total atomic.Uint64
+	}
 	diskStatFailed atomic.Bool
 
 	// runCh acts as a mutex to ensure only 1 Run is actively running per StorageManager.
@@ -113,6 +125,13 @@ func NewStorageManager(storageDir string, opts ...StorageManagerOptions) (*Stora
 		runCh:      make(chan struct{}, 1),
 		logger:     logp.NewLogger(logs.Sampling),
 		codec:      ProtobufCodec{},
+		getDiskUsage: func() (DiskUsage, error) {
+			usage, err := vfs.Default.GetDiskUsage(storageDir)
+			return DiskUsage{
+				UsedBytes:  usage.UsedBytes,
+				TotalBytes: usage.TotalBytes,
+			}, err
+		},
 	}
 	for _, opt := range opts {
 		opt(sm)
@@ -231,7 +250,7 @@ func (sm *StorageManager) updateDiskUsage() {
 		// such that it does not keep logging GetDiskUsage errors.
 		return
 	}
-	usage, err := vfs.Default.GetDiskUsage(sm.storageDir)
+	usage, err := sm.getDiskUsage()
 	if err != nil {
 		sm.logger.With(logp.Error(err)).Warn("failed to get disk usage")
 		sm.diskStatFailed.Store(true)
