@@ -125,7 +125,7 @@ func NewMux(
 		{AgentConfigRUMPath, builder.rumAgentConfigHandler(fetcher, meterProvider)},
 		{IntakeRUMPath, rumIntakeHandler},
 		{IntakeRUMV3Path, rumIntakeHandler},
-		{IntakePath, builder.backendIntakeHandler(meterProvider)},
+		{IntakePath, builder.backendIntakeHandler("apm-server.server.", meterProvider)},
 		{OTLPTracesIntakePath, builder.otlpHandler(otlpHandlers.HandleTraces, "apm-server.otlp.http.traces.", meterProvider)},
 		{OTLPMetricsIntakePath, builder.otlpHandler(otlpHandlers.HandleMetrics, "apm-server.otlp.http.metrics.", meterProvider)},
 		{OTLPLogsIntakePath, builder.otlpHandler(otlpHandlers.HandleLogs, "apm-server.otlp.http.logs.", meterProvider)},
@@ -171,10 +171,10 @@ type routeBuilder struct {
 	intakeSemaphore  input.Semaphore
 }
 
-func (r *routeBuilder) backendIntakeHandler(mp metric.MeterProvider) func() (request.Handler, error) {
+func (r *routeBuilder) backendIntakeHandler(metricsPrefix string, mp metric.MeterProvider) func() (request.Handler, error) {
 	return func() (request.Handler, error) {
 		h := intake.Handler(mp, r.intakeProcessor, backendRequestMetadataFunc(r.cfg), r.batchProcessor)
-		return middleware.Wrap(h, backendMiddleware(r.cfg, r.authenticator, r.ratelimitStore, "apm-server.server.", mp)...)
+		return middleware.Wrap(h, backendMiddleware(r.cfg, r.authenticator, r.ratelimitStore, metricsPrefix, mp)...)
 	}
 }
 
