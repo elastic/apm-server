@@ -51,14 +51,18 @@ type TailSamplingConfig struct {
 	TTL                   time.Duration         `config:"ttl" validate:"min=1s"`
 
 	// StorageLimit is the user-configured tail-sampling database size limit.
+	// 0 means unlimited storage.
 	StorageLimit       string `config:"storage_limit"`
 	StorageLimitParsed uint64
 
 	// DiskThresholdRatio controls the proportion of the disk to be filled at max, irrespective of db size.
 	// e.g. 0.9 means the last 10% of disk should not be written to.
+	//
+	// This is additional to StorageLimit which controls db size,
+	// i.e. if both StorageLimit and DiskThresholdRatio are set, both are enforced.
 	// If StorageLimit is 0 and any error occurs when getting filesystem stats,
 	// a fallback StorageLimit will be applied.
-	// To disable the fallback to allow unlimited db size and disk threshold in all circumstances,
+	// To disable the fallback to allow unlimited db size and disk threshold under all circumstances,
 	// set both StorageLimit and DiskThresholdRatio to 0.
 	DiskThresholdRatio float64 `config:"disk_threshold_ratio"  validate:"min=0, max=1"`
 
