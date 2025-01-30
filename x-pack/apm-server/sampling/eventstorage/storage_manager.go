@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/cockroachdb/pebble/v2"
+	"github.com/cockroachdb/pebble/v2/vfs"
 	"go.opentelemetry.io/otel/metric"
 	"golang.org/x/sync/errgroup"
 
@@ -46,6 +47,9 @@ const (
 
 	// diskUsageFetchInterval is how often disk usage is fetched which is equivalent to how long disk usage is cached.
 	diskUsageFetchInterval = 1 * time.Second
+
+	// diskThreshold controls how much of the disk should be filled at max, irrespective of db size.
+	diskThreshold = 0.9
 )
 
 type StorageManagerOptions func(*StorageManager)
@@ -60,6 +64,10 @@ func WithMeterProvider(mp metric.MeterProvider) StorageManagerOptions {
 	return func(sm *StorageManager) {
 		sm.meterProvider = mp
 	}
+}
+
+type diskStat struct {
+	used, total atomic.Uint64
 }
 
 // StorageManager encapsulates pebble.DB.
@@ -84,6 +92,9 @@ type StorageManager struct {
 
 	// cachedDiskUsage is a cached result of DiskUsage
 	cachedDiskUsage atomic.Uint64
+
+	// diskStat is disk usage statistics about the disk only, not related to the databases.
+	diskStat diskStat
 
 	// runCh acts as a mutex to ensure only 1 Run is actively running per StorageManager.
 	// as it is possible that 2 separate Run are created by 2 TBS processors during a hot reload.
@@ -213,6 +224,22 @@ func (sm *StorageManager) DiskUsage() uint64 {
 
 func (sm *StorageManager) updateDiskUsage() {
 	sm.cachedDiskUsage.Store(sm.eventDB.Metrics().DiskSpaceUsage() + sm.decisionDB.Metrics().DiskSpaceUsage())
+
+	usage, err := vfs.Default.GetDiskUsage(sm.storageDir)
+	if err != nil {
+		sm.logger.With(logp.Error(err)).Warn("failed to get disk usage")
+	} else {
+		sm.diskStat.used.Store(usage.UsedBytes)
+		sm.diskStat.total.Store(usage.TotalBytes)
+	}
+}
+
+func (sm *StorageManager) diskUsed() uint64 {
+	return sm.diskStat.used.Load()
+}
+
+func (sm *StorageManager) diskThreshold() uint64 {
+	return uint64(float64(sm.diskStat.total.Load()) * diskThreshold)
 }
 
 // runDiskUsageLoop runs a loop that updates cached disk usage regularly.
@@ -352,7 +379,8 @@ func (sm *StorageManager) NewReadWriter() StorageLimitReadWriter {
 		decisionRW: sm.decisionStorage.NewReadWriter(),
 	}
 	storageLimitRW := NewStorageLimitReadWriter(sm, splitRW)
-	diskThresholdRW := NewStorageLimitReadWriter(NewDiskThresholdChecker(sm.storageDir, 0.9), storageLimitRW)
+	diskThresholdChecker := NewStorageLimitCheckerFunc(sm.diskUsed, sm.diskThreshold) // FIXME: need better error message in RW
+	diskThresholdRW := NewStorageLimitReadWriter(diskThresholdChecker, storageLimitRW)
 	return diskThresholdRW
 }
 

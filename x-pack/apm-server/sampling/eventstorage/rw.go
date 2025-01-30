@@ -62,6 +62,25 @@ type storageLimitChecker interface {
 	StorageLimit() uint64
 }
 
+type storageLimitCheckerFunc struct {
+	diskUsage, storageLimit func() uint64
+}
+
+func NewStorageLimitCheckerFunc(diskUsage, storageLimit func() uint64) storageLimitCheckerFunc {
+	return storageLimitCheckerFunc{
+		diskUsage:    diskUsage,
+		storageLimit: storageLimit,
+	}
+}
+
+func (f storageLimitCheckerFunc) DiskUsage() uint64 {
+	return f.diskUsage()
+}
+
+func (f storageLimitCheckerFunc) StorageLimit() uint64 {
+	return f.storageLimit()
+}
+
 // StorageLimitReadWriter is a RW that forbids Write* method calls based on disk usage and limit from storageLimitChecker.
 // If there is no limit or limit is not reached, method calls are passed through to nextRW.
 type StorageLimitReadWriter struct {
