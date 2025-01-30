@@ -46,14 +46,6 @@ const (
 
 	// diskUsageFetchInterval is how often disk usage is fetched which is equivalent to how long disk usage is cached.
 	diskUsageFetchInterval = 1 * time.Second
-
-	// diskThresholdRatio controls the proportion of the disk to be filled at max, irrespective of db size.
-	// e.g. 0.9 means the last 10% of disk should not be written to.
-	diskThresholdRatio = 0.9
-
-	// dbStorageLimitFallback is the default fallback storage limit in bytes
-	// that applies when disk threshold cannot be enforced due to an error.
-	dbStorageLimitFallback = 5 << 30
 )
 
 type StorageManagerOptions func(*StorageManager)
@@ -68,10 +60,6 @@ func WithMeterProvider(mp metric.MeterProvider) StorageManagerOptions {
 	return func(sm *StorageManager) {
 		sm.meterProvider = mp
 	}
-}
-
-type diskStat struct {
-	used, total atomic.Uint64
 }
 
 // StorageManager encapsulates pebble.DB.
