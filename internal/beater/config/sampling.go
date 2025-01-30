@@ -49,8 +49,10 @@ type TailSamplingConfig struct {
 	Interval              time.Duration         `config:"interval" validate:"min=1s"`
 	IngestRateDecayFactor float64               `config:"ingest_rate_decay" validate:"min=0, max=1"`
 	TTL                   time.Duration         `config:"ttl" validate:"min=1s"`
-	StorageLimit          string                `config:"storage_limit"`
-	StorageLimitParsed    uint64
+
+	// StorageLimit is the user-configured tail-sampling database size limit.
+	StorageLimit       string `config:"storage_limit"`
+	StorageLimitParsed uint64
 
 	// DiskThresholdRatio controls the proportion of the disk to be filled at max, irrespective of db size.
 	// e.g. 0.9 means the last 10% of disk should not be written to.
