@@ -292,7 +292,7 @@ func (sm *StorageManager) close() error {
 
 // Reload flushes out pending disk writes to disk by reloading the database.
 // For testing only.
-// Read writers created prior to Reload cannot be used and will need to be recreated via NewReadWriter.
+// Read writers created prior to Reload cannot be used and will need to be recreated via NewUnlimitedReadWriter.
 func (sm *StorageManager) Reload() error {
 	if err := sm.close(); err != nil {
 		return err
@@ -376,10 +376,13 @@ func (sm *StorageManager) WriteSubscriberPosition(data []byte) error {
 	return os.WriteFile(filepath.Join(sm.storageDir, subscriberPositionFile), data, 0644)
 }
 
-func (sm *StorageManager) NewReadWriter() StorageLimitReadWriter {
+// NewUnlimitedReadWriter returns a read writer with no storage limit.
+// For testing only.
+func (sm *StorageManager) NewUnlimitedReadWriter() StorageLimitReadWriter {
 	return sm.NewStorageLimitReadWriter(0)
 }
 
+// NewStorageLimitReadWriter returns a read writer with storage limit.
 func (sm *StorageManager) NewStorageLimitReadWriter(storageLimit uint64) StorageLimitReadWriter {
 	splitRW := SplitReadWriter{
 		eventRW:    sm.eventStorage.NewReadWriter(),
