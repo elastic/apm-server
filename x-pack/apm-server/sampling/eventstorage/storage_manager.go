@@ -55,8 +55,6 @@ const (
 	// dbStorageLimitFallback is the default fallback storage limit in bytes
 	// that applies when disk threshold cannot be enforced due to an error.
 	dbStorageLimitFallback = 5 << 30
-
-	loggerRateLimit = time.Minute
 )
 
 type StorageManagerOptions func(*StorageManager)
@@ -80,9 +78,8 @@ type diskStat struct {
 // StorageManager encapsulates pebble.DB.
 // It assumes exclusive access to pebble DB at storageDir.
 type StorageManager struct {
-	storageDir        string
-	logger            *logp.Logger
-	rateLimitedLogger *logp.Logger
+	storageDir string
+	logger     *logp.Logger
 
 	eventDB         *pebble.DB
 	decisionDB      *pebble.DB
@@ -115,13 +112,11 @@ type StorageManager struct {
 
 // NewStorageManager returns a new StorageManager with pebble DB at storageDir.
 func NewStorageManager(storageDir string, opts ...StorageManagerOptions) (*StorageManager, error) {
-	logger := logp.NewLogger(logs.Sampling)
 	sm := &StorageManager{
-		storageDir:        storageDir,
-		runCh:             make(chan struct{}, 1),
-		logger:            logger,
-		rateLimitedLogger: logger.WithOptions(logs.WithRateLimit(loggerRateLimit)),
-		codec:             ProtobufCodec{},
+		storageDir: storageDir,
+		runCh:      make(chan struct{}, 1),
+		logger:     logp.NewLogger(logs.Sampling),
+		codec:      ProtobufCodec{},
 	}
 	for _, opt := range opts {
 		opt(sm)
