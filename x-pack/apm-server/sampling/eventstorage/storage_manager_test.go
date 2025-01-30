@@ -197,10 +197,10 @@ func TestStorageManager_StorageLimit(t *testing.T) {
 	txnID := uuid.Must(uuid.NewV4()).String()
 	txn := makeTransaction(txnID, traceID)
 
-	small := sm.NewReadWriter(1, 1)
+	small := sm.NewReadWriter(1, 0)
 	assert.ErrorIs(t, small.WriteTraceEvent(traceID, txnID, txn), eventstorage.ErrLimitReached)
 
-	big := sm.NewReadWriter(10<<10, 1)
+	big := sm.NewReadWriter(10<<10, 0)
 	assert.NoError(t, big.WriteTraceEvent(traceID, txnID, txn))
 
 	close(stopping)
