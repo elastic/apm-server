@@ -443,7 +443,11 @@ func (sm *StorageManager) NewReadWriter(storageLimit uint64, diskThresholdRatio 
 
 	// To limit actual disk usage percentage to diskThresholdRatio
 	diskThresholdChecker := NewStorageLimitCheckerFunc(sm.diskUsed, diskThreshold)
-	diskThresholdRW := NewStorageLimitReadWriter("disk threshold", diskThresholdChecker, dbStorageLimitRW)
+	diskThresholdRW := NewStorageLimitReadWriter(
+		fmt.Sprintf("disk usage ratio exceeding threshold of %.2f", diskThresholdRatio),
+		diskThresholdChecker,
+		dbStorageLimitRW,
+	)
 
 	return diskThresholdRW
 }
