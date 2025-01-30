@@ -48,10 +48,6 @@ const (
 	// diskUsageFetchInterval is how often disk usage is fetched which is equivalent to how long disk usage is cached.
 	diskUsageFetchInterval = 1 * time.Second
 
-	// diskThresholdRatio controls the proportion of the disk to be filled at max, irrespective of db size.
-	// e.g. 0.9 means the last 10% of disk should not be written to.
-	diskThresholdRatio = 0.9
-
 	// dbStorageLimitFallback is the default fallback storage limit in bytes
 	// that applies when disk threshold cannot be enforced due to an error.
 	dbStorageLimitFallback = 5 << 30
@@ -254,12 +250,6 @@ func (sm *StorageManager) diskUsed() uint64 {
 	return sm.diskStat.used.Load()
 }
 
-// diskThreshold returns max used disk space in bytes.
-// After which, writes should be rejected.
-func (sm *StorageManager) diskThreshold() uint64 {
-	return uint64(float64(sm.diskStat.total.Load()) * diskThresholdRatio)
-}
-
 // runDiskUsageLoop runs a loop that updates cached disk usage regularly.
 func (sm *StorageManager) runDiskUsageLoop(stopping <-chan struct{}) error {
 	ticker := time.NewTicker(diskUsageFetchInterval)
@@ -388,11 +378,11 @@ func (sm *StorageManager) WriteSubscriberPosition(data []byte) error {
 // NewUnlimitedReadWriter returns a read writer with no storage limit.
 // For testing only.
 func (sm *StorageManager) NewUnlimitedReadWriter() StorageLimitReadWriter {
-	return sm.NewReadWriter(0)
+	return sm.NewReadWriter(0, 1)
 }
 
 // NewReadWriter returns a read writer with storage limit.
-func (sm *StorageManager) NewReadWriter(storageLimit uint64) StorageLimitReadWriter {
+func (sm *StorageManager) NewReadWriter(storageLimit uint64, diskThresholdRatio float64) StorageLimitReadWriter {
 	splitRW := SplitReadWriter{
 		eventRW:    sm.eventStorage.NewReadWriter(),
 		decisionRW: sm.decisionStorage.NewReadWriter(),
@@ -419,8 +409,14 @@ func (sm *StorageManager) NewReadWriter(storageLimit uint64) StorageLimitReadWri
 	dbStorageLimitChecker := NewStorageLimitCheckerFunc(sm.dbSize, dbStorageLimit)
 	dbStorageLimitRW := NewStorageLimitReadWriter("database storage limit", dbStorageLimitChecker, splitRW)
 
+	// diskThreshold returns max used disk space in bytes.
+	// After which, writes should be rejected.
+	diskThreshold := func() uint64 {
+		return uint64(float64(sm.diskStat.total.Load()) * diskThresholdRatio)
+	}
+
 	// To limit actual disk usage percentage to diskThresholdRatio
-	diskThresholdChecker := NewStorageLimitCheckerFunc(sm.diskUsed, sm.diskThreshold)
+	diskThresholdChecker := NewStorageLimitCheckerFunc(sm.diskUsed, diskThreshold)
 	diskThresholdRW := NewStorageLimitReadWriter("disk_threshold", diskThresholdChecker, dbStorageLimitRW)
 
 	return diskThresholdRW

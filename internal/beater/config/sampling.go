@@ -51,6 +51,12 @@ type TailSamplingConfig struct {
 	TTL                   time.Duration         `config:"ttl" validate:"min=1s"`
 	StorageLimit          string                `config:"storage_limit"`
 	StorageLimitParsed    uint64
+
+	// DiskThresholdRatio controls the proportion of the disk to be filled at max, irrespective of db size.
+	// e.g. 0.9 means the last 10% of disk should not be written to.
+	// Both 0 and 1 means unlimited.
+	DiskThresholdRatio float64 `config:"disk_threshold_ratio"  validate:"min=0, max=1"`
+
 	DiscardOnWriteFailure bool `config:"discard_on_write_failure"`
 
 	esConfigured bool
@@ -153,6 +159,7 @@ func defaultTailSamplingConfig() TailSamplingConfig {
 		IngestRateDecayFactor: 0.25,
 		TTL:                   30 * time.Minute,
 		StorageLimit:          "",
+		DiskThresholdRatio:    0.9,
 		DiscardOnWriteFailure: false,
 	}
 	return cfg
