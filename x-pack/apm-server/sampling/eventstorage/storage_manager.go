@@ -390,9 +390,11 @@ func (sm *StorageManager) NewReadWriter() StorageLimitReadWriter {
 		decisionRW: sm.decisionStorage.NewReadWriter(),
 	}
 
+	// To limit db size to storage_limit
 	dbStorageLimitChecker := NewStorageLimitCheckerFunc(sm.dbSize, sm.dbStorageLimit)
 	dbStorageLimitRW := NewStorageLimitReadWriter("storage_limit", dbStorageLimitChecker, splitRW)
 
+	// To limit actual disk usage percentage to diskThresholdRatio
 	diskThresholdChecker := NewStorageLimitCheckerFunc(sm.diskUsed, sm.diskThreshold)
 	diskThresholdRW := NewStorageLimitReadWriter("disk_threshold", diskThresholdChecker, dbStorageLimitRW)
 
