@@ -16,8 +16,8 @@ func BenchmarkStorageManager_Size(b *testing.B) {
 	stopping := make(chan struct{})
 	defer close(stopping)
 	sm := newStorageManager(b)
-	go sm.Run(stopping, time.Second, 0)
-	rw := sm.NewReadWriter()
+	go sm.Run(stopping, time.Second)
+	rw := sm.NewUnlimitedReadWriter()
 	for i := 0; i < 1000; i++ {
 		traceID := uuid.Must(uuid.NewV4()).String()
 		txnID := uuid.Must(uuid.NewV4()).String()

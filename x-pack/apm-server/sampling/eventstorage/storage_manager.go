@@ -91,14 +91,12 @@ type StorageManager struct {
 
 	partitioner *Partitioner
 
-	storageLimit atomic.Uint64
-
 	codec Codec
 
 	// subscriberPosMu protects the subscriber file from concurrent RW.
 	subscriberPosMu sync.Mutex
 
-	// cachedDBSize is a cached result of dbSize
+	// cachedDBSize is a cached result of db size.
 	cachedDBSize atomic.Uint64
 
 	// diskStat is disk usage statistics about the disk only, not related to the databases.
@@ -233,11 +231,6 @@ func (sm *StorageManager) dbSize() uint64 {
 	return sm.cachedDBSize.Load()
 }
 
-// dbStorageLimit returns the configured limit of the database size in bytes.
-func (sm *StorageManager) dbStorageLimit() uint64 {
-	return sm.storageLimit.Load()
-}
-
 func (sm *StorageManager) updateDiskUsage() {
 	sm.cachedDBSize.Store(sm.eventDB.Metrics().DiskSpaceUsage() + sm.decisionDB.Metrics().DiskSpaceUsage())
 
@@ -321,7 +314,7 @@ func (sm *StorageManager) close() error {
 
 // Reload flushes out pending disk writes to disk by reloading the database.
 // For testing only.
-// Read writers created prior to Reload cannot be used and will need to be recreated via NewReadWriter.
+// Read writers created prior to Reload cannot be used and will need to be recreated via NewUnlimitedReadWriter.
 func (sm *StorageManager) Reload() error {
 	if err := sm.close(); err != nil {
 		return err
@@ -330,7 +323,7 @@ func (sm *StorageManager) Reload() error {
 }
 
 // Run has the same lifecycle as the TBS processor as opposed to StorageManager to facilitate EA hot reload.
-func (sm *StorageManager) Run(stopping <-chan struct{}, ttl time.Duration, storageLimit uint64) error {
+func (sm *StorageManager) Run(stopping <-chan struct{}, ttl time.Duration) error {
 	select {
 	case <-stopping:
 		return nil
@@ -339,12 +332,6 @@ func (sm *StorageManager) Run(stopping <-chan struct{}, ttl time.Duration, stora
 	defer func() {
 		<-sm.runCh
 	}()
-
-	if storageLimit != 0 {
-		// avoid overwriting a fallback storage limit value to unlimited
-		sm.logger.Infof("setting storage_limit to %.1fgb", float64(storageLimit))
-		sm.storageLimit.Store(storageLimit)
-	}
 
 	g := errgroup.Group{}
 	g.Go(func() error {
@@ -411,15 +398,31 @@ func (sm *StorageManager) WriteSubscriberPosition(data []byte) error {
 	return os.WriteFile(filepath.Join(sm.storageDir, subscriberPositionFile), data, 0644)
 }
 
-func (sm *StorageManager) NewReadWriter() StorageLimitReadWriter {
+// NewUnlimitedReadWriter returns a read writer with no storage limit.
+// For testing only.
+func (sm *StorageManager) NewUnlimitedReadWriter() StorageLimitReadWriter {
+	return sm.NewReadWriter(0)
+}
+
+// NewReadWriter returns a read writer with storage limit.
+func (sm *StorageManager) NewReadWriter(storageLimit uint64) StorageLimitReadWriter {
 	splitRW := SplitReadWriter{
 		eventRW:    sm.eventStorage.NewReadWriter(),
 		decisionRW: sm.decisionStorage.NewReadWriter(),
 	}
 
+	dbStorageLimit := func() uint64 {
+		return storageLimit
+	}
+	if storageLimit == 0 {
+		sm.logger.Infof("setting database storage limit to unlimited")
+	} else {
+		sm.logger.Infof("setting database storage limit to %.1fgb", float64(storageLimit))
+	}
+
 	// To limit db size to storage_limit
-	dbStorageLimitChecker := NewStorageLimitCheckerFunc(sm.dbSize, sm.dbStorageLimit)
-	dbStorageLimitRW := NewStorageLimitReadWriter("storage_limit", dbStorageLimitChecker, splitRW)
+	dbStorageLimitChecker := NewStorageLimitCheckerFunc(sm.dbSize, dbStorageLimit)
+	dbStorageLimitRW := NewStorageLimitReadWriter("database storage limit", dbStorageLimitChecker, splitRW)
 
 	// To limit actual disk usage percentage to diskThresholdRatio
 	diskThresholdChecker := NewStorageLimitCheckerFunc(sm.diskUsed, sm.diskThreshold)
