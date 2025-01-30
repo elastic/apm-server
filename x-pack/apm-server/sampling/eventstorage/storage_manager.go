@@ -51,6 +51,8 @@ const (
 	// dbStorageLimitFallback is the default fallback storage limit in bytes
 	// that applies when disk threshold cannot be enforced due to an error.
 	dbStorageLimitFallback = 5 << 30
+
+	gb = float64(1 << 30)
 )
 
 type StorageManagerOptions func(*StorageManager)
@@ -412,7 +414,7 @@ func (sm *StorageManager) NewReadWriter(storageLimit uint64, diskThresholdRatio 
 		dbStorageLimit = func() uint64 {
 			return dbStorageLimitFallback
 		}
-		sm.logger.Warnf("failed to get disk usage; overriding storage_limit to fallback default %.1fgb", float64(dbStorageLimitFallback))
+		sm.logger.Warnf("failed to get disk usage; overriding database storage limit to fallback default %0.1fgb", float64(dbStorageLimitFallback)/gb)
 	} else {
 		dbStorageLimit = func() uint64 {
 			return storageLimit
@@ -420,7 +422,7 @@ func (sm *StorageManager) NewReadWriter(storageLimit uint64, diskThresholdRatio 
 		if storageLimit == 0 {
 			sm.logger.Infof("setting database storage limit to unlimited")
 		} else {
-			sm.logger.Infof("setting database storage limit to %.1fgb", float64(storageLimit))
+			sm.logger.Infof("setting database storage limit to %0.1fgb", float64(storageLimit)/gb)
 		}
 	}
 
@@ -441,7 +443,7 @@ func (sm *StorageManager) NewReadWriter(storageLimit uint64, diskThresholdRatio 
 			return uint64(float64(sm.diskStat.total.Load()) * diskThresholdRatio)
 		}
 		// the total disk space could change in runtime, but it is still useful to print it out in logs.
-		sm.logger.Infof("setting disk threshold ratio to %.2f of total disk space of %.1fgb", diskThresholdRatio, float64(sm.diskStat.total.Load()))
+		sm.logger.Infof("setting disk threshold ratio to %.2f of total disk space of %0.1fgb", diskThresholdRatio, float64(sm.diskStat.total.Load())/gb)
 	}
 
 	// To limit actual disk usage percentage to diskThresholdRatio
