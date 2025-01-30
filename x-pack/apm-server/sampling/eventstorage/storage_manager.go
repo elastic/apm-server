@@ -46,6 +46,14 @@ const (
 
 	// diskUsageFetchInterval is how often disk usage is fetched which is equivalent to how long disk usage is cached.
 	diskUsageFetchInterval = 1 * time.Second
+
+	// diskThresholdRatio controls the proportion of the disk to be filled at max, irrespective of db size.
+	// e.g. 0.9 means the last 10% of disk should not be written to.
+	diskThresholdRatio = 0.9
+
+	// dbStorageLimitFallback is the default fallback storage limit in bytes
+	// that applies when disk threshold cannot be enforced due to an error.
+	dbStorageLimitFallback = 5 << 30
 )
 
 type StorageManagerOptions func(*StorageManager)
@@ -62,6 +70,10 @@ func WithMeterProvider(mp metric.MeterProvider) StorageManagerOptions {
 	}
 }
 
+type diskStat struct {
+	used, total atomic.Uint64
+}
+
 // StorageManager encapsulates pebble.DB.
 // It assumes exclusive access to pebble DB at storageDir.
 type StorageManager struct {
@@ -75,15 +87,13 @@ type StorageManager struct {
 
 	partitioner *Partitioner
 
-	storageLimit atomic.Uint64
-
 	codec Codec
 
 	// subscriberPosMu protects the subscriber file from concurrent RW.
 	subscriberPosMu sync.Mutex
 
-	// cachedDiskUsage is a cached result of DiskUsage
-	cachedDiskUsage atomic.Uint64
+	// cachedDBSize is a cached result of db size.
+	cachedDBSize atomic.Uint64
 
 	// runCh acts as a mutex to ensure only 1 Run is actively running per StorageManager.
 	// as it is possible that 2 separate Run are created by 2 TBS processors during a hot reload.
@@ -202,17 +212,17 @@ func (sm *StorageManager) Size() (lsm, vlog int64) {
 	// Also remember to update
 	// - x-pack/apm-server/sampling/processor.go:CollectMonitoring
 	// - systemtest/benchtest/expvar/metrics.go
-	return int64(sm.DiskUsage()), 0
+	return int64(sm.dbSize()), 0
 }
 
-// DiskUsage returns the disk usage of databases in bytes.
-func (sm *StorageManager) DiskUsage() uint64 {
+// dbSize returns the disk usage of databases in bytes.
+func (sm *StorageManager) dbSize() uint64 {
 	// pebble DiskSpaceUsage overhead is not high, but it adds up when performed per-event.
-	return sm.cachedDiskUsage.Load()
+	return sm.cachedDBSize.Load()
 }
 
 func (sm *StorageManager) updateDiskUsage() {
-	sm.cachedDiskUsage.Store(sm.eventDB.Metrics().DiskSpaceUsage() + sm.decisionDB.Metrics().DiskSpaceUsage())
+	sm.cachedDBSize.Store(sm.eventDB.Metrics().DiskSpaceUsage() + sm.decisionDB.Metrics().DiskSpaceUsage())
 }
 
 // runDiskUsageLoop runs a loop that updates cached disk usage regularly.
@@ -227,10 +237,6 @@ func (sm *StorageManager) runDiskUsageLoop(stopping <-chan struct{}) error {
 			sm.updateDiskUsage()
 		}
 	}
-}
-
-func (sm *StorageManager) StorageLimit() uint64 {
-	return sm.storageLimit.Load()
 }
 
 func (sm *StorageManager) Flush() error {
@@ -260,7 +266,7 @@ func (sm *StorageManager) close() error {
 
 // Reload flushes out pending disk writes to disk by reloading the database.
 // For testing only.
-// Read writers created prior to Reload cannot be used and will need to be recreated via NewReadWriter.
+// Read writers created prior to Reload cannot be used and will need to be recreated via NewUnlimitedReadWriter.
 func (sm *StorageManager) Reload() error {
 	if err := sm.close(); err != nil {
 		return err
@@ -269,7 +275,7 @@ func (sm *StorageManager) Reload() error {
 }
 
 // Run has the same lifecycle as the TBS processor as opposed to StorageManager to facilitate EA hot reload.
-func (sm *StorageManager) Run(stopping <-chan struct{}, ttl time.Duration, storageLimit uint64) error {
+func (sm *StorageManager) Run(stopping <-chan struct{}, ttl time.Duration) error {
 	select {
 	case <-stopping:
 		return nil
@@ -278,8 +284,6 @@ func (sm *StorageManager) Run(stopping <-chan struct{}, ttl time.Duration, stora
 	defer func() {
 		<-sm.runCh
 	}()
-
-	sm.storageLimit.Store(storageLimit)
 
 	g := errgroup.Group{}
 	g.Go(func() error {
@@ -346,11 +350,33 @@ func (sm *StorageManager) WriteSubscriberPosition(data []byte) error {
 	return os.WriteFile(filepath.Join(sm.storageDir, subscriberPositionFile), data, 0644)
 }
 
-func (sm *StorageManager) NewReadWriter() StorageLimitReadWriter {
-	return NewStorageLimitReadWriter(sm, SplitReadWriter{
+// NewUnlimitedReadWriter returns a read writer with no storage limit.
+// For testing only.
+func (sm *StorageManager) NewUnlimitedReadWriter() StorageLimitReadWriter {
+	return sm.NewStorageLimitReadWriter(0)
+}
+
+// NewStorageLimitReadWriter returns a read writer with storage limit.
+func (sm *StorageManager) NewStorageLimitReadWriter(storageLimit uint64) StorageLimitReadWriter {
+	splitRW := SplitReadWriter{
 		eventRW:    sm.eventStorage.NewReadWriter(),
 		decisionRW: sm.decisionStorage.NewReadWriter(),
-	})
+	}
+
+	dbStorageLimit := func() uint64 {
+		return storageLimit
+	}
+	if storageLimit == 0 {
+		sm.logger.Infof("setting storage_limit to unlimited")
+	} else {
+		sm.logger.Infof("setting storage_limit to %.1fgb", float64(storageLimit))
+	}
+
+	// To limit db size to storage_limit
+	dbStorageLimitChecker := NewStorageLimitCheckerFunc(sm.dbSize, dbStorageLimit)
+	dbStorageLimitRW := NewStorageLimitReadWriter("storage_limit", dbStorageLimitChecker, splitRW)
+
+	return dbStorageLimitRW
 }
 
 // wrapNonNilErr only wraps an error with format if the error is not nil.

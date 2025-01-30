@@ -61,14 +61,14 @@ func TestProcessAlreadyTailSampled(t *testing.T) {
 	// subsequent events in the trace will be reported immediately.
 	trace1 := modelpb.Trace{Id: "0102030405060708090a0b0c0d0e0f10"}
 	trace2 := modelpb.Trace{Id: "0102030405060708090a0b0c0d0e0f11"}
-	writer := config.DB.NewReadWriter()
+	writer := config.DB.NewUnlimitedReadWriter()
 	assert.NoError(t, writer.WriteTraceSampled(trace2.Id, true))
 
 	// simulate 2 TTL
 	assert.NoError(t, config.DB.RotatePartitions())
 	assert.NoError(t, config.DB.RotatePartitions())
 
-	writer = config.DB.NewReadWriter()
+	writer = config.DB.NewUnlimitedReadWriter()
 	assert.NoError(t, writer.WriteTraceSampled(trace1.Id, true))
 
 	require.NoError(t, config.DB.Flush())
@@ -127,7 +127,7 @@ func TestProcessAlreadyTailSampled(t *testing.T) {
 	// Stop the processor and flush global storage so we can access the database.
 	assert.NoError(t, processor.Stop(context.Background()))
 	assert.NoError(t, config.DB.Flush())
-	reader := config.DB.NewReadWriter()
+	reader := config.DB.NewUnlimitedReadWriter()
 
 	batch = nil
 	err = reader.ReadTraceEvents(trace1.Id, &batch)
@@ -243,7 +243,7 @@ func TestProcessLocalTailSampling(t *testing.T) {
 			// Stop the processor and flush global storage so we can access the database.
 			assert.NoError(t, processor.Stop(context.Background()))
 			assert.NoError(t, config.DB.Flush())
-			reader := config.DB.NewReadWriter()
+			reader := config.DB.NewUnlimitedReadWriter()
 
 			sampled, err := reader.IsTraceSampled(sampledTraceID)
 			assert.NoError(t, err)
@@ -307,7 +307,7 @@ func TestProcessLocalTailSamplingUnsampled(t *testing.T) {
 	// Stop the processor so we can access the database.
 	assert.NoError(t, processor.Stop(context.Background()))
 	assert.NoError(t, config.DB.Flush())
-	reader := config.DB.NewReadWriter()
+	reader := config.DB.NewUnlimitedReadWriter()
 
 	var anyUnsampled bool
 	for _, traceID := range traceIDs {
@@ -470,7 +470,7 @@ func TestProcessRemoteTailSampling(t *testing.T) {
 
 	assert.Empty(t, cmp.Diff(trace1Events, events, protocmp.Transform()))
 
-	reader := config.DB.NewReadWriter()
+	reader := config.DB.NewUnlimitedReadWriter()
 
 	sampled, err := reader.IsTraceSampled(traceID1)
 	assert.NoError(t, err)
@@ -682,12 +682,11 @@ func TestStorageLimit(t *testing.T) {
 	err := config.DB.Reload()
 	assert.NoError(t, err)
 
-	config.Storage = config.DB.NewReadWriter()
-
 	lsm, vlog := config.DB.Size()
 	assert.Greater(t, lsm+vlog, int64(10<<10))
 
 	config.StorageLimit = 10 << 10 // Set the storage limit to smaller than existing storage
+	config.Storage = config.DB.NewStorageLimitReadWriter(config.StorageLimit)
 
 	writeBatch(1000, config, func(b modelpb.Batch) {
 		assert.Len(t, b, 1000)
@@ -758,7 +757,7 @@ func TestGracefulShutdown(t *testing.T) {
 	assert.Empty(t, batch)
 	assert.NoError(t, processor.Stop(context.Background()))
 
-	reader := config.DB.NewReadWriter()
+	reader := config.DB.NewUnlimitedReadWriter()
 
 	var count int
 	for i := 0; i < totalTraces; i++ {
@@ -816,7 +815,7 @@ func newTempdirConfig(tb testing.TB) testConfig {
 			},
 			StorageConfig: sampling.StorageConfig{
 				DB:           db,
-				Storage:      db.NewReadWriter(),
+				Storage:      db.NewUnlimitedReadWriter(),
 				TTL:          30 * time.Minute,
 				StorageLimit: 0, // No storage limit.
 			},
