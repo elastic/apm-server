@@ -44,14 +44,10 @@ MAKEFILE_DIR:=$(dir ${MAKEFILE_PATH})
 REPO_ROOT:=$(abspath ${MAKEFILE_DIR}/../../)
 
 include ${MAKEFILE_DIR}/../../go.mk
-ifneq ("$(wildcard ${MAKEFILE_DIR}/.env)","")
-    include ${MAKEFILE_DIR}/.env
-else
-endif
 
 .PHONY: auth
 auth:
-	@okta-aws-cli --profile elastic-observability > ${MAKEFILE_DIR}/.env
+	@okta-aws-cli --profile elastic-observability --write-aws-credentials
 
 terraform.tfvars:
 	@sed "s/USER/$(USER)/" $(TFVARS_SOURCE) > terraform.tfvars
