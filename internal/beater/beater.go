@@ -35,7 +35,7 @@ import (
 	"go.elastic.co/apm/module/apmotel/v2"
 	"go.elastic.co/apm/v2"
 	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/sdk/metric"
+	"go.opentelemetry.io/otel/metric"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 	"golang.org/x/sync/semaphore"
@@ -73,11 +73,6 @@ import (
 	"github.com/elastic/apm-server/internal/version"
 )
 
-var (
-	monitoringRegistry         = monitoring.Default.NewRegistry("apm-server.sampling")
-	transactionsDroppedCounter = monitoring.NewInt(monitoringRegistry, "transactions_dropped")
-)
-
 // Runner initialises and runs and orchestrates the APM Server
 // HTTP and gRPC servers, event processing pipeline, and output.
 type Runner struct {
@@ -89,7 +84,9 @@ type Runner struct {
 	outputConfig              agentconfig.Namespace
 	elasticsearchOutputConfig *agentconfig.C
 
-	listener net.Listener
+	meterProvider  metric.MeterProvider
+	metricGatherer *apmotel.Gatherer
+	listener       net.Listener
 }
 
 // RunnerParams holds parameters for NewRunner.
@@ -100,6 +97,13 @@ type RunnerParams struct {
 
 	// Logger holds a logger to use for logging throughout the APM Server.
 	Logger *logp.Logger
+
+	// MeterProvider holds a metric.MeterProvider that can be used for
+	// creating metrics.
+	MeterProvider metric.MeterProvider
+
+	// MetricsGatherer holds an apmotel.Gatherer
+	MetricsGatherer *apmotel.Gatherer
 
 	// WrapServer holds an optional WrapServerFunc, for wrapping the
 	// ServerParams and RunServerFunc used to run the APM Server.
@@ -149,7 +153,9 @@ func NewRunner(args RunnerParams) (*Runner, error) {
 		outputConfig:              unpackedConfig.Output,
 		elasticsearchOutputConfig: elasticsearchOutputConfig,
 
-		listener: listener,
+		meterProvider:  args.MeterProvider,
+		metricGatherer: args.MetricsGatherer,
+		listener:       listener,
 	}, nil
 }
 
@@ -157,6 +163,7 @@ func NewRunner(args RunnerParams) (*Runner, error) {
 func (s *Runner) Run(ctx context.Context) error {
 	defer s.listener.Close()
 	g, ctx := errgroup.WithContext(ctx)
+	meter := s.meterProvider.Meter("github.com/elastic/apm-server/internal/beater")
 
 	// backgroundContext is a context to use in operations that should
 	// block until shutdown, and will be cancelled after the shutdown
@@ -280,15 +287,7 @@ func (s *Runner) Run(ctx context.Context) error {
 	}
 	otel.SetTracerProvider(tracerProvider)
 
-	exporter, err := apmotel.NewGatherer()
-	if err != nil {
-		return err
-	}
-	meterProvider := metric.NewMeterProvider(
-		metric.WithReader(exporter),
-	)
-	otel.SetMeterProvider(meterProvider)
-	tracer.RegisterMetricsGatherer(exporter)
+	tracer.RegisterMetricsGatherer(s.metricGatherer)
 
 	// Ensure the libbeat output and go-elasticsearch clients do not index
 	// any events to Elasticsearch before the integration is ready.
@@ -370,7 +369,7 @@ func (s *Runner) Run(ctx context.Context) error {
 		apmgrpc.NewUnaryServerInterceptor(apmgrpc.WithRecovery(), apmgrpc.WithTracer(tracer)),
 		interceptors.ClientMetadata(),
 		interceptors.Logging(gRPCLogger),
-		interceptors.Metrics(gRPCLogger, nil),
+		interceptors.Metrics(gRPCLogger, s.meterProvider),
 		interceptors.Timeout(),
 		interceptors.Auth(authenticator),
 		interceptors.AnonymousRateLimit(ratelimitStore),
@@ -384,13 +383,17 @@ func (s *Runner) Run(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+	transactionsDroppedCounter, err := meter.Int64Counter("apm-server.sampling.transactions_dropped")
+	if err != nil {
+		return err
+	}
 	batchProcessor := srvmodelprocessor.NewTracer("beater.ProcessBatch", modelprocessor.Chained{
 		// Ensure all events have observer.*, ecs.*, and data_stream.* fields added,
 		// and are counted in metrics. This is done in the final processors to ensure
 		// aggregated metrics are also processed.
 		newObserverBatchProcessor(),
 		&modelprocessor.SetDataStream{Namespace: s.config.DataStreams.Namespace},
-		srvmodelprocessor.NewEventCounter(monitoring.Default.GetRegistry("apm-server")),
+		srvmodelprocessor.NewEventCounter(s.meterProvider),
 
 		// The server always drops non-RUM unsampled transactions. We store RUM unsampled
 		// transactions as they are needed by the User Experience app, which performs
@@ -399,7 +402,7 @@ func (s *Runner) Run(ctx context.Context) error {
 		// It is important that this is done just before calling the publisher to
 		// avoid affecting aggregations.
 		modelprocessor.NewDropUnsampled(false /* don't drop RUM unsampled transactions*/, func(i int64) {
-			transactionsDroppedCounter.Add(i)
+			transactionsDroppedCounter.Add(context.Background(), i)
 		}),
 		finalBatchProcessor,
 	})
@@ -411,6 +414,7 @@ func (s *Runner) Run(ctx context.Context) error {
 		newElasticsearchClient,
 		tracer,
 		s.logger,
+		s.meterProvider,
 	)
 	if err != nil {
 		return err
@@ -436,6 +440,7 @@ func (s *Runner) Run(ctx context.Context) error {
 		Namespace:              s.config.DataStreams.Namespace,
 		Logger:                 s.logger,
 		Tracer:                 tracer,
+		MeterProvider:          s.meterProvider,
 		Authenticator:          authenticator,
 		RateLimitStore:         ratelimitStore,
 		BatchProcessor:         batchProcessor,
@@ -490,7 +495,7 @@ func (s *Runner) Run(ctx context.Context) error {
 		return runServer(ctx, serverParams)
 	})
 	if tracerServerListener != nil {
-		tracerServer, err := newTracerServer(s.config, tracerServerListener, s.logger, serverParams.BatchProcessor, serverParams.Semaphore)
+		tracerServer, err := newTracerServer(s.config, tracerServerListener, s.logger, serverParams.BatchProcessor, serverParams.Semaphore, serverParams.MeterProvider)
 		if err != nil {
 			return fmt.Errorf("failed to create self-instrumentation server: %w", err)
 		}
@@ -677,9 +682,9 @@ func (s *Runner) newFinalBatchProcessor(
 	newElasticsearchClient func(cfg *elasticsearch.Config) (*elasticsearch.Client, error),
 	memLimit float64,
 ) (modelpb.BatchProcessor, func(context.Context) error, error) {
-	monitoring.Default.Remove("libbeat")
-	libbeatMonitoringRegistry := monitoring.Default.NewRegistry("libbeat")
 	if s.elasticsearchOutputConfig == nil {
+		monitoring.Default.Remove("libbeat")
+		libbeatMonitoringRegistry := monitoring.Default.NewRegistry("libbeat")
 		return s.newLibbeatFinalBatchProcessor(tracer, libbeatMonitoringRegistry)
 	}
 
@@ -693,7 +698,7 @@ func (s *Runner) newFinalBatchProcessor(
 	monitoring.NewString(outputRegistry, "name").Set("elasticsearch")
 
 	// Create the docappender and Elasticsearch config
-	appenderCfg, esCfg, err := s.newDocappenderConfig(tracer, memLimit)
+	appenderCfg, esCfg, err := s.newDocappenderConfig(tracer, s.meterProvider, memLimit)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -706,65 +711,10 @@ func (s *Runner) newFinalBatchProcessor(
 		return nil, nil, err
 	}
 
-	// Install our own libbeat-compatible metrics callback which uses the docappender stats.
-	// All the metrics below are required to be reported to be able to display all relevant
-	// fields in the Stack Monitoring UI.
-	monitoring.NewFunc(libbeatMonitoringRegistry, "output.write", func(_ monitoring.Mode, v monitoring.Visitor) {
-		v.OnRegistryStart()
-		defer v.OnRegistryFinished()
-		v.OnKey("bytes")
-		v.OnInt(appender.Stats().BytesTotal)
-	})
-	outputType := monitoring.NewString(libbeatMonitoringRegistry.GetRegistry("output"), "type")
-	outputType.Set("elasticsearch")
-	monitoring.NewFunc(libbeatMonitoringRegistry, "output.events", func(_ monitoring.Mode, v monitoring.Visitor) {
-		v.OnRegistryStart()
-		defer v.OnRegistryFinished()
-		stats := appender.Stats()
-		v.OnKey("acked")
-		v.OnInt(stats.Indexed)
-		v.OnKey("active")
-		v.OnInt(stats.Active)
-		v.OnKey("batches")
-		v.OnInt(stats.BulkRequests)
-		v.OnKey("failed")
-		v.OnInt(stats.Failed)
-		v.OnKey("toomany")
-		v.OnInt(stats.TooManyRequests)
-		v.OnKey("total")
-		v.OnInt(stats.Added)
-	})
-	monitoring.NewFunc(libbeatMonitoringRegistry, "pipeline.events", func(_ monitoring.Mode, v monitoring.Visitor) {
-		v.OnRegistryStart()
-		defer v.OnRegistryFinished()
-		v.OnKey("total")
-		v.OnInt(appender.Stats().Added)
-	})
-	monitoring.Default.Remove("output")
-	monitoring.NewFunc(monitoring.Default, "output.elasticsearch.bulk_requests", func(_ monitoring.Mode, v monitoring.Visitor) {
-		v.OnRegistryStart()
-		defer v.OnRegistryFinished()
-		stats := appender.Stats()
-		v.OnKey("available")
-		v.OnInt(stats.AvailableBulkRequests)
-		v.OnKey("completed")
-		v.OnInt(stats.BulkRequests)
-	})
-	monitoring.NewFunc(monitoring.Default, "output.elasticsearch.indexers", func(_ monitoring.Mode, v monitoring.Visitor) {
-		v.OnRegistryStart()
-		defer v.OnRegistryFinished()
-		stats := appender.Stats()
-		v.OnKey("active")
-		v.OnInt(stats.IndexersActive)
-		v.OnKey("created")
-		v.OnInt(stats.IndexersCreated)
-		v.OnKey("destroyed")
-		v.OnInt(stats.IndexersDestroyed)
-	})
 	return newDocappenderBatchProcessor(appender), appender.Close, nil
 }
 
-func (s *Runner) newDocappenderConfig(tracer *apm.Tracer, memLimit float64) (
+func (s *Runner) newDocappenderConfig(tracer *apm.Tracer, mp metric.MeterProvider, memLimit float64) (
 	docappender.Config, *elasticsearch.Config, error,
 ) {
 	esConfig := struct {
@@ -809,6 +759,7 @@ func (s *Runner) newDocappenderConfig(tracer *apm.Tracer, memLimit float64) (
 		FlushBytes:        flushBytes,
 		FlushInterval:     esConfig.FlushInterval,
 		Tracer:            tracer,
+		MeterProvider:     mp,
 		MaxRequests:       esConfig.MaxRequests,
 		Scaling:           scalingCfg,
 		Logger:            zap.New(s.logger.Core(), zap.WithCaller(true)),

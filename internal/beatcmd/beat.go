@@ -33,6 +33,11 @@ import (
 	"time"
 
 	"github.com/gofrs/uuid/v5"
+	"go.elastic.co/apm/module/apmotel/v2"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
+	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 	"go.uber.org/zap"
 	"go.uber.org/zap/exp/zapslog"
 	"golang.org/x/sync/errgroup"
@@ -76,6 +81,10 @@ type Beat struct {
 
 	rawConfig *config.C
 	newRunner NewRunnerFunc
+
+	metricReader   *sdkmetric.ManualReader
+	meterProvider  *sdkmetric.MeterProvider
+	metricGatherer *apmotel.Gatherer
 }
 
 // BeatParams holds parameters for NewBeat.
@@ -109,6 +118,18 @@ func NewBeat(args BeatParams) (*Beat, error) {
 		beatName = hostname
 	}
 
+	exporter, err := apmotel.NewGatherer()
+	if err != nil {
+		return nil, err
+	}
+
+	metricReader := sdkmetric.NewManualReader()
+	meterProvider := sdkmetric.NewMeterProvider(
+		sdkmetric.WithReader(exporter),
+		sdkmetric.WithReader(metricReader),
+	)
+	otel.SetMeterProvider(meterProvider)
+
 	eid := uuid.FromStringOrNil(metricreport.EphemeralID().String())
 	b := &Beat{
 		Beat: beat.Beat{
@@ -127,9 +148,12 @@ func NewBeat(args BeatParams) (*Beat, error) {
 			BeatConfig: cfg.APMServer,
 			Registry:   reload.NewRegistry(),
 		},
-		Config:    cfg,
-		newRunner: args.NewRunner,
-		rawConfig: rawConfig,
+		Config:         cfg,
+		newRunner:      args.NewRunner,
+		rawConfig:      rawConfig,
+		metricReader:   metricReader,
+		meterProvider:  meterProvider,
+		metricGatherer: &exporter,
 	}
 
 	if err := b.init(); err != nil {
@@ -374,7 +398,7 @@ func (b *Beat) Run(ctx context.Context) error {
 	}
 
 	if b.Manager.Enabled() {
-		reloader, err := NewReloader(b.Info, b.Registry, b.newRunner)
+		reloader, err := NewReloader(b.Info, b.Registry, b.newRunner, b.meterProvider, b.metricGatherer)
 		if err != nil {
 			return err
 		}
@@ -390,9 +414,11 @@ func (b *Beat) Run(ctx context.Context) error {
 			return errors.New("no output defined, please define one under the output section")
 		}
 		runner, err := b.newRunner(RunnerParams{
-			Config: b.rawConfig,
-			Info:   b.Info,
-			Logger: logp.NewLogger(""),
+			Config:          b.rawConfig,
+			Info:            b.Info,
+			Logger:          logp.NewLogger(""),
+			MeterProvider:   b.meterProvider,
+			MetricsGatherer: b.metricGatherer,
 		})
 		if err != nil {
 			return err
@@ -410,7 +436,12 @@ func (b *Beat) Run(ctx context.Context) error {
 // is then exposed through the HTTP monitoring endpoint (e.g. /info and /state)
 // and/or pushed to Elasticsearch through the x-pack monitoring feature.
 func (b *Beat) registerMetrics() {
-	// info
+	b.registerInfoMetrics()
+	b.registerStateMetrics()
+	b.registerStatsMetrics()
+}
+
+func (b *Beat) registerInfoMetrics() {
 	infoRegistry := monitoring.GetNamespace("info").GetRegistry()
 	monitoring.NewString(infoRegistry, "version").Set(b.Info.Version)
 	monitoring.NewString(infoRegistry, "beat").Set(b.Info.Beat)
@@ -436,7 +467,9 @@ func (b *Beat) registerMetrics() {
 			monitoring.NewString(infoRegistry, "gid").Set(u.Gid)
 		}
 	}()
+}
 
+func (b *Beat) registerStateMetrics() {
 	stateRegistry := monitoring.GetNamespace("state").GetRegistry()
 
 	// state.service
@@ -455,6 +488,238 @@ func (b *Beat) registerMetrics() {
 	// state.management
 	managementRegistry := stateRegistry.NewRegistry("management")
 	monitoring.NewBool(managementRegistry, "enabled").Set(b.Manager.Enabled())
+}
+
+func (b *Beat) registerStatsMetrics() {
+	libbeatRegistry := monitoring.Default.GetRegistry("libbeat")
+	monitoring.NewFunc(libbeatRegistry, "output", func(_ monitoring.Mode, v monitoring.Visitor) {
+		var rm metricdata.ResourceMetrics
+		if err := b.metricReader.Collect(context.Background(), &rm); err != nil {
+			return
+		}
+		v.OnRegistryStart()
+		defer v.OnRegistryFinished()
+		for _, sm := range rm.ScopeMetrics {
+			switch {
+			case sm.Scope.Name == "github.com/elastic/go-docappender":
+				monitoring.ReportString(v, "type", "elasticsearch")
+				addDocappenderLibbeatOutputMetrics(context.Background(), v, sm)
+			}
+		}
+	})
+	monitoring.NewFunc(libbeatRegistry, "pipeline", func(_ monitoring.Mode, v monitoring.Visitor) {
+		var rm metricdata.ResourceMetrics
+		if err := b.metricReader.Collect(context.Background(), &rm); err != nil {
+			return
+		}
+		v.OnRegistryStart()
+		defer v.OnRegistryFinished()
+		for _, sm := range rm.ScopeMetrics {
+			switch {
+			case sm.Scope.Name == "github.com/elastic/go-docappender":
+				addDocappenderLibbeatPipelineMetrics(context.Background(), v, sm)
+			}
+		}
+	})
+	monitoring.NewFunc(monitoring.Default, "output.elasticsearch", func(_ monitoring.Mode, v monitoring.Visitor) {
+		var rm metricdata.ResourceMetrics
+		if err := b.metricReader.Collect(context.Background(), &rm); err != nil {
+			return
+		}
+		v.OnRegistryStart()
+		defer v.OnRegistryFinished()
+		for _, sm := range rm.ScopeMetrics {
+			switch {
+			case sm.Scope.Name == "github.com/elastic/go-docappender":
+				addDocappenderOutputElasticsearchMetrics(context.Background(), v, sm)
+			}
+		}
+	})
+	monitoring.NewFunc(monitoring.Default, "apm-server", func(_ monitoring.Mode, v monitoring.Visitor) {
+		var rm metricdata.ResourceMetrics
+		if err := b.metricReader.Collect(context.Background(), &rm); err != nil {
+			return
+		}
+		v.OnRegistryStart()
+		defer v.OnRegistryFinished()
+		for _, sm := range rm.ScopeMetrics {
+			switch {
+			case strings.HasPrefix(sm.Scope.Name, "github.com/elastic/apm-server"):
+				// All simple scalar metrics that begin with the name "apm-server."
+				// in github.com/elastic/apm-server/... scopes are mapped directly.
+				addAPMServerMetrics(v, sm)
+			}
+		}
+	})
+}
+
+// getScalarInt64 returns a single-value, dimensionless
+// gauge or counter integer value, or (0, false) if the
+// data does not match these constraints.
+func getScalarInt64(data metricdata.Aggregation) (int64, bool) {
+	switch data := data.(type) {
+	case metricdata.Sum[int64]:
+		if len(data.DataPoints) != 1 || data.DataPoints[0].Attributes.Len() != 0 {
+			break
+		}
+		return data.DataPoints[0].Value, true
+	case metricdata.Gauge[int64]:
+		if len(data.DataPoints) != 1 || data.DataPoints[0].Attributes.Len() != 0 {
+			break
+		}
+		return data.DataPoints[0].Value, true
+	}
+	return 0, false
+}
+
+func addAPMServerMetrics(v monitoring.Visitor, sm metricdata.ScopeMetrics) {
+	beatsMetrics := make(map[string]any)
+	for _, m := range sm.Metrics {
+		if suffix, ok := strings.CutPrefix(m.Name, "apm-server."); ok {
+			if value, ok := getScalarInt64(m.Data); ok {
+				current := beatsMetrics
+				suffixSlice := strings.Split(suffix, ".")
+				for i := 0; i < len(suffixSlice)-1; i++ {
+					k := suffixSlice[i]
+					if _, ok := current[k]; !ok {
+						current[k] = make(map[string]any)
+					}
+					if currentmap, ok := current[k].(map[string]any); ok {
+						current = currentmap
+					}
+				}
+				current[suffixSlice[len(suffixSlice)-1]] = value
+			}
+		}
+	}
+
+	reportOnKey(v, beatsMetrics)
+}
+
+func reportOnKey(v monitoring.Visitor, m map[string]any) {
+	for key, value := range m {
+		if valueMap, ok := value.(map[string]any); ok {
+			v.OnRegistryStart()
+			v.OnKey(key)
+			reportOnKey(v, valueMap)
+			v.OnRegistryFinished()
+		}
+		if valueMetric, ok := value.(int64); ok {
+			monitoring.ReportInt(v, key, valueMetric)
+		}
+	}
+}
+
+// Adapt go-docappender's OTel metrics to beats stack monitoring metrics,
+// with a mixture of libbeat-specific and apm-server specific metric names.
+func addDocappenderLibbeatOutputMetrics(ctx context.Context, v monitoring.Visitor, sm metricdata.ScopeMetrics) {
+	var writeBytes int64
+
+	v.OnRegistryStart()
+	v.OnKey("events")
+	for _, m := range sm.Metrics {
+		switch m.Name {
+		case "elasticsearch.events.processed":
+			var acked, toomany, failed int64
+			data, _ := m.Data.(metricdata.Sum[int64])
+			for _, dp := range data.DataPoints {
+				status, ok := dp.Attributes.Value(attribute.Key("status"))
+				if !ok {
+					continue
+				}
+				switch status.AsString() {
+				case "Success":
+					acked += dp.Value
+				case "TooMany":
+					toomany += dp.Value
+					fallthrough
+				default:
+					failed += dp.Value
+				}
+			}
+			monitoring.ReportInt(v, "acked", acked)
+			monitoring.ReportInt(v, "failed", failed)
+			monitoring.ReportInt(v, "toomany", toomany)
+		case "elasticsearch.events.count":
+			if value, ok := getScalarInt64(m.Data); ok {
+				monitoring.ReportInt(v, "total", value)
+			}
+		case "elasticsearch.events.queued":
+			if value, ok := getScalarInt64(m.Data); ok {
+				monitoring.ReportInt(v, "active", value)
+			}
+		case "elasticsearch.flushed.bytes":
+			if value, ok := getScalarInt64(m.Data); ok {
+				writeBytes = value
+			}
+		case "elasticsearch.bulk_requests.count":
+			if value, ok := getScalarInt64(m.Data); ok {
+				monitoring.ReportInt(v, "batches", value)
+			}
+		}
+	}
+	v.OnRegistryFinished()
+
+	if writeBytes > 0 {
+		v.OnRegistryStart()
+		v.OnKey("write")
+		monitoring.ReportInt(v, "bytes", writeBytes)
+		v.OnRegistryFinished()
+	}
+}
+
+func addDocappenderLibbeatPipelineMetrics(ctx context.Context, v monitoring.Visitor, sm metricdata.ScopeMetrics) {
+	v.OnRegistryStart()
+	defer v.OnRegistryFinished()
+	v.OnKey("events")
+
+	for _, m := range sm.Metrics {
+		switch m.Name {
+		case "elasticsearch.events.count":
+			if value, ok := getScalarInt64(m.Data); ok {
+				monitoring.ReportInt(v, "total", value)
+			}
+		}
+	}
+}
+
+// Add non-libbeat Elasticsearch output metrics under "output.elasticsearch".
+func addDocappenderOutputElasticsearchMetrics(ctx context.Context, v monitoring.Visitor, sm metricdata.ScopeMetrics) {
+	var bulkRequestsCount, bulkRequestsAvailable int64
+	var indexersCreated, indexersDestroyed int64
+	for _, m := range sm.Metrics {
+		switch m.Name {
+		case "elasticsearch.bulk_requests.count":
+			if value, ok := getScalarInt64(m.Data); ok {
+				bulkRequestsCount = value
+			}
+		case "elasticsearch.bulk_requests.available":
+			if value, ok := getScalarInt64(m.Data); ok {
+				bulkRequestsAvailable = value
+			}
+		case "elasticsearch.indexer.created":
+			if value, ok := getScalarInt64(m.Data); ok {
+				indexersCreated = value
+			}
+		case "elasticsearch.indexer.destroyed":
+			if value, ok := getScalarInt64(m.Data); ok {
+				indexersDestroyed = value
+			}
+		}
+	}
+
+	v.OnRegistryStart()
+	v.OnKey("bulk_requests")
+	monitoring.ReportInt(v, "completed", bulkRequestsCount)
+	monitoring.ReportInt(v, "available", bulkRequestsAvailable)
+	v.OnRegistryFinished()
+
+	v.OnRegistryStart()
+	v.OnKey("indexers")
+	monitoring.ReportInt(v, "created", indexersCreated)
+	monitoring.ReportInt(v, "destroyed", indexersDestroyed)
+	monitoring.ReportInt(v, "active", indexersCreated-indexersDestroyed+1)
+	v.OnRegistryFinished()
 }
 
 // registerElasticsearchVerfication registers a global callback to make sure

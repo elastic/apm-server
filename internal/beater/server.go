@@ -24,13 +24,13 @@ import (
 
 	"go.elastic.co/apm/module/apmgorilla/v2"
 	"go.elastic.co/apm/v2"
+	"go.opentelemetry.io/otel/metric"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 
 	"github.com/elastic/beats/v7/libbeat/version"
 	"github.com/elastic/elastic-agent-libs/logp"
-	"github.com/elastic/elastic-agent-libs/monitoring"
 
 	"github.com/elastic/apm-data/input"
 	"github.com/elastic/apm-data/model/modelpb"
@@ -48,8 +48,6 @@ import (
 )
 
 var (
-	agentcfgMonitoringRegistry = monitoring.Default.NewRegistry("apm-server.agentcfg")
-
 	agentcfgDeprecationNotice = "deprecation notice: support for passing fleet agent configs will be removed in an upcoming version"
 )
 
@@ -87,6 +85,9 @@ type ServerParams struct {
 	// Tracer is an apm.Tracer that the APM Server may use
 	// for self-instrumentation.
 	Tracer *apm.Tracer
+
+	// MeterProvider is the MeterProvider
+	MeterProvider metric.MeterProvider
 
 	// Authenticator holds an authenticator that can be used for
 	// authenticating clients, and obtaining authentication details
@@ -183,6 +184,7 @@ func newServer(args ServerParams, listener net.Listener) (server, error) {
 		args.SourcemapFetcher,
 		publishReady,
 		args.Semaphore,
+		args.MeterProvider,
 	)
 	if err != nil {
 		return server{}, err
@@ -202,8 +204,8 @@ func newServer(args ServerParams, listener net.Listener) (server, error) {
 		}
 	}
 	zapLogger := zap.New(args.Logger.Core(), zap.WithCaller(true))
-	otlp.RegisterGRPCServices(args.GRPCServer, zapLogger, otlpBatchProcessor, args.Semaphore)
-	jaeger.RegisterGRPCServices(args.GRPCServer, zapLogger, args.BatchProcessor, args.AgentConfig, args.Semaphore)
+	otlp.RegisterGRPCServices(args.GRPCServer, zapLogger, otlpBatchProcessor, args.Semaphore, args.MeterProvider)
+	jaeger.RegisterGRPCServices(args.GRPCServer, zapLogger, args.BatchProcessor, args.AgentConfig, args.Semaphore, args.MeterProvider)
 
 	return server{
 		logger:     args.Logger,
@@ -243,6 +245,7 @@ func newAgentConfigFetcher(
 	newElasticsearchClient func(*elasticsearch.Config) (*elasticsearch.Client, error),
 	tracer *apm.Tracer,
 	logger *logp.Logger,
+	mp metric.MeterProvider,
 ) (agentcfg.Fetcher, func(context.Context) error, error) {
 	// Always use ElasticsearchFetcher, and as a fallback, use:
 	// 1. no fallback if Elasticsearch is explicitly configured
@@ -272,8 +275,6 @@ func newAgentConfigFetcher(
 	if err != nil {
 		return nil, nil, err
 	}
-	esFetcher := agentcfg.NewElasticsearchFetcher(esClient, cfg.AgentConfig.Cache.Expiration, fallbackFetcher, tracer)
-	agentcfgMonitoringRegistry.Remove("elasticsearch")
-	monitoring.NewFunc(agentcfgMonitoringRegistry, "elasticsearch", esFetcher.CollectMonitoring, monitoring.Report)
+	esFetcher := agentcfg.NewElasticsearchFetcher(esClient, cfg.AgentConfig.Cache.Expiration, fallbackFetcher, tracer, mp)
 	return agentcfg.SanitizingFetcher{Fetcher: esFetcher}, esFetcher.Run, nil
 }
