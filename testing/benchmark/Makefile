@@ -34,6 +34,8 @@ APM_SERVER_IP = $(shell terraform output -raw apm_server_ip)
 SHELL = /bin/bash
 .SHELLFLAGS = -o pipefail -c
 
+OKTA_AWS_CLI_PROFILE ?= elastic-observability
+
 .default: all
 
 .PHONY: all
@@ -47,7 +49,7 @@ include ${MAKEFILE_DIR}/../../go.mk
 
 .PHONY: auth
 auth:
-	@okta-aws-cli --profile elastic-observability --write-aws-credentials
+	@okta-aws-cli --profile $(OKTA_AWS_CLI_PROFILE) --write-aws-credentials
 
 terraform.tfvars:
 	@sed "s/USER/$(USER)/" $(TFVARS_SOURCE) > terraform.tfvars
