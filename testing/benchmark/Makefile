@@ -34,14 +34,6 @@ APM_SERVER_IP = $(shell terraform output -raw apm_server_ip)
 SHELL = /bin/bash
 .SHELLFLAGS = -o pipefail -c
 
-# This profile will also be used by the Terraform provider.
-
-# export AWS_PROFILE if CI is not defined
-ifeq ($(CI),)
-	export AWS_PROFILE ?= default
-endif
-
-
 .default: all
 
 .PHONY: all
@@ -54,17 +46,8 @@ REPO_ROOT:=$(abspath ${MAKEFILE_DIR}/../../)
 include ${MAKEFILE_DIR}/../../go.mk
 
 .PHONY: auth
-auth: init-aws-profile
-	@okta-awscli --profile $(AWS_PROFILE)
-
-.PHONY: init-aws-profile
-init-aws-profile: ~/.aws/credentials
-	@grep $(AWS_PROFILE) ~/.aws/credentials > /dev/null || \
-		echo "[$(AWS_PROFILE)]\naws_access_key_id = x\naws_secret_access_key = x" >> ~/.aws/credentials
-
-~/.aws/credentials:
-	@mkdir -p ~/.aws
-	@touch $@
+auth:
+	@$$(okta-aws-cli --profile elastic-observability)  # this doesn't work
 
 terraform.tfvars:
 	@sed "s/USER/$(USER)/" $(TFVARS_SOURCE) > terraform.tfvars
