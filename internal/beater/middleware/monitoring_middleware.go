@@ -43,30 +43,28 @@ type monitoringMiddleware struct {
 func (m *monitoringMiddleware) Middleware() Middleware {
 	return func(h request.Handler) (request.Handler, error) {
 		return func(c *request.Context) {
-			ctx := context.Background()
-
-			m.inc(ctx, request.IDRequestCount)
+			m.inc(request.IDRequestCount)
 
 			start := time.Now()
 			h(c)
 			duration := time.Since(start)
-			m.getHistogram(requestDurationHistogram, metric.WithUnit("ms")).Record(ctx, duration.Milliseconds())
+			m.getHistogram(requestDurationHistogram, metric.WithUnit("ms")).Record(context.Background(), duration.Milliseconds())
 
-			m.inc(ctx, request.IDResponseCount)
+			m.inc(request.IDResponseCount)
 			if c.Result.StatusCode >= http.StatusBadRequest {
-				m.inc(ctx, request.IDResponseErrorsCount)
+				m.inc(request.IDResponseErrorsCount)
 			} else {
-				m.inc(ctx, request.IDResponseValidCount)
+				m.inc(request.IDResponseValidCount)
 			}
-			m.inc(ctx, c.Result.ID)
+			m.inc(c.Result.ID)
 		}, nil
 
 	}
 }
 
-func (m *monitoringMiddleware) inc(ctx context.Context, id request.ResultID) {
-	m.getCounter("http.server.", string(id)).Add(ctx, 1)
-	m.getCounter(m.legacyMetricsPrefix, string(id)).Add(ctx, 1)
+func (m *monitoringMiddleware) inc(id request.ResultID) {
+	m.getCounter("http.server.", string(id)).Add(context.Background(), 1)
+	m.getCounter(m.legacyMetricsPrefix, string(id)).Add(context.Background(), 1)
 }
 
 func (m *monitoringMiddleware) getCounter(prefix, name string) metric.Int64Counter {
