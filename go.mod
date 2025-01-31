@@ -9,7 +9,7 @@ require (
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/apm-aggregation v1.2.0
 	github.com/elastic/apm-data v1.16.0
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20241231140711-7806f1a2cb26
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20250131124117-04eac62055e9
 	github.com/elastic/elastic-agent-client/v7 v7.17.0
 	github.com/elastic/elastic-agent-libs v0.18.3
 	github.com/elastic/elastic-agent-system-metrics v0.11.7
@@ -25,9 +25,7 @@ require (
 	github.com/google/go-cmp v0.6.0
 	github.com/gorilla/mux v1.8.1
 	github.com/hashicorp/golang-lru v1.0.2
-	github.com/joeshaw/multierror v0.0.0-20140124173710-69b34d4ec901
 	github.com/libp2p/go-reuseport v0.4.0
-	github.com/modern-go/reflect2 v1.0.2
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pkg/errors v0.9.1
 	github.com/ryanuber/go-glob v1.0.0
@@ -74,16 +72,15 @@ require (
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/dgryski/go-metro v0.0.0-20211217172704-adc40b04c140 // indirect
 	github.com/dlclark/regexp2 v1.8.1 // indirect
-	github.com/docker/go-connections v0.5.0 // indirect
 	github.com/dop251/goja v0.0.0-20230427124612-428fc442ff5f // indirect
 	github.com/dop251/goja_nodejs v0.0.0-20171011081505-adff31b136e6 // indirect
 	github.com/eapache/go-resiliency v1.7.0 // indirect
 	github.com/eapache/go-xerial-snappy v0.0.0-20230731223053-c322873962e3 // indirect
 	github.com/eapache/queue v1.1.0 // indirect
-	github.com/ebitengine/purego v0.8.0 // indirect
+	github.com/ebitengine/purego v0.8.1 // indirect
 	github.com/elastic/elastic-transport-go/v8 v8.6.0 // indirect
 	github.com/elastic/go-lumber v0.1.2-0.20220819171948-335fde24ea0f // indirect
-	github.com/elastic/go-structform v0.0.10 // indirect
+	github.com/elastic/go-structform v0.0.12 // indirect
 	github.com/elastic/go-windows v1.0.2 // indirect
 	github.com/elastic/gosigar v0.14.3 // indirect
 	github.com/elastic/opentelemetry-lib v0.14.0 // indirect
@@ -110,6 +107,7 @@ require (
 	github.com/jcmturner/goidentity/v6 v6.0.1 // indirect
 	github.com/jcmturner/gokrb5/v8 v8.4.4 // indirect
 	github.com/jcmturner/rpc/v2 v2.0.3 // indirect
+	github.com/joeshaw/multierror v0.0.0-20140124173710-69b34d4ec901 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/compress v1.17.11 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
@@ -119,6 +117,7 @@ require (
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mitchellh/hashstructure v1.1.0 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
+	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/pbnjay/memory v0.0.0-20210728143218-7b4eea64cf58 // indirect
 	github.com/pierrec/lz4/v4 v4.1.21 // indirect
@@ -131,7 +130,7 @@ require (
 	github.com/prometheus/procfs v0.15.1 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
 	github.com/rogpeppe/go-internal v1.13.1 // indirect
-	github.com/shirou/gopsutil/v4 v4.24.9 // indirect
+	github.com/shirou/gopsutil/v4 v4.24.10 // indirect
 	github.com/tklauser/go-sysconf v0.3.12 // indirect
 	github.com/tklauser/numcpus v0.6.1 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
