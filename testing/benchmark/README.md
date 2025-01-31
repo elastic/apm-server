@@ -31,7 +31,7 @@ has the AWS credentials up to date, the `make all` (default target) and `make au
 uses `okta-aws-cli` to generate the necessary credentials in `~/.aws/credentials`.
 For more information on how to set up these, please refer to our [internal docs](https://github.com/elastic/observability-dev/blob/main/docs/how-we-work/aws-onboarding.md).
 
-It is required to use `okta-aws-cli` for programmatic access to `elastic-observability`.
+It is required to use `okta-aws-cli` for programmatic access to `elastic-observability` AWS Account.
 
 ### ESS Credentials
 
