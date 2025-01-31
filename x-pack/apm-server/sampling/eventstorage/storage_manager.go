@@ -396,60 +396,49 @@ func (sm *StorageManager) WriteSubscriberPosition(data []byte) error {
 }
 
 // NewReadWriter returns a read writer configured with storage limit and disk usage threshold.
-func (sm *StorageManager) NewReadWriter(storageLimit uint64, diskThresholdRatio float64) StorageLimitReadWriter {
-	splitRW := SplitReadWriter{
+func (sm *StorageManager) NewReadWriter(storageLimit uint64, diskThresholdRatio float64) RW {
+	var rw RW = SplitReadWriter{
 		eventRW:    sm.eventStorage.NewReadWriter(),
 		decisionRW: sm.decisionStorage.NewReadWriter(),
 	}
 
-	// dbStorageLimit returns max size of db in bytes.
-	// If size of db exceeds dbStorageLimit, writes should be rejected.
-	var dbStorageLimit func() uint64
-	if sm.getDiskUsageFailed.Load() && storageLimit == 0 && diskThresholdRatio > 0 {
-		dbStorageLimit = func() uint64 {
-			return dbStorageLimitFallback
-		}
-		sm.logger.Warnf("failed to get disk usage; overriding database storage limit to fallback default of %0.1fgb", float64(dbStorageLimitFallback)/gb)
-	} else {
-		dbStorageLimit = func() uint64 {
+	if storageLimit > 0 {
+		// dbStorageLimit returns max size of db in bytes.
+		// If size of db exceeds dbStorageLimit, writes should be rejected.
+		dbStorageLimit := func() uint64 {
 			return storageLimit
 		}
-		if storageLimit == 0 {
-			sm.logger.Infof("setting database storage limit to unlimited")
-		} else {
-			sm.logger.Infof("setting database storage limit to %0.1fgb", float64(storageLimit)/gb)
+		sm.logger.Infof("setting database storage limit to %0.1fgb", float64(storageLimit)/gb)
+		// To limit db size to storage_limit
+		dbStorageLimitChecker := NewStorageLimitCheckerFunc(sm.dbSize, dbStorageLimit)
+		rw = NewStorageLimitReadWriter("database storage limit", dbStorageLimitChecker, rw)
+	} else if storageLimit == 0 && sm.getDiskUsageFailed.Load() {
+		dbStorageLimit := func() uint64 {
+			return dbStorageLimitFallback
 		}
-	}
-
-	// To limit db size to storage_limit
-	dbStorageLimitChecker := NewStorageLimitCheckerFunc(sm.dbSize, dbStorageLimit)
-	dbStorageLimitRW := NewStorageLimitReadWriter("database storage limit", dbStorageLimitChecker, splitRW)
-
-	// diskThreshold returns max used disk space in bytes.
-	// If size of used disk space exceeds diskThreshold, writes should be rejected.
-	var diskThreshold func() uint64
-	if sm.getDiskUsageFailed.Load() {
-		diskThreshold = func() uint64 {
-			return 0 // unlimited
-		}
-		sm.logger.Warnf("failed to get disk usage; disabling disk usage threshold check")
+		sm.logger.Warnf("failed to get disk usage; disabling disk usage threshold check, overriding database storage limit to fallback default of %0.1fgb", float64(dbStorageLimitFallback)/gb)
+		// To limit db size to fallback storage limit
+		dbStorageLimitChecker := NewStorageLimitCheckerFunc(sm.dbSize, dbStorageLimit)
+		rw = NewStorageLimitReadWriter("database storage limit", dbStorageLimitChecker, rw)
 	} else {
-		diskThreshold = func() uint64 {
+		// diskThreshold returns max used disk space in bytes.
+		// If size of used disk space exceeds diskThreshold, writes should be rejected.
+		diskThreshold := func() uint64 {
 			return uint64(float64(sm.cachedDiskStat.total.Load()) * diskThresholdRatio)
 		}
 		// the total disk space could change in runtime, but it is still useful to print it out in logs.
 		sm.logger.Infof("setting disk usage threshold to %.2f of total disk space of %0.1fgb", diskThresholdRatio, float64(sm.cachedDiskStat.total.Load())/gb)
+
+		// To limit actual disk usage percentage to diskThresholdRatio
+		diskThresholdChecker := NewStorageLimitCheckerFunc(sm.diskUsed, diskThreshold)
+		rw = NewStorageLimitReadWriter(
+			fmt.Sprintf("disk usage ratio exceeding threshold of %.2f", diskThresholdRatio),
+			diskThresholdChecker,
+			rw,
+		)
 	}
 
-	// To limit actual disk usage percentage to diskThresholdRatio
-	diskThresholdChecker := NewStorageLimitCheckerFunc(sm.diskUsed, diskThreshold)
-	diskThresholdRW := NewStorageLimitReadWriter(
-		fmt.Sprintf("disk usage ratio exceeding threshold of %.2f", diskThresholdRatio),
-		diskThresholdChecker,
-		dbStorageLimitRW,
-	)
-
-	return diskThresholdRW
+	return rw
 }
 
 // wrapNonNilErr only wraps an error with format if the error is not nil.
