@@ -164,10 +164,10 @@ func defaultTailSamplingConfig() TailSamplingConfig {
 		DiskUsageThreshold:    0.9,
 		DiscardOnWriteFailure: false,
 	}
-	limit, err := humanize.ParseBytes(cfg.StorageLimit)
+	parsed, err := humanize.ParseBytes(cfg.StorageLimit)
 	if err != nil {
 		panic(err)
 	}
-	cfg.StorageLimitParsed = limit
+	cfg.StorageLimitParsed = parsed
 	return cfg
 }
