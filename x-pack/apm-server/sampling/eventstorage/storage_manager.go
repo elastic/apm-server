@@ -50,7 +50,7 @@ const (
 
 	// dbStorageLimitFallback is the default fallback storage limit in bytes
 	// that applies when disk threshold cannot be enforced due to an error.
-	dbStorageLimitFallback = 5 << 30
+	dbStorageLimitFallback = 3 << 30
 
 	gb = float64(1 << 30)
 )
