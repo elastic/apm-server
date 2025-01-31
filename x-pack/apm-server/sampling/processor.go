@@ -105,11 +105,11 @@ func (p *Processor) ProcessBatch(ctx context.Context, batch *modelpb.Batch) erro
 		var err error
 		switch event.Type() {
 		case modelpb.TransactionEventType:
-			p.eventMetrics.processed.Add(ctx, 1)
-			report, stored, err = p.processTransaction(ctx, event)
+			p.eventMetrics.processed.Add(context.Background(), 1)
+			report, stored, err = p.processTransaction(event)
 		case modelpb.SpanEventType:
-			p.eventMetrics.processed.Add(ctx, 1)
-			report, stored, err = p.processSpan(ctx, event)
+			p.eventMetrics.processed.Add(context.Background(), 1)
+			report, stored, err = p.processSpan(event)
 		default:
 			continue
 		}
@@ -121,10 +121,10 @@ func (p *Processor) ProcessBatch(ctx context.Context, batch *modelpb.Batch) erro
 			stored = false
 			if p.config.DiscardOnWriteFailure {
 				report = false
-				p.rateLimitedLogger.Info("processing trace failed, discarding by default")
+				p.rateLimitedLogger.With(logp.Error(err)).Warn("processing trace failed, discarding by default")
 			} else {
 				report = true
-				p.rateLimitedLogger.Info("processing trace failed, indexing by default")
+				p.rateLimitedLogger.With(logp.Error(err)).Warn("processing trace failed, indexing by default")
 			}
 		}
 
@@ -136,18 +136,18 @@ func (p *Processor) ProcessBatch(ctx context.Context, batch *modelpb.Batch) erro
 			i--
 		}
 
-		p.updateProcessorMetrics(ctx, report, stored, failed)
+		p.updateProcessorMetrics(report, stored, failed)
 	}
 	*batch = events
 	return nil
 }
 
-func (p *Processor) updateProcessorMetrics(ctx context.Context, report, stored, failedWrite bool) {
+func (p *Processor) updateProcessorMetrics(report, stored, failedWrite bool) {
 	if failedWrite {
-		p.eventMetrics.failedWrites.Add(ctx, 1)
+		p.eventMetrics.failedWrites.Add(context.Background(), 1)
 	}
 	if stored {
-		p.eventMetrics.stored.Add(ctx, 1)
+		p.eventMetrics.stored.Add(context.Background(), 1)
 	} else if !report {
 		// We only increment the "dropped" counter if
 		// we neither reported nor stored the event, so
@@ -158,15 +158,15 @@ func (p *Processor) updateProcessorMetrics(ctx context.Context, report, stored, 
 		// The counter does not include events that are
 		// implicitly dropped, i.e. stored and never
 		// indexed.
-		p.eventMetrics.dropped.Add(ctx, 1)
+		p.eventMetrics.dropped.Add(context.Background(), 1)
 	}
 }
 
-func (p *Processor) processTransaction(ctx context.Context, event *modelpb.APMEvent) (report, stored bool, _ error) {
+func (p *Processor) processTransaction(event *modelpb.APMEvent) (report, stored bool, _ error) {
 	if !event.Transaction.Sampled {
 		// (Head-based) unsampled transactions are passed through
 		// by the tail sampler.
-		p.eventMetrics.headUnsampled.Add(ctx, 1)
+		p.eventMetrics.headUnsampled.Add(context.Background(), 1)
 		return true, false, nil
 	}
 
@@ -177,7 +177,7 @@ func (p *Processor) processTransaction(ctx context.Context, event *modelpb.APMEv
 		// if it was sampled.
 		report := traceSampled
 		if report {
-			p.eventMetrics.sampled.Add(ctx, 1)
+			p.eventMetrics.sampled.Add(context.Background(), 1)
 		}
 		return report, false, nil
 	case eventstorage.ErrNotFound:
@@ -229,7 +229,7 @@ sampling policies without service name specified.
 	return false, true, p.eventStore.WriteTraceEvent(event.Trace.Id, event.Transaction.Id, event)
 }
 
-func (p *Processor) processSpan(ctx context.Context, event *modelpb.APMEvent) (report, stored bool, _ error) {
+func (p *Processor) processSpan(event *modelpb.APMEvent) (report, stored bool, _ error) {
 	traceSampled, err := p.eventStore.IsTraceSampled(event.Trace.Id)
 	if err != nil {
 		if err == eventstorage.ErrNotFound {
@@ -240,7 +240,7 @@ func (p *Processor) processSpan(ctx context.Context, event *modelpb.APMEvent) (r
 	}
 	// Tail-sampling decision has been made, report or drop the event.
 	if traceSampled {
-		p.eventMetrics.sampled.Add(ctx, 1)
+		p.eventMetrics.sampled.Add(context.Background(), 1)
 	}
 	return traceSampled, false, nil
 }
