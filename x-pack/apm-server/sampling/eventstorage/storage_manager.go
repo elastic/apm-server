@@ -108,10 +108,12 @@ type StorageManager struct {
 	// subscriberPosMu protects the subscriber file from concurrent RW.
 	subscriberPosMu sync.Mutex
 
+	// getDBSize returns the total size of databases in bytes.
 	getDBSize func() uint64
 	// cachedDBSize is a cached result of db size.
 	cachedDBSize atomic.Uint64
 
+	// getDiskUsage returns the disk / filesystem usage statistics of storageDir.
 	getDiskUsage func() (DiskUsage, error)
 	// getDiskUsageFailed indicates if getDiskUsage calls ever failed.
 	getDiskUsageFailed atomic.Bool
