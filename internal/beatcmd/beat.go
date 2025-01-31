@@ -33,6 +33,11 @@ import (
 	"time"
 
 	"github.com/gofrs/uuid/v5"
+	"go.elastic.co/apm/module/apmotel/v2"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
+	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 	"go.uber.org/zap"
 	"go.uber.org/zap/exp/zapslog"
 	"golang.org/x/sync/errgroup"
@@ -76,6 +81,10 @@ type Beat struct {
 
 	rawConfig *config.C
 	newRunner NewRunnerFunc
+
+	metricReader   *sdkmetric.ManualReader
+	meterProvider  *sdkmetric.MeterProvider
+	metricGatherer *apmotel.Gatherer
 }
 
 // BeatParams holds parameters for NewBeat.
@@ -109,6 +118,18 @@ func NewBeat(args BeatParams) (*Beat, error) {
 		beatName = hostname
 	}
 
+	exporter, err := apmotel.NewGatherer()
+	if err != nil {
+		return nil, err
+	}
+
+	metricReader := sdkmetric.NewManualReader()
+	meterProvider := sdkmetric.NewMeterProvider(
+		sdkmetric.WithReader(exporter),
+		sdkmetric.WithReader(metricReader),
+	)
+	otel.SetMeterProvider(meterProvider)
+
 	eid := uuid.FromStringOrNil(metricreport.EphemeralID().String())
 	b := &Beat{
 		Beat: beat.Beat{
@@ -127,9 +148,12 @@ func NewBeat(args BeatParams) (*Beat, error) {
 			BeatConfig: cfg.APMServer,
 			Registry:   reload.NewRegistry(),
 		},
-		Config:    cfg,
-		newRunner: args.NewRunner,
-		rawConfig: rawConfig,
+		Config:         cfg,
+		newRunner:      args.NewRunner,
+		rawConfig:      rawConfig,
+		metricReader:   metricReader,
+		meterProvider:  meterProvider,
+		metricGatherer: &exporter,
 	}
 
 	if err := b.init(); err != nil {
@@ -374,7 +398,7 @@ func (b *Beat) Run(ctx context.Context) error {
 	}
 
 	if b.Manager.Enabled() {
-		reloader, err := NewReloader(b.Info, b.Registry, b.newRunner)
+		reloader, err := NewReloader(b.Info, b.Registry, b.newRunner, b.meterProvider, b.metricGatherer)
 		if err != nil {
 			return err
 		}
@@ -390,9 +414,11 @@ func (b *Beat) Run(ctx context.Context) error {
 			return errors.New("no output defined, please define one under the output section")
 		}
 		runner, err := b.newRunner(RunnerParams{
-			Config: b.rawConfig,
-			Info:   b.Info,
-			Logger: logp.NewLogger(""),
+			Config:          b.rawConfig,
+			Info:            b.Info,
+			Logger:          logp.NewLogger(""),
+			MeterProvider:   b.meterProvider,
+			MetricsGatherer: b.metricGatherer,
 		})
 		if err != nil {
 			return err
@@ -410,7 +436,12 @@ func (b *Beat) Run(ctx context.Context) error {
 // is then exposed through the HTTP monitoring endpoint (e.g. /info and /state)
 // and/or pushed to Elasticsearch through the x-pack monitoring feature.
 func (b *Beat) registerMetrics() {
-	// info
+	b.registerInfoMetrics()
+	b.registerStateMetrics()
+	b.registerStatsMetrics()
+}
+
+func (b *Beat) registerInfoMetrics() {
 	infoRegistry := monitoring.GetNamespace("info").GetRegistry()
 	monitoring.NewString(infoRegistry, "version").Set(b.Info.Version)
 	monitoring.NewString(infoRegistry, "beat").Set(b.Info.Beat)
@@ -436,7 +467,9 @@ func (b *Beat) registerMetrics() {
 			monitoring.NewString(infoRegistry, "gid").Set(u.Gid)
 		}
 	}()
+}
 
+func (b *Beat) registerStateMetrics() {
 	stateRegistry := monitoring.GetNamespace("state").GetRegistry()
 
 	// state.service
@@ -457,8 +490,6 @@ func (b *Beat) registerMetrics() {
 	monitoring.NewBool(managementRegistry, "enabled").Set(b.Manager.Enabled())
 }
 
-<<<<<<< HEAD
-=======
 func (b *Beat) registerStatsMetrics() {
 	if b.Config.Output.Name() != "elasticsearch" {
 		return
@@ -675,7 +706,6 @@ func addDocappenderOutputElasticsearchMetrics(ctx context.Context, v monitoring.
 	v.OnRegistryFinished()
 }
 
->>>>>>> 378b60c2 ( Translate otel metrics to libbeat monitoring  (#15094))
 // registerElasticsearchVerfication registers a global callback to make sure
 // the Elasticsearch instance we are connecting to has a valid license, and is
 // at least on the same version as APM Server.

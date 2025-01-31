@@ -121,10 +121,10 @@ func (p *Processor) ProcessBatch(ctx context.Context, batch *modelpb.Batch) erro
 			stored = false
 			if p.config.DiscardOnWriteFailure {
 				report = false
-				p.rateLimitedLogger.Info("processing trace failed, discarding by default")
+				p.rateLimitedLogger.With(logp.Error(err)).Warn("processing trace failed, discarding by default")
 			} else {
 				report = true
-				p.rateLimitedLogger.Info("processing trace failed, indexing by default")
+				p.rateLimitedLogger.With(logp.Error(err)).Warn("processing trace failed, indexing by default")
 			}
 		}
 
