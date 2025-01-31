@@ -69,6 +69,14 @@ func WithMeterProvider(mp metric.MeterProvider) StorageManagerOptions {
 	}
 }
 
+// WithGetDBSize configures getDBSize function used by StorageManager.
+// For testing only.
+func WithGetDBSize(getDBSize func() uint64) StorageManagerOptions {
+	return func(sm *StorageManager) {
+		sm.getDBSize = getDBSize
+	}
+}
+
 // WithGetDiskUsage configures getDiskUsage function used by StorageManager.
 // For testing only.
 func WithGetDiskUsage(getDiskUsage func() (DiskUsage, error)) StorageManagerOptions {
@@ -100,6 +108,7 @@ type StorageManager struct {
 	// subscriberPosMu protects the subscriber file from concurrent RW.
 	subscriberPosMu sync.Mutex
 
+	getDBSize func() uint64
 	// cachedDBSize is a cached result of db size.
 	cachedDBSize atomic.Uint64
 
@@ -135,6 +144,9 @@ func NewStorageManager(storageDir string, opts ...StorageManagerOptions) (*Stora
 				TotalBytes: usage.TotalBytes,
 			}, err
 		},
+	}
+	sm.getDBSize = func() uint64 {
+		return sm.eventDB.Metrics().DiskSpaceUsage() + sm.decisionDB.Metrics().DiskSpaceUsage()
 	}
 	for _, opt := range opts {
 		opt(sm)
@@ -245,7 +257,7 @@ func (sm *StorageManager) dbSize() uint64 {
 }
 
 func (sm *StorageManager) updateDiskUsage() {
-	sm.cachedDBSize.Store(sm.eventDB.Metrics().DiskSpaceUsage() + sm.decisionDB.Metrics().DiskSpaceUsage())
+	sm.cachedDBSize.Store(sm.getDBSize())
 
 	if sm.getDiskUsageFailed.Load() {
 		// Skip GetDiskUsage under the assumption that
