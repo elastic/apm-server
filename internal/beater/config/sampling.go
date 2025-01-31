@@ -105,13 +105,11 @@ func (c *TailSamplingConfig) Unpack(in *config.C) error {
 		err = errors.Wrap(err, "error unpacking config")
 		return nil
 	}
-	if cfg.StorageLimit != "" {
-		limit, err := humanize.ParseBytes(cfg.StorageLimit)
-		if err != nil {
-			return err
-		}
-		cfg.StorageLimitParsed = limit
+	limit, err := humanize.ParseBytes(cfg.StorageLimit)
+	if err != nil {
+		return err
 	}
+	cfg.StorageLimitParsed = limit
 	cfg.Enabled = in.Enabled()
 	*c = TailSamplingConfig(cfg)
 	c.esConfigured = in.HasField("elasticsearch")
@@ -167,9 +165,14 @@ func defaultTailSamplingConfig() TailSamplingConfig {
 		Interval:              1 * time.Minute,
 		IngestRateDecayFactor: 0.25,
 		TTL:                   30 * time.Minute,
-		StorageLimit:          "",
+		StorageLimit:          "0",
 		DiskThresholdRatio:    0.9,
 		DiscardOnWriteFailure: false,
 	}
+	limit, err := humanize.ParseBytes(cfg.StorageLimit)
+	if err != nil {
+		panic(err)
+	}
+	cfg.StorageLimitParsed = limit
 	return cfg
 }

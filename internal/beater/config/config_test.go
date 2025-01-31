@@ -362,7 +362,7 @@ func TestUnpackConfig(t *testing.T) {
 						ESConfig:              elasticsearch.DefaultConfig(),
 						Interval:              1 * time.Minute,
 						IngestRateDecayFactor: 0.25,
-						StorageLimit:          "",
+						StorageLimit:          "0",
 						StorageLimitParsed:    0,
 						DiskThresholdRatio:    0.9,
 						TTL:                   30 * time.Minute,
