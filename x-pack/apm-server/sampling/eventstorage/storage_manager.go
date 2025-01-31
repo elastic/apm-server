@@ -104,11 +104,12 @@ type StorageManager struct {
 	cachedDBSize atomic.Uint64
 
 	getDiskUsage func() (DiskUsage, error)
-	// diskStat is disk usage statistics about the disk only, not related to the databases.
-	diskStat struct {
+	// getDiskUsageFailed indicates if getDiskUsage calls ever failed.
+	getDiskUsageFailed atomic.Bool
+	// cachedDiskStat is disk usage statistics about the disk only, not related to the databases.
+	cachedDiskStat struct {
 		used, total atomic.Uint64
 	}
-	diskStatFailed atomic.Bool
 
 	// runCh acts as a mutex to ensure only 1 Run is actively running per StorageManager.
 	// as it is possible that 2 separate Run are created by 2 TBS processors during a hot reload.
@@ -246,7 +247,7 @@ func (sm *StorageManager) dbSize() uint64 {
 func (sm *StorageManager) updateDiskUsage() {
 	sm.cachedDBSize.Store(sm.eventDB.Metrics().DiskSpaceUsage() + sm.decisionDB.Metrics().DiskSpaceUsage())
 
-	if sm.diskStatFailed.Load() {
+	if sm.getDiskUsageFailed.Load() {
 		// Skip GetDiskUsage under the assumption that
 		// it will always get the same error if GetDiskUsage ever returns one,
 		// such that it does not keep logging GetDiskUsage errors.
@@ -255,18 +256,18 @@ func (sm *StorageManager) updateDiskUsage() {
 	usage, err := sm.getDiskUsage()
 	if err != nil {
 		sm.logger.With(logp.Error(err)).Warn("failed to get disk usage")
-		sm.diskStatFailed.Store(true)
-		sm.diskStat.total.Store(0) // setting total to 0 to disable any running disk threshold checks
+		sm.getDiskUsageFailed.Store(true)
+		sm.cachedDiskStat.total.Store(0) // setting total to 0 to disable any running disk threshold checks
 		return
 	}
-	sm.diskStat.used.Store(usage.UsedBytes)
-	sm.diskStat.total.Store(usage.TotalBytes)
+	sm.cachedDiskStat.used.Store(usage.UsedBytes)
+	sm.cachedDiskStat.total.Store(usage.TotalBytes)
 }
 
 // diskUsed returns the actual used disk space in bytes.
 // Not to be confused with dbSize which is specific to database.
 func (sm *StorageManager) diskUsed() uint64 {
-	return sm.diskStat.used.Load()
+	return sm.cachedDiskStat.used.Load()
 }
 
 // runDiskUsageLoop runs a loop that updates cached disk usage regularly.
@@ -410,7 +411,7 @@ func (sm *StorageManager) NewReadWriter(storageLimit uint64, diskThresholdRatio 
 	// dbStorageLimit returns max size of db in bytes.
 	// If size of db exceeds dbStorageLimit, writes should be rejected.
 	var dbStorageLimit func() uint64
-	if sm.diskStatFailed.Load() && storageLimit == 0 && diskThresholdRatio > 0 {
+	if sm.getDiskUsageFailed.Load() && storageLimit == 0 && diskThresholdRatio > 0 {
 		dbStorageLimit = func() uint64 {
 			return dbStorageLimitFallback
 		}
@@ -433,17 +434,17 @@ func (sm *StorageManager) NewReadWriter(storageLimit uint64, diskThresholdRatio 
 	// diskThreshold returns max used disk space in bytes.
 	// If size of used disk space exceeds diskThreshold, writes should be rejected.
 	var diskThreshold func() uint64
-	if sm.diskStatFailed.Load() {
+	if sm.getDiskUsageFailed.Load() {
 		diskThreshold = func() uint64 {
 			return 0 // unlimited
 		}
 		sm.logger.Warnf("failed to get disk usage; disabling disk threshold check")
 	} else {
 		diskThreshold = func() uint64 {
-			return uint64(float64(sm.diskStat.total.Load()) * diskThresholdRatio)
+			return uint64(float64(sm.cachedDiskStat.total.Load()) * diskThresholdRatio)
 		}
 		// the total disk space could change in runtime, but it is still useful to print it out in logs.
-		sm.logger.Infof("setting disk threshold ratio to %.2f of total disk space of %0.1fgb", diskThresholdRatio, float64(sm.diskStat.total.Load())/gb)
+		sm.logger.Infof("setting disk threshold ratio to %.2f of total disk space of %0.1fgb", diskThresholdRatio, float64(sm.cachedDiskStat.total.Load())/gb)
 	}
 
 	// To limit actual disk usage percentage to diskThresholdRatio
