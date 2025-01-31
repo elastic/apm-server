@@ -444,7 +444,7 @@ func (sm *StorageManager) NewReadWriter(storageLimit uint64, diskUsageThreshold 
 		// To limit actual disk usage percentage to diskUsageThreshold
 		diskThresholdChecker := NewStorageLimitCheckerFunc(sm.diskUsed, diskThreshold)
 		rw = NewStorageLimitReadWriter(
-			fmt.Sprintf("disk usage exceeding threshold of %.2f", diskUsageThreshold),
+			fmt.Sprintf("%.2f disk usage threshold", diskUsageThreshold),
 			diskThresholdChecker,
 			rw,
 		)
