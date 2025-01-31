@@ -49,8 +49,18 @@ type TailSamplingConfig struct {
 	Interval              time.Duration         `config:"interval" validate:"min=1s"`
 	IngestRateDecayFactor float64               `config:"ingest_rate_decay" validate:"min=0, max=1"`
 	TTL                   time.Duration         `config:"ttl" validate:"min=1s"`
-	StorageLimit          string                `config:"storage_limit"`
-	StorageLimitParsed    uint64
+
+	// StorageLimit is the user-configured tail-sampling database size limit.
+	// 0 means unlimited storage with DiskUsageThreshold check enabled.
+	StorageLimit       string `config:"storage_limit"`
+	StorageLimitParsed uint64
+
+	// DiskUsageThreshold controls the proportion of the disk to be filled at max, irrespective of db size.
+	// e.g. 0.9 means the last 10% of disk should not be written to.
+	//
+	// Any non-0 StorageLimit causes DiskUsageThreshold to be ignored.
+	DiskUsageThreshold float64 `config:"disk_usage_threshold"  validate:"min=0, max=1"`
+
 	DiscardOnWriteFailure bool `config:"discard_on_write_failure"`
 
 	esConfigured bool
@@ -98,7 +108,6 @@ func (c *TailSamplingConfig) Unpack(in *config.C) error {
 	cfg.Enabled = in.Enabled()
 	*c = TailSamplingConfig(cfg)
 	c.esConfigured = in.HasField("elasticsearch")
-	c.StorageLimitParsed = limit
 	err = errors.Wrap(c.Validate(), "invalid config")
 	return nil
 }
@@ -151,7 +160,8 @@ func defaultTailSamplingConfig() TailSamplingConfig {
 		Interval:              1 * time.Minute,
 		IngestRateDecayFactor: 0.25,
 		TTL:                   30 * time.Minute,
-		StorageLimit:          "3GB",
+		StorageLimit:          "0",
+		DiskUsageThreshold:    0.9,
 		DiscardOnWriteFailure: false,
 	}
 	parsed, err := humanize.ParseBytes(cfg.StorageLimit)
