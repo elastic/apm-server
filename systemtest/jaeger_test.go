@@ -20,7 +20,6 @@ package systemtest_test
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/url"
 	"os"
 	"testing"
@@ -30,7 +29,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/tidwall/gjson"
-	"go.opentelemetry.io/otel"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials"
@@ -56,7 +54,6 @@ func TestJaeger(t *testing.T) {
 		})
 	}
 
-	fmt.Fprintf(os.Stdout, "%#v\n", otel.GetMeterProvider())
 	doc := getBeatsMonitoringStats(t, srv, nil)
 	assert.GreaterOrEqual(t, gjson.GetBytes(doc.RawSource, "beats_stats.metrics.apm-server.jaeger.grpc.collect.request.count").Int(), int64(1))
 }

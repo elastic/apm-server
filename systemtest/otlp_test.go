@@ -213,7 +213,7 @@ func TestOTLPGRPCMetrics(t *testing.T) {
 
 	// Make sure we report monitoring for the metrics consumer. Metric values are unit tested.
 	doc := getBeatsMonitoringStats(t, srv, nil)
-	assert.True(t, gjson.GetBytes(doc.RawSource, "beats_stats.metrics.apm-server.otlp.grpc.metrics.consumer").Exists())
+	assert.Equal(t, int64(2), gjson.GetBytes(doc.RawSource, "beats_stats.metrics.apm-server.otlp.grpc.metrics.response.count").Int())
 }
 
 func TestOTLPGRPCMetrics_partialSuccess(t *testing.T) {

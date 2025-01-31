@@ -28,12 +28,11 @@ import (
 	"github.com/jaegertracing/jaeger/proto-gen/api_v2"
 	jaegertranslator "github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger"
 	"go.opentelemetry.io/collector/consumer"
+	"go.opentelemetry.io/otel/metric"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-
-	"github.com/elastic/elastic-agent-libs/monitoring"
 
 	"github.com/elastic/apm-data/input"
 	"github.com/elastic/apm-data/input/otlp"
@@ -41,18 +40,6 @@ import (
 	"github.com/elastic/apm-server/internal/agentcfg"
 	"github.com/elastic/apm-server/internal/beater/auth"
 	"github.com/elastic/apm-server/internal/beater/config"
-	"github.com/elastic/apm-server/internal/beater/request"
-)
-
-var (
-	gRPCCollectorRegistry                    = monitoring.Default.NewRegistry("apm-server.jaeger.grpc.collect")
-	gRPCCollectorMonitoringMap monitoringMap = request.MonitoringMapForRegistry(
-		gRPCCollectorRegistry, append(request.DefaultResultIDs,
-			request.IDResponseErrorsRateLimit,
-			request.IDResponseErrorsTimeout,
-			request.IDResponseErrorsUnauthorized,
-		),
-	)
 )
 
 const (
@@ -70,6 +57,7 @@ func RegisterGRPCServices(
 	processor modelpb.BatchProcessor,
 	fetcher agentcfg.Fetcher,
 	semaphore input.Semaphore,
+	mp metric.MeterProvider,
 ) {
 	traceConsumer := otlp.NewConsumer(otlp.ConsumerConfig{
 		Processor: processor,
@@ -118,12 +106,6 @@ func (c *grpcCollector) AuthenticateUnaryCall(
 	return authenticator.Authenticate(ctx, kind, token)
 }
 
-// MonitoringMap returns the request metrics registry for this service,
-// to support interceptors.Metrics.
-func (c *grpcCollector) RequestMetrics(fullMethodName string) map[request.ResultID]*monitoring.Int {
-	return gRPCCollectorMonitoringMap
-}
-
 // PostSpans implements the api_v2/collector.proto. It converts spans received via Jaeger Proto batch to open-telemetry
 // TraceData and passes them on to the internal Consumer taking care of converting into Elastic APM format.
 // The implementation of the protobuf contract is based on the open-telemetry implementation at
@@ -141,8 +123,6 @@ func (c *grpcCollector) PostSpans(ctx context.Context, r *api_v2.PostSpansReques
 }
 
 func (c *grpcCollector) postSpans(ctx context.Context, batch jaegermodel.Batch) error {
-	spanCount := int64(len(batch.Spans))
-	gRPCCollectorMonitoringMap.add(request.IDEventReceivedCount, spanCount)
 	traces, err := jaegertranslator.ProtoToTraces([]*jaegermodel.Batch{&batch})
 	if err != nil {
 		return err
@@ -151,11 +131,6 @@ func (c *grpcCollector) postSpans(ctx context.Context, batch jaegermodel.Batch) 
 }
 
 var (
-	gRPCSamplingRegistry                    = monitoring.Default.NewRegistry("apm-server.jaeger.grpc.sampling")
-	gRPCSamplingMonitoringMap monitoringMap = request.MonitoringMapForRegistry(
-		gRPCSamplingRegistry, append(request.DefaultResultIDs, request.IDEventReceivedCount),
-	)
-
 	jaegerAgentPrefixes = []string{otlp.AgentNameJaeger}
 )
 
@@ -206,19 +181,16 @@ func (s *grpcSampler) fetchSamplingRate(ctx context.Context, service string) (fl
 	}
 	result, err := s.fetcher.Fetch(ctx, query)
 	if err != nil {
-		gRPCSamplingMonitoringMap.inc(request.IDResponseErrorsServiceUnavailable)
 		return 0, fmt.Errorf("fetching sampling rate failed: %w", err)
 	}
 
 	if sr, ok := result.Source.Settings[agentcfg.TransactionSamplingRateKey]; ok {
 		srFloat64, err := strconv.ParseFloat(sr, 64)
 		if err != nil {
-			gRPCSamplingMonitoringMap.inc(request.IDResponseErrorsInternal)
 			return 0, fmt.Errorf("parsing error for sampling rate `%v`: %w", sr, err)
 		}
 		return srFloat64, nil
 	}
-	gRPCSamplingMonitoringMap.inc(request.IDResponseErrorsNotFound)
 	return 0, fmt.Errorf("no sampling rate found for %v", service)
 }
 
@@ -253,24 +225,4 @@ func (s *grpcSampler) AuthenticateUnaryCall(
 		return details, authz, err
 	}
 	return anonymousAuthenticator.Authenticate(ctx, "", "")
-}
-
-// MonitoringMap returns the request metrics registry for this service,
-// to support interceptors.Metrics.
-func (s *grpcSampler) RequestMetrics(fullMethodName string) map[request.ResultID]*monitoring.Int {
-	return gRPCSamplingMonitoringMap
-}
-
-type monitoringMap map[request.ResultID]*monitoring.Int
-
-func (m monitoringMap) inc(id request.ResultID) {
-	if counter, ok := m[id]; ok {
-		counter.Inc()
-	}
-}
-
-func (m monitoringMap) add(id request.ResultID, n int64) {
-	if counter, ok := m[id]; ok {
-		counter.Add(n)
-	}
 }

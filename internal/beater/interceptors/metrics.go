@@ -21,7 +21,6 @@ import (
 	"context"
 	"time"
 
-	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/metric"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -29,30 +28,11 @@ import (
 
 	"github.com/elastic/apm-server/internal/beater/request"
 	"github.com/elastic/elastic-agent-libs/logp"
-	"github.com/elastic/elastic-agent-libs/monitoring"
 )
 
 const (
 	requestDurationHistogram = "request.duration"
 )
-
-var methodUnaryRequestMetrics = make(map[string]map[request.ResultID]*monitoring.Int)
-
-// RegisterMethodUnaryRequestMetrics registers a UnaryRequestMetrics for the
-// given full method name. This can be used when the gRPC service implementation
-// is not exensible, such as in the case of the OTLP services.
-//
-// This function must only be called from package init functions; it is not safe
-// for concurrent access.
-func RegisterMethodUnaryRequestMetrics(fullMethod string, m map[request.ResultID]*monitoring.Int) {
-	methodUnaryRequestMetrics[fullMethod] = m
-}
-
-// UnaryRequestMetrics is an interface that gRPC services may implement
-// to provide a metrics registry for the Metrics interceptor.
-type UnaryRequestMetrics interface {
-	RequestMetrics(fullMethod string) map[request.ResultID]*monitoring.Int
-}
 
 type metricsInterceptor struct {
 	logger *logp.Logger
@@ -69,24 +49,28 @@ func (m *metricsInterceptor) Interceptor() grpc.UnaryServerInterceptor {
 		info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler,
 	) (interface{}, error) {
-		var ints map[request.ResultID]*monitoring.Int
-		if requestMetrics, ok := info.Server.(UnaryRequestMetrics); ok {
-			ints = requestMetrics.RequestMetrics(info.FullMethod)
-		} else {
-			ints = methodUnaryRequestMetrics[info.FullMethod]
-		}
-		if ints == nil {
+		var legacyMetricsPrefix string
+
+		switch info.FullMethod {
+		case "/opentelemetry.proto.collector.metrics.v1.MetricsService/Export":
+			legacyMetricsPrefix = "apm-server.otlp.grpc.metrics."
+		case "/opentelemetry.proto.collector.trace.v1.TraceService/Export":
+			legacyMetricsPrefix = "apm-server.otlp.grpc.traces."
+		case "/opentelemetry.proto.collector.logs.v1.LogsService/Export":
+			legacyMetricsPrefix = "apm-server.otlp.grpc.logs."
+		case "/jaeger.api_v2.CollectorService/PostSpans":
+			legacyMetricsPrefix = "apm-server.jaeger.grpc.collect."
+		case "/jaeger.api_v2.SamplingManager/GetSamplingStrategy":
+			legacyMetricsPrefix = "apm-server.jaeger.grpc.sampling."
+		default:
 			m.logger.With(
 				"grpc.request.method", info.FullMethod,
 			).Warn("metrics registry missing")
 			return handler(ctx, req)
 		}
 
-		m.getCounter(string(request.IDRequestCount)).Add(ctx, 1)
-		defer m.getCounter(string(request.IDResponseCount)).Add(ctx, 1)
-
-		ints[request.IDRequestCount].Inc()
-		defer ints[request.IDResponseCount].Inc()
+		m.inc(ctx, legacyMetricsPrefix, request.IDRequestCount)
+		defer m.inc(ctx, legacyMetricsPrefix, request.IDResponseCount)
 
 		start := time.Now()
 		resp, err := handler(ctx, req)
@@ -99,31 +83,29 @@ func (m *metricsInterceptor) Interceptor() grpc.UnaryServerInterceptor {
 			if s, ok := status.FromError(err); ok {
 				switch s.Code() {
 				case codes.Unauthenticated:
-					m.getCounter(string(request.IDResponseErrorsUnauthorized)).Add(ctx, 1)
-					ints[request.IDResponseErrorsUnauthorized].Inc()
+					m.inc(ctx, legacyMetricsPrefix, request.IDResponseErrorsUnauthorized)
 				case codes.DeadlineExceeded, codes.Canceled:
-					m.getCounter(string(request.IDResponseErrorsTimeout)).Add(ctx, 1)
-					ints[request.IDResponseErrorsTimeout].Inc()
+					m.inc(ctx, legacyMetricsPrefix, request.IDResponseErrorsTimeout)
 				case codes.ResourceExhausted:
-					m.getCounter(string(request.IDResponseErrorsRateLimit)).Add(ctx, 1)
-					ints[request.IDResponseErrorsRateLimit].Inc()
+					m.inc(ctx, legacyMetricsPrefix, request.IDResponseErrorsRateLimit)
 				}
 			}
 		}
-
-		m.getCounter(string(responseID)).Add(ctx, 1)
-		ints[responseID].Inc()
-
+		m.inc(ctx, legacyMetricsPrefix, responseID)
 		return resp, err
 	}
 }
 
-func (m *metricsInterceptor) getCounter(n string) metric.Int64Counter {
-	name := "grpc.server." + n
+func (m *metricsInterceptor) inc(ctx context.Context, legacyMetricsPrefix string, id request.ResultID) {
+	m.getCounter("grpc.server.", string(id)).Add(ctx, 1)
+	m.getCounter(legacyMetricsPrefix, string(id)).Add(ctx, 1)
+}
+
+func (m *metricsInterceptor) getCounter(prefix, n string) metric.Int64Counter {
+	name := prefix + n
 	if met, ok := m.counters[name]; ok {
 		return met
 	}
-
 	nm, _ := m.meter.Int64Counter(name)
 	m.counters[name] = nm
 	return nm
@@ -151,13 +133,9 @@ func (m *metricsInterceptor) getHistogram(n string, opts ...metric.Int64Histogra
 // if neither of these are available, a warning will be logged and no metrics
 // will be gathered.
 func Metrics(logger *logp.Logger, mp metric.MeterProvider) grpc.UnaryServerInterceptor {
-	if mp == nil {
-		mp = otel.GetMeterProvider()
-	}
-
 	i := &metricsInterceptor{
 		logger: logger,
-		meter:  mp.Meter("internal/beater/interceptors"),
+		meter:  mp.Meter("github.com/elastic/apm-server/internal/beater/interceptors"),
 
 		counters:   map[string]metric.Int64Counter{},
 		histograms: map[string]metric.Int64Histogram{},
