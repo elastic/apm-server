@@ -31,9 +31,13 @@ func newStorageManagerNoCleanup(tb testing.TB, path string, opts ...eventstorage
 	return sm
 }
 
+func newUnlimitedReadWriter(sm *eventstorage.StorageManager) eventstorage.RW {
+	return sm.NewReadWriter(0, 0)
+}
+
 func TestStorageManager_samplingDecisionTTL(t *testing.T) {
 	sm := newStorageManager(t)
-	rw := sm.NewUnlimitedReadWriter()
+	rw := newUnlimitedReadWriter(sm)
 	traceID := uuid.Must(uuid.NewV4()).String()
 	err := rw.WriteTraceSampled(traceID, true)
 	assert.NoError(t, err)
@@ -66,7 +70,7 @@ func TestStorageManager_samplingDecisionTTL(t *testing.T) {
 
 func TestStorageManager_eventTTL(t *testing.T) {
 	sm := newStorageManager(t)
-	rw := sm.NewUnlimitedReadWriter()
+	rw := newUnlimitedReadWriter(sm)
 	traceID := uuid.Must(uuid.NewV4()).String()
 	txnID1 := uuid.Must(uuid.NewV4()).String()
 	txn1 := makeTransaction(txnID1, traceID)
@@ -120,7 +124,7 @@ func TestStorageManager_partitionID(t *testing.T) {
 	assert.NoError(t, sm.RotatePartitions())
 
 	// write to partition 1
-	err := sm.NewUnlimitedReadWriter().WriteTraceSampled(traceID, true)
+	err := newUnlimitedReadWriter(sm).WriteTraceSampled(traceID, true)
 	assert.NoError(t, err)
 
 	assert.NoError(t, sm.Close())
@@ -128,7 +132,7 @@ func TestStorageManager_partitionID(t *testing.T) {
 	// it should read directly from partition 1 on startup instead of 0
 	sm = newStorageManagerNoCleanup(t, tmpDir)
 	defer sm.Close()
-	sampled, err := sm.NewUnlimitedReadWriter().IsTraceSampled(traceID)
+	sampled, err := newUnlimitedReadWriter(sm).IsTraceSampled(traceID)
 	assert.NoError(t, err)
 	assert.True(t, sampled)
 }
@@ -142,7 +146,7 @@ func TestStorageManager_DiskUsage(t *testing.T) {
 	lsm, vlog := sm.Size()
 	oldSize := lsm + vlog
 
-	err := sm.NewUnlimitedReadWriter().WriteTraceSampled("foo", true)
+	err := newUnlimitedReadWriter(sm).WriteTraceSampled("foo", true)
 	require.NoError(t, err)
 
 	err = sm.Flush()
@@ -157,7 +161,7 @@ func TestStorageManager_DiskUsage(t *testing.T) {
 	lsm, vlog = sm.Size()
 	oldSize = lsm + vlog
 
-	err = sm.NewUnlimitedReadWriter().WriteTraceEvent("foo", "bar", makeTransaction("bar", "foo"))
+	err = newUnlimitedReadWriter(sm).WriteTraceEvent("foo", "bar", makeTransaction("bar", "foo"))
 	require.NoError(t, err)
 
 	err = sm.Flush()

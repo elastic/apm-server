@@ -395,12 +395,6 @@ func (sm *StorageManager) WriteSubscriberPosition(data []byte) error {
 	return os.WriteFile(filepath.Join(sm.storageDir, subscriberPositionFile), data, 0644)
 }
 
-// NewUnlimitedReadWriter returns a read writer with no storage limit.
-// For testing only.
-func (sm *StorageManager) NewUnlimitedReadWriter() StorageLimitReadWriter {
-	return sm.NewReadWriter(0, 0)
-}
-
 // NewReadWriter returns a read writer configured with storage limit and disk threshold ratio.
 func (sm *StorageManager) NewReadWriter(storageLimit uint64, diskThresholdRatio float64) StorageLimitReadWriter {
 	splitRW := SplitReadWriter{
