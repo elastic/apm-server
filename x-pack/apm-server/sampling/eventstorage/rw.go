@@ -14,7 +14,7 @@ import (
 var (
 	// ErrLimitReached is returned by RW methods when storage usage
 	// is greater than configured limit.
-	ErrLimitReached = errors.New("configured storage limit reached")
+	ErrLimitReached = errors.New("configured limit reached")
 )
 
 // RW is a read writer interface that has methods to read and write trace event and sampling decisions.
@@ -102,7 +102,7 @@ func (s StorageLimitReadWriter) checkStorageLimit() error {
 	if limit != 0 { // unlimited storage
 		usage := s.checker.DiskUsage()
 		if usage >= limit {
-			return fmt.Errorf("%s: %w (current: %d, limit %d)", s.name, ErrLimitReached, usage, limit)
+			return fmt.Errorf("%s: %w (current: %d, limit: %d)", s.name, ErrLimitReached, usage, limit)
 		}
 	}
 	return nil
