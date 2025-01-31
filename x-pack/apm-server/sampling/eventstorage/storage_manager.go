@@ -271,6 +271,7 @@ func (sm *StorageManager) updateDiskUsage() {
 	if err != nil {
 		sm.logger.With(logp.Error(err)).Warn("failed to get disk usage")
 		sm.getDiskUsageFailed.Store(true)
+		sm.cachedDiskStat.used.Store(0)
 		sm.cachedDiskStat.total.Store(0) // setting total to 0 to disable any running disk usage threshold checks
 		return
 	}
