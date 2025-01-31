@@ -125,22 +125,22 @@ func (f *ElasticsearchFetcher) Fetch(ctx context.Context, query Query) (Result, 
 		// Happy path: serve fetch requests using an initialized cache.
 		f.mu.RLock()
 		defer f.mu.RUnlock()
-		f.esFetchCount.Add(ctx, 1)
+		f.esFetchCount.Add(context.Background(), 1)
 		return matchAgentConfig(query, f.cache), nil
 	}
 
 	if f.fallbackFetcher != nil {
-		f.esFetchFallbackCount.Add(ctx, 1)
+		f.esFetchFallbackCount.Add(context.Background(), 1)
 		return f.fallbackFetcher.Fetch(ctx, query)
 	}
 
 	if f.invalidESCfg.Load() {
-		f.esFetchInvalidCount.Add(ctx, 1)
+		f.esFetchInvalidCount.Add(context.Background(), 1)
 		f.rateLimitedLogger.Errorf("rejecting fetch request: no valid elasticsearch config")
 		return Result{}, errors.New(ErrNoValidElasticsearchConfig)
 	}
 
-	f.esFetchUnavailableCount.Add(ctx, 1)
+	f.esFetchUnavailableCount.Add(context.Background(), 1)
 	f.rateLimitedLogger.Warnf("rejecting fetch request: infrastructure is not ready")
 	return Result{}, errors.New(ErrInfrastructureNotReady)
 }
@@ -233,9 +233,9 @@ func (f *ElasticsearchFetcher) refreshCache(ctx context.Context) (err error) {
 
 	defer func() {
 		if err != nil {
-			f.esCacheRefreshFailures.Add(ctx, 1)
+			f.esCacheRefreshFailures.Add(context.Background(), 1)
 		} else {
-			f.esCacheRefreshSuccesses.Add(ctx, 1)
+			f.esCacheRefreshSuccesses.Add(context.Background(), 1)
 		}
 	}()
 
@@ -267,7 +267,7 @@ func (f *ElasticsearchFetcher) refreshCache(ctx context.Context) (err error) {
 	f.cache = buffer
 	f.mu.Unlock()
 	f.cacheInitialized.Store(true)
-	f.esCacheEntriesCount.Record(ctx, int64(len(f.cache)))
+	f.esCacheEntriesCount.Record(context.Background(), int64(len(f.cache)))
 	f.last = time.Now()
 	return nil
 }
