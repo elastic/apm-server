@@ -396,7 +396,7 @@ func (sm *StorageManager) WriteSubscriberPosition(data []byte) error {
 }
 
 // NewReadWriter returns a read writer configured with storage limit and disk usage threshold.
-func (sm *StorageManager) NewReadWriter(storageLimit uint64, diskThresholdRatio float64) RW {
+func (sm *StorageManager) NewReadWriter(storageLimit uint64, diskUsageThreshold float64) RW {
 	var rw RW = SplitReadWriter{
 		eventRW:    sm.eventStorage.NewReadWriter(),
 		decisionRW: sm.decisionStorage.NewReadWriter(),
@@ -421,18 +421,18 @@ func (sm *StorageManager) NewReadWriter(storageLimit uint64, diskThresholdRatio 
 		dbStorageLimitChecker := NewStorageLimitCheckerFunc(sm.dbSize, dbStorageLimit)
 		rw = NewStorageLimitReadWriter("database storage limit", dbStorageLimitChecker, rw)
 	} else {
-		// diskThreshold returns max used disk space in bytes.
+		// diskThreshold returns max used disk space in bytes, not in percentage.
 		// If size of used disk space exceeds diskThreshold, writes should be rejected.
 		diskThreshold := func() uint64 {
-			return uint64(float64(sm.cachedDiskStat.total.Load()) * diskThresholdRatio)
+			return uint64(float64(sm.cachedDiskStat.total.Load()) * diskUsageThreshold)
 		}
 		// the total disk space could change in runtime, but it is still useful to print it out in logs.
-		sm.logger.Infof("setting disk usage threshold to %.2f of total disk space of %0.1fgb", diskThresholdRatio, float64(sm.cachedDiskStat.total.Load())/gb)
+		sm.logger.Infof("setting disk usage threshold to %.2f of total disk space of %0.1fgb", diskUsageThreshold, float64(sm.cachedDiskStat.total.Load())/gb)
 
-		// To limit actual disk usage percentage to diskThresholdRatio
+		// To limit actual disk usage percentage to diskUsageThreshold
 		diskThresholdChecker := NewStorageLimitCheckerFunc(sm.diskUsed, diskThreshold)
 		rw = NewStorageLimitReadWriter(
-			fmt.Sprintf("disk usage ratio exceeding threshold of %.2f", diskThresholdRatio),
+			fmt.Sprintf("disk usage exceeding threshold of %.2f", diskUsageThreshold),
 			diskThresholdChecker,
 			rw,
 		)

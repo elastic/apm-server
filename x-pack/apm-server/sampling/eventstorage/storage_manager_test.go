@@ -218,7 +218,7 @@ func TestStorageManager_DiskThreshold(t *testing.T) {
 		storageLimit       uint64
 		diskUsage          eventstorage.DiskUsage
 		getDiskUsageErr    error
-		diskThresholdRatio float64
+		diskUsageThreshold float64
 		wantErr            error
 	}{
 		{
@@ -227,7 +227,7 @@ func TestStorageManager_DiskThreshold(t *testing.T) {
 				UsedBytes:  1,
 				TotalBytes: 10,
 			},
-			diskThresholdRatio: 0.9,
+			diskUsageThreshold: 0.9,
 			wantErr:            nil,
 		},
 		{
@@ -236,7 +236,7 @@ func TestStorageManager_DiskThreshold(t *testing.T) {
 				UsedBytes:  9,
 				TotalBytes: 10,
 			},
-			diskThresholdRatio: 0.8,
+			diskUsageThreshold: 0.8,
 			wantErr:            eventstorage.ErrLimitReached,
 		},
 		{
@@ -245,7 +245,7 @@ func TestStorageManager_DiskThreshold(t *testing.T) {
 				UsedBytes:  9,
 				TotalBytes: 10,
 			},
-			diskThresholdRatio: 1,
+			diskUsageThreshold: 1,
 			wantErr:            nil,
 		},
 		{
@@ -254,27 +254,27 @@ func TestStorageManager_DiskThreshold(t *testing.T) {
 				UsedBytes:  9,
 				TotalBytes: 10,
 			},
-			diskThresholdRatio: 0,
+			diskUsageThreshold: 0,
 			wantErr:            nil,
 		},
 		{
 			name:               "err with non-0 storage limit",
 			getDiskUsageErr:    errors.New("boom"),
-			diskThresholdRatio: 0.8,
+			diskUsageThreshold: 0.8,
 			storageLimit:       1,
 			wantErr:            eventstorage.ErrLimitReached,
 		},
 		{
 			name:               "err with 0 storage limit non-0 disk usage threshold",
 			getDiskUsageErr:    errors.New("boom"),
-			diskThresholdRatio: 0.8,
+			diskUsageThreshold: 0.8,
 			storageLimit:       0,
 			wantErr:            nil, // overwrite storage limit to a fallback default
 		},
 		{
 			name:               "err with 0 storage limit 0 disk usage threshold",
 			getDiskUsageErr:    errors.New("boom"),
-			diskThresholdRatio: 0,
+			diskUsageThreshold: 0,
 			storageLimit:       0,
 			wantErr:            nil, // should not fallback, unlimited in both storage limit and disk usage threshold
 		},
@@ -298,7 +298,7 @@ func TestStorageManager_DiskThreshold(t *testing.T) {
 			txnID := uuid.Must(uuid.NewV4()).String()
 			txn := makeTransaction(txnID, traceID)
 
-			rw := sm.NewReadWriter(tc.storageLimit, tc.diskThresholdRatio)
+			rw := sm.NewReadWriter(tc.storageLimit, tc.diskUsageThreshold)
 			err := rw.WriteTraceEvent(traceID, txnID, txn)
 			if tc.wantErr != nil {
 				assert.ErrorIs(t, err, eventstorage.ErrLimitReached)
