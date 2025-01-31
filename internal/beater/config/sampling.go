@@ -55,16 +55,16 @@ type TailSamplingConfig struct {
 	StorageLimit       string `config:"storage_limit"`
 	StorageLimitParsed uint64
 
-	// DiskThresholdRatio controls the proportion of the disk to be filled at max, irrespective of db size.
+	// DiskUsageThreshold controls the proportion of the disk to be filled at max, irrespective of db size.
 	// e.g. 0.9 means the last 10% of disk should not be written to.
 	//
 	// This is additional to StorageLimit which controls db size,
-	// i.e. if both StorageLimit and DiskThresholdRatio are set, both are enforced.
+	// i.e. if both StorageLimit and DiskUsageThreshold are set, both are enforced.
 	// If StorageLimit is 0 and any error occurs when getting filesystem stats,
 	// a fallback StorageLimit will be applied.
-	// To disable the fallback to allow unlimited db size and disk threshold under all circumstances,
-	// set both StorageLimit and DiskThresholdRatio to 0.
-	DiskThresholdRatio float64 `config:"disk_threshold_ratio"  validate:"min=0, max=1"`
+	// To disable the fallback to allow unlimited db size and disk usage threshold under all circumstances,
+	// set both StorageLimit and DiskUsageThreshold to 0.
+	DiskUsageThreshold float64 `config:"disk_usage_threshold"  validate:"min=0, max=1"`
 
 	DiscardOnWriteFailure bool `config:"discard_on_write_failure"`
 
@@ -166,7 +166,7 @@ func defaultTailSamplingConfig() TailSamplingConfig {
 		IngestRateDecayFactor: 0.25,
 		TTL:                   30 * time.Minute,
 		StorageLimit:          "0",
-		DiskThresholdRatio:    0.9,
+		DiskUsageThreshold:    0.9,
 		DiscardOnWriteFailure: false,
 	}
 	limit, err := humanize.ParseBytes(cfg.StorageLimit)

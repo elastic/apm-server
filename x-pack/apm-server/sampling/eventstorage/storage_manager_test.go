@@ -265,18 +265,18 @@ func TestStorageManager_DiskThreshold(t *testing.T) {
 			wantErr:            eventstorage.ErrLimitReached,
 		},
 		{
-			name:               "err with 0 storage limit non-0 disk threshold ratio",
+			name:               "err with 0 storage limit non-0 disk usage threshold",
 			getDiskUsageErr:    errors.New("boom"),
 			diskThresholdRatio: 0.8,
 			storageLimit:       0,
 			wantErr:            nil, // overwrite storage limit to a fallback default
 		},
 		{
-			name:               "err with 0 storage limit 0 disk threshold ratio",
+			name:               "err with 0 storage limit 0 disk usage threshold",
 			getDiskUsageErr:    errors.New("boom"),
 			diskThresholdRatio: 0,
 			storageLimit:       0,
-			wantErr:            nil, // should not fallback, unlimited in both storage limit and disk threshold
+			wantErr:            nil, // should not fallback, unlimited in both storage limit and disk usage threshold
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {

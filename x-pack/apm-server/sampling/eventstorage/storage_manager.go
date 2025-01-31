@@ -49,7 +49,7 @@ const (
 	diskUsageFetchInterval = 1 * time.Second
 
 	// dbStorageLimitFallback is the default fallback storage limit in bytes
-	// that applies when disk threshold cannot be enforced due to an error.
+	// that applies when disk usage threshold cannot be enforced due to an error.
 	dbStorageLimitFallback = 3 << 30
 
 	gb = float64(1 << 30)
@@ -257,7 +257,7 @@ func (sm *StorageManager) updateDiskUsage() {
 	if err != nil {
 		sm.logger.With(logp.Error(err)).Warn("failed to get disk usage")
 		sm.getDiskUsageFailed.Store(true)
-		sm.cachedDiskStat.total.Store(0) // setting total to 0 to disable any running disk threshold checks
+		sm.cachedDiskStat.total.Store(0) // setting total to 0 to disable any running disk usage threshold checks
 		return
 	}
 	sm.cachedDiskStat.used.Store(usage.UsedBytes)
@@ -395,7 +395,7 @@ func (sm *StorageManager) WriteSubscriberPosition(data []byte) error {
 	return os.WriteFile(filepath.Join(sm.storageDir, subscriberPositionFile), data, 0644)
 }
 
-// NewReadWriter returns a read writer configured with storage limit and disk threshold ratio.
+// NewReadWriter returns a read writer configured with storage limit and disk usage threshold.
 func (sm *StorageManager) NewReadWriter(storageLimit uint64, diskThresholdRatio float64) StorageLimitReadWriter {
 	splitRW := SplitReadWriter{
 		eventRW:    sm.eventStorage.NewReadWriter(),
@@ -432,13 +432,13 @@ func (sm *StorageManager) NewReadWriter(storageLimit uint64, diskThresholdRatio 
 		diskThreshold = func() uint64 {
 			return 0 // unlimited
 		}
-		sm.logger.Warnf("failed to get disk usage; disabling disk threshold check")
+		sm.logger.Warnf("failed to get disk usage; disabling disk usage threshold check")
 	} else {
 		diskThreshold = func() uint64 {
 			return uint64(float64(sm.cachedDiskStat.total.Load()) * diskThresholdRatio)
 		}
 		// the total disk space could change in runtime, but it is still useful to print it out in logs.
-		sm.logger.Infof("setting disk threshold ratio to %.2f of total disk space of %0.1fgb", diskThresholdRatio, float64(sm.cachedDiskStat.total.Load())/gb)
+		sm.logger.Infof("setting disk usage threshold to %.2f of total disk space of %0.1fgb", diskThresholdRatio, float64(sm.cachedDiskStat.total.Load())/gb)
 	}
 
 	// To limit actual disk usage percentage to diskThresholdRatio
