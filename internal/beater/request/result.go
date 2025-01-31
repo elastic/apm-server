@@ -20,8 +20,6 @@ package request
 import (
 	"net/http"
 
-	"github.com/elastic/elastic-agent-libs/monitoring"
-
 	"github.com/pkg/errors"
 )
 
@@ -101,9 +99,6 @@ var (
 		IDResponseErrorsServiceUnavailable: {Code: http.StatusServiceUnavailable, Keyword: "service unavailable"},
 		IDResponseErrorsInternal:           {Code: http.StatusInternalServerError, Keyword: "internal error"},
 	}
-
-	// DefaultResultIDs is a list of the default result IDs used by the package.
-	DefaultResultIDs = []ResultID{IDRequestCount, IDResponseCount, IDResponseErrorsCount, IDResponseValidCount}
 )
 
 // ResultID unique string identifying a requests Result
@@ -123,27 +118,6 @@ type Result struct {
 	Body       interface{}
 	Err        error
 	Stacktrace string
-}
-
-// DefaultMonitoringMapForRegistry returns map matching resultIDs to monitoring counters for given registry.
-func DefaultMonitoringMapForRegistry(r *monitoring.Registry) map[ResultID]*monitoring.Int {
-	ids := append(DefaultResultIDs, IDUnset)
-	for id := range MapResultIDToStatus {
-		ids = append(ids, id)
-	}
-	return MonitoringMapForRegistry(r, ids)
-}
-
-// MonitoringMapForRegistry returns map matching resultIDs to monitoring counters for given registry and keys
-func MonitoringMapForRegistry(r *monitoring.Registry, ids []ResultID) map[ResultID]*monitoring.Int {
-	m := map[ResultID]*monitoring.Int{}
-	counter := func(s ResultID) *monitoring.Int {
-		return monitoring.NewInt(r, string(s))
-	}
-	for _, id := range ids {
-		m[id] = counter(id)
-	}
-	return m
 }
 
 // Reset sets result to it's empty values

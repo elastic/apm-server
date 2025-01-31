@@ -254,9 +254,11 @@ func (r *Reloader) reload(inputConfig, outputConfig, apmTracingConfig *config.C)
 	// allow the runner to perform initialisations that must run
 	// synchronously.
 	newRunner, err := r.newRunner(RunnerParams{
-		Config: mergedConfig,
-		Info:   r.info,
-		Logger: r.logger,
+		Config:          mergedConfig,
+		Info:            r.info,
+		Logger:          r.logger,
+		MeterProvider:   r.meterProvider,
+		MetricsGatherer: r.metricGatherer,
 	})
 	if err != nil {
 		return err

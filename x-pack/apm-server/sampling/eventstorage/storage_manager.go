@@ -5,19 +5,20 @@
 package eventstorage
 
 import (
+	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
-	"io/fs"
 	"os"
 	"path/filepath"
-	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
-	"github.com/dgraph-io/badger/v2"
+	"github.com/cockroachdb/pebble/v2"
+	"go.opentelemetry.io/otel/metric"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/internal/logs"
 	"github.com/elastic/elastic-agent-libs/logp"
 )
@@ -26,315 +27,350 @@ const (
 	// subscriberPositionFile holds the file name used for persisting
 	// the subscriber position across server restarts.
 	subscriberPositionFile = "subscriber_position.json"
+
+	// partitionsPerTTL holds the number of partitions that events in 1 TTL should be stored over.
+	// Increasing partitionsPerTTL increases read amplification, but decreases storage overhead,
+	// as TTL GC can be performed sooner.
+	//
+	// For example, partitionPerTTL=1 means we need to keep 2 partitions active,
+	// such that the last entry in the previous partition is also kept for a full TTL.
+	// This means storage requirement is 2 * TTL, and it needs to read 2 keys per trace ID read.
+	// If partitionPerTTL=2, storage requirement is 1.5 * TTL at the expense of 3 reads per trace ID read.
+	partitionsPerTTL = 1
+
+	// reservedKeyPrefix is the prefix of internal keys used by StorageManager
+	reservedKeyPrefix byte = '~'
+
+	// partitionerMetaKey is the key used to store partitioner metadata, e.g. last partition ID, in decision DB.
+	partitionerMetaKey = string(reservedKeyPrefix) + "partitioner"
+
+	// diskUsageFetchInterval is how often disk usage is fetched which is equivalent to how long disk usage is cached.
+	diskUsageFetchInterval = 1 * time.Second
 )
 
-var (
-	errDropAndRecreateInProgress = errors.New("db drop and recreate in progress")
-)
+type StorageManagerOptions func(*StorageManager)
 
-// StorageManager encapsulates badger.DB.
-// It is to provide file system access, simplify synchronization and enable underlying db swaps.
-// It assumes exclusive access to badger DB at storageDir.
+func WithCodec(codec Codec) StorageManagerOptions {
+	return func(sm *StorageManager) {
+		sm.codec = codec
+	}
+}
+
+func WithMeterProvider(mp metric.MeterProvider) StorageManagerOptions {
+	return func(sm *StorageManager) {
+		sm.meterProvider = mp
+	}
+}
+
+// StorageManager encapsulates pebble.DB.
+// It assumes exclusive access to pebble DB at storageDir.
 type StorageManager struct {
 	storageDir string
 	logger     *logp.Logger
 
-	db      *badger.DB
-	storage *Storage
-	rw      *ShardedReadWriter
+	eventDB         *pebble.DB
+	decisionDB      *pebble.DB
+	eventStorage    *Storage
+	decisionStorage *Storage
 
-	// mu guards db, storage, and rw swaps.
-	mu sync.RWMutex
+	partitioner *Partitioner
+
+	codec Codec
+
 	// subscriberPosMu protects the subscriber file from concurrent RW.
 	subscriberPosMu sync.Mutex
+
+	// cachedDBSize is a cached result of db size.
+	cachedDBSize atomic.Uint64
 
 	// runCh acts as a mutex to ensure only 1 Run is actively running per StorageManager.
 	// as it is possible that 2 separate Run are created by 2 TBS processors during a hot reload.
 	runCh chan struct{}
+
+	// meterProvider is the OTel meter provider
+	meterProvider metric.MeterProvider
+
+	metricRegistration metric.Registration
 }
 
-// NewStorageManager returns a new StorageManager with badger DB at storageDir.
-func NewStorageManager(storageDir string) (*StorageManager, error) {
+// NewStorageManager returns a new StorageManager with pebble DB at storageDir.
+func NewStorageManager(storageDir string, opts ...StorageManagerOptions) (*StorageManager, error) {
 	sm := &StorageManager{
 		storageDir: storageDir,
 		runCh:      make(chan struct{}, 1),
 		logger:     logp.NewLogger(logs.Sampling),
+		codec:      ProtobufCodec{},
 	}
-	err := sm.reset()
-	if err != nil {
-		return nil, err
+	for _, opt := range opts {
+		opt(sm)
 	}
+
+	if sm.meterProvider != nil {
+		meter := sm.meterProvider.Meter("github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage")
+		lsmSizeGauge, _ := meter.Int64ObservableGauge("apm-server.sampling.tail.storage.lsm_size")
+		valueLogSizeGauge, _ := meter.Int64ObservableGauge("apm-server.sampling.tail.storage.value_log_size")
+
+		sm.metricRegistration, _ = meter.RegisterCallback(func(ctx context.Context, o metric.Observer) error {
+			lsmSize, valueLogSize := sm.Size()
+			o.ObserveInt64(lsmSizeGauge, lsmSize)
+			o.ObserveInt64(valueLogSizeGauge, valueLogSize)
+			return nil
+		}, lsmSizeGauge, valueLogSizeGauge)
+	}
+
+	if err := sm.reset(); err != nil {
+		return nil, fmt.Errorf("storage manager reset error: %w", err)
+	}
+
 	return sm, nil
 }
 
-// reset initializes db, storage, and rw.
-func (s *StorageManager) reset() error {
-	db, err := OpenBadger(s.storageDir, -1)
+// reset initializes db and storage.
+func (sm *StorageManager) reset() error {
+	eventDB, err := OpenEventPebble(sm.storageDir)
 	if err != nil {
-		return err
+		return fmt.Errorf("open event db error: %w", err)
 	}
-	s.db = db
-	s.storage = New(s, ProtobufCodec{})
-	s.rw = s.storage.NewShardedReadWriter()
+	sm.eventDB = eventDB
+
+	decisionDB, err := OpenDecisionPebble(sm.storageDir)
+	if err != nil {
+		return fmt.Errorf("open decision db error: %w", err)
+	}
+	sm.decisionDB = decisionDB
+
+	// Only recreate partitioner on initial create
+	if sm.partitioner == nil {
+		var currentPID int
+		if currentPID, err = sm.loadPartitionID(); err != nil {
+			sm.logger.With(logp.Error(err)).Warn("failed to load partition ID, using 0 instead")
+		}
+		// We need to keep an extra partition as buffer to respect the TTL,
+		// as the moving window needs to cover at least TTL at all times,
+		// where the moving window is defined as:
+		// all active partitions excluding current partition + duration since the start of current partition
+		activePartitions := partitionsPerTTL + 1
+		sm.partitioner = NewPartitioner(activePartitions, currentPID)
+	}
+
+	sm.eventStorage = New(sm.eventDB, sm.partitioner, sm.codec)
+	sm.decisionStorage = New(sm.decisionDB, sm.partitioner, sm.codec)
+
+	sm.updateDiskUsage()
+
 	return nil
 }
 
-// Close closes StorageManager's underlying ShardedReadWriter and badger DB
-func (s *StorageManager) Close() error {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-	s.rw.Close()
-	return s.db.Close()
+type partitionerMeta struct {
+	ID int `json:"id"`
 }
 
-// Size returns the db size
-func (s *StorageManager) Size() (lsm, vlog int64) {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-	return s.db.Size()
-}
-
-func (s *StorageManager) NewTransaction(update bool) *badger.Txn {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-	return s.db.NewTransaction(update)
-}
-
-// Run has the same lifecycle as the TBS processor as opposed to StorageManager to facilitate EA hot reload.
-func (s *StorageManager) Run(stopping <-chan struct{}, gcInterval time.Duration, ttl time.Duration, storageLimit uint64, storageLimitThreshold float64) error {
-	select {
-	case <-stopping:
-		return nil
-	case s.runCh <- struct{}{}:
+// loadPartitionID loads the last saved partition ID from database,
+// such that partitioner resumes from where it left off before an apm-server restart.
+func (sm *StorageManager) loadPartitionID() (int, error) {
+	item, closer, err := sm.decisionDB.Get([]byte(partitionerMetaKey))
+	if errors.Is(err, pebble.ErrNotFound) {
+		return 0, nil
+	} else if err != nil {
+		return 0, err
 	}
-	defer func() {
-		<-s.runCh
-	}()
-
-	g := errgroup.Group{}
-	g.Go(func() error {
-		return s.runGCLoop(stopping, gcInterval)
-	})
-	g.Go(func() error {
-		return s.runDropLoop(stopping, ttl, storageLimit, storageLimitThreshold)
-	})
-	return g.Wait()
+	defer closer.Close()
+	var pid partitionerMeta
+	err = json.Unmarshal(item, &pid)
+	return pid.ID, err
 }
 
-// runGCLoop runs a loop that calls badger DB RunValueLogGC every gcInterval.
-func (s *StorageManager) runGCLoop(stopping <-chan struct{}, gcInterval time.Duration) error {
-	// This goroutine is responsible for periodically garbage
-	// collecting the Badger value log, using the recommended
-	// discard ratio of 0.5.
-	ticker := time.NewTicker(gcInterval)
+// savePartitionID saves the partition ID to database to be loaded by loadPartitionID later.
+func (sm *StorageManager) savePartitionID(pid int) error {
+	b, err := json.Marshal(partitionerMeta{ID: pid})
+	if err != nil {
+		return fmt.Errorf("error marshaling partition ID: %w", err)
+	}
+	return sm.decisionDB.Set([]byte(partitionerMetaKey), b, pebble.NoSync)
+}
+
+func (sm *StorageManager) Size() (lsm, vlog int64) {
+	// This is reporting lsm and vlog for legacy reasons.
+	// vlog is always 0 because pebble does not have a vlog.
+	// Keeping this legacy structure such that the metrics are comparable across versions,
+	// and we don't need to update the tooling, e.g. kibana dashboards.
+	//
+	// TODO(carsonip): Update this to report a more helpful size to monitoring,
+	// maybe broken down into event DB vs decision DB, and LSM tree vs WAL vs misc.
+	// Also remember to update
+	// - x-pack/apm-server/sampling/processor.go:CollectMonitoring
+	// - systemtest/benchtest/expvar/metrics.go
+	return int64(sm.dbSize()), 0
+}
+
+// dbSize returns the disk usage of databases in bytes.
+func (sm *StorageManager) dbSize() uint64 {
+	// pebble DiskSpaceUsage overhead is not high, but it adds up when performed per-event.
+	return sm.cachedDBSize.Load()
+}
+
+func (sm *StorageManager) updateDiskUsage() {
+	sm.cachedDBSize.Store(sm.eventDB.Metrics().DiskSpaceUsage() + sm.decisionDB.Metrics().DiskSpaceUsage())
+}
+
+// runDiskUsageLoop runs a loop that updates cached disk usage regularly.
+func (sm *StorageManager) runDiskUsageLoop(stopping <-chan struct{}) error {
+	ticker := time.NewTicker(diskUsageFetchInterval)
 	defer ticker.Stop()
 	for {
 		select {
 		case <-stopping:
 			return nil
 		case <-ticker.C:
-			const discardRatio = 0.5
-			var err error
-			for err == nil {
-				// Keep garbage collecting until there are no more rewrites,
-				// or garbage collection fails.
-				err = s.runValueLogGC(discardRatio)
-			}
-			if err != nil && err != badger.ErrNoRewrite {
-				return err
-			}
+			sm.updateDiskUsage()
 		}
 	}
 }
 
-func (s *StorageManager) runValueLogGC(discardRatio float64) error {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-	return s.db.RunValueLogGC(discardRatio)
+func (sm *StorageManager) Flush() error {
+	return errors.Join(
+		wrapNonNilErr("event db flush error: %w", sm.eventDB.Flush()),
+		wrapNonNilErr("decision db flush error: %w", sm.decisionDB.Flush()),
+	)
 }
 
-// runDropLoop runs a loop that detects if storage limit has been exceeded for at least ttl.
-// If so, it drops and recreates the underlying badger DB.
-// This is a mitigation for issue https://github.com/elastic/apm-server/issues/14923
-func (s *StorageManager) runDropLoop(stopping <-chan struct{}, ttl time.Duration, storageLimitInBytes uint64, storageLimitThreshold float64) error {
-	if storageLimitInBytes == 0 {
-		return nil
-	}
+func (sm *StorageManager) Close() error {
+	return sm.close()
+}
 
-	var firstExceeded time.Time
-	checkAndFix := func() error {
-		lsm, vlog := s.Size()
-		// add buffer to avoid edge case storageLimitInBytes-lsm-vlog < buffer, when writes are still always rejected
-		buffer := int64(baseTransactionSize * len(s.rw.readWriters))
-		if uint64(lsm+vlog+buffer) >= storageLimitInBytes {
-			now := time.Now()
-			if firstExceeded.IsZero() {
-				firstExceeded = now
-				s.logger.Warnf(
-					"badger db size (%d+%d=%d) has exceeded storage limit (%d*%.1f=%d); db will be dropped and recreated if problem persists for `sampling.tail.ttl` (%s)",
-					lsm, vlog, lsm+vlog, storageLimitInBytes, storageLimitThreshold, int64(float64(storageLimitInBytes)*storageLimitThreshold), ttl.String())
-			}
-			if now.Sub(firstExceeded) >= ttl {
-				s.logger.Warnf("badger db size has exceeded storage limit for over `sampling.tail.ttl` (%s), please consider increasing `sampling.tail.storage_limit`; dropping and recreating badger db to recover", ttl.String())
-				err := s.dropAndRecreate()
-				if err != nil {
-					s.logger.With(logp.Error(err)).Error("error dropping and recreating badger db to recover storage space")
-				} else {
-					s.logger.Info("badger db dropped and recreated")
-				}
-				firstExceeded = time.Time{}
-			}
-		} else {
-			firstExceeded = time.Time{}
+func (sm *StorageManager) close() error {
+	if sm.metricRegistration != nil {
+		if err := sm.metricRegistration.Unregister(); err != nil {
+			sm.logger.With(logp.Error(err)).Error("failed to unregister metric")
 		}
-		return nil
 	}
+	return errors.Join(
+		wrapNonNilErr("event db flush error: %w", sm.eventDB.Flush()),
+		wrapNonNilErr("decision db flush error: %w", sm.decisionDB.Flush()),
+		wrapNonNilErr("event db close error: %w", sm.eventDB.Close()),
+		wrapNonNilErr("decision db close error: %w", sm.decisionDB.Close()),
+	)
+}
 
-	timer := time.NewTicker(time.Minute) // Eval db size every minute as badger reports them with 1m lag
-	defer timer.Stop()
+// Reload flushes out pending disk writes to disk by reloading the database.
+// For testing only.
+// Read writers created prior to Reload cannot be used and will need to be recreated via NewUnlimitedReadWriter.
+func (sm *StorageManager) Reload() error {
+	if err := sm.close(); err != nil {
+		return err
+	}
+	return sm.reset()
+}
+
+// Run has the same lifecycle as the TBS processor as opposed to StorageManager to facilitate EA hot reload.
+func (sm *StorageManager) Run(stopping <-chan struct{}, ttl time.Duration) error {
+	select {
+	case <-stopping:
+		return nil
+	case sm.runCh <- struct{}{}:
+	}
+	defer func() {
+		<-sm.runCh
+	}()
+
+	g := errgroup.Group{}
+	g.Go(func() error {
+		return sm.runTTLGCLoop(stopping, ttl)
+	})
+	g.Go(func() error {
+		return sm.runDiskUsageLoop(stopping)
+	})
+
+	return g.Wait()
+}
+
+// runTTLGCLoop runs the TTL GC loop.
+// The loop triggers a rotation on partitions at an interval based on ttl and partitionsPerTTL.
+func (sm *StorageManager) runTTLGCLoop(stopping <-chan struct{}, ttl time.Duration) error {
+	ttlGCInterval := ttl / partitionsPerTTL
+	ticker := time.NewTicker(ttlGCInterval)
+	defer ticker.Stop()
 	for {
-		if err := checkAndFix(); err != nil {
-			return err
-		}
-
 		select {
 		case <-stopping:
 			return nil
-		case <-timer.C:
-			continue
+		case <-ticker.C:
+			sm.logger.Info("running TTL GC to clear expired entries and reclaim disk space")
+			if err := sm.RotatePartitions(); err != nil {
+				sm.logger.With(logp.Error(err)).Error("failed to rotate partition")
+			}
+			sm.logger.Info("finished running TTL GC")
 		}
 	}
 }
 
-// dropAndRecreate deletes the underlying badger DB files at the file system level, and replaces it with a new badger DB.
-func (s *StorageManager) dropAndRecreate() (retErr error) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
+// RotatePartitions rotates the partitions to clean up TTL-expired entries.
+func (sm *StorageManager) RotatePartitions() error {
+	newCurrentPID, newInactivePID := sm.partitioner.Rotate()
 
-	defer func() {
-		// In any case (errors or not), reset StorageManager while lock is held
-		err := s.reset()
-		if err != nil {
-			retErr = errors.Join(retErr, fmt.Errorf("error reopening badger db: %w", err))
-		}
-	}()
-
-	// Intentionally not flush rw, as storage is full.
-	s.rw.Close()
-	err := s.db.Close()
-	if err != nil {
-		return fmt.Errorf("error closing badger db: %w", err)
+	if err := sm.savePartitionID(newCurrentPID); err != nil {
+		return err
 	}
 
-	err = s.deleteBadgerFiles()
-	if err != nil {
-		return fmt.Errorf("error deleting badger db files: %w", err)
-	}
+	// No lock is needed here as the only writer to sm.partitioner is exactly this function.
+	lbPrefix := byte(newInactivePID)
 
-	return nil
-}
+	lb := []byte{lbPrefix}
+	ub := []byte{lbPrefix + 1} // Do not use % here as ub MUST BE greater than lb
 
-func (s *StorageManager) deleteBadgerFiles() error {
-	// Although removing the files in place can be slower, it is less error-prone than rename-and-delete.
-	// Delete every file except subscriber position file
-	var (
-		rootVisited         bool
-		sstFiles, vlogFiles int
-		otherFilenames      []string
+	return errors.Join(
+		wrapNonNilErr("event db delete range error: %w", sm.eventDB.DeleteRange(lb, ub, pebble.NoSync)),
+		wrapNonNilErr("decision db delete range error: %w", sm.decisionDB.DeleteRange(lb, ub, pebble.NoSync)),
+		wrapNonNilErr("event db compact error: %w", sm.eventDB.Compact(lb, ub, false)),
+		wrapNonNilErr("decision db compact error: %w", sm.decisionDB.Compact(lb, ub, false)),
 	)
-	err := filepath.WalkDir(s.storageDir, func(path string, d fs.DirEntry, _ error) error {
-		if !rootVisited {
-			rootVisited = true
-			return nil
-		}
-		filename := filepath.Base(path)
-		if filename == subscriberPositionFile {
-			return nil
-		}
-		switch ext := filepath.Ext(filename); ext {
-		case ".sst":
-			sstFiles++
-		case ".vlog":
-			vlogFiles++
-		default:
-			otherFilenames = append(otherFilenames, filename)
-		}
-		return os.RemoveAll(path)
-	})
-	s.logger.Infof("deleted badger files: %d SST files, %d VLOG files, %d other files: [%s]",
-		sstFiles, vlogFiles, len(otherFilenames), strings.Join(otherFilenames, ", "))
-	return err
 }
 
-func (s *StorageManager) ReadSubscriberPosition() ([]byte, error) {
-	s.subscriberPosMu.Lock()
-	defer s.subscriberPosMu.Unlock()
-	return os.ReadFile(filepath.Join(s.storageDir, subscriberPositionFile))
+func (sm *StorageManager) ReadSubscriberPosition() ([]byte, error) {
+	sm.subscriberPosMu.Lock()
+	defer sm.subscriberPosMu.Unlock()
+	return os.ReadFile(filepath.Join(sm.storageDir, subscriberPositionFile))
 }
 
-func (s *StorageManager) WriteSubscriberPosition(data []byte) error {
-	s.subscriberPosMu.Lock()
-	defer s.subscriberPosMu.Unlock()
-	return os.WriteFile(filepath.Join(s.storageDir, subscriberPositionFile), data, 0644)
+func (sm *StorageManager) WriteSubscriberPosition(data []byte) error {
+	sm.subscriberPosMu.Lock()
+	defer sm.subscriberPosMu.Unlock()
+	return os.WriteFile(filepath.Join(sm.storageDir, subscriberPositionFile), data, 0644)
 }
 
-func (s *StorageManager) NewReadWriter() *ManagedReadWriter {
-	return &ManagedReadWriter{
-		sm: s,
+// NewUnlimitedReadWriter returns a read writer with no storage limit.
+// For testing only.
+func (sm *StorageManager) NewUnlimitedReadWriter() StorageLimitReadWriter {
+	return sm.NewReadWriter(0)
+}
+
+// NewReadWriter returns a read writer with storage limit.
+func (sm *StorageManager) NewReadWriter(storageLimit uint64) StorageLimitReadWriter {
+	splitRW := SplitReadWriter{
+		eventRW:    sm.eventStorage.NewReadWriter(),
+		decisionRW: sm.decisionStorage.NewReadWriter(),
 	}
-}
 
-// ManagedReadWriter is a read writer that is transparent to badger DB changes done by StorageManager.
-// It is a wrapper of the ShardedReadWriter under StorageManager.
-type ManagedReadWriter struct {
-	sm *StorageManager
-}
-
-func (s *ManagedReadWriter) ReadTraceEvents(traceID string, out *modelpb.Batch) error {
-	s.sm.mu.RLock()
-	defer s.sm.mu.RUnlock()
-	return s.sm.rw.ReadTraceEvents(traceID, out)
-}
-
-func (s *ManagedReadWriter) WriteTraceEvent(traceID, id string, event *modelpb.APMEvent, opts WriterOpts) error {
-	ok := s.sm.mu.TryRLock()
-	if !ok {
-		return errDropAndRecreateInProgress
+	dbStorageLimit := func() uint64 {
+		return storageLimit
 	}
-	defer s.sm.mu.RUnlock()
-	return s.sm.rw.WriteTraceEvent(traceID, id, event, opts)
-}
-
-func (s *ManagedReadWriter) WriteTraceSampled(traceID string, sampled bool, opts WriterOpts) error {
-	ok := s.sm.mu.TryRLock()
-	if !ok {
-		return errDropAndRecreateInProgress
+	if storageLimit == 0 {
+		sm.logger.Infof("setting database storage limit to unlimited")
+	} else {
+		sm.logger.Infof("setting database storage limit to %.1fgb", float64(storageLimit))
 	}
-	defer s.sm.mu.RUnlock()
-	return s.sm.rw.WriteTraceSampled(traceID, sampled, opts)
+
+	// To limit db size to storage_limit
+	dbStorageLimitChecker := NewStorageLimitCheckerFunc(sm.dbSize, dbStorageLimit)
+	dbStorageLimitRW := NewStorageLimitReadWriter("database storage limit", dbStorageLimitChecker, splitRW)
+
+	return dbStorageLimitRW
 }
 
-func (s *ManagedReadWriter) IsTraceSampled(traceID string) (bool, error) {
-	s.sm.mu.RLock()
-	defer s.sm.mu.RUnlock()
-	return s.sm.rw.IsTraceSampled(traceID)
-}
-
-func (s *ManagedReadWriter) DeleteTraceEvent(traceID, id string) error {
-	s.sm.mu.RLock()
-	defer s.sm.mu.RUnlock()
-	return s.sm.rw.DeleteTraceEvent(traceID, id)
-}
-
-func (s *ManagedReadWriter) Flush() error {
-	s.sm.mu.RLock()
-	defer s.sm.mu.RUnlock()
-	return s.sm.rw.Flush()
-}
-
-// NewBypassReadWriter returns a ReadWriter directly reading and writing to the database,
-// bypassing any wrapper e.g. ShardedReadWriter.
-// This should be used for testing only, useful to check if data is actually persisted to the DB.
-func (s *StorageManager) NewBypassReadWriter() *ReadWriter {
-	return s.storage.NewReadWriter()
+// wrapNonNilErr only wraps an error with format if the error is not nil.
+func wrapNonNilErr(format string, err error) error {
+	if err == nil {
+		return nil
+	}
+	return fmt.Errorf(format, err)
 }
