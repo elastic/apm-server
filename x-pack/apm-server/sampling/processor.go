@@ -121,10 +121,10 @@ func (p *Processor) ProcessBatch(ctx context.Context, batch *modelpb.Batch) erro
 			stored = false
 			if p.config.DiscardOnWriteFailure {
 				report = false
-				p.rateLimitedLogger.Info("processing trace failed, discarding by default")
+				p.rateLimitedLogger.With(logp.Error(err)).Warn("processing trace failed, discarding by default")
 			} else {
 				report = true
-				p.rateLimitedLogger.Info("processing trace failed, indexing by default")
+				p.rateLimitedLogger.With(logp.Error(err)).Warn("processing trace failed, indexing by default")
 			}
 		}
 
@@ -345,7 +345,7 @@ func (p *Processor) Run() error {
 		}
 	})
 	g.Go(func() error {
-		return p.config.DB.Run(p.stopping, p.config.TTL, p.config.StorageLimit)
+		return p.config.DB.Run(p.stopping, p.config.TTL)
 	})
 	g.Go(func() error {
 		// Subscribe to remotely sampled trace IDs. This is cancelled immediately when
