@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/cockroachdb/pebble/v2"
+	"github.com/cockroachdb/pebble/v2/vfs"
 	"go.opentelemetry.io/otel/metric"
 	"golang.org/x/sync/errgroup"
 
@@ -46,6 +47,12 @@ const (
 
 	// diskUsageFetchInterval is how often disk usage is fetched which is equivalent to how long disk usage is cached.
 	diskUsageFetchInterval = 1 * time.Second
+
+	// dbStorageLimitFallback is the default fallback storage limit in bytes
+	// that applies when disk usage threshold cannot be enforced due to an error.
+	dbStorageLimitFallback = 3 << 30
+
+	gb = float64(1 << 30)
 )
 
 type StorageManagerOptions func(*StorageManager)
@@ -60,6 +67,27 @@ func WithMeterProvider(mp metric.MeterProvider) StorageManagerOptions {
 	return func(sm *StorageManager) {
 		sm.meterProvider = mp
 	}
+}
+
+// WithGetDBSize configures getDBSize function used by StorageManager.
+// For testing only.
+func WithGetDBSize(getDBSize func() uint64) StorageManagerOptions {
+	return func(sm *StorageManager) {
+		sm.getDBSize = getDBSize
+	}
+}
+
+// WithGetDiskUsage configures getDiskUsage function used by StorageManager.
+// For testing only.
+func WithGetDiskUsage(getDiskUsage func() (DiskUsage, error)) StorageManagerOptions {
+	return func(sm *StorageManager) {
+		sm.getDiskUsage = getDiskUsage
+	}
+}
+
+// DiskUsage is the struct returned by getDiskUsage.
+type DiskUsage struct {
+	UsedBytes, TotalBytes uint64
 }
 
 // StorageManager encapsulates pebble.DB.
@@ -80,8 +108,19 @@ type StorageManager struct {
 	// subscriberPosMu protects the subscriber file from concurrent RW.
 	subscriberPosMu sync.Mutex
 
+	// getDBSize returns the total size of databases in bytes.
+	getDBSize func() uint64
 	// cachedDBSize is a cached result of db size.
 	cachedDBSize atomic.Uint64
+
+	// getDiskUsage returns the disk / filesystem usage statistics of storageDir.
+	getDiskUsage func() (DiskUsage, error)
+	// getDiskUsageFailed indicates if getDiskUsage calls ever failed.
+	getDiskUsageFailed atomic.Bool
+	// cachedDiskStat is disk usage statistics about the disk only, not related to the databases.
+	cachedDiskStat struct {
+		used, total atomic.Uint64
+	}
 
 	// runCh acts as a mutex to ensure only 1 Run is actively running per StorageManager.
 	// as it is possible that 2 separate Run are created by 2 TBS processors during a hot reload.
@@ -100,6 +139,16 @@ func NewStorageManager(storageDir string, opts ...StorageManagerOptions) (*Stora
 		runCh:      make(chan struct{}, 1),
 		logger:     logp.NewLogger(logs.Sampling),
 		codec:      ProtobufCodec{},
+		getDiskUsage: func() (DiskUsage, error) {
+			usage, err := vfs.Default.GetDiskUsage(storageDir)
+			return DiskUsage{
+				UsedBytes:  usage.UsedBytes,
+				TotalBytes: usage.TotalBytes,
+			}, err
+		},
+	}
+	sm.getDBSize = func() uint64 {
+		return sm.eventDB.Metrics().DiskSpaceUsage() + sm.decisionDB.Metrics().DiskSpaceUsage()
 	}
 	for _, opt := range opts {
 		opt(sm)
@@ -210,7 +259,30 @@ func (sm *StorageManager) dbSize() uint64 {
 }
 
 func (sm *StorageManager) updateDiskUsage() {
-	sm.cachedDBSize.Store(sm.eventDB.Metrics().DiskSpaceUsage() + sm.decisionDB.Metrics().DiskSpaceUsage())
+	sm.cachedDBSize.Store(sm.getDBSize())
+
+	if sm.getDiskUsageFailed.Load() {
+		// Skip GetDiskUsage under the assumption that
+		// it will always get the same error if GetDiskUsage ever returns one,
+		// such that it does not keep logging GetDiskUsage errors.
+		return
+	}
+	usage, err := sm.getDiskUsage()
+	if err != nil {
+		sm.logger.With(logp.Error(err)).Warn("failed to get disk usage")
+		sm.getDiskUsageFailed.Store(true)
+		sm.cachedDiskStat.used.Store(0)
+		sm.cachedDiskStat.total.Store(0) // setting total to 0 to disable any running disk usage threshold checks
+		return
+	}
+	sm.cachedDiskStat.used.Store(usage.UsedBytes)
+	sm.cachedDiskStat.total.Store(usage.TotalBytes)
+}
+
+// diskUsed returns the actual used disk space in bytes.
+// Not to be confused with dbSize which is specific to database.
+func (sm *StorageManager) diskUsed() uint64 {
+	return sm.cachedDiskStat.used.Load()
 }
 
 // runDiskUsageLoop runs a loop that updates cached disk usage regularly.
@@ -338,33 +410,53 @@ func (sm *StorageManager) WriteSubscriberPosition(data []byte) error {
 	return os.WriteFile(filepath.Join(sm.storageDir, subscriberPositionFile), data, 0644)
 }
 
-// NewUnlimitedReadWriter returns a read writer with no storage limit.
-// For testing only.
-func (sm *StorageManager) NewUnlimitedReadWriter() StorageLimitReadWriter {
-	return sm.NewReadWriter(0)
-}
-
-// NewReadWriter returns a read writer with storage limit.
-func (sm *StorageManager) NewReadWriter(storageLimit uint64) StorageLimitReadWriter {
-	splitRW := SplitReadWriter{
+// NewReadWriter returns a read writer configured with storage limit and disk usage threshold.
+func (sm *StorageManager) NewReadWriter(storageLimit uint64, diskUsageThreshold float64) RW {
+	var rw RW = SplitReadWriter{
 		eventRW:    sm.eventStorage.NewReadWriter(),
 		decisionRW: sm.decisionStorage.NewReadWriter(),
 	}
 
-	dbStorageLimit := func() uint64 {
-		return storageLimit
-	}
-	if storageLimit == 0 {
-		sm.logger.Infof("setting database storage limit to unlimited")
-	} else {
-		sm.logger.Infof("setting database storage limit to %.1fgb", float64(storageLimit))
+	// If db storage limit is set, only enforce db storage limit.
+	if storageLimit > 0 {
+		// dbStorageLimit returns max size of db in bytes.
+		// If size of db exceeds dbStorageLimit, writes should be rejected.
+		dbStorageLimit := func() uint64 {
+			return storageLimit
+		}
+		sm.logger.Infof("setting database storage limit to %0.1fgb", float64(storageLimit)/gb)
+		dbStorageLimitChecker := NewStorageLimitCheckerFunc(sm.dbSize, dbStorageLimit)
+		rw = NewStorageLimitReadWriter("database storage limit", dbStorageLimitChecker, rw)
+		return rw
 	}
 
-	// To limit db size to storage_limit
-	dbStorageLimitChecker := NewStorageLimitCheckerFunc(sm.dbSize, dbStorageLimit)
-	dbStorageLimitRW := NewStorageLimitReadWriter("database storage limit", dbStorageLimitChecker, splitRW)
+	// DB storage limit is unlimited, enforce disk usage threshold if possible.
+	// Load whether getDiskUsage failed, as it was called during StorageManager initialization.
+	if sm.getDiskUsageFailed.Load() {
+		// Limit db size to fallback storage limit as getDiskUsage returned an error
+		dbStorageLimit := func() uint64 {
+			return dbStorageLimitFallback
+		}
+		sm.logger.Warnf("overriding database storage limit to fallback default of %0.1fgb as get disk usage failed", float64(dbStorageLimitFallback)/gb)
+		dbStorageLimitChecker := NewStorageLimitCheckerFunc(sm.dbSize, dbStorageLimit)
+		rw = NewStorageLimitReadWriter("database storage limit", dbStorageLimitChecker, rw)
+		return rw
+	}
 
-	return dbStorageLimitRW
+	// diskThreshold returns max used disk space in bytes, not in percentage.
+	// If size of used disk space exceeds diskThreshold, writes should be rejected.
+	diskThreshold := func() uint64 {
+		return uint64(float64(sm.cachedDiskStat.total.Load()) * diskUsageThreshold)
+	}
+	// the total disk space could change in runtime, but it is still useful to print it out in logs.
+	sm.logger.Infof("setting disk usage threshold to %.2f of total disk space of %0.1fgb", diskUsageThreshold, float64(sm.cachedDiskStat.total.Load())/gb)
+	diskThresholdChecker := NewStorageLimitCheckerFunc(sm.diskUsed, diskThreshold)
+	rw = NewStorageLimitReadWriter(
+		fmt.Sprintf("disk usage threshold %.2f", diskUsageThreshold),
+		diskThresholdChecker,
+		rw,
+	)
+	return rw
 }
 
 // wrapNonNilErr only wraps an error with format if the error is not nil.
