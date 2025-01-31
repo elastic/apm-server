@@ -414,6 +414,7 @@ func (sm *StorageManager) NewReadWriter(storageLimit uint64, diskUsageThreshold 
 		decisionRW: sm.decisionStorage.NewReadWriter(),
 	}
 
+	// If db storage limit is set, only enforce db storage limit.
 	if storageLimit > 0 {
 		// dbStorageLimit returns max size of db in bytes.
 		// If size of db exceeds dbStorageLimit, writes should be rejected.
@@ -421,35 +422,37 @@ func (sm *StorageManager) NewReadWriter(storageLimit uint64, diskUsageThreshold 
 			return storageLimit
 		}
 		sm.logger.Infof("setting database storage limit to %0.1fgb", float64(storageLimit)/gb)
-		// To limit db size to storage_limit
 		dbStorageLimitChecker := NewStorageLimitCheckerFunc(sm.dbSize, dbStorageLimit)
 		rw = NewStorageLimitReadWriter("database storage limit", dbStorageLimitChecker, rw)
-	} else if storageLimit == 0 && sm.getDiskUsageFailed.Load() {
+		return rw
+	}
+
+	// DB storage limit is unlimited, enforce disk usage threshold if possible.
+	// Load whether getDiskUsage failed, as it was called during StorageManager initialization.
+	if sm.getDiskUsageFailed.Load() {
+		// Limit db size to fallback storage limit as getDiskUsage returned an error
 		dbStorageLimit := func() uint64 {
 			return dbStorageLimitFallback
 		}
 		sm.logger.Warnf("failed to get disk usage; disabling disk usage threshold check, overriding database storage limit to fallback default of %0.1fgb", float64(dbStorageLimitFallback)/gb)
-		// To limit db size to fallback storage limit
 		dbStorageLimitChecker := NewStorageLimitCheckerFunc(sm.dbSize, dbStorageLimit)
 		rw = NewStorageLimitReadWriter("database storage limit", dbStorageLimitChecker, rw)
-	} else {
-		// diskThreshold returns max used disk space in bytes, not in percentage.
-		// If size of used disk space exceeds diskThreshold, writes should be rejected.
-		diskThreshold := func() uint64 {
-			return uint64(float64(sm.cachedDiskStat.total.Load()) * diskUsageThreshold)
-		}
-		// the total disk space could change in runtime, but it is still useful to print it out in logs.
-		sm.logger.Infof("setting disk usage threshold to %.2f of total disk space of %0.1fgb", diskUsageThreshold, float64(sm.cachedDiskStat.total.Load())/gb)
-
-		// To limit actual disk usage percentage to diskUsageThreshold
-		diskThresholdChecker := NewStorageLimitCheckerFunc(sm.diskUsed, diskThreshold)
-		rw = NewStorageLimitReadWriter(
-			fmt.Sprintf("%.2f disk usage threshold", diskUsageThreshold),
-			diskThresholdChecker,
-			rw,
-		)
+		return rw
 	}
 
+	// diskThreshold returns max used disk space in bytes, not in percentage.
+	// If size of used disk space exceeds diskThreshold, writes should be rejected.
+	diskThreshold := func() uint64 {
+		return uint64(float64(sm.cachedDiskStat.total.Load()) * diskUsageThreshold)
+	}
+	// the total disk space could change in runtime, but it is still useful to print it out in logs.
+	sm.logger.Infof("setting disk usage threshold to %.2f of total disk space of %0.1fgb", diskUsageThreshold, float64(sm.cachedDiskStat.total.Load())/gb)
+	diskThresholdChecker := NewStorageLimitCheckerFunc(sm.diskUsed, diskThreshold)
+	rw = NewStorageLimitReadWriter(
+		fmt.Sprintf("disk usage threshold %.2f", diskUsageThreshold),
+		diskThresholdChecker,
+		rw,
+	)
 	return rw
 }
 
