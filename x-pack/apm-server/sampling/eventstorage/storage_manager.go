@@ -434,7 +434,7 @@ func (sm *StorageManager) NewReadWriter(storageLimit uint64, diskUsageThreshold 
 		dbStorageLimit := func() uint64 {
 			return dbStorageLimitFallback
 		}
-		sm.logger.Warnf("failed to get disk usage; disabling disk usage threshold check, overriding database storage limit to fallback default of %0.1fgb", float64(dbStorageLimitFallback)/gb)
+		sm.logger.Warnf("overriding database storage limit to fallback default of %0.1fgb as get disk usage failed", float64(dbStorageLimitFallback)/gb)
 		dbStorageLimitChecker := NewStorageLimitCheckerFunc(sm.dbSize, dbStorageLimit)
 		rw = NewStorageLimitReadWriter("database storage limit", dbStorageLimitChecker, rw)
 		return rw
