@@ -47,15 +47,10 @@ import (
 	"github.com/elastic/apm-server/internal/sourcemap"
 )
 
-<<<<<<< HEAD
 var (
-	agentcfgMonitoringRegistry = monitoring.Default.NewRegistry("apm-server.agentcfg")
-
 	agentcfgDeprecationNotice = "deprecation notice: support for passing fleet agent configs will be removed in an upcoming version"
 )
 
-=======
->>>>>>> 378b60c2 ( Translate otel metrics to libbeat monitoring  (#15094))
 // WrapServerFunc is a function for injecting behaviour into ServerParams
 // and RunServerFunc.
 //
@@ -209,12 +204,8 @@ func newServer(args ServerParams, listener net.Listener) (server, error) {
 		}
 	}
 	zapLogger := zap.New(args.Logger.Core(), zap.WithCaller(true))
-<<<<<<< HEAD
-	otlp.RegisterGRPCServices(args.GRPCServer, zapLogger, otlpBatchProcessor, args.Semaphore)
-	jaeger.RegisterGRPCServices(args.GRPCServer, zapLogger, args.BatchProcessor, args.AgentConfig, args.Semaphore)
-=======
 	otlp.RegisterGRPCServices(args.GRPCServer, zapLogger, otlpBatchProcessor, args.Semaphore, args.MeterProvider)
->>>>>>> 378b60c2 ( Translate otel metrics to libbeat monitoring  (#15094))
+	jaeger.RegisterGRPCServices(args.GRPCServer, zapLogger, args.BatchProcessor, args.AgentConfig, args.Semaphore, args.MeterProvider)
 
 	return server{
 		logger:     args.Logger,
@@ -253,11 +244,8 @@ func newAgentConfigFetcher(
 	kibanaClient *kibana.Client,
 	newElasticsearchClient func(*elasticsearch.Config) (*elasticsearch.Client, error),
 	tracer *apm.Tracer,
-<<<<<<< HEAD
 	logger *logp.Logger,
-=======
 	mp metric.MeterProvider,
->>>>>>> 378b60c2 ( Translate otel metrics to libbeat monitoring  (#15094))
 ) (agentcfg.Fetcher, func(context.Context) error, error) {
 	// Always use ElasticsearchFetcher, and as a fallback, use:
 	// 1. no fallback if Elasticsearch is explicitly configured

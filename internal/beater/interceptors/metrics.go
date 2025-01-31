@@ -58,6 +58,10 @@ func (m *metricsInterceptor) Interceptor() grpc.UnaryServerInterceptor {
 			legacyMetricsPrefix = "apm-server.otlp.grpc.traces."
 		case "/opentelemetry.proto.collector.logs.v1.LogsService/Export":
 			legacyMetricsPrefix = "apm-server.otlp.grpc.logs."
+		case "/jaeger.api_v2.CollectorService/PostSpans":
+			legacyMetricsPrefix = "apm-server.jaeger.grpc.collect."
+		case "/jaeger.api_v2.SamplingManager/GetSamplingStrategy":
+			legacyMetricsPrefix = "apm-server.jaeger.grpc.sampling."
 		default:
 			m.logger.With(
 				"grpc.request.method", info.FullMethod,

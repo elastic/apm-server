@@ -471,12 +471,6 @@ func TestServerElasticsearchOutput(t *testing.T) {
 	defer elasticsearchServer.Close()
 	defer close(done)
 
-  // Pre-create the libbeat registry with some variables that should not
-	// be reported, as we define our own libbeat metrics registry.
-	monitoring.Default.Remove("libbeat.whatever")
-	monitoring.NewInt(monitoring.Default, "libbeat.whatever")
-
-	srv := beatertest.NewServer(t, beatertest.WithConfig(agentconfig.MustNewConfigFrom(map[string]interface{}{
 	reader := sdkmetric.NewManualReader(sdkmetric.WithTemporalitySelector(
 		func(ik sdkmetric.InstrumentKind) metricdata.Temporality {
 			return metricdata.DeltaTemporality

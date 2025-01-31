@@ -268,7 +268,7 @@ func TestTraceGroupsRemovalConcurrent(t *testing.T) {
 	policies := []Policy{
 		{SampleRate: 1},
 	}
-	groups := newTraceGroups(policies, maxDynamicServices, ingestRateCoefficient)
+	groups := newTraceGroups(noop.Meter{}, policies, maxDynamicServices, ingestRateCoefficient)
 
 	wg := sync.WaitGroup{}
 	wg.Add(2)

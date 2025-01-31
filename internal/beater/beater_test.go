@@ -36,6 +36,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.elastic.co/apm/v2/apmtest"
+	"go.opentelemetry.io/otel/metric/noop"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zaptest/observer"
@@ -257,7 +258,7 @@ func TestAgentConfigFetcherDeprecation(t *testing.T) {
 				AgentName: "foo",
 			},
 		},
-	}, nil, func(c *elasticsearch.Config) (*elasticsearch.Client, error) { return nil, nil }, nil, logger)
+	}, nil, func(c *elasticsearch.Config) (*elasticsearch.Client, error) { return nil, nil }, nil, logger, noop.NewMeterProvider())
 	require.NoError(t, err)
 
 	all := observed.All()

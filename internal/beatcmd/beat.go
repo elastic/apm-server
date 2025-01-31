@@ -577,19 +577,39 @@ func getScalarInt64(data metricdata.Aggregation) (int64, bool) {
 }
 
 func addAPMServerMetrics(v monitoring.Visitor, sm metricdata.ScopeMetrics) {
+	beatsMetrics := make(map[string]any)
 	for _, m := range sm.Metrics {
 		if suffix, ok := strings.CutPrefix(m.Name, "apm-server."); ok {
 			if value, ok := getScalarInt64(m.Data); ok {
-				keys := strings.Split(suffix, ".")
-				for i := 0; i < len(keys)-1; i++ {
-					v.OnRegistryStart()
-					v.OnKey(keys[i])
+				current := beatsMetrics
+				suffixSlice := strings.Split(suffix, ".")
+				for i := 0; i < len(suffixSlice)-1; i++ {
+					k := suffixSlice[i]
+					if _, ok := current[k]; !ok {
+						current[k] = make(map[string]any)
+					}
+					if currentmap, ok := current[k].(map[string]any); ok {
+						current = currentmap
+					}
 				}
-				monitoring.ReportInt(v, keys[len(keys)-1], value)
-				for i := 0; i < len(keys)-1; i++ {
-					v.OnRegistryFinished()
-				}
+				current[suffixSlice[len(suffixSlice)-1]] = value
 			}
+		}
+	}
+
+	reportOnKey(v, beatsMetrics)
+}
+
+func reportOnKey(v monitoring.Visitor, m map[string]any) {
+	for key, value := range m {
+		if valueMap, ok := value.(map[string]any); ok {
+			v.OnRegistryStart()
+			v.OnKey(key)
+			reportOnKey(v, valueMap)
+			v.OnRegistryFinished()
+		}
+		if valueMetric, ok := value.(int64); ok {
+			monitoring.ReportInt(v, key, valueMetric)
 		}
 	}
 }
