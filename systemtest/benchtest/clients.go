@@ -100,8 +100,23 @@ func NewOTLPExporter(tb testing.TB) *otlptrace.Exporter {
 
 // NewEventHandler creates a eventhandler which loads the files matching the
 // passed regex.
+//
+// It has to use loadgen.NewEventHandler as it has access to the private `events` FS Storage.
 func NewEventHandler(tb testing.TB, p string, l *rate.Limiter) *eventhandler.Handler {
-	return NewFSEventHandler(tb, p, l, nil)
+	serverCfg := loadgencfg.Config
+	h, err := loadgen.NewEventHandler(loadgen.EventHandlerParams{
+		Path:              p,
+		URL:               serverCfg.ServerURL.String(),
+		Token:             serverCfg.SecretToken,
+		Limiter:           l,
+		RewriteIDs:        serverCfg.RewriteIDs,
+		RewriteTimestamps: serverCfg.RewriteTimestamps,
+		Headers:           serverCfg.Headers,
+	})
+	if err != nil {
+		tb.Fatal(err)
+	}
+	return h
 }
 
 // NewFSEventHandler creates an eventhandler which loads the files matching the
@@ -132,6 +147,7 @@ func newFSEventHandler(p loadgen.EventHandlerParams, fs fs.FS) (*eventhandler.Ha
 	cfg := eventhandler.Config{
 		Path:                      filepath.Join("events", p.Path),
 		Transport:                 transp,
+		Storage:                   fs,
 		Limiter:                   p.Limiter,
 		Rand:                      p.Rand,
 		RewriteIDs:                p.RewriteIDs,
@@ -142,9 +158,6 @@ func newFSEventHandler(p loadgen.EventHandlerParams, fs fs.FS) (*eventhandler.Ha
 		RewriteTransactionNames:   p.RewriteTransactionNames,
 		RewriteTransactionTypes:   p.RewriteTransactionTypes,
 		RewriteTimestamps:         p.RewriteTimestamps,
-	}
-	if fs != nil {
-		cfg.Storage = fs
 	}
 	return eventhandler.New(cfg)
 }
