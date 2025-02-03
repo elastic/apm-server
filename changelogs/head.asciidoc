@@ -9,7 +9,7 @@ https://github.com/elastic/apm-server/compare/8.16\...8.x[View commits]
 
 [float]
 ==== Breaking Changes
-- Change `sampling.tail.storage_limit` default to `0`. While `0` means unlimited local tail-sampling database size, it now enforces a max 90% disk usage on the disk where the data directory is located. Any tail sampling writes after this threshold will be rejected, similar to what happens when tail-sampling database size exceeds a non-0 storage limit. Setting `sampling.tail.storage_limit` to non-0 maintains the existing behavior which limits the tail-sampling database size to `sampling.tail.storage_limit` and does not have the new disk usage threshold check. {pull}15467[15467]
+- Change `sampling.tail.storage_limit` default to `0`. While `0` means unlimited local tail-sampling database size, it now enforces a max 80% disk usage on the disk where the data directory is located. Any tail sampling writes after this threshold will be rejected, similar to what happens when tail-sampling database size exceeds a non-0 storage limit. Setting `sampling.tail.storage_limit` to non-0 maintains the existing behavior which limits the tail-sampling database size to `sampling.tail.storage_limit` and does not have the new disk usage threshold check. {pull}15467[15467] {pull}15524[15524]
 
 [float]
 ==== Deprecations
