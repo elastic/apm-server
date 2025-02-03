@@ -22,10 +22,11 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-
-	"github.com/elastic/elastic-agent-libs/monitoring"
+	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
+	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 
 	"github.com/elastic/apm-data/model/modelpb"
+	"github.com/elastic/apm-server/internal/beater/monitoringtest"
 	"github.com/elastic/apm-server/internal/model/modelprocessor"
 )
 
@@ -37,15 +38,19 @@ func TestEventCounter(t *testing.T) {
 		{Transaction: &modelpb.Transaction{Type: "transaction_type"}},
 	}
 
-	expected := monitoring.MakeFlatSnapshot()
-	expected.Ints["processor.span.transformations"] = 1
-	expected.Ints["processor.transaction.transformations"] = 2
+	reader := sdkmetric.NewManualReader(sdkmetric.WithTemporalitySelector(
+		func(ik sdkmetric.InstrumentKind) metricdata.Temporality {
+			return metricdata.DeltaTemporality
+		},
+	))
+	mp := sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader))
 
-	registry := monitoring.NewRegistry()
-	processor := modelprocessor.NewEventCounter(registry)
+	processor := modelprocessor.NewEventCounter(mp)
 	err := processor.ProcessBatch(context.Background(), &batch)
 	assert.NoError(t, err)
-	snapshot := monitoring.CollectFlatSnapshot(registry, monitoring.Full, false)
-	assert.Equal(t, expected, snapshot)
 
+	monitoringtest.ExpectContainOtelMetrics(t, reader, map[string]any{
+		"apm-server.processor.span.transformations":        1,
+		"apm-server.processor.transaction.transformations": 2,
+	})
 }

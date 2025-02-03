@@ -23,7 +23,6 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/joeshaw/multierror"
 	"go.elastic.co/apm/module/apmotel/v2"
 	"go.opentelemetry.io/otel/metric"
 	"golang.org/x/sync/errgroup"
@@ -138,7 +137,7 @@ func (r *Reloader) Run(ctx context.Context) error {
 // Note: reloadInputs may be called before the Reloader is running.
 func (r *Reloader) reloadInputs(configs []*reload.ConfigWithMeta) error {
 	if n := len(configs); n != 1 {
-		var errs multierror.Errors
+		var errs []error
 		for _, cfg := range configs {
 			unitErr := cfgfile.UnitError{
 				Err:    fmt.Errorf("only 1 input supported, got %d", n),
@@ -146,7 +145,7 @@ func (r *Reloader) reloadInputs(configs []*reload.ConfigWithMeta) error {
 			}
 			errs = append(errs, unitErr)
 		}
-		return errs.Err()
+		return errors.Join(errs...)
 	}
 	r.mu.Lock()
 	defer r.mu.Unlock()
@@ -156,21 +155,21 @@ func (r *Reloader) reloadInputs(configs []*reload.ConfigWithMeta) error {
 	// increasing revision number.
 	revision, err := cfg.Int("revision", -1)
 	if err != nil {
-		return multierror.Errors{
+		return errors.Join(
 			cfgfile.UnitError{
 				Err:    fmt.Errorf("failed to extract input config revision: %w", err),
 				UnitID: configs[0].InputUnitID,
 			},
-		}.Err()
+		)
 	}
 
 	if err := r.reload(cfg, r.outputConfig, r.apmTracingConfig); err != nil {
-		return multierror.Errors{
+		return errors.Join(
 			cfgfile.UnitError{
 				Err:    fmt.Errorf("failed to load input config: %w", err),
 				UnitID: configs[0].InputUnitID,
 			},
-		}.Err()
+		)
 	}
 	r.inputConfig = cfg
 	r.logger.With(logp.Int64("revision", revision)).Info("loaded input config")
@@ -254,9 +253,11 @@ func (r *Reloader) reload(inputConfig, outputConfig, apmTracingConfig *config.C)
 	// allow the runner to perform initialisations that must run
 	// synchronously.
 	newRunner, err := r.newRunner(RunnerParams{
-		Config: mergedConfig,
-		Info:   r.info,
-		Logger: r.logger,
+		Config:          mergedConfig,
+		Info:            r.info,
+		Logger:          r.logger,
+		MeterProvider:   r.meterProvider,
+		MetricsGatherer: r.metricGatherer,
 	})
 	if err != nil {
 		return err
