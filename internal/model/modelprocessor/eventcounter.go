@@ -55,7 +55,7 @@ func NewEventCounter(mp metric.MeterProvider) *EventCounter {
 // ProcessBatch counts events in b, grouping by APMEvent.Processor.Event.
 func (c *EventCounter) ProcessBatch(ctx context.Context, b *modelpb.Batch) error {
 	for _, event := range *b {
-		c.eventCounters[event.Type()].Add(ctx, 1)
+		c.eventCounters[event.Type()].Add(context.Background(), 1)
 	}
 	return nil
 }

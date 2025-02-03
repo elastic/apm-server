@@ -65,13 +65,13 @@ func (m *metricsInterceptor) Interceptor() grpc.UnaryServerInterceptor {
 			return handler(ctx, req)
 		}
 
-		m.inc(ctx, legacyMetricsPrefix, request.IDRequestCount)
-		defer m.inc(ctx, legacyMetricsPrefix, request.IDResponseCount)
+		m.inc(legacyMetricsPrefix, request.IDRequestCount)
+		defer m.inc(legacyMetricsPrefix, request.IDResponseCount)
 
 		start := time.Now()
 		resp, err := handler(ctx, req)
 		duration := time.Since(start)
-		m.getHistogram(requestDurationHistogram, metric.WithUnit("ms")).Record(ctx, duration.Milliseconds())
+		m.getHistogram(requestDurationHistogram, metric.WithUnit("ms")).Record(context.Background(), duration.Milliseconds())
 
 		responseID := request.IDResponseValidCount
 		if err != nil {
@@ -79,22 +79,22 @@ func (m *metricsInterceptor) Interceptor() grpc.UnaryServerInterceptor {
 			if s, ok := status.FromError(err); ok {
 				switch s.Code() {
 				case codes.Unauthenticated:
-					m.inc(ctx, legacyMetricsPrefix, request.IDResponseErrorsUnauthorized)
+					m.inc(legacyMetricsPrefix, request.IDResponseErrorsUnauthorized)
 				case codes.DeadlineExceeded, codes.Canceled:
-					m.inc(ctx, legacyMetricsPrefix, request.IDResponseErrorsTimeout)
+					m.inc(legacyMetricsPrefix, request.IDResponseErrorsTimeout)
 				case codes.ResourceExhausted:
-					m.inc(ctx, legacyMetricsPrefix, request.IDResponseErrorsRateLimit)
+					m.inc(legacyMetricsPrefix, request.IDResponseErrorsRateLimit)
 				}
 			}
 		}
-		m.inc(ctx, legacyMetricsPrefix, responseID)
+		m.inc(legacyMetricsPrefix, responseID)
 		return resp, err
 	}
 }
 
-func (m *metricsInterceptor) inc(ctx context.Context, legacyMetricsPrefix string, id request.ResultID) {
-	m.getCounter("grpc.server.", string(id)).Add(ctx, 1)
-	m.getCounter(legacyMetricsPrefix, string(id)).Add(ctx, 1)
+func (m *metricsInterceptor) inc(legacyMetricsPrefix string, id request.ResultID) {
+	m.getCounter("grpc.server.", string(id)).Add(context.Background(), 1)
+	m.getCounter(legacyMetricsPrefix, string(id)).Add(context.Background(), 1)
 }
 
 func (m *metricsInterceptor) getCounter(prefix, n string) metric.Int64Counter {
