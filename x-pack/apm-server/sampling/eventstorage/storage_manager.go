@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -67,6 +68,9 @@ func WithMeterProvider(mp metric.MeterProvider) StorageManagerOptions {
 type StorageManager struct {
 	storageDir string
 	logger     *logp.Logger
+
+	timeStarted   time.Time
+	badgerStorage *badgerStorage
 
 	eventDB         *pebble.DB
 	decisionDB      *pebble.DB
@@ -159,6 +163,12 @@ func (sm *StorageManager) reset() error {
 	sm.decisionStorage = New(sm.decisionDB, sm.partitioner, sm.codec)
 
 	sm.updateDiskUsage()
+
+	sm.badgerStorage, err = newBadgerStorage(sm.storageDir, sm.codec)
+	if err != nil {
+		return fmt.Errorf("open badger storage error: %w", err)
+	}
+	sm.timeStarted = time.Now()
 
 	return nil
 }
@@ -288,6 +298,51 @@ func (sm *StorageManager) Run(stopping <-chan struct{}, ttl time.Duration, stora
 	g.Go(func() error {
 		return sm.runDiskUsageLoop(stopping)
 	})
+	if sm.badgerStorage != nil && sm.badgerStorage.enabled {
+		g.Go(func() error {
+			deleteAfter := sm.timeStarted.Add(ttl).Sub(time.Now())
+			select {
+			case <-stopping:
+				return nil
+			case <-time.After(deleteAfter):
+				err := sm.badgerStorage.disable()
+				sm.logger.With(logp.Error(err)).Error("failed to disable badger storage")
+				// Although removing the files in place can be slower, it is less error-prone than rename-and-delete.
+				// Delete every file except subscriber position file
+				var (
+					rootVisited         bool
+					sstFiles, vlogFiles int
+					otherFilenames      []string
+				)
+				err = filepath.Walk(sm.storageDir, func(path string, info os.FileInfo, _ error) error {
+					if !rootVisited {
+						rootVisited = true
+						return nil
+					}
+					if info.IsDir() {
+						// This should skip new pebble DBs
+						return filepath.SkipDir
+					}
+					filename := filepath.Base(path)
+					if filename == subscriberPositionFile {
+						return nil
+					}
+					switch ext := filepath.Ext(filename); ext {
+					case ".sst":
+						sstFiles++
+					case ".vlog":
+						vlogFiles++
+					default:
+						otherFilenames = append(otherFilenames, filename)
+					}
+					return os.RemoveAll(path)
+				})
+				sm.logger.Infof("deleted badger files: %d SST files, %d VLOG files, %d other files: [%s]",
+					sstFiles, vlogFiles, len(otherFilenames), strings.Join(otherFilenames, ", "))
+				return err
+			}
+		})
+	}
 
 	return g.Wait()
 }
@@ -346,11 +401,14 @@ func (sm *StorageManager) WriteSubscriberPosition(data []byte) error {
 	return os.WriteFile(filepath.Join(sm.storageDir, subscriberPositionFile), data, 0644)
 }
 
-func (sm *StorageManager) NewReadWriter() StorageLimitReadWriter {
-	return NewStorageLimitReadWriter(sm, SplitReadWriter{
-		eventRW:    sm.eventStorage.NewReadWriter(),
-		decisionRW: sm.decisionStorage.NewReadWriter(),
-	})
+func (sm *StorageManager) NewReadWriter() RW {
+	return &BadgerMigrationRW{
+		s: sm.badgerStorage,
+		nextRW: NewStorageLimitReadWriter(sm, SplitReadWriter{
+			eventRW:    sm.eventStorage.NewReadWriter(),
+			decisionRW: sm.decisionStorage.NewReadWriter(),
+		}),
+	}
 }
 
 // wrapNonNilErr only wraps an error with format if the error is not nil.

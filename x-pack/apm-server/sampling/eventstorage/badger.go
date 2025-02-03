@@ -1,7 +1,10 @@
 package eventstorage
 
 import (
+	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
 	"sync"
 
 	"github.com/dgraph-io/badger/v2"
@@ -24,6 +27,30 @@ type badgerStorage struct {
 	mu      sync.RWMutex
 }
 
+func newBadgerStorage(storageDir string, codec Codec) (*badgerStorage, error) {
+	if _, err := os.Stat(filepath.Join(storageDir, "MANIFEST")); errors.Is(err, os.ErrNotExist) {
+		return nil, nil
+	}
+	// not setting read only as it will fail to replay vlog if it crashed previously
+	opts := badger.DefaultOptions(storageDir).WithCompactL0OnClose(false)
+	db, err := badger.Open(opts)
+	if err != nil {
+		return nil, err
+	}
+	return &badgerStorage{
+		db:      db,
+		codec:   codec,
+		enabled: true,
+	}, nil
+}
+
+func (s *badgerStorage) disable() error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.enabled = false
+	return s.db.Close()
+}
+
 type BadgerMigrationRW struct {
 	s      *badgerStorage
 	nextRW RW
@@ -40,6 +67,10 @@ func (rw *BadgerMigrationRW) WriteTraceSampled(traceID string, sampled bool) err
 func (rw *BadgerMigrationRW) IsTraceSampled(traceID string) (bool, error) {
 	sampled, err := rw.nextRW.IsTraceSampled(traceID)
 	if err != ErrNotFound {
+		return sampled, err
+	}
+
+	if rw.s == nil {
 		return sampled, err
 	}
 	rw.s.mu.RLock()
@@ -75,6 +106,9 @@ func (rw *BadgerMigrationRW) DeleteTraceEvent(traceID, id string) error {
 func (rw *BadgerMigrationRW) ReadTraceEvents(traceID string, out *modelpb.Batch) error {
 	err := rw.nextRW.ReadTraceEvents(traceID, out)
 
+	if rw.s == nil {
+		return err
+	}
 	rw.s.mu.RLock()
 	defer rw.s.mu.RUnlock()
 	if !rw.s.enabled {
