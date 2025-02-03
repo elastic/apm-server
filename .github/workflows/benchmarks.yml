@@ -97,6 +97,11 @@ jobs:
             echo "BENCHMARK_RUN=${{ inputs.benchmarkRun }}" >> "$GITHUB_ENV"
           fi
 
+      # exclude BenchmarkTraces* from scheduled benchmarks
+      - if: github.event_name == 'schedule'
+        run: |
+          echo "BENCHMARK_RUN=Benchmark[^T]" >> "$GITHUB_ENV"
+
       - name: Log in to the Elastic Container registry
         uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
         with:
