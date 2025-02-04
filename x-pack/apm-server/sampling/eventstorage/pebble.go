@@ -42,7 +42,7 @@ func OpenEventPebble(storageDir string) (*pebble.DB, error) {
 	opts := &pebble.Options{
 		FormatMajorVersion: pebble.FormatColumnarBlocks,
 		Logger:             logp.NewLogger(logs.Sampling),
-		MemTableSize:       16 << 20,
+		MemTableSize:       8 << 20,
 		Levels: []pebble.LevelOptions{
 			{
 				BlockSize:    16 << 10,
