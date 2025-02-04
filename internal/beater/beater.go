@@ -19,7 +19,6 @@ package beater
 
 import (
 	"context"
-	"crypto/md5"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -479,7 +478,7 @@ func (s *Runner) Run(ctx context.Context) error {
 		modelprocessor.SetHostHostname{},
 		modelprocessor.SetServiceNodeName{},
 		modelprocessor.SetGroupingKey{
-			NewHash: md5.New,
+			NewHash: groupingKeyHash,
 		},
 		modelprocessor.SetErrorMessage{},
 	}
