@@ -45,7 +45,7 @@ func OpenEventPebble(storageDir string) (*pebble.DB, error) {
 		MemTableSize:       16 << 20,
 		Levels: []pebble.LevelOptions{
 			{
-				BlockSize:    8 << 10,
+				BlockSize:    32 << 10,
 				Compression:  func() pebble.Compression { return pebble.SnappyCompression },
 				FilterPolicy: bloom.FilterPolicy(10),
 				FilterType:   pebble.TableFilter,
