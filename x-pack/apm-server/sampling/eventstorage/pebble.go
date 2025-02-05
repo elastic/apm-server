@@ -61,10 +61,10 @@ func OpenDecisionPebble(storageDir string) (*pebble.DB, error) {
 	return pebble.Open(filepath.Join(storageDir, "decision"), &pebble.Options{
 		FormatMajorVersion: pebble.FormatColumnarBlocks,
 		Logger:             logp.NewLogger(logs.Sampling),
-		MemTableSize:       1 << 20,
+		MemTableSize:       2 << 20,
 		Levels: []pebble.LevelOptions{
 			{
-				BlockSize:    2 << 10,
+				BlockSize:    1 << 10,
 				Compression:  func() pebble.Compression { return pebble.NoCompression },
 				FilterPolicy: bloom.FilterPolicy(10),
 				FilterType:   pebble.TableFilter,
