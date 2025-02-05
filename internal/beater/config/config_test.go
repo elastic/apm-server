@@ -364,7 +364,7 @@ func TestUnpackConfig(t *testing.T) {
 						IngestRateDecayFactor: 0.25,
 						StorageLimit:          "0",
 						StorageLimitParsed:    0,
-						DiskUsageThreshold:    0.9,
+						DiskUsageThreshold:    0.8,
 						TTL:                   30 * time.Minute,
 					},
 				},
