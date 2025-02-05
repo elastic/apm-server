@@ -176,8 +176,9 @@ pull_request_rules:
           * `backport-8./d` is the label to automatically backport to the `8./d` branch. `/d` is the digit.
           * `backport-9./d` is the label to automatically backport to the `9./d` branch. `/d` is the digit.
           * `backport-8.x` is the label to automatically backport to the `8.x` branch.
-          * `backport-active-branches` is the label to automatically backport to all active branches
-          * `backport-active-minors` is the label to automatically backport to all active minor branches
+          * `backport-active-all` is the label that automatically backports to all active branches.
+          * `backport-active-8` is the label that automatically backports to all active minor branches for the 8 major.
+          * `backport-active-9` is the label that automatically backports to all active minor branches for the 9 major.
 
   - name: remove backport-skip label
     conditions:
