@@ -422,7 +422,12 @@ func TestRunManager_Reloader_newRunnerError(t *testing.T) {
 	require.NoError(t, err)
 	defer manager.Stop()
 
-	assert.Equal(t, "failed to load input config: newRunner error", <-inputFailedMsg)
+	select {
+	case msg := <-inputFailedMsg:
+		assert.Equal(t, "failed to load input config: newRunner error", msg)
+	case <-time.After(10 * time.Second):
+		t.Fatal("timed out waiting for input failed msg")
+	}
 }
 
 func runBeat(t testing.TB, beat *Beat) (stop func() error) {

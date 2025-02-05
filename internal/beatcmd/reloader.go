@@ -23,8 +23,9 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/joeshaw/multierror"
 	"golang.org/x/sync/errgroup"
+
+	"github.com/joeshaw/multierror"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/cfgfile"
