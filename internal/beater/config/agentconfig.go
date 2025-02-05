@@ -18,9 +18,6 @@
 package config
 
 import (
-	"crypto/md5"
-	"encoding/json"
-	"fmt"
 	"strings"
 	"time"
 
@@ -121,11 +118,11 @@ func (s *FleetAgentConfig) setup() error {
 		s.Config = make(map[string]string)
 	}
 	if s.Etag == "" {
-		m, err := json.Marshal(s)
+		etag, err := generateEtag(s)
 		if err != nil {
-			return fmt.Errorf("error generating etag for %s: %v", s.Service, err)
+			return err
 		}
-		s.Etag = fmt.Sprintf("%x", md5.Sum(m))
+		s.Etag = etag
 	}
 	return nil
 }

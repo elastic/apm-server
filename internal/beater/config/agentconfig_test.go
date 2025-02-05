@@ -53,12 +53,17 @@ func TestAgentConfigs(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, cfg)
 	assert.Len(t, cfg.FleetAgentConfigs, 1)
-	assert.NotEmpty(t, cfg.FleetAgentConfigs[0].Etag)
+	etag, err := generateEtag(&cfg.FleetAgentConfigs[0])
+	assert.NoError(t, err)
+	assert.Equal(t, etag, cfg.FleetAgentConfigs[0].Etag)
 
 	// The "config" attribute may come through as `null` when no config attributes are defined.
 	cfg, err = NewConfig(config.MustNewConfigFrom(`{"agent_config":[{"service.environment":"production","config":null}]}`), nil)
 	require.NoError(t, err)
 	assert.NotNil(t, cfg)
 	assert.Len(t, cfg.FleetAgentConfigs, 1)
-	assert.NotEmpty(t, cfg.FleetAgentConfigs[0].Etag)
+	etag, err = generateEtag(&cfg.FleetAgentConfigs[0])
+	assert.NoError(t, err)
+	assert.Equal(t, etag, cfg.FleetAgentConfigs[0].Etag)
+
 }
