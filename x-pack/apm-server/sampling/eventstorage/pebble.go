@@ -61,7 +61,7 @@ func OpenDecisionPebble(storageDir string) (*pebble.DB, error) {
 	return pebble.Open(filepath.Join(storageDir, "decision"), &pebble.Options{
 		FormatMajorVersion: pebble.FormatColumnarBlocks,
 		Logger:             logp.NewLogger(logs.Sampling),
-		MemTableSize:       4 << 20,
+		MemTableSize:       1 << 20,
 		Levels: []pebble.LevelOptions{
 			{
 				BlockSize:    2 << 10,
