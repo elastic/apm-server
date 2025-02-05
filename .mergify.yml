@@ -179,7 +179,6 @@ pull_request_rules:
           * `backport-active-all` is the label that automatically backports to all active branches.
           * `backport-active-8` is the label that automatically backports to all active minor branches for the 8 major.
           * `backport-active-9` is the label that automatically backports to all active minor branches for the 9 major.
-          * `backport-active-9` is the label that automatically backports to all active minor branches for the 9 major.
 
   - name: remove backport-skip label
     conditions:
