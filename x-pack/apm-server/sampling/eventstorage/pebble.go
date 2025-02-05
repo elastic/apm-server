@@ -64,8 +64,8 @@ func OpenDecisionPebble(storageDir string) (*pebble.DB, error) {
 		MemTableSize:       2 << 20,
 		Levels: []pebble.LevelOptions{
 			{
-				BlockSize:    4 << 10,
-				Compression:  func() pebble.Compression { return pebble.NoCompression },
+				BlockSize:    2 << 10,
+				Compression:  func() pebble.Compression { return pebble.SnappyCompression },
 				FilterPolicy: bloom.FilterPolicy(10),
 				FilterType:   pebble.TableFilter,
 			},
