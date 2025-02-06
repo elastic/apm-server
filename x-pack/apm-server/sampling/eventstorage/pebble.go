@@ -7,6 +7,7 @@ package eventstorage
 import (
 	"bytes"
 	"path/filepath"
+	"time"
 
 	"github.com/cockroachdb/pebble/v2"
 	"github.com/cockroachdb/pebble/v2/bloom"
@@ -52,6 +53,9 @@ func OpenEventPebble(storageDir string) (*pebble.DB, error) {
 			},
 		},
 		Comparer: eventComparer(),
+		WALMinSyncInterval: func() time.Duration {
+			return 500 * time.Nanosecond
+		},
 	}
 	opts.Experimental.MaxWriterConcurrency = 1 // >0 enables parallel writers, the actual value doesn't matter
 	opts.Experimental.ForceWriterParallelism = true
@@ -70,6 +74,9 @@ func OpenDecisionPebble(storageDir string) (*pebble.DB, error) {
 				FilterPolicy: bloom.FilterPolicy(10),
 				FilterType:   pebble.TableFilter,
 			},
+		},
+		WALMinSyncInterval: func() time.Duration {
+			return 500 * time.Nanosecond
 		},
 	})
 }
