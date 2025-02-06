@@ -37,7 +37,6 @@ on:
         required: false
         type: string
       warmupTime:
-        # default is set in 'Set up env' instead
         description: 'Benchmark warmup time for APM Server'
         required: false
         type: string
@@ -110,8 +109,10 @@ jobs:
           fi
           if [ ! -z "${{ inputs.warmupTime }}" ]; then
             echo "BENCHMARK_WARMUP_TIME=${{ inputs.warmupTime }}" >> "$GITHUB_ENV"
-          elif [ "${{env.RUN_STANDALONE}}" == 'false' ] && [ "${{github.event_name}}" == 'schedule' ]; then
+          elif  [ "${{github.event_name}}" == 'schedule' ] && [ "${{env.RUN_STANDALONE}}" == 'false' ]; then
             echo "BENCHMARK_WARMUP_TIME=10m >> "$GITHUB_ENV"
+          elif  [ "${{github.event_name}}" == 'schedule' ] && [ "${{env.RUN_STANDALONE}}" == 'true' ]; then
+            echo "BENCHMARK_WARMUP_TIME=3m >> "$GITHUB_ENV"
           else
             echo "BENCHMARK_WARMUP_TIME=5m >> "$GITHUB_ENV"
           fi
