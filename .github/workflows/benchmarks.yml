@@ -29,15 +29,13 @@ on:
         type: boolean
         default: false
       benchmarkAgents:
-        description: 'Set the number of agents to send data to the APM Server, defaults to 64'
+        description: 'Set the number of agents to send data to the APM Server'
         required: false
         type: string
-        default: "64"
       benchmarkRun:
-        description: 'Set the expression that matches the benchmark scenarios to run, defaults to Benchmark'
+        description: 'Set the expression that matches the benchmark scenarios to run'
         required: false
         type: string
-        default: "Benchmark"
       warmupTime:
         # default is set in 'Set up env' instead
         description: 'Set the amount of time to warm the APM Server for, defaults to 10m for non-standalone nightly, 5m otherwise'
