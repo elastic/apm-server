@@ -38,16 +38,6 @@ on:
         required: false
         type: string
         default: "Benchmark"
-      benchmarkTime:
-        description: 'Set the amount of time to run each benchmark scenario for, defaults to 2m'
-        required: false
-        type: string
-        default: "2m"
-      benchmarkCount:
-        description: 'Set the number of times each benchmark scenario is run, defaults to 6'
-        required: false
-        type: string
-        default: "6"
       warmupTime:
         # default is set in 'Set up env' instead
         description: 'Set the amount of time to warm the APM Server for, defaults to 10m for non-standalone nightly, 5m otherwise'
@@ -114,10 +104,12 @@ jobs:
           echo "TF_VAR_CREATED_AT=${CREATED_AT}" >> "$GITHUB_ENV"
           echo "USER=benchci-$SLUGGED_BRANCH_NAME-$CREATED_AT" >> "$GITHUB_ENV"
 
-          echo "BENCHMARK_AGENTS=${{ inputs.benchmarkAgents }}" >> "$GITHUB_ENV"
-          echo "BENCHMARK_RUN=${{ inputs.benchmarkRun }}" >> "$GITHUB_ENV"
-          echo "BENCHMARK_COUNT=${{ inputs.benchmarkCount }}" >> "$GITHUB_ENV"
-          echo "BENCHMARK_TIME=${{ inputs.benchmarkTime }}" >> "$GITHUB_ENV"
+          if [ ! -z "${{ inputs.benchmarkAgents }}" ]; then
+            echo "BENCHMARK_AGENTS=${{ inputs.benchmarkAgents }}" >> "$GITHUB_ENV"
+          fi
+          if [ ! -z "${{ inputs.benchmarkRun }}" ]; then
+            echo "BENCHMARK_RUN=${{ inputs.benchmarkRun }}" >> "$GITHUB_ENV"
+          fi
           if [ ! -z "${{ inputs.warmupTime }}" ]; then
             echo "BENCHMARK_WARMUP_TIME=${{ inputs.warmupTime }}" >> "$GITHUB_ENV"
           elif [ "${{env.RUN_STANDALONE}}" == 'false' ] && [ "${{github.event_name}}" == 'schedule' ]; then
