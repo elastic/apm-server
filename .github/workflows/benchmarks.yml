@@ -14,12 +14,12 @@ on:
         type: boolean
         default: false
       tailSamplingStorageLimit:
-        description: 'Storage size limit of tail-based sampling on the APM server, defaults to 10GB'
+        description: 'Storage size limit of tail-based sampling on the APM server'
         required: false
         type: string
         default: "10GB"
       profile:
-        description: 'The system profile used to run the benchmarks, defaults to 8GB profile'
+        description: 'The system profile used to run the benchmarks'
         required: false
         type: string
         default: "system-profiles/8GBx1zone.tfvars"
@@ -38,7 +38,7 @@ on:
         type: string
       warmupTime:
         # default is set in 'Set up env' instead
-        description: 'Set the amount of time to warm the APM Server for, defaults to 10m for non-standalone nightly, 5m otherwise'
+        description: 'Set the amount of time to warm the APM Server for'
         required: false
         type: string
       pgoExport:
