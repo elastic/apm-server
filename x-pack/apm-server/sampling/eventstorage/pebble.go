@@ -46,7 +46,7 @@ func OpenEventPebble(storageDir string) (*pebble.DB, error) {
 		MemTableSize:       16 << 20,
 		Levels: []pebble.LevelOptions{
 			{
-				BlockSize:    16 << 10,
+				BlockSize:    32 << 10, // the bigger the blocks, the better the compression and the smaller the index block
 				Compression:  func() pebble.Compression { return pebble.SnappyCompression },
 				FilterPolicy: bloom.FilterPolicy(10),
 				FilterType:   pebble.TableFilter,
@@ -63,7 +63,7 @@ func OpenDecisionPebble(storageDir string) (*pebble.DB, error) {
 	return pebble.Open(filepath.Join(storageDir, "decision"), &pebble.Options{
 		FormatMajorVersion: pebble.FormatColumnarBlocks,
 		Logger:             logp.NewLogger(logs.Sampling),
-		MemTableSize:       2 << 20,
+		MemTableSize:       2 << 20, // big memtables are slow to scan, and significantly slow the hot path
 		Levels: []pebble.LevelOptions{
 			{
 				BlockSize:    2 << 10,
