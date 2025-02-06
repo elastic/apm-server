@@ -19,7 +19,7 @@ on:
         type: string
         default: "10GB"
       profile:
-        description: 'System profile for benchmark, e.g. "system-profiles/8GBx1zone.tfvars"'
+        description: 'System profile for benchmark, e.g. system-profiles/8GBx1zone.tfvars'
         required: false
         type: string
       runOnStable:
@@ -32,7 +32,7 @@ on:
         required: false
         type: string
       benchmarkRun:
-        description: 'Run only benchmark scenarios that match regex, i.e. "go test -run"'
+        description: 'Run only benchmark scenarios that match regex, e.g. BenchmarkAgentAll'
         required: false
         type: string
       warmupTime:

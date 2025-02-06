@@ -66,7 +66,7 @@ The main commands are:
   - `BENCHMARK_RUN`: Set the expression that matches the benchmark scenarios to run. Defaults to `Benchmark` (all).
   - `BENCHMARK_RESULT`: Set the output file where the results of the benchmark will be written. Defaults to `benchmark-result.txt`
   - `BENCHMARK_DETAILED`: Set the `-detailed` when running `apmbench`, displaying extra metrics for each benchmark. Defaults to `false`.
-  - `BENCHMARK_EVENT_RATE`: Set the rate of events sent to the APM Server.
+  - `BENCHMARK_EVENT_RATE`: Set the rate of events sent to the APM Server. Defaults to `0/s` (set in `apm-perf`), which means unlimited.
 - `index-benchmark-result`: Indexes `$(BENCHMARK_RESULT)` to an Elasticsearch cluster. Can be configured with:
   - `GOBENCH_INDEX`: Set the Elasticsearch index where the benchmark results will be stored. Defaults to `gobench`.
   - `GOBENCH_USERNAME`: Set the Elasticsearch username to use for authentication. Defaults to `admin`.
