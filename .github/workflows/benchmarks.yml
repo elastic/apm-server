@@ -19,20 +19,38 @@ on:
         type: string
         default: "10GB"
       profile:
-        description: 'The system profile used to run the benchmarks'
+        description: 'The system profile used to run the benchmarks, defaults to 8GB profile'
         required: false
         type: string
+        default: "system-profiles/8GBx1zone.tfvars"
       runOnStable:
         description: 'Run the benchmarks on the latest stable version'
         required: false
         type: boolean
         default: false
       benchmarkAgents:
-        description: 'Set the number of agents to send data to the APM Server'
+        description: 'Set the number of agents to send data to the APM Server, defaults to 64'
         required: false
         type: string
+        default: "64"
       benchmarkRun:
-        description: 'Set the expression that matches the benchmark scenarios to run'
+        description: 'Set the expression that matches the benchmark scenarios to run, defaults to Benchmark'
+        required: false
+        type: string
+        default: "Benchmark"
+      benchmarkTime:
+        description: 'Set the amount of time to run each benchmark scenario for, defaults to 2m'
+        required: false
+        type: string
+        default: "2m"
+      benchmarkCount:
+        description: 'Set the number of times each benchmark scenario is run, defaults to 6'
+        required: false
+        type: string
+        default: "6"
+      warmupTime:
+        # default is set in 'Set up env' instead
+        description: 'Set the amount of time to warm the APM Server for, defaults to 10m for non-standalone nightly, 5m otherwise'
         required: false
         type: string
       pgoExport:
@@ -71,7 +89,7 @@ jobs:
       TF_VAR_apm_server_tail_sampling_storage_limit: ${{ inputs.tailSamplingStorageLimit || '10GB' }} # set the default again otherwise schedules won't work
       RUN_STANDALONE: ${{ inputs.runStandalone || github.event.schedule=='0 0 1 * *' }}
       PGO_EXPORT: ${{ inputs.pgoExport || github.event.schedule=='0 0 1 * *' }}
-      TFVARS_SOURCE: ${{ inputs.profile || 'system-profiles/8GBx1zone.tfvars' }} # // Default to use an 8gb profile
+      TFVARS_SOURCE: ${{ inputs.profile }}
       TF_VAR_BUILD_ID: ${{ github.run_id }}
       TF_VAR_ENVIRONMENT: ci
       TF_VAR_REPO: ${{ github.repository }}
@@ -96,11 +114,16 @@ jobs:
           echo "TF_VAR_CREATED_AT=${CREATED_AT}" >> "$GITHUB_ENV"
           echo "USER=benchci-$SLUGGED_BRANCH_NAME-$CREATED_AT" >> "$GITHUB_ENV"
 
-          if [ ! -z "${{ inputs.benchmarkAgents }}" ]; then
-            echo "BENCHMARK_AGENTS=${{ inputs.benchmarkAgents }}" >> "$GITHUB_ENV"
-          fi
-          if [ ! -z "${{ inputs.benchmarkRun }}" ]; then
-            echo "BENCHMARK_RUN=${{ inputs.benchmarkRun }}" >> "$GITHUB_ENV"
+          echo "BENCHMARK_AGENTS=${{ inputs.benchmarkAgents }}" >> "$GITHUB_ENV"
+          echo "BENCHMARK_RUN=${{ inputs.benchmarkRun }}" >> "$GITHUB_ENV"
+          echo "BENCHMARK_COUNT=${{ inputs.benchmarkCount }}" >> "$GITHUB_ENV"
+          echo "BENCHMARK_TIME=${{ inputs.benchmarkTime }}" >> "$GITHUB_ENV"
+          if [ ! -z "${{ inputs.warmupTime }}" ]; then
+            echo "BENCHMARK_WARMUP_TIME=${{ inputs.warmupTime }}" >> "$GITHUB_ENV"
+          elif [ "${{env.RUN_STANDALONE}}" == 'false' ] && [ "${{github.event_name}}" == 'schedule' ]; then
+            echo "BENCHMARK_WARMUP_TIME=10m >> "$GITHUB_ENV"
+          else
+            echo "BENCHMARK_WARMUP_TIME=5m >> "$GITHUB_ENV"
           fi
 
       # exclude BenchmarkTraces* from scheduled benchmarks
