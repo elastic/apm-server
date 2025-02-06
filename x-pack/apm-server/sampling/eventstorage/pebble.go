@@ -57,8 +57,6 @@ func OpenEventPebble(storageDir string) (*pebble.DB, error) {
 			return 500 * time.Nanosecond
 		},
 	}
-	opts.Experimental.MaxWriterConcurrency = 1 // >0 enables parallel writers, the actual value doesn't matter
-	opts.Experimental.ForceWriterParallelism = true
 	return pebble.Open(filepath.Join(storageDir, "event"), opts)
 }
 
