@@ -4,45 +4,45 @@ on:
   workflow_dispatch:
     inputs:
       runStandalone:
-        description: 'Run the benchmarks against standalone APM Server with Moxy'
+        description: 'Benchmark against standalone APM Server with Moxy'
         required: false
         type: boolean
         default: false
       enableTailSampling:
-        description: 'Enable tail-based sampling on the APM server'
+        description: 'Enable tail-based sampling on APM server'
         required: false
         type: boolean
         default: false
       tailSamplingStorageLimit:
-        description: 'Storage size limit of tail-based sampling on the APM server'
+        description: 'Storage size limit of tail-based sampling on APM server'
         required: false
         type: string
         default: "10GB"
       profile:
-        description: 'The system profile used to run the benchmarks'
+        description: 'System profile for benchmark'
         required: false
         type: string
         default: "system-profiles/8GBx1zone.tfvars"
       runOnStable:
-        description: 'Run the benchmarks on the latest stable version'
+        description: 'Benchmark on latest stable version'
         required: false
         type: boolean
         default: false
       benchmarkAgents:
-        description: 'Set the number of agents to send data to the APM Server'
+        description: 'Number of benchmark agents sending data to APM Server'
         required: false
         type: string
       benchmarkRun:
-        description: 'Set the expression that matches the benchmark scenarios to run'
+        description: 'Expression for benchmark scenarios to run'
         required: false
         type: string
       warmupTime:
         # default is set in 'Set up env' instead
-        description: 'Set the amount of time to warm the APM Server for'
+        description: 'Benchmark warmup time for APM Server'
         required: false
         type: string
       pgoExport:
-        description: 'Run the benchmarks with PGO export'
+        description: 'Benchmark with PGO export'
         required: false
         type: boolean
         default: false
