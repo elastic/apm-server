@@ -34,11 +34,12 @@ func eventComparer() *pebble.Comparer {
 		}
 		return comparer.ComparePointSuffixes(a[ap:], b[bp:])
 	}
-	comparer.Name = "apmserver.EventComparer"
+	comparer.Name = "apmserver.EventComparer" // this should stay constant, otherwise existing database won't open
 	return &comparer
 }
 
 func OpenEventPebble(storageDir string) (*pebble.DB, error) {
+	// Option values are picked and validated in https://github.com/elastic/apm-server/issues/15568
 	opts := &pebble.Options{
 		FormatMajorVersion: pebble.FormatColumnarBlocks,
 		Logger:             logp.NewLogger(logs.Sampling),
@@ -58,6 +59,7 @@ func OpenEventPebble(storageDir string) (*pebble.DB, error) {
 }
 
 func OpenDecisionPebble(storageDir string) (*pebble.DB, error) {
+	// Option values are picked and validated in https://github.com/elastic/apm-server/issues/15568
 	return pebble.Open(filepath.Join(storageDir, "decision"), &pebble.Options{
 		FormatMajorVersion: pebble.FormatColumnarBlocks,
 		Logger:             logp.NewLogger(logs.Sampling),
