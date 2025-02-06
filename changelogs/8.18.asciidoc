@@ -1,7 +1,12 @@
-[[release-notes-head]]
-== APM version HEAD
+[[apm-release-notes-8.18]]
+== APM version 8.18
+* <<apm-release-notes-8.18.0>>
 
-https://github.com/elastic/apm-server/compare/8.17\...8.x[View commits]
+[float]
+[[apm-release-notes-8.18.0]]
+=== APM version 8.18.0
+
+https://github.com/elastic/apm-server/compare/v8.17.1\...v8.18.0[View commits]
 
 [float]
 ==== Bug fixes
@@ -9,9 +14,6 @@ https://github.com/elastic/apm-server/compare/8.17\...8.x[View commits]
 
 [float]
 ==== Breaking Changes
-
-[float]
-==== Bug fixes
 
 [float]
 ==== Deprecations
