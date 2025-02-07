@@ -182,6 +182,16 @@ resource "aws_instance" "apm" {
     private_key = file("${var.aws_provisioner_key_name}")
   }
 
+  // For instance types with 'd.' e.g. c6id.2xlarge, use the NVMe ssd as data disk.
+  provisioner "remote-exec" {
+    inline = length(regexall("d[.]", self.instance_type)) > 0 ? [
+      "sudo mkfs -t xfs /dev/nvme1n1",
+      "mkdir ~/data",
+      "sudo mount /dev/nvme1n1 ~/data",
+      "sudo chown $USER:$USER ~/data",
+    ] : []
+  }
+
   provisioner "file" {
     source      = "${var.apm_server_bin_path}/apm-server"
     destination = local.bin_path
