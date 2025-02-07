@@ -258,11 +258,12 @@ func Run(allBenchmarks ...BenchmarkFunc) error {
 func warmup(agents int, duration time.Duration, url, token string) error {
 	rl := loadgen.GetNewLimiter(loadgencfg.Config.EventRate.Burst, loadgencfg.Config.EventRate.Interval)
 	h, err := loadgen.NewEventHandler(loadgen.EventHandlerParams{
-		Logger:  zap.NewNop(),
-		Path:    `*.ndjson`,
-		URL:     url,
-		Token:   token,
-		Limiter: rl,
+		Logger:   zap.NewNop(),
+		Protocol: "apm/http",
+		Path:     `apm-*.ndjson`,
+		URL:      url,
+		Token:    token,
+		Limiter:  rl,
 	})
 	if err != nil {
 		return fmt.Errorf("unable to create warm-up handler: %w", err)
