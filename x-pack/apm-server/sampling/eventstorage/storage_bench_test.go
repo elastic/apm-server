@@ -8,10 +8,8 @@ import (
 	"encoding/hex"
 	"fmt"
 	"testing"
-	"time"
 
 	"github.com/gofrs/uuid/v5"
-	"github.com/stretchr/testify/assert"
 
 	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage"
@@ -19,10 +17,8 @@ import (
 
 func BenchmarkWriteTransaction(b *testing.B) {
 	test := func(b *testing.B, codec eventstorage.Codec, bigTX bool) {
-		db := newBadgerDB(b, badgerOptions)
-		store := eventstorage.New(db, codec)
-		readWriter := store.NewReadWriter()
-		defer readWriter.Close()
+		sm := newStorageManager(b, eventstorage.WithCodec(codec))
+		readWriter := newUnlimitedReadWriter(sm)
 
 		traceID := hex.EncodeToString([]byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16})
 		transactionID := hex.EncodeToString([]byte{1, 2, 3, 4, 5, 6, 7, 8})
@@ -39,16 +35,11 @@ func BenchmarkWriteTransaction(b *testing.B) {
 
 		b.ResetTimer()
 
-		wOpts := eventstorage.WriterOpts{
-			TTL:                 time.Minute,
-			StorageLimitInBytes: 0,
-		}
 		for i := 0; i < b.N; i++ {
-			if err := readWriter.WriteTraceEvent(traceID, transactionID, transaction, wOpts); err != nil {
+			if err := readWriter.WriteTraceEvent(traceID, transactionID, transaction); err != nil {
 				b.Fatal(err)
 			}
 		}
-		assert.NoError(b, readWriter.Flush())
 	}
 
 	type testCase struct {
@@ -87,14 +78,8 @@ func BenchmarkReadEvents(b *testing.B) {
 		counts := []int{0, 1, 10, 100, 199, 399, 1000}
 		for _, count := range counts {
 			b.Run(fmt.Sprintf("%d events", count), func(b *testing.B) {
-				db := newBadgerDB(b, badgerOptions)
-				store := eventstorage.New(db, codec)
-				readWriter := store.NewReadWriter()
-				defer readWriter.Close()
-				wOpts := eventstorage.WriterOpts{
-					TTL:                 time.Minute,
-					StorageLimitInBytes: 0,
-				}
+				sm := newStorageManager(b, eventstorage.WithCodec(codec))
+				readWriter := newUnlimitedReadWriter(sm)
 
 				for i := 0; i < count; i++ {
 					transactionID := uuid.Must(uuid.NewV4()).String()
@@ -108,13 +93,11 @@ func BenchmarkReadEvents(b *testing.B) {
 							},
 						}
 					}
-					if err := readWriter.WriteTraceEvent(traceID, transactionID, transaction, wOpts); err != nil {
+					if err := readWriter.WriteTraceEvent(traceID, transactionID, transaction); err != nil {
 						b.Fatal(err)
 					}
 				}
 
-				// NOTE(marclop) We want to check how badly the read performance is affected with
-				// by having uncommitted events in the badger TX.
 				b.ResetTimer()
 				var batch modelpb.Batch
 				for i := 0; i < b.N; i++ {
@@ -167,17 +150,11 @@ func BenchmarkReadEventsHit(b *testing.B) {
 	// And causes next iteration setup to take a very long time.
 	const txnCountInTrace = 5
 
-	test := func(b *testing.B, codec eventstorage.Codec, bigTX bool) {
+	test := func(b *testing.B, bigTX bool, reloadDB bool) {
 		for _, hit := range []bool{false, true} {
 			b.Run(fmt.Sprintf("hit=%v", hit), func(b *testing.B) {
-				db := newBadgerDB(b, badgerOptions)
-				store := eventstorage.New(db, codec)
-				readWriter := store.NewReadWriter()
-				defer readWriter.Close()
-				wOpts := eventstorage.WriterOpts{
-					TTL:                 time.Hour,
-					StorageLimitInBytes: 0,
-				}
+				sm := newStorageManager(b)
+				readWriter := newUnlimitedReadWriter(sm)
 
 				traceIDs := make([]string, b.N)
 
@@ -196,14 +173,19 @@ func BenchmarkReadEventsHit(b *testing.B) {
 								},
 							}
 						}
-						if err := readWriter.WriteTraceEvent(traceID, transactionID, transaction, wOpts); err != nil {
+						if err := readWriter.WriteTraceEvent(traceID, transactionID, transaction); err != nil {
 							b.Fatal(err)
 						}
 					}
 				}
-				if err := readWriter.Flush(); err != nil {
-					b.Fatal(err)
+
+				if reloadDB {
+					if err := sm.Reload(); err != nil {
+						b.Fatal(err)
+					}
 				}
+
+				readWriter = newUnlimitedReadWriter(sm)
 
 				b.ResetTimer()
 				var batch modelpb.Batch
@@ -224,9 +206,13 @@ func BenchmarkReadEventsHit(b *testing.B) {
 		}
 	}
 
-	for _, bigTX := range []bool{true, false} {
-		b.Run(fmt.Sprintf("bigTX=%v", bigTX), func(b *testing.B) {
-			test(b, eventstorage.ProtobufCodec{}, bigTX)
+	for _, reloadDB := range []bool{false, true} {
+		b.Run(fmt.Sprintf("reloadDB=%v", reloadDB), func(b *testing.B) {
+			for _, bigTX := range []bool{true, false} {
+				b.Run(fmt.Sprintf("bigTX=%v", bigTX), func(b *testing.B) {
+					test(b, bigTX, reloadDB)
+				})
+			}
 		})
 	}
 }
@@ -237,19 +223,13 @@ func BenchmarkIsTraceSampled(b *testing.B) {
 	unknownTraceUUID := uuid.Must(uuid.NewV4())
 
 	// Test with varying numbers of events in the trace.
-	db := newBadgerDB(b, badgerOptions)
-	store := eventstorage.New(db, eventstorage.ProtobufCodec{})
-	readWriter := store.NewReadWriter()
-	defer readWriter.Close()
-	wOpts := eventstorage.WriterOpts{
-		TTL:                 time.Minute,
-		StorageLimitInBytes: 0,
-	}
+	sm := newStorageManager(b)
+	readWriter := newUnlimitedReadWriter(sm)
 
-	if err := readWriter.WriteTraceSampled(sampledTraceUUID.String(), true, wOpts); err != nil {
+	if err := readWriter.WriteTraceSampled(sampledTraceUUID.String(), true); err != nil {
 		b.Fatal(err)
 	}
-	if err := readWriter.WriteTraceSampled(unsampledTraceUUID.String(), false, wOpts); err != nil {
+	if err := readWriter.WriteTraceSampled(unsampledTraceUUID.String(), false); err != nil {
 		b.Fatal(err)
 	}
 

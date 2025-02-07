@@ -58,11 +58,18 @@ ifeq ($(RELEASE_TYPE),minor)
 # NOTE: as long as 8.x is the branch to run releases, then we use base branch 8.x
 # when 8.x is not available then we use the main base branch.
 	BASE_BRANCH ?= 8.x
+	UPDATE_MERGIFY = true
 endif
 
 ifeq ($(RELEASE_TYPE),patch)
 	BASE_BRANCH ?= $(RELEASE_BRANCH)
 	LATEST_RELEASE ?= $(RELEASE_BRANCH).$(shell expr $(PROJECT_PATCH_VERSION) - 1)
+endif
+
+ifeq ($(RELEASE_TYPE),major)
+	BASE_BRANCH ?= main
+	CHANGELOG_BRANCH = main
+	UPDATE_MERGIFY = true
 endif
 
 #######################
@@ -135,8 +142,10 @@ minor-release:
 	$(MAKE) create-commit COMMIT_MESSAGE="docs: Update changelogs for $(RELEASE_BRANCH) release"
 
 # NOTE: as long as 8.x is the branch to run releases, then we update mergify
-# when 8.x is not available then this conditional and the update-mergify should be removed..
-ifeq ($(BASE_BRANCH),8.x)
+# when 8.x is not available then this conditional and the update-mergify should be removed.
+# We use a specific PR for mergify, it used to be part of the `update-` PR but it was separated.
+# to support 8.x and main releases.
+ifeq ($(UPDATE_MERGIFY),true)
 	@echo "INFO: Create feature branch for mergify changes. Target branch $(RELEASE_BRANCH)"
 	$(MAKE) create-branch NAME=mergify-$(RELEASE_BRANCH) BASE=main
 	$(MAKE) update-mergify VERSION=$(RELEASE_BRANCH)
@@ -146,10 +155,10 @@ endif
 	@echo "INFO: Create feature branch and update the versions. Target branch $(BASE_BRANCH)"
 	$(MAKE) create-branch NAME=update-$(RELEASE_VERSION) BASE=$(BASE_BRANCH)
 # NOTE: as long as main is the branch to run releases, then we update mergify
-# when 8.x is not available then this conditional should be removed and the update-mergify should be kept.
-ifeq ($(BASE_BRANCH),main)
-	$(MAKE) update-mergify VERSION=$(RELEASE_BRANCH)
-endif
+# TODO: when 8.x is not available then this conditional should be removed and the update-mergify should be kept.
+#ifeq ($(BASE_BRANCH),main)
+#	$(MAKE) update-mergify VERSION=$(RELEASE_BRANCH)
+#endif
 	$(MAKE) update-version VERSION=$(NEXT_PROJECT_MINOR_VERSION)
 	$(MAKE) create-commit COMMIT_MESSAGE="[Release] update version $(NEXT_PROJECT_MINOR_VERSION)"
 	$(MAKE) rename-changelog VERSION=$(RELEASE_BRANCH)
@@ -157,15 +166,25 @@ endif
 
 	@echo "INFO: Push changes to $(PROJECT_OWNER)/apm-server and create the relevant Pull Requests"
 	git push origin $(RELEASE_BRANCH)
-# NOTE: as long as 8.x is the branch to run releases, then we update mergify
-# when 8.x is not available then this conditional and its content should be removed.
-ifeq ($(BASE_BRANCH),8.x)
+ifeq ($(UPDATE_MERGIFY),true)
 	$(MAKE) create-pull-request BRANCH=mergify-$(RELEASE_BRANCH) TARGET_BRANCH=main TITLE="$(RELEASE_BRANCH): mergify" BODY="Merge as soon as the GitHub checks are green." BACKPORT_LABEL=backport-skip
 endif
 	$(MAKE) create-pull-request BRANCH=update-$(RELEASE_VERSION) TARGET_BRANCH=$(BASE_BRANCH) TITLE="$(RELEASE_BRANCH): update docs, versions and changelogs" BODY="Merge as soon as the GitHub checks are green" BACKPORT_LABEL=backport-skip
 # NOTE: as long as 8.x is the branch to run releases, then we use main as target with the backport label.
 # when 8.x is not available then we use TARGET_BRANCH=$(RELEASE_BRANCH)
+ifeq ($(BASE_BRANCH),8.x)
+	@echo "INFO: As long as 8.x is supported, we need to create a PR also in main"
 	$(MAKE) create-pull-request BRANCH=changelog-$(RELEASE_BRANCH) TARGET_BRANCH=main TITLE="$(RELEASE_BRANCH): update docs" BODY="Merge as soon as $(TARGET_BRANCH) branch is created and the GitHub checks are green. And the PR in main for the Mergify changes has been merged." BACKPORT_LABEL=backport-$(RELEASE_BRANCH)
+endif
+
+# This is the contract with the GitHub action .github/workflows/run-major-release.yml.
+# The GitHub action will provide the below environment variables:
+#  - RELEASE_VERSION
+#
+.PHONY: major-release
+major-release:
+# NOTE: major release uses minor-release with BASE_BRANCH=main and CHANGELOG_BRANCH=main
+	$(MAKE) minor-release
 
 # This is the contract with the GitHub action .github/workflows/run-patch-release.yml
 # The GitHub action will provide the below environment variables:

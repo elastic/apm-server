@@ -32,6 +32,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -146,7 +147,7 @@ func TestLibbeatMetrics(t *testing.T) {
 	defer func() { assert.NoError(t, stop()) }()
 	args := <-runnerParamsChan
 
-	var requestIndex int
+	var requestIndex atomic.Int64
 	requestsChan := make(chan chan struct{})
 	defer close(requestsChan)
 	esClient := docappendertest.NewMockElasticsearchClient(t, func(w http.ResponseWriter, r *http.Request) {
@@ -161,17 +162,16 @@ func TestLibbeatMetrics(t *testing.T) {
 			}
 		}
 		_, result := docappendertest.DecodeBulkRequest(r)
-		switch requestIndex {
-		case 1:
+		switch requestIndex.Add(1) {
+		case 2:
 			result.HasErrors = true
 			result.Items[0]["create"] = esutil.BulkIndexerResponseItem{Status: 400}
-		case 3:
+		case 4:
 			result.HasErrors = true
 			result.Items[0]["create"] = esutil.BulkIndexerResponseItem{Status: 429}
 		default:
 			// success
 		}
-		requestIndex++
 		json.NewEncoder(w).Encode(result)
 	})
 	appender, err := docappender.New(esClient, docappender.Config{
@@ -263,6 +263,46 @@ func TestLibbeatMetrics(t *testing.T) {
 				"created":   int64(1),
 				"destroyed": int64(0),
 			},
+		},
+	}, snapshot)
+}
+
+func TestAddAPMServerMetrics(t *testing.T) {
+	r := monitoring.NewRegistry()
+	sm := metricdata.ScopeMetrics{
+		Metrics: []metricdata.Metrics{
+			{
+				Name: "apm-server.foo.request",
+				Data: metricdata.Sum[int64]{
+					DataPoints: []metricdata.DataPoint[int64]{
+						{
+							Value: 1,
+						},
+					},
+				},
+			},
+			{
+				Name: "apm-server.foo.response",
+				Data: metricdata.Sum[int64]{
+					DataPoints: []metricdata.DataPoint[int64]{
+						{
+							Value: 1,
+						},
+					},
+				},
+			},
+		},
+	}
+
+	monitoring.NewFunc(r, "apm-server", func(m monitoring.Mode, v monitoring.Visitor) {
+		addAPMServerMetrics(v, sm)
+	})
+
+	snapshot := monitoring.CollectStructSnapshot(r, monitoring.Full, false)
+	assert.Equal(t, map[string]any{
+		"foo": map[string]any{
+			"request":  int64(1),
+			"response": int64(1),
 		},
 	}, snapshot)
 }
@@ -564,7 +604,12 @@ func TestRunManager_Reloader_newRunnerError(t *testing.T) {
 	require.NoError(t, err)
 	defer manager.Stop()
 
-	assert.Equal(t, "failed to load input config: newRunner error", <-inputFailedMsg)
+	select {
+	case msg := <-inputFailedMsg:
+		assert.Equal(t, "failed to load input config: newRunner error", msg)
+	case <-time.After(10 * time.Second):
+		t.Fatal("timed out waiting for input failed msg")
+	}
 }
 
 func runBeat(t testing.TB, beat *Beat) (stop func() error) {
@@ -603,7 +648,7 @@ func resetGlobals() {
 	// Clear monitoring registries to allow the new Beat to populate them.
 	monitoring.GetNamespace("info").SetRegistry(nil)
 	monitoring.GetNamespace("state").SetRegistry(nil)
-	for _, name := range []string{"system", "beat", "libbeat"} {
+	for _, name := range []string{"system", "beat", "libbeat", "apm-server", "output"} {
 		registry := monitoring.Default.GetRegistry(name)
 		if registry != nil {
 			registry.Clear()

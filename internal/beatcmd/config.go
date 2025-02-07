@@ -23,7 +23,6 @@ import (
 
 	"github.com/elastic/beats/v7/libbeat/cfgfile"
 	"github.com/elastic/beats/v7/libbeat/cloudid"
-	"github.com/elastic/beats/v7/libbeat/common"
 	"github.com/elastic/beats/v7/libbeat/pprof"
 	"github.com/elastic/elastic-agent-libs/config"
 	libkeystore "github.com/elastic/elastic-agent-libs/keystore"
@@ -94,10 +93,14 @@ func LoadConfig(opts ...LoadConfigOption) (*Config, *config.C, libkeystore.Keyst
 		configOpts = append(configOpts, ucfg.ResolveNOOP)
 	} else {
 		configOpts = append(configOpts,
-			ucfg.Resolve(libkeystore.ResolverWrap(keystore)),
 			ucfg.ResolveEnv,
 			ucfg.VarExp,
 		)
+		if keystore != nil {
+			configOpts = append(configOpts,
+				ucfg.Resolve(libkeystore.ResolverWrap(keystore)),
+			)
+		}
 	}
 	config.OverwriteConfigOpts(configOpts)
 
@@ -136,13 +139,6 @@ func WithMergeConfig(cfg ...*config.C) LoadConfigOption {
 	return func(opts *loadConfigOptions) {
 		opts.mergeConfig = cfg
 	}
-}
-
-// loadKeystore returns the appropriate keystore based on the configuration.
-func loadKeystore(cfg *config.C) (libkeystore.Keystore, error) {
-	keystoreCfg, _ := cfg.Child("keystore", -1)
-	defaultPathConfig := paths.Resolve(paths.Data, "apm-server.keystore")
-	return libkeystore.Factory(keystoreCfg, defaultPathConfig, common.IsStrictPerms())
 }
 
 func initPaths(cfg *config.C) error {

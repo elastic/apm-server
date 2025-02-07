@@ -111,6 +111,7 @@ log-benckmark-profile:
 .PHONY: run-benchmark
 run-benchmark: log-benckmark-profile
 	@ssh $(SSH_OPTS) -i $(SSH_KEY) $(SSH_USER)@$(WORKER_IP) ". .envrc && bin/apmbench -run='$(BENCHMARK_RUN)' \
+	-rewrite-timestamps -rewrite-ids \
 	-benchtime=$(BENCHMARK_TIME) -count=$(BENCHMARK_COUNT) -warmup-time=$(BENCHMARK_WARMUP_TIME) \
 	-agents=$(BENCHMARK_AGENTS) -detailed=$(BENCHMARK_DETAILED) -event-rate=$(BENCHMARK_EVENT_RATE) -cpuprofile=$(BENCHMARK_CPU_OUT)" 2>&1 | tee $(BENCHMARK_RESULT)
 

@@ -491,10 +491,6 @@ func (b *Beat) registerStateMetrics() {
 }
 
 func (b *Beat) registerStatsMetrics() {
-	if b.Config.Output.Name() != "elasticsearch" {
-		return
-	}
-
 	libbeatRegistry := monitoring.Default.GetRegistry("libbeat")
 	monitoring.NewFunc(libbeatRegistry, "output", func(_ monitoring.Mode, v monitoring.Visitor) {
 		var rm metricdata.ResourceMetrics
@@ -503,10 +499,10 @@ func (b *Beat) registerStatsMetrics() {
 		}
 		v.OnRegistryStart()
 		defer v.OnRegistryFinished()
-		monitoring.ReportString(v, "type", "elasticsearch")
 		for _, sm := range rm.ScopeMetrics {
 			switch {
 			case sm.Scope.Name == "github.com/elastic/go-docappender":
+				monitoring.ReportString(v, "type", "elasticsearch")
 				addDocappenderLibbeatOutputMetrics(context.Background(), v, sm)
 			}
 		}
@@ -539,6 +535,22 @@ func (b *Beat) registerStatsMetrics() {
 			}
 		}
 	})
+	monitoring.NewFunc(monitoring.Default, "apm-server", func(_ monitoring.Mode, v monitoring.Visitor) {
+		var rm metricdata.ResourceMetrics
+		if err := b.metricReader.Collect(context.Background(), &rm); err != nil {
+			return
+		}
+		v.OnRegistryStart()
+		defer v.OnRegistryFinished()
+		for _, sm := range rm.ScopeMetrics {
+			switch {
+			case strings.HasPrefix(sm.Scope.Name, "github.com/elastic/apm-server"):
+				// All simple scalar metrics that begin with the name "apm-server."
+				// in github.com/elastic/apm-server/... scopes are mapped directly.
+				addAPMServerMetrics(v, sm)
+			}
+		}
+	})
 }
 
 // getScalarInt64 returns a single-value, dimensionless
@@ -558,6 +570,44 @@ func getScalarInt64(data metricdata.Aggregation) (int64, bool) {
 		return data.DataPoints[0].Value, true
 	}
 	return 0, false
+}
+
+func addAPMServerMetrics(v monitoring.Visitor, sm metricdata.ScopeMetrics) {
+	beatsMetrics := make(map[string]any)
+	for _, m := range sm.Metrics {
+		if suffix, ok := strings.CutPrefix(m.Name, "apm-server."); ok {
+			if value, ok := getScalarInt64(m.Data); ok {
+				current := beatsMetrics
+				suffixSlice := strings.Split(suffix, ".")
+				for i := 0; i < len(suffixSlice)-1; i++ {
+					k := suffixSlice[i]
+					if _, ok := current[k]; !ok {
+						current[k] = make(map[string]any)
+					}
+					if currentmap, ok := current[k].(map[string]any); ok {
+						current = currentmap
+					}
+				}
+				current[suffixSlice[len(suffixSlice)-1]] = value
+			}
+		}
+	}
+
+	reportOnKey(v, beatsMetrics)
+}
+
+func reportOnKey(v monitoring.Visitor, m map[string]any) {
+	for key, value := range m {
+		if valueMap, ok := value.(map[string]any); ok {
+			v.OnRegistryStart()
+			v.OnKey(key)
+			reportOnKey(v, valueMap)
+			v.OnRegistryFinished()
+		}
+		if valueMetric, ok := value.(int64); ok {
+			monitoring.ReportInt(v, key, valueMetric)
+		}
+	}
 }
 
 // Adapt go-docappender's OTel metrics to beats stack monitoring metrics,

@@ -74,13 +74,7 @@ func TestNewProcessorConfigInvalid(t *testing.T) {
 	config.DB = &eventstorage.StorageManager{}
 
 	assertInvalidConfigError("invalid storage config: Storage unspecified")
-	config.Storage = &eventstorage.ManagedReadWriter{}
-
-	assertInvalidConfigError("invalid storage config: StorageDir unspecified")
-	config.StorageDir = "tbs"
-
-	assertInvalidConfigError("invalid storage config: StorageGCInterval unspecified or negative")
-	config.StorageGCInterval = 1
+	config.Storage = &eventstorage.SplitReadWriter{}
 
 	assertInvalidConfigError("invalid storage config: TTL unspecified or negative")
 	config.TTL = 1

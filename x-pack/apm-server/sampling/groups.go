@@ -5,11 +5,14 @@
 package sampling
 
 import (
+	"context"
 	"errors"
 	"math"
 	"math/rand"
 	"sync"
 	"time"
+
+	"go.opentelemetry.io/otel/metric"
 
 	"github.com/elastic/apm-data/model/modelpb"
 )
@@ -31,6 +34,10 @@ type traceGroups struct {
 	// to maintain. Once this is reached, no new dynamic service groups will
 	// be created, and events may be dropped.
 	maxDynamicServiceGroups int
+
+	// numDynamicServiceGroupsCounter is used for reporting the current number
+	// of dynamic service groups.
+	numDynamicServiceGroupsCounter metric.Int64UpDownCounter
 
 	mu                      sync.RWMutex
 	policyGroups            []policyGroup
@@ -60,14 +67,17 @@ func (g *policyGroup) match(transactionEvent *modelpb.APMEvent) bool {
 }
 
 func newTraceGroups(
+	meter metric.Meter,
 	policies []Policy,
 	maxDynamicServiceGroups int,
 	ingestRateDecayFactor float64,
 ) *traceGroups {
+	numDynamicServiceGroupsCounter, _ := meter.Int64UpDownCounter("apm-server.sampling.tail.dynamic_service_groups")
 	groups := &traceGroups{
-		ingestRateDecayFactor:   ingestRateDecayFactor,
-		maxDynamicServiceGroups: maxDynamicServiceGroups,
-		policyGroups:            make([]policyGroup, len(policies)),
+		ingestRateDecayFactor:          ingestRateDecayFactor,
+		maxDynamicServiceGroups:        maxDynamicServiceGroups,
+		numDynamicServiceGroupsCounter: numDynamicServiceGroupsCounter,
+		policyGroups:                   make([]policyGroup, len(policies)),
 	}
 	for i, policy := range policies {
 		pg := policyGroup{policy: policy}
@@ -150,6 +160,7 @@ func (g *traceGroups) getTraceGroup(transactionEvent *modelpb.APMEvent) (*traceG
 			return nil, errTooManyTraceGroups
 		}
 		g.numDynamicServiceGroups++
+		g.numDynamicServiceGroupsCounter.Add(context.Background(), 1)
 		group = newTraceGroup(pg.policy.SampleRate)
 		pg.dynamic[transactionEvent.GetService().GetName()] = group
 	}
@@ -183,12 +194,12 @@ func (g *traceGroups) finalizeSampledTraces(traceIDs []string) []string {
 	maxDynamicServiceGroupsReached := g.numDynamicServiceGroups == g.maxDynamicServiceGroups
 	for _, pg := range g.policyGroups {
 		if pg.g != nil {
-			traceIDs = pg.g.finalizeSampledTraces(traceIDs, g.ingestRateDecayFactor)
+			_, traceIDs = pg.g.finalizeSampledTraces(traceIDs, g.ingestRateDecayFactor)
 			continue
 		}
 		for serviceName, group := range pg.dynamic {
-			total := group.total
-			traceIDs = group.finalizeSampledTraces(traceIDs, g.ingestRateDecayFactor)
+			var total int
+			total, traceIDs = group.finalizeSampledTraces(traceIDs, g.ingestRateDecayFactor)
 			if (maxDynamicServiceGroupsReached || total == 0) && group.reservoir.Size() == minReservoirSize {
 				g.numDynamicServiceGroups--
 				delete(pg.dynamic, serviceName)
@@ -199,11 +210,13 @@ func (g *traceGroups) finalizeSampledTraces(traceIDs []string) []string {
 }
 
 // finalizeSampledTraces appends the group's current trace IDs to traceIDs, and
-// returns the extended slice. On return the groups' sampling reservoirs will be
-// reset.
-func (g *traceGroup) finalizeSampledTraces(traceIDs []string, ingestRateDecayFactor float64) []string {
+// returns total of the group and the extended slice.
+// On return the groups' sampling reservoirs will be reset.
+func (g *traceGroup) finalizeSampledTraces(traceIDs []string, ingestRateDecayFactor float64) (int, []string) {
 	g.mu.Lock()
 	defer g.mu.Unlock()
+
+	oldTotal := g.total
 
 	if g.ingestRate == 0 {
 		g.ingestRate = float64(g.total)
@@ -230,5 +243,5 @@ func (g *traceGroup) finalizeSampledTraces(traceIDs []string, ingestRateDecayFac
 	}
 	g.reservoir.Reset()
 	g.reservoir.Resize(newReservoirSize)
-	return traceIDs
+	return oldTotal, traceIDs
 }

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	"go.opentelemetry.io/otel/metric"
 
 	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage"
@@ -20,6 +21,10 @@ type Config struct {
 	// BatchProcessor holds the model.BatchProcessor, for asynchronously processing
 	// tail-sampled trace events.
 	BatchProcessor modelpb.BatchProcessor
+
+	// MeterProvider holds a metric.MeterProvider that can be used for
+	// creating metrics.
+	MeterProvider metric.MeterProvider
 
 	LocalSamplingConfig
 	RemoteSamplingConfig
@@ -95,25 +100,13 @@ type DataStreamConfig struct {
 
 // StorageConfig holds Processor configuration related to event storage.
 type StorageConfig struct {
-	// DB holds the badger database in which event storage will be maintained.
+	// DB holds the StorageManager in which event storage will be maintained.
 	//
 	// DB will not be closed when the processor is closed.
 	DB *eventstorage.StorageManager
 
-	// Storage holds the read writers which provide sharded, locked access to storage.
-	//
-	// Storage lives outside processor lifecycle and will not be closed when processor
-	// is closed
-	Storage rw
-
-	// StorageDir holds the directory in which event storage will be maintained.
-	StorageDir string
-
-	// StorageGCInterval holds the amount of time between storage garbage collections.
-	StorageGCInterval time.Duration
-
-	// StorageLimit for the badger database, in bytes.
-	StorageLimit uint64
+	// Storage is the read writer to DB.
+	Storage eventstorage.RW
 
 	// TTL holds the amount of time before events and sampling decisions
 	// are expired from local storage.
@@ -244,12 +237,6 @@ func (config StorageConfig) validate() error {
 	}
 	if config.Storage == nil {
 		return errors.New("Storage unspecified")
-	}
-	if config.StorageDir == "" {
-		return errors.New("StorageDir unspecified")
-	}
-	if config.StorageGCInterval <= 0 {
-		return errors.New("StorageGCInterval unspecified or negative")
 	}
 	if config.TTL <= 0 {
 		return errors.New("TTL unspecified or negative")

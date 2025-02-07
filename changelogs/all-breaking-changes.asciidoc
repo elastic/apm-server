@@ -7,6 +7,25 @@
 This section describes the breaking changes and deprecations introduced in this release
 and previous minor versions.
 
+// tag::90-bc[]
+[float]
+[[breaking-changes-9.0]]
+=== 9.0
+
+The following breaking changes are introduced in APM version 9.0.0:
+
+- Change `sampling.tail.storage_limit` default to `0`.
+While `0` means unlimited local tail-sampling database size,
+it now enforces a max 80% disk usage on the disk where the data directory is located.
+Any tail sampling writes after this threshold will be rejected,
+similar to what happens when tail-sampling database size exceeds a non-0 storage limit.
+Setting `sampling.tail.storage_limit` to non-0 maintains the existing behavior
+which limits the tail-sampling database size to `sampling.tail.storage_limit`
+and does not have the new disk usage threshold check.
+For more details, see https://github.com/elastic/apm-server/pull/15467[PR #15467] and
+https://github.com/elastic/apm-server/pull/15524[PR #15524]
+// end::90-bc[]
+
 // tag::811-bc[]
 [float]
 [[breaking-changes-8.11]]
