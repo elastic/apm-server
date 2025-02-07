@@ -1,6 +1,6 @@
 module github.com/elastic/apm-server
 
-go 1.23.0
+go 1.23.6
 
 require (
 	github.com/KimMachineGun/automemlimit v0.7.0
