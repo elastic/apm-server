@@ -19,6 +19,9 @@ if [[ ${TYPE} == "snapshot" ]]; then
   MAKE_GOAL="${MAKE_GOAL}-snapshot"
 fi
 
+echo "--- Debug filesystem"
+ls -l apm-server.yml
+
 if [[ ${TYPE} == "staging" ]]; then
   echo "--- Prepare the Elastic Qualifier"
   # NOTE: load the shared functions
