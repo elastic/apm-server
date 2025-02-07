@@ -35,6 +35,7 @@ import (
 	"time"
 
 	"go.elastic.co/apm/v2/stacktrace"
+	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
 	"golang.org/x/time/rate"
 
@@ -257,6 +258,7 @@ func Run(allBenchmarks ...BenchmarkFunc) error {
 func warmup(agents int, duration time.Duration, url, token string) error {
 	rl := loadgen.GetNewLimiter(loadgencfg.Config.EventRate.Burst, loadgencfg.Config.EventRate.Interval)
 	h, err := loadgen.NewEventHandler(loadgen.EventHandlerParams{
+		Logger:  zap.NewNop(),
 		Path:    `*.ndjson`,
 		URL:     url,
 		Token:   token,
