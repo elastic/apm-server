@@ -22,6 +22,7 @@ on:
         description: 'System profile for benchmark, e.g. system-profiles/8GBx1zone.tfvars'
         required: false
         type: string
+        # defaults set below (TFVARS_SOURCE)
       runOnStable:
         description: 'Benchmark on latest stable version'
         required: false
@@ -31,14 +32,17 @@ on:
         description: 'Number of benchmark agents sending data to APM Server'
         required: false
         type: string
+        # defaults set in Makefile
       benchmarkRun:
         description: 'Benchmark scenarios that only match regex, e.g. BenchmarkAgentAll'
         required: false
         type: string
+        # defaults set in Makefile
       warmupTime:
         description: 'Benchmark warmup time for APM Server e.g. 3s, 5m, 2h'
         required: false
         type: string
+        # defaults set below (Set up env)
       pgoExport:
         description: 'Benchmark with PGO export'
         required: false
