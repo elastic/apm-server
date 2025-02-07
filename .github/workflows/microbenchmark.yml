@@ -7,7 +7,12 @@ on:
   push:
     branches:
       - main
+<<<<<<< HEAD
       - "8.[0-9]+"
+=======
+      - "8.*"
+      - "9.*"
+>>>>>>> c910e1ad (ci: run workflows on 9.* branches (#15582))
     paths-ignore:
       - '**.md'
       - '**.asciidoc'
