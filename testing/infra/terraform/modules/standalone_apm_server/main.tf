@@ -172,6 +172,7 @@ resource "aws_instance" "apm" {
   root_block_device {
     volume_type = var.apm_volume_type
     volume_size = var.apm_volume_size
+    iops        = var.apm_iops
   }
 
   connection {

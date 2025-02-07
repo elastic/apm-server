@@ -8,6 +8,10 @@ on:
         required: false
         type: boolean
         default: false
+      standaloneInstanceSize:
+        description: 'AWS instance size of standalone APM Server, e.g. c6i.2xlarge'
+        required: false
+        type: string
       enableTailSampling:
         description: 'Enable tail-based sampling on the APM server'
         required: false
@@ -67,6 +71,7 @@ jobs:
       TF_VAR_private_key: ./id_rsa_terraform
       TF_VAR_public_key: ./id_rsa_terraform.pub
       TF_VAR_run_standalone: ${{ inputs.runStandalone || github.event.schedule=='0 0 1 * *' }}
+      TF_VAR_standalone_apm_server_instance_size: ${{ inputs.standaloneInstanceSize || 'c6i.2xlarge' }}
       TF_VAR_apm_server_tail_sampling: ${{ inputs.enableTailSampling || 'false' }} # set the default again otherwise schedules won't work
       TF_VAR_apm_server_tail_sampling_storage_limit: ${{ inputs.tailSamplingStorageLimit || '10GB' }} # set the default again otherwise schedules won't work
       RUN_STANDALONE: ${{ inputs.runStandalone || github.event.schedule=='0 0 1 * *' }}
