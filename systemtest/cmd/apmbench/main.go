@@ -79,23 +79,23 @@ func BenchmarkOTLPTraces(b *testing.B, l *rate.Limiter) {
 // Even though files are loaded alphabetically and the events sent sequentially
 // there is inherent randomness in the order the events are sent to APM Sever.
 func BenchmarkAgentAll(b *testing.B, l *rate.Limiter) {
-	benchmarkAgent(b, l, `*.ndjson`)
+	benchmarkAgent(b, l, `apm-*.ndjson`)
 }
 
 func BenchmarkAgentGo(b *testing.B, l *rate.Limiter) {
-	benchmarkAgent(b, l, `go*.ndjson`)
+	benchmarkAgent(b, l, `apm-go*.ndjson`)
 }
 
 func BenchmarkAgentNodeJS(b *testing.B, l *rate.Limiter) {
-	benchmarkAgent(b, l, `nodejs*.ndjson`)
+	benchmarkAgent(b, l, `apm-nodejs*.ndjson`)
 }
 
 func BenchmarkAgentPython(b *testing.B, l *rate.Limiter) {
-	benchmarkAgent(b, l, `python*.ndjson`)
+	benchmarkAgent(b, l, `apm-python*.ndjson`)
 }
 
 func BenchmarkAgentRuby(b *testing.B, l *rate.Limiter) {
-	benchmarkAgent(b, l, `ruby*.ndjson`)
+	benchmarkAgent(b, l, `apm-ruby*.ndjson`)
 }
 
 func benchmarkAgent(b *testing.B, l *rate.Limiter, expr string) {
