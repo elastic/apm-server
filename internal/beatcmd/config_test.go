@@ -28,7 +28,6 @@ import (
 
 	"github.com/elastic/beats/v7/libbeat/cfgfile"
 	"github.com/elastic/elastic-agent-libs/config"
-	"github.com/elastic/elastic-agent-libs/keystore"
 	"github.com/elastic/elastic-agent-libs/paths"
 )
 
@@ -37,11 +36,10 @@ func TestLoadConfig(t *testing.T) {
 apm-server:
   host: :8200
   `)
-	cfg, rawConfig, keystore, err := LoadConfig()
+	cfg, rawConfig, _, err := LoadConfig()
 	require.NoError(t, err)
 	assert.NotNil(t, cfg)
 	assert.NotNil(t, rawConfig)
-	assert.NotNil(t, keystore)
 
 	assertConfigEqual(t, map[string]interface{}{
 		"apm-server": map[string]interface{}{
@@ -72,41 +70,6 @@ apm-server:
 	assertConfigEqual(t, map[string]interface{}{
 		"host":             "localhost:8200",
 		"shutdown_timeout": "1s",
-	}, cfg.APMServer)
-}
-
-func TestLoadConfigKeystore(t *testing.T) {
-	initCfgfile(t, `
-apm-server:
-  auth.secret_token: ${APM_SECRET_TOKEN}
-  `)
-
-	cfg, _, _, err := LoadConfig(WithDisableConfigResolution())
-	require.NoError(t, err)
-	assertConfigEqual(t, map[string]interface{}{
-		"auth": map[string]interface{}{
-			"secret_token": "${APM_SECRET_TOKEN}",
-		},
-	}, cfg.APMServer)
-
-	cfg, _, ks, err := LoadConfig()
-	require.NoError(t, err)
-
-	err = cfg.APMServer.Unpack(new(map[string]interface{}))
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), `missing field accessing 'apm-server.auth'`)
-
-	wks, err := keystore.AsWritableKeystore(ks)
-	require.NoError(t, err)
-	err = wks.Store("APM_SECRET_TOKEN", []byte("abc123"))
-	require.NoError(t, err)
-	err = wks.Save()
-	require.NoError(t, err)
-
-	assertConfigEqual(t, map[string]interface{}{
-		"auth": map[string]interface{}{
-			"secret_token": "abc123",
-		},
 	}, cfg.APMServer)
 }
 
