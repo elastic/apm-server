@@ -74,7 +74,7 @@ func (c *AgentConfig) setup(log *logp.Logger, outputESCfg *config.C) error {
 		c.ESOverrideConfigured = true
 
 		// Empty out credential fields before merging if credentials are provided in agentcfg ES config
-		if c.es.HasField("api_key") || c.es.HasField("username") {
+		if c.es.HasField("api_key") || c.es.HasField("username") || c.es.HasField("password") {
 			c.ESConfig.APIKey = ""
 			c.ESConfig.Username = ""
 			c.ESConfig.Password = ""
