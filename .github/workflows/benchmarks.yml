@@ -32,7 +32,7 @@ on:
         required: false
         type: string
       benchmarkRun:
-        description: 'Run only benchmark scenarios that match regex, e.g. BenchmarkAgentAll'
+        description: 'Benchmark scenarios that only match regex, e.g. BenchmarkAgentAll'
         required: false
         type: string
       warmupTime:
