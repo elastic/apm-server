@@ -86,7 +86,7 @@ func (c *RumConfig) setup(log *logp.Logger, outputESCfg *config.C) error {
 	}
 
 	// Empty out credential fields before merging if credentials are provided in SourceMapping ES config
-	if c.SourceMapping.es.HasField("api_key") || c.SourceMapping.es.HasField("username") {
+	if c.SourceMapping.es.HasField("api_key") || c.SourceMapping.es.HasField("username") || c.SourceMapping.es.HasField("password") {
 		c.SourceMapping.ESConfig.APIKey = ""
 		c.SourceMapping.ESConfig.Username = ""
 		c.SourceMapping.ESConfig.Password = ""
