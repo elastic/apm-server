@@ -47,6 +47,7 @@ testing/smoke/**/tf.log
 testing/smoke/**/apm-server-*.ndjson
 testing/smoke/**/provisioner_key*
 testing/smoke/**/main.tf
+testing/smoke/**/secret_token_value.json
 !testing/smoke/main.tf
 !testing/smoke/supported-os/main.tf
 !testing/smoke/managed/main.tf
