@@ -162,7 +162,8 @@ $(ARCHIVE_PREFIX)-windows-x86_64 $(ARCHIVE_PREFIX)-SNAPSHOT-windows-x86_64: \
 
 $(ARCHIVE_PREFIX)-%:
 	@rm -fr $@ && mkdir -p $@
-	cp $(filter-out build/apm-server-%, $^) $@
+# the apm-server.yml requires 644 permissions, let's avoid the issues with umask
+	install -m 640 $(filter-out build/apm-server-%, $^) $@
 	cp $(filter build/apm-server-%, $^) $@/apm-server$(suffix $(filter build/apm-server-%, $^))
 
 $(DISTDIR)/%.tar.gz: $(ARCHIVES_DIR)/%
