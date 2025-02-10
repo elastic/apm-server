@@ -45,14 +45,13 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
-      - name: update GOCACHE vars
+      - uses: antontroshin/setup-go@bda02de8887c9946189f81e7e59512914aeb9ea4
         if: runner.os == 'Windows'
-        run: |
-          echo "GOCACHE: D:\gocache"  >> "$GITHUB_ENV"
-          echo "GOMODCACHE: D:\gomodcache" >> "$GITHUB_ENV"
-          echo "GOTMPDIR: D:\gotmp" >> "$GITHUB_ENV"
-          mkdir D:\gotmp
+        with:
+          go-version-file: go.mod
+          cache: true
       - uses: actions/setup-go@v5
+        if: runner.os != 'Windows'
         with:
           go-version-file: go.mod
           cache: true
