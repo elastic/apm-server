@@ -48,7 +48,7 @@ func OpenEventPebble(storageDir string, cacheSize uint64) (*pebble.DB, error) {
 		MemTableSize:       16 << 20,
 		Levels: []pebble.LevelOptions{
 			{
-				BlockSize:    32 << 10, // the bigger the blocks, the better the compression and the smaller the index block
+				BlockSize:    16 << 10, // the bigger the blocks, the better the compression and the smaller the index block
 				Compression:  func() pebble.Compression { return pebble.SnappyCompression },
 				FilterPolicy: bloom.FilterPolicy(10),
 				FilterType:   pebble.TableFilter,
@@ -57,6 +57,7 @@ func OpenEventPebble(storageDir string, cacheSize uint64) (*pebble.DB, error) {
 		Comparer: eventComparer(),
 		Cache:    cache,
 	}
+	opts.Experimental.MaxWriterConcurrency = 1
 	return pebble.Open(filepath.Join(storageDir, "event"), opts)
 }
 
