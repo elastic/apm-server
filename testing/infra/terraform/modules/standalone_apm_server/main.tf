@@ -172,6 +172,7 @@ resource "aws_instance" "apm" {
   root_block_device {
     volume_type = var.apm_volume_type
     volume_size = var.apm_volume_size
+    iops        = var.apm_iops
   }
 
   connection {
@@ -179,6 +180,18 @@ resource "aws_instance" "apm" {
     user        = local.image_ssh_users[var.aws_os]
     host        = self.public_ip
     private_key = file("${var.aws_provisioner_key_name}")
+  }
+
+  // For instance types with 'd.' e.g. c6id.2xlarge, use the NVMe ssd as data disk.
+  provisioner "remote-exec" {
+    inline = length(regexall("d[.]", self.instance_type)) > 0 ? [
+      "sudo mkfs -t xfs /dev/nvme1n1",
+      "mkdir ~/data",
+      "sudo mount /dev/nvme1n1 ~/data",
+      "sudo chown $USER:$USER ~/data",
+      ] : [
+      ":", // no-op
+    ]
   }
 
   provisioner "file" {
