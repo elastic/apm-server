@@ -8,5 +8,9 @@ os_names=(
     "al2023-ami-2023"
     "RHEL-8"
     "RHEL-9"
+    "Rocky-8-EC2-Base"
+    "Rocky-9-EC2-Base"
+    "AlmaLinux OS 8"
+    "AlmaLinux OS 9"
 )
 
