@@ -27,6 +27,7 @@ import (
 
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
+	"go.uber.org/zap"
 	"golang.org/x/time/rate"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -105,6 +106,8 @@ func NewOTLPExporter(tb testing.TB) *otlptrace.Exporter {
 func NewEventHandler(tb testing.TB, p string, l *rate.Limiter) *eventhandler.Handler {
 	serverCfg := loadgencfg.Config
 	h, err := loadgen.NewEventHandler(loadgen.EventHandlerParams{
+		Logger:            zap.NewNop(),
+		Protocol:          "apm/http",
 		Path:              p,
 		URL:               serverCfg.ServerURL.String(),
 		Token:             serverCfg.SecretToken,
@@ -124,6 +127,8 @@ func NewEventHandler(tb testing.TB, p string, l *rate.Limiter) *eventhandler.Han
 func NewFSEventHandler(tb testing.TB, p string, l *rate.Limiter, fs fs.FS) *eventhandler.Handler {
 	serverCfg := loadgencfg.Config
 	h, err := newFSEventHandler(loadgen.EventHandlerParams{
+		Logger:            zap.NewNop(),
+		Protocol:          "apm/http",
 		Path:              p,
 		URL:               serverCfg.ServerURL.String(),
 		Token:             serverCfg.SecretToken,
@@ -143,7 +148,7 @@ func newFSEventHandler(p loadgen.EventHandlerParams, fs fs.FS) (*eventhandler.Ha
 	if err != nil {
 		return nil, err
 	}
-	transp := eventhandler.NewTransport(t.Client, p.URL, p.Token, p.APIKey, p.Headers)
+	transp := eventhandler.NewAPMTransport(p.Logger, t.Client, p.URL, p.Token, p.APIKey, p.Headers)
 	cfg := eventhandler.Config{
 		Path:                      filepath.Join("events", p.Path),
 		Transport:                 transp,
@@ -159,5 +164,5 @@ func newFSEventHandler(p loadgen.EventHandlerParams, fs fs.FS) (*eventhandler.Ha
 		RewriteTransactionTypes:   p.RewriteTransactionTypes,
 		RewriteTimestamps:         p.RewriteTimestamps,
 	}
-	return eventhandler.New(cfg)
+	return eventhandler.NewAPM(p.Logger, cfg)
 }

@@ -76,7 +76,7 @@ GH_TOKEN="${VAULT_GITHUB_TOKEN}"
 export GH_TOKEN
 
 echo "--- Setting up the :golang: environment..."
-GO_VERSION=$(cat .go-version)
+GO_VERSION=$(grep '^go' go.mod | cut -d' ' -f2)
 WORKSPACE=$(git rev-parse --show-toplevel)
 export GO_VERSION WORKSPACE
 get_os_details

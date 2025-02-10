@@ -23,4 +23,3 @@ https://github.com/elastic/apm-server/compare/v8.17.1\...v8.18.0[View commits]
 
 [float]
 ==== Added
-- Tail-based sampling: Storage layer is rewritten to use Pebble database instead of BadgerDB. The new implementation offers a substantial throughput increase while consuming significantly less memory. Disk usage is lower and more stable. See PR for benchmark details. {pull}15235[15235]

@@ -14,12 +14,7 @@ get_latest_snapshot
 
 VERSION=${1}
 if [[ -z ${VERSION} ]] || [[ "${VERSION}" == "latest" ]]; then
-    # NOTE(marclop) Temporarily avoid testing against 9.x, since we want to test that the
-    # upgrade for 7.17 to 8.latest works correctly.
-    # Uncomment the line below when we are ready to test against 9.x and delete the line
-    # after the next one.
-    # VERSION=$(echo ${VERSIONS} | jq -r 'last')
-    VERSION=$(echo ${VERSIONS} | jq -r '[.[] | select(. | startswith("8"))] | last')
+    VERSION=$(echo ${VERSIONS} | jq -r 'last')
     echo "-> unspecified version, using $(echo ${VERSION} | cut -d '.' -f1-2)"
 fi
 MAJOR_VERSION=$(echo ${VERSION} | cut -d '.' -f1 )
@@ -27,7 +22,7 @@ MINOR_VERSION=$(echo ${VERSION} | cut -d '.' -f2 )
 
 OBSERVER_VERSION=$(echo ${VERSION} | cut -d '-' -f1 )
 
-if [[ ${MAJOR_VERSION} -eq 8 ]]; then
+if [[ ${MAJOR_VERSION} -eq 8 ]] || [[ ${MAJOR_VERSION} -eq 9 ]]; then
     ASSERT_EVENTS_FUNC=data_stream_assertions
     INTEGRATIONS_SERVER=true
 
