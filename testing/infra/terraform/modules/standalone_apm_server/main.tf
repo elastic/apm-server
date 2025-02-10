@@ -11,6 +11,8 @@ locals {
     "Rocky-9-EC2-Base"                = "792107900819" # Rocky Linux
     "AlmaLinux OS 8"                  = "764336703387" # AlmaLinux OS Foundation
     "AlmaLinux OS 9"                  = "764336703387" # AlmaLinux OS Foundation
+    "OL8"                             = "131827586825" # Oracle
+    "OL9"                             = "131827586825" # Oracle
   }
   instance_types = {
     "ubuntu-focal-20.04-arm64-server" = "t4g.nano"
@@ -24,6 +26,8 @@ locals {
     "Rocky-9-EC2-Base"                = "t4g.nano"
     "AlmaLinux OS 8"                  = "t4g.nano"
     "AlmaLinux OS 9"                  = "t4g.nano"
+    "OL8"                             = "t4g.nano"
+    "OL9"                             = "t4g.nano"
   }
   instance_arch = {
     "ubuntu-focal-20.04-arm64-server" = "arm64"
@@ -37,32 +41,38 @@ locals {
     "Rocky-9-EC2-Base"                = "arm64"
     "AlmaLinux OS 8"                  = "arm64"
     "AlmaLinux OS 9"                  = "arm64"
+    "OL8"                             = "arm64"
+    "OL9"                             = "arm64"
   }
   instance_ea_provision_cmd = {
     "ubuntu-focal-20.04-arm64-server" = "curl ${data.external.latest_elastic_agent.result.deb_arm} -o elastic-agent.deb && sudo dpkg -i elastic-agent.deb"
     "ubuntu-jammy-22.04-arm64-server" = "curl ${data.external.latest_elastic_agent.result.deb_arm} -o elastic-agent.deb && sudo dpkg -i elastic-agent.deb"
     "ubuntu-noble-24.04-arm64-server" = "curl ${data.external.latest_elastic_agent.result.deb_arm} -o elastic-agent.deb && sudo dpkg -i elastic-agent.deb"
     "debian-12-arm64"                 = "curl ${data.external.latest_elastic_agent.result.deb_arm} -o elastic-agent.deb && sudo dpkg -i elastic-agent.deb"
-    "al2023-ami-2023"                 = "curl ${data.external.latest_elastic_agent.result.rpm_arm} -o elastic-agent.rpm && sudo yum -y install elastic-agent.rpm"
-    "RHEL-8"                          = "curl ${data.external.latest_elastic_agent.result.rpm_arm} -o elastic-agent.rpm && sudo yum -y install elastic-agent.rpm"
-    "RHEL-9"                          = "curl ${data.external.latest_elastic_agent.result.rpm_arm} -o elastic-agent.rpm && sudo yum -y install elastic-agent.rpm"
-    "Rocky-8-EC2-Base"                = "curl ${data.external.latest_elastic_agent.result.rpm_arm} -o elastic-agent.rpm && sudo yum -y install elastic-agent.rpm"
-    "Rocky-9-EC2-Base"                = "curl ${data.external.latest_elastic_agent.result.rpm_arm} -o elastic-agent.rpm && sudo yum -y install elastic-agent.rpm"
-    "AlmaLinux OS 8"                  = "curl ${data.external.latest_elastic_agent.result.rpm_arm} -o elastic-agent.rpm && sudo yum -y install elastic-agent.rpm"
-    "AlmaLinux OS 9"                  = "curl ${data.external.latest_elastic_agent.result.rpm_arm} -o elastic-agent.rpm && sudo yum -y install elastic-agent.rpm"
+    "al2023-ami-2023"                 = "curl ${data.external.latest_elastic_agent.result.rpm_arm} -o elastic-agent.rpm && sudo rpm -i elastic-agent.rpm"
+    "RHEL-8"                          = "curl ${data.external.latest_elastic_agent.result.rpm_arm} -o elastic-agent.rpm && sudo rpm -i elastic-agent.rpm"
+    "RHEL-9"                          = "curl ${data.external.latest_elastic_agent.result.rpm_arm} -o elastic-agent.rpm && sudo rpm -i elastic-agent.rpm"
+    "Rocky-8-EC2-Base"                = "curl ${data.external.latest_elastic_agent.result.rpm_arm} -o elastic-agent.rpm && sudo rpm -i elastic-agent.rpm"
+    "Rocky-9-EC2-Base"                = "curl ${data.external.latest_elastic_agent.result.rpm_arm} -o elastic-agent.rpm && sudo rpm -i elastic-agent.rpm"
+    "AlmaLinux OS 8"                  = "curl ${data.external.latest_elastic_agent.result.rpm_arm} -o elastic-agent.rpm && sudo rpm -i elastic-agent.rpm"
+    "AlmaLinux OS 9"                  = "curl ${data.external.latest_elastic_agent.result.rpm_arm} -o elastic-agent.rpm && sudo rpm -i elastic-agent.rpm"
+    "OL8"                             = "curl ${data.external.latest_elastic_agent.result.rpm_arm} -o elastic-agent.rpm && sudo rpm -i elastic-agent.rpm"
+    "OL9"                             = "curl ${data.external.latest_elastic_agent.result.rpm_arm} -o elastic-agent.rpm && sudo rpm -i elastic-agent.rpm"
   }
   instance_standalone_provision_cmd = {
     "ubuntu-focal-20.04-arm64-server" = "curl ${data.external.latest_apm_server.result.deb_arm} -o apm-server.deb && sudo dpkg -i apm-server.deb"
     "ubuntu-jammy-22.04-arm64-server" = "curl ${data.external.latest_apm_server.result.deb_arm} -o apm-server.deb && sudo dpkg -i apm-server.deb"
     "ubuntu-noble-24.04-arm64-server" = "curl ${data.external.latest_apm_server.result.deb_arm} -o apm-server.deb && sudo dpkg -i apm-server.deb"
     "debian-12-arm64"                 = "curl ${data.external.latest_apm_server.result.deb_arm} -o apm-server.deb && sudo dpkg -i apm-server.deb"
-    "al2023-ami-2023"                 = "curl ${data.external.latest_apm_server.result.rpm_arm} -o apm-server.rpm && sudo yum -y install apm-server.rpm"
-    "RHEL-8"                          = "curl ${data.external.latest_apm_server.result.rpm_arm} -o apm-server.rpm && sudo yum -y install apm-server.rpm"
-    "RHEL-9"                          = "curl ${data.external.latest_apm_server.result.rpm_arm} -o apm-server.rpm && sudo yum -y install apm-server.rpm"
-    "Rocky-8-EC2-Base"                = "curl ${data.external.latest_apm_server.result.rpm_arm} -o apm-server.rpm && sudo yum -y install apm-server.rpm"
-    "Rocky-9-EC2-Base"                = "curl ${data.external.latest_apm_server.result.rpm_arm} -o apm-server.rpm && sudo yum -y install apm-server.rpm"
-    "AlmaLinux OS 8"                  = "curl ${data.external.latest_apm_server.result.rpm_arm} -o apm-server.rpm && sudo yum -y install apm-server.rpm"
-    "AlmaLinux OS 9"                  = "curl ${data.external.latest_apm_server.result.rpm_arm} -o apm-server.rpm && sudo yum -y install apm-server.rpm"
+    "al2023-ami-2023"                 = "curl ${data.external.latest_apm_server.result.rpm_arm} -o apm-server.rpm && sudo rpm -i apm-server.rpm"
+    "RHEL-8"                          = "curl ${data.external.latest_apm_server.result.rpm_arm} -o apm-server.rpm && sudo rpm -i apm-server.rpm"
+    "RHEL-9"                          = "curl ${data.external.latest_apm_server.result.rpm_arm} -o apm-server.rpm && sudo rpm -i apm-server.rpm"
+    "Rocky-8-EC2-Base"                = "curl ${data.external.latest_apm_server.result.rpm_arm} -o apm-server.rpm && sudo rpm -i apm-server.rpm"
+    "Rocky-9-EC2-Base"                = "curl ${data.external.latest_apm_server.result.rpm_arm} -o apm-server.rpm && sudo rpm -i apm-server.rpm"
+    "AlmaLinux OS 8"                  = "curl ${data.external.latest_apm_server.result.rpm_arm} -o apm-server.rpm && sudo rpm -i apm-server.rpm"
+    "AlmaLinux OS 9"                  = "curl ${data.external.latest_apm_server.result.rpm_arm} -o apm-server.rpm && sudo rpm -i apm-server.rpm"
+    "OL8"                             = "curl ${data.external.latest_apm_server.result.rpm_arm} -o apm-server.rpm && sudo rpm -i apm-server.rpm"
+    "OL9"                             = "curl ${data.external.latest_apm_server.result.rpm_arm} -o apm-server.rpm && sudo rpm -i apm-server.rpm"
   }
   image_ssh_users = {
     "ubuntu-focal-20.04-arm64-server" = "ubuntu"
@@ -76,6 +86,8 @@ locals {
     "Rocky-9-EC2-Base"                = "rocky"
     "AlmaLinux OS 8"                  = "ec2-user"
     "AlmaLinux OS 9"                  = "ec2-user"
+    "OL8"                             = "ec2-user"
+    "OL9"                             = "ec2-user"
   }
 
   apm_port  = "8200"
