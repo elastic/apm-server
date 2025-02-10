@@ -21,5 +21,5 @@ apm_shards = 4
 
 # Standalone
 
-standalone_apm_server_instance_size = "c6i.4xlarge"
+standalone_apm_server_instance_size = "c6id.4xlarge"
 standalone_moxy_instance_size       = "c6i.8xlarge"
