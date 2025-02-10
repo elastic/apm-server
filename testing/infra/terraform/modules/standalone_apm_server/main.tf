@@ -189,7 +189,7 @@ resource "aws_instance" "apm" {
       "mkdir ~/data",
       "sudo mount /dev/nvme1n1 ~/data",
       "sudo chown $USER:$USER ~/data",
-    ] : [
+      ] : [
       ":", // no-op
     ]
   }
