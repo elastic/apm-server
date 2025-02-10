@@ -157,6 +157,7 @@ module "standalone_apm_server" {
   apm_instance_type   = var.standalone_apm_server_instance_size
   apm_volume_type     = var.standalone_apm_server_volume_type
   apm_volume_size     = var.apm_server_tail_sampling ? coalesce(var.standalone_apm_server_volume_size, 60) : var.standalone_apm_server_volume_size
+  apm_iops            = var.standalone_apm_server_iops
   apm_server_bin_path = var.apm_server_bin_path
   ea_managed          = false
 
