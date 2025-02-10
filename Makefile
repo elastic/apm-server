@@ -148,7 +148,7 @@ get-version:
 get-version-only:
 	@echo $(APM_SERVER_ONLY_VERSION)
 
-# update-go-version updates .go-version, documentation, and build files
+# update-go-version updates documentation, and build files
 # to use the most recent patch version for the major.minor Go version
 # defined in go.mod.
 .PHONY: update-go-version
