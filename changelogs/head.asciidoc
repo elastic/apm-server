@@ -9,8 +9,6 @@ https://github.com/elastic/apm-server/compare/9.0\...main[View commits]
 [float]
 ==== Bug fixes
 
-- Change permissions of `apm-server.yml` in `tar.gz` artifacts to `0600` {pull}15627[15627]
-
 [float]
 ==== Deprecations
 
