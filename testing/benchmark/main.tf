@@ -154,7 +154,11 @@ module "standalone_apm_server" {
   source = "../infra/terraform/modules/standalone_apm_server"
 
   vpc_id              = module.vpc.vpc_id
+<<<<<<< HEAD
   aws_os              = "amzn2-ami-hvm-*-x86_64-ebs"
+=======
+  aws_os              = "al2023-ami-2023.*-x86_64"
+>>>>>>> 405a8f71 (tf: fix benchmarking standalone apm to use x86_64 AMI by default (#15654))
   apm_instance_type   = var.standalone_apm_server_instance_size
   apm_volume_type     = var.standalone_apm_server_volume_type
   apm_volume_size     = var.apm_server_tail_sampling ? coalesce(var.standalone_apm_server_volume_size, 60) : var.standalone_apm_server_volume_size
