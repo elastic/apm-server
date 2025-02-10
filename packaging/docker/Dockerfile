@@ -7,7 +7,7 @@ ARG GOLANG_VERSION
 ################################################################################
 FROM golang:${GOLANG_VERSION} AS builder
 WORKDIR /src
-COPY go.mod go.sum .go-version /src/
+COPY go.mod go.sum /src/
 RUN --mount=type=cache,target=/go/pkg/mod go mod download
 COPY Makefile *.mk /src/
 COPY cmd /src/cmd
