@@ -57,7 +57,6 @@ func OpenEventPebble(storageDir string, _ uint64) (*pebble.DB, error) {
 		Comparer: eventComparer(),
 		Cache:    cache,
 	}
-	opts.Experimental.MaxWriterConcurrency = 1
 	return pebble.Open(filepath.Join(storageDir, "event"), opts)
 }
 
