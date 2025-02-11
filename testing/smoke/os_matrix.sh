@@ -12,7 +12,7 @@ os_names=(
     "Rocky-9-EC2-Base"
     "AlmaLinux OS 8"
     "AlmaLinux OS 9"
-    #"OL8"
-    #"OL9"
+    "OL8"
+    "OL9"
 )
 
