@@ -7,7 +7,7 @@ ARG GOLANG_VERSION
 ################################################################################
 FROM docker.elastic.co/wolfi/go:${GOLANG_VERSION} as builder
 WORKDIR /src
-COPY go.mod go.sum .go-version /src/
+COPY go.mod go.sum /src/
 RUN --mount=type=cache,target=/go/pkg/mod go mod download
 COPY Makefile *.mk /src/
 COPY cmd /src/cmd
@@ -29,7 +29,7 @@ RUN sed -i 's/localhost:9200/elasticsearch:9200/' apm-server.yml
 # Build stage 1
 # Copy prepared files from the previous stage and complete the image.
 ################################################################################
-FROM cgr.dev/chainguard/static:latest@sha256:f96b5a60658dfee0cae426972afecad6ea6930fa28e6d8ef7096a7bdf35d6498
+FROM cgr.dev/chainguard/static:latest@sha256:853bfd4495abb4b65ede8fc9332513ca2626235589c2cef59b4fce5082d0836d
 ARG TARGETARCH
 ARG BUILD_DATE
 ARG VERSION

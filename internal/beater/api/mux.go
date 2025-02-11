@@ -25,10 +25,10 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
+	"go.opentelemetry.io/otel/metric"
 	"go.uber.org/zap"
 
 	"github.com/elastic/elastic-agent-libs/logp"
-	"github.com/elastic/elastic-agent-libs/monitoring"
 
 	"github.com/elastic/apm-data/input"
 	"github.com/elastic/apm-data/input/elasticapm"
@@ -89,6 +89,7 @@ func NewMux(
 	sourcemapFetcher sourcemap.Fetcher,
 	publishReady func() bool,
 	semaphore input.Semaphore,
+	meterProvider metric.MeterProvider,
 ) (*mux.Router, error) {
 	pool := request.NewContextPool()
 	logger := logp.NewLogger(logs.Handler)
@@ -116,18 +117,18 @@ func NewMux(
 		handlerFn func() (request.Handler, error)
 	}
 
-	otlpHandlers := otlp.NewHTTPHandlers(zapLogger, batchProcessor, semaphore)
-	rumIntakeHandler := builder.rumIntakeHandler()
+	otlpHandlers := otlp.NewHTTPHandlers(zapLogger, batchProcessor, semaphore, meterProvider)
+	rumIntakeHandler := builder.rumIntakeHandler(meterProvider)
 	routeMap := []route{
-		{RootPath, builder.rootHandler(publishReady)},
-		{AgentConfigPath, builder.backendAgentConfigHandler(fetcher)},
-		{AgentConfigRUMPath, builder.rumAgentConfigHandler(fetcher)},
+		{RootPath, builder.rootHandler(publishReady, meterProvider)},
+		{AgentConfigPath, builder.backendAgentConfigHandler(fetcher, meterProvider)},
+		{AgentConfigRUMPath, builder.rumAgentConfigHandler(fetcher, meterProvider)},
 		{IntakeRUMPath, rumIntakeHandler},
 		{IntakeRUMV3Path, rumIntakeHandler},
-		{IntakePath, builder.backendIntakeHandler},
-		{OTLPTracesIntakePath, builder.otlpHandler(otlpHandlers.HandleTraces, otlp.HTTPTracesMonitoringMap)},
-		{OTLPMetricsIntakePath, builder.otlpHandler(otlpHandlers.HandleMetrics, otlp.HTTPMetricsMonitoringMap)},
-		{OTLPLogsIntakePath, builder.otlpHandler(otlpHandlers.HandleLogs, otlp.HTTPLogsMonitoringMap)},
+		{IntakePath, builder.backendIntakeHandler("apm-server.server.", meterProvider)},
+		{OTLPTracesIntakePath, builder.otlpHandler(otlpHandlers.HandleTraces, "apm-server.otlp.http.traces.", meterProvider)},
+		{OTLPMetricsIntakePath, builder.otlpHandler(otlpHandlers.HandleMetrics, "apm-server.otlp.http.metrics.", meterProvider)},
+		{OTLPLogsIntakePath, builder.otlpHandler(otlpHandlers.HandleLogs, "apm-server.otlp.http.logs.", meterProvider)},
 	}
 
 	for _, route := range routeMap {
@@ -170,21 +171,23 @@ type routeBuilder struct {
 	intakeSemaphore  input.Semaphore
 }
 
-func (r *routeBuilder) backendIntakeHandler() (request.Handler, error) {
-	h := intake.Handler(r.intakeProcessor, backendRequestMetadataFunc(r.cfg), r.batchProcessor)
-	return middleware.Wrap(h, backendMiddleware(r.cfg, r.authenticator, r.ratelimitStore, intake.MonitoringMap)...)
+func (r *routeBuilder) backendIntakeHandler(metricsPrefix string, mp metric.MeterProvider) func() (request.Handler, error) {
+	return func() (request.Handler, error) {
+		h := intake.Handler(mp, r.intakeProcessor, backendRequestMetadataFunc(r.cfg), r.batchProcessor)
+		return middleware.Wrap(h, backendMiddleware(r.cfg, r.authenticator, r.ratelimitStore, metricsPrefix, mp)...)
+	}
 }
 
-func (r *routeBuilder) otlpHandler(handler http.HandlerFunc, monitoringMap map[request.ResultID]*monitoring.Int) func() (request.Handler, error) {
+func (r *routeBuilder) otlpHandler(handler http.HandlerFunc, metricsPrefix string, mp metric.MeterProvider) func() (request.Handler, error) {
 	return func() (request.Handler, error) {
 		h := func(c *request.Context) {
 			handler(c.ResponseWriter, c.Request)
 		}
-		return middleware.Wrap(h, backendMiddleware(r.cfg, r.authenticator, r.ratelimitStore, monitoringMap)...)
+		return middleware.Wrap(h, backendMiddleware(r.cfg, r.authenticator, r.ratelimitStore, metricsPrefix, mp)...)
 	}
 }
 
-func (r *routeBuilder) rumIntakeHandler() func() (request.Handler, error) {
+func (r *routeBuilder) rumIntakeHandler(mp metric.MeterProvider) func() (request.Handler, error) {
 	return func() (request.Handler, error) {
 		var batchProcessors modelprocessor.Chained
 		// The order of these processors is important. Source mapping must happen before identifying library frames, or
@@ -214,34 +217,34 @@ func (r *routeBuilder) rumIntakeHandler() func() (request.Handler, error) {
 			batchProcessors = append(batchProcessors, modelprocessor.SetCulprit{})
 		}
 		batchProcessors = append(batchProcessors, r.batchProcessor) // r.batchProcessor always goes last
-		h := intake.Handler(r.intakeProcessor, rumRequestMetadataFunc(r.cfg), batchProcessors)
-		return middleware.Wrap(h, rumMiddleware(r.cfg, r.authenticator, r.ratelimitStore, intake.MonitoringMap)...)
+		h := intake.Handler(mp, r.intakeProcessor, rumRequestMetadataFunc(r.cfg), batchProcessors)
+		return middleware.Wrap(h, rumMiddleware(r.cfg, r.authenticator, r.ratelimitStore, "apm-server.server.", mp)...)
 	}
 }
 
-func (r *routeBuilder) rootHandler(publishReady func() bool) func() (request.Handler, error) {
+func (r *routeBuilder) rootHandler(publishReady func() bool, mp metric.MeterProvider) func() (request.Handler, error) {
 	return func() (request.Handler, error) {
 		h := root.Handler(root.HandlerConfig{
-			Version:      version.Version,
+			Version:      version.VersionWithQualifier(),
 			PublishReady: publishReady,
 		})
-		return middleware.Wrap(h, rootMiddleware(r.cfg, r.authenticator)...)
+		return middleware.Wrap(h, rootMiddleware(r.cfg, r.authenticator, mp)...)
 	}
 }
 
-func (r *routeBuilder) backendAgentConfigHandler(f agentcfg.Fetcher) func() (request.Handler, error) {
+func (r *routeBuilder) backendAgentConfigHandler(f agentcfg.Fetcher, mp metric.MeterProvider) func() (request.Handler, error) {
 	return func() (request.Handler, error) {
-		return agentConfigHandler(r.cfg, r.authenticator, r.ratelimitStore, backendMiddleware, f)
+		return agentConfigHandler(r.cfg, r.authenticator, r.ratelimitStore, backendMiddleware, f, mp)
 	}
 }
 
-func (r *routeBuilder) rumAgentConfigHandler(f agentcfg.Fetcher) func() (request.Handler, error) {
+func (r *routeBuilder) rumAgentConfigHandler(f agentcfg.Fetcher, mp metric.MeterProvider) func() (request.Handler, error) {
 	return func() (request.Handler, error) {
-		return agentConfigHandler(r.cfg, r.authenticator, r.ratelimitStore, rumMiddleware, f)
+		return agentConfigHandler(r.cfg, r.authenticator, r.ratelimitStore, rumMiddleware, f, mp)
 	}
 }
 
-type middlewareFunc func(*config.Config, *auth.Authenticator, *ratelimit.Store, map[request.ResultID]*monitoring.Int) []middleware.Middleware
+type middlewareFunc func(*config.Config, *auth.Authenticator, *ratelimit.Store, string, metric.MeterProvider) []middleware.Middleware
 
 func agentConfigHandler(
 	cfg *config.Config,
@@ -249,22 +252,23 @@ func agentConfigHandler(
 	ratelimitStore *ratelimit.Store,
 	middlewareFunc middlewareFunc,
 	f agentcfg.Fetcher,
+	mp metric.MeterProvider,
 ) (request.Handler, error) {
-	mw := middlewareFunc(cfg, authenticator, ratelimitStore, agent.MonitoringMap)
+	mw := middlewareFunc(cfg, authenticator, ratelimitStore, "apm-server.acm.", mp)
 	h := agent.NewHandler(f, cfg.AgentConfig.Cache.Expiration, cfg.DefaultServiceEnvironment, cfg.AgentAuth.Anonymous.AllowAgent)
 	return middleware.Wrap(h, mw...)
 }
 
-func apmMiddleware(m map[request.ResultID]*monitoring.Int) []middleware.Middleware {
+func apmMiddleware(mp metric.MeterProvider, metricsPrefix string) []middleware.Middleware {
 	return []middleware.Middleware{
 		middleware.LogMiddleware(),
 		middleware.RecoverPanicMiddleware(),
-		middleware.MonitoringMiddleware(m, nil),
+		middleware.MonitoringMiddleware(metricsPrefix, mp),
 	}
 }
 
-func backendMiddleware(cfg *config.Config, authenticator *auth.Authenticator, ratelimitStore *ratelimit.Store, m map[request.ResultID]*monitoring.Int) []middleware.Middleware {
-	backendMiddleware := append(apmMiddleware(m),
+func backendMiddleware(cfg *config.Config, authenticator *auth.Authenticator, ratelimitStore *ratelimit.Store, metricsPrefix string, mp metric.MeterProvider) []middleware.Middleware {
+	backendMiddleware := append(apmMiddleware(mp, metricsPrefix),
 		middleware.ResponseHeadersMiddleware(cfg.ResponseHeaders),
 		middleware.AuthMiddleware(authenticator, true),
 		middleware.AnonymousRateLimitMiddleware(ratelimitStore),
@@ -272,11 +276,11 @@ func backendMiddleware(cfg *config.Config, authenticator *auth.Authenticator, ra
 	return backendMiddleware
 }
 
-func rumMiddleware(cfg *config.Config, authenticator *auth.Authenticator, ratelimitStore *ratelimit.Store, m map[request.ResultID]*monitoring.Int) []middleware.Middleware {
+func rumMiddleware(cfg *config.Config, authenticator *auth.Authenticator, ratelimitStore *ratelimit.Store, metricsPrefix string, mp metric.MeterProvider) []middleware.Middleware {
 	msg := "RUM endpoint is disabled. " +
 		"Configure the `apm-server.rum` section in apm-server.yml to enable ingestion of RUM events. " +
 		"If you are not using the RUM agent, you can safely ignore this error."
-	rumMiddleware := append(apmMiddleware(m),
+	rumMiddleware := append(apmMiddleware(mp, metricsPrefix),
 		middleware.ResponseHeadersMiddleware(cfg.ResponseHeaders),
 		middleware.ResponseHeadersMiddleware(cfg.RumConfig.ResponseHeaders),
 		middleware.CORSMiddleware(cfg.RumConfig.AllowOrigins, cfg.RumConfig.AllowHeaders),
@@ -286,8 +290,8 @@ func rumMiddleware(cfg *config.Config, authenticator *auth.Authenticator, rateli
 	return append(rumMiddleware, middleware.KillSwitchMiddleware(cfg.RumConfig.Enabled, msg))
 }
 
-func rootMiddleware(cfg *config.Config, authenticator *auth.Authenticator) []middleware.Middleware {
-	return append(apmMiddleware(root.MonitoringMap),
+func rootMiddleware(cfg *config.Config, authenticator *auth.Authenticator, mp metric.MeterProvider) []middleware.Middleware {
+	return append(apmMiddleware(mp, "apm-server.root."),
 		middleware.ResponseHeadersMiddleware(cfg.ResponseHeaders),
 		middleware.AuthMiddleware(authenticator, false),
 	)

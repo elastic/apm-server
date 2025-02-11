@@ -125,11 +125,16 @@ resource "local_file" "enable_features" {
   filename = "${path.module}/scripts/enable_features.sh"
 }
 
+locals {
+  secret_token_file = "${path.cwd}/secret_token_value.json"
+}
+
 resource "local_file" "secret_token" {
   count = var.integrations_server ? 1 : 0
   content = templatefile("${path.module}/scripts/secret_token.tftpl", {
-    kibana_url       = ec_deployment.deployment.kibana.0.https_endpoint,
-    elastic_password = ec_deployment.deployment.elasticsearch_password,
+    kibana_url        = ec_deployment.deployment.kibana.0.https_endpoint,
+    elastic_password  = ec_deployment.deployment.elasticsearch_password,
+    secret_token_file = local.secret_token_file
   })
   filename = "${path.module}/scripts/secret_token.sh"
 }
@@ -180,6 +185,16 @@ resource "null_resource" "secret_token" {
   }
 }
 
+# Since the secret token value is set in the APM Integration policy, we need
+# to extract it from there.
+# Load it from secret_token_file as a sensitive variable.
+data "local_sensitive_file" "secret_token" {
+  count = var.integrations_server ? 1 : 0
+
+  filename   = local.secret_token_file
+  depends_on = [null_resource.secret_token]
+}
+
 resource "null_resource" "shard_settings" {
   count = var.apm_index_shards > 0 ? 1 : 0
   triggers = {
@@ -204,16 +219,6 @@ resource "null_resource" "custom_apm_integration_pkg" {
     interpreter = ["/bin/bash", "-c"]
     working_dir = path.module
   }
-}
-
-# Since the secret token value is set in the APM Integration policy, we need
-# an "external" resource to run a shell script that returns the secret token
-# as {"value":"SECRET_TOKEN"}.
-data "external" "secret_token" {
-  count       = var.integrations_server ? 1 : 0
-  depends_on  = [local_file.secret_token]
-  program     = ["/bin/bash", "-c", "scripts/secret_token.sh"]
-  working_dir = path.module
 }
 
 resource "null_resource" "drop_pipeline" {

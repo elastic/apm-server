@@ -18,9 +18,6 @@
 package config
 
 import (
-	"crypto/md5"
-	"encoding/json"
-	"fmt"
 	"strings"
 	"time"
 
@@ -63,7 +60,7 @@ func (c *AgentConfig) Unpack(in *config.C) error {
 }
 
 func (c *AgentConfig) setup(log *logp.Logger, outputESCfg *config.C) error {
-	if float64(int(c.Cache.Expiration.Seconds())) != c.Cache.Expiration.Seconds() {
+	if c.Cache.Expiration%time.Second != 0 {
 		return errors.New(msgInvalidConfigAgentCfg)
 	}
 	if outputESCfg != nil {
@@ -77,7 +74,7 @@ func (c *AgentConfig) setup(log *logp.Logger, outputESCfg *config.C) error {
 		c.ESOverrideConfigured = true
 
 		// Empty out credential fields before merging if credentials are provided in agentcfg ES config
-		if c.es.HasField("api_key") || c.es.HasField("username") {
+		if c.es.HasField("api_key") || c.es.HasField("username") || c.es.HasField("password") {
 			c.ESConfig.APIKey = ""
 			c.ESConfig.Username = ""
 			c.ESConfig.Password = ""
@@ -104,30 +101,6 @@ func defaultAgentConfig() AgentConfig {
 			Expiration: 30 * time.Second,
 		},
 	}
-}
-
-// FleetAgentConfig defines configuration for agents.
-type FleetAgentConfig struct {
-	Service   Service `config:"service"`
-	AgentName string  `config:"agent.name"`
-	Etag      string  `config:"etag"`
-	Config    map[string]string
-}
-
-func (s *FleetAgentConfig) setup() error {
-	if s.Config == nil {
-		// Config may be passed to APM Server as `null` when no attributes
-		// are defined in an APM Agent central configuration entry.
-		s.Config = make(map[string]string)
-	}
-	if s.Etag == "" {
-		m, err := json.Marshal(s)
-		if err != nil {
-			return fmt.Errorf("error generating etag for %s: %v", s.Service, err)
-		}
-		s.Etag = fmt.Sprintf("%x", md5.Sum(m))
-	}
-	return nil
 }
 
 // Service defines a unique way of identifying a running agent.

@@ -35,6 +35,7 @@ import (
 	"time"
 
 	"go.elastic.co/apm/v2/stacktrace"
+	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
 	"golang.org/x/time/rate"
 
@@ -112,6 +113,8 @@ func addExpvarMetrics(result *testing.BenchmarkResult, collector *expvar.Collect
 	result.MemBytes = uint64(collector.Delta(expvar.MemBytes))
 	result.Extra["events/sec"] = float64(collector.Delta(expvar.TotalEvents)) / result.T.Seconds()
 	if detailed {
+		result.Extra["intake_events_accepted/sec"] = float64(collector.Delta(expvar.IntakeEventsAccepted)) / result.T.Seconds()
+		result.Extra["intake_events_errors/sec"] = float64(collector.Delta(expvar.IntakeEventsErrorsInvalid)+collector.Delta(expvar.IntakeEventsErrorsTooLarge)) / result.T.Seconds()
 		result.Extra["txs/sec"] = float64(collector.Delta(expvar.TransactionsProcessed)) / result.T.Seconds()
 		result.Extra["spans/sec"] = float64(collector.Delta(expvar.SpansProcessed)) / result.T.Seconds()
 		result.Extra["metrics/sec"] = float64(collector.Delta(expvar.MetricsProcessed)) / result.T.Seconds()
@@ -255,10 +258,12 @@ func Run(allBenchmarks ...BenchmarkFunc) error {
 func warmup(agents int, duration time.Duration, url, token string) error {
 	rl := loadgen.GetNewLimiter(loadgencfg.Config.EventRate.Burst, loadgencfg.Config.EventRate.Interval)
 	h, err := loadgen.NewEventHandler(loadgen.EventHandlerParams{
-		Path:    `*.ndjson`,
-		URL:     url,
-		Token:   token,
-		Limiter: rl,
+		Logger:   zap.NewNop(),
+		Protocol: "apm/http",
+		Path:     `apm-*.ndjson`,
+		URL:      url,
+		Token:    token,
+		Limiter:  rl,
 	})
 	if err != nil {
 		return fmt.Errorf("unable to create warm-up handler: %w", err)

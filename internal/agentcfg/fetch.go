@@ -17,38 +17,46 @@
 
 package agentcfg
 
-import (
-	"context"
-
-	"github.com/elastic/apm-server/internal/beater/config"
-)
-
-// TransactionSamplingRateKey is the agent configuration key for the
-// sampling rate. This is used by the Jaeger handler to adapt our agent
-// configuration to the Jaeger remote sampler protocol.
-const TransactionSamplingRateKey = "transaction_sample_rate"
+import "context"
 
 // Fetcher defines a common interface to retrieving agent config.
 type Fetcher interface {
 	Fetch(context.Context, Query) (Result, error)
 }
 
-// DirectFetcher is an agent config fetcher which serves requests out of a
-// statically defined set of agent configuration. These configurations are
-// typically provided via Fleet.
-type DirectFetcher struct {
-	cfgs []AgentConfig
+// AgentConfig holds an agent configuration definition.
+type AgentConfig struct {
+	// ServiceName holds the service name to which this agent configuration
+	// applies. This is optional.
+	ServiceName string
+
+	// ServiceEnvironment holds the service environment to which this agent
+	// configuration applies. This is optional.
+	ServiceEnvironment string
+
+	// AgentName holds the agent name to which this agent configuration
+	// applies. This is optional, and is used for filtering configuration
+	// settings for unauthenticated agents.
+	AgentName string
+
+	// Etag holds a unique ID for the configuration, which agents
+	// will send along with their queries. The server uses this to
+	// determine whether agent configuration has been applied.
+	Etag string
+
+	// Config holds configuration settings that should be sent to
+	// agents matching the above constraints.
+	Config map[string]string
 }
 
-// NewDirectFetcher returns a new DirectFetcher that serves agent configuration
-// requests using cfgs.
-func NewDirectFetcher(cfgs []AgentConfig) *DirectFetcher {
-	return &DirectFetcher{cfgs}
+func NewEmptyFetcher() Fetcher {
+	return &emptyFetcher{}
 }
 
-// Fetch finds a matching AgentConfig in cfgs based on the received Query.
-func (f *DirectFetcher) Fetch(_ context.Context, query Query) (Result, error) {
-	return matchAgentConfig(query, f.cfgs), nil
+type emptyFetcher struct{}
+
+func (*emptyFetcher) Fetch(context.Context, Query) (Result, error) {
+	return zeroResult(), nil
 }
 
 // matchAgentConfig finds a matching AgentConfig based on the received Query.
@@ -96,43 +104,4 @@ func matchAgentConfig(query Query, cfgs []AgentConfig) Result {
 		}}
 	}
 	return result
-}
-
-// AgentConfig holds an agent configuration definition.
-type AgentConfig struct {
-	// ServiceName holds the service name to which this agent configuration
-	// applies. This is optional.
-	ServiceName string
-
-	// ServiceEnvironment holds the service environment to which this agent
-	// configuration applies. This is optional.
-	ServiceEnvironment string
-
-	// AgentName holds the agent name to which this agent configuration
-	// applies. This is optional, and is used for filtering configuration
-	// settings for unauthenticated agents.
-	AgentName string
-
-	// Etag holds a unique ID for the configuration, which agents
-	// will send along with their queries. The server uses this to
-	// determine whether agent configuration has been applied.
-	Etag string
-
-	// Config holds configuration settings that should be sent to
-	// agents matching the above constraints.
-	Config map[string]string
-}
-
-func ConvertAgentConfigs(fleetAgentConfigs []config.FleetAgentConfig) []AgentConfig {
-	agentConfigurations := make([]AgentConfig, len(fleetAgentConfigs))
-	for i, in := range fleetAgentConfigs {
-		agentConfigurations[i] = AgentConfig{
-			ServiceName:        in.Service.Name,
-			ServiceEnvironment: in.Service.Environment,
-			AgentName:          in.AgentName,
-			Etag:               in.Etag,
-			Config:             in.Config,
-		}
-	}
-	return agentConfigurations
 }

@@ -73,6 +73,6 @@ USER ${ELASTIC_PRODUCT}
 EXPOSE 8200
 # TODO: eventually /tinit will be replaced by /usr/bin/tini
 ENTRYPOINT ["/tinit", "--", "/usr/share/apm-server/apm-server"]
-CMD ["-environment", "container"]
+CMD ["--environment", "container"]
 
 HEALTHCHECK --interval=10s --timeout=5s --start-period=1m --retries=5 CMD (curl -I -f --max-time 5 https://127.0.0.1:8200 || curl -I -f --max-time 5 http://127.0.0.1:8200 || exit 1)

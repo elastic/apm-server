@@ -12,6 +12,7 @@ import (
 	"sync"
 
 	"github.com/gofrs/uuid/v5"
+	"go.opentelemetry.io/otel/metric"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/beats/v7/libbeat/common/reload"
@@ -20,7 +21,6 @@ import (
 	"github.com/elastic/elastic-agent-client/v7/pkg/proto"
 	"github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
-	"github.com/elastic/elastic-agent-libs/monitoring"
 	"github.com/elastic/elastic-agent-libs/paths"
 
 	"github.com/elastic/apm-data/model/modelpb"
@@ -36,16 +36,9 @@ const (
 )
 
 var (
-	// Note: this registry is created in github.com/elastic/apm-server/sampling. That package
-	// will hopefully disappear in the future, when agents no longer send unsampled transactions.
-	samplingMonitoringRegistry = monitoring.Default.GetRegistry("apm-server.sampling")
-
-	// badgerDB holds the badger database to use when tail-based sampling is configured.
-	badgerMu sync.Mutex
-	badgerDB *eventstorage.StorageManager
-
-	storageMu sync.Mutex
-	storage   *eventstorage.ManagedReadWriter
+	// db holds the database to use when tail-based sampling is configured.
+	dbMu sync.Mutex
+	db   *eventstorage.StorageManager
 
 	// samplerUUID is a UUID used to identify sampled trace ID documents
 	// published by this process.
@@ -102,8 +95,6 @@ func newProcessors(args beater.ServerParams) ([]namedProcessor, error) {
 		if err != nil {
 			return nil, fmt.Errorf("error creating %s: %w", name, err)
 		}
-		samplingMonitoringRegistry.Remove("tail")
-		monitoring.NewFunc(samplingMonitoringRegistry, "tail", sampler.CollectMonitoring, monitoring.Report)
 		processors = append(processors, namedProcessor{name: name, processor: sampler})
 	}
 	return processors, nil
@@ -117,11 +108,10 @@ func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, er
 	}
 
 	storageDir := paths.Resolve(paths.Data, tailSamplingStorageDir)
-	badgerDB, err = getBadgerDB(storageDir)
+	db, err := getDB(storageDir, args.MeterProvider)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get Badger database: %w", err)
+		return nil, fmt.Errorf("failed to get tail-sampling database: %w", err)
 	}
-	readWriter := getStorage(badgerDB)
 
 	policies := make([]sampling.Policy, len(tailSamplingConfig.Policies))
 	for i, in := range tailSamplingConfig.Policies {
@@ -138,6 +128,7 @@ func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, er
 
 	return sampling.NewProcessor(sampling.Config{
 		BatchProcessor: args.BatchProcessor,
+		MeterProvider:  args.MeterProvider,
 		LocalSamplingConfig: sampling.LocalSamplingConfig{
 			FlushInterval:         tailSamplingConfig.Interval,
 			MaxDynamicServices:    1000,
@@ -155,37 +146,29 @@ func newTailSamplingProcessor(args beater.ServerParams) (*sampling.Processor, er
 			UUID: samplerUUID.String(),
 		},
 		StorageConfig: sampling.StorageConfig{
-			DB:                    badgerDB,
-			Storage:               readWriter,
-			StorageDir:            storageDir,
-			StorageGCInterval:     tailSamplingConfig.StorageGCInterval,
-			StorageLimit:          tailSamplingConfig.StorageLimitParsed,
+			DB:                    db,
+			Storage:               db.NewReadWriter(tailSamplingConfig.StorageLimitParsed, tailSamplingConfig.DiskUsageThreshold),
 			TTL:                   tailSamplingConfig.TTL,
 			DiscardOnWriteFailure: tailSamplingConfig.DiscardOnWriteFailure,
 		},
 	})
 }
 
-func getBadgerDB(storageDir string) (*eventstorage.StorageManager, error) {
-	badgerMu.Lock()
-	defer badgerMu.Unlock()
-	if badgerDB == nil {
-		sm, err := eventstorage.NewStorageManager(storageDir)
+func getDB(storageDir string, mp metric.MeterProvider) (*eventstorage.StorageManager, error) {
+	dbMu.Lock()
+	defer dbMu.Unlock()
+	if db == nil {
+		var opts []eventstorage.StorageManagerOptions
+		if mp != nil {
+			opts = append(opts, eventstorage.WithMeterProvider(mp))
+		}
+		sm, err := eventstorage.NewStorageManager(storageDir, opts...)
 		if err != nil {
 			return nil, err
 		}
-		badgerDB = sm
+		db = sm
 	}
-	return badgerDB, nil
-}
-
-func getStorage(sm *eventstorage.StorageManager) *eventstorage.ManagedReadWriter {
-	storageMu.Lock()
-	defer storageMu.Unlock()
-	if storage == nil {
-		storage = sm.NewReadWriter()
-	}
-	return storage
+	return db, nil
 }
 
 // runServerWithProcessors runs the APM Server and the given list of processors.
@@ -249,19 +232,21 @@ func wrapServer(args beater.ServerParams, runServer beater.RunServerFunc) (beate
 	return args, wrappedRunServer, nil
 }
 
-// closeBadger is called at process exit time to close the badger.DB opened
+// closeDB is called at process exit time to close the StorageManager opened
 // by the tail-based sampling processor constructor, if any. This is never
-// called concurrently with opening badger.DB/accessing the badgerDB global,
-// so it does not need to hold badgerMu.
-func closeBadger() error {
-	if badgerDB != nil {
-		return badgerDB.Close()
+// called concurrently with opening DB/accessing the db global,
+// so it does not need to hold dbMu.
+func closeDB() error {
+	if db != nil {
+		err := db.Close()
+		db = nil
+		return err
 	}
 	return nil
 }
 
 func cleanup() error {
-	return closeBadger()
+	return closeDB()
 }
 
 func Main() error {
@@ -271,6 +256,9 @@ func Main() error {
 				Config:     args.Config,
 				Logger:     args.Logger,
 				WrapServer: wrapServer,
+
+				MeterProvider:   args.MeterProvider,
+				MetricsGatherer: args.MetricsGatherer,
 			})
 		},
 	)

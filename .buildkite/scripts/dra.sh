@@ -10,8 +10,12 @@
 
 set -eo pipefail
 
-## Read current version.
-VERSION=$(make get-version)
+# Either staging or snapshot
+TYPE="$1"
+
+# NOTE: load the shared functions
+# shellcheck disable=SC1091
+source .buildkite/scripts/utils.sh
 
 echo "--- Restoring Artifacts"
 buildkite-agent artifact download "build/**/*" .
@@ -31,48 +35,28 @@ fi
 # by default it uses the buildkite branch
 DRA_BRANCH="$BUILDKITE_BRANCH"
 # by default it publishes the DRA artifacts, for such it uses the collect command.
-dra_command=collect
+DRA_COMMAND=collect
+VERSION=$(make get-version-only)
 BRANCHES_URL=https://storage.googleapis.com/artifacts-api/snapshots/branches.json
 curl -s "${BRANCHES_URL}" > active-branches.json
-# as long as `8.x` is not in the active branches, we will explicitly add the condition.
-if [ "$BUILDKITE_BRANCH" == "8.x" ] || grep -q "\"$BUILDKITE_BRANCH\"" active-branches.json ; then
-  echo "--- :arrow_right: Release Manager only supports the current active branches and 8.x, running"
-else
+if ! grep -q "\"$BUILDKITE_BRANCH\"" active-branches.json ; then
   # If no active branches are found, let's see if it is a feature branch.
-  echo "--- :arrow_right: Release Manager only supports the current active branches, skipping"
-  echo "BUILDKITE_BRANCH=$BUILDKITE_BRANCH"
-  echo "BUILDKITE_COMMIT=$BUILDKITE_COMMIT"
-  echo "VERSION=$VERSION"
-  echo "Supported branches:"
-  cat active-branches.json
-  if [[ $BUILDKITE_BRANCH =~ "feature/" ]]; then
-    buildkite-agent annotate "${BUILDKITE_BRANCH} will list DRA artifacts. Feature branches are not supported. Look for the supported branches in ${BRANCHES_URL}" --style 'info' --context 'ctx-info'
-    dra_command=list
-
-    # use a different branch since DRA does not support feature branches but main/release branches
-    # for such we will use the VERSION and https://storage.googleapis.com/artifacts-api/snapshots/<major.minor>.json
-    # to know if the branch was branched out from main or the release branches.
-    MAJOR_MINOR=${VERSION%.*}
-    if curl -s "https://storage.googleapis.com/artifacts-api/snapshots/main.json" | grep -q "$VERSION" ; then
-      DRA_BRANCH=main
-    else
-      if curl -s "https://storage.googleapis.com/artifacts-api/snapshots/$MAJOR_MINOR.json" | grep -q "$VERSION" ; then
-        DRA_BRANCH="$MAJOR_MINOR"
-      else
-        buildkite-agent annotate "It was not possible to know the original base branch for ${BUILDKITE_BRANCH}. This won't fail - this is a feature branch." --style 'info' --context 'ctx-info-feature-branch'
-        exit 0
-      fi
-    fi
-  else
-    buildkite-agent annotate "${BUILDKITE_BRANCH} is not supported yet. Look for the supported branches in ${BRANCHES_URL}" --style 'warning' --context 'ctx-warn'
-    exit 1
-  fi
+  dra_process_other_branches
 fi
+
+echo "--- :arrow_right: Release Manager only supports the current active branches"
+echo "BUILDKITE_BRANCH=$BUILDKITE_BRANCH"
+echo "BUILDKITE_COMMIT=$BUILDKITE_COMMIT"
+echo "VERSION=$VERSION"
+echo "Supported branches:"
+cat active-branches.json
 
 dra() {
   local workflow=$1
   local command=$2
+  local qualifier=${3:-""}
   echo "--- Run release manager $workflow (DRA command: $command)"
+  set -x
   docker run --rm \
     --name release-manager \
     -e VAULT_ADDR="${VAULT_ADDR_SECRET}" \
@@ -86,23 +70,23 @@ dra() {
       --commit $BUILDKITE_COMMIT \
       --workflow $workflow \
       --artifact-set main \
+      --qualifier "$qualifier" \
       --version $VERSION | tee rm-output.txt
+  set +x
 
-  # Create Buildkite annotation similarly done in Beats:
-  # https://github.com/elastic/beats/blob/90f9e8f6e48e76a83331f64f6c8c633ae6b31661/.buildkite/scripts/dra.sh#L74-L81
-  if [[ "$command" == "collect" ]]; then
-    # extract the summary URL from a release manager output line like:
-    # Report summary-18.22.0.html can be found at https://artifacts-staging.elastic.co/apm-server/18.22.0-ABCDEFGH/summary-18.22.0.html
-    SUMMARY_URL=$(grep -E '^Report summary-.* can be found at ' rm-output.txt | grep -oP 'https://\S+' | awk '{print $1}')
-    rm rm-output.txt
-
-    # and make it easily clickable as a Builkite annotation
-    printf "**${workflow} summary link:** [${SUMMARY_URL}](${SUMMARY_URL})\n" | buildkite-agent annotate --style=success --append
-  fi
+  create_annotation_dra_summary "$command" "$workflow" rm-output.txt
 }
 
-dra "snapshot" "$dra_command"
-if [[ "${DRA_BRANCH}" != "main" && "${DRA_BRANCH}" != "8.x" ]]; then
-  echo "DRA_BRANCH is neither 'main' nor '8.x'"
-  dra "staging" "$dra_command"
+if [[ "${TYPE}" == "staging" ]]; then
+  qualifier=$(fetch_elastic_qualifier "$DRA_BRANCH")
+  # TODO: main and 8.x are not needed to run the DRA for staging
+  #       but main is needed until we do alpha1 releases of 9.0.0
+  if [[ "${DRA_BRANCH}" != "8.x" ]]; then
+    dra "${TYPE}" "$DRA_COMMAND" "${qualifier}"
+  fi
+fi
+
+if [[ "${TYPE}" == "snapshot" ]]; then
+  # NOTE: qualifier is not needed for snapshots, let's unset it.
+  dra "${TYPE}" "$DRA_COMMAND" ""
 fi

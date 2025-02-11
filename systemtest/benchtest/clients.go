@@ -20,11 +20,14 @@ package benchtest
 import (
 	"context"
 	"crypto/tls"
+	"io/fs"
 	"net/url"
+	"path/filepath"
 	"testing"
 
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
+	"go.uber.org/zap"
 	"golang.org/x/time/rate"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -98,9 +101,13 @@ func NewOTLPExporter(tb testing.TB) *otlptrace.Exporter {
 
 // NewEventHandler creates a eventhandler which loads the files matching the
 // passed regex.
+//
+// It has to use loadgen.NewEventHandler as it has access to the private `events` FS Storage.
 func NewEventHandler(tb testing.TB, p string, l *rate.Limiter) *eventhandler.Handler {
 	serverCfg := loadgencfg.Config
 	h, err := loadgen.NewEventHandler(loadgen.EventHandlerParams{
+		Logger:            zap.NewNop(),
+		Protocol:          "apm/http",
 		Path:              p,
 		URL:               serverCfg.ServerURL.String(),
 		Token:             serverCfg.SecretToken,
@@ -113,4 +120,49 @@ func NewEventHandler(tb testing.TB, p string, l *rate.Limiter) *eventhandler.Han
 		tb.Fatal(err)
 	}
 	return h
+}
+
+// NewFSEventHandler creates an eventhandler which loads the files matching the
+// passed regex in fs.
+func NewFSEventHandler(tb testing.TB, p string, l *rate.Limiter, fs fs.FS) *eventhandler.Handler {
+	serverCfg := loadgencfg.Config
+	h, err := newFSEventHandler(loadgen.EventHandlerParams{
+		Logger:            zap.NewNop(),
+		Protocol:          "apm/http",
+		Path:              p,
+		URL:               serverCfg.ServerURL.String(),
+		Token:             serverCfg.SecretToken,
+		Limiter:           l,
+		RewriteIDs:        serverCfg.RewriteIDs,
+		RewriteTimestamps: serverCfg.RewriteTimestamps,
+		Headers:           serverCfg.Headers,
+	}, fs)
+	if err != nil {
+		tb.Fatal(err)
+	}
+	return h
+}
+
+func newFSEventHandler(p loadgen.EventHandlerParams, fs fs.FS) (*eventhandler.Handler, error) {
+	t, err := transport.NewHTTPTransport(transport.HTTPTransportOptions{})
+	if err != nil {
+		return nil, err
+	}
+	transp := eventhandler.NewAPMTransport(p.Logger, t.Client, p.URL, p.Token, p.APIKey, p.Headers)
+	cfg := eventhandler.Config{
+		Path:                      filepath.Join("events", p.Path),
+		Transport:                 transp,
+		Storage:                   fs,
+		Limiter:                   p.Limiter,
+		Rand:                      p.Rand,
+		RewriteIDs:                p.RewriteIDs,
+		RewriteServiceNames:       p.RewriteServiceNames,
+		RewriteServiceNodeNames:   p.RewriteServiceNodeNames,
+		RewriteServiceTargetNames: p.RewriteServiceTargetNames,
+		RewriteSpanNames:          p.RewriteSpanNames,
+		RewriteTransactionNames:   p.RewriteTransactionNames,
+		RewriteTransactionTypes:   p.RewriteTransactionTypes,
+		RewriteTimestamps:         p.RewriteTimestamps,
+	}
+	return eventhandler.NewAPM(p.Logger, cfg)
 }

@@ -72,7 +72,7 @@ func TestReloader(t *testing.T) {
 			<-ctx.Done()
 			return nil
 		}), nil
-	})
+	}, nil, nil)
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -87,7 +87,7 @@ func TestReloader(t *testing.T) {
 	err = registry.GetInputList().Reload([]*reload.ConfigWithMeta{{
 		Config: config.MustNewConfigFrom(`{}`),
 	}})
-	assert.EqualError(t, err, "1 error: failed to extract input config revision: missing field accessing 'revision'")
+	assert.EqualError(t, err, "failed to extract input config revision: missing field accessing 'revision'")
 	assertNoReload()
 
 	err = registry.GetInputList().Reload([]*reload.ConfigWithMeta{{
@@ -119,7 +119,7 @@ func TestReloader(t *testing.T) {
 	err = registry.GetInputList().Reload([]*reload.ConfigWithMeta{{
 		Config: config.MustNewConfigFrom(`{"revision": 2, "error": true}`),
 	}})
-	assert.EqualError(t, err, "1 error: failed to load input config: no runner for you")
+	assert.EqualError(t, err, "failed to load input config: no runner for you")
 	assertNoReload() // error occurred during reload, nothing changes
 	expectNoEvent(t, r1.stopped, "runner should not have been stopped")
 
@@ -156,7 +156,7 @@ func TestReloaderNewRunnerParams(t *testing.T) {
 			<-ctx.Done()
 			return nil
 		}), nil
-	})
+	}, nil, nil)
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(context.Background())

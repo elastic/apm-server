@@ -19,6 +19,9 @@ PYTHON_BIN:=$(PYTHON_VENV_DIR)/bin
 PYTHON=$(PYTHON_BIN)/python
 CURRENT_DIR=$(shell dirname $(shell readlink -f $(firstword $(MAKEFILE_LIST))))
 
+# Support DRA qualifier with the following environment variable.
+ELASTIC_QUALIFIER?=
+
 # Create a local config.mk file to override configuration.
 -include config.mk
 
@@ -38,6 +41,7 @@ APM_SERVER_BINARIES:= \
 # Strip binary and inject the Git commit hash and timestamp.
 LDFLAGS := \
 	-s \
+	-X github.com/elastic/apm-server/internal/version.qualifier=$(ELASTIC_QUALIFIER) \
 	-X github.com/elastic/beats/v7/libbeat/version.commit=$(GITCOMMIT) \
 	-X github.com/elastic/beats/v7/libbeat/version.buildTime=$(GITCOMMITTIMESTAMP)
 
@@ -139,7 +143,12 @@ endif
 get-version:
 	@echo $(APM_SERVER_VERSION)
 
-# update-go-version updates .go-version, documentation, and build files
+## get-version-only : Get the apm server version without the qualifier
+.PHONY: get-version-only
+get-version-only:
+	@echo $(APM_SERVER_ONLY_VERSION)
+
+# update-go-version updates documentation, and build files
 # to use the most recent patch version for the major.minor Go version
 # defined in go.mod.
 .PHONY: update-go-version

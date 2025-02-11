@@ -30,6 +30,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.elastic.co/apm/v2"
 	"go.elastic.co/apm/v2/apmtest"
+	"go.opentelemetry.io/otel/metric/noop"
 
 	"github.com/elastic/apm-server/internal/elasticsearch"
 )
@@ -104,7 +105,7 @@ func newElasticsearchFetcher(
 		w.WriteHeader(200)
 		w.Write(b)
 		i += searchSize
-	}), time.Second, nil, rt)
+	}), time.Second, nil, rt, noop.NewMeterProvider())
 	fetcher.searchSize = searchSize
 	return fetcher
 }
@@ -193,6 +194,7 @@ func TestFetchUseFallback(t *testing.T) {
 		time.Second,
 		fallbackFetcher,
 		apmtest.NewRecordingTracer().Tracer,
+		noop.NewMeterProvider(),
 	)
 
 	fetcher.refreshCache(context.Background())
@@ -208,6 +210,7 @@ func TestFetchNoFallbackInvalidESCfg(t *testing.T) {
 		time.Second,
 		nil,
 		apmtest.NewRecordingTracer().Tracer,
+		noop.NewMeterProvider(),
 	)
 
 	err := fetcher.refreshCache(context.Background())
@@ -224,6 +227,7 @@ func TestFetchNoFallback(t *testing.T) {
 		time.Second,
 		nil,
 		apmtest.NewRecordingTracer().Tracer,
+		noop.NewMeterProvider(),
 	)
 
 	err := fetcher.refreshCache(context.Background())

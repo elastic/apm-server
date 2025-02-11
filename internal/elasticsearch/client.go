@@ -36,7 +36,7 @@ var retryableStatuses = []int{
 	http.StatusTooManyRequests,
 }
 
-var userAgent = fmt.Sprintf("Elastic-APM-Server/%s go-elasticsearch/%s", version.Version, esv8.Version)
+var userAgent = fmt.Sprintf("Elastic-APM-Server/%s go-elasticsearch/%s", version.VersionWithQualifier(), esv8.Version)
 
 type Client = esv8.Client
 

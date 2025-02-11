@@ -28,6 +28,8 @@ For patch releases, only the version on the existing major and minor version bra
     * The PR should be merged the day before release.
   * For **minor releases**: run the [`run-minor-release`](https://github.com/elastic/apm-server/actions/workflows/run-minor-release.yml) workflow (In "Use workflow from", select `main` branch. Then in "The version", specify the minor release version the release is for).
     This workflow will: create a new release branch using the stack version (X.Y); update the changelog for the release branch and open a PR targeting the release branch titled `<major>.<minor>: update docs`; create a PR on `main` titled `<major>.<minor>: update docs, mergify, versions and changelogs`. Before merging them compare commits between latest minor and the new minor versions and ensure all relevant PRs have been included in the Changelog. If not, amend it in both PRs. Request and wait a PR review from the team before merging. After it's merged add your PR to the documentation release issue in the [`elastic/dev`](https://github.com/elastic/dev/issues?q=is%3Aissue%20state%3Aopen%20label%3Adocs) repo ([Sample Issue](https://github.com/elastic/dev/issues/2895)).
+  * For **major releases**: run the [`run-major-release`](https://github.com/elastic/apm-server/actions/workflows/run-major-release.yml) workflow (In "Use workflow from", select `main` branch. Then in "The version", specify the major release version the release is for).
+    This workflow will: create a new release branch using the stack version (X.Y); update the changelog for the release branch and open a PR targeting the release branch titled `<major>.<minor>: update docs`; create a PR on `main` titled `<major>.0: update docs, mergify, versions and changelogs`. Before merging them compare commits between latest minor and the new major versions and ensure all relevant PRs have been included in the Changelog. If not, amend it in both PRs. Request and wait a PR review from the team before merging. After it's merged add your PR to the documentation release issue in the [`elastic/dev`](https://github.com/elastic/dev/issues?q=is%3Aissue%20state%3Aopen%20label%3Adocs) repo ([Sample Issue](https://github.com/elastic/dev/issues/2895)).
 * The Release Manager will ping the team to align the release process
 
 * Update dependencies
@@ -67,6 +69,14 @@ For patch releases, only the version on the existing major and minor version bra
   * Add the `test-plan-ok` or the `test-plan-regression` label to the PR. In case of regression, either open a PR with a fix or open an issue with the details.
 
 * Collaborate with the docs team on any release highlights or breaking changes that should be included in the APM Server guide.
+
+* Run DRA for a given qualifier. The Release Team will say what qualifier to use in the the #mission-control channel.
+  * Go to https://buildkite.com/elastic/apm-server-package
+  * Click on `New Build`.
+  * Choose the `Branch` where the release should come from (either `main`, `8.x` or `[0-9].[0-9]+)`_
+  * Click on `options`
+  * Add `ELASTIC_QUALIFIER=<qualifier>` (`<qualifier` should be replaced with the given qualifier)
+  * Click on `Create Build`.
 
 ## On release day
 

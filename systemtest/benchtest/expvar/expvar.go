@@ -51,12 +51,15 @@ type expvar struct {
 }
 
 type ElasticResponseStats struct {
-	TotalElasticResponses int64 `json:"apm-server.server.response.count"`
-	ErrorElasticResponses int64 `json:"apm-server.server.response.errors.count"`
-	TransactionsProcessed int64 `json:"apm-server.processor.transaction.transformations"`
-	SpansProcessed        int64 `json:"apm-server.processor.span.transformations"`
-	MetricsProcessed      int64 `json:"apm-server.processor.metric.transformations"`
-	ErrorsProcessed       int64 `json:"apm-server.processor.error.transformations"`
+	TotalElasticResponses      int64 `json:"apm-server.server.response.count"`
+	ErrorElasticResponses      int64 `json:"apm-server.server.response.errors.count"`
+	TransactionsProcessed      int64 `json:"apm-server.processor.transaction.transformations"`
+	SpansProcessed             int64 `json:"apm-server.processor.span.transformations"`
+	MetricsProcessed           int64 `json:"apm-server.processor.metric.transformations"`
+	ErrorsProcessed            int64 `json:"apm-server.processor.error.transformations"`
+	IntakeEventsAccepted       int64 `json:"apm-server.processor.stream.accepted"`
+	IntakeEventsErrorsInvalid  int64 `json:"apm-server.processor.stream.errors.invalid"`
+	IntakeEventsErrorsTooLarge int64 `json:"apm-server.processor.stream.errors.toolarge"`
 }
 
 type OTLPResponseStats struct {
@@ -204,6 +207,9 @@ func aggregateResponseStats(from ElasticResponseStats, to *ElasticResponseStats)
 	to.SpansProcessed += from.SpansProcessed
 	to.TransactionsProcessed += from.TransactionsProcessed
 	to.TotalElasticResponses += from.TotalElasticResponses
+	to.IntakeEventsAccepted += from.IntakeEventsAccepted
+	to.IntakeEventsErrorsInvalid += from.IntakeEventsErrorsInvalid
+	to.IntakeEventsErrorsTooLarge += from.IntakeEventsErrorsTooLarge
 }
 
 func aggregateOTLPResponseStats(from OTLPResponseStats, to *OTLPResponseStats) {
