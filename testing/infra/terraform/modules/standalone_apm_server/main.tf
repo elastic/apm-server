@@ -5,6 +5,7 @@ locals {
     "ubuntu-noble-24.04-arm64-server" = "099720109477" # canonical
     "debian-12-arm64"                 = "136693071363" # debian
     "al2023-ami-2023"                 = "137112412989" # amazon
+    "al2023-ami-2023.*-x86_64"        = "137112412989" # amazon
     "RHEL-8"                          = "309956199498" # Red Hat
     "RHEL-9"                          = "309956199498" # Red Hat
   }
@@ -14,6 +15,7 @@ locals {
     "ubuntu-noble-24.04-arm64-server" = "t4g.nano"
     "debian-12-arm64"                 = "t4g.nano"
     "al2023-ami-2023"                 = "t4g.nano"
+    "al2023-ami-2023.*-x86_64"        = "t3a.micro"
     "RHEL-8"                          = "t4g.micro" # RHEL doesn't support nano instances
     "RHEL-9"                          = "t4g.micro" # RHEL doesn't support nano instances
   }
@@ -23,6 +25,7 @@ locals {
     "ubuntu-noble-24.04-arm64-server" = "arm64"
     "debian-12-arm64"                 = "arm64"
     "al2023-ami-2023"                 = "arm64"
+    "al2023-ami-2023.*-x86_64"        = "x86_64"
     "RHEL-8"                          = "arm64"
     "RHEL-9"                          = "arm64"
   }
@@ -32,6 +35,7 @@ locals {
     "ubuntu-noble-24.04-arm64-server" = "curl ${data.external.latest_elastic_agent.result.deb_arm} -o elastic-agent.deb && sudo dpkg -i elastic-agent.deb"
     "debian-12-arm64"                 = "curl ${data.external.latest_elastic_agent.result.deb_arm} -o elastic-agent.deb && sudo dpkg -i elastic-agent.deb"
     "al2023-ami-2023"                 = "curl ${data.external.latest_elastic_agent.result.rpm_arm} -o elastic-agent.rpm && sudo yum -y install elastic-agent.rpm"
+    "al2023-ami-2023.*-x86_64"        = "curl ${data.external.latest_elastic_agent.result.rpm_arm} -o elastic-agent.rpm && sudo yum -y install elastic-agent.rpm"
     "RHEL-8"                          = "curl ${data.external.latest_elastic_agent.result.rpm_arm} -o elastic-agent.rpm && sudo yum -y install elastic-agent.rpm"
     "RHEL-9"                          = "curl ${data.external.latest_elastic_agent.result.rpm_arm} -o elastic-agent.rpm && sudo yum -y install elastic-agent.rpm"
   }
@@ -41,6 +45,7 @@ locals {
     "ubuntu-noble-24.04-arm64-server" = "curl ${data.external.latest_apm_server.result.deb_arm} -o apm-server.deb && sudo dpkg -i apm-server.deb"
     "debian-12-arm64"                 = "curl ${data.external.latest_apm_server.result.deb_arm} -o apm-server.deb && sudo dpkg -i apm-server.deb"
     "al2023-ami-2023"                 = "curl ${data.external.latest_apm_server.result.rpm_arm} -o apm-server.rpm && sudo yum -y install apm-server.rpm"
+    "al2023-ami-2023.*-x86_64"        = "curl ${data.external.latest_apm_server.result.rpm_arm} -o apm-server.rpm && sudo yum -y install apm-server.rpm"
     "RHEL-8"                          = "curl ${data.external.latest_apm_server.result.rpm_arm} -o apm-server.rpm && sudo yum -y install apm-server.rpm"
     "RHEL-9"                          = "curl ${data.external.latest_apm_server.result.rpm_arm} -o apm-server.rpm && sudo yum -y install apm-server.rpm"
   }
@@ -50,6 +55,7 @@ locals {
     "ubuntu-noble-24.04-arm64-server" = "ubuntu"
     "debian-12-arm64"                 = "admin"
     "al2023-ami-2023"                 = "ec2-user"
+    "al2023-ami-2023.*-x86_64"        = "ec2-user"
     "RHEL-8"                          = "ec2-user"
     "RHEL-9"                          = "ec2-user"
   }
@@ -150,6 +156,7 @@ resource "aws_instance" "apm" {
   root_block_device {
     volume_type = var.apm_volume_type
     volume_size = var.apm_volume_size
+    iops        = var.apm_iops
   }
 
   connection {
@@ -157,6 +164,18 @@ resource "aws_instance" "apm" {
     user        = local.image_ssh_users[var.aws_os]
     host        = self.public_ip
     private_key = file("${var.aws_provisioner_key_name}")
+  }
+
+  // For instance types with 'd.' e.g. c6id.2xlarge, use the NVMe ssd as data disk.
+  provisioner "remote-exec" {
+    inline = length(regexall("d[.]", self.instance_type)) > 0 ? [
+      "sudo mkfs -t xfs /dev/nvme1n1",
+      "mkdir ~/data",
+      "sudo mount /dev/nvme1n1 ~/data",
+      "sudo chown $USER:$USER ~/data",
+      ] : [
+      ":", // no-op
+    ]
   }
 
   provisioner "file" {
