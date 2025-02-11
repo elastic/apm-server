@@ -240,12 +240,14 @@ resource "aws_instance" "apm" {
       "sudo elastic-agent install -n --unprivileged",
       "sudo cp ${local.conf_path} /etc/elastic-agent/elastic-agent.yml",
       "sudo systemctl start elastic-agent",
+      "sudo systemctl stop firewalld || true",
       "sleep 1",
       ] : (
       var.apm_server_bin_path == "" ? [
         local.instance_standalone_provision_cmd[var.aws_os],
         "sudo cp ${local.conf_path} /etc/apm-server/apm-server.yml",
         "sudo systemctl start apm-server",
+        "sudo systemctl stop firewalld || true",
         "sleep 1",
         ] : [
         "sudo cp ${local.bin_path} apm-server",
