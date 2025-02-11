@@ -162,7 +162,10 @@ $(ARCHIVE_PREFIX)-windows-x86_64 $(ARCHIVE_PREFIX)-SNAPSHOT-windows-x86_64: \
 
 $(ARCHIVE_PREFIX)-%:
 	@rm -fr $@ && mkdir -p $@
-	cp $(filter-out build/apm-server-%, $^) $@
+# see https://github.com/elastic/apm-server/blob/e8b7251db2a12b777deca4b925f845b7e9ed87d6/packaging/nfpm.yml#L56-L74
+	install -m 644 $(filter-out build/apm-server-%, $^) $@
+# the apm-server.yml can only be writable by the owner; let's avoid the issues with umask
+	install -m 600 apm-server.yml $@
 	cp $(filter build/apm-server-%, $^) $@/apm-server$(suffix $(filter build/apm-server-%, $^))
 
 $(DISTDIR)/%.tar.gz: $(ARCHIVES_DIR)/%
