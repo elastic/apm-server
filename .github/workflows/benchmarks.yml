@@ -4,39 +4,47 @@ on:
   workflow_dispatch:
     inputs:
       runStandalone:
-        description: 'Run the benchmarks against standalone APM Server with Moxy'
+        description: 'Benchmark against standalone APM Server with Moxy'
         required: false
         type: boolean
         default: false
       enableTailSampling:
-        description: 'Enable tail-based sampling on the APM server'
+        description: 'Enable tail-based sampling on APM server'
         required: false
         type: boolean
         default: false
       tailSamplingStorageLimit:
-        description: 'Storage size limit of tail-based sampling on the APM server, defaults to 10GB'
+        description: 'Storage size limit of tail-based sampling on APM server'
         required: false
         type: string
         default: "10GB"
       profile:
-        description: 'The system profile used to run the benchmarks'
+        description: 'System profile for benchmark, e.g. system-profiles/8GBx1zone.tfvars'
         required: false
         type: string
+        # defaults set below (TFVARS_SOURCE)
       runOnStable:
-        description: 'Run the benchmarks on the latest stable version'
+        description: 'Benchmark on latest stable version'
         required: false
         type: boolean
         default: false
       benchmarkAgents:
-        description: 'Set the number of agents to send data to the APM Server'
+        description: 'Number of benchmark agents sending data to APM Server'
         required: false
         type: string
+        # defaults set in Makefile
       benchmarkRun:
-        description: 'Set the expression that matches the benchmark scenarios to run'
+        description: 'Benchmark scenarios that only match regex, e.g. BenchmarkAgentAll'
         required: false
         type: string
+        # defaults set in Makefile
+      warmupTime:
+        description: 'Benchmark warmup time for APM Server e.g. 3s, 5m, 2h'
+        required: false
+        type: string
+        # defaults set below (Set up env)
       pgoExport:
-        description: 'Run the benchmarks with PGO export'
+        description: 'Benchmark with PGO export'
         required: false
         type: boolean
         default: false
@@ -71,7 +79,7 @@ jobs:
       TF_VAR_apm_server_tail_sampling_storage_limit: ${{ inputs.tailSamplingStorageLimit || '10GB' }} # set the default again otherwise schedules won't work
       RUN_STANDALONE: ${{ inputs.runStandalone || github.event.schedule=='0 0 1 * *' }}
       PGO_EXPORT: ${{ inputs.pgoExport || github.event.schedule=='0 0 1 * *' }}
-      TFVARS_SOURCE: ${{ inputs.profile || 'system-profiles/8GBx1zone.tfvars' }} # // Default to use an 8gb profile
+      TFVARS_SOURCE: ${{ inputs.profile || 'system-profiles/8GBx1zone.tfvars' }} # set the default again otherwise schedules won't work
       TF_VAR_BUILD_ID: ${{ github.run_id }}
       TF_VAR_ENVIRONMENT: ci
       TF_VAR_REPO: ${{ github.repository }}
@@ -101,6 +109,15 @@ jobs:
           fi
           if [ ! -z "${{ inputs.benchmarkRun }}" ]; then
             echo "BENCHMARK_RUN=${{ inputs.benchmarkRun }}" >> "$GITHUB_ENV"
+          fi
+          if [ ! -z "${{ inputs.warmupTime }}" ]; then
+            echo "BENCHMARK_WARMUP_TIME=${{ inputs.warmupTime }}" >> "$GITHUB_ENV"
+          elif  [ "${{github.event_name}}" == 'schedule' ] && [ "${{env.RUN_STANDALONE}}" == 'false' ]; then
+            echo "BENCHMARK_WARMUP_TIME=10m" >> "$GITHUB_ENV"
+          elif  [ "${{github.event_name}}" == 'schedule' ] && [ "${{env.RUN_STANDALONE}}" == 'true' ]; then
+            echo "BENCHMARK_WARMUP_TIME=3m" >> "$GITHUB_ENV"
+          else
+            echo "BENCHMARK_WARMUP_TIME=5m" >> "$GITHUB_ENV"
           fi
 
       # exclude BenchmarkTraces* from scheduled benchmarks
