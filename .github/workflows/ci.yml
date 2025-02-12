@@ -35,7 +35,6 @@ jobs:
           cache: true
           cache-dependency-path: |
             go.sum
-            tools/go.sum
       - run: make check-full
 
   test:
@@ -80,7 +79,6 @@ jobs:
           cache: false
           cache-dependency-path: |
             go.sum
-            tools/go.sum
       - run: make package-snapshot
         env:
           GH_TOKEN: ${{ github.token }}
@@ -99,7 +97,6 @@ jobs:
           cache: false
           cache-dependency-path: |
             go.sum
-            tools/go.sum
       - name: Log in to the Elastic Container registry
         uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
         with:
