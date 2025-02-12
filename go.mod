@@ -263,6 +263,7 @@ tool (
 	github.com/t-yuki/gocover-cobertura
 	github.com/terraform-docs/terraform-docs
 	go.elastic.co/go-licence-detector
+	golang.org/x/tools/cmd/goimports
 	gotest.tools/gotestsum
 	honnef.co/go/tools/cmd/staticcheck
 )
