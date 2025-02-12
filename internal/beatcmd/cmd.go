@@ -74,7 +74,9 @@ func NewRootCommand(beatParams BeatParams) *cobra.Command {
 	// Register subcommands.
 	rootCommand.AddCommand(runCommand)
 	rootCommand.AddCommand(exportCommand)
-	rootCommand.AddCommand(keystoreCommand)
+	if keystoreCommand != nil {
+		rootCommand.AddCommand(keystoreCommand)
+	}
 	rootCommand.AddCommand(versionCommand)
 	rootCommand.AddCommand(genTestCmd(beatParams))
 
