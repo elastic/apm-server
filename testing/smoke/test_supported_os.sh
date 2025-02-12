@@ -45,7 +45,7 @@ for os in "${os_names[@]}"
 do
     cleanup_tfvar
     append_tfvar "aws_provisioner_key_name" ${KEY_NAME}
-    append_tfvar "aws_os" $os
+    append_tfvar "aws_os" "$os"
     append_tfvar "stack_version" ${VERSION}
     terraform_apply
     # The previous test case's APM Server should have been stopped by now,
