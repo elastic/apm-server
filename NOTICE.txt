@@ -455,11 +455,11 @@ Contents of probable licence file $GOMODCACHE/github.com/elastic/apm-data@v1.16.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/beats/v7
-Version: v7.0.0-alpha2.0.20250207124234-95b5dce16c07
+Version: v7.0.0-alpha2.0.20250212065937-70533dae87f5
 Licence type (autodetected): Elastic
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20250207124234-95b5dce16c07/LICENSE.txt:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20250212065937-70533dae87f5/LICENSE.txt:
 
 Source code in this repository is variously licensed under the Apache License
 Version 2.0, an Apache compatible license, or the Elastic License. Outside of
@@ -711,11 +711,11 @@ SOFTWARE
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/elastic-agent-libs
-Version: v0.18.5
+Version: v0.18.6
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/elastic-agent-libs@v0.18.5/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/elastic-agent-libs@v0.18.6/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -1344,11 +1344,11 @@ Contents of probable licence file $GOMODCACHE/github.com/elastic/gmux@v0.3.2/LIC
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/go-docappender/v2
-Version: v2.4.0
+Version: v2.5.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/go-docappender/v2@v2.4.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/go-docappender/v2@v2.5.0/LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -2262,11 +2262,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/gofrs/uuid/v5
-Version: v5.3.0
+Version: v5.3.1
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/gofrs/uuid/v5@v5.3.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/gofrs/uuid/v5@v5.3.1/LICENSE:
 
 Copyright (C) 2013-2018 by Maxim Bublis <b@codemonkey.ru>
 
