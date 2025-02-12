@@ -8,11 +8,19 @@ require (
 	github.com/dgraph-io/badger/v2 v2.2007.4
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/apm-aggregation v1.2.0
+<<<<<<< HEAD
 	github.com/elastic/apm-data v1.16.0
 	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20250217102615-d62161b1e6e7
 	github.com/elastic/elastic-agent-client/v7 v7.17.0
 	github.com/elastic/elastic-agent-libs v0.18.2
 	github.com/elastic/elastic-agent-system-metrics v0.11.7
+=======
+	github.com/elastic/apm-data v1.18.0
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20250212065937-70533dae87f5
+	github.com/elastic/elastic-agent-client/v7 v7.17.1
+	github.com/elastic/elastic-agent-libs v0.18.6
+	github.com/elastic/elastic-agent-system-metrics v0.11.8
+>>>>>>> ea604f0e (build(deps): bump github.com/elastic/apm-data from 1.16.0 to 1.18.0 (#15702))
 	github.com/elastic/gmux v0.3.2
 	github.com/elastic/go-docappender/v2 v2.4.0
 	github.com/elastic/go-elasticsearch/v8 v8.17.0
