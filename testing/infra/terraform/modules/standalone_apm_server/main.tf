@@ -240,6 +240,7 @@ resource "aws_instance" "apm" {
       "sudo elastic-agent install -n --unprivileged",
       "sudo cp ${local.conf_path} /etc/elastic-agent/elastic-agent.yml",
       "sudo systemctl start elastic-agent",
+      // oracle linux cloud image has firewalld enabled by default
       "sudo systemctl stop firewalld || true",
       "sleep 1",
       ] : (
@@ -247,6 +248,7 @@ resource "aws_instance" "apm" {
         local.instance_standalone_provision_cmd[var.aws_os],
         "sudo cp ${local.conf_path} /etc/apm-server/apm-server.yml",
         "sudo systemctl start apm-server",
+        // oracle linux cloud image has firewalld enabled by default
         "sudo systemctl stop firewalld || true",
         "sleep 1",
         ] : [
