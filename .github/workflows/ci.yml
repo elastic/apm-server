@@ -60,7 +60,7 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           # TODO switch to go.mod once we update to 1.24+
-          go-version-file: 1.24
+          go-version: 1.24
           cache: true
       - env:
           CGO_ENABLED: "0"
