@@ -47,7 +47,13 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
+      - uses: antontroshin/setup-go@bda02de8887c9946189f81e7e59512914aeb9ea4
+        if: runner.os == 'Windows'
+        with:
+          go-version-file: go.mod
+          cache: true
       - uses: actions/setup-go@v5
+        if: runner.os != 'Windows'
         with:
           go-version-file: go.mod
           cache: true
