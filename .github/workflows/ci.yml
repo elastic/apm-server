@@ -67,7 +67,7 @@ jobs:
           GOFIPS140: "latest"
           GODEBUG: "fips140=only"
         # TODO remove tags once cockroachdb/swiss works on 1.24+
-        run: go test -v -tags=untested_go_version ./...
+        run: go test -v -tags=untested_go_version,require_fips ./...
 
   system-test:
     runs-on: ubuntu-latest
