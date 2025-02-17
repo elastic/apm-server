@@ -2863,11 +2863,11 @@ SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/spf13/cobra
-Version: v1.8.1
+Version: v1.9.1
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/spf13/cobra@v1.8.1/LICENSE.txt:
+Contents of probable licence file $GOMODCACHE/github.com/spf13/cobra@v1.9.1/LICENSE.txt:
 
                                 Apache License
                            Version 2.0, January 2004
