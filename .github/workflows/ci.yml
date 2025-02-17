@@ -59,6 +59,22 @@ jobs:
           CGO_ENABLED: "0"
         run: go test -v ./...
 
+  test-fips:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          # TODO switch to go.mod once we update to 1.24+
+          go-version: 1.24
+          cache: true
+      - env:
+          CGO_ENABLED: "0"
+          GOFIPS140: "latest"
+          GODEBUG: "fips140=only"
+        # TODO remove tags once cockroachdb/swiss works on 1.24+
+        run: go test -v -tags=untested_go_version,requirefips ./...
+
   system-test:
     runs-on: ubuntu-latest
     steps:
