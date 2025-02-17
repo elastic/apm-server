@@ -16,7 +16,13 @@ fi
 MAJOR_VERSION=$(echo ${VERSION} | cut -d '.' -f1 )
 MINOR_VERSION=$(echo ${VERSION} | cut -d '.' -f2 )
 
-if [[ ${MAJOR_VERSION} -eq 8 ]] || [[ ${MAJOR_VERSION} -eq 9 ]]; then
+if [[ ${MAJOR_VERSION} -eq 7 ]]; then
+    ASSERT_EVENTS_FUNC=legacy_assertions
+    INTEGRATIONS_SERVER=false
+    get_latest_patch "${MAJOR_VERSION}.${MINOR_VERSION}"
+    LATEST_VERSION=${MAJOR_VERSION}.${MINOR_VERSION}.${LATEST_PATCH}
+    PREV_LATEST_VERSION=$(echo ${MAJOR_VERSION}.${MINOR_VERSION}.$(( ${LATEST_PATCH} -1 )))
+elif [[ ${MAJOR_VERSION} -eq 8 ]] || [[ ${MAJOR_VERSION} -eq 9 ]]; then
     ASSERT_EVENTS_FUNC=data_stream_assertions
     INTEGRATIONS_SERVER=true
 

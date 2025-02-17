@@ -455,11 +455,11 @@ Contents of probable licence file $GOMODCACHE/github.com/elastic/apm-data@v1.18.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/elastic/beats/v7
-Version: v7.0.0-alpha2.0.20250212065937-70533dae87f5
+Version: v7.0.0-alpha2.0.20250214145407-0f487dfeb385
 Licence type (autodetected): Elastic
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20250212065937-70533dae87f5/LICENSE.txt:
+Contents of probable licence file $GOMODCACHE/github.com/elastic/beats/v7@v7.0.0-alpha2.0.20250214145407-0f487dfeb385/LICENSE.txt:
 
 Source code in this repository is variously licensed under the Apache License
 Version 2.0, an Apache compatible license, or the Elastic License. Outside of
@@ -4382,11 +4382,11 @@ Contents of probable licence file $GOMODCACHE/go.elastic.co/apm/v2@v2.6.3/LICENS
 
 --------------------------------------------------------------------------------
 Dependency : go.elastic.co/fastjson
-Version: v1.4.0
+Version: v1.5.0
 Licence type (autodetected): MIT
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.elastic.co/fastjson@v1.4.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/go.elastic.co/fastjson@v1.5.0/LICENSE:
 
 Copyright 2018 Elasticsearch BV
 
