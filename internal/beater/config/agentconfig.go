@@ -18,12 +18,12 @@
 package config
 
 import (
-	"crypto/md5"
 	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
 
+	"github.com/cespare/xxhash/v2"
 	"github.com/pkg/errors"
 
 	"github.com/elastic/apm-server/internal/elasticsearch"
@@ -125,7 +125,7 @@ func (s *FleetAgentConfig) setup() error {
 		if err != nil {
 			return fmt.Errorf("error generating etag for %s: %v", s.Service, err)
 		}
-		s.Etag = fmt.Sprintf("%x", md5.Sum(m))
+		s.Etag = fmt.Sprintf("%x", xxhash.New().Sum(m))
 	}
 	return nil
 }
