@@ -24,6 +24,7 @@ func TestSubCommands(t *testing.T) {
 	}
 
 	assert.ElementsMatch(t, []string{
+		"apikey",
 		"export",
 		"keystore",
 		"run",
