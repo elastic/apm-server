@@ -29,7 +29,7 @@ RUN sed -i 's/localhost:9200/elasticsearch:9200/' apm-server.yml
 # Build stage 1
 # Copy prepared files from the previous stage and complete the image.
 ################################################################################
-FROM registry.access.redhat.com/ubi9/ubi-micro:latest@sha256:4a2052ef4db4fd1a53b45263b5067eb01d5745fdd300b27986952af27887bc27
+FROM registry.access.redhat.com/ubi9/ubi-micro:latest@sha256:d115f8aad9c4ae7ee21ae75bbcb3dc2c5dbf9b57bf6dad6dcb5aac5c02003bde
 ARG TARGETARCH
 ARG BUILD_DATE
 ARG VERSION
