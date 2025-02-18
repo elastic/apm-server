@@ -92,7 +92,7 @@ RUN echo 'apm-server:*:1000:1000::/usr/share/apm-server:/bin/false' >> /etc/pass
 RUN chown -R 1000:1000 /usr/share/apm-server
 
 # remove unnecessary packages
-RUN dpkg -r --force-depends libgssapi-krb5-2 libtirpc3 libnsl2 && \
+RUN dnf || dpkg -r --force-depends libgssapi-krb5-2 libtirpc3 libnsl2 && \
     rm /var/log/dpkg.log
 
 USER apm-server
