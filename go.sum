@@ -130,17 +130,10 @@ github.com/ebitengine/purego v0.8.1 h1:sdRKd6plj7KYW33EH5As6YKfe8m9zbN9JMrOjNVF/
 github.com/ebitengine/purego v0.8.1/go.mod h1:iIjxzd6CiRiOG0UyXP+V1+jWqUXVjPKLAI0mRfJZTmQ=
 github.com/elastic/apm-aggregation v1.2.0 h1:UndqG3ccBTjyxTqHujBVjcbVLb9qG1clxRcrp9JRelI=
 github.com/elastic/apm-aggregation v1.2.0/go.mod h1:YllYwPYVV27pbuPfjRtQAKo6eSSrh13PZr38RKYd810=
-<<<<<<< HEAD
-github.com/elastic/apm-data v1.16.0 h1:LkJFoNkadIyqXNo3EMm98J38j9HWDMWUe6F74GaXtJ4=
-github.com/elastic/apm-data v1.16.0/go.mod h1:ST2P1yshhN2U3IbBYyn+Ni3VOFTifavNzMfh7E9zLHY=
-github.com/elastic/beats/v7 v7.0.0-alpha2.0.20250217102615-d62161b1e6e7 h1:TzXOSHr4G4ZQH4+zG0D5/fyeQ6E9bzLKFWZLQc22dJ4=
-github.com/elastic/beats/v7 v7.0.0-alpha2.0.20250217102615-d62161b1e6e7/go.mod h1:G0sLmyFR7XdE8ig14yiuNZ9jnGnW5dCl3tAakyrOjxU=
-=======
 github.com/elastic/apm-data v1.18.0 h1:GaWnrIoh7+UPmsbkQGls3tSCVk54sJng2v2YCYGpwyM=
 github.com/elastic/apm-data v1.18.0/go.mod h1:Bm4VpGkWHwVRAA32kVyVk1f9urv0dnh86DGFdOIiewk=
-github.com/elastic/beats/v7 v7.0.0-alpha2.0.20250212065937-70533dae87f5 h1:Ur1ZtaDyArNhl7RRBkyJjSRiMxZekeaI239ALOx3Q1E=
-github.com/elastic/beats/v7 v7.0.0-alpha2.0.20250212065937-70533dae87f5/go.mod h1:A3OQ9JLS2gNVO2MayjAqFDhqwCj3NN1GnVjramGhj+s=
->>>>>>> ea604f0e (build(deps): bump github.com/elastic/apm-data from 1.16.0 to 1.18.0 (#15702))
+github.com/elastic/beats/v7 v7.0.0-alpha2.0.20250217102615-d62161b1e6e7 h1:TzXOSHr4G4ZQH4+zG0D5/fyeQ6E9bzLKFWZLQc22dJ4=
+github.com/elastic/beats/v7 v7.0.0-alpha2.0.20250217102615-d62161b1e6e7/go.mod h1:G0sLmyFR7XdE8ig14yiuNZ9jnGnW5dCl3tAakyrOjxU=
 github.com/elastic/elastic-agent-autodiscover v0.9.0 h1:+iWIKh0u3e8I+CJa3FfWe9h0JojNasPgYIA47gpuuns=
 github.com/elastic/elastic-agent-autodiscover v0.9.0/go.mod h1:5iUxLHhVdaGSWYTveSwfJEY4RqPXTG13LPiFoxcpFd4=
 github.com/elastic/elastic-agent-client/v7 v7.17.0 h1:TPLrEHF4kJ3RkmQzZPffrniY4WeW4vriHZbOAzM1hFo=
@@ -572,8 +565,8 @@ golang.org/x/sync v0.0.0-20201020160332-67f06af15bc9/go.mod h1:RxMgew5VJxzue5/jJ
 golang.org/x/sync v0.0.0-20210220032951-036812b2e83c/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
 golang.org/x/sync v0.0.0-20220722155255-886fb9371eb4/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
 golang.org/x/sync v0.1.0/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
-golang.org/x/sync v0.10.0 h1:3NQrjDixjgGwUOCaF8w2+VYHv0Ve/vGYSbdkTa98gmQ=
-golang.org/x/sync v0.10.0/go.mod h1:Czt+wKu1gCyEFDUtn0jG5QVvpJ6rzVqr5aXyt9drQfk=
+golang.org/x/sync v0.11.0 h1:GGz8+XQP4FvTTrjZPzNKTMFtSXH80RAzG+5ghFPgK9w=
+golang.org/x/sync v0.11.0/go.mod h1:Czt+wKu1gCyEFDUtn0jG5QVvpJ6rzVqr5aXyt9drQfk=
 golang.org/x/sys v0.0.0-20180810173357-98c5dad5d1a0/go.mod h1:STP8DvDyc/dI5b8T5hshtkjS+E42TnysNCUPdjciGhY=
 golang.org/x/sys v0.0.0-20180830151530-49385e6e1522/go.mod h1:STP8DvDyc/dI5b8T5hshtkjS+E42TnysNCUPdjciGhY=
 golang.org/x/sys v0.0.0-20181205085412-a5c9d58dba9a/go.mod h1:STP8DvDyc/dI5b8T5hshtkjS+E42TnysNCUPdjciGhY=
