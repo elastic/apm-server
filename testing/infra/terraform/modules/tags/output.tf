@@ -2,7 +2,7 @@ locals {
   tags = {
     "division" : "engineering"
     "org" : "obs"
-    "team" : "apm-server"
+    "team" : "obs-ds-intake-services"
     "project" : var.project
     "build" : var.build
     "ephemeral" : "true"
