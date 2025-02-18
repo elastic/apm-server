@@ -1,79 +1,99 @@
 locals {
   image_owners = {
-    "ubuntu-bionic-18.04-arm64-server" = "099720109477" # canonical
-    "ubuntu-focal-20.04-arm64-server"  = "099720109477" # canonical
-    "ubuntu-jammy-22.04-arm64-server"  = "099720109477" # canonical
-    "debian-10-arm64"                  = "136693071363" # debian
-    "debian-11-arm64"                  = "136693071363" # debian
-    "amzn2-ami-kernel-5.10"            = "137112412989" # amazon
-    "amzn2-ami-hvm-*-x86_64-ebs"       = "137112412989" # amazon
-    "al2023-ami-2023"                  = "137112412989" # amazon
-    "RHEL-7"                           = "309956199498" # Red Hat
-    "RHEL-8"                           = "309956199498" # Red Hat
-    "RHEL-9"                           = "309956199498" # Red Hat
+    "ubuntu-focal-20.04-arm64-server" = "099720109477" # canonical
+    "ubuntu-jammy-22.04-arm64-server" = "099720109477" # canonical
+    "ubuntu-noble-24.04-arm64-server" = "099720109477" # canonical
+    "debian-12-arm64"                 = "136693071363" # debian
+    "al2023-ami-2023"                 = "137112412989" # amazon
+    "al2023-ami-2023.*-x86_64"        = "137112412989" # amazon
+    "RHEL-8"                          = "309956199498" # Red Hat
+    "RHEL-9"                          = "309956199498" # Red Hat
+    "Rocky-8-EC2-Base"                = "792107900819" # Rocky Linux
+    "Rocky-9-EC2-Base"                = "792107900819" # Rocky Linux
+    "AlmaLinux OS 8"                  = "764336703387" # AlmaLinux OS Foundation
+    "AlmaLinux OS 9"                  = "764336703387" # AlmaLinux OS Foundation
+    "OL8"                             = "131827586825" # Oracle
+    "OL9"                             = "131827586825" # Oracle
   }
   instance_types = {
-    "ubuntu-bionic-18.04-arm64-server" = "t4g.nano"
-    "ubuntu-focal-20.04-arm64-server"  = "t4g.nano"
-    "ubuntu-jammy-22.04-arm64-server"  = "t4g.nano"
-    "debian-10-arm64"                  = "t4g.nano"
-    "debian-11-arm64"                  = "t4g.nano"
-    "amzn2-ami-kernel-5.10"            = "t4g.nano"
-    "amzn2-ami-hvm-*-x86_64-ebs"       = "t4g.nano"
-    "al2023-ami-2023"                  = "t4g.nano"
-    "RHEL-7"                           = "t3a.micro" # RHEL-7 doesn't support arm
-    "RHEL-8"                           = "t4g.micro" # RHEL doesn't support nano instances
-    "RHEL-9"                           = "t4g.micro" # RHEL doesn't support nano instances
+    "ubuntu-focal-20.04-arm64-server" = "t4g.nano"
+    "ubuntu-jammy-22.04-arm64-server" = "t4g.nano"
+    "ubuntu-noble-24.04-arm64-server" = "t4g.nano"
+    "debian-12-arm64"                 = "t4g.nano"
+    "al2023-ami-2023"                 = "t4g.nano"
+    "al2023-ami-2023.*-x86_64"        = "t3a.micro"
+    "RHEL-8"                          = "t4g.micro" # RHEL doesn't support nano instances
+    "RHEL-9"                          = "t4g.micro" # RHEL doesn't support nano instances
+    "Rocky-8-EC2-Base"                = "t4g.nano"
+    "Rocky-9-EC2-Base"                = "t4g.nano"
+    "AlmaLinux OS 8"                  = "t4g.nano"
+    "AlmaLinux OS 9"                  = "t4g.nano"
+    "OL8"                             = "t4g.nano"
+    "OL9"                             = "t4g.nano"
   }
   instance_arch = {
-    "ubuntu-bionic-18.04-arm64-server" = "arm64"
-    "ubuntu-focal-20.04-arm64-server"  = "arm64"
-    "ubuntu-jammy-22.04-arm64-server"  = "arm64"
-    "debian-10-arm64"                  = "arm64"
-    "debian-11-arm64"                  = "arm64"
-    "amzn2-ami-kernel-5.10"            = "arm64"
-    "amzn2-ami-hvm-*-x86_64-ebs"       = "x86_64"
-    "al2023-ami-2023"                  = "arm64"
-    "RHEL-7"                           = "x86_64" # RHEL-7 doesn't support arm
-    "RHEL-8"                           = "arm64"
-    "RHEL-9"                           = "arm64"
+    "ubuntu-focal-20.04-arm64-server" = "arm64"
+    "ubuntu-jammy-22.04-arm64-server" = "arm64"
+    "ubuntu-noble-24.04-arm64-server" = "arm64"
+    "debian-12-arm64"                 = "arm64"
+    "al2023-ami-2023"                 = "arm64"
+    "al2023-ami-2023.*-x86_64"        = "x86_64"
+    "RHEL-8"                          = "arm64"
+    "RHEL-9"                          = "arm64"
+    "Rocky-8-EC2-Base"                = "arm64"
+    "Rocky-9-EC2-Base"                = "arm64"
+    "AlmaLinux OS 8"                  = "arm64"
+    "AlmaLinux OS 9"                  = "arm64"
+    "OL8"                             = "arm64"
+    "OL9"                             = "arm64"
   }
   instance_ea_provision_cmd = {
-    "ubuntu-bionic-18.04-arm64-server" = "curl ${data.external.latest_elastic_agent.result.deb_arm} -o elastic-agent.deb && sudo dpkg -i elastic-agent.deb"
-    "ubuntu-focal-20.04-arm64-server"  = "curl ${data.external.latest_elastic_agent.result.deb_arm} -o elastic-agent.deb && sudo dpkg -i elastic-agent.deb"
-    "ubuntu-jammy-22.04-arm64-server"  = "curl ${data.external.latest_elastic_agent.result.deb_arm} -o elastic-agent.deb && sudo dpkg -i elastic-agent.deb"
-    "debian-10-arm64"                  = "curl ${data.external.latest_elastic_agent.result.deb_arm} -o elastic-agent.deb && sudo dpkg -i elastic-agent.deb"
-    "debian-11-arm64"                  = "curl ${data.external.latest_elastic_agent.result.deb_arm} -o elastic-agent.deb && sudo dpkg -i elastic-agent.deb"
-    "amzn2-ami-kernel-5.10"            = "curl ${data.external.latest_elastic_agent.result.rpm_arm} -o elastic-agent.rpm && sudo yum -y install elastic-agent.rpm"
-    "al2023-ami-2023"                  = "curl ${data.external.latest_elastic_agent.result.rpm_arm} -o elastic-agent.rpm && sudo yum -y install elastic-agent.rpm"
-    "RHEL-7"                           = "curl ${data.external.latest_elastic_agent.result.rpm_amd} -o elastic-agent.rpm && sudo yum -y install elastic-agent.rpm"
-    "RHEL-8"                           = "curl ${data.external.latest_elastic_agent.result.rpm_arm} -o elastic-agent.rpm && sudo yum -y install elastic-agent.rpm"
-    "RHEL-9"                           = "curl ${data.external.latest_elastic_agent.result.rpm_arm} -o elastic-agent.rpm && sudo yum -y install elastic-agent.rpm"
+    "ubuntu-focal-20.04-arm64-server" = "curl ${data.external.latest_elastic_agent.result.deb_arm} -o elastic-agent.deb && sudo dpkg -i elastic-agent.deb"
+    "ubuntu-jammy-22.04-arm64-server" = "curl ${data.external.latest_elastic_agent.result.deb_arm} -o elastic-agent.deb && sudo dpkg -i elastic-agent.deb"
+    "ubuntu-noble-24.04-arm64-server" = "curl ${data.external.latest_elastic_agent.result.deb_arm} -o elastic-agent.deb && sudo dpkg -i elastic-agent.deb"
+    "debian-12-arm64"                 = "curl ${data.external.latest_elastic_agent.result.deb_arm} -o elastic-agent.deb && sudo dpkg -i elastic-agent.deb"
+    "al2023-ami-2023"                 = "curl ${data.external.latest_elastic_agent.result.rpm_arm} -o elastic-agent.rpm && sudo rpm -i elastic-agent.rpm"
+    "al2023-ami-2023.*-x86_64"        = "curl ${data.external.latest_elastic_agent.result.rpm_arm} -o elastic-agent.rpm && sudo rpm -i elastic-agent.rpm"
+    "RHEL-8"                          = "curl ${data.external.latest_elastic_agent.result.rpm_arm} -o elastic-agent.rpm && sudo rpm -i elastic-agent.rpm"
+    "RHEL-9"                          = "curl ${data.external.latest_elastic_agent.result.rpm_arm} -o elastic-agent.rpm && sudo rpm -i elastic-agent.rpm"
+    "Rocky-8-EC2-Base"                = "curl ${data.external.latest_elastic_agent.result.rpm_arm} -o elastic-agent.rpm && sudo rpm -i elastic-agent.rpm"
+    "Rocky-9-EC2-Base"                = "curl ${data.external.latest_elastic_agent.result.rpm_arm} -o elastic-agent.rpm && sudo rpm -i elastic-agent.rpm"
+    "AlmaLinux OS 8"                  = "curl ${data.external.latest_elastic_agent.result.rpm_arm} -o elastic-agent.rpm && sudo rpm -i elastic-agent.rpm"
+    "AlmaLinux OS 9"                  = "curl ${data.external.latest_elastic_agent.result.rpm_arm} -o elastic-agent.rpm && sudo rpm -i elastic-agent.rpm"
+    "OL8"                             = "curl ${data.external.latest_elastic_agent.result.rpm_arm} -o elastic-agent.rpm && sudo rpm -i elastic-agent.rpm"
+    "OL9"                             = "curl ${data.external.latest_elastic_agent.result.rpm_arm} -o elastic-agent.rpm && sudo rpm -i elastic-agent.rpm"
   }
   instance_standalone_provision_cmd = {
-    "ubuntu-bionic-18.04-arm64-server" = "curl ${data.external.latest_apm_server.result.deb_arm} -o apm-server.deb && sudo dpkg -i apm-server.deb"
-    "ubuntu-focal-20.04-arm64-server"  = "curl ${data.external.latest_apm_server.result.deb_arm} -o apm-server.deb && sudo dpkg -i apm-server.deb"
-    "ubuntu-jammy-22.04-arm64-server"  = "curl ${data.external.latest_apm_server.result.deb_arm} -o apm-server.deb && sudo dpkg -i apm-server.deb"
-    "debian-10-arm64"                  = "curl ${data.external.latest_apm_server.result.deb_arm} -o apm-server.deb && sudo dpkg -i apm-server.deb"
-    "debian-11-arm64"                  = "curl ${data.external.latest_apm_server.result.deb_arm} -o apm-server.deb && sudo dpkg -i apm-server.deb"
-    "amzn2-ami-kernel-5.10"            = "curl ${data.external.latest_apm_server.result.rpm_arm} -o apm-server.rpm && sudo yum -y install apm-server.rpm"
-    "al2023-ami-2023"                  = "curl ${data.external.latest_apm_server.result.rpm_arm} -o apm-server.rpm && sudo yum -y install apm-server.rpm"
-    "RHEL-7"                           = "curl ${data.external.latest_apm_server.result.rpm_amd} -o apm-server.rpm && sudo yum -y install apm-server.rpm"
-    "RHEL-8"                           = "curl ${data.external.latest_apm_server.result.rpm_arm} -o apm-server.rpm && sudo yum -y install apm-server.rpm"
-    "RHEL-9"                           = "curl ${data.external.latest_apm_server.result.rpm_arm} -o apm-server.rpm && sudo yum -y install apm-server.rpm"
+    "ubuntu-focal-20.04-arm64-server" = "curl ${data.external.latest_apm_server.result.deb_arm} -o apm-server.deb && sudo dpkg -i apm-server.deb"
+    "ubuntu-jammy-22.04-arm64-server" = "curl ${data.external.latest_apm_server.result.deb_arm} -o apm-server.deb && sudo dpkg -i apm-server.deb"
+    "ubuntu-noble-24.04-arm64-server" = "curl ${data.external.latest_apm_server.result.deb_arm} -o apm-server.deb && sudo dpkg -i apm-server.deb"
+    "debian-12-arm64"                 = "curl ${data.external.latest_apm_server.result.deb_arm} -o apm-server.deb && sudo dpkg -i apm-server.deb"
+    "al2023-ami-2023"                 = "curl ${data.external.latest_apm_server.result.rpm_arm} -o apm-server.rpm && sudo rpm -i apm-server.rpm"
+    "al2023-ami-2023.*-x86_64"        = "curl ${data.external.latest_apm_server.result.rpm_arm} -o apm-server.rpm && sudo rpm -i apm-server.rpm"
+    "RHEL-8"                          = "curl ${data.external.latest_apm_server.result.rpm_arm} -o apm-server.rpm && sudo rpm -i apm-server.rpm"
+    "RHEL-9"                          = "curl ${data.external.latest_apm_server.result.rpm_arm} -o apm-server.rpm && sudo rpm -i apm-server.rpm"
+    "Rocky-8-EC2-Base"                = "curl ${data.external.latest_apm_server.result.rpm_arm} -o apm-server.rpm && sudo rpm -i apm-server.rpm"
+    "Rocky-9-EC2-Base"                = "curl ${data.external.latest_apm_server.result.rpm_arm} -o apm-server.rpm && sudo rpm -i apm-server.rpm"
+    "AlmaLinux OS 8"                  = "curl ${data.external.latest_apm_server.result.rpm_arm} -o apm-server.rpm && sudo rpm -i apm-server.rpm"
+    "AlmaLinux OS 9"                  = "curl ${data.external.latest_apm_server.result.rpm_arm} -o apm-server.rpm && sudo rpm -i apm-server.rpm"
+    "OL8"                             = "curl ${data.external.latest_apm_server.result.rpm_arm} -o apm-server.rpm && sudo rpm -i apm-server.rpm"
+    "OL9"                             = "curl ${data.external.latest_apm_server.result.rpm_arm} -o apm-server.rpm && sudo rpm -i apm-server.rpm"
   }
   image_ssh_users = {
-    "ubuntu-bionic-18.04-arm64-server" = "ubuntu"
-    "ubuntu-focal-20.04-arm64-server"  = "ubuntu"
-    "ubuntu-jammy-22.04-arm64-server"  = "ubuntu"
-    "debian-10-arm64"                  = "admin"
-    "debian-11-arm64"                  = "admin"
-    "amzn2-ami-kernel-5.10"            = "ec2-user"
-    "amzn2-ami-hvm-*-x86_64-ebs"       = "ec2-user"
-    "al2023-ami-2023"                  = "ec2-user"
-    "RHEL-7"                           = "ec2-user"
-    "RHEL-8"                           = "ec2-user"
-    "RHEL-9"                           = "ec2-user"
+    "ubuntu-focal-20.04-arm64-server" = "ubuntu"
+    "ubuntu-jammy-22.04-arm64-server" = "ubuntu"
+    "ubuntu-noble-24.04-arm64-server" = "ubuntu"
+    "debian-12-arm64"                 = "admin"
+    "al2023-ami-2023"                 = "ec2-user"
+    "al2023-ami-2023.*-x86_64"        = "ec2-user"
+    "RHEL-8"                          = "ec2-user"
+    "RHEL-9"                          = "ec2-user"
+    "Rocky-8-EC2-Base"                = "rocky"
+    "Rocky-9-EC2-Base"                = "rocky"
+    "AlmaLinux OS 8"                  = "ec2-user"
+    "AlmaLinux OS 9"                  = "ec2-user"
+    "OL8"                             = "ec2-user"
+    "OL9"                             = "ec2-user"
   }
 
   apm_port  = "8200"
@@ -172,6 +192,7 @@ resource "aws_instance" "apm" {
   root_block_device {
     volume_type = var.apm_volume_type
     volume_size = var.apm_volume_size
+    iops        = var.apm_iops
   }
 
   connection {
@@ -179,6 +200,18 @@ resource "aws_instance" "apm" {
     user        = local.image_ssh_users[var.aws_os]
     host        = self.public_ip
     private_key = file("${var.aws_provisioner_key_name}")
+  }
+
+  // For instance types with 'd.' e.g. c6id.2xlarge, use the NVMe ssd as data disk.
+  provisioner "remote-exec" {
+    inline = length(regexall("d[.]", self.instance_type)) > 0 ? [
+      "sudo mkfs -t xfs /dev/nvme1n1",
+      "mkdir ~/data",
+      "sudo mount /dev/nvme1n1 ~/data",
+      "sudo chown $USER:$USER ~/data",
+      ] : [
+      ":", // no-op
+    ]
   }
 
   provisioner "file" {
@@ -207,12 +240,16 @@ resource "aws_instance" "apm" {
       "sudo elastic-agent install -n --unprivileged",
       "sudo cp ${local.conf_path} /etc/elastic-agent/elastic-agent.yml",
       "sudo systemctl start elastic-agent",
+      // oracle linux cloud image has firewalld enabled by default
+      "sudo systemctl stop firewalld || true",
       "sleep 1",
       ] : (
       var.apm_server_bin_path == "" ? [
         local.instance_standalone_provision_cmd[var.aws_os],
         "sudo cp ${local.conf_path} /etc/apm-server/apm-server.yml",
         "sudo systemctl start apm-server",
+        // oracle linux cloud image has firewalld enabled by default
+        "sudo systemctl stop firewalld || true",
         "sleep 1",
         ] : [
         "sudo cp ${local.bin_path} apm-server",

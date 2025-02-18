@@ -2,7 +2,7 @@ user_name = "USER"
 
 # APM bench
 
-worker_instance_type = "c6i.2xlarge"
+worker_instance_type = "c6i.xlarge"
 
 # Elastic Cloud
 
@@ -17,5 +17,5 @@ apm_server_size = "8g"
 
 # Standalone
 
-standalone_apm_server_instance_size = "c6i.xlarge"
+standalone_apm_server_instance_size = "c6id.xlarge"
 standalone_moxy_instance_size       = "c6i.2xlarge"
