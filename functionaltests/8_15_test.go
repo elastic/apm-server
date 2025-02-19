@@ -26,9 +26,9 @@ import (
 	"go.uber.org/zap/zaptest"
 
 	"github.com/elastic/apm-server/functionaltests/internal/asserts"
-	"github.com/elastic/apm-server/functionaltests/internal/ecclient"
 	"github.com/elastic/apm-server/functionaltests/internal/esclient"
 	"github.com/elastic/apm-server/functionaltests/internal/gen"
+	"github.com/elastic/apm-server/functionaltests/internal/kbclient"
 	"github.com/elastic/apm-server/functionaltests/internal/terraform"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 
@@ -71,11 +71,12 @@ func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
 
 	t.Logf("created deployment %s", deploymentID)
 
-	c, err := ecclient.New(endpointFrom(*target))
-	require.NoError(t, err)
-
 	ecc, err := esclient.New(escfg)
 	require.NoError(t, err)
+
+	kbapikey, err := ecc.CreateAPIKey(ctx, "kbclient", -1, map[string]types.RoleDescriptor{})
+	require.NoError(t, err)
+	kbc := kbclient.New(escfg.KibanaURL, kbapikey)
 
 	t.Log("creating APM API key")
 	apikey, err := ecc.CreateAPMAPIKey(ctx, t.Name())
@@ -87,7 +88,7 @@ func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
 	previous, err := getDocsCountPerDS(t, ctx, ecc)
 	require.NoError(t, err)
 
-	require.NoError(t, g.RunBlockingWait(ctx, c, deploymentID))
+	require.NoError(t, g.RunBlockingWait(ctx, kbc, deploymentID))
 	t.Logf("time elapsed: %s", time.Now().Sub(start))
 
 	beforeUpgradeCount, err := getDocsCountPerDS(t, ctx, ecc)
@@ -131,7 +132,7 @@ func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
 		IndicesManagedBy: []string{"Data stream lifecycle"},
 	}, dss)
 
-	require.NoError(t, g.RunBlockingWait(ctx, c, deploymentID))
+	require.NoError(t, g.RunBlockingWait(ctx, kbc, deploymentID))
 	t.Logf("time elapsed: %s", time.Now().Sub(start))
 
 	t.Log("check number of documents")
