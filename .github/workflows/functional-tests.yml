@@ -3,8 +3,9 @@ name: functional-tests
 
 on:
   workflow_dispatch: ~
-  schedule:
-    - cron: '0 3 * * 1-5'
+  # TODO: re-enable this once they run reliably
+  # schedule:
+  #   - cron: '0 3 * * 1-5'
 
 permissions:
   contents: read
