@@ -3,6 +3,7 @@
 
 https://github.com/elastic/apm-server/compare/7.16\...7.17[View commits]
 
+* <<release-notes-7.17.28>>
 * <<release-notes-7.17.27>>
 * <<release-notes-7.17.26>>
 * <<release-notes-7.17.25>>
@@ -31,6 +32,14 @@ https://github.com/elastic/apm-server/compare/7.16\...7.17[View commits]
 * <<release-notes-7.17.2>>
 * <<release-notes-7.17.1>>
 * <<release-notes-7.17.0>>
+
+[float]
+[[release-notes-7.17.28]]
+=== APM version 7.17.28
+
+https://github.com/elastic/apm-server/compare/v7.17.27\...v7.17.28[View commits]
+
+No significant changes.
 
 [float]
 [[release-notes-7.17.27]]
