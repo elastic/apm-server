@@ -21,6 +21,7 @@ import (
 	"context"
 	"fmt"
 	"net/url"
+	"time"
 
 	"go.uber.org/zap"
 
@@ -81,5 +82,10 @@ func (g *Generator) RunBlockingWait(ctx context.Context, c *kbclient.Client, dep
 	if err := c.TouchPackagePolicyByID("elastic-cloud-apm"); err != nil {
 		return fmt.Errorf("cannot update elastic-cloud-apm package policy: %w", err)
 	}
+
+	// APM Server needs some time to flush all metrics, and we don't have any
+	// visibility on when this completes.
+	// NOTE: This value comes from emphirical observations.
+	time.Sleep(10 * time.Second)
 	return nil
 }
