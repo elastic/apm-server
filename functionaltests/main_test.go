@@ -125,7 +125,7 @@ func regionFrom(target string) string {
 	case targetQA:
 		return "aws-eu-west-1"
 	case targetProd:
-		return "eu-west-1"
+		return "gcp-us-west2"
 	default:
 		panic("target value is not accepted")
 	}
