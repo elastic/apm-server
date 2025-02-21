@@ -12,6 +12,11 @@ variable "ec_region" {
   description = "The Elastic Cloud region to target"
 }
 
+variable "ec_deployment_template" {
+  type        = string
+  description = "The deployment template to use. Must be available in the choosen region"
+}
+
 variable "name" {
   type        = string
   description = "The deployment name"

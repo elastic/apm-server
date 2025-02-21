@@ -2,7 +2,7 @@ module "ec_deployment" {
   source = "../../testing/infra/terraform/modules/ec_deployment"
   region = var.ec_region
 
-  deployment_template    = "aws-storage-optimized"
+  deployment_template    = var.ec_deployment_template
   deployment_name_prefix = var.name
 
   // self monitoring is enabled so we can inspect Elasticsearch

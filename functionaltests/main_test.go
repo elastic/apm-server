@@ -141,3 +141,14 @@ func endpointFrom(target string) string {
 		panic("target value is not accepted")
 	}
 }
+
+func deploymentTemplateFrom(region string) string {
+	switch region {
+	case "aws-eu-west-1":
+		return "aws-storage-optimized"
+	case "gcp-us-west2":
+		return "gcp-storage-optimized"
+	default:
+		panic("region value is not accepted")
+	}
+}

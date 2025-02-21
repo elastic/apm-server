@@ -51,16 +51,19 @@ func createCluster(t *testing.T, ctx context.Context, tf *terraform.Runner, targ
 	t.Helper()
 
 	t.Logf("creating deployment version %s", fromVersion)
+	// TODO: use a terraform var file for all vars that are not expected to change across upgrades
+	// to simplify and clarify this code.
 	ecTarget := terraform.Var("ec_target", target)
 	ecRegion := terraform.Var("ec_region", regionFrom(target))
+	ecDeploymentTpl := terraform.Var("ec_deployment_template", deploymentTemplateFrom(regionFrom(target)))
 	version := terraform.Var("stack_version", fromVersion)
 	name := terraform.Var("name", t.Name())
-	require.NoError(t, tf.Apply(ctx, ecTarget, ecRegion, version, name))
+	require.NoError(t, tf.Apply(ctx, ecTarget, ecRegion, ecDeploymentTpl, version, name))
 
 	t.Cleanup(func() {
 		if !t.Failed() || (t.Failed() && *cleanupOnFailure) {
 			t.Log("cleanup terraform resources")
-			require.NoError(t, tf.Destroy(ctx, ecTarget, ecRegion, name, version))
+			require.NoError(t, tf.Destroy(ctx, ecTarget, ecRegion, ecDeploymentTpl, name, version))
 		} else {
 			t.Log("test failed and cleanup-on-failure is false, skipping cleanup")
 		}
@@ -89,9 +92,10 @@ func upgradeCluster(t *testing.T, ctx context.Context, tf *terraform.Runner, tar
 	t.Logf("upgrade deployment to %s", toVersion)
 	ecTarget := terraform.Var("ec_target", target)
 	ecRegion := terraform.Var("ec_region", regionFrom(target))
+	ecDeploymentTpl := terraform.Var("ec_deployment_template", deploymentTemplateFrom(regionFrom(target)))
 	version := terraform.Var("stack_version", toVersion)
 	name := terraform.Var("name", t.Name())
-	require.NoError(t, tf.Apply(ctx, ecTarget, ecRegion, name, version))
+	require.NoError(t, tf.Apply(ctx, ecTarget, ecRegion, ecDeploymentTpl, name, version))
 }
 
 // createKibanaClient instantiate a HTTP API client with dedicated methods to query the Kibana API.
