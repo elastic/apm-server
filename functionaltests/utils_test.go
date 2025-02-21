@@ -18,9 +18,14 @@
 package functionaltests
 
 import (
+	"context"
 	"os"
 	"testing"
 
+	"github.com/elastic/apm-server/functionaltests/internal/esclient"
+	"github.com/elastic/apm-server/functionaltests/internal/kbclient"
+	"github.com/elastic/apm-server/functionaltests/internal/terraform"
+	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 	"github.com/stretchr/testify/require"
 )
 
@@ -34,4 +39,66 @@ import (
 func ecAPICheck(t *testing.T) {
 	t.Helper()
 	require.NotEmpty(t, os.Getenv("EC_API_KEY"), "EC_API_KEY env var not set")
+}
+
+// createCluster runs terraform on the test terraform folder to spin up an Elastic Cloud Hosted cluster for testing.
+// It returns the deploymentID of the created cluster and a esclient.Config object filled with cluster relevant
+// information.
+// It sets up a cleanup function to destroy resources if the test succeed, leveraging the cleanupOnFailure flag to
+// skip this behavior if appropriate.
+func createCluster(t *testing.T, ctx context.Context, tf *terraform.Runner, target, fromVersion string) (string, esclient.Config) {
+	t.Helper()
+
+	t.Logf("creating deployment version %s", fromVersion)
+	ecTarget := terraform.Var("ec_target", target)
+	ecRegion := terraform.Var("ec_region", regionFrom(target))
+	version := terraform.Var("stack_version", fromVersion)
+	name := terraform.Var("name", t.Name())
+	require.NoError(t, tf.Apply(ctx, ecTarget, ecRegion, version, name))
+
+	t.Cleanup(func() {
+		if !t.Failed() || (t.Failed() && *cleanupOnFailure) {
+			t.Log("cleanup terraform resources")
+			require.NoError(t, tf.Destroy(ctx, ecTarget, ecRegion, name, version))
+		} else {
+			t.Log("test failed and cleanup-on-failure is false, skipping cleanup")
+		}
+	})
+
+	var deploymentID string
+	require.NoError(t, tf.Output("deployment_id", &deploymentID))
+	var apmID string
+	require.NoError(t, tf.Output("apm_id", &apmID))
+	var fleetID string
+	require.NoError(t, tf.Output("fleet_id", &fleetID))
+	var escfg esclient.Config
+	require.NoError(t, tf.Output("apm_url", &escfg.APMServerURL))
+	require.NoError(t, tf.Output("es_url", &escfg.ElasticsearchURL))
+	require.NoError(t, tf.Output("username", &escfg.Username))
+	require.NoError(t, tf.Output("password", &escfg.Password))
+	require.NoError(t, tf.Output("kb_url", &escfg.KibanaURL))
+
+	t.Logf("created deployment %s with APM (%s) and Fleet (%s)", deploymentID, apmID, fleetID)
+	return deploymentID, escfg
+}
+
+// upgradeCluster applies terraform configuration from the test terraform folder
+func upgradeCluster(t *testing.T, ctx context.Context, tf *terraform.Runner, target, toVersion string) {
+	t.Helper()
+	t.Logf("upgrade deployment to %s", toVersion)
+	ecTarget := terraform.Var("ec_target", target)
+	ecRegion := terraform.Var("ec_region", regionFrom(target))
+	version := terraform.Var("stack_version", toVersion)
+	name := terraform.Var("name", t.Name())
+	require.NoError(t, tf.Apply(ctx, ecTarget, ecRegion, name, version))
+}
+
+// createKibanaClient instantiate a HTTP API client with dedicated methods to query the Kibana API.
+// This function will also create an Elasticsearch API key with full permissions to be used by the HTTP client.
+func createKibanaClient(t *testing.T, ctx context.Context, ecc *esclient.Client, escfg esclient.Config) *kbclient.Client {
+	t.Helper()
+	t.Log("create kibana API client")
+	kbapikey, err := ecc.CreateAPIKey(ctx, "kbclient", -1, map[string]types.RoleDescriptor{})
+	require.NoError(t, err)
+	return kbclient.New(escfg.KibanaURL, kbapikey)
 }
