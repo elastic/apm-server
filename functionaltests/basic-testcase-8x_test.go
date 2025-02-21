@@ -33,7 +33,7 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 )
 
-// basicTestCase is a basic functional test case that performs a
+// basicUpgradeTestCase8x is a basic functional test case that performs a
 // cluster upgrade between 2 specified versions.
 //
 // The cluster is created, some data is ingested and the first
@@ -43,7 +43,7 @@ import (
 // A new ingestion is performed and a final check is run, to
 // verify that ingestion works after upgrade and brings the cluster
 // to a know state.
-type basicTestCase struct {
+type basicUpgradeTestCase8x struct {
 	fromVersion string
 	toVersion   string
 
@@ -52,7 +52,7 @@ type basicTestCase struct {
 	checkAfterUpgradeAfterIngest  checkDatastreamWant
 }
 
-func (tt basicTestCase) Run(t *testing.T) {
+func (tt basicUpgradeTestCase8x) Run(t *testing.T) {
 	start := time.Now()
 	ctx := context.Background()
 	tf, err := terraform.New(t, t.Name())
@@ -79,30 +79,32 @@ func (tt basicTestCase) Run(t *testing.T) {
 	require.NoError(t, g.RunBlockingWait(ctx, kbc, deploymentID))
 	t.Logf("time elapsed: %s", time.Now().Sub(start))
 
-	beforeUpgradeCount, err := getDocsCountPerDS(t, ctx, ecc)
+	t.Log("check number of documents after initial ingestion")
+	atStartCount, err := getDocsCountPerDS(t, ctx, ecc)
 	require.NoError(t, err)
-	assertDocCount(t, beforeUpgradeCount, previous, expectedIngestForASingleRun())
+	assertDocCount(t, atStartCount, previous, expectedIngestForASingleRun())
 
-	t.Log("check data streams")
+	t.Log("check data streams after initial ingestion")
 	var dss []types.DataStream
 	dss, err = ecc.GetDataStream(ctx, "*apm*")
 	require.NoError(t, err)
 	assertDatastreams(t, tt.checkAfterIngestBeforeUpgrade, dss)
 	t.Logf("time elapsed: %s", time.Now().Sub(start))
 
-	t.Log("check number of documents after upgrade")
-	afterUpgradeCount, err := getDocsCountPerDS(t, ctx, ecc)
+	beforeUpgradeCount, err := getDocsCountPerDS(t, ctx, ecc)
 	require.NoError(t, err)
-	// We assert that no changes happened in the number of documents after upgrade
-	// to ensure the state didn't change before running the next ingestion round
-	// and further assertions.
-	// We don't expect any change here unless something broke during the upgrade.
-	assertDocCount(t, afterUpgradeCount, esclient.APMDataStreamsDocCount{}, beforeUpgradeCount)
 
 	upgradeCluster(t, ctx, tf, *target, tt.toVersion)
 	t.Logf("time elapsed: %s", time.Now().Sub(start))
 
-	t.Log("check data streams after upgrade, no rollover expected")
+	// We assert that no changes happened in the number of documents after upgrade
+	// to ensure the state didn't change before running the next ingestion round
+	// and further assertions.
+	// We don't expect any change here unless something broke during the upgrade.
+	t.Log("check number of documents across upgrade")
+	assertDocCount(t, beforeUpgradeCount, esclient.APMDataStreamsDocCount{}, atStartCount)
+
+	t.Log("check data streams after upgrade")
 	dss, err = ecc.GetDataStream(ctx, "*apm*")
 	require.NoError(t, err)
 	assertDatastreams(t, tt.checkAfterUpgradeBeforeIngest, dss)
@@ -110,12 +112,12 @@ func (tt basicTestCase) Run(t *testing.T) {
 	require.NoError(t, g.RunBlockingWait(ctx, kbc, deploymentID))
 	t.Logf("time elapsed: %s", time.Now().Sub(start))
 
-	t.Log("check number of documents")
+	t.Log("check number of documents after final ingestion")
 	afterUpgradeIngestionCount, err := getDocsCountPerDS(t, ctx, ecc)
 	require.NoError(t, err)
-	assertDocCount(t, afterUpgradeIngestionCount, afterUpgradeCount, expectedIngestForASingleRun())
+	assertDocCount(t, afterUpgradeIngestionCount, beforeUpgradeCount, expectedIngestForASingleRun())
 
-	t.Log("check data streams and verify lazy rollover happened")
+	t.Log("check data streams after final ingestion")
 	dss2, err := ecc.GetDataStream(ctx, "*apm*")
 	require.NoError(t, err)
 	assertDatastreams(t, tt.checkAfterUpgradeAfterIngest, dss2)
