@@ -48,7 +48,7 @@ jobs:
 
       - run: |
           export TF_VAR_CREATED_DATE=$(date +%s)
-          cd functionaltests && go test -v -timeout=30m -target "${{ matrix.environment }}" ./
+          cd functionaltests && go test -v -timeout=30m -cleanup-on-failure=false -target "${{ matrix.environment }}" ./
 
   notify:
     if: always()
