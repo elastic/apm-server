@@ -21,8 +21,14 @@ get_versions() {
     VERSIONS=$(echo "${RES}" | jq -r -c '[.stacks[].version | select(. | contains("-") | not)] | sort_by(.| split(".") | map(tonumber))')
 }
 
+get_latest_version() {
+    local version
+    version=$(echo ${VERSIONS} | jq -r -c "max_by(. | select(. | startswith(\"${1}\")) | if endswith(\"-SNAPSHOT\") then .[:-9] else . end | split(\".\") | map(tonumber))")
+    echo "${version}"
+}
+
 get_latest_patch() {
-    LATEST_PATCH=$(echo ${VERSIONS} | jq -r -c "max_by(. | select(. | startswith(\"${1}\")) | if endswith(\"-SNAPSHOT\") then .[:-9] else . end | split(\".\") | map(tonumber))" | cut -d '.' -f3)
+    LATEST_PATCH=$(get_latest_version "${1}" | cut -d '.' -f3)
 }
 
 get_latest_snapshot() {

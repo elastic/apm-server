@@ -29,9 +29,15 @@ elif [[ ${MAJOR_VERSION} -eq 8 ]] || [[ ${MAJOR_VERSION} -eq 9 ]]; then
     get_latest_patch "${MAJOR_VERSION}.${MINOR_VERSION}"
     LATEST_VERSION=${MAJOR_VERSION}.${MINOR_VERSION}.${LATEST_PATCH}
 
-    PREV_MINOR=$(( ${MINOR_VERSION} -1 ))
-    get_latest_patch "${MAJOR_VERSION}.${PREV_MINOR}"
-    PREV_LATEST_VERSION=${MAJOR_VERSION}.${PREV_MINOR}.${LATEST_PATCH}
+    # when the minor is 0, we want to fetch the latest patch of the previous major
+    if [[ ${MINOR_VERSION} -eq 0 ]]; then
+        PREV_MAJOR=$(( ${MAJOR_VERSION} -1 ))
+        PREV_LATEST_VERSION=$(get_latest_version "${PREV_MAJOR}")
+    else
+      PREV_MINOR=$(( ${MINOR_VERSION} -1 ))
+      get_latest_patch "${MAJOR_VERSION}.${PREV_MINOR}"
+      PREV_LATEST_VERSION=${MAJOR_VERSION}.${PREV_MINOR}.${LATEST_PATCH}
+    fi
 else
     echo "version ${VERSION} not supported"
     exit 5
