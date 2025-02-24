@@ -21,6 +21,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"path"
 	"regexp"
@@ -55,25 +56,47 @@ func getHttpClient(t *testing.T) (*recorder.Recorder, *http.Client) {
 		}
 	})
 
+	// As we are replacing the url in saved data, we also need to use a
+	// custom matcher to ignore the hostname.
+	rec.SetMatcher(func(r *http.Request, i cassette.Request) bool {
+		// copy to avoid changing request being handled
+		u := *r.URL
+		u.Host = "test"
+		return r.Method == i.Method && u.String() == i.URL
+	})
+
 	// Filter out dynamic & sensitive data/headers before saving the fixture.
 	// Tests will be using the real values when recording the interactions.
 	rec.AddSaveFilter(func(i *cassette.Interaction) error {
 		delete(i.Request.Headers, "Authorization")
 
+		delete(i.Response.Headers, "Reporting-Endpoints")
+		delete(i.Response.Headers, "Kbn-License-Sig")
+		delete(i.Response.Headers, "X-Found-Handling-Cluster")
+
 		var sanitizeBody = func(content string) string {
-			// As we use test deployment, these secrets are short lived and not generally meaningful.
-			// Remove them anyway to reduce the diff and avoid triggering secret scanning.
 			newcontent := regexp.MustCompile(`"api_key":"[a-zA-Z0-9_\-\:]+"`).
 				ReplaceAll([]byte(content), []byte(`"api_key":"REDACTED"`))
 			newcontent = regexp.MustCompile(`"secret_token":{"type":"text","value":"[a-zA-Z0-9\-_\:]*"}`).
 				ReplaceAll(newcontent, []byte(`"secret_token":{"type":"text","value":"REDACTED"}`))
 			newcontent = regexp.MustCompile(`"secret_token":"[a-zA-Z0-9\-_\:]*"`).
 				ReplaceAll(newcontent, []byte(`"secret_token":"REDACTED"`))
+			newcontent = regexp.MustCompile(`"url":{(.*?)"value":"https:\/\/[a-z\-0-9\.]*\:[0-9]*"(.*?)}`).
+				ReplaceAll(newcontent, []byte(`"url":{$1"value":"https://test"$2}`))
 			return string(newcontent)
 		}
 
 		i.Request.Body = sanitizeBody(i.Request.Body)
 		i.Response.Body = sanitizeBody(i.Response.Body)
+
+		var redactURL = func(u string) string {
+			ur, err := url.Parse(u)
+			require.NoError(t, err)
+			ur.Host = "test"
+			return ur.String()
+		}
+
+		i.Request.URL = redactURL(i.Request.URL)
 
 		return nil
 	})
