@@ -58,6 +58,13 @@ jobs:
       - env:
           CGO_ENABLED: "0"
         run: go test -v ./...
+      - env:
+          CGO_ENABLED: "0"
+          KIBANA_URL: "https://kibana.test"
+          KIBANA_APIKEY: "dummy"
+        # run functionaltests internal tests
+        # functionaltests themselves are run in the functional-tests pipeline
+        run: go test -v ./functionaltests/internal/...
 
   test-fips:
     runs-on: ubuntu-latest
