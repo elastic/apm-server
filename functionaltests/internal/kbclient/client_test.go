@@ -61,11 +61,13 @@ func getHttpClient(t *testing.T) (*recorder.Recorder, *http.Client) {
 		delete(i.Request.Headers, "Authorization")
 
 		var sanitizeBody = func(content string) string {
+			// As we use test deployment, these secrets are short lived and not generally meaningful.
+			// Remove them anyway to reduce the diff and avoid triggering secret scanning.
 			newcontent := regexp.MustCompile(`"api_key":"[a-zA-Z0-9_\-\:]+"`).
 				ReplaceAll([]byte(content), []byte(`"api_key":"REDACTED"`))
-			newcontent = regexp.MustCompile(`"secret_token":{"type":"text","value":"[a-zA-Z0-9\-_\:]+"}`).
+			newcontent = regexp.MustCompile(`"secret_token":{"type":"text","value":"[a-zA-Z0-9\-_\:]*"}`).
 				ReplaceAll(newcontent, []byte(`"secret_token":{"type":"text","value":"REDACTED"}`))
-			newcontent = regexp.MustCompile(`"secret_token":"[a-zA-Z0-9\-_\:]+"`).
+			newcontent = regexp.MustCompile(`"secret_token":"[a-zA-Z0-9\-_\:]*"`).
 				ReplaceAll(newcontent, []byte(`"secret_token":"REDACTED"`))
 			return string(newcontent)
 		}
