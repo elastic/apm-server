@@ -72,7 +72,7 @@ func prepareRequest(c *Client, method, path string, body any) (*http.Request, er
 	req.Header.Add("Authorization", fmt.Sprintf("ApiKey %s", c.apikey))
 	req.Header.Add("kbn-xsrf", "true")
 	req.Header.Add("Content-Type", "application/json")
-	// req.Header.Add("Elastic-Api-Version", c.SupportedAPIVersion)
+	req.Header.Add("Elastic-Api-Version", c.SupportedAPIVersion)
 
 	return req, nil
 }
