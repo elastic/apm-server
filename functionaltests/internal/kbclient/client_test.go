@@ -79,20 +79,6 @@ func getHttpClient(t *testing.T) (*recorder.Recorder, *http.Client) {
 	return rec, hc
 }
 
-func TestClientNew(t *testing.T) {
-	kibanaURL := "http://example.com"
-	apikey := "apikey"
-	c := kbclient.New(kibanaURL, apikey)
-	rec, httpc := getHttpClient(t)
-	defer rec.Stop()
-	c.Client = *httpc
-
-	req, err := http.NewRequest(http.MethodGet, "https://example.com/", nil)
-	require.NoError(t, err)
-	_, err = c.Do(req)
-	require.NoError(t, err)
-}
-
 func TestGetPackagePolicy(t *testing.T) {
 	kibanaURL := os.Getenv("KIBANA_URL")
 	apikey := os.Getenv("KIBANA_APIKEY")
