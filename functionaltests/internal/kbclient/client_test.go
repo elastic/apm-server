@@ -89,19 +89,21 @@ func getHttpClient(t *testing.T) (*recorder.Recorder, *http.Client) {
 func TestGetPackagePolicy(t *testing.T) {
 	kibanaURL := os.Getenv("KIBANA_URL")
 	apikey := os.Getenv("KIBANA_APIKEY")
-	c := kbclient.New(kibanaURL, apikey)
+	c, err := kbclient.New(kibanaURL, apikey)
+	require.NoError(t, err)
 	_, httpc := getHttpClient(t)
 	c.Client = *httpc
 
 	p := "elastic-cloud-apm"
-	_, err := c.GetPackagePolicyByID(p)
+	_, err = c.GetPackagePolicyByID(p)
 	require.NoError(t, err)
 }
 
 func TestUpdatePackagePolicy(t *testing.T) {
 	kibanaURL := os.Getenv("KIBANA_URL")
 	apikey := os.Getenv("KIBANA_APIKEY")
-	c := kbclient.New(kibanaURL, apikey)
+	c, err := kbclient.New(kibanaURL, apikey)
+	require.NoError(t, err)
 	_, httpc := getHttpClient(t)
 	c.Client = *httpc
 

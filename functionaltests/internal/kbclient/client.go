@@ -30,12 +30,19 @@ import (
 	"github.com/itchyny/gojq"
 )
 
-func New(kibanaURL, apikey string) *Client {
+func New(kibanaURL, apikey string) (*Client, error) {
+	if kibanaURL == "" {
+		return nil, fmt.Errorf("kbclient.New kibanaURL must not be empty")
+	}
+	if apikey == "" {
+		return nil, fmt.Errorf("kbclient.New apikey must not be empty")
+	}
+
 	return &Client{
 		url:                 kibanaURL,
 		apikey:              apikey,
 		SupportedAPIVersion: "2023-10-31",
-	}
+	}, nil
 }
 
 // Client is a wrapped HTTP Client with custom Kibana related methods.
