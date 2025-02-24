@@ -64,7 +64,7 @@ jobs:
           KIBANA_APIKEY: "dummy"
         # run functionaltests internal tests
         # functionaltests themselves are run in the functional-tests pipeline
-        run: go test -v ./functionaltests/internal/...
+        run: cd ./functionaltests && go test -v ./internal/...
 
   test-fips:
     runs-on: ubuntu-latest
