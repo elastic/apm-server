@@ -38,7 +38,6 @@ import (
 // getHttpClient instantiate a http.Client backed by a recorder.Recorder to be used in testing
 // scenarios.
 // To update any fixture, delete it from the filesystem and run the test again.
-// NOTE: always remember to call (recorder.Recorder).Stop() in your test case.
 func getHttpClient(t *testing.T) (*recorder.Recorder, *http.Client) {
 	t.Helper()
 
@@ -49,6 +48,12 @@ func getHttpClient(t *testing.T) (*recorder.Recorder, *http.Client) {
 	tr := http.DefaultTransport
 	rec, err = recorder.NewAsMode(path.Join("testdata", "fixtures", t.Name()), recorder.ModeReplaying, tr)
 	require.NoError(t, err)
+
+	t.Cleanup(func() {
+		if err := rec.Stop(); err != nil {
+			t.Fatalf("cannot stop HTTP recorder: %s", err)
+		}
+	})
 
 	// Filter out dynamic & sensitive data/headers before saving the fixture.
 	// Tests will be using the real values when recording the interactions.
@@ -83,8 +88,7 @@ func TestGetPackagePolicy(t *testing.T) {
 	kibanaURL := os.Getenv("KIBANA_URL")
 	apikey := os.Getenv("KIBANA_APIKEY")
 	c := kbclient.New(kibanaURL, apikey)
-	rec, httpc := getHttpClient(t)
-	defer rec.Stop()
+	_, httpc := getHttpClient(t)
 	c.Client = *httpc
 
 	p := "elastic-cloud-apm"
@@ -96,9 +100,7 @@ func TestUpdatePackagePolicy(t *testing.T) {
 	kibanaURL := os.Getenv("KIBANA_URL")
 	apikey := os.Getenv("KIBANA_APIKEY")
 	c := kbclient.New(kibanaURL, apikey)
-	rec, httpc := getHttpClient(t)
-	defer rec.Stop()
-	rec.Stop()
+	_, httpc := getHttpClient(t)
 	c.Client = *httpc
 
 	p := "elastic-cloud-apm"
