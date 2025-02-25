@@ -22,7 +22,7 @@ require (
 	github.com/gofrs/flock v0.12.1
 	github.com/gofrs/uuid/v5 v5.3.1
 	github.com/gogo/protobuf v1.3.2
-	github.com/google/go-cmp v0.6.0
+	github.com/google/go-cmp v0.7.0
 	github.com/gorilla/mux v1.8.1
 	github.com/hashicorp/golang-lru v1.0.2
 	github.com/libp2p/go-reuseport v0.4.0
