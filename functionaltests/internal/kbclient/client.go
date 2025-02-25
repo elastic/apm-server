@@ -82,7 +82,7 @@ type ElasticAgentPolicyNotFoundError struct {
 }
 
 func (e ElasticAgentPolicyNotFoundError) Error() string {
-	return fmt.Sprintf("ElasticAgentPolicy named %s does not exists", e.Name)
+	return fmt.Sprintf("ElasticAgentPolicy named %s was not found", e.Name)
 }
 
 // https://www.elastic.co/docs/api/doc/kibana/v8/operation/operation-get-package-policy
@@ -111,11 +111,9 @@ func (c *Client) GetPackagePolicyByID(policyId string) ([]byte, error) {
 		return b, &ElasticAgentPolicyNotFoundError{Name: policyId}
 	}
 
-	// fmt.Println(string(b))
-	//
-	// if err := json.Unmarshal(b, &pp); err != nil {
-	// 	return pp, fmt.Errorf("cannot unmarshal response body: %w", err)
-	// }
+	if resp.StatusCode > 200 {
+		return b, fmt.Errorf("%s request failed with status code %d", path, resp.StatusCode)
+	}
 
 	return b, nil
 }
