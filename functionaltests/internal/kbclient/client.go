@@ -105,7 +105,6 @@ func (c *Client) GetPackagePolicyByID(policyId string) ([]byte, error) {
 	if err != nil {
 		return b, fmt.Errorf("cannot read response body: %w", err)
 	}
-	defer resp.Body.Close()
 
 	if resp.StatusCode == 404 {
 		return b, &ElasticAgentPolicyNotFoundError{Name: policyId}
