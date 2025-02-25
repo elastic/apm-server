@@ -63,8 +63,8 @@ func prepareRequest(c *Client, method, path string, body any) (*http.Request, er
 		return nil, fmt.Errorf("cannot marshal body: %w", err)
 	}
 
-	u := fmt.Sprintf("%s%s", c.url, path)
-	req, err := http.NewRequest(method, u, bytes.NewReader(b))
+	url := fmt.Sprintf("%s%s", c.url, path)
+	req, err := http.NewRequest(method, url, bytes.NewReader(b))
 	if err != nil {
 		return nil, fmt.Errorf("cannot create HTTP request: %w", err)
 	}
