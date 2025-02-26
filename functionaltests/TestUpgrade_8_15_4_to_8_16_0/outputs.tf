@@ -21,3 +21,11 @@ output "kb_url" {
 output "deployment_id" {
   value = module.ec_deployment.deployment_id
 }
+
+output "apm_id" {
+  value = module.ec_deployment.apm_component_id
+}
+
+output "fleet_id" {
+  value = module.ec_deployment.fleet_component_id
+}
