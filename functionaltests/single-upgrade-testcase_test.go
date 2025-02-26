@@ -33,7 +33,7 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 )
 
-// basicUpgradeTestCase8x is a basic functional test case that performs a
+// singleUpgradeTestCase is a basic functional test case that performs a
 // cluster upgrade between 2 specified versions.
 //
 // The cluster is created, some data is ingested and the first
@@ -43,7 +43,7 @@ import (
 // A new ingestion is performed and a final check is run, to
 // verify that ingestion works after upgrade and brings the cluster
 // to a know state.
-type basicUpgradeTestCase8x struct {
+type singleUpgradeTestCase struct {
 	fromVersion string
 	toVersion   string
 
@@ -52,7 +52,7 @@ type basicUpgradeTestCase8x struct {
 	checkAfterUpgradeAfterIngest  checkDatastreamWant
 }
 
-func (tt basicUpgradeTestCase8x) Run(t *testing.T) {
+func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	start := time.Now()
 	ctx := context.Background()
 	tf, err := terraform.New(t, t.Name())
