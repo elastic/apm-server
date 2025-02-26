@@ -24,6 +24,18 @@ module "ec_deployment" {
 
   stack_version       = var.stack_version
   integrations_server = var.integrations_server
+
+  tags = {
+    owner        = "apm-server"
+    division     = "engineering"
+    org          = "obs"
+    team         = "apm"
+    project      = "apm-server"
+    created_date = timestamp()
+    type         = "terraform"
+    golden       = "false"
+    ephemeral    = "true"
+  }
 }
 
 variable "stack_version" {
