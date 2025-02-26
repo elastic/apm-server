@@ -17,8 +17,8 @@ github.com/HdrHistogram/hdrhistogram-go v1.1.2 h1:5IcZpTvzydCQeHzK4Ef/D5rrSqwxob
 github.com/HdrHistogram/hdrhistogram-go v1.1.2/go.mod h1:yDgFjdqOqDEKOvasDdhWNXYg9BVp4O+o5f6V/ehm6Oo=
 github.com/IBM/sarama v1.43.3 h1:Yj6L2IaNvb2mRBop39N7mmJAHBVY3dTPncr3qGVkxPA=
 github.com/IBM/sarama v1.43.3/go.mod h1:FVIRaLrhK3Cla/9FfRF5X9Zua2KpS3SYIXxhac1H+FQ=
-github.com/KimMachineGun/automemlimit v0.7.0 h1:7G06p/dMSf7G8E6oq+f2uOPuVncFyIlDI/pBWK49u88=
-github.com/KimMachineGun/automemlimit v0.7.0/go.mod h1:QZxpHaGOQoYvFhv/r4u3U0JTC2ZcOwbSr11UZF46UBM=
+github.com/KimMachineGun/automemlimit v0.7.1 h1:QcG/0iCOLChjfUweIMC3YL5Xy9C3VBeNmCZHrZfJMBw=
+github.com/KimMachineGun/automemlimit v0.7.1/go.mod h1:QZxpHaGOQoYvFhv/r4u3U0JTC2ZcOwbSr11UZF46UBM=
 github.com/Microsoft/go-winio v0.6.2 h1:F2VQgta7ecxGYO8k3ZZz3RS8fVIXVxONVUPlNERoyfY=
 github.com/Microsoft/go-winio v0.6.2/go.mod h1:yd8OoFMLzJbo9gZq8j5qaps8bJ9aShtEA8Ipt1oGCvU=
 github.com/aclements/go-perfevent v0.0.0-20240301234650-f7843625020f h1:JjxwchlOepwsUWcQwD2mLUAGE9aCp0/ehy6yCHFBOvo=
@@ -119,8 +119,8 @@ github.com/elastic/apm-aggregation v1.2.0 h1:UndqG3ccBTjyxTqHujBVjcbVLb9qG1clxRc
 github.com/elastic/apm-aggregation v1.2.0/go.mod h1:YllYwPYVV27pbuPfjRtQAKo6eSSrh13PZr38RKYd810=
 github.com/elastic/apm-data v1.18.0 h1:GaWnrIoh7+UPmsbkQGls3tSCVk54sJng2v2YCYGpwyM=
 github.com/elastic/apm-data v1.18.0/go.mod h1:Bm4VpGkWHwVRAA32kVyVk1f9urv0dnh86DGFdOIiewk=
-github.com/elastic/beats/v7 v7.0.0-alpha2.0.20250220142017-e26baff8300e h1:eEzAgbGBtfTTrtDfni+6517LB730/MlPyZHRlu3Y3wg=
-github.com/elastic/beats/v7 v7.0.0-alpha2.0.20250220142017-e26baff8300e/go.mod h1:YS+MWFNd2vgYtGw+1zhmm836gM/Io5/bAOTQ7FKdphg=
+github.com/elastic/beats/v7 v7.0.0-alpha2.0.20250225115110-bbfa29021664 h1:LiKcTHQyVdnudW9brRfqszLXl5qsAjr6bWxcb3X1dl8=
+github.com/elastic/beats/v7 v7.0.0-alpha2.0.20250225115110-bbfa29021664/go.mod h1:Un1aCfb92wnWKKrOkDI0IwsqtZXUIZr/FXpxb3lPsKM=
 github.com/elastic/elastic-agent-autodiscover v0.9.0 h1:+iWIKh0u3e8I+CJa3FfWe9h0JojNasPgYIA47gpuuns=
 github.com/elastic/elastic-agent-autodiscover v0.9.0/go.mod h1:5iUxLHhVdaGSWYTveSwfJEY4RqPXTG13LPiFoxcpFd4=
 github.com/elastic/elastic-agent-client/v7 v7.17.1 h1:ORCDXzFs1JyhI5neWbTAPWCwaFi+BtKojSLiCpaAbf0=
@@ -218,8 +218,8 @@ github.com/google/gnostic-models v0.6.8 h1:yo/ABAfM5IMRsS1VnXjTBvUb61tFIHozhlYvR
 github.com/google/gnostic-models v0.6.8/go.mod h1:5n7qKqH0f5wFt+aWF8CW6pZLLNOfYuF5OpfBSENuI8U=
 github.com/google/go-cmp v0.2.0/go.mod h1:oXzfMopK8JAjlY9xF4vHSVASa0yLyX7SntLO5aqRK0M=
 github.com/google/go-cmp v0.5.9/go.mod h1:17dUlkBOakJ0+DkrSSNjCkIjxS6bF9zb3elmeNGIjoY=
-github.com/google/go-cmp v0.6.0 h1:ofyhxvXcZhMsU5ulbFiLKl/XBFqE1GSq7atu8tAmTRI=
-github.com/google/go-cmp v0.6.0/go.mod h1:17dUlkBOakJ0+DkrSSNjCkIjxS6bF9zb3elmeNGIjoY=
+github.com/google/go-cmp v0.7.0 h1:wk8382ETsv4JYUZwIsn6YpYiWiBsYLSJiTsyBybVuN8=
+github.com/google/go-cmp v0.7.0/go.mod h1:pXiqmnSA92OHEEa9HXL2W4E7lf9JzCmGVUdgjX3N/iU=
 github.com/google/gofuzz v1.0.0/go.mod h1:dBl0BpW6vV/+mYPU4Po3pmUjxk6FQPldtuIdl/M65Eg=
 github.com/google/gofuzz v1.2.0 h1:xRy4A+RhZaiKjJ1bPfwQ8sedCA+YS2YcCHW6ec7JMi0=
 github.com/google/gofuzz v1.2.0/go.mod h1:dBl0BpW6vV/+mYPU4Po3pmUjxk6FQPldtuIdl/M65Eg=
