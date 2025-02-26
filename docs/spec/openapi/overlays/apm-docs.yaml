@@ -1,0 +1,148 @@
+# overlays.yaml
+overlay: 1.0.0
+info:
+  title: Overlays for the Observability intake API document
+  version: 0.0.1
+actions:
+# Remove patternProperties, add additionalProperties in error
+  - target: "$.components['schemas']['error'].properties['context'].properties['message'].properties['headers'].patternProperties"
+    description: Remove patternProperties from the components
+    remove: true
+  - target: "$.components['schemas']['error'].properties['context'].properties['message'].properties['headers']"
+    description: Update additionalProperties
+    update:
+      additionalProperties: true
+  - target: "$.components['schemas']['error'].properties['context'].properties['request'].properties['headers'].patternProperties"
+    description: Remove patternProperties from the components
+    remove: true
+  - target: "$.components['schemas']['error'].properties['context'].properties['request'].properties['headers']"
+    description: Update additionalProperties
+    update:
+      additionalProperties: true
+  - target: "$.components['schemas']['error'].properties['context'].properties['response'].properties['headers'].patternProperties"
+    description: Remove patternProperties from the components
+    remove: true
+  - target: "$.components['schemas']['error'].properties['context'].properties['response'].properties['headers']"
+    description: Update additionalProperties
+    update:
+      additionalProperties: true
+# Remove patternProperties, add additionalProperties error-2
+  - target: "$.components['schemas']['error-2'].properties['c'].properties['r'].properties['he'].patternProperties"
+    description: Remove patternProperties from the components
+    remove: true
+  - target: "$.components['schemas']['error-2'].properties['c'].properties['r'].properties['he']"
+    description: Update additionalProperties
+    update:
+      additionalProperties: true
+  - target: "$.components['schemas']['error-2'].properties['c'].properties['q'].properties['he'].patternProperties"
+    description: Remove patternProperties from the components
+    remove: true
+  - target: "$.components['schemas']['error-2'].properties['c'].properties['q'].properties['he']"
+    description: Update additionalProperties
+    update:
+      additionalProperties: true
+# Remove patternProperties, add additionalProperties in metricset component
+  - target: "$.components['schemas']['metricset'].properties['samples'].patternProperties"
+    description: Remove patternProperties from the components
+    remove: true
+  - target: "$.components['schemas']['metricset'].properties['samples']"
+    description: Update additionalProperties
+    update:
+      additionalProperties: true
+# Remove patternProperties, add additionalProperties in span component
+  - target: "$.components['schemas']['span'].properties['context'].properties['message'].properties['headers'].patternProperties"
+    description: Remove patternProperties from the components
+    remove: true
+  - target: "$.components['schemas']['span'].properties['context'].properties['message'].properties['headers']"
+    description: Update additionalProperties
+    update:
+      additionalProperties: true
+  - target: "$.components['schemas']['span'].properties['context'].properties['http'].properties['response'].properties['headers'].patternProperties"
+    description: Remove patternProperties from the components
+    remove: true
+  - target: "$.components['schemas']['span'].properties['context'].properties['http'].properties['response'].properties['headers']"
+    description: Update additionalProperties
+    update:
+      additionalProperties: true
+# Remove patternProperties, add additionalProperties in transaction component
+  - target: "$.components['schemas']['transaction'].properties['context'].properties['message'].properties['headers'].patternProperties"
+    description: Remove patternProperties from the components
+    remove: true
+  - target: "$.components['schemas']['transaction'].properties['context'].properties['message'].properties['headers']"
+    description: Update additionalProperties
+    update:
+      additionalProperties: true
+  - target: "$.components['schemas']['transaction'].properties['context'].properties['request'].properties['headers'].patternProperties"
+    description: Remove patternProperties from the components
+    remove: true
+  - target: "$.components['schemas']['transaction'].properties['context'].properties['request'].properties['headers']"
+    description: Update additionalProperties
+    update:
+      additionalProperties: true
+  - target: "$.components['schemas']['transaction'].properties['context'].properties['response'].properties['headers'].patternProperties"
+    description: Remove patternProperties from the components
+    remove: true
+  - target: "$.components['schemas']['transaction'].properties['context'].properties['response'].properties['headers']"
+    description: Update additionalProperties
+    update:
+      additionalProperties: true
+# Remove patternProperties, add additionalProperties in transaction-2 component
+  - target: "$.components['schemas']['transaction-2'].properties['c'].properties['r'].properties['he'].patternProperties"
+    description: Remove patternProperties from the components
+    remove: true
+  - target: "$.components['schemas']['transaction-2'].properties['c'].properties['r'].properties['he']"
+    description: Update additionalProperties
+    update:
+      additionalProperties: true
+  - target: "$.components['schemas']['transaction-2'].properties['c'].properties['q'].properties['he'].patternProperties"
+    description: Remove patternProperties from the components
+    remove: true
+  - target: "$.components['schemas']['transaction-2'].properties['c'].properties['q'].properties['he']"
+    description: Update additionalProperties
+    update:
+      additionalProperties: true
+# Remove problematic allOf from error
+  - target: "$.components['schemas']['error'].allOf"
+    description: Remove the allOf
+    remove: true
+# Remove problematic allOf from error-2
+  - target: "$.components['schemas']['error-2'].allOf"
+    description: Remove the allOf
+    remove: true
+# Remove problematic anyOf from error
+  - target: "$.components['schemas']['error'].properties['context'].properties['service'].properties['target'].anyOf"
+    description: Remove the anyOf
+    remove: true
+  - target: "$.components['schemas']['error'].properties['exception'].properties['stacktrace'].items.anyOf"
+    description: Remove the anyOf
+    remove: true
+  - target: "$.components['schemas']['error'].properties['exception'].anyOf"
+    description: Remove the anyOf
+    remove: true
+  - target: "$.components['schemas']['error'].properties['log'].properties['stacktrace'].items.anyOf"
+    description: Remove the anyOf
+    remove: true
+  - target: "$.components['schemas']['error'].anyOf"
+    description: Remove the anyOf
+    remove: true
+# Remove problematic anyOf from error-2
+  - target: "$.components['schemas']['error-2'].properties['ex'].anyOf"
+    description: Remove the anyOf
+    remove: true
+  - target: "$.components['schemas']['error-2'].anyOf"
+    description: Remove the anyOf
+    remove: true
+# Remove problematic anyOf from span
+  - target: "$.components['schemas']['span'].properties['context'].properties['service'].properties['target'].anyOf"
+    description: Remove the anyOf
+    remove: true
+  - target: "$.components['schemas']['span'].properties['stacktrace'].items.anyOf"
+    description: Remove the anyOf
+    remove: true
+  - target: "$.components['schemas']['span'].anyOf"
+    description: Remove the anyOf
+    remove: true
+# Remove problematic anyOf from transaction
+  - target: "$.components['schemas']['transaction'].properties['context'].properties['service'].properties['target'].anyOf"
+    description: Remove the anyOf
+    remove: true
