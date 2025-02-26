@@ -122,7 +122,7 @@ run-benchmark-autotuned:
 
 .PHONY: index-benchmark-results
 index-benchmark-results: _default-gobench-vars
-	@cat $(BENCHMARK_RESULT) | go run -modfile=$(GITROOT)/tools/go.mod github.com/elastic/gobench -es $(GOBENCH_HOST) -es-username $(GOBENCH_USERNAME) -es-password $(GOBENCH_PASSWORD) \
+	@cat $(BENCHMARK_RESULT) | go tool -modfile=$(GITROOT)/go.mod github.com/elastic/gobench -es $(GOBENCH_HOST) -es-username $(GOBENCH_USERNAME) -es-password $(GOBENCH_PASSWORD) \
 	-index $(GOBENCH_INDEX) -tag "$(GOBENCH_DEFAULT_TAGS),$(GOBENCH_TAGS)"
 
 .PHONY: _default-gobench-vars
