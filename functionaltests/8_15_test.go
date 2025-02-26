@@ -26,9 +26,9 @@ import (
 	"go.uber.org/zap/zaptest"
 
 	"github.com/elastic/apm-server/functionaltests/internal/asserts"
-	"github.com/elastic/apm-server/functionaltests/internal/ecclient"
 	"github.com/elastic/apm-server/functionaltests/internal/esclient"
 	"github.com/elastic/apm-server/functionaltests/internal/gen"
+	"github.com/elastic/apm-server/functionaltests/internal/kbclient"
 	"github.com/elastic/apm-server/functionaltests/internal/terraform"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 
@@ -46,15 +46,16 @@ func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
 	require.NoError(t, err)
 	ecTarget := terraform.Var("ec_target", *target)
 	ecRegion := terraform.Var("ec_region", regionFrom(*target))
+	ecDeploymentTpl := terraform.Var("ec_deployment_template", deploymentTemplateFrom(regionFrom(*target)))
 	version := terraform.Var("stack_version", "8.15.4")
 	name := terraform.Var("name", t.Name())
-	require.NoError(t, tf.Apply(ctx, ecTarget, ecRegion, version, name))
+	require.NoError(t, tf.Apply(ctx, ecTarget, ecRegion, ecDeploymentTpl, version, name))
 	t.Logf("time elapsed: %s", time.Now().Sub(start))
 
 	t.Cleanup(func() {
 		if !t.Failed() || (t.Failed() && *cleanupOnFailure) {
 			t.Log("cleanup terraform resources")
-			require.NoError(t, tf.Destroy(ctx, ecTarget, ecRegion, name, version))
+			require.NoError(t, tf.Destroy(ctx, ecTarget, ecRegion, ecDeploymentTpl, name, version))
 		} else {
 			t.Log("test failed and cleanup-on-failure is false, skipping cleanup")
 		}
@@ -62,6 +63,10 @@ func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
 
 	var deploymentID string
 	require.NoError(t, tf.Output("deployment_id", &deploymentID))
+	var apmID string
+	require.NoError(t, tf.Output("apm_id", &apmID))
+	var fleetID string
+	require.NoError(t, tf.Output("fleet_id", &fleetID))
 	var escfg esclient.Config
 	require.NoError(t, tf.Output("apm_url", &escfg.APMServerURL))
 	require.NoError(t, tf.Output("es_url", &escfg.ElasticsearchURL))
@@ -69,13 +74,14 @@ func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
 	require.NoError(t, tf.Output("password", &escfg.Password))
 	require.NoError(t, tf.Output("kb_url", &escfg.KibanaURL))
 
-	t.Logf("created deployment %s", deploymentID)
-
-	c, err := ecclient.New(endpointFrom(*target))
-	require.NoError(t, err)
+	t.Logf("created deployment %s with APM (%s) and Fleet (%s)", deploymentID, apmID, fleetID)
 
 	ecc, err := esclient.New(escfg)
 	require.NoError(t, err)
+
+	kbapikey, err := ecc.CreateAPIKey(ctx, "kbclient", -1, map[string]types.RoleDescriptor{})
+	require.NoError(t, err)
+	kbc := kbclient.New(escfg.KibanaURL, kbapikey)
 
 	t.Log("creating APM API key")
 	apikey, err := ecc.CreateAPMAPIKey(ctx, t.Name())
@@ -87,7 +93,7 @@ func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
 	previous, err := getDocsCountPerDS(t, ctx, ecc)
 	require.NoError(t, err)
 
-	require.NoError(t, g.RunBlockingWait(ctx, c, deploymentID))
+	require.NoError(t, g.RunBlockingWait(ctx, kbc, deploymentID))
 	t.Logf("time elapsed: %s", time.Now().Sub(start))
 
 	beforeUpgradeCount, err := getDocsCountPerDS(t, ctx, ecc)
@@ -108,7 +114,7 @@ func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
 	t.Logf("time elapsed: %s", time.Now().Sub(start))
 
 	t.Log("upgrade to 8.16.0")
-	require.NoError(t, tf.Apply(ctx, ecTarget, ecRegion, name, terraform.Var("stack_version", "8.16.0")))
+	require.NoError(t, tf.Apply(ctx, ecTarget, ecRegion, ecDeploymentTpl, name, terraform.Var("stack_version", "8.16.0")))
 	t.Logf("time elapsed: %s", time.Now().Sub(start))
 
 	t.Log("check number of documents after upgrade")
@@ -131,7 +137,7 @@ func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
 		IndicesManagedBy: []string{"Data stream lifecycle"},
 	}, dss)
 
-	require.NoError(t, g.RunBlockingWait(ctx, c, deploymentID))
+	require.NoError(t, g.RunBlockingWait(ctx, kbc, deploymentID))
 	t.Logf("time elapsed: %s", time.Now().Sub(start))
 
 	t.Log("check number of documents")

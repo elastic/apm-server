@@ -21,11 +21,12 @@ import (
 	"context"
 	"fmt"
 	"net/url"
+	"time"
 
 	"go.uber.org/zap"
 
 	"github.com/elastic/apm-perf/pkg/telemetrygen"
-	"github.com/elastic/apm-server/functionaltests/internal/ecclient"
+	"github.com/elastic/apm-server/functionaltests/internal/kbclient"
 )
 
 type Generator struct {
@@ -66,19 +67,25 @@ func (g *Generator) RunBlocking(ctx context.Context) error {
 	return gen.RunBlocking(ctx)
 }
 
-// RunBlockingWait runs the underlying generator in blocking mode and waits until the
-// cluster Integrations Server has been restarted.
-// Restarting APM Server ensures all data, including aggregations, in flushed before
-// shutdown, ensuring ingestion and 1m aggregations to be completed.
-func (g *Generator) RunBlockingWait(ctx context.Context, c *ecclient.Client, deploymentID string) error {
+// RunBlockingWait runs the underlying generator in blocking mode and waits for all in-flight
+// data to be flushed before proceeding. This allow the caller to ensure than 1m aggregation
+// metrics are ingested immediately after raw data ingestion, without variable delays.
+// This may lead to data loss if the final flush takes more than 30s, which may happen if the
+// quantity of data ingested with RunBlocking gets too big. The current quantity does not
+// trigger this behavior.
+func (g *Generator) RunBlockingWait(ctx context.Context, c *kbclient.Client, deploymentID string) error {
 	if err := g.RunBlocking(ctx); err != nil {
 		return fmt.Errorf("cannot run generator: %w", err)
 	}
-
-	g.Logger.Info("restarting integrations server to flush apm server data")
-	if err := c.RestartIntegrationServer(ctx, deploymentID); err != nil {
-		return fmt.Errorf("cannot restart integrations server: %w", err)
+	// Sending an update with no modification to this policy is enough to trigger
+	// final aggregations in APM Server and flush of in-flight metrics.
+	if err := c.TouchPackagePolicyByID("elastic-cloud-apm"); err != nil {
+		return fmt.Errorf("cannot update elastic-cloud-apm package policy: %w", err)
 	}
 
+	// APM Server needs some time to flush all metrics, and we don't have any
+	// visibility on when this completes.
+	// NOTE: This value comes from emphirical observations.
+	time.Sleep(10 * time.Second)
 	return nil
 }

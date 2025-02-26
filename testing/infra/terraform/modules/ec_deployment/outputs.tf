@@ -48,3 +48,13 @@ output "stack_version" {
 output "admin_console_url" {
   value = "https://admin.found.no/deployments/${ec_deployment.deployment.id}/integrations_server"
 }
+
+output "apm_component_id" {
+  value       = ec_deployment.deployment.integrations_server[0].resource_id
+  description = "APM Cloud component ID"
+}
+
+output "fleet_component_id" {
+  value       = ec_deployment.deployment.integrations_server[0].resource_id
+  description = "Fleet Server Cloud component ID"
+}

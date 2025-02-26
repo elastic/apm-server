@@ -3,10 +3,12 @@ module github.com/elastic/apm-server/functionaltests
 go 1.24.0
 
 require (
+	github.com/dnaeon/go-vcr v1.2.0
 	github.com/elastic/apm-perf v0.0.0-20241230130730-2ad47482b731
 	github.com/elastic/cloud-sdk-go v1.23.0
 	github.com/elastic/go-elasticsearch/v8 v8.16.0
 	github.com/hashicorp/terraform-exec v0.21.0
+	github.com/itchyny/gojq v0.12.17
 	github.com/stretchr/testify v1.10.0
 	go.uber.org/zap v1.27.0
 )
@@ -34,6 +36,7 @@ require (
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/hashicorp/go-version v1.6.0 // indirect
 	github.com/hashicorp/terraform-json v0.22.1 // indirect
+	github.com/itchyny/timefmt-go v0.1.6 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/klauspost/compress v1.17.11 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect

@@ -72,10 +72,7 @@ func (c *Client) RestartIntegrationServer(ctx context.Context, deploymentID stri
 
 	refID := *res.Resources.IntegrationsServer[0].RefID
 
-	// This is an undocumented API, but it works.
-	// Is like https://www.elastic.co/docs/api/doc/cloud/operation/operation-restart-deployment-es-resource
-	// but using integrations_server instead of elasticsearch. integrations_server is the expected Kind for
-	// the 8.x APM server setup on Elastic Cloud.
+	// https://www.elastic.co/docs/api/doc/cloud/operation/operation-restart-deployment-stateless-resource
 	url := fmt.Sprintf("%s/api/v1/deployments/%s/integrations_server/%s/_restart", c.endpoint, deploymentID, refID)
 	req, err := http.NewRequest(http.MethodPost, url, nil)
 	if err != nil {
