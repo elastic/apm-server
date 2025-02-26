@@ -36,6 +36,13 @@ var cleanupOnFailure *bool = flag.Bool("cleanup-on-failure", true, "Whether to r
 // We use 'pro' for production as that is the key used to retrieve EC_API_KEY from secret storage.
 var target *string = flag.String("target", "pro", "The target environment where to run tests againts. Valid values are: qa, pro")
 
+const (
+	// managedByDSL is the constant string used by Elasticsearch to specify that an Index is managed by Data Stream Lifecycle management.
+	managedByDSL = "Data stream lifecycle"
+	// managedByILM is the constant string used by Elasticsearch to specify that an Index is managed by Index Lifecycle Management.
+	managedByILM = "Index Lifecycle Management"
+)
+
 // expectedIngestForASingleRun() represent the expected number of ingested document after a
 // single run of ingest().
 // Only non aggregation data streams are included, as aggregation ones differs on different
@@ -118,7 +125,7 @@ func regionFrom(target string) string {
 	case targetQA:
 		return "aws-eu-west-1"
 	case targetProd:
-		return "eu-west-1"
+		return "gcp-us-west2"
 	default:
 		panic("target value is not accepted")
 	}
@@ -132,5 +139,16 @@ func endpointFrom(target string) string {
 		return "https://api.elastic-cloud.com"
 	default:
 		panic("target value is not accepted")
+	}
+}
+
+func deploymentTemplateFrom(region string) string {
+	switch region {
+	case "aws-eu-west-1":
+		return "aws-storage-optimized"
+	case "gcp-us-west2":
+		return "gcp-storage-optimized"
+	default:
+		panic("region value is not accepted")
 	}
 }
