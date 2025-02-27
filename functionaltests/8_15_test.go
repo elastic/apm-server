@@ -46,15 +46,16 @@ func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
 	require.NoError(t, err)
 	ecTarget := terraform.Var("ec_target", *target)
 	ecRegion := terraform.Var("ec_region", regionFrom(*target))
+	ecDeploymentTpl := terraform.Var("ec_deployment_template", deploymentTemplateFrom(regionFrom(*target)))
 	version := terraform.Var("stack_version", "8.15.4")
 	name := terraform.Var("name", t.Name())
-	require.NoError(t, tf.Apply(ctx, ecTarget, ecRegion, version, name))
+	require.NoError(t, tf.Apply(ctx, ecTarget, ecRegion, ecDeploymentTpl, version, name))
 	t.Logf("time elapsed: %s", time.Now().Sub(start))
 
 	t.Cleanup(func() {
 		if !t.Failed() || (t.Failed() && *cleanupOnFailure) {
 			t.Log("cleanup terraform resources")
-			require.NoError(t, tf.Destroy(ctx, ecTarget, ecRegion, name, version))
+			require.NoError(t, tf.Destroy(ctx, ecTarget, ecRegion, ecDeploymentTpl, name, version))
 		} else {
 			t.Log("test failed and cleanup-on-failure is false, skipping cleanup")
 		}
@@ -80,7 +81,8 @@ func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
 
 	kbapikey, err := ecc.CreateAPIKey(ctx, "kbclient", -1, map[string]types.RoleDescriptor{})
 	require.NoError(t, err)
-	kbc := kbclient.New(escfg.KibanaURL, kbapikey)
+	kbc, err := kbclient.New(escfg.KibanaURL, kbapikey)
+	require.NoError(t, err)
 
 	t.Log("creating APM API key")
 	apikey, err := ecc.CreateAPMAPIKey(ctx, t.Name())
@@ -113,7 +115,7 @@ func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
 	t.Logf("time elapsed: %s", time.Now().Sub(start))
 
 	t.Log("upgrade to 8.16.0")
-	require.NoError(t, tf.Apply(ctx, ecTarget, ecRegion, name, terraform.Var("stack_version", "8.16.0")))
+	require.NoError(t, tf.Apply(ctx, ecTarget, ecRegion, ecDeploymentTpl, name, terraform.Var("stack_version", "8.16.0")))
 	t.Logf("time elapsed: %s", time.Now().Sub(start))
 
 	t.Log("check number of documents after upgrade")

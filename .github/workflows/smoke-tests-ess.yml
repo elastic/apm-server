@@ -52,6 +52,8 @@ jobs:
         test: ${{ fromJSON(needs.prepare.outputs.tests) }}
         version:
           - '7.17'
+          - '8.16'
+          - '8.17'
           - '8.18'
           - 'latest'
     steps:
