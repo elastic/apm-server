@@ -85,11 +85,12 @@ func (e ElasticAgentPolicyNotFoundError) Error() string {
 	return fmt.Sprintf("ElasticAgentPolicy named %s was not found", e.Name)
 }
 
+// GetPackagePolicyByID retrieves the Package Policy specified by policyID.
 // https://www.elastic.co/docs/api/doc/kibana/v8/operation/operation-get-package-policy
-func (c *Client) GetPackagePolicyByID(policyId string) ([]byte, error) {
+func (c *Client) GetPackagePolicyByID(policyID string) ([]byte, error) {
 	var b []byte
 
-	path := fmt.Sprintf("/api/fleet/package_policies/%s", policyId)
+	path := fmt.Sprintf("/api/fleet/package_policies/%s", policyID)
 	req, err := prepareRequest(c, http.MethodGet, path, nil)
 	if err != nil {
 		return b, fmt.Errorf("cannot prepare request: %w", err)
@@ -107,7 +108,7 @@ func (c *Client) GetPackagePolicyByID(policyId string) ([]byte, error) {
 	}
 
 	if resp.StatusCode == 404 {
-		return b, &ElasticAgentPolicyNotFoundError{Name: policyId}
+		return b, &ElasticAgentPolicyNotFoundError{Name: policyID}
 	}
 
 	if resp.StatusCode > 200 {
@@ -121,8 +122,8 @@ func (c *Client) GetPackagePolicyByID(policyId string) ([]byte, error) {
 // Updating the elastic-cloud-apm package policy, even without
 // modifying any field will trigger final aggregations.
 // https://www.elastic.co/docs/api/doc/kibana/v8/operation/operation-update-package-policy
-func (c *Client) UpdatePackagePolicyByID(policyId string, data any) error {
-	path := fmt.Sprintf("/api/fleet/package_policies/%s", policyId)
+func (c *Client) UpdatePackagePolicyByID(policyID string, data any) error {
+	path := fmt.Sprintf("/api/fleet/package_policies/%s", policyID)
 	req, err := prepareRequest(c, http.MethodPut, path, data)
 	if err != nil {
 		return fmt.Errorf("cannot prepare request: %w", err)

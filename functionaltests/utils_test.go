@@ -35,7 +35,7 @@ import (
 // is not available.
 //
 // Functional tests are expected to run Terraform code to operate
-// on infrastructure required for each tests and to query Elastic
+// on infrastructure required for each test and to query Elastic
 // Cloud APIs. In both cases a valid API key is required.
 func ecAPICheck(t *testing.T) {
 	t.Helper()
@@ -43,7 +43,7 @@ func ecAPICheck(t *testing.T) {
 }
 
 // createCluster runs terraform on the test terraform folder to spin up an Elastic Cloud Hosted cluster for testing.
-// It returns the deploymentID of the created cluster and a esclient.Config object filled with cluster relevant
+// It returns the deploymentID of the created cluster and an esclient.Config object filled with cluster relevant
 // information.
 // It sets up a cleanup function to destroy resources if the test succeed, leveraging the cleanupOnFailure flag to
 // skip this behavior if appropriate.
@@ -86,7 +86,7 @@ func createCluster(t *testing.T, ctx context.Context, tf *terraform.Runner, targ
 	return deploymentID, escfg
 }
 
-// upgradeCluster applies terraform configuration from the test terraform folder
+// upgradeCluster applies the terraform configuration from the test terraform folder.
 func upgradeCluster(t *testing.T, ctx context.Context, tf *terraform.Runner, target, toVersion string) {
 	t.Helper()
 	t.Logf("upgrade deployment to %s", toVersion)
@@ -98,12 +98,14 @@ func upgradeCluster(t *testing.T, ctx context.Context, tf *terraform.Runner, tar
 	require.NoError(t, tf.Apply(ctx, ecTarget, ecRegion, ecDeploymentTpl, name, version))
 }
 
-// createKibanaClient instantiate a HTTP API client with dedicated methods to query the Kibana API.
+// createKibanaClient instantiate an HTTP API client with dedicated methods to query the Kibana API.
 // This function will also create an Elasticsearch API key with full permissions to be used by the HTTP client.
 func createKibanaClient(t *testing.T, ctx context.Context, ecc *esclient.Client, escfg esclient.Config) *kbclient.Client {
 	t.Helper()
 	t.Log("create kibana API client")
 	kbapikey, err := ecc.CreateAPIKey(ctx, "kbclient", -1, map[string]types.RoleDescriptor{})
 	require.NoError(t, err)
-	return kbclient.New(escfg.KibanaURL, kbapikey)
+	kbc, err := kbclient.New(escfg.KibanaURL, kbapikey)
+	require.NoError(t, err)
+	return kbc
 }

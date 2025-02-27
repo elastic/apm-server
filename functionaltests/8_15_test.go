@@ -81,7 +81,8 @@ func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
 
 	kbapikey, err := ecc.CreateAPIKey(ctx, "kbclient", -1, map[string]types.RoleDescriptor{})
 	require.NoError(t, err)
-	kbc := kbclient.New(escfg.KibanaURL, kbapikey)
+	kbc, err := kbclient.New(escfg.KibanaURL, kbapikey)
+	require.NoError(t, err)
 
 	t.Log("creating APM API key")
 	apikey, err := ecc.CreateAPMAPIKey(ctx, t.Name())
