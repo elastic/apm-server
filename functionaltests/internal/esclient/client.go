@@ -81,7 +81,7 @@ func formatDurationElasticsearch(d time.Duration) string {
 	return fmt.Sprintf("%dnanos", d)
 }
 
-// CreateAgentAPIKey creates an agent API Key, and returns it in the
+// CreateAPIKey creates an API Key, and returns it in the
 // base64-encoded form that agents should provide.
 //
 // If expiration is less than or equal to zero, then the API Key never expires.
@@ -105,7 +105,7 @@ func (c *Client) CreateAPIKey(ctx context.Context, name string, expiration time.
 }
 
 func (c *Client) CreateAPMAPIKey(ctx context.Context, name string) (string, error) {
-	return c.CreateAPIKey(context.Background(),
+	return c.CreateAPIKey(ctx,
 		name, -1, map[string]types.RoleDescriptor{},
 	)
 }
