@@ -46,6 +46,13 @@ jobs:
         with:
           terraform_version: "${{ env.TERRAFORM_VERSION }}"
 
+      - name: Set up terraform path
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { TERRAFORM_CLI_PATH } = process.env;
+            core.addPath(TERRAFORM_CLI_PATH);
+
       - uses: elastic/oblt-actions/google/auth@v1
 
       - uses: google-github-actions/get-secretmanager-secrets@a8440875e1c2892062aef9061228d4f1af8f919b # v2.2.3
