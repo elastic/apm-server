@@ -21,23 +21,30 @@ env:
 
 jobs:
   run:
-    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
+        os: ['ubuntu-latest', 'windows-2025']
         environment:
           - 'qa'
           - 'pro'
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
+      - uses: antontroshin/setup-go@bda02de8887c9946189f81e7e59512914aeb9ea4
+        if: runner.os == 'Windows'
+        with:
+          go-version-file: 'functionaltests/go.mod'
+          cache: true
+      - uses: actions/setup-go@v5
+        if: runner.os != 'Windows'
+        with:
+          go-version-file: 'functionaltests/go.mod'
+          cache: true
 
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
         with:
           terraform_version: "${{ env.TERRAFORM_VERSION }}"
-
-      - uses: actions/setup-go@v5
-        with:
-          go-version-file: 'functionaltests/go.mod'
 
       - uses: elastic/oblt-actions/google/auth@v1
 
@@ -47,9 +54,15 @@ jobs:
           secrets: |-
             EC_API_KEY:elastic-observability/elastic-cloud-observability-team-${{ matrix.environment }}-api-key
 
-      - run: |
-          export TF_VAR_CREATED_DATE=$(date +%s)
-          cd functionaltests && go test -v -timeout=30m -cleanup-on-failure=false -target "${{ matrix.environment }}" ./
+      - name: Set CREATED_DATE
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const createdDate = Math.floor(Date.now() / 1000);
+            core.exportVariable('TF_VAR_CREATED_DATE', createdDate);
+
+      - run: go test -v -timeout=30m -cleanup-on-failure=false -target "${{ matrix.environment }}" ./
+        working-directory: functionaltests
 
 #  notify:
 #    if: always()
