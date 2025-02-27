@@ -7,8 +7,8 @@ on:
       BRANCH_NOTE:
         description: |
           REMINDER: This checkbox does nothing, only serves as a reminder.
-          The above "Use workflow from" does not change the checkout ref for "smoke-tests".
-          Use "smoke-tests-ess" or "smoke-tests-os" for testing changes in your branch.
+          The above "Use workflow from" does not change the checkout ref for "smoke-tests" to that branch!
+          Use "smoke-tests-ess" or "smoke-tests-os" instead for testing changes in your branch.
         type: boolean
         required: false
   schedule:
