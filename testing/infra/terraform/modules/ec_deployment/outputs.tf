@@ -50,11 +50,11 @@ output "admin_console_url" {
 }
 
 output "apm_component_id" {
-  value       = ec_deployment.deployment.integrations_server[0].resource_id
+  value       = var.integrations_server ? ec_deployment.deployment.integrations_server[0].resource_id : ec_deployment.deployment.apm[0].resource_id
   description = "APM Cloud component ID"
 }
 
 output "fleet_component_id" {
-  value       = ec_deployment.deployment.integrations_server[0].resource_id
+  value       = var.integrations_server ? ec_deployment.deployment.integrations_server[0].resource_id : ""
   description = "Fleet Server Cloud component ID"
 }
