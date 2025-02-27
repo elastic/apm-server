@@ -93,7 +93,7 @@ RUN chown -R 1000:1000 /usr/share/apm-server
 
 # remove unnecessary packages in ubuntu-based images
 # use rpm to ignore ubi images
-RUN rpm -v || (dpkg -r --force-depends libgssapi-krb5-2 libtirpc3 libnsl2 libkrb5 libkr5crypto libkrb5support0 && \
+RUN rpm -v || (dpkg -P --force-depends libgssapi-krb5-2 libtirpc3 libnsl2 libkrb5-3 libkr5crypto libkrb5support0 && \
     rm /var/log/dpkg.log)
 
 USER apm-server
