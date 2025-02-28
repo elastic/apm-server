@@ -22,6 +22,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/elastic/apm-server/functionaltests/internal/kbclient"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
@@ -47,6 +49,7 @@ type singleUpgradeTestCase struct {
 	fromVersion string
 	toVersion   string
 
+	preIngestionSetup             func(*testing.T, *esclient.Client, *kbclient.Client) bool
 	checkAfterIngestBeforeUpgrade checkDatastreamWant
 	checkAfterUpgradeBeforeIngest checkDatastreamWant
 	checkAfterUpgradeAfterIngest  checkDatastreamWant
@@ -76,9 +79,14 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	previous, err := getDocsCountPerDS(t, ctx, ecc)
 	require.NoError(t, err)
 
+	/* Pre-upgrade ingestion */
+	if tt.preIngestionSetup != nil && !tt.preIngestionSetup(t, ecc, kbc) {
+		assert.Fail(t, "pre-upgrade pre-ingestion setup failed")
+	}
 	require.NoError(t, g.RunBlockingWait(ctx, kbc, deploymentID))
 	t.Logf("time elapsed: %s", time.Now().Sub(start))
 
+	/* Pre-upgrade ingestion assertions */
 	t.Log("check number of documents after initial ingestion")
 	atStartCount, err := getDocsCountPerDS(t, ctx, ecc)
 	require.NoError(t, err)
@@ -94,9 +102,11 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	beforeUpgradeCount, err := getDocsCountPerDS(t, ctx, ecc)
 	require.NoError(t, err)
 
+	/* Perform upgrade */
 	upgradeCluster(t, ctx, tf, *target, tt.toVersion)
 	t.Logf("time elapsed: %s", time.Now().Sub(start))
 
+	/* Post-upgrade assertions */
 	// We assert that no changes happened in the number of documents after upgrade
 	// to ensure the state didn't change before running the next ingestion round
 	// and further assertions.
@@ -109,9 +119,14 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	require.NoError(t, err)
 	assertDatastreams(t, tt.checkAfterUpgradeBeforeIngest, dss)
 
+	/* Post-upgrade ingestion */
+	if tt.preIngestionSetup != nil && !tt.preIngestionSetup(t, ecc, kbc) {
+		assert.Fail(t, "post-upgrade pre-ingestion setup failed")
+	}
 	require.NoError(t, g.RunBlockingWait(ctx, kbc, deploymentID))
 	t.Logf("time elapsed: %s", time.Now().Sub(start))
 
+	/* Post-upgrade ingestion assertions */
 	t.Log("check number of documents after final ingestion")
 	afterUpgradeIngestionCount, err := getDocsCountPerDS(t, ctx, ecc)
 	require.NoError(t, err)
@@ -123,8 +138,8 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	assertDatastreams(t, tt.checkAfterUpgradeAfterIngest, dss2)
 	t.Logf("time elapsed: %s", time.Now().Sub(start))
 
+	/* Ensure no errors at all */
 	resp, err := ecc.GetESErrorLogs(ctx)
 	require.NoError(t, err)
 	asserts.ZeroESLogs(t, *resp)
-
 }
