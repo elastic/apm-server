@@ -56,5 +56,5 @@ output "apm_component_id" {
 
 output "fleet_component_id" {
   value       = var.integrations_server ? ec_deployment.deployment.integrations_server[0].resource_id : ""
-  description = "Fleet Server Cloud component ID"
+  description = "Fleet Server Cloud component ID; empty for 7.x clusters"
 }
