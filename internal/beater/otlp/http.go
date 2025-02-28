@@ -39,7 +39,7 @@ import (
 )
 
 var (
-	registrationLock                  sync.Mutex
+	metricRegistrationMu              sync.Mutex
 	unsupportedHTTPMetricRegistration metric.Registration
 )
 
@@ -61,7 +61,7 @@ func NewHTTPHandlers(logger *zap.Logger, processor modelpb.BatchProcessor, semap
 
 	// TODO we should add an otel counter metric directly in the
 	// apm-data consumer, then we could get rid of the callback.
-	registrationLock.Lock() // Temporary locking to fix data race issue
+	metricRegistrationMu.Lock() // Temporary locking to fix data race issue
 	if unsupportedHTTPMetricRegistration != nil {
 		_ = unsupportedHTTPMetricRegistration.Unregister()
 	}
@@ -72,7 +72,7 @@ func NewHTTPHandlers(logger *zap.Logger, processor modelpb.BatchProcessor, semap
 		}
 		return nil
 	}, httpMetricsConsumerUnsupportedDropped)
-	registrationLock.Unlock()
+	metricRegistrationMu.Unlock()
 
 	return HTTPHandlers{consumer: consumer}
 }
