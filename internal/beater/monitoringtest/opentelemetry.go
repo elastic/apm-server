@@ -80,11 +80,11 @@ func ExpectContainOtelMetricsKeys(t *testing.T, reader sdkmetric.Reader, expecte
 	assertOtelMetrics(t, reader, expectedMetrics, false, true)
 }
 
-// assertOtelMetrics gathers all the metrics from `reader` and runs the AssertionFunc for all metrics specified
-// in `expectedMetrics`.
+// assertOtelMetrics gathers all the metrics from `reader` and runs the AssertionFunc for those gathered metrics
+// whose keys are specified in `expectedMetrics`.
 //
-// If `fullMatch` is true, all metrics from `reader` must be found in `expectedMetrics` vice versa.
-// Otherwise, only the metrics in `expectedMetrics` will be checked.
+// If `fullMatch` is true, all gathered metrics from `reader` must be found in `expectedMetrics` and vice versa.
+// Otherwise, `expectedMetrics` only need to be a subset of the gathered metrics.
 //
 // If `skipValAssert` is true, the AssertionFunc(s) will be skipped entirely.
 func assertOtelMetrics(
