@@ -9,12 +9,12 @@ require (
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/apm-aggregation v1.2.0
 	github.com/elastic/apm-data v1.18.0
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20250226123313-bd538ffb7590
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20250227144038-9ece1e3afcfb
 	github.com/elastic/elastic-agent-client/v7 v7.17.1
 	github.com/elastic/elastic-agent-libs v0.18.6
 	github.com/elastic/elastic-agent-system-metrics v0.11.8
 	github.com/elastic/gmux v0.3.2
-	github.com/elastic/go-docappender/v2 v2.6.0
+	github.com/elastic/go-docappender/v2 v2.6.1
 	github.com/elastic/go-elasticsearch/v8 v8.17.1
 	github.com/elastic/go-sysinfo v1.15.1
 	github.com/elastic/go-ucfg v0.8.8
@@ -109,7 +109,7 @@ require (
 	github.com/jcmturner/rpc/v2 v2.0.3 // indirect
 	github.com/joeshaw/multierror v0.0.0-20140124173710-69b34d4ec901 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
-	github.com/klauspost/compress v1.17.11 // indirect
+	github.com/klauspost/compress v1.18.0 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/lufia/plan9stats v0.0.0-20220913051719-115f729f3c8c // indirect
