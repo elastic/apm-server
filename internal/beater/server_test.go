@@ -463,14 +463,13 @@ func TestServerElasticsearchOutput(t *testing.T) {
 	))
 	mp := sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader))
 
-	const maxRequests = 10
 	srv := beatertest.NewServer(t, beatertest.WithMeterProvider(mp), beatertest.WithConfig(agentconfig.MustNewConfigFrom(map[string]interface{}{
 		"output.elasticsearch": map[string]interface{}{
 			"hosts":          []string{elasticsearchServer.URL},
 			"flush_interval": "1ms",
 			"backoff":        map[string]interface{}{"init": "1ms", "max": "1ms"},
 			"max_retries":    0,
-			"max_requests":   maxRequests,
+			"max_requests":   1,
 		},
 	})))
 
@@ -490,13 +489,10 @@ func TestServerElasticsearchOutput(t *testing.T) {
 		t.Fatal("timed out waiting for bulk request")
 	}
 
-	monitoringtest.ExpectContainOtelMetricsFunc(t, reader, map[string]monitoringtest.AssertionFunc{
-		"elasticsearch.events.count":  func(t *testing.T, actual any) bool { return actual.(int64) == 5 },
-		"elasticsearch.events.queued": func(t *testing.T, actual any) bool { return actual.(int64) == 5 },
-		"elasticsearch.bulk_requests.available": func(t *testing.T, actual any) bool {
-			// Available should be less than maxRequests since some will be used
-			return 0 < actual.(int64) && actual.(int64) < maxRequests
-		},
+	monitoringtest.ExpectContainOtelMetrics(t, reader, map[string]any{
+		"elasticsearch.events.count":            5,
+		"elasticsearch.events.queued":           5,
+		"elasticsearch.bulk_requests.available": 0,
 	})
 }
 

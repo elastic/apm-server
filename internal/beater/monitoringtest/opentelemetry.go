@@ -26,54 +26,24 @@ import (
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 )
 
-type AssertionFunc func(t *testing.T, actual any) bool
-
-func ExpectOtelMetricsFunc(
-	t *testing.T,
-	reader sdkmetric.Reader,
-	expectedMetrics map[string]AssertionFunc,
-) {
-	assertOtelMetrics(t, reader, expectedMetrics, true, false)
-}
-
 func ExpectOtelMetrics(
 	t *testing.T,
 	reader sdkmetric.Reader,
-	expectedMetricsValue map[string]any,
+	expectedMetrics map[string]any,
 ) {
-	expectedMetrics := make(map[string]AssertionFunc)
-	for k, v := range expectedMetricsValue {
-		expectedMetrics[k] = func(t *testing.T, actual any) bool {
-			return assert.EqualValues(t, v, actual)
-		}
-	}
 	assertOtelMetrics(t, reader, expectedMetrics, true, false)
-}
-
-func ExpectContainOtelMetricsFunc(
-	t *testing.T,
-	reader sdkmetric.Reader,
-	expectedMetrics map[string]AssertionFunc,
-) {
-	assertOtelMetrics(t, reader, expectedMetrics, false, false)
 }
 
 func ExpectContainOtelMetrics(
 	t *testing.T,
 	reader sdkmetric.Reader,
-	expectedMetricsValue map[string]any,
+	expectedMetrics map[string]any,
 ) {
-	expectedMetrics := make(map[string]AssertionFunc)
-	for k, v := range expectedMetricsValue {
-		expectedMetrics[k] = func(t *testing.T, actual any) bool {
-			return assert.EqualValues(t, v, actual)
-		}
-	}
 	assertOtelMetrics(t, reader, expectedMetrics, false, false)
 }
 
 func ExpectContainOtelMetricsKeys(t *testing.T, reader sdkmetric.Reader, expectedMetricsKeys []string) {
-	expectedMetrics := make(map[string]AssertionFunc)
+	expectedMetrics := make(map[string]any)
 	for _, metricKey := range expectedMetricsKeys {
 		expectedMetrics[metricKey] = nil
 	}
@@ -90,7 +60,7 @@ func ExpectContainOtelMetricsKeys(t *testing.T, reader sdkmetric.Reader, expecte
 func assertOtelMetrics(
 	t *testing.T,
 	reader sdkmetric.Reader,
-	expectedMetrics map[string]AssertionFunc,
+	expectedMetrics map[string]any,
 	fullMatch, skipValAssert bool,
 ) {
 	t.Helper()
@@ -110,8 +80,12 @@ func assertOtelMetrics(
 					continue
 				}
 
-				if fn, ok := expectedMetrics[m.Name]; ok {
-					assert.True(t, fn(t, d.DataPoints[0].Value), m.Name)
+				if v, ok := expectedMetrics[m.Name]; ok {
+					if dp, ok := v.(int); ok {
+						assert.Equal(t, int64(dp), d.DataPoints[0].Value, m.Name)
+					} else {
+						assert.Fail(t, "expected an int value", m.Name)
+					}
 				} else if fullMatch {
 					assert.Fail(t, "unexpected metric", m.Name)
 				}
@@ -123,8 +97,12 @@ func assertOtelMetrics(
 					continue
 				}
 
-				if fn, ok := expectedMetrics[m.Name]; ok {
-					assert.True(t, fn(t, d.DataPoints[0].Value), m.Name)
+				if v, ok := expectedMetrics[m.Name]; ok {
+					if dp, ok := v.(int); ok {
+						assert.Equal(t, int64(dp), d.DataPoints[0].Value, m.Name)
+					} else {
+						assert.Fail(t, "expected an int value", m.Name)
+					}
 				} else if fullMatch {
 					assert.Fail(t, "unexpected metric", m.Name)
 				}
@@ -136,8 +114,12 @@ func assertOtelMetrics(
 					continue
 				}
 
-				if fn, ok := expectedMetrics[m.Name]; ok {
-					assert.True(t, fn(t, d.DataPoints[0].Count), m.Name)
+				if v, ok := expectedMetrics[m.Name]; ok {
+					if dp, ok := v.(int); ok {
+						assert.Equal(t, int64(dp), d.DataPoints[0].Count, m.Name)
+					} else {
+						assert.Fail(t, "expected an int value", m.Name)
+					}
 				} else if fullMatch {
 					assert.Fail(t, "unexpected metric", m.Name)
 				}
