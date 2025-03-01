@@ -463,13 +463,16 @@ func TestServerElasticsearchOutput(t *testing.T) {
 	))
 	mp := sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader))
 
+	// maxRequests needs to be 1 so that we can assert `elasticsearch.bulk_requests.available` to be 0.
+	// Otherwise, docappender can use multiple bulk requests, and we can't easily assert equal.
+	const maxRequests = 1
 	srv := beatertest.NewServer(t, beatertest.WithMeterProvider(mp), beatertest.WithConfig(agentconfig.MustNewConfigFrom(map[string]interface{}{
 		"output.elasticsearch": map[string]interface{}{
 			"hosts":          []string{elasticsearchServer.URL},
 			"flush_interval": "1ms",
 			"backoff":        map[string]interface{}{"init": "1ms", "max": "1ms"},
 			"max_retries":    0,
-			"max_requests":   1,
+			"max_requests":   maxRequests,
 		},
 	})))
 
@@ -492,7 +495,7 @@ func TestServerElasticsearchOutput(t *testing.T) {
 	monitoringtest.ExpectContainOtelMetrics(t, reader, map[string]any{
 		"elasticsearch.events.count":            5,
 		"elasticsearch.events.queued":           5,
-		"elasticsearch.bulk_requests.available": 0,
+		"elasticsearch.bulk_requests.available": maxRequests - 1,
 	})
 }
 
