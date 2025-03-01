@@ -50,13 +50,13 @@ func ExpectContainOtelMetricsKeys(t *testing.T, reader sdkmetric.Reader, expecte
 	assertOtelMetrics(t, reader, expectedMetrics, false, true)
 }
 
-// assertOtelMetrics gathers all the metrics from `reader` and runs the AssertionFunc for those gathered metrics
-// whose keys are specified in `expectedMetrics`.
+// assertOtelMetrics gathers all the metrics from `reader` and asserts that the value of those gathered metrics
+// are equal to that specified in `expectedMetrics`.
 //
 // If `fullMatch` is true, all gathered metrics from `reader` must be found in `expectedMetrics` and vice versa.
 // Otherwise, `expectedMetrics` only need to be a subset of the gathered metrics.
 //
-// If `skipValAssert` is true, the AssertionFunc(s) will be skipped entirely.
+// If `skipValAssert` is true, the value assertion will be skipped entirely i.e. only care about the metric keys.
 func assertOtelMetrics(
 	t *testing.T,
 	reader sdkmetric.Reader,
@@ -81,11 +81,7 @@ func assertOtelMetrics(
 				}
 
 				if v, ok := expectedMetrics[m.Name]; ok {
-					if dp, ok := v.(int); ok {
-						assert.Equal(t, int64(dp), d.DataPoints[0].Value, m.Name)
-					} else {
-						assert.Fail(t, "expected an int value", m.Name)
-					}
+					assert.EqualValues(t, v, d.DataPoints[0].Value, m.Name)
 				} else if fullMatch {
 					assert.Fail(t, "unexpected metric", m.Name)
 				}
@@ -98,11 +94,7 @@ func assertOtelMetrics(
 				}
 
 				if v, ok := expectedMetrics[m.Name]; ok {
-					if dp, ok := v.(int); ok {
-						assert.Equal(t, int64(dp), d.DataPoints[0].Value, m.Name)
-					} else {
-						assert.Fail(t, "expected an int value", m.Name)
-					}
+					assert.EqualValues(t, v, d.DataPoints[0].Value, m.Name)
 				} else if fullMatch {
 					assert.Fail(t, "unexpected metric", m.Name)
 				}
@@ -115,11 +107,7 @@ func assertOtelMetrics(
 				}
 
 				if v, ok := expectedMetrics[m.Name]; ok {
-					if dp, ok := v.(int); ok {
-						assert.Equal(t, int64(dp), d.DataPoints[0].Count, m.Name)
-					} else {
-						assert.Fail(t, "expected an int value", m.Name)
-					}
+					assert.EqualValues(t, v, d.DataPoints[0].Count, m.Name)
 				} else if fullMatch {
 					assert.Fail(t, "unexpected metric", m.Name)
 				}
