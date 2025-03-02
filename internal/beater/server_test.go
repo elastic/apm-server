@@ -463,8 +463,17 @@ func TestServerElasticsearchOutput(t *testing.T) {
 	))
 	mp := sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader))
 
-	// maxRequests needs to be 1 so that we can assert `elasticsearch.bulk_requests.available` to be 0.
-	// Otherwise, docappender can use multiple bulk requests, and we can't easily assert equal.
+	// The `max_requests` setting is the max number of concurrent bulk requests in docappender.
+	// The `elasticsearch.bulk_requests.available` metric below will be equal to `max_requests - x` where x is
+	// the number of times the mux handler "/_bulk" above is called.
+	//
+	// If `max_requests` > 1, the "/_bulk" mux handler may be called multiple times by docappender due to low
+	// flush interval of 1ms. This causes flaky tests below as `elasticsearch.bulk_requests.available` metric
+	// can be `max_requests - 1` or `max_requests - 2` depending on race conditions.
+	//
+	// To solve this, we can either increase the flush interval, or simply set `max_requests` to 1 such that
+	// there will not be multiple calls to "/_bulk". In this case, we chose the latter solution since it is
+	// more consistent (than relying on flush timing).
 	const maxRequests = 1
 	srv := beatertest.NewServer(t, beatertest.WithMeterProvider(mp), beatertest.WithConfig(agentconfig.MustNewConfigFrom(map[string]interface{}{
 		"output.elasticsearch": map[string]interface{}{
