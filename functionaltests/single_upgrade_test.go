@@ -22,6 +22,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
@@ -33,6 +34,8 @@ import (
 	"github.com/elastic/apm-server/functionaltests/internal/kbclient"
 	"github.com/elastic/apm-server/functionaltests/internal/terraform"
 )
+
+type setupFunc func(t *testing.T, ctx context.Context, esc *esclient.Client, kbc *kbclient.Client) (continueTest bool)
 
 // singleUpgradeTestCase is a basic functional test case that performs a
 // cluster upgrade between 2 specified versions.
@@ -48,7 +51,7 @@ type singleUpgradeTestCase struct {
 	fromVersion string
 	toVersion   string
 
-	preIngestionSetup            func(*testing.T, *esclient.Client, *kbclient.Client) bool
+	preIngestionSetup            setupFunc
 	checkPreUpgradeAfterIngest   checkDatastreamWant
 	checkPostUpgradeBeforeIngest checkDatastreamWant
 	checkPostUpgradeAfterIngest  checkDatastreamWant
@@ -68,7 +71,7 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 
 	kbc := createKibanaClient(t, ctx, ecc, escfg)
 
-	t.Log("creating APM API key")
+	t.Log("create APM API key")
 	apikey, err := ecc.CreateAPIKey(ctx, t.Name(), -1, map[string]types.RoleDescriptor{})
 	require.NoError(t, err)
 
@@ -79,7 +82,7 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	require.NoError(t, err)
 
 	/* Setup */
-	if tt.preIngestionSetup != nil && !tt.preIngestionSetup(t, ecc, kbc) {
+	if tt.preIngestionSetup != nil && !tt.preIngestionSetup(t, ctx, ecc, kbc) {
 		assert.Fail(t, "pre-ingestion setup failed")
 		return
 	}
