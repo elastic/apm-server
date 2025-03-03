@@ -27,8 +27,6 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
 
-	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
-
 	"github.com/elastic/apm-server/functionaltests/internal/asserts"
 	"github.com/elastic/apm-server/functionaltests/internal/esclient"
 	"github.com/elastic/apm-server/functionaltests/internal/gen"
@@ -63,7 +61,7 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	require.NoError(t, err)
 
 	deploymentID, escfg := createCluster(t, ctx, tf, *target, tt.fromVersion)
-	t.Logf("time elapsed: %s", time.Now().Sub(start))
+	t.Logf("time elapsed: %s", time.Since(start))
 
 	ecc, err := esclient.New(escfg)
 	require.NoError(t, err)
@@ -88,7 +86,7 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 
 	/* Pre-upgrade ingestion */
 	require.NoError(t, g.RunBlockingWait(ctx, kbc, deploymentID))
-	t.Logf("time elapsed: %s", time.Now().Sub(start))
+	t.Logf("time elapsed: %s", time.Since(start))
 
 	/* Pre-upgrade ingestion assertions */
 	t.Log("check number of documents after initial ingestion")
@@ -97,18 +95,17 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	assertDocCount(t, atStartCount, previous, expectedIngestForASingleRun())
 
 	t.Log("check data streams after initial ingestion")
-	var dss []types.DataStream
-	dss, err = ecc.GetDataStream(ctx, "*apm*")
+	dss, err := ecc.GetDataStream(ctx, "*apm*")
 	require.NoError(t, err)
 	assertDatastreams(t, tt.checkPreUpgradeAfterIngest, dss)
-	t.Logf("time elapsed: %s", time.Now().Sub(start))
+	t.Logf("time elapsed: %s", time.Since(start))
 
 	beforeUpgradeCount, err := getDocsCountPerDS(t, ctx, ecc)
 	require.NoError(t, err)
 
 	/* Perform upgrade */
 	upgradeCluster(t, ctx, tf, *target, tt.toVersion)
-	t.Logf("time elapsed: %s", time.Now().Sub(start))
+	t.Logf("time elapsed: %s", time.Since(start))
 
 	/* Post-upgrade assertions */
 	// We assert that no changes happened in the number of documents after upgrade
@@ -125,7 +122,7 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 
 	/* Post-upgrade ingestion */
 	require.NoError(t, g.RunBlockingWait(ctx, kbc, deploymentID))
-	t.Logf("time elapsed: %s", time.Now().Sub(start))
+	t.Logf("time elapsed: %s", time.Since(start))
 
 	/* Post-upgrade ingestion assertions */
 	t.Log("check number of documents after final ingestion")
@@ -137,7 +134,7 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	dss2, err := ecc.GetDataStream(ctx, "*apm*")
 	require.NoError(t, err)
 	assertDatastreams(t, tt.checkPostUpgradeAfterIngest, dss2)
-	t.Logf("time elapsed: %s", time.Now().Sub(start))
+	t.Logf("time elapsed: %s", time.Since(start))
 
 	/* Ensure no errors at all */
 	resp, err := ecc.GetESErrorLogs(ctx)
