@@ -77,7 +77,6 @@ jobs:
           CGO_ENABLED: "0"
           GOFIPS140: "latest"
           GODEBUG: "fips140=only"
-        # TODO remove tags once cockroachdb/swiss works on 1.24+
         run: go test -v -tags=requirefips ./...
 
   system-test:
