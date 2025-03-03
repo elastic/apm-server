@@ -29,6 +29,7 @@ import (
 	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/search"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/esql/query"
+	"github.com/elastic/go-elasticsearch/v8/typedapi/ingest/putpipeline"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/security/createapikey"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 )
@@ -81,8 +82,8 @@ func formatDurationElasticsearch(d time.Duration) string {
 	return fmt.Sprintf("%dnanos", d)
 }
 
-// CreateAPIKey creates an API Key, and returns it in the
-// base64-encoded form that agents should provide.
+// CreateAPIKey creates an API Key, and returns it in the base64-encoded form
+// that agents should provide.
 //
 // If expiration is less than or equal to zero, then the API Key never expires.
 func (c *Client) CreateAPIKey(ctx context.Context, name string, expiration time.Duration, roles map[string]types.RoleDescriptor) (string, error) {
@@ -99,9 +100,35 @@ func (c *Client) CreateAPIKey(ctx context.Context, name string, expiration time.
 		},
 	}).Do(ctx)
 	if err != nil {
-		return "", fmt.Errorf("error creating API Key: %w", err)
+		return "", fmt.Errorf("error creating API key: %w", err)
 	}
 	return resp.Encoded, nil
+}
+
+// CreateRerouteProcessors creates re-route processors for logs, metrics and traces.
+func (c *Client) CreateRerouteProcessors(ctx context.Context) error {
+	for _, id := range []string{"logs@custom", "metrics@custom", "traces@custom"} {
+		if err := c.createRerouteProcessor(ctx, id, "rerouted"); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (c *Client) createRerouteProcessor(ctx context.Context, id string, name string) error {
+	_, err := c.es.Ingest.PutPipeline(id).Request(&putpipeline.Request{
+		Processors: []types.ProcessorContainer{
+			{
+				Reroute: &types.RerouteProcessor{
+					Namespace: []string{name},
+				},
+			},
+		},
+	}).Do(ctx)
+	if err != nil {
+		return fmt.Errorf("error creating reroute processor for %s: %w", id, err)
+	}
+	return nil
 }
 
 func (c *Client) GetDataStream(ctx context.Context, name string) ([]types.DataStream, error) {
