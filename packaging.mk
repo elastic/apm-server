@@ -146,7 +146,7 @@ $(DEBS_AMD64) $(RPMS_AMD64): $(COMMON_PACKAGE_FILES) build/apm-server-linux-amd6
 
 %.deb %.rpm:
 	@mkdir -p $(DISTDIR)
-	@go run -modfile=tools/go.mod github.com/goreleaser/nfpm/v2/cmd/nfpm package -f $(filter build/nfpm-%.yml, $^) -t $@
+	@go tool github.com/goreleaser/nfpm/v2/cmd/nfpm package -f $(filter build/nfpm-%.yml, $^) -t $@
 
 # Archive directories. These are the contents of tarball and zip artifacts.
 #
