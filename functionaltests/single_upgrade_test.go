@@ -45,14 +45,15 @@ import (
 // A new ingestion is performed and a final check is run, to
 // verify that ingestion works after upgrade and brings the cluster
 // to a know state.
+//
+// The test name must be of the format "TestUpgrade_8_14_3_to_8_16_0" where
+// 8_14_3 and 8_16_0 can be substituted with any version and refers to
+// from-version and to-version respectively.
 type singleUpgradeTestCase struct {
-	fromVersion string
-	toVersion   string
-
-	preIngestionSetup             func(*testing.T, *esclient.Client, *kbclient.Client) bool
-	checkAfterIngestBeforeUpgrade checkDatastreamWant
-	checkAfterUpgradeBeforeIngest checkDatastreamWant
-	checkAfterUpgradeAfterIngest  checkDatastreamWant
+	preIngestionSetup            func(*testing.T, *esclient.Client, *kbclient.Client) bool
+	checkPreUpgradeAfterIngest   checkDatastreamWant
+	checkPostUpgradeBeforeIngest checkDatastreamWant
+	checkPostUpgradeAfterIngest  checkDatastreamWant
 }
 
 func (tt singleUpgradeTestCase) Run(t *testing.T) {
@@ -61,7 +62,13 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	tf, err := terraform.New(t, t.Name())
 	require.NoError(t, err)
 
-	deploymentID, escfg := createCluster(t, ctx, tf, *target, tt.fromVersion)
+	versions := versionsFromTestName(t.Name())
+	if len(versions) != 2 {
+		panic("expected two versions from test name")
+	}
+
+	fromVersion, toVersion := versions[0], versions[1]
+	deploymentID, escfg := createCluster(t, ctx, tf, *target, fromVersion)
 	t.Logf("time elapsed: %s", time.Now().Sub(start))
 
 	ecc, err := esclient.New(escfg)
@@ -96,14 +103,14 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	var dss []types.DataStream
 	dss, err = ecc.GetDataStream(ctx, "*apm*")
 	require.NoError(t, err)
-	assertDatastreams(t, tt.checkAfterIngestBeforeUpgrade, dss)
+	assertDatastreams(t, tt.checkPreUpgradeAfterIngest, dss)
 	t.Logf("time elapsed: %s", time.Now().Sub(start))
 
 	beforeUpgradeCount, err := getDocsCountPerDS(t, ctx, ecc)
 	require.NoError(t, err)
 
 	/* Perform upgrade */
-	upgradeCluster(t, ctx, tf, *target, tt.toVersion)
+	upgradeCluster(t, ctx, tf, *target, toVersion)
 	t.Logf("time elapsed: %s", time.Now().Sub(start))
 
 	/* Post-upgrade assertions */
@@ -117,7 +124,7 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	t.Log("check data streams after upgrade")
 	dss, err = ecc.GetDataStream(ctx, "*apm*")
 	require.NoError(t, err)
-	assertDatastreams(t, tt.checkAfterUpgradeBeforeIngest, dss)
+	assertDatastreams(t, tt.checkPostUpgradeBeforeIngest, dss)
 
 	/* Post-upgrade ingestion */
 	if tt.preIngestionSetup != nil && !tt.preIngestionSetup(t, ecc, kbc) {
@@ -135,7 +142,7 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	t.Log("check data streams after final ingestion")
 	dss2, err := ecc.GetDataStream(ctx, "*apm*")
 	require.NoError(t, err)
-	assertDatastreams(t, tt.checkAfterUpgradeAfterIngest, dss2)
+	assertDatastreams(t, tt.checkPostUpgradeAfterIngest, dss2)
 	t.Logf("time elapsed: %s", time.Now().Sub(start))
 
 	/* Ensure no errors at all */

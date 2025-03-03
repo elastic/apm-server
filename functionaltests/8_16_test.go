@@ -21,32 +21,33 @@ import (
 	"testing"
 )
 
-func TestUpgrade_8_18_0_to_9_0_0(t *testing.T) {
+func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
 	ecAPICheck(t)
 
 	tt := singleUpgradeTestCase{
-		fromVersion: "8.18.0",
-		toVersion:   "9.0.0",
-		checkAfterIngestBeforeUpgrade: checkDatastreamWant{
+		checkPreUpgradeAfterIngest: checkDatastreamWant{
 			Quantity:         8,
-			PreferIlm:        true,
-			DSManagedBy:      managedByILM,
+			PreferIlm:        false,
+			DSManagedBy:      managedByDSL,
 			IndicesPerDs:     1,
-			IndicesManagedBy: []string{managedByILM},
+			IndicesManagedBy: []string{managedByDSL},
 		},
-		checkAfterUpgradeBeforeIngest: checkDatastreamWant{
+		checkPostUpgradeBeforeIngest: checkDatastreamWant{
 			Quantity:         8,
-			PreferIlm:        true,
-			DSManagedBy:      managedByILM,
+			PreferIlm:        false,
+			DSManagedBy:      managedByDSL,
 			IndicesPerDs:     1,
-			IndicesManagedBy: []string{managedByILM},
+			IndicesManagedBy: []string{managedByDSL},
 		},
-		checkAfterUpgradeAfterIngest: checkDatastreamWant{
+		// Check data streams and verify lazy rollover happened
+		// v managed by DSL if created after 8.15.0
+		// x managed by ILM if created before 8.15.0
+		checkPostUpgradeAfterIngest: checkDatastreamWant{
 			Quantity:         8,
-			PreferIlm:        true,
-			DSManagedBy:      managedByILM,
-			IndicesPerDs:     1,
-			IndicesManagedBy: []string{managedByILM},
+			PreferIlm:        false,
+			DSManagedBy:      managedByDSL,
+			IndicesPerDs:     2,
+			IndicesManagedBy: []string{managedByDSL, managedByDSL},
 		},
 	}
 
