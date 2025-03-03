@@ -123,6 +123,7 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	require.NoError(t, err)
 	assertDatastreams(t, tt.checkPostUpgradeBeforeIngest, dss)
 
+	/* Post-upgrade ingestion */
 	require.NoError(t, g.RunBlockingWait(ctx, kbc, deploymentID))
 	t.Logf("time elapsed: %s", time.Now().Sub(start))
 
