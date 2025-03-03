@@ -169,7 +169,7 @@ func (b *Beat) init() error {
 	}
 
 	// log paths values to help with troubleshooting
-	logp.Info(paths.Paths.String())
+	logp.Info("%s", paths.Paths.String())
 
 	// Load the unique ID and "first start" info from meta.json.
 	metaPath := paths.Resolve(paths.Data, "meta.json")
