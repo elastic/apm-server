@@ -70,7 +70,7 @@ GOVERSIONINFO_FLAGS := \
 build/apm-server-windows-amd64.exe: x-pack/apm-server/versioninfo_windows_amd64.syso
 x-pack/apm-server/versioninfo_windows_amd64.syso: GOVERSIONINFO_FLAGS+=-64
 x-pack/apm-server/versioninfo_%.syso: $(GITREFFILE) packaging/versioninfo.json
-	go run -modfile=tools/go.mod github.com/josephspurrier/goversioninfo/cmd/goversioninfo -o $@ $(GOVERSIONINFO_FLAGS) packaging/versioninfo.json
+	go tool github.com/josephspurrier/goversioninfo/cmd/goversioninfo -o $@ $(GOVERSIONINFO_FLAGS) packaging/versioninfo.json
 
 .PHONY: apm-server
 apm-server: build/apm-server-$(shell go env GOOS)-$(shell go env GOARCH)
@@ -101,7 +101,7 @@ check-full: update check staticcheck
 
 .PHONY: check-approvals
 check-approvals:
-	@go run -modfile=tools/go.mod github.com/elastic/apm-tools/cmd/check-approvals
+	@go tool github.com/elastic/apm-tools/cmd/check-approvals
 
 check: check-fmt check-headers check-git-diff
 
@@ -134,8 +134,8 @@ go-generate:
 .PHONY: add-headers
 add-headers:
 ifndef CHECK_HEADERS_DISABLED
-	@go run -modfile=tools/go.mod github.com/elastic/go-licenser -exclude x-pack
-	@go run -modfile=tools/go.mod github.com/elastic/go-licenser -license Elasticv2 x-pack
+	@go tool github.com/elastic/go-licenser -exclude x-pack
+	@go tool github.com/elastic/go-licenser -license Elasticv2 x-pack
 endif
 
 ## get-version : Get the apm server version
@@ -168,7 +168,7 @@ docs: tf-docs
 tf-docs: $(addsuffix /README.md,$(wildcard testing/infra/terraform/modules/*))
 
 testing/infra/terraform/modules/%/README.md: .FORCE
-	go run -modfile=tools/go.mod github.com/terraform-docs/terraform-docs markdown --hide-empty --header-from header.md --output-file=README.md --output-mode replace $(subst README.md,,$@)
+	go tool github.com/terraform-docs/terraform-docs markdown --hide-empty --header-from header.md --output-file=README.md --output-mode replace $(subst README.md,,$@)
 
 .PHONY: .FORCE
 .FORCE:
@@ -208,13 +208,13 @@ STATICCHECK_CHECKS?=all,-ST1000
 
 .PHONY: staticcheck
 staticcheck:
-	go run -modfile=tools/go.mod honnef.co/go/tools/cmd/staticcheck -checks=$(STATICCHECK_CHECKS) ./...
+	go tool honnef.co/go/tools/cmd/staticcheck -checks=$(STATICCHECK_CHECKS) ./...
 
 .PHONY: check-headers
 check-headers:
 ifndef CHECK_HEADERS_DISABLED
-	@go run -modfile=tools/go.mod github.com/elastic/go-licenser -d -exclude build -exclude x-pack
-	@go run -modfile=tools/go.mod github.com/elastic/go-licenser -d -exclude build -license Elasticv2 x-pack
+	@go tool github.com/elastic/go-licenser -d -exclude build -exclude x-pack
+	@go tool github.com/elastic/go-licenser -d -exclude build -license Elasticv2 x-pack
 endif
 
 .PHONY: check-docker-compose
@@ -238,9 +238,9 @@ MODULE_DEPS=$(sort $(shell \
   go list -deps -tags=darwin,linux,windows -f "{{with .Module}}{{if not .Main}}{{.Path}}{{end}}{{end}}" ./x-pack/apm-server))
 
 notice: NOTICE.txt
-NOTICE.txt build/dependencies-$(APM_SERVER_VERSION).csv: go.mod tools/go.mod
+NOTICE.txt build/dependencies-$(APM_SERVER_VERSION).csv: go.mod
 	mkdir -p build/
-	go list -m -json $(MODULE_DEPS) | go run -modfile=tools/go.mod go.elastic.co/go-licence-detector \
+	go list -m -json $(MODULE_DEPS) | go tool go.elastic.co/go-licence-detector \
 		-includeIndirect \
 		-overrides tools/notice/overrides.json \
 		-rules tools/notice/rules.json \
