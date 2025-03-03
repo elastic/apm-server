@@ -6,7 +6,7 @@ The functional tests test that APM Server works as expected after version upgrad
 
 ## Running the Tests
 
-To run the tests, you will first to set the `EC_API_KEY` environment variable.
+To run the tests, you will first need to set the `EC_API_KEY` environment variable.
 
 Then, from the current directory, simply run:
 ```sh
