@@ -46,11 +46,10 @@ import (
 // A new ingestion is performed and a final check is run, to
 // verify that ingestion works after upgrade and brings the cluster
 // to a know state.
-//
-// The test name must be of the format "TestUpgrade_8_14_3_to_8_16_0" where
-// 8_14_3 and 8_16_0 can be substituted with any version and refers to
-// from-version and to-version respectively.
 type singleUpgradeTestCase struct {
+	fromVersion string
+	toVersion   string
+
 	preIngestionSetup            func(*testing.T, *esclient.Client, *kbclient.Client) bool
 	checkPreUpgradeAfterIngest   checkDatastreamWant
 	checkPostUpgradeBeforeIngest checkDatastreamWant
@@ -63,13 +62,7 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	tf, err := terraform.New(t, t.Name())
 	require.NoError(t, err)
 
-	versions := versionsFromTestName(t.Name())
-	if len(versions) != 2 {
-		panic("expected two versions from test name")
-	}
-
-	fromVersion, toVersion := versions[0], versions[1]
-	deploymentID, escfg := createCluster(t, ctx, tf, *target, fromVersion)
+	deploymentID, escfg := createCluster(t, ctx, tf, *target, tt.fromVersion)
 	t.Logf("time elapsed: %s", time.Now().Sub(start))
 
 	ecc, err := esclient.New(escfg)
@@ -87,10 +80,13 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	previous, err := getDocsCountPerDS(t, ctx, ecc)
 	require.NoError(t, err)
 
-	/* Pre-upgrade ingestion */
+	/* Setup */
 	if tt.preIngestionSetup != nil && !tt.preIngestionSetup(t, ecc, kbc) {
-		assert.Fail(t, "pre-upgrade pre-ingestion setup failed")
+		assert.Fail(t, "pre-ingestion setup failed")
+		return
 	}
+
+	/* Pre-upgrade ingestion */
 	require.NoError(t, g.RunBlockingWait(ctx, kbc, deploymentID))
 	t.Logf("time elapsed: %s", time.Now().Sub(start))
 
@@ -111,7 +107,7 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	require.NoError(t, err)
 
 	/* Perform upgrade */
-	upgradeCluster(t, ctx, tf, *target, toVersion)
+	upgradeCluster(t, ctx, tf, *target, tt.toVersion)
 	t.Logf("time elapsed: %s", time.Now().Sub(start))
 
 	/* Post-upgrade assertions */
@@ -127,10 +123,6 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	require.NoError(t, err)
 	assertDatastreams(t, tt.checkPostUpgradeBeforeIngest, dss)
 
-	/* Post-upgrade ingestion */
-	if tt.preIngestionSetup != nil && !tt.preIngestionSetup(t, ecc, kbc) {
-		assert.Fail(t, "post-upgrade pre-ingestion setup failed")
-	}
 	require.NoError(t, g.RunBlockingWait(ctx, kbc, deploymentID))
 	t.Logf("time elapsed: %s", time.Now().Sub(start))
 

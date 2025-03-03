@@ -25,6 +25,8 @@ func TestUpgrade_8_18_0_to_9_0_0(t *testing.T) {
 	ecAPICheck(t)
 
 	tt := singleUpgradeTestCase{
+		fromVersion: "8.18.0",
+		toVersion:   "9.0.0",
 		checkPreUpgradeAfterIngest: checkDatastreamWant{
 			Quantity:         8,
 			PreferIlm:        true,

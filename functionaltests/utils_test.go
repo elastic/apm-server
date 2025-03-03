@@ -20,8 +20,6 @@ package functionaltests
 import (
 	"context"
 	"os"
-	"regexp"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -32,30 +30,6 @@ import (
 	"github.com/elastic/apm-server/functionaltests/internal/kbclient"
 	"github.com/elastic/apm-server/functionaltests/internal/terraform"
 )
-
-var versionsRegex = regexp.MustCompile(`_(\d+_\d+_\d+)_?`)
-
-// versionsFromTestName retrieves the versions from test name. The test name is expected to be
-// in the format of `TestUpgrade_<from_version>_to_<to_version_1>[_to_<to_version_2>]*[_<suffix>]?`.
-//
-// For example, if the input name is `TestUpgrade_7_17_0_to_8_18_0_to_9_0_0_Something`, the output
-// will be `[7.17.0, 8.18.0, 9.0.0]`.
-func versionsFromTestName(name string) []string {
-	matches := versionsRegex.FindAllStringSubmatch(name, -1)
-	if len(matches) < 2 {
-		panic("invalid upgrade test name")
-	}
-
-	versions := make([]string, 0, len(matches))
-	for _, match := range matches {
-		if len(match) != 2 {
-			panic("invalid upgrade test name")
-		}
-		versions = append(versions, strings.ReplaceAll(match[1], "_", "."))
-	}
-
-	return versions
-}
 
 // ecAPICheck verifies if EC_API_KEY env var is set.
 // This is a simple check to alert users if this necessary env var
