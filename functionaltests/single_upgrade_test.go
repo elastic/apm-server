@@ -34,6 +34,8 @@ import (
 	"github.com/elastic/apm-server/functionaltests/internal/terraform"
 )
 
+type setupFunc func(t *testing.T, ctx context.Context, esc *esclient.Client, kbc *kbclient.Client) (continueTest bool)
+
 // singleUpgradeTestCase is a basic functional test case that performs a
 // cluster upgrade between 2 specified versions.
 //
@@ -48,7 +50,7 @@ type singleUpgradeTestCase struct {
 	fromVersion string
 	toVersion   string
 
-	preIngestionSetup            func(*testing.T, *esclient.Client, *kbclient.Client) bool
+	preIngestionSetup            setupFunc
 	checkPreUpgradeAfterIngest   checkDatastreamWant
 	checkPostUpgradeBeforeIngest checkDatastreamWant
 	checkPostUpgradeAfterIngest  checkDatastreamWant
@@ -79,7 +81,7 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 
 	if tt.preIngestionSetup != nil {
 		t.Log("------ setup ------")
-		if !tt.preIngestionSetup(t, ecc, kbc) {
+		if !tt.preIngestionSetup(t, ctx, ecc, kbc) {
 			assert.Fail(t, "pre-ingestion setup failed")
 			return
 		}

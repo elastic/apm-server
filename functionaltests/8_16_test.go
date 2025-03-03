@@ -18,7 +18,13 @@
 package functionaltests
 
 import (
+	"context"
 	"testing"
+
+	"github.com/stretchr/testify/require"
+
+	"github.com/elastic/apm-server/functionaltests/internal/esclient"
+	"github.com/elastic/apm-server/functionaltests/internal/kbclient"
 )
 
 func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
@@ -50,6 +56,42 @@ func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
 			DSManagedBy:      managedByDSL,
 			IndicesPerDs:     2,
 			IndicesManagedBy: []string{managedByDSL, managedByDSL},
+		},
+	}
+
+	tt.Run(t)
+}
+
+func TestUpgrade_8_13_4_to_8_16_0_Reroute(t *testing.T) {
+	ecAPICheck(t)
+
+	tt := singleUpgradeTestCase{
+		fromVersion: "8.13.4",
+		toVersion:   "8.16.0",
+		preIngestionSetup: func(t *testing.T, ctx context.Context, esc *esclient.Client, kbc *kbclient.Client) bool {
+			require.NoError(t, esc.CreateRerouteProcessors(ctx))
+			return true
+		},
+		checkPreUpgradeAfterIngest: checkDatastreamWant{
+			Quantity:         8,
+			PreferIlm:        true,
+			DSManagedBy:      managedByILM,
+			IndicesPerDs:     1,
+			IndicesManagedBy: []string{managedByILM},
+		},
+		checkPostUpgradeBeforeIngest: checkDatastreamWant{
+			Quantity:         8,
+			PreferIlm:        false,
+			DSManagedBy:      managedByILM,
+			IndicesPerDs:     1,
+			IndicesManagedBy: []string{managedByILM},
+		},
+		checkPostUpgradeAfterIngest: checkDatastreamWant{
+			Quantity:         8,
+			PreferIlm:        false,
+			DSManagedBy:      managedByILM,
+			IndicesPerDs:     2,
+			IndicesManagedBy: []string{managedByILM, managedByILM},
 		},
 	}
 
