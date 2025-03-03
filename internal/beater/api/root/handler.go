@@ -18,6 +18,7 @@
 package root
 
 import (
+	"errors"
 	"net/http"
 	"time"
 
@@ -45,7 +46,11 @@ func Handler(cfg HandlerConfig) request.Handler {
 		switch c.Request.Method {
 		case http.MethodGet, http.MethodHead:
 		default:
-			c.Result.SetDefault(request.IDResponseErrorsMethodNotAllowed)
+			c.Result.SetWithError(
+				request.IDResponseErrorsMethodNotAllowed,
+				// include a verbose error message to alert users about a common misconfiguration
+				errors.New("this is the health check endpoint; did you mean to send data to another endpoint instead?"),
+			)
 			c.WriteResult()
 			return
 		}
