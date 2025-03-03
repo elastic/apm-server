@@ -33,10 +33,7 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
-          cache: true
-          cache-dependency-path: |
-            go.sum
-            tools/go.sum
+          cache: false
       - run: make check-docker-compose
 
   all-check-docker-compose:
