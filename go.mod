@@ -259,7 +259,7 @@ tool (
 	github.com/elastic/go-licenser
 	github.com/elastic/gobench
 	github.com/goreleaser/nfpm/v2/cmd/nfpm
-	github.com/josephspurrier/goversioninfo
+	github.com/josephspurrier/goversioninfo/cmd/goversioninfo
 	github.com/t-yuki/gocover-cobertura
 	github.com/terraform-docs/terraform-docs
 	go.elastic.co/go-licence-detector
