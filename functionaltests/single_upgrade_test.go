@@ -22,7 +22,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/elastic/apm-server/functionaltests/internal/kbclient"
+	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
@@ -31,8 +31,8 @@ import (
 	"github.com/elastic/apm-server/functionaltests/internal/asserts"
 	"github.com/elastic/apm-server/functionaltests/internal/esclient"
 	"github.com/elastic/apm-server/functionaltests/internal/gen"
+	"github.com/elastic/apm-server/functionaltests/internal/kbclient"
 	"github.com/elastic/apm-server/functionaltests/internal/terraform"
-	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 )
 
 // singleUpgradeTestCase is a basic functional test case that performs a
