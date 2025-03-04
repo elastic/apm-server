@@ -22,26 +22,27 @@ import (
 )
 
 func TestUpgrade_8_18_0_to_9_0_0(t *testing.T) {
+	t.Parallel()
 	ecAPICheck(t)
 
 	tt := singleUpgradeTestCase{
 		fromVersion: "8.18.0",
 		toVersion:   "9.0.0",
-		checkAfterIngestBeforeUpgrade: checkDatastreamWant{
+		checkPreUpgradeAfterIngest: checkDatastreamWant{
 			Quantity:         8,
 			PreferIlm:        true,
 			DSManagedBy:      managedByILM,
 			IndicesPerDs:     1,
 			IndicesManagedBy: []string{managedByILM},
 		},
-		checkAfterUpgradeBeforeIngest: checkDatastreamWant{
+		checkPostUpgradeBeforeIngest: checkDatastreamWant{
 			Quantity:         8,
 			PreferIlm:        true,
 			DSManagedBy:      managedByILM,
 			IndicesPerDs:     1,
 			IndicesManagedBy: []string{managedByILM},
 		},
-		checkAfterUpgradeAfterIngest: checkDatastreamWant{
+		checkPostUpgradeAfterIngest: checkDatastreamWant{
 			Quantity:         8,
 			PreferIlm:        true,
 			DSManagedBy:      managedByILM,

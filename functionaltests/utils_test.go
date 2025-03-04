@@ -22,12 +22,13 @@ import (
 	"os"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
+	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
+
 	"github.com/elastic/apm-server/functionaltests/internal/esclient"
 	"github.com/elastic/apm-server/functionaltests/internal/kbclient"
 	"github.com/elastic/apm-server/functionaltests/internal/terraform"
-	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
-
-	"github.com/stretchr/testify/require"
 )
 
 // ecAPICheck verifies if EC_API_KEY env var is set.
