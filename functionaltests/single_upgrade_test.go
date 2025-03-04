@@ -22,6 +22,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
@@ -29,8 +30,8 @@ import (
 	"github.com/elastic/apm-server/functionaltests/internal/asserts"
 	"github.com/elastic/apm-server/functionaltests/internal/esclient"
 	"github.com/elastic/apm-server/functionaltests/internal/gen"
+	"github.com/elastic/apm-server/functionaltests/internal/kbclient"
 	"github.com/elastic/apm-server/functionaltests/internal/terraform"
-	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 )
 
 // singleUpgradeTestCase is a basic functional test case that performs a
@@ -47,9 +48,10 @@ type singleUpgradeTestCase struct {
 	fromVersion string
 	toVersion   string
 
-	checkAfterIngestBeforeUpgrade checkDatastreamWant
-	checkAfterUpgradeBeforeIngest checkDatastreamWant
-	checkAfterUpgradeAfterIngest  checkDatastreamWant
+	preIngestionSetup            func(*testing.T, *esclient.Client, *kbclient.Client) bool
+	checkPreUpgradeAfterIngest   checkDatastreamWant
+	checkPostUpgradeBeforeIngest checkDatastreamWant
+	checkPostUpgradeAfterIngest  checkDatastreamWant
 }
 
 func (tt singleUpgradeTestCase) Run(t *testing.T) {
@@ -59,7 +61,7 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	require.NoError(t, err)
 
 	deploymentID, escfg := createCluster(t, ctx, tf, *target, tt.fromVersion)
-	t.Logf("time elapsed: %s", time.Now().Sub(start))
+	t.Logf("time elapsed: %s", time.Since(start))
 
 	ecc, err := esclient.New(escfg)
 	require.NoError(t, err)
@@ -76,27 +78,36 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	previous, err := getDocsCountPerDS(t, ctx, ecc)
 	require.NoError(t, err)
 
-	require.NoError(t, g.RunBlockingWait(ctx, kbc, deploymentID))
-	t.Logf("time elapsed: %s", time.Now().Sub(start))
+	/* Setup */
+	if tt.preIngestionSetup != nil && !tt.preIngestionSetup(t, ecc, kbc) {
+		assert.Fail(t, "pre-ingestion setup failed")
+		return
+	}
 
+	/* Pre-upgrade ingestion */
+	require.NoError(t, g.RunBlockingWait(ctx, kbc, deploymentID))
+	t.Logf("time elapsed: %s", time.Since(start))
+
+	/* Pre-upgrade ingestion assertions */
 	t.Log("check number of documents after initial ingestion")
 	atStartCount, err := getDocsCountPerDS(t, ctx, ecc)
 	require.NoError(t, err)
 	assertDocCount(t, atStartCount, previous, expectedIngestForASingleRun())
 
 	t.Log("check data streams after initial ingestion")
-	var dss []types.DataStream
-	dss, err = ecc.GetDataStream(ctx, "*apm*")
+	dss, err := ecc.GetDataStream(ctx, "*apm*")
 	require.NoError(t, err)
-	assertDatastreams(t, tt.checkAfterIngestBeforeUpgrade, dss)
-	t.Logf("time elapsed: %s", time.Now().Sub(start))
+	assertDatastreams(t, tt.checkPreUpgradeAfterIngest, dss)
+	t.Logf("time elapsed: %s", time.Since(start))
 
 	beforeUpgradeCount, err := getDocsCountPerDS(t, ctx, ecc)
 	require.NoError(t, err)
 
+	/* Perform upgrade */
 	upgradeCluster(t, ctx, tf, *target, tt.toVersion)
-	t.Logf("time elapsed: %s", time.Now().Sub(start))
+	t.Logf("time elapsed: %s", time.Since(start))
 
+	/* Post-upgrade assertions */
 	// We assert that no changes happened in the number of documents after upgrade
 	// to ensure the state didn't change before running the next ingestion round
 	// and further assertions.
@@ -107,11 +118,13 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	t.Log("check data streams after upgrade")
 	dss, err = ecc.GetDataStream(ctx, "*apm*")
 	require.NoError(t, err)
-	assertDatastreams(t, tt.checkAfterUpgradeBeforeIngest, dss)
+	assertDatastreams(t, tt.checkPostUpgradeBeforeIngest, dss)
 
+	/* Post-upgrade ingestion */
 	require.NoError(t, g.RunBlockingWait(ctx, kbc, deploymentID))
-	t.Logf("time elapsed: %s", time.Now().Sub(start))
+	t.Logf("time elapsed: %s", time.Since(start))
 
+	/* Post-upgrade ingestion assertions */
 	t.Log("check number of documents after final ingestion")
 	afterUpgradeIngestionCount, err := getDocsCountPerDS(t, ctx, ecc)
 	require.NoError(t, err)
@@ -120,11 +133,11 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	t.Log("check data streams after final ingestion")
 	dss2, err := ecc.GetDataStream(ctx, "*apm*")
 	require.NoError(t, err)
-	assertDatastreams(t, tt.checkAfterUpgradeAfterIngest, dss2)
-	t.Logf("time elapsed: %s", time.Now().Sub(start))
+	assertDatastreams(t, tt.checkPostUpgradeAfterIngest, dss2)
+	t.Logf("time elapsed: %s", time.Since(start))
 
+	/* Ensure no errors at all */
 	resp, err := ecc.GetESErrorLogs(ctx)
 	require.NoError(t, err)
 	asserts.ZeroESLogs(t, *resp)
-
 }
