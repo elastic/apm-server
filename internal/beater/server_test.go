@@ -455,7 +455,7 @@ func TestServerElasticsearchOutput(t *testing.T) {
 		w.Header().Set("X-Elastic-Product", "Elasticsearch")
 		// We must send a valid JSON response for the libbeat
 		// elasticsearch client to send bulk requests.
-		fmt.Fprintln(w, `{"version":{"number":"1.2.3"}}`)
+		_, _ = fmt.Fprintln(w, `{"version":{"number":"1.2.3"}}`)
 	})
 
 	done := make(chan struct{})
