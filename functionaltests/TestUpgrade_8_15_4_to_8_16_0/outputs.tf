@@ -23,9 +23,5 @@ output "deployment_id" {
 }
 
 output "apm_id" {
-  value = module.ec_deployment.apm_component_id
-}
-
-output "fleet_id" {
-  value = module.ec_deployment.fleet_component_id
+  value = module.ec_deployment.ech_apm_component_id
 }
