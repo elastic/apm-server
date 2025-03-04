@@ -38,7 +38,7 @@ func TestRootHandler_AuthorizationMiddleware(t *testing.T) {
 	cfg.AgentAuth.SecretToken = "1234"
 
 	t.Run("No auth", func(t *testing.T) {
-		rec, err := requestToMuxerWithPattern(cfg, RootPath)
+		rec, err := requestToMuxerWithHeader(cfg, RootPath, http.MethodGet, nil)
 		require.NoError(t, err)
 		assert.Equal(t, http.StatusOK, rec.Code)
 		assert.Empty(t, rec.Body.String())
