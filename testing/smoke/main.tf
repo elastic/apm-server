@@ -11,7 +11,7 @@ terraform {
 provider "ec" {}
 
 module "tags" {
-  source  = "../infra/terraform/modules/tags"
+  source  = "../../infra/terraform/modules/tags"
   project = "apm-server"
 }
 
