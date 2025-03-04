@@ -444,34 +444,36 @@ func TestOTLPRateLimit(t *testing.T) {
 			otlptracegrpc.WithHeaders(map[string]string{"x-real-ip": ip}),
 			otlptracegrpc.WithRetry(otlptracegrpc.RetryConfig{Enabled: false}),
 		)
-		resource := sdkresource.NewSchemaless(
+		res := sdkresource.NewSchemaless(
 			attribute.String("service.name", "service2"),
 			attribute.String("telemetry.sdk.name", "iOS"),
 			attribute.String("telemetry.sdk.language", "swift"),
 		)
-		return sendOTLPTrace(ctx, newOTLPTracerProvider(exporter, sdktrace.WithResource(resource)))
+		return sendOTLPTrace(ctx, newOTLPTracerProvider(exporter, sdktrace.WithResource(res)))
 	}
 
 	// Check that for the configured IP limit (2), we can handle 3*event_limit without being rate limited.
-	g, ctx := errgroup.WithContext(context.Background())
+	g1, ctx1 := errgroup.WithContext(context.Background())
 	for i := 0; i < sendEventLimit; i++ {
-		g.Go(func() error { return sendEvent(ctx, "10.11.12.13") })
-		g.Go(func() error { return sendEvent(ctx, "10.11.12.14") })
+		g1.Go(func() error { return sendEvent(ctx1, "10.11.12.13") })
+		g1.Go(func() error { return sendEvent(ctx1, "10.11.12.14") })
 	}
-	err = g.Wait()
+	err = g1.Wait()
 	assert.NoError(t, err)
 
+	// NOTE: Use new errgroup since the previous context may already be cancelled after Wait.
+	g2, ctx2 := errgroup.WithContext(context.Background())
 	// The rate limiter cache only has space for 2 IPs, so the 3rd one reuses an existing
 	// limiter which should have already been exhausted. However, the rate limiter may be
 	// replenished before the test can run with a third IP, so we cannot test this behaviour
 	// exactly. Instead, we just test that rate limiting is effective generally, and defer
 	// more thorough testing to unit tests.
 	for i := 0; i < sendEventLimit*2; i++ {
-		g.Go(func() error { return sendEvent(ctx, "10.11.12.13") })
-		g.Go(func() error { return sendEvent(ctx, "10.11.12.14") })
-		g.Go(func() error { return sendEvent(ctx, "11.11.12.15") })
+		g2.Go(func() error { return sendEvent(ctx2, "10.11.12.13") })
+		g2.Go(func() error { return sendEvent(ctx2, "10.11.12.14") })
+		g2.Go(func() error { return sendEvent(ctx2, "11.11.12.15") })
 	}
-	err = g.Wait()
+	err = g2.Wait()
 	require.Error(t, err)
 
 	errStatus, ok := status.FromError(err)
