@@ -26,9 +26,6 @@ import (
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 )
 
-<<<<<<< HEAD
-func ExpectOtelMetrics(t *testing.T, reader sdkmetric.Reader, expectedMetrics map[string]interface{}) {
-=======
 func ExpectOtelMetrics(
 	t *testing.T,
 	reader sdkmetric.Reader,
@@ -66,7 +63,6 @@ func assertOtelMetrics(
 	expectedMetrics map[string]any,
 	fullMatch, skipValAssert bool,
 ) {
->>>>>>> a5a53ecd (test: Fix flaky esoutput (#15948))
 	t.Helper()
 
 	var rm metricdata.ResourceMetrics
@@ -75,22 +71,8 @@ func assertOtelMetrics(
 	assert.NotEqual(t, 0, len(rm.ScopeMetrics))
 	foundMetrics := []string{}
 	for _, sm := range rm.ScopeMetrics {
-
 		for _, m := range sm.Metrics {
 			switch d := m.Data.(type) {
-<<<<<<< HEAD
-			case metricdata.Sum[int64]:
-				assert.Equal(t, 1, len(d.DataPoints))
-				foundMetrics = append(foundMetrics, m.Name)
-
-				if v, ok := expectedMetrics[m.Name]; ok {
-					if dp, ok := v.(int); ok {
-						assert.Equal(t, int64(dp), d.DataPoints[0].Value, m.Name)
-					} else {
-						assert.Fail(t, "expected an int value", m.Name)
-					}
-				} else {
-=======
 			case metricdata.Gauge[int64]:
 				assert.Equal(t, 1, len(d.DataPoints))
 				foundMetrics = append(foundMetrics, m.Name)
@@ -114,23 +96,12 @@ func assertOtelMetrics(
 				if v, ok := expectedMetrics[m.Name]; ok {
 					assert.EqualValues(t, v, d.DataPoints[0].Value, m.Name)
 				} else if fullMatch {
->>>>>>> a5a53ecd (test: Fix flaky esoutput (#15948))
 					assert.Fail(t, "unexpected metric", m.Name)
 				}
 
 			case metricdata.Histogram[int64]:
 				assert.Equal(t, 1, len(d.DataPoints))
 				foundMetrics = append(foundMetrics, m.Name)
-<<<<<<< HEAD
-
-				if v, ok := expectedMetrics[m.Name]; ok {
-					if dp, ok := v.(int); ok {
-						assert.Equal(t, uint64(dp), d.DataPoints[0].Count, m.Name)
-					} else {
-						assert.Fail(t, "expected an int value", m.Name)
-					}
-				} else {
-=======
 				if skipValAssert {
 					continue
 				}
@@ -138,7 +109,6 @@ func assertOtelMetrics(
 				if v, ok := expectedMetrics[m.Name]; ok {
 					assert.EqualValues(t, v, d.DataPoints[0].Count, m.Name)
 				} else if fullMatch {
->>>>>>> a5a53ecd (test: Fix flaky esoutput (#15948))
 					assert.Fail(t, "unexpected metric", m.Name)
 				}
 			}
@@ -149,13 +119,9 @@ func assertOtelMetrics(
 	for k := range expectedMetrics {
 		expectedMetricsKeys = append(expectedMetricsKeys, k)
 	}
-<<<<<<< HEAD
-	assert.ElementsMatch(t, expectedMetricsKeys, foundMetrics)
-=======
 	if fullMatch {
 		assert.ElementsMatch(t, expectedMetricsKeys, foundMetrics)
 	} else {
 		assert.Subset(t, foundMetrics, expectedMetricsKeys)
 	}
->>>>>>> a5a53ecd (test: Fix flaky esoutput (#15948))
 }
