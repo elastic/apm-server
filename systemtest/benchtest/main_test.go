@@ -51,7 +51,7 @@ func Test_warmup(t *testing.T) {
 			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				if r.URL.Path == "/debug/vars" {
 					// Report idle APM Server.
-					w.Write([]byte(`{"libbeat.output.events.active":0}`))
+					_, _ = w.Write([]byte(`{"libbeat.output.events.active":0}`))
 					return
 				}
 
