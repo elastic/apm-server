@@ -482,7 +482,7 @@ func TestServerElasticsearchOutput(t *testing.T) {
 			"flush_interval": "1ms",
 			"backoff":        map[string]interface{}{"init": "1ms", "max": "1ms"},
 			"max_retries":    0,
-			"max_requests":   10,
+			"max_requests":   1,
 		},
 	})))
 
@@ -530,7 +530,7 @@ func TestServerElasticsearchOutput(t *testing.T) {
 	assert.Equal(t, map[string]interface{}{
 		"elasticsearch": map[string]interface{}{
 			"bulk_requests": map[string]interface{}{
-				"available": int64(9),
+				"available": int64(0),
 				"completed": int64(0),
 			},
 			"indexers": map[string]interface{}{
