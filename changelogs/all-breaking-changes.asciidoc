@@ -24,10 +24,6 @@ which limits the tail-sampling database size to `sampling.tail.storage_limit`
 and does not have the new disk usage threshold check.
 For more details, see https://github.com/elastic/apm-server/pull/15467[PR #15467] and
 https://github.com/elastic/apm-server/pull/15524[PR #15524]
-- Change server information endpoint `/` to only accept GET and HEAD requests.
-Any other methods will return HTTP 405 Method Not Allowed.
-This will surface any agent misconfiguration causing data to be sent to `/` instead of the correct endpoint,
-e.g. `/v1/traces` for OTLP/HTTP. [PR #15976]
 // end::90-bc[]
 
 // tag::811-bc[]
