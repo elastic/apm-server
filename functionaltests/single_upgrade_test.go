@@ -31,6 +31,7 @@ import (
 	"github.com/elastic/apm-server/functionaltests/internal/gen"
 	"github.com/elastic/apm-server/functionaltests/internal/kbclient"
 	"github.com/elastic/apm-server/functionaltests/internal/terraform"
+	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 )
 
 type additionalFunc func(t *testing.T, ctx context.Context, esc *esclient.Client, kbc *kbclient.Client) error
@@ -158,4 +159,24 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	resp, err := esc.GetESErrorLogs(ctx)
 	require.NoError(t, err)
 	asserts.ZeroESLogs(t, *resp)
+
+	resp, err = ecc.GetAPMErrorLogs(ctx, []types.Query{
+		{
+			MatchPhrasePrefix: map[string]types.MatchPhrasePrefixQuery{
+				"message": {Query: "http: TLS handshake error from 127.0.0.1:"},
+			},
+		},
+		{
+			MatchPhrase: map[string]types.MatchPhraseQuery{
+				"message": {Query: "ES returned unknown status code: 503 Service Unavailable"},
+			},
+		},
+		{
+			MatchPhrase: map[string]types.MatchPhraseQuery{
+				"message": {Query: "refresh cache elasticsearch returned status 503"},
+			},
+		},
+	})
+	require.NoError(t, err)
+	asserts.ZeroAPMLogs(t, *resp)
 }
