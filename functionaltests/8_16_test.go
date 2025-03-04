@@ -28,6 +28,7 @@ import (
 )
 
 func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
+	t.Parallel()
 	ecAPICheck(t)
 
 	tt := singleUpgradeTestCase{
@@ -63,6 +64,7 @@ func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
 }
 
 func TestUpgrade_8_13_4_to_8_16_0_Reroute(t *testing.T) {
+	t.Parallel()
 	ecAPICheck(t)
 
 	tt := singleUpgradeTestCase{
