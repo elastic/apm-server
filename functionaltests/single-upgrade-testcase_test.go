@@ -127,4 +127,24 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	require.NoError(t, err)
 	asserts.ZeroESLogs(t, *resp)
 
+	t.Log("verify no errors in APM logs")
+	resp, err = ecc.GetAPMErrorLogs(ctx, []types.Query{
+		{
+			MatchPhrasePrefix: map[string]types.MatchPhrasePrefixQuery{
+				"message": {Query: "http: TLS handshake error from 127.0.0.1:"},
+			},
+		},
+		{
+			MatchPhrase: map[string]types.MatchPhraseQuery{
+				"message": {Query: "ES returned unknown status code: 503 Service Unavailable"},
+			},
+		},
+		{
+			MatchPhrase: map[string]types.MatchPhraseQuery{
+				"message": {Query: "refresh cache elasticsearch returned status 503"},
+			},
+		},
+	})
+	require.NoError(t, err)
+	asserts.ZeroAPMLogs(t, *resp)
 }
