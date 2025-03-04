@@ -26,17 +26,6 @@ import (
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 )
 
-<<<<<<< HEAD
-func ExpectOtelMetrics(t *testing.T, reader sdkmetric.Reader, expectedMetrics map[string]interface{}) {
-	assertOtelMetrics(t, reader, expectedMetrics, true)
-}
-
-func ExpectContainOtelMetrics(t *testing.T, reader sdkmetric.Reader, expectedMetrics map[string]interface{}) {
-	assertOtelMetrics(t, reader, expectedMetrics, false)
-}
-
-func assertOtelMetrics(t *testing.T, reader sdkmetric.Reader, expectedMetrics map[string]interface{}, match bool) {
-=======
 func ExpectOtelMetrics(
 	t *testing.T,
 	reader sdkmetric.Reader,
@@ -74,7 +63,6 @@ func assertOtelMetrics(
 	expectedMetrics map[string]any,
 	fullMatch, skipValAssert bool,
 ) {
->>>>>>> a5a53ecd (test: Fix flaky esoutput (#15948))
 	t.Helper()
 
 	var rm metricdata.ResourceMetrics
@@ -89,12 +77,9 @@ func assertOtelMetrics(
 			case metricdata.Gauge[int64]:
 				assert.Equal(t, 1, len(d.DataPoints))
 				foundMetrics = append(foundMetrics, m.Name)
-<<<<<<< HEAD
-=======
 				if skipValAssert {
 					continue
 				}
->>>>>>> a5a53ecd (test: Fix flaky esoutput (#15948))
 
 				if v, ok := expectedMetrics[m.Name]; ok {
 					assert.EqualValues(t, v, d.DataPoints[0].Value, m.Name)
@@ -105,12 +90,9 @@ func assertOtelMetrics(
 			case metricdata.Sum[int64]:
 				assert.Equal(t, 1, len(d.DataPoints))
 				foundMetrics = append(foundMetrics, m.Name)
-<<<<<<< HEAD
-=======
 				if skipValAssert {
 					continue
 				}
->>>>>>> a5a53ecd (test: Fix flaky esoutput (#15948))
 
 				if v, ok := expectedMetrics[m.Name]; ok {
 					assert.EqualValues(t, v, d.DataPoints[0].Value, m.Name)
@@ -121,12 +103,9 @@ func assertOtelMetrics(
 			case metricdata.Histogram[int64]:
 				assert.Equal(t, 1, len(d.DataPoints))
 				foundMetrics = append(foundMetrics, m.Name)
-<<<<<<< HEAD
-=======
 				if skipValAssert {
 					continue
 				}
->>>>>>> a5a53ecd (test: Fix flaky esoutput (#15948))
 
 				if v, ok := expectedMetrics[m.Name]; ok {
 					assert.EqualValues(t, v, d.DataPoints[0].Count, m.Name)
