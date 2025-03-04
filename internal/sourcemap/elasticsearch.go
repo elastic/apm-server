@@ -33,7 +33,6 @@ import (
 	"github.com/go-sourcemap/sourcemap"
 
 	"github.com/elastic/elastic-agent-libs/logp"
-	"github.com/elastic/go-elasticsearch/v8/esapi"
 
 	"github.com/elastic/apm-server/internal/elasticsearch"
 	"github.com/elastic/apm-server/internal/logs"
@@ -89,9 +88,9 @@ func (s *esFetcher) Fetch(ctx context.Context, name, version, path string) (*sou
 			// http.StatusForbidden -> we don't have permission to read from the index
 			// In both cases we consider the fetcher unavailable so that APM Server can
 			// fallback to other fetchers
-			return nil, fmt.Errorf("%w: %s: %s", errFetcherUnvailable, resp.Status(), string(b))
+			return nil, fmt.Errorf("%w: %s: %s", errFetcherUnvailable, resp.Status, string(b))
 		}
-		return nil, fmt.Errorf("ES returned unknown status code: %s", resp.Status())
+		return nil, fmt.Errorf("ES returned unknown status code: %s", resp.Status)
 	}
 
 	// parse response
@@ -123,13 +122,13 @@ func (s *esFetcher) Fetch(ctx context.Context, name, version, path string) (*sou
 	return parseSourceMap(uncompressedBody)
 }
 
-func (s *esFetcher) runSearchQuery(ctx context.Context, name, version, path string) (*esapi.Response, error) {
+func (s *esFetcher) runSearchQuery(ctx context.Context, name, version, path string) (*http.Response, error) {
 	id := name + "-" + version + "-" + path
-	req := esapi.GetRequest{
-		Index:      s.index,
-		DocumentID: url.PathEscape(id),
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "/"+s.index+"/_doc/"+url.PathEscape(id), nil)
+	if err != nil {
+		return nil, err
 	}
-	return req.Do(ctx, s.client)
+	return s.client.Perform(req)
 }
 
 func parse(body io.ReadCloser, name, version, path string, logger *logp.Logger) (string, error) {

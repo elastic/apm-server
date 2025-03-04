@@ -11,32 +11,27 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/pkg/errors"
-
-	"github.com/elastic/go-elasticsearch/v8"
-	"github.com/elastic/go-elasticsearch/v8/esapi"
+	"github.com/elastic/elastic-transport-go/v8/elastictransport"
 )
 
 // getGlobalCheckpoints returns the current global checkpoint for each index
 // underlying dataStream. Each index is required to have a single (primary) shard.
 func getGlobalCheckpoints(
 	ctx context.Context,
-	client *elasticsearch.Client,
+	client *elastictransport.Client,
 	dataStream string,
 ) (map[string]int64, error) {
 	indexGlobalCheckpoints := make(map[string]int64)
-	resp, err := esapi.IndicesStatsRequest{
-		Index: []string{dataStream},
-		Level: "shards",
-		// By default all metrics are returned; query just the "get" metric,
-		// which is very cheap.
-		Metric: []string{"get"},
-	}.Do(ctx, client)
+	req, err := newIndicesStatsRequest(ctx, dataStream)
 	if err != nil {
-		return nil, errors.Wrap(err, "index stats request failed")
+		return nil, fmt.Errorf("failed to created indices request: %w", err)
+	}
+	resp, err := client.Perform(req)
+	if err != nil {
+		return nil, fmt.Errorf("index stats request failed: %w", err)
 	}
 	defer resp.Body.Close()
-	if resp.IsError() {
+	if resp.StatusCode > 299 {
 		switch resp.StatusCode {
 		case http.StatusNotFound:
 			// Data stream does not yet exist.
@@ -65,6 +60,11 @@ func getGlobalCheckpoints(
 		}
 	}
 	return indexGlobalCheckpoints, nil
+}
+
+func newIndicesStatsRequest(ctx context.Context, index string) (*http.Request, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "/"+index+"/_stats/get?level=shards", nil)
+	return req, err
 }
 
 type dataStreamStats struct {

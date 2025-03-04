@@ -134,7 +134,7 @@ func TestAuthenticatorAPIKey(t *testing.T) {
 	}}, authz)
 
 	assert.Equal(t, "/_security/user/_has_privileges", requestURLPath)
-	assert.Equal(t, `{"application":[{"application":"apm","privileges":["config_agent:read","event:write","sourcemap:write"],"resources":["-"]}]}`+"\n", string(requestBody))
+	assert.Equal(t, `{"application":[{"application":"apm","privileges":["config_agent:read","event:write","sourcemap:write"],"resources":["-"]}]}`, string(requestBody))
 	assert.Equal(t, "ApiKey "+credentials, requestAuthorizationHeader)
 }
 
