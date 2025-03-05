@@ -22,12 +22,13 @@ import (
 	"os"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
+	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
+
 	"github.com/elastic/apm-server/functionaltests/internal/esclient"
 	"github.com/elastic/apm-server/functionaltests/internal/kbclient"
 	"github.com/elastic/apm-server/functionaltests/internal/terraform"
-	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
-
-	"github.com/stretchr/testify/require"
 )
 
 // ecAPICheck verifies if EC_API_KEY env var is set.
@@ -40,6 +41,13 @@ import (
 func ecAPICheck(t *testing.T) {
 	t.Helper()
 	require.NotEmpty(t, os.Getenv("EC_API_KEY"), "EC_API_KEY env var not set")
+}
+
+func createAPMAPIKey(t *testing.T, ctx context.Context, ecc *esclient.Client) string {
+	t.Helper()
+	apiKey, err := ecc.CreateAPIKey(ctx, t.Name(), -1, map[string]types.RoleDescriptor{})
+	require.NoError(t, err)
+	return apiKey
 }
 
 // createCluster runs terraform on the test terraform folder to spin up an Elastic Cloud Hosted cluster for testing.
@@ -73,8 +81,6 @@ func createCluster(t *testing.T, ctx context.Context, tf *terraform.Runner, targ
 	require.NoError(t, tf.Output("deployment_id", &deploymentID))
 	var apmID string
 	require.NoError(t, tf.Output("apm_id", &apmID))
-	var fleetID string
-	require.NoError(t, tf.Output("fleet_id", &fleetID))
 	var escfg esclient.Config
 	require.NoError(t, tf.Output("apm_url", &escfg.APMServerURL))
 	require.NoError(t, tf.Output("es_url", &escfg.ElasticsearchURL))
@@ -82,7 +88,7 @@ func createCluster(t *testing.T, ctx context.Context, tf *terraform.Runner, targ
 	require.NoError(t, tf.Output("password", &escfg.Password))
 	require.NoError(t, tf.Output("kb_url", &escfg.KibanaURL))
 
-	t.Logf("created deployment %s with APM (%s) and Fleet (%s)", deploymentID, apmID, fleetID)
+	t.Logf("created deployment %s with APM (%s)", deploymentID, apmID)
 	return deploymentID, escfg
 }
 

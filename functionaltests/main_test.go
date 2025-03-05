@@ -23,11 +23,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/elastic/apm-server/functionaltests/internal/esclient"
-	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/elastic/apm-server/functionaltests/internal/esclient"
+	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 )
 
 var cleanupOnFailure *bool = flag.Bool("cleanup-on-failure", true, "Whether to run cleanup even if the test failed.")
