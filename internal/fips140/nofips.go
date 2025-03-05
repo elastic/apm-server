@@ -23,6 +23,6 @@ import cryptofips "crypto/fips140"
 
 func CheckFips() {
 	if cryptofips.Enabled() {
-		panic("fips mode require -tags=requirefips")
+		panic("fips mode requires -tags=requirefips")
 	}
 }
