@@ -91,7 +91,7 @@ func TestUpgrade_8_13_4_to_8_16_0_Reroute(t *testing.T) {
 			return true
 		},
 		// Verify manual rollover happened, i.e. 2 indices per data stream.
-		// Check data streams are managed by ILM since they were created before 8.15.0.
+		// Check data streams are managed by ILM since they are created before 8.15.0.
 		checkPostUpgradeAfterIngest: checkDatastreamWant{
 			Quantity:         8,
 			PreferIlm:        false,
