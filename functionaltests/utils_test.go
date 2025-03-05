@@ -22,12 +22,13 @@ import (
 	"os"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
+	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
+
 	"github.com/elastic/apm-server/functionaltests/internal/esclient"
 	"github.com/elastic/apm-server/functionaltests/internal/kbclient"
 	"github.com/elastic/apm-server/functionaltests/internal/terraform"
-	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
-
-	"github.com/stretchr/testify/require"
 )
 
 // ecAPICheck verifies if EC_API_KEY env var is set.
@@ -40,6 +41,13 @@ import (
 func ecAPICheck(t *testing.T) {
 	t.Helper()
 	require.NotEmpty(t, os.Getenv("EC_API_KEY"), "EC_API_KEY env var not set")
+}
+
+func createAPMAPIKey(t *testing.T, ctx context.Context, ecc *esclient.Client) string {
+	t.Helper()
+	apiKey, err := ecc.CreateAPIKey(ctx, t.Name(), -1, map[string]types.RoleDescriptor{})
+	require.NoError(t, err)
+	return apiKey
 }
 
 // createCluster runs terraform on the test terraform folder to spin up an Elastic Cloud Hosted cluster for testing.
