@@ -107,5 +107,4 @@ targets:
         - go.mod
         - cmd/intake-receiver/go.mod
         - systemtest/go.mod
-        - tools/go.mod
       matchpattern: 'go \d+.\d+'
