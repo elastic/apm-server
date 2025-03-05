@@ -84,7 +84,7 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	tf, err := terraform.New(t, t.Name())
 	require.NoError(t, err)
 
-	/* Cluster setup */
+	t.Log("------ cluster setup ------")
 	deploymentID, escfg := createCluster(t, ctx, tf, *target, tt.fromVersion)
 	t.Logf("time elapsed: %s", time.Since(start))
 
