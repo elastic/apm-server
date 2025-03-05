@@ -67,6 +67,7 @@ func TestUpgrade_8_13_4_to_8_16_0_Reroute(t *testing.T) {
 		fromVersion: "8.13.4",
 		toVersion:   "8.16.0",
 		preUpgradeBeforeIngestSetup: func(t *testing.T, ctx context.Context, cfg *config, deps dependencies) bool {
+			t.Log("create reroute processors")
 			rerouteNamespace := "rerouted"
 			cfg.DSNamespace = rerouteNamespace
 			require.NoError(t, deps.ESClient.CreateRerouteProcessors(ctx, rerouteNamespace))
@@ -87,6 +88,7 @@ func TestUpgrade_8_13_4_to_8_16_0_Reroute(t *testing.T) {
 			IndicesManagedBy: []string{managedByILM},
 		},
 		postUpgradeBeforeIngestSetup: func(t *testing.T, ctx context.Context, cfg *config, deps dependencies) bool {
+			t.Log("perform manual rollovers")
 			require.NoError(t, deps.ESClient.PerformManualRollovers(ctx, cfg.DSNamespace))
 			return true
 		},
