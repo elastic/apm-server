@@ -43,16 +43,20 @@ const (
 	managedByILM = "Index Lifecycle Management"
 )
 
+const (
+	defaultNamespace = "default"
+)
+
 // expectedIngestForASingleRun() represent the expected number of ingested document after a
 // single run of ingest().
 // Only non aggregation data streams are included, as aggregation ones differs on different
 // runs.
-func expectedIngestForASingleRun() esclient.APMDataStreamsDocCount {
+func expectedIngestForASingleRun(namespace string) esclient.APMDataStreamsDocCount {
 	return map[string]int{
-		"traces-apm-default":                     15013,
-		"metrics-apm.app.opbeans_python-default": 1437,
-		"metrics-apm.internal-default":           1351,
-		"logs-apm.error-default":                 364,
+		fmt.Sprintf("traces-apm-%s", namespace):                     15013,
+		fmt.Sprintf("metrics-apm.app.opbeans_python-%s", namespace): 1437,
+		fmt.Sprintf("metrics-apm.internal-%s", namespace):           1351,
+		fmt.Sprintf("logs-apm.error-%s", namespace):                 364,
 	}
 }
 
@@ -70,6 +74,8 @@ func assertDocCount(t *testing.T, docsCount, previous, expected esclient.APMData
 		if e, ok := expected[ds]; ok {
 			assert.Equal(t, e, v-previous[ds],
 				fmt.Sprintf("wrong document count for %s", ds))
+		} else {
+			t.Logf("unchecked documents (%d) for %s", v, ds)
 		}
 	}
 }
