@@ -23,6 +23,7 @@ import (
 
 	"github.com/elastic/apm-server/functionaltests/internal/esclient"
 	"github.com/elastic/apm-server/functionaltests/internal/kbclient"
+	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 )
 
 func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
@@ -54,6 +55,16 @@ func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
 			DSManagedBy:      managedByDSL,
 			IndicesPerDs:     2,
 			IndicesManagedBy: []string{managedByDSL, managedByDSL},
+		},
+
+		apmErrorLogsFilters: []types.Query{
+			tlsHandshakeError,
+			esReturnedUnknown503,
+			preconditionFailed,
+			populateSourcemapServerShuttingDown,
+			refreshCacheCtxDeadline,
+			// TODO: remove once fixed
+			populateSourcemapFetcher403,
 		},
 	}
 
@@ -99,6 +110,16 @@ func TestUpgrade_8_13_4_to_8_16_0_Reroute(t *testing.T) {
 			DSManagedBy:      managedByILM,
 			IndicesPerDs:     2,
 			IndicesManagedBy: []string{managedByILM, managedByILM},
+		},
+
+		apmErrorLogsFilters: []types.Query{
+			tlsHandshakeError,
+			esReturnedUnknown503,
+			preconditionFailed,
+			populateSourcemapServerShuttingDown,
+			refreshCacheCtxDeadline,
+			// TODO: remove once fixed
+			populateSourcemapFetcher403,
 		},
 	}
 
