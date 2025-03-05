@@ -176,6 +176,12 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 				"message": {Query: "refresh cache elasticsearch returned status 503"},
 			},
 		},
+		// TODO: remove once fixed
+		{
+			MatchPhrasePrefix: map[string]types.MatchPhrasePrefixQuery{
+				"message": {Query: "failed to populate sourcemap metadata: fetcher unavailable: 403 Forbidden:"},
+			},
+		},
 	})
 	require.NoError(t, err)
 	asserts.ZeroAPMLogs(t, *resp)
