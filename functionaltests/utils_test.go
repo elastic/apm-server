@@ -43,6 +43,13 @@ func ecAPICheck(t *testing.T) {
 	require.NotEmpty(t, os.Getenv("EC_API_KEY"), "EC_API_KEY env var not set")
 }
 
+func createAPMAPIKey(t *testing.T, ctx context.Context, ecc *esclient.Client) string {
+	t.Helper()
+	apiKey, err := ecc.CreateAPIKey(ctx, t.Name(), -1, map[string]types.RoleDescriptor{})
+	require.NoError(t, err)
+	return apiKey
+}
+
 // createCluster runs terraform on the test terraform folder to spin up an Elastic Cloud Hosted cluster for testing.
 // It returns the deploymentID of the created cluster and an esclient.Config object filled with cluster relevant
 // information.
