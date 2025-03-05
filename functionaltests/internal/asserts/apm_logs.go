@@ -20,6 +20,7 @@ package asserts
 import (
 	"encoding/json"
 	"testing"
+	"time"
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/search"
 
@@ -30,6 +31,7 @@ import (
 // APMLogEntry is used to unmarshal RawJSON from search responses
 // for displaying information.
 type APMLogEntry struct {
+	Timestamp time.Time `json:"@timestamp"`
 	Message   string
 	LogLogger string `json:"log.logger"`
 }
@@ -58,9 +60,13 @@ func ZeroAPMLogs(t *testing.T, resp search.Response) {
 	}
 
 	if !assert.Len(t, logs, 0, "expected no error logs, but found some") {
-		t.Log("found error logs:")
+		t.Log("found error logs (logger @ timestamp | message):")
 		for _, l := range logs {
-			t.Logf("- (%s) %s", l.LogLogger, l.Message)
+			logger := "unknown"
+			if l.LogLogger != "" {
+				logger = l.LogLogger
+			}
+			t.Logf("- %s @ %s | %s", logger, l.Timestamp, l.Message)
 		}
 	}
 }
