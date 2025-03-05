@@ -77,10 +77,12 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	previous, err := getDocsCountPerDS(t, ctx, ecc)
 	require.NoError(t, err)
 
-	t.Log("------ setup ------")
-	if tt.preIngestionSetup != nil && !tt.preIngestionSetup(t, ecc, kbc) {
-		assert.Fail(t, "pre-ingestion setup failed")
-		return
+	if tt.preIngestionSetup != nil {
+		t.Log("------ setup ------")
+		if !tt.preIngestionSetup(t, ecc, kbc) {
+			assert.Fail(t, "pre-ingestion setup failed")
+			return
+		}
 	}
 
 	t.Log("------ pre-upgrade ingestion ------")
