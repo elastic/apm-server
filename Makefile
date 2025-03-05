@@ -57,8 +57,9 @@ $(APM_SERVER_BINARIES): apm-server
 .PHONY: apm-server-build
 apm-server-build:
 	env CGO_ENABLED=$(CGO_ENABLED) GOOS=$(GOOS) GOARCH=$(GOARCH) \
-	go build -o "build/apm-server-$(shell go env GOOS)-$(shell go env GOARCH)$(SUFFIX)$(EXTENSION)"	-trimpath $(GOFLAGS) $(GOTAGS) $(GOMODFLAG) -ldflags "$(LDFLAGS)" $(PKG)
-	@cp "build/apm-server-$(shell go env GOOS)-$(shell go env GOARCH)$(SUFFIX)$(EXTENSION)" "apm-server$(SUFFIX)"
+	go build -o build/apm-server-bin -trimpath $(GOFLAGS) $(GOTAGS) $(GOMODFLAG) -ldflags "$(LDFLAGS)" $(PKG)
+	@cp build/apm-server-bin "apm-server$(SUFFIX)"
+	@mv build/apm-server-bin "build/apm-server-$(GOOS)-$(GOARCH)$(SUFFIX)$(EXTENSION)"
 
 build/apm-server-linux-%: GOOS=linux
 build/apm-server-darwin-%: GOOS=darwin
