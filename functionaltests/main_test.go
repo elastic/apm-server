@@ -47,8 +47,8 @@ const (
 	defaultNamespace = "default"
 )
 
-// expectedIngestForASingleRun() represent the expected number of ingested document after a
-// single run of ingest().
+// expectedIngestForASingleRun represent the expected number of ingested document after a
+// single run of ingest.
 // Only non aggregation data streams are included, as aggregation ones differs on different
 // runs.
 func expectedIngestForASingleRun(namespace string) esclient.APMDataStreamsDocCount {
@@ -60,22 +60,45 @@ func expectedIngestForASingleRun(namespace string) esclient.APMDataStreamsDocCou
 	}
 }
 
+// skippedIngest represent the data streams that are skipped.
+// Currently, all aggregation data streams are skipped since they can be different on each run.
+func skippedIngest(namespace string) []string {
+	return []string{
+		fmt.Sprintf("metrics-apm.service_destination.1m-%s", namespace),
+		fmt.Sprintf("metrics-apm.service_transaction.1m-%s", namespace),
+		fmt.Sprintf("metrics-apm.service_summary.1m-%s", namespace),
+		fmt.Sprintf("metrics-apm.transaction.1m-%s", namespace),
+	}
+}
+
 // getDocsCountPerDS retrieves document count.
 func getDocsCountPerDS(t *testing.T, ctx context.Context, ecc *esclient.Client) (esclient.APMDataStreamsDocCount, error) {
 	t.Helper()
 	return ecc.ApmDocCount(ctx)
 }
 
+func sliceToMap(s []string) map[string]bool {
+	m := make(map[string]bool)
+	for _, v := range s {
+		m[v] = true
+	}
+	return m
+}
+
 // assertDocCount check if specified document count is equal to expected minus
 // documents count from a previous state.
-func assertDocCount(t *testing.T, docsCount, previous, expected esclient.APMDataStreamsDocCount) {
+func assertDocCount(t *testing.T, docsCount, previous, expected esclient.APMDataStreamsDocCount, skippedDataStreams []string) {
 	t.Helper()
+	skipped := sliceToMap(skippedDataStreams)
 	for ds, v := range docsCount {
+		if skipped[ds] {
+			continue
+		}
 		if e, ok := expected[ds]; ok {
 			assert.Equal(t, e, v-previous[ds],
 				fmt.Sprintf("wrong document count for %s", ds))
 		} else {
-			t.Logf("unchecked documents (%d) for %s", v, ds)
+			t.Errorf("unexpected documents (%d) for %s", v, ds)
 		}
 	}
 }

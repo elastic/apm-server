@@ -119,7 +119,8 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	t.Log("check number of documents after initial ingestion")
 	atStartCount, err := getDocsCountPerDS(t, ctx, ecc)
 	require.NoError(t, err)
-	assertDocCount(t, atStartCount, previous, expectedIngestForASingleRun(cfg.DSNamespace))
+	assertDocCount(t, atStartCount, previous,
+		expectedIngestForASingleRun(cfg.DSNamespace), skippedIngest(cfg.DSNamespace))
 
 	t.Log("check data streams after initial ingestion")
 	dss, err := ecc.GetDataStream(ctx, "*apm*")
@@ -140,7 +141,8 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	// and further assertions.
 	// We don't expect any change here unless something broke during the upgrade.
 	t.Log("check number of documents across upgrade")
-	assertDocCount(t, beforeUpgradeCount, esclient.APMDataStreamsDocCount{}, atStartCount)
+	assertDocCount(t, beforeUpgradeCount, esclient.APMDataStreamsDocCount{},
+		atStartCount, skippedIngest(cfg.DSNamespace))
 
 	t.Log("check data streams after upgrade")
 	dss, err = ecc.GetDataStream(ctx, "*apm*")
@@ -163,7 +165,8 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	t.Log("check number of documents after final ingestion")
 	afterUpgradeIngestionCount, err := getDocsCountPerDS(t, ctx, ecc)
 	require.NoError(t, err)
-	assertDocCount(t, afterUpgradeIngestionCount, beforeUpgradeCount, expectedIngestForASingleRun(cfg.DSNamespace))
+	assertDocCount(t, afterUpgradeIngestionCount, beforeUpgradeCount,
+		expectedIngestForASingleRun(cfg.DSNamespace), skippedIngest(cfg.DSNamespace))
 
 	t.Log("check data streams after final ingestion")
 	dss2, err := ecc.GetDataStream(ctx, "*apm*")
