@@ -17,8 +17,7 @@
 
 //go:build requirefips
 
-package fips140
+// enforce fips140=only when running in fips mode
+//go:debug fips140=only
 
-func CheckFips() {
-	// all good
-}
+package main
