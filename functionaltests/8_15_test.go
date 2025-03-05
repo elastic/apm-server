@@ -65,8 +65,6 @@ func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
 	require.NoError(t, tf.Output("deployment_id", &deploymentID))
 	var apmID string
 	require.NoError(t, tf.Output("apm_id", &apmID))
-	var fleetID string
-	require.NoError(t, tf.Output("fleet_id", &fleetID))
 	var escfg esclient.Config
 	require.NoError(t, tf.Output("apm_url", &escfg.APMServerURL))
 	require.NoError(t, tf.Output("es_url", &escfg.ElasticsearchURL))
@@ -74,7 +72,7 @@ func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
 	require.NoError(t, tf.Output("password", &escfg.Password))
 	require.NoError(t, tf.Output("kb_url", &escfg.KibanaURL))
 
-	t.Logf("created deployment %s with APM (%s) and Fleet (%s)", deploymentID, apmID, fleetID)
+	t.Logf("created deployment %s with APM (%s)", deploymentID, apmID)
 
 	ecc, err := esclient.New(escfg)
 	require.NoError(t, err)
