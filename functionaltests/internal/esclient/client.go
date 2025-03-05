@@ -104,12 +104,6 @@ func (c *Client) CreateAPIKey(ctx context.Context, name string, expiration time.
 	return resp.Encoded, nil
 }
 
-func (c *Client) CreateAPMAPIKey(ctx context.Context, name string) (string, error) {
-	return c.CreateAPIKey(ctx,
-		name, -1, map[string]types.RoleDescriptor{},
-	)
-}
-
 func (c *Client) GetDataStream(ctx context.Context, name string) ([]types.DataStream, error) {
 	resp, err := c.es.Indices.GetDataStream().Name(name).Do(ctx)
 	if err != nil {
