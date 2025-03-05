@@ -22,6 +22,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
@@ -68,8 +69,8 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 
 	kbc := createKibanaClient(t, ctx, ecc, escfg)
 
-	t.Log("creating APM API key")
-	apikey, err := ecc.CreateAPMAPIKey(ctx, t.Name())
+	t.Log("create APM API key")
+	apikey, err := ecc.CreateAPIKey(ctx, t.Name(), -1, map[string]types.RoleDescriptor{})
 	require.NoError(t, err)
 
 	g := gen.New(escfg.APMServerURL, apikey)
