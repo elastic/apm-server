@@ -52,7 +52,11 @@ LDFLAGS := \
 # Instead, we use the "env" command to export them just when cross-compiling
 # the apm-server binaries.
 .PHONY: $(APM_SERVER_BINARIES)
-$(APM_SERVER_BINARIES): apm-server
+$(APM_SERVER_BINARIES):
+	# call make instead of using a prerequisite to force it to run the task when
+	# multiple targets are specified
+	CGO_ENABLED=$(CGO_ENABLED) GOOS=$(GOOS) GOARCH=$(GOARCH) PKG=$(PKG) GOTAGS=$(GOTAGS) SUFFIX=$(SUFFIX) EXTENSION=$(EXTENSION) \
+		    $(MAKE) apm-server
 
 .PHONY: apm-server-build
 apm-server-build:
