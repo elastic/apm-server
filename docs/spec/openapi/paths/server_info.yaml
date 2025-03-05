@@ -15,11 +15,3 @@ get:
   responses:
     '200':
       $ref: '../components/responses/200_server_info.yaml'
-post:
-  summary: Get general server information
-  operationId: postServerHealth
-  tags:
-    - server info
-  responses:
-    '200':
-      $ref: '../components/responses/200_server_info.yaml'
