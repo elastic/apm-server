@@ -49,7 +49,7 @@ func Handler(cfg HandlerConfig) request.Handler {
 			c.Result.SetWithError(
 				request.IDResponseErrorsMethodNotAllowed,
 				// include a verbose error message to alert users about a common misconfiguration
-				errors.New("this is the health check endpoint; did you mean to send data to another endpoint instead?"),
+				errors.New("this is the server information endpoint; did you mean to send data to another endpoint instead?"),
 			)
 			c.WriteResult()
 			return
