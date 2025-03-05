@@ -11,7 +11,7 @@ require (
 	github.com/elastic/apm-data v1.18.0
 	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20250305122545-0536310733fb
 	github.com/elastic/elastic-agent-client/v7 v7.17.1
-	github.com/elastic/elastic-agent-libs v0.18.7
+	github.com/elastic/elastic-agent-libs v0.18.8
 	github.com/elastic/elastic-agent-system-metrics v0.11.8
 	github.com/elastic/gmux v0.3.2
 	github.com/elastic/go-docappender/v2 v2.6.1
