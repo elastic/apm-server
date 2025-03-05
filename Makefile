@@ -105,7 +105,7 @@ system-test:
 
 .PHONY:
 clean:
-	@rm -rf build apm-server apm-server.exe
+	@rm -rf build apm-server apm-server.exe apm-server-oss apm-server-fips
 
 ##############################################################################
 # Checks/tests.
