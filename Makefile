@@ -93,7 +93,11 @@ apm-server-fips: GOTAGS=-tags=requirefips
 apm-server-oss: SUFFIX=-oss
 apm-server-fips: SUFFIX=-fips
 
-apm-server apm-server-oss apm-server-fips: apm-server-build
+apm-server apm-server-oss apm-server-fips:
+	# call make instead of using a prerequisite to force it to run the task when
+	# multiple targets are specified
+	CGO_ENABLED=$(CGO_ENABLED) GOOS=$(GOOS) GOARCH=$(GOARCH) PKG=$(PKG) GOTAGS=$(GOTAGS) SUFFIX=$(SUFFIX) EXTENSION=$(EXTENSION) \
+		    $(MAKE) apm-server-build
 
 .PHONY: test
 test:
