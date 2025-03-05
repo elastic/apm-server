@@ -53,6 +53,8 @@ type singleUpgradeTestCase struct {
 	checkPreUpgradeAfterIngest   checkDatastreamWant
 	checkPostUpgradeBeforeIngest checkDatastreamWant
 	checkPostUpgradeAfterIngest  checkDatastreamWant
+
+	apmErrorLogsFilters []types.Query
 }
 
 func (tt singleUpgradeTestCase) Run(t *testing.T) {
@@ -139,33 +141,13 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	t.Logf("time elapsed: %s", time.Since(start))
 
 	t.Log("------ check ES and APM error logs ------")
+	t.Log("checking ES error logs")
 	resp, err := ecc.GetESErrorLogs(ctx)
 	require.NoError(t, err)
 	asserts.ZeroESLogs(t, *resp)
 
-	resp, err = ecc.GetAPMErrorLogs(ctx, []types.Query{
-		{
-			MatchPhrasePrefix: map[string]types.MatchPhrasePrefixQuery{
-				"message": {Query: "http: TLS handshake error from 127.0.0.1:"},
-			},
-		},
-		{
-			MatchPhrase: map[string]types.MatchPhraseQuery{
-				"message": {Query: "ES returned unknown status code: 503 Service Unavailable"},
-			},
-		},
-		{
-			MatchPhrase: map[string]types.MatchPhraseQuery{
-				"message": {Query: "refresh cache elasticsearch returned status 503"},
-			},
-		},
-		// TODO: remove once fixed
-		{
-			MatchPhrasePrefix: map[string]types.MatchPhrasePrefixQuery{
-				"message": {Query: "failed to populate sourcemap metadata: fetcher unavailable: 403 Forbidden:"},
-			},
-		},
-	})
+	t.Log("checking APM error logs")
+	resp, err = ecc.GetAPMErrorLogs(ctx, tt.apmErrorLogsFilters)
 	require.NoError(t, err)
 	asserts.ZeroAPMLogs(t, *resp)
 }
