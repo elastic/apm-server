@@ -63,13 +63,13 @@ func TestUpgrade_8_13_4_to_8_16_0_Reroute(t *testing.T) {
 	t.Parallel()
 	ecAPICheck(t)
 
+	rerouteNamespace := "rerouted"
 	tt := singleUpgradeTestCase{
 		fromVersion: "8.13.4",
 		toVersion:   "8.16.0",
-		preUpgradeBeforeIngestSetup: func(t *testing.T, ctx context.Context, cfg *config, deps dependencies) bool {
+		setupFn: func(t *testing.T, ctx context.Context, cfg *config, deps dependencies) bool {
 			t.Log("create reroute processors")
-			rerouteNamespace := "rerouted"
-			cfg.DSNamespace = rerouteNamespace
+			*cfg = newDefaultConfigWithNamespace(rerouteNamespace)
 			require.NoError(t, deps.ESClient.CreateRerouteProcessors(ctx, rerouteNamespace))
 			return true
 		},
@@ -80,20 +80,20 @@ func TestUpgrade_8_13_4_to_8_16_0_Reroute(t *testing.T) {
 			IndicesPerDs:     1,
 			IndicesManagedBy: []string{managedByILM},
 		},
-		checkPostUpgradeBeforeIngest: checkDatastreamWant{
-			Quantity:         8,
-			PreferIlm:        false,
-			DSManagedBy:      managedByILM,
-			IndicesPerDs:     1,
-			IndicesManagedBy: []string{managedByILM},
-		},
-		postUpgradeBeforeIngestSetup: func(t *testing.T, ctx context.Context, cfg *config, deps dependencies) bool {
+		postUpgradeFn: func(t *testing.T, ctx context.Context, cfg *config, deps dependencies) bool {
 			t.Log("perform manual rollovers")
-			require.NoError(t, deps.ESClient.PerformManualRollovers(ctx, cfg.DSNamespace))
+			require.NoError(t, deps.ESClient.PerformManualRollovers(ctx, rerouteNamespace))
 			return true
 		},
 		// Verify manual rollover happened, i.e. 2 indices per data stream.
 		// Check data streams are managed by ILM since they are created before 8.15.0.
+		checkPostUpgradeBeforeIngest: checkDatastreamWant{
+			Quantity:         8,
+			PreferIlm:        false,
+			DSManagedBy:      managedByILM,
+			IndicesPerDs:     2,
+			IndicesManagedBy: []string{managedByILM, managedByILM},
+		},
 		checkPostUpgradeAfterIngest: checkDatastreamWant{
 			Quantity:         8,
 			PreferIlm:        false,

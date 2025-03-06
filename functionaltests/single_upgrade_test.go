@@ -44,17 +44,26 @@ func newDependencies(esc *esclient.Client, kbc *kbclient.Client) dependencies {
 }
 
 type config struct {
-	// DSNamespace is the data stream namespace to be used for assertions.
-	DSNamespace string
+	// ExpectedDocsCountPerIngestRun is the expected document count for each data
+	// stream per ingestion run. APM data streams don't usually change, but we may
+	// want to run tests where we use, e.g., a dedicated namespace.
+	ExpectedDocsCountPerIngestRun esclient.APMDataStreamsDocCount
+	// SkippedDataStreams are the data streams to be skipped during assertion.
+	SkippedDataStreams []string
 }
 
-func defaultConfig() config {
+func newDefaultConfigWithNamespace(namespace string) config {
 	return config{
-		DSNamespace: defaultNamespace,
+		ExpectedDocsCountPerIngestRun: expectedIngestForASingleRun(namespace),
+		SkippedDataStreams:            skippedIngest(namespace),
 	}
 }
 
-type setupFunc func(t *testing.T, ctx context.Context, cfg *config, deps dependencies) (continueTest bool)
+func newDefaultConfig() config {
+	return newDefaultConfigWithNamespace(defaultNamespace)
+}
+
+type additionalFn func(t *testing.T, ctx context.Context, cfg *config, deps dependencies) (continueTest bool)
 
 // singleUpgradeTestCase is a basic functional test case that performs a
 // cluster upgrade between 2 specified versions.
@@ -70,15 +79,15 @@ type singleUpgradeTestCase struct {
 	fromVersion string
 	toVersion   string
 
-	preUpgradeBeforeIngestSetup  setupFunc
+	setupFn                      additionalFn
 	checkPreUpgradeAfterIngest   checkDatastreamWant
+	postUpgradeFn                additionalFn
 	checkPostUpgradeBeforeIngest checkDatastreamWant
-	postUpgradeBeforeIngestSetup setupFunc
 	checkPostUpgradeAfterIngest  checkDatastreamWant
 }
 
 func (tt singleUpgradeTestCase) Run(t *testing.T) {
-	cfg := defaultConfig()
+	cfg := newDefaultConfig()
 	start := time.Now()
 	ctx := context.Background()
 	tf, err := terraform.New(t, t.Name())
@@ -103,10 +112,10 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	previous, err := getDocsCountPerDS(t, ctx, ecc)
 	require.NoError(t, err)
 
-	if tt.preUpgradeBeforeIngestSetup != nil {
-		t.Log("------ pre-upgrade before ingest setup ------")
-		if !tt.preUpgradeBeforeIngestSetup(t, ctx, &cfg, deps) {
-			assert.Fail(t, "pre-ingestion setup failed")
+	if tt.setupFn != nil {
+		t.Log("------ custom setup ------")
+		if !tt.setupFn(t, ctx, &cfg, deps) {
+			assert.Fail(t, "setup failed")
 			return
 		}
 	}
@@ -120,7 +129,7 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	atStartCount, err := getDocsCountPerDS(t, ctx, ecc)
 	require.NoError(t, err)
 	assertDocCount(t, atStartCount, previous,
-		expectedIngestForASingleRun(cfg.DSNamespace), skippedIngest(cfg.DSNamespace))
+		cfg.ExpectedDocsCountPerIngestRun, cfg.SkippedDataStreams)
 
 	t.Log("check data streams after initial ingestion")
 	dss, err := ecc.GetDataStream(ctx, "*apm*")
@@ -135,6 +144,14 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	upgradeCluster(t, ctx, tf, *target, tt.toVersion)
 	t.Logf("time elapsed: %s", time.Since(start))
 
+	if tt.postUpgradeFn != nil {
+		t.Log("------ custom post-upgrade ------")
+		if !tt.postUpgradeFn(t, ctx, &cfg, deps) {
+			assert.Fail(t, "post-upgrade failed")
+			return
+		}
+	}
+
 	t.Log("------ post-upgrade assertions ------")
 	// We assert that no changes happened in the number of documents after upgrade
 	// to ensure the state didn't change before running the next ingestion round
@@ -142,20 +159,12 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	// We don't expect any change here unless something broke during the upgrade.
 	t.Log("check number of documents across upgrade")
 	assertDocCount(t, beforeUpgradeCount, esclient.APMDataStreamsDocCount{},
-		atStartCount, skippedIngest(cfg.DSNamespace))
+		atStartCount, cfg.SkippedDataStreams)
 
 	t.Log("check data streams after upgrade")
 	dss, err = ecc.GetDataStream(ctx, "*apm*")
 	require.NoError(t, err)
 	assertDatastreams(t, tt.checkPostUpgradeBeforeIngest, dss)
-
-	if tt.postUpgradeBeforeIngestSetup != nil {
-		t.Log("------ post-upgrade before ingest setup ------")
-		if !tt.postUpgradeBeforeIngestSetup(t, ctx, &cfg, deps) {
-			assert.Fail(t, "post-upgrade before ingest setup failed")
-			return
-		}
-	}
 
 	t.Log("------ post-upgrade ingestion ------")
 	require.NoError(t, g.RunBlockingWait(ctx, kbc, deploymentID))
@@ -166,7 +175,7 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	afterUpgradeIngestionCount, err := getDocsCountPerDS(t, ctx, ecc)
 	require.NoError(t, err)
 	assertDocCount(t, afterUpgradeIngestionCount, beforeUpgradeCount,
-		expectedIngestForASingleRun(cfg.DSNamespace), skippedIngest(cfg.DSNamespace))
+		cfg.ExpectedDocsCountPerIngestRun, cfg.SkippedDataStreams)
 
 	t.Log("check data streams after final ingestion")
 	dss2, err := ecc.GetDataStream(ctx, "*apm*")
