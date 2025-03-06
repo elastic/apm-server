@@ -20,6 +20,7 @@ package api
 import (
 	"encoding/json"
 	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -27,6 +28,7 @@ import (
 
 	"github.com/elastic/apm-server/internal/beater/config"
 	"github.com/elastic/apm-server/internal/beater/headers"
+	"github.com/elastic/apm-server/internal/beater/monitoringtest"
 	"github.com/elastic/apm-server/internal/beater/request"
 	"github.com/elastic/apm-server/internal/version"
 )
@@ -36,7 +38,7 @@ func TestRootHandler_AuthorizationMiddleware(t *testing.T) {
 	cfg.AgentAuth.SecretToken = "1234"
 
 	t.Run("No auth", func(t *testing.T) {
-		rec, err := requestToMuxerWithPattern(cfg, RootPath)
+		rec, err := requestToMuxerWithHeader(cfg, RootPath, http.MethodGet, nil)
 		require.NoError(t, err)
 		assert.Equal(t, http.StatusOK, rec.Code)
 		assert.Empty(t, rec.Body.String())
@@ -63,10 +65,53 @@ func TestRootHandler_PanicMiddleware(t *testing.T) {
 }
 
 func TestRootHandler_MonitoringMiddleware(t *testing.T) {
-	testMonitoringMiddleware(t, "/", map[string]any{
-		"http.server." + string(request.IDRequestCount):       1,
-		"http.server." + string(request.IDResponseCount):      1,
-		"http.server." + string(request.IDResponseValidCount): 1,
-		"http.server." + string(request.IDResponseValidOK):    1,
-	})
+	validMethodMetrics := map[string]any{
+		"http.server." + string(request.IDRequestCount):           1,
+		"http.server." + string(request.IDResponseCount):          1,
+		"http.server." + string(request.IDResponseValidCount):     1,
+		"http.server." + string(request.IDResponseValidOK):        1,
+		"apm-server.root." + string(request.IDRequestCount):       1,
+		"apm-server.root." + string(request.IDResponseCount):      1,
+		"apm-server.root." + string(request.IDResponseValidCount): 1,
+		"apm-server.root." + string(request.IDResponseValidOK):    1,
+	}
+	invalidMethodMetrics := map[string]any{
+		"http.server." + string(request.IDRequestCount):                       1,
+		"http.server." + string(request.IDResponseCount):                      1,
+		"http.server." + string(request.IDResponseErrorsCount):                1,
+		"http.server." + string(request.IDResponseErrorsMethodNotAllowed):     1,
+		"apm-server.root." + string(request.IDRequestCount):                   1,
+		"apm-server.root." + string(request.IDResponseCount):                  1,
+		"apm-server.root." + string(request.IDResponseErrorsCount):            1,
+		"apm-server.root." + string(request.IDResponseErrorsMethodNotAllowed): 1,
+	}
+	for _, tc := range []struct {
+		method      string
+		wantMetrics map[string]any
+	}{
+		{
+			method:      http.MethodGet,
+			wantMetrics: validMethodMetrics,
+		},
+		{
+			method:      http.MethodHead,
+			wantMetrics: validMethodMetrics,
+		},
+		{
+			method:      http.MethodPut,
+			wantMetrics: invalidMethodMetrics,
+		},
+		{
+			method:      http.MethodPost,
+			wantMetrics: invalidMethodMetrics,
+		},
+	} {
+		t.Run(tc.method, func(t *testing.T) {
+			h, reader := newTestMux(t, config.DefaultConfig())
+			req := httptest.NewRequest(tc.method, "/", nil)
+			h.ServeHTTP(httptest.NewRecorder(), req)
+
+			monitoringtest.ExpectContainOtelMetrics(t, reader, tc.wantMetrics)
+		})
+	}
 }
