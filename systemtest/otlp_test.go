@@ -43,7 +43,6 @@ import (
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"go.opentelemetry.io/otel/metric"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
-	"go.opentelemetry.io/otel/sdk/resource"
 	sdkresource "go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/trace"
@@ -65,7 +64,7 @@ func TestOTLPGRPCTraces(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	resource, err := resource.Merge(resource.Default(), sdkresource.NewSchemaless(
+	resource, err := sdkresource.Merge(sdkresource.Default(), sdkresource.NewSchemaless(
 		attribute.StringSlice("resource_attribute_array", []string{"a", "b"}),
 		attribute.Bool("resource_attribute_bool", true),
 		attribute.BoolSlice("resource_attribute_bool_array", []bool{true, false}),
@@ -377,8 +376,8 @@ func TestOTLPAnonymous(t *testing.T) {
 			attributes = append(attributes, attribute.String("telemetry.sdk.language", telemetrySDKLanguage))
 		}
 		exporter := newOTLPTraceExporter(t, srv)
-		resources := sdkresource.NewSchemaless(attributes...)
-		return sendOTLPTrace(ctx, newOTLPTracerProvider(exporter, sdktrace.WithResource(resources)))
+		resource := sdkresource.NewSchemaless(attributes...)
+		return sendOTLPTrace(ctx, newOTLPTracerProvider(exporter, sdktrace.WithResource(resource)))
 	}
 
 	err = sendEvent("iOS", "swift", "allowed_service")
@@ -444,12 +443,12 @@ func TestOTLPRateLimit(t *testing.T) {
 			otlptracegrpc.WithHeaders(map[string]string{"x-real-ip": ip}),
 			otlptracegrpc.WithRetry(otlptracegrpc.RetryConfig{Enabled: false}),
 		)
-		resources := sdkresource.NewSchemaless(
+		resource := sdkresource.NewSchemaless(
 			attribute.String("service.name", "service2"),
 			attribute.String("telemetry.sdk.name", "iOS"),
 			attribute.String("telemetry.sdk.language", "swift"),
 		)
-		return sendOTLPTrace(ctx, newOTLPTracerProvider(exporter, sdktrace.WithResource(resources)))
+		return sendOTLPTrace(ctx, newOTLPTracerProvider(exporter, sdktrace.WithResource(resource)))
 	}
 
 	// Check that for the configured IP limit (2), we can handle 3*event_limit without being rate limited.
