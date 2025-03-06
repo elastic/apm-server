@@ -29,6 +29,8 @@ import (
 	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/search"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/esql/query"
+	"github.com/elastic/go-elasticsearch/v8/typedapi/indices/rollover"
+	"github.com/elastic/go-elasticsearch/v8/typedapi/ingest/putpipeline"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/security/createapikey"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 )
@@ -81,8 +83,8 @@ func formatDurationElasticsearch(d time.Duration) string {
 	return fmt.Sprintf("%dnanos", d)
 }
 
-// CreateAPIKey creates an API Key, and returns it in the
-// base64-encoded form that agents should provide.
+// CreateAPIKey creates an API Key, and returns it in the base64-encoded form
+// that agents should provide.
 //
 // If expiration is less than or equal to zero, then the API Key never expires.
 func (c *Client) CreateAPIKey(ctx context.Context, name string, expiration time.Duration, roles map[string]types.RoleDescriptor) (string, error) {
@@ -99,9 +101,58 @@ func (c *Client) CreateAPIKey(ctx context.Context, name string, expiration time.
 		},
 	}).Do(ctx)
 	if err != nil {
-		return "", fmt.Errorf("error creating API Key: %w", err)
+		return "", fmt.Errorf("error creating API key: %w", err)
 	}
 	return resp.Encoded, nil
+}
+
+// CreateRerouteProcessors creates re-route processors with the specified namespace for logs, metrics and traces.
+//
+// Refer to https://www.elastic.co/guide/en/elasticsearch/reference/current/reroute-processor.html.
+func (c *Client) CreateRerouteProcessors(ctx context.Context, name string) error {
+	for _, pipeline := range []string{"logs@custom", "metrics@custom", "traces@custom"} {
+		if err := c.createRerouteProcessor(ctx, pipeline, name); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (c *Client) createRerouteProcessor(ctx context.Context, pipeline string, name string) error {
+	_, err := c.es.Ingest.PutPipeline(pipeline).Request(&putpipeline.Request{
+		Processors: []types.ProcessorContainer{
+			{
+				Reroute: &types.RerouteProcessor{
+					Namespace: []string{name},
+				},
+			},
+		},
+	}).Do(ctx)
+	if err != nil {
+		return fmt.Errorf("error creating reroute processor for %s with name %s: %w", pipeline, name, err)
+	}
+	return nil
+}
+
+// PerformManualRollovers performs manual rollovers for logs, metrics and traces data-streams with
+// the specified namespace.
+//
+// Refer to https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-rollover-index.html.
+func (c *Client) PerformManualRollovers(ctx context.Context, name string) error {
+	for _, ds := range []string{"logs-apm.error-%s", "metrics-apm.transaction.1m-%s", "traces-apm-%s"} {
+		if err := c.performManualRollover(ctx, fmt.Sprintf(ds, name)); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (c *Client) performManualRollover(ctx context.Context, dataStream string) error {
+	_, err := c.es.Indices.Rollover(dataStream).Request(&rollover.Request{}).Do(ctx)
+	if err != nil {
+		return fmt.Errorf("error performing manual rollover for %s: %w", dataStream, err)
+	}
+	return nil
 }
 
 func (c *Client) GetDataStream(ctx context.Context, name string) ([]types.DataStream, error) {
