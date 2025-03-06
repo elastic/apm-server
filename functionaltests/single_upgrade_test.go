@@ -32,6 +32,7 @@ import (
 	"github.com/elastic/apm-server/functionaltests/internal/gen"
 	"github.com/elastic/apm-server/functionaltests/internal/kbclient"
 	"github.com/elastic/apm-server/functionaltests/internal/terraform"
+	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 )
 
 // singleUpgradeTestCase is a basic functional test case that performs a
@@ -141,4 +142,30 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	resp, err := ecc.GetESErrorLogs(ctx)
 	require.NoError(t, err)
 	asserts.ZeroESLogs(t, *resp)
+
+	resp, err = ecc.GetAPMErrorLogs(ctx, []types.Query{
+		{
+			MatchPhrasePrefix: map[string]types.MatchPhrasePrefixQuery{
+				"message": {Query: "http: TLS handshake error from 127.0.0.1:"},
+			},
+		},
+		{
+			MatchPhrase: map[string]types.MatchPhraseQuery{
+				"message": {Query: "ES returned unknown status code: 503 Service Unavailable"},
+			},
+		},
+		{
+			MatchPhrase: map[string]types.MatchPhraseQuery{
+				"message": {Query: "refresh cache elasticsearch returned status 503"},
+			},
+		},
+		// TODO: remove once fixed
+		{
+			MatchPhrasePrefix: map[string]types.MatchPhrasePrefixQuery{
+				"message": {Query: "failed to populate sourcemap metadata: fetcher unavailable: 403 Forbidden:"},
+			},
+		},
+	})
+	require.NoError(t, err)
+	asserts.ZeroAPMLogs(t, *resp)
 }
