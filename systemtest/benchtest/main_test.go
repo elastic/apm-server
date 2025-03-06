@@ -26,6 +26,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -48,13 +49,27 @@ func Test_warmup(t *testing.T) {
 	for _, c := range cases {
 		t.Run(fmt.Sprintf("%d_agent_%s", c.agents, c.duration.String()), func(t *testing.T) {
 			var received atomic.Uint64
-			completedRequestsCh := make(chan struct{}, 1)
+
+			var ongoingRequests atomic.Int64
+			waitUntilNoMoreOngoingRequests := func() {
+				for ongoingRequests.Load() > 0 {
+					time.Sleep(50 * time.Millisecond)
+				}
+			}
+
+			var closeOnce sync.Once
+			atLeastOneRequest := make(chan struct{})
+
 			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				if r.URL.Path == "/debug/vars" {
-					// Wait until there is a completed request before reporting idle.
 					// NOTE: There were cases in CI environment where this test handler reports idle
 					// before any previous requests were even completed.
-					<-completedRequestsCh
+
+					// Wait until there is at least one completed request.
+					// (to prevent this branch from firing before any requests are even received)
+					<-atLeastOneRequest
+					// Wait until there are no more ongoing requests.
+					waitUntilNoMoreOngoingRequests()
 					// Report idle APM Server.
 					_, _ = w.Write([]byte(`{"libbeat.output.events.active":0}`))
 					return
@@ -64,9 +79,11 @@ func Test_warmup(t *testing.T) {
 					return
 				}
 
-				// Add completed requests after replying to HTTP request.
+				// Signal that there is at least one request received.
+				closeOnce.Do(func() { close(atLeastOneRequest) })
+				ongoingRequests.Add(1)
 				defer func() {
-					completedRequestsCh <- struct{}{}
+					ongoingRequests.Add(-1)
 				}()
 
 				var reader io.Reader
