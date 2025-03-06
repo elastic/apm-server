@@ -34,28 +34,20 @@ import (
 	"github.com/elastic/apm-server/functionaltests/internal/terraform"
 )
 
-type dependencies struct {
-	ESClient     *esclient.Client
-	KibanaClient *kbclient.Client
-}
-
-func newDependencies(esc *esclient.Client, kbc *kbclient.Client) dependencies {
-	return dependencies{ESClient: esc, KibanaClient: kbc}
-}
-
 type config struct {
-	// ExpectedDocsCountPerIngestRun is the expected document count for each data
+	// ExpectedDocsCountPerIngest is the expected document count for each data
 	// stream per ingestion run. APM data streams don't usually change, but we may
 	// want to run tests where we use, e.g., a dedicated namespace.
-	ExpectedDocsCountPerIngestRun esclient.APMDataStreamsDocCount
-	// SkippedDataStreams are the data streams to be skipped during assertion.
-	SkippedDataStreams []string
+	ExpectedDocsCountPerIngest esclient.APMDataStreamsDocCount
+	// SkipDocsCountAssertDS are the data streams to be skipped during
+	// document count assertion.
+	SkipDocsCountAssertDS []string
 }
 
 func newDefaultConfigWithNamespace(namespace string) config {
 	return config{
-		ExpectedDocsCountPerIngestRun: expectedIngestForASingleRun(namespace),
-		SkippedDataStreams:            skippedIngest(namespace),
+		ExpectedDocsCountPerIngest: expectedIngestForASingleRun(namespace),
+		SkipDocsCountAssertDS:      aggregationDataStreams(namespace),
 	}
 }
 
@@ -63,7 +55,7 @@ func newDefaultConfig() config {
 	return newDefaultConfigWithNamespace(defaultNamespace)
 }
 
-type additionalFn func(t *testing.T, ctx context.Context, cfg *config, deps dependencies) (continueTest bool)
+type additionalFunc func(t *testing.T, ctx context.Context, cfg *config, esc *esclient.Client, kbc *kbclient.Client) (continueTest bool)
 
 // singleUpgradeTestCase is a basic functional test case that performs a
 // cluster upgrade between 2 specified versions.
@@ -79,9 +71,9 @@ type singleUpgradeTestCase struct {
 	fromVersion string
 	toVersion   string
 
-	setupFn                      additionalFn
+	setupFn                      additionalFunc
 	checkPreUpgradeAfterIngest   checkDatastreamWant
-	postUpgradeFn                additionalFn
+	postUpgradeFn                additionalFunc
 	checkPostUpgradeBeforeIngest checkDatastreamWant
 	checkPostUpgradeAfterIngest  checkDatastreamWant
 }
@@ -101,7 +93,6 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	require.NoError(t, err)
 
 	kbc := createKibanaClient(t, ctx, ecc, escfg)
-	deps := newDependencies(ecc, kbc)
 
 	t.Log("create APM API key")
 	apiKey := createAPMAPIKey(t, ctx, ecc)
@@ -114,7 +105,7 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 
 	if tt.setupFn != nil {
 		t.Log("------ custom setup ------")
-		if !tt.setupFn(t, ctx, &cfg, deps) {
+		if !tt.setupFn(t, ctx, &cfg, ecc, kbc) {
 			assert.Fail(t, "setup failed")
 			return
 		}
@@ -129,7 +120,7 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	atStartCount, err := getDocsCountPerDS(t, ctx, ecc)
 	require.NoError(t, err)
 	assertDocCount(t, atStartCount, previous,
-		cfg.ExpectedDocsCountPerIngestRun, cfg.SkippedDataStreams)
+		cfg.ExpectedDocsCountPerIngest, cfg.SkipDocsCountAssertDS)
 
 	t.Log("check data streams after initial ingestion")
 	dss, err := ecc.GetDataStream(ctx, "*apm*")
@@ -146,7 +137,7 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 
 	if tt.postUpgradeFn != nil {
 		t.Log("------ custom post-upgrade ------")
-		if !tt.postUpgradeFn(t, ctx, &cfg, deps) {
+		if !tt.postUpgradeFn(t, ctx, &cfg, ecc, kbc) {
 			assert.Fail(t, "post-upgrade failed")
 			return
 		}
@@ -159,7 +150,7 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	// We don't expect any change here unless something broke during the upgrade.
 	t.Log("check number of documents across upgrade")
 	assertDocCount(t, beforeUpgradeCount, esclient.APMDataStreamsDocCount{},
-		atStartCount, cfg.SkippedDataStreams)
+		atStartCount, cfg.SkipDocsCountAssertDS)
 
 	t.Log("check data streams after upgrade")
 	dss, err = ecc.GetDataStream(ctx, "*apm*")
@@ -175,7 +166,7 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	afterUpgradeIngestionCount, err := getDocsCountPerDS(t, ctx, ecc)
 	require.NoError(t, err)
 	assertDocCount(t, afterUpgradeIngestionCount, beforeUpgradeCount,
-		cfg.ExpectedDocsCountPerIngestRun, cfg.SkippedDataStreams)
+		cfg.ExpectedDocsCountPerIngest, cfg.SkipDocsCountAssertDS)
 
 	t.Log("check data streams after final ingestion")
 	dss2, err := ecc.GetDataStream(ctx, "*apm*")

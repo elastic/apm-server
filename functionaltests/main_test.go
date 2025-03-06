@@ -60,9 +60,7 @@ func expectedIngestForASingleRun(namespace string) esclient.APMDataStreamsDocCou
 	}
 }
 
-// skippedIngest represent the data streams that are skipped.
-// Currently, all aggregation data streams are skipped since they can be different on each run.
-func skippedIngest(namespace string) []string {
+func aggregationDataStreams(namespace string) []string {
 	return []string{
 		fmt.Sprintf("metrics-apm.service_destination.1m-%s", namespace),
 		fmt.Sprintf("metrics-apm.service_transaction.1m-%s", namespace),
@@ -94,12 +92,15 @@ func assertDocCount(t *testing.T, docsCount, previous, expected esclient.APMData
 		if skipped[ds] {
 			continue
 		}
-		if e, ok := expected[ds]; ok {
-			assert.Equal(t, e, v-previous[ds],
-				fmt.Sprintf("wrong document count for %s", ds))
-		} else {
+
+		e, ok := expected[ds]
+		if !ok {
 			t.Errorf("unexpected documents (%d) for %s", v, ds)
+			continue
 		}
+
+		assert.Equal(t, e, v-previous[ds],
+			fmt.Sprintf("wrong document count difference for %s", ds))
 	}
 }
 

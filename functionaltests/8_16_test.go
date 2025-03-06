@@ -21,7 +21,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/stretchr/testify/require"
+	"github.com/elastic/apm-server/functionaltests/internal/esclient"
+	"github.com/elastic/apm-server/functionaltests/internal/kbclient"
 )
 
 func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
@@ -67,10 +68,10 @@ func TestUpgrade_8_13_4_to_8_16_0_Reroute(t *testing.T) {
 	tt := singleUpgradeTestCase{
 		fromVersion: "8.13.4",
 		toVersion:   "8.16.0",
-		setupFn: func(t *testing.T, ctx context.Context, cfg *config, deps dependencies) bool {
+		setupFn: func(t *testing.T, ctx context.Context, cfg *config, esc *esclient.Client, _ *kbclient.Client) bool {
 			t.Log("create reroute processors")
 			*cfg = newDefaultConfigWithNamespace(rerouteNamespace)
-			require.NoError(t, deps.ESClient.CreateRerouteProcessors(ctx, rerouteNamespace))
+			createRerouteIngestPipeline(t, ctx, esc, rerouteNamespace)
 			return true
 		},
 		checkPreUpgradeAfterIngest: checkDatastreamWant{
@@ -80,9 +81,9 @@ func TestUpgrade_8_13_4_to_8_16_0_Reroute(t *testing.T) {
 			IndicesPerDs:     1,
 			IndicesManagedBy: []string{managedByILM},
 		},
-		postUpgradeFn: func(t *testing.T, ctx context.Context, cfg *config, deps dependencies) bool {
+		postUpgradeFn: func(t *testing.T, ctx context.Context, cfg *config, esc *esclient.Client, _ *kbclient.Client) bool {
 			t.Log("perform manual rollovers")
-			require.NoError(t, deps.ESClient.PerformManualRollovers(ctx, rerouteNamespace))
+			performManualRollovers(t, ctx, esc, cfg)
 			return true
 		},
 		// Verify manual rollover happened, i.e. 2 indices per data stream.
