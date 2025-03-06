@@ -377,8 +377,8 @@ func TestOTLPAnonymous(t *testing.T) {
 			attributes = append(attributes, attribute.String("telemetry.sdk.language", telemetrySDKLanguage))
 		}
 		exporter := newOTLPTraceExporter(t, srv)
-		resource := sdkresource.NewSchemaless(attributes...)
-		return sendOTLPTrace(ctx, newOTLPTracerProvider(exporter, sdktrace.WithResource(resource)))
+		resources := sdkresource.NewSchemaless(attributes...)
+		return sendOTLPTrace(ctx, newOTLPTracerProvider(exporter, sdktrace.WithResource(resources)))
 	}
 
 	err = sendEvent("iOS", "swift", "allowed_service")
@@ -444,12 +444,12 @@ func TestOTLPRateLimit(t *testing.T) {
 			otlptracegrpc.WithHeaders(map[string]string{"x-real-ip": ip}),
 			otlptracegrpc.WithRetry(otlptracegrpc.RetryConfig{Enabled: false}),
 		)
-		res := sdkresource.NewSchemaless(
+		resources := sdkresource.NewSchemaless(
 			attribute.String("service.name", "service2"),
 			attribute.String("telemetry.sdk.name", "iOS"),
 			attribute.String("telemetry.sdk.language", "swift"),
 		)
-		return sendOTLPTrace(ctx, newOTLPTracerProvider(exporter, sdktrace.WithResource(res)))
+		return sendOTLPTrace(ctx, newOTLPTracerProvider(exporter, sdktrace.WithResource(resources)))
 	}
 
 	// Check that for the configured IP limit (2), we can handle 3*event_limit without being rate limited.

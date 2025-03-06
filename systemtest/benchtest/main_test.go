@@ -48,14 +48,13 @@ func Test_warmup(t *testing.T) {
 	for _, c := range cases {
 		t.Run(fmt.Sprintf("%d_agent_%s", c.agents, c.duration.String()), func(t *testing.T) {
 			var received atomic.Uint64
-			var completedRequests atomic.Uint64
+			completedRequestsCh := make(chan struct{}, 1)
 			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				if r.URL.Path == "/debug/vars" {
-					// Wait until there are completed requests before reporting idle.
-					for completedRequests.Load() == 0 {
-						// NOTE: There were cases in CI environment where this test handler reports idle
-						// before any previous requests were even completed.
-					}
+					// Wait until there is a completed request before reporting idle.
+					// NOTE: There were cases in CI environment where this test handler reports idle
+					// before any previous requests were even completed.
+					<-completedRequestsCh
 					// Report idle APM Server.
 					_, _ = w.Write([]byte(`{"libbeat.output.events.active":0}`))
 					return
@@ -66,7 +65,9 @@ func Test_warmup(t *testing.T) {
 				}
 
 				// Add completed requests after replying to HTTP request.
-				defer completedRequests.Add(1)
+				defer func() {
+					completedRequestsCh <- struct{}{}
+				}()
 
 				var reader io.Reader
 				switch r.Header.Get("Content-Encoding") {
