@@ -65,7 +65,7 @@ func Test_warmup(t *testing.T) {
 					// NOTE: There were cases in CI environment where this test handler reports idle
 					// before any previous requests were even completed.
 
-					// Wait until there is at least one completed request.
+					// Wait until there is at least one received request.
 					// (to prevent this branch from firing before any requests are even received)
 					<-atLeastOneRequest
 					// Wait until there are no more ongoing requests.
