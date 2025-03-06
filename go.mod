@@ -118,6 +118,10 @@ require (
 	github.com/elastic/gosigar v0.14.3 // indirect
 	github.com/elastic/opentelemetry-lib v0.14.0 // indirect
 	github.com/elastic/pkcs8 v1.0.0 // indirect
+<<<<<<< HEAD
+=======
+	github.com/elastic/sarama v1.19.1-0.20250304185506-df6449b5c996 // indirect
+>>>>>>> ac609dae (feat(fips): bump sarama to drop kerberos lib in fips mode (#16032))
 	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/fatih/color v1.18.0 // indirect
 	github.com/fsnotify/fsnotify v1.8.0 // indirect
