@@ -69,6 +69,14 @@ func aggregationDataStreams(namespace string) []string {
 	}
 }
 
+func allDataStreams(namespace string) []string {
+	res := aggregationDataStreams(namespace)
+	for ds := range expectedIngestForASingleRun(namespace) {
+		res = append(res, ds)
+	}
+	return res
+}
+
 // getDocsCountPerDS retrieves document count.
 func getDocsCountPerDS(t *testing.T, ctx context.Context, ecc *esclient.Client) (esclient.APMDataStreamsDocCount, error) {
 	t.Helper()

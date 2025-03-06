@@ -133,16 +133,11 @@ func createRerouteIngestPipeline(t *testing.T, ctx context.Context, ecc *esclien
 	}
 }
 
-// performManualRollovers rollovers all logs, metrics and traces data streams to new indices.
-func performManualRollovers(t *testing.T, ctx context.Context, ecc *esclient.Client, cfg *config) {
+// performManualRollovers rollover all logs, metrics and traces data streams to new indices.
+func performManualRollovers(t *testing.T, ctx context.Context, ecc *esclient.Client, namespace string) {
 	t.Helper()
 
-	for ds := range cfg.ExpectedDocsCountPerIngest {
-		err := ecc.PerformManualRollover(ctx, ds)
-		require.NoError(t, err)
-	}
-
-	for _, ds := range cfg.SkipDocsCountAssertDS {
+	for _, ds := range allDataStreams(namespace) {
 		err := ecc.PerformManualRollover(ctx, ds)
 		require.NoError(t, err)
 	}

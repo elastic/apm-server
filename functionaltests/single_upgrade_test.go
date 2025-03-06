@@ -35,24 +35,14 @@ import (
 )
 
 type config struct {
-	// ExpectedDocsCountPerIngest is the expected document count for each data
-	// stream per ingestion run. APM data streams don't usually change, but we may
-	// want to run tests where we use, e.g., a dedicated namespace.
-	ExpectedDocsCountPerIngest esclient.APMDataStreamsDocCount
-	// SkipDocsCountAssertDS are the data streams to be skipped during
-	// document count assertion.
-	SkipDocsCountAssertDS []string
-}
-
-func newDefaultConfigWithNamespace(namespace string) config {
-	return config{
-		ExpectedDocsCountPerIngest: expectedIngestForASingleRun(namespace),
-		SkipDocsCountAssertDS:      aggregationDataStreams(namespace),
-	}
+	// DSNamespace is the namespace to be used for the data streams.
+	DSNamespace string
 }
 
 func newDefaultConfig() config {
-	return newDefaultConfigWithNamespace(defaultNamespace)
+	return config{
+		DSNamespace: defaultNamespace,
+	}
 }
 
 type additionalFunc func(t *testing.T, ctx context.Context, cfg *config, esc *esclient.Client, kbc *kbclient.Client) (continueTest bool)
@@ -120,7 +110,8 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	atStartCount, err := getDocsCountPerDS(t, ctx, ecc)
 	require.NoError(t, err)
 	assertDocCount(t, atStartCount, previous,
-		cfg.ExpectedDocsCountPerIngest, cfg.SkipDocsCountAssertDS)
+		expectedIngestForASingleRun(cfg.DSNamespace),
+		aggregationDataStreams(cfg.DSNamespace))
 
 	t.Log("check data streams after initial ingestion")
 	dss, err := ecc.GetDataStream(ctx, "*apm*")
@@ -150,7 +141,7 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	// We don't expect any change here unless something broke during the upgrade.
 	t.Log("check number of documents across upgrade")
 	assertDocCount(t, beforeUpgradeCount, esclient.APMDataStreamsDocCount{},
-		atStartCount, cfg.SkipDocsCountAssertDS)
+		atStartCount, aggregationDataStreams(cfg.DSNamespace))
 
 	t.Log("check data streams after upgrade")
 	dss, err = ecc.GetDataStream(ctx, "*apm*")
@@ -166,7 +157,7 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	afterUpgradeIngestionCount, err := getDocsCountPerDS(t, ctx, ecc)
 	require.NoError(t, err)
 	assertDocCount(t, afterUpgradeIngestionCount, beforeUpgradeCount,
-		cfg.ExpectedDocsCountPerIngest, cfg.SkipDocsCountAssertDS)
+		expectedIngestForASingleRun(cfg.DSNamespace), aggregationDataStreams(cfg.DSNamespace))
 
 	t.Log("check data streams after final ingestion")
 	dss2, err := ecc.GetDataStream(ctx, "*apm*")

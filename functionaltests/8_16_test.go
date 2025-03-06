@@ -70,8 +70,8 @@ func TestUpgrade_8_13_4_to_8_16_0_Reroute(t *testing.T) {
 		toVersion:   "8.16.0",
 		setupFn: func(t *testing.T, ctx context.Context, cfg *config, esc *esclient.Client, _ *kbclient.Client) bool {
 			t.Log("create reroute processors")
-			*cfg = newDefaultConfigWithNamespace(rerouteNamespace)
-			createRerouteIngestPipeline(t, ctx, esc, rerouteNamespace)
+			cfg.DSNamespace = rerouteNamespace
+			createRerouteIngestPipeline(t, ctx, esc, cfg.DSNamespace)
 			return true
 		},
 		checkPreUpgradeAfterIngest: checkDatastreamWant{
@@ -83,7 +83,7 @@ func TestUpgrade_8_13_4_to_8_16_0_Reroute(t *testing.T) {
 		},
 		postUpgradeFn: func(t *testing.T, ctx context.Context, cfg *config, esc *esclient.Client, _ *kbclient.Client) bool {
 			t.Log("perform manual rollovers")
-			performManualRollovers(t, ctx, esc, cfg)
+			performManualRollovers(t, ctx, esc, cfg.DSNamespace)
 			return true
 		},
 		// Verify manual rollover happened, i.e. 2 indices per data stream.
