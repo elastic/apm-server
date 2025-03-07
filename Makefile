@@ -100,7 +100,7 @@ apm-server apm-server-oss apm-server-fips:
 	# multiple targets are specified
 	CGO_ENABLED=$(CGO_ENABLED) GOOS=$(GOOS) GOARCH=$(GOARCH) PKG=$(PKG) GOTAGS=$(GOTAGS) SUFFIX=$(SUFFIX) EXTENSION=$(EXTENSION) \
 		    $(MAKE) apm-server-build
-	@[ "${NOCP}" ] || @cp "build/apm-server-$(GOOS)-$(GOARCH)$(SUFFIX)$(EXTENSION)" "apm-server$(SUFFIX)"
+	@[ "${NOCP}" ] || cp "build/apm-server-$(GOOS)-$(GOARCH)$(SUFFIX)$(EXTENSION)" "apm-server$(SUFFIX)"
 
 .PHONY: test
 test:
