@@ -32,6 +32,7 @@ import (
 	"github.com/elastic/apm-server/functionaltests/internal/gen"
 	"github.com/elastic/apm-server/functionaltests/internal/kbclient"
 	"github.com/elastic/apm-server/functionaltests/internal/terraform"
+	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 )
 
 // singleUpgradeTestCase is a basic functional test case that performs a
@@ -52,6 +53,8 @@ type singleUpgradeTestCase struct {
 	checkPreUpgradeAfterIngest   checkDatastreamWant
 	checkPostUpgradeBeforeIngest checkDatastreamWant
 	checkPostUpgradeAfterIngest  checkDatastreamWant
+
+	apmErrorLogsFilters []types.Query
 }
 
 func (tt singleUpgradeTestCase) Run(t *testing.T) {
@@ -138,7 +141,13 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	t.Logf("time elapsed: %s", time.Since(start))
 
 	t.Log("------ check ES and APM error logs ------")
+	t.Log("checking ES error logs")
 	resp, err := ecc.GetESErrorLogs(ctx)
 	require.NoError(t, err)
 	asserts.ZeroESLogs(t, *resp)
+
+	t.Log("checking APM error logs")
+	resp, err = ecc.GetAPMErrorLogs(ctx, tt.apmErrorLogsFilters)
+	require.NoError(t, err)
+	asserts.ZeroAPMLogs(t, *resp)
 }
