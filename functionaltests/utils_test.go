@@ -51,13 +51,14 @@ func createAPMAPIKey(t *testing.T, ctx context.Context, ecc *esclient.Client) st
 	return apiKey
 }
 
+// terraformDir returns the name of the Terraform files directory for this test.
 func terraformDir(t *testing.T) string {
 	t.Helper()
 	return fmt.Sprintf("tf-%s", t.Name())
 }
 
 // copyTerraforms copies the static Terraform files to the Terraform directory for this test.
-// It will remove all existing files from the test Terraform directory if it exists.
+// It will remove all existing files from the test Terraform directory if it exists, before copying into it.
 func copyTerraforms(t *testing.T) {
 	t.Helper()
 	dirName := terraformDir(t)
