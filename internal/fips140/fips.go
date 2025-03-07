@@ -19,6 +19,12 @@
 
 package fips140
 
+import cryptofips "crypto/fips140"
+
 func CheckFips() {
-	// all good
+	if !cryptofips.Enabled() {
+		// this should never happen since we enforce fips140=only for
+		// the fips binary
+		panic("fips is not enabled but this is a fips binary")
+	}
 }
