@@ -23,6 +23,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"time"
 
@@ -151,6 +152,64 @@ line 1:1: Unknown index [traces-apm*,apm-*,traces-*.otel-*,logs-apm*,apm-*,logs-
 	}
 
 	return res, nil
+}
+
+type ApmDocCountStandalone struct {
+	Count int `json:"count"`
+}
+
+type APMIndexDocCount map[string]int
+
+func (c *Client) ApmDocCountV7(ctx context.Context) (APMIndexDocCount, error) {
+	indicesToCheck := []string{
+		"apm-*-transaction-*", "apm-*-span-*", "apm-*-error-*", "apm-*-metric-*",
+		"apm-*-profile-*",
+		"apm-*-onboarding-*",
+	}
+
+	getIndexCount := func(index string) (ApmDocCountStandalone, error) {
+		resp, err := c.es.
+			Count().
+			Index(index).
+			FilterPath("count").
+			Perform(ctx)
+		if err != nil {
+			return ApmDocCountStandalone{}, fmt.Errorf("cannot get count for %s: %w", indicesToCheck[0], err)
+		}
+
+		if resp.StatusCode > http.StatusOK {
+			return ApmDocCountStandalone{}, fmt.Errorf("count request for %s returned unexpected status code: %d", indicesToCheck[0], resp.StatusCode)
+		}
+
+		b, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return ApmDocCountStandalone{}, fmt.Errorf("cannot read response body for %s: %w", resp.Request.URL.Path, err)
+		}
+		defer resp.Body.Close()
+
+		var dc ApmDocCountStandalone
+		err = json.Unmarshal(b, &dc)
+		if err != nil {
+			return ApmDocCountStandalone{}, fmt.Errorf("cannot unmarshal JSON response for %s: %w", resp.Request.URL.Path, err)
+		}
+		return dc, nil
+	}
+
+	count := APMIndexDocCount{}
+	errs := []error{}
+	for _, idx := range indicesToCheck {
+		dc, err := getIndexCount(idx)
+		if err != nil {
+			errs = append(errs, err)
+		}
+		count[idx] = dc.Count
+	}
+
+	if len(errs) > 0 {
+		return APMIndexDocCount{}, errors.Join(errs...)
+	}
+
+	return count, nil
 }
 
 // GetESErrorLogs retrieves Elasticsearch error logs.
