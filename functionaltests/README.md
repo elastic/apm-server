@@ -22,5 +22,5 @@ This means that the test will start from `from_version`, and be upgraded to `to_
 The file that each test is in is named after the last minor version in the upgrade chain. For example, if the test name
 is `TestUpgrade_7_17_0_to_8_18_0_to_9_0_0_Something`, it should be written in `9_0_test.go`.
 
-The Terraforms for each test is located at the directory with the same name as the test.
-At this moment the terraform code must be copied in a separate folder for each test. We plan to address this duplication later on.
+The Terraform files for each test are copied from `terraforms/` at the start of each test, into `tf-<test_name>/` 
+e.g. `tf-TestUpgrade_8_18_0_to_9_0_0/`. 

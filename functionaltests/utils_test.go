@@ -19,6 +19,7 @@ package functionaltests
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"testing"
 
@@ -48,6 +49,22 @@ func createAPMAPIKey(t *testing.T, ctx context.Context, ecc *esclient.Client) st
 	apiKey, err := ecc.CreateAPIKey(ctx, t.Name(), -1, map[string]types.RoleDescriptor{})
 	require.NoError(t, err)
 	return apiKey
+}
+
+func terraformDir(t *testing.T) string {
+	t.Helper()
+	return fmt.Sprintf("tf-%s", t.Name())
+}
+
+// copyTerraforms copies the static Terraform files to the Terraform directory for this test.
+// It will remove all existing files from the test Terraform directory if it exists.
+func copyTerraforms(t *testing.T) {
+	t.Helper()
+	dirName := terraformDir(t)
+	err := os.RemoveAll(dirName)
+	require.NoError(t, err)
+	err = os.CopyFS(terraformDir(t), os.DirFS("terraforms"))
+	require.NoError(t, err)
 }
 
 // createCluster runs terraform on the test terraform folder to spin up an Elastic Cloud Hosted cluster for testing.

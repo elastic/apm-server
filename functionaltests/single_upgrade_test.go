@@ -57,7 +57,8 @@ type singleUpgradeTestCase struct {
 func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	start := time.Now()
 	ctx := context.Background()
-	tf, err := terraform.New(t, t.Name())
+	copyTerraforms(t)
+	tf, err := terraform.New(t, terraformDir(t))
 	require.NoError(t, err)
 
 	deploymentID, escfg := createCluster(t, ctx, tf, *target, tt.fromVersion)
