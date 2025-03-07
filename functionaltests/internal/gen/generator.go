@@ -25,6 +25,7 @@ import (
 
 	"go.uber.org/zap"
 
+	"github.com/elastic/apm-perf/pkg/supportedstacks"
 	"github.com/elastic/apm-perf/pkg/telemetrygen"
 	"github.com/elastic/apm-server/functionaltests/internal/kbclient"
 )
@@ -34,6 +35,13 @@ type Generator struct {
 	APMAPIKey    string
 	APMServerURL string
 	EventRate    string
+
+	// v7 set the underlying telemetry generator
+	// to use 7.x stack sample data.
+	// This cannot be set on any generator, but
+	// a generator that uses 7.x sample data can
+	// be created with NewV7().
+	v7 bool
 }
 
 func New(url, apikey string) *Generator {
@@ -47,16 +55,19 @@ func New(url, apikey string) *Generator {
 
 // RunBlocking runs the underlying generator in blocking mode.
 func (g *Generator) RunBlocking(ctx context.Context) error {
-	cfg := telemetrygen.DefaultConfig()
-	cfg.APIKey = g.APMAPIKey
-
 	u, err := url.Parse(g.APMServerURL)
 	if err != nil {
 		return fmt.Errorf("cannot parse APM server URL: %w", err)
 	}
-	cfg.ServerURL = u
 
+	cfg := telemetrygen.DefaultConfig()
+	cfg.APIKey = g.APMAPIKey
+	cfg.ServerURL = u
 	cfg.EventRate.Set(g.EventRate)
+	if g.v7 {
+		cfg.TargetStackVersion = supportedstacks.TargetStackVersion7x
+	}
+
 	gen, err := telemetrygen.New(cfg)
 	if err != nil {
 		return fmt.Errorf("cannot create telemetrygen Generator: %w", err)
@@ -73,7 +84,12 @@ func (g *Generator) RunBlocking(ctx context.Context) error {
 // This may lead to data loss if the final flush takes more than 30s, which may happen if the
 // quantity of data ingested with RunBlocking gets too big. The current quantity does not
 // trigger this behavior.
+// NOTE: this method is only compatible with a 8.x stack with Fleet managed APM Server.
 func (g *Generator) RunBlockingWait(ctx context.Context, c *kbclient.Client, deploymentID string) error {
+	if g.v7 {
+		return fmt.Errorf("RunBlockingWait is not compatible with a v7 target")
+	}
+
 	if err := g.RunBlocking(ctx); err != nil {
 		return fmt.Errorf("cannot run generator: %w", err)
 	}
