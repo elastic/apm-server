@@ -22,7 +22,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"sync"
 
 	"go.opentelemetry.io/collector/pdata/plog/plogotlp"
 	"go.opentelemetry.io/collector/pdata/pmetric/pmetricotlp"
@@ -38,10 +37,7 @@ import (
 	"github.com/elastic/apm-data/model/modelpb"
 )
 
-var (
-	metricRegistrationMu              sync.Mutex
-	unsupportedHTTPMetricRegistration metric.Registration
-)
+var unsupportedHTTPMetricRegistration metric.Registration
 
 func NewHTTPHandlers(logger *zap.Logger, processor modelpb.BatchProcessor, semaphore input.Semaphore, mp metric.MeterProvider) HTTPHandlers {
 	// TODO(axw) stop assuming we have only one OTLP HTTP consumer running
@@ -59,13 +55,10 @@ func NewHTTPHandlers(logger *zap.Logger, processor modelpb.BatchProcessor, semap
 		"apm-server.otlp.http.metrics.consumer.unsupported_dropped",
 	)
 
-	metricRegistrationMu.Lock() // Temporary locking to fix data race issue
-	defer metricRegistrationMu.Unlock()
-
 	// TODO we should add an otel counter metric directly in the
 	// apm-data consumer, then we could get rid of the callback.
 	if unsupportedHTTPMetricRegistration != nil {
-		_ = unsupportedHTTPMetricRegistration.Unregister()
+		unsupportedHTTPMetricRegistration.Unregister()
 	}
 	unsupportedHTTPMetricRegistration, _ = meter.RegisterCallback(func(ctx context.Context, o metric.Observer) error {
 		stats := consumer.Stats()
