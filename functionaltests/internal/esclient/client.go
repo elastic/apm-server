@@ -114,13 +114,12 @@ func (c *Client) CreateIngestPipeline(ctx context.Context, pipeline string, proc
 		Request(&putpipeline.Request{Processors: processors}).
 		Do(ctx)
 	if err != nil {
-		return fmt.Errorf("error creating processors for %s: %w", pipeline, err)
+		return fmt.Errorf("error creating ingest pipeline for %s: %w", pipeline, err)
 	}
 	return nil
 }
 
-// PerformManualRollover performs manual rollovers for logs, metrics and traces data-streams with
-// the specified namespace.
+// PerformManualRollover performs an immediate manual rollover for the specified data stream.
 //
 // Refer to https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-rollover-index.html.
 func (c *Client) PerformManualRollover(ctx context.Context, dataStream string) error {
