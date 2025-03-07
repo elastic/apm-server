@@ -49,29 +49,22 @@ func Test_warmup(t *testing.T) {
 	for _, c := range cases {
 		t.Run(fmt.Sprintf("%d_agent_%s", c.agents, c.duration.String()), func(t *testing.T) {
 			var received atomic.Uint64
-
 			var ongoingRequests atomic.Int64
-			waitUntilNoMoreOngoingRequests := func() {
-				for ongoingRequests.Load() > 0 {
-					time.Sleep(50 * time.Millisecond)
-				}
-			}
-
 			var closeOnce sync.Once
 			atLeastOneRequest := make(chan struct{})
-
 			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				if r.URL.Path == "/debug/vars" {
 					// NOTE: There were cases in CI environment where this test handler reports idle
 					// before any previous requests were even completed.
-
-					// Wait until there is at least one received request.
-					// (to prevent this branch from firing before any requests are even received)
-					<-atLeastOneRequest
-					// Wait until there are no more ongoing requests.
-					waitUntilNoMoreOngoingRequests()
-					// Report idle APM Server.
-					_, _ = w.Write([]byte(`{"libbeat.output.events.active":0}`))
+					select {
+					case <-atLeastOneRequest:
+						// Wait until there is at least one received request.
+						output := fmt.Sprintf(`{"libbeat.output.events.active":%d}`, ongoingRequests.Load())
+						_, _ = w.Write([]byte(output))
+					default:
+						// Prevent stopping the warmup before any requests are even received.
+						_, _ = w.Write([]byte(`{"libbeat.output.events.active":1}`))
+					}
 					return
 				}
 
