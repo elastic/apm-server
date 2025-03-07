@@ -12,22 +12,15 @@ ssh-keygen -f ${KEY_NAME} -N ""
 # Get all the versions from the current region.
 get_latest_snapshot
 
-VERSION=${1}
-if [[ -z ${VERSION} ]] || [[ "${VERSION}" == "latest" ]]; then
-    VERSION=$(echo ${VERSIONS} | jq -r 'last')
-    echo "-> unspecified version, using $(echo ${VERSION} | cut -d '.' -f1-2)"
-fi
-MAJOR_VERSION=$(echo ${VERSION} | cut -d '.' -f1 )
-MINOR_VERSION=$(echo ${VERSION} | cut -d '.' -f2 )
-
+# APM major.minor version e.g. 8.17.
+APM_SERVER_VERSION=$(echo ${1} | cut -d '.' -f1-2)
+# Stack version, get last one that matches APM major.minor version.
+VERSION=$(echo ${VERSIONS} | jq -r --arg VS ${APM_SERVER_VERSION} '[.[] | select(. | startswith($VS))] | last')
 OBSERVER_VERSION=$(echo ${VERSION} | cut -d '-' -f1 )
+MAJOR_VERSION=$(echo ${VERSION} | cut -d '.' -f1 )
 
 if [[ ${MAJOR_VERSION} -eq 8 ]] || [[ ${MAJOR_VERSION} -eq 9 ]]; then
     ASSERT_EVENTS_FUNC=data_stream_assertions
-    INTEGRATIONS_SERVER=true
-
-    get_latest_patch "${MAJOR_VERSION}.${MINOR_VERSION}"
-    LATEST_VERSION=${MAJOR_VERSION}.${MINOR_VERSION}.${LATEST_PATCH}
 else
     echo "version ${VERSION} not supported"
     exit 5
