@@ -53,12 +53,22 @@ LDFLAGS := \
 # the apm-server binaries.
 .PHONY: $(APM_SERVER_BINARIES)
 $(APM_SERVER_BINARIES):
-	env CGO_ENABLED=0 GOOS=$(GOOS) GOARCH=$(GOARCH) \
-	go build -o $@ -trimpath $(GOFLAGS) $(GOMODFLAG) -ldflags "$(LDFLAGS)" ./x-pack/apm-server
+	# call make instead of using a prerequisite to force it to run the task when
+	# multiple targets are specified
+	CGO_ENABLED=$(CGO_ENABLED) GOOS=$(GOOS) GOARCH=$(GOARCH) PKG=$(PKG) GOTAGS=$(GOTAGS) SUFFIX=$(SUFFIX) EXTENSION=$(EXTENSION) \
+		    $(MAKE) apm-server
+
+.PHONY: apm-server-build
+apm-server-build:
+	env CGO_ENABLED=$(CGO_ENABLED) GOOS=$(GOOS) GOARCH=$(GOARCH) \
+	go build -o build/apm-server-bin -trimpath $(GOFLAGS) $(GOTAGS) $(GOMODFLAG) -ldflags "$(LDFLAGS)" $(PKG)
+	@cp build/apm-server-bin "apm-server$(SUFFIX)"
+	@mv build/apm-server-bin "build/apm-server-$(GOOS)-$(GOARCH)$(SUFFIX)$(EXTENSION)"
 
 build/apm-server-linux-%: GOOS=linux
 build/apm-server-darwin-%: GOOS=darwin
 build/apm-server-windows-%: GOOS=windows
+build/apm-server-windows-%: EXTENSION=.exe
 build/apm-server-%-amd64 build/apm-server-%-amd64.exe: GOARCH=amd64
 build/apm-server-%-arm64 build/apm-server-%-arm64.exe: GOARCH=arm64
 
@@ -70,15 +80,28 @@ GOVERSIONINFO_FLAGS := \
 build/apm-server-windows-amd64.exe: x-pack/apm-server/versioninfo_windows_amd64.syso
 x-pack/apm-server/versioninfo_windows_amd64.syso: GOVERSIONINFO_FLAGS+=-64
 x-pack/apm-server/versioninfo_%.syso: $(GITREFFILE) packaging/versioninfo.json
-	go tool github.com/josephspurrier/goversioninfo/cmd/goversioninfo -o $@ $(GOVERSIONINFO_FLAGS) packaging/versioninfo.json
+	# this task is only used when building apm-server for windows (GOOS=windows)
+	# but it could be run from any OS so use the host os and arch.
+	GOOS=$(GOHOSTOS) GOARCH=$(GOHOSTARCH) go tool github.com/josephspurrier/goversioninfo/cmd/goversioninfo -o $@ $(GOVERSIONINFO_FLAGS) packaging/versioninfo.json
 
-.PHONY: apm-server
-apm-server: build/apm-server-$(shell go env GOOS)-$(shell go env GOARCH)
-	@cp $^ $@
+.PHONY: apm-server apm-server-oss apm-server-fips
 
-.PHONY: apm-server-oss
-apm-server-oss:
-	@go build $(GOMODFLAG) -o $@ ./cmd/apm-server
+apm-server-oss: PKG=./cmd/apm-server
+apm-server apm-server-fips: PKG=./x-pack/apm-server
+
+apm-server-fips: CGO_ENABLED=1
+apm-server apm-server-oss: CGO_ENABLED=0
+
+apm-server-fips: GOTAGS=-tags=requirefips
+
+apm-server-oss: SUFFIX=-oss
+apm-server-fips: SUFFIX=-fips
+
+apm-server apm-server-oss apm-server-fips:
+	# call make instead of using a prerequisite to force it to run the task when
+	# multiple targets are specified
+	CGO_ENABLED=$(CGO_ENABLED) GOOS=$(GOOS) GOARCH=$(GOARCH) PKG=$(PKG) GOTAGS=$(GOTAGS) SUFFIX=$(SUFFIX) EXTENSION=$(EXTENSION) \
+		    $(MAKE) apm-server-build
 
 .PHONY: test
 test:
@@ -92,7 +115,7 @@ system-test:
 
 .PHONY:
 clean:
-	@rm -rf build apm-server apm-server.exe
+	@rm -rf build apm-server apm-server.exe apm-server-oss apm-server-fips
 
 ##############################################################################
 # Checks/tests.

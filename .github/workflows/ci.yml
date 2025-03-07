@@ -88,7 +88,7 @@ jobs:
             systemtest/go.sum
       - run: docker compose up -d
       - env:
-          GOTESTFLAGS: "-v -json"
+          GOTESTFLAGS: "-v"
           GH_TOKEN: ${{ github.token }}
         run: make system-test
 

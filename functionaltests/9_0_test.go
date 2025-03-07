@@ -22,6 +22,7 @@ import (
 )
 
 func TestUpgrade_8_18_0_to_9_0_0(t *testing.T) {
+	t.Parallel()
 	ecAPICheck(t)
 
 	tt := singleUpgradeTestCase{
