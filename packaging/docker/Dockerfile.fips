@@ -79,8 +79,8 @@ ENV BEAT_STRICT_PERMS=false
 COPY --chmod=0644 --chown=nonroot:nonroot licenses/ELASTIC-LICENSE-2.0.txt NOTICE.txt /licenses/
 
 WORKDIR /usr/share/apm-server
-COPY --chmod=0755 --chown=nonroot:nonroot --from=builder /src/apm-server ./apm-server
+COPY --chmod=0755 --chown=nonroot:nonroot --from=builder /src/apm-server-fips ./apm-server-fips
 COPY --chmod=0644 --chown=nonroot:nonroot --from=builder /src/apm-server.yml ./apm-server.yml
 
 EXPOSE 8200
-ENTRYPOINT ["/usr/share/apm-server/apm-server", "--environment=container"]
+ENTRYPOINT ["/usr/share/apm-server/apm-server-fips", "--environment=container"]
