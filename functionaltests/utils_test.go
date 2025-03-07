@@ -20,6 +20,7 @@ package functionaltests
 import (
 	"context"
 	"os"
+	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -55,7 +56,7 @@ func createAPMAPIKey(t *testing.T, ctx context.Context, ecc *esclient.Client) st
 // information.
 // It sets up a cleanup function to destroy resources if the test succeed, leveraging the cleanupOnFailure flag to
 // skip this behavior if appropriate.
-func createCluster(t *testing.T, ctx context.Context, tf *terraform.Runner, target, fromVersion string) (string, esclient.Config) {
+func createCluster(t *testing.T, ctx context.Context, tf *terraform.Runner, target, fromVersion string, integrationsServer bool) (string, esclient.Config) {
 	t.Helper()
 
 	t.Logf("creating deployment version %s", fromVersion)
@@ -66,7 +67,8 @@ func createCluster(t *testing.T, ctx context.Context, tf *terraform.Runner, targ
 	ecDeploymentTpl := terraform.Var("ec_deployment_template", deploymentTemplateFrom(regionFrom(target)))
 	version := terraform.Var("stack_version", fromVersion)
 	name := terraform.Var("name", t.Name())
-	require.NoError(t, tf.Apply(ctx, ecTarget, ecRegion, ecDeploymentTpl, version, name))
+	is := terraform.Var("integrations_server", strconv.FormatBool(integrationsServer))
+	require.NoError(t, tf.Apply(ctx, ecTarget, ecRegion, ecDeploymentTpl, version, name, is))
 
 	t.Cleanup(func() {
 		if !t.Failed() || (t.Failed() && *cleanupOnFailure) {
@@ -93,7 +95,7 @@ func createCluster(t *testing.T, ctx context.Context, tf *terraform.Runner, targ
 }
 
 // upgradeCluster applies the terraform configuration from the test terraform folder.
-func upgradeCluster(t *testing.T, ctx context.Context, tf *terraform.Runner, target, toVersion string) {
+func upgradeCluster(t *testing.T, ctx context.Context, tf *terraform.Runner, target, toVersion string, integrationsServer bool) {
 	t.Helper()
 	t.Logf("upgrade deployment to %s", toVersion)
 	ecTarget := terraform.Var("ec_target", target)
@@ -101,7 +103,8 @@ func upgradeCluster(t *testing.T, ctx context.Context, tf *terraform.Runner, tar
 	ecDeploymentTpl := terraform.Var("ec_deployment_template", deploymentTemplateFrom(regionFrom(target)))
 	version := terraform.Var("stack_version", toVersion)
 	name := terraform.Var("name", t.Name())
-	require.NoError(t, tf.Apply(ctx, ecTarget, ecRegion, ecDeploymentTpl, name, version))
+	is := terraform.Var("integrations_server", strconv.FormatBool(integrationsServer))
+	require.NoError(t, tf.Apply(ctx, ecTarget, ecRegion, ecDeploymentTpl, name, version, is))
 }
 
 // createKibanaClient instantiate an HTTP API client with dedicated methods to query the Kibana API.

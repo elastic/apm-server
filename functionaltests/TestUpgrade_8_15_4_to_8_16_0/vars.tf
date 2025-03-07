@@ -27,6 +27,11 @@ variable "stack_version" {
   description = "The Elasticsearch version to bootstrap"
 }
 
+variable "integrations_server" {
+  type    = bool
+  default = true
+}
+
 # CI variables
 variable "BRANCH" {
   description = "Branch name or pull request for tagging purposes"

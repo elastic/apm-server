@@ -60,7 +60,7 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	tf, err := terraform.New(t, t.Name())
 	require.NoError(t, err)
 
-	deploymentID, escfg := createCluster(t, ctx, tf, *target, tt.fromVersion)
+	deploymentID, escfg := createCluster(t, ctx, tf, *target, tt.fromVersion, true)
 	t.Logf("time elapsed: %s", time.Since(start))
 
 	ecc, err := esclient.New(escfg)
@@ -105,7 +105,7 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Log("------ perform upgrade ------")
-	upgradeCluster(t, ctx, tf, *target, tt.toVersion)
+	upgradeCluster(t, ctx, tf, *target, tt.toVersion, true)
 	t.Logf("time elapsed: %s", time.Since(start))
 
 	t.Log("------ post-upgrade assertions ------")
