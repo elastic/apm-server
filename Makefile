@@ -55,15 +55,13 @@ LDFLAGS := \
 $(APM_SERVER_BINARIES):
 	# call make instead of using a prerequisite to force it to run the task when
 	# multiple targets are specified
-	CGO_ENABLED=$(CGO_ENABLED) GOOS=$(GOOS) GOARCH=$(GOARCH) PKG=$(PKG) GOTAGS=$(GOTAGS) SUFFIX=$(SUFFIX) EXTENSION=$(EXTENSION) \
+	CGO_ENABLED=$(CGO_ENABLED) GOOS=$(GOOS) GOARCH=$(GOARCH) PKG=$(PKG) GOTAGS=$(GOTAGS) SUFFIX=$(SUFFIX) EXTENSION=$(EXTENSION) NOCP=1 \
 		    $(MAKE) apm-server
 
 .PHONY: apm-server-build
 apm-server-build:
 	env CGO_ENABLED=$(CGO_ENABLED) GOOS=$(GOOS) GOARCH=$(GOARCH) \
-	go build -o build/apm-server-bin -trimpath $(GOFLAGS) $(GOTAGS) $(GOMODFLAG) -ldflags "$(LDFLAGS)" $(PKG)
-	@cp build/apm-server-bin "apm-server$(SUFFIX)"
-	@mv build/apm-server-bin "build/apm-server-$(GOOS)-$(GOARCH)$(SUFFIX)$(EXTENSION)"
+	go build -o "build/apm-server-$(GOOS)-$(GOARCH)$(SUFFIX)$(EXTENSION)" -trimpath $(GOFLAGS) $(GOTAGS) $(GOMODFLAG) -ldflags "$(LDFLAGS)" $(PKG)
 
 build/apm-server-linux-%: GOOS=linux
 build/apm-server-darwin-%: GOOS=darwin
@@ -102,6 +100,7 @@ apm-server apm-server-oss apm-server-fips:
 	# multiple targets are specified
 	CGO_ENABLED=$(CGO_ENABLED) GOOS=$(GOOS) GOARCH=$(GOARCH) PKG=$(PKG) GOTAGS=$(GOTAGS) SUFFIX=$(SUFFIX) EXTENSION=$(EXTENSION) \
 		    $(MAKE) apm-server-build
+	@[ "${NOCP}" ] || cp "build/apm-server-$(GOOS)-$(GOARCH)$(SUFFIX)$(EXTENSION)" "apm-server$(SUFFIX)"
 
 .PHONY: test
 test:
