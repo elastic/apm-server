@@ -66,12 +66,12 @@ func TestUpgrade_8_13_4_to_8_16_0_Reroute(t *testing.T) {
 
 	rerouteNamespace := "rerouted"
 	tt := singleUpgradeTestCase{
-		fromVersion: "8.13.4",
-		toVersion:   "8.16.0",
-		setupFn: func(t *testing.T, ctx context.Context, cfg *config, esc *esclient.Client, _ *kbclient.Client) bool {
+		fromVersion:         "8.13.4",
+		toVersion:           "8.16.0",
+		dataStreamNamespace: rerouteNamespace,
+		setupFn: func(t *testing.T, ctx context.Context, esc *esclient.Client, _ *kbclient.Client) bool {
 			t.Log("create reroute processors")
-			cfg.DSNamespace = rerouteNamespace
-			createRerouteIngestPipeline(t, ctx, esc, cfg.DSNamespace)
+			createRerouteIngestPipeline(t, ctx, esc, rerouteNamespace)
 			return true
 		},
 		checkPreUpgradeAfterIngest: checkDatastreamWant{
@@ -81,9 +81,9 @@ func TestUpgrade_8_13_4_to_8_16_0_Reroute(t *testing.T) {
 			IndicesPerDs:     1,
 			IndicesManagedBy: []string{managedByILM},
 		},
-		postUpgradeFn: func(t *testing.T, ctx context.Context, cfg *config, esc *esclient.Client, _ *kbclient.Client) bool {
+		postUpgradeFn: func(t *testing.T, ctx context.Context, esc *esclient.Client, _ *kbclient.Client) bool {
 			t.Log("perform manual rollovers")
-			performManualRollovers(t, ctx, esc, cfg.DSNamespace)
+			performManualRollovers(t, ctx, esc, rerouteNamespace)
 			return true
 		},
 		// Verify manual rollover happened, i.e. 2 indices per data stream.
