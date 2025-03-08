@@ -123,7 +123,7 @@ func waitContainerHealthy(ctx context.Context, serviceName string) error {
 	}
 }
 
-func stackContainerInfo(ctx context.Context, docker *client.Client, name string) (*types.Container, error) {
+func stackContainerInfo(ctx context.Context, docker *client.Client, name string) (*container.Summary, error) {
 	containers, err := docker.ContainerList(ctx, container.ListOptions{
 		Filters: filters.NewArgs(
 			filters.Arg("label", "com.docker.compose.project=apm-server"),
@@ -404,7 +404,7 @@ func (c *ElasticAgentContainer) Exec(ctx context.Context, cmd ...string) (stdout
 	defer docker.Close()
 	docker.NegotiateAPIVersion(ctx)
 
-	response, err := docker.ContainerExecCreate(ctx, c.container.GetContainerID(), types.ExecConfig{
+	response, err := docker.ContainerExecCreate(ctx, c.container.GetContainerID(), container.ExecOptions{
 		AttachStderr: true,
 		AttachStdout: true,
 		Cmd:          cmd,
@@ -414,7 +414,7 @@ func (c *ElasticAgentContainer) Exec(ctx context.Context, cmd ...string) (stdout
 	}
 
 	// Consume all the exec output.
-	resp, err := docker.ContainerExecAttach(ctx, response.ID, types.ExecStartCheck{})
+	resp, err := docker.ContainerExecAttach(ctx, response.ID, container.ExecAttachOptions{})
 	if err != nil {
 		return nil, nil, err
 	}
