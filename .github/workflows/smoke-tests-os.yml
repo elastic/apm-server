@@ -70,4 +70,4 @@ jobs:
             EC_API_KEY:elastic-observability/elastic-cloud-observability-team-pro-api-key
       - name: Run smoke tests OS
         working-directory: ${{ github.workspace }}/testing/smoke/supported-os
-        run: ./test.sh ${VERSION}
+        run: ./test.sh ${VERSION}-SNAPSHOT

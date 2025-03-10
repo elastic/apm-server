@@ -9,12 +9,15 @@ ssh-keygen -f ${KEY_NAME} -N ""
 # Load common lib
 . $(git rev-parse --show-toplevel)/testing/smoke/lib.sh
 
-# Get all the versions from the current region.
+# Get all the snapshot versions from the current region.
 get_latest_snapshot
 
-# APM major.minor version e.g. 8.17.
+# APM `major.minor` version e.g. 8.17.
 APM_SERVER_VERSION=$(echo ${1} | cut -d '.' -f1-2)
-# Stack version, get last one that matches APM major.minor version.
+# `VERSIONS` only contains snapshot versions and is in sorted order.
+# We retrieve the appropriate stack snapshot version from the list by:
+# 1. Selecting the ones that start with APM's `major.minor`.
+# 2. Get the last one, which should be latest.
 VERSION=$(echo ${VERSIONS} | jq -r --arg VS ${APM_SERVER_VERSION} '[.[] | select(. | startswith($VS))] | last')
 OBSERVER_VERSION=$(echo ${VERSION} | cut -d '-' -f1 )
 MAJOR_VERSION=$(echo ${VERSION} | cut -d '.' -f1 )
