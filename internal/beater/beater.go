@@ -64,6 +64,7 @@ import (
 	javaattacher "github.com/elastic/apm-server/internal/beater/java_attacher"
 	"github.com/elastic/apm-server/internal/beater/ratelimit"
 	"github.com/elastic/apm-server/internal/elasticsearch"
+	"github.com/elastic/apm-server/internal/fips140"
 	"github.com/elastic/apm-server/internal/idxmgmt"
 	"github.com/elastic/apm-server/internal/kibana"
 	srvmodelprocessor "github.com/elastic/apm-server/internal/model/modelprocessor"
@@ -109,6 +110,8 @@ type RunnerParams struct {
 
 // NewRunner returns a new Runner that runs APM Server with the given parameters.
 func NewRunner(args RunnerParams) (*Runner, error) {
+	fips140.CheckFips()
+
 	var unpackedConfig struct {
 		APMServer  *agentconfig.C        `config:"apm-server"`
 		Output     agentconfig.Namespace `config:"output"`
