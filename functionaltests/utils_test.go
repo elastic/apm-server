@@ -64,7 +64,7 @@ func copyTerraforms(t *testing.T) {
 	dirName := terraformDir(t)
 	err := os.RemoveAll(dirName)
 	require.NoError(t, err)
-	err = os.CopyFS(terraformDir(t), os.DirFS("terraforms"))
+	err = os.CopyFS(terraformDir(t), os.DirFS("infra/terraform"))
 	require.NoError(t, err)
 }
 
