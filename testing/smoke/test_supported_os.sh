@@ -9,9 +9,10 @@ ssh-keygen -f ${KEY_NAME} -N ""
 # Load common lib
 . $(git rev-parse --show-toplevel)/testing/smoke/lib.sh
 
-# Get all the versions from the current region.
+# Get all the snapshot versions from the current region.
 get_latest_snapshot
 
+<<<<<<< HEAD
 VERSION=${1}
 if [[ -z ${VERSION} ]] || [[ "${VERSION}" == "latest" ]]; then
     # NOTE(marclop) Temporarily avoid testing against 9.x, since we want to test that the
@@ -25,14 +26,20 @@ fi
 MAJOR_VERSION=$(echo ${VERSION} | cut -d '.' -f1 )
 MINOR_VERSION=$(echo ${VERSION} | cut -d '.' -f2 )
 
+=======
+# APM `major.minor` version e.g. 8.17.
+APM_SERVER_VERSION=$(echo ${1} | cut -d '.' -f1-2)
+# `VERSIONS` only contains snapshot versions and is in sorted order.
+# We retrieve the appropriate stack snapshot version from the list by:
+# 1. Selecting the ones that start with APM's `major.minor`.
+# 2. Get the last one, which should be latest.
+VERSION=$(echo ${VERSIONS} | jq -r --arg VS ${APM_SERVER_VERSION} '[.[] | select(. | startswith($VS))] | last')
+>>>>>>> 5ef0045f (smoke: Use APM Server version to get Stack version (#16035))
 OBSERVER_VERSION=$(echo ${VERSION} | cut -d '-' -f1 )
+MAJOR_VERSION=$(echo ${VERSION} | cut -d '.' -f1 )
 
 if [[ ${MAJOR_VERSION} -eq 8 ]]; then
     ASSERT_EVENTS_FUNC=data_stream_assertions
-    INTEGRATIONS_SERVER=true
-
-    get_latest_patch "${MAJOR_VERSION}.${MINOR_VERSION}"
-    LATEST_VERSION=${MAJOR_VERSION}.${MINOR_VERSION}.${LATEST_PATCH}
 else
     echo "version ${VERSION} not supported"
     exit 5
