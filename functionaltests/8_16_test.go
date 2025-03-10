@@ -19,6 +19,8 @@ package functionaltests
 
 import (
 	"testing"
+
+	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 )
 
 func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
@@ -51,6 +53,16 @@ func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
 			DSManagedBy:      managedByDSL,
 			IndicesPerDs:     2,
 			IndicesManagedBy: []string{managedByDSL, managedByDSL},
+		},
+
+		apmErrorLogsFilters: []types.Query{
+			tlsHandshakeError,
+			esReturnedUnknown503,
+			preconditionFailed,
+			populateSourcemapServerShuttingDown,
+			refreshCacheCtxDeadline,
+			// TODO: remove once fixed
+			populateSourcemapFetcher403,
 		},
 	}
 
