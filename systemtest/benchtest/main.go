@@ -30,12 +30,12 @@ import (
 	"runtime"
 	"sort"
 	"strings"
-	"sync"
 	"testing"
 	"time"
 
 	"go.elastic.co/apm/v2/stacktrace"
 	"go.uber.org/zap/zaptest"
+	"golang.org/x/sync/errgroup"
 	"golang.org/x/time/rate"
 
 	"github.com/elastic/apm-perf/loadgen"
@@ -261,17 +261,24 @@ func warmup(agents int, duration time.Duration, url, token string) error {
 	if err != nil {
 		return fmt.Errorf("unable to create warm-up handler: %w", err)
 	}
-	var wg sync.WaitGroup
+
 	ctx, cancel := context.WithTimeout(context.Background(), duration)
 	defer cancel()
+	eg, ctx := errgroup.WithContext(ctx)
 	for i := 0; i < agents; i++ {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			h.SendBatchesInLoop(ctx)
-		}()
+		eg.Go(func() error {
+			sendErr := h.SendBatchesInLoop(ctx)
+			if sendErr != nil && !errors.Is(sendErr, context.DeadlineExceeded) {
+				return sendErr
+			}
+			return nil
+		})
 	}
-	wg.Wait()
+
+	if err = eg.Wait(); err != nil {
+		return err
+	}
+
 	ctx, cancel = context.WithTimeout(context.Background(), waitInactiveTimeout)
 	defer cancel()
 	if err := expvar.WaitUntilServerInactive(ctx, url); err != nil {
