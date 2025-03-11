@@ -69,10 +69,9 @@ func TestUpgrade_8_13_4_to_8_16_0_Reroute(t *testing.T) {
 		fromVersion:         "8.13.4",
 		toVersion:           "8.16.0",
 		dataStreamNamespace: rerouteNamespace,
-		setupFn: func(t *testing.T, ctx context.Context, esc *esclient.Client, _ *kbclient.Client) bool {
+		setupFn: func(t *testing.T, ctx context.Context, esc *esclient.Client, _ *kbclient.Client) error {
 			t.Log("create reroute processors")
-			createRerouteIngestPipeline(t, ctx, esc, rerouteNamespace)
-			return true
+			return createRerouteIngestPipeline(t, ctx, esc, rerouteNamespace)
 		},
 		checkPreUpgradeAfterIngest: checkDatastreamWant{
 			Quantity:         8,
@@ -81,10 +80,9 @@ func TestUpgrade_8_13_4_to_8_16_0_Reroute(t *testing.T) {
 			IndicesPerDs:     1,
 			IndicesManagedBy: []string{managedByILM},
 		},
-		postUpgradeFn: func(t *testing.T, ctx context.Context, esc *esclient.Client, _ *kbclient.Client) bool {
+		postUpgradeFn: func(t *testing.T, ctx context.Context, esc *esclient.Client, _ *kbclient.Client) error {
 			t.Log("perform manual rollovers")
-			performManualRollovers(t, ctx, esc, rerouteNamespace)
-			return true
+			return performManualRollovers(t, ctx, esc, rerouteNamespace)
 		},
 		// Verify manual rollover happened, i.e. 2 indices per data stream.
 		// Check data streams are managed by ILM since they are created before 8.15.0.

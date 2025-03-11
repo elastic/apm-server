@@ -22,7 +22,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
@@ -34,7 +33,7 @@ import (
 	"github.com/elastic/apm-server/functionaltests/internal/terraform"
 )
 
-type additionalFunc func(t *testing.T, ctx context.Context, esc *esclient.Client, kbc *kbclient.Client) (continueTest bool)
+type additionalFunc func(t *testing.T, ctx context.Context, esc *esclient.Client, kbc *kbclient.Client) error
 
 // singleUpgradeTestCase is a basic functional test case that performs a
 // cluster upgrade between 2 specified versions.
@@ -88,10 +87,8 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 
 	if tt.setupFn != nil {
 		t.Log("------ custom setup ------")
-		if !tt.setupFn(t, ctx, ecc, kbc) {
-			assert.Fail(t, "setup failed")
-			return
-		}
+		err = tt.setupFn(t, ctx, ecc, kbc)
+		require.NoError(t, err, "custom setup failed")
 	}
 
 	t.Log("------ pre-upgrade ingestion ------")
@@ -121,10 +118,8 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 
 	if tt.postUpgradeFn != nil {
 		t.Log("------ custom post-upgrade ------")
-		if !tt.postUpgradeFn(t, ctx, ecc, kbc) {
-			assert.Fail(t, "post-upgrade failed")
-			return
-		}
+		err = tt.postUpgradeFn(t, ctx, ecc, kbc)
+		require.NoError(t, err, "custom post-upgrade failed")
 	}
 
 	t.Log("------ post-upgrade assertions ------")
