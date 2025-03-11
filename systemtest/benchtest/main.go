@@ -30,12 +30,12 @@ import (
 	"runtime"
 	"sort"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
 	"go.elastic.co/apm/v2/stacktrace"
 	"go.uber.org/zap/zaptest"
-	"golang.org/x/sync/errgroup"
 	"golang.org/x/time/rate"
 
 	"github.com/elastic/apm-perf/loadgen"
@@ -264,20 +264,20 @@ func warmup(agents int, duration time.Duration, url, token string) error {
 
 	ctx, cancel := context.WithTimeout(context.Background(), duration)
 	defer cancel()
-	eg, ctx := errgroup.WithContext(ctx)
+
+	var wg sync.WaitGroup
+	wg.Add(agents)
 	for i := 0; i < agents; i++ {
-		eg.Go(func() error {
+		go func() {
+			defer wg.Done()
 			sendErr := h.SendBatchesInLoop(ctx)
 			if sendErr != nil && !errors.Is(sendErr, context.DeadlineExceeded) {
-				return sendErr
+				log.Printf("failed to send batches: %v", sendErr)
 			}
-			return nil
-		})
+		}()
 	}
 
-	if err = eg.Wait(); err != nil {
-		return err
-	}
+	wg.Wait()
 
 	ctx, cancel = context.WithTimeout(context.Background(), waitInactiveTimeout)
 	defer cancel()
