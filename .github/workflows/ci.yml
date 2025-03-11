@@ -54,16 +54,13 @@ jobs:
         with:
           go-version-file: go.mod
           cache: true
+      - run: go test -v -race ./...
       - env:
-          CGO_ENABLED: "0"
-        run: go test -v ./...
-      - env:
-          CGO_ENABLED: "0"
           KIBANA_URL: "https://kibana.test"
           KIBANA_APIKEY: "dummy"
         # run functionaltests internal tests
         # functionaltests themselves are run in the functional-tests pipeline
-        run: cd ./functionaltests && go test -v ./internal/...
+        run: cd ./functionaltests && go test -v -race ./internal/...
 
   test-fips:
     runs-on: ubuntu-latest
@@ -74,10 +71,9 @@ jobs:
           go-version-file: go.mod
           cache: true
       - env:
-          CGO_ENABLED: "0"
           GOFIPS140: "latest"
           GODEBUG: "fips140=only"
-        run: go test -v -tags=requirefips ./...
+        run: go test -v -race -tags=requirefips ./...
 
   system-test:
     runs-on: ubuntu-latest
