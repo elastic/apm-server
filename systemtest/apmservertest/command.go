@@ -160,7 +160,14 @@ func (c *ServerCmd) cleanup() {
 func BuildServerBinary(goos, goarch string) (string, error) {
 	apmServerBinaryMu.Lock()
 	defer apmServerBinaryMu.Unlock()
-	if binary := apmServerBinary[goos]; binary != "" {
+	fips := os.Getenv("GOFIPS140") != ""
+
+	id := goos
+	if fips {
+		id += "-fips"
+	}
+
+	if binary := apmServerBinary[id]; binary != "" {
 		return binary, nil
 	}
 
@@ -172,18 +179,25 @@ func BuildServerBinary(goos, goarch string) (string, error) {
 	if goos == "windows" {
 		relpath += ".exe"
 	}
+	if fips {
+		relpath = "apm-server-fips"
+	}
 	abspath := filepath.Join(repoRoot, relpath)
 
 	log.Println("Building apm-server...")
 	cmd := exec.Command("make", relpath)
 	cmd.Dir = repoRoot
+	if fips {
+		cmd.Env = append(cmd.Env, os.Environ()...)
+		cmd.Env = append(cmd.Env, "NOCP=1") // prevent race condition
+	}
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
 		return "", err
 	}
 	log.Println("Built", abspath)
-	apmServerBinary[goos] = abspath
+	apmServerBinary[id] = abspath
 	return abspath, nil
 }
 
