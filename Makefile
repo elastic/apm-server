@@ -104,11 +104,13 @@ apm-server apm-server-oss apm-server-fips:
 
 .PHONY: test
 test:
-	@go test $(GOMODFLAG) $(GOTESTFLAGS) ./...
+	@go test $(GOMODFLAG) $(GOTESTFLAGS) -race ./...
 
 .PHONY: system-test
 system-test:
-	@(cd systemtest; go test $(GOMODFLAG) $(GOTESTFLAGS) -timeout=20m ./...)
+	# CGO is disabled when building APM Server binary, so the race detector in this case
+	# would only work on the parts that don't involve APM Server binary.
+	@(cd systemtest; go test $(GOMODFLAG) $(GOTESTFLAGS) -race -timeout=20m ./...)
 
 .PHONY:
 clean:
