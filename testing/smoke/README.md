@@ -8,7 +8,7 @@ There are 2 main categories of smoke tests that we run:
 
 ## Upgrade Tests
 
-Upgrade tests (`smoke-test-ess`) are tests that checks if APM Server works properly after upgrades to the stack. There are 2 types of upgrades:
+Upgrade tests (`smoke-test-ess`) are tests that checks if APM Server works properly after upgrades to the stack on Elastic Cloud Hosted. There are 2 types of upgrades:
   - Version upgrades
   - Standalone to managed upgrades
 
