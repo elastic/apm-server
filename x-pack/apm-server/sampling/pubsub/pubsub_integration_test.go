@@ -103,7 +103,7 @@ func TestElasticsearchIntegration_PublishSampledTraceIDs(t *testing.T) {
 		req.URL.RawQuery = q.Encode()
 		req.Header.Add("Content-Type", "application/json")
 
-		resp,err := client.Perform(req)
+		resp, err := client.Perform(req)
 		require.NoError(t, err)
 		if resp.StatusCode > 299 {
 			resp.Body.Close()
