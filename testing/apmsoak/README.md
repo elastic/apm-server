@@ -2,6 +2,10 @@
 
 This doc provides a guide for running soak testing as a long running tests with the required infrastructure managed by terraform. The [soaktest_workers](../infra/terraform/modules/soaktest_workers) terraform module is available to allow running [apmsoak binary](../../systemtest/cmd/apmsoak) on GCP VMs. The binary will run as systemd unit configured to restart on failure. Monitoring is also setup for the worker as part of the terraform module to monitor the node resources and the systemd unit status.
 
+## Status of soak testing cluster
+
+The Elastic internal soak testing infrastructure for APM Server has been decommissioned from version `8.15.2`. The associated infrastructure and alerting mechanisms have been removed and are no longer running. Other forms of testing are still in place.
+
 ## Dependencies
 
 - `terraform`
