@@ -3,19 +3,19 @@
 set -eo pipefail
 
 # Load common lib
-. $(git rev-parse --show-toplevel)/testing/smoke/lib.sh
+. "$(git rev-parse --show-toplevel)/testing/smoke/lib.sh"
 
 # Get all the versions from the current region.
 get_versions
 
 VERSION=${1}
 if [[ -z ${VERSION} ]] || [[ "${VERSION}" == "latest" ]]; then
-    VERSION=$(echo ${VERSIONS} | jq -r 'last')
-    echo "-> unspecified version, using $(echo ${VERSION} | cut -d '.' -f1-2)"
+    VERSION=$(echo "${VERSIONS}" | jq -r 'last')
+    echo "-> unspecified version, using $(echo "${VERSION}" | cut -d '.' -f1-2)"
 fi
 
-MAJOR_VERSION=$(echo ${VERSION} | cut -d '.' -f1 )
-MINOR_VERSION=$(echo ${VERSION} | cut -d '.' -f2 )
+MAJOR_VERSION=$(echo "${VERSION}" | cut -d '.' -f1 )
+MINOR_VERSION=$(echo "${VERSION}" | cut -d '.' -f2 )
 
 if [[ ${MAJOR_VERSION} -eq 7 ]]; then
     ASSERT_EVENTS_FUNC=legacy_assertions
