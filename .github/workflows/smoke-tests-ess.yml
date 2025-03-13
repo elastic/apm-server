@@ -55,6 +55,8 @@ jobs:
           - '8.16'
           - '8.17'
           - '8.18'
+          - '8.x'
+          - '9.0'
           - 'latest'
     steps:
       - uses: actions/checkout@v4

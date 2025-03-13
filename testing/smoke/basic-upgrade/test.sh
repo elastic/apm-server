@@ -5,23 +5,29 @@ set -eo pipefail
 # Load common lib
 . "$(git rev-parse --show-toplevel)/testing/smoke/lib.sh"
 
-# Get all the versions from the current region.
-get_versions
+# Get all the latest snapshot versions
+get_latest_snapshot
 
 VERSION=${1}
 if [[ -z ${VERSION} ]] || [[ "${VERSION}" == "latest" ]]; then
-    VERSION=$(echo "${VERSIONS}" | jq -r 'last')
-    echo "-> unspecified version, using $(echo "${VERSION}" | cut -d '.' -f1-2)"
+    VERSION=$(echo "${VERSIONS}" | jq -r 'last' | cut -d '.' -f1-2)
+    echo "-> unspecified version, using ${VERSION}"
 fi
 
 MAJOR_VERSION=$(echo "${VERSION}" | cut -d '.' -f1 )
 MINOR_VERSION=$(echo "${VERSION}" | cut -d '.' -f2 )
+if [[ ${MINOR_VERSION} == 'x' ]]; then
+    # Minor version is 'x', use latest snapshot of major
+    get_latest_snapshot_for_version "${MAJOR_VERSION}"
+    VERSION="${LATEST_SNAPSHOT_VERSION}"
+    MINOR_VERSION=$(echo "${VERSION}" | cut -d '.' -f2 )
+    echo "-> minor version is 'x', using ${VERSION}"
+fi
 
 if [[ ${MAJOR_VERSION} -eq 7 ]]; then
     ASSERT_EVENTS_FUNC_1=legacy_assertions
     ASSERT_EVENTS_FUNC_2=data_stream_assertions
     INTEGRATIONS_SERVER=false
-    get_latest_snapshot
     # Upgrade from latest 7.x to latest 8.x
     LATEST_VERSION=$(echo "$VERSIONS" | jq -r -c "map(select(. | startswith(\"8\"))) | .[-1]")
     PREV_LATEST_VERSION=$(echo "$VERSIONS" | jq -r -c "map(select(. | startswith(\"${VERSION}\"))) | .[-1]")
