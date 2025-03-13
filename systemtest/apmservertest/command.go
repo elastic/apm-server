@@ -162,42 +162,40 @@ func BuildServerBinary(goos, goarch string) (string, error) {
 	defer apmServerBinaryMu.Unlock()
 	fips := os.Getenv("GOFIPS140") != ""
 
-	id := goos
-	if fips {
-		id += "-fips"
-	}
-
-	if binary := apmServerBinary[id]; binary != "" {
-		return binary, nil
-	}
-
 	repoRoot, err := getRepoRoot()
 	if err != nil {
 		return "", err
 	}
 	relpath := filepath.Join("build", fmt.Sprintf("apm-server-%s-%s", goos, goarch))
+	if fips {
+		relpath += "-fips"
+	}
 	if goos == "windows" {
 		relpath += ".exe"
 	}
-	if fips {
-		relpath = "apm-server-fips"
-	}
 	abspath := filepath.Join(repoRoot, relpath)
 
-	log.Println("Building apm-server...")
-	cmd := exec.Command("make", relpath)
-	cmd.Dir = repoRoot
-	if fips {
-		cmd.Env = append(cmd.Env, os.Environ()...)
-		cmd.Env = append(cmd.Env, "NOCP=1") // prevent race condition
+	if binary := apmServerBinary[abspath]; binary != "" {
+		return binary, nil
 	}
+
+	log.Println("Building apm-server...")
+	task := "apm-server"
+	if fips {
+		task += "-fips"
+	}
+	cmd := exec.Command("make", task)
+	cmd.Dir = repoRoot
+	cmd.Env = append(cmd.Env, os.Environ()...)
+	cmd.Env = append(cmd.Env, "NOCP=1") // prevent race condition
+	cmd.Env = append(cmd.Env, "GOOS="+goos, "GOARCH="+goarch)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
 		return "", err
 	}
 	log.Println("Built", abspath)
-	apmServerBinary[id] = abspath
+	apmServerBinary[abspath] = abspath
 	return abspath, nil
 }
 
