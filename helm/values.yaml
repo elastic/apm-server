@@ -1,0 +1,29 @@
+deployment:
+  enabled: true
+  replicas: 3
+
+daemonset:
+  enabled: false
+
+tls:
+  enabled: true
+
+tail_based_sampling:
+  enabled: true
+  storage_limit: "10GB"
+  policies:
+  - trace.outcome: "failure"
+    sample_rate: 1.0 # sample 100% of failed traces
+  - sample_rate: 0.1 # sample 10% of all other traces
+
+elasticsearch:
+  host: ""
+  username: elastic
+  password: ""
+  api_key: ""
+
+storage:
+  # data defines the volume configuration for apm-server's data directory.
+  data:
+    emptyDir:
+      sizeLimit: "10Gi"
