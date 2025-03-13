@@ -18,6 +18,8 @@
 package root
 
 import (
+	"errors"
+	"net/http"
 	"time"
 
 	"github.com/elastic/beats/v7/libbeat/version"
@@ -38,10 +40,21 @@ type HandlerConfig struct {
 
 // Handler returns error if route does not exist,
 // otherwise returns information about the server. The detail level differs for authenticated and anonymous requests.
-// TODO: only allow GET, HEAD requests (breaking change)
 func Handler(cfg HandlerConfig) request.Handler {
-
 	return func(c *request.Context) {
+		// Only allow GET, HEAD requests
+		switch c.Request.Method {
+		case http.MethodGet, http.MethodHead:
+		default:
+			c.Result.SetWithError(
+				request.IDResponseErrorsMethodNotAllowed,
+				// include a verbose error message to alert users about a common misconfiguration
+				errors.New("this is the server information endpoint; did you mean to send data to another endpoint instead?"),
+			)
+			c.WriteResult()
+			return
+		}
+
 		serverInfo := mapstr.M{
 			"build_date": version.BuildTime().Format(time.RFC3339),
 			"build_sha":  version.Commit(),
