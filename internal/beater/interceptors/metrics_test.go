@@ -20,7 +20,9 @@ package interceptors
 import (
 	"context"
 	"errors"
+	"sync"
 	"testing"
+	"time"
 
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
@@ -57,9 +59,7 @@ func TestMetrics(t *testing.T) {
 			},
 		))
 		mp := sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader))
-
 		logger := logp.NewLogger("interceptor.metrics.test")
-
 		interceptor := Metrics(logger, mp)
 
 		ctx := context.Background()
@@ -174,5 +174,35 @@ func TestMetrics(t *testing.T) {
 				monitoringtest.ExpectOtelMetrics(t, reader, expectedMetrics)
 			})
 		}
+	}
+}
+
+func TestMetrics_ConcurrentMapSafe(t *testing.T) {
+	reader := sdkmetric.NewManualReader(sdkmetric.WithTemporalitySelector(
+		func(ik sdkmetric.InstrumentKind) metricdata.Temporality {
+			return metricdata.DeltaTemporality
+		},
+	))
+	mp := sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader))
+	logger := logp.NewLogger("interceptor.metrics.test")
+	interceptor := Metrics(logger, mp)
+
+	ctx := context.Background()
+	info := &grpc.UnaryServerInfo{
+		FullMethod: "/opentelemetry.proto.collector.trace.v1.TraceService/Export",
+	}
+
+	waitAndDoNothing := func(ctx context.Context, req interface{}) (interface{}, error) {
+		time.Sleep(10 * time.Millisecond)
+		return nil, nil
+	}
+
+	var wg sync.WaitGroup
+	for range 100 {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			_, _ = interceptor(ctx, nil, info, waitAndDoNothing)
+		}()
 	}
 }

@@ -19,6 +19,7 @@ package interceptors
 
 import (
 	"context"
+	"sync"
 	"time"
 
 	"go.opentelemetry.io/otel/metric"
@@ -38,8 +39,11 @@ type metricsInterceptor struct {
 	logger *logp.Logger
 	meter  metric.Meter
 
+	countersMu sync.Mutex
 	counters   map[string]metric.Int64Counter
-	histograms map[string]metric.Int64Histogram
+
+	histogramsMu sync.Mutex
+	histograms   map[string]metric.Int64Histogram
 }
 
 func (m *metricsInterceptor) Interceptor() grpc.UnaryServerInterceptor {
@@ -98,6 +102,9 @@ func (m *metricsInterceptor) inc(legacyMetricsPrefix string, id request.ResultID
 }
 
 func (m *metricsInterceptor) getCounter(prefix, n string) metric.Int64Counter {
+	m.countersMu.Lock()
+	defer m.countersMu.Unlock()
+
 	name := prefix + n
 	if met, ok := m.counters[name]; ok {
 		return met
@@ -108,6 +115,9 @@ func (m *metricsInterceptor) getCounter(prefix, n string) metric.Int64Counter {
 }
 
 func (m *metricsInterceptor) getHistogram(n string, opts ...metric.Int64HistogramOption) metric.Int64Histogram {
+	m.histogramsMu.Lock()
+	defer m.histogramsMu.Unlock()
+
 	name := "grpc.server." + n
 	if met, ok := m.histograms[name]; ok {
 		return met
