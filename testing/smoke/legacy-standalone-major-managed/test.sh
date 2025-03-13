@@ -2,7 +2,7 @@
 
 set -eo pipefail
 
-if [[ "${1}" != "7.17" && "${1}" != "latest" ]]; then
+if [[ "${1}" != "latest" ]]; then
     echo "-> Skipping smoke test ['${1}' is not supported]..."
     exit 0
 fi
@@ -10,26 +10,15 @@ fi
 . "$(git rev-parse --show-toplevel)/testing/smoke/lib.sh"
 
 VERSION_7=7.17
-if [[ "${1}" == "latest" ]]; then
-    # SNAPSHOT version can only be upgraded to another SNAPSHOT version
-    get_latest_snapshot_for_version ${VERSION_7}
-    LATEST_VERSION_7=${LATEST_SNAPSHOT_VERSION}
-    ASSERTION_VERSION_7=${LATEST_SNAPSHOT_VERSION%-*} # strip -SNAPSHOT suffix
-    get_latest_snapshot
-    LATEST_VERSION_8=$(echo "${VERSIONS}" | jq -r '[.[] | select(. | startswith("8"))] | last')
-    ASSERTION_VERSION_8=${LATEST_VERSION_8%-*} # strip -SNAPSHOT suffix
-    LATEST_VERSION_9=$(echo "${VERSIONS}" | jq -r '[.[] | select(. | startswith("9"))] | last')
-    ASSERTION_VERSION_9=${LATEST_VERSION_9%-*} # strip -SNAPSHOT suffix
-else
-    get_latest_patch ${VERSION_7}
-    LATEST_VERSION_7=${VERSION_7}.${LATEST_PATCH}
-    ASSERTION_VERSION_7=${LATEST_VERSION_7}
-    get_versions
-    LATEST_VERSION_8=$(echo "${VERSIONS}" | jq -r '[.[] | select(. | startswith("8"))] | last')
-    ASSERTION_VERSION_8=${LATEST_VERSION_8}
-    LATEST_VERSION_9=$(echo "${VERSIONS}" | jq -r '[.[] | select(. | startswith("9"))] | last')
-    ASSERTION_VERSION_9=${LATEST_VERSION_9}
-fi
+# SNAPSHOT version can only be upgraded to another SNAPSHOT version
+get_latest_snapshot_for_version ${VERSION_7}
+LATEST_VERSION_7=${LATEST_SNAPSHOT_VERSION}
+ASSERTION_VERSION_7=${LATEST_SNAPSHOT_VERSION%-*} # strip -SNAPSHOT suffix
+get_latest_snapshot
+LATEST_VERSION_8=$(echo "${VERSIONS}" | jq -r '[.[] | select(. | startswith("8"))] | last')
+ASSERTION_VERSION_8=${LATEST_VERSION_8%-*} # strip -SNAPSHOT suffix
+LATEST_VERSION_9=$(echo "${VERSIONS}" | jq -r '[.[] | select(. | startswith("9"))] | last')
+ASSERTION_VERSION_9=${LATEST_VERSION_9%-*} # strip -SNAPSHOT suffix
 
 if [[ -n ${LATEST_VERSION_9} ]]; then
     echo "-> Running ${LATEST_VERSION_7} standalone to ${LATEST_VERSION_8} standalone to ${LATEST_VERSION_9} standalone to ${LATEST_VERSION_9} managed"

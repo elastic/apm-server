@@ -3,40 +3,47 @@
 set -eo pipefail
 
 # Load common lib
-. $(git rev-parse --show-toplevel)/testing/smoke/lib.sh
+. "$(git rev-parse --show-toplevel)/testing/smoke/lib.sh"
 
-# Get all the versions from the current region.
-get_versions
+# Get all the latest snapshot versions
+get_latest_snapshot
 
 VERSION=${1}
 if [[ -z ${VERSION} ]] || [[ "${VERSION}" == "latest" ]]; then
-    VERSION=$(echo ${VERSIONS} | jq -r 'last')
-    echo "-> unspecified version, using $(echo ${VERSION} | cut -d '.' -f1-2)"
+    VERSION=$(echo "${VERSIONS}" | jq -r 'last' | cut -d '.' -f1-2)
+    echo "-> unspecified version, using ${VERSION}"
 fi
-MAJOR_VERSION=$(echo ${VERSION} | cut -d '.' -f1 )
-MINOR_VERSION=$(echo ${VERSION} | cut -d '.' -f2 )
+
+MAJOR_VERSION=$(echo "${VERSION}" | cut -d '.' -f1 )
+MINOR_VERSION=$(echo "${VERSION}" | cut -d '.' -f2 )
+if [[ ${MINOR_VERSION} == 'x' ]]; then
+    # Minor version is 'x', use latest snapshot of major
+    get_latest_snapshot_for_version "${MAJOR_VERSION}"
+    VERSION="${LATEST_SNAPSHOT_VERSION}"
+    MINOR_VERSION=$(echo "${VERSION}" | cut -d '.' -f2 )
+    echo "-> minor version is 'x', using ${VERSION}"
+fi
 
 if [[ ${MAJOR_VERSION} -eq 7 ]]; then
-    ASSERT_EVENTS_FUNC=legacy_assertions
+    ASSERT_EVENTS_FUNC_1=legacy_assertions
+    ASSERT_EVENTS_FUNC_2=data_stream_assertions
     INTEGRATIONS_SERVER=false
-    get_latest_patch "${MAJOR_VERSION}.${MINOR_VERSION}"
-    LATEST_VERSION=${MAJOR_VERSION}.${MINOR_VERSION}.${LATEST_PATCH}
-    PREV_LATEST_VERSION=$(echo ${MAJOR_VERSION}.${MINOR_VERSION}.$(( ${LATEST_PATCH} -1 )))
+    # Upgrade from latest 7.x to latest 8.x
+    LATEST_VERSION=$(echo "$VERSIONS" | jq -r -c "map(select(. | startswith(\"8\"))) | .[-1]")
+    PREV_LATEST_VERSION=$(echo "$VERSIONS" | jq -r -c "map(select(. | startswith(\"${VERSION}\"))) | .[-1]")
 elif [[ ${MAJOR_VERSION} -eq 8 ]] || [[ ${MAJOR_VERSION} -eq 9 ]]; then
-    ASSERT_EVENTS_FUNC=data_stream_assertions
+    ASSERT_EVENTS_FUNC_1=data_stream_assertions
+    ASSERT_EVENTS_FUNC_2=data_stream_assertions
     INTEGRATIONS_SERVER=true
-
-    get_latest_patch "${MAJOR_VERSION}.${MINOR_VERSION}"
-    LATEST_VERSION=${MAJOR_VERSION}.${MINOR_VERSION}.${LATEST_PATCH}
-
-    # when the minor is 0, we want to fetch the latest patch of the previous major
+    get_latest_snapshot_for_version "${MAJOR_VERSION}.${MINOR_VERSION}"
+    LATEST_VERSION=${LATEST_SNAPSHOT_VERSION}
     if [[ ${MINOR_VERSION} -eq 0 ]]; then
-        PREV_MAJOR=$(( ${MAJOR_VERSION} -1 ))
-        PREV_LATEST_VERSION=$(get_latest_version "${PREV_MAJOR}")
+        # When the minor is 0, we want to fetch the latest patch of the previous major
+        get_latest_snapshot_for_version "$(( MAJOR_VERSION - 1 ))"
+        PREV_LATEST_VERSION="${LATEST_SNAPSHOT_VERSION}"
     else
-      PREV_MINOR=$(( ${MINOR_VERSION} -1 ))
-      get_latest_patch "${MAJOR_VERSION}.${PREV_MINOR}"
-      PREV_LATEST_VERSION=${MAJOR_VERSION}.${PREV_MINOR}.${LATEST_PATCH}
+        get_latest_snapshot_for_version "${MAJOR_VERSION}.$(( MINOR_VERSION - 1 ))"
+        PREV_LATEST_VERSION="${LATEST_SNAPSHOT_VERSION}"
     fi
 else
     echo "version ${VERSION} not supported"
@@ -56,18 +63,18 @@ if [[ -z ${SKIP_DESTROY} ]]; then
 fi
 
 cleanup_tfvar
-append_tfvar "stack_version" ${PREV_LATEST_VERSION}
-append_tfvar "integrations_server" ${INTEGRATIONS_SERVER}
+append_tfvar "stack_version" "${PREV_LATEST_VERSION}"
+append_tfvar "integrations_server" "${INTEGRATIONS_SERVER}"
 terraform_apply
 healthcheck 1
 send_events
-${ASSERT_EVENTS_FUNC} ${STACK_VERSION}
+"${ASSERT_EVENTS_FUNC_1}" "${STACK_VERSION%-*}"
 
 echo "-> Upgrading APM Server from ${STACK_VERSION} to ${LATEST_VERSION}"
 cleanup_tfvar
-append_tfvar "stack_version" ${LATEST_VERSION}
-append_tfvar "integrations_server" ${INTEGRATIONS_SERVER}
+append_tfvar "stack_version" "${LATEST_VERSION}"
+append_tfvar "integrations_server" "${INTEGRATIONS_SERVER}"
 terraform_apply
 healthcheck 1
 send_events
-${ASSERT_EVENTS_FUNC} ${STACK_VERSION}
+"${ASSERT_EVENTS_FUNC_2}" "${STACK_VERSION%-*}"
