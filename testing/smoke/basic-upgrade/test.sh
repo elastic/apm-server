@@ -18,13 +18,16 @@ MAJOR_VERSION=$(echo "${VERSION}" | cut -d '.' -f1 )
 MINOR_VERSION=$(echo "${VERSION}" | cut -d '.' -f2 )
 
 if [[ ${MAJOR_VERSION} -eq 7 ]]; then
-    ASSERT_EVENTS_FUNC=legacy_assertions
+    ASSERT_EVENTS_FUNC_1=legacy_assertions
+    ASSERT_EVENTS_FUNC_2=data_stream_assertions
     INTEGRATIONS_SERVER=false
     get_latest_snapshot
-    LATEST_VERSION=$(echo "$VERSIONS" | jq -r -c "map(select(. | startswith(\"${VERSION}\"))) | .[-1]")
-    PREV_LATEST_VERSION=$(echo "$VERSIONS" | jq -r -c "map(select(. | startswith(\"${VERSION}\"))) | .[-2]")
+    # Upgrade from latest 7.x to latest 8.x
+    LATEST_VERSION=$(echo "$VERSIONS" | jq -r -c "map(select(. | startswith(\"8\"))) | .[-1]")
+    PREV_LATEST_VERSION=$(echo "$VERSIONS" | jq -r -c "map(select(. | startswith(\"${VERSION}\"))) | .[-1]")
 elif [[ ${MAJOR_VERSION} -eq 8 ]] || [[ ${MAJOR_VERSION} -eq 9 ]]; then
-    ASSERT_EVENTS_FUNC=data_stream_assertions
+    ASSERT_EVENTS_FUNC_1=data_stream_assertions
+    ASSERT_EVENTS_FUNC_2=data_stream_assertions
     INTEGRATIONS_SERVER=true
     get_latest_snapshot_for_version "${MAJOR_VERSION}.${MINOR_VERSION}"
     LATEST_VERSION=${LATEST_SNAPSHOT_VERSION}
@@ -55,17 +58,17 @@ fi
 
 cleanup_tfvar
 append_tfvar "stack_version" "${PREV_LATEST_VERSION}"
-append_tfvar "integrations_server" ${INTEGRATIONS_SERVER}
+append_tfvar "integrations_server" "${INTEGRATIONS_SERVER}"
 terraform_apply
 healthcheck 1
 send_events
-${ASSERT_EVENTS_FUNC} "${STACK_VERSION%-*}"
+"${ASSERT_EVENTS_FUNC_1}" "${STACK_VERSION%-*}"
 
 echo "-> Upgrading APM Server from ${STACK_VERSION} to ${LATEST_VERSION}"
 cleanup_tfvar
 append_tfvar "stack_version" "${LATEST_VERSION}"
-append_tfvar "integrations_server" ${INTEGRATIONS_SERVER}
+append_tfvar "integrations_server" "${INTEGRATIONS_SERVER}"
 terraform_apply
 healthcheck 1
 send_events
-${ASSERT_EVENTS_FUNC} "${STACK_VERSION%-*}"
+"${ASSERT_EVENTS_FUNC_2}" "${STACK_VERSION%-*}"
