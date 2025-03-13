@@ -52,7 +52,7 @@ jobs:
       matrix:
         test: ${{ fromJSON(needs.prepare.outputs.tests_legacy) }}
         version:
-          - '7.17'
+          - 'latest'
     steps:
       - uses: actions/checkout@v4
         with:
