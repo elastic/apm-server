@@ -24,6 +24,7 @@ import (
 	"fmt"
 	"math/rand"
 
+	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 	"golang.org/x/time/rate"
 
@@ -44,7 +45,7 @@ func RunBlocking(ctx context.Context) error {
 	}
 
 	for i := 0; i < soakConfig.AgentsReplicas; i++ {
-		for _, expr := range []string{`go*.ndjson`, `nodejs*.ndjson`, `python*.ndjson`, `ruby*.ndjson`} {
+		for _, expr := range []string{`apm-go*.ndjson`, `apm-nodejs*.ndjson`, `apm-python*.ndjson`, `apm-ruby*.ndjson`} {
 			expr := expr
 			g.Go(func() error {
 				rng := rand.New(rand.NewSource(rngseed))
@@ -58,6 +59,8 @@ func RunBlocking(ctx context.Context) error {
 
 func runAgent(ctx context.Context, expr string, limiter *rate.Limiter, rng *rand.Rand, headers map[string]string) error {
 	handler, err := loadgen.NewEventHandler(loadgen.EventHandlerParams{
+		Logger:                    zap.NewNop(),
+		Protocol:                  "apm/http",
 		Path:                      expr,
 		URL:                       loadgencfg.Config.ServerURL.String(),
 		Token:                     loadgencfg.Config.SecretToken,
