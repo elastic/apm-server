@@ -19,6 +19,7 @@ package functionaltests
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"testing"
 
@@ -48,6 +49,23 @@ func createAPMAPIKey(t *testing.T, ctx context.Context, ecc *esclient.Client) st
 	apiKey, err := ecc.CreateAPIKey(ctx, t.Name(), -1, map[string]types.RoleDescriptor{})
 	require.NoError(t, err)
 	return apiKey
+}
+
+// terraformDir returns the name of the Terraform files directory for this test.
+func terraformDir(t *testing.T) string {
+	t.Helper()
+	return fmt.Sprintf("tf-%s", t.Name())
+}
+
+// copyTerraforms copies the static Terraform files to the Terraform directory for this test.
+// It will remove all existing files from the test Terraform directory if it exists, before copying into it.
+func copyTerraforms(t *testing.T) {
+	t.Helper()
+	dirName := terraformDir(t)
+	err := os.RemoveAll(dirName)
+	require.NoError(t, err)
+	err = os.CopyFS(terraformDir(t), os.DirFS("infra/terraform"))
+	require.NoError(t, err)
 }
 
 // createCluster runs terraform on the test terraform folder to spin up an Elastic Cloud Hosted cluster for testing.
@@ -114,4 +132,37 @@ func createKibanaClient(t *testing.T, ctx context.Context, ecc *esclient.Client,
 	kbc, err := kbclient.New(escfg.KibanaURL, kbapikey)
 	require.NoError(t, err)
 	return kbc
+}
+
+// createRerouteIngestPipeline creates custom pipelines to reroute logs, metrics and traces to different
+// data streams specified by namespace.
+func createRerouteIngestPipeline(t *testing.T, ctx context.Context, ecc *esclient.Client, namespace string) error {
+	t.Helper()
+
+	for _, pipeline := range []string{"logs@custom", "metrics@custom", "traces@custom"} {
+		err := ecc.CreateIngestPipeline(ctx, pipeline, []types.ProcessorContainer{
+			{
+				Reroute: &types.RerouteProcessor{
+					Namespace: []string{namespace},
+				},
+			},
+		})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// performManualRollovers rollover all logs, metrics and traces data streams to new indices.
+func performManualRollovers(t *testing.T, ctx context.Context, ecc *esclient.Client, namespace string) error {
+	t.Helper()
+
+	for _, ds := range allDataStreams(namespace) {
+		err := ecc.PerformManualRollover(ctx, ds)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
