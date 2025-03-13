@@ -7,6 +7,9 @@ outputs:
   tests:
     description: "List of smoke tests"
     value: ${{ steps.generate.outputs.tests }}
+  tests_legacy:
+    description: "List of legacy smoke tests"
+    value: ${{ steps.generate.outputs.tests_legacy }}
   date:
     description: "Current date"
     value: ${{ steps.generate.outputs.date }}
@@ -19,5 +22,6 @@ runs:
       run: |
         # remove the full path and use a relative path instead to be github runner agnostic
         echo "tests=$(make smoketest/discover | sed "s#${GITHUB_WORKSPACE}/#./#g")" >> "${GITHUB_OUTPUT}"
+        echo "tests_legacy=$(make smoketest/discover-legacy | sed "s#${GITHUB_WORKSPACE}/#./#g")" >> "${GITHUB_OUTPUT}"
         echo "date=$(date +%s)" >> "${GITHUB_OUTPUT}"
       shell: 'bash'
