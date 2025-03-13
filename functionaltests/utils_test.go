@@ -115,3 +115,36 @@ func createKibanaClient(t *testing.T, ctx context.Context, ecc *esclient.Client,
 	require.NoError(t, err)
 	return kbc
 }
+
+// createRerouteIngestPipeline creates custom pipelines to reroute logs, metrics and traces to different
+// data streams specified by namespace.
+func createRerouteIngestPipeline(t *testing.T, ctx context.Context, ecc *esclient.Client, namespace string) error {
+	t.Helper()
+
+	for _, pipeline := range []string{"logs@custom", "metrics@custom", "traces@custom"} {
+		err := ecc.CreateIngestPipeline(ctx, pipeline, []types.ProcessorContainer{
+			{
+				Reroute: &types.RerouteProcessor{
+					Namespace: []string{namespace},
+				},
+			},
+		})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// performManualRollovers rollover all logs, metrics and traces data streams to new indices.
+func performManualRollovers(t *testing.T, ctx context.Context, ecc *esclient.Client, namespace string) error {
+	t.Helper()
+
+	for _, ds := range allDataStreams(namespace) {
+		err := ecc.PerformManualRollover(ctx, ds)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
