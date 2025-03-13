@@ -23,6 +23,7 @@ import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
+	"crypto/sha256"
 	"crypto/tls"
 	"crypto/x509"
 	"crypto/x509/pkix"
@@ -337,6 +338,14 @@ func generateCerts(dir string, ca bool, keyUsage x509.ExtKeyUsage, hosts ...stri
 	if err != nil {
 		return "", "", fmt.Errorf("failed to generate client key: %w", err)
 	}
+	privBytes, err := x509.MarshalPKCS8PrivateKey(clientKey)
+	if err != nil {
+		return "", "", fmt.Errorf("unable to marshal private key: %w", err)
+	}
+
+	h := sha256.Sum256(privBytes)
+	template.SubjectKeyId = h[:]
+
 	derBytes, err := x509.CreateCertificate(rand.Reader, &template, &template, clientKey.Public(), clientKey)
 	if err != nil {
 		return "", "", fmt.Errorf("failed to create certificate: %w", err)
@@ -356,10 +365,6 @@ func generateCerts(dir string, ca bool, keyUsage x509.ExtKeyUsage, hosts ...stri
 	//keyOut, err := os.OpenFile(filepath.Join(dir, "client_key.pem"), os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
 		return "", "", fmt.Errorf("failed to open client_key.pem for writing: %w", err)
-	}
-	privBytes, err := x509.MarshalPKCS8PrivateKey(clientKey)
-	if err != nil {
-		return "", "", fmt.Errorf("unable to marshal private key: %w", err)
 	}
 	if err := pem.Encode(keyOut, &pem.Block{Type: "PRIVATE KEY", Bytes: privBytes}); err != nil {
 		return "", "", fmt.Errorf("failed to write data to client_key.pem: %w", err)
