@@ -18,8 +18,6 @@ if [[ "${1}" == "latest" ]]; then
     get_latest_snapshot
     LATEST_VERSION_8=$(echo "${VERSIONS}" | jq -r '[.[] | select(. | startswith("8"))] | last')
     ASSERTION_VERSION_8=${LATEST_VERSION_8%-*} # strip -SNAPSHOT suffix
-    LATEST_VERSION_9=$(echo "${VERSIONS}" | jq -r '[.[] | select(. | startswith("9"))] | last')
-    ASSERTION_VERSION_9=${LATEST_VERSION_9%-*} # strip -SNAPSHOT suffix
 else
     get_latest_patch ${VERSION_7}
     LATEST_VERSION_7=${VERSION_7}.${LATEST_PATCH}
@@ -27,8 +25,6 @@ else
     get_versions
     LATEST_VERSION_8=$(echo "${VERSIONS}" | jq -r '[.[] | select(. | startswith("8"))] | last')
     ASSERTION_VERSION_8=${LATEST_VERSION_8}
-    LATEST_VERSION_9=$(echo "${VERSIONS}" | jq -r '[.[] | select(. | startswith("9"))] | last')
-    ASSERTION_VERSION_9=${LATEST_VERSION_9}
 fi
 
 if [[ -n ${LATEST_VERSION_9} ]]; then
@@ -62,20 +58,6 @@ data_stream_assertions "${ASSERTION_VERSION_8}"
 
 MANAGED_VERSION="${LATEST_VERSION_8}"
 ASSERTION_MANAGED_VERSION="${ASSERTION_VERSION_8}"
-
-##### Disabled for now because both 9.0.0 and 9.1.0-SNAPSHOT are failing!
-# Version 9 (if exists)
-#if [[ -n ${LATEST_VERSION_9} ]]; then
-#    cleanup_tfvar
-#    append_tfvar "stack_version" "${LATEST_VERSION_9}"
-#    append_tfvar "integrations_server" ${INTEGRATIONS_SERVER}
-#    terraform_apply
-#    healthcheck 1
-#    send_events
-#    data_stream_assertions "${ASSERTION_VERSION_9}"
-#    MANAGED_VERSION="${LATEST_VERSION_9}"
-#    ASSERTION_MANAGED_VERSION="${ASSERTION_VERSION_9}"
-#fi
 
 upgrade_managed "${MANAGED_VERSION}"
 healthcheck 1
