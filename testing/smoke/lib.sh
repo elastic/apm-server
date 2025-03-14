@@ -23,6 +23,7 @@ get_versions() {
 
 get_latest_version() {
     local version
+    get_versions
     version=$(echo ${VERSIONS} | jq -r -c "max_by(. | select(. | startswith(\"${1}\")) | if endswith(\"-SNAPSHOT\") then .[:-9] else . end | split(\".\") | map(tonumber))")
     echo "${version}"
 }
