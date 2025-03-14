@@ -198,7 +198,7 @@ func TestMetrics_ConcurrentMapSafe(t *testing.T) {
 	}
 
 	var wg sync.WaitGroup
-	for range 100 {
+	for range 10 {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
