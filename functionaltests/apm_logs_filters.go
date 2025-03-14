@@ -53,6 +53,11 @@ var (
 			"message": {Query: "refresh cache error: context deadline exceeded"},
 		},
 	}
+	refreshCacheCtxCanceled = types.Query{
+		MatchPhrase: map[string]types.MatchPhraseQuery{
+			"message": {Query: "refresh cache error: context canceled"},
+		},
+	}
 	populateSourcemapFetcher403 = types.Query{
 		MatchPhrasePrefix: map[string]types.MatchPhrasePrefixQuery{
 			"message": {Query: "failed to populate sourcemap metadata: fetcher unavailable: 403 Forbidden:"},

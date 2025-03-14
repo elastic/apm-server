@@ -63,6 +63,7 @@ func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
 			preconditionFailed,
 			populateSourcemapServerShuttingDown,
 			refreshCacheCtxDeadline,
+			refreshCacheCtxCanceled,
 			// TODO: remove once fixed
 			populateSourcemapFetcher403,
 		},
