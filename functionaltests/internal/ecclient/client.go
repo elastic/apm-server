@@ -19,20 +19,24 @@ package ecclient
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
 	"time"
 
+	"github.com/elastic/apm-server/functionaltests/internal/pointer"
 	"github.com/elastic/cloud-sdk-go/pkg/api"
 	"github.com/elastic/cloud-sdk-go/pkg/api/deploymentapi"
 	"github.com/elastic/cloud-sdk-go/pkg/auth"
 	"github.com/elastic/cloud-sdk-go/pkg/client/deployments"
+	"github.com/elastic/cloud-sdk-go/pkg/client/stack"
 )
 
+// Client is an Elastic Cloud API wrapper.
 type Client struct {
-	*api.API
+	ecAPI    *api.API
 	endpoint string
 }
 
@@ -62,11 +66,10 @@ func New(endpoint string) (*Client, error) {
 
 func (c *Client) RestartIntegrationServer(ctx context.Context, deploymentID string) error {
 	res, err := deploymentapi.Get(deploymentapi.GetParams{
-		API:          c.API,
+		API:          c.ecAPI,
 		DeploymentID: deploymentID,
 	})
 	if err != nil {
-
 		return fmt.Errorf("cannot retrieve ref id of integrations server for deployment %s: %w", deploymentID, err)
 	}
 
@@ -79,7 +82,7 @@ func (c *Client) RestartIntegrationServer(ctx context.Context, deploymentID stri
 		return fmt.Errorf("cannot create integrations server restart request for deployment %s: %w", deploymentID, err)
 	}
 
-	req = c.API.AuthWriter.AuthRequest(req)
+	req = c.ecAPI.AuthWriter.AuthRequest(req)
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return fmt.Errorf("cannot execute HTTP request for restarting deployment %s: %w", deploymentID, err)
@@ -96,11 +99,11 @@ func (c *Client) RestartIntegrationServer(ctx context.Context, deploymentID stri
 
 	// Wait until the integration server is back online.
 	status := func() (string, error) {
-		r, err := c.API.V1API.Deployments.GetDeploymentIntegrationsServerResourceInfo(
+		r, err := c.ecAPI.V1API.Deployments.GetDeploymentIntegrationsServerResourceInfo(
 			deployments.NewGetDeploymentIntegrationsServerResourceInfoParams().
 				WithDeploymentID(deploymentID).
 				WithRefID(refID),
-			c.API.AuthWriter)
+			c.ecAPI.AuthWriter)
 		if err != nil {
 			return "", err
 		}
@@ -126,4 +129,56 @@ func (c *Client) RestartIntegrationServer(ctx context.Context, deploymentID stri
 			}
 		}
 	}
+}
+
+func (c *Client) getVersions(
+	ctx context.Context,
+	region string,
+	showUnusable bool,
+	keepFilter func(StackVersion) bool,
+) (StackVersions, error) {
+	resp, err := c.ecAPI.V1API.Stack.GetVersionStacks(
+		// Add region to get the stack versions for that region only
+		stack.NewGetVersionStacksParamsWithContext(api.WithRegion(ctx, region)).
+			WithShowDeleted(pointer.Of(false)).
+			WithShowUnusable(&showUnusable),
+		c.ecAPI.AuthWriter,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("cannot retrieve stack versions: %w", err)
+	}
+
+	if resp.Payload == nil || len(resp.Payload.Stacks) == 0 {
+		return nil, errors.New("stack versions response payload is empty")
+	}
+
+	versions := make(StackVersions, 0, len(resp.Payload.Stacks))
+	for _, s := range resp.Payload.Stacks {
+		v, err := NewStackVersionFromStr(s.Version)
+		if err != nil {
+			return nil, fmt.Errorf("cannot parse stack version '%v': %w", s.Version, err)
+		}
+		if keepFilter != nil && keepFilter(v) {
+			versions = append(versions, v)
+		}
+	}
+
+	versions.Sort()
+	return versions, nil
+}
+
+func (c *Client) GetVersions(ctx context.Context, region string) (StackVersions, error) {
+	keepFilter := func(v StackVersion) bool {
+		// Ignore all versions with a suffix e.g. SNAPSHOTs
+		return v.Suffix == ""
+	}
+	return c.getVersions(ctx, region, false, keepFilter)
+}
+
+func (c *Client) GetSnapshotVersions(ctx context.Context, region string) (StackVersions, error) {
+	keepFilter := func(v StackVersion) bool {
+		// Only keep SNAPSHOTs
+		return v.Suffix == "SNAPSHOT"
+	}
+	return c.getVersions(ctx, region, true, keepFilter)
 }
