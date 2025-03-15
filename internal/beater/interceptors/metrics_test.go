@@ -20,8 +20,11 @@ package interceptors
 import (
 	"context"
 	"errors"
+	"sync"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 	"google.golang.org/grpc"
@@ -175,4 +178,66 @@ func TestMetrics(t *testing.T) {
 			})
 		}
 	}
+}
+
+func TestMetrics_ConcurrentSafe(t *testing.T) {
+	reader := sdkmetric.NewManualReader(sdkmetric.WithTemporalitySelector(
+		func(ik sdkmetric.InstrumentKind) metricdata.Temporality {
+			return metricdata.DeltaTemporality
+		},
+	))
+	mp := sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader))
+	logger := logp.NewLogger("interceptor.metrics.test")
+	interceptor := Metrics(logger, mp)
+
+	ctx := context.Background()
+	info := &grpc.UnaryServerInfo{
+		FullMethod: "/opentelemetry.proto.collector.trace.v1.TraceService/Export",
+	}
+
+	doNothing := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return req, nil
+	}
+
+	type respAndErr struct {
+		resp interface{}
+		err  error
+	}
+
+	const numG = 10
+	ch := make(chan respAndErr, numG)
+	var wg sync.WaitGroup
+	for range numG {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			resp, err := interceptor(ctx, "hello", info, doNothing)
+			ch <- respAndErr{resp: resp, err: err}
+		}()
+	}
+
+	wg.Wait()
+	close(ch)
+	for r := range ch {
+		assert.Equal(t, "hello", r.resp, "unexpected response")
+		assert.NoError(t, r.err, "unexpected error")
+	}
+
+	var rm metricdata.ResourceMetrics
+	require.NoError(t, reader.Collect(context.Background(), &rm))
+	require.NotEmpty(t, rm.ScopeMetrics)
+
+	findRequestCountMetrics := func() (metricdata.Metrics, bool) {
+		for _, mt := range rm.ScopeMetrics[0].Metrics {
+			if mt.Name == "grpc.server.request.count" {
+				return mt, true
+			}
+		}
+		return metricdata.Metrics{}, false
+	}
+
+	mt, exist := findRequestCountMetrics()
+	require.True(t, exist)
+	counter := mt.Data.(metricdata.Sum[int64])
+	assert.EqualValues(t, numG, counter.DataPoints[0].Value, "unexpected counter value")
 }
