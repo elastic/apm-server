@@ -13,7 +13,7 @@ import (
 	"github.com/elastic/apm-data/model/modelpb"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/eventstorage"
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/pubsub"
-	"github.com/elastic/go-elasticsearch/v8"
+	"github.com/elastic/elastic-transport-go/v8/elastictransport"
 )
 
 // Config holds configuration for Processor.
@@ -70,7 +70,7 @@ type RemoteSamplingConfig struct {
 
 	// Elasticsearch holds the Elasticsearch client to use for publishing
 	// and subscribing to remote sampling decisions.
-	Elasticsearch *elasticsearch.Client
+	Elasticsearch *elastictransport.Client
 
 	// SampledTracesDataStream holds the identifiers for the Elasticsearch
 	// data stream for storing and searching sampled trace IDs.

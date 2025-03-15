@@ -118,14 +118,18 @@ func httpProxyURL(cfg *Config) (func(*http.Request) (*url.URL, error), error) {
 	return http.ProxyURL(u), nil
 }
 
-func addresses(cfg *Config) ([]string, error) {
-	var addresses []string
+func addresses(cfg *Config) ([]*url.URL, error) {
+	var addresses []*url.URL
 	for _, host := range cfg.Hosts {
 		address, err := common.MakeURL(cfg.Protocol, cfg.Path, host, defaultESPort)
 		if err != nil {
 			return nil, err
 		}
-		addresses = append(addresses, address)
+		u, err := url.Parse(address)
+		if err != nil {
+			return nil, err
+		}
+		addresses = append(addresses, u)
 	}
 	return addresses, nil
 }

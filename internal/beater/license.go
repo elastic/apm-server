@@ -22,22 +22,27 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/http"
 
 	"github.com/elastic/beats/v7/libbeat/licenser"
-
-	"github.com/elastic/go-elasticsearch/v8"
+	"github.com/elastic/elastic-transport-go/v8/elastictransport"
 )
 
 // getElasticsearchLicense gets the Elasticsearch licensing information.
-func getElasticsearchLicense(ctx context.Context, client *elasticsearch.Client) (licenser.License, error) {
-	resp, err := client.License.Get(client.License.Get.WithContext(ctx))
+func getElasticsearchLicense(ctx context.Context, client *elastictransport.Client) (licenser.License, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "/_license", nil)
+	if err != nil {
+		return licenser.License{}, err
+	}
+
+	resp, err := client.Perform(req)
 	if err != nil {
 		return licenser.License{}, err
 	}
 	defer resp.Body.Close()
-	if resp.IsError() {
+	if resp.StatusCode > 299 {
 		body, _ := io.ReadAll(resp.Body)
-		return licenser.License{}, fmt.Errorf("failed to get license (%s): %s", resp.Status(), body)
+		return licenser.License{}, fmt.Errorf("failed to get license (%s): %s", resp.Status, body)
 	}
 
 	var result struct {
