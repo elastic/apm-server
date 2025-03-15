@@ -404,7 +404,7 @@ func (c *ElasticAgentContainer) Exec(ctx context.Context, cmd ...string) (stdout
 	defer docker.Close()
 	docker.NegotiateAPIVersion(ctx)
 
-	response, err := docker.ContainerExecCreate(ctx, c.container.GetContainerID(), types.ExecConfig{
+	response, err := docker.ContainerExecCreate(ctx, c.container.GetContainerID(), container.ExecOptions{
 		AttachStderr: true,
 		AttachStdout: true,
 		Cmd:          cmd,
@@ -414,7 +414,7 @@ func (c *ElasticAgentContainer) Exec(ctx context.Context, cmd ...string) (stdout
 	}
 
 	// Consume all the exec output.
-	resp, err := docker.ContainerExecAttach(ctx, response.ID, types.ExecStartCheck{})
+	resp, err := docker.ContainerExecAttach(ctx, response.ID, container.ExecStartOptions{})
 	if err != nil {
 		return nil, nil, err
 	}
