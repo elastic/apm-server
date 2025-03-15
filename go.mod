@@ -1,6 +1,8 @@
 module github.com/elastic/apm-server
 
-go 1.23.0
+go 1.23.6
+
+toolchain go1.23.7
 
 require (
 	github.com/cespare/xxhash/v2 v2.3.0
@@ -8,7 +10,7 @@ require (
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/apm-aggregation v1.1.0
 	github.com/elastic/apm-data v1.13.1
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20250313133832-7d44df4e88cc
+	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20250314125459-7856686112f9
 	github.com/elastic/elastic-agent-client/v7 v7.16.0
 	github.com/elastic/elastic-agent-libs v0.17.5
 	github.com/elastic/elastic-agent-system-metrics v0.11.6
