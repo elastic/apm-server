@@ -66,5 +66,5 @@ It does not affect Elastic Cloud Hosted, as storage is automatically cleaned up 
 
 **Impact**<br>Unnecessary disk usage, except for Elastic Cloud Hosted users.
 
-**Action**<br>To clean up the unnecessary files, first identify APM Server data path, configured via `path.data`, which is also usually printed with "Data path: " in APM Server logs on startup. Let environment variable `PATH_DATA` as the data path. The files that should be deleted are `KEYREGISTRY`, `LOCK`, `MANIFEST`, `*.vlog`, `*.sst` under `$PATH_DATA/tail_sampling/`. Do not delete other files.
+**Action**<br>To clean up the unnecessary files, first identify APM Server data path, configured via `path.data`, which is also usually printed with "Data path: " in APM Server logs on startup. Assuming the environment variable `PATH_DATA` is the data path for TBS we identified above, the files that should be deleted are `KEYREGISTRY`, `LOCK`, `MANIFEST`, `*.vlog`, `*.sst` under `$PATH_DATA/tail_sampling/`. Do not delete other files.
 ::::
