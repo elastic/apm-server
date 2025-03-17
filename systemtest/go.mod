@@ -15,7 +15,7 @@ require (
 	github.com/stretchr/testify v1.10.0
 	github.com/testcontainers/testcontainers-go v0.35.0
 	github.com/tidwall/gjson v1.18.0
-	go.elastic.co/apm/v2 v2.6.3
+	go.elastic.co/apm/v2 v2.7.0
 	go.elastic.co/fastjson v1.5.0
 	go.opentelemetry.io/collector/pdata v1.27.0
 	go.opentelemetry.io/collector/semconv v0.121.0
