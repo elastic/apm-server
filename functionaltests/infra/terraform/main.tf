@@ -1,5 +1,5 @@
 module "ec_deployment" {
-  source = "../../../testing/infra/terraform/modules/ec_deployment"
+  source = "../../testing/infra/terraform/modules/ec_deployment"
   region = var.ec_region
 
   deployment_template    = var.ec_deployment_template
