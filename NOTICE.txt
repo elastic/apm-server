@@ -3495,11 +3495,19 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : go.elastic.co/apm/module/apmelasticsearch/v2
+<<<<<<< HEAD
 Version: v2.7.1
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
 Contents of probable licence file $GOMODCACHE/go.elastic.co/apm/module/apmelasticsearch/v2@v2.7.1/LICENSE:
+=======
+Version: v2.7.0
+Licence type (autodetected): Apache-2.0
+--------------------------------------------------------------------------------
+
+Contents of probable licence file $GOMODCACHE/go.elastic.co/apm/module/apmelasticsearch/v2@v2.7.0/LICENSE:
+>>>>>>> 267aeff5 (build(deps): bump the go-agent group with 6 updates (#16266))
 
                                  Apache License
                            Version 2.0, January 2004
@@ -3706,11 +3714,19 @@ Contents of probable licence file $GOMODCACHE/go.elastic.co/apm/module/apmelasti
 
 --------------------------------------------------------------------------------
 Dependency : go.elastic.co/apm/module/apmgorilla/v2
+<<<<<<< HEAD
 Version: v2.7.1
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
 Contents of probable licence file $GOMODCACHE/go.elastic.co/apm/module/apmgorilla/v2@v2.7.1/LICENSE:
+=======
+Version: v2.7.0
+Licence type (autodetected): Apache-2.0
+--------------------------------------------------------------------------------
+
+Contents of probable licence file $GOMODCACHE/go.elastic.co/apm/module/apmgorilla/v2@v2.7.0/LICENSE:
+>>>>>>> 267aeff5 (build(deps): bump the go-agent group with 6 updates (#16266))
 
                                  Apache License
                            Version 2.0, January 2004
@@ -3917,11 +3933,19 @@ Contents of probable licence file $GOMODCACHE/go.elastic.co/apm/module/apmgorill
 
 --------------------------------------------------------------------------------
 Dependency : go.elastic.co/apm/module/apmgrpc/v2
+<<<<<<< HEAD
 Version: v2.7.1
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
 Contents of probable licence file $GOMODCACHE/go.elastic.co/apm/module/apmgrpc/v2@v2.7.1/LICENSE:
+=======
+Version: v2.7.0
+Licence type (autodetected): Apache-2.0
+--------------------------------------------------------------------------------
+
+Contents of probable licence file $GOMODCACHE/go.elastic.co/apm/module/apmgrpc/v2@v2.7.0/LICENSE:
+>>>>>>> 267aeff5 (build(deps): bump the go-agent group with 6 updates (#16266))
 
                                  Apache License
                            Version 2.0, January 2004
@@ -4128,11 +4152,19 @@ Contents of probable licence file $GOMODCACHE/go.elastic.co/apm/module/apmgrpc/v
 
 --------------------------------------------------------------------------------
 Dependency : go.elastic.co/apm/module/apmhttp/v2
+<<<<<<< HEAD
 Version: v2.7.1
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
 Contents of probable licence file $GOMODCACHE/go.elastic.co/apm/module/apmhttp/v2@v2.7.1/LICENSE:
+=======
+Version: v2.7.0
+Licence type (autodetected): Apache-2.0
+--------------------------------------------------------------------------------
+
+Contents of probable licence file $GOMODCACHE/go.elastic.co/apm/module/apmhttp/v2@v2.7.0/LICENSE:
+>>>>>>> 267aeff5 (build(deps): bump the go-agent group with 6 updates (#16266))
 
                                  Apache License
                            Version 2.0, January 2004
@@ -4339,11 +4371,19 @@ Contents of probable licence file $GOMODCACHE/go.elastic.co/apm/module/apmhttp/v
 
 --------------------------------------------------------------------------------
 Dependency : go.elastic.co/apm/module/apmotel/v2
+<<<<<<< HEAD
 Version: v2.7.1
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
 Contents of probable licence file $GOMODCACHE/go.elastic.co/apm/module/apmotel/v2@v2.7.1/LICENSE:
+=======
+Version: v2.7.0
+Licence type (autodetected): Apache-2.0
+--------------------------------------------------------------------------------
+
+Contents of probable licence file $GOMODCACHE/go.elastic.co/apm/module/apmotel/v2@v2.7.0/LICENSE:
+>>>>>>> 267aeff5 (build(deps): bump the go-agent group with 6 updates (#16266))
 
                                  Apache License
                            Version 2.0, January 2004
@@ -4550,11 +4590,19 @@ Contents of probable licence file $GOMODCACHE/go.elastic.co/apm/module/apmotel/v
 
 --------------------------------------------------------------------------------
 Dependency : go.elastic.co/apm/v2
+<<<<<<< HEAD
 Version: v2.7.1
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
 Contents of probable licence file $GOMODCACHE/go.elastic.co/apm/v2@v2.7.1/LICENSE:
+=======
+Version: v2.7.0
+Licence type (autodetected): Apache-2.0
+--------------------------------------------------------------------------------
+
+Contents of probable licence file $GOMODCACHE/go.elastic.co/apm/v2@v2.7.0/LICENSE:
+>>>>>>> 267aeff5 (build(deps): bump the go-agent group with 6 updates (#16266))
 
                                  Apache License
                            Version 2.0, January 2004
