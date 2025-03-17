@@ -34,6 +34,8 @@ var retryableStatuses = []int{
 	http.StatusTooManyRequests,
 }
 
+// apm-server doesn't use go-elasticsearch but we kept the user agent string for
+// compatibility
 var userAgent = fmt.Sprintf("Elastic-APM-Server/%s go-elasticsearch/%s", version.VersionWithQualifier(), version.Version)
 
 type Client = elastictransport.Client
