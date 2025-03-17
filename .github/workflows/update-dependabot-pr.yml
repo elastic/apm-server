@@ -31,7 +31,7 @@ jobs:
       - name: Check if NOTICE.txt has changed
         id: check-notice-diff
         run: |
-          if git status --porcelain | grep -q 'NOTICE.txt'; then
+          if git status --porcelain | grep -q 'NOTICE.txt\|NOTICE-fips.txt'; then
             echo "changed=true" >> "$GITHUB_OUTPUT"
           else
             echo "changed=false" >> "$GITHUB_OUTPUT"
