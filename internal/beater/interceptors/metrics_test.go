@@ -20,6 +20,7 @@ package interceptors
 import (
 	"context"
 	"errors"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -238,4 +239,59 @@ type requestMetricsFunc func(fullMethod string) map[request.ResultID]*monitoring
 
 func (f requestMetricsFunc) RequestMetrics(fullMethod string) map[request.ResultID]*monitoring.Int {
 	return f(fullMethod)
+}
+
+func TestMetrics_ConcurrentSafe(t *testing.T) {
+	reader := sdkmetric.NewManualReader(sdkmetric.WithTemporalitySelector(
+		func(ik sdkmetric.InstrumentKind) metricdata.Temporality {
+			return metricdata.DeltaTemporality
+		},
+	))
+	mp := sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader))
+	logger := logp.NewLogger("interceptor.metrics.test")
+	interceptor := Metrics(logger, mp)
+
+	ctx := context.Background()
+	registry := monitoring.NewRegistry()
+	monitoringMap := request.MonitoringMapForRegistry(registry, monitoringKeys)
+	methodName := "test_method_name"
+	info := &grpc.UnaryServerInfo{
+		FullMethod: methodName,
+		Server: requestMetricsFunc(func(fullMethod string) map[request.ResultID]*monitoring.Int {
+			assert.Equal(t, methodName, fullMethod)
+			return monitoringMap
+		}),
+	}
+
+	doNothing := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return req, nil
+	}
+
+	type respAndErr struct {
+		resp interface{}
+		err  error
+	}
+
+	const numG = 10
+	ch := make(chan respAndErr, numG)
+	var wg sync.WaitGroup
+	for range numG {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			resp, err := interceptor(ctx, "hello", info, doNothing)
+			ch <- respAndErr{resp: resp, err: err}
+		}()
+	}
+
+	wg.Wait()
+	close(ch)
+	for r := range ch {
+		assert.Equal(t, "hello", r.resp, "unexpected response")
+		assert.NoError(t, r.err, "unexpected error")
+	}
+
+	monitoringtest.ExpectContainOtelMetrics(t, reader, map[string]any{
+		"grpc.server.request.count": numG,
+	})
 }
