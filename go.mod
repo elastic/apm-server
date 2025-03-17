@@ -1,8 +1,6 @@
 module github.com/elastic/apm-server
 
-go 1.23.6
-
-toolchain go1.23.7
+go1.23.7
 
 require (
 	github.com/cespare/xxhash/v2 v2.3.0
