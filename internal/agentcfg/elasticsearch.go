@@ -309,7 +309,7 @@ func (f *ElasticsearchFetcher) singlePageRefresh(ctx context.Context, scrollID s
 			return result, err
 		}
 		q := req.URL.Query()
-		q.Set("scroll", strconv.FormatInt(int64(f.cacheDuration)/int64(time.Millisecond), 10)+"ms")
+		q.Set("scroll", strconv.FormatInt(f.cacheDuration.Milliseconds(), 10)+"ms")
 		q.Set("size", strconv.FormatInt(int64(f.searchSize), 10))
 		req.URL.RawQuery = q.Encode()
 
@@ -320,7 +320,7 @@ func (f *ElasticsearchFetcher) singlePageRefresh(ctx context.Context, scrollID s
 			return result, err
 		}
 		q := req.URL.Query()
-		q.Set("scroll", strconv.FormatInt(int64(f.cacheDuration)/int64(time.Millisecond), 10)+"ms")
+		q.Set("scroll", strconv.FormatInt(f.cacheDuration.Milliseconds(), 10)+"ms")
 		q.Set("scroll_id", scrollID)
 		req.URL.RawQuery = q.Encode()
 

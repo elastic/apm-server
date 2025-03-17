@@ -298,7 +298,7 @@ func (s *MetadataESFetcher) runSearchQuery(ctx context.Context) (*http.Response,
 	q := req.URL.Query()
 	q.Set("_source", strings.Join([]string{"service.*", "file.path", "content_sha256"}, ","))
 	q.Set("track_total_hits", "true")
-	q.Set("scroll", strconv.FormatInt(int64(time.Minute)/int64(time.Millisecond), 10)+"ms")
+	q.Set("scroll", strconv.FormatInt(time.Minute.Milliseconds(), 10)+"ms")
 	req.URL.RawQuery = q.Encode()
 
 	return s.esClient.Perform(req)
@@ -390,7 +390,7 @@ func (s *MetadataESFetcher) scrollsearch(ctx context.Context, scrollID string, u
 }
 
 func (s *MetadataESFetcher) runScrollSearchQuery(ctx context.Context, id string) (*http.Response, error) {
-	scroll := strconv.FormatInt(int64(time.Minute)/int64(time.Millisecond), 10) + "ms"
+	scroll := strconv.FormatInt(time.Minute.Milliseconds(), 10) + "ms"
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, "/_search/scroll?scroll="+scroll+"&scroll_id="+id, nil)
 	if err != nil {
 		return nil, err
