@@ -24,10 +24,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-<<<<<<< HEAD
-=======
-	"github.com/stretchr/testify/require"
->>>>>>> 2ca9f908 (fix: metrics interceptor concurrent map read write (#16182))
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 	"google.golang.org/grpc"
@@ -239,12 +235,12 @@ func assertMonitoring(t *testing.T, expected map[request.ResultID]int64, actual 
 	}
 }
 
-<<<<<<< HEAD
 type requestMetricsFunc func(fullMethod string) map[request.ResultID]*monitoring.Int
 
 func (f requestMetricsFunc) RequestMetrics(fullMethod string) map[request.ResultID]*monitoring.Int {
 	return f(fullMethod)
-=======
+}
+
 func TestMetrics_ConcurrentSafe(t *testing.T) {
 	reader := sdkmetric.NewManualReader(sdkmetric.WithTemporalitySelector(
 		func(ik sdkmetric.InstrumentKind) metricdata.Temporality {
@@ -256,8 +252,15 @@ func TestMetrics_ConcurrentSafe(t *testing.T) {
 	interceptor := Metrics(logger, mp)
 
 	ctx := context.Background()
+	registry := monitoring.NewRegistry()
+	monitoringMap := request.MonitoringMapForRegistry(registry, monitoringKeys)
+	methodName := "test_method_name"
 	info := &grpc.UnaryServerInfo{
-		FullMethod: "/opentelemetry.proto.collector.trace.v1.TraceService/Export",
+		FullMethod: methodName,
+		Server: requestMetricsFunc(func(fullMethod string) map[request.ResultID]*monitoring.Int {
+			assert.Equal(t, methodName, fullMethod)
+			return monitoringMap
+		}),
 	}
 
 	doNothing := func(ctx context.Context, req interface{}) (interface{}, error) {
@@ -288,22 +291,7 @@ func TestMetrics_ConcurrentSafe(t *testing.T) {
 		assert.NoError(t, r.err, "unexpected error")
 	}
 
-	var rm metricdata.ResourceMetrics
-	require.NoError(t, reader.Collect(context.Background(), &rm))
-	require.NotEmpty(t, rm.ScopeMetrics)
-
-	findRequestCountMetrics := func() (metricdata.Metrics, bool) {
-		for _, mt := range rm.ScopeMetrics[0].Metrics {
-			if mt.Name == "grpc.server.request.count" {
-				return mt, true
-			}
-		}
-		return metricdata.Metrics{}, false
-	}
-
-	mt, exist := findRequestCountMetrics()
-	require.True(t, exist)
-	counter := mt.Data.(metricdata.Sum[int64])
-	assert.EqualValues(t, numG, counter.DataPoints[0].Value, "unexpected counter value")
->>>>>>> 2ca9f908 (fix: metrics interceptor concurrent map read write (#16182))
+	monitoringtest.ExpectContainOtelMetrics(t, reader, map[string]any{
+		"grpc.server.request.count": numG,
+	})
 }
