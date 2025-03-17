@@ -22,7 +22,7 @@ func getGlobalCheckpoints(
 	dataStream string,
 ) (map[string]int64, error) {
 	indexGlobalCheckpoints := make(map[string]int64)
-	req, err := newIndicesStatsRequest(ctx, dataStream)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "/"+dataStream+"/_stats/get?level=shards", nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to created indices request: %w", err)
 	}
@@ -60,11 +60,6 @@ func getGlobalCheckpoints(
 		}
 	}
 	return indexGlobalCheckpoints, nil
-}
-
-func newIndicesStatsRequest(ctx context.Context, index string) (*http.Request, error) {
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "/"+index+"/_stats/get?level=shards", nil)
-	return req, err
 }
 
 type dataStreamStats struct {
