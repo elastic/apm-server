@@ -119,22 +119,10 @@ func (m *metricsInterceptor) Interceptor() grpc.UnaryServerInterceptor {
 	}
 }
 
-<<<<<<< HEAD
 func (m *metricsInterceptor) getCounter(n string) metric.Int64Counter {
 	name := "grpc.server." + n
-	if met, ok := m.counters[name]; ok {
-		return met
-=======
-func (m *metricsInterceptor) inc(legacyMetricsPrefix string, id request.ResultID) {
-	m.getCounter("grpc.server.", string(id)).Add(context.Background(), 1)
-	m.getCounter(legacyMetricsPrefix, string(id)).Add(context.Background(), 1)
-}
-
-func (m *metricsInterceptor) getCounter(prefix, n string) metric.Int64Counter {
-	name := prefix + n
 	if met, ok := m.counters.Load(name); ok {
 		return met.(metric.Int64Counter)
->>>>>>> 2ca9f908 (fix: metrics interceptor concurrent map read write (#16182))
 	}
 
 	nm, _ := m.meter.Int64Counter(name)
