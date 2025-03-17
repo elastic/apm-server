@@ -23,11 +23,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/elastic/apm-server/functionaltests/internal/esclient"
-	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/elastic/apm-server/functionaltests/internal/esclient"
+	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 )
 
 var cleanupOnFailure *bool = flag.Bool("cleanup-on-failure", true, "Whether to run cleanup even if the test failed.")
@@ -36,17 +36,45 @@ var cleanupOnFailure *bool = flag.Bool("cleanup-on-failure", true, "Whether to r
 // We use 'pro' for production as that is the key used to retrieve EC_API_KEY from secret storage.
 var target *string = flag.String("target", "pro", "The target environment where to run tests againts. Valid values are: qa, pro")
 
-// expectedIngestForASingleRun() represent the expected number of ingested document after a
-// single run of ingest().
+const (
+	// managedByDSL is the constant string used by Elasticsearch to specify that an Index is managed by Data Stream Lifecycle management.
+	managedByDSL = "Data stream lifecycle"
+	// managedByILM is the constant string used by Elasticsearch to specify that an Index is managed by Index Lifecycle Management.
+	managedByILM = "Index Lifecycle Management"
+)
+
+const (
+	defaultNamespace = "default"
+)
+
+// expectedIngestForASingleRun represent the expected number of ingested document after a
+// single run of ingest.
 // Only non aggregation data streams are included, as aggregation ones differs on different
 // runs.
-func expectedIngestForASingleRun() esclient.APMDataStreamsDocCount {
+func expectedIngestForASingleRun(namespace string) esclient.APMDataStreamsDocCount {
 	return map[string]int{
-		"traces-apm-default":                     15013,
-		"metrics-apm.app.opbeans_python-default": 1437,
-		"metrics-apm.internal-default":           1351,
-		"logs-apm.error-default":                 364,
+		fmt.Sprintf("traces-apm-%s", namespace):                     15013,
+		fmt.Sprintf("metrics-apm.app.opbeans_python-%s", namespace): 1437,
+		fmt.Sprintf("metrics-apm.internal-%s", namespace):           1351,
+		fmt.Sprintf("logs-apm.error-%s", namespace):                 364,
 	}
+}
+
+func aggregationDataStreams(namespace string) []string {
+	return []string{
+		fmt.Sprintf("metrics-apm.service_destination.1m-%s", namespace),
+		fmt.Sprintf("metrics-apm.service_transaction.1m-%s", namespace),
+		fmt.Sprintf("metrics-apm.service_summary.1m-%s", namespace),
+		fmt.Sprintf("metrics-apm.transaction.1m-%s", namespace),
+	}
+}
+
+func allDataStreams(namespace string) []string {
+	res := aggregationDataStreams(namespace)
+	for ds := range expectedIngestForASingleRun(namespace) {
+		res = append(res, ds)
+	}
+	return res
 }
 
 // getDocsCountPerDS retrieves document count.
@@ -55,15 +83,32 @@ func getDocsCountPerDS(t *testing.T, ctx context.Context, ecc *esclient.Client) 
 	return ecc.ApmDocCount(ctx)
 }
 
+func sliceToMap(s []string) map[string]bool {
+	m := make(map[string]bool)
+	for _, v := range s {
+		m[v] = true
+	}
+	return m
+}
+
 // assertDocCount check if specified document count is equal to expected minus
 // documents count from a previous state.
-func assertDocCount(t *testing.T, docsCount, previous, expected esclient.APMDataStreamsDocCount) {
+func assertDocCount(t *testing.T, docsCount, previous, expected esclient.APMDataStreamsDocCount, skippedDataStreams []string) {
 	t.Helper()
+	skipped := sliceToMap(skippedDataStreams)
 	for ds, v := range docsCount {
-		if e, ok := expected[ds]; ok {
-			assert.Equal(t, e, v-previous[ds],
-				fmt.Sprintf("wrong document count for %s", ds))
+		if skipped[ds] {
+			continue
 		}
+
+		e, ok := expected[ds]
+		if !ok {
+			t.Errorf("unexpected documents (%d) for %s", v, ds)
+			continue
+		}
+
+		assert.Equal(t, e, v-previous[ds],
+			fmt.Sprintf("wrong document count difference for %s", ds))
 	}
 }
 
@@ -118,7 +163,7 @@ func regionFrom(target string) string {
 	case targetQA:
 		return "aws-eu-west-1"
 	case targetProd:
-		return "eu-west-1"
+		return "gcp-us-west2"
 	default:
 		panic("target value is not accepted")
 	}
@@ -132,5 +177,16 @@ func endpointFrom(target string) string {
 		return "https://api.elastic-cloud.com"
 	default:
 		panic("target value is not accepted")
+	}
+}
+
+func deploymentTemplateFrom(region string) string {
+	switch region {
+	case "aws-eu-west-1":
+		return "aws-storage-optimized"
+	case "gcp-us-west2":
+		return "gcp-storage-optimized"
+	default:
+		panic("region value is not accepted")
 	}
 }

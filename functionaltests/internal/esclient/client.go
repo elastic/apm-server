@@ -29,6 +29,8 @@ import (
 	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/search"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/esql/query"
+	"github.com/elastic/go-elasticsearch/v8/typedapi/indices/rollover"
+	"github.com/elastic/go-elasticsearch/v8/typedapi/ingest/putpipeline"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/security/createapikey"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 )
@@ -81,8 +83,8 @@ func formatDurationElasticsearch(d time.Duration) string {
 	return fmt.Sprintf("%dnanos", d)
 }
 
-// CreateAgentAPIKey creates an agent API Key, and returns it in the
-// base64-encoded form that agents should provide.
+// CreateAPIKey creates an API Key, and returns it in the base64-encoded form
+// that agents should provide.
 //
 // If expiration is less than or equal to zero, then the API Key never expires.
 func (c *Client) CreateAPIKey(ctx context.Context, name string, expiration time.Duration, roles map[string]types.RoleDescriptor) (string, error) {
@@ -99,15 +101,33 @@ func (c *Client) CreateAPIKey(ctx context.Context, name string, expiration time.
 		},
 	}).Do(ctx)
 	if err != nil {
-		return "", fmt.Errorf("error creating API Key: %w", err)
+		return "", fmt.Errorf("error creating API key: %w", err)
 	}
 	return resp.Encoded, nil
 }
 
-func (c *Client) CreateAPMAPIKey(ctx context.Context, name string) (string, error) {
-	return c.CreateAPIKey(context.Background(),
-		name, -1, map[string]types.RoleDescriptor{},
-	)
+// CreateIngestPipeline creates a new pipeline with the provided name and processors.
+//
+// Refer to https://www.elastic.co/guide/en/elasticsearch/reference/current/ingest.html.
+func (c *Client) CreateIngestPipeline(ctx context.Context, pipeline string, processors []types.ProcessorContainer) error {
+	_, err := c.es.Ingest.PutPipeline(pipeline).
+		Request(&putpipeline.Request{Processors: processors}).
+		Do(ctx)
+	if err != nil {
+		return fmt.Errorf("error creating ingest pipeline for %s: %w", pipeline, err)
+	}
+	return nil
+}
+
+// PerformManualRollover performs an immediate manual rollover for the specified data stream.
+//
+// Refer to https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-rollover-index.html.
+func (c *Client) PerformManualRollover(ctx context.Context, dataStream string) error {
+	_, err := c.es.Indices.Rollover(dataStream).Request(&rollover.Request{}).Do(ctx)
+	if err != nil {
+		return fmt.Errorf("error performing manual rollover for %s: %w", dataStream, err)
+	}
+	return nil
 }
 
 func (c *Client) GetDataStream(ctx context.Context, name string) ([]types.DataStream, error) {
