@@ -43,17 +43,38 @@ const (
 	managedByILM = "Index Lifecycle Management"
 )
 
-// expectedIngestForASingleRun() represent the expected number of ingested document after a
-// single run of ingest().
+const (
+	defaultNamespace = "default"
+)
+
+// expectedIngestForASingleRun represent the expected number of ingested document after a
+// single run of ingest.
 // Only non aggregation data streams are included, as aggregation ones differs on different
 // runs.
-func expectedIngestForASingleRun() esclient.APMDataStreamsDocCount {
+func expectedIngestForASingleRun(namespace string) esclient.APMDataStreamsDocCount {
 	return map[string]int{
-		"traces-apm-default":                     15013,
-		"metrics-apm.app.opbeans_python-default": 1437,
-		"metrics-apm.internal-default":           1351,
-		"logs-apm.error-default":                 364,
+		fmt.Sprintf("traces-apm-%s", namespace):                     15013,
+		fmt.Sprintf("metrics-apm.app.opbeans_python-%s", namespace): 1437,
+		fmt.Sprintf("metrics-apm.internal-%s", namespace):           1351,
+		fmt.Sprintf("logs-apm.error-%s", namespace):                 364,
 	}
+}
+
+func aggregationDataStreams(namespace string) []string {
+	return []string{
+		fmt.Sprintf("metrics-apm.service_destination.1m-%s", namespace),
+		fmt.Sprintf("metrics-apm.service_transaction.1m-%s", namespace),
+		fmt.Sprintf("metrics-apm.service_summary.1m-%s", namespace),
+		fmt.Sprintf("metrics-apm.transaction.1m-%s", namespace),
+	}
+}
+
+func allDataStreams(namespace string) []string {
+	res := aggregationDataStreams(namespace)
+	for ds := range expectedIngestForASingleRun(namespace) {
+		res = append(res, ds)
+	}
+	return res
 }
 
 // getDocsCountPerDS retrieves document count.
@@ -62,15 +83,32 @@ func getDocsCountPerDS(t *testing.T, ctx context.Context, ecc *esclient.Client) 
 	return ecc.ApmDocCount(ctx)
 }
 
+func sliceToMap(s []string) map[string]bool {
+	m := make(map[string]bool)
+	for _, v := range s {
+		m[v] = true
+	}
+	return m
+}
+
 // assertDocCount check if specified document count is equal to expected minus
 // documents count from a previous state.
-func assertDocCount(t *testing.T, docsCount, previous, expected esclient.APMDataStreamsDocCount) {
+func assertDocCount(t *testing.T, docsCount, previous, expected esclient.APMDataStreamsDocCount, skippedDataStreams []string) {
 	t.Helper()
+	skipped := sliceToMap(skippedDataStreams)
 	for ds, v := range docsCount {
-		if e, ok := expected[ds]; ok {
-			assert.Equal(t, e, v-previous[ds],
-				fmt.Sprintf("wrong document count for %s", ds))
+		if skipped[ds] {
+			continue
 		}
+
+		e, ok := expected[ds]
+		if !ok {
+			t.Errorf("unexpected documents (%d) for %s", v, ds)
+			continue
+		}
+
+		assert.Equal(t, e, v-previous[ds],
+			fmt.Sprintf("wrong document count difference for %s", ds))
 	}
 }
 
