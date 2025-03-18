@@ -121,7 +121,7 @@ jobs:
           cache-dependency-path: |
             go.sum
       - name: Log in to the Elastic Container registry
-        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
+        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
         with:
           registry: ${{ secrets.ELASTIC_DOCKER_REGISTRY }}
           username: ${{ secrets.ELASTIC_DOCKER_USERNAME }}
@@ -133,24 +133,24 @@ jobs:
 
   # Only for forked PRs, when changing the .go-version, then we need to note that the wolfi docker image needs to be
   # validated
-  validate-wolfi-docker-image:
-    runs-on: ubuntu-latest
-    if: ( github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == true ) || github.actor == 'dependabot[bot]'
-    steps:
-      - uses: actions/checkout@v4
-      - name: Get changed files
-        id: changed-files
-        uses: tj-actions/changed-files@dcc7a0cba800f454d79fff4b993e8c3555bcc0a8 # v45.0.7
-        with:
-          files: .go-version
-
-      - name: If .go-version changed validate docker image is available.
-        if: steps.changed-files.outputs.any_changed == 'true'
-        run: |
-          echo "If you change the .go-version please use a branch in the upstream repository to validate the wolfi images with test-package-and-push."
-          echo "Otherwise, this validation will run and fail the CI build."
-          echo "Please validate the wolfi image is available by running the following command:"
-          echo "::notice::docker pull docker.elastic.co/wolfi/go:$(cat .go-version)"
-          echo "If they are available you could skip this validation."
-          echo "However, we recommend to use an upstream branch to run the CI specialised steps for the packaging system."
-          exit 1
+  #validate-wolfi-docker-image:
+  #  runs-on: ubuntu-latest
+  #  if: ( github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == true ) || github.actor == 'dependabot[bot]'
+  #  steps:
+  #    - uses: actions/checkout@v4
+  #    - name: Get changed files
+  #      id: changed-files
+  #      uses: tj-actions/changed-files@dcc7a0cba800f454d79fff4b993e8c3555bcc0a8 # v45.0.7
+  #      with:
+  #        files: .go-version
+  #
+  #    - name: If .go-version changed validate docker image is available.
+  #      if: steps.changed-files.outputs.any_changed == 'true'
+  #      run: |
+  #        echo "If you change the .go-version please use a branch in the upstream repository to validate the wolfi images with test-package-and-push."
+  #        echo "Otherwise, this validation will run and fail the CI build."
+  #        echo "Please validate the wolfi image is available by running the following command:"
+  #        echo "::notice::docker pull docker.elastic.co/wolfi/go:$(cat .go-version)"
+  #        echo "If they are available you could skip this validation."
+  #        echo "However, we recommend to use an upstream branch to run the CI specialised steps for the packaging system."
+  #        exit 1
