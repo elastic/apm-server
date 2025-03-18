@@ -12,7 +12,7 @@ locals {
 }
 
 module "tags" {
-  source = "../../../testing/infra/terraform/modules/tags"
+  source = "../../testing/infra/terraform/modules/tags"
   # use the convention for team/shared owned resources if we are running in CI. 
   # assume this is an individually owned resource otherwise. 
   project = local.project
