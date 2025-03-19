@@ -173,17 +173,17 @@ func NewStackVersionFromStr(versionStr string) (StackVersion, error) {
 		return StackVersion{}, errors.New("invalid format")
 	}
 
-	major, err := strconv.ParseUint(splits[0], 10, 32)
+	major, err := strconv.ParseUint(splits[0], 10, 64)
 	if err != nil {
 		return StackVersion{}, fmt.Errorf("invalid major version: %w", err)
 	}
-	minor, err := strconv.ParseUint(splits[1], 10, 32)
+	minor, err := strconv.ParseUint(splits[1], 10, 64)
 	if err != nil {
 		return StackVersion{}, fmt.Errorf("invalid minor version: %w", err)
 	}
 
 	splits = strings.SplitN(splits[2], "-", 2)
-	patch, err := strconv.ParseUint(splits[0], 10, 32)
+	patch, err := strconv.ParseUint(splits[0], 10, 64)
 	if err != nil {
 		return StackVersion{}, fmt.Errorf("invalid patch version: %w", err)
 	}
