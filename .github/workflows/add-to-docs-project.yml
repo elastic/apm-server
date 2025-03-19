@@ -22,7 +22,7 @@ jobs:
               "organization_projects": "write",
               "issues": "read"
             }
-      - uses: octokit/graphql-action@v2.x
+      - uses: octokit/graphql-action@51bf543c240dcd14761320e2efc625dc32ec0d32 # v2.x
         id: add_to_project
         with:
           query: |

@@ -27,17 +27,17 @@ jobs:
           - 'qa'
           - 'pro'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
 
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
         with:
           terraform_version: "${{ env.TERRAFORM_VERSION }}"
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5
         with:
           go-version-file: 'functionaltests/go.mod'
 
-      - uses: elastic/oblt-actions/google/auth@v1
+      - uses: elastic/oblt-actions/google/auth@31e93d1dfb82adc106fc7820f505db1afefe43b1 # v1
 
       - uses: google-github-actions/get-secretmanager-secrets@e5bb06c2ca53b244f978d33348d18317a7f263ce # v2.2.2
         with:
@@ -56,10 +56,10 @@ jobs:
       - run
     steps:
       - id: check
-        uses: elastic/oblt-actions/check-dependent-jobs@v1
+        uses: elastic/oblt-actions/check-dependent-jobs@31e93d1dfb82adc106fc7820f505db1afefe43b1 # v1
         with:
           jobs: ${{ toJSON(needs) }}
-      - uses: elastic/oblt-actions/slack/notify-result@v1
+      - uses: elastic/oblt-actions/slack/notify-result@31e93d1dfb82adc106fc7820f505db1afefe43b1 # v1
         with:
           bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
           channel-id: "#apm-server"
