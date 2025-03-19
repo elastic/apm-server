@@ -12,6 +12,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"strings"
 	"sync"
 	"testing"
@@ -23,7 +24,7 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/pubsub"
-	"github.com/elastic/go-elasticsearch/v8"
+	"github.com/elastic/elastic-transport-go/v8/elastictransport"
 )
 
 const (
@@ -291,8 +292,11 @@ func newSubscriberPosition(t testing.TB, srv *httptest.Server, pos pubsub.Subscr
 }
 
 func newPubsub(t testing.TB, srv *httptest.Server, flushInterval, searchInterval time.Duration) *pubsub.Pubsub {
-	client, err := elasticsearch.NewClient(elasticsearch.Config{
-		Addresses: []string{srv.URL},
+	u, err := url.Parse(srv.URL)
+	require.NoError(t, err)
+
+	client, err := elastictransport.New(elastictransport.Config{
+		URLs: []*url.URL{u},
 	})
 	require.NoError(t, err)
 

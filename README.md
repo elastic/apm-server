@@ -118,14 +118,6 @@ make update-beats BEATS_VERSION=7.x
 make update-beats BEATS_VERSION=f240148065af94d55c5149e444482b9635801f27
 ```
 
-### Updating go-elasticsearch
-
-It is important to keep the [go-elasticsearch client](https://github.com/elastic/go-elasticsearch) in sync
-with the according major version. We also recommend to use the latest available client for minor versions.
-
-You can use `go get -u -m github.com/elastic/go-elasticsearch/v7@7.x` to update to the latest commit on the
-7.x branch.
-
 ## Packaging
 
 To build all apm-server packages from source, run:
