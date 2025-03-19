@@ -45,9 +45,15 @@ func NewStackVersionsFromStrs(versionStrs []string) (StackVersions, error) {
 // Sort sorts the stack versions in ascending order based on
 // major, minor, patch, suffix in order of importance.
 func (vs StackVersions) Sort() {
-	slices.SortFunc(vs, func(a, b StackVersion) int {
+	cmpFn := func(a, b StackVersion) int {
 		return a.Compare(b)
-	})
+	}
+
+	if slices.IsSortedFunc(vs, cmpFn) {
+		return
+	}
+
+	slices.SortFunc(vs, cmpFn)
 }
 
 // Last returns the last version in the list.
