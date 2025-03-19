@@ -61,7 +61,6 @@ func TestClientCustomHeaders(t *testing.T) {
 	client, err := NewClient(&cfg)
 	require.NoError(t, err)
 
-
 	CreateAPIKey(context.Background(), client, CreateAPIKeyRequest{})
 	assert.Equal(t, "header", requestHeaders.Get("custom"))
 
