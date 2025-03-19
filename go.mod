@@ -13,10 +13,16 @@ require (
 	github.com/elastic/elastic-agent-client/v7 v7.17.0
 	github.com/elastic/elastic-agent-libs v0.18.10
 	github.com/elastic/elastic-agent-system-metrics v0.11.9
+	github.com/elastic/elastic-transport-go/v8 v8.6.1
 	github.com/elastic/gmux v0.3.2
+<<<<<<< HEAD
 	github.com/elastic/go-docappender/v2 v2.4.0
 	github.com/elastic/go-elasticsearch/v8 v8.17.0
 	github.com/elastic/go-sysinfo v1.15.0
+=======
+	github.com/elastic/go-docappender/v2 v2.7.0
+	github.com/elastic/go-sysinfo v1.15.1
+>>>>>>> 160b98a6 (feat: disable include_source_on_error option and drop go-elasticsearch (#16175))
 	github.com/elastic/go-ucfg v0.8.8
 	github.com/go-sourcemap/sourcemap v2.1.4+incompatible
 	github.com/gofrs/flock v0.12.1
@@ -108,7 +114,7 @@ require (
 	github.com/ebitengine/purego v0.8.1 // indirect
 	github.com/elastic/apm-perf v0.0.0-20250207152505-1dbeb202ff22 // indirect
 	github.com/elastic/apm-tools v0.0.0-20250124173757-336011228dbe // indirect
-	github.com/elastic/elastic-transport-go/v8 v8.6.1 // indirect
+	github.com/elastic/go-elasticsearch/v8 v8.17.1 // indirect
 	github.com/elastic/go-licenser v0.4.2 // indirect
 	github.com/elastic/go-lumber v0.1.2-0.20220819171948-335fde24ea0f // indirect
 	github.com/elastic/go-structform v0.0.12 // indirect

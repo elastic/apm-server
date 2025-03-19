@@ -30,8 +30,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	apmVersion "github.com/elastic/apm-server/internal/version"
-	esv8 "github.com/elastic/go-elasticsearch/v8"
-	"github.com/elastic/go-elasticsearch/v8/esapi"
 )
 
 func TestClient(t *testing.T) {
@@ -63,14 +61,33 @@ func TestClientCustomHeaders(t *testing.T) {
 	client, err := NewClient(&cfg)
 	require.NoError(t, err)
 
+<<<<<<< HEAD
 	CreateAPIKey(context.Background(), client, CreateAPIKeyRequest{})
 	assert.Equal(t, "header", requestHeaders.Get("custom"))
+=======
+	req, err := http.NewRequest(http.MethodPost, "/_bulk", bytes.NewReader([]byte("{}")))
+	require.NoError(t, err)
+
+	_, err = client.Perform(req)
+	require.NoError(t, err)
+	select {
+	case <-wait:
+	case <-time.After(1 * time.Second):
+		t.Fatal("timed out while waiting for request")
+	}
+
+>>>>>>> 160b98a6 (feat: disable include_source_on_error option and drop go-elasticsearch (#16175))
 }
 
 func TestClientCustomUserAgent(t *testing.T) {
 	wait := make(chan struct{})
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+<<<<<<< HEAD
 		assert.Equal(t, fmt.Sprintf("Elastic-APM-Server/%s go-elasticsearch/%s", apmVersion.Version, esv8.Version), r.Header.Get("User-Agent"))
+=======
+		w.Header().Set("X-Elastic-Product", "Elasticsearch")
+		assert.Equal(t, fmt.Sprintf("Elastic-APM-Server/%s go-elasticsearch/%s", apmVersion.Version, apmVersion.Version), r.Header.Get("User-Agent"))
+>>>>>>> 160b98a6 (feat: disable include_source_on_error option and drop go-elasticsearch (#16175))
 		close(wait)
 	}))
 	defer srv.Close()
@@ -81,7 +98,15 @@ func TestClientCustomUserAgent(t *testing.T) {
 	client, err := NewClient(&cfg)
 	require.NoError(t, err)
 
+<<<<<<< HEAD
 	CreateAPIKey(context.Background(), client, CreateAPIKeyRequest{})
+=======
+	req, err := http.NewRequest(http.MethodPost, "/_bulk", bytes.NewReader([]byte("{}")))
+	require.NoError(t, err)
+
+	_, err = client.Perform(req)
+	require.NoError(t, err)
+>>>>>>> 160b98a6 (feat: disable include_source_on_error option and drop go-elasticsearch (#16175))
 	select {
 	case <-wait:
 	case <-time.After(1 * time.Second):
@@ -169,8 +194,11 @@ func TestClientRetryableStatuses(t *testing.T) {
 			require.NoError(t, err)
 
 			var buf bytes.Buffer
-			var res *esapi.Response
-			res, err = client.Bulk(bytes.NewReader(buf.Bytes()))
+
+			req, err := http.NewRequest(http.MethodPost, "/_bulk", bytes.NewReader(buf.Bytes()))
+			require.NoError(t, err)
+
+			res, err := client.Perform(req)
 			require.NoError(t, err)
 			assert.Equal(t, tt.expectedStatusCode, res.StatusCode)
 			assert.Equal(t, tt.expectedRequestCount, count)

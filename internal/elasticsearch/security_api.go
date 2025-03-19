@@ -18,11 +18,11 @@
 package elasticsearch
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
+	"fmt"
 	"net/http"
-
-	"github.com/elastic/go-elasticsearch/v8/esapi"
-	"github.com/elastic/go-elasticsearch/v8/esutil"
 )
 
 // CreateAPIKey requires manage_api_key cluster privilege
@@ -55,14 +55,20 @@ func InvalidateAPIKey(ctx context.Context, client *Client, apikeyReq InvalidateA
 }
 
 func HasPrivileges(ctx context.Context, client *Client, privileges HasPrivilegesRequest, credentials string) (HasPrivilegesResponse, error) {
-	var info HasPrivilegesResponse
-	req := esapi.SecurityHasPrivilegesRequest{Body: esutil.NewJSONReader(privileges)}
-	if credentials != "" {
-		header := make(http.Header)
-		header.Set("Authorization", "ApiKey "+credentials)
-		req.Header = header
+	b, err := json.Marshal(privileges)
+	if err != nil {
+		return HasPrivilegesResponse{}, fmt.Errorf("failed to marshal has_privileges request: %w", err)
 	}
-	err := doRequest(ctx, client, req, &info)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "/_security/user/_has_privileges", bytes.NewReader(b))
+	if err != nil {
+		return HasPrivilegesResponse{}, fmt.Errorf("failed to create has_privileges request: %w", err)
+	}
+	req.Header.Add("Content-Type", "application/json")
+	if credentials != "" {
+		req.Header.Set("Authorization", "ApiKey "+credentials)
+	}
+	var info HasPrivilegesResponse
+	err = doRequest(client, req, &info)
 	return info, err
 }
 
