@@ -23,7 +23,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
@@ -38,28 +37,49 @@ type Client struct {
 	endpoint string
 }
 
-func New(endpoint string) (*Client, error) {
-	apiKey := os.Getenv("EC_API_KEY")
-	if apiKey == "" {
-		return nil, fmt.Errorf("unable to obtain value from EC_API_KEY environment variable")
+type clientConfig struct {
+	httpClient *http.Client
+}
+
+func (o *clientConfig) initDefaults() {
+	o.httpClient = new(http.Client)
+}
+
+type ClientOption func(*clientConfig)
+
+func WithHTTPClient(httpClient *http.Client) ClientOption {
+	return func(o *clientConfig) {
+		o.httpClient = httpClient
+	}
+}
+
+func New(endpoint string, apiKey string, options ...ClientOption) (*Client, error) {
+	cfg := clientConfig{}
+	cfg.initDefaults()
+	for _, o := range options {
+		o(&cfg)
 	}
 
+	if apiKey == "" {
+		return nil, fmt.Errorf("API key is required")
+	}
 	if endpoint == "" {
 		return nil, fmt.Errorf("endpoint is required")
 	}
 
-	ess, err := api.NewAPI(api.Config{
+	ecAPI, err := api.NewAPI(api.Config{
 		AuthWriter: auth.APIKey(apiKey),
-		Client:     new(http.Client),
+		Client:     cfg.httpClient,
 		Host:       endpoint,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("cannot create Elastic Cloud API client: %w", err)
 	}
 
-	c := Client{ess, endpoint}
-
-	return &c, nil
+	return &Client{
+		ecAPI:    ecAPI,
+		endpoint: endpoint,
+	}, nil
 }
 
 func (c *Client) RestartIntegrationServer(ctx context.Context, deploymentID string) error {
