@@ -86,11 +86,7 @@ jobs:
         with:
           go-version-file: 'go.mod'
 
-<<<<<<< HEAD
-      - uses: rlespinasse/github-slug-action@aba9f8db6ef36e0733227a62673d6592b1f430ea
-=======
-      - uses: rlespinasse/github-slug-action@955b5ba4560860f8a633bd24190941f16016e42c # 955b5ba4560860f8a633bd24190941f16016e42c
->>>>>>> 43108a07 (ci: pin actions to specific commits (#16297))
+      - uses: rlespinasse/github-slug-action@955b5ba4560860f8a633bd24190941f16016e42c # v5.1.0
 
       - name: Set up env
         run: |
