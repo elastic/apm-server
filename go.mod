@@ -5,7 +5,7 @@ go 1.24.1
 require (
 	github.com/KimMachineGun/automemlimit v0.7.1
 	github.com/cespare/xxhash/v2 v2.3.0
-	github.com/cockroachdb/pebble/v2 v2.0.2
+	github.com/cockroachdb/pebble/v2 v2.0.3
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/apm-aggregation v1.2.0
 	github.com/elastic/apm-data v1.18.0
