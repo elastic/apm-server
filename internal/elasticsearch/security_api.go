@@ -18,51 +18,78 @@
 package elasticsearch
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
+	"fmt"
 	"net/http"
-
-	"github.com/elastic/go-elasticsearch/v8/esapi"
-	"github.com/elastic/go-elasticsearch/v8/esutil"
 )
 
 // CreateAPIKey requires manage_api_key cluster privilege
 func CreateAPIKey(ctx context.Context, client *Client, apikeyReq CreateAPIKeyRequest) (CreateAPIKeyResponse, error) {
+	b, err := json.Marshal(apikeyReq)
+	if err != nil {
+		return CreateAPIKeyResponse{}, fmt.Errorf("failed to marshal create apikey request: %w", err)
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, "/_security/api_key", bytes.NewReader(b))
+	if err != nil {
+		return CreateAPIKeyResponse{}, fmt.Errorf("failed to create api_key request: %w", err)
+	}
+	req.Header.Add("Content-Type", "application/json")
 	var apikey CreateAPIKeyResponse
-	req := esapi.SecurityCreateAPIKeyRequest{Body: esutil.NewJSONReader(apikeyReq)}
-	err := doRequest(ctx, client, req, &apikey)
+	err = doRequest(client, req, &apikey)
 	return apikey, err
 }
 
 // GetAPIKeys requires manage_api_key cluster privilege
 func GetAPIKeys(ctx context.Context, client *Client, apikeyReq GetAPIKeyRequest) (GetAPIKeyResponse, error) {
-	req := esapi.SecurityGetAPIKeyRequest{}
-	if apikeyReq.ID != nil {
-		req.ID = *apikeyReq.ID
-	} else if apikeyReq.Name != nil {
-		req.Name = *apikeyReq.Name
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "/_security/api_key", nil)
+	if err != nil {
+		return GetAPIKeyResponse{}, fmt.Errorf("failed to create get api_key request: %w", err)
 	}
+	q := req.URL.Query()
+	if apikeyReq.ID != nil {
+		q.Set("id", *apikeyReq.ID)
+	} else if apikeyReq.Name != nil {
+		q.Set("name", *apikeyReq.Name)
+	}
+	req.URL.RawQuery = q.Encode()
 	var apikey GetAPIKeyResponse
-	err := doRequest(ctx, client, req, &apikey)
+	err = doRequest(client, req, &apikey)
 	return apikey, err
 }
 
 // InvalidateAPIKey requires manage_api_key cluster privilege
 func InvalidateAPIKey(ctx context.Context, client *Client, apikeyReq InvalidateAPIKeyRequest) (InvalidateAPIKeyResponse, error) {
+	b, err := json.Marshal(apikeyReq)
+	if err != nil {
+		return InvalidateAPIKeyResponse{}, fmt.Errorf("failed to marshal create invalidate apikey request: %w", err)
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, "/_security/api_key", bytes.NewReader(b))
+	if err != nil {
+		return InvalidateAPIKeyResponse{}, fmt.Errorf("failed to create invalidate api_key request: %w", err)
+	}
+	req.Header.Add("Content-Type", "application/json")
 	var confirmation InvalidateAPIKeyResponse
-	req := esapi.SecurityInvalidateAPIKeyRequest{Body: esutil.NewJSONReader(apikeyReq)}
-	err := doRequest(ctx, client, req, &confirmation)
+	err = doRequest(client, req, &confirmation)
 	return confirmation, err
 }
 
 func HasPrivileges(ctx context.Context, client *Client, privileges HasPrivilegesRequest, credentials string) (HasPrivilegesResponse, error) {
-	var info HasPrivilegesResponse
-	req := esapi.SecurityHasPrivilegesRequest{Body: esutil.NewJSONReader(privileges)}
-	if credentials != "" {
-		header := make(http.Header)
-		header.Set("Authorization", "ApiKey "+credentials)
-		req.Header = header
+	b, err := json.Marshal(privileges)
+	if err != nil {
+		return HasPrivilegesResponse{}, fmt.Errorf("failed to marshal has_privileges request: %w", err)
 	}
-	err := doRequest(ctx, client, req, &info)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "/_security/user/_has_privileges", bytes.NewReader(b))
+	if err != nil {
+		return HasPrivilegesResponse{}, fmt.Errorf("failed to create has_privileges request: %w", err)
+	}
+	req.Header.Add("Content-Type", "application/json")
+	if credentials != "" {
+		req.Header.Set("Authorization", "ApiKey "+credentials)
+	}
+	var info HasPrivilegesResponse
+	err = doRequest(client, req, &info)
 	return info, err
 }
 
