@@ -1,0 +1,24 @@
+## Workflow to process the JUnit test results and add a report to the checks.
+name: system-test-reporter
+on:
+  workflow_run:
+    workflows:
+      - ci
+    types:
+      - completed
+
+permissions:
+  contents: read
+  actions: read
+  checks: write
+
+jobs:
+  system-test-results:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: elastic/oblt-actions/test-report@31e93d1dfb82adc106fc7820f505db1afefe43b1 # v1
+        with:
+          artifact: /test-results-(.*)/     # artifact name pattern
+          name: 'Test Results $1'        # Name of the check run which will be created
+          path: "*.xml"                     # Path to test results (inside artifact .zip)
+          reporter: java-junit              # Format of test results

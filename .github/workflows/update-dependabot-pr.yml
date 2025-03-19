@@ -1,0 +1,64 @@
+---
+# Dependabot Pull Requests are not updating the NOTICE.txt file, which causes the lint job to fail.
+# This workflow will checkout the dependabot PR, update the NOTICE.txt file, and push the changes back to the PR.
+name: update-dependabot-pr
+
+on:
+  push:
+    branches:
+      - dependabot/go_modules/**
+    paths-ignore:
+      - NOTICE.txt
+      - NOTICE-fips.txt
+
+permissions:
+  contents: read
+
+jobs:
+  update-dependabot-pr:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5
+        with:
+          go-version-file: go.mod
+      - name: Update NOTICE.txt
+        run: make notice
+      - name: Debug diff
+        run: git status --porcelain
+      - name: Check if NOTICE.txt has changed
+        id: check-notice-diff
+        run: |
+          if git status --porcelain | grep -q 'NOTICE.txt\|NOTICE-fips.txt'; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Debug output
+        run: |-
+          echo 'changed: ${{ steps.check-notice-diff.outputs.changed }}'
+      # inspired by https://gist.github.com/swinton/03e84635b45c78353b1f71e41007fc7c
+      - name: Commit changes (signed)
+        if: ${{ steps.check-notice-diff.outputs.changed == 'true' }}
+        run: |
+          export BRANCH=${GITHUB_REF#refs/heads/}
+          export SHA=$(git rev-parse "$BRANCH:$FILE_TO_COMMIT")
+          gh api --method PUT "/repos/${REPO}/contents/$FILE_TO_COMMIT" \
+            --field message="Update $FILE_TO_COMMIT" \
+            --field content=@<(base64 -i $FILE_TO_COMMIT) \
+            --field sha="${SHA}" \
+            --field branch="${BRANCH}"
+
+          export SHA=$(git rev-parse "$BRANCH:$FILE_TO_COMMIT_FIPS")
+          gh api --method PUT "/repos/${REPO}/contents/$FILE_TO_COMMIT_FIPS" \
+            --field message="Update $FILE_TO_COMMIT_FIPS" \
+            --field content=@<(base64 -i $FILE_TO_COMMIT_FIPS) \
+            --field sha="${SHA}" \
+            --field branch="${BRANCH}"
+        env:
+          FILE_TO_COMMIT: NOTICE.txt
+          FILE_TO_COMMIT_FIPS: NOTICE-fips.txt
+          REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}

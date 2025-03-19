@@ -53,13 +53,17 @@ jobs:
       GOBENCH_USERNAME: ${{ secrets.GOBENCH_USERNAME }}
       GOBENCH_HOST: ${{ secrets.GOBENCH_HOST }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5
         with:
           go-version-file: 'go.mod'
 
+<<<<<<< HEAD
       - uses: rlespinasse/github-slug-action@797d68864753cbceedc271349d402da4590e6302
+=======
+      - uses: rlespinasse/github-slug-action@955b5ba4560860f8a633bd24190941f16016e42c # 955b5ba4560860f8a633bd24190941f16016e42c
+>>>>>>> 43108a07 (ci: pin actions to specific commits (#16297))
 
       - name: Set up env
         run: |
@@ -83,10 +87,18 @@ jobs:
           username: ${{ secrets.ELASTIC_DOCKER_USERNAME }}
           password: ${{ secrets.ELASTIC_DOCKER_PASSWORD }}
 
+<<<<<<< HEAD
 
       - uses: elastic/oblt-actions/google/auth@v1
 
       - uses: elastic/oblt-actions/aws/auth@v1
+=======
+      - uses: elastic/oblt-actions/google/auth@31e93d1dfb82adc106fc7820f505db1afefe43b1 # v1
+
+      - uses: elastic/oblt-actions/aws/auth@31e93d1dfb82adc106fc7820f505db1afefe43b1 # v1
+        with:
+          role-duration-seconds: 21600 # 6 hours
+>>>>>>> 43108a07 (ci: pin actions to specific commits (#16297))
 
       - uses: google-github-actions/get-secretmanager-secrets@dc4a1392bad0fd60aee00bb2097e30ef07a1caae # v2.1.3
         with:
@@ -94,7 +106,7 @@ jobs:
           secrets: |-
             EC_API_KEY:elastic-observability/elastic-cloud-observability-team-pro-api-key
 
-      - uses: hashicorp/setup-terraform@v3
+      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3
         with:
           terraform_version: 1.3.7
           terraform_wrapper: false
@@ -131,7 +143,7 @@ jobs:
           $PNG_REPORT_FILE
 
       - name: Upload PNG
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4
         with:
           name: kibana-png-report
           path: ${{ env.WORKING_DIRECTORY }}/${{ env.PNG_REPORT_FILE }}
@@ -147,20 +159,89 @@ jobs:
           echo "png_report_url=https://elastic-apm-server-benchmark-reports.s3.amazonaws.com/${DEST_NAME}" >> "$GITHUB_OUTPUT"
 
       - name: Upload benchmark result
+<<<<<<< HEAD
         uses: actions/upload-artifact@v4
         if: always()
+=======
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4
+>>>>>>> 43108a07 (ci: pin actions to specific commits (#16297))
         with:
           name: benchmark-result
           path: ${{ env.WORKING_DIRECTORY }}/${{ env.BENCHMARK_RESULT }}
           if-no-files-found: error
 
+<<<<<<< HEAD
+=======
+      # The next section injects CPU profile collected by apmbench into the build.
+      # By copying the profile, uploading it to the artifacts and pushing it
+      # via a PR to update default.pgo.
+
+      - name: Copy CPU profile
+        run: make cp-cpuprof
+
+      - name: Upload CPU profile
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4
+        with:
+          name: cpu-profile
+          path: ${{ env.WORKING_DIRECTORY }}/${{ env.BENCHMARK_CPU_OUT }}
+          if-no-files-found: error
+
+      - name: Get token
+        id: get_token
+        uses: tibdex/github-app-token@3beb63f4bd073e61482598c45c71c1019b59b73a # v2.1.0
+        with:
+          app_id: ${{ secrets.OBS_AUTOMATION_APP_ID }}
+          private_key: ${{ secrets.OBS_AUTOMATION_APP_PEM }}
+          permissions: >-
+            {
+              "contents": "write",
+              "pull_requests": "write"
+            }
+
+      # Required to use a service account, otherwise PRs created by
+      # GitHub bot won't trigger any CI builds.
+      # See https://github.com/peter-evans/create-pull-request/issues/48#issuecomment-537478081
+      - name: Configure git user
+        uses: elastic/oblt-actions/git/setup@31e93d1dfb82adc106fc7820f505db1afefe43b1 # v1
+        with:
+          github-token: ${{ steps.get_token.outputs.token }}
+
+      - name: Import GPG key
+        uses: crazy-max/ghaction-import-gpg@cb9bde2e2525e640591a934b1fd28eef1dcaf5e5  # v6.2.0
+        with:
+          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.GPG_PASSPHRASE }}
+          git_user_signingkey: true
+          git_commit_gpgsign: true
+
+      - name: Open PGO PR
+        if: ${{ env.PGO_EXPORT == 'true' }}
+        run: ${{ github.workspace }}/.ci/scripts/push-pgo-pr.sh
+        env:
+          WORKSPACE_PATH: ${{ github.workspace }}
+          PROFILE_PATH: ${{ env.WORKING_DIRECTORY }}/${{ env.BENCHMARK_CPU_OUT }}
+          GITHUB_TOKEN: ${{ steps.get_token.outputs.token }}
+          WORKFLOW: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}
+
+      # Secrets are rotated daily, if the benchmarks run between the rotation window, then
+      # there is a high chance things will stop working
+      # This is trying to reduce the chances of that happening.
+      # See https://github.com/elastic/observability-test-environments/actions/workflows/cluster-rotate-api-keys.yml
+      - uses: google-github-actions/get-secretmanager-secrets@a8440875e1c2892062aef9061228d4f1af8f919b # v2.2.3
+        if: always()
+        with:
+          export_to_environment: true
+          secrets: |-
+            EC_API_KEY:elastic-observability/elastic-cloud-observability-team-pro-api-key
+
+>>>>>>> 43108a07 (ci: pin actions to specific commits (#16297))
       - name: Tear down benchmark environment
         if: always()
         run: make destroy
 
       # Notify failure to Slack only on schedule (nightly run)
       - if: failure() && github.event_name == 'schedule'
-        uses: elastic/oblt-actions/slack/notify-result@v1
+        uses: elastic/oblt-actions/slack/notify-result@31e93d1dfb82adc106fc7820f505db1afefe43b1 # v1
         with:
           bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
           channel-id: "#apm-server"

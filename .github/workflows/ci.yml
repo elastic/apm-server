@@ -15,8 +15,13 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
+<<<<<<< HEAD
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v3
+=======
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5
+>>>>>>> 43108a07 (ci: pin actions to specific commits (#16297))
         with:
           go-version-file: .go-version
           cache: true
@@ -32,11 +37,26 @@ jobs:
         os: ['macos-latest', 'windows-latest', 'ubuntu-latest']
     runs-on: ${{ matrix.os }}
     steps:
+<<<<<<< HEAD
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v3
+=======
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: antontroshin/setup-go@bda02de8887c9946189f81e7e59512914aeb9ea4 # bda02de8887c9946189f81e7e59512914aeb9ea4
+        if: runner.os == 'Windows'
+>>>>>>> 43108a07 (ci: pin actions to specific commits (#16297))
         with:
           go-version-file: .go-version
           cache: true
+<<<<<<< HEAD
+=======
+      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5
+        if: runner.os != 'Windows'
+        with:
+          go-version-file: go.mod
+          cache: true
+      - run: go test -v -race ./...
+>>>>>>> 43108a07 (ci: pin actions to specific commits (#16297))
       - env:
           CGO_ENABLED: "0"
         run: go test -v ./...
@@ -44,11 +64,16 @@ jobs:
   python-system-tests:
     runs-on: ubuntu-latest
     steps:
+<<<<<<< HEAD
       - uses: actions/checkout@v3
       # As long as there are some disk space issues with the CI runners.
       - name: Free Disk Space
         continue-on-error: true
         uses: jlumbroso/free-disk-space@f68fdb76e2ea636224182cfb7377ff9a1708f9b8
+=======
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5
+>>>>>>> 43108a07 (ci: pin actions to specific commits (#16297))
         with:
           android: true
           dotnet: true
@@ -80,8 +105,87 @@ jobs:
       - python-system-tests
       - go-system-tests
     steps:
+<<<<<<< HEAD
       - id: check
         uses: elastic/apm-pipeline-library/.github/actions/check-dependent-jobs@current
         with:
           needs: ${{ toJSON(needs) }}
       - run: ${{ steps.check.outputs.isSuccess }}
+=======
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5
+        with:
+          go-version-file: systemtest/go.mod
+          cache: true
+          cache-dependency-path: |
+            go.sum
+            systemtest/go.sum
+      - run: docker compose up -d
+      - env:
+          GOTESTFLAGS: "-v"
+          GH_TOKEN: ${{ github.token }}
+        run: make system-test
+
+  test-package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5
+        with:
+          go-version-file: go.mod
+          cache: false
+          cache-dependency-path: |
+            go.sum
+      - run: make package-snapshot
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+  test-package-and-push:
+    runs-on: ubuntu-latest
+    # If no PR event or if a PR event that's caused by a non-fork and non dependabot actor
+    if: github.event_name != 'pull_request' || ( github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false && github.actor != 'dependabot[bot]' )
+    env:
+      GENERATE_WOLFI_IMAGES: true
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5
+        with:
+          go-version-file: go.mod
+          cache: false
+          cache-dependency-path: |
+            go.sum
+      - name: Log in to the Elastic Container registry
+        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
+        with:
+          registry: ${{ secrets.ELASTIC_DOCKER_REGISTRY }}
+          username: ${{ secrets.ELASTIC_DOCKER_USERNAME }}
+          password: ${{ secrets.ELASTIC_DOCKER_PASSWORD }}
+      - run: make package-snapshot
+        env:
+          GH_TOKEN: ${{ github.token }}
+      - run: make publish-docker-images
+
+  # Only for forked PRs, when changing the .go-version, then we need to note that the wolfi docker image needs to be
+  # validated
+  #validate-wolfi-docker-image:
+  #  runs-on: ubuntu-latest
+  #  if: ( github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == true ) || github.actor == 'dependabot[bot]'
+  #  steps:
+  #    - uses: actions/checkout@v4
+  #    - name: Get changed files
+  #      id: changed-files
+  #      uses: tj-actions/changed-files@dcc7a0cba800f454d79fff4b993e8c3555bcc0a8 # v45.0.7
+  #      with:
+  #        files: .go-version
+  #
+  #    - name: If .go-version changed validate docker image is available.
+  #      if: steps.changed-files.outputs.any_changed == 'true'
+  #      run: |
+  #        echo "If you change the .go-version please use a branch in the upstream repository to validate the wolfi images with test-package-and-push."
+  #        echo "Otherwise, this validation will run and fail the CI build."
+  #        echo "Please validate the wolfi image is available by running the following command:"
+  #        echo "::notice::docker pull docker.elastic.co/wolfi/go:$(cat .go-version)"
+  #        echo "If they are available you could skip this validation."
+  #        echo "However, we recommend to use an upstream branch to run the CI specialised steps for the packaging system."
+  #        exit 1
+>>>>>>> 43108a07 (ci: pin actions to specific commits (#16297))

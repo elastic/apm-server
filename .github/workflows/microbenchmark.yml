@@ -1,0 +1,35 @@
+---
+
+name: microbenchmark
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - "8.*"
+      - "9.*"
+    paths-ignore:
+      - '**.md'
+      - '**.asciidoc'
+
+# limit the access of the generated GITHUB_TOKEN
+permissions:
+  contents: read
+
+jobs:
+  microbenchmark:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Run buildkite pipeline
+        uses: elastic/oblt-actions/buildkite/run@9a8ac45080b2f079246e2a0c665b551c6986b6c3 # v1.9.1
+        with:
+          token: ${{ secrets.BUILDKITE_TOKEN }}
+          pipeline: apm-agent-microbenchmark
+          env-vars: |
+            script=.ci/scripts/bench.sh
+            repo=apm-server
+            sha=${{ github.sha }}
+            BRANCH_NAME=${{ github.ref_name }}
+            REPO=apm-server

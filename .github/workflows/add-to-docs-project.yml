@@ -1,0 +1,42 @@
+name: Add to obs-docs project
+on:
+  issues:
+    types:
+      - labeled
+permissions:
+  contents: read
+
+jobs:
+  add_to_project:
+    runs-on: ubuntu-latest
+    if: github.event.label.name == 'Team:Docs'
+    steps:
+      - name: Get token
+        id: get_token
+        uses: tibdex/github-app-token@3beb63f4bd073e61482598c45c71c1019b59b73a # v2.1.0
+        with:
+          app_id: ${{ secrets.OBS_AUTOMATION_APP_ID }}
+          private_key: ${{ secrets.OBS_AUTOMATION_APP_PEM }}
+          permissions: >-
+            {
+              "organization_projects": "write",
+              "issues": "read"
+            }
+      - uses: octokit/graphql-action@51bf543c240dcd14761320e2efc625dc32ec0d32 # v2.x
+        id: add_to_project
+        with:
+          query: |
+            mutation add_to_project($projectid:ID!,$contentid:ID!) {
+              addProjectV2ItemById(input:{projectId:$projectid contentId:$contentid}) {
+                item {
+                  ... on ProjectV2Item {
+                    id
+                  }
+                }
+              }
+            }
+          projectid: ${{ env.PROJECT_ID }}
+          contentid: ${{ github.event.issue.node_id }}
+        env:
+          PROJECT_ID: "PVT_kwDOAGc3Zs0iZw"
+          GITHUB_TOKEN: ${{ steps.get_token.outputs.token }}
