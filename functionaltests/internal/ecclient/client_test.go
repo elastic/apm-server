@@ -34,6 +34,9 @@ import (
 	"github.com/elastic/apm-server/functionaltests/internal/ecclient"
 )
 
+// recordedHTTPClient instantiates a http.Client backed by a recorder.Recorder to be
+// used in testing scenarios.
+// To update any fixture, delete it from the filesystem and run the test again.
 func recordedHTTPClient(t *testing.T) (*recorder.Recorder, *http.Client) {
 	fixturesFilename := path.Join("testdata", "fixtures", t.Name())
 	rec, err := recorder.NewAsMode(fixturesFilename, recorder.ModeReplaying, http.DefaultTransport)
