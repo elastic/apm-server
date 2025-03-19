@@ -87,6 +87,8 @@ var (
 )
 
 func TestMain(m *testing.M) {
+	flag.Parse()
+
 	// This is a simple check to alert users if this necessary env var
 	// is not available.
 	//
