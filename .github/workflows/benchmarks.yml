@@ -180,7 +180,7 @@ jobs:
           $PNG_REPORT_FILE
 
       - name: Upload PNG
-        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: kibana-png-report
           path: ${{ env.WORKING_DIRECTORY }}/${{ env.PNG_REPORT_FILE }}
@@ -196,7 +196,7 @@ jobs:
           echo "png_report_url=https://elastic-apm-server-benchmark-reports.s3.amazonaws.com/${DEST_NAME}" >> "$GITHUB_OUTPUT"
 
       - name: Upload benchmark result
-        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: benchmark-result
           path: ${{ env.WORKING_DIRECTORY }}/${{ env.BENCHMARK_RESULT }}
@@ -210,7 +210,7 @@ jobs:
         run: make cp-cpuprof
 
       - name: Upload CPU profile
-        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: cpu-profile
           path: ${{ env.WORKING_DIRECTORY }}/${{ env.BENCHMARK_CPU_OUT }}

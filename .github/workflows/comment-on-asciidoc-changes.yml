@@ -16,4 +16,4 @@ jobs:
     permissions:
       contents: read
       pull-requests: write
-    uses: elastic/docs-builder/.github/workflows/comment-on-asciidoc-changes.yml@main
+    uses: elastic/docs-builder/.github/workflows/comment-on-asciidoc-changes.yml@d20bc8650b8ea27a58ee6d17ed963659e878f993 # main
