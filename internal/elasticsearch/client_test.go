@@ -19,7 +19,6 @@ package elasticsearch
 
 import (
 	"bytes"
-	"context"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -48,9 +47,12 @@ func TestClient(t *testing.T) {
 }
 
 func TestClientCustomHeaders(t *testing.T) {
-	var requestHeaders http.Header
+	wait := make(chan struct{})
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		requestHeaders = r.Header
+		w.Header().Set("X-Elastic-Product", "Elasticsearch")
+		assert.Equal(t, "header", r.Header.Get("custom"))
+		fmt.Println(r.URL.Path)
+		close(wait)
 	}))
 	defer srv.Close()
 
@@ -60,9 +62,6 @@ func TestClientCustomHeaders(t *testing.T) {
 	}
 	client, err := NewClient(&cfg)
 	require.NoError(t, err)
-
-	CreateAPIKey(context.Background(), client, CreateAPIKeyRequest{})
-	assert.Equal(t, "header", requestHeaders.Get("custom"))
 
 	req, err := http.NewRequest(http.MethodPost, "/_bulk", bytes.NewReader([]byte("{}")))
 	require.NoError(t, err)
@@ -90,8 +89,6 @@ func TestClientCustomUserAgent(t *testing.T) {
 	}
 	client, err := NewClient(&cfg)
 	require.NoError(t, err)
-
-	CreateAPIKey(context.Background(), client, CreateAPIKeyRequest{})
 
 	req, err := http.NewRequest(http.MethodPost, "/_bulk", bytes.NewReader([]byte("{}")))
 	require.NoError(t, err)
