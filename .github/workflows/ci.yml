@@ -46,35 +46,8 @@ jobs:
         os: ['macos-latest', 'ubuntu-latest', 'windows-latest']
     runs-on: ${{ matrix.os }}
     steps:
-<<<<<<< HEAD
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
-=======
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-      - uses: antontroshin/setup-go@bda02de8887c9946189f81e7e59512914aeb9ea4 # bda02de8887c9946189f81e7e59512914aeb9ea4
-        if: runner.os == 'Windows'
-        with:
-          go-version-file: go.mod
-          cache: true
-      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5
-        if: runner.os != 'Windows'
-        with:
-          go-version-file: go.mod
-          cache: true
-      - run: go test -v -race ./...
-      - env:
-          KIBANA_URL: "https://kibana.test"
-          KIBANA_APIKEY: "dummy"
-        # run functionaltests internal tests
-        # functionaltests themselves are run in the functional-tests pipeline
-        run: cd ./functionaltests && go test -v -race ./internal/...
-
-  test-fips:
-    runs-on: ubuntu-latest
-    steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
       - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5
->>>>>>> 43108a07 (ci: pin actions to specific commits (#16297))
         with:
           go-version-file: go.mod
           cache: true
