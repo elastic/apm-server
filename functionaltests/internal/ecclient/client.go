@@ -63,10 +63,10 @@ func New(endpoint string, apiKey string, options ...ClientOption) (*Client, erro
 	}
 
 	if apiKey == "" {
-		return nil, fmt.Errorf("API key is required")
+		return nil, fmt.Errorf("ecclient.New apiKey is required")
 	}
 	if endpoint == "" {
-		return nil, fmt.Errorf("endpoint is required")
+		return nil, fmt.Errorf("ecclient.New endpoint is required")
 	}
 
 	ecAPI, err := api.NewAPI(api.Config{
