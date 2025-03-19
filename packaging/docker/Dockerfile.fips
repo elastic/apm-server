@@ -76,7 +76,8 @@ ENV LIBBEAT_MONITORING_CGROUPS_HIERARCHY_OVERRIDE=/
 # running in Docker.
 ENV BEAT_STRICT_PERMS=false
 
-COPY --chmod=0644 --chown=nonroot:nonroot licenses/ELASTIC-LICENSE-2.0.txt NOTICE.txt /licenses/
+COPY --chmod=0644 --chown=nonroot:nonroot licenses/ELASTIC-LICENSE-2.0.txt /licenses/
+COPY --chmod=0644 --chown=nonroot:nonroot NOTICE-fips.txt /licenses/NOTICE.txt
 
 WORKDIR /usr/share/apm-server
 COPY --chmod=0755 --chown=nonroot:nonroot --from=builder /src/apm-server-fips ./apm-server-fips

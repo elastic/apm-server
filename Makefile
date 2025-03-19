@@ -261,7 +261,10 @@ gofmt: add-headers
 MODULE_DEPS=$(sort $(shell \
   go list -deps -tags=darwin,linux,windows -f "{{with .Module}}{{if not .Main}}{{.Path}}{{end}}{{end}}" ./x-pack/apm-server))
 
-notice: NOTICE.txt
+MODULE_DEPS_FIPS=$(sort $(shell \
+  go list -deps -tags=darwin,linux,windows,requirefips -f "{{with .Module}}{{if not .Main}}{{.Path}}{{end}}{{end}}" ./x-pack/apm-server))
+
+notice: NOTICE.txt NOTICE-fips.txt
 NOTICE.txt build/dependencies-$(APM_SERVER_VERSION).csv: go.mod
 	mkdir -p build/
 	go list -m -json $(MODULE_DEPS) | go tool go.elastic.co/go-licence-detector \
@@ -272,6 +275,17 @@ NOTICE.txt build/dependencies-$(APM_SERVER_VERSION).csv: go.mod
 		-noticeOut NOTICE.txt \
 		-depsTemplate tools/notice/dependencies.csv.tmpl \
 		-depsOut build/dependencies-$(APM_SERVER_VERSION).csv
+
+NOTICE-fips.txt build/dependencies-$(APM_SERVER_VERSION)-fips.csv: go.mod
+	mkdir -p build/
+	go list -tags=requirefips -m -json $(MODULE_DEPS_FIPS) | go tool go.elastic.co/go-licence-detector \
+		-includeIndirect \
+		-overrides tools/notice/overrides.json \
+		-rules tools/notice/rules.json \
+		-noticeTemplate tools/notice/NOTICE.txt.tmpl \
+		-noticeOut NOTICE-fips.txt \
+		-depsTemplate tools/notice/dependencies.csv.tmpl \
+		-depsOut build/dependencies-$(APM_SERVER_VERSION)-fips.csv
 
 ##############################################################################
 # Rules for creating and installing build tools.
