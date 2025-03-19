@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"slices"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -31,6 +32,30 @@ import (
 	"github.com/elastic/apm-server/functionaltests/internal/ecclient"
 	"github.com/elastic/apm-server/functionaltests/internal/esclient"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
+)
+
+var (
+	// cleanupOnFailure determines whether the created resources should be cleaned up on test failure.
+	cleanupOnFailure = flag.Bool(
+		"cleanup-on-failure",
+		true,
+		"Whether to run cleanup even if the test failed.",
+	)
+
+	// target is the Elastic Cloud environment to target with these test.
+	// We use 'pro' for production as that is the key used to retrieve EC_API_KEY from secret storage.
+	target = flag.String(
+		"target",
+		"pro",
+		"The target environment where to run tests againts. Valid values are: qa, pro.",
+	)
+
+	// skipNonActive determines whether to skip the tests for non-active versions.
+	skipNonActive = flag.Bool(
+		"skip-non-active",
+		true,
+		"Whether to skip running tests for non-active versions.",
+	)
 )
 
 const (
@@ -45,16 +70,20 @@ const (
 )
 
 var (
-	// cleanupOnFailure determines whether the created resources should be cleaned up on test failure.
-	cleanupOnFailure = flag.Bool("cleanup-on-failure", true, "Whether to run cleanup even if the test failed.")
-
-	// target is the Elastic Cloud environment to target with these test.
-	// We use 'pro' for production as that is the key used to retrieve EC_API_KEY from secret storage.
-	target = flag.String("target", "pro", "The target environment where to run tests againts. Valid values are: qa, pro")
-
 	// fetchedVersions and fetchedSnapshots are the stack versions prefetched from Elastic Cloud API.
 	fetchedVersions  ecclient.StackVersions
 	fetchedSnapshots ecclient.StackVersions
+
+	// activeVersions are the versions that are still in active development.
+	activeVersions = []string{
+		"7.17",
+		"8.16",
+		"8.17",
+		"8.18",
+		"8.19",
+		"9.0",
+		"9.1",
+	}
 )
 
 func TestMain(m *testing.M) {
@@ -95,6 +124,17 @@ func TestMain(m *testing.M) {
 
 	code := m.Run()
 	os.Exit(code)
+}
+
+// skipNonActiveVersions skips testing for versions not in active development.
+func skipNonActiveVersions(t *testing.T, toVersion string) {
+	if !*skipNonActive {
+		return
+	}
+
+	if !slices.Contains(activeVersions, toVersion) {
+		t.Skip("skipping non-active versions")
+	}
 }
 
 // expectedIngestForASingleRun represent the expected number of ingested document after a

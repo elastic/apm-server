@@ -23,13 +23,20 @@ import (
 
 func TestUpgrade_8_18_to_9_0(t *testing.T) {
 	t.Parallel()
+	runBasicUpgradeSnapshotTest(t, "8.18", "9.0")
+}
 
-	fromVersion := getLatestSnapshotFor(t, "8.18")
-	toVersion := getLatestSnapshotFor(t, "9.0")
+func TestUpgrade_8_19_to_9_0(t *testing.T) {
+	t.Parallel()
+	runBasicUpgradeSnapshotTest(t, "8.19", "9.0")
+}
+
+func runBasicUpgradeSnapshotTest(t *testing.T, fromVersionPrefix, toVersionPrefix string) {
+	skipNonActiveVersions(t, toVersionPrefix)
 
 	tt := singleUpgradeTestCase{
-		fromVersion: fromVersion,
-		toVersion:   toVersion,
+		fromVersion: getLatestSnapshotFor(t, fromVersionPrefix),
+		toVersion:   getLatestSnapshotFor(t, toVersionPrefix),
 		checkPreUpgradeAfterIngest: checkDatastreamWant{
 			Quantity:         8,
 			PreferIlm:        true,

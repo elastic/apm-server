@@ -25,15 +25,24 @@ import (
 	"github.com/elastic/apm-server/functionaltests/internal/kbclient"
 )
 
+// In 8.15, the data stream management was migrated from
+// ILM to DSL. However, a bug was introduced, causing data
+// streams to be unmanaged.
+// See https://github.com/elastic/apm-server/issues/13898.
+//
+// It was fixed by defaulting data stream management to DSL,
+// and eventually reverted back to ILM in 8.17.
+//
+// Therefore, data streams created in 8.15 and 8.16 are
+// managed by DSL instead of ILM.
+
 func TestUpgrade_8_15_to_8_16(t *testing.T) {
 	t.Parallel()
-
-	fromVersion := getLatestSnapshotFor(t, "8.15")
-	toVersion := getLatestSnapshotFor(t, "8.16")
+	skipNonActiveVersions(t, "8.16")
 
 	tt := singleUpgradeTestCase{
-		fromVersion: fromVersion,
-		toVersion:   toVersion,
+		fromVersion: getLatestSnapshotFor(t, "8.15"),
+		toVersion:   getLatestSnapshotFor(t, "8.16"),
 		checkPreUpgradeAfterIngest: checkDatastreamWant{
 			Quantity:         8,
 			PreferIlm:        false,
@@ -64,6 +73,7 @@ func TestUpgrade_8_15_to_8_16(t *testing.T) {
 
 func TestUpgrade_8_14_to_8_16_Reroute(t *testing.T) {
 	t.Parallel()
+	skipNonActiveVersions(t, "8.16")
 
 	rerouteNamespace := "rerouted"
 	tt := singleUpgradeTestCase{

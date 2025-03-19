@@ -20,7 +20,7 @@ This means that the test will start from `from_version`, and be upgraded to `to_
 `to_version_2` etc. all the way to `to_version_N`.
 
 The file that each test is in is named after the last minor version in the upgrade chain. For example, if the test name
-is `TestUpgrade_7_17_0_to_8_18_0_to_9_0_0_Something`, it should be written in `9_0_test.go`.
+is `TestUpgrade_7_17_to_8_18_to_9_0_Something`, it should be written in `9_0_test.go`.
 
 The Terraform files for each test are copied from `infra/terraform/` at the start of each test, into `tf-<test_name>/` 
-e.g. `tf-TestUpgrade_8_18_0_to_9_0_0/`. 
+e.g. `tf-TestUpgrade_8_18_to_9_0/`. 
