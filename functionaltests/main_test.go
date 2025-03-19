@@ -21,20 +21,17 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"log"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/elastic/apm-server/functionaltests/internal/ecclient"
 	"github.com/elastic/apm-server/functionaltests/internal/esclient"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 )
-
-var cleanupOnFailure *bool = flag.Bool("cleanup-on-failure", true, "Whether to run cleanup even if the test failed.")
-
-// target is the Elastic Cloud environment to target with these test.
-// We use 'pro' for production as that is the key used to retrieve EC_API_KEY from secret storage.
-var target *string = flag.String("target", "pro", "The target environment where to run tests againts. Valid values are: qa, pro")
 
 const (
 	// managedByDSL is the constant string used by Elasticsearch to specify that an Index is managed by Data Stream Lifecycle management.
@@ -46,6 +43,59 @@ const (
 const (
 	defaultNamespace = "default"
 )
+
+var (
+	// cleanupOnFailure determines whether the created resources should be cleaned up on test failure.
+	cleanupOnFailure = flag.Bool("cleanup-on-failure", true, "Whether to run cleanup even if the test failed.")
+
+	// target is the Elastic Cloud environment to target with these test.
+	// We use 'pro' for production as that is the key used to retrieve EC_API_KEY from secret storage.
+	target = flag.String("target", "pro", "The target environment where to run tests againts. Valid values are: qa, pro")
+
+	// fetchedVersions and fetchedSnapshots are the stack versions prefetched from Elastic Cloud API.
+	fetchedVersions  ecclient.StackVersions
+	fetchedSnapshots ecclient.StackVersions
+)
+
+func TestMain(m *testing.M) {
+	// This is a simple check to alert users if this necessary env var
+	// is not available.
+	//
+	// Functional tests are expected to run Terraform code to operate
+	// on infrastructure required for each test and to query Elastic
+	// Cloud APIs. In both cases a valid API key is required.
+	ecAPIKey := os.Getenv("EC_API_KEY")
+	if ecAPIKey == "" {
+		log.Fatal("EC_API_KEY env var not set")
+		return
+	}
+
+	ctx := context.Background()
+	ecc, err := ecclient.New(endpointFrom(*target), ecAPIKey)
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+
+	versions, err := ecc.GetVersions(ctx, regionFrom(*target))
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+	fetchedVersions = versions
+	fetchedVersions.Sort()
+
+	snapshots, err := ecc.GetSnapshotVersions(ctx, regionFrom(*target))
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+	fetchedSnapshots = snapshots
+	fetchedSnapshots.Sort()
+
+	code := m.Run()
+	os.Exit(code)
+}
 
 // expectedIngestForASingleRun represent the expected number of ingested document after a
 // single run of ingest.

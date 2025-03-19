@@ -25,13 +25,15 @@ import (
 	"github.com/elastic/apm-server/functionaltests/internal/kbclient"
 )
 
-func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
+func TestUpgrade_8_15_to_8_16(t *testing.T) {
 	t.Parallel()
-	ecAPICheck(t)
+
+	fromVersion := getLatestSnapshotFor(t, "8.15")
+	toVersion := getLatestSnapshotFor(t, "8.16")
 
 	tt := singleUpgradeTestCase{
-		fromVersion: "8.15.4",
-		toVersion:   "8.16.0",
+		fromVersion: fromVersion,
+		toVersion:   toVersion,
 		checkPreUpgradeAfterIngest: checkDatastreamWant{
 			Quantity:         8,
 			PreferIlm:        false,
@@ -60,14 +62,13 @@ func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
 	tt.Run(t)
 }
 
-func TestUpgrade_8_13_4_to_8_16_0_Reroute(t *testing.T) {
+func TestUpgrade_8_14_to_8_16_Reroute(t *testing.T) {
 	t.Parallel()
-	ecAPICheck(t)
 
 	rerouteNamespace := "rerouted"
 	tt := singleUpgradeTestCase{
-		fromVersion:         "8.13.4",
-		toVersion:           "8.16.0",
+		fromVersion:         getLatestSnapshotFor(t, "8.14"),
+		toVersion:           getLatestSnapshotFor(t, "8.16"),
 		dataStreamNamespace: rerouteNamespace,
 		setupFn: func(t *testing.T, ctx context.Context, esc *esclient.Client, _ *kbclient.Client) error {
 			t.Log("create reroute processors")

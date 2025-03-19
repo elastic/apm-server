@@ -34,6 +34,7 @@ import (
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 )
 
+// Client is an Elastic Cloud API wrapper.
 type Client struct {
 	ecAPI    *api.API
 	endpoint string
@@ -90,7 +91,6 @@ func (c *Client) RestartIntegrationServer(ctx context.Context, deploymentID stri
 		DeploymentID: deploymentID,
 	})
 	if err != nil {
-
 		return fmt.Errorf("cannot retrieve ref id of integrations server for deployment %s: %w", deploymentID, err)
 	}
 

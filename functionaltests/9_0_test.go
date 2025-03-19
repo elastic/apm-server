@@ -21,13 +21,15 @@ import (
 	"testing"
 )
 
-func TestUpgrade_8_18_0_to_9_0_0(t *testing.T) {
+func TestUpgrade_8_18_to_9_0(t *testing.T) {
 	t.Parallel()
-	ecAPICheck(t)
+
+	fromVersion := getLatestSnapshotFor(t, "8.18")
+	toVersion := getLatestSnapshotFor(t, "9.0")
 
 	tt := singleUpgradeTestCase{
-		fromVersion: "8.18.0",
-		toVersion:   "9.0.0",
+		fromVersion: fromVersion,
+		toVersion:   toVersion,
 		checkPreUpgradeAfterIngest: checkDatastreamWant{
 			Quantity:         8,
 			PreferIlm:        true,
