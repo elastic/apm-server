@@ -96,9 +96,16 @@ func TestClient_GetVersions(t *testing.T) {
 	versions, err := ecc.GetVersions(context.Background(), region)
 	require.NoError(t, err)
 
-	lastVersion, ok := versions.Last()
-	require.True(t, ok)
-	assert.Equal(t, "9.0.0", lastVersion.String())
+	allNoSuffix := func() bool {
+		for _, v := range versions {
+			if v.Suffix != "" {
+				return false
+			}
+		}
+		return true
+	}
+
+	assert.True(t, allNoSuffix())
 }
 
 func TestClient_GetSnapshotVersions(t *testing.T) {
@@ -118,4 +125,16 @@ func TestClient_GetSnapshotVersions(t *testing.T) {
 	}
 
 	assert.True(t, allSnapshots())
+}
+
+func TestClient_GetCandidateVersions(t *testing.T) {
+	ecc := newRecordedClient(t)
+	region := os.Getenv("EC_REGION")
+
+	versions, err := ecc.GetCandidateVersions(context.Background(), region)
+	require.NoError(t, err)
+
+	version, ok := versions.Last()
+	require.True(t, ok)
+	assert.Equal(t, "9.0.0", version.String())
 }

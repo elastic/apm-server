@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/elastic/cloud-sdk-go/pkg/api"
@@ -30,6 +31,7 @@ import (
 	"github.com/elastic/cloud-sdk-go/pkg/auth"
 	"github.com/elastic/cloud-sdk-go/pkg/client/deployments"
 	"github.com/elastic/cloud-sdk-go/pkg/client/stack"
+	"github.com/elastic/cloud-sdk-go/pkg/models"
 )
 
 type Client struct {
@@ -154,7 +156,8 @@ func (c *Client) getVersions(
 	ctx context.Context,
 	region string,
 	showUnusable bool,
-	keepFilter func(StackVersion) bool,
+	preFilter func(*models.StackVersionConfig) bool, // Filter before conversion
+	postFilter func(StackVersion) bool, // Filter after conversion
 ) (StackVersions, error) {
 	showDeleted := false
 	resp, err := c.ecAPI.V1API.Stack.GetVersionStacks(
@@ -174,11 +177,14 @@ func (c *Client) getVersions(
 
 	versions := make(StackVersions, 0, len(resp.Payload.Stacks))
 	for _, s := range resp.Payload.Stacks {
+		if preFilter != nil && !preFilter(s) {
+			continue
+		}
 		v, err := NewStackVersionFromStr(s.Version)
 		if err != nil {
 			return nil, fmt.Errorf("cannot parse stack version '%v': %w", s.Version, err)
 		}
-		if keepFilter == nil || keepFilter(v) {
+		if postFilter == nil || postFilter(v) {
 			versions = append(versions, v)
 		}
 	}
@@ -187,18 +193,39 @@ func (c *Client) getVersions(
 	return versions, nil
 }
 
+// GetVersions retrieves all stack versions without suffix.
 func (c *Client) GetVersions(ctx context.Context, region string) (StackVersions, error) {
-	keepFilter := func(v StackVersion) bool {
-		// Ignore all versions with suffix e.g. SNAPSHOTs
+	postFilter := func(v StackVersion) bool {
+		// Ignore all with suffix e.g. SNAPSHOTS, BC1
 		return v.Suffix == ""
 	}
-	return c.getVersions(ctx, region, false, keepFilter)
+	return c.getVersions(ctx, region, false, nil, postFilter)
 }
 
+// GetSnapshotVersions retrieves all stack versions with the suffix "SNAPSHOT".
 func (c *Client) GetSnapshotVersions(ctx context.Context, region string) (StackVersions, error) {
-	keepFilter := func(v StackVersion) bool {
+	postFilter := func(v StackVersion) bool {
 		// Only keep SNAPSHOTs
 		return v.Suffix == "SNAPSHOT"
 	}
-	return c.getVersions(ctx, region, true, keepFilter)
+	return c.getVersions(ctx, region, true, nil, postFilter)
+}
+
+// GetCandidateVersions retrieves all stack versions that are potential build / release candidates.
+func (c *Client) GetCandidateVersions(ctx context.Context, region string) (StackVersions, error) {
+	preFilter := func(v *models.StackVersionConfig) bool {
+		// For BCs and SNAPSHOTs, the `docker_image` will have a suffix e.g.:
+		//   docker.elastic.co/cloud-release/elasticsearch-cloud-ess:8.18.0-928cac41
+		// As compared to released:
+		//   docker.elastic.co/cloud-release/elasticsearch-cloud-ess:8.17.3
+		version := strings.Split(*v.Elasticsearch.DockerImage, ":")[1]
+		splits := strings.Split(version, "-")
+		// Has suffix and the suffix is not empty / 1 character (older versions have this)
+		return len(splits) >= 2 && len(splits[1]) > 1
+	}
+	postFilter := func(v StackVersion) bool {
+		// Ignore SNAPSHOTs
+		return v.Suffix != "SNAPSHOT"
+	}
+	return c.getVersions(ctx, region, false, preFilter, postFilter)
 }
