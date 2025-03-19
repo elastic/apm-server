@@ -26,7 +26,7 @@ jobs:
       tests: ${{ steps.generate.outputs.tests }}
       date: ${{ steps.generate.outputs.date }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
         with:
           ref: ${{ inputs.branch }}
       - id: generate
@@ -47,10 +47,10 @@ jobs:
       contents: read
       id-token: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
         with:
           ref: ${{ inputs.branch }}
-      - uses: hashicorp/setup-terraform@v3
+      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3
         with:
           terraform_version: ~1.10.0
           terraform_wrapper: false
@@ -59,9 +59,9 @@ jobs:
       - name: Setup cluster env
         uses: ./.github/workflows/setup-cluster-env
 
-      - uses: elastic/oblt-actions/aws/auth@v1
+      - uses: elastic/oblt-actions/aws/auth@31e93d1dfb82adc106fc7820f505db1afefe43b1 # v1
 
-      - uses: elastic/oblt-actions/google/auth@v1
+      - uses: elastic/oblt-actions/google/auth@31e93d1dfb82adc106fc7820f505db1afefe43b1 # v1
 
       - uses: google-github-actions/get-secretmanager-secrets@e5bb06c2ca53b244f978d33348d18317a7f263ce # v2.2.2
         with:
