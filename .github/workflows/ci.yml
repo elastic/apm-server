@@ -60,6 +60,7 @@ jobs:
           KIBANA_APIKEY: "dummy"
           EC_URL: "https://elastic-cloud.test"
           EC_API_KEY: "dummy"
+          EC_REGION: "aws-eu-west-1"
         # run functionaltests internal tests
         # functionaltests themselves are run in the functional-tests pipeline
         run: cd ./functionaltests && go test -v -race ./internal/...
