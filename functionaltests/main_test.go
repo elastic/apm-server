@@ -21,6 +21,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -30,11 +31,22 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 )
 
-var cleanupOnFailure *bool = flag.Bool("cleanup-on-failure", true, "Whether to run cleanup even if the test failed.")
+var (
+	// cleanupOnFailure determines whether the created resources should be cleaned up on test failure.
+	cleanupOnFailure = flag.Bool(
+		"cleanup-on-failure",
+		true,
+		"Whether to run cleanup even if the test failed.",
+	)
 
-// target is the Elastic Cloud environment to target with these test.
-// We use 'pro' for production as that is the key used to retrieve EC_API_KEY from secret storage.
-var target *string = flag.String("target", "pro", "The target environment where to run tests againts. Valid values are: qa, pro")
+	// target is the Elastic Cloud environment to target with these test.
+	// We use 'pro' for production as that is the key used to retrieve EC_API_KEY from secret storage.
+	target = flag.String(
+		"target",
+		"pro",
+		"The target environment where to run tests againts. Valid values are: qa, pro.",
+	)
+)
 
 const (
 	// managedByDSL is the constant string used by Elasticsearch to specify that an Index is managed by Data Stream Lifecycle management.
@@ -46,6 +58,13 @@ const (
 const (
 	defaultNamespace = "default"
 )
+
+func TestMain(m *testing.M) {
+	flag.Parse()
+
+	code := m.Run()
+	os.Exit(code)
+}
 
 // expectedIngestForASingleRun represent the expected number of ingested document after a
 // single run of ingest.
