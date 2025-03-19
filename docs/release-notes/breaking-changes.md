@@ -1,12 +1,9 @@
 ---
-navigation_title: "Elastic APM"
+navigation_title: "Breaking changes"
 ---
 
-# Elastic APM breaking changes
-
-Before you upgrade, carefully review the Elastic APM breaking changes and take the necessary steps to mitigate any issues.
-
-% To learn how to upgrade, check out <uprade docs>.
+# Elastic APM breaking changes [elastic-apm-breaking-changes]
+Breaking changes can impact your Elastic applications, potentially disrupting normal operations. Before you upgrade, carefully review the Elastic APM breaking changes and take the necessary steps to mitigate any issues. To learn how to upgrade, check out [Upgrade](docs-content://solutions/observability/apps/upgrade.md).
 
 % ## Next version
 
@@ -19,9 +16,8 @@ Before you upgrade, carefully review the Elastic APM breaking changes and take t
 % **Action**<br> Steps for mitigating deprecation impact.
 % ::::
 
-## 9.0.0 [9-0-0]
-
-**Release date:** March 25, 2025
+## 9.0.0 [elastic-apm-900-breaking-changes]
+**Release date:** April 2, 2025
 
 ::::{dropdown} Change server information endpoint "/" to only accept GET and HEAD requests
 This will surface any agent misconfiguration causing data to be sent to `/` instead of the correct endpoint (for example, `/v1/traces` for OTLP/HTTP).

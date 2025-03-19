@@ -2,10 +2,11 @@
 mapped_pages:
   - https://www.elastic.co/guide/en/observability/current/apm-known-issues.html
 
-navigation_title: "Elastic APM"
+navigation_title: "Known issues"
 ---
 
-# Elastic APM known issues
+# Elastic APM known issues [elastic-apm-known-issues]
+Known issues are significant defects or limitations that may impact your implementation. These issues are actively being worked on and will be addressed in a future release. Review the Elastic APM known issues to help you make informed decisions, such as upgrading to a new version.
 
 % Use the following template to add entries to this page.
 
@@ -20,8 +21,6 @@ navigation_title: "Elastic APM"
 % On [Month/Day/Year], this issue was resolved.
 
 :::
-
-APM has the following known issues:
 
 :::{dropdown} prefer_ilm required in component templates to create custom lifecycle policies
 
