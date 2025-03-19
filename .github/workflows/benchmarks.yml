@@ -92,12 +92,7 @@ jobs:
           username: ${{ secrets.ELASTIC_DOCKER_USERNAME }}
           password: ${{ secrets.ELASTIC_DOCKER_PASSWORD }}
 
-<<<<<<< HEAD
-
-      - uses: elastic/oblt-actions/google/auth@v1
-=======
       - uses: elastic/oblt-actions/google/auth@31e93d1dfb82adc106fc7820f505db1afefe43b1 # v1
->>>>>>> 43108a07 (ci: pin actions to specific commits (#16297))
 
       - uses: elastic/oblt-actions/aws/auth@31e93d1dfb82adc106fc7820f505db1afefe43b1 # v1
         with:
