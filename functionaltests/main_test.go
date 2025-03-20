@@ -70,8 +70,7 @@ const (
 )
 
 var (
-	// fetchedVersions and fetchedSnapshots are the stack versions prefetched from Elastic Cloud API.
-	fetchedVersions  ecclient.StackVersions
+	// fetchedSnapshots are the snapshot stack versions prefetched from Elastic Cloud API.
 	fetchedSnapshots ecclient.StackVersions
 
 	// activeVersions are the versions that are still in active development.
@@ -108,14 +107,6 @@ func TestMain(m *testing.M) {
 		return
 	}
 
-	versions, err := ecc.GetVersions(ctx, regionFrom(*target))
-	if err != nil {
-		log.Fatal(err)
-		return
-	}
-	fetchedVersions = versions
-	fetchedVersions.Sort()
-
 	snapshots, err := ecc.GetSnapshotVersions(ctx, regionFrom(*target))
 	if err != nil {
 		log.Fatal(err)
@@ -129,14 +120,23 @@ func TestMain(m *testing.M) {
 }
 
 // skipNonActiveVersions skips testing for versions not in active development.
-func skipNonActiveVersions(t *testing.T, toVersion string) {
+//
+// The version is expected to be X.Y in semantic versioning format.
+func skipNonActiveVersions(t *testing.T, version string) {
 	if !*skipNonActive {
 		return
 	}
 
-	if !slices.Contains(activeVersions, toVersion) {
+	if !isActiveVersion(version) {
 		t.Skip("skipping non-active versions")
 	}
+}
+
+// isActiveVersion checks if the version provided is in active development.
+//
+// The version is expected to be X.Y in semantic versioning format.
+func isActiveVersion(version string) bool {
+	return slices.Contains(activeVersions, version)
 }
 
 // expectedIngestForASingleRun represent the expected number of ingested document after a
