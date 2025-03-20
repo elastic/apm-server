@@ -33,6 +33,7 @@ import (
 	"github.com/elastic/apm-server/functionaltests/internal/terraform"
 )
 
+// getLatestSnapshotFor retrieves the latest snapshot version for the version prefix.
 func getLatestSnapshotFor(t *testing.T, prefix string) string {
 	t.Helper()
 	version, ok := fetchedSnapshots.LatestFor(prefix)
@@ -40,6 +41,7 @@ func getLatestSnapshotFor(t *testing.T, prefix string) string {
 	return version.String()
 }
 
+// createAPMAPIKey creates an Elasticsearch API key with the test name.
 func createAPMAPIKey(t *testing.T, ctx context.Context, esc *esclient.Client) string {
 	t.Helper()
 	apiKey, err := esc.CreateAPIKey(ctx, t.Name(), -1, map[string]types.RoleDescriptor{})
@@ -162,4 +164,40 @@ func performManualRollovers(t *testing.T, ctx context.Context, esc *esclient.Cli
 		}
 	}
 	return nil
+}
+
+// runBasicUpgradeSnapshotTest performs a basic upgrade test from latest patch of `fromVersionPrefix`
+// to latest patch of `toVersionPrefix` using SNAPSHOT versions. The test assumes that all data streams
+// are using Index Lifecycle Management (ILM) instead of Data Stream Lifecycle Management (DSL), which
+// should be the case for most recent APM data streams.
+func runBasicUpgradeSnapshotTest(t *testing.T, fromVersionPrefix, toVersionPrefix string) {
+	skipNonActiveVersions(t, toVersionPrefix)
+
+	tt := singleUpgradeTestCase{
+		fromVersion: getLatestSnapshotFor(t, fromVersionPrefix),
+		toVersion:   getLatestSnapshotFor(t, toVersionPrefix),
+		checkPreUpgradeAfterIngest: checkDatastreamWant{
+			Quantity:         8,
+			PreferIlm:        true,
+			DSManagedBy:      managedByILM,
+			IndicesPerDs:     1,
+			IndicesManagedBy: []string{managedByILM},
+		},
+		checkPostUpgradeBeforeIngest: checkDatastreamWant{
+			Quantity:         8,
+			PreferIlm:        true,
+			DSManagedBy:      managedByILM,
+			IndicesPerDs:     1,
+			IndicesManagedBy: []string{managedByILM},
+		},
+		checkPostUpgradeAfterIngest: checkDatastreamWant{
+			Quantity:         8,
+			PreferIlm:        true,
+			DSManagedBy:      managedByILM,
+			IndicesPerDs:     1,
+			IndicesManagedBy: []string{managedByILM},
+		},
+	}
+
+	tt.Run(t)
 }
