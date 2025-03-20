@@ -34,7 +34,6 @@ import (
 	"github.com/elastic/cloud-sdk-go/pkg/models"
 )
 
-// Client is an Elastic Cloud API wrapper.
 type Client struct {
 	ecAPI    *api.API
 	endpoint string
