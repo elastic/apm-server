@@ -1,35 +1,33 @@
 ---
-navigation_title: "Elastic APM"
+navigation_title: "Breaking changes"
 ---
 
 # Elastic APM breaking changes
 
-Before you upgrade, carefully review the Elastic APM breaking changes and take the necessary steps to mitigate any issues.
+Breaking changes can impact your Elastic applications, potentially disrupting normal operations. Before you upgrade, carefully review the Elastic APM breaking changes and take the necessary steps to mitigate any issues. To learn how to upgrade, check [Upgrade](docs-content://deploy-manage/upgrade.md).
 
-% To learn how to upgrade, check out <uprade docs>.
-
-% ## Next version
-
+% ## Next version [next-version]
 % **Release date:** Month day, year
 
 % ::::{dropdown} Title of breaking change
 % Description of the breaking change.
 % For more information, check [PR #](PR link).
+
 % **Impact**<br> Impact of the breaking change.
+
 % **Action**<br> Steps for mitigating deprecation impact.
 % ::::
 
 ## 9.0.0 [9-0-0]
-
-**Release date:** March 25, 2025
+**Release date:** April 2, 2025
 
 ::::{dropdown} Change server information endpoint "/" to only accept GET and HEAD requests
 This will surface any agent misconfiguration causing data to be sent to `/` instead of the correct endpoint (for example, `/v1/traces` for OTLP/HTTP).
-For more information, check [PR #15976](https://github.com/elastic/apm-server/pull/15976).
+For more information, check [#15976]({{apm-pull}}15976).
 
-**Impact**<br>Any methods other than `GET` and `HEAD` to `/` will return HTTP 405 Method Not Allowed.
+**Impact**<br> Any methods other than `GET` and `HEAD` to `/` will return HTTP 405 Method Not Allowed.
 
-**Action**<br>Update any existing usage, for example, update `POST /` to `GET /`.
+**Action**<br> Update any existing usage, for example, update `POST /` to `GET /`.
 ::::
 
 ::::{dropdown} The Elasticsearch apm_user role has been removed
@@ -50,4 +48,21 @@ If you're using the new default, it will automatically scale with a larger disk.
 
 **Action**<br>To continue using the existing behavior, set the `sampling.tail.storage_limit` to a non-`0` value.
 To use the new disk usage threshold check, set the `sampling.tail.storage_limit` to `0` (the default value).
+::::
+
+::::{dropdown} Tail-based sampling database files from 8.x are ignored
+Due to a change in underlying tail-based sampling database, the 8.x database files are ignored when running APM Server 9.0+.
+
+**Impact**<br>There is a limited, temporary impact around the time when an upgrade happens. Any locally stored events awaiting tail sampling decision before upgrading to 9.0 will effectively be ignored, as if their traces are unsampled. If there are many APM Server making tail sampling decisions, it may result in broken traces.
+
+**Action**<br>No action needed. There is no impact on traces ingested after upgrade.
+::::
+
+::::{dropdown} Old tail-based sampling database files from 8.x consume unnecessary disk space
+As tail-based sampling database files from version 8.x are now ignored and consume unnecessary disk space, some files can be deleted to reclaim disk space.
+It does not affect Elastic Cloud Hosted, as storage is automatically cleaned up by design.
+
+**Impact**<br>Unnecessary disk usage, except for Elastic Cloud Hosted users.
+
+**Action**<br>To clean up the unnecessary files, first identify APM Server data path, configured via `path.data`, which is also usually printed with "Data path: " in APM Server logs on startup. Assuming the environment variable `PATH_DATA` is the data path for TBS we identified above, the files that should be deleted are `KEYREGISTRY`, `LOCK`, `MANIFEST`, `*.vlog`, `*.sst` under `$PATH_DATA/tail_sampling/`. Do not delete other files.
 ::::

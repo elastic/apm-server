@@ -22,12 +22,11 @@ To check for security updates, go to [Security announcements for the Elastic sta
 % ### Fixes [elastic-apm-next-fixes]
 
 ## 9.0.0 [9-0-0]
-
-**Release date:** March 25, 2025
+**Release date:** April 2, 2025
 
 ### Features and enhancements [9-0-0-features-enhancements]
 
-* **Tail-based sampling**: Storage layer is rewritten to use Pebble database instead of BadgerDB. The new implementation offers a substantial throughput increase while consuming significantly less memory. Disk usage is lower and more stable. See PR for benchmark details. ([#15235](https://github.com/elastic/apm-server/pull/15235))
+* **Tail-based sampling**: Storage layer is rewritten to use Pebble database instead of BadgerDB. The new implementation offers a substantial throughput increase while consuming significantly less memory. Disk usage is significantly lower and more stable. See APM [Transaction sampling](docs-content://solutions/observability/apps/transaction-sampling.md) docs for benchmark details. ([#15235](https://github.com/elastic/apm-server/pull/15235))
 
 ### Fixes [9-0-0-fixes]
 
