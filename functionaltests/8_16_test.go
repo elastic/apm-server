@@ -57,7 +57,7 @@ func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
 			IndicesManagedBy: []string{managedByDSL, managedByDSL},
 		},
 
-		apmErrorLogsFilters: []types.Query{
+		apmErrorLogsIgnored: []types.Query{
 			tlsHandshakeError,
 			esReturnedUnknown503,
 			preconditionFailed,
@@ -113,7 +113,7 @@ func TestUpgrade_8_13_4_to_8_16_0_Reroute(t *testing.T) {
 			IndicesManagedBy: []string{managedByILM, managedByILM},
 		},
 
-		apmErrorLogsFilters: []types.Query{
+		apmErrorLogsIgnored: []types.Query{
 			tlsHandshakeError,
 			esReturnedUnknown503,
 			preconditionFailed,

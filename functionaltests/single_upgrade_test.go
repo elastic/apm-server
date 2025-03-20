@@ -57,7 +57,7 @@ type singleUpgradeTestCase struct {
 	checkPostUpgradeBeforeIngest checkDatastreamWant
 	checkPostUpgradeAfterIngest  checkDatastreamWant
 
-	apmErrorLogsFilters []types.Query
+	apmErrorLogsIgnored []types.Query
 }
 
 func (tt singleUpgradeTestCase) Run(t *testing.T) {
@@ -164,7 +164,7 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	asserts.ZeroESLogs(t, *resp)
 
 	t.Log("checking APM error logs")
-	resp, err = esc.GetAPMErrorLogs(ctx, tt.apmErrorLogsFilters)
+	resp, err = esc.GetAPMErrorLogs(ctx, tt.apmErrorLogsIgnored)
 	require.NoError(t, err)
 	asserts.ZeroAPMLogs(t, *resp)
 }
