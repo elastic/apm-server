@@ -52,7 +52,7 @@ func ZeroAPMLogs(t *testing.T, resp search.Response) {
 	}
 
 	// otherwise unmarshal for display.
-	logs := []APMLogEntry{}
+	var logs []APMLogEntry
 	for _, v := range resp.Hits.Hits {
 		var l APMLogEntry
 		require.NoError(t, json.Unmarshal(v.Source_, &l))
