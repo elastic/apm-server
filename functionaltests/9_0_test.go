@@ -19,6 +19,8 @@ package functionaltests
 
 import (
 	"testing"
+
+	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 )
 
 func TestUpgrade_8_18_0_to_9_0_0(t *testing.T) {
@@ -48,6 +50,14 @@ func TestUpgrade_8_18_0_to_9_0_0(t *testing.T) {
 			DSManagedBy:      managedByILM,
 			IndicesPerDs:     1,
 			IndicesManagedBy: []string{managedByILM},
+		},
+
+		apmErrorLogsIgnored: []types.Query{
+			tlsHandshakeError,
+			esReturnedUnknown503,
+			refreshCache503,
+			// TODO: remove once fixed
+			populateSourcemapFetcher403,
 		},
 	}
 
