@@ -19,6 +19,8 @@ You can also specify a specific test you want to run, for example:
 go test -run=TestUpgrade_8_18_to_9_0 -v -timeout=30m -cleanup-on-failure=false -target="pro" ./
 ```
 
+Note: Before running tests, make sure to delete the Terraforms by running `rm -r tf-*`.
+
 ### Debugging the Tests
 
 If you get some errors after running the test, you can try heading to the [Elastic Cloud console](https://cloud.elastic.co/home)
