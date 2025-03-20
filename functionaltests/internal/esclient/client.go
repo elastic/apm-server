@@ -208,3 +208,38 @@ func (c *Client) GetESErrorLogs(ctx context.Context) (*search.Response, error) {
 
 	return res, nil
 }
+
+// GetAPMErrorLogs retrieves Elasticsearch error logs.
+// The search query is on the Index used by Elasticsearch monitoring to store logs.
+// exclude allows to pass in must_not clauses to be applied to the query to filter
+// the returned results.
+func (c *Client) GetAPMErrorLogs(ctx context.Context, exclude []types.Query) (*search.Response, error) {
+	size := 100
+	res, err := c.es.Search().
+		Index("elastic-cloud-logs-8").
+		Request(&search.Request{
+			Size: &size,
+			Query: &types.Query{
+				Bool: &types.BoolQuery{
+					Must: []types.Query{
+						{
+							Match: map[string]types.MatchQuery{
+								"service.name": {Query: "apm-server"},
+							},
+						},
+						{
+							Match: map[string]types.MatchQuery{
+								"log.level": {Query: "error"},
+							},
+						},
+					},
+					MustNot: exclude,
+				},
+			},
+		}).Do(ctx)
+	if err != nil {
+		return search.NewResponse(), fmt.Errorf("cannot run search query: %w", err)
+	}
+
+	return res, nil
+}
