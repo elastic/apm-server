@@ -25,41 +25,45 @@ import (
 	"github.com/elastic/apm-server/functionaltests/internal/ecclient"
 )
 
-// runBasicUpgradeILMTest performs a basic upgrade test from `fromVersion` to
-// `toVersion`. The test assumes that all data streams are using Index
-// Lifecycle Management (ILM) instead of Data Stream Lifecycle Management
-// (DSL), which should be the case for most recent APM data streams.
-func runBasicUpgradeILMTest(
+type basicUpgradeVersionConfig struct {
+	version         ecclient.StackVersion
+	preferILM       bool
+	indexManagement string
+}
+
+// runBasicUpgradeTest performs a basic upgrade test from `from.version` to
+// `to.version`.
+func runBasicUpgradeTest(
 	t *testing.T,
-	fromVersion ecclient.StackVersion,
-	toVersion ecclient.StackVersion,
+	from basicUpgradeVersionConfig,
+	to basicUpgradeVersionConfig,
 	apmErrorLogsIgnored []types.Query,
 ) {
-	skipNonActiveVersion(t, toVersion)
+	skipNonActiveVersion(t, to.version)
 
 	testCase := singleUpgradeTestCase{
-		fromVersion: fromVersion,
-		toVersion:   toVersion,
+		fromVersion: from.version,
+		toVersion:   to.version,
 		checkPreUpgradeAfterIngest: checkDatastreamWant{
 			Quantity:         8,
-			PreferIlm:        true,
-			DSManagedBy:      managedByILM,
+			PreferIlm:        from.preferILM,
+			DSManagedBy:      from.indexManagement,
 			IndicesPerDs:     1,
-			IndicesManagedBy: []string{managedByILM},
+			IndicesManagedBy: []string{from.indexManagement},
 		},
 		checkPostUpgradeBeforeIngest: checkDatastreamWant{
 			Quantity:         8,
-			PreferIlm:        true,
-			DSManagedBy:      managedByILM,
+			PreferIlm:        to.preferILM,
+			DSManagedBy:      to.indexManagement,
 			IndicesPerDs:     1,
-			IndicesManagedBy: []string{managedByILM},
+			IndicesManagedBy: []string{to.indexManagement},
 		},
 		checkPostUpgradeAfterIngest: checkDatastreamWant{
 			Quantity:         8,
-			PreferIlm:        true,
-			DSManagedBy:      managedByILM,
+			PreferIlm:        to.preferILM,
+			DSManagedBy:      to.indexManagement,
 			IndicesPerDs:     1,
-			IndicesManagedBy: []string{managedByILM},
+			IndicesManagedBy: []string{to.indexManagement},
 		},
 		apmErrorLogsIgnored: apmErrorLogsIgnored,
 	}
@@ -67,51 +71,43 @@ func runBasicUpgradeILMTest(
 	testCase.Run(t)
 }
 
-// runBasicUpgradeLazyRolloverDSLTest performs a basic upgrade test from
-// `fromVersion` to `toVersion`. The test assumes that all data streams are
-// using Data Stream Lifecycle Management (DSL) instead of Index Lifecycle
-// Management (ILM).
-//
-// In 8.15, the data stream management was migrated from ILM to DSL.
-// However, a bug was introduced, causing data streams to be unmanaged.
-// See https://github.com/elastic/apm-server/issues/13898.
-//
-// It was fixed by defaulting data stream management to DSL, and eventually
-// reverted back to ILM in 8.17. Therefore, data streams created in 8.15 and
-// 8.16 are managed by DSL instead of ILM.
-func runBasicUpgradeLazyRolloverDSLTest(
+// runBasicUpgradeLazyRolloverTest performs a basic upgrade test from
+// `from.version` to `to.version`.
+func runBasicUpgradeLazyRolloverTest(
 	t *testing.T,
-	fromVersion ecclient.StackVersion,
-	toVersion ecclient.StackVersion,
+	from basicUpgradeVersionConfig,
+	to basicUpgradeVersionConfig,
 	apmErrorLogsIgnored []types.Query,
 ) {
-	skipNonActiveVersion(t, toVersion)
+	skipNonActiveVersion(t, to.version)
 
 	testCase := singleUpgradeTestCase{
-		fromVersion: fromVersion,
-		toVersion:   toVersion,
+		fromVersion: from.version,
+		toVersion:   to.version,
 		checkPreUpgradeAfterIngest: checkDatastreamWant{
 			Quantity:         8,
-			PreferIlm:        false,
-			DSManagedBy:      managedByDSL,
+			PreferIlm:        from.preferILM,
+			DSManagedBy:      from.indexManagement,
 			IndicesPerDs:     1,
-			IndicesManagedBy: []string{managedByDSL},
+			IndicesManagedBy: []string{from.indexManagement},
 		},
+		// Old index should still be managed by `from.indexManagement`.
 		checkPostUpgradeBeforeIngest: checkDatastreamWant{
 			Quantity:         8,
-			PreferIlm:        false,
-			DSManagedBy:      managedByDSL,
+			PreferIlm:        to.preferILM,
+			DSManagedBy:      to.indexManagement,
 			IndicesPerDs:     1,
-			IndicesManagedBy: []string{managedByDSL},
+			IndicesManagedBy: []string{from.indexManagement},
 		},
 		// Verify lazy rollover happened, i.e. 2 indices per data stream.
-		// Check data streams are managed by DSL.
+		// Old index should be managed by `from.indexManagement` while new
+		// index is managed by `to.indexManagement`.
 		checkPostUpgradeAfterIngest: checkDatastreamWant{
 			Quantity:         8,
-			PreferIlm:        false,
-			DSManagedBy:      managedByDSL,
+			PreferIlm:        to.preferILM,
+			DSManagedBy:      to.indexManagement,
 			IndicesPerDs:     2,
-			IndicesManagedBy: []string{managedByDSL, managedByDSL},
+			IndicesManagedBy: []string{from.indexManagement, to.indexManagement},
 		},
 		apmErrorLogsIgnored: apmErrorLogsIgnored,
 	}

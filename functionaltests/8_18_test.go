@@ -23,43 +23,42 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 )
 
-func TestUpgrade_8_18_to_9_0_Snapshot(t *testing.T) {
+func TestUpgrade_8_17_to_8_18_Snapshot(t *testing.T) {
 	t.Parallel()
 
 	runBasicUpgradeTest(
 		t,
+		basicUpgradeVersionConfig{
+			version:         getLatestSnapshot(t, "8.17"),
+			preferILM:       true,
+			indexManagement: managedByILM,
+		},
 		basicUpgradeVersionConfig{
 			version:         getLatestSnapshot(t, "8.18"),
 			preferILM:       true,
 			indexManagement: managedByILM,
 		},
-		basicUpgradeVersionConfig{
-			version:         getLatestSnapshot(t, "9.0"),
-			preferILM:       true,
-			indexManagement: managedByILM,
-		},
 		[]types.Query{
 			tlsHandshakeError,
 			esReturnedUnknown503,
 			refreshCache503,
-			// TODO: remove once fixed
 			populateSourcemapFetcher403,
 		},
 	)
 }
 
-func TestUpgrade_8_18_to_9_0_BC(t *testing.T) {
+func TestUpgrade_8_17_to_8_18_BC(t *testing.T) {
 	t.Parallel()
 
 	runBasicUpgradeTest(
 		t,
 		basicUpgradeVersionConfig{
-			version:         getLatestVersion(t, "8.18"),
+			version:         getLatestVersion(t, "8.17"),
 			preferILM:       true,
 			indexManagement: managedByILM,
 		},
 		basicUpgradeVersionConfig{
-			version:         getBCVersionOrSkip(t, "9.0"),
+			version:         getBCVersionOrSkip(t, "8.18"),
 			preferILM:       true,
 			indexManagement: managedByILM,
 		},
@@ -67,7 +66,6 @@ func TestUpgrade_8_18_to_9_0_BC(t *testing.T) {
 			tlsHandshakeError,
 			esReturnedUnknown503,
 			refreshCache503,
-			// TODO: remove once fixed
 			populateSourcemapFetcher403,
 		},
 	)
