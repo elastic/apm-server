@@ -21,20 +21,42 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"log"
+	"os"
+	"slices"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/elastic/apm-server/functionaltests/internal/ecclient"
 	"github.com/elastic/apm-server/functionaltests/internal/esclient"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 )
 
-var cleanupOnFailure *bool = flag.Bool("cleanup-on-failure", true, "Whether to run cleanup even if the test failed.")
+var (
+	// cleanupOnFailure determines whether the created resources should be cleaned up on test failure.
+	cleanupOnFailure = flag.Bool(
+		"cleanup-on-failure",
+		true,
+		"Whether to run cleanup even if the test failed.",
+	)
 
-// target is the Elastic Cloud environment to target with these test.
-// We use 'pro' for production as that is the key used to retrieve EC_API_KEY from secret storage.
-var target *string = flag.String("target", "pro", "The target environment where to run tests againts. Valid values are: qa, pro")
+	// target is the Elastic Cloud environment to target with these test.
+	// We use 'pro' for production as that is the key used to retrieve EC_API_KEY from secret storage.
+	target = flag.String(
+		"target",
+		"pro",
+		"The target environment where to run tests againts. Valid values are: qa, pro.",
+	)
+
+	// skipNonActive determines whether to skip the tests for non-active versions.
+	skipNonActive = flag.Bool(
+		"skip-non-active",
+		true,
+		"Whether to skip running tests for non-active versions.",
+	)
+)
 
 const (
 	// managedByDSL is the constant string used by Elasticsearch to specify that an Index is managed by Data Stream Lifecycle management.
@@ -46,6 +68,116 @@ const (
 const (
 	defaultNamespace = "default"
 )
+
+var (
+	// fetchedSnapshots are the snapshot stack versions prefetched from Elastic Cloud API.
+	fetchedSnapshots ecclient.StackVersions
+
+	// activeMajorMinorVersions are the X.Y versions that are still in active development.
+	activeMajorMinorVersions = []string{
+		"7.17",
+		"8.16",
+		"8.17",
+		"8.18",
+		"8.19",
+		"9.0",
+		"9.1",
+	}
+)
+
+func TestMain(m *testing.M) {
+	flag.Parse()
+
+	// This is a simple check to alert users if this necessary env var
+	// is not available.
+	//
+	// Functional tests are expected to run Terraform code to operate
+	// on infrastructure required for each test and to query Elastic
+	// Cloud APIs. In both cases a valid API key is required.
+	ecAPIKey := os.Getenv("EC_API_KEY")
+	if ecAPIKey == "" {
+		log.Fatal("EC_API_KEY env var not set")
+		return
+	}
+
+	ctx := context.Background()
+	ecRegion := regionFrom(*target)
+	ecc, err := ecclient.New(endpointFrom(*target), ecAPIKey)
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+
+	snapshots, err := ecc.GetSnapshotVersions(ctx, ecRegion)
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+	fetchedSnapshots = snapshots
+	fetchedSnapshots.Sort()
+
+	code := m.Run()
+	os.Exit(code)
+}
+
+// skipNonActiveMajorMinorVersion skips testing for versions not in active development.
+//
+// Note: The version is expected to be in X.Y form of semantic versioning.
+func skipNonActiveMajorMinorVersion(t *testing.T, version string) {
+	if !*skipNonActive {
+		return
+	}
+
+	if !isActiveMajorMinorVersion(version) {
+		t.Skip("skipping non-active version")
+	}
+}
+
+// isActiveMajorMinorVersion checks if the version provided is in active development.
+//
+// Note: The version is expected to be in X.Y form of semantic versioning.
+func isActiveMajorMinorVersion(version string) bool {
+	return slices.Contains(activeMajorMinorVersions, version)
+}
+
+// runBasicUpgradeILMTest performs a basic upgrade test from the latest patch of
+// `fromVersionPrefix` to the latest patch of `toVersionPrefix`. The test assumes
+// that all data streams are using Index Lifecycle Management (ILM) instead of
+// Data Stream Lifecycle Management (DSL), which should be the case for most recent
+// APM data streams.
+func runBasicUpgradeILMTest(t *testing.T, fromVersionPrefix, toVersionPrefix string, apmErrorLogsIgnored []types.Query) {
+	skipNonActiveMajorMinorVersion(t, toVersionPrefix)
+
+	tt := singleUpgradeTestCase{
+		fromVersion: getLatestSnapshot(t, fromVersionPrefix),
+		toVersion:   getLatestSnapshot(t, toVersionPrefix),
+		checkPreUpgradeAfterIngest: checkDatastreamWant{
+			Quantity:         8,
+			PreferIlm:        true,
+			DSManagedBy:      managedByILM,
+			IndicesPerDs:     1,
+			IndicesManagedBy: []string{managedByILM},
+		},
+		checkPostUpgradeBeforeIngest: checkDatastreamWant{
+			Quantity:         8,
+			PreferIlm:        true,
+			DSManagedBy:      managedByILM,
+			IndicesPerDs:     1,
+			IndicesManagedBy: []string{managedByILM},
+		},
+		checkPostUpgradeAfterIngest: checkDatastreamWant{
+			Quantity:         8,
+			PreferIlm:        true,
+			DSManagedBy:      managedByILM,
+			IndicesPerDs:     1,
+			IndicesManagedBy: []string{managedByILM},
+		},
+
+		apmErrorLogsIgnored: apmErrorLogsIgnored,
+	}
+
+	tt.Run(t)
+}
 
 // expectedIngestForASingleRun represent the expected number of ingested document after a
 // single run of ingest.

@@ -27,6 +27,7 @@ import (
 	"go.uber.org/zap/zaptest"
 
 	"github.com/elastic/apm-server/functionaltests/internal/asserts"
+	"github.com/elastic/apm-server/functionaltests/internal/ecclient"
 	"github.com/elastic/apm-server/functionaltests/internal/esclient"
 	"github.com/elastic/apm-server/functionaltests/internal/gen"
 	"github.com/elastic/apm-server/functionaltests/internal/kbclient"
@@ -47,8 +48,8 @@ type additionalFunc func(t *testing.T, ctx context.Context, esc *esclient.Client
 // verify that ingestion works after upgrade and brings the cluster
 // to a know state.
 type singleUpgradeTestCase struct {
-	fromVersion string
-	toVersion   string
+	fromVersion ecclient.StackVersion
+	toVersion   ecclient.StackVersion
 
 	dataStreamNamespace          string
 	setupFn                      additionalFunc
@@ -72,7 +73,7 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Log("------ cluster setup ------")
-	deploymentID, escfg := createCluster(t, ctx, tf, *target, tt.fromVersion)
+	deploymentID, escfg := createCluster(t, ctx, tf, *target, tt.fromVersion.String())
 	t.Logf("time elapsed: %s", time.Since(start))
 
 	esc, err := esclient.New(escfg)
@@ -117,7 +118,7 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Log("------ perform upgrade ------")
-	upgradeCluster(t, ctx, tf, *target, tt.toVersion)
+	upgradeCluster(t, ctx, tf, *target, tt.toVersion.String())
 	t.Logf("time elapsed: %s", time.Since(start))
 
 	if tt.postUpgradeFn != nil {

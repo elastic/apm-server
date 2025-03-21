@@ -203,6 +203,10 @@ func (v StackVersion) String() string {
 	return fmt.Sprintf("%d.%d.%d%s", v.Major, v.Minor, v.Patch, suffix)
 }
 
+func (v StackVersion) MajorMinor() string {
+	return fmt.Sprintf("%d.%d", v.Major, v.Minor)
+}
+
 func (v StackVersion) IsMajor(major uint64) bool {
 	return v.Major == major
 }

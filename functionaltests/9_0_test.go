@@ -23,43 +23,19 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 )
 
-func TestUpgrade_8_18_0_to_9_0_0(t *testing.T) {
+func TestUpgrade_8_18_to_9_0(t *testing.T) {
 	t.Parallel()
-	ecAPICheck(t)
 
-	tt := singleUpgradeTestCase{
-		fromVersion: "8.18.0",
-		toVersion:   "9.0.0",
-		checkPreUpgradeAfterIngest: checkDatastreamWant{
-			Quantity:         8,
-			PreferIlm:        true,
-			DSManagedBy:      managedByILM,
-			IndicesPerDs:     1,
-			IndicesManagedBy: []string{managedByILM},
-		},
-		checkPostUpgradeBeforeIngest: checkDatastreamWant{
-			Quantity:         8,
-			PreferIlm:        true,
-			DSManagedBy:      managedByILM,
-			IndicesPerDs:     1,
-			IndicesManagedBy: []string{managedByILM},
-		},
-		checkPostUpgradeAfterIngest: checkDatastreamWant{
-			Quantity:         8,
-			PreferIlm:        true,
-			DSManagedBy:      managedByILM,
-			IndicesPerDs:     1,
-			IndicesManagedBy: []string{managedByILM},
-		},
-
-		apmErrorLogsIgnored: []types.Query{
+	runBasicUpgradeILMTest(
+		t,
+		"8.18",
+		"9.0",
+		[]types.Query{
 			tlsHandshakeError,
 			esReturnedUnknown503,
 			refreshCache503,
 			// TODO: remove once fixed
 			populateSourcemapFetcher403,
 		},
-	}
-
-	tt.Run(t)
+	)
 }
