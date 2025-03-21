@@ -63,7 +63,7 @@ type singleUpgradeTestCase struct {
 
 func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	if tt.dataStreamNamespace == "" {
-		tt.dataStreamNamespace = defaultNamespace
+		tt.dataStreamNamespace = "default"
 	}
 
 	start := time.Now()
