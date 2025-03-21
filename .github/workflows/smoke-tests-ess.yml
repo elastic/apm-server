@@ -7,12 +7,7 @@ on:
       branch:
         required: true
         type: string
-  workflow_dispatch:
-    inputs:
-      branch:
-        description: 'The branch to checkout'
-        required: true
-        type: string
+  workflow_dispatch: ~
 
 # limit the access of the generated GITHUB_TOKEN
 permissions:
@@ -27,7 +22,7 @@ jobs:
       tests_legacy: ${{ steps.generate.outputs.tests_legacy }}
       date: ${{ steps.generate.outputs.date }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
         with:
           ref: ${{ inputs.branch }}
       - id: generate
@@ -89,7 +84,7 @@ jobs:
           - '8.18'
           - 'latest'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
         with:
           ref: ${{ inputs.branch }}
       - id: smoke_test
