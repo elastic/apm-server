@@ -33,7 +33,7 @@ func TestTLSConfig(t *testing.T) {
 	srv := apmservertest.NewUnstartedServerTB(t)
 	srv.Config.TLS = &apmservertest.TLSConfig{
 		SupportedProtocols: []string{"TLSv1.2", "TLSv1.3"},
-		CipherSuites:       []string{"ECDHE-RSA-AES-128-GCM-SHA256"},
+		CipherSuites:       []string{"ECDHE-ECDSA-AES-128-GCM-SHA256"},
 	}
 	require.NoError(t, srv.StartTLS())
 
@@ -75,7 +75,7 @@ func TestTLSConfig(t *testing.T) {
 	t.Run("incompatible_protocol", func(t *testing.T) {
 		err := attemptRequest(t, tls.VersionTLS10, tls.VersionTLS10)
 		require.Error(t, err)
-		assert.Regexp(t, ".*tls: protocol version not supported", err.Error())
+		assert.Regexp(t, ".*tls: no supported versions satisfy MinVersion and MaxVersion", err.Error())
 	})
 }
 
