@@ -21,10 +21,12 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/elastic/apm-server/functionaltests/internal/ecclient"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 
 	"github.com/elastic/apm-server/functionaltests/internal/esclient"
@@ -32,18 +34,15 @@ import (
 	"github.com/elastic/apm-server/functionaltests/internal/terraform"
 )
 
-// ecAPICheck verifies if EC_API_KEY env var is set.
-// This is a simple check to alert users if this necessary env var
-// is not available.
-//
-// Functional tests are expected to run Terraform code to operate
-// on infrastructure required for each test and to query Elastic
-// Cloud APIs. In both cases a valid API key is required.
-func ecAPICheck(t *testing.T) {
+// getLatestSnapshot retrieves the latest snapshot version for the version prefix.
+func getLatestSnapshot(t *testing.T, prefix string) ecclient.StackVersion {
 	t.Helper()
-	require.NotEmpty(t, os.Getenv("EC_API_KEY"), "EC_API_KEY env var not set")
+	version, ok := fetchedSnapshots.LatestFor(prefix)
+	require.True(t, ok, "no version with prefix '%s' found in EC region %s", prefix, regionFrom(*target))
+	return version
 }
 
+// createAPMAPIKey creates an Elasticsearch API key with the test name.
 func createAPMAPIKey(t *testing.T, ctx context.Context, esc *esclient.Client) string {
 	t.Helper()
 	apiKey, err := esc.CreateAPIKey(ctx, t.Name(), -1, map[string]types.RoleDescriptor{})
@@ -54,7 +53,8 @@ func createAPMAPIKey(t *testing.T, ctx context.Context, esc *esclient.Client) st
 // terraformDir returns the name of the Terraform files directory for this test.
 func terraformDir(t *testing.T) string {
 	t.Helper()
-	return fmt.Sprintf("tf-%s", t.Name())
+	// Flatten the dir name in case of path separators
+	return fmt.Sprintf("tf-%s", strings.ReplaceAll(t.Name(), "/", "_"))
 }
 
 // copyTerraforms copies the static Terraform files to the Terraform directory for this test.

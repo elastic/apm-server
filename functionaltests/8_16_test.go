@@ -26,13 +26,24 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 )
 
-func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
+// In 8.15, the data stream management was migrated from
+// ILM to DSL. However, a bug was introduced, causing data
+// streams to be unmanaged.
+// See https://github.com/elastic/apm-server/issues/13898.
+//
+// It was fixed by defaulting data stream management to DSL,
+// and eventually reverted back to ILM in 8.17.
+//
+// Therefore, data streams created in 8.15 and 8.16 are
+// managed by DSL instead of ILM.
+
+func TestUpgrade_8_15_to_8_16(t *testing.T) {
 	t.Parallel()
-	ecAPICheck(t)
+	skipNonActiveMajorMinorVersion(t, "8.16")
 
 	tt := singleUpgradeTestCase{
-		fromVersion: "8.15.4",
-		toVersion:   "8.16.0",
+		fromVersion: getLatestSnapshot(t, "8.15"),
+		toVersion:   getLatestSnapshot(t, "8.16"),
 		checkPreUpgradeAfterIngest: checkDatastreamWant{
 			Quantity:         8,
 			PreferIlm:        false,
@@ -72,14 +83,14 @@ func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
 	tt.Run(t)
 }
 
-func TestUpgrade_8_13_4_to_8_16_0_Reroute(t *testing.T) {
+func TestUpgrade_8_14_to_8_16_Reroute(t *testing.T) {
 	t.Parallel()
-	ecAPICheck(t)
+	skipNonActiveMajorMinorVersion(t, "8.16")
 
 	rerouteNamespace := "rerouted"
 	tt := singleUpgradeTestCase{
-		fromVersion:         "8.13.4",
-		toVersion:           "8.16.0",
+		fromVersion:         getLatestSnapshot(t, "8.14"),
+		toVersion:           getLatestSnapshot(t, "8.16"),
 		dataStreamNamespace: rerouteNamespace,
 		setupFn: func(t *testing.T, ctx context.Context, esc *esclient.Client, _ *kbclient.Client) error {
 			t.Log("create reroute processors")
