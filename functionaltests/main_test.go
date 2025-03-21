@@ -73,8 +73,8 @@ var (
 	// fetchedSnapshots are the snapshot stack versions prefetched from Elastic Cloud API.
 	fetchedSnapshots ecclient.StackVersions
 
-	// activeVersions are the versions that are still in active development.
-	activeVersions = []string{
+	// activeMajorMinorVersions are the X.Y versions that are still in active development.
+	activeMajorMinorVersions = []string{
 		"7.17",
 		"8.16",
 		"8.17",
@@ -121,9 +121,7 @@ func TestMain(m *testing.M) {
 }
 
 // skipNonActiveVersions skips testing for versions not in active development.
-//
-// The version is expected to be X.Y in semantic versioning format.
-func skipNonActiveVersions(t *testing.T, version string) {
+func skipNonActiveVersions(t *testing.T, version ecclient.StackVersion) {
 	if !*skipNonActive {
 		return
 	}
@@ -134,10 +132,46 @@ func skipNonActiveVersions(t *testing.T, version string) {
 }
 
 // isActiveVersion checks if the version provided is in active development.
-//
-// The version is expected to be X.Y in semantic versioning format.
-func isActiveVersion(version string) bool {
-	return slices.Contains(activeVersions, version)
+func isActiveVersion(version ecclient.StackVersion) bool {
+	return slices.Contains(activeMajorMinorVersions, version.MajorMinor())
+}
+
+// runBasicUpgradeILMTest performs a basic upgrade test from `fromVersion` to `toVersion`.
+// The test assumes that all data streams are using Index Lifecycle Management (ILM) instead
+// of Data Stream Lifecycle Management (DSL), which should be the case for most recent APM
+// data streams.
+func runBasicUpgradeILMTest(t *testing.T, fromVersion, toVersion ecclient.StackVersion, apmErrorLogsIgnored []types.Query) {
+	skipNonActiveVersions(t, toVersion)
+
+	tt := singleUpgradeTestCase{
+		fromVersion: fromVersion,
+		toVersion:   toVersion,
+		checkPreUpgradeAfterIngest: checkDatastreamWant{
+			Quantity:         8,
+			PreferIlm:        true,
+			DSManagedBy:      managedByILM,
+			IndicesPerDs:     1,
+			IndicesManagedBy: []string{managedByILM},
+		},
+		checkPostUpgradeBeforeIngest: checkDatastreamWant{
+			Quantity:         8,
+			PreferIlm:        true,
+			DSManagedBy:      managedByILM,
+			IndicesPerDs:     1,
+			IndicesManagedBy: []string{managedByILM},
+		},
+		checkPostUpgradeAfterIngest: checkDatastreamWant{
+			Quantity:         8,
+			PreferIlm:        true,
+			DSManagedBy:      managedByILM,
+			IndicesPerDs:     1,
+			IndicesManagedBy: []string{managedByILM},
+		},
+
+		apmErrorLogsIgnored: apmErrorLogsIgnored,
+	}
+
+	tt.Run(t)
 }
 
 // expectedIngestForASingleRun represent the expected number of ingested document after a
