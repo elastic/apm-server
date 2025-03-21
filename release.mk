@@ -73,24 +73,6 @@ ifeq ($(RELEASE_TYPE),major)
 endif
 
 #######################
-## Templates
-#######################
-
-## Changelog template for new minors
-define CHANGELOG_MINOR_TMPL
-[[apm-release-notes-$(RELEASE_BRANCH)]]
-== APM version $(RELEASE_BRANCH)
-* <<apm-release-notes-$(RELEASE_BRANCH).0>>
-
-[float]
-[[apm-release-notes-$(RELEASE_BRANCH).0]]
-=== APM version $(RELEASE_BRANCH).0
-
-https://github.com/elastic/apm-server/compare/v$(CURRENT_RELEASE)\...v$(RELEASE_BRANCH).0[View commits]
-
-endef
-
-#######################
 ## Public make goals
 #######################
 
@@ -187,9 +169,8 @@ patch-release:
 .PHONY: update-changelog
 update-changelog: VERSION=$${VERSION}
 update-changelog:
-	$(MAKE) common-changelog
 	@echo ">> update-changelog"
-	$(SED) 's#head#$(VERSION)#g' CHANGELOG.asciidoc
+	bash ./tools/scripts/changelog.sh $(VERSION)
 
 # Common changelog file steps
 .PHONY: common-changelog
