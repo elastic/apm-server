@@ -23,13 +23,30 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 )
 
-func TestUpgrade_8_18_to_9_0(t *testing.T) {
+func TestUpgrade_8_18_to_9_0_Snapshot(t *testing.T) {
 	t.Parallel()
 
 	runBasicUpgradeILMTest(
 		t,
-		"8.18",
-		"9.0",
+		getLatestSnapshot(t, "8.18"),
+		getLatestSnapshot(t, "9.0"),
+		[]types.Query{
+			tlsHandshakeError,
+			esReturnedUnknown503,
+			refreshCache503,
+			// TODO: remove once fixed
+			populateSourcemapFetcher403,
+		},
+	)
+}
+
+func TestUpgrade_8_18_to_9_0_BC(t *testing.T) {
+	t.Parallel()
+
+	runBasicUpgradeILMTest(
+		t,
+		getLatestVersion(t, "8.18"),
+		getBCVersionOrSkip(t, "9.0"),
 		[]types.Query{
 			tlsHandshakeError,
 			esReturnedUnknown503,

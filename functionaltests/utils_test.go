@@ -26,21 +26,12 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/apm-server/functionaltests/internal/ecclient"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 
 	"github.com/elastic/apm-server/functionaltests/internal/esclient"
 	"github.com/elastic/apm-server/functionaltests/internal/kbclient"
 	"github.com/elastic/apm-server/functionaltests/internal/terraform"
 )
-
-// getLatestSnapshot retrieves the latest snapshot version for the version prefix.
-func getLatestSnapshot(t *testing.T, prefix string) ecclient.StackVersion {
-	t.Helper()
-	version, ok := fetchedSnapshots.LatestFor(prefix)
-	require.True(t, ok, "no version with prefix '%s' found in EC region %s", prefix, regionFrom(*target))
-	return version
-}
 
 // createAPMAPIKey creates an Elasticsearch API key with the test name.
 func createAPMAPIKey(t *testing.T, ctx context.Context, esc *esclient.Client) string {

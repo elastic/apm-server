@@ -65,13 +65,13 @@ const (
 	managedByILM = "Index Lifecycle Management"
 )
 
-const (
-	defaultNamespace = "default"
-)
-
 var (
+	// fetchedCandidates are the build-candidate stack versions prefetched from Elastic Cloud API.
+	fetchedCandidates ecclient.StackVersions
 	// fetchedSnapshots are the snapshot stack versions prefetched from Elastic Cloud API.
 	fetchedSnapshots ecclient.StackVersions
+	// fetchedVersions are the non-snapshot stack versions prefetched from Elastic Cloud API.
+	fetchedVersions ecclient.StackVersions
 
 	// activeMajorMinorVersions are the X.Y versions that are still in active development.
 	activeMajorMinorVersions = []string{
@@ -108,22 +108,34 @@ func TestMain(m *testing.M) {
 		return
 	}
 
+	candidates, err := ecc.GetCandidateVersions(ctx, ecRegion)
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+	fetchedCandidates = candidates
+
 	snapshots, err := ecc.GetSnapshotVersions(ctx, ecRegion)
 	if err != nil {
 		log.Fatal(err)
 		return
 	}
 	fetchedSnapshots = snapshots
-	fetchedSnapshots.Sort()
+
+	versions, err := ecc.GetVersions(ctx, ecRegion)
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+	fetchedVersions = versions
 
 	code := m.Run()
 	os.Exit(code)
 }
 
-// skipNonActiveMajorMinorVersion skips testing for versions not in active development.
-//
-// Note: The version is expected to be in X.Y form of semantic versioning.
-func skipNonActiveMajorMinorVersion(t *testing.T, version string) {
+// skipNonActiveVersion skips testing for versions not in active development.
+func skipNonActiveVersion(t *testing.T, version ecclient.StackVersion) {
+	t.Helper()
 	if !*skipNonActive {
 		return
 	}
@@ -134,49 +146,36 @@ func skipNonActiveMajorMinorVersion(t *testing.T, version string) {
 }
 
 // isActiveMajorMinorVersion checks if the version provided is in active development.
-//
-// Note: The version is expected to be in X.Y form of semantic versioning.
-func isActiveMajorMinorVersion(version string) bool {
-	return slices.Contains(activeMajorMinorVersions, version)
+func isActiveMajorMinorVersion(version ecclient.StackVersion) bool {
+	return slices.Contains(activeMajorMinorVersions, version.MajorMinor())
 }
 
-// runBasicUpgradeILMTest performs a basic upgrade test from the latest patch of
-// `fromVersionPrefix` to the latest patch of `toVersionPrefix`. The test assumes
-// that all data streams are using Index Lifecycle Management (ILM) instead of
-// Data Stream Lifecycle Management (DSL), which should be the case for most recent
-// APM data streams.
-func runBasicUpgradeILMTest(t *testing.T, fromVersionPrefix, toVersionPrefix string, apmErrorLogsIgnored []types.Query) {
-	skipNonActiveMajorMinorVersion(t, toVersionPrefix)
-
-	tt := singleUpgradeTestCase{
-		fromVersion: getLatestSnapshot(t, fromVersionPrefix),
-		toVersion:   getLatestSnapshot(t, toVersionPrefix),
-		checkPreUpgradeAfterIngest: checkDatastreamWant{
-			Quantity:         8,
-			PreferIlm:        true,
-			DSManagedBy:      managedByILM,
-			IndicesPerDs:     1,
-			IndicesManagedBy: []string{managedByILM},
-		},
-		checkPostUpgradeBeforeIngest: checkDatastreamWant{
-			Quantity:         8,
-			PreferIlm:        true,
-			DSManagedBy:      managedByILM,
-			IndicesPerDs:     1,
-			IndicesManagedBy: []string{managedByILM},
-		},
-		checkPostUpgradeAfterIngest: checkDatastreamWant{
-			Quantity:         8,
-			PreferIlm:        true,
-			DSManagedBy:      managedByILM,
-			IndicesPerDs:     1,
-			IndicesManagedBy: []string{managedByILM},
-		},
-
-		apmErrorLogsIgnored: apmErrorLogsIgnored,
+// getBCVersionOrSkip retrieves the latest build-candidate version for the version prefix.
+// If the version is not found, the test is skipped via t.Skip.
+func getBCVersionOrSkip(t *testing.T, prefix string) ecclient.StackVersion {
+	t.Helper()
+	candidate, ok := fetchedCandidates.LatestFor(prefix)
+	if !ok {
+		t.Skip("skipping non-BC versions")
+		return ecclient.StackVersion{}
 	}
+	return candidate
+}
 
-	tt.Run(t)
+// getLatestSnapshot retrieves the latest snapshot version for the version prefix.
+func getLatestSnapshot(t *testing.T, prefix string) ecclient.StackVersion {
+	t.Helper()
+	version, ok := fetchedSnapshots.LatestFor(prefix)
+	require.True(t, ok, "no snapshot with prefix '%s' found in EC region %s", prefix, regionFrom(*target))
+	return version
+}
+
+// getLatestVersion retrieves the latest non-snapshot version for the version prefix.
+func getLatestVersion(t *testing.T, prefix string) ecclient.StackVersion {
+	t.Helper()
+	version, ok := fetchedVersions.LatestFor(prefix)
+	require.True(t, ok, "no version with prefix '%s' found in EC region %s", prefix, regionFrom(*target))
+	return version
 }
 
 // expectedIngestForASingleRun represent the expected number of ingested document after a
