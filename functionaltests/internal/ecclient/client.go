@@ -198,7 +198,12 @@ func (c *Client) GetVersions(ctx context.Context, region string) (StackVersions,
 		// Ignore all with suffix e.g. SNAPSHOTS, BC1
 		return v.Suffix == ""
 	}
-	return c.getVersions(ctx, region, false, nil, postFilter)
+
+	versions, err := c.getVersions(ctx, region, false, nil, postFilter)
+	if err != nil {
+		return nil, fmt.Errorf("get versions failed: %w", err)
+	}
+	return versions, nil
 }
 
 // GetSnapshotVersions retrieves all stack versions with the suffix "SNAPSHOT".
@@ -207,7 +212,12 @@ func (c *Client) GetSnapshotVersions(ctx context.Context, region string) (StackV
 		// Only keep SNAPSHOTs
 		return v.Suffix == "SNAPSHOT"
 	}
-	return c.getVersions(ctx, region, true, nil, postFilter)
+
+	versions, err := c.getVersions(ctx, region, true, nil, postFilter)
+	if err != nil {
+		return nil, fmt.Errorf("get snapshot versions failed: %w", err)
+	}
+	return versions, nil
 }
 
 // GetCandidateVersions retrieves all stack versions that are potential build / release candidates.
@@ -226,5 +236,10 @@ func (c *Client) GetCandidateVersions(ctx context.Context, region string) (Stack
 		// Ignore SNAPSHOTs
 		return v.Suffix != "SNAPSHOT"
 	}
-	return c.getVersions(ctx, region, false, preFilter, postFilter)
+
+	versions, err := c.getVersions(ctx, region, false, preFilter, postFilter)
+	if err != nil {
+		return nil, fmt.Errorf("get candidate versions failed: %w", err)
+	}
+	return versions, nil
 }

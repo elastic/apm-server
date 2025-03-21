@@ -101,13 +101,14 @@ func TestMain(m *testing.M) {
 	}
 
 	ctx := context.Background()
+	ecRegion := regionFrom(*target)
 	ecc, err := ecclient.New(endpointFrom(*target), ecAPIKey)
 	if err != nil {
 		log.Fatal(err)
 		return
 	}
 
-	snapshots, err := ecc.GetSnapshotVersions(ctx, regionFrom(*target))
+	snapshots, err := ecc.GetSnapshotVersions(ctx, ecRegion)
 	if err != nil {
 		log.Fatal(err)
 		return
