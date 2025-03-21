@@ -67,20 +67,7 @@ func runBasicUpgradeILMTest(
 		apmErrorLogsIgnored: apmErrorLogsIgnored,
 	}
 
-	t.Run("Default", func(t *testing.T) {
-		testCase.Run(t)
-	})
-
-	t.Run("Reroute", func(t *testing.T) {
-		rerouteNamespace := "rerouted"
-		testCase.dataStreamNamespace = rerouteNamespace
-		testCase.setupFn = func(t *testing.T, ctx context.Context, esc *esclient.Client, kbc *kbclient.Client) error {
-			t.Log("create reroute processors")
-			return createRerouteIngestPipeline(t, ctx, esc, rerouteNamespace)
-		}
-
-		testCase.Run(t)
-	})
+	runAllBasicUpgradeScenarios(t, testCase)
 }
 
 // runBasicUpgradeLazyRolloverDSLTest performs a basic upgrade test from
@@ -132,18 +119,25 @@ func runBasicUpgradeLazyRolloverDSLTest(
 		apmErrorLogsIgnored: apmErrorLogsIgnored,
 	}
 
+	runAllBasicUpgradeScenarios(t, testCase)
+}
+
+func runAllBasicUpgradeScenarios(t *testing.T, testCase singleUpgradeTestCase) {
 	t.Run("Default", func(t *testing.T) {
-		testCase.Run(t)
+		t.Parallel()
+		tt := testCase
+		tt.Run(t)
 	})
 
 	t.Run("Reroute", func(t *testing.T) {
+		t.Parallel()
+		tt := testCase
 		rerouteNamespace := "rerouted"
-		testCase.dataStreamNamespace = rerouteNamespace
-		testCase.setupFn = func(t *testing.T, ctx context.Context, esc *esclient.Client, kbc *kbclient.Client) error {
+		tt.dataStreamNamespace = rerouteNamespace
+		tt.setupFn = func(t *testing.T, ctx context.Context, esc *esclient.Client, kbc *kbclient.Client) error {
 			t.Log("create reroute processors")
 			return createRerouteIngestPipeline(t, ctx, esc, rerouteNamespace)
 		}
-
-		testCase.Run(t)
+		tt.Run(t)
 	})
 }
