@@ -23,6 +23,7 @@ import (
 
 	"github.com/elastic/apm-server/functionaltests/internal/esclient"
 	"github.com/elastic/apm-server/functionaltests/internal/kbclient"
+	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 )
 
 // In 8.15, the data stream management was migrated from
@@ -65,6 +66,17 @@ func TestUpgrade_8_15_to_8_16(t *testing.T) {
 			DSManagedBy:      managedByDSL,
 			IndicesPerDs:     2,
 			IndicesManagedBy: []string{managedByDSL, managedByDSL},
+		},
+
+		apmErrorLogsIgnored: []types.Query{
+			tlsHandshakeError,
+			esReturnedUnknown503,
+			preconditionFailed,
+			populateSourcemapServerShuttingDown,
+			refreshCacheCtxDeadline,
+			refreshCacheCtxCanceled,
+			// TODO: remove once fixed
+			populateSourcemapFetcher403,
 		},
 	}
 
@@ -110,6 +122,16 @@ func TestUpgrade_8_14_to_8_16_Reroute(t *testing.T) {
 			DSManagedBy:      managedByILM,
 			IndicesPerDs:     2,
 			IndicesManagedBy: []string{managedByILM, managedByILM},
+		},
+
+		apmErrorLogsIgnored: []types.Query{
+			tlsHandshakeError,
+			esReturnedUnknown503,
+			preconditionFailed,
+			populateSourcemapServerShuttingDown,
+			refreshCacheCtxDeadline,
+			// TODO: remove once fixed
+			populateSourcemapFetcher403,
 		},
 	}
 

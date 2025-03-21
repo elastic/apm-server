@@ -165,39 +165,3 @@ func performManualRollovers(t *testing.T, ctx context.Context, esc *esclient.Cli
 	}
 	return nil
 }
-
-// runBasicUpgradeSnapshotTest performs a basic upgrade test from latest patch of `fromVersionPrefix`
-// to latest patch of `toVersionPrefix` using SNAPSHOT versions. The test assumes that all data streams
-// are using Index Lifecycle Management (ILM) instead of Data Stream Lifecycle Management (DSL), which
-// should be the case for most recent APM data streams.
-func runBasicUpgradeSnapshotTest(t *testing.T, fromVersionPrefix, toVersionPrefix string) {
-	skipNonActiveVersions(t, toVersionPrefix)
-
-	tt := singleUpgradeTestCase{
-		fromVersion: getLatestSnapshotFor(t, fromVersionPrefix),
-		toVersion:   getLatestSnapshotFor(t, toVersionPrefix),
-		checkPreUpgradeAfterIngest: checkDatastreamWant{
-			Quantity:         8,
-			PreferIlm:        true,
-			DSManagedBy:      managedByILM,
-			IndicesPerDs:     1,
-			IndicesManagedBy: []string{managedByILM},
-		},
-		checkPostUpgradeBeforeIngest: checkDatastreamWant{
-			Quantity:         8,
-			PreferIlm:        true,
-			DSManagedBy:      managedByILM,
-			IndicesPerDs:     1,
-			IndicesManagedBy: []string{managedByILM},
-		},
-		checkPostUpgradeAfterIngest: checkDatastreamWant{
-			Quantity:         8,
-			PreferIlm:        true,
-			DSManagedBy:      managedByILM,
-			IndicesPerDs:     1,
-			IndicesManagedBy: []string{managedByILM},
-		},
-	}
-
-	tt.Run(t)
-}

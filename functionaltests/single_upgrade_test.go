@@ -31,6 +31,7 @@ import (
 	"github.com/elastic/apm-server/functionaltests/internal/gen"
 	"github.com/elastic/apm-server/functionaltests/internal/kbclient"
 	"github.com/elastic/apm-server/functionaltests/internal/terraform"
+	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 )
 
 type additionalFunc func(t *testing.T, ctx context.Context, esc *esclient.Client, kbc *kbclient.Client) error
@@ -55,6 +56,8 @@ type singleUpgradeTestCase struct {
 	postUpgradeFn                additionalFunc
 	checkPostUpgradeBeforeIngest checkDatastreamWant
 	checkPostUpgradeAfterIngest  checkDatastreamWant
+
+	apmErrorLogsIgnored []types.Query
 }
 
 func (tt singleUpgradeTestCase) Run(t *testing.T) {
@@ -155,7 +158,13 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	t.Logf("time elapsed: %s", time.Since(start))
 
 	t.Log("------ check ES and APM error logs ------")
+	t.Log("checking ES error logs")
 	resp, err := esc.GetESErrorLogs(ctx)
 	require.NoError(t, err)
 	asserts.ZeroESLogs(t, *resp)
+
+	t.Log("checking APM error logs")
+	resp, err = esc.GetAPMErrorLogs(ctx, tt.apmErrorLogsIgnored)
+	require.NoError(t, err)
+	asserts.ZeroAPMLogs(t, *resp)
 }
