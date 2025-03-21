@@ -120,32 +120,37 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-// skipNonActiveVersions skips testing for versions not in active development.
-func skipNonActiveVersions(t *testing.T, version ecclient.StackVersion) {
+// skipNonActiveMajorMinorVersion skips testing for versions not in active development.
+//
+// Note: The version is expected to be in X.Y form of semantic versioning.
+func skipNonActiveMajorMinorVersion(t *testing.T, version string) {
 	if !*skipNonActive {
 		return
 	}
 
-	if !isActiveVersion(version) {
-		t.Skip("skipping non-active versions")
+	if !isActiveMajorMinorVersion(version) {
+		t.Skip("skipping non-active version")
 	}
 }
 
-// isActiveVersion checks if the version provided is in active development.
-func isActiveVersion(version ecclient.StackVersion) bool {
-	return slices.Contains(activeMajorMinorVersions, version.MajorMinor())
+// isActiveMajorMinorVersion checks if the version provided is in active development.
+//
+// Note: The version is expected to be in X.Y form of semantic versioning.
+func isActiveMajorMinorVersion(version string) bool {
+	return slices.Contains(activeMajorMinorVersions, version)
 }
 
-// runBasicUpgradeILMTest performs a basic upgrade test from `fromVersion` to `toVersion`.
-// The test assumes that all data streams are using Index Lifecycle Management (ILM) instead
-// of Data Stream Lifecycle Management (DSL), which should be the case for most recent APM
-// data streams.
-func runBasicUpgradeILMTest(t *testing.T, fromVersion, toVersion ecclient.StackVersion, apmErrorLogsIgnored []types.Query) {
-	skipNonActiveVersions(t, toVersion)
+// runBasicUpgradeILMTest performs a basic upgrade test from the latest patch of
+// `fromVersionPrefix` to the latest patch of `toVersionPrefix`. The test assumes
+// that all data streams are using Index Lifecycle Management (ILM) instead of
+// Data Stream Lifecycle Management (DSL), which should be the case for most recent
+// APM data streams.
+func runBasicUpgradeILMTest(t *testing.T, fromVersionPrefix, toVersionPrefix string, apmErrorLogsIgnored []types.Query) {
+	skipNonActiveMajorMinorVersion(t, toVersionPrefix)
 
 	tt := singleUpgradeTestCase{
-		fromVersion: fromVersion,
-		toVersion:   toVersion,
+		fromVersion: getLatestSnapshot(t, fromVersionPrefix),
+		toVersion:   getLatestSnapshot(t, toVersionPrefix),
 		checkPreUpgradeAfterIngest: checkDatastreamWant{
 			Quantity:         8,
 			PreferIlm:        true,

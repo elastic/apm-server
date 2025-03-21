@@ -28,8 +28,8 @@ func TestUpgrade_8_18_to_9_0(t *testing.T) {
 
 	runBasicUpgradeILMTest(
 		t,
-		getLatestSnapshotFor(t, "8.18"),
-		getLatestSnapshotFor(t, "9.0"),
+		"8.18",
+		"9.0",
 		[]types.Query{
 			tlsHandshakeError,
 			esReturnedUnknown503,

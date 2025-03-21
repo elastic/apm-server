@@ -39,13 +39,11 @@ import (
 
 func TestUpgrade_8_15_to_8_16(t *testing.T) {
 	t.Parallel()
-	fromVersion := getLatestSnapshotFor(t, "8.15")
-	toVersion := getLatestSnapshotFor(t, "8.16")
-	skipNonActiveVersions(t, toVersion)
+	skipNonActiveMajorMinorVersion(t, "8.16")
 
 	tt := singleUpgradeTestCase{
-		fromVersion: fromVersion,
-		toVersion:   toVersion,
+		fromVersion: getLatestSnapshot(t, "8.15"),
+		toVersion:   getLatestSnapshot(t, "8.16"),
 		checkPreUpgradeAfterIngest: checkDatastreamWant{
 			Quantity:         8,
 			PreferIlm:        false,
@@ -87,14 +85,12 @@ func TestUpgrade_8_15_to_8_16(t *testing.T) {
 
 func TestUpgrade_8_14_to_8_16_Reroute(t *testing.T) {
 	t.Parallel()
-	fromVersion := getLatestSnapshotFor(t, "8.14")
-	toVersion := getLatestSnapshotFor(t, "8.16")
-	skipNonActiveVersions(t, toVersion)
+	skipNonActiveMajorMinorVersion(t, "8.16")
 
 	rerouteNamespace := "rerouted"
 	tt := singleUpgradeTestCase{
-		fromVersion:         fromVersion,
-		toVersion:           toVersion,
+		fromVersion:         getLatestSnapshot(t, "8.14"),
+		toVersion:           getLatestSnapshot(t, "8.16"),
 		dataStreamNamespace: rerouteNamespace,
 		setupFn: func(t *testing.T, ctx context.Context, esc *esclient.Client, _ *kbclient.Client) error {
 			t.Log("create reroute processors")

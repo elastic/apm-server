@@ -34,8 +34,8 @@ import (
 	"github.com/elastic/apm-server/functionaltests/internal/terraform"
 )
 
-// getLatestSnapshotFor retrieves the latest snapshot version for the version prefix.
-func getLatestSnapshotFor(t *testing.T, prefix string) ecclient.StackVersion {
+// getLatestSnapshot retrieves the latest snapshot version for the version prefix.
+func getLatestSnapshot(t *testing.T, prefix string) ecclient.StackVersion {
 	t.Helper()
 	version, ok := fetchedSnapshots.LatestFor(prefix)
 	require.True(t, ok, "no version with prefix '%s' found in EC region %s", prefix, regionFrom(*target))
