@@ -25,41 +25,17 @@ import (
 
 func TestUpgrade_8_18_to_9_0(t *testing.T) {
 	t.Parallel()
-	skipNonActiveVersions(t, "9.0")
 
-	tt := singleUpgradeTestCase{
-		fromVersion: getLatestSnapshotFor(t, "8.18"),
-		toVersion:   getLatestSnapshotFor(t, "9.0"),
-		checkPreUpgradeAfterIngest: checkDatastreamWant{
-			Quantity:         8,
-			PreferIlm:        true,
-			DSManagedBy:      managedByILM,
-			IndicesPerDs:     1,
-			IndicesManagedBy: []string{managedByILM},
-		},
-		checkPostUpgradeBeforeIngest: checkDatastreamWant{
-			Quantity:         8,
-			PreferIlm:        true,
-			DSManagedBy:      managedByILM,
-			IndicesPerDs:     1,
-			IndicesManagedBy: []string{managedByILM},
-		},
-		checkPostUpgradeAfterIngest: checkDatastreamWant{
-			Quantity:         8,
-			PreferIlm:        true,
-			DSManagedBy:      managedByILM,
-			IndicesPerDs:     1,
-			IndicesManagedBy: []string{managedByILM},
-		},
-
-		apmErrorLogsIgnored: []types.Query{
+	runBasicUpgradeSnapshotTest(
+		t,
+		"8.18",
+		"9.0",
+		[]types.Query{
 			tlsHandshakeError,
 			esReturnedUnknown503,
 			refreshCache503,
 			// TODO: remove once fixed
 			populateSourcemapFetcher403,
 		},
-	}
-
-	tt.Run(t)
+	)
 }
