@@ -37,7 +37,7 @@ import (
 func getLatestSnapshotFor(t *testing.T, prefix string) string {
 	t.Helper()
 	version, ok := fetchedSnapshots.LatestFor(prefix)
-	require.True(t, ok, "no version with prefix '%s' found", prefix)
+	require.True(t, ok, "no version with prefix '%s' found in EC region %s", prefix, regionFrom(*target))
 	return version.String()
 }
 
