@@ -337,11 +337,16 @@ testing/rally/corpora:
 SMOKETEST_VERSIONS ?= latest
 # supported-os tests are exclude and hence they are not running as part of this process
 # since they are required to run against different versions in a different CI pipeline.
-SMOKETEST_DIRS = $$(find $(CURRENT_DIR)/testing/smoke -mindepth 1 -maxdepth 1 -type d | grep -v supported-os | grep -v /managed)
+SMOKETEST_DIRS = $$(find $(CURRENT_DIR)/testing/smoke -mindepth 1 -maxdepth 1 -type d | grep -v supported-os | grep -v /managed | grep -v legacy)
+SMOKETEST_DIRS_LEGACY = $$(find $(CURRENT_DIR)/testing/smoke -mindepth 1 -maxdepth 1 -type d | grep legacy)
 
 .PHONY: smoketest/discover
 smoketest/discover:
 	@ echo "$(SMOKETEST_DIRS)" | jq -cnR '[inputs | select(length > 0)]'
+
+.PHONY: smoketest/discover-legacy
+smoketest/discover-legacy:
+	@ echo "$(SMOKETEST_DIRS_LEGACY)" | jq -cnR '[inputs | select(length > 0)]'
 
 .PHONY: smoketest/run-version
 smoketest/run-version:
@@ -366,10 +371,17 @@ smoketest/all:
 	@ for test_dir in $(SMOKETEST_DIRS); do \
 		$(MAKE) smoketest/run TEST_DIR=$${test_dir}; \
 	done
+	@ for test_dir in $(SMOKETEST_DIRS_LEGACY); do \
+		$(MAKE) smoketest/run TEST_DIR=$${test_dir}; \
+	done
 
 .PHONY: smoketest/all/cleanup
 smoketest/all/cleanup:
 	@ for test_dir in $(SMOKETEST_DIRS); do \
+		echo "-> Cleanup $${test_dir} smoke tests..."; \
+		$(MAKE) smoketest/cleanup TEST_DIR=$${test_dir}; \
+	done
+	@ for test_dir in $(SMOKETEST_DIRS_LEGACY); do \
 		echo "-> Cleanup $${test_dir} smoke tests..."; \
 		$(MAKE) smoketest/cleanup TEST_DIR=$${test_dir}; \
 	done
