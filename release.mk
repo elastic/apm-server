@@ -86,7 +86,7 @@ minor-release:
 	@echo "INFO: Create feature branch and update the versions. Target branch $(RELEASE_BRANCH)"
 	$(MAKE) create-branch NAME=changelog-$(RELEASE_BRANCH) BASE=$(RELEASE_BRANCH)
 	$(MAKE) update-changelog VERSION=$(RELEASE_BRANCH)
-	$(MAKE) common-changelog
+	$(MAKE) update-changelog
 	$(MAKE) create-commit COMMIT_MESSAGE="docs: Update changelogs for $(RELEASE_BRANCH) release"
 
 	@echo "INFO: Create feature branch and update the versions. Target branch $(BASE_BRANCH)"
@@ -94,7 +94,7 @@ minor-release:
 	$(MAKE) update-mergify VERSION=$(RELEASE_BRANCH)
 	$(MAKE) update-version VERSION=$(NEXT_PROJECT_MINOR_VERSION)
 	$(MAKE) create-commit COMMIT_MESSAGE="[Release] update version $(NEXT_PROJECT_MINOR_VERSION)"
-	$(MAKE) common-changelog
+	$(MAKE) update-changelog
 	$(MAKE) create-commit COMMIT_MESSAGE="[Release] update changelogs for $(RELEASE_BRANCH) release"
 
 	@echo "INFO: Push changes to $(PROJECT_OWNER)/apm-server and create the relevant Pull Requests"
@@ -136,15 +136,6 @@ update-changelog: VERSION=$${VERSION}
 update-changelog:
 	@echo ">> update-changelog"
 	bash ./tools/scripts/changelog.sh $(VERSION)
-
-# Common changelog file steps
-.PHONY: common-changelog
-export CHANGELOG_MINOR_TMPL
-common-changelog: VERSION=$${VERSION}
-common-changelog:
-	@echo ">> common-changelog"
-	echo "$$CHANGELOG_MINOR_TMPL" > changelogs/$(VERSION).asciidoc
-	tail -n +6 changelogs/head.asciidoc >> changelogs/$(VERSION).asciidoc
 
 ## Update the references on .mergify.yml with the new minor release.
 .PHONY: update-mergify
