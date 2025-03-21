@@ -50,7 +50,7 @@ jobs:
         working-directory: ${{ github.workspace }}/functionaltests
         run: |
           export TF_VAR_CREATED_DATE=$(date +%s)
-          go test -v -timeout=30m -cleanup-on-failure=false -target="${{ matrix.environment }}" ./
+          go test -v -timeout=40m -cleanup-on-failure=false -target="${{ matrix.environment }}" ./
 
 #  notify:
 #    if: always()

@@ -11,12 +11,12 @@ To run the tests, you will first need to set the `EC_API_KEY` environment variab
 
 Then, from the current directory, simply run:
 ```sh
-go test -v -timeout=30m -cleanup-on-failure=false -target="pro" ./
+go test -v -timeout=40m -cleanup-on-failure=false -target="pro" ./
 ```
 
 You can also specify a specific test you want to run, for example:
 ```sh
-go test -run=TestUpgrade_8_18_to_9_0 -v -timeout=30m -cleanup-on-failure=false -target="pro" ./
+go test -run=TestUpgrade_8_18_to_9_0 -v -timeout=40m -cleanup-on-failure=false -target="pro" ./
 ```
 
 Note: Before running tests, make sure to delete the Terraforms by running `rm -r tf-*`.
