@@ -46,9 +46,11 @@ jobs:
           secrets: |-
             EC_API_KEY:elastic-observability/elastic-cloud-observability-team-${{ matrix.environment }}-api-key
 
-      - run: |
+      - name: "Run functional tests"
+        working-directory: ${{ github.workspace }}/functionaltests
+        run: |
           export TF_VAR_CREATED_DATE=$(date +%s)
-          cd functionaltests && go test -v -timeout=30m -cleanup-on-failure=false -target "${{ matrix.environment }}" ./
+          go test -v -timeout=30m -cleanup-on-failure=false -target="${{ matrix.environment }}" ./
 
 #  notify:
 #    if: always()
