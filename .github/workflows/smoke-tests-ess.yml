@@ -19,6 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       tests: ${{ steps.generate.outputs.tests }}
+      tests_legacy: ${{ steps.generate.outputs.tests_legacy }}
       date: ${{ steps.generate.outputs.date }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
@@ -27,6 +28,37 @@ jobs:
       - id: generate
         name: Generate matrix and date
         uses: ./.github/workflows/generate-smoke-tests-list
+
+  smoke-tests-ess-legacy:
+    name: Run smoke tests ${{ matrix.test }} for ${{ matrix.version }}
+    runs-on: ubuntu-latest
+    needs: prepare
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      TF_VAR_BUILD_ID: ${{ github.run_id }}
+      TF_VAR_ENVIRONMENT: 'ci'
+      TF_VAR_BRANCH: ${{ github.ref_name }}
+      TF_VAR_REPO: ${{ github.repository }}
+      TF_VAR_CREATED_DATE: ${{ needs.prepare.outputs.date }}
+    strategy:
+      fail-fast: false
+      matrix:
+        test: ${{ fromJSON(needs.prepare.outputs.tests_legacy) }}
+        version:
+          - '7.17'
+          - 'latest'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.branch }}
+      - id: smoke_test
+        name: Run smoke test action
+        uses: ./.github/workflows/smoke-test-ess-action
+        with:
+          test: ${{ matrix.test }}
+          version: ${{ matrix.version }}
 
   smoke-tests-ess:
     name: Run smoke tests ${{ matrix.test }} for ${{ matrix.version }}
@@ -55,37 +87,9 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
         with:
           ref: ${{ inputs.branch }}
-      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3
+      - id: smoke_test
+        name: Run smoke test action
+        uses: ./.github/workflows/smoke-test-ess-action
         with:
-          terraform_version: ~1.10.0
-          terraform_wrapper: false
-      - name: Setup cluster env
-        uses: ./.github/workflows/setup-cluster-env
-
-      - uses: elastic/oblt-actions/aws/auth@31e93d1dfb82adc106fc7820f505db1afefe43b1 # v1
-
-      - uses: elastic/oblt-actions/google/auth@31e93d1dfb82adc106fc7820f505db1afefe43b1 # v1
-
-      - uses: google-github-actions/get-secretmanager-secrets@a8440875e1c2892062aef9061228d4f1af8f919b # v2.2.3
-        with:
-          export_to_environment: true
-          secrets: |-
-            EC_API_KEY:elastic-observability/elastic-cloud-observability-team-pro-api-key
-
-      - name: Run smoke tests ${{ matrix.test }} for ${{ matrix.version }}
-        run: make smoketest/run-version TEST_DIR=${{ matrix.test }} SMOKETEST_VERSION=${{ matrix.version }}
-
-      # Secrets are rotated daily, if the benchmarks run between the rotation window, then
-      # there is a high chance things will stop working
-      # This is trying to reduce the chances of that happening.
-      # See https://github.com/elastic/observability-test-environments/actions/workflows/cluster-rotate-api-keys.yml
-      - uses: google-github-actions/get-secretmanager-secrets@a8440875e1c2892062aef9061228d4f1af8f919b # v2.2.3
-        if: always()
-        with:
-          export_to_environment: true
-          secrets: |-
-            EC_API_KEY:elastic-observability/elastic-cloud-observability-team-pro-api-key
-
-      - if: always()
-        name: Teardown smoke test infra
-        run: make smoketest/cleanup TEST_DIR=${{ matrix.test }}
+          test: ${{ matrix.test }}
+          version: ${{ matrix.version }}
