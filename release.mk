@@ -75,28 +75,6 @@ endif
 #######################
 ## Templates
 #######################
-## Changelog template
-define CHANGELOG_TMPL
-[[release-notes-head]]
-== APM version HEAD
-
-https://github.com/elastic/apm-server/compare/$(RELEASE_BRANCH)\...$(CHANGELOG_BRANCH)[View commits]
-
-[float]
-==== Breaking Changes
-
-[float]
-==== Bug fixes
-
-[float]
-==== Deprecations
-
-[float]
-==== Intake API Changes
-
-[float]
-==== Added
-endef
 
 ## Changelog template for new minors
 define CHANGELOG_MINOR_TMPL
@@ -138,7 +116,7 @@ minor-release:
 # Target main and use the backport strategy
 	$(MAKE) create-branch NAME=changelog-$(RELEASE_BRANCH) BASE=main
 	$(MAKE) update-changelog VERSION=$(RELEASE_BRANCH)
-	$(MAKE) rename-changelog VERSION=$(RELEASE_BRANCH)
+	$(MAKE) common-changelog
 	$(MAKE) create-commit COMMIT_MESSAGE="docs: Update changelogs for $(RELEASE_BRANCH) release"
 
 # NOTE: as long as 8.x is the branch to run releases, then we update mergify
@@ -161,7 +139,7 @@ endif
 #endif
 	$(MAKE) update-version VERSION=$(NEXT_PROJECT_MINOR_VERSION)
 	$(MAKE) create-commit COMMIT_MESSAGE="[Release] update version $(NEXT_PROJECT_MINOR_VERSION)"
-	$(MAKE) rename-changelog VERSION=$(RELEASE_BRANCH)
+	$(MAKE) common-changelog
 	$(MAKE) create-commit COMMIT_MESSAGE="[Release] update changelogs for $(RELEASE_BRANCH) release"
 
 	@echo "INFO: Push changes to $(PROJECT_OWNER)/apm-server and create the relevant Pull Requests"
@@ -204,22 +182,6 @@ patch-release:
 ############################################
 ## Internal make goals to bump versions
 ############################################
-
-# Rename changelog file to generate something similar to https://github.com/elastic/apm-server/pull/12172
-.PHONY: rename-changelog
-export CHANGELOG_TMPL
-rename-changelog: VERSION=$${VERSION}
-rename-changelog:
-	$(MAKE) common-changelog
-	@echo ">> rename-changelog"
-	echo "$$CHANGELOG_TMPL" > changelogs/head.asciidoc
-	@if ! grep -q 'apm-release-notes-$(VERSION)' CHANGELOG.asciidoc ; then \
-		awk "NR==2{print \"* <<apm-release-notes-$(VERSION)>>\"}1" CHANGELOG.asciidoc > CHANGELOG.asciidoc.new; \
-		mv CHANGELOG.asciidoc.new CHANGELOG.asciidoc ; \
-	fi
-	@if ! grep -q '$(VERSION).asciidoc' CHANGELOG.asciidoc ; then \
-		$(SED) -E -e 's#(head.asciidoc\[\])#\1\ninclude::.\/changelogs\/$(VERSION).asciidoc[]#g' CHANGELOG.asciidoc; \
-	fi
 
 # Update changelog file to generate something similar to https://github.com/elastic/apm-server/pull/12220
 .PHONY: update-changelog
