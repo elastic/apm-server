@@ -23,10 +23,11 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 )
 
-func TestUpgrade_8_18_to_9_0_Snapshot(t *testing.T) {
+func TestUpgrade_8_18_to_8_19_Snapshot(t *testing.T) {
 	t.Parallel()
 
-	runBasicUpgradeTest(
+	// TODO: Check why is there lazy rollover?
+	runBasicUpgradeLazyRolloverTest(
 		t,
 		basicUpgradeVersionConfig{
 			version:         getLatestSnapshot(t, "8.18"),
@@ -34,7 +35,7 @@ func TestUpgrade_8_18_to_9_0_Snapshot(t *testing.T) {
 			indexManagement: managedByILM,
 		},
 		basicUpgradeVersionConfig{
-			version:         getLatestSnapshot(t, "9.0"),
+			version:         getLatestSnapshot(t, "8.19"),
 			preferILM:       true,
 			indexManagement: managedByILM,
 		},
@@ -42,16 +43,15 @@ func TestUpgrade_8_18_to_9_0_Snapshot(t *testing.T) {
 			tlsHandshakeError,
 			esReturnedUnknown503,
 			refreshCache503,
-			// TODO: remove once fixed
 			populateSourcemapFetcher403,
 		},
 	)
 }
 
-func TestUpgrade_8_18_to_9_0_BC(t *testing.T) {
+func TestUpgrade_8_18_to_8_19_BC(t *testing.T) {
 	t.Parallel()
 
-	runBasicUpgradeTest(
+	runBasicUpgradeLazyRolloverTest(
 		t,
 		basicUpgradeVersionConfig{
 			version:         getLatestVersion(t, "8.18"),
@@ -59,7 +59,7 @@ func TestUpgrade_8_18_to_9_0_BC(t *testing.T) {
 			indexManagement: managedByILM,
 		},
 		basicUpgradeVersionConfig{
-			version:         getBCVersionOrSkip(t, "9.0"),
+			version:         getBCVersionOrSkip(t, "8.19"),
 			preferILM:       true,
 			indexManagement: managedByILM,
 		},
@@ -67,7 +67,6 @@ func TestUpgrade_8_18_to_9_0_BC(t *testing.T) {
 			tlsHandshakeError,
 			esReturnedUnknown503,
 			refreshCache503,
-			// TODO: remove once fixed
 			populateSourcemapFetcher403,
 		},
 	)

@@ -23,13 +23,29 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 )
 
+// In 8.15, the data stream management was migrated from ILM to DSL.
+// However, a bug was introduced, causing data streams to be unmanaged.
+// See https://github.com/elastic/apm-server/issues/13898.
+//
+// It was fixed by defaulting data stream management to DSL, and eventually
+// reverted back to ILM in 8.17. Therefore, data streams created in 8.15 and
+// 8.16 are managed by DSL instead of ILM.
+
 func TestUpgrade_8_15_to_8_16_Snapshot(t *testing.T) {
 	t.Parallel()
 
-	runBasicUpgradeLazyRolloverDSLTest(
+	runBasicUpgradeLazyRolloverTest(
 		t,
-		getLatestSnapshot(t, "8.15"),
-		getLatestSnapshot(t, "8.16"),
+		basicUpgradeVersionConfig{
+			version:         getLatestSnapshot(t, "8.15"),
+			preferILM:       false,
+			indexManagement: managedByDSL,
+		},
+		basicUpgradeVersionConfig{
+			version:         getLatestSnapshot(t, "8.16"),
+			preferILM:       false,
+			indexManagement: managedByDSL,
+		},
 		[]types.Query{
 			tlsHandshakeError,
 			esReturnedUnknown503,
@@ -46,10 +62,18 @@ func TestUpgrade_8_15_to_8_16_Snapshot(t *testing.T) {
 func TestUpgrade_8_15_to_8_16_BC(t *testing.T) {
 	t.Parallel()
 
-	runBasicUpgradeLazyRolloverDSLTest(
+	runBasicUpgradeLazyRolloverTest(
 		t,
-		getLatestVersion(t, "8.15"),
-		getBCVersionOrSkip(t, "8.16"),
+		basicUpgradeVersionConfig{
+			version:         getLatestVersion(t, "8.15"),
+			preferILM:       false,
+			indexManagement: managedByDSL,
+		},
+		basicUpgradeVersionConfig{
+			version:         getBCVersionOrSkip(t, "8.16"),
+			preferILM:       false,
+			indexManagement: managedByDSL,
+		},
 		[]types.Query{
 			tlsHandshakeError,
 			esReturnedUnknown503,

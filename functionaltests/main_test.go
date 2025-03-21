@@ -52,9 +52,9 @@ var (
 
 const (
 	// managedByDSL is the constant string used by Elasticsearch to specify that an Index is managed by Data Stream Lifecycle management.
-	managedByDSL = "Data stream lifecycle"
+	managedByDSL string = "Data stream lifecycle"
 	// managedByILM is the constant string used by Elasticsearch to specify that an Index is managed by Index Lifecycle Management.
-	managedByILM = "Index Lifecycle Management"
+	managedByILM string = "Index Lifecycle Management"
 )
 
 var (
@@ -240,7 +240,6 @@ func assertDatastreams(t *testing.T, expected checkDatastreamWant, actual []type
 			)
 		}
 	}
-
 }
 
 const (

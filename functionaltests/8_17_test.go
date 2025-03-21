@@ -23,18 +23,18 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 )
 
-func TestUpgrade_8_18_to_9_0_Snapshot(t *testing.T) {
+func TestUpgrade_8_16_to_8_17_Snapshot(t *testing.T) {
 	t.Parallel()
 
-	runBasicUpgradeTest(
+	runBasicUpgradeLazyRolloverTest(
 		t,
 		basicUpgradeVersionConfig{
-			version:         getLatestSnapshot(t, "8.18"),
-			preferILM:       true,
-			indexManagement: managedByILM,
+			version:         getLatestSnapshot(t, "8.16"),
+			preferILM:       false,
+			indexManagement: managedByDSL,
 		},
 		basicUpgradeVersionConfig{
-			version:         getLatestSnapshot(t, "9.0"),
+			version:         getLatestSnapshot(t, "8.17"),
 			preferILM:       true,
 			indexManagement: managedByILM,
 		},
@@ -42,24 +42,23 @@ func TestUpgrade_8_18_to_9_0_Snapshot(t *testing.T) {
 			tlsHandshakeError,
 			esReturnedUnknown503,
 			refreshCache503,
-			// TODO: remove once fixed
 			populateSourcemapFetcher403,
 		},
 	)
 }
 
-func TestUpgrade_8_18_to_9_0_BC(t *testing.T) {
+func TestUpgrade_8_16_to_8_17_BC(t *testing.T) {
 	t.Parallel()
 
-	runBasicUpgradeTest(
+	runBasicUpgradeLazyRolloverTest(
 		t,
 		basicUpgradeVersionConfig{
-			version:         getLatestVersion(t, "8.18"),
-			preferILM:       true,
-			indexManagement: managedByILM,
+			version:         getLatestVersion(t, "8.16"),
+			preferILM:       false,
+			indexManagement: managedByDSL,
 		},
 		basicUpgradeVersionConfig{
-			version:         getBCVersionOrSkip(t, "9.0"),
+			version:         getBCVersionOrSkip(t, "8.17"),
 			preferILM:       true,
 			indexManagement: managedByILM,
 		},
@@ -67,7 +66,6 @@ func TestUpgrade_8_18_to_9_0_BC(t *testing.T) {
 			tlsHandshakeError,
 			esReturnedUnknown503,
 			refreshCache503,
-			// TODO: remove once fixed
 			populateSourcemapFetcher403,
 		},
 	)
