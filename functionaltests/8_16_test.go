@@ -21,6 +21,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/elastic/apm-server/functionaltests/internal/asserts"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 
 	"github.com/elastic/apm-server/functionaltests/internal/esclient"
@@ -81,11 +82,11 @@ func TestUpgrade_8_14_to_8_16_Reroute(t *testing.T) {
 			t.Log("create reroute processors")
 			return createRerouteIngestPipeline(t, ctx, esc, rerouteNamespace)
 		},
-		checkPreUpgradeAfterIngest: checkDatastreamWant{
+		checkPreUpgradeAfterIngest: asserts.CheckDataStreamsWant{
 			Quantity:         8,
 			PreferIlm:        true,
 			DSManagedBy:      managedByILM,
-			IndicesPerDs:     1,
+			IndicesPerDS:     1,
 			IndicesManagedBy: []string{managedByILM},
 		},
 		postUpgradeFn: func(t *testing.T, ctx context.Context, esc *esclient.Client, _ *kbclient.Client) error {
@@ -94,18 +95,18 @@ func TestUpgrade_8_14_to_8_16_Reroute(t *testing.T) {
 		},
 		// Verify manual rollover happened, i.e. 2 indices per data stream.
 		// Check data streams are managed by ILM since they are created before 8.15.0.
-		checkPostUpgradeBeforeIngest: checkDatastreamWant{
+		checkPostUpgradeBeforeIngest: asserts.CheckDataStreamsWant{
 			Quantity:         8,
 			PreferIlm:        false,
 			DSManagedBy:      managedByILM,
-			IndicesPerDs:     2,
+			IndicesPerDS:     2,
 			IndicesManagedBy: []string{managedByILM, managedByILM},
 		},
-		checkPostUpgradeAfterIngest: checkDatastreamWant{
+		checkPostUpgradeAfterIngest: asserts.CheckDataStreamsWant{
 			Quantity:         8,
 			PreferIlm:        false,
 			DSManagedBy:      managedByILM,
-			IndicesPerDs:     2,
+			IndicesPerDS:     2,
 			IndicesManagedBy: []string{managedByILM, managedByILM},
 		},
 

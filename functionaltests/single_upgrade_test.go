@@ -53,10 +53,10 @@ type singleUpgradeTestCase struct {
 
 	dataStreamNamespace          string
 	setupFn                      additionalFunc
-	checkPreUpgradeAfterIngest   checkDatastreamWant
+	checkPreUpgradeAfterIngest   asserts.CheckDataStreamsWant
 	postUpgradeFn                additionalFunc
-	checkPostUpgradeBeforeIngest checkDatastreamWant
-	checkPostUpgradeAfterIngest  checkDatastreamWant
+	checkPostUpgradeBeforeIngest asserts.CheckDataStreamsWant
+	checkPostUpgradeAfterIngest  asserts.CheckDataStreamsWant
 
 	apmErrorLogsIgnored []types.Query
 }
@@ -87,7 +87,7 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	g := gen.New(escfg.APMServerURL, apiKey)
 	g.Logger = zaptest.NewLogger(t, zaptest.Level(zap.InfoLevel))
 
-	previous, err := getDocsCountPerDS(t, ctx, esc)
+	atStartCount, err := getDocCountPerDS(t, ctx, esc)
 	require.NoError(t, err)
 
 	if tt.setupFn != nil {
@@ -102,19 +102,19 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 
 	t.Log("------ pre-upgrade ingestion assertions ------")
 	t.Log("check number of documents after initial ingestion")
-	atStartCount, err := getDocsCountPerDS(t, ctx, esc)
+	firstIngestCount, err := getDocCountPerDS(t, ctx, esc)
 	require.NoError(t, err)
-	assertDocCount(t, atStartCount, previous,
+	asserts.CheckDocCount(t, firstIngestCount, atStartCount,
 		expectedIngestForASingleRun(tt.dataStreamNamespace),
 		aggregationDataStreams(tt.dataStreamNamespace))
 
 	t.Log("check data streams after initial ingestion")
 	dss, err := esc.GetDataStream(ctx, "*apm*")
 	require.NoError(t, err)
-	assertDatastreams(t, tt.checkPreUpgradeAfterIngest, dss)
+	asserts.CheckDataStreams(t, tt.checkPreUpgradeAfterIngest, dss)
 	t.Logf("time elapsed: %s", time.Since(start))
 
-	beforeUpgradeCount, err := getDocsCountPerDS(t, ctx, esc)
+	beforeUpgradeCount, err := getDocCountPerDS(t, ctx, esc)
 	require.NoError(t, err)
 
 	t.Log("------ perform upgrade ------")
@@ -133,13 +133,16 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	// and further assertions.
 	// We don't expect any change here unless something broke during the upgrade.
 	t.Log("check number of documents across upgrade")
-	assertDocCount(t, beforeUpgradeCount, esclient.APMDataStreamsDocCount{},
-		atStartCount, aggregationDataStreams(tt.dataStreamNamespace))
+	afterUpgradeCount, err := getDocCountPerDS(t, ctx, esc)
+	require.NoError(t, err)
+	asserts.CheckDocCount(t, afterUpgradeCount, beforeUpgradeCount,
+		emptyIngestForASingleRun(tt.dataStreamNamespace),
+		aggregationDataStreams(tt.dataStreamNamespace))
 
 	t.Log("check data streams after upgrade")
 	dss, err = esc.GetDataStream(ctx, "*apm*")
 	require.NoError(t, err)
-	assertDatastreams(t, tt.checkPostUpgradeBeforeIngest, dss)
+	asserts.CheckDataStreams(t, tt.checkPostUpgradeBeforeIngest, dss)
 
 	t.Log("------ post-upgrade ingestion ------")
 	require.NoError(t, g.RunBlockingWait(ctx, kbc, deploymentID))
@@ -147,15 +150,16 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 
 	t.Log("------ post-upgrade ingestion assertions ------")
 	t.Log("check number of documents after final ingestion")
-	afterUpgradeIngestionCount, err := getDocsCountPerDS(t, ctx, esc)
+	secondIngestCount, err := getDocCountPerDS(t, ctx, esc)
 	require.NoError(t, err)
-	assertDocCount(t, afterUpgradeIngestionCount, beforeUpgradeCount,
-		expectedIngestForASingleRun(tt.dataStreamNamespace), aggregationDataStreams(tt.dataStreamNamespace))
+	asserts.CheckDocCount(t, secondIngestCount, beforeUpgradeCount,
+		expectedIngestForASingleRun(tt.dataStreamNamespace),
+		aggregationDataStreams(tt.dataStreamNamespace))
 
 	t.Log("check data streams after final ingestion")
 	dss2, err := esc.GetDataStream(ctx, "*apm*")
 	require.NoError(t, err)
-	assertDatastreams(t, tt.checkPostUpgradeAfterIngest, dss2)
+	asserts.CheckDataStreams(t, tt.checkPostUpgradeAfterIngest, dss2)
 	t.Logf("time elapsed: %s", time.Since(start))
 
 	t.Log("------ check ES and APM error logs ------")
