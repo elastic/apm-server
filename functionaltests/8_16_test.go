@@ -21,9 +21,9 @@ import (
 	"context"
 	"testing"
 
-	"github.com/elastic/apm-server/functionaltests/internal/asserts"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 
+	"github.com/elastic/apm-server/functionaltests/internal/asserts"
 	"github.com/elastic/apm-server/functionaltests/internal/esclient"
 	"github.com/elastic/apm-server/functionaltests/internal/kbclient"
 )

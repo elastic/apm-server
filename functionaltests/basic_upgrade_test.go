@@ -20,9 +20,9 @@ package functionaltests
 import (
 	"testing"
 
-	"github.com/elastic/apm-server/functionaltests/internal/asserts"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 
+	"github.com/elastic/apm-server/functionaltests/internal/asserts"
 	"github.com/elastic/apm-server/functionaltests/internal/ecclient"
 )
 
