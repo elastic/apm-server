@@ -917,7 +917,10 @@ func TestDropLoop(t *testing.T) {
 
 				config.Elasticsearch = pubsubtest.Client(nil, nil) // disable pubsub
 
-				config.StorageLimit = 100 * 1024 // lower limit to trigger storage limit error
+				// lower limit to trigger storage limit error
+				// make it 5% higher than the existing size, and dropAndRecreate should kick in
+				// because there's a hardcoded 90% threshold for storage limit
+				config.StorageLimit = uint64(float64(lsm+vlog) * 1.05)
 				config.TTL = time.Second
 				processor, err := sampling.NewProcessor(config)
 				require.NoError(t, err)
