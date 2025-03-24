@@ -164,7 +164,9 @@ func (s *StorageManager) runDropLoop(stopping <-chan struct{}, ttl time.Duration
 	var firstExceeded time.Time
 	checkAndFix := func() error {
 		lsm, vlog := s.Size()
+		s.mu.RLock() // s.storage requires mutex RLock
 		pending := s.storage.pendingSize.Load()
+		s.mu.RUnlock()
 		total := lsm + vlog + pending
 		actualLimit := int64(float64(storageLimitInBytes) * storageLimitThreshold)
 		if total >= actualLimit {
