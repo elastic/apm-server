@@ -87,6 +87,8 @@ type PackagePolicy struct {
 	Name        string           `json:"name"`
 	Description string           `json:"description"`
 	Package     PackagePolicyPkg `json:"package"`
+	PolicyID    string           `json:"policy_id"`
+	PolicyIDs   []string         `json:"policy_ids"`
 }
 
 type PackagePolicyPkg struct {
