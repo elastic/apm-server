@@ -1,10 +1,32 @@
 [[apm-release-notes-8.17]]
 == APM version 8.17
 
+* <<apm-release-notes-8.17.4>>
 * <<apm-release-notes-8.17.3>>
 * <<apm-release-notes-8.17.2>>
 * <<apm-release-notes-8.17.1>>
 * <<apm-release-notes-8.17.0>>
+
+[float]
+[[apm-release-notes-8.17.4]]
+=== APM version 8.17.4
+
+https://github.com/elastic/apm-server/compare/v8.17.3\...v8.17.4[View commits]
+
+[float]
+==== Bug fixes
+
+[float]
+==== Breaking Changes
+
+[float]
+==== Deprecations
+
+[float]
+==== Intake API Changes
+
+[float]
+==== Added
 
 [float]
 [[apm-release-notes-8.17.3]]
