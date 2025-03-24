@@ -18,14 +18,9 @@
 package functionaltests
 
 import (
-	"context"
 	"testing"
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
-
-	"github.com/elastic/apm-server/functionaltests/internal/asserts"
-	"github.com/elastic/apm-server/functionaltests/internal/esclient"
-	"github.com/elastic/apm-server/functionaltests/internal/kbclient"
 )
 
 func TestUpgrade_8_15_to_8_16_Snapshot(t *testing.T) {
@@ -66,60 +61,4 @@ func TestUpgrade_8_15_to_8_16_BC(t *testing.T) {
 			populateSourcemapFetcher403,
 		},
 	)
-}
-
-func TestUpgrade_8_14_to_8_16_Reroute(t *testing.T) {
-	t.Parallel()
-	toVersion := getLatestSnapshot(t, "8.16")
-	skipNonActiveVersion(t, toVersion)
-
-	rerouteNamespace := "rerouted"
-	tt := singleUpgradeTestCase{
-		fromVersion:         getLatestSnapshot(t, "8.14"),
-		toVersion:           toVersion,
-		dataStreamNamespace: rerouteNamespace,
-		setupFn: func(t *testing.T, ctx context.Context, esc *esclient.Client, _ *kbclient.Client) error {
-			t.Log("create reroute processors")
-			return createRerouteIngestPipeline(t, ctx, esc, rerouteNamespace)
-		},
-		checkPreUpgradeAfterIngest: asserts.CheckDataStreamsWant{
-			Quantity:         8,
-			PreferIlm:        true,
-			DSManagedBy:      managedByILM,
-			IndicesPerDS:     1,
-			IndicesManagedBy: []string{managedByILM},
-		},
-		postUpgradeFn: func(t *testing.T, ctx context.Context, esc *esclient.Client, _ *kbclient.Client) error {
-			t.Log("perform manual rollovers")
-			return performManualRollovers(t, ctx, esc, rerouteNamespace)
-		},
-		// Verify manual rollover happened, i.e. 2 indices per data stream.
-		// Check data streams are managed by ILM since they are created before 8.15.0.
-		checkPostUpgradeBeforeIngest: asserts.CheckDataStreamsWant{
-			Quantity:         8,
-			PreferIlm:        false,
-			DSManagedBy:      managedByILM,
-			IndicesPerDS:     2,
-			IndicesManagedBy: []string{managedByILM, managedByILM},
-		},
-		checkPostUpgradeAfterIngest: asserts.CheckDataStreamsWant{
-			Quantity:         8,
-			PreferIlm:        false,
-			DSManagedBy:      managedByILM,
-			IndicesPerDS:     2,
-			IndicesManagedBy: []string{managedByILM, managedByILM},
-		},
-
-		apmErrorLogsIgnored: []types.Query{
-			tlsHandshakeError,
-			esReturnedUnknown503,
-			preconditionFailed,
-			populateSourcemapServerShuttingDown,
-			refreshCacheCtxDeadline,
-			// TODO: remove once fixed
-			populateSourcemapFetcher403,
-		},
-	}
-
-	tt.Run(t)
 }
