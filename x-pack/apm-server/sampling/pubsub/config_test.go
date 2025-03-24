@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/apm-server/x-pack/apm-server/sampling/pubsub"
-	"github.com/elastic/go-elasticsearch/v8"
+	"github.com/elastic/elastic-transport-go/v8/elastictransport"
 )
 
 func TestConfigInvalid(t *testing.T) {
@@ -26,12 +26,12 @@ func TestConfigInvalid(t *testing.T) {
 		err:    "Client unspecified",
 	}, {
 		config: pubsub.Config{
-			Client: &elasticsearch.Client{},
+			Client: &elastictransport.Client{},
 		},
 		err: "DataStream unspecified or invalid: Type unspecified",
 	}, {
 		config: pubsub.Config{
-			Client: &elasticsearch.Client{},
+			Client: &elastictransport.Client{},
 			DataStream: pubsub.DataStreamConfig{
 				Type: "type",
 			},
@@ -39,7 +39,7 @@ func TestConfigInvalid(t *testing.T) {
 		err: "DataStream unspecified or invalid: Dataset unspecified",
 	}, {
 		config: pubsub.Config{
-			Client: &elasticsearch.Client{},
+			Client: &elastictransport.Client{},
 			DataStream: pubsub.DataStreamConfig{
 				Type:    "type",
 				Dataset: "dataset",
@@ -48,7 +48,7 @@ func TestConfigInvalid(t *testing.T) {
 		err: "DataStream unspecified or invalid: Namespace unspecified",
 	}, {
 		config: pubsub.Config{
-			Client: &elasticsearch.Client{},
+			Client: &elastictransport.Client{},
 			DataStream: pubsub.DataStreamConfig{
 				Type:      "type",
 				Dataset:   "dataset",
@@ -58,7 +58,7 @@ func TestConfigInvalid(t *testing.T) {
 		err: "ServerID unspecified",
 	}, {
 		config: pubsub.Config{
-			Client: &elasticsearch.Client{},
+			Client: &elastictransport.Client{},
 			DataStream: pubsub.DataStreamConfig{
 				Type:      "type",
 				Dataset:   "dataset",
@@ -69,7 +69,7 @@ func TestConfigInvalid(t *testing.T) {
 		err: "SearchInterval unspecified or negative",
 	}, {
 		config: pubsub.Config{
-			Client: &elasticsearch.Client{},
+			Client: &elastictransport.Client{},
 			DataStream: pubsub.DataStreamConfig{
 				Type:      "type",
 				Dataset:   "dataset",

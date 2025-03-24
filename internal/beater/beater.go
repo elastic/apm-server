@@ -64,6 +64,7 @@ import (
 	javaattacher "github.com/elastic/apm-server/internal/beater/java_attacher"
 	"github.com/elastic/apm-server/internal/beater/ratelimit"
 	"github.com/elastic/apm-server/internal/elasticsearch"
+	"github.com/elastic/apm-server/internal/fips140"
 	"github.com/elastic/apm-server/internal/idxmgmt"
 	"github.com/elastic/apm-server/internal/kibana"
 	srvmodelprocessor "github.com/elastic/apm-server/internal/model/modelprocessor"
@@ -113,6 +114,8 @@ type RunnerParams struct {
 
 // NewRunner returns a new Runner that runs APM Server with the given parameters.
 func NewRunner(args RunnerParams) (*Runner, error) {
+	fips140.CheckFips()
+
 	var unpackedConfig struct {
 		APMServer  *agentconfig.C        `config:"apm-server"`
 		Output     agentconfig.Namespace `config:"output"`
@@ -754,15 +757,16 @@ func (s *Runner) newDocappenderConfig(tracer *apm.Tracer, mp metric.MeterProvide
 		scalingCfg.Disabled = !*enabled
 	}
 	cfg := docappenderConfig(docappender.Config{
-		CompressionLevel:  esConfig.CompressionLevel,
-		FlushBytes:        flushBytes,
-		FlushInterval:     esConfig.FlushInterval,
-		Tracer:            tracer,
-		MeterProvider:     mp,
-		MaxRequests:       esConfig.MaxRequests,
-		Scaling:           scalingCfg,
-		Logger:            zap.New(s.logger.Core(), zap.WithCaller(true)),
-		RequireDataStream: true,
+		CompressionLevel:     esConfig.CompressionLevel,
+		FlushBytes:           flushBytes,
+		FlushInterval:        esConfig.FlushInterval,
+		Tracer:               tracer,
+		MeterProvider:        mp,
+		MaxRequests:          esConfig.MaxRequests,
+		Scaling:              scalingCfg,
+		Logger:               zap.New(s.logger.Core(), zap.WithCaller(true)),
+		RequireDataStream:    true,
+		IncludeSourceOnError: docappender.False,
 		// Use the output's max_retries to configure the go-docappender's
 		// document level retries.
 		MaxDocumentRetries:    esConfig.MaxRetries,

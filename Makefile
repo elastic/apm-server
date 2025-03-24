@@ -53,12 +53,20 @@ LDFLAGS := \
 # the apm-server binaries.
 .PHONY: $(APM_SERVER_BINARIES)
 $(APM_SERVER_BINARIES):
-	env CGO_ENABLED=0 GOOS=$(GOOS) GOARCH=$(GOARCH) \
-	go build -o $@ -trimpath $(GOFLAGS) $(GOMODFLAG) -ldflags "$(LDFLAGS)" ./x-pack/apm-server
+	# call make instead of using a prerequisite to force it to run the task when
+	# multiple targets are specified
+	CGO_ENABLED=$(CGO_ENABLED) GOOS=$(GOOS) GOARCH=$(GOARCH) PKG=$(PKG) GOTAGS=$(GOTAGS) SUFFIX=$(SUFFIX) EXTENSION=$(EXTENSION) NOCP=1 \
+		    $(MAKE) apm-server
+
+.PHONY: apm-server-build
+apm-server-build:
+	env CGO_ENABLED=$(CGO_ENABLED) GOOS=$(GOOS) GOARCH=$(GOARCH) \
+	go build -o "build/apm-server-$(GOOS)-$(GOARCH)$(SUFFIX)$(EXTENSION)" -trimpath $(GOFLAGS) $(GOTAGS) $(GOMODFLAG) -ldflags "$(LDFLAGS)" $(PKG)
 
 build/apm-server-linux-%: GOOS=linux
 build/apm-server-darwin-%: GOOS=darwin
 build/apm-server-windows-%: GOOS=windows
+build/apm-server-windows-%: EXTENSION=.exe
 build/apm-server-%-amd64 build/apm-server-%-amd64.exe: GOARCH=amd64
 build/apm-server-%-arm64 build/apm-server-%-arm64.exe: GOARCH=arm64
 
@@ -70,15 +78,29 @@ GOVERSIONINFO_FLAGS := \
 build/apm-server-windows-amd64.exe: x-pack/apm-server/versioninfo_windows_amd64.syso
 x-pack/apm-server/versioninfo_windows_amd64.syso: GOVERSIONINFO_FLAGS+=-64
 x-pack/apm-server/versioninfo_%.syso: $(GITREFFILE) packaging/versioninfo.json
-	go run -modfile=tools/go.mod github.com/josephspurrier/goversioninfo/cmd/goversioninfo -o $@ $(GOVERSIONINFO_FLAGS) packaging/versioninfo.json
+	# this task is only used when building apm-server for windows (GOOS=windows)
+	# but it could be run from any OS so use the host os and arch.
+	GOOS=$(GOHOSTOS) GOARCH=$(GOHOSTARCH) go tool github.com/josephspurrier/goversioninfo/cmd/goversioninfo -o $@ $(GOVERSIONINFO_FLAGS) packaging/versioninfo.json
 
-.PHONY: apm-server
-apm-server: build/apm-server-$(shell go env GOOS)-$(shell go env GOARCH)
-	@cp $^ $@
+.PHONY: apm-server apm-server-oss apm-server-fips
 
-.PHONY: apm-server-oss
-apm-server-oss:
-	@go build $(GOMODFLAG) -o $@ ./cmd/apm-server
+apm-server-oss: PKG=./cmd/apm-server
+apm-server apm-server-fips: PKG=./x-pack/apm-server
+
+apm-server-fips: CGO_ENABLED=1
+apm-server apm-server-oss: CGO_ENABLED=0
+
+apm-server-fips: GOTAGS=-tags=requirefips
+
+apm-server-oss: SUFFIX=-oss
+apm-server-fips: SUFFIX=-fips
+
+apm-server apm-server-oss apm-server-fips:
+	# call make instead of using a prerequisite to force it to run the task when
+	# multiple targets are specified
+	CGO_ENABLED=$(CGO_ENABLED) GOOS=$(GOOS) GOARCH=$(GOARCH) PKG=$(PKG) GOTAGS=$(GOTAGS) SUFFIX=$(SUFFIX) EXTENSION=$(EXTENSION) \
+		    $(MAKE) apm-server-build
+	@[ "${NOCP}" ] || cp "build/apm-server-$(GOOS)-$(GOARCH)$(SUFFIX)$(EXTENSION)" "apm-server$(SUFFIX)"
 
 .PHONY: test
 test:
@@ -90,7 +112,7 @@ system-test:
 
 .PHONY:
 clean:
-	@rm -rf build apm-server apm-server.exe
+	@rm -rf build apm-server apm-server.exe apm-server-oss apm-server-fips
 
 ##############################################################################
 # Checks/tests.
@@ -101,7 +123,7 @@ check-full: update check staticcheck
 
 .PHONY: check-approvals
 check-approvals:
-	@go run -modfile=tools/go.mod github.com/elastic/apm-tools/cmd/check-approvals
+	@go tool github.com/elastic/apm-tools/cmd/check-approvals
 
 check: check-fmt check-headers check-git-diff
 
@@ -134,8 +156,8 @@ go-generate:
 .PHONY: add-headers
 add-headers:
 ifndef CHECK_HEADERS_DISABLED
-	@go run -modfile=tools/go.mod github.com/elastic/go-licenser -exclude x-pack
-	@go run -modfile=tools/go.mod github.com/elastic/go-licenser -license Elasticv2 x-pack
+	@go tool github.com/elastic/go-licenser -exclude x-pack
+	@go tool github.com/elastic/go-licenser -license Elasticv2 x-pack
 endif
 
 ## get-version : Get the apm server version
@@ -168,7 +190,7 @@ docs: tf-docs
 tf-docs: $(addsuffix /README.md,$(wildcard testing/infra/terraform/modules/*))
 
 testing/infra/terraform/modules/%/README.md: .FORCE
-	go run -modfile=tools/go.mod github.com/terraform-docs/terraform-docs markdown --hide-empty --header-from header.md --output-file=README.md --output-mode replace $(subst README.md,,$@)
+	go tool github.com/terraform-docs/terraform-docs markdown --hide-empty --header-from header.md --output-file=README.md --output-mode replace $(subst README.md,,$@)
 
 .PHONY: .FORCE
 .FORCE:
@@ -208,13 +230,13 @@ STATICCHECK_CHECKS?=all,-ST1000
 
 .PHONY: staticcheck
 staticcheck:
-	go run -modfile=tools/go.mod honnef.co/go/tools/cmd/staticcheck -checks=$(STATICCHECK_CHECKS) ./...
+	go tool honnef.co/go/tools/cmd/staticcheck -checks=$(STATICCHECK_CHECKS) ./...
 
 .PHONY: check-headers
 check-headers:
 ifndef CHECK_HEADERS_DISABLED
-	@go run -modfile=tools/go.mod github.com/elastic/go-licenser -d -exclude build -exclude x-pack
-	@go run -modfile=tools/go.mod github.com/elastic/go-licenser -d -exclude build -license Elasticv2 x-pack
+	@go tool github.com/elastic/go-licenser -d -exclude build -exclude x-pack
+	@go tool github.com/elastic/go-licenser -d -exclude build -license Elasticv2 x-pack
 endif
 
 .PHONY: check-docker-compose
@@ -237,10 +259,13 @@ gofmt: add-headers
 MODULE_DEPS=$(sort $(shell \
   go list -deps -tags=darwin,linux,windows -f "{{with .Module}}{{if not .Main}}{{.Path}}{{end}}{{end}}" ./x-pack/apm-server))
 
-notice: NOTICE.txt
-NOTICE.txt build/dependencies-$(APM_SERVER_VERSION).csv: go.mod tools/go.mod
+MODULE_DEPS_FIPS=$(sort $(shell \
+  go list -deps -tags=darwin,linux,windows,requirefips -f "{{with .Module}}{{if not .Main}}{{.Path}}{{end}}{{end}}" ./x-pack/apm-server))
+
+notice: NOTICE.txt NOTICE-fips.txt
+NOTICE.txt build/dependencies-$(APM_SERVER_VERSION).csv: go.mod
 	mkdir -p build/
-	go list -m -json $(MODULE_DEPS) | go run -modfile=tools/go.mod go.elastic.co/go-licence-detector \
+	go list -m -json $(MODULE_DEPS) | go tool go.elastic.co/go-licence-detector \
 		-includeIndirect \
 		-overrides tools/notice/overrides.json \
 		-rules tools/notice/rules.json \
@@ -248,6 +273,17 @@ NOTICE.txt build/dependencies-$(APM_SERVER_VERSION).csv: go.mod tools/go.mod
 		-noticeOut NOTICE.txt \
 		-depsTemplate tools/notice/dependencies.csv.tmpl \
 		-depsOut build/dependencies-$(APM_SERVER_VERSION).csv
+
+NOTICE-fips.txt build/dependencies-$(APM_SERVER_VERSION)-fips.csv: go.mod
+	mkdir -p build/
+	go list -tags=requirefips -m -json $(MODULE_DEPS_FIPS) | go tool go.elastic.co/go-licence-detector \
+		-includeIndirect \
+		-overrides tools/notice/overrides.json \
+		-rules tools/notice/rules.json \
+		-noticeTemplate tools/notice/NOTICE.txt.tmpl \
+		-noticeOut NOTICE-fips.txt \
+		-depsTemplate tools/notice/dependencies.csv.tmpl \
+		-depsOut build/dependencies-$(APM_SERVER_VERSION)-fips.csv
 
 ##############################################################################
 # Rules for creating and installing build tools.

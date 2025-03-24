@@ -50,7 +50,6 @@ import (
 	"github.com/elastic/elastic-agent-libs/paths"
 	"github.com/elastic/go-docappender/v2"
 	"github.com/elastic/go-docappender/v2/docappendertest"
-	"github.com/elastic/go-elasticsearch/v8/esutil"
 )
 
 // TestRunMaxProcs ensures Beat.Run calls the GOMAXPROCS adjustment code by looking for log messages.
@@ -164,10 +163,10 @@ func TestLibbeatMetrics(t *testing.T) {
 		switch requestIndex.Add(1) {
 		case 2:
 			result.HasErrors = true
-			result.Items[0]["create"] = esutil.BulkIndexerResponseItem{Status: 400}
+			result.Items[0]["create"] = docappendertest.BulkIndexerResponseItem{Status: 400}
 		case 4:
 			result.HasErrors = true
-			result.Items[0]["create"] = esutil.BulkIndexerResponseItem{Status: 429}
+			result.Items[0]["create"] = docappendertest.BulkIndexerResponseItem{Status: 429}
 		default:
 			// success
 		}

@@ -19,6 +19,7 @@ package interceptors
 
 import (
 	"context"
+	"sync"
 	"time"
 
 	"go.opentelemetry.io/otel/metric"
@@ -38,8 +39,8 @@ type metricsInterceptor struct {
 	logger *logp.Logger
 	meter  metric.Meter
 
-	counters   map[string]metric.Int64Counter
-	histograms map[string]metric.Int64Histogram
+	counters   sync.Map
+	histograms sync.Map
 }
 
 func (m *metricsInterceptor) Interceptor() grpc.UnaryServerInterceptor {
@@ -103,23 +104,23 @@ func (m *metricsInterceptor) inc(legacyMetricsPrefix string, id request.ResultID
 
 func (m *metricsInterceptor) getCounter(prefix, n string) metric.Int64Counter {
 	name := prefix + n
-	if met, ok := m.counters[name]; ok {
-		return met
+	if met, ok := m.counters.Load(name); ok {
+		return met.(metric.Int64Counter)
 	}
+
 	nm, _ := m.meter.Int64Counter(name)
-	m.counters[name] = nm
-	return nm
+	met, _ := m.counters.LoadOrStore(name, nm)
+	return met.(metric.Int64Counter)
 }
 
 func (m *metricsInterceptor) getHistogram(n string, opts ...metric.Int64HistogramOption) metric.Int64Histogram {
 	name := "grpc.server." + n
-	if met, ok := m.histograms[name]; ok {
-		return met
+	if met, ok := m.histograms.Load(name); ok {
+		return met.(metric.Int64Histogram)
 	}
-
 	nm, _ := m.meter.Int64Histogram(name, opts...)
-	m.histograms[name] = nm
-	return nm
+	met, _ := m.histograms.LoadOrStore(name, nm)
+	return met.(metric.Int64Histogram)
 }
 
 // Metrics returns a grpc.UnaryServerInterceptor that increments metrics
@@ -137,8 +138,8 @@ func Metrics(logger *logp.Logger, mp metric.MeterProvider) grpc.UnaryServerInter
 		logger: logger,
 		meter:  mp.Meter("github.com/elastic/apm-server/internal/beater/interceptors"),
 
-		counters:   map[string]metric.Int64Counter{},
-		histograms: map[string]metric.Int64Histogram{},
+		counters:   sync.Map{},
+		histograms: sync.Map{},
 	}
 
 	return i.Interceptor()

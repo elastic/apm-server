@@ -28,14 +28,13 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5
         with:
           go-version-file: go.mod
           cache: true
           cache-dependency-path: |
             go.sum
-            tools/go.sum
       - run: make check-full
 
   test:
@@ -44,13 +43,13 @@ jobs:
         os: ['macos-latest', 'ubuntu-latest', 'windows-latest']
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: antontroshin/setup-go@bda02de8887c9946189f81e7e59512914aeb9ea4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: antontroshin/setup-go@bda02de8887c9946189f81e7e59512914aeb9ea4 # bda02de8887c9946189f81e7e59512914aeb9ea4
         if: runner.os == 'Windows'
         with:
           go-version-file: go.mod
           cache: true
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5
         if: runner.os != 'Windows'
         with:
           go-version-file: go.mod
@@ -62,24 +61,22 @@ jobs:
   test-fips:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5
         with:
-          # TODO switch to go.mod once we update to 1.24+
-          go-version: 1.24
+          go-version-file: go.mod
           cache: true
       - env:
           CGO_ENABLED: "0"
           GOFIPS140: "latest"
           GODEBUG: "fips140=only"
-        # TODO remove tags once cockroachdb/swiss works on 1.24+
-        run: go test -v -tags=untested_go_version,requirefips ./...
+        run: go test -v -tags=requirefips ./...
 
   system-test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5
         with:
           go-version-file: systemtest/go.mod
           cache: true
@@ -88,21 +85,20 @@ jobs:
             systemtest/go.sum
       - run: docker compose up -d
       - env:
-          GOTESTFLAGS: "-v -json"
+          GOTESTFLAGS: "-v"
           GH_TOKEN: ${{ github.token }}
         run: make system-test
 
   test-package:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5
         with:
           go-version-file: go.mod
           cache: false
           cache-dependency-path: |
             go.sum
-            tools/go.sum
       - run: make package-snapshot
         env:
           GH_TOKEN: ${{ github.token }}
@@ -114,14 +110,13 @@ jobs:
     env:
       GENERATE_WOLFI_IMAGES: true
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5
         with:
           go-version-file: go.mod
           cache: false
           cache-dependency-path: |
             go.sum
-            tools/go.sum
       - name: Log in to the Elastic Container registry
         uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
         with:
@@ -142,7 +137,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Get changed files
         id: changed-files
-        uses: tj-actions/changed-files@d6e91a2266cdb9d62096cebf1e8546899c6aa18f # v45.0.6
+        uses: tj-actions/changed-files@dcc7a0cba800f454d79fff4b993e8c3555bcc0a8 # v45.0.7
         with:
           files: .go-version
 

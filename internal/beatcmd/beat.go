@@ -169,7 +169,7 @@ func (b *Beat) init() error {
 	}
 
 	// log paths values to help with troubleshooting
-	logp.Info(paths.Paths.String())
+	logp.Info("%s", paths.Paths.String())
 
 	// Load the unique ID and "first start" info from meta.json.
 	metaPath := paths.Resolve(paths.Data, "meta.json")
@@ -325,7 +325,7 @@ func (b *Beat) Run(ctx context.Context) error {
 	var apiServer *api.Server
 	if b.Config.HTTP.Enabled() {
 		var err error
-		apiServer, err = api.NewWithDefaultRoutes(logp.NewLogger(""), b.Config.HTTP, monitoring.GetNamespace)
+		apiServer, err = api.NewWithDefaultRoutes(logp.NewLogger(""), b.Config.HTTP, api.NamespaceLookupFunc())
 		if err != nil {
 			return fmt.Errorf("could not start the HTTP server for the API: %w", err)
 		}
