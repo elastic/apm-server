@@ -12,7 +12,7 @@ require (
 	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20250321135610-76a342c9a3c5
 	github.com/elastic/elastic-agent-client/v7 v7.17.1
 	github.com/elastic/elastic-agent-libs v0.18.11
-	github.com/elastic/elastic-agent-system-metrics v0.11.9
+	github.com/elastic/elastic-agent-system-metrics v0.11.10
 	github.com/elastic/elastic-transport-go/v8 v8.6.1
 	github.com/elastic/gmux v0.3.2
 	github.com/elastic/go-docappender/v2 v2.7.0
