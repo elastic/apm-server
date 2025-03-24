@@ -57,7 +57,10 @@ func (g *Generator) RunBlocking(ctx context.Context) error {
 	}
 	cfg.ServerURL = u
 
-	cfg.EventRate.Set(g.EventRate)
+	if err = cfg.EventRate.Set(g.EventRate); err != nil {
+		return fmt.Errorf("cannot set event rate: %w", err)
+	}
+
 	gen, err := telemetrygen.New(cfg)
 	if err != nil {
 		return fmt.Errorf("cannot create telemetrygen generator: %w", err)
