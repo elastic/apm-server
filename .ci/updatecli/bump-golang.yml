@@ -91,7 +91,8 @@ targets:
     sourceid: latestGoVersion
     kind: shell
     spec:
-      command: make update-go-version
+      # NOTE: # avoid passing the sourceid to the command
+      command: 'make update-go-version #'
       environments:
         - name: PATH
         - name: HOME
