@@ -54,12 +54,12 @@ func TestUpgrade_8_18_to_9_0_BC(t *testing.T) {
 	runBasicUpgradeTest(
 		t,
 		basicUpgradeVersionConfig{
-			version:         getLatestVersion(t, "8.18"),
+			version:         getLatestVersionOrSkip(t, "8.18"),
 			preferILM:       true,
 			indexManagement: managedByILM,
 		},
 		basicUpgradeVersionConfig{
-			version:         getBCVersionOrSkip(t, "9.0"),
+			version:         getLatestBCOrSkip(t, "9.0"),
 			preferILM:       true,
 			indexManagement: managedByILM,
 		},

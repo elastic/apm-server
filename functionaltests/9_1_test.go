@@ -9,7 +9,7 @@ import (
 func TestUpgrade_9_0_to_9_1_Snapshot(t *testing.T) {
 	t.Parallel()
 
-	runBasicUpgradeTest(
+	runBasicUpgradeLazyRolloverTest(
 		t,
 		basicUpgradeVersionConfig{
 			version:         getLatestSnapshot(t, "9.0"),
@@ -33,15 +33,15 @@ func TestUpgrade_9_0_to_9_1_Snapshot(t *testing.T) {
 func TestUpgrade_9_0_to_9_1_BC(t *testing.T) {
 	t.Parallel()
 
-	runBasicUpgradeTest(
+	runBasicUpgradeLazyRolloverTest(
 		t,
 		basicUpgradeVersionConfig{
-			version:         getLatestVersion(t, "9.0"),
+			version:         getLatestVersionOrSkip(t, "9.0"),
 			preferILM:       true,
 			indexManagement: managedByILM,
 		},
 		basicUpgradeVersionConfig{
-			version:         getBCVersionOrSkip(t, "9.1"),
+			version:         getLatestBCOrSkip(t, "9.1"),
 			preferILM:       true,
 			indexManagement: managedByILM,
 		},
@@ -84,12 +84,12 @@ func TestUpgrade_8_19_to_9_1_BC(t *testing.T) {
 	runBasicUpgradeTest(
 		t,
 		basicUpgradeVersionConfig{
-			version:         getLatestVersion(t, "8.19"),
+			version:         getLatestVersionOrSkip(t, "8.19"),
 			preferILM:       true,
 			indexManagement: managedByILM,
 		},
 		basicUpgradeVersionConfig{
-			version:         getBCVersionOrSkip(t, "9.1"),
+			version:         getLatestBCOrSkip(t, "9.1"),
 			preferILM:       true,
 			indexManagement: managedByILM,
 		},

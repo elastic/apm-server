@@ -53,12 +53,12 @@ func TestUpgrade_8_16_to_8_17_BC(t *testing.T) {
 	runBasicUpgradeLazyRolloverTest(
 		t,
 		basicUpgradeVersionConfig{
-			version:         getLatestVersion(t, "8.16"),
+			version:         getLatestVersionOrSkip(t, "8.16"),
 			preferILM:       false,
 			indexManagement: managedByDSL,
 		},
 		basicUpgradeVersionConfig{
-			version:         getBCVersionOrSkip(t, "8.17"),
+			version:         getLatestBCOrSkip(t, "8.17"),
 			preferILM:       true,
 			indexManagement: managedByILM,
 		},
