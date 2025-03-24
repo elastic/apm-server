@@ -73,18 +73,18 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Log("------ cluster setup ------")
-	deploymentID, escfg := createCluster(t, ctx, tf, *target, tt.fromVersion.String())
+	_, esCfg := createCluster(t, ctx, tf, *target, tt.fromVersion.String())
 	t.Logf("time elapsed: %s", time.Since(start))
 
-	esc, err := esclient.New(escfg)
+	esc, err := esclient.New(esCfg)
 	require.NoError(t, err)
 
-	kbc := createKibanaClient(t, ctx, esc, escfg)
+	kbc := createKibanaClient(t, ctx, esc, esCfg)
 
 	t.Log("create APM API key")
 	apiKey := createAPMAPIKey(t, ctx, esc)
 
-	g := gen.New(escfg.APMServerURL, apiKey)
+	g := gen.New(esCfg.APMServerURL, apiKey)
 	g.Logger = zaptest.NewLogger(t, zaptest.Level(zap.InfoLevel))
 
 	previous, err := getDocsCountPerDS(t, ctx, esc)
@@ -97,7 +97,7 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	}
 
 	t.Log("------ pre-upgrade ingestion ------")
-	require.NoError(t, g.RunBlockingWait(ctx, kbc, deploymentID))
+	require.NoError(t, g.RunBlockingWait(ctx, kbc, tt.fromVersion.String()))
 	t.Logf("time elapsed: %s", time.Since(start))
 
 	t.Log("------ pre-upgrade ingestion assertions ------")
@@ -142,7 +142,7 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	assertDatastreams(t, tt.checkPostUpgradeBeforeIngest, dss)
 
 	t.Log("------ post-upgrade ingestion ------")
-	require.NoError(t, g.RunBlockingWait(ctx, kbc, deploymentID))
+	require.NoError(t, g.RunBlockingWait(ctx, kbc, tt.toVersion.String()))
 	t.Logf("time elapsed: %s", time.Since(start))
 
 	t.Log("------ post-upgrade ingestion assertions ------")

@@ -21,6 +21,7 @@ import (
 	"context"
 	"fmt"
 	"net/url"
+	"strings"
 	"time"
 
 	"go.uber.org/zap"
@@ -52,14 +53,17 @@ func (g *Generator) RunBlocking(ctx context.Context) error {
 
 	u, err := url.Parse(g.APMServerURL)
 	if err != nil {
-		return fmt.Errorf("cannot parse APM server URL: %w", err)
+		return fmt.Errorf("cannot parse apm server url: %w", err)
 	}
 	cfg.ServerURL = u
 
-	cfg.EventRate.Set(g.EventRate)
+	if err = cfg.EventRate.Set(g.EventRate); err != nil {
+		return fmt.Errorf("cannot set event rate: %w", err)
+	}
+
 	gen, err := telemetrygen.New(cfg)
 	if err != nil {
-		return fmt.Errorf("cannot create telemetrygen Generator: %w", err)
+		return fmt.Errorf("cannot create telemetrygen generator: %w", err)
 	}
 
 	g.Logger.Info("ingest data")
@@ -68,24 +72,52 @@ func (g *Generator) RunBlocking(ctx context.Context) error {
 }
 
 // RunBlockingWait runs the underlying generator in blocking mode and waits for all in-flight
-// data to be flushed before proceeding. This allow the caller to ensure than 1m aggregation
+// data to be flushed before proceeding. This allows the caller to ensure than 1m aggregation
 // metrics are ingested immediately after raw data ingestion, without variable delays.
 // This may lead to data loss if the final flush takes more than 30s, which may happen if the
 // quantity of data ingested with RunBlocking gets too big. The current quantity does not
 // trigger this behavior.
-func (g *Generator) RunBlockingWait(ctx context.Context, c *kbclient.Client, deploymentID string) error {
+func (g *Generator) RunBlockingWait(ctx context.Context, kbc *kbclient.Client, version string) error {
 	if err := g.RunBlocking(ctx); err != nil {
 		return fmt.Errorf("cannot run generator: %w", err)
 	}
-	// Sending an update with no modification to this policy is enough to trigger
+
+	if err := flushAPMMetrics(kbc, version); err != nil {
+		return fmt.Errorf("cannot flush apm metrics: %w", err)
+	}
+
+	return nil
+}
+
+// flushAPMMetrics sends an update to the Fleet APM package policy in order
+// to trigger the flushing of in-flight APM metrics.
+func flushAPMMetrics(kbc *kbclient.Client, version string) error {
+	policyID := "elastic-cloud-apm"
+	policy, err := kbc.GetPackagePolicyByID(policyID)
+	if err != nil {
+		return fmt.Errorf("cannot get elastic-cloud-apm package policy: %w", err)
+	}
+
+	// If the package policy version returned from API does not match with
+	// expected version, set it ourselves to hopefully circumvent it.
+	// Relevant issue: https://github.com/elastic/kibana/issues/215437.
+	if !strings.HasPrefix(policy.Package.Version, version) {
+		// Set the expected version for this ingestion.
+		policy.Package.Version = version
+	}
+	// Sending an update with modifying the description is enough to trigger
 	// final aggregations in APM Server and flush of in-flight metrics.
-	if err := c.TouchPackagePolicyByID("elastic-cloud-apm"); err != nil {
+	policy.Description = fmt.Sprintf("Functional tests %s", version)
+	if err = kbc.UpdatePackagePolicyByID(policyID, kbclient.UpdatePackagePolicyRequest{
+		PackagePolicy: policy,
+		Force:         false,
+	}); err != nil {
 		return fmt.Errorf("cannot update elastic-cloud-apm package policy: %w", err)
 	}
 
 	// APM Server needs some time to flush all metrics, and we don't have any
 	// visibility on when this completes.
-	// NOTE: This value comes from emphirical observations.
+	// NOTE: This value comes from empirical observations.
 	time.Sleep(10 * time.Second)
 	return nil
 }
