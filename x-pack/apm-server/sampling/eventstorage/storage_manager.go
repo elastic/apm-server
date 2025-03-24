@@ -164,16 +164,16 @@ func (s *StorageManager) runDropLoop(stopping <-chan struct{}, ttl time.Duration
 	var firstExceeded time.Time
 	checkAndFix := func() error {
 		lsm, vlog := s.Size()
-		// add buffer to avoid edge case storageLimitInBytes-lsm-vlog < buffer, when writes are still always rejected
-		buffer := int64(baseTransactionSize * len(s.rw.readWriters))
+		pending := s.storage.pendingSize.Load()
+		total := lsm + vlog + pending
 		actualLimit := int64(float64(storageLimitInBytes) * storageLimitThreshold)
-		if lsm+vlog+buffer >= actualLimit {
+		if total >= actualLimit {
 			now := time.Now()
 			if firstExceeded.IsZero() {
 				firstExceeded = now
 				s.logger.Warnf(
-					"badger db size (%d+%d=%d) has exceeded storage limit (%d*%.1f=%d); db will be dropped and recreated if problem persists for `sampling.tail.ttl` (%s)",
-					lsm, vlog, lsm+vlog, storageLimitInBytes, storageLimitThreshold, actualLimit, ttl.String())
+					"badger db size (%d+%d+%d=%d) has exceeded storage limit (%d*%.1f=%d); db will be dropped and recreated if problem persists for `sampling.tail.ttl` (%s)",
+					lsm, vlog, pending, total, storageLimitInBytes, storageLimitThreshold, actualLimit, ttl.String())
 			}
 			if now.Sub(firstExceeded) >= ttl {
 				s.logger.Warnf("badger db size has exceeded storage limit for over `sampling.tail.ttl` (%s), please consider increasing `sampling.tail.storage_limit`; dropping and recreating badger db to recover", ttl.String())
