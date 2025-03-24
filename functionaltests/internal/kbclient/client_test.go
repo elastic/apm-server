@@ -117,7 +117,7 @@ func TestClient_GetPackagePolicyByID(t *testing.T) {
 
 	policy, err := kbc.GetPackagePolicyByID("elastic-cloud-apm")
 	require.NoError(t, err)
-	assert.Equal(t, "elastic-cloud-apm", policy.ID)
+	assert.Equal(t, "Elastic APM", policy.Name)
 }
 
 func TestClient_UpdatePackagePolicyByID(t *testing.T) {
