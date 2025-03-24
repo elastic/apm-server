@@ -21,6 +21,7 @@ import (
 	"context"
 	"fmt"
 	"net/url"
+	"strings"
 	"time"
 
 	"go.uber.org/zap"
@@ -78,29 +79,32 @@ func (g *Generator) RunBlockingWait(ctx context.Context, kbc *kbclient.Client, v
 		return fmt.Errorf("cannot run generator: %w", err)
 	}
 
-	if err := triggerAPMMetricsFlush(kbc, version); err != nil {
-		return fmt.Errorf("cannot trigger apm metrics flush: %w", err)
+	if err := flushAPMMetrics(kbc, version); err != nil {
+		return fmt.Errorf("cannot flush apm metrics: %w", err)
 	}
 
 	return nil
 }
 
-// triggerAPMMetricsFlush sends an update to the Fleet APM package policy in order
-// to trigger the flushing of in-flight metrics.
-func triggerAPMMetricsFlush(kbc *kbclient.Client, version string) error {
+// flushAPMMetrics sends an update to the Fleet APM package policy in order
+// to trigger the flushing of in-flight APM metrics.
+func flushAPMMetrics(kbc *kbclient.Client, version string) error {
 	policyID := "elastic-cloud-apm"
 	policy, err := kbc.GetPackagePolicyByID(policyID)
 	if err != nil {
 		return fmt.Errorf("cannot get elastic-cloud-apm package policy: %w", err)
 	}
 
-	// Set the expected version for this ingestion.
-	// If the package policy version on Fleet does not match with this version,
-	// something is wrong and it will error.
-	policy.Package.Version = version
-	policy.Description = fmt.Sprintf("Functional tests %s", version)
+	// If the package policy version returned from API does not match with
+	// expected version, set it ourselves to hopefully circumvent it.
+	// Relevant issue: https://github.com/elastic/kibana/issues/215437.
+	if !strings.HasPrefix(policy.Package.Version, version) {
+		// Set the expected version for this ingestion.
+		policy.Package.Version = version
+	}
 	// Sending an update with modifying the description is enough to trigger
 	// final aggregations in APM Server and flush of in-flight metrics.
+	policy.Description = fmt.Sprintf("Functional tests %s", version)
 	if err = kbc.UpdatePackagePolicyByID(policyID, kbclient.UpdatePackagePolicyRequest{
 		PackagePolicy: policy,
 		Force:         false,
