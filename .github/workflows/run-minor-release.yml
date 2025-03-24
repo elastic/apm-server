@@ -48,7 +48,7 @@ jobs:
       contents: write
     steps:
 
-      - uses: elastic/oblt-actions/slack/send@9a8ac45080b2f079246e2a0c665b551c6986b6c3 # v1.9.1
+      - uses: elastic/oblt-actions/slack/send@31e93d1dfb82adc106fc7820f505db1afefe43b1 # v1.25.0
         with:
           bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
           channel-id: ${{ env.SLACK_CHANNEL }}
@@ -95,7 +95,7 @@ jobs:
           GH_TOKEN: ${{ steps.get_token.outputs.token }}
 
       - if: success()
-        uses: elastic/oblt-actions/slack/send@9a8ac45080b2f079246e2a0c665b551c6986b6c3 # v1.9.1
+        uses: elastic/oblt-actions/slack/send@31e93d1dfb82adc106fc7820f505db1afefe43b1 # v1.25.0
         with:
           bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
           channel-id: ${{ env.SLACK_CHANNEL }}
@@ -105,7 +105,7 @@ jobs:
           thread-timestamp: ${{ needs.prepare.outputs.slack-thread || '' }}
 
       - if: failure()
-        uses: elastic/oblt-actions/slack/send@9a8ac45080b2f079246e2a0c665b551c6986b6c3 # v1.9.1
+        uses: elastic/oblt-actions/slack/send@31e93d1dfb82adc106fc7820f505db1afefe43b1 # v1.25.0
         with:
           bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
           channel-id: ${{ env.SLACK_CHANNEL }}
