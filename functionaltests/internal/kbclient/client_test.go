@@ -18,8 +18,6 @@
 package kbclient_test
 
 import (
-	"encoding/json"
-	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -30,7 +28,7 @@ import (
 
 	"github.com/dnaeon/go-vcr/cassette"
 	"github.com/dnaeon/go-vcr/recorder"
-	"github.com/itchyny/gojq"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/elastic/apm-server/functionaltests/internal/kbclient"
@@ -109,57 +107,42 @@ func getHttpClient(t *testing.T) (*recorder.Recorder, *http.Client) {
 	return rec, hc
 }
 
-func TestGetPackagePolicy(t *testing.T) {
+func TestClient_GetPackagePolicyByID(t *testing.T) {
 	kibanaURL := os.Getenv("KIBANA_URL")
-	apikey := os.Getenv("KIBANA_APIKEY")
-	c, err := kbclient.New(kibanaURL, apikey)
+	apikey := os.Getenv("KIBANA_API_KEY")
+	kbc, err := kbclient.New(kibanaURL, apikey)
 	require.NoError(t, err)
 	_, httpc := getHttpClient(t)
-	c.Client = *httpc
+	kbc.Client = *httpc
 
-	p := "elastic-cloud-apm"
-	_, err = c.GetPackagePolicyByID(p)
+	policy, err := kbc.GetPackagePolicyByID("elastic-cloud-apm")
 	require.NoError(t, err)
+	assert.Equal(t, "Elastic APM", policy.Name)
 }
 
-func TestUpdatePackagePolicy(t *testing.T) {
+func TestClient_UpdatePackagePolicyByID(t *testing.T) {
 	kibanaURL := os.Getenv("KIBANA_URL")
-	apikey := os.Getenv("KIBANA_APIKEY")
-	c, err := kbclient.New(kibanaURL, apikey)
+	apiKey := os.Getenv("KIBANA_API_KEY")
+	kbc, err := kbclient.New(kibanaURL, apiKey)
 	require.NoError(t, err)
 	_, httpc := getHttpClient(t)
-	c.Client = *httpc
+	kbc.Client = *httpc
 
-	p := "elastic-cloud-apm"
-
-	eca, err := c.GetPackagePolicyByID(p)
+	policyID := "elastic-cloud-apm"
+	err = kbc.UpdatePackagePolicyByID(policyID, kbclient.UpdatePackagePolicyRequest{
+		PackagePolicy: kbclient.PackagePolicy{
+			Name:        "Elastic APM",
+			Description: "Hello World",
+			Package: kbclient.PackagePolicyPkg{
+				Name:    "apm",
+				Version: "9.1.0-SNAPSHOT",
+			},
+		},
+		Force: false,
+	})
 	require.NoError(t, err)
 
-	var f interface{}
-	require.NoError(t, json.Unmarshal(eca, &f))
-
-	// these are the minimum modifications required for sending the
-	// policy back to Fleet. Any less and you'll get a validation error.
-	v := jq(t, ".item", f)
-	v = jq(t, "del(.id) | del(.elasticsearch) | del(.inputs[].compiled_input) | del(.revision) | del(.created_at) | del(.created_by) | del(.updated_at) | del(.updated_by)", v)
-
-	require.NoError(t, c.UpdatePackagePolicyByID("elastic-cloud-apm", v))
-
-}
-
-// jq runs a jq instruction on data. It expects a single object to be
-// returned from the expression, as it does not iterate on the result
-// set.
-func jq(t *testing.T, q string, data any) any {
-	query, err := gojq.Parse(q)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	iter := query.Run(data)
-	v, ok := iter.Next()
-	require.True(t, ok)
-	if err, ok := v.(error); ok {
-		log.Fatalln(err)
-	}
-	return v
+	policy, err := kbc.GetPackagePolicyByID(policyID)
+	require.NoError(t, err)
+	assert.Equal(t, "Hello World", policy.Description)
 }

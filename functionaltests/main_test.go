@@ -21,20 +21,34 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"log"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/elastic/apm-server/functionaltests/internal/ecclient"
 	"github.com/elastic/apm-server/functionaltests/internal/esclient"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 )
 
-var cleanupOnFailure *bool = flag.Bool("cleanup-on-failure", true, "Whether to run cleanup even if the test failed.")
+var (
+	// cleanupOnFailure determines whether the created resources should be cleaned up on test failure.
+	cleanupOnFailure = flag.Bool(
+		"cleanup-on-failure",
+		true,
+		"Whether to run cleanup even if the test failed.",
+	)
 
-// target is the Elastic Cloud environment to target with these test.
-// We use 'pro' for production as that is the key used to retrieve EC_API_KEY from secret storage.
-var target *string = flag.String("target", "pro", "The target environment where to run tests againts. Valid values are: qa, pro")
+	// target is the Elastic Cloud environment to target with these test.
+	// We use 'pro' for production as that is the key used to retrieve EC_API_KEY from secret storage.
+	target = flag.String(
+		"target",
+		"pro",
+		"The target environment where to run tests againts. Valid values are: qa, pro.",
+	)
+)
 
 const (
 	// managedByDSL is the constant string used by Elasticsearch to specify that an Index is managed by Data Stream Lifecycle management.
@@ -43,9 +57,90 @@ const (
 	managedByILM = "Index Lifecycle Management"
 )
 
-const (
-	defaultNamespace = "default"
+var (
+	// fetchedCandidates are the build-candidate stack versions prefetched from Elastic Cloud API.
+	fetchedCandidates ecclient.StackVersions
+	// fetchedSnapshots are the snapshot stack versions prefetched from Elastic Cloud API.
+	fetchedSnapshots ecclient.StackVersions
+	// fetchedVersions are the non-snapshot stack versions prefetched from Elastic Cloud API.
+	fetchedVersions ecclient.StackVersions
 )
+
+func TestMain(m *testing.M) {
+	flag.Parse()
+
+	// This is a simple check to alert users if this necessary env var
+	// is not available.
+	//
+	// Functional tests are expected to run Terraform code to operate
+	// on infrastructure required for each test and to query Elastic
+	// Cloud APIs. In both cases a valid API key is required.
+	ecAPIKey := os.Getenv("EC_API_KEY")
+	if ecAPIKey == "" {
+		log.Fatal("EC_API_KEY env var not set")
+		return
+	}
+
+	ctx := context.Background()
+	ecRegion := regionFrom(*target)
+	ecc, err := ecclient.New(endpointFrom(*target), ecAPIKey)
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+
+	candidates, err := ecc.GetCandidateVersions(ctx, ecRegion)
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+	fetchedCandidates = candidates
+
+	snapshots, err := ecc.GetSnapshotVersions(ctx, ecRegion)
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+	fetchedSnapshots = snapshots
+
+	versions, err := ecc.GetVersions(ctx, ecRegion)
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+	fetchedVersions = versions
+
+	code := m.Run()
+	os.Exit(code)
+}
+
+// getBCVersionOrSkip retrieves the latest build-candidate version for the version prefix.
+// If the version is not found, the test is skipped via t.Skip.
+func getBCVersionOrSkip(t *testing.T, prefix string) ecclient.StackVersion {
+	t.Helper()
+	candidate, ok := fetchedCandidates.LatestFor(prefix)
+	if !ok {
+		t.Skip("skipping non-BC versions")
+		return ecclient.StackVersion{}
+	}
+	return candidate
+}
+
+// getLatestSnapshot retrieves the latest snapshot version for the version prefix.
+func getLatestSnapshot(t *testing.T, prefix string) ecclient.StackVersion {
+	t.Helper()
+	version, ok := fetchedSnapshots.LatestFor(prefix)
+	require.True(t, ok, "no snapshot with prefix '%s' found in EC region %s", prefix, regionFrom(*target))
+	return version
+}
+
+// getLatestVersion retrieves the latest non-snapshot version for the version prefix.
+func getLatestVersion(t *testing.T, prefix string) ecclient.StackVersion {
+	t.Helper()
+	version, ok := fetchedVersions.LatestFor(prefix)
+	require.True(t, ok, "no version with prefix '%s' found in EC region %s", prefix, regionFrom(*target))
+	return version
+}
 
 // expectedIngestForASingleRun represent the expected number of ingested document after a
 // single run of ingest.
