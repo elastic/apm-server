@@ -26,18 +26,10 @@ import (
 func TestUpgrade_8_18_to_9_0_Snapshot(t *testing.T) {
 	t.Parallel()
 
-	runBasicUpgradeTest(
+	testBasicUpgradeILM(
 		t,
-		basicUpgradeVersionConfig{
-			version:         getLatestSnapshot(t, "8.18"),
-			preferILM:       true,
-			indexManagement: managedByILM,
-		},
-		basicUpgradeVersionConfig{
-			version:         getLatestSnapshot(t, "9.0"),
-			preferILM:       true,
-			indexManagement: managedByILM,
-		},
+		getLatestSnapshot(t, "8.18"),
+		getLatestSnapshot(t, "9.0"),
 		[]types.Query{
 			tlsHandshakeError,
 			esReturnedUnknown503,
@@ -51,18 +43,10 @@ func TestUpgrade_8_18_to_9_0_Snapshot(t *testing.T) {
 func TestUpgrade_8_18_to_9_0_BC(t *testing.T) {
 	t.Parallel()
 
-	runBasicUpgradeTest(
+	testBasicUpgradeILM(
 		t,
-		basicUpgradeVersionConfig{
-			version:         getLatestVersionOrSkip(t, "8.18"),
-			preferILM:       true,
-			indexManagement: managedByILM,
-		},
-		basicUpgradeVersionConfig{
-			version:         getLatestBCOrSkip(t, "9.0"),
-			preferILM:       true,
-			indexManagement: managedByILM,
-		},
+		getLatestVersionOrSkip(t, "8.18"),
+		getLatestBCOrSkip(t, "9.0"),
 		[]types.Query{
 			tlsHandshakeError,
 			esReturnedUnknown503,

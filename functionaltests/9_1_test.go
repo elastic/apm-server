@@ -27,24 +27,14 @@ func TestUpgrade_9_0_to_9_1_Snapshot(t *testing.T) {
 	t.Parallel()
 
 	// TODO: Check why is there lazy rollover?
-	runBasicUpgradeLazyRolloverTest(
+	testBasicUpgradeILMLazyRollover(
 		t,
-		basicUpgradeVersionConfig{
-			version:         getLatestSnapshot(t, "9.0"),
-			preferILM:       true,
-			indexManagement: managedByILM,
-		},
-		basicUpgradeVersionConfig{
-			version:         getLatestSnapshot(t, "9.1"),
-			preferILM:       true,
-			indexManagement: managedByILM,
-		},
+		getLatestSnapshot(t, "9.0"),
+		getLatestSnapshot(t, "9.1"),
 		[]types.Query{
 			tlsHandshakeError,
 			esReturnedUnknown503,
 			refreshCache503,
-			// refreshCache403,
-			// refreshCacheInvalidESConfig,
 			populateSourcemapFetcher403,
 		},
 	)
@@ -53,24 +43,14 @@ func TestUpgrade_9_0_to_9_1_Snapshot(t *testing.T) {
 func TestUpgrade_9_0_to_9_1_BC(t *testing.T) {
 	t.Parallel()
 
-	runBasicUpgradeLazyRolloverTest(
+	testBasicUpgradeILMLazyRollover(
 		t,
-		basicUpgradeVersionConfig{
-			version:         getLatestVersionOrSkip(t, "9.0"),
-			preferILM:       true,
-			indexManagement: managedByILM,
-		},
-		basicUpgradeVersionConfig{
-			version:         getLatestBCOrSkip(t, "9.1"),
-			preferILM:       true,
-			indexManagement: managedByILM,
-		},
+		getLatestVersionOrSkip(t, "9.0"),
+		getLatestBCOrSkip(t, "9.1"),
 		[]types.Query{
 			tlsHandshakeError,
 			esReturnedUnknown503,
 			refreshCache503,
-			// refreshCache403,
-			// refreshCacheInvalidESConfig,
 			populateSourcemapFetcher403,
 		},
 	)
@@ -79,18 +59,10 @@ func TestUpgrade_9_0_to_9_1_BC(t *testing.T) {
 func TestUpgrade_8_19_to_9_1_Snapshot(t *testing.T) {
 	t.Parallel()
 
-	runBasicUpgradeTest(
+	testBasicUpgradeILM(
 		t,
-		basicUpgradeVersionConfig{
-			version:         getLatestSnapshot(t, "8.19"),
-			preferILM:       true,
-			indexManagement: managedByILM,
-		},
-		basicUpgradeVersionConfig{
-			version:         getLatestSnapshot(t, "9.1"),
-			preferILM:       true,
-			indexManagement: managedByILM,
-		},
+		getLatestSnapshot(t, "8.19"),
+		getLatestSnapshot(t, "9.1"),
 		[]types.Query{
 			tlsHandshakeError,
 			esReturnedUnknown503,
@@ -103,18 +75,10 @@ func TestUpgrade_8_19_to_9_1_Snapshot(t *testing.T) {
 func TestUpgrade_8_19_to_9_1_BC(t *testing.T) {
 	t.Parallel()
 
-	runBasicUpgradeTest(
+	testBasicUpgradeILM(
 		t,
-		basicUpgradeVersionConfig{
-			version:         getLatestVersionOrSkip(t, "8.19"),
-			preferILM:       true,
-			indexManagement: managedByILM,
-		},
-		basicUpgradeVersionConfig{
-			version:         getLatestBCOrSkip(t, "9.1"),
-			preferILM:       true,
-			indexManagement: managedByILM,
-		},
+		getLatestVersionOrSkip(t, "8.19"),
+		getLatestBCOrSkip(t, "9.1"),
 		[]types.Query{
 			tlsHandshakeError,
 			esReturnedUnknown503,

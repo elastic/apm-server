@@ -34,87 +34,89 @@ type basicUpgradeVersionConfig struct {
 	indexManagement string
 }
 
-// runBasicUpgradeTest performs a basic upgrade test from `from.version` to
-// `to.version`.
-func runBasicUpgradeTest(
+// testBasicUpgradeILM performs a basic upgrade test from `fromVersion`
+// to `toVersion`. This test assumes that all data streams and indices
+// (before and after upgrade) are managed exclusively by ILM.
+func testBasicUpgradeILM(
 	t *testing.T,
-	from basicUpgradeVersionConfig,
-	to basicUpgradeVersionConfig,
+	fromVersion ecclient.StackVersion,
+	toVersion ecclient.StackVersion,
 	apmErrorLogsIgnored []types.Query,
 ) {
 	testCase := singleUpgradeTestCase{
-		fromVersion: from.version,
-		toVersion:   to.version,
+		fromVersion: fromVersion,
+		toVersion:   toVersion,
 		checkPreUpgradeAfterIngest: checkDatastreamWant{
 			Quantity:         8,
-			PreferIlm:        from.preferILM,
-			DSManagedBy:      from.indexManagement,
+			PreferIlm:        true,
+			DSManagedBy:      managedByILM,
 			IndicesPerDs:     1,
-			IndicesManagedBy: []string{from.indexManagement},
+			IndicesManagedBy: []string{managedByILM},
 		},
 		checkPostUpgradeBeforeIngest: checkDatastreamWant{
 			Quantity:         8,
-			PreferIlm:        to.preferILM,
-			DSManagedBy:      to.indexManagement,
+			PreferIlm:        true,
+			DSManagedBy:      managedByILM,
 			IndicesPerDs:     1,
-			IndicesManagedBy: []string{to.indexManagement},
+			IndicesManagedBy: []string{managedByILM},
 		},
 		checkPostUpgradeAfterIngest: checkDatastreamWant{
 			Quantity:         8,
-			PreferIlm:        to.preferILM,
-			DSManagedBy:      to.indexManagement,
+			PreferIlm:        true,
+			DSManagedBy:      managedByILM,
 			IndicesPerDs:     1,
-			IndicesManagedBy: []string{to.indexManagement},
+			IndicesManagedBy: []string{managedByILM},
 		},
 		apmErrorLogsIgnored: apmErrorLogsIgnored,
 	}
 
-	runAllBasicUpgradeScenarios(t, testCase)
+	runBasicUpgradeTestScenarios(t, testCase)
 }
 
-// runBasicUpgradeLazyRolloverTest performs a basic upgrade test from
-// `from.version` to `to.version`.
-func runBasicUpgradeLazyRolloverTest(
+// testBasicUpgradeILMLazyRollover performs a basic upgrade test from
+// `fromVersion` to `toVersion`. This test assumes that all data streams
+// and indices (before and after upgrade) are managed exclusively by ILM.
+//
+// It also verifies that lazy rollover happened after post-upgrade
+// ingestion.
+func testBasicUpgradeILMLazyRollover(
 	t *testing.T,
-	from basicUpgradeVersionConfig,
-	to basicUpgradeVersionConfig,
+	fromVersion ecclient.StackVersion,
+	toVersion ecclient.StackVersion,
 	apmErrorLogsIgnored []types.Query,
 ) {
 	testCase := singleUpgradeTestCase{
-		fromVersion: from.version,
-		toVersion:   to.version,
+		fromVersion: fromVersion,
+		toVersion:   toVersion,
 		checkPreUpgradeAfterIngest: checkDatastreamWant{
 			Quantity:         8,
-			PreferIlm:        from.preferILM,
-			DSManagedBy:      from.indexManagement,
+			PreferIlm:        true,
+			DSManagedBy:      managedByILM,
 			IndicesPerDs:     1,
-			IndicesManagedBy: []string{from.indexManagement},
+			IndicesManagedBy: []string{managedByILM},
 		},
-		// Old index should still be managed by `from.indexManagement`.
 		checkPostUpgradeBeforeIngest: checkDatastreamWant{
 			Quantity:         8,
-			PreferIlm:        to.preferILM,
-			DSManagedBy:      to.indexManagement,
+			PreferIlm:        true,
+			DSManagedBy:      managedByILM,
 			IndicesPerDs:     1,
-			IndicesManagedBy: []string{from.indexManagement},
+			IndicesManagedBy: []string{managedByILM},
 		},
 		// Verify lazy rollover happened, i.e. 2 indices per data stream.
-		// Old index should be managed by `from.indexManagement` while new
-		// index is managed by `to.indexManagement`.
 		checkPostUpgradeAfterIngest: checkDatastreamWant{
 			Quantity:         8,
-			PreferIlm:        to.preferILM,
-			DSManagedBy:      to.indexManagement,
+			PreferIlm:        true,
+			DSManagedBy:      managedByILM,
 			IndicesPerDs:     2,
-			IndicesManagedBy: []string{from.indexManagement, to.indexManagement},
+			IndicesManagedBy: []string{managedByILM, managedByILM},
 		},
 		apmErrorLogsIgnored: apmErrorLogsIgnored,
 	}
 
-	runAllBasicUpgradeScenarios(t, testCase)
+	runBasicUpgradeTestScenarios(t, testCase)
 }
 
-func runAllBasicUpgradeScenarios(t *testing.T, testCase singleUpgradeTestCase) {
+func runBasicUpgradeTestScenarios(t *testing.T, testCase singleUpgradeTestCase) {
 	t.Run("Default", func(t *testing.T) {
 		t.Parallel()
 		tt := testCase

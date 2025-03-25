@@ -34,19 +34,32 @@ import (
 func TestUpgrade_8_15_to_8_16_Snapshot(t *testing.T) {
 	t.Parallel()
 
-	runBasicUpgradeLazyRolloverTest(
-		t,
-		basicUpgradeVersionConfig{
-			version:         getLatestSnapshot(t, "8.15"),
-			preferILM:       false,
-			indexManagement: managedByDSL,
+	testCase := singleUpgradeTestCase{
+		fromVersion: getLatestSnapshot(t, "8.15"),
+		toVersion:   getLatestSnapshot(t, "8.16"),
+		checkPreUpgradeAfterIngest: checkDatastreamWant{
+			Quantity:         8,
+			PreferIlm:        false,
+			DSManagedBy:      managedByDSL,
+			IndicesPerDs:     1,
+			IndicesManagedBy: []string{managedByDSL},
 		},
-		basicUpgradeVersionConfig{
-			version:         getLatestSnapshot(t, "8.16"),
-			preferILM:       false,
-			indexManagement: managedByDSL,
+		checkPostUpgradeBeforeIngest: checkDatastreamWant{
+			Quantity:         8,
+			PreferIlm:        false,
+			DSManagedBy:      managedByDSL,
+			IndicesPerDs:     1,
+			IndicesManagedBy: []string{managedByDSL},
 		},
-		[]types.Query{
+		// Verify lazy rollover happened, i.e. 2 indices per data stream.
+		checkPostUpgradeAfterIngest: checkDatastreamWant{
+			Quantity:         8,
+			PreferIlm:        false,
+			DSManagedBy:      managedByDSL,
+			IndicesPerDs:     2,
+			IndicesManagedBy: []string{managedByDSL, managedByDSL},
+		},
+		apmErrorLogsIgnored: []types.Query{
 			tlsHandshakeError,
 			esReturnedUnknown503,
 			preconditionFailed,
@@ -56,25 +69,40 @@ func TestUpgrade_8_15_to_8_16_Snapshot(t *testing.T) {
 			// TODO: remove once fixed
 			populateSourcemapFetcher403,
 		},
-	)
+	}
+
+	runBasicUpgradeTestScenarios(t, testCase)
 }
 
 func TestUpgrade_8_15_to_8_16_BC(t *testing.T) {
 	t.Parallel()
 
-	runBasicUpgradeLazyRolloverTest(
-		t,
-		basicUpgradeVersionConfig{
-			version:         getLatestVersionOrSkip(t, "8.15"),
-			preferILM:       false,
-			indexManagement: managedByDSL,
+	testCase := singleUpgradeTestCase{
+		fromVersion: getLatestVersionOrSkip(t, "8.15"),
+		toVersion:   getLatestBCOrSkip(t, "8.16"),
+		checkPreUpgradeAfterIngest: checkDatastreamWant{
+			Quantity:         8,
+			PreferIlm:        false,
+			DSManagedBy:      managedByDSL,
+			IndicesPerDs:     1,
+			IndicesManagedBy: []string{managedByDSL},
 		},
-		basicUpgradeVersionConfig{
-			version:         getLatestBCOrSkip(t, "8.16"),
-			preferILM:       false,
-			indexManagement: managedByDSL,
+		checkPostUpgradeBeforeIngest: checkDatastreamWant{
+			Quantity:         8,
+			PreferIlm:        false,
+			DSManagedBy:      managedByDSL,
+			IndicesPerDs:     1,
+			IndicesManagedBy: []string{managedByDSL},
 		},
-		[]types.Query{
+		// Verify lazy rollover happened, i.e. 2 indices per data stream.
+		checkPostUpgradeAfterIngest: checkDatastreamWant{
+			Quantity:         8,
+			PreferIlm:        false,
+			DSManagedBy:      managedByDSL,
+			IndicesPerDs:     2,
+			IndicesManagedBy: []string{managedByDSL, managedByDSL},
+		},
+		apmErrorLogsIgnored: []types.Query{
 			tlsHandshakeError,
 			esReturnedUnknown503,
 			preconditionFailed,
@@ -84,5 +112,7 @@ func TestUpgrade_8_15_to_8_16_BC(t *testing.T) {
 			// TODO: remove once fixed
 			populateSourcemapFetcher403,
 		},
-	)
+	}
+
+	runBasicUpgradeTestScenarios(t, testCase)
 }
