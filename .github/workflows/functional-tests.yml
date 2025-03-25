@@ -27,6 +27,13 @@ jobs:
       matrix:
         environment:
           - 'pro'
+        active-version:
+          - '8.16'
+          - '8.17'
+          - '8.18'
+          - '8.19'
+          - '9.0'
+          - '9.1'
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
 
@@ -50,7 +57,9 @@ jobs:
         working-directory: ${{ github.workspace }}/functionaltests
         run: |
           export TF_VAR_CREATED_DATE=$(date +%s)
-          go test -v -timeout=30m -cleanup-on-failure=false -target="${{ matrix.environment }}" ./
+          VERSION="${{ matrix.active-version }}"
+          VERSION="${VERSION//./_}"
+          go test -run="_to_${VERSION}" -v -timeout=30m -cleanup-on-failure=false -target="${{ matrix.environment }}" ./
 
 #  notify:
 #    if: always()
