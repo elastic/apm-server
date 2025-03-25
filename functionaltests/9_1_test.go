@@ -9,6 +9,7 @@ import (
 func TestUpgrade_9_0_to_9_1_Snapshot(t *testing.T) {
 	t.Parallel()
 
+	// TODO: Check why is there lazy rollover?
 	runBasicUpgradeLazyRolloverTest(
 		t,
 		basicUpgradeVersionConfig{

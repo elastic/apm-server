@@ -23,6 +23,14 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 )
 
+// In 8.15, the data stream management was migrated from ILM to DSL.
+// However, a bug was introduced, causing data streams to be unmanaged.
+// See https://github.com/elastic/apm-server/issues/13898.
+//
+// It was fixed by defaulting data stream management to DSL, and eventually
+// reverted back to ILM in 8.17. Therefore, data streams created in 8.16
+// are managed by DSL, and data streams created in 8.17 are managed by ILM.
+
 func TestUpgrade_8_16_to_8_17_Snapshot(t *testing.T) {
 	t.Parallel()
 
