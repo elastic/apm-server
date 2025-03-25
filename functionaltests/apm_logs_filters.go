@@ -35,19 +35,9 @@ var (
 		},
 	}
 
-	refreshCache403 = types.Query{
-		MatchPhrase: map[string]types.MatchPhraseQuery{
-			"message": {Query: "refresh cache elasticsearch returned status 403"},
-		},
-	}
 	refreshCache503 = types.Query{
 		MatchPhrase: map[string]types.MatchPhraseQuery{
 			"message": {Query: "refresh cache elasticsearch returned status 503"},
-		},
-	}
-	refreshCacheInvalidESConfig = types.Query{
-		MatchPhrase: map[string]types.MatchPhraseQuery{
-			"message": {Query: "stopping refresh cache background job: elasticsearch config is invalid"},
 		},
 	}
 	refreshCacheCtxDeadline = types.Query{

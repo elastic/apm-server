@@ -43,8 +43,8 @@ func TestUpgrade_9_0_to_9_1_Snapshot(t *testing.T) {
 			tlsHandshakeError,
 			esReturnedUnknown503,
 			refreshCache503,
-			refreshCache403,
-			refreshCacheInvalidESConfig,
+			// refreshCache403,
+			// refreshCacheInvalidESConfig,
 			populateSourcemapFetcher403,
 		},
 	)
@@ -69,8 +69,8 @@ func TestUpgrade_9_0_to_9_1_BC(t *testing.T) {
 			tlsHandshakeError,
 			esReturnedUnknown503,
 			refreshCache503,
-			refreshCache403,
-			refreshCacheInvalidESConfig,
+			// refreshCache403,
+			// refreshCacheInvalidESConfig,
 			populateSourcemapFetcher403,
 		},
 	)
