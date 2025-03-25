@@ -39,8 +39,6 @@ func runBasicUpgradeILMTest(
 	toVersion ecclient.StackVersion,
 	apmErrorLogsIgnored []types.Query,
 ) {
-	skipNonActiveVersion(t, toVersion)
-
 	testCase := singleUpgradeTestCase{
 		fromVersion: fromVersion,
 		toVersion:   toVersion,
@@ -89,8 +87,6 @@ func runBasicUpgradeLazyRolloverDSLTest(
 	toVersion ecclient.StackVersion,
 	apmErrorLogsIgnored []types.Query,
 ) {
-	skipNonActiveVersion(t, toVersion)
-
 	testCase := singleUpgradeTestCase{
 		fromVersion: fromVersion,
 		toVersion:   toVersion,

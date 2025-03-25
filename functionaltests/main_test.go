@@ -23,7 +23,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"slices"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -47,13 +46,6 @@ var (
 		"pro",
 		"The target environment where to run tests againts. Valid values are: qa, pro.",
 	)
-
-	// skipNonActive determines whether to skip the tests for non-active versions.
-	skipNonActive = flag.Bool(
-		"skip-non-active",
-		true,
-		"Whether to skip running tests for non-active versions.",
-	)
 )
 
 const (
@@ -70,17 +62,6 @@ var (
 	fetchedSnapshots ecclient.StackVersions
 	// fetchedVersions are the non-snapshot stack versions prefetched from Elastic Cloud API.
 	fetchedVersions ecclient.StackVersions
-
-	// activeMajorMinorVersions are the X.Y versions that are still in active development.
-	activeMajorMinorVersions = []string{
-		"7.17",
-		"8.16",
-		"8.17",
-		"8.18",
-		"8.19",
-		"9.0",
-		"9.1",
-	}
 )
 
 func TestMain(m *testing.M) {
@@ -129,23 +110,6 @@ func TestMain(m *testing.M) {
 
 	code := m.Run()
 	os.Exit(code)
-}
-
-// skipNonActiveVersion skips testing for versions not in active development.
-func skipNonActiveVersion(t *testing.T, version ecclient.StackVersion) {
-	t.Helper()
-	if !*skipNonActive {
-		return
-	}
-
-	if !isActiveMajorMinorVersion(version) {
-		t.Skip("skipping non-active version")
-	}
-}
-
-// isActiveMajorMinorVersion checks if the version provided is in active development.
-func isActiveMajorMinorVersion(version ecclient.StackVersion) bool {
-	return slices.Contains(activeMajorMinorVersions, version.MajorMinor())
 }
 
 // getBCVersionOrSkip retrieves the latest build-candidate version for the version prefix.
