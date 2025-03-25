@@ -29,6 +29,8 @@ import (
 	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/search"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/esql/query"
+	"github.com/elastic/go-elasticsearch/v8/typedapi/indices/rollover"
+	"github.com/elastic/go-elasticsearch/v8/typedapi/ingest/putpipeline"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/security/createapikey"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 )
@@ -81,8 +83,8 @@ func formatDurationElasticsearch(d time.Duration) string {
 	return fmt.Sprintf("%dnanos", d)
 }
 
-// CreateAPIKey creates an API Key, and returns it in the
-// base64-encoded form that agents should provide.
+// CreateAPIKey creates an API Key, and returns it in the base64-encoded form
+// that agents should provide.
 //
 // If expiration is less than or equal to zero, then the API Key never expires.
 func (c *Client) CreateAPIKey(ctx context.Context, name string, expiration time.Duration, roles map[string]types.RoleDescriptor) (string, error) {
@@ -99,9 +101,33 @@ func (c *Client) CreateAPIKey(ctx context.Context, name string, expiration time.
 		},
 	}).Do(ctx)
 	if err != nil {
-		return "", fmt.Errorf("error creating API Key: %w", err)
+		return "", fmt.Errorf("error creating API key: %w", err)
 	}
 	return resp.Encoded, nil
+}
+
+// CreateIngestPipeline creates a new pipeline with the provided name and processors.
+//
+// Refer to https://www.elastic.co/guide/en/elasticsearch/reference/current/ingest.html.
+func (c *Client) CreateIngestPipeline(ctx context.Context, pipeline string, processors []types.ProcessorContainer) error {
+	_, err := c.es.Ingest.PutPipeline(pipeline).
+		Request(&putpipeline.Request{Processors: processors}).
+		Do(ctx)
+	if err != nil {
+		return fmt.Errorf("error creating ingest pipeline for %s: %w", pipeline, err)
+	}
+	return nil
+}
+
+// PerformManualRollover performs an immediate manual rollover for the specified data stream.
+//
+// Refer to https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-rollover-index.html.
+func (c *Client) PerformManualRollover(ctx context.Context, dataStream string) error {
+	_, err := c.es.Indices.Rollover(dataStream).Request(&rollover.Request{}).Do(ctx)
+	if err != nil {
+		return fmt.Errorf("error performing manual rollover for %s: %w", dataStream, err)
+	}
+	return nil
 }
 
 func (c *Client) GetDataStream(ctx context.Context, name string) ([]types.DataStream, error) {
@@ -157,7 +183,7 @@ line 1:1: Unknown index [traces-apm*,apm-*,traces-*.otel-*,logs-apm*,apm-*,logs-
 // The search query is on the Index used by Elasticsearch monitoring to store logs.
 func (c *Client) GetESErrorLogs(ctx context.Context) (*search.Response, error) {
 	res, err := c.es.Search().
-		Index("elastic-cloud-logs-8").
+		Index("elastic-cloud-logs-*").
 		Request(&search.Request{
 			Query: &types.Query{
 				Bool: &types.BoolQuery{
@@ -173,6 +199,52 @@ func (c *Client) GetESErrorLogs(ctx context.Context) (*search.Response, error) {
 							},
 						},
 					},
+					// There is an issue in ES: https://github.com/elastic/elasticsearch/issues/125445,
+					// that is causing deprecation logger bulk write failures.
+					// The error itself is harmless and irrelevant to APM, so we can ignore it.
+					// TODO: Remove this query once the above issue is fixed.
+					MustNot: []types.Query{
+						{
+							Match: map[string]types.MatchQuery{
+								"message": {Query: "Bulk write of deprecation logs encountered some failures"},
+							},
+						},
+					},
+				},
+			},
+		}).Do(ctx)
+	if err != nil {
+		return search.NewResponse(), fmt.Errorf("cannot run search query: %w", err)
+	}
+
+	return res, nil
+}
+
+// GetAPMErrorLogs retrieves Elasticsearch error logs.
+// The search query is on the Index used by Elasticsearch monitoring to store logs.
+// exclude allows to pass in must_not clauses to be applied to the query to filter
+// the returned results.
+func (c *Client) GetAPMErrorLogs(ctx context.Context, exclude []types.Query) (*search.Response, error) {
+	size := 100
+	res, err := c.es.Search().
+		Index("elastic-cloud-logs-*").
+		Request(&search.Request{
+			Size: &size,
+			Query: &types.Query{
+				Bool: &types.BoolQuery{
+					Must: []types.Query{
+						{
+							Match: map[string]types.MatchQuery{
+								"service.name": {Query: "apm-server"},
+							},
+						},
+						{
+							Match: map[string]types.MatchQuery{
+								"log.level": {Query: "error"},
+							},
+						},
+					},
+					MustNot: exclude,
 				},
 			},
 		}).Do(ctx)

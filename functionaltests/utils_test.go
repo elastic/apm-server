@@ -19,7 +19,9 @@ package functionaltests
 
 import (
 	"context"
+	"fmt"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -31,23 +33,30 @@ import (
 	"github.com/elastic/apm-server/functionaltests/internal/terraform"
 )
 
-// ecAPICheck verifies if EC_API_KEY env var is set.
-// This is a simple check to alert users if this necessary env var
-// is not available.
-//
-// Functional tests are expected to run Terraform code to operate
-// on infrastructure required for each test and to query Elastic
-// Cloud APIs. In both cases a valid API key is required.
-func ecAPICheck(t *testing.T) {
+// createAPMAPIKey creates an Elasticsearch API key with the test name.
+func createAPMAPIKey(t *testing.T, ctx context.Context, esc *esclient.Client) string {
 	t.Helper()
-	require.NotEmpty(t, os.Getenv("EC_API_KEY"), "EC_API_KEY env var not set")
-}
-
-func createAPMAPIKey(t *testing.T, ctx context.Context, ecc *esclient.Client) string {
-	t.Helper()
-	apiKey, err := ecc.CreateAPIKey(ctx, t.Name(), -1, map[string]types.RoleDescriptor{})
+	apiKey, err := esc.CreateAPIKey(ctx, t.Name(), -1, map[string]types.RoleDescriptor{})
 	require.NoError(t, err)
 	return apiKey
+}
+
+// terraformDir returns the name of the Terraform files directory for this test.
+func terraformDir(t *testing.T) string {
+	t.Helper()
+	// Flatten the dir name in case of path separators
+	return fmt.Sprintf("tf-%s", strings.ReplaceAll(t.Name(), "/", "_"))
+}
+
+// copyTerraforms copies the static Terraform files to the Terraform directory for this test.
+// It will remove all existing files from the test Terraform directory if it exists, before copying into it.
+func copyTerraforms(t *testing.T) {
+	t.Helper()
+	dirName := terraformDir(t)
+	err := os.RemoveAll(dirName)
+	require.NoError(t, err)
+	err = os.CopyFS(terraformDir(t), os.DirFS("infra/terraform"))
+	require.NoError(t, err)
 }
 
 // createCluster runs terraform on the test terraform folder to spin up an Elastic Cloud Hosted cluster for testing.
@@ -106,12 +115,45 @@ func upgradeCluster(t *testing.T, ctx context.Context, tf *terraform.Runner, tar
 
 // createKibanaClient instantiate an HTTP API client with dedicated methods to query the Kibana API.
 // This function will also create an Elasticsearch API key with full permissions to be used by the HTTP client.
-func createKibanaClient(t *testing.T, ctx context.Context, ecc *esclient.Client, escfg esclient.Config) *kbclient.Client {
+func createKibanaClient(t *testing.T, ctx context.Context, esc *esclient.Client, escfg esclient.Config) *kbclient.Client {
 	t.Helper()
 	t.Log("create kibana API client")
-	kbapikey, err := ecc.CreateAPIKey(ctx, "kbclient", -1, map[string]types.RoleDescriptor{})
+	kbapikey, err := esc.CreateAPIKey(ctx, "kbclient", -1, map[string]types.RoleDescriptor{})
 	require.NoError(t, err)
 	kbc, err := kbclient.New(escfg.KibanaURL, kbapikey)
 	require.NoError(t, err)
 	return kbc
+}
+
+// createRerouteIngestPipeline creates custom pipelines to reroute logs, metrics and traces to different
+// data streams specified by namespace.
+func createRerouteIngestPipeline(t *testing.T, ctx context.Context, esc *esclient.Client, namespace string) error {
+	t.Helper()
+
+	for _, pipeline := range []string{"logs@custom", "metrics@custom", "traces@custom"} {
+		err := esc.CreateIngestPipeline(ctx, pipeline, []types.ProcessorContainer{
+			{
+				Reroute: &types.RerouteProcessor{
+					Namespace: []string{namespace},
+				},
+			},
+		})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// performManualRollovers rollover all logs, metrics and traces data streams to new indices.
+func performManualRollovers(t *testing.T, ctx context.Context, esc *esclient.Client, namespace string) error {
+	t.Helper()
+
+	for _, ds := range allDataStreams(namespace) {
+		err := esc.PerformManualRollover(ctx, ds)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

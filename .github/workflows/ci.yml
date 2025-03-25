@@ -28,8 +28,8 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5
         with:
           go-version-file: go.mod
           cache: true
@@ -43,13 +43,13 @@ jobs:
         os: ['macos-latest', 'ubuntu-latest', 'windows-latest']
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: antontroshin/setup-go@bda02de8887c9946189f81e7e59512914aeb9ea4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: antontroshin/setup-go@bda02de8887c9946189f81e7e59512914aeb9ea4 # bda02de8887c9946189f81e7e59512914aeb9ea4
         if: runner.os == 'Windows'
         with:
           go-version-file: go.mod
           cache: true
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5
         if: runner.os != 'Windows'
         with:
           go-version-file: go.mod
@@ -57,7 +57,10 @@ jobs:
       - run: go test -v -race ./...
       - env:
           KIBANA_URL: "https://kibana.test"
-          KIBANA_APIKEY: "dummy"
+          KIBANA_API_KEY: "dummy"
+          EC_URL: "https://elastic-cloud.test"
+          EC_API_KEY: "dummy"
+          EC_REGION: "gcp-us-west2"
         # run functionaltests internal tests
         # functionaltests themselves are run in the functional-tests pipeline
         run: cd ./functionaltests && go test -v -race ./internal/...
@@ -65,8 +68,8 @@ jobs:
   test-fips:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5
         with:
           go-version-file: go.mod
           cache: true
@@ -78,8 +81,8 @@ jobs:
   system-test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5
         with:
           go-version-file: systemtest/go.mod
           cache: true
@@ -114,8 +117,8 @@ jobs:
   test-package:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5
         with:
           go-version-file: go.mod
           cache: false
@@ -132,15 +135,15 @@ jobs:
     env:
       GENERATE_WOLFI_IMAGES: true
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5
         with:
           go-version-file: go.mod
           cache: false
           cache-dependency-path: |
             go.sum
       - name: Log in to the Elastic Container registry
-        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
+        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
         with:
           registry: ${{ secrets.ELASTIC_DOCKER_REGISTRY }}
           username: ${{ secrets.ELASTIC_DOCKER_USERNAME }}

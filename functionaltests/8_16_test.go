@@ -19,40 +19,46 @@ package functionaltests
 
 import (
 	"testing"
+
+	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 )
 
-func TestUpgrade_8_15_4_to_8_16_0(t *testing.T) {
+func TestUpgrade_8_15_to_8_16_Snapshot(t *testing.T) {
 	t.Parallel()
-	ecAPICheck(t)
 
-	tt := singleUpgradeTestCase{
-		fromVersion: "8.15.4",
-		toVersion:   "8.16.0",
-		checkPreUpgradeAfterIngest: checkDatastreamWant{
-			Quantity:         8,
-			PreferIlm:        false,
-			DSManagedBy:      managedByDSL,
-			IndicesPerDs:     1,
-			IndicesManagedBy: []string{managedByDSL},
+	runBasicUpgradeLazyRolloverDSLTest(
+		t,
+		getLatestSnapshot(t, "8.15"),
+		getLatestSnapshot(t, "8.16"),
+		[]types.Query{
+			tlsHandshakeError,
+			esReturnedUnknown503,
+			preconditionFailed,
+			populateSourcemapServerShuttingDown,
+			refreshCacheCtxDeadline,
+			refreshCacheCtxCanceled,
+			// TODO: remove once fixed
+			populateSourcemapFetcher403,
 		},
-		checkPostUpgradeBeforeIngest: checkDatastreamWant{
-			Quantity:         8,
-			PreferIlm:        false,
-			DSManagedBy:      managedByDSL,
-			IndicesPerDs:     1,
-			IndicesManagedBy: []string{managedByDSL},
-		},
-		// Check data streams and verify lazy rollover happened
-		// v managed by DSL if created after 8.15.0
-		// x managed by ILM if created before 8.15.0
-		checkPostUpgradeAfterIngest: checkDatastreamWant{
-			Quantity:         8,
-			PreferIlm:        false,
-			DSManagedBy:      managedByDSL,
-			IndicesPerDs:     2,
-			IndicesManagedBy: []string{managedByDSL, managedByDSL},
-		},
-	}
+	)
+}
 
-	tt.Run(t)
+func TestUpgrade_8_15_to_8_16_BC(t *testing.T) {
+	t.Parallel()
+
+	runBasicUpgradeLazyRolloverDSLTest(
+		t,
+		getLatestVersion(t, "8.15"),
+		getBCVersionOrSkip(t, "8.16"),
+		[]types.Query{
+			tlsHandshakeError,
+			esReturnedUnknown503,
+			preconditionFailed,
+			populateSourcemapServerShuttingDown,
+			refreshCacheCtxDeadline,
+			refreshCacheCtxCanceled,
+			// TODO: remove once fixed
+			populateSourcemapFetcher403,
+		},
+	)
 }
