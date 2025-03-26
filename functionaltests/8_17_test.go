@@ -66,6 +66,7 @@ func TestUpgrade_8_16_to_8_17_Snapshot(t *testing.T) {
 			tlsHandshakeError,
 			esReturnedUnknown503,
 			refreshCache503,
+			refreshCacheCtxCanceled,
 			populateSourcemapFetcher403,
 		},
 	}
@@ -108,6 +109,7 @@ func TestUpgrade_8_16_to_8_17_BC(t *testing.T) {
 			tlsHandshakeError,
 			esReturnedUnknown503,
 			refreshCache503,
+			refreshCacheCtxCanceled,
 			populateSourcemapFetcher403,
 		},
 	}
