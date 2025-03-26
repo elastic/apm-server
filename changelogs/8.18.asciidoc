@@ -12,7 +12,7 @@ https://github.com/elastic/apm-server/compare/v8.17.1\...v8.18.0[View commits]
 ==== Bug fixes
 - Fix overflow in validation of `apm-server.agent.config.cache.expiration` on 32-bit architectures {pull}15216[15216]
 - Change permissions of `apm-server.yml` in `tar.gz` artifacts to `0600` {pull}15627[15627]
-- Tail-based sampling: Fix an issue with the "drop and recreate Badger DB on storage limit exceeded" mitigation introduced in 8.17.1. Previously, a bug in this mitigation caused the storage size to remain between 90% and 100% of the configured limit without triggering the intended mitigation. {pull}16385[16385]
+- Tail-based sampling: Fix an issue with the "drop and recreate Badger DB on storage limit exceeded" mitigation introduced in 8.17.1. Previously, a bug in this mitigation caused the tail sampling storage size to remain between 90% and 100% of the configured limit without triggering the intended mitigation. {pull}16385[16385]
 
 [float]
 ==== Breaking Changes
