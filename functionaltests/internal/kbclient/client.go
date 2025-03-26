@@ -99,7 +99,7 @@ func (c *Client) sendRequest(
 	path string,
 	body any,
 	super bool,
-	handleStatusCode func(int) error,
+	handleRespError func(statusCode int, body []byte) error,
 ) ([]byte, error) {
 	req, err := c.prepareRequest(method, path, body, super)
 	if err != nil {
@@ -113,18 +113,21 @@ func (c *Client) sendRequest(
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != 200 {
-		if handleStatusCode != nil {
-			if err = handleStatusCode(resp.StatusCode); err != nil {
-				return nil, err
-			}
-		}
-		return nil, fmt.Errorf("request failed with status code %d", resp.StatusCode)
-	}
-
 	b, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("cannot read response body: %w", err)
+	}
+
+	if resp.StatusCode != 200 {
+		if handleRespError != nil {
+			if err = handleRespError(resp.StatusCode, b); err != nil {
+				return nil, err
+			}
+		}
+		if len(b) > 0 {
+			return nil, fmt.Errorf("request failed with status code %d, body: %v", resp.StatusCode, b)
+		}
+		return nil, fmt.Errorf("request failed with status code %d", resp.StatusCode)
 	}
 
 	return b, nil
@@ -162,14 +165,14 @@ func (c *Client) GetPackagePolicyByID(ctx context.Context, policyID string) (Pac
 	defer cancel()
 
 	path := fmt.Sprintf("/api/fleet/package_policies/%s", policyID)
-	handleStatusCode := func(statusCode int) error {
+	handleRespError := func(statusCode int, _ []byte) error {
 		if statusCode == 404 {
 			return &ElasticAgentPolicyNotFoundError{Name: policyID}
 		}
 		return nil
 	}
 
-	b, err := c.sendRequest(ctx, http.MethodGet, path, nil, false, handleStatusCode)
+	b, err := c.sendRequest(ctx, http.MethodGet, path, nil, false, handleRespError)
 	if err != nil {
 		return PackagePolicy{}, err
 	}

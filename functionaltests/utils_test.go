@@ -24,6 +24,7 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
@@ -173,6 +174,19 @@ func createAPMGenerator(t *testing.T, ctx context.Context, esc *esclient.Client,
 	g := gen.New(deployOut.APMServerURL, apiKey)
 	g.Logger = zaptest.NewLogger(t, zaptest.Level(zap.InfoLevel))
 	return g
+}
+
+// migrateStandaloneToManaged migrates the deployment to managed by enabling the integrations
+// server in the deployment.
+func migrateStandaloneToManaged(t *testing.T, ctx context.Context, kbc *kbclient.Client) {
+	t.Helper()
+	t.Log("migrate standalone to managed")
+	err := kbc.EnableIntegrationsServer(ctx)
+	require.NoError(t, err)
+	// APM Server needs some time to start serving requests again, and we don't have any
+	// visibility on when this completes.
+	// NOTE: This value comes from empirical observations.
+	time.Sleep(60 * time.Second)
 }
 
 // createRerouteIngestPipeline creates custom pipelines to reroute logs, metrics and traces to different
