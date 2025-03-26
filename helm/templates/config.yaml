@@ -1,0 +1,30 @@
+{{- $secret_token := include "secret_token" . -}}
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: apm-server-config
+stringData:
+  apm-server.yml: |
+    apm-server:
+      auth:
+        secret_token: {{ $secret_token }}
+      ssl:
+        enabled: {{ default true (.Values.tls).enabled }}
+        certificate: /usr/share/apm-server/tls/tls.crt
+        key: /usr/share/apm-server/tls/tls.key
+      sampling:
+        tail: {{ .Values.tail_based_sampling | toYaml | nindent 10 }}
+    output:
+      elasticsearch:
+        hosts: [{{ (.Values.elasticsearch).host }}]
+        username: {{ (.Values.elasticsearch).username }}
+        password: {{ (.Values.elasticsearch).password }}
+        api_key: {{ (.Values.elasticsearch).api_key }}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: apm-server-token
+stringData:
+  secret_token: {{ $secret_token }}

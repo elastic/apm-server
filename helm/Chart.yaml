@@ -1,0 +1,7 @@
+apiVersion: v2
+name: apm-server
+description: The APM Server receives data from Elastic APM agents and transforms it into Elasticsearch documents.
+home: https://elastic.co/apm
+type: application
+version: 0.1.0
+appVersion: "8.10.4"
