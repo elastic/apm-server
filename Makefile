@@ -52,8 +52,7 @@ LDFLAGS := \
 # Rule to build apm-server fips binaries
 .PHONY: $(APM_SERVER_FIPS_BINARIES)
 $(APM_SERVER_FIPS_BINARIES):
-        # cross compile
-        docker run --privileged --rm "tonistiigi/binfmt:latest@sha256:1b804311fe87047a4c96d38b4b3ef6f62fca8cd125265917a9e3dc3c996c39e6" --install arm64,amd64
+	docker run --privileged --rm "tonistiigi/binfmt:latest@sha256:1b804311fe87047a4c96d38b4b3ef6f62fca8cd125265917a9e3dc3c996c39e6" --install arm64,amd64
 	# rely on Dockerfile.fips to use the go fips toolchain
 	docker buildx build --platform "$(GOOS)/$(GOARCH)" --build-arg GOLANG_VERSION="$(shell go list -m -f '{{.Version}}' go)" -f ./packaging/docker/Dockerfile.fips -t apm-server-fips-image-temp .
 	# remove any leftover container from a failed task
