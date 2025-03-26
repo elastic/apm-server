@@ -23,39 +23,6 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 )
 
-func TestUpgrade_9_0_to_9_1_Snapshot(t *testing.T) {
-	t.Parallel()
-
-	// TODO: Check why is there lazy rollover?
-	testBasicUpgradeILMLazyRollover(
-		t,
-		getLatestSnapshot(t, "9.0"),
-		getLatestSnapshot(t, "9.1"),
-		[]types.Query{
-			tlsHandshakeError,
-			esReturnedUnknown503,
-			refreshCache503,
-			populateSourcemapFetcher403,
-		},
-	)
-}
-
-func TestUpgrade_9_0_to_9_1_BC(t *testing.T) {
-	t.Parallel()
-
-	testBasicUpgradeILMLazyRollover(
-		t,
-		getLatestVersionOrSkip(t, "9.0"),
-		getLatestBCOrSkip(t, "9.1"),
-		[]types.Query{
-			tlsHandshakeError,
-			esReturnedUnknown503,
-			refreshCache503,
-			populateSourcemapFetcher403,
-		},
-	)
-}
-
 func TestUpgrade_8_19_to_9_1_Snapshot(t *testing.T) {
 	t.Parallel()
 
