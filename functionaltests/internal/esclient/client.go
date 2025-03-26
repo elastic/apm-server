@@ -39,16 +39,15 @@ type Client struct {
 	es *elasticsearch.TypedClient
 }
 
-// New returns a new Client for querying APM data.
-func New(cfg Config) (*Client, error) {
+// New returns a new Client for accessing Elasticsearch.
+func New(esURL, username, password string) (*Client, error) {
 	transport := http.DefaultTransport.(*http.Transport).Clone()
-	transport.TLSClientConfig = &tls.Config{InsecureSkipVerify: cfg.TLSSkipVerify}
+	transport.TLSClientConfig = &tls.Config{InsecureSkipVerify: false}
 
 	es, err := elasticsearch.NewTypedClient(elasticsearch.Config{
-		Addresses: []string{cfg.ElasticsearchURL},
-		Username:  cfg.Username,
-		APIKey:    cfg.APIKey,
-		Password:  cfg.Password,
+		Addresses: []string{esURL},
+		Username:  username,
+		Password:  password,
 		Transport: transport,
 	})
 	if err != nil {

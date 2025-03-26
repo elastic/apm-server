@@ -82,7 +82,7 @@ func (g *Generator) RunBlockingWait(ctx context.Context, kbc *kbclient.Client, v
 		return fmt.Errorf("cannot run generator: %w", err)
 	}
 
-	if err := flushAPMMetrics(kbc, version); err != nil {
+	if err := flushAPMMetrics(ctx, kbc, version); err != nil {
 		return fmt.Errorf("cannot flush apm metrics: %w", err)
 	}
 
@@ -91,9 +91,9 @@ func (g *Generator) RunBlockingWait(ctx context.Context, kbc *kbclient.Client, v
 
 // flushAPMMetrics sends an update to the Fleet APM package policy in order
 // to trigger the flushing of in-flight APM metrics.
-func flushAPMMetrics(kbc *kbclient.Client, version string) error {
+func flushAPMMetrics(ctx context.Context, kbc *kbclient.Client, version string) error {
 	policyID := "elastic-cloud-apm"
-	policy, err := kbc.GetPackagePolicyByID(policyID)
+	policy, err := kbc.GetPackagePolicyByID(ctx, policyID)
 	if err != nil {
 		return fmt.Errorf("cannot get elastic-cloud-apm package policy: %w", err)
 	}
@@ -108,7 +108,7 @@ func flushAPMMetrics(kbc *kbclient.Client, version string) error {
 	// Sending an update with modifying the description is enough to trigger
 	// final aggregations in APM Server and flush of in-flight metrics.
 	policy.Description = fmt.Sprintf("Functional tests %s", version)
-	if err = kbc.UpdatePackagePolicyByID(policyID, kbclient.UpdatePackagePolicyRequest{
+	if err = kbc.UpdatePackagePolicyByID(ctx, policyID, kbclient.UpdatePackagePolicyRequest{
 		PackagePolicy: policy,
 		Force:         false,
 	}); err != nil {

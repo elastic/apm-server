@@ -23,13 +23,10 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zaptest"
 
 	"github.com/elastic/apm-server/functionaltests/internal/asserts"
 	"github.com/elastic/apm-server/functionaltests/internal/ecclient"
 	"github.com/elastic/apm-server/functionaltests/internal/esclient"
-	"github.com/elastic/apm-server/functionaltests/internal/gen"
 	"github.com/elastic/apm-server/functionaltests/internal/kbclient"
 	"github.com/elastic/apm-server/functionaltests/internal/terraform"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
@@ -50,6 +47,9 @@ type additionalFunc func(t *testing.T, ctx context.Context, esc *esclient.Client
 type singleUpgradeTestCase struct {
 	fromVersion ecclient.StackVersion
 	toVersion   ecclient.StackVersion
+	// deployStandalone determines whether to deploy the cluster in
+	// standalone mode as opposed to managed mode (default)
+	deployStandalone bool
 
 	dataStreamNamespace          string
 	setupFn                      additionalFunc
@@ -58,6 +58,8 @@ type singleUpgradeTestCase struct {
 	checkPostUpgradeBeforeIngest checkDatastreamWant
 	checkPostUpgradeAfterIngest  checkDatastreamWant
 
+	// apmErrorLogsIgnored are the error logs to be ignored when
+	// checking for existence of errors in the upgrade test.
 	apmErrorLogsIgnored []types.Query
 }
 
@@ -73,19 +75,12 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Log("------ cluster setup ------")
-	_, esCfg := createCluster(t, ctx, tf, *target, tt.fromVersion.String())
+	deployOut := createCluster(t, ctx, tf, *target, tt.fromVersion.String(), !tt.deployStandalone)
 	t.Logf("time elapsed: %s", time.Since(start))
 
-	esc, err := esclient.New(esCfg)
-	require.NoError(t, err)
-
-	kbc := createKibanaClient(t, ctx, esc, esCfg)
-
-	t.Log("create APM API key")
-	apiKey := createAPMAPIKey(t, ctx, esc)
-
-	g := gen.New(esCfg.APMServerURL, apiKey)
-	g.Logger = zaptest.NewLogger(t, zaptest.Level(zap.InfoLevel))
+	esc := createESClient(t, deployOut)
+	kbc := createKibanaClient(t, ctx, esc, deployOut)
+	g := createAPMGenerator(t, ctx, esc, deployOut)
 
 	previous, err := getDocsCountPerDS(t, ctx, esc)
 	require.NoError(t, err)
