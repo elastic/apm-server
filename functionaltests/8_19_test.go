@@ -23,10 +23,14 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 )
 
+// Data streams get marked for lazy rollover by ES when something
+// changed in the underlying template(s), which in this case is
+// the apm-data plugin update for 8.19 and 9.1:
+// https://github.com/elastic/elasticsearch/pull/119995.
+
 func TestUpgrade_8_18_to_8_19_Snapshot(t *testing.T) {
 	t.Parallel()
 
-	// TODO: Check why is there lazy rollover?
 	testBasicUpgradeILMLazyRollover(
 		t,
 		getLatestSnapshot(t, "8.18"),
