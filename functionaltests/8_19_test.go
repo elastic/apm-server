@@ -23,14 +23,14 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 )
 
-func TestUpgrade_9_0_to_9_1_Snapshot(t *testing.T) {
+func TestUpgrade_8_18_to_8_19_Snapshot(t *testing.T) {
 	t.Parallel()
 
 	// TODO: Check why is there lazy rollover?
 	testBasicUpgradeILMLazyRollover(
 		t,
-		getLatestSnapshot(t, "9.0"),
-		getLatestSnapshot(t, "9.1"),
+		getLatestSnapshot(t, "8.18"),
+		getLatestSnapshot(t, "8.19"),
 		[]types.Query{
 			tlsHandshakeError,
 			esReturnedUnknown503,
@@ -40,45 +40,13 @@ func TestUpgrade_9_0_to_9_1_Snapshot(t *testing.T) {
 	)
 }
 
-func TestUpgrade_9_0_to_9_1_BC(t *testing.T) {
+func TestUpgrade_8_18_to_8_19_BC(t *testing.T) {
 	t.Parallel()
 
 	testBasicUpgradeILMLazyRollover(
 		t,
-		getLatestVersionOrSkip(t, "9.0"),
-		getLatestBCOrSkip(t, "9.1"),
-		[]types.Query{
-			tlsHandshakeError,
-			esReturnedUnknown503,
-			refreshCache503,
-			populateSourcemapFetcher403,
-		},
-	)
-}
-
-func TestUpgrade_8_19_to_9_1_Snapshot(t *testing.T) {
-	t.Parallel()
-
-	testBasicUpgradeILM(
-		t,
-		getLatestSnapshot(t, "8.19"),
-		getLatestSnapshot(t, "9.1"),
-		[]types.Query{
-			tlsHandshakeError,
-			esReturnedUnknown503,
-			refreshCache503,
-			populateSourcemapFetcher403,
-		},
-	)
-}
-
-func TestUpgrade_8_19_to_9_1_BC(t *testing.T) {
-	t.Parallel()
-
-	testBasicUpgradeILM(
-		t,
-		getLatestVersionOrSkip(t, "8.19"),
-		getLatestBCOrSkip(t, "9.1"),
+		getLatestVersionOrSkip(t, "8.18"),
+		getLatestBCOrSkip(t, "8.19"),
 		[]types.Query{
 			tlsHandshakeError,
 			esReturnedUnknown503,
