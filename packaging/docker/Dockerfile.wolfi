@@ -7,13 +7,8 @@ ARG GOLANG_VERSION
 ################################################################################
 FROM docker.elastic.co/wolfi/go:${GOLANG_VERSION} as builder
 WORKDIR /src
-<<<<<<< HEAD
 COPY go.mod go.sum .go-version /src/
-RUN --mount=type=cache,target=/go/pkg/mod go mod download
-=======
-COPY go.mod go.sum /src/
 RUN --mount=type=cache,target=/root/go/pkg/mod go mod download
->>>>>>> f9042ae4 (fix: update go pkg cache path on wolfi based images (#16434))
 COPY Makefile *.mk /src/
 COPY cmd /src/cmd
 COPY internal /src/internal
