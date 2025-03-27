@@ -1,3 +1,20 @@
+// Licensed to Elasticsearch B.V. under one or more contributor
+// license agreements. See the NOTICE file distributed with
+// this work for additional information regarding copyright
+// ownership. Elasticsearch B.V. licenses this file to you under
+// the Apache License, Version 2.0 (the "License"); you may
+// not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied.  See the License for the
+// specific language governing permissions and limitations
+// under the License.
+
 package functionaltests
 
 import (
@@ -5,8 +22,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 	"github.com/stretchr/testify/require"
+
+	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 
 	"github.com/elastic/apm-server/functionaltests/internal/asserts"
 	"github.com/elastic/apm-server/functionaltests/internal/ecclient"
@@ -16,25 +34,31 @@ import (
 	"github.com/elastic/apm-server/functionaltests/internal/terraform"
 )
 
-func runTestSteps(t *testing.T, namespace string, startVersion ecclient.StackVersion, steps []testStep) {
-	if namespace == "" {
-		namespace = "default"
+type testStepsRunner struct {
+	namespace    string
+	startVersion ecclient.StackVersion
+	steps        []testStep
+}
+
+func (r testStepsRunner) Run(t *testing.T) {
+	if r.namespace == "" {
+		r.namespace = "default"
 	}
 
 	start := time.Now()
 	ctx := context.Background()
 	tf := initTerraformRunner(t)
 
-	t.Logf("------ cluster setup %s ------", startVersion.String())
-	esCfg := createCluster(t, ctx, tf, *target, startVersion.String())
+	t.Logf("------ cluster setup %s ------", r.startVersion.String())
+	esCfg := createCluster(t, ctx, tf, *target, r.startVersion.String())
 	esc := createESClient(t, esCfg)
 	kbc := createKibanaClient(t, ctx, esc, esCfg)
 	g := createAPMGenerator(t, ctx, esc, esCfg)
 	t.Logf("time elapsed: %s", time.Since(start))
 
 	env := testStepEnv{
-		namespace: namespace,
-		version:   startVersion,
+		namespace: r.namespace,
+		version:   r.startVersion,
 		tf:        tf,
 		gen:       g,
 		kbc:       kbc,
@@ -45,7 +69,7 @@ func runTestSteps(t *testing.T, namespace string, startVersion ecclient.StackVer
 	require.NoError(t, err)
 
 	currentRes := testStepResult{DocCounts: docCounts}
-	for _, step := range steps {
+	for _, step := range r.steps {
 		currentRes = step.Step(t, ctx, &env, currentRes)
 		t.Logf("time elapsed: %s", time.Since(start))
 	}
