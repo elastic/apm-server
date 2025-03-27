@@ -135,6 +135,9 @@ func (u upgradeStep) Step(t *testing.T, ctx context.Context, e *testStepEnv, pre
 	t.Log("check number of documents across upgrade")
 	docCounts, err := getDocsCountPerDS(t, ctx, e.esc)
 	require.NoError(t, err)
+	// We assert that no changes happened in the number of documents after upgrade
+	// to ensure the state didn't change.
+	// We don't expect any change here unless something broke during the upgrade.
 	assertDocCount(t, docCounts, previousRes.DocCounts,
 		emptyIngestForASingleRun(e.namespace),
 		aggregationDataStreams(e.namespace))
