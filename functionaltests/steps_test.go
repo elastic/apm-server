@@ -49,7 +49,7 @@ func (r testStepsRunner) Run(t *testing.T) {
 	ctx := context.Background()
 	tf := initTerraformRunner(t)
 
-	t.Logf("------ cluster setup %s ------", r.startVersion.String())
+	t.Log("------ cluster setup ------")
 	esCfg := createCluster(t, ctx, tf, *target, r.startVersion.String())
 	esc := createESClient(t, esCfg)
 	kbc := createKibanaClient(t, ctx, esc, esCfg)
@@ -127,7 +127,7 @@ type upgradeStep struct {
 var _ testStep = upgradeStep{}
 
 func (u upgradeStep) Step(t *testing.T, ctx context.Context, e *testStepEnv, previousRes testStepResult) testStepResult {
-	t.Logf("------ upgrade from %s to %s ------", e.version.String(), u.newVersion.String())
+	t.Log("------ upgrade ------")
 	upgradeCluster(t, ctx, e.tf, *target, u.newVersion.String())
 	e.version = u.newVersion
 
