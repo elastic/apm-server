@@ -24,15 +24,34 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
+
 	"github.com/elastic/apm-server/functionaltests/internal/asserts"
 	"github.com/elastic/apm-server/functionaltests/internal/ecclient"
 	"github.com/elastic/apm-server/functionaltests/internal/esclient"
 	"github.com/elastic/apm-server/functionaltests/internal/kbclient"
 	"github.com/elastic/apm-server/functionaltests/internal/terraform"
-	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 )
 
 type additionalFunc func(t *testing.T, ctx context.Context, esc *esclient.Client, kbc *kbclient.Client) error
+
+// apmDeploymentMode is the deployment mode of APM in the cluster.
+// This is used instead of bool to avoid having to use bool pointer
+// (since the default is true).
+type apmDeploymentMode uint8
+
+const (
+	apmDefault apmDeploymentMode = iota
+	apmManaged
+	apmStandalone
+)
+
+func (mode apmDeploymentMode) enableIntegrations() bool {
+	if mode == apmDefault || mode == apmManaged {
+		return true
+	}
+	return false
+}
 
 // singleUpgradeTestCase is a basic functional test case that performs a
 // cluster upgrade between 2 specified versions.
@@ -47,9 +66,9 @@ type additionalFunc func(t *testing.T, ctx context.Context, esc *esclient.Client
 type singleUpgradeTestCase struct {
 	fromVersion ecclient.StackVersion
 	toVersion   ecclient.StackVersion
-	// deployStandalone determines whether to deploy the cluster in
-	// standalone mode as opposed to managed mode (default)
-	deployStandalone bool
+	// apmDeployMode determines whether to deploy APM in
+	// managed mode (default) as opposed to standalone
+	apmDeployMode apmDeploymentMode
 
 	dataStreamNamespace          string
 	setupFn                      additionalFunc
@@ -64,6 +83,7 @@ type singleUpgradeTestCase struct {
 }
 
 func (tt singleUpgradeTestCase) Run(t *testing.T) {
+	integrations := tt.apmDeployMode.enableIntegrations()
 	if tt.dataStreamNamespace == "" {
 		tt.dataStreamNamespace = "default"
 	}
@@ -75,12 +95,12 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Log("------ cluster setup ------")
-	deployOut := createCluster(t, ctx, tf, *target, tt.fromVersion.String(), !tt.deployStandalone)
+	deployInfo := createCluster(t, ctx, tf, *target, tt.fromVersion.String(), integrations)
 	t.Logf("time elapsed: %s", time.Since(start))
 
-	esc := createESClient(t, deployOut)
-	kbc := createKibanaClient(t, ctx, esc, deployOut)
-	g := createAPMGenerator(t, ctx, esc, deployOut)
+	esc := createESClient(t, deployInfo)
+	kbc := createKibanaClient(t, ctx, esc, deployInfo)
+	g := createAPMGenerator(t, ctx, esc, deployInfo)
 
 	previous, err := getDocsCountPerDS(t, ctx, esc)
 	require.NoError(t, err)

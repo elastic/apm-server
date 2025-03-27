@@ -103,19 +103,19 @@ func (c *Client) sendRequest(
 ) ([]byte, error) {
 	req, err := c.prepareRequest(method, path, body, super)
 	if err != nil {
-		return nil, fmt.Errorf("cannot prepare request: %w", err)
+		return nil, fmt.Errorf("cannot prepare request %s %s: %w", method, path, err)
 	}
 
 	req = req.WithContext(ctx)
 	resp, err := c.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("cannot perform http request: %w", err)
+		return nil, fmt.Errorf("cannot perform http request %s %s: %w", method, path, err)
 	}
 	defer resp.Body.Close()
 
 	b, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, fmt.Errorf("cannot read response body: %w", err)
+		return nil, fmt.Errorf("cannot read response body %s %s: %w", method, path, err)
 	}
 
 	if resp.StatusCode != 200 {

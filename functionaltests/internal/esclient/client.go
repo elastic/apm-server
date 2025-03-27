@@ -19,7 +19,6 @@ package esclient
 
 import (
 	"context"
-	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -42,7 +41,6 @@ type Client struct {
 // New returns a new Client for accessing Elasticsearch.
 func New(esURL, username, password string) (*Client, error) {
 	transport := http.DefaultTransport.(*http.Transport).Clone()
-	transport.TLSClientConfig = &tls.Config{InsecureSkipVerify: false}
 
 	es, err := elasticsearch.NewTypedClient(elasticsearch.Config{
 		Addresses: []string{esURL},
@@ -53,9 +51,7 @@ func New(esURL, username, password string) (*Client, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error creating Elasticsearch client: %w", err)
 	}
-	return &Client{
-		es: es,
-	}, nil
+	return &Client{es: es}, nil
 }
 
 var elasticsearchTimeUnits = []struct {

@@ -60,14 +60,14 @@ func copyTerraforms(t *testing.T) {
 	require.NoError(t, err)
 }
 
-type deploymentOutput struct {
+type deploymentInfo struct {
 	// ElasticsearchURL holds the Elasticsearch URL.
 	ElasticsearchURL string
 
-	// Username holds the Elasticsearch username for basic auth.
+	// Username holds the Elasticsearch superuser username for basic auth.
 	Username string
 
-	// Password holds the Elasticsearch password for basic auth.
+	// Password holds the Elasticsearch superuser password for basic auth.
 	Password string
 
 	// APMServerURL holds the APM Server URL.
@@ -89,7 +89,7 @@ func createCluster(
 	target string,
 	fromVersion string,
 	enableIntegrations bool,
-) deploymentOutput {
+) deploymentInfo {
 	t.Helper()
 
 	t.Logf("creating deployment version %s", fromVersion)
@@ -116,19 +116,19 @@ func createCluster(
 	require.NoError(t, tf.Output("deployment_id", &deploymentID))
 	var apmID string
 	require.NoError(t, tf.Output("apm_id", &apmID))
-	var output deploymentOutput
-	require.NoError(t, tf.Output("apm_url", &output.APMServerURL))
-	require.NoError(t, tf.Output("es_url", &output.ElasticsearchURL))
-	require.NoError(t, tf.Output("username", &output.Username))
-	require.NoError(t, tf.Output("password", &output.Password))
-	require.NoError(t, tf.Output("kb_url", &output.KibanaURL))
+	var info deploymentInfo
+	require.NoError(t, tf.Output("apm_url", &info.APMServerURL))
+	require.NoError(t, tf.Output("es_url", &info.ElasticsearchURL))
+	require.NoError(t, tf.Output("username", &info.Username))
+	require.NoError(t, tf.Output("password", &info.Password))
+	require.NoError(t, tf.Output("kb_url", &info.KibanaURL))
 
 	standaloneOrManaged := "standalone"
 	if enableIntegrations {
 		standaloneOrManaged = "managed"
 	}
-	t.Logf("created %s deployment %s with APM (%s)", standaloneOrManaged, deploymentID, apmID)
-	return output
+	t.Logf("created deployment %s with %s APM (%s)", deploymentID, standaloneOrManaged, apmID)
+	return info
 }
 
 // upgradeCluster applies the terraform configuration from the test terraform folder.
@@ -144,34 +144,34 @@ func upgradeCluster(t *testing.T, ctx context.Context, tf *terraform.Runner, tar
 }
 
 // createESClient instantiate an HTTP API client with dedicated methods to query the Elasticsearch API.
-func createESClient(t *testing.T, deployOut deploymentOutput) *esclient.Client {
+func createESClient(t *testing.T, deployInfo deploymentInfo) *esclient.Client {
 	t.Helper()
 	t.Log("create elasticsearch client")
-	esc, err := esclient.New(deployOut.ElasticsearchURL, deployOut.Username, deployOut.Password)
+	esc, err := esclient.New(deployInfo.ElasticsearchURL, deployInfo.Username, deployInfo.Password)
 	require.NoError(t, err)
 	return esc
 }
 
 // createKibanaClient instantiate an HTTP API client with dedicated methods to query the Kibana API.
 // This function will also create an Elasticsearch API key with full permissions to be used by the HTTP client.
-func createKibanaClient(t *testing.T, ctx context.Context, esc *esclient.Client, deployOut deploymentOutput) *kbclient.Client {
+func createKibanaClient(t *testing.T, ctx context.Context, esc *esclient.Client, deployInfo deploymentInfo) *kbclient.Client {
 	t.Helper()
 	t.Log("create kibana client")
 	apiKey, err := esc.CreateAPIKey(ctx, "kbclient", -1, map[string]types.RoleDescriptor{})
 	require.NoError(t, err)
-	kbc, err := kbclient.New(deployOut.KibanaURL, apiKey, deployOut.Username, deployOut.Password)
+	kbc, err := kbclient.New(deployInfo.KibanaURL, apiKey, deployInfo.Username, deployInfo.Password)
 	require.NoError(t, err)
 	return kbc
 }
 
 // createAPMGenerator instantiate a load generator for APM.
 // This function will also create an Elasticsearch API key with full permissions to be used by the generator.
-func createAPMGenerator(t *testing.T, ctx context.Context, esc *esclient.Client, deployOut deploymentOutput) *gen.Generator {
+func createAPMGenerator(t *testing.T, ctx context.Context, esc *esclient.Client, deployInfo deploymentInfo) *gen.Generator {
 	t.Helper()
 	t.Log("create apm generator")
 	apiKey, err := esc.CreateAPIKey(ctx, "apmgenerator", -1, map[string]types.RoleDescriptor{})
 	require.NoError(t, err)
-	g := gen.New(deployOut.APMServerURL, apiKey)
+	g := gen.New(deployInfo.APMServerURL, apiKey)
 	g.Logger = zaptest.NewLogger(t, zaptest.Level(zap.InfoLevel))
 	return g
 }
