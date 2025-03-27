@@ -47,10 +47,7 @@ const (
 )
 
 func (mode apmDeploymentMode) enableIntegrations() bool {
-	if mode == apmDefault || mode == apmManaged {
-		return true
-	}
-	return false
+	return mode == apmDefault || mode == apmManaged
 }
 
 // singleUpgradeTestCase is a basic functional test case that performs a
