@@ -46,21 +46,21 @@ func testBasicUpgradeILM(
 	testCase := singleUpgradeTestCase{
 		fromVersion: fromVersion,
 		toVersion:   toVersion,
-		checkPreUpgradeAfterIngest: checkDatastreamWant{
+		checkPreUpgradeAfterIngest: checkDataStreamWant{
 			Quantity:         8,
 			PreferIlm:        true,
 			DSManagedBy:      managedByILM,
 			IndicesPerDs:     1,
 			IndicesManagedBy: []string{managedByILM},
 		},
-		checkPostUpgradeBeforeIngest: checkDatastreamWant{
+		checkPostUpgradeBeforeIngest: checkDataStreamWant{
 			Quantity:         8,
 			PreferIlm:        true,
 			DSManagedBy:      managedByILM,
 			IndicesPerDs:     1,
 			IndicesManagedBy: []string{managedByILM},
 		},
-		checkPostUpgradeAfterIngest: checkDatastreamWant{
+		checkPostUpgradeAfterIngest: checkDataStreamWant{
 			Quantity:         8,
 			PreferIlm:        true,
 			DSManagedBy:      managedByILM,
@@ -88,14 +88,14 @@ func testBasicUpgradeILMLazyRollover(
 	testCase := singleUpgradeTestCase{
 		fromVersion: fromVersion,
 		toVersion:   toVersion,
-		checkPreUpgradeAfterIngest: checkDatastreamWant{
+		checkPreUpgradeAfterIngest: checkDataStreamWant{
 			Quantity:         8,
 			PreferIlm:        true,
 			DSManagedBy:      managedByILM,
 			IndicesPerDs:     1,
 			IndicesManagedBy: []string{managedByILM},
 		},
-		checkPostUpgradeBeforeIngest: checkDatastreamWant{
+		checkPostUpgradeBeforeIngest: checkDataStreamWant{
 			Quantity:         8,
 			PreferIlm:        true,
 			DSManagedBy:      managedByILM,
@@ -103,7 +103,7 @@ func testBasicUpgradeILMLazyRollover(
 			IndicesManagedBy: []string{managedByILM},
 		},
 		// Verify lazy rollover happened, i.e. 2 indices per data stream.
-		checkPostUpgradeAfterIngest: checkDatastreamWant{
+		checkPostUpgradeAfterIngest: checkDataStreamWant{
 			Quantity:         8,
 			PreferIlm:        true,
 			DSManagedBy:      managedByILM,

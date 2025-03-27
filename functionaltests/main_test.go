@@ -151,12 +151,23 @@ func getLatestSnapshot(t *testing.T, prefix string) ecclient.StackVersion {
 // single run of ingest.
 // Only non aggregation data streams are included, as aggregation ones differs on different
 // runs.
-func expectedIngestForASingleRun(namespace string) esclient.APMDataStreamsDocCount {
+func expectedIngestForASingleRun(namespace string) esclient.DataStreamsDocCount {
 	return map[string]int{
 		fmt.Sprintf("traces-apm-%s", namespace):                     15013,
 		fmt.Sprintf("metrics-apm.app.opbeans_python-%s", namespace): 1437,
 		fmt.Sprintf("metrics-apm.internal-%s", namespace):           1351,
 		fmt.Sprintf("logs-apm.error-%s", namespace):                 364,
+	}
+}
+
+// emptyIngestForASingleRun represent an empty ingestion.
+// It is useful for asserting that the document count did not change after an operation.
+func emptyIngestForASingleRun(namespace string) esclient.DataStreamsDocCount {
+	return map[string]int{
+		fmt.Sprintf("traces-apm-%s", namespace):                     0,
+		fmt.Sprintf("metrics-apm.app.opbeans_python-%s", namespace): 0,
+		fmt.Sprintf("metrics-apm.internal-%s", namespace):           0,
+		fmt.Sprintf("logs-apm.error-%s", namespace):                 0,
 	}
 }
 
@@ -178,9 +189,9 @@ func allDataStreams(namespace string) []string {
 }
 
 // getDocsCountPerDS retrieves document count.
-func getDocsCountPerDS(t *testing.T, ctx context.Context, esc *esclient.Client) (esclient.APMDataStreamsDocCount, error) {
+func getDocsCountPerDS(t *testing.T, ctx context.Context, esc *esclient.Client) (esclient.DataStreamsDocCount, error) {
 	t.Helper()
-	return esc.ApmDocCount(ctx)
+	return esc.APMDocCount(ctx)
 }
 
 func sliceToMap(s []string) map[string]bool {
@@ -193,15 +204,15 @@ func sliceToMap(s []string) map[string]bool {
 
 // assertDocCount check if specified document count is equal to expected minus
 // documents count from a previous state.
-func assertDocCount(t *testing.T, docsCount, previous, expected esclient.APMDataStreamsDocCount, skippedDataStreams []string) {
+func assertDocCount(t *testing.T, current, previous, expectedDiff esclient.DataStreamsDocCount, skippedDataStreams []string) {
 	t.Helper()
 	skipped := sliceToMap(skippedDataStreams)
-	for ds, v := range docsCount {
+	for ds, v := range current {
 		if skipped[ds] {
 			continue
 		}
 
-		e, ok := expected[ds]
+		e, ok := expectedDiff[ds]
 		if !ok {
 			t.Errorf("unexpected documents (%d) for %s", v, ds)
 			continue
@@ -212,7 +223,7 @@ func assertDocCount(t *testing.T, docsCount, previous, expected esclient.APMData
 	}
 }
 
-type checkDatastreamWant struct {
+type checkDataStreamWant struct {
 	Quantity         int
 	DSManagedBy      string
 	IndicesPerDs     int
@@ -220,8 +231,8 @@ type checkDatastreamWant struct {
 	IndicesManagedBy []string
 }
 
-// assertDatastreams assert expected values on specific data streams in a cluster.
-func assertDatastreams(t *testing.T, expected checkDatastreamWant, actual []types.DataStream) {
+// assertDataStreams assert expected values on specific data streams in a cluster.
+func assertDataStreams(t *testing.T, expected checkDataStreamWant, actual []types.DataStream) {
 	t.Helper()
 
 	require.Len(t, actual, expected.Quantity, "number of APM datastream differs from expectations")
