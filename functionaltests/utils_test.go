@@ -25,38 +25,44 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zaptest"
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 
 	"github.com/elastic/apm-server/functionaltests/internal/esclient"
+	"github.com/elastic/apm-server/functionaltests/internal/gen"
 	"github.com/elastic/apm-server/functionaltests/internal/kbclient"
 	"github.com/elastic/apm-server/functionaltests/internal/terraform"
 )
 
-// createAPMAPIKey creates an Elasticsearch API key with the test name.
-func createAPMAPIKey(t *testing.T, ctx context.Context, esc *esclient.Client) string {
-	t.Helper()
-	apiKey, err := esc.CreateAPIKey(ctx, t.Name(), -1, map[string]types.RoleDescriptor{})
-	require.NoError(t, err)
-	return apiKey
+func formattedTestName(t *testing.T) string {
+	return strings.ReplaceAll(t.Name(), "/", "_")
 }
 
 // terraformDir returns the name of the Terraform files directory for this test.
 func terraformDir(t *testing.T) string {
 	t.Helper()
 	// Flatten the dir name in case of path separators
-	return fmt.Sprintf("tf-%s", strings.ReplaceAll(t.Name(), "/", "_"))
+	return fmt.Sprintf("tf-%s", formattedTestName(t))
 }
 
-// copyTerraforms copies the static Terraform files to the Terraform directory for this test.
-// It will remove all existing files from the test Terraform directory if it exists, before copying into it.
-func copyTerraforms(t *testing.T) {
+// initTerraformRunner copies the static Terraform files to the Terraform directory for this test,
+// then initializes the Terraform runner in that directory.
+//
+// Note: This function will remove all existing files from the test Terraform directory if it exists,
+// before copying into it.
+func initTerraformRunner(t *testing.T) *terraform.Runner {
 	t.Helper()
 	dirName := terraformDir(t)
 	err := os.RemoveAll(dirName)
 	require.NoError(t, err)
 	err = os.CopyFS(terraformDir(t), os.DirFS("infra/terraform"))
 	require.NoError(t, err)
+
+	tf, err := terraform.New(t, dirName)
+	require.NoError(t, err)
+	return tf
 }
 
 // createCluster runs terraform on the test terraform folder to spin up an Elastic Cloud Hosted cluster for testing.
@@ -64,7 +70,7 @@ func copyTerraforms(t *testing.T) {
 // information.
 // It sets up a cleanup function to destroy resources if the test succeed, leveraging the cleanupOnFailure flag to
 // skip this behavior if appropriate.
-func createCluster(t *testing.T, ctx context.Context, tf *terraform.Runner, target, fromVersion string) (string, esclient.Config) {
+func createCluster(t *testing.T, ctx context.Context, tf *terraform.Runner, target, fromVersion string) esclient.Config {
 	t.Helper()
 
 	t.Logf("creating deployment version %s", fromVersion)
@@ -98,7 +104,7 @@ func createCluster(t *testing.T, ctx context.Context, tf *terraform.Runner, targ
 	require.NoError(t, tf.Output("kb_url", &escfg.KibanaURL))
 
 	t.Logf("created deployment %s with APM (%s)", deploymentID, apmID)
-	return deploymentID, escfg
+	return escfg
 }
 
 // upgradeCluster applies the terraform configuration from the test terraform folder.
@@ -113,6 +119,15 @@ func upgradeCluster(t *testing.T, ctx context.Context, tf *terraform.Runner, tar
 	require.NoError(t, tf.Apply(ctx, ecTarget, ecRegion, ecDeploymentTpl, name, version))
 }
 
+// createESClient instantiate an HTTP API client with dedicated methods to query the Elasticsearch API.
+func createESClient(t *testing.T, esCfg esclient.Config) *esclient.Client {
+	t.Helper()
+	t.Log("create elasticsearch client")
+	esc, err := esclient.New(esCfg)
+	require.NoError(t, err)
+	return esc
+}
+
 // createKibanaClient instantiate an HTTP API client with dedicated methods to query the Kibana API.
 // This function will also create an Elasticsearch API key with full permissions to be used by the HTTP client.
 func createKibanaClient(t *testing.T, ctx context.Context, esc *esclient.Client, escfg esclient.Config) *kbclient.Client {
@@ -123,6 +138,18 @@ func createKibanaClient(t *testing.T, ctx context.Context, esc *esclient.Client,
 	kbc, err := kbclient.New(escfg.KibanaURL, kbapikey)
 	require.NoError(t, err)
 	return kbc
+}
+
+// createAPMGenerator instantiate a load generator for APM.
+// This function will also create an Elasticsearch API key with full permissions to be used by the generator.
+func createAPMGenerator(t *testing.T, ctx context.Context, esc *esclient.Client, esCfg esclient.Config) *gen.Generator {
+	t.Helper()
+	t.Log("create apm generator")
+	apiKey, err := esc.CreateAPIKey(ctx, "apmgenerator", -1, map[string]types.RoleDescriptor{})
+	require.NoError(t, err)
+	g := gen.New(esCfg.APMServerURL, apiKey)
+	g.Logger = zaptest.NewLogger(t, zaptest.Level(zap.InfoLevel))
+	return g
 }
 
 // createRerouteIngestPipeline creates custom pipelines to reroute logs, metrics and traces to different

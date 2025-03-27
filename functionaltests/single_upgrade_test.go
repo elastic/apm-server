@@ -22,17 +22,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 	"github.com/stretchr/testify/require"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zaptest"
 
 	"github.com/elastic/apm-server/functionaltests/internal/asserts"
 	"github.com/elastic/apm-server/functionaltests/internal/ecclient"
 	"github.com/elastic/apm-server/functionaltests/internal/esclient"
-	"github.com/elastic/apm-server/functionaltests/internal/gen"
 	"github.com/elastic/apm-server/functionaltests/internal/kbclient"
-	"github.com/elastic/apm-server/functionaltests/internal/terraform"
-	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 )
 
 type additionalFunc func(t *testing.T, ctx context.Context, esc *esclient.Client, kbc *kbclient.Client) error
@@ -68,24 +64,15 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 
 	start := time.Now()
 	ctx := context.Background()
-	copyTerraforms(t)
-	tf, err := terraform.New(t, terraformDir(t))
-	require.NoError(t, err)
+	tf := initTerraformRunner(t)
 
 	t.Log("------ cluster setup ------")
-	_, esCfg := createCluster(t, ctx, tf, *target, tt.fromVersion.String())
+	esCfg := createCluster(t, ctx, tf, *target, tt.fromVersion.String())
 	t.Logf("time elapsed: %s", time.Since(start))
 
-	esc, err := esclient.New(esCfg)
-	require.NoError(t, err)
-
+	esc := createESClient(t, esCfg)
 	kbc := createKibanaClient(t, ctx, esc, esCfg)
-
-	t.Log("create APM API key")
-	apiKey := createAPMAPIKey(t, ctx, esc)
-
-	g := gen.New(esCfg.APMServerURL, apiKey)
-	g.Logger = zaptest.NewLogger(t, zaptest.Level(zap.InfoLevel))
+	g := createAPMGenerator(t, ctx, esc, esCfg)
 
 	atStartCount, err := getDocsCountPerDS(t, ctx, esc)
 	require.NoError(t, err)
