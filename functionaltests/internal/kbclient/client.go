@@ -26,8 +26,6 @@ import (
 	"io"
 	"net/http"
 	"time"
-
-	"github.com/itchyny/gojq"
 )
 
 func New(kibanaURL, apikey string) (*Client, error) {
@@ -85,46 +83,71 @@ func (e ElasticAgentPolicyNotFoundError) Error() string {
 	return fmt.Sprintf("ElasticAgentPolicy named %s was not found", e.Name)
 }
 
+type PackagePolicy struct {
+	Name        string           `json:"name"`
+	Description string           `json:"description"`
+	Package     PackagePolicyPkg `json:"package"`
+	PolicyID    string           `json:"policy_id"`
+	PolicyIDs   []string         `json:"policy_ids"`
+}
+
+type PackagePolicyPkg struct {
+	Name    string `json:"name"`
+	Version string `json:"version"`
+}
+
+type getPackagePolicyResponse struct {
+	Item PackagePolicy `json:"item"`
+}
+
 // GetPackagePolicyByID retrieves the Package Policy specified by policyID.
 // https://www.elastic.co/docs/api/doc/kibana/v8/operation/operation-get-package-policy
-func (c *Client) GetPackagePolicyByID(policyID string) ([]byte, error) {
-	var b []byte
+func (c *Client) GetPackagePolicyByID(policyID string) (PackagePolicy, error) {
+	var empty PackagePolicy
 
 	path := fmt.Sprintf("/api/fleet/package_policies/%s", policyID)
 	req, err := prepareRequest(c, http.MethodGet, path, nil)
 	if err != nil {
-		return b, fmt.Errorf("cannot prepare request: %w", err)
+		return empty, fmt.Errorf("cannot prepare request: %w", err)
 	}
 
 	resp, err := c.Do(req)
 	if err != nil {
-		return b, fmt.Errorf("cannot perform HTTP request: %w", err)
+		return empty, fmt.Errorf("cannot perform HTTP request: %w", err)
 	}
 	defer resp.Body.Close()
 
-	b, err = io.ReadAll(resp.Body)
-	if err != nil {
-		return b, fmt.Errorf("cannot read response body: %w", err)
-	}
-
 	if resp.StatusCode == 404 {
-		return b, &ElasticAgentPolicyNotFoundError{Name: policyID}
+		return empty, &ElasticAgentPolicyNotFoundError{Name: policyID}
 	}
 
 	if resp.StatusCode > 200 {
-		return b, fmt.Errorf("%s request failed with status code %d", path, resp.StatusCode)
+		return empty, fmt.Errorf("%s request failed with status code %d", path, resp.StatusCode)
 	}
 
-	return b, nil
+	b, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return empty, fmt.Errorf("cannot read response body: %w", err)
+	}
+
+	var policyResp getPackagePolicyResponse
+	if err = json.Unmarshal(b, &policyResp); err != nil {
+		return empty, fmt.Errorf("cannot unmarshal response body: %w", err)
+	}
+
+	return policyResp.Item, nil
+}
+
+type UpdatePackagePolicyRequest struct {
+	PackagePolicy
+	Force bool `json:"force"`
 }
 
 // UpdatePackagePolicyByID performs a Package Policy update in Fleet through the Fleet Kibana APIs.
-// Updating the elastic-cloud-apm package policy, even without
-// modifying any field will trigger final aggregations.
 // https://www.elastic.co/docs/api/doc/kibana/v8/operation/operation-update-package-policy
-func (c *Client) UpdatePackagePolicyByID(policyID string, data any) error {
+func (c *Client) UpdatePackagePolicyByID(policyID string, request UpdatePackagePolicyRequest) error {
 	path := fmt.Sprintf("/api/fleet/package_policies/%s", policyID)
-	req, err := prepareRequest(c, http.MethodPut, path, data)
+	req, err := prepareRequest(c, http.MethodPut, path, request)
 	if err != nil {
 		return fmt.Errorf("cannot prepare request: %w", err)
 	}
@@ -149,59 +172,4 @@ func (c *Client) UpdatePackagePolicyByID(policyID string, data any) error {
 	}
 
 	return nil
-}
-
-// TouchPackagePolicyByID sends a PUT to the UpdatePackagePolicyByID Fleet API endpoint to
-// trigger a reload of configuration in beats linked to the policy.
-// For example useful to trigger a flush for APM Server metrics.
-func (c *Client) TouchPackagePolicyByID(policyID string) error {
-	eca, err := c.GetPackagePolicyByID(policyID)
-	if err != nil {
-		return fmt.Errorf("cannot get package policy elastic-cloud-apm: %w", err)
-	}
-
-	var f interface{}
-	if err := json.Unmarshal(eca, &f); err != nil {
-		return fmt.Errorf("cannot unmarshal package policy: %w", err)
-	}
-
-	// these are the minimum modifications required for sending the
-	// policy back to Fleet. Any less and you'll get a validation error.
-	v, err := jq(".item", f)
-	if err != nil {
-		return fmt.Errorf("cannot extract data from .item in policy JSON: %w", err)
-	}
-	v, err = jq("del(.id) | del(.elasticsearch) | del(.inputs[].compiled_input) | del(.revision) | del(.created_at) | del(.created_by) | del(.updated_at) | del(.updated_by)", v)
-	if err != nil {
-		return fmt.Errorf("cannot clean up data in policy JSON: %w", err)
-	}
-
-	// We don't want to modify the policy, only to send a PUT with a valid payload
-	// TODO: with slight modifications this can update relevant apm policy vars
-	// see https://github.com/elastic/apm-server/blob/1261584b25b5279b1fcc1e6707dd07d31e708f38/testing/infra/terraform/modules/ec_deployment/scripts/enable_features.tftpl#L11-L10
-	err = c.UpdatePackagePolicyByID(policyID, v)
-	if err != nil {
-		return fmt.Errorf("cannot update package policy: %w", err)
-	}
-
-	return nil
-}
-
-// jq runs jq instruction q on data. It expects a single object to be
-// returned from the expression, as it does not iterate on the result
-// set.
-func jq(q string, data any) (any, error) {
-	query, err := gojq.Parse(q)
-	if err != nil {
-		return nil, fmt.Errorf("cannot parse jq expression: %w", err)
-	}
-	iter := query.Run(data)
-	v, ok := iter.Next()
-	if !ok {
-		return v, fmt.Errorf("cannot iterate on jq query result")
-	}
-	if err, ok := v.(error); ok {
-		return nil, fmt.Errorf("iterator returned an error: %w", err)
-	}
-	return v, nil
 }
