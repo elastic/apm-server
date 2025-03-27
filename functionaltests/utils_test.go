@@ -132,15 +132,23 @@ func createCluster(
 }
 
 // upgradeCluster applies the terraform configuration from the test terraform folder.
-func upgradeCluster(t *testing.T, ctx context.Context, tf *terraform.Runner, target, toVersion string) {
+func upgradeCluster(
+	t *testing.T,
+	ctx context.Context,
+	tf *terraform.Runner,
+	target string,
+	toVersion string,
+	enableIntegrations bool,
+) {
 	t.Helper()
 	t.Logf("upgrade deployment to %s", toVersion)
 	ecTarget := terraform.Var("ec_target", target)
 	ecRegion := terraform.Var("ec_region", regionFrom(target))
 	ecDeploymentTpl := terraform.Var("ec_deployment_template", deploymentTemplateFrom(regionFrom(target)))
 	version := terraform.Var("stack_version", toVersion)
+	integrations := terraform.Var("integrations_server", strconv.FormatBool(enableIntegrations))
 	name := terraform.Var("name", formattedTestName(t))
-	require.NoError(t, tf.Apply(ctx, ecTarget, ecRegion, ecDeploymentTpl, name, version))
+	require.NoError(t, tf.Apply(ctx, ecTarget, ecRegion, ecDeploymentTpl, version, integrations, name))
 }
 
 // createESClient instantiate an HTTP API client with dedicated methods to query the Elasticsearch API.

@@ -101,21 +101,22 @@ func (c *Client) sendRequest(
 	super bool,
 	handleRespError func(statusCode int, body []byte) error,
 ) ([]byte, error) {
+	methodPath := fmt.Sprintf("%s %s", method, path)
 	req, err := c.prepareRequest(method, path, body, super)
 	if err != nil {
-		return nil, fmt.Errorf("cannot prepare request %s %s: %w", method, path, err)
+		return nil, fmt.Errorf("cannot prepare request (%s): %w", methodPath, err)
 	}
 
 	req = req.WithContext(ctx)
 	resp, err := c.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("cannot perform http request %s %s: %w", method, path, err)
+		return nil, fmt.Errorf("cannot perform http request (%s): %w", methodPath, err)
 	}
 	defer resp.Body.Close()
 
 	b, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, fmt.Errorf("cannot read response body %s %s: %w", method, path, err)
+		return nil, fmt.Errorf("cannot read response body (%s): %w", methodPath, err)
 	}
 
 	if resp.StatusCode != 200 {
@@ -124,10 +125,11 @@ func (c *Client) sendRequest(
 				return nil, err
 			}
 		}
+		errMsg := fmt.Sprintf("request (%s) failed with status code %d", methodPath, resp.StatusCode)
 		if len(b) > 0 {
-			return nil, fmt.Errorf("request failed with status code %d, body: %v", resp.StatusCode, b)
+			return nil, fmt.Errorf("%s, body: %s", errMsg, string(b))
 		}
-		return nil, fmt.Errorf("request failed with status code %d", resp.StatusCode)
+		return nil, errors.New(errMsg)
 	}
 
 	return b, nil
