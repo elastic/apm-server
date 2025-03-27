@@ -41,21 +41,21 @@ func runBasicUpgradeILMTest(
 	testCase := singleUpgradeTestCase{
 		fromVersion: fromVersion,
 		toVersion:   toVersion,
-		checkPreUpgradeAfterIngest: checkDatastreamWant{
+		checkPreUpgradeAfterIngest: checkDataStreamWant{
 			Quantity:         8,
 			PreferIlm:        true,
 			DSManagedBy:      managedByILM,
 			IndicesPerDs:     1,
 			IndicesManagedBy: []string{managedByILM},
 		},
-		checkPostUpgradeBeforeIngest: checkDatastreamWant{
+		checkPostUpgradeBeforeIngest: checkDataStreamWant{
 			Quantity:         8,
 			PreferIlm:        true,
 			DSManagedBy:      managedByILM,
 			IndicesPerDs:     1,
 			IndicesManagedBy: []string{managedByILM},
 		},
-		checkPostUpgradeAfterIngest: checkDatastreamWant{
+		checkPostUpgradeAfterIngest: checkDataStreamWant{
 			Quantity:         8,
 			PreferIlm:        true,
 			DSManagedBy:      managedByILM,
@@ -89,14 +89,14 @@ func runBasicUpgradeLazyRolloverDSLTest(
 	testCase := singleUpgradeTestCase{
 		fromVersion: fromVersion,
 		toVersion:   toVersion,
-		checkPreUpgradeAfterIngest: checkDatastreamWant{
+		checkPreUpgradeAfterIngest: checkDataStreamWant{
 			Quantity:         8,
 			PreferIlm:        false,
 			DSManagedBy:      managedByDSL,
 			IndicesPerDs:     1,
 			IndicesManagedBy: []string{managedByDSL},
 		},
-		checkPostUpgradeBeforeIngest: checkDatastreamWant{
+		checkPostUpgradeBeforeIngest: checkDataStreamWant{
 			Quantity:         8,
 			PreferIlm:        false,
 			DSManagedBy:      managedByDSL,
@@ -105,7 +105,7 @@ func runBasicUpgradeLazyRolloverDSLTest(
 		},
 		// Verify lazy rollover happened, i.e. 2 indices per data stream.
 		// Check data streams are managed by DSL.
-		checkPostUpgradeAfterIngest: checkDatastreamWant{
+		checkPostUpgradeAfterIngest: checkDataStreamWant{
 			Quantity:         8,
 			PreferIlm:        false,
 			DSManagedBy:      managedByDSL,

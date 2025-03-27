@@ -134,24 +134,24 @@ func (c *Client) GetDataStream(ctx context.Context, name string) ([]types.DataSt
 	return resp.DataStreams, nil
 }
 
-// ApmDocCount is used to unmarshal response from ES|QL query in ApmDocCount().
-type ApmDocCount struct {
+// DocCount is used to unmarshal response from ES|QL query in APMDocCount().
+type DocCount struct {
 	Count      int
-	Datastream string
+	DataStream string
 }
 
-// APMDataStreamsDocCount is an easy to assert on format reporting doc count for
-// APM data streams.
-type APMDataStreamsDocCount map[string]int
+// DataStreamsDocCount is an easy to assert on format reporting document count
+// for data streams.
+type DataStreamsDocCount map[string]int
 
-func (c *Client) ApmDocCount(ctx context.Context) (APMDataStreamsDocCount, error) {
+func (c *Client) APMDocCount(ctx context.Context) (DataStreamsDocCount, error) {
 	q := `FROM traces-apm*,apm-*,traces-*.otel-*,logs-apm*,apm-*,logs-*.otel-*,metrics-apm*,apm-*,metrics-*.otel-*
 | EVAL datastream = CONCAT(data_stream.type, "-", data_stream.dataset, "-", data_stream.namespace)
 | STATS count = COUNT(*) BY datastream
 | SORT count DESC`
 
 	qry := c.es.Esql.Query().Query(q)
-	resp, err := query.Helper[ApmDocCount](ctx, qry)
+	resp, err := query.Helper[DocCount](ctx, qry)
 	if err != nil {
 		var eserr *types.ElasticsearchError
 		// suppress this error as it only indicates no data is available yet.
@@ -160,15 +160,15 @@ line 1:1: Unknown index [traces-apm*,apm-*,traces-*.otel-*,logs-apm*,apm-*,logs-
 		if errors.As(err, &eserr) &&
 			eserr.ErrorCause.Reason != nil &&
 			*eserr.ErrorCause.Reason == expected {
-			return APMDataStreamsDocCount{}, nil
+			return DataStreamsDocCount{}, nil
 		}
 
-		return APMDataStreamsDocCount{}, fmt.Errorf("cannot retrieve APM doc count: %w", err)
+		return DataStreamsDocCount{}, fmt.Errorf("cannot retrieve APM doc count: %w", err)
 	}
 
-	res := APMDataStreamsDocCount{}
+	res := DataStreamsDocCount{}
 	for _, dc := range resp {
-		res[dc.Datastream] = dc.Count
+		res[dc.DataStream] = dc.Count
 	}
 
 	return res, nil
