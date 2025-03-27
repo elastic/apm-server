@@ -20,6 +20,14 @@ Known issues are significant defects or limitations that may impact your impleme
 
 :::
 
+:::{dropdown} Tail Sampling may not compact / expired TTLs as quickly as desired, causing increased storage usage.
+**Elastic Stack versions: 8.0.0+ < 9.0**
+There are some issues with the Tail Sampling implementation in versions 8.0.0+ < 9.0 that may cause the buffered traces to not be compacted or expired as quickly as desired. This can lead to increased storage usage for longer than the default 30m TTL.
+
+This may manifest in two ways, increased value log (vlog) file size and increased SST (LSM) file size. LSM growth and late compaction is particularly troublesome given how the underlying K/V database performs compactions on its layers. There is noticeable LSM growth for use-cases where traces are under 1KB in size, since they are written to the LSM layer directly.
+
+This issue is fixed in 9.0.0, due to a re-implementation of how the underlying tail sampling databases are used. The new implementation uses a more efficient partitioning scheme, allowing more efficient expiration of traces.
+
 :::{dropdown} prefer_ilm required in component templates to create custom lifecycle policies
 
 *Elastic Stack versions: 8.15.1+*
