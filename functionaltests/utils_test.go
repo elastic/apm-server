@@ -50,15 +50,22 @@ func terraformDir(t *testing.T) string {
 	return fmt.Sprintf("tf-%s", formattedTestName(t))
 }
 
-// copyTerraforms copies the static Terraform files to the Terraform directory for this test.
-// It will remove all existing files from the test Terraform directory if it exists, before copying into it.
-func copyTerraforms(t *testing.T) {
+// initTerraformRunner copies the static Terraform files to the Terraform directory for this test,
+// then initializes the Terraform runner in that directory.
+//
+// Note: This function will remove all existing files from the test Terraform directory if it exists,
+// before copying into it.
+func initTerraformRunner(t *testing.T) *terraform.Runner {
 	t.Helper()
 	dirName := terraformDir(t)
 	err := os.RemoveAll(dirName)
 	require.NoError(t, err)
 	err = os.CopyFS(terraformDir(t), os.DirFS("infra/terraform"))
 	require.NoError(t, err)
+
+	tf, err := terraform.New(t, dirName)
+	require.NoError(t, err)
+	return tf
 }
 
 type deploymentInfo struct {

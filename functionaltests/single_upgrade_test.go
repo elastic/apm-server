@@ -30,7 +30,6 @@ import (
 	"github.com/elastic/apm-server/functionaltests/internal/ecclient"
 	"github.com/elastic/apm-server/functionaltests/internal/esclient"
 	"github.com/elastic/apm-server/functionaltests/internal/kbclient"
-	"github.com/elastic/apm-server/functionaltests/internal/terraform"
 )
 
 type additionalFunc func(t *testing.T, ctx context.Context, esc *esclient.Client, kbc *kbclient.Client) error
@@ -87,9 +86,7 @@ func (tt singleUpgradeTestCase) Run(t *testing.T) {
 
 	start := time.Now()
 	ctx := context.Background()
-	copyTerraforms(t)
-	tf, err := terraform.New(t, terraformDir(t))
-	require.NoError(t, err)
+	tf := initTerraformRunner(t)
 
 	t.Log("------ cluster setup ------")
 	deployInfo := createCluster(t, ctx, tf, *target, tt.fromVersion, integrations)
