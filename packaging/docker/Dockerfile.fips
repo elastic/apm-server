@@ -5,15 +5,10 @@ ARG GOLANG_VERSION
 # Build the apm-server binary. The golang image version is kept
 # up to date with go.mod by Makefile.
 ################################################################################
-FROM docker.elastic.co/wolfi/go:${GOLANG_VERSION} as builder
+FROM docker.elastic.co/wolfi/go-msft-fips:${GOLANG_VERSION} as builder
 WORKDIR /src
-<<<<<<< HEAD
-COPY go.mod go.sum .go-version /src/
-RUN --mount=type=cache,target=/go/pkg/mod go mod download
-=======
 COPY go.mod go.sum /src/
 RUN --mount=type=cache,target=/root/go/pkg/mod go mod download
->>>>>>> f9042ae4 (fix: update go pkg cache path on wolfi based images (#16434))
 COPY Makefile *.mk /src/
 COPY cmd /src/cmd
 COPY internal /src/internal
@@ -23,7 +18,7 @@ COPY script /src/script
 
 RUN --mount=type=cache,target=/root/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
-    make apm-server
+    make apm-server-fips
 
 COPY apm-server.yml ./apm-server.yml
 COPY --chmod=0644 apm-server.yml ./apm-server.yml
@@ -34,7 +29,7 @@ RUN sed -i 's/localhost:9200/elasticsearch:9200/' apm-server.yml
 # Build stage 1
 # Copy prepared files from the previous stage and complete the image.
 ################################################################################
-FROM cgr.dev/chainguard/static:latest@sha256:561b669256bd2b5a8afed34614e8cb1b98e4e2f66d42ac7a8d80d317d8c8688a
+FROM docker.elastic.co/wolfi/chainguard-base-fips:latest@sha256:c4695048f587ee80fb5e06877be6007b9da49233ed2f2da8051384d23e52013c
 ARG TARGETARCH
 ARG BUILD_DATE
 ARG VERSION
@@ -81,11 +76,12 @@ ENV LIBBEAT_MONITORING_CGROUPS_HIERARCHY_OVERRIDE=/
 # running in Docker.
 ENV BEAT_STRICT_PERMS=false
 
-COPY --chmod=0644 --chown=nonroot:nonroot licenses/ELASTIC-LICENSE-2.0.txt NOTICE.txt /licenses/
+COPY --chmod=0644 --chown=nonroot:nonroot licenses/ELASTIC-LICENSE-2.0.txt /licenses/
+COPY --chmod=0644 --chown=nonroot:nonroot NOTICE-fips.txt /licenses/NOTICE.txt
 
 WORKDIR /usr/share/apm-server
-COPY --chmod=0755 --chown=nonroot:nonroot --from=builder /src/apm-server ./apm-server
+COPY --chmod=0755 --chown=nonroot:nonroot --from=builder /src/apm-server-fips ./apm-server-fips
 COPY --chmod=0644 --chown=nonroot:nonroot --from=builder /src/apm-server.yml ./apm-server.yml
 
 EXPOSE 8200
-ENTRYPOINT ["/usr/share/apm-server/apm-server", "--environment=container"]
+ENTRYPOINT ["/usr/share/apm-server/apm-server-fips", "--environment=container"]
